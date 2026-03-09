@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Set Review - chip-verification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Lora', Georgia, serif; background: #faf9f5; padding: 2rem; color: #141413; }
+    h1 { font-family: 'Poppins', sans-serif; margin-bottom: 0.5rem; font-size: 1.5rem; }
+    .description { color: #b0aea5; margin-bottom: 1.5rem; font-style: italic; max-width: 900px; }
+    .controls { margin-bottom: 1rem; display: flex; gap: 0.5rem; }
+    .btn { font-family: 'Poppins', sans-serif; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 500; }
+    .btn-add { background: #6a9bcc; color: white; }
+    .btn-add:hover { background: #5889b8; }
+    .btn-export { background: #d97757; color: white; }
+    .btn-export:hover { background: #c4613f; }
+    table { width: 100%; max-width: 1100px; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    th { font-family: 'Poppins', sans-serif; background: #141413; color: #faf9f5; padding: 0.75rem 1rem; text-align: left; font-size: 0.875rem; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid #e8e6dc; vertical-align: top; }
+    tr:nth-child(even) td { background: #faf9f5; }
+    tr:hover td { background: #f3f1ea; }
+    .section-header td { background: #e8e6dc; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 0.8rem; color: #141413; text-transform: uppercase; letter-spacing: 0.05em; }
+    .query-input { width: 100%; padding: 0.4rem; border: 1px solid #e8e6dc; border-radius: 4px; font-size: 0.875rem; font-family: 'Lora', Georgia, serif; resize: vertical; min-height: 60px; }
+    .query-input:focus { outline: none; border-color: #d97757; box-shadow: 0 0 0 2px rgba(217,119,87,0.15); }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider { position: absolute; inset: 0; background: #b0aea5; border-radius: 24px; cursor: pointer; transition: 0.2s; }
+    .toggle .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+    .toggle input:checked + .slider { background: #d97757; }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+    .btn-delete { background: #c44; color: white; padding: 0.3rem 0.6rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-family: 'Poppins', sans-serif; }
+    .btn-delete:hover { background: #a33; }
+    .summary { margin-top: 1rem; color: #b0aea5; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <h1>Eval Set Review: <span id="skill-name">chip-verification</span></h1>
+  <p class="description">Current description: <span id="skill-desc">RTL-UVM 통합 검증환경 skill. 듀얼탑 구조, RTL-TB 인터페이스, Reference Model, Scoreboard, AMS 검증환경, 회귀 테스트 전략</span></p>
+
+  <div class="controls">
+    <button class="btn btn-add" onclick="addRow()">+ Add Query</button>
+    <button class="btn btn-export" onclick="exportEvalSet()">Export Eval Set</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:65%">Query</th>
+        <th style="width:18%">Should Trigger</th>
+        <th style="width:10%">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="eval-body"></tbody>
+  </table>
+
+  <p class="summary" id="summary"></p>
+
+  <script>
+    const EVAL_DATA = [{"query": "PCM-to-COLA 변환기 칩 검증환경 만들어야 해. dual-top 구조로 hdl_top에 DUT랑 인터페이스 넣고, hvl_top에 UVM 환경 구성하는 방법", "should_trigger": true}, {"query": "RTL 포트 i_pcm_data, o_cola_out을 SystemVerilog interface로 변환하고 virtual interface로 UVM에 넘기는 방법", "should_trigger": true}, {"query": "reference model 작성하는데 RTL 사이클 분석 기반으로 expected output 계산하는 패턴 알려줘. predict() 함수 구현 방법", "should_trigger": true}, {"query": "scoreboard에서 uvm_analysis_imp 두 개 써서 DUT output이랑 ref model output 비교하는 Expected vs Actual 패턴 코드 보여줘", "should_trigger": true}, {"query": "AMS 검증환경에서 analog_top을 Behavioral SV 모델로 교체하고, 다음엔 Wreal 모델로 교체하는 워크플로우", "should_trigger": true}, {"query": "Spectre netlist 사용하는 mixed-signal testbench에서 connect module로 logic ↔ electrical 변환하는 방법", "should_trigger": true}, {"query": "RTL 변경 후 회귀 테스트 전략 세워줘. 어떤 테스트케이스를 먼저 돌리고 regression suite 어떻게 구성해?", "should_trigger": true}, {"query": "Verilog-AMS 시뮬레이션 환경 설정에서 mixed-signal testbench에 wreal 인터페이스 연결하는 방법", "should_trigger": true}, {"query": "dual-top 검증환경 장점이 뭐야? hdl_top만 합성하면 에뮬레이션도 된다는 게 무슨 의미?", "should_trigger": true}, {"query": "chip 검증에서 디버그 플로우가 궁금해. 시뮬레이션 FAIL 났을 때 scoreboard mismatch에서 RTL 버그까지 추적하는 방법", "should_trigger": true}, {"query": "iCEcube2 place & route 결과 PASS 났어. NVCM으로 프로그래밍하는 방법이랑 program.sh 옵션", "should_trigger": false}, {"query": "Verilog-A로 DAC 모델링할 때 digital input의 discrete 값을 analog output으로 transition() 써서 변환하는 방법", "should_trigger": false}, {"query": "UVM RAL에서 mirror_value랑 desired_value 차이가 뭐고 update() 언제 써?", "should_trigger": false}, {"query": "always_comb 블록에서 case문 쓸 때 default 없으면 latch 생기는 이유랑 방지 방법", "should_trigger": false}, {"query": "FSM 상태 인코딩 one-hot vs binary 선택 기준이랑 Verilog로 구현하는 패턴", "should_trigger": false}, {"query": "SV covergroup에서 functional coverage bins 정의하고 cross로 두 신호 조합 측정하는 방법", "should_trigger": false}, {"query": "nextpnr-ice40으로 iCE5LP4K place & route 할 때 --pcf 옵션으로 핀 제약 지정하는 방법", "should_trigger": false}, {"query": "Python으로 시뮬레이션 로그 파싱해서 UVM report catcher 출력 분석하는 스크립트", "should_trigger": false}, {"query": "UVM agent package 파일 구조 만들어줘. my_agent_pkg.sv에 include 순서 어떻게 해?", "should_trigger": false}, {"query": "iCE40 Ultra SB_I2C hard IP 쓸 때 PCF에서 SDA/SCL 핀 어떻게 할당해?", "should_trigger": false}];
+
+    let evalItems = [...EVAL_DATA];
+
+    function render() {
+      const tbody = document.getElementById('eval-body');
+      tbody.innerHTML = '';
+
+      // Sort: should-trigger first, then should-not-trigger
+      const sorted = evalItems
+        .map((item, origIdx) => ({ ...item, origIdx }))
+        .sort((a, b) => (b.should_trigger ? 1 : 0) - (a.should_trigger ? 1 : 0));
+
+      let lastGroup = null;
+      sorted.forEach(item => {
+        const group = item.should_trigger ? 'trigger' : 'no-trigger';
+        if (group !== lastGroup) {
+          const headerRow = document.createElement('tr');
+          headerRow.className = 'section-header';
+          headerRow.innerHTML = `<td colspan="3">${item.should_trigger ? 'Should Trigger' : 'Should NOT Trigger'}</td>`;
+          tbody.appendChild(headerRow);
+          lastGroup = group;
+        }
+
+        const idx = item.origIdx;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><textarea class="query-input" onchange="updateQuery(${idx}, this.value)">${escapeHtml(item.query)}</textarea></td>
+          <td>
+            <label class="toggle">
+              <input type="checkbox" ${item.should_trigger ? 'checked' : ''} onchange="updateTrigger(${idx}, this.checked)">
+              <span class="slider"></span>
+            </label>
+            <span style="margin-left:8px;font-size:0.8rem;color:#b0aea5">${item.should_trigger ? 'Yes' : 'No'}</span>
+          </td>
+          <td><button class="btn-delete" onclick="deleteRow(${idx})">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      updateSummary();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateQuery(idx, value) { evalItems[idx].query = value; updateSummary(); }
+    function updateTrigger(idx, value) { evalItems[idx].should_trigger = value; render(); }
+    function deleteRow(idx) { evalItems.splice(idx, 1); render(); }
+
+    function addRow() {
+      evalItems.push({ query: '', should_trigger: true });
+      render();
+      const inputs = document.querySelectorAll('.query-input');
+      inputs[inputs.length - 1].focus();
+    }
+
+    function updateSummary() {
+      const trigger = evalItems.filter(i => i.should_trigger).length;
+      const noTrigger = evalItems.filter(i => !i.should_trigger).length;
+      document.getElementById('summary').textContent =
+        `${evalItems.length} queries total: ${trigger} should trigger, ${noTrigger} should not trigger`;
+    }
+
+    function exportEvalSet() {
+      const valid = evalItems.filter(i => i.query.trim() !== '');
+      const data = valid.map(i => ({ query: i.query.trim(), should_trigger: i.should_trigger }));
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'eval_set.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    render();
+  </script>
+</body>
+</html>

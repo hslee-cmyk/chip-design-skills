@@ -1,0 +1,82 @@
+[
+  {
+    "query": "PCM-to-COLA 변환기 칩 검증환경 만들어야 해. dual-top 구조로 hdl_top에 DUT랑 인터페이스 넣고, hvl_top에 UVM 환경 구성하는 방법",
+    "should_trigger": true
+  },
+  {
+    "query": "RTL 포트 i_pcm_data, o_cola_out을 SystemVerilog interface로 변환하고 virtual interface로 UVM에 넘기는 방법",
+    "should_trigger": true
+  },
+  {
+    "query": "reference model 작성하는데 RTL 사이클 분석 기반으로 expected output 계산하는 패턴 알려줘. predict() 함수 구현 방법",
+    "should_trigger": true
+  },
+  {
+    "query": "scoreboard에서 uvm_analysis_imp 두 개 써서 DUT output이랑 ref model output 비교하는 Expected vs Actual 패턴 코드 보여줘",
+    "should_trigger": true
+  },
+  {
+    "query": "AMS 검증환경에서 analog_top을 Behavioral SV 모델로 교체하고, 다음엔 Wreal 모델로 교체하는 워크플로우",
+    "should_trigger": true
+  },
+  {
+    "query": "Spectre netlist 사용하는 mixed-signal testbench에서 connect module로 logic ↔ electrical 변환하는 방법",
+    "should_trigger": true
+  },
+  {
+    "query": "RTL 변경 후 회귀 테스트 전략 세워줘. 어떤 테스트케이스를 먼저 돌리고 regression suite 어떻게 구성해?",
+    "should_trigger": true
+  },
+  {
+    "query": "Verilog-AMS 시뮬레이션 환경 설정에서 mixed-signal testbench에 wreal 인터페이스 연결하는 방법",
+    "should_trigger": true
+  },
+  {
+    "query": "dual-top 검증환경 장점이 뭐야? hdl_top만 합성하면 에뮬레이션도 된다는 게 무슨 의미?",
+    "should_trigger": true
+  },
+  {
+    "query": "chip 검증에서 디버그 플로우가 궁금해. 시뮬레이션 FAIL 났을 때 scoreboard mismatch에서 RTL 버그까지 추적하는 방법",
+    "should_trigger": true
+  },
+  {
+    "query": "iCEcube2 place & route 결과 PASS 났어. NVCM으로 프로그래밍하는 방법이랑 program.sh 옵션",
+    "should_trigger": false
+  },
+  {
+    "query": "Verilog-A로 DAC 모델링할 때 digital input의 discrete 값을 analog output으로 transition() 써서 변환하는 방법",
+    "should_trigger": false
+  },
+  {
+    "query": "UVM RAL에서 mirror_value랑 desired_value 차이가 뭐고 update() 언제 써?",
+    "should_trigger": false
+  },
+  {
+    "query": "always_comb 블록에서 case문 쓸 때 default 없으면 latch 생기는 이유랑 방지 방법",
+    "should_trigger": false
+  },
+  {
+    "query": "FSM 상태 인코딩 one-hot vs binary 선택 기준이랑 Verilog로 구현하는 패턴",
+    "should_trigger": false
+  },
+  {
+    "query": "SV covergroup에서 functional coverage bins 정의하고 cross로 두 신호 조합 측정하는 방법",
+    "should_trigger": false
+  },
+  {
+    "query": "nextpnr-ice40으로 iCE5LP4K place & route 할 때 --pcf 옵션으로 핀 제약 지정하는 방법",
+    "should_trigger": false
+  },
+  {
+    "query": "Python으로 시뮬레이션 로그 파싱해서 UVM report catcher 출력 분석하는 스크립트",
+    "should_trigger": false
+  },
+  {
+    "query": "UVM agent package 파일 구조 만들어줘. my_agent_pkg.sv에 include 순서 어떻게 해?",
+    "should_trigger": false
+  },
+  {
+    "query": "iCE40 Ultra SB_I2C hard IP 쓸 때 PCF에서 SDA/SCL 핀 어떻게 할당해?",
+    "should_trigger": false
+  }
+]

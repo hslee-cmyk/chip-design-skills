@@ -1,0 +1,82 @@
+[
+  {
+    "query": "iCE40 FPGA용 UART 수신기 RTL 짜줘. 보드레이트 9600, 시스템클럭 12MHz. always_ff 써서 리셋 있는 레지스터랑 없는 거 분리해줘",
+    "should_trigger": true
+  },
+  {
+    "query": "이 코드에서 latch가 왜 생기는지 봐줘:\nalways_comb begin\n  if (i_sel)\n    c_out = i_a;\nend",
+    "should_trigger": true
+  },
+  {
+    "query": "FSM 상태가 12개야. one-hot이랑 binary 인코딩 중 어떤 거 써야 해? 코드 예시도 같이 보여줘",
+    "should_trigger": true
+  },
+  {
+    "query": "db/design/d_pcm/mdl/pcm_ctrl.v를 verilator --lint-only로 체크하고 싶은데 MSYS2 bash에서 어떻게 실행해?",
+    "should_trigger": true
+  },
+  {
+    "query": "48kHz 오디오 클럭 도메인에서 24MHz 시스템 클럭으로 1비트 frame_sync 펄스 넘기려는데 CDC 어떻게 처리해야 해?",
+    "should_trigger": true
+  },
+  {
+    "query": "parameter DATA_WIDTH = 8; localparam BUF_SIZE = (1 << DATA_WIDTH); wire [DATA_WIDTH-1:0] w_idx;\n이거 w_idx에 BUF_SIZE 값 들어가면 truncation 생겨?",
+    "should_trigger": true
+  },
+  {
+    "query": "SV로 I2C master의 functional coverage 짜줘. START/STOP 조건, ACK/NACK, byte count 0~255 커버리지 포함. bins는 명시적으로",
+    "should_trigger": true
+  },
+  {
+    "query": "always_ff @(posedge i_clk or negedge i_rst_n) 블록에서 r_ prefix 쓰는 신호랑 always_comb에서 c_ prefix 쓰는 신호 분리하는 패턴 설명해줘",
+    "should_trigger": true
+  },
+  {
+    "query": "RTL 코드 합성 문제 있나 리뷰해줘. clog2 계산해서 counter 폭 정했는데 맞는지 확인 부탁해:\nlocalparam CNT_W = $clog2(DEPTH);\nreg [CNT_W-1:0] r_cnt;",
+    "should_trigger": true
+  },
+  {
+    "query": "SVA로 AXI4 valid/ready handshake 체크하는 assertion 작성해줘. valid가 assert되면 ready 전까지 유지되어야 한다는 조건",
+    "should_trigger": true
+  },
+  {
+    "query": "UVM driver 클래스에서 seq_item_port.get_next_item()으로 트랜잭션 받아서 virtual interface로 DUT에 driving하는 run_phase 작성해줘",
+    "should_trigger": false
+  },
+  {
+    "query": "iCEcube2 타이밍 리포트 봤더니 24MHz 클럭이 Fmax 22.3MHz로 FAIL 났어. SDC constraint 어떻게 수정해야 해?",
+    "should_trigger": false
+  },
+  {
+    "query": "Verilog-A로 간단한 비교기 모델 만들려는데 히스테리시스 구현할 때 transition() 필터 어떻게 써?",
+    "should_trigger": false
+  },
+  {
+    "query": "UVM scoreboard 만들 때 write 함수에서 received queue에 넣고 expected랑 비교하는 로직 작성해줘. do_compare 직접 구현 방식으로",
+    "should_trigger": false
+  },
+  {
+    "query": "iCE40 Ultra iCE5LP4K에서 SB_IO primitive로 differential output 설정하는 방법과 PCF 핀 할당법",
+    "should_trigger": false
+  },
+  {
+    "query": "chip testbench 듀얼탑 구조에서 hdl_top.sv에 DUT 인스턴스랑 인터페이스 연결하는 방법 알려줘. reference model도 어디에 두는지",
+    "should_trigger": false
+  },
+  {
+    "query": "Python으로 Verilog 파일 파싱해서 module 이름이랑 포트 리스트 추출하는 스크립트 짜줘",
+    "should_trigger": false
+  },
+  {
+    "query": "Vivado에서 Zynq XDC constraint 파일 작성하는 방법이랑 타이밍 제약 설정법",
+    "should_trigger": false
+  },
+  {
+    "query": "Spectre에서 periodic steady-state (PSS) 시뮬레이션 돌리는 방법이랑 .spe 파일 구조",
+    "should_trigger": false
+  },
+  {
+    "query": "nextpnr-ice40으로 place & route 할 때 --seed 옵션으로 타이밍 개선하는 방법이랑 --pcf 옵션 차이",
+    "should_trigger": false
+  }
+]

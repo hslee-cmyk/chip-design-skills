@@ -1,0 +1,82 @@
+[
+  {
+    "query": "Verilog-A로 2단 CMOS 인버터 behavioral model 만들어줘. 입출력 electrical port, Vdd/Vss 포함. VTC curve 모델링 필요해",
+    "should_trigger": true
+  },
+  {
+    "query": "VA 파일에서 if-else로 출력을 급격하게 바꾸면 수렴 안 된다는데 왜 그래? 어떻게 고쳐야 해?",
+    "should_trigger": true
+  },
+  {
+    "query": "analog MUX 모델에서 SEL이 digital signal인데 V(out) <+로 바로 연결하면 왜 안 되고 transition() 써야 해?",
+    "should_trigger": true
+  },
+  {
+    "query": "Verilog-AMS에서 @(cross(V(in) - 0.5)) 이벤트 쓰면 시뮬레이션이 느려진다는데 대안이 뭐야?",
+    "should_trigger": true
+  },
+  {
+    "query": "Verilog-A OTA model에서 slew rate 제한 구현하려는데 slew() 함수 파라미터 어떻게 설정해? sr_pos랑 sr_neg 단위가 뭐야?",
+    "should_trigger": true
+  },
+  {
+    "query": "op-amp behavioral model에서 피드백 경로가 있을 때 V(out) contribution이 연속적이어야 한다는 게 무슨 의미야?",
+    "should_trigger": true
+  },
+  {
+    "query": ".va 파일에서 ddt()랑 idt() 언제 써? RC 필터 모델링하는데 어느 쪽이 맞아?",
+    "should_trigger": true
+  },
+  {
+    "query": "AMS mixed-signal 인터페이스에서 Verilog 디지털 신호를 Verilog-A analog port에 연결할 때 electrical discipline 어떻게 맞춰?",
+    "should_trigger": true
+  },
+  {
+    "query": "Verilog-A 수렴 문제 생겼어. Newton-Raphson iteration이 발산하는 것 같은데 piecewise-linear 특성 때문에 그런 건지 확인하고 수정하는 법",
+    "should_trigger": true
+  },
+  {
+    "query": "SPICE netlist에서 커패시터 behavioral model을 Verilog-A contribution statement로 바꾸는 방법. I(cap) <+ C * ddt(V(cap)) 이런 식으로?",
+    "should_trigger": true
+  },
+  {
+    "query": "Verilog-A로 Phase Locked Loop (PLL) high-level behavioral model 만들고 싶어. lock range, capture range 모델링 어떻게 해?",
+    "should_trigger": true
+  },
+  {
+    "query": "UVM RAL에서 레지스터 read/write 시퀀스 짜줘. uvm_reg_sequence 써서 indirect access 처리하는 방법",
+    "should_trigger": false
+  },
+  {
+    "query": "iCEcube2 Synplify 합성에서 hierarchy 유지하면서 area 최적화하는 TCL 스크립트",
+    "should_trigger": false
+  },
+  {
+    "query": "always_ff 블록에서 r_ prefix 신호에 non-blocking 할당하는 패턴이랑 reset policy 설명해줘",
+    "should_trigger": false
+  },
+  {
+    "query": "Spectre PSS 시뮬레이션에서 오실레이터 steady-state 찾는 방법. .spe netlist에서 pss 해석 설정",
+    "should_trigger": false
+  },
+  {
+    "query": "dual-top 검증환경에서 analog_top을 behavioral SV 모델로 교체하는 방법이랑 make sim ANALOG_MODEL=BEHAV 옵션",
+    "should_trigger": false
+  },
+  {
+    "query": "Python으로 SPICE .raw 파형 파일 파싱해서 matplotlib으로 그리는 스크립트",
+    "should_trigger": false
+  },
+  {
+    "query": "SV covergroup에서 bins 정의하고 cross coverage 측정하는 방법. UVM 없이 standalone으로",
+    "should_trigger": false
+  },
+  {
+    "query": "nextpnr-ice40 place & route 결과에서 타이밍 경로 분석하는 방법이랑 --report 옵션",
+    "should_trigger": false
+  },
+  {
+    "query": "iCE5LP4K NVCM 프로그래밍할 때 program.sh 스크립트 사용법이랑 주의사항",
+    "should_trigger": false
+  }
+]

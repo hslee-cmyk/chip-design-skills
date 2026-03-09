@@ -1,0 +1,82 @@
+[
+  {
+    "query": "venezia_test_fpga_top 빌드하고 싶어. db/scripts/build.sh 어떻게 실행해? iCEcube2랑 Yosys 중 어느 게 우선으로 실행돼?",
+    "should_trigger": true
+  },
+  {
+    "query": "iCE40 Ultra iCE5LP4K SB_HFOSC primitive로 내부 12MHz 오실레이터 설정하는 Verilog 코드랑 PCF 핀 할당 방법",
+    "should_trigger": true
+  },
+  {
+    "query": "iCEcube2 타이밍 리포트 봤는데 24MHz 클럭 Fmax가 21.8MHz로 FAIL. SDC에서 create_clock period 어떻게 맞춰야 해?",
+    "should_trigger": true
+  },
+  {
+    "query": "Yosys + nextpnr-ice40으로 iCE5LP4K 빌드하는 방법. --package와 --device 옵션 뭐 써야 해?",
+    "should_trigger": true
+  },
+  {
+    "query": "iCE40 Ultra SB_IO_OD를 open-drain 출력으로 설정하는 방법이랑 PCF pin constraint 작성법",
+    "should_trigger": true
+  },
+  {
+    "query": "NVCM으로 프로그래밍하고 싶은데 program.sh에서 SPI Flash랑 NVCM 모드 어떻게 선택해?",
+    "should_trigger": true
+  },
+  {
+    "query": "Reveal 로직 분석기로 SPI 신호 캡처하려는데 iCEcube2에서 Reveal 프로브 어떻게 설정해?",
+    "should_trigger": true
+  },
+  {
+    "query": "iCEcube2 Synplify Pro .prj 파일에 새 RTL 소스 추가하는 방법이랑 db/design Git submodule 경로 설정",
+    "should_trigger": true
+  },
+  {
+    "query": "iceprog으로 SPI Flash 프로그래밍할 때 -d 옵션으로 장치 지정하는 방법. Windows에서 드라이버 설정도 필요한가?",
+    "should_trigger": true
+  },
+  {
+    "query": "iCE40 Ultra EBR(Embedded Block RAM) 사용하는 방법이랑 Lattice IP 추가 절차",
+    "should_trigger": true
+  },
+  {
+    "query": "UVM agent 클래스에서 uvm_sequencer #(my_seq_item) 선언하고 driver/monitor 연결하는 build_phase 코드",
+    "should_trigger": false
+  },
+  {
+    "query": "Verilog-A op-amp 모델에서 gain-bandwidth product 모델링하는 방법. idt()로 dominant pole 구현",
+    "should_trigger": false
+  },
+  {
+    "query": "always_ff 블록에서 비동기 리셋 패턴이랑 sensitivity list에 negedge i_rst_n 넣는 이유",
+    "should_trigger": false
+  },
+  {
+    "query": "Vivado에서 Artix-7 FPGA에 AXI4 IP 추가하고 XDC constraint 작성하는 방법",
+    "should_trigger": false
+  },
+  {
+    "query": "UVM RAL register model 만들 때 uvm_reg_block에 레지스터 추가하고 adapter 연결하는 방법",
+    "should_trigger": false
+  },
+  {
+    "query": "chip testbench dual-top에서 hdl_top.sv랑 hvl_top.sv 구분해서 DUT 연결하는 방법",
+    "should_trigger": false
+  },
+  {
+    "query": "Python으로 bitstream 파일 헤더 파싱해서 설정 비트 분석하는 스크립트 (iCE40 .bin 형식)",
+    "should_trigger": false
+  },
+  {
+    "query": "Verilog-A로 bandgap reference 회로 behavioral model 작성. 온도 계수 모델링 포함",
+    "should_trigger": false
+  },
+  {
+    "query": "SV covergroup으로 FSM 상태 전이 커버리지 측정하는 방법. UVM 없이 standalone으로",
+    "should_trigger": false
+  },
+  {
+    "query": "Intel Quartus Prime에서 MAX10 FPGA 프로젝트 생성하고 .qsf 설정 파일 작성하는 방법",
+    "should_trigger": false
+  }
+]

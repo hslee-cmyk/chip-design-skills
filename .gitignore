@@ -1,0 +1,9 @@
+# Workspace development artifacts
+workspaces/*/run_loop.log
+workspaces/*/eval_review.html
+workspaces/*/launch_all.py
+
+# Logs
+*.log
+*.log.bak
+stdout.log*

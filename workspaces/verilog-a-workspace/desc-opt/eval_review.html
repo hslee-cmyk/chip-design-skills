@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Set Review - verilog-a</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Lora', Georgia, serif; background: #faf9f5; padding: 2rem; color: #141413; }
+    h1 { font-family: 'Poppins', sans-serif; margin-bottom: 0.5rem; font-size: 1.5rem; }
+    .description { color: #b0aea5; margin-bottom: 1.5rem; font-style: italic; max-width: 900px; }
+    .controls { margin-bottom: 1rem; display: flex; gap: 0.5rem; }
+    .btn { font-family: 'Poppins', sans-serif; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 500; }
+    .btn-add { background: #6a9bcc; color: white; }
+    .btn-add:hover { background: #5889b8; }
+    .btn-export { background: #d97757; color: white; }
+    .btn-export:hover { background: #c4613f; }
+    table { width: 100%; max-width: 1100px; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    th { font-family: 'Poppins', sans-serif; background: #141413; color: #faf9f5; padding: 0.75rem 1rem; text-align: left; font-size: 0.875rem; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid #e8e6dc; vertical-align: top; }
+    tr:nth-child(even) td { background: #faf9f5; }
+    tr:hover td { background: #f3f1ea; }
+    .section-header td { background: #e8e6dc; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 0.8rem; color: #141413; text-transform: uppercase; letter-spacing: 0.05em; }
+    .query-input { width: 100%; padding: 0.4rem; border: 1px solid #e8e6dc; border-radius: 4px; font-size: 0.875rem; font-family: 'Lora', Georgia, serif; resize: vertical; min-height: 60px; }
+    .query-input:focus { outline: none; border-color: #d97757; box-shadow: 0 0 0 2px rgba(217,119,87,0.15); }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider { position: absolute; inset: 0; background: #b0aea5; border-radius: 24px; cursor: pointer; transition: 0.2s; }
+    .toggle .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+    .toggle input:checked + .slider { background: #d97757; }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+    .btn-delete { background: #c44; color: white; padding: 0.3rem 0.6rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-family: 'Poppins', sans-serif; }
+    .btn-delete:hover { background: #a33; }
+    .summary { margin-top: 1rem; color: #b0aea5; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <h1>Eval Set Review: <span id="skill-name">verilog-a</span></h1>
+  <p class="description">Current description: <span id="skill-desc">Verilog-A 아날로그 behavioral 모델링 skill. 수렴 최적화, transition 필터, 피드백 시스템, Mixed-signal 인터페이스</span></p>
+
+  <div class="controls">
+    <button class="btn btn-add" onclick="addRow()">+ Add Query</button>
+    <button class="btn btn-export" onclick="exportEvalSet()">Export Eval Set</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:65%">Query</th>
+        <th style="width:18%">Should Trigger</th>
+        <th style="width:10%">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="eval-body"></tbody>
+  </table>
+
+  <p class="summary" id="summary"></p>
+
+  <script>
+    const EVAL_DATA = [{"query": "Verilog-A로 2단 CMOS 인버터 behavioral model 만들어줘. 입출력 electrical port, Vdd/Vss 포함. VTC curve 모델링 필요해", "should_trigger": true}, {"query": "VA 파일에서 if-else로 출력을 급격하게 바꾸면 수렴 안 된다는데 왜 그래? 어떻게 고쳐야 해?", "should_trigger": true}, {"query": "analog MUX 모델에서 SEL이 digital signal인데 V(out) <+로 바로 연결하면 왜 안 되고 transition() 써야 해?", "should_trigger": true}, {"query": "Verilog-AMS에서 @(cross(V(in) - 0.5)) 이벤트 쓰면 시뮬레이션이 느려진다는데 대안이 뭐야?", "should_trigger": true}, {"query": "Verilog-A OTA model에서 slew rate 제한 구현하려는데 slew() 함수 파라미터 어떻게 설정해? sr_pos랑 sr_neg 단위가 뭐야?", "should_trigger": true}, {"query": "op-amp behavioral model에서 피드백 경로가 있을 때 V(out) contribution이 연속적이어야 한다는 게 무슨 의미야?", "should_trigger": true}, {"query": ".va 파일에서 ddt()랑 idt() 언제 써? RC 필터 모델링하는데 어느 쪽이 맞아?", "should_trigger": true}, {"query": "AMS mixed-signal 인터페이스에서 Verilog 디지털 신호를 Verilog-A analog port에 연결할 때 electrical discipline 어떻게 맞춰?", "should_trigger": true}, {"query": "Verilog-A 수렴 문제 생겼어. Newton-Raphson iteration이 발산하는 것 같은데 piecewise-linear 특성 때문에 그런 건지 확인하고 수정하는 법", "should_trigger": true}, {"query": "SPICE netlist에서 커패시터 behavioral model을 Verilog-A contribution statement로 바꾸는 방법. I(cap) <+ C * ddt(V(cap)) 이런 식으로?", "should_trigger": true}, {"query": "Verilog-A로 Phase Locked Loop (PLL) high-level behavioral model 만들고 싶어. lock range, capture range 모델링 어떻게 해?", "should_trigger": true}, {"query": "UVM RAL에서 레지스터 read/write 시퀀스 짜줘. uvm_reg_sequence 써서 indirect access 처리하는 방법", "should_trigger": false}, {"query": "iCEcube2 Synplify 합성에서 hierarchy 유지하면서 area 최적화하는 TCL 스크립트", "should_trigger": false}, {"query": "always_ff 블록에서 r_ prefix 신호에 non-blocking 할당하는 패턴이랑 reset policy 설명해줘", "should_trigger": false}, {"query": "Spectre PSS 시뮬레이션에서 오실레이터 steady-state 찾는 방법. .spe netlist에서 pss 해석 설정", "should_trigger": false}, {"query": "dual-top 검증환경에서 analog_top을 behavioral SV 모델로 교체하는 방법이랑 make sim ANALOG_MODEL=BEHAV 옵션", "should_trigger": false}, {"query": "Python으로 SPICE .raw 파형 파일 파싱해서 matplotlib으로 그리는 스크립트", "should_trigger": false}, {"query": "SV covergroup에서 bins 정의하고 cross coverage 측정하는 방법. UVM 없이 standalone으로", "should_trigger": false}, {"query": "nextpnr-ice40 place & route 결과에서 타이밍 경로 분석하는 방법이랑 --report 옵션", "should_trigger": false}, {"query": "iCE5LP4K NVCM 프로그래밍할 때 program.sh 스크립트 사용법이랑 주의사항", "should_trigger": false}];
+
+    let evalItems = [...EVAL_DATA];
+
+    function render() {
+      const tbody = document.getElementById('eval-body');
+      tbody.innerHTML = '';
+
+      // Sort: should-trigger first, then should-not-trigger
+      const sorted = evalItems
+        .map((item, origIdx) => ({ ...item, origIdx }))
+        .sort((a, b) => (b.should_trigger ? 1 : 0) - (a.should_trigger ? 1 : 0));
+
+      let lastGroup = null;
+      sorted.forEach(item => {
+        const group = item.should_trigger ? 'trigger' : 'no-trigger';
+        if (group !== lastGroup) {
+          const headerRow = document.createElement('tr');
+          headerRow.className = 'section-header';
+          headerRow.innerHTML = `<td colspan="3">${item.should_trigger ? 'Should Trigger' : 'Should NOT Trigger'}</td>`;
+          tbody.appendChild(headerRow);
+          lastGroup = group;
+        }
+
+        const idx = item.origIdx;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><textarea class="query-input" onchange="updateQuery(${idx}, this.value)">${escapeHtml(item.query)}</textarea></td>
+          <td>
+            <label class="toggle">
+              <input type="checkbox" ${item.should_trigger ? 'checked' : ''} onchange="updateTrigger(${idx}, this.checked)">
+              <span class="slider"></span>
+            </label>
+            <span style="margin-left:8px;font-size:0.8rem;color:#b0aea5">${item.should_trigger ? 'Yes' : 'No'}</span>
+          </td>
+          <td><button class="btn-delete" onclick="deleteRow(${idx})">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      updateSummary();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateQuery(idx, value) { evalItems[idx].query = value; updateSummary(); }
+    function updateTrigger(idx, value) { evalItems[idx].should_trigger = value; render(); }
+    function deleteRow(idx) { evalItems.splice(idx, 1); render(); }
+
+    function addRow() {
+      evalItems.push({ query: '', should_trigger: true });
+      render();
+      const inputs = document.querySelectorAll('.query-input');
+      inputs[inputs.length - 1].focus();
+    }
+
+    function updateSummary() {
+      const trigger = evalItems.filter(i => i.should_trigger).length;
+      const noTrigger = evalItems.filter(i => !i.should_trigger).length;
+      document.getElementById('summary').textContent =
+        `${evalItems.length} queries total: ${trigger} should trigger, ${noTrigger} should not trigger`;
+    }
+
+    function exportEvalSet() {
+      const valid = evalItems.filter(i => i.query.trim() !== '');
+      const data = valid.map(i => ({ query: i.query.trim(), should_trigger: i.should_trigger }));
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'eval_set.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    render();
+  </script>
+</body>
+</html>

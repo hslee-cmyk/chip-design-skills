@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eval Set Review - uvm-verification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600&family=Lora:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Lora', Georgia, serif; background: #faf9f5; padding: 2rem; color: #141413; }
+    h1 { font-family: 'Poppins', sans-serif; margin-bottom: 0.5rem; font-size: 1.5rem; }
+    .description { color: #b0aea5; margin-bottom: 1.5rem; font-style: italic; max-width: 900px; }
+    .controls { margin-bottom: 1rem; display: flex; gap: 0.5rem; }
+    .btn { font-family: 'Poppins', sans-serif; padding: 0.5rem 1rem; border: none; border-radius: 6px; cursor: pointer; font-size: 0.875rem; font-weight: 500; }
+    .btn-add { background: #6a9bcc; color: white; }
+    .btn-add:hover { background: #5889b8; }
+    .btn-export { background: #d97757; color: white; }
+    .btn-export:hover { background: #c4613f; }
+    table { width: 100%; max-width: 1100px; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+    th { font-family: 'Poppins', sans-serif; background: #141413; color: #faf9f5; padding: 0.75rem 1rem; text-align: left; font-size: 0.875rem; }
+    td { padding: 0.75rem 1rem; border-bottom: 1px solid #e8e6dc; vertical-align: top; }
+    tr:nth-child(even) td { background: #faf9f5; }
+    tr:hover td { background: #f3f1ea; }
+    .section-header td { background: #e8e6dc; font-family: 'Poppins', sans-serif; font-weight: 500; font-size: 0.8rem; color: #141413; text-transform: uppercase; letter-spacing: 0.05em; }
+    .query-input { width: 100%; padding: 0.4rem; border: 1px solid #e8e6dc; border-radius: 4px; font-size: 0.875rem; font-family: 'Lora', Georgia, serif; resize: vertical; min-height: 60px; }
+    .query-input:focus { outline: none; border-color: #d97757; box-shadow: 0 0 0 2px rgba(217,119,87,0.15); }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle .slider { position: absolute; inset: 0; background: #b0aea5; border-radius: 24px; cursor: pointer; transition: 0.2s; }
+    .toggle .slider::before { content: ""; position: absolute; width: 18px; height: 18px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: 0.2s; }
+    .toggle input:checked + .slider { background: #d97757; }
+    .toggle input:checked + .slider::before { transform: translateX(20px); }
+    .btn-delete { background: #c44; color: white; padding: 0.3rem 0.6rem; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-family: 'Poppins', sans-serif; }
+    .btn-delete:hover { background: #a33; }
+    .summary { margin-top: 1rem; color: #b0aea5; font-size: 0.875rem; }
+  </style>
+</head>
+<body>
+  <h1>Eval Set Review: <span id="skill-name">uvm-verification</span></h1>
+  <p class="description">Current description: <span id="skill-desc">UVM 검증환경 설계 skill. agent/env/test 계층, driver/monitor/sequencer, RAL, Factory/Config DB, Coverage, Package Organization</span></p>
+
+  <div class="controls">
+    <button class="btn btn-add" onclick="addRow()">+ Add Query</button>
+    <button class="btn btn-export" onclick="exportEvalSet()">Export Eval Set</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:65%">Query</th>
+        <th style="width:18%">Should Trigger</th>
+        <th style="width:10%">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="eval-body"></tbody>
+  </table>
+
+  <p class="summary" id="summary"></p>
+
+  <script>
+    const EVAL_DATA = [{"query": "SPI master UVM agent 만들어줘. seq_item에 cmd/data 필드, driver에서 virtual interface로 SCK/MOSI/CS 구동, monitor가 MISO 캡처하는 구조", "should_trigger": true}, {"query": "UVM scoreboard 작성할 때 uvm_field_* 매크로 대신 do_copy, do_compare, convert2string 직접 구현하는 방법 알려줘", "should_trigger": true}, {"query": "uvm_config_db#(virtual my_if)::set()으로 interface 넘기는데 get() 실패해서 null pointer 에러 나. 원인이 뭐야?", "should_trigger": true}, {"query": "virtual sequence로 여러 agent를 동시에 제어하는 방법. p_sequencer로 각 agent sequencer 접근하는 코드 보여줘", "should_trigger": true}, {"query": "RAL로 SPI_CTRL 레지스터 read/write하는 UVM test 짜줘. explicit prediction 방식으로 set_auto_predict(0) 사용", "should_trigger": true}, {"query": "UVM factory override로 base_test를 extended_test로 교체하는 방법. run_test() 이전에 override 설정", "should_trigger": true}, {"query": "uvm_subscriber로 functional coverage 수집하는 방법. write() 함수에서 covergroup 샘플링하는 패턴", "should_trigger": true}, {"query": "UVM testplan XML 작성하고 coverage closure 어떻게 추적해? hole analysis 후 stimulus 추가하는 전략", "should_trigger": true}, {"query": "reactive slave agent 만들어줘. bus transaction 들어오면 응답하는 get_put 포트 패턴으로. master agent랑 구분", "should_trigger": true}, {"query": "Package organization 1class=1file 규칙으로 UVM agent 파일 구조 만들어줘. include/import 순서도 포함해서", "should_trigger": true}, {"query": "Integration-level testbench에서 2개 서브시스템을 vertical reuse로 통합하는 config 중첩 방법. add_submap으로 레지스터 맵 합치기", "should_trigger": true}, {"query": "iCEcube2에서 Synplify Pro TCL 스크립트로 합성하고 타이밍 리포트 생성하는 방법", "should_trigger": false}, {"query": "Verilog-A로 sigma-delta ADC behavioral model 만들려는데 quantizer 모델링할 때 transition() 어떻게 적용해?", "should_trigger": false}, {"query": "dual-top 검증환경에서 analog_top을 SV real-number Wreal 모델로 교체하는 방법이랑 connect module 작성법", "should_trigger": false}, {"query": "iCE40 iCE5LP4K에 SB_SPI 하드 IP 사용해서 SPI master 기능 구현하는 방법이랑 PCF 설정", "should_trigger": false}, {"query": "FSM 합성할 때 one-hot 인코딩으로 latch 없이 always_comb로 next state logic 작성하는 패턴", "should_trigger": false}, {"query": "Python으로 UVM 로그 파일 파싱해서 error/warning count 추출하는 스크립트", "should_trigger": false}, {"query": "SystemVerilog에서 covergroup cross coverage로 address × operation_type 조합 측정. ignore_bins로 불가능한 조합 제거", "should_trigger": false}, {"query": "Verilog-AMS mixed-signal 시뮬레이션에서 connect module로 logic-to-electrical 변환하는 방법", "should_trigger": false}, {"query": "Quartus Prime에서 Nios II soft processor 포함된 FPGA 설계 검증하는 방법", "should_trigger": false}];
+
+    let evalItems = [...EVAL_DATA];
+
+    function render() {
+      const tbody = document.getElementById('eval-body');
+      tbody.innerHTML = '';
+
+      // Sort: should-trigger first, then should-not-trigger
+      const sorted = evalItems
+        .map((item, origIdx) => ({ ...item, origIdx }))
+        .sort((a, b) => (b.should_trigger ? 1 : 0) - (a.should_trigger ? 1 : 0));
+
+      let lastGroup = null;
+      sorted.forEach(item => {
+        const group = item.should_trigger ? 'trigger' : 'no-trigger';
+        if (group !== lastGroup) {
+          const headerRow = document.createElement('tr');
+          headerRow.className = 'section-header';
+          headerRow.innerHTML = `<td colspan="3">${item.should_trigger ? 'Should Trigger' : 'Should NOT Trigger'}</td>`;
+          tbody.appendChild(headerRow);
+          lastGroup = group;
+        }
+
+        const idx = item.origIdx;
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><textarea class="query-input" onchange="updateQuery(${idx}, this.value)">${escapeHtml(item.query)}</textarea></td>
+          <td>
+            <label class="toggle">
+              <input type="checkbox" ${item.should_trigger ? 'checked' : ''} onchange="updateTrigger(${idx}, this.checked)">
+              <span class="slider"></span>
+            </label>
+            <span style="margin-left:8px;font-size:0.8rem;color:#b0aea5">${item.should_trigger ? 'Yes' : 'No'}</span>
+          </td>
+          <td><button class="btn-delete" onclick="deleteRow(${idx})">Delete</button></td>
+        `;
+        tbody.appendChild(tr);
+      });
+      updateSummary();
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function updateQuery(idx, value) { evalItems[idx].query = value; updateSummary(); }
+    function updateTrigger(idx, value) { evalItems[idx].should_trigger = value; render(); }
+    function deleteRow(idx) { evalItems.splice(idx, 1); render(); }
+
+    function addRow() {
+      evalItems.push({ query: '', should_trigger: true });
+      render();
+      const inputs = document.querySelectorAll('.query-input');
+      inputs[inputs.length - 1].focus();
+    }
+
+    function updateSummary() {
+      const trigger = evalItems.filter(i => i.should_trigger).length;
+      const noTrigger = evalItems.filter(i => !i.should_trigger).length;
+      document.getElementById('summary').textContent =
+        `${evalItems.length} queries total: ${trigger} should trigger, ${noTrigger} should not trigger`;
+    }
+
+    function exportEvalSet() {
+      const valid = evalItems.filter(i => i.query.trim() !== '');
+      const data = valid.map(i => ({ query: i.query.trim(), should_trigger: i.should_trigger }));
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'eval_set.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    render();
+  </script>
+</body>
+</html>
