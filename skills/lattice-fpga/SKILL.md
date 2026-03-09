@@ -12,7 +12,7 @@ description: |
   (6) FPGA vs ASIC 차이 - 합성 최적화, 리소스 고려
   (7) Git submodule 연계 - RTL 공유, UVM 검증 연동
   트리거: Lattice, iCEcube2, Radiant, Diamond, FPGA, iCE40, iCE5LP, Nexus, Certus, ECP5, MachXO, Reveal, .pcf, .pdc, .lpf, SB_IO,
-    Yosys, nextpnr, icestorm, Synplify, NVCM, bitstream, SPI Flash, place and route, P&R, iCEBurn, iceprog
+    Yosys, nextpnr, icestorm, Synplify, NVCM, bitstream, SPI Flash, place and route, P&R
 ---
 
 # Lattice FPGA Synthesis & Implementation Skill
@@ -39,6 +39,11 @@ fpga_project/                   # FPGA 프로젝트 루트 (Windows)
 │   │
 │   ├── top/                    # FPGA 전용 탑 모듈
 │   │   └── *_fpga_top.v        #   SB_HFOSC, SB_IO 등 하드 IP 인스턴스
+│   │
+│   ├── ip/                     # Lattice IP 코어 (IPExpress 생성)
+│   │   ├── *.v                 #   생성된 IP Verilog (PLL, EBR, FIFO, ...)
+│   │   ├── *_inst.v            #   인스턴스화 템플릿
+│   │   └── *.lpc               #   IP 설정 파일 (IPExpress 재편집용)
 │   │
 │   ├── sdc/                    # 제약 파일
 │   │   ├── *_io.pcf            #   핀 할당 (.pcf)
@@ -142,7 +147,6 @@ NVCM 내장             -                     내장 Flash           내장 Flas
 - `references/reveal-debug.md` - Reveal 디버거 사용법
 - `references/fpga-vs-asic.md` - FPGA/ASIC 공통 RTL 작성법
 - `references/tcl-scripts.md` - iCEcube2/Radiant/Diamond TCL 자동화
-- `references/consistency-map.md` - 일관성 맵
 
 ## Cross-Skill 참조
 

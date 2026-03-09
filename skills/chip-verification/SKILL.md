@@ -1,7 +1,11 @@
 ---
 name: chip-verification
 description: |
-  RTL-UVM 통합 검증환경 skill. Digital 및 Mixed-Signal 모두 지원. 다음 상황에서 사용:
+  RTL-UVM 통합 검증환경 skill. DUT-TB 연결(듀얼탑 구조)과 시스템 레벨 검증 구성에 특화.
+  Digital 및 Mixed-Signal(AMS) 모두 지원.
+  UVM 컴포넌트 내부 구현보다 "DUT를 어떻게 TB에 연결하고 시스템 전체를 검증할지"가
+  핵심인 작업이라면 반드시 이 스킬을 사용. (개별 UVM 컴포넌트 구현은 uvm-verification 사용)
+  다음 상황에서 사용:
   (1) 듀얼탑 구조 설계 - hdl_top(DUT+Interface) + hvl_top(UVM) 분리
   (2) RTL-TB 인터페이스 - DUT 포트 → Interface → Virtual Interface 연결
   (3) Reference Model - RTL 사이클 분석 기반 예측 모델 작성
@@ -9,12 +13,10 @@ description: |
   (5) 아날로그 모델 교체 - Behavioral/Wreal/Spectre 선택 (AMS 프로젝트)
   (6) Connect Module - Spectre 연결 시 logic ↔ electrical 변환 (AMS)
   (7) 회귀 테스트 전략 - RTL 변경 시 검증 전략
-  RTL-UVM 통합 검증환경 작업이라면 반드시 이 스킬을 사용.
-  트리거: testbench, 듀얼탑, dual-top, DUT 연결, reference model, scoreboard,
-    AMS 검증환경, mixed-signal testbench, Verilog-AMS 시뮬레이션, Spectre, wreal, connect module,
-    regression, 회귀 테스트
+  트리거: 듀얼탑, dual-top, hdl_top, hvl_top, DUT 연결, interface 연결,
+    reference model, scoreboard 설계, AMS 검증환경, mixed-signal testbench,
+    Verilog-AMS 시뮬레이션, Spectre, wreal, connect module, regression, 회귀 테스트
 ---
-<!-- Structure: procedural workflow guide. No rule duplication zones. See consistency-map.md -->
 
 # Chip Verification Skill
 
@@ -147,9 +149,6 @@ A4. Spectre 연결       → references/spectre-integration.md
 - `references/connect-modules.md` - logic ↔ electrical 변환
 - `references/wreal-modeling.md` - Real-number 모델링
 - `references/spectre-integration.md` - Spectre 설정
-
-### 관리
-- `references/consistency-map.md` - 일관성 맵
 
 ### 템플릿
 - `assets/tb-template/` - 듀얼탑 테스트벤치 템플릿

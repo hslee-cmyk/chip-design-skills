@@ -18,6 +18,16 @@ CUSTOM_SKILLS = [
     "chip-verification",
 ]
 
+# Files used for internal validation/management — excluded from distribution
+EXCLUDE_FILES = {
+    "skill-validation-prompt.md",
+    "consistency-map.md",
+}
+
+
+def _ignore(directory, contents):
+    return {name for name in contents if name in EXCLUDE_FILES}
+
 
 def install(dry_run: bool = False):
     if not SKILLS_DIR.exists():
@@ -41,7 +51,7 @@ def install(dry_run: bool = False):
                 action = "Updated"
             else:
                 action = "Installed"
-            shutil.copytree(src, dest)
+            shutil.copytree(src, dest, ignore=_ignore)
             print(f"{action}: {skill_name}")
 
     if dry_run:

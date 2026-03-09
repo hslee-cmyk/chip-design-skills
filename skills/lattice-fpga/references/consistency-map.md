@@ -43,6 +43,7 @@ SKILL.md 원칙 수정 시:
 
 ## 변경 이력
 
+- 2026-03-09 (11차): device-guide LUT 수치 통일 — 5K→5.3K(iCE40UP), 7K→6.9K(MachXO2) (SKILL.md 기준 정밀 반올림으로 통일, 6-Check 검증에서 발견)
 - 2026-03-05 (10차): 클럭 모듈 flatten 규칙 추가 — fpga-vs-asic(합성 시 모듈 Flatten 규칙), consistency-map(원칙 항목 추가)
 - 2026-03-04 (9차): 오픈소스 빌드 정보 동기화 — device-guide(up5k→u4k, swg36→sg48+pre-pack), consistency-map(device-guide 반영 위치 추가)
 - 2026-03-04 (8차): Reveal #4→#5 번호 누락 수정 (재검증 FAIL 보완)

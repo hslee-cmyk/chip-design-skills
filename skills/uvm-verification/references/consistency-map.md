@@ -17,7 +17,7 @@ SKILL.md 원칙 수정 시:
 | 컴포넌트 등록 (`uvm_component_utils`) | 필수 코딩 패턴 | component-templates > 모든 class |
 | 트랜잭션 등록 (`uvm_object_utils`) | 필수 코딩 패턴 | component-templates > Transaction |
 | 트랜잭션 필수 메서드 (do_copy/compare/convert2string) | - | component-templates > Transaction |
-| Config DB set/get 패턴 | Config DB 사용 | component-templates > Driver, debug-guide > Config DB, testbench-architecture §6 |
+| Config DB set/get 패턴 | 필수 코딩 패턴 (인라인 언급) | component-templates > Driver, debug-guide > Config DB, testbench-architecture §6 |
 | Active/Passive Agent | - | component-templates > Agent |
 | TLM 포트 연결 | - | component-templates > Agent connect_phase, debug-guide > TLM |
 | uvm_field_* 금지 | 핵심 원칙 테이블 | component-templates > Transaction, testbench-architecture §9 |
@@ -92,6 +92,7 @@ SKILL.md 원칙 수정 시:
 ## 변경 이력
 
 - 2026-02-09 (12차): context 최적화 — coverage-guide.md SV 중복 제거, cross-skill coverage→verilog-rtl 재배치, stale "coverage skill" 참조 3건 수정 (SKILL.md, ral-guide, debug-guide)
+- 2026-03-09 (14차): Config DB 섹션명 정정 — "Config DB 사용" → "필수 코딩 패턴 (인라인 언급)" (6-Check 검증에서 발견)
 - 2026-02-20 (13차): 6-Check 체계 전환 — "5-Check"→"6-Check" 표기 갱신, top-down/bottom-up 반영위치에서 testbench-architecture §6 제거 (명시적 미등장)
 - 2026-02-09 (11차): VA Coverage 웹페이지 분석 — 신규 원칙 3개 추가 (External Coverage Monitor, Covergroup Factory Override, Register Coverage 제어 API)
 - 2026-02-09 (10차): VA UVM Basics 11페이지 분석 — 신규 원칙 4개 추가 (Monitor Copy-on-Write, 추가 Phase, Run-Time Sub-Phases, Config DB 우선순위)

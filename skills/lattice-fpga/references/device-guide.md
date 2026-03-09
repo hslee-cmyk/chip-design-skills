@@ -11,7 +11,7 @@
 │  ─────────      ─────────      ─────────         ─────────              │
 │  초저전력       초저전력       Instant-on        고밀도+Flash           │
 │  ~71µA stby     ~75µW          ~20mW             ~100mW                 │
-│  3.5K LUT       5K LUT         7K LUT            40K LUT                │
+│  3.5K LUT       5.3K LUT       6.9K LUT          40K LUT                │
 │  iCEcube2       Radiant        Diamond           Diamond                │
 │                                                                          │
 │  용도:          용도:          용도:             용도:                  │

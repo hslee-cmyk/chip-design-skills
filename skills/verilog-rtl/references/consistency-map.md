@@ -28,21 +28,22 @@ SKILL.md 원칙 수정 시:
 | 사이클 분석 | 3. Cycle Analysis | 섹션10 타이밍 | review-checklist > 사이클/Data-Valid, cycle-analysis > 전체 |
 | Coverage 목표 | 8. Verification | - | review-checklist > 시뮬레이션 |
 | Coverage 분류 (Code/Functional/Assertion) | 8. Verification > Coverage 분류 | - | methodology §1, §2, §3 |
-| Observation 기반 coverage | 8. Verification > 핵심 원칙 #1 | - | methodology §6 |
-| Check 통과 시 유효 | 8. Verification > 핵심 원칙 #2 | - | methodology §6 |
-| Code ≠ Functional 상호보완 | 8. Verification > 핵심 원칙 #3 | - | methodology §1, §2 |
-| 명시적 bin 설계 | 8. Verification > 핵심 원칙 #4 | - | covergroup-patterns §6, §7 |
-| Cross ignore_bins | 8. Verification > 핵심 원칙 #5 | - | covergroup-patterns §3.2 |
-| Spec → Testplan → Coverage | 8. Verification > 워크플로우 | - | methodology §4, §5, §6 |
-| Coverage Closure | 8. Verification > 워크플로우 | - | methodology §7 |
-| Covergroup 문법 패턴 | 8. Verification > 문법 상세 | - | covergroup-patterns 전체 |
+| Observation 기반 coverage | - | - | methodology §6 |
+| Check 통과 시 유효 | - | - | methodology §6 |
+| Code ≠ Functional 상호보완 | - | - | methodology §1, §2 |
+| 명시적 bin 설계 | - | - | covergroup-patterns §6, §7 |
+| Cross ignore_bins | - | - | covergroup-patterns §3.2 |
+| Spec → Testplan → Coverage | - | - | methodology §4, §5, §6 |
+| Coverage Closure | - | - | methodology §7 |
+| Covergroup 문법 패턴 | 8. Verification (포인터만) | - | covergroup-patterns 전체 |
 | Assertion Coverage 패턴 | 8. Verification > SVA | - | covergroup-patterns §5 |
 | Coverage Options | - | - | covergroup-patterns §4 |
 | Coverage 실전 예제 | - | - | coverage-examples 전체 |
-| Coverage Space 2×2 분류 | 8. Verification > Coverage 분류 | - | methodology §1 > Coverage Space |
+| Coverage Space 2×2 분류 | - | - | methodology §1 > Coverage Space |
 | Bit-Width Safety (unsized localparam, max value 검증) | 1. Design Rules > Bit-Width(rules box+포인터) | 섹션10 합성 | synthesis-check > Bit-Width Safety(상세 원본) |
 | $clog2 vs custom log2 | 1. Design Rules > Bit-Width(포인터만) | - | synthesis-check > $clog2 vs custom log2(상세 원본) |
 | 코드 생성 Bit-Width 검증 단계 | 9. 코드 생성 워크플로우 Step 4.5 | - | synthesis-check > 검증 체크리스트 |
+| Verilator Lint (MSYS2 실행, Warning 유형, 억제) | 11. Verilator Lint | - | verilator-guide > 전체 |
 
 ## Cross-Skill 참조
 
@@ -60,6 +61,8 @@ SKILL.md 원칙 수정 시:
 
 ## 변경 이력
 
+- 2026-03-09 (13차): Coverage 원칙 SKILL.md 섹션 컬럼 정정 — 2026-02-09 (8차) §8 리팩토링 시 미갱신된 항목 수정. 핵심 원칙 #1~#5, 워크플로우, Coverage Space 2×2 → "-", Covergroup 문법 → "포인터만"으로 갱신
+- 2026-03-09 (12차): Verilator Lint 원칙 추가 — §11 내용을 verilator-guide.md로 추출한 것 반영. consistency-map 원칙 항목 추가
 - 2026-02-20 (11차): Best Practices 적용 — P1: ASCII box→markdown 변환(8개), Quick Reference 섹션 전체 삭제(44줄). SKILL.md 597줄→452줄. 전 원칙의 "SKILL.md 내부 요약" 열에서 QR 참조 제거
 - 2026-02-19 (10차): 중복 정리 D1-D6 — D1+D2: review-checklist Latch 상세→synthesis-check 포인터(-47줄), D3: always-block-patterns 가이드테이블→§2 포인터, D4: §1 $clog2 테이블→synthesis-check 포인터, D5: §1 Bit-Width BAD/GOOD 코드→synthesis-check 포인터(-15줄), D6: §7 2-proc/3-proc 비교테이블→fsm-patterns 포인터(-6줄). 원칙 반영위치 갱신(Latch, $clog2, Bit-Width, FSM)
 - 2026-02-19 (9차): Bit-Width Safety 규칙 추가 — FIFO pointer truncation 실제 버그 기반. §1 필수규칙+상세 섹션, §9 Step 4.5, §10 체크리스트, QR 추가. synthesis-check > Bit-Width Safety 섹션 신규. 원칙 3개 추가 (Bit-Width Safety, $clog2 vs custom log2, 코드생성 Bit-Width 검증)

@@ -19,18 +19,12 @@ description: |
 
 Verilog-A 모델링의 핵심은 **연속성(Continuity)**과 **수렴 가능성(Convergence)**:
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                  Verilog-A 모델링 핵심                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  1. 모든 Analog 출력은 CONTINUOUS 신호로만 구동 [→§2]       │
-│  2. Discrete 신호는 반드시 transition() 통과 [→§2,§4]      │
-│  3. Feedback 경로는 값과 기울기 모두 연속 [→§3]            │
-│  4. Floating node 방지 (항상 DC path 존재) [→§3]           │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+**Verilog-A 모델링 핵심 원칙:**
+
+1. 모든 Analog 출력은 **CONTINUOUS** 신호로만 구동 [→§2]
+2. Discrete 신호는 반드시 `transition()` 통과 [→§2,§4]
+3. Feedback 경로는 값과 기울기 모두 연속 [→§3]
+4. Floating node 방지 (항상 DC path 존재) [→§3]
 
 ---
 
@@ -213,7 +207,6 @@ else
 ## 10. Quick Reference
 
 ```
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Core Files:   `include "disciplines.vams" / "constants.vams"
 Disciplines:  electrical (voltage/current), ground gnd
 
@@ -239,7 +232,6 @@ Key Rules:
   7. transition: delay=0, tr/tf=max feasible [→§4,§6]
   8. PWL → smooth function (tanh, limexp) [→§3]
   9. Initial condition at @(initial_step) [→§5]
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ---
@@ -249,7 +241,6 @@ Key Rules:
 - `references/coding-guideline.md` - Verilog-A 코딩 가이드라인 상세
 - `references/convergence-issues.md` - 수렴 문제 분석 및 해결
 - `references/common-models.md` - 일반 회로 모델 예제
-- `references/consistency-map.md` - 일관성 맵
 
 ## Cross-Skill 참조
 

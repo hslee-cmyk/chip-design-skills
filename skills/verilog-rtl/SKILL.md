@@ -309,52 +309,29 @@ FSM 사이클 다이어그램: `references/fsm-patterns.md` 참조
 
 ### SVA Assertion
 
+RTL 동작을 사이클 정확도로 검증하는 SystemVerilog 구문:
+
 ```verilog
-// 프로토콜 체크
+// 프로토콜 체크: valid 후 N 사이클 내 ready 응답
 assert property (@(posedge i_clk) disable iff (!i_rst_n)
     i_valid |-> ##[1:10] o_ready
 ) else $error("Ready timeout!");
-
-// FIFO overflow 방지
-assert property (@(posedge i_clk) disable iff (!i_rst_n)
-    (r_count == FIFO_DEPTH) |-> !i_write
-) else $error("FIFO overflow!");
 ```
 
-### Coverage 분류
+복합 시퀀스, cover property, 시스템 SVA 패턴: `references/covergroup-patterns.md` 참조
 
-| 분류 | 생성 방식 | 소스 |
+### Coverage
+
+| 분류 | 생성 방식 | 목표 |
 |------|----------|------|
-| Code Coverage | 자동 (implicit) | RTL 구현 |
-| Functional Coverage | 수동 (explicit) | 스펙/요구사항 |
-| Assertion Coverage | 수동 (explicit) | 프로토콜/타이밍 |
+| Code Coverage | 자동 (implicit) | 95% |
+| Functional Coverage | 수동 (explicit) | 90% |
+| Assertion Coverage | 수동 (explicit) | — |
 
-### Coverage 핵심 원칙
+Coverage 핵심 원칙, testplan, hole analysis, closure 워크플로우:
+→ `references/coverage-methodology.md` 참조
 
-1. Coverage는 observation 기반 — stimulus가 아닌 DUT 출력/상태 관찰
-2. Coverage는 check 통과 시에만 유효 — 오동작 시 sampling 무의미
-3. 100% code coverage ≠ 100% 기능 검증 (역도 마찬가지) — 상호 보완 필수
-4. Bin은 명시적 설계 — auto-bin 지양, 분석 가능한 레이블 부여
-5. Cross coverage에서 불가능 조합은 ignore_bins로 제거
-
-### Coverage 워크플로우
-
-1. **스펙 분석** → 기능 요구사항 추출, 디자인 유형 파악
-2. **Testplan 작성** → spec→요구사항→coverage element 매핑
-3. **Coverage 모델 구현** → covergroup/assertion 코딩
-4. **시뮬레이션 실행** → coverage 수집
-5. **Hole Analysis** → 미달 항목 원인 분석 (stimulus 부족 / 버그 / unreachable)
-6. **Coverage Closure** → stimulus 조정, exclusion, regression 최적화, 반복
-
-### Coverage 목표
-
-| 항목 | 목표 |
-|------|------|
-| Code Coverage | 95% |
-| Functional Coverage | 90% |
-
-Covergroup 예제 및 문법 상세: `references/covergroup-patterns.md` 참조
-Coverage 이론, testplan, closure 프로세스: `references/coverage-methodology.md` 참조
+Covergroup/coverpoint/cross/bins 문법 패턴: `references/covergroup-patterns.md` 참조
 실전 예제 (APB3, UART, Datapath, SoC): `references/coverage-examples.md` 참조
 
 ---
@@ -402,41 +379,14 @@ RTL 코드 작성 시 다음 5단계를 따른다:
 
 ## 11. Verilator Lint
 
-### 환경 설정
-
-Verilator는 MSYS2를 통해 설치되어 있음:
+정적 분석 도구. MSYS2를 통해 실행:
 
 ```bash
-# MSYS2 bash를 통해 Verilator 실행
-C:/msys64/usr/bin/bash.exe -lc "verilator --version"
-
-# Lint 실행
-C:/msys64/usr/bin/bash.exe -lc "cd '<project_path>' && verilator --lint-only -Wall --top-module <top_module> -I<include_paths> <files>"
+C:/msys64/usr/bin/bash.exe -lc "cd '<path>' && verilator --lint-only -Wall --top-module <top> <files>"
 ```
 
-### 주요 Warning 유형
-
-| Warning | 심각도 | 설명 |
-|---------|--------|------|
-| IMPLICIT | 🔴 Critical | 미선언 신호 사용 |
-| PINMISSING | 🟠 Warning | 인스턴스 포트 미연결 |
-| WIDTHTRUNC | 🟠 Warning | 비트폭 절삭 |
-| WIDTHEXPAND | 🟠 Warning | 비트폭 확장 |
-| PINCONNECTEMPTY | 🟡 Info | 빈 포트 연결 (의도적일 수 있음) |
-| TIMESCALEMOD | 🟡 Info | timescale 불일치 |
-| EOFNEWLINE | 🟡 Info | 파일 끝 줄바꿈 누락 |
-
-### Warning 억제
-
-```verilog
-// 특정 라인 억제
-/* verilator lint_off PINCONNECTEMPTY */
-.o_unused_port  (),
-/* verilator lint_on PINCONNECTEMPTY */
-
-// 파일 전체 억제
-/* verilator lint_off UNUSED */
-```
+주요 Warning 유형, 억제 방법(`lint_off/lint_on`), 자주 발생하는 패턴:
+→ `references/verilator-guide.md` 참조
 
 ---
 
@@ -452,7 +402,7 @@ C:/msys64/usr/bin/bash.exe -lc "cd '<project_path>' && verilator --lint-only -Wa
 - `references/covergroup-patterns.md` - SV covergroup/assertion 문법 패턴
 - `references/coverage-methodology.md` - Coverage 이론, testplan, closure
 - `references/coverage-examples.md` - Coverage 실전 예제
-- `references/consistency-map.md` - 원칙별 반영 위치 맵 (수정 시 영향 범위 확인용)
+- `references/verilator-guide.md` - Verilator Lint 환경, Warning 유형, 억제 방법
 
 ## Cross-Skill 참조
 
