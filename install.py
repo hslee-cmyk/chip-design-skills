@@ -38,7 +38,7 @@ def install_agents(dry):
     src, dest = REPO / "agents", HOME / "agents"
     if not src.exists():
         print("SKIP agents (no agents/ dir)"); return
-    mds = sorted(src.glob("*.md"))
+    mds = sorted(m for m in src.glob("*.md") if m.name.lower() != "readme.md")
     if dry:
         print(f"[dry-run] agents -> {dest}/ : {[m.name for m in mds]}")
     else:
