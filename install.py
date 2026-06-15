@@ -34,11 +34,22 @@ def install_skills(dry):
             print(f"skill installed: {name}")
 
 
+def _is_agent_md(m):
+    # an agent definition starts with YAML frontmatter ('---'); skip README and
+    # meta docs so they are never deployed to ~/.claude/agents as broken agents.
+    if m.name.lower() == "readme.md":
+        return False
+    try:
+        return m.read_text(encoding="utf-8").lstrip().startswith("---")
+    except Exception:
+        return False
+
+
 def install_agents(dry):
     src, dest = REPO / "agents", HOME / "agents"
     if not src.exists():
         print("SKIP agents (no agents/ dir)"); return
-    mds = sorted(m for m in src.glob("*.md") if m.name.lower() != "readme.md")
+    mds = sorted(m for m in src.glob("*.md") if _is_agent_md(m))
     if dry:
         print(f"[dry-run] agents -> {dest}/ : {[m.name for m in mds]}")
     else:
