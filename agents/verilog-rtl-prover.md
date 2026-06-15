@@ -70,6 +70,37 @@ intent는 **"소비자가 무엇에 의존하는가"** 에서 끌어온다. BTNO
 
 ---
 
+## 1b. 반-순환 (spec-level) — shipping RTL의 FAIL은 모호하다 (BUG-001 회고)
+
+§1(anti-tautology)은 *expression-level*(property가 구현을 재진술)만 막는다. 그러나 독립적으로
+*보이는* property도 **틀린 spec**을 인코딩할 수 있다(wrong-intent). 현재(출하) RTL에서 property가
+FAIL하면 — known-good을 일부러 revert한 게 아니라면 — **모호하다**: (H1) RTL 버그 vs (H2) property가
+틀린 의도를 인코딩.
+
+⚠️ **"현재 RTL FAIL → 내 fix로 PASS" 전이는 necessary지 sufficient가 아니다.** 양쪽(현재 RTL · 내 fix)이
+*같은 가정*에서 나오면 순환 자기확인이다. §1의 전이 검사는 한쪽이 **known-good 기준(answer key /
+human-fixed commit, 예: `2ebd51f` revert)** 일 때만 sound하다.
+
+bug 선언 전 3 게이트 (출하 RTL일수록 필수):
+- (a) **Intent provenance** — 단언하는 의미(level/pulse/sticky/handshake)는 *소비처의 관찰 계약* ·
+  설계문서 · human 비준에서 끌어온다. **신호 이름·코드냄새(missing else, incomplete assignment)는
+  의도 출처가 아니다.** 소비처로 level↔pulse를 먼저 분류한다.
+- (b) **Fix-preserves-intent** — 제안 fix의 효과를 *소비처까지 추적*한다. fix가 그럴듯한 의도된 동작을
+  깨뜨리면 → 틀린 건 **property(H2)**, RTL이 아니다.
+- (c) **No-answer-key escalation** — known-good 기준이 없으면(출하 RTL 신규 가설) H1/H2 모호성을
+  **명시 보고**하고, 소비처-유도 또는 human 의도-비준 전엔 bug로 선언하지 않는다. "shipping FAIL +
+  내 fix PASS"를 증거로 제시 금지.
+
+> **사례 BUG-001** (`ext_i2cSlave.r_i2c_stop`): P3 `r_i2c_stop → $past(state)==STOP_DET`가 신호를
+> *펄스*로 가정(이름 "stop" + missing else 냄새). 실제 소비처는 4개 sync-clear = **레벨 disable**
+> (요청 동안 hold). (b)로 fix(`else r_i2c_stop<=0`)를 추적하면 disable이 2-cycle 펄스로 변질 →
+> stop 유지 중 I2C 재활성 → **fix가 의도를 깨므로 property가 틀림(H2)**, RTL 정상. (a)를 먼저 했다면
+> level-hold property를 써 PASS — 버그 아님이 드러난다.
+> **대조 BUG-002** (`ext_fwd_fifo` lookahead): `expected`를 소비처 계약(`count>=2` = 다음 존재)에서
+> 유도 + registered 타이밍을 DUT와 정렬(`$past`) → spec-level에서도 sound → 진짜 버그 확정.
+
+---
+
 ## 2. Scope — 무엇을 OWN하고 무엇을 넘기는가 (router 기준)
 
 §6 router [→methodology §6, →verilog-rtl-architect-advisor §3]에서 당신에게 라우팅되는 것만 받는다.

@@ -149,6 +149,15 @@ Formal is a *targeted tool*, not a hammer. Route each AI-failure class to its ch
 Anti-tautology rule: the Implementer must never self-certify intent (it would write a property restating its
 bug). Assurance comes from independently-authored properties — hence the separate Prover.
 
+Anti-circularity rule (spec-level — sibling of anti-tautology): expression-level anti-tautology is *necessary
+but not sufficient*. A property that is independent of the implementation can still encode the **wrong intent**.
+A FAIL on the **current (shipping) RTL** is ambiguous — (H1) RTL bug vs (H2) wrong-spec property — and the
+"FAIL→PASS after my fix" transition is sound **only when one side is a known-good reference** (answer key /
+human-fixed commit, e.g. the `2ebd51f` revert). For a novel hypothesis on shipping RTL with no answer key, the
+Prover must derive intent from the **consumer's observed contract** (not the signal name or a code smell),
+verify the **fix preserves that intent**, and otherwise **escalate the H1/H2 ambiguity** rather than declare a
+bug. Forensic: BUG-001 (`r_i2c_stop` level-vs-pulse false positive) — see `verilog-rtl-prover.md` §1b.
+
 ## 8. Build plan & status — (A) → (C) → (B)
 
 - **(A) Architect-advisor — ✅ DONE.** Refined boundary detector (`boundary-classifier.py`), 2 gaps fixed
