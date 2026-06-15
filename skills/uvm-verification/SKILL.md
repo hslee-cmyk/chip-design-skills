@@ -4,7 +4,7 @@ description: |
   UVM (Universal Verification Methodology) 컴포넌트 구현 skill.
   agent, driver, monitor, scoreboard 등 개별 UVM 컴포넌트를 작성하거나
   UVM 검증 방법론(sequence, RAL, factory, coverage)을 적용하는 작업이라면
-  반드시 이 스킬을 사용. (DUT-TB 연결, 듀얼탑 구조는 chip-verification 사용)
+  반드시 이 스킬을 사용.
   다음 상황에서 사용:
   (1) UVM 환경 계층 설계 - agent, env, test 구성, config object, package 구조
   (2) 컴포넌트 작성 - driver, monitor, sequencer, scoreboard, predictor

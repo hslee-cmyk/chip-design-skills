@@ -237,6 +237,8 @@ end
 | ☐ | initial 블록 대신 리셋 사용? |
 | ☐ | Bit-Width: sized 변수 max value < 2^W? localparam unsized 권장? |
 | ☐ | Bit-Width: $clog2 사용? (custom log2는 N≠2^k일 때 1 부족) |
+| ☐ | H/W 리소스: 기존 인스턴스 재사용 검토, 불필요 포트 제거됨? |
+| ☐ | Combinational Depth: FSM state 내 조건 깊이 적정, 타이밍 정렬 유지? |
 
 ## Bit-Width Safety
 

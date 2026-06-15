@@ -255,19 +255,21 @@ DEFINES="TODOC_FUNC CE5 INC_EXT_DTOP"  # 3개 define 필수
 | **SB_IO_OD 미지원** | nextpnr가 iCE40 Ultra 전용 오픈드레인 프리미티브 미구현 | `ifdef YOSYS` → SB_IO 트라이스테이트로 대체 (venezia_test_fpga_top.v) |
 | **BRAM 미추론** | FIFO의 비동기 리셋 읽기 패턴이 Yosys BRAM 규칙과 불일치 | **미해결**. Yosys 4494 LUT (128%) vs iCEcube2 1885 LC (54%)+BRAM 3개. 공유 RTL 수정 필요 |
 | **Combinational loop** | 리셋 가드 셀 CKE 경로 | `--ignore-loops` 플래그 |
-| **MSYS2 경로** | Yosys가 Git Bash `/c/...` 경로 미인식 | 상대 경로 사용 (`cd $PROJECT_ROOT` 후) |
+| **경로 인식** | Yosys(OSS CAD Suite)가 Git Bash `/c/...` 절대경로 미인식 | 상대 경로 사용 (`cd $PROJECT_ROOT` 후) |
 
 > **현재 상태**: Step 1 합성 성공, Step 2 P&R은 BRAM 미추론으로 LUT 초과 실패.
 > 공유 RTL의 FIFO 비동기 리셋을 동기 리셋으로 변경하면 BRAM 추론 가능.
 
-### 도구 설치 (MSYS2)
+### 도구 설치 (OSS CAD Suite)
+
+yosys 0.64+68, nextpnr-0.10, icepack/iceprog/icetime 모두 OSS CAD Suite에 포함.
 
 ```bash
-pacman -S mingw-w64-x86_64-nextpnr mingw-w64-x86_64-icestorm
-# yosys는 별도 설치 확인: pacman -S mingw-w64-x86_64-yosys
+# PATH 설정 (build_yosys.sh 또는 config.sh에 추가)
+export PATH="/c/oss-cad-suite/oss-cad-suite/bin:/c/oss-cad-suite/oss-cad-suite/lib:$PATH"
 ```
 
-`config.sh`가 자동으로 `/c/msys64/mingw64/bin`을 PATH에 추가.
+`config.sh`에 위 export를 추가하면 빌드 스크립트에서 자동으로 사용됨.
 
 ---
 

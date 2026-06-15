@@ -4,7 +4,7 @@ description: |
   RTL-UVM 통합 검증환경 skill. DUT-TB 연결(듀얼탑 구조)과 시스템 레벨 검증 구성에 특화.
   Digital 및 Mixed-Signal(AMS) 모두 지원.
   UVM 컴포넌트 내부 구현보다 "DUT를 어떻게 TB에 연결하고 시스템 전체를 검증할지"가
-  핵심인 작업이라면 반드시 이 스킬을 사용. (개별 UVM 컴포넌트 구현은 uvm-verification 사용)
+  핵심인 작업이라면 반드시 이 스킬을 사용.
   다음 상황에서 사용:
   (1) 듀얼탑 구조 설계 - hdl_top(DUT+Interface) + hvl_top(UVM) 분리
   (2) RTL-TB 인터페이스 - DUT 포트 → Interface → Virtual Interface 연결

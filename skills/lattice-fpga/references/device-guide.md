@@ -172,10 +172,13 @@ SB_IO_OD #(
   /* synthesis VPP_2V5_TO_1P8V = 1 */
 ```
 
-### 오픈소스 툴체인 (대안)
+### 오픈소스 툴체인 (대안) — OSS CAD Suite
 
 ```bash
-# Yosys + nextpnr-ice40 + icestorm
+# PATH 설정 필수
+export PATH="/c/oss-cad-suite/oss-cad-suite/bin:/c/oss-cad-suite/oss-cad-suite/lib:$PATH"
+
+# Yosys 0.64+ + nextpnr-0.10 + icestorm
 yosys -p "synth_ice40 -device u -abc2 -top top_module -json top.json" src.v
 nextpnr-ice40 --u4k --package sg48 --pre-pack prepack_swg36.py \
     --json top.json --pcf-allow-unconstrained --asc top.asc

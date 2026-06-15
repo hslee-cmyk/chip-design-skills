@@ -132,7 +132,8 @@ module vsource_pulse(p, n);
         else
             v_out = v1;
 
-        V(p, n) <+ v_out;
+        // tr/tf가 PWL 전환을 정의하지만, 주기 경계 수렴을 위해 thin transition 적용
+        V(p, n) <+ transition(v_out, 0, 1p);
     end
 endmodule
 ```
@@ -264,6 +265,7 @@ module nmos_simple(d, g, s, b);
         vth = vth0;
         beta = kp * W / L;
 
+        // 주의: 디바이스 특성 PWL — feedback 경로 없음, MOSFET 영역 경계이므로 smooth 함수 대체 불필요
         if (vgs <= vth) begin
             // Cutoff
             ids = 0;

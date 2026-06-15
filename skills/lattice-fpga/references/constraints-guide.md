@@ -34,17 +34,44 @@ set_io led_o           A1
 
 ### I/O 속성 지정
 
-PCF에서는 `--warn-no-port` 옵션으로 미사용 핀 경고 제어 가능.
-I/O 표준(IO_TYPE), 풀업/풀다운은 **RTL에서 SB_IO 프리미티브로 직접 설정**.
+PCF `set_io` 명령에 `-io_std`와 `-pullup` 옵션을 직접 지정할 수 있음 (iCEcube2).
 
 ```
-# PCF는 핀 위치만 지정
-set_io i_backTel_p     E6
+# set_io 문법: set_io <signal> <pin> [-io_std <std>] [-pullup <yes|no>]
 
-# I/O 표준 설정은 RTL에서:
-# SB_IO #(.PIN_TYPE(6'b0000_01), .IO_STANDARD("SB_LVDS_INPUT"))
-#       u_backTel (.PACKAGE_PIN(i_backTel_p), .D_IN_0(backTel_rx));
+# LVCMOS (기본 GPIO)
+set_io i_rst_n          D5 -io_std SB_LVCMOS -pullup yes
+set_io o_refClk         B4 -io_std SB_LVCMOS -pullup no
+
+# LVDS 차동 입력 (P핀만, N핀은 자동 매핑)
+set_io i_backTel_p      F5 -io_std SB_LVDS_INPUT -pullup no
+
+# -io_std 생략 시: SB_LVCMOS 기본값 적용
+# -pullup 생략 시: no (기본값)
+set_io o_sdaOut         C6
 ```
+
+#### -io_std 옵션 (iCE40 Ultra)
+
+| io_std | 용도 |
+|--------|------|
+| `SB_LVCMOS` | 기본 GPIO (VCCIO에 따라 1.8V/2.5V/3.3V) |
+| `SB_LVDS_INPUT` | LVDS 차동 입력 (비교기 기반, P핀만 할당) |
+
+> iCE40 Ultra는 LVDS **출력** 미지원 — 입력 전용.
+
+#### -pullup 옵션 (iCE40 Ultra)
+
+| 옵션 | 의미 |
+|------|------|
+| `-pullup yes` | 내부 weak pull-up 활성화 |
+| `-pullup no` | pull-up 비활성화 (기본값) |
+
+**중요 제약:**
+- iCE40 Ultra는 **pull-up만 지원** — pull-down 없음 (하드웨어 미지원)
+- **Bank 3 핀은 PULLUP 무시됨** (bank 0/1/2에서만 동작)
+- `SB_IO_OD` (open-drain) 핀은 내부 pull-up 없음 → 외부 저항 필요
+- pull-up 저항값 (약, VCCIO 기준): 3.3V ≈ 25.7k~300kΩ, 2.5V ≈ 34.7k~312.5kΩ → 강한 pull 필요 시 외부 저항 사용
 
 ### 차동 입력 (LVDS)
 
@@ -76,23 +103,30 @@ set_io io_i2c_sda      B3     # I2C_SDA 전용
 
 ```
 # venezia_test_fpga_top_swg36_io.pcf
-# iCE5LP4K-SWG36 패키지
+# iCE5LP4K-SWG36 패키지 (iCEcube2 생성)
 
-set_io o_cola_sdo       B2
-set_io o_cola_sck       A2
-set_io o_cola_ss        A3
-set_io i_cola_sdi       B3
-set_io io_i2c_sda       A4
-set_io o_i2c_scl        B4
-set_io o_mclk           A5
-set_io o_pdm_data       B5
-set_io i_pcm_data       E5
-set_io i_pcm_sck        D5
-set_io i_pcm_ws         E4
-set_io i_backTel_p      E6
-set_io o_backTel_pwr_en D6
-set_io o_test_clk       C5
-set_io o_test_out       D4
+# LVCMOS 핀 — 풀업 있는 입력 (리셋, I2C, 이어폰 감지)
+set_io i_earpiece_det_n D6 -io_std SB_LVCMOS -pullup yes
+set_io i_sdaIn          C1 -io_std SB_LVCMOS -pullup yes
+set_io i_scl            B1 -io_std SB_LVCMOS -pullup yes
+set_io i_rst_n          D5 -io_std SB_LVCMOS -pullup yes
+
+# LVCMOS 핀 — 풀업 없는 일반 입출력
+set_io i_pcmSync        E2 -io_std SB_LVCMOS -pullup no
+set_io i_pcmIn          D2 -io_std SB_LVCMOS -pullup no
+set_io i_deep_slp_en    F6 -io_std SB_LVCMOS -pullup no
+set_io i_dyn_slp_en     E6 -io_std SB_LVCMOS -pullup no
+set_io o_backTel_pwr_en F4 -io_std SB_LVCMOS -pullup no
+set_io o_serial_tp_out  C2 -io_std SB_LVCMOS -pullup no
+set_io o_askData        E3 -io_std SB_LVCMOS -pullup no
+set_io o_refClk         B4 -io_std SB_LVCMOS -pullup no
+set_io o_refClkInv      F3 -io_std SB_LVCMOS -pullup no
+
+# LVDS 차동 입력 — P핀만 할당, N핀 자동 매핑
+set_io i_backTel_p      F5 -io_std SB_LVDS_INPUT -pullup no
+
+# io_std 미지정 (기본값 SB_LVCMOS 적용)
+set_io o_sdaOut         C6
 ```
 
 ### 타이밍 제약 (.sdc)
@@ -246,26 +280,33 @@ BLOCK PATH FROM PORT "rst_n_i";
 | SSTL15 | DDR3 | 메모리 인터페이스 |
 | HSUL12 | 1.2V 고속 | 고속 단방향 |
 
-### iCE40 Ultra IO_STANDARD (SB_IO 파라미터)
+### iCE40 Ultra IO_STANDARD (iCE5LP4K)
 
-iCE40 Ultra는 PCF가 아닌 **RTL의 SB_IO 프리미티브 파라미터**로 I/O 표준 설정.
+iCE40 Ultra의 I/O 표준은 **PCF의 `-io_std`** 또는 **RTL의 SB_IO `IO_STANDARD` 파라미터** 둘 다로 설정 가능.
+iCEcube2 사용 시 PCF 설정이 우선 적용됨.
 
-| IO_STANDARD | 전압 | 용도 |
-|-------------|------|------|
-| SB_LVCMOS | 1.8V~3.3V (VCCIO 따름) | 기본 GPIO |
-| SB_LVDS_INPUT | 차동 | LVDS 입력 (비교기 기반) |
+| io_std / IO_STANDARD | 전압 | 용도 |
+|----------------------|------|------|
+| `SB_LVCMOS` | VCCIO 따름 (1.8V/2.5V/3.3V) | 기본 GPIO |
+| `SB_LVDS_INPUT` | 차동 | LVDS 입력 (비교기 기반, P핀만) |
+
+```
+# PCF에서 설정 (권장 — iCEcube2)
+set_io i_backTel_p  F5 -io_std SB_LVDS_INPUT -pullup no
+set_io i_rst_n      D5 -io_std SB_LVCMOS     -pullup yes
+```
 
 ```verilog
-// iCE40 Ultra: SB_IO로 I/O 표준 설정
+// RTL에서 직접 SB_IO 인스턴스화 시
 SB_IO #(
-    .PIN_TYPE(6'b0000_01),        // 단순 입력
-    .IO_STANDARD("SB_LVDS_INPUT") // LVDS 차동 입력
+    .PIN_TYPE(6'b0000_01),
+    .IO_STANDARD("SB_LVDS_INPUT")  // LVDS 차동 입력
 ) u_lvds_in (
     .PACKAGE_PIN(i_lvds_p),
     .D_IN_0(lvds_data)
 );
 
-// Open-drain (I2C SDA)
+// Open-drain (I2C SDA) — SB_IO_OD 사용
 SB_IO_OD #(
     .PIN_TYPE(6'b1010_01)  // 출력 + 입력
 ) u_i2c_sda (
@@ -275,30 +316,47 @@ SB_IO_OD #(
 );
 ```
 
-> **주의**: iCE40 Ultra는 true LVDS **출력**을 지원하지 않음. LVDS 입력만 SB_LVDS_INPUT으로 가능.
+> **주의**: iCE40 Ultra는 LVDS **출력** 미지원 — `SB_LVDS_INPUT`은 입력 전용.
 
 ## PULLMODE 옵션
 
+### PCF (iCEcube2 / iCE40 Ultra)
+
+```
+# set_io에서 -pullup 옵션으로 직접 설정
+set_io i_rst_n   D5 -io_std SB_LVCMOS -pullup yes   # 풀업 활성화
+set_io i_data    C3 -io_std SB_LVCMOS -pullup no    # 풀업 없음 (기본)
+```
+
+> **iCE40 Ultra pull 제약:**
+> - **pull-up만 지원** — pull-down은 하드웨어 미지원
+> - Bank 3 핀은 `-pullup yes`가 **무시됨** (bank 0/1/2만 동작)
+> - `SB_IO_OD` (open-drain) 핀: 내부 pull-up 없음 → 외부 저항 필요
+> - Pull-up 저항값: ~25.7k~300kΩ (3.3V), ~34.7k~312.5kΩ (2.5V) — weak pull
+
+RTL에서 `SB_IO` 프리미티브를 직접 인스턴스화할 경우 `PULLUP` 파라미터로도 설정 가능:
+
+```verilog
+SB_IO #(
+    .PIN_TYPE(6'b0000_01),
+    .PULLUP(1'b1)           // 내부 풀업 활성화 (bank 0/1/2만)
+) u_input_pullup (
+    .PACKAGE_PIN(pin),
+    .D_IN_0(pin_in)
+);
+```
+
+### PDC (Radiant)
+
 ```tcl
-# PDC (Radiant)
 ldc_set_port -iobuf {PULLMODE=UP} [get_ports pin]    # 풀업
 ldc_set_port -iobuf {PULLMODE=DOWN} [get_ports pin]  # 풀다운
 ldc_set_port -iobuf {PULLMODE=NONE} [get_ports pin]  # 없음
 ```
 
-```
-# LPF (Diamond)
-IOBUF PORT "pin" PULLMODE=UP;
-```
+### LPF (Diamond)
 
-```verilog
-// PCF (iCEcube2) - 풀업/풀다운은 SB_IO 인스턴스에서 설정
-// PULLUP 파라미터: "NO" (기본), "YES"
-SB_IO #(
-    .PIN_TYPE(6'b0000_01),
-    .PULLUP(1'b1)           // 내부 풀업 활성화
-) u_input_pullup (
-    .PACKAGE_PIN(pin),
-    .D_IN_0(pin_in)
-);
+```
+IOBUF PORT "pin" PULLMODE=UP;
+IOBUF PORT "pin" PULLMODE=DOWN;
 ```

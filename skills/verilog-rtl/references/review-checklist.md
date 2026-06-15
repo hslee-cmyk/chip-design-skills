@@ -35,7 +35,8 @@ end
 - [ ] 클럭 도메인 경계 식별됨
 - [ ] Slow→Fast, 1-bit level: 2FF synchronizer 사용
 - [ ] Slow→Fast, 1-bit pulse: Pulse Synchronizer 사용
-- [ ] Fast→Slow, 1-bit: Handshake (Req/Ack) (2FF 사용 불가!)
+- [ ] Fast→Slow, 1-bit pulse: Handshake (Req/Ack) 사용
+- [ ] Fast→Slow, 1-bit level (장기유지): 2FF Sync 허용 (소스 ≥ 2 dest cycles 검증 후)
 - [ ] Multi-bit 순차적: Gray code + 2FF (포인터, 카운터)
 - [ ] Multi-bit 스트림: Async FIFO 사용
 - [ ] CDC 경로에 타이밍 제약 설정됨
@@ -51,6 +52,11 @@ end
 - [ ] W가 log2 계열 함수에서 파생되었나? → `$clog2` 사용 확인
 - [ ] 파라미터가 2의 거듭제곱이 아닌 값을 가질 수 있나? → 경계값 테스트
 - [ ] pointer width로 FIFO/Memory 전체를 인덱싱할 수 있나?
+
+### 리소스 최소화
+- [ ] 기존 인스턴스 재사용 가능한가? (새 인스턴스 추가 전 검토)
+- [ ] 불필요 포트 제거됨
+- [ ] FSM 상태 수 최소화됨 (중복/불필요 상태 없음)
 
 ---
 
@@ -83,6 +89,10 @@ end
 - [ ] 긴 조합 경로 식별됨
 - [ ] 필요시 레지스터 삽입
 - [ ] 파이프라인 밸런싱 확인
+
+### Combinational Depth
+- [ ] FSM state 내 조건 분기 깊이 타이밍에 적정한가?
+- [ ] 타이밍 정렬 (data/valid 동일 사이클) 유지됨
 
 ---
 
@@ -158,6 +168,10 @@ end
 - [ ] 모든 상태 전이 정의됨
 - [ ] 불법 상태에서 복구 가능
 - [ ] 기본값 할당으로 latch 방지 (`c_next_state = r_state;`)
+
+### 래칭 보존
+- [ ] pending 레지스터가 Write→Read 중간 경로에서 덮어써지지 않음
+- [ ] 다음 유효 데이터가 도착하기 전까지 이전 값이 보존됨
 
 ---
 

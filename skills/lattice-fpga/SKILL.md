@@ -81,7 +81,7 @@ fpga_project/                   # FPGA 프로젝트 루트 (Windows)
 | **MachXO2** | Diamond | .ldf | .lpf | 저전력 + Instant-on |
 | **LatticeXP2** | Diamond | .ldf | .lpf | FlashBAK, 비휘발성 |
 
-> **참고**: iCE40 Ultra는 오픈소스 툴체인(Yosys + nextpnr-ice40 + icestorm)도 지원
+> **참고**: iCE40 Ultra는 오픈소스 툴체인(Yosys + nextpnr-ice40 + icestorm)도 지원 — **OSS CAD Suite** 사용 (`C:\oss-cad-suite\oss-cad-suite\`)
 
 ### 사용 환경
 ```
@@ -147,6 +147,28 @@ NVCM 내장             -                     내장 Flash           내장 Flas
 - `references/reveal-debug.md` - Reveal 디버거 사용법
 - `references/fpga-vs-asic.md` - FPGA/ASIC 공통 RTL 작성법
 - `references/tcl-scripts.md` - iCEcube2/Radiant/Diamond TCL 자동화
+- `references/synplify-known-issues.md` - Synplify Pro 알려진 이슈 및 우회 방법
+
+## 시뮬레이션 / 파형
+
+OSS CAD Suite에 포함 — PATH 설정 후 사용:
+
+| 툴 | 버전 | 용도 |
+|----|------|------|
+| `verilator` | 5.047 | Verilog 린트/시뮬레이션 |
+| `gtkwave` | 3.4.0 | VCD/FST 파형 뷰어 |
+
+```bash
+# 린트
+verilator --lint-only -Wall src.v
+
+# 시뮬레이션 (C++ testbench 빌드 후 실행)
+verilator --cc --exe --build -Wall tb.cpp src.v
+./obj_dir/Vsrc
+
+# VCD 덤프 후 파형 뷰어
+gtkwave dump.vcd
+```
 
 ## Cross-Skill 참조
 

@@ -2,17 +2,20 @@
 
 ## 환경 설정
 
-Verilator는 MSYS2를 통해 설치되어 있음:
+Verilator (5.047)는 OSS CAD Suite에 포함되어 있음:
 
 ```bash
-# Verilator 버전 확인
-C:/msys64/usr/bin/bash.exe -lc "verilator --version"
+# OSS CAD Suite PATH 설정
+export PATH="/c/oss-cad-suite/oss-cad-suite/bin:/c/oss-cad-suite/oss-cad-suite/lib:$PATH"
+
+# 버전 확인
+verilator --version
 
 # Lint 실행
-C:/msys64/usr/bin/bash.exe -lc "cd '<project_path>' && verilator --lint-only -Wall --top-module <top_module> -I<include_paths> <files>"
+cd '<project_path>' && verilator --lint-only -Wall --top-module <top_module> -I<include_paths> <files>
 
 # 여러 파일 지정 예
-C:/msys64/usr/bin/bash.exe -lc "cd 'C:/path/to/project' && verilator --lint-only -Wall --top-module my_top -Idb/design/d_rtl/mdl db/top/my_fpga_top.v"
+cd 'C:/path/to/project' && verilator --lint-only -Wall --top-module my_top -Idb/design/d_rtl/mdl db/top/my_fpga_top.v
 ```
 
 ## 주요 Warning 유형

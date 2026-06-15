@@ -37,8 +37,10 @@
 
 **대상**: 요약 Zone(필수규칙 테이블, 핵심원칙 Box, 체크리스트, Quick Reference)
 
+> **개별 프롬프트 작성 원칙**: 각 skill의 프롬프트에서는 Zone 이름과 섹션 번호(§X)를 명시적으로 열거할 것. 일반적 "요약 Zone" 표현 대신 해당 skill의 실제 섹션명으로 구체화.
+
 **절차**:
-1. 요약 Zone의 각 항목을 추출
+1. 요약 Zone의 각 항목을 추출 (개별 프롬프트에서 Zone과 섹션 번호 명시)
 2. `[→§X]` 마커가 가리키는 상세 섹션의 내용을 읽음
 3. 요약 문구와 상세 내용이 **의미적으로 동일**한지 비교
    - 허용: 축약, 동의어
@@ -51,13 +53,13 @@
 
 ## Check 3: 코드 예제 준수
 
-**대상**: SKILL.md 내 모든 코드 블록 (```verilog, ```verilog-a 등)
+**대상**: SKILL.md 내 모든 코드 블록 + **reference 파일 내 코드 블록** (동일 기준 적용)
+
+> **개별 프롬프트 작성 원칙**: 각 skill의 프롬프트에서는 대조할 규칙 항목(섹션명 포함)과 검증 대상 reference 파일 목록을 명시적으로 열거할 것.
 
 **절차**:
-1. 모든 코드 예제를 추출
-2. SKILL.md 자체 규칙과 대조:
-   - **verilog-rtl**: 네이밍 컨벤션(§4~§6), 할당 규칙(§2), latch 방지(§1,§7), 리셋 패턴(§1.Reset)
-   - **verilog-a**: transition() 사용(§2,§4), 연속성(§3), floating node 방지(§3)
+1. SKILL.md 및 모든 reference 파일의 코드 예제를 추출
+2. SKILL.md 자체 규칙과 대조 (개별 프롬프트에서 규칙 항목과 섹션 번호 명시)
 3. GOOD 예제가 규칙을 준수하는지, BAD 예제가 실제로 규칙을 위반하는지 확인
 
 **PASS 조건**: GOOD 예제 100% 규칙 준수, BAD 예제가 의도된 위반만 포함
@@ -67,17 +69,17 @@
 
 ## Check 4: 용어 일관성
 
-**대상**: SKILL.md 전체 텍스트
+**대상**: SKILL.md 전체 텍스트 + 모든 reference 파일
+
+> **개별 프롬프트 작성 원칙**: 각 skill의 프롬프트에서는 핵심 용어 목록(허용 표기 / 금지 표기)과 교차 검증할 reference 파일명을 명시적으로 열거할 것. 일반적 "불일치 탐지"로는 누락이 발생함.
 
 **절차**:
-1. 핵심 용어 목록 추출 (기술 용어, 약어, 명명 패턴)
+1. 개별 프롬프트에 명시된 핵심 용어 목록을 기준으로 SKILL.md 전체에서 표기 확인
 2. 동일 개념에 대해 다른 용어를 사용하는 경우 탐지
-   - 예: "2-FF synchronizer" vs "2단 동기화기" vs "double-flop" → 하나로 통일 필요
-   - 예: "transition()" vs "transition 필터" → 문맥에 따라 허용 가능
-3. references/ 파일과 SKILL.md 간 용어 불일치도 확인
+3. 개별 프롬프트에 열거된 reference 파일과 SKILL.md 간 용어 불일치 교차 검증
 
 **PASS 조건**: 핵심 용어가 일관되게 사용됨
-**FAIL 시**: 불일치 용어 쌍과 권장 통일 용어를 출력
+**FAIL 시**: 불일치 용어 쌍, 파일 위치, 권장 통일 용어를 출력
 
 ---
 
@@ -85,14 +87,16 @@
 
 **대상**: `references/consistency-map.md`
 
-**절차**:
-1. consistency-map에 기록된 모든 섹션 위치(줄 번호 범위 또는 섹션명)를 추출
-2. 실제 SKILL.md에서 해당 섹션이 존재하는지, 위치가 맞는지 확인
-3. consistency-map에 누락된 섹션이 없는지 확인
-4. reference 파일 경로가 실제로 존재하는지 확인
+> **개별 프롬프트 작성 원칙**: 각 skill의 프롬프트에서는 검증 대상 원칙 목록과 reference 파일 경로를 명시적으로 열거할 것. 일반적 절차만으로는 원칙 누락을 탐지할 수 없음.
 
-**PASS 조건**: 맵의 모든 항목이 실제 파일 구조와 일치
-**FAIL 시**: 불일치 항목과 실제 위치를 출력
+**절차**:
+1. consistency-map에 기록된 모든 원칙의 "SKILL.md 섹션" 항목이 실제 SKILL.md에 존재하는지 확인
+2. consistency-map의 모든 "reference 반영 위치" 항목이 실제 reference 파일에 존재하는지 확인
+3. reference 파일 경로가 실제로 존재하는지 확인 (개별 프롬프트에 경로 목록 명시)
+4. **역방향 확인**: SKILL.md에 존재하는 원칙이 consistency-map에 누락되지 않았는지 확인
+
+**PASS 조건**: 맵의 모든 항목이 실제 파일 구조와 일치, 역방향 누락 없음
+**FAIL 시**: 불일치 항목과 실제 위치를 출력; 역방향 누락 시 추가할 원칙 목록 제안
 
 ---
 
@@ -100,19 +104,40 @@
 
 **대상**: SKILL.md frontmatter + body 전체
 
-**절차**:
-1. **Body 줄 수 ≤ 500줄**: frontmatter(`---`...`---`) 이후의 body 줄 수 측정
-2. **간결성 (No Standard Knowledge)**: Claude가 이미 알고 있는 표준 문법/패턴이 인라인 코드로 포함되지 않았는지 확인:
-   - 표준 언어 문법 (기본 SystemVerilog/Verilog-A syntax)
-   - 일반적으로 알려진 라이브러리 패턴 (UVM 기본 등록 코드 등)
-   - 포인터로 대체 가능한 상세 코드 블록
-3. **Progressive Disclosure**: 15줄 이상의 코드 블록이 인라인되지 않았는지 (긴 코드는 reference로 분리)
-4. **Description 필드 정합**:
-   - description에 `연관 skill:` 또는 다른 skill 직접 참조가 없는지 (→ body의 Cross-Skill 섹션에 배치)
-   - description이 skill의 역할과 트리거를 기술하는지
-5. **장식용 ASCII 최소화**: 순수 장식용 ASCII box (`━`, `┌┐└┘│├┤` 등)가 과도하지 않은지 (구조적 다이어그램/트리는 허용, 텍스트 테두리 장식은 markdown으로 대체)
+**절차** (Anthropic "Complete Guide to Building Skills" 기준 보강):
 
-**PASS 조건**: 5개 항목 모두 충족
+1. **SKILL.md 크기 (Anthropic 공식 기준: 5,000 words 이하)**:
+   - frontmatter 포함 전체 단어 수 측정 (`wc -w SKILL.md`)
+   - 보조 지표: body 줄 수 ≤ 500줄 (자체 기준, 가독성 관리용)
+   - **초과 시 대응 절차**:
+     1. 상세 예시, 체크리스트 세부, 긴 코드 블록 → `references/`로 분리하고 SKILL.md에 포인터만 유지
+     2. 표준 지식(Standard Knowledge) 제거 — Claude가 이미 아는 문법/패턴은 인라인 불필요
+     3. 분리 후에도 초과 시 → 섹션별 단어 수 측정하여 가장 큰 섹션부터 reference 추출
+     4. 규칙 테이블, 판단 기준, 핵심 원칙 1줄 요약은 SKILL.md에 유지 (분리 불가)
+   - FAIL: 5,000 words 초과 + 분리 가능한 내용이 남아있음
+2. **간결성 (No Standard Knowledge)**: Claude가 이미 아는 표준 문법/패턴이 인라인되지 않았는지 (표준 SV syntax, UVM 기본 코드 등 → 제거 또는 reference 포인터)
+3. **Progressive Disclosure (3단계 구조)**:
+   - **1단계 (frontmatter)**: 트리거 판단에 필요한 최소 정보만. 항상 시스템 프롬프트에 로드됨.
+   - **2단계 (SKILL.md body)**: 핵심 규칙과 지침. skill이 활성화될 때 로드됨.
+   - **3단계 (references/)**: 상세 예시, 체크리스트 세부, 긴 코드. 필요 시에만 참조.
+   - 15줄 이상 코드 블록 인라인 금지 → reference로 분리
+   - 핵심 지침(Critical)은 SKILL.md **상단**에 배치 (하단에 묻히면 무시될 수 있음)
+4. **Description 필드 (Anthropic 공식 규칙)**:
+   - 구조: `[What it does] + [When to use it/trigger phrases] + [Key capabilities]`
+   - description ≤ 1024자
+   - XML 태그 (`<`, `>`) 금지 — frontmatter가 시스템 프롬프트에 삽입되므로 injection 위험
+   - 다른 skill 직접 참조 금지 (→ body의 Cross-Skill 섹션에 배치)
+   - BAD: "Helps with projects" (너무 모호), "Implements entity model" (트리거 없음)
+   - GOOD: 구체적 동작 + 사용자가 말할 수 있는 trigger phrases 포함
+5. **장식용 ASCII 최소화**: 순수 장식용 ASCII box 과도 사용 금지. 구조적 다이어그램/트리는 허용.
+6. **압축 vs 명확성 균형**: 규칙의 의미가 모호해지면 reference로 분리.
+   - reference 분리 가능: 상세 예시, 체크리스트 세부, 긴 prose
+   - SKILL.md 유지 필수: 규칙 테이블, 판단 기준, 핵심 원칙 1줄 요약
+   - FAIL: "무엇을 해야 하는지" 즉시 이해 불가하면 과도 압축
+7. **Composability (공존성)**: skill이 다른 skill과 동시 활성화될 수 있음을 가정. 다른 skill의 영역을 침범하는 지침이 없는지 확인.
+8. **폴더 구조**: skill 폴더 내에 README.md가 없는지 확인 (모든 문서는 SKILL.md 또는 references/에 배치).
+
+**PASS 조건**: 8개 항목 모두 충족
 **FAIL 시**: 위반 항목, 현재 상태, 권장 개선을 출력
 
 ---

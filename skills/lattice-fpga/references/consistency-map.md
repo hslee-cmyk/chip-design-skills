@@ -24,6 +24,7 @@ SKILL.md 원칙 수정 시:
 | iCEcube2 TCL 빌드 | 환경 구조 db/work/ | tcl-scripts > iCEcube2 TCL |
 | 타이밍 게이트 (2-phase 빌드) | 워크플로우 TIMING GATE | tcl-scripts > 빌드 흐름, 타이밍 게이트 출력 형식 |
 | 오픈소스 빌드 (Yosys+nextpnr) | iCE40 Ultra 참고 | tcl-scripts > 오픈소스 빌드 플로우, device-guide > 오픈소스 툴체인 (대안) |
+| 시뮬레이션/파형 (OSS CAD Suite) | 시뮬레이션 / 파형 | - (툴 목록 자체 섹션, 외부 ref 없음) |
 | Reveal 디버깅 | 워크플로우 #5 | reveal-debug > 전체 |
 | FPGA vs ASIC 공통 RTL | - | fpga-vs-asic > 전체 |
 | 리셋 처리 (GSR vs 명시적) | - | fpga-vs-asic > 리셋 처리 |
@@ -33,6 +34,7 @@ SKILL.md 원칙 수정 시:
 | TCL 프로젝트 생성 | 환경 구조 db/work/ | tcl-scripts > iCEcube2/Radiant/Diamond TCL |
 | TCL 빌드 자동화 | - | tcl-scripts > Makefile |
 | Git submodule 연계 | 환경 구조 db/design/ | tcl-scripts > RTL submodule |
+| Synplify Pro Mapper crash 우회 (레지스터 배열 동적 인덱싱 금지, iCEcube2) | - | synplify-known-issues.md > 전체 |
 
 ## Cross-Skill 참조
 
@@ -40,9 +42,14 @@ SKILL.md 원칙 수정 시:
 |------|---------|-----------|
 | RTL 설계 | 워크플로우 #1 | verilog-rtl |
 | UVM 검증 (Linux) | 워크플로우 #6 | chip-verification |
+| UVM 검증환경 설계 (Step 6) | 워크플로우 #6 | uvm-verification |
 
 ## 변경 이력
 
+- 2026-04-17 (15차): 6-Check FAIL 수정 — synplify-known-issues.md 원칙 consistency-map에 추가
+- 2026-04-17 (14차): 시뮬레이션/파형 툴 섹션 추가 — SKILL.md(verilator 5.047, gtkwave 3.4.0 OSS CAD Suite 기반, 시뮬레이션은 verilator C++ testbench로 통일)
+- 2026-04-17 (13차): 오픈소스 툴체인 → OSS CAD Suite로 통일 — SKILL.md(Yosys+nextpnr 참고 주석), tcl-scripts(도구 설치 섹션 pacman→OSS CAD Suite PATH, MSYS2 경로→경로 인식으로 표현 수정), device-guide(오픈소스 툴체인 섹션 PATH 추가, 버전 업데이트)
+- 2026-03-10 (12차): uvm-verification cross-skill 누락 추가 — consistency-map Cross-Skill 테이블에 행 추가 (6-Check에서 발견)
 - 2026-03-09 (11차): device-guide LUT 수치 통일 — 5K→5.3K(iCE40UP), 7K→6.9K(MachXO2) (SKILL.md 기준 정밀 반올림으로 통일, 6-Check 검증에서 발견)
 - 2026-03-05 (10차): 클럭 모듈 flatten 규칙 추가 — fpga-vs-asic(합성 시 모듈 Flatten 규칙), consistency-map(원칙 항목 추가)
 - 2026-03-04 (9차): 오픈소스 빌드 정보 동기화 — device-guide(up5k→u4k, swg36→sg48+pre-pack), consistency-map(device-guide 반영 위치 추가)

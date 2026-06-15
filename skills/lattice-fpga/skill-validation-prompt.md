@@ -54,19 +54,24 @@
 
 ## Check 3: 다이어그램/코드 일관성
 
-**대상**: SKILL.md 내 ASCII 다이어그램 및 코드 블록
+**대상**: SKILL.md 내 ASCII 다이어그램 및 코드 블록 + reference 파일 내 다이어그램/코드
 
 **절차**:
 1. "환경 구조" 디렉토리 트리의 구성 요소가 본문과 일치하는지:
-   - `radiant_proj/` → Radiant 프로젝트 (.rdf)
-   - `constraints/` → .pdc 파일 (constraints-guide.md 참조)
-   - `ip/` → PLL, DDR 등 (device-guide.md IP 섹션과 대응)
-   - `reveal/` → .rvl 파일 (reveal-debug.md 참조)
-   - `scripts/` → build.tcl (tcl-scripts.md 참조)
+   - `db/design/` → Git submodule (RTL 공유, SKILL.md 환경 구조 설명과 일치)
+   - `db/ip/` → Lattice IP 코어 (.v, *_inst.v, .lpc) (device-guide.md IP 섹션과 대응)
+   - `db/sdc/` → 제약 파일 (*_io.pcf, *.sdc) (constraints-guide.md 참조)
+   - `db/scripts/` → 빌드 스크립트 (*.tcl, build*.sh) (tcl-scripts.md 참조)
+   - `db/work/` → iCEcube2 프로젝트 디렉토리 (*_sbt.project, *_syn.prj)
+   - `img/` → 비트스트림 출력 (.bin, .hex, .nvcm)
 2. 디렉토리 트리의 주석이 참조 파일 내용과 모순되지 않는지
 3. "사용 환경" 코드 블록 3개 디바이스 정보가 "Lattice 툴 선택" 테이블과 일치하는지
+4. reference 파일 내 다이어그램/코드 블록도 동일 기준 적용:
+   - `references/tcl-scripts.md` — TCL 코드 예제 (경로, 변수명)
+   - `references/constraints-guide.md` — PCF/PDC/LPF 제약 예제
+   - `references/device-guide.md` — 디바이스 스펙 수치
 
-**PASS 조건**: 다이어그램/코드 내용이 본문/참조와 모순 없음
+**PASS 조건**: SKILL.md 및 reference 파일의 다이어그램/코드가 본문과 모순 없음
 **FAIL 시**: 불일치 요소와 위치를 출력
 
 ---
@@ -106,8 +111,8 @@
    - `chip-verification` — UVM 검증 (Linux)
 4. SKILL.md에 있지만 consistency-map에 누락된 원칙이 없는지 확인
 
-**PASS 조건**: 맵의 모든 항목이 실제 파일 구조와 일치
-**FAIL 시**: 불일치 항목과 실제 위치를 출력
+**PASS 조건**: 맵의 모든 항목이 실제 파일 구조와 일치, 역방향 누락 없음
+**FAIL 시**: 불일치 항목과 실제 위치를 출력; 역방향 누락 시 추가할 원칙 목록 제안
 
 ---
 
@@ -115,19 +120,40 @@
 
 **대상**: SKILL.md frontmatter + body 전체
 
-**절차**:
-1. **Body 줄 수 ≤ 500줄**: frontmatter(`---`...`---`) 이후의 body 줄 수 측정
-2. **간결성 (No Standard Knowledge)**: Claude가 이미 알고 있는 표준 문법/패턴이 인라인 코드로 포함되지 않았는지 확인:
-   - 표준 언어 문법 (기본 SystemVerilog/Verilog-A syntax)
-   - 일반적으로 알려진 라이브러리 패턴 (UVM 기본 등록 코드 등)
-   - 포인터로 대체 가능한 상세 코드 블록
-3. **Progressive Disclosure**: 15줄 이상의 코드 블록이 인라인되지 않았는지 (긴 코드는 reference로 분리)
-4. **Description 필드 정합**:
-   - description에 `연관 skill:` 또는 다른 skill 직접 참조가 없는지 (→ body의 Cross-Skill 섹션에 배치)
-   - description이 skill의 역할과 트리거를 기술하는지
-5. **장식용 ASCII 최소화**: 순수 장식용 ASCII box (`━`, `┌┐└┘│├┤` 등)가 과도하지 않은지 (구조적 다이어그램/트리는 허용, 텍스트 테두리 장식은 markdown으로 대체)
+**절차** (Anthropic "Complete Guide to Building Skills" 기준 보강):
 
-**PASS 조건**: 5개 항목 모두 충족
+1. **SKILL.md 크기 (Anthropic 공식 기준: 5,000 words 이하)**:
+   - frontmatter 포함 전체 단어 수 측정 (`wc -w SKILL.md`)
+   - 보조 지표: body 줄 수 ≤ 500줄 (자체 기준, 가독성 관리용)
+   - **초과 시 대응 절차**:
+     1. 상세 예시, 체크리스트 세부, 긴 코드 블록 → `references/`로 분리하고 SKILL.md에 포인터만 유지
+     2. 표준 지식(Standard Knowledge) 제거 — Claude가 이미 아는 문법/패턴은 인라인 불필요
+     3. 분리 후에도 초과 시 → 섹션별 단어 수 측정하여 가장 큰 섹션부터 reference 추출
+     4. 규칙 테이블, 판단 기준, 핵심 원칙 1줄 요약은 SKILL.md에 유지 (분리 불가)
+   - FAIL: 5,000 words 초과 + 분리 가능한 내용이 남아있음
+2. **간결성 (No Standard Knowledge)**: Claude가 이미 아는 표준 문법/패턴이 인라인되지 않았는지 (표준 SV syntax, UVM 기본 코드 등 → 제거 또는 reference 포인터)
+3. **Progressive Disclosure (3단계 구조)**:
+   - **1단계 (frontmatter)**: 트리거 판단에 필요한 최소 정보만. 항상 시스템 프롬프트에 로드됨.
+   - **2단계 (SKILL.md body)**: 핵심 규칙과 지침. skill이 활성화될 때 로드됨.
+   - **3단계 (references/)**: 상세 예시, 체크리스트 세부, 긴 코드. 필요 시에만 참조.
+   - 15줄 이상 코드 블록 인라인 금지 → reference로 분리
+   - 핵심 지침(Critical)은 SKILL.md **상단**에 배치 (하단에 묻히면 무시될 수 있음)
+4. **Description 필드 (Anthropic 공식 규칙)**:
+   - 구조: `[What it does] + [When to use it/trigger phrases] + [Key capabilities]`
+   - description ≤ 1024자
+   - XML 태그 (`<`, `>`) 금지 — frontmatter가 시스템 프롬프트에 삽입되므로 injection 위험
+   - 다른 skill 직접 참조 금지 (→ body의 Cross-Skill 섹션에 배치)
+   - BAD: "Helps with projects" (너무 모호), "Implements entity model" (트리거 없음)
+   - GOOD: 구체적 동작 + 사용자가 말할 수 있는 trigger phrases 포함
+5. **장식용 ASCII 최소화**: 순수 장식용 ASCII box 과도 사용 금지. 구조적 다이어그램/트리는 허용.
+6. **압축 vs 명확성 균형**: 규칙의 의미가 모호해지면 reference로 분리.
+   - reference 분리 가능: 상세 예시, 체크리스트 세부, 긴 prose
+   - SKILL.md 유지 필수: 규칙 테이블, 판단 기준, 핵심 원칙 1줄 요약
+   - FAIL: "무엇을 해야 하는지" 즉시 이해 불가하면 과도 압축
+7. **Composability (공존성)**: skill이 다른 skill과 동시 활성화될 수 있음을 가정. 다른 skill의 영역을 침범하는 지침이 없는지 확인.
+8. **폴더 구조**: skill 폴더 내에 README.md가 없는지 확인 (모든 문서는 SKILL.md 또는 references/에 배치).
+
+**PASS 조건**: 8개 항목 모두 충족
 **FAIL 시**: 위반 항목, 현재 상태, 권장 개선을 출력
 
 ---

@@ -40,6 +40,7 @@ SKILL.md 원칙 수정 시:
 
 ## 변경 이력
 
+- 2026-04-17 (7차): 6-Check FAIL 수정 — common-models.md vsource_pulse transition() 추가, nmos_simple PWL 의도적 예외 주석 추가
 - 2026-02-09 (6차): SKILL.md 2단계 확장 패턴 적용 (413줄→230줄, -44%). §1 전체→포인터, §2 BAD예제→포인터, §3 코드→포인터, §4-5 코드→포인터, §8 Resistor/Capacitor→포인터, §9 체크리스트 압축, §10 QR 55줄→27줄. 중복체크 A1-A7 전 PASS
 - 2026-02-09 (5차): Context 최적화 — §8 Analog MUX(-19줄), Comparator with Hysteresis(-24줄) 전체 코드를 reference 포인터로 교체 (common-models.md §5, §7). Resistor/Capacitor는 짧고 foundational이므로 유지. 450줄→~415줄
 - 2026-02-06 (4차): Step 6 초기 검증 완료 (5/5 PASS). §9 체크리스트에 PWL→smooth·초기조건 항목 추가, consistency-map 동기화

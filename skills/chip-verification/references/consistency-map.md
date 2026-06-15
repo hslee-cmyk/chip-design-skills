@@ -41,6 +41,7 @@ SKILL.md 원칙 수정 시:
 
 ## 변경 이력
 
+- 2026-04-17 (6차): 6-Check FAIL 수정 — description 직접 skill 참조 제거 (uvm-verification 언급 삭제)
 - 2026-02-20 (5차): 6-Check 체계 전환 — "5-Check"→"6-Check" 표기 갱신, SKILL.md line 86 고립 코드 펜스 삭제
 - 2026-02-06 (4차): 5-Check 검증 완료 (5/5 PASS). 개선 권고: interface-mapping.md config_db set 위치 코드-주석 혼동 가능
 - 2026-02-06 (3차): [→§X] 참조 마커 시스템 도입, skill-validation-prompt.md 연동
