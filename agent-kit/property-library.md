@@ -84,7 +84,8 @@ always @(posedge clk) if (rst_n) assert (!(rd_en && empty));
 // cover (occupancy==1 && nxt_valid==1'b0);    // single-entry lookahead is correctly false
 ```
 **Exemplar:** `ext_fwd_fifo` next-packet lookahead `(r_rd_ptr+1) > r_wr_ptr` at native width
-(737070b/06f19b0). reviewer co-flags the missing `{1'b0,..}` zero-extend as a STATIC smell (R4); the Prover owns
+(737070b/06f19b0; the `(rd+1)<=(wr-1)` rewrite was later proven flawed — the sound property is occupancy
+`o_fifo_counter>=2`, venezia BUG-002). reviewer co-flags the missing `{1'b0,..}` zero-extend as a STATIC smell (R4); the Prover owns
 the boundary proof.
 
 ## TPL-5 · FSM safety invariants — `mode prove` (k-induction)

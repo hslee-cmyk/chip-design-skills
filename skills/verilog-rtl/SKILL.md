@@ -172,8 +172,8 @@ end
 |---|------|------|-------------|
 | R1 | 점유/lookahead 판정은 **occupancy counter**(`count>=N`, empty=`count==0`, full=`count==SIZE`)에서 도출한다. raw pointer magnitude 비교 금지. | **[STATIC]** smell (포인터 크기 직접 비교) | `737070b`,`3f979ac` |
 | R2 | 비교 offset을 더하기 전에 포인터를 **1비트 zero-extend** (`{1'b0, ptr}+1`) — add가 `2^W`에서 wrap하지 않도록. | **[STATIC]** smell (offset add에 `{1'b0,..}` 부재) | `737070b` |
-| R3 | **wr-wraps-to-0 / FIFO-full 경계**를 명시적으로 처리. wr은 write-then-increment(실제보다 +1), rd는 pre-increment 기준 → full이면 `wr==0`이므로 `(rd+1) <= (wr-1)`로 비교. | **[SIM]** (경계 테스트) | `06f19b0` |
-| R4 | 단일 엔트리 lookahead는 **strict `<`** (`(rd+1) < wr`) — count==1에서 "다음 valid"가 거짓이어야 함. | **[SIM]** | `737070b` |
+| R3 | **wr-wraps-to-0 / FIFO-full 경계**의 점유 판정은 **occupancy counter**(`o_fifo_counter>=2`)로 한다(=R1). ⚠️ raw `(rd+1)<=(wr-1)`(06f19b0)는 0 경계 straddle에서 **FP/FN**(formal FAIL) → **사용 금지**. | **[FORMAL]** (반례) | `06f19b0`(결함 사례) |
+| R4 | 단일 엔트리(`count==1`)는 "다음 valid"가 거짓이어야 함 — occupancy 판정 `o_fifo_counter>=2`가 이를 자동 충족 (raw `(rd+1)<wr` strict 비교는 wrap에서 불충분). | **[SIM]** | `737070b` |
 | R5 | FIFO write-enable은 **항상 `~full`과 AND**. full/almost-full은 flow-control 출력(sync request 등)으로 표면화. | **[STATIC]** (write-en에 `~full` 부재; status flag fan-out) | `3f979ac` |
 | R6 | 같은 사이클 read+write는 **semaphore**로 중재 — 동시 r/w 시 occupancy 불변(`counter <= counter`). | **[SIM]** (정적 smell: 중재 부재) | `3f979ac` |
 
@@ -188,20 +188,22 @@ end else begin
     o_nxt_buf_out <= r_buf_mem[(r_rd_ptr + 1)];
 end
 
-// ──────────── GOOD step1: 737070b (zero-extend + strict <) ────────────
-if (({1'b0, r_rd_ptr} + 1) < {1'b0, r_wr_ptr}) begin   // ✅ R2 zero-extend, R4 strict <
+// ⚠️ 여전히 BAD (raw 포인터 비교 = R1 위반): zero-extend/뺄셈을 더해도 0 경계 straddle에서 깨진다.
+//   step1 (737070b): if (({1'b0, r_rd_ptr} + 1) <  {1'b0, r_wr_ptr})
+//   step2 (06f19b0): if (({1'b0, r_rd_ptr} + 1) <= ({1'b0, r_wr_ptr} - 1))   ← formal FAIL
+//   반례(SIZE=128): FP rd=127,wr=0,count=1 → 128<=255 참 (다음 없는데 valid=1, stale mem[0]);
+//                   FN rd=127,wr=2(straddle 0) → 128<=1 거짓 (다음 있는데 valid=0, 누락).
+//   포인터 magnitude는 "0 경계를 가로지르는 점유"를 표현 못 함 → 점유는 카운터로만 정확하다.
+
+// ──────────── GOOD: occupancy counter (R1) — wrap에 면역 ────────────
+if (o_fifo_counter >= 2) begin   // ✅ R1: head pop 후 다음 존재 ⇔ 점유 >= 2 (read 시점 counter)
     o_nxt_buf_out_valid <= 1'b1;
-    o_nxt_buf_out <= r_buf_mem[(r_rd_ptr + 1)];
+    o_nxt_buf_out <= r_buf_mem[(r_rd_ptr + 1)];   // index는 power-of-2 SIZE에서 자연 wrap
 end else begin
     o_nxt_buf_out_valid <= 1'b0;
 end
-
-// ──────────── GOOD step2: 06f19b0 (wr-wraps-to-0 / FIFO-full 경계) ────────────
-// wr: write-then-increment (실제 index보다 1 많음). rd: 증가 전 기준. full ⇒ wr==0.
-if (({1'b0, r_rd_ptr} + 1) <= ({1'b0, r_wr_ptr} - 1)) begin  // ✅ R3: (rd+1) <= (wr-1)
-    o_nxt_buf_out_valid <= 1'b1;
-    o_nxt_buf_out <= r_buf_mem[(r_rd_ptr + 1)];
-end
+// 정정(2026-06-15, venezia BUG-002): 과거 "GOOD step2"((rd+1)<=(wr-1))는 결함이었다. formal(ext_fwd_fifo
+//   fwd_tb): step2 = buggy FAIL@step7 / o_fifo_counter>=2 = fixed PASS@depth24.
 ```
 
 ```verilog
@@ -222,7 +224,7 @@ if ((!o_buf_full && i_wr_en) && (!o_buf_empty && i_rd_en))
 |--------|------|------|--------|
 | single entry (`count==1`) | nxt-valid = 0 (strict `<`) | **[SIM]** | `737070b` |
 | `ptr == MAX` wrap | `+1`이 false-valid로 wrap되지 않음 (zero-extend) | **[SIM]** | `737070b` |
-| wr-wraps-to-0 / FIFO full | nxt-valid가 `wr-1` 기준으로 정확 | **[SIM]** | `06f19b0` |
+| wr-wraps-to-0 / FIFO full | nxt-valid가 occupancy(`count>=2`) 기준으로 정확 (raw `(rd+1)<=(wr-1)`는 FP/FN) | **[FORMAL]** | venezia BUG-002 |
 | full FIFO에 write | write-enable 억제, data drop, 데이터 손상 없음 | **[STATIC]**+**[SIM]** | `3f979ac` |
 | 동시 read+write (full/empty 모두) | occupancy 불변 | **[SIM]** | `3f979ac` |
 
@@ -230,8 +232,8 @@ if ((!o_buf_full && i_wr_en) && (!o_buf_empty && i_rd_en))
 
 - [ ] **[STATIC]** empty/full/lookahead가 occupancy counter에서 나오는가 (raw pointer 비교 아님)? (R1)
 - [ ] **[STATIC]** 비교 offset add 전에 `{1'b0, ptr}` zero-extend 했는가? (R2)
-- [ ] **[SIM]** wr-wraps-to-0 / FIFO-full 경계가 `(rd+1) <= (wr-1)`로 처리되는가? (R3)
-- [ ] **[SIM]** 단일 엔트리 lookahead가 strict `<`인가? (R4)
+- [ ] **[FORMAL]** lookahead/점유가 **occupancy counter**(`o_fifo_counter>=2`)로 판정되는가? raw `(rd+1)<=(wr-1)`는 wrap FP/FN이므로 금지 (R1/R3)
+- [ ] **[SIM]** 단일 엔트리(`count==1`)에서 lookahead valid=0인가? (occupancy `>=2`가 자동 충족, R4)
 - [ ] **[STATIC]** 모든 write-enable이 `~full`과 AND되고, full이 flow-control로 표면화되는가? (R5)
 - [ ] **[SIM]** 동시 r/w semaphore로 occupancy가 불변 유지되는가? (R6)
 - [ ] **[STATIC]** 포인터 **폭**도 별도로 검증했는가? → width-truncation은 [→§1.BitWidth] (별개 클래스)

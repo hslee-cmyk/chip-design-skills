@@ -183,8 +183,9 @@ declared width with no zero-extension; FIFO write-enable asserted with no `~full
 from `count>=threshold` omitting the full flag; same-cycle read+write with no arbitration semaphore.
 
 **Exemplar:** `ext_fwd_fifo.v` lookahead `if((r_rd_ptr+1) > r_wr_ptr)` at native width → off-by-one for a single
-entry, wraps at MAX; corrected to `({1'b0,r_rd_ptr}+1) <= ({1'b0,r_wr_ptr}-1)` to also cover wr-wraps-to-0
-(`737070b`, `06f19b0`).
+entry, wraps at MAX. `737070b`/`06f19b0` rewrote it as `({1'b0,r_rd_ptr}+1) <= ({1'b0,r_wr_ptr}-1)`, but that is
+**still a raw-pointer test and was later proven flawed** (FP/FN at the 0-straddle boundary, formal FAIL) — the
+correct fix is the occupancy counter `o_fifo_counter >= 2` (venezia BUG-002, 2026-06-15).
 
 **Prevention rules:**
 - Derive "has N-ahead entry" from the occupancy counter (`count>=2`), not a raw pointer magnitude test;

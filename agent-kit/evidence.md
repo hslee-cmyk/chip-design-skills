@@ -128,13 +128,19 @@ always @(posedge i_clk or negedge i_rst_n)
 // --- Human fix step 1 (737070b): split into two always blocks, zero-extend, "<" ---
 if (({1'b0, r_rd_ptr} + 1) < {1'b0, r_wr_ptr}) begin ... end
 
-// --- Human fix step 2 (06f19b0): cover FIFO-full where wr wraps to 0 ---
-// r_wr_ptr는 값을 쓰고 증가 → 실제 index보다 1 많음. r_rd_ptr는 증가 전 기준.
-// fifo full이면 r_wr_ptr==0. 따라서 (r_rd_ptr+1) <= (r_wr_ptr-1) 로 비교.
+// --- Human fix step 2 (06f19b0): (r_rd_ptr+1) <= (r_wr_ptr-1) — ⚠️ 후에 결함 판명 (CORRECTION 참조) ---
 if (({1'b0, r_rd_ptr} + 1) <= ({1'b0, r_wr_ptr} - 1)) begin
   o_nxt_buf_out_valid <= 1'b1;
   o_nxt_buf_out <= r_buf_mem[(r_rd_ptr + 1)];
 end
+
+// --- CORRECTION (2026-06-15, venezia BUG-002): step2도 raw 포인터라 0 경계 straddle에서 FP/FN ---
+//   FP rd=127,wr=0,count=1 → 128<=255 참 (다음 없는데 valid); FN rd=127,wr=2(straddle) → 128<=1 거짓 (누락).
+//   진짜 fix = occupancy counter (R1). formal(fwd_tb): step2 FAIL@step7 / 아래 PASS@depth24.
+if (o_fifo_counter >= 2) begin
+  o_nxt_buf_out_valid <= 1'b1;
+  o_nxt_buf_out <= r_buf_mem[(r_rd_ptr + 1)];
+end else o_nxt_buf_out_valid <= 1'b0;
 ```
 
 **Root cause:** the LLM treated circular pointers as monotonic linear indices: assumed `wr>rd`, did `+1` at

@@ -265,7 +265,7 @@ methodology §5b), sim-routed(R2·R5·R7·R8·R9)는 cloud0/xcelium-mcp **direct
 |----|------|------|----------|---------|---------------|
 | DT-A | sync-read latency | single-entry FIFO에 1개 push 후 read; `rd_en`과 동일 사이클에 consumer가 데이터 샘플하는지, holding reg가 multi-cycle 동안 안정한지 관찰 | consumer는 registered-read wait 후 latched 값만 사용; `rd_en`은 1-cycle pulse(double-pop 없음) | R1,R2 | R1 **Prover/formal** · R2 **directed sim**(cross-domain) |
 | DT-B | zero-count/timer deadlock | timer/count **= 0** 로드 후 소비 FSM 진행 | FSM이 정확히 1-tick active 보고 완료(hang 없음); expiry는 `<=` 경계 | R3 | **Prover/formal** (count==0 실증; CDC-timing 잔여는 sim) |
-| DT-C | FIFO-full lookahead | FIFO **full(wr wraps→0)**, single-entry, `ptr==MAX` 경계에서 next-packet valid 평가 | off-by-one 없음; occupancy 기반/zero-extended 비교가 모든 경계에서 정확 | R4 | **Prover/formal** (in-block pointer) |
+| DT-C | FIFO-full lookahead | FIFO **full(wr wraps→0)**, single-entry, `ptr==MAX` 경계에서 next-packet valid 평가 | **occupancy(`count>=2`) 기반**이라야 모든 경계에서 정확; raw `(rd+1)<=(wr-1)`는 0 straddle에서 FP/FN(formal FAIL, venezia BUG-002) | R4 | **Prover/formal** (in-block pointer) |
 | DT-D | CDC ack race | cross-domain ack 동기화를 의도적 지연시켜 FSM 조기 전진 시도 | FSM은 synchronized ack 전 전진 안 함; raw level로 전진 금지 | R5 | **directed sim** (cloud0/xcelium-mcp) |
 | DT-E | prescaler post-load skip | timer load 직후 첫 prescaler 사이클 | load 다음 사이클은 count에 미반영(skip), 이후 정확한 boundary(`97`) | R6 | **Prover/formal** |
 | DT-F | cross-packet inheritance | 연속 2패킷, 2번째 selection이 1번째 mode bit에 의존 | selection = 현재 필드 **AND** 직전 packet mode (`~r_pcmParamMode & packet[17]`) | R7 | **directed sim** 또는 **STATIC reachability(S12)** |

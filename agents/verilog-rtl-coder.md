@@ -92,8 +92,8 @@ end
 ### A3 · Circular FIFO pointer math [T6]
 순환 포인터를 linear index로 취급하지 않는다. 규칙: **occupancy counter 기반 (`count>=2`)** 으로 "N-ahead 있음" 판정 / 비교 offset 더하기 전 **1비트 zero-extend** (native width 덧셈은 mod 2^W wrap) / FIFO full = `wr==0` boundary 명시 / write-enable은 항상 `~full` AND.
 ```verilog
-// T6 exemplar — 737070b(zero-ext, "<") → 06f19b0(wr-wraps-to-0/full 까지 커버)
-if (({1'b0, r_rd_ptr} + 1) <= ({1'b0, r_wr_ptr} - 1)) begin  // was (r_rd_ptr+1) > r_wr_ptr  (native, ">")
+// T6 exemplar — occupancy counter가 정답 (R1). ⚠️ (rd+1)<=(wr-1)(06f19b0)은 0 경계 FP/FN → 금지 (venezia BUG-002).
+if (o_fifo_counter >= 2) begin  // head pop 후 다음 존재 ⇔ 점유>=2 (raw (rd+1)<=(wr-1)는 wrap straddle에서 FP/FN)
     o_nxt_buf_out_valid <= 1'b1;
     o_nxt_buf_out <= r_buf_mem[(r_rd_ptr + 1)];
 end
