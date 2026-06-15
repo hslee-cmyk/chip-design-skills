@@ -4,8 +4,9 @@ workspaces/*/eval_review.html
 workspaces/*/launch_all.py
 skill-test-workspace/
 
-# bkit state / runtime (auto-generated, local)
-.bkit/
+# bkit runtime/snapshots (auto-generated, local) — .bkit/state/ is tracked
+.bkit/runtime/
+.bkit/snapshots/
 
 # Logs
 *.log
