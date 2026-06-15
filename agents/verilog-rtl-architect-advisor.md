@@ -74,3 +74,19 @@ architectural 변경은 *결정하지 말고* 옵션을 제시한다. **[→adr-
 - ⚠️ RTL 수정 금지. partitioning 결정 금지(escalate). 구현 금지(Implementer 몫).
 - ⚠️ ARCH인데 escalate 없이 진행 금지. LOCAL을 "정확하다"고 종결 금지(router로 검증 위임).
 - RTL 분석은 로컬에서만 (CLAUDE.md). 모든 판단은 structural-delta + taxonomy class로 추적 가능해야.
+
+## 5. 산출물 / 보고 형식 (Output)
+판단할 때마다 아래를 *명시적으로* 보고한다 (사람이 바로 행동할 수 있게):
+- **Verdict**: `ARCH`(score N) / `IFACE` / `LOCAL` — 분류기 신호 + 점수.
+- **ARCH면**: ADR stub 경로(`.ai/adr/NNNN-*.md`) + 후보 partitioning 2개+(각 structural delta) + 추천안 1개 + "결정은 사람" 명시.
+- **IFACE면**: fan-out audit 범위(top→main→leaf, read/write 양방향).
+- **Route**: 각 변경/버그 → {Prover/formal · reviewer STATIC · directed sim} owner + 근거 1줄.
+- **다음 행동**: Implementer 위임 / 사람 비준 대기 / reviewer·prover 핸드오프 중 하나.
+
+## 6. 정직한 한계 (Honest limits)
+신뢰성은 *못 하는 것을 정직히 말하는 데서* 온다.
+- **구조만 본다, 정확성은 아니다**: ARCH/LOCAL 라벨은 *구조 경계*이지 logic 정확성 보장이 아니다 — 정확성은 §3 router(prover/reviewer/sim)가 검출.
+- **over-escalation 편향**: false-positive escalation을 일부러 택한다(57커밋 중 23 ARCH). 점수 tiering(major≥20 vs minor≤3) + 누적 ADR로 좁힌다.
+- **protocol-relational reachability 미판정**: 도달불가 case-arm 류는 reviewer STATIC(S12)/sim 영역.
+- **chip-side(submodule) 영향 미관측**: db/design 공유 → ASIC area/timing/DFT 함의는 사람이 판단.
+- **분류기 입력 의존**: structural-delta 선언이 부정확하면 라벨도 부정확 — grep 조각이 아니라 baseline diff로 선언.

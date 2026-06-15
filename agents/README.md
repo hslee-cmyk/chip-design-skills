@@ -44,6 +44,12 @@ python agent-quality/check_agents.py agents/foo.md    # one agent
 These live **outside** `agents/` on purpose: `agents/` is deployed verbatim to `~/.claude/agents/`, so it must
 hold only valid agent `.md`. (`install.py` also skips any `agents/*.md` without YAML frontmatter as a backstop.)
 
+**Enforce on every commit** (one-time per clone) — a pre-commit hook runs the check on changed `agents/*.md`
+and blocks the commit on a FAIL:
+```bash
+git config core.hooksPath .githooks      # see .githooks/pre-commit ; bypass: git commit --no-verify
+```
+
 ## Generic vs project-specific
 - **Here (shared, reusable):** agents, tools, templates, generic taxonomy/methodology.
 - **In each project's `.ai/`:** module analyses (`.ai/analysis/{module}.analysis.md`), ADRs (`.ai/adr/`),

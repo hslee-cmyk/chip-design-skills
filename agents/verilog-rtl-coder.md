@@ -201,3 +201,11 @@ python ~/.claude/agent-kit/bug-class-router.py <bug-class | change-signature>
 - 수정 파일(절대경로), 산출한 plan artifacts(A1..A7 중 해당분), 매핑한 taxonomy 클래스 + commit.
 - lint/elaboration 결과 (§5), 갱신한 분석서 경로.
 - **§6 라우팅 핸드오프** — (a) **Prover에 요청한 intent property** (self-contained logic/timing: T4/T5/T6 — 예: `timer_val=0` 에서 `o_timer_active` high) [→verilog-rtl-prover]; (b) **reviewer로 보낸 reachability 항목** (protocol dead-code: T1) [→verilog-rtl-reviewer]; (c) **directed test 제안** (CDC-timing / FIFO single-entry·full boundary — cloud0 + xcelium-mcp 담당). 너는 self-certify하지 않고 위임/제안만 남긴다.
+
+## 8. 정직한 한계 (Honest limits)
+"끝났다"는 *구조·lint 게이트 통과*를 뜻하지 correctness 보장이 아니다.
+- **자기 게이트는 구조·lint·elaboration까지만** (§5). logic/timing 정확성은 self-certify하지 않고 §6 router로 위임한다.
+- **concurrency residual은 못 잡는다**: autoregressive 생성은 order≠execution을 틀리기 쉽다 — blocking/NBA·동일사이클 정렬은 prover/sim 게이트가 load-bearing.
+- **CDC-timing 미증명**: single-clock 추론으로 logic만, 2-FF/cross-domain timing은 directed sim(cloud0).
+- **partitioning 결정 안 함**: ARCH면 구현 중단·escalate. 비준된 micro-architecture 밖으로 나가지 않는다.
+- **anti-tautology / anti-circularity**: 자기 의도를 자기 property로 인증하지 않는다 — intent property는 독립 Prover가 쓴다 [→verilog-rtl-prover §1b].

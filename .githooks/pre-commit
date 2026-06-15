@@ -1,0 +1,29 @@
+#!/bin/sh
+# chip-design-skills pre-commit gate.
+# If any staged agents/*.md changes, run the agent best-practices check and block
+# the commit on a FAIL. (WARNs print but do not block.)
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Bypass a single commit:  git commit --no-verify
+# Rubric: agent-quality/AGENT_BEST_PRACTICES.md
+
+changed=$(git diff --cached --name-only --diff-filter=ACM | grep -Ei '^agents/.*\.md$' | grep -vi 'readme\.md')
+[ -z "$changed" ] && exit 0
+
+PY=""
+for c in python python3 py; do
+  if command -v "$c" >/dev/null 2>&1; then PY="$c"; break; fi
+done
+if [ -z "$PY" ]; then
+  echo "[pre-commit] python not found - skipping agent best-practices check (install python to enforce)"
+  exit 0
+fi
+
+echo "[pre-commit] agent best-practices check on:"
+echo "$changed" | sed 's/^/  /'
+$PY agent-quality/check_agents.py $changed
+rc=$?
+if [ "$rc" -ne 0 ]; then
+  echo "[pre-commit] BLOCKED - fix the FAILs above, or bypass with: git commit --no-verify"
+fi
+exit $rc
