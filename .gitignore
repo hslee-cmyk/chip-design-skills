@@ -2,6 +2,10 @@
 workspaces/*/run_loop.log
 workspaces/*/eval_review.html
 workspaces/*/launch_all.py
+skill-test-workspace/
+
+# bkit state / runtime (auto-generated, local)
+.bkit/
 
 # Logs
 *.log
