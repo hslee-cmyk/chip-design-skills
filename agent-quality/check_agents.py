@@ -161,7 +161,7 @@ def main():
         if nF == 0 and nW == 0:
             print("   all checks pass")
     print("\n" + "=" * 70)
-    print("Reminder: R3/R5/R7/R9/R10 also need a JUDGE pass — see agent-validation-prompt.md")
+    print("Reminder: R3/R5/R7/R9/R10/R13 also need a JUDGE pass — see agent-validation-prompt.md")
     print("RESULT:", "FAIL (fix blocking items)" if any_fail else "no blocking FAILs")
     sys.exit(1 if any_fail else 0)
 

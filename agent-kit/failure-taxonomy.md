@@ -188,7 +188,7 @@ entry, wraps at MAX. `737070b`/`06f19b0` rewrote it as `({1'b0,r_rd_ptr}+1) <= (
 correct fix is the occupancy counter `o_fifo_counter >= 2` (venezia BUG-002, 2026-06-15).
 
 **Prevention rules:**
-- Derive "has N-ahead entry" from the occupancy counter (`count>=2`), not a raw pointer magnitude test;
+- Derive "has k-ahead entry" from the occupancy counter (`count >= k+1`; 1-ahead ⇒ `>=2`), not a raw pointer magnitude test;
   zero-extend any pointer by one bit before adding a comparison offset so the add cannot wrap.
 - Explicitly unit-test the single-entry, `ptr==MAX`, and wr-wraps-to-0/FIFO-full boundaries.
 - Never assert a FIFO write-enable without ANDing `~full`; surface full/almost-full into any flow-control output.

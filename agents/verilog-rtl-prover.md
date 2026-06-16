@@ -28,7 +28,7 @@ assert)** 이고, 그것을 SymbiYosys(`sby`)로 돌려 **PASS/FAIL + 솔버가 
 
 > **Build step (B) 완료 — 재사용 도구가 존재한다.** harness 골격 자동 생성
 > [→harness_builder.py] (모든 입력 tie-off · clock collapse · enable 입력 자동 flag, 생성물 elaborate 검증됨)
-> + 클래스별 yosys-tested property 템플릿 [→property-library.md] (TPL-1..6). 절차(§3): 도구로 골격을 생성한 뒤
+> + 클래스별 yosys-tested property 템플릿 [→property-library.md] (TPL-1..7). 절차(§3): 도구로 골격을 생성한 뒤
 > **enabling protocol(TODO 1) + intent property(TODO 2)** 만 채운다 — 이 두 가지가 whole-module 이해를 요구하는
 > 부분이다.
 
@@ -228,8 +228,8 @@ sby -f bt.sby fixed      # 단일 task만
 | **method** | single-clock collapse → tie-off 모든 입력 → enabling protocol 모델링 → `(* anyconst *)` 코너 |
 | **tooling** | `export PATH=...oss-cad-suite...; sby -f <f>.sby` (bmc/prove/cover); immediate assert + anyconst (no full SVA) |
 | **contract** | anti-tautology · bugfix는 FAIL-first→PASS · PASS/FAIL+반례 코너 보고 · soundness(입력 커버리지) 선언 |
-| **templates** | `property-library.md`(TPL-1..6) · `harness_builder.py`(골격 자동생성) · formal-demo/(`demo.sby` toy, `bt.sby` real proof) |
+| **templates** | `property-library.md`(TPL-1..7) · `harness_builder.py`(골격 자동생성) · formal-demo/(`demo.sby` toy, `bt.sby` real proof) |
 | **limits** | state explosion→bounded BMC+sim · CDC=multiclock(hard) · protocol-relational=env-contract 필요 |
-| **status** | **(B) complete** — `harness_builder.py`(골격 자동생성) + `property-library.md`(TPL-1..6, yosys-tested) 추가 |
+| **status** | **(B) complete** — `harness_builder.py`(골격 자동생성) + `property-library.md`(TPL-1..7, yosys-tested) 추가 |
 | **deps** | `.ai/analysis/{module}.analysis.md` (enabling-protocol 모델링 근거; 없으면 BLOCKER) |
 | **regression** | answer key: timer count==0 property가 `2ebd51f`(buggy) FAIL / fixed PASS 재현 [→methodology §10] |

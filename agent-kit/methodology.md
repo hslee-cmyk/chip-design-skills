@@ -177,8 +177,8 @@ bug. Forensic: BUG-001 (`r_i2c_stop` level-vs-pulse false positive) — see `ver
 ## 8. Build plan & status — (A) → (C) → (B)
 
 - **(A) Architect-advisor — ✅ DONE.** Refined boundary detector (`boundary-classifier.py`), 2 gaps fixed
-  (clock-rewire, removal counting), re-validated on 57 commits; agent doc written. Remaining (minor): ADR
-  template, wire into a pre-merge step.
+  (clock-rewire, removal counting), re-validated on 57 commits; agent doc written. (ADR template + pre-merge
+  gate landed — see the live-regression bullet below.)
 - **(C) Router — ✅ DONE.** `bug-class-router.py` (T1–T9 + ARCH/IFACE/LOCAL + CDC→SIM → route + owner, verified
   runnable); `verilog-rtl-coder` → constrained Implementer (model-diff gate A0, anti-tautology); reviewer →
   explicit per-R# routing + S12 ownership; new `verilog-rtl-prover`. Consistency-critiqued (all fixes applied;
@@ -190,8 +190,17 @@ bug. Forensic: BUG-001 (`r_i2c_stop` level-vs-pulse false positive) — see `ver
 - **Architect-advisor finished + live regression — ✅ DONE.** `pre-merge-check.py` (ARCH→BLOCK gate) + `adr-template.md`
   + worked example `adr/0001-forward-fifo-read-fsm.md`; `run_regression.py` → **17/17 PASS** vs the answer key.
 - **CDC-timing multiclock tier — ✅ DONE.** `cdc_demo.v`/`cdc.sby` proves the residual hazard (§9).
-- **Remaining (future):** wire the pre-merge gate into CI; activate agents in `.claude/agents/`; upstream the
-  skill patch to chip-design-skills; the `r_streamRwState` carryover question (§9).
+- **Plan-altitude gate + anti-overfit — ✅ DONE.** architect-advisor **Mode P** runs the boundary detector on a
+  prose plan *before ratification* (partitioning crystallizes in prose, upstream of every RTL gate — §2) +
+  forcing **§2.0 responsibility-decomposition** (DEFAULT-FLIP: a concurrent / different-lifetime responsibility
+  ⇒ a separate FSM is the default; folding into a host state must be justified against it). `boundary-classifier.py`
+  gained a name-INDEPENDENT **FOLD** signal (`+STATE/+ARM` with no `+MOD/+INST` = a thread folded into a host
+  FSM) replacing an earlier name-regex heuristic. Rubric **R13** (criteria stated structurally — example-as-
+  evidence, not example-as-rule) added to `AGENT_BEST_PRACTICES.md` + JUDGE prompt; plan-time regression added (§10).
+- **Agents activated + deployed — ✅ DONE.** The 4 agents live in this `chip-design-skills` repo (the upstream)
+  and install to `~/.claude/agents/` (global) or a project's `.claude/agents/` via `install.py --project`
+  (bkit precedence: project overrides global); agent-kit deploys to `~/.claude/agent-kit/`.
+- **Remaining (future):** wire the pre-merge gate into CI; the `r_streamRwState` carryover question (§9).
 
 ## 9. Open questions / honest limits
 - `r_streamRwState` cross-transaction carryover (§5c) — may be a real reachability issue in `ext_i2cSerialInterface`.

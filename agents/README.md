@@ -28,6 +28,7 @@ cheapest reliable verifier (formal / static / sim).
 python install.py            # skills + agents + agent-kit -> ~/.claude/{skills,agents,agent-kit}/
 python install.py --dry-run  # preview
 python install.py --only agents
+python install.py --only agents --project /path/to/proj   # -> <proj>/.claude/agents/ (project-level; bkit precedence: overrides global; kit/skills stay global)
 ```
 
 ## Best-practices gate (`../agent-quality/`)
@@ -39,7 +40,7 @@ python agent-quality/check_agents.py                 # AUTO lint R1–R12 (exit 
 python agent-quality/check_agents.py agents/foo.md    # one agent
 ```
 - `agent-quality/AGENT_BEST_PRACTICES.md` — rubric (rule → source → AUTO/JUDGE)
-- `agent-quality/agent-validation-prompt.md` — LLM-as-judge for the JUDGE rules (R3/R5/R7/R9/R10)
+- `agent-quality/agent-validation-prompt.md` — LLM-as-judge for the JUDGE rules (R3/R5/R7/R9/R10/R13)
 
 These live **outside** `agents/` on purpose: `agents/` is deployed verbatim to `~/.claude/agents/`, so it must
 hold only valid agent `.md`. (`install.py` also skips any `agents/*.md` without YAML frontmatter as a backstop.)
