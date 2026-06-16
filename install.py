@@ -1,9 +1,13 @@
 """
 Install chip-design skills + agents + agent-kit to ~/.claude/
 
-    python install.py            # install everything
+    python install.py            # install everything (global ~/.claude/)
     python install.py --dry-run  # preview
     python install.py --only agents   # one component: skills | agents | kit
+
+    # project-level agents (bkit precedence: project overrides ~/.claude/agents):
+    python install.py --only agents --project /path/to/proj   # -> /path/to/proj/.claude/agents/
+    #   kit/skills always stay global (agents reference ~/.claude/agent-kit by absolute path)
 """
 import shutil, pathlib, argparse, sys
 
@@ -45,8 +49,11 @@ def _is_agent_md(m):
         return False
 
 
-def install_agents(dry):
-    src, dest = REPO / "agents", HOME / "agents"
+def install_agents(dry, project=None):
+    src = REPO / "agents"
+    # --project redirects agents to <proj>/.claude/agents (bkit project-level, overrides global)
+    dest = (pathlib.Path(project).expanduser().resolve() / ".claude" / "agents") if project \
+        else (HOME / "agents")
     if not src.exists():
         print("SKIP agents (no agents/ dir)"); return
     mds = sorted(m for m in src.glob("*.md") if _is_agent_md(m))
@@ -76,11 +83,14 @@ def main():
     ap = argparse.ArgumentParser(description="Install chip-design skills + agents + kit")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--only", choices=["skills", "agents", "kit"], help="install only one component")
+    ap.add_argument("--project", metavar="PATH",
+                    help="install AGENTS into PATH/.claude/agents/ (project-level, overrides "
+                         "~/.claude/agents). kit/skills still go global.")
     a = ap.parse_args()
     if not HOME.exists():
         print(f"ERROR: {HOME} not found"); sys.exit(1)
     if a.only in (None, "skills"): install_skills(a.dry_run)
-    if a.only in (None, "agents"): install_agents(a.dry_run)
+    if a.only in (None, "agents"): install_agents(a.dry_run, a.project)
     if a.only in (None, "kit"):    install_kit(a.dry_run)
     print("\n(dry-run) nothing changed." if a.dry_run else f"\nDone -> {HOME}")
 
