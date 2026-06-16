@@ -35,6 +35,11 @@
 | **R10** | **Human escalation / handoff** | failure threshold·high-risk 시 **사람/다른 owner로 escalate/handoff**. 단독 결정 금지 지점이 명확. | AUTO+JUDGE | O(human intervention), A(human oversight) |
 | **R11** | **Honest limits** | **증명/수행 못 하는 것**을 정직히 적은 섹션이 있다(한계·limits). | AUTO | A(transparency·honest) |
 | **R12** | **Evals / regression** | **answer-key/regression/test** 참조로 동작이 검증 가능(set up evals, test extensively). | AUTO | O(evals), A(test extensively) |
+| **R13** | **Generality of criteria (예시=증거, 예시≠규칙)** | 탐지·판정 **기준**은 *구조적·일반적*으로 진술한다. 특정 신호명/state명/literal 값/commit 해시는 **증거·예시**로만 인용하고, 한 예제의 이름·값이 **규칙 자체**가 되어 같은 class의 다른 케이스를 놓치지 않는다. (예: gated-clock을 "출력이 control로 멈추는 cell"로 정의 vs 이름 `_g`로 매칭; lookahead를 `count>=k+1`로 vs `count>=2` 고정.) | JUDGE | A(ACI·일반화), O(instructions) |
+
+> **R13 적용 원칙:** *"이 신호명·state명·literal·commit을 같은 class의 *다른* 설계로 옮겨도 기준이 살아남는가?"* 가 테스트다.
+> 살아남지 못하면 그건 **규칙이 아니라 예시** — 구조적 원리로 끌어올리고, 원래 예제는 evidence(R12)로 남긴다.
+> 이름 정규식·매직 넘버를 *탐지 조건*으로 쓰면 작성자가 그렇게 명명·수치화했을 때만 걸리는 fragment-grep 안티패턴이 된다.
 
 ---
 

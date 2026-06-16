@@ -90,10 +90,15 @@ end
 ✅ 산출물에 `count==0` 셀이 "1-tick active 후 정상 종료" 로 채워졌는지 확인. 검증: self-contained deadlock → **Prover/formal** (count==0 property는 실모듈 PASS/FAIL 증명됨); cross-domain 측면이 있으면 **directed sim** (§6).
 
 ### A3 · Circular FIFO pointer math [T6]
-순환 포인터를 linear index로 취급하지 않는다. 규칙: **occupancy counter 기반 (`count>=2`)** 으로 "N-ahead 있음" 판정 / 비교 offset 더하기 전 **1비트 zero-extend** (native width 덧셈은 mod 2^W wrap) / FIFO full = `wr==0` boundary 명시 / write-enable은 항상 `~full` AND.
+순환 포인터를 linear index로 취급하지 않는다. **일반 규칙(이 설계의 `>=2`가 아니라 *원리*):** lookahead 판정은
+**occupancy counter**로 한다 — "head 뒤로 k개 더 있다" ⇔ `occupancy >= k+1` (1-ahead면 `>=2`, 2-ahead면 `>=3`).
+raw 포인터 magnitude 비교(`(rd+offset) cmp wr`)는 wrap straddle에서 FP/FN. / 비교 offset 더하기 전 **1비트
+zero-extend** (native width 덧셈은 mod 2^W wrap) / FIFO full/empty는 포인터 스킴에 맞는 **boundary를 명시적으로
+정의** (이 설계처럼 wr-wrap 스킴이면 full=`wr==0`) / write-enable은 항상 `~full` AND.
 ```verilog
-// T6 exemplar — occupancy counter가 정답 (R1). ⚠️ (rd+1)<=(wr-1)(06f19b0)은 0 경계 FP/FN → 금지 (venezia BUG-002).
-if (o_fifo_counter >= 2) begin  // head pop 후 다음 존재 ⇔ 점유>=2 (raw (rd+1)<=(wr-1)는 wrap straddle에서 FP/FN)
+// T6 exemplar — occupancy counter가 정답 (R1). 여기선 1-ahead라 >=2; k-ahead면 >=k+1.
+// ⚠️ (rd+1)<=(wr-1)(06f19b0)은 0 경계 FP/FN → 금지 (venezia BUG-002).
+if (o_fifo_counter >= 2) begin  // 1-ahead ⇔ 점유>=2 (raw (rd+1)<=(wr-1)는 wrap straddle에서 FP/FN)
     o_nxt_buf_out_valid <= 1'b1;
     o_nxt_buf_out <= r_buf_mem[(r_rd_ptr + 1)];
 end
@@ -101,7 +106,11 @@ end
 ✅ named boundary cases 를 반드시 나열: single-entry, `ptr==MAX`, `wr` wraps-to-0 / FIFO-full. 서로 다른 reset 의미를 가진 출력(`o_buf_out` vs `o_nxt_buf_out`)은 **별도 always 블록**으로. ⚠️ 단, 출력을 *새 always 블록*으로 쪼개는 건 net driver-map을 바꾼다 — A0에서 ARCH로 튈 수 있으니, 분리 전 §2.A0를 다시 확인.
 
 ### A4 · Clock / async-reset provenance trace [T3]
-clock port를 연결하기 전, 드라이버를 **primary input / PLL / oscillator 까지 역추적**한다. 경로에 ICG/gate (`_g` suffix, `todoc_prim_icg`, `*Gate`, `BUFGCE`) 가 있고, sink가 그 gate가 닫힌 동안에도 돌아야 하면 → **그 clock을 쓰지 않는다.** Receiver/decoder는 free-running source clock 사용.
+clock port를 연결하기 전, 드라이버를 **primary input / PLL / oscillator 까지 역추적**한다. 경로에 **clock을
+control 입력으로 멈출 수 있는 cell**(← 이름이 아니라 *이 구조적 성질*로 식별: 출력 clock이 enable/select에 의해
+gating됨. naming은 힌트일 뿐 — `_g` suffix·`todoc_prim_icg`·`*Gate`·`BUFGCE`뿐 아니라 `assign g = en ? clk : 1'b0`
+같은 **조합식 gating**, mux로 clock 고르기 등도 전부 해당)가 있고, sink가 그 gate가 닫힌 동안에도 돌아야 하면 →
+**그 clock을 쓰지 않는다.** Receiver/decoder는 free-running source clock 사용.
 ```verilog
 // T3 exemplar — 86a1796: w_askRefClk = forward-link gating FSM이 enable하는 ICG의 CKO.
 // back-tel decoder는 forward data가 멈출 때 돌아야 함 → 정확히 이 clock이 멈추는 시점.

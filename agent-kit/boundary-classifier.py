@@ -88,6 +88,16 @@ def reason(sig):
         if sig[f'-{k}']: bits.append(f'-{k}={sig["-"+k]}')
     if sig['clk_rewire']: bits.append(f'CLK_REWIRE={sig["clk_rewire"]}')
     if sig['+PORT'] or sig['-PORT']: bits.append(f'PORT=+{sig["+PORT"]}/-{sig["-PORT"]}')
+    # FOLD nudge — name-INDEPENDENT, computed from the *shape* of the delta, not any signal name:
+    # new FSM state(s)/arm(s) added to an EXISTING FSM with NO new module/instance = a candidate
+    # thread folded into a host FSM rather than split into its own. This is exactly the fold-vs-split
+    # blind spot. The opposite shape (+MOD/+INST present) = already split → no nudge. The label is
+    # already ARCH; this only ROUTES the §2.0 responsibility-decomposition question (which is judged
+    # structurally — self-loop poll, externally-sourced exit, rate/lifetime mismatch — not by names).
+    added_states = sig.get('+STATE', 0) + sig.get('+ARM', 0)
+    if added_states and not (sig.get('+MOD', 0) or sig.get('+INST', 0)):
+        bits.append(f'FOLD(+STATE/ARM={added_states}, no new MOD/INST) '
+                    '→ §2.0 책임 분해 필수: fold가 정당한지(같은 lifetime) vs 독립 동시 thread라 split해야 하는지 판정')
     return ' '.join(bits) or '(none)'
 
 

@@ -55,6 +55,22 @@ CLOCK_RESET_CDC 4 · PORT_INTEGRATION 3. ~half of the 36 distinct bugs are STATI
 - **`grep`-driven comprehension is the upstream cause that *generates* the symptom classes** (T1 protocol, T2
   integration, T5 FSM-corner all partly stem from not holding the whole concurrent design in view).
 
+- **The partitioning decision crystallizes at PLAN altitude, not at code altitude — and that is where the
+  re-occurrence happened.** The boundary gate (§4) was positioned at commit/implementation time, but a plan
+  fixes the partition in *prose* ("add `TRF_FIFO_CHECK`/`TRF_PENDING` states to FSM2") long before any RTL diff
+  exists. Forensic: `sync-xfr-extension.plan.md` folded a BTNOP timer (lives across many COLA transfers) and a
+  FIFO pre-fetch/hold (producer/consumer decoupling) into FSM2 as new states, justifying it **only** on
+  within-FSM combinational depth (§3.4 "상태 분리 근거") and never asking the concurrency/lifetime question —
+  the exact code-time failure (`3f979ac` separate FIFO-read FSM), reproduced one altitude up. The plan carried
+  *zero* "Alternatives considered" and produced *no* ADR, even though `adr-template.md` already encodes the
+  deciding question ("Must run concurrently with the existing FSM?"). ⇒ Two fixes: (1) run the computed
+  boundary detection at PLAN altitude (architect-advisor Mode P), and (2) make a **responsibility
+  decomposition by concurrency/lifetime** the *forcing first step* — the default partition flips to a separate
+  FSM when a responsibility runs concurrently at a different lifetime/rate; folding into a host state must be
+  justified *against* that default, not assumed. Single-hypothesis anchoring (a plan with no alternatives) is
+  itself an escalation trigger. The knowledge was already captured here; the gap was gate *placement* + a
+  forcing function, not missing knowledge.
+
 ## 3. The decision: (B) Constrain & Escalate + externalize intent as formal
 
 Two philosophies were weighed:
@@ -196,3 +212,12 @@ Every claim here is testable against the 57-commit ground truth. The standing re
 run the architect-advisor on the `claude-implemented-version` tree + the feature request and confirm it escalates
 the FIFO-FSM partitioning (`3f979ac`); run the Prover and confirm it emits the count==0 property catching
 `2ebd51f`. We have the answer key.
+
+**Plan-altitude regression (added — same failure, one altitude up).** Run the architect-advisor in **Mode P**
+on `sync-xfr-extension.plan.md` (the prose, no RTL yet). It MUST: (a) extract the declared structural delta
+(new states `TRF_FIFO_CHECK`/`TRF_PENDING` in FSM2) → ARCH; (b) fill the §2.0 responsibility-decomposition
+table and flag the BTNOP timer (cross-iteration lifetime) + FIFO pre-fetch/hold (producer/consumer) as
+concurrent/different-lifetime; (c) by DEFAULT-FLIP, emit a **separate FIFO/timer-management FSM as candidate
+A** in the ADR; (d) flag the missing "Alternatives considered" section as a single-hypothesis-anchoring
+escalation. FAIL = silently adopting the FSM2 state-fold without surfacing the separate-FSM option. This is
+the plan-time twin of the `3f979ac` code-time answer key.

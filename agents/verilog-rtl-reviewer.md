@@ -114,7 +114,7 @@ reviewer의 SIM-RISK 처리는 이 router를 그대로 따른다:
 | S3 | base char 없는 sized literal (`` 1'0 ``, `` '<digit> ``) | **T7** | lint/compile error | `72b2219` (`1'0` → `1'b0`) |
 | S4 | if/case 분기에 statement >1 인데 begin/end 없음 (둘째 문이 무조건 실행) | **T7** | 구조 읽기 + lint | `72b2219` (un-braced 2-statement if) |
 | S5 | 선언된 vector 범위를 벗어난 bit index (`c_pktData[17]` on `reg [16:0]`) | **T9** | 선언폭 대조, index-out-of-range lint | `f451926` (`c_pktData[17]` on `reg [16:0]`) |
-| S6 | clock port가 ICG/gate의 CKO로 구동되는데 sink는 gate 닫혀도 돌아야 함 (`_g`/`*Gate`/`todoc_prim_icg`) | **T3** | 드라이버를 primary input/PLL/osc까지 trace | `86a1796` (askDecoder `i_refClk`←`w_askRefClk` ICG CKO) |
+| S6 | clock port가 **enable-gating cell**(구조적 정의: control 입력이 clock을 멈출 수 있는 셀 — ICG CKO뿐 아니라 `en?clk:0` 조합식·clock mux 포함; naming 힌트 `_g`/`*Gate`/`todoc_prim_icg`/`BUFGCE`)로 구동되는데 sink는 gate 닫혀도 돌아야 함 | **T3** | 드라이버를 primary input/PLL/osc까지 trace; clock 경로의 gating cell이 *어떤 조건*에 닫히는지와 sink 요구 비교 | `86a1796` (askDecoder `i_refClk`←`w_askRefClk` ICG CKO) |
 | S7 | async reset/set pin이 `always @(*)` 조합식으로 구동 (`i_rst_n & ~c_xxx`) | **T3** | reset pin RHS가 reset-tree/레지스터인지 확인 | `9a3c520` (`i_rst_n & ~c_fifoRstEn` → 레지스터드 `~r_fifoRstEn & ~r_fifoClr`) |
 | S8 | inferred RAM에 한 always 안에서 dual write / `syn_preserve` 오용 / dynamic-index read | **T8** | array write-port 수, 속성명, index 형태 검사 | `c69a048`,`1851ac0` (dur_lut 2 write port + syn_preserve) |
 | S9 | 기능적 mode/control port에 상수 literal (`1'b0`/`1'b1`) tie | **T2** | 포트 연결이 register bit/top pin으로 trace되는지 | `f785a05` (`.i_btnop_sqsh_mode(1'b1)` 상수 tie) → `d1bd162` (register bit) |
@@ -265,9 +265,9 @@ methodology §5b), sim-routed(R2·R5·R7·R8·R9)는 cloud0/xcelium-mcp **direct
 |----|------|------|----------|---------|---------------|
 | DT-A | sync-read latency | single-entry FIFO에 1개 push 후 read; `rd_en`과 동일 사이클에 consumer가 데이터 샘플하는지, holding reg가 multi-cycle 동안 안정한지 관찰 | consumer는 registered-read wait 후 latched 값만 사용; `rd_en`은 1-cycle pulse(double-pop 없음) | R1,R2 | R1 **Prover/formal** · R2 **directed sim**(cross-domain) |
 | DT-B | zero-count/timer deadlock | timer/count **= 0** 로드 후 소비 FSM 진행 | FSM이 정확히 1-tick active 보고 완료(hang 없음); expiry는 `<=` 경계 | R3 | **Prover/formal** (count==0 실증; CDC-timing 잔여는 sim) |
-| DT-C | FIFO-full lookahead | FIFO **full(wr wraps→0)**, single-entry, `ptr==MAX` 경계에서 next-packet valid 평가 | **occupancy(`count>=2`) 기반**이라야 모든 경계에서 정확; raw `(rd+1)<=(wr-1)`는 0 straddle에서 FP/FN(formal FAIL, venezia BUG-002) | R4 | **Prover/formal** (in-block pointer) |
+| DT-C | FIFO-full lookahead | FIFO **full(wr wraps→0)**, single-entry, `ptr==MAX` 경계에서 next-packet valid 평가 | **occupancy 기반(`count >= k+1`, k=lookahead 거리; 이 설계는 1-ahead라 `>=2`)**이라야 모든 경계에서 정확; raw `(rd+1)<=(wr-1)` 같은 magnitude 비교는 0 straddle에서 FP/FN(formal FAIL, venezia BUG-002) | R4 | **Prover/formal** (in-block pointer) |
 | DT-D | CDC ack race | cross-domain ack 동기화를 의도적 지연시켜 FSM 조기 전진 시도 | FSM은 synchronized ack 전 전진 안 함; raw level로 전진 금지 | R5 | **directed sim** (cloud0/xcelium-mcp) |
-| DT-E | prescaler post-load skip | timer load 직후 첫 prescaler 사이클 | load 다음 사이클은 count에 미반영(skip), 이후 정확한 boundary(`97`) | R6 | **Prover/formal** |
+| DT-E | prescaler post-load skip | timer load 직후 첫 prescaler 사이클 | load 다음 사이클은 count에 미반영(skip), 이후 **design-specific boundary** 도달(venezia prescaler=`97`, 버그는 off-by-one `98`) | R6 | **Prover/formal** |
 | DT-F | cross-packet inheritance | 연속 2패킷, 2번째 selection이 1번째 mode bit에 의존 | selection = 현재 필드 **AND** 직전 packet mode (`~r_pcmParamMode & packet[17]`) | R7 | **directed sim** 또는 **STATIC reachability(S12)** |
 | DT-G | squash-vs-extension | 동일 타입 이벤트 연속 도착 | squash/연장 의미가 spec과 일치(중복 처리/유실 없음) | R8 | **directed sim** 또는 **STATIC reachability** |
 | DT-H | repeated-START SCL race | repeated-START를 SCL **tLOW** 에지에 정렬 발생 | spurious write 없음; START detect가 SCL 안정 구간에서만 latch | R9 | **directed sim** 또는 **STATIC reachability** |

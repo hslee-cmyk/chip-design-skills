@@ -62,6 +62,16 @@ Judge these dimensions:
    - Are FAILURE THRESHOLDS (retry/iteration limits) and HIGH-RISK actions routed to
      a human or another owner? Is "don't decide this alone" explicit where it should be?
 
+8. R13 GENERALITY OF CRITERIA — example-as-evidence, not example-as-rule [A,O]
+   - Take each detection/decision CRITERION and ask: "if I moved this to a DIFFERENT
+     design of the same class, would the criterion still fire correctly?"
+   - FLAG any criterion whose trigger is a specific signal/state NAME, a magic LITERAL,
+     or a commit hash standing in for the rule itself (e.g. matching gated clocks by the
+     name `_g` instead of the structural property; a fixed `count>=2` or prescaler `97`
+     as the rule). Names/literals/commits are allowed ONLY as EVIDENCE/examples beside a
+     structurally-stated rule. Name-regex / magic-number triggers = fragment-grep
+     anti-pattern → recommend lifting to the general structural principle.
+
 Finish with:
 - OVERALL: PASS / NEEDS-WORK / FAIL
 - TOP 3 concrete fixes (ordered by impact).
@@ -71,7 +81,7 @@ Finish with:
 
 ## 판정 기준 (요약)
 
-- **PASS**: 7개 차원 모두 PASS, AUTO도 0 FAIL.
+- **PASS**: 8개 차원 모두 PASS, AUTO도 0 FAIL.
 - **NEEDS-WORK**: WEAK가 있으나 FAIL 없음 → 권고 반영.
 - **FAIL**: 어느 차원이든 FAIL(예: workflow로 충분한데 agent로 과설계 / high-risk 무방비 / 경계 없음).
 
