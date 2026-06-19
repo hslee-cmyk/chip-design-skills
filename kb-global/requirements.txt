@@ -1,0 +1,18 @@
+# fpga 워크스페이스 공유 지식-툴링 venv (kb-venv) 핀
+# 모든 fpga 하위 프로젝트(venezia-fpga, alamo-*, austria...)가 이 venv를 공유한다.
+# 정책: 전부 ≥7일 적격(supply-chain). 생성: python -m venv .tools/kb-venv
+# 설치: .tools/kb-venv/Scripts/python -m pip install --only-binary=:all: -r .tools/requirements.txt
+
+# 지식 그래프 (L3) — tree-sitter-verilog로 RTL AST 추출 (0.4.x 대비 격상)
+graphifyy==0.8.39
+
+# RAG (L4) — 오프라인 ONNX 임베딩 + 벡터 스토어
+fastembed==0.8.0
+onnxruntime==1.26.0
+sqlite-vec==0.1.9
+huggingface_hub==1.19.0
+tqdm==4.68.2
+fsspec==2026.4.0
+
+# frontmatter 파싱 (build_index / sync_rules / validate)
+PyYAML==6.0.3
