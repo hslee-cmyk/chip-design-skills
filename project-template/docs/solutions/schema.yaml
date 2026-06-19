@@ -1,0 +1,101 @@
+# RTL Knowledge Asset — YAML frontmatter schema
+# compound-docs 스키마를 AI Verilog Failure Taxonomy (T1..T9) + 검증 툴체인에 맞게 재정의.
+# enum 값은 대소문자까지 정확히 일치해야 함.
+
+required:
+  module:        # string. 모듈/컴포넌트 경로 (예: "d_i2c/ext_i2cSlave") 또는 "System"
+  date:          # ISO 8601 (YYYY-MM-DD)
+
+  problem_type:  # = 카테고리 폴더. T1..T9 + toolflow
+    - protocol_spec        # T1 → protocol-spec/
+    - port_integration     # T2 → port-integration/
+    - clock_reset_cdc      # T3 → clock-reset-cdc/
+    - timing_cycle         # T4 → timing-cycle/
+    - fsm_corner           # T5 → fsm-corner/
+    - pointer_handshake    # T6 → pointer-handshake/
+    - structure_style      # T7 → structure-style/
+    - fpga_ram             # T8 → fpga-ram/
+    - width_truncation     # T9 → width-truncation/
+    - toolflow             #    → toolflow/
+
+  component:
+    - fsm
+    - datapath
+    - fifo
+    - register_map
+    - cdc_sync
+    - clock_gen
+    - io_primitive       # SB_IO, SB_GB 등
+    - memory             # BRAM / SB_RAM
+    - top_integration
+    - testbench
+    - constraints        # .pcf / .pdc / .sdc
+    - toolchain          # yosys/nextpnr/sby/verilator/programmer
+
+  root_cause:
+    - invented_state         # T1
+    - unwired_port           # T2
+    - missing_async_reset     # T3
+    - gated_clock_glitch      # T3
+    - cdc_metastability       # T3
+    - same_cycle_sample       # T4
+    - missing_transition      # T5
+    - deadlock_corner         # T5 (count==0 등)
+    - pointer_wrap            # T6
+    - handshake_race          # T6
+    - inferred_latch          # T7
+    - blocking_in_seq         # T7
+    - sensitivity_list        # T7
+    - bad_ram_inference       # T8
+    - width_mismatch          # T9
+    - clog2_misuse            # T9
+    - pcf_pin_error           # toolflow
+    - timing_violation        # toolflow / P&R
+    - tool_config             # toolflow
+
+  verifier:    # ★ RTL 고유: 이 버그를 잡은(또는 잡았어야 할) 게이트
+    - static   # lint / elaboration / reachability (verilator)
+    - formal   # sby / SymbiYosys (BMC, prove, cover)
+    - sim      # directed sim (xcelium-mcp / verilator tb)
+    - pnr      # nextpnr / icestorm / timing
+
+  evidence:    # ★ RTL 고유: 증거 유형
+    - lint_log
+    - sby_cex          # formal 반례
+    - waveform
+    - utilization_rpt
+    - timing_rpt
+    - hw_observed      # 실제 보드 관측
+
+  resolution_type:
+    - rtl_fix
+    - param_fix         # localparam / parameter 폭 등
+    - constraint_fix    # .pcf / .pdc
+    - sdc_fix           # 타이밍 제약
+    - filelist_fix      # .f / 파일리스트
+    - tool_flag         # yosys/nextpnr 옵션
+    - testbench_fix
+
+  severity:
+    - critical
+    - high
+    - medium
+    - low
+
+optional:
+  toolchain:   # map. 재현 환경 버전
+    yosys:
+    nextpnr:
+    sby:
+    verilator:
+  target:      # string. FPGA 디바이스 (예: iCE40UP5K)
+  tags:        # array. lowercase, 하이픈 (예: [clog2, fifo-depth])
+  related:     # array. 교차 참조 파일 경로
+
+validation_rules:
+  - 모든 required 필드 존재
+  - enum 값은 정확히 일치 (case-sensitive)
+  - date 는 YYYY-MM-DD
+  - tags 는 lowercase, 하이픈 구분
+  - problem_type 은 파일이 위치한 카테고리 폴더와 일치 (예: timing_cycle → timing-cycle/)
+  - symptoms / root_cause 설명 등 서술은 frontmatter가 아니라 본문(## Symptoms 등)에 작성
