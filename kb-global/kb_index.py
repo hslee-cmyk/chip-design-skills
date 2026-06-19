@@ -23,10 +23,15 @@ for _s in (sys.stdout, sys.stderr):
         try: _s.reconfigure(encoding="utf-8", errors="replace")
         except Exception: pass
 
-HERE = Path(__file__).resolve().parent           # .tools/kb-global
-CORPUS = HERE / "principles"
-DB_PATH = HERE / "kb.sqlite"
-MODEL_CACHE = Path(os.environ.get("KB_MODEL_CACHE", HERE.parent / "hf-cache"))
+HERE = Path(__file__).resolve().parent
+# 위치 무관: 런타임(.tools/kb-global)이든 정본(chip-design-skills/kb-global)이든 parents[1]=workspace.
+WS = HERE.parents[1]                               # fpga 워크스페이스
+KIT = WS / "chip-design-skills"
+# 정본 코퍼스를 직접 색인 (런타임에 principles 복사본을 두지 않는다 → 단일 정본·유실 불가).
+PRINCIPLES = Path(os.environ.get("KB_PRINCIPLES", KIT / "kb-global" / "principles"))
+TAXONOMY = KIT / "agent-kit" / "failure-taxonomy.md"   # 정본 taxonomy 직접 색인
+DB_PATH = WS / ".tools" / "kb-global" / "kb.sqlite"    # 인덱스는 런타임(재생성)
+MODEL_CACHE = Path(os.environ.get("KB_MODEL_CACHE", WS / ".tools" / "hf-cache"))
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
 DIM = 384
 FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
@@ -86,13 +91,18 @@ def del_chunks(con, rel):
 def main():
     rebuild = "--rebuild" in sys.argv
     MODEL_CACHE.mkdir(parents=True, exist_ok=True)
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     if rebuild and DB_PATH.exists(): DB_PATH.unlink()
-    if not CORPUS.exists():
-        print(f"코퍼스 없음: {CORPUS}"); return 2
+    if not PRINCIPLES.exists():
+        print(f"정본 코퍼스 없음: {PRINCIPLES}\n"
+              f"(chip-design-skills repo가 워크스페이스에 있어야 함, 또는 KB_PRINCIPLES 지정)")
+        return 2
     con = connect(); init_schema(con)
 
-    on_disk = {p.relative_to(HERE).as_posix(): (p, sha256(p))
-               for p in sorted(CORPUS.rglob("*.md"))}
+    # 정본 principles/*.md + 정본 taxonomy 를 직접 색인 (rel = 파일명, 위치 무관)
+    files = list(PRINCIPLES.rglob("*.md"))
+    if TAXONOMY.exists(): files.append(TAXONOMY)
+    on_disk = {p.name: (p, sha256(p)) for p in sorted(set(files))}
     indexed = {r: h for r, h in con.execute("SELECT rel, file_hash FROM files")}
     for rel in list(indexed):
         if rel not in on_disk:

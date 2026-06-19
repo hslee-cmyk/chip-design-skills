@@ -106,11 +106,13 @@ def install_kit(dry):
 
 
 def install_kb_global(dry, workspace=None):
-    """Deploy the canonical long-term knowledge layer to <workspace>/.tools/kb-global/.
+    """Deploy the long-term knowledge *tooling* to <workspace>/.tools/kb-global/.
 
-    정본(이 repo, git): kb-global/principles/*.md + kb_index.py + kb_search.py + requirements.txt.
-    런타임 재생성물(kb.sqlite, hf-cache, kb-venv)은 보존 — 파일 단위 복사(디렉터리 통째 삭제 안 함).
-    agent-kit/failure-taxonomy.md(정본)를 principles/로 병합해 코퍼스를 자급자족하게 만든다.
+    Option 2 (단일 정본): kb_index.py는 정본 코퍼스(kb-global/principles/ + agent-kit/
+    failure-taxonomy.md)를 git repo에서 **직접 색인**한다 → 런타임에 principles 복사본을
+    두지 않는다(분기·유실 불가). 따라서 이 함수는 툴링만 배포한다:
+      kb_index.py, kb_search.py, README.md (편의용 런타임 사본) + requirements.txt.
+    인덱스(kb.sqlite)·캐시·venv는 보존(파일 단위 복사). 정본 principles는 repo에만 존재.
     workspace 기본값 = 이 repo의 부모(= fpga 워크스페이스).
     """
     src = REPO / "kb-global"
@@ -118,24 +120,24 @@ def install_kb_global(dry, workspace=None):
         print("SKIP kb-global (no kb-global/ dir)"); return
     ws = pathlib.Path(workspace).expanduser().resolve() if workspace else REPO.parent
     dest = ws / ".tools" / "kb-global"
-    pdest = dest / "principles"
+    stale_principles = dest / "principles"   # Option 1 잔재 — 있으면 제거(혼동 방지)
     if dry:
-        print(f"[dry-run] kb-global -> {dest}/ (principles + tooling; preserve kb.sqlite/caches)")
-        print(f"[dry-run]   merge taxonomy: agent-kit/failure-taxonomy.md -> principles/")
+        print(f"[dry-run] kb-global tooling -> {dest}/ (kb_index/kb_search/README; preserve kb.sqlite)")
+        print(f"[dry-run]   정본 principles는 repo에만(런타임 복사 안 함). 정본 직접 색인.")
+        if stale_principles.exists():
+            print(f"[dry-run]   remove stale runtime principles: {stale_principles}")
         print(f"[dry-run]   requirements.txt -> {ws / '.tools' / 'requirements.txt'}")
         return
-    pdest.mkdir(parents=True, exist_ok=True)
+    dest.mkdir(parents=True, exist_ok=True)
     for f in ("kb_index.py", "kb_search.py", "README.md"):
         if (src / f).exists():
             shutil.copy2(src / f, dest / f)
-    for p in sorted((src / "principles").glob("*.md")):
-        shutil.copy2(p, pdest / p.name)
-    tax = REPO / "agent-kit" / "failure-taxonomy.md"   # 정본은 agent-kit, 코퍼스로 병합
-    if tax.exists():
-        shutil.copy2(tax, pdest / "ai-verilog-failure-taxonomy.md")
     if (src / "requirements.txt").exists():
         shutil.copy2(src / "requirements.txt", ws / ".tools" / "requirements.txt")
-    print(f"kb-global installed -> {dest}  (principles + tooling; kb.sqlite/caches preserved)")
+    if stale_principles.exists():
+        shutil.rmtree(stale_principles)
+        print(f"  removed stale runtime principles -> {stale_principles}")
+    print(f"kb-global tooling installed -> {dest}  (정본 principles는 repo 직접 색인; kb.sqlite 보존)")
     print(f"  재색인: <ws>/.tools/kb-venv/Scripts/python.exe {dest / 'kb_index.py'}")
 
 

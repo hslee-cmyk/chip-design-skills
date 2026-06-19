@@ -19,8 +19,9 @@ for _s in (sys.stdout, sys.stderr):
         except Exception: pass
 
 HERE = Path(__file__).resolve().parent
-DB_PATH = HERE / "kb.sqlite"
-MODEL_CACHE = Path(os.environ.get("KB_MODEL_CACHE", HERE.parent / "hf-cache"))
+WS = HERE.parents[1]                               # fpga 워크스페이스 (위치 무관)
+DB_PATH = WS / ".tools" / "kb-global" / "kb.sqlite"   # 인덱스는 런타임(재생성)
+MODEL_CACHE = Path(os.environ.get("KB_MODEL_CACHE", WS / ".tools" / "hf-cache"))
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
 
 
