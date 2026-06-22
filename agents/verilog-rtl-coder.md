@@ -29,6 +29,17 @@ model: sonnet
 
 1. **`verilog-rtl` skill 로드** — Skill tool 로 `verilog-rtl` 를 먼저 활성화. 본 에이전트는 그 skill의 규칙을 **중복 서술하지 않고 [→§x] 로 참조**만 한다. 네이밍·always 분리·reset 정책·bit-width·CDC 선택표·FSM 템플릿은 전부 skill에 있다.
 2. **A0 model-diff gate (§2.A0)** — 분석서·코딩에 앞서, 받은 변경 요청을 structural-delta 분류기로 돌려 **ARCH/IFACE/LOCAL을 먼저 확정**한다. ARCH면 여기서 멈추고 escalate (구현 진입 금지). LOCAL/IFACE만 아래로 진행.
+2.5. **방어적 recall→apply [지식 시스템 — 방어적 coding의 핵심]** — LOCAL/IFACE 확정 후, **이 변경의 construct마다**(FIFO·sync-read·FSM·CDC·width·port·protocol) 지식을 회수해 코드에 적용한다. 정적 taxonomy.md만 보지 말고 **live 지식 + 이 repo의 흉터**를 당긴다:
+   ```bash
+   KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe
+   "$KB_PY" .ai/rag/preflight.py "<이 construct의 증상/주제>"   # construct별로
+   ```
+   → **GENERAL**(전역 RAG, 일반 원칙·prevention 규칙) + **PROJECT**(graphify, 이 repo의 과거 instance·BUG) 둘 다 받는다. 이게 §2 A1..A7 산출물의 **입력**이다:
+   - **GENERAL prevention** = "무엇을 하지 마라" 방어 체크리스트 → 코드가 이를 만족하게 작성.
+   - **PROJECT 과거 instance** = "이 repo가 이미 당한 것"(예: BUG-002 off-by-one) → **그 실수를 반복하지 않게** 작성. *가장 강한 방어 신호.*
+   - 충돌 시 **GENERAL 우선**. 각 Ai 산출물에 "회수한 원칙 + 피하려는 과거 instance(있으면)"를 1줄 인용.
+   - graphify MCP 활성 세션이면 `graphify_query`/`explain`/`shortest_path` 로 관련 모듈·과거 결정 심층 추적.
+   - construct→원칙 매핑은 §2의 A1..A7 표(Trigger↔Class)가 곧 그것 — 그 T-class를 recall 질의로 쓴다.
 3. **모듈 분석서 확인/작성 [→§12]** — 대상 모듈마다 `.ai/analysis/{module}.analysis.md` 존재 확인. 없으면 **skill §12 기준으로 먼저 작성**(전체 파일 read, FSM 전이표·신호 의존성·CDC 경로·수정 주의사항). 연계 모듈을 읽게 되면 그 모듈 분석서도 **즉시** 작성. 분석서 없이 always 블록을 쓰지 않는다. 수정 후에는 분석서를 갱신 [→§12 갱신규칙].
 4. **헤더 [→§13]** — 신규 파일은 doxygen 헤더 생성, 기존 파일은 `[revision history]` 1줄 추가 + `@date`/`@version` 갱신.
 5. **네이밍 [→§4,§5,§6]** — `i_`/`o_`/`w_`/`r_`/`c_` prefix 정확히. ⚠️ **Top I/O는 single-bit 이름만** (iCEcube2 VHDL netlister 버그 — `.ai/conventions.md`). 새 addressing/offset 핀은 top→main→leaf 전 계층에 동일 이름으로 통과.
@@ -38,6 +49,8 @@ model: sonnet
 ## 2. PLAN-BEFORE-CODE Contract (게이트 — 미충족 시 always 블록 금지)
 
 먼저 **A0 (model-diff gate)** 를 통과해 LOCAL/IFACE로 분류돼야 코딩 진입이 허용된다. 그 다음, 아래 표의 **해당 trigger가 작업에 하나라도 있으면, 그 artifact를 평문/표로 먼저 산출**한 뒤에만 RTL을 쓴다. 각 artifact는 taxonomy 클래스와 commit으로 추적된다. 산출물은 분석서나 작업 노트에 남긴다.
+
+> **방어적 recall→apply (§1.2.5 연결)**: 각 Ai 산출물은 §1.2.5에서 preflight로 회수한 **GENERAL 원칙(prevention) + PROJECT 과거 instance**를 *입력으로* 작성한다. 아래 표의 정적 commit은 출처 예시일 뿐 — 실제로는 **live 지식(전역 RAG) + 이 repo의 흉터(graphify/docs/solutions)** 를 당겨 코드에 적용하는 것이 방어다. 충돌 시 GENERAL 우선.
 
 ### A0 · Model-diff gate (hard precondition — 모든 변경에 선행) [→verilog-rtl-architect-advisor]
 어떤 always/net/FSM/clock/instance든 건드리기 전, **의도한 structural delta를 평문으로 선언**한 뒤 분류기를 돌린다:
