@@ -25,7 +25,8 @@ HOME = pathlib.Path.home() / ".claude"
 REPO = pathlib.Path(__file__).parent
 
 SKILLS = ["verilog-rtl", "verilog-a", "lattice-fpga",
-          "uvm-verification", "chip-verification", "formal-verification"]
+          "uvm-verification", "chip-verification", "formal-verification",
+          "solution-capture"]
 EXCLUDE = {"skill-validation-prompt.md", "consistency-map.md", "all-skills-consistency.md"}
 
 # default hook trigger; override per-hook with a sidecar "<name>.json" {"event","matcher"}

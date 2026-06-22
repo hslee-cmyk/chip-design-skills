@@ -211,8 +211,13 @@ python chip-design-skills/install.py --init-ai-infra --project <repo>
 ```
 
 **(3) 문제 해결 후 — 자산화**
+```
+/solution-capture        # 대화 내역에서 발췌 → docs/solutions/<T*> 자산 구조화(권장)
+```
+`/solution-capture` skill이 7단계로 대화에서 증상·근본원인·해결을 발췌해 우리 T1..T9 스키마로
+작성·검증(`validate.py`)·동기(`sync_rules.py`)한다. 수동 작성도 가능:
 ```bash
-# <repo>/docs/solutions/<T*>/<증상>-<module>-<YYYYMMDD>.md 작성(frontmatter)
+# <repo>/docs/solutions/<T*>/<증상>-<module>-<YYYYMMDD>.md 직접 작성(frontmatter)
 "$KB_PY" <repo>/docs/solutions/validate.py     # frontmatter/카테고리 검증
 "$KB_PY" <repo>/docs/solutions/sync_rules.py   # bkit regression-rules 동기 + 승격 후보 리포트
 ```
