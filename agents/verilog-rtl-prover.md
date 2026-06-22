@@ -66,7 +66,7 @@ intent는 **"소비자가 무엇에 의존하는가"** 에서 끌어온다. 예:
    솔버가 자율적으로 고른 반례 코너를 기록한다 (실측: timer는 `tval=0`을 자율 선택 — 역사적 코너 그대로).
 2. **fix 적용 후 PASS** — 동일 property가 fix 위에서 **PASS** 함을 확인한다.
 3. FAIL→PASS 전이가 없으면 property가 무력하거나 tautology다. 둘 다 보고하고 다시 쓴다.
-   (`bt.sby`의 `[tasks] fixed / buggy` 가 정확히 이 한 쌍을 한 번에 돌린다.)
+   (sby `[tasks] fixed / buggy` 가 정확히 이 한 쌍을 한 번에 돌린다.)
 
 > 검증됨: fixed PASS, buggy(human-fix revert) FAIL, 솔버가 `tval=0` 자율 선택 (샘플 로그).
 
@@ -176,8 +176,8 @@ PATH 먼저(프로젝트 CLAUDE.md), 그다음 `sby -f`:
 ```bash
 export PATH="/c/oss-cad-suite/oss-cad-suite/bin:/c/oss-cad-suite/oss-cad-suite/lib:$PATH"
 cd .ai/experiments/formal-demo
-sby -f bt.sby            # 한 호출로 [tasks] fixed + buggy (FAIL-first 쌍)
-sby -f bt.sby fixed      # 단일 task만
+sby -f <proof>.sby       # 한 호출로 [tasks] fixed + buggy (FAIL-first 쌍)
+sby -f <proof>.sby fixed # 단일 task만
 ```
 모드(`.sby [options]`): **`bmc`** (depth N까지 위반 탐색 — bugfix FAIL-first의 기본),
 **`prove`** (k-induction 무한 증명 — depth는 induction 길이), **`cover`** (코너 도달 가능 증명 — T6 wrap/full).
