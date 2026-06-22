@@ -7,8 +7,11 @@
 원칙: 일반 원칙이 *우선*(정본). 프로젝트 내용은 그 원칙의 구체 적용/instance.
 충돌하면 일반 원칙을 따른다. 자세히: chip-design-skills/docs/05.
 
+린: recall은 "방향 잡기"용 — plan-time 기본은 **bi-encoder만**(빠름, reranker 미로드).
+모호할 때만 `--rerank`로 정밀화. recall을 검증/실행으로 무겁게 만들지 않는다.
+
 Usage:
-    "$KB_PY" .ai/rag/preflight.py "<증상/주제>" [--kind pattern ...]
+    "$KB_PY" .ai/rag/preflight.py "<증상/주제>" [--rerank] [--kind pattern ...]
 """
 from __future__ import annotations
 import subprocess, sys
@@ -41,8 +44,15 @@ def run(cmd, cwd=None, timeout=120):
 
 def main():
     if len(sys.argv) < 2:
-        print('usage: preflight.py "<증상/주제>" [--kind pattern --tag fifo ...]'); return 2
+        print('usage: preflight.py "<증상/주제>" [--rerank] [--kind pattern --tag fifo ...]')
+        return 2
     query = sys.argv[1]; extra = sys.argv[2:]
+    # plan-time 린 기본: bi-encoder만(빠름, reranker 1.1GB 미로드). 방향 잡기엔 충분(top-5).
+    # 정밀이 필요하면(모호한 top 결과) --rerank 로 cross-encoder 켠다.
+    if "--rerank" in extra:
+        extra = [e for e in extra if e != "--rerank"]          # rerank ON (kb_search 기본)
+    elif "--no-rerank" not in extra:
+        extra = extra + ["--no-rerank"]                        # 기본 OFF (린)
 
     # 1) 일반 원칙 (전역 RAG) — 우선·정본 ───────────────────────────────
     hdr(f'1. 일반 원칙 [GENERAL · 전 프로젝트 적용 · 정본 git · 우선] — "{query}"')

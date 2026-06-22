@@ -29,11 +29,12 @@ model: sonnet
 
 1. **`verilog-rtl` skill 로드** — Skill tool 로 `verilog-rtl` 를 먼저 활성화. 본 에이전트는 그 skill의 규칙을 **중복 서술하지 않고 [→§x] 로 참조**만 한다. 네이밍·always 분리·reset 정책·bit-width·CDC 선택표·FSM 템플릿은 전부 skill에 있다.
 2. **A0 model-diff gate (§2.A0)** — 분석서·코딩에 앞서, 받은 변경 요청을 structural-delta 분류기로 돌려 **ARCH/IFACE/LOCAL을 먼저 확정**한다. ARCH면 여기서 멈추고 escalate (구현 진입 금지). LOCAL/IFACE만 아래로 진행.
-2.5. **방어적 recall→apply [지식 시스템 — 방어적 coding의 핵심]** — LOCAL/IFACE 확정 후, **이 변경의 construct마다**(FIFO·sync-read·FSM·CDC·width·port·protocol) 지식을 회수해 코드에 적용한다. 정적 taxonomy.md만 보지 말고 **live 지식 + 이 repo의 흉터**를 당긴다:
+2.5. **방어적 recall→apply [지식 시스템 — 방어적 coding의 핵심]** — LOCAL/IFACE 확정 후, **이 변경의 construct들**(FIFO·sync-read·FSM·CDC·width·port·protocol)에 대해 지식을 회수해 코드에 적용한다. 정적 taxonomy.md만 보지 말고 **live 지식 + 이 repo의 흉터**를 당긴다:
    ```bash
    KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe
-   "$KB_PY" .ai/rag/preflight.py "<이 construct의 증상/주제>"   # construct별로
+   "$KB_PY" .ai/rag/preflight.py "<주요 construct들을 묶은 증상/주제>"   # 변경당 1회 (린)
    ```
+   ⚠️ **린 규칙(plan 시간 보호)**: preflight는 **변경당 1회**(주요 construct를 한 질의에 묶음) — construct마다 N회 호출 금지(호출마다 모델 재로드). 기본은 bi-encoder(빠름); top 결과가 모호한 한 construct만 `--rerank` 또는 추가 질의. recall은 "방향 잡기"지 검증이 아니다(검증은 §6 router로 분리).
    → **GENERAL**(전역 RAG, 일반 원칙·prevention 규칙) + **PROJECT**(graphify, 이 repo의 과거 instance·BUG) 둘 다 받는다. 이게 §2 A1..A7 산출물의 **입력**이다:
    - **GENERAL prevention** = "무엇을 하지 마라" 방어 체크리스트 → 코드가 이를 만족하게 작성.
    - **PROJECT 과거 instance** = "이 repo가 이미 당한 것"(예: BUG-002 off-by-one) → **그 실수를 반복하지 않게** 작성. *가장 강한 방어 신호.*

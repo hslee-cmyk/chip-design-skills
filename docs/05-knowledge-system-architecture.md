@@ -156,6 +156,8 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 둘을 혼동하지 않게 한다. 프로젝트 wiki **심층 탐색**은 graphify MCP(`graphify.serve`,
 `--install-mcp --project`로 `.mcp.json` 등록) — 에이전트가 query/shortest_path/explain/neighbors 사용.
 
+**린 규칙 (plan 시간 보호)**: recall은 "방향 잡기"용이지 검증이 아니다. preflight는 **변경당 1회**(construct마다 N회 금지 — 호출마다 reranker 재로드), plan-time 기본은 **bi-encoder**(빠름, reranker 1.1GB 미로드); top 결과 모호할 때만 `--rerank`. 무거운 검증(formal/sim)은 절대 plan/recall에 끼우지 않고 §6 router로 분리(architect는 *route*만, *run* 안 함).
+
 ---
 
 ## 8. 품질 보증 — eval + pre-push 게이트
