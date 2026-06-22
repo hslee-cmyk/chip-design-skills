@@ -127,6 +127,11 @@ dependent FSM의 전이는 **trigger가 아니라 2-FF로 동기화된 feedback*
 
 ### A6 · Integration-as-part-of-coding [T2]
 구현과 통합을 분리된 sub-task로 보지 않는다. "선언했다 ≠ end-to-end로, 양방향으로 연결됐다." (A0가 **IFACE**로 분류된 변경이면 이 audit를 **먼저** 끝낸다.)
+> **pre-code 구조 파악 = graphify (기존 인터페이스 mirror 시).** 새 FIFO/register/map entry를 추가하며 "기존
+> analogous 인터페이스를 mirror"(아래 register symmetry)하려면 그 인터페이스를 먼저 이해해야 한다 —
+> `graphify_query`/`neighbors`로 유사 FIFO·register 경로의 포트·fan-out·CDC(req→ack) 패턴을 읽어 입력으로 쓴다
+> (코드 작성 *전*이라 graph fresh). ⚠️ **post-code 검증은 graphify 아님** — 방금 쓴 코드는 graph에 없으니
+> fan-out·unresolved·구조 정합은 §5의 `boundary-classifier.py`+verilator lint가 authoritative(그쪽이 새 코드를 본다).
 - ✅ 새 `.v` 는 **build filelist**에 실제 경로로 등록 (누락 시 elaboration/build break). unresolved-instance 0.
 - ✅ 새 registered output은 **fan-out ≥1** (grep로 확인). 새 mode input은 datapath 신호를 **실제로 바꿔야** 함. fan-out 0 = 미통합(dead) feature.
 - ✅ **register symmetry**: register/I2C 접근 FIFO·LUT는 write와 read 경로 **둘 다** + 기존 analogous FIFO와 동일한 CDC req→ack. writable entry는 정의된 non-zero read-back (write-only spec 아닌 한). host-polled status flag는 datapath consumer뿐 아니라 register-map status group에도 경로.

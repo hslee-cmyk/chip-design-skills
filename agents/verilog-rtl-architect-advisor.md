@@ -74,6 +74,14 @@ AI의 대형 기능 커밋이 ARCH로 라벨되면 ad-hoc 구현 대신 escalate
 
 변경이 도입하는 **책임을 하나씩** 나열하고, 각각에 태그한다 (host FSM = state를 끼워넣으려는 기존 FSM):
 
+> **구조 입력 = graphify (1차).** 책임의 동시성/lifetime을 추측하지 말고, 변경이 닿는 기존 **FSM·thread·의존성**을
+> graphify 그래프에서 먼저 읽는다 — `graphify_query`/`neighbors`/`explain`/`shortest_path`(MCP) 또는
+> `python -m graphify query`로 host FSM이 이미 가진 thread, 그와 producer/consumer로 묶인 모듈, 외부 클럭/이벤트
+> 의존을 매핑해 아래 표의 입력으로 쓴다. plan-time엔 보통 커밋된 baseline이라 graph fresh; 미커밋 변경 검토 시
+> `graphify-out`이 대상보다 오래면 `python -m graphify update` 후 진행(graphify-out 산출물만, 소스 무수정).
+> ⚠️ 경계: graphify는 *구조/의존성*만 준다 — **ARCH/IFACE/LOCAL delta 판정은 `boundary-classifier.py`가
+> authoritative**, graphify는 책임 분해의 입력이지 분류기를 대체하지 않는다(reviewer=elaboration·prover=sby와 동형).
+
 | 책임 (responsibility) | host FSM 대비 lifetime/rate | host FSM과 *동시* 실행 필요? | producer/consumer 디커플링? | 독립 reset/idle? |
 |---|---|---|---|---|
 | 예: timer 카운트다운 | host의 *여러 iteration*에 걸침 | 예 (전송 중 타이머 진행) | — | 예 |
