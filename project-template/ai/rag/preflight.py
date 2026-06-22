@@ -1,13 +1,11 @@
 #!/usr/bin/env python3
-"""지식 프리플라이트 (P4, 2-tier) — RTL/버그 착수 전 장기+단기 지식을 한 번에 조회.
+"""지식 프리플라이트 (2-tier, 우선순위·차이설명) — RTL/버그 착수 전 조회.
 
-  1. 장기 일반원칙 (전역 RAG, L4-global)  : fpga/.tools/kb-global (증류 원칙·taxonomy)
-  2. 단기 프로젝트 항법 (graphify, L3)      : 이 프로젝트 graph.json (모듈·설계·프로젝트 버그)
+  1. 일반 원칙 [GENERAL] — 전역 RAG (fpga/.tools/kb-global). 전 프로젝트 적용·정본 git·**우선**.
+  2. 프로젝트 고유 [PROJECT] — 이 프로젝트 graphify (관계·instance). 더 깊은 탐색은 graphify MCP.
 
-설계: 같은 정보를 두 곳에 넣지 않는다.
-  - 일반화된 원칙 = 전역 RAG (전 프로젝트 공유, 의미검색)
-  - 프로젝트 고유 관계·instance = 프로젝트 graphify (항법)
-  자세히: .ai/KNOWLEDGE_MAP.md
+원칙: 일반 원칙이 *우선*(정본). 프로젝트 내용은 그 원칙의 구체 적용/instance.
+충돌하면 일반 원칙을 따른다. 자세히: chip-design-skills/docs/05.
 
 Usage:
     "$KB_PY" .ai/rag/preflight.py "<증상/주제>" [--kind pattern ...]
@@ -30,7 +28,7 @@ FILT = ("warning", "symlink", "huggingface", "fetching", "developer mode",
         "docs.microsoft", "hf_token")
 
 
-def hdr(t): print("\n" + "=" * 70 + f"\n{t}\n" + "=" * 70)
+def hdr(t): print("\n" + "=" * 72 + f"\n{t}\n" + "=" * 72)
 
 
 def run(cmd, cwd=None, timeout=120):
@@ -46,26 +44,39 @@ def main():
         print('usage: preflight.py "<증상/주제>" [--kind pattern --tag fifo ...]'); return 2
     query = sys.argv[1]; extra = sys.argv[2:]
 
-    # 1) 장기 일반원칙 (전역 RAG)
-    hdr(f'1. 장기 일반원칙 (전역 RAG) — "{query}"')
+    # 1) 일반 원칙 (전역 RAG) — 우선·정본 ───────────────────────────────
+    hdr(f'1. 일반 원칙 [GENERAL · 전 프로젝트 적용 · 정본 git · 우선] — "{query}"')
     try:
         out, err, rc = run([PY, str(KB_GLOBAL / "kb_search.py"), query, "-k", "5", *extra])
         print(out or "(결과 없음)")
-        if rc != 0 and err: print("[kb_search stderr]", err[:300])
+        if rc != 0 and err:
+            print("[kb_search stderr]", err[:300])
     except Exception as e:
         print(f"(전역 RAG 조회 실패: {e})")
+    print("   ※ 이게 정본·우선. 프로젝트 내용과 충돌하면 일반 원칙을 따른다.")
 
-    # 2) 단기 프로젝트 항법 (graphify)
-    hdr(f'2. 단기 프로젝트 항법 (graphify) — "{query}"')
+    # 2) 프로젝트 고유 (graphify) — instance/관계 ──────────────────────
+    hdr(f'2. 프로젝트 고유 [PROJECT · 이 repo · 관계/instance] — "{query}"')
     try:
-        out, _e, _rc = run([PY, "-m", "graphify", "query", query, "--budget", "350"], cwd=str(PROJ))
-        print(out or "(graph 결과 없음)")
+        out, _e, _rc = run([PY, "-m", "graphify", "query", query, "--budget", "350"],
+                           cwd=str(PROJ))
+        print(out or "(graph 결과 없음 — graphify-out 미생성이면 `/graphify .` 1회)")
     except Exception as e:
         print(f"(graphify 조회 실패: {e})")
+    print("   ※ 위 일반 원칙의 구체 적용/instance. 더 깊은 탐색: graphify MCP "
+          "(graphify_query/shortest_path/explain/neighbors) 또는 graphify-out/graph.html.")
 
-    print("\n" + "-" * 70)
-    print("프리플라이트 완료. 장기 원칙(전역) + 단기 관계(프로젝트)를 반영해 PLAN-BEFORE-CODE.")
-    print("해결 확인 후: docs/solutions 자산화 → 일반화되면 .tools/kb-global/principles 로 격상.")
+    # 3) 일반 원칙 vs 프로젝트 내용 — 차이 설명 ────────────────────────
+    print("\n" + "-" * 72)
+    print("일반 원칙(GENERAL) vs 프로젝트 내용(PROJECT) — 어떻게 다른가")
+    print("-" * 72)
+    print("- GENERAL: 전 프로젝트에 적용되는 *규칙*(무엇을 해야/하지 말아야). "
+          "정본=chip-design-skills/kb-global(git). **충돌 시 우선.**")
+    print("- PROJECT: 이 repo의 모듈분석·설계·버그 *instance*(여기선 어떻게 구현/발생). "
+          "정본=<proj>/{.ai, docs}. graphify가 관계 항법.")
+    print("- 프로젝트에서 일반화되는 패턴은 kb-global/principles로 격상되면 GENERAL이 된다.")
+    print("\n착수: GENERAL 원칙을 우선 적용 + PROJECT 관계로 이 설계의 구체 맥락 보강 → "
+          "PLAN-BEFORE-CODE. 해결 후 /solution-capture 로 자산화.")
     return 0
 
 

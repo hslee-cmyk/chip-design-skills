@@ -251,6 +251,36 @@ def install_git_hooks(dry, project):
     return 0
 
 
+def install_mcp(dry, project):
+    """프로젝트 .mcp.json 에 graphify MCP 서버 등록 → 에이전트가 프로젝트 wiki 심층 탐색
+    (graphify_query / shortest_path / explain / neighbors). graphify-out/graph.json 있을 때만."""
+    if not project:
+        print("ERROR: --install-mcp requires --project PATH"); return 1
+    proj = pathlib.Path(project).expanduser().resolve()
+    graph = proj / "graphify-out" / "graph.json"
+    if not graph.exists():
+        print(f"  graph 없음 → graphify MCP skip (먼저 `/graphify .` 로 그래프 생성): {proj.name}")
+        return 0
+    venv = proj.parent / ".tools" / "kb-venv" / "Scripts" / "python.exe"
+    pyexe = str(venv) if venv.exists() else sys.executable
+    mcp_path = proj / ".mcp.json"
+    data = {}
+    if mcp_path.exists():
+        try:
+            data = json.loads(mcp_path.read_text(encoding="utf-8"))
+        except Exception:
+            print(f"  ! {mcp_path} 파싱 실패 — skip"); return 0
+    data.setdefault("mcpServers", {})["graphify"] = {
+        "command": pyexe,
+        "args": ["-m", "graphify.serve", str(graph), "--transport", "stdio"],
+    }
+    if dry:
+        print(f"[dry-run] .mcp.json graphify 서버 등록 -> {mcp_path}"); return 0
+    mcp_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    print(f"graphify MCP registered -> {mcp_path}  (CC 재시작 후 graphify_* 툴 사용)")
+    return 0
+
+
 # ----------------------------------------------------------- bkit templates
 
 def _vkey(name):
@@ -799,6 +829,8 @@ def main():
                     help="신규 프로젝트 온보딩 한 방: init-ai-infra + git-hooks(A·B) + CC hooks(D)를 순서대로 (--project 필수)")
     ap.add_argument("--install-git-hooks", action="store_true",
                     help="프로젝트 git hooks(pre-commit 검증·동기, post-commit graphify) 배포 → --project/.git/hooks/")
+    ap.add_argument("--install-mcp", action="store_true",
+                    help="프로젝트 .mcp.json 에 graphify MCP 서버 등록(그래프 심층 탐색; graph.json 있을 때)")
     ap.add_argument("--detect-config", action="store_true",
                     help="auto-generate db/scripts/config.sh from an existing tool project "
                          "(.ldf Diamond / .rdf Radiant / .prj iCEcube2) in --project")
@@ -815,10 +847,17 @@ def main():
             print(); rc = install_git_hooks(a.dry_run, a.project) or 0
         if rc == 0:
             print(); install_hooks(a.dry_run, a.project, a.python)
+        print(); install_mcp(a.dry_run, a.project)   # graph 있으면 등록, 없으면 skip
         print("\n(dry-run) nothing changed." if a.dry_run else
               "\nDone (onboard). NEXT: 공유 venv 미구성이면 .tools/kb-venv 먼저, "
-              "RTL 에이전트는 `--only agents --project`. graphify 그래프 1회 `/graphify .`")
+              "RTL 에이전트는 `--only agents --project`. graphify 그래프 1회 `/graphify .` "
+              "후 `--install-mcp --project` 로 MCP 등록.")
         sys.exit(rc)
+
+    if a.install_mcp:
+        rc = install_mcp(a.dry_run, a.project)
+        print("\n(dry-run) nothing changed." if a.dry_run else "\nDone (mcp).")
+        sys.exit(rc or 0)
 
     if a.install_git_hooks:
         rc = install_git_hooks(a.dry_run, a.project)
