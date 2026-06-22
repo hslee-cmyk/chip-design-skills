@@ -97,6 +97,24 @@ python ~/.claude/agent-kit/pre-merge-check.py    <commit-or-range>   # 게이트
 > 판정 자체는 표의 **구조적 기준**(self-loop poll · 외부소스 exit 조건 · lifetime/rate mismatch)으로 하지,
 > 힌트 유무로 자동 결정하지 않는다 — 힌트는 *질문을 강제*할 뿐 답이 아니다.
 
+### 2.0.5 Evidence-based recall (후보 제시 전 — 분할 결정에 지식 회수)
+
+책임 분해로 후보 축이 잡히면, **각 후보 분할이 부르는 실패 + 이 repo의 전례**를 회수해 ADR 근거로 박는다.
+"감"이 아니라 GENERAL 위험 + PROJECT 전례로 옵션을 비교한다 (coder §1.2.5 recall→apply의 *plan 고도판* —
+구현이 아니라 **분할 결정**에 적용).
+```bash
+KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe
+"$KB_PY" <proj>/.ai/rag/preflight.py "<분할 대상 failure-class 주제>"   # 후보가 건드리는 T-class별
+```
+- **GENERAL (전역 RAG)** = 각 후보가 키우는 failure class: state-fold → **T5** corner 폭증(state×async-event
+  매트릭스 비대); 별도 FSM → **T2** integration(fan-out·handshake)+**T3** cross-FSM CDC; 새 clock 분리 → **T3**.
+- **PROJECT (graphify — architect의 특기)** = 과거 ADR·유사 분할의 *결과* 추적:
+  `"$KB_PY" -m graphify query "<module/FSM> partitioning deadlock"` (또는 graphify MCP explain/path),
+  `ls <proj>/.ai/adr/`. 유사 분할이 낳은 버그·deadlock·재작업 instance를 찾는다.
+- **반영**: §2.1 후보 비교표 각 행에 "GENERAL 위험(T*) + PROJECT 전례(있으면)" 1줄 인용. **충돌 시 GENERAL 우선.**
+  전례가 한 방향을 강하게 가리키면 추천안에 그 증거를 명시(단, 결정은 사람). 신규 프로젝트라 전례가 빈약하면
+  GENERAL 위주 — 프로젝트가 쌓일수록 강해진다(WRITE 루프 복리).
+
 ### 2.1 후보 제시 + ADR
 
 architectural 변경은 *결정하지 말고* 옵션을 제시한다. **[→adr-template.md]** 를 복사해
@@ -106,7 +124,7 @@ architectural 변경은 *결정하지 말고* 옵션을 제시한다. **[→adr-
   **anti-anchoring**: 제안자(plan)의 분할을 특권화하지 말 것 — §2.0 책임 분해에서 후보를 *새로 도출*한 뒤
   제안안을 그 중 하나에 매핑한다. §2.0에서 동시/다른-lifetime 책임이 잡혔으면 **별도 FSM/모듈을 A안으로 강제 포함**.
 - rubric 트레이드오프: clock domain·gating / **thread-of-control 독립성(동시 실행 필요? — §2.0 결정 규칙이 1차 기준)** / combinational depth(2차) / resource 공유 / verifiability(별도 FSM=별도 cover 가능)
-- 찾을 수 있는 **history/intent**: `.ai/analysis/`, 과거 commit, 기존 ADR, `graphify-out/`(rationale layer)
+- **history/intent (§2.0.5에서 회수)**: GENERAL 위험 + PROJECT 전례(`.ai/analysis/`·과거 ADR·`graphify-out/` rationale layer·과거 commit)를 각 후보 행에 인용 — 정적 추측이 아니라 회수한 증거로 비교
 - **공유 submodule 경고**: db/design은 chip과 공유 → ASIC area/timing/DFT 함의. 이 repo 밖 영향은 사람이 판단.
 - 추천안 1개. **단, 결정은 사람.** 비준되면 ADR + 그 architecture를 지키는 property(SVA)를 intent 자산으로 commit.
 실제 선례: `3f979ac`에서 사람은 FIFO-read를 **별도 FSM**으로 분리했다 (token 전송과 독립 동시 thread). escalate 했어야 할 결정.
