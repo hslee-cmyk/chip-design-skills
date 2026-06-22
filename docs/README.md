@@ -10,6 +10,10 @@
    — agent 정의/언제, **3 foundation(Model·Tools·Instructions)**, single→multi-agent orchestration, **layered guardrails**, human-in-the-loop.
 3. [종합·비교·체크리스트](03-synthesis-and-checklist.md)
    — 두 문서가 같은 점/강조 다른 점, 통합 멘탈모델, 한 장 체크리스트.
+4. [bkit Customization 가이드](04-bkit-customization-guide.md)
+   — bkit(PDCA 플러그인) **동작 customize**: 우선순위, 컴포넌트별 override(hooks=union·skills=project우선·agents=제한·templates=불가), `install.py` 사용법, hook/template/agent 레시피, 검증. (플러그인 코드 대조 검증)
+5. [지식 시스템 아키텍처](05-knowledge-system-architecture.md)
+   — **4계층(bkit·큐레이션·graphify·RAG) × 2-tier(단기 graphify / 장기 전역 RAG)** 지식 자산화 시스템. 정본=git·인덱스=재생성, 다국어 2단계 검색(임베딩+reranker), eval·pre-push 게이트, 자산화→격상→회수 루프, Quickstart.
 
 ## 원문 (Primary sources)
 - **Anthropic**, *Building Effective Agents* (2024-12) — https://www.anthropic.com/engineering/building-effective-agents
