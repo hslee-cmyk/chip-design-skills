@@ -1,0 +1,21 @@
+{
+  "_about": "전역 RAG 검색 품질 eval 골드셋. relevant = 해당 chunk의 heading/rel/title에 들어있어야 할 토큰(부분일치, 대소문자 무시). 한/영 혼합으로 다국어 검색을 검증. corpus: failure-taxonomy(T1..T9) + rtl-patterns(P-*).",
+  "queries": [
+    {"query": "동기 read FIFO를 read enable과 같은 사이클에 샘플링", "relevant": ["TIMING_CYCLE", "P-FIFOSW"]},
+    {"query": "reading synchronous fifo data on the same cycle as rd_en", "relevant": ["TIMING_CYCLE", "P-FIFOSW"]},
+    {"query": "순환 FIFO 포인터 off-by-one wrap 경계 오류", "relevant": ["POINTER_HANDSHAKE", "P-FIFOSW"]},
+    {"query": "circular fifo pointer arithmetic wrap occupancy counter", "relevant": ["POINTER_HANDSHAKE", "P-FIFOSW"]},
+    {"query": "clock domain crossing 리셋 동기화 gated clock 출처", "relevant": ["CLOCK_RESET_CDC"]},
+    {"query": "gated clock and async reset provenance across clock domains", "relevant": ["CLOCK_RESET_CDC"]},
+    {"query": "localparam 폭 truncation clog2 sized 변수", "relevant": ["WIDTH_TRUNCATION", "P-WIDTH"]},
+    {"query": "sized localparam bit width truncation with clog2", "relevant": ["WIDTH_TRUNCATION", "P-WIDTH"]},
+    {"query": "happy-path FSM deadlock count==0 zero duration load", "relevant": ["FSM_CORNER_DEADLOCK"]},
+    {"query": "fsm missing async event transition deadlock corner", "relevant": ["FSM_CORNER_DEADLOCK"]},
+    {"query": "포트를 선언만 하고 end-to-end로 결선 안 함", "relevant": ["PORT_INTEGRATION"]},
+    {"query": "signal declared but not wired bidirectional end to end", "relevant": ["PORT_INTEGRATION"]},
+    {"query": "프로토콜 상태를 임의로 발명 repeated start 무시", "relevant": ["PROTOCOL_SPEC"]},
+    {"query": "non-synthesizable inferred latch default_nettype 구조 오류", "relevant": ["STRUCTURE_STYLE"]},
+    {"query": "RAM 추론 ramstyle 단일 write port 메모리 모델링", "relevant": ["FPGA_RAM"]},
+    {"query": "버그를 formal과 sim 중 어디로 라우팅 검증 owner", "relevant": ["P-VERIFY"]}
+  ]
+}

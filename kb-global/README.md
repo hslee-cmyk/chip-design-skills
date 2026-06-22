@@ -29,8 +29,13 @@ fpga 전 프로젝트가 공유하는 **장기 일반지식 RAG**의 *정본 소
 - bi-encoder/reranker 모두 다국어 → 한/영 혼합 질의에서 순위 분리 개선.
 - env: `KB_EMBED_MODEL`(색인·검색 동일해야 함; 변경 시 자동 재빌드), `KB_RERANK_MODEL`,
   `KB_RERANK_POOL`. CLI: `--no-rerank`(bi-encoder만), `--pool N`. 모델 없으면 rerank 폴백.
-- ⚠️ **품질은 코퍼스/질의 의존**: 작은 코퍼스에선 reranker가 도움이 될 수도, 노이즈가 될 수도
-  있다. `--no-rerank` A/B로 비교하고, 신뢰 전 작은 eval 셋으로 precision@k 검증 권장.
+- **품질 검증(eval)**: `kb_eval.py` + 골드셋 `eval/queries.json`(한/영 16질의)로 설정 비교.
+  ```bash
+  "$VPY" .tools/kb-global/kb_eval.py --verbose   # MRR/P@1/hit@k 비교 표
+  ```
+  측정값(16질의 골드셋): bi-encoder only MRR 0.79·P@1 0.75(2질의 top-5 miss) →
+  **rerank(pool≥10) MRR 1.00·P@1 1.00**. reranker가 결정적 개선.
+  ⚠️ 코퍼스가 격상으로 커지면 골드셋 보강 후 **재측정**(pool/모델 재튜닝). `--no-rerank`로 A/B 가능.
 
 ## 재색인 / 툴링 배포
 ```bash

@@ -129,9 +129,13 @@ def install_kb_global(dry, workspace=None):
         print(f"[dry-run]   requirements.txt -> {ws / '.tools' / 'requirements.txt'}")
         return
     dest.mkdir(parents=True, exist_ok=True)
-    for f in ("kb_index.py", "kb_search.py", "README.md"):
+    for f in ("kb_index.py", "kb_search.py", "kb_eval.py", "README.md"):
         if (src / f).exists():
             shutil.copy2(src / f, dest / f)
+    if (src / "eval").is_dir():                       # eval 골드셋 + 하니스
+        (dest / "eval").mkdir(parents=True, exist_ok=True)
+        for p in sorted((src / "eval").glob("*.json")):
+            shutil.copy2(p, dest / "eval" / p.name)
     if (src / "requirements.txt").exists():
         shutil.copy2(src / "requirements.txt", ws / ".tools" / "requirements.txt")
     if stale_principles.exists():

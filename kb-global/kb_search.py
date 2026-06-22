@@ -43,9 +43,29 @@ def connect():
     return con
 
 
+# 프로세스 내 모델 1회 로드 캐시 (CLI는 호출당 1회라 영향 없음; eval은 다회 호출 → 가속)
+_EMB = None
+_CE = None
+
+
+def _embedder():
+    global _EMB
+    if _EMB is None:
+        from fastembed import TextEmbedding
+        _EMB = TextEmbedding(MODEL_NAME, cache_dir=str(MODEL_CACHE))
+    return _EMB
+
+
+def _reranker():
+    global _CE
+    if _CE is None:
+        from fastembed.rerank.cross_encoder import TextCrossEncoder
+        _CE = TextCrossEncoder(RERANK_MODEL, cache_dir=str(MODEL_CACHE))
+    return _CE
+
+
 def embed_query(q):
-    from fastembed import TextEmbedding
-    return pack(next(iter(TextEmbedding(MODEL_NAME, cache_dir=str(MODEL_CACHE)).embed([q]))))
+    return pack(next(iter(_embedder().embed([q]))))
 
 
 def _rerank(query, cands, k):
@@ -53,9 +73,7 @@ def _rerank(query, cands, k):
     if len(cands) <= 1:
         return cands[:k]
     try:
-        from fastembed.rerank.cross_encoder import TextCrossEncoder
-        ce = TextCrossEncoder(RERANK_MODEL, cache_dir=str(MODEL_CACHE))
-        scores = list(ce.rerank(query, [c["text"] for c in cands]))
+        scores = list(_reranker().rerank(query, [c["text"] for c in cands]))
         for c, s in zip(cands, scores):
             c["rerank"] = round(float(s), 4)
         cands.sort(key=lambda c: c["rerank"], reverse=True)
