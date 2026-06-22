@@ -53,19 +53,21 @@ required:
     - timing_violation        # toolflow / P&R
     - tool_config             # toolflow
 
-  verifier:    # ★ RTL 고유: 이 버그를 잡은(또는 잡았어야 할) 게이트
+  verifier:    # 이 버그를 잡은(또는 잡았어야 할) 게이트
     - static   # lint / elaboration / reachability (verilator)
     - formal   # sby / SymbiYosys (BMC, prove, cover)
     - sim      # directed sim (xcelium-mcp / verilator tb)
     - pnr      # nextpnr / icestorm / timing
+    - manual   # toolflow/운영: 사람이 명령 재실행·관찰로 확인 (RTL 게이트 무관)
 
-  evidence:    # ★ RTL 고유: 증거 유형
+  evidence:    # 증거 유형
     - lint_log
     - sby_cex          # formal 반례
     - waveform
     - utilization_rpt
     - timing_rpt
     - hw_observed      # 실제 보드 관측
+    - tool_output      # toolflow: 도구 경고·버전 출력·명령 결과
 
   resolution_type:
     - rtl_fix
@@ -75,6 +77,7 @@ required:
     - filelist_fix      # .f / 파일리스트
     - tool_flag         # yosys/nextpnr 옵션
     - testbench_fix
+    - env_setup         # toolflow: venv/설치/버전 핀·재동기 등 환경 구성
 
   severity:
     - critical
