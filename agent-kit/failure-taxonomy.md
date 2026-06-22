@@ -41,7 +41,7 @@ event it must passively honor. Reasons packet-locally (misses inter-packet inher
 happy-path corners by mutating state it does not physically drive.
 
 **Signature:** a combinational `assign`/`c_` that CLEARS or OVERRIDES a signal whose name implies a detected
-bus event (`*StartStopDet`, `*_detected`, `*_valid` from another block); a case branch handling a substate that
+bus event (`*_detected`, `*_valid`, `*_seen` from another block); a case branch handling a substate that
 the enclosing guard makes unreachable (dead code); a register address/field derived from a byte without
 switching on the mode bit that defines that byte's meaning; selection computed from only the current packet.
 
@@ -54,7 +54,7 @@ for a substate unreachable under its enclosing guard (dead code). (venezia ì¶œì²
 - For any byte whose meaning depends on a mode bit, EVERY decode branch must switch on that mode bit; never
   extract a register address from a device-select byte in addressing mode.
 - When parameters inherit across a packet stream, derive selection from BOTH current-packet fields AND retained
-  previous-packet mode (`c_target_is_config = ~r_pcmParamMode & packet[17]`).
+  previous-packet mode (e.g. `c_sel = ~r_prev_mode & cur_field`).
 - Flag any `state==X` branch handling a substate that can only occur under `state!=X` as unreachable/dead.
 - When adding a streaming/FIFO map entry, mirror the existing analogous interface, don't invent a write-strobe.
 
