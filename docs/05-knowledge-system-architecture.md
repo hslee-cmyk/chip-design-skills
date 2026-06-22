@@ -214,10 +214,13 @@ python chip-design-skills/install.py --only kb-global   # 전역 툴링 배포
 "$KB_PY" .tools/kb-global/kb_index.py                    # 전역 RAG 색인
 ```
 
-**(1) 새 프로젝트 합류**
+**(1) 새 프로젝트 합류 — 한 방 온보딩**
 ```bash
-python chip-design-skills/install.py --init-ai-infra --project <repo>
-# → <repo>/.ai/rag/preflight.py + docs/solutions/ + CLAUDE.md 지식 프리플라이트 의무 (기존 파일 보존)
+python chip-design-skills/install.py --onboard --project <repo>
+# = init-ai-infra(.ai/rag/preflight + docs/solutions + CLAUDE.md 의무, 기존 보존)
+#   + git-hooks A·B(pre-commit 검증·동기, post-commit graphify)
+#   + CC hooks D(RTL 편집 preflight 넛지)
+# 선택: RTL 에이전트 `--only agents --project <repo>`, 그래프 1회 `/graphify .`
 ```
 
 **(2) 작업 착수 전 — 지식 회수**

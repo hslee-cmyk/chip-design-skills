@@ -795,6 +795,8 @@ def main():
                          "from project-template/ (skips existing files unless --force)")
     ap.add_argument("--force", action="store_true",
                     help="overwrite existing files (for --init-ai-infra)")
+    ap.add_argument("--onboard", action="store_true",
+                    help="신규 프로젝트 온보딩 한 방: init-ai-infra + git-hooks(A·B) + CC hooks(D)를 순서대로 (--project 필수)")
     ap.add_argument("--install-git-hooks", action="store_true",
                     help="프로젝트 git hooks(pre-commit 검증·동기, post-commit graphify) 배포 → --project/.git/hooks/")
     ap.add_argument("--detect-config", action="store_true",
@@ -803,6 +805,20 @@ def main():
     a = ap.parse_args()
     if not HOME.exists():
         print(f"ERROR: {HOME} not found"); sys.exit(1)
+
+    if a.onboard:
+        if not a.project:
+            print("ERROR: --onboard requires --project PATH"); sys.exit(1)
+        print(f"== Onboard {a.project}: init-ai-infra → git-hooks(A·B) → CC hooks(D)\n")
+        rc = init_ai_infra(a.dry_run, a.project, a.force) or 0
+        if rc == 0:
+            print(); rc = install_git_hooks(a.dry_run, a.project) or 0
+        if rc == 0:
+            print(); install_hooks(a.dry_run, a.project, a.python)
+        print("\n(dry-run) nothing changed." if a.dry_run else
+              "\nDone (onboard). NEXT: 공유 venv 미구성이면 .tools/kb-venv 먼저, "
+              "RTL 에이전트는 `--only agents --project`. graphify 그래프 1회 `/graphify .`")
+        sys.exit(rc)
 
     if a.install_git_hooks:
         rc = install_git_hooks(a.dry_run, a.project)
