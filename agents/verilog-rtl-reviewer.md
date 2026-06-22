@@ -162,14 +162,32 @@ KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe
 → "이 자리에서 과거에 BUG-X가 났다"가 나오면 그 패턴 재발인지 우선 확인하고 발견을 그 instance와 교차참조한다.
 graphify MCP 활성 시 `graphify_query`/`explain`으로 관련 모듈·과거 결정 추적.
 
-### 스텝 A — STATIC gate (lint + elaboration)
+### 스텝 G — graph 최신화 (구조/연결성 분석 전, 조건부 재-graph)
+구조·연결성(포트 존재, instantiation 엣지, fan-out)은 합성/elaboration보다 **graphify의 VST 그래프가 1차 정본**
+이다 — 싸고 직접적이다. 단 `graphify-out`은 *시점 스냅샷*이라 **uncommitted diff를 못 본다** → stale graph는
+리뷰 중인 변경 그 자체에 오답을 낸다(예: 제거된 포트를 "아직 존재"로 보고). 그러므로:
+- **조건부 재생성**: diff가 건드린 파일이 `graphify-out`보다 **새것이거나 graph가 없으면 먼저 갱신**한다 —
+  `python -m graphify update`(증분; MSYS bash) 또는 부재 시 `/graphify .` 1회. graph가 변경보다 최신이면 skip.
+- 이 갱신은 `graphify-out/` **분석 산출물만** 쓴다 — `db/design/**`는 무수정(read-only 계약 유지; §0의 scratch
+  lint wrapper와 동급). 커밋 시엔 post-commit hook이 자동 re-graph하므로, 이 스텝이 채우는 갭은 **uncommitted 리뷰**다.
+- 갱신 후 graphify(MCP `graphify_query`/`neighbors`/`explain`)로 구조·연결성을 **diff-정확**하게 본다.
+- ⚠️ 재-graph는 **staleness만** 고친다 — graphify는 syntactic이라 `ifdef`/param/generate/bit-level을 해소 못 한다.
+  그 영역(활성-define buildability, bit-level driver-map)은 스텝 A elaboration이 owner.
+- 정직성: 보고서에 **"graph 재생성함 / 기존 graph 사용 / graph 불가"**를 lint ran/skipped와 동일하게 명시.
+
+### 스텝 A — STATIC gate (graphify-first → scoped elaboration)
+연결성·포트 존재·instantiation·fan-out은 **스텝 G의 fresh graph로 1차 확정**(싸다). elaboration은 graph가 못
+푸는 것 — **활성 define으로 통합 빌드가 elaborate되는가(buildability)** + width/bit-level/macro-resolved 연결성
+— 을 확인하는 authoritative 단계다. **변경 범위에 맞춰 스코프**해 불필요한 full-build을 피한다.
 프로젝트 OSS CAD Suite PATH를 먼저 설정한다 (`<project>/CLAUDE.md` / 루트 `fpga/CLAUDE.md`):
 ```bash
 export PATH="/c/oss-cad-suite/oss-cad-suite/bin:/c/oss-cad-suite/oss-cad-suite/lib:$PATH"
-# 변경 모듈 단독 lint (IMPLICIT/UNDRIVEN warning이 S2 dropped-prefix net을 잡음)
+# 1) 변경 모듈 단독 lint (IMPLICIT/UNDRIVEN/WIDTH·bit-level — graph가 못 보는 것)
 verilator --lint-only -Wall <changed>.v
-# elaboration(S1): filelist 기반으로 unresolved instance 확인
-verilator --lint-only -Wall -f db/design/d_filelist.f --top-module <top>
+# 2) scoped elaboration: 변경 모듈을 top으로 unresolved instance·인터페이스 확인 (LOCAL/연결성 변경엔 이걸로 충분)
+verilator --lint-only -Wall -f db/design/d_filelist.f --top-module <changed-module>
+# 3) full-build elaboration은 인터페이스/포트·define-gated 경로 변경으로 buildability 확인이 필요할 때만 escalate
+verilator --lint-only -Wall -f db/design/d_filelist.f --top-module <synthesis-top>
 ```
 - RTL에 `` `default_nettype none ``을 **추가하지 말 것**(RTL 수정 금지). 대신 보고서 작업 폴더에
   scratch wrapper(`\`default_nettype none` + `\`include`)를 **Write로 생성**해 implicit-net을 강제 오류화할 수 있다.
@@ -188,7 +206,8 @@ verilator --lint-only -Wall -f db/design/d_filelist.f --top-module <top>
 - `count==0` 셀은 self-contained → **Prover/formal**로, `cross-domain ack 지연` 셀은 → **directed sim**으로 라우팅.
 
 ### 스텝 C — end-to-end fan-out audit (T2 필수, 명시적으로 수행)
-새/변경된 신호마다 producer→consumer 폐루프를 grep으로 확정:
+새/변경된 신호마다 producer→consumer 폐루프를 확정한다 — **스텝 G의 fresh graph(`graphify_query`/`neighbors`)로
+1차**(연결성은 그래프가 정본), grep/elaboration은 확인·escalation:
 1. 새 `.v` → `d_filelist.f` 등재 (S1).
 2. 새 registered output → consumer ≥1 (S10). 0이면 dead feature.
 3. 새 mode input → datapath 신호를 실제로 select (reset/CDC만 먹으면 미통합).
@@ -256,7 +275,7 @@ Debugging에 따라 cloud0/xcelium-mcp로 실행하도록 위임한다.
 - `static_confirmed` 개수(그중 S12 reviewer-owned dead-code 개수), `sim_risk` 개수, `blockers` 개수
 - **route 분해**: → Prover/formal 개수, → directed sim 개수, → STATIC reachability(S12) 개수
 - `arch_suspect` 개수 (architect-advisor refer 대상) [→verilog-rtl-architect-advisor]
-- lint/elaboration 상태(ran/skipped + 이유)
+- lint/elaboration 상태(ran/skipped + 이유, scoped/full) · graph 상태(재생성함/기존 사용/불가)
 - 발행한 directed test ID 목록 (+ 각 owner)
 - verdict (BLOCK/CONDITIONAL/PASS)
 - 인용한 taxonomy class 목록 (+ 있으면 이 repo의 과거 instance)
