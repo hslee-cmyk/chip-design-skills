@@ -1,7 +1,8 @@
 #!/bin/sh
 # chip-design-skills pre-push gate.
-# kb-global/** (정본 장기지식·검색 툴링)가 push에 포함되면 retrieval eval을 돌려
-# 검색 품질(MRR/P@1)이 임계 미만이면 push를 BLOCK한다. (전 프로젝트 공유 지식 회귀 방지)
+# RAG 색인 코퍼스(kb-global/** + agent-kit/failure-taxonomy.md — kb_index가 직접 색인하는 정본)가
+# push에 포함되면 retrieval eval을 돌려 검색 품질(MRR/P@1)이 임계 미만이면 push를 BLOCK한다.
+# (전 프로젝트 공유 지식 회귀 방지. taxonomy도 색인 대상이므로 트리거에 포함 — kb_index.py SOURCES와 일치.)
 #
 # Enable once per clone:   git config core.hooksPath .githooks
 # Bypass a single push:    git push --no-verify
@@ -19,7 +20,7 @@ while read l_ref l_sha r_ref r_sha; do
     base="$r_sha"
   fi
   if [ -n "$base" ]; then
-    git diff --name-only "$base" "$l_sha" 2>/dev/null | grep -Eiq '^kb-global/' && need=1
+    git diff --name-only "$base" "$l_sha" 2>/dev/null | grep -Eiq '^kb-global/|^agent-kit/failure-taxonomy\.md' && need=1
   else
     need=1                                         # base 불명 → fail-safe로 검사
   fi
@@ -34,7 +35,7 @@ if [ -x "$venv" ]; then PY="$venv"; else
 fi
 [ -z "$PY" ] && { echo "[pre-push] python 없음 - eval 게이트 skip"; exit 0; }
 
-echo "[pre-push] kb-global 변경 감지 → retrieval eval 게이트 실행..."
+echo "[pre-push] 색인 코퍼스(kb-global/ 또는 failure-taxonomy) 변경 감지 → retrieval eval 게이트 실행..."
 "$PY" "$root/kb-global/eval_gate.py"
 rc=$?
 [ "$rc" -ne 0 ] && echo "[pre-push] BLOCKED - 검색 품질 회귀. 고친 뒤 재push, 또는 우회: git push --no-verify"
