@@ -12,3 +12,7 @@ skill-test-workspace/
 *.log
 *.log.bak
 stdout.log*
+
+# Python bytecode (eval/gate 실행 부산물)
+__pycache__/
+*.pyc
