@@ -32,7 +32,9 @@ PRINCIPLES = Path(os.environ.get("KB_PRINCIPLES", KIT / "kb-global" / "principle
 TAXONOMY = KIT / "agent-kit" / "failure-taxonomy.md"   # 정본 taxonomy 직접 색인
 DB_PATH = WS / ".tools" / "kb-global" / "kb.sqlite"    # 인덱스는 런타임(재생성)
 MODEL_CACHE = Path(os.environ.get("KB_MODEL_CACHE", WS / ".tools" / "hf-cache"))
-MODEL_NAME = "BAAI/bge-small-en-v1.5"
+# 다국어 bi-encoder (한/영 혼합 재현율). dim=384 → 기존 스키마와 동일(드롭인). KB_EMBED_MODEL로 override.
+MODEL_NAME = os.environ.get("KB_EMBED_MODEL",
+                            "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
 DIM = 384
 FM_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n", re.DOTALL)
 H1_RE = re.compile(r"^#\s+(.+)$", re.MULTILINE)
@@ -75,6 +77,7 @@ def connect():
 
 
 def init_schema(con):
+    con.execute("CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT)")
     con.execute("CREATE TABLE IF NOT EXISTS files(rel TEXT PRIMARY KEY, file_hash TEXT)")
     con.execute("""CREATE TABLE IF NOT EXISTS chunks(
         id INTEGER PRIMARY KEY, rel TEXT, title TEXT, heading TEXT,
@@ -92,12 +95,25 @@ def main():
     rebuild = "--rebuild" in sys.argv
     MODEL_CACHE.mkdir(parents=True, exist_ok=True)
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    # 임베딩 모델이 바뀌면 기존 벡터와 호환 안 됨 → 자동 전체 재빌드(혼합 벡터 방지)
+    if DB_PATH.exists() and not rebuild:
+        try:
+            c0 = connect()
+            c0.execute("CREATE TABLE IF NOT EXISTS meta(key TEXT PRIMARY KEY, value TEXT)")
+            row = c0.execute("SELECT value FROM meta WHERE key='embed_model'").fetchone()
+            c0.close()
+            if row and row[0] != MODEL_NAME:
+                print(f"임베딩 모델 변경 감지 ({row[0]} → {MODEL_NAME}) → 전체 재빌드")
+                rebuild = True
+        except Exception:
+            pass
     if rebuild and DB_PATH.exists(): DB_PATH.unlink()
     if not PRINCIPLES.exists():
         print(f"정본 코퍼스 없음: {PRINCIPLES}\n"
               f"(chip-design-skills repo가 워크스페이스에 있어야 함, 또는 KB_PRINCIPLES 지정)")
         return 2
     con = connect(); init_schema(con)
+    con.execute("INSERT OR REPLACE INTO meta(key,value) VALUES('embed_model',?)", (MODEL_NAME,))
 
     # 정본 principles/*.md + 정본 taxonomy 를 직접 색인 (rel = 파일명, 위치 무관)
     files = list(PRINCIPLES.rglob("*.md"))

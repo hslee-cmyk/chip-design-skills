@@ -21,6 +21,17 @@ fpga 전 프로젝트가 공유하는 **장기 일반지식 RAG**의 *정본 소
 자동 해석(런타임/정본 어디서 실행해도 동일). `install.py --only kb-global`은 **툴링만** 런타임에
 배포한다(편의용 사본; 정본 principles는 repo에만).
 
+## 검색 파이프라인 (2단계 — 다국어)
+1. **bi-encoder 검색**: `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`
+   (dim=384, 다국어) + 메타필터 → 후보 top-N(`KB_RERANK_POOL`, 기본 20).
+2. **cross-encoder rerank**: `jinaai/jina-reranker-v2-base-multilingual` → 최종 top-k.
+
+- bi-encoder/reranker 모두 다국어 → 한/영 혼합 질의에서 순위 분리 개선.
+- env: `KB_EMBED_MODEL`(색인·검색 동일해야 함; 변경 시 자동 재빌드), `KB_RERANK_MODEL`,
+  `KB_RERANK_POOL`. CLI: `--no-rerank`(bi-encoder만), `--pool N`. 모델 없으면 rerank 폴백.
+- ⚠️ **품질은 코퍼스/질의 의존**: 작은 코퍼스에선 reranker가 도움이 될 수도, 노이즈가 될 수도
+  있다. `--no-rerank` A/B로 비교하고, 신뢰 전 작은 eval 셋으로 precision@k 검증 권장.
+
 ## 재색인 / 툴링 배포
 ```bash
 VPY=<workspace>/.tools/kb-venv/Scripts/python.exe
