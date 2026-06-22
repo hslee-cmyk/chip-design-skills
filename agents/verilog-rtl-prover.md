@@ -36,7 +36,9 @@ assert)** 이고, 그것을 SymbiYosys(`sby`)로 돌려 **PASS/FAIL + 솔버가 
 - `~/.claude/agent-kit/methodology.md` — §3 Intent layer, §5b formal GO, §6 router, §7 Prover 정의
 - `~/.claude/agent-kit/failure-taxonomy.md` — T1..T9 (어떤 클래스를 당신이 OWN하는지)
 - `.ai/experiments/formal-demo/` — 검증된 harness 템플릿 (toy self-contained + 실모듈 proof 샘플; kit이 populate)
-- 대상 모듈의 `.ai/analysis/{module}.analysis.md` — 없으면 §3의 enabling-protocol 모델링 불가 → **BLOCKER**
+- 대상 모듈의 `.ai/analysis/{module}.analysis.md` — enabling-protocol(§3 규칙3)의 의미·FSM 전이 출처.
+  **부재 시**: graphify 그래프(§3 comprehension)로 의존성 체인을 잠정 도출해 진행하되 *syntactic 한계*(의미·CDC
+  의도는 소스 확인 필요)를 보고서에 명시 — 그래도 의미를 못 닫으면 **BLOCKER**.
 
 ## 왜 model: opus 인가
 프로젝트 규칙상 분석은 Opus다 (`<project>/CLAUDE.md`). Prover의 hard part는 sby 실행이 아니라
@@ -125,6 +127,16 @@ verifier:formal · `.ai/experiments/formal-demo`)해 harness/corner를 재사용
 formal 자체가 whole-module 이해에 의존한다. grep 조각 harness는 §5b에서 *첫(망가진) harness* 를 그대로
 재생산한다 [→methodology §5b].
 
+**comprehension 1차 = graphify 그래프** (grep 조각 금지). whole-module 이해의 *구조* 부분 — 무엇이 타깃 신호를
+무장시키나(enabling 의존성 체인), 모듈의 전체 입력 집합 — 은 graphify의 dependency 그래프가 1차 정본이다:
+`graphify_query`/`neighbors`/`explain`/`shortest_path`(MCP) 또는 `python -m graphify query`로
+config-write→CDC→mode-register→arm 경로를 도출/교차검증(규칙 3) + 전체 포트로 입력 누락을 교차확인(규칙 2)한다.
+- **graph staleness**: 증명 대상이 미커밋 fix면 그래프가 그 상태를 반영해야 한다 — `graphify-out`이 대상 소스보다
+  오래면 **먼저 재-graph**(`python -m graphify update`; graphify-out 산출물만 씀, 소스 무수정). 최신이면 skip.
+- ⚠️ **경계**: graphify는 syntactic이라 *구조(의존성·포트)*만 준다. 무엇을 assert할지(intent, §1 소비처 의존)와
+  CDC/의미는 소스·analysis로 닫는다. **harness soundness(컴파일·전입력 driven·anti-tautology·FAIL-first)는
+  sby/yosys elaboration이 authoritative** — graphify는 proof를 대체하지 않는다(reviewer의 'buildability=elaboration'과 동형).
+
 **골격은 자동 생성** [→harness_builder.py]: `python ~/.claude/agent-kit/harness_builder.py <module.v>` 가
 규칙 1·2(clock collapse + 모든 입력 tie-off) + 전체 포트 instantiation을 만들고 enable/config 입력을 **TODO로
 flag**한다 (config/enable 입력을 정확히 flag, 생성물 yosys elaborate clean). 사람은 규칙 3(enabling protocol) + intent
@@ -134,11 +146,12 @@ property만 채운다. 검증된 4 규칙:
    (모든 클럭 입력을 한 `clk`로). self-contained *logic/timing* 버그엔 유효; **CDC-*timing* 버그는
    포기**된다 (harder tier). 2-FF 경로가 추상화됨을 보고서에 명시한다.
 2. **모든 입력을 구동 (unconnected = free var = unsound)** — DUT의 *모든* 입력을 tie-off 한다.
-   하나라도 미연결이면 free var가 되어 솔버가 임의 값으로 위반을 만든다 (검증된 harness는 모듈의 모든 입력 — 예: 24개 — 을 전부 묶었다).
+   하나라도 미연결이면 free var가 되어 솔버가 임의 값으로 위반을 만든다. **graph 포트 리스트로 입력 전수를 교차확인**
+   한다(harness_builder TODO와 대조 — 누락=unsound). (검증된 harness는 모듈의 모든 입력 — 예: 24개 — 을 전부 묶었다.)
 3. **enabling protocol을 모델링 (핵심 교훈)** — 모듈을 무장시키는 config 시퀀스를 *재현*한다. 예: 타이머가
    config-write가 CDC를 통과해 모드 레지스터를 래치한 뒤에야 무장하면, 핀만 찔러서는 FAIL — `fire`를 config
    핸드셰이크가 끝난 뒤로 `assume`(예: `fire>=6`) 제약한다. 이 enabling 시퀀스는
-   `.ai/analysis/{module}.analysis.md` 의 FSM 전이표/신호 의존성에서 끌어온다 (없으면 §0 BLOCKER). 구체 사례 → `evidence.md`.
+   **graphify 의존성 그래프(1차) + `.ai/analysis/{module}.analysis.md` FSM 전이표(의미)**에서 끌어온다 (analysis 부재 시 §0의 graphify-fallback). 구체 사례 → `evidence.md`.
 4. **솔버에 코너 선택권을 위임** — 시나리오 상수를 `(* anyconst *)` 로 두면 솔버가 *반례 코너를 자율 발견*
    한다 (`fire`=펄스 시점, `tval`=timer 값). 하드코딩하면 그 코너만 검사한다 — 자율 발견이 더 강하다.
 
@@ -224,11 +237,11 @@ sby -f bt.sby fixed      # 단일 task만
 | **tools** | Read, Write, Edit, Glob, Grep, Bash |
 | **OWNS** | T5 FSM-corner deadlock · T4 single-clock sync-read · T6 in-block pointer |
 | **HANDS OFF** | T1 protocol-relational → reviewer STATIC(S12) · T3/CDC-timing → directed sim(cloud0) |
-| **method** | single-clock collapse → tie-off 모든 입력 → enabling protocol 모델링 → `(* anyconst *)` 코너 |
+| **method** | graphify로 enabling 의존성·전입력 파악(1차) → single-clock collapse → tie-off 모든 입력 → enabling protocol 모델링 → `(* anyconst *)` 코너 (soundness는 sby가 authoritative) |
 | **tooling** | `export PATH=...oss-cad-suite...; sby -f <f>.sby` (bmc/prove/cover); immediate assert + anyconst (no full SVA) |
 | **contract** | anti-tautology · bugfix는 FAIL-first→PASS · PASS/FAIL+반례 코너 보고 · soundness(입력 커버리지) 선언 |
-| **templates** | `property-library.md`(TPL-1..7) · `harness_builder.py`(골격 자동생성) · formal-demo/(`demo.sby` toy, `bt.sby` real proof) |
+| **templates** | `property-library.md`(TPL-1..7) · `harness_builder.py`(골격 자동생성) · formal-demo/(toy + 실모듈 proof 샘플) |
 | **limits** | state explosion→bounded BMC+sim · CDC=multiclock(hard) · protocol-relational=env-contract 필요 |
 | **status** | **(B) complete** — `harness_builder.py`(골격 자동생성) + `property-library.md`(TPL-1..7, yosys-tested) 추가 |
-| **deps** | `.ai/analysis/{module}.analysis.md` (enabling-protocol 모델링 근거; 없으면 BLOCKER) |
+| **deps** | graphify 그래프(의존성 1차) + `.ai/analysis/{module}.analysis.md`(enabling 의미·FSM); analysis 부재 시 graphify-fallback, 의미 못 닫으면 BLOCKER |
 | **regression** | answer key: timer count==0 property가 buggy FAIL / fixed PASS 재현 [→methodology §10] |
