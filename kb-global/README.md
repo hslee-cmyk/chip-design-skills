@@ -36,6 +36,9 @@ fpga 전 프로젝트가 공유하는 **장기 일반지식 RAG**의 *정본 소
   측정값(16질의 골드셋): bi-encoder only MRR 0.79·P@1 0.75(2질의 top-5 miss) →
   **rerank(pool≥10) MRR 1.00·P@1 1.00**. reranker가 결정적 개선.
   ⚠️ 코퍼스가 격상으로 커지면 골드셋 보강 후 **재측정**(pool/모델 재튜닝). `--no-rerank`로 A/B 가능.
+- **pre-push 게이트**: `.githooks/pre-push`가 `kb-global/**` push 시 인덱스 최신화 + eval 실행 →
+  `MRR/P@1`이 임계(`KB_EVAL_MIN_MRR`/`KB_EVAL_MIN_P1`, 기본 0.9) 미만이면 **push 차단**(회귀 방지).
+  로직: `eval_gate.py`. 인프라 문제는 SKIP(품질 회귀만 차단; `KB_EVAL_STRICT=1`이면 차단). 우회: `git push --no-verify`.
 
 ## 재색인 / 툴링 배포
 ```bash

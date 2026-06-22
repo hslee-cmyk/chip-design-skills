@@ -1,0 +1,41 @@
+#!/bin/sh
+# chip-design-skills pre-push gate.
+# kb-global/** (정본 장기지식·검색 툴링)가 push에 포함되면 retrieval eval을 돌려
+# 검색 품질(MRR/P@1)이 임계 미만이면 push를 BLOCK한다. (전 프로젝트 공유 지식 회귀 방지)
+#
+# Enable once per clone:   git config core.hooksPath .githooks
+# Bypass a single push:    git push --no-verify
+# Threshold env:           KB_EVAL_MIN_MRR / KB_EVAL_MIN_P1 / KB_EVAL_STRICT
+# Gate logic:              kb-global/eval_gate.py
+
+z=0000000000000000000000000000000000000000
+need=0
+while read l_ref l_sha r_ref r_sha; do
+  [ -z "$l_sha" ] && continue
+  [ "$l_sha" = "$z" ] && continue                 # branch 삭제 push → skip
+  if [ "$r_sha" = "$z" ]; then                    # 새 branch: base 추정(없으면 안전하게 검사)
+    base=$(git merge-base "$l_sha" origin/master 2>/dev/null || echo "")
+  else
+    base="$r_sha"
+  fi
+  if [ -n "$base" ]; then
+    git diff --name-only "$base" "$l_sha" 2>/dev/null | grep -Eiq '^kb-global/' && need=1
+  else
+    need=1                                         # base 불명 → fail-safe로 검사
+  fi
+done
+[ "$need" -eq 0 ] && exit 0
+
+# 공유 venv 우선(모델 보유), 없으면 일반 python
+root=$(git rev-parse --show-toplevel)
+venv="$root/../.tools/kb-venv/Scripts/python.exe"
+if [ -x "$venv" ]; then PY="$venv"; else
+  for c in python python3 py; do command -v "$c" >/dev/null 2>&1 && { PY="$c"; break; }; done
+fi
+[ -z "$PY" ] && { echo "[pre-push] python 없음 - eval 게이트 skip"; exit 0; }
+
+echo "[pre-push] kb-global 변경 감지 → retrieval eval 게이트 실행..."
+"$PY" "$root/kb-global/eval_gate.py"
+rc=$?
+[ "$rc" -ne 0 ] && echo "[pre-push] BLOCKED - 검색 품질 회귀. 고친 뒤 재push, 또는 우회: git push --no-verify"
+exit $rc
