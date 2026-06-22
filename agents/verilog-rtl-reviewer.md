@@ -104,102 +104,43 @@ reviewer의 SIM-RISK 처리는 이 router를 그대로 따른다:
 
 ## 1. STATIC 체크리스트 — 매번 100% 잡아야 하는 항목 (reviewer가 소유)
 
-읽기 + `verilator --lint-only -Wall` + elaboration + (S12/S13는) reachability 추론으로 **확정 가능**. 하나라도
-통과시키면 리뷰 실패. 각 행은 taxonomy class와 db/design 선례 커밋을 인용한다.
-
-| # | 정적 위반 (diff signature) | Class | 탐지 방법 | 선례 커밋 |
-|---|---|---|---|---|
-| S1 | 새 `.v`가 `d_filelist.f`에 없음 → elaboration unresolved instance | **T2** | filelist grep + elaborate | `759af25`,`b26d292` (ext_fwd_fifo 누락) |
-| S2 | RHS 식별자가 선언된 port/reg/wire와 불일치 (i_ prefix 누락 → **implicit net**) | **T7** | verilator IMPLICIT/UNDRIVEN warning, port-list 대조 | `72b2219` (`sync_xfr_en` vs `i_sync_xfr_en` → BTNOP flag stuck 0) |
-| S3 | base char 없는 sized literal (`` 1'0 ``, `` '<digit> ``) | **T7** | lint/compile error | `72b2219` (`1'0` → `1'b0`) |
-| S4 | if/case 분기에 statement >1 인데 begin/end 없음 (둘째 문이 무조건 실행) | **T7** | 구조 읽기 + lint | `72b2219` (un-braced 2-statement if) |
-| S5 | 선언된 vector 범위를 벗어난 bit index (`c_pktData[17]` on `reg [16:0]`) | **T9** | 선언폭 대조, index-out-of-range lint | `f451926` (`c_pktData[17]` on `reg [16:0]`) |
-| S6 | clock port가 **enable-gating cell**(구조적 정의: control 입력이 clock을 멈출 수 있는 셀 — ICG CKO뿐 아니라 `en?clk:0` 조합식·clock mux 포함; naming 힌트 `_g`/`*Gate`/`todoc_prim_icg`/`BUFGCE`)로 구동되는데 sink는 gate 닫혀도 돌아야 함 | **T3** | 드라이버를 primary input/PLL/osc까지 trace; clock 경로의 gating cell이 *어떤 조건*에 닫히는지와 sink 요구 비교 | `86a1796` (askDecoder `i_refClk`←`w_askRefClk` ICG CKO) |
-| S7 | async reset/set pin이 `always @(*)` 조합식으로 구동 (`i_rst_n & ~c_xxx`) | **T3** | reset pin RHS가 reset-tree/레지스터인지 확인 | `9a3c520` (`i_rst_n & ~c_fifoRstEn` → 레지스터드 `~r_fifoRstEn & ~r_fifoClr`) |
-| S8 | inferred RAM에 한 always 안에서 dual write / `syn_preserve` 오용 / dynamic-index read | **T8** | array write-port 수, 속성명, index 형태 검사 | `c69a048`,`1851ac0` (dur_lut 2 write port + syn_preserve) |
-| S9 | 기능적 mode/control port에 상수 literal (`1'b0`/`1'b1`) tie | **T2** | 포트 연결이 register bit/top pin으로 trace되는지 | `f785a05` (`.i_btnop_sqsh_mode(1'b1)` 상수 tie) → `d1bd162` (register bit) |
-| S10 | 새 registered output의 fan-out = 0 (dead feature) | **T2** | grep으로 downstream consumer ≥1 확인 | `dcfa6d2`,`a3be708` (`r_timer_active` 미연결) |
-| S11 | writable register-map entry인데 read-back이 hardcoded-0 | **T2** | write 경로 대비 read-back 경로 존재 확인 | `f451926` (duration fifo register-map) |
-| **S12** ⭐ | **enclosing state guard 하에서 도달 불가능한 case 분기 (protocol-relational dead-code)** | **T1** | **reachability 추론**(그 substate가 그 guard에서 발생 가능한가) + substate reset provenance 확인 | `5b61531` (`STREAM_WRITE` under `START_DET`) |
-| S13 | protocol-detected 신호(START/STOP detect, `*_detected`)에 조합 clear/override | **T1** | detected-event 신호에 `c_clear*`/override assign 검색 | `5b61531` (`c_clearStartStopDet=1`) |
-
-**S2 실증 (evidence E6, `72b2219`)** — 이런 모양을 보면 즉시 S2:
-```verilog
-// AI: 포트는 i_sync_xfr_en 인데 RHS는 sync_xfr_en → implicit undriven net, BTNOP flag 영구 0
-assign o_fifo_btnop = sync_xfr_en && ...;   // ⚠️ S2 [STATIC-CONFIRMED] T7
-```
+**정본 = `~/.claude/agent-kit/failure-taxonomy.md`의 "Review Signature Catalog § STATIC(S)".** 매 리뷰에 그
+카탈로그의 **모든 S를 로드해 전수 적용**한다(읽기 + `verilator --lint-only -Wall` + elaboration + S12/S13는
+reachability). 하나라도 통과시키면 리뷰 실패. **카탈로그가 정본** — 새 정적 signature가 생기면 거기 추가하고
+*이 agent는 갱신하지 않는다.* 각 발견은 `[STATIC-CONFIRMED] S<n> T<class>`로 라벨하고, 그 repo의 **과거
+instance**(스텝 R recall)와 교차참조한다("이 자리에서 과거에 X가 났다 — 재발 여부").
 
 ### S12 ⭐ — protocol-relational dead-code의 PRIMARY 정적 catch (**reviewer가 소유**)
 
-protocol-relational dead-code(T1)는 **이 reviewer가 owner인 클래스**다. 근거는 E1 실험이다(methodology §5c):
-AI의 `STREAM_WRITE`-under-`START_DET` dead branch(`5b61531`)를 실모듈 `ext_i2cSerialInterface`에서 **formal로
-unreachable 증명 시도** → `i_startStopDetState`를 free var로 두면 solver가 **illegal 입력값(`2'd3`)**과 임의
-START glitch로 violation에 도달, **deep BMC(140) FAIL**. 즉 deadness가 **protocol-relational**이라(detector의
-contract — legal value + START-held-until-STOP — 이 있어야 성립) self-contained FSM invariant가 아니다.
-formal로 잡으려면 enabling-protocol env-contract 모델링 비용이 크다 → **STATIC reachability(S12)가 더 싸고,
-reviewer가 owner**다 [→bug-class-router.py] "protocol-relational dead-code → STATIC reachability".
+protocol-relational dead-code(T1)는 **이 reviewer가 owner인 클래스**다 — formal로 잡으려면 enabling-protocol
+env-contract 모델링이 비싸 (free-input이면 solver가 illegal 입력으로 deep BMC FAIL), STATIC reachability가 더
+싸다 [→bug-class-router.py "protocol-relational dead-code → STATIC reachability", methodology §5c, evidence E1].
+절차:
+1. case-arm substate가 enclosing guard 하에서 **발생 가능한지** 구조 추적(어느 state에서만 set되는가).
+2. ⚠️ **substate reset provenance** — in-FSM reset 없이 async-reset만으로 초기화되면 트랜잭션 간 **carryover**로
+   "dead"가 실제 reachable일 수 있다 → dead 단정 철회.
+3. provably unreachable → `[STATIC-CONFIRMED] S12`. carryover로 reachable이면 비소유 protocol-state 변형(S13)
+   또는 repeated-START(R9, sim) 측면 behavioral 버그로 라우팅.
+구체 venezia 사례·commit → `~/.claude/agent-kit/evidence.md` E1; **이 repo의 사례는 스텝 R recall.**
 
-S12 reachability 절차:
-1. 문제의 case-arm substate가 enclosing guard 하에서 **발생 가능한지** 구조적으로 추적(어느 state에서만
-   그 substate가 set되는가).
-2. ⚠️ **substate reset provenance 확인** — 그 substate 레지스터가 **in-FSM reset 없이 async-reset만**으로
-   초기화되면 트랜잭션 간 **carryover**로 "dead"가 실제로 reachable일 수 있다. `r_streamRwState`는 async-reset
-   에서만 `STREAM_DEV`로 리셋(in-FSM reset 미발견)되어 carryover 가능성 (methodology §5c/§9 open question).
-3. provably unreachable → `[STATIC-CONFIRMED] S12`. **carryover로 reachable이면 dead 단정을 철회**하고,
-   대신 비소유 protocol-state 변형(S13) 또는 R9(repeated-START) 측면의 *behavioral* 버그로 라우팅한다.
-
-**S12/S13 실증 (evidence E1, `5b61531`)** — START_DET guard 안의 STREAM_WRITE 분기는 구조적으로
-도달 불가(STREAM_WRITE는 NULL_DET에서만 발생) → S12. 동시에 `c_clearStartStopDet=1`은 실제 SCL/SDA 에지를
-반영하는 신호를 임의로 clear → 비소유 protocol state 변형 → S13. 둘 다 `[STATIC-CONFIRMED]`이며 **reviewer가
-잡아야 하는 owned catch**다(formal은 여기서 비쌈).
-
-> 중복 회피: bit-width 안전(S5)의 일반 규칙, latch 방지, naming 규칙, 2-process FSM 형식은 기존 스킬에
-> 있다 — 여기서는 **AI 실패 signature 탐지**만 추가한다 [→verilog-rtl §1.BitWidth, §4–§6, §7, §11].
+> 중복 회피: bit-width/latch/naming/2-proc FSM 일반 규칙은 `verilog-rtl` skill — 여기선 signature 탐지·S12 절차만.
 
 ---
 
 ## 2. SIM-RISK 체크리스트 — flag + **라우팅** + directed test 요구 (정적으로 증명 금지)
 
-코드 모양은 위험하지만 정적으로 단정 불가. **반드시** `[SIM-RISK → owner: needs DT-x]`로 라벨한다 — 단순
-"test 요구"가 아니라 methodology §6 router를 codify한 [→bug-class-router.py] 기준으로 **owner에게
-라우팅**한다. 세 destination:
+**정본 = `failure-taxonomy.md` "Review Signature Catalog § SIM-RISK(R)" + `bug-class-router.py`.** 매 리뷰에
+카탈로그의 **모든 R을 적용** → `[SIM-RISK → owner: needs DT-x]`로 라벨하고 router 기준 **owner에게 라우팅**한다.
+**"읽어보니 OK"는 결함** — owner 없이 종결 금지. 3 destination:
+- **self-contained 로직/타이밍** (sync-read·count==0·in-block pointer·prescaler) → **Prover/formal** [→verilog-rtl-prover]
+- **cross-domain CDC timing** (가변/CDC latency·ack race) → **directed sim** (cloud0/xcelium-mcp; multiclock formal=최난 tier)
+- **protocol-relational** (inheritance·squash/extend·repeated-START) → **directed sim 또는 STATIC reachability(S12)** (formal은 env-contract 필요해 비쌈)
 
-- **self-contained 로직/타이밍**(단일클럭 sync-read R1, count==0 deadlock R3, in-block pointer R4,
-  prescaler R6) → **Prover/formal** [→verilog-rtl-prover] (sby; 실모듈에서 timer count==0 PASS/FAIL 증명됨,
-  solver가 tval=0 자율 선택 — methodology §5b).
-- **cross-domain (CDC) timing**(가변/CDC latency R2, ack race R5) → **directed sim** (cloud0/xcelium-mcp;
-  multiclock formal은 최난 tier라 기본은 directed sim — methodology §9).
-- **protocol-relational**(inheritance R7, squash/extend R8, repeated-START R9) → formal은 enabling-protocol
-  env-contract 모델링이 필요해 비쌈(E1) → **directed sim 또는 STATIC reachability(S12)**.
+directed test는 §4 카탈로그 형식으로 발행한다. **카탈로그/router가 정본** — 새 SIM signature·route는 거기 추가하고
+이 agent는 갱신하지 않는다. 구체 venezia 사례·commit → `evidence.md`; **이 repo의 사례는 스텝 R recall**(재발 여부).
 
-"읽어보니 OK"는 결함이며, owner 없이 SIM-RISK를 종결하지 않는다.
-
-| # | SIM 위험 (diff signature) | Class | route [→bug-class-router.py] | 요구 directed test | 선례 커밋 |
-|---|---|---|---|---|---|
-| R1 | read data가 `rd_en`과 **같은 사이클**에 샘플됨 (단일클럭 sync-read) | **T4** | self-contained → **Prover/formal** [→verilog-rtl-prover] | DT-A: single-entry FIFO read, holding reg 안정성 | `05a53c5`,`daad643`,`f77e3c9` |
-| R2 | 고정 `_d[N]` shift를 가변/CDC latency의 read-valid로 사용 | **T4** | cross-domain → **directed sim**; 단일클럭 고정지연이면 R1→**Prover**로 축약 | DT-A 변형: source latency 변동 시 valid 정렬 | `090d3dd` (`r_data_rd_en_d[2]`) |
-| R3 | cross-domain active level를 timeout 없이 대기 / `count==0` deadlock | **T5** | 로직(count==0) self-contained → **Prover/formal** (실모듈 증명됨); CDC *timing* 잔여 → **directed sim** | DT-B: timer/count = 0 로드 | `2ebd51f` (btnop timer=0 hang) |
-| R4 | circular pointer off-by-one / full-wrap lookahead (native-width `+1`, raw magnitude 비교) | **T6** | self-contained in-block pointer → **Prover/formal** (+ zero-ext 누락은 S-급 STATIC smell 병기) | DT-C: FIFO-full(wr wraps→0), single-entry, ptr==MAX | `737070b`,`06f19b0` |
-| R5 | synchronized ack 전에 FSM을 전진시키는 CDC race | **T3/T5** | cross-domain → **directed sim** (multiclock formal=최난 tier) | DT-D: ack 동기화 지연 주입, FSM 조기 전진 확인 | `b353ad3` (`w_timer_active_cdc` 전에 `TRF_READY` 전진) |
-| R6 | prescaler/counter off-by-one (load 직후 사이클 미스킵) | **T4** | self-contained → **Prover/formal** | DT-E: load 후 첫 count 사이클 skip 검증 | `d68ae6a`, `d0c5584` (98→97) |
-| R7 | cross-packet parameter inheritance (현재 패킷만으로 selection) | **T1** | protocol-relational → **directed sim 또는 STATIC reachability(S12)**; formal은 env-contract 필요 | DT-F: 연속 2패킷, 2번째가 1번째 mode bit 의존 | `de8b9d0` (`c_target_is_config = ~r_pcmParamMode & packet[17]`) |
-| R8 | squash-vs-extension 연속 이벤트 의미 | **T1** | protocol-relational → **directed sim 또는 STATIC reachability** | DT-G: 동일 타입 연속 이벤트 squash/연장 구분 | `f785a05` (squash + extension 모드 지원) |
-| R9 | i2c repeated-START가 SCL tLOW 에지와 race | **T1** | protocol-relational → **directed sim 또는 STATIC reachability** | DT-H: repeated-START를 SCL tLOW에 정렬 | `5b61531` (+ `.ai/knowledge/i2c-repeated-start-race.md`) |
-
-**R3 실증 (evidence E3, `2ebd51f`)** — `r_timer_active <= (i_btnop_timer_val != 8'd0)` + `==8'd1` expiry는
-정적으로는 "타이머 동작"처럼 보인다. 그러나 `val==0`이면 active가 한 번도 high가 안 되어 느린 cellClk
-2-FF 동기화기가 영원히 못 보고 read FSM이 hang. **이 로직 결함은 self-contained라 Prover/formal이 owner**다
-— methodology §5b에서 실모듈에 single-clock formal로 증명(solver가 `tval=0` 자율 선택, `bt_buggy` FAIL /
-`bt_fixed` PASS). 단 clock-collapse로 *CDC-timing* 잔여(2-FF 관측 지연 자체)는 못 잡으므로 그 tier는
-**directed sim(DT-B를 cross-domain으로 확장)**으로 보완 (methodology §9).
-**R4 실증 (evidence E4, `737070b`/`06f19b0`)** — `(r_rd_ptr+1) > r_wr_ptr` (native width)는 단일 엔트리에서
-off-by-one, `ptr==MAX`에서 wrap. 누락된 `{1'b0,...}` zero-extension은 **STATIC smell(S-급 경고로 병기)**
-이지만 경계 정확성은 **Prover/formal(DT-C)**로 확정 — in-block pointer는 self-contained라 formal이 가장 싸다
-([→bug-class-router.py] "in-block pointer → FORMAL").
-
-> 중복 회피: CDC 방식 선택(2FF/handshake), 래칭 데이터 보존, 정의-구현 대조의 일반 규칙은 기존 스킬에
-> 있다 — 여기서는 **언제 정적 단정을 멈추고 어느 owner로 라우팅하는지**의 경계만 규정 [→verilog-rtl §1.CDC,
-> §1.DataLife, §1.DefImpl, §3].
+> 중복 회피: CDC 방식·래칭 보존·정의-구현 대조 일반 규칙은 `verilog-rtl` skill — 여기선 "언제 정적 단정을 멈추고
+> 어느 owner로 라우팅하는지" 경계만.
 
 ---
 
@@ -210,6 +151,16 @@ off-by-one, `ptr==MAX`에서 wrap. 누락된 `{1'b0,...}` zero-extension은 **ST
 **판정하지 말고** `[ARCH-SUSPECT]`로 표시하고 **architect-advisor**로 refer한다(그쪽이 structural-delta
 `boundary-classifier.py`로 ARCH/IFACE/LOCAL 계산) [→verilog-rtl-architect-advisor §1]. reviewer는 그 변경에
 딸린 *signature*(S6 gated-clock, S12 dead-arm 등)만 검출한다.
+
+### 스텝 R — regression recall (이 repo의 흉터를 먼저 회수)
+diff가 건드린 모듈/construct에 대해 **이 repo의 과거 instance**를 회수해 *재발 여부를 우선 점검*한다(GENERAL
+signature는 카탈로그가 정본; PROJECT 사례는 여기서). 린: 변경당 1회(bi-encoder).
+```bash
+KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe
+"$KB_PY" .ai/rag/preflight.py "<리뷰 대상 모듈/construct>"
+```
+→ "이 자리에서 과거에 BUG-X가 났다"가 나오면 그 패턴 재발인지 우선 확인하고 발견을 그 instance와 교차참조한다.
+graphify MCP 활성 시 `graphify_query`/`explain`으로 관련 모듈·과거 결정 추적.
 
 ### 스텝 A — STATIC gate (lint + elaboration)
 프로젝트 OSS CAD Suite PATH를 먼저 설정한다 (`venezia-fpga/CLAUDE.md` / 루트 `fpga/CLAUDE.md`):

@@ -1,6 +1,9 @@
-> **Generic reference** — deployed to `~/.claude/agent-kit/` by chip-design-skills/install.py.
-> The class structure / templates are universal; commit & module examples are from venezia-fpga
-> and are illustrative.
+> **Generic reference (프로젝트 무관)** — deployed to `~/.claude/agent-kit/` by chip-design-skills/install.py.
+> classes·signatures·prevention·Review Catalog(S/R)는 **모든 프로젝트 공유 일반지식** — commit 해시·모듈명 같은
+> 프로젝트 특정 정보를 두지 않는다. exemplar는 일반 코드 *패턴*(설명용)이다.
+> 구체 venezia 출처(commit/모듈)는 `evidence.md`(포렌식). **자기 프로젝트의 instance/흉터는 그 repo의
+> 지식시스템**(preflight: `docs/solutions`·graphify)에서 recall한다. → reviewer/prover/coder/architect는
+> 이 일반 정본을 적용하고, 프로젝트 구체사례는 recall로 보강한다.
 
 # AI Verilog Failure Taxonomy
 
@@ -42,9 +45,8 @@ bus event (`*StartStopDet`, `*_detected`, `*_valid` from another block); a case 
 the enclosing guard makes unreachable (dead code); a register address/field derived from a byte without
 switching on the mode bit that defines that byte's meaning; selection computed from only the current packet.
 
-**Exemplar:** `ext_i2cSerialInterface.v` — `c_clearStartStopDet=1` in `STREAM_DEV→STREAM_REG` + invented
-`STREAM_WRITE` repeated-START branch under a `START_DET`-only `CHK_ADR` block → dead code + read-byte-as-data
-corruption; reverted in `5b61531`.
+**Exemplar (general pattern):** a `c_clear*=1` combinational override on a detected bus-event signal; a case-arm
+for a substate unreachable under its enclosing guard (dead code). (venezia 출처: `evidence.md` E1)
 
 **Prevention rules:**
 - Never assert a clear/override on a signal that latches a real bus/protocol event; advance the FSM only on the
@@ -73,9 +75,8 @@ and selects no datapath signal; a literal `1'b0`/`1'b1` tied to a functional mod
 entry whose read-back returns hardcoded 0; a new `.v` absent from the filelist; a FIFO/LUT with `wr_*` but no
 `rd_*`/`rd_ack`.
 
-**Exemplar:** `ext_backTelInterface.v` — built `r_timer_active` but left `o_backtel_dec_en` on the legacy
-condition with ZERO references to the new timer → entire feature dead (`dcfa6d2`/`a3be708`); new `ext_fwd_fifo.v`
-missing from `d_filelist.f` (build break, `759af25`/`b26d292`).
+**Exemplar (general pattern):** a new registered signal built but never referenced by the legacy consumer → dead
+feature; a new `.v` missing from the build filelist → elaboration unresolved instance. (venezia 출처: `evidence.md`)
 
 **Prevention rules:**
 - Every new `.v` file is in the build filelist at its real path; elaboration reports no unresolved instance.
@@ -102,9 +103,8 @@ decoded combinational FSM outputs, conflating "logically correct level" with "gl
 `todoc_prim_icg`, `*Gate`) when the sink must run while that gate is closed; an async reset/set pin
 (`i_rst_n & ~c_xxx`) driven by an `always @(*)` combinational expression.
 
-**Exemplar:** `ext_d_main.v` — clocked `ext_askDecoder.i_refClk` with `w_askRefClk` (CKO of
-`todoc_prim_icg u_askRefClk_icg`, enable from the forward-link gating FSM) → back-tel decode froze exactly when
-forward data paused; fixed to ungated `i_refGenClk` in `86a1796`.
+**Exemplar (general pattern):** a decoder `*Clk` port driven by an ICG CKO whose enable stops in the very mode the
+decoder must keep running → froze when the gate closed; fix = ungated source clock. (venezia 출처: `evidence.md` E2)
 
 **Prevention rules:**
 - Before connecting any clock port, trace the driver to a primary input or PLL/oscillator; if it passes through
@@ -127,10 +127,9 @@ read pointer advances. Encodes "a read takes N cycles" as a hard constant rather
 reading combinational FIFO/RAM output directly without latching; a fixed-depth `_d[N]` shift register used as a
 read-valid for a source with variable/cross-domain latency.
 
-**Exemplar:** `ext_askEncoder.v` — asserted `c_fifoRdEn` then next state tested `w_fifoDataPacket[18]` and drove
-the multi-cycle mux from the combinational output; fixed by latching to `r_fifoDataPacket` (`05a53c5`) + splitting
-`FIFO_RD_DATA`/`FIFO_RD_CHK` (`daad643`, `f77e3c9`); i2c used fixed `r_data_rd_en_d[2]` instead of a per-source
-ack (`090d3dd`).
+**Exemplar (general pattern):** `rd_en` asserted then the combinational FIFO output sampled the next state without
+latching → unstable over multi-cycle consume; fix = latch to a holding reg + per-source data-valid/ack (not a
+fixed `_d[N]` shift). (venezia 출처: `evidence.md` E5)
 
 **Prevention rules:**
 - For any synchronous-read memory/FIFO, never sample read data the same cycle as `rd_en`; insert a registered-read
@@ -155,8 +154,9 @@ timeout; an expiry compare using `==` (`count==1`) instead of `<=`; a FIFO whose
 conditions (no mode-exit flush); FSM default/illegal states that don't flush/recover; no defer/pending
 bookkeeping for a packet arriving while a timer runs.
 
-**Exemplar:** BTNOP timer value of 0 with `r_timer_active <= (val!=8'd0)` + exact `==` expiry never asserted
-active across the slow 2-FF synchronizer → read FSM hung forever; fixed to one-tick-active + `<= 1` (`2ebd51f`).
+**Exemplar (general pattern):** a timer `r_active <= (val!=0)` + exact `==` expiry → a zero/min load never asserts
+active across a slow 2-FF synchronizer → wait state hangs forever; fix = one-tick-active + `<=` boundary compare.
+(venezia 출처: `evidence.md` E3)
 
 **Prevention rules:**
 - Construct a state × async-event matrix (new packet, mode-disable, FIFO empty/full, illegal state, zero-duration
@@ -182,10 +182,9 @@ data exists (FIFO full, `wr==0`).
 declared width with no zero-extension; FIFO write-enable asserted with no `~full` guard; a request/sync output
 from `count>=threshold` omitting the full flag; same-cycle read+write with no arbitration semaphore.
 
-**Exemplar:** `ext_fwd_fifo.v` lookahead `if((r_rd_ptr+1) > r_wr_ptr)` at native width → off-by-one for a single
-entry, wraps at MAX. `737070b`/`06f19b0` rewrote it as `({1'b0,r_rd_ptr}+1) <= ({1'b0,r_wr_ptr}-1)`, but that is
-**still a raw-pointer test and was later proven flawed** (FP/FN at the 0-straddle boundary, formal FAIL) — the
-correct fix is the occupancy counter `o_fifo_counter >= 2` (venezia BUG-002, 2026-06-15).
+**Exemplar (general pattern):** lookahead `if((rd+1) > wr)` at native width → off-by-one for a single entry, wraps
+at MAX. A zero-extended raw-pointer rewrite (`({1'b0,rd}+1) <= ({1'b0,wr}-1)`) is **still a raw-pointer test and
+fails formal** at the 0-straddle boundary — correct fix = occupancy counter (`count >= k+1`). (venezia 출처: `evidence.md` E4)
 
 **Prevention rules:**
 - Derive "has k-ahead entry" from the occupancy counter (`count >= k+1`; 1-ahead ⇒ `>=2`), not a raw pointer magnitude test;
@@ -208,9 +207,9 @@ of in the declaration region.
 begin/end; identifiers differing from a declared port only by a missing prefix; reg/wire/localparam declared
 mid-body; assignment to a bit index outside the declared range.
 
-**Exemplar:** `ext_askEncoder` BTNOP packing — base-less `1'0` (must be `1'b0`), empty `if(cond) else`, two
-un-braced statements under one `if`; `ext_pcmInterface` `o_fifo_btnop = sync_xfr_en && ...` dropping the `i_`
-prefix → implicit undriven net → BTNOP flag stuck 0 (all `72b2219`).
+**Exemplar (general pattern):** base-less literal `1'0` (must be `1'b0`); empty `if(cond) else`; two un-braced
+statements under one `if`; an RHS identifier dropping the `i_` prefix → implicit undriven net → flag stuck 0.
+(venezia 출처: `evidence.md` E6)
 
 **Prevention rules:**
 - Lint/compile every file with `` `default_nettype none `` before any functional review; treat
@@ -233,9 +232,9 @@ than the correct RAM-inference attribute.
 `syn_ramstyle`; a dynamic-index read of an array targeted to RAM; an inferred-RAM array with no reset/init when
 reads can precede writes.
 
-**Exemplar:** Duration LUT `reg [7:0] r_dur_lut[0:31]` with TWO write ports in one block tagged `syn_preserve=1`,
-un-reset → XO2 cannot infer; fixed to `syn_ramstyle="distributed"`, second port under `` `ifndef XO2 ``, power-on
-init loop (`c69a048`, `1851ac0`).
+**Exemplar (general pattern):** a `reg [W:0] lut[0:N]` with TWO write ports in one block tagged `syn_preserve`,
+un-reset → vendor cannot infer RAM; fix = `syn_ramstyle`, extra port under `` `ifndef ``, power-on init.
+(venezia 출처: `evidence.md`)
 
 **Prevention rules:**
 - Arrays targeted to FPGA RAM have exactly one write port and the correct vendor ramstyle attribute; confirm via
@@ -258,12 +257,56 @@ declaration) and never reconciles them; conflates an index width (`log2(SIZE)`) 
 disagreeing with the reg/port declaration; a value-holding localparam given a `[WIDTH-1:0]` slice where RHS max
 exceeds it.
 
-**Exemplar:** `ext_pcmInterface` header described an 18-bit payload with BTNOP at bit[17] but declaration was
-`reg [16:0] r_pktData`; `c_pktData[17]=1'b1` targets a non-existent bit, silently dropped (`f451926`). Related:
-`localparam [FIFO_PTR_WIDTH-1:0] FIFO_MAX_PTR = FIFO_SIZE-1` truncated for non-power-of-two sizes (already in
-`synthesis-check.md`).
+**Exemplar (general pattern):** a header/comment 18-bit payload vs a `reg [16:0]` declaration → `data[17]=1'b1`
+targets a non-existent bit, silently dropped; `localparam [W-1:0] MAX = SIZE-1` truncated for non-power-of-two
+sizes. (venezia 출처: `evidence.md`)
 
 **Prevention rules:**
 - Bit indices must be within the declared range; enable index-out-of-bounds lint; keep header/comment widths in
   sync with declarations.
 - Keep range/limit constants unsized and slice explicitly only at the point of comparison against a pointer.
+
+---
+
+## Review Signature Catalog — STATIC(S) + SIM-RISK(R)  [single source-of-truth · 프로젝트 무관]
+
+> verilog-rtl-reviewer가 매 리뷰에 **전수 적용**하는 카탈로그(정본). 새 signature가 생기면 **여기에** 추가한다 —
+> agent는 수정하지 않는다. reviewer는 이 표를 로드해 **모든 S를 must-catch**, **모든 R을 라우팅 + directed test
+> 발행**한다. routing 정본: `bug-class-router.py`.
+> ⚠️ **여기엔 프로젝트 특정 정보(commit 해시·모듈명)를 두지 않는다** — 일반지식이라 모든 프로젝트가 공유한다.
+> 어느 commit/모듈에서 이 signature가 났는지(=구체 exemplar/흉터)는 **각 프로젝트의 지식시스템**(preflight:
+> 그 repo의 `docs/solutions`·graphify)에서 recall한다.
+
+### STATIC signatures (S) — 읽기 + `verilator --lint-only -Wall` + elaboration + (S12/S13) reachability로 확정. 하나라도 통과 = 리뷰 실패.
+| # | 정적 위반 (diff signature, 일반 패턴) | Class | 탐지 |
+|---|---|---|---|
+| S1 | 새 `.v`가 filelist에 없음 → elaboration unresolved instance | T2 | filelist grep + elaborate |
+| S2 | RHS 식별자가 선언된 port/reg/wire와 불일치 (i_ prefix 누락 → implicit net) | T7 | verilator IMPLICIT/UNDRIVEN + port-list 대조 |
+| S3 | base char 없는 sized literal (`1'0`, `'<digit>`) | T7 | lint/compile error |
+| S4 | if/case 분기 statement >1 인데 begin/end 없음 | T7 | 구조 읽기 + lint |
+| S5 | 선언된 vector 범위 밖 bit index | T9 | 선언폭 대조, index-out-of-range lint |
+| S6 | clock port가 enable-gating cell 구동인데 sink는 gate 닫혀도 동작 필요 | T3 | 드라이버를 PI/PLL/osc까지 trace, gating 조건 vs sink 요구 |
+| S7 | async reset/set pin이 `always @(*)` 조합식 구동 | T3 | reset pin RHS가 reset-tree/레지스터인지 |
+| S8 | inferred RAM dual write / `syn_preserve` 오용 / dynamic-index read | T8 | write-port 수·속성·index 형태 |
+| S9 | 기능 mode/control port에 상수 literal tie | T2 | 포트가 register bit/top pin으로 trace |
+| S10 | 새 registered output fan-out = 0 (dead feature) | T2 | downstream consumer ≥1 |
+| S11 | writable register-map인데 read-back hardcoded-0 | T2 | write 경로 대비 read-back 경로 |
+| **S12** ⭐ | enclosing state guard 하 도달불가 case 분기 (protocol-relational dead-code; reviewer가 owner) | T1 | reachability 추론 + **substate reset provenance**(async-reset만이면 carryover로 reachable → dead 단정 철회) |
+| S13 | protocol-detected 신호(START/STOP/`*_detected`)에 조합 clear/override | T1 | detected-event 신호에 clear/override assign 검색 |
+
+### SIM-RISK signatures (R) — 정적 단정 금지. flag + **route** + directed test. owner 없이 종결 금지("읽어보니 OK"는 결함).
+라우팅 3 destination (`bug-class-router.py` codify): self-contained 로직/타이밍 → **Prover/formal**; cross-domain CDC timing → **directed sim**; protocol-relational → **directed sim 또는 STATIC reachability(S12)**.
+| # | SIM 위험 (diff signature, 일반 패턴) | Class | route | directed test |
+|---|---|---|---|---|
+| R1 | read data가 `rd_en`과 같은 사이클 샘플 (단일클럭 sync-read) | T4 | self-contained → Prover | DT-A: single-entry read + holding reg 안정성 |
+| R2 | 고정 `_d[N]` shift를 가변/CDC latency read-valid로 | T4 | cross-domain → sim; 단일클럭 고정지연이면 R1→Prover | DT-A 변형 |
+| R3 | cross-domain active level timeout 없이 대기 / `count==0` deadlock | T5 | 로직(count==0) → Prover; CDC timing 잔여 → sim | DT-B: timer/count=0 로드 |
+| R4 | circular pointer off-by-one / full-wrap lookahead | T6 | self-contained → Prover (+zero-ext 누락은 S-급 STATIC 병기) | DT-C: FIFO-full·single-entry·ptr==MAX |
+| R5 | synchronized ack 전 FSM 전진 CDC race | T3/T5 | cross-domain → sim (multiclock formal=최난) | DT-D: ack 지연 주입 |
+| R6 | prescaler/counter off-by-one (load 직후 미스킵) | T4 | self-contained → Prover | DT-E: load 후 첫 count skip |
+| R7 | cross-packet parameter inheritance | T1 | protocol-relational → sim/S12 | DT-F: 연속 2패킷 mode 의존 |
+| R8 | squash-vs-extension 연속 이벤트 의미 | T1 | protocol-relational → sim/S12 | DT-G: 동일타입 연속 squash/연장 |
+| R9 | i2c repeated-START가 SCL tLOW race | T1 | protocol-relational → sim/S12 | DT-H: repeated-START를 tLOW 정렬 |
+
+> 중복 회피: bit-width/latch/naming/2-proc FSM 일반 규칙, CDC 방식 선택, 래칭 보존은 `verilog-rtl` skill에 있다 —
+> 이 카탈로그는 **AI 실패 signature 탐지·라우팅**(프로젝트 무관)만 담는다.
