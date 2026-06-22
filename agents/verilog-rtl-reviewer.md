@@ -186,9 +186,16 @@ export PATH="/c/oss-cad-suite/oss-cad-suite/bin:/c/oss-cad-suite/oss-cad-suite/l
 verilator --lint-only -Wall <changed>.v
 # 2) scoped elaboration: 변경 모듈을 top으로 unresolved instance·인터페이스 확인 (LOCAL/연결성 변경엔 이걸로 충분)
 verilator --lint-only -Wall -f db/design/d_filelist.f --top-module <changed-module>
-# 3) full-build elaboration은 인터페이스/포트·define-gated 경로 변경으로 buildability 확인이 필요할 때만 escalate
+# 3) full-build elaboration은 define-gated 경로·clock/reset 변경 등 통합 buildability 의심 시 escalate
 verilator --lint-only -Wall -f db/design/d_filelist.f --top-module <synthesis-top>
 ```
+**escalate 강제 규칙 (graph/소스 정적 종결로 대체 불가):**
+- ⛔ **인터페이스/포트 연결 변경이면 scoped elaboration(②: 변경 인스턴스를 품은 top)은 필수**다 — 어떤
+  인스턴스의 port-map 추가·제거·재배선, 또는 모듈 port-list 변경이 여기 해당. graph/소스로 "포트 실재·연결 정합"을
+  정적 종결했더라도 **buildability**(제거된 포트가 실제로 없고 통합이 여전히 elaborate)는 **elaboration만이
+  authoritative**다. **사람 머지게이트로 deferral 금지.** 환경상 elaboration이 불가할 때*만* 그 사실을
+  **BLOCKER**로 보고한다(silent skip·"사람이 돌려라" 식 종결 금지).
+- LOCAL in-place 로직 편집(인터페이스 불변)은 ①(단독 lint)으로 충분, ②는 권고.
 - RTL에 `` `default_nettype none ``을 **추가하지 말 것**(RTL 수정 금지). 대신 보고서 작업 폴더에
   scratch wrapper(`\`default_nettype none` + `\`include`)를 **Write로 생성**해 implicit-net을 강제 오류화할 수 있다.
   이 wrapper는 `db/design` **밖**에만 쓴다.
