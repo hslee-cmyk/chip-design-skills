@@ -103,19 +103,21 @@ bug 선언 전 3 게이트 (출하 RTL일수록 필수):
 
 ## 2. Scope — 무엇을 OWN하고 무엇을 넘기는가 (router 기준)
 
-§6 router [→methodology §6, →verilog-rtl-architect-advisor §3]에서 당신에게 라우팅되는 것만 받는다.
+**OWN 정본 = `bug-class-router.py` + failure-taxonomy 카탈로그의 route 열** — router가 Prover로 보내는 것만
+받는다 [→methodology §6, →verilog-rtl-architect-advisor §3]. 요약(일반):
 
-| 클래스 | OWN? | 검출기 / 근거 |
+| 클래스 | OWN? | 근거 |
 |---|---|---|
-| **T5** FSM-corner deadlock (count==0, `==` vs `<=` expiry) | ✅ **OWN** | timer: 실모듈 `ext_backTelInterface` PASS/FAIL 증명됨 |
-| **T4** single-clock sync-read latency (same-cycle `rd_en`/sample) | ✅ **OWN** | self-contained 1-clock logic property로 표현 가능 |
-| **T6** in-block pointer 산술 (off-by-one, wrap, `count>=N`) | ✅ **OWN** (boundary proof) | self-contained; `cover`로 wrap/full 코너 도달 증명. reviewer가 zero-extend 누락을 STATIC smell(R4)로 co-flag, Prover는 경계 정확성 증명 소유 |
-| **T1** protocol-relational dead-code / reachability | ❌ → **reviewer STATIC** (S12) | E1: free-input deep BMC FAIL — env-contract 없이는 unsound [→i2c.sby, README E3] |
-| **T3 symptom / CDC-timing** (2-FF cellClk path) | ⚠️ **multiclock harness 정당화 시 OWN** (TPL-7); else → directed sim | `cdc_demo`: 멀티클럭 formal로 count==0 pulse-loss 증명 (single-clock은 timing 추상화). clock-enable 모델 + fairness |
+| **T5** FSM-corner deadlock (count==0, `==` vs `<=` expiry) | ✅ **OWN** | single-clock formal로 PASS/FAIL 증명 가능 (사례 → `evidence.md` E3) |
+| **T4** single-clock sync-read latency (same-cycle `rd_en`/sample) | ✅ **OWN** | self-contained 1-clock logic property |
+| **T6** in-block pointer 산술 (off-by-one, wrap, `count>=N`) | ✅ **OWN** (boundary proof) | self-contained; `cover`로 wrap/full 코너 증명. reviewer가 zero-ext 누락 STATIC co-flag |
+| **T1** protocol-relational dead-code / reachability | ❌ → **reviewer STATIC** (S12) | free-input deep BMC FAIL — env-contract 없인 unsound (`evidence.md` E1) |
+| **T3 / CDC-timing** (2-FF cellClk path) | ⚠️ **multiclock harness 정당화 시 OWN** (TPL-7); else → directed sim | 멀티클럭 formal로 pulse-loss 증명; clock-enable 모델 + fairness |
 
-**경계 규칙:** protocol-relational 또는 cross-domain은 **multiclock 또는 env-contract harness가 정당화될
-때만** 받는다 (hard tier, §5). 정당화 없이 free-input으로 받으면 솔버가 불법 입력값(예: `i_startStopDetState==2'd3`)
-으로 위반을 만들어 **unsound** 한 결론을 낸다 [→i2c README]. 애매하면 reviewer/sim으로 되돌린다.
+**경계 규칙:** protocol-relational/cross-domain은 multiclock/env-contract harness가 정당화될 때만 받는다(hard
+tier, §5). 정당화 없이 free-input이면 솔버가 불법 입력값으로 **unsound** 결론. 애매하면 reviewer/sim으로 되돌린다.
+**이 repo의 기존 proof/CEX 코너는 recall**(`"$KB_PY" .ai/rag/preflight.py "<claim>"` → `docs/solutions`
+verifier:formal · `.ai/experiments/formal-demo`)해 harness/corner를 재사용한다 — 처음부터 다시 발견하지 않는다.
 
 ---
 
