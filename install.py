@@ -216,6 +216,41 @@ def install_hooks(dry, project=None, py_exe=None):
         print("SKIP hooks (none found)")
 
 
+def install_git_hooks(dry, project):
+    """프로젝트 git hooks 배포 → <proj>/.git/hooks/ (지식 자산화 배관 A·B).
+    pre-commit: docs/solutions 검증(차단)+regression-rules 동기. post-commit: graphify L3 갱신.
+    venezia 등은 core.hooksPath 미설정 → .git/hooks 기본 위치 사용(클론마다 재실행 필요)."""
+    if not project:
+        print("ERROR: --install-git-hooks requires --project PATH"); return 1
+    proj = pathlib.Path(project).expanduser().resolve()
+    if not (proj / ".git").exists():
+        print(f"ERROR: not a git repo: {proj}"); return 1
+    src = REPO / "project-hooks"
+    if not src.is_dir():
+        print("SKIP git-hooks (no project-hooks/ dir)"); return 0
+    gitdir = proj / ".git" / "hooks"
+    for name in ("pre-commit", "post-commit"):
+        s = src / name
+        if not s.exists():
+            continue
+        dest = gitdir / name
+        if dest.exists():
+            print(f"  ! {name} already exists at {dest} — 덮어씀(백업: {name}.bak)")
+            if not dry:
+                shutil.copy2(dest, dest.with_suffix(".bak"))
+        if dry:
+            print(f"[dry-run] git hook {name} -> {dest}"); continue
+        gitdir.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(s, dest)
+        try:
+            os.chmod(dest, 0o755)
+        except Exception:
+            pass
+        print(f"git hook installed: {name} -> {dest}")
+    print("  (core.hooksPath 미사용 → .git/hooks 기본; 클론마다 재실행)")
+    return 0
+
+
 # ----------------------------------------------------------- bkit templates
 
 def _vkey(name):
@@ -760,12 +795,19 @@ def main():
                          "from project-template/ (skips existing files unless --force)")
     ap.add_argument("--force", action="store_true",
                     help="overwrite existing files (for --init-ai-infra)")
+    ap.add_argument("--install-git-hooks", action="store_true",
+                    help="프로젝트 git hooks(pre-commit 검증·동기, post-commit graphify) 배포 → --project/.git/hooks/")
     ap.add_argument("--detect-config", action="store_true",
                     help="auto-generate db/scripts/config.sh from an existing tool project "
                          "(.ldf Diamond / .rdf Radiant / .prj iCEcube2) in --project")
     a = ap.parse_args()
     if not HOME.exists():
         print(f"ERROR: {HOME} not found"); sys.exit(1)
+
+    if a.install_git_hooks:
+        rc = install_git_hooks(a.dry_run, a.project)
+        print("\n(dry-run) nothing changed." if a.dry_run else "\nDone (git hooks).")
+        sys.exit(rc or 0)
 
     if a.detect_config:
         rc = detect_config(a.dry_run, a.project)

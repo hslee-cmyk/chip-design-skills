@@ -1,0 +1,28 @@
+#!/bin/sh
+# 프로젝트 pre-commit (지식 자산화 배관 A).
+# staged docs/solutions/*.md 가 있으면:
+#   1) validate.py 로 frontmatter 검증 → 불량이면 commit 차단(BLOCK)
+#   2) sync_rules.py 로 regression-rules.json 재생성 + 자동 stage
+# 배포: python install.py --install-git-hooks --project <repo>  → <repo>/.git/hooks/pre-commit
+# 우회: git commit --no-verify
+
+changed=$(git diff --cached --name-only --diff-filter=ACM \
+          | grep -E '^docs/solutions/.*\.md$' | grep -vE 'README|patterns/')
+[ -z "$changed" ] && exit 0
+
+root=$(git rev-parse --show-toplevel)
+venv="$root/../.tools/kb-venv/Scripts/python.exe"
+if [ -x "$venv" ]; then PY="$venv"; else
+  for c in python python3 py; do command -v "$c" >/dev/null 2>&1 && { PY="$c"; break; }; done
+fi
+[ -z "$PY" ] && { echo "[pre-commit] python 없음 - solution 검증 skip"; exit 0; }
+
+echo "[pre-commit] docs/solutions 검증:"; echo "$changed" | sed 's/^/  /'
+if ! "$PY" "$root/docs/solutions/validate.py"; then
+  echo "[pre-commit] BLOCKED - frontmatter 수정 후 재커밋 (우회: git commit --no-verify)"
+  exit 1
+fi
+# regression-rules 동기 + 변경분 자동 stage (실패해도 commit 막지 않음)
+"$PY" "$root/docs/solutions/sync_rules.py" >/dev/null 2>&1
+git add "$root/.bkit/state/regression-rules.json" 2>/dev/null
+exit 0

@@ -165,6 +165,21 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
   품질 회귀를 push 직전에 막는다. 인프라 문제는 SKIP(`KB_EVAL_STRICT=1`이면 차단). 우회: `--no-verify`.
   ⚠️ 코퍼스가 커지면 골드셋을 함께 키우고 재측정(pool/모델 재튜닝).
 
+### 8.1 자동화 (hooks) — "배관은 자동, 판단은 넛지"
+
+자산화 루프의 *배관*은 hook으로 결정론적 자동화, *판단*(무엇을 자산화·근본원인)은 적시 환기만 한다.
+
+| 단계 | 메커니즘 | 동작 |
+|------|----------|------|
+| **A. validate+sync** | 프로젝트 `.git/hooks/pre-commit` | `docs/solutions/*.md` 커밋 시 `validate.py`(불량이면 **차단**) + `sync_rules.py`(regression-rules 재생성·stage) |
+| **B. graph 갱신** | 프로젝트 `.git/hooks/post-commit` | `.v/.sv` 커밋 + `graphify-out` 존재 시 `graphify update` 백그라운드(코드 전용·비차단) |
+| **C. 품질 게이트** | 키트 `.githooks/pre-push` | (위) kb-global push 시 eval 게이트 |
+| **D. recall 넛지** | CC `PreToolUse` 훅 `kb-preflight-nudge.py` | RTL(`db/design/**/*.v`) Edit/Write 시 세션당 1회 "preflight 권장" 컨텍스트 주입(비차단) |
+| capture 넛지 | `/solution-capture` skill 트리거 | "그게 됐다"류 감지 → 자산화(모델 판단) |
+
+배포: `python install.py --install-git-hooks --project <repo>`(A·B) · `--only hooks --project <repo>`(D).
+`.git/hooks`는 클론마다 재실행 필요. 완전 무인 자산화는 *판단*이 LLM 몫이라 불가하며, 그게 의도다(노이즈 방지).
+
 ---
 
 ## 9. 구성요소 지도

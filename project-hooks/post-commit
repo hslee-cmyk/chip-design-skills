@@ -1,0 +1,19 @@
+#!/bin/sh
+# 프로젝트 post-commit (지식 자산화 배관 B).
+# 이번 commit이 RTL 코드(.v/.sv)를 건드렸고 graphify-out(L3 그래프)이 이미 있으면,
+# graphify 코드 그래프를 백그라운드 갱신한다(코드 전용 → LLM 불필요·빠름, 비차단).
+# 그래프가 없는 프로젝트는 skip(전체 빌드는 /graphify 로 1회 수동).
+# 배포: python install.py --install-git-hooks --project <repo>
+
+root=$(git rev-parse --show-toplevel)
+[ -d "$root/graphify-out" ] || exit 0     # 기존 그래프 없으면 skip
+
+changed=$(git diff-tree --no-commit-id --name-only -r HEAD 2>/dev/null | grep -EI '\.(v|sv|vh|svh)$')
+[ -z "$changed" ] && exit 0
+
+venv="$root/../.tools/kb-venv/Scripts/python.exe"
+[ -x "$venv" ] || exit 0
+
+echo "[post-commit] graphify L3 그래프 갱신(코드, 백그라운드)..."
+( "$venv" -m graphify update "$root" >/dev/null 2>&1 & ) 2>/dev/null
+exit 0
