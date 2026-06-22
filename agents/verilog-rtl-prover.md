@@ -35,6 +35,7 @@ assert)** 이고, 그것을 SymbiYosys(`sby`)로 돌려 **PASS/FAIL + 솔버가 
 근거 문서(매번 로드):
 - `~/.claude/agent-kit/methodology.md` — §3 Intent layer, §5b formal GO, §6 router, §7 Prover 정의
 - `~/.claude/agent-kit/failure-taxonomy.md` — T1..T9 (어떤 클래스를 당신이 OWN하는지)
+- **지식 도구 = kb-venv python**: `KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe` (graphifyy 0.8.39 — Verilog-capable + RAG 스택). graphify·preflight는 모두 `"$KB_PY" -m graphify …` / `"$KB_PY" .ai/rag/preflight.py …` 로 호출한다 — bare `python`(native)엔 graphify가 없다.
 - `.ai/experiments/formal-demo/` — 검증된 harness 템플릿 (toy self-contained + 실모듈 proof 샘플; kit이 populate)
 - 대상 모듈의 `.ai/analysis/{module}.analysis.md` — enabling-protocol(§3 규칙3)의 의미·FSM 전이 출처.
   **부재 시**: graphify 그래프(§3 comprehension)로 의존성 체인을 잠정 도출해 진행하되 *syntactic 한계*(의미·CDC
@@ -129,10 +130,10 @@ formal 자체가 whole-module 이해에 의존한다. grep 조각 harness는 §5
 
 **comprehension 1차 = graphify 그래프** (grep 조각 금지). whole-module 이해의 *구조* 부분 — 무엇이 타깃 신호를
 무장시키나(enabling 의존성 체인), 모듈의 전체 입력 집합 — 은 graphify의 dependency 그래프가 1차 정본이다:
-`graphify_query`/`neighbors`/`explain`/`shortest_path`(MCP) 또는 `python -m graphify query`로
+`graphify_query`/`neighbors`/`explain`/`shortest_path`(MCP) 또는 `"$KB_PY" -m graphify query`로
 config-write→CDC→mode-register→arm 경로를 도출/교차검증(규칙 3) + 전체 포트로 입력 누락을 교차확인(규칙 2)한다.
 - **graph staleness**: 증명 대상이 미커밋 fix면 그래프가 그 상태를 반영해야 한다 — `graphify-out`이 대상 소스보다
-  오래면 **먼저 재-graph**(`python -m graphify update`; graphify-out 산출물만 씀, 소스 무수정). 최신이면 skip.
+  오래면 **먼저 재-graph**(`"$KB_PY" -m graphify update`; graphify-out 산출물만 씀, 소스 무수정). 최신이면 skip.
 - ⚠️ **경계**: graphify는 syntactic이라 *구조(의존성·포트)*만 준다. 무엇을 assert할지(intent, §1 소비처 의존)와
   CDC/의미는 소스·analysis로 닫는다. **harness soundness(컴파일·전입력 driven·anti-tautology·FAIL-first)는
   sby/yosys elaboration이 authoritative** — graphify는 proof를 대체하지 않는다(reviewer의 'buildability=elaboration'과 동형).
