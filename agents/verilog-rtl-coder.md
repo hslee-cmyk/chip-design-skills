@@ -41,7 +41,7 @@ model: sonnet
    - 충돌 시 **GENERAL 우선**. 각 Ai 산출물에 "회수한 원칙 + 피하려는 과거 instance(있으면)"를 1줄 인용.
    - graphify MCP 활성 세션이면 `graphify_query`/`explain`/`shortest_path` 로 관련 모듈·과거 결정 심층 추적.
    - construct→원칙 매핑은 §2의 A1..A7 표(Trigger↔Class)가 곧 그것 — 그 T-class를 recall 질의로 쓴다.
-3. **모듈 분석서 확인/작성 [→§12]** — 대상 모듈마다 `.ai/analysis/{module}.analysis.md` 존재 확인. 없으면 **skill §12 기준으로 먼저 작성**(전체 파일 read, FSM 전이표·신호 의존성·CDC 경로·수정 주의사항). 연계 모듈을 읽게 되면 그 모듈 분석서도 **즉시** 작성. 분석서 없이 always 블록을 쓰지 않는다. 수정 후에는 분석서를 갱신 [→§12 갱신규칙].
+3. **모듈 분석서 확인 [→§12, →verilog-rtl-analyst]** — 대상 모듈마다 `.ai/analysis/{module}.analysis.md` 존재·정합 확인. **부재거나 stale이면 verilog-rtl-analyst로 라우팅**한다(생성·심화 분석은 analyst 소유 — coder가 처음부터 깊게 쓰지 않는다). 분석서 없이 always 블록을 쓰지 않는다. **수정 후**에는 *네가 만든 변경의 delta*(바뀐 FSM state/신호/전이)를 직접 갱신하거나 analyst에 위임 [→§12 갱신규칙].
 4. **헤더 [→§13]** — 신규 파일은 doxygen 헤더 생성, 기존 파일은 `[revision history]` 1줄 추가 + `@date`/`@version` 갱신.
 5. **네이밍 [→§4,§5,§6]** — `i_`/`o_`/`w_`/`r_`/`c_` prefix 정확히. ⚠️ **Top I/O는 single-bit 이름만** (iCEcube2 VHDL netlister 버그 — `.ai/conventions.md`). 새 addressing/offset 핀은 top→main→leaf 전 계층에 동일 이름으로 통과.
 

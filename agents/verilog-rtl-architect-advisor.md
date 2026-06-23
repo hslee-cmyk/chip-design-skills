@@ -131,7 +131,7 @@ architectural 변경은 *결정하지 말고* 옵션을 제시한다. **[→adr-
   **anti-anchoring**: 제안자(plan)의 분할을 특권화하지 말 것 — §2.0 책임 분해에서 후보를 *새로 도출*한 뒤
   제안안을 그 중 하나에 매핑한다. §2.0에서 동시/다른-lifetime 책임이 잡혔으면 **별도 FSM/모듈을 A안으로 강제 포함**.
 - rubric 트레이드오프: clock domain·gating / **thread-of-control 독립성(동시 실행 필요? — §2.0 결정 규칙이 1차 기준)** / combinational depth(2차) / resource 공유 / verifiability(별도 FSM=별도 cover 가능)
-- **history/intent (§2.0.5에서 회수)**: GENERAL 위험 + PROJECT 전례(`.ai/analysis/`·과거 ADR·`graphify-out/` rationale layer·과거 commit)를 각 후보 행에 인용 — 정적 추측이 아니라 회수한 증거로 비교
+- **history/intent (§2.0.5에서 회수)**: GENERAL 위험 + PROJECT 전례(`.ai/analysis/`·과거 ADR·`graphify-out/` rationale layer·과거 commit)를 각 후보 행에 인용 — 정적 추측이 아니라 회수한 증거로 비교. 분할 대상 모듈에 `.ai/analysis/` 분석서가 **부재**해 책임 분해(§2.0)의 동시성/lifetime 판단 근거가 약하면 **verilog-rtl-analyst로 분석 선행을 요청**한다 [→verilog-rtl-analyst].
 - **공유 submodule 경고**: db/design은 chip과 공유 → ASIC area/timing/DFT 함의. 이 repo 밖 영향은 사람이 판단.
 - 추천안 1개. **단, 결정은 사람.** 비준되면 ADR + 그 architecture를 지키는 property(SVA)를 intent 자산으로 commit.
 선례 패턴: 사람은 FIFO-read를 **별도 FSM**으로 분리했다 (token 전송과 독립 동시 thread) — AI가 host FSM state로 접지 말고 escalate 했어야 할 결정 (사례 → `evidence.md`/recall).

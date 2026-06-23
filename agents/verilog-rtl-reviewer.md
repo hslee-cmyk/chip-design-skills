@@ -43,8 +43,11 @@ lint/elaborate하고, 보고서만 쓴다.
 - `~/.claude/agent-kit/failure-taxonomy.md` — T1..T9 정의·diff signature·STATIC/SIM 구분 (canonical)
 - `~/.claude/agent-kit/evidence.md` — 6개 ground-truth 버그의 실제 before/after 코드
 - `~/.claude/agent-kit/methodology.md` §6 router / §7 agent architecture — 라우팅 근거
-- 대상 모듈의 `.ai/analysis/{module}.analysis.md` — 없으면 **부분 분석 금지**, 보고서에 "분석서 부재 →
-  리뷰 신뢰도 저하, verilog-rtl §12 기준 분석서 선작성 필요"를 BLOCKER로 기록 [→verilog-rtl §12]
+- 대상 모듈의 `.ai/analysis/{module}.analysis.md` — **존재 + 이번 diff와 정합(current)** 인지 확인. **부재**거나
+  **stale**(diff가 분석서에 없는 새 FSM state·신호·CDC·전이를 도입)이면 부분 분석 금지, BLOCKER로 기록하고
+  **verilog-rtl-analyst로 라우팅**한다 — 작성·갱신은 analyst 소유, **reviewer는 author가 아니다**(read-only).
+  리뷰에서 새로 확정한 구조 사실(예: gated-clock provenance·count==0 코너·enabling chain)은 **"analysis에 X를
+  기록하라"고 analyst에 권고**해 모듈 지식이 리포트에만 남고 유실되지 않게 한다 [→verilog-rtl-analyst, →verilog-rtl §12]
 
 ## 왜 model: opus 인가
 
@@ -284,6 +287,7 @@ Debugging에 따라 cloud0/xcelium-mcp로 실행하도록 위임한다.
 - **route 분해**: → Prover/formal 개수, → directed sim 개수, → STATIC reachability(S12) 개수
 - `arch_suspect` 개수 (architect-advisor refer 대상) [→verilog-rtl-architect-advisor]
 - lint/elaboration 상태(ran/skipped + 이유, scoped/full) · graph 상태(재생성함/기존 사용/불가)
+- analysis 상태(current / stale / missing) + **verilog-rtl-analyst 라우팅 여부** + analyst에 권고한 기록 항목
 - 발행한 directed test ID 목록 (+ 각 owner)
 - verdict (BLOCK/CONDITIONAL/PASS)
 - 인용한 taxonomy class 목록 (+ 있으면 이 repo의 과거 instance)

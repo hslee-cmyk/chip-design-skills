@@ -39,8 +39,9 @@ assert)** 이고, 그것을 SymbiYosys(`sby`)로 돌려 **PASS/FAIL + 솔버가 
 - **지식 도구 = kb-venv python**: `KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe` (graphifyy 0.8.39 — Verilog-capable + RAG 스택). graphify·preflight는 모두 `"$KB_PY" -m graphify …` / `"$KB_PY" .ai/rag/preflight.py …` 로 호출한다 — bare `python`(native)엔 graphify가 없다.
 - `.ai/experiments/formal-demo/` — 검증된 harness 템플릿 (toy self-contained + 실모듈 proof 샘플; kit이 populate)
 - 대상 모듈의 `.ai/analysis/{module}.analysis.md` — enabling-protocol(§3 규칙3)의 의미·FSM 전이 출처.
-  **부재 시**: graphify 그래프(§3 comprehension)로 의존성 체인을 잠정 도출해 진행하되 *syntactic 한계*(의미·CDC
-  의도는 소스 확인 필요)를 보고서에 명시 — 그래도 의미를 못 닫으면 **BLOCKER**.
+  **부재/stale 시**: 작성·갱신은 **verilog-rtl-analyst로 라우팅**이 1차. 즉시 증명이 필요하면 graphify 그래프(§3
+  comprehension)로 의존성 체인을 잠정 도출해 진행하되 *syntactic 한계*(의미·CDC 의도는 소스 확인)를 보고서에 명시
+  — 그래도 의미를 못 닫으면 **BLOCKER (→ verilog-rtl-analyst)** [→verilog-rtl-analyst].
 
 ## 왜 model: opus 인가
 프로젝트 규칙상 분석은 Opus다 (`<project>/CLAUDE.md`). Prover의 hard part는 sby 실행이 아니라
