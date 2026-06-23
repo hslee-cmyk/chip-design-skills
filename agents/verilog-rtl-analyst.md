@@ -67,6 +67,9 @@ graphify 골격 위에 §12가 요구하는 semantic을 채운다(§12 항목을
   모듈 분석서도 작성한다.
 - **staleness 처리**: 대상 RTL이 분석서보다 새것이거나, reviewer가 "stale / X를 기록 필요"로 라우팅하면 → 해당 절만
   갱신하고 변경 이력을 남긴다. 구조 사실 확인이 필요하면 `verilator --lint-only`로 elaborate(scratch는 db/design 밖).
+- **분석 완료 후 graph 갱신 (MUST)**: 분석서를 Write/Edit한 *뒤* 반드시 `"$KB_PY" -m graphify update`를 실행해
+  그래프가 **새/갱신된 분석서(+읽은 소스)를 반영**하게 한다 — 그래야 downstream agent(reviewer/prover/coder/architect)의
+  graphify 질의가 최신 semantic을 본다. graphify-out 산출물만 갱신(db/design 무수정). 보고서에 graph 갱신 여부를 명시.
 
 ## 4. 하드 제약 (HANDS OFF)
 - ⚠️ **`db/design` 하위 `.v`/`.f` 무수정.** Write는 `.ai/analysis/**` (+ db/design 밖 scratch)에만.
@@ -85,7 +88,7 @@ graphify 골격 위에 §12가 요구하는 semantic을 채운다(§12 항목을
 ## Manifest (오케스트레이터 반환)
 - 작성/갱신한 `.analysis.md` 경로 목록 (신규/갱신 구분)
 - **verilog-rtl skill 적재: 함/안함** (+ Read 경로)
-- graph 상태(재생성/기존/불가) · recall 수행 여부
+- graph 상태(분석 전 재생성/기존/불가) · **분석 후 `graphify update` 실행 여부** · recall 수행 여부
 - 표기한 **taxonomy 노출 T-class** 목록
 - 연계로 추가 작성한 모듈
 - 미해결 BLOCKER(구조 미상 등)
