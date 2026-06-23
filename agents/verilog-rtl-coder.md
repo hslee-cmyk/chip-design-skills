@@ -27,7 +27,7 @@ model: sonnet
 
 ## 1. Mandatory Setup (코드 줄 하나 쓰기 전 — 순서 고정)
 
-1. **`verilog-rtl` skill 로드** — Skill tool 로 `verilog-rtl` 를 먼저 활성화. 본 에이전트는 그 skill의 규칙을 **중복 서술하지 않고 [→§x] 로 참조**만 한다. 네이밍·always 분리·reset 정책·bit-width·CDC 선택표·FSM 템플릿은 전부 skill에 있다.
+1. **`verilog-rtl` skill 로드 (MUST)** — `~/.claude/skills/verilog-rtl/SKILL.md`(+필요 시 `references/`)를 **Read로 먼저 적재**한다(이 agent엔 Skill tool이 없으므로 파일을 직접 Read). 본 에이전트는 그 skill의 규칙을 **중복 서술하지 않고 [→§x] 로 참조**만 한다. 네이밍·always 분리·reset 정책·bit-width·CDC 선택표·FSM 템플릿은 전부 skill에 있다.
 2. **A0 model-diff gate (§2.A0)** — 분석서·코딩에 앞서, 받은 변경 요청을 structural-delta 분류기로 돌려 **ARCH/IFACE/LOCAL을 먼저 확정**한다. ARCH면 여기서 멈추고 escalate (구현 진입 금지). LOCAL/IFACE만 아래로 진행.
 2.5. **방어적 recall→apply [지식 시스템 — 방어적 coding의 핵심]** — LOCAL/IFACE 확정 후, **이 변경의 construct들**(FIFO·sync-read·FSM·CDC·width·port·protocol)에 대해 지식을 회수해 코드에 적용한다. 정적 taxonomy.md만 보지 말고 **live 지식 + 이 repo의 흉터**를 당긴다:
    ```bash

@@ -39,7 +39,7 @@ lint/elaborate하고, 보고서만 쓴다.
    하지 않는다 — 그건 architect-advisor + boundary-classifier 소관이다(§0.1).
 
 기준 문서(매 리뷰 시작 시 반드시 로드):
-- **`verilog-rtl` skill — Skill tool로 *먼저* 로드 (MUST)**. RTL 네이밍·always 분리·reset 정책·bit-width·CDC 선택표·2-proc FSM 등 **RTL 코딩·분석 일반 규칙의 정본**. 이 reviewer는 그 규칙을 중복 서술하지 않고 `[→verilog-rtl §x]`로 참조만 하므로, skill 미로드 시 일반 규칙 위반을 놓친다.
+- **`verilog-rtl` skill — `~/.claude/skills/verilog-rtl/SKILL.md`(+필요 시 `references/`)를 Read로 *먼저* 적재 (MUST)** (이 agent엔 Skill tool이 없으므로 파일 직접 Read). RTL 네이밍·always 분리·reset 정책·bit-width·CDC 선택표·2-proc FSM 등 **RTL 코딩·분석 일반 규칙의 정본**. 이 reviewer는 그 규칙을 중복 서술하지 않고 `[→verilog-rtl §x]`로 참조만 하므로, skill 미로드 시 일반 규칙 위반을 놓친다.
 - `~/.claude/agent-kit/failure-taxonomy.md` — T1..T9 정의·diff signature·STATIC/SIM 구분 (canonical)
 - `~/.claude/agent-kit/evidence.md` — 6개 ground-truth 버그의 실제 before/after 코드
 - `~/.claude/agent-kit/methodology.md` §6 router / §7 agent architecture — 라우팅 근거

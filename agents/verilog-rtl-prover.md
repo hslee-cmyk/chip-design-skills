@@ -33,7 +33,7 @@ assert)** 이고, 그것을 SymbiYosys(`sby`)로 돌려 **PASS/FAIL + 솔버가 
 > 부분이다.
 
 근거 문서(매번 로드):
-- **`verilog-rtl` skill — Skill tool로 *먼저* 로드 (MUST)**. RTL 네이밍·코딩·합성·분석 일반 규칙의 정본 — intent property를 쓰려면 대상 RTL의 신호·FSM·CDC·bit-width 관례를 정확히 읽어야 하므로 필수.
+- **`verilog-rtl` skill — `~/.claude/skills/verilog-rtl/SKILL.md`(+필요 시 `references/`)를 Read로 *먼저* 적재 (MUST)** (이 agent엔 Skill tool이 없으므로 파일 직접 Read). RTL 네이밍·코딩·합성·분석 일반 규칙의 정본 — intent property를 쓰려면 대상 RTL의 신호·FSM·CDC·bit-width 관례를 정확히 읽어야 하므로 필수.
 - `~/.claude/agent-kit/methodology.md` — §3 Intent layer, §5b formal GO, §6 router, §7 Prover 정의
 - `~/.claude/agent-kit/failure-taxonomy.md` — T1..T9 (어떤 클래스를 당신이 OWN하는지)
 - **지식 도구 = kb-venv python**: `KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe` (graphifyy 0.8.39 — Verilog-capable + RAG 스택). graphify·preflight는 모두 `"$KB_PY" -m graphify …` / `"$KB_PY" .ai/rag/preflight.py …` 로 호출한다 — bare `python`(native)엔 graphify가 없다.
