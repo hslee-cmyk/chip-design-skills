@@ -22,8 +22,9 @@ from __future__ import annotations
 import json
 import re
 import sys
+import uuid as _uuid
 from collections import defaultdict
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 
 for _s in (sys.stdout, sys.stderr):
@@ -291,5 +292,102 @@ def main() -> int:
     return 0
 
 
+def record_promo_main() -> int:
+    """--record-promo 모드: [A]/[B] 격상 이벤트를 bkit audit/decisions에 기록."""
+    import argparse
+    args_list = [a for a in sys.argv[1:] if a != "--record-promo"]
+    p = argparse.ArgumentParser(prog="sync_rules.py --record-promo")
+    p.add_argument("--type", choices=["A", "B"], required=True, dest="promo_type",
+                   help="격상 유형: A=critical-patterns, B=kb-global")
+    p.add_argument("--category", default="", help="솔루션 카테고리명")
+    p.add_argument("--ids", default="", help="쉼표 구분 솔루션 ID 목록")
+    p.add_argument("--target", default="", help="격상 대상 파일 상대 경로")
+    p.add_argument("--reason", default="", help="recurrence|critical|toolflow")
+    args = p.parse_args(args_list)
+
+    source_ids = [s.strip() for s in args.ids.split(",") if s.strip()]
+    now = datetime.now(timezone.utc).isoformat()
+    today = now[:10]
+
+    # Audit entry (.bkit/audit/YYYY-MM-DD.jsonl)
+    audit_entry = {
+        "id": str(_uuid.uuid4()),
+        "timestamp": now,
+        "sessionId": "",
+        "actor": "agent",
+        "actorId": "kb-promote",
+        "action": "file_modified",
+        "category": "quality",
+        "target": "kb-global",
+        "targetType": "feature",
+        "details": {
+            "promotionType": args.promo_type,
+            "category": args.category,
+            "sourceIds": source_ids,
+            "targetFile": args.target,
+            "reason": args.reason,
+        },
+        "result": "success",
+        "reason": None,
+        "destructiveOperation": False,
+        "blastRadius": "low",
+        "bkitVersion": "",
+    }
+
+    # Decision trace (.bkit/decisions/YYYY-MM-DD.jsonl)
+    n = len(source_ids)
+    if args.promo_type == "A":
+        question = (f"[A] category '{args.category}': {n}개 fresh 솔루션 → "
+                    f"critical-patterns.md 격상 여부")
+        rationale = f"카테고리 내 미기여 솔루션 {n}개 누적, /kb-promote 승인 후 패턴 등재"
+    else:
+        first_id = source_ids[0] if source_ids else ""
+        question = (f"[B] '{first_id}': kb-global 격상 여부 ({args.reason})")
+        rationale = "toolflow/System-level 솔루션, /kb-promote 승인 후 일반 원칙 등재"
+
+    decision_entry = {
+        "id": str(_uuid.uuid4()),
+        "timestamp": now,
+        "sessionId": "",
+        "feature": "kb-global",
+        "phase": "check",
+        "automationLevel": 1,
+        "decisionType": "quality_gate_result",
+        "question": question,
+        "chosenOption": "promote",
+        "alternatives": [{"option": "skip", "reason": "defer",
+                          "rejectedBecause": "user approved"}],
+        "rationale": rationale,
+        "confidence": 0.9,
+        "impact": "medium",
+        "affectedFiles": [args.target] if args.target else [],
+        "reversible": True,
+        "outcome": "positive",
+    }
+
+    # 쓰기
+    audit_dir = PROJ / ".bkit" / "audit"
+    try:
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        with (audit_dir / f"{today}.jsonl").open("a", encoding="utf-8") as f:
+            f.write(json.dumps(audit_entry, ensure_ascii=False) + "\n")
+        print(f"[record-promo] audit 기록 → .bkit/audit/{today}.jsonl")
+    except Exception as e:
+        print(f"[record-promo] audit 쓰기 실패(무시): {e}", file=sys.stderr)
+
+    dec_dir = PROJ / ".bkit" / "decisions"
+    try:
+        dec_dir.mkdir(parents=True, exist_ok=True)
+        with (dec_dir / f"{today}.jsonl").open("a", encoding="utf-8") as f:
+            f.write(json.dumps(decision_entry, ensure_ascii=False) + "\n")
+        print(f"[record-promo] decision 기록 → .bkit/decisions/{today}.jsonl")
+    except Exception as e:
+        print(f"[record-promo] decision 쓰기 실패(무시): {e}", file=sys.stderr)
+
+    return 0
+
+
 if __name__ == "__main__":
+    if "--record-promo" in sys.argv:
+        sys.exit(record_promo_main())
     sys.exit(main())
