@@ -14,7 +14,8 @@ Usage:
     "$KB_PY" .ai/rag/preflight.py "<증상/주제>" [--rerank] [--kind pattern ...]
 """
 from __future__ import annotations
-import subprocess, sys
+import json, subprocess, sys, uuid as _uuid
+from datetime import datetime, timezone
 from pathlib import Path
 
 for _s in (sys.stdout, sys.stderr):
@@ -34,6 +35,35 @@ FILT = ("warning", "symlink", "huggingface", "fetching", "developer mode",
 def hdr(t): print("\n" + "=" * 72 + f"\n{t}\n" + "=" * 72)
 
 
+def _write_preflight_audit(query: str, mode: str) -> None:
+    """preflight 실행 이벤트를 .bkit/audit/YYYY-MM-DD.jsonl에 기록 (실패해도 무시)."""
+    now = datetime.now(timezone.utc).isoformat()
+    entry = {
+        "id": str(_uuid.uuid4()),
+        "timestamp": now,
+        "sessionId": "",
+        "actor": "agent",
+        "actorId": "preflight",
+        "action": "gate_passed",
+        "category": "quality",
+        "target": "kb-global",
+        "targetType": "feature",
+        "details": {"query": query[:200], "mode": mode},
+        "result": "success",
+        "reason": None,
+        "destructiveOperation": False,
+        "blastRadius": "low",
+        "bkitVersion": "",
+    }
+    audit_dir = PROJ / ".bkit" / "audit"
+    try:
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        with (audit_dir / f"{now[:10]}.jsonl").open("a", encoding="utf-8") as f:
+            f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    except Exception:
+        pass  # 감사 로그 실패는 preflight 동작에 영향 없음
+
+
 def run(cmd, cwd=None, timeout=120):
     r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8",
                        errors="replace", timeout=timeout, cwd=cwd)
@@ -51,8 +81,12 @@ def main():
     # 정밀이 필요하면(모호한 top 결과) --rerank 로 cross-encoder 켠다.
     if "--rerank" in extra:
         extra = [e for e in extra if e != "--rerank"]          # rerank ON (kb_search 기본)
+        _write_preflight_audit(query, "rerank")
     elif "--no-rerank" not in extra:
         extra = extra + ["--no-rerank"]                        # 기본 OFF (린)
+        _write_preflight_audit(query, "lean")
+    else:
+        _write_preflight_audit(query, "lean")
 
     # 1) 일반 원칙 (전역 RAG) — 우선·정본 ───────────────────────────────
     hdr(f'1. 일반 원칙 [GENERAL · 전 프로젝트 적용 · 정본 git · 우선] — "{query}"')
