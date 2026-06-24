@@ -77,6 +77,35 @@ def _save_cache(kb_hash: str, mrr: float, p1: float) -> None:
         pass  # 캐시 쓰기 실패는 무시
 
 
+def _write_bkit_metrics(mrr: float, p1: float, n_queries: int) -> None:
+    """PASS 결과를 워크스페이스 내 모든 프로젝트 .bkit/state/quality-metrics.json에 기록."""
+    workspace = PROJ.parent
+    now = datetime.now(timezone.utc).isoformat()
+    entry = {
+        "feature": "kb-global",
+        "phase": "check",
+        "projectLevel": "global",
+        "timestamp": now,
+        "metrics": {
+            "kb_search_mrr":     {"value": mrr,       "collector": "eval_gate", "collectedAt": now},
+            "kb_search_p1":      {"value": p1,        "collector": "eval_gate", "collectedAt": now},
+            "kb_eval_n_queries": {"value": n_queries, "collector": "eval_gate", "collectedAt": now},
+        },
+    }
+    # 프로젝트별 .bkit/state + 워크스페이스 루트 .bkit/state
+    candidates = list(workspace.glob("*/.bkit/state")) + [workspace / ".bkit" / "state"]
+    for bkit_state in candidates:
+        if not bkit_state.is_dir():
+            continue
+        metrics_path = bkit_state / "quality-metrics.json"
+        try:
+            data = json.loads(metrics_path.read_text(encoding="utf-8")) if metrics_path.exists() else {}
+            data["kb-global"] = entry
+            metrics_path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            pass  # 기록 실패는 무시
+
+
 def _check_cache(kb_hash: str) -> bool:
     """캐시가 유효하면 True (PASS 결과를 재사용 가능)."""
     if CACHE_TTL_H <= 0:
@@ -140,9 +169,10 @@ def main() -> int:
               "principles 수정 또는 골드셋 점검 필요.")
         return 1
 
-    # ⑤ PASS → 캐시 기록
+    # ⑤ PASS → 캐시 기록 + bkit quality-metrics 갱신
     print("[eval-gate] PASS")
     _save_cache(kb_hash, mrr, p1)
+    _write_bkit_metrics(mrr, p1, m["n"])
     return 0
 
 
