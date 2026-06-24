@@ -10,9 +10,9 @@
 |------|------|
 | 아키텍처·신호 흐름·디렉토리 | `.ai/project.md` |
 | 코딩 규칙(네이밍·ifdef·Top I/O·인코딩·합성 속성) | `.ai/conventions.md` |
-| 빌드·클럭·프로그래밍 | `.ai/build.md` |
-| 원격 서버·ssh-mcp·xcelium-mcp | `.ai/servers.md`, `.ai/knowledge/` |
-| 하드 IP·known issues | `.ai/knowledge/` |
+| 빌드·클럭·프로그래밍 | `.ai/ops/build.md` |
+| 원격 서버·ssh-mcp·xcelium-mcp | `.ai/ops/servers.md`, `.ai/ops/` |
+| 하드 IP·known issues | `.ai/design-knowledge/` |
 | RTL 모듈 분석서 | `.ai/analysis/` (`{module}.analysis.md`) |
 
 ## Key Rules (자주 틀림)

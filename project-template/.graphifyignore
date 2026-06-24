@@ -1,0 +1,22 @@
+# build / generated
+db/work/
+img/
+graphify-out/
+# git / claude / bkit internal (RTL 분석 노이즈)
+.git/
+.claude/
+.bkit/
+# non-RTL 문서 (graph 네임스페이스 오염; .ai/analysis 분석서는 유지)
+.ai/bkit-templates/
+.ai/experiments/
+docs/
+# 시뮬레이션 testbench (filelist 활성 RTL 아님)
+sim/
+
+# 운영·인프라 가이드 — 직접 Read로 접근 (build/servers/MCP 운영)
+.ai/ops/
+
+# RAG 도구·프로젝트 계획·bkit 설정 — graphify 불필요
+.ai/rag/
+.ai/plans/
+.ai/rd-pdca-substeps.json
