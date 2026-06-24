@@ -251,6 +251,67 @@ def install_git_hooks(dry, project):
     return 0
 
 
+def _escape_for_claude(path: pathlib.Path) -> str:
+    """경로 → Claude Code projects 디렉토리 key. C:\\foo\\bar -> C--foo-bar"""
+    return re.sub(r'[:\\/]', '-', str(path.resolve()))
+
+
+def install_memory_junction(dry, project, workspace=None):
+    """프로젝트 Claude memory 디렉토리를 workspace 공유 memory로 junction.
+
+    ~/.claude/projects/<proj-key>/memory/  →junction→  ~/.claude/projects/<ws-key>/memory/
+
+    --workspace 미지정 시 project의 부모 디렉토리를 workspace로 사용.
+    기존 memory 디렉토리가 있고 junction이 아니면 경고 후 건너뜀(--force로 강제).
+    """
+    if not project:
+        print("ERROR: --install-memory-junction requires --project PATH"); return 1
+    proj = pathlib.Path(project).expanduser().resolve()
+    ws   = pathlib.Path(workspace).expanduser().resolve() if workspace else proj.parent
+
+    claude_projects = pathlib.Path.home() / ".claude" / "projects"
+    shared_memory   = claude_projects / _escape_for_claude(ws)   / "memory"
+    proj_memory     = claude_projects / _escape_for_claude(proj) / "memory"
+
+    if dry:
+        print(f"[dry-run] memory junction:")
+        print(f"  junction : {proj_memory}")
+        print(f"  -> target: {shared_memory}")
+        return 0
+
+    # 공유 memory 디렉토리가 없으면 생성
+    shared_memory.mkdir(parents=True, exist_ok=True)
+
+    # 이미 junction이면 skip
+    try:
+        is_junc = proj_memory.is_junction()
+    except AttributeError:                         # Python < 3.12 폴백
+        is_junc = False
+    if is_junc:
+        print(f"  memory junction already exists: {proj_memory} -> {proj_memory.resolve()}")
+        return 0
+
+    # 실제 디렉토리가 있으면 경고 (--force 없이는 건너뜀)
+    if proj_memory.exists():
+        count = len(list(proj_memory.iterdir()))
+        print(f"  ! {proj_memory} 이미 존재 (파일 {count}개) — junction 아님. 건너뜀.")
+        print(f"    강제로 만들려면: 디렉토리 삭제 후 재실행.")
+        return 1
+
+    # junction 생성 (Windows: mklink /J, admin 불필요)
+    import subprocess
+    r = subprocess.run(
+        ["cmd", "/c", "mklink", "/J", str(proj_memory), str(shared_memory)],
+        capture_output=True, text=True,
+    )
+    if r.returncode == 0:
+        print(f"  memory junction created: {proj_memory}")
+        print(f"    -> {shared_memory}")
+        return 0
+    print(f"  ERROR: junction 생성 실패: {r.stderr.strip() or r.stdout.strip()}")
+    return 1
+
+
 def install_mcp(dry, project):
     """프로젝트 .mcp.json 에 graphify MCP 서버 등록 → 에이전트가 프로젝트 wiki 심층 탐색
     (graphify_query / shortest_path / explain / neighbors). graphify-out/graph.json 있을 때만."""
@@ -831,6 +892,10 @@ def main():
                     help="프로젝트 git hooks(pre-commit 검증·동기, post-commit graphify) 배포 → --project/.git/hooks/")
     ap.add_argument("--install-mcp", action="store_true",
                     help="프로젝트 .mcp.json 에 graphify MCP 서버 등록(그래프 심층 탐색; graph.json 있을 때)")
+    ap.add_argument("--install-memory-junction", action="store_true",
+                    help="~/.claude/projects/<proj>/memory/ → 공유 memory junction 생성 (--workspace 미지정 시 프로젝트 부모 디렉토리)")
+    ap.add_argument("--workspace", metavar="PATH",
+                    help="공유 memory의 기준 워크스페이스 경로 (--install-memory-junction / --onboard 용; 기본: --project의 부모)")
     ap.add_argument("--detect-config", action="store_true",
                     help="auto-generate db/scripts/config.sh from an existing tool project "
                          "(.ldf Diamond / .rdf Radiant / .prj iCEcube2) in --project")
@@ -841,13 +906,14 @@ def main():
     if a.onboard:
         if not a.project:
             print("ERROR: --onboard requires --project PATH"); sys.exit(1)
-        print(f"== Onboard {a.project}: init-ai-infra → git-hooks(A·B) → CC hooks(D)\n")
+        print(f"== Onboard {a.project}: init-ai-infra → git-hooks(A·B) → CC hooks(D) → memory junction\n")
         rc = init_ai_infra(a.dry_run, a.project, a.force) or 0
         if rc == 0:
             print(); rc = install_git_hooks(a.dry_run, a.project) or 0
         if rc == 0:
             print(); install_hooks(a.dry_run, a.project, a.python)
         print(); install_mcp(a.dry_run, a.project)   # graph 있으면 등록, 없으면 skip
+        print(); install_memory_junction(a.dry_run, a.project, a.workspace)
         print("\n(dry-run) nothing changed." if a.dry_run else
               "\nDone (onboard). NEXT: 공유 venv 미구성이면 .tools/kb-venv 먼저, "
               "RTL 에이전트는 `--only agents --project`. graphify 그래프 1회 `/graphify .` "
@@ -857,6 +923,11 @@ def main():
     if a.install_mcp:
         rc = install_mcp(a.dry_run, a.project)
         print("\n(dry-run) nothing changed." if a.dry_run else "\nDone (mcp).")
+        sys.exit(rc or 0)
+
+    if a.install_memory_junction:
+        rc = install_memory_junction(a.dry_run, a.project, a.workspace)
+        print("\n(dry-run) nothing changed." if a.dry_run else "\nDone (memory junction).")
         sys.exit(rc or 0)
 
     if a.install_git_hooks:
