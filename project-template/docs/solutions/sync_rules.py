@@ -217,17 +217,22 @@ def main() -> int:
         if r.get("syncedBy") != SYNC_TAG:
             continue
         cat_rules[r["category"]].append(r)
+    kb_promoted_ids = _kb_global_promoted_ids()  # [B] 격상된 ID → [A]에서도 제외
     crit_candidates: list[dict] = []
-    # 1) 카테고리 내 미기여 솔루션 >= PROMOTE_THRESHOLD → 공통 패턴 추출 권장
+    # 1) 카테고리 내 미기여·미격상 솔루션 >= PROMOTE_THRESHOLD → 공통 패턴 추출 권장
     for cat, rules in cat_rules.items():
-        fresh = [r for r in rules if r["id"] not in contributed_ids]
+        fresh = [r for r in rules
+                 if r["id"] not in contributed_ids      # [A] 미기여
+                 and r["id"] not in kb_promoted_ids]    # [B] 미격상
         if len(fresh) >= PROMOTE_THRESHOLD:
             crit_candidates.append({"category": cat, "rules": fresh, "reason": "recurrence"})
-    # 2) severity=critical → 단독으로도 즉시 후보 (미기여분만)
+    # 2) severity=critical → 단독으로도 즉시 후보 (미기여·미격상분만)
     for r in data["rules"]:
         if r.get("syncedBy") != SYNC_TAG:
             continue
-        if r["severity"] == "critical" and r["id"] not in contributed_ids:
+        if (r["severity"] == "critical"
+                and r["id"] not in contributed_ids
+                and r["id"] not in kb_promoted_ids):
             cat = r["category"]
             if not any(c["category"] == cat for c in crit_candidates):
                 crit_candidates.append({"category": cat, "rules": [r], "reason": "critical"})
