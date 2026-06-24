@@ -3,6 +3,11 @@ kind: pattern
 domain: toolflow
 scope: global
 tags: [subprocess, windows, msys2, shell, eda, simvision, graphify, tooling-maintenance]
+promoted_from:
+  - graphify-version-drift-skill-resync-20260622
+  - pgrcmd-dll-init-failed-wmi-workaround-20260624
+  - shell-run-stderr-contamination-pattern-20260624
+  - simvision-duplicate-db-explorefull-20260408
 ---
 
 # Toolflow 일반 패턴 (전 프로젝트 적용) — 장기 지식

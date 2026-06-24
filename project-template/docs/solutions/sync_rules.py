@@ -102,6 +102,22 @@ def _kb_global_texts() -> str:
     return "\n".join(parts)
 
 
+def _kb_global_promoted_ids() -> set:
+    """kb-global/principles/ 파일들의 promoted_from 목록을 모아 반환."""
+    if not KB_GLOBAL_PATH.exists():
+        return set()
+    ids: set[str] = set()
+    for p in KB_GLOBAL_PATH.rglob("*.md"):
+        try:
+            fm, _ = parse_fm(p.read_text(encoding="utf-8", errors="replace"))
+            promoted = fm.get("promoted_from") or []
+            if isinstance(promoted, list):
+                ids.update(str(x) for x in promoted)
+        except Exception:
+            pass
+    return ids
+
+
 def _is_kb_global_candidate(fm: dict) -> bool:
     """툴/환경 레벨 솔루션 여부 — 생성 즉시 kb-global 후보."""
     pt = str(fm.get("problem_type", "") or "").lower().replace("-", "_")
@@ -191,6 +207,7 @@ def main() -> int:
 
     # ── REPORT B: kb-global 격상 후보 ──────────────────────────────────────
     kb_text = _kb_global_texts()
+    promoted_ids = _kb_global_promoted_ids()   # promoted_from 명시 목록
     kb_candidates = []
     for r in data["rules"]:
         if r.get("syncedBy") != SYNC_TAG:
@@ -198,8 +215,10 @@ def main() -> int:
         fm = asset_fm.get(r["id"], {})
         if not _is_kb_global_candidate(fm):
             continue
-        # 이미 kb-global에 등재된 경우 제외 (id로만 판단 — 태그는 false positive 위험)
-        already = r["id"] in kb_text
+        # 이미 kb-global에 등재된 경우 제외:
+        #   1순위: promoted_from 명시 목록 (정확)
+        #   2순위: id가 kb-global 본문에 직접 등장 (fallback)
+        already = r["id"] in promoted_ids or r["id"] in kb_text
         if not already:
             kb_candidates.append(r)
 
