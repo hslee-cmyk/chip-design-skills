@@ -22,6 +22,7 @@ from __future__ import annotations
 import json
 import re
 import sys
+from collections import defaultdict
 from datetime import date
 from pathlib import Path
 
@@ -87,6 +88,20 @@ def load_rules() -> dict:
         except Exception:
             pass
     return {"version": "2.0", "rules": []}
+
+
+def _critical_contributed_ids() -> set:
+    """critical-patterns.md의 contributed_from 목록을 반환."""
+    if not CRIT_PATH.exists():
+        return set()
+    try:
+        fm, _ = parse_fm(CRIT_PATH.read_text(encoding="utf-8", errors="replace"))
+        contributed = fm.get("contributed_from") or []
+        if isinstance(contributed, list):
+            return {str(x) for x in contributed}
+    except Exception:
+        pass
+    return set()
 
 
 def _kb_global_texts() -> str:
@@ -194,16 +209,28 @@ def main() -> int:
         RULES_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2),
                               encoding="utf-8")
 
-    # ── REPORT A: Required Reading 승격 후보 (critical-patterns.md) ──────────
-    crit_text = CRIT_PATH.read_text(encoding="utf-8") if CRIT_PATH.exists() else ""
-    crit_candidates = []
+    # ── REPORT A: Required Reading 패턴 추출 권장 (critical-patterns.md) ──────
+    contributed_ids = _critical_contributed_ids()  # 이미 기여된 솔루션 ID 집합
+    # 카테고리별 rule 집계 (기여 안 된 것만 fresh로 카운트)
+    cat_rules: dict[str, list] = defaultdict(list)
     for r in data["rules"]:
         if r.get("syncedBy") != SYNC_TAG:
             continue
-        hot = r["violationCount"] >= PROMOTE_THRESHOLD or r["severity"] == "critical"
-        in_crit = r["id"] in crit_text or r["category"] in crit_text
-        if hot and not in_crit:
-            crit_candidates.append(r)
+        cat_rules[r["category"]].append(r)
+    crit_candidates: list[dict] = []
+    # 1) 카테고리 내 미기여 솔루션 >= PROMOTE_THRESHOLD → 공통 패턴 추출 권장
+    for cat, rules in cat_rules.items():
+        fresh = [r for r in rules if r["id"] not in contributed_ids]
+        if len(fresh) >= PROMOTE_THRESHOLD:
+            crit_candidates.append({"category": cat, "rules": fresh, "reason": "recurrence"})
+    # 2) severity=critical → 단독으로도 즉시 후보 (미기여분만)
+    for r in data["rules"]:
+        if r.get("syncedBy") != SYNC_TAG:
+            continue
+        if r["severity"] == "critical" and r["id"] not in contributed_ids:
+            cat = r["category"]
+            if not any(c["category"] == cat for c in crit_candidates):
+                crit_candidates.append({"category": cat, "rules": [r], "reason": "critical"})
 
     # ── REPORT B: kb-global 격상 후보 ──────────────────────────────────────
     kb_text = _kb_global_texts()
@@ -229,13 +256,16 @@ def main() -> int:
     if pruned:
         print("  정리됨:", ", ".join(pruned))
 
-    print(f"\n[A] Required Reading 승격 후보 (violationCount>={PROMOTE_THRESHOLD} "
-          f"또는 severity=critical, critical-patterns.md 미등재):")
+    print(f"\n[A] Required Reading 패턴 추출 권장 "
+          f"(카테고리 솔루션 >={PROMOTE_THRESHOLD}개 또는 severity=critical, "
+          f"critical-patterns.md 미등재):")
     if crit_candidates:
-        for r in crit_candidates:
-            print(f"  - [{r['category']}] {r['id']}  "
-                  f"(viol={r['violationCount']}, sev={r['severity']})  ← {r['source']}")
-        print("  → critical-patterns.md 에 ❌WRONG/✅CORRECT 코드쌍으로 등재 권장.")
+        for c in crit_candidates:
+            label = "severity=critical" if c["reason"] == "critical" else f"{len(c['rules'])}개 솔루션"
+            print(f"  - [{c['category']}] {label}")
+            for r in c["rules"]:
+                print(f"      ← {r['source']}")
+        print("  → /kb-promote 로 공통 패턴 합성 후 critical-patterns.md 등재 권장.")
     else:
         print("  없음.")
 
