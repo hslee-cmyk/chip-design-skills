@@ -48,8 +48,12 @@
 ### 3.1 L1 — 기록 (bkit, 자동·원시)
 bkit 플러그인이 **자동으로** 남기는 append-only 기록. 사람이 손대지 않는다.
 - `.bkit/audit/*.jsonl`(감사), `.bkit/decisions/*.jsonl`(결정 추적), `pdca-status.json`(상태),
-  checkpoints, quality-metrics, **`regression-rules.json`**(카테고리별 누적 규칙).
-- **접근법**: 임베딩 금지. `bkit_audit_search`/`bkit_regression_rules`/`bkit_gap_analysis` 등
+  checkpoints, **`quality-metrics.json`**(품질 지표), **`regression-rules.json`**(카테고리별 누적 규칙).
+- **지식 시스템 통합 이벤트** (§8.1 E·F):
+  - `preflight.py` 실행 → `audit/*.jsonl`에 `gate_passed/quality` 기록 (actorId=preflight, mode=lean|rerank)
+  - `/kb-promote` [A]/[B] 격상 → `audit/*.jsonl` + `decisions/*.jsonl`에 `quality_gate_result` 기록
+  - `eval_gate.py` PASS → `quality-metrics.json`의 `kb-global` feature에 MRR/P@1 기록
+- **접근법**: 임베딩 금지. `bkit_audit_search`/`bkit_metrics_get`/`bkit_regression_rules`/`bkit_gap_analysis` 등
   **MCP 도구로 정확 질의**한다. (방대·저신호라 RAG에 넣으면 노이즈·비용만 늘어남.)
 
 ### 3.2 L2 — 큐레이션 (사람·증류·**정본**)
@@ -153,7 +157,16 @@ docs/solutions/<T*>/*.md
   - 격상 후 재탐지 방지: 기여된 ID를 `contributed_from:`에 등록
 - 추적: `docs/solutions/patterns/critical-patterns.md` 프론트매터 `contributed_from:` 리스트
 
-**격상 실행**: `/kb-promote` skill — 후보 탐지 → 내용 미리보기 + 사람 승인 → 패턴 합성/작성 → ID 등록 → 커밋/push.
+**격상 실행**: `/kb-promote` skill — 후보 탐지 → 내용 미리보기 + 사람 승인 → 패턴 합성/작성 → ID 등록 → **bkit audit/decisions 기록** → 커밋/push.
+
+격상 직후(커밋 전) `sync_rules.py --record-promo`로 L1에 이벤트를 남긴다:
+```bash
+"$KB_PY" docs/solutions/sync_rules.py --record-promo \
+  --type A|B --category <cat> --ids "<id1>,..." --target "<파일>" --reason <reason>
+# → .bkit/audit/YYYY-MM-DD.jsonl (file_modified/quality)
+# → .bkit/decisions/YYYY-MM-DD.jsonl (quality_gate_result)
+```
+`bkit_audit_search` MCP로 `actorId=kb-promote`를 필터링하면 언제 어떤 패턴이 격상됐는지 추적할 수 있다.
 
 ---
 
@@ -203,6 +216,9 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
   캐시(기본 TTL 8시간, `KB_EVAL_CACHE_TTL_H` env)를 사용한다. `principles/` 내용이 바뀌지 않으면
   캐시 히트 → 0.2초 내 통과. 내용 변경 시 push 전 `eval_gate.py`를 수동 실행(pre-warm)해
   캐시를 채워두면 hook이 즉시 통과한다. PASS 결과만 캐시(FAIL은 재push 때 항상 재평가).
+  **bkit quality-metrics 통합**: eval_gate PASS 시 워크스페이스 내 모든 프로젝트의
+  `.bkit/state/quality-metrics.json`에 `kb-global` feature로 MRR/P@1/질의 수를 기록한다.
+  `bkit_metrics_get` MCP로 RAG 품질 이력 조회 가능(feature=`kb-global`, metrics: `kb_search_mrr`/`kb_search_p1`/`kb_eval_n_queries`).
   ⚠️ 코퍼스가 커지면 골드셋을 함께 키우고 재측정(pool/모델 재튜닝).
 
 ### 8.1 자동화 (hooks) — "배관은 자동, 판단은 넛지"
@@ -213,8 +229,10 @@ L3 graphify는 관계 항법이라 reranker 대상이 아니다(그래프 순회
 |------|----------|------|
 | **A. validate+sync** | 프로젝트 `.git/hooks/pre-commit` | `docs/solutions/*.md` 커밋 시 `validate.py`(불량이면 **차단**) + `sync_rules.py`(regression-rules 재생성·stage) |
 | **B. graph 갱신** | 프로젝트 `.git/hooks/post-commit` | `.v/.sv` 커밋 + `graphify-out` 존재 시 `graphify update` 백그라운드(코드 전용·비차단) |
-| **C. 품질 게이트** | 키트 `.githooks/pre-push` | (위) kb-global push 시 eval 게이트 |
+| **C. 품질 게이트** | 키트 `.githooks/pre-push` | kb-global push 시 eval 게이트. PASS 시 `.bkit/state/quality-metrics.json`에 MRR/P@1 기록 |
 | **D. recall 넛지** | CC `PreToolUse` 훅 `kb-preflight-nudge.py` | RTL(`db/design/**/*.v`) Edit/Write 시 세션당 1회 "preflight 권장" 컨텍스트 주입(비차단) |
+| **E. preflight audit** | `preflight.py` 자체 | 실행 시 `.bkit/audit/YYYY-MM-DD.jsonl`에 `gate_passed/quality` 기록 (actorId=preflight, mode=lean\|rerank). RTL 착수 전 지식 조회 증적 |
+| **F. 격상 audit** | `/kb-promote` Step 5 (`sync_rules.py --record-promo`) | [A]/[B] 격상 시 `audit/*.jsonl` + `decisions/*.jsonl`에 기록 (actorId=kb-promote, decisionType=quality_gate_result) |
 | capture 넛지 | `/solution-capture` skill 트리거 | "그게 됐다"류 감지 → 자산화(모델 판단) |
 
 배포: `python install.py --install-git-hooks --project <repo>`(A·B) · `--only hooks --project <repo>`(D).
