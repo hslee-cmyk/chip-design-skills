@@ -4,8 +4,10 @@
 방향:
   - PUSH: docs/solutions 각 자산(frontmatter) → bkit regression-rules.json 의 rule.
     (카테고리 = problem_type, severity 매핑, violationCount 보존, source 추적)
-  - REPORT: violationCount >= 임계 또는 severity=critical 인데 아직 critical-patterns.md
+  - REPORT A: violationCount >= 임계 또는 severity=critical 인데 아직 critical-patterns.md
     에 없는 rule → "Required Reading 승격 후보"로 출력.
+  - REPORT B: problem_type=toolflow 또는 module=System 인 rule → "kb-global 격상 후보"로 출력.
+    (툴/환경 버그는 프로젝트 무관 — violationCount 기다리지 않고 생성 즉시 후보)
   - PRUNE: 과거 이 스크립트가 만든 rule 중 원본 자산이 사라진 것 → stale 제거.
 
 bkit regression-rules 스키마(v2.0):
@@ -23,7 +25,6 @@ import sys
 from datetime import date
 from pathlib import Path
 
-import os
 for _s in (sys.stdout, sys.stderr):
     if hasattr(_s, "reconfigure"):
         try:
@@ -32,10 +33,18 @@ for _s in (sys.stdout, sys.stderr):
             pass
 
 HERE = Path(__file__).resolve().parent          # docs/solutions
-PROJ = HERE.parent.parent                        # venezia-fpga
+PROJ = HERE.parent.parent                        # <project-root>
 RULES_PATH = PROJ / ".bkit" / "state" / "regression-rules.json"
 CRIT_PATH = HERE / "patterns" / "critical-patterns.md"
-PROMOTE_THRESHOLD = 2                            # violationCount >= 2 → 승격 후보
+# kb-global: <workspace>/chip-design-skills/kb-global/principles/
+KB_GLOBAL_PATH = PROJ.parent / "chip-design-skills" / "kb-global" / "principles"
+
+PROMOTE_THRESHOLD = 2                            # violationCount >= 2 → Required Reading 후보
+
+# problem_type이 이것이면 툴/환경 레벨 → kb-global 즉시 후보
+_KB_GLOBAL_TYPES = {"toolflow"}
+# module이 이것이면 특정 RTL 모듈 아님 → kb-global 즉시 후보
+_KB_GLOBAL_MODULES = {"system", "System", ""}
 
 EXCLUDE_NAMES = {"README.md"}
 EXCLUDE_DIRS = {"patterns"}
@@ -60,11 +69,10 @@ def parse_fm(text: str):
 
 
 def iter_assets():
-    root = HERE
-    for p in sorted(root.rglob("*.md")):
+    for p in sorted(HERE.rglob("*.md")):
         if p.name in EXCLUDE_NAMES:
             continue
-        if any(part in EXCLUDE_DIRS for part in p.relative_to(root).parts[:-1]):
+        if any(part in EXCLUDE_DIRS for part in p.relative_to(HERE).parts[:-1]):
             continue
         yield p
 
@@ -81,23 +89,57 @@ def load_rules() -> dict:
     return {"version": "2.0", "rules": []}
 
 
+def _kb_global_texts() -> str:
+    """kb-global/principles/ 전체 텍스트를 이어붙여 반환 (미존재 시 빈 문자열)."""
+    if not KB_GLOBAL_PATH.exists():
+        return ""
+    parts = []
+    for p in KB_GLOBAL_PATH.rglob("*.md"):
+        try:
+            parts.append(p.read_text(encoding="utf-8", errors="replace"))
+        except Exception:
+            pass
+    return "\n".join(parts)
+
+
+def _is_kb_global_candidate(fm: dict) -> bool:
+    """툴/환경 레벨 솔루션 여부 — 생성 즉시 kb-global 후보."""
+    pt = str(fm.get("problem_type", "") or "").lower().replace("-", "_")
+    mod = str(fm.get("module", "") or "")
+    if pt in _KB_GLOBAL_TYPES:
+        return True
+    # module이 System/빈값이고 RTL 타입이 아닌 경우
+    rtl_types = {"fsm_corner", "protocol_spec", "pointer_handshake", "timing_cycle",
+                 "fpga_ram", "width_truncation", "port_integration", "structure_style",
+                 "clock_reset_cdc"}
+    if mod in _KB_GLOBAL_MODULES and pt not in rtl_types:
+        return True
+    return False
+
+
 def main() -> int:
     dry = "--dry-run" in sys.argv
     data = load_rules()
     by_id = {r["id"]: r for r in data["rules"]}
 
+    # asset별 frontmatter 보존 (kb-global 판정에 필요)
+    asset_fm: dict[str, dict] = {}
+
     assets = list(iter_assets())
-    seen_ids = set()
+    seen_ids: set[str] = set()
     added, updated = 0, 0
 
     for p in assets:
-        fm, body = parse_fm(p.read_text(encoding="utf-8", errors="replace"))
+        text = p.read_text(encoding="utf-8", errors="replace")
+        fm, body = parse_fm(text)
         pt = str(fm.get("problem_type", "") or "")
         if not pt:
             continue
-        category = pt.replace("_", "-")          # width_truncation → width-truncation
-        rid = p.stem                              # 날짜 suffix로 고유
+        category = pt.replace("_", "-")
+        rid = p.stem
         seen_ids.add(rid)
+        asset_fm[rid] = fm
+
         h1 = H1_RE.search(body)
         desc = (h1.group(1).strip() if h1 else p.stem)
         sev = SEV_MAP.get(str(fm.get("severity", "")).lower(), "minor")
@@ -136,31 +178,62 @@ def main() -> int:
         RULES_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2),
                               encoding="utf-8")
 
-    # REPORT: 승격 후보
+    # ── REPORT A: Required Reading 승격 후보 (critical-patterns.md) ──────────
     crit_text = CRIT_PATH.read_text(encoding="utf-8") if CRIT_PATH.exists() else ""
-    candidates = []
+    crit_candidates = []
     for r in data["rules"]:
         if r.get("syncedBy") != SYNC_TAG:
             continue
         hot = r["violationCount"] >= PROMOTE_THRESHOLD or r["severity"] == "critical"
         in_crit = r["id"] in crit_text or r["category"] in crit_text
         if hot and not in_crit:
-            candidates.append(r)
+            crit_candidates.append(r)
 
+    # ── REPORT B: kb-global 격상 후보 ──────────────────────────────────────
+    kb_text = _kb_global_texts()
+    kb_candidates = []
+    for r in data["rules"]:
+        if r.get("syncedBy") != SYNC_TAG:
+            continue
+        fm = asset_fm.get(r["id"], {})
+        if not _is_kb_global_candidate(fm):
+            continue
+        # 이미 kb-global에 등재된 경우 제외 (id로만 판단 — 태그는 false positive 위험)
+        already = r["id"] in kb_text
+        if not already:
+            kb_candidates.append(r)
+
+    # ── 출력 ───────────────────────────────────────────────────────────────
     print(f"{'[dry-run] ' if dry else ''}regression-rules 동기: "
           f"+{added} 추가, ~{updated} 갱신, -{len(pruned)} 정리. "
           f"총 {len(data['rules'])} rules. ({RULES_PATH})")
     if pruned:
         print("  정리됨:", ", ".join(pruned))
-    print(f"\nRequired Reading 승격 후보 (violationCount>={PROMOTE_THRESHOLD} "
+
+    print(f"\n[A] Required Reading 승격 후보 (violationCount>={PROMOTE_THRESHOLD} "
           f"또는 severity=critical, critical-patterns.md 미등재):")
-    if candidates:
-        for r in candidates:
+    if crit_candidates:
+        for r in crit_candidates:
             print(f"  - [{r['category']}] {r['id']}  "
                   f"(viol={r['violationCount']}, sev={r['severity']})  ← {r['source']}")
-        print("  → 검토 후 critical-patterns.md 에 ❌WRONG/✅CORRECT 코드쌍으로 등재 권장.")
+        print("  → critical-patterns.md 에 ❌WRONG/✅CORRECT 코드쌍으로 등재 권장.")
     else:
         print("  없음.")
+
+    kb_label = str(KB_GLOBAL_PATH) if KB_GLOBAL_PATH.exists() else "(경로 없음 — chip-design-skills 미발견)"
+    print(f"\n[B] kb-global 격상 후보 (toolflow/System-level, kb-global 미등재):")
+    print(f"    대상: {kb_label}")
+    if kb_candidates:
+        for r in kb_candidates:
+            fm = asset_fm.get(r["id"], {})
+            mod = fm.get("module", "?")
+            print(f"  - [{r['category']}] {r['id']}  "
+                  f"(module={mod}, sev={r['severity']})  ← {r['source']}")
+        print("  → chip-design-skills/kb-global/principles/ 에 일반화 원칙으로 격상 권장.")
+        print("    격상 후: git commit + push → KB_PY .tools/kb-global/kb_index.py 재색인.")
+    else:
+        print("  없음.")
+
     return 0
 
 
