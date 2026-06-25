@@ -38,34 +38,44 @@
 <!-- 주요 데이터 경로를 단계로 기술. 예: 입력 RX → 디코딩 → 코어 처리 → 인코딩 → 출력 TX, 제어는 I2C 레지스터 경유. -->
 
 
-## Directory Layout (db/ 구조는 모든 프로젝트 공통)
+## Directory Structure
 
-> ⚠️ 갱신 시 `find <루트> -maxdepth 2 -not -path '*/.git/*'` 먼저 실행 후 반영 (기억에서 쓰면 누락 발생)
+> ⚠️ **채우기 규칙 (신규 프로젝트 project.md 작성 시)** — 이 블록을 실제 값으로 교체할 때:
+> 1. `find <루트> -maxdepth 2 -not -path '*/.git/*'` 실행 → **실제 존재하는 항목만** 트리에 포함 (없으면 해당 행 제거)
+> 2. `find .ai -maxdepth 1` 실행 → `.ai/` 서브항목도 실제 목록으로 교체
+> 3. 각 `#` 뒤 주석: 한 줄 역할 설명 필수 (공백 금지)
+> 4. `{{...}}` 플레이스홀더 모두 실제 값으로 대체; 이 `>` 채우기 규칙 블록 삭제
 
-| 경로 | 내용 |
-|------|------|
-| `db/` | 하드웨어 빌드 루트 (공통 구조 — `db/README.md`) |
-| `db/design/` | **칩 공유 RTL — git submodule** (`{{SUBMODULE_DIR}}`). 수정 시 submodule commit. read-only 취급 |
-| `db/ip/` | IP 코어 (PLL/SERDES 등) |
-| `db/scripts/` | **공통 빌드/프로그래밍 스크립트** — `config.sh`만 프로젝트별 수정 (`db/scripts/README.md`) |
-| `db/sdc/` | 제약 파일(`.sdc` 타이밍 · `.pcf`/`.pdc`/`.lpf` 핀) |
-| `db/top/` | FPGA 전용 top wrapper (`<TOP_MODULE>.v`) |
-| `db/work/` | 빌드 출력 (`db/work/<BASE_NAME>/…`, 대부분 gitignore) |
-| `img/` | 비트스트림 산출물 (`*.bin` SPI · `*.nvcm` OTP) |
-| `sim/` | 시뮬레이션 |
-| `formal/` | formal/lint 전용 workspace (공유 RTL submodule **밖** — guard hook 강제) |
-| `refs/` | 프로젝트 연관 문서 (데이터시트·핀맵·사양서 — `refs/README.md`) |
-| `docs/` | bkit PDCA 문서 |
-| `.ai/project.md` | 이 파일 — 아키텍처·디렉토리 요약 |
-| `.ai/conventions.md` | RTL 코딩 규칙 (프로젝트 고유 항목) |
-| `.ai/KNOWLEDGE_MAP.md` | 지식 시스템 정본 경계 |
-| `.ai/rd-pdca-substeps.json` | chip-cto-lead RD-PDCA fan-out 프로파일 |
-| `.ai/ops/` | 빌드·P&R·서버·MCP 운영 가이드 (`build.md`, `servers.md`, …) |
-| `.ai/analysis/` | 모듈별 분석서 (`{module}.analysis.md`) |
-| `.ai/design-knowledge/` | hard IP·known issues |
-| `.ai/bkit-templates/` | PDCA 템플릿 override (`design`·`do`·`analysis`) |
-| `.ai/rag/` | `preflight.py`, `audit_search.py` |
-| `.ai/adr/` | Architecture Decision Records |
+```
+{{PROJECT_NAME}}/
+├── .ai/
+│   ├── project.md              # 이 파일
+│   ├── conventions.md          # RTL 코딩 규칙 (프로젝트 고유)
+│   ├── KNOWLEDGE_MAP.md        # 지식 시스템 정본 경계
+│   ├── rd-pdca-substeps.json   # chip-cto-lead RD-PDCA fan-out
+│   ├── ops/                    # build.md · servers.md · MCP 가이드
+│   ├── analysis/               # 모듈 분석서 ({module}.analysis.md)
+│   ├── design-knowledge/       # hard IP · known issues
+│   ├── bkit-templates/         # PDCA 템플릿 override
+│   ├── rag/                    # preflight.py · audit_search.py
+│   └── adr/                    # Architecture Decision Records
+├── .claude/agents/             # 프로젝트 RTL subagents (chip-design-skills 배포)
+├── CLAUDE.md                   # 작업 지침 진입점 (정본)
+├── AGENTS.md / GEMINI.md       # → CLAUDE.md stub
+├── db/
+│   ├── design/                 # 칩 공유 RTL — git submodule ({{SUBMODULE_DIR}})
+│   ├── ip/                     # IP 코어 (PLL/SERDES 등) — 없으면 제거
+│   ├── top/                    # FPGA 전용 top wrapper ({{TOP_MODULE}}.v)
+│   ├── sdc/                    # 타이밍·핀 제약 (.sdc / .pcf / .lpf)
+│   ├── scripts/                # 빌드·프로그래밍 스크립트 — 없으면 제거
+│   └── work/                   # 빌드 산출물 (대부분 gitignore)
+├── docs/                       # bkit PDCA 문서 + solutions/
+├── formal/                     # formal/lint workspace (공유 RTL submodule 밖 — guard hook 강제)
+├── graphify-out/               # 그래프 출력 (GRAPH_REPORT.md)
+├── img/                        # 비트스트림 산출물 — 없으면 제거
+├── refs/                       # 데이터시트·핀맵·사양서
+└── sim/                        # 시뮬레이션 IP — 없으면 제거
+```
 
 > 칩 공유 RTL 마운트: `git submodule add <url> db/design`. 빌드: `bash db/scripts/build.sh` (상세 `build.md`).
 
