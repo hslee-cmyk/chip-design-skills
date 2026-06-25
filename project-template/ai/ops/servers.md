@@ -1,3 +1,10 @@
+<!--
+FILL GUIDE — 신규 프로젝트 servers.md 작성 시, 이 주석 블록 따른 뒤 삭제
+[1] {{PROJECT_NAME}}      : 레포 루트 디렉토리명
+[2] 원격 서버 테이블      : SSH alias·Host·Port·User·OS·Key 실제 값으로 교체
+    원격 서버 없으면 "원격 빌드/검증 서버" 섹션 전체 삭제
+[3] 검증 작업 경로 테이블 : 저장소 루트·시뮬 환경 실제 경로 기입 후 주석 삭제
+-->
 # Servers / Simulation Access — {{PROJECT_NAME}}
 
 ## 원격 빌드/검증 서버 (있으면)

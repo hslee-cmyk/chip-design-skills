@@ -1,3 +1,11 @@
+<!--
+FILL GUIDE — 신규 프로젝트 build.md 작성 시, 이 주석 블록 따른 뒤 삭제
+[1] {{PROJECT_NAME}}  : 레포 루트 디렉토리명
+[2] {{SUBMODULE_DIR}} : db/design 서브모듈 레포명 (오류 대처 테이블)
+[3] 빌드 워크플로우   : 공식 툴 흐름(GUI/CLI) 기술 후 주석 삭제
+    (install.py --detect-config 가 Diamond/Radiant 감지 시 한 줄 CLI 자동 기입)
+[4] Clock Structure   : 오실레이터/PLL → 클럭 트리 도식 기술 후 주석 삭제
+-->
 # Build / Clock / Programming — {{PROJECT_NAME}}
 
 ## 빌드 워크플로우

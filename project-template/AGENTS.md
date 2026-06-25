@@ -1,3 +1,7 @@
+<!--
+FILL GUIDE — 신규 프로젝트 AGENTS.md 작성 시, 이 주석 블록 따른 뒤 삭제
+[1] {{PROJECT_NAME}} : 레포 루트 디렉토리명으로 대체
+-->
 # {{PROJECT_NAME}} — Agent Instructions
 
 이 저장소의 작업 지침은 **단일 소스**로 관리된다. 모든 에이전트(Claude / Codex / Gemini 등)는

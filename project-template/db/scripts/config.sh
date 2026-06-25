@@ -1,4 +1,15 @@
 #!/usr/bin/env bash
+# ════════════════════════════════════════════════════════════
+# FILL GUIDE — 이 블록을 따른 뒤 삭제 (# ==== 라인 포함)
+# [1] PROJECT / BASE_NAME : {{PROJECT_NAME}} → 레포명; BASE_NAME이 다르면 별도 지정
+# [2] DEVICE / PACKAGE    : 실제 디바이스·패키지 (예: iCE5LP4K / SWG36)
+# [3] DEVICE_NEXTPNR      : nextpnr-ice40 디바이스 코드 (예: u4k)
+# [4] TOP_MODULE          : db/top/ 최상위 Verilog 파일명 (확장자 제외)
+# [5] DEFINES             : 조건부 컴파일 define 목록 (공백 구분, 예: "CE5 INC_EXT_DTOP")
+# [6] VERILOG_SRCS        : db/design·db/ip·db/top 소스 경로 목록 (한 줄씩)
+# [7] INCLUDE_PATHS       : -I 인클루드 경로 목록
+# 완료 후 이 FILL GUIDE 블록과 각 줄의 <!-- --> 주석 모두 삭제
+# ════════════════════════════════════════════════════════════
 # config.sh — {{PROJECT_NAME}} 빌드 공유 설정
 # 이 파일이 **유일한 프로젝트별 설정점**이다. 다른 스크립트는 `source config.sh` 로 이 값을 참조한다.
 # (build.sh / build_icecube2.sh / build_yosys.sh / program.sh 는 공통 머신 — 보통 수정 불필요.)

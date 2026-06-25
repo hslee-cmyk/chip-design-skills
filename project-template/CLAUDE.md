@@ -1,3 +1,11 @@
+<!--
+FILL GUIDE — 신규 프로젝트 CLAUDE.md 작성 시, 이 주석 블록 따른 뒤 삭제
+[1] {{PROJECT_NAME}}    : 레포 루트 디렉토리명
+[2] {{PROJECT_TAGLINE}} : 한 줄 기능 설명 (예: PCM → COLA 프로토콜 변환기)
+[3] {{SUBMODULE_DIR}}   : db/design 서브모듈 레포명 (Key Rules 항목에도 동일하게 대체)
+[4] PROJECT-SPECIFIC RULES 주석 줄을 프로젝트 고유 실수방지 항목으로 교체
+    (항목 없으면 해당 줄 삭제)
+-->
 # {{PROJECT_NAME}}
 {{PROJECT_TAGLINE}} — 상세: `.ai/project.md`
 
