@@ -467,6 +467,53 @@ def gen_rd_pdca(dry, project, profile):
     return 0
 
 
+# ----------------------------------------- RAG / preflight surgical deploy
+
+def install_rag(dry, project, force=False):
+    """Deploy .ai/rag/preflight.py (and any sibling rag scripts) to an existing project.
+
+    Surgical alternative to --init-ai-infra: only touches .ai/rag/, skips all other .ai/
+    content. Safe on existing projects — NEVER overwrites existing files.
+
+    Path invariant preflight.py relies on:
+        <fpga-workspace>/.tools/kb-global/   (KB_GLOBAL, shared)
+        <project>/.ai/rag/preflight.py        (HERE → PROJ → FPGA = HERE.parents[2])
+    So the project must live at <fpga-workspace>/<any-name>/ — same parent as the .tools dir.
+    """
+    if not project:
+        print("ERROR: --only rag requires --project PATH"); return 1
+    proj = pathlib.Path(project).expanduser().resolve()
+    src = REPO / "project-template" / "ai" / "rag"
+    if not src.is_dir():
+        print(f"ERROR: rag template not found: {src}"); return 1
+    dest = proj / ".ai" / "rag"
+    fpga = proj.parent
+    kb_global = fpga / ".tools" / "kb-global" / "kb.sqlite"
+    if not kb_global.exists():
+        print(f"  WARN: kb.sqlite not found at {kb_global} — run kb_index.py first")
+    created = []
+    for f in sorted(src.iterdir()):
+        if not f.is_file():
+            continue
+        d = dest / f.name
+        if d.exists() and not force:
+            print(f"  skip (exists): .ai/rag/{f.name}")
+            continue
+        if dry:
+            print(f"  [dry-run] create: .ai/rag/{f.name}")
+            created.append(f.name)
+        else:
+            dest.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(f, d)
+            print(f"  created: .ai/rag/{f.name}")
+            created.append(f.name)
+    print(f"== rag deploy -> {dest}  ({'dry-run' if dry else str(len(created)) + ' file(s) created'})")
+    if not dry and created:
+        kb_py = fpga / ".tools" / "kb-venv" / "Scripts" / "python.exe"
+        print(f"\n  NEXT: \"{kb_py}\" .ai/rag/preflight.py \"<쿼리>\"")
+    return 0
+
+
 # ------------------------------------------------- project AI infra scaffold
 
 def init_ai_infra(dry, project, force):
@@ -866,8 +913,8 @@ def main():
     ap = argparse.ArgumentParser(description="Install chip-design skills + agents + kit + hooks")
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--only",
-                    choices=["skills", "agents", "kit", "hooks", "bkit-agents", "kb-global"],
-                    help="install only one component")
+                    choices=["skills", "agents", "kit", "hooks", "bkit-agents", "kb-global", "rag"],
+                    help="install only one component ('rag' deploys .ai/rag/preflight.py to --project)")
     ap.add_argument("--project", metavar="PATH",
                     help="install AGENTS/HOOKS into PATH/.claude/ (project-level, overrides "
                          "~/.claude). kit/skills still go global.")
@@ -962,6 +1009,7 @@ def main():
     if a.only in (None, "kb-global"):   install_kb_global(a.dry_run)  # workspace = repo parent
     if a.only in (None, "hooks"):       install_hooks(a.dry_run, a.project, a.python)
     if a.only in (None, "bkit-agents"): install_bkit_agents(a.dry_run, a.project)
+    if a.only == "rag":                 install_rag(a.dry_run, a.project, a.force)  # project required
     print("\n(dry-run) nothing changed." if a.dry_run else f"\nDone -> {HOME}")
 
 

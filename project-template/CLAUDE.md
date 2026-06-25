@@ -5,6 +5,31 @@
 > 간결한 진입점이다. 상세는 `.ai/` 문서를 참조하고, 여기엔 *자주 틀리는 규칙·라우팅*만 둔다.
 > (`AGENTS.md`·`GEMINI.md`는 이 파일을 가리키는 stub — 작업 지침 정본은 CLAUDE.md + `.ai/`.)
 
+## TOOL-FIRST — 직접 해결 전 필수 체크
+
+> **어떤 작업이든 직접 구현·분석·검색하기 전에 아래 표를 먼저 본다.**
+> 도구가 있으면 반드시 그 도구를 쓴다. 도구 없을 때만 직접 해결.
+
+| 작업 | 트리거 | 도구 |
+|------|--------|------|
+| RTL 착수 전 지식 조회 | `always` 블록 작성 전, 버그 분석 전 | `"$KB_PY" .ai/rag/preflight.py "<주제>"` |
+| 모듈 분석서 없음/stale | `.ai/analysis/{module}.analysis.md` 부재 | Agent → `verilog-rtl-analyst` |
+| RTL 구조 결정 | 새 FSM/module/instance/clock rewire 판단 | Agent → `verilog-rtl-architect-advisor` |
+| RTL 구현 | `always`/FSM/FIFO/레지스터 작성·수정 | Agent → `verilog-rtl-coder` |
+| RTL 리뷰 | 머지 전, AI 작성 RTL 검토 | Agent → `verilog-rtl-reviewer` |
+| RTL 형식 증명 | deadlock/off-by-one/pointer 경계 | Agent → `verilog-rtl-prover` |
+| RTL 코딩 규칙 | 네이밍·리셋·ifdef·Top I/O 불확실 시 | Skill → `verilog-rtl` (세션 첫 RTL 작업 시) |
+| iCE40/합성/프로그래밍 | Lattice, nextpnr, .pcf, bitstream | Skill → `lattice-fpga` |
+| Formal verification | sby, BMC, SVA, assert, SMT | Skill → `formal-verification` |
+| UVM/시뮬레이션 환경 | testbench, sequence, scoreboard | Skill → `uvm-verification` / `chip-verification` |
+| 시뮬레이션 디버깅 | 신호 프로빙, 파형, 반례 재현 | MCP → `xcelium-mcp` (cloud0) |
+| 솔루션 격상 | 버그 해결 후, sync_rules [A]/[B] 감지 | Skill → `/kb-promote` |
+| 그래프·모듈 의존 탐색 | 신호 경로, 모듈 연결, community | MCP → graphify / `/graphify` |
+| bkit audit 전문 검색 | details 포함 검색 (MCP는 top-level만) | `"$KB_PY" .ai/rag/audit_search.py "<쿼리>"` |
+| PDCA 사이클 | plan·design·do·check·act phase 전환 | bkit `/pdca` |
+
+`KB_PY=/c/Users/HSLEE/Documents/Todoc/fpga/.tools/kb-venv/Scripts/python.exe`
+
 ## 레퍼런스 (필요할 때 읽기)
 | 주제 | 문서 |
 |------|------|

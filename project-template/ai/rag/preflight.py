@@ -14,7 +14,7 @@ Usage:
     "$KB_PY" .ai/rag/preflight.py "<증상/주제>" [--rerank] [--kind pattern ...]
 """
 from __future__ import annotations
-import json, subprocess, sys, uuid as _uuid
+import json, re, subprocess, sys, uuid as _uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -35,9 +35,48 @@ FILT = ("warning", "symlink", "huggingface", "fetching", "developer mode",
 def hdr(t): print("\n" + "=" * 72 + f"\n{t}\n" + "=" * 72)
 
 
-def _write_preflight_audit(query: str, mode: str) -> None:
-    """preflight 실행 이벤트를 .bkit/audit/YYYY-MM-DD.jsonl에 기록 (실패해도 무시)."""
+def _parse_top_hits(output: str, n: int = 3) -> list[dict]:
+    """kb_search 출력에서 상위 N개 hit의 원칙 ID·점수·출처를 추출.
+
+    지원 포맷:
+      #1  score=0.2015  rtl-patterns.md > P-ZDLOAD · down-counter ...
+      #1  rerank=1.0732 (vec=0.2349)  rtl-patterns.md > P-ZDLOAD · ...
+    """
+    hits = []
+    for line in output.splitlines():
+        # rerank 포맷
+        m = re.match(
+            r'^#\d+\s+rerank=([\d.\-]+)\s+\(vec=([\d.]+)\)\s+(\S+)\s+>\s+(.+)$', line)
+        if m:
+            hits.append({
+                "principle": m.group(4).strip()[:80],
+                "score": float(m.group(1)),
+                "source": m.group(3),
+            })
+        else:
+            # score 포맷
+            m = re.match(r'^#\d+\s+score=([\d.]+)\s+(\S+)\s+>\s+(.+)$', line)
+            if m:
+                hits.append({
+                    "principle": m.group(3).strip()[:80],
+                    "score": float(m.group(1)),
+                    "source": m.group(2),
+                })
+        if len(hits) >= n:
+            break
+    return hits
+
+
+def _write_preflight_audit(query: str, mode: str,
+                            recalled: list[dict] | None = None) -> None:
+    """preflight 실행 이벤트를 .bkit/audit/YYYY-MM-DD.jsonl에 기록 (실패해도 무시).
+
+    recalled: _parse_top_hits() 결과. None이면 kb_search 전 호출(구버전 호환).
+    """
     now = datetime.now(timezone.utc).isoformat()
+    details: dict = {"query": query[:200], "mode": mode}
+    if recalled is not None:
+        details["recalled_principles"] = recalled   # 지식 활용도 추적
     entry = {
         "id": str(_uuid.uuid4()),
         "timestamp": now,
@@ -48,7 +87,7 @@ def _write_preflight_audit(query: str, mode: str) -> None:
         "category": "quality",
         "target": "kb-global",
         "targetType": "feature",
-        "details": {"query": query[:200], "mode": mode},
+        "details": details,
         "result": "success",
         "reason": None,
         "destructiveOperation": False,
@@ -80,23 +119,29 @@ def main():
     # plan-time 린 기본: bi-encoder만(빠름, reranker 1.1GB 미로드). 방향 잡기엔 충분(top-5).
     # 정밀이 필요하면(모호한 top 결과) --rerank 로 cross-encoder 켠다.
     if "--rerank" in extra:
-        extra = [e for e in extra if e != "--rerank"]          # rerank ON (kb_search 기본)
-        _write_preflight_audit(query, "rerank")
+        extra = [e for e in extra if e != "--rerank"]   # rerank ON (kb_search 기본)
+        mode = "rerank"
     elif "--no-rerank" not in extra:
-        extra = extra + ["--no-rerank"]                        # 기본 OFF (린)
-        _write_preflight_audit(query, "lean")
+        extra = extra + ["--no-rerank"]                 # 기본 OFF (린)
+        mode = "lean"
     else:
-        _write_preflight_audit(query, "lean")
+        mode = "lean"
 
     # 1) 일반 원칙 (전역 RAG) — 우선·정본 ───────────────────────────────
     hdr(f'1. 일반 원칙 [GENERAL · 전 프로젝트 적용 · 정본 git · 우선] — "{query}"')
+    kb_out = ""
     try:
-        out, err, rc = run([PY, str(KB_GLOBAL / "kb_search.py"), query, "-k", "5", *extra])
-        print(out or "(결과 없음)")
+        kb_out, err, rc = run([PY, str(KB_GLOBAL / "kb_search.py"), query, "-k", "5", *extra])
+        print(kb_out or "(결과 없음)")
         if rc != 0 and err:
             print("[kb_search stderr]", err[:300])
     except Exception as e:
         print(f"(전역 RAG 조회 실패: {e})")
+
+    # audit: kb_search 완료 후 기록 → recalled_principles 포함 가능
+    recalled = _parse_top_hits(kb_out)
+    _write_preflight_audit(query, mode, recalled)
+
     print("   ※ 이게 정본·우선. 프로젝트 내용과 충돌하면 일반 원칙을 따른다.")
 
     # 2) 프로젝트 고유 (graphify) — instance/관계 ──────────────────────
