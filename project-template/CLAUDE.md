@@ -35,7 +35,8 @@
 - **파일 인코딩: UTF-8 (BOM 없음)**
 - **원격 tcsh: `2>&1` 금지 → `>&` 사용** (`&1`을 파일명으로 해석)
 - **RTL 분석/디버깅**: `verilog-rtl` skill 로드 → `.ai/analysis/{module}.analysis.md` 확인/선작성 → 정적 미특정 시 **xcelium-mcp 즉시 프로빙** (정적 분석만으로 순환 금지)
-  - 시작 전 `graphify-out/GRAPH_REPORT.md` 먼저 확인 (모듈 의존성·신호 연결)
+  - 시작 전 `graphify-out/GRAPH_REPORT.md` 먼저 확인 (전체 모듈 구조·커뮤니티)
+  - 특정 신호 경로·의존성 추적은 MCP `graphify query "<질문>"` 사용
 
 <!-- PROJECT-SPECIFIC RULES — 프로젝트 고유 실수방지 항목 여기에 추가 -->
 
