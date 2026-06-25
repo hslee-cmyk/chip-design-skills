@@ -2,16 +2,32 @@
 db/work/
 img/
 graphify-out/
+graphify-out/**
+graphify-out/memory/
+
 # git / claude / bkit internal (RTL 분석 노이즈)
 .git/
 .claude/
 .bkit/
+
+# Playwright CLI cache
+.playwright-cli/
+
+# 참조 문서 (PDF/이미지/외부 — RTL 구조 탐색 무관, 직접 Read로 접근)
+refs/
+
+# 빌드 스크립트 — RTL 분석에 무관
+db/scripts/
+
 # non-RTL 문서 (graph 네임스페이스 오염; .ai/analysis 분석서는 유지)
 .ai/bkit-templates/
 .ai/experiments/
 docs/
-# 시뮬레이션 testbench (filelist 활성 RTL 아님)
+
+# 시뮬레이션 / formal 출력물 (scratch 하네스·빌드 아티팩트 — 네임스페이스 오염 방지)
 sim/
+formal/
+formal-demo/
 
 # 운영·인프라 가이드 — 직접 Read로 접근 (build/servers/MCP 운영)
 .ai/ops/
@@ -20,3 +36,9 @@ sim/
 .ai/rag/
 .ai/plans/
 .ai/rd-pdca-substeps.json
+.ai/KNOWLEDGE_MAP.md
+
+# 휘발성·draft 문서 — RTL 지식 아님
+.ai/skill-proposals/
+.ai/agent-proposals/
+TODO.md
