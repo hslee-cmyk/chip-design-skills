@@ -1,19 +1,27 @@
 #!/usr/bin/env python3
 """pre-push eval 게이트 — 전역 RAG 검색 품질 회귀 차단.
 
-흐름: ① 캐시 유효성 확인(콘텐츠 해시 일치 + TTL 이내) → CACHE HIT이면 즉시 0 반환.
-      ② 정본 principles로 인덱스 최신화(kb_index) → ③ 프로덕션 설정(rerank pool=20)으로
-      eval → ④ MRR/P@1 임계 미만이면 비0 종료(push BLOCK) → ⑤ PASS 시 캐시 기록.
+모드:
+  기본 (AI 사전 작업용):
+    흐름: ① 캐시 유효성 확인 → HIT이면 즉시 0 반환.
+          ② 인덱스 최신화(kb_index) → ③ eval(rerank pool=20) → ④ MRR/P@1 임계
+          미만이면 1 반환 → ⑤ PASS 시 캐시 기록.
+    사용: "$KB_PY" eval_gate.py
+          (~3분 cold start. kb-global 변경 후 push 전에 AI가 먼저 실행.)
+
+  --gate (pre-push hook 전용):
+    캐시 HIT이면 즉시 0. MISS이면 full eval 없이 즉시 1(BLOCK) + 재구성 안내.
+    사용: "$KB_PY" eval_gate.py --gate
+    → push hook은 절대 3분 대기하지 않음. 캐시 없으면 AI에게 위임.
 
 캐시 정책:
 - 캐시 키: kb-global/principles/**/*.md 전체 내용의 SHA-256 (파일명 포함).
-  내용이 바뀌지 않으면 eval 재실행 불필요 — embedding 모델 로드(~3분) 생략.
 - 캐시 파일: <workspace>/.tools/kb-global/eval_gate_cache.json (비버전관리).
 - TTL: 기본 8시간 (KB_EVAL_CACHE_TTL_H=0 이면 캐시 비활성화).
-- PASS 결과만 캐시. FAIL은 캐시하지 않아 재push 시 항상 재평가.
+- PASS 결과만 캐시. FAIL은 캐시하지 않아 재실행 시 항상 재평가.
 
 기타 정책:
-- 측정값이 임계 미만 → BLOCK (검색 품질 회귀).
+- 측정값이 임계 미만 → BLOCK.
 - 인프라 문제(venv/모델/모듈 불가)로 eval 자체를 못 돌리면 → SKIP(0).
   KB_EVAL_STRICT=1 이면 인프라 실패에도 BLOCK.
 
@@ -40,6 +48,7 @@ MIN_MRR = float(os.environ.get("KB_EVAL_MIN_MRR", "0.90"))
 MIN_P1  = float(os.environ.get("KB_EVAL_MIN_P1",  "0.90"))
 STRICT  = os.environ.get("KB_EVAL_STRICT") == "1"
 CACHE_TTL_H = int(os.environ.get("KB_EVAL_CACHE_TTL_H", "8"))
+GATE_MODE = "--gate" in sys.argv   # pre-push hook 전용: 캐시 없으면 eval 없이 즉시 BLOCK
 EPS = 1e-9
 
 sys.path.insert(0, str(HERE))
@@ -136,6 +145,15 @@ def main() -> int:
         print(f"[eval-gate] CACHED PASS — MRR={c['mrr']:.3f}  P@1={c['p1']:.3f}  "
               f"(hash={kb_hash}, TTL={CACHE_TTL_H}h)")
         return 0
+
+    # --gate 모드: 캐시 없으면 full eval 없이 즉시 BLOCK
+    if GATE_MODE:
+        print(f"[eval-gate] 캐시 없음/만료 (hash={kb_hash})")
+        print("[eval-gate] BLOCK — kb-global 변경 후 캐시 재구성이 필요합니다.")
+        print(f"  다음 명령으로 eval 실행 후 재push:")
+        print(f"    KB_PY=/c/Users/HSLEE/Documents/Todoc/fpga/.tools/kb-venv/Scripts/python.exe")
+        print(f"    \"$KB_PY\" {Path(__file__).resolve()}")
+        return 1
 
     try:
         import kb_index, kb_search, kb_eval

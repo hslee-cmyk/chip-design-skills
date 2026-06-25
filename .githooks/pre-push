@@ -35,8 +35,8 @@ if [ -x "$venv" ]; then PY="$venv"; else
 fi
 [ -z "$PY" ] && { echo "[pre-push] python 없음 - eval 게이트 skip"; exit 0; }
 
-echo "[pre-push] 색인 코퍼스(kb-global/ 또는 failure-taxonomy) 변경 감지 → retrieval eval 게이트 실행..."
-"$PY" "$root/kb-global/eval_gate.py"
+echo "[pre-push] 색인 코퍼스(kb-global/ 또는 failure-taxonomy) 변경 감지 → eval 캐시 확인..."
+"$PY" "$root/kb-global/eval_gate.py" --gate
 rc=$?
-[ "$rc" -ne 0 ] && echo "[pre-push] BLOCKED - 검색 품질 회귀. 고친 뒤 재push, 또는 우회: git push --no-verify"
+[ "$rc" -ne 0 ] && echo "[pre-push] BLOCKED — 캐시 없거나 품질 회귀. 위 안내대로 eval_gate.py 먼저 실행 후 재push. 우회: git push --no-verify"
 exit $rc
