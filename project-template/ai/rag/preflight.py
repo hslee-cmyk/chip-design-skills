@@ -12,6 +12,12 @@
 
 Usage:
     "$KB_PY" .ai/rag/preflight.py "<증상/주제>" [--rerank] [--kind pattern ...]
+    "$KB_PY" .ai/rag/preflight.py "<증상/주제>" --layer solution   # → kb_search --kind solution
+    "$KB_PY" .ai/rag/preflight.py "<증상/주제>" --verifier formal  # → kb_search --tag formal
+
+플래그 번역 (preflight → kb_search):
+    --layer <value>    → --kind <value>   (knowledge layer = kb_search kind)
+    --verifier <value> → --tag <value>    (verifier metadata = kb_search tag)
 """
 from __future__ import annotations
 import json, re, subprocess, sys, uuid as _uuid
@@ -116,6 +122,18 @@ def main():
         print('usage: preflight.py "<증상/주제>" [--rerank] [--kind pattern --tag fifo ...]')
         return 2
     query = sys.argv[1]; extra = sys.argv[2:]
+
+    # --layer → --kind, --verifier → --tag 번역 (kb_search.py가 이 플래그를 모름)
+    translated, i = [], 0
+    while i < len(extra):
+        if extra[i] == "--layer" and i + 1 < len(extra):
+            translated += ["--kind", extra[i + 1]]; i += 2
+        elif extra[i] == "--verifier" and i + 1 < len(extra):
+            translated += ["--tag", extra[i + 1]]; i += 2
+        else:
+            translated.append(extra[i]); i += 1
+    extra = translated
+
     # plan-time 린 기본: bi-encoder만(빠름, reranker 1.1GB 미로드). 방향 잡기엔 충분(top-5).
     # 정밀이 필요하면(모호한 top 결과) --rerank 로 cross-encoder 켠다.
     if "--rerank" in extra:
