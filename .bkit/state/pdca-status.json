@@ -1,6 +1,6 @@
 {
-  "version": "2.0",
-  "lastUpdated": "2026-03-17T02:54:53.903Z",
+  "version": "3.0",
+  "lastUpdated": "2026-06-24T15:57:08.918Z",
   "activeFeatures": [
     ".claude"
   ],
@@ -17,7 +17,24 @@
         "started": "2026-03-17T02:54:53.902Z",
         "lastUpdated": "2026-03-17T02:54:53.902Z"
       },
-      "lastFile": "/c/Users/HSLEE/.claude/statusline-command.sh"
+      "lastFile": "/c/Users/HSLEE/.claude/statusline-command.sh",
+      "stateMachine": {
+        "currentState": "do",
+        "previousState": null,
+        "stateHistory": [],
+        "retryCount": 0,
+        "maxRetries": 5,
+        "circuitBreakerOpen": false
+      },
+      "metrics": {
+        "qualityScore": null,
+        "conventionCompliance": null,
+        "apiCompliance": null,
+        "cycleTimeMs": null,
+        "iterationEfficiency": null
+      },
+      "phaseTimestamps": {},
+      "automationLevel": 2
     }
   },
   "pipeline": {
@@ -28,7 +45,7 @@
   "session": {
     "startedAt": "2026-03-16T12:01:01.791Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-03-17T02:54:53.903Z"
+    "lastActivity": "2026-06-24T15:57:08.918Z"
   },
   "history": [
     {
@@ -37,5 +54,21 @@
       "phase": "do",
       "action": "updated"
     }
-  ]
+  ],
+  "stateMachine": {
+    "defaultWorkflow": "default",
+    "activeWorkflows": {},
+    "totalTransitions": 0
+  },
+  "automation": {
+    "globalLevel": 2,
+    "trustScore": 38,
+    "pendingApprovals": 0,
+    "lastGateResult": null
+  },
+  "team": {
+    "enabled": true,
+    "stateFile": ".bkit/runtime/agent-state.json",
+    "eventsFile": ".bkit/runtime/agent-events.jsonl"
+  }
 }

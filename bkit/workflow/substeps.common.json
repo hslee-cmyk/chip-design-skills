@@ -1,0 +1,50 @@
+{
+  "profile": "common",
+  "title": "칩 설계 공통형 (venezia-fpga 기준 · digital RTL/FPGA)",
+  "version": "1.0",
+  "note": "RD-PDCA Team Overlay의 sub-step 단일 소스. 대규모 업데이트 시 이 파일만 교체(또는 새 프로파일 추가) 후 `install.py --gen-rd-pdca`로 재생성하면 agent/템플릿이 따라온다. owner=Task 위임 대상 agent, skill=로드할 스킬, gate=true는 phase 종료 전 통과 필수.",
+  "phases": {
+    "design": {
+      "pattern": "council",
+      "doc": "design.template.md",
+      "substeps": [
+        { "id": "system-arch", "title": "System Architecture", "owner": "verilog-rtl-architect-advisor", "skill": "verilog-rtl", "gate": true,
+          "checklist": ["블록 다이어그램·데이터플로우", "클럭/리셋 트리", "외부 I/O·인터페이스 개요"] },
+        { "id": "block-partition", "title": "Block/FSM Partitioning", "owner": "verilog-rtl-architect-advisor", "skill": "verilog-rtl", "gate": true,
+          "checklist": ["모듈/FSM 분할 (새 FSM vs state 판정 = advisor가 계산·escalate)", "책임 경계·thread-of-control", "ADR 필요 여부"] },
+        { "id": "interface-regmap", "title": "Interface & Register Map", "owner": "verilog-rtl-architect-advisor", "skill": "verilog-rtl", "gate": false,
+          "checklist": ["포트/프로토콜 인코딩", "레지스터 맵·read-back", "Top I/O 규칙(single-bit 등)"] },
+        { "id": "cdc-reset", "title": "CDC / Reset Domains", "owner": "verilog-rtl-architect-advisor", "skill": "verilog-rtl", "gate": false,
+          "checklist": ["클럭 도메인 경계·동기화기", "리셋 provenance·동기/비동기", "gated clock"] },
+        { "id": "verif-plan", "title": "Verification Plan", "owner": "qa-strategist", "skill": "chip-verification", "gate": false,
+          "checklist": ["검증 시나리오·coverage 목표", "formal 대상(self-contained logic) 식별", "sim 대상(CDC/protocol) 식별"] }
+      ]
+    },
+    "do": {
+      "pattern": "swarm",
+      "doc": "do.template.md",
+      "substeps": [
+        { "id": "rtl-impl", "title": "RTL Implementation", "owner": "verilog-rtl-coder", "skill": "verilog-rtl", "gate": false,
+          "checklist": ["비준된 micro-arch 안에서만 구현", "bit-width/latch/CDC 규칙", "boundary-classifier로 ARCH 여부 사전확인"] },
+        { "id": "testbench-sim", "title": "Testbench & Simulation", "owner": "verilog-rtl-coder", "skill": "chip-verification", "gate": false,
+          "checklist": ["dual-top(hdl/hvl) 연결", "reference model·scoreboard", "verilator lint + sim"] },
+        { "id": "synth-pnr", "title": "Synthesis / P&R / Timing", "owner": "verilog-rtl-coder", "skill": "lattice-fpga", "gate": false,
+          "checklist": ["iCEcube2/yosys 합성", "제약(.pcf/.pdc)·타이밍", "리소스·하드IP(SB_*)"] },
+        { "id": "top-integration", "title": "Top Integration", "owner": "verilog-rtl-coder", "skill": "verilog-rtl", "gate": false,
+          "checklist": ["포트 연결·파라미터 전달", "ifdef 조건부 인스턴스", "fan-out·integration audit"] }
+      ]
+    },
+    "check": {
+      "pattern": "council",
+      "doc": "analysis.template.md",
+      "substeps": [
+        { "id": "static-review", "title": "STATIC Review (AI-failure signature)", "owner": "verilog-rtl-reviewer", "skill": "verilog-rtl", "gate": true,
+          "checklist": ["T1..T9 signature 대조", "STATIC-CONFIRMED 소유 + SIM-RISK 라우팅", "lint/elaboration/reachability"] },
+        { "id": "formal-prove", "title": "Formal Intent Property", "owner": "verilog-rtl-prover", "skill": "formal-verification", "gate": true,
+          "checklist": ["intent property를 구현과 독립 작성", "bugfix는 실패하는 property 먼저(test-first)", "반례 corner 보고"] },
+        { "id": "design-impl-gap", "title": "Design vs RTL Gap", "owner": "gap-detector", "skill": "verilog-rtl", "gate": false,
+          "checklist": ["design 문서 vs 구현 대조", "matchRate", "미구현/추가구현 항목"] }
+      ]
+    }
+  }
+}
