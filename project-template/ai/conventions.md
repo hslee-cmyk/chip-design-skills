@@ -1,7 +1,7 @@
 <!--
 FILL GUIDE — 신규 프로젝트 conventions.md 작성 시, 이 주석 블록 따른 뒤 삭제
 [1] {{PROJECT_NAME}}       : FPGA 전용 top 모듈명에 쓰이는 프로젝트 접두사
-[2] Module Naming 항목     : 각 <!-- 예: ... --> 주석을 실제 칩 접두사·블록 디렉토리명으로 교체
+[2] Module Naming 항목     : 본문의 "(예: ...)" 형태 예시 주석을 실제 칩 접두사·블록 디렉토리명으로 교체
 [3] Conditional 테이블     : Define 행에 실제 define 이름과 용도 기입, 예시 주석 삭제
 [4] Verification 항목      : 검증 방법론 기술 후 주석 삭제
 -->
