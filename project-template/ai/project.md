@@ -54,7 +54,16 @@
 | `formal/` | formal/lint 전용 workspace (공유 RTL submodule **밖** — guard hook 강제) |
 | `refs/` | 프로젝트 연관 문서 (데이터시트·핀맵·사양서 — `refs/README.md`) |
 | `docs/` | bkit PDCA 문서 |
-| `.ai/` | 에이전트 지식 베이스 (이 디렉토리) |
+| `.ai/project.md` | 이 파일 — 아키텍처·디렉토리 요약 |
+| `.ai/conventions.md` | RTL 코딩 규칙 (프로젝트 고유 항목) |
+| `.ai/KNOWLEDGE_MAP.md` | 지식 시스템 정본 경계 |
+| `.ai/rd-pdca-substeps.json` | chip-cto-lead RD-PDCA fan-out 프로파일 |
+| `.ai/ops/` | 빌드·P&R·서버·MCP 운영 가이드 (`build.md`, `servers.md`, …) |
+| `.ai/analysis/` | 모듈별 분석서 (`{module}.analysis.md`) |
+| `.ai/design-knowledge/` | hard IP·known issues |
+| `.ai/bkit-templates/` | PDCA 템플릿 override (`design`·`do`·`analysis`) |
+| `.ai/rag/` | `preflight.py`, `audit_search.py` |
+| `.ai/adr/` | Architecture Decision Records |
 
 > 칩 공유 RTL 마운트: `git submodule add <url> db/design`. 빌드: `bash db/scripts/build.sh` (상세 `build.md`).
 
