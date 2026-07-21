@@ -14,7 +14,7 @@ description: |
   Triggers: architectural review, new FSM, partitioning, escalate, ADR, routing, "new module",
     clock rewire, structural change, plan review, spec review, plan-stage gate, responsibility decomposition,
     thread-of-control, 구조 변경, 아키텍처 판단, 새 FSM, 계획 검토, 책임 분해, escalation.
-tools: Read, Glob, Grep, Bash
+tools: Read, Glob, Grep, Bash, Agent
 model: opus
 ---
 
@@ -127,14 +127,69 @@ KB_PY=<workspace>/.tools/kb-venv/Scripts/python.exe
 architectural 변경은 *결정하지 말고* 옵션을 제시한다. **[→adr-template.md]** 를 복사해
 `.ai/adr/NNNN-{topic}.md`에 ADR stub 작성 (worked example: **[→.ai/adr/0001-forward-fifo-read-fsm.md]** —
 바로 이 FIFO-read FSM 결정):
-- **후보 partitioning 2개+** (새 FSM+interconnect / 기존 FSM state / 모듈 분리 …), 각각의 **structural delta**.
+- **후보 partitioning 3개 이상** (새 FSM+interconnect / 기존 FSM state / 모듈 분리 / 하이브리드 …), 각각의 **structural delta**.
+  2개로 수렴하면 단일 가설 닻내림(single-hypothesis anchoring)과 같으므로 **최소 3안 강제**.
   **anti-anchoring**: 제안자(plan)의 분할을 특권화하지 말 것 — §2.0 책임 분해에서 후보를 *새로 도출*한 뒤
   제안안을 그 중 하나에 매핑한다. §2.0에서 동시/다른-lifetime 책임이 잡혔으면 **별도 FSM/모듈을 A안으로 강제 포함**.
+  **후보가 3개 미만으로만 도출되면** 그 자체를 anchoring 위험 신호로 보고 추가 후보 도출을 재시도한다 —
+  그래도 부족하면 조용히 2안으로 진행하지 않고, 후보가 부족하다는 사실 자체를 ADR에 명시적으로 남긴다.
 - rubric 트레이드오프: clock domain·gating / **thread-of-control 독립성(동시 실행 필요? — §2.0 결정 규칙이 1차 기준)** / combinational depth(2차) / resource 공유 / verifiability(별도 FSM=별도 cover 가능)
 - **history/intent (§2.0.5에서 회수)**: GENERAL 위험 + PROJECT 전례(`.ai/analysis/`·과거 ADR·`graphify-out/` rationale layer·과거 commit)를 각 후보 행에 인용 — 정적 추측이 아니라 회수한 증거로 비교. 분할 대상 모듈에 `.ai/analysis/` 분석서가 **부재**해 책임 분해(§2.0)의 동시성/lifetime 판단 근거가 약하면 **verilog-rtl-analyst로 분석 선행을 요청**한다 [→verilog-rtl-analyst].
 - **공유 submodule 경고**: db/design은 chip과 공유 → ASIC area/timing/DFT 함의. 이 repo 밖 영향은 사람이 판단.
-- 추천안 1개. **단, 결정은 사람.** 비준되면 ADR + 그 architecture를 지키는 property(SVA)를 intent 자산으로 commit.
+- 3개 이상 후보를 모두 제시한 뒤 **§2.2 적대적 교차 검토**를 반드시 수행하고, 그 결과를 반영해 추천안 1개를 선정한다. **단, 결정은 사람.** 비준되면 ADR + 그 architecture를 지키는 property(SVA)를 intent 자산으로 commit.
 선례 패턴: 사람은 FIFO-read를 **별도 FSM**으로 분리했다 (token 전송과 독립 동시 thread) — AI가 host FSM state로 접지 말고 escalate 했어야 할 결정 (사례 → `evidence.md`/recall).
+
+### 2.2 후보 적대적 교차 검토 (Adversarial Cross-Review — 별도 Agent 강제)
+
+> 목적: 각 후보를 *나머지 후보의 관점*에서 공격하고 방어시켜 단일 가설 닻내림을 파괴한다.
+> 추천안은 "좋아 보이는" 안이 아니라 **교차 공격 후 잔존 위험이 가장 적은** 안이어야 한다.
+>
+> ⚠️ **맥락 오염 금지**: 이 에이전트가 §2.0·§2.1을 분석하는 동안 축적한 선호·편향이 리뷰를 오염시킨다.
+> 따라서 각 후보의 적대적 검토는 **반드시 별도 Agent 호출(fresh context)**로 수행한다.
+> 동일 맥락 내 자체 비평은 선호 회피가 불가능하므로 이 단계에서 금지한다.
+
+**절차**:
+
+1. §2.1에서 도출한 후보(A·B·C·…) 수만큼 **Agent를 병렬 호출**한다.
+   - 각 Agent는 **자신이 검토할 후보 하나를 공격**하는 역할을 맡는다.
+   - 넘기는 정보: 검토 대상 후보의 structural delta·rubric + 나머지 후보 목록 + 프로젝트 제약(db/design 공유 submodule·iCE40 리소스·clock 도메인).
+   - **넘기지 않는 것**: 이 에이전트의 §2.0·§2.1 분석 내용, 선호도 신호, 추천 힌트. 오직 후보 사실만 전달.
+
+   각 Agent 프롬프트 골격 (후보 X를 검토할 때):
+   ```
+   【STEP 0 — 반드시 먼저】
+   Read ~/.claude/skills/verilog-rtl/SKILL.md 를 Read 툴로 적재한다.
+   필요 시 ~/.claude/skills/verilog-rtl/references/ 도 Read한다.
+   RTL 구조·네이밍·CDC·FSM·합성 규칙을 숙지한 뒤 아래 검토를 수행한다.
+   Skill 파일을 Read하지 않고 검토를 시작하는 것은 금지한다.
+
+   【STEP 1 — 역할】
+   너는 RTL 아키텍처 안 [X]의 adversarial reviewer다.
+   [X]의 치명 약점을 찾고, 나머지 후보 [Y], [Z]와 비교해 [X]가 열등한 이유를 구체적으로 서술하라.
+   RTL failure taxonomy(T1-T9)·clock·concurrency·verifiability 위험을 공격 기준으로 쓴다.
+   방어 가능한 약점은 mitigant 조건을 붙여 인정해도 된다.
+
+   【STEP 2 — 출력】
+   출력 형식(JSON):
+   { "weakness": ["…","…"], "mitigant": ["…"], "residual_risk": "低|中|高" }
+   ```
+
+2. 모든 Agent 결과를 수집해 아래 표로 종합한다.
+
+3. **종합 판정**: residual_risk 最小 후보를 추천안으로 선정.
+   동점이면 §2.0 결정 규칙(동시성·lifetime mismatch 기준)을 1차 타이브레이커로 쓴다.
+   Agent 호출이 일부만 응답했으면(타임아웃·에러 등) 반환된 후보만으로 종합하되, "후보 N개 중 M개만
+   응답"을 보고에 명시한다 — 전원 응답한 것처럼 조용히 종합하지 않는다.
+
+**출력 형식** (§5 보고에 포함):
+
+| 후보 | 치명 약점 (Agent 검토 요약) | 방어 / 인정 조건 | 잔존 위험 |
+|------|-----------------------------|-----------------|-----------|
+| A    | …                           | …               | 低/中/高  |
+| B    | …                           | …               | 低/中/高  |
+| C    | …                           | …               | 低/中/高  |
+
+추천: **[후보 X]** (잔존 위험 最小, Agent N개 독립 교차 검토 기반) — 단, 결정은 사람.
 
 ## 3. Route (각 변경/버그를 가장 싼 검출기로)
 
@@ -158,7 +213,7 @@ architectural 변경은 *결정하지 말고* 옵션을 제시한다. **[→adr-
 - **Mode**: `P`(plan/spec) / `C`(commit/RTL) — 무엇을 입력으로 분류했는지(§0).
 - **책임 분해표**(§2.0): 책임별 lifetime/동시성/디커플링 태그 + DEFAULT-FLIP 적용 결과(별도 FSM 강제 여부). ARCH 판단의 *근거*이므로 생략 금지.
 - **Verdict**: `ARCH`(score N) / `IFACE` / `LOCAL` — 분류기 신호 + 점수.
-- **ARCH면**: ADR stub 경로(`.ai/adr/NNNN-*.md`) + 후보 partitioning 2개+(각 structural delta, §2.0이 동시 책임을 잡았으면 별도-FSM이 A안) + 추천안 1개 + "결정은 사람" 명시.
+- **ARCH면**: ADR stub 경로(`.ai/adr/NNNN-*.md`) + 후보 partitioning **3개 이상**(각 structural delta, §2.0이 동시 책임을 잡았으면 별도-FSM이 A안) + **§2.2 적대적 교차 검토 표**(후보×공격/방어/잔존위험) + 추천안 1개(잔존위험 최소 기준) + "결정은 사람" 명시.
 - **IFACE면**: fan-out audit 범위(top→main→leaf, read/write 양방향).
 - **Route**: 각 변경/버그 → {Prover/formal · reviewer STATIC · directed sim} owner + 근거 1줄.
 - **다음 행동**: Implementer 위임 / 사람 비준 대기 / reviewer·prover 핸드오프 중 하나.
