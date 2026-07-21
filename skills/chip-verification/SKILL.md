@@ -6,7 +6,7 @@ description: |
   UVM 컴포넌트 내부 구현보다 "DUT를 어떻게 TB에 연결하고 시스템 전체를 검증할지"가
   핵심인 작업이라면 반드시 이 스킬을 사용.
   다음 상황에서 사용:
-  (1) 듀얼탑 구조 설계 - hdl_top(DUT+Interface) + hvl_top(UVM) 분리
+  (1) 듀얼탑 구조 설계 - hdl_top(DUT+Interface) + hvl_top(UVM/class-based) 분리
   (2) RTL-TB 인터페이스 - DUT 포트 → Interface → Virtual Interface 연결
   (3) Reference Model - RTL 사이클 분석 기반 예측 모델 작성
   (4) Scoreboard - Expected vs Actual 비교, 디버그 플로우
@@ -15,7 +15,8 @@ description: |
   (7) 회귀 테스트 전략 - RTL 변경 시 검증 전략
   트리거: 듀얼탑, dual-top, hdl_top, hvl_top, DUT 연결, interface 연결,
     reference model, scoreboard 설계, AMS 검증환경, mixed-signal testbench,
-    Verilog-AMS 시뮬레이션, Spectre, wreal, connect module, regression, 회귀 테스트
+    Verilog-AMS 시뮬레이션, Spectre, wreal, connect module, regression, 회귀 테스트,
+    legacy testbench, non-UVM, flat testbench, class-based BFM, 레거시 테스트벤치
 ---
 
 # Chip Verification Skill
@@ -72,7 +73,7 @@ RTL-UVM 통합 검증환경. **Digital 전용** 및 **Mixed-Signal** 프로젝�
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                        hvl_top.sv                           │
-│                   [UVM Environment]                         │
+│           [UVM 또는 class-based 검증 계층]                  │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
 │  │   Agent     │  │  Reference  │  │    Scoreboard       │ │
@@ -82,6 +83,10 @@ RTL-UVM 통합 검증환경. **Digital 전용** 및 **Mixed-Signal** 프로젝�
 │  config_db 설정, run_test(), Coverage                       │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+> UVM을 쓰지 않는 legacy/class-based 검증 환경(driver/monitor/scoreboard가
+> plain SystemVerilog class인 경우)도 동일 구조를 따른다.
+> → `references/non-uvm-architectures.md`
 
 **장점:**
 - HDL/HVL 명확한 분리
@@ -143,6 +148,7 @@ A4. Spectre 연결       → references/spectre-integration.md
 - `references/refmodel-patterns.md` - Reference Model 작성 패턴
 - `references/debug-flow.md` - 시뮬레이션 실패 → RTL 버그 추적
 - `references/regression-strategy.md` - RTL 변경 시 회귀 테스트 전략
+- `references/non-uvm-architectures.md` - UVM 없는/legacy 테스트벤치 아키텍처 (flat vs dual-top, 레이어드 원칙, 안티패턴)
 
 ### AMS 전용
 - `references/analog-model-levels.md` - Behavioral/Wreal/Spectre 모델 작성
