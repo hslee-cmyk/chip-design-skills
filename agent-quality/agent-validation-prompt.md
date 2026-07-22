@@ -72,6 +72,21 @@ Judge these dimensions:
      structurally-stated rule. Name-regex / magic-number triggers = fragment-grep
      anti-pattern → recommend lifting to the general structural principle.
 
+9. R14 CALLER/WORKFLOW INDEPENDENCE [chip-design-skills observation, 2026-07-22]
+   - Read the agent's core procedure and Task-input contract. Does it silently assume
+     ONE specific caller or orchestration context exists (e.g., "reads the fix-plan.md
+     the workflow always produces") with no branch for a different/no caller?
+   - Test: "if a different caller (or a human with no upstream tooling) invoked this
+     agent directly, would the procedure still work unchanged?" If the procedure would
+     break or silently misbehave, FLAG it.
+   - Check output vocabulary too: does the agent's own verdict/report format directly
+     mirror one external consumer's internal schema field names (as opposed to the
+     agent defining its own vocabulary suited to its own scope, with the consumer
+     translating externally)? If so, is that alignment an explicitly VERIFIED
+     cross-repo contract (cite the source line) or just an unexamined assumption?
+     Unverified assumption = FAIL; verified-and-cited = PASS even if the vocabulary
+     happens to match the consumer.
+
 Finish with:
 - OVERALL: PASS / NEEDS-WORK / FAIL
 - TOP 3 concrete fixes (ordered by impact).
@@ -83,6 +98,6 @@ Finish with:
 
 - **PASS**: 8개 차원 모두 PASS, AUTO도 0 FAIL.
 - **NEEDS-WORK**: WEAK가 있으나 FAIL 없음 → 권고 반영.
-- **FAIL**: 어느 차원이든 FAIL(예: workflow로 충분한데 agent로 과설계 / high-risk 무방비 / 경계 없음).
+- **FAIL**: 어느 차원이든 FAIL(예: workflow로 충분한데 agent로 과설계 / high-risk 무방비 / 경계 없음 / 특정 호출자·workflow에 암묵적으로 종속됨).
 
 > 두 문서의 공통 정신: **단순하게 시작하고, 투명하게 드러내고, 인터페이스(도구·지시·경계)에 공을 들이고, 위험·실패엔 사람을 끼운다.** AUTO가 뼈대를, JUDGE가 이 정신의 충족을 확인한다.

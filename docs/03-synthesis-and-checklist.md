@@ -87,4 +87,19 @@
   - **ACI/도구**[A,O] = agent-kit 스크립트(boundary-classifier·harness_builder…)를 명확한 경계로.
   - **Honest limits·Transparency**[A] = 각 agent의 한계·보고 형식 섹션.
   - **Stop/guardrail/human**[A,O] = "ARCH면 escalate", "RTL 수정 금지", pre-merge gate.
-- 그 준수를 **자동 점검**하는 게 `../agent-quality/`(R1~R12 + check_agents.py + pre-commit 훅).
+- 그 준수를 **자동 점검**하는 게 `../agent-quality/`(R1~R14 + check_agents.py + pre-commit 훅).
+
+---
+
+## 7. 추가 교훈 — TB agent family 신설 세션(2026-07-22)에서 관찰
+
+`verilog-tb-architect-advisor`/`verilog-tb-coder`/`verilog-tb-reviewer` 3개 agent를 한 세션에서
+Plan→Design→Do→Check→Report까지 진행하며 반복 관찰된 것들. 강제 가능한 부분은 `R14`(§6, `AGENT_BEST_PRACTICES.md`)로 이미 편입했고, 여기는 **프로세스 차원**의 교훈만 남긴다.
+
+| # | 교훈 | 근거(이 세션 실제 사례) | 어떻게 적용하나 |
+|---|---|---|---|
+| 1 | **"agent가 특정 flow에 종속되면 안 된다"는 실수는 한 번 고쳐도 다시 나온다.** 같은 세션 안에서 `verilog-tb-coder`(Plan 0.3→0.4)와 `verilog-tb-reviewer`(Plan 0.3→0.4)가 **독립적으로** 같은 결함을 반복했다 — 앞선 수정을 "알고 있었다"는 사실이 다음 agent 설계에 자동으로 전이되지 않았다. | 두 Plan 문서 모두 "호출자가 사람이든 workflow든 동일 절차"를 강조하면서도, 정작 §1.1/§4 절차 본문은 특정 호출자의 산출물(fix-plan.md)이 항상 있다고 가정하고 있었다 | 새 agent를 설계할 때 **스타일 일관성 감사(모델·frontmatter 등)와 별개로**, "이 절차가 특정 호출자 없이도 성립하는가"를 명시적으로 한 번 더 질문한다(`R14` 체크리스트). |
+| 2 | **자동 검증 도구(`check_agents.py`)는 커밋 시점이 아니라 Design/Do 단계에서 먼저 돌려봐야 한다.** 이번 세션은 pre-commit 훅이 이미 있었는데도, 실제로는 사람이 Plan 문서를 다시 읽으며 "model 필드가 없다"를 수동으로 발견했다 — 자동화가 이미 있는데 늦게 활용한 셈. | `verilog-tb-reviewer.plan.md` 0.3의 "model: opus 누락" 발견은 `check_agents.py` 실행이 아니라 다른 9개 agent 파일과의 수동 대조로 나왔다 | agent 파일 초안을 쓴 직후 `python agent-quality/check_agents.py agents/<new>.md`를 **바로** 돌려 구조적 누락을 먼저 걷어내고, 그다음에 내용 판단(JUDGE)에 시간을 쓴다. |
+| 3 | **cross-repo 계약(다른 repo가 정의한 스키마)은 그 repo의 실제 문서를 열어 대조해야지, "예전에 그렇게 정했다고 들었다"로 추정하면 안 된다.** verdict enum(`clean`/`issues_found`)이 정말 xcelium-mcp의 계약인지, 아니면 이 repo가 임의로 만든 편차인지는 `xcelium-mcp-debug-workflow-v2.plan.md`를 직접 열어 특정 줄(L637-639, L918)을 인용하고서야 확정됐다. | 사용자가 "rtl-reviewer/rtl-prover도 이 verdict를 지원해야 하지 않냐"고 물었을 때, 직접 소스를 다시 열어 대조하지 않았다면 잘못된 결론(3-way로 통일)을 냈을 수 있다 | cross-repo 주장은 반드시 절대경로로 실제 문서를 Read하고 **줄 번호를 인용**해 근거를 남긴다 — 이 근거를 agent 파일/Plan 문서에도 남겨야 나중에 "일관성 있게 고친다"며 되돌리는 실수를 막는다(교훈 #1과 동일한 방어 패턴). |
+
+> 요약: **패밀리 일관성 감사(스타일)와 워크플로우 독립성 감사(절차)는 서로 다른 축이라 하나를 통과해도 다른 하나를 자동으로 통과하지 못한다** — 새 agent 설계 시 둘 다 별도로 체크한다.

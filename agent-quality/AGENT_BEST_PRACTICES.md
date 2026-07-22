@@ -36,10 +36,13 @@
 | **R11** | **Honest limits** | **증명/수행 못 하는 것**을 정직히 적은 섹션이 있다(한계·limits). | AUTO | A(transparency·honest) |
 | **R12** | **Evals / regression** | **answer-key/regression/test** 참조로 동작이 검증 가능(set up evals, test extensively). | AUTO | O(evals), A(test extensively) |
 | **R13** | **Generality of criteria (예시=증거, 예시≠규칙)** | 탐지·판정 **기준**은 *구조적·일반적*으로 진술한다. 특정 신호명/state명/literal 값/commit 해시는 **증거·예시**로만 인용하고, 한 예제의 이름·값이 **규칙 자체**가 되어 같은 class의 다른 케이스를 놓치지 않는다. (예: gated-clock을 "출력이 control로 멈추는 cell"로 정의 vs 이름 `_g`로 매칭; lookahead를 `count>=k+1`로 vs `count>=2` 고정.) | JUDGE | A(ACI·일반화), O(instructions) |
+| **R14** | **Caller/workflow independence** | agent의 **핵심 절차·Task 입력 계약**이 특정 호출자·오케스트레이션 맥락(예: 특정 외부 workflow가 만든 문서가 항상 존재한다는 가정)에 암묵적으로 종속되지 않는다. 권장 예시로 특정 호출자를 들 수는 있으나, 절차 자체는 그 호출자가 없어도 동일하게 동작해야 한다. 출력 vocabulary(verdict enum 등)도 같은 원칙 — **consumer의 스키마 필드명을 그대로 agent 자신의 정체성으로 삼지 말 것**: agent는 자기 스코프에 맞는 고유 vocabulary를 갖고, consumer가 번역하게 한다. | JUDGE | (chip-design-skills 자체 관찰 — 2026-07-22 `verilog-tb-coder`/`verilog-tb-reviewer` 세션에서 동일 결함이 두 번 반복 발견됨) |
 
 > **R13 적용 원칙:** *"이 신호명·state명·literal·commit을 같은 class의 *다른* 설계로 옮겨도 기준이 살아남는가?"* 가 테스트다.
 > 살아남지 못하면 그건 **규칙이 아니라 예시** — 구조적 원리로 끌어올리고, 원래 예제는 evidence(R12)로 남긴다.
 > 이름 정규식·매직 넘버를 *탐지 조건*으로 쓰면 작성자가 그렇게 명명·수치화했을 때만 걸리는 fragment-grep 안티패턴이 된다.
+
+> **R14 적용 원칙:** *"이 agent를 지금과 다른 호출자(또는 호출자 없이 사람의 직접 요청)가 불러도 절차·판정이 그대로 성립하는가?"* 가 테스트다. 실패 신호: 절차 본문이 특정 호출자만 만드는 산출물(예: 특정 오케스트레이션 도구가 생성하는 파일)을 "항상 존재한다"고 전제하고 그 존재 자체를 분기 없이 참조하는 경우. 예외: 그 vocabulary가 실제로 cross-repo 계약(다른 repo가 소비하는 스키마)이라 검증됐다면 유지하되, **그 근거(어느 문서의 몇 번째 줄인지)를 agent 파일에 남겨** 이후 누군가 "일관성 있게 고친다"며 되돌리지 않게 한다(`verilog-tb-reviewer.md`의 Verdict 섹션이 이 패턴의 예).
 
 ---
 
@@ -64,4 +67,4 @@ python agent-quality/check_agents.py agents/verilog-rtl-prover.md
 # 판단(JUDGE) 항목은 LLM/사람이 agent-validation-prompt.md 로 리뷰
 ```
 
-AUTO가 PASS여도 **R3/R5/R7/R9/R10의 JUDGE 부분**은 사람/LLM 리뷰가 필요하다 — AUTO는 *구조적 누락*을 잡고, JUDGE는 *내용의 적절성*을 본다 (Anthropic ACI: "도구·인터페이스에 프롬프트만큼 공을 들여라"의 정신).
+AUTO가 PASS여도 **R3/R5/R7/R9/R10/R13/R14의 JUDGE 부분**은 사람/LLM 리뷰가 필요하다 — AUTO는 *구조적 누락*을 잡고, JUDGE는 *내용의 적절성*을 본다 (Anthropic ACI: "도구·인터페이스에 프롬프트만큼 공을 들여라"의 정신).
