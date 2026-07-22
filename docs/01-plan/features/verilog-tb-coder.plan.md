@@ -124,7 +124,7 @@ TB 소스(testcase 파일, 공유 시퀀스/컴포넌트, checker/expected-value
 | FR-09 | 하드 제약(HANDS OFF): RTL(`db/design`) 무수정. `.ai/analysis/tb_*.analysis.md`는 직접 재작성하지 않고 `verilog-tb-analyst`에 위임(단, 변경 내용을 반영해 갱신 요청은 이 agent의 책임) | High | Pending |
 | FR-10 | Definition of Done(0.4 갱신 — 호출 맥락 무관 단일 기준): (1) Task 프롬프트에 명시된 스코프 내 변경만(post-hoc 재확인), (2) FR-06 spec 정당화 self-check(1차 필터) 통과, (3) 변경 파일 구문 오류 없음(가능하면 `verilog-rtl` skill이 다루는 SV 문법 정본으로 육안 대조 — 전용 TB lint 도구 없음, 정직한 한계로 명시), (4) `.ai/analysis/tb_*.analysis.md` 갱신 위임 완료, (5) `verilog-tb-reviewer`에게 독립 검토를 **항상** 요청 — (2)+(5) 모두 완료해야 최종 완료(workflow-v2 안이면 그 요청이 fix-review 게이트로 소비, 밖이면 일반 리뷰로 소비 — 요청 자체는 무조건적) | High | Pending |
 | FR-11 | Handoff/Manifest: 변경 파일 목록(절대경로), spec 근거 요약(무엇을 왜 바꿨는지), escalation 발생 여부+이유, `verilog-tb-analyst` 위임 여부, `verilog-tb-reviewer` 검토 요청, (workflow-v2 맥락이면) `/sim verify {test}` 재검증 안내 | Medium | Pending |
-| FR-12 | `install.py` AGENTS 목록에 등록, 기존 배포 경로(`~/.claude/agents/`)로 배포 | Medium | Pending |
+| FR-12 | `agents/verilog-tb-coder.md` 배포 확인 — **(2026-07-22 갱신)** `install.py`에 별도 AGENTS 목록은 없음(`install_agents`가 `agents/*.md`를 frontmatter 유무로 glob 자동 인식), `--dry-run`으로 인식 여부만 확인 | Medium | Done |
 
 ### 3.2 Non-Functional Requirements
 
@@ -198,7 +198,7 @@ TB 소스(testcase 파일, 공유 시퀀스/컴포넌트, checker/expected-value
 | Resource | Type | Change Description |
 |----------|------|---------------------|
 | `agents/verilog-tb-coder.md` | 신규 파일 | 신규 agent 정의 |
-| `install.py` | 스크립트 | AGENTS 목록에 신규 agent 추가 |
+| `install.py` | 스크립트(변경 없음) | 별도 목록 편집 불필요 — `agents/*.md` glob 자동 인식 확인만(2026-07-22) |
 | `~/.claude/agents/verilog-tb-coder.md` | 배포 산출물 | install.py 실행 시 신규 생성 |
 
 ### 7.2 Current Consumers
@@ -257,3 +257,4 @@ TB 소스(testcase 파일, 공유 시퀀스/컴포넌트, checker/expected-value
 | 0.3 | 2026-07-10 | 사용자 지적("verilog-tb-coder는 workflow-v2에서도 사용되고, 일반적인 tb coding에도 사용될 거야. stop and ask조건에 fix-plan만으로 한정하면 안 될 것 같아")을 반영 — 이 agent를 fix-plan.md 전용 입력에서 "Fix 모드"(fix-plan.md 기반)와 "General 모드"(사용자 명시 요구사항 `scope_description` 기반) 두 입력 경로로 이원화. FR-05에 `fix_plan_path`(optional)/`scope_description`(신규) 파라미터 분기 도입, `verilog-tb-reviewer` 검토를 Fix 모드는 강제/General 모드는 권장으로 차등 적용 | HSLEE |
 | 0.4 | 2026-07-10 | 사용자 지적("근데 verilog-rtl-coder는 이미 구현되어 있잖아. 그건 workflow-v2에서 사용하기 부적합한가?")을 계기로 `agents/verilog-rtl-coder.md`를 실제로 Read해 확인한 결과, 그 파일에는 "fix-plan.md"/"fix_target"/"Fix 모드" 같은 workflow-v2 전용 개념이 전혀 없고, 애초에 호출 맥락을 가리지 않는 단일 균일 패턴(스코프는 Task 프롬프트가 자유 형식으로 선언, STOP-and-Ask는 소스 문서 종류와 무관)임을 확인(xcelium-mcp-debug-workflow-v2.plan.md v1.34의 실제 호출 서술 — "Task, fix-plan 파일 경로를 명시적으로 전달 + 지시"가 agent의 공식 파라미터가 아니라 프롬프트 컨텍스트일 뿐임을 대조 확인). 이에 따라 0.3에서 도입한 "Fix 모드/General 모드" 이원화(FR-05 파라미터 분기, FR-08(e) 별도 조건, §4.2 모드별 절차, DoD/Handoff의 강제·권장 차등)를 전부 철회하고, `verilog-rtl-coder`와 동일한 단일 균일 규율로 재설계: Task 호출은 자유 형식 프롬프트(FR-05), STOP-and-Ask 조건은 호출 맥락 무관 공통(FR-08), `verilog-tb-reviewer` 인계는 호출 맥락과 무관하게 항상 무조건 수행(FR-06/FR-10, `verilog-rtl-coder`의 self-certify 금지 원칙과 동일 정신으로 재정렬). Executive Summary, Context Anchor, §1.1, §1.2, §2.1/§2.2, §3.1 전체, §3.2, §4.2, §5, §6, §7.2, §8.2, §9 전면 갱신 | HSLEE |
 | 0.5 | 2026-07-21 | 사용자 지적("testbench도 architecturing을 잘 해야 확장성·재사용성이 높아진다")을 계기로 신설된 `verilog-tb-architect-advisor`(`verilog-tb-architect-advisor.plan.md`)의 route 대상으로 §2.1/FR-08(c)를 갱신 — "구조적 변경으로 보이는 경우 사람에게 직접 STOP-and-Ask"를 "이 agent로 route, 그 agent가 재사용범위 판단표+ADR+adversarial cross-review를 거친 뒤 사람에게 넘김"으로 변경. TB용 자동 classifier가 여전히 없다는 사실 자체는 바뀌지 않음(§2.2 Out of Scope 그대로 유지) | HSLEE |
+| 0.6 | 2026-07-22 | Do 완료 후 gap-detector 검증(Match Rate 99.2%) 결과 반영 — FR-12/§7.1 "install.py AGENTS 목록 등록" 문구가 실제 메커니즘(별도 목록 없음, `agents/*.md` glob 자동 인식)과 달라 정정(`verilog-tb-architect-advisor.plan.md` 0.2와 동일한 정정) | HSLEE |
