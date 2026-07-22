@@ -48,6 +48,10 @@
 6. **실측 LUT로 sizing까지 실증**(가능하면): `optimize_multistage()`에 real LUT를 넣어 실제
    L/VDS/W가 나오는지 확인한다 — gm 산출식만 맞고 sizing 결과가 물리적으로 말이 안 되면(예:
    §9에서 반복 확인된 "gm/ID가 격자 최대치로 발산" 현상) `w_max` 등 제약을 같이 문서화한다.
+   ⚠️ 여기서 실제 회로를 조립해 GBW/PM 등을 SPICE로 재봤는데 **설계식 예측과 질적으로 다른**
+   결과(노치, 예상 밖 극점/영점 등 — 단순 10~20% 오차가 아닌 경우)가 나오면, 바로 이 문서에서
+   결론짓지 말고 `topology-behavior-diagnosis-workflow.md`의 8단계 진단 절차를 따를 것 — NMCNR
+   노치가 정확히 이 경로로 규명됐다(`sky130-worked-example.md` §12.7).
 
 ## 2. Miller 2단 OTA (§6.4/§10.2) — 완전 결정 케이스
 

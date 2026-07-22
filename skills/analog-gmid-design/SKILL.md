@@ -163,6 +163,12 @@ skill의 `spectre-integration.md`와 함께 사용한다.
     Eq 6~11 전체를 원문 페이지 이미지로 직접 대조 검증. `kg`(=gm2/gm3)는 원문 자체가 추가
     결정식 없이 남긴 자유도임을 원문에서 확인(재구성 실패가 아니라 확정된 사실) — 기본값
     (0.5)은 임의값이니 실사용 전 SPICE로 재확인 필요.
+    ⚠️ **이 함수의 Eq 10/11이 예측하는 GBW/PM이 실제로 맞는다는 보장이 없다** — 그 식은
+    "우세극이 나머지 극점과 충분히 떨어져 있다"는 근사인데, 스테이지2 고유이득이 어떤 문턱을
+    넘으면 이 근사가 무너져 개루프 응답에 노치(0dB 재교차)가 생긴다(sky130-worked-example.md
+    §12.4~§12.7 전체가 이 발견의 실측 기록). **사이징 후 반드시 `nmcnr_predict_notch()`로
+    재검증할 것** — 근사 없이 정확한 3-노드 전달함수로 GBW/PM/노치 여부를 직접 계산해준다
+    (다시 유도할 필요 없음). 보상소자 실값(Cm1/Rm/Cm2)이 필요하면 `nmcnr_compensation_elements()`.
   - `ngcc_3stage_topology()` — 3단 NGCC(§10.2, Lee et al.). gm1/gm2/gm3 전부 원문 Eq 8.a/8.b로
     완전 결정됨(원문 페이지를 이미지로 렌더링해 직접 판독, Table 4 수치와 삼중 교차검증 —
     처음엔 텍스트 추출이 뒤섞여 "OCR 손상으로 재현 불가"라고 오판했다가 정정한 사례). 유일하게
@@ -175,6 +181,13 @@ skill의 `spectre-integration.md`와 함께 사용한다.
   이미 만든 3개 토폴로지(Miller/NMCNR/NGCC)의 실제 유도 과정(어느 식을 어느 식에 대입해 무엇이
   소거됐는지, 어떤 자유도가 왜 남았는지)을 기록한다. `topology_library.py`의 docstring은 결론
   (검증 상태)만 담고, 그 결론에 이르는 추론은 여기 있다 — 코드 주석을 다시 역산하지 말 것.
+- `references/topology-behavior-diagnosis-workflow.md` — **SPICE 결과가 설계식/원문 예측과
+  질적으로 다를 때**(단순 10~20% 오차가 아니라 노치·예상 밖 극점/영점처럼 구조적으로 다른 경우)
+  따를 일반 진단 절차. sizing과 위상보상 설계식을 분리해 결백 확인 → 제거법으로 최소 원인 좁힘 →
+  이상화(VCCS+ro) 모델로 실소자 기생 여부 구분 → 정확한 노드방정식 직접 유도(근사식 대신) →
+  처음 의심한 변수가 진범인지 공변 변수 분리로 재확인 → 실측 SPICE 재검증 → 측정 방법론 자체도
+  교차검증 → 트레이드오프까지 정직하게 보고, 8단계로 구성된다. NMCNR 노치 조사
+  (`sky130-worked-example.md` §12.7)가 이 절차의 완전한 worked example이다.
 - `references/sky130-worked-example.md` + `assets/sky130_lut_sweep.py` +
   `assets/sky130_nfet_pfet_lut_sample.npz` — **toy가 아닌 진짜 실리콘 데이터** 실전 사례. 오픈소스
   PDK(SkyWater sky130) + ngspice로 Cgg/Cgd까지 **AC/Y-parameter 기반**(op-info 대비 최대 300배

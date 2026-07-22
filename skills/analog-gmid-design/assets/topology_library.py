@@ -69,6 +69,17 @@ def nmcnr_3stage_topology(GBW: float, CL: float, PM_target_deg: float = 65.0, kg
     설계자 자유도로 남긴 것**이다(Cm2 식에만 등장하고 GBW/PM엔 영향 없음). 기본값 0.5는
     Cm2>0 조건(kg<1)만 만족하는 임의값이니, 실제 설계에는 SPICE로 PM/GBW를 재확인할 것.
 
+    ⚠️⚠️ **Eq 10/11이 GBW/PM을 정확히 예측한다는 보장이 없다 — 반드시 사이징 후
+    `nmcnr_predict_notch()`로 재검증할 것.** Eq 10/11은 "우세극이 나머지 극점들과 충분히
+    떨어져 있다"는 근사 위에서 유도된 식이라, 스테이지2 자신의 고유이득(Av2=gm2·R2, R2는
+    사이징 후 실제 출력저항)이 어떤 문턱을 넘으면(실측 사례는 sky130-worked-example.md
+    §12.7.4 참고, Av1≈Av3≈24 스펙에서 임계값≈5.1) 이 근사가 무너져 **개루프 응답에 노치
+    (0dB 재교차)가 생기고, 실제 GBW/PM이 이 함수가 계산한 값과 크게 달라진다**(sky130
+    실측 사례: 목표 GBW=5MHz/PM=70°였는데 실제 1.66MHz/62.0° + 노치, §12.4~§12.7 전체가
+    이 발견의 기록). Eq 10/11 자체가 틀린 게 아니라 이 근사의 **적용 가능 조건**이 있다는
+    뜻 — `nmcnr_predict_notch()`가 그 조건(근사 없이 정확한 3-노드 전달함수)을 직접 계산해
+    검증해준다. 진단 절차 전체는 ../references/topology-behavior-diagnosis-workflow.md 참고.
+
     검증 상태: Eq 6~11 전체 원문 이미지 대조 검증 완료. kg는 원문이 확정한 자유도(수치 예제 없음).
     """
     wGBW = 2 * math.pi * GBW
@@ -83,6 +94,104 @@ def nmcnr_3stage_topology(GBW: float, CL: float, PM_target_deg: float = 65.0, kg
         return [gm1, gm2, gm3]
 
     return topology_fn
+
+
+def nmcnr_compensation_elements(gm1: float, gm2: float, gm3: float, CL: float, kg: float):
+    """NMCNR 보상소자 실값(Cm1, Rm, Cm2) — 원문 Eq 8/9. 실제 SPICE/레이아웃에 넣을 값이다.
+
+    `nmcnr_3stage_topology()`는 gm1/gm2/gm3(목표)만 반환하고 보상소자 값 자체는 반환하지
+    않는다 — 사이징 완료 후 실제 회로를 조립하거나 `nmcnr_predict_notch()`로 검증할 때
+    이 함수로 Cm1/Rm/Cm2를 구한다(직접 대입하지 말고 항상 이 함수를 통해서 — Eq 8/9를
+    실수로 잘못 옮겨적는 걸 방지).
+
+    검증 상태: Eq 8/9 원문 이미지 대조 검증 완료(topology-fn-derivation-guide.md §3).
+    """
+    Cm1 = 4 * (gm1 / gm3) * CL       # Eq 8
+    Rm = 1 / gm3                      # 본문(RHP-zero 완전제거 조건)
+    Cm2 = (2 / (1 - kg)) * (gm2 / gm3) * CL  # Eq 9
+    return Cm1, Rm, Cm2
+
+
+def nmcnr_predict_notch(gm1: float, gm2: float, gm3: float, R1: float, R2: float, R3: float,
+                         CL: float, kg: float, f_start: float = 1.0, f_stop: float = 1e9,
+                         n_points: int = 2000) -> dict:
+    """사이징 완료 후 실제 GBW/PM/노치 여부를 검증 — Eq 10/11의 근사 없이 3-노드 KCL을 정확히
+    풀어 계산한다(sky130-worked-example.md §12.7.3의 유도를 그대로 코드화한 것 — **다시 유도할
+    필요 없이 이 함수를 그대로 쓸 것**).
+
+    입력: gm1/gm2/gm3(목표 gm, `nmcnr_3stage_topology()`가 반환한 값), R1/R2/R3(각 스테이지
+    **실제 사이징 결과**의 출력저항 = gain_i/gm_i, 즉 `find_optimal_sizing()`/`optimize_multistage()`
+    결과의 `gain` 필드를 gm_i로 나눈 값), CL, kg.
+
+    반환: dict(crossings=[(f_Hz, PM_deg), ...] 0dB 교차 전부, notch=bool(교차 2개 이상이면 True),
+    dc_gain_db=float). `notch=True`면 Eq 10/11이 예측한 GBW/PM을 믿지 말고 실제 SPICE로
+    재확인할 것 — 이 함수 자체도 이상화(VCCS+ro, 실소자 기생 없음) 모델이라 최종 확인은 항상
+    SPICE다(방법론 문서 §4.5 원칙 그대로).
+
+    ⚠️ 정확도: gm1/gm2/gm3 근처의 "전형적인"(스테이지 고유이득이 극단적으로 낮지 않은) 동작점에서는
+    실측 sky130 SPICE와 주파수 <10%, PM 수 도 이내로 일치했다(§12.7.2/§12.7.4 교차검증). 다만
+    스테이지 고유이득을 의도적으로 아주 낮게(예 <5) 만든 극단적 사이징에서는 이 함수의 DC 이득
+    예측(gm1·R1·gm2·R2·gm3·R3 기반)이 실측과 수십 dB까지 벌어질 수 있다(LUT가 그 영역에서 덜
+    정확하거나, 실소자의 다른 비이상성이 커지기 때문으로 추정 — 완전히 규명되지 않음, 정직한 한계).
+    극단적 동작점을 다룰 땐 이 함수의 예측을 정성적 신호(노치 유무)로만 쓰고, 정량값(GBW/PM/DC이득)은
+    반드시 SPICE로 재확인할 것.
+
+    검증 상태: kg=0.5(§12.4)·kg=0.1(§12.6) 실측 SPICE와 대조 검증 완료. 정확한 유도 과정은
+    topology-behavior-diagnosis-workflow.md §4, sky130-worked-example.md §12.7.3 참고.
+    """
+    Cm1, Rm, Cm2 = nmcnr_compensation_elements(gm1, gm2, gm3, CL, kg)
+
+    # 3-노드(V1,V2,Vout) KCL을 근사 없이 직접 푼 정확한 전달함수(분자 2차/분모 3차) 계수.
+    # 유도: topology-behavior-diagnosis-workflow.md §4, sky130-worked-example.md §12.7.3.
+    num = [
+        Cm1 * Cm2 * R1 * R3 * gm1 * (-R2 - Rm),
+        R1 * R3 * gm1 * (-Cm1 - Cm2 * R2 * Rm * gm2 * gm3 + Cm2 * R2 * gm2),
+        -R1 * R2 * R3 * gm1 * gm2 * gm3,
+    ]
+    den = [
+        CL * Cm1 * Cm2 * R1 * R3 * (R2 + Rm),
+        CL * Cm1 * R1 * R3 + CL * Cm2 * R2 * R3 + CL * Cm2 * R3 * Rm
+        - Cm1 * Cm2 * R1 * R2 * R3 * Rm * gm2 * gm3 + Cm1 * Cm2 * R1 * R2 * R3 * gm2
+        + Cm1 * Cm2 * R1 * R2 * R3 * gm3 + Cm1 * Cm2 * R1 * R2 + Cm1 * Cm2 * R1 * R3
+        + Cm1 * Cm2 * R1 * Rm + Cm1 * Cm2 * R2 * R3 + Cm1 * Cm2 * R3 * Rm,
+        CL * R3 - Cm1 * R1 * R2 * R3 * gm2 * gm3 + Cm1 * R1 + Cm1 * R3
+        + Cm2 * R2 * R3 * gm3 + Cm2 * R2 + Cm2 * R3 + Cm2 * Rm,
+        1.0,
+    ]
+
+    def _H(w):
+        s = 1j * w
+        n = num[0] * s ** 2 + num[1] * s + num[2]
+        d = den[0] * s ** 3 + den[1] * s ** 2 + den[2] * s + den[3]
+        return n / d
+
+    freqs = [f_start * (f_stop / f_start) ** (i / (n_points - 1)) for i in range(n_points)]
+    Hs = [_H(2 * math.pi * f) for f in freqs]
+    mags = [abs(h) for h in Hs]
+    phases = []
+    prev = None
+    for h in Hs:
+        p = math.degrees(math.atan2(h.imag, h.real))
+        if prev is not None:
+            while p - prev > 180:
+                p -= 360
+            while p - prev < -180:
+                p += 360
+        phases.append(p)
+        prev = p
+    dc_phase = phases[0]
+    dc_gain_db = 20 * math.log10(mags[0])
+
+    crossings = []
+    for i in range(len(mags) - 1):
+        if mags[i] >= 1 and mags[i + 1] < 1:
+            frac = (0 - math.log10(mags[i])) / (math.log10(mags[i + 1]) - math.log10(mags[i]))
+            f_c = freqs[i] * (freqs[i + 1] / freqs[i]) ** frac
+            p_c = phases[i] + frac * (phases[i + 1] - phases[i])
+            pm = 180 - abs(p_c - dc_phase)
+            crossings.append((f_c, pm))
+
+    return dict(crossings=crossings, notch=len(crossings) > 1, dc_gain_db=dc_gain_db)
 
 
 # ---------------------------------------------------------------------------
@@ -140,6 +249,17 @@ if __name__ == "__main__":
     tf2 = nmcnr_3stage_topology(GBW=5e6, CL=10e-12, PM_target_deg=70.0, kg=0.5)
     gm1n, gm2n, gm3n = tf2(None)
     print(f"  gm1={gm1n*1e3:.4f}mS  gm2={gm2n*1e3:.4f}mS  gm3={gm3n*1e3:.4f}mS")
+
+    print("# nmcnr_predict_notch() 스모크 테스트 — sky130-worked-example.md §12.4 실측치로 대조")
+    Cm1, Rm, Cm2 = nmcnr_compensation_elements(gm1n, gm2n, gm3n, CL=10e-12, kg=0.5)
+    print(f"  Cm1={Cm1*1e12:.3f}pF  Rm={Rm:.2f}ohm  Cm2={Cm2*1e12:.3f}pF")
+    # R1/R2/R3 = 실측(§12.4) stage1/2/3 gain을 각 gm으로 나눈 값(gain=24.69/56.67/24.21)
+    R1, R2, R3 = 24.69 / gm1n, 56.67 / gm2n, 24.21 / gm3n
+    result = nmcnr_predict_notch(gm1n, gm2n, gm3n, R1, R2, R3, CL=10e-12, kg=0.5)
+    print(f"  notch={result['notch']}  dc_gain={result['dc_gain_db']:.1f}dB")
+    for f_c, pm in result["crossings"]:
+        print(f"    교차: f={f_c/1e6:.3f}MHz  PM={pm:.1f}deg")
+    print("  (실측 SPICE §12.4: GBW=1.66MHz/PM=62.0deg, 2차교차 102.7MHz/PM=-102.3deg, notch=True)")
 
     print("# NGCC 3단 (Lee et al. Table 4 예제: k=4, GB=10MHz, CL=10pF, alpha=0.3) — 전체 재현")
     tf3 = ngcc_3stage_topology(GB=10e6, k=4.0, CL=10e-12, alpha=0.3)
