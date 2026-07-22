@@ -1,6 +1,6 @@
 {
   "version": "3.0",
-  "lastUpdated": "2026-07-21T00:00:00.000Z",
+  "lastUpdated": "2026-07-22T00:00:00.000Z",
   "activeFeatures": [
     "verilog-rtl-debugger",
     "verilog-tb-analyst",
@@ -8,7 +8,7 @@
     "verilog-tb-reviewer",
     "verilog-tb-architect-advisor"
   ],
-  "primaryFeature": "verilog-tb-architect-advisor",
+  "primaryFeature": "verilog-tb-reviewer",
   "features": {
     "verilog-rtl-debugger": {
       "phase": "completed",
@@ -108,9 +108,9 @@
       "automationLevel": 2
     },
     "verilog-tb-coder": {
-      "phase": "plan",
-      "phaseNumber": 1,
-      "matchRate": null,
+      "phase": "completed",
+      "phaseNumber": 9,
+      "matchRate": 99,
       "iterationCount": 0,
       "requirements": [
         "FR-01",
@@ -128,19 +128,19 @@
       ],
       "documents": {
         "plan": "docs/01-plan/features/verilog-tb-coder.plan.md",
-        "design": null,
-        "analysis": null,
-        "report": null
+        "design": "docs/02-design/features/verilog-tb-coder.design.md",
+        "analysis": "docs/03-analysis/verilog-tb-coder.analysis.md",
+        "report": "docs/04-report/verilog-tb-coder.report.md"
       },
       "timestamps": {
         "started": "2026-07-10T00:00:00.000Z",
-        "lastUpdated": "2026-07-10T00:00:00.000Z"
+        "lastUpdated": "2026-07-22T00:00:00.000Z"
       },
-      "lastFile": "docs/01-plan/features/verilog-tb-coder.plan.md",
+      "lastFile": "docs/04-report/verilog-tb-coder.report.md",
       "stateMachine": {
-        "currentState": "plan",
-        "previousState": null,
-        "stateHistory": ["plan"],
+        "currentState": "completed",
+        "previousState": "check",
+        "stateHistory": ["plan", "design", "do", "check", "report"],
         "retryCount": 0,
         "maxRetries": 5,
         "circuitBreakerOpen": false
@@ -156,9 +156,9 @@
       "automationLevel": 2
     },
     "verilog-tb-reviewer": {
-      "phase": "plan",
-      "phaseNumber": 1,
-      "matchRate": null,
+      "phase": "completed",
+      "phaseNumber": 9,
+      "matchRate": 99,
       "iterationCount": 0,
       "requirements": [
         "FR-01",
@@ -176,19 +176,19 @@
       ],
       "documents": {
         "plan": "docs/01-plan/features/verilog-tb-reviewer.plan.md",
-        "design": null,
-        "analysis": null,
-        "report": null
+        "design": "docs/02-design/features/verilog-tb-reviewer.design.md",
+        "analysis": "docs/03-analysis/verilog-tb-reviewer.analysis.md",
+        "report": "docs/04-report/verilog-tb-reviewer.report.md"
       },
       "timestamps": {
         "started": "2026-07-10T00:00:00.000Z",
-        "lastUpdated": "2026-07-10T00:00:00.000Z"
+        "lastUpdated": "2026-07-22T00:00:00.000Z"
       },
-      "lastFile": "docs/01-plan/features/verilog-tb-reviewer.plan.md",
+      "lastFile": "docs/04-report/verilog-tb-reviewer.report.md",
       "stateMachine": {
-        "currentState": "plan",
-        "previousState": null,
-        "stateHistory": ["plan"],
+        "currentState": "completed",
+        "previousState": "check",
+        "stateHistory": ["plan", "design", "do", "check", "report"],
         "retryCount": 0,
         "maxRetries": 5,
         "circuitBreakerOpen": false
