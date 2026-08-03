@@ -1240,35 +1240,77 @@ def _cmrr_diff_pair_tail(metric_spec: dict, ctx: SizingContext) -> float:
 
 def _cmrr_telescopic_class_ab(metric_spec: dict, ctx: SizingContext) -> float:
     """`circuit_family="telescopic_class_ab"` — current-reuse telescopic 1단(Xie&Chen
-    논문 Fig.2, current_reuse_telescopic_ota)의 CMRR. 이 논문 자체엔 CMRR 폐형식이 없어서
-    (시뮬레이션 수치 94.4dB만 보고) 2026-07-31에 처음부터 유도 -- 노드방정식을 직접 풀고
-    (sympy) 이상화 소신호 netlist(sky130 PDK, ngspice AC 해석)로 교차검증했다.
+    논문 Fig.2, current_reuse_telescopic_ota)의 **open-loop**(CMFB 루프 제외) CMRR.
+    논문 자체엔 CMRR 폐형식이 없어서(시뮬레이션 수치 94.4dB만 보고) 2026-07-31에 처음
+    유도했고, **2026-08-03에 확정된 topology.json으로 처음부터 재유도**했다
+    (`workspaces/current-reuse-telescopic-ota-report/spice/stage1_cmrr_sympy_derivation.py`
+    = sympy 정확해, `.../stage1_cmrr_ngspice_crosscheck.py` = ngspice AC 교차검증).
 
-    ⚠️ 처음 시도한 "Acm=Gm_cm_total*R_out(differential R_out과 동일)" 단순화는 **틀렸다**
-    (SPICE 대조 중 발견 -- 논문 94.4dB 대비 실제 계산은 31~46dB, 거의 정확히 절반(dB
-    스케일 아님, R_out이 CM/DM에서 다른 값이라 소거 불가)). 정확한 노드해석 결과, PMOS
-    경로(M1a-M2a, tail=Rx)와 NMOS 경로(M4a-M3a, tail=Ry)가 같은 출력노드에서 서로
-    교차결합해 **한쪽 tail 임피던스만 키워도 CMRR이 무한정 좋아지지 않고 다른 쪽 경로가
-    만드는 바닥(floor)에 수렴**하는 실제 현상이 나온다(단순 diff_pair_tail의 "gm·R_tail"
-    직관과 다름). 아래는 gm·ro≫1 leading-order 근사(SPICE 정확해 대비 스윕 전 구간 오차
-    <=0.2dB로 확인, do.md 참고) -- 그래도 실제 최종 확인은 SPICE AC 시뮬레이션 권장.
+    **위상(topology.json이 유일한 소스, load_topology()로 확인 -- self-test가 강제)**::
+
+        vdd ─ M6∥M7(tail, Rx) ─ Vx ─ M1a(입력,gate=Vip) ─ N1a2a ─ M2a(캐스코드) ─┐
+                                                                                Vom1
+        gnd ─ M5(tail, Ry) ───── Vy ─ M4a(입력,gate=Vip) ─ N3a4a ─ M3a(캐스코드) ─┘
+
+    즉 PMOS 경로(M1a→M2a)와 NMOS 경로(M4a→M3a)는 **각각 독립된 tail(Vx/Vy)에서 출발한
+    별개의 캐스코드 가지**이고, 출력노드 Vom1에서 **드레인끼리 만난다**(current-reuse).
+    ⚠️ `M2a.drain == M3a.source`인 **직렬 텔레스코픽 기둥이 아니다** -- 2026-08-03 이전
+    self-test의 assert가 바로 그 옛 가정을 검사하고 있었고(그래서 확정 JSON에서 실패했다),
+    지금은 `M1a.drain == M2a.source`(PMOS 직렬 캐스코드), `M4a.drain == M3a.source`
+    (NMOS 직렬 캐스코드), `M2a.drain == M3a.drain == Vom1`(드레인 합류)을 검사한다.
+
+    **유도**(sympy, 위 위상으로 자동 조립한 MNA 정확해의 gm·ro≫1 leading order --
+    아래 두 식은 정확해의 leading order와 **기호적으로 동일**함을 확인했다)::
+
+        Kp' = gm(M2a)·ro(M1a)·ro(M2a)      # PMOS 가지가 Vom1에서 보이는 캐스코드 임피던스
+        Kn' = gm(M3a)·ro(M4a)·ro(M3a)      # NMOS 가지 쪽
+        Kp  = gm(M1a)·Kp' ,  Kn = gm(M4a)·Kn'
+        Rx  = 1/Σgds(tail_p_devices) ,  Ry = 1/gds(tail_n_device)
+
+        Adm = (gm(M1a)+gm(M4a)) · (Kp' ∥ Kn')
+        Acm = (Rx+Ry)·Kp·Kn / (Kn·Ry + Kp·Rx)          (부호는 음수, 크기만 씀)
+        CMRR = 20·log10(Adm/Acm)
+
+    Acm 식의 의미: CM에서 두 가지는 각각 tail로 소스축퇴돼 CM 전달컨덕턴스가 1/(2Rx),
+    1/(2Ry)로 **바닥이 정해지고**, 출력임피던스는 2Kp·Rx, 2Kn·Ry로 부스팅된다. 두 가지가
+    Vom1에서 병렬로 만나므로 **한쪽 tail 임피던스만 키워도 CMRR이 무한정 좋아지지 않고
+    다른 쪽 가지가 만드는 바닥(floor)에 수렴**한다(단순 `diff_pair_tail`의 "gm·R_tail"
+    직관과 다름). 실제로 이 open-loop CMRR은 물리적 범위에서 수 dB를 넘지 못한다 --
+    논문의 94.4dB를 설명하는 건 CMFB 루프이고, 그건 `telescopic_class_ab_cmfb` family다.
+
+    ⚠️ **2026-08-03 정정 2건**:
+    (1) 위상 assert(위 참조).
+    (2) 캐스코드 부스팅 계수에 옛 식은 **입력쌍의 gm**(gm(M1a)/gm(M4a))을 썼으나, 정확한
+        노드해석 결과 들어가야 하는 것은 **캐스코드 소자의 gm**(gm(M2a)/gm(M3a))이다
+        (`Kp' = gm(M2a)/(gds(M1a)·gds(M2a))`). 옛 SPICE 대조가 모든 gm을 119µS로 같게
+        놓고 이뤄져서 이 차이가 드러나지 않았다. `telescopic_class_ab_cmfb`(2026-08-03)는
+        이미 캐스코드 gm을 쓰고 있었으므로 이 함수만 어긋나 있었다 -- 이제 두 family가
+        같은 Kp'/Kn' 정의를 쓴다. ngspice 실측 대조(파라미터 ±4배 랜덤 20점):
+        새 식 최대오차 **0.80dB**, 옛(입력 gm) 식 최대오차 **11.95dB**.
+
+    정확도: 위 leading order는 SPICE 정확해 대비 ±4배 랜덤 스윕 전 구간에서 최대 0.8dB
+    (전형 0.1dB) -- 탐색용으로는 충분하나 최종 확인은 SPICE AC 시뮬레이션 권장.
 
     metric_spec 키: `input_p`/`cascode_p`(PMOS 입력쌍 M1a·PMOS 캐스코드 M2a),
     `input_n`/`cascode_n`(NMOS 입력쌍 M4a·NMOS 캐스코드 M3a), `tail_p_devices`
-    (PMOS tail 전류원 목록, 예 [M6,M7] -- gds 병렬합), `tail_n_device`(NMOS tail, 예 M5)."""
+    (PMOS tail 전류원 목록, 예 [M6,M7] -- gds 병렬합), `tail_n_device`(NMOS tail, 예 M5).
+    ⚠️ `cascode_p`/`cascode_n`은 이제 `gds`뿐 아니라 **`gm`도** 필요하다(정정 2)."""
     gmp = ctx.sized[metric_spec["input_p"]]["gm"]
     rop1 = 1.0 / ctx.sized[metric_spec["input_p"]]["gds"]
+    gmcp = ctx.sized[metric_spec["cascode_p"]]["gm"]
     rop2 = 1.0 / ctx.sized[metric_spec["cascode_p"]]["gds"]
     gmn = ctx.sized[metric_spec["input_n"]]["gm"]
     ron1 = 1.0 / ctx.sized[metric_spec["input_n"]]["gds"]
+    gmcn = ctx.sized[metric_spec["cascode_n"]]["gm"]
     ron2 = 1.0 / ctx.sized[metric_spec["cascode_n"]]["gds"]
     gds_tail_p = sum(ctx.sized[d]["gds"] for d in metric_spec["tail_p_devices"])
     Rx = 1.0 / gds_tail_p
     Ry = 1.0 / ctx.sized[metric_spec["tail_n_device"]]["gds"]
 
-    Kp_prime = gmp * rop1 * rop2   # PMOS 경로(M1a-M2a) 캐스코드 출력임피던스(vom1에서 본)
-    Kn_prime = gmn * ron1 * ron2   # NMOS 경로(M4a-M3a) 캐스코드 출력임피던스
-    R_out = Kp_prime * Kn_prime / (Kp_prime + Kn_prime)
+    # 캐스코드 부스팅 계수 = **캐스코드 소자**의 gm x 두 ro의 곱(입력쌍 gm이 아니다).
+    Kp_prime = gmcp * rop1 * rop2   # PMOS 가지(M1a-M2a)가 Vom1에서 보이는 출력임피던스
+    Kn_prime = gmcn * ron1 * ron2   # NMOS 가지(M4a-M3a) 쪽
+    R_out = Kp_prime * Kn_prime / (Kp_prime + Kn_prime)   # 드레인끼리 만나므로 '병렬'
     Adm = (gmp + gmn) * R_out
 
     Kp = gmp * Kp_prime
@@ -1278,45 +1320,55 @@ def _cmrr_telescopic_class_ab(metric_spec: dict, ctx: SizingContext) -> float:
     return 20 * math.log10(Adm / Acm)
 
 
-def _cmfb_amp_gain_5t_replica(metric_spec: dict, ctx: SizingContext) -> float:
-    """`telescopic_class_ab_cmfb`의 부품: CMFB 에러앰프(Xie&Chen Fig.5, M36a/M36b/
-    M37a/M37b/M38/M39/M40)의 소신호 이득 `A_c = v(Vcmfb)/v(Voc)`. **근사 없는 정확해**
-    (4노드 N36/Ncmfb_tail/Vcmfb/Voc_des KCL을 손으로 소거 -- sympy 정확해와 상대오차
-    2e-15로 일치 확인, 2026-08-03).
+def _cmfb_amp_gain_diode_load(metric_spec: dict, ctx: SizingContext) -> float:
+    """`telescopic_class_ab_cmfb`의 부품: CMFB 에러앰프(Xie&Chen Fig.5)의 소신호 이득
+    `A_c = v(Vcmfb)/v(Voc)`. **근사 없는 정확해**(sympy 정확해와 기호적으로 동일함을 확인,
+    2026-08-03 배치 7-5c).
 
-    ⚠️ 이 앰프는 교과서 5-트랜지스터 OTA가 **아니다**: 기준입력 `Voc_des`가 고정 바이어스가
-    아니라 M39(pmos, gate=N36)/M40(nmos 전류원)이 만드는 **고임피던스 노드**라, N36(diode
-    노드)의 신호가 `gm39/(gds39+gds40)`(≈본질이득)만큼 증폭돼 M37b의 게이트로 되돌아온다.
-    그 결과 `Voc_des`가 `Voc`를 거의 그대로 따라가 차동입력이 대부분 상쇄되고, 남는 이득은
-    `gm37`이 **소거되어** 사라진 O(1) 크기의 컨덕턴스 비가 된다(leading order:
-    `A_c ≈ [2·gm36·(gds39+gds40)/gm39 − gds38] / gds36b`). 즉 "5T OTA니까 A_c≈gm37/gds"
-    라는 직관은 이 회로에서 틀린다 -- 이 함수는 그 leading-order 대신 정확해를 쓴다(위
-    leading-order 식은 두 O(gds) 항의 차라서 수치적으로 잘 상쇄돼 최대 8dB까지 오차가
-    났다, 2026-08-03 실측).
+    **회로**(topology.json `_correction_log_5`, PDF 벡터 좌표로 확정): M37a(gate=Voc)/
+    M37b(gate=Voc_des)가 M38 tail을 공유하는 NMOS 차동쌍이고, **양쪽 부하가 서로 무관한
+    독립 PMOS diode**다(M36a는 M37a 쪽, M36b는 M37b 쪽 -- 두 게이트는 연결돼 있지 않다).
+    출력 `Vcmfb`는 M36a의 diode 노드 그 자체(=M37a.drain)에서 single-ended로 뽑는다.
 
-    ⚠️ `A_c <= 0`이면 CM 루프가 **양귀환**이 된다(호출자가 판단할 것 -- 이 함수는 부호를
-    그대로 반환한다)."""
+    ⚠️ **이전 버전(`_cmfb_amp_gain_5t_replica`, 커밋 b63e394)은 폐기됐다**: 그 함수는
+    M36a/M36b를 current mirror로, M39/M40이 만드는 Voc_des를 고임피던스 replica 노드로
+    가정했으나 둘 다 오독이었다. 실제로는 M39/M40이 **PMOS diode 2개짜리 저임피던스
+    분압기**(VDD-M39-Voc_des-M40-GND)라 소신호로 `v(Voc_des) = 0`이다(sympy 정확해로 확인:
+    노드 Voc_des의 자기 컨덕턴스가 gm39+gds39+gm40+gds40이고 구동원이 없다). 즉 **M39/M40은
+    이 이득식에 아예 등장하지 않는다** -- 이전 유도의 'Voc_des가 Voc를 따라가 gm37이 소거된다'
+    는 서술도 함께 폐기.
+
+    **유도**: 노드 3개(Vcmfb=vc, N36b=vb, Ncmfb_tail=vt) KCL. `a=gm36a+gds36a`,
+    `b=gm36b+gds36b`로 두면 diode 부하가 각각 `a`, `b`의 컨덕턴스로 접지에 매달리고
+    ```
+      vc·(a+gds37a) = (gm37a+gds37a)·vt − gm37a·voc          (Vcmfb KCL)
+      vb·(b+gds37b) = (gm37b+gds37b)·vt                      (N36b KCL)
+      a·vc + b·vb + gds38·vt = 0                             (세 식의 합 = tail KCL)
+    ```
+    를 vt에 대해 풀면 아래 폐형식이 된다. leading order(모든 gds→0):
+    `A_c → −gm37a·gm37b / (gm36a·(gm37a+gm37b))`, 즉 gm37a≈gm37b면 **−gm37/(2·gm36)**
+    (다이오드 부하 차동쌍의 교과서 결과 그대로). 이전 식과 달리 두 O(gds) 항의 차가
+    아니라서 수치적으로 안정하다(정확해 대비 leading order 오차 ~2%, 실측).
+
+    ⚠️ **부호**: 정상 동작에서 `A_c < 0`이다(Voc가 오르면 M37a가 더 흘려 diode 노드 Vcmfb가
+    내려간다). 이건 고장이 아니라 이 회로의 정상 부호다 -- CM 루프의 음귀환 여부는 A_c
+    혼자가 아니라 `A_c · H · G2`(2단 CM 이득 포함) 전체 부호가 정한다(호출자가 판단)."""
     def g(role, key):
         return ctx.sized[metric_spec[role]][key]
 
-    gm36a, gds36a = g("cmfb_mirror_diode", "gm"), g("cmfb_mirror_diode", "gds")
-    gm36b, gds36b = g("cmfb_mirror_out", "gm"), g("cmfb_mirror_out", "gds")
+    gm36a, gds36a = g("cmfb_load_sense", "gm"), g("cmfb_load_sense", "gds")
+    gm36b, gds36b = g("cmfb_load_ref", "gm"), g("cmfb_load_ref", "gds")
     gm37a, gds37a = g("cmfb_amp_sense", "gm"), g("cmfb_amp_sense", "gds")
     gm37b, gds37b = g("cmfb_amp_ref", "gm"), g("cmfb_amp_ref", "gds")
-    gm39, gds39 = g("cmfb_replica_source", "gm"), g("cmfb_replica_source", "gds")
-    gds40 = g("cmfb_replica_sink", "gds")
     gds38 = g("cmfb_tail_device", "gds")
 
-    a = gm36a + gds36a          # N36(M36a diode) 노드의 자기 컨덕턴스
-    d = a + gm36b               # Vcmfb 노드가 N36으로부터 받는 총 전달항
-    G4 = gds39 + gds40          # Voc_des 노드 컨덕턴스(M39 drain + M40 drain)
-    sa, sb = gm37a + gds37a, gm37b + gds37b
-    c = gds37a + a
-    P = gds37b * gds38 / gds36b + sb + gds38
-    Q = gm37b * gm39 / G4 + gds37b * d / gds36b + a
-    n36 = -gm37a / (c + sa * Q / P)          # v(Voc)=1 기준
-    t = (gm37a + c * n36) / sa
-    return -(gds38 * t + d * n36) / gds36b
+    a = gm36a + gds36a      # Vcmfb 노드에 매달린 M36a diode 컨덕턴스
+    b = gm36b + gds36b      # N36b 노드에 매달린 M36b diode 컨덕턴스
+    A1 = a * (gm37a + gds37a) / (a + gds37a)
+    A0 = a * gm37a / (a + gds37a)
+    B1 = b * (gm37b + gds37b) / (b + gds37b)
+    vt = A0 / (A1 + B1 + gds38)                      # v(Voc)=1 기준 tail 전위
+    return ((gm37a + gds37a) * vt - gm37a) / (a + gds37a)
 
 
 def _cmrr_telescopic_class_ab_cmfb(metric_spec: dict, ctx: SizingContext) -> float:
@@ -1330,54 +1382,67 @@ def _cmrr_telescopic_class_ab_cmfb(metric_spec: dict, ctx: SizingContext) -> flo
     stage-1 PMOS tail 전류를 직접 조절하는 폐루프가 있고, 그 루프이득만큼 CM 이득이 눌린다.
 
     **유도**(references/topology-fn-derivation-guide.md 절차 그대로): CMFB 앰프는 단방향이라
-    (입력 M37a.gate=Voc는 순수 게이트, 출력 Vcmfb는 M7.gate만 구동) 다음처럼 정확히 분해된다:
+    (입력 M37a.gate=Voc는 순수 게이트, 출력 Vcmfb는 M7.gate만 구동) 다음처럼 **부호까지**
+    정확히 분해된다(vo1 = stage-1 출력 CM, voc = 최종출력 CM 감지값):
     ```
-      vo   = Acm_open·vic + H·vcmfb ,  vcmfb = A_c·vo
-      Acm  = Acm_open / (1 + T),   T = -A_c·H  (루프이득)
-      CMRR = CMRR_open + 20·log10|1 + T|
+      vo1   = Acm_open·vic + H·vcmfb ,  voc = G2·vo1 ,  vcmfb = A_c·voc
+      Acm   = G2·Acm_open / (1 − H·A_c·G2)
+      Adm   = G2·Adm_open                      (CMFB는 DM에 작용하지 않는다)
+      CMRR  = |Adm_open/Acm_open| · |1 + T| ,   T := −H·A_c·G2      <- G2가 소거된다
     ```
     stage-1 CM 반회로/DM 반회로를 sympy로 정확히 풀고 gm·ro≫1 leading order를 취하면
     (Kp'=gm(M2a)·ro(M1a)·ro(M2a), Kn'=gm(M3a)·ro(M4a)·ro(M3a), Kp=gm(M1a)·Kp',
      Kn=gm(M4a)·Kn', Rx=1/Σgds(M6,M7), Ry=1/gds(M5)):
     ```
-      Adm      = (gmp+gmn)·(Kp' ∥ Kn')
+      Adm_open = (gmp+gmn)·(Kp' ∥ Kn')
       Acm_open = (Rx+Ry)·Kn·Kp / (Kn·Ry + Kp·Rx)      <- 기존 family와 동일 식
-      H        = gm(M7) · (Rx·Kp ∥ Ry·Kn)              <- CMFB -> stage-1 출력 전달
-      T        = A_c · H · cm_sense_gain
+      H        = −gm(M7) · (Rx·Kp ∥ Ry·Kn)             <- CMFB -> stage-1 출력 CM 전달(음수!)
+      G2       = −(Σgm(2단 출력소자)) / (Σgds(2단 출력소자))   <- 2단 CM 이득(반전, 음수)
+      A_c      = _cmfb_amp_gain_diode_load(...)                <- 다이오드 부하 차동쌍(음수)
     ```
-    `A_c`(CMFB 앰프 이득)만은 leading order가 두 O(gds) 항의 차라 수치적으로 불안정해서
-    `_cmfb_amp_gain_5t_replica()`의 **정확해**를 쓴다(그 docstring 참고 -- M39/M40 replica가
-    Voc_des를 Voc에 따라붙게 만들어 A_c가 O(1)로 떨어지는 게 이 회로의 핵심 특징이다).
+    **부호 三重 음수 → T>0(음귀환)**: H<0(Vcmfb가 내려가면 M7이 더 흘려 1단 출력 CM이
+    올라간다), A_c<0(Voc가 오르면 diode 노드 Vcmfb가 내려간다), G2<0(2단은 common-source
+    반전단이라 게이트 CM이 오르면 출력 CM이 내려간다). 셋의 곱이 음수이므로 T=−H·A_c·G2>0,
+    즉 **정상 동작에서 CM 루프는 음귀환**이다. 세 부호 중 하나라도 뒤집히면 |T|≫1인 이
+    회로에서 CM latch-up이 되므로 아래에서 `ValueError`로 거부한다.
 
-    **교차검증**(2026-08-03): 이상화 소신호 netlist(실소자 대신 지정한 gm/gds의 VCCS+저항만,
-    DC 바이어싱 완전 회피)를 ngspice AC로 돌린 실측과 대조 -- sympy 정확해는 ngspice와
-    0.0000dB 일치, 위 leading-order 폐형식은 파라미터를 ±4배로 무작위 스윕한 29개 조합에서
-    **최대 1.71dB / 평균 0.59dB** 오차(전형값 0.4dB). 회귀 앵커 2점은 self-test에 고정.
+    **`Voc`가 무엇을 센싱하는가**(2026-08-03 배치 7-5c에 원문으로 확정): 논문 II.D 원문
+    "R1 and R2 are used to averaging the differential signal (Vop and Vom) to common mode
+    voltage (Voc)" -- **최종(2단) 출력의 저항 평균**이다(직전 세션이 가정했던 'stage-1 출력
+    CM'이 아니다). R1=R2이므로 평균 자체엔 감쇠가 없고(선택 키 `cm_sense_gain` 기본 1.0),
+    대신 stage-1 -> 최종출력의 CM 전달이득 `G2`가 루프에 그대로 들어간다. R1/R2는
+    트랜지스터가 아니라 topology.json netlist(kind: pmos/nmos)에 없으므로, `G2`는
+    `cmfb_stage2_devices`(2단 출력소자 목록, 예 ["M15","M16"])의 사이징 결과에서 계산한다
+    -- Monticelli class-AB 부동전류원이 M15/M16의 게이트를 함께 움직이므로 CM에 대해
+    Gm=Σgm, Rout=1/Σgds이고 부호는 반전(−)이다. `_metric_gain_stages_sum`의 2단 이득
+    계산과 동일한 식이라 별도 가정을 새로 도입하지 않는다.
 
-    ⚠️ **`Voc`가 무엇을 센싱하는지는 topology.json netlist에 없다** — `Voc`는 M37a의 게이트로만
-    등장하고 그 노드를 구동하는 소자가 없는 dangling 입력이다(논문이 이상적 CM 감지를 가정한
-    것으로 보이며, 감지망 소자가 원문에 있는데 아직 topology.json에 못 들어갔을 가능성도 남아
-    있다 -- 원문 PDF는 이 세션에서 확인 불가). 이 함수의 기본 가정은 **`Voc` = stage-1 출력
-    CM**(dVoc/dVo1 = 1)이다: CMFB가 조절하는 M7이 stage-1 tail이고, PMOS/NMOS 두 전류원이
-    마주보는 stage-1 출력 CM이 CMFB 없이는 정의되지 않는 노드이기 때문. 만약 실제로는 최종
-    출력(Vom/Vop)을 감지한다면 루프에 2단 CM 이득이 더 붙으므로, 그 값을 선택 키
-    `cm_sense_gain`(기본 1.0, dVoc/dVo1)으로 넘길 것.
+    ⚠️ **한계**: `G2`는 |T|에만 들어가고 CMRR의 앞항(Adm/Acm)에서는 소거되므로, 2단
+    CM/DM 이득이 서로 다를 경우(예: 부하 저항 비대칭)의 보정은 반영돼 있지 않다. 또한
+    Monticelli 부동전류원을 '이상적 배터리(Vg15==Vg16==1단 출력)'로 근사했다 -- 실제
+    부동전류원의 유한 임피던스는 넣지 않았다. 최종 확인은 SPICE AC 필요.
 
-    ⚠️ `A_c <= 0`이면 CM 루프가 음귀환이 아니라 **양귀환**이다(|T|>1이면 CM latch-up) --
-    이때 소신호 CMRR 수치는 의미가 없으므로 `ValueError`를 던진다(큰 CMRR을 그대로 돌려주면
-    탐색이 물리적으로 깨진 설계를 '좋은 후보'로 고르게 된다).
+    **교차검증**(2026-08-03 배치 7-5c 재수행): 정정된 회로 전체(1단 2 branch + Monticelli
+    2단 + 정정된 Fig.5 CMFB)를 이상화 소신호 netlist(실소자 대신 지정 gm/gds의 VCCS+저항만,
+    DC 바이어싱 완전 회피)로 조립해 ngspice AC로 Adm/Acm을 직접 측정하고 위 폐형식과 대조 --
+    파라미터를 ±4배로 무작위 스윕한 27개 조합에서 **최대 3.99dB / 평균 0.7dB** 오차(전형값
+    0.4dB, 모두 폐형식이 SPICE보다 낮게 나오는 보수적 방향). ngspice에서 v(Voc_des)=0도
+    확인(M39/M40이 저임피던스 분압기라는 유도 전제). 회귀 앵커 2점은 self-test에 고정.
 
     metric_spec 키: `telescopic_class_ab`의 6개(`input_p`/`cascode_p`/`input_n`/`cascode_n`/
     `tail_p_devices`/`tail_n_device`)에 더해 `cmfb_ctrl_device`(M7, gate=Vcmfb인 tail 전류원),
     `cmfb_amp_sense`(M37a, gate=Voc), `cmfb_amp_ref`(M37b, gate=Voc_des),
-    `cmfb_mirror_diode`(M36a), `cmfb_mirror_out`(M36b, drain=Vcmfb),
-    `cmfb_replica_source`(M39, drain=Voc_des), `cmfb_replica_sink`(M40),
-    `cmfb_tail_device`(M38), 선택 `cm_sense_gain`(기본 1.0).
+    `cmfb_load_sense`(M36a, M37a쪽 diode 부하 = Vcmfb 노드), `cmfb_load_ref`(M36b, M37b쪽
+    diode 부하), `cmfb_tail_device`(M38), `cmfb_stage2_devices`(2단 출력소자 목록),
+    선택 `cm_sense_gain`(R1/R2 평균망 이득, 기본 1.0).
+    ⚠️ M39/M40은 `v(Voc_des)=0`이라 이 식에 **등장하지 않는다**(이전 버전의
+    `cmfb_replica_source`/`cmfb_replica_sink` 키는 폐기 -- 넷리스트 assert로만 검증한다).
 
-    ⚠️ 기존 `telescopic_class_ab`와의 차이 하나 더: 캐스코드 출력임피던스 Kp'/Kn'에 옛 식은
-    입력쌍의 gm(gm(M1a)/gm(M4a))을 썼지만, 정확한 노드해석 결과 여기 들어가야 하는 것은
-    **캐스코드 소자의 gm**(gm(M2a)/gm(M3a))이다 -- 옛 SPICE 대조는 모든 gm을 119µS로 같게
-    놓고 했기 때문에 이 차이가 드러나지 않았다. 이 함수는 정확한 쪽(캐스코드 gm)을 쓴다."""
+    ⚠️ (2026-08-03 해소) 예전엔 `telescopic_class_ab`가 Kp'/Kn'에 입력쌍 gm을 쓰고 이
+    함수만 캐스코드 gm을 써서 두 family가 어긋나 있었다. stage-1 재유도
+    (`spice/stage1_cmrr_sympy_derivation.py`)로 **캐스코드 소자의 gm**이 맞다는 것이
+    기호적으로 확정돼 `telescopic_class_ab`도 같은 정의로 정정했다 -- 이제 두 family의
+    Kp'/Kn'/Adm/Acm_open 정의는 완전히 동일하고, 차이는 CMFB 루프이득 (1+T)뿐이다."""
     gmp = ctx.sized[metric_spec["input_p"]]["gm"]
     gdsp1 = ctx.sized[metric_spec["input_p"]]["gds"]
     gmcp = ctx.sized[metric_spec["cascode_p"]]["gm"]
@@ -1395,17 +1460,23 @@ def _cmrr_telescopic_class_ab_cmfb(metric_spec: dict, ctx: SizingContext) -> flo
     Adm = (gmp + gmn) * (Kp_prime * Kn_prime / (Kp_prime + Kn_prime))
     Kp, Kn = gmp * Kp_prime, gmn * Kn_prime
     Acm_open = (Rx + Ry) * Kn * Kp / (Kn * Ry + Kp * Rx)
-    H = gm7 * (Rx * Kp) * (Ry * Kn) / (Rx * Kp + Ry * Kn)   # |vo/vcmfb|
+    # H = v(stage-1 출력 CM)/v(Vcmfb). Vcmfb가 내려가면 M7이 더 흘려 CM이 올라가므로 음수.
+    H = -gm7 * (Rx * Kp) * (Ry * Kn) / (Rx * Kp + Ry * Kn)
 
-    A_c = _cmfb_amp_gain_5t_replica(metric_spec, ctx) * metric_spec.get("cm_sense_gain", 1.0)
-    if A_c <= 0.0:
+    # G2 = 2단(class-AB 출력) CM 전달이득. common-source 반전단이므로 음수.
+    s2 = [ctx.sized[d] for d in metric_spec["cmfb_stage2_devices"]]
+    G2 = -sum(d["gm"] for d in s2) / sum(d["gds"] for d in s2)
+    G2 *= metric_spec.get("cm_sense_gain", 1.0)     # R1/R2 평균망(이상적 R1=R2 -> 1.0)
+
+    A_c = _cmfb_amp_gain_diode_load(metric_spec, ctx)
+    T = -H * A_c * G2
+    if T <= 0.0:
         raise ValueError(
-            f"CMFB 루프가 음귀환이 아니다(A_c={A_c:.4g} <= 0) -- v(Voc)가 오를 때 v(Vcmfb)가 "
-            f"같이 오르지 않으면 M7이 CM을 되돌리지 못하고 CM 루프가 양귀환이 된다. "
-            f"이 조건에서는 소신호 CMRR 수치가 의미 없으므로 계산을 거부한다("
-            f"_cmfb_amp_gain_5t_replica() docstring 참고: gds38·gm39 vs 2·gm36·(gds39+gds40) "
-            f"균형이 부호를 정한다 -- M38/M39/M40의 전류·L 배분을 다시 볼 것)")
-    T = A_c * H
+            f"CM 루프가 음귀환이 아니다(T={T:.4g} <= 0; H={H:.4g}, A_c={A_c:.4g}, G2={G2:.4g}) "
+            f"-- 정상 회로에서는 셋 다 음수라 T=-H·A_c·G2 > 0 이어야 한다. 부호가 하나라도 "
+            f"뒤집히면 |T|>>1인 이 회로에서 CM 루프가 양귀환(latch-up)이 되고 소신호 CMRR "
+            f"수치는 의미가 없으므로 계산을 거부한다 -- cmfb_* 소자 배정/극성과 "
+            f"cmfb_stage2_devices를 다시 볼 것(_cmrr_telescopic_class_ab_cmfb docstring 참고)")
     return 20 * math.log10(Adm / Acm_open * (1.0 + T))
 
 
@@ -2700,22 +2771,53 @@ if __name__ == "__main__":
     assert all(_crt_by_name[d].kind == "pmos" for d in _crt_role_map["tail_p_devices"]), \
         "tail_p_devices가 실제로는 pmos가 아님"
     assert _crt_by_name["M5"].kind == "nmos", "tail_n_device가 실제로는 nmos가 아님"
-    # 캐스코드 접합(M2a 드레인 == M3a 소스, 두 캐스코드가 정말 같은 노드를 공유하는지 -- 이게
-    # 이 CMRR 공식의 핵심 위상 가정)과 tail 노드 공유(M6/M7 드레인 == M1a 소스, M4a 소스 ==
-    # M5 드레인)를 실제 connectivity로 확인한다.
-    assert _crt_by_name["M2a"].drain == _crt_by_name["M3a"].source, \
-        "M2a/M3a가 같은 캐스코드 접합노드를 공유하지 않음 -- CMRR 공식의 위상 가정이 이 JSON과 안 맞음"
+    # ---- 위상 가정 검증(2026-08-03 전면 정정) --------------------------------------
+    # 옛 assert는 `M2a.drain == M3a.source`, 즉 "PMOS 캐스코드의 드레인이 NMOS 캐스코드의
+    # 소스로 이어지는 **하나의 직렬 텔레스코픽 기둥**"을 가정했다. 확정된 topology.json은
+    # 그렇지 않다 -- 이 회로는 current-reuse라서 PMOS 가지(M1a→M2a, tail=Vx)와 NMOS 가지
+    # (M4a→M3a, tail=Vy)가 **각각 독립**이고 출력노드에서 **드레인끼리** 만난다.
+    # CMRR 폐형식(_cmrr_telescopic_class_ab docstring)이 실제로 전제하는 것은 다음 4가지다.
+    # (1) 각 가지가 '입력쌍 drain == 캐스코드 source'인 직렬 캐스코드일 것 (Kp'/Kn' 성립)
+    assert _crt_by_name["M1a"].drain == _crt_by_name["M2a"].source, \
+        "M1a/M2a가 PMOS 직렬 캐스코드가 아님(M1a.drain != M2a.source) -- Kp' 전제가 깨짐"
+    assert _crt_by_name["M4a"].drain == _crt_by_name["M3a"].source, \
+        "M4a/M3a가 NMOS 직렬 캐스코드가 아님(M4a.drain != M3a.source) -- Kn' 전제가 깨짐"
+    # (2) 두 가지가 같은 출력노드에서 **드레인끼리** 만날 것 (Kp'∥Kn', Acm의 병렬 합류)
+    _crt_vom1 = _crt_by_name["M2a"].drain
+    _crt_vop1 = _crt_by_name["M2b"].drain
+    assert _crt_by_name["M3a"].drain == _crt_vom1, \
+        "M2a/M3a가 같은 출력노드에서 드레인끼리 만나지 않음 -- CMRR 공식의 합류 전제가 깨짐"
+    assert _crt_by_name["M3b"].drain == _crt_vop1 and _crt_vom1 != _crt_vop1, \
+        "b측(M2b/M3b)이 a측과 대칭인 별도 출력노드를 이루지 않음"
+    # (3) 옛 직렬 기둥 가정이 **아님**을 명시적으로 고정(회귀 방지)
+    assert _crt_by_name["M2a"].drain != _crt_by_name["M3a"].source, \
+        "M2a.drain == M3a.source -- 옛(직렬 캐스코드) 위상이다. 이 JSON/공식과 맞지 않음"
+    # (4) 두 가지가 **서로 다른** tail을 가질 것(Vx=M6∥M7, Vy=M5) -- Rx/Ry가 별개인 전제
     assert _crt_by_name["M6"].drain == _crt_by_name["M7"].drain == _crt_by_name["M1a"].source, \
         "M6/M7/M1a가 같은 Vx(tail) 노드를 공유하지 않음"
+    assert _crt_by_name["M1a"].source == _crt_by_name["M1b"].source, "M1a/M1b가 tail Vx를 공유 안 함"
     assert _crt_by_name["M4a"].source == _crt_by_name["M5"].drain, \
         "M4a/M5가 같은 Vy(tail) 노드를 공유하지 않음"
-    print(f"    PASS: kind 일치(M1a/M2a/M6/M7=pmos, M3a/M4a/M5=nmos), 캐스코드 접합노드"
-          f"({_crt_by_name['M2a'].drain!r}) 및 tail 노드(Vx={_crt_by_name['M1a'].source!r}, "
-          f"Vy={_crt_by_name['M4a'].source!r}) 공유 확인 -- 실제 JSON connectivity로 검증됨")
+    assert _crt_by_name["M4a"].source == _crt_by_name["M4b"].source, "M4a/M4b가 tail Vy를 공유 안 함"
+    assert _crt_by_name["M1a"].source != _crt_by_name["M4a"].source, \
+        "Vx와 Vy가 같은 노드다 -- tail이 둘로 분리돼 있다는 Rx/Ry 전제가 깨짐"
+    # (5) 두 입력쌍이 같은 입력을 공유할 것(current-reuse의 정의: M1a/M4a 게이트가 둘 다 Vip)
+    assert _crt_by_name["M1a"].gate == _crt_by_name["M4a"].gate, \
+        "M1a/M4a가 같은 입력(Vip)을 공유하지 않음 -- (gmp+gmn) 합산 전제가 깨짐"
+    assert _crt_by_name["M1b"].gate == _crt_by_name["M4b"].gate != _crt_by_name["M1a"].gate, \
+        "M1b/M4b가 같은 반대편 입력(Vim)을 공유하지 않음"
+    print(f"    PASS: kind 일치(M1a/M2a/M6/M7=pmos, M3a/M4a/M5=nmos). 위상: PMOS 가지"
+          f"(M1a.drain={_crt_by_name['M1a'].drain!r}=M2a.source) + NMOS 가지"
+          f"(M4a.drain={_crt_by_name['M4a'].drain!r}=M3a.source)가 출력노드 {_crt_vom1!r}에서"
+          f" **드레인끼리** 합류(직렬 기둥 아님), tail 분리(Vx={_crt_by_name['M1a'].source!r},"
+          f" Vy={_crt_by_name['M4a'].source!r}), 입력 공유({_crt_by_name['M1a'].gate!r})"
+          f" -- 실제 JSON connectivity로 검증됨")
 
     print()
-    print("  [cmrr_estimate -- telescopic_class_ab family(2026-07-31 신규 유도) -- 이상화")
-    print("  소신호 netlist(sky130 PDK, ngspice AC 해석) + sympy 노드해석 교차검증값과 대조.")
+    print("  [cmrr_estimate -- telescopic_class_ab family(2026-08-03 확정 topology.json으로")
+    print("  재유도) -- 이상화 소신호 netlist(VCCS+R만, ngspice AC) + sympy 정확해와 대조.")
+    print("  재현 스크립트: workspaces/current-reuse-telescopic-ota-report/spice/")
+    print("  stage1_cmrr_sympy_derivation.py, stage1_cmrr_ngspice_crosscheck.py.")
     print("  gm/gds 자체는 topology.json에 없는 사이징 결과물이라(하네스를 실행해야 나옴)")
     print("  여기선 SPICE 대조에 쓴 수치를 그대로 넣어 수식 자체만 검증한다 -- 소자 역할/kind는")
     print("  위에서 이미 실제 JSON으로 확인됨]")
@@ -2740,80 +2842,124 @@ if __name__ == "__main__":
     _crt_cmrr_db2 = compute_metric(_crt_cmrr_spec, _crt_cmrr_ctx)
     assert abs(_crt_cmrr_db2 - 4.59) < 0.2, f"Rx=1e8 기준값(SPICE 4.59dB)과 어긋남: {_crt_cmrr_db2}"
     print(f"    PASS(Rx=1e8,Ry=1e6): CMRR={_crt_cmrr_db2:.3f}dB (SPICE 대조값 4.59dB, 오차<0.2dB)")
+    # 앵커3(2026-08-03 신설): 위 두 앵커는 모든 gm을 119uS로 같게 놓아서 "Kp'에 캐스코드 gm을
+    # 쓰느냐 입력쌍 gm을 쓰느냐"의 차이가 **원리적으로 드러나지 않는다**(정확히 그래서 옛 식의
+    # 오류가 오래 숨어 있었다). 캐스코드 gm과 입력쌍 gm의 비를 크게 어긋나게 잡은 점을 추가해
+    # 회귀로 고정한다 -- ngspice 실측 0.0635dB, 새 식 0.0000dB(오차 0.06dB),
+    # 옛(입력쌍 gm) 식 7.0437dB(오차 6.98dB)로 두 식이 명확히 갈린다.
+    _crt_cmrr_ctx3 = SizingContext(sized={
+        "M1a": {"gm": 100e-6, "gds": 1.0 / 500e3},   # PMOS 입력쌍
+        "M2a": {"gm": 400e-6, "gds": 1.0 / 500e3},   # PMOS 캐스코드(입력쌍 gm의 4배)
+        "M4a": {"gm": 200e-6, "gds": 1.0 / 1000e3},  # NMOS 입력쌍
+        "M3a": {"gm": 50e-6, "gds": 1.0 / 1000e3},   # NMOS 캐스코드(입력쌍 gm의 1/4)
+        "M6": {"gm": 0.0, "gds": 0.5e-6}, "M7": {"gm": 0.0, "gds": 0.5e-6},  # Rx=1e6
+        "M5": {"gm": 0.0, "gds": 0.2e-6},             # Ry=5e6
+    })
+    _crt_cmrr_db3 = compute_metric(_crt_cmrr_spec, _crt_cmrr_ctx3)
+    assert abs(_crt_cmrr_db3 - 0.0635) < 0.2, \
+        f"앵커3(SPICE 0.0635dB)과 어긋남: {_crt_cmrr_db3} -- Kp'/Kn'에 캐스코드 gm 대신 " \
+        f"입력쌍 gm을 쓰면 여기서 7.04dB가 나온다(2026-08-03 정정된 옛 버그의 회귀)"
+    print(f"    PASS(앵커3, 캐스코드 gm != 입력쌍 gm): CMRR={_crt_cmrr_db3:.4f}dB "
+          f"(SPICE 실측 0.0635dB / 옛 입력쌍-gm 식이면 7.044dB -- 두 식이 갈리는 점)")
 
     print()
     print("  [cmrr_estimate -- telescopic_class_ab_cmfb family(2026-08-03 신규 유도, CMFB 루프")
     print("  포함): 먼저 metric_spec의 CMFB 소자 역할 배정이 topology.json netlist와 실제로")
     print("  일치하는지 load_topology()로 확인 -- 손 배정을 그대로 믿지 않는다]")
     _cmfb_roles = {"cmfb_ctrl_device": "M7", "cmfb_amp_sense": "M37a", "cmfb_amp_ref": "M37b",
-                    "cmfb_mirror_diode": "M36a", "cmfb_mirror_out": "M36b",
-                    "cmfb_replica_source": "M39", "cmfb_replica_sink": "M40",
-                    "cmfb_tail_device": "M38"}
-    # (1) M7이 정말 'gate=Vcmfb인 PMOS tail 전류원'이고 그 Vcmfb를 M36b가 만든다.
+                    "cmfb_load_sense": "M36a", "cmfb_load_ref": "M36b",
+                    "cmfb_tail_device": "M38", "cmfb_stage2_devices": ["M15", "M16"]}
+    # (1) M7이 정말 'gate=Vcmfb인 PMOS tail 전류원'이고, 그 Vcmfb는 M36a **자신의 diode 노드**다
+    #     (2026-08-03 정정: 이전엔 M36b가 미러로 Vcmfb를 만든다고 봤으나 오독이었다).
     _vcmfb_net = _crt_by_name["M7"].gate
     assert _crt_by_name["M7"].kind == "pmos" and _crt_by_name["M7"].drain == _crt_by_name["M1a"].source, \
         "cmfb_ctrl_device(M7)가 Vx(stage-1 PMOS tail) 노드를 구동하지 않음"
-    assert _crt_by_name["M36b"].drain == _vcmfb_net, \
-        "cmfb_mirror_out(M36b)의 drain이 M7의 게이트(Vcmfb)가 아님 -- CMFB 루프가 안 닫힘"
-    # (2) M36a는 diode(gate==drain), M36b/M39는 그 N36를 게이트로 읽는 미러.
-    assert _crt_by_name["M36a"].gate == _crt_by_name["M36a"].drain, "M36a가 diode-connected가 아님"
-    assert _crt_by_name["M36b"].gate == _crt_by_name["M39"].gate == _crt_by_name["M36a"].drain, \
-        "M36b/M39가 M36a의 diode 노드(N36)를 게이트로 공유하지 않음"
-    # (3) M37a/M37b는 tail(M38)을 공유하는 차동쌍, M37a.drain==N36, M37b.drain==Vcmfb.
+    assert (_crt_by_name["M36a"].gate == _crt_by_name["M36a"].drain == _vcmfb_net
+            and _crt_by_name["M36a"].source == "vdd" and _crt_by_name["M36a"].kind == "pmos"), \
+        "M36a가 'vdd에 source를 둔 diode이고 그 diode 노드가 곧 Vcmfb(M7.gate)'가 아님"
+    assert _crt_by_name["M37a"].drain == _vcmfb_net, \
+        "M37a(gate=Voc)의 drain이 Vcmfb가 아님 -- 감지쪽 다리에서 출력을 뽑는다는 전제가 깨짐"
+    # (2) M36b는 M36a의 미러가 아니라 **완전히 독립된 자기 자신의 diode**(게이트가 안 묶인다).
+    assert _crt_by_name["M36b"].gate == _crt_by_name["M36b"].drain != _vcmfb_net, \
+        "M36b가 자기 자신의 독립 diode가 아님"
+    assert _crt_by_name["M36a"].gate != _crt_by_name["M36b"].gate, \
+        "M36a/M36b의 게이트가 묶여 있다 -- 이건 폐기된 'current mirror 부하' 오독이다"
+    assert _crt_by_name["M36b"].drain == _crt_by_name["M37b"].drain, "M36b/M37b가 같은 노드가 아님"
+    # (3) M37a/M37b는 tail(M38)을 공유하는 차동쌍.
     assert _crt_by_name["M37a"].source == _crt_by_name["M37b"].source == _crt_by_name["M38"].drain, \
         "M37a/M37b/M38이 같은 CMFB tail 노드를 공유하지 않음"
-    assert _crt_by_name["M37a"].drain == _crt_by_name["M36a"].drain, "M37a.drain != N36"
-    assert _crt_by_name["M37b"].drain == _vcmfb_net, "M37b.drain != Vcmfb"
-    # (4) M39/M40이 만드는 Voc_des가 곧 M37b의 기준입력(=이 회로의 A_c가 O(1)로 떨어지는 이유).
-    assert _crt_by_name["M39"].drain == _crt_by_name["M40"].drain == _crt_by_name["M37b"].gate, \
-        "M39/M40의 drain(Voc_des)이 M37b의 게이트가 아님 -- A_c 유도의 replica 가정이 깨짐"
-    # (5) Voc(M37a의 게이트)는 netlist 어느 소자도 구동하지 않는 dangling 입력 -- 즉 감지망이
-    #     topology.json에 없다는 사실 자체를 회귀로 고정한다(cm_sense_gain 기본값 1.0의 근거).
+    # (4) Voc_des(M37b의 기준입력)는 M39/M40 **PMOS diode 2개짜리 저임피던스 분압기**의 중간노드다:
+    #     M39(source=vdd, gate=drain=Voc_des), M40(source=Voc_des, gate=drain=gnd). 이 구조라야
+    #     소신호로 v(Voc_des)=0이 되고, M39/M40이 A_c 식에서 사라진다(유도의 핵심 전제).
+    _vocdes_net = _crt_by_name["M37b"].gate
+    assert (_crt_by_name["M39"].kind == "pmos" and _crt_by_name["M39"].source == "vdd"
+            and _crt_by_name["M39"].gate == _crt_by_name["M39"].drain == _vocdes_net), \
+        "M39가 'vdd->Voc_des PMOS diode'가 아님"
+    assert (_crt_by_name["M40"].kind == "pmos" and _crt_by_name["M40"].source == _vocdes_net
+            and _crt_by_name["M40"].gate == _crt_by_name["M40"].drain == "gnd"), \
+        "M40이 'Voc_des->gnd PMOS diode'가 아님 -- v(Voc_des)=0 전제가 깨져 A_c 유도가 무효"
+    assert not any(t.drain == _vocdes_net or t.source == _vocdes_net
+                   for t in _crt_transistors if t.name not in ("M39", "M40")), \
+        "Voc_des에 M39/M40 말고 다른 구동소자가 생겼다 -- v(Voc_des)=0 전제 재검토 필요"
+    # (5) Voc(M37a의 게이트)를 구동하는 트랜지스터는 없다 -- 논문 Fig.5의 R1/R2 저항 평균망은
+    #     트랜지스터가 아니라 이 스키마(kind: pmos/nmos)에 못 들어가기 때문이다. 그 사실 자체를
+    #     회귀로 고정하고, R1/R2가 감지하는 대상(최종출력 CM)은 cmfb_stage2_devices로 표현한다.
     _voc_net = _crt_by_name["M37a"].gate
     assert not any(t.drain == _voc_net or t.source == _voc_net for t in _crt_transistors), \
-        f"{_voc_net!r}를 구동하는 소자가 생겼다 -- CM 감지망이 추가됐으면 cm_sense_gain을 재검토할 것"
-    print(f"    PASS: CMFB 루프 연결 확인(Vcmfb={_vcmfb_net!r} <- M36b/M37b, N36="
-          f"{_crt_by_name['M36a'].drain!r} diode, Voc_des={_crt_by_name['M39'].drain!r} <- M39/M40, "
-          f"tail={_crt_by_name['M38'].drain!r}), Voc={_voc_net!r}는 구동소자 없는 dangling 입력")
+        f"{_voc_net!r}를 구동하는 소자가 생겼다 -- R1/R2 감지망 모델링(cm_sense_gain)을 재검토할 것"
+    assert all(_crt_by_name[d].drain == _crt_by_name["M15"].drain
+               for d in _cmfb_roles["cmfb_stage2_devices"]), \
+        "cmfb_stage2_devices가 같은 2단 출력노드(Vom)를 구동하지 않음"
+    print(f"    PASS: CMFB 연결 확인(Vcmfb={_vcmfb_net!r} = M36a 자기 diode = M37a.drain, "
+          f"M36b는 독립 diode({_crt_by_name['M36b'].drain!r}), Voc_des={_vocdes_net!r} = "
+          f"M39/M40 PMOS diode 분압기, tail={_crt_by_name['M38'].drain!r}), "
+          f"Voc={_voc_net!r}는 R1/R2(트랜지스터 아님)가 구동")
 
     print()
     print("  [cmrr_estimate -- telescopic_class_ab_cmfb family: 이상화 소신호 netlist")
-    print("  (VCCS+저항만, DC 바이어싱 회피) ngspice AC 실측과 대조. 앵커 2점 -- 2026-08-03]")
+    print("  (VCCS+저항만, DC 바이어싱 회피) ngspice AC 실측과 대조. 앵커 2점 -- 2026-08-03")
+    print("  배치 7-5c에서 정정된 회로(다이오드 부하 CMFB + Monticelli 2단)로 전면 재측정.")
+    print("  이전 앵커(104.617/122.619dB)는 틀린 토폴로지 기준이라 폐기됐다]")
     _cmfb_ctx = SizingContext(sized={
         "M1a": {"gm": 119e-6, "gds": 1 / 600e3}, "M2a": {"gm": 130e-6, "gds": 1 / 700e3},
         "M4a": {"gm": 140e-6, "gds": 1 / 250e3}, "M3a": {"gm": 150e-6, "gds": 1 / 300e3},
         "M6": {"gm": 0.0, "gds": 0.5e-6}, "M7": {"gm": 90e-6, "gds": 0.4e-6},
         "M5": {"gm": 0.0, "gds": 1.0e-6},
+        "M15": {"gm": 3.0e-3, "gds": 8e-6}, "M16": {"gm": 3.0e-3, "gds": 9e-6},
         "M37a": {"gm": 100e-6, "gds": 1.0e-6}, "M37b": {"gm": 105e-6, "gds": 1.1e-6},
         "M36a": {"gm": 80e-6, "gds": 0.8e-6}, "M36b": {"gm": 84e-6, "gds": 0.9e-6},
-        "M39": {"gm": 85e-6, "gds": 0.7e-6}, "M40": {"gm": 0.0, "gds": 0.6e-6},
         "M38": {"gm": 0.0, "gds": 1.2e-6},
     })
     _cmfb_spec = {"type": "cmrr_estimate", "circuit_family": "telescopic_class_ab_cmfb",
                    "input_p": "M1a", "cascode_p": "M2a", "input_n": "M4a", "cascode_n": "M3a",
                    "tail_p_devices": ["M6", "M7"], "tail_n_device": "M5", **_cmfb_roles}
+    # A_c는 다이오드 부하 차동쌍이므로 leading order -gm37/(2*gm36) 근방의 O(1) 음수여야 한다.
+    _cmfb_ac = _cmfb_amp_gain_diode_load(_cmfb_spec, _cmfb_ctx)
+    assert -1.0 < _cmfb_ac < 0.0, f"A_c가 O(1) 음수가 아님: {_cmfb_ac}"
+    assert abs(_cmfb_ac - (-0.62960331)) < 1e-6, f"A_c 회귀(sympy 정확해 대조): {_cmfb_ac}"
+    print(f"    PASS: A_c={_cmfb_ac:.6f} (sympy 정확해와 기호적으로 동일, leading order "
+          f"-gm37a*gm37b/(gm36a*(gm37a+gm37b))={-100e-6*105e-6/(80e-6*205e-6):.4f})")
     _cmfb_db1 = compute_metric(_cmfb_spec, _cmfb_ctx)
-    # ngspice AC 실측(같은 gm/gds의 이상화 netlist, 전체 차동회로 2 branch + CMFB): 104.6168dB
-    assert abs(_cmfb_db1 - 104.6168) < 1.0, f"앵커1(SPICE 104.617dB)과 어긋남: {_cmfb_db1}"
-    print(f"    PASS(앵커1): CMRR={_cmfb_db1:.3f}dB (SPICE 실측 104.617dB, 오차<1dB)")
+    # ngspice AC 실측(같은 gm/gds의 이상화 netlist, 1단 2 branch + 2단 + CMFB 전체): 148.4986dB
+    assert abs(_cmfb_db1 - 148.4986) < 1.0, f"앵커1(SPICE 148.499dB)과 어긋남: {_cmfb_db1}"
+    print(f"    PASS(앵커1): CMRR={_cmfb_db1:.3f}dB (SPICE 실측 148.499dB, 오차<1dB)")
     # 앵커2: Ry를 20배(gds5 x0.05), gm7을 4배 -- CMFB 루프이득이 지배적임을 보이는 점.
     _cmfb_ctx.sized["M5"]["gds"] = 1.0e-6 * 0.05
     _cmfb_ctx.sized["M7"]["gm"] = 90e-6 * 4
     _cmfb_db2 = compute_metric(_cmfb_spec, _cmfb_ctx)
-    assert abs(_cmfb_db2 - 122.6194) < 1.0, f"앵커2(SPICE 122.619dB)과 어긋남: {_cmfb_db2}"
-    print(f"    PASS(앵커2, Ry x20/gm7 x4): CMRR={_cmfb_db2:.3f}dB (SPICE 실측 122.619dB, 오차<1dB)")
+    assert abs(_cmfb_db2 - 166.5012) < 1.0, f"앵커2(SPICE 166.501dB)과 어긋남: {_cmfb_db2}"
+    print(f"    PASS(앵커2, Ry x20/gm7 x4): CMRR={_cmfb_db2:.3f}dB (SPICE 실측 166.501dB, 오차<1dB)")
     # open-loop family(CMFB 무시)와 같은 사이징에서 얼마나 차이 나는지 -- CMFB가 지배적 기여자.
     _cmfb_open_db = compute_metric({**_cmfb_spec, "circuit_family": "telescopic_class_ab"}, _cmfb_ctx)
     assert _cmfb_db2 - _cmfb_open_db > 100.0, "CMFB 루프 기여가 사라졌다(회귀)"
     print(f"    PASS: 같은 사이징에서 open-loop family={_cmfb_open_db:.2f}dB vs "
           f"CMFB 포함={_cmfb_db2:.2f}dB -> CMFB 루프 기여 {_cmfb_db2 - _cmfb_open_db:.1f}dB")
-    # A_c<=0(양귀환)이면 계산을 거부하는지 -- M38의 gds를 키워 부호를 뒤집는다.
-    _cmfb_ctx.sized["M38"]["gds"] = 1.2e-6 * 6
+    # T<=0(CM 양귀환)이면 계산을 거부하는지 -- 2단 부호를 뒤집어(cm_sense_gain<0) 확인한다.
     try:
-        compute_metric(_cmfb_spec, _cmfb_ctx)
-        raise AssertionError("A_c<=0(CM 양귀환)인데 에러가 안 났다")
+        compute_metric({**_cmfb_spec, "cm_sense_gain": -1.0}, _cmfb_ctx)
+        raise AssertionError("T<=0(CM 양귀환)인데 에러가 안 났다")
     except ValueError as _e_ac:
-        print(f"    PASS: A_c<=0 거부 -- {str(_e_ac)[:60]}...")
+        print(f"    PASS: T<=0 거부 -- {str(_e_ac)[:60]}...")
     _cmfb_ctx.sized["M38"]["gds"] = 1.2e-6
 
     print()

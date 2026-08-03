@@ -4,6 +4,10 @@ workspaces/*/eval_review.html
 workspaces/*/launch_all.py
 skill-test-workspace/
 
+# 논문 PDF 렌더링/크롭 이미지 -- 저작권 있는 논문 페이지 복제본, 저장소에 안 넣음
+workspaces/*/paper_pages/
+workspaces/*/fig*_zoom*.png
+
 # bkit runtime/snapshots (auto-generated, local) — .bkit/state/ is tracked
 .bkit/runtime/
 .bkit/snapshots/

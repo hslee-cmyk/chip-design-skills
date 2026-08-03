@@ -431,7 +431,11 @@ Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절
 - `references/topology-extraction-checklist.md` — **스펙/회로도 이미지에서 topology.json
   자체를 처음 만들 때** 따를 절차(위 항목의 "이미 있는 topology를 사이징"과는 다른 문제).
   실제 오독 사고 5건(Fig.4 오인, Vop 12개 누락, 극성 오류 등, `current_reuse_telescopic_ota`
-  작성 중 발생) 기반 — Stage 0(원문 완전성)~Stage 3(선택적 인간 확인) 체크리스트.
+  작성 중 발생) 기반 — Stage 0(원문 완전성)~Stage 3(선택적 인간 확인) 체크리스트. **topology.json을
+  새로 만들거나 connectivity를 고칠 때마다 `assets/topology_to_markdown.py <json경로>`를
+  실행해 net별/소자별 connectivity 표를 `<name>.topology.md`로 저장하고 세션에도 출력해
+  사람이 재확인하는 게 필수 절차다**(§5) — 이미지/PDF 판독만으로는 dense한 회로도의
+  connectivity를 신뢰성 있게 재현 못 한다는 게 실측으로 재확인됨(2026-08-03).
 - `references/sky130-worked-example.md` + `assets/sky130_lut_sweep.py` +
   `assets/sky130_nfet_pfet_lut_sample.npz` — 실리콘 검증 사례(SkyWater sky130 + SPICE 시뮬레이터).
   LUT 실측 gm/ID 상한(§4), LUT↔SPICE 정규화 함정(§3) 포함.

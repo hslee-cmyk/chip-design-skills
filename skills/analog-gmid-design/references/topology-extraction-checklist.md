@@ -67,6 +67,34 @@
 
 ## 5. Stage 2 — 자동 이상탐지 게이트 (신규 harness 함수, 사람에게 묻기 전에 실행)
 
+> **✅ 2026-08-03 구현됨 — `topology_to_markdown.py`** (`skills/analog-gmid-design/assets/`).
+> 사고 사례(§1)가 5개였던 시점엔 이 게이트가 방법론으로만 있고 실제 코드가 없었다 — 그
+> 상태로 `current_reuse_telescopic_ota`를 다시 작업하다 **또 같은 유형의 오류**(M2a/M3a를
+> 직렬 캐스코드로 오독, M8을 M11a 위에 직렬로 쌓인 것으로 오독 등, 전부 "서로 다른 두 노드를
+> 같은 이름으로 착각")가 났다 — 방법론만으로는 재발을 못 막았다는 실측 증거. 그래서 §1의
+> 제안을 실제로 구현했다.
+>
+> **필수 절차(이제부터 topology.json을 새로 만들거나 connectivity를 수정할 때마다)**:
+> ```
+> python topology_to_markdown.py <topology.json 경로>
+> ```
+> 이 스크립트가 하는 일: (1) `load_topology()`로 실제 connectivity를 읽어 **net 기준**(어느
+> net에 어떤 소자.단자가 물려있는지)과 **소자 기준**(name/kind/source/drain/gate) 두 표를
+> 만들어 `<topology_name>.topology.md`로 저장, (2) **같은 내용을 stdout에도 출력**(세션
+> 창에서 바로 사람이 검토할 수 있게 — 파일만 만들고 안 보여주면 결국 아무도 안 본다),
+> (3) source/drain 기준 단자 1개짜리 net(고아 net)과 source/drain 어디에도 없이 gate로만
+> 참조되는 net(구동 소자 없음)을 자동으로 ⚠️ 표시. 텍스트로 51개 소자를 하나씩 되짚는 것보다
+> **net을 기준으로 뒤집어서 보는 표**가 "두 노드를 하나로 착각" 유형의 오류를 훨씬 잘
+> 드러낸다(예: 이 세션에서 `Vom1`이 4개 단자를 가진 것처럼 착각한 오류는 net별 표를
+> 만들었으면 즉시 드러났을 것 — 대신 소자를 하나씩 순서대로 읽다가 발견을 놓쳤다).
+>
+> **정직한 한계**: 이 자동 플래그는 "외부 입력 핀"(Vip/Vim/Vbias1-4 등, 원래 gate-only거나
+> source/drain 참조가 1개뿐인 게 정상)까지 전부 걸러내므로 **false positive가 많다** —
+> "0개 flag"가 목표가 아니라, 사람이 표를 눈으로 훑을 때 **어떤 net이 어떤 소자들을
+> 묶는지 한눈에 보이게 하는 것**이 핵심 가치다. 이미지/PDF에서 회로도를 읽어 topology.json을
+> 만들거나 고친 직후에는, 그 결과를 그대로 믿지 말고 **반드시 이 표를 세션에 출력해
+> 사람이 재확인**한다(§6 Stage 3와 결합).
+
 **제안 함수**: `detect_extraction_anomalies(draft_json: dict, source_text: str, expected_counts: dict[str, int] | None = None) -> list[Anomaly]`
 
 | 체크 | 방법 | 사고 대응 |

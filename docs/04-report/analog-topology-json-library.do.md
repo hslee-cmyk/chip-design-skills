@@ -1780,81 +1780,89 @@ flowchart LR
 > SPICE 대조값과 <=0.2dB). `_CMRR_ESTIMATOR_REGISTRY["telescopic_class_ab"]`로 등록.
 > PSRR 폐형식은 이 세션에서 아직 다루지 않음(다음 배치로 이월).
 
-> **`telescopic_class_ab_cmfb` — CMFB 루프를 포함한 CMRR 폐형식 → ✅ 등록 완료(2026-08-03,
-> 배치 7-5b)**: 위 `telescopic_class_ab`(1단 open-loop)는 **Rx/Ry/캐스코드 L·gm_id를
-> 물리적으로 가능한 극단까지 밀어도 CMRR이 2dB를 못 넘는다**(2026-08-03 실측,
-> `workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py`). 논문은 94.4dB를
-> 보고하므로 지배적 기여자가 이 식 밖에 있다는 뜻이었고, 실제로 이 회로엔 M7(pmos,
-> gate=Vcmfb)이 stage-1 PMOS tail(Vx)을 직접 조절하는 **CMFB 폐루프**가 있는데 옛 식엔 CMFB
-> 소자가 하나도 안 들어가 있었다(2026-07-31 docstring이 이미 "실제 CMRR은 2단/CMFB/bias-gen
-> 기여까지 합친 값"이라고 예견해뒀던 그대로).
+> **`telescopic_class_ab_cmfb` — CMFB 루프를 포함한 CMRR 폐형식 → ✅ 등록(2026-08-03 배치
+> 7-5b) → ⚠️ **배치 7-5c에서 전면 재유도**(아래가 최신, 7-5b 서술은 폐기)**: 위
+> `telescopic_class_ab`(1단 open-loop)는 **Rx/Ry/캐스코드 L·gm_id를 물리적으로 가능한
+> 극단까지 밀어도 CMRR이 2dB를 못 넘는다**(실측). 이 회로의 CM 이득이 DM 이득과 거의 같기
+> 때문인데(PMOS/NMOS 두 캐스코드가 서로의 부하라, tail 임피던스를 키우면 Gm_cm이 줄어드는
+> 만큼 Rout_cm도 같이 커져 상쇄된다 — 일반 telescopic의 `2·gm·R_tail` 직관이 안 통한다),
+> 논문이 94.4dB를 보고하므로 지배적 기여자는 **CMFB 폐루프**다(M7, gate=Vcmfb가 stage-1
+> PMOS tail Vx를 직접 조절).
 >
-> **유도(정확 분해, 근사 아님)**: CMFB 앰프는 **단방향**이다 — 입력(M37a.gate=Voc)은 순수
-> 게이트라 stage-1을 안 물고, 출력(Vcmfb)은 M7.gate만 구동한다. 그래서
-> `vo = Acm_open·vic + H·vcmfb`, `vcmfb = A_c·vo` 두 식으로 정확히 쪼개진다:
+> **⚠️ 배치 7-5b 유도가 틀렸던 이유(커밋 b63e394)**: 그 세션은 Fig.5를 "M36a가 diode,
+> M36b/M39가 그 게이트를 공유하는 미러"로 읽었다. 사용자가 원문을 직접 보여줘 틀렸음이
+> 드러났고, 7-5c에서 **PDF 벡터 프리미티브를 직접 추출**(PyMuPDF `page.get_drawings()`로
+> page 3의 선분 좌표를 전부 뽑아 노드 단위 재구성)해 확정했다 — 픽셀 판독이 아니라 도면
+> 좌표 그 자체다. 정정 내용은 `topology.json` `_correction_log_5` 참조. 요지 4가지:
+> (1) `Vcmfb`는 **M36a 자신의 diode 노드**(=M37a.drain)다. (2) M36b는 미러가 아니라
+> **독립 diode**(게이트가 M36a와 안 묶임). (3) M39도 독립 diode. (4) **M40은 nmos가
+> 아니라 PMOS**이고 source=Voc_des·gate=drain=gnd다 — 즉 VDD-M39-Voc_des-M40-GND가
+> **PMOS diode 2단 분압기**이고, 두 소자가 같으면 `Voc_des = VDD/2 = 0.9V`로 논문 abstract의
+> "stabilize the output common-mode voltage level to 0.9V"(VDD=1.8V)와 정확히 일치한다
+> (독립 교차검증). 그리고 논문 II.D 원문("R1 and R2 are used to averaging the differential
+> signal (Vop and Vom) to common mode voltage (Voc)")대로 **Voc는 최종(2단) 출력의 저항
+> 평균**이지 stage-1 출력 CM이 아니다(7-5b의 `cm_sense_gain=1.0` 근거가 폐기됨).
+>
+> **재유도 결과**: `Voc_des` 노드는 자기 컨덕턴스 `gm39+gds39+gm40+gds40`만 있고 구동원이
+> 없어 소신호로 **v(Voc_des)=0**(sympy 정확해·ngspice 양쪽 확인) — 즉 **M39/M40은 CMRR
+> 식에 아예 등장하지 않는다**. 남는 것은 tail(M38)을 공유하는 NMOS 차동쌍 + 양쪽 독립
+> diode 부하, 즉 교과서 **다이오드 부하 차동쌍**이다:
 > ```
-> Acm = Acm_open/(1+T),  T = -A_c·H  (CM 루프이득),  CMRR = CMRR_open + 20log10|1+T|
+> A_c = v(Vcmfb)/v(Voc)                    (3노드 Vcmfb/N36b/Ncmfb_tail KCL 정확해)
+>     → −gm37a·gm37b/(gm36a·(gm37a+gm37b))  (leading order; gm37a≈gm37b면 −gm37/(2·gm36))
 > ```
-> stage-1 CM 반회로(Vx/Vom1/Vo/Vb/Vy 5노드)와 DM 반회로를 sympy로 정확히 풀고 gm·ro≫1
-> leading order를 취한 결과(Kp'=gm(M2a)·ro(M1a)·ro(M2a), Kn'=gm(M3a)·ro(M4a)·ro(M3a),
-> Kp=gm(M1a)·Kp', Kn=gm(M4a)·Kn', Rx=1/Σgds(M6,M7), Ry=1/gds(M5)):
+> 7-5b의 `A_c ≈ [2·gm36·(gds39+gds40)/gm39 − gds38]/gds36b`(두 O(gds) 항의 차, 수치적으로
+> 불안정)는 완전히 폐기. 새 식은 O(1) 음수이고 수치적으로 안정하다(정확해 대비 leading
+> order 오차 ~2%). 함수명도 `_cmfb_amp_gain_5t_replica()` → `_cmfb_amp_gain_diode_load()`.
+>
+> **부호(三重 음수 → 음귀환)**: `vo1 = Acm_open·vic + H·vcmfb`, `voc = G2·vo1`,
+> `vcmfb = A_c·voc` 로 정확히 쪼개면 `CMRR = |Adm_open/Acm_open|·|1+T|`, `T := −H·A_c·G2`
+> (G2는 앞항에서 소거된다). 세 항이 전부 음수라 T>0, 즉 정상 음귀환이다:
 > ```
-> Adm      = (gmp+gmn)·(Kp' ∥ Kn')
-> Acm_open = (Rx+Ry)·Kn·Kp/(Kn·Ry + Kp·Rx)      <- 2026-07-31 식과 완전히 동일(독립 재도출)
-> H        = gm(M7)·(Rx·Kp ∥ Ry·Kn)
+> H  = −gm(M7)·(Rx·Kp ∥ Ry·Kn)                  <- Vcmfb↓ → M7 전류↑ → 1단 출력 CM↑
+> G2 = −(Σgm)/(Σgds)  (cmfb_stage2_devices)      <- 2단 common-source 반전단
+> A_c< 0                                          <- Voc↑ → diode 노드 Vcmfb↓
+> Adm_open = (gmp+gmn)·(Kp' ∥ Kn'),  Acm_open = (Rx+Ry)·Kn·Kp/(Kn·Ry+Kp·Rx)   (7-5b와 동일)
 > ```
-> `Acm_open`이 옛 유도와 글자 그대로 일치한 것이 이번 재도출의 첫 번째 교차검증이다. 다만
-> **옛 코드가 Kp'/Kn'에 입력쌍의 gm(gm(M1a)/gm(M4a))을 넣은 것은 틀렸다** — 정확한 노드해석은
-> 캐스코드 소자의 gm(gm(M2a)/gm(M3a))을 요구한다. 옛 SPICE 대조가 모든 gm을 119µS로 같게 놓고
-> 이뤄져서 이 차이가 드러나지 않았을 뿐이다(새 family는 정확한 쪽을 쓴다).
+> `A_c<0`은 고장이 아니라 이 회로의 정상 부호다(7-5b는 `A_c<=0`이면 ValueError를 던졌는데,
+> 그건 틀린 토폴로지 기준이었다) — 이제 **T의 부호**로 판정한다. `G2`는 `gain_db`의 2단
+> stage(`["M15","M16"]`)와 **같은 소자·같은 식**을 재사용하므로 새 가정을 도입하지 않는다.
 >
-> **CMFB 앰프 이득 `A_c`가 이 회로의 진짜 특이점**: 교과서 5T OTA라면 `A_c≈gm37/gds`(O(10²))
-> 여야 하는데, 이 회로의 기준입력 `Voc_des`는 고정 바이어스가 아니라 **M39(pmos,
-> gate=N36)/M40이 만드는 고임피던스 노드**다. N36(diode) 신호가 `gm39/(gds39+gds40)`(≈본질이득)
-> 만큼 증폭돼 M37b 게이트로 되돌아오므로 `Voc_des`가 `Voc`를 거의 그대로 따라가고, 차동입력이
-> 대부분 상쇄돼 **gm37이 소거되고 O(1) 크기의 컨덕턴스 비만 남는다**:
-> `A_c ≈ [2·gm36·(gds39+gds40)/gm39 − gds38]/gds36b`. 이 leading order는 두 O(gds) 항의 **차**
-> 라 수치적으로 잘 상쇄돼(무작위 스윕에서 최대 8dB 오차 실측) 등록 함수는 이 4노드 부분회로의
-> **정확해**(`_cmfb_amp_gain_5t_replica()`, 손 소거식 — sympy 정확해와 상대오차 2e-15)를 쓴다.
+> **교차검증**: 정정된 회로 전체(1단 2 branch + Monticelli 2단 + 정정된 CMFB)를 이상화
+> 소신호 netlist(VCCS+저항만, DC 바이어싱 완전 회피)로 조립해 ngspice AC로 Adm/Acm을 직접
+> 측정 — ±4배 무작위 스윕 27개 조합에서 **최대 3.99dB / 평균 0.7dB**(전형 0.4dB, 전부
+> 폐형식이 SPICE보다 낮게 나오는 보수적 방향). v(Voc_des)=0도 SPICE에서 확인.
+> self-test 앵커 2점을 **148.499dB / 166.501dB**로 교체(7-5b의 104.617/122.619dB는 틀린
+> 토폴로지 기준이라 폐기) + CMFB 연결 assert를 5종에서 **9종**으로 강화(M36a가 자기 diode이자
+> Vcmfb / M37a.drain==Vcmfb / M36b가 독립 diode이고 M36a와 게이트가 **안** 묶임 /
+> M36b.drain==M37b.drain / tail 공유 / M39가 vdd→Voc_des PMOS diode / M40이 Voc_des→gnd
+> **PMOS** diode / Voc_des에 다른 구동소자 없음 / Voc가 트랜지스터로 구동되지 않음) +
+> A_c 회귀값(sympy 정확해 -0.62960331) + T<=0 거부 회귀.
 >
-> **교차검증(3자)**: 이상화 소신호 netlist(실소자 대신 지정 gm/gds의 VCCS+저항만, DC 바이어싱
-> 완전 회피 — stage-1 양쪽 branch + CMFB 7소자 전부)를 ngspice AC로 실측해 대조.
-> **sympy 정확해 = ngspice: 8개 대조점 전부 0.0000dB 일치**. 등록한 leading-order 폐형식은
-> 파라미터를 ±4배로 무작위 스윕한 29개 조합에서 **최대 1.71dB / 평균 0.59dB**(전형 0.4dB).
-> self-test에 앵커 2점 고정(104.617dB / 122.619dB, 각각 오차<1dB) + CMFB 연결 assert 5종
-> (M36a diode / M36b·M39 게이트 공유 / M37a·M37b·M38 tail 공유 / M39·M40.drain==M37b.gate /
-> M36b.drain==M7.gate) + A_c<=0 거부 회귀.
->
-> **⚠️ 정직한 한계 1 — `Voc`가 뭘 보는지 netlist에 없다**: `Voc`는 M37a의 게이트로만 등장하고
-> 그 노드를 구동하는 소자가 topology.json에 하나도 없다(self-test가 이 사실 자체를 assert로
-> 고정). 논문이 이상적 CM 감지를 가정했을 수도, 감지망이 원문에 있는데 아직 못 옮겼을 수도
-> 있다(원문 PDF는 이 세션에서 접근 불가). 기본 가정은 **Voc = stage-1 출력 CM**(dVoc/dVo1=1,
-> CMFB가 조절하는 M7이 stage-1 tail이고 stage-1 출력 CM이 CMFB 없이는 정의되지 않는 노드라서)
-> 이며, 최종 출력(Vom/Vop) 감지라면 `cm_sense_gain`에 2단 CM 이득을 넘기면 된다.
->
-> **⚠️ 정직한 한계 2 — `A_c<=0`이면 CM 루프가 양귀환**: `gds38` vs `2·gm36a·(gds39+gds40)/gm39`
-> 균형이 부호를 정한다. 부호가 뒤집히면 |T|>1인 양귀환이라 CM이 latch되고 소신호 CMRR 수치가
-> 무의미해지므로 함수가 `ValueError`를 던진다(큰 CMRR을 그냥 돌려주면 탐색이 깨진 설계를 좋은
-> 후보로 고른다).
->
-> **실회로 적용 결과(51개 소자 harness, theta=중간값)**: 새 식이 곧바로 실제 설계 결함 하나를
-> 잡아냈다 — `device_roles`가 M38(CMFB tail)에 `L_role="bias_replica"`(1.2·L_min=0.18µm)를
-> 주고 있어 `gds38=2.25e-5`가 `gds39+gds40=7.3e-6`보다 3배 커서 **A_c=-1.46, 즉 CM 루프가
-> 양귀환**이었다. M38은 tail 전류원이라 M39/M40/M36a-b와 같은 `"mirror"`(2.5·L_min=0.375µm)가
-> 물리적으로 자연스럽고, 그렇게 고치니 `A_c=+2.05`로 정상 음귀환이 됐다(topology.json
-> `_M38_L_role_comment`에 근거 기록 — 논문에서 읽은 값이 아니라 이 해석에서 유도한 설계 판단).
-> 그 결과 같은 사이징에서 **CMRR: -0.69dB(옛 식) → 86.00dB(새 식)**, 논문 94.4dB와 8.4dB 차.
-> 내부 항: `Adm=74.27dB`, `CMRR_open=-0.69dB`, `H=80.46dB`, `A_c=2.05`, `T=2.16e4`
-> → 루프 기여 `20log10|1+T|=86.69dB`. 남은 8.4dB 차이는 (a) `Voc` 감지점 가정(최종 출력을
-> 보면 2단 CM 이득이 더 붙어 `cm_sense_gain=2`만 돼도 92dB), (b) theta가 최적값이 아니라
-> 중간값 고정, (c) 2단/bias-gen 기여 미포함으로 설명 가능하다 — 재현:
+> **실회로 적용 결과(51개 소자 harness, theta=중간값)**: `CMRR: −0.69dB(1단 open-loop) →
+> **122.88dB**(CMFB 포함)`. 내부 항: `Adm_open=74.27dB`, `CMRR_open=−0.69dB`,
+> `H=−1.054e4`, `A_c=−1.314`(leading order −1.462), `G2=−108.9(40.74dB)`,
+> `T=+1.509e6 → 20log10|1+T|=123.58dB`. **논문 94.4dB보다 28.5dB 낙관적**이다 — 이 식이
+> 잡지 않는 열화 요인(CMFB 앰프의 유한 대역·오프셋, R1/R2 부하와 부정합, Monticelli
+> 부동전류원의 유한 임피던스, 소자 mismatch, bias-gen 기여)이 실제로는 CM 루프이득을
+> 깎기 때문으로 보이며, **CMRR 하한이 아니라 상한(낙관적 추정)으로 읽어야 한다**.
+> 진단 스윕이 확인한 정성적 결론도 함께 기록: `gds39/gds40`을 ×0.1~×10 흔들어도 CMRR이
+> **정확히 안 변한다**(v(Voc_des)=0 전제의 실회로 검증), `gds38`을 ×0.1~×6 흔들어도 A_c는
+> 계속 음수라 **부호가 뒤집힐 여지 자체가 없다**(7-5b의 "M38 때문에 양귀환" 진단은 틀린
+> 토폴로지에서 나온 허상 — `_M38_L_role_comment`에 폐기 기록). 재현:
 > `workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py`.
 >
-> **연쇄 발견(코드 gap 1건, 실제 `KeyError: 'gds'`로 재현)**: `_feed_gm_target_convention()`
-> (B타입 servo feed, `N_cmfb_bw` theta가 M37a를 사이징하는 경로)이 `gds`를 안 채우고 있었다 —
-> A/C 타입은 reference 항목을 통째로 복사하고 `metric_stage_budget`은 LUT에서 gds를 직접
-> 계산하는데 이 핸들러만 gm/ID/W/L만 넣었다. gm만 읽는 metric(gain/noise)뿐일 땐 안 드러나다가
-> CMFB 소자의 gds를 읽는 새 CMRR이 등장하며 발현 — `lut.gm_gds_ratio()`로 채우도록 수정.
+> **연쇄 발견(실행해보고 나서 발현된 gap 1건)**: 정정 전에는 `M39.gate="N36"`이라
+> `auto_mirror_ratios`가 M39의 전류를 자동 시드했는데, 실제 회로의 M39는 독립 diode라
+> 미러 레퍼런스가 없다 — 게다가 VDD-M39-Voc_des-M40-GND는 self-biased 분압기라 **회로 안
+> 어디에도 이 가지의 전류를 정해주는 레퍼런스가 없다**(엔진 결함이 아니라 진짜 설계
+> 자유도). 논문도 "in order to reduce the current flow"라고만 하고 절대값이 없으므로,
+> CMFB tail 전류 대비 비율을 새 theta `r_cmfb_vocdes`(bounds 0.02~0.2, 원문 수치가 아니라
+> 물리적 타당성만 있는 범위 — 정직한 한계)로 노출해 해결.
+>
+> **⚠️ 남은 한계**: (a) `G2`는 T에만 들어가고 앞항(Adm/Acm)에서 소거되므로 2단의 CM/DM
+> 이득이 다른 경우의 보정이 없다. (b) Monticelli 부동전류원을 이상적 배터리
+> (Vg15==Vg16==1단 출력)로 근사했다. (c) 위 28.5dB 낙관 편차. 최종 확인은 SPICE AC 필수.
 
 ```mermaid
 flowchart TD
@@ -1913,6 +1921,75 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 > feasible한 theta*에서도 재현되는지는 미확인. **"51개 소자 전체 harness-only
 > 완주"의 계산 부분은 증명됐고, 남은 것은 (1) 진짜 feasible한 theta* 탐색(계산 자원
 > 문제, 알고리즘 문제 아님)과 (2) 그 결과의 레이아웃 단계 통과 확인뿐이다.**
+
+> **✅/⚠️ 2026-08-03(세션 3, 배치 7-5d) — 2단 Class-AB netlist 전면 재검증, self-test는
+> 현재 FAIL 상태로 세션 종료.** 배치 7-5c(CMFB 재유도, 위 참고)가 진행되는 동안, 사용자가
+> 논문 Fig.1을 직접 보며 실제 connectivity를 한 문장씩 불러주는 방식으로 2단 Class-AB
+> 전체(Vom측 12개 + Vop측 12개)와 1단 입력쌍(M1a/M2a/M3a/M4a 및 대칭)을 재검증했다 —
+> **AI(나)가 논문 이미지를 스스로 재판독하는 방식은 이번 세션에서 신뢰할 수 없다는 게
+> 재확인됨**(아래 "신규 도구" 참고), 그래서 이번엔 사람이 직접 정답을 불러주고 그 자리에서
+> topology.json에 반영하는 방식으로 진행했다.
+>
+> **실제로 정정된 것**(전부 `_correction_log_4`에도 근거 기록):
+> - `M8`/`M13`(Vom), `M22`/`M17`(Vop): `_confidence_note`엔 이미 "병렬 전류원"이라고
+>   맞게 적혀 있었는데 실제 netlist 필드는 M11a/M20a 다이오드 스택 "위"에 직렬로 쌓인
+>   것처럼 선언돼 있던 모순 발견 → 독립 병렬 전류원으로 정정(drain은 다이오드 스택
+>   "아래", 즉 M11b/M20b의 diode 노드에서 M8/M22와 함께 합류).
+> - `M11b`(그리고 M20b)의 diode 노드가 `M8.drain`(=`Vg15`=`M15.gate`)과 **서로 다른
+>   노드**임을 처음엔 못 갈라 하나로 잘못 합쳤다가, 사용자가 "M15의 gate는 M8의 drain에만
+>   연결"이라고 정정하면서 `N11b`(신설, Vop측 `N20b`)로 분리.
+> - `M12`(Vom)/`M21`(Vop): `Vg15`가 아니라 `N11b`(위)로 연결 — `VDD→M11a→M11b→N11b→
+>   M12→GND`가 M8과 무관한 독립 2-다이오드+싱크 서브회로임을 사용자가 확정. 이 서브회로
+>   전류를 정하던 옛 `kcl_diode_M11a`(M8+M13→M11a KCL 합, 이제 성립 안 함)를 폐기하고,
+>   논문 II.B절("the two diode-connected (M11a and M11b) are pushed to sub-threshold
+>   region")을 근거로 자유 비율 theta `r_diode_M11a`/`r_diode_M20a`(root=[M11a,M11b,M12]
+>   /[M20a,M20b,M21] 3개를 동시 시드 — `r_classab_src`의 root=list 패턴 재사용)로 대체.
+> - `M9a`/`M9b`(Monticelli floating current source, 대칭 M18a/M18b): 직렬 스택이 아니라
+>   `Vg15`↔`Vg16` 사이에 **병렬로** 걸린 구조로 재확정 — `M9a`(pmos, source=gate=`Vg15`,
+>   drain=`Vg16`), `M9b`(nmos, drain=`Vg15`, source=`Vg16`, gate=`N14a14b`=M13.drain).
+> - `M10`(Vom)/`M19`(Vop): `M12`/`M21`처럼 `gnd`에서 독립 소스, drain은 `Vg16`/`Vg26`.
+> - `M13`(Vom)/`M17`(Vop): drain을 `Vg15`/`Vg25`가 아니라 `N14a14b`/`N24b23a`
+>   (M14a/M24b의 diode 노드)로 정정.
+> - `M14a`/`M14b`(대칭 M24b/M23a): `M14a.source=M14b.drain=Vg16`,
+>   `M14a.gate=M14a.drain=M14b.source=N14a14b` — 서로 반대 방향 다이오드 확정.
+> - **`M1a`/`M2a`/`M3a`/`M4a`(1단 입력쌍, 대칭 M1b/M2b/M3b/M4b) — 세션 막바지 대형 정정**:
+>   `M2a`/`M3a`가 직렬 캐스코드(`M2a.drain→M3a.source`)라고 가정했던 게 틀렸다 —
+>   실제로는 **drain끼리 `Vom1`에서 직접 합류**하는 구조(PMOS 경로 `M1a→M2a`와 NMOS
+>   경로 `M4a→M3a`가 각각 독립적으로 `Vom1`에 전류를 밀어넣는 진짜 "current-reuse"
+>   구조 — current_reuse_telescopic_ota 배경 에이전트(7-5c)가 PDF 벡터 좌표로 독립
+>   발견했던 것과 정확히 일치, 상호 교차검증됨). `M1a.drain=M2a.source="N1a2a"`(신설),
+>   `M4a.drain=M3a.source="N3a4a"`(기존 이름 재사용), `M2a.drain=M3a.drain="Vom1"`
+>   (이동, Vop측 `Vop1`도 대칭).
+>
+> **⚠️ 이 마지막 정정이 self-test를 깨뜨렸다(세션 3 종료 시점 exit 1)**: `sizing_recipe.py`
+> self-test의 `_crt_by_name["M2a"].drain == _crt_by_name["M3a"].source` assert가 옛
+> (틀린) "직렬 캐스코드" 가정으로 작성된 것이라 이제 실패한다. 더 근본적으로는
+> `_cmrr_telescopic_class_ab()`/`_cmrr_telescopic_class_ab_cmfb()`의
+> `Kp_prime = gmcp/(gdsp1*gdsp2)`(캐스코드 출력임피던스 부스팅 공식)도 같은 틀린
+> 직렬-캐스코드 가정으로 유도됐을 가능성이 있어, **CMRR 폐형식을 세 번째로 재검토해야
+> 할 수 있다** — 다음 세션 최우선 과제(`.ai/context.md` 참고).
+>
+> **R1/R2(CM 감지 저항) 처리**: `Voc`가 dangling(구동 소자 없음)으로 계속 플래그되는 걸
+> 보고 "R1/R2를 왜 netlist에 안 넣냐"는 지적이 나옴 — `netlist`(kind: pmos/nmos)는
+> `.kind`를 참조하는 227곳(`stick_diagram.py` 203 + `sizing_recipe.py` 24, LUT 룩업/
+> 스택 배정/레이아웃)이 트랜지스터라고 가정하고 읽으므로 그냥 섞으면 위험 — 대신
+> **`passive_elements`라는 별도 배열을 신설**(사이징 엔진은 안 읽음, connectivity 기록
+> 전용)해 R1/R2를 넣었다. `_known_dangling_nets`(근거 있는 "해소된" dangling net 설명)도
+> 함께 신설.
+>
+> **신규 도구 — `topology_to_markdown.py`(사용자 지적으로 신설, 앞으로 필수)**: "AI가
+> 회로도 그림을 생각보다 잘 인식 못 한다"는 지적에 따라, topology.json을 새로 만들거나
+> connectivity를 고칠 때마다 `skills/analog-gmid-design/assets/topology_to_markdown.py
+> <json경로>`를 실행해 (1) net별/소자별 connectivity 표를 `<name>.topology.md`로 저장,
+> (2) **같은 내용을 세션에도 출력**해 사람이 눈으로 재확인하게 하는 걸 필수 절차로 만들었다
+> (`references/topology-extraction-checklist.md` §5, `SKILL.md`에 반영). 고아 net(단자
+> 1개)/구동 소자 없는 net을 자동 플래그하고, `_known_dangling_nets`로 근거 있는 예외는
+> 구분해서 표시한다. 텍스트로 소자를 하나씩 순서대로 서술하는 것보다 **net을 기준으로
+> 뒤집은 표**가 "서로 다른 두 노드를 같은 이름으로 착각"하는 유형의 오류(이번 세션에서
+> 최소 4~5건 발생)를 훨씬 잘 드러낸다는 게 실측으로 확인됐다.
+>
+> **아무것도 커밋 안 됨** — `b63e394`(세션 2 커밋, CMFB 1차 오류 버전) 이후 이번 세션
+> 전부가 working tree에만 있다. self-test가 다시 통과할 때까지 커밋 보류.
 
 ---
 
