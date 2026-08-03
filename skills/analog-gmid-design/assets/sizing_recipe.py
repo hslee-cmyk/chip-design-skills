@@ -427,7 +427,8 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
 
 def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_grid,
                          objective: str = "power", gain_min=None, w_max=None,
-                         max_iter: int = 10, tol: float = 1e-3):
+                         max_iter: int = 10, tol: float = 1e-3,
+                         shared_gm_id_groups: list | None = None):
     """제네릭 다단 회로 최적화 엔진 — **토폴로지가 바뀌어도 이 함수는 그대로 재사용**한다.
 
     다단 회로마다 다른 건 "스펙 → 각 스테이지 필요 gm" 관계식(위상보상 방정식)뿐이고, 그 gm을
@@ -471,9 +472,26 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
     반환한다(`cycle_detected=True`, `cycle_period=p`). 순환 자체를 없애는 게 아니라 순환 중인 값
     대신 재현 가능한 대표값을 주는 것 — 최종 회로 성능은 여전히 SPICE로 확인해야 한다.
 
+    shared_gm_id_groups(2026-08-03, 배치 7-5 실행 중 발견): `list[list[int]]`, 예 `[[0,1]]` —
+    스테이지 인덱스 그룹 중 **물리적으로 같은 직렬 KCL 전류경로**(예: current-reuse 토폴로지의
+    PMOS/NMOS 입력쌍이 한 branch를 공유)라 ID까지 같아야 하는 경우에만 지정한다(gm만 같은
+    diff pair는 각자 독립 전류라 여기 해당하지 않음 — 그건 그냥 별개 스테이지). 지정된
+    그룹은 (L,VDS)는 스테이지(=kind)별로 각자 찾되 **gm_id 하나를 공유**해서 사이징한다 —
+    `gm`이 같은 스테이지끼리 묶었다면(topology_fn이 그렇게 만든다) gm_id가 같으면
+    `ID=gm/gm_id`도 자동으로 같아진다(KCL이 요구하는 바로 그 조건). 지정하지 않은 스테이지는
+    기존과 동일하게 완전히 독립적으로(각자 최적 gm_id) 사이징된다 — 하위호환 100% 보장.
+    ⚠️ 발견 경위: `current_reuse_telescopic_topology()`가 반환하는 gmp(M1a/M1b)/gmn(M4a/M4b)는
+    Eq.5로 gm은 같게 강제되지만, 이 둘의 실제 디바이스(M1a→M2a→M3a→M4a)는 하나의 물리적
+    직렬 스택이라 ID까지 반드시 같아야 한다 — 종전 구현은 두 스테이지를 완전히 독립적으로
+    최적화해 서로 다른 gm_id(→다른 ID)를 골라도 몰랐다(`optimize_full_circuit_budget()`을
+    이 회로 51개 소자 전체에 처음 실행하면서 A엔진의 KCL 위반 에러로 실측 발견 — 이전
+    self-test는 toy LUT로 `optimize_multistage()` 자체의 내부 수렴만 봤지 그 결과를
+    `run_topology_pipeline()`의 stack_id 감사에 넣어본 적이 없어 놓쳤다).
+
     반환: dict(gms=[gm_i,...], stages=[find_optimal_sizing 결과,...], cggs=[...], iters, converged,
                cycle_detected, [cycle_period])
-          또는 어느 스테이지든 실행가능점을 못 찾으면 None.
+          또는 어느 스테이지든(혹은 shared_gm_id_groups의 어느 그룹이든) 실행가능점을 못 찾으면
+          None.
     """
     def _per_stage(param, i):
         return param[i] if isinstance(param, (list, tuple)) else param
@@ -483,9 +501,68 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
             luts[i], L_candidates, VDS_candidates, gm_id_grid, gm=gm,
             objective=objective, gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i))
         if best is None:
-            return None, None
-        cgg = luts[i].cgg_absolute(best["gm_id"], best["L"], best["VDS"], 0.0, best["W"])
-        return best, cgg
+            return None
+        return best
+
+    group_of = {}
+    for g in (shared_gm_id_groups or []):
+        for i in g:
+            group_of[i] = tuple(g)
+
+    def _size_group_at_gm_id(indices, gms, gm_id):
+        members = []
+        for i in indices:
+            best, _ = find_optimal_sizing(
+                luts[i], L_candidates, VDS_candidates, [gm_id], gm=gms[i],
+                objective="area", gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i))
+            if best is None:
+                return None
+            members.append(best)
+        return members
+
+    def _size_shared_group(indices, gms):
+        # objective="power": ID=gm/gm_id는 gm_id에만 의존(L/VDS 무관) -- 그룹 내 gm이 전부
+        # 같다는 전제(topology_fn이 그렇게 반환) 하에 gm_id가 클수록(=약반전=ID 작음) power가
+        # 낮아지므로 내림차순으로 훑어 처음 feasible한 gm_id를 채택한다(단일-스테이지의 "약반전
+        # 우선" tie-break와 같은 방향). objective="area"는 전 gm_id를 훑어 그룹 총 W가 최소인
+        # 것을 채택한다.
+        order = sorted(gm_id_grid, reverse=(objective == "power"))
+        best_group, best_val = None, None
+        for gm_id in order:
+            members = _size_group_at_gm_id(indices, gms, gm_id)
+            if members is None:
+                continue
+            if objective == "power":
+                return members  # 내림차순 첫 feasible = 최소 ID(=최소 전력) 후보
+            val = sum(m["W"] for m in members)
+            if best_val is None or val < best_val:
+                best_group, best_val = members, val
+        return best_group
+
+    def _size_all(gms):
+        """stages/cggs 리스트 계산 -- 공유 gm_id 그룹과 독립 스테이지가 섞여도 처리한다.
+        실패 시(어느 스테이지/그룹이든 실행가능점 없음) None."""
+        stages = [None] * len(gms)
+        handled_groups = set()
+        for i in range(len(gms)):
+            if i in group_of:
+                g = group_of[i]
+                if g in handled_groups:
+                    continue
+                handled_groups.add(g)
+                members = _size_shared_group(list(g), gms)
+                if members is None:
+                    return None
+                for gi, best in zip(g, members):
+                    stages[gi] = best
+            else:
+                best = _size_stage(i, gms[i])
+                if best is None:
+                    return None
+                stages[i] = best
+        cggs = [luts[i].cgg_absolute(stages[i]["gm_id"], stages[i]["L"], stages[i]["VDS"], 0.0,
+                                      stages[i]["W"]) for i in range(len(gms))]
+        return stages, cggs
 
     n = len(luts)
     prev_cggs = None
@@ -494,13 +571,10 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
     result = None
     for it in range(max_iter):
         gms = topology_fn(prev_cggs)
-        stages, cggs = [], []
-        for i in range(n):
-            best, cgg = _size_stage(i, gms[i])
-            if best is None:
-                return None  # 이 gm 타깃을 실행가능하게 구현 못함 -> 스펙/격자 재검토 필요
-            stages.append(best)
-            cggs.append(cgg)
+        sized = _size_all(gms)
+        if sized is None:
+            return None  # 이 gm 타깃을 실행가능하게 구현 못함 -> 스펙/격자 재검토 필요
+        stages, cggs = sized
         gms_history.append(gms)
         converged = prev_gms is not None and all(
             abs(g - pg) < tol * pg for g, pg in zip(gms, prev_gms))
@@ -515,13 +589,10 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         a, b = gms_history[-p], gms_history[-2 * p]
         if all(abs(x - y) < tol * max(abs(y), 1e-15) for x, y in zip(a, b)):
             avg_gms = [sum(gms_history[-p + k][i] for k in range(p)) / p for i in range(n)]
-            stages, cggs = [], []
-            for i in range(n):
-                best, cgg = _size_stage(i, avg_gms[i])
-                if best is None:
-                    return None
-                stages.append(best)
-                cggs.append(cgg)
+            sized = _size_all(avg_gms)
+            if sized is None:
+                return None
+            stages, cggs = sized
             return dict(gms=avg_gms, stages=stages, cggs=cggs, iters=max_iter, converged=False,
                         cycle_detected=True, cycle_period=p)
     return result
@@ -1297,22 +1368,71 @@ class FeedHandler:
 
 
 def _feed_root_ratio(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
-    """`{"type":"A","tag":...,"root":<device>,"reference":[<device>,...]}` — A엔진
-    `seed_currents`에 `theta_value * sum(reference 소자들의 이미 확정된 전류)`를 `root`의
+    """`{"type":"A","tag":...,"root":<device>|[<device>,...],"reference":[<device>,...]}` —
+    A엔진 `seed_currents`에 `theta_value * sum(reference 소자들의 이미 확정된 전류)`를 `root`의
     seed 전류로 채운다. `reference` 소자들의 `ID`는 이 feed가 적용되는 시점까지 이미
     `ctx.sized`에 있어야 한다(호출 순서 책임은 `sizing_roles.theta` 배열 순서 — 참조 소자를
-    먼저 결정하는 theta를 앞에 선언할 것) 또는 `spec["known_sizing"]`으로 미리 시드해둘 것."""
-    root = feed_spec["root"]
-    total = sum(ctx.sized[r]["ID"] for r in feed_spec["reference"])
-    ctx.seed_currents[root] = theta_value * total
+    먼저 결정하는 theta를 앞에 선언할 것) 또는 `spec["known_sizing"]`으로 미리 시드해둘 것.
+
+    `root`는 문자열(소자 1개) 또는 리스트(소자 여러 개, 전부 같은 비율로 동시에 시드)를 받는다
+    (2026-08-03, 배치 7-5 실행 중 확장) — bias-gen처럼 "같은 레퍼런스를 gate로 읽는 병렬
+    전류원이 N개"인 실제 회로에서, 소자마다 theta 차원을 하나씩 늘리면(예: N=8) 격자
+    탐색이 `grid_points_per_theta**N`배로 폭발한다(current_reuse_telescopic_ota에서 실측 —
+    M6/M8/M13/M22/M17/M60/M61/M66이 전부 M18_bg와 같은 Vbias1/유사 레퍼런스를 읽는 병렬
+    전류원). `matching_pairs`(kind=current_mirror)로 우회하는 방법도 시도했으나, 그건
+    "같은 L을 써야 하는 진짜 매칭쌍"이라는 별도 의미를 강제해(§L 일치성 검사) 서로 다른
+    L_role(mirror/bias_replica 등)을 쓰는 이 소자들에는 안 맞았다(실측 확인: ValueError로
+    실패) — `root`를 리스트로 받아 theta 차원 증가 없이 N개를 동시에 seed하는 이 확장이
+    두 문제(격자 폭발, 강제 L 일치) 모두를 피한다.
+
+    `reference` 소자는 `ctx.sized`(compensation/A엔진이 이미 확정) 또는 `ctx.seed_currents`
+    (같은 평가 안에서 이 feed보다 먼저 실행된 다른 "A" root_ratio feed가 seed만 해두고 아직
+    A엔진을 못 거친 상태)에서 조회한다(2026-08-03 확장) — A엔진이 theta 루프 전체가 끝난
+    뒤 단 한 번만 도는 구조라, 한 theta의 root가 다른 theta의 reference로 쓰이는 체이닝
+    (예: r_classab_src가 seed한 M8/M13을 kcl_diode_M11a가 참조)은 `ctx.sized`만 보면
+    KeyError가 난다(실측 발견) — `ctx.seed_currents`도 함께 보게 하면 코드 변경 없이
+    바로 풀린다(둘 다 없으면 여전히 명확한 KeyError로 실패)."""
+    roots = feed_spec["root"] if isinstance(feed_spec["root"], list) else [feed_spec["root"]]
+
+    def _ref_id(name):
+        entry = ctx.sized.get(name)
+        if entry is not None and "ID" in entry:
+            return entry["ID"]
+        return ctx.seed_currents[name]
+
+    total = sum(_ref_id(r) for r in feed_spec["reference"])
+    for root in roots:
+        ctx.seed_currents[root] = theta_value * total
 
 
 def _feed_diode_stack_target(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
     """`{"type":"C","target":<device>,"reference":<device>}` — diode-stack replica 면적
-    원칙: `target`의 `W`를 `theta_value`(면적비 K_replica) `* reference의 이미 확정된 W`로
-    설정한다."""
+    원칙: `target`을 `reference`의 replica(같은 gm_id/L/VDS/VS 동작점을 그대로 물려받고,
+    W/ID/gm/gds는 `theta_value`(면적비 K_replica) 배)로 채운다.
+
+    2026-08-03 확장(배치 7-5 실행 중 발견): 원래는 `W`만 설정했는데, `target`이
+    `device_roles`의 `gm_id_role`을 갖는 경우(예: K_replica의 M9a) 그 단계가 "ID가 아직
+    없다"로 실패했다 — replica는 reference와 같은 VGS(=같은 gm_id/L/VDS/VS)를 그대로
+    물려받는다는 전제이므로 `gm=ID*gm_id`, `gds=gm/gm_gds_ratio(gm_id,L,VDS,VS)` 둘 다
+    gm_id/L/VDS/VS가 불변이면 `ID`와 같은 비율로 스케일된다(LUT 재조회 없이 산술만으로
+    정확) — `ID`/`gm`/`gds`도 함께 스케일해 채운다. ⚠️ `target`의 kind가 `reference`와
+    다르면(예: 상보쌍 replica) 이 근사가 성립하지 않는다 — 지금 쓰는 K_replica(M9a<-M15,
+    둘 다 pmos)는 kind 일치가 확인된 경우만이다(self-test 참고)."""
     target, reference = feed_spec["target"], feed_spec["reference"]
-    ctx.sized.setdefault(target, {})["W"] = theta_value * ctx.sized[reference]["W"]
+    ref = ctx.sized[reference]
+    entry = {"W": theta_value * ref["W"]}
+    for key in ("gm_id", "L", "vds", "vs", "kind"):
+        if key in ref:
+            entry[key] = ref[key]
+    for key in ("ID", "gm", "gds"):
+        if key in ref:
+            entry[key] = theta_value * ref[key]
+    if "L" in entry:
+        # "compensation"과 동급으로 취급되는 권위 있는 L 출처(아래 matching_pairs L 우선순위
+        # 검사의 _AUTHORITATIVE_L_SOURCES 참고) -- device_roles의 L_role(휴리스틱 배수)이
+        # 함부로 덮어쓰지 못하게 표시한다.
+        entry["_L_source"] = "replica"
+    ctx.sized[target] = entry
 
 
 def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
@@ -1531,7 +1651,8 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             comp_result = optimize_multistage(
                 topology_fn, luts, spec["L_candidates"], spec["VDS_candidates"], spec["gm_id_grid"],
                 objective=stage_objective, gain_min=spec.get("stage_gain_min"),
-                w_max=spec.get("stage_w_max"))
+                w_max=spec.get("stage_w_max"),
+                shared_gm_id_groups=comp.get("shared_gm_id_groups"))
             if comp_result is None:
                 raise ValueError("optimize_multistage()가 실행가능점을 못 찾음 -- "
                                   "L_candidates/VDS_candidates/gm_id_grid를 확인하세요")
@@ -1546,14 +1667,29 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                                         "ID": gm_i / st["gm_id"], "gds": gds_i, "kind": kind_of[name],
                                         "_L_source": "compensation"}
 
+        # A엔진 1차 패스(theta 루프보다 먼저, 2026-08-03 배치 7-5 실행 중 발견) -- compensation이
+        # 정한 ID만으로 이미 결정되는 KCL 스택(예: current_reuse_telescopic_ota의 M1a-M2a-
+        # M3a-M4a-M5, compensation이 M1a/M4a를 정하는 순간 나머지 스택 멤버 전부가 이미 위상만으로
+        # 확정됨)은 theta 루프가 시작되기 전에 미리 풀어둬야 한다 -- `metric_stage_budget`
+        # feed(L_cascode 등)가 "devices의 ID가 이미 있어야 한다"고 요구하는데, 그 ID가 A엔진
+        # 산출물이면 이 feed가 theta 루프 "안에서" 호출되는 이상 이 시점에 이미 있어야 한다.
+        # (r_biasgen처럼 theta 자신이 새로 시드하는 전류는 아직 없으므로 이 1차 패스에서 못 풀리는
+        # 게 정상 -- 그건 아래 2차 패스가 담당한다.)
+        pre_theta_seeds = {n: e["ID"] for n, e in ctx.sized.items() if "ID" in e}
+        for name, idv in propagate_topology_forced_currents(
+                transistors_stackid, pre_theta_seeds, ctx.mirror_ratios).items():
+            ctx.sized.setdefault(name, {}).setdefault("ID", idv)
+
         for theta in thetas:
             if theta["name"] in theta_values:
                 apply_theta_feed(theta["feeds"], theta_values[theta["name"]], ctx)
 
-        # A엔진 seed = compensation이 이미 정한 ID 전부(위 병합 결과) + theta가 명시적으로
-        # 시드한 것(ctx.seed_currents) -- 이래야 compensation-stage 소자와 같은 stack_groups
-        # 그룹(2단자 내부노드로 병합된 A유형 소자, 예: two_stage_ota의 M3/M4)이 그 ID를
-        # 물려받는다.
+        # A엔진 2차 패스 seed = compensation + 1차 패스가 이미 정한 ID 전부(위 병합 결과) +
+        # theta가 명시적으로 시드한 것(ctx.seed_currents) -- 이래야 compensation-stage 소자와
+        # 같은 stack_groups 그룹(2단자 내부노드로 병합된 A유형 소자, 예: two_stage_ota의 M3/M4)이
+        # 그 ID를 물려받고, r_biasgen처럼 theta가 새로 시드한 전류도 전파된다. propagate_
+        # topology_forced_currents()는 이미 알려진 이름을 다시 계산하지 않으므로(고정점까지
+        # 반복하는 멱등 연산) 1차 패스와 결과가 겹쳐도 안전하다.
         combined_seeds = {n: e["ID"] for n, e in ctx.sized.items() if "ID" in e}
         combined_seeds.update(ctx.seed_currents)
         a_ids = propagate_topology_forced_currents(transistors_stackid, combined_seeds,
@@ -1561,25 +1697,34 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         for name, idv in a_ids.items():
             ctx.sized.setdefault(name, {}).setdefault("ID", idv)
 
+        # "권위 있는"(휴리스틱이 아니라 spec/replica 관계에서 직접 유도된) L 출처 태그 —
+        # 2026-08-03 확장: 원래 "compensation"만 있었는데, C타입 replica feed(K_replica 등,
+        # `_feed_diode_stack_target()`)가 reference의 L을 그대로 물려받는 것도 같은 성격의
+        # 권위 있는 값이라 device_roles의 L_role(휴리스틱 배수)이 덮어쓰면 안 된다 —
+        # "compensation"이었을 때와 정확히 같은 이유(spec 기반 근거가 있는 쪽이 이긴다)로
+        # "replica"도 이 집합에 추가.
+        _AUTHORITATIVE_L_SOURCES = {"compensation", "replica"}
+
         for name, dr in device_roles.items():
             if dr.get("L_role"):
                 entry = ctx.sized.setdefault(name, {})
-                if entry.get("_L_source") != "compensation":  # compensation이 이미 정한 L을
+                if entry.get("_L_source") not in _AUTHORITATIVE_L_SOURCES:
                     L_min = spec.get("L_min_by_kind", {}).get(kind_of[name], spec.get("L_min"))
                     entry["L"] = select_L_by_role(dr["L_role"], L_min)
                     entry["_L_source"] = "L_role"
 
         # matching_pairs로 선언된 두 소자는 반드시 같은 L을 써야 매칭이 성립한다(전류미러/
         # 차동쌍의 표준 관례 -- 실제 전류미러가 서로 다른 L을 쓰면 매칭 정확도가 무너진다).
-        # compensation(stage_devices)과 device_roles(L_role)은 서로 독립된 경로로 L을 정하므로
-        # "우연히 같음"에 기대지 않고 명시적으로 검증+전파한다. 값이 다를 때 무조건 에러로
-        # 끝내지 않는다 -- compensation은 실제 스펙(GBW/PM/Z 등)을 만족하도록 탐색해서 나온
-        # 값이라 "더 근거 있는" 쪽이고, L_role은 (mirror/bias_replica 등) 휴리스틱이라 그
-        # 값에 맞춰 재설계돼도 무방하다: 한쪽이 compensation 기원이면 그 값으로 다른 쪽을
-        # 덮어써서 전파한다(L_role 쪽은 아직 gm_id/W가 확정 전이므로 이후 gm_id_role 루프가
-        # 새 L로 자연히 다시 사이징한다 -- 별도 재계산 코드 불필요). 양쪽 다 compensation이거나
-        # 양쪽 다 L_role인데 값이 다르면 스펙 근거로 우선순위를 가릴 수 없는 진짜 선언
-        # 불일치이므로 그때만 ValueError(조용히 넘어가지 않음 -- 매칭 정확도는 안전-critical).
+        # compensation(stage_devices)/replica(C타입 feed)과 device_roles(L_role)은 서로
+        # 독립된 경로로 L을 정하므로 "우연히 같음"에 기대지 않고 명시적으로 검증+전파한다.
+        # 값이 다를 때 무조건 에러로 끝내지 않는다 -- compensation/replica는 실제 스펙(GBW/
+        # PM/Z 등)이나 명시적 replica 관계에서 유도된 값이라 "더 근거 있는" 쪽이고, L_role은
+        # (mirror/bias_replica 등) 휴리스틱이라 그 값에 맞춰 재설계돼도 무방하다: 한쪽이
+        # 권위 있는 출처면 그 값으로 다른 쪽을 덮어써서 전파한다(L_role 쪽은 아직 gm_id/W가
+        # 확정 전이므로 이후 gm_id_role 루프가 새 L로 자연히 다시 사이징한다 -- 별도 재계산
+        # 코드 불필요). 양쪽 다 권위 있는 출처거나 양쪽 다 L_role인데 값이 다르면 스펙 근거로
+        # 우선순위를 가릴 수 없는 진짜 선언 불일치이므로 그때만 ValueError(조용히 넘어가지
+        # 않음 -- 매칭 정확도는 안전-critical).
         for _p in pairs_meta:
             # names는 2개뿐 아니라 N개일 수 있다(current_mirror 기준 소자를 여러 소자가
             # 미러하는 경우) -- 인접 쌍 체인으로 같은 검증+전파 로직을 적용한다(2026-08-01,
@@ -1594,14 +1739,15 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                     _eb["L"] = _La
                 elif _La is not None and _Lb is not None and abs(_La - _Lb) > 1e-15:
                     _sa, _sb = _ea.get("_L_source"), _eb.get("_L_source")
-                    if _sa == "compensation" and _sb != "compensation":
+                    _sa_auth, _sb_auth = _sa in _AUTHORITATIVE_L_SOURCES, _sb in _AUTHORITATIVE_L_SOURCES
+                    if _sa_auth and not _sb_auth:
                         _eb["L"] = _La
-                    elif _sb == "compensation" and _sa != "compensation":
+                    elif _sb_auth and not _sa_auth:
                         _ea["L"] = _Lb
                     else:
                         raise ValueError(
                             f"matching pair ({_pa},{_pb}, kind={_p['kind']})의 L이 서로 다른데"
-                            f"(L_{_pa}={_La}, L_{_pb}={_Lb}) 어느 쪽도 spec 기반(compensation)이 "
+                            f"(L_{_pa}={_La}, L_{_pb}={_Lb}) 어느 쪽도 spec 기반(compensation/replica)이 "
                             f"아니라(_L_source={_sa!r}/{_sb!r}) 자동으로 우선순위를 가릴 근거가 "
                             f"없다 -- topology.json의 device_roles L_role/L_min_by_kind 선언을 "
                             f"확인할 것")
@@ -1709,12 +1855,21 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         theta_star, sizing = {}, ctx.sized
     else:
         names = [t["name"] for t in thetas]
-        grids = [[_lerp(t["bounds"][0], t["bounds"][1], i / (grid_points_per_theta - 1))
+        # bounds[0]==bounds[1](고정값 -- 예: KCL 순수 합산을 표현하는 ratio=1.0 theta,
+        # M5/M11a/M38 등)인 theta는 grid_points_per_theta와 무관하게 1개 점만 평가한다
+        # (2026-08-03, 배치 7-5 실행 중 발견): 그렇지 않으면 이런 "설계 자유도 없는" theta가
+        # 하나 늘 때마다 전체 격자 조합 수가 grid_points_per_theta배씩 곱해져(현재 회로는
+        # 이런 고정 theta가 8개라 2^8=256배) 탐색이 사실상 끝나지 않았다(실측: 40분+ 무응답,
+        # 강제 종료 후 발견) — 값이 어차피 하나뿐이니 여러 번 평가할 이유가 없다.
+        grids = [[t["bounds"][0]] if t["bounds"][0] == t["bounds"][1] else
+                 [_lerp(t["bounds"][0], t["bounds"][1], i / (grid_points_per_theta - 1))
                   for i in range(grid_points_per_theta)] for t in thetas]
         best = None
+        last_metrics, last_theta = None, None
         for combo in itertools.product(*grids):
             theta_values = dict(zip(names, combo))
             ctx, metrics_result = _evaluate(theta_values)
+            last_metrics, last_theta = metrics_result, theta_values
             feasible = all(_CONSTRAINT_OPS[c["op"]](metrics_result[c["metric"]], c["value"])
                            for c in constraints)
             if not feasible:
@@ -1724,7 +1879,17 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             if best is None or obj_val < best[0]:
                 best = (obj_val, theta_values, ctx.sized, metrics_result)
         if best is None:
-            raise ValueError("모든 theta 격자점이 infeasible -- bounds/constraints를 확인하세요")
+            # 2026-08-03(배치 7-5 디버깅 중 추가) -- "infeasible"만 알려주면 어느 제약이 왜
+            # 안 맞는지 알 방법이 없어 매번 코드를 임시로 고쳐 값을 찍어봐야 했다 -- 마지막으로
+            # 평가한 조합의 실제 metrics와 위반된 제약을 에러 메시지에 그대로 포함시킨다.
+            _violations = [f"{c['metric']}{c['op']}{c['value']}(실제={last_metrics.get(c['metric'])})"
+                            for c in constraints
+                            if last_metrics is not None and
+                            not _CONSTRAINT_OPS[c["op"]](last_metrics[c["metric"]], c["value"])]
+            raise ValueError(
+                f"모든 theta 격자점이 infeasible -- bounds/constraints를 확인하세요. "
+                f"마지막 평가 조합의 theta={last_theta}, metrics={last_metrics}, "
+                f"위반된 제약={_violations}")
         _, theta_star, sizing, metrics_result = best
 
     sizing_overrides, pipeline_result, audit_ok = None, None, None

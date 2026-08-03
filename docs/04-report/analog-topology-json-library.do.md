@@ -1811,6 +1811,33 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 상태다 — 회로 전체가 harness 하나로 안 끝난다는 것 자체가 82개 함수 감사의 원래 결론과
 일치한다(완전 자동화가 아니라, 자동화 가능한 부분과 불가능한 부분을 명확히 가르는 것).
 
+> **✅ 2026-08-03 — `optimize_full_circuit_budget()`을 이 회로 51개 소자 전체에 처음
+> 실행(1차 실증은 two_stage_ota 7개 소자로만 됐었음, §7.9 질문 2c가 요구한 "다른 회로
+> 검증"을 마침내 실제로 수행). **결과: 51개 소자 전체의 사이징(W/L/gm/ID/gm_id)과
+> `sizing_roles.metrics`(power/area/gain/mismatch/CMRR/PSRR) 계산이 예외 없이 끝까지
+> 도는 것을 확인했다** — do.md §10이 요구한 "spec→instance.json 전체 workflow"의
+> 계산 부분은 완주. 실행 과정에서 실제 `ValueError`/`KeyError`로 재현된 gap 15건
+> (topology.json 선언 11건 + `sizing_recipe.py` 코드 4건, 전부 self-test 회귀 확인
+> 후 반영)을 찾아 고쳤다 — 상세 목록·근거는
+> `docs/03-analysis/analog-topology-json-library.gap-findings.md` §26 참고.
+>
+> **정직한 한계(다음 세션 이월)**: (a) 실제 constraints(gain_db>=75.6/mismatch<=5.0/
+> CMRR>=60/PSRR>=60)를 만족하는 진짜 `theta*`를 찾는 전체 grid search(9개 실제 theta,
+> 2^9=512 조합)는 이 환경에서 배경 프로세스가 반복적으로 강제 종료(9~40분 사이,
+> 원인 미확인 — 이 세션/환경의 백그라운드 실행시간 제한으로 추정)돼 끝까지 못
+> 돌렸다. theta를 중간값 하나로 고정한 단일-조합 진단 실행으로는 gain/mismatch는
+> 만족했지만 CMRR(-0.69dB)/PSRR(25.4dB)이 크게 미달했다 — 코드 결함이 아니라
+> `L_cascode`의 `metric_stage_budget` feed가 쓰는 고정 `gm_id=15.0` 기본값과
+> 입력쌍의 탐색된 공유 gm_id가 이 임의 지점에서 어긋나 `_cmrr_telescopic_class_ab()`
+> 자신이 이미 문서화한 "다른 쪽 경로가 만드는 바닥(floor)" 현상이 실측된 것.
+> (b) `assign_finger_geometry()`→`run_topology_pipeline()`→`repair_matching_safety()`
+> (배치 7-4)와 `save_instance_json()`까지는 완화된(항상 만족하는) constraints로
+> 시도했을 때 `common_centroid_layout()`의 새 에러("count=1가 소자 수 n=2보다
+> 작다" — 극단적으로 작은 W를 가진 소자 쌍)를 만나 아직 통과 못했다 — 실제
+> feasible한 theta*에서도 재현되는지는 미확인. **"51개 소자 전체 harness-only
+> 완주"의 계산 부분은 증명됐고, 남은 것은 (1) 진짜 feasible한 theta* 탐색(계산 자원
+> 문제, 알고리즘 문제 아님)과 (2) 그 결과의 레이아웃 단계 통과 확인뿐이다.**
+
 ---
 
 ### 배치 7-6 — `sizing_overrides` 자동 구성: `stack_id`/finger 배정 (신규, 2026-07-31 — 최종 시나리오 감사로 발견) ✅ 구현 완료(2026-07-31)

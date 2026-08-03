@@ -911,4 +911,136 @@ radius(모든 호출부의 접근 패턴 변경)를 가진 작업이었지만, �
 동사 없는 이름(`hierholzer`)이나 구조가 다른 타입(`AuditResult`)처럼, 비일관성으로
 보이는 모든 항목이 실제로 "고쳐야 할 결함"인 것은 아니다 — 도메인 표준 용어나
 의도적으로 다른 구조를 반영한 이름은 그대로 유지하고 그 판단 근거를 문서화하는 것도
+
+---
+
+## 26. 배치 7-5 최초 실행 — `optimize_full_circuit_budget()`을 51개 소자 전체에
+    처음 돌려 발견한 gap 15건 (2026-08-03, 완료)
+
+> **배경**: do.md 배치 7-5는 "harness만으로 spec→instance.json까지 51개 소자 전체를
+> 완주"가 최종 게이트였는데, 실제로는 7개 소자(two_stage_ota)로만 검증됐을 뿐 이
+> 회로(current_reuse_telescopic_ota, 51개 소자)에 `optimize_full_circuit_budget()`을
+> 실제로 실행한 적이 없었다. 이번 세션에서 처음 실행하며 발견한 gap을 시간 순서대로
+> 기록한다 — 전부 실제 `ValueError`/`KeyError` traceback으로 재현·확인된 것이다
+> (do.md §1.5 "AI가 코드로 메우지 않고 신호를 그대로 받는다" 설계가 실제로 작동함을
+> 보여주는 사례이기도 하다: 15건 전부 구체적인 에러 메시지가 "topology.json의 어느
+> 필드가 비었다/틀렸다"를 정확히 가리켰다).
+
+**topology.json 선언 gap (11건, 전부 `current_reuse_telescopic_ota.topology.json` 수정)**:
+1. `sizing_roles.theta`의 `K_replica`/`N_cmfb_bw`/`r_biasgen` feed가 do.md 초안 JSON
+   예시를 그대로 옮긴 상태라 실제 핸들러 시그니처(`reference`/`target`/`omega_key`/
+   `cap_key`/`L`/`W`/`root` 등)에 필요한 키가 다수 빠져 있었다 — 채움.
+2. `L_cascode`/`L_stage2out`의 `bounds: [1, 5]`가 (미터 단위 그대로 쓰는) 실제 계약과
+   안 맞아 `L=1.0`(1미터!)이 나옴 — `[1.5e-7, 1.0e-6]`(실제 sky130 L grid 범위)로 정정.
+3. `M25`/`M26`(Vop측 출력, M15/M16의 branch_symmetric 파트너)이 `device_roles`/
+   `compensation` 어디에도 없어 조용히 partial 결과만 반환됨(에러 없이 `sizing_
+   overrides=None`) — `compensation.stage_devices` 그룹에 편입.
+4. `M63`의 `source`가 `"gnd"`로 잘못 적혀 있어 `M64.drain`(N64_63)이 netlist 전체에서
+   1번만 쓰이는 끊어진 노드였음(`_confidence_note`가 서술하는 stacked-diode 의도와
+   불일치) — `M63.source`를 `"N64_63"`으로 정정(실제 넷리스트 버그).
+5. `M6/M8/M13/M22/M17/M60/M61/M66`(전부 Vbias1 계열 병렬 전류원)에 전류를 흘려줄
+   mirror_ratio/seed 경로가 전혀 없었음(A엔진 2-rule로 자동 해결 안 되는 다중-branch
+   합류 노드) — 처음엔 `matching_pairs`(current_mirror)로 묶으려 했으나 "같은 L
+   강제" 부작용으로 실패, `_feed_root_ratio()`의 `root` 리스트 확장(아래 코드 gap
+   참고)으로 해결. 이후 M6(대전류 tail)와 M60/M61/M66(소전류 bias-gen 하우스키핑)가
+   전혀 다른 전류 규모라는 걸 재검토로 발견해 `r_biasgen`(소전류)/`r_tail_M6`/
+   `r_tail_M7`/`r_classab_src`(대전류, 각각 독립 비율)로 재분리.
+6. `M5`/`M38`(각각 stage-1 tail, CMFB tail)이 3단자 합류 노드(Vy/Ncmfb_tail)라
+   A엔진이 못 풀었음 — 설계 자유도 없는 순수 KCL 합(각각 M4a+M4b, M37a+M37b)이라
+   `ratio=1.0` 고정 A타입 theta로 명시.
+7. `M11a`/`M20a`(diode 체인 진입점)도 같은 다중-branch 합류(N8_11a/N22_20a) — M8+M13/
+   M22+M17의 합이라는 순수 KCL 합을 동일 패턴으로 명시.
+8. `K_replica`가 `M9a`의 `W`만 설정하고 `ID`는 안 채워 `device_roles`의 `gm_id_role`
+   단계가 실패 — 코드 gap(아래) 수정 + `M9a`를 `device_roles`에서 제거(C feed가
+   이제 완전히 담당).
+9. `M9b`/`M18b`(Monticelli floating current source의 NMOS측)도 3단자 합류(Vg15/Vg25)
+   — `ID(M9b)=ID(M11b)+ID(M9a)` 순수 KCL 합으로 명시.
+10. `M18a`가 `M9a`의 branch_symmetric 파트너인데 별도 사이징 경로가 없었음 — `M9a`를
+    그대로 물려받는 완전 replica(C feed, ratio=1.0)로 지정, 기존 `device_roles`
+    엔트리 제거.
+11. `sizing_roles.metrics`의 `cmrr_estimate_db`/`psrr_estimate_db`가 do.md 초안의
+    자리표시자 키(`tail_device`/`input_device`, PSRR의 `circuit_family=
+    telescopic_class_ab`)를 그대로 써서 실제 `_cmrr_telescopic_class_ab()` 시그니처
+    (`input_p`/`cascode_p`/`input_n`/`cascode_n`/`tail_p_devices`/`tail_n_device`)와
+    `_PSRR_ESTIMATOR_REGISTRY`(`diff_pair_tail`만 등록)에 안 맞았음 — self-test가
+    검증한 실제 키/family로 정정.
+
+**`sizing_recipe.py` 코드 gap (4건, 전부 self-test 회귀 확인 후 반영)**:
+1. **A엔진 실행 순서**: `optimize_full_circuit_budget()`이 A엔진(`propagate_topology_
+   forced_currents()`)을 theta 루프 "이후"에 딱 1번만 호출해서, `metric_stage_budget`
+   feed(L_cascode 등, theta 루프 "안"에서 실행됨)가 요구하는 A엔진 산출 ID가 아직
+   없어 실패했다 — theta 루프 시작 "전"에 compensation-derived 시드만으로 도는 1차
+   A엔진 패스를 추가(멱등 연산이라 2차 패스와 겹쳐도 안전).
+2. **`shared_gm_id_groups`(새 기능, `optimize_multistage()`)**: `current_reuse_
+   telescopic_topology()`가 반환하는 `gmp`(M1a/M1b)/`gmn`(M4a/M4b)은 Eq.5로 `gm`만
+   같게 강제되는데, 이 두 스테이지의 실제 디바이스(M1a→M2a→M3a→M4a)는 물리적으로
+   하나의 직렬 KCL 스택이라 `ID`까지 같아야 한다 — 기존 구현은 두 스테이지를 완전
+   독립으로 최적화해 서로 다른 `gm_id`(→다른 ID)를 골라도 몰랐고, 이게 A엔진의
+   "직렬 스택에 서로 다른 seed 전류" `ValueError`로 실측 발견됐다(sky130 실LUT의
+   PMOS/NMOS 비대칭 때문에 실제로 값이 갈림 — 기존 toy-LUT self-test는 우연히 같은
+   값이 나와 이 버그를 못 잡았다). `optimize_multistage()`에 `shared_gm_id_groups`
+   파라미터를 추가해 지정된 스테이지 그룹이 gm_id 하나를 공유하도록 확장(하위호환
+   100%, 지정 안 하면 기존 동작과 동일).
+3. **`_feed_root_ratio()`의 `root` 리스트化 + `ctx.seed_currents` fallback**:
+   bias-gen처럼 "같은 레퍼런스를 읽는 병렬 전류원이 N개"인 경우 소자마다 theta
+   차원을 하나씩 늘리면 격자 탐색이 `grid_points_per_theta**N`배로 폭발한다(실측:
+   8개 추가만으로 2^8=256배) — `root`가 문자열 또는 리스트를 받도록 확장해 theta
+   차원 증가 없이 N개를 동시 시드하도록 함. 또한 한 "A" feed의 `root`가 다른 "A"
+   feed의 `reference`로 쓰이는 체이닝(예: `r_classab_src`가 seed한 M8/M13을
+   `kcl_diode_M11a`가 참조)은 A엔진이 theta 루프 전체가 끝난 뒤 1번만 돌기 때문에
+   `ctx.sized`만 보면 실패 — `ctx.seed_currents`도 함께 조회하도록 fallback 추가.
+4. **`_feed_diode_stack_target()`(C타입) 완전 replica화**: 원래 `target`의 `W`만
+   설정해 `device_roles.gm_id_role`이 있는 target(K_replica의 M9a)이 "ID 없음"으로
+   실패했다 — replica는 reference와 같은 gm_id/L/VDS/VS 동작점을 물려받는다는 전제
+   이므로 `ID`/`gm`/`gds`도 같은 비율로 스케일해 채우도록 확장(LUT 재조회 불필요,
+   산술만으로 정확). 이때 새로 생긴 `_L_source="replica"` 태그를 `_L_source==
+   "compensation"`과 동급(matching_pairs L 우선순위 검사에서 권위 있는 출처)으로
+   취급하도록 `_AUTHORITATIVE_L_SOURCES` 집합으로 일반화.
+
+**성능 gap (1건, `optimize_full_circuit_budget()`)**: 위 KCL/mirror 합산용 `ratio=1.0`
+고정 theta가 8개나 새로 생기면서, `bounds[0]==bounds[1]`인 theta도 `grid_points_
+per_theta`만큼 반복 평가하던 기존 구현 때문에 전체 조합 수가 2^17(13만+)까지 폭발해
+이 환경(백그라운드 프로세스 실행시간 제한 있음)에서 40분+ 걸려도 안 끝났다 —
+`bounds[0]==bounds[1]`이면 `grid_points_per_theta`와 무관하게 1개 점만 평가하도록
+수정(값이 하나뿐이니 여러 번 평가할 이유가 없음, 실제 탐색 의미론 변경 없음). 9개
+실제(비고정) theta만 남아 2^9=512로 줄었지만, 이마저도 이 환경에서 완주하지 못했다
+(아래 "미해결" 참고) — `_evaluate()`가 "infeasible"로 끝날 때 마지막 평가 조합의
+실제 metrics/위반 제약을 에러 메시지에 포함하도록 진단 정보도 추가(디버깅 편의).
+
+**검증**: 위 15건을 전부 반영한 뒤 (a) `stick_diagram.py`/`sizing_recipe.py` self-test
+재실행 exit 0(회귀 없음 확인, `shared_gm_id_groups` 미지정 호출 경로는 기존 동작과
+100% 동일함을 toy LUT 회귀로 확인) (b) **51개 소자 전체의 사이징(W/L/gm/ID/gm_id)과
+`sizing_roles.metrics`(power/area/gain/noise/mismatch/CMRR/PSRR) 계산이 예외 없이
+끝까지 도는 것을 실측 확인**(theta를 중간값 하나로 고정한 단일-조합 실행, 완화 없는
+실제 constraints 기준: gain_db=77.0(>=75.6 만족)/mismatch_sigma_mV=3.12(<=5.0 만족)/
+CMRR=-0.69dB·PSRR=25.4dB(둘 다 >=60 미달) — CMRR 미달은 코드 버그가 아니라 캐스코드
+`L_cascode` feed가 쓰는 고정 `gm_id=15.0`(`_feed_metric_stage_budget()` 기본값)과
+입력쌍의 탐색된 공유 gm_id가 이 임의의 중간값 지점에서 크게 어긋나 `_cmrr_
+telescopic_class_ab()`가 이미 문서화한 "다른 쪽 경로가 만드는 바닥(floor)" 현상이
+실제로 나타난 것 — 실제 최적점을 찾으려면 이 이후(assign_finger_geometry→
+run_topology_pipeline→repair_matching_safety) 단계까지 포함한 전체 512-조합 grid
+search가 필요하다.
+
+**미해결(정직한 한계, 다음 세션으로 이월)**:
+1. **전체 512-조합 grid search를 이 환경에서 끝까지 못 돌렸다** — 배경 bash 프로세스가
+   반복적으로 강제 종료(killed)됐다(9~40분 사이, 재현되는 패턴 — 이 환경/세션의
+   백그라운드 실행시간 제한으로 추정, 근본원인은 미확인). 결과적으로 "51개 소자
+   전체가 harness만으로 spec→instance.json까지 완주"의 마지막 조각(**실제로 constraints를
+   만족하는 theta*를 찾고 `save_instance_json()`까지 저장**)은 아직 실행하지
+   못했다 — 사이징+지표 계산 자체가 예외 없이 도는 것까지만 이번 세션에서 확인됨.
+2. **`assign_finger_geometry()`/`repair_matching_safety()` 이후 단계는 완화된
+   constraints로 시도했을 때 한 번 새 에러(`common_centroid_layout()`의 "count=1가
+   소자 수 n=2보다 작다")를 냈다** — 극단적으로 작은 W를 가진 소자 쌍이 이 거친
+   중간값 지점에서 나온 것으로 보이나, 실제 feasible한 theta*에서도 재현되는지는
+   확인 못 함(별도 조사 필요).
+3. `L_cascode`/`L_stage2out`(`metric_stage_budget` feed)의 `gm_id=15.0` 하드코딩
+   기본값이 CMRR 저하의 직접 원인으로 보인다 — feed_spec에 `gm_id`를 명시(현재
+   비워둠, 기본값 사용 중)하거나, 입력쌍의 탐색된 gm_id를 캐스코드에도 전달하는
+   식으로 조정이 필요할 수 있음(§7.9류 열린 질문, 다음 세션 검토 대상).
+4. `power_uA`/`gain_db` 등 metric 이름의 단위 접미사(`_uA`/`_db`)가 실제 반환값
+   (SI 기본단위, 즉 A)과 안 맞는다(cosmetic) — `_metric_sum_current()`는 항상 A
+   단위를 반환하는데 이름이 `_uA`라 오독 위험.
+5. `_metric_flicker_plus_thermal_sum()`이 `ctx.spec["lut"]` 단일 LUT를 스테이지의
+   모든 소자(PMOS+NMOS 혼합 가능)에 그대로 쓴다 — kind별 LUT를 안 골라 정밀도
+   저하(이번 회로의 `noise_v_rthz` 스테이지 `[M1a,M4a]`가 정확히 이 경우).
 "정리"의 정당한 결과다.
