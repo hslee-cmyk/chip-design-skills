@@ -1780,6 +1780,82 @@ flowchart LR
 > SPICE 대조값과 <=0.2dB). `_CMRR_ESTIMATOR_REGISTRY["telescopic_class_ab"]`로 등록.
 > PSRR 폐형식은 이 세션에서 아직 다루지 않음(다음 배치로 이월).
 
+> **`telescopic_class_ab_cmfb` — CMFB 루프를 포함한 CMRR 폐형식 → ✅ 등록 완료(2026-08-03,
+> 배치 7-5b)**: 위 `telescopic_class_ab`(1단 open-loop)는 **Rx/Ry/캐스코드 L·gm_id를
+> 물리적으로 가능한 극단까지 밀어도 CMRR이 2dB를 못 넘는다**(2026-08-03 실측,
+> `workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py`). 논문은 94.4dB를
+> 보고하므로 지배적 기여자가 이 식 밖에 있다는 뜻이었고, 실제로 이 회로엔 M7(pmos,
+> gate=Vcmfb)이 stage-1 PMOS tail(Vx)을 직접 조절하는 **CMFB 폐루프**가 있는데 옛 식엔 CMFB
+> 소자가 하나도 안 들어가 있었다(2026-07-31 docstring이 이미 "실제 CMRR은 2단/CMFB/bias-gen
+> 기여까지 합친 값"이라고 예견해뒀던 그대로).
+>
+> **유도(정확 분해, 근사 아님)**: CMFB 앰프는 **단방향**이다 — 입력(M37a.gate=Voc)은 순수
+> 게이트라 stage-1을 안 물고, 출력(Vcmfb)은 M7.gate만 구동한다. 그래서
+> `vo = Acm_open·vic + H·vcmfb`, `vcmfb = A_c·vo` 두 식으로 정확히 쪼개진다:
+> ```
+> Acm = Acm_open/(1+T),  T = -A_c·H  (CM 루프이득),  CMRR = CMRR_open + 20log10|1+T|
+> ```
+> stage-1 CM 반회로(Vx/Vom1/Vo/Vb/Vy 5노드)와 DM 반회로를 sympy로 정확히 풀고 gm·ro≫1
+> leading order를 취한 결과(Kp'=gm(M2a)·ro(M1a)·ro(M2a), Kn'=gm(M3a)·ro(M4a)·ro(M3a),
+> Kp=gm(M1a)·Kp', Kn=gm(M4a)·Kn', Rx=1/Σgds(M6,M7), Ry=1/gds(M5)):
+> ```
+> Adm      = (gmp+gmn)·(Kp' ∥ Kn')
+> Acm_open = (Rx+Ry)·Kn·Kp/(Kn·Ry + Kp·Rx)      <- 2026-07-31 식과 완전히 동일(독립 재도출)
+> H        = gm(M7)·(Rx·Kp ∥ Ry·Kn)
+> ```
+> `Acm_open`이 옛 유도와 글자 그대로 일치한 것이 이번 재도출의 첫 번째 교차검증이다. 다만
+> **옛 코드가 Kp'/Kn'에 입력쌍의 gm(gm(M1a)/gm(M4a))을 넣은 것은 틀렸다** — 정확한 노드해석은
+> 캐스코드 소자의 gm(gm(M2a)/gm(M3a))을 요구한다. 옛 SPICE 대조가 모든 gm을 119µS로 같게 놓고
+> 이뤄져서 이 차이가 드러나지 않았을 뿐이다(새 family는 정확한 쪽을 쓴다).
+>
+> **CMFB 앰프 이득 `A_c`가 이 회로의 진짜 특이점**: 교과서 5T OTA라면 `A_c≈gm37/gds`(O(10²))
+> 여야 하는데, 이 회로의 기준입력 `Voc_des`는 고정 바이어스가 아니라 **M39(pmos,
+> gate=N36)/M40이 만드는 고임피던스 노드**다. N36(diode) 신호가 `gm39/(gds39+gds40)`(≈본질이득)
+> 만큼 증폭돼 M37b 게이트로 되돌아오므로 `Voc_des`가 `Voc`를 거의 그대로 따라가고, 차동입력이
+> 대부분 상쇄돼 **gm37이 소거되고 O(1) 크기의 컨덕턴스 비만 남는다**:
+> `A_c ≈ [2·gm36·(gds39+gds40)/gm39 − gds38]/gds36b`. 이 leading order는 두 O(gds) 항의 **차**
+> 라 수치적으로 잘 상쇄돼(무작위 스윕에서 최대 8dB 오차 실측) 등록 함수는 이 4노드 부분회로의
+> **정확해**(`_cmfb_amp_gain_5t_replica()`, 손 소거식 — sympy 정확해와 상대오차 2e-15)를 쓴다.
+>
+> **교차검증(3자)**: 이상화 소신호 netlist(실소자 대신 지정 gm/gds의 VCCS+저항만, DC 바이어싱
+> 완전 회피 — stage-1 양쪽 branch + CMFB 7소자 전부)를 ngspice AC로 실측해 대조.
+> **sympy 정확해 = ngspice: 8개 대조점 전부 0.0000dB 일치**. 등록한 leading-order 폐형식은
+> 파라미터를 ±4배로 무작위 스윕한 29개 조합에서 **최대 1.71dB / 평균 0.59dB**(전형 0.4dB).
+> self-test에 앵커 2점 고정(104.617dB / 122.619dB, 각각 오차<1dB) + CMFB 연결 assert 5종
+> (M36a diode / M36b·M39 게이트 공유 / M37a·M37b·M38 tail 공유 / M39·M40.drain==M37b.gate /
+> M36b.drain==M7.gate) + A_c<=0 거부 회귀.
+>
+> **⚠️ 정직한 한계 1 — `Voc`가 뭘 보는지 netlist에 없다**: `Voc`는 M37a의 게이트로만 등장하고
+> 그 노드를 구동하는 소자가 topology.json에 하나도 없다(self-test가 이 사실 자체를 assert로
+> 고정). 논문이 이상적 CM 감지를 가정했을 수도, 감지망이 원문에 있는데 아직 못 옮겼을 수도
+> 있다(원문 PDF는 이 세션에서 접근 불가). 기본 가정은 **Voc = stage-1 출력 CM**(dVoc/dVo1=1,
+> CMFB가 조절하는 M7이 stage-1 tail이고 stage-1 출력 CM이 CMFB 없이는 정의되지 않는 노드라서)
+> 이며, 최종 출력(Vom/Vop) 감지라면 `cm_sense_gain`에 2단 CM 이득을 넘기면 된다.
+>
+> **⚠️ 정직한 한계 2 — `A_c<=0`이면 CM 루프가 양귀환**: `gds38` vs `2·gm36a·(gds39+gds40)/gm39`
+> 균형이 부호를 정한다. 부호가 뒤집히면 |T|>1인 양귀환이라 CM이 latch되고 소신호 CMRR 수치가
+> 무의미해지므로 함수가 `ValueError`를 던진다(큰 CMRR을 그냥 돌려주면 탐색이 깨진 설계를 좋은
+> 후보로 고른다).
+>
+> **실회로 적용 결과(51개 소자 harness, theta=중간값)**: 새 식이 곧바로 실제 설계 결함 하나를
+> 잡아냈다 — `device_roles`가 M38(CMFB tail)에 `L_role="bias_replica"`(1.2·L_min=0.18µm)를
+> 주고 있어 `gds38=2.25e-5`가 `gds39+gds40=7.3e-6`보다 3배 커서 **A_c=-1.46, 즉 CM 루프가
+> 양귀환**이었다. M38은 tail 전류원이라 M39/M40/M36a-b와 같은 `"mirror"`(2.5·L_min=0.375µm)가
+> 물리적으로 자연스럽고, 그렇게 고치니 `A_c=+2.05`로 정상 음귀환이 됐다(topology.json
+> `_M38_L_role_comment`에 근거 기록 — 논문에서 읽은 값이 아니라 이 해석에서 유도한 설계 판단).
+> 그 결과 같은 사이징에서 **CMRR: -0.69dB(옛 식) → 86.00dB(새 식)**, 논문 94.4dB와 8.4dB 차.
+> 내부 항: `Adm=74.27dB`, `CMRR_open=-0.69dB`, `H=80.46dB`, `A_c=2.05`, `T=2.16e4`
+> → 루프 기여 `20log10|1+T|=86.69dB`. 남은 8.4dB 차이는 (a) `Voc` 감지점 가정(최종 출력을
+> 보면 2단 CM 이득이 더 붙어 `cm_sense_gain=2`만 돼도 92dB), (b) theta가 최적값이 아니라
+> 중간값 고정, (c) 2단/bias-gen 기여 미포함으로 설명 가능하다 — 재현:
+> `workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py`.
+>
+> **연쇄 발견(코드 gap 1건, 실제 `KeyError: 'gds'`로 재현)**: `_feed_gm_target_convention()`
+> (B타입 servo feed, `N_cmfb_bw` theta가 M37a를 사이징하는 경로)이 `gds`를 안 채우고 있었다 —
+> A/C 타입은 reference 항목을 통째로 복사하고 `metric_stage_budget`은 LUT에서 gds를 직접
+> 계산하는데 이 핸들러만 gm/ID/W/L만 넣었다. gm만 읽는 metric(gain/noise)뿐일 땐 안 드러나다가
+> CMFB 소자의 gds를 읽는 새 CMRR이 등장하며 발현 — `lut.gm_gds_ratio()`로 채우도록 수정.
+
 ```mermaid
 flowchart TD
     T["current_reuse_telescopic_ota<br/>.topology.json"] --> LT["load_topology()"]

@@ -197,7 +197,8 @@
     "M36a": {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load"},
     "M36b": {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load"},
     "M39":  {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load"},
-    "M38":  {"headroom_role": "tail",   "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "cmfb_tail"},
+    "_M38_L_role_comment": "2026-08-03(배치 7-5b, CMFB 포함 CMRR 식을 실회로에 적용하다 발견) -- M38의 L_role은 원래 M5(stage-1 tail)를 따라 'bias_replica'(1.2*L_min=0.18um)였다. 그런데 새 CMRR 유도(_cmfb_amp_gain_5t_replica())가 보여주듯 이 CMFB 앰프의 이득 부호는 gds38 vs 2*gm36a*(gds39+gds40)/gm39 균형이 정한다 -- L=0.18um의 M38은 gds38=2.25e-5로 gds39+gds40=7.3e-6보다 3배 커서 A_c=-1.46(<0), 즉 CM 루프가 음귀환이 아니라 **양귀환**이 됐다(실측, midpoint theta). M38은 tail 전류원이라 M39/M40/M36a-b와 같은 'mirror'(2.5*L_min=0.375um) 취급이 물리적으로도 자연스럽고(짧은 채널일 이유가 없다), 그렇게 바꾸면 A_c>0으로 되돌아온다. ⚠️ 이 값은 논문에서 읽은 것이 아니라 새 CMRR 해석에서 유도한 설계 판단이다 -- 최종 확인은 SPICE 필요.",
+    "M38":  {"headroom_role": "tail",   "gm_id_role": "balanced", "L_role": "mirror", "vertical_stack_id": "cmfb_tail"},
     "M40":  {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load"},
     "M37b": {"headroom_role": "tail",   "gm_id_role": "matching", "vertical_stack_id": "cmfb_tail"}
   },
@@ -240,15 +241,21 @@
        "_comment": "L_cascode와 동일 이유로 bounds 정정(2026-08-03). devices에 M25/M26(Vop측, M15/M16의 branch_symmetric 파트너)도 포함 -- 안 넣으면 이 feed가 M15/M16의 L만 바꾸고 M25/M26은 compensation의 원래 L 그대로 남아 matching pair L 불일치 에러가 남(2026-08-03 실행 중 발견)."}
     ],
     "_metrics_comment": "2026-08-03(배치 7-5 실행 중 발견) -- cmrr_estimate_db/psrr_estimate_db가 do.md 초안의 자리표시자 키(tail_device/input_device, circuit_family=telescopic_class_ab for PSRR)를 그대로 옮겨온 상태라 실제 _cmrr_telescopic_class_ab()/_PSRR_ESTIMATOR_REGISTRY 시그니처와 안 맞았다(KeyError/미등록 family) -- sizing_recipe.py self-test가 검증한 실제 키 이름(input_p/cascode_p/input_n/cascode_n/tail_p_devices/tail_n_device)과 PSRR의 유일한 등록 family(diff_pair_tail)로 정정.",
+    "_metrics_comment_2": "2026-08-03(배치 7-5b) -- cmrr_estimate_db의 circuit_family를 telescopic_class_ab(1단 open-loop)에서 telescopic_class_ab_cmfb(CMFB 루프 포함)로 교체. 이유: open-loop 식은 Rx(=M6∥M7)/Ry(=M5)/캐스코드 L·gm_id를 물리적으로 가능한 극단까지 밀어도 CMRR이 2dB를 못 넘는 것이 실측으로 확인됐고(논문은 94.4dB 보고), 이 회로의 실제 지배 기여자는 M7(gate=Vcmfb)이 stage-1 PMOS tail을 조절하는 CMFB 폐루프이기 때문이다. 아래 CMFB 소자 배정은 손타이핑이 아니라 이 파일 netlist 배열 자체로 검증된다(sizing_recipe.py self-test가 load_topology()로 M36a diode / M36b·M39 미러 게이트 공유 / M37a·M37b·M38 tail 공유 / M39·M40 drain == M37b.gate(Voc_des) / M36b.drain == M7.gate(Vcmfb) / Voc가 구동소자 없는 dangling 입력임을 전부 assert). cm_sense_gain은 dVoc/dV(stage-1 출력 CM)이며, Voc를 구동하는 소자가 netlist에 없으므로(원문이 이상적 CM 감지를 가정한 것으로 보임) 최소가정 1.0을 쓴다 -- 만약 실제 감지점이 최종 출력(Vom/Vop)이라면 2단 CM 이득을 여기 곱해야 한다. ⚠️ metrics 딕셔너리 안에는 '_'로 시작하는 주석 키를 넣으면 안 된다(optimize_full_circuit_budget()이 metrics의 모든 항목을 metric_spec으로 그대로 compute_metric()에 넘긴다 -- 2026-08-03 실행 중 TypeError로 확인).",
     "metrics": {
       "power_uA":          {"type": "sum_current"},
       "area_um2":          {"type": "sum_area"},
       "gain_db":           {"type": "gain_stages_sum", "stages": [["M1a","M4a","M2a","M3a"], ["M15","M16"]]},
       "noise_v_rthz":      {"type": "flicker_plus_thermal_sum", "stages": [["M1a","M4a"]]},
       "mismatch_sigma_mV": {"type": "pelgrom_mismatch", "devices": ["M1a","M1b"], "kind": "pfet"},
-      "cmrr_estimate_db":  {"type": "cmrr_estimate", "circuit_family": "telescopic_class_ab",
+      "cmrr_estimate_db":  {"type": "cmrr_estimate", "circuit_family": "telescopic_class_ab_cmfb",
                             "input_p": "M1a", "cascode_p": "M2a", "input_n": "M4a", "cascode_n": "M3a",
-                            "tail_p_devices": ["M6", "M7"], "tail_n_device": "M5"},
+                            "tail_p_devices": ["M6", "M7"], "tail_n_device": "M5",
+                            "cmfb_ctrl_device": "M7",
+                            "cmfb_amp_sense": "M37a", "cmfb_amp_ref": "M37b",
+                            "cmfb_mirror_diode": "M36a", "cmfb_mirror_out": "M36b",
+                            "cmfb_replica_source": "M39", "cmfb_replica_sink": "M40",
+                            "cmfb_tail_device": "M38", "cm_sense_gain": 1.0},
       "psrr_estimate_db":  {"type": "psrr_estimate", "tail_device": "M5", "circuit_family": "diff_pair_tail"}
     },
     "objective": {"minimize": "power_uA"},
