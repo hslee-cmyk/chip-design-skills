@@ -1,0 +1,18 @@
+* test mult parameter scaling
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+Vg g 0 -0.99881
+Vd d 0 -0.9
+Vsrc s 0 0
+Vb b 0 0
+XM1 d g s b sky130_fd_pr__pfet_01v8 l=0.35u w=5u mult=1
+XM10 d10 g s b sky130_fd_pr__pfet_01v8 l=0.35u w=5u mult=10
+Vd10 d10 0 -0.9
+.op
+.control
+run
+print @m.xm1.msky130_fd_pr__pfet_01v8[id]
+print @m.xm10.msky130_fd_pr__pfet_01v8[id]
+.endc
+.end

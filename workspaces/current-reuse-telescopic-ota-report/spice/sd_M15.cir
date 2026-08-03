@@ -1,0 +1,60 @@
+* single-device op check: M15 (pmos), N=40 parallel unit fingers
+
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/pfet_01v8/sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
+.include "C:/pdk/sky130_fd_pr/models/parameters/lod.spice"
+
+Vg g 0 -0.998810
+Vd d 0 -0.900000
+Vsrc s 0 0
+Vb b 0 0
+XM0 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM1 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM2 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM3 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM4 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM5 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM6 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM7 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM8 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM9 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM10 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM11 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM12 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM13 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM14 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM15 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM16 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM17 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM18 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM19 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM20 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM21 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM22 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM23 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM24 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM25 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM26 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM27 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM28 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM29 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM30 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM31 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM32 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM33 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM34 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM35 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM36 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM37 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM38 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+XM39 d g s b sky130_fd_pr__pfet_01v8 l=0.350000u w=5.000000u
+.op
+.control
+run
+print @m.xm0.msky130_fd_pr__pfet_01v8[id]
+print @m.xm0.msky130_fd_pr__pfet_01v8[gm]
+print @m.xm0.msky130_fd_pr__pfet_01v8[vdsat]
+print @m.xm0.msky130_fd_pr__pfet_01v8[vth]
+print -i(vd)
+.endc
+.end

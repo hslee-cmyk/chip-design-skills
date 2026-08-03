@@ -69,16 +69,15 @@ def nmcnr_3stage_topology(GBW: float, CL: float, PM_target_deg: float = 65.0, kg
     설계자 자유도로 남긴 것**이다(Cm2 식에만 등장하고 GBW/PM엔 영향 없음). 기본값 0.5는
     Cm2>0 조건(kg<1)만 만족하는 임의값이니, 실제 설계에는 SPICE로 PM/GBW를 재확인할 것.
 
-    ⚠️⚠️ **Eq 10/11이 GBW/PM을 정확히 예측한다는 보장이 없다 — 반드시 사이징 후
-    `nmcnr_predict_notch()`로 재검증할 것.** Eq 10/11은 "우세극이 나머지 극점들과 충분히
-    떨어져 있다"는 근사 위에서 유도된 식이라, 스테이지2 자신의 고유이득(Av2=gm2·R2, R2는
-    사이징 후 실제 출력저항)이 어떤 문턱을 넘으면(실측 사례는 sky130-worked-example.md
-    §12.7.4 참고, Av1≈Av3≈24 스펙에서 임계값≈5.1) 이 근사가 무너져 **개루프 응답에 노치
-    (0dB 재교차)가 생기고, 실제 GBW/PM이 이 함수가 계산한 값과 크게 달라진다**(sky130
-    실측 사례: 목표 GBW=5MHz/PM=70°였는데 실제 1.66MHz/62.0° + 노치, §12.4~§12.7 전체가
-    이 발견의 기록). Eq 10/11 자체가 틀린 게 아니라 이 근사의 **적용 가능 조건**이 있다는
-    뜻 — `nmcnr_predict_notch()`가 그 조건(근사 없이 정확한 3-노드 전달함수)을 직접 계산해
-    검증해준다. 진단 절차 전체는 ../references/topology-behavior-diagnosis-workflow.md 참고.
+    ⚠️ **Eq 10/11은 "우세극이 나머지 극점들과 충분히 떨어져 있다"는 근사 위에서 유도된 식이다**
+    — 정확한 GBW/PM은 사이징 후 `nmcnr_predict_notch()`(근사 없는 정확한 4-노드 전달함수)로
+    재확인할 것. 한때(2026-07-31 이전) 보상망 배선을 잘못 조립한 채로 "이 근사가 무너져 개루프
+    응답에 노치가 생긴다"는 사례를 발견했다고 기록했으나, 배선 오류(Cm1/Cm2가 실제로는 한
+    노드에서 만나 Rm 하나를 공유하는데 각각 독립 경로로 잘못 조립함)를 바로잡고 같은 동작점을
+    재검증하니 **노치가 없었다** — 그 사례 자체가 무효였다(sky130-worked-example.md §12.3
+    참고). `nmcnr_predict_notch()`는 여전히 유효한 검증 도구이므로 계속 사용할 것 — 다만
+    "노치가 흔하다"는 인상은 정정 전 잘못된 조사에서 온 것이니 새 회로에서 노치 유무를 실제로
+    확인하기 전까지 가정하지 말 것.
 
     검증 상태: Eq 6~11 전체 원문 이미지 대조 검증 완료. kg는 원문이 확정한 자유도(수치 예제 없음).
     """
@@ -115,9 +114,17 @@ def nmcnr_compensation_elements(gm1: float, gm2: float, gm3: float, CL: float, k
 def nmcnr_predict_notch(gm1: float, gm2: float, gm3: float, R1: float, R2: float, R3: float,
                          CL: float, kg: float, f_start: float = 1.0, f_stop: float = 1e9,
                          n_points: int = 2000) -> dict:
-    """사이징 완료 후 실제 GBW/PM/노치 여부를 검증 — Eq 10/11의 근사 없이 3-노드 KCL을 정확히
-    풀어 계산한다(sky130-worked-example.md §12.7.3의 유도를 그대로 코드화한 것 — **다시 유도할
-    필요 없이 이 함수를 그대로 쓸 것**).
+    """사이징 완료 후 실제 GBW/PM/노치 여부를 검증 — Eq 10/11의 근사 없이 **4-노드**(V1, V2,
+    NodeCM, Vout) KCL을 정확히 풀어 계산한다.
+
+    ⚠️ **2026-07-31 재유도(중요한 정정)**: 원래 이 함수(및 그 유도처인 sky130-worked-example.md
+    §12.7.3)는 "Cm1은 V1↔Vout 직결, Rm+Cm2가 직렬로 V2↔Vout"이라는 **3-노드** 모델로 세워졌었다.
+    그런데 논문 원문 Fig.3을 실제 이미지로 다시 확인(사용자와 함께, node-by-node 대화형 검증)한
+    결과 실제 구조는 **Cm1과 Cm2가 하나의 공통 노드(NodeCM)에서 만나고, 그 뒤에 Rm 하나를
+    Cm1/Cm2가 공유**하는 구조였다(논문 abstract가 명시한 "only ONE null resistor"와 정확히
+    일치 — 예전 3-노드 모델은 이 문장과도 안 맞았다). 그래서 KCL 노드가 하나 늘어(V1/V2/NodeCM/
+    Vout, 4개) 재유도했다 — num/den 차수 자체는 우연히 예전과 같다(분자 2차/분모 3차, NodeCM
+    도입이 새 커패시터를 추가한 게 아니라 기존 Cm1/Cm2가 만나는 방식만 바꿨기 때문).
 
     입력: gm1/gm2/gm3(목표 gm, `nmcnr_3stage_topology()`가 반환한 값), R1/R2/R3(각 스테이지
     **실제 사이징 결과**의 출력저항 = gain_i/gm_i, 즉 `find_optimal_sizing()`/`optimize_multistage()`
@@ -128,33 +135,36 @@ def nmcnr_predict_notch(gm1: float, gm2: float, gm3: float, R1: float, R2: float
     재확인할 것 — 이 함수 자체도 이상화(VCCS+ro, 실소자 기생 없음) 모델이라 최종 확인은 항상
     SPICE다(방법론 문서 §4.5 원칙 그대로).
 
-    ⚠️ 정확도: gm1/gm2/gm3 근처의 "전형적인"(스테이지 고유이득이 극단적으로 낮지 않은) 동작점에서는
-    실측 sky130 SPICE와 주파수 <10%, PM 수 도 이내로 일치했다(§12.7.2/§12.7.4 교차검증). 다만
-    스테이지 고유이득을 의도적으로 아주 낮게(예 <5) 만든 극단적 사이징에서는 이 함수의 DC 이득
-    예측(gm1·R1·gm2·R2·gm3·R3 기반)이 실측과 수십 dB까지 벌어질 수 있다(LUT가 그 영역에서 덜
-    정확하거나, 실소자의 다른 비이상성이 커지기 때문으로 추정 — 완전히 규명되지 않음, 정직한 한계).
-    극단적 동작점을 다룰 땐 이 함수의 예측을 정성적 신호(노치 유무)로만 쓰고, 정량값(GBW/PM/DC이득)은
-    반드시 SPICE로 재확인할 것.
+    ⚠️ 이 함수도 이상화(VCCS+ro, 실소자 기생 없음) 모델이라 최종 확인은 항상 SPICE다(방법론
+    문서 §4.5 원칙 그대로) — 정량값(GBW/PM/DC이득)은 반드시 실제 회로로 재확인할 것.
 
-    검증 상태: kg=0.5(§12.4)·kg=0.1(§12.6) 실측 SPICE와 대조 검증 완료. 정확한 유도 과정은
-    topology-behavior-diagnosis-workflow.md §4, sky130-worked-example.md §12.7.3 참고.
+    검증 상태: 대표 동작점(gm1=7.1267mS/gm2=0.6283mS/gm3=1.2566mS/R1=3465Ω/R2=90188Ω/
+    R3=19269Ω/kg=0.5)에서 이상화 SPICE(ngspice AC) 및 실제 sky130 트랜지스터 재조립 둘 다와
+    교차검증 완료(DC이득/DC위상/PM/교차횟수 전부 일치). 유도 과정은 sky130-worked-example.md
+    §12.3 참고.
     """
     Cm1, Rm, Cm2 = nmcnr_compensation_elements(gm1, gm2, gm3, CL, kg)
 
-    # 3-노드(V1,V2,Vout) KCL을 근사 없이 직접 푼 정확한 전달함수(분자 2차/분모 3차) 계수.
-    # 유도: topology-behavior-diagnosis-workflow.md §4, sky130-worked-example.md §12.7.3.
+    # 4-노드(V1,V2,NodeCM,Vout) KCL을 근사 없이 직접 푼 정확한 전달함수(분자 2차/분모 3차) 계수.
+    # 유도(2026-07-31 재유도, sympy): V1(gm1*Vin=V1/R1+sCm1(V1-Vcm)), V2(gm2*V1=V2/R2+sCm2(V2-Vcm)),
+    # NodeCM(sCm1(V1-Vcm)+sCm2(V2-Vcm)=(Vcm-Vout)/Rm), Vout(gm3*V2+(Vcm-Vout)/Rm=Vout/R3+sCL*Vout).
+    # Fig.1 부호 관례(-Av1, +Av2, -Av3 -- 스테이지1/3은 반전, 스테이지2는 비반전)를 그대로
+    # 반영(2026-07-31 정정 -- 첫 유도는 전부 +gm으로 둬서 PM이 음수로 나오는 오류가 있었다,
+    # 이상화 SPICE(ngspice AC, -Av1/+Av2/-Av3 극성으로 조립)와 DC이득/DC위상/PM 전부 정확히
+    # 일치함을 확인한 버전).
     num = [
-        Cm1 * Cm2 * R1 * R3 * gm1 * (-R2 - Rm),
-        R1 * R3 * gm1 * (-Cm1 - Cm2 * R2 * Rm * gm2 * gm3 + Cm2 * R2 * gm2),
-        -R1 * R2 * R3 * gm1 * gm2 * gm3,
+        Cm1 * Cm2 * R1 * R2 * R3 * gm1 * (Rm * gm3 - 1),
+        R1 * R3 * gm1 * (Cm1 * R2 * Rm * gm2 * gm3 - Cm1 + Cm2 * R2 * Rm * gm2 * gm3
+                           - Cm2 * R2 * gm2),
+        R1 * R2 * R3 * gm1 * gm2 * gm3,
     ]
     den = [
-        CL * Cm1 * Cm2 * R1 * R3 * (R2 + Rm),
-        CL * Cm1 * R1 * R3 + CL * Cm2 * R2 * R3 + CL * Cm2 * R3 * Rm
-        - Cm1 * Cm2 * R1 * R2 * R3 * Rm * gm2 * gm3 + Cm1 * Cm2 * R1 * R2 * R3 * gm2
-        + Cm1 * Cm2 * R1 * R2 * R3 * gm3 + Cm1 * Cm2 * R1 * R2 + Cm1 * Cm2 * R1 * R3
-        + Cm1 * Cm2 * R1 * Rm + Cm1 * Cm2 * R2 * R3 + Cm1 * Cm2 * R3 * Rm,
-        CL * R3 - Cm1 * R1 * R2 * R3 * gm2 * gm3 + Cm1 * R1 + Cm1 * R3
+        CL * Cm1 * Cm2 * R3 * (-R1 * R2 * Rm * gm2 + R1 * R2 + R1 * Rm + R2 * Rm),
+        CL * Cm1 * R1 * R3 + CL * Cm1 * R3 * Rm + CL * Cm2 * R2 * R3 + CL * Cm2 * R3 * Rm
+        - Cm1 * Cm2 * R1 * R2 * R3 * gm2 + Cm1 * Cm2 * R1 * R2 * R3 * gm3
+        - Cm1 * Cm2 * R1 * R2 * Rm * gm2 + Cm1 * Cm2 * R1 * R2 + Cm1 * Cm2 * R1 * R3
+        + Cm1 * Cm2 * R1 * Rm + Cm1 * Cm2 * R2 * R3 + Cm1 * Cm2 * R2 * Rm,
+        CL * R3 + Cm1 * R1 * R2 * R3 * gm2 * gm3 + Cm1 * R1 + Cm1 * R3 + Cm1 * Rm
         + Cm2 * R2 * R3 * gm3 + Cm2 * R2 + Cm2 * R3 + Cm2 * Rm,
         1.0,
     ]
@@ -229,7 +239,83 @@ def ngcc_3stage_topology(GB: float, k: float, CL: float, alpha: float, mu_ratio:
 
 
 # ---------------------------------------------------------------------------
-# 4) 사용 예시 — 각 토폴로지의 gm 산출만 확인(실제 sizing은 sizing_recipe.optimize_multistage
+# 4) Current-reuse telescopic OTA(Class-AB 2단) — Xie & Chen, "A 126uW Current-Reuse
+#    Telescopic OTA with Class-AB Output Stage"(UT Austin) 원문 Eq.2-6 그대로(2026-07-31,
+#    사용자와 함께 원문 PDF를 직접 열어 재도출 -- 이전에 AI가 근거 없이 재구성해 등록했다가
+#    사용자 지적으로 되돌린 뒤, 이번엔 원문 p.3-4를 실제로 확인하고 다시 구현).
+# ---------------------------------------------------------------------------
+
+def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float, Cc: float,
+                                       Cf: float, Cs: float, C_Ltot: float):
+    """current-reuse telescopic OTA(Class-AB 2단) 위상보상 방정식 — 원문(Xie & Chen)
+    Section III "Circuit Parameters Derivation" Eq.2-6 그대로:
+
+    - Eq.2(p.3): `t_lln * omega_c = 6.9` (정착오차 ε_d≤0.1%의 1차 지수감쇠 정착식,
+      `-ln(0.001)=6.908`과 정확히 일치 — 직접 검산 확인) → `omega_c = 6.9/t_lln`.
+    - Eq.3(p.4): `gm1 = omega_c * Cc / beta`.
+    - Eq.4(p.3): `beta = Cf/(Cf+Cs+Cgg1)` — 원문 원문 그대로 인용: **"assuming Cgg1 is
+      negligible... In reality, Cgg1 is not negligible, therefore we assume beta is
+      around 0.48"**. 즉 원문 자신도 Cgg1을 정밀 계산하지 않고 상수로 가정한다. 이 함수는
+      원문의 가정(β=0.48 고정)보다 한 단계 더 엄밀하게 간다 — Cgg1은 실제로 1단 자신의
+      게이트 커패시턴스(M1a/M4a, W가 gm1 자체에서 나옴)라 **gm1→W(M1a)→Cgg1→β→gm1**로
+      순환한다(Cgg2가 gm2에 순환하는 것과 정확히 같은 구조). `miller_ota_topology()`가
+      이미 쓰는 `prev_cggs` 고정점 반복 패턴을 1단에도 그대로 적용해 β를 "가정된 상수"가
+      아니라 **1단 자신의 실제 사이징에서 수렴하는 값**으로 만든다(2026-07-31 사용자와
+      함께 결정 — β를 유도 없이 그냥 받아쓰지 않기로 함). 초기 추정(Cgg1=0, prev_cggs=None)
+      은 원문의 "Cgg1 negligible" 가정과 동일한 출발점이다.
+    - Eq.5(p.4): `gm1 = gmn + gmp`(gmn=gmp 가정, current-reuse라 NMOS/PMOS 둘 다 같은 입력
+      핀에 물려 입력을 받음 — p.2 "gain shows as ((gmn4+gmp1)*ro)^2"). **이 함수는 gm1을
+      합으로 반환하지 않고 `gmp`/`gmn`을 별개 stage로 나눠 반환한다**(2026-07-31 사용자와
+      설계 — `stage_devices`의 기존 계약("그룹의 모든 소자가 그 stage의 gm을 동일하게
+      받음")을 안 바꾸고, "합을 나누는 일"을 이 함수 자신이 하도록 함: PMOS M1a/M1b는
+      `gmp`만, NMOS M4a/M4b는 `gmn`만 받아야 하는데, 이건 diff pair처럼 "각자 gm1을 온전히
+      가짐"과 다른 패턴이라 그대로 두면 안 됨). `optimize_multistage()`는 스테이지 개수를
+      전혀 하드코딩하지 않는 제네릭 엔진(`n = len(luts)`)이라, 반환 리스트 길이를 2에서
+      3으로 늘리는 데 엔진 쪽 변경이 전혀 필요 없다 — `nmcnr_3stage_topology()`가 이미
+      3개(gm1/gm2/gm3)를 반환하는 것과 정확히 같은 메커니즘 재사용일 뿐이다.
+    - Eq.6(p.4): `omega_p2 ≈ gm2 / (C_Ltot*Cgg2/Cc + Cgg2 + C_Ltot)`, 그리고 **"Given
+      phase margin PM = tan⁻¹(ωp2/ωc) [9]"**(원문이 직접 인용하는 참고문헌 — 표준 2-pole
+      위상마진식) → `ωp2/ωc = tan(PM_target)`(원문 검산: PM=70°→tan(70°)=2.7475≈2.8,
+      원문이 준 "2.8"과 일치). `Cgg2`는 `prev_cggs[2]`(2단 게이트 커패시턴스,
+      `miller_ota_topology()`와 동일한 고정점 반복 패턴).
+
+    ⚠️ 원문이 다루지 않는 것(2026-07-31 확인, 사용자 질문에 대한 답): 피드백망(Cf/Cs)이
+    만드는 별도 극점/영점은 원문 어디에도 없다 — Eq.4의 β 근사와 Eq.6의 순수 2-pole PM식
+    뿐이다. 즉 피드백망은 β(저항성 감쇠)에만 관여하고 위상마진 계산 자체엔 추가 극점으로
+    들어가지 않는다는 게 원문의 명시적 모델링 범위다.
+
+    반환: `topology_fn(prev_cggs) -> [gmp, gmn, gm2]`(3개, `prev_cggs`도 그에 맞춰 3개
+    — `prev_cggs[0]`=M1a/M1b PMOS의 Cgg, `prev_cggs[1]`=M4a/M4b NMOS의 Cgg, `prev_cggs[2]`
+    =2단 소자의 Cgg). β의 `Cgg1`은 `prev_cggs[0]+prev_cggs[1]`의 **합**이다 — M1a와 M4a
+    게이트가 물리적으로 같은 입력 핀(Vip/Vim)을 공유하므로, 그 핀에서 보이는 총
+    커패시턴스는 두 소자 게이트 커패시턴스의 합이기 때문이다.
+
+    검증 상태: Eq.2/3/5/6 전부 원문 수식과 대조 확인(원문 수치 예제로 gm1(=gmp+gmn)=238µS/
+    ωp2/ωc=2.8 재현). β는 원문의 고정 근사(0.48) 대신 `prev_cggs[0]+prev_cggs[1]` 고정점
+    반복으로 대체했으므로, 실제 공정 LUT에서 나오는 값은 원문의 0.48과 다를 수 있다(공정이
+    다르면 Cgg1 자체가 다르므로 정상 — do.md 배치 7-3/7-5 참고)."""
+    omega_c = 6.9 / t_lln
+    ratio = math.tan(math.radians(PM_target_deg))  # 원문 p.4 "PM = tan^-1(omega_p2/omega_c) [9]"
+    omega_p2 = ratio * omega_c
+
+    def topology_fn(prev_cggs):
+        if prev_cggs is None:
+            cgg1_total = 0.0  # 초기 추정: 원문의 "Cgg1 negligible" 가정과 동일
+            cgg2 = C_Ltot * 0.1  # 초기 추정(miller_ota_topology와 같은 관례)
+        else:
+            cgg1_total = prev_cggs[0] + prev_cggs[1]  # M1a(PMOS)+M4a(NMOS), 같은 입력 핀 공유
+            cgg2 = prev_cggs[2]
+        beta = Cf / (Cf + Cs + cgg1_total)
+        gm1 = omega_c * Cc / beta
+        gmp, gmn = gm1 / 2.0, gm1 / 2.0  # Eq.5: gmn=gmp 가정
+        gm2 = omega_p2 * (C_Ltot * cgg2 / Cc + cgg2 + C_Ltot)
+        return [gmp, gmn, gm2]
+
+    return topology_fn
+
+
+# ---------------------------------------------------------------------------
+# 5) 사용 예시 — 각 토폴로지의 gm 산출만 확인(실제 sizing은 sizing_recipe.optimize_multistage
 #    + real LUT 필요). 원문 수치 예제와의 교차검증 포함.
 # ---------------------------------------------------------------------------
 
@@ -250,19 +336,56 @@ if __name__ == "__main__":
     gm1n, gm2n, gm3n = tf2(None)
     print(f"  gm1={gm1n*1e3:.4f}mS  gm2={gm2n*1e3:.4f}mS  gm3={gm3n*1e3:.4f}mS")
 
-    print("# nmcnr_predict_notch() 스모크 테스트 — sky130-worked-example.md §12.4 실측치로 대조")
+    print("# nmcnr_predict_notch() 스모크 테스트 — sky130-worked-example.md §12.3 실측치로 대조")
     Cm1, Rm, Cm2 = nmcnr_compensation_elements(gm1n, gm2n, gm3n, CL=10e-12, kg=0.5)
     print(f"  Cm1={Cm1*1e12:.3f}pF  Rm={Rm:.2f}ohm  Cm2={Cm2*1e12:.3f}pF")
-    # R1/R2/R3 = 실측(§12.4) stage1/2/3 gain을 각 gm으로 나눈 값(gain=24.69/56.67/24.21)
+    # R1/R2/R3 = 실측(§12.3) stage1/2/3 gain을 각 gm으로 나눈 값(gain=24.69/56.67/24.21)
     R1, R2, R3 = 24.69 / gm1n, 56.67 / gm2n, 24.21 / gm3n
     result = nmcnr_predict_notch(gm1n, gm2n, gm3n, R1, R2, R3, CL=10e-12, kg=0.5)
     print(f"  notch={result['notch']}  dc_gain={result['dc_gain_db']:.1f}dB")
     for f_c, pm in result["crossings"]:
         print(f"    교차: f={f_c/1e6:.3f}MHz  PM={pm:.1f}deg")
-    print("  (실측 SPICE §12.4: GBW=1.66MHz/PM=62.0deg, 2차교차 102.7MHz/PM=-102.3deg, notch=True)")
+    print("  (실측 SPICE §12.3: DC이득 90.60dB/DC위상 -0.41deg, 교차 1번뿐(GBW~25.7MHz/PM~44.8deg), notch=False — 정정된 보상망 토폴로지로 재검증 완료)")
 
     print("# NGCC 3단 (Lee et al. Table 4 예제: k=4, GB=10MHz, CL=10pF, alpha=0.3) — 전체 재현")
     tf3 = ngcc_3stage_topology(GB=10e6, k=4.0, CL=10e-12, alpha=0.3)
     gm1c, gm2c, gm3c = tf3(None)
     print(f"  gm1={gm1c*1e3:.4f}mS  gm2={gm2c*1e3:.4f}mS  gm3={gm3c*1e3:.4f}mS  "
           f"(원문 Table 4: gm1=0.105mS gm2=0.186mS gm3=2.5mS)")
+
+    print()
+    print("# current-reuse telescopic OTA(Xie & Chen 원문 Eq.2-6, 2026-07-31 -- 원문 PDF를")
+    print("# 사용자와 함께 직접 열어 재도출 후 구현)")
+    tf4 = current_reuse_telescopic_topology(t_lln=30e-9, PM_target_deg=70.0, Cc=500e-15,
+                                              Cf=500e-15, Cs=500e-15, C_Ltot=1e-12)
+
+    print("  [Eq.6 ratio=tan(PM_target) -- 원문 수치 예제(PM=70도->2.8)와 검산]")
+    _ratio_expected = math.tan(math.radians(70.0))
+    print(f"    tan(70deg)={_ratio_expected:.4f} (원문 명시값 2.8과 일치)")
+    assert abs(_ratio_expected - 2.8) < 0.06, "원문 수치 예제(2.8)와 너무 다름"
+
+    print("  [Eq.4/5 cold-start(prev_cggs=None) -- Cgg1=0 가정, beta=0.5 정확히, gmp=gmn=gm1/2]")
+    gmp_cold, gmn_cold, gm2r_cold = tf4(None)
+    _beta_cold_expected = 500e-15 / (500e-15 + 500e-15 + 0.0)
+    _gm1_cold_expected = (6.9 / 30e-9) * 500e-15 / _beta_cold_expected
+    assert abs(gmp_cold - _gm1_cold_expected / 2) / (_gm1_cold_expected / 2) < 1e-9
+    assert gmp_cold == gmn_cold, "gmn=gmp 가정(Eq.5)이 깨짐"
+    print(f"    beta=0.5(Cgg1=0 초기추정) -> gmp=gmn={gmp_cold*1e6:.2f}uS(합=gm1={gmp_cold*2*1e6:.2f}uS) "
+          f"(원문의 beta=0.48 고정 근사와 달리 이 함수는 Cgg1=0에서 출발해 반복 수렴)")
+
+    print("  [Eq.4 -- Cgg1_total(M1a+M4a 합)을 명시적으로 주면 beta/gmp/gmn이 그만큼 변함]")
+    gmp_fed, gmn_fed, gm2r_fed = tf4([30e-15, 20e-15, 500e-15])  # M1a Cgg=30fF, M4a Cgg=20fF 가정
+    _beta_fed_expected = 500e-15 / (500e-15 + 500e-15 + 50e-15)
+    _gm1_fed_expected = (6.9 / 30e-9) * 500e-15 / _beta_fed_expected
+    assert abs(gmp_fed - _gm1_fed_expected / 2) / (_gm1_fed_expected / 2) < 1e-9
+    assert gmp_fed > gmp_cold, "Cgg1_total이 커졌는데 beta 감소->gm1 증가라는 관계가 깨짐"
+    print(f"    Cgg1_total=30fF+20fF=50fF -> beta={_beta_fed_expected:.4f}, "
+          f"gmp=gmn={gmp_fed*1e6:.2f}uS (Cgg1=0일 때보다 커짐 확인)")
+
+    print("  [Eq.6 -- Cgg2(prev_cggs[2])를 키우면 gm2도 커짐(단조성, miller_ota_topology와 같은 성질)]")
+    assert gm2r_fed > gm2r_cold or abs(gm2r_fed - gm2r_cold) < 1e-15, "Cgg2 반영 확인"
+    print(f"    gm2(Cgg2=1pF*0.1 초기추정)={gm2r_cold*1e3:.4f}mS, "
+          f"gm2(Cgg2=500fF 명시)={gm2r_fed*1e3:.4f}mS")
+    print("  참고: 원문의 beta=0.48/gm1=238uS는 실제 M1a/M4a 사이징에서 나온 Cgg1을 반복")
+    print("  수렴시켜야 재현 여부를 알 수 있다(sizing_recipe.py의 optimize_multistage() 통합")
+    print("  테스트 참고) -- 이 파일은 topology_fn 자체의 식(Eq.2-6)만 검증한다.")

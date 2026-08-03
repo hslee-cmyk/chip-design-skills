@@ -1,0 +1,40 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "two_stage_ota",
+  "source": "Maloberti PDF p.28-33 worked example — two_stage_ota_example()에서 이관, netlist는 connectivity 필드만 추림(n_fingers/finger_w/w/stack_id는 사이징 산출물이라 제외)",
+
+  "compensation": {
+    "function": "miller_ota_topology",
+    "parameters": ["GBW", "CL", "Z", "NDP"],
+    "stage_devices": [["M1", "M2"], ["M6"]],
+    "_stage_devices_comment": "배치 7-5(2026-07-31 신설) -- optimize_multistage()가 낸 stage별(gm/gm_id/L/W/VDS) 결과를 실제 소자에 병합하는 매핑. 1단(gm1)은 M1/M2 둘 다에 동일 값(diff pair, 각 소자가 개별적으로 gm1을 가짐 -- 합산 아님), 2단(gm2)은 M6 하나.",
+    "notes": "구조적으로 표준 2단 Miller OTA와 정확히 일치: 1단(M1/M2 diff pair + M3/M4 diode-mirror 부하, 출력 O1) -> 2단(M6 common-source, gate=O1, 출력 OUT) + M7(M5와 gate=bias 공유 미러 부하). miller_ota_topology(GBW, CL, Z, NDP)가 gm1(1단)/gm2(2단) 목표를 계산하는 정확히 이 구조를 모델링한다(gm-id-methodology.md §6.4, 원문 Eq 8.13-8.15 대조 완료 — topology_library.py 자체 docstring 참고). ⚠️ 이 필드는 '앞으로 이 topology를 재사이징할 때 어느 방정식을 쓰는가'를 가리킨다 — 지금 netlist의 W값 자체가 이 함수로 역산된 값이라는 뜻은 아니다(PDF 예제값을 그대로 옮김, gm/ID 방법론으로 재도출한 적 없음). 재사이징 시 run_sizing_pipeline()이 GBW/CL(+Z/NDP 기본값 10.0/4.0)로 이 함수를 호출해 gm1/gm2 목표를 얻고, size_transistor()로 각 단의 W를 새로 구할 것."
+  },
+  "_compensation_status": "resolved",
+
+  "device_roles": {
+    "_comment": "배치 7-5(2026-07-31 신설) -- compensation.stage_devices에 없는 소자(M3/M4/M5/M7, A유형)만 채운다. M1/M2/M6은 optimize_multistage()가 gm_id/L/VDS까지 전부 결정하므로 역할 태그가 필요 없다. vertical_stack_id는 allocate_stack_headroom()이 vdd 예산을 나눌 물리적 세로 스택 단위(stage1=M3/M4/M1/M2/M5가 공유하는 vdd->gnd 경로, stage2=M6/M7이 공유하는 별도 경로) -- M1/M2/M6은 이미 VDS가 정해져 있으므로 이 스택 계산에서 그만큼을 뺀 나머지 예산만 M3/M4/M5/M7에 배분한다.",
+    "M3": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "stage1", "vs": 0.0},
+    "M4": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "stage1", "vs": 0.0},
+    "M5": {"headroom_role": "tail", "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "stage1", "vs": 0.0},
+    "M7": {"headroom_role": "tail", "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "stage2", "vs": 0.0}
+  },
+
+  "netlist": [
+    {"name": "M3", "kind": "pmos", "source": "vdd", "drain": "D3", "gate": "D3"},
+    {"name": "M4", "kind": "pmos", "source": "vdd", "drain": "O1", "gate": "D3"},
+    {"name": "M6", "kind": "pmos", "source": "vdd", "drain": "OUT", "gate": "O1"},
+    {"name": "M1", "kind": "nmos", "source": "CS", "drain": "D3", "gate": "vin_p"},
+    {"name": "M2", "kind": "nmos", "source": "CS", "drain": "O1", "gate": "vin_n"},
+    {"name": "M5", "kind": "nmos", "source": "gnd", "drain": "CS", "gate": "bias"},
+    {"name": "M7", "kind": "nmos", "source": "gnd", "drain": "OUT", "gate": "bias"}
+  ],
+
+  "symmetry": {
+    "matching_pairs": [
+      {"names": ["M3", "M4"], "kind": "current_mirror"},
+      {"names": ["M1", "M2"], "kind": "diff_pair"},
+      {"names": ["M5", "M7"], "kind": "current_mirror"}
+    ]
+  }
+}

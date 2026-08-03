@@ -1,0 +1,39 @@
+* param sweep
+.param GMP=0.00048
+.param GMN=0.00048
+.param ROP1=600000.0
+.param ROP2=600000.0
+.param RON1=250000.0
+.param RON2=250000.0
+.param RX=1000000.0
+.param RY=1000000.0
+vip vip 0 dc 0 ac 1
+vim vim 0 dc 0 ac 1
+rx 0 vx {RX}
+ry vy 0 {RY}
+g1a d1a vx vip vx {GMP}
+ro1a d1a vx {ROP1}
+g2a vom1 d1a 0 d1a {GMP}
+ro2a vom1 d1a {ROP2}
+g3a vom1 d3a 0 d3a {GMN}
+ro3a vom1 d3a {RON2}
+g4a d3a vy vip vy {GMN}
+ro4a d3a vy {RON1}
+g1b d1b vx vim vx {GMP}
+ro1b d1b vx {ROP1}
+g2b vop1 d1b 0 d1b {GMP}
+ro2b vop1 d1b {ROP2}
+g3b vop1 d3b 0 d3b {GMN}
+ro3b vop1 d3b {RON2}
+g4b d3b vy vim vy {GMN}
+ro4b d3b vy {RON1}
+.control
+ac lin 1 1k 1k
+print v(vom1)
+alter vim ac = -1
+ac lin 1 1k 1k
+print v(vom1)
+print v(vop1)
+quit
+.endc
+.end

@@ -16,6 +16,7 @@
 | chip-verification | `chip-verification/skill-validation-prompt.md` | 참조경로, 워크플로우-참조, 다이어그램, 용어, map, BP (절차적 구조) |
 | lattice-fpga | `lattice-fpga/skill-validation-prompt.md` | 참조경로, 워크플로우-참조, 다이어그램, 용어, map, BP (절차적 구조) |
 | uvm-verification | `uvm-verification/skill-validation-prompt.md` | 참조경로, 워크플로우-참조, 코드예제, 용어, map, BP (절차적+코드) |
+| analog-gmid-design | `analog-gmid-design/skill-validation-prompt.md` | 참조마커(마커가 자기 SKILL.md가 아닌 gm-id-methodology.md를 가리키는 고유 규약), 함수 시그니처 대조, 용어+"out of scope" 오용 탐지, map, BP (절차적 구조 + 함수 선택 지도) |
 
 ---
 

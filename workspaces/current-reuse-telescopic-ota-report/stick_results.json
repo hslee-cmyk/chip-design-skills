@@ -1,0 +1,934 @@
+{
+  "row1_pmos_in_casc": {
+    "cand": {
+      "finger_w": 0.4107361989049416,
+      "n_fingers_per_device": {
+        "M1a": 9,
+        "M2a": 10
+      },
+      "snap_error_per_device": {
+        "M1a": 1.2013366650041857e-16,
+        "M2a": 0.00443101258089962
+      },
+      "max_snap_error": 0.00443101258089962
+    },
+    "stick": {
+      "stack_id": "row1_pmos_in_casc",
+      "status": "ok",
+      "node_sequence": [
+        "n_1a2a",
+        "Vom1",
+        "n_1a2a",
+        "Vx",
+        "n_1b2b",
+        "Vop1",
+        "n_1b2b",
+        "Vop1",
+        "n_1b2b",
+        "Vx",
+        "n_1a2a",
+        "Vom1",
+        "n_1a2a",
+        "Vx",
+        "n_1b2b",
+        "Vop1",
+        "n_1b2b",
+        "Vx",
+        "n_1a2a",
+        "Vom1",
+        "n_1a2a",
+        "Vx",
+        "n_1b2b",
+        "Vop1",
+        "n_1b2b",
+        "Vx",
+        "n_1a2a",
+        "Vom1",
+        "n_1a2a",
+        "Vx",
+        "n_1b2b",
+        "Vop1",
+        "n_1b2b",
+        "Vx",
+        "n_1a2a",
+        "Vom1",
+        "n_1a2a",
+        "Vx",
+        "n_1b2b"
+      ],
+      "transistor_sequence": [
+        "M2a",
+        "M2a",
+        "M1a",
+        "M1b",
+        "M2b",
+        "M2b",
+        "M2b",
+        "M2b",
+        "M1b",
+        "M1a",
+        "M2a",
+        "M2a",
+        "M1a",
+        "M1b",
+        "M2b",
+        "M2b",
+        "M1b",
+        "M1a",
+        "M2a",
+        "M2a",
+        "M1a",
+        "M1b",
+        "M2b",
+        "M2b",
+        "M1b",
+        "M1a",
+        "M2a",
+        "M2a",
+        "M1a",
+        "M1b",
+        "M2b",
+        "M2b",
+        "M1b",
+        "M1a",
+        "M2a",
+        "M2a",
+        "M1a",
+        "M1b"
+      ],
+      "odd_nodes": [
+        "n_1a2a",
+        "n_1b2b"
+      ],
+      "connected": true,
+      "suggestions": []
+    }
+  },
+  "row2_nmos_in_casc": {
+    "cand": {
+      "finger_w": 0.06601132168079389,
+      "n_fingers_per_device": {
+        "M3a": 10,
+        "M4a": 9
+      },
+      "snap_error_per_device": {
+        "M3a": 0.0,
+        "M4a": 0.004964079509415621
+      },
+      "max_snap_error": 0.004964079509415621
+    },
+    "stick": {
+      "stack_id": "row2_nmos_in_casc",
+      "status": "ok",
+      "node_sequence": [
+        "n_3a4a",
+        "Vom1",
+        "n_3a4a",
+        "Vy",
+        "n_3b4b",
+        "Vop1",
+        "n_3b4b",
+        "Vy",
+        "n_3a4a",
+        "Vom1",
+        "n_3a4a",
+        "Vy",
+        "n_3b4b",
+        "Vop1",
+        "n_3b4b",
+        "Vy",
+        "n_3a4a",
+        "Vom1",
+        "n_3a4a",
+        "Vy",
+        "n_3b4b",
+        "Vop1",
+        "n_3b4b",
+        "Vy",
+        "n_3a4a",
+        "Vom1",
+        "n_3a4a",
+        "Vy",
+        "n_3b4b",
+        "Vop1",
+        "n_3b4b",
+        "Vy",
+        "n_3a4a",
+        "Vom1",
+        "n_3a4a",
+        "Vy",
+        "n_3b4b",
+        "Vop1",
+        "n_3b4b"
+      ],
+      "transistor_sequence": [
+        "M3a",
+        "M3a",
+        "M4a",
+        "M4b",
+        "M3b",
+        "M3b",
+        "M4b",
+        "M4a",
+        "M3a",
+        "M3a",
+        "M4a",
+        "M4b",
+        "M3b",
+        "M3b",
+        "M4b",
+        "M4a",
+        "M3a",
+        "M3a",
+        "M4a",
+        "M4b",
+        "M3b",
+        "M3b",
+        "M4b",
+        "M4a",
+        "M3a",
+        "M3a",
+        "M4a",
+        "M4b",
+        "M3b",
+        "M3b",
+        "M4b",
+        "M4a",
+        "M3a",
+        "M3a",
+        "M4a",
+        "M4b",
+        "M3b",
+        "M3b"
+      ],
+      "odd_nodes": [
+        "n_3a4a",
+        "n_3b4b"
+      ],
+      "connected": true,
+      "suggestions": []
+    }
+  },
+  "row3_top_load": {
+    "cand": {
+      "finger_w": 1.1847407988293341,
+      "n_fingers_per_device": {
+        "M6": 7,
+        "M7": 3
+      },
+      "snap_error_per_device": {
+        "M6": 0.0,
+        "M7": 1.249469392486176e-16
+      },
+      "max_snap_error": 1.249469392486176e-16
+    },
+    "stick": {
+      "stack_id": "row3_top_load",
+      "status": "ok",
+      "node_sequence": [
+        "VDD",
+        "Vx",
+        "VDD",
+        "Vx",
+        "VDD",
+        "Vx",
+        "VDD",
+        "Vx",
+        "VDD",
+        "Vx",
+        "VDD"
+      ],
+      "transistor_sequence": [
+        "M6",
+        "M6",
+        "M6",
+        "M6",
+        "M7",
+        "M6",
+        "M7",
+        "M6",
+        "M7",
+        "M6"
+      ],
+      "odd_nodes": [],
+      "connected": true,
+      "suggestions": []
+    }
+  },
+  "row4_tail": {
+    "cand": {
+      "finger_w": 0.30572299291257116,
+      "n_fingers_per_device": {
+        "M5": 8
+      },
+      "total_row_fingers": 8
+    },
+    "stick": {
+      "stack_id": "row4_tail",
+      "status": "ok",
+      "node_sequence": [
+        "GND",
+        "Vy",
+        "GND",
+        "Vy",
+        "GND",
+        "Vy",
+        "GND",
+        "Vy",
+        "GND"
+      ],
+      "transistor_sequence": [
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5"
+      ],
+      "odd_nodes": [],
+      "connected": true,
+      "suggestions": []
+    }
+  },
+  "rowP_out": {
+    "finger_w": 5.882352941176471,
+    "n": 34,
+    "stick": {
+      "stack_id": "rowP_out",
+      "status": "ok",
+      "node_sequence": [
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD"
+      ],
+      "transistor_sequence": [
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15"
+      ],
+      "odd_nodes": [],
+      "connected": true,
+      "suggestions": []
+    }
+  },
+  "rowN_out": {
+    "finger_w": 1.935282890878589,
+    "n": 34,
+    "stick": {
+      "stack_id": "rowN_out",
+      "status": "ok",
+      "node_sequence": [
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND"
+      ],
+      "transistor_sequence": [
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16"
+      ],
+      "odd_nodes": [],
+      "connected": true,
+      "suggestions": []
+    }
+  },
+  "matching_candidates": {
+    "current_mirror": {
+      "('pmos', 'Vbias2')": [
+        "Transistor(name='M2a', kind='pmos', source='n_1a2a', drain='Vom1', n_fingers=10, finger_w=0.4107361989049416, w=None, gate='Vbias2', stack_id='row1_pmos_in_casc')",
+        "Transistor(name='M2b', kind='pmos', source='n_1b2b', drain='Vop1', n_fingers=10, finger_w=0.4107361989049416, w=None, gate='Vbias2', stack_id='row1_pmos_in_casc')"
+      ],
+      "('nmos', 'Vbias3')": [
+        "Transistor(name='M3a', kind='nmos', source='n_3a4a', drain='Vom1', n_fingers=10, finger_w=0.06601132168079389, w=None, gate='Vbias3', stack_id='row2_nmos_in_casc')",
+        "Transistor(name='M3b', kind='nmos', source='n_3b4b', drain='Vop1', n_fingers=10, finger_w=0.06601132168079389, w=None, gate='Vbias3', stack_id='row2_nmos_in_casc')"
+      ]
+    },
+    "diff_pair": {
+      "('pmos', 'Vx')": [
+        "Transistor(name='M1a', kind='pmos', source='Vx', drain='n_1a2a', n_fingers=9, finger_w=0.4107361989049416, w=None, gate='Vip', stack_id='row1_pmos_in_casc')",
+        "Transistor(name='M1b', kind='pmos', source='Vx', drain='n_1b2b', n_fingers=9, finger_w=0.4107361989049416, w=None, gate='Vim', stack_id='row1_pmos_in_casc')"
+      ]
+    }
+  },
+  "hub_merge": {
+    "('pmos', 'Vx')": [
+      "Transistor(name='M6', kind='pmos', source='VDD', drain='Vx', n_fingers=7, finger_w=1.1847407988293341, w=None, gate='Vbias1', stack_id='row3_top_load')",
+      "Transistor(name='M7', kind='pmos', source='VDD', drain='Vx', n_fingers=3, finger_w=1.1847407988293341, w=None, gate='Vcmfb', stack_id='row3_top_load')"
+    ],
+    "('nmos', 'Vy')": [
+      "Transistor(name='M4a', kind='nmos', source='Vy', drain='n_3a4a', n_fingers=9, finger_w=0.06601132168079389, w=None, gate='Vip', stack_id='row2_nmos_in_casc')",
+      "Transistor(name='M4b', kind='nmos', source='Vy', drain='n_3b4b', n_fingers=9, finger_w=0.06601132168079389, w=None, gate='Vim', stack_id='row2_nmos_in_casc')",
+      "Transistor(name='M5', kind='nmos', source='Vy', drain='GND', n_fingers=8, finger_w=0.30572299291257116, w=None, gate='Vbias4', stack_id='row4_tail')"
+    ],
+    "('pmos', 'VDD')": [
+      "Transistor(name='M6', kind='pmos', source='VDD', drain='Vx', n_fingers=7, finger_w=1.1847407988293341, w=None, gate='Vbias1', stack_id='row3_top_load')",
+      "Transistor(name='M7', kind='pmos', source='VDD', drain='Vx', n_fingers=3, finger_w=1.1847407988293341, w=None, gate='Vcmfb', stack_id='row3_top_load')",
+      "Transistor(name='M15', kind='pmos', source='VDD', drain='Vop', n_fingers=34, finger_w=5.882352941176471, w=None, gate='n_batt_p_a', stack_id='rowP_out')",
+      "Transistor(name='M25', kind='pmos', source='VDD', drain='Vom', n_fingers=34, finger_w=5.882352941176471, w=None, gate='n_batt_p_b', stack_id='rowP_out')"
+    ],
+    "('nmos', 'GND')": [
+      "Transistor(name='M5', kind='nmos', source='Vy', drain='GND', n_fingers=8, finger_w=0.30572299291257116, w=None, gate='Vbias4', stack_id='row4_tail')",
+      "Transistor(name='M16', kind='nmos', source='Vom', drain='GND', n_fingers=34, finger_w=1.935282890878589, w=None, gate='n_batt_n_a', stack_id='rowN_out')",
+      "Transistor(name='M26', kind='nmos', source='Vop', drain='GND', n_fingers=34, finger_w=1.935282890878589, w=None, gate='n_batt_n_b', stack_id='rowN_out')"
+    ]
+  },
+  "mirror_symmetry": {
+    "row1_pmos_in_casc": false,
+    "row2_nmos_in_casc": true,
+    "rowP_out": true,
+    "rowN_out": true
+  },
+  "box_shape": {
+    "core": {
+      "ok": true,
+      "row_widths": {
+        "row1_pmos_in_casc": 38,
+        "row2_nmos_in_casc": 38
+      },
+      "max_ratio": 1.0,
+      "message": "PASS: \ud589 \ud3ed {'row1_pmos_in_casc': 38, 'row2_nmos_in_casc': 38}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+    },
+    "bias_tail": {
+      "ok": true,
+      "row_widths": {
+        "row3_top_load": 10,
+        "row4_tail": 8
+      },
+      "max_ratio": 1.25,
+      "message": "PASS: \ud589 \ud3ed {'row3_top_load': 10, 'row4_tail': 8}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.25 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+    },
+    "stage2_out": {
+      "ok": true,
+      "row_widths": {
+        "rowP_out": 68,
+        "rowN_out": 68
+      },
+      "max_ratio": 1.0,
+      "message": "PASS: \ud589 \ud3ed {'rowP_out': 68, 'rowN_out': 68}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+    }
+  },
+  "floorplan": {
+    "placements": {
+      "row1_pmos_in_casc": {
+        "x": -34.0,
+        "y": 0.0,
+        "width": 38,
+        "height": 1
+      },
+      "row2_nmos_in_casc": {
+        "x": -34.0,
+        "y": 2.0,
+        "width": 38,
+        "height": 1
+      },
+      "row3_top_load": {
+        "x": 5.0,
+        "y": 0.0,
+        "width": 10,
+        "height": 1
+      },
+      "row4_tail": {
+        "x": 5.0,
+        "y": 2.0,
+        "width": 8,
+        "height": 1
+      },
+      "rowP_out": {
+        "x": -34.0,
+        "y": 4.0,
+        "width": 68,
+        "height": 1
+      },
+      "rowN_out": {
+        "x": -34.0,
+        "y": 6.0,
+        "width": 68,
+        "height": 1
+      }
+    },
+    "bbox": {
+      "width": 68.0,
+      "height": 7.0
+    },
+    "aspect_ratio": 9.714285714285714,
+    "packing_density": 0.7310924369747899,
+    "scope_note": "pack_floorplan_grouped() output, real run -- 3 cells covered by this pass (core_signal_cell/bias_tail_cell/stage2_output_cell). M27-M40 (biasing generator, Fig.4) and CMFB (Fig.5, M36-M40/R1-R2) were sized but not run through the stick-diagram/floorplan pipeline in this pass -- see the honest scope note in section 7 (layout guide). This is a partial-scope floorplan, not a full-circuit one."
+  },
+  "audit_row_split": {
+    "core_signal_cell": {
+      "ok": false,
+      "checks": [
+        {
+          "name": "1. euler[row1_pmos_in_casc]",
+          "ok": true,
+          "detail": "odd_nodes=['n_1a2a', 'n_1b2b']"
+        },
+        {
+          "name": "1. euler[row2_nmos_in_casc]",
+          "ok": true,
+          "detail": "odd_nodes=['n_3a4a', 'n_3b4b']"
+        },
+        {
+          "name": "2. box-shape",
+          "ok": true,
+          "detail": "PASS: \ud589 \ud3ed {'row1_pmos_in_casc': 38, 'row2_nmos_in_casc': 38}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+        },
+        {
+          "name": "3a. row-presence[M1a/M1b] (kind=diff_pair)",
+          "ok": true,
+          "detail": "\ub450 \uc18c\uc790 \ubaa8\ub450 \uc788\ub294 \ud589: ['row1_pmos_in_casc']; M1a/M1b \uc911 \ud55c\ucabd\ub9cc \uc788\ub294 \ud589: \uc5c6\uc74c (\uc815\ubcf4\uc131 \u2014 solo \uc790\uccb4\ub294 \uc2e4\ud328\uac00 \uc544\ub2d8, 3c\uac00 \uc2e4\uc81c \ud488\uc9c8\uc744 \ud310\uc815)"
+        },
+        {
+          "name": "3b. interdigitation[M1a/M1b] [\ucc38\uace0\uc6a9 -- \uc774 kind\ub294 \ud544\uc218 \uc544\ub2d8]",
+          "ok": true,
+          "detail": "row1_pmos_in_casc: \uc778\uc811"
+        },
+        {
+          "name": "3c. common-centroid[M1a/M1b]",
+          "ok": true,
+          "detail": "M1a centroid=(20.22,0.00), M1b centroid=(20.33,0.00), |dx|=0.11 |dy|=0.00 (\ud5c8\uc6a9\uc624\ucc28 0.5)"
+        },
+        {
+          "name": "3a. row-presence[M2a/M2b] (kind=current_mirror)",
+          "ok": true,
+          "detail": "\ub450 \uc18c\uc790 \ubaa8\ub450 \uc788\ub294 \ud589: ['row1_pmos_in_casc']; M2a/M2b \uc911 \ud55c\ucabd\ub9cc \uc788\ub294 \ud589: \uc5c6\uc74c (\uc815\ubcf4\uc131 \u2014 solo \uc790\uccb4\ub294 \uc2e4\ud328\uac00 \uc544\ub2d8, 3c\uac00 \uc2e4\uc81c \ud488\uc9c8\uc744 \ud310\uc815)"
+        },
+        {
+          "name": "3b. interdigitation[M2a/M2b]",
+          "ok": false,
+          "detail": "row1_pmos_in_casc: NOT \uc778\uc811"
+        },
+        {
+          "name": "3c. common-centroid[M2a/M2b] [\ucc38\uace0\uc6a9 -- \uc774 kind\ub294 \ud544\uc218 \uc544\ub2d8]",
+          "ok": false,
+          "detail": "M2a centroid=(18.10,0.00), M2b centroid=(15.70,0.00), |dx|=2.40 |dy|=0.00 (\ud5c8\uc6a9\uc624\ucc28 0.5)"
+        },
+        {
+          "name": "3a. row-presence[M3a/M3b] (kind=current_mirror)",
+          "ok": true,
+          "detail": "\ub450 \uc18c\uc790 \ubaa8\ub450 \uc788\ub294 \ud589: ['row2_nmos_in_casc']; M3a/M3b \uc911 \ud55c\ucabd\ub9cc \uc788\ub294 \ud589: \uc5c6\uc74c (\uc815\ubcf4\uc131 \u2014 solo \uc790\uccb4\ub294 \uc2e4\ud328\uac00 \uc544\ub2d8, 3c\uac00 \uc2e4\uc81c \ud488\uc9c8\uc744 \ud310\uc815)"
+        },
+        {
+          "name": "3b. interdigitation[M3a/M3b]",
+          "ok": false,
+          "detail": "row2_nmos_in_casc: NOT \uc778\uc811"
+        },
+        {
+          "name": "3c. common-centroid[M3a/M3b] [\ucc38\uace0\uc6a9 -- \uc774 kind\ub294 \ud544\uc218 \uc544\ub2d8]",
+          "ok": false,
+          "detail": "M3a centroid=(16.50,1.00), M3b centroid=(20.50,1.00), |dx|=4.00 |dy|=0.00 (\ud5c8\uc6a9\uc624\ucc28 0.5)"
+        },
+        {
+          "name": "3a. row-presence[M4a/M4b] (kind=diff_pair)",
+          "ok": true,
+          "detail": "\ub450 \uc18c\uc790 \ubaa8\ub450 \uc788\ub294 \ud589: ['row2_nmos_in_casc']; M4a/M4b \uc911 \ud55c\ucabd\ub9cc \uc788\ub294 \ud589: \uc5c6\uc74c (\uc815\ubcf4\uc131 \u2014 solo \uc790\uccb4\ub294 \uc2e4\ud328\uac00 \uc544\ub2d8, 3c\uac00 \uc2e4\uc81c \ud488\uc9c8\uc744 \ud310\uc815)"
+        },
+        {
+          "name": "3b. interdigitation[M4a/M4b] [\ucc38\uace0\uc6a9 -- \uc774 kind\ub294 \ud544\uc218 \uc544\ub2d8]",
+          "ok": true,
+          "detail": "row2_nmos_in_casc: \uc778\uc811"
+        },
+        {
+          "name": "3c. common-centroid[M4a/M4b]",
+          "ok": true,
+          "detail": "M4a centroid=(18.44,1.00), M4b centroid=(18.56,1.00), |dx|=0.11 |dy|=0.00 (\ud5c8\uc6a9\uc624\ucc28 0.5)"
+        }
+      ]
+    },
+    "bias_tail_cell": {
+      "ok": true,
+      "checks": [
+        {
+          "name": "1. euler[row3_top_load]",
+          "ok": true,
+          "detail": "odd_nodes=[]"
+        },
+        {
+          "name": "1. euler[row4_tail]",
+          "ok": true,
+          "detail": "odd_nodes=[]"
+        },
+        {
+          "name": "2. box-shape",
+          "ok": true,
+          "detail": "PASS: \ud589 \ud3ed {'row3_top_load': 10, 'row4_tail': 8}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.25 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+        }
+      ]
+    },
+    "stage2_output_cell": {
+      "ok": false,
+      "checks": [
+        {
+          "name": "1. euler[rowP_out]",
+          "ok": true,
+          "detail": "odd_nodes=[]"
+        },
+        {
+          "name": "1. euler[rowN_out]",
+          "ok": true,
+          "detail": "odd_nodes=[]"
+        },
+        {
+          "name": "2. box-shape",
+          "ok": true,
+          "detail": "PASS: \ud589 \ud3ed {'rowP_out': 68, 'rowN_out': 68}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+        },
+        {
+          "name": "3a. row-presence[M15/M25] (kind=branch_symmetric)",
+          "ok": true,
+          "detail": "\ub450 \uc18c\uc790 \ubaa8\ub450 \uc788\ub294 \ud589: ['rowP_out']; M15/M25 \uc911 \ud55c\ucabd\ub9cc \uc788\ub294 \ud589: \uc5c6\uc74c (\uc815\ubcf4\uc131 \u2014 solo \uc790\uccb4\ub294 \uc2e4\ud328\uac00 \uc544\ub2d8, 3c\uac00 \uc2e4\uc81c \ud488\uc9c8\uc744 \ud310\uc815)"
+        },
+        {
+          "name": "3b. interdigitation[M15/M25] [\ucc38\uace0\uc6a9 -- \uc774 kind\ub294 \ud544\uc218 \uc544\ub2d8]",
+          "ok": true,
+          "detail": "rowP_out: \uc778\uc811"
+        },
+        {
+          "name": "3c. common-centroid[M15/M25]",
+          "ok": false,
+          "detail": "M15 centroid=(34.50,0.00), M25 centroid=(32.50,0.00), |dx|=2.00 |dy|=0.00 (\ud5c8\uc6a9\uc624\ucc28 0.5)"
+        },
+        {
+          "name": "3a. row-presence[M16/M26] (kind=branch_symmetric)",
+          "ok": true,
+          "detail": "\ub450 \uc18c\uc790 \ubaa8\ub450 \uc788\ub294 \ud589: ['rowN_out']; M16/M26 \uc911 \ud55c\ucabd\ub9cc \uc788\ub294 \ud589: \uc5c6\uc74c (\uc815\ubcf4\uc131 \u2014 solo \uc790\uccb4\ub294 \uc2e4\ud328\uac00 \uc544\ub2d8, 3c\uac00 \uc2e4\uc81c \ud488\uc9c8\uc744 \ud310\uc815)"
+        },
+        {
+          "name": "3b. interdigitation[M16/M26] [\ucc38\uace0\uc6a9 -- \uc774 kind\ub294 \ud544\uc218 \uc544\ub2d8]",
+          "ok": true,
+          "detail": "rowN_out: \uc778\uc811"
+        },
+        {
+          "name": "3c. common-centroid[M16/M26]",
+          "ok": false,
+          "detail": "M16 centroid=(34.50,1.00), M26 centroid=(32.50,1.00), |dx|=2.00 |dy|=0.00 (\ud5c8\uc6a9\uc624\ucc28 0.5)"
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "ok": false,
+    "missing": [
+      "M11a",
+      "M11b",
+      "M13",
+      "M14a",
+      "M14b",
+      "M27",
+      "M28",
+      "M29",
+      "M30-M32",
+      "M33",
+      "M34",
+      "M35",
+      "M36a",
+      "M36b",
+      "M37a",
+      "M37b",
+      "M38",
+      "M39",
+      "M40",
+      "M8"
+    ]
+  },
+  "run_full_circuit_audit": {
+    "ok": true,
+    "checks": [
+      {
+        "name": "1. device count vs manifest",
+        "ok": true,
+        "detail": "total 15 == expected 15"
+      },
+      {
+        "name": "2. net-name case consistency",
+        "ok": true,
+        "detail": "all net names already single-case"
+      },
+      {
+        "name": "3. every matching/hub-merge candidate has a recorded disposition",
+        "ok": true,
+        "detail": "7 candidate groups, all disposed"
+      },
+      {
+        "name": "4. box-shape [core_signal_cell]",
+        "ok": true,
+        "detail": "PASS: \ud589 \ud3ed {'row1_pmos_in_casc': 38, 'row2_nmos_in_casc': 38}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+      },
+      {
+        "name": "4. box-shape [bias_tail_cell]",
+        "ok": true,
+        "detail": "PASS: \ud589 \ud3ed {'row3_top_load': 10, 'row4_tail': 8}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.25 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+      },
+      {
+        "name": "4. box-shape [stage2_output_cell]",
+        "ok": true,
+        "detail": "PASS: \ud589 \ud3ed {'rowP_out': 68, 'rowN_out': 68}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+      }
+    ],
+    "scope_note": "Partial-scope audit -- covers only the 15 devices in the 3 cells this pass builds stick diagrams for (core_signal_cell/bias_tail_cell/stage2_output_cell). Bias-gen (M27-M40), CMFB (M36-M40, R1/R2), and Class-AB floating-battery internals (M8-M14, M17-M24) were sized but their connectivity was not resolved to gate-level certainty from the scanned schematic in this pass -- auditing them would require fabricating connectivity not actually verified, so they are honestly excluded here rather than assumed. See report's own out_of_scope note."
+  }
+}

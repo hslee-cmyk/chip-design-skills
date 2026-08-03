@@ -1,0 +1,20 @@
+* single-device op check: M4a (nmos), N=1 parallel unit fingers
+
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice"
+.include "C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
+
+Vg g 0 0.820699
+Vd d 0 0.400000
+Vsrc s 0 0
+Vb b 0 0
+XM0 d g s b sky130_fd_pr__nfet_01v8 l=0.150000u w=0.597066u
+.op
+.control
+run
+print @m.xm0.msky130_fd_pr__nfet_01v8[id]
+print @m.xm0.msky130_fd_pr__nfet_01v8[gm]
+print @m.xm0.msky130_fd_pr__nfet_01v8[vdsat]
+print @m.xm0.msky130_fd_pr__nfet_01v8[vth]
+print -i(vd)
+.endc
+.end

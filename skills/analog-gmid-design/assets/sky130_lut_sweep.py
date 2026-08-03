@@ -89,8 +89,27 @@ VDS_ARR = np.linspace(VDS_START, VDS_STOP, N_VDS)
 _NUM_RE = re.compile(r"=\s*([-+0-9.eE]+)\s*$")
 
 
+NOISE_F_PROBE = 1.0    # SID_1F는 1Hz 기준(§ SemiEmpiricalGmIdLUT.noise_1f_density 참고)
+LCHOKE_AC = 1e-15      # Y11/Y12(100MHz) 측정 중엔 사실상 wire(임피던스 6e-7옴 무시 가능)
+LCHOKE_NOISE = 1e9     # noise(1Hz) 측정 중엔 사실상 open(임피던스 6e9옴, ro보다 훨씬 큼)
+
+
 def _gen_netlist(devcell, L_um, VS, vb_dc, polarity, lod_include):
-    """polarity: +1(NMOS, 양의 VGS/VDS) 또는 -1(PMOS, 음의 VGS/VDS 인가)."""
+    """polarity: +1(NMOS, 양의 VGS/VDS) 또는 -1(PMOS, 음의 VGS/VDS 인가).
+
+    배치 7-5b(2026-07-31) -- SID_1F(1/f 노이즈, 배치 7-3g가 요구하지만 이 스크립트엔 없던 필드)
+    추가. 드레인을 이상적 DC 전압원(`vds`)이 그대로 클램프하면 `.noise v(d) ...`가 항상
+    정확히 0을 반환한다(이상적 전압원 노드는 정의상 잡음전압이 0) -- 실측으로 확인한 뒤(아래
+    참고), `vds`가 중간노드 `dd`를 구동하고 큰 인덕터(`lchoke`, DC저항 0 -> 동작점 완전
+    보존)로 실제 드레인 `d`와 분리하는 구조로 바꿨다. 인덕턴스 값은 `alter`로 두 상태를
+    오간다: Y11/Y12(100MHz) 측정 중엔 `LCHOKE_AC`(사실상 wire, 기존 측정과 동일한 결과를
+    내도록)로, noise(1Hz) 측정 직전엔 `LCHOKE_NOISE`(사실상 open, 잡음이 드레인 자체
+    출력임피던스로만 나타나도록)로 전환 -- 단일 인덕터로 두 마리 토끼를 잡을 수 없어서
+    (임피던스는 주파수에 비례 증가만 하므로) 값 자체를 전환하는 방식을 택했다. 단일
+    bias점 스탠드얼론 테스트로 세 가지 다 확인: (1) 초기 클램프 구조는 노이즈가 항상
+    0(이상적 전압원 노드는 잡음전압이 정의상 0), (2) choke-decouple 단독 구조는 비영값,
+    (3) choke 토글(AC 측정 땐 작게, noise 측정 땐 크게)이 기존 Y11/Y12/id/gm/gds 값을
+    전혀 바꾸지 않으면서 (2)와 정확히 같은 noise 값을 낸다."""
     vgs_vals = [round(polarity * v, 6) for v in VGS_ARR]
     vds_vals = [round(polarity * v, 6) for v in VDS_ARR]
     L = []
@@ -101,7 +120,8 @@ def _gen_netlist(devcell, L_um, VS, vb_dc, polarity, lod_include):
     L.append(f'.include "{PDK_ROOT}\\cells\\{devcell}\\sky130_fd_pr__{devcell}__mismatch.corner.spice"')
     L.append("")
     L.append("vgs g 0 dc 0 ac 1")
-    L.append("vds d 0 dc 0 ac 0")
+    L.append("vds dd 0 dc 0 ac 0")
+    L.append(f"lchoke dd d {LCHOKE_AC}")
     L.append(f"vb  b 0 dc {vb_dc}")
     L.append(f"xdut d g 0 b sky130_fd_pr__{devcell} l={L_um}u w=5u ad=2.5p as=2.5p pd=7u ps=7u")
     L.append("")
@@ -133,6 +153,12 @@ def _gen_netlist(devcell, L_um, VS, vb_dc, polarity, lod_include):
     L.append("    alter vds ac = 1")
     L.append(f"    ac lin 1 {F_TEST:.0f} {F_TEST:.0f}")
     L.append("    print mag(i(vgs))")            # Y12 -> Cgd
+    L.append(f"    alter lchoke = {LCHOKE_NOISE}")
+    L.append("    alter vgs ac = 1")
+    L.append("    alter vds ac = 0")
+    L.append(f"    noise v(d) vgs dec 1 {NOISE_F_PROBE:.0f} {NOISE_F_PROBE:.0f}")
+    L.append("    print inoise_spectrum")        # 게이트환산 1/f+열 잡음밀도(1Hz) -> SID_1F
+    L.append(f"    alter lchoke = {LCHOKE_AC}")
     L.append("    let ivd = ivd + 1")
     L.append("  end")
     L.append("  let ig = ig + 1")
@@ -144,9 +170,10 @@ def _gen_netlist(devcell, L_um, VS, vb_dc, polarity, lod_include):
 
 
 def _parse_output(path):
-    """echo 'P' 마커로 구분된 반복 출력에서 id/gm/gds/Y11-mag/Y12-mag를 순서대로 파싱한다."""
+    """echo 'P' 마커로 구분된 반복 출력에서 id/gm/gds/Y11-mag/Y12-mag/noise를 순서대로
+    파싱한다(배치 7-5b: `inoise_spectrum` 6번째 값 추가 -- SID_1F)."""
     lines = open(path, encoding="utf-8", errors="replace").read().splitlines()
-    id_v, gm_v, gds_v, y11_v, y12_v = [], [], [], [], []
+    id_v, gm_v, gds_v, y11_v, y12_v, noise_v = [], [], [], [], [], []
     cur = []
     for line in lines:
         if "[id]" in line:
@@ -157,10 +184,11 @@ def _parse_output(path):
             cur.append(float(_NUM_RE.search(line).group(1)))
         elif line.strip().startswith("mag(") and len(cur) in (3, 4):
             cur.append(float(_NUM_RE.search(line).group(1)))
-            if len(cur) == 5:
-                id_v.append(cur[0]); gm_v.append(cur[1]); gds_v.append(cur[2])
-                y11_v.append(cur[3]); y12_v.append(cur[4])
-                cur = []
+        elif line.strip().startswith("inoise_spectrum") and len(cur) == 5:
+            cur.append(float(_NUM_RE.search(line).group(1)))
+            id_v.append(cur[0]); gm_v.append(cur[1]); gds_v.append(cur[2])
+            y11_v.append(cur[3]); y12_v.append(cur[4]); noise_v.append(cur[5])
+            cur = []
     n = N_VGS * N_VDS
     if len(id_v) != n:
         raise RuntimeError(f"expected {n} points, parsed {len(id_v)} from {path}")
@@ -169,7 +197,8 @@ def _parse_output(path):
     GDS = np.abs(np.array(gds_v)).reshape(N_VGS, N_VDS)
     CGG = np.abs(np.array(y11_v)).reshape(N_VGS, N_VDS) / (2 * math.pi * F_TEST)
     CGD = np.abs(np.array(y12_v)).reshape(N_VGS, N_VDS) / (2 * math.pi * F_TEST)
-    return ID, GM, GDS, CGG, CGD
+    SID_1F = np.abs(np.array(noise_v)).reshape(N_VGS, N_VDS)
+    return ID, GM, GDS, CGG, CGD, SID_1F
 
 
 def _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign):
@@ -177,7 +206,9 @@ def _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign):
     ckpt = os.path.join(CKPT_DIR, f"{devcell}_L{iL}_VS{iVS}.npz")
     if os.path.exists(ckpt):
         d = np.load(ckpt)
-        return d["ID"], d["GM"], d["GDS"], d["CGG"], d["CGD"]
+        if "SID_1F" in d:
+            return d["ID"], d["GM"], d["GDS"], d["CGG"], d["CGD"], d["SID_1F"]
+        # 배치 7-5b 이전(노이즈 없이) 생성된 체크포인트 -- 그대로 못 쓴다. 재실행해서 채운다.
 
     vb_dc = vb_sign * VS * -1
     netfile = os.path.join(OUTPUT_DIR, f"_ac_{devcell}_L{iL}_VS{iVS}.cir")
@@ -188,9 +219,10 @@ def _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign):
         f.write(net)
     with open(outfile, "w") as fo:
         subprocess.run([NGSPICE_EXE, "-b", netfile], cwd=OUTPUT_DIR,
-                        stdout=fo, stderr=subprocess.STDOUT, timeout=180)
+                        stdout=fo, stderr=subprocess.STDOUT, timeout=300)
     result = _parse_output(outfile)
-    np.savez(ckpt, ID=result[0], GM=result[1], GDS=result[2], CGG=result[3], CGD=result[4])
+    np.savez(ckpt, ID=result[0], GM=result[1], GDS=result[2], CGG=result[3], CGD=result[4],
+             SID_1F=result[5])
     os.remove(netfile)
     os.remove(outfile)
     return result
@@ -203,16 +235,18 @@ def run_device(devcell: str, polarity: int, vb_sign: int, t0: float):
     GDS = np.zeros((nL, N_VGS, N_VDS, nVS))
     CGG = np.zeros((nL, N_VGS, N_VDS, nVS))
     CGD = np.zeros((nL, N_VGS, N_VDS, nVS))
+    SID_1F = np.zeros((nL, N_VGS, N_VDS, nVS))
     for iL, L_um in enumerate(L_GRID_UM):
         for iVS, VS in enumerate(VS_GRID):
-            id_, gm_, gds_, cgg_, cgd_ = _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign)
+            id_, gm_, gds_, cgg_, cgd_, sid1f_ = _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign)
             ID[iL, :, :, iVS] = id_
             GM[iL, :, :, iVS] = gm_
             GDS[iL, :, :, iVS] = gds_
             CGG[iL, :, :, iVS] = cgg_
             CGD[iL, :, :, iVS] = cgd_
+            SID_1F[iL, :, :, iVS] = sid1f_
             print(f"  [{devcell}] L={L_um}um VS={VS} done ({time.time()-t0:.0f}s elapsed)", flush=True)
-    return ID, GM, GDS, CGG, CGD
+    return ID, GM, GDS, CGG, CGD, SID_1F
 
 
 if __name__ == "__main__":
@@ -220,17 +254,17 @@ if __name__ == "__main__":
     t0 = time.time()
 
     print("=== NMOS (nfet_01v8) ===")
-    ID_n, GM_n, GDS_n, CGG_n, CGD_n = run_device("nfet_01v8", polarity=+1, vb_sign=+1, t0=t0)
+    ID_n, GM_n, GDS_n, CGG_n, CGD_n, SID_1F_n = run_device("nfet_01v8", polarity=+1, vb_sign=+1, t0=t0)
 
     print("=== PMOS (pfet_01v8) ===")
-    ID_p, GM_p, GDS_p, CGG_p, CGD_p = run_device("pfet_01v8", polarity=-1, vb_sign=-1, t0=t0)
+    ID_p, GM_p, GDS_p, CGG_p, CGD_p, SID_1F_p = run_device("pfet_01v8", polarity=-1, vb_sign=-1, t0=t0)
 
     npz_path = os.path.join(OUTPUT_DIR, "sky130_nfet_pfet_lut_sample.npz")
     np.savez(npz_path,
              L=np.array(L_GRID_UM) * 1e-6, VGS=VGS_ARR, VDS=VDS_ARR, VS=np.array(VS_GRID),
-             ID_n=ID_n, GM_n=GM_n, GDS_n=GDS_n, CGG_n=CGG_n, CGD_n=CGD_n,
-             ID_p=ID_p, GM_p=GM_p, GDS_p=GDS_p, CGG_p=CGG_p, CGD_p=CGD_p)
+             ID_n=ID_n, GM_n=GM_n, GDS_n=GDS_n, CGG_n=CGG_n, CGD_n=CGD_n, SID_1F_n=SID_1F_n,
+             ID_p=ID_p, GM_p=GM_p, GDS_p=GDS_p, CGG_p=CGG_p, CGD_p=CGD_p, SID_1F_p=SID_1F_p)
     print(f"\nSaved to {npz_path} (total {time.time()-t0:.0f}s)")
-    for name, arr in [("ID_n", ID_n), ("CGG_n", CGG_n), ("CGD_n", CGD_n),
-                      ("ID_p", ID_p), ("CGG_p", CGG_p), ("CGD_p", CGD_p)]:
+    for name, arr in [("ID_n", ID_n), ("CGG_n", CGG_n), ("CGD_n", CGD_n), ("SID_1F_n", SID_1F_n),
+                      ("ID_p", ID_p), ("CGG_p", CGG_p), ("CGD_p", CGD_p), ("SID_1F_p", SID_1F_p)]:
         print(f"{name}: min={arr.min():.3e} max={arr.max():.3e}")

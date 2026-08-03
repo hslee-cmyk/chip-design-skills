@@ -28,7 +28,8 @@ FILL GUIDE — 신규 프로젝트 CLAUDE.md 작성 시, 이 주석 블록 따�
 | iCE40/합성/프로그래밍 | Lattice, nextpnr, .pcf, bitstream | Skill → `lattice-fpga` |
 | Formal verification | sby, BMC, SVA, assert, SMT | Skill → `formal-verification` |
 | UVM/시뮬레이션 환경 | testbench, sequence, scoreboard | Skill → `uvm-verification` / `chip-verification` |
-| 시뮬레이션 디버깅 | 신호 프로빙, 파형, 반례 재현 | MCP → `xcelium-mcp` (cloud0) |
+| 시뮬레이션 실행·분석·디버깅(표준 워크플로우) | 테스트 실행, FAIL 분석, regression | Skill → `xcelium-sim` (`/sim run\|analyze\|debug\|verify\|status`) |
+| 시뮬레이션 인터랙티브 디버깅(세밀 제어) | 신호 프로빙, 파형, 반례 재현 | MCP → `xcelium-mcp` |
 | 솔루션 격상 | 버그 해결 후, sync_rules [A]/[B] 감지 | Skill → `/kb-promote` |
 | 그래프·모듈 의존 탐색 | 신호 경로, 모듈 연결, community | MCP → graphify / `/graphify` |
 | bkit audit 전문 검색 | details 포함 검색 (MCP는 top-level만) | `"$KB_PY" .ai/rag/audit_search.py "<쿼리>"` |

@@ -1,0 +1,686 @@
+<meta charset="utf-8">
+<title>gm/ID Design Report — Template (Example 1: Intrinsic Gain Stage)</title>
+<style>
+  :root{
+    --paper:#eef1f4; --paper-raise:#ffffff; --ink:#161b22; --muted:#5b6472; --line:#d3d9e0;
+    --poly:#c76b2e; --poly-soft:#e7c6ab; --diff:#1f7a72; --diff-soft:#bfe0dc;
+    --accent:#3a5a78; --accent-soft:#d7e2ea;
+    --ok:#2e7d5b; --ok-soft:#d9ecdf; --warn:#a8720a; --warn-soft:#f3e3c2; --bad:#b23b3b; --bad-soft:#f5d9d9;
+    --stick-gate:#c0327a; --stick-wire:#2f5fa8; --stick-name:#2f9142;
+    --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    --radius: 8px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#11151b; --paper-raise:#181e26; --ink:#e6ebf1; --muted:#8b96a3; --line:#2a323d;
+      --poly:#e08a4f; --poly-soft:#4a3222; --diff:#3fa89d; --diff-soft:#173832;
+      --accent:#7fa4c4; --accent-soft:#1d2b38;
+      --ok:#5fbd8d; --ok-soft:#173427; --warn:#d9a63e; --warn-soft:#3a2e12; --bad:#e07a7a; --bad-soft:#3a1f1f;
+      --stick-gate:#e0669f; --stick-wire:#7ea2d8; --stick-name:#6fca82;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#11151b; --paper-raise:#181e26; --ink:#e6ebf1; --muted:#8b96a3; --line:#2a323d;
+    --poly:#e08a4f; --poly-soft:#4a3222; --diff:#3fa89d; --diff-soft:#173832;
+    --accent:#7fa4c4; --accent-soft:#1d2b38;
+    --ok:#5fbd8d; --ok-soft:#173427; --warn:#d9a63e; --warn-soft:#3a2e12; --bad:#e07a7a; --bad-soft:#3a1f1f;
+    --stick-gate:#e0669f; --stick-wire:#7ea2d8; --stick-name:#6fca82;
+  }
+  :root[data-theme="light"]{
+    --paper:#eef1f4; --paper-raise:#ffffff; --ink:#161b22; --muted:#5b6472; --line:#d3d9e0;
+    --poly:#c76b2e; --poly-soft:#e7c6ab; --diff:#1f7a72; --diff-soft:#bfe0dc;
+    --accent:#3a5a78; --accent-soft:#d7e2ea;
+    --ok:#2e7d5b; --ok-soft:#d9ecdf; --warn:#a8720a; --warn-soft:#f3e3c2; --bad:#b23b3b; --bad-soft:#f5d9d9;
+    --stick-gate:#c0327a; --stick-wire:#2f5fa8; --stick-name:#2f9142;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--sans);
+    margin:0; padding:0 20px 80px; line-height:1.5;
+  }
+  .wrap{max-width:1040px; margin:0 auto;}
+
+  header.top{
+    position:sticky; top:0; background:var(--paper); z-index:5;
+    padding:22px 0 14px; border-bottom:1px solid var(--line);
+    display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 22px;
+    margin-bottom:32px;
+  }
+  header.top h1{ font-size:1.28rem; margin:0; letter-spacing:-0.01em; text-wrap:balance; font-weight:700; }
+  header.top .sub{color:var(--muted); font-size:0.86rem; margin-right:auto;}
+  nav.jump{display:flex; gap:8px; flex-wrap:wrap;}
+  nav.jump a{
+    font-family:var(--mono); font-size:0.74rem; letter-spacing:0.02em; text-transform:uppercase;
+    color:var(--muted); text-decoration:none; padding:5px 10px; border:1px solid var(--line);
+    border-radius:999px; transition:color .15s, border-color .15s;
+  }
+  nav.jump a:hover, nav.jump a:focus-visible{color:var(--ink); border-color:var(--accent);}
+
+  .banner{
+    font-size:0.82rem; background:var(--accent-soft); border:1px solid var(--line);
+    border-radius:var(--radius); padding:12px 16px; margin-bottom:36px; color:var(--ink); max-width:80ch;
+  }
+  .banner b{color:var(--accent);}
+
+  section.rsec{margin-bottom:56px; scroll-margin-top:90px;}
+  .rsec-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px; margin-bottom:6px;}
+  .rsec-head .num{
+    font-family:var(--mono); font-size:0.78rem; color:var(--accent); background:var(--accent-soft);
+    border-radius:999px; padding:2px 10px; font-weight:700;
+  }
+  .rsec-head h2{font-size:1.26rem; margin:0; text-wrap:balance;}
+  .rsec-note{font-size:0.82rem; color:var(--muted); max-width:72ch; margin:2px 0 16px;}
+
+  .spec-row{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 20px;}
+  .chip{
+    font-family:var(--mono); font-size:0.78rem; background:var(--paper-raise);
+    border:1px solid var(--line); border-radius:6px; padding:5px 10px;
+    display:flex; gap:6px; align-items:baseline;
+  }
+  .chip b{font-weight:700; font-variant-numeric:tabular-nums;}
+  .chip .k{color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; font-size:0.68rem;}
+
+  h3.block-title{
+    font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted);
+    margin:26px 0 12px; font-weight:600;
+  }
+
+  table.sizing{
+    width:100%; border-collapse:collapse; font-size:0.86rem;
+    background:var(--paper-raise); border:1px solid var(--line); border-radius:var(--radius);
+    overflow:hidden;
+  }
+  table.sizing th, table.sizing td{ padding:9px 12px; text-align:left; border-bottom:1px solid var(--line); }
+  table.sizing th{ font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; }
+  table.sizing td.num{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right;}
+  table.sizing tr:last-child td{border-bottom:none;}
+  table.sizing td.role{color:var(--muted); font-size:0.8rem;}
+  .twrap{overflow-x:auto;}
+
+  .match-row{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:6px;}
+  .match-card{
+    display:flex; align-items:center; gap:8px; background:var(--paper-raise);
+    border:1px solid var(--line); border-radius:999px; padding:6px 14px 6px 6px; font-size:0.82rem;
+  }
+  .match-card .tag{
+    font-family:var(--mono); font-size:0.66rem; text-transform:uppercase; letter-spacing:0.04em;
+    background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:3px 9px;
+  }
+  .match-card .members{font-family:var(--mono); font-weight:600;}
+  .match-card .via{color:var(--muted); font-size:0.76rem;}
+
+  .stack-panel{
+    background:var(--paper-raise); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px 14px; margin-bottom:16px;
+  }
+  .stack-head{display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;}
+  .stack-head .name{font-family:var(--mono); font-weight:700; font-size:0.88rem;}
+  .pill{
+    font-family:var(--mono); font-size:0.68rem; text-transform:uppercase; letter-spacing:0.04em;
+    border-radius:999px; padding:3px 10px; font-weight:600;
+  }
+  .pill.circuit{background:var(--ok-soft); color:var(--ok);}
+  .pill.path{background:var(--accent-soft); color:var(--accent);}
+  .stack-head .oddnodes{font-family:var(--mono); font-size:0.74rem; color:var(--muted);}
+  .stick-scroll{overflow-x:auto; padding-bottom:6px;}
+  svg.stick{display:block;}
+
+  .spice-card{
+    background:var(--paper-raise); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px;
+    margin-bottom:10px;
+  }
+  .metric .k{font-size:0.7rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);}
+  .metric .v{font-family:var(--mono); font-size:1.24rem; font-variant-numeric:tabular-nums; margin-top:2px;}
+  .metric .v small{font-size:0.7rem; color:var(--muted); font-family:var(--sans);}
+  .finding{
+    font-size:0.86rem; background:var(--warn-soft); border:1px solid var(--line);
+    border-radius:var(--radius); padding:12px 16px; margin-top:6px; color:var(--ink);
+  }
+  .finding b{color:var(--warn);}
+  .finding.ok{background:var(--ok-soft);} .finding.ok b{color:var(--ok);}
+
+  /* §7 layout guide cards */
+  .guide-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin-bottom:10px;}
+  .guide-card{
+    background:var(--paper-raise); border:1px solid var(--line); border-left:3px solid var(--accent);
+    border-radius:var(--radius); padding:14px 16px;
+  }
+  .guide-card.napplicable{border-left-color:var(--muted); opacity:0.82;}
+  .guide-card .gc-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:6px;}
+  .guide-card .gc-net{font-family:var(--mono); font-weight:700; font-size:0.92rem;}
+  .guide-card .gc-tag{
+    font-family:var(--mono); font-size:0.64rem; text-transform:uppercase; letter-spacing:0.04em;
+    color:var(--muted); background:var(--paper); border:1px solid var(--line); border-radius:999px; padding:2px 8px;
+  }
+  .guide-card .gc-why{font-size:0.8rem; color:var(--muted); margin-bottom:8px;}
+  .guide-card .gc-do{font-size:0.86rem;}
+  .guide-card .gc-do b{color:var(--accent);}
+  .guide-seq{font-family:var(--mono); font-size:0.82rem; background:var(--paper); border-radius:6px; padding:8px 10px; margin:6px 0; overflow-x:auto; white-space:nowrap;}
+  .scope-note{font-size:0.8rem; color:var(--muted); border-left:2px solid var(--warn); padding:6px 0 6px 12px; margin-top:6px; max-width:70ch;}
+
+  footer{
+    margin-top:60px; padding-top:20px; border-top:1px solid var(--line);
+    font-size:0.78rem; color:var(--muted); max-width:75ch;
+  }
+  a{color:var(--accent);}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+  @media (max-width:640px){ header.top{flex-direction:column; align-items:flex-start;} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>gm/ID Design Report</h1>
+    <span class="sub">Template — 8-section deliverable spec, filled with a real worked example (Intrinsic Gain Stage, sky130)</span>
+    <nav class="jump" id="jumpnav"></nav>
+  </header>
+
+  <div class="banner">
+    <b>This is a template.</b> It demonstrates <code>analog-gmid-design/references/design-report-spec.md</code> —
+    every design task done with this skill should end in an HTML report shaped exactly like this: 8 numbered
+    sections, readable by a human in a browser <em>and</em> by another agent reading this file directly (the
+    <code>const REPORT</code> object below mirrors every rendered section 1:1). Section 8 (physical floorplan) is
+    a required section — omitting it (even when some sub-blocks aren't floorplanned yet) is treated as an
+    incomplete report, not an optional extra.
+  </div>
+
+  <div id="report"></div>
+
+  <footer>
+    Template source: <code>analog-gmid-design</code> skill, <code>assets/report_template.html</code> +
+    <code>references/design-report-spec.md</code>. Data for this example comes from the same sky130 silicon LUT
+    pipeline as the skill's example artifacts (gm/ID sizing → <code>find_matching_candidates()</code> →
+    unit-cell snap → <code>build_stick_diagram()</code> Euler-trail check → SPICE verification →
+    <code>pack_floorplan_grouped()</code> physical packing).
+  </footer>
+</div>
+
+<script>
+const REPORT = {
+  "topology": {
+    "title": "Intrinsic Gain Stage",
+    "ref": "gm-id-methodology.md §6.1 / sky130-worked-example.md §8",
+    "devices": [
+      {"name":"M1","kind":"nmos","role":"gain device — common-source, drives the single output pole"},
+      {"name":"M2 / M2b","kind":"pmos","role":"current-source load (mirror), M2b diode-connected sets the bias"}
+    ],
+    "schematic":{
+      "width":400,"height":350,
+      "rails":[{"y":20,"x1":60,"x2":340,"label":"VDD"},{"y":320,"x1":60,"x2":340,"label":"GND"}],
+      "devices":[
+        {"name":"M2b","kind":"pmos","x":140,"y":90},
+        {"name":"M2","kind":"pmos","x":260,"y":90},
+        {"name":"M1","kind":"nmos","x":260,"y":250}
+      ],
+      "wires":[
+        {"x1":140,"y1":20,"x2":140,"y2":75},{"x1":260,"y1":20,"x2":260,"y2":75},{"x1":260,"y1":265,"x2":260,"y2":320},
+        {"x1":140,"y1":105,"x2":140,"y2":190},{"x1":260,"y1":105,"x2":260,"y2":190},{"x1":260,"y1":190,"x2":260,"y2":235},
+        {"x1":125,"y1":90,"x2":120,"y2":90},{"x1":120,"y1":90,"x2":120,"y2":140},{"x1":120,"y1":140,"x2":140,"y2":140},
+        {"x1":245,"y1":90,"x2":245,"y2":140},{"x1":245,"y1":140,"x2":140,"y2":140},
+        {"x1":245,"y1":250,"x2":245,"y2":200},{"x1":245,"y1":200,"x2":40,"y2":200},{"x1":40,"y1":200,"x2":40,"y2":190},
+        {"x1":140,"y1":190,"x2":140,"y2":239},{"x1":140,"y1":271,"x2":140,"y2":320},
+        {"x1":260,"y1":190,"x2":330,"y2":190},{"x1":330,"y1":190,"x2":330,"y2":245},{"x1":330,"y1":254,"x2":330,"y2":320}
+      ],
+      "dots":[{"x":140,"y":20},{"x":260,"y":20},{"x":260,"y":320},{"x":260,"y":190},{"x":40,"y":190},{"x":140,"y":140}],
+      "labels":[{"x":150,"y":205,"text":"bias","anchor":"start","size":10},{"x":270,"y":205,"text":"out","anchor":"start","size":10},{"x":30,"y":205,"text":"vin","anchor":"end","size":10}],
+      "extras":[{"kind":"isource","x":140,"y":255,"r":16,"label":"iref"},{"kind":"cap","x":330,"y":251,"label":"Cload"}]
+    }
+  },
+  "spec": {"fT_MHz":100,"C_pF":1,"L_um":0.5,"gm_id":15,"VDS_V":0.25,
+    "note":"Reproduces gm-id-methodology.md §6.1's \"moderate inversion, gain≈40\" trade-off point exactly as given — not re-derived."},
+  "sizing":[
+    {"name":"M1","role":"gain device (NMOS)","gm_id":15,"L_um":0.5,"VDS_V":0.25,"ID_uA":41.888,"W_um":15.259,"gain":44.3},
+    {"name":"M2 / M2b","role":"PMOS current-source load (mirror)","gm_id":15,"L_um":0.5,"VDS_V":1.0181,"ID_uA":41.888,"W_um":78.406,"gain":141.4}
+  ],
+  "snapped":[
+    {"name":"M1","w_um":15.259,"finger_w_um":1.907,"n_fingers":8},
+    {"name":"M2b","w_um":78.406,"finger_w_um":19.602,"n_fingers":4},
+    {"name":"M2","w_um":78.406,"finger_w_um":19.602,"n_fingers":4}
+  ],
+  "box_layout":{
+    "before":"nstack 3 fingers (1 row) vs pstack 32 fingers (1 row) — 10.7:1, L-shaped cell",
+    "after":"nstack 1 row × 8 (M1) vs pstack 1 row × 8 (M2/M2b, real Euler trail) — exact 1×8 box on both sides",
+    "rule":"search_stack_finger_w() (§8) picked finger widths that make both stacks land on 8 fingers. The pstack order is whatever build_stick_diagram() actually finds as a valid Euler circuit (build_graph()'s round-robin default), not a hand-picked pattern."
+  },
+  "matching":{"current_mirror":[{"gate":"bias","kind":"pmos","members":["M2b","M2"]}],"diff_pair":[]},
+  "stacks": {
+    "nstack": {"status":"ok","node_sequence":["out","gnd","out","gnd","out","gnd","out","gnd","out"],"transistor_sequence":["M1","M1","M1","M1","M1","M1","M1","M1"],"odd_nodes":[]},
+    "pstack": {"status":"ok","node_sequence":["out","vdd","bias","vdd","out","vdd","bias","vdd","out"],"transistor_sequence":["M2","M2b","M2b","M2","M2","M2b","M2b","M2"],"odd_nodes":[]}
+  },
+  "spice":{"gain_dc_dB":34.97,"f_m3dB_MHz":1.776,"GBW_MHz":99.48,"target_fT_MHz":100,"error_pct":0.52,
+    "note":"Re-simulated with the box-shape-snapped W's (M1 finger_w=1.907µm, M2/M2b finger_w=19.602µm) rather than the raw gm/ID W's. GBW lands 0.52% from the 100MHz target — spec still met after the layout-driven resize. Snapping off the LUT's 5µm reference width did shift measured current ~14% from the LUT prediction (sky130 width-dependent model term) — M1's independent gate bias was re-solved by SPICE bisection at the actual finger_w rather than trusting the LUT's 5µm-width VGS."},
+  "layout_guide": {
+    "critical_nodes": [
+      {"net":"out","tag":"dominant pole","why":"M1 drain, M2 drain, and Cload all land here — this is the single high-impedance node that sets the -3dB bandwidth (measured f_-3dB=1.776MHz against a 1pF external Cload).",
+       "instruction":"Keep the <b>out</b> wire between the nstack and pstack as short and direct as possible. Do not route any other signal across it. Any added routing capacitance here adds directly to Cload and lowers GBW below the 0.52%-margin already used up by the box-shape snap."},
+      {"net":"bias","tag":"mirror reference","why":"M2b's diode-connected gate/drain feeds M2's gate — this sets the mirror ratio.",
+       "instruction":"Non-critical relative to <b>out</b>: the diode connection self-corrects small resistance/capacitance on this net. Standard-width routing is sufficient — do not spend extra area shielding it."},
+      {"net":"vin","tag":"signal input","why":"M1 gate, external small-signal input.","instruction":"Standard direct gate routing; no special treatment needed for this single-stage cell."}
+    ],
+    "matching_groups": [
+      {"name":"pstack (M2 / M2b current mirror)","sequence":["M2","M2b","M2b","M2","M2","M2b","M2b","M2"],
+       "instruction":"Place fingers in exactly this order in one diffusion row (this is the real Euler trail §5 computed, not a hand pattern). Add one dummy poly finger at each end of the row to correct edge-effect mismatch (standard practice — this skill does not derive dummy sizing itself, follow the PDK's matching guideline). Keep M2 and M2b at the same orientation and in the same well — a flipped orientation or a well split introduces stress/gradient-induced Vt mismatch that the interdigitation pattern alone can't cancel."}
+    ],
+    "power_branches": [],
+    "power_branches_note":"Not applicable — ID≈42µA total, this is not a power/high-current stage. Minimum-width PDK metal is sufficient; no EM strap sizing is needed here.",
+    "compensation": [],
+    "compensation_note":"Not applicable — a single-stage Intrinsic Gain Stage has no Miller/nulling compensation network.",
+    "stack_placement":{
+      "stacks":["nstack (M1, 1 row × 8 fingers)","pstack (M2/M2b, 1 row × 8 fingers)"],
+      "instruction":"Both stacks already land on the same box-shape width (8 fingers, §8) — place them side by side (or stacked) so the shared <b>out</b> net (nstack's M1 drain to pstack's M2 drain) is the shortest possible connection between the two rows. This is the one interconnect this cell's performance is actually sensitive to; every other net here is a bias/rail connection."
+    },
+    "out_of_scope": [
+      "Exact ESD/guard-ring width and ring topology — this skill does not derive these; follow the target PDK's I/O and guard-ring design rules directly.",
+      "Foundry-specific DRC (spacing, enclosure, antenna rules) — run the PDK's DRC deck; this report only guarantees electrical/Euler-trail/box-shape correctness, not DRC cleanliness.",
+      "Exact metal stack/via selection for the routes named above — named nets get a length/isolation requirement here, not a specific metal layer assignment."
+    ]
+  },
+  "floorplan": {
+    "placements": {"nstack": {"x":0,"y":0,"width":8,"height":1}, "pstack": {"x":0,"y":2,"width":8,"height":1}},
+    "bbox": {"width":8.0, "height":3.0},
+    "aspect_ratio": 2.6667,
+    "packing_density": 0.6667,
+    "scope_note": "pack_floorplan_grouped() output, real run (nstack/pstack as independent spine groups, no mirror pairs at this cell's scale). Only 2 blocks at this scale so packing density is gap-dominated (default gap=1.0 between groups) rather than area-dominated — a full-circuit floorplan with more sub-blocks packs tighter."
+  }
+};
+
+function fmt(x,d=2){ return (typeof x === "number") ? x.toFixed(d) : x; }
+
+function renderSchematic(container, schem){
+  const svgNS = "http://www.w3.org/2000/svg";
+  const width = schem.width || 400, height = schem.height || 350;
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("width", width); svg.setAttribute("height", height);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("role","img"); svg.setAttribute("aria-label","Circuit schematic");
+
+  const wire = (x1,y1,x2,y2) => {
+    const l = document.createElementNS(svgNS,"line");
+    l.setAttribute("x1",x1); l.setAttribute("y1",y1); l.setAttribute("x2",x2); l.setAttribute("y2",y2);
+    l.setAttribute("stroke","var(--ink)"); l.setAttribute("stroke-width","1.6");
+    svg.appendChild(l);
+  };
+  const dot = (x,y) => {
+    const c = document.createElementNS(svgNS,"circle");
+    c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r","2.6");
+    c.setAttribute("fill","var(--ink)");
+    svg.appendChild(c);
+  };
+  const label = (x,y,text,anchor="middle",size=11,color="var(--muted)")=>{
+    const t = document.createElementNS(svgNS,"text");
+    t.setAttribute("x",x); t.setAttribute("y",y); t.setAttribute("text-anchor",anchor);
+    t.setAttribute("font-family","var(--mono)"); t.setAttribute("font-size",size); t.setAttribute("fill",color);
+    t.textContent = text;
+    svg.appendChild(t);
+  };
+
+  (schem.rails || []).forEach(r => { wire(r.x1, r.y, r.x2, r.y); label(r.x1 + 10, r.y - 6, r.label, "start", 11, "var(--accent)"); });
+
+  const mosfet = (name, kind, x, y) => {
+    const col = kind==="pmos" ? "var(--poly)" : "var(--diff)";
+    wire(x-15, y, x-5, y);
+    if(kind==="pmos"){
+      const b = document.createElementNS(svgNS,"circle");
+      b.setAttribute("cx",x-3); b.setAttribute("cy",y); b.setAttribute("r","2.5");
+      b.setAttribute("fill","none"); b.setAttribute("stroke",col); b.setAttribute("stroke-width","1.4");
+      svg.appendChild(b);
+    }
+    const ch = document.createElementNS(svgNS,"line");
+    ch.setAttribute("x1",x); ch.setAttribute("y1",y-15); ch.setAttribute("x2",x); ch.setAttribute("y2",y+15);
+    ch.setAttribute("stroke",col); ch.setAttribute("stroke-width","3.5");
+    svg.appendChild(ch);
+    label(x+10, y+4, name, "start", 12, col);
+  };
+  (schem.devices || []).forEach(d => mosfet(d.name, d.kind, d.x, d.y));
+  (schem.wires || []).forEach(w => wire(w.x1, w.y1, w.x2, w.y2));
+  (schem.dots || []).forEach(p => dot(p.x, p.y));
+  (schem.labels || []).forEach(l => label(l.x, l.y, l.text, l.anchor, l.size, l.color));
+  (schem.extras || []).forEach(e => {
+    if(e.kind === "isource"){
+      const c = document.createElementNS(svgNS,"circle");
+      c.setAttribute("cx",e.x); c.setAttribute("cy",e.y); c.setAttribute("r",e.r || 16);
+      c.setAttribute("fill","none"); c.setAttribute("stroke","var(--muted)"); c.setAttribute("stroke-width","1.4");
+      svg.appendChild(c);
+      const arrow = document.createElementNS(svgNS,"line");
+      arrow.setAttribute("x1",e.x); arrow.setAttribute("y1",e.y-8); arrow.setAttribute("x2",e.x); arrow.setAttribute("y2",e.y+8);
+      arrow.setAttribute("stroke","var(--muted)"); arrow.setAttribute("stroke-width","1.6"); arrow.setAttribute("marker-end","url(#arrowhead)");
+      svg.appendChild(arrow);
+      label(e.x + (e.r||16) + 7, e.y+3, e.label, "start", 10);
+    } else if(e.kind === "cap"){
+      wire(e.x-10, e.y-3, e.x+10, e.y-3);
+      wire(e.x-10, e.y+3, e.x+10, e.y+3);
+      label(e.x+18, e.y+4, e.label, "start", 10);
+    }
+  });
+  const defs = document.createElementNS(svgNS,"defs");
+  defs.innerHTML = `<marker id="arrowhead" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+    <path d="M0,0 L6,3 L0,6 Z" fill="var(--muted)"/></marker>`;
+  svg.insertBefore(defs, svg.firstChild);
+  const wrap = document.createElement("div");
+  wrap.className = "stick-scroll";
+  wrap.appendChild(svg);
+  container.appendChild(wrap);
+}
+
+function groupRuns(seq){
+  const runs = [];
+  for(let i=0;i<seq.length;i++){
+    if(runs.length && runs[runs.length-1].name===seq[i]) runs[runs.length-1].end=i;
+    else runs.push({name:seq[i], start:i, end:i});
+  }
+  return runs;
+}
+function svgLine(svg, svgNS, x1,y1,x2,y2,stroke,w){
+  const l = document.createElementNS(svgNS,"line");
+  l.setAttribute("x1",x1); l.setAttribute("y1",y1); l.setAttribute("x2",x2); l.setAttribute("y2",y2);
+  l.setAttribute("stroke",stroke); l.setAttribute("stroke-width",w); l.setAttribute("stroke-linecap","round");
+  svg.appendChild(l);
+  return l;
+}
+function svgText(svg, svgNS, x,y,text,anchor,size,color,weight){
+  const t = document.createElementNS(svgNS,"text");
+  t.setAttribute("x",x); t.setAttribute("y",y); t.setAttribute("text-anchor",anchor||"middle");
+  t.setAttribute("font-family","var(--mono)"); t.setAttribute("font-size",size||10);
+  t.setAttribute("fill",color); if(weight) t.setAttribute("font-weight",weight);
+  t.textContent = text;
+  svg.appendChild(t);
+  return t;
+}
+function computeMaxDepth(positions){
+  const nets = Object.keys(positions).filter(n => positions[n] && positions[n].length>=2);
+  const ranges = {};
+  nets.forEach(n=>{ const idxs=[...positions[n]].sort((a,b)=>a-b); ranges[n]=[idxs[0], idxs[idxs.length-1]]; });
+  nets.sort((a,b)=> ranges[a][0]-ranges[b][0] || ranges[a][1]-ranges[b][1]);
+  const depthMaxIdx = [];
+  let maxDepth = 0;
+  nets.forEach(net=>{
+    const [lo,hi] = ranges[net];
+    let d = 0;
+    while(depthMaxIdx[d] !== undefined && depthMaxIdx[d] >= lo) d++;
+    depthMaxIdx[d] = hi;
+    maxDepth = Math.max(maxDepth, d);
+  });
+  return maxDepth+1;
+}
+function drawNetBrackets(svg, svgNS, xOf, positions, baseY, direction){
+  const nets = Object.keys(positions).filter(n => positions[n] && positions[n].length);
+  const ranges = {};
+  nets.forEach(n=>{ const idxs=[...positions[n]].sort((a,b)=>a-b); ranges[n]=[idxs[0], idxs[idxs.length-1]]; });
+  nets.sort((a,b)=> ranges[a][0]-ranges[b][0] || ranges[a][1]-ranges[b][1]);
+  const singles = nets.filter(n=>positions[n].length<2);
+  const multis = nets.filter(n=>positions[n].length>=2);
+  singles.forEach(net=>{
+    const x = xOf(positions[net][0]);
+    const y = baseY + direction*16;
+    svgLine(svg, svgNS, x, baseY, x, y, "var(--stick-wire)", 1.3);
+    svgText(svg, svgNS, x, y+direction*9, net, "middle", 9.5, "var(--stick-wire)");
+  });
+  const depthMaxIdx = [];
+  multis.forEach(net=>{
+    const [lo,hi] = ranges[net];
+    let d = 0;
+    while(depthMaxIdx[d] !== undefined && depthMaxIdx[d] >= lo) d++;
+    depthMaxIdx[d] = hi;
+    const y = baseY + direction*(18 + d*14);
+    const idxs = [...positions[net]].sort((a,b)=>a-b);
+    const xs = idxs.map(xOf);
+    svgLine(svg, svgNS, xs[0], y, xs[xs.length-1], y, "var(--stick-wire)", 1.5);
+    xs.forEach(x => svgLine(svg, svgNS, x, baseY, x, y, "var(--stick-wire)", 1.3));
+    svgText(svg, svgNS, xs[0]-6, y+3.5, net, "end", 9.5, "var(--stick-wire)");
+  });
+}
+function renderStack(container, stackName, data){
+  const nodes = data.node_sequence, trs = data.transistor_sequence;
+  const n = nodes.length;
+  const pitch = 30, marginX = 30, gateY = 90;
+  const width = marginX*2 + pitch*(n-1) + 60;
+  const svgNS = "http://www.w3.org/2000/svg";
+  const xOf = i => marginX + i*pitch;
+
+  const panel = document.createElement("div");
+  panel.className = "stack-panel";
+  const statusClass = data.odd_nodes.length===0 ? "circuit" : "path";
+  const statusLabel = data.odd_nodes.length===0 ? "closed circuit" : "open path";
+  panel.innerHTML = `<div class="stack-head">
+      <span class="name">${stackName}</span>
+      <span class="pill ${statusClass}">${statusLabel}</span>
+      <span class="oddnodes">${data.odd_nodes.length ? "odd-degree: "+data.odd_nodes.join(", ") : "0 odd-degree nodes"}</span>
+    </div>`;
+
+  const positions = {};
+  nodes.forEach((net,i)=>{ (positions[net] = positions[net]||[]).push(i); });
+  const height = gateY + 20 + computeMaxDepth(positions)*14 + 20;
+
+  const scrollWrap = document.createElement("div");
+  scrollWrap.className = "stick-scroll";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class","stick");
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", height);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("role","img");
+  svg.setAttribute("aria-label", `Stick diagram for stack ${stackName}`);
+
+  const runs = groupRuns(trs);
+  runs.forEach(run=>{
+    const xStart = (xOf(run.start) + xOf(run.start+1)) / 2;
+    const xEnd = (xOf(run.end) + xOf(run.end+1)) / 2;
+    svgLine(svg, svgNS, xStart-10, gateY-34, xEnd+10, gateY-34, "var(--stick-name)", 2.2);
+    svgText(svg, svgNS, (xStart+xEnd)/2, gateY-42, run.name, "middle", 12, "var(--stick-name)", "700");
+  });
+  for(let i=0;i<trs.length;i++){
+    const gx = (xOf(i)+xOf(i+1))/2;
+    svgLine(svg, svgNS, gx, gateY-18, gx, gateY+18, "var(--stick-gate)", 4);
+  }
+  drawNetBrackets(svg, svgNS, xOf, positions, gateY+18, 1);
+
+  scrollWrap.appendChild(svg);
+  panel.appendChild(scrollWrap);
+  container.appendChild(panel);
+}
+
+// §7 layout guide — the ONLY new renderer this template adds relative to the skill's existing
+// 3-example artifact. Cards must show a specific net/device name; an empty group renders as a
+// single "not applicable" card with its stated reason (§design-report-spec.md §2 item 7 —
+// honest disclosure instead of silently omitting the section).
+function renderLayoutGuide(container, lg){
+  const naCard = (title, note) => `<div class="guide-card napplicable">
+      <div class="gc-head"><span class="gc-net">${title}</span><span class="gc-tag">n/a</span></div>
+      <div class="gc-why">${note}</div>
+    </div>`;
+
+  let html = `<h3 class="block-title">Critical nodes</h3><div class="guide-grid">`;
+  html += lg.critical_nodes.map(c => `<div class="guide-card">
+      <div class="gc-head"><span class="gc-net">${c.net}</span><span class="gc-tag">${c.tag}</span></div>
+      <div class="gc-why">${c.why}</div>
+      <div class="gc-do">${c.instruction}</div>
+    </div>`).join("");
+  html += `</div>`;
+
+  html += `<h3 class="block-title">Matching-critical device groups</h3><div class="guide-grid">`;
+  html += (lg.matching_groups.length ? lg.matching_groups.map(m => `<div class="guide-card">
+      <div class="gc-head"><span class="gc-net">${m.name}</span></div>
+      <div class="guide-seq">${m.sequence.join(" → ")}</div>
+      <div class="gc-do">${m.instruction}</div>
+    </div>`).join("") : naCard("matching groups", "none in this circuit"));
+  html += `</div>`;
+
+  html += `<h3 class="block-title">Power / high-current branches</h3><div class="guide-grid">`;
+  html += (lg.power_branches.length ? lg.power_branches.map(p => `<div class="guide-card">
+      <div class="gc-head"><span class="gc-net">${p.name}</span></div><div class="gc-do">${p.instruction}</div></div>`).join("")
+    : naCard("power branches", lg.power_branches_note));
+  html += `</div>`;
+
+  html += `<h3 class="block-title">Compensation network routing</h3><div class="guide-grid">`;
+  html += (lg.compensation.length ? lg.compensation.map(c => `<div class="guide-card">
+      <div class="gc-head"><span class="gc-net">${c.name}</span></div><div class="gc-do">${c.instruction}</div></div>`).join("")
+    : naCard("compensation", lg.compensation_note));
+  html += `</div>`;
+
+  html += `<h3 class="block-title">Stack placement</h3>
+    <div class="guide-card" style="max-width:none;">
+      <div class="gc-why">${lg.stack_placement.stacks.join(" &nbsp;•&nbsp; ")}</div>
+      <div class="gc-do">${lg.stack_placement.instruction}</div>
+    </div>`;
+
+  html += `<h3 class="block-title">Explicitly out of scope</h3>
+    ${lg.out_of_scope.map(t => `<div class="scope-note">${t}</div>`).join("")}`;
+
+  container.innerHTML = html;
+}
+
+// §8 physical floorplan — renders pack_floorplan_grouped()/run_topology_pipeline()'s
+// "floorplan" output (placements + bbox + aspect_ratio + packing_density) as-is. Block
+// width/height are the same proxy units check_box_shape()/pack_floorplan_grouped() use
+// (finger-count-derived), not physical µm — labeled as such rather than implying real layout
+// coordinates.
+function renderFloorplan(container, fp){
+  const svgNS = "http://www.w3.org/2000/svg";
+  // pack_floorplan_grouped()'s placements are not guaranteed to start at (0,0) (blocks can get
+  // negative x/y depending on how symmetry pairs were combined) -- normalize to the actual
+  // min corner rather than assuming bbox starts at the origin.
+  const xs = Object.values(fp.placements).map(p => p.x);
+  const ys = Object.values(fp.placements).map(p => p.y);
+  const minX = Math.min(...xs), minY = Math.min(...ys);
+  // Scale up to whichever is larger: fitting the whole bbox in ~640px, or giving the thinnest
+  // block (common when many rows share one cell) at least 14px so its label doesn't collide
+  // with the next row's label -- .stick-scroll below handles the resulting horizontal overflow.
+  const minBlockDim = Math.min(...Object.values(fp.placements).flatMap(p => [p.width, p.height]));
+  const fitScale = 640 / Math.max(fp.bbox.width, fp.bbox.height);
+  const legibleScale = 18 / minBlockDim;
+  const scale = Math.max(1, Math.min(24, Math.max(fitScale, legibleScale)));
+  const pad = 16;
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class", "stick");
+  svg.setAttribute("width", fp.bbox.width*scale + pad*2);
+  svg.setAttribute("height", fp.bbox.height*scale + pad*2);
+  svg.setAttribute("viewBox", `0 0 ${fp.bbox.width*scale + pad*2} ${fp.bbox.height*scale + pad*2}`);
+  svg.setAttribute("role", "img");
+  svg.setAttribute("aria-label", "Physical floorplan (proxy units)");
+
+  const bbox = document.createElementNS(svgNS, "rect");
+  bbox.setAttribute("x", pad); bbox.setAttribute("y", pad);
+  bbox.setAttribute("width", fp.bbox.width*scale); bbox.setAttribute("height", fp.bbox.height*scale);
+  bbox.setAttribute("fill", "none"); bbox.setAttribute("stroke", "var(--muted)");
+  bbox.setAttribute("stroke-dasharray", "4 3"); bbox.setAttribute("stroke-width", "1.2");
+  svg.appendChild(bbox);
+
+  // Labels go inside the block if it's tall enough for an 11px line; otherwise (thin rows,
+  // common when many blocks share a small bbox) they go just to the right so adjacent thin
+  // rows don't overlap each other's text.
+  Object.entries(fp.placements).forEach(([name, p]) => {
+    const px = pad + (p.x - minX)*scale, py = pad + (p.y - minY)*scale;
+    const bh = p.height*scale;
+    const rect = document.createElementNS(svgNS, "rect");
+    rect.setAttribute("x", px); rect.setAttribute("y", py);
+    rect.setAttribute("width", p.width*scale); rect.setAttribute("height", bh);
+    rect.setAttribute("fill", "var(--diff-soft)"); rect.setAttribute("stroke", "var(--diff)");
+    rect.setAttribute("stroke-width", "1.4"); rect.setAttribute("rx", "3");
+    svg.appendChild(rect);
+    if (bh >= 16) {
+      svgText(svg, svgNS, px + p.width*scale/2, py + bh/2, name, "middle", 11, "var(--ink)", "600");
+    } else {
+      svgText(svg, svgNS, px + p.width*scale + 6, py + bh/2, name, "start", 10, "var(--ink)", "600");
+    }
+  });
+
+  const wrap = document.createElement("div");
+  wrap.className = "stick-scroll";
+  wrap.appendChild(svg);
+  container.appendChild(wrap);
+
+  const metrics = document.createElement("div");
+  metrics.className = "spice-card";
+  metrics.style.marginTop = "12px";
+  metrics.innerHTML = `
+    <div class="metric"><div class="k">bbox (proxy units)</div><div class="v">${fmt(fp.bbox.width,1)}<small> × ${fmt(fp.bbox.height,1)}</small></div></div>
+    <div class="metric"><div class="k">aspect ratio</div><div class="v">${fmt(fp.aspect_ratio,2)}</div></div>
+    <div class="metric"><div class="k">packing density</div><div class="v">${fmt(fp.packing_density*100,1)}<small> %</small></div></div>`;
+  container.appendChild(metrics);
+}
+
+// ---------- assemble the 8 sections ----------
+const root = document.getElementById("report");
+const R = REPORT;
+
+function section(num, title, id){
+  const sec = document.createElement("section");
+  sec.className = "rsec"; sec.id = id;
+  sec.innerHTML = `<div class="rsec-head"><span class="num">§${num}</span><h2>${title}</h2></div>`;
+  root.appendChild(sec);
+  const a = document.createElement("a"); a.href = "#"+id; a.textContent = "§"+num;
+  document.getElementById("jumpnav").appendChild(a);
+  return sec;
+}
+
+// §1 topology
+let sec = section(1, "Given topology — " + R.topology.title, "s1");
+sec.insertAdjacentHTML("beforeend", `<span class="rsec-note">${R.topology.ref}</span>
+  <div class="twrap"><table class="sizing"><thead><tr><th>device</th><th>kind</th><th>role</th></tr></thead>
+  <tbody>${R.topology.devices.map(d=>`<tr><td class="role">${d.name}</td><td class="role">${d.kind}</td><td class="role">${d.role}</td></tr>`).join("")}</tbody></table></div>`);
+const schemDiv = document.createElement("div"); schemDiv.style.marginTop="14px";
+sec.appendChild(schemDiv);
+renderSchematic(schemDiv, R.topology.schematic);
+
+// §2 spec
+sec = section(2, "Given design spec", "s2");
+const specChips = Object.entries(R.spec).filter(([k])=>k!=="note").map(([k,v])=>
+  `<div class="chip"><span class="k">${k}</span><b>${v}</b></div>`).join("");
+sec.insertAdjacentHTML("beforeend", `<div class="spec-row">${specChips}</div><p class="rsec-note">${R.spec.note}</p>`);
+
+// §3 gm/ID parameters
+sec = section(3, "Determined gm/ID parameters", "s3");
+sec.insertAdjacentHTML("beforeend", `<div class="twrap"><table class="sizing">
+  <thead><tr><th>device</th><th>role</th><th>gm/ID</th><th>L (µm)</th><th>VDS (V)</th><th>ID (µA)</th><th>W (µm)</th><th>gain</th></tr></thead>
+  <tbody>${R.sizing.map(s=>`<tr><td>${s.name}</td><td class="role">${s.role}</td><td class="num">${fmt(s.gm_id,1)}</td><td class="num">${fmt(s.L_um,2)}</td><td class="num">${fmt(s.VDS_V,3)}</td><td class="num">${fmt(s.ID_uA,3)}</td><td class="num">${fmt(s.W_um,3)}</td><td class="num">${s.gain==null?"–":fmt(s.gain,1)}</td></tr>`).join("")}</tbody>
+  </table></div>`);
+
+// §4 stick-diagram decisions
+sec = section(4, "Decisions behind the stick diagram", "s4");
+sec.insertAdjacentHTML("beforeend", `<h3 class="block-title">Unit-cell snap (finger width per stack — box-shape rule)</h3>
+  <div class="twrap"><table class="sizing"><thead><tr><th>device</th><th>W (µm)</th><th>finger W (µm)</th><th>n fingers</th></tr></thead>
+  <tbody>${R.snapped.map(s=>`<tr><td>${s.name}</td><td class="num">${fmt(s.w_um,3)}</td><td class="num">${fmt(s.finger_w_um,4)}</td><td class="num">${s.n_fingers}</td></tr>`).join("")}</tbody></table></div>
+  <div class="finding"><b>Box-shape fix —</b> before: ${R.box_layout.before}. after: ${R.box_layout.after}<br>
+  <span style="color:var(--muted)">${R.box_layout.rule}</span></div>
+  <h3 class="block-title">Matching groups detected</h3>
+  <div class="match-row">${R.matching.current_mirror.map(m=>`<div class="match-card"><span class="tag">current mirror</span><span class="members">${m.members.join(" · ")}</span><span class="via">via shared gate ${m.gate} (${m.kind})</span></div>`).join("")}</div>`);
+
+// §5 completed stick diagram
+sec = section(5, "Completed stick diagram", "s5");
+Object.entries(R.stacks).forEach(([name, data]) => renderStack(sec, name, data));
+
+// §6 simulation verification
+sec = section(6, "Simulation verification (snapped W, sky130 SPICE)", "s6");
+const s = R.spice;
+sec.insertAdjacentHTML("beforeend", `<div class="spice-card">
+    <div class="metric"><div class="k">DC gain</div><div class="v">${fmt(s.gain_dc_dB,2)}<small> dB</small></div></div>
+    <div class="metric"><div class="k">-3dB bandwidth</div><div class="v">${fmt(s.f_m3dB_MHz,3)}<small> MHz</small></div></div>
+    <div class="metric"><div class="k">GBW</div><div class="v">${fmt(s.GBW_MHz,2)}<small> MHz</small></div></div>
+    <div class="metric"><div class="k">vs. target fT</div><div class="v" style="color:var(--ok)">±${fmt(s.error_pct,2)}%<small> of ${s.target_fT_MHz} MHz</small></div></div>
+  </div>
+  <div class="finding ok"><b>Spec check —</b> ${s.note}</div>`);
+
+// §7 layout guide
+sec = section(7, "Layout guide for the implementation agent", "s7");
+sec.insertAdjacentHTML("beforeend", `<p class="rsec-note">Written for this circuit's actual devices and nets — not generic layout advice. See <code>design-report-spec.md</code> §2 for the checklist this follows.</p>`);
+const guideDiv = document.createElement("div");
+sec.appendChild(guideDiv);
+renderLayoutGuide(guideDiv, R.layout_guide);
+
+// §8 physical floorplan (required section — SKILL.md §7 table row 8). If a report has sub-blocks
+// not yet run through pack_floorplan_grouped()/run_topology_pipeline(), say so explicitly here
+// rather than omitting the section (design-report-spec.md §2 item 8 — honest disclosure).
+sec = section(8, "Physical floorplan", "s8");
+if (R.floorplan) {
+  if (R.floorplan.scope_note) {
+    sec.insertAdjacentHTML("beforeend", `<p class="rsec-note">${R.floorplan.scope_note}</p>`);
+  }
+  const fpDiv = document.createElement("div");
+  sec.appendChild(fpDiv);
+  renderFloorplan(fpDiv, R.floorplan);
+} else {
+  sec.insertAdjacentHTML("beforeend", `<div class="scope-note">No floorplan data provided — this section is required by SKILL.md §7 row 8; fill R.floorplan with pack_floorplan_grouped()/run_topology_pipeline()'s real output before treating this report as complete.</div>`);
+}
+</script>

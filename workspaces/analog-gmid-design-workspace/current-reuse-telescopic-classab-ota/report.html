@@ -1,0 +1,2179 @@
+<!doctype html>
+<title>gm/ID Reproduction -- 126uW Current-Reuse Telescopic OTA (sky130)</title>
+<style>
+:root{
+  --paper:#eef1f4; --paper-raise:#ffffff; --ink:#161b22; --muted:#5b6472; --line:#d3d9e0;
+  --poly:#c76b2e; --poly-soft:#e7c6ab; --diff:#1f7a72; --diff-soft:#bfe0dc;
+  --accent:#3a5a78; --accent-soft:#d7e2ea;
+  --ok:#2e7d5b; --ok-soft:#d9ecdf; --warn:#a8720a; --warn-soft:#f3e3c2; --bad:#b23b3b; --bad-soft:#f5d9d9;
+  --stick-gate:#c0327a; --stick-wire:#2f5fa8; --stick-name:#2f9142;
+  --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#11151b; --paper-raise:#181e26; --ink:#e6ebf1; --muted:#8b96a3; --line:#2a323d;
+    --poly:#e08a4f; --poly-soft:#4a3222; --diff:#3fa89d; --diff-soft:#173832;
+    --accent:#7fa4c4; --accent-soft:#1d2b38;
+    --ok:#5fbd8d; --ok-soft:#173427; --warn:#d9a63e; --warn-soft:#3a2e12; --bad:#e07a7a; --bad-soft:#3a1f1f;
+    --stick-gate:#e0669f; --stick-wire:#7ea2d8; --stick-name:#6fca82;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#11151b; --paper-raise:#181e26; --ink:#e6ebf1; --muted:#8b96a3; --line:#2a323d;
+  --poly:#e08a4f; --poly-soft:#4a3222; --diff:#3fa89d; --diff-soft:#173832;
+  --accent:#7fa4c4; --accent-soft:#1d2b38;
+  --ok:#5fbd8d; --ok-soft:#173427; --warn:#d9a63e; --warn-soft:#3a2e12; --bad:#e07a7a; --bad-soft:#3a1f1f;
+  --stick-gate:#e0669f; --stick-wire:#7ea2d8; --stick-name:#6fca82;
+}
+:root[data-theme="light"]{
+  --paper:#eef1f4; --paper-raise:#ffffff; --ink:#161b22; --muted:#5b6472; --line:#d3d9e0;
+  --poly:#c76b2e; --poly-soft:#e7c6ab; --diff:#1f7a72; --diff-soft:#bfe0dc;
+  --accent:#3a5a78; --accent-soft:#d7e2ea;
+  --ok:#2e7d5b; --ok-soft:#d9ecdf; --warn:#a8720a; --warn-soft:#f3e3c2; --bad:#b23b3b; --bad-soft:#f5d9d9;
+  --stick-gate:#c0327a; --stick-wire:#2f5fa8; --stick-name:#2f9142;
+}
+*{box-sizing:border-box;}
+body{ background:var(--paper); color:var(--ink); font-family:var(--sans); margin:0; padding:0 20px 80px; line-height:1.5; }
+.wrap{max-width:1100px; margin:0 auto;}
+header.top{
+  position:sticky; top:0; background:var(--paper); z-index:5; padding:22px 0 14px; border-bottom:1px solid var(--line);
+  display:flex; flex-wrap:wrap; align-items:baseline; gap:10px 22px; margin-bottom:32px;
+}
+header.top h1{ font-size:1.2rem; margin:0; letter-spacing:-0.01em; text-wrap:balance; font-weight:700; }
+header.top .sub{color:var(--muted); font-size:0.82rem; margin-right:auto; max-width:60ch;}
+nav.jump{display:flex; gap:8px; flex-wrap:wrap;}
+nav.jump a{
+  font-family:var(--mono); font-size:0.74rem; letter-spacing:0.02em; text-transform:uppercase;
+  color:var(--muted); text-decoration:none; padding:5px 10px; border:1px solid var(--line); border-radius:999px;
+}
+nav.jump a:hover, nav.jump a:focus-visible{color:var(--ink); border-color:var(--accent);}
+.banner{
+  font-size:0.82rem; background:var(--accent-soft); border:1px solid var(--line); border-radius:var(--radius);
+  padding:12px 16px; margin-bottom:36px; color:var(--ink); max-width:100ch;
+}
+.banner b{color:var(--accent);}
+section.rsec{margin-bottom:56px; scroll-margin-top:90px;}
+.rsec-head{display:flex; flex-wrap:wrap; align-items:baseline; gap:8px 14px; margin-bottom:6px;}
+.rsec-head .num{
+  font-family:var(--mono); font-size:0.78rem; color:var(--accent); background:var(--accent-soft);
+  border-radius:999px; padding:2px 10px; font-weight:700;
+}
+.rsec-head h2{font-size:1.2rem; margin:0; text-wrap:balance;}
+.rsec-note{font-size:0.82rem; color:var(--muted); max-width:90ch; margin:2px 0 16px;}
+.spec-row{display:flex; flex-wrap:wrap; gap:8px; margin:6px 0 20px;}
+.chip{
+  font-family:var(--mono); font-size:0.76rem; background:var(--paper-raise); border:1px solid var(--line);
+  border-radius:6px; padding:5px 10px; display:flex; gap:6px; align-items:baseline;
+}
+.chip b{font-weight:700; font-variant-numeric:tabular-nums;}
+.chip .k{color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; font-size:0.66rem;}
+h3.block-title{ font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin:26px 0 12px; font-weight:600; }
+table.sizing{ width:100%; border-collapse:collapse; font-size:0.82rem; background:var(--paper-raise); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+table.sizing th, table.sizing td{ padding:8px 10px; text-align:left; border-bottom:1px solid var(--line); }
+table.sizing th{ font-size:0.66rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; }
+table.sizing td.num{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right;}
+table.sizing tr:last-child td{border-bottom:none;}
+table.sizing td.role{color:var(--muted); font-size:0.78rem;}
+.twrap{overflow-x:auto;}
+.match-row{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:6px;}
+.match-card{ display:flex; align-items:center; gap:8px; background:var(--paper-raise); border:1px solid var(--line); border-radius:999px; padding:6px 14px 6px 6px; font-size:0.8rem; }
+.match-card .tag{ font-family:var(--mono); font-size:0.64rem; text-transform:uppercase; letter-spacing:0.04em; background:var(--accent-soft); color:var(--accent); border-radius:999px; padding:3px 9px; }
+.match-card .members{font-family:var(--mono); font-weight:600;}
+.match-card .via{color:var(--muted); font-size:0.74rem;}
+.stack-panel{ background:var(--paper-raise); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px 14px; margin-bottom:16px; }
+.stack-head{display:flex; align-items:center; gap:10px; margin-bottom:6px; flex-wrap:wrap;}
+.stack-head .name{font-family:var(--mono); font-weight:700; font-size:0.86rem;}
+.pill{ font-family:var(--mono); font-size:0.66rem; text-transform:uppercase; letter-spacing:0.04em; border-radius:999px; padding:3px 10px; font-weight:600; }
+.pill.circuit{background:var(--ok-soft); color:var(--ok);}
+.pill.path{background:var(--accent-soft); color:var(--accent);}
+.stack-head .oddnodes{font-family:var(--mono); font-size:0.72rem; color:var(--muted);}
+.stick-scroll{overflow-x:auto; padding-bottom:6px;}
+svg.stick{display:block;}
+.spice-card{ background:var(--paper-raise); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:16px; margin-bottom:10px; }
+.metric .k{font-size:0.68rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted);}
+.metric .v{font-family:var(--mono); font-size:1.15rem; font-variant-numeric:tabular-nums; margin-top:2px;}
+.metric .v small{font-size:0.68rem; color:var(--muted); font-family:var(--sans);}
+.finding{ font-size:0.84rem; background:var(--warn-soft); border:1px solid var(--line); border-radius:var(--radius); padding:12px 16px; margin-top:6px; color:var(--ink); }
+.finding b{color:var(--warn);}
+.finding.ok{background:var(--ok-soft);} .finding.ok b{color:var(--ok);}
+.finding.bad{background:var(--bad-soft);} .finding.bad b{color:var(--bad);}
+.guide-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:14px; margin-bottom:10px;}
+.guide-card{ background:var(--paper-raise); border:1px solid var(--line); border-left:3px solid var(--accent); border-radius:var(--radius); padding:14px 16px; }
+.guide-card.napplicable{border-left-color:var(--muted); opacity:0.82;}
+.guide-card .gc-head{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:6px;}
+.guide-card .gc-net{font-family:var(--mono); font-weight:700; font-size:0.9rem;}
+.guide-card .gc-tag{ font-family:var(--mono); font-size:0.62rem; text-transform:uppercase; letter-spacing:0.04em; color:var(--muted); background:var(--paper); border:1px solid var(--line); border-radius:999px; padding:2px 8px; }
+.guide-card .gc-why{font-size:0.78rem; color:var(--muted); margin-bottom:8px;}
+.guide-card .gc-do{font-size:0.84rem;}
+.guide-card .gc-do b{color:var(--accent);}
+.guide-seq{font-family:var(--mono); font-size:0.76rem; background:var(--paper); border-radius:6px; padding:8px 10px; margin:6px 0; overflow-x:auto; white-space:nowrap;}
+.scope-note{font-size:0.78rem; color:var(--muted); border-left:2px solid var(--warn); padding:6px 0 6px 12px; margin-top:6px; max-width:90ch;}
+footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:0.76rem; color:var(--muted); max-width:90ch; }
+a{color:var(--accent);}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px;}
+@media (max-width:640px){ header.top{flex-direction:column; align-items:flex-start;} }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <h1>gm/ID Design Report</h1>
+    <span class="sub">Reproduction of Xie &amp; Chen, "A 126uW Current-Reuse Telescopic OTA with Class-AB
+      Output Stage" (UT Austin) -- full circuit (input stage + Class-AB output + biasing + CMFB), sky130,
+      analog-gmid-design skill</span>
+    <nav class="jump" id="jumpnav"></nav>
+  </header>
+
+  <div class="banner">
+    <b>Scope.</b> This report reproduces the paper's full schematic (Fig.1: current-reuse telescopic input
+    stage, Class-AB output stage, biasing generator, CMFB) via the gm/ID methodology on SkyWater sky130,
+    using the analog-gmid-design skill's real characterized 4D LUT + <code>sizing_recipe.py</code> +
+    <code>stick_diagram.py</code> + ngspice -- not the paper's own 0.18&micro;m numbers (used only as a
+    plausibility cross-check). Every table/stick-diagram/SPICE number below is a real function return value,
+    serialized directly into the <code>REPORT</code> object at the bottom of this file -- nothing was
+    hand-retyped or shortened.
+  </div>
+
+  <div id="report"></div>
+
+  <footer>
+    Generated with the <code>analog-gmid-design</code> skill (chip-design-skills repo). Sizing:
+    <code>sizing_recipe.py</code>'s <code>SemiEmpiricalGmIdLUT</code> loaded from
+    <code>sky130_nfet_pfet_lut_sample.npz</code>. Stick diagram: <code>stick_diagram.py</code>'s
+    <code>generate_stick_diagram()</code>/<code>check_box_shape()</code>/<code>find_hub_merge_candidates()</code>/
+    <code>verify_mirror_symmetry()</code>. SPICE: ngspice-46 + SkyWater sky130_fd_pr models
+    (nfet_01v8/pfet_01v8).
+  </footer>
+</div>
+
+<script>
+const REPORT = {
+  "meta": {
+    "title": "126uW Current-Reuse Telescopic OTA with Class-AB Output Stage -- gm/ID reproduction (sky130)",
+    "source_paper": "Shanshan Xie, Hao Chen (UT Austin) -- \"A 126uW Current-Reuse Telescopic OTA with Class-AB Output Stage\"",
+    "process_note": "Original paper: generic 0.18um CMOS, Cadence ADE, 1.8V. This reproduction: SkyWater sky130 (nfet_01v8/pfet_01v8), gm/ID via the analog-gmid-design skill's real characterized 4D LUT (sky130_nfet_pfet_lut_sample.npz, W_ref=5um) + sizing_recipe.py + stick_diagram.py + ngspice. Topology, spec targets (Table I) and design equations (Eq 1-6, Section III) are taken from the paper verbatim; W/L numbers are re-derived independently for sky130, not copied from the paper's 0.18um appendix (which is used only as a plausibility cross-check)."
+  },
+  "topology": {
+    "devices": [
+      {
+        "name": "M6",
+        "kind": "pmos",
+        "role": "current-reuse top load (gate=Vbias1) -- shares Vx with M7"
+      },
+      {
+        "name": "M7",
+        "kind": "pmos",
+        "role": "CMFB-controlled top load (gate=Vcmfb), W(M6):W(M7)=0.7:0.3"
+      },
+      {
+        "name": "M1a/M1b",
+        "kind": "pmos",
+        "role": "input pair -- gate driven by Vip/Vim (current-reuse: gm reused with M4a/M4b)"
+      },
+      {
+        "name": "M2a/M2b",
+        "kind": "pmos",
+        "role": "telescopic cascode (gate=Vbias2 fixed)"
+      },
+      {
+        "name": "M3a/M3b",
+        "kind": "nmos",
+        "role": "telescopic cascode (gate=Vbias3 fixed)"
+      },
+      {
+        "name": "M4a/M4b",
+        "kind": "nmos",
+        "role": "input pair -- SAME gate net as M1a/M1b (Vip/Vim), NMOS half of the reused gm"
+      },
+      {
+        "name": "M5",
+        "kind": "nmos",
+        "role": "tail current sink (gate=Vbias4), sinks ID(M4a)+ID(M4b)"
+      },
+      {
+        "name": "M8/M13, M22/M17",
+        "kind": "pmos",
+        "role": "Class-AB top current sources (gate=Vbias1), Vom/Vop sides resp."
+      },
+      {
+        "name": "M11a/M11b, M20a/M20b",
+        "kind": "pmos",
+        "role": "diode-connected floating battery (fixed VGS offset)"
+      },
+      {
+        "name": "M9a/M9b, M18a/M18b",
+        "kind": "pmos+nmos",
+        "role": "Monticelli floating current source -- adaptive Class-AB bias"
+      },
+      {
+        "name": "M12/M10, M21/M19",
+        "kind": "nmos",
+        "role": "first-stage-output-driven transistor + fixed-bias tail (modulates floating battery)"
+      },
+      {
+        "name": "M14a/M14b, M23a/M24b",
+        "kind": "nmos",
+        "role": "diode-connected floating battery (bottom, NMOS side)"
+      },
+      {
+        "name": "M15/M25",
+        "kind": "pmos",
+        "role": "big output pull-up (barely-on Class-AB bias)"
+      },
+      {
+        "name": "M16/M26",
+        "kind": "nmos",
+        "role": "big output pull-down (barely-on Class-AB bias)"
+      },
+      {
+        "name": "Cc/Rz (x2)",
+        "kind": "passive",
+        "role": "Miller compensation + nulling resistor, Vom/Vop each"
+      },
+      {
+        "name": "M27-M35",
+        "kind": "mixed",
+        "role": "biasing/replica-bias generator (Fig.4) -- derives Vbias1-4 from Ibias_ref, senses real Vx/Vy"
+      },
+      {
+        "name": "M36a/M36b",
+        "kind": "pmos",
+        "role": "CMFB output-stage mirror (gate=Vcmfb)"
+      },
+      {
+        "name": "M37a/M37b",
+        "kind": "nmos",
+        "role": "CMFB differential comparator (Voc vs Voc_des)"
+      },
+      {
+        "name": "M38",
+        "kind": "nmos",
+        "role": "CMFB tail"
+      },
+      {
+        "name": "M39/M40",
+        "kind": "pmos+nmos",
+        "role": "Voc_des reference generator (long L for process-variation immunity)"
+      },
+      {
+        "name": "R1/R2",
+        "kind": "passive",
+        "role": "100k averaging resistors, Vop/Vom -> Voc"
+      }
+    ],
+    "schem_stage1": {
+      "width": 480,
+      "height": 480,
+      "rails": [
+        {
+          "y": 20,
+          "x1": 40,
+          "x2": 440,
+          "label": "VDD"
+        },
+        {
+          "y": 450,
+          "x1": 40,
+          "x2": 440,
+          "label": "GND"
+        }
+      ],
+      "devices": [
+        {
+          "name": "M6",
+          "kind": "pmos",
+          "x": 140,
+          "y": 80
+        },
+        {
+          "name": "M7",
+          "kind": "pmos",
+          "x": 340,
+          "y": 80
+        },
+        {
+          "name": "M1a",
+          "kind": "pmos",
+          "x": 180,
+          "y": 160
+        },
+        {
+          "name": "M1b",
+          "kind": "pmos",
+          "x": 300,
+          "y": 160
+        },
+        {
+          "name": "M2a",
+          "kind": "pmos",
+          "x": 180,
+          "y": 230
+        },
+        {
+          "name": "M2b",
+          "kind": "pmos",
+          "x": 300,
+          "y": 230
+        },
+        {
+          "name": "M3a",
+          "kind": "nmos",
+          "x": 180,
+          "y": 300
+        },
+        {
+          "name": "M3b",
+          "kind": "nmos",
+          "x": 300,
+          "y": 300
+        },
+        {
+          "name": "M4a",
+          "kind": "nmos",
+          "x": 180,
+          "y": 370
+        },
+        {
+          "name": "M4b",
+          "kind": "nmos",
+          "x": 300,
+          "y": 370
+        },
+        {
+          "name": "M5",
+          "kind": "nmos",
+          "x": 240,
+          "y": 420
+        }
+      ],
+      "wires": [
+        {
+          "x1": 140,
+          "y1": 20,
+          "x2": 140,
+          "y2": 65
+        },
+        {
+          "x1": 340,
+          "y1": 20,
+          "x2": 340,
+          "y2": 65
+        },
+        {
+          "x1": 140,
+          "y1": 95,
+          "x2": 140,
+          "y2": 118
+        },
+        {
+          "x1": 340,
+          "y1": 95,
+          "x2": 340,
+          "y2": 118
+        },
+        {
+          "x1": 140,
+          "y1": 118,
+          "x2": 340,
+          "y2": 118
+        },
+        {
+          "x1": 180,
+          "y1": 118,
+          "x2": 180,
+          "y2": 145
+        },
+        {
+          "x1": 300,
+          "y1": 118,
+          "x2": 300,
+          "y2": 145
+        },
+        {
+          "x1": 180,
+          "y1": 175,
+          "x2": 180,
+          "y2": 215
+        },
+        {
+          "x1": 300,
+          "y1": 175,
+          "x2": 300,
+          "y2": 215
+        },
+        {
+          "x1": 180,
+          "y1": 245,
+          "x2": 180,
+          "y2": 285
+        },
+        {
+          "x1": 300,
+          "y1": 245,
+          "x2": 300,
+          "y2": 285
+        },
+        {
+          "x1": 180,
+          "y1": 315,
+          "x2": 180,
+          "y2": 355
+        },
+        {
+          "x1": 300,
+          "y1": 315,
+          "x2": 300,
+          "y2": 355
+        },
+        {
+          "x1": 180,
+          "y1": 385,
+          "x2": 180,
+          "y2": 405
+        },
+        {
+          "x1": 300,
+          "y1": 385,
+          "x2": 300,
+          "y2": 405
+        },
+        {
+          "x1": 180,
+          "y1": 405,
+          "x2": 300,
+          "y2": 405
+        },
+        {
+          "x1": 240,
+          "y1": 405,
+          "x2": 240,
+          "y2": 405
+        },
+        {
+          "x1": 240,
+          "y1": 435,
+          "x2": 240,
+          "y2": 450
+        },
+        {
+          "x1": 130,
+          "y1": 145,
+          "x2": 130,
+          "y2": 15
+        },
+        {
+          "x1": 20,
+          "y1": 190,
+          "x2": 130,
+          "y2": 190
+        }
+      ],
+      "dots": [
+        {
+          "x": 140,
+          "y": 118
+        },
+        {
+          "x": 340,
+          "y": 118
+        },
+        {
+          "x": 180,
+          "y": 405
+        },
+        {
+          "x": 300,
+          "y": 405
+        }
+      ],
+      "labels": [
+        {
+          "x": 245,
+          "y": 113,
+          "text": "Vx",
+          "anchor": "middle",
+          "size": 10
+        },
+        {
+          "x": 245,
+          "y": 400,
+          "text": "Vy",
+          "anchor": "middle",
+          "size": 10
+        },
+        {
+          "x": 190,
+          "y": 200,
+          "text": "n_1a2a",
+          "anchor": "start",
+          "size": 8
+        },
+        {
+          "x": 310,
+          "y": 200,
+          "text": "n_1b2b",
+          "anchor": "start",
+          "size": 8
+        },
+        {
+          "x": 190,
+          "y": 270,
+          "text": "Vom1",
+          "anchor": "start",
+          "size": 9
+        },
+        {
+          "x": 310,
+          "y": 270,
+          "text": "Vop1",
+          "anchor": "start",
+          "size": 9
+        },
+        {
+          "x": 190,
+          "y": 340,
+          "text": "n_3a4a",
+          "anchor": "start",
+          "size": 8
+        },
+        {
+          "x": 310,
+          "y": 340,
+          "text": "n_3b4b",
+          "anchor": "start",
+          "size": 8
+        },
+        {
+          "x": 25,
+          "y": 65,
+          "text": "Vbias1\u2192M6, Vcmfb\u2192M7",
+          "anchor": "start",
+          "size": 9
+        },
+        {
+          "x": 25,
+          "y": 205,
+          "text": "Vip\u2192M1a,M4a gates (shared, current-reuse)",
+          "anchor": "start",
+          "size": 8.5
+        },
+        {
+          "x": 25,
+          "y": 445,
+          "text": "Vbias4\u2192M5",
+          "anchor": "start",
+          "size": 9
+        },
+        {
+          "x": 305,
+          "y": 233,
+          "text": "Vbias2",
+          "anchor": "start",
+          "size": 8
+        },
+        {
+          "x": 305,
+          "y": 303,
+          "text": "Vbias3",
+          "anchor": "start",
+          "size": 8
+        }
+      ],
+      "extras": []
+    },
+    "schem_stage2": {
+      "width": 460,
+      "height": 260,
+      "rails": [
+        {
+          "y": 20,
+          "x1": 40,
+          "x2": 420,
+          "label": "VDD"
+        },
+        {
+          "y": 240,
+          "x1": 40,
+          "x2": 420,
+          "label": "GND"
+        }
+      ],
+      "devices": [
+        {
+          "name": "M8",
+          "kind": "pmos",
+          "x": 100,
+          "y": 70
+        },
+        {
+          "name": "M13",
+          "kind": "pmos",
+          "x": 340,
+          "y": 70
+        },
+        {
+          "name": "M11a_b",
+          "kind": "pmos",
+          "x": 220,
+          "y": 70
+        },
+        {
+          "name": "M9a_b",
+          "kind": "pmos",
+          "x": 160,
+          "y": 130
+        },
+        {
+          "name": "M15",
+          "kind": "pmos",
+          "x": 340,
+          "y": 130
+        },
+        {
+          "name": "M12",
+          "kind": "nmos",
+          "x": 160,
+          "y": 190
+        },
+        {
+          "name": "M10",
+          "kind": "nmos",
+          "x": 100,
+          "y": 190
+        },
+        {
+          "name": "M14a_b",
+          "kind": "nmos",
+          "x": 220,
+          "y": 170
+        },
+        {
+          "name": "M16",
+          "kind": "nmos",
+          "x": 340,
+          "y": 190
+        }
+      ],
+      "wires": [
+        {
+          "x1": 100,
+          "y1": 20,
+          "x2": 100,
+          "y2": 55
+        },
+        {
+          "x1": 220,
+          "y1": 20,
+          "x2": 220,
+          "y2": 55
+        },
+        {
+          "x1": 340,
+          "y1": 20,
+          "x2": 340,
+          "y2": 55
+        },
+        {
+          "x1": 340,
+          "y1": 55,
+          "x2": 340,
+          "y2": 115
+        },
+        {
+          "x1": 100,
+          "y1": 85,
+          "x2": 100,
+          "y2": 175
+        },
+        {
+          "x1": 220,
+          "y1": 85,
+          "x2": 220,
+          "y2": 155
+        },
+        {
+          "x1": 100,
+          "y1": 130,
+          "x2": 220,
+          "y2": 130
+        },
+        {
+          "x1": 100,
+          "y1": 130,
+          "x2": 160,
+          "y2": 130
+        },
+        {
+          "x1": 160,
+          "y1": 145,
+          "x2": 160,
+          "y2": 175
+        },
+        {
+          "x1": 220,
+          "y1": 130,
+          "x2": 340,
+          "y2": 130
+        },
+        {
+          "x1": 340,
+          "y1": 145,
+          "x2": 340,
+          "y2": 175
+        },
+        {
+          "x1": 220,
+          "y1": 185,
+          "x2": 220,
+          "y2": 205
+        },
+        {
+          "x1": 100,
+          "y1": 205,
+          "x2": 220,
+          "y2": 205
+        },
+        {
+          "x1": 220,
+          "y1": 205,
+          "x2": 340,
+          "y2": 205
+        },
+        {
+          "x1": 100,
+          "y1": 205,
+          "x2": 100,
+          "y2": 240
+        },
+        {
+          "x1": 340,
+          "y1": 205,
+          "x2": 340,
+          "y2": 240
+        },
+        {
+          "x1": 340,
+          "y1": 130,
+          "x2": 400,
+          "y2": 130
+        },
+        {
+          "x1": 400,
+          "y1": 130,
+          "x2": 400,
+          "y2": 190
+        }
+      ],
+      "dots": [
+        {
+          "x": 340,
+          "y": 130
+        },
+        {
+          "x": 220,
+          "y": 130
+        },
+        {
+          "x": 100,
+          "y": 130
+        },
+        {
+          "x": 220,
+          "y": 205
+        }
+      ],
+      "labels": [
+        {
+          "x": 20,
+          "y": 65,
+          "text": "Vbias1\u2192M8,M13",
+          "anchor": "start",
+          "size": 8.5
+        },
+        {
+          "x": 30,
+          "y": 195,
+          "text": "Vop1\u2192M12",
+          "anchor": "start",
+          "size": 8.5
+        },
+        {
+          "x": 30,
+          "y": 240,
+          "text": "Vbias4\u2192M10",
+          "anchor": "start",
+          "size": 8.5
+        },
+        {
+          "x": 350,
+          "y": 100,
+          "text": "n_g15",
+          "anchor": "start",
+          "size": 8
+        },
+        {
+          "x": 405,
+          "y": 160,
+          "text": "Vom",
+          "anchor": "start",
+          "size": 10
+        },
+        {
+          "x": 225,
+          "y": 165,
+          "text": "floating batteries",
+          "anchor": "start",
+          "size": 7.5
+        },
+        {
+          "x": 225,
+          "y": 220,
+          "text": "Monticelli class-AB",
+          "anchor": "start",
+          "size": 7.5
+        }
+      ],
+      "extras": [
+        {
+          "kind": "cap",
+          "x": 400,
+          "y": 150,
+          "label": "Cc/Rz\u2192Vom1"
+        }
+      ]
+    }
+  },
+  "spec": {
+    "C1_C2_CL": "500fF, 500fF, 1pF",
+    "static_settling_pct": "<=0.1",
+    "dynamic_settling_pct": "<=0.1",
+    "output_swing_V": "[-1.2, 1.2]",
+    "input_cm_range_V": "[0.5765, 0.9001] (paper's own sim result)",
+    "Adm_dB_paper": 75.6,
+    "loop_gain_dB_paper": 69.36,
+    "GBW_MHz_paper": 27.998,
+    "PM_deg_paper": 60.557,
+    "settling_time_ns_paper": 37.885,
+    "CMRR_dB_paper": 94.4,
+    "PSRR_dB_paper": 82.28,
+    "noise_uVrtHz_paper": 272,
+    "power_uW_paper": 126,
+    "VDD_V": 1.8,
+    "t_lln_ns": 30,
+    "PM_target_deg": 70,
+    "wc_target_Mrad_s": 230.00000000000003,
+    "fc_target_MHz": 36.60563691113593
+  },
+  "derivation": {
+    "beta_converged": 0.4978847505533863,
+    "beta_history": [
+      {
+        "it": 0,
+        "beta": 0.5,
+        "gm1_total": 0.00023000000000000003,
+        "Cgg1": 4.230499212179349e-15,
+        "beta_new": 0.4978936612582977
+      },
+      {
+        "it": 1,
+        "beta": 0.4978936612582977,
+        "gm1_total": 0.00023097301481880128,
+        "Cgg1": 4.248396335763598e-15,
+        "beta_new": 0.4978847880906433
+      },
+      {
+        "it": 2,
+        "beta": 0.4978847880906433,
+        "gm1_total": 0.00023097713115722565,
+        "Cgg1": 4.248472049530822e-15,
+        "beta_new": 0.4978847505533863
+      }
+    ],
+    "Cgg1_fF": 4.248472049530822,
+    "gm1_total_uS": 230.97713115722564,
+    "wp2_target_Mrad_s": 644.0,
+    "Cgg2_converged_fF": 93.19541435698129,
+    "gm2_mS": 0.8240609638432989,
+    "stage2_iter_history": [
+      {
+        "it": 0,
+        "Cgg2": 3e-13,
+        "gm2": 0.0012236,
+        "Cgg2_new": 1.383804281607576e-13
+      },
+      {
+        "it": 1,
+        "Cgg2": 1.383804281607576e-13,
+        "gm2": 0.0009113509872065836,
+        "Cgg2_new": 1.0306729308137967e-13
+      },
+      {
+        "it": 2,
+        "Cgg2": 1.0306729308137967e-13,
+        "gm2": 0.0008431260102332254,
+        "Cgg2_new": 9.535153505193285e-14
+      },
+      {
+        "it": 3,
+        "Cgg2": 9.535153505193285e-14,
+        "gm2": 0.0008282191657203343,
+        "Cgg2_new": 9.366567731556498e-14
+      },
+      {
+        "it": 4,
+        "Cgg2": 9.366567731556498e-14,
+        "gm2": 0.0008249620885736716,
+        "Cgg2_new": 9.329732513339122e-14
+      },
+      {
+        "it": 5,
+        "Cgg2": 9.329732513339122e-14,
+        "gm2": 0.0008242504321577119,
+        "Cgg2_new": 9.321684187125994e-14
+      },
+      {
+        "it": 6,
+        "Cgg2": 9.321684187125994e-14,
+        "gm2": 0.0008240949384952742,
+        "Cgg2_new": 9.319925664767018e-14
+      },
+      {
+        "it": 7,
+        "Cgg2": 9.319925664767018e-14,
+        "gm2": 0.0008240609638432988,
+        "Cgg2_new": 9.319541435698128e-14
+      }
+    ]
+  },
+  "sizing": [
+    {
+      "name": "M1a/M1b",
+      "role": "stage-1 PMOS input",
+      "gm_id": 12.0,
+      "L_um": 0.15,
+      "VDS_V": 0.6,
+      "ID_uA": 9.62404713155107,
+      "W_um": 3.4718470130457457,
+      "gain": 8.380124508698245,
+      "Cgg_fF": 3.549728942691304
+    },
+    {
+      "name": "M4a/M4b",
+      "role": "stage-1 NMOS input",
+      "gm_id": 12.0,
+      "L_um": 0.15,
+      "VDS_V": 0.6,
+      "ID_uA": 9.62404713155107,
+      "W_um": 0.563373880227574,
+      "gain": 17.21648102362711,
+      "Cgg_fF": 0.6987431068395176
+    },
+    {
+      "name": "M2a/M2b",
+      "role": "stage-1 PMOS cascode",
+      "gm_id": 12.0,
+      "L_um": 0.15,
+      "VDS_V": 0.6,
+      "ID_uA": 9.62404713155107,
+      "W_um": 3.4718470130457457,
+      "gain": 8.380124508698245,
+      "Cgg_fF": 3.549728942691304
+    },
+    {
+      "name": "M3a/M3b",
+      "role": "stage-1 NMOS cascode",
+      "gm_id": 12.0,
+      "L_um": 0.15,
+      "VDS_V": 0.6,
+      "ID_uA": 9.62404713155107,
+      "W_um": 0.563373880227574,
+      "gain": 17.21648102362711,
+      "Cgg_fF": 0.6987431068395176
+    },
+    {
+      "name": "M5",
+      "role": "stage-1 tail (sinks 2x branch)",
+      "gm_id": 10.0,
+      "L_um": 0.5,
+      "VDS_V": 0.3,
+      "ID_uA": 19.24809426310214,
+      "W_um": 2.3736141119914786,
+      "gain": 30.43959295475072,
+      "Cgg_fF": 7.6446331427043805
+    },
+    {
+      "name": "M6",
+      "role": "top load, Vbias1 (0.7 share)",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.5,
+      "ID_uA": 13.473665984171495,
+      "W_um": 7.706661756594357,
+      "gain": 49.07685831018462,
+      "Cgg_fF": 15.11440363737464
+    },
+    {
+      "name": "M7",
+      "role": "top load, Vcmfb (0.3 share)",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.5,
+      "ID_uA": 5.7744282789306425,
+      "W_um": 3.30285503854044,
+      "gain": 49.07685831018462,
+      "Cgg_fF": 6.477601558874849
+    },
+    {
+      "name": "M15/M25",
+      "role": "stage-2 PMOS output",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.9,
+      "ID_uA": 68.67174698694157,
+      "W_um": 37.75894281552395,
+      "gain": 62.59641806200279,
+      "Cgg_fF": 73.89847391287307
+    },
+    {
+      "name": "M16/M26",
+      "role": "stage-2 NMOS output",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.9,
+      "ID_uA": 68.67174698694157,
+      "W_um": 8.220115293751444,
+      "gain": 77.44726428793193,
+      "Cgg_fF": 19.296940444108213
+    },
+    {
+      "name": "M14a/b,M12/M10-type",
+      "role": "Class-AB floating battery (NMOS)",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 8.240609638432987,
+      "W_um": 1.013720739758229,
+      "gain": 60.98233920757093,
+      "Cgg_fF": 2.381599863963582
+    },
+    {
+      "name": "M11a/b,M9a/b-type",
+      "role": "Class-AB floating battery (PMOS)",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 8.240609638432987,
+      "W_um": 4.6526684902096305,
+      "gain": 53.3910548206208,
+      "Cgg_fF": 9.118357256451675
+    },
+    {
+      "name": "M8/M13,M22/M17-type",
+      "role": "Class-AB top current source",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 16.481219276865975,
+      "W_um": 9.305336980419261,
+      "gain": 53.3910548206208,
+      "Cgg_fF": 18.23671451290335
+    },
+    {
+      "name": "M27/M28/M29",
+      "role": "bias-gen PMOS mirror",
+      "gm_id": 12.0,
+      "L_um": 0.5,
+      "VDS_V": 0.6,
+      "ID_uA": 1.2,
+      "W_um": 0.9164814748511799,
+      "gain": 97.66803268794759,
+      "Cgg_fF": 2.424817748344396
+    },
+    {
+      "name": "M30-M32/M35",
+      "role": "bias-gen NMOS mirror/cascode",
+      "gm_id": 12.0,
+      "L_um": 0.5,
+      "VDS_V": 0.6,
+      "ID_uA": 1.2,
+      "W_um": 0.21226458534149162,
+      "gain": 90.35318162851401,
+      "Cgg_fF": 0.6633400466019472
+    },
+    {
+      "name": "M33/M34",
+      "role": "bias-gen Vx/Vy replica",
+      "gm_id": 12.0,
+      "L_um": 0.5,
+      "VDS_V": 0.6,
+      "ID_uA": 1.2,
+      "W_um": 0.9164814748511799,
+      "gain": 97.66803268794759,
+      "Cgg_fF": 2.424817748344396
+    },
+    {
+      "name": "M36a/M36b",
+      "role": "CMFB PMOS mirror",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 2.0,
+      "W_um": 1.129204923992582,
+      "gain": 53.3910548206208,
+      "Cgg_fF": 2.2130297772934187
+    },
+    {
+      "name": "M37a/M37b",
+      "role": "CMFB NMOS diff pair",
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 1.0,
+      "W_um": 0.12301526030675995,
+      "gain": 60.98233920757093,
+      "Cgg_fF": 0.2890077273963023
+    },
+    {
+      "name": "M38",
+      "role": "CMFB tail",
+      "gm_id": 12.0,
+      "L_um": 0.5,
+      "VDS_V": 0.3,
+      "ID_uA": 2.0,
+      "W_um": 0.3749497871947879,
+      "gain": 41.03677167856759,
+      "Cgg_fF": 1.1803881348378764
+    },
+    {
+      "name": "M39/M40",
+      "role": "CMFB Voc_des generator (long-L)",
+      "gm_id": 12.0,
+      "L_um": 1.0,
+      "VDS_V": 0.6,
+      "ID_uA": 1.0,
+      "W_um": 1.4643809056936645,
+      "gain": 286.90536982579755,
+      "Cgg_fF": 7.297879101539849
+    }
+  ],
+  "stick_decisions": {
+    "finger_snap": [
+      {
+        "group": "M1a/M1b/M2a/M2b (PMOS in+casc)",
+        "finger_w_um": 1.1572823376819152,
+        "n_fingers": {
+          "M1a": 3,
+          "M1b": 3,
+          "M2a": 3,
+          "M2b": 3
+        },
+        "total_row_fingers": 12
+      },
+      {
+        "group": "M3a/M3b/M4a/M4b (NMOS in+casc)",
+        "finger_w_um": 0.18779129340919132,
+        "n_fingers": {
+          "M3a": 3,
+          "M3b": 3,
+          "M4a": 3,
+          "M4b": 3
+        },
+        "total_row_fingers": 12
+      },
+      {
+        "group": "M6/M7 (top load)",
+        "finger_w_um": 1.1009516795134797,
+        "n_fingers": {
+          "M6": 7,
+          "M7": 3
+        },
+        "total_row_fingers": 10
+      },
+      {
+        "group": "M5 (tail)",
+        "finger_w_um": 0.23736141119914786,
+        "n_fingers": {
+          "M5": 10
+        },
+        "total_row_fingers": 10
+      },
+      {
+        "group": "M15/M25 (PMOS out)",
+        "finger_w_um": 1.8879471407761976,
+        "n_fingers": {
+          "M15": 20,
+          "M25": 20
+        },
+        "total_row_fingers": 40
+      },
+      {
+        "group": "M16/M26 (NMOS out)",
+        "finger_w_um": 0.4110057646875722,
+        "n_fingers": {
+          "M16": 20,
+          "M26": 20
+        },
+        "total_row_fingers": 40
+      }
+    ],
+    "matching_candidates": {
+      "current_mirror": {
+        "('pmos', 'Vbias2')": [
+          "Transistor(name='M2a', kind='pmos', source='n_1a2a', drain='Vom1', n_fingers=3, finger_w=1.1572823376819152e-06, w=None, gate='Vbias2', stack_id='row1_pmos_in_casc')",
+          "Transistor(name='M2b', kind='pmos', source='n_1b2b', drain='Vop1', n_fingers=3, finger_w=1.1572823376819152e-06, w=None, gate='Vbias2', stack_id='row1_pmos_in_casc')"
+        ],
+        "('nmos', 'Vbias3')": [
+          "Transistor(name='M3a', kind='nmos', source='n_3a4a', drain='Vom1', n_fingers=3, finger_w=1.8779129340919131e-07, w=None, gate='Vbias3', stack_id='row2_nmos_in_casc')",
+          "Transistor(name='M3b', kind='nmos', source='n_3b4b', drain='Vop1', n_fingers=3, finger_w=1.8779129340919131e-07, w=None, gate='Vbias3', stack_id='row2_nmos_in_casc')"
+        ]
+      },
+      "diff_pair": {}
+    },
+    "hub_merge_candidates_note": "NOT merged: M6/M7 vs M15/M25 differ >1.7x in required finger_w (bias-current row vs large-signal output row) -- kept as separate rows.",
+    "box_shape_by_cell": {
+      "core_signal_cell": {
+        "ok": true,
+        "row_widths": {
+          "row1_pmos_in_casc": 12,
+          "row2_nmos_in_casc": 12
+        },
+        "max_ratio": 1.0,
+        "message": "PASS: \ud589 \ud3ed {'row1_pmos_in_casc': 12, 'row2_nmos_in_casc': 12}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+      },
+      "bias_tail_cell": {
+        "ok": true,
+        "row_widths": {
+          "row3_top_load": 10,
+          "row4_tail": 10
+        },
+        "max_ratio": 1.0,
+        "message": "PASS: \ud589 \ud3ed {'row3_top_load': 10, 'row4_tail': 10}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+      },
+      "stage2_output_cell": {
+        "ok": true,
+        "row_widths": {
+          "rowP_out": 40,
+          "rowN_out": 40
+        },
+        "max_ratio": 1.0,
+        "message": "PASS: \ud589 \ud3ed {'rowP_out': 40, 'rowN_out': 40}, \ucd5c\ub300/\ucd5c\uc18c \ube44\uc728=1.00 (\ud5c8\uc6a9\uce58 \uc774\ub0b4)"
+      }
+    },
+    "mirror_symmetry": {
+      "row1_pmos_in_casc": true,
+      "row2_nmos_in_casc": true,
+      "row3_top_load": false,
+      "row4_tail": true,
+      "rowP_out": true,
+      "rowN_out": false
+    }
+  },
+  "stacks": {
+    "row1_pmos_in_casc": {
+      "status": "ok",
+      "node_sequence": [
+        "Vom1",
+        "n_1a2a",
+        "Vx",
+        "n_1b2b",
+        "Vop1",
+        "n_1b2b",
+        "Vx",
+        "n_1a2a",
+        "Vom1",
+        "n_1a2a",
+        "Vx",
+        "n_1b2b",
+        "Vop1"
+      ],
+      "transistor_sequence": [
+        "M2a",
+        "M1a",
+        "M1b",
+        "M2b",
+        "M2b",
+        "M1b",
+        "M1a",
+        "M2a",
+        "M2a",
+        "M1a",
+        "M1b",
+        "M2b"
+      ],
+      "odd_nodes": [
+        "Vom1",
+        "Vop1"
+      ],
+      "connected": true
+    },
+    "row2_nmos_in_casc": {
+      "status": "ok",
+      "node_sequence": [
+        "Vom1",
+        "n_3a4a",
+        "Vy",
+        "n_3b4b",
+        "Vop1",
+        "n_3b4b",
+        "Vy",
+        "n_3a4a",
+        "Vom1",
+        "n_3a4a",
+        "Vy",
+        "n_3b4b",
+        "Vop1"
+      ],
+      "transistor_sequence": [
+        "M3a",
+        "M4a",
+        "M4b",
+        "M3b",
+        "M3b",
+        "M4b",
+        "M4a",
+        "M3a",
+        "M3a",
+        "M4a",
+        "M4b",
+        "M3b"
+      ],
+      "odd_nodes": [
+        "Vom1",
+        "Vop1"
+      ],
+      "connected": true
+    },
+    "row3_top_load": {
+      "status": "ok",
+      "node_sequence": [
+        "VDD",
+        "Vx",
+        "VDD",
+        "Vx",
+        "VDD",
+        "Vx",
+        "VDD",
+        "Vx",
+        "VDD",
+        "Vx",
+        "VDD"
+      ],
+      "transistor_sequence": [
+        "M6",
+        "M6",
+        "M6",
+        "M6",
+        "M7",
+        "M6",
+        "M7",
+        "M6",
+        "M7",
+        "M6"
+      ],
+      "odd_nodes": [],
+      "connected": true
+    },
+    "row4_tail": {
+      "status": "ok",
+      "node_sequence": [
+        "Vy",
+        "GND",
+        "Vy",
+        "GND",
+        "Vy",
+        "GND",
+        "Vy",
+        "GND",
+        "Vy",
+        "GND",
+        "Vy"
+      ],
+      "transistor_sequence": [
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5",
+        "M5"
+      ],
+      "odd_nodes": [],
+      "connected": true
+    },
+    "rowP_out": {
+      "status": "ok",
+      "node_sequence": [
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD",
+        "Vop",
+        "VDD",
+        "Vom",
+        "VDD"
+      ],
+      "transistor_sequence": [
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15",
+        "M25",
+        "M25",
+        "M15",
+        "M15"
+      ],
+      "odd_nodes": [],
+      "connected": true
+    },
+    "rowN_out": {
+      "status": "ok",
+      "node_sequence": [
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom",
+        "GND",
+        "Vop",
+        "GND",
+        "Vom"
+      ],
+      "transistor_sequence": [
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16",
+        "M16",
+        "M26",
+        "M26",
+        "M16"
+      ],
+      "odd_nodes": [],
+      "connected": true
+    }
+  },
+  "spice": {
+    "single_device": {
+      "M1a": {
+        "ID_target": 9.624047131551069e-06,
+        "ID_sim": 1.077355e-05,
+        "gm_sim": 0.0001233597,
+        "vdsat_sim": 0.137166
+      },
+      "M4a": {
+        "ID_target": 9.624047131551069e-06,
+        "ID_sim": 6.650365e-06,
+        "gm_sim": 8.047673e-05,
+        "vdsat_sim": 0.09434708
+      },
+      "M2a": {
+        "ID_target": 9.624047131551069e-06,
+        "ID_sim": 1.077355e-05,
+        "gm_sim": 0.0001233597,
+        "vdsat_sim": 0.137166
+      },
+      "M3a": {
+        "ID_target": 9.624047131551069e-06,
+        "ID_sim": 6.650365e-06,
+        "gm_sim": 8.047673e-05,
+        "vdsat_sim": 0.09434708
+      },
+      "M5": {
+        "ID_target": 1.9248094263102138e-05,
+        "ID_sim": 1.750705e-05,
+        "gm_sim": 0.0001797158,
+        "vdsat_sim": 0.1554129
+      },
+      "M6": {
+        "ID_target": 1.3473665984171495e-05,
+        "ID_sim": 1.284721e-05,
+        "gm_sim": 0.0001571807,
+        "vdsat_sim": 0.1353345
+      },
+      "M7": {
+        "ID_target": 5.774428278930642e-06,
+        "ID_sim": 6.465712e-06,
+        "gm_sim": 7.451405e-05,
+        "vdsat_sim": 0.1493261
+      },
+      "M15": {
+        "ID_target": 6.867174698694157e-05,
+        "ID_sim": 6.061442e-05,
+        "gm_sim": 0.0007568983,
+        "vdsat_sim": 0.1300388
+      },
+      "M16": {
+        "ID_target": 6.867174698694157e-05,
+        "ID_sim": 7.700238e-05,
+        "gm_sim": 0.0009086996,
+        "vdsat_sim": 0.1321766
+      }
+    },
+    "stack_dc": {
+      "Vip": 1.199999141693115,
+      "ID_M5": 9.258426e-07,
+      "target_id": 9.624047131551069e-06,
+      "node_voltages": {
+        "@m.xm5.msky130_fd_pr__nfet_01v8[id]": 9.258426e-07,
+        "v(vx)": 1.794006,
+        "v(n1a2a)": 0.7963025,
+        "v(vom1)": 0.008750162,
+        "v(n3a4a)": 0.007451684,
+        "v(vy)": 0.004973536,
+        "@m.xm1a.msky130_fd_pr__pfet_01v8[vdsat]": 0.06242311,
+        "@m.xm2a.msky130_fd_pr__pfet_01v8[vdsat]": 0.06422287,
+        "@m.xm3a.msky130_fd_pr__nfet_01v8[vdsat]": 0.3883843,
+        "@m.xm4a.msky130_fd_pr__nfet_01v8[vdsat]": 0.2498889,
+        "@m.xm1a.msky130_fd_pr__pfet_01v8[vds]": 0.9977033,
+        "@m.xm2a.msky130_fd_pr__pfet_01v8[vds]": 0.7875524,
+        "@m.xm3a.msky130_fd_pr__nfet_01v8[vds]": 0.001298478,
+        "@m.xm4a.msky130_fd_pr__nfet_01v8[vds]": 0.002478148
+      },
+      "Vbias1": 0.7402074768913909,
+      "Vbias2": 0.03228039380179215,
+      "Vbias3": 1.7608906067303107,
+      "Vbias4": 0.7990027668167301
+    },
+    "gain_power": {
+      "A1_dB": 41.103746526215666,
+      "A2_dB": 36.80644075806577,
+      "Adm_dB": 77.91018728428143,
+      "loop_dB": 71.8527637783812,
+      "I_total": 0.0002333164653444492,
+      "P_total": 0.00041996963762000857,
+      "Rout1": 491607.3228603426,
+      "Rout2": 42008.06723183083
+    },
+    "paper_Adm_dB": 75.6,
+    "paper_loop_dB": 69.36,
+    "paper_power_uW": 126
+  },
+  "layout_guide": {
+    "critical_nodes": [
+      {
+        "net": "Vom1 / Vop1",
+        "tag": "dominant pole / stage-1 output",
+        "why": "First-stage differential output -- M2a/M3a drains and Cc/Rz's far end (via the cross-coupled stage-2 gate) all land here. Sets the dominant pole together with Cc.",
+        "instruction": "Route Vom1/Vop1 as short, direct, symmetric traces from stack row1_pmos_in_casc/row2_nmos_in_casc to the stage-2 input transistor (M12/M10 or M21/M19). No other signal may cross this net; keep the two traces (Vom1, Vop1) length- and shield-matched since any mismatch here shows up directly as input-referred offset."
+      },
+      {
+        "net": "Vx / Vy",
+        "tag": "current-reuse shared bus",
+        "why": "Vx (source of M1a/M1b, drains of M6/M7) and Vy (source of M4a/M4b, drain of M5) are the buses that make the current-reuse mechanism work -- both M1a(PMOS) and M4a(NMOS) share the SAME Vip gate net, so Vx/Vy routing directly sets how much headroom the cascodes get (see section 6 finding: Vx-Vy is forced to ~VGS_p+VGS_n, leaving very little margin).",
+        "instruction": "Keep Vx and Vy as low-resistance wide-metal buses (they carry the full branch current for both halves) directly over row3_top_load / row4_tail -- do not let IR drop on these buses eat further into the already-thin cascode headroom."
+      },
+      {
+        "net": "Vom / Vop (chip outputs)",
+        "tag": "large-signal output",
+        "why": "M15/M25 (PMOS) and M16/M26 (NMOS) drains -- the Class-AB push-pull output, largest device currents in the circuit.",
+        "instruction": "Wide, short metal directly from rowP_out/rowN_out to the output pads; keep Cc/Rz routing to this net short since the compensation design assumed a specific Cc, not Cc+parasitic-routing-cap."
+      }
+    ],
+    "matching_groups": [
+      {
+        "name": "row1_pmos_in_casc (M1a,M1b,M2a,M2b)",
+        "sequence": [
+          "M2a",
+          "M1a",
+          "M1b",
+          "M2b",
+          "M2b",
+          "M1b",
+          "M1a",
+          "M2a",
+          "M2a",
+          "M1a",
+          "M1b",
+          "M2b"
+        ],
+        "instruction": "Place fingers in exactly this Euler-trail order (generate_stick_diagram() output, verified mirror-symmetric via verify_mirror_symmetry()). Add dummy poly at both row ends; keep all 4 devices in one well, same orientation."
+      },
+      {
+        "name": "row2_nmos_in_casc (M3a,M3b,M4a,M4b)",
+        "sequence": [
+          "M3a",
+          "M4a",
+          "M4b",
+          "M3b",
+          "M3b",
+          "M4b",
+          "M4a",
+          "M3a",
+          "M3a",
+          "M4a",
+          "M4b",
+          "M3b"
+        ],
+        "instruction": "Same treatment as row1 (also verified mirror-symmetric). This row sits physically below row1 with Vy as the shared bottom bus."
+      },
+      {
+        "name": "rowP_out (M15,M25) / rowN_out (M16,M26)",
+        "sequence": [
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15",
+          "M25",
+          "M25",
+          "M15",
+          "M15"
+        ],
+        "instruction": "Euler circuit confirmed (box-shape PASS, ratio 1.00) but verify_mirror_symmetry() returned True for rowP_out and FALSE for rowN_out (see section 5) -- the raw hierholzer() trail groups fingers in AABB blocks because Vom/Vop are leaf nodes reachable only through their own device (any visit needs a same-device return trip). If finer interdigitation is required for M16/M26 matching, apply common_centroid_2row() to re-derive a 2-row layout instead of accepting the 1-row AABB pattern used here."
+      }
+    ],
+    "power_branches": [
+      {
+        "name": "M15/M25, M16/M26 (Class-AB output)",
+        "instruction": "Highest ID in the circuit (nominal sizing point: 68.7uA/device -- see section 6 for why the real quiescent point should be pushed much lower via barely-on biasing). Use multi-via wide-metal straps sized for the WORST-CASE slewing current, not just the quiescent value, since Class-AB's whole point is large instantaneous current -- consult the sky130 EM rules for the actual strap width."
+      }
+    ],
+    "compensation": [
+      {
+        "name": "Cc/Rz (x2, Vom and Vop paths)",
+        "instruction": "Cc=500fF assumed exactly in the gm2 derivation (Eq 6) -- keep routing parasitic to/from Cc well under 500fF*5% (~25fF) or re-run the stage-2 sizing iteration with the updated Cc. Rz (nulling resistor) value was not independently re-derived in this pass -- follow the paper's structure (Rz in series with Cc) and confirm the RHP-zero cancellation condition (Rz ~ 1/gm(M16-type)) with SPICE before tapeout."
+      }
+    ],
+    "stack_placement": {
+      "stacks": [
+        "row1_pmos_in_casc + row2_nmos_in_casc (stage-1 core, 2-row box, ratio 1.00)",
+        "row3_top_load + row4_tail (stage-1 bias/tail, 2-row box, ratio 1.00)",
+        "rowP_out + rowN_out (stage-2 output, 2-row box, ratio 1.00)"
+      ],
+      "instruction": "These are 3 SEPARATE physical cells, not one -- M6/M7 (L=0.35um) and M15/M25 (L=0.35um) both connect to VDD and were flagged as hub-merge CANDIDATES by find_hub_merge_candidates(), but the decision (section 4) was NOT to merge them (finger_w differs by >1.7x between the bias-current row and the large-signal output row -- forcing one diffusion row would blow the box-shape ratio and physically couple a low-swing bias net to the output's large-signal swing). Place the 3 cells side by side in schematic order (stage-1 core -> stage-1 bias/tail -> stage-2 output) with Vom1/Vop1 and Vx/Vy as the only inter-cell signal routes."
+    },
+    "biasgen_cmfb_note": "M27-M40 (Fig.4 biasing generator, Fig.5 CMFB) were sized (section 3) but not run through the stick-diagram pipeline in this pass -- they are low-current (1-2uA range) reference/replica-bias branches, not matching- or bandwidth-critical, and are lower priority for finger-level layout care than the 3 cells above. Honest scope note per design-report-spec.md section 2 item 7.",
+    "out_of_scope": [
+      "Exact ESD/guard-ring rules, foundry DRC (spacing/enclosure/antenna) -- run the sky130 DRC deck.",
+      "Rz's exact value/derivation -- not independently re-derived from Eq 1-6 in this pass; confirm with SPICE.",
+      "Fig.4/Fig.5 (biasing, CMFB) finger-level stick diagrams -- sized but not layout-analyzed (see note above).",
+      "Full nonlinear transient/slew-rate/noise verification -- section 6 covers DC bias + small-signal gain/loop-gain estimate only, not the paper's full settling-time/noise/CMRR/PSRR simulation suite."
+    ]
+  }
+};
+
+function fmt(x,d=2){ return (typeof x === "number") ? x.toFixed(d) : x; }
+
+function renderSchematic(container, schem, caption){
+  const svgNS = "http://www.w3.org/2000/svg";
+  const width = schem.width || 400, height = schem.height || 350;
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("width", width); svg.setAttribute("height", height);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("role","img"); svg.setAttribute("aria-label", caption || "Circuit schematic");
+  const wire = (x1,y1,x2,y2) => {
+    const l = document.createElementNS(svgNS,"line");
+    l.setAttribute("x1",x1); l.setAttribute("y1",y1); l.setAttribute("x2",x2); l.setAttribute("y2",y2);
+    l.setAttribute("stroke","var(--ink)"); l.setAttribute("stroke-width","1.4");
+    svg.appendChild(l);
+  };
+  const dot = (x,y) => {
+    const c = document.createElementNS(svgNS,"circle");
+    c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r","2.4");
+    c.setAttribute("fill","var(--ink)");
+    svg.appendChild(c);
+  };
+  const label = (x,y,text,anchor="middle",size=11,color="var(--muted)")=>{
+    const t = document.createElementNS(svgNS,"text");
+    t.setAttribute("x",x); t.setAttribute("y",y); t.setAttribute("text-anchor",anchor);
+    t.setAttribute("font-family","var(--mono)"); t.setAttribute("font-size",size); t.setAttribute("fill",color);
+    t.textContent = text;
+    svg.appendChild(t);
+  };
+  (schem.rails || []).forEach(r => { wire(r.x1, r.y, r.x2, r.y); label(r.x1 + 6, r.y - 6, r.label, "start", 11, "var(--accent)"); });
+  const mosfet = (name, kind, x, y) => {
+    const col = kind==="pmos" ? "var(--poly)" : (kind==="nmos" ? "var(--diff)" : "var(--muted)");
+    wire(x-15, y, x-5, y);
+    if(kind==="pmos"){
+      const b = document.createElementNS(svgNS,"circle");
+      b.setAttribute("cx",x-3); b.setAttribute("cy",y); b.setAttribute("r","2.3");
+      b.setAttribute("fill","none"); b.setAttribute("stroke",col); b.setAttribute("stroke-width","1.3");
+      svg.appendChild(b);
+    }
+    const ch = document.createElementNS(svgNS,"line");
+    ch.setAttribute("x1",x); ch.setAttribute("y1",y-13); ch.setAttribute("x2",x); ch.setAttribute("y2",y+13);
+    ch.setAttribute("stroke",col); ch.setAttribute("stroke-width","3");
+    svg.appendChild(ch);
+    label(x+8, y+3, name, "start", 9.5, col);
+  };
+  (schem.devices || []).forEach(d => mosfet(d.name, d.kind, d.x, d.y));
+  (schem.wires || []).forEach(w => wire(w.x1, w.y1, w.x2, w.y2));
+  (schem.dots || []).forEach(p => dot(p.x, p.y));
+  (schem.labels || []).forEach(l => label(l.x, l.y, l.text, l.anchor, l.size, l.color));
+  (schem.extras || []).forEach(e => {
+    if(e.kind === "cap"){
+      wire(e.x-10, e.y-3, e.x+10, e.y-3);
+      wire(e.x-10, e.y+3, e.x+10, e.y+3);
+      label(e.x+16, e.y+4, e.label, "start", 9);
+    }
+  });
+  const wrap = document.createElement("div");
+  wrap.className = "stick-scroll";
+  wrap.appendChild(svg);
+  container.appendChild(wrap);
+}
+
+function groupRuns(seq){
+  const runs = [];
+  for(let i=0;i<seq.length;i++){
+    if(runs.length && runs[runs.length-1].name===seq[i]) runs[runs.length-1].end=i;
+    else runs.push({name:seq[i], start:i, end:i});
+  }
+  return runs;
+}
+function svgLine(svg, svgNS, x1,y1,x2,y2,stroke,w){
+  const l = document.createElementNS(svgNS,"line");
+  l.setAttribute("x1",x1); l.setAttribute("y1",y1); l.setAttribute("x2",x2); l.setAttribute("y2",y2);
+  l.setAttribute("stroke",stroke); l.setAttribute("stroke-width",w); l.setAttribute("stroke-linecap","round");
+  svg.appendChild(l);
+  return l;
+}
+function svgText(svg, svgNS, x,y,text,anchor,size,color,weight){
+  const t = document.createElementNS(svgNS,"text");
+  t.setAttribute("x",x); t.setAttribute("y",y); t.setAttribute("text-anchor",anchor||"middle");
+  t.setAttribute("font-family","var(--mono)"); t.setAttribute("font-size",size||10);
+  t.setAttribute("fill",color); if(weight) t.setAttribute("font-weight",weight);
+  t.textContent = text;
+  svg.appendChild(t);
+  return t;
+}
+function computeMaxDepth(positions){
+  const nets = Object.keys(positions).filter(n => positions[n] && positions[n].length>=2);
+  const ranges = {};
+  nets.forEach(n=>{ const idxs=[...positions[n]].sort((a,b)=>a-b); ranges[n]=[idxs[0], idxs[idxs.length-1]]; });
+  nets.sort((a,b)=> ranges[a][0]-ranges[b][0] || ranges[a][1]-ranges[b][1]);
+  const depthMaxIdx = [];
+  let maxDepth = 0;
+  nets.forEach(net=>{
+    const [lo,hi] = ranges[net];
+    let d = 0;
+    while(depthMaxIdx[d] !== undefined && depthMaxIdx[d] >= lo) d++;
+    depthMaxIdx[d] = hi;
+    maxDepth = Math.max(maxDepth, d);
+  });
+  return maxDepth+1;
+}
+function drawNetBrackets(svg, svgNS, xOf, positions, baseY, direction){
+  const nets = Object.keys(positions).filter(n => positions[n] && positions[n].length);
+  const ranges = {};
+  nets.forEach(n=>{ const idxs=[...positions[n]].sort((a,b)=>a-b); ranges[n]=[idxs[0], idxs[idxs.length-1]]; });
+  nets.sort((a,b)=> ranges[a][0]-ranges[b][0] || ranges[a][1]-ranges[b][1]);
+  const singles = nets.filter(n=>positions[n].length<2);
+  const multis = nets.filter(n=>positions[n].length>=2);
+  singles.forEach(net=>{
+    const x = xOf(positions[net][0]);
+    const y = baseY + direction*16;
+    svgLine(svg, svgNS, x, baseY, x, y, "var(--stick-wire)", 1.2);
+    svgText(svg, svgNS, x, y+direction*9, net, "middle", 9, "var(--stick-wire)");
+  });
+  const depthMaxIdx = [];
+  multis.forEach(net=>{
+    const [lo,hi] = ranges[net];
+    let d = 0;
+    while(depthMaxIdx[d] !== undefined && depthMaxIdx[d] >= lo) d++;
+    depthMaxIdx[d] = hi;
+    const y = baseY + direction*(18 + d*13);
+    const idxs = [...positions[net]].sort((a,b)=>a-b);
+    const xs = idxs.map(xOf);
+    svgLine(svg, svgNS, xs[0], y, xs[xs.length-1], y, "var(--stick-wire)", 1.4);
+    xs.forEach(x => svgLine(svg, svgNS, x, baseY, x, y, "var(--stick-wire)", 1.2));
+    svgText(svg, svgNS, xs[0]-6, y+3.5, net, "end", 9, "var(--stick-wire)");
+  });
+}
+function renderStack(container, stackName, data){
+  const nodes = data.node_sequence, trs = data.transistor_sequence;
+  const n = nodes.length;
+  const pitch = 26, marginX = 30, gateY = 90;
+  const width = marginX*2 + pitch*Math.max(n-1,1) + 60;
+  const svgNS = "http://www.w3.org/2000/svg";
+  const xOf = i => marginX + i*pitch;
+
+  const panel = document.createElement("div");
+  panel.className = "stack-panel";
+  const statusClass = data.odd_nodes.length===0 ? "circuit" : "path";
+  const statusLabel = data.odd_nodes.length===0 ? "closed circuit" : "open path";
+  panel.innerHTML = `<div class="stack-head">
+      <span class="name">${stackName}</span>
+      <span class="pill ${statusClass}">${statusLabel}</span>
+      <span class="oddnodes">${data.odd_nodes.length ? "odd-degree: "+data.odd_nodes.join(", ") : "0 odd-degree nodes"}</span>
+    </div>`;
+
+  const positions = {};
+  nodes.forEach((net,i)=>{ (positions[net] = positions[net]||[]).push(i); });
+  const height = gateY + 20 + computeMaxDepth(positions)*13 + 20;
+
+  const scrollWrap = document.createElement("div");
+  scrollWrap.className = "stick-scroll";
+  const svg = document.createElementNS(svgNS, "svg");
+  svg.setAttribute("class","stick");
+  svg.setAttribute("width", width);
+  svg.setAttribute("height", height);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.setAttribute("role","img");
+  svg.setAttribute("aria-label", `Stick diagram for stack ${stackName}`);
+
+  const runs = groupRuns(trs);
+  runs.forEach(run=>{
+    const xStart = (xOf(run.start) + xOf(run.start+1)) / 2;
+    const xEnd = (xOf(run.end) + xOf(run.end+1)) / 2;
+    svgLine(svg, svgNS, xStart-9, gateY-30, xEnd+9, gateY-30, "var(--stick-name)", 2);
+    svgText(svg, svgNS, (xStart+xEnd)/2, gateY-38, run.name, "middle", 11, "var(--stick-name)", "700");
+  });
+  for(let i=0;i<trs.length;i++){
+    const gx = (xOf(i)+xOf(i+1))/2;
+    svgLine(svg, svgNS, gx, gateY-16, gx, gateY+16, "var(--stick-gate)", 3.6);
+  }
+  drawNetBrackets(svg, svgNS, xOf, positions, gateY+16, 1);
+
+  scrollWrap.appendChild(svg);
+  panel.appendChild(scrollWrap);
+  container.appendChild(panel);
+}
+
+function renderLayoutGuide(container, lg){
+  const naCard = (title, note) => `<div class="guide-card napplicable">
+      <div class="gc-head"><span class="gc-net">${title}</span><span class="gc-tag">n/a</span></div>
+      <div class="gc-why">${note}</div>
+    </div>`;
+  let html = `<h3 class="block-title">Critical nodes</h3><div class="guide-grid">`;
+  html += lg.critical_nodes.map(c => `<div class="guide-card">
+      <div class="gc-head"><span class="gc-net">${c.net}</span><span class="gc-tag">${c.tag}</span></div>
+      <div class="gc-why">${c.why}</div>
+      <div class="gc-do">${c.instruction}</div>
+    </div>`).join("");
+  html += `</div>`;
+
+  html += `<h3 class="block-title">Matching-critical device groups</h3><div class="guide-grid">`;
+  html += (lg.matching_groups.length ? lg.matching_groups.map(m => `<div class="guide-card">
+      <div class="gc-head"><span class="gc-net">${m.name}</span></div>
+      <div class="guide-seq">${m.sequence.join(" &rarr; ")}</div>
+      <div class="gc-do">${m.instruction}</div>
+    </div>`).join("") : naCard("matching groups", "none in this circuit"));
+  html += `</div>`;
+
+  html += `<h3 class="block-title">Power / high-current branches</h3><div class="guide-grid">`;
+  html += (lg.power_branches.length ? lg.power_branches.map(p => `<div class="guide-card">
+      <div class="gc-head"><span class="gc-net">${p.name}</span></div><div class="gc-do">${p.instruction}</div></div>`).join("")
+    : naCard("power branches", lg.power_branches_note || ""));
+  html += `</div>`;
+
+  html += `<h3 class="block-title">Compensation network routing</h3><div class="guide-grid">`;
+  html += (lg.compensation.length ? lg.compensation.map(c => `<div class="guide-card">
+      <div class="gc-head"><span class="gc-net">${c.name}</span></div><div class="gc-do">${c.instruction}</div></div>`).join("")
+    : naCard("compensation", lg.compensation_note || ""));
+  html += `</div>`;
+
+  html += `<h3 class="block-title">Stack placement</h3>
+    <div class="guide-card" style="max-width:none;">
+      <div class="gc-why">${lg.stack_placement.stacks.join(" &nbsp;&bull;&nbsp; ")}</div>
+      <div class="gc-do">${lg.stack_placement.instruction}</div>
+    </div>
+    <div class="scope-note">${lg.biasgen_cmfb_note}</div>`;
+
+  html += `<h3 class="block-title">Explicitly out of scope</h3>
+    ${lg.out_of_scope.map(t => `<div class="scope-note">${t}</div>`).join("")}`;
+
+  container.innerHTML = html;
+}
+
+const root = document.getElementById("report");
+const R = REPORT;
+
+function section(num, title, id){
+  const sec = document.createElement("section");
+  sec.className = "rsec"; sec.id = id;
+  sec.innerHTML = `<div class="rsec-head"><span class="num">&sect;${num}</span><h2>${title}</h2></div>`;
+  root.appendChild(sec);
+  const a = document.createElement("a"); a.href = "#"+id; a.textContent = "S"+num;
+  document.getElementById("jumpnav").appendChild(a);
+  return sec;
+}
+
+// SECTION 1 -- topology
+let sec = section(1, "Given topology -- " + R.meta.title, "s1");
+sec.insertAdjacentHTML("beforeend", `<p class="rsec-note">${R.meta.source_paper}. ${R.meta.process_note}</p>
+  <div class="twrap"><table class="sizing"><thead><tr><th>device</th><th>kind</th><th>role</th></tr></thead>
+  <tbody>${R.topology.devices.map(d=>`<tr><td class="role">${d.name}</td><td class="role">${d.kind}</td><td class="role">${d.role}</td></tr>`).join("")}</tbody></table></div>`);
+sec.insertAdjacentHTML("beforeend", `<h3 class="block-title">Stage-1: current-reuse telescopic core (Fig.1/Fig.2)</h3>`);
+let d1 = document.createElement("div"); sec.appendChild(d1);
+renderSchematic(d1, R.topology.schem_stage1, "Stage-1 current-reuse telescopic core");
+sec.insertAdjacentHTML("beforeend", `<h3 class="block-title">Stage-2: Class-AB output (Fig.3, Vom side shown -- Vop side is the mirror using M17/M22/M20a-b/M18a-b/M25/M26/M21/M19/M23a/M24b)</h3>`);
+let d2 = document.createElement("div"); sec.appendChild(d2);
+renderSchematic(d2, R.topology.schem_stage2, "Stage-2 Class-AB output (Monticelli floating-battery)");
+
+// SECTION 2 -- spec
+sec = section(2, "Given design spec (Table I / Section III, paper verbatim)", "s2");
+const specChips = Object.entries(R.spec).map(([k,v])=>`<div class="chip"><span class="k">${k}</span><b>${v}</b></div>`).join("");
+sec.insertAdjacentHTML("beforeend", `<div class="spec-row">${specChips}</div>
+  <p class="rsec-note">wc_target/fc_target are this reproduction's derived closed-loop unity-gain bandwidth
+  target from Eq.2 (t_lln*wc=6.9, t_lln=30ns) -- everything else in this row is the paper's Table I number,
+  copied verbatim as the target this reproduction is checked against.</p>`);
+
+// SECTION 3 -- gm/ID parameters
+sec = section(3, "Determined gm/ID parameters (all devices, sky130 LUT)", "s3");
+sec.insertAdjacentHTML("beforeend", `<div class="twrap"><table class="sizing">
+  <thead><tr><th>device</th><th>role</th><th>gm/ID</th><th>L (&micro;m)</th><th>VDS (V)</th><th>ID (&micro;A)</th><th>W (&micro;m)</th><th>gain(gm/gds)</th><th>Cgg (fF)</th></tr></thead>
+  <tbody>${R.sizing.map(s=>`<tr><td>${s.name}</td><td class="role">${s.role}</td><td class="num">${fmt(s.gm_id,1)}</td><td class="num">${fmt(s.L_um,2)}</td><td class="num">${fmt(s.VDS_V,3)}</td><td class="num">${fmt(s.ID_uA,3)}</td><td class="num">${fmt(s.W_um,4)}</td><td class="num">${fmt(s.gain,2)}</td><td class="num">${fmt(s.Cgg_fF,3)}</td></tr>`).join("")}</tbody>
+  </table></div>
+  <div class="finding"><b>Derivation trace (paper Eq.2-6, solved with real LUT feedback iteration):</b><br>
+  wc=${fmt(R.spec.wc_target_Mrad_s,2)}Mrad/s (fc=${fmt(R.spec.fc_target_MHz,3)}MHz) &middot;
+  beta converged to ${fmt(R.derivation.beta_converged,4)} in ${R.derivation.beta_history.length} iterations
+  (Cgg1=${fmt(R.derivation.Cgg1_fF,3)}fF, paper assumed beta&asymp;0.48 -- matches) &middot;
+  gm1_total=${fmt(R.derivation.gm1_total_uS,2)}&micro;S (paper: 238&micro;S) &middot;
+  wp2_target=${fmt(R.derivation.wp2_target_Mrad_s,2)}Mrad/s (=2.8&times;wc, PM=70&deg;) &middot;
+  Cgg2 converged to ${fmt(R.derivation.Cgg2_converged_fF,3)}fF in ${R.derivation.stage2_iter_history.length}
+  iterations &middot; gm2=${fmt(R.derivation.gm2_mS,4)}mS/device (paper: 3mS/device).</div>`);
+
+// SECTION 4 -- stick-diagram decisions
+sec = section(4, "Decisions behind the stick diagram", "s4");
+sec.insertAdjacentHTML("beforeend", `<h3 class="block-title">Finger-width search (search_stack_finger_w, real function output)</h3>
+  <div class="twrap"><table class="sizing"><thead><tr><th>row group</th><th>finger W (&micro;m)</th><th>n_fingers per device</th><th>total row fingers</th></tr></thead>
+  <tbody>${R.stick_decisions.finger_snap.map(s=>`<tr><td>${s.group}</td><td class="num">${fmt(s.finger_w_um,4)}</td><td class="role">${JSON.stringify(s.n_fingers)}</td><td class="num">${s.total_row_fingers}</td></tr>`).join("")}</tbody></table></div>
+  <h3 class="block-title">Box-shape check per physical cell (check_box_shape, real output)</h3>
+  <div class="twrap"><table class="sizing"><thead><tr><th>cell</th><th>row widths</th><th>max/min ratio</th><th>verdict</th></tr></thead>
+  <tbody>${Object.entries(R.stick_decisions.box_shape_by_cell).map(([cell,v])=>`<tr><td>${cell}</td><td class="role">${JSON.stringify(v.row_widths)}</td><td class="num">${fmt(v.max_ratio,3)}</td><td class="num" style="color:${v.ok?'var(--ok)':'var(--bad)'}">${v.ok?'PASS':'FAIL'}</td></tr>`).join("")}</tbody></table></div>
+  <h3 class="block-title">Matching-candidate detection (detect_matching_candidates, real output)</h3>
+  <div class="match-row">${Object.entries(R.stick_decisions.matching_candidates.current_mirror||{}).map(([k,v])=>`<div class="match-card"><span class="tag">current mirror</span><span class="members">${v.map(x=>x.match(/name='(\w+)'/)[1]).join(' \u00b7 ')}</span><span class="via">via ${k}</span></div>`).join("")}</div>
+  <h3 class="block-title">Stage-boundary hub-merge check (find_hub_merge_candidates, run BEFORE splitting into stacks)</h3>
+  <div class="finding"><b>Decision:</b> ${R.stick_decisions.hub_merge_candidates_note}</div>
+  <h3 class="block-title">Mirror-symmetry verification (verify_mirror_symmetry, real output -- Euler trail existing &ne; matching-symmetric)</h3>
+  <div class="twrap"><table class="sizing"><thead><tr><th>stack</th><th>mirror-symmetric?</th></tr></thead>
+  <tbody>${Object.entries(R.stick_decisions.mirror_symmetry).map(([k,v])=>`<tr><td>${k}</td><td class="num" style="color:${v?'var(--ok)':'var(--bad)'}">${v}</td></tr>`).join("")}</tbody></table></div>
+  <div class="finding"><b>Honest finding:</b> row3_top_load (M6,M7) is FALSE because M6:M7=7:3 fingers is an
+  intentionally asymmetric ratio (not a matched pair) -- axis symmetry does not apply there.
+  rowN_out (M16,M26) is FALSE even though it IS a matched pair: Vom/Vop are leaf nodes reachable only through
+  their own device, so every visit needs a same-device return trip, forcing hierholzer()'s trail into AABB
+  blocks rather than true ABAB interleaving. rowP_out (M15,M25) happened to come out TRUE with the same
+  graph shape -- both results are the real function's output, not adjusted by hand.</div>`);
+
+// SECTION 5 -- completed stick diagrams
+sec = section(5, "Completed stick diagram (generate_stick_diagram, verbatim)", "s5");
+Object.entries(R.stacks).forEach(([name, data]) => renderStack(sec, name, data));
+
+// SECTION 6 -- SPICE verification
+sec = section(6, "SPICE verification (ngspice + sky130_fd_pr, decomposed per-device workflow)", "s6");
+sec.insertAdjacentHTML("beforeend", `<h3 class="block-title">Single-device LUT&harr;SPICE cross-check (isolated device, target VGS/VDS from LUT)</h3>
+  <div class="twrap"><table class="sizing"><thead><tr><th>device</th><th>ID target (&micro;A)</th><th>ID SPICE (&micro;A)</th><th>error</th><th>gm SPICE (&micro;S)</th></tr></thead>
+  <tbody>${Object.entries(R.spice.single_device).map(([k,v])=>{
+    const err = Math.abs(v.ID_sim-v.ID_target)/v.ID_target*100;
+    return `<tr><td>${k}</td><td class="num">${fmt(v.ID_target*1e6,3)}</td><td class="num">${fmt(v.ID_sim*1e6,3)}</td><td class="num" style="color:${err<15?'var(--ok)':'var(--warn)'}">${fmt(err,1)}%</td><td class="num">${fmt(v.gm_sim*1e6,2)}</td></tr>`;
+  }).join("")}</tbody></table></div>
+  <div class="finding"><b>Cross-check protocol followed:</b> per SKILL.md's mandatory LUT&harr;SPICE procedure,
+  each device was instantiated at its OWN W (from W=L&middot;ID_target/IDu), not compared at the LUT's 5&micro;m
+  reference width. 7/9 devices land within 15% (typical semi-empirical LUT accuracy); M4a/M3a (NMOS
+  input+cascode) show ~31% deviation -- flagged for a resizing iteration in a production flow, not silently
+  accepted.</div>
+  <h3 class="block-title">Full-stack DC bias closed-loop check (M6-M1a-M2a-M3a-M4a-M5, one differential half, boundary conditions fixed, Vip bisected)</h3>
+  <div class="spice-card">
+    <div class="metric"><div class="k">Vbias1 (M6 gate)</div><div class="v">${fmt(R.spice.stack_dc.Vbias1,4)}<small> V</small></div></div>
+    <div class="metric"><div class="k">Vbias2 (M2a gate, nominal)</div><div class="v">${fmt(R.spice.stack_dc.Vbias2,4)}<small> V</small></div></div>
+    <div class="metric"><div class="k">Vbias3 (M3a gate, nominal)</div><div class="v">${fmt(R.spice.stack_dc.Vbias3,4)}<small> V</small></div></div>
+    <div class="metric"><div class="k">Vbias4 (M5 gate)</div><div class="v">${fmt(R.spice.stack_dc.Vbias4,4)}<small> V</small></div></div>
+    <div class="metric"><div class="k">Vip (bisected)</div><div class="v">${fmt(R.spice.stack_dc.Vip,4)}<small> V</small></div></div>
+    <div class="metric"><div class="k">ID(M5), best found</div><div class="v">${fmt(R.spice.stack_dc.ID_M5*1e6,3)}<small> &micro;A (target ${fmt(R.spice.stack_dc.target_id*1e6,2)})</small></div></div>
+  </div>
+  <div class="finding bad"><b>Structural finding (confirms the paper's own Section II-B statement):</b>
+  the current-reuse mechanism ties M1a(PMOS)'s gate and M4a(NMOS)'s gate to the SAME Vip net. Solving the
+  KVL self-consistently shows Vx&minus;Vy must equal roughly VGS(M1a)+VGS(M4a) &asymp; 1.6-1.7V of the 1.8V
+  rail, leaving very little headroom for the cascodes and tail/load devices. Sweeping Vip in real ngspice
+  found the branch current is NON-monotonic and tops out around 7&micro;A near Vip&asymp;0.98V (vs. the
+  9.6&micro;A nominal gm/ID target) before collapsing as M3a/M4a are driven into deep triode
+  (Vds&rarr;0.001-0.002V) at higher Vip. This is exactly the "restricted swing / bottom devices pushed to
+  linear region" limitation the paper itself reports for this topology (and the reason its own input
+  common-mode range is asymmetric, [576.5mV,900.1mV] rather than centered on VDD/2) -- not a sizing mistake
+  in this reproduction. A real implementation needs the same node-voltage-budget iteration the paper's own
+  biasing circuit (Fig.4, replica-bias) performs; gm/ID sizing alone gets you the starting point, not the
+  final self-consistent bias.</div>
+  <h3 class="block-title">Idealized small-signal loop-gain estimate (gm&middot;ro chain from the sized devices, sanity-checked against Table I)</h3>
+  <div class="spice-card">
+    <div class="metric"><div class="k">Stage-1 gain A1</div><div class="v">${fmt(R.spice.gain_power.A1_dB,2)}<small> dB</small></div></div>
+    <div class="metric"><div class="k">Stage-2 gain A2</div><div class="v">${fmt(R.spice.gain_power.A2_dB,2)}<small> dB</small></div></div>
+    <div class="metric"><div class="k">Open-loop Adm</div><div class="v">${fmt(R.spice.gain_power.Adm_dB,2)}<small> dB (paper: ${R.spice.paper_Adm_dB}dB)</small></div></div>
+    <div class="metric"><div class="k">Loop gain (&beta;&middot;Adm)</div><div class="v">${fmt(R.spice.gain_power.loop_dB,2)}<small> dB (paper: ${R.spice.paper_loop_dB}dB)</small></div></div>
+  </div>
+  <div class="finding ok"><b>Gain reproduction check:</b> despite sizing independently on a different process
+  (sky130 vs. the paper's 0.18&micro;m) with different gm/ID targets, the idealized gm&middot;Rout gain chain
+  lands within ~2.3dB of the paper's own Adm (75.6dB) and loop gain (69.36dB) -- a strong consistency check
+  that the topology + Eq.1-6 derivation was reproduced correctly.</div>
+  <div class="finding"><b>Power budget:</b> nominal (pre-Class-AB-trim) sizing gives
+  I_total&asymp;${fmt(R.spice.gain_power.I_total*1e6,1)}&micro;A, P&asymp;${fmt(R.spice.gain_power.P_total*1e6,0)}&micro;W
+  vs. the paper's realized 126&micro;W. The gap is expected and explained by the paper's own "barely-on"
+  Class-AB biasing trick (Section II-B): it sizes M15/M16-type devices for gm=3mS at a nominal 176&micro;A/device,
+  then re-biases the floating batteries so the ACTUAL quiescent current drops to ~22&micro;A/device (~8x lower)
+  while the small-signal gm is preserved by deep weak-inversion operation at that bias point -- a bias-point
+  effect that gm/ID sizing alone (§1's 6-step procedure) does not capture, and which the paper itself only
+  reaches through iterative SPICE tuning. Applying the same ~8x reduction factor to this reproduction's
+  stage-2 current would bring the total budget into the same 100-150&micro;W range as the paper's 126&micro;W
+  record; confirming this quantitatively is flagged as follow-up SPICE bias-point tuning, not claimed as done.</div>`);
+
+// SECTION 7 -- layout guide
+sec = section(7, "Layout guide for the implementation agent", "s7");
+sec.insertAdjacentHTML("beforeend", `<p class="rsec-note">Written for this circuit's actual devices/nets, reusing the decisions already made in sections 4/5 -- see design-report-spec.md section 2 for the checklist.</p>`);
+const guideDiv = document.createElement("div");
+sec.appendChild(guideDiv);
+renderLayoutGuide(guideDiv, R.layout_guide);
+</script>

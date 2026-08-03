@@ -1,0 +1,675 @@
+{
+  "schema_version": "2.0",
+  "topology_ref": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json",
+  "sizing": {
+    "M1a/M1b": {
+      "name": "M1a/M1b",
+      "role": "stage-1 PMOS input (current-reuse top half, gate=Vip/Vim)",
+      "gm_uS": 119.0,
+      "gm_id": 12.0,
+      "L_um": 0.15,
+      "VDS_V": 0.4,
+      "ID_uA": 9.916666666666668,
+      "W_um": 3.696625790144475,
+      "gain": 7.9033037368689065,
+      "Cgg_fF": 3.77920166785202
+    },
+    "M4a/M4b": {
+      "name": "M4a/M4b",
+      "role": "stage-1 NMOS input (current-reuse bottom half, SAME gate net as M1)",
+      "gm_uS": 119.0,
+      "gm_id": 12.0,
+      "L_um": 0.15,
+      "VDS_V": 0.4,
+      "ID_uA": 9.916666666666668,
+      "W_um": 0.5970657771171054,
+      "gain": 14.522935481700774,
+      "Cgg_fF": 0.7448510075434106
+    },
+    "M2a/M2b": {
+      "name": "M2a/M2b",
+      "role": "stage-1 PMOS cascode (gate=Vbias2 fixed)",
+      "gm_uS": 119.0,
+      "gm_id": 12.0,
+      "L_um": 0.15,
+      "VDS_V": 0.2,
+      "ID_uA": 9.916666666666668,
+      "W_um": 4.12564276404118,
+      "gain": 6.337172000197447,
+      "Cgg_fF": 4.245046457863647
+    },
+    "M3a/M3b": {
+      "name": "M3a/M3b",
+      "role": "stage-1 NMOS cascode (gate=Vbias3 fixed)",
+      "gm_uS": 119.0,
+      "gm_id": 12.0,
+      "L_um": 0.15,
+      "VDS_V": 0.2,
+      "ID_uA": 9.916666666666668,
+      "W_um": 0.6601132168079389,
+      "gain": 8.643753778856773,
+      "Cgg_fF": 0.8376206853490751
+    },
+    "M5": {
+      "name": "M5",
+      "role": "stage-1 tail current sink (sinks 2x branch ID)",
+      "gm_uS": 198.33333333333334,
+      "gm_id": 10.0,
+      "L_um": 0.5,
+      "VDS_V": 0.3,
+      "ID_uA": 19.833333333333336,
+      "W_um": 2.4457839433005693,
+      "gain": 30.43959295475072,
+      "Cgg_fF": 7.877068516905104
+    },
+    "M6": {
+      "name": "M6",
+      "role": "top load, Vbias1 (0.7 share, fixed bias)",
+      "gm_uS": 166.60000000000002,
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.3,
+      "ID_uA": 13.883333333333335,
+      "W_um": 8.293185591805338,
+      "gain": 35.6392822347467,
+      "Cgg_fF": 16.343515893068528
+    },
+    "M7": {
+      "name": "M7",
+      "role": "top load, Vcmfb (0.3 share, CMFB-controlled)",
+      "gm_uS": 71.40000000000002,
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.3,
+      "ID_uA": 5.950000000000001,
+      "W_um": 3.554222396488003,
+      "gain": 35.6392822347467,
+      "Cgg_fF": 7.004363954172228
+    },
+    "M15/M25": {
+      "name": "M15/M25",
+      "role": "stage-2 PMOS output -- STEP1 nominal (W capped 200um, gm/ID flipped -- see note)",
+      "gm_uS": 2503.627142988652,
+      "gm_id": 14.187220476935693,
+      "L_um": 0.35,
+      "VDS_V": 0.9,
+      "ID_uA": 176.47058823529412,
+      "W_um": 200.0,
+      "gain": 65.48907751033465,
+      "Cgg_fF": 370.20785561404034
+    },
+    "M16/M26": {
+      "name": "M16/M26",
+      "role": "stage-2 NMOS output -- STEP1 nominal W sizing (paper's gm/Id=17 design point, forward-sized OK)",
+      "gm_uS": 3000.0,
+      "gm_id": 17.0,
+      "L_um": 0.35,
+      "VDS_V": 0.9,
+      "ID_uA": 176.47058823529412,
+      "W_um": 65.79961828987203,
+      "gain": 87.06446020697096,
+      "Cgg_fF": 146.8820001860437
+    },
+    "M15/M25 (barely-on Q-point)": {
+      "name": "M15/M25 (barely-on Q-point)",
+      "role": "Class-AB actual quiescent bias (same W, STEP2)",
+      "gm_uS": 184.88691690457185,
+      "gm_id": 16.763080466014515,
+      "L_um": 0.35,
+      "VDS_V": 0.9,
+      "ID_uA": 11.029411764705882,
+      "W_um": 200.0,
+      "gain": 60.22506574164304,
+      "Cgg_fF": 370.20785561404034
+    },
+    "M16/M26 (barely-on Q-point)": {
+      "name": "M16/M26 (barely-on Q-point)",
+      "role": "Class-AB actual quiescent bias (same W, STEP2)",
+      "gm_uS": 251.01130139882662,
+      "gm_id": 22.75835799349361,
+      "L_um": 0.35,
+      "VDS_V": 0.9,
+      "ID_uA": 11.029411764705882,
+      "W_um": 65.79961828987203,
+      "gain": 85.58756599806532,
+      "Cgg_fF": 146.8820001860437
+    },
+    "M14a/b (NMOS batt)": {
+      "name": "M14a/b (NMOS batt)",
+      "role": "Class-AB floating battery (NMOS diode leg)",
+      "gm_uS": 31.764705882352946,
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 2.647058823529412,
+      "W_um": 0.32562863022377636,
+      "gain": 60.98233920757093,
+      "Cgg_fF": 0.7650204548725649
+    },
+    "M11a/b (PMOS batt)": {
+      "name": "M11a/b (PMOS batt)",
+      "role": "Class-AB floating battery (PMOS diode leg)",
+      "gm_uS": 31.764705882352946,
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 2.647058823529412,
+      "W_um": 1.494535928813712,
+      "gain": 53.3910548206208,
+      "Cgg_fF": 2.9290099993589367
+    },
+    "M8/M13 (top src)": {
+      "name": "M8/M13 (top src)",
+      "role": "Class-AB top current source (gate=Vbias1)",
+      "gm_uS": 63.52941176470589,
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 5.294117647058824,
+      "W_um": 2.989071857627424,
+      "gain": 53.3910548206208,
+      "Cgg_fF": 5.858019998717873
+    },
+    "M27/M28/M29": {
+      "name": "M27/M28/M29",
+      "role": "bias-gen PMOS mirror (derives Vbias1 replica of tail-source path)",
+      "gm_uS": 14.399999999999999,
+      "gm_id": 12.0,
+      "L_um": 0.5,
+      "VDS_V": 0.6,
+      "ID_uA": 1.2,
+      "W_um": 0.9164814748511799,
+      "gain": 97.66803268794759,
+      "Cgg_fF": 2.424817748344396
+    },
+    "M30-M32/M35": {
+      "name": "M30-M32/M35",
+      "role": "bias-gen NMOS mirror/cascode (derives Vbias3/Vbias4, replicates Vy)",
+      "gm_uS": 14.399999999999999,
+      "gm_id": 12.0,
+      "L_um": 0.5,
+      "VDS_V": 0.6,
+      "ID_uA": 1.2,
+      "W_um": 0.21226458534149162,
+      "gain": 90.35318162851401,
+      "Cgg_fF": 0.6633400466019472
+    },
+    "M33/M34": {
+      "name": "M33/M34",
+      "role": "bias-gen Vx/Vy replica cascode (derives Vbias2)",
+      "gm_uS": 14.399999999999999,
+      "gm_id": 12.0,
+      "L_um": 0.5,
+      "VDS_V": 0.6,
+      "ID_uA": 1.2,
+      "W_um": 0.9164814748511799,
+      "gain": 97.66803268794759,
+      "Cgg_fF": 2.424817748344396
+    },
+    "M36a/M36b": {
+      "name": "M36a/M36b",
+      "role": "CMFB output-stage mirror (gate=Vcmfb, feeds M7)",
+      "gm_uS": 24.0,
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 2.0,
+      "W_um": 1.129204923992582,
+      "gain": 53.3910548206208,
+      "Cgg_fF": 2.2130297772934187
+    },
+    "M37a/M37b": {
+      "name": "M37a/M37b",
+      "role": "CMFB NMOS diff pair (senses Voc vs Voc_des)",
+      "gm_uS": 12.0,
+      "gm_id": 12.0,
+      "L_um": 0.35,
+      "VDS_V": 0.6,
+      "ID_uA": 1.0,
+      "W_um": 0.12301526030675995,
+      "gain": 60.98233920757093,
+      "Cgg_fF": 0.2890077273963023
+    },
+    "M38": {
+      "name": "M38",
+      "role": "CMFB tail",
+      "gm_uS": 24.0,
+      "gm_id": 12.0,
+      "L_um": 0.5,
+      "VDS_V": 0.3,
+      "ID_uA": 2.0,
+      "W_um": 0.3749497871947879,
+      "gain": 41.03677167856759,
+      "Cgg_fF": 1.1803881348378764
+    },
+    "M39/M40": {
+      "name": "M39/M40",
+      "role": "CMFB Voc_des generator (long-L for process-variation immunity)",
+      "gm_uS": 12.0,
+      "gm_id": 12.0,
+      "L_um": 1.0,
+      "VDS_V": 0.6,
+      "ID_uA": 1.0,
+      "W_um": 1.4643809056936645,
+      "gain": 286.90536982579755,
+      "Cgg_fF": 7.297879101539849
+    }
+  },
+  "netlist": [
+    {
+      "name": "M1a",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "n_1a2a",
+      "n_fingers": 9,
+      "finger_w": 0.4107361989049416,
+      "w": null,
+      "gate": "Vip",
+      "stack_id": "row1_pmos_in_casc"
+    },
+    {
+      "name": "M1b",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "n_1b2b",
+      "n_fingers": 9,
+      "finger_w": 0.4107361989049416,
+      "w": null,
+      "gate": "Vim",
+      "stack_id": "row1_pmos_in_casc"
+    },
+    {
+      "name": "M2a",
+      "kind": "pmos",
+      "source": "n_1a2a",
+      "drain": "Vom1",
+      "n_fingers": 10,
+      "finger_w": 0.4107361989049416,
+      "w": null,
+      "gate": "Vbias2",
+      "stack_id": "row1_pmos_in_casc"
+    },
+    {
+      "name": "M2b",
+      "kind": "pmos",
+      "source": "n_1b2b",
+      "drain": "Vop1",
+      "n_fingers": 10,
+      "finger_w": 0.4107361989049416,
+      "w": null,
+      "gate": "Vbias2",
+      "stack_id": "row1_pmos_in_casc"
+    },
+    {
+      "name": "M3a",
+      "kind": "nmos",
+      "source": "n_3a4a",
+      "drain": "Vom1",
+      "n_fingers": 10,
+      "finger_w": 0.06601132168079389,
+      "w": null,
+      "gate": "Vbias3",
+      "stack_id": "row2_nmos_in_casc"
+    },
+    {
+      "name": "M3b",
+      "kind": "nmos",
+      "source": "n_3b4b",
+      "drain": "Vop1",
+      "n_fingers": 10,
+      "finger_w": 0.06601132168079389,
+      "w": null,
+      "gate": "Vbias3",
+      "stack_id": "row2_nmos_in_casc"
+    },
+    {
+      "name": "M4a",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "n_3a4a",
+      "n_fingers": 9,
+      "finger_w": 0.06601132168079389,
+      "w": null,
+      "gate": "Vip",
+      "stack_id": "row2_nmos_in_casc"
+    },
+    {
+      "name": "M4b",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "n_3b4b",
+      "n_fingers": 9,
+      "finger_w": 0.06601132168079389,
+      "w": null,
+      "gate": "Vim",
+      "stack_id": "row2_nmos_in_casc"
+    },
+    {
+      "name": "M6",
+      "kind": "pmos",
+      "source": "VDD",
+      "drain": "Vx",
+      "n_fingers": 7,
+      "finger_w": 1.1847407988293341,
+      "w": null,
+      "gate": "Vbias1",
+      "stack_id": "row3_top_load"
+    },
+    {
+      "name": "M7",
+      "kind": "pmos",
+      "source": "VDD",
+      "drain": "Vx",
+      "n_fingers": 3,
+      "finger_w": 1.1847407988293341,
+      "w": null,
+      "gate": "Vcmfb",
+      "stack_id": "row3_top_load"
+    },
+    {
+      "name": "M5",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "GND",
+      "n_fingers": 8,
+      "finger_w": 0.30572299291257116,
+      "w": null,
+      "gate": "Vbias4",
+      "stack_id": "row4_tail"
+    },
+    {
+      "name": "M15",
+      "kind": "pmos",
+      "source": "VDD",
+      "drain": "Vop",
+      "n_fingers": 34,
+      "finger_w": 5.882352941176471,
+      "w": null,
+      "gate": "n_batt_p_a",
+      "stack_id": "rowP_out"
+    },
+    {
+      "name": "M25",
+      "kind": "pmos",
+      "source": "VDD",
+      "drain": "Vom",
+      "n_fingers": 34,
+      "finger_w": 5.882352941176471,
+      "w": null,
+      "gate": "n_batt_p_b",
+      "stack_id": "rowP_out"
+    },
+    {
+      "name": "M16",
+      "kind": "nmos",
+      "source": "Vom",
+      "drain": "GND",
+      "n_fingers": 34,
+      "finger_w": 1.935282890878589,
+      "w": null,
+      "gate": "n_batt_n_a",
+      "stack_id": "rowN_out"
+    },
+    {
+      "name": "M26",
+      "kind": "nmos",
+      "source": "Vop",
+      "drain": "GND",
+      "n_fingers": 34,
+      "finger_w": 1.935282890878589,
+      "w": null,
+      "gate": "n_batt_n_b",
+      "stack_id": "rowN_out"
+    }
+  ],
+  "floorplan": {
+    "placements": {
+      "row1_pmos_in_casc": {
+        "x": -34.0,
+        "y": 0.0,
+        "width": 38,
+        "height": 1
+      },
+      "row2_nmos_in_casc": {
+        "x": -34.0,
+        "y": 2.0,
+        "width": 38,
+        "height": 1
+      },
+      "row3_top_load": {
+        "x": 5.0,
+        "y": 0.0,
+        "width": 10,
+        "height": 1
+      },
+      "row4_tail": {
+        "x": 5.0,
+        "y": 2.0,
+        "width": 8,
+        "height": 1
+      },
+      "rowP_out": {
+        "x": -34.0,
+        "y": 4.0,
+        "width": 68,
+        "height": 1
+      },
+      "rowN_out": {
+        "x": -34.0,
+        "y": 6.0,
+        "width": 68,
+        "height": 1
+      }
+    },
+    "bbox": {
+      "width": 68.0,
+      "height": 7.0
+    },
+    "aspect_ratio": 9.714285714285714,
+    "packing_density": 0.7310924369747899
+  },
+  "box_shape": {
+    "core_signal_cell": {
+      "ok": true,
+      "row_widths": {
+        "row1_pmos_in_casc": 38,
+        "row2_nmos_in_casc": 38
+      },
+      "message": "PASS: 행 폭 {'row1_pmos_in_casc': 38, 'row2_nmos_in_casc': 38}, 최대/최소 비율=1.00 (허용치 이내)"
+    },
+    "bias_tail_cell": {
+      "ok": true,
+      "row_widths": {
+        "row3_top_load": 10,
+        "row4_tail": 8
+      },
+      "message": "PASS: 행 폭 {'row3_top_load': 10, 'row4_tail': 8}, 최대/최소 비율=1.25 (허용치 이내)"
+    },
+    "stage2_output_cell": {
+      "ok": true,
+      "row_widths": {
+        "rowP_out": 68,
+        "rowN_out": 68
+      },
+      "message": "PASS: 행 폭 {'rowP_out': 68, 'rowN_out': 68}, 최대/최소 비율=1.00 (허용치 이내)"
+    }
+  },
+  "audit_row_split": {
+    "core_signal_cell": {
+      "ok": false,
+      "checks": [
+        {
+          "name": "1. euler[row1_pmos_in_casc]",
+          "ok": true,
+          "detail": "odd_nodes=['n_1a2a', 'n_1b2b']"
+        },
+        {
+          "name": "1. euler[row2_nmos_in_casc]",
+          "ok": true,
+          "detail": "odd_nodes=['n_3a4a', 'n_3b4b']"
+        },
+        {
+          "name": "2. box-shape",
+          "ok": true,
+          "detail": "PASS: 행 폭 {'row1_pmos_in_casc': 38, 'row2_nmos_in_casc': 38}, 최대/최소 비율=1.00 (허용치 이내)"
+        },
+        {
+          "name": "3a. row-presence[M1a/M1b] (kind=diff_pair)",
+          "ok": true,
+          "detail": "두 소자 모두 있는 행: ['row1_pmos_in_casc']; M1a/M1b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+        },
+        {
+          "name": "3b. interdigitation[M1a/M1b] [참고용 -- 이 kind는 필수 아님]",
+          "ok": true,
+          "detail": "row1_pmos_in_casc: 인접"
+        },
+        {
+          "name": "3c. common-centroid[M1a/M1b]",
+          "ok": true,
+          "detail": "M1a centroid=(20.22,0.00), M1b centroid=(20.33,0.00), |dx|=0.11 |dy|=0.00 (허용오차 0.5)"
+        },
+        {
+          "name": "3a. row-presence[M2a/M2b] (kind=current_mirror)",
+          "ok": true,
+          "detail": "두 소자 모두 있는 행: ['row1_pmos_in_casc']; M2a/M2b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+        },
+        {
+          "name": "3b. interdigitation[M2a/M2b]",
+          "ok": false,
+          "detail": "row1_pmos_in_casc: NOT 인접"
+        },
+        {
+          "name": "3c. common-centroid[M2a/M2b] [참고용 -- 이 kind는 필수 아님]",
+          "ok": false,
+          "detail": "M2a centroid=(18.10,0.00), M2b centroid=(15.70,0.00), |dx|=2.40 |dy|=0.00 (허용오차 0.5)"
+        },
+        {
+          "name": "3a. row-presence[M3a/M3b] (kind=current_mirror)",
+          "ok": true,
+          "detail": "두 소자 모두 있는 행: ['row2_nmos_in_casc']; M3a/M3b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+        },
+        {
+          "name": "3b. interdigitation[M3a/M3b]",
+          "ok": false,
+          "detail": "row2_nmos_in_casc: NOT 인접"
+        },
+        {
+          "name": "3c. common-centroid[M3a/M3b] [참고용 -- 이 kind는 필수 아님]",
+          "ok": false,
+          "detail": "M3a centroid=(16.50,1.00), M3b centroid=(20.50,1.00), |dx|=4.00 |dy|=0.00 (허용오차 0.5)"
+        },
+        {
+          "name": "3a. row-presence[M4a/M4b] (kind=diff_pair)",
+          "ok": true,
+          "detail": "두 소자 모두 있는 행: ['row2_nmos_in_casc']; M4a/M4b 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+        },
+        {
+          "name": "3b. interdigitation[M4a/M4b] [참고용 -- 이 kind는 필수 아님]",
+          "ok": true,
+          "detail": "row2_nmos_in_casc: 인접"
+        },
+        {
+          "name": "3c. common-centroid[M4a/M4b]",
+          "ok": true,
+          "detail": "M4a centroid=(18.44,1.00), M4b centroid=(18.56,1.00), |dx|=0.11 |dy|=0.00 (허용오차 0.5)"
+        }
+      ]
+    },
+    "bias_tail_cell": {
+      "ok": true,
+      "checks": [
+        {
+          "name": "1. euler[row3_top_load]",
+          "ok": true,
+          "detail": "odd_nodes=[]"
+        },
+        {
+          "name": "1. euler[row4_tail]",
+          "ok": true,
+          "detail": "odd_nodes=[]"
+        },
+        {
+          "name": "2. box-shape",
+          "ok": true,
+          "detail": "PASS: 행 폭 {'row3_top_load': 10, 'row4_tail': 8}, 최대/최소 비율=1.25 (허용치 이내)"
+        }
+      ]
+    },
+    "stage2_output_cell": {
+      "ok": false,
+      "checks": [
+        {
+          "name": "1. euler[rowP_out]",
+          "ok": true,
+          "detail": "odd_nodes=[]"
+        },
+        {
+          "name": "1. euler[rowN_out]",
+          "ok": true,
+          "detail": "odd_nodes=[]"
+        },
+        {
+          "name": "2. box-shape",
+          "ok": true,
+          "detail": "PASS: 행 폭 {'rowP_out': 68, 'rowN_out': 68}, 최대/최소 비율=1.00 (허용치 이내)"
+        },
+        {
+          "name": "3a. row-presence[M15/M25] (kind=branch_symmetric)",
+          "ok": true,
+          "detail": "두 소자 모두 있는 행: ['rowP_out']; M15/M25 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+        },
+        {
+          "name": "3b. interdigitation[M15/M25] [참고용 -- 이 kind는 필수 아님]",
+          "ok": true,
+          "detail": "rowP_out: 인접"
+        },
+        {
+          "name": "3c. common-centroid[M15/M25]",
+          "ok": false,
+          "detail": "M15 centroid=(34.50,0.00), M25 centroid=(32.50,0.00), |dx|=2.00 |dy|=0.00 (허용오차 0.5)"
+        },
+        {
+          "name": "3a. row-presence[M16/M26] (kind=branch_symmetric)",
+          "ok": true,
+          "detail": "두 소자 모두 있는 행: ['rowN_out']; M16/M26 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+        },
+        {
+          "name": "3b. interdigitation[M16/M26] [참고용 -- 이 kind는 필수 아님]",
+          "ok": true,
+          "detail": "rowN_out: 인접"
+        },
+        {
+          "name": "3c. common-centroid[M16/M26]",
+          "ok": false,
+          "detail": "M16 centroid=(34.50,1.00), M26 centroid=(32.50,1.00), |dx|=2.00 |dy|=0.00 (허용오차 0.5)"
+        }
+      ]
+    }
+  },
+  "coverage": {
+    "ok": false,
+    "missing": [
+      "M11a",
+      "M11b",
+      "M13",
+      "M14a",
+      "M14b",
+      "M27",
+      "M28",
+      "M29",
+      "M30-M32",
+      "M33",
+      "M34",
+      "M35",
+      "M36a",
+      "M36b",
+      "M37a",
+      "M37b",
+      "M38",
+      "M39",
+      "M40",
+      "M8"
+    ]
+  },
+  "scope_note": "Partial-scope instance -- only the 15 devices sized+laid out in this pass (core_signal_cell/bias_tail_cell/stage2_output_cell) are covered by netlist/floorplan/box_shape/audit_row_split above. Bias-gen (M27-M40), CMFB (M36-M40, R1/R2), and Class-AB floating-battery internals (M8-M14, M17-M24) were sized (see the 'sizing' key, sourced from sizing_results.json) but not run through the stick-diagram/floorplan/audit pipeline in this pass -- see run_full_circuit_audit.scope_note in stick_results.json for why."
+}

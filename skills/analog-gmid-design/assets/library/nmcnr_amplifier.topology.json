@@ -1,0 +1,59 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "nmcnr_amplifier",
+  "source": "Ka Nang Leung, Philip K. T. Mok, Wing-Hung Ki, \"Right-Half-Plane Zero Removal Technique for Low-Voltage Low-Power Nested Miller Compensation CMOS Amplifier\" (IEEE, 1999), Fig.3 p.601 (3단 NMCNR 회로도) -- 2026-07-31, 사용자가 제공한 확대 이미지를 함께 보며 소자별 connectivity를 단계적으로 확인(node-by-node 대화형 검증, 손으로 한 번에 판독하지 않음).",
+
+  "_schema_note": "이 파일은 사이징과 무관한 정보만 담는다 -- n_fingers/finger_w/w/stack_id, floorplan/row 분할 정보는 여기 없다.",
+
+  "linked_topology_files": [],
+
+  "compensation": {
+    "function": "nmcnr_3stage_topology",
+    "parameters": ["GBW", "CL", "PM_target_deg", "kg"],
+    "stage_devices": [["M102", "M103"], ["M201"], ["M301"]],
+    "notes": "gm1(stage_devices[0])=입력 차동쌍 M102/M103(둘 다 같은 gm1을 받음, diff_pair). gm2(stage_devices[1])=M201 하나뿐 -- M202/M203/M204는 전류미러+바이어스 소자일 뿐 신호를 나르는 gm2 소자가 아니다(2026-07-31 확인: 처음엔 M202를 gm2로 오인했다가 사용자가 실제 이미지로 정정 -- M201의 gate가 스테이지1 출력(M109 drain)을 직접 받고, M201의 drain이 M203(다이오드 연결)/M204 전류미러를 거쳐 스테이지2 출력(M202/M204 drain 공유 노드)으로 신호전류를 흘리는 구조). gm3(stage_devices[2])=M301(gate=스테이지2 출력)."
+  },
+
+  "netlist": [
+    {"name": "M101", "kind": "pmos", "source": "vdd", "drain": "NodeTail", "gate": "VB1"},
+    {"name": "M102", "kind": "pmos", "source": "NodeTail", "drain": "NodeF1", "gate": "Vin_n"},
+    {"name": "M103", "kind": "pmos", "source": "NodeTail", "drain": "NodeF2", "gate": "Vin_p"},
+    {"name": "M104", "kind": "nmos", "source": "vss", "drain": "NodeF1", "gate": "VB2"},
+    {"name": "M105", "kind": "nmos", "source": "vss", "drain": "NodeF2", "gate": "VB2"},
+    {"name": "M106", "kind": "nmos", "source": "NodeF1", "drain": "NodeM1", "gate": "VB3"},
+    {"name": "M107", "kind": "nmos", "source": "NodeF2", "drain": "NodeM2", "gate": "VB3"},
+    {"name": "M108", "kind": "pmos", "source": "vdd", "drain": "NodeM1", "gate": "NodeM1"},
+    {"name": "M109", "kind": "pmos", "source": "vdd", "drain": "NodeM2", "gate": "NodeM1"},
+    {"name": "M201", "kind": "pmos", "source": "vdd", "drain": "NodeC", "gate": "NodeM2"},
+    {"name": "M202", "kind": "pmos", "source": "vdd", "drain": "NodeS2", "gate": "VB4"},
+    {"name": "M203", "kind": "nmos", "source": "vss", "drain": "NodeC", "gate": "NodeC"},
+    {"name": "M204", "kind": "nmos", "source": "vss", "drain": "NodeS2", "gate": "NodeC"},
+    {"name": "M301", "kind": "nmos", "source": "vss", "drain": "Vout", "gate": "NodeS2"},
+    {"name": "M302", "kind": "pmos", "source": "vdd", "drain": "Vout", "gate": "VB5"}
+  ],
+
+  "_compensation_network_comment": "netlist 스키마엔 수동소자가 없어(connectivity 전용) 여기 별도 기록: Cm1(NodeM2 -> NodeCM), Cm2(NodeS2 -> NodeCM) -- 원문 abstract가 명시한 대로 'only ONE null resistor'라 Cm1/Cm2가 같은 노드(NodeCM)에서 만나 그 뒤에 Rm 하나를 공유한다(2026-07-31 사용자 정정 -- 처음엔 Cm1/Rm이 직렬, Cm2는 별도 무저항 경로로 잘못 읽었었다). Rm(NodeCM -> Vout), CL(Vout -> vss). Rm=1/gm3(원문 Eq 6, structure 4 조건) -- 실값은 nmcnr_compensation_elements()로 계산.",
+
+  "symmetry": {
+    "_comment": "find_matching_candidates()를 실제로 호출해 나온 5개 후보(current_mirror 4개 + diff_pair 1개) 전부를 검토했다. M108/M109(다이오드 M108이 NodeM1로 M109 게이트를 직접 구동)와 M203/M204(다이오드 M203이 NodeC로 M204 게이트를 직접 구동)는 이 회로 안에 실제 레퍼런스 소자가 있는 진짜 current_mirror. M104/M105, M106/M107은 자동탐지는 current_mirror 후보로 잡았지만(같은 kind+같은 gate) VB2/VB3가 이 넷리스트 밖의 외부 바이어스라 진짜 미러가 아니다 -- 폴디드 캐스코드의 대칭된 두 branch(레이아웃 매칭은 필요하되 신호 관계상 미러가 아님)라 kind를 branch_symmetric으로 재분류했다. check_symmetry_dispositions()로 재확인.",
+    "matching_pairs": [
+      {"names": ["M102", "M103"], "kind": "diff_pair"},
+      {"names": ["M104", "M105"], "kind": "branch_symmetric"},
+      {"names": ["M106", "M107"], "kind": "branch_symmetric"},
+      {"names": ["M108", "M109"], "kind": "current_mirror"},
+      {"names": ["M203", "M204"], "kind": "current_mirror"}
+    ],
+    "dispositions": [
+      {"tag": "hub_merge", "kind": "pmos", "key": "vdd", "category": "false_positive_shared_supply_rail",
+       "reason": "vdd를 source로 공유하는 PMOS 6개(M101/M108/M109/M201/M202/M302)가 한 그룹으로 잡힌다 -- 공급 레일 공유는 매칭 후보 조건이 아니다. 개별 매칭 관계는 이미 matching_pairs에 별도 기록됨."},
+      {"tag": "hub_merge", "kind": "nmos", "key": "vss", "category": "false_positive_shared_supply_rail",
+       "reason": "vss를 source로 공유하는 NMOS 5개(M104/M105/M203/M204/M301)가 한 그룹으로 잡힌다. 동일 사유."}
+    ]
+  },
+
+  "sizing_roles": null,
+  "_sizing_roles_comment": "이 회로는 optimize_full_circuit_budget()의 다변수 예산 탐색(theta grid search)이 필요한 자유도가 없다(GBW/PM_target_deg/kg는 compensation.parameters로 직접 spec에서 주어짐) -- null 유지.",
+
+  "device_roles": null,
+  "_device_roles_comment": "TODO(pending) -- compensation.stage_devices(M102/M103/M201/M301)가 아닌 나머지 11개 소자(M101,M104-M109,M202,M203,M204,M302 -- 바이어스 전류원/캐스코드/미러)의 headroom_role/gm_id_role/L_role/vertical_stack_id는 아직 채우지 않았다. 이건 '확인 안 됨'이 아니라 '이번 세션의 스코프가 topology(넷리스트+매칭+compensation 함수 참조) 확정까지였고, 사이징까지 실제로 돌리는 건 다음 배치'라는 뜻 -- optimize_full_circuit_budget()으로 이 회로를 실제 사이징하려면 이 필드를 먼저 채워야 한다."
+}

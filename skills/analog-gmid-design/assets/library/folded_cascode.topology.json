@@ -1,0 +1,36 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "folded_cascode",
+  "source": "Maloberti PDF p.34-38 worked example — folded_cascode_example()에서 이관, netlist는 stick_diagram.py의 dataclasses.asdict(Transistor) 덤프 결과에서 connectivity 필드만 추림",
+
+  "_schema_note": "2026-07-28 재설계(사용자 지적) — n_fingers/finger_w/w/stack_id와 layout(groups/row_splits/adjacency_guide)를 여기서 전부 제거했다. 이유: matching 배치(interdigitation/common-centroid), Euler trail, row 분할은 전부 finger 개수·finger_w가 정해져야만 계산 가능한데, 그건 사이징 결과값이다 — topology 단계엔 존재하지 않는다. 실제로 이전 버전에서 row_splits에 특정 사이징에서만 유효한 고정 시퀀스를 저장하려다, 재사이징하면 그 시퀀스 자체가 무의미해진다는 게 드러났다(Batch 2 구현 중 실측). topology.json은 이제 사이징과 무관한 것만 담는다: connectivity(name/kind/source/drain/gate)와 그 connectivity만으로 결정되는 matching kind(find_matching_candidates()도 W/finger 없이 이 정보만 본다). 실제 layout(n_fingers/finger_w/w/stack_id/row 분할/floorplan)은 사이징 이후 instance-output JSON 단계에서 기존 탐색 함수(search_stack_finger_w()/audit_row_split()/common_centroid_layout()/pack_floorplan_grouped())를 실제로 실행해서 얻는다 — 미리 박아두지 않는다.",
+
+  "compensation": null,
+  "_compensation_status": "not_applicable",
+
+  "netlist": [
+    {"name": "MP", "kind": "pmos", "source": "vdd", "drain": "tail", "gate": "bias1"},
+    {"name": "M3", "kind": "pmos", "source": "vdd", "drain": "X", "gate": "bias2"},
+    {"name": "M4", "kind": "pmos", "source": "vdd", "drain": "Y", "gate": "bias2"},
+    {"name": "M5", "kind": "pmos", "source": "X", "drain": "outA", "gate": "bias3"},
+    {"name": "M6", "kind": "pmos", "source": "Y", "drain": "outB", "gate": "bias3"},
+    {"name": "M1", "kind": "pmos", "source": "tail", "drain": "X", "gate": "vin_p"},
+    {"name": "M2", "kind": "pmos", "source": "tail", "drain": "Y", "gate": "vin_n"},
+    {"name": "M9", "kind": "nmos", "source": "gnd", "drain": "X", "gate": "bias5"},
+    {"name": "M10", "kind": "nmos", "source": "gnd", "drain": "Y", "gate": "bias5"},
+    {"name": "M7", "kind": "nmos", "source": "X", "drain": "outA", "gate": "bias4"},
+    {"name": "M8", "kind": "nmos", "source": "Y", "drain": "outB", "gate": "bias4"},
+    {"name": "M11", "kind": "nmos", "source": "gnd", "drain": "vb1", "gate": "vb1"},
+    {"name": "MN", "kind": "nmos", "source": "gnd", "drain": "vb2", "gate": "vb2"}
+  ],
+
+  "symmetry": {
+    "matching_pairs": [
+      {"names": ["M3", "M4"], "kind": "current_mirror"},
+      {"names": ["M9", "M10"], "kind": "current_mirror"},
+      {"names": ["M1", "M2"], "kind": "diff_pair"},
+      {"names": ["M5", "M6"], "kind": "branch_symmetric"},
+      {"names": ["M7", "M8"], "kind": "branch_symmetric"}
+    ]
+  }
+}
