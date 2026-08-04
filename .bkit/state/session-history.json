@@ -1,29 +1,5 @@
 [
   {
-    "sessionId": "f59e1123-85d6-432b-986d-ecbf05a75272",
-    "reason": "prompt_input_exit",
-    "endedAt": "2026-07-10T13:34:30.731Z",
-    "feature": null,
-    "phase": null,
-    "progress": null
-  },
-  {
-    "sessionId": "8c67bdd7-978d-4c74-8b7e-cae80d28df98",
-    "reason": "other",
-    "endedAt": "2026-07-21T09:19:05.869Z",
-    "feature": null,
-    "phase": null,
-    "progress": null
-  },
-  {
-    "sessionId": "8a03295d-a665-4dae-b489-aacd770d53c1",
-    "reason": "prompt_input_exit",
-    "endedAt": "2026-07-21T12:19:07.558Z",
-    "feature": null,
-    "phase": null,
-    "progress": null
-  },
-  {
     "sessionId": "8a03295d-a665-4dae-b489-aacd770d53c1",
     "reason": "prompt_input_exit",
     "endedAt": "2026-07-22T18:39:41.485Z",
@@ -155,6 +131,30 @@
     "sessionId": "7c15eac3-8eb4-4208-829b-8c66a8e63b66",
     "reason": "clear",
     "endedAt": "2026-08-03T09:57:21.393Z",
+    "feature": null,
+    "phase": null,
+    "progress": null
+  },
+  {
+    "sessionId": "087943c8-af97-40ba-97bc-b0241ce8370a",
+    "reason": "prompt_input_exit",
+    "endedAt": "2026-08-03T12:44:15.608Z",
+    "feature": null,
+    "phase": null,
+    "progress": null
+  },
+  {
+    "sessionId": "087943c8-af97-40ba-97bc-b0241ce8370a",
+    "reason": "prompt_input_exit",
+    "endedAt": "2026-08-04T00:42:46.266Z",
+    "feature": null,
+    "phase": null,
+    "progress": null
+  },
+  {
+    "sessionId": "91159270-34e3-40d7-b4e5-25d48a2193a9",
+    "reason": "prompt_input_exit",
+    "endedAt": "2026-08-04T05:55:33.020Z",
     "feature": null,
     "phase": null,
     "progress": null

@@ -1807,8 +1807,27 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     # 알려준다(조용히 억지 배정 안 함) -- 그때 호출자가 stack_groups_override(선택)로 (2)만
     # 물리적으로 재구성해 선언한다(cell_groups가 spine_groups를 override하는 것과 같은 패턴,
     # 여전히 선언일 뿐 AI가 즉석 코드로 우회하는 게 아니다) -- (1)은 항상 원본 그대로 쓴다.
-    stack_groups_kcl = derive_stack_groups(transistors, [tuple(p["names"]) for p in pairs_meta])
-    stack_groups_geometry = spec.get("stack_groups_override") or stack_groups_kcl
+    #
+    # 2026-08-04(current_reuse_telescopic_ota 배치 7-5 재실행 중 발견 -- 사용자와 함께 논문
+    # Fig.7/Fig.8 DC operating point를 직접 확인해 검증) -- matching_pairs의 "branch_symmetric"
+    # kind는 "같은 전류를 갖는 KCL 사실"이 아니라 "레이아웃상 매칭시켜야 할 두 소자/체인"일
+    # 뿐이다(정의 자체가 "공유 노드가 하나도 없는" 쌍 -- find_matching_candidates()가 원천
+    # 탐지 못 하는 카테고리, docstring 참고). current_mirror(비율 propagation으로 별도 처리,
+    # 위 auto_mirror_ratios)/diff_pair(차동쌍, DC balance에서 실제로 같은 전류)와 달리
+    # branch_symmetric은 전류가 같다는 보장이 전혀 없다 -- 이 회로의 M11a/M11b/M12(체인)
+    # vs M13/M14a(체인)가 실측 사례: 둘 다 "M9a/M9b 게이트 바이어스를 만드는 대칭 구조"라
+    # branch_symmetric으로 옳게 선언돼 있지만, 논문 원문 DC operating point(Fig.7b)를 보면
+    # 두 체인의 quiescent ID가 서로 다르게 설계돼 있다(사용자 확인, 2026-08-04). 그래서
+    # branch_symmetric 쌍을 (1) KCL stack_id 병합에 그대로 재사용하면 "전류가 같다"는 틀린
+    # 제약을 강제하게 된다(이 회로에서 실제로 서로 다른 free theta인 r_classab_src/
+    # r_diode_M11a가 같은 stack에 섞여 즉시 ValueError로 드러남) -- (1)은 branch_symmetric을
+    # 제외한 쌍(current_mirror/diff_pair)만 쓰고, (2) 레이아웃 매칭 목적은 원래 의도대로
+    # branch_symmetric까지 포함한 전체 집합을 그대로 쓴다.
+    _kcl_pairs = [tuple(p["names"]) for p in pairs_meta if p["kind"] != "branch_symmetric"]
+    _geometry_pairs = [tuple(p["names"]) for p in pairs_meta]
+    stack_groups_kcl = derive_stack_groups(transistors, _kcl_pairs)
+    stack_groups_geometry = spec.get("stack_groups_override") or derive_stack_groups(
+        transistors, _geometry_pairs)
     stack_id_of = {name: sid for sid, members in stack_groups_kcl.items() for name in members}
     transistors_stackid = [_dc_replace(t, stack_id=stack_id_of.get(t.name)) for t in transistors]
 

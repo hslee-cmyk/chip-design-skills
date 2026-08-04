@@ -1,6 +1,6 @@
 # current_reuse_telescopic_ota -- topology connectivity table
 
-소스: `skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
+소스: `library/current_reuse_telescopic_ota.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
 
 ## ⚠️ 자동 플래그: 없음 (구조적으로는 이상 없음 -- §8 정직한 한계 참고)
 
@@ -17,11 +17,13 @@
 | `N11a11b` | M11a.drain, M11a.gate, M11b.source | 3 |
 | `N11b` | M11b.drain, M11b.gate, M12.drain, M9a.gate | 4 |
 | `N14a14b` | M13.drain, M14a.drain, M14a.gate, M9b.gate | 4 |
+| `N14a_14b` | M14a.source, M14b.drain, M14b.gate | 3 |
 | `N1a2a` | M1a.drain, M2a.source | 2 |
 | `N1b2b` | M1b.drain, M2b.source | 2 |
 | `N20a20b` | M20a.drain, M20a.gate, M20b.source | 3 |
 | `N20b` | M18a.gate, M20b.drain, M20b.gate, M21.drain | 4 |
-| `N24b23a` | M18b.gate, M22.drain, M23a.source, M24b.drain, M24b.gate | 5 |
+| `N23a24b` | M23a.source, M24b.drain, M24b.gate | 3 |
+| `N24b23a` | M18b.gate, M22.drain, M23a.drain, M23a.gate | 4 |
 | `N36b` | M36b.drain, M36b.gate, M37b.drain | 3 |
 | `N3a4a` | M3a.source, M4a.drain | 2 |
 | `N3b4b` | M3b.source, M4b.drain | 2 |
@@ -42,12 +44,12 @@
 | `Voc` ℹ️ | M37a.gate, R1.t1, R2.t0 | 3 |
 | `Voc_des` | M37b.gate, M39.drain, M39.gate, M40.source | 4 |
 | `Vom` | Cc1.t0, M15.drain, M16.drain, R1.t0 | 4 |
-| `Vom1` | M18a.drain, M18b.source, M19.drain, M23a.drain, M23a.gate, M24b.source, M26.gate, M2a.drain, M3a.drain, Rz2.t1 | 10 |
+| `Vom1` | M18a.drain, M18b.source, M19.drain, M26.gate, M2a.drain, M3a.drain, Rz2.t1 | 7 |
 | `Vop` | Cc2.t0, M25.drain, M26.drain, R2.t1 | 4 |
-| `Vop1` | M10.drain, M14a.source, M14b.drain, M14b.gate, M16.gate, M2b.drain, M3b.drain, M9a.drain, M9b.source, Rz1.t1 | 10 |
+| `Vop1` | M10.drain, M16.gate, M2b.drain, M3b.drain, M9a.drain, M9b.source, Rz1.t1 | 7 |
 | `Vx` | M1a.source, M1b.source, M58.source, M6.drain, M7.drain | 5 |
 | `Vy` | M4a.source, M4b.source, M5.drain, M63.source | 4 |
-| `gnd` | Iref.t1, M10.source, M12.source, M14b.source, M16.source, M19.source, M21.source, M26.source, M38.source, M40.drain, M40.gate, M5.source, M66.source, M68.source | 14 |
+| `gnd` | Iref.t1, M10.source, M12.source, M14b.source, M16.source, M19.source, M21.source, M24b.source, M26.source, M38.source, M40.drain, M40.gate, M5.source, M66.source, M68.source | 15 |
 | `vdd` | M11a.source, M13.source, M15.source, M17.source, M18_bg.source, M20a.source, M22.source, M25.source, M36a.source, M36b.source, M39.source, M6.source, M60.source, M61.source, M7.source, M8.source | 16 |
 
 ## 소자별 연결 표 (name/kind/source/drain/gate)
@@ -59,8 +61,8 @@
 | M11b | pmos | `N11a11b` | `N11b` | `N11b` |
 | M12 | nmos | `gnd` | `N11b` | `Vbias4` |
 | M13 | pmos | `vdd` | `N14a14b` | `Vbias1` |
-| M14a | nmos | `Vop1` | `N14a14b` | `N14a14b` |
-| M14b | nmos | `gnd` | `Vop1` | `Vop1` |
+| M14a | nmos | `N14a_14b` | `N14a14b` | `N14a14b` |
+| M14b | nmos | `gnd` | `N14a_14b` | `N14a_14b` |
 | M15 | pmos | `vdd` | `Vom` | `Vg15` |
 | M16 | nmos | `gnd` | `Vom` | `Vop1` |
 | M17 | pmos | `vdd` | `Vg25` | `Vbias1` |
@@ -74,8 +76,8 @@
 | M20b | pmos | `N20a20b` | `N20b` | `N20b` |
 | M21 | nmos | `gnd` | `N20b` | `Vbias4` |
 | M22 | pmos | `vdd` | `N24b23a` | `Vbias1` |
-| M23a | nmos | `N24b23a` | `Vom1` | `Vom1` |
-| M24b | nmos | `Vom1` | `N24b23a` | `N24b23a` |
+| M23a | nmos | `N23a24b` | `N24b23a` | `N24b23a` |
+| M24b | nmos | `gnd` | `N23a24b` | `N23a24b` |
 | M25 | pmos | `vdd` | `Vop` | `Vg25` |
 | M26 | nmos | `gnd` | `Vop` | `Vom1` |
 | M2a | pmos | `N1a2a` | `Vom1` | `Vbias2` |
@@ -125,4 +127,4 @@
 
 ⚠️ 위 소자는 실제 회로에 없는 **이상적 모델링 소자**다(예: 논문의 외부 레퍼런스 전류원/전압원) -- `implementable: false`. sizing/layout 파이프라인(`sizing_recipe.py`/`stick_diagram.py`)이 이 배열을 참조할 일이 생기면 반드시 걸러내고 실제 트랜지스터로 구현하지 말 것.
 
-총 51개 소자 + 6개 수동소자 + 1개 ideal source, 35개 net.
+총 51개 소자 + 6개 수동소자 + 1개 ideal source, 37개 net.

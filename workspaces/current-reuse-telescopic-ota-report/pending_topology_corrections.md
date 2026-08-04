@@ -359,6 +359,120 @@ tail net(현재 M1a.source, M1b.source, M6.drain, M7.drain). 최종값은 **`M58
 
 상태: **APPLIED** — topology.json 미반영.
 
+## 2026-08-04 (세션 5)
+
+### M13/M14a/M14b — Vop1과 완전 무관한 독립 3단 직렬 체인으로 재확정 (기존 "M14a/M14b — diode 스택 재확정" 항목의 Vop1 연결 부분을 대체)
+경위: 위 M22/M23a/M24b 정정(Vom1과 무관한 독립 체인) 확정 후, 사용자가 "vop1는 아까
+뺀 것이 왜 또 들어가 있어. M14a와 M14b는 vop1와 무관해"로 대칭되는 문제를 지적 —
+Vom1측(M23a/M24b)에서 드러난 "옛 Vg16/Vg26 블랭킷 병합 오류"가 Vop1측(M14a/M14b)에도
+똑같이 있었음이 확정됨. artifact가 이 연결을 "확정"으로 기록했던 건 독립 재검증이
+아니라 그 블랭킷 병합을 그대로 문서화한 것뿐이었다(제가 이걸 "재검증됨"으로
+오판했던 이전 턴 참고).
+
+**최종 구조**: `M13(vdd)→N14a14b→M14a(diode)→N14a_14b(신설)→M14b(diode)→gnd` —
+`Vop1`과 전혀 안 닿는 독립 체인(M22-M23a-M24b와 정확히 같은 유형). `M14a.drain=gate=
+N14a14b`(M13와 공유하는 상단 net)는 변경 없음, `M14b.source=gnd`(세션4 정정)도
+변경 없음 — `M14a.source`/`M14b.drain`/`M14b.gate`만 `Vop1`에서 신설 사설net으로 이동.
+
+**신설 net**: `N14a_14b` (Claude 명명, 사용자 위임 — 기존 `N58_57`/`N64_63`/`N60_64`
+언더스코어 관례를 따름, 기존 `N14a14b`와 혼동 방지).
+
+**정정 후 값**:
+```
+M14a: source=N14a_14b, drain=N14a14b, gate=N14a14b
+M14b: source=gnd,      drain=N14a_14b, gate=N14a_14b
+```
+(M13는 변경 없음: source=vdd, drain=N14a14b, gate=Vbias1)
+
+**현재 JSON과 비교**:
+```
+M14a(현재): source=Vop1, drain=N14a14b, gate=N14a14b   → source만 변경
+M14b(현재): source=gnd,  drain=Vop1,    gate=Vop1        → drain/gate만 변경
+```
+
+**net 영향**:
+- `Vop1`(현재 10단자: M10.drain, **M14a.source, M14b.drain, M14b.gate**, M16.gate,
+  M2b.drain, M3b.drain, M9a.drain, M9b.source, Rz1.t1) → 굵은 글씨 3개 제거,
+  **7단자**로 축소(M10.drain, M16.gate, M2b.drain, M3b.drain, M9a.drain, M9b.source,
+  Rz1.t1).
+- `N14a14b`(현재 4단자: M13.drain, M14a.drain, M14a.gate, M9b.gate) → **변경 없음**
+  (M14a.drain/gate는 그대로 이 net).
+- `N14a_14b`(신설): `M14a.source`, `M14b.drain`, `M14b.gate` — **3단자**.
+- `gnd`: 변경 없음(`M14b.source`는 이미 gnd였음).
+
+⚠️ **후속조치 필요**: `symmetry.matching_pairs`의 `{"M11a","M14a"}`/`{"M11b","M14b"}`
+선언도 이 구조 변경 후 `rerun_symmetry.py` 재확인 대상(M22/M23a/M24b와 동일 사유).
+
+상태: **APPLIED** (2026-08-04, `N14a_14b` 신설 반영, `_correction_log_8` 참고).
+
+### M22/M23a/M24b — Vom1과 완전 무관한 독립 3단 직렬 체인으로 재확정 (위 두 건 최종 대체)
+경위: 여러 차례 조각난 확인("m24b.source=gnd" → "vom1은 m23a.drain/gate에 연결 안 됨"
+→ 대칭 표 대조 중 일시적으로 "M23a=M14a자리/M24b=M14b자리" 가설 → "m24b는 vom1과
+완전히 무관해"로 그 가설도 기각 → "m23a.drain=m23a.gate=m22.drain" 최종 확인 → X는
+"새 사설net"으로 확정)을 거쳐 아래로 수렴. **이 항목이 최종본이며 위 "역할 통째로
+교환" 항목을 대체한다.**
+
+**최종 구조**: `M22(vdd)→N24b23a→M23a(diode)→N23a24b(신설)→M24b(diode)→gnd` —
+`Vom1`과 전혀 안 닿는 독립 체인. Vom측 `M11a-M11b-M12`(Vop1과 무관한 독립 체인)와
+대칭이고, `M13-M14a-M14b`(Vop1에 물리는 체인)와는 다른 패턴 — 즉 Vop측의
+"M20a-M20b-M21 ↔ M22-M23a-M24b" 두 체인이, Vom측의 "M11a-M11b-M12 ↔ M13-M14a-M14b"
+두 체인과 각각 대응하되, **어느 쪽도 상대 극의 출력버스(Vom1/Vop1)에 물리지 않는
+동일한 유형**이 된다(둘 다 "무관 독립 체인" 유형 — Vom측만 그중 하나(M13/M14a/M14b)가
+Vop1에 물리는 예외였던 게 아니라, 이 재확인으로 Vop측엔 그런 예외가 없음이 확정됨).
+
+**신설 net**: `N23a24b` (기존 `N11a11b`/`N20a20b` 명명 관례 그대로 적용).
+
+**정정 후 값**:
+```
+M23a: source=N23a24b, drain=N24b23a, gate=N24b23a
+M24b: source=gnd,     drain=N23a24b, gate=N23a24b
+```
+(M22는 변경 없음: source=vdd, drain=N24b23a, gate=Vbias1)
+
+**현재 JSON과 비교**:
+```
+M23a(현재): source=N24b23a, drain=Vom1,    gate=Vom1       → source/drain/gate 전부 변경
+M24b(현재): source=Vom1,    drain=N24b23a, gate=N24b23a    → source/drain/gate 전부 변경
+```
+
+**net 영향**:
+- `Vom1`(현재 10단자: M18a.drain, M18b.source, M19.drain, **M23a.drain, M23a.gate,
+  M24b.source**, M26.gate, M2a.drain, M3a.drain, Rz2.t1) → 굵은 글씨 3개 전부 제거,
+  **7단자**로 축소(M18a.drain, M18b.source, M19.drain, M26.gate, M2a.drain, M3a.drain,
+  Rz2.t1).
+- `N24b23a`(현재 5단자: M18b.gate, M22.drain, **M23a.source**, M24b.drain, M24b.gate) →
+  `M23a.source`/`M24b.drain`/`M24b.gate` 제거, `M23a.drain`/`M23a.gate` 추가 →
+  **4단자**(M18b.gate, M22.drain, M23a.drain, M23a.gate).
+- `N23a24b`(신설): `M23a.source`, `M24b.drain`, `M24b.gate` — **3단자**.
+- `gnd`(현재 14단자) → `M24b.source` 추가, **15단자**.
+
+⚠️ **후속조치 필요**: `symmetry.matching_pairs`의 `{"M20a","M24b"}`/`{"M20b","M23a"}`
+선언이 이 구조 변경으로 stale해질 가능성 — `rerun_symmetry.py`는 이 kind(branch_symmetric)를
+자동 탐지 못 하므로(手동 판단 영역), 다음 세션에서 구조적으로 재검토 필요.
+
+상태: **APPLIED** (2026-08-04, `N23a24b` 신설 반영, `_correction_log_8` 참고). `symmetry.
+dispositions`의 `current_mirror/nmos/N24b23a`(M24b→M23a로 멤버 갱신), `hub_merge/nmos/
+Vom1`·`hub_merge/nmos/Vop1`(멤버 갱신), 그리고 `M14b`쪽의 죽은 `current_mirror/nmos/Vop1`
+디스포지션 삭제까지 `rerun_symmetry.py` 재실행 결과에 맞춰 같이 반영 완료(stale 0건,
+무관한 `Voc_des` 1건만 남음). `run_harness.py` 재실행 결과: 처음 발견됐던 KCL 충돌
+(`derive_stack_groups()`가 branch_symmetric을 stack_id에 잘못 재사용하던 버그, `sizing_recipe.py`
+엔진 수정 병행)은 해소됐고, 대신 `M10`(그리고 대칭상 `M19`)이 A엔진으로 전류를 못 정하는
+새 에러가 나옴 — `{"M12","M10"}`/`{"M21","M19"}` branch_symmetric 병합이 버그 상태에서
+우연히 M10/M19에 전류를 흘려주고 있었을 뿐, 원래 이 둘을 위한 theta/seed 선언 자체가
+없었다는 뜻(진짜 gap, 다음 세션 과제).
+
+### M14a.source/M14b.drain — 검토 후 철회(오판)
+2026-08-04, `M14a.source`/`M14b.drain`이 `Vop1`에서 잘못 병합된 것 아니냐는 가설을
+세웠으나, artifact(`current_reuse_telescopic_ota — connectivity review`,
+https://claude.ai/code/artifact/a00dad7b-e1db-4b28-8c60-748ea76cca45, 2026-08-03
+확정본)를 다시 확인한 결과 **`N14a14b`–M14a–`Vop1`–M14b–`gnd` 구조와 `Vop1`에
+`M14a.source`/`M14b.drain`/`M14b.gate`가 포함되는 것 자체가 이미 사용자가 명시적으로
+확인한 정답**이었다("Vop측 대응(M23a/M24b)은 이 정정 대상이 아님"과 같은 배치에서
+확정). pending_topology_corrections.md 과거 이력 텍스트만 보고 "과잉병합 실수"라는
+그럴듯한 서사를 재구성한 게 잘못 — 최종 확정본(artifact)과 대조 없이 진행한 사례.
+
+상태: **철회(WITHDRAWN)** — 정정 불필요, topology.json 현재 상태가 맞음.
+
 ### M57/M68/M66 — 확인(변경 없음)
 사용자 지시: "M57.drain=M68.drain, M68.gate=M66.gate=Vbias4, M68.source=gnd."
 
