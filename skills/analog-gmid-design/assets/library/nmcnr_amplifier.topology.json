@@ -40,8 +40,8 @@
       {"names": ["M102", "M103"], "kind": "diff_pair"},
       {"names": ["M104", "M105"], "kind": "branch_symmetric"},
       {"names": ["M106", "M107"], "kind": "branch_symmetric"},
-      {"names": ["M108", "M109"], "kind": "current_mirror"},
-      {"names": ["M203", "M204"], "kind": "current_mirror"}
+      {"names": ["M108", "M109"], "kind": "current_matched"},
+      {"names": ["M203", "M204"], "kind": "current_matched"}
     ],
     "dispositions": [
       {"tag": "hub_merge", "kind": "pmos", "key": "vdd", "category": "false_positive_shared_supply_rail",

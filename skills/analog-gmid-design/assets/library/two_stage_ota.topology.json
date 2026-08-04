@@ -32,9 +32,9 @@
 
   "symmetry": {
     "matching_pairs": [
-      {"names": ["M3", "M4"], "kind": "current_mirror"},
+      {"names": ["M3", "M4"], "kind": "current_matched"},
       {"names": ["M1", "M2"], "kind": "diff_pair"},
-      {"names": ["M5", "M7"], "kind": "current_mirror"}
+      {"names": ["M5", "M7"], "kind": "current_matched"}
     ]
   }
 }

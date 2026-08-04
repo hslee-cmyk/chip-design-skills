@@ -1,183 +1,236 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-04, 세션 5 끝)
+# 세션 컨텍스트 (최종 갱신: 2026-08-04, 세션 6 끝)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
 ## 지금 상태 (다음 세션이 읽어야 할 것 1순위)
 
-- **커밋 안 됨 — working tree에 변경사항 있음.** HEAD는 아직 `82e3556`(세션 4 핸드오프
-  커밋)에 머물러 있고, 세션 5의 모든 작업은 uncommitted 상태다. `git status --short`로
-  확인: `current_reuse_telescopic_ota.topology.json`/`.topology.md`,
-  `sizing_recipe.py`, `pending_topology_corrections.md` 4개 파일 수정됨. **다음 세션은
-  커밋할지 먼저 사용자에게 물어볼 것**(이 세션에서 커밋 지시가 없었음).
-- **`optimize_full_circuit_budget()`을 회로 전체(51개 소자)에 처음 실제로 돌려보는 시도
-  중** — 세션 4 핸드오프가 "다음에 하면 좋은 것 1번"으로 남긴 과제. 그 과정에서 진짜
-  netlist 오류 2건을 발견해 수정했고, 지금은 **탐색공간 크기 문제로 아직 완주 못 함**
-  (아래 "미완료 작업" 참고).
+- **커밋 안 됨 — working tree에 변경사항 많음.** HEAD는 `35023ea`(세션5 핸드오프 커밋)에
+  머물러 있고, 세션6의 모든 작업은 uncommitted. `git status --short`로 확인:
+  - 수정: `sizing_recipe.py`, `stick_diagram.py`,
+    `library/current_reuse_telescopic_ota.topology.json`,
+    `library/{folded_cascode,nmcnr_amplifier,two_stage_ota}.topology.json`
+  - 신규: `workspaces/current-reuse-telescopic-ota-report/spice/
+    vg15_vop1_kcl_sympy_derivation.py`,
+    `workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py`
+  - **다음 세션은 커밋할지 먼저 사용자에게 물어볼 것**(세션6에서 커밋 지시 없었음).
+- **self-test는 마지막까지(파일 끝, 3142줄) 전부 통과**(`selftest_session6f.log`,
+  exit 0, Traceback/AssertionError 0건) — 오늘 만든 엔진 변경(A_signed, current_mirror/
+  current_matched 분리, InfeasibleSizingError) 전부 회귀 없음 확인됨.
+- **`run_harness.py`는 세션6의 모든 수정을 반영해서 아직 재실행 안 됨** — 세션5 이후
+  세션6 초반까지 여러 차례 실행했지만 그때마다 새 버그가 나와서 고치고 다시 돌리는
+  과정을 반복했다(아래 "세션6에서 발견·수정한 것" 참고). **마지막(가장 심각한) 수정인
+  branch_symmetric 전면 재분류 이후로는 harness를 아직 안 돌려봤다** — 다음 세션
+  최우선 작업.
+- **직전 작업 중단 지점**: `nmcnr_amplifier.topology.json`의 `branch_symmetric`
+  사용례(`{M104,M105}`, `{M106,M107}`)를 감사하던 중 사용자가 이 핸드오프 작성을
+  요청해 중단됨 — 파일은 읽었고(아래 참고), 아직 손 안 댐. 다음 세션에서 이어서 할 것
+  (아래 "미완료 작업" 1번).
 
-## 세션 5에서 발견·수정한 것 (중요도 순)
+## 세션 6에서 발견·수정한 것 (시간순, 전부 사용자와의 대화로 하나씩 파생됨)
 
-### 1. topology.json connectivity 정정 2건 (`_correction_log_8` 참고)
-- **`M14a`/`M14b`가 `Vop1`과 무관**: `M14a.source`/`M14b.drain,gate`를 `Vop1`에서 신설
-  사설net `N14a_14b`로 분리. `vdd–M13(diode)–N14a14b–M14a(diode)–N14a_14b–M14b(diode)–gnd`,
-  완전히 독립된 3단 직렬 체인.
-- **`M23a`/`M24b`가 `Vom1`과 무관**: 재구성 → `vdd–M22(diode)–N24b23a–M23a(diode)–
-  N23a24b(신설)–M24b(diode)–gnd`, 역시 독립 체인.
-- **왜 틀렸었나(중요, 반복 방지)**: 세션 4의 `_correction_log_6`이 "M14a/M14b는 Vop1과
-  연결, M23a/M24b는 Vom1 유지"로 기록했던 게 둘 다 옛 `Vg16`/`Vg26` **블랭킷 병합**의
-  잔재였다 — 사용자는 각각 `M10.drain=M9b.source=Vop1`, `M19.drain=Vom1=M18b.source`
-  딱 한 문장만 확인해줬는데, 그 문장을 "옛 net 전체를 그대로 새 net에 병합"으로 확대
-  해석하면서 M14a/M14b·M23a/M24b까지 같이 끌려갔다. **artifact가 이 연결을 "확정"으로
-  문서화했던 것도 독립 재검증이 아니라 그 블랭킷 병합을 그대로 기록한 것뿐이었다** —
-  이번 세션에 "artifact로 확인했던 것과 다른데?"라는 사용자 질문에 처음엔 artifact를
-  근거로 방어했다가, 재검토 후 틀렸음을 인정하고 정정했다. **교훈**: artifact/문서가
-  "확정"이라고 적어놨다고 해서 독립 재검증된 게 아니다 — 그 문서 자체가 어떻게
-  생성됐는지(사용자 원문장 vs Claude의 확대해석) 추적해야 한다.
-- **판단 근거**: 사용자가 "Vop와 Vom쪽 회로는 완전 대칭이어야 해(M6.gate/M7.gate 제외)"
-  원칙을 제시 — 이 원칙으로 표를 대조하며 정정 방향을 찾았다(`M22-M23a-M24b`가
-  `M11a-M11b-M12`와 같은 "무관 독립 체인" 유형, `M13-M14a-M14b`도 마찬가지 — 애초에
-  "한쪽만 출력버스에 물리는 의도된 비대칭"은 이 회로에 없었다).
+### 1. Vg15/Vop1 DC centering — 사용자의 "swing 최대화" 가설 검증
+사용자가 "M11a-chain과 M13-chain 전류를 같게 해야 Vom이 안 치우친다"는 가설을 제기.
+검토 결과 그 가설의 인과관계는 틀렸지만(M9a/M9b 자신의 전류는 그 두 chain이 아니라
+K_replica/kcl_battery_M9b로 결정, M13-chain 전류는 그 KCL에 아예 안 들어감 — Fig.7b가
+두 chain 전류가 다르다고 실측 확인한 것과 일치), **"swing 최대화=DC bias centering"
+원리 자체는 논문 Section II.B가 명시**("gate of M15 pushed to ~1.3V, M16 to ~0.5V" —
+합=VDD 정확히 센터링)했음을 논문 PDF 직접 재확인(페이지 1-3, 텍스트 추출)으로 확인.
+**신설**: `sizing_recipe.py`에 `rail_referenced_voltage`/`battery_centering_deviation`
+metric 2종 추가(LUT VGS 역산으로 Vg15/Vop1 실제 DC 레벨 계산, `|Vg15+Vop1-VDD|` 편차를
+constraint로 검증) — M11a=M13 강제 대신 논문 설계 의도를 직접 검증하는 쪽으로 구현.
+tolerance(0.15V)는 정직한 한계로 문서화(SPICE 검증 전).
 
-### 2. `sizing_recipe.py` 엔진 버그 수정
-`derive_stack_groups()`가 `matching_pairs`의 **모든** kind(`branch_symmetric` 포함)를
-KCL stack_id 병합에 재사용하고 있었다 — `branch_symmetric`은 "레이아웃 매칭 필요"라는
-뜻이지 "같은 전류"라는 뜻이 아닌데(정의상 공유 노드가 없는 쌍을 위한 카테고리), 이걸
-그대로 A엔진에 넘기면서 서로 다른 free theta로 사이징되는 소자들이 강제로 같은 전류로
-묶여 KCL ValueError가 났다. **수정**: `optimize_full_circuit_budget()`에서 `stack_groups_kcl`
-계산 시 `branch_symmetric` 쌍은 제외(`current_mirror`/`diff_pair`는 포함 유지),
-`stack_groups_geometry`(floorplan용)는 기존대로 전체 포함. `sizing_recipe.py` 1802행
-부근 주석 참고.
+### 2. KCL 엔진의 진짜 버그 발견 — `kcl_battery_M9b`/`kcl_battery_M18b` 공식이 틀렸었다
+사용자 질문("M10과 M8은 같은 branch 전류인데 독립적이야?")을 계기로 Vg15/Vop1 노드의
+실제 KCL을 `load_topology()` connectivity만으로(손타이핑 없이) sympy로 처음부터
+재유도(`workspaces/.../spice/vg15_vop1_kcl_sympy_derivation.py`, 재현 가능) —
+`I(M9b)=I(M8)-I(M9a)`, `I(M10)=I(M8)+I(M1b)-I(M4b)`가 정답인데, 기존 `kcl_battery_M9b`
+theta는 `ID(M9b)=ID(M11a체인)+ID(M9a)`(틀림 — 근거였던 "Vg15 노드=M11b.drain/M9a.drain/
+M9b.drain 3단자"라는 주장 자체가 실제 netlist와 다름, M11b.drain='N11b'·M9a.drain='Vop1'
+로 확인됨)를 쓰고 있었다. **이 틀린 공식은 세션5까지의 모든 harness 실행에 실제로
+영향을 미쳤다**(bounds=[1,1] 고정 theta라 grid search 매 조합마다 적용됨).
+**엔진 신설**: `sizing_recipe.py`에 부호 있는 KCL 합을 표현하는 새 feed 타입
+`"A_signed"`(`_feed_root_signed_sum()`) 추가 — 기존 `"A"` 타입은 양수 계수 합만
+지원해서 뺄셈을 표현 못 했음.
+**topology.json 반영**: `kcl_battery_M9b`/`kcl_battery_M18b`를 `A_signed`로 정정
+(`ID(M9b)=ID(M8)-ID(M9a)`, `ID(M18b)=ID(M17)-ID(M18a)`), 옛 자유 theta
+`r_sink_vop1vom1`(M10/M19)을 삭제하고 고정 KCL theta `kcl_sink_M10`/`kcl_sink_M19`로
+대체(자유 theta 13→12개, 이후 아래 4번에서 다시 13개로).
 
-### 3. 새로 드러난 사이징 gap 3건 (전부 topology.json에 theta로 추가 완료)
-버그 수정 후 실행해보니, 원래 `branch_symmetric` 병합 버그가 **우연히** 전류를 흘려주고
-있던 소자들이 진짜로는 시드가 없었다는 게 드러났다:
-- `M10`/`M19`(출력버스 독립 sink) → `r_sink_vop1vom1` 신설(root=[M10,M19] 동시 시드,
-  대칭 원칙 그대로 반영).
-- `M58`/`M57`(Vbias2 bias-gen 서브체인, `_correction_log_7`의 옛 "M61->M58->M57" 서술은
-  이후 정정으로 이미 stale했었음) → `r_bg_vbias2` 신설.
-- 전부 `r_biasgen`/`r_diode_M11a`와 같은 "신호경로 대비 작은 하우스키핑 비율"
-  [0.02,0.15] 카테고리로 근사(논문에 이 전류들을 정하는 식 자체가 없음 — 정직한 한계).
+### 3. `r_classab_src`(M8/M13/M22/M17 한 theta) 분리 — 구조적 역할이 다름
+사용자 지적("M8 branch와 M13 branch가 mirror구조라고 같은 전류를 가정하는 건 너무
+단순화")을 계기로 재검토: M8/M17은 Vg15/Vg25(Monticelli 배터리 노드, 신호경로 규모)를
+직접 공급하지만 M13/M22는 다이오드 체인(M14a/M14b, M23a/M24b)만 먹이는 하우스키핑
+소자로 역할이 다름. **`r_classab_src`를 `r_classab_battery`(root=[M8,M17], 기존
+bounds)와 `r_classab_diode_src`(root=[M13,M22], 하우스키핑 규모 bounds)로 분리**
+(자유 theta 12→13개).
 
-### 4. theta 병합으로 탐색공간 축소 + 대칭성 강제
-사용자 질문("theta가 많아지면 탐색공간이 늘어나는데, branch 몇 개를 같은 전류로 묶는
-방법도 있지 않냐")을 계기로 감사한 결과, `r_diode_M11a`(Vom측)와 `r_diode_M20a`(Vop측)가
-**분리된 독립 theta**로 남아있던 걸 발견 — `r_classab_src`/`r_sink_vop1vom1`은 이미
-양쪽을 한 theta로 묶어놨는데 이것만 누락돼 있었다. 완전 대칭 원칙상 두 체인은 항상 같은
-비율이어야 하므로, 하나로 병합(`r_diode_M11a`의 root에 M20a/M20b/M21 추가, `r_diode_M20a`
-삭제) — 자유 theta 14개→13개, 동시에 "그리드서치가 대칭을 깰 수 있는" 잠재적 버그도 제거.
+### 4. `matching_pairs`의 `current_mirror` 오분류 발견 → 새 kind `current_matched` 도입
+위 3번을 반영하려는데 `symmetry.matching_pairs`에 `{M8,M13}`/`{M22,M17}`가
+`current_mirror`(엔진상 "같은 전류"로 KCL 강제 병합)로 선언돼 있어 즉시 크래시("직렬
+스택에 서로 다른 seed 전류가 섞여 있다"). 근본 원인: **"같은 gate 공유=같은 전류"라는
+잘못된 가정이 `matching_pairs`에도 그대로 박혀 있었다**(disposition에도 "이미 진짜
+매칭쌍"이라고 잘못 적혀 있었음). 사용자와 논의 끝에 **kind를 둘로 분리**:
+- `current_mirror`(신규 의미): 구조적 사실만(같은 gate 공유) — **KCL 강제 병합 안 함**
+  (`_kcl_pairs`에서 `branch_symmetric`과 함께 제외), `auto_mirror_ratios`도 이제 안 씀.
+- `current_matched`(신규 kind): 옛 `current_mirror`가 하던 역할 그대로 승계(진짜 같은
+  전류, KCL 강제 병합 + `auto_mirror_ratios` 1:1 기본값).
+**영향 범위 전수 조사**: `sizing_recipe.py`(`_kcl_pairs`/`auto_mirror_ratios`),
+`stick_diagram.py`(`select_layout_tool()` kind 화이트리스트, `audit_row_split()`의
+`interdig_required` 판정) 전부 수정. **다른 3개 topology 파일**(folded_cascode,
+nmcnr_amplifier, two_stage_ota)의 기존 `current_mirror`(전부 진짜 미러쌍)도
+`current_matched`로 이름만 옮겨 기존 동작 보존(동작 변경 없음, self-test로 회귀 확인).
+`current_reuse_telescopic_ota`엔 `{M8,M17}`/`{M13,M22}` current_matched +
+`{M18_bg,M8,M13,M17,M22,M60,M61}`(M6 제외 — L_role이 다름) 구조적 current_mirror 신설.
 
-### 5. `symmetry.dispositions` 재생성
-위 connectivity 정정 후 `rerun_symmetry.py` 재실행 → stale 3건 발견(M14b→M16,
-M23a→M26 죽은 관계 2건 삭제, `N24b23a`/`Vom1`/`Vop1` 멤버 갱신 1건대씩) → 전부 실측
-결과로 갱신 완료(`Voc_des` 무관 stale 1건만 남음, 원래도 의도된 것).
+### 5. 전역 구조 대칭 자동 탐지 함수 신설 — `find_structural_symmetry_candidates()`
+사용자 질문("topology에서 좌우/상하 대칭을 판별하도록 확장할 수 없나?")을 계기로
+`stick_diagram.py`에 신설(`find_matching_candidates()`류가 "같은 net 하나 공유"라는
+국소 신호만 찾는 것과 달리, 이건 "netlist 전체를 net 재라벨링으로 자기 자신에 사상하는가"
+라는 전역 구조/graph automorphism을 찾는다). `propagate_topology_forced_currents()`와
+같은 고정점 반복 스타일. 두 transform:
+- `"mirror"`(좌우): kind 보존, differential I/O(Vip↔Vim, Vop↔Vom) 시드에서 전파.
+- `"dual"`(상하/극성): kind 반전(pmos↔nmos), vdd↔gnd 시드에서 전파.
+**실제 회로에 돌려 검증**(`workspaces/.../structural_symmetry_probe.py`, 재현 가능):
+mirror pass는 오늘 손으로 찾은 16개 좌우쌍을 **전부 정확히 재현**(conflicts=0,
+unresolved=0). dual pass는 부분적(1단 diff pair·bias-gen 서브트리는 맞지만, Vop1/Vom1에
+dual 짝 없는 소자(M9a/M10, M18a/M19)가 "단서 1개짜리끼리 우연히 매칭"되는 오탐 발생 —
+라운드 내 "단자 많이 아는 소자부터 처리"로 정렬 순서를 바꿔봤지만 원천적으로 안 없어져서,
+`low_confidence_pairs`(단서<2개) 필드로 정직하게 표시하는 쪽으로 마무리(사람이 반드시
+재검토, 억지로 없애지 않음).
 
-## 미완료 작업 (다음 세션 최우선)
+### 6. mirror 패스로 실제 stale/누락 `matching_pairs` 발견·수정
+mirror 패스 결과를 현재 `matching_pairs`와 대조해서:
+- **stale 4건**(세션5 `_correction_log_8`이 "재확인 필요"로 남겨뒀는데 방치돼 있었음):
+  `{M11a,M14a}`→`{M11a,M20a}`, `{M11b,M14b}`→`{M11b,M20b}`, `{M20a,M24b}`→
+  `{M14a,M23a}`, `{M20b,M23a}`→`{M14b,M24b}`.
+- **누락 1건**: `{M10,M19}` — 신규 추가(current_matched, kcl_sink 값과 일치).
+- **disposition도 stale**: Vbias1/Vbias4 disposition의 "이미 매칭쌍으로 기록됨" 주장이
+  실제 파일과 안 맞았음 — 둘 다 정정.
 
-**`run_harness.py`가 아직 완주 못 함** — KCL 에러는 다 해소됐지만(위 1~3번), **탐색공간이
-너무 커서** 실행이 안 끝난다. 자유 theta 13개 × `grid_points_per_theta=2` = 2^13=8192
-조합, 각각 전체 회로 사이징을 도는 구조라 시간이 오래 걸린다(3분 타임아웃 2회 경험,
-사용자가 둘 다 "멈춰봐"로 중단시킴 — 아직 결과를 못 봤다).
+### 7. `branch_symmetric` 전면 재감사 — 이 회로엔 0건으로 귀결
+사용자 질문("진짜 좌우 대응이면 전류도 같아야 하지 않나? branch_symmetric 용도가
+모호하지 않나?")을 계기로 남은 `branch_symmetric` 11건 전부를 theta 엔진으로 추적:
+**전부 이미 수학적으로 전류가 강제되고 있었다**(compensation 그룹 공유, replica theta,
+또는 KCL 직렬 사슬을 통한 전이적 강제). 전부 `current_matched`로 재분류
+(M2a/M2b, M3a/M3b, M11a/M20a, M11b/M20b, M14a/M23a, M14b/M24b, M15/M25, M16/M26,
+M9a/M18a, M9b/M18b, M36a/M36b). 부수 발견: `{M12,M10}`/`{M21,M19}`(옛 branch_symmetric)
+는 애초에 정의 위반이었음(branch_symmetric="공유 노드 없음"이 정의인데 이 넷은
+source=gnd·gate=Vbias4 **두 노드**를 공유) — `{M10,M12,M19,M21}` 구조적 current_mirror
+하나로 재선언.
 
-**다음 세션에서 시도할 것**:
-1. 먼저 `run_harness.py`를 **background로 충분히 길게**(10분+) 돌려서 실제로 완주하는지,
-   아니면 `sizing_recipe.py`가 이미 알고 있는 "동점 처리로 인한 순환"(limit cycle) 버그에
-   걸리는지 확인. `run_in_background: true` 필수(세션 4 이전부터 있던 원칙).
-2. 여전히 안 끝나면: (a) 더 병합 가능한 theta 쌍이 있는지 재검토(이번 세션 패턴,
-   "완전 대칭인데 분리된 theta 없나" 감사), (b) `grid_points_per_theta`를 일부 theta에만
-   낮게 적용하는 방법이 있는지(현재는 전역 파라미터), (c) 정말 필요하면 random/coarse
-   search로 1차 근사 후 promising 영역만 fine search 하는 새 메커니즘 검토(현재
-   `optimize_full_circuit_budget()`엔 없음, 새 기능이라 신중히).
-3. 완주하면 `result["audit_ok"]`/`result["metrics"]` 확인하고, 세션 4 핸드오프의 원래
-   "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로 이어가면 됨.
+**결론(사용자와 합의)**: `current_reuse_telescopic_ota`의 "완전 대칭이어야 한다" 설계
+원칙 하에서는, 진짜 좌우(mirror) 쌍이 전류가 다를 논리적 여지가 없다(다르면 그건
+의도된 비대칭이 아니라 엔진 설계 누락 — 오늘 M11a/M20a가 실제 사례). **`branch_symmetric`
+의 실질적 역할은 "발견됐지만 아직 전류 관계를 theta로 추적/확정 안 한 pending 상태"** —
+`find_structural_symmetry_candidates(mirror)`가 새 후보를 찾으면 일단 이 kind로 표시하고,
+theta 엔진 추적 후 강제되는 게 확인되면 `current_matched`로 "졸업"시키는 절차적 카테고리로
+보는 게 맞다는 결론(아직 어디에도 문서화 안 함 — 다음 세션 후보).
 
-## 배경 — analog-topology-json-library 기능이란
+**미완료**: 이 결론을 다른 topology 파일(`nmcnr_amplifier`의 `{M104,M105}`/`{M106,M107}`)
+에도 적용해 검증해보자는 논의 중 중단(아래 "미완료 작업" 1번).
+
+## 미완료 작업 (다음 세션 순서대로)
+
+1. **`nmcnr_amplifier.topology.json`의 `branch_symmetric` 감사 마무리**(중단 지점).
+   이미 읽은 내용: `{M104,M105}`/`{M106,M107}`이 `branch_symmetric`으로 선언돼 있고,
+   그 자체 comment(37행)가 이미 "M104/M105, M106/M107은 자동탐지는 current_mirror로
+   잡혔지만 VB2/VB3가 netlist 밖 외부 바이어스라 진짜 미러가 아니다 — 폴디드 캐스코드의
+   대칭된 두 branch(레이아웃 매칭 필요하되 신호 관계상 미러 아님)"라고 명시적으로
+   근거를 남겨뒀다 — **이 회로는 `sizing_roles`/`device_roles`가 아직 `null`**(58행
+   `_device_roles_comment` 참고, "이번 세션 스코프는 topology 확정까지, 사이징은 다음
+   배치")이라 **theta로 전류가 강제되는지 자체를 추적할 방법이 아직 없다** — 즉
+   current_reuse_telescopic_ota와 달리 "엔진이 이미 강제하고 있었는지" 감사가 원천적으로
+   안 되는 상태. `M102`/`M103`(diff_pair, compensation.stage_devices[0] 공유)이 
+   `M104`/`M105`(각자 tail, VB2 고정 게이트)의 전류를 결정할 텐데, `M104`/`M105`
+   자체의 개별 sizing 메커니즘이 아직 없다 — **이 회로는 branch_symmetric이 정말
+   "다른 이유"(사이징 미완성이라 확인 불가)로 남아있는 사례일 수 있다**, 세션6 결론
+   ("pending 상태" 재해석)과 맞는지 다음 세션에서 판단할 것.
+2. **`run_harness.py` 재실행**(세션6의 모든 수정 반영 후 처음, 10분+ background 필수) —
+   `optimize_full_circuit_budget()`이 실제로 완주하는지 확인. 자유 theta는 지금
+   13개(세션5 끝과 같은 개수, 다만 구성은 달라짐: `r_sink_vop1vom1` 삭제, `r_classab_src`
+   → `r_classab_battery`+`r_classab_diode_src`로 분리). `InfeasibleSizingError`가 음수
+   KCL 조합을 제대로 건너뛰는지도 이번이 처음(도입 이후 harness 자체를 아직 안 돌려봄).
+3. 완주하면 `result["audit_ok"]`/`result["metrics"]`(특히 세션6에서 추가한
+   `classab_centering_dev_v` constraint) 확인 → 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/
+   Iref 값 채우기, PSRR 폐형식 재유도)로 이어가면 됨.
+4. (선택) 세션6 결론 7번("branch_symmetric=pending 상태")을 `do.md`나 skill 문서에
+   원칙으로 남길지 — 사용자가 제안했던 항목, 아직 미결정.
+5. (선택) `find_structural_symmetry_candidates()`의 `"dual"` transform 오탐(low_confidence
+   로 표시는 되지만 근본적으로 제거는 안 됨) — 더 나은 휴리스틱이 필요하면 재검토.
+
+## 세션6에서 새로 생긴 엔진 개념 (다음 세션이 반드시 알아야 할 것)
+
+- **`A_signed` feed type**(`sizing_recipe.py`): `{"type":"A_signed","root":...,
+  "terms":[{"device":...,"sign":±1},...]}` — 부호 있는 KCL 합. 기존 `"A"`(전부 +부호
+  합)의 일반화.
+- **`InfeasibleSizingError`**(`ValueError` 상속, `sizing_recipe.py`): theta 격자점이
+  물리적으로 불가능한 상태(예: `A_signed` 뺄셈이 음수)를 만들면 이 예외 — grid search
+  루프가 이걸 "이 조합만 건너뛰기"로 처리(constraints 위반과 동일 취급), 그 외
+  `ValueError`(선언 누락 등)는 여전히 즉시 크래시.
+- **`current_mirror` vs `current_matched`**(matching_pairs kind, `sizing_recipe.py`+
+  `stick_diagram.py`): `current_mirror`=구조적 사실(같은 gate 공유)만, KCL 병합 안 함.
+  `current_matched`=진짜 같은 전류, KCL 강제 병합 — **옛 `current_mirror`의 엔진 역할은
+  이제 `current_matched`가 담당**. 다른 topology 파일 작성 시 이 구분 반드시 지킬 것.
+- **`find_structural_symmetry_candidates(transistors, seed_net_pairs, transform)`**
+  (`stick_diagram.py`): 전역 좌우/상하 대칭 자동 탐지. `transform="mirror"|"dual"`.
+  반환 `StructuralSymmetryVerdict(net_map, device_map, conflicts, unresolved,
+  low_confidence_pairs)`. mirror는 신뢰도 높음(이 회로에서 100% 재현), dual은 실험적
+  (검증 없이 신뢰 금지, 반드시 `low_confidence_pairs` 확인).
+- **`branch_symmetric`은 "pending" 상태로 재해석**됨(위 7번 결론) — 새 topology
+  작성 시 이 kind를 최종 분류로 쓰지 말고, theta 엔진 추적 후 `current_matched`로
+  졸업시킬지부터 검토할 것.
+
+## 배경 — analog-topology-json-library 기능이란 (세션5와 동일, 참고용 유지)
 
 - **WHY**: topology netlist가 Python 코드 하드코딩이면 재현 불가능, agent마다 해석이
   달라짐 — 그래서 `topology.json` 하나를 유일한 소스로 둔다.
-- **핵심 산출물**: `topology.json` 스키마(`netlist`/`symmetry`/`compensation`/
-  `passive_elements`/`ideal_sources`/`ports`/`sizing_roles`/`device_roles`) +
-  오케스트레이션 레이어(`load_topology`, `run_topology_pipeline`, `save_instance_json`,
-  `optimize_full_circuit_budget` 등, 전부 `skills/analog-gmid-design/assets/
-  {stick_diagram,sizing_recipe}.py`) + `topology_to_markdown.py`(connectivity 검토용
-  표 생성기).
 - **권한 경계(중요, 항상 지킬 것)**: `netlist`/`passive_elements`/`ideal_sources`의
-  connectivity(`source`/`drain`/`gate`/`terminals`)는 **사용자만 고친다** — Claude는
-  절대 임의로 안 바꾸고, 사용자가 논문을 보며 불러주는 정정만 반영한다(대기열에 쌓았다가
-  "한꺼번에 반영해"할 때 일괄 처리). 반면 `device_roles`/`symmetry.matching_pairs`/
+  connectivity는 **사용자만 고친다**. `device_roles`/`symmetry.matching_pairs`/
   `symmetry.dispositions`/`sizing_roles`(theta 포함) 같은 **역할·메타데이터는 Claude가
-  connectivity로부터 분석해서 업데이트해도 된다**. **세션5 추가 원칙**: 논문에 없는
-  값(component value)은 "논문에 있다"고 인용만 하고 끝내지 말 것 — 사용자가 직접
-  지정하지 않으면 실제 설계 방법론(closed-form 유도, gm/ID 탐색)으로 Claude가 합리적
-  값을 도출해야 한다([[feedback_no_paper_values_derive_rationally]] 메모리).
-- **관련 문서**:
-  - `docs/04-report/analog-topology-json-library.do.md` — 배치 7-5~7-5d 섹션이 최신
-    (세션5 작업은 아직 여기 반영 안 됨 — 필요시 정리).
-  - `skills/analog-gmid-design/references/topology-extraction-checklist.md` §5 —
-    `topology_to_markdown.py` 필수 사용 절차.
-  - `skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.md`
-    — 이 회로의 connectivity 표(net별/소자별, 세션5 재생성 완료: 51소자, 37net,
-    자동 플래그 0건).
-
-## current_reuse_telescopic_ota 회로 — 지금까지 검증된 핵심 구조
-
-- **1단(입력)**: PMOS 입력쌍(M1a/M1b, tail=Vx=M6∥M7) + NMOS 입력쌍(M4a/M4b, tail=Vy=M5)이
-  같은 입력(Vip/Vim)을 공유하며 각자 캐스코드(M2a/M2b pmos, M3a/M3b nmos)를 거쳐
-  출력노드(Vom1/Vop1)에서 드레인끼리 합류한다(current-reuse의 핵심).
-- **2단(Class-AB 출력) 교차결합**: Vom측 2단 내부노드=`Vop1`, Vop측 2단 내부노드=`Vom1`
-  (1단 차동출력이 반대쪽 2단 바이어스로 넘어감) — **단, `M14a`/`M14b`(Vom측)와
-  `M23a`/`M24b`(Vop측)는 이번 세션 정정으로 이 교차결합에서 제외됨**(위 "세션5" 1번
-  참고, `N14a_14b`/`N23a24b` 사설net으로 완전히 독립).
-- **CMFB(Fig.5)**: M37a(gate=Voc)/M37b(gate=Voc_des)가 M38 tail을 공유하는 차동쌍, 양쪽
-  부하 M36a/M36b는 미러가 아니라 독립 diode 2개. Voc_des는 M39/M40(PMOS diode 2개
-  분압기)가 만드는 저임피던스 노드(소신호 v=0). Voc는 트랜지스터가 아니라 R1/R2(최종출력
-  Vom/Vop 평균)가 구동.
-- **bias-gen**: `M18_bg`(diode, drain=gate=Vbias1)를 `Iref`(ideal, 1.2µA, Vbias1→gnd,
-  사용자가 논문에서 직접 확인한 값)가 구동, 나머지가 Vbias1을 gate로 공유하는 미러.
-  `M58`/`M57`(Vbias2 서브체인)은 세션5에 새 theta(`r_bg_vbias2`) 추가로 사이징 gap 해소.
-- **CMRR**: open-loop는 물리적으로 수 dB를 못 넘음 — 논문의 94.4dB를 설명하는 건 CMFB
-  루프(`telescopic_class_ab_cmfb`, 앵커 148.1dB/166.2dB).
-- **Cc=500fF**: ⚠️ 이 값의 출처는 "논문 Section III.C 인용"일 뿐, 이 프로젝트가 실제
-  sky130 LUT 기준으로 독립 재도출한 값이 아니다(세션5 초반에 확인, 아직 미해결) —
-  `[[feedback_no_paper_values_derive_rationally]]` 원칙대로 다시 봐야 할 후보.
+  분석해서 업데이트해도 된다** — 세션6 전체가 이 경계 안에서 진행됨(connectivity는
+  한 번도 안 건드림, 전부 메타데이터/엔진 수정).
+- 논문에 없는 값은 "논문 인용"만으로 확정 짓지 말 것 — 세션6도 이 원칙 지킴(Vg15/Vop1
+  centering metric에서 논문의 1.3V/0.5V 절대값 대신 "합=VDD" 위상적 관계만 가져옴).
 
 ## 작업 파일 위치
 
-- `skills/analog-gmid-design/assets/topology_to_markdown.py` — connectivity 표 생성기.
-  topology.json 손댈 때마다 실행할 것.
-- `skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.md` —
-  위 스크립트 산출물(세션5 재생성 완료).
-- `workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py` — symmetry 재생성
-  재현 스크립트(branch_symmetric은 이 스크립트가 검증 못 하는 카테고리임에 주의 —
-  current_mirror/diff_pair/hub_merge만 자동 탐지).
+- `skills/analog-gmid-design/assets/sizing_recipe.py` — 세션6 대폭 수정(위 참고).
+- `skills/analog-gmid-design/assets/stick_diagram.py` — 세션6 대폭 수정(위 참고).
+- `skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json`
+  — 세션6 대폭 수정. `theta` 13개(구성 변경), `matching_pairs` 전면 재분류.
+- `workspaces/current-reuse-telescopic-ota-report/spice/
+  vg15_vop1_kcl_sympy_derivation.py` — Vg15/Vop1 KCL sympy 재유도(재현 가능, 다른
+  노드에도 재사용 가능한 일반 구조).
+- `workspaces/current-reuse-telescopic-ota-report/structural_symmetry_probe.py` —
+  `find_structural_symmetry_candidates()` 실제 회로 검증 스크립트.
+- `workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py` — symmetry
+  재생성 재현 스크립트. 세션6에도 여러 번 재실행, 마지막까지 `ok=True`.
 - `workspaces/current-reuse-telescopic-ota-report/run_harness.py` — 전체 회로 사이징
-  실행 스크립트, `optimize_full_circuit_budget()` 단일 호출. **다음 세션 시작점.**
-- `workspaces/current-reuse-telescopic-ota-report/pending_topology_corrections.md` —
-  정정 대기열 로그(세션5 항목 전부 APPLIED로 종료). 새 정정 생기면 이 패턴 재사용.
-- `workspaces/current-reuse-telescopic-ota-report/paper_pages/` — 논문 PDF 렌더링/크롭
-  이미지, git 미포함(로컬 전용, 지우지 말 것).
+  실행 스크립트. **다음 세션 최우선 시작점**(위 "미완료 작업" 2번).
 - 논문 원본 PDF: `G:\내 드라이브\work\Todoc\논문모음\A 126uW Current-Reuse Telescopic
-  OTA with Class-AB Output Stage.pdf` (18페이지, 텍스트 추출 가능한 건 1-8페이지뿐,
-  나머지는 스키매틱 이미지).
-- Artifact: `current_reuse_telescopic_ota — connectivity review`
-  (https://claude.ai/code/artifact/a00dad7b-e1db-4b28-8c60-748ea76cca45) — **주의**:
-  이 artifact는 세션4 시점 topology.json의 스냅샷일 뿐 세션5 정정이 반영 안 됨, "확정"
-  문구를 독립 재검증으로 오인하지 말 것(위 세션5 1번 교훈 참고). 다음 세션에서 갱신
-  검토 필요.
+  OTA with Class-AB Output Stage.pdf` — 세션6에 페이지 1-3(Table I, Section II.B/C/D
+  본문) 텍스트 재추출해 Input CM range([576.5mV,900.1mV], VDD/2가 상한이지 중심이 아님)
+  등 근거로 활용.
 
 ## 참고 — 사용자 협업 메모리 (자동 메모리 시스템에 저장됨, 요약만)
 
 - 최종 보고는 항상 한글로.
-- 상상으로 채우지 말고 근거·실제 확인 후 진행 — **artifact/문서의 "확정" 표기도
-  맹신 금지, 그게 어떻게 만들어졌는지(사용자 원문 vs Claude 확대해석) 추적할 것**
-  (세션5 신규 교훈).
+- 상상으로 채우지 말고 근거·실제 확인 후 진행 — artifact/문서의 "확정" 표기도 맹신 금지.
 - topology.json이 유일한 토폴로지 소스 — connectivity는 사용자 전용, role/matching/theta
   같은 메타데이터는 Claude가 분석해서 업데이트 가능.
 - 장시간 실행은 `run_in_background: true`.
-- 회로도 이미지/PDF 판독은 신뢰 못 함 — `topology_to_markdown.py`로 net 기준 표를 뽑아
-  세션에 출력하고 사람이 재확인할 것.
-- topology 정정은 대기열에 쌓았다가 "한꺼번에 반영해" 지시가 와야 일괄 반영.
-- 논문에 없는 컴포넌트 값은 "논문 인용"만으로 확정 짓지 말 것 — 사용자가 직접 지정하지
-  않으면 실제 방법론으로 합리적 값을 도출(세션5 신규, `Cc=500fF` 등 재검토 후보 있음).
+- 회로도 이미지/PDF 판독은 신뢰 못 함 — connectivity는 `topology_to_markdown.py`로
+  net 기준 표를 뽑아 확인. 단, 논문 **본문 텍스트**(스키매틱 아님) 추출은 신뢰 가능
+  (세션6에서 Table I/Section II.B 근거로 실제 활용, PDF 텍스트 추출 페이지 1-8).
+- topology 정정은 대기열에 쌓았다가 "한꺼번에 반영해" 지시가 와야 일괄 반영
+  (connectivity에만 해당 — 세션6은 메타데이터/엔진만 다뤄서 이 규칙 적용 안 됨).
+- 논문에 없는 컴포넌트 값은 "논문 인용"만으로 확정 짓지 말 것 — 위상적/구조적 관계는
+  가져오되 절대값은 독립 도출.
 - 복잡한 analog 회로 폐형식 재유도는 opus 에이전트(가능하면 git worktree 격리)에 위임이
-  효과적.
+  효과적(세션6엔 발생 안 함 — sympy 직접 재유도로 충분했음).
 - git commit 시 heredoc-in-`$()`이 bkit 훅에 막힘 — 파일로 메시지 작성 후 `git commit -F`.
+- **세션6 신규**: 사용자가 반복 확인을 요청하지 않는 한, 이미 근거를 충분히 확보한
+  분석 결론(connectivity 아닌 메타데이터/엔진 영역)은 다시 물어보지 말고 바로 실행할 것
+  — "이건 네가 판단할 수 없는 문제인가?"라는 직접 피드백 받음.

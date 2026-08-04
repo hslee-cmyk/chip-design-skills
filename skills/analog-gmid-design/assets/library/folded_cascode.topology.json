@@ -26,8 +26,8 @@
 
   "symmetry": {
     "matching_pairs": [
-      {"names": ["M3", "M4"], "kind": "current_mirror"},
-      {"names": ["M9", "M10"], "kind": "current_mirror"},
+      {"names": ["M3", "M4"], "kind": "current_matched"},
+      {"names": ["M9", "M10"], "kind": "current_matched"},
       {"names": ["M1", "M2"], "kind": "diff_pair"},
       {"names": ["M5", "M6"], "kind": "branch_symmetric"},
       {"names": ["M7", "M8"], "kind": "branch_symmetric"}

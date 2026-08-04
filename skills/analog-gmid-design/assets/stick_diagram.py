@@ -1112,6 +1112,138 @@ def find_hub_merge_candidates(transistors: list) -> dict:
     return {(kind, net): group for (kind, _role, net), group in by_net.items() if len(group) >= 2}
 
 
+# ---------------------------------------------------------------------------
+# 1.8) 전역 구조 대칭(좌우 미러/상하 극성쌍) 탐지 — find_matching_candidates()/
+#      find_hub_merge_candidates()는 "같은 net 하나를 공유하는 소자쌍"(국소 신호)만 찾는다.
+#      current_reuse_telescopic_ota에서 M8<->M17(공유 노드 없음, 각자 다른 net에 물림)처럼
+#      "netlist 전체를 어떤 net 재라벨링으로 자기 자신에 사상하는가"(전역 구조, graph
+#      automorphism)는 이 국소 탐지로 원천적으로 못 찾는다 -- 2026-08 세션6 신설.
+# ---------------------------------------------------------------------------
+
+@dataclass
+class StructuralSymmetryVerdict:
+    net_map: dict     # net -> 대응 net (양방향 self-consistent)
+    device_map: dict  # device name -> 대응 device name(자기 자신이면 그 transform에서 자기-대칭)
+    conflicts: list    # [(device, terminal, net, expected, actual), ...] -- 전파 중 모순 발견
+    unresolved: list   # 끝까지 유일한 파트너를 못 찾은 소자 이름(사람 판정 필요, 실패 아님)
+    low_confidence_pairs: list  # [frozenset({a,b}), ...] -- 단자 1개(len(known)<2)짜리 약한
+                                 # 근거로만 확정된 쌍 -- 우연의 일치일 위험이 있어 사람이 반드시
+                                 # 재검토해야 한다(2026-08 세션6, dual transform 오탐 실측 계기)
+
+
+def find_structural_symmetry_candidates(transistors: list, seed_net_pairs: dict,
+                                         transform: str = "mirror") -> StructuralSymmetryVerdict:
+    """전역 구조 대칭 후보를 `seed_net_pairs`(이미 아는 net 대응 — 보통 differential I/O
+    포트나 vdd/gnd)에서 시작해 고정점까지 전파해 찾는다. `propagate_topology_forced_
+    currents()`(A엔진, KCL 버전)와 정확히 같은 스타일의 반복 전파를 net/device 대응에
+    적용한 것 — 오늘 current_reuse_telescopic_ota에서 M8<->M17, M13<->M22, M11a-chain<->
+    M20a-chain 같은 대응관계를 손으로 하나씩 재발견했던 작업을 이 함수 하나로 대체한다.
+
+    두 가지 `transform`:
+    - `"mirror"`(좌우 대칭, 예: Vom블록<->Vop블록): kind가 **보존**된다(pmos->pmos).
+      vdd/gnd처럼 공통 rail은 `seed_net_pairs`에 자기 자신으로(`{"vdd":"vdd",...}`) 넣고,
+      Vip<->Vim/Vop<->Vom처럼 진짜 좌우로 바뀌는 differential net만 서로 다른 값으로 넣는다.
+    - `"dual"`(상하/극성 대칭, 예: PMOS 다이오드스택<->NMOS 다이오드스택): kind가 **반전**된다
+      (pmos<->nmos). vdd<->gnd를 서로 다른 값으로 넣는 게 유일하게 항상 확실한 seed다 —
+      그 외 공용 net(Vbias1..4 등)이 PMOS 전용/NMOS 전용 레퍼런스로 갈라져 있으면(이 회로의
+      Vbias1↔Vbias4처럼) 그 대응도 seed로 넣어야 전파가 그 지점까지 도달한다 -- **이 함수는
+      seed 없이 스스로 축을 추측하지 않는다**(다른 find_*_candidates()와 같은 계약).
+
+    알고리즘(고정점 반복):
+    1. 아직 안 풀린 소자 중 최소 1개 단자(source/drain/gate)라도 이미 `net_map`에 있는
+       소자를 훑는다.
+    2. 그 소자의 "기대 파트너"(kind는 transform에 따라 보존/반전, **이미 알려진** 단자만
+       사상값으로 제약, 아직 모르는 단자는 와일드카드)와 일치하는 소자를 netlist 전체에서
+       찾는다.
+    3. **정확히 하나**면 채택(`device_map`에 기록, 자기 자신이 유일한 후보면 그 transform
+       에서 자기-대칭으로 기록) -- 그 파트너와의 나머지(아직 `net_map`에 없는) 단자쌍을
+       새 net 대응으로 추가한다. 이미 있는 net 대응과 값이 다르면(모순) `conflicts`에
+       기록하고 덮어쓰지 않는다(추측으로 채우지 않음). 0개나 2개 이상이면 이번 라운드는
+       보류(다음 라운드에 제약이 더 채워지면 풀릴 수 있다).
+    4. 더 이상 새로 배정되는 게 없을 때까지 반복.
+
+    **라운드 내 처리 순서(2026-08 세션6 정정)**: 한 라운드 안에서 여러 소자가 동시에
+    풀릴 수 있게 되면, **알려진 단자 개수(len(known))가 많은(=더 확실한) 소자부터** 매칭을
+    확정한다 -- current_reuse_telescopic_ota의 `"dual"` transform 실측에서 이 순서를
+    안 지키면 오탐이 났다: M9a(단자 1개, drain=Vop1만 앎)가 M2b/M3b(단자 2개 이상으로
+    이미 확실히 풀리는 진짜 쌍)보다 먼저 후보 풀을 보면, 아직 안 나간 M3b까지 후보에
+    남아있어 모호하게 남는 게 정상인데, 처리 순서가 뒤집히면 M3b가 먼저 소비되고 M9a가
+    "우연히 마지막 남은 M10과만 매칭"돼버린다(둘 다 진짜 dual 짝이 없는데도). 단자 1개
+    짜리 근거는 원천적으로 우연의 일치(coincidental) 위험이 있으므로, `low_confidence_
+    pairs`에 별도로 표시해 사람이 반드시 재검토하게 한다(device_map에는 그대로 들어가되
+    "확정"과 같은 신뢰도로 취급하지 말 것).
+
+    끝까지 유일한 파트너를 못 찾은 소자는 `unresolved`에 남는다 -- **이건 실패가 아니라
+    사람 판정이 필요하다는 신호**다(예: M6/M7처럼 원래 비대칭으로 설계된 소자가 여기 남는
+    것이 정상 -- 조용히 추측해서 채우지 않는다)."""
+    if transform not in ("mirror", "dual"):
+        raise ValueError(f"알 수 없는 transform: {transform!r} -- 'mirror' 또는 'dual'이어야 한다")
+
+    def expected_kind(k):
+        if transform == "mirror":
+            return k
+        return "nmos" if k == "pmos" else "pmos"
+
+    net_map = dict(seed_net_pairs)
+    device_map: dict = {}
+    conflicts: list = []
+    low_confidence_pairs: list = []
+
+    changed = True
+    while changed:
+        changed = False
+        pending = []
+        for t in transistors:
+            if t.name in device_map:
+                continue
+            known = {}
+            if t.source in net_map:
+                known["source"] = net_map[t.source]
+            if t.drain in net_map:
+                known["drain"] = net_map[t.drain]
+            if t.gate is not None and t.gate in net_map:
+                known["gate"] = net_map[t.gate]
+            if known:
+                pending.append((t, known))
+        # 단자 개수 많은(확실한) 소자부터 -- 위 docstring 참고. 동점이면 이름순(재현성).
+        pending.sort(key=lambda item: (-len(item[1]), item[0].name))
+
+        for t, known in pending:
+            if t.name in device_map:
+                continue  # 이번 라운드 안에서 이미 다른 매칭에 의해 소비됐다.
+            tgt_kind = expected_kind(t.kind)
+            candidates = [
+                u for u in transistors
+                if u.kind == tgt_kind and u.name not in device_map
+                and ("source" not in known or u.source == known["source"])
+                and ("drain" not in known or u.drain == known["drain"])
+                and ("gate" not in known or u.gate == known["gate"])]
+            if len(candidates) != 1:
+                continue  # 0개(아직 파트너가 안 풀림) 또는 2개 이상(모호) -- 보류.
+
+            partner = candidates[0]
+            device_map[t.name] = partner.name
+            device_map[partner.name] = t.name
+            if len(known) < 2 and partner.name != t.name:
+                low_confidence_pairs.append(frozenset((t.name, partner.name)))
+            changed = True
+            for attr in ("source", "drain", "gate"):
+                tv, pv = getattr(t, attr), getattr(partner, attr)
+                if tv is None or pv is None:
+                    continue
+                if tv not in net_map:
+                    net_map[tv] = pv
+                    net_map.setdefault(pv, tv)
+                    changed = True
+                elif net_map[tv] != pv:
+                    conflicts.append((t.name, attr, tv, net_map[tv], pv))
+
+    unresolved = sorted(t.name for t in transistors if t.name not in device_map)
+    return StructuralSymmetryVerdict(net_map=net_map, device_map=device_map,
+                                      conflicts=conflicts, unresolved=unresolved,
+                                      low_confidence_pairs=low_confidence_pairs)
+
+
 @dataclass
 class MultiLeafHubParityVerdict:
     ok: bool
@@ -2424,15 +2556,23 @@ def select_layout_tool(kind: str, area_budget: str | None = None) -> str:
     "unknown"에 두 체크를 다 요구하지만, **구성 단계에서 도구를 하나 골라야 한다면** 더
     엄격한 쪽을 쓴다).
 
-    `area_budget`(선택): `"generous"`를 주면 `current_mirror`도 `common_centroid_layout`
-    으로 격상한다("최소면적이 아니면 더 나은 매칭을 써도 된다"는 원칙, §7.9 질문 6) —
-    `estimate_area_budget()`(배치 7-4b 확장)의 결과를 근거로 호출자가 지정할 것을 권장.
+    `area_budget`(선택): `"generous"`를 주면 `current_mirror`/`current_matched`도
+    `common_centroid_layout`으로 격상한다("최소면적이 아니면 더 나은 매칭을 써도 된다"는
+    원칙, §7.9 질문 6) — `estimate_area_budget()`(배치 7-4b 확장)의 결과를 근거로 호출자가
+    지정할 것을 권장.
+
+    2026-08(세션6) -- `symmetry.matching_pairs`의 kind가 `"current_mirror"`(같은 전류로
+    강제 병합)/`"current_matched"`(같은 의미, 이름만 교체)로 나뉘었다(sizing_recipe.py의
+    `_kcl_pairs`/`auto_mirror_ratios` 주석 참고 -- current_reuse_telescopic_ota의 Vbias1
+    8소비자가 "같은 gate 공유"와 "같은 전류"가 다른 실제 사례라 분리됨). 레이아웃 관점에선
+    둘 다 여전히 "같은 레퍼런스를 읽는 mirror 구조"라 도구 선택은 동일하게 취급한다(그 gate가
+    실제로 같은 전류를 만드는지 아닌지는 미러비 오차 전파 매칭의 필요성에 영향을 주지 않음).
 
     등록 안 된 `kind`는 즉시 `ValueError`(다른 레지스트리들과 동일 계약)."""
-    if kind not in ("current_mirror", "diff_pair", "branch_symmetric", "unknown"):
-        raise ValueError(f"알 수 없는 kind: {kind!r} -- 'current_mirror'/'diff_pair'/"
-                          f"'branch_symmetric'/'unknown' 중 하나여야 한다")
-    if kind == "current_mirror":
+    if kind not in ("current_mirror", "current_matched", "diff_pair", "branch_symmetric", "unknown"):
+        raise ValueError(f"알 수 없는 kind: {kind!r} -- 'current_mirror'/'current_matched'/"
+                          f"'diff_pair'/'branch_symmetric'/'unknown' 중 하나여야 한다")
+    if kind in ("current_mirror", "current_matched"):
         return "common_centroid_layout" if area_budget == "generous" else "interdigitate_layout"
     return "common_centroid_layout"
 
@@ -2632,7 +2772,11 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None, pair_kinds: 
         # select_layout_tool()은 구성 단계에서 도구 하나를 골라야 해서 unknown도
         # common_centroid_layout 하나만 반환하지만, 감사 단계는 "kind를 확신 못 하면 둘 다
         # 확인"이라는 기존 보수적 정책을 그대로 유지한다(behavior 변경 없음).
-        interdig_required = kind == "current_mirror" or kind == "unknown"
+        # 2026-08(세션6) -- kind가 "current_mirror"(구조적 사실)/"current_matched"(같은
+        # 전류로 강제 병합, 옛 current_mirror의 의미 승계)로 분리됐다(sizing_recipe.py의
+        # _kcl_pairs 주석 참고) -- 레이아웃 감사 관점에선 둘 다 "미러비 오차 전파만
+        # 관심사"라 §2.7 기준(interdigitation 필수)을 동일하게 적용한다.
+        interdig_required = kind in ("current_mirror", "current_matched") or kind == "unknown"
         centroid_required = select_layout_tool(kind) == "common_centroid_layout"
         note_b = "" if interdig_required else " [참고용 -- 이 kind는 필수 아님]"
         note_c = "" if centroid_required else " [참고용 -- 이 kind는 필수 아님]"

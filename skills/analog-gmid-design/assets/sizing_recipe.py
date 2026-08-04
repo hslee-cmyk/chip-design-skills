@@ -1229,6 +1229,53 @@ def _metric_pelgrom_mismatch(spec: dict, ctx: SizingContext) -> float:
     return math.sqrt(sum(s * s for s in sigmas)) * 1e3
 
 
+def _metric_rail_referenced_voltage(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-08 세션6) — `device`(이미 사이징 완료, gm_id/L/vds/vs/kind 확정)의
+    게이트가 실제로 도달하는 DC 레벨을 LUT VGS 역산(`vgs_for_gm_id()`)으로 계산한다.
+    `device`의 **source가 `rail`("vdd" 또는 "gnd")에 물려 있다는 전제**(호출자가 그 조건을
+    만족하는 소자만 넘길 것 -- 이 함수는 그 전제를 검증하지 않는다) -- pmos는 게이트가
+    source보다 낮아야 동작하므로 `rail - VGS`, nmos는 `rail + VGS`.
+
+    class-AB 2단(Monticelli류 floating battery, M9a/M9b가 Vg15/Vop1 사이에 거는 레벨시프트)의
+    출력게이트 DC 레벨이 논문 설계 의도(Xie&Chen Section II.B: "the gate voltage of M15 is
+    pushed to about 1.3V and ... M16 ... about 0.5V")와 같은 방향인지 검증하려고 신설.
+    ⚠️ 절대 레벨 자체를 이 프로젝트의 목표값으로 강제하지 않는다(그 수치는 논문 공정의
+    Vth에 종속 -- `feedback_no_paper_values_derive_rationally` 원칙) -- 대신
+    `_metric_battery_centering_deviation()`이 "두 레벨의 합이 VDD와 같아야 한다"는
+    위상적 관계만 재사용한다."""
+    entry = ctx.sized[spec["device"]]
+    lut = ctx.spec["lut_by_kind"][entry["kind"]]
+    vgs = lut.vgs_for_gm_id(entry["gm_id"], entry["L"], entry["vds"], entry.get("vs", 0.0))
+    rail_v = ctx.spec["vdd"] if spec["rail"] == "vdd" else 0.0
+    return rail_v - vgs if entry["kind"] == "pmos" else rail_v + vgs
+
+
+def _metric_battery_centering_deviation(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-08 세션6) — class-AB 2단 floating battery(M9a/M9b류)가 두 출력게이트
+    노드(`high_device`=pmos·source=vdd, `low_device`=nmos·source=gnd)를 VDD 기준으로 얼마나
+    센터링하는지 검증. 두 소자의 실제 DC 레벨 합이 `vdd`에서 벗어난 절대값(V)을 반환 -- 0에
+    가까울수록 두 게이트 레벨의 평균이 VDD/2에 있다는 뜻(swing 최대화에 유리, "amp는 DC
+    bias가 VDD 기준 center일 때 swing이 최대가 될 수 있다"는 원리 그대로).
+
+    이 관계의 근거는 Xie&Chen Section II.B(Fig.1 M15/M16, 이 topology의 M15/M16과 동일
+    역할): "the gate voltage of M15 is pushed to about 1.3V and ... M16 ... about 0.5V" --
+    1.3+0.5=1.8V=VDD로 정확히 센터링돼 있다. **절대 수치(1.3V/0.5V)는 그 논문 공정의 Vth에
+    종속이라 그대로 안 가져오고(값 인용 금지 원칙), "합=VDD" 위상적 관계만 우리 sky130
+    재설계에 가져온다.**
+
+    ⚠️ 이 관계가 M9a-chain(M11a/M11b/M12)과 M9b-chain(M13/M14a/M14b)의 전류를 같게
+    만들어서 달성되는 게 아니다 -- M15/M16 자신의 gm_id/L/VDS(compensation이 이미 확정)로
+    직접 계산한다(2026-08 세션6, 사용자가 제안한 "두 chain 전류를 같게" 가설을 검토하다
+    발견: M9a 자신의 전류는 K_replica(M9a~M15 면적비)로, M9b는 kcl_battery_M9b(=ID(M11a-chain)
+    +ID(M9a))로 결정되고, M13-chain 전류는 이 KCL 어디에도 안 들어간다 -- 논문 Fig.7b가
+    두 chain의 quiescent ID가 다르다고 이미 실측 확인한 것과도 일치)."""
+    high = _metric_rail_referenced_voltage(
+        {"device": spec["high_device"], "rail": "vdd"}, ctx)
+    low = _metric_rail_referenced_voltage(
+        {"device": spec["low_device"], "rail": "gnd"}, ctx)
+    return abs((high + low) - ctx.spec["vdd"])
+
+
 def _cmrr_diff_pair_tail(metric_spec: dict, ctx: SizingContext) -> float:
     """`circuit_family="diff_pair_tail"` — CMRR ≈ [(ro_tail/2) + (1/gm_tail)]·gm_tail
     (문헌 표준 1차 근사, do.md 배치 7-3i). `tail_device`의 이미 사이징된 gm/gds만 쓴다."""
@@ -1536,6 +1583,8 @@ _METRICS_REGISTRY = {
     "pelgrom_mismatch":         _metric_pelgrom_mismatch,            # 배치 7-3h
     "cmrr_estimate":            _metric_cmrr_estimate,               # 배치 7-3i
     "psrr_estimate":            _metric_psrr_estimate,               # 배치 7-3i
+    "rail_referenced_voltage":  _metric_rail_referenced_voltage,     # 세션6
+    "battery_centering_deviation": _metric_battery_centering_deviation,  # 세션6
 }
 
 
@@ -1604,6 +1653,42 @@ def _feed_root_ratio(feed_spec: dict, theta_value: float, ctx: SizingContext) ->
         return ctx.seed_currents[name]
 
     total = sum(_ref_id(r) for r in feed_spec["reference"])
+    for root in roots:
+        ctx.seed_currents[root] = theta_value * total
+
+
+def _feed_root_signed_sum(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
+    """`{"type":"A_signed","tag":...,"root":<device>|[<device>,...],
+    "terms":[{"device":<name>[,"sign":±1]}, ...]}` — `_feed_root_ratio`(type "A")의 부호 없는
+    (전부 +1 계수 합) 버전을 일반화한다. A엔진 `seed_currents`에 `theta_value *
+    sum(sign_i * ID(term_i 소자))`를 `root`의 seed 전류로 채운다(`sign` 생략 시 기본값 1).
+
+    2026-08(세션6) 신설 동기 — `load_topology()`의 실제 connectivity만으로(손타이핑 netlist
+    없이) 조립한 sympy KCL 재유도(`workspaces/current-reuse-telescopic-ota-report/spice/
+    vg15_vop1_kcl_sympy_derivation.py`)가 이 회로의 실제 KCL은 종종 **뺄셈을 포함한다**는
+    걸 확인했다 — 예: Vg15 노드(M8.drain/M9a.source/M9b.drain 3단자) KCL을 풀면
+    `ID(M9b) = ID(M8) - ID(M9a)`인데, 기존 "A" 타입(`_feed_root_ratio`)은 `reference`
+    전부를 +부호로만 합산해(`sum(_ref_id(r) for r in reference)`) 이런 관계를 표현할 수
+    없었다 — 그 결과 topology.json의 `kcl_battery_M9b` theta가 존재하지도 않는 노드
+    조합("Vg15=M11b.drain/M9a.drain/M9b.drain", 실제로는 셋 다 아니거나 다른 단자)에서
+    유도된 틀린 공식(`ID(M9b)=ID(M11a체인)+ID(M9a)`)을 쓰고 있었다(위 sympy 스크립트로
+    발견·확정, 사용자 지적 "M10과 M8은 같은 branch 전류인데 독립적이야?"가 계기).
+
+    `root`는 `_feed_root_ratio`와 동일하게 문자열(소자 1개) 또는 리스트(여러 소자, 전부
+    같은 신호부호합을 동시에 시드 — 예: 좌우 대칭 두 노드에 같은 KCL 관계를 함께 적용)를
+    받는다. `reference`(부호 없음)와 이름이 같은 실수를 막기 위해 이 타입은 의도적으로
+    `terms`라는 다른 키를 쓴다 — `reference`를 그대로 받으면 `_feed_root_ratio`용
+    선언과 이 타입용 선언이 겉보기엔 비슷해 보여도 의미가 다른데(전자는 항상 +, 후자는
+    부호 필드 필요) 실수로 섞어 쓰기 쉽다."""
+    roots = feed_spec["root"] if isinstance(feed_spec["root"], list) else [feed_spec["root"]]
+
+    def _ref_id(name):
+        entry = ctx.sized.get(name)
+        if entry is not None and "ID" in entry:
+            return entry["ID"]
+        return ctx.seed_currents[name]
+
+    total = sum(term.get("sign", 1) * _ref_id(term["device"]) for term in feed_spec["terms"])
     for root in roots:
         ctx.seed_currents[root] = theta_value * total
 
@@ -1708,6 +1793,7 @@ _THETA_FEED_REGISTRY: dict = {
     "C":                    FeedHandler(_feed_diode_stack_target, touches=["C"]),
     "B":                    FeedHandler(_feed_gm_target_convention, touches=["B"]),
     "A":                    FeedHandler(_feed_root_ratio, touches=["A"]),
+    "A_signed":             FeedHandler(_feed_root_signed_sum, touches=["A"]),  # 세션6
     "metric_stage_budget":  FeedHandler(_feed_metric_stage_budget, touches=["B", "F"]),
     # 새 feed 타입이 필요해지면 여기 한 줄만 등록하면 된다 -- optimize_full_circuit_budget()은
     # 수정하지 않는다(§7.3.2 확정 설계, _COMPENSATION_REGISTRY/_METRICS_REGISTRY와 동일 계약).
@@ -1732,6 +1818,22 @@ _CONSTRAINT_OPS = {">=": operator.ge, "<=": operator.le, ">": operator.gt,
 
 def _lerp(a: float, b: float, t: float) -> float:
     return a + (b - a) * t
+
+
+class InfeasibleSizingError(ValueError):
+    """2026-08(세션6) 신설 -- 특정 theta 격자점이 **물리적으로 불가능한 상태**(예: KCL 뺄셈
+    (`A_signed`)이 음수 전류를 만듦, current_reuse_telescopic_ota의 `kcl_battery_M9b`=
+    `ID(M8)-ID(M9a)`를 K_replica/r_classab_src 격자 조합에 따라 음수로 만들 수 있음을
+    세션6에서 실측 발견)를 만들 때 낸다 — grid search 루프가 이걸 "이 조합은 infeasible,
+    다음으로" 취급하고 계속 진행하게 하려고 `ValueError`를 상속한 별도 타입으로 분리했다.
+
+    `ValueError`를 그대로 상속해서 이 예외를 몰라도 되는 기존 `except ValueError` 코드
+    (self-test 등)는 그대로 동작한다 -- 다만 grid search 루프는 **이 타입만** 콕 집어
+    "물리적으로 말이 안 되는 조합이니 건너뛴다"로 다루고, 그 외의 `ValueError`(L/VDS
+    미확정, 등록 안 된 feed 타입 등 -- 진짜 선언 누락)는 여전히 즉시 크래시해서 알린다
+    (§ do.md 7.3.2 "AI가 그 자리를 코드로 메우지 않고 신호를 그대로 돌려받는다" 원칙과
+    구분: 이건 "선언이 없다"가 아니라 "선언은 있는데 이 특정 theta 값 조합에서 물리적으로
+    불가능하다"는 다른 종류의 신호라 별도 처리가 맞다)."""
 
 
 def optimize_full_circuit_budget(topology_path: str, spec: dict,
@@ -1792,11 +1894,26 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     pairs_meta = meta["symmetry"]["matching_pairs"]
     kind_of = {t.name: t.kind for t in transistors}
 
-    # current_mirror 그룹은 2개 이름뿐 아니라 N개(예: 하나의 기준을 여러 소자가 미러하는
+    # current_matched 그룹은 2개 이름뿐 아니라 N개(예: 하나의 기준을 여러 소자가 미러하는
     # 경우, current_reuse_telescopic_ota의 M36a/M36b/M39)일 수 있다 -- names[0]을 기준으로
     # 나머지 전부에 1:1 비율을 시드한다(2026-08-01, 3개짜리 그룹에서 실제로 발견된 gap 수정).
+    #
+    # 2026-08(세션6) -- kind 이름을 "current_mirror"에서 "current_matched"로 바꿨다(사용자
+    # 지적 계기). 이전엔 "current_mirror"가 "같은 gate net을 공유"(구조적 사실)와 "같은
+    # 전류로 강제 병합"(설계 의도)을 동시에 의미했는데, current_reuse_telescopic_ota의
+    # Vbias1 8소비자(M6/M8/M13/M17/M18_bg/M22/M60/M61)가 이 둘이 다른 실제 사례다 --
+    # 전부 같은 gate(Vbias1)를 읽는 진짜 mirror branch지만, 절대 전류는 소자마다 다르게
+    # 설계됐다(M8/M17은 신호경로 규모, M13/M22는 하우스키핑 규모, M6은 tail 몫, M18_bg/
+    # M60/M61은 bias-gen 자체). "같은 gate=같은 전류"라고 가정한 옛 매핑이 M8/M13을 한
+    # current_mirror 쌍으로 잘못 묶어 KCL 크래시를 낸 뒤(세션6 앞선 발견) 발견됨. 그래서
+    # 이제 두 kind로 분리한다 -- "current_mirror"(구조적 사실, KCL 강제 병합 안 함, 아래
+    # _kcl_pairs에서 branch_symmetric과 함께 제외)와 "current_matched"(진짜 같은 전류로
+    # 강제해야 하는 관계, 여기서 auto_mirror_ratios 1:1 시드 + 아래 _kcl_pairs에 포함).
+    # 다른 회로(folded_cascode/nmcnr_amplifier/two_stage_ota)의 기존 "current_mirror"
+    # 선언(부하 미러쌍, 실제로 같은 전류가 맞음)은 전부 "current_matched"로 이름만 옮겼다
+    # (동작 변경 없음, self-test로 회귀 확인).
     auto_mirror_ratios = {(p["names"][0], n): 1.0
-                           for p in pairs_meta if p["kind"] == "current_mirror"
+                           for p in pairs_meta if p["kind"] == "current_matched"
                            for n in p["names"][1:]}
 
     # derive_stack_groups()는 두 군데 쓰인다 -- (1) A엔진의 stack_id 기반 "같은 전류" 전파
@@ -1821,9 +1938,14 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     # branch_symmetric 쌍을 (1) KCL stack_id 병합에 그대로 재사용하면 "전류가 같다"는 틀린
     # 제약을 강제하게 된다(이 회로에서 실제로 서로 다른 free theta인 r_classab_src/
     # r_diode_M11a가 같은 stack에 섞여 즉시 ValueError로 드러남) -- (1)은 branch_symmetric을
-    # 제외한 쌍(current_mirror/diff_pair)만 쓰고, (2) 레이아웃 매칭 목적은 원래 의도대로
+    # 제외한 쌍(current_matched/diff_pair)만 쓰고, (2) 레이아웃 매칭 목적은 원래 의도대로
     # branch_symmetric까지 포함한 전체 집합을 그대로 쓴다.
-    _kcl_pairs = [tuple(p["names"]) for p in pairs_meta if p["kind"] != "branch_symmetric"]
+    #
+    # 2026-08(세션6) -- "current_mirror"(구조적 사실, 전류 독립)도 branch_symmetric과 같은
+    # 이유로 (1)에서 제외한다 -- 위 auto_mirror_ratios 주석 참고. KCL 강제 병합은 이제
+    # "current_matched"(진짜 같은 전류)만 쓴다.
+    _kcl_pairs = [tuple(p["names"]) for p in pairs_meta
+                  if p["kind"] not in ("branch_symmetric", "current_mirror")]
     _geometry_pairs = [tuple(p["names"]) for p in pairs_meta]
     stack_groups_kcl = derive_stack_groups(transistors, _kcl_pairs)
     stack_groups_geometry = spec.get("stack_groups_override") or derive_stack_groups(
@@ -2063,6 +2185,15 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             if "ID" not in entry:
                 raise ValueError(f"{name}: A엔진(propagate_topology_forced_currents)이 전류를 "
                                   f"못 정했다 -- mirror_ratios/seed_currents(theta feeds)를 확인할 것")
+            if entry["ID"] <= 0:
+                # 2026-08(세션6) -- "A_signed"(부호 있는 KCL 합) theta가 이 theta 격자점에서
+                # 음수 전류를 만들면(예: kcl_battery_M9b=ID(M8)-ID(M9a)가 K_replica/
+                # r_classab_src 조합에 따라 음수가 됨, 실측 발견) 이건 "선언 누락"이 아니라
+                # "이 조합은 물리적으로 불가능"이라는 뜻 -- ValueError를 바로 내는 대신
+                # InfeasibleSizingError로 구분해 grid search가 이 점만 건너뛰게 한다.
+                raise InfeasibleSizingError(
+                    f"{name}: ID={entry['ID']:.6g}A <= 0 -- 이 theta 조합에서 물리적으로 "
+                    f"불가능한 전류(A_signed KCL 뺄셈이 음수가 됨)")
             L, vds = entry.get("L"), entry.get("vds")
             if L is None or vds is None:
                 raise ValueError(f"{name}: L 또는 VDS가 미확정 -- device_roles의 L_role/"
@@ -2098,9 +2229,21 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                   for i in range(grid_points_per_theta)] for t in thetas]
         best = None
         last_metrics, last_theta = None, None
+        n_physically_infeasible = 0
+        last_infeasible_reason, last_infeasible_theta = None, None
         for combo in itertools.product(*grids):
             theta_values = dict(zip(names, combo))
-            ctx, metrics_result = _evaluate(theta_values)
+            # 2026-08(세션6) -- A_signed(부호 있는 KCL 합) theta가 이 조합에서 음수 전류를
+            # 만들면 InfeasibleSizingError가 난다(위 클래스 docstring 참고) -- 이건 진짜
+            # "선언 누락"이 아니라 "이 theta 조합은 물리적으로 말이 안 된다"는 뜻이라
+            # constraints 위반과 똑같이 이 조합만 건너뛴다(그 외 ValueError는 여전히 즉시
+            # 크래시).
+            try:
+                ctx, metrics_result = _evaluate(theta_values)
+            except InfeasibleSizingError as e:
+                n_physically_infeasible += 1
+                last_infeasible_reason, last_infeasible_theta = str(e), theta_values
+                continue
             last_metrics, last_theta = metrics_result, theta_values
             feasible = all(_CONSTRAINT_OPS[c["op"]](metrics_result[c["metric"]], c["value"])
                            for c in constraints)
@@ -2121,7 +2264,9 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             raise ValueError(
                 f"모든 theta 격자점이 infeasible -- bounds/constraints를 확인하세요. "
                 f"마지막 평가 조합의 theta={last_theta}, metrics={last_metrics}, "
-                f"위반된 제약={_violations}")
+                f"위반된 제약={_violations}. "
+                f"물리적으로 불가능해 건너뛴 조합 {n_physically_infeasible}개(마지막 사유: "
+                f"{last_infeasible_reason}, theta={last_infeasible_theta})")
         _, theta_star, sizing, metrics_result = best
 
     sizing_overrides, pipeline_result, audit_ok = None, None, None
