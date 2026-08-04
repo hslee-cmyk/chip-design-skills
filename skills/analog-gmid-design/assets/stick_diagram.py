@@ -5361,8 +5361,11 @@ if __name__ == "__main__":
 
     print()
     print("  [repair_matching_safety() -- known-incidents.md 사고3 재현: folded_cascode.topology.json의")
-    print("  current_mirror 쌍(어느 이름인지는 topology.json의 symmetry.matching_pairs에서")
-    print("  직접 찾는다 -- 특정 소자명을 테스트가 가정하지 않음, 2026-07-31 사용자 지적으로 교체)")
+    print("  current_matched 쌍(어느 이름인지는 topology.json의 symmetry.matching_pairs에서")
+    print("  직접 찾는다 -- 특정 소자명을 테스트가 가정하지 않음, 2026-07-31 사용자 지적으로 교체.")
+    print("  2026-08 세션6에서 kind 이름이 'current_mirror'->'current_matched'로 바뀌어 픽스처도")
+    print("  같이 옮김 -- folded_cascode.topology.json엔 이제 진짜 전류강제 미러가 전부")
+    print("  current_matched로 선언돼 있다, sizing_recipe.py 세션6 주석 참고)")
     print("  이 쌍이 서로 다른 행에 통째로 분리 배치된 걸 자동으로 interdigitate 재배치하는지]")
     _fc_by_name = {t.name: t for t in _fc_loaded}
 
@@ -5376,15 +5379,15 @@ if __name__ == "__main__":
                               f"없다 -- 테스트 픽스처를 다시 확인할 것")
 
     _fc_pairs_meta = _fc_meta["symmetry"]["matching_pairs"]
-    _mirror_a, _mirror_b = _first_pair_of_kind(_fc_pairs_meta, "current_mirror")
-    print(f"    (JSON에서 발견한 current_mirror 쌍: {_mirror_a}/{_mirror_b})")
+    _mirror_a, _mirror_b = _first_pair_of_kind(_fc_pairs_meta, "current_matched")
+    print(f"    (JSON에서 발견한 current_matched 쌍: {_mirror_a}/{_mirror_b})")
     # n_fingers/stack_id는 topology.json에 없는 sizing/layout 산출물이라 테스트가 직접
     # 지정한다(§1 스키마 원칙) -- source/drain/gate(connectivity)는 파일에서 그대로 읽은 값.
     _t_mirror_a = _dc_replace(_fc_by_name[_mirror_a], n_fingers=3, stack_id="row0")
     _t_mirror_b = _dc_replace(_fc_by_name[_mirror_b], n_fingers=3, stack_id="row1")
     _repair_rows_before = {"row0": [_t_mirror_a], "row1": [_t_mirror_b]}
     _repair_pairs = [(_mirror_a, _mirror_b)]
-    _repair_kinds = {(_mirror_a, _mirror_b): "current_mirror"}
+    _repair_kinds = {(_mirror_a, _mirror_b): "current_matched"}
     _before_audit = audit_row_split(_repair_rows_before, matching_pairs=_repair_pairs, pair_kinds=_repair_kinds)
     assert not _before_audit.ok, "수리 전인데 이미 PASS -- 재현 시나리오 실패"
     print(f"    수리 전: ok={_before_audit.ok} (예상대로 FAIL -- 분리배치로 3b 인접성 실패, 사고3 재현)")
@@ -5430,8 +5433,8 @@ if __name__ == "__main__":
     # M5/M6(branch_symmetric)/M7/M8(branch_symmetric) pair가 전부 합쳐져 4소자 그룹 하나가 된다.
     assert frozenset({"M5", "M6", "M7", "M8"}) in _fc_group_sets, \
         f"M5/M6/M7/M8이 outA/outB 내부노드+matching_pairs로 하나의 그룹이 돼야 하는데 안 됨: {_fc_group_sets}"
-    assert frozenset({"M3", "M4"}) in _fc_group_sets, "M3/M4(current_mirror)가 한 그룹이 아님"
-    assert frozenset({"M9", "M10"}) in _fc_group_sets, "M9/M10(current_mirror)가 한 그룹이 아님"
+    assert frozenset({"M3", "M4"}) in _fc_group_sets, "M3/M4(current_matched)가 한 그룹이 아님"
+    assert frozenset({"M9", "M10"}) in _fc_group_sets, "M9/M10(current_matched)가 한 그룹이 아님"
     assert frozenset({"M1", "M2"}) in _fc_group_sets, "M1/M2(diff_pair)가 한 그룹이 아님"
     for _singleton in ("MP", "M11", "MN"):
         assert frozenset({_singleton}) in _fc_group_sets, \
