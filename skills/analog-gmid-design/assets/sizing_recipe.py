@@ -2294,6 +2294,114 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
 
 
 # ---------------------------------------------------------------------------
+# 6.10) L4 — 레이아웃 finger override 후 gm/ID 스펙 재검증(세션13, .ai/context.md 참고)
+#       stick_diagram.py의 suggest_pair_finger_adjustments()/mirror_symmetric_trail()이
+#       레이아웃(오일러 trail) 조건을 맞추려고 n_fingers를 조정하면 그 소자의 실제
+#       W(=n_fingers*finger_w)가 gm/ID 사이징이 원래 계산한 W와 달라진다 -- ID는 topology
+#       (KCL/미러비)만으로 W와 독립적으로 이미 확정돼 있으므로(§6.9 A엔진), 이 함수는 "ID는
+#       그대로 두고 강제된 새 W에서 실제로 도달하는 gm_id"를 역산한 뒤 그 소자를 참조하는
+#       metric/constraint만 다시 확인한다(전체 theta grid search 재실행 불필요).
+#
+#       ⚠️ 범위(2026-08, 세션13 사용자 확정): `_METRICS_REGISTRY` 기반 지표(gain/mismatch/
+#       cmrr/psrr/noise/classab centering 등)만 재검증한다. GBW/PM은 이 함수의 책임이
+#       아니다 -- `optimize_multistage()` 자신의 docstring이 이미 "PM 등 회로 레벨 성능은
+#       검증하지 않는다, 최종 PM은 SPICE로 확인"이라고 명시하고 있고(위상보상 topology_fn은
+#       스펙->gm 정방향 폐형식만 가짐, 역방향(실제 상태->실제 GBW/PM) 계산은 이 코드베이스
+#       어디에도 없다), 실제 topology.json 4개 전부(2026-08-05 확인) GBW를 constraints로
+#       선언하지도 않는다 -- 지금 만들어도 검증할 대상이 없다. 필요해지면 별도 설계로.
+# ---------------------------------------------------------------------------
+
+def _collect_device_refs(spec, known_names: set) -> set:
+    """`spec`(metric_spec처럼 임의로 중첩된 dict/list) 안의 문자열 leaf 중 `known_names`에
+    속하는 것만 재귀로 모은다 -- metric마다 소자를 가리키는 키 이름이 제각각이라
+    (`devices`/`stages`/`device`/`tail_device`/`high_device`/... , _METRICS_REGISTRY 9종
+    확인) 특정 키에 의존하지 않고 구조 전체를 훑는다."""
+    found = set()
+
+    def walk(x):
+        if isinstance(x, str):
+            if x in known_names:
+                found.add(x)
+        elif isinstance(x, dict):
+            for v in x.values():
+                walk(v)
+        elif isinstance(x, (list, tuple)):
+            for v in x:
+                walk(v)
+
+    walk(spec)
+    return found
+
+
+def revalidate_finger_override(ctx: SizingContext, lut_by_kind: dict, overrides: dict,
+                                metrics_specs: dict, constraints: list,
+                                gm_id_bounds: tuple = (2.0, 30.0)) -> dict:
+    """`overrides`(`{device_name: new_W}`, finger 반올림으로 실제 강제된 W)가 gm/ID
+    스펙을 깨지 않는지 재검증한다 -- L3(레이아웃)가 L4(사이징)에 피드백하는 지점.
+
+    **원리**: `ctx.sized[name]["ID"]`는 topology(KCL/미러비)로 이미 확정된 값이라 W가
+    바뀌어도 그대로다(§6.9 A엔진 -- ID는 W와 무관하게 먼저 정해진다). 그래서 새 W에서
+    이 소자가 실제로 동작하는 gm_id를 `_invert_gm_id_for_current()`(ID/L/vds/vs 고정,
+    W만 새 값 -- diode-stack 역산에 쓰던 것과 동일한 이분탐색)로 역산하고,
+    `gm=ID*gm_id`/`gds=gm/gm_gds_ratio(...)`로 갱신한 새 컨텍스트를 만든다. 원본 `ctx`는
+    건드리지 않는다(순수 함수).
+
+    영향받는 metric만 골라(`_collect_device_refs()`) `compute_metric()`으로 새/구 값을
+    비교하고, 그 metric을 참조하는 constraint만 재판정한다 -- `overrides`와 무관한
+    metric/constraint는 아예 안 건드린다(전체 grid search 재실행 없이 저비용으로 끝남).
+
+    `gm_id_bounds`는 `_invert_gm_id_for_current()`에 그대로 전달된다(다른 B/C엔진 함수들과
+    동일 패턴) -- LUT의 실제 유효 gm/ID 범위가 기본값(2.0~30.0)보다 좁으면 좁혀서 넘길 것
+    (예: `build_toy_lut()`는 ~1.85~29.6이라 기본 상단을 살짝 벗어난다).
+
+    반환: `{"ok": bool, "device_updates": {name: {old_W,new_W,old_gm_id,new_gm_id,
+    old_gm,new_gm,old_gds,new_gds}}, "metric_deltas": {metric_name: {"old","new"}},
+    "violated_constraints": [{**constraint, "actual": new_value}, ...],
+    "unaffected_metrics_skipped": [metric_name, ...]}`."""
+    device_updates = {}
+    new_sized = dict(ctx.sized)
+    for name, new_W in overrides.items():
+        entry = ctx.sized[name]
+        lut = lut_by_kind[entry["kind"]]
+        ID, L, vds, vs = entry["ID"], entry["L"], entry.get("vds", 0.0), entry.get("vs", 0.0)
+        new_gm_id = _invert_gm_id_for_current(lut, ID, L, vds, vs, new_W, gm_id_bounds=gm_id_bounds)
+        new_gm = ID * new_gm_id
+        new_gds = new_gm / lut.gm_gds_ratio(new_gm_id, L, vds, vs)
+        new_sized[name] = {**entry, "W": new_W, "gm_id": new_gm_id, "gm": new_gm, "gds": new_gds}
+        device_updates[name] = {
+            "old_W": entry["W"], "new_W": new_W,
+            "old_gm_id": entry["gm_id"], "new_gm_id": new_gm_id,
+            "old_gm": entry["gm"], "new_gm": new_gm,
+            "old_gds": entry.get("gds"), "new_gds": new_gds,
+        }
+    new_ctx = _dc_replace(ctx, sized=new_sized)
+
+    known_names = set(ctx.sized)
+    affected_metrics = {mname for mname, mspec in metrics_specs.items()
+                         if _collect_device_refs(mspec, known_names) & set(overrides)}
+
+    metric_deltas = {mname: {"old": compute_metric(metrics_specs[mname], ctx),
+                              "new": compute_metric(metrics_specs[mname], new_ctx)}
+                      for mname in affected_metrics}
+
+    violated = []
+    for c in constraints:
+        if c["metric"] not in affected_metrics:
+            continue
+        new_val = metric_deltas[c["metric"]]["new"]
+        if not _CONSTRAINT_OPS[c["op"]](new_val, c["value"]):
+            violated.append({**c, "actual": new_val})
+
+    return {
+        "ok": not violated,
+        "device_updates": device_updates,
+        "metric_deltas": metric_deltas,
+        "violated_constraints": violated,
+        "unaffected_metrics_skipped": sorted(set(metrics_specs) - affected_metrics),
+    }
+
+
+# ---------------------------------------------------------------------------
 # 7) 사용 예시 — toy LUT로 end-to-end 실행 (실제 공정 데이터로 교체 시 동일하게 동작)
 # ---------------------------------------------------------------------------
 
@@ -2478,6 +2586,63 @@ if __name__ == "__main__":
         raise AssertionError("등록 안 된 metric 타입인데 에러가 안 났다")
     except ValueError as _e_metric:
         print(f"    PASS: 등록 안 된 metric 타입은 ValueError로 즉시 거부 -- {str(_e_metric)[:60]}...")
+
+    print()
+    print("  [L4 revalidate_finger_override() -- finger 반올림으로 W가 강제로 바뀌어도 ID는")
+    print("  그대로라는 원칙(A엔진)을 재확인하고, 영향받는 metric/constraint만 재검증하는지]")
+    _l4_L, _l4_vds, _l4_gm_id = 0.5e-6, 0.6, 12.0
+    _l4_r1 = size_transistor(gm=200e-6, gm_id=_l4_gm_id, L=_l4_L, lut=lut, vds=_l4_vds)
+    _l4_gds1 = _l4_r1.gm / lut.gm_gds_ratio(_l4_gm_id, _l4_L, _l4_vds, 0.0)
+    _l4_r3 = size_transistor(gm=80e-6, gm_id=10.0, L=_l4_L, lut=lut, vds=_l4_vds)
+    _l4_gain_baseline = 20 * math.log10((_l4_r1.gm + _l4_r1.gm) / (_l4_gds1 + _l4_gds1))
+    _l4_ctx = SizingContext(sized={
+        "M1": {"ID": _l4_r1.ID, "W": _l4_r1.W, "L": _l4_L, "gm": _l4_r1.gm, "gm_id": _l4_gm_id,
+               "gds": _l4_gds1, "kind": "nmos", "vds": _l4_vds, "vs": 0.0},
+        "M2": {"ID": _l4_r1.ID, "W": _l4_r1.W, "L": _l4_L, "gm": _l4_r1.gm, "gm_id": _l4_gm_id,
+               "gds": _l4_gds1, "kind": "nmos", "vds": _l4_vds, "vs": 0.0},
+        "M3": {"ID": _l4_r3.ID, "W": _l4_r3.W, "L": _l4_L, "gm": _l4_r3.gm, "gm_id": 10.0,
+               "gds": 0.0, "kind": "nmos", "vds": _l4_vds, "vs": 0.0},
+    })
+    _l4_metrics_specs = {
+        "stage_gain": {"type": "gain_stages_sum", "stages": [["M1", "M2"]]},
+        "other_current": {"type": "sum_current", "devices": ["M3"]},
+    }
+    _l4_threshold = _l4_gain_baseline - 0.5
+    _l4_constraints = [
+        {"metric": "stage_gain", "op": ">=", "value": _l4_threshold},
+        {"metric": "other_current", "op": "<=", "value": 100e-6},
+    ]
+    print(f"    baseline stage_gain={_l4_gain_baseline:.4f}dB, constraint>={_l4_threshold:.4f}dB "
+          f"(M1/M2 diff pair, M3는 무관한 소자)")
+
+    print("    [M1의 W를 10% 축소(finger 반올림 시뮬레이션) -- 여전히 constraint 통과해야 함]")
+    _l4_pass_result = revalidate_finger_override(
+        _l4_ctx, {"nmos": lut}, {"M1": _l4_r1.W * 0.9}, _l4_metrics_specs, _l4_constraints,
+        gm_id_bounds=(2.0, 28.0))
+    _l4_du_pass = _l4_pass_result["device_updates"]["M1"]
+    assert abs(_l4_du_pass["new_gm"] / _l4_du_pass["new_gm_id"] - _l4_r1.ID) < 1e-15, \
+        "ID가 보존되지 않음 -- W가 바뀌어도 ID는 topology로 고정이어야 한다"
+    assert _l4_pass_result["ok"] and not _l4_pass_result["violated_constraints"], \
+        "10% 축소는 여전히 constraint를 통과해야 하는데 위반으로 나옴"
+    assert _l4_pass_result["unaffected_metrics_skipped"] == ["other_current"], \
+        "M3를 안 건드렸으니 other_current는 재계산 스킵 목록에 있어야 한다"
+    print(f"    PASS: ID 보존 확인(diff=0), new_gain={_l4_pass_result['metric_deltas']['stage_gain']['new']:.4f}dB "
+          f"(통과), other_current는 무관해서 재계산 스킵")
+
+    print("    [M1의 W를 40% 축소 -- 이번엔 constraint를 실제로 위반해야 함]")
+    _l4_fail_result = revalidate_finger_override(
+        _l4_ctx, {"nmos": lut}, {"M1": _l4_r1.W * 0.6}, _l4_metrics_specs, _l4_constraints,
+        gm_id_bounds=(2.0, 28.0))
+    assert not _l4_fail_result["ok"], "40% 축소는 gain을 threshold 밑으로 떨어뜨려야 하는데 ok=True로 나옴"
+    assert len(_l4_fail_result["violated_constraints"]) == 1 and \
+        _l4_fail_result["violated_constraints"][0]["metric"] == "stage_gain", \
+        "위반된 constraint가 정확히 stage_gain 하나여야 한다"
+    print(f"    PASS: new_gain={_l4_fail_result['metric_deltas']['stage_gain']['new']:.4f}dB < "
+          f"threshold={_l4_threshold:.4f}dB -- violated_constraints로 정확히 검출됨")
+
+    print("    [원본 ctx는 건드리지 않는 순수 함수인지]")
+    assert _l4_ctx.sized["M1"]["W"] == _l4_r1.W, "revalidate_finger_override()가 원본 ctx를 변형했다"
+    print("    PASS: 원본 ctx.sized['M1']['W'] 불변")
 
     print()
     print("# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --")

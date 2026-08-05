@@ -1,25 +1,27 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-05, 세션12 끝 — 다음은 세션13)
+# 세션 컨텍스트 (최종 갱신: 2026-08-05, 세션13 끝 — 다음은 세션14)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-1. **세션12에서 `stick_diagram.py`를 다시 수정했지만 아직 커밋 안 됨** — `git status`로
-   확인 가능. 세션11의 D(`mirror_symmetric_trail()` 신설)는 이미 `cecbe33` 커밋에 반영돼
-   있었고(세션12 시작 시 확인), 세션12는 그 위에 **매칭쌍 단위 핑거조정
-   (`suggest_pair_finger_adjustments()`) + 홀수 self-pair "다리" 지원(대표 조합 탐색)**을
-   추가했다. **다음 세션 시작 시 먼저 커밋할지 사용자에게 확인할 것.**
-2. **세션11 "다음 우선순위"였던 매칭쌍 단위 핑거조정 + L3 다리 지원 둘 다 구현 완료 +
-   self-test 통과** — `current_reuse_telescopic_ota`의 실제 M3a 그룹(11소자, 매칭쌍 4개
-   + 홀수 self-pair 3개)이 **핑거조정 1건(M9b/M18b +1) + 다리 지원**만으로 완전히
-   풀린다는 것을 실측으로 검증(아래 "세션12 결론" 참고). 남은 건: **L4 피드백**(핑거
-   변경이 gm/ID 스펙을 깨지 않는지 재검증 — 아직 미구현) + **node_map 기반 그룹분할**
-   (이번엔 필요 없었지만 여전히 미구현 — 다른 그룹에서 필요할 수 있음).
-3. **`run_harness.py`는 세션11에 "hang이 아니라 진짜 몇 시간 걸리는 전수탐색"임을 확정하고
+1. **세션12+세션13 수정이 아직 커밋 안 됨** — `git status`로 확인 가능(세션12 작업물은
+   `stick_diagram.py`, 세션13 작업물은 `sizing_recipe.py`). **다음 세션 시작 시 먼저
+   커밋할지 사용자에게 확인할 것.**
+2. **L4(핑거조정 후 gm/ID 스펙 재검증) 구현 완료** — `revalidate_finger_override()`
+   (`sizing_recipe.py`) 신설, self-test 3건(ID 보존/통과 케이스/위반 케이스) 통과.
+   범위는 `_METRICS_REGISTRY` 기반 지표(gain/mismatch/cmrr/psrr/noise/classab centering
+   등)만 — **GBW/PM은 의도적으로 범위 밖**(아래 "세션13 결론" B절 참고, 근거 있음).
+   이걸로 세션11~13에 걸친 L3(레이아웃)→L4(사이징) 연결 문제가 처음으로 끝까지 닫혔다.
+3. **`sizing_recipe.py` 전체 self-test 회귀 확인 완료** — 세션13 편집 전(커밋 `d59570f`)
+   출력과 새 L4 self-test 10줄을 뺀 나머지가 **완전히 바이트 단위로 동일**(`diff
+   --strip-trailing-cr` 0줄 차이, 182줄→192줄로 증가분만 L4 추가). 무회귀 확정.
+4. **`run_harness.py`는 세션11에 "hang이 아니라 진짜 몇 시간 걸리는 전수탐색"임을 확정하고
    사용자 지시로 중단**했다 — 재실행은 보류 상태, 코드/전략(그리드 범위 축소, 다른 최적화
-   방식 등) 논의가 먼저 필요하다(아래 "세션11 — run_harness.py 최종 진단" 참고). 세션12는
+   방식 등) 논의가 먼저 필요하다(아래 "세션11 — run_harness.py 최종 진단" 참고). 세션12/13은
    이 항목을 다루지 않았다.
+5. **node_map 기반 그룹분할은 여전히 미구현** — 세션12의 M3a 그룹은 필요 없었지만(핑거조정+
+   다리로 풀림), 다른 그룹에서 필요해질 수 있다(세션11 B-5-2 원안 참고).
 
 ## 배경 — 이 기능이 뭐고 왜 하는가 (세션5~11 공통, 참고용)
 
@@ -233,29 +235,117 @@ self-pair(다리)도 이번에 같이 다뤄줘"라고 범위를 확장 요청 �
 
 ---
 
-## L4. 사이징→레이아웃 연결 문제 (미설계, 세션8부터 그대로 + 세션11이 구체적 연결점 확인)
+## L4. 사이징→레이아웃 연결 문제 — 세션13에 구현 완료(아래 "세션13 결론" 참고)
 
 `assign_finger_geometry()`가 축B(`shares_node`) 값을 몰라서, 짝수 finger가 필요한 매칭 쌍에
-그 제약을 전달하는 로직이 없다는 게 원래 문제였다. **세션11이 추가로 확인한 것**: 위 B-4/B-5의
-"매칭쌍 단위 핑거 조정"이 실제로 동작하려면, `n_fingers` 변경이 그 소자의 실제 `W`
-(`=n_fingers×finger_w`)를 바꾸는데 — 이게 gm/ID 사이징이 계산한 값과 어긋나지 않는지
-**L4가 재검증해야 한다**. 즉 L3(레이아웃 trail 구성)와 L4(사이징 피드백)가 세션11에서
-처음으로 구체적인 연결점(핑거 조정)을 갖게 됐다 — 다음 세션 설계 시작점.
+그 제약을 전달하는 로직이 없다는 게 원래 문제였다(세션8~11). 세션11이 "매칭쌍 단위 핑거
+조정 → gm/ID 재검증 필요"라는 구체적 연결점을 확인했고, **세션13에 `revalidate_finger_
+override()`로 실제 구현됨** — L3(레이아웃 trail 구성)→L4(사이징 피드백) 연결이 처음으로
+끝까지 닫혔다. 상세는 아래 "세션13 결론" 참고.
 
 - `two_stage_ota`의 box-shape 실측 사례(세션10 발견, `M6` vs `M3`/`M5` W 격차)는 여전히
-  L4 미해결의 정보성 사례로 유효.
+  L4 실전 적용(실제 회로에 붙여서 돌려보는 것)의 정보성 사례로 유효 — 이번 세션은 함수
+  자체만 구현했고, 실제 topology.json에 배선해서 end-to-end로 돌려보는 건 아직 안 함.
+
+---
+
+# 세션13 결론 — L4(핑거조정 후 gm/ID 스펙 재검증) `revalidate_finger_override()` 구현
+
+세션12 마지막에 남긴 "다음 우선순위: L4"를 그대로 시작. 설계 전에 `sizing_recipe.py` 구조를
+먼저 조사(에이전트 위임 + 직접 확인)했고, 그 과정에서 GBW/PM 범위를 두고 두 번 방향을
+좁혔다(아래 A/B절) — 상상으로 채우지 않고 실제 코드/topology.json을 확인한 뒤에만 범위를
+정했다.
+
+## A. 조사로 확인된 구조 (설계의 근거)
+
+- **ID는 W와 완전히 독립적으로 먼저 확정된다** — `propagate_topology_forced_currents()`/
+  `kcl_series_union()`(둘 다 stick_diagram.py)이 topology(직렬스택+미러비)만으로 ID를
+  정하고, W는 그 다음에 gm/ID LUT에서 역산(`size_transistor()`, `W=L*ID/IDu`)된다. 즉
+  finger 조정으로 W가 강제로 바뀌어도 **ID는 안 바뀐다** — 이게 L4 전체 설계의 전제.
+- **`compute_metric(metric_spec, ctx)`은 `ctx.sized`만 읽는 순수 함수**(sizing_recipe.py:
+  1591) — 소자 하나의 상태만 바꾼 새 `ctx`로 관련 metric만 재계산하면 되고, `optimize_
+  full_circuit_budget()`의 전체 theta grid search를 다시 돌 필요가 없다.
+- **`_invert_gm_id_for_current(lut, current, L, vds, vs, W, gm_id_bounds, tol, max_iter)`**
+  (sizing_recipe.py:897, 기존 함수, C엔진 `solve_diode_stack_current()`가 이미 씀) — "전류
+  고정 + 강제된 W → 실제 gm_id"를 정확히 이분탐색으로 역산한다. L4에 필요한 역산을 새
+  수치해석 코드 없이 그대로 재사용할 수 있었다.
+- **`constraints`는 `[{"metric": <metrics_specs 키>, "op", "value"}, ...]`** 자유 형식이고,
+  각 metric_spec이 소자를 가리키는 키 이름은 `devices`/`stages`/`device`/`tail_device`/
+  `high_device`/`low_device` 등 제각각이다(`_METRICS_REGISTRY` 9종 직접 확인) — 특정 키에
+  의존하지 않는 재귀 탐색(`_collect_device_refs()`)으로 일반화했다.
+
+## B. GBW/PM 범위 결정 — 두 번의 재조사로 좁혀짐
+
+1. **1차**: 사용자가 GBW/PM 포함을 요청 → `optimize_multistage()`(sizing_recipe.py:428)의
+   docstring을 직접 확인하니 "PM(위상마진) 등 회로 레벨 성능은 검증하지 않는다 — topology_fn
+   방정식이 이미 그렇다고 가정할 뿐, 실제 PM은 SPICE로 확인해야 한다"고 명시돼 있었다.
+   즉 이 Python 엔진은 **스펙→gm 정방향 폐형식만** 갖고, "실제 상태→실제 GBW/PM" 역방향
+   계산은 코드베이스 어디에도 없다(의도된 설계, 버그 아님). GBW만은 `miller_ota_topology()`
+   (topology_library.py:32)의 `gm1=2π·GBW·Cm` 정방향 식을 그대로 뒤집으면(`Cm`은 실제
+   커패시터라 finger 조정으로 안 바뀜) 성립하지만, PM은 극점비(Z)→실제 PM(도) 매핑 공식이
+   코드베이스에 없어 지금 만들면 근거 없는 발명(프로젝트 원칙 위반)이 된다.
+2. **2차(사용자가 GBW만이라도 포함 요청)**: 실제 topology.json 4개(`current_reuse_
+   telescopic_ota`/`folded_cascode`/`nmcnr_amplifier`/`two_stage_ota`) 전부의 `constraints`
+   를 직접 열어 확인하니 **GBW를 constraint로 선언한 회로가 하나도 없었다**(GBW는
+   `compensation.parameters` 입력으로만 쓰임). 특히 이번 L4의 실제 동기였던 M3a의 부모
+   회로 `current_reuse_telescopic_ota`는 `current_reuse_telescopic_topology`(Xie&Chen
+   Eq.2-6, Miller보다 복잡한 class-AB 보상식)를 쓰고 `constraints`는 `gain_db/mismatch_
+   sigma_mV/cmrr_estimate_db/psrr_estimate_db/classab_centering_dev_v` 5개뿐이었다 —
+   Miller 전용 역산조차 지금 당장 검증할 대상이 없다는 뜻. **사용자가 이 근거를 보고
+   "지금은 metrics_registry만, GBW는 필요해질 때 추가"로 최종 확정**했다.
+
+## C. 구현 (`sizing_recipe.py`, §6.10 신설, 아직 미커밋)
+
+- `_collect_device_refs(spec, known_names)` — metric_spec을 재귀로 훑어 소자명 문자열만
+  수집하는 범용 헬퍼(위 A절 마지막 항목).
+- `revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs, constraints,
+  gm_id_bounds=(2.0,30.0))` — `overrides={device_name: new_W}`를 받아: (1) 각 소자의
+  ID/L/vds/vs는 고정, `_invert_gm_id_for_current()`로 새 gm_id 역산 → `gm=ID*gm_id`,
+  `gds=gm/lut.gm_gds_ratio(...)`로 갱신한 새 `ctx`(원본 불변, 순수함수) 생성. (2)
+  `_collect_device_refs()`로 `overrides` 소자를 참조하는 metric만 골라 `compute_metric()`
+  구/신 비교. (3) 그 metric을 참조하는 constraint만 `_CONSTRAINT_OPS`로 재판정.
+  반환: `{"ok", "device_updates", "metric_deltas", "violated_constraints",
+  "unaffected_metrics_skipped"}`.
+- `gm_id_bounds` 파라미터 신설(기본 `(2.0,30.0)`, `_invert_gm_id_for_current()`에 그대로
+  전달) — `build_toy_lut()`의 실제 유효범위(~1.85~29.6)가 기본 상단보다 좁아 self-test
+  작성 중 실측으로 필요성 확인, 다른 B/C엔진 함수(`solve_diode_stack_current()` 등)와
+  동일 패턴.
+- self-test 3건(sizing_recipe.py self-test, "L4 revalidate_finger_override()" 섹션,
+  F엔진 `compute_metric()` 테스트 직후): (1) M1 W를 10% 축소해도 ID 보존(`new_gm/new_
+  gm_id`가 원래 ID와 오차 0) + constraint 그대로 통과 + 무관한 M3 metric은 재계산
+  스킵 목록에 정확히 들어감. (2) M1 W를 40% 축소하면 실제로 gain이 threshold 밑으로
+  떨어져 `violated_constraints`에 정확히 `stage_gain` 하나만 잡힘. (3) 원본 `ctx.sized`가
+  변형되지 않는 순수함수인지 확인.
+- **회귀**: `sizing_recipe.py` self-test 전체 재실행 — 세션13 편집 전(`d59570f`)과
+  L4 신규 10줄을 뺀 나머지가 바이트 단위로 완전히 동일(`diff --strip-trailing-cr` 0줄
+  차이). 무회귀 확정.
+
+## D. 알려진 한계 / 다음 확장 지점
+
+- **GBW/PM은 범위 밖**(위 B절 근거) — 필요해지면: (1) 어느 topology.json이든 `constraints`
+  에 `gbw`류 metric을 실제로 선언하는 회로가 생기면, (2) 그 회로의 compensation 함수가
+  Miller처럼 단순 역산 가능한지 확인 후, (3) PM은 여전히 SPICE 전용으로 남기고 GBW만
+  `_METRICS_REGISTRY`에 새 metric 타입으로 등록하는 확장을 검토.
+- **아직 실제 회로에 배선 안 됨** — `revalidate_finger_override()`는 함수 자체만 구현·
+  self-test로 검증됐고, `suggest_pair_finger_adjustments()`의 제안을 실제로 적용한 뒤
+  이 함수를 자동으로 호출해 승인/거부하는 상위 오케스트레이션(예:
+  `apply_and_revalidate_pair_adjustment()`류)은 아직 없다 — 다음 세션 후보.
+- `lut_by_kind`/`metrics_specs`/`constraints`를 호출자가 `load_topology()`/`optimize_
+  full_circuit_budget()`의 `spec`에서 직접 꺼내 넘겨야 한다(이 함수가 topology.json을
+  직접 읽지 않음, 기존 F엔진 `compute_metric()`과 동일한 저수준 계약).
 
 ---
 
 ## 다음 세션 작업 순서 (권장, 각 단계 사용자 승인 필수)
 
-1. `stick_diagram.py` 커밋 여부 확인(위 "지금 상태" 1번) — 세션11 D + 세션12(핑거조정+다리)
-   둘 다 포함해서 한 번에 커밋할지, 나눠서 할지 사용자에게 먼저 확인.
-2. ~~매칭쌍 단위 핑거 조정 함수~~ / ~~홀수 self-pair 다리 지원~~ — **세션12에 완료**(위
-   "세션12 결론" 참고). M3a 그룹 실측으로 완전히 검증됨.
-3. **L4 피드백 설계** — `suggest_pair_finger_adjustments()`의 핑거 조정 제안이 gm/ID
-   스펙(`optimize_full_circuit_budget()`의 `constraints`)을 깨지 않는지 확인하는 절차.
-   아직 미구현 — 이제 L3 쪽(D-1/D-2)이 완성됐으니 다음 세션 최우선 후보.
+1. `stick_diagram.py`(세션12)+`sizing_recipe.py`(세션13) 커밋 여부 확인(위 "지금 상태" 1번).
+2. ~~매칭쌍 단위 핑거 조정 함수~~ / ~~홀수 self-pair 다리 지원~~ / ~~L4 피드백~~ — **전부
+   세션12~13에 완료**(위 "세션12 결론"/"세션13 결론" 참고). L3→L4 연결이 처음으로 끝까지
+   닫혔다.
+3. **`revalidate_finger_override()`를 실제 회로에 배선** — 지금은 함수 자체+self-test만
+   있고, `suggest_pair_finger_adjustments()`의 제안을 실제로 적용→재검증→승인/거부하는
+   상위 오케스트레이션이 없다(위 "세션13 결론" D절). `current_reuse_telescopic_ota`의
+   M9b/M18b +1 사례로 end-to-end 재현 테스트를 만들 수 있는지가 다음 후보.
 4. **node_map 기반 그룹분할** — `find_min_crossover_layout()`의 홀수노드 짝짓기를
    `node_map` 대응 우선으로 바꾸는 확장(위 B-5-2). M3a는 핑거조정+다리만으로 풀렸지만,
    더 복잡한 그룹(홀수차수가 다리를 포함해도 2개를 못 넘는 경우)엔 여전히 필요할 수 있다 —
@@ -263,9 +353,8 @@ self-pair(다리)도 이번에 같이 다뤄줘"라고 범위를 확장 요청 �
 5. `run_harness.py` 재실행 전략 논의(위 A절 — 그리드 축소 or 다른 최적화 방식).
 6. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
    `current_reuse_telescopic_ota`) — 필요해지면 사람이 직접 사슬 추적해 확인.
-7. 전부 반영 후 self-test 전체 재실행(`stick_diagram.py`/`sizing_recipe.py`) + 위 3~4번의
-   새 테스트로 최종 회귀 확인. `sizing_recipe.py`는 세션12에 타임아웃으로 확인 못함(위
-   "세션12 결론" D-3 참고) — 세션13 시작 시 백그라운드 실행 결과부터 확인할 것.
+7. GBW 재검증 확장(범위 밖으로 미룸, 위 "세션13 결론" D절) — 어느 topology.json이든
+   `constraints`에 GBW를 실제로 선언하는 회로가 생기면 그때 착수.
 8. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
    이어가기.
 9. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
@@ -305,10 +394,24 @@ self-pair(다리)도 이번에 같이 다뤄줘"라고 범위를 확장 요청 �
   - Test 5.6(Test 5.5 직후) — **세션12 신설**, `current_reuse_telescopic_ota` 실제 M3a
     그룹(11소자) 재현: 핑거조정 제안 → 적용 → 다리 지원으로 완전히 풀림 + 조정 없이는
     여전히 `None`인 회귀 대조.
-- `skills/analog-gmid-design/assets/sizing_recipe.py` — 세션11/12 **미수정**(회귀 확인만).
-  `optimize_full_circuit_budget()`(1840행 부근)의 grid loop(2227행 부근
-  `for combo in itertools.product(*grids)`)가 `run_harness.py` 조합 폭발의 실제 위치.
-  세션12 self-test는 2분 타임아웃 — 백그라운드로 재확인 중, 결과는 세션13에서 확인.
+- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션13 수정, 미커밋** — 세션11/12엔
+  미수정이었음)
+  - `revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs, constraints,
+    gm_id_bounds=(2.0,30.0))`(§6.10, `optimize_full_circuit_budget()` 직후) — **세션13
+    신설**, L4. `_invert_gm_id_for_current()`(897행, 기존 함수) 재사용.
+  - `_collect_device_refs(spec, known_names)`(§6.10) — **세션13 신설**, metric_spec에서
+    소자명을 재귀로 추출하는 범용 헬퍼.
+  - `_invert_gm_id_for_current()`(897행) — 기존 함수(C엔진), 세션13이 L4에 그대로 재사용,
+    미변경.
+  - `compute_metric()`/`_METRICS_REGISTRY`(1578/1591행) — 기존 함수, 세션13이 재사용,
+    미변경.
+  - `_CONSTRAINT_OPS`(1816행) — 기존 dict, 세션13이 재사용, 미변경.
+  - self-test 3건("L4 revalidate_finger_override()" 섹션, F엔진 `compute_metric()` 테스트
+    직후) — **세션13 신설**, ID 보존/통과 케이스/위반 케이스.
+  - `optimize_full_circuit_budget()`(1840행 부근)의 grid loop(2227행 부근
+    `for combo in itertools.product(*grids)`)가 `run_harness.py` 조합 폭발의 실제 위치 —
+    세션13 미변경.
+  - self-test 전체 회귀: 확인 완료, 무회귀(위 "지금 상태" 3번/"세션13 결론" C절 참고).
 - `skills/analog-gmid-design/assets/library/*.topology.json` — 세션11/12 **미수정**.
 - `workspaces/current-reuse-telescopic-ota-report/run_harness.py` — 세션11에 중단됨,
   재실행 보류(위 A절 참고). 로그: `run_harness_session11.log`(0바이트, 정상 — 원래
