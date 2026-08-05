@@ -158,8 +158,7 @@
        "_comment": "2026-08(세션6) -- 옛 {M12,M10}/{M21,M19} branch_symmetric을 대체. 넷 다 gate=Vbias4·source=gnd 공유(진짜 구조적 mirror)지만 M12/M21(r_diode_M11a, 하우스키핑 규모)과 M10/M19(kcl_sink, 출력버스 KCL)는 서로 다른 값 -- 같은 gate 공유가 곧 같은 전류를 뜻하지 않는다는 M8/M13류 원칙 그대로 적용, KCL 병합 없는 current_mirror로 재분류(branch_symmetric은 정의상 '공유 노드 없음'인데 이 넷은 두 노드(source/gate)를 공유해 애초에 branch_symmetric 정의에도 안 맞았다). L_role=mirror로 4개 전부 동일해 L 불일치 없음."},
       {"names": ["M37a", "M37b"], "kind": "diff_pair"},
       {"names": ["M36a", "M36b"], "kind": "current_matched",
-       "_comment": "2026-08(세션6) 정정 -- M36a.ID=M37a.ID, M36b.ID=M37b.ID(둘 다 2단자 net 직렬 KCL), M37a=M37b(N_cmfb_bw_mirror theta, ratio=1.0 강제) -> M36a=M36b도 수학적으로 강제됨 -- branch_symmetric->current_matched."},
-      {"names": ["M58", "M57"], "kind": "current_mirror"}
+       "_comment": "2026-08(세션6) 정정 -- M36a.ID=M37a.ID, M36b.ID=M37b.ID(둘 다 2단자 net 직렬 KCL), M37a=M37b(N_cmfb_bw_mirror theta, ratio=1.0 강제) -> M36a=M36b도 수학적으로 강제됨 -- branch_symmetric->current_matched."}
     ],
     "dispositions": [
       {"tag": "hub_merge", "kind": "pmos", "key": "Vx", "category": "real_match",
@@ -171,7 +170,7 @@
       {"tag": "diff_pair", "kind": "nmos", "key": "Ncmfb_tail", "category": "real_match",
        "reason": "M37a/M37b -- matching_pairs 기록과 동일."},
       {"tag": "current_mirror", "kind": "pmos", "key": "Vbias2", "category": "real_match",
-       "reason": "M2a/M2b -- 이미 matching_pairs에 branch_symmetric으로 기록된 진짜 매칭쌍(캐스코드, 게이트 공유 Vbias2). 2026-08-03(세션 4 후속 라운드, _correction_log_7 -- Vbias_p net이 통째로 Vbias2에 흡수) -- M57/M58도 이 그룹에 새로 합류(4명: M2a/M2b/M57/M58). M57(diode, gate=drain=Vbias2)/M58(그 diode 노드를 읽는 소비자)은 M2a/M2b와 무관한 별개의 diode→mirror 체인(Vg15/M11b-M15 등과 동일 패턴)이 우연히 같은 레퍼런스 net을 공유할 뿐 -- 매칭 배치 대상 아님. 옛 'current_mirror/pmos/Vbias_p'(M57/M58 real_match로 잘못 disposed)는 삭제(아래 참고) -- M57/M58은 애초에 real_match가 아니라 diode-chain false-positive였다(2026-07-29 당시 오분류)."},
+       "reason": "M2a/M2b -- 이미 matching_pairs에 branch_symmetric으로 기록된 진짜 매칭쌍(캐스코드, 게이트 공유 Vbias2). 2026-08-03(세션 4 후속 라운드, _correction_log_7 -- Vbias_p net이 통째로 Vbias2에 흡수) -- M57/M58도 이 그룹에 새로 합류(4명: M2a/M2b/M57/M58). M57(diode, gate=drain=Vbias2)/M58(그 diode 노드를 읽는 소비자)은 M2a/M2b와 무관한 별개의 diode→mirror 체인(Vg15/M11b-M15 등과 동일 패턴)이 우연히 같은 레퍼런스 net을 공유할 뿐 -- 매칭 배치 대상 아님. 옛 'current_mirror/pmos/Vbias_p'(M57/M58 real_match로 잘못 disposed)는 삭제(아래 참고) -- M57/M58은 애초에 real_match가 아니라 diode-chain false-positive였다(2026-07-29 당시 오분류). **2026-08-05(세션10) 추가 정정**: 이 disposition은 진작 correct였는데 matching_pairs 쪽에 {M58,M57}=current_mirror 항목이 stale하게 남아 이 결론과 모순돼 있었다(M64/M63 쌍둥이 구조는 이미 matching_pairs에서 빠져있었던 것과 비교해 발견 -- 사용자 지적으로 M58.drain=M57.source·M58.gate=M57.gate=M57.drain 재확인, current_mirror 정의(별도 branch)를 애초에 충족 못함) -- matching_pairs에서 삭제."},
       {"tag": "current_mirror", "kind": "pmos", "key": "Vcmfb", "category": "false_positive_diode_chain",
        "reason": "2026-08-03(_correction_log_5로 CMFB netlist 정정 후 find_matching_candidates() 재실행 결과 새로 나타난 그룹) -- M36a(자기 자신의 diode, gate=drain=Vcmfb)와 M7(1단 PMOS tail, gate=Vcmfb)이 같은 Vcmfb 넷을 게이트로 공유한다. 하지만 M36a는 그 넷을 '만드는' diode이고 M7은 그걸 '읽는' 소비자다(게다가 서로 다른 블록: CMFB 앰프 vs 1단 tail) -- Vg15/M11b-M15와 정확히 같은 diode->mirror 체인 패턴이라 interdigitation 매칭 대상이 아니다. 이전 버전의 'N36 3-way 미러(M36a/M36b/M39)'는 오독에서 나온 그룹이라 삭제됨(N36 넷 자체가 없어짐)."},
       {"tag": "current_mirror", "kind": "pmos", "key": "Vbias1", "category": "false_positive_consumer_reads_bias",
