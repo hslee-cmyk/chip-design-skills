@@ -213,8 +213,12 @@ def build_mirror_symmetric_pattern(half: list, pair_map: dict, center=None) -> l
     검증된 예(stick-diagram-euler-layout.md §2.5.1): folded cascode top 행의 절반
     `["M5"]*6 + ["M3","M4","M4"]`에 `{"M3":"M4","M4":"M3","MP":"MP","M6":"M6",...}`류
     매핑을 적용하면 pptx 원본이 실제로 쓴 전체 시퀀스(M5×6, M3, M4, M4, MP, MP, M3, M3, M4,
-    M6×6)와 정확히 일치한다."""
-    mirrored = [pair_map[x] for x in reversed(half)]
+    M6×6)와 정확히 일치한다.
+
+    `pair_map`의 값이 `None`인 원소(세션12 신규 — 홀수 self-pair "다리")는 미러링하지 않는다:
+    `half`에는 그대로 한 번 남지만 `mirrored` 쪽에서는 제외된다(대칭축 위에 걸치지 않고 한쪽
+    끝에만 존재하는 소자 — `mirror_symmetric_trail()`의 다리 지원이 이 동작에 의존한다)."""
+    mirrored = [pair_map[x] for x in reversed(half) if pair_map[x] is not None]
     return list(half) + ([center] if center is not None else []) + mirrored
 
 
@@ -1905,6 +1909,81 @@ def suggest_finger_adjustments(transistors: list[Transistor]) -> list[Adjustment
     return results
 
 
+@dataclass
+class PairAdjustmentSuggestion:
+    names: tuple                   # (name,) 미매칭 단독 소자, 또는 (a, b) 매칭쌍
+    delta_fingers: int             # +1 또는 -1, names의 전 소자에 동일하게 적용
+    resulting_odd_count: int
+    note: str
+
+
+def suggest_pair_finger_adjustments(transistors: list[Transistor],
+                                     matching_pairs: list) -> list[PairAdjustmentSuggestion]:
+    """세션11 M3a 그룹 실측(`.ai/context.md` B-4)에서 확인된 원리를 일반화한다 —
+    `suggest_finger_adjustments()`(개별 소자 ±1)와 달리 조정 단위를 **매칭쌍 또는 미매칭
+    단독 소자 하나**로 잡는다. 매칭쌍은 **양쪽에 동일한 delta를 동시에 적용**하므로 조정 후에도
+    두 소자의 `n_fingers`가 항상 같게 유지된다(=비율 1:1이 구조적으로 보장됨, 개별 조정을
+    우연히 짝맞추는 게 아니다).
+
+    실측(M3a 그룹, 11소자): `M9b`/`M18b`(선언된 ratio 매칭쌍)에 동시에 +1을 적용하면 전체
+    그래프 홀수차수 노드가 6개→2개로 줄어 `check_euler_condition()`이 `path`가 된다 — 개별
+    함수로는 2단계(M9b, M18b 각각 ±1)가 필요했던 걸 이 함수는 1번의 제안으로 찾아낸다.
+
+    ⚠️ `suggest_finger_adjustments()`와 마찬가지로 순수 그래프 계산이다 — gm/ID 스펙을
+    깨지 않는지는 호출자가 별도로 재검증해야 한다(L4, 아직 미구현).
+
+    반환: `resulting_odd_count` 오름차순 정렬(맨 앞이 가장 많이 개선되는 조정)."""
+    baseline_graph = build_graph(transistors)
+    baseline_odd = len(check_euler_condition(baseline_graph).odd_nodes)
+
+    pair_map = {t.name: t.name for t in transistors}
+    group_names = set(pair_map)
+    for a, b in matching_pairs:
+        if a in group_names and b in group_names:
+            pair_map[a] = b
+            pair_map[b] = a
+
+    units = []
+    seen = set()
+    for t in transistors:
+        if t.name in seen:
+            continue
+        partner = pair_map[t.name]
+        seen.add(t.name)
+        seen.add(partner)
+        units.append((t.name,) if partner == t.name else tuple(sorted((t.name, partner))))
+
+    by_name = {t.name: t for t in transistors}
+    results = []
+    for unit in units:
+        if len(unit) == 2 and by_name[unit[0]].n_fingers != by_name[unit[1]].n_fingers:
+            continue  # 이미 비율이 깨진 쌍 — 동시 조정으로는 비율을 못 지키므로 제외
+        for delta in (+1, -1):
+            trial = list(transistors)
+            ok = True
+            for name in unit:
+                idx = next(i for i, t in enumerate(trial) if t.name == name)
+                new_n = trial[idx].n_fingers + delta
+                if new_n < 1:
+                    ok = False
+                    break
+                trial[idx] = _dc_replace(trial[idx], n_fingers=new_n)
+            if not ok:
+                continue
+            trial_graph = build_graph(trial)
+            odd_count = len(check_euler_condition(trial_graph).odd_nodes)
+            if odd_count < baseline_odd:
+                note = f"차수 개선: 홀수 노드 {baseline_odd}개 → {odd_count}개"
+            elif odd_count == baseline_odd:
+                note = "총 홀수 노드 수는 그대로(불균형이 다른 노드로 이동)"
+            else:
+                note = f"오히려 악화: 홀수 노드 {baseline_odd}개 → {odd_count}개"
+            results.append(PairAdjustmentSuggestion(unit, delta, odd_count, note))
+
+    results.sort(key=lambda s: s.resulting_odd_count)
+    return results
+
+
 # ---------------------------------------------------------------------------
 # 5.5) Unit cell 사이징 후보 탐색 — gm/ID 스펙(nominal W)에 가까우면서 §3.5(정수배)는 처음부터
 #      만족하는 (unit cell 폭, finger 수) 후보를 생성한다. §8(box-shape)은 이 함수가 보장하지
@@ -2319,28 +2398,42 @@ def check_walk_sequence(transistor_sequence: list, transistors: list) -> WalkVer
                         finger_count_mismatch=mismatches)
 
 
+_MAX_MIRROR_TRAIL_COMBO_PAIRS = 12  # 2**12=4096 조합 — 이보다 매칭쌍이 많으면 탐색 생략(첫 조합만 시도)
+
+
 def mirror_symmetric_trail(group: list[Transistor], matching_pairs: list) -> dict | None:
     """L3(walk 선택) — 세션11, `matching_pairs`를 아예 모르는 `build_graph()`+`hierholzer()`
     대신, 선언된 매칭쌍을 거울대칭으로 반영한 trail을 **구성**해본다(탐색이 아니라 구성 —
     자기동형사상을 그래프에서 찾는 대신 `matching_pairs`가 이미 알려준 대응에서 역산).
 
     **원리**(folded_cascode top row, current_reuse_telescopic_ota의 실제 그룹 2개로
-    교차검증됨): 각 매칭쌍(A,B)에서 대표 소자 하나만(그룹 내 원본 순서상 먼저 나오는 쪽) 골라
-    "절반 그래프"를 구성하고, 그 절반의 오일러 trail을 `build_mirror_symmetric_pattern()`으로
-    거울반사하면 전체 trail이 나온다 — 실제로 그래프상 유효한지는 `check_walk_sequence()`로
-    직접 검증하므로(구성이 자기동형사상을 잘못 가정했다면 여기서 실패로 걸러진다), 별도로
-    노드 레벨 매핑을 미리 검증할 필요가 없다.
+    교차검증됨): 각 매칭쌍(A,B)에서 대표 소자 하나만 골라 "절반 그래프"를 구성하고, 그 절반의
+    오일러 trail을 `build_mirror_symmetric_pattern()`으로 거울반사하면 전체 trail이 나온다 —
+    실제로 그래프상 유효한지는 `check_walk_sequence()`로 직접 검증하므로(구성이 자기동형사상을
+    잘못 가정했다면 여기서 실패로 걸러진다), 별도로 노드 레벨 매핑을 미리 검증할 필요가 없다.
+
+    **대표 선택은 탐색이다(세션12 확장)**: "그룹 내 원본 순서상 먼저 나오는 쪽"을 1순위로 항상
+    먼저 시도하고(세션11 기존 동작과 완전히 동일한 결과를 보장), 그 절반 그래프가 오일러
+    불가능하면 나머지 대표 조합(매칭쌍마다 둘 중 하나, 2^n가지)을 순서대로 시도한다. 실측
+    (`current_reuse_telescopic_ota` M3a 그룹, 4개 매칭쌍): "항상 먼저 나오는 쪽" 조합은
+    홀수차수 노드 4개로 불가능하지만, 특정 조합(`M4a,M3a,M19,M18b`)은 2개(`path`)로 성립한다
+    — 대표 선택에 따라 절반 그래프의 실현 가능성 자체가 달라짐을 확인했다(`.ai/context.md`
+    세션12 참고).
+
+    **홀수 self-pair = "다리"(세션12 신규)**: self-pair(미매칭)는 짝수 `n_fingers`면 기존대로
+    반씩 쪼개 미러하지만, **홀수**면 쪼개지 않고 실제 `n_fingers` 그대로 절반 그래프에 한 번만
+    넣고 미러 복사본에서는 제외한다(`build_mirror_symmetric_pattern()`의 `pair_map=None` 값
+    지원에 의존) — 두 홀수차수 "고정점" 사이를 잇는 다리 역할. 실측(M3a 그룹의 `M5`/`M63`/
+    `M64`, 전부 1개씩): 이 셋이 `gnd-M5-Vy-M63-N64_63-M64-Vbias3`로 이어지는 하나의 사슬을
+    이루고, 위 대표 조합과 결합하면 11소자(핑거조정 후 13핑거) 전체가 유효한 walk로 검증된다.
 
     **적용 범위(의도적으로 좁음, 알려진 한계)**:
-    - 그룹의 모든 소자가 `matching_pairs`로 커버되거나(1:1, 개수 동일) self-pair(미매칭)여야
-      한다 — self-pair는 **짝수 `n_fingers`만 지원**(홀수 self-pair, 예: 실측된
-      `current_reuse_telescopic_ota`의 `M5`(1개)처럼 두 홀수차수 고정점을 잇는 "다리"로 쓰는
-      패턴은 아직 미구현 — 이 경우도 `None`을 반환해 호출자가 기존 `build_graph()+hierholzer()`
-      로 폴백하게 한다).
-    - 1:1이 아닌(개수가 다른) 매칭쌍이 섞인 그룹도 `None`(폴백) — `auto_mirror_ratios`가 만드는
+    - 1:1이 아닌(개수가 다른) 매칭쌍이 섞인 그룹은 `None`(폴백) — `auto_mirror_ratios`가 만드는
       비율 미러 등.
-    - 위 조건을 만족해도 절반 그래프 자체가 오일러 불가능하면 `None`(폴백) — 이 경우 그룹 분할
-      필요 여부는 이 함수의 책임이 아니다(호출자가 판단).
+    - 다중 trail이 필요한 그룹(홀수차수 노드가 다리를 포함해도 2개를 못 넘는 경우)은 여전히
+      이 함수 책임이 아니다(호출자가 그룹 분할 등으로 판단).
+    - 매칭쌍이 매우 많으면(`_MAX_MIRROR_TRAIL_COMBO_PAIRS` 초과) 대표 조합 탐색을 생략하고
+      1순위 조합만 시도한다(조합 폭발 방지).
 
     반환: 성공하면 `{"node_sequence": [...], "transistor_sequence": [...]}`, 실패하면 `None`."""
     pair_map = {t.name: t.name for t in group}
@@ -2352,16 +2445,16 @@ def mirror_symmetric_trail(group: list[Transistor], matching_pairs: list) -> dic
 
     n_fingers_of = {t.name: t.n_fingers for t in group}
     for a, b in pair_map.items():
-        if a == b:
-            if n_fingers_of[a] % 2 != 0:
-                return None
-        elif n_fingers_of[a] != n_fingers_of[b]:
+        if a != b and n_fingers_of[a] != n_fingers_of[b]:
             return None
 
     order = {t.name: i for i, t in enumerate(group)}
     by_name = {t.name: t for t in group}
+
     seen = set()
-    half_transistors = []
+    matched_pair_list = []      # [(rep_first_by_order, rep_second), ...]
+    fixed_half_extra = []       # 매칭 안 된 소자(짝수 self-pair 반쪽 + 홀수 self-pair "다리")
+    bridge_names = set()
     for t in group:
         if t.name in seen:
             continue
@@ -2369,22 +2462,36 @@ def mirror_symmetric_trail(group: list[Transistor], matching_pairs: list) -> dic
         seen.add(t.name)
         seen.add(partner)
         if partner == t.name:
-            half_transistors.append(_dc_replace(t, n_fingers=t.n_fingers // 2))
+            if t.n_fingers % 2 == 0:
+                fixed_half_extra.append(_dc_replace(t, n_fingers=t.n_fingers // 2))
+            else:
+                fixed_half_extra.append(t)
+                bridge_names.add(t.name)
         else:
-            rep = t if order[t.name] < order[partner] else by_name[partner]
-            half_transistors.append(rep)
+            a_name, b_name = (t.name, partner) if order[t.name] < order[partner] else (partner, t.name)
+            matched_pair_list.append((by_name[a_name], by_name[b_name]))
 
-    half_graph = build_graph(half_transistors)
-    verdict = check_euler_condition(half_graph)
-    if verdict.kind == "impossible":
-        return None
-    _, half_seq = hierholzer(half_graph, verdict.start)
+    n_pairs = len(matched_pair_list)
+    combos = (itertools.product((0, 1), repeat=n_pairs) if n_pairs <= _MAX_MIRROR_TRAIL_COMBO_PAIRS
+              else [(0,) * n_pairs])
 
-    full_seq = build_mirror_symmetric_pattern(half_seq, pair_map)
-    wv = check_walk_sequence(full_seq, group)
-    if not wv.ok:
-        return None
-    return {"node_sequence": wv.node_path, "transistor_sequence": full_seq}
+    for combo in combos:
+        reps = [matched_pair_list[i][choice] for i, choice in enumerate(combo)]
+        half_transistors = reps + fixed_half_extra
+        half_graph = build_graph(half_transistors)
+        verdict = check_euler_condition(half_graph)
+        if verdict.kind == "impossible":
+            continue
+        _, half_seq = hierholzer(half_graph, verdict.start)
+
+        mirror_pair_map = dict(pair_map)
+        for name in bridge_names:
+            mirror_pair_map[name] = None
+        full_seq = build_mirror_symmetric_pattern(half_seq, mirror_pair_map)
+        wv = check_walk_sequence(full_seq, group)
+        if wv.ok:
+            return {"node_sequence": wv.node_path, "transistor_sequence": full_seq}
+    return None
 
 
 def build_stick_diagram(transistors: list[Transistor], matching_pairs: list | None = None) -> dict:
@@ -4053,6 +4160,55 @@ if __name__ == "__main__":
     print(f"  matching_pairs=None -> method={old_style['top'].method} vs {new_style_no_pairs['top'].method} "
           f"(둘 다 'graph'여야 하위호환): {old_style['top'].method == new_style_no_pairs['top'].method == 'graph'}")
     print(f"  시퀀스도 완전히 동일: {old_style['top'].transistor_sequence == new_style_no_pairs['top'].transistor_sequence}")
+
+    print()
+    print("=== Test 5.6: suggest_pair_finger_adjustments() + mirror_symmetric_trail() 다리 지원")
+    print("    — 세션12, current_reuse_telescopic_ota M3a 그룹(11소자) 실측 재현 ===")
+    # M3a 그룹(geometry_colocation_union() 실측, .ai/context.md 세션11 B-4/세션12) --
+    # 매칭쌍 4개(M4a/M4b offset, M3a/M3b ratio, M10/M19 ratio, M9b/M18b ratio) +
+    # 홀수 self-pair 3개(M5, M63, M64 -- gnd-M5-Vy-M63-N64_63-M64-Vbias3 사슬).
+    m3a_group = [
+        Transistor("M3a", "nmos", source="N3a4a", drain="Vom1", gate="Vbias3", n_fingers=1, stack_id="m3a"),
+        Transistor("M3b", "nmos", source="N3b4b", drain="Vop1", gate="Vbias3", n_fingers=1, stack_id="m3a"),
+        Transistor("M4a", "nmos", source="Vy", drain="N3a4a", gate="Vip", n_fingers=1, stack_id="m3a"),
+        Transistor("M4b", "nmos", source="Vy", drain="N3b4b", gate="Vim", n_fingers=1, stack_id="m3a"),
+        Transistor("M5", "nmos", source="gnd", drain="Vy", gate="Vbias4", n_fingers=1, stack_id="m3a"),
+        Transistor("M9b", "nmos", source="Vop1", drain="Vg15", gate="N14a14b", n_fingers=1, stack_id="m3a"),
+        Transistor("M10", "nmos", source="gnd", drain="Vop1", gate="Vbias4", n_fingers=1, stack_id="m3a"),
+        Transistor("M18b", "nmos", source="Vom1", drain="Vg25", gate="N24b23a", n_fingers=1, stack_id="m3a"),
+        Transistor("M19", "nmos", source="gnd", drain="Vom1", gate="Vbias4", n_fingers=1, stack_id="m3a"),
+        Transistor("M64", "nmos", source="N64_63", drain="Vbias3", gate="Vbias3", n_fingers=1, stack_id="m3a"),
+        Transistor("M63", "nmos", source="Vy", drain="N64_63", gate="Vbias3", n_fingers=1, stack_id="m3a"),
+    ]
+    m3a_pairs = [("M4a", "M4b"), ("M3a", "M3b"), ("M10", "M19"), ("M9b", "M18b")]
+
+    print("  [1. 조정 전: build_graph()+check_euler_condition() 그대로면 홀수차수 6개(다중 trail 필요)]")
+    baseline_odd = check_euler_condition(build_graph(m3a_group)).odd_nodes
+    print(f"  홀수차수 노드: {sorted(baseline_odd)} ({len(baseline_odd)}개)")
+
+    print("  [2. suggest_pair_finger_adjustments() — 매칭쌍 단위 제안 1순위가 M9b/M18b 동시 +1인지]")
+    suggestions = suggest_pair_finger_adjustments(m3a_group, m3a_pairs)
+    top = suggestions[0]
+    print(f"  1순위 제안: {top}")
+    print(f"  M9b/M18b 쌍을 +1 -> 홀수 6->2개로 최대 개선: "
+          f"{set(top.names) == {'M9b', 'M18b'} and top.delta_fingers == 1 and top.resulting_odd_count == 2}")
+
+    m3a_adjusted = [_dc_replace(t, n_fingers=t.n_fingers + 1) if t.name in top.names else t
+                    for t in m3a_group]
+
+    print("  [3. 조정 후: mirror_symmetric_trail()이 대표 조합 탐색 + 홀수 self-pair 다리로 11소자 전체를 구성하는지]")
+    m3a_result = mirror_symmetric_trail(m3a_adjusted, m3a_pairs)
+    print(f"  성공: {m3a_result is not None}")
+    if m3a_result is not None:
+        seq3 = m3a_result["transistor_sequence"]
+        wv3 = check_walk_sequence(seq3, m3a_adjusted)
+        print(f"  전체 그래프에서 유효한 walk: {wv3.ok} (finger_count_mismatch={wv3.finger_count_mismatch})")
+        print(f"  총 finger 수: {len(seq3)} (기대: {sum(t.n_fingers for t in m3a_adjusted)})")
+        print(f"  구성된 시퀀스: {seq3}")
+
+    print("  [4(회귀 대조). 조정 없이 원본 그대로면 여전히 None(폴백)이어야 함 -- 다리만으로는 안 풀림]")
+    m3a_unadjusted_result = mirror_symmetric_trail(m3a_group, m3a_pairs)
+    print(f"  성공: {m3a_unadjusted_result} (None이어야 정상 -- 핑거조정과 다리 지원 둘 다 있어야 풀림)")
 
     print()
     print("=== Test 6: matching 그룹 자동 탐지 — folded cascode 넷리스트에서 전류거울/차동쌍 추출 ===")
