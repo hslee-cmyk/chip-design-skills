@@ -2216,6 +2216,7 @@ class StickResult:
     odd_nodes: list = field(default_factory=list)
     connected: bool = True
     suggestions: list = field(default_factory=list)
+    method: str = "graph"           # 'graph'(기존 build_graph+hierholzer) | 'mirror_symmetric'(D)
 
 
 @dataclass
@@ -2318,12 +2319,97 @@ def check_walk_sequence(transistor_sequence: list, transistors: list) -> WalkVer
                         finger_count_mismatch=mismatches)
 
 
-def build_stick_diagram(transistors: list[Transistor]) -> dict:
+def mirror_symmetric_trail(group: list[Transistor], matching_pairs: list) -> dict | None:
+    """L3(walk 선택) — 세션11, `matching_pairs`를 아예 모르는 `build_graph()`+`hierholzer()`
+    대신, 선언된 매칭쌍을 거울대칭으로 반영한 trail을 **구성**해본다(탐색이 아니라 구성 —
+    자기동형사상을 그래프에서 찾는 대신 `matching_pairs`가 이미 알려준 대응에서 역산).
+
+    **원리**(folded_cascode top row, current_reuse_telescopic_ota의 실제 그룹 2개로
+    교차검증됨): 각 매칭쌍(A,B)에서 대표 소자 하나만(그룹 내 원본 순서상 먼저 나오는 쪽) 골라
+    "절반 그래프"를 구성하고, 그 절반의 오일러 trail을 `build_mirror_symmetric_pattern()`으로
+    거울반사하면 전체 trail이 나온다 — 실제로 그래프상 유효한지는 `check_walk_sequence()`로
+    직접 검증하므로(구성이 자기동형사상을 잘못 가정했다면 여기서 실패로 걸러진다), 별도로
+    노드 레벨 매핑을 미리 검증할 필요가 없다.
+
+    **적용 범위(의도적으로 좁음, 알려진 한계)**:
+    - 그룹의 모든 소자가 `matching_pairs`로 커버되거나(1:1, 개수 동일) self-pair(미매칭)여야
+      한다 — self-pair는 **짝수 `n_fingers`만 지원**(홀수 self-pair, 예: 실측된
+      `current_reuse_telescopic_ota`의 `M5`(1개)처럼 두 홀수차수 고정점을 잇는 "다리"로 쓰는
+      패턴은 아직 미구현 — 이 경우도 `None`을 반환해 호출자가 기존 `build_graph()+hierholzer()`
+      로 폴백하게 한다).
+    - 1:1이 아닌(개수가 다른) 매칭쌍이 섞인 그룹도 `None`(폴백) — `auto_mirror_ratios`가 만드는
+      비율 미러 등.
+    - 위 조건을 만족해도 절반 그래프 자체가 오일러 불가능하면 `None`(폴백) — 이 경우 그룹 분할
+      필요 여부는 이 함수의 책임이 아니다(호출자가 판단).
+
+    반환: 성공하면 `{"node_sequence": [...], "transistor_sequence": [...]}`, 실패하면 `None`."""
+    pair_map = {t.name: t.name for t in group}
+    group_names = set(pair_map)
+    for a, b in matching_pairs:
+        if a in group_names and b in group_names:
+            pair_map[a] = b
+            pair_map[b] = a
+
+    n_fingers_of = {t.name: t.n_fingers for t in group}
+    for a, b in pair_map.items():
+        if a == b:
+            if n_fingers_of[a] % 2 != 0:
+                return None
+        elif n_fingers_of[a] != n_fingers_of[b]:
+            return None
+
+    order = {t.name: i for i, t in enumerate(group)}
+    by_name = {t.name: t for t in group}
+    seen = set()
+    half_transistors = []
+    for t in group:
+        if t.name in seen:
+            continue
+        partner = pair_map[t.name]
+        seen.add(t.name)
+        seen.add(partner)
+        if partner == t.name:
+            half_transistors.append(_dc_replace(t, n_fingers=t.n_fingers // 2))
+        else:
+            rep = t if order[t.name] < order[partner] else by_name[partner]
+            half_transistors.append(rep)
+
+    half_graph = build_graph(half_transistors)
+    verdict = check_euler_condition(half_graph)
+    if verdict.kind == "impossible":
+        return None
+    _, half_seq = hierholzer(half_graph, verdict.start)
+
+    full_seq = build_mirror_symmetric_pattern(half_seq, pair_map)
+    wv = check_walk_sequence(full_seq, group)
+    if not wv.ok:
+        return None
+    return {"node_sequence": wv.node_path, "transistor_sequence": full_seq}
+
+
+def build_stick_diagram(transistors: list[Transistor], matching_pairs: list | None = None) -> dict:
     """어떤 회로든(트랜지스터 리스트) 입력으로 받아 stack별 StickResult를 반환하는
-    최상위 엔트리 포인트. 이 함수 하나가 skill의 "결과물"인 stick diagram 출력이다."""
+    최상위 엔트리 포인트. 이 함수 하나가 skill의 "결과물"인 stick diagram 출력이다.
+
+    `matching_pairs`(선택, 세션11 신규 — 완전한 하위호환, 기본값 `None`이면 기존 동작과
+    바이트 단위로 동일): 주어지면 각 stack마다 `mirror_symmetric_trail()`을 먼저 시도하고,
+    실패(`None`)하면 기존 `build_graph()+hierholzer()`로 폴백한다 — "감싸기"이지 "대체"가
+    아니다. 안 주면(기본값) `mirror_symmetric_trail()`을 아예 시도하지 않는다."""
     stacks = split_into_stacks(transistors)
     results = {}
     for stack_id, group in stacks.items():
+        mirrored = mirror_symmetric_trail(group, matching_pairs) if matching_pairs else None
+        if mirrored is not None:
+            g = build_graph(group)
+            verdict = check_euler_condition(g)
+            results[stack_id] = StickResult(
+                stack_id=stack_id, status="ok",
+                node_sequence=mirrored["node_sequence"],
+                transistor_sequence=mirrored["transistor_sequence"],
+                odd_nodes=verdict.odd_nodes, connected=verdict.connected,
+                method="mirror_symmetric",
+            )
+            continue
         g = build_graph(group)
         verdict = check_euler_condition(g)
         if verdict.kind == "impossible":
@@ -2731,7 +2817,13 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None,
         for t in devices:
             reps.setdefault(t.name, t)
 
-        out = build_stick_diagram(devices)
+        # 세션11 -- 이 행에 두 이름 다 속하는 matching_pairs만 걸러 build_stick_diagram()에
+        # 넘긴다(run_topology_pipeline()의 cell_pairs 필터링, 3830행 부근과 동일 패턴) --
+        # mirror_symmetric_trail()이 이 행 안에서만 대칭을 구성하도록.
+        device_names = {t.name for t in devices}
+        row_pairs = [(a, b) for (a, b) in (matching_pairs or [])
+                     if a in device_names and b in device_names]
+        out = build_stick_diagram(devices, matching_pairs=row_pairs)
         r = out.get(row_name)
         if r is None:
             result.add(f"1. euler[{row_name}]", False,
@@ -3921,6 +4013,46 @@ if __name__ == "__main__":
     print(f"  축대칭(5<->6, 3<->4, P<->P) 만족: {is_symmetric.ok}")
     rebuilt = build_mirror_symmetric_pattern(list("555555344P"), pair_map)
     print(f"  왼쪽 절반만으로 재구성: {''.join(rebuilt)} -> 원본과 일치: {rebuilt == top_row_labels}")
+
+    print()
+    print("=== Test 5.5: mirror_symmetric_trail() — 세션11 L3(D), 실제 회로 2개로 교차검증 ===")
+    print("  [사례1: folded_cascode top row — MP(self-pair,2f)/M3-M4(3f)/M5-M6(6f)]")
+    top_group = [t for t in folded_cascode_example() if t.stack_id == "top"]
+    top_pairs = [("M3", "M4"), ("M5", "M6")]
+    mirrored_top = mirror_symmetric_trail(top_group, top_pairs)
+    print(f"  성공: {mirrored_top is not None}")
+    if mirrored_top is not None:
+        seq = mirrored_top["transistor_sequence"]
+        pm = {"M3": "M4", "M4": "M3", "M5": "M6", "M6": "M5", "MP": "MP"}
+        wv = check_walk_sequence(seq, top_group)
+        print(f"  전체 그래프에서 유효한 walk: {wv.ok} (finger_count_mismatch={wv.finger_count_mismatch})")
+        print(f"  거울대칭 만족: {check_mirror_symmetry(seq, pm).ok}")
+        print(f"  구성된 시퀀스: {seq}")
+
+    print("  [사례2: current_reuse_telescopic_ota 그룹 M8 — M8/M17, M9a/M18a(둘 다 1:1, self-pair 없음)]")
+    m8_group = [
+        Transistor("M8", "pmos", source="vdd", drain="Vg15", gate="Vbias1", n_fingers=1, stack_id="m8"),
+        Transistor("M17", "pmos", source="vdd", drain="Vg25", gate="Vbias1", n_fingers=1, stack_id="m8"),
+        Transistor("M9a", "pmos", source="Vg15", drain="Vop1", gate="N11b", n_fingers=1, stack_id="m8"),
+        Transistor("M18a", "pmos", source="Vg25", drain="Vom1", gate="N20b", n_fingers=1, stack_id="m8"),
+    ]
+    m8_pairs = [("M8", "M17"), ("M9a", "M18a")]
+    mirrored_m8 = mirror_symmetric_trail(m8_group, m8_pairs)
+    print(f"  성공: {mirrored_m8 is not None}")
+    if mirrored_m8 is not None:
+        seq2 = mirrored_m8["transistor_sequence"]
+        pm2 = {"M8": "M17", "M17": "M8", "M9a": "M18a", "M18a": "M9a"}
+        wv2 = check_walk_sequence(seq2, m8_group)
+        print(f"  전체 그래프에서 유효한 walk: {wv2.ok} (finger_count_mismatch={wv2.finger_count_mismatch})")
+        print(f"  거울대칭 만족: {check_mirror_symmetry(seq2, pm2).ok}")
+        print(f"  구성된 시퀀스: {seq2} (손 검증한 [M9a,M8,M17,M18a]와 일치: {seq2 == ['M9a', 'M8', 'M17', 'M18a']})")
+
+    print("  [사례3(음성 대조): build_stick_diagram()에 matching_pairs를 안 주면 기존 동작과 완전히 동일해야 함]")
+    old_style = build_stick_diagram(top_group)
+    new_style_no_pairs = build_stick_diagram(top_group, matching_pairs=None)
+    print(f"  matching_pairs=None -> method={old_style['top'].method} vs {new_style_no_pairs['top'].method} "
+          f"(둘 다 'graph'여야 하위호환): {old_style['top'].method == new_style_no_pairs['top'].method == 'graph'}")
+    print(f"  시퀀스도 완전히 동일: {old_style['top'].transistor_sequence == new_style_no_pairs['top'].transistor_sequence}")
 
     print()
     print("=== Test 6: matching 그룹 자동 탐지 — folded cascode 넷리스트에서 전류거울/차동쌍 추출 ===")
