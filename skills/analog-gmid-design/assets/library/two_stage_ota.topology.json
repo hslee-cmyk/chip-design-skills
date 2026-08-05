@@ -33,8 +33,21 @@
   "symmetry": {
     "_matching_pairs_comment": "2026-08-05(세션9) -- M5/M7(kind=current_matched)로 잘못 선언돼 있던 걸 발견해 M6/M7(진짜 KCL 근거, OUT 2단자)로 고쳤다가 다시 뺐다. M6/M7은 derive_stack_groups()의 '정확히 2단자면 병합' 규칙이 선언 없이 자동으로 처리하고, 이건 소자 미스매치가 아니라 순수 위상적(KCL) 사실이라 interdig 등 레이아웃 매칭으로 개선될 게 없어 matching_pairs(소자 매칭 선언용)에 넣는 게 오히려 잘못된 신호다 -- compensation.notes에 산문으로 그 관계를 기록해뒀다. M5는 매칭 의도 자체가 없음(사용자 확인, NDP로 1단/2단 전류비가 달라도 됨).",
     "matching_pairs": [
-      {"names": ["M3", "M4"], "kind": "current_matched"},
-      {"names": ["M1", "M2"], "kind": "diff_pair"}
+      {"names": ["M3", "M4"], "current_forced": true, "matching_sensitivity": "ratio"},
+      {"names": ["M1", "M2"], "current_forced": true, "matching_sensitivity": "offset"}
     ]
+  },
+
+  "sizing_roles": {
+    "_comment": "2026-08-05(세션10) 신설 -- 축A 규칙1에 레일 제외를 추가하면서(kcl_series_union(), stick_diagram.py) M5(1단 tail)가 더 이상 gnd 우연 2단자 병합으로 M7의 전류를 빌려 쓰지 못하게 됐다(그 병합 자체가 세션9가 지적한 '같은 gate+rail 공유는 매칭 근거 부족' 오류의 또 다른 얼굴이었다 -- M5/M7은 실제로 다른 전류일 수 있다는 게 이미 확인된 상태). M5의 진짜 전류 근거는 매칭이 아니라 CS 노드(M1.source/M2.source/M5.drain 3단자 합류)의 순수 KCL 항등식 ID(M5)=ID(M1)+ID(M2) -- current_reuse_telescopic_ota의 kcl_tail_M5/kcl_tail_M38과 정확히 같은 패턴(3단자 tail 합류는 propagate_topology_forced_currents()의 2-rule로 자동으로 안 풀리는 정직한 한계, 고정 A타입 theta bounds=[1,1]로 명시). 이 회로는 폐형식(miller_ota_topology)이라 theta 자유탐색이 없으므로 metrics/objective/constraints도 이 theta 하나를 평가하기 위한 최소 형태로 신설(power_uA 최소화, 제약 없음) -- gm1/gm2/W는 여전히 compensation이 결정하고 theta 격자점은 사실상 1개(bounds가 같음)라 탐색이 아니다.",
+    "theta": [
+      {"name": "kcl_tail_M5", "bounds": [1.0, 1.0], "feeds": {"type": "A", "tag": "tail_kcl_sum", "root": "M5", "reference": ["M1", "M2"]},
+       "_comment": "current_reuse_telescopic_ota의 kcl_tail_M5와 동일 사유(diff pair 양쪽 다리가 전부 tail로 모임) -- ID(M5)=ID(M1)+ID(M2), 설계 자유도 없는 순수 KCL 합."}
+    ],
+    "metrics": {
+      "power_uA": {"type": "sum_current"}
+    },
+    "objective": {"minimize": "power_uA"},
+    "constraints": []
   }
 }

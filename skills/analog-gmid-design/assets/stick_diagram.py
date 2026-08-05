@@ -1422,30 +1422,47 @@ def split_into_stacks(transistors: list[Transistor]) -> dict:
     return dict(stacks)
 
 
-def derive_stack_groups(netlist: list, matching_pairs: list) -> dict:
-    """배치 7-6(2026-07-31) — `split_into_stacks()`가 스스로 "회로 지식이 필요한 판단이라
-    이 함수가 대신 결정하지 않는다"고 인정한 `stack_id` 배정을, connectivity(+선언된
-    matching_pairs)만으로 자동 도출되는 **1차 후보**로 채워준다. `size_transistor()`(raw
-    W만 반환) → `run_topology_pipeline()`(`stack_id` 필수) 사이를 잇는 함수가 없었던 gap
-    (§10 최종 시나리오 감사로 발견)의 해결책.
+_RAIL_NETS = frozenset({"vdd", "gnd", "vss"})
 
-    두 가지 규칙으로 union-find 병합한다:
-    1. **내부 노드(2단자 net)**: 어떤 net이 정확히 2개의 소자 단자에만 연결되면(외부
-       rail/입출력 핀이 아님) 그 두 소자는 물리적으로 하나의 series 전류경로다 — §7.3.2
-       A유형(`propagate_topology_forced_currents()`)이 KCL 직렬-스택을 찾으려고 걷는
-       그래프 워크의 부산물.
-    2. **선언된 `matching_pairs`**: kind와 무관하게(current_mirror/diff_pair/
-       branch_symmetric 전부) 같은 물리 행에 두고 싶은 게 일반적이므로 무조건 병합한다.
+
+def shares_diffusion_node(ra: "Transistor", rb: "Transistor") -> bool:
+    """L1 축B(2026-08-05, 세션10 L1/L2 구현) — 두 소자가 source/drain(어느 조합이든)을
+    직접 공유해 물리적으로 같은 diffusion을 연장할 수 있는가. **gate는 포함하지 않는다**
+    — gate 공유는 "같은 바이어스를 읽는다"는 것일 뿐 diffusion 연장과 무관하다(세션8에서
+    M106/M107이 gate=VB3를 공유해서 이걸 착각한 적이 한 번 있었다, 실측 중 발견해 고침).
+
+    `audit_row_split()`이 이미 **선언된** matching pair 하나의 interdig/centroid 정책을
+    정할 때만 쓴다 — rail(vdd/gnd) 공유도 유효한 근거로 인정한다(예: 둘 다 source=vdd인
+    전류거울 쌍은 실제로 인접 배치 가능하고, §2.7이 이미 이런 쌍의 interdigitation을
+    검증했다). 이건 `geometry_colocation_union()`의 자동 발견 규칙(레일 공유를 일부러
+    제외 — 서로 무관한 기능블럭이 레일 하나로 뭉개지는 false positive 방지, 아래 참고)과는
+    **다른 목적의 다른 판단**이니 헷갈리지 말 것 — 여기는 이미 확정된 쌍 하나만 보므로 그런
+    과병합 위험이 없다."""
+    na = {ra.source, ra.drain} - {None}
+    nb = {rb.source, rb.drain} - {None}
+    return bool(na & nb)
+
+
+def kcl_series_union(netlist: list, matching_pairs: list) -> dict:
+    """L2 축A(2026-08-05, 세션10 L1/L2 구현) — `derive_stack_groups()`를 KCL용/geometry용
+    두 함수로 분리한 것 중 KCL(축A, `sizing_recipe.py`의 `stack_groups_kcl`) 쪽. 두 규칙으로
+    union-find 병합한다:
+
+    1. **내부 노드(2단자 net, 레일 제외)**: 어떤 net이 **레일(vdd/gnd/vss)이 아니고**
+       정확히 2개의 소자 단자에만 연결되면, 전하보존으로 그 두 소자 전류가 반드시 같다 —
+       극성과 무관한 물리 법칙(예: `folded_cascode`의 `M106`(nmos)/`M108`(pmos)이
+       `NodeM1`을 공유하면 극성이 달라도 KCL로 전류가 같다). **레일 제외는 세션9에서
+       추가됨**: `two_stage_ota`처럼 소자 수가 적은 회로에서는 `gnd`/`vdd`가 우연히 정확히
+       2번만 쓰일 수 있는데(실제 사례: `M5/M7`이 둘 다 `gnd`를 쓰는 게 우연히 2건이라 이
+       규칙이 거짓 KCL 관계를 만들었다, 사용자가 회로 역할로 정정) — 레일은 외부 전원으로
+       무한히 전류를 흘릴 수 있어 "2단자=닫힌 계=전하보존" 논리가 성립하지 않는다. 4개
+       회로 전부 실측(레일 단자 수 3~16개)으로 이 배제가 기존 KCL 판정에 회귀를 주지
+       않음을 확인했다(세션9/10).
+    2. **선언된 `matching_pairs`**: 호출자가 이미 `current_forced=true`로 거른 쌍만
+       넘겨준다는 계약(L1) — 이 함수 자체는 어떤 쌍이 오든 그대로 병합한다.
 
     반환: `{stack_id: [소자명,...]}` — `stack_id`는 그 그룹의 netlist상 최초 등장 소자
-    이름(입력 순서에만 의존하는 결정론적 값).
-
-    ⚠️ 정직한 한계(2026-07-31): 이 함수가 만드는 그룹은 순수 구조적 병합 단위라, 기존
-    예제(`folded_cascode_example()`의 `"bot"` — 서로 독립인 M9-M7 체인/M10-M8 체인/M11
-    단독/MN 단독을 전부 한 물리 행으로 묶음)보다 **더 세분화**될 수 있다. 서로 독립인
-    그룹을 하나의 물리 행으로 더 합칠지는 극성/면적균형 같은 floorplanning 판단이 필요해
-    이 함수가 대신 결정하지 않는다(`split_into_stacks()`가 이미 명시한 것과 같은 경계) —
-    `assign_finger_geometry()`가 이 함수의 출력을 그대로 stack 후보로 받아 쓴다."""
+    이름(입력 순서에만 의존하는 결정론적 값)."""
     net_uses: dict = defaultdict(list)
     for t in netlist:
         net_uses[t.source].append(t.name)
@@ -1464,9 +1481,77 @@ def derive_stack_groups(netlist: list, matching_pairs: list) -> dict:
         if ra != rb:
             parent[ra] = rb
 
-    for uses in net_uses.values():
+    for net, uses in net_uses.items():
+        if net in _RAIL_NETS:
+            continue
         if len(uses) == 2 and uses[0] != uses[1]:
             union(uses[0], uses[1])
+    for names in matching_pairs:
+        for a, b in zip(names, names[1:]):
+            union(a, b)
+
+    order = {t.name: i for i, t in enumerate(netlist)}
+    groups: dict = defaultdict(list)
+    for t in netlist:
+        groups[find(t.name)].append(t.name)
+
+    result = {}
+    for members in groups.values():
+        members_sorted = sorted(members, key=lambda n: order[n])
+        result[members_sorted[0]] = members_sorted
+    return result
+
+
+def geometry_colocation_union(netlist: list, matching_pairs: list) -> dict:
+    """L2 축B(2026-08-05, 세션10 L1/L2 구현) — `derive_stack_groups()`를 분리한 것 중
+    geometry(축B, `sizing_recipe.py`의 `stack_groups_geometry`) 쪽. `kcl_series_union()`과
+    똑같은 union-find 골격이지만 **자동 발견 규칙1이 다르다**(세션8 실측 근거):
+
+    1. **같은 극성 + non-rail net + `drain=source`(직렬)만 자동 병합**. `kcl_series_union()`의
+       "정확히 2단자" 규칙과 달리 극성/방향을 명시적으로 본다:
+       - rail(vdd/gnd/vss)은 제외 — rail 공유는 회로 전체가 결국 거기 닿기 때문에 병합
+         근거로 쓰면 서로 무관한 기능블럭이 뭉개진다(실측: `current_reuse_telescopic_ota`
+         vdd 16회/gnd 13회 hub가 통째로 한 그룹이 되는 false positive).
+       - 같은 극성끼리만 — PMOS/NMOS는 다른 well이라 같은 diffusion 행에 못 들어간다.
+       - `drain=source`(직렬/캐스코드)만, `drain=drain`(합류/정션)은 제외 — 정션 노드는
+         레이아웃 인접의 근거가 아니다(예: `M2a.drain=Vom1=M18a.drain`은 회로 메커니즘일
+         뿐 인접 근거가 아님, `M8.drain=Vg15=M9a.source`는 진짜 stacked series라 병합 타당).
+    2. **선언된 `matching_pairs`**: 호출자가 `current_forced=true`로 거른 쌍만 넘긴다는
+       계약(L1) — `current_mirror`/`branch_symmetric`(축A=false, 순수 문서용) 선언은
+       geometry 강제병합에서 완전히 제외해야 하므로(안 그러면 문서용 hub 그룹이 무관한
+       기능블럭을 다시 끌고 들어와 매칭 품질을 악화시킨다, 실측: dx=6.00 vs 3~4) 이 함수는
+       받은 쌍을 그대로 병합할 뿐이고 필터링은 호출자(`sizing_recipe.py`) 책임이다.
+
+    반환 형태는 `kcl_series_union()`과 동일."""
+    by_drain: dict = defaultdict(list)
+    by_source: dict = defaultdict(list)
+    kind_of = {t.name: t.kind for t in netlist}
+    for t in netlist:
+        if t.drain is not None:
+            by_drain[t.drain].append(t.name)
+        if t.source is not None:
+            by_source[t.source].append(t.name)
+
+    parent = {t.name: t.name for t in netlist}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    for net, drain_names in by_drain.items():
+        if net in _RAIL_NETS:
+            continue
+        for src_name in by_source.get(net, []):
+            for drain_name in drain_names:
+                if drain_name != src_name and kind_of[drain_name] == kind_of[src_name]:
+                    union(drain_name, src_name)
     for names in matching_pairs:
         for a, b in zip(names, names[1:]):
             union(a, b)
@@ -2542,43 +2627,40 @@ def check_stick_diagram_coverage(sized_device_names, stick_diagram_devices: dict
 #       그 순서를 기억해서 매번 재현하는 대신 이 함수 하나로 고정시킨다.
 # ---------------------------------------------------------------------------
 
-def select_layout_tool(kind: str, area_budget: str | None = None) -> str:
-    """배치 7-4b(2026-07-30/31) — `audit_row_split()`의 kind→게이트 매핑(§2.6/§2.7 실측
-    기준)을 **구성(construction) 단계**에서도 쓸 수 있도록 별도 공개 함수로 뽑았다 — 이전엔
-    이 판정이 감사(사후) 시점에만 있어서, row를 처음 짜거나(`run_topology_pipeline()`)
-    matching-safety를 수리할 때(`repair_matching_safety()`, 배치 7-4) kind에 맞는 도구를
-    선제적으로 고를 방법이 없었다.
+def select_layout_tool(matching_sensitivity: str, shares_node: bool,
+                        area_budget: str | None = None) -> str:
+    """배치 7-4b(2026-07-30/31), **2026-08-05(세션10) L1 하드컷** — `audit_row_split()`의
+    kind→게이트 매핑(§2.6/§2.7 실측 기준)을 구성(construction) 단계에서도 쓸 수 있도록 뽑은
+    함수. 세션10에서 `kind`(`current_mirror`/`current_matched`/`diff_pair`/`branch_symmetric`)
+    문자열 하나 대신 L1이 분해한 두 독립 축을 직접 받도록 시그니처를 바꿨다(하위호환 shim
+    없음, kind 문자열은 더 이상 받지 않는다):
+    - `matching_sensitivity`(축C, 선언값): `"offset"`이면 offset/CMRR 민감도 때문에
+      `common_centroid_layout`이 무조건 필수(구 `diff_pair`).
+    - `shares_node`(축B, `shares_diffusion_node()`로 계산): `matching_sensitivity=="ratio"`인
+      쌍 중 source/drain을 공유하면(구 `current_mirror`/`current_matched`) 미러비 오차
+      전파만 관심사라 `interdigitate_layout`으로 충분(§2.7) — 공유 안 하면(구
+      `branch_symmetric`) interdigitation 자체가 그래프상 불가능해 `common_centroid_layout`이
+      필수.
 
-    기본 정책: `"current_mirror"` → `"interdigitate_layout"`(업계 표준 — 미러비 오차
-    전파만 관심사면 1행 interdigitation으로 충분, §2.7). `"diff_pair"`/`"branch_symmetric"`
-    → `"common_centroid_layout"`(offset/CMRR 민감도 때문에 필수). `"unknown"`(자동분류
-    실패) → `"common_centroid_layout"`(보수적 — 감사 단계(`audit_row_split()`)는 여전히
-    "unknown"에 두 체크를 다 요구하지만, **구성 단계에서 도구를 하나 골라야 한다면** 더
-    엄격한 쪽을 쓴다).
-
-    `area_budget`(선택): `"generous"`를 주면 `current_mirror`/`current_matched`도
+    `area_budget`(선택): `"generous"`를 주면 `shares_node=True`인 ratio쌍도
     `common_centroid_layout`으로 격상한다("최소면적이 아니면 더 나은 매칭을 써도 된다"는
     원칙, §7.9 질문 6) — `estimate_area_budget()`(배치 7-4b 확장)의 결과를 근거로 호출자가
     지정할 것을 권장.
 
-    2026-08(세션6) -- `symmetry.matching_pairs`의 kind가 `"current_mirror"`(같은 전류로
-    강제 병합)/`"current_matched"`(같은 의미, 이름만 교체)로 나뉘었다(sizing_recipe.py의
-    `_kcl_pairs`/`auto_mirror_ratios` 주석 참고 -- current_reuse_telescopic_ota의 Vbias1
-    8소비자가 "같은 gate 공유"와 "같은 전류"가 다른 실제 사례라 분리됨). 레이아웃 관점에선
-    둘 다 여전히 "같은 레퍼런스를 읽는 mirror 구조"라 도구 선택은 동일하게 취급한다(그 gate가
-    실제로 같은 전류를 만드는지 아닌지는 미러비 오차 전파 매칭의 필요성에 영향을 주지 않음).
-
-    등록 안 된 `kind`는 즉시 `ValueError`(다른 레지스트리들과 동일 계약)."""
-    if kind not in ("current_mirror", "current_matched", "diff_pair", "branch_symmetric", "unknown"):
-        raise ValueError(f"알 수 없는 kind: {kind!r} -- 'current_mirror'/'current_matched'/"
-                          f"'diff_pair'/'branch_symmetric'/'unknown' 중 하나여야 한다")
-    if kind in ("current_mirror", "current_matched"):
+    등록 안 된 `matching_sensitivity`는 즉시 `ValueError`(다른 레지스트리들과 동일 계약)."""
+    if matching_sensitivity not in ("ratio", "offset"):
+        raise ValueError(f"알 수 없는 matching_sensitivity: {matching_sensitivity!r} -- "
+                          f"'ratio'/'offset' 중 하나여야 한다")
+    if matching_sensitivity == "offset":
+        return "common_centroid_layout"
+    if shares_node:
         return "common_centroid_layout" if area_budget == "generous" else "interdigitate_layout"
     return "common_centroid_layout"
 
 
-def audit_row_split(rows: dict, matching_pairs: list | None = None, pair_kinds: dict | None = None,
-                     max_ratio: float = 1.5) -> AuditResult:
+def audit_row_split(rows: dict, matching_pairs: list | None = None,
+                     pair_sensitivity: dict | None = None,
+                     max_ratio: float = 1.5, area_budget: str | None = None) -> AuditResult:
     """box-shape를 위해 한 functional group을 여러 물리 행으로 재구성했을 때 **반드시 이
     함수 하나만** 호출한다 — 그때그때 손으로 `build_stick_diagram()`/`check_box_shape()`/
     interdigitation을 따로따로 확인하다가 순서를 빼먹는 실수(실제 사고, 위 §6.65 docstring)를
@@ -2593,29 +2675,26 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None, pair_kinds: 
     ≈0.02%, 약 절반 개선)이 이미 확립한 기준은 pair 종류에 따라 다르다: **전류거울(같은 gate
     공유)은 1행 interdigitation으로 충분**(미러비 오차 전파가 주 관심사, 면적/배선 효율이
     우선), **차동쌍(같은 source 공유 + 다른 gate)은 offset/CMRR이 W·L 불일치에 직접 비례해
-    더 민감하므로 common-centroid(2행, y방향까지 상쇄)가 필요**하다. 이 기준을 무시하고 모든
-    쌍에 두 체크를 똑같이 강제하면, 전류거울 쌍의 dx가 이론적 최소치(예: 3개 소자가 hub 하나를
-    공유할 때의 AABB 블록 제약, dx=1.0)에 그친 것을 "실패"로 잘못 보고하게 된다(실제로 이번
-    세션에서 그렇게 오판했다 — two_stage_ota의 M3/M4는 전류거울인데 차동쌍 기준을 적용해
-    "해결 안 된 한계"로 리포트에 남겼던 것이 이 수정으로 바로잡힌다).
+    더 민감하므로 common-centroid(2행, y방향까지 상쇄)가 필요**하다.
+
+    **2026-08-05(세션10) L1 하드컷**: 이전엔 이 판정을 `kind` 문자열 하나(내부 `_kind_of()`가
+    `pair_kinds` override가 없으면 connectivity에서 즉석 재추론)로 했는데, L1이 `kind`를
+    독립된 두 축(축B `shares_diffusion_node()`/축C `matching_sensitivity`)으로 분해하면서
+    이 함수도 그 두 축을 직접 받도록 바꿨다(하위호환 shim 없음, `pair_kinds`/`kind` 문자열은
+    더 이상 받지 않는다) — connectivity 재추론도 폐지됐다(예전엔 `pair_kinds` 없이 호출하면
+    `rows`의 gate/source만 보고 즉석 분류했지만, `matching_sensitivity`는 축C라 connectivity로
+    자동 도출이 안 되므로 이제 **항상 명시적으로 선언**해야 한다).
 
     **입력**:
     - `rows`: `{row_name: [Transistor, ...]}` — 각 `Transistor.stack_id`는 그 `row_name`과
       일치해야 한다(그래야 `build_stick_diagram()`이 행별로 정확히 묶는다).
     - `matching_pairs`: `[(name_a, name_b), ...]` — 실제 matching이 필요하다고 판단된 소자쌍.
-    - `pair_kinds`: `{(name_a, name_b) 또는 frozenset({a,b}): "current_mirror"|"diff_pair"}` —
-      **선택**. 주면 그 쌍은 이 kind로 확정(수동 override). 안 주면 `rows`에 들어있는 각
-      소자의 `gate`/`source`를 직접 봐서 자동 분류한다: **같은 gate를 공유하면 전류거울**,
-      **gate는 다르지만 같은 source를 공유하면 차동쌍**(둘 다 아니면 `"unknown"` — 보수적으로
-      두 체크 다 요구). 이건 `find_matching_candidates()`가 이미 쓰는 것과 **똑같은 구조적
-      신호**(gate 공유 vs source 공유+다른 gate)를 그대로 재사용한 것이다 — 다만
-      `find_matching_candidates()`의 diff_pair 판정은 추가로 W 일치까지 요구하는데(회로
-      전체에서 새 후보를 "발견"할 때 오탐을 줄이려는 목적), 여기서는 `matching_pairs`로 이미
-      "이 두 소자는 matching 쌍"이라고 확정된 상태이므로 W 비교가 필요 없다(행 분할용
-      `Transistor`는 대개 `w`를 안 채운다 — W까지 요구하면 오히려 분류가 항상 실패한다).
-      원본(분할 전) 소자 목록에 대해 실행한 `find_matching_candidates()` 결과에서 kind를
-      뽑아 `pair_kinds`로 명시적으로 넘기는 것도 항상 가능하다(둘 중 하나만 틀렸을 법한 애매한
-      경우의 override 용도).
+    - `pair_sensitivity`: `{(name_a, name_b) 또는 (name_b, name_a) 또는 frozenset({a,b}):
+      "ratio"|"offset"}` — **필수**(`matching_pairs`에 있는 모든 쌍이 여기 있어야 한다,
+      없으면 `ValueError`). 축B(`shares_diffusion_node(ra, rb)`)는 `rows`의 실제 connectivity로
+      항상 자동 계산되므로 여기 넣지 않는다 — `ra`/`rb` 조회에 실패하면(행 분할로 원본
+      `Transistor`가 안 남아있는 경우) `_kind_of()`의 옛 `"unknown"` 폴백과 동일하게 보수적으로
+      3b/3c 둘 다 필수로 취급한다.
 
     **고정 실행 순서** (매번 전부, 순서 무관하게 건너뛸 수 없다):
     1. 행마다 `build_stick_diagram()` 호출 → `status=="ok"`(Euler 유효) 확인.
@@ -2629,17 +2708,19 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None, pair_kinds: 
          통째로"(dy=1.0)보다 훨씬 낫다. solo는 가능한 배치 중 하나일 뿐 강제되는 구조가
          아니므로, 실제 품질 판정은 아래 3c가 한다.
        - **3b. interdigitation**(행별 지역 인접성)과 **3c. common-centroid**(전체 무게중심
-         일치, 허용오차 0.5) 둘 다 **항상 계산하고 리포트한다** — 하지만 pair의 kind에 따라
-         **어느 쪽이 전체 `ok`를 좌우하는 필수 게이트인지가 다르다**:
-         - `current_mirror`: **3b가 필수**(3c는 참고 정보로만 보고, FAIL이어도 전체 ok에
-           영향 없음) — §2.7 "단순 전류거울은 1행 interdigitation으로 충분".
-         - `diff_pair`, `branch_symmetric`: **3c가 필수**(3b는 참고 정보) — §2.7 "차동쌍은
-           offset/CMRR 민감도 때문에 common-centroid 필요", §2.6 "캐스코드 대칭쌍도 CMRR/PSRR
-           에 직접 영향"이 같은 수준의 민감도임을 명시. `branch_symmetric`의 3b는 공유 노드가
-           없어 그래프상 사실상 항상 실패한다(전수 탐색 확인) — 그래도 3c는 위 실측처럼 swap
-           분배로 달성 가능하므로 별개로 요구한다.
-         - `unknown`(자동분류 실패, override도 없음): 보수적으로 **3b와 3c 둘 다 필수**
-           (kind를 확신 못 하면 더 엄격한 쪽으로)."""
+         일치, 허용오차 0.5) 둘 다 **항상 계산하고 리포트한다** — 하지만 pair의 축B/축C에
+         따라 **어느 쪽이 전체 `ok`를 좌우하는 필수 게이트인지가 다르다**:
+         - `matching_sensitivity=="ratio"` and `shares_node`(구 `current_mirror`/
+           `current_matched`): **3b가 필수**(3c는 참고 정보로만 보고, FAIL이어도 전체 ok에
+           영향 없음) — §2.7 "단순 전류거울은 1행 interdigitation으로 충분". `area_budget=
+           "generous"`면 3c도 필수로 격상된다(`select_layout_tool()`과 동일 정책).
+         - `matching_sensitivity=="offset"`(구 `diff_pair`) 또는 `ratio`+`not shares_node`
+           (구 `branch_symmetric`): **3c가 필수**(3b는 참고 정보) — §2.7 "차동쌍은 offset/CMRR
+           민감도 때문에 common-centroid 필요", §2.6 "캐스코드 대칭쌍도 CMRR/PSRR에 직접 영향"이
+           같은 수준의 민감도임을 명시. `branch_symmetric` 쪽의 3b는 공유 노드가 없어 그래프상
+           사실상 항상 실패한다(전수 탐색 확인) — 그래도 3c는 위 실측처럼 swap 분배로 달성
+           가능하므로 별개로 요구한다.
+         - `ra`/`rb` 조회 실패(구 `"unknown"` 폴백): 보수적으로 **3b와 3c 둘 다 필수**."""
     result = AuditResult()
     row_widths: dict = {}
     sequences: dict = {}
@@ -2666,35 +2747,24 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None, pair_kinds: 
     bs = check_box_shape(row_widths, max_ratio=max_ratio)
     result.add("2. box-shape", bs.ok, bs.message)
 
-    def _kind_of(a, b):
-        if pair_kinds:
-            for key in ((a, b), (b, a), frozenset({a, b})):
-                if key in pair_kinds:
-                    return pair_kinds[key]
-        ra, rb = reps.get(a), reps.get(b)
-        if ra is None or rb is None:
-            return "unknown"
-        if ra.gate is not None and ra.gate == rb.gate:
-            shares_a_node = (ra.source is not None and ra.source == rb.source) or \
-                            (ra.drain is not None and ra.drain == rb.drain) or \
-                            (ra.source is not None and ra.source == rb.drain) or \
-                            (ra.drain is not None and ra.drain == rb.source)
-            # 같은 gate를 공유하지만 source/drain이 서로 완전히 다른(공유 노드가 하나도
-            # 없는) 쌍은 §2.6의 "캐스코드 대칭쌍"(예: folded_cascode의 M5/M6, M7/M8) —
-            # 단순 hub-leaf 전류거울(M3/M4처럼 source 하나를 공유)과는 다른 하위 종류다.
-            # 2026-07-27 실측(전수 탐색): 이런 쌍은 공유 노드가 없어 같은 행 안에서
-            # finger 단위로 interdigitate_layout될 그래프 경로 자체가 없다(bot 그룹 M7/M8을
-            # 수백 개 finger 분배 조합으로 전수 탐색해도 인접 사례 0건) -- 그래서 이
-            # kind는 행-내용 레벨(3b/3c)이 아니라 floorplan 레벨(두 행을 좌우 mirror로
-            # 배치했는가, symmetry_max_error)에서 검증해야 하는 별개 항목이다.
-            return "current_mirror" if shares_a_node else "branch_symmetric"
-        if ra.source is not None and ra.source == rb.source and ra.gate != rb.gate:
-            return "diff_pair"
-        return "unknown"
+    pair_sensitivity = pair_sensitivity or {}
+
+    def _sensitivity_of(a, b):
+        for key in ((a, b), (b, a), frozenset({a, b})):
+            if key in pair_sensitivity:
+                return pair_sensitivity[key]
+        raise ValueError(f"pair_sensitivity에 ({a},{b}) 쌍의 matching_sensitivity가 없다 -- "
+                          f"matching_pairs의 모든 쌍은 축C를 명시적으로 선언해야 한다")
 
     row_order = list(rows.keys())
     for a, b in (matching_pairs or []):
-        kind = _kind_of(a, b)
+        sens = _sensitivity_of(a, b)
+        ra, rb = reps.get(a), reps.get(b)
+        if ra is None or rb is None:
+            shares = None  # 구 "unknown" 폴백과 동일 -- 아래서 3b/3c 둘 다 필수로 강제
+        else:
+            shares = shares_diffusion_node(ra, rb)
+        kind = f"sensitivity={sens},shares_node={shares}"  # 3a 리포트용 표시 문자열
         count_a = {rn: sum(t.n_fingers for t in devs if t.name == a) for rn, devs in rows.items()}
         count_b = {rn: sum(t.n_fingers for t in devs if t.name == b) for rn, devs in rows.items()}
         touched = [rn for rn in rows if count_a[rn] > 0 or count_b[rn] > 0]
@@ -2758,26 +2828,25 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None, pair_kinds: 
                                f"{b} centroid=({cen_b[0]:.2f},{cen_b[1]:.2f}), |dx|={dx:.2f} |dy|={dy:.2f}"
                                f" (허용오차 0.5)")
 
-        # kind에 따라 어느 체크가 전체 ok를 좌우하는 필수 게이트인지 결정 (§2.7 기준).
-        # branch_symmetric(공유 노드 없는 캐스코드 대칭쌍)도 diff_pair와 같이 common-centroid를
-        # 필수로 본다 -- interdigitation(행 내부 인접)은 그래프 구조상 사실상 항상 불가능하지만
-        # (전수 탐색으로 확인), common-centroid(전체 무게중심 일치)는 두 소자를 swap-대칭으로
-        # 양쪽 행에 걸쳐 분배하면 실제로 달성 가능하다(실측: solo 배치 dy=1.0 -> 분배 배치
-        # dx=0.00/dy=0.20). 참고용(비필수) 체크는 result.checks에는 남기되 result.add()를
-        # 거치지 않아 overall ok를 흔들지 않는다 -- FAIL이어도 눈에는 보이되 게이트를 막지는 않는다.
-        # 배치 7-4b(2026-07-31): centroid_required는 이제 select_layout_tool()의 반환값에서
-        # 유도한다(로직 중복 제거) -- current_mirror/diff_pair/branch_symmetric 3개 kind는
-        # select_layout_tool(kind)=="common_centroid_layout"인지 여부와 정확히 일치한다
-        # (self-test로 회귀 확인됨). interdig_required만 "unknown"에 대해 예외를 유지한다 --
-        # select_layout_tool()은 구성 단계에서 도구 하나를 골라야 해서 unknown도
-        # common_centroid_layout 하나만 반환하지만, 감사 단계는 "kind를 확신 못 하면 둘 다
-        # 확인"이라는 기존 보수적 정책을 그대로 유지한다(behavior 변경 없음).
-        # 2026-08(세션6) -- kind가 "current_mirror"(구조적 사실)/"current_matched"(같은
-        # 전류로 강제 병합, 옛 current_mirror의 의미 승계)로 분리됐다(sizing_recipe.py의
-        # _kcl_pairs 주석 참고) -- 레이아웃 감사 관점에선 둘 다 "미러비 오차 전파만
-        # 관심사"라 §2.7 기준(interdigitation 필수)을 동일하게 적용한다.
-        interdig_required = kind in ("current_mirror", "current_matched") or kind == "unknown"
-        centroid_required = select_layout_tool(kind) == "common_centroid_layout"
+        # 축B/축C에 따라 어느 체크가 전체 ok를 좌우하는 필수 게이트인지 결정 (§2.7 기준).
+        # branch_symmetric류(ratio + not shares_node)도 offset류(diff_pair)와 같이
+        # common-centroid를 필수로 본다 -- interdigitation(행 내부 인접)은 그래프 구조상
+        # 사실상 항상 불가능하지만(전수 탐색으로 확인), common-centroid(전체 무게중심 일치)는
+        # 두 소자를 swap-대칭으로 양쪽 행에 걸쳐 분배하면 실제로 달성 가능하다(실측: solo
+        # 배치 dy=1.0 -> 분배 배치 dx=0.00/dy=0.20). 참고용(비필수) 체크는 result.checks에는
+        # 남기되 result.add()를 거치지 않아 overall ok를 흔들지 않는다 -- FAIL이어도 눈에는
+        # 보이되 게이트를 막지는 않는다.
+        # 2026-08-05(세션10) L1 하드컷 -- select_layout_tool(matching_sensitivity, shares_node,
+        # area_budget)의 반환값에서 centroid_required를 유도한다(로직 중복 제거, 배치
+        # 7-4b부터 유지된 원칙). interdig_required는 ra/rb 조회 실패(구 "unknown" 폴백)에
+        # 대해서만 예외를 유지한다 -- select_layout_tool()은 구성 단계에서 도구 하나를 골라야
+        # 해서 그 경우를 표현할 방법이 없지만, 감사 단계는 "확신 못 하면 둘 다 확인"이라는
+        # 기존 보수적 정책을 그대로 유지한다(behavior 변경 없음).
+        if ra is None or rb is None:
+            interdig_required, centroid_required = True, True
+        else:
+            centroid_required = select_layout_tool(sens, shares, area_budget) == "common_centroid_layout"
+            interdig_required = (sens == "ratio") and shares
         note_b = "" if interdig_required else " [참고용 -- 이 kind는 필수 아님]"
         note_c = "" if centroid_required else " [참고용 -- 이 kind는 필수 아님]"
         if interdig_required:
@@ -2832,7 +2901,7 @@ def _layout_result_to_rows(layout: dict, templates: dict, base_row_name: str) ->
     return result
 
 
-def repair_matching_safety(rows: dict, matching_pairs: list, pair_kinds: dict | None = None,
+def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: dict | None = None,
                             max_iter: int = 3) -> tuple:
     """배치 7-4 — `audit_row_split()`이 FAIL한 matching pair에 대해 `select_layout_tool()`
     (배치 7-4b)이 고른 도구(`interdigitate_layout`/`common_centroid_layout`)로 그 pair가
@@ -2841,11 +2910,16 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_kinds: dict | 
     각 반복: (1) `audit_row_split()` 호출 (2) 필수 게이트로 실패한 pair들을 찾음(3) 두
     소자가 **같은 hub(source)를 공유**하면(같은 행에 있든, 서로 다른 행에 각각 통째로
     있든 — 실제 사고 사례가 정확히 후자였다, `known-incidents.md`) 원래 있던 행(들)에서
-    둘 다 꺼내 `select_layout_tool(kind)`이 고른 도구로 재배치 — 도구가 반환한 새
+    둘 다 꺼내 `select_layout_tool()`이 고른 도구로 재배치 — 도구가 반환한 새
     행들(`f"{원래행}_repair{i}"`)로 대체한다 (4) 하나라도 재배치가 있었으면 다시 (1)로.
 
     반환: `(rows, AuditResult)` — 최종 rows(수정됐을 수 있음)와 그 rows에 대한 마지막
     `audit_row_split()` 결과.
+
+    **2026-08-05(세션10) L1 하드컷**: `pair_kinds`(kind 문자열) 대신 `pair_sensitivity`
+    (축C, `{pair: "ratio"|"offset"}`)를 받는다 — `audit_row_split()`과 동일 계약, 하위호환
+    shim 없음. 축B(`shares_node`)는 이미 같은 hub(source)를 공유한다는 전제(아래 참고)가
+    확인된 뒤라 항상 `shares_diffusion_node(ta, tb)`로 즉석 계산한다.
 
     ⚠️ 정직한 한계(2026-07-31): `interdigitate_layout()`/`common_centroid_layout()`은
     "같은 hub net(source)을 공유하는 소자들"만 입력으로 받는다 — pair의 두 소자가 서로
@@ -2853,16 +2927,17 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_kinds: dict | 
     도구들 자체가 적용 불가능해 이 함수는 그 pair를 건드리지 않고 넘어간다(진행이 전혀
     없으면 `max_iter`를 다 채우지 않고 조기 종료) — `run_topology_pipeline()`의 기존
     docstring이 이미 밝힌 한계(사람이 `search_stack_finger_w()`로 직접 조정) 그대로다."""
-    pair_kinds = pair_kinds or {}
+    pair_sensitivity = pair_sensitivity or {}
     current_rows = {k: list(v) for k, v in rows.items()}
 
-    def _kind_of_pair(a, b):
+    def _sensitivity_of_pair(a, b):
         for key in ((a, b), (b, a), frozenset({a, b})):
-            if key in pair_kinds:
-                return pair_kinds[key]
-        return "unknown"
+            if key in pair_sensitivity:
+                return pair_sensitivity[key]
+        raise ValueError(f"pair_sensitivity에 ({a},{b}) 쌍의 matching_sensitivity가 없다")
 
-    result = audit_row_split(current_rows, matching_pairs=matching_pairs, pair_kinds=pair_kinds)
+    result = audit_row_split(current_rows, matching_pairs=matching_pairs,
+                              pair_sensitivity=pair_sensitivity)
     for _ in range(max_iter):
         if result.ok:
             break
@@ -2882,8 +2957,8 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_kinds: dict | 
             ta, tb = devs_by_name[a], devs_by_name[b]
             if ta.source != tb.source:
                 continue  # 공유 hub 없음 -- 이 도구들 적용 불가(정직한 한계, 위 docstring)
-            kind = _kind_of_pair(a, b)
-            tool_name = select_layout_tool(kind)
+            sens = _sensitivity_of_pair(a, b)
+            tool_name = select_layout_tool(sens, shares_diffusion_node(ta, tb))
             tool_fn = interdigitate_layout if tool_name == "interdigitate_layout" else common_centroid_layout
             layout = tool_fn([ta, tb])
             base_row_name = origin_rows[a]
@@ -2896,7 +2971,8 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_kinds: dict | 
             progressed = True
         if not progressed:
             break
-        result = audit_row_split(current_rows, matching_pairs=matching_pairs, pair_kinds=pair_kinds)
+        result = audit_row_split(current_rows, matching_pairs=matching_pairs,
+                                  pair_sensitivity=pair_sensitivity)
     return current_rows, result
 
 
@@ -3656,15 +3732,19 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
     # 하나를 여러 소자가 미러하는 current_mirror)은 모든 쌍별 조합으로 펼친다(2026-08-01,
     # 3개짜리 그룹에서 첫 두 이름만 쓰던 실제 gap 수정).
     matching_pairs = [pair for p in pairs_meta for pair in itertools.combinations(p["names"], 2)]
-    pair_kinds = {pair: p["kind"] for p in pairs_meta
-                  for pair in itertools.combinations(p["names"], 2)}
+    # 2026-08-05(세션10) L1 하드컷 -- pair_kinds(kind 문자열) 대신 pair_sensitivity(축C)를
+    # topology.json에서 직접 읽는다. 축B(shares_node)는 이제 connectivity에서 항상 자동
+    # 계산되므로(shares_diffusion_node()) 여기서 조립할 필요가 없다.
+    pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
+                         for pair in itertools.combinations(p["names"], 2)}
 
     hints = floorplan_hints or {}
     effective_cell_groups = cell_groups if cell_groups is not None else hints.get("spine_groups")
 
     if effective_cell_groups is None:
         box_shape = check_box_shape(row_widths)
-        audit_row = audit_row_split(rows, matching_pairs=matching_pairs, pair_kinds=pair_kinds)
+        audit_row = audit_row_split(rows, matching_pairs=matching_pairs,
+                                     pair_sensitivity=pair_sensitivity)
     else:
         box_shape = {}
         audit_row = {}
@@ -3675,9 +3755,10 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
             cell_device_names = {t.name for devs in cell_rows.values() for t in devs}
             cell_pairs = [(a, b) for (a, b) in matching_pairs
                           if a in cell_device_names and b in cell_device_names]
-            cell_pair_kinds = {k: v for k, v in pair_kinds.items() if set(k) <= cell_device_names}
+            cell_pair_sensitivity = {k: v for k, v in pair_sensitivity.items()
+                                      if set(k) <= cell_device_names}
             audit_row[cell_name] = audit_row_split(cell_rows, matching_pairs=cell_pairs,
-                                                    pair_kinds=cell_pair_kinds)
+                                                    pair_sensitivity=cell_pair_sensitivity)
 
     spine_groups_names = hints.get("spine_groups") or {name: [name] for name in row_widths}
     blocks_by_name = {name: block_from_row_widths(name, {name: row_widths[name]})
@@ -4950,7 +5031,8 @@ if __name__ == "__main__":
         Transistor("M6","pmos",source="Y",drain="outB",gate="bias3",n_fingers=6,stack_id="old_row1"),
     ]
     old_audit = audit_row_split({"old_row0": old_top_row0, "old_row1": old_top_row1},
-                                  matching_pairs=[("M3", "M4")])
+                                  matching_pairs=[("M3", "M4")],
+                                  pair_sensitivity={("M3", "M4"): "ratio"})
     print(f"  [회귀 재현] M3 row0 통째로/M4 row1 통째로: overall={'OK(FAIL, 의도대로 검출됨)' if not old_audit.ok else 'FAIL(놓침!)'}")
     for c in old_audit.checks:
         if c.name.startswith("3"):
@@ -4977,7 +5059,8 @@ if __name__ == "__main__":
         Transistor("MP","pmos",source="vdd",drain="tail",gate="bias1",n_fingers=1,stack_id="fix_row1"),
     ]
     fixed_audit = audit_row_split({"fix_row0": fixed_top_row0, "fix_row1": fixed_top_row1},
-                                    matching_pairs=[("M3", "M4")])
+                                    matching_pairs=[("M3", "M4")],
+                                    pair_sensitivity={("M3", "M4"): "ratio"})
     print(f"  [common_centroid_layout로 재구성] overall={'OK' if fixed_audit.ok else 'FAIL'}")
     for c in fixed_audit.checks:
         if c.name.startswith("3"):
@@ -5000,8 +5083,9 @@ if __name__ == "__main__":
         Transistor("M6","pmos",source="vdd",drain="OUT",gate="O1",n_fingers=6,stack_id="small_row1"),
     ]
     small_audit = audit_row_split({"small_row0": small_top_row0, "small_row1": small_top_row1},
-                                    matching_pairs=[("M3", "M4")])
-    print(f"  overall={'OK(kind=current_mirror -> interdigitation만 필수, 정확히 통과)' if small_audit.ok else 'FAIL'}")
+                                    matching_pairs=[("M3", "M4")],
+                                    pair_sensitivity={("M3", "M4"): "ratio"})
+    print(f"  overall={'OK(sensitivity=ratio+shares_node -> interdigitation만 필수, 정확히 통과)' if small_audit.ok else 'FAIL'}")
     for c in small_audit.checks:
         if c.name.startswith("3"):
             print(f"    [{'PASS' if c.ok else 'FAIL'}] {c.name}: {c.detail}")
@@ -5017,8 +5101,9 @@ if __name__ == "__main__":
         Transistor("MY","nmos",source="tail2",drain="db",gate="vn",n_fingers=1,stack_id="dp_row1"),
     ]
     diffpair_audit = audit_row_split({"dp_row0": diffpair_bad_row0, "dp_row1": diffpair_bad_row1},
-                                       matching_pairs=[("MX", "MY")])
-    print(f"  overall={'FAIL(kind=diff_pair -> common-centroid 필수, 의도대로 검출됨)' if not diffpair_audit.ok else 'OK(놓침!)'}")
+                                       matching_pairs=[("MX", "MY")],
+                                       pair_sensitivity={("MX", "MY"): "offset"})
+    print(f"  overall={'FAIL(sensitivity=offset -> common-centroid 필수, 의도대로 검출됨)' if not diffpair_audit.ok else 'OK(놓침!)'}")
     for c in diffpair_audit.checks:
         if c.name.startswith("3"):
             print(f"    [{'PASS' if c.ok else 'FAIL'}] {c.name}: {c.detail}")
@@ -5053,7 +5138,8 @@ if __name__ == "__main__":
         Transistor("MP","pmos",source="vdd",drain="tail",gate="bias1",n_fingers=1,stack_id="solo_row1"),
     ]
     solo_audit = audit_row_split({"solo_row0": solo_top_row0, "solo_row1": solo_top_row1},
-                                   matching_pairs=[("M3", "M4"), ("M5", "M6")])
+                                   matching_pairs=[("M3", "M4"), ("M5", "M6")],
+                                   pair_sensitivity={("M3", "M4"): "ratio", ("M5", "M6"): "ratio"})
     print(f"  overall={'OK' if solo_audit.ok else 'FAIL(solo 배치의 common-centroid 미달, 의도대로 검출됨)'}")
     for c in solo_audit.checks:
         if "M5/M6" in c.name:
@@ -5079,7 +5165,8 @@ if __name__ == "__main__":
         Transistor("MP","pmos",source="vdd",drain="tail",gate="bias1",n_fingers=1,stack_id="dist_row1"),
     ]
     dist_audit = audit_row_split({"dist_row0": dist_top_row0, "dist_row1": dist_top_row1},
-                                   matching_pairs=[("M3", "M4"), ("M5", "M6")])
+                                   matching_pairs=[("M3", "M4"), ("M5", "M6")],
+                                   pair_sensitivity={("M3", "M4"): "ratio", ("M5", "M6"): "ratio"})
     print(f"  overall={'OK(swap-분배로 common-centroid 실제 달성)' if dist_audit.ok else 'FAIL'}")
     for c in dist_audit.checks:
         if c.name.startswith("3"):
@@ -5094,7 +5181,8 @@ if __name__ == "__main__":
         Transistor("MB","pmos",source="p2",drain="d2",gate="g",n_fingers=6,stack_id="bad_row1"),
     ]
     mismatched_audit = audit_row_split({"bad_row0": mismatched_row0, "bad_row1": mismatched_row1},
-                                         matching_pairs=[("MA", "MB")])
+                                         matching_pairs=[("MA", "MB")],
+                                         pair_sensitivity={("MA", "MB"): "ratio"})
     print(f"  overall={'FAIL(finger 수 4 != 6 -- 진짜 mirror 짝이 아님, 의도대로 검출됨)' if not mismatched_audit.ok else 'OK(놓침!)'}")
     for c in mismatched_audit.checks:
         if c.name.startswith("3"):
@@ -5166,13 +5254,21 @@ if __name__ == "__main__":
     _lib_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "library")
 
     print()
-    print("  [folded_cascode: load_topology()가 connectivity를 diff=0으로 재현하는지]")
+    print("  [folded_cascode: n_fingers/finger_w/w/stack_id 산출물만 folded_cascode_example()에서")
+    print("  빌려 파이프라인 기계적 동작을 확인 -- 2026-08-05(세션9) folded_cascode.topology.json이")
+    print("  다이오드 레퍼런스 구조(MP/MN, Vg7/Vg9/Vg10 등) 반영으로 Maloberti 교과서 예제와 다른")
+    print("  실제 회로로 전면 재구성돼, connectivity diff=0 비교는 더 이상 유효한 회귀 기준이")
+    print("  아니다(의도적 차이, 세션9 사용자 승인) -- 소자 이름 집합만 일치 확인하고 connectivity")
+    print("  diff는 참고 정보로만 출력한다.")
     _fc_original = folded_cascode_example()
     _fc_loaded, _fc_meta = load_topology(_os.path.join(_lib_dir, "folded_cascode.topology.json"))
     _fc_orig_by_name = {t.name: (t.kind, t.source, t.drain, t.gate) for t in _fc_original}
     _fc_load_by_name = {t.name: (t.kind, t.source, t.drain, t.gate) for t in _fc_loaded}
     _fc_diff_ok = _fc_orig_by_name == _fc_load_by_name
-    print(f"  connectivity diff=0: {_fc_diff_ok} ({len(_fc_original)}개 소자)")
+    assert set(_fc_orig_by_name) == set(_fc_load_by_name), \
+        "folded_cascode_example()과 topology.json의 소자 이름 집합이 다름 -- sizing_overrides 구성 불가"
+    print(f"  connectivity diff=0: {_fc_diff_ok} ({len(_fc_original)}개 소자, 참고 정보 -- "
+          f"세션9 재구성으로 항상 False가 정상)")
     print(f"  compensation={_fc_meta['compensation']} (단일 스테이지라 null이 정상)")
 
     _fc_overrides = {t.name: {"n_fingers": t.n_fingers, "finger_w": t.finger_w,
@@ -5217,10 +5313,11 @@ if __name__ == "__main__":
         print(f"  netlist 소자 수={len(_inst_data['netlist'])}, "
               f"floorplan.packing_density={_inst_data['floorplan']['packing_density']:.3f}")
 
-    assert _fc_diff_ok and _ts_diff_ok, "connectivity diff가 0이 아니다 -- 이관 회귀 실패"
+    assert _ts_diff_ok, "two_stage_ota connectivity diff가 0이 아니다 -- 이관 회귀 실패"
     print()
-    print("  Test 26 PASS: connectivity diff=0(양쪽), 파이프라인 정상 실행, "
-          "save_instance_json 정상 기록")
+    print("  Test 26 PASS: two_stage_ota connectivity diff=0, folded_cascode는 이름 집합만 "
+          "일치 확인(세션9 재구성으로 diff 비교 자체는 더 이상 유효한 기준이 아님), "
+          "파이프라인 정상 실행, save_instance_json 정상 기록")
 
     print()
     print("=== Test 26.5: run_topology_pipeline() -- sizing_overrides에서 소자 하나를")
@@ -5346,18 +5443,18 @@ if __name__ == "__main__":
     print("=== Test 28: select_layout_tool()/repair_matching_safety() (배치 7-4/7-4b, 2026-07-31) ===")
 
     print()
-    print("  [select_layout_tool() -- kind별 도구 선택 + area_budget 격상]")
-    assert select_layout_tool("current_mirror") == "interdigitate_layout"
-    assert select_layout_tool("current_mirror", area_budget="generous") == "common_centroid_layout"
-    assert select_layout_tool("diff_pair") == "common_centroid_layout"
-    assert select_layout_tool("branch_symmetric") == "common_centroid_layout"
-    assert select_layout_tool("unknown") == "common_centroid_layout"
+    print("  [select_layout_tool() -- 2026-08-05(세션10) L1 하드컷: 축B/축C 조합별 도구 선택")
+    print("  + area_budget 격상. 구 kind 문자열 대신 (matching_sensitivity, shares_node)를 받는다.]")
+    assert select_layout_tool("ratio", True) == "interdigitate_layout"          # 구 current_mirror/current_matched
+    assert select_layout_tool("ratio", True, area_budget="generous") == "common_centroid_layout"
+    assert select_layout_tool("offset", True) == "common_centroid_layout"       # 구 diff_pair
+    assert select_layout_tool("ratio", False) == "common_centroid_layout"       # 구 branch_symmetric
     try:
-        select_layout_tool("not_a_real_kind")
-        raise AssertionError("잘못된 kind인데 에러가 안 났다")
+        select_layout_tool("not_a_real_sensitivity", True)
+        raise AssertionError("잘못된 matching_sensitivity인데 에러가 안 났다")
     except ValueError as _e_slt:
-        print(f"    PASS: 4개 kind 매핑 확인(current_mirror->interdigitate, 나머지->common_centroid) "
-              f"+ 미등록 kind ValueError -- {str(_e_slt)[:50]}...")
+        print(f"    PASS: 축B/축C 조합 매핑 확인(ratio+shares_node->interdigitate, 나머지"
+              f"->common_centroid) + 미등록 matching_sensitivity ValueError -- {str(_e_slt)[:50]}...")
 
     print()
     print("  [repair_matching_safety() -- known-incidents.md 사고3 재현: folded_cascode.topology.json의")
@@ -5369,45 +5466,49 @@ if __name__ == "__main__":
     print("  이 쌍이 서로 다른 행에 통째로 분리 배치된 걸 자동으로 interdigitate 재배치하는지]")
     _fc_by_name = {t.name: t for t in _fc_loaded}
 
-    def _first_pair_of_kind(pairs_meta, kind):
-        """topology.json의 symmetry.matching_pairs에서 kind가 일치하는 첫 쌍을 찾는다 --
-        어느 소자명이 그 kind인지는 이 함수가 파일에서 알아낼 뿐 테스트가 가정하지 않는다."""
+    def _first_pair_matching(pairs_meta, current_forced, matching_sensitivity):
+        """topology.json의 symmetry.matching_pairs에서 축A/축C가 일치하는 첫 쌍을 찾는다 --
+        어느 소자명이 그 조합인지는 이 함수가 파일에서 알아낼 뿐 테스트가 가정하지 않는다.
+        2026-08-05(세션10) L1 하드컷 -- 구 kind 문자열 매칭을 축A(current_forced)/축C
+        (matching_sensitivity) 조합 매칭으로 교체."""
         for p in pairs_meta:
-            if p["kind"] == kind:
+            if p["current_forced"] == current_forced and p["matching_sensitivity"] == matching_sensitivity:
                 return tuple(p["names"])
-        raise AssertionError(f"folded_cascode.topology.json에 kind={kind!r}인 matching_pair가 "
+        raise AssertionError(f"folded_cascode.topology.json에 current_forced={current_forced!r}, "
+                              f"matching_sensitivity={matching_sensitivity!r}인 matching_pair가 "
                               f"없다 -- 테스트 픽스처를 다시 확인할 것")
 
     _fc_pairs_meta = _fc_meta["symmetry"]["matching_pairs"]
-    _mirror_a, _mirror_b = _first_pair_of_kind(_fc_pairs_meta, "current_matched")
-    print(f"    (JSON에서 발견한 current_matched 쌍: {_mirror_a}/{_mirror_b})")
+    _mirror_a, _mirror_b = _first_pair_matching(_fc_pairs_meta, True, "ratio")
+    print(f"    (JSON에서 발견한 current_forced=True,ratio 쌍(구 current_matched): {_mirror_a}/{_mirror_b})")
     # n_fingers/stack_id는 topology.json에 없는 sizing/layout 산출물이라 테스트가 직접
     # 지정한다(§1 스키마 원칙) -- source/drain/gate(connectivity)는 파일에서 그대로 읽은 값.
     _t_mirror_a = _dc_replace(_fc_by_name[_mirror_a], n_fingers=3, stack_id="row0")
     _t_mirror_b = _dc_replace(_fc_by_name[_mirror_b], n_fingers=3, stack_id="row1")
     _repair_rows_before = {"row0": [_t_mirror_a], "row1": [_t_mirror_b]}
     _repair_pairs = [(_mirror_a, _mirror_b)]
-    _repair_kinds = {(_mirror_a, _mirror_b): "current_matched"}
-    _before_audit = audit_row_split(_repair_rows_before, matching_pairs=_repair_pairs, pair_kinds=_repair_kinds)
+    _repair_sensitivity = {(_mirror_a, _mirror_b): "ratio"}
+    _before_audit = audit_row_split(_repair_rows_before, matching_pairs=_repair_pairs,
+                                     pair_sensitivity=_repair_sensitivity)
     assert not _before_audit.ok, "수리 전인데 이미 PASS -- 재현 시나리오 실패"
     print(f"    수리 전: ok={_before_audit.ok} (예상대로 FAIL -- 분리배치로 3b 인접성 실패, 사고3 재현)")
 
-    _repaired_rows, _after_audit = repair_matching_safety(_repair_rows_before, _repair_pairs, _repair_kinds)
+    _repaired_rows, _after_audit = repair_matching_safety(_repair_rows_before, _repair_pairs, _repair_sensitivity)
     assert _after_audit.ok, f"수리 후에도 FAIL: {[c for c in _after_audit.checks if not c.ok]}"
     print(f"    수리 후: ok={_after_audit.ok}, 최종 행={sorted(_repaired_rows.keys())} (PASS로 전환)")
 
     print()
     print("  [repair_matching_safety() -- 공유 hub가 없는 pair(같은 파일에서 발견한 진짜")
     print("  branch_symmetric 쌍)는 건드리지 않고 정직하게 실패 유지(정직한 한계)]")
-    _branch_a, _branch_b = _first_pair_of_kind(_fc_pairs_meta, "branch_symmetric")
-    print(f"    (JSON에서 발견한 branch_symmetric 쌍: {_branch_a}/{_branch_b})")
+    _branch_a, _branch_b = _first_pair_matching(_fc_pairs_meta, False, "ratio")
+    print(f"    (JSON에서 발견한 current_forced=False,ratio 쌍(구 branch_symmetric): {_branch_a}/{_branch_b})")
     _t_branch_a = _dc_replace(_fc_by_name[_branch_a], n_fingers=6, stack_id="rowA")
     _t_branch_b = _dc_replace(_fc_by_name[_branch_b], n_fingers=6, stack_id="rowB")
     _norepair_rows = {"rowA": [_t_branch_a], "rowB": [_t_branch_b]}
     _norepair_pairs = [(_branch_a, _branch_b)]
-    _norepair_kinds = {(_branch_a, _branch_b): "branch_symmetric"}
+    _norepair_sensitivity = {(_branch_a, _branch_b): "ratio"}
     _norepair_result_rows, _norepair_audit = repair_matching_safety(
-        _norepair_rows, _norepair_pairs, _norepair_kinds)
+        _norepair_rows, _norepair_pairs, _norepair_sensitivity)
     assert not _norepair_audit.ok, "공유 hub 없는 쌍인데 수리된 것처럼 PASS가 나옴 -- 버그"
     assert sorted(_norepair_result_rows.keys()) == ["rowA", "rowB"], \
         "건드리면 안 되는데 행 구조가 바뀜"
@@ -5421,30 +5522,40 @@ if __name__ == "__main__":
     print("  -- 손타이핑 넷리스트 없음(topology.json 단일 소스 원칙).")
 
     print()
-    print("  [derive_stack_groups() -- 2단자 내부 노드(outA/outB) + 선언된 matching_pairs로")
-    print("  union-find 병합]")
-    _fc_all_pairs = [tuple(p["names"]) for p in _fc_pairs_meta]
-    _fc_groups = derive_stack_groups(_fc_loaded, _fc_all_pairs)
+    print("  [geometry_colocation_union() -- 2026-08-05(세션10) L1/L2 하드컷: derive_stack_groups()가")
+    print("  kcl_series_union()/geometry_colocation_union() 두 함수로 분리됐고, folded_cascode netlist도")
+    print("  세션9에 전면 재구성됐다(outA/outB -> Vg7/out) -- assign_finger_geometry()가 실제로 받는")
+    print("  것과 동일하게 current_forced=True 쌍만 필터링해 geometry_colocation_union()으로 병합]")
+    _fc_forced_pairs = [tuple(p["names"]) for p in _fc_pairs_meta if p["current_forced"]]
+    _fc_groups = geometry_colocation_union(_fc_loaded, _fc_forced_pairs)
     _fc_all_members = sorted(n for members in _fc_groups.values() for n in members)
     assert _fc_all_members == sorted(t.name for t in _fc_loaded), \
-        "derive_stack_groups()가 소자를 빠뜨리거나 중복시킴"
+        "geometry_colocation_union()가 소자를 빠뜨리거나 중복시킴"
     _fc_group_sets = {frozenset(members) for members in _fc_groups.values()}
-    # outA(M5.drain/M7.drain, 2단자)/outB(M6.drain/M8.drain, 2단자)로 그래프상 병합 + 선언된
-    # M5/M6(branch_symmetric)/M7/M8(branch_symmetric) pair가 전부 합쳐져 4소자 그룹 하나가 된다.
-    assert frozenset({"M5", "M6", "M7", "M8"}) in _fc_group_sets, \
-        f"M5/M6/M7/M8이 outA/outB 내부노드+matching_pairs로 하나의 그룹이 돼야 하는데 안 됨: {_fc_group_sets}"
-    assert frozenset({"M3", "M4"}) in _fc_group_sets, "M3/M4(current_matched)가 한 그룹이 아님"
-    assert frozenset({"M9", "M10"}) in _fc_group_sets, "M9/M10(current_matched)가 한 그룹이 아님"
-    assert frozenset({"M1", "M2"}) in _fc_group_sets, "M1/M2(diff_pair)가 한 그룹이 아님"
+    # 실측(2026-08-05 세션10, 손으로 미리 추정했다가 실행 결과로 정정됨) -- rule1(같은 극성+
+    # non-rail+drain=source)이 declared pair보다 훨씬 넓게 병합한다:
+    #   PMOS 6개: M6.source=X가 M1.drain=X/M3.drain=X와 매칭(둘 다 pmos) -> {M1,M3,M6},
+    #             M5.source=Y가 M2.drain=Y/M4.drain=Y와 매칭 -> {M2,M4,M5}, 그리고 선언된
+    #             M1/M2(diff_pair)가 이 두 하위그룹을 하나로 잇는다 -> {M1,M2,M3,M4,M5,M6}.
+    #   NMOS 4개: M7.source=Vg9가 M9.drain=Vg9(diode)와, M8.source=Vg10이 M10.drain=Vg10
+    #             (diode)와 매칭(둘 다 nmos) -> {M7,M9}/{M8,M10}, 선언된 M7/M8(current_matched)이
+    #             이 둘을 잇는다 -> {M7,M8,M9,M10}.
+    # 즉 rule1이 "다이오드 레퍼런스 체인 전체"를 자동으로 찾아내 선언된 2-소자 쌍보다 훨씬
+    # 유용한 물리 그룹을 만든다 -- M5/M6(branch_symmetric, current_forced=False라 declared
+    # 병합엔 안 들어가지만)는 이미 rule1으로 각자 PMOS/NMOS 그룹에 흡수돼 있다.
+    assert frozenset({"M1", "M2", "M3", "M4", "M5", "M6"}) in _fc_group_sets, \
+        f"PMOS 6개(M1..M6)가 diff_pair+drain=source 체인으로 한 그룹이 돼야 하는데 안 됨: {_fc_group_sets}"
+    assert frozenset({"M7", "M8", "M9", "M10"}) in _fc_group_sets, \
+        f"NMOS 4개(M7..M10)가 current_matched+drain=source 체인으로 한 그룹이 돼야 하는데 안 됨: {_fc_group_sets}"
     for _singleton in ("MP", "M11", "MN"):
         assert frozenset({_singleton}) in _fc_group_sets, \
-            f"{_singleton}은 다른 어떤 소자와도 안 묶여야 하는데(2단자 내부노드/matching_pair 없음) 그룹이 다름"
-    print(f"    PASS: {len(_fc_groups)}개 그룹 -- M5/M6/M7/M8(outA/outB+branch_symmetric 병합), "
-          f"M3/M4, M9/M10, M1/M2(각 matching_pairs), MP/M11/MN(단독) 전부 확인")
+            f"{_singleton}은 다른 어떤 소자와도 안 묶여야 하는데(rail만 공유, drain=source 체인/matching_pair 없음) 그룹이 다름"
+    print(f"    PASS: {len(_fc_groups)}개 그룹 -- PMOS 6개(M1..M6), NMOS 4개(M7..M10, 다이오드 "
+          f"레퍼런스 체인), MP/M11/MN(단독) 전부 확인")
 
     print()
-    print("  [derive_stack_groups() -- 재현성: 같은 입력 다시 넣으면 완전히 같은 그룹]")
-    _fc_groups_again = derive_stack_groups(_fc_loaded, _fc_all_pairs)
+    print("  [geometry_colocation_union() -- 재현성: 같은 입력 다시 넣으면 완전히 같은 그룹]")
+    _fc_groups_again = geometry_colocation_union(_fc_loaded, _fc_forced_pairs)
     assert _fc_groups == _fc_groups_again, "같은 입력인데 결과가 달라짐 -- 재현성 위반"
     print("    PASS: 재실행 결과 완전 동일")
 

@@ -34,13 +34,13 @@
   "symmetry": {
     "_matching_pairs_comment": "2026-08-05(세션9, 사용자 정정지시로 netlist를 다이오드+미러 구조로 확정한 뒤 재검토) -- M3/M4는 MP(gate=drain=tail) 다이오드의 미러, M9/M10은 M9(gate=drain=X) 다이오드+M10 미러, M7/M8은 M7(gate=drain=Vg7) 다이오드+M8 미러 -- 셋 다 같은 패턴(다이오드 레퍼런스+미러 출력)이라 current_matched(축A=강제)가 타당하다. M5/M6은 다이오드 없이 외부 bias3만 공유(구조적 유사성뿐, KCL/미러 근거 없음)라 branch_symmetric 유지.",
     "matching_pairs": [
-      {"names": ["M3", "M4"], "kind": "current_matched",
+      {"names": ["M3", "M4"], "current_forced": true, "matching_sensitivity": "ratio",
        "_comment": "MP(gate=drain=vb1, PMOS 다이오드)의 미러 -- M3.gate=M4.gate=vb1=MP.gate=MP.drain."},
-      {"names": ["M9", "M10"], "kind": "current_matched",
+      {"names": ["M9", "M10"], "current_forced": true, "matching_sensitivity": "ratio",
        "_comment": "M9(gate=drain=X, NMOS 폴딩 다이오드)의 미러 -- M10.gate=X=M9.gate=M9.drain."},
-      {"names": ["M1", "M2"], "kind": "diff_pair"},
-      {"names": ["M5", "M6"], "kind": "branch_symmetric"},
-      {"names": ["M7", "M8"], "kind": "current_matched",
+      {"names": ["M1", "M2"], "current_forced": true, "matching_sensitivity": "offset"},
+      {"names": ["M5", "M6"], "current_forced": false, "matching_sensitivity": "ratio"},
+      {"names": ["M7", "M8"], "current_forced": true, "matching_sensitivity": "ratio",
        "_comment": "2026-08-05(세션9 정정, branch_symmetric에서 재분류) -- M7(gate=drain=Vg7, NMOS 다이오드)의 미러 -- M8.gate=Vg7=M7.gate=M7.drain. M9/M10과 완전히 같은 패턴(differential-to-single-ended 변환용 X-branch 다이오드+out 미러)."}
     ]
   }

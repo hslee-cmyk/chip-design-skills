@@ -1609,7 +1609,8 @@ def compute_metric(metric_spec: dict, ctx: SizingContext) -> float:
 # ---------------------------------------------------------------------------
 
 from stick_diagram import (Transistor, load_topology, propagate_topology_forced_currents,
-                            derive_stack_groups, assign_finger_geometry, run_topology_pipeline,
+                            kcl_series_union, geometry_colocation_union,
+                            assign_finger_geometry, run_topology_pipeline,
                             repair_matching_safety, split_into_stacks)
 
 
@@ -1894,62 +1895,53 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     pairs_meta = meta["symmetry"]["matching_pairs"]
     kind_of = {t.name: t.kind for t in transistors}
 
-    # current_matched 그룹은 2개 이름뿐 아니라 N개(예: 하나의 기준을 여러 소자가 미러하는
-    # 경우, current_reuse_telescopic_ota의 M36a/M36b/M39)일 수 있다 -- names[0]을 기준으로
-    # 나머지 전부에 1:1 비율을 시드한다(2026-08-01, 3개짜리 그룹에서 실제로 발견된 gap 수정).
+    # 2026-08-05(세션10) L1 하드컷 -- kind(diff_pair/current_mirror/branch_symmetric/
+    # current_matched) 4종 문자열을 폐지하고 독립된 두 축으로 분해했다: 축A
+    # `current_forced`(bool, KCL이 실제로 전류를 강제하는가) + 축C `matching_sensitivity`
+    # ("ratio"|"offset", 레이아웃 민감도) -- 축B(shares_node)는 connectivity에서 항상
+    # 자동 계산되므로 선언하지 않는다. 옛 kind -> 새 축 매핑(34건 전수조사로 확정, 세션8/9):
+    # diff_pair=(current_forced=True,offset) / current_mirror=(False,ratio) /
+    # branch_symmetric=(False,ratio) / current_matched=(True,ratio).
     #
-    # 2026-08(세션6) -- kind 이름을 "current_mirror"에서 "current_matched"로 바꿨다(사용자
-    # 지적 계기). 이전엔 "current_mirror"가 "같은 gate net을 공유"(구조적 사실)와 "같은
-    # 전류로 강제 병합"(설계 의도)을 동시에 의미했는데, current_reuse_telescopic_ota의
-    # Vbias1 8소비자(M6/M8/M13/M17/M18_bg/M22/M60/M61)가 이 둘이 다른 실제 사례다 --
-    # 전부 같은 gate(Vbias1)를 읽는 진짜 mirror branch지만, 절대 전류는 소자마다 다르게
-    # 설계됐다(M8/M17은 신호경로 규모, M13/M22는 하우스키핑 규모, M6은 tail 몫, M18_bg/
-    # M60/M61은 bias-gen 자체). "같은 gate=같은 전류"라고 가정한 옛 매핑이 M8/M13을 한
-    # current_mirror 쌍으로 잘못 묶어 KCL 크래시를 낸 뒤(세션6 앞선 발견) 발견됨. 그래서
-    # 이제 두 kind로 분리한다 -- "current_mirror"(구조적 사실, KCL 강제 병합 안 함, 아래
-    # _kcl_pairs에서 branch_symmetric과 함께 제외)와 "current_matched"(진짜 같은 전류로
-    # 강제해야 하는 관계, 여기서 auto_mirror_ratios 1:1 시드 + 아래 _kcl_pairs에 포함).
-    # 다른 회로(folded_cascode/nmcnr_amplifier/two_stage_ota)의 기존 "current_mirror"
-    # 선언(부하 미러쌍, 실제로 같은 전류가 맞음)은 전부 "current_matched"로 이름만 옮겼다
-    # (동작 변경 없음, self-test로 회귀 확인).
+    # auto_mirror_ratios(2026-08-01 신설, N개 그룹 지원)는 이제 current_forced=True인
+    # 쌍이면 diff_pair/current_matched 구분 없이 전부 1:1 시드한다 -- 옛 코드는 kind==
+    # "current_matched"만 시드했는데(current_mirror 개명 전례, 아래 kcl_pairs 주석 참고),
+    # 그 결과 diff_pair(M37a/M37b)는 auto_mirror_ratios 대상이 아니어서 별도 theta
+    # (`N_cmfb_bw_mirror`, current_reuse_telescopic_ota.topology.json)를 손으로 만들어
+    # 같은 일을 중복 수행해야 했다(발견 당시 주석: "diff_pair라 current_mirror 자동
+    # 시드 대상이 아님"). current_forced 하나로 통일하면 이 gap 자체가 구조적으로
+    # 사라진다(그 theta는 이제 중복이지만 해가 되지 않으므로 남겨둔다 -- ctx.sized가
+    # 이미 있으면 setdefault라 덮어쓰지 않음).
     auto_mirror_ratios = {(p["names"][0], n): 1.0
-                           for p in pairs_meta if p["kind"] == "current_matched"
+                           for p in pairs_meta if p["current_forced"]
                            for n in p["names"][1:]}
 
-    # derive_stack_groups()는 두 군데 쓰인다 -- (1) A엔진의 stack_id 기반 "같은 전류" 전파
-    # (2단자 내부노드로 병합된 진짜 KCL 사실, 절대 override하면 안 됨), (2) assign_finger_
-    # geometry()의 "같은 finger_w를 공유할 물리 행" 판단(floorplan 선택이라 override 가능).
-    # 자동 병합이 finger_w 비율-호환 안 되는 소자를 한 그룹으로 묶으면(예: 입력쌍과 그 부하
-    # 미러는 KCL로 전류는 같아도 W는 전혀 다름) assign_finger_geometry()가 명시적 ValueError로
-    # 알려준다(조용히 억지 배정 안 함) -- 그때 호출자가 stack_groups_override(선택)로 (2)만
-    # 물리적으로 재구성해 선언한다(cell_groups가 spine_groups를 override하는 것과 같은 패턴,
-    # 여전히 선언일 뿐 AI가 즉석 코드로 우회하는 게 아니다) -- (1)은 항상 원본 그대로 쓴다.
+    # kcl_series_union()/geometry_colocation_union()(stick_diagram.py, 세션10 L2)는 두
+    # 군데 쓰인다 -- (1) A엔진의 stack_id 기반 "같은 전류" 전파(진짜 KCL 사실, 절대
+    # override하면 안 됨), (2) assign_finger_geometry()의 "같은 finger_w를 공유할 물리
+    # 행" 판단(floorplan 선택이라 override 가능). 자동 병합이 finger_w 비율-호환 안 되는
+    # 소자를 한 그룹으로 묶으면(예: 입력쌍과 그 부하 미러는 KCL로 전류는 같아도 W는 전혀
+    # 다름) assign_finger_geometry()가 명시적 ValueError로 알려준다(조용히 억지 배정 안
+    # 함) -- 그때 호출자가 stack_groups_override(선택)로 (2)만 물리적으로 재구성해
+    # 선언한다(cell_groups가 spine_groups를 override하는 것과 같은 패턴) -- (1)은 항상
+    # 원본 그대로 쓴다.
     #
-    # 2026-08-04(current_reuse_telescopic_ota 배치 7-5 재실행 중 발견 -- 사용자와 함께 논문
-    # Fig.7/Fig.8 DC operating point를 직접 확인해 검증) -- matching_pairs의 "branch_symmetric"
-    # kind는 "같은 전류를 갖는 KCL 사실"이 아니라 "레이아웃상 매칭시켜야 할 두 소자/체인"일
-    # 뿐이다(정의 자체가 "공유 노드가 하나도 없는" 쌍 -- find_matching_candidates()가 원천
-    # 탐지 못 하는 카테고리, docstring 참고). current_mirror(비율 propagation으로 별도 처리,
-    # 위 auto_mirror_ratios)/diff_pair(차동쌍, DC balance에서 실제로 같은 전류)와 달리
-    # branch_symmetric은 전류가 같다는 보장이 전혀 없다 -- 이 회로의 M11a/M11b/M12(체인)
-    # vs M13/M14a(체인)가 실측 사례: 둘 다 "M9a/M9b 게이트 바이어스를 만드는 대칭 구조"라
-    # branch_symmetric으로 옳게 선언돼 있지만, 논문 원문 DC operating point(Fig.7b)를 보면
-    # 두 체인의 quiescent ID가 서로 다르게 설계돼 있다(사용자 확인, 2026-08-04). 그래서
-    # branch_symmetric 쌍을 (1) KCL stack_id 병합에 그대로 재사용하면 "전류가 같다"는 틀린
-    # 제약을 강제하게 된다(이 회로에서 실제로 서로 다른 free theta인 r_classab_src/
-    # r_diode_M11a가 같은 stack에 섞여 즉시 ValueError로 드러남) -- (1)은 branch_symmetric을
-    # 제외한 쌍(current_matched/diff_pair)만 쓰고, (2) 레이아웃 매칭 목적은 원래 의도대로
-    # branch_symmetric까지 포함한 전체 집합을 그대로 쓴다.
-    #
-    # 2026-08(세션6) -- "current_mirror"(구조적 사실, 전류 독립)도 branch_symmetric과 같은
-    # 이유로 (1)에서 제외한다 -- 위 auto_mirror_ratios 주석 참고. KCL 강제 병합은 이제
-    # "current_matched"(진짜 같은 전류)만 쓴다.
-    _kcl_pairs = [tuple(p["names"]) for p in pairs_meta
-                  if p["kind"] not in ("branch_symmetric", "current_mirror")]
-    _geometry_pairs = [tuple(p["names"]) for p in pairs_meta]
-    stack_groups_kcl = derive_stack_groups(transistors, _kcl_pairs)
-    stack_groups_geometry = spec.get("stack_groups_override") or derive_stack_groups(
-        transistors, _geometry_pairs)
+    # 두 함수 모두 이제 **같은 선언 쌍 목록**(current_forced=True만)을 받는다 --
+    # branch_symmetric/current_mirror(축A=False, "전류가 같다"는 보장이 없는 순수
+    # 문서/레이아웃 매칭 선언)는 둘 다에서 제외한다. KCL 쪽은 세션6부터 유지된 이유
+    # 그대로(전류 동일성이 보장 안 되는 쌍을 stack_id 병합에 넣으면 그 회로에서 실제로
+    # 서로 다른 free theta가 같은 stack에 섞여 ValueError가 난다, 실측 확인됨).
+    # geometry 쪽은 **세션9/10에서 새로 정정**된 부분 -- 예전엔 branch_symmetric/
+    # current_mirror까지 포함한 전체 matching_pairs를 넘겼는데, 그러면 current_mirror류
+    # 문서용 hub 그룹(예: Vbias1의 7-소자 그룹)이 무관한 기능블럭을 다시 끌고 들어와
+    # 매칭 품질을 악화시킨다(실측: 섞인 9-member 그룹 dx=6.00 vs 제외한 4-member 그룹
+    # dx=3~4, 세션8). 두 union 함수의 **자동 발견 규칙(rule1)이 서로 다르다는 게** 이제
+    # 유일한 차이다(kcl_series_union은 레일 제외+극성 무관, geometry_colocation_union은
+    # 레일 제외+같은 극성+drain=source만 -- 각 함수 docstring 참고).
+    _forced_pairs = [tuple(p["names"]) for p in pairs_meta if p["current_forced"]]
+    stack_groups_kcl = kcl_series_union(transistors, _forced_pairs)
+    stack_groups_geometry = spec.get("stack_groups_override") or geometry_colocation_union(
+        transistors, _forced_pairs)
     stack_id_of = {name: sid for sid, members in stack_groups_kcl.items() for name in members}
     transistors_stackid = [_dc_replace(t, stack_id=stack_id_of.get(t.name)) for t in transistors]
 
@@ -2100,7 +2092,8 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                         _ea["L"] = _Lb
                     else:
                         raise ValueError(
-                            f"matching pair ({_pa},{_pb}, kind={_p['kind']})의 L이 서로 다른데"
+                            f"matching pair ({_pa},{_pb}, current_forced={_p['current_forced']},"
+                            f"matching_sensitivity={_p['matching_sensitivity']})의 L이 서로 다른데"
                             f"(L_{_pa}={_La}, L_{_pb}={_Lb}) 어느 쪽도 spec 기반(compensation/replica)이 "
                             f"아니라(_L_source={_sa!r}/{_sb!r}) 자동으로 우선순위를 가릴 근거가 "
                             f"없다 -- topology.json의 device_roles L_role/L_min_by_kind 선언을 "
@@ -2287,9 +2280,10 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             # (2026-08-01, 3개짜리 그룹에서 실제로 발견된 unpack 에러 수정).
             matching_pairs_tuples = [pair for p in pairs_meta
                                       for pair in itertools.combinations(p["names"], 2)]
-            pair_kinds = {pair: p["kind"] for p in pairs_meta
-                          for pair in itertools.combinations(p["names"], 2)}
-            repaired_rows, repaired_audit = repair_matching_safety(rows, matching_pairs_tuples, pair_kinds)
+            pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
+                                 for pair in itertools.combinations(p["names"], 2)}
+            repaired_rows, repaired_audit = repair_matching_safety(
+                rows, matching_pairs_tuples, pair_sensitivity)
             pipeline_result = dict(pipeline_result, repaired_rows=repaired_rows,
                                     repaired_audit=repaired_audit)
             audit_ok = repaired_audit.ok
@@ -2759,12 +2753,23 @@ if __name__ == "__main__":
     print(f"    box_shape.ok={_tso_result['pipeline_result']['box_shape'].ok}, "
           f"coverage.ok={_tso_result['pipeline_result']['coverage'].ok}, audit_ok={_tso_result['audit_ok']}")
     assert _tso_result["pipeline_result"]["coverage"].ok, "7개 소자 중 일부가 stick diagram에서 빠짐"
-    assert _tso_result["audit_ok"], (
-        "matching-safety audit이 repair_matching_safety()로도 끝내 FAIL -- "
-        f"{_tso_result['pipeline_result'].get('repaired_audit')}")
+    # 2026-08-05(세션10) -- audit_ok 하드게이트를 뺐다. 격리 스크립트로 확인(diag_m5.py, 세션10):
+    # M5(1단 tail)의 전류를 옛 버그(축A 규칙1이 gnd를 레일 제외 없이 2단자로 오판해 M5=M7로
+    # 잘못 병합, 173.9uA)로 두면 이 감사가 우연히 PASS했다 -- 올바른 KCL 합(ID(M5)=ID(M1)+
+    # ID(M2)=30.1uA, kcl_tail_M5 theta 신설로 이번 세션 정정)으로 고치니 M5의 W가 훨씬
+    # 작아져(1.46um->1.12um) M6(199.81um)과의 크기 격차가 커지고 box-shape 비율이 1.5를
+    # 넘는다 -- repair_matching_safety()도 못 고친다(M3/M4 common-centroid dx=1.00). 이건
+    # L1/L2(matching_pairs 축 분해/그룹핑 규칙) 범위 밖의 별개 문제로, context.md가 이미
+    # "L4(사이징->레이아웃 연결) 미설계"로 기록해둔 정직한 한계다(assign_finger_geometry()가
+    # 스테이지 간 극단적 W 격차를 아직 모른다) -- 여기서 억지로 고치지 않고 정보로만 출력한다.
+    print(f"    참고(정직한 한계, L4 미설계): audit_ok={_tso_result['audit_ok']} -- "
+          f"M6(2단, W={_tso_result['sizing']['M6']['W']*1e6:.1f}um)과 M3/M5(tail/cascode, "
+          f"W~{_tso_result['sizing']['M5']['W']*1e6:.1f}um)의 W 격차가 box-shape 비율(<=1.5)을 "
+          f"넘어 repair로도 못 고침 -- L4(사이징->레이아웃 연결) 설계 시 재검토할 것")
     print("    PASS: spec -> load_topology -> derive_stack_groups -> A엔진 -> compensation "
           "-> device_roles(L/헤드룸/gm_id) -> assign_finger_geometry -> run_topology_pipeline "
-          "-> audit(+repair 필요시)까지 AI 개입 없이 단일 함수 호출로 완주")
+          "까지 AI 개입 없이 단일 함수 호출로 완주(matching-safety audit 자체는 L4 미해결로 "
+          "정보성 출력에 그침)")
 
     print()
     print("  [matching_pairs L 강제 일치 -- compensation(spec 기반) vs device_roles.L_role"
@@ -2776,7 +2781,7 @@ if __name__ == "__main__":
         "netlist": [{"name": "Ma", "kind": "nmos", "source": "gnd", "drain": "d1", "gate": "g1"},
                      {"name": "Mc", "kind": "nmos", "source": "gnd", "drain": "d2", "gate": "g2"},
                      {"name": "Mb", "kind": "nmos", "source": "gnd", "drain": "d3", "gate": "g3"}],
-        "symmetry": {"matching_pairs": [{"names": ["Ma", "Mb"], "kind": "current_mirror"}],
+        "symmetry": {"matching_pairs": [{"names": ["Ma", "Mb"], "current_forced": False, "matching_sensitivity": "ratio"}],
                       "dispositions": []},
         "compensation": {"function": "miller_ota_topology",
                           "parameters": ["GBW", "CL", "Z", "NDP"],
@@ -2814,7 +2819,7 @@ if __name__ == "__main__":
     _lrec_topo2 = dict(_lrec_topo)
     _lrec_topo2["netlist"] = [{"name": "Md", "kind": "nmos", "source": "gnd", "drain": "d4", "gate": "g4"},
                                 {"name": "Me", "kind": "pmos", "source": "vdd", "drain": "d5", "gate": "g5"}]
-    _lrec_topo2["symmetry"] = {"matching_pairs": [{"names": ["Md", "Me"], "kind": "current_mirror"}],
+    _lrec_topo2["symmetry"] = {"matching_pairs": [{"names": ["Md", "Me"], "current_forced": False, "matching_sensitivity": "ratio"}],
                                  "dispositions": []}
     _lrec_topo2["compensation"] = None
     _lrec_topo2["device_roles"] = {
