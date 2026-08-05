@@ -8,7 +8,7 @@
     "parameters": ["GBW", "CL", "Z", "NDP"],
     "stage_devices": [["M1", "M2"], ["M6"]],
     "_stage_devices_comment": "배치 7-5(2026-07-31 신설) -- optimize_multistage()가 낸 stage별(gm/gm_id/L/W/VDS) 결과를 실제 소자에 병합하는 매핑. 1단(gm1)은 M1/M2 둘 다에 동일 값(diff pair, 각 소자가 개별적으로 gm1을 가짐 -- 합산 아님), 2단(gm2)은 M6 하나.",
-    "notes": "구조적으로 표준 2단 Miller OTA와 정확히 일치: 1단(M1/M2 diff pair + M3/M4 diode-mirror 부하, 출력 O1) -> 2단(M6 common-source, gate=O1, 출력 OUT) + M7(M5와 gate=bias 공유 미러 부하). miller_ota_topology(GBW, CL, Z, NDP)가 gm1(1단)/gm2(2단) 목표를 계산하는 정확히 이 구조를 모델링한다(gm-id-methodology.md §6.4, 원문 Eq 8.13-8.15 대조 완료 — topology_library.py 자체 docstring 참고). ⚠️ 이 필드는 '앞으로 이 topology를 재사이징할 때 어느 방정식을 쓰는가'를 가리킨다 — 지금 netlist의 W값 자체가 이 함수로 역산된 값이라는 뜻은 아니다(PDF 예제값을 그대로 옮김, gm/ID 방법론으로 재도출한 적 없음). 재사이징 시 run_sizing_pipeline()이 GBW/CL(+Z/NDP 기본값 10.0/4.0)로 이 함수를 호출해 gm1/gm2 목표를 얻고, size_transistor()로 각 단의 W를 새로 구할 것."
+    "notes": "구조적으로 표준 2단 Miller OTA와 정확히 일치: 1단(M1/M2 diff pair + M3/M4 diode-mirror 부하, 출력 O1) -> 2단(M6 common-source, gate=O1, 출력 OUT) + M7(2단 전류원, OUT을 M6과 공유). miller_ota_topology(GBW, CL, Z, NDP)가 gm1(1단)/gm2(2단) 목표를 계산하는 정확히 이 구조를 모델링한다(gm-id-methodology.md §6.4, 원문 Eq 8.13-8.15 대조 완료 — topology_library.py 자체 docstring 참고). ⚠️ 이 필드는 '앞으로 이 topology를 재사이징할 때 어느 방정식을 쓰는가'를 가리킨다 — 지금 netlist의 W값 자체가 이 함수로 역산된 값이라는 뜻은 아니다(PDF 예제값을 그대로 옮김, gm/ID 방법론으로 재도출한 적 없음). 재사이징 시 run_sizing_pipeline()이 GBW/CL(+Z/NDP 기본값 10.0/4.0)로 이 함수를 호출해 gm1/gm2 목표를 얻고, size_transistor()로 각 단의 W를 새로 구할 것. 2026-08-05(세션9 정정): M5/M7이 gate=bias를 공유한다고 '미러 부하'로 잘못 기술했던 것을 바로잡음 — 같은 gate+source(rail) 공유는 current_mirror급 구조적 사실일 뿐 전류가 같다는 근거가 아니다(사용자 확인: M5는 매칭 의도 없음, NDP로 1단/2단 전류비가 다를 수 있음). M6/M7은 OUT이 정확히 2단자 net이라 KCL로 I(M6)=I(M7)이 강제되지만, 이건 소자 미스매치와 무관한 순수 위상적 사실이라(진짜 current_mirror/diff_pair와 달리 레이아웃 interdig로 개선될 매칭 오차가 없음) matching_pairs에 선언하지 않는다 — derive_stack_groups()의 '정확히 2단자면 병합' 규칙이 선언 없이도 이미 자동으로 stack_id를 같게 묶어준다(2026-08-05 세션9, 사용자 지적으로 정정: 한 번 current_matched로 선언했다가 '매칭'이라는 신호 자체가 부적절하다고 판단해 도로 뺐다)."
   },
   "_compensation_status": "resolved",
 
@@ -31,10 +31,10 @@
   ],
 
   "symmetry": {
+    "_matching_pairs_comment": "2026-08-05(세션9) -- M5/M7(kind=current_matched)로 잘못 선언돼 있던 걸 발견해 M6/M7(진짜 KCL 근거, OUT 2단자)로 고쳤다가 다시 뺐다. M6/M7은 derive_stack_groups()의 '정확히 2단자면 병합' 규칙이 선언 없이 자동으로 처리하고, 이건 소자 미스매치가 아니라 순수 위상적(KCL) 사실이라 interdig 등 레이아웃 매칭으로 개선될 게 없어 matching_pairs(소자 매칭 선언용)에 넣는 게 오히려 잘못된 신호다 -- compensation.notes에 산문으로 그 관계를 기록해뒀다. M5는 매칭 의도 자체가 없음(사용자 확인, NDP로 1단/2단 전류비가 달라도 됨).",
     "matching_pairs": [
       {"names": ["M3", "M4"], "kind": "current_matched"},
-      {"names": ["M1", "M2"], "kind": "diff_pair"},
-      {"names": ["M5", "M7"], "kind": "current_matched"}
+      {"names": ["M1", "M2"], "kind": "diff_pair"}
     ]
   }
 }
