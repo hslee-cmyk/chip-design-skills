@@ -1,27 +1,45 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-05, 세션13 끝 — 다음은 세션14)
+# 세션 컨텍스트 (최종 갱신: 2026-08-06, 세션17 끝 — 다음은 세션18)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-1. **세션12+세션13 수정이 아직 커밋 안 됨** — `git status`로 확인 가능(세션12 작업물은
-   `stick_diagram.py`, 세션13 작업물은 `sizing_recipe.py`). **다음 세션 시작 시 먼저
-   커밋할지 사용자에게 확인할 것.**
-2. **L4(핑거조정 후 gm/ID 스펙 재검증) 구현 완료** — `revalidate_finger_override()`
-   (`sizing_recipe.py`) 신설, self-test 3건(ID 보존/통과 케이스/위반 케이스) 통과.
-   범위는 `_METRICS_REGISTRY` 기반 지표(gain/mismatch/cmrr/psrr/noise/classab centering
-   등)만 — **GBW/PM은 의도적으로 범위 밖**(아래 "세션13 결론" B절 참고, 근거 있음).
-   이걸로 세션11~13에 걸친 L3(레이아웃)→L4(사이징) 연결 문제가 처음으로 끝까지 닫혔다.
-3. **`sizing_recipe.py` 전체 self-test 회귀 확인 완료** — 세션13 편집 전(커밋 `d59570f`)
-   출력과 새 L4 self-test 10줄을 뺀 나머지가 **완전히 바이트 단위로 동일**(`diff
-   --strip-trailing-cr` 0줄 차이, 182줄→192줄로 증가분만 L4 추가). 무회귀 확정.
-4. **`run_harness.py`는 세션11에 "hang이 아니라 진짜 몇 시간 걸리는 전수탐색"임을 확정하고
-   사용자 지시로 중단**했다 — 재실행은 보류 상태, 코드/전략(그리드 범위 축소, 다른 최적화
-   방식 등) 논의가 먼저 필요하다(아래 "세션11 — run_harness.py 최종 진단" 참고). 세션12/13은
-   이 항목을 다루지 않았다.
-5. **node_map 기반 그룹분할은 여전히 미구현** — 세션12의 M3a 그룹은 필요 없었지만(핑거조정+
-   다리로 풀림), 다른 그룹에서 필요해질 수 있다(세션11 B-5-2 원안 참고).
+1. **세션12~17 전부 완료** — 세션17은 아직 커밋 안 됨(다음 세션 시작 시 `git log`/
+   `git status`로 직접 재확인할 것, 세션14 교훈). 세션16 커밋: `58e608b`(크래시 수정 +
+   branch 복합 매칭), `7a41a30`(매칭 목적 핑거증가 L3+L4). 세션17 변경(`stick_diagram.py`/
+   `sizing_recipe.py`, 미커밋)은 아래 8번 참고.
+2. **세션15 A-3에서 발견한 `common_centroid_layout()` 크래시 완전히 원인 확정 + 수정
+   완료**(세션16 0번) — `n_fingers<2`(예: 1)일 때 회전-최적 경로가 `count>=N`을 요구해서
+   나던 크래시. `repair_matching_safety()`가 `n_rows=min(2, n_fingers)`로 낮춰 탐색
+   경로로 우회하도록 수정, 회귀 0줄.
+3. **branch 복합 매칭 구현 완료**(세션16 1번) — `matching pair`가 서로 다른 hub를 써서
+   (branch_symmetric, 예: M2a/M2b) `interdigitate_layout()`/`common_centroid_layout()`을
+   직접 적용 못 하던 사각지대를, 이미 있던 `kcl_series_union()`(세션10)을 재사용해
+   "이 소자가 다른 소자와 물리적으로 같은 직렬 컬럼(예: M1a-M2a 캐스코드 스택)을 이루면
+   그 branch 전체를 하나의 합성 소자처럼 묶어" 처리하도록 확장(`_branch_composite_pair()`
+   등, `stick_diagram.py`). branch 구조 없는 기존 케이스는 완전히 하위호환.
+4. **매칭 목적 핑거증가(L3+L4) 구현 완료**(세션16 2번) — branch 복합 매칭으로도 `n_fingers`
+   부족(예: 1) 때문에 3c(common-centroid, 허용오차 0.5)를 기하학적으로 못 만족하는 경우,
+   "정확히 필요한 만큼만"(`min_fingers`까지) 핑거를 늘리고 `revalidate_finger_override()`
+   (L4)로 gm/ID 스펙을 깨지 않는지 재검증하는 오케스트레이션(`run_matching_safety_with_
+   finger_growth()`, `sizing_recipe.py`). `current_reuse_telescopic_ota`의 M6 그룹
+   실제 사례로 M1a/M1b/M2a/M2b가 전부 `n_fingers=2`로 자라 3b/3c 필수 게이트를 완전히
+   통과함을 self-test로 확인(진짜 common-centroid 회전 배치, residual=0).
+5. **재설계안 3번(핑거증가도 gm/ID 예산 때문에 안 되면 인접배치로 완화) 구현 완료**
+   (세션17, 아래 "세션17 결론" 참고) — `relaxed_pairs`(layout 전용 최후수단, `repair_
+   matching_safety()`) + `allow_layout_relaxation`(`run_matching_safety_with_finger_
+   growth()`).
+6. **⚠️ 다음 세션 최우선 — `find_min_crossover_layout()`/`_pair_odd_nodes_by_mirror()`의
+   crossover 짝짓기 우선순위 재작성**(세션16 D-1 발견, 재설계 2번, 아직 미구현) —
+   "선언된 진짜 거울쌍을 최우선으로 짝짓기"가 실제로는 매칭쌍을 갈라놓는 최악의 선택임이
+   M6 그룹 실측으로 확인됨(`probe_crossover_pairing_alternatives.py`). 이게 안 고쳐지면
+   그룹분할 자체가 결함을 안고 있다.
+7. **⚠️ 세션15 C절(그룹분할을 harness에 배선하는 것) 자체는 여전히 미배선** — 6번(crossover
+   짝짓기 우선순위)이 끝난 뒤에만 진행할 것. 세션15 C절이 남긴 원래 미해결 질문(C-2/C-3,
+   crossover 비용 표기·cell_groups 갭)도 여전히 미결.
+8. **`run_harness.py`는 세션11에 중단된 채 그대로 보류** — 세션12~17 전부 이 항목을
+   안 다뤘다(아래 "세션11 — run_harness.py 최종 진단" 참고).
 
 ## 배경 — 이 기능이 뭐고 왜 하는가 (세션5~11 공통, 참고용)
 
@@ -336,35 +354,545 @@ override()`로 실제 구현됨** — L3(레이아웃 trail 구성)→L4(사이�
 
 ---
 
+# 세션14 결론 — L3+L4 오케스트레이션 신설, `run_topology_pipeline()` wrapper 설계+구현,
+# 전수 콜그래프 조사로 "harness에 미배선" 확정
+
+세션13이 남긴 "다음 확장 지점"(`revalidate_finger_override()`를 실제 회로에 배선)을 이어
+진행했다. 이번 세션은 (A) 커밋 상태를 다시 확인해 과거 기록이 stale했음을 발견, (B) L3(제안)+
+L4(재검증)를 잇는 오케스트레이션 함수 신설, (C) 그걸 `run_topology_pipeline()`에 감싸붙이는
+wrapper를 사용자와 설계 논의 후 구현, (D) 전수 콜그래프 조사로 "여전히 실제 harness에는
+연결 안 됨"을 직접 코드로 확정 — 순서로 진행했다.
+
+## A. 커밋 상태 재확인 — 과거 문서가 stale했음
+
+세션 시작 시 `.ai/context.md`가 "세션12/13 미커밋"이라 적어뒀지만, `git log`로 직접 확인하니
+`cecbe33`(세션12)/`caa970b`(세션13)로 **이미 커밋 완료**된 상태였다. 문서를 맹신하지 않고
+실제 git 상태와 대조해서 발견 — 위 "지금 상태" 1번에 반영. (교훈: 세션 핸드오프 문서 자체도
+시간이 지나면 stale해질 수 있으니, 다음 세션 시작 시 항상 `git log`/`git status`로 재확인할 것.)
+
+## B. `apply_and_revalidate_pair_adjustment()` 신설 (`sizing_recipe.py:2405`)
+
+`suggest_pair_finger_adjustments()`(L3, 세션12)가 반환한 후보를 홀수차수 개선 순서대로
+시도해, `revalidate_finger_override()`(L4, 세션13)로 gm/ID 스펙을 깨지 않는 **첫 번째**
+후보를 자동 채택하는 오케스트레이션. 레이아웃이 가장 좋아도 스펙을 깨면 자동으로 건너뛰고
+다음 후보로 넘어간다 — 채택 안 된 후보는 전부 `rejected`에 근거와 함께 남는다.
+
+self-test 3건(`sizing_recipe.py:2822` "L4b" 블록, 합성 데이터 Ma/Mb/Xa/Xb 4소자):
+1순위(Ma,Mb)가 면적 제약 위반 → 자동으로 2순위(Xa,Xb) 채택. 둘 다 위반 → `applied=False`.
+`max_candidates=1`로 상한을 걸면 1순위만 시도하고 폴백 안 함. 전부 통과.
+
+## C. `run_topology_pipeline_with_finger_fixup()` 신설 (`sizing_recipe.py:2498`) — 사용자와
+설계 논의 후 구현
+
+사용자가 "실배선"을 요청했으나, 먼저 "최상위 harness함수에 제대로 연결되어 있나?"라고
+물어 정직하게 "아니요"라고 답한 뒤(당시엔 B절의 `apply_and_revalidate_pair_adjustment()`만
+있었고 self-test에서만 호출됨), "배선 설계부터 논의"를 선택받아 다음 순서로 진행했다:
+
+1. **구조적 제약 발견(근거)**: `stick_diagram.py`는 gm/ID를 전혀 모르는 순수 그래프/기하
+   모듈이고, `sizing_recipe.py`가 `stick_diagram.py`를 단방향으로만 import한다(반대 방향
+   없음). fixup 루프가 gm/ID 재검증을 하려면 `SizingContext`/LUT가 필요해서, `stick_
+   diagram.py`(`build_stick_diagram()`/`audit_row_split()`/`run_topology_pipeline()`) 안에
+   넣으면 순환 import가 생긴다 → `sizing_recipe.py` 쪽에서 `run_topology_pipeline()`을
+   감싸는 wrapper로 설계.
+2. **라운드당 blocked row 처리량**을 AskUserQuestion으로 확인 → "한 번에 하나씩 순차 처리"
+   채택(이유: row는 `stack_id`로 물리적으로 독립이지만 gm/ID `constraints`는 여러 row의
+   소자를 동시에 참조할 수 있어, 한 라운드에 여러 row를 동시에 조정하면 서로의 재검증
+   결과에 영향을 줄 수 있음 — 매 라운드 `run_topology_pipeline()`을 처음부터 재실행해
+   항상 최신 상태 기준으로 판단).
+3. **구현**: 각 라운드 (1) `run_topology_pipeline()` 실행 (2) `audit_row_split`에서
+   euler-blocked row 탐지(`_blocked_euler_rows()`, `sizing_recipe.py:2463`, 체크명
+   `f"1. euler[{row_name}]"` 패턴 파싱) — 없으면 성공 종료 (3) 첫 blocked row에
+   `apply_and_revalidate_pair_adjustment()` 시도 (4) 성공하면 `sizing_overrides`(layout)와
+   `ctx.sized`(gm/ID)를 `_sync_finger_fixup()`(`sizing_recipe.py:2478`)으로 동기화하고
+   다음 라운드 (5) 실패하면 **거짓 성공으로 처리하지 않고 즉시 멈춤**
+   (`unresolved_reason="no_valid_candidate"`). `max_fixup_rounds` 소진 시엔 마지막 조정
+   이후 한 번 더 재실행해 실제로 풀렸는지 확인(`unresolved_reason="max_rounds_exceeded"`).
+
+self-test 2건(`sizing_recipe.py:2913` "L4c" 블록) — **세션12 실제 M3a 그룹(11소자,
+`M3a/M3b/M4a/M4b/M5/M9b/M10/M18b/M19/M64/M63`)의 connectivity를 그대로 temp topology.json
+파일로 감싸** `load_topology→audit_row_split→build_stick_diagram→mirror_symmetric_trail`
+전체 체인을 진짜로 태워 검증(합성 데이터 아님, 세션12 손검증과 동일한 실제 회로 구조 재사용):
+1. **케이스A(면적 예산 넉넉)**: 1라운드 만에 M9b/M18b +1로 자동 해결 — 채택된 조정이
+   세션12 손검증(`{'M9b','M18b'}`, resulting_odd_count=2)과 정확히 일치, 최종 euler 체크
+   전부 통과.
+2. **케이스B(면적 예산 극도로 타이트)**: 후보 7개(매칭쌍 4개+미매칭 단독 3개) 전부
+   `n_fingers=1` baseline이라 delta=-1은 자동 무효화되고 전부 delta=+1(면적 증가)만
+   나오는데, 예산이 baseline*1.001로 타이트해 전부 위반 → `unresolved_row`/
+   `unresolved_reason="no_valid_candidate"`로 정직하게 실패 보고. 전부 통과.
+
+## D. 회귀 확인 — 무회귀 확정
+
+편집 전(커밋 `caa970b`) `sizing_recipe.py`와 이번 버전을 완전히 격리된 디렉토리(사이드카
+파일 `stick_diagram.py`/`topology_library.py`/`library/`/`sky130_regression_reference.json`
+전부 포함해서 복사)에서 각각 self-test 전체를 돌려 diff했다 — 새 L4b/L4c 블록(20줄)만 빼면
+`diff --strip-trailing-cr` **0줄 차이**(바이트 단위 동일). 무회귀 확정.
+
+## E. 전수 콜그래프 조사 — "harness에 미배선" 직접 코드로 확정
+
+사용자가 "함수 모두 연결되었나? 최상위 harness함수에 연결 안 된 함수가 있나? 전수로
+조사해서 보고해"라고 요청 → `ast` 기반 콜그래프 분석 스크립트를 작성해 6개 파일 top-level
+함수 197개 전부를, 이 저장소에 실제 존재하는 4개 실행 진입점(`run_harness.py`→
+`optimize_full_circuit_budget()`, `audit_current_forced.py`→`render_report()`,
+`topology_to_markdown.py`→`render_markdown()`, `sky130_lut_sweep.py`→`run_device()`)에서
+BFS로 도달 가능한지 판정했다.
+
+**과정에서 스스로 발견해 고친 분석 버그 2건**(상상으로 결론 내지 않고 직접 검증):
+1. 1차(정규식 텍스트 스캔)는 docstring 안의 함수명 언급도 "호출"로 오탐 → AST `Call` 노드만
+   세는 방식으로 재작성.
+2. 2차(AST) 버전이 `optimize_full_circuit_budget()` 내부 중첩 클로저 `_evaluate()`의 호출을
+   건너뛰는 버그 발견(nested `FunctionDef` 재귀 중단 로직이 원인) → 수정.
+3. `compute_metric()`의 `_METRICS_REGISTRY` 딕셔셔너리 기반 동적 dispatch는 정적 분석의
+   구조적 사각지대라, `current_reuse_telescopic_ota.topology.json`을 직접 읽어 실제
+   선언된 metric 9종 전부(`sizing_roles.metrics`)와 CMRR/PSRR의 `circuit_family`
+   (`telescopic_class_ab_cmfb`/`diff_pair_tail`)를 확인해 수동 보정.
+
+**최종 결론(직접 코드로 확정)**: 총 197개 중 약 108개가 실제 harness에서 도달 가능, 약 89개
+불가능. **오늘 새로 만든 6개 함수(B/C절) 전부가 여전히 미배선** — `optimize_full_circuit_
+budget()`의 euler-blocked 실패 처리부(2276~2290행 부근)를 직접 읽어 확인한 결과, 지금도
+여전히 **예전 `repair_matching_safety()`만** 호출하고 새 체인(`suggest_pair_finger_
+adjustments`/`apply_and_revalidate_pair_adjustment`/`run_topology_pipeline_with_finger_
+fixup`)은 호출부가 어디에도 없다. 동적 dispatch 사각지대가 아니라 **진짜 미배선**임을
+소스로 확정.
+
+그 외 큰 미연결 그룹(오늘 작업과 무관, 참고용): interdigitation/common-centroid 레이아웃
+서브시스템(`interdigitate_layout`/`common_centroid_layout`/`find_min_crossover_layout` 등
+~20개), topology JSON 오케스트레이션 구세대 레이어(`run_sizing_pipeline`/`load_sizing_
+targets`/`write_sizing_results` 등), `run_full_circuit_audit`/`save_instance_json` —
+전부 self-test에서만 검증되고 `run_harness.py`(유일한 실제 harness)는 `optimize_full_
+circuit_budget()` 한 갈래만 탄다. 이건 이 프로젝트가 "함수 단위 설계→구현→self-test"를
+반복해온 개발 방식의 자연스러운 결과이지 세션14만의 문제가 아니다.
+
+## F. 알려진 한계 / 다음 확장 지점
+
+- **실제 배선(engine 코드 수정)은 아직 안 함** — B/C절 함수는 구현+self-test만 끝났고,
+  `optimize_full_circuit_budget()`이 이 새 체인을 실제로 호출하도록 바꾸는 마지막 단계가
+  남았다. 이건 여러 회로에 영향을 주는 엔진 로직 변경이라 반드시 사전 논의·승인 필요
+  (프로젝트 규칙, 세션7 사고 이후 확립).
+- **`repair_matching_safety()`와의 관계 미정** — 새 체인으로 완전히 대체할지, 새 체인이
+  먼저 시도하고 실패하면 기존 `repair_matching_safety()`로 폴백할지 설계 필요(다음 세션
+  논의 사항, 아직 미결).
+- **`run_harness.py`가 실제로 완주한 적이 없어**(세션11에 8192개 조합 중단), 이 새 체인이
+  실제 `current_reuse_telescopic_ota` 전체 사이징에서 어떻게 동작하는지는 여전히 미검증 —
+  A절(위 "지금 상태" 4번)의 grid 축소 논의가 선행돼야 end-to-end로 확인 가능.
+
+---
+
+# 세션15 결론 — harness 실배선 완료, node_map 기반 그룹분할 구현, 그룹분할 harness 배선 논의
+# 중단(다음 세션 계속)
+
+세션14가 남긴 "다음 세션 최우선"(harness 배선)을 시작. (A) `optimize_full_circuit_budget()`을
+새 L3/L4 체인에 실배선, (B) 세션11부터 미룬 node_map 기반 그룹분할을 실제 사례로 구현,
+(C) 그룹분할을 다시 harness(`run_topology_pipeline_with_finger_fixup()`)에 배선하는 설계를
+논의하다 사용자가 "다음 세션에 이어가자"고 중단 — 순서대로 정리한다.
+
+## A. harness 실배선 — `optimize_full_circuit_budget()` (커밋 `0eccd0e`)
+
+### A-1. 핵심 발견 — "대체 vs 폴백"이 아니라 "책임 분리"
+사용자가 배선 방식을 묻는 과정에서(`run_topology_pipeline()` → `repair_matching_safety()`가
+순차 호출인지, 감싸는 구조인지) 코드를 직접 확인하다 중요한 사실이 드러났다:
+`repair_matching_safety()`가 실제로 고치는 건 `audit_row_split()`의 **3b(interdigitation)/
+3c(common-centroid) 체크뿐**이다 — 내부 `_failing_required_pairs()`(stick_diagram.py:3070)가
+체크명 `"3b."`/`"3c."`만 파싱하고 `"1. euler[...]"`는 절대 안 건드린다. 즉 지금까지
+euler-blocked 실패에 `repair_matching_safety()`를 불러도 사실상 무의미했을 가능성이 높다
+(그 함수는 euler를 고치는 메커니즘이 없다). 그래서 "새 L3/L4 체인이 `repair_matching_
+safety()`를 대체하는지 폴백으로 쓰는지"라는 질문 자체가 틀렸다 — 정답은 **새 체인=euler(체크1)
+담당, `repair_matching_safety()`=matching quality(3b/3c) 담당**인 상호보완 구조.
+
+### A-2. 배선 구현
+`optimize_full_circuit_budget()`(sizing_recipe.py) 2266행 부근의 `run_topology_
+pipeline(...)` 직접 호출을 `run_topology_pipeline_with_finger_fixup(...)`로 교체 — euler
+자동수정을 내장. `spec["lut_by_kind"]`가 없는 회로(theta feed `'B'`만 쓰는 구형 spec)는
+안전하게 기존 `run_topology_pipeline()`으로 폴백(완전 하위호환, self-test로 발견/수정 —
+처음엔 무조건 fixup 경로를 타게 짰다가 기존 self-test `_ofc_spec={"lut":lut,...}`가
+`KeyError: 'lut_by_kind'`로 즉시 걸렸다). fixup 이후 최종 `sizing_overrides`/`sizing`/
+`metrics`를 재동기화(안 하면 stale 값이 나가는 버그).
+
+### A-3. self-test(L5) + 부수 발견한 사전 존재 버그
+`optimize_full_circuit_budget()` 최상위 경로로 세션12 M3a 그룹(11소자)을 `known_sizing`으로
+직접 시드(theta 없이)해 end-to-end 검증. 처음 fixture(모든 소자 W 동일)로는 `repair_
+matching_safety()`가 offset/branch_symmetric 매칭쌍(`n_fingers=1`)에 common-centroid를
+시도하다 `ValueError`로 크래시 — **격리 스크립트(`probe_preexisting_bug.py`)로 이 배선
+변경 전 코드에서도 똑같이 재현됨을 확인**해 이번 작업과 무관한 사전 존재 버그임을 확정(지금껏
+아무 self-test도 이 조합을 안 태워서 안 걸렸을 뿐). 사용자 지시로 이 버그는 손 안 대고,
+self-test fixture만 홀짝을 보존하는 배수(3배)로 조정해 우회. (별도 이슈로 보류, 위 "지금
+상태" 6번.)
+
+### A-4. 회귀
+`de85792` 베이스라인(LUT npz sidecar까지 포함한 격리 복사본) 대비 self-test 전체 출력 diff —
+신규 L5 블록 외 0줄 차이.
+
+## B. node_map 기반 그룹분할 — `find_min_crossover_layout()` 확장 (커밋 `55c8095`)
+
+### B-1. 실제 막히는 사례 발견 — probe로 4개 topology.json 전수 탐색
+"다음 세션 3번(node_map)"으로 넘어가기 전에, 상상으로 설계하지 않고 실제로 막히는 그룹이
+있는지 먼저 확인했다(`probe_node_map_need.py`, 세션11 `probe_l3_groups.py` 재사용 패턴) —
+4개 topology.json 전부의 4소자+/matching_pairs 2개+ 그룹에 핑거조정(+세션12 다리 지원)을
+그리디로 10라운드까지 돌려봤다. **`current_reuse_telescopic_ota`의 M6 그룹(8소자: M6/M7/
+M1a/M1b/M2a/M2b/M58/M57)만 진짜로 못 풂** — baseline 홀수차수 4개가 10라운드 내내 단 한
+번도 안 줄어듦(제안이 전부 `resulting_odd_count=4`). 원인: 허브 `Vx`에 미매칭 소자가
+**M6/M7/M58 셋**이나 붙어 세션12의 "홀수 self-pair 다리 하나" 가정이 구조적으로 안 맞음 —
+그래프 이론상 `m=4/2=2`(crossover 1개)가 필요.
+
+### B-2. node_map 역산 알고리즘 — `_mirror_node_map_from_pairs()`
+`odd_nodes`가 소자 이름이 아니라 **net 이름**이라, `matching_pairs`(소자 쌍)에서 net 레벨
+거울 대응을 역산해야 한다. 쌍 (a,b)마다: 한쪽 끝(source/drain)을 공유하면 그 net은
+자기대응(축 위 허브) + 나머지 끝끼리 대응(예: M1a/M1b가 source=Vx 공유 → Vx 자기대응,
+drain끼리 N1a2a↔N1b2b). 공유 끝이 없으면(branch_symmetric류) 같은 역할끼리(source↔source,
+drain↔drain) 대응한다고 가정. **체인 전이(propagate) 불필요** — 각 쌍이 그 자체로 필요한
+대응을 준다(M2a/M2b가 서로 끝을 안 공유해도 이 규칙 하나로 Vom1↔Vop1이 바로 나옴, M6 그룹
+실측으로 확인).
+
+### B-3. 3단계 우선순위 짝짓기 — `_pair_odd_nodes_by_mirror()`
+사용자에게 우선순위 설계를 구체적으로 설명받은 뒤 확정(AskUserQuestion 없이 대화로 승인):
+1. node_map이 선언한 진짜 거울쌍(둘 다 odd_nodes에 있음) 우선 — 대칭축 반대편, 가장
+   정당화되는 절단점(M6에서 `(Vom1,Vop1)`).
+2. 남은 자기대응(허브) ↔ orphan(미매칭 가지 끝) — orphan 가지가 원래 그 허브에서 갈라진
+   것이므로 되짚어 잇는 게 가장 짧고 자연스러움(M6에서 `(Vx,Vbias2)`).
+3. 그래도 남으면 기존 방식(순서대로)으로 폴백 — 근거 있는 다중 사례가 아직 없어 상상으로
+   설계하지 않음, `node_pairing_fallback_used`로 발동 여부를 정직하게 남김.
+
+### B-4. `find_min_crossover_layout(transistors, matching_pairs=None)` 확장
+`matching_pairs=None`(기본값)이면 기존 hub-leaf 사전조건 + 순서대로 짝짓기 완전히 그대로
+(하위호환 — 기존 프로덕션 호출부 `_build_rows_from_shares_with_crossover()`/
+`_common_centroid_nway_search()`는 `matching_pairs`를 안 넘기므로 전혀 안 건드림, 실제로
+이 함수가 self-test 전용이 아니라 **프로덕션에서 이미 쓰이고 있었다**는 것도 이번에 grep으로
+확인). `matching_pairs`를 주면 hub-leaf 제약을 풀고 위 두 헬퍼로 일반 그룹을 지원.
+
+### B-5. self-test(Test 12.13) + 회귀 확인(해시 시드 이슈)
+M6 그룹 실제 connectivity로 crossover=1 + fallback 없음 확인, node_map 역산 단위 확인,
+`matching_pairs=[]`(전부 orphan) 시 전부 폴백되는지, `matching_pairs=None` 기존 경로가
+`node_pairing_fallback_used=None`으로 신규 로직 미개입인지 — 전부 통과. **회귀 확인 중
+PYTHONHASHSEED 노이즈를 발견**: `d59570f` 베이스라인과 1차 diff에서 `{'X','Y'}` 같은 set
+문자열 표현 순서가 몇 군데 달랐는데, 이건 프로세스별 해시 랜덤화 때문(Python 기본 동작)이지
+코드 차이가 아니었다 — `PYTHONHASHSEED=0`으로 고정해 재실행하니 신규 Test 12.13 블록 외
+0줄 차이로 완전히 무회귀 확정. (교훈: 이 파일들 self-test는 `set` 출력이 있어 회귀 diff 뜰 때
+해시시드를 고정할 것 — 안 그러면 가짜 diff가 섞여 나온다.)
+
+## C. 그룹분할 harness 배선 — 논의 중단(다음 세션 계속)
+
+세션15 B절을 마치고 "harness에 마저 배선해줘" 요청을 받아 설계를 시작했으나, **사용자가
+"이쪽 논의를 좀 더 진행하고 싶다"며 다음 세션으로 미뤘다 — 이 절 아래는 순수 설계 논의
+기록이고, 코드는 전혀 안 건드렸다(B절 상태 그대로).**
+
+### C-1. 배선 위치/메커니즘(연구 완료, 근거 있음)
+`run_topology_pipeline()`이 물리 행을 구성하는 방식을 직접 읽어 확인(sizing_recipe.py
+`run_topology_pipeline_with_finger_fixup()`, stick_diagram.py `run_topology_pipeline()`
+4022~4036행 부근): `sizing_overrides[name]["stack_id"]`가 `split_into_stacks()`의 그룹핑
+기준이다 — 즉 소자의 `stack_id`를 바꾸면 다음 라운드에 자동으로 별도 물리 행이 된다.
+`repair_matching_safety()`가 이미 같은 패턴(`f"{원래행}_repair{i}"`)을 쓰고 있어서 전례가
+있다.
+
+**제안한 설계**: `run_topology_pipeline_with_finger_fixup()`의 라운드 루프에서 핑거조정
+(`apply_and_revalidate_pair_adjustment()`)이 `applied=False`면, 바로 `unresolved_row`로
+포기하지 않고 `find_min_crossover_layout(row_transistors, row_pairs)`로 그룹분할을 시도.
+반환된 `segments`대로 그 row의 소자들 `stack_id`를 `f"{row_name}_seg{i}"`로 재배정(순수
+물리 배치 변경, W/n_fingers 안 바뀜 — `repair_matching_safety()`와 같은 성격이라
+`_sync_finger_fixup()`류의 gm/ID 재검증 불필요) → 다음 라운드에서 `run_topology_
+pipeline()`이 세그먼트를 별도 행으로 인식해 재감사.
+
+### C-2. 미해결 질문 1 — crossover는 핑거조정과 "같은 급"이 아니다
+핑거조정 성공은 진짜 0-crossover 단일 diffusion을 만들지만, 그룹분할은 **crossover
+routing(추가 metal+via)이 실제로 필요하다는 설계 비용**을 받아들이는 것이다. `find_min_
+crossover_layout()`은 "그래프 이론상 항상 성공"하므로, 이 폴백을 넣으면 `unresolved_row`가
+사실상 거의 안 뜨게 된다 — 이게 `audit_ok=True`로 조용히 묻히면 "완전히 공짜로 풀렸다"는
+거짓 인상을 준다. **제안한 해법**(사용자 확인 전): 새 필드(예: `group_splits: [{"round",
+"row","crossover_count"}, ...]`)로 크로스오버가 실제로 몇 번 들어갔는지 정직하게 남긴다.
+→ **이 필드 이름/구조, 그리고 "crossover가 들어간 것도 unresolved의 일종으로 볼지 vs 별도
+성공 등급으로 볼지"를 다음 세션에 확정할 것.**
+
+### C-3. 미해결 질문 2 — `cell_groups`/`floorplan_hints.spine_groups`와의 상호작용
+`run_topology_pipeline()`(4053~4070행 부근)은 호출자가 `cell_groups`를 명시적으로 주면
+그 안에 나열된 row 이름만 감사한다(`if rn in rows`로 필터) — 그룹분할로 새로 생긴
+`_seg0`/`_seg1` 이름은 원래 선언에 없으므로 **감사에서 조용히 누락될 수 있다**는 걸 코드로
+확인했다. 세션15가 검증한 M6 사례는 `cell_groups` 없이 self-test해서 이 경로를 안 탔다 —
+지금 당장 처리할 실제 사례가 없어 "알려진 한계로 docstring에만 남기고 손 안 댄다"를
+제안했으나 **사용자 확정 전에 논의가 중단됨.** → 다음 세션에 이 갭을 지금 막을지(예:
+`_seg*`로 재배정될 때 원래 row가 속한 cell_groups 항목에 자동으로 추가), 아니면 정말
+"실제로 막히는 사례가 나오면 그때"로 미룰지 정할 것.
+
+### C-4. 다음 세션 시작 시 이어갈 구체적 지점
+사용자가 마지막으로 한 말: "이쪽 논의를 좀더 진행하고 싶어" — 즉 **C-2/C-3 두 질문에 대한
+입장이 아직 없다**. 다음 세션은 이 두 질문부터 다시 묻고, 답이 나오면 위 C-1 설계대로
+`run_topology_pipeline_with_finger_fixup()`을 실제로 고치는 순서로 진행할 것(사전 승인 원칙
+그대로 유지).
+
+---
+
+# 세션16 결론 — 그룹분할이 matching(3c)을 깨는 근본 결함 발견 → 3단계 재설계(크래시 수정+
+# branch 복합 매칭+매칭 목적 핑거증가) 2/3 구현·검증·커밋 완료
+
+세션15 C절(그룹분할 harness 배선 설계 논의)을 이어가려 했으나, 사용자가 "그 전에 이 문제의
+속성부터 얘기해보고 싶다"며 근본 질문을 던졌고, 그 질문을 실제로 검증하는 과정에서 그룹분할
+설계 자체의 결함이 드러나 세션 전체가 "재설계"로 방향이 바뀌었다. C-2/C-3(세션15가 남긴 원래
+질문)는 이번 세션에서 다루지 못했다 — 순서대로 정리한다.
+
+## A. 출발점 — "이게 finger 문제이기도 하지만 layout 문제이기도 하잖아"
+
+사용자 질문: 그룹분할(물리 배치 변경)을 `repair_matching_safety()`(순수 layout, gm/ID 무관)
+쪽에서 처리해야 하나, 아니면 L3+L4 체인(핑거조정, gm/ID 재검증 필요) 쪽에서 처리해야 하나?
+
+- **두 개의 독립축으로 분해**: 축1(어떤 audit 체크를 고치는가 — euler(1) vs matching quality
+  (3b/3c)) vs 축2(변경이 sizing/gm-ID에 영향을 주는가). 지금까지는 이 두 축이 우연히
+  일치했다(`repair_matching_safety()`=축1 3b/3c+축2 무영향, 핑거조정=축1 euler+축2 영향).
+  그룹분할은 축1로는 euler(핑거조정과 같은 편)인데 축2로는 무영향(repair와 같은 편)이라
+  **두 축이 처음으로 어긋나는 사례**임을 확인.
+- **`stack_id` 필드 중복 사용 확인**(사용자 질문: "그럼 sizing도 건드리게 되는건가?") — 코드로
+  직접 추적: `stack_id`가 사이징 단계(`optimize_full_circuit_budget()`의 `kcl_series_union()`
+  → `propagate_topology_forced_currents()`, 진짜 KCL 직렬스택)와 레이아웃 단계
+  (`run_topology_pipeline()`의 `sizing_overrides[name]["stack_id"]`, 순수 물리 행 그룹핑)
+  **두 곳에서 완전히 다른 의미로 재사용**되고 있었다. `propagate_topology_forced_currents()`가
+  `run_topology_pipeline()` 안에서 전혀 호출되지 않음을 grep으로 확인 — 그룹분할의 stack_id
+  재배정은 사이징 단계와 상호작용할 경로 자체가 없다(구조적으로 안전).
+- **결론(잠정)**: 축1이 더 근본적이므로 그룹분할은 euler 체인(`run_topology_pipeline_with_
+  finger_fixup()`) 쪽에 위치하되, 동작 방식은 repair처럼 순수 stack_id relabeling(gm/ID
+  재검증 불필요)으로 유지 — 단, 아래 D절에서 이 결론의 전제 자체가 흔들린다.
+
+## B. "매칭되는 소자들의 배열을 미리 만들지 않았나?" — 재계산 vs 재사용 확인
+
+사용자 질문: `find_min_crossover_layout()`이 crossover 지점만 정하는 건지, 실제 소자 배열
+(순서)까지 이미 계산해두는 건지 — 그리고 그게 나중에 `build_stick_diagram()`에서 다시
+계산되는 건지.
+
+- `find_min_crossover_layout()`은 실제로 `segments`마다 이미 계산된
+  `transistor_sequence`/`node_sequence`를 갖고 있다(가상 edge로 오일러 회로를 만들어
+  `hierholzer()`로 한 번에 계산 후 자르는 방식) — crossover 선택과 배열 계산이 **같은
+  계산에서 동시에** 나온다.
+- 그런데 `build_stick_diagram()`(2607행)은 미리 계산된 시퀀스를 받는 파라미터가 없다 —
+  `stack_id`만 재배정하면 다음 라운드에 `mirror_symmetric_trail()`/`hierholzer()`로
+  **처음부터 다시 계산**한다.
+- **`probe_group_split_reassembly.py`**(신설, `workspaces/current-reuse-telescopic-ota-
+  report/`)로 M6 그룹 실측: 재계산이 실패하지는 않는다(T-join 이론상 각 세그먼트는 구조적으로
+  Euler-path 가능이 보장됨, 실측 확인) — 하지만 재계산된 배열이 원본과 **다를 수 있다**
+  (seg1에서 M6/M7 순서가 바뀜, 오일러 경로가 유일하지 않다는 세션11 관찰의 재확인).
+
+## C. 결정적 발견 — "differential pair를 무시한 결과 아닌가?" (사용자 질문)
+
+`probe_group_split_reassembly.py`에 `audit_row_split()`을 실제로 붙여 3c(common-centroid)를
+계산해보니, 사용자의 직관이 정확히 맞았다:
+
+```
+[FAIL] 3c. common-centroid[M1a/M1b]: |dx|=3.00 |dy|=1.00 (허용오차 0.5)
+[FAIL] 3c. common-centroid[M2a/M2b]: |dx|=5.00 |dy|=1.00 (허용오차 0.5)
+```
+
+- **원인**: `audit_row_split()`의 3c는 "같은 행에 있어야" 요구가 아니라 "여러 행에 걸쳐
+  분배돼도 되지만 전체 무게중심(x,y)이 맞아야" 요구다(docstring에 이미 실측 사례 있음 —
+  folded_cascode M7/M8을 swap-대칭으로 양쪽 행에 나눠 분배하면 `dy=0.20`, "각자 한쪽 행에
+  통째로"는 `dy=1.0`). `find_min_crossover_layout()`은 소자를 **통째로** 한 세그먼트에
+  배정하는데, 이게 정확히 "각자 한쪽 행에 통째로"(나쁜) 패턴이었다.
+- **세션15 B-5("세그먼트가 거울상이 되어 대칭성이 저절로 유지된다")는 그래프/토폴로지 레벨
+  대칭을 말한 것이지, 3c가 실제로 재는 물리적 무게중심 대칭이 아니었다** — 이름이 비슷한
+  "대칭"이라는 단어가 서로 다른 두 개념을 가리키고 있었다는 게 숫자로 드러남.
+- **부가 발견**: 이 3c FAIL을 `repair_matching_safety()`가 고치려 하면, 정확히 세션15
+  A-3에서 발견하고 미뤄둔 크래시 버그(offset/branch_symmetric + `n_fingers=1` → `common_
+  centroid_layout()` `ValueError`)를 100% 밟는다 — 가상의 걱정이 아니라 실제 재현 경로임을
+  확인.
+
+## D. 재설계 조사 — "이 문제를 해결할 수 있는 방법으로 재설계돼야 한다고 봐. 조사해보고
+## 제안해봐"
+
+### D-1. 발견 1 — crossover 짝짓기 우선순위(B-3 tier1) 자체가 최악의 선택이었다
+`probe_crossover_pairing_alternatives.py`(신설) — 4개 홀수차수 노드의 완전짝짓기는 정확히
+3가지뿐이라 전수 대입:
+- **현재 채택(tier1, `Vom1↔Vop1` 직접 짝짓기)**: M1a/M1b, M2a/M2b **둘 다 다른 세그먼트로
+  쪼개짐**(C절의 그 FAIL 케이스).
+- **대안(`Vbias2`를 `Vom1`/`Vop1`과, 나머지를 `Vx`와 짝짓기)**: M1a/M1b, M2a/M2b **둘 다
+  같은 세그먼트에 유지**됨(크로스오버는 미매칭 소자 M57/M58 쪽에서만 발생).
+
+세션15 B-3의 "선언된 진짜 거울쌍을 최우선으로 짝짓기"라는 우선순위가, 실제로는 매칭쌍을
+정면으로 가르는 **최악의 선택**이었다 — "가장 정당화되는 절단점"이라는 근거는 그래프 대칭
+관점에서는 맞지만 물리적 matching 보존 관점에서는 정반대였다.
+
+### D-2. 발견 2 — (더 근본적) `mirror_symmetric_trail()`의 "거울대칭"과 3c는 다른 개념
+크로스오버 없이(D-1 대안 그대로) 두 매칭쌍을 한 행에 둬도, `mirror_symmetric_trail()`이
+만드는 시퀀스(`M2a,M1a,M7,M6,M1b,M2b`)는 **팰린드롬**(매칭쌍을 양끝에 배치)이라 3c로는
+오히려 `dx=3~5`로 나쁘다 — 이건 그룹분할과 무관하게 **세션11부터 있던 L3(D) 메커니즘 자체의
+사각지대**다. "그래프 레벨 거울대칭 워크"가 "물리적 무게중심 매칭"을 자동으로 보장한다는
+가정이 틀렸다는 게 이번에 처음 확인됨.
+
+### D-3. 발견 3 — 크래시 원인 확정
+`common_centroid_layout([M1a,M1b])`를 직접 호출해 재현 — `_common_centroid_nway_exact()`가
+"회전-최적"(잔차 보장 0) 경로를 타려면 `n_fingers>=N`(소자 수)이 필요한데, `n_fingers=1`인
+2소자 쌍(N=2)은 이 조건을 못 만족해 `ValueError`. 에러 메시지 자체가 해법을 알려줌
+(`n_rows`를 더 작게 지정하면 탐색 경로로 우회). 추가로 M2a/M2b(source가 다른 branch_symmetric
+쌍)는 크래시조차 안 하고 조용히 스킵됨(`repair_matching_safety()`의 `ta.source != tb.source:
+continue`) — "정직한 한계"로 문서화돼 있었지만 실제론 영원히 안 고쳐지는 사각지대.
+
+## E. 3단계 재설계 합의 및 구현
+
+사용자 확인을 거쳐 순서 확정: **1) 크래시부터 고쳐서 재현 → 2) branch 복합 매칭(source
+다른 쌍도 "같은 소자처럼" 묶기) → 3) 그래도 안 되면(핑거 부족) 매칭 목적 핑거증가, gm/ID
+재검증 실패시에만 인접배치로 완화(3번은 사용자가 제안한 순서 "2번을 하다가 안 되는 회로만
+1번(완화)을 적용")**. 1/2번은 하나로 묶어 커밋(`58e608b`), 3번(설계안 순서상 2번, "매칭 목적
+핑거증가")은 별도 커밋(`7a41a30`) — **3번(설계안 순서상 3번, "완화")은 아직 미구현**.
+
+### E-1. 크래시 수정 (`stick_diagram.py`, 커밋 `58e608b`)
+`repair_matching_safety()`가 `common_centroid_layout()`을 호출할 때 `n_rows=min(2,
+ta.n_fingers, tb.n_fingers)`로 낮춰서, `n_fingers>=2`인 기존 케이스는 기존 기본값과 완전히
+동일하게(회귀 없음), `n_fingers<2`인 새 케이스만 탐색 경로로 안전하게 우회. **"1번부터 고쳐서
+재현해봐" 지시로 실제 M6 그룹에 태워보니**, 크래시는 안 나지만 M1a/M1b가 새 행으로 빠지면서
+남은 M2a/M2b/M6/M7의 euler 연결성이 깨지는 **새 부작용**을 발견(repair의 "빼내기" 전략이
+만드는 문제) — 이게 D절의 branch 복합 매칭으로 이어지는 동기가 됨.
+
+### E-2. branch 복합 매칭 (`stick_diagram.py`, 커밋 `58e608b`)
+사용자 제안("m1a/m2a, m3a/m3b 같은 branch 개념을 도입하면 source 다른 소자도 같은 로직으로
+분리 안 되게 만들 수 있지 않나") — 조사해보니 **이미 있는 `kcl_series_union()`**(세션10 L2,
+"2단자 net만" 규칙)이 강제병합 없이도(`matching_pairs=[]`) `{M1a,M2a}`/`{M1b,M2b}`/
+`{M57,M58}`를 정확히 원하는 branch로 자동 발견해줌을 확인 — 새 그래프 로직을 만들 필요가
+전혀 없었다. `_kcl_branch_map()`/`_two_device_branch_outer()`/`_branch_composite_pair()`
+신설(2소자 선형 branch만 지원, 의도적으로 좁은 범위) — `repair_matching_safety()`가 source
+공유 여부와 무관하게 항상 이 경로를 먼저 시도하고, branch 구조가 없으면 기존 개별-소자
+경로/skip으로 완전히 폴백. 같은 라운드에서 같은 branch가 중복 재배치되지 않도록
+`touched_this_round` 가드 추가(처음엔 행 이름에 `_repair0`이 라운드당 2번씩 중첩돼 쌓이는
+낭비가 있었음, 가드로 라운드당 1번으로 정리). self-test 2건(M6 그룹 실측 + branch 없는 기존
+케이스 회귀 확인) 전부 통과, 회귀 0줄.
+
+### E-3. 매칭 목적 핑거증가 (`sizing_recipe.py`, 커밋 `7a41a30`)
+branch 복합 매칭으로도 `n_fingers=1`이면 3c(`dx<=0.5`)가 기하학적으로 불가능(최선이
+`dx=1.0`, `n_fingers=2`부터 회전-최적 경로가 `residual=0.0` 완벽 달성)임을 실측 확인한 뒤
+구현. `suggest_matching_finger_growth()`(euler용 `suggest_pair_finger_adjustments()`와
+달리 후보 랭킹 불필요 — 필요한 delta가 `min_fingers`까지 부족한 만큼으로 정확히 하나) +
+`apply_and_revalidate_matching_finger_growth()`(L3+L4 패턴, `revalidate_finger_
+override()` 재사용) + `run_matching_safety_with_finger_growth()`(`repair_matching_
+safety()`를 감싸는 라운드 루프, `run_topology_pipeline_with_finger_fixup()`과 동일하게
+`stick_diagram.py`↔`sizing_recipe.py` 단방향 import 제약 때문에 여기 위치). self-test(L4d) —
+M6 그룹 실제 사례로 M1a/M1b/M2a/M2b가 전부 `n_fingers=2`로 자라(공통-centroid 회전 배치가
+2개 행에 1개씩 진짜로 finger를 나눠 배치) 3b/3c 필수 게이트를 완전히 통과함을 end-to-end로
+확인. 회귀 0줄(`58e608b` 대비 신규 L4d 블록 15줄 제외 0줄 차이).
+
+**설계 원칙 하나 명문화**: `run_matching_safety_with_finger_growth()`의 `unresolved_
+pair=None`은 "3c 관점에서 이 함수가 할 일을 다 했다"는 뜻이지 `audit.ok=True`의 동의어가
+아니다 — box-shape(행폭 비율) 같은 이 함수 책임 밖의 다른 체크가 별도로 실패할 수 있다(실측:
+M6 그룹은 3b/3c 전부 PASS했지만 M6/M7만 남은 행과의 폭 비율(§8) 때문에 box-shape는 여전히
+FAIL). 호출자는 전체 성공 여부를 반드시 `result["audit"].ok`로 직접 확인해야 한다(docstring에
+명시).
+
+## F. 부수적으로 확인한 self-test 함정 (기록해둘 가치 있음)
+`common_centroid_layout()`의 회전-최적 경로가 `n_fingers=2`인 소자를 물리적으로 "2개 행에
+1개씩" 나눠 배치하는 게 정상 동작이다(진짜 common-centroid) — 그래서 `rows` 딕셔너리에는
+같은 소자 이름이 여러 행에 걸쳐 `n_fingers=1`짜리로 여러 번 나타난다. 처음 self-test를 짤 때
+이름 하나에 값 하나만 남기는 flat dict comprehension(`{t.name: t.n_fingers for ...}`)을
+써서 나중 행 값(1)으로 덮어써 "성장이 반영 안 됐다"고 착각할 뻔했다 — 행별로 합산해야
+정확하다(`.ai/context.md` 기록 가치: 이 파일들 self-test에서 앞으로도 반복될 수 있는 함정).
+
+## G. 다음 세션 이어갈 지점 (우선순위 순)
+1. 재설계안 3번(핑거증가도 gm/ID 예산 때문에 안 되면 인접배치로 완화) 구현 — `run_matching_
+   safety_with_finger_growth()`의 `unresolved_reason` 지점에 이어붙이면 됨.
+2. `find_min_crossover_layout()`/`_pair_odd_nodes_by_mirror()`의 crossover 짝짓기
+   우선순위를 D-1 발견대로 재작성(선언된 매칭쌍을 직접 짝짓는 걸 최후수단으로) — 이게 안
+   고쳐지면 그룹분할 자체가 "matching을 갈라놓는" 결함을 그대로 안고 있다.
+3. 1/2번이 끝난 뒤에야 세션15 C절(그룹분할 harness 배선, C-2/C-3 질문)로 복귀 — 지금
+   상태로 배선하면 근본적으로 결함 있는 크로스오버 선택을 harness에 그대로 심는 것.
+
+---
+
+# 세션17 결론 — 재설계안 3번(gm/ID 예산으로 핑거증가 막히면 인접배치로 완화) 구현 완료
+
+세션16이 남긴 "다음 세션 최우선"(재설계안 3번)을 진행. 사용자가 "이건 sizing 열화를
+감수하느냐 layout 열화를 감수하느냐 문제 아니냐, layout은 trim으로 나중에 보정 가능하지
+않냐"고 트레이드오프의 근거를 직접 제시해 설계 방향을 확정했고, 부수적으로 "crossover로
+이 문제를 풀 수 있나?"라는 질문도 코드/수식으로 직접 검증했다.
+
+## A. crossover는 n_fingers=1 문제를 못 푼다(수학적으로 확정) — 구현 전 검증
+
+`audit_row_split()`의 3c는 소자 무게중심을 `(Σposition)/(자기 자신의 총 n_fingers)`로
+계산한다 — `n_fingers=1`인 소자는 시퀀스에서 정확히 한 자리만 차지하므로, 서로 다른 두
+소자가 같은 자리를 점유할 수 없는 이상 crossover로 그룹을 아무리 재배치해도 최선이
+`dx=1`(같은 행) 또는 `dy=1`(다른 행)이라 허용오차 0.5를 절대 못 넘는다(세션16 D-3의
+"회전-최적 경로가 n_fingers>=2를 요구한다"는 관찰과 동일한 제약의 다른 표현). 즉 D-1의
+crossover 짝짓기 우선순위 수정(다음 세션 최우선, 아래 참고)은 "이미 가능한 배치가
+나빠지는 걸 막는" 역할이지 "원래 불가능한 걸 가능하게" 만들지는 못한다 — 그래서
+"완화"(레이아웃 열화 감수)는 여전히 필요했다.
+
+## B. 설계 결정(사용자 확인)
+
+1. **완화 대상 범위**: `offset`(진짜 differential pair)과 `branch_symmetric`(ratio+not
+   shares_node) 둘 다 포함 — crossover가 offset도 못 풀어주므로, 제외하면 offset pair는
+   gm/ID 예산 부족 시 그냥 unresolved로 남아 대안이 없다. 근거: gm/ID 위반(회로 기능
+   저하)은 trim 불가능하지만, layout mismatch(3c FAIL)는 trim으로 보정 가능 — 후자가
+   더 감수할 만한 열화.
+2. **결과 표기**: 완화가 적용돼도 `audit.ok`는 3c FAIL을 그대로 반영(정직, 몰래 성공으로
+   둔갑 안 시킴). 대신 `relaxed_pairs` 필드로 "이건 trim 대상으로 알고 있는 열화"라는
+   근거를 남기고, 호출자가 `result["audit"].ok`와 `result["relaxed_pairs"]`를 직접 보고
+   최종 승인 여부를 판단.
+
+## C. 구현 (`stick_diagram.py`/`sizing_recipe.py`, 아직 미커밋)
+
+- `repair_matching_safety(rows, matching_pairs, pair_sensitivity=None, max_iter=3,
+  relaxed_pairs=None)`(`stick_diagram.py`) — `relaxed_pairs: set[frozenset]` 신설.
+  이 집합에 든 쌍은 composite/raw 경로 둘 다에서 `select_layout_tool()`의 판단(offset/
+  branch_symmetric은 항상 common-centroid)을 무시하고 `interdigitate_layout`을 강제
+  적용 — 순수 layout 오버라이드, sizing 무관. 공유 hub도 branch composite도 없는 쌍은
+  (기존 "정직한 한계") `relaxed_pairs`에 있어도 여전히 손 못 댐 — 완화는 이미 있는 layout
+  자유도를 쓰는 것이지 없는 자유도를 만들지 않는다(self-test로 직접 확인).
+- `run_matching_safety_with_finger_growth(..., allow_layout_relaxation=True)`
+  (`sizing_recipe.py`) — 핑거증가가 `reason=="gm_id_violation"`(딱 gm/ID 예산 위반일
+  때만, `no_finger_w`/`growth_not_applicable`는 완화 대상 아님 — 설정 문제를 조용히
+  덮지 않기 위해)로 실패하면 그 쌍을 `relaxed_pair_keys`에 등록하고 `repair_matching_
+  safety()`를 재시도. 새 `unresolved_reason="relaxed_to_layout"`으로 "완화를 실제로
+  적용했다"를 구분. 반환에 `relaxed_pairs: [{"pair","reason":"gm_id_budget_exceeded",
+  "trim_recommended":True,"interdig_ok":bool|None}, ...]` 추가(`interdig_ok`는 완화
+  적용 다음 라운드의 fresh audit에서 3b 체크를 찾아 사후 채움).
+- self-test 4건: `stick_diagram.py`(Test 28 뒤) 2건 — M6 그룹으로 완화 후에도 3c FAIL
+  유지 확인 + 공유 hub/branch composite 없는 쌍은 relaxed_pairs 있어도 안 바뀜 확인.
+  `sizing_recipe.py`(L4e, 세션16 L4d 뒤) 2건 — offset pair(Ma/Mb, 공유 source)로 gm/ID
+  예산 위반 유발 → `unresolved_reason="relaxed_to_layout"`/`relaxed_pairs`=1건
+  (`interdig_ok=True`)/`audit.ok=False` 실측 확인(interdig_ok은 손으로 추정하지 않고
+  실행해서 확인 — 세션16 M6 그룹으로 처음 시도했다가 branch composite의 `touched_this_
+  round` 상호작용이 복잡해 최종적으로 raw path 하나만 쓰는 단순 offset 쌍으로 교체) +
+  `allow_layout_relaxation=False`면 세션16 그대로(`unresolved_reason="gm_id_violation"`,
+  `relaxed_pairs=[]`) 보존되는 회귀 대조.
+- **회귀**: `PYTHONHASHSEED=0`으로 편집 전(`7a41a30`) 대비 self-test 전체 출력 diff —
+  `stick_diagram.py`는 신규 테스트 블록(8줄) 외 0줄 차이, `sizing_recipe.py`는 신규 L4e
+  블록(9줄) 외 0줄 차이. 무회귀 확정(격리 baseline 디렉토리 `git show HEAD:...`로 확보,
+  세션12부터 쓰던 패턴 그대로).
+
+## D. 알려진 한계 / 다음 세션 참고
+
+- `relaxed_pairs`는 declared matching_pair 단위로 개별 등록된다 — M6 그룹처럼 여러
+  선언 쌍이 같은 branch composite를 공유하면, 물리적으로는 한 번의 재배치로 여러 쌍이
+  동시에 완화되지만 오케스트레이터 레벨에서는 각 쌍이 별도 라운드에 걸쳐 순차적으로
+  `relaxed_pairs`에 등록된다(라운드 수만 늘어날 뿐 결과는 정확함, `max_rounds` 기본값
+  5 안에서 문제 없음 확인) — 최적화 여지는 있지만 정확성 문제는 아니라 손 안 댐.
+- `interdig_ok`가 `False`로 나오는 실제 사례(예: composite 확장 후 hub/leaf가 인접하지
+  않는 경우)는 아직 self-test로 직접 확인 안 함 — 지금 테스트는 raw path(공유 source,
+  interdig_ok=True로 확인됨)만 다뤘다. 실제 회로에서 완화가 3b조차 못 주는 경우가 나오면
+  `relaxed_pairs`의 `interdig_ok=False` 처리(호출자가 어떻게 반응할지)를 재검토할 것.
+
+---
+
 ## 다음 세션 작업 순서 (권장, 각 단계 사용자 승인 필수)
 
-1. `stick_diagram.py`(세션12)+`sizing_recipe.py`(세션13) 커밋 여부 확인(위 "지금 상태" 1번).
-2. ~~매칭쌍 단위 핑거 조정 함수~~ / ~~홀수 self-pair 다리 지원~~ / ~~L4 피드백~~ — **전부
-   세션12~13에 완료**(위 "세션12 결론"/"세션13 결론" 참고). L3→L4 연결이 처음으로 끝까지
-   닫혔다.
-3. **`revalidate_finger_override()`를 실제 회로에 배선** — 지금은 함수 자체+self-test만
-   있고, `suggest_pair_finger_adjustments()`의 제안을 실제로 적용→재검증→승인/거부하는
-   상위 오케스트레이션이 없다(위 "세션13 결론" D절). `current_reuse_telescopic_ota`의
-   M9b/M18b +1 사례로 end-to-end 재현 테스트를 만들 수 있는지가 다음 후보.
-4. **node_map 기반 그룹분할** — `find_min_crossover_layout()`의 홀수노드 짝짓기를
-   `node_map` 대응 우선으로 바꾸는 확장(위 B-5-2). M3a는 핑거조정+다리만으로 풀렸지만,
-   더 복잡한 그룹(홀수차수가 다리를 포함해도 2개를 못 넘는 경우)엔 여전히 필요할 수 있다 —
-   실제로 막히는 사례가 나오면 그때 구현.
-5. `run_harness.py` 재실행 전략 논의(위 A절 — 그리드 축소 or 다른 최적화 방식).
-6. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
+1. **⚠️ 최우선 — `find_min_crossover_layout()`/`_pair_odd_nodes_by_mirror()`의 crossover
+   짝짓기 우선순위 재작성**(세션16 G절 2번, D-1 발견 근거, 세션17 A절에서 "완화로 대체
+   불가능함"을 재확인해 여전히 필요) — "선언된 매칭쌍을 직접 짝짓는 것"을 최우선이 아니라
+   최후수단으로 바꿀 것(먼저 미매칭/허브 노드끼리 짝지어 매칭쌍이 안 갈라지는 짝짓기를
+   찾고, 그게 안 되면 그때만 매칭쌍을 직접 절단). M6 그룹으로 이미 검증된 대안 짝짓기
+   (`probe_crossover_pairing_alternatives.py`)가 있으니 그걸 일반화할 것 — 여러 회로에
+   영향을 주는 엔진 변경이라 사전 승인 원칙 그대로.
+2. 1번이 끝난 뒤에야 **세션15 C절(그룹분할 harness 배선) 재개** — C-2(crossover 성공
+   등급을 어떻게 표현할지 — `group_splits` 필드 vs 다른 방식)와 C-3(`cell_groups`/
+   `spine_groups` 갭을 지금 막을지 vs 미룰지) 두 질문부터 다시 확인. 답이 나오면 C-1
+   설계(row `stack_id`를 `f"{row}_seg{i}"`로 재배정)대로 `run_topology_pipeline_with_
+   finger_fixup()`을 실제로 고칠 것. **주의**: 지금 상태로 배선하면 1번이 안 고쳐진
+   crossover 우선순위를 그대로 harness에 심게 되니, 반드시 1번 이후에 진행할 것.
+3. `run_harness.py` 재실행 전략 논의(세션11 A절 — 그리드 축소 or 다른 최적화 방식) — 1~2번이
+   끝나면 이 새 체인들이 실전에서 어떻게 동작하는지 end-to-end로 확인할 좋은 기회.
+4. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
    `current_reuse_telescopic_ota`) — 필요해지면 사람이 직접 사슬 추적해 확인.
-7. GBW 재검증 확장(범위 밖으로 미룸, 위 "세션13 결론" D절) — 어느 topology.json이든
+5. GBW 재검증 확장(범위 밖으로 미룸, 세션13 결론 D절) — 어느 topology.json이든
    `constraints`에 GBW를 실제로 선언하는 회로가 생기면 그때 착수.
-8. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
+6. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
    이어가기.
-9. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
+7. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
    `"dual"` transform 오탐 개선 — 손 안 댐.
 
 ---
 
 ## 작업 파일 위치
 
-- `skills/analog-gmid-design/assets/stick_diagram.py` (**세션11+세션12 수정, 미커밋**)
+- `skills/analog-gmid-design/assets/stick_diagram.py` (**세션11+세션12+세션15 수정, 전부
+  커밋됨** — 세션12까지는 `cecbe33`/`d59570f`, 세션15는 `55c8095`)
   - `check_walk_sequence(transistor_sequence, transistors)`(2231행 부근) — 기존 함수,
     D 구현에 그대로 재사용(범용 walk 검증기, hub-leaf 제약 없음).
   - `mirror_symmetric_trail(group, matching_pairs)`(2401행 부근) — 세션11 신설, **세션12
@@ -382,9 +910,18 @@ override()`로 실제 구현됨** — L3(레이아웃 trail 구성)→L4(사이�
   - `suggest_finger_adjustments(transistors)`(1865행 부근) — 기존 함수, **세션12에
     확장 안 하고 옆에 새 함수(`suggest_pair_finger_adjustments`)로 분리**(개별 소자
     조정이 필요한 기존 호출부를 건드리지 않기 위해).
-  - `find_min_crossover_layout(transistors)`(1761행 부근) — 기존 함수, node_map 기반
-    홀수노드 짝짓기로 확장할 대상(위 B-5-2) — **세션12엔 필요 없었음**(M3a가 핑거조정+
-    다리만으로 풀림), 여전히 미구현.
+  - `find_min_crossover_layout(transistors, matching_pairs=None)`(1857행 부근) —
+    **세션15에 확장 완료**(node_map 기반 그룹분할, 위 세션15 B절). `matching_pairs=None`
+    (기본값)이면 기존 hub-leaf 사전조건+순서대로 짝짓기 완전히 그대로(하위호환, 기존
+    프로덕션 호출부는 이 경로). 주면 hub-leaf 제약을 풀고 아래 두 헬퍼로 일반 그룹 지원.
+    **⚠️ 아직 harness에 안 이어짐**(세션15 C절, 다음 세션 최우선 — 위 "지금 상태" 4번).
+  - `_mirror_node_map_from_pairs(matching_pairs, transistors)`(1765행 부근) —
+    **세션15 신설**, matching_pairs+connectivity에서 net 레벨 거울 대응 역산.
+  - `_pair_odd_nodes_by_mirror(odd_nodes, node_map)`(1798행 부근) — **세션15 신설**,
+    3단계 우선순위 짝짓기(거울쌍 → 허브/orphan → 폴백).
+  - Test 12.13(Test 12.12 직후, self-test 섹션) — **세션15 신설**, M6 그룹 실제
+    connectivity 재현 + node_map 역산 단위 확인 + 폴백 발동 확인 + `matching_pairs=None`
+    회귀 대조.
   - `build_graph()`(1631행 부근)/`hierholzer()`(1721행 부근) — 여전히 완전히
     matching-blind(세션11/12 미변경, mirror_symmetric_trail이 우회해서 감쌈).
   - `INTERDIGITATION_PATTERNS`/`COMMON_CENTROID_PATTERNS`(86~119행), `check_mirror_
@@ -394,8 +931,28 @@ override()`로 실제 구현됨** — L3(레이아웃 trail 구성)→L4(사이�
   - Test 5.6(Test 5.5 직후) — **세션12 신설**, `current_reuse_telescopic_ota` 실제 M3a
     그룹(11소자) 재현: 핑거조정 제안 → 적용 → 다리 지원으로 완전히 풀림 + 조정 없이는
     여전히 `None`인 회귀 대조.
-- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션13 수정, 미커밋** — 세션11/12엔
-  미수정이었음)
+- `skills/analog-gmid-design/assets/stick_diagram.py` (**세션16 수정, 커밋 `58e608b`**)
+  - `repair_matching_safety()`(3308행 부근) — **세션16 크래시 수정**: `common_centroid_
+    layout()` 호출 시 `n_rows=min(2, ta.n_fingers, tb.n_fingers)`로 낮춰서 `n_fingers<2`
+    크래시(세션15 A-3에서 발견) 회피, `n_fingers>=2`는 기존과 완전히 동일 동작(회귀 없음).
+    **세션16 branch 복합 매칭**: source 공유 여부와 무관하게 항상 `_branch_composite_
+    pair()`를 먼저 시도하도록 재구성, branch 구조 없으면 기존 개별-소자 경로/skip으로
+    완전히 폴백. `touched_this_round` 가드로 같은 라운드 내 중복 재배치 방지.
+  - `_kcl_branch_map(devices)`/`_two_device_branch_outer(x,y)`/`_branch_composite_pair
+    (a,b,devices_by_name,matching_pairs)`(`repair_matching_safety()` 직전) — **세션16
+    신설**. `kcl_series_union()`(세션10, 강제병합 없이 재사용)으로 2소자 직렬 branch(예:
+    M1a-M2a)를 자동 발견해, 서로 다른 hub를 쓰는 매칭쌍(branch_symmetric)도 branch
+    전체를 합성 소자로 묶어 기존 layout 도구를 적용 가능하게 함. 2소자 선형 체인만
+    지원(의도적으로 좁은 범위, 3소자+ 체인/분기는 `None` 폴백).
+  - self-test 2건(Test 28 `repair_matching_safety()` 섹션 직후) — **세션16 신설**: (1)
+    `current_reuse_telescopic_ota`의 M6 그룹 실제 사례로 M2a/M2b가 M1a/M1b와 같은 행에
+    묶이는지(euler PASS, 3c는 `n_fingers=1` 한계로 여전히 FAIL — 다음 확장 지점). (2)
+    `_branch_composite_pair()`가 branch 구조 없는 기존 케이스엔 `None`을 반환해 기존
+    폴백이 보존되는지.
+  - 회귀: 커밋 전(`55c8095`) 대비 self-test 전체 출력 diff 0줄, 무회귀 확정(세션16 E-1/
+    E-2절).
+- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션13 수정, 커밋 `caa970b`** —
+  세션11/12엔 미수정이었음)
   - `revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs, constraints,
     gm_id_bounds=(2.0,30.0))`(§6.10, `optimize_full_circuit_budget()` 직후) — **세션13
     신설**, L4. `_invert_gm_id_for_current()`(897행, 기존 함수) 재사용.
@@ -412,7 +969,88 @@ override()`로 실제 구현됨** — L3(레이아웃 trail 구성)→L4(사이�
     `for combo in itertools.product(*grids)`)가 `run_harness.py` 조합 폭발의 실제 위치 —
     세션13 미변경.
   - self-test 전체 회귀: 확인 완료, 무회귀(위 "지금 상태" 3번/"세션13 결론" C절 참고).
-- `skills/analog-gmid-design/assets/library/*.topology.json` — 세션11/12 **미수정**.
+- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션14 수정 커밋 `de85792`,
+  세션15 추가 수정 커밋 `0eccd0e`**)
+  - `apply_and_revalidate_pair_adjustment(transistors, matching_pairs, ctx, lut_by_kind,
+    metrics_specs, constraints, gm_id_bounds=(2.0,30.0), max_candidates=None)`(2405행) —
+    **세션14 신설**, L3+L4 오케스트레이션(세션14 결론 B절). `suggest_pair_finger_
+    adjustments()`(stick_diagram.py, 세션12)와 `revalidate_finger_override()`(세션13)를
+    조합, 채택 안 된 후보는 `rejected`에 근거와 함께 기록.
+  - `_blocked_euler_rows(audit_row_split_result)`(2463행) — **세션14 신설**, `audit_row_
+    split()`의 고정 체크명 `f"1. euler[{row_name}]"`을 파싱해 blocked row만 추출.
+  - `_sync_finger_fixup(overrides, ctx, fix, prior_transistors)`(2478행) — **세션14 신설**,
+    핑거조정 채택 결과를 layout `sizing_overrides`와 gm/ID `ctx.sized` 양쪽에 동기화.
+  - `run_topology_pipeline_with_finger_fixup(topology_json_path, sizing_overrides, ctx,
+    lut_by_kind, metrics_specs, constraints, floorplan_hints=None, cell_groups=None,
+    gm_id_bounds=(2.0,30.0), max_fixup_rounds=5)`(2498행) — **세션14 신설**,
+    `run_topology_pipeline()`(stick_diagram.py)을 감싸 euler-blocked row를 자동 수정하는
+    라운드 루프(세션14 결론 C절). `stick_diagram.py`↔`sizing_recipe.py` 단방향 import
+    제약 때문에 `stick_diagram.py` 안이 아니라 여기(`sizing_recipe.py`)에 위치.
+  - import 목록(1611행 부근)에 `suggest_pair_finger_adjustments`/`PairAdjustmentSuggestion`
+    추가 — **세션14 수정**(기존 import문에 이름만 추가, 다른 항목 미변경).
+  - self-test "L4b"(2822행부근, 합성 데이터 3케이스)/"L4c"(2913행 부근, 세션12 실제 M3a
+    그룹을 temp topology.json으로 감싼 end-to-end 2케이스) — **세션14 신설**, 전부 통과.
+  - **세션15에 실배선 완료**(커밋 `0eccd0e`): `optimize_full_circuit_budget()`(1841행
+    부근)의 euler-blocked 실패 처리부가 이제 `run_topology_pipeline_with_finger_
+    fixup()`을 실제로 호출한다(`repair_matching_safety()`는 별개 역할로 그대로 유지 —
+    세션15 A-1절 "책임 분리" 발견 참고). `spec["lut_by_kind"]`가 없으면 기존
+    `run_topology_pipeline()`으로 폴백(하위호환). self-test "L5" 신설, 전부 통과.
+  - self-test 전체 회귀: 세션14 확인 완료(`caa970b` 대비 diff 0줄), 세션15도 재확인
+    완료(`de85792` 대비 diff 0줄, 세션15 A-4절).
+- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션16 신설, 커밋 `7a41a30`**)
+  - `suggest_matching_finger_growth(names, transistors, min_fingers=2)`(§6.11 신설,
+    `_sync_finger_fixup()` 직후) — **세션16 신설**. euler용 `suggest_pair_finger_
+    adjustments()`와 달리 후보 랭킹이 필요 없다 — `names`(매칭쌍 또는 branch 복합 4소자,
+    전부 같은 `n_fingers`) 내부 값이 `min_fingers`(기본 2)보다 부족한 만큼만 delta로
+    계산. 이미 충분하거나 내부 `n_fingers`가 안 맞으면 `None`.
+  - `apply_and_revalidate_matching_finger_growth(names, transistors, ctx, lut_by_kind,
+    metrics_specs, constraints, gm_id_bounds=(2.0,30.0), min_fingers=2)`(§6.11) —
+    **세션16 신설**, L3+L4 패턴(`apply_and_revalidate_pair_adjustment()`와 동일 골격,
+    재시도 루프만 없음). `revalidate_finger_override()`(세션13, 기존 함수) 그대로 재사용.
+  - `run_matching_safety_with_finger_growth(rows, matching_pairs, pair_sensitivity, ctx,
+    lut_by_kind, metrics_specs, constraints, gm_id_bounds=(2.0,30.0), min_fingers=2,
+    max_rounds=5)`(§6.11) — **세션16 신설**, `repair_matching_safety()`(stick_diagram.py,
+    branch 복합 매칭 포함)를 감싸는 라운드 루프. `run_topology_pipeline_with_finger_
+    fixup()`(euler용)과 대칭 구조, 동일한 단방향 import 제약 때문에 여기 위치.
+    ⚠️ `unresolved_pair=None`이 `audit.ok=True`의 동의어가 아님을 docstring에 명시(box-
+    shape 등 이 함수 책임 밖 체크가 별도로 FAIL할 수 있음, 세션16 E-3절 참고) — 호출자는
+    `result["audit"].ok`를 직접 확인해야 함.
+  - import 목록(1611행 부근)에 `_branch_composite_pair`/`_failing_required_pairs`
+    추가(stick_diagram.py에서) — **세션16 수정**(기존 import문에 이름만 추가).
+  - self-test "L4d"(L4c/L5 직후) — **세션16 신설**: (1) `suggest_matching_finger_
+    growth()` 단위 확인 3케이스. (2) `apply_and_revalidate_matching_finger_growth()`
+    통과/거부(면적 제약) 2케이스. (3) M6 그룹 실제 사례 end-to-end — branch 복합 매칭+
+    핑거증가가 함께 M1a/M1b/M2a/M2b를 총 `n_fingers=2`로 키워 3b/3c 필수 게이트를 전부
+    통과시키는지 확인(진짜 common-centroid 회전 배치 — `rows`엔 같은 소자가 여러 행에
+    걸쳐 `n_fingers=1`씩 나뉘어 나타나므로 self-test에서 행별 합산 필요, 세션16 F절 함정
+    참고). 전부 통과.
+  - 회귀: 커밋 전(`58e608b`) 대비 self-test 전체 출력 diff — 신규 L4d 블록(15줄) 외
+    0줄 차이, 무회귀 확정.
+- `skills/analog-gmid-design/assets/stick_diagram.py` (**세션17 수정, 아직 미커밋**)
+  - `repair_matching_safety(rows, matching_pairs, pair_sensitivity=None, max_iter=3,
+    relaxed_pairs=None)`(3308행 부근) — **세션17 신설** `relaxed_pairs: set[frozenset]`
+    파라미터. composite 경로(3407행 부근)/raw 경로(3443행 부근) 둘 다에서 이 집합에 든
+    쌍은 `select_layout_tool()` 판단을 무시하고 `interdigitate_layout` 강제(layout 전용
+    최후수단 완화). 공유 hub/branch composite 없는 쌍은 여전히 손 못 댐(정직한 한계 유지).
+  - self-test 2건(Test 28 `_branch_composite_pair()` 테스트 직후) — **세션17 신설**: M6
+    그룹으로 완화 후에도 3c FAIL 유지 확인 + rowA/rowB(공유 hub 없음)는 relaxed_pairs
+    있어도 안 바뀜 확인.
+  - 회귀: `PYTHONHASHSEED=0` 기준 편집 전(`7a41a30`) 대비 self-test 전체 출력 diff —
+    신규 테스트 블록(8줄) 외 0줄 차이, 무회귀 확정(세션17 C절).
+- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션17 수정, 아직 미커밋**)
+  - `run_matching_safety_with_finger_growth(..., allow_layout_relaxation=True)`(2595행
+    부근) — **세션17 신설** `allow_layout_relaxation` 파라미터 + `relaxed_pairs` 반환
+    필드. `reason=="gm_id_violation"`일 때만(다른 실패 사유는 완화 대상 아님) 그 쌍을
+    `relaxed_pair_keys`에 등록하고 `repair_matching_safety()`(위, relaxed_pairs 인자로
+    전달)를 재시도. 새 `unresolved_reason="relaxed_to_layout"`. `audit.ok`는 손대지
+    않음(3c 요구사항 자체는 안 없앰, 세션17 B절 정책).
+  - self-test "L4e"(L4d 직후) — **세션17 신설**: offset pair(공유 source Ma/Mb)로 gm/ID
+    예산 위반 유발 → 완화 적용(`relaxed_pairs`=1건, `interdig_ok=True` 실측 확인) +
+    `audit.ok=False` 유지 확인, `allow_layout_relaxation=False`면 세션16 그대로(즉시
+    `unresolved_reason="gm_id_violation"`) 보존되는 회귀 대조.
+  - 회귀: `PYTHONHASHSEED=0` 기준 편집 전(`7a41a30`) 대비 self-test 전체 출력 diff —
+    신규 L4e 블록(9줄) 외 0줄 차이, 무회귀 확정.
+- `skills/analog-gmid-design/assets/library/*.topology.json` — 세션11~17 **미수정**.
 - `workspaces/current-reuse-telescopic-ota-report/run_harness.py` — 세션11에 중단됨,
   재실행 보류(위 A절 참고). 로그: `run_harness_session11.log`(0바이트, 정상 — 원래
   안 찍는 스크립트).
@@ -422,6 +1060,16 @@ override()`로 실제 구현됨** — L3(레이아웃 trail 구성)→L4(사이�
 - `workspaces/current-reuse-telescopic-ota-report/probe_l3_groups.py` — **세션11 신설**,
   `geometry_colocation_union()`의 실제 그룹 중 다중 matching_pairs가 섞인 후보를 뽑는
   탐색 스크립트(M3a 그룹 발견에 사용). 다음 세션에서 다른 그룹 탐색할 때 재사용 가능.
+- `workspaces/current-reuse-telescopic-ota-report/probe_group_split_reassembly.py` —
+  **세션16 신설**, `find_min_crossover_layout()`의 segments를 버리고 `stack_id`만
+  재배정했을 때 재계산이 안전한지 + `audit_row_split()`의 3c(common-centroid)가 실제로
+  통과하는지 M6 그룹으로 검증(세션16 B/C절 핵심 근거 스크립트). 그룹분할 harness 배선을
+  재개할 때(다음 세션 작업 순서 3번) 재사용/확장 가능.
+- `workspaces/current-reuse-telescopic-ota-report/probe_crossover_pairing_alternatives.py`
+  — **세션16 신설**, M6 그룹의 4개 홀수차수 노드에 대해 가능한 3가지 완전짝짓기를 전수
+  대입해 각각 매칭쌍이 갈라지는지 확인(세션16 D-1절 핵심 근거 — B-3 tier1 우선순위가
+  최악의 선택이었음을 발견). `_pair_odd_nodes_by_mirror()` 우선순위를 재작성할 때(다음
+  세션 작업 순서 2번) 재사용 가능.
 
 ## 참고 — 사용자 협업 메모리 (자동 메모리 시스템에 저장됨, 요약만)
 
@@ -460,3 +1108,93 @@ override()`로 실제 구현됨** — L3(레이아웃 trail 구성)→L4(사이�
 - **세션11 신규**: 그래프 이론적으로 "탐색"이 필요해 보이는 문제(자기동형사상 찾기)도,
   이미 선언된 데이터(matching_pairs)에서 "구성 후 검증"으로 바꾸면 훨씬 싸게 풀릴 수 있다 —
   탐색 대신 구성+검증이 가능한지 항상 먼저 확인할 것.
+- **세션14 신규**: 세션 핸드오프 문서(`.ai/context.md`)조차 시간이 지나면 stale해질 수
+  있다 — 세션12/13이 "미커밋"이라 적혀 있었지만 실제론 이미 커밋돼 있었다. 문서를 그대로
+  믿지 말고 세션 시작 시 `git log`/`git status`로 항상 실제 상태와 재대조할 것.
+- **세션14 신규**: "함수가 구현+self-test 통과됐다"와 "실제 harness에 배선됐다"는 다른
+  질문이다 — 사용자가 "최상위 harness함수에 연결됐나?"라고 직접 물어 확인해보니, 세션13에
+  만든 `revalidate_finger_override()`도, 세션14에 만든 `apply_and_revalidate_pair_
+  adjustment()`/`run_topology_pipeline_with_finger_fixup()`도 전부 self-test에서만
+  호출되고 실제 `optimize_full_circuit_budget()`(유일한 실제 harness가 부르는 함수)는
+  여전히 옛 `repair_matching_safety()`만 호출하고 있었다. 새 함수를 다 만들었다고 "이제
+  연결됐겠지"라고 넘겨짚지 말고, 실제 호출부가 있는지 코드로 직접 확인할 것.
+- **세션14 신규**: 콜그래프를 정적 분석(grep/AST)으로 조사할 때 두 가지 사각지대를 반드시
+  의심할 것 — (1) 텍스트/정규식 스캔은 docstring 안의 함수명 언급도 "호출"로 오탐한다(AST
+  `Call` 노드만 셀 것). (2) AST라도 nested function(closure)에서 재귀를 멈추면 그 클로저를
+  통한 실제 호출을 놓친다(`optimize_full_circuit_budget()` 내부 `_evaluate()`가 실제
+  사례). (3) `_METRICS_REGISTRY`류 문자열 키 기반 동적 dispatch는 정적 분석 자체가 원천적
+  으로 못 잡는다 — 실제 데이터(topology.json의 `sizing_roles.metrics`)를 직접 읽어 어떤
+  분기가 실제로 걸리는지 수동으로 보정해야 한다. 세 가지 다 실제로 겪고 고친 사례
+  (세션14 결론 E절).
+- **세션14 신규**: 엔진 로직 변경(예: `run_topology_pipeline()` wrapper를 어디에 둘지)은
+  구현 전에 AskUserQuestion으로 구체적 설계 선택지를 제시해 확정받는 방식이 잘 작동했다
+  (순환 import 제약을 먼저 코드로 확인해 근거로 제시 → "라운드당 blocked row 처리량"
+  선택지 2개 중 하나를 사용자가 고름 → 그 결정대로만 구현). 여러 설계 옵션이 있는
+  엔진 확장은 이 패턴을 재사용할 것.
+- **세션15 신규**: "함수 A가 함수 B를 대체하는지 폴백으로 쓰는지" 같은 질문을 받으면, 답을
+  추측하지 말고 두 함수가 **정확히 같은 걸 다루는지부터 코드로 확인**할 것 — 세션15는
+  `repair_matching_safety()`가 실제로는 3b/3c(물리배치) 체크만 다루고 euler(체크1)는 전혀
+  못 건드린다는 걸 파싱 로직(`_failing_required_pairs()`)을 직접 읽어서 발견했다. "대체 vs
+  폴백"이라는 질문 프레임 자체가 틀렸을 수 있다 — 두 함수가 애초에 다른 문제를 푸는 상호보완
+  관계였다.
+- **세션15 신규**: 작업 중 우연히 발견한 크래시/버그는, 자신이 방금 만든 변경 때문인지 아니면
+  원래 있던 문제인지 **격리 스크립트로 변경 전 코드에서도 재현되는지 직접 확인**한 뒤에만
+  "무관한 사전 존재 버그"라고 결론 내릴 것(`probe_preexisting_bug.py` 패턴) — 확인 없이
+  "아마 원래 있었을 것"이라고 넘겨짚지 않는다.
+- **세션15 신규**: self-test 출력에 `set`을 그대로 문자열로 찍는 부분이 있으면(예:
+  `{'X','Y'}`), 회귀 diff를 뜰 때 반드시 `PYTHONHASHSEED`를 고정(`PYTHONHASHSEED=0`)하고
+  베이스라인/신규 둘 다 재실행할 것 — 안 그러면 프로세스별 해시 랜덤화 때문에 코드가
+  똑같아도 set 원소 순서가 달라 보여 가짜 diff가 섞여 나온다(세션15에서 실제로 겪음, 고정
+  후 재확인해 무회귀 확정).
+- **세션16 신규**: "이게 sizing 문제냐 layout 문제냐" 식의 이분법 질문은, 실제로는 서로
+  독립된 두 축(어떤 audit 체크를 고치는가 / 변경이 sizing에 영향을 주는가)으로 분해하면
+  훨씬 명확해진다 — 지금까지 우연히 두 축이 일치해왔을 뿐, 그룹분할처럼 두 축이 어긋나는
+  사례가 나오면 이분법 프레임 자체가 틀린 질문이 된다(세션16 A절).
+- **세션16 신규**: 같은 필드명(예: `stack_id`)이 파이프라인의 서로 다른 단계에서 다른
+  의미로 재사용되고 있다면, "실제로 서로 간섭하는지"를 추측하지 말고 **호출 그래프를
+  직접 추적**(예: A 단계의 함수가 B 단계 안에서 실제로 호출되는지 grep)해서 확인할 것 —
+  세션16은 이렇게 `propagate_topology_forced_currents()`가 `run_topology_pipeline()`
+  안에서 전혀 호출되지 않음을 확인해 두 stack_id 용법이 구조적으로 분리돼 있음을
+  근거로 확정했다.
+- **세션16 신규**: "그래프/토폴로지 레벨 대칭"과 "물리적 무게중심 대칭(audit의 3c
+  common-centroid)"은 이름이 비슷해도 다른 개념이다 — 세그먼트가 서로 거울상이라고
+  해서(그래프 대칭) 실제 배치의 무게중심이 맞는다는(3c) 보장은 없다(세션16 C/D-2절,
+  M6 그룹 실측으로 직접 반증됨: dx=3~5로 크게 벗어남). "대칭"이라는 단어가 여러 층위를
+  가리킬 수 있다는 걸 항상 의심할 것.
+- **세션16 신규**: 그럴듯해 보이는 우선순위 휴리스틱(세션15 B-3의 "선언된 진짜 거울쌍을
+  최우선으로 절단"처럼 근거가 있어 보이는 순서)도 실제로 전수 대입해 검증하기 전엔
+  최악의 선택일 수 있다 — 선택지가 소수(이번엔 3가지)라면 손으로 정당화하지 말고 전부
+  실행해서 비교할 것(세션16 D-1절, `probe_crossover_pairing_alternatives.py`).
+- **세션16 신규**: 새 개념(예: "여러 소자를 하나의 branch로 묶어서 다룬다")을 구현하기 전에,
+  "이미 있는 함수가 이걸 다른 목적으로 이미 계산해주고 있지 않은가"부터 찾아볼 것 — 세션16은
+  `kcl_series_union()`(KCL 전류 전파용으로 세션10에 이미 만들어진 함수)을 강제병합 없이
+  그대로 재사용하는 것만으로 사용자가 제안한 branch 개념을 새 그래프 로직 없이 구현했다.
+- **세션16 신규**: `common_centroid_layout()`의 회전-최적 배치는 소자 하나를 여러 물리
+  행에 걸쳐 나눠 배치하는 게 정상 동작이다(진짜 common-centroid) — 그래서 함수가 반환하는
+  `rows: {row_name: [Transistor,...]}`류 구조에서 같은 소자 이름이 여러 행에 각각 더 작은
+  `n_fingers`로 나타날 수 있다. self-test에서 "이 소자의 최종 n_fingers"를 확인하려면
+  이름 하나에 값 하나만 남기는 flat dict comprehension이 아니라 **행별로 합산**해야
+  한다(세션16 F절, 실제로 이 함정에 빠졌다가 고침).
+- **세션16 신규**: 함수 반환값에 `unresolved=None`/`ok=True`류 필드가 여러 개 있을 때,
+  하나가 `None`/성공이라고 해서 전체가 성공했다는 뜻은 아닐 수 있다 — 그 필드가 정확히
+  "무엇에 대한" 성공/실패인지 docstring에 명시하고, 호출자는 진짜 필요한 최종 신호(예:
+  `audit.ok`)를 별도로 직접 확인해야 한다(세션16 E-3절 — `run_matching_safety_with_
+  finger_growth()`의 `unresolved_pair=None`이 `audit.ok=True`를 보장하지 않는 설계를
+  명시적으로 문서화).
+- **세션17 신규**: 두 가지 열화(trade-off) 중 하나를 감수해야 하는 설계 결정에서, 사용자가
+  "한쪽은 나중에 보정 수단(trim)이 있고 다른 쪽은 없다"는 실무적 근거를 직접 제시하면 그
+  근거로 방향이 갈렸다 — gm/ID 스펙 위반(trim 불가능한 회로 기능 저하) vs layout mismatch
+  (trim으로 보정 가능한 열화) 중 후자를 선택. 트레이드오프 질문을 받으면 "어느 쪽이 더
+  나은가"만 볼 게 아니라 "어느 쪽이 사후에 되돌릴 수단이 있는가"도 물어볼 가치가 있다.
+- **세션17 신규**: "다른 방법(crossover)으로 이 문제를 우회할 수 있나?"라는 질문을 받으면,
+  손으로 그럴듯한 답을 내지 말고 실제 계산식(3c의 무게중심 공식)을 다시 짚어 수학적으로
+  가능/불가능을 확정할 것 — `n_fingers=1`인 두 소자는 서로 다른 자리를 차지할 수밖에 없어
+  crossover(배치 순서 변경)로는 절대 `dx<=0.5`를 못 만든다는 게 공식 재검토로 바로
+  나왔다(세션17 A절). "그럴듯한 우회로"도 근거 확인 전엔 상상으로 채우지 않는다는 원칙의
+  연장.
+- **세션17 신규**: self-test에서 실제 회로(M6 그룹처럼 여러 겹의 기존 메커니즘 — branch
+  composite, touched_this_round 가드 등)를 재사용해 새 기능을 검증하려 하면, 그 메커니즘들
+  간의 상호작용이 복잡해서 결과를 손으로 예측하기 어려울 수 있다 — 이럴 땐 새 기능 하나만
+  깨끗하게 노출하는 최소 합성 fixture(세션17의 `Ma`/`Mb` offset 쌍, `_l4d_ctx` 재사용)로
+  바꿔서 실제로 실행해 확인하는 게 더 빠르고 정확했다(M6 그룹으로 먼저 시도했다가 예측이
+  틀릴 위험을 감수하기보다 단순 fixture로 전환).

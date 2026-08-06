@@ -3306,7 +3306,7 @@ def _branch_composite_pair(a: str, b: str, devices_by_name: dict, matching_pairs
 
 
 def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: dict | None = None,
-                            max_iter: int = 3) -> tuple:
+                            max_iter: int = 3, relaxed_pairs: set | None = None) -> tuple:
     """배치 7-4 — `audit_row_split()`이 FAIL한 matching pair에 대해 `select_layout_tool()`
     (배치 7-4b)이 고른 도구(`interdigitate_layout`/`common_centroid_layout`)로 그 pair가
     속한 행을 재배치하고 재검증하는 걸 최대 `max_iter`회 반복한다.
@@ -3342,8 +3342,20 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
     너무 작으면(예: 1) `common_centroid_layout()`의 회전-최적 경로 자체가 기하학적으로
     `dx<=0.5`를 달성 못 한다(세션16에서 실측 확인, 최선이 `dx=1.0`). 이건 이 함수의 책임
     밖이다(핑거 수를 늘리는 건 gm/ID 재검증이 필요해 `sizing_recipe.py` 쪽 오케스트레이션
-    몫 — 다음 확장 지점, `.ai/context.md` 세션16 참고)."""
+    몫 — 세션17에 `run_matching_safety_with_finger_growth()`로 구현됨, 아래 `relaxed_pairs`
+    참고).
+
+    **세션17 신설 — `relaxed_pairs`(레이아웃 전용 최후수단 완화)**: `{frozenset({a,b}), ...}`
+    형태로 주어지면, 그 쌍은 `select_layout_tool()`의 판단(offset/branch_symmetric은 항상
+    common-centroid)을 무시하고 `interdigitate_layout`을 강제 적용한다 — sizing은 전혀
+    건드리지 않는 순수 layout 오버라이드다. 호출자(`run_matching_safety_with_finger_growth()`)가
+    "핑거증가가 gm/ID 예산 때문에 막혔다"고 판단한 쌍에 대해서만 이 집합을 채워 넘긴다 —
+    trim으로 보정 가능한 layout mismatch가, trim 불가능한 gm/ID 스펙 위반보다 감수할 만한
+    열화라는 판단(세션17 설계 논의, `.ai/context.md` 참고). 공유 hub도 없고 branch composite도
+    안 되는 쌍은(위 "정직한 한계") `relaxed_pairs`에 있어도 여전히 손 못 댄다 — 완화는 이미
+    존재하는 layout 자유도를 최후수단으로 쓰는 것이지, 없는 자유도를 만들어내지 않는다."""
     pair_sensitivity = pair_sensitivity or {}
+    relaxed_pairs = relaxed_pairs or set()
     current_rows = {k: list(v) for k, v in rows.items()}
 
     def _sensitivity_of_pair(a, b):
@@ -3392,12 +3404,17 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
                 hub_a, leaf_a = expand_map[ca.name]
                 hub_b, leaf_b = expand_map[cb.name]
                 real_names = (hub_a, leaf_a, hub_b, leaf_b)
-                tool_hub = select_layout_tool(_sensitivity_of_pair(hub_a, hub_b), True)
-                tool_leaf = select_layout_tool(_sensitivity_of_pair(leaf_a, leaf_b), True)
-                if "common_centroid_layout" in (tool_hub, tool_leaf):
-                    layout = common_centroid_layout([ca, cb], n_rows=min(2, ca.n_fingers, cb.n_fingers))
-                else:
+                if frozenset({a, b}) in relaxed_pairs:
+                    # 세션17: 완화 대상 -- select_layout_tool()의 common-centroid 판단을
+                    # 무시하고 최후수단으로 interdigitate_layout을 강제한다(layout 전용).
                     layout = interdigitate_layout([ca, cb])
+                else:
+                    tool_hub = select_layout_tool(_sensitivity_of_pair(hub_a, hub_b), True)
+                    tool_leaf = select_layout_tool(_sensitivity_of_pair(leaf_a, leaf_b), True)
+                    if "common_centroid_layout" in (tool_hub, tool_leaf):
+                        layout = common_centroid_layout([ca, cb], n_rows=min(2, ca.n_fingers, cb.n_fingers))
+                    else:
+                        layout = interdigitate_layout([ca, cb])
                 expanded_rows = [{"transistor_sequence":
                                    [n for name in row["transistor_sequence"]
                                     for n in expand_map.get(name, [name])]}
@@ -3423,7 +3440,10 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
             if ta.source != tb.source:
                 continue  # 공유 hub 없음 + branch 복합도 안 됨 -- 이 도구들 적용 불가(정직한 한계)
             sens = _sensitivity_of_pair(a, b)
-            tool_name = select_layout_tool(sens, shares_diffusion_node(ta, tb))
+            # 세션17: relaxed_pairs에 있으면 select_layout_tool()의 판단을 무시하고
+            # interdigitate_layout을 강제한다(위 docstring "relaxed_pairs" 참고).
+            tool_name = "interdigitate_layout" if frozenset({a, b}) in relaxed_pairs \
+                else select_layout_tool(sens, shares_diffusion_node(ta, tb))
             if tool_name == "interdigitate_layout":
                 layout = interdigitate_layout([ta, tb])
             else:
@@ -6191,6 +6211,34 @@ if __name__ == "__main__":
                                        {_branch_a: _t_branch_a, _branch_b: _t_branch_b}, _norepair_pairs)
     assert _bc_none is None, f"branch 구조가 없는데 composite가 나옴(오탐): {_bc_none}"
     print("    PASS: branch 구조 없음 -> None(기존 폴백 경로 그대로 보존)")
+
+    print()
+    print("  [repair_matching_safety() -- 세션17 relaxed_pairs: 최후수단 인접배치 완화가")
+    print("  select_layout_tool()의 common-centroid 판단을 실제로 무시하는지(위 M6 그룹 fixture")
+    print("  재사용), 그리고 공유 hub도 branch composite도 없는 쌍(위 rowA/rowB)은 relaxed_pairs에")
+    print("  있어도 여전히 손 못 대는지(완화가 없는 layout 자유도를 만들어내지 않음) 확인]")
+    _rlx_rows, _rlx_after = repair_matching_safety(
+        {"seg1": _m6b_row}, _m6b_pairs, _m6b_sensitivity,
+        relaxed_pairs={frozenset({"M1a", "M1b"})})
+    assert not _rlx_after.ok, (
+        "완화됐다고 audit.ok가 True가 되면 안 됨 -- relaxed_pairs는 3c 요구사항 자체를 없애지"
+        " 않는다(sizing_recipe.py의 run_matching_safety_with_finger_growth()가 감사 정책을"
+        " 그대로 존중하는지 확인하는 하위 계약)")
+    _rlx_3c = next(c for c in _rlx_after.checks
+                    if c.name.startswith("3c.") and "[M1a/M1b]" in c.name)
+    assert not _rlx_3c.ok and "[참고용" not in _rlx_3c.name, \
+        f"3c[M1a/M1b]가 여전히 필수 게이트로 FAIL이어야 하는데: {_rlx_3c}"
+    print(f"    PASS: relaxed_pairs 적용 후에도 3c[M1a/M1b]는 필수 게이트로 정직하게 FAIL 유지"
+          f"(audit.ok={_rlx_after.ok})")
+
+    _rlx_norepair_rows, _rlx_norepair_audit = repair_matching_safety(
+        _norepair_rows, _norepair_pairs, _norepair_sensitivity,
+        relaxed_pairs={frozenset({_branch_a, _branch_b})})
+    assert sorted(_rlx_norepair_rows.keys()) == ["rowA", "rowB"] and not _rlx_norepair_audit.ok, \
+        "공유 hub도 branch composite도 없는 쌍인데 relaxed_pairs로 뭔가 바뀜(있지도 않은 layout" \
+        " 자유도를 만들어냄 -- 버그)"
+    print(f"    PASS: 공유 hub/branch composite 없는 쌍은 relaxed_pairs에 있어도 여전히 손 못 댐"
+          f"(행 구조 불변={sorted(_rlx_norepair_rows.keys())}, 정직한 한계 유지)")
 
     print()
     print("=== Test 29: derive_stack_groups()/assign_finger_geometry() (배치 7-6, 2026-07-31) ===")

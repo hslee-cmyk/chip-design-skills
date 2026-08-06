@@ -2595,7 +2595,8 @@ def apply_and_revalidate_matching_finger_growth(
 def run_matching_safety_with_finger_growth(
         rows: dict, matching_pairs: list, pair_sensitivity: dict, ctx: SizingContext,
         lut_by_kind: dict, metrics_specs: dict, constraints: list,
-        gm_id_bounds: tuple = (2.0, 30.0), min_fingers: int = 2, max_rounds: int = 5) -> dict:
+        gm_id_bounds: tuple = (2.0, 30.0), min_fingers: int = 2, max_rounds: int = 5,
+        allow_layout_relaxation: bool = True) -> dict:
     """`repair_matching_safety()`(stick_diagram.py, L1~L3, branch 복합 매칭 포함)가
     3c(common-centroid)를 못 푸는 지점에 "매칭 목적 핑거증가"(위) 자동 수정 루프를 감싸
     붙인다 -- `run_topology_pipeline_with_finger_fixup()`(euler용)과 대칭되는 구조,
@@ -2608,8 +2609,23 @@ def run_matching_safety_with_finger_growth(
     전체 4소자)을 정한다 (4) `apply_and_revalidate_matching_finger_growth()` 시도 (5)
     성공하면 `rows`/`ctx`를 갱신하고 다음 라운드 (6) 실패하면(gm/ID 위반, 이미 충분한
     n_fingers, finger_w 미지정 등) **거짓 성공으로 처리하지 않고 즉시 멈춘다** --
-    `unresolved_reason`에 근거를 남긴다(다음 확장 지점: 세션16 설계안 3번 "그래도 안
-    되면 인접배치로 완화", 아직 미구현).
+    `unresolved_reason`에 근거를 남긴다. **단, `reason=="gm_id_violation"`이고
+    `allow_layout_relaxation`(기본 True)이면 세션17 설계안 3번("그래도 안 되면 인접배치로
+    완화")을 적용한다** -- 이유가 딱 gm/ID 예산 위반일 때만(finger_w 미지정/growth 부적용 같은
+    다른 사유는 완화 대상 아님, 설정 문제를 조용히 덮지 않기 위해). 그 pair를 `relaxed_pairs`
+    (`repair_matching_safety()`의 새 파라미터, layout 전용 최후수단 -- interdigitate_layout
+    강제)에 등록하고 다음 라운드로 넘어간다.
+
+    ⚠️⚠️ **완화는 3c 요구사항을 없애지 않는다** -- `pair_sensitivity`/`select_layout_tool()`이
+    정한 필수 게이트는 그대로 3c이므로, 완화가 적용된 뒤에도 `audit.ok`는 여전히 그 pair의
+    3c FAIL을 정직하게 반영한다(offset/branch_symmetric은 CMRR/PSRR 민감도 때문에
+    common-centroid가 진짜 필요하다는 `audit_row_split()` §2.7 설계 원칙을 이 함수가 몰래
+    뒤집지 않는다). 완화는 "gm/ID 스펙(trim 불가능한 회로 기능 저하)을 지키는 대신, layout
+    mismatch(trim으로 보정 가능한 열화)를 감수한다"는 명시적 트레이드오프일 뿐이다 --
+    `relaxed_pairs`(반환값, 아래) 필드로 그 사실을 남기고, 최종 승인 여부는 호출자가
+    `result["audit"].ok`와 `result["relaxed_pairs"]`를 직접 보고 판단해야 한다(세션16
+    E-3절과 동일 원칙 -- `unresolved_pair=None`이 `audit.ok=True`의 동의어가 아니듯,
+    `relaxed_pairs`가 채워졌다고 "문제 없음"이 아니다).
 
     ⚠️ `unresolved_pair=None`은 "**3c 실패 중 핑거증가로 처리할 게 더 없다**"는 뜻이지
     "`audit.ok=True`"의 동의어가 아니다 -- `audit_row_split()`의 다른 체크(예: "2.
@@ -2621,18 +2637,38 @@ def run_matching_safety_with_finger_growth(
     알려주는 진단 정보다.
 
     반환: `{"rows", "audit", "ctx", "growth_rounds": [{"round","names","result"}, ...],
-    "unresolved_pair": (a,b)|None, "unresolved_reason": str|None}`."""
+    "unresolved_pair": (a,b)|None, "unresolved_reason": str|None,
+    "relaxed_pairs": [{"pair":(a,b), "reason":"gm_id_budget_exceeded",
+    "trim_recommended":True, "interdig_ok":bool|None}, ...]}`. `unresolved_reason`에
+    `"relaxed_to_layout"`이 새로 추가됐다 -- growth가 gm/ID 예산으로 막혀서 완화를 적용했고,
+    (완화 대상 아닌 다른 3c 실패가 없어) 이 함수가 더 할 일이 없다는 뜻이다."""
     current_rows = {k: list(v) for k, v in rows.items()}
     cur_ctx = ctx
     growth_rounds = []
+    relaxed_pairs: list = []  # 세션17: [{"pair","reason","trim_recommended","interdig_ok"}, ...]
+    relaxed_pair_keys: set = set()  # frozenset({a,b}) -- repair_matching_safety()에 그대로 전달
+
+    def _backfill_interdig_ok(audit_result):
+        # 완화를 적용한 라운드에는 아직 그 결과가 반영된 audit이 없어 interdig_ok=None으로
+        # 남겨뒀다 -- 다음 라운드에 새로 계산된 audit_result가 나오면 그 3b 체크로 채운다.
+        for entry in relaxed_pairs:
+            if entry["interdig_ok"] is not None:
+                continue
+            ea, eb = entry["pair"]
+            for check in audit_result.checks:
+                if check.name.startswith("3b.") and f"[{ea}/{eb}]" in check.name:
+                    entry["interdig_ok"] = check.ok
+                    break
 
     result = None
     for round_idx in range(max_rounds):
-        current_rows, result = repair_matching_safety(current_rows, matching_pairs, pair_sensitivity)
+        current_rows, result = repair_matching_safety(
+            current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys)
+        _backfill_interdig_ok(result)
         if result.ok:
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
                     "growth_rounds": growth_rounds, "unresolved_pair": None,
-                    "unresolved_reason": None}
+                    "unresolved_reason": None, "relaxed_pairs": relaxed_pairs}
 
         # `_failing_required_pairs()`는 3b/3c를 섞어서 준다 -- 그 pair의 필수 게이트가
         # 3b(배치 문제, 핑거증가로 못 고침)일 수도 있으므로 재사용하지 않고, "3c가 필수
@@ -2646,17 +2682,22 @@ def run_matching_safety_with_finger_growth(
             m = re.search(r"\[(.+?)/(.+?)\]", check.name)
             if m and (m.group(1), m.group(2)) not in failing_3c:
                 failing_3c.append((m.group(1), m.group(2)))
+        # 세션17: 이미 완화 적용된 쌍은 growth 재시도 대상에서 제외한다 -- 3c는 게이트가
+        # 그대로라 계속 failing_3c에 잡히지만, 이 함수가 그 쌍에 대해 더 할 일은 없다.
+        failing_3c = [(x, y) for (x, y) in failing_3c
+                      if frozenset({x, y}) not in relaxed_pair_keys]
         if not failing_3c:
+            reason = "relaxed_to_layout" if relaxed_pairs else "only_3b_failures_left"
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
                     "growth_rounds": growth_rounds, "unresolved_pair": None,
-                    "unresolved_reason": "only_3b_failures_left"}  # 핑거증가 책임 밖(배치 문제)
+                    "unresolved_reason": reason, "relaxed_pairs": relaxed_pairs}
 
         a, b = failing_3c[0]
         all_devs = {t.name: t for devs in current_rows.values() for t in devs}
         if a not in all_devs or b not in all_devs:
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
                     "growth_rounds": growth_rounds, "unresolved_pair": (a, b),
-                    "unresolved_reason": "pair_not_found"}
+                    "unresolved_reason": "pair_not_found", "relaxed_pairs": relaxed_pairs}
         composite = _branch_composite_pair(a, b, all_devs, matching_pairs)
         names = tuple(sorted(set(composite["expand"][composite["composite_a"].name] +
                                   composite["expand"][composite["composite_b"].name]))) \
@@ -2671,9 +2712,17 @@ def run_matching_safety_with_finger_growth(
             reason = "no_finger_w" if fix["revalidation"] is None and fix["growth"] is not None \
                 else "gm_id_violation" if fix["revalidation"] is not None \
                 else "growth_not_applicable"
+            if reason == "gm_id_violation" and allow_layout_relaxation:
+                # 세션17 설계안 3번 -- gm/ID 예산 위반으로만 막혔으면(다른 사유는 완화 대상
+                # 아님) 인접배치(3b)로 최후수단 완화하고 다음 라운드로 넘어간다. audit.ok는
+                # 손대지 않는다(위 docstring "완화는 3c 요구사항을 없애지 않는다" 참고).
+                relaxed_pair_keys.add(frozenset({a, b}))
+                relaxed_pairs.append({"pair": (a, b), "reason": "gm_id_budget_exceeded",
+                                       "trim_recommended": True, "interdig_ok": None})
+                continue
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
                     "growth_rounds": growth_rounds, "unresolved_pair": (a, b),
-                    "unresolved_reason": reason}
+                    "unresolved_reason": reason, "relaxed_pairs": relaxed_pairs}
 
         new_n = {t.name: t.n_fingers for t in fix["transistors"] if t.name in names}
         for rn, devs in current_rows.items():
@@ -2685,10 +2734,13 @@ def run_matching_safety_with_finger_growth(
                                          "gm_id": u["new_gm_id"], "gm": u["new_gm"],
                                          "gds": u["new_gds"]}})
 
-    current_rows, result = repair_matching_safety(current_rows, matching_pairs, pair_sensitivity)
+    current_rows, result = repair_matching_safety(
+        current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys)
+    _backfill_interdig_ok(result)
     return {"rows": current_rows, "audit": result, "ctx": cur_ctx, "growth_rounds": growth_rounds,
             "unresolved_pair": None if result.ok else "unknown",
-            "unresolved_reason": None if result.ok else "max_rounds_exceeded"}
+            "unresolved_reason": None if result.ok else "max_rounds_exceeded",
+            "relaxed_pairs": relaxed_pairs}
 
 
 def run_topology_pipeline_with_finger_fixup(
@@ -3370,6 +3422,58 @@ if __name__ == "__main__":
           f"세션16 1번 branch 복합 매칭 + 2번 핑거증가가 함께 M6 그룹의 매칭 문제를 끝까지 "
           f"풀어냄), growth_rounds={len(_l4d_final['growth_rounds'])}회. "
           f"audit.ok={_l4d_final['audit'].ok}(box-shape는 이 함수 책임 밖이라 별개로 FAIL 가능)")
+
+    print()
+    print("  [L4e run_matching_safety_with_finger_growth() -- 세션17 설계안 3번. gm/ID 예산이")
+    print("  타이트해서 핑거증가 자체가 거부되면(gm_id_violation), 인접배치(3b)로 최후수단")
+    print("  완화하고 3c FAIL은 정직하게 그대로 남기는지]")
+    _l4e_devices = [
+        Transistor("Ma", "nmos", source="Vtail", drain="Nd_a", gate="ga",
+                   n_fingers=1, finger_w=_l4d_r.W),
+        Transistor("Mb", "nmos", source="Vtail", drain="Nd_b", gate="gb",
+                   n_fingers=1, finger_w=_l4d_r.W),
+    ]
+    print("    [케이스1: 빡빡한 면적 제약(_l4d_tight, 케이스2와 동일) -- allow_layout_relaxation=True]")
+    _l4e_r1 = run_matching_safety_with_finger_growth(
+        {"seg1": _l4e_devices}, [("Ma", "Mb")], {("Ma", "Mb"): "offset"}, _l4d_ctx,
+        {"nmos": lut}, _l4d_metrics, _l4d_tight, gm_id_bounds=(2.0, 28.0),
+        allow_layout_relaxation=True)
+    assert _l4e_r1["unresolved_pair"] is None and \
+        _l4e_r1["unresolved_reason"] == "relaxed_to_layout", \
+        f"완화가 적용돼야 하는데 안 됨: {_l4e_r1['unresolved_pair']}/{_l4e_r1['unresolved_reason']}"
+    assert len(_l4e_r1["relaxed_pairs"]) == 1 and \
+        _l4e_r1["relaxed_pairs"][0]["pair"] == ("Ma", "Mb") and \
+        _l4e_r1["relaxed_pairs"][0]["reason"] == "gm_id_budget_exceeded" and \
+        _l4e_r1["relaxed_pairs"][0]["trim_recommended"] is True, \
+        f"relaxed_pairs 내용이 예상과 다름: {_l4e_r1['relaxed_pairs']}"
+    assert _l4e_r1["relaxed_pairs"][0]["interdig_ok"] is not None, \
+        "완화 후 재감사가 한 번 더 돌아야 interdig_ok가 채워짐 -- 여전히 None"
+    # 완화는 3c 요구사항 자체를 없애지 않는다 -- offset pair는 여전히 3c가 필수 게이트이므로
+    # n_fingers=1인 이상 기하학적으로 dx<=0.5를 달성 못 해(세션16 D-3) audit.ok는 False여야
+    # 한다(위 docstring "완화는 3c 요구사항을 없애지 않는다" 참고, 몰래 성공으로 둔갑 금지).
+    assert not _l4e_r1["audit"].ok, "완화됐다고 audit.ok가 몰래 True로 둔갑함 -- 정책 위반"
+    _l4e_3c_check = next(c for c in _l4e_r1["audit"].checks
+                          if c.name.startswith("3c.") and "[Ma/Mb]" in c.name)
+    assert not _l4e_3c_check.ok and "[참고용" not in _l4e_3c_check.name, \
+        f"3c[Ma/Mb]가 여전히 필수 게이트로 FAIL이어야 하는데: {_l4e_3c_check}"
+    assert len(_l4e_r1["growth_rounds"]) == 1 and not _l4e_r1["growth_rounds"][0]["result"]["applied"], \
+        "growth 시도가 정확히 1번, 실패로 기록돼야 함"
+    print(f"    PASS: unresolved_reason='relaxed_to_layout', relaxed_pairs=1건"
+          f"(interdig_ok={_l4e_r1['relaxed_pairs'][0]['interdig_ok']}), "
+          f"audit.ok=False(3c FAIL 정직하게 유지), growth 시도 1회만 기록")
+
+    print("    [케이스2: 같은 예산, allow_layout_relaxation=False -- 세션16 기존 동작 그대로")
+    print("    보존되는지(회귀 대조, 완화 기능 자체를 꺼도 예전처럼 즉시 unresolved)]")
+    _l4e_r2 = run_matching_safety_with_finger_growth(
+        {"seg1": list(_l4e_devices)}, [("Ma", "Mb")], {("Ma", "Mb"): "offset"}, _l4d_ctx,
+        {"nmos": lut}, _l4d_metrics, _l4d_tight, gm_id_bounds=(2.0, 28.0),
+        allow_layout_relaxation=False)
+    assert _l4e_r2["unresolved_pair"] == ("Ma", "Mb") and \
+        _l4e_r2["unresolved_reason"] == "gm_id_violation" and \
+        _l4e_r2["relaxed_pairs"] == [], \
+        f"allow_layout_relaxation=False인데 완화가 적용됨(회귀): {_l4e_r2}"
+    print(f"    PASS: allow_layout_relaxation=False면 완화 없이 즉시 unresolved_reason="
+          f"'gm_id_violation'(세션16 동작 그대로 보존)")
 
     print()
     print("# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --")
