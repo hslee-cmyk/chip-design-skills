@@ -1,0 +1,112 @@
+{
+  "source": "/mnt/user-data/uploads/A_126uW_Current-Reuse_Telescopic_OTA_with_Class-AB_Output_Stage.pdf",
+  "page": 2,
+  "bbox": [
+    486.0,
+    715.0,
+    0.0,
+    310.0
+  ],
+  "devices": [
+    {
+      "name": "M6",
+      "type": "PMOS",
+      "D": "Vx",
+      "G": "Vbias1",
+      "S": "VDD",
+      "x": 148.88,
+      "y": 511.57
+    },
+    {
+      "name": "M7",
+      "type": "PMOS",
+      "D": "Vx",
+      "G": "Vcmfb",
+      "S": "VDD",
+      "x": 198.75,
+      "y": 511.57
+    },
+    {
+      "name": "M1a",
+      "type": "PMOS",
+      "D": "n1",
+      "G": "Vip",
+      "S": "Vx",
+      "x": 131.15,
+      "y": 546.39
+    },
+    {
+      "name": "M1b",
+      "type": "PMOS",
+      "D": "n3",
+      "G": "Vim",
+      "S": "Vx",
+      "x": 218.7,
+      "y": 546.39
+    },
+    {
+      "name": "M2a",
+      "type": "PMOS",
+      "D": "Vom1",
+      "G": "Vbias2",
+      "S": "n1",
+      "x": 152.95,
+      "y": 573.81
+    },
+    {
+      "name": "M2b",
+      "type": "PMOS",
+      "D": "Vop1",
+      "G": "Vbias2",
+      "S": "n3",
+      "x": 196.9,
+      "y": 573.81
+    },
+    {
+      "name": "M3a",
+      "type": "NMOS",
+      "D": "Vom1",
+      "G": "Vbias3",
+      "S": "n2",
+      "x": 152.95,
+      "y": 601.24
+    },
+    {
+      "name": "M3b",
+      "type": "NMOS",
+      "D": "Vop1",
+      "G": "Vbias3",
+      "S": "n4",
+      "x": 196.9,
+      "y": 601.24
+    },
+    {
+      "name": "M4a",
+      "type": "NMOS",
+      "D": "n2",
+      "G": "Vip",
+      "S": "Vy",
+      "x": 131.15,
+      "y": 628.67
+    },
+    {
+      "name": "M4b",
+      "type": "NMOS",
+      "D": "n4",
+      "G": "Vim",
+      "S": "Vy",
+      "x": 218.7,
+      "y": 628.67
+    },
+    {
+      "name": "M5",
+      "type": "NMOS",
+      "D": "Vy",
+      "G": "Vbias4",
+      "S": "GND",
+      "x": 166.61,
+      "y": 668.2
+    }
+  ],
+  "provenance": "read"
+}

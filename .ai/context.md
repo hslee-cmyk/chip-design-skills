@@ -49,13 +49,44 @@
    `find_min_crossover_layout_with_branch_composite()`(G-3절 wrapper, branch 구조적
    보장 그대로 적용)로 자동 폴백해 euler-blocked row를 그룹분할로 해결한다. C-2(정직한
    표기)는 `group_splits` 필드로, C-3(`cell_groups` 갭)는 `_seg*` 자동확장으로 확정됨
-   (둘 다 사용자 확인 후 구현). `sizing_recipe.py`만 수정, **아직 미커밋**.
-9. **⚠️ 다음 세션 최우선 후보 — `run_harness.py` 재실행 전략 논의**(세션11 A절, 그리드
-   축소 또는 다른 최적화 방식) — 8번이 끝나 새 L3/L4/그룹분할 체인이 harness에 전부
-   연결됐으니, 이 체인들이 실전(`current_reuse_telescopic_ota` 전체 사이징)에서 어떻게
-   동작하는지 end-to-end로 확인할 좋은 시점이다.
-10. **`run_harness.py`는 세션11에 중단된 채 그대로 보류** — 세션12~18 전부 이 항목을
-    안 다뤘다(아래 "세션11 — run_harness.py 최종 진단" 참고).
+   (둘 다 사용자 확인 후 구현). `sizing_recipe.py`만 수정, **커밋 `a6ab04b`로 완료**.
+9. **고아함수 재점검 + 3건 신규 배선 완료**(세션18, 아래 "세션18 결론" G~J절 참고) —
+   AST 콜그래프를 `run_harness.py`(진짜 실행 스크립트)까지 진입점에 포함해 재실행(v1→v2→v3,
+   클래스 메소드 호출/dataclass 필드 기본값/레지스트리 dict 값이 래퍼 Call로 감싸진 경우
+   3가지 사각지대 발견+수정). 실제로 미배선이던 3건을 이번 세션에 배선:
+   - `run_matching_safety_with_finger_growth()`(세션16/17 매칭목적 핑거증가+레이아웃
+     완화 체인 전체)를 `optimize_full_circuit_budget()`에 배선(구형 `repair_matching_
+     safety()` 단독 호출 대체, `lut_by_kind` 없는 legacy spec은 그대로 폴백).
+   - `save_instance_json()`을 `run_harness.py`(harness 함수 자신이 아니라 그걸 부르는
+     실행 스크립트)에서 `optimize_full_circuit_budget()` 직후 호출하도록 배선("계산은
+     harness, 저장은 스크립트"라는 책임분리, 사용자 확인 후 결정).
+   - `check_finger_width_compatibility()`(§3.5 — 자기 docstring이 "euler 분석보다 먼저
+     통과해야 하는 선행 게이트"라고 이미 선언했는데 실제 호출부가 없었음)를
+     `run_topology_pipeline()`에 배선.
+   3건 전부 self-test 추가 + 회귀 0줄 확인. **`sizing_recipe.py`/`stick_diagram.py`/
+   `run_harness.py` 전부 아직 미커밋.**
+10. **diode-stack/`find_diode_stacks()` 설계 논의 — 결론 안 나고 다음 세션으로 이월**
+    (세션18, 아래 "세션18 결론" K~L절 참고, **코드 변경 전혀 없음**) — `solve_diode_
+    stack_current()`(KVL 루프 전류 역산)는 현재 4개 회로 중 실제로 필요한 곳이 하나도
+    없음을 확인(진짜 diode 체인 M11a-M11b-M12조차 결국 자유비율 theta로 풀렸다) — 배선
+    여부는 AskUserQuestion을 사용자가 인터럽트해서 **미결**. `find_diode_stacks()`는
+    M57/M58이 한때 진짜 매칭쌍으로 **잘못 분류**됐던 실사고 근거로 여전히 유효한 배선
+    후보로 재확인. `find_matching_candidates()`의 `current_mirror` 판정(현재 gate만
+    보고 source는 전혀 안 봄)에 source-일치 조건을 추가하자는 방안까지 논의가 진행됐으나
+    (같은 gate라도 source가 다르면 VGS 동일이 보장 안 됨 — 사용자가 제기, M57/M58 실제
+    connectivity로 검증됨) **이건 "진짜 미러인가"를 걸러줄 뿐 "diode 체인 구조 자체를
+    인식"하는 `find_diode_stacks()`의 역할과는 별개**라는 데까지 합의(사용자가 재지적) —
+    두 검사 다 필요하다는 잠정 결론, 구체적 설계/구현은 다음 세션.
+11. **⚠️ 다음 세션 최우선 — "아날로그 기능분석기.zip"/"회로도 추출기.zip" 검토**(세션18
+    끝에 사용자가 시작했다가 "이건 다른 세션에서 진행하자"며 명시적으로 중단) —
+    `skills/analog-gmid-design/assets/`에 새로 추가된 미확인 zip 파일 2개(아직 열어보지
+    않음). 사용자 말로는 "알려진 기능블럭들을 탐지하는 방법론"이 들어있다고 함 — 위 10번
+    (diode-stack/current_mirror 오탐 논의, "기능블럭 자동인식"이라는 같은 주제)과 직접
+    연결될 가능성이 높다. **다음 세션은 이 zip 파일들 내용부터 확인**하고, 그 내용을 갖고
+    10번 논의를 이어갈 것.
+12. **`run_harness.py` 재실행 전략은 여전히 미착수**(세션11 A절, 그리드 축소 or 다른
+    최적화 방식) — 8/9번으로 L3/L4/그룹분할/매칭성장 체인이 harness 최상위 경로에 전부
+    연결됐지만, 실제 전체 사이징 실행(`current_reuse_telescopic_ota`)은 여전히 손 안 댐.
 
 ## 배경 — 이 기능이 뭐고 왜 하는가 (세션5~11 공통, 참고용)
 
@@ -1124,21 +1155,261 @@ noise/mismatch 등)는 완전히 무변경. 무회귀 확정.
   그룹분할이 다음 라운드 핑거조정 후보에 영향을 주는지)은 아직 다중 row가 동시에
   blocked인 실제 회로로 검증 안 됨 — M3a 그룹은 1 row만 blocked였다.
 
+## G. 고아함수 재점검 — AST 콜그래프 v1→v2→v3 (세션14 방식 재사용, 커밋 `a6ab04b` 이후)
+
+세션14가 했던 "harness에서 도달 안 되는 함수 전수조사"를 사용자 요청으로 다시 돌렸다.
+`run_topology_pipeline_with_finger_fixup()`을 위 A~F절로 배선한 직후라 "세션18 작업
+자체는 잘 연결됐는지" 확인하는 의미도 있었다.
+
+### G-1. v1의 사각지대 3개 발견 + v2로 수정
+1차 스캔(top-level 함수만, `ast.Call` 노드만 카운트)에서 `_multilinear_interp`/
+`_invq_newton`이 "unreachable"로 잘못 나왔다 — 실제로는 `SemiEmpiricalGmIdLUT` **클래스
+메소드** 안에서만 불리는데, v1이 클래스 본문의 메소드 호출을 전혀 스캔하지 않았다.
+추가로 두 사각지대를 더 발견: (1) `_default_cascode_headroom`처럼 **dataclass 필드
+기본값**(`cascode_fn: Callable = _default_cascode_headroom`)으로만 참조되는 경우 —
+`ast.Call`도 `ast.Dict` 값도 아니라 bare `ast.Name`이라 못 잡음. (2) `_THETA_FEED_
+REGISTRY`처럼 레지스트리 dict의 값이 `FeedHandler(_feed_settling_split, touches=[...])`
+같은 **래퍼 Call로 감싸진 경우** — dict 값 자체가 `ast.Call`이라 안의 함수 이름이 다시
+그 Call의 인자 속에 숨어서 안 잡음.
+
+**v2 수정**: "호출(Call)"과 "단순 참조"를 구분하지 않고, 각 스코프(top-level 함수 전체
+또는 **클래스 전체**, 메소드+필드 기본값 다 포함) 안에 등장하는 모든 `ast.Name.id`/
+`ast.Attribute.attr`을 그대로 참조 집합으로 모으는 방식으로 재작성 — `ast.walk`이라
+Call 인자 속 이름도 자동으로 잡힌다. 문자열(docstring)은 `ast.Constant`라 이 방식에도
+안 걸림(세션14 교훈1 그대로 유지). 클래스도 그래프 노드로 추가해 "클래스가 reachable하면
+그 메소드가 참조하는 이름도 reachable"이 전파되게 함.
+
+### G-2. v3 — `run_harness.py`를 진짜 진입점으로 추가
+v1/v2는 진입점을 `optimize_full_circuit_budget()`(라이브러리 함수)로만 잡았는데, 실제
+사람이 실행하는 건 `run_harness.py`(스크립트)다. 이 스크립트의 모듈 최상위 코드는
+조건부 dispatch가 아니라 "실행하면 무조건 도는 코드"이므로, 여기서 참조되는 top-level
+함수/클래스는 "레지스트리 후보"가 아니라 바로 `reachable`로 편입시켰다. 이렇게 하니
+`save_instance_json()`(이번 세션에 배선하기 전엔 미도달)이 자동으로 reachable로
+바뀌는 게 확인됨(v3 실행 시점엔 이미 배선 완료 상태로 재확인).
+
+### G-3. 최종 발견 — 진짜 미배선 3건 vs 이미 알려진/의도적 미배선 vs 성격이 다른 도구들
+`run_matching_safety_with_finger_growth()`/`apply_and_revalidate_matching_finger_
+growth()`/`suggest_matching_finger_growth()`가 `optimize_full_circuit_budget()`
+안에서 여전히 구형 `repair_matching_safety()`만 직접 호출되고(2318행 부근) 한 번도
+안 불리고 있음을 직접 grep으로 확정(self-test에서만 호출). `save_instance_json()`도
+`run_harness.py`가 그동안 안 부르고 있었음을 확정(→ H/I절). `check_finger_width_
+compatibility()`는 스스로의 docstring이 "선행 게이트"라고 선언했는데도 호출부가 전혀
+없었음을 확정(→ J절). 그 외 15개 미도달 함수는 재확인 결과 성격이 다름:
+- `find_matching_candidates`/`find_hub_merge_candidates`/`find_structural_symmetry_
+  candidates`/`check_symmetry_dispositions`/`search_shared_finger_w` — docstring에
+  "**후보만 내고 최종 판단은 사람/AI 몫**"이라고 명시된 topology-authoring 단계 도구,
+  계산 harness와 다른 워크플로우(→ 이후 K/L절에서 이 중 `find_matching_candidates`가
+  다시 논의 대상이 됨).
+- `run_full_circuit_audit()` — `run_topology_pipeline()` 자신의 docstring이 "의도적으로
+  포함 안 함(dispositions는 사람 판단 필요)"이라고 이미 명시.
+- `find_diode_stacks()`/`solve_diode_stack_current()` — `optimize_full_circuit_
+  budget()` docstring이 이미 "정직한 한계"로 기록(→ K절에서 심층 조사).
+- 나머지(`build_toy_lut`/`_invq_newton`/`run_regression_case`/`RegressionVerdict`/
+  `folded_cascode_example`/`two_stage_ota_example`/`render_stick_diagram`/
+  `check_mirror_symmetry`/`check_multi_leaf_hub_parity`/`find_interleaved_symmetric_
+  splits`/`_scan_case_collisions`) — self-test·데모·알고리즘 내부 스크리닝 전용,
+  배선 대상 아님. `slew_rate(ID,C)`는 `_METRICS_REGISTRY`에 미등록된 metric 후보 —
+  필요한 회로 생기면 그때 등록.
+
+## H. `run_matching_safety_with_finger_growth()` 배선 (`sizing_recipe.py`, 미커밋)
+
+`optimize_full_circuit_budget()`의 `if not audit_ok:` 분기(2306행 부근)에서
+`repair_matching_safety(rows, matching_pairs_tuples, pair_sensitivity)` 단독 호출을,
+`_lut_by_kind is not None`(euler 분기와 동일 가드 — 이 경우에만 `pipeline_result["ctx"]`
+가 존재)일 때 `run_matching_safety_with_finger_growth(rows, matching_pairs_tuples,
+pair_sensitivity, pipeline_result["ctx"], _lut_by_kind, metrics_specs, constraints,
+gm_id_bounds=...)`로 승격 — euler 체인이 세션15에 먼저 이렇게 승격됐던 것과 대칭
+구조. `lut_by_kind` 없는 legacy spec은 기존 `repair_matching_safety()` 그대로 폴백
+(완전 하위호환).
+
+핑거증가가 실제로 `n_fingers`/W를 바꿨을 수 있으므로 `sizing_overrides`/`sizing`을
+최종 상태로 동기화 — 소자 하나가 common-centroid 회전배치로 여러 행에 `n_fingers`
+조각으로 나뉠 수 있어(세션16 F절 함정) **행별로 합산**해서 최종 `n_fingers`를 구한다.
+`pipeline_result`에 `growth_rounds`/`unresolved_pair`/`unresolved_reason`/
+`relaxed_pairs`(`run_matching_safety_with_finger_growth()` 진단 필드 그대로)도 추가.
+
+**self-test**: L5의 케이스B(M3a 그룹, `known_sizing`으로 A/B/C엔진 우회)가 마침 이
+`if not audit_ok:` 분기를 타던 실제 fixture라 그대로 재사용 — `growth_rounds`가 실제로
+채워지는지 확인하는 assertion 추가(성장 자체는 이 fixture에서 branch composite 내부
+n_fingers 불일치로 `growth_not_applicable`이 되지만, **시도된 흔적**은 남아야 함을
+검증). 별도 격리 probe(`probe_save_instance_json_wiring.py`류, 스크래치패드, 커밋 안
+됨)로 M3a fixture를 직접 돌려 `growth_rounds=[{'names':('M3a','M3b','M4a','M4b'),
+'result':{'applied':False,...}}]`, `unresolved_pair=('M4a','M4b')`, `unresolved_
+reason='growth_not_applicable'`(branch composite M4a-M3a/M4b-M3b 내부에서 `n_fingers`
+가 갈라져 `suggest_matching_finger_growth()`의 "전부 같은 n_fingers여야" 전제가 깨짐),
+`relaxed_pairs=[]`(gm_id_violation이 아니므로 완화 미적용, 설계대로)임을 실측 확인.
+**회귀**: `PYTHONHASHSEED=0` 기준 편집 전(`a6ab04b`) 대비 self-test 전체(250줄) diff —
+L5 출력 문구 1줄(의도된 변경) 외 0줄 차이.
+
+## I. `save_instance_json()`을 `run_harness.py`에 배선 (미커밋)
+
+**사용자 질문("instance json 저장까지 harness함수가 하는 거지?")에서 시작** — 확인해보니
+`optimize_full_circuit_budget()`은 계산만 하고 파일 저장은 안 함(반환 dict만 줌).
+`save_instance_json()`(`stick_diagram.py`)은 그동안 `stick_diagram.py` 자체 self-test
+에서만 불렸다. **사용자가 "최상위 함수는 run_harness 아니야? 거기서 호출하도록 하면
+되잖아"로 정정** — `optimize_full_circuit_budget()`(라이브러리 함수, 순수 계산 유지)이
+아니라 `run_harness.py`(실제 실행 스크립트, "harness"의 진짜 최상위)가 계산 뒤 저장까지
+하는 게 맞는 책임분리라는 데 합의.
+
+`run_harness.py`(`workspaces/current-reuse-telescopic-ota-report/`)에 `from stick_
+diagram import save_instance_json` 추가, `optimize_full_circuit_budget()` 성공 후
+`pipeline_result is not None`이면 `save_instance_json(INSTANCE_OUT, TOPO, result
+["sizing"], result["pipeline_result"])` 호출 — `audit_ok=False`여도 그 상태 그대로
+저장(조용히 성공으로 안 둔갑, §1.5 원칙).
+
+**검증**: 원래 `run_harness.py`(8192 조합, KEEP_FREE=2 스모크 축소판) 그대로 스모크
+테스트했더니 grid search 자체가 infeasible(PSRR/classab_centering 제약 위반)로
+`optimize_full_circuit_budget()`이 예외를 던져 저장 호출부까지 아예 도달을 못해 이
+배선을 검증 못함(**이건 세션18 변경과 무관한 사전 존재 문제**, 세션11 A절 grid 축소
+논의와 같은 계열) — 그래서 L5의 `known_sizing` 직접 시드 fixture(위 H절과 동일 패턴,
+grid search 우회)로 별도 격리 검증: `save_instance_json()` 정상 기록, 재-로드한 JSON이
+`topology_ref`에 **경로 문자열만** 저장하고(재로드 안 함 — `load_topology()`는
+`optimize_full_circuit_budget()` 안에서 한 번만 불림, 사용자 질문 "topology load는
+어디서 해?"에 대한 답), `audit_row_split.ok=False`가 정직하게 그대로 저장됨을 확인.
+
+## J. `check_finger_width_compatibility()` §3.5 게이트 배선 (`stick_diagram.py`, 미커밋)
+
+`assign_finger_geometry()`가 만드는 `sizing_overrides`는 `w=n_fingers*finger_w`로
+항상 정확히 구성되므로 자동경로에선 이 게이트가 절대 안 걸리지만, `run_topology_
+pipeline()`은 호출자가 `sizing_overrides`를 손으로 직접 구성해 넘기는 것도 허용한다
+(`Transistor.n_fingers` 필드 주석: "호출자가 직접 정해서 넣는다") — 그 경로에서 W가
+`finger_w`의 정수배가 아니면(Maloberti PDF의 38um/8um=4.75 사례처럼 물리적으로 존재할
+수 없는 요구) 지금까지 조용히 넘어가 euler 분석 이하 전부가 잘못된 전제로 돌아갔다.
+
+`run_topology_pipeline()`에서 `transistors = [_dc_replace(t, **sizing_overrides
+[t.name]) for t in transistors]` 직후, `split_into_stacks()` 이전에 `check_finger_
+width_compatibility(transistors)`를 호출 — 실패하면 소자별 `w`/`finger_w`/정확한 비율/
+가능한 값(내림·올림)을 담아 즉시 `ValueError`.
+
+**self-test**(Test 26.55, `stick_diagram.py`, Test 26.5 직후): folded_cascode fixture의
+소자 하나 `w`를 `finger_w*(n_fingers+0.5)`로 고의로 망가뜨려 `ValueError` 발생 + 에러
+메시지에 "정수배"와 소자 이름이 포함되는지 확인, 정상 케이스는 그대로 통과하는지 회귀
+대조. **회귀**: `stick_diagram.py` self-test(758줄) — 신규 Test 26.55 블록(7줄) 외 0줄
+차이. `sizing_recipe.py` self-test(250줄, `run_topology_pipeline()`을 대량으로 호출)도
+재확인 — 0줄 차이(다른 self-test fixture 어디에도 잠재된 W/finger_w 불일치 없었음).
+
+## K. diode-stack 조사 — `solve_diode_stack_current()`는 실제로 필요한 회로가 없다
+
+사용자가 "diode-stack 쪽도 배선되어야 할 것 같다"고 제기 → `_feed_diode_stack_
+target()`(type `"C"` theta feed, **이미 배선됨**)을 먼저 확인했더니 `solve_diode_
+stack_current()`와 다른 함수였다:
+- **`_feed_diode_stack_target()`(배선됨)**: "replica" 방식 — target이 reference와
+  **완전히 같은 동작점**(gm_id/L/VDS/VS)을 물려받고 면적비(K_replica)만큼 스케일.
+  `current_reuse_telescopic_ota.topology.json`에서 `K_replica`(M9a←M15)/`mirror_
+  M18a`(M18a←M9a)에 실제로 씀.
+- **`solve_diode_stack_current()`(미배선)**: 직렬 diode 스택 VGS 합이 `target_voltage`와
+  같아지는 전류를 KVL로 역산 — 완전히 다른 메커니즘, 자기 자신의 docstring이 이미
+  "⚠️ 정직한 한계: 호출 규약을 이 세션에서 재구성했다 — 실제 M9a/M8/M11a/M11b 회로에
+  처음 연결할 때 재검증 필요"라고 명시.
+
+**핵심 발견**: 실제 회로의 진짜 diode 체인(M11a-M11b-M12, `find_diode_stacks()`가
+찾아낼 법한 정확히 그 패턴)이 실제로 어떻게 사이징되는지 topology.json에서 직접
+확인하니, `solve_diode_stack_current()`도 `_feed_diode_stack_target()`도 아닌 **세
+번째 메커니즘**(`r_diode_M11a` theta, type `"A"`, reference 대비 **자유 비율**)을 쓴다.
+이유가 주석에 명시: "논문 원문이 정확한 비율을 안 주므로 자유 비율 theta로 근사" —
+즉 정확한 전압 타겟을 몰라서 애초에 KVL을 풀 수가 없었고, 그래서 grid search 가능한
+자유 파라미터로 남긴 것. **`solve_diode_stack_current()`가 재검증을 기다리던 그
+시나리오(M9a/M8/M11a/M11b) 자체가 결국 오지 않았다** — 다른 방식으로 이미 풀렸기
+때문.
+
+**결론**: 지금 이 저장소의 4개 회로 중 `solve_diode_stack_current()`가 실제로 필요한
+곳이 하나도 없다. 배선 여부(지금 할지 vs 실제 필요한 회로 생기면 할지)를 AskUserQuestion
+으로 물으려 했으나 **사용자가 인터럽트해서 미결** — 다음 세션에 다시 물을 것.
+
+## L. `find_diode_stacks()`/`find_matching_candidates()` 설계 논의 — 결론 안 남
+
+`solve_diode_stack_current()`와 별개로, `find_diode_stacks()`(구조 탐지기, `current_
+mirror`/`hub_merge` 오탐을 걸러주는 게 원래 목적이라고 자기 docstring에 명시돼 있었지만
+"이 배치의 스코프는 아님"으로 미룬 채 방치)는 여전히 유효한 배선 후보인지를 놓고 여러
+턴에 걸쳐 논의했다 — **코드는 전혀 안 건드림, 순수 설계 논의만 진행.**
+
+### L-1. M57/M58 실사고 — "필요없다"는 내 첫 판단이 틀렸음을 사용자가 정정
+처음엔 `find_diode_stacks()`를 "실제 비용 없는 TODO"로 낮게 평가했으나, 사용자가
+"지난번 M57/M58 문제도 diode stack으로 인식 못 해서 생긴 것 아니냐"고 지적 — topology.json
+의 `symmetry.dispositions`를 다시 읽어보니 정확했다: M57/M58이 한때 `current_mirror/
+pmos/Vbias_p`로 **진짜 매칭쌍(real_match)으로 잘못 disposed**됐다가(2026-07-29) 나중에
+diode-chain false-positive임을 발견해 정정(2026-08-03)한 **실제 이력이 있는 버그**다.
+단순 "매번 수동 필터링하는 번거로움" 수준이 아니라 한 번 실제로 잘못된 상태로 남아있었던
+사례 — 우선순위를 올림.
+
+### L-2. connectivity 직접 확인으로 "무엇이 M57/M58을 다르게 만드는지" 규명
+- **M57/M58**: M58(source=Vx, drain=**N58_57**) / M57(source=**N58_57**, drain=Vbias2,
+  gate=Vbias2, self-diode) — M58.drain=M57.source, **직렬로 물려있음**(2단자 net 공유,
+  `kcl_series_union()`이 이미 아는 패턴) → KCL로 전류 동일이 **connectivity만으로
+  100% 증명됨**, 매칭 레이아웃 기법이 애초에 의미 없음.
+- **M11b/M9a, M20b/M18a, M36a/M7**: 전부 gate만 공유하고 source/drain은 완전히
+  disjoint(직렬 아님) — 별개의 물리적 전류경로. 특히 M9a는 실제 사이징이 M11b와 무관한
+  `K_replica`(reference=M15)로 결정된다 — gate 공유는 순전히 우연한 bias-전압 관계일
+  뿐, 이 소자의 실제 W/ID를 결정하는 메커니즘이 아니다.
+
+### L-3. 사용자 제안 — "전류미러려면 VGS가 같아야" (source-일치 조건)
+사용자가 전기적으로 정확한 기준을 제시: 진짜 전류미러(W 비율로 전류 예측 가능)이려면
+diode 소자와 소비자의 VGS가 같아야 하고, 그러려면 gate뿐 아니라 **source도 같아야**
+한다. `find_matching_candidates()`의 실제 코드(`by_gate[(t.kind, t.gate)]`)를 확인하니
+**source는 전혀 안 본다** — 정확한 지적이었다. 5개 실사례에 이 기준을 대입:
+- M57/M58, M11b/M9a, M20b/M18a: source 다름 → 자동으로 "VGS 동일 보장 없음" 판정, 실제
+  false_positive 처리와 일치.
+- M36a/M7: **둘 다 source=vdd** → VGS 동일 조건은 만족하는데도 "다른 기능 블록"이라는
+  별개 사유로 여전히 false_positive — source-일치가 필요조건이지 충분조건은 아님(그래도
+  됨 — 사람 판단은 여전히 남음).
+- M2a/M2b(진짜 채택된 매칭쌍): source가 다름(N1a2a/N1b2b, 대칭 net명) — source-일치를
+  `current_mirror`에 그대로 넣으면 이 **진짜** 후보까지 걸러낼 위험. 이건 "전류미러"가
+  아니라 "대칭 캐스코드쌍"이라는 다른 개념 — `find_structural_symmetry_candidates()`
+  (이미 있는 별도 함수, seed net pairs 기반)가 담당할 영역일 가능성.
+
+### L-4. 사용자 재반박 — source-일치 검사와 `find_diode_stacks()`는 다른 질문
+사용자가 "stacked diode도 이 기준으로는 못 거르잖아"라고 재지적 — 맞다: source-일치
+검사는 **"진짜 VGS-동일 미러인가"**를 답할 뿐, **"이게 stacked diode 구조인가"**를
+직접 인식하지 않는다(M57/M58에서 둘의 답이 우연히 겹쳤을 뿐). 게다가 `find_hub_merge_
+candidates()`는 gate가 아니라 **공유 단자(source/drain)**로 후보를 찾아서, source-일치
+검사 자체가 적용될 자리가 없다 — diode 체인 내부 소자가 hub_merge 후보로 잘못 묶이는
+문제는 오직 `find_diode_stacks()`(어떤 소자들이 diode 체인 멤버인지 실제로 식별)로만
+막을 수 있다.
+
+**잠정 합의(구현 전, 다음 세션에 이어갈 것)**: 두 검사가 서로 다른 문제를 풀므로 둘 다
+필요하다 — (1) `find_matching_candidates()`의 `current_mirror`에 source-일치 조건
+추가(진짜 미러 아닌 후보 제거, M2a/M2b류는 다른 함수가 담당하게 분리), (2) `find_diode_
+stacks()`를 `current_mirror`/`hub_merge` 양쪽에 diode-체인 정보로 연결(구조 인식 자체,
+사람에게 "이건 diode 체인이라 그렇다"는 근거 제공). **구체적 코드/함수 시그니처는
+전혀 설계 안 됨** — 다음 세션 M절(아래 "다음 세션 작업 순서" 참고)에서 이어갈 것.
+
 ---
 
 ## 다음 세션 작업 순서 (권장, 각 단계 사용자 승인 필수)
 
-1. **`run_harness.py` 재실행 전략 논의**(세션11 A절 — 그리드 축소 or 다른 최적화 방식) —
-   세션18로 L3(핑거조정)+L4(gm/ID 재검증)+그룹분할 체인이 harness 최상위 경로에 전부
+1. **⚠️ 최우선 — zip 파일 2개 검토**: `skills/analog-gmid-design/assets/아날로그
+   기능분석기.zip` / `skills/analog-gmid-design/assets/회로도 추출기.zip`(둘 다
+   세션18 끝에 새로 생김, git에 untracked, **아직 한 번도 안 열어봄**). 사용자 말로는
+   "알려진 기능블럭들을 탐지하는 방법론"이 들어있다고 함 — 세션18 결론 K/L절(diode-
+   stack/`find_matching_candidates()` 오탐 논의)과 같은 주제("회로 기능블럭 자동인식")
+   일 가능성이 높으니, 이 zip 내용을 먼저 확인한 뒤 그 방법론을 갖고 K/L절 논의를
+   이어갈 것 — 순서를 바꾸지 말 것(zip 안 보고 K/L절부터 구현 설계하면 이미 있는
+   방법론과 충돌하거나 중복 설계할 위험).
+2. **diode-stack/`find_matching_candidates()` 오탐 필터 설계 마무리**(세션18 결론 K/L절
+   이어서, 1번 zip 검토 내용 반영) — 미결 사항: (a) `solve_diode_stack_current()`를
+   지금 배선할지 vs 실제 필요한 회로 생기면 할지(K절, AskUserQuestion이 인터럽트돼
+   미결), (b) `find_matching_candidates()`의 `current_mirror`에 source-일치 조건을
+   추가하는 구체적 코드 설계(L-3/L-4절, M2a/M2b류 대칭쌍을 걸러내지 않게 `find_
+   structural_symmetry_candidates()`와 역할을 어떻게 나눌지), (c) `find_diode_
+   stacks()`를 `current_mirror`/`hub_merge` 양쪽에 어떻게 연결할지(annotate만 할지,
+   구조적으로 배제할지). 이 세 가지 다 아직 코드 한 줄도 안 씀 — 설계 확정 후 구현+
+   self-test+회귀.
+3. **세션18에서 만든 커밋되지 않은 변경 3건 커밋 여부 확인**: `sizing_recipe.py`(H절,
+   `run_matching_safety_with_finger_growth()` 배선)/`stick_diagram.py`(J절, `check_
+   finger_width_compatibility()` 배선)/`run_harness.py`(I절, `save_instance_json()`
+   배선) — 전부 self-test+회귀 확인 완료 상태로 대기 중. 2번 논의가 끝나 diode-stack
+   관련 코드 변경이 생기면 한꺼번에 커밋할지, 지금 먼저 커밋할지 사용자에게 확인.
+4. `run_harness.py` 재실행 전략 논의(세션11 A절 — 그리드 축소 or 다른 최적화 방식) —
+   L3(핑거조정)+L4(gm/ID 재검증)+그룹분할+매칭성장 체인이 harness 최상위 경로에 전부
    연결됐으니, 이 새 체인들이 실전(`current_reuse_telescopic_ota` 전체 사이징)에서
    어떻게 동작하는지 end-to-end로 확인할 좋은 시점.
-2. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
+5. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
    `current_reuse_telescopic_ota`) — 필요해지면 사람이 직접 사슬 추적해 확인.
-3. GBW 재검증 확장(범위 밖으로 미룸, 세션13 결론 D절) — 어느 topology.json이든
+6. GBW 재검증 확장(범위 밖으로 미룸, 세션13 결론 D절) — 어느 topology.json이든
    `constraints`에 GBW를 실제로 선언하는 회로가 생기면 그때 착수.
-4. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
+7. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
    이어가기.
-5. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
+8. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
    `"dual"` transform 오탐 개선 — 손 안 댐.
 
 ---
@@ -1377,10 +1648,39 @@ noise/mismatch 등)는 완전히 무변경. 무회귀 확정.
     원본 dict 불변 확인.
   - 회귀: `PYTHONHASHSEED=0` 기준 편집 전(세션17 커밋 `fbfaed5`) 대비 self-test 전체
     (250줄) 출력 diff — 케이스B(의도된 변경)/케이스C(신규) 블록 외 0줄 차이, 무회귀 확정.
+- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션18 추가 수정, 미커밋** —
+  H절)
+  - `optimize_full_circuit_budget()`의 `if not audit_ok:` 분기(2306행 부근) — 구형
+    `repair_matching_safety()` 단독 호출을 `_lut_by_kind is not None`일 때 `run_
+    matching_safety_with_finger_growth(...)`로 승격, 없으면 기존 그대로 폴백. 반환
+    `pipeline_result`에 `growth_rounds`/`unresolved_pair`/`unresolved_reason`/
+    `relaxed_pairs` 추가.
+  - self-test: L5 케이스B에 `growth_rounds` assertion 추가(위 H절 참고).
+  - 회귀: `PYTHONHASHSEED=0` 기준 `a6ab04b` 대비 self-test 전체(250줄) diff — L5 출력
+    문구 1줄(의도된 변경) 외 0줄 차이.
+- `skills/analog-gmid-design/assets/stick_diagram.py` (**세션18 추가 수정, 미커밋** —
+  J절)
+  - `run_topology_pipeline()` — `check_finger_width_compatibility()`(§3.5) 호출 추가
+    (`_dc_replace`로 sizing_overrides 적용 직후, `split_into_stacks()` 이전) — 실패
+    시 소자별 상세 정보와 함께 즉시 `ValueError`.
+  - self-test: Test 26.55(Test 26.5 직후) 신설 — 비정상 W(정수배 아님) ValueError 확인
+    + 정상 케이스 회귀 대조.
+  - 회귀: `PYTHONHASHSEED=0` 기준 편집 전 대비 self-test 전체(758줄) diff — 신규 Test
+    26.55 블록(7줄) 외 0줄 차이.
+- `workspaces/current-reuse-telescopic-ota-report/run_harness.py` (**세션18 추가 수정,
+  미커밋** — I절, 세션11 이후 첫 수정) — `from stick_diagram import save_instance_json`
+  추가, `optimize_full_circuit_budget()` 성공 후 `pipeline_result is not None`이면
+  `save_instance_json(INSTANCE_OUT, TOPO, result["sizing"], result["pipeline_result"])`
+  호출(`audit_ok=False`여도 그대로 저장). 재실행 자체는 세션11 이후 여전히 안 됨(grid
+  search infeasibility, 위 A절 참고) — 이번 수정은 저장 배선만, 실행 전략 논의는
+  "다음 세션 작업 순서" 4번.
+- `workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session18_save.py`
+  — **세션18 신설**(untracked, git에 아직 안 올라감), 세션11 `smoke_run_harness_
+  session11.py` 패턴(KEEP_FREE 그리드 축소) 재사용해 I절 저장 배선 검증 시도 —
+  grid search infeasibility로 저장 호출부까지 도달을 못해 이 스크립트 자체로는 검증
+  실패(사전 존재 문제, 세션18 변경과 무관) — 실제 검증은 L5 `known_sizing` fixture로
+  별도 격리 확인(스크래치패드 probe, 커밋 안 됨).
 - `skills/analog-gmid-design/assets/library/*.topology.json` — 세션11~18 **미수정**.
-- `workspaces/current-reuse-telescopic-ota-report/run_harness.py` — 세션11에 중단됨,
-  재실행 보류(위 A절 참고). 로그: `run_harness_session11.log`(0바이트, 정상 — 원래
-  안 찍는 스크립트).
 - `workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py` —
   **세션11 신설**, 자유 theta 일부만 남기고 나머지 고정해 빠르게 완주 확인하는 스모크
   테스트 패턴. 다음에 비슷한 상황에서 재사용할 것(`KEEP_FREE` 값만 바꾸면 됨).
@@ -1552,3 +1852,33 @@ noise/mismatch 등)는 완전히 무변경. 무회귀 확정.
   그룹분할로 자동 해결됨), 그 fixture를 재사용해 "예전엔 이랬는데 이제 이렇게 바뀐다"를
   같은 자리에서 직접 대조하면 회귀 diff에서도 변경 범위가 명확하게 드러난다(세션17 E-4
   "Test 12.13 재작성" 패턴과 동일).
+- **세션18 신규**: 콜그래프 기반 "고아함수" 분석의 진입점은 **라이브러리 함수가 아니라
+  실제 사람이 실행하는 스크립트**여야 한다 — 세션14/18 모두 `optimize_full_circuit_
+  budget()`을 진입점으로 잡았는데, `run_harness.py`(실행 스크립트)를 진입점에 추가하고
+  나서야 `save_instance_json()` 배선 여부를 정확히 판단할 수 있었다. "이 함수 하나만
+  호출하면 된다"고 문서화된 라이브러리 함수가 있어도, 그걸 실제로 부르는 스크립트가
+  무엇을 **더** 하는지까지 봐야 진짜 reachability를 안다.
+- **세션18 신규**: "계산은 어디서, 저장은 어디서 하나"류 질문을 받으면 답을 짐작하지
+  말고 실제 호출부를 grep으로 확인할 것 — `optimize_full_circuit_budget()`은 계산만
+  하고 저장은 안 하는데("반환값을 instance.json에 옮길 수 있는 형태로 만든다"는 문구를
+  "저장까지 한다"로 오독하기 쉬움), 사용자가 "최상위 함수는 run_harness 아니야?"라고
+  정확히 짚어줘서 "harness 라이브러리 함수(순수 계산 유지) vs 그걸 부르는 실행 스크립트
+  (계산+저장)"라는 책임분리로 정리됐다. 라이브러리 함수 이름에 "harness"가 들어있다고
+  그게 최상위라고 넘겨짚지 말 것.
+- **세션18 신규**: 두 소자가 구조적으로 비슷해 보이는 관계(예: "diode가 만든 gate 전압을
+  다른 소자가 읽는다")를 "같은 종류의 관계"로 뭉뚱그리기 쉽지만, 실제 전기적 정의
+  (VGS 동일 조건 = gate **그리고** source가 같아야 진짜 전류미러)까지 따져보면 완전히
+  다른 두 패턴(직렬로 물린 diode 스택 vs 별개 branch가 bias 전압만 읽는 관계)이 섞여
+  있었다 — 사용자가 이걸 세 번(diode-stack 자체 필요성 재검토 → M57/M58 실사고 근거
+  제시 → VGS 동일 조건 제시 → source-일치 검사와 diode-stack 구조인식은 별개 질문이라는
+  재지적)에 걸쳐 계속 더 정확한 기준으로 밀어붙였고, 매번 실제 connectivity를 다시
+  확인해서 검증했더니 그때마다 새로운 구분이 드러났다. "구조적으로 비슷해 보인다"는
+  이유로 하나의 해법으로 뭉치기 전에, 그 둘이 정확히 같은 질문에 답하는지 먼저 확인할 것.
+- **세션18 신규**: 하나의 필터/검사가 여러 관련 문제를 동시에 푸는 것처럼 보여도, 실제로
+  질문 자체가 다르면 어느 하나가 다른 하나를 대체하지 못한다 — source-일치 검사("진짜
+  VGS-동일 미러인가")와 `find_diode_stacks()`("이 소자들이 diode 체인을 이루는가")는
+  M57/M58 사례에서 답이 우연히 겹쳤을 뿐, 서로 다른 판정 대상이라 하나로 다른 하나를
+  대체할 수 없었다(`find_hub_merge_candidates()`는 gate가 아니라 공유 단자로 후보를
+  찾아서 source-일치 검사가 아예 적용될 자리도 없었다). "이 개선 하나로 두 문제가 다
+  풀리겠다"는 판단이 서면, 그 개선이 진짜로 같은 질문에 답하는지 반례(다른 함수/다른
+  판정 기준)로 재확인할 것.

@@ -951,7 +951,7 @@ def _scan_case_collisions(net_names) -> dict:
 #      나머지(캐스코드 대칭쌍, R/C 비율 등)는 회로 지식이 필요해 `stack_id`로 직접 표시해야 한다.
 # ---------------------------------------------------------------------------
 
-def find_matching_candidates(transistors: list) -> dict:
+def find_matching_candidates(transistors: list, idiom_matches: list | None = None) -> dict:
     """구조적 신호만으로 matching **후보**(확정 아님)를 찾는다 — AI/설계자가 소자쌍을
     일일이 수동으로 훑지 않도록 후보를 미리 좁혀주는 게 이 함수의 존재 이유다(토큰 절약).
     자동 탐지 가능한 두 유형:
@@ -976,7 +976,33 @@ def find_matching_candidates(transistors: list) -> dict:
     쓸지는 여전히 설계자의 판단이다(예: 캐스코드 전류원처럼 gate를 공유해도 matching이
     중요하지 않을 수도 있고, 반대로 이 함수가 못 찾는 R/C 비율·캐스코드 대칭쌍은 실제로는
     matching이 필수인 경우가 많다).
+
+    `idiom_matches`가 주어지면(§1.7a `find_idiom_matches()`의 반환값) 위 net-only
+    그룹핑 대신 그 Match 리스트에서 직접 후보를 뽑는다 — `analog-grammar` skill의
+    `idioms.m_mirror()`/`m_diffpair()`가 이미 "그룹 안에 diode-connected 레퍼런스가
+    있는가"(current_mirror)/"둘 다 role=AMPLIFYING인가"(diff_pair)를 검증해서 Match를
+    내므로, 이 함수는 이름을 Transistor로 변환만 한다. `idiom_matches=None`(기본값)
+    이면 이 함수는 위 net-only 동작과 완전히 동일하다(하위호환, self-test로 확인).
+
+    이 경로로 바뀌는 것: `current_mirror` 그룹핑이 `(kind, gate)`가 아니라
+    `(kind, gate, source)`로 바뀐다(2026-08-06, `analog-topology-json-library`
+    세션18 K/L절 M57/M58 오탐 계기 — gate만 같고 source가 다른 소자는 VGS 동일이
+    보장되지 않아 진짜 current mirror가 아닐 수 있다). 부작용으로 "캐스코드 대칭쌍"
+    (같은 gate, 다른 source — 예: M2a/M2b)은 이 경로에서 더 이상 안 잡힌다 —
+    이건 `find_stacked_matching_candidates()`(§1.7c)가 별도 메커니즘(복합소자/스택
+    상속)으로 커버한다. 상세 설계 근거: `references/analog-grammar-integration.md`.
     """
+    if idiom_matches is not None:
+        by_name = {t.name: t for t in transistors}
+        current_mirror, diff_pair = {}, {}
+        for m in idiom_matches:
+            group = [by_name[n] for n in m.devices if n in by_name]
+            if m.kind == "current-mirror" and len(group) >= 2:
+                current_mirror[(group[0].kind, m.ports["bias"], m.ports["rail"])] = group
+            elif m.kind == "differential-pair" and len(group) == 2:
+                diff_pair[(group[0].kind, m.ports["tail"])] = group
+        return {"current_mirror": current_mirror, "diff_pair": diff_pair}
+
     by_gate = defaultdict(list)
     by_source = defaultdict(list)
     for t in transistors:
@@ -993,6 +1019,138 @@ def find_matching_candidates(transistors: list) -> dict:
             diff_pair[(kind, source)] = group
 
     return {"current_mirror": current_mirror, "diff_pair": diff_pair}
+
+
+# ---------------------------------------------------------------------------
+# 1.7a) analog-grammar skill 연동 -- Tier 1(topology 저작 단계, stack_id 불필요)
+#       matching 후보 오탐 필터. 상세 설계: references/analog-grammar-integration.md
+#       (2026-08-06, analog-topology-json-library 세션18 K/L절에서 시작된 논의).
+#       analog-grammar가 sys.path에 없으면(다른 skill이라 설치 여부가 실행 환경에
+#       좌우됨) 아래 어댑터(find_idiom_matches/find_stack_edges)는 조용히 None을
+#       반환한다 -- 호출자는 None이면 이 보강 기능 없이 기존 동작(idiom_matches=
+#       None/stack_edges=None)으로 폴백해야 한다.
+#       ImportError만 잡고 다른 예외는 그대로 던진다(조용히 다른 실패까지 삼키지 않음).
+# ---------------------------------------------------------------------------
+
+def _to_analog_grammar_devs(transistors: list) -> list:
+    """gate가 없는 소자는 제외한다 -- analog-grammar의 net 분류는 모든 소자가 G/D/S
+    셋 다 갖고 있다고 가정한다. 이 프로젝트의 Transistor.gate는 원래 선택 필드(§1.7
+    matching 탐지 전용)라 None인 소자가 흔한데, 그런 소자는 애초에 이 연동이
+    강화하려는 current_mirror/diff_pair/stacked 판정 대상도 아니므로 제외해도
+    손실이 없다."""
+    return [{"name": t.name, "type": t.kind.upper(), "D": t.drain, "G": t.gate, "S": t.source}
+            for t in transistors if t.gate is not None]
+
+
+def _import_analog_grammar(*module_names):
+    """`skills/analog-grammar/assets`를 sys.path에 넣고(멱등) 주어진 모듈들을 임포트해
+    튜플로 반환한다. analog-grammar가 없으면(ImportError) 전부 None인 튜플을 반환한다
+    -- 호출자가 언패킹 후 첫 값만 None-체크해도 되도록."""
+    import sys
+    _ag_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..",
+                                                "analog-grammar", "assets"))
+    if _ag_path not in sys.path:
+        sys.path.insert(0, _ag_path)
+    try:
+        import importlib
+        return tuple(importlib.import_module(name) for name in module_names)
+    except ImportError:
+        return tuple(None for _ in module_names)
+
+
+def find_idiom_matches(transistors: list, inputs=(), outputs=(), feedbacks=(),
+                         biases=(), clocks=()) -> list | None:
+    """analog-grammar skill(Stage 1 net 분류 + Stage 2 role 배정 + Stage 3 idiom
+    매칭)을 한 번에 실행해 **겹침 해소 이전**의 원본 Match 리스트를 반환한다.
+    resolve_overlaps()(Stage 4 계층 축약/보고용 요약)는 여기서 거치지 않는다 --
+    예를 들어 current-reuse-pair(priority 9)가 그 아래 differential-pair 2개를
+    흡수해도, 실제 W/L 매칭이 필요한 단위는 여전히 원래의 두 쌍이지 4소자 뭉치가
+    아니다. `inputs`/`outputs`/`feedbacks`/`biases`/`clocks`는 analog-grammar의
+    Stage 1 net 분류에 그대로 전달된다 -- topology.json의 `ports` 필드를 그대로
+    승격해서 넘기면 이름 힌트 추정을 줄일 수 있다(references/analog-grammar-
+    integration.md §5)."""
+    netclass, idioms_mod = _import_analog_grammar("netclass", "idioms")
+    if netclass is None:
+        return None
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return None
+    cls, imp, _assume = netclass.classify_nets(devs, inputs, outputs, biases, feedbacks, clocks)
+    role = netclass.assign_roles(devs, cls, imp)
+    return idioms_mod.match_all(devs, cls, imp, role)
+
+
+def find_stack_edges(transistors: list) -> list | None:
+    """analog-grammar의 `netclass.stack_edges(devs)`를 그대로 재사용한다(role/net
+    분류 불필요, 순수 connectivity) -- "X.source==Y.drain이면 Y 위에 X가 얹혀
+    있다"는 관계를 [(lower_name, upper_name, node), ...]로 반환한다.
+    `find_stacked_matching_candidates()`(§1.7c)에 그대로 넘긴다."""
+    (netclass,) = _import_analog_grammar("netclass")
+    if netclass is None:
+        return None
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return None
+    return netclass.stack_edges(devs)
+
+
+# ---------------------------------------------------------------------------
+# 1.7c) 복합소자(composite) 기반 매칭 후보 상속 -- 이미 확정/발견된 매칭쌍 위에 직접
+#       stacked된 소자쌍을 재귀적으로 찾는다. 세션16/17의 branch composite
+#       (_branch_composite_pair(), kcl_series_union() 기반, **레이아웃** crossover
+#       짝짓기용)와 정확히 같은 직렬 스택 개념을, 이번엔 반대 방향(matching 후보
+#       **발견**)으로 적용한 것 -- 2026-08-06, 사용자 제안. current_reuse_
+#       telescopic_ota 실측: {M1a,M1b}(확정 diff_pair) 위에 {M2a,M2b}, {M4a,M4b}
+#       위에 {M3a,M3b}가 정확히 이 메커니즘으로 재현됨(stick-diagram-euler-
+#       layout.md §2.6이 기록해둔 "캐스코드 대칭쌍" 두 사례 전부).
+# ---------------------------------------------------------------------------
+
+def find_stacked_matching_candidates(transistors: list, base_pairs: list,
+                                       stack_edges: list) -> dict:
+    """이미 확정/발견된 매칭쌍(`base_pairs`: `[(name_a, name_b), ...]` -- diff_pair/
+    current_mirror Match든, topology.json의 `symmetry.matching_pairs`든 호출자가
+    아무거나 seed로 넘길 수 있다) 위에 직접 stacked된 소자쌍을 재귀적으로(2단 이상
+    캐스코드 대비) 찾아 매칭 후보로 낸다. `stack_edges`: `find_stack_edges()`의
+    반환값을 그대로 넘긴다.
+
+    각 base pair (a, b)에 대해 a/b 위에 직접 얹힌 소자(ua/ub)를 찾고, 둘 다 있고
+    같은 kind이면 (ua, ub)를 새 후보로 낸다 -- 그 (ua, ub)를 다시 base pair 삼아
+    계속 위로 타고 올라간다.
+
+    ⚠️ 한 소자의 drain(=net)을 여러 소자가 동시에 source로 쓸 수 있다(예: folded
+    cascode의 folding node — PMOS/NMOS가 같은 net에서 동시에 위로 뻗음). 그래서
+    "바로 위에 얹힌 소자"는 유일하지 않을 수 있다 -- **base 소자와 같은 kind인
+    후보로만 좁힌다**(캐스코드 스택은 같은 극성끼리 쌓이는 게 정상 구조이므로).
+    같은 kind 후보가 정확히 하나가 아니면(0개 또는 2개 이상) 모호하다고 보고 그
+    갈래는 포기한다 -- 억지로 하나를 고르지 않는다(folded_cascode_example()의
+    M1(pmos) 위에 M5(pmos)/M7(nmos)이 동시에 얹힌 실제 사례로 발견, 2026-08-06).
+
+    반환: `{(kind, lower_a, lower_b): [Transistor, Transistor], ...}` -- 키의
+    마지막 두 요소는 이 후보를 낳은 바로 아래 단(base) 소자 이름(추적/디버깅용).
+    M57/M58처럼 확정된 쌍 위에 얹혀 있지 않은 소자는 이 경로로 전혀 끌려오지
+    않는다(base_pairs에서 출발한 것만 전파되므로)."""
+    by_lower = defaultdict(list)
+    for lo, up, _node in stack_edges:
+        by_lower[lo].append(up)
+    kind_of = {t.name: t.kind for t in transistors}
+    by_name = {t.name: t for t in transistors}
+
+    def _upper_same_kind(name):
+        cands = [u for u in by_lower.get(name, ()) if kind_of.get(u) == kind_of.get(name)]
+        return cands[0] if len(cands) == 1 else None
+
+    out, frontier, seen = {}, list(base_pairs), set()
+    while frontier:
+        a, b = frontier.pop()
+        if (a, b) in seen:
+            continue
+        seen.add((a, b))
+        ua, ub = _upper_same_kind(a), _upper_same_kind(b)
+        if ua is None or ub is None or kind_of.get(ua) != kind_of.get(ub):
+            continue
+        out[(kind_of[ua], a, b)] = [by_name[ua], by_name[ub]]
+        frontier.append((ua, ub))
+    return out
 
 
 @dataclass
@@ -4415,10 +4573,12 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
                            cell_groups: dict | None = None) -> dict:
     """`load_topology()` -> `sizing_overrides`로 소자별 layout 필드(n_fingers/finger_w/w/
     stack_id — **필수**, 사이징+finger 배분이 끝난 뒤에만 이 함수를 의미 있게 호출할 수 있다)
-    덮어쓰기 -> `split_into_stacks()`로 스택(=기본 물리 행 후보) 구성 -> §1.6/§1.7이 정한
-    순서 그대로: 행별 Euler 유효성 -> `check_box_shape()` -> `audit_row_split()`
-    (matching-safety, `symmetry.matching_pairs`의 kind 사용) -> `pack_floorplan_grouped()`
-    -> `check_stick_diagram_coverage()`.
+    덮어쓰기 -> `check_finger_width_compatibility()`(§3.5, **세션18 배선** — W가 finger_w의
+    정수배가 아니면 물리적으로 존재할 수 없는 요구라 여기서 즉시 `ValueError`, 아래 euler
+    분석은 이 게이트를 통과해야만 의미가 있다) -> `split_into_stacks()`로 스택(=기본 물리
+    행 후보) 구성 -> §1.6/§1.7이 정한 순서 그대로: 행별 Euler 유효성 -> `check_box_shape()`
+    -> `audit_row_split()`(matching-safety, `symmetry.matching_pairs`의 kind 사용) ->
+    `pack_floorplan_grouped()` -> `check_stick_diagram_coverage()`.
 
     `floorplan_hints`(선택): `{"spine_groups": {...}, "mirror_pairs": [...],
     "net_weights": {...}}` — `pack_floorplan_grouped()`에 그대로 전달할 그룹핑. 안 주면
@@ -4479,6 +4639,28 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
         )
 
     transistors = [_dc_replace(t, **sizing_overrides[t.name]) for t in transistors]
+
+    # 세션18 -- check_finger_width_compatibility()(§3.5)는 원래 "euler 조건 분석보다
+    # 먼저 통과해야 하는 선행 게이트"로 설계됐지만(Transistor.w/finger_w 필드 주석,
+    # 위 함수 자신의 docstring 참고) 실제 파이프라인 어디에도 호출부가 없었다 --
+    # assign_finger_geometry()가 만든 sizing_overrides는 w=n_fingers*finger_w로
+    # 항상 정확히 나누어떨어지게 구성하므로 그 경로는 이 게이트에 절대 안 걸리지만,
+    # 이 함수(run_topology_pipeline())는 호출자가 sizing_overrides를 손으로 직접
+    # 구성해 넘기는 것도 허용한다(Transistor.n_fingers 필드 주석: "호출자가 직접
+    # 정해서 넣는다") -- 그 경로에서 W/finger_w가 정수배가 아니면(Maloberti PDF의
+    # 38um/8um=4.75 사례처럼 물리적으로 존재할 수 없는 요구) 지금까지는 조용히 넘어가
+    # euler 분석 이하 전부가 잘못된 전제로 돌아갔다. 여기서 막는다.
+    fw_verdict = check_finger_width_compatibility(transistors)
+    if not fw_verdict.ok:
+        detail = "; ".join(
+            f"{i.transistor}: w={i.w}, finger_w={i.finger_w} -> {i.exact_ratio:.4f}개"
+            f"(정수 아님, 가능한 값: {i.nearest_valid_w[0]:.6g} 또는 {i.nearest_valid_w[1]:.6g})"
+            for i in fw_verdict.issues
+        )
+        raise ValueError(
+            f"sizing_overrides의 W가 finger_w의 정수배가 아닌 소자가 있다(§3.5 divisibility "
+            f"게이트, 물리적으로 존재할 수 없는 finger 개수를 요구하는 것과 같다): {detail}"
+        )
 
     rows = split_into_stacks(transistors)  # {stack_id: [Transistor, ...]}
     row_widths = {name: sum(t.n_fingers for t in devs) for name, devs in rows.items()}
@@ -6332,6 +6514,30 @@ if __name__ == "__main__":
         print(f"  PASS: ValueError로 즉시 거부됨 -- {str(_e26_5)[:80]}...")
 
     print()
+    print("=== Test 26.55: run_topology_pipeline() -- check_finger_width_compatibility()가")
+    print("    §3.5 선행 게이트로 실제 배선됐는지(세션18) -- W가 finger_w의 정수배가 아니면")
+    print("    euler 분석 이전에 즉시 ValueError로 막는지, 정상 케이스는 그대로 통과하는지 ===")
+    _fc_overrides_bad_w = dict(_fc_overrides)
+    _fc_bad_name = next(iter(_fc_overrides_bad_w))
+    _fc_bad_entry = _fc_overrides_bad_w[_fc_bad_name]
+    _fc_overrides_bad_w[_fc_bad_name] = {
+        **_fc_bad_entry, "w": _fc_bad_entry["finger_w"] * (_fc_bad_entry["n_fingers"] + 0.5)}
+    try:
+        run_topology_pipeline(_os.path.join(_lib_dir, "folded_cascode.topology.json"),
+                               _fc_overrides_bad_w)
+        raise AssertionError(
+            f"{_fc_bad_name}의 W가 finger_w의 정수배가 아닌데도 에러 없이 통과함 -- "
+            "§3.5 게이트가 배선 안 됨")
+    except ValueError as _e26_55:
+        assert "정수배" in str(_e26_55) and _fc_bad_name in str(_e26_55), \
+            f"에러는 났지만 §3.5 게이트가 아닌 다른 이유로 보임: {_e26_55}"
+        print(f"  PASS(비정상 W): ValueError로 즉시 거부됨 -- {str(_e26_55)[:100]}...")
+    _fc_result_gate_ok = run_topology_pipeline(
+        _os.path.join(_lib_dir, "folded_cascode.topology.json"), _fc_overrides)
+    print(f"  PASS(정상 W): 기존 정상 케이스는 게이트에서 안 걸리고 그대로 통과 -- "
+          f"box_shape.ok={_fc_result_gate_ok['box_shape'].ok}")
+
+    print()
     print("=== Test 26.6: run_topology_pipeline() -- cell_groups 인자 (배치 7-2/2026-07-31) ===")
     print("  fixture: folded_cascode(stack_id=top/mid/bot 3개) -- 물리적으로 독립된 cell이")
     print("  없는 회로지만, cell_groups 메커니즘 자체(파티션별 box_shape/audit_row_split)를")
@@ -6712,3 +6918,105 @@ if __name__ == "__main__":
         _row_lengths[_ov["stack_id"]] += _ov["n_fingers"]
     print(f"    참고: stack별 total_row_fingers={_row_lengths} "
           f"(box-shape 판정은 audit_row_split()/repair_matching_safety()의 몫)")
+
+    print()
+    print("=== Test 30: analog-grammar 연동(Tier 1) — find_idiom_matches()/find_matching_")
+    print("    candidates(idiom_matches=)/find_stack_edges()/find_stacked_matching_candidates()")
+    print("    (2026-08-06, analog-topology-json-library 세션18 K/L절 + 사용자 설계 논의) ===")
+
+    print()
+    print("  [0. analog-grammar 사용 가능 확인 -- 없으면 이 Test 전체가 무의미하니 먼저 확인]")
+    _ag_matches_probe = find_idiom_matches(folded_cascode_example())
+    assert _ag_matches_probe is not None, \
+        "analog-grammar skill을 찾지 못함 -- skills/analog-grammar/assets가 있는지 확인할 것"
+    print("    PASS: analog-grammar import 성공")
+
+    print()
+    print("  [1. 하위호환 -- idiom_matches=None(기본값)이면 Test 6과 완전히 동일한 net-only 동작]")
+    _t30_old_again = find_matching_candidates(folded_cascode_example())
+    assert _t30_old_again["current_mirror"].keys() == found["current_mirror"].keys()
+    assert _t30_old_again["diff_pair"].keys() == found["diff_pair"].keys()
+    print("    PASS: idiom_matches 파라미터 추가 후에도 기본값 동작 무변경")
+
+    print()
+    print("  [2. M57/M58 오탐 재현 -- 세션18 실사고 connectivity(2026-07-29 disposed -> 2026-08-03")
+    print("  정정)를 그대로 fixture로 구성. 양성대조(MrefA/MrefB, 진짜 diode 레퍼런스 미러)도 함께]")
+    _mirror_fixture = [
+        Transistor("M57", "pmos", source="N58_57", drain="Vbias2", gate="Vbias2", n_fingers=1),
+        Transistor("M58", "pmos", source="Vx", drain="N58_57", gate="Vbias2", n_fingers=1),
+        Transistor("MrefA", "pmos", source="vdd", drain="Vbias9", gate="Vbias9", n_fingers=1),
+        Transistor("MrefB", "pmos", source="vdd", drain="out9", gate="Vbias9", n_fingers=1),
+    ]
+    _old_mirror = find_matching_candidates(_mirror_fixture)
+    _old_mirror_sets = {frozenset(t.name for t in g) for g in _old_mirror["current_mirror"].values()}
+    assert frozenset({"M57", "M58"}) in _old_mirror_sets, \
+        "옛 동작(gate만 봄)이 M57/M58을 current_mirror로 잡는지부터 재현 안 됨 -- fixture 확인 필요"
+    print(f"    옛 동작(재현): {[sorted(s) for s in _old_mirror_sets]} -- M57/M58 오탐 포함 확인")
+
+    _mirror_matches = find_idiom_matches(_mirror_fixture)
+    _new_mirror = find_matching_candidates(_mirror_fixture, idiom_matches=_mirror_matches)
+    _new_mirror_sets = {frozenset(t.name for t in g) for g in _new_mirror["current_mirror"].values()}
+    assert frozenset({"M57", "M58"}) not in _new_mirror_sets, \
+        f"gate+source 그룹핑 후에도 M57/M58이 여전히 current_mirror로 잡힘: {_new_mirror_sets}"
+    assert frozenset({"MrefA", "MrefB"}) in _new_mirror_sets, \
+        f"진짜 diode 레퍼런스 미러(MrefA/MrefB)까지 같이 사라짐(과잉 필터): {_new_mirror_sets}"
+    print(f"    새 동작: {[sorted(s) for s in _new_mirror_sets]} -- M57/M58 제외, MrefA/MrefB는 유지")
+
+    print()
+    print("  [3. M11/MN 오탐 재현 -- folded_cascode_example(), 둘 다 self-diode(role=DIODE_CONNECTED)")
+    print("  라 diff_pair의 AMPLIFYING 요구를 애초에 통과 못해야 함. inputs 선언 없으면 vin_p/vin_n도")
+    print("  이름 힌트 미매치로 BIAS 취급돼 M1/M2까지 같이 사라지므로 반드시 inputs= 선언]")
+    _fc_matches_bare = find_idiom_matches(folded_cascode_example())
+    _fc_new_bare = find_matching_candidates(folded_cascode_example(), idiom_matches=_fc_matches_bare)
+    assert _fc_new_bare["diff_pair"] == {}, \
+        f"inputs 미선언 상태에서도 diff_pair가 나오면 안 되는데 나옴(vin_p/vin_n 힌트 이슈 재확인 필요): {_fc_new_bare['diff_pair']}"
+
+    _fc_matches = find_idiom_matches(folded_cascode_example(), inputs=("vin_p", "vin_n"))
+    _fc_new = find_matching_candidates(folded_cascode_example(), idiom_matches=_fc_matches)
+    _fc_new_diffpair_sets = {frozenset(t.name for t in g) for g in _fc_new["diff_pair"].values()}
+    assert frozenset({"M11", "MN"}) not in _fc_new_diffpair_sets, \
+        f"M11/MN이 여전히 diff_pair로 잡힘: {_fc_new_diffpair_sets}"
+    assert frozenset({"M1", "M2"}) in _fc_new_diffpair_sets, \
+        f"진짜 차동쌍(M1/M2)까지 같이 사라짐(과잉 필터): {_fc_new_diffpair_sets}"
+    print(f"    inputs=vin_p,vin_n 선언 후: {[sorted(s) for s in _fc_new_diffpair_sets]} "
+          f"-- M11/MN 제외, M1/M2는 유지")
+
+    print()
+    print("  [4. 캐스코드 대칭쌍(M2a/M2b류) 복합소자 상속 -- folded_cascode의 M1/M2(확정 diff_pair)")
+    print("  위에 직접 stacked된 M5/M6를 find_stacked_matching_candidates()가 재귀적으로 찾는지.")
+    print("  M1 위엔 극성이 다른 M5(pmos)/M7(nmos)이 동시에 얹혀 있어(폴딩 노드 X 공유) 같은")
+    print("  kind로 좁히는 로직이 실제로 필요한 fixture -- 2026-08-06 실측으로 발견된 버그 재발 방지]")
+    _fc_edges = find_stack_edges(folded_cascode_example())
+    assert _fc_edges is not None
+    _fc_base_pairs = [(g[0].name, g[1].name) for g in _fc_new["diff_pair"].values()]
+    assert _fc_base_pairs == [("M1", "M2")], f"base_pairs 예상과 다름: {_fc_base_pairs}"
+    _fc_stacked = find_stacked_matching_candidates(folded_cascode_example(), _fc_base_pairs, _fc_edges)
+    _fc_stacked_sets = {frozenset(t.name for t in g) for g in _fc_stacked.values()}
+    assert frozenset({"M5", "M6"}) in _fc_stacked_sets, \
+        f"M1/M2 위의 M5/M6(둘 다 pmos)이 상속되지 않음(극성 필터 버그 재발?): {_fc_stacked_sets}"
+    assert frozenset({"M5", "M7"}) not in _fc_stacked_sets, \
+        f"극성이 다른 M7(nmos)이 M5 자리에 잘못 섞여 들어옴: {_fc_stacked_sets}"
+    print(f"    PASS: {[sorted(s) for s in _fc_stacked_sets]} -- M5/M6(같은 pmos)만 상속, "
+          f"극성 다른 M7/M8은 안 섞임")
+
+    print()
+    print("  [5. 어댑터 자체 폴백 -- gate가 전혀 없는(레거시) Transistor 목록을 주면")
+    print("  _to_analog_grammar_devs()가 전부 걸러내 devs=[]가 되고, find_idiom_matches()/")
+    print("  find_stack_edges()가 (analog-grammar 자체는 멀쩡해도) 자연스럽게 None을 반환하는지.")
+    print("  analog-grammar 미설치 상황(ImportError 경로)은 사용자 환경에 실제로 있을 때만")
+    print("  검증 가능하므로(설치를 일부러 지웠다 복원하는 건 self-test로 하기엔 위험한 파일시스템")
+    print("  조작이라 하지 않는다), 여기서는 두 어댑터가 실제로 소비하는 '입력이 비게 되는'")
+    print("  경로로 None-반환을 재현한다]")
+    _no_gate_fixture = [Transistor("Ma", "pmos", source="vdd", drain="n1"),
+                         Transistor("Mb", "pmos", source="vdd", drain="n2")]
+    assert find_idiom_matches(_no_gate_fixture) is None, \
+        "gate 없는 소자만 있는데도 find_idiom_matches()가 None이 아님"
+    assert find_stack_edges(_no_gate_fixture) is None, \
+        "gate 없는 소자만 있는데도 find_stack_edges()가 None이 아님"
+    _fallback_result = find_matching_candidates(_no_gate_fixture,
+                                                  idiom_matches=find_idiom_matches(_no_gate_fixture))
+    assert _fallback_result == {"current_mirror": {}, "diff_pair": {}}
+    print("    PASS: gate 없는 fixture -> 두 어댑터 전부 None, find_matching_candidates()는 빈 결과")
+
+    print()
+    print("  === Test 30 전체 PASS ===")

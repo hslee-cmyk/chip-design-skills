@@ -62,7 +62,8 @@ SKILL.md 핵심 원칙: **harness → 원소 함수 → (없을 때만) 새 코�
 | 상황 | 함수 | 비고 |
 |---|---|---|
 | 전류거울/차동쌍 후보를 구조적으로(gate/source 공유) 자동 탐지 | `find_matching_candidates(transistors)` | 오탐 가능 — 최종 판단은 항상 설계자 몫(§2.6 오탐 사례). **사이징 전(W 없음)에도 diff_pair 후보를 낸다** — W는 있으면 오탐 방지용 추가 필터일 뿐 필수 아니다. topology JSON 저작 단계(§10)에서도 이 함수 그대로 쓸 것, 수동으로 다시 구조 신호를 확인할 필요 없음 |
-| **"이 두 소자가 current mirror인가?"를 판단할 때** | 위 함수의 판정 기준(같은 kind + 같은 **gate net**)을 그대로 적용 | 게이트가 다르면(예: 하나는 고정 바이어스, 하나는 피드백 제어) mirror 아님 — "논문이 매칭이라 안 했다"가 아니라 게이트 공유 여부로 판단 |
+| **"이 두 소자가 current mirror인가?"를 판단할 때 — 더 엄격한 검증이 필요하면** | `find_idiom_matches(transistors)`(`analog-grammar` skill 연동, 2026-08-06)의 결과를 `find_matching_candidates(transistors, idiom_matches=...)`에 넘긴다 | gate뿐 아니라 **source까지** 같아야, 그리고 diode-connected 레퍼런스가 실제로 있어야 current_mirror 후보로 인정한다(M57/M58 실사고 — gate만 같고 source가 달라 VGS 동일이 보장 안 됐는데 매칭쌍으로 잘못 disposed됐던 사고 계기). diff_pair도 두 소자 다 role=AMPLIFYING이어야 인정(M11/MN — 둘 다 diode-connected 바이어스 소자인데 우연히 같은 source+W라 오탐됐던 사례 방지). `idiom_matches=None`(기본값)이면 옛 gate-only/source-only 판정 그대로 — 상세: `analog-grammar-integration.md` |
+| **캐스코드 대칭쌍(같은 gate, 다른 source — 예: M2a/M2b) 탐지** | `find_stack_edges(transistors)` + `find_stacked_matching_candidates(transistors, base_pairs, stack_edges)` | 위 두 함수와 별개 메커니즘("복합소자" — 이미 확정된 매칭쌍 위에 직접 stacked된 소자쌍을 재귀적으로 상속) — gate 공유 여부가 아니라 **이미 확정된 쌍 위에 얹혀 있는가**로 판단하므로 M57/M58류는 애초에 끌려오지 않는다. `base_pairs`는 `find_matching_candidates()`의 `diff_pair`/`current_mirror` 결과나 `symmetry.matching_pairs` 어느 쪽에서 시작해도 된다 |
 | stage 경계를 넘는 물리 행 병합 후보 탐지(**stack_id 배정 전에 반드시 먼저 실행**) | `find_hub_merge_candidates(transistors)` | §4.1 — stage별로 먼저 나누고 시작하면 이 탐지 자체가 누락된다 |
 | leaf 3개 이상인 병합 후보의 실현 가능성 사전 스크리닝 | `check_multi_leaf_hub_parity(n_fingers_by_leaf)` | 최종 채택 전 `build_graph()`+`check_euler_condition()`으로 반드시 재확인 |
 | 극성+finger폭 기준 자동 stack 그룹핑 | `split_into_stacks(transistors)` | `stack_id`로 회로 지식을 오버라이드 가능 |

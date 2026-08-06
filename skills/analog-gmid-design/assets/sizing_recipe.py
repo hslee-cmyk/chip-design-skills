@@ -1866,8 +1866,11 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
        (`search_gm_id_for_role()`) 순서로 나머지 소자 사이징 → `compute_metric()`.
     4. `objective`/`constraints`로 θ* 선택(grid search, 재현성/최적성 보장).
     5. 넷리스트 전체가 사이징됐으면(`assign_finger_geometry()`가 요구하는 W가 전부 있으면)
-       `assign_finger_geometry()` → `run_topology_pipeline()` → FAIL이면
-       `repair_matching_safety()`.
+       `assign_finger_geometry()` → `run_topology_pipeline_with_finger_fixup()`(euler
+       자동수정, 세션15) → FAIL이면(`lut_by_kind` 있을 때) `run_matching_safety_with_
+       finger_growth()`(matching quality 3b/3c 자동수정 — 핑거증가 L3+L4 + gm/ID 예산
+       초과 시 인접배치 완화, 세션16/17/**세션18 배선**) 또는(`lut_by_kind` 없는 구형
+       spec) 기존 `repair_matching_safety()`.
 
     `spec` 주요 키(회로마다 다름, 전부 선택이지만 해당 단계가 필요로 하면 없을 시 에러):
     `"lut_by_kind"`({"nmos":LUT,"pmos":LUT}), `"vdd"`, `"L_candidates"`/`"VDS_candidates"`/
@@ -1878,7 +1881,11 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     반환: `{"theta_star", "sizing", "metrics", "sizing_overrides", "pipeline_result",
     "audit_ok"}` — `sizing_overrides`/`pipeline_result`는 넷리스트 전체가 사이징되지 않으면
     `None`(부분 결과만 반환 — 단순 회로/미완성 선언 지원, §7.3.2 검증 (b)와 동일한 하위호환
-    사상). 모든 θ 격자점이 infeasible이면 `ValueError`.
+    사상). 모든 θ 격자점이 infeasible이면 `ValueError`. matching-safety 자동수정이 실행됐고
+    `lut_by_kind`가 있으면(세션18), `pipeline_result`에 `repaired_rows`/`repaired_audit` 외에
+    `growth_rounds`/`unresolved_pair`/`unresolved_reason`/`relaxed_pairs`(`run_matching_
+    safety_with_finger_growth()` 진단 필드 그대로)도 담긴다 — `audit_ok`가 최종 신호이고
+    이 필드들은 "왜/어떻게" 해결됐는지 보는 참고 정보다(세션16 E-3절 원칙과 동일).
 
     ⚠️ 정직한 한계(2026-07-31): diode-stack(C유형) 전류의 `solve_diode_stack_current()`
     자동 병합은 아직 없다(K_replica 면적비 theta feed는 W를 직접 설정할 뿐, KVL 전류 역산은
@@ -2315,10 +2322,46 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                                       for pair in itertools.combinations(p["names"], 2)]
             pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
                                  for pair in itertools.combinations(p["names"], 2)}
-            repaired_rows, repaired_audit = repair_matching_safety(
-                rows, matching_pairs_tuples, pair_sensitivity)
-            pipeline_result = dict(pipeline_result, repaired_rows=repaired_rows,
-                                    repaired_audit=repaired_audit)
+            # 세션18 -- matching quality(3b/3c) 자동수정도 이제 핑거증가(L3+L4, 세션16)+
+            # gm/ID 예산으로 막히면 인접배치로 완화(세션17 설계안 3번)까지 이어붙인
+            # run_matching_safety_with_finger_growth()로 승격한다 -- euler 체인이 세션15에
+            # 먼저 이렇게 승격됐던 것과 대칭(.ai/context.md 세션18 재점검에서 이 배선
+            # 누락을 발견). lut_by_kind가 없는 구형 spec은 gm/ID 재검증이 불가능하므로
+            # 기존 bare repair_matching_safety()로 폴백(완전 하위호환, 위 euler 분기와
+            # 동일 가드 재사용 -- 그 분기에서만 pipeline_result["ctx"]가 존재한다).
+            if _lut_by_kind is not None:
+                match_fix = run_matching_safety_with_finger_growth(
+                    rows, matching_pairs_tuples, pair_sensitivity, pipeline_result["ctx"],
+                    _lut_by_kind, metrics_specs, constraints,
+                    gm_id_bounds=spec.get("gm_id_bounds", (2.0, 30.0)))
+                repaired_rows, repaired_audit = match_fix["rows"], match_fix["audit"]
+                # 핑거증가가 실제로 W/n_fingers를 바꿨을 수 있으므로(위 euler 분기의
+                # _sync_finger_fixup()과 동일 이유) sizing_overrides/sizing을 최종 상태로
+                # 동기화한다 -- 안 하면 grown finger가 반영 안 된 stale 값이 instance.json
+                # 으로 흘러나간다. common-centroid 회전배치로 소자 하나가 여러 행에
+                # n_fingers 조각으로 나뉠 수 있어(세션16 F절 함정) 행별로 합산해야 정확하다.
+                final_n_fingers: dict = {}
+                for devs in repaired_rows.values():
+                    for t in devs:
+                        final_n_fingers[t.name] = final_n_fingers.get(t.name, 0) + t.n_fingers
+                for name, n in final_n_fingers.items():
+                    entry = sizing_overrides[name]
+                    if n != entry["n_fingers"]:
+                        sizing_overrides[name] = {**entry, "n_fingers": n, "w": n * entry["finger_w"]}
+                sizing = match_fix["ctx"].sized
+                metrics_result = {name: compute_metric(mspec, match_fix["ctx"])
+                                   for name, mspec in metrics_specs.items()}
+                pipeline_result = dict(
+                    pipeline_result, repaired_rows=repaired_rows, repaired_audit=repaired_audit,
+                    growth_rounds=match_fix["growth_rounds"],
+                    unresolved_pair=match_fix["unresolved_pair"],
+                    unresolved_reason=match_fix["unresolved_reason"],
+                    relaxed_pairs=match_fix["relaxed_pairs"])
+            else:
+                repaired_rows, repaired_audit = repair_matching_safety(
+                    rows, matching_pairs_tuples, pair_sensitivity)
+                pipeline_result = dict(pipeline_result, repaired_rows=repaired_rows,
+                                        repaired_audit=repaired_audit)
             audit_ok = repaired_audit.ok
 
     return {"theta_star": theta_star, "sizing": sizing, "metrics": metrics_result,
@@ -3403,10 +3446,21 @@ if __name__ == "__main__":
             f"M9b={_ofcb_result['sizing_overrides']['M9b']}, M18b={_ofcb_result['sizing_overrides']['M18b']}"
         assert _ofcb_result["sizing"]["M9b"]["W"] != _ofcb_known_sizing["M9b"]["W"], \
             "harness가 반환한 sizing(gm/ID)에 finger 조정에 따른 W 변화가 반영 안 됨"
+        # 세션18 -- matching quality(3b/3c) 자동수정도 이제 bare repair_matching_safety()가
+        # 아니라 run_matching_safety_with_finger_growth()로 승격됐다(위 audit_ok=False 분기
+        # 참고) -- growth_rounds가 실제로 채워지는지 확인해 새 배선이 이 경로에서도 실제로
+        # 개입함을 검증(이 fixture는 M4a/M3a·M4b/M3b branch composite 내부에서 n_fingers가
+        # 갈라져(growth_not_applicable) 실제 성장은 안 되지만, 시도 자체는 기록돼야 한다).
+        assert "growth_rounds" in _ofcb_result["pipeline_result"] and \
+            len(_ofcb_result["pipeline_result"]["growth_rounds"]) >= 1, \
+            f"run_matching_safety_with_finger_growth()가 개입한 흔적(growth_rounds)이 없음: " \
+            f"{_ofcb_result['pipeline_result'].get('growth_rounds')}"
         print(f"    PASS: optimize_full_circuit_budget()이 euler-blocked를 자동 해결(M9b/M18b "
-              f"n_fingers=2), sizing_overrides/sizing 둘 다 최종 상태로 갱신됨 -- "
-              f"repair_matching_safety() 호출부는 안 건드렸으므로 남은 3b/3c는 그대로 처리 "
-              f"(audit_ok={_ofcb_result['audit_ok']})")
+              f"n_fingers=2), sizing_overrides/sizing 둘 다 최종 상태로 갱신됨 -- matching "
+              f"quality(3b/3c)는 run_matching_safety_with_finger_growth()가 이어받아 처리 "
+              f"(growth_rounds={len(_ofcb_result['pipeline_result']['growth_rounds'])}건, "
+              f"unresolved_reason={_ofcb_result['pipeline_result'].get('unresolved_reason')}, "
+              f"audit_ok={_ofcb_result['audit_ok']})")
 
     print()
     print("  [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/")

@@ -6,9 +6,11 @@ import sys, json, traceback
 sys.path.insert(0, r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets")
 import numpy as np
 from sizing_recipe import SemiEmpiricalGmIdLUT, optimize_full_circuit_budget
+from stick_diagram import save_instance_json
 
 LUTFILE = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets\sky130_nfet_pfet_lut_sample.npz"
 TOPO = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets\library\current_reuse_telescopic_ota.topology.json"
+INSTANCE_OUT = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\workspaces\current-reuse-telescopic-ota-report\current_reuse_telescopic_ota.instance.json"
 
 d = np.load(LUTFILE)
 W_REF = 5e-6
@@ -47,6 +49,17 @@ try:
     print("OK -- theta_star:", result["theta_star"])
     print("audit_ok:", result["audit_ok"])
     print("metrics:", result["metrics"])
+    # 세션18 -- optimize_full_circuit_budget()은 계산까지만 하고 저장은 안 한다(순수
+    # 함수 유지, .ai/context.md 세션18 참고). instance.json 저장은 "진짜 최상위"인 이
+    # 스크립트(run_harness.py)의 몫 -- audit_ok=False여도 감사 실패 항목이 있는 상태
+    # 그대로 정직하게 저장한다(조용히 성공으로 둔갑시키지 않는다, §1.5 원칙과 동일).
+    if result["pipeline_result"] is not None:
+        save_instance_json(INSTANCE_OUT, TOPO, result["sizing"], result["pipeline_result"])
+        note = "" if result["audit_ok"] else \
+            " (audit_ok=False -- audit_row_split에 남은 FAIL 항목 그대로 저장됨)"
+        print(f"instance.json 저장: {INSTANCE_OUT}{note}")
+    else:
+        print("pipeline_result=None -- 넷리스트 전체가 사이징되지 않아 instance.json 저장 생략")
 except Exception as e:
     print(f"[FAIL] {type(e).__name__}: {e}")
     traceback.print_exc()

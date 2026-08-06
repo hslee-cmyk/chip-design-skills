@@ -36,6 +36,7 @@ SKILL.md 원칙 수정 시:
 | 표에 없는 topology/보상소자 함수 신규 유도 절차("스킵 근거 안 됨") | §1.5 본문(125행) | 절대 원칙 표 #4 요약과 동일 원칙 적용 | topology-fn-derivation-guide.md §1, topology_library.py |
 | **topology library JSON**(`library/*.topology.json`) — topology의 connectivity+matching kind+위상보정 함수 참조를 재사용 가능한 데이터로 분리, 재사이징해도 재사용(2026-07-28 신설). **layout(finger 배분/row 분할/floorplan 좌표)은 사이징 결과값이라 이 JSON에 담지 않는다** — 구현 중 실측으로 확정된 원칙(처음엔 `layout` 가이드 필드를 뒀다가 폐기) | §1.5 말미("library JSON 확인"), §6 말미(`run_topology_pipeline()`), §7 표 8번(floorplan) | - | `docs/02-design/features/analog-topology-json-library.design.md` 전체, function-selection-map.md §10, stick_diagram.py §6.9 `load_topology()`/`run_topology_pipeline()`/`save_instance_json()`, sizing_recipe.py §6.5 `run_sizing_pipeline()`/`_COMPENSATION_REGISTRY` |
 | SPICE 결과가 설계식/원문 예측과 어긋날 때의 근본원인 진단 절차 | §1 스텝5(반복/수렴) 연계 | - | topology-behavior-diagnosis-workflow.md 전체 |
+| **`find_matching_candidates()` current_mirror/diff_pair 오탐 재검증(2026-08-06, 구현 완료·미커밋)** — gate만 보던 current_mirror에 gate+source 그룹핑(`idiom_matches=`), 우연히 같은 source+W를 갖던 diff_pair에 role 필터 추가, 캐스코드 대칭쌍은 `find_stacked_matching_candidates()`(복합소자 상속)로 별도 커버 | "Cross-Skill 참조" | - | analog-grammar-integration.md 전체, stick_diagram.py §1.7a~1.7c + self-test 30 |
 
 ## Cross-Skill 참조
 
@@ -43,6 +44,7 @@ SKILL.md 원칙 수정 시:
 |------|---------|-----------|
 | Sizing 결과 behavioral 모델 사전 검증 | Cross-Skill 참조 | verilog-a |
 | AMS 검증환경 배치 | Cross-Skill 참조 | chip-verification |
+| matching 후보 오탐(current_mirror/diff_pair)의 device role 기반 재검증 | Cross-Skill 참조, analog-grammar-integration.md | analog-grammar |
 
 ## 마커 규약 (이 skill 고유 — 다른 skill과 다름)
 

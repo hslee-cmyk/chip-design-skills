@@ -286,8 +286,8 @@ diffusion 1개 행"에 그냥 적용한 예가 아니라, **레이어를 하나 
 | 요소 | 구조적 신호(자동 탐지 단서) | 왜 matching이 중요한가 | 자동 탐지 |
 |---|---|---|---|
 | **차동쌍**(입력쌍) | 같은 극성 + 같은 source(tail) net + 같은 W, gate net은 서로 다름 | 두 branch의 offset/CMRR이 W·L 불일치에 직접 비례 | ✅ `find_matching_candidates()` |
-| **전류거울**(simple/cascode/Wilson) | 같은 극성 + 같은 gate net(대개 diode-connected 쪽 gate=drain) | 미러비 오차가 바로 전류 오차로 전파 | ✅ (gate 공유만으로 탐지, cascode/Wilson 여부는 구분 안 함) |
-| **캐스코드 대칭쌍**(folded cascode M5/M6, M7/M8, M9/M10 등) | 같은 극성 + 같은 gate + **서로 다른** source/drain net(각기 다른 folding node) | 두 差동 branch의 출력 임피던스·극점 위치가 어긋나면 CMRR·PSRR 저하 | ✅ gate 공유 기준으로는 걸리지만, "캐스코드 역할"이라는 의미까지는 자동 판별 못함(§2.6 하단 참고) |
+| **전류거울**(simple/cascode/Wilson) | 같은 극성 + 같은 gate net(대개 diode-connected 쪽 gate=drain) | 미러비 오차가 바로 전류 오차로 전파 | ✅ `find_matching_candidates(transistors)`(gate 공유만으로, cascode/Wilson 여부는 구분 안 함) — **더 엄격하게**: `find_matching_candidates(transistors, idiom_matches=find_idiom_matches(transistors))`(`analog-grammar` skill 연동, 2026-08-06)를 쓰면 gate뿐 아니라 **source까지 같고, diode-connected 레퍼런스가 실제로 있어야만** 후보로 인정한다 — M57/M58 실사고(gate만 같고 source가 달라 VGS 동일 미보장인데 매칭쌍으로 오판됐던 사고) 계기, opt-in(안 넘기면 옛 동작 그대로) |
+| **캐스코드 대칭쌍**(folded cascode M5/M6, M7/M8, M9/M10 등) | 같은 극성 + 같은 gate + **서로 다른** source/drain net(각기 다른 folding node) | 두 差동 branch의 출력 임피던스·극점 위치가 어긋나면 CMRR·PSRR 저하 | ✅(옛 gate-only 판정 기준으로는 걸리지만 "캐스코드 역할"이라는 의미까지는 판별 못함) — **`idiom_matches=` 경로로 넘어가면 이 클래스는 더 이상 gate 우연 일치로 안 잡힌다** — 대신 `find_stack_edges()`+`find_stacked_matching_candidates()`(2026-08-06, "복합소자" 개념)가 이미 확정된 매칭쌍(예: M1a/M1b) 위에 직접 stacked된 소자쌍(M2a/M2b)을 재귀적으로 상속해 원인론적으로 탐지한다(gate 일치가 아니라 "확정된 쌍 위에 대칭으로 얹혀 있다"는 구조적 근거) |
 | **저항비**(R2/R1, 게인/레퍼런스 설정) | (트랜지스터 아님 — 별도 R 소자) 같은 unit resistor를 직렬/병렬로 비율만큼 배치 | 게인 오차·레퍼런스 오차가 R 비율 오차에 직접 비례 | ❌ (이 모듈은 트랜지스터 전용, R은 범위 밖) |
 | **커패시터비**(C2/C1, gain/sampling cap) | (트랜지스터 아님) 같은 unit cap을 배열 | 게인 오차(SC 회로), 샘플링 오차가 C 비율 오차에 비례 | ❌ (범위 밖) |
 | **DAC/ADC 단위소자 배열**(thermometer-coded 전류원/커패시터) | 같은 극성 + 같은 gate(전류원 배열이면) + 다수(N개) | 단위소자 불일치가 INL/DNL로 직접 나타남 — 공정 gradient에 가장 민감 | ✅(전류원이면 current_mirror로 걸림, N이 큰 경우가 특징) |
@@ -295,12 +295,22 @@ diffusion 1개 행"에 그냥 적용한 예가 아니라, **레이어를 하나 
 | **비교기/래치 cross-coupled 쌍** | 같은 극성 + 서로의 drain이 상대 gate로 교차연결(cross-coupled, gate≠source 그래프 패턴) | 오프셋이 임계전압 결정에 직접 영향 | ❌(현재 탐지기는 diff_pair/current_mirror 패턴만 봄 — cross-coupled 감지는 향후 확장) |
 | **Sampling 스위치**(S/C 회로) | 같은 극성 + 같은 W, gate가 clock net | charge injection 불일치가 샘플링 오차로 직접 전파 | 부분적(diff_pair 패턴과 구조가 겹쳐 오탐 가능) |
 
-**탐지의 한계(정직하게)**: `find_matching_candidates()`는 순수 구조 신호(gate/source net
-공유)만 본다 — 실제 self-test(§9 Test 6)에서 `M11`·`MN`(둘 다 source=gnd, 같은 W=16, 서로
-다른 gate)이 "diff_pair 후보"로 잘못 잡히는 걸 확인했다: 이 둘은 실제로는 독립된
-bias-생성용 diode-connected 소자이지 진짜 차동쌍이 아니다. 즉 이 함수가 찾은 그룹은 **후보**일
-뿐이며, 회로가 실제로 그 역할인지는 설계자가 확인해야 한다 — R/C 비율, bandgap의 면적비,
-cross-coupled 쌍은 아예 구조적으로 탐지 불가능해 `stack_id`로 직접 표시해야 한다.
+**탐지의 한계(정직하게)**: `find_matching_candidates()`는 기본값(`idiom_matches=None`)
+에서 순수 구조 신호(gate/source net 공유)만 본다 — 실제 self-test(§9 Test 6)에서
+`M11`·`MN`(둘 다 source=gnd, 같은 W=16, 서로 다른 gate)이 "diff_pair 후보"로 잘못 잡히는
+걸 확인했다: 이 둘은 실제로는 독립된 bias-생성용 diode-connected 소자이지 진짜 차동쌍이
+아니다. 즉 이 함수가 찾은 그룹은 **후보**일 뿐이며, 회로가 실제로 그 역할인지는 설계자가
+확인해야 한다 — R/C 비율, bandgap의 면적비, cross-coupled 쌍은 아예 구조적으로 탐지
+불가능해 `stack_id`로 직접 표시해야 한다.
+
+**2026-08-06 갱신**: `idiom_matches=find_idiom_matches(transistors)`를 넘기면(`analog-
+grammar` skill 연동, `analog-gmid-design/references/analog-grammar-integration.md` 참고)
+위 M11/MN 오탐은 해소된다 — `analog-grammar`가 두 소자 다 role=DIODE_CONNECTED로 판정해
+diff_pair가 요구하는 role=AMPLIFYING 조건을 애초에 통과 못하기 때문이다(self-test 30에서
+동일 fixture로 재확인). 단 이 경로는 **opt-in**이다 — `idiom_matches`를 실제로 넘기지
+않으면 이 문단 첫 단락의 한계가 그대로 남는다. 캐스코드 대칭쌍(M2a/M2b류)은 이 opt-in
+경로로 넘어가면 gate 우연 일치로는 더 이상 안 잡히므로, `find_stacked_matching_
+candidates()`(복합소자 기반 상속, 위 표 참고)를 별도로 함께 써야 한다.
 
 ## 2.7 Unit 소자 복제 — 1D interdigitation과 2D common-centroid 중 언제 무엇을 쓰는가
 

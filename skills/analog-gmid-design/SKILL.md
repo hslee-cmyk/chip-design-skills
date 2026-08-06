@@ -444,3 +444,10 @@ Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절
 
 - Sizing 결과를 behavioral 모델로 미리 검증(수렴성·연속성) → `verilog-a` skill
 - AMS 검증환경(듀얼탑, Spectre 연동)에 이 sizing 결과를 실제 회로로 배치 → `chip-verification` skill
+- `find_matching_candidates()`의 current_mirror/diff_pair 오탐(§2.6, 실사고: M57/M58 —
+  gate만 보고 source를 안 봐서 diode 체인을 진짜 매칭쌍으로 오판; M11/MN — 우연히 같은
+  source+W를 가진 무관한 소자가 diff_pair로 오판)을 device role 기반으로 재검증 →
+  `analog-grammar` skill(netlist에서 gate/source/drain 연결성만으로 role을 결정론적으로
+  도출). `find_idiom_matches()`/`find_stack_edges()`/`find_stacked_matching_candidates()`
+  로 연동 구현 완료(2026-08-06, opt-in — 안 쓰면 기존 동작 그대로). 설계 근거·역할
+  매핑표: `references/analog-grammar-integration.md`
