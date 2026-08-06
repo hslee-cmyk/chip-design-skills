@@ -5,10 +5,10 @@
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-1. **세션12~17 전부 완료** — 세션17은 아직 커밋 안 됨(다음 세션 시작 시 `git log`/
-   `git status`로 직접 재확인할 것, 세션14 교훈). 세션16 커밋: `58e608b`(크래시 수정 +
-   branch 복합 매칭), `7a41a30`(매칭 목적 핑거증가 L3+L4). 세션17 변경(`stick_diagram.py`/
-   `sizing_recipe.py`, 미커밋)은 아래 8번 참고.
+1. **세션12~17 전부 완료** — 다음 세션 시작 시 `git log`/`git status`로 직접 재확인할 것
+   (세션14 교훈). 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`
+   (매칭 목적 핑거증가 L3+L4). 세션17 1차 커밋: `4bcaafc`(재설계안 3번 완화). 세션17
+   2차(crossover 짝짓기 재작성, 아래 6번)는 커밋 여부를 이 문서 최신 상태로 재확인할 것.
 2. **세션15 A-3에서 발견한 `common_centroid_layout()` 크래시 완전히 원인 확정 + 수정
    완료**(세션16 0번) — `n_fingers<2`(예: 1)일 때 회전-최적 경로가 `count>=N`을 요구해서
    나던 크래시. `repair_matching_safety()`가 `n_rows=min(2, n_fingers)`로 낮춰 탐색
@@ -30,14 +30,14 @@
    (세션17, 아래 "세션17 결론" 참고) — `relaxed_pairs`(layout 전용 최후수단, `repair_
    matching_safety()`) + `allow_layout_relaxation`(`run_matching_safety_with_finger_
    growth()`).
-6. **⚠️ 다음 세션 최우선 — `find_min_crossover_layout()`/`_pair_odd_nodes_by_mirror()`의
-   crossover 짝짓기 우선순위 재작성**(세션16 D-1 발견, 재설계 2번, 아직 미구현) —
-   "선언된 진짜 거울쌍을 최우선으로 짝짓기"가 실제로는 매칭쌍을 갈라놓는 최악의 선택임이
-   M6 그룹 실측으로 확인됨(`probe_crossover_pairing_alternatives.py`). 이게 안 고쳐지면
-   그룹분할 자체가 결함을 안고 있다.
-7. **⚠️ 세션15 C절(그룹분할을 harness에 배선하는 것) 자체는 여전히 미배선** — 6번(crossover
-   짝짓기 우선순위)이 끝난 뒤에만 진행할 것. 세션15 C절이 남긴 원래 미해결 질문(C-2/C-3,
-   crossover 비용 표기·cell_groups 갭)도 여전히 미결.
+6. **crossover 짝짓기 우선순위 재작성 완료**(세션17 D절, 아래 "세션17 결론" E절 참고) —
+   `find_min_crossover_layout()`이 `matching_pairs`를 받으면 이제 `_select_crossover_
+   pairing()`으로 후보 완전짝짓기를 실제로 구성+채점해 matching_pairs 분할이 최소인
+   쪽을 고른다. M6 그룹 실측으로 splits=2(옛 tier1) → splits=0(신규)임을 self-test로
+   확인. `matching_pairs=None`(기존 프로덕션 경로)은 완전히 하위호환.
+7. **⚠️ 다음 세션 최우선 — 세션15 C절(그룹분할을 harness에 배선하는 것) 재개** — 6번이
+   끝났으니 이제 진행 가능. 세션15 C절이 남긴 원래 미해결 질문(C-2: crossover 성공 등급
+   표기 방식, C-3: `cell_groups`/`spine_groups` 갭)부터 다시 확인할 것.
 8. **`run_harness.py`는 세션11에 중단된 채 그대로 보류** — 세션12~17 전부 이 항목을
    안 다뤘다(아래 "세션11 — run_harness.py 최종 진단" 참고).
 
@@ -859,32 +859,82 @@ crossover 짝짓기 우선순위 수정(다음 세션 최우선, 아래 참고)�
   interdig_ok=True로 확인됨)만 다뤘다. 실제 회로에서 완화가 3b조차 못 주는 경우가 나오면
   `relaxed_pairs`의 `interdig_ok=False` 처리(호출자가 어떻게 반응할지)를 재검토할 것.
 
+## E. crossover 짝짓기 우선순위 재작성(D-1) 구현 완료 — 같은 세션17에 이어서 진행
+
+사용자가 "커밋하고 이어서 진행해"로 세션17 최우선 다음 항목(D-1)을 바로 이어 진행했다.
+
+### E-1. 왜 "완화"로는 D-1을 대체할 수 없는지 재확인
+D절(완화)과 D-1(crossover 짝짓기)은 서로 다른 문제다 — A절에서 이미 확인했듯 crossover는
+`n_fingers=1` 제약 자체를 못 풀지만, D-1은 `n_fingers` 문제와 무관하게 **crossover가
+필요한 상황에서 어디를 끊을지**의 문제라 완화 구현 후에도 그대로 유효했다.
+
+### E-2. 설계 — "탐색"이 아니라 "구성 후 채점"(세션11 원칙 재적용)
+`find_min_crossover_layout()`의 세그먼트 계산(가상 edge + `hierholzer()` + trail 분해)을
+`_build_crossover_segments(transistors, pairs)`로 뽑아내 pairs 후보별로 재사용 가능하게
+만들고, `_count_matching_pair_splits(segments, matching_pairs)`로 "선언된 matching_pairs
+중 몇 개가 서로 다른 segment로 완전히 갈라졌는지" 채점하는 함수를 신설했다. 새
+`_select_crossover_pairing()`이: (1) 기존 3단계 휴리스틱(`_pair_odd_nodes_by_mirror()`)
+결과를 기본 후보로 채점 (2) 분할=0이면 그대로 채택(전수 탐색 생략, 흔한 경우 빠르게 처리)
+(3) 분할>0이고 홀수차수 노드 수가 `_MAX_CROSSOVER_PAIRING_NODES`(=8, `(2m-1)!!` 관례상
+캡) 이하면 가능한 완전짝짓기를 `_enumerate_perfect_matchings()`로 전수 대입해 분할이
+더 적은(이상적으로 0) 후보로 교체(분할=0을 찾으면 즉시 중단). crossover_count(m-1) 자체는
+T-join 정리로 어떤 짝짓기를 쓰든 불변이므로, 이 선택은 "crossover가 몇 번 필요한가"가
+아니라 "어디서 끊기는가"만 바꾼다. `matching_pairs=None`(기존 프로덕션 hub-leaf 호출부)
+경로는 전혀 안 건드림 — 완전히 하위호환.
+
+### E-3. 실측 검증 — M6 그룹으로 D-1의 예측이 정확히 재현됨
+`probe_d1_check.py`(신설, 스크래치패드)로 실제 확인: 옛 tier1 짝짓기(`[('Vom1','Vop1'),
+('Vx','Vbias2')]`)는 segments가 `[M2b,M1b]`/`[M57,M58,M7,M6,M1a,M2a]`로 나와 M1a/M1b,
+M2a/M2b 둘 다 갈라짐(splits=2, 세션16 D-1 발견 그대로 재현). 새 `_select_crossover_
+pairing()`은 자동으로 대안(`[('Vbias2','Vom1'),('Vop1','Vx')]`)을 찾아 segments가
+`[M57,M58]`/`[M2b,M1b,M7,M6,M1a,M2a]`로 나와 splits=0(crossover는 미매칭 M57/M58
+쪽에서만) — D-1이 손으로 찾은 대안과 정확히 일치.
+
+### E-4. self-test 갱신 — Test 12.13(세션15) 재작성
+기존 assertion(`crossover_count==1`, `fallback_used==False`)은 T-join 불변량 때문에
+새 코드에서도 우연히 그대로 통과해(값 자체는 안 바뀜) 개선을 검증 못 하는 약한 테스트였다
+— splits=2(옛 tier1, 회귀 대조용으로 명시적으로 재현) → splits=0(신규)을 직접 assert하도록
+갱신, `crossover_count==1`은 "T-join 불변, 짝짓기가 바뀌어도 그대로"라는 의미로 재해석해
+유지. 텍스트 서술("node_map 우선순위(Vom1/Vop1 -> Vbias2/Vx)만으로 짝지어짐")도 이제
+사실과 다르므로 D-1 발견 내용으로 교체.
+
+### E-5. 회귀
+`PYTHONHASHSEED=0` 기준 `4bcaafc`(세션17 1차 커밋) 대비 self-test 전체 출력 diff —
+`sizing_recipe.py`는 **0줄 차이**(이 branch가 아직 어떤 harness에도 안 이어져 있어 완전
+무영향, E-6 참고), `stick_diagram.py`는 Test 12.13 섹션(의도적으로 바뀐 서술+신규
+assertion)만 다르고 나머지 전부 0줄 차이. 무회귀 확정.
+
+### E-6. 알려진 한계 / 다음 세션 참고
+- 이 변경은 `find_min_crossover_layout(matching_pairs=...)` 경로에만 영향을 준다 — 이
+  경로는 **아직 어떤 프로덕션 harness도 안 쓴다**(self-test 전용, 세션15/16부터 그랬음).
+  즉 이 수정 자체는 실제 회로 사이징 결과에 지금 당장 영향을 주지 않는다 — 다음 항목
+  (그룹분할 harness 배선)이 이 경로를 실제로 연결하는 시점부터 효과가 발생한다.
+- `_select_crossover_pairing()`의 타이브레이크(분할 개수가 같은 후보가 여럿이면 먼저
+  발견된 것 유지)는 아직 실제 다중 사례가 없어 최소 기준으로만 구현됨 — 더 나은 기준
+  (예: 물리적 거리)이 필요한 사례가 나오면 그때 근거를 갖고 추가.
+- `_MAX_CROSSOVER_PAIRING_NODES=8`(105개 후보) 이상인 그룹은 전수 탐색을 생략하고
+  휴리스틱 결과만 쓴다 — 지금까지 실제로 관찰된 그룹은 전부 4개 이하라 아직 이 한계에
+  부딪힌 사례 없음.
+
 ---
 
 ## 다음 세션 작업 순서 (권장, 각 단계 사용자 승인 필수)
 
-1. **⚠️ 최우선 — `find_min_crossover_layout()`/`_pair_odd_nodes_by_mirror()`의 crossover
-   짝짓기 우선순위 재작성**(세션16 G절 2번, D-1 발견 근거, 세션17 A절에서 "완화로 대체
-   불가능함"을 재확인해 여전히 필요) — "선언된 매칭쌍을 직접 짝짓는 것"을 최우선이 아니라
-   최후수단으로 바꿀 것(먼저 미매칭/허브 노드끼리 짝지어 매칭쌍이 안 갈라지는 짝짓기를
-   찾고, 그게 안 되면 그때만 매칭쌍을 직접 절단). M6 그룹으로 이미 검증된 대안 짝짓기
-   (`probe_crossover_pairing_alternatives.py`)가 있으니 그걸 일반화할 것 — 여러 회로에
-   영향을 주는 엔진 변경이라 사전 승인 원칙 그대로.
-2. 1번이 끝난 뒤에야 **세션15 C절(그룹분할 harness 배선) 재개** — C-2(crossover 성공
-   등급을 어떻게 표현할지 — `group_splits` 필드 vs 다른 방식)와 C-3(`cell_groups`/
-   `spine_groups` 갭을 지금 막을지 vs 미룰지) 두 질문부터 다시 확인. 답이 나오면 C-1
-   설계(row `stack_id`를 `f"{row}_seg{i}"`로 재배정)대로 `run_topology_pipeline_with_
-   finger_fixup()`을 실제로 고칠 것. **주의**: 지금 상태로 배선하면 1번이 안 고쳐진
-   crossover 우선순위를 그대로 harness에 심게 되니, 반드시 1번 이후에 진행할 것.
-3. `run_harness.py` 재실행 전략 논의(세션11 A절 — 그리드 축소 or 다른 최적화 방식) — 1~2번이
+1. **⚠️ 최우선 — 세션15 C절(그룹분할 harness 배선) 재개** — crossover 짝짓기 우선순위가
+   이제 고쳐졌으니(위 E절) 안전하게 진행 가능. C-2(crossover 성공 등급을 어떻게 표현할지
+   — `group_splits` 필드 vs 다른 방식)와 C-3(`cell_groups`/`spine_groups` 갭을 지금
+   막을지 vs 미룰지) 두 질문부터 다시 확인. 답이 나오면 C-1 설계(row `stack_id`를
+   `f"{row}_seg{i}"`로 재배정)대로 `run_topology_pipeline_with_finger_fixup()`을 실제로
+   고칠 것 — 여러 회로에 영향을 주는 엔진 변경이라 사전 승인 원칙 그대로.
+2. `run_harness.py` 재실행 전략 논의(세션11 A절 — 그리드 축소 or 다른 최적화 방식) — 1번이
    끝나면 이 새 체인들이 실전에서 어떻게 동작하는지 end-to-end로 확인할 좋은 기회.
-4. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
+3. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
    `current_reuse_telescopic_ota`) — 필요해지면 사람이 직접 사슬 추적해 확인.
-5. GBW 재검증 확장(범위 밖으로 미룸, 세션13 결론 D절) — 어느 topology.json이든
+4. GBW 재검증 확장(범위 밖으로 미룸, 세션13 결론 D절) — 어느 topology.json이든
    `constraints`에 GBW를 실제로 선언하는 회로가 생기면 그때 착수.
-6. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
+5. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
    이어가기.
-7. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
+6. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
    `"dual"` transform 오탐 개선 — 손 안 댐.
 
 ---
@@ -911,17 +961,45 @@ crossover 짝짓기 우선순위 수정(다음 세션 최우선, 아래 참고)�
     확장 안 하고 옆에 새 함수(`suggest_pair_finger_adjustments`)로 분리**(개별 소자
     조정이 필요한 기존 호출부를 건드리지 않기 위해).
   - `find_min_crossover_layout(transistors, matching_pairs=None)`(1857행 부근) —
-    **세션15에 확장 완료**(node_map 기반 그룹분할, 위 세션15 B절). `matching_pairs=None`
-    (기본값)이면 기존 hub-leaf 사전조건+순서대로 짝짓기 완전히 그대로(하위호환, 기존
-    프로덕션 호출부는 이 경로). 주면 hub-leaf 제약을 풀고 아래 두 헬퍼로 일반 그룹 지원.
-    **⚠️ 아직 harness에 안 이어짐**(세션15 C절, 다음 세션 최우선 — 위 "지금 상태" 4번).
+    **세션15에 확장**(node_map 기반 그룹분할, 위 세션15 B절), **세션17에 짝짓기 선택
+    방식 재작성**(아래 참고). `matching_pairs=None`(기본값)이면 기존 hub-leaf
+    사전조건+순서대로 짝짓기 완전히 그대로(하위호환, 기존 프로덕션 호출부는 이 경로).
+    주면 hub-leaf 제약을 풀고 `_select_crossover_pairing()`(세션17)이 아래 헬퍼들로
+    matching_pairs 분할을 최소화하는 짝짓기를 고른다.
+    **⚠️ 아직 harness에 안 이어짐**(세션15 C절, 다음 세션 최우선 — 위 "지금 상태" 7번,
+    E-6절 참고 — 이 함수 자체는 다 고쳐졌지만 아직 실제 사이징 결과에 영향 없음).
   - `_mirror_node_map_from_pairs(matching_pairs, transistors)`(1765행 부근) —
-    **세션15 신설**, matching_pairs+connectivity에서 net 레벨 거울 대응 역산.
+    **세션15 신설**, matching_pairs+connectivity에서 net 레벨 거울 대응 역산. 세션17
+    미변경.
   - `_pair_odd_nodes_by_mirror(odd_nodes, node_map)`(1798행 부근) — **세션15 신설**,
-    3단계 우선순위 짝짓기(거울쌍 → 허브/orphan → 폴백).
-  - Test 12.13(Test 12.12 직후, self-test 섹션) — **세션15 신설**, M6 그룹 실제
-    connectivity 재현 + node_map 역산 단위 확인 + 폴백 발동 확인 + `matching_pairs=None`
-    회귀 대조.
+    3단계 우선순위 짝짓기(거울쌍 → 허브/orphan → 폴백). **세션17부터 최종 결과가 아니라
+    `_select_crossover_pairing()`의 "기본 후보" 하나로만 쓰인다**(함수 자체는 미변경,
+    호출 방식만 바뀜) — 세션16 D-1이 밝혔듯 이 휴리스틱의 tier1(거울쌍 최우선 절단)이
+    matching_pairs를 갈라놓는 경우가 있어, 이제 실제로 구성+채점해서 더 나은 후보가
+    있으면 교체한다.
+  - `_build_crossover_segments(transistors, pairs)`(1851행 부근, `find_min_crossover_
+    layout()` 직전) — **세션17 신설**. 옛 `find_min_crossover_layout()`에 인라인으로
+    있던 "가상 edge 추가 + hierholzer + trail 분해" 계산을 뽑아낸 순수 함수(매번
+    `build_graph()`를 새로 불러 결정적) — pairs 후보별로 재사용할 수 있게 함.
+  - `_count_matching_pair_splits(segments, matching_pairs)`(`_build_crossover_
+    segments()` 직후) — **세션17 신설**. segments 중 선언된 matching_pairs가 완전히
+    다른 segment로 갈라진 개수를 센다(채점 기준). 최소 한 segment라도 공유하면 "안
+    갈라짐"으로 봄(보수적 기준).
+  - `_MAX_CROSSOVER_PAIRING_NODES=8` + `_enumerate_perfect_matchings(nodes)`
+    (`_count_matching_pair_splits()` 직후) — **세션17 신설**. `(2m-1)!!`개 완전짝짓기를
+    재귀로 생성(8노드=105개 상한, 다른 조합탐색 캡과 동일 관례).
+  - `_select_crossover_pairing(odd_nodes, node_map, transistors, matching_pairs)`
+    (`_enumerate_perfect_matchings()` 직후) — **세션17 신설**(세션16 D-1 발견의 일반화,
+    "구성 후 검증" 원칙). `_pair_odd_nodes_by_mirror()`의 결과를 기본 후보로 채점, 분할
+    >0이고 홀수 노드 수가 캡 이하면 `_enumerate_perfect_matchings()`로 전수 대입해 분할이
+    더 적은 후보로 교체(분할=0을 찾으면 즉시 중단). `crossover_count`(m-1) 자체는
+    T-join 정리로 불변 — 이 선택은 "어디서 끊기는가"만 바꾼다.
+  - Test 12.13(Test 12.12 직후, self-test 섹션) — **세션15 신설, 세션17 재작성**. M6
+    그룹 실제 connectivity 재현 + node_map 역산 단위 확인 + 폴백 발동 확인 +
+    `matching_pairs=None` 회귀 대조는 그대로 유지하되, 핵심 assertion을 옛 tier1
+    짝짓기(splits=2, 회귀 대조로 명시적 재현) → 신규 짝짓기(splits=0)로 교체 — 세션15
+    당시 assertion(`crossover_count==1`/`fallback_used==False`)은 T-join 불변량 때문에
+    개선 여부와 무관하게 항상 통과하는 약한 테스트였음(세션17에 발견).
   - `build_graph()`(1631행 부근)/`hierholzer()`(1721행 부근) — 여전히 완전히
     matching-blind(세션11/12 미변경, mirror_symmetric_trail이 우회해서 감쌈).
   - `INTERDIGITATION_PATTERNS`/`COMMON_CENTROID_PATTERNS`(86~119행), `check_mirror_
@@ -1068,8 +1146,10 @@ crossover 짝짓기 우선순위 수정(다음 세션 최우선, 아래 참고)�
 - `workspaces/current-reuse-telescopic-ota-report/probe_crossover_pairing_alternatives.py`
   — **세션16 신설**, M6 그룹의 4개 홀수차수 노드에 대해 가능한 3가지 완전짝짓기를 전수
   대입해 각각 매칭쌍이 갈라지는지 확인(세션16 D-1절 핵심 근거 — B-3 tier1 우선순위가
-  최악의 선택이었음을 발견). `_pair_odd_nodes_by_mirror()` 우선순위를 재작성할 때(다음
-  세션 작업 순서 2번) 재사용 가능.
+  최악의 선택이었음을 발견).
+- `workspaces/current-reuse-telescopic-ota-report/probe_d1_verify.py` — **세션17 신설**,
+  위 스크립트가 손으로 확인한 D-1 발견(splits=2)을 세션17 `_select_crossover_pairing()`
+  구현이 실제로 splits=0으로 고치는지 자동 로직으로 재확인(세션17 E-3절 근거 스크립트).
 
 ## 참고 — 사용자 협업 메모리 (자동 메모리 시스템에 저장됨, 요약만)
 

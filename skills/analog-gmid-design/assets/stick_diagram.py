@@ -1848,6 +1848,134 @@ def _pair_odd_nodes_by_mirror(odd_nodes: list, node_map: dict) -> tuple:
     return pairs, fallback_used
 
 
+def _build_crossover_segments(transistors: list, pairs: list) -> list:
+    """`pairs`(홀수차수 노드 완전짝짓기)로 가상 edge를 추가해 오일러 회로를 만들고
+    `hierholzer()`로 계산한 뒤, 가상 edge가 나온 지점마다 끊어서 m개의 실제 trail
+    (segments)로 분해한다 -- `find_min_crossover_layout()`의 핵심 계산이었는데,
+    **세션17**에 pairs 후보별로 재사용할 수 있도록 뽑아냈다(`_select_crossover_pairing()`이
+    후보 채점에 쓴다). `transistors`로 매번 `build_graph()`를 새로 부르므로(순수 함수라
+    결정적) 호출자가 그래프를 미리 mutate해둘 필요가 없다."""
+    g = build_graph(transistors)
+    for k, (u, w) in enumerate(pairs):
+        edge_id = f"__crossover_virtual__{k}"
+        g.edges[edge_id] = ("__virtual__", u, w)
+        g.adjacency[u].append((edge_id, w))
+        g.adjacency[w].append((edge_id, u))
+    verdict2 = check_euler_condition(g)
+    assert verdict2.kind == "circuit", (
+        f"가상 edge로 홀수차수 전부 짝지었는데도 circuit이 안 됐다(내부 로직 오류): {verdict2}"
+    )
+    node_seq, tr_seq = hierholzer(g, verdict2.start)
+
+    # 가상 edge 중 첫 번째가 나온 바로 다음 지점부터 시작하도록 순환을 재정렬 --
+    # 이러면 "마지막 가상 edge 이후 ~ 배열 끝"과 "배열 시작 ~ 첫 가상 edge 이전"처럼
+    # 순환 경계에 걸쳐 갈라지는 실제 trail이 생기지 않는다.
+    virtual_positions = [i for i, name in enumerate(tr_seq) if name == "__virtual__"]
+    rotate_at = virtual_positions[0] + 1
+    tr_seq = tr_seq[rotate_at:] + tr_seq[:rotate_at]
+    node_seq = node_seq[rotate_at:] + node_seq[1:rotate_at + 1]
+
+    segments = []
+    cur_tr, cur_nodes = [], [node_seq[0]]
+    for i, name in enumerate(tr_seq):
+        if name == "__virtual__":
+            if cur_tr:
+                segments.append({"transistor_sequence": cur_tr, "node_sequence": cur_nodes})
+            cur_tr, cur_nodes = [], [node_seq[i + 1]]
+        else:
+            cur_tr.append(name)
+            cur_nodes.append(node_seq[i + 1])
+    if cur_tr:
+        segments.append({"transistor_sequence": cur_tr, "node_sequence": cur_nodes})
+
+    total_real = sum(len(s["transistor_sequence"]) for s in segments)
+    expected_total = sum(t.n_fingers for t in transistors)
+    assert total_real == expected_total, (
+        f"trail 분해 후 실제 finger 총합({total_real})이 입력 총합({expected_total})과 "
+        f"다르다(내부 로직 오류)"
+    )
+    return segments
+
+
+def _count_matching_pair_splits(segments: list, matching_pairs: list) -> int:
+    """`segments`(각 `{"transistor_sequence":[...]}`)에서 선언된 `matching_pairs` 중 두
+    소자가 **완전히 서로 다른** segment에만 걸쳐 있는(=crossover로 물리적으로 갈라진) 개수를
+    센다(세션17) -- 세션16 D-1에서 확인된 문제("선언된 진짜 거울쌍을 최우선으로 짝짓기"가
+    실제로는 매칭쌍을 갈라놓는 최악의 선택이었던 M6 그룹 사례)를 정량화한 채점 기준.
+    두 소자가 최소 한 segment라도 공유하면(n_fingers>1이라 여러 segment에 걸칠 수 있음)
+    "완전히 갈라진" 것으로 안 본다 -- 부분적으로라도 같이 있는 게 아예 갈라진 것보다 낫다는
+    보수적 기준, 지금까지 실제로 관찰된 사례(전부 n_fingers=1)에서는 이 구분이 결과에
+    영향을 주지 않는다."""
+    seg_of: dict = {}
+    for i, seg in enumerate(segments):
+        for name in seg["transistor_sequence"]:
+            seg_of.setdefault(name, set()).add(i)
+    split = 0
+    for a, b in matching_pairs:
+        segs_a, segs_b = seg_of.get(a, set()), seg_of.get(b, set())
+        if segs_a and segs_b and segs_a.isdisjoint(segs_b):
+            split += 1
+    return split
+
+
+_MAX_CROSSOVER_PAIRING_NODES = 8  # (2m-1)!! -- m=4(8노드)면 105후보, m=5(10노드)면 945로
+# 급증한다 -- 다른 조합 탐색(`_MAX_MIRROR_TRAIL_COMBO_PAIRS` 등)과 동일한 관례로 8에서 캡.
+
+
+def _enumerate_perfect_matchings(nodes: list):
+    """`nodes`(짝수 개)의 가능한 모든 완전짝짓기를 생성한다(재귀, `(2m-1)!!`개) --
+    `_select_crossover_pairing()`이 후보 전수 대입에 쓴다(세션17)."""
+    if not nodes:
+        yield []
+        return
+    first, rest = nodes[0], nodes[1:]
+    for i in range(len(rest)):
+        remaining = rest[:i] + rest[i + 1:]
+        for sub in _enumerate_perfect_matchings(remaining):
+            yield [(first, rest[i])] + sub
+
+
+def _select_crossover_pairing(odd_nodes: list, node_map: dict, transistors: list,
+                               matching_pairs: list) -> tuple:
+    """**세션17** -- 세션16 D-1 발견(`_pair_odd_nodes_by_mirror()`의 tier1 "선언된 진짜
+    거울쌍을 최우선으로 짝짓기"가 M6 그룹 실측에서 실제로는 matching_pairs를 갈라놓는
+    최악의 선택이었음, `probe_crossover_pairing_alternatives.py`)을 일반화한다.
+
+    "그럴듯한 절단점"을 손으로 하나 고르는 대신, 가능한 완전짝짓기 후보를 실제로
+    `_build_crossover_segments()`로 구성해보고 `_count_matching_pair_splits()`로
+    matching_pairs가 몇 개나 갈라지는지 직접 채점한다(세션11부터의 "탐색 대신 구성 후
+    검증" 원칙 그대로) -- crossover_count(m-1) 자체는 T-join 정리로 어떤 짝짓기를
+    쓰든 불변이므로(위 `find_min_crossover_layout()` docstring), 짝짓기 선택은 오직
+    "어디서 갈라지는가"만 바꾼다.
+
+    `_pair_odd_nodes_by_mirror()`(기존 3단계 휴리스틱)의 결과를 기본 후보로 채점하고,
+    이미 분할=0이면(더 나아질 여지가 없음) 그대로 채택해 전수 탐색을 생략한다(흔한 경우를
+    빠르게 처리). 분할>0이고 `len(odd_nodes)<=_MAX_CROSSOVER_PAIRING_NODES`면 가능한
+    완전짝짓기 전부를 전수 대입해 분할 개수가 더 적은 후보를 찾으면 채택(분할=0을 찾으면
+    즉시 중단). 동점이면 먼저 발견된 후보를 유지한다(이 이상의 타이브레이크 근거는 아직
+    없음 -- 실제 다중 사례가 나오면 근거를 갖고 추가). `len(odd_nodes)`가 캡을 넘으면
+    전수 탐색을 생략하고 휴리스틱 결과만 쓴다(정직한 한계).
+
+    반환: `(pairs, segments, fallback_used, search_skipped)`."""
+    heuristic_pairs, fallback_used = _pair_odd_nodes_by_mirror(odd_nodes, node_map)
+    heuristic_segments = _build_crossover_segments(transistors, heuristic_pairs)
+    heuristic_score = _count_matching_pair_splits(heuristic_segments, matching_pairs)
+
+    search_skipped = len(odd_nodes) > _MAX_CROSSOVER_PAIRING_NODES
+    if heuristic_score == 0 or search_skipped:
+        return heuristic_pairs, heuristic_segments, fallback_used, search_skipped
+
+    best_pairs, best_segments, best_score = heuristic_pairs, heuristic_segments, heuristic_score
+    for candidate in _enumerate_perfect_matchings(list(odd_nodes)):
+        segments = _build_crossover_segments(transistors, candidate)
+        score = _count_matching_pair_splits(segments, matching_pairs)
+        if score < best_score:
+            best_pairs, best_segments, best_score = candidate, segments, score
+            if best_score == 0:
+                break
+    return best_pairs, best_segments, fallback_used, search_skipped
+
+
 def find_min_crossover_layout(transistors: list, matching_pairs: list | None = None) -> dict:
     """N개(N>=1) 소자가 전부 같은 hub_net을 공유하고 서로 다른 leaf로 가는 hub-leaf
     구조를 **최소 개수의 crossover routing**(열 사이를 metal+via로 건너뛰어 연결하는
@@ -1880,9 +2008,20 @@ def find_min_crossover_layout(transistors: list, matching_pairs: list | None = N
     `_build_rows_from_shares_with_crossover()`/`_common_centroid_nway_search()`는
     전부 이 경로). `matching_pairs`를 주면(2-tuple 이름 쌍 목록) hub-leaf 제약을 풀고
     **일반 그룹**(M3a/M6류, hub-leaf가 아닌 임의의 matching_pairs 구조)을 지원한다 —
-    `_mirror_node_map_from_pairs()`로 net 거울 대응을 역산해 `_pair_odd_nodes_by_
-    mirror()`로 짝짓는다(순서대로 임의 짝짓기 대신 대칭 구조를 존중하는 짝짓기,
-    `.ai/context.md` 세션15 M6 그룹 설계 논의 참고).
+    `_mirror_node_map_from_pairs()`로 net 거울 대응을 역산해 **세션17**
+    `_select_crossover_pairing()`으로 짝짓는다(아래 참고).
+
+    **세션17 갱신 — 짝짓기가 이제 "구성 후 검증"이다**: 세션15가 도입한 3단계 휴리스틱
+    (`_pair_odd_nodes_by_mirror()`, "선언된 진짜 거울쌍을 최우선으로 짝짓기")은 그래프
+    대칭 관점에서는 그럴듯했지만, 세션16 D-1에서 `current_reuse_telescopic_ota`의 M6
+    그룹 실측으로 **실제로는 matching_pairs를 갈라놓는 최악의 선택**이었음이 드러났다
+    (물리적 무게중심 대칭(3c)이 갈라지는 것과 그래프 레벨 대칭은 다른 개념 — 세션16 D-2).
+    `_select_crossover_pairing()`은 이 휴리스틱을 기본 후보로 삼되, 실제로
+    `_build_crossover_segments()`로 구성해 matching_pairs가 몇 개나 갈라지는지
+    (`_count_matching_pair_splits()`) 채점하고, 분할이 있으면(그리고 홀수 노드 수가
+    `_MAX_CROSSOVER_PAIRING_NODES` 이하면) 가능한 다른 완전짝짓기를 전수 대입해 분할이
+    더 적은(이상적으로 0인) 후보로 교체한다 — crossover_count(m-1) 자체는 T-join 정리로
+    어떤 짝짓기를 쓰든 불변이므로, 이 선택은 오직 "어디서 갈라지는가"만 바꾼다.
 
     **입력**: `matching_pairs=None`이면 `transistors`(전부 같은 `source`=hub 공유,
     `drain`은 서로 달라야 함). `matching_pairs`가 있으면 이 제약 없음.
@@ -1918,48 +2057,12 @@ def find_min_crossover_layout(transistors: list, matching_pairs: list | None = N
     if matching_pairs is None:
         pairs = [(odd[i], odd[i + 1]) for i in range(0, len(odd), 2)]
         fallback_used = None
+        segments = _build_crossover_segments(transistors, pairs)
     else:
         node_map = _mirror_node_map_from_pairs(matching_pairs, transistors)
-        pairs, fallback_used = _pair_odd_nodes_by_mirror(odd, node_map)
-    for k, (u, w) in enumerate(pairs):
-        edge_id = f"__crossover_virtual__{k}"
-        g.edges[edge_id] = ("__virtual__", u, w)
-        g.adjacency[u].append((edge_id, w))
-        g.adjacency[w].append((edge_id, u))
-    verdict2 = check_euler_condition(g)
-    assert verdict2.kind == "circuit", (
-        f"가상 edge로 홀수차수 전부 짝지었는데도 circuit이 안 됐다(내부 로직 오류): {verdict2}"
-    )
-    node_seq, tr_seq = hierholzer(g, verdict2.start)
+        pairs, segments, fallback_used, _search_skipped = _select_crossover_pairing(
+            odd, node_map, transistors, matching_pairs)
 
-    # 가상 edge 중 첫 번째가 나온 바로 다음 지점부터 시작하도록 순환을 재정렬 —
-    # 이러면 "마지막 가상 edge 이후 ~ 배열 끝"과 "배열 시작 ~ 첫 가상 edge 이전"처럼
-    # 순환 경계에 걸쳐 갈라지는 실제 trail이 생기지 않는다(양쪽 다 실제로는 하나로
-    # 이어진 trail인데 인덱스만 둘로 쪼개져 보이는 것을 방지).
-    virtual_positions = [i for i, name in enumerate(tr_seq) if name == "__virtual__"]
-    rotate_at = virtual_positions[0] + 1
-    tr_seq = tr_seq[rotate_at:] + tr_seq[:rotate_at]
-    node_seq = node_seq[rotate_at:] + node_seq[1:rotate_at + 1]
-
-    segments = []
-    cur_tr, cur_nodes = [], [node_seq[0]]
-    for i, name in enumerate(tr_seq):
-        if name == "__virtual__":
-            if cur_tr:
-                segments.append({"transistor_sequence": cur_tr, "node_sequence": cur_nodes})
-            cur_tr, cur_nodes = [], [node_seq[i + 1]]
-        else:
-            cur_tr.append(name)
-            cur_nodes.append(node_seq[i + 1])
-    if cur_tr:
-        segments.append({"transistor_sequence": cur_tr, "node_sequence": cur_nodes})
-
-    total_real = sum(len(s["transistor_sequence"]) for s in segments)
-    expected_total = sum(t.n_fingers for t in transistors)
-    assert total_real == expected_total, (
-        f"trail 분해 후 실제 finger 총합({total_real})이 입력 총합({expected_total})과 "
-        f"다르다(내부 로직 오류)"
-    )
     return {"segments": segments, "crossover_count": len(segments) - 1, "odd_nodes": odd,
             "node_pairing_fallback_used": fallback_used}
 
@@ -5189,11 +5292,15 @@ if __name__ == "__main__":
 
     print()
     print("=== Test 12.13: find_min_crossover_layout() matching_pairs 확장(세션15) —")
-    print("  node_map 기반 짝짓기로 hub-leaf 아닌 일반 그룹도 지원 ===")
+    print("  node_map 기반 짝짓기로 hub-leaf 아닌 일반 그룹도 지원, 세션17에 짝짓기 선택")
+    print("  방식 자체가 재작성됨(아래) ===")
     print("  [실전: current_reuse_telescopic_ota.topology.json M6 그룹(8소자) — 핑거조정")
     print("  으로는 절대 못 푸는 실제 사례(세션15 probe로 확인, .ai/context.md 참고).")
-    print("  node_map 우선 짝짓기가 tier1(Vom1/Vop1)+tier2(Vbias2/Vx)로 fallback 없이")
-    print("  crossover=1을 찾는지 확인]")
+    print("  ⚠️ 세션16 D-1에서 이 사례의 tier1 짝짓기(Vom1/Vop1 직접)가 실제로는 matching_")
+    print("  pairs(M1a/M1b, M2a/M2b)를 서로 다른 segment로 갈라놓는 최악의 선택이었음이")
+    print("  드러났다(splits=2, probe_crossover_pairing_alternatives.py) — 세션17")
+    print("  _select_crossover_pairing()이 대안(Vbias2/Vom1 + Vop1/Vx, crossover는 미매칭")
+    print("  M57/M58 쪽에서만)으로 자동 교체해 splits=0을 달성하는지 확인]")
     import os as _os1213
     _lib1213 = _os1213.path.join(_os1213.path.dirname(_os1213.path.abspath(__file__)), "library")
     _m6_trs, _m6_meta = load_topology(
@@ -5214,6 +5321,20 @@ if __name__ == "__main__":
     print(f"    baseline odd_nodes({len(_m6_odd)}): {_m6_odd}")
     assert len(_m6_odd) == 4, f"baseline 홀수차수가 4개가 아님(사례 자체가 바뀜): {_m6_odd}"
 
+    # 세션17 -- 옛 tier1 짝짓기(Vom1/Vop1)로 구성했을 때 실제로 splits=2였는지 먼저
+    # 확인한다(비교 기준선, D-1 발견을 이 self-test 안에서도 재현).
+    _m6_node_map_early = _mirror_node_map_from_pairs(_m6_inside_pairs, _m6_group_trs)
+    _m6_tier1_pairs, _ = _pair_odd_nodes_by_mirror(_m6_odd, _m6_node_map_early)
+    _m6_tier1_segments = _build_crossover_segments(_m6_group_trs, _m6_tier1_pairs)
+    _m6_tier1_splits = _count_matching_pair_splits(_m6_tier1_segments, _m6_inside_pairs)
+    assert _m6_tier1_splits == 2, (
+        f"D-1 재현 실패 -- 옛 tier1 짝짓기({_m6_tier1_pairs})가 여전히 matching_pairs를 "
+        f"안 갈라놓는다면(splits={_m6_tier1_splits}) 이 회귀 대조 자체가 틀렸을 수 있으니 "
+        f"topology.json이 바뀌었는지부터 확인할 것"
+    )
+    print(f"    (회귀 대조: 옛 tier1 짝짓기({_m6_tier1_pairs})는 splits={_m6_tier1_splits} -- "
+          f"세션16 D-1 재현)")
+
     _m6_result = find_min_crossover_layout(_m6_group_trs, _m6_inside_pairs)
     print(f"    crossover_count={_m6_result['crossover_count']}, "
           f"node_pairing_fallback_used={_m6_result['node_pairing_fallback_used']}")
@@ -5224,8 +5345,15 @@ if __name__ == "__main__":
     _m6_total = sum(len(s["transistor_sequence"]) for s in _m6_result["segments"])
     assert _m6_total == len(_m6_group_trs), \
         f"trail 분해 후 소자 총합이 안 맞음: {_m6_total} != {len(_m6_group_trs)}"
-    print(f"    PASS: crossover=1(m=2), fallback 없이 node_map 우선순위(Vom1/Vop1 -> "
-          f"Vbias2/Vx)만으로 짝지어짐, 소자 {len(_m6_group_trs)}개 전부 보존")
+    _m6_final_splits = _count_matching_pair_splits(_m6_result["segments"], _m6_inside_pairs)
+    assert _m6_final_splits == 0, (
+        f"세션17 재작성의 핵심 목표(matching_pairs를 안 갈라놓기)가 실패함 -- "
+        f"splits={_m6_final_splits}, segments={_m6_result['segments']}"
+    )
+    print(f"    PASS: crossover=1(m=2) 그대로(T-join 불변, 세션16 tier1과 동일), 하지만 "
+          f"splits=2(옛 tier1) -> splits=0(세션17 _select_crossover_pairing)으로 개선 -- "
+          f"M1a/M1b/M2a/M2b가 이제 같은 segment에 유지되고 crossover는 미매칭 M57/M58 "
+          f"쪽에서만 발생, 소자 {len(_m6_group_trs)}개 전부 보존")
 
     print("  [node_map 역산 단위 확인 -- M2a/M2b가 서로 공유 끝이 없어도 Vom1<->Vop1이")
     print("  바로 나오는지(체인 전이 없이 규칙 자체로 유도됨을 확인)]")
