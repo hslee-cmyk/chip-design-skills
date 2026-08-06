@@ -1612,7 +1612,8 @@ from stick_diagram import (Transistor, load_topology, propagate_topology_forced_
                             kcl_series_union, geometry_colocation_union,
                             assign_finger_geometry, run_topology_pipeline,
                             repair_matching_safety, split_into_stacks,
-                            suggest_pair_finger_adjustments, PairAdjustmentSuggestion)
+                            suggest_pair_finger_adjustments, PairAdjustmentSuggestion,
+                            _branch_composite_pair, _failing_required_pairs)
 
 
 @dataclass
@@ -2525,6 +2526,171 @@ def _sync_finger_fixup(overrides: dict, ctx: SizingContext, fix: dict,
     return new_overrides, _dc_replace(ctx, sized=new_sized)
 
 
+# ---------------------------------------------------------------------------
+# 6.11) 매칭 목적 핑거증가 (세션16) — repair_matching_safety()가 branch 복합 매칭으로도
+#       못 푸는 3c(common-centroid) 실패는 대부분 n_fingers가 너무 작아서(예: n_fingers=1)
+#       common_centroid_layout()의 회전-최적 경로가 기하학적으로 dx<=0.5를 달성할 수 없기
+#       때문이다(세션16 실측: n_fingers=1이면 최선이 dx=1.0, n_fingers=2부터 residual=0.0
+#       완벽 달성). L3(euler용 suggest_pair_finger_adjustments())와 달리 이건 "홀수차수를
+#       가장 많이 개선하는 후보를 랭킹"할 필요가 없다 -- 필요한 delta가 정확히 하나로
+#       정해져 있다(min_fingers까지 부족한 만큼).
+# ---------------------------------------------------------------------------
+
+def suggest_matching_finger_growth(names: tuple, transistors: list, min_fingers: int = 2) -> dict | None:
+    """`names`(매칭쌍(a,b) 또는 branch 복합 매칭의 4소자(hub_a,leaf_a,hub_b,leaf_b) 전체 --
+    전부 `n_fingers`가 같아야 함, 이미 그렇다는 게 `_branch_composite_pair()`에서 보장됨)를
+    `min_fingers`까지 동시에 키우는 delta를 계산한다. `names` 내부 `n_fingers`가 이미
+    다르면(호출자 실수) 또는 이미 `min_fingers` 이상이면(다른 이유로 3c가 실패한 것이라
+    이 함수 책임 밖) `None`.
+
+    반환: 성공하면 `{"names", "delta_fingers", "note"}`, 아니면 `None`."""
+    by_name = {t.name: t for t in transistors}
+    n_values = {by_name[n].n_fingers for n in names}
+    if len(n_values) != 1:
+        return None
+    current = n_values.pop()
+    delta = min_fingers - current
+    if delta <= 0:
+        return None
+    return {"names": names, "delta_fingers": delta,
+            "note": f"common-centroid 회전-최적 경로(residual=0)를 위해 "
+                    f"n_fingers {current}->{min_fingers}"}
+
+
+def apply_and_revalidate_matching_finger_growth(
+        names: tuple, transistors: list, ctx: SizingContext, lut_by_kind: dict,
+        metrics_specs: dict, constraints: list, gm_id_bounds: tuple = (2.0, 30.0),
+        min_fingers: int = 2) -> dict:
+    """`suggest_matching_finger_growth()`가 계산한 단 하나의 후보를 `revalidate_finger_
+    override()`(L4)로 재검증해 gm/ID 스펙을 깨지 않으면 적용한다 -- `apply_and_revalidate_
+    pair_adjustment()`(euler용)와 같은 L3+L4 패턴이지만, 후보가 랭킹된 여러 개가 아니라
+    "정확히 필요한 만큼" 하나뿐이라 재시도 루프가 없다.
+
+    반환: `{"applied": bool, "growth": dict|None, "transistors": list[Transistor],
+    "revalidation": dict|None}` -- `applied=False`인 이유는 `growth is None`(성장 불필요/
+    책임 밖) 또는 `revalidation["ok"]=False`(gm/ID 위반, `revalidation`에 근거 남음) 또는
+    `finger_w` 미지정(단위 폭을 몰라 새 W를 계산할 수 없음, `revalidation=None`)으로
+    구분된다."""
+    growth = suggest_matching_finger_growth(names, transistors, min_fingers=min_fingers)
+    if growth is None:
+        return {"applied": False, "growth": None, "transistors": list(transistors),
+                "revalidation": None}
+    by_name = {t.name: t for t in transistors}
+    if any(by_name[n].finger_w is None for n in names):
+        return {"applied": False, "growth": growth, "transistors": list(transistors),
+                "revalidation": None}
+    delta = growth["delta_fingers"]
+    overrides = {n: (by_name[n].n_fingers + delta) * by_name[n].finger_w for n in names}
+    result = revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs, constraints,
+                                         gm_id_bounds=gm_id_bounds)
+    if not result["ok"]:
+        return {"applied": False, "growth": growth, "transistors": list(transistors),
+                "revalidation": result}
+    new_transistors = [_dc_replace(t, n_fingers=t.n_fingers + delta) if t.name in names else t
+                        for t in transistors]
+    return {"applied": True, "growth": growth, "transistors": new_transistors,
+            "revalidation": result}
+
+
+def run_matching_safety_with_finger_growth(
+        rows: dict, matching_pairs: list, pair_sensitivity: dict, ctx: SizingContext,
+        lut_by_kind: dict, metrics_specs: dict, constraints: list,
+        gm_id_bounds: tuple = (2.0, 30.0), min_fingers: int = 2, max_rounds: int = 5) -> dict:
+    """`repair_matching_safety()`(stick_diagram.py, L1~L3, branch 복합 매칭 포함)가
+    3c(common-centroid)를 못 푸는 지점에 "매칭 목적 핑거증가"(위) 자동 수정 루프를 감싸
+    붙인다 -- `run_topology_pipeline_with_finger_fixup()`(euler용)과 대칭되는 구조,
+    `stick_diagram.py`<->`sizing_recipe.py` 단방향 import 제약 때문에 여기 위치(동일 이유).
+
+    각 라운드: (1) `repair_matching_safety()` 실행 (2) `ok`면 성공 종료 (3) 필수 게이트로
+    실패한 pair 중 **3c만**(`_failing_required_pairs()`가 3b/3c를 섞어 주므로 이름으로
+    거른다 -- 3b는 배치 문제라 핑거증가로 못 고침) 첫 항목을 골라, branch 복합 매칭
+    대상인지(`_branch_composite_pair()`) 확인해 growth target(단순쌍 2소자 또는 branch
+    전체 4소자)을 정한다 (4) `apply_and_revalidate_matching_finger_growth()` 시도 (5)
+    성공하면 `rows`/`ctx`를 갱신하고 다음 라운드 (6) 실패하면(gm/ID 위반, 이미 충분한
+    n_fingers, finger_w 미지정 등) **거짓 성공으로 처리하지 않고 즉시 멈춘다** --
+    `unresolved_reason`에 근거를 남긴다(다음 확장 지점: 세션16 설계안 3번 "그래도 안
+    되면 인접배치로 완화", 아직 미구현).
+
+    ⚠️ `unresolved_pair=None`은 "**3c 실패 중 핑거증가로 처리할 게 더 없다**"는 뜻이지
+    "`audit.ok=True`"의 동의어가 아니다 -- `audit_row_split()`의 다른 체크(예: "2.
+    box-shape" 행폭 비율, 이 함수가 다루지 않는 완전히 다른 관심사)가 별개로 실패하면
+    `unresolved_pair=None`이어도 `audit.ok=False`일 수 있다(세션16 실측: M1a/M1b/M2a/M2b
+    성장으로 3c는 완전히 풀렸지만, M6/M7만 남은 행과의 폭 비율이 §8 허용치를 넘어 box-shape가
+    별도로 FAIL). 호출자는 전체 성공 여부를 반드시 `result["audit"].ok`로 직접 확인할 것 --
+    `unresolved_pair`/`unresolved_reason`은 "3c 관점에서 이 함수가 할 일을 다 했는지"만
+    알려주는 진단 정보다.
+
+    반환: `{"rows", "audit", "ctx", "growth_rounds": [{"round","names","result"}, ...],
+    "unresolved_pair": (a,b)|None, "unresolved_reason": str|None}`."""
+    current_rows = {k: list(v) for k, v in rows.items()}
+    cur_ctx = ctx
+    growth_rounds = []
+
+    result = None
+    for round_idx in range(max_rounds):
+        current_rows, result = repair_matching_safety(current_rows, matching_pairs, pair_sensitivity)
+        if result.ok:
+            return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
+                    "growth_rounds": growth_rounds, "unresolved_pair": None,
+                    "unresolved_reason": None}
+
+        # `_failing_required_pairs()`는 3b/3c를 섞어서 준다 -- 그 pair의 필수 게이트가
+        # 3b(배치 문제, 핑거증가로 못 고침)일 수도 있으므로 재사용하지 않고, "3c가 필수
+        # 게이트로 실패"한 pair만 직접 골라낸다(같은 정규식 파싱 규칙, stick_diagram.py의
+        # _failing_required_pairs()와 동일 패턴).
+        import re
+        failing_3c = []
+        for check in result.checks:
+            if check.ok or "[참고용" in check.name or not check.name.startswith("3c."):
+                continue
+            m = re.search(r"\[(.+?)/(.+?)\]", check.name)
+            if m and (m.group(1), m.group(2)) not in failing_3c:
+                failing_3c.append((m.group(1), m.group(2)))
+        if not failing_3c:
+            return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
+                    "growth_rounds": growth_rounds, "unresolved_pair": None,
+                    "unresolved_reason": "only_3b_failures_left"}  # 핑거증가 책임 밖(배치 문제)
+
+        a, b = failing_3c[0]
+        all_devs = {t.name: t for devs in current_rows.values() for t in devs}
+        if a not in all_devs or b not in all_devs:
+            return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
+                    "growth_rounds": growth_rounds, "unresolved_pair": (a, b),
+                    "unresolved_reason": "pair_not_found"}
+        composite = _branch_composite_pair(a, b, all_devs, matching_pairs)
+        names = tuple(sorted(set(composite["expand"][composite["composite_a"].name] +
+                                  composite["expand"][composite["composite_b"].name]))) \
+            if composite is not None else (a, b)
+
+        row_transistors = [t for devs in current_rows.values() for t in devs if t.name in names]
+        fix = apply_and_revalidate_matching_finger_growth(
+            names, row_transistors, cur_ctx, lut_by_kind, metrics_specs, constraints,
+            gm_id_bounds=gm_id_bounds, min_fingers=min_fingers)
+        growth_rounds.append({"round": round_idx, "names": names, "result": fix})
+        if not fix["applied"]:
+            reason = "no_finger_w" if fix["revalidation"] is None and fix["growth"] is not None \
+                else "gm_id_violation" if fix["revalidation"] is not None \
+                else "growth_not_applicable"
+            return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
+                    "growth_rounds": growth_rounds, "unresolved_pair": (a, b),
+                    "unresolved_reason": reason}
+
+        new_n = {t.name: t.n_fingers for t in fix["transistors"] if t.name in names}
+        for rn, devs in current_rows.items():
+            current_rows[rn] = [_dc_replace(t, n_fingers=new_n[t.name]) if t.name in new_n else t
+                                 for t in devs]
+        for name, u in fix["revalidation"]["device_updates"].items():
+            cur_ctx = _dc_replace(cur_ctx, sized={
+                **cur_ctx.sized, name: {**cur_ctx.sized[name], "W": u["new_W"],
+                                         "gm_id": u["new_gm_id"], "gm": u["new_gm"],
+                                         "gds": u["new_gds"]}})
+
+    current_rows, result = repair_matching_safety(current_rows, matching_pairs, pair_sensitivity)
+    return {"rows": current_rows, "audit": result, "ctx": cur_ctx, "growth_rounds": growth_rounds,
+            "unresolved_pair": None if result.ok else "unknown",
+            "unresolved_reason": None if result.ok else "max_rounds_exceeded"}
+
+
 def run_topology_pipeline_with_finger_fixup(
         topology_json_path: str, sizing_overrides: dict, ctx: SizingContext, lut_by_kind: dict,
         metrics_specs: dict, constraints: list, floorplan_hints: dict | None = None,
@@ -3090,6 +3256,120 @@ if __name__ == "__main__":
               f"n_fingers=2), sizing_overrides/sizing 둘 다 최종 상태로 갱신됨 -- "
               f"repair_matching_safety() 호출부는 안 건드렸으므로 남은 3b/3c는 그대로 처리 "
               f"(audit_ok={_ofcb_result['audit_ok']})")
+
+    print()
+    print("  [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/")
+    print("  run_matching_safety_with_finger_growth() -- 세션16 2번. repair_matching_safety()가")
+    print("  branch 복합 매칭(세션16 1번)으로도 못 푸는 3c(n_fingers 부족)를, gm/ID를 깨지 않는")
+    print("  선에서 핑거를 늘려 자동으로 완전히 풀 수 있는지]")
+    _l4d_L, _l4d_vds = 0.5e-6, 0.6
+    _l4d_r = size_transistor(gm=200e-6, gm_id=12.0, L=_l4d_L, lut=lut, vds=_l4d_vds)
+    _l4d_gds = _l4d_r.gm / lut.gm_gds_ratio(12.0, _l4d_L, _l4d_vds, 0.0)
+
+    print("    [suggest_matching_finger_growth() -- delta 계산 단위 확인]")
+    _l4d_g_trs = [Transistor("Ma", "nmos", source="s", drain="d1", n_fingers=1, finger_w=_l4d_r.W),
+                  Transistor("Mb", "nmos", source="s", drain="d2", n_fingers=1, finger_w=_l4d_r.W)]
+    _g1 = suggest_matching_finger_growth(("Ma", "Mb"), _l4d_g_trs, min_fingers=2)
+    assert _g1 == {"names": ("Ma", "Mb"), "delta_fingers": 1,
+                    "note": "common-centroid 회전-최적 경로(residual=0)를 위해 n_fingers 1->2"}
+    _g2_trs = [Transistor("Mc", "nmos", source="s", drain="d1", n_fingers=2, finger_w=_l4d_r.W),
+               Transistor("Md", "nmos", source="s", drain="d2", n_fingers=2, finger_w=_l4d_r.W)]
+    assert suggest_matching_finger_growth(("Mc", "Md"), _g2_trs, min_fingers=2) is None, \
+        "이미 n_fingers=2(충분)인데 growth를 제안함"
+    _g3_trs = [Transistor("Me", "nmos", source="s", drain="d1", n_fingers=1, finger_w=_l4d_r.W),
+               Transistor("Mf", "nmos", source="s", drain="d2", n_fingers=3, finger_w=_l4d_r.W)]
+    assert suggest_matching_finger_growth(("Me", "Mf"), _g3_trs, min_fingers=2) is None, \
+        "names 내부 n_fingers가 서로 다른데(1,3) growth를 제안함 -- 호출자 책임 밖 케이스"
+    print("    PASS: delta=1(부족), None(이미 충분), None(내부 불일치) 전부 정확")
+
+    _l4d_transistors = [
+        Transistor("Ma", "nmos", source="Na1", drain="Nb1", gate="ga",
+                   n_fingers=1, finger_w=_l4d_r.W),
+        Transistor("Mb", "nmos", source="Na2", drain="Nb2", gate="gb",
+                   n_fingers=1, finger_w=_l4d_r.W),
+    ]
+    _l4d_ctx = SizingContext(sized={
+        "Ma": {"ID": _l4d_r.ID, "W": _l4d_r.W, "L": _l4d_L, "gm": _l4d_r.gm, "gm_id": 12.0,
+               "gds": _l4d_gds, "kind": "nmos", "vds": _l4d_vds, "vs": 0.0},
+        "Mb": {"ID": _l4d_r.ID, "W": _l4d_r.W, "L": _l4d_L, "gm": _l4d_r.gm, "gm_id": 12.0,
+               "gds": _l4d_gds, "kind": "nmos", "vds": _l4d_vds, "vs": 0.0},
+    })
+    _l4d_baseline_area = 2 * _l4d_r.W * _l4d_L
+
+    print("    [케이스1: 넉넉한 면적 제약 -- growth가 gm/ID를 안 깨서 적용됨]")
+    _l4d_metrics = {"pair_area": {"type": "sum_area", "devices": ["Ma", "Mb"]}}
+    _l4d_loose = [{"metric": "pair_area", "op": "<=", "value": _l4d_baseline_area * 3.0}]
+    _l4d_r1 = apply_and_revalidate_matching_finger_growth(
+        ("Ma", "Mb"), _l4d_transistors, _l4d_ctx, {"nmos": lut}, _l4d_metrics, _l4d_loose,
+        gm_id_bounds=(2.0, 28.0))
+    assert _l4d_r1["applied"] and _l4d_r1["growth"]["delta_fingers"] == 1
+    assert {t.name: t.n_fingers for t in _l4d_r1["transistors"]} == {"Ma": 2, "Mb": 2}
+    assert _l4d_r1["revalidation"]["ok"]
+    print(f"    PASS: applied=True, n_fingers 1->2, gm/ID 재검증 통과")
+
+    print("    [케이스2: 빡빡한 면적 제약 -- growth가 gm/ID를 깨서(면적 초과) 거부됨]")
+    _l4d_tight = [{"metric": "pair_area", "op": "<=", "value": _l4d_baseline_area * 1.05}]
+    _l4d_r2 = apply_and_revalidate_matching_finger_growth(
+        ("Ma", "Mb"), _l4d_transistors, _l4d_ctx, {"nmos": lut}, _l4d_metrics, _l4d_tight,
+        gm_id_bounds=(2.0, 28.0))
+    assert not _l4d_r2["applied"] and _l4d_r2["revalidation"] is not None and \
+        not _l4d_r2["revalidation"]["ok"]
+    assert [t.n_fingers for t in _l4d_r2["transistors"]] == [1, 1], \
+        "거부됐는데 transistors가 원본과 다름"
+    print(f"    PASS: applied=False(면적 제약 위반, 정직하게 거부), transistors 원본 유지")
+
+    print("    [run_matching_safety_with_finger_growth() -- current_reuse_telescopic_ota의 M6")
+    print("    그룹 실제 사례(세션16 1번 branch 복합 매칭 셀프테스트와 동일 소자) -- branch 복합")
+    print("    매칭만으로는 못 풀던 3c를, 핑거증가+gm/ID 재검증까지 이어붙여 완전히 풀리는지]")
+    _l4d_m6_trs, _l4d_m6_meta = load_topology(
+        _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "library",
+                       "current_reuse_telescopic_ota.topology.json"))
+    _l4d_m6_by_name = {t.name: t for t in _l4d_m6_trs}
+    _l4d_m6_names = ["M1a", "M1b", "M2a", "M2b", "M6", "M7"]
+    _l4d_m6_row = [_dc_replace(_l4d_m6_by_name[n], n_fingers=1, finger_w=_l4d_r.W, stack_id="seg1")
+                   for n in _l4d_m6_names]
+    _l4d_m6_pairs = [("M1a", "M1b"), ("M2a", "M2b")]
+    _l4d_m6_sensitivity = {("M1a", "M1b"): "offset", ("M2a", "M2b"): "ratio"}
+    _l4d_m6_ctx = SizingContext(sized={
+        n: {"ID": _l4d_r.ID, "W": _l4d_r.W, "L": _l4d_L, "gm": _l4d_r.gm, "gm_id": 12.0,
+            "gds": _l4d_gds, "kind": "pmos", "vds": _l4d_vds, "vs": 0.0}
+        for n in _l4d_m6_names
+    })
+    _l4d_m6_metrics = {"group_area": {"type": "sum_area", "devices": _l4d_m6_names}}
+    _l4d_m6_baseline_area = sum(_l4d_r.W * _l4d_L for _ in _l4d_m6_names)
+    _l4d_m6_constraints = [{"metric": "group_area", "op": "<=", "value": _l4d_m6_baseline_area * 3.0}]
+
+    _l4d_final = run_matching_safety_with_finger_growth(
+        {"seg1": _l4d_m6_row}, _l4d_m6_pairs, _l4d_m6_sensitivity, _l4d_m6_ctx, {"pmos": lut},
+        _l4d_m6_metrics, _l4d_m6_constraints, gm_id_bounds=(2.0, 28.0))
+    assert _l4d_final["unresolved_pair"] is None, \
+        f"핑거증가로 3c 관점에서는 완전히 풀려야 하는데 못 풂: {_l4d_final['unresolved_pair']}/" \
+        f"{_l4d_final['unresolved_reason']}"
+    # unresolved_pair=None이 audit.ok=True의 동의어가 아니라는 걸 위 docstring에서 명시했다 --
+    # 실제로 이 케이스는 3b/3c는 전부 풀리지만 "2. box-shape"(M6/M7만 남은 행과의 폭 비율)가
+    # 별도로 FAIL한다(이 함수의 책임 밖, 세션16에서 실측 확인) -- 그래서 전체 audit.ok가
+    # 아니라 "3b/3c 필수 게이트가 전부 PASS인지"를 직접 확인한다.
+    _l4d_bad_matching_checks = [c for c in _l4d_final["audit"].checks
+                                 if not c.ok and "[참고용" not in c.name
+                                 and (c.name.startswith("3b.") or c.name.startswith("3c."))]
+    assert not _l4d_bad_matching_checks, \
+        f"3b/3c 필수 게이트가 아직 FAIL: {_l4d_bad_matching_checks}"
+    # common_centroid_layout()의 회전-최적 경로는 n_fingers=2인 소자를 "2개 행에 1개씩"으로
+    # 물리적으로 나눠 배치한다(진짜 common-centroid) -- 그래서 rows에는 같은 이름이 여러 행에
+    # 걸쳐 n_fingers=1짜리로 여러 번 나타난다. 총 finger 수는 행별로 합산해야 한다(이름 하나에
+    # 값 하나만 남기는 flat dict는 나중 행 값으로 덮어써버려 틀린다).
+    _l4d_total_n = {}
+    for devs in _l4d_final["rows"].values():
+        for t in devs:
+            _l4d_total_n[t.name] = _l4d_total_n.get(t.name, 0) + t.n_fingers
+    assert _l4d_total_n["M1a"] == _l4d_total_n["M1b"] == \
+        _l4d_total_n["M2a"] == _l4d_total_n["M2b"] == 2, \
+        f"M1a/M1b/M2a/M2b 총 n_fingers가 전부 2로 안 자람: {_l4d_total_n}"
+    print(f"    PASS: 3b/3c 필수 게이트 전부 통과(M1a/M1b/M2a/M2b 총 n_fingers 전부 2로 성장, "
+          f"2개 행에 1개씩 진짜 common-centroid 분배 -- "
+          f"세션16 1번 branch 복합 매칭 + 2번 핑거증가가 함께 M6 그룹의 매칭 문제를 끝까지 "
+          f"풀어냄), growth_rounds={len(_l4d_final['growth_rounds'])}회. "
+          f"audit.ok={_l4d_final['audit'].ok}(box-shape는 이 함수 책임 밖이라 별개로 FAIL 가능)")
 
     print()
     print("# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --")
