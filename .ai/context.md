@@ -50,7 +50,34 @@
    단순 `KEEP_FREE` 전략에는 안 들어가 항상 중간값에 고정돼버린다 — **그리드 축소는
    "몇 개를 자유롭게 두느냐"가 아니라 "어느 theta를 자유롭게 두느냐"가 핵심**이라는
    게 이번 세션의 새 정보(다음 세션이 그리드 전략 설계할 때 이 실측부터 참고할 것).
-5. **Tier 2/`circuit-topology-extraction`/`solve_diode_stack_current()` 배선 —
+5. **`psrr_estimate_db` — 아예 자유도가 없던 근본 문제를 해소함(세션20 후속, 같은 날
+   진행)** — 그리드 검색 재설계를 시작하기 전 실측(§ "theta 발자국" 정적 그래프 분석)으로
+   `psrr_estimate_db`(옛 `diff_pair_tail` family, M5 하나의 gm/gds만 보는 자리표시자)가
+   **13개 자유 theta 중 어느 것에도 안 닿는 상수**였다는 게 드러났다 — 그리드 알고리즘을
+   아무리 잘 바꿔도 이 제약은 원래 못 풀렸을 것이었다. `_cmrr_telescopic_class_ab[_cmfb]`
+   와 동일한 위상/방법(sympy 정확해+leading order, ngspice AC 독립 교차검증)으로
+   `_psrr_telescopic_class_ab`/`_psrr_telescopic_class_ab_cmfb`를 신규 유도+구현+등록,
+   `topology.json`의 `psrr_estimate_db`를 이 family로 교체 — **이제 CMRR과 완전히 같은
+   5-theta 그룹(`L_cascode`/`L_stage2out`/`N_cmfb_bw`/`r_tail_M6`/`r_tail_M7`)에 걸려
+   실제 자유도가 생겼다**(실측 확인). 상세는 아래 "세션20-B 결론" 참고. **알려진 한계**:
+   2단 Class-AB 출력전류원(M8/M13/M17/M22, source=vdd)의 자체 VDD 주입 경로는 미포함
+   (다음 세션 과제) — 이 경로까지 더하면 실제 PSRR이 이번 유도값보다 더 나빠질 수 있다.
+6. **그리드 탐색 알고리즘 자체의 재설계는 여전히 설계 단계**(구현은 다음 세션) — 사용자
+   요청으로 시작한 원래 작업. 결론: 정적 그래프(theta의 `feeds.root/target/devices`
+   "쓰기"만 발자국으로, `reference`/`terms`는 읽기 전용이라 제외 — 처음엔 이 구분을
+   안 해서 12/13개가 거짓으로 하나의 성분에 뭉치는 오류가 있었다, 실측으로 발견/수정)로
+   그룹을 도출하면: 13개 중 진짜 결합된 건 5개(위 5번 그룹, gain/cmrr/psrr/classab
+   전부 여기 걸림) + 물리적 feasibility로만 결합된 2개(`K_replica`/`r_classab_battery`,
+   `kcl_battery_M9b` 고정 KCL identity를 매개로 — metric 공유가 아니라 "다른 theta가
+   둘 다 읽어서 음수 전류 여부를 검사"하는 세 번째 결합 경로, 정적 그래프 규칙에 처음엔
+   없어서 실측으로 추가) + 완전 독립 6개(`f_slew`/`r_biasgen`/`r_bg_vbias2`/
+   `r_classab_diode_src`/`r_cmfb_vocdes`/`r_diode_M11a`, 5개 constraint 전부 안 건드림
+   — 그냥 하한값으로 두면 됨). 다음 세션 최우선: 이 그룹 구조로 블록 분리+단조 확인된
+   theta는 이분탐색+나머지는 소규모 grid/LHS+좌표하강 재시작+최종 joint 로컬 정제 구현.
+   **"all-lo/all-mid/all-hi처럼 단순한 시작점은 셋 다 물리적으로 infeasible"**(M9b<0)도
+   확인됨 — 시작점 선택 자체도 별도로 신경 써야 함(예: KCL identity feasibility를
+   먼저 만족시키는 pre-solve 단계).
+7. **Tier 2/`circuit-topology-extraction`/`solve_diode_stack_current()` 배선 —
    전부 세션19 결론 그대로 이월(이번 세션 논의 안 함)**: Tier 2(diode-stack 기반
    hub-merge 필터)는 "적용 불가"로 폐기 확정(재시도 불필요, 근거는
    `analog-grammar-integration.md` §7). `circuit-topology-extraction`은 여전히
@@ -2219,3 +2246,141 @@ self-test를 재실행 — 결과는 세션 종료 시점 기준 아래 "F. 다�
   실제 실행 결과(exit code/FAIL 마커 개수)는 다음 세션 시작 시 확인할 것.
 - 위 "지금 상태" 3번(Tier 1 idiom_matches 배선)과 4번(그리드 전략)이 다음 세션
   최우선 후보.
+
+---
+
+# 세션20-B 결론 — grid search 재설계 착수 → psrr_estimate_db 자유도 없음 발견 →
+# PSRR 신규 유도+구현(같은 날 진행, 위 세션20 결론 이후 이어서)
+
+세션20 결론(위)까지 끝낸 뒤, 같은 날 "run_harness.py 재실행 전략"(item 7)의 grid search
+효율화를 사용자가 요청해 착수했다. 설계 도중 실측이 원래 목표보다 더 근본적인 문제
+(`psrr_estimate_db`가 애초에 자유도가 없었음)를 드러냈고, 사용자가 그 자리에서 우선순위를
+바꿔(오늘 이걸로 마무리) PSRR을 CMRR과 동일 엄격도로 새로 유도하는 쪽으로 진행했다.
+
+## G. Grid search 문제 진단 + 정적 그래프 기반 그룹 분리 설계
+
+### G-1. 사용자가 처음 요청한 것과 실제 결정 경위
+"그리드 탐색을 더 효율적인 알고리즘으로 바꾸고 싶다, 문제점을 확인해서 제안해봐"라는
+요청으로 시작. `optimize_full_circuit_budget()`의 grid loop(`sizing_recipe.py:2237`
+부근 `itertools.product`)을 분석해 문제 4가지를 확인: (1) `O(k^13)` 지수적 폭발(기본값
+`k=5`면 5^13≈12억 조합, 세션11/20 실측 `k=2`도 8192조합×~4.4초≈10시간), (2) `k=2`는
+`_lerp(...,i/(k-1))`상 **경계값만** 샘플링(중간값 없음), (3) 조합마다 `_evaluate()`
+전체(51개 소자 KCL+compensation 고정점 반복+LUT 탐색)를 처음부터 다시 돌며 재사용/조기
+중단 없음, (4) 병렬화 안 됨(각 조합은 독립적인데 순차 실행).
+
+제안한 4가지(A 병렬화/B 블록 분리/C 단조 theta 이분탐색/D 랜덤·LHS)를 "다 하면 어떻게
+되나" 질문 뒤, "확정적 전역 최적성을 못 찾을 가능성"을 사용자가 구체적으로 물어 답변
+(구조적으로 결합이 약한 편이라 판단되지만 실측 필요, 랜덤 재시작이 완화책이 됨). 사용자가
+"실측 먼저 확인하고 대안 설계하자, 오늘은 설계까지만 하자"고 최종 지시.
+
+### G-2. "이 topology만 실측하면 의미 없다" — 일반화 요구 → 그래프 기반 그룹 자동 도출
+회로 하나만 손으로 눈으로 분류한 그룹(gain/classab/cmfb/biasgen 4그룹, feeds 이름을 보고
+추측)은 다른 topology.json에 재사용 불가능하다는 사용자 지적 — 정확했다. 재설계:
+1. **theta의 "쓰기 발자국"**: `feeds`의 `root`/`target`/`devices`(값을 실제로 바꾸는
+   대상)만 — `reference`/`terms`(읽기만 하는 대상)는 **제외**. 처음엔 이 구분을 안 하고
+   `feeds` 전체를 `_collect_device_refs()`(세션13, metric_spec용으로 이미 있던 범용
+   재귀 소자명 수집기 — theta feed도 구조가 같아 그대로 먹힘)로 훑었다가, 12/13개
+   theta가 공유 reference(`M1a`/`M4a`)를 통해 **거짓으로 하나의 거대 성분에 뭉치는**
+   버그를 실측으로 발견(`_feed_root_ratio`/`_feed_diode_stack_target`/
+   `_feed_gm_target_convention` 소스코드 직접 확인 — root/target만 값을 쓰고
+   reference는 읽기만 한다는 게 코드로 확정) → write-footprint만 쓰도록 수정.
+2. **metric의 발자국**: 기존 `_collect_device_refs(metric_spec, known_names)` 그대로
+   재사용(constraints/objective에 실제로 쓰이는 metric만).
+3. **edge 규칙**: (a) 두 theta의 write-footprint가 같은 constraint/objective metric의
+   발자국과 겹치면, (b) 같은 KCL 직렬스택(`kcl_series_union()`) 그룹에 걸리면, (c) **다른
+   theta(고정 포함)의 read-footprint가 서로 다른 자유 theta 2개 이상의 write-footprint에
+   동시에 걸리면**(신규, 세 번째 경로 — 실측으로 발견, 아래 G-3).
+4. union-find(`design_report.py`의 matching_pairs 그룹핑과 같은 패턴)로 연결성분 = 그룹.
+
+### G-3. 세 번째 결합 경로 발견 — "다른 theta가 둘 다 읽는" 물리적 feasibility 결합
+규칙 (a)+(b)만으로는 `K_replica`(→M9a)와 `r_classab_battery`(→M8,M17)가 서로 완전히
+독립(5개 constraint 어느 것도 안 건드림)으로 나왔다. 그런데 all-lo/all-mid/all-hi
+(모든 자유 theta를 각각 하한/중간/상한으로 일괄 설정) **세 가지 다 물리적으로
+infeasible**(`M9b: ID<=0`, `InfeasibleSizingError`)이 실측으로 나와 재조사 — 고정
+theta `kcl_battery_M9b`(type A_signed, `terms=[M8:+1, M9a:-1]`)가 두 자유 theta의
+결과(M8은 `r_classab_battery`, M9a는 `K_replica`)를 **동시에 읽어서** `M9b=M8-M9a>=0`을
+검사한다는 게 원인 — 이게 규칙 (c)다. 반영 후 최종 그룹: **5-theta 진짜 결합 그룹**
+`{L_cascode, L_stage2out, N_cmfb_bw, r_tail_M6, r_tail_M7}`(gain_db/cmrr_estimate_db/
+classab_centering_dev_v 전부 여기 걸림, 지금은 psrr_estimate_db도 — 아래 H절) +
+**물리적 feasibility만으로 묶인 2-theta 그룹** `{K_replica, r_classab_battery}` +
+**완전 독립 6개**(`f_slew`/`r_biasgen`/`r_bg_vbias2`/`r_classab_diode_src`/
+`r_cmfb_vocdes`/`r_diode_M11a`, 5개 constraint 전부 무관 — 하한값 고정으로 충분).
+
+## H. `psrr_estimate_db` 자유도 없음 발견 → PSRR 신규 유도(CMRR 동일 엄격도)
+
+### H-1. 발견 경위
+G-2/G-3 그래프 분석 중 `psrr_estimate_db`(옛 `diff_pair_tail` family, `tail_device:
+M5`)의 발자국이 `{M5}` 하나뿐이고, **M5를 쓰는 자유 theta가 13개 중 하나도 없다**
+(`kcl_tail_M5`는 고정 theta, `M4a`/`M4b` reference도 compensation이 정함 — 전부
+theta-무관)는 게 드러났다. 세션20 스모크(A절 D 항목)에서 `psrr_estimate_db`가 어느
+조합에서도 **소수점까지 완전히 동일한 값**(25.41226773816369)이었던 것과 정확히 일치
+— **이 metric은 그리드를 어떻게 바꿔도 절대 못 바뀐다.** 즉 오늘 설계하려던 그리드
+알고리즘 자체가 아니라 **metric 선언의 문제**였다. 사용자에게 즉시 보고, "PSRR 수식을
+유도해서 등록해야 한다"는 지시로 방향 전환.
+
+### H-2. 유도(CMRR과 동일 방법론/엄격도, 사용자 확정)
+`_cmrr_telescopic_class_ab[_cmfb]`가 쓴 절차(`stage1_cmrr_sympy_derivation.py`:
+`load_topology()` connectivity로 자동 MNA 조립 → sympy 정확해 → gm·ro≫1 leading order
+→ ngspice AC 이상화 소신호 netlist로 독립 교차검증)를 **그대로** PSRR에 적용
+(`stage1_psrr_sympy_derivation.py`/`stage1_psrr_ngspice_crosscheck.py`, 신규 파일,
+`workspaces/current-reuse-telescopic-ota-report/spice/`).
+
+- **연결성 재확인**: CMRR 스크립트의 `report_connectivity()`를 그대로 재실행해 같은
+  회로/같은 위상(M2a.drain==M3a.drain==Vom1 드레인 합류, tail 분리 Vx/Vy 등)임을
+  확인 — **연결성 오류는 없었다**, CMRR을 다시 유도할 필요는 없다고 판단(사용자가
+  "필요하면 CMRR도 다시 구해, 불필요하면 PSRR만"이라고 조건부로 지시했던 부분).
+- **1단 open-loop(A)**: `vdd`를 AC ground에서 빼서 독립원으로 두고(CMRR과 반대),
+  `Vip`/`Vim`은 0(순수 전원→출력 전달만). Adm은 CMRR과 **기호적으로 완전히 동일함을
+  재확인**(당연한 결과, 같은 신호경로). Ann(전원→stage-1 출력 CM)의 leading order를
+  구하는 게 예상보다 어려웠다 — Adm처럼 단순히 "모든 gds→0"으로 스케일링하면 발산
+  (eps 거듭제곱 -4~2 전부 시도해도 안 맞음), 최종적으로 `eps^3` 스케일(Adm의 eps^2보다
+  한 단계 높음)에서 유한한 값을 얻었고, 정리하면:
+  ```
+    Ann_open = gm(tail_p 합, 즉 gm(M6)+gm(M7)) · (Rx‖Ry) · Acm_open   <- Acm_open은 CMRR과 동일
+    PSRR_open(dB) = CMRR_open(dB) − 20·log10(|gm(tail_p 합)·(Rx‖Ry)|)
+  ```
+  즉 **PSRR은 CMRR에서 상수 하나만 뺀 값**(물리적으로 타당 — 같은 캐스코드 출력임피던스
+  경로를 타기 때문). ngspice AC 독립 교차검증(±4배 랜덤 20점+앵커2점): worst 2.36dB
+  (CMRR 자신의 worst 0.8dB보다 다소 크지만 탐색용으로 충분, CMRR도 SPICE 대조 worst가
+  3.99dB인 family가 있었다).
+- **CMFB 루프 포함(B)**: 선형 중첩으로 정확히 유도됨(재도출 불필요) —
+  `vo1 = Ann_open·δ + H·vcmfb`, `vcmfb = A_c·G2·vo1`을 풀면
+  `vo1/δ = Ann_open/(1+T)`(T는 `_cmrr_telescopic_class_ab_cmfb`가 이미 쓰는 그 T,
+  H/A_c/G2 전부 vdd와 무관한 루프 자신의 성질이라 그대로 재사용) → **PSRR_closed =
+  PSRR_open + 20·log10(|1+T|)**, CMRR과 정확히 같은 보정. ⚠️ closed-loop+vdd 조합
+  자체의 독립 SPICE 검증은 시간 제약으로 안 함(H/A_c/G2/T는 CMRR 쪽에서 이미 SPICE
+  검증됨, 이번에 새로 추가된 건 선형 중첩 논리뿐이라 위험은 낮다고 판단) — 여유 있으면
+  다음 세션에 `cmfb_cmrr_ngspice_crosscheck.py`에 vdd 독립원을 더해 확인할 것.
+- **알려진 한계(사용자 승인, (C) 2단 직접 주입은 다음 세션)**: 2단 Class-AB 출력
+  전류원(M8/M13/M17/M22)도 source=vdd라 **자체 VDD 주입 경로**를 만드는데, 이번
+  유도는 1단(M6/M7)만 본다 — 실제 PSRR은 이번 값보다 더 나쁠 수 있다.
+
+### H-3. 구현 (`sizing_recipe.py`, 아직 미커밋)
+`_psrr_telescopic_class_ab()`/`_psrr_telescopic_class_ab_cmfb()` 신설, `_PSRR_
+ESTIMATOR_REGISTRY`에 `"telescopic_class_ab"`/`"telescopic_class_ab_cmfb"` 추가(옛
+`"diff_pair_tail"`은 그대로 유지, 하위호환). CMRR 함수들과 코드를 공유하지 않고 독립적으로
+재계산(이 파일의 기존 관례 — `_cmrr_telescopic_class_ab`와 `_cmrr_telescopic_class_ab_
+cmfb`도 서로 공유 안 함, 기존 CMRR 코드는 이번 세션에 손대지 않음). self-test(sizing_
+recipe.py, CMRR self-test 블록 직후): 앵커1/2(SPICE 대조, 오차<1dB) + "PSRR_open ==
+CMRR_open - 20log10(...)" 관계 자체를 코드로 재확인 + "CMFB 보정이 CMRR/PSRR 양쪽에
+정확히 같은 크기로 적용됨" 회귀 + T<=0 가드. 전체 self-test 재실행 — diff `+183 lines,
+0 deletions`(순수 추가, 기존 코드 무변경), exit 0, FAIL 마커 개수 편집 전(250줄 출력)
+대비 편집 후(266줄, +16줄=신규 PSRR 출력만) 정확히 일치, 회귀 없음.
+
+`library/current_reuse_telescopic_ota.topology.json`의 `psrr_estimate_db`를 `cmrr_
+estimate_db`와 완전히 동일한 device role 배정(`input_p`=M1a 등 13개 키)으로
+`telescopic_class_ab_cmfb` family로 교체 + `_psrr_estimate_db_comment`로 교체 이유
+기록. **교체 후 실측 재확인**: `psrr_estimate_db`의 metric 발자국이 이제
+`{M1a,M2a,M3a,M4a,M5,M6,M7,M15,M16,M36a,M36b,M37a,M37b,M38}`로 커져서, G-3의 5-theta
+결합 그룹(`L_cascode`/`L_stage2out`/`N_cmfb_bw`/`r_tail_M6`/`r_tail_M7`)과 실제로
+겹친다 — **원래 문제(PSRR을 만족시킬 자유도가 없음)가 이번 유도로 해소됨**을 코드로
+확인.
+
+## I. 다음 세션 확인 사항 (이 절 전용)
+- G절 그룹 구조(5-theta 진짜 결합/2-theta feasibility 결합/6개 완전 독립)로 **그리드
+  탐색 알고리즘 자체(블록 분리+이분탐색+좌표하강+재시작+최종 joint 로컬 정제)를
+  구현**하는 게 다음 세션 최우선 — 오늘은 설계+실측만, 구현은 안 함(사용자 지시).
+- H-2에서 미룬 (C)(2단 M8/M13/M17/M22의 자체 VDD 주입) 유도, 여유 있으면 closed-loop
+  PSRR의 독립 SPICE 검증도.
+- 시작점 선택(all-lo/mid/hi 전부 infeasible) 문제 — 그룹 분리 알고리즘 설계 시 "KCL
+  identity feasibility를 먼저 만족시키는 pre-solve" 단계를 반드시 포함할 것.
