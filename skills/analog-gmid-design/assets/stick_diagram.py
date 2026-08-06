@@ -1897,7 +1897,8 @@ def _build_crossover_segments(transistors: list, pairs: list) -> list:
     return segments
 
 
-def _count_matching_pair_splits(segments: list, matching_pairs: list) -> int:
+def _count_matching_pair_splits(segments: list, matching_pairs: list,
+                                 pair_sensitivity: dict | None = None):
     """`segments`(각 `{"transistor_sequence":[...]}`)에서 선언된 `matching_pairs` 중 두
     소자가 **완전히 서로 다른** segment에만 걸쳐 있는(=crossover로 물리적으로 갈라진) 개수를
     센다(세션17) -- 세션16 D-1에서 확인된 문제("선언된 진짜 거울쌍을 최우선으로 짝짓기"가
@@ -1905,17 +1906,52 @@ def _count_matching_pair_splits(segments: list, matching_pairs: list) -> int:
     두 소자가 최소 한 segment라도 공유하면(n_fingers>1이라 여러 segment에 걸칠 수 있음)
     "완전히 갈라진" 것으로 안 본다 -- 부분적으로라도 같이 있는 게 아예 갈라진 것보다 낫다는
     보수적 기준, 지금까지 실제로 관찰된 사례(전부 n_fingers=1)에서는 이 구분이 결과에
-    영향을 주지 않는다."""
+    영향을 주지 않는다.
+
+    **`pair_sensitivity`(세션17 신설, 선택)**: `{pair: "ratio"|"offset"}`(다른 함수들과
+    동일 계약)을 주면 반환값이 스칼라 대신 `(offset_splits, other_splits)` **튜플**이
+    된다 -- Python 튜플 비교는 사전식(lexicographic)이라, 호출자(`_select_crossover_
+    pairing()`)가 이 값을 그대로 비교하면 **offset 쌍이 갈라지는 걸 ratio/branch_
+    symmetric 쌍이 갈라지는 것보다 항상 더 나쁘게** 채점한다 -- offset(진짜 differential
+    pair)은 CMRR/PSRR 민감도 때문에 갈라지면 안 되는 우선순위가 더 높다는 게
+    `audit_row_split()` §2.7과 동일한 원칙(사용자 확인, 세션17). 선언 안 된 쌍은
+    `other_splits`(ratio와 동급, 보수적 기본값)로 취급한다. `pair_sensitivity=None`
+    (기본값)이면 기존과 완전히 동일하게 스칼라 총합 하나만 반환(하위호환)."""
     seg_of: dict = {}
     for i, seg in enumerate(segments):
         for name in seg["transistor_sequence"]:
             seg_of.setdefault(name, set()).add(i)
-    split = 0
+
+    if pair_sensitivity is None:
+        split = 0
+        for a, b in matching_pairs:
+            segs_a, segs_b = seg_of.get(a, set()), seg_of.get(b, set())
+            if segs_a and segs_b and segs_a.isdisjoint(segs_b):
+                split += 1
+        return split
+
+    def _sensitivity_of(a, b):
+        for key in ((a, b), (b, a), frozenset({a, b})):
+            if key in pair_sensitivity:
+                return pair_sensitivity[key]
+        return None  # 선언 안 된 쌍 -- other_splits와 동급으로 보수적 처리
+
+    offset_splits, other_splits = 0, 0
     for a, b in matching_pairs:
         segs_a, segs_b = seg_of.get(a, set()), seg_of.get(b, set())
         if segs_a and segs_b and segs_a.isdisjoint(segs_b):
-            split += 1
-    return split
+            if _sensitivity_of(a, b) == "offset":
+                offset_splits += 1
+            else:
+                other_splits += 1
+    return (offset_splits, other_splits)
+
+
+def _is_perfect_crossover_score(score) -> bool:
+    """`_count_matching_pair_splits()`가 스칼라(0)든 `pair_sensitivity` 튜플((0,0))이든
+    "분할 없음"을 한 곳에서 판정한다(세션17) -- `_select_crossover_pairing()`의 조기
+    종료/조기 채택 조건에 재사용."""
+    return score == 0 or score == (0, 0)
 
 
 _MAX_CROSSOVER_PAIRING_NODES = 8  # (2m-1)!! -- m=4(8노드)면 105후보, m=5(10노드)면 945로
@@ -1936,7 +1972,7 @@ def _enumerate_perfect_matchings(nodes: list):
 
 
 def _select_crossover_pairing(odd_nodes: list, node_map: dict, transistors: list,
-                               matching_pairs: list) -> tuple:
+                               matching_pairs: list, pair_sensitivity: dict | None = None) -> tuple:
     """**세션17** -- 세션16 D-1 발견(`_pair_odd_nodes_by_mirror()`의 tier1 "선언된 진짜
     거울쌍을 최우선으로 짝짓기"가 M6 그룹 실측에서 실제로는 matching_pairs를 갈라놓는
     최악의 선택이었음, `probe_crossover_pairing_alternatives.py`)을 일반화한다.
@@ -1949,34 +1985,42 @@ def _select_crossover_pairing(odd_nodes: list, node_map: dict, transistors: list
     "어디서 갈라지는가"만 바꾼다.
 
     `_pair_odd_nodes_by_mirror()`(기존 3단계 휴리스틱)의 결과를 기본 후보로 채점하고,
-    이미 분할=0이면(더 나아질 여지가 없음) 그대로 채택해 전수 탐색을 생략한다(흔한 경우를
-    빠르게 처리). 분할>0이고 `len(odd_nodes)<=_MAX_CROSSOVER_PAIRING_NODES`면 가능한
-    완전짝짓기 전부를 전수 대입해 분할 개수가 더 적은 후보를 찾으면 채택(분할=0을 찾으면
-    즉시 중단). 동점이면 먼저 발견된 후보를 유지한다(이 이상의 타이브레이크 근거는 아직
-    없음 -- 실제 다중 사례가 나오면 근거를 갖고 추가). `len(odd_nodes)`가 캡을 넘으면
-    전수 탐색을 생략하고 휴리스틱 결과만 쓴다(정직한 한계).
+    이미 분할 없음이면(더 나아질 여지가 없음) 그대로 채택해 전수 탐색을 생략한다(흔한
+    경우를 빠르게 처리). 분할이 있고 `len(odd_nodes)<=_MAX_CROSSOVER_PAIRING_NODES`면
+    가능한 완전짝짓기 전부를 전수 대입해 분할이 더 적은 후보를 찾으면 채택(분할 없음을
+    찾으면 즉시 중단). 동점이면 먼저 발견된 후보를 유지한다(이 이상의 타이브레이크 근거는
+    아직 없음 -- 실제 다중 사례가 나오면 근거를 갖고 추가). `len(odd_nodes)`가 캡을
+    넘으면 전수 탐색을 생략하고 휴리스틱 결과만 쓴다(정직한 한계).
+
+    **`pair_sensitivity`(세션17 신설, 선택)**: 주면 `_count_matching_pair_splits()`가
+    `(offset_splits, other_splits)` 튜플을 반환하게 되고, 튜플의 사전식 비교 덕에 offset
+    (진짜 differential pair, CMRR 민감도) 쌍이 갈라지는 게 ratio/branch_symmetric 쌍이
+    갈라지는 것보다 항상 먼저(더 나쁘게) 채점된다 -- 두 종류를 동등하게 셌던 기존 방식과
+    달리, "둘 다 완전히 안 갈라지는 배치가 없으면 offset을 먼저 보호"하는 우선순위를 준다
+    (사용자 확인, 세션17). `None`(기본값)이면 기존과 완전히 동일(하위호환).
 
     반환: `(pairs, segments, fallback_used, search_skipped)`."""
     heuristic_pairs, fallback_used = _pair_odd_nodes_by_mirror(odd_nodes, node_map)
     heuristic_segments = _build_crossover_segments(transistors, heuristic_pairs)
-    heuristic_score = _count_matching_pair_splits(heuristic_segments, matching_pairs)
+    heuristic_score = _count_matching_pair_splits(heuristic_segments, matching_pairs, pair_sensitivity)
 
     search_skipped = len(odd_nodes) > _MAX_CROSSOVER_PAIRING_NODES
-    if heuristic_score == 0 or search_skipped:
+    if _is_perfect_crossover_score(heuristic_score) or search_skipped:
         return heuristic_pairs, heuristic_segments, fallback_used, search_skipped
 
     best_pairs, best_segments, best_score = heuristic_pairs, heuristic_segments, heuristic_score
     for candidate in _enumerate_perfect_matchings(list(odd_nodes)):
         segments = _build_crossover_segments(transistors, candidate)
-        score = _count_matching_pair_splits(segments, matching_pairs)
+        score = _count_matching_pair_splits(segments, matching_pairs, pair_sensitivity)
         if score < best_score:
             best_pairs, best_segments, best_score = candidate, segments, score
-            if best_score == 0:
+            if _is_perfect_crossover_score(best_score):
                 break
     return best_pairs, best_segments, fallback_used, search_skipped
 
 
-def find_min_crossover_layout(transistors: list, matching_pairs: list | None = None) -> dict:
+def find_min_crossover_layout(transistors: list, matching_pairs: list | None = None,
+                               pair_sensitivity: dict | None = None) -> dict:
     """N개(N>=1) 소자가 전부 같은 hub_net을 공유하고 서로 다른 leaf로 가는 hub-leaf
     구조를 **최소 개수의 crossover routing**(열 사이를 metal+via로 건너뛰어 연결하는
     배선)만으로 실현하는 배치를 찾는다. 우선순위는 항상 crossover가 0인(=단일 연속
@@ -2023,6 +2067,11 @@ def find_min_crossover_layout(transistors: list, matching_pairs: list | None = N
     더 적은(이상적으로 0인) 후보로 교체한다 — crossover_count(m-1) 자체는 T-join 정리로
     어떤 짝짓기를 쓰든 불변이므로, 이 선택은 오직 "어디서 갈라지는가"만 바꾼다.
 
+    **`pair_sensitivity`(세션17 신설, 선택)**: 주면 offset(진짜 differential pair)
+    쌍이 갈라지는 걸 ratio/branch_symmetric 쌍보다 우선 피한다(CMRR 민감도 근거,
+    `_select_crossover_pairing()`/`_count_matching_pair_splits()` docstring 참고).
+    `matching_pairs=None`이면 이 인자는 무시된다.
+
     **입력**: `matching_pairs=None`이면 `transistors`(전부 같은 `source`=hub 공유,
     `drain`은 서로 달라야 함). `matching_pairs`가 있으면 이 제약 없음.
     **반환**: `{"segments": [{"transistor_sequence":[...], "node_sequence":[...]}, ...],
@@ -2061,7 +2110,7 @@ def find_min_crossover_layout(transistors: list, matching_pairs: list | None = N
     else:
         node_map = _mirror_node_map_from_pairs(matching_pairs, transistors)
         pairs, segments, fallback_used, _search_skipped = _select_crossover_pairing(
-            odd, node_map, transistors, matching_pairs)
+            odd, node_map, transistors, matching_pairs, pair_sensitivity)
 
     return {"segments": segments, "crossover_count": len(segments) - 1, "odd_nodes": odd,
             "node_pairing_fallback_used": fallback_used}
@@ -3406,6 +3455,114 @@ def _branch_composite_pair(a: str, b: str, devices_by_name: dict, matching_pairs
         "composite_a": composite_a, "composite_b": composite_b,
         "expand": {composite_a.name: [hub_a, leaf_a], composite_b.name: [hub_b, leaf_b]},
     }
+
+
+def _composite_collapse_for_crossover(transistors: list, matching_pairs: list,
+                                       pair_sensitivity: dict | None = None) -> tuple:
+    """**세션17 신설** -- `find_min_crossover_layout()`을 부르기 전에 이 그룹의 branch
+    (예: M1a-M2a 캐스코드 컬럼)를 `_branch_composite_pair()`로 미리 합성 소자 하나로
+    뭉친다. `repair_matching_safety()`가 `interdigitate_layout()`/`common_centroid_
+    layout()`을 부르기 전에 이미 이렇게 하고 있는 것과 정확히 같은 이유 -- branch는
+    물리적으로 한 덩어리로 움직여야 하는데, `find_min_crossover_layout()`은 raw 개별
+    소자만 보면 그 사실을 전혀 모른다(사용자 확인, 세션17). 이걸 안 하면 crossover
+    짝짓기가 같은 branch의 두 소자를 서로 다른 segment로 갈라놓을 수 있다 -- M6 그룹이
+    지금까지 우연히 안 갈라진 것뿐, 구조적 보장이 아니었다.
+
+    선언된 `matching_pairs`를 순회하며 각 쌍에 `_branch_composite_pair()`를 시도한다.
+    성공하면(hub쪽/leaf쪽 모두 선언된 branch 쌍) 그 4개 실제 소자(hub_a/leaf_a/hub_b/
+    leaf_b)를 "소비됨"으로 표시하고, 합성 쌍 하나(`composite_a.name`, `composite_b.name`)
+    를 새 matching_pairs에 넣는다 -- **원래 두 선언 쌍(hub쪽 M1a/M1b, leaf쪽 M2a/M2b)이
+    같은 branch를 가리키면 새 목록엔 이 합성 쌍 하나만 남는다**(중복 방지 -- 소비된
+    소자를 참조하는 이후 선언 쌍은 건너뛴다). 실패하면(branch 없음/부분만 선언/구조
+    안 맞음) 그 쌍은 원래 이름 그대로 새 목록에 남는다(하위호환 폴백, 기존 개별-소자
+    경로와 동일).
+
+    `pair_sensitivity`가 주어지면 합성 쌍의 민감도는 **hub쪽/leaf쪽 중 하나라도
+    "offset"이면 "offset"**으로 정한다(더 엄격한 쪽 우선 -- `repair_matching_safety()`가
+    `select_layout_tool()`로 "둘 중 하나라도 common_centroid가 필요하면 common_centroid
+    채택"하는 것과 동일한 보수적 원칙, 사용자 확인). 원래 두 선언 쌍의 민감도가 다르면
+    이 규칙으로 합쳐지고, `pair_sensitivity=None`이면 새 pair_sensitivity도 `None`.
+
+    반환: `(new_transistors, new_matching_pairs, new_pair_sensitivity, expand_map)` --
+    `expand_map`은 `{composite_name: [real_name1, real_name2]}`(합성 안 된 이름은 키에
+    없음, 호출자가 `expand_map.get(name, [name])`로 처리)."""
+    devices_by_name = {t.name: t for t in transistors}
+    consumed: set = set()
+    composite_pairs: dict = {}   # frozenset(실제 4소자 or 합성 안 된 2소자) -> (new_a, new_b)
+    expand_map: dict = {}
+    new_devices_by_name = dict(devices_by_name)
+
+    def _sensitivity_of(a, b):
+        if pair_sensitivity is None:
+            return None
+        for key in ((a, b), (b, a), frozenset({a, b})):
+            if key in pair_sensitivity:
+                return pair_sensitivity[key]
+        return None
+
+    new_matching_pairs = []
+    for a, b in matching_pairs:
+        if a in consumed and b in consumed:
+            continue  # 이미 다른 선언 쌍(같은 branch의 반대쪽)에서 합성됨
+        composite = _branch_composite_pair(a, b, devices_by_name, matching_pairs)
+        if composite is None:
+            new_matching_pairs.append((a, b))
+            continue
+        ca, cb = composite["composite_a"], composite["composite_b"]
+        real_names = [n for names in composite["expand"].values() for n in names]
+        consumed.update(real_names)
+        for name, members in composite["expand"].items():
+            new_devices_by_name.pop(members[0], None)
+            new_devices_by_name.pop(members[1], None)
+            new_devices_by_name[name] = ca if name == ca.name else cb
+            expand_map[name] = members
+        hub_a, leaf_a = composite["expand"][ca.name]
+        hub_b, leaf_b = composite["expand"][cb.name]
+        new_matching_pairs.append((ca.name, cb.name))
+        if pair_sensitivity is not None:
+            sens_hub = _sensitivity_of(hub_a, hub_b)
+            sens_leaf = _sensitivity_of(leaf_a, leaf_b)
+            composite_pairs[(ca.name, cb.name)] = \
+                "offset" if "offset" in (sens_hub, sens_leaf) else "ratio"
+
+    new_transistors = list(new_devices_by_name.values())
+    new_pair_sensitivity = None
+    if pair_sensitivity is not None:
+        new_pair_sensitivity = dict(pair_sensitivity)
+        for key in composite_pairs:
+            new_pair_sensitivity[key] = composite_pairs[key]
+    return new_transistors, new_matching_pairs, new_pair_sensitivity, expand_map
+
+
+def find_min_crossover_layout_with_branch_composite(
+        transistors: list, matching_pairs: list, pair_sensitivity: dict | None = None) -> dict:
+    """**세션17 신설** -- `find_min_crossover_layout()`을 branch-인지형으로 감싸는
+    wrapper(`find_min_crossover_layout()` 자체는 안 건드림, 완전히 별도 함수). 호출
+    전에 `_composite_collapse_for_crossover()`로 branch를 합성 소자로 뭉쳐서 crossover
+    짝짓기가 branch를 갈라놓을 수 없게 만들고(구조적 보장 -- 합성 소자는 그래프에서
+    원자 단위 edge 하나라 애초에 쪼갤 방법이 없다), 결과 segment의
+    `transistor_sequence`를 실제 소자 이름으로 다시 펼쳐서 반환한다(`_layout_result_
+    to_rows()`가 쓰는 것과 동일한 펼치기 패턴).
+
+    ⚠️ `node_sequence`는 합성 소자의 경계 net(hub_net/leaf_net) 그대로 남는다 --
+    branch 내부 net(예: M1a.drain=M2a.source인 N1a2a)은 합성 과정에서 감춰지므로
+    이 필드에서 복원하지 않는다(이 함수의 소비자는 지금까지 `transistor_sequence`만
+    필요로 했다 -- `_count_matching_pair_splits()`도 그렇다).
+
+    반환: `find_min_crossover_layout()`과 동일한 키 + `"branch_composites"`:
+    `{composite_name: [real_name1, real_name2]}`(어떤 branch가 합성됐는지 투명하게
+    남김, 세션16 F절 "성공 필드 하나로 전체를 판단하지 말 것" 원칙과 같은 이유로
+    디버깅 정보를 조용히 숨기지 않는다)."""
+    new_transistors, new_matching_pairs, new_pair_sensitivity, expand_map = \
+        _composite_collapse_for_crossover(transistors, matching_pairs, pair_sensitivity)
+    result = find_min_crossover_layout(new_transistors, new_matching_pairs, new_pair_sensitivity)
+    expanded_segments = [
+        {"transistor_sequence": [n for name in seg["transistor_sequence"]
+                                  for n in expand_map.get(name, [name])],
+         "node_sequence": seg["node_sequence"]}
+        for seg in result["segments"]
+    ]
+    return {**result, "segments": expanded_segments, "branch_composites": expand_map}
 
 
 def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: dict | None = None,
@@ -5384,6 +5541,62 @@ if __name__ == "__main__":
     assert r_6["node_pairing_fallback_used"] is None
     print("    PASS: matching_pairs=None 경로는 node_pairing_fallback_used=None")
 
+    print("  [세션17 offset 우선순위 가중치 -- _count_matching_pair_splits()의")
+    print("  pair_sensitivity 튜플 채점이 offset 쌍을 ratio 쌍보다 우선 보호하는지.")
+    print("  ⚠️ 실제 회로(M6 등)로 '동점인데 가중치로 갈리는' 진짜 tradeoff 사례를 여러")
+    print("  구조(순수 star, hub-bridge 1개/2개, leaf-bridge)로 찾아봤으나 못 찾음(전부")
+    print("  offset 쌍이 항상 갈라지거나 항상 안 갈라지는 두 극단으로만 수렴함, hierholzer")
+    print("  순회 특성 때문 -- probe_offset_tradeoff*.py, 스크래치패드). 그래서 segment를")
+    print("  손으로 구성해 채점 함수 자체를 직접 검증한다(그래프 탐색에 의존하지 않는 확실한")
+    print("  검증), 그리고 M6 실제 회로로는 pair_sensitivity를 줘도 이미 달성한 (0,0)이")
+    print("  안 깨지는지(회귀 안전성)만 확인]")
+    _w_pairs = [("Ma", "Mb"), ("Mc", "Md")]
+    _w_sensitivity = {("Ma", "Mb"): "offset", ("Mc", "Md"): "ratio"}
+    assert _count_matching_pair_splits(
+        [{"transistor_sequence": ["Ma", "Mc"]}, {"transistor_sequence": ["Mb", "Md"]}],
+        _w_pairs) == 2, "둘 다 갈라진 경우 스칼라=2가 아님"
+    assert _count_matching_pair_splits(
+        [{"transistor_sequence": ["Ma", "Mc"]}, {"transistor_sequence": ["Mb", "Md"]}],
+        _w_pairs, _w_sensitivity) == (1, 1), "둘 다 갈라진 경우 가중치 튜플=(1,1)이 아님"
+    print("    PASS: pair_sensitivity 없으면 스칼라(=2), 있으면 (offset=1,other=1) 튜플")
+
+    # 핵심 -- "동점인데 가중치로 갈리는" 상황을 손으로 구성: segA는 offset(Ma/Mb) 보호+
+    # ratio(Mc/Md) 희생, segB는 ratio 보호+offset 희생. 스칼라 총합은 둘 다 1로 완전히
+    # 동점이라 pair_sensitivity 없이는 구분이 안 되지만(먼저 발견된 후보 유지, 근거 없는
+    # 임의 선택), 튜플 비교는 (0,1) < (1,0)이라 항상 offset 보호를 우선한다.
+    _seg_protect_offset = [{"transistor_sequence": ["Ma", "Mb"]}, {"transistor_sequence": ["Mc"]},
+                            {"transistor_sequence": ["Md"]}]
+    _seg_protect_ratio = [{"transistor_sequence": ["Mc", "Md"]}, {"transistor_sequence": ["Ma"]},
+                           {"transistor_sequence": ["Mb"]}]
+    _plain_a = _count_matching_pair_splits(_seg_protect_offset, _w_pairs)
+    _plain_b = _count_matching_pair_splits(_seg_protect_ratio, _w_pairs)
+    _weighted_a = _count_matching_pair_splits(_seg_protect_offset, _w_pairs, _w_sensitivity)
+    _weighted_b = _count_matching_pair_splits(_seg_protect_ratio, _w_pairs, _w_sensitivity)
+    assert _plain_a == _plain_b == 1, \
+        f"두 후보의 스칼라 총합이 동점(=1)이어야 tradeoff 시나리오가 성립: {_plain_a}, {_plain_b}"
+    assert _weighted_a == (0, 1) and _weighted_b == (1, 0), \
+        f"가중치 튜플이 예상과 다름: A={_weighted_a}, B={_weighted_b}"
+    assert _weighted_a < _weighted_b, \
+        "offset 보호 후보(A)가 ratio 보호 후보(B)보다 더 나은 점수여야 함(사전식 비교)"
+    print(f"    PASS: 스칼라로는 완전히 동점(둘 다 1)이라 가중치 없이는 근거 없이 아무 후보나")
+    print(f"    선택됐을 상황 -- pair_sensitivity를 주면 (0,1)<(1,0)로 offset 보호 후보가")
+    print(f"    항상 결정적으로 이김")
+    assert _is_perfect_crossover_score(0) and _is_perfect_crossover_score((0, 0))
+    assert not _is_perfect_crossover_score(1) and not _is_perfect_crossover_score((1, 0))
+    print("    PASS: _is_perfect_crossover_score()가 스칼라/튜플 둘 다 올바르게 판정")
+
+    print("  [M6 실제 회로 회귀 -- pair_sensitivity를 줘도 이미 달성한 (0,0)이 안 깨지는지]")
+    _m6_sensitivity_for_split = {("M1a", "M1b"): "offset", ("M2a", "M2b"): "ratio"}
+    _m6_weighted_result = find_min_crossover_layout(
+        _m6_group_trs, _m6_inside_pairs, pair_sensitivity=_m6_sensitivity_for_split)
+    _m6_weighted_splits = _count_matching_pair_splits(
+        _m6_weighted_result["segments"], _m6_inside_pairs, _m6_sensitivity_for_split)
+    assert _m6_weighted_splits == (0, 0), \
+        f"pair_sensitivity를 줬더니 M6 그룹의 완벽한 결과(0,0)가 깨짐: {_m6_weighted_splits}"
+    assert _m6_weighted_result["crossover_count"] == 1
+    print(f"    PASS: pair_sensitivity 지정해도 M6 그룹은 여전히 (0,0) 유지(회귀 없음), "
+          f"crossover_count={_m6_weighted_result['crossover_count']}")
+
     print()
     print("=== Test 13: check_box_shape() 게이트 — SPICE 전에 반드시 통과해야 하는 §8 체크포인트 ===")
     print("  Example 1의 실제 최초 실수(nstack=3, pstack=32)를 이 게이트에 넣으면:")
@@ -6339,6 +6552,61 @@ if __name__ == "__main__":
                                        {_branch_a: _t_branch_a, _branch_b: _t_branch_b}, _norepair_pairs)
     assert _bc_none is None, f"branch 구조가 없는데 composite가 나옴(오탐): {_bc_none}"
     print("    PASS: branch 구조 없음 -> None(기존 폴백 경로 그대로 보존)")
+
+    print()
+    print("  [세션17 _composite_collapse_for_crossover()/find_min_crossover_layout_with_")
+    print("  branch_composite() -- find_min_crossover_layout()을 부르기 전에 branch(M1a-M2a,")
+    print("  M1b-M2b)를 미리 합성 소자로 뭉쳐서, crossover 짝짓기가 애초에 branch를 갈라놓을")
+    print("  수 없게 만드는지(채점 기반 회피가 아니라 구조적 보장) M6 그룹으로 확인 -- 사용자")
+    print("  질문(세션17): 'find_min_crossover_layout() 호출 전에도 branch_composite_pair를")
+    print("  써야 하지 않나?']")
+    _cc_sensitivity = {("M1a", "M1b"): "offset", ("M2a", "M2b"): "ratio"}
+    _cc_trs, _cc_pairs, _cc_sens, _cc_expand = _composite_collapse_for_crossover(
+        _m6b_row, _m6b_pairs, _cc_sensitivity)
+    assert len(_cc_trs) == len(_m6b_row) - 2, \
+        f"4개 실제 소자(M1a/M2a/M1b/M2b) -> 2개 합성으로 순감소 2여야 하는데: " \
+        f"{len(_m6b_row)} -> {len(_cc_trs)}"
+    assert len(_cc_pairs) == 1, \
+        f"hub쪽(M1a/M1b)/leaf쪽(M2a/M2b) 선언 쌍 2개가 합성 쌍 1개로 합쳐져야 하는데: {_cc_pairs}"
+    _cc_composite_name = _cc_pairs[0]
+    assert set(_cc_expand[_cc_composite_name[0]]) == {"M1a", "M2a"} or \
+        set(_cc_expand[_cc_composite_name[0]]) == {"M1b", "M2b"}, \
+        f"합성 이름의 expand_map이 예상과 다름: {_cc_expand}"
+    assert {"M6", "M7"} <= {t.name for t in _cc_trs}, \
+        "미매칭 소자(M6/M7)가 합성 과정에서 사라지면 안 됨"
+    assert _cc_sens[_cc_composite_name] == "offset", \
+        f"hub쪽(M1a/M1b)이 offset이므로 합성 쌍도 offset이어야 하는데: {_cc_sens}"
+    print(f"    PASS: {len(_m6b_row)}소자 -> {len(_cc_trs)}개(합성 2 + 미매칭 그대로), "
+          f"선언 쌍 2개 -> 합성 쌍 1개({_cc_composite_name}), 민감도=offset(hub쪽 우선, 보수적 규칙)")
+
+    _cc_result = find_min_crossover_layout_with_branch_composite(_m6b_row, _m6b_pairs, _cc_sensitivity)
+    _cc_total = sum(len(s["transistor_sequence"]) for s in _cc_result["segments"])
+    assert _cc_total == sum(t.n_fingers for t in _m6b_row), \
+        f"펼친 뒤 finger 총합이 원본과 안 맞음: {_cc_total} != {sum(t.n_fingers for t in _m6b_row)}"
+    _cc_seg_of: dict = {}
+    for i, seg in enumerate(_cc_result["segments"]):
+        for name in seg["transistor_sequence"]:
+            _cc_seg_of.setdefault(name, set()).add(i)
+    assert _cc_seg_of["M1a"] == _cc_seg_of["M2a"], \
+        f"M1a/M2a(같은 branch)가 합성 소자인데도 다른 segment에 나옴 -- 구조적 보장 실패: {_cc_seg_of}"
+    assert _cc_seg_of["M1b"] == _cc_seg_of["M2b"], \
+        f"M1b/M2b(같은 branch)가 합성 소자인데도 다른 segment에 나옴 -- 구조적 보장 실패: {_cc_seg_of}"
+    print(f"    PASS: 펼친 뒤에도 M1a/M2a, M1b/M2b가 각각 정확히 같은 segment에 있음(branch가")
+    print(f"    애초에 그래프에서 원자 단위 edge였으므로 crossover 짝짓기가 갈라놓을 방법이")
+    print(f"    없음 -- 이전 raw 개별소자 버전은 이게 채점 결과였을 뿐 구조적 보장이 아니었음), "
+          f"crossover_count={_cc_result['crossover_count']}, "
+          f"branch_composites={sorted(_cc_result['branch_composites'].keys())}")
+
+    print("  [회귀 -- branch 구조 없는 그룹(위 rowA/rowB 픽스처)은 _composite_collapse_for_")
+    print("  crossover()가 아무것도 안 합치고 원본 그대로 통과시키는지]")
+    _cc_none_trs, _cc_none_pairs, _cc_none_sens, _cc_none_expand = \
+        _composite_collapse_for_crossover(
+            [_t_branch_a, _t_branch_b], _norepair_pairs, _norepair_sensitivity)
+    assert _cc_none_pairs == _norepair_pairs and _cc_none_expand == {}, \
+        f"branch 구조가 없는데 뭔가 합성됨(오탐): pairs={_cc_none_pairs}, expand={_cc_none_expand}"
+    assert {t.name for t in _cc_none_trs} == {_branch_a, _branch_b}
+    print(f"    PASS: branch 없음 -> _composite_collapse_for_crossover()가 아무것도 안 건드림"
+          f"(expand_map 비어있음, matching_pairs 그대로 {_cc_none_pairs})")
 
     print()
     print("  [repair_matching_safety() -- 세션17 relaxed_pairs: 최후수단 인접배치 완화가")

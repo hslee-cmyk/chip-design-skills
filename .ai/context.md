@@ -916,16 +916,106 @@ assertion)만 다르고 나머지 전부 0줄 차이. 무회귀 확정.
   휴리스틱 결과만 쓴다 — 지금까지 실제로 관찰된 그룹은 전부 4개 이하라 아직 이 한계에
   부딪힌 사례 없음.
 
+## F. offset 쌍 우선순위 가중치 — 같은 세션17에 이어서(사용자 확인 후 구현)
+
+사용자가 E절 결과를 보고 "differential pair를 특별 취급 안 하냐"고 물어 확인해보니, 실제로
+`_count_matching_pair_splits()`가 offset/ratio를 동등하게 셌다 — 진짜 트레이드오프
+(둘 다 완전히 안 갈라지는 배치가 없는 경우) 상황이면 CMRR에 더 민감한 offset을 ratio보다
+우선 보호해야 하는데 그런 우선순위가 없었다. 사용자가 "가중치 추가하자"고 확정해 구현.
+
+### F-1. 설계 — 스칼라 대신 튜플 사전식 비교
+`_count_matching_pair_splits(segments, matching_pairs, pair_sensitivity=None)`에
+`pair_sensitivity` 선택 인자 신설 — 주면 반환값이 스칼라 대신 `(offset_splits,
+other_splits)` **튜플**이 된다. Python 튜플 비교가 사전식이라 `_select_crossover_
+pairing()`이 이 값을 그대로 비교하면 offset 쌍이 갈라지는 걸 ratio 쌍이 갈라지는 것보다
+**항상** 더 나쁘게 채점한다 — 임의의 가중치 상수(예: offset=1000)를 지어내지 않고
+자료구조로 우선순위를 표현. `_is_perfect_crossover_score(score)` 헬퍼로 스칼라 0과
+튜플 (0,0) 둘 다 "분할 없음"으로 판정하는 지점을 하나로 통일. `_select_crossover_
+pairing()`/`find_min_crossover_layout()` 둘 다 `pair_sensitivity` 인자를 그대로
+관통시킴(둘 다 `None` 기본값, 하위호환).
+
+### F-2. "동점인데 가중치로 갈리는" 진짜 tradeoff 실제 회로 못 찾음(정직하게 기록)
+M6 등 여러 합성 구조(순수 star, hub-bridge 1개/2개, leaf-bridge)로 실제 tradeoff 사례를
+찾아봤으나(`probe_offset_tradeoff*.py`, 스크래치패드, 커밋 안 됨) 못 찾았다 — offset 쌍이
+`hierholzer()` 순회 특성상 항상 갈라지거나 항상 안 갈라지는 두 극단으로만 수렴하고, "동점"
+상황 자체가 잘 안 생긴다는 게 실측으로 드러남. 상상으로 지어내지 않고, 대신 **segment를
+손으로 구성**해 채점 함수 자체(그래프 탐색과 무관)를 직접 검증하는 방식으로 전환 —
+스칼라로는 완전히 동점(각 1개씩 다른 쌍이 갈라짐)인 두 후보를 손으로 만들어, 튜플
+비교(`(0,1) < (1,0)`)가 offset 보호 후보를 결정적으로 이기게 함을 확인. M6 실제 회로로는
+`pair_sensitivity`를 줘도 이미 달성한 (0,0)이 안 깨지는지(회귀 안전성)만 확인.
+
+### F-3. self-test/회귀
+`stick_diagram.py` self-test에 4건 추가(Test 12.13 뒤) — 스칼라 vs 튜플 반환 확인,
+손으로 구성한 tradeoff 동점 사례에서 튜플이 결정적으로 offset을 이김, `_is_perfect_
+crossover_score()` 스칼라/튜플 판정, M6 실제 회로 회귀(여전히 (0,0)). `PYTHONHASHSEED=0`
+기준 `69d9b39` 대비 diff — 신규 테스트 블록 외 0줄 차이, 무회귀 확정.
+
+## G. `find_min_crossover_layout()` 호출 전 branch composite 사전병합 — 같은 세션17에
+## 이어서(사용자 질문으로 발견)
+
+사용자가 "이 함수가 composite인 걸 단일소자와 구분 안 하지? 그건 상위에서 주는 거니까"라고
+확인 질문을 던졌고, 답하는 과정에서 실제 결함을 발견했다: `repair_matching_safety()`는
+`interdigitate_layout()`/`common_centroid_layout()`을 부르기 전에 이미 `_branch_
+composite_pair()`로 branch(M1a-M2a 캐스코드 컬럼)를 합성 소자로 뭉치는데, `find_min_
+crossover_layout()`은 이걸 전혀 모르는 채 raw 개별 소자를 받는다 — crossover 짝짓기가
+같은 branch의 두 소자를 서로 다른 segment로 갈라놓을 수 있다(M6이 지금까지 우연히 안
+갈라진 것뿐, 구조적 보장이 아니었음). 사용자가 "이 방향으로 진행해"로 확정.
+
+### G-1. 구현 (`stick_diagram.py`, `_branch_composite_pair()` 직후, `repair_matching_
+safety()` 직전)
+- `_composite_collapse_for_crossover(transistors, matching_pairs, pair_sensitivity=None)`
+  — 선언된 matching_pairs를 순회하며 각 쌍에 `_branch_composite_pair()`를 시도, 성공하면
+  4개 실제 소자(hub_a/leaf_a/hub_b/leaf_b)를 소비 처리하고 합성 쌍 하나로 교체(원래 두
+  선언 쌍(hub쪽/leaf쪽)이 같은 branch를 가리키면 새 목록엔 합성 쌍 하나만 남음, 중복
+  방지). 실패하면 원래 이름 그대로 통과(하위호환 폴백). `pair_sensitivity` 주어지면
+  합성 쌍 민감도는 **"hub쪽/leaf쪽 중 하나라도 offset이면 offset"**(사용자 확인 —
+  `repair_matching_safety()`의 `select_layout_tool()` "둘 중 하나라도 common_centroid
+  필요하면 common_centroid 채택"과 동일한 보수적 원칙). 반환:
+  `(new_transistors, new_matching_pairs, new_pair_sensitivity, expand_map)`.
+- `find_min_crossover_layout_with_branch_composite(transistors, matching_pairs,
+  pair_sensitivity=None)` — 위 함수로 collapse → `find_min_crossover_layout()` 호출 →
+  결과 segment의 `transistor_sequence`를 `expand_map`으로 실제 소자 이름으로 다시 펼침
+  (`_layout_result_to_rows()`가 쓰는 것과 동일한 펼치기 패턴). `find_min_crossover_
+  layout()` 자체는 전혀 안 건드림(완전히 별도 wrapper). 반환에 `branch_composites`
+  필드 추가(어떤 branch가 합성됐는지 투명하게 남김, 세션16 F절 "성공 필드 하나로 전체를
+  판단하지 말 것" 원칙과 동일 이유).
+  ⚠️ `node_sequence`는 합성 소자의 경계 net 그대로 남음(branch 내부 net은 복원 안 함 —
+  지금까지 소비자는 `transistor_sequence`만 필요로 함, 정직한 한계로 docstring에 명시).
+
+### G-2. self-test/회귀 (Test 28, `_branch_composite_pair()` 직후)
+M6 그룹 실제 사례(`_m6b_row`/`_m6b_pairs`/`_m6b_sensitivity`, 세션16 fixture 재사용)로:
+6소자→4개(합성 2+미매칭 2), 선언 쌍 2개→합성 쌍 1개, 민감도=offset(hub쪽 우선) 확인 +
+펼친 뒤 M1a/M2a, M1b/M2b가 각각 **정확히 같은 segment**에 있음(채점 기반 회피가 아니라
+구조적 보장 — 합성 소자는 그래프에서 원자 단위 edge라 애초에 쪼갤 방법이 없음)을 확인.
+branch 구조 없는 그룹(rowA/rowB 기존 fixture)은 `_composite_collapse_for_crossover()`가
+아무것도 안 건드리는지 회귀 대조. `PYTHONHASHSEED=0` 기준 `69d9b39` 대비 diff — 신규
+테스트 블록 외 0줄 차이(F/G절 둘 다 포함), 무회귀 확정.
+디버깅 중 실제 버그 1건 발견/수정: `composite_pairs` 딕셔너리 키를 처음엔 `frozenset`으로
+만들었는데 `new_matching_pairs`에 넣는 키는 순서 있는 tuple이라 조회가 어긋나
+`KeyError`가 났다 — tuple로 통일해 수정(self-test가 실제로 이 버그를 잡음, 실행 없이
+넘어갔으면 몰랐을 것).
+
+### G-3. 알려진 한계
+`find_min_crossover_layout_with_branch_composite()`도 `find_min_crossover_layout()`과
+마찬가지로 **아직 어떤 harness에도 안 이어짐**(self-test 전용) — 다음 항목(그룹분할
+harness 배선)이 이 wrapper를 실제로 쓰기 시작하는 지점이다. 즉 harness 배선 설계 시
+`find_min_crossover_layout()`이 아니라 **이 wrapper**를 호출하도록 할 것(그래야 branch
+구조적 보장이 실전에도 적용됨).
+
 ---
 
 ## 다음 세션 작업 순서 (권장, 각 단계 사용자 승인 필수)
 
 1. **⚠️ 최우선 — 세션15 C절(그룹분할 harness 배선) 재개** — crossover 짝짓기 우선순위가
-   이제 고쳐졌으니(위 E절) 안전하게 진행 가능. C-2(crossover 성공 등급을 어떻게 표현할지
-   — `group_splits` 필드 vs 다른 방식)와 C-3(`cell_groups`/`spine_groups` 갭을 지금
-   막을지 vs 미룰지) 두 질문부터 다시 확인. 답이 나오면 C-1 설계(row `stack_id`를
-   `f"{row}_seg{i}"`로 재배정)대로 `run_topology_pipeline_with_finger_fixup()`을 실제로
-   고칠 것 — 여러 회로에 영향을 주는 엔진 변경이라 사전 승인 원칙 그대로.
+   이제 고쳐졌고(위 E절), branch composite 사전병합(F/G절, `find_min_crossover_layout_
+   with_branch_composite()`)도 준비됐으니 안전하게 진행 가능. **배선할 때 `find_min_
+   crossover_layout()`이 아니라 `find_min_crossover_layout_with_branch_composite()`를
+   호출할 것**(G-3절 — 안 그러면 branch 구조적 보장이 실전에 안 먹힘). C-2(crossover
+   성공 등급을 어떻게 표현할지 — `group_splits` 필드 vs 다른 방식)와 C-3(`cell_groups`/
+   `spine_groups` 갭을 지금 막을지 vs 미룰지) 두 질문부터 다시 확인. 답이 나오면 C-1
+   설계(row `stack_id`를 `f"{row}_seg{i}"`로 재배정)대로 `run_topology_pipeline_with_
+   finger_fixup()`을 실제로 고칠 것 — 여러 회로에 영향을 주는 엔진 변경이라 사전 승인
+   원칙 그대로.
 2. `run_harness.py` 재실행 전략 논의(세션11 A절 — 그리드 축소 or 다른 최적화 방식) — 1번이
    끝나면 이 새 체인들이 실전에서 어떻게 동작하는지 end-to-end로 확인할 좋은 기회.
 3. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
@@ -960,14 +1050,15 @@ assertion)만 다르고 나머지 전부 0줄 차이. 무회귀 확정.
   - `suggest_finger_adjustments(transistors)`(1865행 부근) — 기존 함수, **세션12에
     확장 안 하고 옆에 새 함수(`suggest_pair_finger_adjustments`)로 분리**(개별 소자
     조정이 필요한 기존 호출부를 건드리지 않기 위해).
-  - `find_min_crossover_layout(transistors, matching_pairs=None)`(1857행 부근) —
-    **세션15에 확장**(node_map 기반 그룹분할, 위 세션15 B절), **세션17에 짝짓기 선택
-    방식 재작성**(아래 참고). `matching_pairs=None`(기본값)이면 기존 hub-leaf
-    사전조건+순서대로 짝짓기 완전히 그대로(하위호환, 기존 프로덕션 호출부는 이 경로).
-    주면 hub-leaf 제약을 풀고 `_select_crossover_pairing()`(세션17)이 아래 헬퍼들로
-    matching_pairs 분할을 최소화하는 짝짓기를 고른다.
-    **⚠️ 아직 harness에 안 이어짐**(세션15 C절, 다음 세션 최우선 — 위 "지금 상태" 7번,
-    E-6절 참고 — 이 함수 자체는 다 고쳐졌지만 아직 실제 사이징 결과에 영향 없음).
+  - `find_min_crossover_layout(transistors, matching_pairs=None, pair_sensitivity=None)`
+    (1857행 부근) — **세션15에 확장**(node_map 기반 그룹분할, 위 세션15 B절), **세션17에
+    짝짓기 선택 방식 재작성**(D절) + **F절에서 `pair_sensitivity` 파라미터 추가**.
+    `matching_pairs=None`(기본값)이면 기존 hub-leaf 사전조건+순서대로 짝짓기 완전히
+    그대로(하위호환, 기존 프로덕션 호출부는 이 경로, `pair_sensitivity`는 무시됨). 주면
+    hub-leaf 제약을 풀고 `_select_crossover_pairing()`(세션17)이 아래 헬퍼들로
+    matching_pairs 분할(및 offset 우선순위)을 최소화하는 짝짓기를 고른다.
+    **⚠️ 아직 harness에 직접 안 이어짐** — G절 wrapper(`find_min_crossover_layout_
+    with_branch_composite()`)를 통해 다음 세션에 배선할 것(위 "지금 상태" 7번, G-3절).
   - `_mirror_node_map_from_pairs(matching_pairs, transistors)`(1765행 부근) —
     **세션15 신설**, matching_pairs+connectivity에서 net 레벨 거울 대응 역산. 세션17
     미변경.
@@ -981,25 +1072,44 @@ assertion)만 다르고 나머지 전부 0줄 차이. 무회귀 확정.
     layout()` 직전) — **세션17 신설**. 옛 `find_min_crossover_layout()`에 인라인으로
     있던 "가상 edge 추가 + hierholzer + trail 분해" 계산을 뽑아낸 순수 함수(매번
     `build_graph()`를 새로 불러 결정적) — pairs 후보별로 재사용할 수 있게 함.
-  - `_count_matching_pair_splits(segments, matching_pairs)`(`_build_crossover_
-    segments()` 직후) — **세션17 신설**. segments 중 선언된 matching_pairs가 완전히
-    다른 segment로 갈라진 개수를 센다(채점 기준). 최소 한 segment라도 공유하면 "안
-    갈라짐"으로 봄(보수적 기준).
+  - `_count_matching_pair_splits(segments, matching_pairs, pair_sensitivity=None)`
+    (`_build_crossover_segments()` 직후) — **세션17 신설, F절에서 `pair_sensitivity`
+    파라미터 추가**. segments 중 선언된 matching_pairs가 완전히 다른 segment로 갈라진
+    개수를 센다(채점 기준). 최소 한 segment라도 공유하면 "안 갈라짐"으로 봄(보수적
+    기준). `pair_sensitivity` 주면 스칼라 대신 `(offset_splits, other_splits)` 튜플을
+    반환 — 사전식 비교로 offset 쌍 보호를 ratio보다 우선시킴.
+  - `_is_perfect_crossover_score(score)`(`_count_matching_pair_splits()` 직후) —
+    **세션17 F절 신설**. 스칼라 0과 튜플 (0,0) 둘 다 "분할 없음"으로 판정.
   - `_MAX_CROSSOVER_PAIRING_NODES=8` + `_enumerate_perfect_matchings(nodes)`
-    (`_count_matching_pair_splits()` 직후) — **세션17 신설**. `(2m-1)!!`개 완전짝짓기를
+    (`_is_perfect_crossover_score()` 직후) — **세션17 신설**. `(2m-1)!!`개 완전짝짓기를
     재귀로 생성(8노드=105개 상한, 다른 조합탐색 캡과 동일 관례).
-  - `_select_crossover_pairing(odd_nodes, node_map, transistors, matching_pairs)`
-    (`_enumerate_perfect_matchings()` 직후) — **세션17 신설**(세션16 D-1 발견의 일반화,
-    "구성 후 검증" 원칙). `_pair_odd_nodes_by_mirror()`의 결과를 기본 후보로 채점, 분할
-    >0이고 홀수 노드 수가 캡 이하면 `_enumerate_perfect_matchings()`로 전수 대입해 분할이
-    더 적은 후보로 교체(분할=0을 찾으면 즉시 중단). `crossover_count`(m-1) 자체는
-    T-join 정리로 불변 — 이 선택은 "어디서 끊기는가"만 바꾼다.
-  - Test 12.13(Test 12.12 직후, self-test 섹션) — **세션15 신설, 세션17 재작성**. M6
-    그룹 실제 connectivity 재현 + node_map 역산 단위 확인 + 폴백 발동 확인 +
-    `matching_pairs=None` 회귀 대조는 그대로 유지하되, 핵심 assertion을 옛 tier1
-    짝짓기(splits=2, 회귀 대조로 명시적 재현) → 신규 짝짓기(splits=0)로 교체 — 세션15
-    당시 assertion(`crossover_count==1`/`fallback_used==False`)은 T-join 불변량 때문에
-    개선 여부와 무관하게 항상 통과하는 약한 테스트였음(세션17에 발견).
+  - `_select_crossover_pairing(odd_nodes, node_map, transistors, matching_pairs,
+    pair_sensitivity=None)`(`_enumerate_perfect_matchings()` 직후) — **세션17
+    신설**(세션16 D-1 발견의 일반화, "구성 후 검증" 원칙), **F절에서 `pair_sensitivity`
+    관통**. `_pair_odd_nodes_by_mirror()`의 결과를 기본 후보로 채점, 분할이 있고 홀수
+    노드 수가 캡 이하면 `_enumerate_perfect_matchings()`로 전수 대입해 분할이 더 적은
+    후보로 교체(분할 없음을 찾으면 즉시 중단). `crossover_count`(m-1) 자체는 T-join
+    정리로 불변 — 이 선택은 "어디서 끊기는가"만 바꾼다.
+  - `_composite_collapse_for_crossover(transistors, matching_pairs,
+    pair_sensitivity=None)` / `find_min_crossover_layout_with_branch_composite(...)`
+    (`_branch_composite_pair()` 직후, `repair_matching_safety()` 직전) — **세션17 G절
+    신설**. `find_min_crossover_layout()`을 부르기 전에 branch를 `_branch_composite_
+    pair()`로 미리 합성 소자로 뭉쳐서, crossover 짝짓기가 branch를 갈라놓을 수 없게
+    만든다(채점 기반 회피가 아니라 구조적 보장 — 사용자 질문으로 발견된 결함, 위 G절
+    참고). `find_min_crossover_layout()` 자체는 안 건드림(완전히 별도 wrapper).
+    **⚠️ 다음 세션 harness 배선 시 `find_min_crossover_layout()`이 아니라 이 wrapper를
+    쓸 것**(G-3절).
+  - Test 12.13(Test 12.12 직후, self-test 섹션) — **세션15 신설, 세션17 재작성 +
+    F절에서 offset 가중치 테스트 4건 추가**. M6 그룹 실제 connectivity 재현 + node_map
+    역산 단위 확인 + 폴백 발동 확인 + `matching_pairs=None` 회귀 대조는 그대로
+    유지하되, 핵심 assertion을 옛 tier1 짝짓기(splits=2, 회귀 대조로 명시적 재현) →
+    신규 짝짓기(splits=0)로 교체 — 세션15 당시 assertion(`crossover_count==1`/
+    `fallback_used==False`)은 T-join 불변량 때문에 개선 여부와 무관하게 항상 통과하는
+    약한 테스트였음(세션17에 발견).
+  - Test 28(`_branch_composite_pair()` 직후, `repair_matching_safety()` self-test
+    앞) — **세션17 G절 신설**. `_composite_collapse_for_crossover()`/`find_min_
+    crossover_layout_with_branch_composite()`를 M6 그룹 fixture(`_m6b_row` 등, 세션16
+    branch 복합 매칭 테스트와 동일)로 검증 + branch 없는 그룹(rowA/rowB) 회귀 대조.
   - `build_graph()`(1631행 부근)/`hierholzer()`(1721행 부근) — 여전히 완전히
     matching-blind(세션11/12 미변경, mirror_symmetric_trail이 우회해서 감쌈).
   - `INTERDIGITATION_PATTERNS`/`COMMON_CENTROID_PATTERNS`(86~119행), `check_mirror_
