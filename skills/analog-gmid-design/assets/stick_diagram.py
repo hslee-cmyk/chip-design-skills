@@ -1762,7 +1762,93 @@ def hierholzer(g: StackGraph, start: str) -> tuple[list, list]:
 #      찾아주는 함수가 있어야 한다는 데서 출발.
 # ---------------------------------------------------------------------------
 
-def find_min_crossover_layout(transistors: list) -> dict:
+def _mirror_node_map_from_pairs(matching_pairs: list, transistors: list) -> dict:
+    """`matching_pairs`(2-tuple 이름 쌍 목록, N-way 그룹은 호출자가 이미
+    `itertools.combinations(names, 2)`로 펼쳐서 넘긴다는 기존 관례 그대로)와 각 소자의
+    connectivity로부터 **net 레벨** 거울 대응(`node_map`)을 역산한다 — `find_min_
+    crossover_layout()`의 odd_nodes 짝짓기가 소자 이름이 아니라 net 이름 단위라서 필요.
+
+    쌍 (a,b)마다: 두 소자가 **한쪽 끝(source 또는 drain)을 공유**하면 그 공유 net은
+    자기대응(축 위의 노드)이고 나머지 끝끼리 대응한다(예: M1a/M1b가 source=Vx를
+    공유하면 Vx는 자기대응, drain끼리인 N1a2a<->N1b2b가 대응). **공유하는 끝이
+    없으면**(branch_symmetric처럼 양쪽 다 다른 net) 같은 역할(source<->source,
+    drain<->drain)끼리 대응한다고 가정한다 — 매칭쌍으로 선언된 이상 같은 구조적
+    역할이라는 게 유일하게 근거 있는 기본 가정이다. 체인으로 전이(propagate)할 필요
+    없이 각 쌍이 그 자체로 필요한 대응을 준다(실측 확인: current_reuse_telescopic_ota
+    M6 그룹에서 M2a/M2b가 서로 공유 끝이 없어도 이 규칙만으로 바로 Vom1<->Vop1이
+    나온다)."""
+    by_name = {t.name: t for t in transistors}
+    node_map: dict = {}
+
+    def _add(a, b):
+        if a == b:
+            node_map[a] = a
+        else:
+            node_map.setdefault(a, b)
+            node_map.setdefault(b, a)
+
+    for pair in matching_pairs:
+        a_name, b_name = pair
+        ta, tb = by_name.get(a_name), by_name.get(b_name)
+        if ta is None or tb is None:
+            continue
+        if ta.source == tb.source:
+            _add(ta.source, ta.source)
+            _add(ta.drain, tb.drain)
+        elif ta.drain == tb.drain:
+            _add(ta.drain, ta.drain)
+            _add(ta.source, tb.source)
+        else:
+            _add(ta.source, tb.source)
+            _add(ta.drain, tb.drain)
+    return node_map
+
+
+def _pair_odd_nodes_by_mirror(odd_nodes: list, node_map: dict) -> tuple:
+    """`odd_nodes`(짝수 개)를 `node_map`(net 거울 대응) 기준 우선순위로 짝짓는다 —
+    세션15 M6 그룹 설계 논의에서 확정한 3단계 규칙:
+
+    1. 진짜 거울쌍(둘 다 odd_nodes에 있고 `node_map[a]==b`)을 먼저 짝짓는다 — 대칭축
+       반대편 끝이라 여기서 crossover가 생겨도 대칭 구조가 안 깨지는 가장 정당화되는
+       절단점.
+    2. 남은 자기대응 노드(`node_map[n]==n`, 대칭축 위의 허브)와 orphan 노드(`node_map`에
+       아예 없음, 미매칭 가지의 끝)를 짝짓는다 — orphan으로 이어지는 미매칭 가지는
+       원래 그 허브에서 갈라져 나온 것이므로 되짚어 잇는 게 가장 짧고 자연스럽다.
+    3. 그래도 남으면(예: orphan이 허브보다 많은 경우) 근거를 지어낼 실제 사례가 아직
+       없으므로 기존 방식(순서대로 2개씩)으로 폴백한다 — 각 단계 내부의 후보가 여럿일
+       때도(자기대응 노드 2개 이상 등) 지금은 리스트 순서대로만 짝짓는다("더 가까운
+       쪽끼리" 같은 거리 기반 규칙은 실제로 그런 다중 사례가 나올 때 근거를 갖고 추가).
+
+    반환: `(pairs, fallback_used)` — `fallback_used`는 3단계가 실제로 발동했는지."""
+    remaining = list(odd_nodes)
+    used: set = set()
+    pairs = []
+
+    for a in remaining:
+        if a in used:
+            continue
+        b = node_map.get(a)
+        if b is not None and b != a and b in remaining and b not in used:
+            pairs.append((a, b))
+            used.add(a)
+            used.add(b)
+
+    tier2_pool = [n for n in remaining if n not in used]
+    self_mapped = [n for n in tier2_pool if node_map.get(n) == n]
+    orphans = [n for n in tier2_pool if n not in node_map]
+    for h, o in zip(self_mapped, orphans):
+        pairs.append((h, o))
+        used.add(h)
+        used.add(o)
+
+    leftover = [n for n in remaining if n not in used]
+    fallback_used = len(leftover) > 0
+    for i in range(0, len(leftover) - 1, 2):
+        pairs.append((leftover[i], leftover[i + 1]))
+    return pairs, fallback_used
+
+
+def find_min_crossover_layout(transistors: list, matching_pairs: list | None = None) -> dict:
     """N개(N>=1) 소자가 전부 같은 hub_net을 공유하고 서로 다른 leaf로 가는 hub-leaf
     구조를 **최소 개수의 crossover routing**(열 사이를 metal+via로 건너뛰어 연결하는
     배선)만으로 실현하는 배치를 찾는다. 우선순위는 항상 crossover가 0인(=단일 연속
@@ -1776,30 +1862,47 @@ def find_min_crossover_layout(transistors: list) -> dict:
     경우다). m개의 trail을 하나의 물리 배치로 이어붙이려면 **m-1번의 crossover**가
     필요하다(trail 사이를 이어주는 접합부).
 
-    **구현**: 홀수차수 노드 2m개를 전부 짝지어(순서대로 2개씩) m개의 **가상 edge**를
-    그래프에 추가하면 모든 노드가 짝수차수가 돼(항상 성립 — 짝짓기 방법과 무관하게
-    이 성질은 불변) 전체가 오일러 회로가 된다. `hierholzer()`로 이 회로 전체를 계산한
-    뒤, 가상 edge가 나온 지점마다 실제로 끊어서(가상 edge 자체는 버림) m개의 진짜
-    trail로 분해한다 — 실측 확인(2026-07-28): ABC(3소자 1개씩, 4개 홀수차수 노드,
-    m=2) -> `[C,A]`+`[B]` 2개 trail, crossover=1. ABCD(4소자 1개씩, 4개 홀수, m=2)
-    -> crossover=1. 6소자 1개씩(6개 홀수, m=3) -> crossover=2. **어떤 짝짓기 방법을
-    쓰든 trail 개수(=m)는 항상 같다**(T-join 정리 — 짝짓기가 다르면 어느 소자가 어느
-    trail에 속하는지만 달라지지, 필요한 crossover 개수 자체는 안 바뀐다).
+    **구현**: 홀수차수 노드 2m개를 전부 짝지어 m개의 **가상 edge**를 그래프에 추가하면
+    모든 노드가 짝수차수가 돼(항상 성립 — 짝짓기 방법과 무관하게 이 성질은 불변) 전체가
+    오일러 회로가 된다. `hierholzer()`로 이 회로 전체를 계산한 뒤, 가상 edge가 나온
+    지점마다 실제로 끊어서(가상 edge 자체는 버림) m개의 진짜 trail로 분해한다 — 실측
+    확인(2026-07-28): ABC(3소자 1개씩, 4개 홀수차수 노드, m=2) -> `[C,A]`+`[B]` 2개
+    trail, crossover=1. ABCD(4소자 1개씩, 4개 홀수, m=2) -> crossover=1. 6소자 1개씩
+    (6개 홀수, m=3) -> crossover=2. **어떤 짝짓기 방법을 쓰든 trail 개수(=m)는 항상
+    같다**(T-join 정리 — 짝짓기가 다르면 어느 소자가 어느 trail에 속하는지만 달라지지,
+    필요한 crossover 개수 자체는 안 바뀐다) — 그래서 짝짓기 방법을 바꿔도(아래
+    `matching_pairs`) crossover_count 자체(=m-1)는 안 바뀌고, 어디서 끊기는지만
+    달라진다.
 
-    **입력**: `transistors`(전부 같은 `source`=hub 공유, `drain`은 서로 달라야 함).
+    **`matching_pairs`(세션15 신설, 선택)**: `None`(기본값)이면 기존과 완전히 동일하게
+    hub-leaf 사전조건(모든 소자가 같은 source 공유 + drain이 서로 달라야 함)을 그대로
+    강제하고, 홀수차수 노드를 순서대로 2개씩 짝짓는다(하위호환, 기존 호출부
+    `_build_rows_from_shares_with_crossover()`/`_common_centroid_nway_search()`는
+    전부 이 경로). `matching_pairs`를 주면(2-tuple 이름 쌍 목록) hub-leaf 제약을 풀고
+    **일반 그룹**(M3a/M6류, hub-leaf가 아닌 임의의 matching_pairs 구조)을 지원한다 —
+    `_mirror_node_map_from_pairs()`로 net 거울 대응을 역산해 `_pair_odd_nodes_by_
+    mirror()`로 짝짓는다(순서대로 임의 짝짓기 대신 대칭 구조를 존중하는 짝짓기,
+    `.ai/context.md` 세션15 M6 그룹 설계 논의 참고).
+
+    **입력**: `matching_pairs=None`이면 `transistors`(전부 같은 `source`=hub 공유,
+    `drain`은 서로 달라야 함). `matching_pairs`가 있으면 이 제약 없음.
     **반환**: `{"segments": [{"transistor_sequence":[...], "node_sequence":[...]}, ...],
-    "crossover_count": int, "odd_nodes": [...]}` — `crossover_count=0`이면 `segments`가
-    1개뿐이고 그게 곧 `build_stick_diagram()`이 주는 것과 같은 단일 연속 diffusion
-    결과다. `crossover_count`가 0보다 크면 `segments`를 순서대로 이어붙이되 각 경계마다
-    실제로 crossover routing(추가 metal+via)이 필요하다는 뜻이다."""
+    "crossover_count": int, "odd_nodes": [...], "node_pairing_fallback_used": bool|None}`
+    — `crossover_count=0`이면 `segments`가 1개뿐이고 그게 곧 `build_stick_diagram()`이
+    주는 것과 같은 단일 연속 diffusion 결과다. `crossover_count`가 0보다 크면
+    `segments`를 순서대로 이어붙이되 각 경계마다 실제로 crossover routing(추가
+    metal+via)이 필요하다는 뜻이다. `node_pairing_fallback_used`는 `matching_pairs`가
+    주어졌을 때만 의미 있다(대칭 인지 짝짓기가 다 못 짝지어 순서대로 폴백했는지) —
+    `None`이면 `matching_pairs`를 안 준 기존 경로."""
     if not transistors:
         raise ValueError("최소 1개 이상의 소자가 필요하다")
-    hub_nets = {t.source for t in transistors}
-    if len(hub_nets) != 1:
-        raise ValueError(f"모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: {hub_nets}")
-    drains = [t.drain for t in transistors]
-    if len(set(drains)) != len(drains):
-        raise ValueError(f"모든 소자의 drain(leaf)이 서로 달라야 한다: {drains}")
+    if matching_pairs is None:
+        hub_nets = {t.source for t in transistors}
+        if len(hub_nets) != 1:
+            raise ValueError(f"모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: {hub_nets}")
+        drains = [t.drain for t in transistors]
+        if len(set(drains)) != len(drains):
+            raise ValueError(f"모든 소자의 drain(leaf)이 서로 달라야 한다: {drains}")
 
     g = build_graph(transistors)
     verdict = check_euler_condition(g)
@@ -1808,10 +1911,16 @@ def find_min_crossover_layout(transistors: list) -> dict:
         return {
             "segments": [{"transistor_sequence": trs, "node_sequence": nodes}],
             "crossover_count": 0, "odd_nodes": verdict.odd_nodes,
+            "node_pairing_fallback_used": None,
         }
 
     odd = verdict.odd_nodes  # 짝수 개(그래프 이론상 항상 짝수)
-    pairs = [(odd[i], odd[i + 1]) for i in range(0, len(odd), 2)]
+    if matching_pairs is None:
+        pairs = [(odd[i], odd[i + 1]) for i in range(0, len(odd), 2)]
+        fallback_used = None
+    else:
+        node_map = _mirror_node_map_from_pairs(matching_pairs, transistors)
+        pairs, fallback_used = _pair_odd_nodes_by_mirror(odd, node_map)
     for k, (u, w) in enumerate(pairs):
         edge_id = f"__crossover_virtual__{k}"
         g.edges[edge_id] = ("__virtual__", u, w)
@@ -1851,7 +1960,8 @@ def find_min_crossover_layout(transistors: list) -> dict:
         f"trail 분해 후 실제 finger 총합({total_real})이 입력 총합({expected_total})과 "
         f"다르다(내부 로직 오류)"
     )
-    return {"segments": segments, "crossover_count": len(segments) - 1, "odd_nodes": odd}
+    return {"segments": segments, "crossover_count": len(segments) - 1, "odd_nodes": odd,
+            "node_pairing_fallback_used": fallback_used}
 
 
 # ---------------------------------------------------------------------------
@@ -4889,6 +4999,75 @@ if __name__ == "__main__":
         print("    FAIL: hub 불일치는 ValueError가 나야 하는데 안 남")
     except ValueError as e:
         print(f"    OK: hub 불일치 거부 -> {e}")
+
+    print()
+    print("=== Test 12.13: find_min_crossover_layout() matching_pairs 확장(세션15) —")
+    print("  node_map 기반 짝짓기로 hub-leaf 아닌 일반 그룹도 지원 ===")
+    print("  [실전: current_reuse_telescopic_ota.topology.json M6 그룹(8소자) — 핑거조정")
+    print("  으로는 절대 못 푸는 실제 사례(세션15 probe로 확인, .ai/context.md 참고).")
+    print("  node_map 우선 짝짓기가 tier1(Vom1/Vop1)+tier2(Vbias2/Vx)로 fallback 없이")
+    print("  crossover=1을 찾는지 확인]")
+    import os as _os1213
+    _lib1213 = _os1213.path.join(_os1213.path.dirname(_os1213.path.abspath(__file__)), "library")
+    _m6_trs, _m6_meta = load_topology(
+        _os1213.path.join(_lib1213, "current_reuse_telescopic_ota.topology.json"))
+    _m6_pairs_meta = _m6_meta["symmetry"]["matching_pairs"]
+    _m6_forced = [tuple(p["names"]) for p in _m6_pairs_meta if p.get("current_forced")]
+    _m6_groups = geometry_colocation_union(_m6_trs, _m6_forced)
+    _m6_names = _m6_groups["M6"]
+    _m6_by_name = {t.name: t for t in _m6_trs}
+    _m6_group_trs = [_dc_replace(_m6_by_name[n], stack_id="M6") for n in _m6_names]
+    _m6_inside_pairs = [tuple(p["names"]) for p in _m6_pairs_meta
+                         if set(p["names"]) <= set(_m6_names)]
+    assert set(_m6_names) == {"M6", "M7", "M1a", "M1b", "M2a", "M2b", "M58", "M57"}, \
+        f"M6 그룹 소자 구성이 예상과 다름(topology.json이 바뀌었을 수 있음): {_m6_names}"
+
+    _m6_g = build_graph(_m6_group_trs)
+    _m6_odd = check_euler_condition(_m6_g).odd_nodes
+    print(f"    baseline odd_nodes({len(_m6_odd)}): {_m6_odd}")
+    assert len(_m6_odd) == 4, f"baseline 홀수차수가 4개가 아님(사례 자체가 바뀜): {_m6_odd}"
+
+    _m6_result = find_min_crossover_layout(_m6_group_trs, _m6_inside_pairs)
+    print(f"    crossover_count={_m6_result['crossover_count']}, "
+          f"node_pairing_fallback_used={_m6_result['node_pairing_fallback_used']}")
+    assert _m6_result["crossover_count"] == 1, \
+        f"m=2(crossover=1)이어야 하는데: {_m6_result['crossover_count']}"
+    assert _m6_result["node_pairing_fallback_used"] is False, \
+        "tier1/tier2만으로 다 짝지어져야 하는데 fallback이 발동함"
+    _m6_total = sum(len(s["transistor_sequence"]) for s in _m6_result["segments"])
+    assert _m6_total == len(_m6_group_trs), \
+        f"trail 분해 후 소자 총합이 안 맞음: {_m6_total} != {len(_m6_group_trs)}"
+    print(f"    PASS: crossover=1(m=2), fallback 없이 node_map 우선순위(Vom1/Vop1 -> "
+          f"Vbias2/Vx)만으로 짝지어짐, 소자 {len(_m6_group_trs)}개 전부 보존")
+
+    print("  [node_map 역산 단위 확인 -- M2a/M2b가 서로 공유 끝이 없어도 Vom1<->Vop1이")
+    print("  바로 나오는지(체인 전이 없이 규칙 자체로 유도됨을 확인)]")
+    _m6_node_map = _mirror_node_map_from_pairs(_m6_inside_pairs, _m6_group_trs)
+    assert _m6_node_map.get("Vom1") == "Vop1" and _m6_node_map.get("Vop1") == "Vom1", \
+        f"Vom1<->Vop1 대응이 안 나옴: {_m6_node_map}"
+    assert _m6_node_map.get("Vx") == "Vx", f"Vx가 자기대응이 아님: {_m6_node_map.get('Vx')}"
+    assert "Vbias2" not in _m6_node_map, \
+        f"Vbias2는 orphan이어야 하는데 node_map에 들어있음: {_m6_node_map.get('Vbias2')}"
+    print(f"    PASS: Vom1<->Vop1(거울쌍), Vx(자기대응), Vbias2(orphan) 전부 예상과 일치")
+
+    print("  [폴백 발동 확인 -- matching_pairs가 텅 비어 전부 orphan이면(자기대응 노드가")
+    print("  하나도 없음) 기존 방식(순서대로)으로 폴백하고 그 사실이 플래그로 남는지]")
+    _fb_trs = [Transistor(n, "nmos", source="hubX", drain=f"L{n}", n_fingers=1)
+               for n in ("P", "Q", "R", "S")]
+    _fb_result = find_min_crossover_layout(_fb_trs, matching_pairs=[])
+    print(f"    crossover_count={_fb_result['crossover_count']}, "
+          f"node_pairing_fallback_used={_fb_result['node_pairing_fallback_used']}")
+    assert _fb_result["node_pairing_fallback_used"] is True, \
+        "matching_pairs가 전혀 없으면 전부 orphan이라 100% 폴백이어야 함"
+    assert _fb_result["crossover_count"] == 1
+    print("    PASS: matching_pairs=[] -> node_map이 텅 비어 전부 orphan -> 전부 폴백 짝짓기")
+
+    print("  [회귀 -- matching_pairs=None(기존 호출부 경로, 하위호환)이면 hub-leaf 사전조건과")
+    print("  순서대로 짝짓기가 완전히 그대로인지 -- 위 ABC/6소자 테스트가 이미 이 경로를 타므로")
+    print("  여기선 node_pairing_fallback_used가 정확히 None(신규 로직 미개입)인지만 추가 확인]")
+    assert r_abc["node_pairing_fallback_used"] is None
+    assert r_6["node_pairing_fallback_used"] is None
+    print("    PASS: matching_pairs=None 경로는 node_pairing_fallback_used=None")
 
     print()
     print("=== Test 13: check_box_shape() 게이트 — SPICE 전에 반드시 통과해야 하는 §8 체크포인트 ===")
