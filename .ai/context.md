@@ -1,58 +1,71 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-06, 세션19 끝 — 다음은 세션20)
+# 세션 컨텍스트 (최종 갱신: 2026-08-07, 세션20 끝 — 다음은 세션21)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-0. **세션19 전부 완료 + 전부 커밋됨(`d4bd4d9`)** — 다음 세션 시작 시 `git log`/
-   `git status`로 직접 재확인할 것(세션14 교훈). working tree엔 zip 파일 2개(아래
-   4번)와 세션18 스모크 스크립트만 untracked로 남아있는 게 정상. 상세는 "세션19
-   결론" 절 참고.
-1. **`analog-grammar` skill 신규 반입 완료**(세션19) — `skills/analog-grammar/`,
-   netlist에서 device role/idiom을 결정론적으로 도출하는 별도 skill. 이 저장소의
-   다른 skill과 동일한 구조(SKILL.md/references/skill-validation-prompt.md)로
-   설치, 실행 검증 완료(`PYTHONUTF8=1` 필요, Windows 콘솔 cp949 이슈).
-2. **matching 후보 오탐 필터 Tier 1 구현+self-test+커밋 완료**(세션19) —
-   `stick_diagram.py`에 `find_idiom_matches()`/`find_stack_edges()`/
-   `find_stacked_matching_candidates()` 신설 + `find_matching_candidates(transistors,
-   idiom_matches=None)` 확장(하위호환). M57/M58(current_mirror gate-only 오탐),
-   M11/MN(diff_pair source+W 우연일치 오탐), 캐스코드 대칭쌍(M2a/M2b류, "복합소자"
-   재귀 상속으로 커버) 세 가지 실사고/문서화된 한계를 전부 해소. self-test 30 전체
-   PASS, 전체 self-test suite(stick_diagram.py+sizing_recipe.py) 회귀 0건.
-3. **⚠️ "구현됐다"≠"harness에 연결됐다"(세션14 교훈 재적용)** — 2번의 세 함수는
-   self-test에서만 호출된 상태다. `find_matching_candidates()`의 실제 프로덕션
-   호출부(topology JSON 저작 워크플로우, `function-selection-map.md` §3/§10이
-   가리키는 곳)에 `idiom_matches=`를 실제로 넘기는 배선은 **아직 안 됐다** — 다음
-   세션 후보(사전 승인 필요, 엔진 로직 변경).
-4. **Tier 2(find_diode_stacks() 기반 find_hub_merge_candidates() 필터)는 "적용
-   불가"로 결론 — 폐기, 재시도 불필요.** 실측으로 확인됨(세션19): diode-stack의
-   내부 연결 net은 정의상 한쪽 소자의 drain 하나 + 다른 소자의 source 하나만
-   닿아 있어서, `find_hub_merge_candidates()`(source/drain을 역할별로 나눠
-   그룹핑)의 "크기 2 이상" 조건을 구조적으로 절대 못 채운다. 대신 관찰된 실제
-   혼합 현상(예: `Vx`={M1a,M1b,M58})은 `device_roles[name]["vertical_stack_id"]`
-   (VDD~GND 직렬 전압강하 체인 단위, 이미 topology.json에 있는 필드)로 전부
-   설명됨 — 단 이것도 증명된 오탐은 아니라(`find_hub_merge_candidates()` 자신이
-   "matching과 무관한 후보도 정상"이라고 선언) 이번엔 손 안 댐. 상세:
-   `analog-grammar-integration.md` §7.
-5. **`circuit-topology-extraction` skill은 아직 미설치**(analog-grammar만 반입,
-   사용자가 범위를 명시적으로 그렇게 좁힘) — 논문 PDF→netlist 추출이 필요해지면
-   설치+`analog-grammar`와 동일한 방식으로 연동 설계.
-6. **diode-stack current source(`solve_diode_stack_current()`) 배선 여부는 여전히
-   미결**(세션18 K절, 이번 세션엔 논의 안 함, 그대로 이월) — "이 저장소 4개 회로
-   중 실제로 필요한 곳이 없다"는 세션18 결론은 유효.
-7. **`run_harness.py` 재실행 전략은 여전히 미착수**(세션11 이후 지속 이월, 그리드
-   축소 or 다른 최적화 방식) — Tier 1/L3/L4/그룹분할/매칭성장 체인이 harness
-   최상위 경로에 대부분 연결됐지만(Tier 1은 위 3번 참고, 아직 미배선), 실제 전체
-   사이징 실행(`current_reuse_telescopic_ota`)은 여전히 손 안 댐.
+0. **세션20 구현/self-test 전부 완료, 아직 커밋 안 됨** — 다음 세션 시작 시 `git log`/
+   `git status`로 직접 재확인할 것(세션14 교훈). 커밋 대상: `stick_diagram.py`(
+   `load_topology()` 확장 + `run_full_circuit_audit_from_topology()` 신설 + Test 31),
+   `library/current_reuse_telescopic_ota.topology.json`(`_netlist_sections_structured`
+   신설), `design_report.py`(신규 파일), `workspaces/current-reuse-telescopic-ota-report/
+   run_harness.py`(두 배선) + `smoke_run_harness_session20.py`(신규, 참고용). 상세는
+   "세션20 결론" 절 참고.
+1. **`run_full_circuit_audit()`(§1.6 게이트)의 자동 로더 `run_full_circuit_audit_
+   from_topology(topology_json_path, ...)` 신설 + 실배선 완료**(세션20) —
+   `devices`/`expected_counts`/`dispositions`를 topology.json에서 전부 자동 구성(새
+   판단 없음, 이미 기록된 값을 형식만 변환). `current_reuse_telescopic_ota.topology.
+   json`에 `_netlist_sections_structured`(prose `_netlist_sections`를 기계적으로
+   구조화, 51개 소자 전수 커버 확인) 신설이 전제조건. `run_harness.py`의
+   `optimize_full_circuit_budget()` 직후·`save_instance_json()` 이전에 실제로 호출됨
+   (사용자 지시). `check_symmetry_dispositions()`(topology-authoring 단계 게이트)는
+   이번 세션 범위 밖 — 여전히 `idiom_matches`/`run_full_circuit_audit_from_topology()`
+   둘 다 미배선(아래 3번).
+2. **리포트 생성 일반화 — `design_report.py` 신설, `run_harness.py`에 실배선
+   완료**(세션20, 사용자 지시) — `build_topology_device_table()`/`assemble_report_
+   data()`/`render_html_report()`/`save_html_report()`. topology.json(소자 표)+
+   instance.json(sizing/floorplan/audit_row_split/coverage)+`run_full_circuit_audit_
+   from_topology()` 결과는 **기계적으로 자동 조립**, 논문 spec 표/레이아웃 가이드
+   서술은 `narrative` dict로 호출자가 채우지 않으면 조용히 생략(지어내지 않음). **알려진
+   한계**: 옛 `build_report.py`/`build_html.py`/`report_template.html`의 정교한 SVG
+   stick-diagram/floorplan 시각화(`renderStack`/`renderSchematic`)는 이식 안 함 —
+   그 시각화 자체는 데이터 기반이지만 감싸는 SECTION 조립 로직이 회로별 cell 이름/
+   enriched 필드(`gain`,`Cgg_fF`)를 그대로 가정해서 그대로 재사용하면 다른 회로에서
+   깨진다. 이번 리포트는 표/카드 기반의 더 단순하지만 실제로 회로-무관한 렌더러.
+3. **⚠️ Tier 1 idiom_matches는 여전히 `check_symmetry_dispositions()`에 미배선**
+   (세션19 교훈 재확인, 세션20은 이 항목을 다루지 않았다) — `find_matching_
+   candidates()`의 두 프로덕션 호출부(`check_symmetry_dispositions()`:1220,
+   `run_full_circuit_audit()`:3148 — 이제는 `run_full_circuit_audit_from_topology()`를
+   거쳐도 여전히 옛 net-only 그룹핑) 둘 다 `idiom_matches=`를 실제로 안 넘긴다. 이번
+   세션 논의 중 결정 보류된 두 항목(다음 세션에 이어서 확정): (A) `idiom_matches`를
+   호출자가 사전 계산해 넘길지(두 함수의 "회로 지식 없음" 원칙 유지, 권장) vs 함수
+   내부에서 `inputs`/`outputs`/`feedbacks` 파라미터로 직접 계산할지, (B) 캐스코드
+   대칭쌍 손실 보완용 `find_stacked_matching_candidates()`도 같이 배선할지.
+4. **`run_harness.py` 재실행 전략(item 7, 세션11부터 이월)에 새 실측 추가** — 세션20
+   스모크(`smoke_run_harness_session20.py`, KEEP_FREE=2/5 둘 다)에서 `psrr_estimate_
+   db`/`classab_centering_dev_v` 위반으로 "모든 theta 격자점이 infeasible" 재현.
+   **새로 확인된 원인**: 이 두 metric을 실제로 좌우하는 theta(`r_classab_battery`/
+   `r_classab_diode_src`류, CMFB 관련)가 "netlist 순서상 앞쪽 N개만 자유롭게 두는"
+   단순 `KEEP_FREE` 전략에는 안 들어가 항상 중간값에 고정돼버린다 — **그리드 축소는
+   "몇 개를 자유롭게 두느냐"가 아니라 "어느 theta를 자유롭게 두느냐"가 핵심**이라는
+   게 이번 세션의 새 정보(다음 세션이 그리드 전략 설계할 때 이 실측부터 참고할 것).
+5. **Tier 2/`circuit-topology-extraction`/`solve_diode_stack_current()` 배선 —
+   전부 세션19 결론 그대로 이월(이번 세션 논의 안 함)**: Tier 2(diode-stack 기반
+   hub-merge 필터)는 "적용 불가"로 폐기 확정(재시도 불필요, 근거는
+   `analog-grammar-integration.md` §7). `circuit-topology-extraction`은 여전히
+   미설치(필요해지면 그때 반입). `solve_diode_stack_current()` 배선 여부는 "이
+   저장소 4개 회로 중 실제로 필요한 곳이 없다"는 세션18 결론 유효.
 
-### (참고, 세션18까지의 이력 — 세션12~17 커밋 요약)
+### (참고, 세션19까지의 이력 — 세션12~19 커밋 요약)
 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`(매칭 목적
 핑거증가 L3+L4). 세션17 커밋 3개(시간순): `4bcaafc`(재설계안 3번 완화) →
 `69d9b39`(crossover 짝짓기 우선순위 재작성, D-1) → `4e38aa6`(offset 우선순위 가중치
 + branch composite 사전병합, F/G절). 세션18 커밋: `a6ab04b`(그룹분할 harness 배선).
-(세션12~18의 세부 항목은 각 세션 결론 절 및 아래 "작업 파일 위치" 절에 그대로 보존돼
-있다 — 위 0~7번이 세션19 시점 기준 최신 상태 요약이다.)
+세션19 커밋 2개: `d4bd4d9`(analog-grammar skill 반입 + Tier 1 연동), `55b3ef2`
+(세션19 종료 핸드오프 문서). (세션12~19의 세부 항목은 각 세션 결론 절 및 아래
+"작업 파일 위치" 절에 그대로 보존돼 있다 — 위 0~5번이 세션20 시점 기준 최신 상태
+요약이다.)
 
 ## 배경 — 이 기능이 뭐고 왜 하는가 (세션5~11 공통, 참고용)
 
@@ -2028,3 +2041,181 @@ untracked로 남아있음.
   금지, description ≤1024자, SKILL.md ≤5000 words)를 의미한다 — 원본 자료를 그대로
   복사해 넣는 게 아니라 이 컨벤션에 맞춰 재편집해야 한다(원본 README.md 내용을
   SKILL.md로 흡수, DESIGN.md를 references/로 이동 등).
+- **세션20 신규**: "일반 함수인데 먼저 채워야 할 선행 데이터가 있다"는 설계는 앞뒤가
+  안 맞는다는 사용자 지적이 실제로 맞았다 — `run_full_circuit_audit()`의
+  `expected_counts`/`dispositions`를 "먼저 15개짜리 partial scope로 수작업 채워야
+  한다"고 잘못 판단했으나, 실제로는 `_netlist_sections`(prose)와 `symmetry.
+  dispositions`에 이미 51개 전체가 기록돼 있었다 — "구조화가 안 된 프로세 문자열"과
+  "데이터가 없음"을 혼동한 것. 데이터가 이미 topology.json에 있다면, 필요한 건 새
+  판단이 아니라 기계적 형식 변환뿐이라는 걸 먼저 실측(`json.load`+필드 확인)으로
+  확인한 뒤에 "선행 작업이 필요하다"는 결론을 내릴 것.
+- **세션20 신규**: "topology.json 저작이 끝난 뒤"처럼 두 산출물의 관계를 시간 순서
+  ("A가 끝나면 B가 된다")로 설명하면 틀리기 쉽다 — 실제로 topology.json(연결성+대칭성,
+  사이징과 무관, 재사용 가능한 일반 자산)과 instance.json(사이징 결과, 별도 파일로
+  추가 생성)은 "A→B 전환"이 아니라 "서로 다른 시점에 도는 별개의 산출물"이다. 두
+  워크플로우 단계의 관계를 설명할 때는 "무엇이 무엇으로 바뀌는가"가 아니라 "각각
+  무엇을 입력으로 읽고 언제 도는가"로 물을 것.
+- **세션20 신규**: "일반화해달라"는 요청을 받으면 실제 대상 코드를 먼저 열어 얼마나
+  회로-특정적인지 확인한 뒤 범위를 판단할 것 — `build_report.py`/`build_html.py`를
+  열어보기 전엔 "감싸는 wrapper 함수만 만들면 된다"고 가정했으나, 실제로는 후자의
+  JS 섹션 조립 로직 670줄이 이 회로의 cell 이름/enriched 필드를 그대로 하드코딩하고
+  있어 "완전히 회로-무관한 재사용"과 "이 회로 전용 스크립트를 함수로 감싸기"는 전혀
+  다른 작업량이었다. 이번엔 후자 대신 "기계적으로 조립 가능한 부분만 일반 함수로,
+  판단이 필요한 서술은 명시적 narrative 입력으로" 범위를 좁혀 진행했다 — 이 범위
+  좁히기 자체를 사용자에게 숨기지 않고 최종 보고에 명시할 것.
+- **세션20 신규**: 그리드 축소 스모크 테스트가 매번 같은 두 metric(PSRR/classab_
+  centering)에서 infeasible로 막히면, "이 회로는 원래 안 풀린다"로 결론짓기 전에
+  고정된 theta들이 정확히 어떤 것들인지 확인할 것 — `KEEP_FREE`가 "netlist 순서상
+  앞쪽 N개"를 자유롭게 두는 방식이라, 실제로 그 두 metric을 좌우하는 theta
+  (`r_classab_battery`류)가 매번 고정값에 묶여 있었다(실측 후 발견). 그리드 축소는
+  "개수"가 아니라 "어느 축을 자유롭게 두는가"의 문제라는 게 이번 세션의 새 정보.
+
+---
+
+# 세션20 결론 — Tier 1 idiom_matches 배선 논의 중 더 큰 gap(`run_full_circuit_audit()`
+# 전체 미배선) 발견 → `run_full_circuit_audit_from_topology()` 신설+배선, 리포트 생성
+# 일반화(`design_report.py`) + `run_harness.py` 실배선
+
+세션20은 세션19가 "다음 세션 후보(사전 승인 필요)"로 남긴 Tier 1 `idiom_matches` 실배선
+논의로 시작했으나, 논의 도중 사용자가 던진 두 질문("이 함수는 topology.json 작성할 때
+필요한 함수인 거야?", "topology.json 저작이 끝났다는 게 애매한데?")을 따라가다 원래
+계획했던 것보다 훨씬 근본적인 gap — `run_full_circuit_audit()`(§1.6, 전체 회로 최종 감사
+게이트) 자체가 `run_harness.py`(유일한 실제 harness)에 지금까지 **한 번도 배선된 적이
+없었다** — 를 발견했고, 그걸 해소하는 쪽으로 세션 전체 방향이 바뀌었다. Tier 1
+`idiom_matches` 배선 자체는 이번 세션에 다루지 않았다(위 "지금 상태" 3번, 다음 세션 이월).
+
+## A. Tier 1 논의 → 더 큰 gap 발견까지 (설계 방향 전환 경위)
+
+1. `check_symmetry_dispositions()`(topology-authoring 게이트)와 `run_full_circuit_
+   audit()`(리포트 완료 게이트) 두 프로덕션 호출부를 찾은 뒤, `idiom_matches` 계산
+   위치(호출자 사전계산 vs 함수 내부 계산)와 캐스코드 대칭쌍 보완 범위를 사용자에게
+   물었다.
+2. 사용자가 "이 함수는 topology.json 작성할 때 필요한 함수인 거야?"로 되물어 — 이건
+   방금 내린 설명이 정확한지 검증하라는 신호였다(세션19 "짧은 되물음" 교훈과 동일
+   패턴). 다시 확인하니 `check_symmetry_dispositions()`만 그 용도이고
+   `run_full_circuit_audit()`은 "리포트 완료 선언 직전"(더 늦은 단계) 용도임을
+   구분해 답했다.
+3. 사용자가 "topology.json 저작이 끝났다는 게 애매한데, 사이징 후엔 instance.json으로
+   바뀌는 거 아니었어?"로 재반박 — `function-selection-map.md`(줄139-143)를 다시 읽어
+   topology.json이 "사이징과 무관한 재사용 가능한 일반 자산"이고 instance.json은
+   **별도로 추가 생성**되는 산출물임(전환이 아니라 병존)을 확인, 위 협업 교훈에
+   기록했다.
+4. 사용자가 "`run_full_circuit_audit`는 `run_harness`에서 `save_instance_json` 호출
+   전에 호출되어야 할 것 같다"로 구체적 배선 지점을 제시 — `run_harness.py`를 직접
+   열어 확인하니 `run_full_circuit_audit()` 호출부가 **전혀 없었다**(session14의
+   전수 콜그래프 조사가 이미 이걸 "미배선"으로 분류했었지만, 이번에 실제 배선까지
+   간 적은 없었음). 여기서 "Tier 1 배선"보다 "이 게이트 자체를 harness에 연결하는
+   것"이 더 근본적인 작업임이 확정됐다.
+
+## B. `expected_counts`/`dispositions` "선행 커버리지 문제" 오판 → 실측으로 정정
+
+1. `run_full_circuit_audit()`의 `expected_counts`/`dispositions`가 인자로 필요해서,
+   처음엔 "워크스페이스 `stick.py`(7/29)가 만든 15개짜리 partial scope 예시밖에 없다
+   → 51개 전체를 새로 커버해야 하는 큰 선행 작업"이라고 판단해 사용자에게 순서를
+   물었다.
+2. 사용자가 "일반적인 함수여야 하는데 먼저 완성해야 할 것이 있다는 게 이상한데?
+   topology.json에서 자동으로 읽고 채운 후 감사해야 하는 것 아닌가?"로 반박 — 실제로
+   `json.load()`로 `current_reuse_telescopic_ota.topology.json`을 직접 열어 확인하니:
+   - `symmetry.dispositions`에 **이미 20건**이 기록돼 있었다(15개짜리는 `stick.py`가
+     자기 스코프용으로 만든 부분집합일 뿐, topology.json 자체엔 훨씬 많았다).
+   - `_netlist_sections`(prose)에 **51개 전체**의 블록 구조/개수가 이미 선언돼
+     있었다(Fig.2/6=11, Fig.3/7우=12, Fig.1/7좌=12, Fig.8=9, Fig.5=7, 합 51 —
+     netlist 전체 개수와 정확히 일치).
+   - 즉 "데이터가 없다"가 아니라 "기계가 못 읽는 prose 형태로만 있다"는 게 진짜
+     문제였다 — 위 협업 교훈에 기록.
+
+## C. 구현 (전부 `stick_diagram.py`/`library/*.topology.json`/신규 파일, 아직 미커밋)
+
+### C-1. `_netlist_sections_structured` 신설 (`current_reuse_telescopic_ota.topology.json`)
+prose `_netlist_sections`를 `{block_key: {"label", "confidence", "devices":[...]}}`
+5개 블록(`stage1_diffpair`/`classab_vom`/`classab_vop`/`biasgen`/`cmfb`)으로 기계적
+변환(새 판단 없음). 51개 소자 전수 커버, 중복/누락 0을 스크립트로 확인(집합 연산).
+원본 prose는 그대로 유지(사람이 읽는 원본), 새 필드는 순수 추가(하위호환).
+
+### C-2. `load_topology()` 확장 — `meta["netlist_sections_structured"]` 신설
+`_netlist_sections_structured`가 없는 회로(나머지 3개)는 `None` — `linked_topology_
+files` 병합 로직에도 동일 패턴으로 추가(기존 `device_roles`/`dispositions` 병합과
+동일 방식). 기존 반환 키는 전부 무변경(순수 추가 필드, diff 0).
+
+### C-3. `run_full_circuit_audit_from_topology(topology_json_path, box_shape_checks=None,
+max_ratio=1.5, accept_fail_blocks=None)` 신설 (`stick_diagram.py`, `run_topology_
+pipeline()` 직후)
+`load_topology()`가 읽은 `netlist_sections_structured`/`symmetry.dispositions`에서
+`devices`/`expected_counts`/`dispositions`를 전부 자동 구성해 기존 `run_full_circuit_
+audit()`을 호출한다. 구조화 필드가 없는 회로는 `ValueError`(조용히 빈 expected_counts로
+안 넘어감). netlist 소자가 구조화 어느 블록에도 없으면(불일치) 역시 `ValueError`.
+`box_shape_checks`류(사이징 이후에만 나오는 정보)는 여전히 호출자가 넘긴다 — 자동
+변환 안 함(cell_groups 유무로 형태가 달라져 조용한 오판 위험).
+
+self-test(Test 31, `stick_diagram.py`): (1) 실제 51개 소자 회로로 자동 구성 →
+`ok=True`, 체크 1/2/3 전부 실행 확인. (2) `dispositions` 변환이 20건 전부 키 충돌 없이
+`(category,reason)` 튜플로 바뀌는지. (3) 구조화 필드가 없는 회로(`folded_cascode`)는
+`ValueError`. (4) netlist 전수를 못 커버하면(소자 하나가 누락) 임시 topology.json으로
+실제 함수를 태워 `ValueError` 확인(내부 로직 재현이 아니라 진짜 호출).
+
+### C-4. 리포트 생성 일반화 — `design_report.py` 신설
+`build_topology_device_table(topology_json_path)`: topology.json에서 소자 표를 자동
+조립(손타이핑 없음). `symmetry.matching_pairs`로 선언된 그룹은 union-find로 연결
+성분을 묶어 한 행으로 표시(⚠️ 실측 발견 버그: 소자 하나가 서로 다른 매칭쌍 항목
+여러 개에 동시에 속할 수 있어서(M8이 `{M8,M17}`과 `{M18_bg,M8,M13,M17,M22,M60,M61}`
+둘 다에 속함) "마지막에 처리된 항목으로 덮어쓰기"는 이중집계 버그를 낸다 — self-test로
+발견 후 union-find로 재작성해 해결).
+
+`assemble_report_data(topology_json_path, instance_json_path, full_circuit_audit=None,
+narrative=None, extra_sections=None)`: 소자 표(topology.json)/sizing·floorplan·
+audit_row_split·coverage(instance.json)/`run_full_circuit_audit_from_topology()`
+결과는 자동 조립, spec 표/레이아웃 가이드/회로도는 `narrative`로 호출자가 채우지
+않으면 조용히 생략.
+
+`render_html_report(report)`/`save_html_report(report, path)`: 표/카드 기반 범용
+HTML 렌더러(동적 컬럼 — 회로마다 sizing 필드 구성이 달라도 안 깨짐). 옛 `build_html.py`
+수준의 SVG stick-diagram 시각화는 이식 안 함(§B, "지금 상태" 2번 한계).
+
+self-test 4건: (1) 51개 소자 → 그룹핑, 총 소자 수 보존(union-find 버그 수정 검증).
+(2) instance.json 없이도(사이징 전) 안 죽음. (3) 실제 옛 instance.json(과거 세션
+산출물)+실제 audit 결과+narrative를 합쳐 렌더링 성공. (4) 빈 report도 안 죽음(가짜
+섹션 생성 없음).
+
+### C-5. `run_harness.py` 실배선 (`workspaces/current-reuse-telescopic-ota-report/`)
+`optimize_full_circuit_budget()` 직후: `run_full_circuit_audit_from_topology(TOPO)`
+호출(사이징 성패와 무관, connectivity/dispositions만 있으면 되므로 항상 실행) →
+`save_instance_json()` 이전에 결과 출력. `pipeline_result is not None` 분기 안,
+`save_instance_json()` 직후: `assemble_report_data()`+`save_html_report()`로
+`current_reuse_telescopic_ota.report.html` 생성(사용자 지시 — instance.json/리포트
+둘 다 이 harness 스크립트에서 호출).
+
+## D. end-to-end 검증 — 함수 단위는 실측 완료, 스크립트 리터럴 완주는 여전히 막힘(item 7)
+
+`smoke_run_harness_session20.py`(세션11/18 grid-축소 스모크 패턴 재사용)로 실제
+`run_harness.py`와 동일한 함수 호출 순서를 태우려 했으나, `KEEP_FREE=2`(4조합)/
+`KEEP_FREE=5`(32조합) 둘 다 `psrr_estimate_db`/`classab_centering_dev_v` 위반으로
+`optimize_full_circuit_budget()` 자체가 "모든 theta 격자점이 infeasible"로 실패
+(150초 소요, 세션20 신규 코드와 무관 — item 7의 재확인). **새로 확인된 원인**: 이
+두 metric을 좌우하는 theta(`r_classab_battery`류, CMFB 관련)가 `KEEP_FREE`의 "netlist
+순서상 앞쪽 N개" 전략에 안 들어가 항상 중간값 고정 — "지금 상태" 4번에 기록.
+
+그래서 `run_harness.py` 스크립트 자체의 리터럴 완주는 이번에도 못했지만, 새로 만든
+세 함수는 각각 **실제 프로덕션 데이터로 독립 검증**됐다: `run_full_circuit_audit_
+from_topology()`는 Test 31(실제 topology.json), `assemble_report_data()`/
+`render_html_report()`는 design_report.py Test 3(실제 topology.json + 실제 옛
+instance.json + 실제 audit 결과)에서 전부 PASS. `save_instance_json()`은 이번 세션에
+변경하지 않은 기존 코드. 세 함수의 조합인 `run_harness.py`의 새 두 배선 지점은 이
+개별 검증들로 충분히 뒷받침된다고 판단 — 스크립트가 여기서 멈추는 건 배선 결함이
+아니라 이미 알려진 별개 문제(item 7)의 재확인이라는 걸 스모크 스크립트 docstring에
+정직하게 기록해뒀다.
+
+## E. 회귀 확인
+`stick_diagram.py` self-test 전체(Test 31 추가 전후) — `diff --strip-trailing-cr`로
+대조, 내가 편집한 라인(load_topology 확장 + 신규 함수 + Test 31)만 차이나고 나머지
+완전 동일. 실행 결과 FAIL 마커 34개로 편집 전/후 동일(제자리 스왑 방식으로 상대경로
+깨짐 없이 in-place 비교, `.ai/context.md` "diff --strip-trailing-cr" 관례 재사용).
+`sizing_recipe.py`는 이번 세션에 코드를 안 건드렸지만(회귀 확인 목적으로) 전체
+self-test를 재실행 — 결과는 세션 종료 시점 기준 아래 "F. 다음 세션 확인 사항" 참고.
+
+## F. 다음 세션 확인 사항
+- `sizing_recipe.py` 전체 self-test가 이번 세션 종료 시점에 백그라운드로 아직
+  실행 중이었다(5분 타임아웃을 넘겨 백그라운드로 이동, 완료까지 대기 못함) — 이
+  파일은 이번 세션에 코드를 전혀 안 건드렸으므로 회귀 위험은 구조적으로 없지만,
+  실제 실행 결과(exit code/FAIL 마커 개수)는 다음 세션 시작 시 확인할 것.
+- 위 "지금 상태" 3번(Tier 1 idiom_matches 배선)과 4번(그리드 전략)이 다음 세션
+  최우선 후보.
