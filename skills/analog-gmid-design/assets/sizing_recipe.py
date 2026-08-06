@@ -2268,9 +2268,39 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         sizing_overrides = assign_finger_geometry(
             sizing, stack_groups_geometry, area_priors=spec.get("area_priors"),
             min_finger_w=spec.get("min_finger_w", 1e-6), max_finger_w=spec.get("max_finger_w", 40e-6))
-        pipeline_result = run_topology_pipeline(
-            topology_path, sizing_overrides, floorplan_hints=spec.get("floorplan_hints"),
-            cell_groups=spec.get("cell_groups"))
+        # 2026-08(세션15) -- euler-blocked row(체크1)는 sizing(핑거) 조정으로 먼저 자동
+        # 수정을 시도한다(L3+L4 오케스트레이션, run_topology_pipeline_with_finger_fixup(),
+        # .ai/context.md 세션14/15 참고). run_topology_pipeline()을 대체하는 게 아니라
+        # 감싸는 wrapper다(euler 실패 없으면 첫 라운드에 바로 통과, 기존 동작과 동일) --
+        # 순수 물리 배치 문제(3b/3c)는 이 wrapper의 책임이 아니라 아래 repair_matching_
+        # safety()가 그대로 이어서 처리한다(두 함수는 같은 문제의 대안이 아니라 서로 다른
+        # audit 체크를 담당하는 상호보완 관계 -- repair_matching_safety()의 _failing_
+        # required_pairs()는 "3b."/"3c." 체크만 파싱하고 "1. euler[...]"는 건드리지 않는다,
+        # stick_diagram.py:3070 확인됨).
+        # L4 재검증(revalidate_finger_override())은 lut_by_kind가 필수다 -- spec["lut"] 단일
+        # LUT(theta feed 'B' 등)만 쓰는 회로는 lut_by_kind 자체가 없으므로(2026-08-05 self-test
+        # _ofc_spec={"lut":lut,...}에서 실측 확인) 그 경우엔 fixup을 시도하지 않고 기존
+        # run_topology_pipeline() 그대로 호출(완전한 하위호환).
+        _lut_by_kind = spec.get("lut_by_kind")
+        if _lut_by_kind is not None:
+            ctx_for_fixup = SizingContext(spec=spec, sized=sizing)
+            pipeline_result = run_topology_pipeline_with_finger_fixup(
+                topology_path, sizing_overrides, ctx_for_fixup, _lut_by_kind,
+                metrics_specs, constraints, floorplan_hints=spec.get("floorplan_hints"),
+                cell_groups=spec.get("cell_groups"),
+                gm_id_bounds=spec.get("gm_id_bounds", (2.0, 30.0)))
+            # fixup이 sizing(W/gm_id/gm/gds)과 layout(n_fingers/w)을 바꿨을 수 있으므로,
+            # 최종 반환값의 sizing_overrides/sizing 둘 다 fixup 이후 상태로 갱신한다 --
+            # 안 그러면 finger 조정이 반영 안 된 stale 값이 instance.json으로 흘러나가는
+            # 버그가 생긴다.
+            sizing_overrides = pipeline_result["sizing_overrides"]
+            sizing = pipeline_result["ctx"].sized
+            metrics_result = {name: compute_metric(mspec, pipeline_result["ctx"])
+                               for name, mspec in metrics_specs.items()}
+        else:
+            pipeline_result = run_topology_pipeline(
+                topology_path, sizing_overrides, floorplan_hints=spec.get("floorplan_hints"),
+                cell_groups=spec.get("cell_groups"))
         audit = pipeline_result["audit_row_split"]
         audit_ok = audit.ok if hasattr(audit, "ok") else all(v.ok for v in audit.values())
         if not audit_ok:
@@ -2992,6 +3022,74 @@ if __name__ == "__main__":
         print(f"    PASS: unresolved_row={_l4c_result_b['unresolved_row']}, "
               f"reason={_l4c_result_b['unresolved_reason']}, "
               f"시도된 후보 {len(_l4c_result_b['fixup_rounds'][0]['result']['rejected'])}건 전부 거부")
+
+    print()
+    print("  [L5 optimize_full_circuit_budget() 실배선 -- run_topology_pipeline_with_finger_")
+    print("  fixup()을 harness 최상위(optimize_full_circuit_budget())에서 실제로 호출하는지")
+    print("  end-to-end로 확인(세션15 실배선, .ai/context.md 참고) -- known_sizing으로 M3a")
+    print("  11소자 W/ID를 직접 시드해(theta/device_roles 없이) A/B/C엔진을 우회하고, harness가")
+    print("  euler-blocked를 자동으로 finger 조정으로 풀어 sizing/sizing_overrides에 반영하는지 확인]")
+    _ofcb_matching_pairs_meta = [{**p, "current_forced": False} for p in _l4c_matching_pairs_meta]
+    # M4a/M4b(offset)와 M3a/M3b(ratio+shares_node=False=branch_symmetric, 세션15 probe로
+    # audit 출력에서 확인)는 3c(common-centroid)가 필수 게이트다 -- n_fingers=1(baseline)로
+    # 두면 repair_matching_safety()가 필요할 때 common_centroid_layout()의 무관한 기존
+    # 한계(count>=n_rows=2 필요, 세션15 probe_preexisting_bug.py로 확인된 사전 존재 버그,
+    # 이번 배선과 무관)에 걸려 이 배선 테스트 자체가 막힌다. M9b/M18b도 3c 필수 게이트지만
+    # 그건 이 테스트가 검증하려는 euler-fixup 대상이라 baseline n_fingers=1로 그대로
+    # 두고, fixup이 실제로 2로 올리는지를 확인한다.
+    #
+    # baseline을 짝수(2배)로 주면 그 소자의 그래프 홀짝 기여가 바뀌어(홀수 기여 -> 짝수
+    # 기여) euler-blocked 판정 자체가 달라지는 걸 세션15 probe로 실측 확인했다(2배 시도 시
+    # M9b/M18b+1로 안 풀리고 5라운드 소진 후 M5가 6핑거까지 발산) -- 그래서 홀짝을 보존하는
+    # 3배(여전히 홀수)로 줘서 세션12/L4c와 동일하게 M9b/M18b+1 1라운드 성공을 유지하면서
+    # count(=3)>=n_rows(=2)로 common-centroid 크래시만 피한다.
+    _ofcb_known_sizing = {
+        n: {"ID": _l4c_r.ID,
+            "W": _l4c_r.W * (3 if n in ("M4a", "M4b", "M3a", "M3b") else 1), "L": _l4c_L,
+            "gm": _l4c_r.gm, "gm_id": _l4c_gm_id, "gds": _l4c_gds, "kind": "nmos",
+            "vds": _l4c_vds, "vs": 0.0}
+        for n in _l4c_names
+    }
+    _ofcb_baseline_area = sum(_ofcb_known_sizing[n]["W"] * _ofcb_known_sizing[n]["L"]
+                               for n in _l4c_names)
+    with _tempfile.TemporaryDirectory() as _ofcb_tmpdir:
+        _ofcb_topo_path = _os.path.join(_ofcb_tmpdir, "m3a_row_ofcb.topology.json")
+        with open(_ofcb_topo_path, "w", encoding="utf-8") as _ofcb_f:
+            json.dump({
+                "topology_name": "m3a_row_ofcb_selftest",
+                "schema_version": "2.0",
+                "netlist": _l4c_m3a_netlist,
+                "symmetry": {"matching_pairs": _ofcb_matching_pairs_meta, "dispositions": []},
+                "sizing_roles": {
+                    "metrics": {"group_area": {"type": "sum_area", "devices": _l4c_names}},
+                    "constraints": [{"metric": "group_area", "op": "<=",
+                                      "value": _ofcb_baseline_area * 1.5}],
+                },
+            }, _ofcb_f)
+        _ofcb_spec = {
+            "lut_by_kind": {"nmos": lut},
+            "known_sizing": _ofcb_known_sizing,
+            "stack_groups_override": {"m3a_row": _l4c_names},
+            "min_finger_w": 0.1e-6, "max_finger_w": 40e-6,
+            "gm_id_bounds": (2.0, 28.0),
+        }
+        _ofcb_result = optimize_full_circuit_budget(_ofcb_topo_path, _ofcb_spec)
+        assert _ofcb_result["pipeline_result"]["unresolved_row"] is None, \
+            f"euler-blocked가 harness 경로에서 자동으로 안 풀림: " \
+            f"{_ofcb_result['pipeline_result']['unresolved_row']}/" \
+            f"{_ofcb_result['pipeline_result']['unresolved_reason']}"
+        assert _blocked_euler_rows(_ofcb_result["pipeline_result"]["audit_row_split"]) == [], \
+            "euler 체크가 최종적으로 안 풀림"
+        assert _ofcb_result["sizing_overrides"]["M9b"]["n_fingers"] == 2 and \
+            _ofcb_result["sizing_overrides"]["M18b"]["n_fingers"] == 2, \
+            f"harness가 반환한 sizing_overrides에 finger 조정이 반영 안 됨: " \
+            f"M9b={_ofcb_result['sizing_overrides']['M9b']}, M18b={_ofcb_result['sizing_overrides']['M18b']}"
+        assert _ofcb_result["sizing"]["M9b"]["W"] != _ofcb_known_sizing["M9b"]["W"], \
+            "harness가 반환한 sizing(gm/ID)에 finger 조정에 따른 W 변화가 반영 안 됨"
+        print(f"    PASS: optimize_full_circuit_budget()이 euler-blocked를 자동 해결(M9b/M18b "
+              f"n_fingers=2), sizing_overrides/sizing 둘 다 최종 상태로 갱신됨 -- "
+              f"repair_matching_safety() 호출부는 안 건드렸으므로 남은 3b/3c는 그대로 처리 "
+              f"(audit_ok={_ofcb_result['audit_ok']})")
 
     print()
     print("# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --")
