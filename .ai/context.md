@@ -5,10 +5,12 @@
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-1. **세션12~17 전부 완료** — 다음 세션 시작 시 `git log`/`git status`로 직접 재확인할 것
-   (세션14 교훈). 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`
-   (매칭 목적 핑거증가 L3+L4). 세션17 1차 커밋: `4bcaafc`(재설계안 3번 완화). 세션17
-   2차(crossover 짝짓기 재작성, 아래 6번)는 커밋 여부를 이 문서 최신 상태로 재확인할 것.
+1. **세션12~17 전부 완료 + 전부 커밋됨** — 다음 세션 시작 시 `git log`/`git status`로
+   직접 재확인할 것(세션14 교훈, working tree는 `.bkit/` 도구 상태 파일만 변경돼 있어야
+   정상). 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`(매칭 목적
+   핑거증가 L3+L4). 세션17 커밋 3개(시간순): `4bcaafc`(재설계안 3번 완화) →
+   `69d9b39`(crossover 짝짓기 우선순위 재작성, D-1) → `4e38aa6`(offset 우선순위 가중치
+   + branch composite 사전병합, F/G절).
 2. **세션15 A-3에서 발견한 `common_centroid_layout()` 크래시 완전히 원인 확정 + 수정
    완료**(세션16 0번) — `n_fingers<2`(예: 1)일 때 회전-최적 경로가 `count>=N`을 요구해서
    나던 크래시. `repair_matching_safety()`가 `n_rows=min(2, n_fingers)`로 낮춰 탐색
@@ -30,15 +32,25 @@
    (세션17, 아래 "세션17 결론" 참고) — `relaxed_pairs`(layout 전용 최후수단, `repair_
    matching_safety()`) + `allow_layout_relaxation`(`run_matching_safety_with_finger_
    growth()`).
-6. **crossover 짝짓기 우선순위 재작성 완료**(세션17 D절, 아래 "세션17 결론" E절 참고) —
-   `find_min_crossover_layout()`이 `matching_pairs`를 받으면 이제 `_select_crossover_
-   pairing()`으로 후보 완전짝짓기를 실제로 구성+채점해 matching_pairs 분할이 최소인
-   쪽을 고른다. M6 그룹 실측으로 splits=2(옛 tier1) → splits=0(신규)임을 self-test로
-   확인. `matching_pairs=None`(기존 프로덕션 경로)은 완전히 하위호환.
-7. **⚠️ 다음 세션 최우선 — 세션15 C절(그룹분할을 harness에 배선하는 것) 재개** — 6번이
-   끝났으니 이제 진행 가능. 세션15 C절이 남긴 원래 미해결 질문(C-2: crossover 성공 등급
-   표기 방식, C-3: `cell_groups`/`spine_groups` 갭)부터 다시 확인할 것.
-8. **`run_harness.py`는 세션11에 중단된 채 그대로 보류** — 세션12~17 전부 이 항목을
+6. **crossover 짝짓기 우선순위 재작성 완료**(세션17 E절) — `find_min_crossover_
+   layout()`이 `matching_pairs`를 받으면 이제 `_select_crossover_pairing()`으로 후보
+   완전짝짓기를 실제로 구성+채점해 matching_pairs 분할이 최소인 쪽을 고른다. M6 그룹
+   실측으로 splits=2(옛 tier1) → splits=0(신규)임을 self-test로 확인.
+   `matching_pairs=None`(기존 프로덕션 경로)은 완전히 하위호환.
+7. **offset 우선순위 가중치 + branch composite 사전병합 구현 완료**(세션17 F/G절,
+   같은 세션에 사용자 확인 질문에서 이어서 진행) — (1) `_count_matching_pair_splits()`가
+   `pair_sensitivity`를 받으면 `(offset_splits, other_splits)` 튜플로 CMRR 민감한
+   offset 쌍을 ratio보다 우선 보호. (2) `find_min_crossover_layout_with_branch_
+   composite()` wrapper 신설 — `_branch_composite_pair()`로 branch(캐스코드 컬럼)를
+   미리 합성 소자로 뭉쳐서 crossover 짝짓기가 branch를 갈라놓을 수 없게 **구조적으로**
+   보장(이전엔 채점 기반 회피일 뿐이었음, 사용자가 이 사각지대를 직접 발견).
+8. **⚠️ 다음 세션 최우선 — 세션15 C절(그룹분할을 harness에 배선하는 것) 재개** — 6/7번이
+   끝났으니 이제 진행 가능. **배선 시 `find_min_crossover_layout()`이 아니라 7번의
+   `find_min_crossover_layout_with_branch_composite()`를 호출할 것**(G-3절, 안 그러면
+   branch 구조적 보장이 실전에 안 먹힘). 세션15 C절이 남긴 원래 미해결 질문(C-2:
+   crossover 성공 등급 표기 방식, C-3: `cell_groups`/`spine_groups` 갭)부터 다시
+   확인할 것.
+9. **`run_harness.py`는 세션11에 중단된 채 그대로 보류** — 세션12~17 전부 이 항목을
    안 다뤘다(아래 "세션11 — run_harness.py 최종 진단" 참고).
 
 ## 배경 — 이 기능이 뭐고 왜 하는가 (세션5~11 공통, 참고용)
@@ -1058,7 +1070,7 @@ harness 배선)이 이 wrapper를 실제로 쓰기 시작하는 지점이다. �
     hub-leaf 제약을 풀고 `_select_crossover_pairing()`(세션17)이 아래 헬퍼들로
     matching_pairs 분할(및 offset 우선순위)을 최소화하는 짝짓기를 고른다.
     **⚠️ 아직 harness에 직접 안 이어짐** — G절 wrapper(`find_min_crossover_layout_
-    with_branch_composite()`)를 통해 다음 세션에 배선할 것(위 "지금 상태" 7번, G-3절).
+    with_branch_composite()`)를 통해 다음 세션에 배선할 것(위 "지금 상태" 8번, G-3절).
   - `_mirror_node_map_from_pairs(matching_pairs, transistors)`(1765행 부근) —
     **세션15 신설**, matching_pairs+connectivity에서 net 레벨 거울 대응 역산. 세션17
     미변경.
