@@ -63,6 +63,34 @@
   "_compensation_status": "resolved",
 
   "_netlist_sections": "Fig.2/Fig.6 1단(M6,M7,M1a/b,M2a/b,M3a/b,M4a/b,M5 -- 11개, 확신도 HIGH) / Fig.3/Fig.7-우 2단 Class-AB Vom측(M8,M11a/b,M15,M9a/b,M12,M10,M14a/b,M16,M13 -- 12개, 확신도 MEDIUM) / Fig.1+Fig.7-좌 2단 Class-AB Vop측(M22,M20a/b,M25,M18a/b,M21,M19,M24b,M23a,M26,M17 -- 12개, 확신도 MEDIUM, 2026-07-29 신규) / Fig.8 bias-gen(M18_bg,M60,M61,M64,M63,M58,M57,M66,M68 -- 9개, 확신도 LOW, 2026-07-29 Fig.4에서 교체) / Fig.5 CMFB(M36a/b,M37a/b,M38,M39,M40 -- 7개, 확신도 MEDIUM)",
+  "_netlist_sections_structured_comment": "2026-08-06(세션20) -- 위 _netlist_sections(prose)를 run_full_circuit_audit_from_topology()가 expected_counts로 기계적으로 파싱할 수 있게 구조화한 것. 새 판단 없음 -- prose가 이미 선언한 소자 목록/블록 경계를 dict로만 재표현(51개 전수 커버, 중복/누락 0 확인됨). prose(_netlist_sections)는 사람이 읽는 원본으로 그대로 유지.",
+  "_netlist_sections_structured": {
+    "stage1_diffpair": {
+      "label": "Fig.2/Fig.6 1단",
+      "confidence": "HIGH",
+      "devices": ["M6", "M7", "M1a", "M1b", "M2a", "M2b", "M3a", "M3b", "M4a", "M4b", "M5"]
+    },
+    "classab_vom": {
+      "label": "Fig.3/Fig.7-우 2단 Class-AB Vom측",
+      "confidence": "MEDIUM",
+      "devices": ["M8", "M11a", "M11b", "M15", "M9a", "M9b", "M12", "M10", "M14a", "M14b", "M16", "M13"]
+    },
+    "classab_vop": {
+      "label": "Fig.1+Fig.7-좌 2단 Class-AB Vop측",
+      "confidence": "MEDIUM",
+      "devices": ["M22", "M20a", "M20b", "M25", "M18a", "M18b", "M21", "M19", "M24b", "M23a", "M26", "M17"]
+    },
+    "biasgen": {
+      "label": "Fig.8 bias-gen",
+      "confidence": "LOW",
+      "devices": ["M18_bg", "M60", "M61", "M64", "M63", "M58", "M57", "M66", "M68"]
+    },
+    "cmfb": {
+      "label": "Fig.5 CMFB",
+      "confidence": "MEDIUM",
+      "devices": ["M36a", "M36b", "M37a", "M37b", "M38", "M39", "M40"]
+    }
+  },
 
   "netlist": [
     {"name": "M6",  "kind": "pmos", "source": "vdd", "drain": "Vx", "gate": "Vbias1"},

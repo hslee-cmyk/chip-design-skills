@@ -17,9 +17,10 @@ SKILL.md 핵심 원칙: **harness → 원소 함수 → (없을 때만) 새 코�
 |---|---|---|
 | topology JSON 하나로 gm/ID 사이징 전체를 실행 | `run_sizing_pipeline(topology_json_path, design_spec)` | §10 |
 | 다단 회로(Miller/NGCC/NMCNR 등) 전체를 한 번에 사이징 | `optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_grid, objective, gain_min, w_max)` | §1 |
-| 리포트를 완료로 선언하기 전 소자 수/net/matching/box-shape 전체 감사 | `run_full_circuit_audit(devices, expected_counts, dispositions, ...)` | §8 |
+| 리포트를 완료로 선언하기 전 소자 수/net/matching/box-shape 전체 감사 | `run_full_circuit_audit(devices, expected_counts, dispositions, ...)` — topology.json에 `_netlist_sections_structured`가 있으면 `devices`/`expected_counts`/`dispositions`를 손으로 다시 조립하지 말고 `run_full_circuit_audit_from_topology(topology_json_path, box_shape_checks=None, ...)`(세션20 신설)를 먼저 쓸 것 | §8 |
 | box-shape 때문에 한 functional group을 여러 물리 행으로 다시 지을 때 Euler/box-shape/matching 순서대로 전부 확인 | `audit_row_split(rows, matching_pairs=None, pair_kinds=None, max_ratio=1.5)` | §9 |
 | 사이징 완료 후 실제 layout(box-shape/matching/floorplan/coverage) 전체 계산 | `run_topology_pipeline(topology_json_path, sizing_overrides, floorplan_hints=None)` | §10 |
+| topology.json+instance.json(+`run_full_circuit_audit_from_topology()` 결과)에서 design report 데이터/HTML을 조립 | `assemble_report_data(topology_json_path, instance_json_path, full_circuit_audit=None, narrative=None)` + `render_html_report(report)`/`save_html_report(report, path)` (`assets/design_report.py`, 세션20 신설) | 아래 §11 |
 
 이 5개는 전부 여러 원소 함수를 정해진 순서로 묶어 실행하는 워크플로우다 — 그 내부 단계를
 손으로 재현하지 말고 harness 자체를 호출한다. `load_topology()`/`load_sizing_targets()`/
@@ -112,6 +113,7 @@ SKILL.md 핵심 원칙: **harness → 원소 함수 → (없을 때만) 새 코�
 | 상황 | 함수 | 비고 |
 |---|---|---|
 | 2개 이상 sub-block으로 구성된 회로의 리포트를 완료로 선언하기 전 **반드시** | `run_full_circuit_audit(devices, expected_counts, dispositions, box_shape_checks=None, max_ratio=1.5, accept_fail_blocks=None)` | design-report-spec.md §1.6 — 소자 수/net 이름/전체 목록 매칭·hub-merge 판정/box-shape를 한 번에 감사. sub-block별로 나눠 국부 재확인하지 말 것(반복 실패 패턴, PRE-FLIGHT 사고 1~11) |
+| 위 함수를 topology.json 하나로(devices/expected_counts/dispositions를 손으로 다시 조립하지 않고) 자동 실행 | `run_full_circuit_audit_from_topology(topology_json_path, box_shape_checks=None, max_ratio=1.5, accept_fail_blocks=None)` (세션20 신설) | `load_topology()`가 읽은 `_netlist_sections_structured`(topology.json 최상위 키, prose `_netlist_sections`를 기계적으로 구조화한 것)에서 `expected_counts`/`devices`를, `symmetry.dispositions`에서 `dispositions`를 자동 구성 — 새 판단 없음, 이미 기록된 값의 형식 변환뿐. `_netlist_sections_structured`가 없는 회로는 `ValueError`(먼저 구조화할 것) |
 | 사이징 시작 전, 소스 대비 총 소자 수를 선언 | 위 함수의 `expected_counts` 인자를 채우는 게 그 자체로 이 단계 | differential 회로면 "mirror branch가 있는가"를 이 시점에 답할 것(사고10) |
 | §5(stick diagram)에 §3에서 사이징된 소자 전부가 등장하는지 **독립적으로** 재확인(위 `run_full_circuit_audit()`와 별도 호출) | `check_stick_diagram_coverage(sized_device_names, stick_diagram_devices)` | design-report-spec.md §1.5 5단계 + PRE-FLIGHT 사고 27 — `run_full_circuit_audit()`는 자신에게 전달된 `devices` dict **안에서만** 커버리지를 보므로, sub-block 하나가 그 dict 자체에서 빠지면(예: bias-gen/CMFB/Class-AB는 사이징만 하고 stick diagram 호출을 아예 안 함) 잡지 못한다. `sized_device_names`는 §3 표에서 독립적으로 뽑을 것 — `run_full_circuit_audit()`에 넘긴 dict를 재사용하면 같은 누락이 그대로 안 보인다. **⚠️이 함수를 import만 하고 실제로 호출하지 않으면 아무 효과가 없다 — 완료 보고 전 `grep -n "check_stick_diagram_coverage("`로 실제 호출부가 있는지 확인할 것** |
 
@@ -162,6 +164,24 @@ common-centroid)·Euler trail·row 분할·floorplan은 전부 finger 개수·fi
 Design 문서 §4.5 참고 — netlist는 원문 직접 확인(상상 금지), symmetry는
 `find_matching_candidates()` 실제 호출 후 5가지 패턴으로 필터링, compensation은 회로
 **구조**가 기존 3개 함수 중 하나와 일치하는지(현재 W값의 역산 여부가 아니라)로 판단.
+
+---
+
+## 11. Design report 생성 (`assets/design_report.py`, 세션20 신설)
+
+> topology.json+instance.json에서 **기계적으로 조립 가능한 부분만** 자동으로 채우는
+> 회로-무관 리포트 조립기. 논문 spec 표/레이아웃 가이드 서술처럼 판단이 필요한 내용은
+> 새로 짓지 않고 `narrative` 인자로 호출자가 채운 값을 그대로 옮긴다(비어 있으면 그
+> 섹션은 조용히 생략). ⚠️ 옛 `workspaces/*/build_report.py`+`build_html.py`(및
+> `assets/report_template.html`)의 정교한 SVG stick-diagram/floorplan 시각화는 이식
+> 안 됨 — 그 시각화를 원하면 이 모듈로 별도 이식 필요(design_report.py 모듈 docstring
+> 참고).
+
+| 상황 | 함수 | 비고 |
+|---|---|---|
+| topology.json 하나에서 소자 표를 자동 조립(손타이핑 없음) | `build_topology_device_table(topology_json_path)` | `symmetry.matching_pairs`로 선언된 그룹을 union-find로 묶어 한 행으로 표시(소자 하나가 여러 매칭쌍 항목에 동시에 속할 수 있음 — 단순 dict 덮어쓰기는 이중집계 버그를 낸다, 세션20 실측 발견) |
+| topology.json+instance.json(+`run_full_circuit_audit_from_topology()` 결과+`narrative`)에서 REPORT 데이터 dict 조립 | `assemble_report_data(topology_json_path, instance_json_path, full_circuit_audit=None, narrative=None, extra_sections=None)` | `instance_json_path`가 아직 없으면(사이징 partial) `sizing`/`floorplan`류는 빠진 채 조립(에러 아님) |
+| 위 데이터를 self-contained HTML로 렌더링/저장 | `render_html_report(report) -> str` / `save_html_report(report, output_path)` | 표/카드 기반, 동적 컬럼(회로마다 sizing 필드 구성이 달라도 안 깨짐). 데이터 없는 섹션은 생략(가짜 값 금지) |
 
 ---
 

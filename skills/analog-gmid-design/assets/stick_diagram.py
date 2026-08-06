@@ -4515,6 +4515,12 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
                               "constraints": [...]} | None,  # 배치 7-3d, 2026-07-31 신설
             "device_roles": {name: {"headroom_role":..., "gm_id_role":..., "L_role":...,
                               "vertical_stack_id":..., "vs":...}} | None,  # 배치 7-5, 2026-07-31 신설
+            "netlist_sections_structured": {block_key: {"label":..., "confidence":...,
+                              "devices": [...]}} | None,  # 세션20 신설, run_full_circuit_
+                              # audit_from_topology()의 expected_counts 자동 구성용.
+                              # `_netlist_sections_structured`(topology.json 최상위 키)가
+                              # 없는 회로는 None -- 이 회로들엔 run_full_circuit_audit_
+                              # from_topology()를 아직 쓸 수 없다(구조화 선행 필요).
             "_linked_files_loaded": [str, ...]}
 
     ⚠️ 반환된 `transistors`는 **connectivity만** 채워져 있다(name/kind/source/drain/gate) —
@@ -4544,6 +4550,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
     all_matching_pairs = list(data["symmetry"]["matching_pairs"])
     all_dispositions = list(data["symmetry"].get("dispositions", []))
     all_device_roles = dict(data.get("device_roles") or {})
+    all_netlist_sections_structured = dict(data.get("_netlist_sections_structured") or {})
 
     linked = data.get("linked_topology_files") or []
     base_dir = os.path.dirname(os.path.abspath(json_path))
@@ -4553,6 +4560,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
         all_matching_pairs.extend(linked_data["symmetry"]["matching_pairs"])
         all_dispositions.extend(linked_data["symmetry"].get("dispositions", []))
         all_device_roles.update(linked_data.get("device_roles") or {})
+        all_netlist_sections_structured.update(linked_data.get("_netlist_sections_structured") or {})
 
     transistors = [Transistor(**d) for d in all_netlist]
     meta = {
@@ -4563,6 +4571,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
         "compensation": data.get("compensation"),
         "sizing_roles": data.get("sizing_roles"),  # 배치 7-3d(§7.3.2 D), 2026-07-31 신설
         "device_roles": all_device_roles or None,  # 배치 7-5, 2026-07-31 신설
+        "netlist_sections_structured": all_netlist_sections_structured or None,  # 세션20 신설
         "_linked_files_loaded": linked,
     }
     return transistors, meta
@@ -4717,6 +4726,62 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
         "floorplan": floorplan,
         "coverage": coverage,
     }
+
+
+def run_full_circuit_audit_from_topology(topology_json_path: str,
+                                           box_shape_checks: dict | None = None,
+                                           max_ratio: float = 1.5,
+                                           accept_fail_blocks: set | None = None) -> AuditResult:
+    """`run_full_circuit_audit()`(§1.6)의 자동 로더 -- topology.json 경로 하나만 주면
+    `devices`/`expected_counts`/`dispositions`를 `load_topology()`가 이미 읽은 정보에서
+    전부 자동으로 구성해 호출한다. 호출자가 connectivity를 별도 dict로 다시 손타이핑하거나
+    (사고9 net-이름 드리프트의 근본원인 재발) 이미 topology.json `symmetry.dispositions`에
+    적힌 판단을 다시 옮겨적을 필요가 없다(세션20, `.ai/context.md` 참고).
+
+    ⚠️ 이 함수가 새로 **판단**하는 건 없다 -- `expected_counts`는 `_netlist_sections_
+    structured`(§0, prose `_netlist_sections`를 기계적으로 구조화한 필드)에서, `dispositions`
+    는 `symmetry.dispositions`에서 **이미 기록된** 값을 형식만 변환해 재사용한다. 두 필드가
+    비어 있으면(아직 이 스키마로 갱신 안 된 회로) `run_full_circuit_audit()`의 게이트 자체가
+    무의미해지므로(빈 expected_counts는 "선언 없음"과 같다) 조용히 넘어가지 않고
+    `ValueError`를 낸다.
+
+    `box_shape_checks`/`max_ratio`/`accept_fail_blocks`는 사이징/레이아웃 이후에만 나오는
+    정보라 topology.json에 없다 -- `run_full_circuit_audit()`에 그대로 전달한다(호출자가
+    `run_topology_pipeline()`류의 반환값에서 직접 뽑아 넘길 것, 이 함수가 자동 변환하지
+    않는다 -- box_shape의 형태가 `cell_groups` 유무로 달라져 자동 변환이 오히려 조용한
+    오판을 낼 수 있다)."""
+    transistors, meta = load_topology(topology_json_path)
+    structured = meta.get("netlist_sections_structured")
+    if not structured:
+        raise ValueError(
+            f"{topology_json_path}에 _netlist_sections_structured가 없다 -- "
+            "run_full_circuit_audit_from_topology()는 expected_counts를 자동 도출할 수 없다"
+            "(prose _netlist_sections를 구조화된 dict로 먼저 변환할 것, 세션20 참고).")
+
+    block_of = {}
+    expected_counts = {}
+    for block_key, info in structured.items():
+        expected_counts[block_key] = len(info["devices"])
+        for name in info["devices"]:
+            block_of[name] = block_key
+
+    devices = {}
+    for t in transistors:
+        block = block_of.get(t.name)
+        if block is None:
+            raise ValueError(
+                f"{t.name}이 netlist에는 있지만 _netlist_sections_structured 어느 블록에도 "
+                "없다 -- 구조화가 netlist 전수를 커버하지 못한다(불일치, 재확인 필요).")
+        devices[t.name] = (t.kind, t.source, t.drain, t.gate, block)
+
+    dispositions = {
+        (d["tag"], d["kind"], d["key"]): (d["category"], d["reason"])
+        for d in meta["symmetry"]["dispositions"]
+    }
+
+    return run_full_circuit_audit(devices, expected_counts, dispositions,
+                                    box_shape_checks=box_shape_checks, max_ratio=max_ratio,
+                                    accept_fail_blocks=accept_fail_blocks)
 
 
 def _box_shape_json(bs):
@@ -7020,3 +7085,88 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 30 전체 PASS ===")
+
+    print()
+    print("=== Test 31: run_full_circuit_audit_from_topology() -- topology.json 하나만으로")
+    print("    devices/expected_counts/dispositions 자동 구성 (세션20, harness 실배선 전 단계) ===")
+    import os as _os31
+
+    _lib_dir31 = _os31.path.join(_os31.path.dirname(_os31.path.abspath(__file__)), "library")
+    _crt_path = _os31.path.join(_lib_dir31, "current_reuse_telescopic_ota.topology.json")
+
+    print()
+    print("  [1. 실제 회로(51개 소자)로 자동 구성 -- ok=True, 세 체크 전부 자동 데이터로 통과하는지]")
+    _crt_transistors, _crt_meta = load_topology(_crt_path)
+    _crt_structured = _crt_meta["netlist_sections_structured"]
+    assert _crt_structured is not None, "current_reuse_telescopic_ota가 구조화 필드를 못 읽음"
+    _crt_expected_total = sum(len(v["devices"]) for v in _crt_structured.values())
+    assert _crt_expected_total == len(_crt_transistors) == 51, \
+        f"구조화 블록 합({_crt_expected_total})이 netlist 전체 개수({len(_crt_transistors)})와 불일치"
+    _crt_audit = run_full_circuit_audit_from_topology(_crt_path)
+    assert _crt_audit.ok, f"실제 회로 자동감사가 FAIL: {_crt_audit.checks}"
+    _crt_check_names = [c.name for c in _crt_audit.checks]
+    assert any(c.startswith("1.") for c in _crt_check_names) and \
+           any(c.startswith("2.") for c in _crt_check_names) and \
+           any(c.startswith("3.") for c in _crt_check_names), \
+        f"체크 1/2/3이 전부 실행되지 않음: {_crt_check_names}"
+    print(f"    PASS: ok={_crt_audit.ok}, {[(c.name, c.ok) for c in _crt_audit.checks]}")
+
+    print()
+    print("  [2. dispositions 변환 -- symmetry.dispositions(list)와 개수가 일치하고, 형식이 (category,")
+    print("  reason) 튜플로 정확히 바뀌는지]")
+    _crt_raw_dispositions = _crt_meta["symmetry"]["dispositions"]
+    _crt_sample = _crt_raw_dispositions[0]
+    _crt_key = (_crt_sample["tag"], _crt_sample["kind"], _crt_sample["key"])
+    _crt_expected_val = (_crt_sample["category"], _crt_sample["reason"])
+    # run_full_circuit_audit_from_topology()는 dispositions dict를 반환하지 않으므로(§1.6 계약을
+    # 그대로 따름, AuditResult만 반환) 변환 로직 자체를 직접 재현해 대조한다.
+    _crt_disp_dict = {(d["tag"], d["kind"], d["key"]): (d["category"], d["reason"])
+                       for d in _crt_raw_dispositions}
+    assert len(_crt_disp_dict) == len(_crt_raw_dispositions), \
+        "dispositions 변환 중 (tag,kind,key) 키 충돌로 일부가 사라짐"
+    assert _crt_disp_dict[_crt_key] == _crt_expected_val, "dispositions 변환 형식이 계약과 다름"
+    print(f"    PASS: {len(_crt_raw_dispositions)}건 전부 키 충돌 없이 변환, 샘플 {_crt_key} 일치")
+
+    print()
+    print("  [3. 구조화 필드가 없는 회로(folded_cascode) -- ValueError로 명확히 실패하는지,")
+    print("  조용히 빈 expected_counts로 넘어가지 않는지]")
+    try:
+        run_full_circuit_audit_from_topology(_os31.path.join(_lib_dir31, "folded_cascode.topology.json"))
+        raise AssertionError("구조화 필드가 없는데도 ValueError가 안 남")
+    except ValueError as _e31:
+        assert "_netlist_sections_structured" in str(_e31), f"에러 메시지가 원인을 안 가리킴: {_e31}"
+        print(f"    PASS: ValueError 발생 -- {_e31}")
+
+    print()
+    print("  [4. 구조화가 netlist 전수를 못 커버하면(소자 하나가 어느 블록에도 없음) ValueError --")
+    print("  임시 topology.json으로 실제 함수를 태워 확인(내부 로직 재현이 아니라 진짜 호출)]")
+    import tempfile as _tempfile31
+    _broken_topo = {
+        "schema_version": "1.0", "topology_name": "broken_test_fixture", "source": None,
+        "ports": {}, "passive_elements": [], "ideal_sources": [],
+        "netlist": [
+            {"name": "Ma", "kind": "pmos", "source": "vdd", "drain": "n1", "gate": "vb"},
+            {"name": "Mb", "kind": "pmos", "source": "vdd", "drain": "n2", "gate": "vb"},
+        ],
+        "symmetry": {"matching_pairs": [], "dispositions": []},
+        "compensation": None,
+        "_netlist_sections_structured": {
+            "only_block": {"label": "test", "confidence": "HIGH", "devices": ["Ma"]},  # Mb 누락
+        },
+    }
+    with _tempfile31.NamedTemporaryFile(mode="w", suffix=".topology.json", delete=False,
+                                          encoding="utf-8") as _f31:
+        json.dump(_broken_topo, _f31)
+        _broken_path = _f31.name
+    try:
+        try:
+            run_full_circuit_audit_from_topology(_broken_path)
+            raise AssertionError("Mb가 어느 블록에도 없는데도 ValueError가 안 남")
+        except ValueError as _e31b:
+            assert "Mb" in str(_e31b), f"에러 메시지가 빠진 소자를 안 가리킴: {_e31b}"
+            print(f"    PASS: ValueError 발생 -- {_e31b}")
+    finally:
+        _os31.remove(_broken_path)
+
+    print()
+    print("  === Test 31 전체 PASS ===")
