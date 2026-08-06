@@ -3210,6 +3210,101 @@ def _layout_result_to_rows(layout: dict, templates: dict, base_row_name: str) ->
     return result
 
 
+def _kcl_branch_map(devices: list) -> dict:
+    """`devices`에 `kcl_series_union()`의 순수 자동발견 규칙(2단자 net, `matching_pairs`
+    강제병합 없음)만 돌려 `{소자명: branch 전체 소자명 리스트}`로 펼쳐 반환한다 --
+    `repair_matching_safety()`의 branch 복합 매칭(세션16)이 "이 소자가 다른 소자와 물리적으로
+    같은 직렬 컬럼(예: 캐스코드 스택)을 이루는가"를 판단하는 데 쓴다. 이미 있는 `kcl_series_
+    union()`(세션10 L2, `stack_groups_kcl`용)을 그대로 재사용할 뿐 새 그래프 로직은 없다."""
+    groups = kcl_series_union(devices, [])
+    branch_of: dict = {}
+    for members in groups.values():
+        for n in members:
+            branch_of[n] = members
+    return branch_of
+
+
+def _two_device_branch_outer(x: "Transistor", y: "Transistor"):
+    """2소자 직렬 branch(x,y)의 내부 연결 net과 바깥쪽 두 단자(x_outer, y_outer)를 구한다.
+    정확히 하나의 공유 net이 있어야 하고(`kcl_series_union()`이 이미 보장하지만 방어적으로
+    재확인), x/y 각각 남는 단자가 정확히 하나여야 한다(self-loop 등 이상 케이스 방어).
+    실패하면 `None`."""
+    x_terms = {x.source, x.drain}
+    y_terms = {y.source, y.drain}
+    shared = x_terms & y_terms
+    if len(shared) != 1:
+        return None
+    internal_net = next(iter(shared))
+    x_rest, y_rest = x_terms - {internal_net}, y_terms - {internal_net}
+    if len(x_rest) != 1 or len(y_rest) != 1:
+        return None
+    return internal_net, next(iter(x_rest)), next(iter(y_rest))
+
+
+def _branch_composite_pair(a: str, b: str, devices_by_name: dict, matching_pairs: list):
+    """실패한 매칭쌍 (a,b)가 서로 다른 hub(source)를 써서 `interdigitate_layout()`/
+    `common_centroid_layout()`을 직접 적용할 수 없을 때(세션15 A-3/세션16에서 확인된 한계 --
+    예: branch_symmetric인 M2a/M2b), 각자 속한 `kcl_series_union()` 직렬 branch가 서로
+    완전히 대응되는 거울 branch인지 확인한다 -- 대응되면(길이 2, hub쪽 소자끼리도 leaf쪽
+    소자끼리도 둘 다 선언된 matching_pairs) 그 branch 전체를 감싸는 합성(composite)
+    `Transistor` 한 쌍을 만들어 반환한다: 이러면 두 composite가 (진짜 공유 hub인)
+    같은 source를 갖게 되어 기존 도구를 그대로 적용할 수 있다 -- "M1a+M2a를 하나의 소자처럼
+    다룬다"는 아이디어(세션16 사용자 제안)를 이미 있는 `kcl_series_union()`으로 구현한 것,
+    새 그래프 탐색 로직은 없다.
+
+    **적용 범위(의도적으로 좁음, 다른 함수들과 동일 원칙)**: 정확히 2소자로 이루어진 선형
+    branch만 지원한다(3소자 이상 체인, 분기형 구조는 `None` -- 호출자가 기존처럼 skip).
+    branch 내부 두 소자의 `n_fingers`가 다르면(물리적으로 한 컬럼인데 폭이 다른 건 이상
+    케이스) 마찬가지로 `None`.
+
+    반환: 성공하면 `{"composite_a": Transistor, "composite_b": Transistor,
+    "expand": {composite_a.name: [hub_dev_a, leaf_dev_a], composite_b.name: [...]}}` --
+    어느 도구(interdigitate/common-centroid)를 쓸지는 호출자가 hub쌍/leaf쌍 각각의
+    `matching_sensitivity`로 직접 판단한다(이 함수는 구조 정합성만 확인). 실패하면 `None`."""
+    branch_map = _kcl_branch_map(list(devices_by_name.values()))
+    branch_a, branch_b = branch_map.get(a, [a]), branch_map.get(b, [b])
+    if len(branch_a) != 2 or len(branch_b) != 2:
+        return None  # branch가 없거나(단독) 2소자 선형 체인이 아님 -- 이 함수 범위 밖
+
+    outer_a = _two_device_branch_outer(devices_by_name[branch_a[0]], devices_by_name[branch_a[1]])
+    outer_b = _two_device_branch_outer(devices_by_name[branch_b[0]], devices_by_name[branch_b[1]])
+    if outer_a is None or outer_b is None:
+        return None
+    _, outer_a0, outer_a1 = outer_a
+    _, outer_b0, outer_b1 = outer_b
+
+    if outer_a0 == outer_b0:
+        hub_net, hub_a, leaf_a, hub_b, leaf_b = outer_a0, branch_a[0], branch_a[1], branch_b[0], branch_b[1]
+    elif outer_a0 == outer_b1:
+        hub_net, hub_a, leaf_a, hub_b, leaf_b = outer_a0, branch_a[0], branch_a[1], branch_b[1], branch_b[0]
+    elif outer_a1 == outer_b0:
+        hub_net, hub_a, leaf_a, hub_b, leaf_b = outer_a1, branch_a[1], branch_a[0], branch_b[0], branch_b[1]
+    elif outer_a1 == outer_b1:
+        hub_net, hub_a, leaf_a, hub_b, leaf_b = outer_a1, branch_a[1], branch_a[0], branch_b[1], branch_b[0]
+    else:
+        return None  # 두 branch가 공유하는 바깥쪽 hub가 없음 -- 거울 branch 아님, skip
+
+    declared = {frozenset(p) for p in matching_pairs}
+    if frozenset({hub_a, hub_b}) not in declared or frozenset({leaf_a, leaf_b}) not in declared:
+        return None  # hub쪽/leaf쪽 둘 다 선언된 matching_pair여야 "완전히 대응"으로 인정
+
+    dev_hub_a, dev_leaf_a = devices_by_name[hub_a], devices_by_name[leaf_a]
+    dev_hub_b, dev_leaf_b = devices_by_name[hub_b], devices_by_name[leaf_b]
+    if dev_hub_a.n_fingers != dev_leaf_a.n_fingers or dev_hub_b.n_fingers != dev_leaf_b.n_fingers:
+        return None  # 한 컬럼인데 finger 수가 다름 -- 이상 케이스, 방어적으로 skip
+
+    leaf_net_a = outer_a1 if hub_net == outer_a0 else outer_a0
+    leaf_net_b = outer_b1 if hub_net == outer_b0 else outer_b0
+    composite_a = Transistor(name=f"__branch__{hub_a}_{leaf_a}", kind=dev_hub_a.kind,
+                              source=hub_net, drain=leaf_net_a, n_fingers=dev_hub_a.n_fingers)
+    composite_b = Transistor(name=f"__branch__{hub_b}_{leaf_b}", kind=dev_hub_b.kind,
+                              source=hub_net, drain=leaf_net_b, n_fingers=dev_hub_b.n_fingers)
+    return {
+        "composite_a": composite_a, "composite_b": composite_b,
+        "expand": {composite_a.name: [hub_a, leaf_a], composite_b.name: [hub_b, leaf_b]},
+    }
+
+
 def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: dict | None = None,
                             max_iter: int = 3) -> tuple:
     """배치 7-4 — `audit_row_split()`이 FAIL한 matching pair에 대해 `select_layout_tool()`
@@ -3230,12 +3325,24 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
     shim 없음. 축B(`shares_node`)는 이미 같은 hub(source)를 공유한다는 전제(아래 참고)가
     확인된 뒤라 항상 `shares_diffusion_node(ta, tb)`로 즉석 계산한다.
 
-    ⚠️ 정직한 한계(2026-07-31): `interdigitate_layout()`/`common_centroid_layout()`은
-    "같은 hub net(source)을 공유하는 소자들"만 입력으로 받는다 — pair의 두 소자가 서로
-    다른 hub를 쓰면(공유 노드가 없는 `branch_symmetric` 쌍이 실제로 이런 경우가 있다) 이
-    도구들 자체가 적용 불가능해 이 함수는 그 pair를 건드리지 않고 넘어간다(진행이 전혀
-    없으면 `max_iter`를 다 채우지 않고 조기 종료) — `run_topology_pipeline()`의 기존
-    docstring이 이미 밝힌 한계(사람이 `search_stack_finger_w()`로 직접 조정) 그대로다."""
+    ⚠️ 정직한 한계(2026-07-31, 세션16에 일부 완화): `interdigitate_layout()`/
+    `common_centroid_layout()`은 "같은 hub net(source)을 공유하는 소자들"만 입력으로
+    받는다 — pair의 두 소자가 서로 다른 hub를 쓰면(공유 노드가 없는 `branch_symmetric` 쌍이
+    실제로 이런 경우가 있다) 원래는 이 도구들 자체가 적용 불가능했다. **세션16부터**: 그런
+    경우에도 각자 `kcl_series_union()` 직렬 branch(예: M1a-M2a 캐스코드 컬럼)가 서로
+    완전히 대응되는 거울 branch(`_branch_composite_pair()`)면, branch 전체를 하나의
+    합성 소자처럼 묶어 적용한다 — "M2a/M2b가 M1a/M1b와 같이 움직이게" 만들어 조용히
+    스킵되던 사각지대를 좁힌다. branch 구조 자체가 없거나(단독 소자) 대응이 안 맞으면
+    (부분만 선언됨, 길이 다름, 3소자 이상 체인 등) 여전히 그 pair를 건드리지 않고 넘어간다
+    (진행이 전혀 없으면 `max_iter`를 다 채우지 않고 조기 종료) — `run_topology_pipeline()`의
+    기존 docstring이 이미 밝힌 한계(사람이 `search_stack_finger_w()`로 직접 조정)는 이
+    범위 밖에서는 그대로 유효하다.
+
+    ⚠️⚠️ branch 복합 매칭으로도 3c(common-centroid)가 항상 통과하는 건 아니다 — `n_fingers`가
+    너무 작으면(예: 1) `common_centroid_layout()`의 회전-최적 경로 자체가 기하학적으로
+    `dx<=0.5`를 달성 못 한다(세션16에서 실측 확인, 최선이 `dx=1.0`). 이건 이 함수의 책임
+    밖이다(핑거 수를 늘리는 건 gm/ID 재검증이 필요해 `sizing_recipe.py` 쪽 오케스트레이션
+    몫 — 다음 확장 지점, `.ai/context.md` 세션16 참고)."""
     pair_sensitivity = pair_sensitivity or {}
     current_rows = {k: list(v) for k, v in rows.items()}
 
@@ -3254,7 +3361,14 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
         if not failing:
             break
         progressed = False
+        touched_this_round: set = set()  # 세션16: 같은 branch가 이번 라운드에 이미 재배치
+        # 됐으면 재처리하지 않는다 -- (M1a,M1b)/(M2a,M2b)처럼 같은 branch를 가리키는 두
+        # 실패 항목이 `failing`에 둘 다 있으면, 하나를 처리하는 순간 branch 전체(4소자)가
+        # 이미 옮겨지므로 나머지 하나를 또 처리하면 새 행 이름에 "_repair0"이 raound마다
+        # 중첩돼 쌓이기만 하고(회전 위치는 이미 최선) 실질적 진전은 없다.
         for (a, b) in failing:
+            if a in touched_this_round and b in touched_this_round:
+                continue
             devs_by_name, origin_rows = {}, {}
             for rn, devs in current_rows.items():
                 for t in devs:
@@ -3264,12 +3378,64 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
             if a not in devs_by_name or b not in devs_by_name:
                 continue
             ta, tb = devs_by_name[a], devs_by_name[b]
+            # 세션16: source 공유 여부와 무관하게 항상 먼저 branch 복합 매칭을 시도한다 --
+            # (a,b)가 kcl 직렬 branch(예: M1a-M2a)에 속해 있으면, 설령 ta.source==tb.source라
+            # 개별 소자 단위로도 이 도구들을 바로 적용할 수 있는 경우조차, branch 전체를
+            # 하나로 묶어야 그 branch의 나머지 반쪽(예: M2a/M2b)이 조용히 스킵되지 않는다.
+            # branch 구조가 없으면(단독 소자, 3소자+ 체인 등) `None`을 돌려주므로 아래 기존
+            # 개별-소자 경로로 자연히 폴백된다(하위호환, branch 없는 회로는 완전히 그대로).
+            all_devs_by_name = {t.name: t for devs in current_rows.values() for t in devs}
+            composite = _branch_composite_pair(a, b, all_devs_by_name, matching_pairs)
+            if composite is not None:
+                ca, cb = composite["composite_a"], composite["composite_b"]
+                expand_map = composite["expand"]
+                hub_a, leaf_a = expand_map[ca.name]
+                hub_b, leaf_b = expand_map[cb.name]
+                real_names = (hub_a, leaf_a, hub_b, leaf_b)
+                tool_hub = select_layout_tool(_sensitivity_of_pair(hub_a, hub_b), True)
+                tool_leaf = select_layout_tool(_sensitivity_of_pair(leaf_a, leaf_b), True)
+                if "common_centroid_layout" in (tool_hub, tool_leaf):
+                    layout = common_centroid_layout([ca, cb], n_rows=min(2, ca.n_fingers, cb.n_fingers))
+                else:
+                    layout = interdigitate_layout([ca, cb])
+                expanded_rows = [{"transistor_sequence":
+                                   [n for name in row["transistor_sequence"]
+                                    for n in expand_map.get(name, [name])]}
+                                  for row in layout["rows"]]
+                devs2, origin2 = {}, {}
+                for rn, devs in current_rows.items():
+                    for t in devs:
+                        if t.name in real_names:
+                            devs2[t.name] = t
+                            origin2[t.name] = rn
+                if any(n not in devs2 for n in real_names):
+                    continue  # branch 구성원 일부가 이미 없어짐 -- 안전하게 skip
+                base_row_name = origin2[hub_a]
+                new_rows = _layout_result_to_rows({"rows": expanded_rows}, devs2, base_row_name)
+                for rn in set(origin2.values()):
+                    current_rows[rn] = [t for t in current_rows[rn] if t.name not in real_names]
+                    if not current_rows[rn]:
+                        del current_rows[rn]
+                current_rows.update(new_rows)
+                progressed = True
+                touched_this_round.update(real_names)
+                continue
             if ta.source != tb.source:
-                continue  # 공유 hub 없음 -- 이 도구들 적용 불가(정직한 한계, 위 docstring)
+                continue  # 공유 hub 없음 + branch 복합도 안 됨 -- 이 도구들 적용 불가(정직한 한계)
             sens = _sensitivity_of_pair(a, b)
             tool_name = select_layout_tool(sens, shares_diffusion_node(ta, tb))
-            tool_fn = interdigitate_layout if tool_name == "interdigitate_layout" else common_centroid_layout
-            layout = tool_fn([ta, tb])
+            if tool_name == "interdigitate_layout":
+                layout = interdigitate_layout([ta, tb])
+            else:
+                # common_centroid_layout()의 기본 n_rows(=len(transistors)=2)는 회전-최적
+                # 경로(_common_centroid_nway_exact)를 타는데, 그 경로는 소자마다 행당 최소
+                # 1핑거가 필요해 n_fingers<2(예: n_fingers=1인 매칭쌍)면 ValueError로 크래시
+                # 한다(세션15 A-3에서 발견, 세션16에서 원인 확정) -- n_rows를
+                # min(2, n_fingers)로 낮춰 그 경우에만 탐색 경로(_common_centroid_nway_search)
+                # 로 보낸다. n_fingers>=2인 기존 케이스는 n_rows=2로 기존 기본값과 완전히
+                # 동일하게 동작(회귀 없음).
+                n_rows = min(2, ta.n_fingers, tb.n_fingers)
+                layout = common_centroid_layout([ta, tb], n_rows=n_rows)
             base_row_name = origin_rows[a]
             new_rows = _layout_result_to_rows(layout, {a: ta, b: tb}, base_row_name)
             for rn in set(origin_rows.values()):
@@ -3278,6 +3444,7 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
                     del current_rows[rn]
             current_rows.update(new_rows)
             progressed = True
+            touched_this_round.update((a, b))
         if not progressed:
             break
         result = audit_row_split(current_rows, matching_pairs=matching_pairs,
@@ -5982,6 +6149,48 @@ if __name__ == "__main__":
     print(f"    PASS: ok={_norepair_audit.ok}(여전히 FAIL, 의도대로), "
           f"행 구조 불변={sorted(_norepair_result_rows.keys())} "
           f"({_branch_a}/{_branch_b}은 source가 달라 도구 적용 불가)")
+
+    print()
+    print("  [repair_matching_safety() -- 세션16 branch 복합 매칭: current_reuse_telescopic_ota.")
+    print("  topology.json의 M6 그룹 실제 사례(M1a-M2a/M1b-M2b가 각각 kcl 직렬 branch, M2a/M2b는")
+    print("  source가 서로 달라 예전엔 조용히 스킵됐다) -- 이제 M1a/M1b와 함께 묶여 재배치되는지,")
+    print("  branch 구조가 없는 위 테스트는 여전히 완전히 그대로인지(회귀 없음) 확인]")
+    _m6b_lib = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library")
+    _m6b_trs, _m6b_meta = load_topology(
+        os.path.join(_m6b_lib, "current_reuse_telescopic_ota.topology.json"))
+    _m6b_by_name = {t.name: t for t in _m6b_trs}
+    _m6b_names = ["M1a", "M1b", "M2a", "M2b", "M6", "M7"]
+    _m6b_row = [_dc_replace(_m6b_by_name[n], stack_id="seg1") for n in _m6b_names]
+    _m6b_pairs = [("M1a", "M1b"), ("M2a", "M2b")]
+    _m6b_sensitivity = {("M1a", "M1b"): "offset", ("M2a", "M2b"): "ratio"}
+    assert _m6b_by_name["M2a"].source != _m6b_by_name["M2b"].source, \
+        "M2a/M2b가 source를 공유하면 이 테스트가 재현하려는 사례(branch_symmetric)가 아님"
+
+    _m6b_before = audit_row_split({"seg1": _m6b_row}, matching_pairs=_m6b_pairs,
+                                   pair_sensitivity=_m6b_sensitivity)
+    assert not _m6b_before.ok, "수리 전인데 이미 PASS -- 재현 시나리오 실패"
+
+    _m6b_rows, _m6b_after = repair_matching_safety({"seg1": _m6b_row}, _m6b_pairs, _m6b_sensitivity)
+    _m6b_final_names = {rn: {t.name for t in devs} for rn, devs in _m6b_rows.items()}
+    _m6b_row_of = {n: rn for rn, names in _m6b_final_names.items() for n in names}
+    assert _m6b_row_of["M2a"] == _m6b_row_of["M2b"], \
+        f"M2a/M2b가 같은 행에 안 묶임(branch 복합 매칭 실패): {_m6b_row_of}"
+    assert _m6b_row_of["M1a"] == _m6b_row_of["M2a"] == _m6b_row_of["M1b"] == _m6b_row_of["M2b"], \
+        f"M1a/M1b/M2a/M2b 4개가 한 branch 복합으로 전부 같은 행에 묶여야 하는데: {_m6b_row_of}"
+    assert not _m6b_after.ok, (
+        "n_fingers=1인 M1a/M1b/M2a/M2b는 dx<=0.5(3c)를 기하학적으로 달성할 수 없다(세션16 실측,"
+        " 최선이 dx=1.0) -- 지금 PASS라면 회귀가 아니라 오히려 이 함수 범위 밖의 일(핑거증가,"
+        " 다음 세션 확장 지점)이 우연히 된 것이니 이 assert부터 다시 확인할 것")
+    print(f"    PASS: M2a/M2b가 더 이상 스킵되지 않고 M1a/M1b와 같은 행({_m6b_row_of['M1a']})에 "
+          f"묶임 -- audit.ok={_m6b_after.ok}(3c는 n_fingers=1 한계로 여전히 FAIL, 예상대로 -- "
+          f"핑거증가는 이 함수 범위 밖, gm/ID 재검증이 필요해 sizing_recipe.py 몫)")
+
+    print("  [_branch_composite_pair() -- branch 구조가 없는(2단자 net으로 안 이어진) 단독 소자")
+    print("  쌍은 None을 돌려줘 기존 폴백(위 rowA/rowB 테스트)이 안 깨지는지 직접 확인]")
+    _bc_none = _branch_composite_pair(_branch_a, _branch_b,
+                                       {_branch_a: _t_branch_a, _branch_b: _t_branch_b}, _norepair_pairs)
+    assert _bc_none is None, f"branch 구조가 없는데 composite가 나옴(오탐): {_bc_none}"
+    print("    PASS: branch 구조 없음 -> None(기존 폴백 경로 그대로 보존)")
 
     print()
     print("=== Test 29: derive_stack_groups()/assign_finger_geometry() (배치 7-6, 2026-07-31) ===")
