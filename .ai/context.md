@@ -5,13 +5,28 @@
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-0. **세션20 구현/self-test 전부 완료, 아직 커밋 안 됨** — 다음 세션 시작 시 `git log`/
-   `git status`로 직접 재확인할 것(세션14 교훈). 커밋 대상: `stick_diagram.py`(
-   `load_topology()` 확장 + `run_full_circuit_audit_from_topology()` 신설 + Test 31),
-   `library/current_reuse_telescopic_ota.topology.json`(`_netlist_sections_structured`
-   신설), `design_report.py`(신규 파일), `workspaces/current-reuse-telescopic-ota-report/
-   run_harness.py`(두 배선) + `smoke_run_harness_session20.py`(신규, 참고용). 상세는
-   "세션20 결론" 절 참고.
+### 다음 세션 작업 순서 (사용자 확정, 세션20 끝에 지시) — 이 순서 그대로 진행할 것
+1. **PSRR (C)단계** — 2단 Class-AB 출력전류원(M8/M13/M17/M22, source=vdd)의 자체 VDD
+   주입 경로를 PSRR 유도에 포함(아래 "세션20-B 결론" H-2/I절 참고, (A)+(B)는 이미
+   완료·커밋됨).
+2. **Grid search 개선안 설계 마무리 + 구현** — "세션20-B 결론" G절의 그룹 구조(5-theta
+   진짜 결합/2-theta feasibility 결합/6개 완전 독립)를 근거로 블록 분리+이분탐색+
+   좌표하강+재시작+최종 joint 로컬 정제 구현. 시작점 선택(all-lo/mid/hi 전부
+   infeasible이었음) 문제도 같이 해결할 것.
+3. **`vertical_stack_id` 경계 주석 확장** — `find_hub_merge_candidates()`가 낸 혼합
+   후보(예: `Vx`={M1a,M1b,M58})에 그 소자들이 같은 `vertical_stack_id`(VDD~GND 직렬
+   체인)인지 다른지를 표시(`analog-grammar-integration.md` §7이 이미 이 확장을
+   "낮은 리스크, 필요 시 설계"로 남겨둔 것 — **이건 세션19에서 "적용 불가"로 폐기된
+   `find_diode_stacks()` 기반 Tier 2와는 별개**, 폐기와 무관하게 진행 가능).
+4. **`run_harness.py` — audit 실패 시 재최적화 루프** — `run_full_circuit_audit_from_
+   topology()`가 `ok=False`면 그 원인(어떤 체크가 실패했는지)을 피드백해 다시
+   `optimize_full_circuit_budget()`을 도는 루프로 확장, 최대 반복 횟수 제한, 그 안에
+   해결되면 report+instance.json 저장(현재는 실패해도 그냥 저장만 하고 끝 — 세션20
+   배선 그대로).
+
+0. **세션20/20-B 구현/self-test 전부 완료 + 전부 커밋됨**(`e4042c5`,`8cc9014`,`3b77c0b`,
+   `4750115`) — 다음 세션 시작 시 `git log`/`git status`로 직접 재확인할 것(세션14
+   교훈). 상세는 아래 "세션20 결론"/"세션20-B 결론" 절 참고.
 1. **`run_full_circuit_audit()`(§1.6 게이트)의 자동 로더 `run_full_circuit_audit_
    from_topology(topology_json_path, ...)` 신설 + 실배선 완료**(세션20) —
    `devices`/`expected_counts`/`dispositions`를 topology.json에서 전부 자동 구성(새
