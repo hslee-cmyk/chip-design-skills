@@ -1613,7 +1613,8 @@ from stick_diagram import (Transistor, load_topology, propagate_topology_forced_
                             assign_finger_geometry, run_topology_pipeline,
                             repair_matching_safety, split_into_stacks,
                             suggest_pair_finger_adjustments, PairAdjustmentSuggestion,
-                            _branch_composite_pair, _failing_required_pairs)
+                            _branch_composite_pair, _failing_required_pairs,
+                            find_min_crossover_layout_with_branch_composite)
 
 
 @dataclass
@@ -2770,34 +2771,61 @@ def run_topology_pipeline_with_finger_fixup(
     row 탐지 -- 없으면 성공 종료(`unresolved_row=None`). (3) 첫 blocked row의 소자 +
     topology.json `symmetry.matching_pairs`(그 row로 필터링)로 `apply_and_revalidate_pair_
     adjustment()` 시도. (4) 성공하면 `sizing_overrides`와 `ctx.sized`를 `_sync_finger_fixup()`
-    으로 동기화하고 다음 라운드로. (5) 실패하면(그 row의 모든 후보가 gm/ID 위반) **거짓 성공으로
-    처리하지 않고 즉시 멈춘다** -- `unresolved_reason="no_valid_candidate"`. `max_fixup_rounds`
+    으로 동기화하고 다음 라운드로. (5) **세션18 -- 실패하면(그 row의 모든 후보가 gm/ID 위반)
+    바로 포기하지 않고 그룹분할(crossover routing)로 폴백한다**(세션15 C절 설계,
+    `.ai/context.md` 참고): `find_min_crossover_layout_with_branch_composite()`
+    (branch 구조적 보장 -- G-3절, `find_min_crossover_layout()` 대신 반드시 이 wrapper를
+    쓴다)로 그 row를 분할하고, 반환된 `segments`대로 그 row 소자들의 `stack_id`를
+    `f"{row_name}_seg{i}"`로 재배정한다(순수 물리 배치 변경 -- W/n_fingers는 안 바뀌므로
+    `_sync_finger_fixup()`류의 gm/ID 재검증이 필요 없다). 이 함수는 그래프 이론상(T-join/
+    route inspection) 항상 성공하므로, 이 지점에 도달하면 사실상 항상 풀린다 -- 그래서
+    "완전히 공짜로 풀렸다"는 거짓 인상을 주지 않도록 `group_splits`(아래)에 크로스오버가
+    실제로 몇 번 들어갔는지 정직하게 남긴다. `audit.ok`는 손대지 않는다 -- 다음 라운드에
+    새로 계산된 값을 그대로 반영한다(진짜로 euler+3b+3c가 다 통과하면 자연히 True, 그 행에
+    다른 실패(예: `n_fingers=1` 매칭쌍의 3c)가 남아 있으면 여전히 False). `max_fixup_rounds`
     소진 시엔 마지막 조정 이후 한 번 더 `run_topology_pipeline()`을 재실행해 실제로 풀렸는지
     확인한 뒤 반환한다(`unresolved_reason="max_rounds_exceeded"`인 경우만 -- 라운드 소진과
-    동시에 실제로 풀렸으면 정상 성공으로 반환).
+    동시에 실제로 풀렸으면 정상 성공으로 반환). 그룹분할이 그래프 이론상 항상 성공하므로
+    `unresolved_reason="no_valid_candidate"`는 더 이상 이 함수의 실제 반환 경로가 아니다
+    (과거 `no_valid_candidate` 시나리오는 이제 그룹분할로 넘어간다).
+
+    **`cell_groups` 자동확장(세션18, C-3)**: `cell_groups`가 주어졌는데 그룹분할로 새
+    `_seg*` row가 생기면, 원래 row 이름이 속했던 `cell_groups` 항목에서 그 이름을 빼고
+    새 `_seg*` 이름들을 대신 넣는다(호출자가 준 원본 dict는 손 안 대고 내부 사본만
+    갱신) -- 안 하면 `run_topology_pipeline()`이 새 row를 감사에서 조용히 누락한다
+    (세션15 C-3이 지적한 갭, 세션18에 `optimize_full_circuit_budget()`이 실제로
+    `cell_groups=spec.get("cell_groups")`를 넘긴다는 게 확인돼 실전 갭임이 확정됐다).
 
     반환: `run_topology_pipeline()`의 반환값(`transistors`/`box_shape`/`audit_row_split`/
     `floorplan`/`coverage`) + `{"fixup_rounds": [{"round","row","result"}, ...],
-    "sizing_overrides": (최종), "ctx": (최종), "unresolved_row": str|None,
-    "unresolved_reason": "no_valid_candidate"|"max_rounds_exceeded"|None}`. `unresolved_row`가
-    `None`이 아니면 핑거조정만으로 못 풀렸다는 뜻(node_map 기반 그룹분할 등 다른 방법 필요,
-    이 함수 책임 밖 -- `.ai/context.md` "다음 세션 작업 순서" 4번)."""
+    "group_splits": [{"round","row","n_segments","crossover_count","branch_composites",
+    "node_pairing_fallback_used"}, ...], "sizing_overrides": (최종), "ctx": (최종),
+    "unresolved_row": str|None, "unresolved_reason": "max_rounds_exceeded"|None}`.
+    `group_splits`가 비어있으면 이번 실행에서 그룹분할이 전혀 필요 없었다는 뜻(완전
+    하위호환 신호 -- 기존 호출부는 이 필드를 몰라도 다른 동작이 전혀 안 바뀐다)."""
     overrides = dict(sizing_overrides)
     cur_ctx = ctx
     fixup_rounds = []
+    group_splits: list = []
+    effective_cell_groups = {k: list(v) for k, v in cell_groups.items()} \
+        if cell_groups is not None else None
 
     _, meta = load_topology(topology_json_path)
     pairs_meta = meta["symmetry"]["matching_pairs"]
     all_matching_pairs = [pair for p in pairs_meta for pair in itertools.combinations(p["names"], 2)]
+    all_pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
+                             for pair in itertools.combinations(p["names"], 2)}
 
     result = None
     for round_idx in range(max_fixup_rounds):
         result = run_topology_pipeline(topology_json_path, overrides,
-                                        floorplan_hints=floorplan_hints, cell_groups=cell_groups)
+                                        floorplan_hints=floorplan_hints,
+                                        cell_groups=effective_cell_groups)
         blocked = _blocked_euler_rows(result["audit_row_split"])
         if not blocked:
-            return {**result, "fixup_rounds": fixup_rounds, "sizing_overrides": overrides,
-                    "ctx": cur_ctx, "unresolved_row": None, "unresolved_reason": None}
+            return {**result, "fixup_rounds": fixup_rounds, "group_splits": group_splits,
+                    "sizing_overrides": overrides, "ctx": cur_ctx, "unresolved_row": None,
+                    "unresolved_reason": None}
 
         row_name = blocked[0]
         row_transistors = [t for t in result["transistors"] if t.stack_id == row_name]
@@ -2808,17 +2836,41 @@ def run_topology_pipeline_with_finger_fixup(
             row_transistors, row_pairs, cur_ctx, lut_by_kind, metrics_specs, constraints,
             gm_id_bounds=gm_id_bounds)
         fixup_rounds.append({"round": round_idx, "row": row_name, "result": fix})
-        if not fix["applied"]:
-            return {**result, "fixup_rounds": fixup_rounds, "sizing_overrides": overrides,
-                    "ctx": cur_ctx, "unresolved_row": row_name,
-                    "unresolved_reason": "no_valid_candidate"}
 
-        overrides, cur_ctx = _sync_finger_fixup(overrides, cur_ctx, fix, row_transistors)
+        if fix["applied"]:
+            overrides, cur_ctx = _sync_finger_fixup(overrides, cur_ctx, fix, row_transistors)
+            continue
+
+        # 세션18: 핑거조정으로 못 풀리면 그룹분할로 폴백(위 docstring (5) 참고).
+        row_pair_sensitivity = {k: v for k, v in all_pair_sensitivity.items()
+                                 if set(k) <= row_names}
+        split = find_min_crossover_layout_with_branch_composite(
+            row_transistors, row_pairs, row_pair_sensitivity)
+        new_seg_names = []
+        for seg_idx, seg in enumerate(split["segments"]):
+            seg_stack_id = f"{row_name}_seg{seg_idx}"
+            new_seg_names.append(seg_stack_id)
+            for name in seg["transistor_sequence"]:
+                overrides[name] = {**overrides[name], "stack_id": seg_stack_id}
+
+        if effective_cell_groups is not None:
+            for cell_name, row_list in effective_cell_groups.items():
+                if row_name in row_list:
+                    effective_cell_groups[cell_name] = \
+                        [rn for rn in row_list if rn != row_name] + new_seg_names
+
+        group_splits.append({
+            "round": round_idx, "row": row_name, "n_segments": len(split["segments"]),
+            "crossover_count": split["crossover_count"],
+            "branch_composites": split["branch_composites"],
+            "node_pairing_fallback_used": split["node_pairing_fallback_used"],
+        })
 
     result = run_topology_pipeline(topology_json_path, overrides,
-                                    floorplan_hints=floorplan_hints, cell_groups=cell_groups)
+                                    floorplan_hints=floorplan_hints, cell_groups=effective_cell_groups)
     blocked = _blocked_euler_rows(result["audit_row_split"])
-    return {**result, "fixup_rounds": fixup_rounds, "sizing_overrides": overrides, "ctx": cur_ctx,
+    return {**result, "fixup_rounds": fixup_rounds, "group_splits": group_splits,
+            "sizing_overrides": overrides, "ctx": cur_ctx,
             "unresolved_row": blocked[0] if blocked else None,
             "unresolved_reason": "max_rounds_exceeded" if blocked else None}
 
@@ -3227,19 +3279,66 @@ if __name__ == "__main__":
               f"최종 n_fingers M9b={_l4c_final_n['M9b']} M18b={_l4c_final_n['M18b']} "
               f"(세션12 손검증 6개->2개 홀수차수와 일치, mirror_symmetric으로 성공)")
 
-        print("    [케이스B: 면적 예산이 극도로 타이트하면 -- 어떤 후보도 통과 못 해 unresolved]")
+        print("    [케이스B: 면적 예산이 극도로 타이트하면 -- 핑거조정 후보 전부 위반. **세션18부터**")
+        print("    바로 unresolved로 포기하지 않고 그룹분할(crossover routing)로 자동 폴백해 euler를")
+        print("    완전히 푼다(세션15 C절 harness 배선, 위 docstring (5) 참고) -- 세션14~17엔")
+        print("    unresolved_row/no_valid_candidate로 끝났던 바로 그 시나리오를 재사용해 동작이")
+        print("    바뀌었음을 직접 확인한다(회귀가 아니라 의도된 기능 확장)]")
         _l4c_constraints_b = [{"metric": "group_area", "op": "<=", "value": _l4c_baseline_area * 1.001}]
         _l4c_result_b = run_topology_pipeline_with_finger_fixup(
             _l4c_topo_path, _l4c_overrides, _l4c_ctx, {"nmos": lut}, _l4c_metrics, _l4c_constraints_b,
             gm_id_bounds=(2.0, 28.0))
-        assert _l4c_result_b["unresolved_row"] == _l4c_row and \
-            _l4c_result_b["unresolved_reason"] == "no_valid_candidate", \
-            f"타이트한 예산인데 풀렸다고 나옴: {_l4c_result_b['unresolved_row']}/{_l4c_result_b['unresolved_reason']}"
-        assert len(_l4c_result_b["fixup_rounds"]) == 1, "실패도 1라운드 만에 확정돼야 함(후보 전부 위반)"
-        assert not _l4c_result_b["fixup_rounds"][0]["result"]["applied"]
-        print(f"    PASS: unresolved_row={_l4c_result_b['unresolved_row']}, "
-              f"reason={_l4c_result_b['unresolved_reason']}, "
-              f"시도된 후보 {len(_l4c_result_b['fixup_rounds'][0]['result']['rejected'])}건 전부 거부")
+        assert _l4c_result_b["unresolved_row"] is None and _l4c_result_b["unresolved_reason"] is None, \
+            f"그룹분할 폴백으로 euler는 항상 풀려야 하는데: " \
+            f"{_l4c_result_b['unresolved_row']}/{_l4c_result_b['unresolved_reason']}"
+        assert _blocked_euler_rows(_l4c_result_b["audit_row_split"]) == [], \
+            "euler 체크가 최종적으로 안 풀림"
+        assert len(_l4c_result_b["fixup_rounds"]) == 1 and \
+            not _l4c_result_b["fixup_rounds"][0]["result"]["applied"], \
+            "핑거조정 시도 자체는 여전히 1회 일어나고 여전히 실패해야 함(위반 후보 전부 거부)"
+        assert len(_l4c_result_b["group_splits"]) == 1, \
+            f"그룹분할이 정확히 1번 기록돼야: {_l4c_result_b['group_splits']}"
+        _l4c_split_b = _l4c_result_b["group_splits"][0]
+        assert _l4c_split_b["row"] == _l4c_row and _l4c_split_b["n_segments"] == 3 and \
+            _l4c_split_b["crossover_count"] == 2 and \
+            _l4c_split_b["node_pairing_fallback_used"] is False, \
+            f"그룹분할 기록 내용이 실측과 다름: {_l4c_split_b}"
+        _l4c_bc_pairs = sorted(sorted(v) for v in _l4c_split_b["branch_composites"].values())
+        assert _l4c_bc_pairs == [["M3a", "M4a"], ["M3b", "M4b"]], \
+            f"M3a/M4a, M3b/M4b branch가 crossover 짝짓기 전에 합성됐어야: " \
+            f"{_l4c_split_b['branch_composites']}"
+        _l4c_final_stack = {t.name: t.stack_id for t in _l4c_result_b["transistors"]}
+        assert _l4c_final_stack["M3a"] == _l4c_final_stack["M4a"] == _l4c_final_stack["M5"], \
+            f"M3a/M4a(branch composite)+M5가 같은 segment에 있어야: {_l4c_final_stack}"
+        assert _l4c_final_stack["M3b"] == _l4c_final_stack["M4b"] == \
+            _l4c_final_stack["M64"] == _l4c_final_stack["M63"], \
+            f"M3b/M4b(branch composite)+M64/M63이 같은 segment에 있어야: {_l4c_final_stack}"
+        assert not _l4c_result_b["audit_row_split"].ok, \
+            "이 함수는 euler(체크1)만 고친다 -- 3b/3c 잔여 실패는 그대로 audit.ok=False에 반영돼야 " \
+            "함(정직하게 남기기, 세션17 원칙과 동일 -- group_splits가 있다고 몰래 True로 안 둔갑)"
+        print(f"    PASS: unresolved_row=None(그룹분할로 euler 완전 해결), "
+              f"group_splits={_l4c_split_b['n_segments']}세그먼트/crossover={_l4c_split_b['crossover_count']}, "
+              f"branch_composites={_l4c_split_b['branch_composites']}, "
+              f"audit.ok={_l4c_result_b['audit_row_split'].ok}(3b/3c 잔여 실패는 이 함수 책임 밖, 정직 유지)")
+
+        print("    [케이스C: cell_groups를 명시하면 -- 세션18 C-3, 그룹분할로 생긴 새 _seg* row가")
+        print("    원래 row가 속했던 cell_groups 항목에 자동으로 추가되는지(원본 dict는 불변)]")
+        _l4c_cell_groups = {"cellA": [_l4c_row, "other_row_not_present"]}
+        _l4c_cell_groups_snapshot = {k: list(v) for k, v in _l4c_cell_groups.items()}
+        _l4c_result_c = run_topology_pipeline_with_finger_fixup(
+            _l4c_topo_path, _l4c_overrides, _l4c_ctx, {"nmos": lut}, _l4c_metrics, _l4c_constraints_b,
+            gm_id_bounds=(2.0, 28.0), cell_groups=_l4c_cell_groups)
+        assert _l4c_result_c["unresolved_row"] is None, \
+            f"cell_groups가 있어도 그룹분할 폴백은 동일하게 성공해야: {_l4c_result_c['unresolved_row']}"
+        assert _l4c_cell_groups == _l4c_cell_groups_snapshot, \
+            f"호출자가 준 cell_groups 원본이 변형됨(순수함수 위반): {_l4c_cell_groups}"
+        _l4c_cellA_checks = _l4c_result_c["audit_row_split"]["cellA"].checks
+        _l4c_seg_euler_names = {c.name[len("1. euler["):-1] for c in _l4c_cellA_checks
+                                 if c.name.startswith("1. euler[") and c.ok}
+        assert _l4c_seg_euler_names == {"m3a_row_seg0", "m3a_row_seg1", "m3a_row_seg2"}, \
+            f"cell_groups 자동확장이 안 돼 새 seg row가 cellA 감사에서 누락됨: {_l4c_seg_euler_names}"
+        print(f"    PASS: cellA 감사에 seg row 3개 전부 포함됨({sorted(_l4c_seg_euler_names)}), "
+              f"호출자 원본 cell_groups는 그대로({_l4c_cell_groups})")
 
     print()
     print("  [L5 optimize_full_circuit_budget() 실배선 -- run_topology_pipeline_with_finger_")

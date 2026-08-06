@@ -1,4 +1,4 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-06, 세션17 끝 — 다음은 세션18)
+# 세션 컨텍스트 (최종 갱신: 2026-08-06, 세션18 끝 — 다음은 세션19)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
@@ -44,14 +44,18 @@
    composite()` wrapper 신설 — `_branch_composite_pair()`로 branch(캐스코드 컬럼)를
    미리 합성 소자로 뭉쳐서 crossover 짝짓기가 branch를 갈라놓을 수 없게 **구조적으로**
    보장(이전엔 채점 기반 회피일 뿐이었음, 사용자가 이 사각지대를 직접 발견).
-8. **⚠️ 다음 세션 최우선 — 세션15 C절(그룹분할을 harness에 배선하는 것) 재개** — 6/7번이
-   끝났으니 이제 진행 가능. **배선 시 `find_min_crossover_layout()`이 아니라 7번의
-   `find_min_crossover_layout_with_branch_composite()`를 호출할 것**(G-3절, 안 그러면
-   branch 구조적 보장이 실전에 안 먹힘). 세션15 C절이 남긴 원래 미해결 질문(C-2:
-   crossover 성공 등급 표기 방식, C-3: `cell_groups`/`spine_groups` 갭)부터 다시
-   확인할 것.
-9. **`run_harness.py`는 세션11에 중단된 채 그대로 보류** — 세션12~17 전부 이 항목을
-   안 다뤘다(아래 "세션11 — run_harness.py 최종 진단" 참고).
+8. **세션15 C절(그룹분할을 harness에 배선하는 것) 완료**(세션18, 아래 "세션18 결론"
+   참고) — `run_topology_pipeline_with_finger_fixup()`이 핑거조정 실패 시
+   `find_min_crossover_layout_with_branch_composite()`(G-3절 wrapper, branch 구조적
+   보장 그대로 적용)로 자동 폴백해 euler-blocked row를 그룹분할로 해결한다. C-2(정직한
+   표기)는 `group_splits` 필드로, C-3(`cell_groups` 갭)는 `_seg*` 자동확장으로 확정됨
+   (둘 다 사용자 확인 후 구현). `sizing_recipe.py`만 수정, **아직 미커밋**.
+9. **⚠️ 다음 세션 최우선 후보 — `run_harness.py` 재실행 전략 논의**(세션11 A절, 그리드
+   축소 또는 다른 최적화 방식) — 8번이 끝나 새 L3/L4/그룹분할 체인이 harness에 전부
+   연결됐으니, 이 체인들이 실전(`current_reuse_telescopic_ota` 전체 사이징)에서 어떻게
+   동작하는지 end-to-end로 확인할 좋은 시점이다.
+10. **`run_harness.py`는 세션11에 중단된 채 그대로 보류** — 세션12~18 전부 이 항목을
+    안 다뤘다(아래 "세션11 — run_harness.py 최종 진단" 참고).
 
 ## 배경 — 이 기능이 뭐고 왜 하는가 (세션5~11 공통, 참고용)
 
@@ -1016,27 +1020,125 @@ harness 배선)이 이 wrapper를 실제로 쓰기 시작하는 지점이다. �
 
 ---
 
+# 세션18 결론 — 세션15 C절(그룹분할 harness 배선) 완료 — C-2/C-3 확정 후 구현+self-test+회귀
+
+세션17이 남긴 "다음 세션 최우선"(그룹분할 harness 배선)을 진행. 코드를 고치기 전에 세션15가
+남긴 C-2(crossover 성공 표기 방식)/C-3(`cell_groups` 갭) 두 질문에 대한 사용자 입장을 먼저
+확정한 뒤(엔진 변경 사전 승인 원칙), `run_topology_pipeline_with_finger_fixup()`에 실제로
+배선했다.
+
+## A. C-2 확정 — `group_splits` 필드, `audit.ok`는 손대지 않는다
+
+논의 중 사용자가 "`audit.ok=false`로 강제하면 어떤 문제가 있고, 별도 성공 등급 신설과 뭐가
+다른가"를 물어 다음이 정리됐다:
+
+- **`relaxed_pairs`(세션17)와 그룹분할은 겉보기엔 비슷해도 다르다.** `relaxed_pairs`가
+  다루는 3c FAIL은 `n_fingers=1`일 때 **수학적으로 항상 실패**하므로(세션17 A절 공식
+  확정), `audit.ok=False`를 유지하는 게 없는 실패를 지어내는 게 아니라 **실제로 여전히
+  실패 중인 체크를 정직하게 반영**하는 것이었다. 반면 그룹분할이 고치는 건 체크1(euler)
+  이고, 그 행에 `n_fingers=1` 매칭쌍이 안 섞여 있으면 euler+3b+3c가 **전부 진짜로 통과할
+  수 있다** — 이 경우 `audit.ok=False`를 강제하면 **실제로 없는 체크 실패를 지어내서
+  보고**하게 돼, `audit.ok`의 원래 의미(선언된 체크의 실제 pass/fail)를 오염시키고
+  하위 소비자(`run_topology_pipeline_with_finger_fixup()`의 라운드 루프,
+  `optimize_full_circuit_budget()`의 후보 채택 로직)가 실제론 멀쩡한 후보를 계속
+  재시도/거부하게 만들 위험이 있다.
+- **`group_splits` 필드는 사실 "별도 성공 등급"의 가벼운 버전**이다 — 둘 다 "`audit.ok`는
+  진실하게 두고 옆에 비용 신호를 추가한다"는 같은 원칙을 공유한다. `group_splits`
+  (리스트, "몇 번 어디서" 근거까지 남김) 쪽이 명시적 tri-state 등급보다 구현이 가볍고
+  기존 반환 스키마(`fixup_rounds`와 나란히)에 자연스럽게 붙어 이쪽으로 확정.
+- `audit.ok`는 계산에 전혀 개입하지 않는다 — 그룹분할 후 euler+3b+3c가 다 통과하면
+  자연히 True, 그 행에 다른 실패(예: `n_fingers=1` 매칭쌍의 3c)가 남아 있으면 여전히
+  False. "설정"이 아니라 "손 안 대고 그대로 둔다"는 게 핵심.
+
+## B. C-3 확정 — `cell_groups` 자동확장, "지금 막기"로 결정
+
+`run_topology_pipeline_with_finger_fixup()`의 실제 호출부(`optimize_full_circuit_
+budget()`, `sizing_recipe.py:2288-2291`)를 코드로 직접 추적해 `cell_groups=spec.get(
+"cell_groups")`가 실제 프로덕션 spec 입력 경로로 이미 살아있음을 확인 — 세션15 C-3가
+"지금 당장 처리할 실제 사례가 없다"고 미뤄뒀던 갭이, 이번 배선으로 **실전에서 바로 발동할
+수 있는 상태**가 됐다(더는 가상의 우려가 아님). 사용자가 "지금 막기"로 확정.
+
+## C. 구현 (`sizing_recipe.py` 단독 수정, `stick_diagram.py`는 세션17 상태 그대로 무변경)
+
+`run_topology_pipeline_with_finger_fixup()`(2746행 부근) 라운드 루프에서 `apply_and_
+revalidate_pair_adjustment()`가 `applied=False`(핑거조정 실패)일 때, 바로 `unresolved_row`
+로 포기하던 지점을 다음으로 교체:
+
+1. `find_min_crossover_layout_with_branch_composite(row_transistors, row_pairs,
+   row_pair_sensitivity)` 호출(G-3절 원칙대로 raw `find_min_crossover_layout()`이
+   아니라 이 wrapper 사용 — branch 구조적 보장이 실전에도 적용되도록). `row_pair_
+   sensitivity`는 `meta["symmetry"]["matching_pairs"]`에서 그 row로 필터링해 offset
+   우선순위(세션17 F절)도 그대로 관통.
+2. 이 함수는 그래프 이론상(T-join/route inspection) 항상 성공 — 반환된 `segments`대로
+   그 row 소자들의 `sizing_overrides[name]["stack_id"]`를 `f"{row_name}_seg{i}"`로
+   재배정(순수 물리 배치 변경, W/n_fingers 불변이라 gm/ID 재검증 불필요, 세션15 C-1
+   설계 그대로).
+3. `effective_cell_groups`(호출자가 준 `cell_groups`의 내부 사본, 원본은 불변)에서
+   원래 row 이름이 속한 항목을 찾아 `_seg*` 이름들로 교체(C-3).
+4. `group_splits` 리스트에 `{"round","row","n_segments","crossover_count",
+   "branch_composites","node_pairing_fallback_used"}` 기록(C-2, `find_min_crossover_
+   layout_with_branch_composite()`가 실제로 반환하는 키를 그대로 재사용 — 지어낸
+   필드 없음).
+
+`unresolved_reason="no_valid_candidate"`는 그룹분할이 항상 성공하므로 더 이상 이 함수의
+실제 반환 경로가 아니게 됐다(`max_rounds_exceeded`만 남음).
+
+## D. self-test — 실제 M3a 그룹(세션12/14 L4c fixture) 재사용, 케이스B 재작성 + 케이스C 신설
+
+새 픽스처를 지어내지 않고, 정확히 이 시나리오(핑거조정 실패)를 이미 테스트하던 L4c 케이스B
+(M3a 그룹 11소자, 면적 예산 극도로 타이트)를 재사용 — 실행 전에 스크래치패드 probe
+스크립트로 실제 반환값을 먼저 확인한 뒤(상상으로 assertion을 채우지 않는 원칙) 다음을
+검증하도록 재작성:
+
+- **케이스B(동작이 의도적으로 바뀜, 회귀 아님)**: `unresolved_row=None`(그룹분할로 euler
+  완전 해결), `group_splits`=1건(3세그먼트, crossover_count=2), `branch_composites`=
+  `{M4a,M3a}`/`{M4b,M3b}` — **실측으로 새로 발견**: M3a 그룹이 이미 M4a-M3a/M4b-M3b
+  캐스코드 컬럼 구조를 갖고 있어(M4a.drain="N3a4a"=M3a.source), `_composite_collapse_
+  for_crossover()`가 이걸 실제로 감지해 합성 소자로 묶은 뒤 crossover 짝짓기를 했다 —
+  G-3 wrapper가 세션17 M6 픽스처 외의 **실제 다른 회로**에서도 branch 구조를 올바르게
+  인식함을 처음으로 확인. `audit.ok=False`(3b/3c 잔여 실패, 이 함수 책임 밖 — 정직하게
+  유지, A절 원칙대로 손 안 댐).
+- **케이스C(신설, C-3 검증)**: `cell_groups={"cellA": ["m3a_row", "other_row_not_
+  present"]}`로 호출 → 그룹분할 후 `cellA`의 감사 결과에 `m3a_row_seg0/1/2` 전부
+  euler PASS로 포함됨(자동확장이 실제로 감사 파이프라인까지 작동) + 호출자가 준
+  `cell_groups` 원본 dict는 그대로(순수함수 원칙 유지) 확인.
+
+## E. 회귀 확인
+
+`git show HEAD:...sizing_recipe.py`(세션17 커밋 `fbfaed5` 기준, `stick_diagram.py`는
+이번 세션 무변경이라 현재 파일 그대로 사용)로 격리 baseline 디렉토리 구성 →
+`PYTHONHASHSEED=0` 고정, self-test 전체(250줄) diff — **케이스B/C 블록(의도된 변경+신규)
+외 0줄 차이**. `L4c 케이스A`/`L5`/`L4d`/`L4e`를 포함한 나머지 전체 self-test(CMRR/PSRR/
+noise/mismatch 등)는 완전히 무변경. 무회귀 확정.
+
+## F. 알려진 한계 / 다음 세션 참고
+
+- `stick_diagram.py`는 이번 세션에 전혀 안 건드림 — 세션17 상태(`4e38aa6`) 그대로.
+- `optimize_full_circuit_budget()`이 `run_topology_pipeline_with_finger_fixup()`을
+  이미 호출하고 있으므로(세션15 A절 실배선), 이 그룹분할 폴백도 **자동으로 harness
+  최상위 경로에 연결돼 있다** — 별도 배선 코드가 더 필요 없다. 단, `run_harness.py`
+  자체가 세션11에 중단된 채 재실행이 안 됐으므로, 이 폴백이 실제 `current_reuse_
+  telescopic_ota` 전체 사이징에서 어떻게 동작하는지는 여전히 미검증(다음 세션 후보,
+  위 "지금 상태" 9번).
+- `group_splits`가 여러 라운드/여러 row에 걸쳐 쌓일 때의 상호작용(예: 한 라운드의
+  그룹분할이 다음 라운드 핑거조정 후보에 영향을 주는지)은 아직 다중 row가 동시에
+  blocked인 실제 회로로 검증 안 됨 — M3a 그룹은 1 row만 blocked였다.
+
+---
+
 ## 다음 세션 작업 순서 (권장, 각 단계 사용자 승인 필수)
 
-1. **⚠️ 최우선 — 세션15 C절(그룹분할 harness 배선) 재개** — crossover 짝짓기 우선순위가
-   이제 고쳐졌고(위 E절), branch composite 사전병합(F/G절, `find_min_crossover_layout_
-   with_branch_composite()`)도 준비됐으니 안전하게 진행 가능. **배선할 때 `find_min_
-   crossover_layout()`이 아니라 `find_min_crossover_layout_with_branch_composite()`를
-   호출할 것**(G-3절 — 안 그러면 branch 구조적 보장이 실전에 안 먹힘). C-2(crossover
-   성공 등급을 어떻게 표현할지 — `group_splits` 필드 vs 다른 방식)와 C-3(`cell_groups`/
-   `spine_groups` 갭을 지금 막을지 vs 미룰지) 두 질문부터 다시 확인. 답이 나오면 C-1
-   설계(row `stack_id`를 `f"{row}_seg{i}"`로 재배정)대로 `run_topology_pipeline_with_
-   finger_fixup()`을 실제로 고칠 것 — 여러 회로에 영향을 주는 엔진 변경이라 사전 승인
-   원칙 그대로.
-2. `run_harness.py` 재실행 전략 논의(세션11 A절 — 그리드 축소 or 다른 최적화 방식) — 1번이
-   끝나면 이 새 체인들이 실전에서 어떻게 동작하는지 end-to-end로 확인할 좋은 기회.
-3. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
+1. **`run_harness.py` 재실행 전략 논의**(세션11 A절 — 그리드 축소 or 다른 최적화 방식) —
+   세션18로 L3(핑거조정)+L4(gm/ID 재검증)+그룹분할 체인이 harness 최상위 경로에 전부
+   연결됐으니, 이 새 체인들이 실전(`current_reuse_telescopic_ota` 전체 사이징)에서
+   어떻게 동작하는지 end-to-end로 확인할 좋은 시점.
+2. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
    `current_reuse_telescopic_ota`) — 필요해지면 사람이 직접 사슬 추적해 확인.
-4. GBW 재검증 확장(범위 밖으로 미룸, 세션13 결론 D절) — 어느 topology.json이든
+3. GBW 재검증 확장(범위 밖으로 미룸, 세션13 결론 D절) — 어느 topology.json이든
    `constraints`에 GBW를 실제로 선언하는 회로가 생기면 그때 착수.
-5. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
+4. 완주하면 세션4 핸드오프 원래 "다음 단계"(Cc/Rz/Iref 값 채우기, PSRR 폐형식 재유도)로
    이어가기.
-6. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
+5. (미정, 낮은 우선순위, 세션6부터 이월) `find_structural_symmetry_candidates()`의
    `"dual"` transform 오탐 개선 — 손 안 댐.
 
 ---
@@ -1226,7 +1328,9 @@ harness 배선)이 이 wrapper를 실제로 쓰기 시작하는 지점이다. �
     참고). 전부 통과.
   - 회귀: 커밋 전(`58e608b`) 대비 self-test 전체 출력 diff — 신규 L4d 블록(15줄) 외
     0줄 차이, 무회귀 확정.
-- `skills/analog-gmid-design/assets/stick_diagram.py` (**세션17 수정, 아직 미커밋**)
+- `skills/analog-gmid-design/assets/stick_diagram.py` (**세션17 수정, 커밋 `4bcaafc`/
+  `69d9b39`/`4e38aa6`** — 문서가 한동안 "아직 미커밋"으로 stale했음, 세션18에 `git log`
+  재확인으로 정정. 세션18은 이 파일을 전혀 안 건드림)
   - `repair_matching_safety(rows, matching_pairs, pair_sensitivity=None, max_iter=3,
     relaxed_pairs=None)`(3308행 부근) — **세션17 신설** `relaxed_pairs: set[frozenset]`
     파라미터. composite 경로(3407행 부근)/raw 경로(3443행 부근) 둘 다에서 이 집합에 든
@@ -1237,7 +1341,8 @@ harness 배선)이 이 wrapper를 실제로 쓰기 시작하는 지점이다. �
     있어도 안 바뀜 확인.
   - 회귀: `PYTHONHASHSEED=0` 기준 편집 전(`7a41a30`) 대비 self-test 전체 출력 diff —
     신규 테스트 블록(8줄) 외 0줄 차이, 무회귀 확정(세션17 C절).
-- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션17 수정, 아직 미커밋**)
+- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션17 수정, 커밋 `4bcaafc`/
+  `69d9b39`/`4e38aa6`** — 위 stick_diagram.py와 동일한 이유로 정정)
   - `run_matching_safety_with_finger_growth(..., allow_layout_relaxation=True)`(2595행
     부근) — **세션17 신설** `allow_layout_relaxation` 파라미터 + `relaxed_pairs` 반환
     필드. `reason=="gm_id_violation"`일 때만(다른 실패 사유는 완화 대상 아님) 그 쌍을
@@ -1250,7 +1355,29 @@ harness 배선)이 이 wrapper를 실제로 쓰기 시작하는 지점이다. �
     `unresolved_reason="gm_id_violation"`) 보존되는 회귀 대조.
   - 회귀: `PYTHONHASHSEED=0` 기준 편집 전(`7a41a30`) 대비 self-test 전체 출력 diff —
     신규 L4e 블록(9줄) 외 0줄 차이, 무회귀 확정.
-- `skills/analog-gmid-design/assets/library/*.topology.json` — 세션11~17 **미수정**.
+- `skills/analog-gmid-design/assets/sizing_recipe.py` (**세션18 수정, 아직 미커밋** —
+  이번 세션은 이 파일만 건드림, `stick_diagram.py`는 세션17 상태 그대로)
+  - `run_topology_pipeline_with_finger_fixup(...)`(2746행 부근) — **세션18**: 핑거조정
+    (`apply_and_revalidate_pair_adjustment()`)이 `applied=False`면 바로 `unresolved_row`
+    로 포기하지 않고 `find_min_crossover_layout_with_branch_composite()`(G-3절 wrapper)
+    로 그룹분할 폴백(세션15 C절 harness 배선). `segments`대로 `stack_id`를
+    `f"{row_name}_seg{i}"`로 재배정, `group_splits` 반환 필드에 근거 기록(C-2, `audit.ok`
+    는 손 안 댐). `cell_groups`가 있으면 원래 row가 속한 항목을 새 `_seg*` 이름으로
+    자동확장(C-3, 호출자 원본 dict 불변). `unresolved_reason="no_valid_candidate"`는
+    그룹분할이 그래프 이론상 항상 성공하므로 더 이상 실제 반환 경로가 아님(`max_rounds_
+    exceeded`만 남음). import 목록(1611행 부근)에 `find_min_crossover_layout_with_
+    branch_composite` 추가.
+  - self-test — L4c **케이스B 재작성**(세션12/14 M3a 그룹 11소자 fixture 재사용, 새
+    fixture 안 지어냄): 핑거조정이 면적 예산으로 실패하는 기존 시나리오가 이제 그룹분할로
+    자동 해결됨을 확인(3세그먼트, crossover_count=2) — **실측으로 새로 발견**: M3a 그룹이
+    이미 M4a-M3a/M4b-M3b 캐스코드 컬럼 구조를 가져 `_composite_collapse_for_crossover()`
+    가 이를 감지해 합성 소자로 묶었다(G-3 wrapper가 세션17 M6 픽스처 외의 실제 다른
+    회로에서도 올바르게 동작함을 처음 확인). **케이스C 신설**: `cell_groups` 자동확장이
+    실제 감사 파이프라인까지 작동하는지(seg row 3개 전부 `cellA` 감사에 포함) + 호출자
+    원본 dict 불변 확인.
+  - 회귀: `PYTHONHASHSEED=0` 기준 편집 전(세션17 커밋 `fbfaed5`) 대비 self-test 전체
+    (250줄) 출력 diff — 케이스B(의도된 변경)/케이스C(신규) 블록 외 0줄 차이, 무회귀 확정.
+- `skills/analog-gmid-design/assets/library/*.topology.json` — 세션11~18 **미수정**.
 - `workspaces/current-reuse-telescopic-ota-report/run_harness.py` — 세션11에 중단됨,
   재실행 보류(위 A절 참고). 로그: `run_harness_session11.log`(0바이트, 정상 — 원래
   안 찍는 스크립트).
@@ -1272,6 +1399,11 @@ harness 배선)이 이 wrapper를 실제로 쓰기 시작하는 지점이다. �
 - `workspaces/current-reuse-telescopic-ota-report/probe_d1_verify.py` — **세션17 신설**,
   위 스크립트가 손으로 확인한 D-1 발견(splits=2)을 세션17 `_select_crossover_pairing()`
   구현이 실제로 splits=0으로 고치는지 자동 로직으로 재확인(세션17 E-3절 근거 스크립트).
+- `workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py` —
+  **세션18 신설**, M3a 그룹(세션12/14 L4c fixture 재사용)으로 `run_topology_pipeline_
+  with_finger_fixup()`의 그룹분할 폴백을 self-test 작성 전에 먼저 실행해 실제 반환값
+  (`group_splits`/`branch_composites`/최종 `stack_id`/`audit.ok`/`cell_groups` 자동확장)
+  을 확인한 스크립트(상상으로 assertion을 채우지 않는 원칙, 세션18 D절 근거).
 
 ## 참고 — 사용자 협업 메모리 (자동 메모리 시스템에 저장됨, 요약만)
 
@@ -1400,3 +1532,23 @@ harness 배선)이 이 wrapper를 실제로 쓰기 시작하는 지점이다. �
   깨끗하게 노출하는 최소 합성 fixture(세션17의 `Ma`/`Mb` offset 쌍, `_l4d_ctx` 재사용)로
   바꿔서 실제로 실행해 확인하는 게 더 빠르고 정확했다(M6 그룹으로 먼저 시도했다가 예측이
   틀릴 위험을 감수하기보다 단순 fixture로 전환).
+- **세션18 신규**: "성공 신호를 손대야 하나"라는 질문을 받으면, 그 필드가 **진짜로 무엇을
+  재는지**부터 따질 것 — 겉보기엔 비슷한 두 케이스(세션17 `relaxed_pairs`의 3c FAIL vs
+  세션18 그룹분할의 euler 성공)가 `audit.ok`에 대해 정반대 함의를 가질 수 있다. 전자는
+  체크가 **수학적으로 항상 실패**하므로 `False` 유지가 정직함 자체이고, 후자는 체크가
+  **진짜로 통과할 수 있으므로** `False`를 강제하면 없는 실패를 지어내는 것이 된다 —
+  "완화 필드를 어떻게 표기할까"는 항상 "이 필드가 재는 대상이 실제로 실패하는가"를 먼저
+  확인한 뒤에 답해야 한다.
+- **세션18 신규**: "지금 당장 처리할 실제 사례가 없다"고 미뤄둔 갭(세션15 C-3의
+  `cell_groups` 상호작용)도, 나중에 그 갭과 맞닿는 기능을 실제로 배선하는 순간
+  **그 즉시 실전 의존성으로 바뀔 수 있다** — 배선 직전에 호출 그래프를 다시 추적해
+  (`optimize_full_circuit_budget()`가 실제로 `cell_groups=spec.get("cell_groups")`를
+  넘기는지 확인) "여전히 가상의 우려인지"를 재검증한 것이 결정을 미루지 않는 근거가
+  됐다. "나중에 사례 나오면"으로 미뤄둔 항목은, 그 항목이 의존하는 기능을 실제로 켜는
+  시점에 반드시 재검토할 것.
+- **세션18 신규**: self-test용 fixture를 새로 지어내기 전에, 정확히 같은 실패 시나리오를
+  이미 검증하던 기존 fixture(세션12/14 L4c의 M3a 그룹 "면적 예산 타이트" 케이스)가 있는지
+  먼저 찾을 것 — 동작이 의도적으로 바뀌는 경우(핑거조정 실패 시 `unresolved`였던 게 이제
+  그룹분할로 자동 해결됨), 그 fixture를 재사용해 "예전엔 이랬는데 이제 이렇게 바뀐다"를
+  같은 자리에서 직접 대조하면 회귀 diff에서도 변경 범위가 명확하게 드러난다(세션17 E-4
+  "Test 12.13 재작성" 패턴과 동일).
