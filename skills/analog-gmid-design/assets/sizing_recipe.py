@@ -1611,7 +1611,8 @@ def compute_metric(metric_spec: dict, ctx: SizingContext) -> float:
 from stick_diagram import (Transistor, load_topology, propagate_topology_forced_currents,
                             kcl_series_union, geometry_colocation_union,
                             assign_finger_geometry, run_topology_pipeline,
-                            repair_matching_safety, split_into_stacks)
+                            repair_matching_safety, split_into_stacks,
+                            suggest_pair_finger_adjustments, PairAdjustmentSuggestion)
 
 
 @dataclass
@@ -2401,6 +2402,179 @@ def revalidate_finger_override(ctx: SizingContext, lut_by_kind: dict, overrides:
     }
 
 
+def apply_and_revalidate_pair_adjustment(transistors: list, matching_pairs: list,
+                                          ctx: SizingContext, lut_by_kind: dict,
+                                          metrics_specs: dict, constraints: list,
+                                          gm_id_bounds: tuple = (2.0, 30.0),
+                                          max_candidates: int | None = None) -> dict:
+    """L3(`suggest_pair_finger_adjustments()`)의 제안을 L4(`revalidate_finger_override()`)로
+    자동 승인/거부하는 상위 오케스트레이션 -- 세션12/13이 각각 만든 두 엔진을 처음으로 잇는다
+    (`.ai/context.md` 세션13 D절 "다음 확장 지점", 세션12 M3a 그룹 M9b/M18b 사례가 실제 동기).
+
+    `suggest_pair_finger_adjustments()`가 반환한 후보를(홀수차수 개선 오름차순, 즉 레이아웃
+    관점에서 가장 좋은 것부터) 순서대로 시도한다 -- 각 후보의 `names`(매칭쌍 또는 미매칭 단독
+    소자)에 `delta_fingers`를 적용한 새 W(`(n_fingers+delta)*finger_w`, finger_w는 unit cell
+    폭이라 조정 후에도 그대로)를 `revalidate_finger_override()`로 재검증하고, gm/ID
+    스펙(`constraints`)을 깨지 않는 **첫 번째** 후보를 채택한다. 레이아웃이 가장 좋아도 스펙을
+    깨면 자동으로 건너뛰고 다음 후보를 시도한다 -- 후보 순서는 "레이아웃 우선순위"이지 "무조건
+    채택"이 아니다.
+
+    `finger_w`가 없는 소자(단위 폭 미지정)가 낀 후보는 새 W를 계산할 수 없으므로 건너뛴다
+    (스킵된 이유는 `rejected`에 남지 않는다 -- gm/ID 위반이 아니라 애초에 시도 불가능했던
+    것이라 구분).
+
+    `max_candidates`(선택): 큰 그룹에서 후보가 많을 때 전부 재검증하면 비용이 커질 수 있어
+    상한을 둘 수 있다(기본 `None` = 전부 시도).
+
+    반환: `{"applied": bool, "chosen": PairAdjustmentSuggestion|None,
+    "transistors": list[Transistor](채택 시 갱신된 리스트, 실패 시 원본과 동일한 새 리스트),
+    "revalidation": dict|None(채택된 후보의 `revalidate_finger_override()` 결과),
+    "rejected": [{"suggestion": PairAdjustmentSuggestion, "revalidation": dict}, ...]}`
+    (`rejected`는 gm/ID 스펙 위반으로 건너뛴 후보 전부 -- 왜 이 후보가 아니라 채택된 후보가
+    선택됐는지 추적 가능하게 남긴다)."""
+    candidates = suggest_pair_finger_adjustments(transistors, matching_pairs)
+    if max_candidates is not None:
+        candidates = candidates[:max_candidates]
+
+    by_name = {t.name: t for t in transistors}
+    rejected = []
+    for suggestion in candidates:
+        if any(by_name[name].finger_w is None for name in suggestion.names):
+            continue
+
+        overrides = {name: (by_name[name].n_fingers + suggestion.delta_fingers) * by_name[name].finger_w
+                     for name in suggestion.names}
+        result = revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs,
+                                             constraints, gm_id_bounds=gm_id_bounds)
+        if result["ok"]:
+            new_transistors = [
+                _dc_replace(t, n_fingers=t.n_fingers + suggestion.delta_fingers)
+                if t.name in suggestion.names else t
+                for t in transistors
+            ]
+            return {"applied": True, "chosen": suggestion, "transistors": new_transistors,
+                    "revalidation": result, "rejected": rejected}
+        rejected.append({"suggestion": suggestion, "revalidation": result})
+
+    return {"applied": False, "chosen": None, "transistors": list(transistors),
+            "revalidation": None, "rejected": rejected}
+
+
+def _blocked_euler_rows(audit_row_split_result) -> list:
+    """`audit_row_split()`/`run_topology_pipeline()`의 `audit_row_split` 반환값(`AuditResult`
+    또는 `cell_groups`가 있을 때의 `{cell명: AuditResult}`)에서 euler 실패(체크1) row 이름만
+    뽑는다 -- 체크 이름은 `audit_row_split()`이 고정 형식 `f"1. euler[{row_name}]"`으로 남긴다
+    (stick_diagram.py:2936/2943)."""
+    results = audit_row_split_result.values() if isinstance(audit_row_split_result, dict) \
+        else [audit_row_split_result]
+    blocked = []
+    for ar in results:
+        for check in ar.checks:
+            if check.name.startswith("1. euler[") and not check.ok:
+                blocked.append(check.name[len("1. euler["):-1])
+    return blocked
+
+
+def _sync_finger_fixup(overrides: dict, ctx: SizingContext, fix: dict,
+                        prior_transistors: list) -> tuple:
+    """`apply_and_revalidate_pair_adjustment()`가 채택한 조정을 layout `sizing_overrides`
+    (n_fingers/w)와 gm/ID `ctx.sized`(W/gm_id/gm/gds) 양쪽에 동기화한다 -- 둘 중 하나만
+    갱신하면 다음 라운드에서 두 표현이 서로 다른 n_fingers/W를 가리키는 불일치가 생긴다."""
+    prior_n = {t.name: t.n_fingers for t in prior_transistors}
+    new_overrides = dict(overrides)
+    for t in fix["transistors"]:
+        if t.n_fingers != prior_n.get(t.name):
+            entry = new_overrides[t.name]
+            new_overrides[t.name] = {**entry, "n_fingers": t.n_fingers,
+                                      "w": t.n_fingers * entry["finger_w"]}
+
+    new_sized = dict(ctx.sized)
+    for name, u in fix["revalidation"]["device_updates"].items():
+        new_sized[name] = {**new_sized[name], "W": u["new_W"], "gm_id": u["new_gm_id"],
+                            "gm": u["new_gm"], "gds": u["new_gds"]}
+    return new_overrides, _dc_replace(ctx, sized=new_sized)
+
+
+def run_topology_pipeline_with_finger_fixup(
+        topology_json_path: str, sizing_overrides: dict, ctx: SizingContext, lut_by_kind: dict,
+        metrics_specs: dict, constraints: list, floorplan_hints: dict | None = None,
+        cell_groups: dict | None = None, gm_id_bounds: tuple = (2.0, 30.0),
+        max_fixup_rounds: int = 5) -> dict:
+    """`run_topology_pipeline()`(stick_diagram.py, L1~L3)이 euler-blocked row를 그냥 실패로만
+    보고하는 지점에 L3(`suggest_pair_finger_adjustments()`)+L4(`apply_and_revalidate_pair_
+    adjustment()`) 자동 수정 루프를 감싸 붙인다 -- `.ai/context.md` 세션13 D절이 남긴 "다음
+    확장 지점", 세션14에서 실배선.
+
+    **왜 `stick_diagram.py` 안에 넣지 않았는가**: `stick_diagram.py`는 gm/ID를 전혀 모르는
+    순수 그래프/기하 모듈이고, `sizing_recipe.py`가 `stick_diagram.py`를 단방향으로만 import한다
+    (반대 방향 없음, `sizing_recipe.py` 앞부분의 `from stick_diagram import (...)` 참고).
+    fixup 로직은 gm/ID 재검증에 `SizingContext`/LUT가 필요해서, `stick_diagram.py` 안에 넣으면
+    순환 import가 생긴다 -- 그래서 `run_topology_pipeline()`을 호출자 쪽(`sizing_recipe.py`)에서
+    감싸는 방식을 택했다.
+
+    **라운드당 blocked row 1개씩만 처리한다**(세션14 논의 결론) -- row는 `stack_id`로 물리적
+    으로 이미 분리돼 있어 서로 독립이지만, gm/ID `constraints`(예: 전체 gain)는 여러 row의
+    소자를 동시에 참조할 수 있어 한 라운드에 여러 row를 동시에 조정하면 서로의 재검증 결과에
+    영향을 줄 수 있다 -- 매 라운드 `run_topology_pipeline()`을 처음부터 재실행해 항상 최신
+    상태 기준으로 다음 조정을 판단한다(회로 규모상 비용 문제 없음, 안전 우선).
+
+    각 라운드: (1) `run_topology_pipeline()` 실행. (2) `audit_row_split`에서 euler-blocked
+    row 탐지 -- 없으면 성공 종료(`unresolved_row=None`). (3) 첫 blocked row의 소자 +
+    topology.json `symmetry.matching_pairs`(그 row로 필터링)로 `apply_and_revalidate_pair_
+    adjustment()` 시도. (4) 성공하면 `sizing_overrides`와 `ctx.sized`를 `_sync_finger_fixup()`
+    으로 동기화하고 다음 라운드로. (5) 실패하면(그 row의 모든 후보가 gm/ID 위반) **거짓 성공으로
+    처리하지 않고 즉시 멈춘다** -- `unresolved_reason="no_valid_candidate"`. `max_fixup_rounds`
+    소진 시엔 마지막 조정 이후 한 번 더 `run_topology_pipeline()`을 재실행해 실제로 풀렸는지
+    확인한 뒤 반환한다(`unresolved_reason="max_rounds_exceeded"`인 경우만 -- 라운드 소진과
+    동시에 실제로 풀렸으면 정상 성공으로 반환).
+
+    반환: `run_topology_pipeline()`의 반환값(`transistors`/`box_shape`/`audit_row_split`/
+    `floorplan`/`coverage`) + `{"fixup_rounds": [{"round","row","result"}, ...],
+    "sizing_overrides": (최종), "ctx": (최종), "unresolved_row": str|None,
+    "unresolved_reason": "no_valid_candidate"|"max_rounds_exceeded"|None}`. `unresolved_row`가
+    `None`이 아니면 핑거조정만으로 못 풀렸다는 뜻(node_map 기반 그룹분할 등 다른 방법 필요,
+    이 함수 책임 밖 -- `.ai/context.md` "다음 세션 작업 순서" 4번)."""
+    overrides = dict(sizing_overrides)
+    cur_ctx = ctx
+    fixup_rounds = []
+
+    _, meta = load_topology(topology_json_path)
+    pairs_meta = meta["symmetry"]["matching_pairs"]
+    all_matching_pairs = [pair for p in pairs_meta for pair in itertools.combinations(p["names"], 2)]
+
+    result = None
+    for round_idx in range(max_fixup_rounds):
+        result = run_topology_pipeline(topology_json_path, overrides,
+                                        floorplan_hints=floorplan_hints, cell_groups=cell_groups)
+        blocked = _blocked_euler_rows(result["audit_row_split"])
+        if not blocked:
+            return {**result, "fixup_rounds": fixup_rounds, "sizing_overrides": overrides,
+                    "ctx": cur_ctx, "unresolved_row": None, "unresolved_reason": None}
+
+        row_name = blocked[0]
+        row_transistors = [t for t in result["transistors"] if t.stack_id == row_name]
+        row_names = {t.name for t in row_transistors}
+        row_pairs = [(a, b) for (a, b) in all_matching_pairs if a in row_names and b in row_names]
+
+        fix = apply_and_revalidate_pair_adjustment(
+            row_transistors, row_pairs, cur_ctx, lut_by_kind, metrics_specs, constraints,
+            gm_id_bounds=gm_id_bounds)
+        fixup_rounds.append({"round": round_idx, "row": row_name, "result": fix})
+        if not fix["applied"]:
+            return {**result, "fixup_rounds": fixup_rounds, "sizing_overrides": overrides,
+                    "ctx": cur_ctx, "unresolved_row": row_name,
+                    "unresolved_reason": "no_valid_candidate"}
+
+        overrides, cur_ctx = _sync_finger_fixup(overrides, cur_ctx, fix, row_transistors)
+
+    result = run_topology_pipeline(topology_json_path, overrides,
+                                    floorplan_hints=floorplan_hints, cell_groups=cell_groups)
+    blocked = _blocked_euler_rows(result["audit_row_split"])
+    return {**result, "fixup_rounds": fixup_rounds, "sizing_overrides": overrides, "ctx": cur_ctx,
+            "unresolved_row": blocked[0] if blocked else None,
+            "unresolved_reason": "max_rounds_exceeded" if blocked else None}
+
+
 # ---------------------------------------------------------------------------
 # 7) 사용 예시 — toy LUT로 end-to-end 실행 (실제 공정 데이터로 교체 시 동일하게 동작)
 # ---------------------------------------------------------------------------
@@ -2643,6 +2817,181 @@ if __name__ == "__main__":
     print("    [원본 ctx는 건드리지 않는 순수 함수인지]")
     assert _l4_ctx.sized["M1"]["W"] == _l4_r1.W, "revalidate_finger_override()가 원본 ctx를 변형했다"
     print("    PASS: 원본 ctx.sized['M1']['W'] 불변")
+
+    print()
+    print("  [L4b apply_and_revalidate_pair_adjustment() -- suggest_pair_finger_adjustments()(L3)의")
+    print("  제안을 revalidate_finger_override()(L4)로 자동 승인/거부하는 상위 오케스트레이션,")
+    print("  세션12 M3a 그룹(M9b/M18b) 사례가 실제 동기 -- .ai/context.md 세션13 D절]")
+    _l4b_L, _l4b_vds = 0.5e-6, 0.6
+    _l4b_crit = size_transistor(gm=200e-6, gm_id=12.0, L=_l4b_L, lut=lut, vds=_l4b_vds)
+    _l4b_crit_gds = _l4b_crit.gm / lut.gm_gds_ratio(12.0, _l4b_L, _l4b_vds, 0.0)
+    _l4b_harm = size_transistor(gm=50e-6, gm_id=15.0, L=_l4b_L, lut=lut, vds=_l4b_vds)
+    _l4b_harm_gds = _l4b_harm.gm / lut.gm_gds_ratio(15.0, _l4b_L, _l4b_vds, 0.0)
+
+    # 그래프 레벨(홀수차수 개선용) -- Ma/Mb(critical, 면적 제약 대상)와 Xa/Xb(harmless, 제약과
+    # 무관)가 각각 독립된 고립 edge라 baseline에서 둘 다 홀수차수 4개씩 기여 -- 어느 쪽을 먼저
+    # +1해도 개선폭(-4)이 동일한 "타이" 상황을 의도적으로 구성해, 정렬 안정성(먼저 나온 소자
+    # 우선)으로 Ma/Mb가 1순위가 되게 한다(transistors 리스트 순서 Ma,Mb,Xa,Xb).
+    _l4b_transistors = [
+        Transistor("Ma", "nmos", source="Na1", drain="Nb1", gate="ga",
+                   n_fingers=1, finger_w=_l4b_crit.W),
+        Transistor("Mb", "nmos", source="Na2", drain="Nb2", gate="gb",
+                   n_fingers=1, finger_w=_l4b_crit.W),
+        Transistor("Xa", "nmos", source="Xa1", drain="Xb1", gate="gxa",
+                   n_fingers=1, finger_w=_l4b_harm.W),
+        Transistor("Xb", "nmos", source="Xa2", drain="Xb2", gate="gxb",
+                   n_fingers=1, finger_w=_l4b_harm.W),
+    ]
+    _l4b_pairs = [("Ma", "Mb"), ("Xa", "Xb")]
+
+    _l4b_suggestions = suggest_pair_finger_adjustments(_l4b_transistors, _l4b_pairs)
+    print(f"    후보 순서: {[(s.names, s.delta_fingers, s.resulting_odd_count) for s in _l4b_suggestions]}")
+    assert _l4b_suggestions[0].names == ("Ma", "Mb") and _l4b_suggestions[0].delta_fingers == 1, \
+        "1순위 후보가 (Ma,Mb)+1이 아님 -- 타이 상황에서 리스트 순서 우선이 깨짐"
+    assert _l4b_suggestions[1].names == ("Xa", "Xb") and _l4b_suggestions[1].delta_fingers == 1, \
+        "2순위 후보가 (Xa,Xb)+1이 아님"
+
+    def _l4b_ctx_for(crit, crit_gds, harm, harm_gds):
+        return SizingContext(sized={
+            "Ma": {"ID": crit.ID, "W": crit.W, "L": _l4b_L, "gm": crit.gm, "gm_id": 12.0,
+                   "gds": crit_gds, "kind": "nmos", "vds": _l4b_vds, "vs": 0.0},
+            "Mb": {"ID": crit.ID, "W": crit.W, "L": _l4b_L, "gm": crit.gm, "gm_id": 12.0,
+                   "gds": crit_gds, "kind": "nmos", "vds": _l4b_vds, "vs": 0.0},
+            "Xa": {"ID": harm.ID, "W": harm.W, "L": _l4b_L, "gm": harm.gm, "gm_id": 15.0,
+                   "gds": harm_gds, "kind": "nmos", "vds": _l4b_vds, "vs": 0.0},
+            "Xb": {"ID": harm.ID, "W": harm.W, "L": _l4b_L, "gm": harm.gm, "gm_id": 15.0,
+                   "gds": harm_gds, "kind": "nmos", "vds": _l4b_vds, "vs": 0.0},
+        })
+
+    print("    [케이스1: 1순위(Ma,Mb)는 면적 제약 위반 -> 자동으로 건너뛰고 2순위(Xa,Xb) 채택]")
+    _l4b_baseline_pair_area = 2 * _l4b_crit.W * _l4b_L
+    _l4b_metrics = {"pair_area": {"type": "sum_area", "devices": ["Ma", "Mb"]}}
+    _l4b_constraints = [{"metric": "pair_area", "op": "<=", "value": _l4b_baseline_pair_area * 1.3}]
+    _l4b_ctx1 = _l4b_ctx_for(_l4b_crit, _l4b_crit_gds, _l4b_harm, _l4b_harm_gds)
+    _l4b_result1 = apply_and_revalidate_pair_adjustment(
+        _l4b_transistors, _l4b_pairs, _l4b_ctx1, {"nmos": lut}, _l4b_metrics, _l4b_constraints,
+        gm_id_bounds=(2.0, 28.0))
+    assert _l4b_result1["applied"] and _l4b_result1["chosen"].names == ("Xa", "Xb"), \
+        "1순위가 위반인데 2순위(Xa,Xb)로 자동 폴백하지 않음"
+    assert len(_l4b_result1["rejected"]) == 1 and \
+        _l4b_result1["rejected"][0]["suggestion"].names == ("Ma", "Mb") and \
+        not _l4b_result1["rejected"][0]["revalidation"]["ok"] and \
+        _l4b_result1["rejected"][0]["revalidation"]["violated_constraints"][0]["metric"] == "pair_area", \
+        "거부된 후보 기록이 (Ma,Mb)/pair_area 위반과 정확히 일치하지 않음"
+    _l4b_updated = {t.name: t.n_fingers for t in _l4b_result1["transistors"]}
+    assert _l4b_updated == {"Ma": 1, "Mb": 1, "Xa": 2, "Xb": 2}, \
+        "채택된 (Xa,Xb)만 n_fingers가 반영되고 나머지는 원본 그대로여야 함"
+    print(f"    PASS: 채택={_l4b_result1['chosen'].names}, 거부 1건(Ma,Mb/pair_area), "
+          f"결과 n_fingers={_l4b_updated}")
+
+    print("    [케이스2: 면적 제약이 (Ma,Mb)/(Xa,Xb) 둘 다에 걸리면 -- 전부 위반, applied=False]")
+    _l4b_metrics_strict = {"pair_area": {"type": "sum_area", "devices": ["Ma", "Mb", "Xa", "Xb"]}}
+    _l4b_baseline_all_area = 2 * _l4b_crit.W * _l4b_L + 2 * _l4b_harm.W * _l4b_L
+    _l4b_constraints_strict = [{"metric": "pair_area", "op": "<=", "value": _l4b_baseline_all_area * 1.05}]
+    _l4b_ctx2 = _l4b_ctx_for(_l4b_crit, _l4b_crit_gds, _l4b_harm, _l4b_harm_gds)
+    _l4b_result2 = apply_and_revalidate_pair_adjustment(
+        _l4b_transistors, _l4b_pairs, _l4b_ctx2, {"nmos": lut}, _l4b_metrics_strict,
+        _l4b_constraints_strict, gm_id_bounds=(2.0, 28.0))
+    assert not _l4b_result2["applied"] and _l4b_result2["chosen"] is None, \
+        "둘 다 위반인데 applied=True로 나옴"
+    assert len(_l4b_result2["rejected"]) == 2, "두 후보 모두 시도(및 거부) 기록이 남아야 함"
+    assert [t.n_fingers for t in _l4b_result2["transistors"]] == [1, 1, 1, 1], \
+        "전부 거부됐으면 transistors가 원본과 동일해야 함"
+    print(f"    PASS: applied=False, chosen=None, 거부 {len(_l4b_result2['rejected'])}건, "
+          f"transistors 원본 유지")
+
+    print("    [케이스3: max_candidates=1 -- 1순위만 시도하고 그 이상 폴백하지 않음]")
+    _l4b_result3 = apply_and_revalidate_pair_adjustment(
+        _l4b_transistors, _l4b_pairs, _l4b_ctx1, {"nmos": lut}, _l4b_metrics, _l4b_constraints,
+        gm_id_bounds=(2.0, 28.0), max_candidates=1)
+    assert not _l4b_result3["applied"] and len(_l4b_result3["rejected"]) == 1, \
+        "max_candidates=1인데 2순위까지 시도됨"
+    print(f"    PASS: max_candidates=1 -> 1순위만 시도, applied=False(2순위는 원래 통과했을 것이지만 "
+          f"상한 때문에 시도 자체를 안 함)")
+
+    print()
+    print("  [L4c run_topology_pipeline_with_finger_fixup() -- 세션12 M3a 그룹(11소자) 실제")
+    print("  connectivity를 topology.json으로 감싸 run_topology_pipeline() 전체 체인(load_topology->")
+    print("  audit_row_split->build_stick_diagram->mirror_symmetric_trail)을 실제로 태워, euler-")
+    print("  blocked 상태에서 M9b/M18b 핑거조정으로 자동 해결되는지 end-to-end로 확인]")
+    _l4c_m3a_netlist = [
+        {"name": "M3a", "kind": "nmos", "source": "N3a4a", "drain": "Vom1", "gate": "Vbias3"},
+        {"name": "M3b", "kind": "nmos", "source": "N3b4b", "drain": "Vop1", "gate": "Vbias3"},
+        {"name": "M4a", "kind": "nmos", "source": "Vy", "drain": "N3a4a", "gate": "Vip"},
+        {"name": "M4b", "kind": "nmos", "source": "Vy", "drain": "N3b4b", "gate": "Vim"},
+        {"name": "M5", "kind": "nmos", "source": "gnd", "drain": "Vy", "gate": "Vbias4"},
+        {"name": "M9b", "kind": "nmos", "source": "Vop1", "drain": "Vg15", "gate": "N14a14b"},
+        {"name": "M10", "kind": "nmos", "source": "gnd", "drain": "Vop1", "gate": "Vbias4"},
+        {"name": "M18b", "kind": "nmos", "source": "Vom1", "drain": "Vg25", "gate": "N24b23a"},
+        {"name": "M19", "kind": "nmos", "source": "gnd", "drain": "Vom1", "gate": "Vbias4"},
+        {"name": "M64", "kind": "nmos", "source": "N64_63", "drain": "Vbias3", "gate": "Vbias3"},
+        {"name": "M63", "kind": "nmos", "source": "Vy", "drain": "N64_63", "gate": "Vbias3"},
+    ]  # 세션12 M3a 그룹(.ai/context.md, stick_diagram.py Test 5.6)과 connectivity 동일
+    _l4c_matching_pairs_meta = [
+        {"names": ["M4a", "M4b"], "matching_sensitivity": "offset"},
+        {"names": ["M3a", "M3b"], "matching_sensitivity": "ratio"},
+        {"names": ["M10", "M19"], "matching_sensitivity": "ratio"},
+        {"names": ["M9b", "M18b"], "matching_sensitivity": "ratio"},
+    ]
+    _l4c_row = "m3a_row"
+    _l4c_L, _l4c_vds, _l4c_gm_id = 0.5e-6, 0.6, 12.0
+    _l4c_r = size_transistor(gm=50e-6, gm_id=_l4c_gm_id, L=_l4c_L, lut=lut, vds=_l4c_vds)
+    _l4c_gds = _l4c_r.gm / lut.gm_gds_ratio(_l4c_gm_id, _l4c_L, _l4c_vds, 0.0)
+    _l4c_names = [d["name"] for d in _l4c_m3a_netlist]
+    # 전부 n_fingers=1 baseline -- delta=-1은 new_n=0<1로 자동 무효화되므로(suggest_pair_
+    # finger_adjustments() 내부 규칙), 이 self-test의 모든 후보는 항상 +1(면적 증가)만 나온다.
+    _l4c_overrides = {n: {"n_fingers": 1, "finger_w": _l4c_r.W, "w": _l4c_r.W, "stack_id": _l4c_row}
+                       for n in _l4c_names}
+    _l4c_ctx = SizingContext(sized={
+        n: {"ID": _l4c_r.ID, "W": _l4c_r.W, "L": _l4c_L, "gm": _l4c_r.gm, "gm_id": _l4c_gm_id,
+            "gds": _l4c_gds, "kind": "nmos", "vds": _l4c_vds, "vs": 0.0}
+        for n in _l4c_names
+    })
+    _l4c_metrics = {"group_area": {"type": "sum_area", "devices": _l4c_names}}
+    _l4c_baseline_area = len(_l4c_names) * _l4c_r.W * _l4c_L
+
+    with _tempfile.TemporaryDirectory() as _l4c_tmpdir:
+        _l4c_topo_path = _os.path.join(_l4c_tmpdir, "m3a_row.topology.json")
+        with open(_l4c_topo_path, "w", encoding="utf-8") as _l4c_f:
+            json.dump({
+                "topology_name": "m3a_row_selftest",
+                "schema_version": "2.0",
+                "netlist": _l4c_m3a_netlist,
+                "symmetry": {"matching_pairs": _l4c_matching_pairs_meta, "dispositions": []},
+            }, _l4c_f)
+
+        print("    [케이스A: 면적 예산이 넉넉하면 -- 1라운드 만에 M9b/M18b +1로 자동 해결]")
+        _l4c_constraints_a = [{"metric": "group_area", "op": "<=", "value": _l4c_baseline_area * 1.5}]
+        _l4c_result_a = run_topology_pipeline_with_finger_fixup(
+            _l4c_topo_path, _l4c_overrides, _l4c_ctx, {"nmos": lut}, _l4c_metrics, _l4c_constraints_a,
+            gm_id_bounds=(2.0, 28.0))
+        assert _l4c_result_a["unresolved_row"] is None and _l4c_result_a["unresolved_reason"] is None, \
+            f"넉넉한 예산인데도 못 풀림: {_l4c_result_a['unresolved_row']}/{_l4c_result_a['unresolved_reason']}"
+        assert _blocked_euler_rows(_l4c_result_a["audit_row_split"]) == [], \
+            "euler 체크가 최종적으로 안 풀림 -- unresolved_row=None인데 실제로는 아직 blocked"
+        assert len(_l4c_result_a["fixup_rounds"]) == 1, "1라운드에 바로 풀려야 하는데 라운드 수가 다름"
+        _l4c_chosen_a = _l4c_result_a["fixup_rounds"][0]["result"]["chosen"]
+        assert set(_l4c_chosen_a.names) == {"M9b", "M18b"} and _l4c_chosen_a.delta_fingers == 1, \
+            f"채택된 조정이 M9b/M18b +1이 아님(세션12 손검증과 다름): {_l4c_chosen_a}"
+        _l4c_final_n = {t.name: t.n_fingers for t in _l4c_result_a["transistors"]}
+        assert _l4c_final_n["M9b"] == 2 and _l4c_final_n["M18b"] == 2, "M9b/M18b n_fingers가 2로 안 바뀜"
+        print(f"    PASS: 1라운드 해결, 채택={_l4c_chosen_a.names}, "
+              f"최종 n_fingers M9b={_l4c_final_n['M9b']} M18b={_l4c_final_n['M18b']} "
+              f"(세션12 손검증 6개->2개 홀수차수와 일치, mirror_symmetric으로 성공)")
+
+        print("    [케이스B: 면적 예산이 극도로 타이트하면 -- 어떤 후보도 통과 못 해 unresolved]")
+        _l4c_constraints_b = [{"metric": "group_area", "op": "<=", "value": _l4c_baseline_area * 1.001}]
+        _l4c_result_b = run_topology_pipeline_with_finger_fixup(
+            _l4c_topo_path, _l4c_overrides, _l4c_ctx, {"nmos": lut}, _l4c_metrics, _l4c_constraints_b,
+            gm_id_bounds=(2.0, 28.0))
+        assert _l4c_result_b["unresolved_row"] == _l4c_row and \
+            _l4c_result_b["unresolved_reason"] == "no_valid_candidate", \
+            f"타이트한 예산인데 풀렸다고 나옴: {_l4c_result_b['unresolved_row']}/{_l4c_result_b['unresolved_reason']}"
+        assert len(_l4c_result_b["fixup_rounds"]) == 1, "실패도 1라운드 만에 확정돼야 함(후보 전부 위반)"
+        assert not _l4c_result_b["fixup_rounds"][0]["result"]["applied"]
+        print(f"    PASS: unresolved_row={_l4c_result_b['unresolved_row']}, "
+              f"reason={_l4c_result_b['unresolved_reason']}, "
+              f"시도된 후보 {len(_l4c_result_b['fixup_rounds'][0]['result']['rejected'])}건 전부 거부")
 
     print()
     print("# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --")
