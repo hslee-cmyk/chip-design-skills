@@ -1546,8 +1546,120 @@ def _psrr_diff_pair_tail(metric_spec: dict, ctx: SizingContext) -> float:
     return 20 * math.log10(psrr_linear)
 
 
+def _psrr_telescopic_class_ab(metric_spec: dict, ctx: SizingContext) -> float:
+    """`circuit_family="telescopic_class_ab"` — current-reuse telescopic 1단의
+    **open-loop**(CMFB 제외) PSRR+(2026-08-07 신설, `analog-topology-json-library`
+    세션20 후속). 기존 `diff_pair_tail`(M5 하나의 gm/gds만 보는 자리표시자, 이 회로에서는
+    13개 자유 theta 중 어느 것도 M5에 안 닿아 절대 만족시킬 수 없는 상수값이었다 — 세션20
+    실측 발견)를 대체한다.
+
+    **유도**(`workspaces/current-reuse-telescopic-ota-report/spice/
+    stage1_psrr_sympy_derivation.py` = sympy 정확해 + leading order,
+    `.../stage1_psrr_ngspice_crosscheck.py` = ngspice AC 독립 교차검증):
+    `_cmrr_telescopic_class_ab`와 **정확히 같은 위상/Adm/Acm_open**을 쓰고, VDD 리플이
+    `tail_p_devices`(M6/M7, source=vdd)의 **gm**을 통해 Vx에 주입하는 전류
+    (게이트 고정, Vgs=−δ이므로 i=−gm·δ — gds 항은 leading order에서 사라진다)가 그 이후
+    똑같은 캐스코드 네트워크를 타고 출력에 실리는 경로로 얻는다:
+    ```
+      Ann_open = gm(tail_p 합) · (Rx‖Ry) · Acm_open      <- CMRR의 Acm_open을 그대로 재사용
+      PSRR_open = 20·log10(|Adm/Ann_open|)
+                = CMRR_open(dB) − 20·log10(|gm(tail_p 합)·(Rx‖Ry)|)
+    ```
+    즉 **PSRR은 CMRR에서 상수 하나만 뺀 값**이다(같은 회로의 같은 출력 임피던스 경로를
+    타므로 당연한 결과) — Adm/Acm_open 재계산은 `_cmrr_telescopic_class_ab`와 완전히
+    동일한 코드(중복이지만 이 파일의 기존 관례 그대로 — 두 CMRR family도 서로 안
+    공유한다).
+
+    ⚠️ **정직한 한계**: (1) gm(M6)/gm(M7)이 leading order에서 지배적이라고 가정했다(SPICE
+    교차검증으로 확인, ±4배 랜덤 20점 + 앵커 2점 worst 2.36dB — CMRR 자신의 worst 0.8dB보다
+    다소 크지만 탐색용으로는 충분). (2) 이건 **1단만** 본다 — 2단 Class-AB 출력전류원
+    (M8/M13/M17/M22)도 source=vdd라 **자체적으로 또 다른 VDD 주입 경로**를 만드는데, 이번
+    유도는 그걸 포함하지 않는다(다음 세션 과제, `.ai/context.md` 참고). (3) bias-gen
+    체인(Vbias1 등)이 완벽한 AC ground라고 가정했다(실제로는 bias-gen 자신도 VDD에 물려
+    있어 PSRR에 기여할 수 있음, 미포함).
+
+    metric_spec 키: `_cmrr_telescopic_class_ab`와 완전히 동일(`input_p`/`cascode_p`/
+    `input_n`/`cascode_n`/`tail_p_devices`/`tail_n_device`)."""
+    gmp = ctx.sized[metric_spec["input_p"]]["gm"]
+    gdsp1 = ctx.sized[metric_spec["input_p"]]["gds"]
+    gmcp = ctx.sized[metric_spec["cascode_p"]]["gm"]
+    gdsp2 = ctx.sized[metric_spec["cascode_p"]]["gds"]
+    gmn = ctx.sized[metric_spec["input_n"]]["gm"]
+    gdsn1 = ctx.sized[metric_spec["input_n"]]["gds"]
+    gmcn = ctx.sized[metric_spec["cascode_n"]]["gm"]
+    gdsn2 = ctx.sized[metric_spec["cascode_n"]]["gds"]
+    gds_tail_p = sum(ctx.sized[d]["gds"] for d in metric_spec["tail_p_devices"])
+    gm_tail_p = sum(ctx.sized[d]["gm"] for d in metric_spec["tail_p_devices"])
+    Rx = 1.0 / gds_tail_p
+    Ry = 1.0 / ctx.sized[metric_spec["tail_n_device"]]["gds"]
+
+    Kp_prime = gmcp / (gdsp1 * gdsp2)
+    Kn_prime = gmcn / (gdsn1 * gdsn2)
+    Adm = (gmp + gmn) * (Kp_prime * Kn_prime / (Kp_prime + Kn_prime))
+    Kp, Kn = gmp * Kp_prime, gmn * Kn_prime
+    Acm_open = (Rx + Ry) * Kn * Kp / (Kn * Ry + Kp * Rx)
+    Ann_open = gm_tail_p * (Rx * Ry / (Rx + Ry)) * Acm_open
+    return 20 * math.log10(abs(Adm / Ann_open))
+
+
+def _psrr_telescopic_class_ab_cmfb(metric_spec: dict, ctx: SizingContext) -> float:
+    """`circuit_family="telescopic_class_ab_cmfb"` — `telescopic_class_ab`(PSRR
+    open-loop)에 **CMFB 루프 기여**를 더한다(2026-08-07). `_cmrr_telescopic_class_ab_cmfb`가
+    이미 계산하는 루프이득 `T = -H·A_c·G2`를 그대로 재사용한다 — H/A_c/G2 전부 vdd와
+    무관한(vic에 대해서만 정의된) 루프 자신의 성질이라, 여기서 다시 유도할 필요가 없다
+    (CMRR closed = CMRR_open + 20log10(1+T)와 정확히 같은 구조로 PSRR closed = PSRR_open
+    + 20log10(1+T) — 선형 중첩으로 정확히 성립: vo1 = Ann_open·δ + H·vcmfb, vcmfb=A_c·G2·vo1
+    을 풀면 vo1/δ = Ann_open/(1-H·A_c·G2) = Ann_open/(1+T)).
+
+    ⚠️ 이 CMFB 확장은 open-loop 버전(SPICE 교차검증됨)과 달리 **closed-loop+vdd 조합을
+    독립적으로 SPICE 검증하지 않았다**(세션20, 시간 제약) — T 계산 자체는
+    `_cmrr_telescopic_class_ab_cmfb`가 이미 SPICE로 검증했고 그 값을 그대로 재사용하는
+    선형 중첩 논리만 새로 추가된 것이라 위험은 낮지만, 다음 세션에 여유가 있으면
+    `cmfb_cmrr_ngspice_crosscheck.py`에 vdd 독립원을 추가해 확인할 것.
+
+    metric_spec 키: `_psrr_telescopic_class_ab`의 6개 + `_cmrr_telescopic_class_ab_cmfb`의
+    CMFB 키 7개(`cmfb_ctrl_device`/`cmfb_amp_sense`/`cmfb_amp_ref`/`cmfb_load_sense`/
+    `cmfb_load_ref`/`cmfb_tail_device`/`cmfb_stage2_devices`), 선택 `cm_sense_gain`."""
+    gmp = ctx.sized[metric_spec["input_p"]]["gm"]
+    gdsp1 = ctx.sized[metric_spec["input_p"]]["gds"]
+    gmcp = ctx.sized[metric_spec["cascode_p"]]["gm"]
+    gdsp2 = ctx.sized[metric_spec["cascode_p"]]["gds"]
+    gmn = ctx.sized[metric_spec["input_n"]]["gm"]
+    gdsn1 = ctx.sized[metric_spec["input_n"]]["gds"]
+    gmcn = ctx.sized[metric_spec["cascode_n"]]["gm"]
+    gdsn2 = ctx.sized[metric_spec["cascode_n"]]["gds"]
+    gds_tail_p = sum(ctx.sized[d]["gds"] for d in metric_spec["tail_p_devices"])
+    gm_tail_p = sum(ctx.sized[d]["gm"] for d in metric_spec["tail_p_devices"])
+    Rx = 1.0 / gds_tail_p
+    Ry = 1.0 / ctx.sized[metric_spec["tail_n_device"]]["gds"]
+    gm7 = ctx.sized[metric_spec["cmfb_ctrl_device"]]["gm"]
+
+    Kp_prime = gmcp / (gdsp1 * gdsp2)
+    Kn_prime = gmcn / (gdsn1 * gdsn2)
+    Adm = (gmp + gmn) * (Kp_prime * Kn_prime / (Kp_prime + Kn_prime))
+    Kp, Kn = gmp * Kp_prime, gmn * Kn_prime
+    Acm_open = (Rx + Ry) * Kn * Kp / (Kn * Ry + Kp * Rx)
+    Ann_open = gm_tail_p * (Rx * Ry / (Rx + Ry)) * Acm_open
+    H = -gm7 * (Rx * Kp) * (Ry * Kn) / (Rx * Kp + Ry * Kn)
+
+    s2 = [ctx.sized[d] for d in metric_spec["cmfb_stage2_devices"]]
+    G2 = -sum(d["gm"] for d in s2) / sum(d["gds"] for d in s2)
+    G2 *= metric_spec.get("cm_sense_gain", 1.0)
+
+    A_c = _cmfb_amp_gain_diode_load(metric_spec, ctx)
+    T = -H * A_c * G2
+    if T <= 0.0:
+        raise ValueError(
+            f"CM 루프가 음귀환이 아니다(T={T:.4g} <= 0; H={H:.4g}, A_c={A_c:.4g}, G2={G2:.4g}) -- "
+            f"_cmrr_telescopic_class_ab_cmfb()와 동일한 가드, docstring 참고")
+    psrr_open = 20 * math.log10(abs(Adm / Ann_open))
+    return psrr_open + 20 * math.log10(abs(1.0 + T))
+
+
 _PSRR_ESTIMATOR_REGISTRY = {
     "diff_pair_tail": _psrr_diff_pair_tail,
+    "telescopic_class_ab": _psrr_telescopic_class_ab,               # 세션20
+    "telescopic_class_ab_cmfb": _psrr_telescopic_class_ab_cmfb,     # 세션20
 }
 
 
@@ -4279,6 +4391,77 @@ if __name__ == "__main__":
     except ValueError as _e_ac:
         print(f"    PASS: T<=0 거부 -- {str(_e_ac)[:60]}...")
     _cmfb_ctx.sized["M38"]["gds"] = 1.2e-6
+
+    print()
+    print("  [psrr_estimate -- telescopic_class_ab family(2026-08-07 신설, 세션20 후속) --")
+    print("  diff_pair_tail(M5 하나만 보는 자리표시자, 이 회로에서는 13개 자유 theta 중 어느")
+    print("  것도 안 닿아 상수라 절대 만족 못 시켰다)를 대체. 유도/SPICE 교차검증 스크립트:")
+    print("  workspaces/current-reuse-telescopic-ota-report/spice/")
+    print("  stage1_psrr_sympy_derivation.py, stage1_psrr_ngspice_crosscheck.py]")
+    _psrr_ctx = SizingContext(sized={
+        # stage1_psrr_ngspice_crosscheck.py의 anchor1과 완전히 동일한 파라미터
+        # (BASE에서 gm_M2a/gm_M4a/gm_M3a=119uS, gds_M1a=gds_M2a=1/600e3, gds_M4a=gds_M3a=1/250e3,
+        # gds_M6=gds_M7=0.5e-6로 override -- gm_M6/gm_M7만 BASE 기본값 60uS/25uS 그대로).
+        "M1a": {"gm": 119e-6, "gds": 1.0 / 600e3}, "M2a": {"gm": 119e-6, "gds": 1.0 / 600e3},
+        "M4a": {"gm": 119e-6, "gds": 1.0 / 250e3}, "M3a": {"gm": 119e-6, "gds": 1.0 / 250e3},
+        "M6": {"gm": 60e-6, "gds": 0.5e-6}, "M7": {"gm": 25e-6, "gds": 0.5e-6},
+        "M5": {"gm": 0.0, "gds": 1.0e-6},
+    })
+    _psrr_spec = {"type": "psrr_estimate", "circuit_family": "telescopic_class_ab",
+                   "input_p": "M1a", "cascode_p": "M2a", "input_n": "M4a", "cascode_n": "M3a",
+                   "tail_p_devices": ["M6", "M7"], "tail_n_device": "M5"}
+    _psrr_db1 = compute_metric(_psrr_spec, _psrr_ctx)
+    # ngspice AC 실측(stage1_psrr_ngspice_crosscheck.py anchor1, 동일 gm/gds 이상화 netlist):
+    # PSRR_SPICE=-33.194dB, 폐형식(이 함수와 동일 식)=-32.568dB(오차 0.63dB).
+    assert abs(_psrr_db1 - (-32.5678)) < 0.01, f"앵커1(폐형식 자체 회귀)과 어긋남: {_psrr_db1}"
+    assert abs(_psrr_db1 - (-33.194)) < 1.0, f"앵커1(SPICE -33.194dB)과 어긋남(오차<1dB 기대): {_psrr_db1}"
+    print(f"    PASS(앵커1): PSRR_open={_psrr_db1:.4f}dB (SPICE 실측 -33.194dB, 오차<1dB)")
+    # 앵커2: Rx 비대칭(M6/M7 gds x0.01) -- stage1_psrr_ngspice_crosscheck.py anchor2와 동일 조건.
+    _psrr_ctx.sized["M6"]["gds"] = 0.5e-8
+    _psrr_ctx.sized["M7"]["gds"] = 0.5e-8
+    _psrr_db2 = compute_metric(_psrr_spec, _psrr_ctx)
+    assert abs(_psrr_db2 - (-33.9432)) < 0.01, f"앵커2(폐형식 자체 회귀)과 어긋남: {_psrr_db2}"
+    assert abs(_psrr_db2 - (-34.554)) < 1.0, f"앵커2(SPICE -34.554dB)과 어긋남: {_psrr_db2}"
+    print(f"    PASS(앵커2, Rx x100): PSRR_open={_psrr_db2:.4f}dB (SPICE 실측 -34.554dB, 오차<1dB)")
+    # PSRR_open == CMRR_open - 20log10(gm_tail_p*(Rx||Ry)) 관계(유도 결론) 자체를 회귀로 고정.
+    _psrr_ctx.sized["M6"]["gds"] = 0.5e-6
+    _psrr_ctx.sized["M7"]["gds"] = 0.5e-6
+    _cmrr_cross_db = compute_metric({**_psrr_spec, "type": "cmrr_estimate"}, _psrr_ctx)
+    _rx_cross = 1.0 / (_psrr_ctx.sized["M6"]["gds"] + _psrr_ctx.sized["M7"]["gds"])
+    _ry_cross = 1.0 / _psrr_ctx.sized["M5"]["gds"]
+    _gm_tail_cross = _psrr_ctx.sized["M6"]["gm"] + _psrr_ctx.sized["M7"]["gm"]
+    _correction_db = 20 * math.log10(_gm_tail_cross * (_rx_cross * _ry_cross / (_rx_cross + _ry_cross)))
+    assert abs(_psrr_db1 - (_cmrr_cross_db - _correction_db)) < 1e-6, \
+        "PSRR_open == CMRR_open - 20log10(gm_tail_p*(Rx||Ry)) 관계가 안 맞음(유도 결론 회귀)"
+    print(f"    PASS: PSRR_open({_psrr_db1:.3f}dB) == CMRR_open({_cmrr_cross_db:.3f}dB) - "
+          f"{_correction_db:.3f}dB (유도 결론 그대로 -- 코드로 재확인)")
+
+    print()
+    print("  [psrr_estimate -- telescopic_class_ab_cmfb family(2026-08-07) -- CMFB 루프 보정")
+    print("  +20log10(1+T)가 CMRR/PSRR 양쪽에 정확히 같은 크기로 적용되는지 확인(T는 vdd와")
+    print("  무관한 루프 자신의 성질이라는 유도 전제) -- 위 CMFB CMRR 앵커 fixture(_cmfb_ctx)")
+    print("  그대로 재사용, gm(M6)=0이라도(=이 fixture에서는 M7 하나만 리플 주입) 무방하다]")
+    _cmfb_ctx.sized["M6"]["gm"] = 0.0  # 이 fixture는 gm_M6=0(위 CMFB CMRR self-test 원본 그대로)
+    _psrr_cmfb_spec = {**_cmfb_spec, "type": "psrr_estimate"}
+    _psrr_cmfb_db1 = compute_metric(_psrr_cmfb_spec, _cmfb_ctx)
+    _psrr_cmfb_open_db1 = compute_metric({**_psrr_cmfb_spec, "circuit_family": "telescopic_class_ab"},
+                                            _cmfb_ctx)
+    _cmrr_boost = _cmfb_db1 - _crt_cmrr_db  # 참고용(다른 사이징 기준이라 절대값 비교는 무의미)
+    _psrr_boost = _psrr_cmfb_db1 - _psrr_cmfb_open_db1
+    _cmrr_boost_same_fixture = compute_metric(_cmfb_spec, _cmfb_ctx) - compute_metric(
+        {**_cmfb_spec, "circuit_family": "telescopic_class_ab"}, _cmfb_ctx)
+    assert abs(_psrr_boost - _cmrr_boost_same_fixture) < 1e-6, \
+        (f"CMFB 루프 보정(+20log10(1+T))이 CMRR({_cmrr_boost_same_fixture:.4f}dB)와 "
+         f"PSRR({_psrr_boost:.4f}dB)에서 다르게 적용됨(같은 T를 재사용한다는 전제 위반)")
+    print(f"    PASS: CMFB 루프 보정이 CMRR/PSRR 양쪽에 동일하게 +{_psrr_boost:.3f}dB 적용됨 "
+          f"(PSRR_open={_psrr_cmfb_open_db1:.3f}dB -> PSRR_cmfb={_psrr_cmfb_db1:.3f}dB)")
+    # T<=0 가드도 CMRR과 동일하게 동작하는지.
+    try:
+        compute_metric({**_psrr_cmfb_spec, "cm_sense_gain": -1.0}, _cmfb_ctx)
+        raise AssertionError("PSRR family에서 T<=0(CM 양귀환)인데 에러가 안 났다")
+    except ValueError as _e_psrr_t:
+        print(f"    PASS: PSRR family도 T<=0 거부 -- {str(_e_psrr_t)[:50]}...")
+    _cmfb_ctx.sized["M6"]["gm"] = 0.0  # 원상복구(이 값이 원래 fixture 기본값)
 
     print()
     print("# current_reuse_telescopic_topology() 등록 재확인(2026-07-31, 원문 Eq.2-6 재도출 후,")
