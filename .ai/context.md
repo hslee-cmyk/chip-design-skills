@@ -1,92 +1,58 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-06, 세션18 끝 — 다음은 세션19)
+# 세션 컨텍스트 (최종 갱신: 2026-08-06, 세션19 끝 — 다음은 세션20)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-1. **세션12~17 전부 완료 + 전부 커밋됨** — 다음 세션 시작 시 `git log`/`git status`로
-   직접 재확인할 것(세션14 교훈, working tree는 `.bkit/` 도구 상태 파일만 변경돼 있어야
-   정상). 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`(매칭 목적
-   핑거증가 L3+L4). 세션17 커밋 3개(시간순): `4bcaafc`(재설계안 3번 완화) →
-   `69d9b39`(crossover 짝짓기 우선순위 재작성, D-1) → `4e38aa6`(offset 우선순위 가중치
-   + branch composite 사전병합, F/G절).
-2. **세션15 A-3에서 발견한 `common_centroid_layout()` 크래시 완전히 원인 확정 + 수정
-   완료**(세션16 0번) — `n_fingers<2`(예: 1)일 때 회전-최적 경로가 `count>=N`을 요구해서
-   나던 크래시. `repair_matching_safety()`가 `n_rows=min(2, n_fingers)`로 낮춰 탐색
-   경로로 우회하도록 수정, 회귀 0줄.
-3. **branch 복합 매칭 구현 완료**(세션16 1번) — `matching pair`가 서로 다른 hub를 써서
-   (branch_symmetric, 예: M2a/M2b) `interdigitate_layout()`/`common_centroid_layout()`을
-   직접 적용 못 하던 사각지대를, 이미 있던 `kcl_series_union()`(세션10)을 재사용해
-   "이 소자가 다른 소자와 물리적으로 같은 직렬 컬럼(예: M1a-M2a 캐스코드 스택)을 이루면
-   그 branch 전체를 하나의 합성 소자처럼 묶어" 처리하도록 확장(`_branch_composite_pair()`
-   등, `stick_diagram.py`). branch 구조 없는 기존 케이스는 완전히 하위호환.
-4. **매칭 목적 핑거증가(L3+L4) 구현 완료**(세션16 2번) — branch 복합 매칭으로도 `n_fingers`
-   부족(예: 1) 때문에 3c(common-centroid, 허용오차 0.5)를 기하학적으로 못 만족하는 경우,
-   "정확히 필요한 만큼만"(`min_fingers`까지) 핑거를 늘리고 `revalidate_finger_override()`
-   (L4)로 gm/ID 스펙을 깨지 않는지 재검증하는 오케스트레이션(`run_matching_safety_with_
-   finger_growth()`, `sizing_recipe.py`). `current_reuse_telescopic_ota`의 M6 그룹
-   실제 사례로 M1a/M1b/M2a/M2b가 전부 `n_fingers=2`로 자라 3b/3c 필수 게이트를 완전히
-   통과함을 self-test로 확인(진짜 common-centroid 회전 배치, residual=0).
-5. **재설계안 3번(핑거증가도 gm/ID 예산 때문에 안 되면 인접배치로 완화) 구현 완료**
-   (세션17, 아래 "세션17 결론" 참고) — `relaxed_pairs`(layout 전용 최후수단, `repair_
-   matching_safety()`) + `allow_layout_relaxation`(`run_matching_safety_with_finger_
-   growth()`).
-6. **crossover 짝짓기 우선순위 재작성 완료**(세션17 E절) — `find_min_crossover_
-   layout()`이 `matching_pairs`를 받으면 이제 `_select_crossover_pairing()`으로 후보
-   완전짝짓기를 실제로 구성+채점해 matching_pairs 분할이 최소인 쪽을 고른다. M6 그룹
-   실측으로 splits=2(옛 tier1) → splits=0(신규)임을 self-test로 확인.
-   `matching_pairs=None`(기존 프로덕션 경로)은 완전히 하위호환.
-7. **offset 우선순위 가중치 + branch composite 사전병합 구현 완료**(세션17 F/G절,
-   같은 세션에 사용자 확인 질문에서 이어서 진행) — (1) `_count_matching_pair_splits()`가
-   `pair_sensitivity`를 받으면 `(offset_splits, other_splits)` 튜플로 CMRR 민감한
-   offset 쌍을 ratio보다 우선 보호. (2) `find_min_crossover_layout_with_branch_
-   composite()` wrapper 신설 — `_branch_composite_pair()`로 branch(캐스코드 컬럼)를
-   미리 합성 소자로 뭉쳐서 crossover 짝짓기가 branch를 갈라놓을 수 없게 **구조적으로**
-   보장(이전엔 채점 기반 회피일 뿐이었음, 사용자가 이 사각지대를 직접 발견).
-8. **세션15 C절(그룹분할을 harness에 배선하는 것) 완료**(세션18, 아래 "세션18 결론"
-   참고) — `run_topology_pipeline_with_finger_fixup()`이 핑거조정 실패 시
-   `find_min_crossover_layout_with_branch_composite()`(G-3절 wrapper, branch 구조적
-   보장 그대로 적용)로 자동 폴백해 euler-blocked row를 그룹분할로 해결한다. C-2(정직한
-   표기)는 `group_splits` 필드로, C-3(`cell_groups` 갭)는 `_seg*` 자동확장으로 확정됨
-   (둘 다 사용자 확인 후 구현). `sizing_recipe.py`만 수정, **커밋 `a6ab04b`로 완료**.
-9. **고아함수 재점검 + 3건 신규 배선 완료**(세션18, 아래 "세션18 결론" G~J절 참고) —
-   AST 콜그래프를 `run_harness.py`(진짜 실행 스크립트)까지 진입점에 포함해 재실행(v1→v2→v3,
-   클래스 메소드 호출/dataclass 필드 기본값/레지스트리 dict 값이 래퍼 Call로 감싸진 경우
-   3가지 사각지대 발견+수정). 실제로 미배선이던 3건을 이번 세션에 배선:
-   - `run_matching_safety_with_finger_growth()`(세션16/17 매칭목적 핑거증가+레이아웃
-     완화 체인 전체)를 `optimize_full_circuit_budget()`에 배선(구형 `repair_matching_
-     safety()` 단독 호출 대체, `lut_by_kind` 없는 legacy spec은 그대로 폴백).
-   - `save_instance_json()`을 `run_harness.py`(harness 함수 자신이 아니라 그걸 부르는
-     실행 스크립트)에서 `optimize_full_circuit_budget()` 직후 호출하도록 배선("계산은
-     harness, 저장은 스크립트"라는 책임분리, 사용자 확인 후 결정).
-   - `check_finger_width_compatibility()`(§3.5 — 자기 docstring이 "euler 분석보다 먼저
-     통과해야 하는 선행 게이트"라고 이미 선언했는데 실제 호출부가 없었음)를
-     `run_topology_pipeline()`에 배선.
-   3건 전부 self-test 추가 + 회귀 0줄 확인. **`sizing_recipe.py`/`stick_diagram.py`/
-   `run_harness.py` 전부 아직 미커밋.**
-10. **diode-stack/`find_diode_stacks()` 설계 논의 — 결론 안 나고 다음 세션으로 이월**
-    (세션18, 아래 "세션18 결론" K~L절 참고, **코드 변경 전혀 없음**) — `solve_diode_
-    stack_current()`(KVL 루프 전류 역산)는 현재 4개 회로 중 실제로 필요한 곳이 하나도
-    없음을 확인(진짜 diode 체인 M11a-M11b-M12조차 결국 자유비율 theta로 풀렸다) — 배선
-    여부는 AskUserQuestion을 사용자가 인터럽트해서 **미결**. `find_diode_stacks()`는
-    M57/M58이 한때 진짜 매칭쌍으로 **잘못 분류**됐던 실사고 근거로 여전히 유효한 배선
-    후보로 재확인. `find_matching_candidates()`의 `current_mirror` 판정(현재 gate만
-    보고 source는 전혀 안 봄)에 source-일치 조건을 추가하자는 방안까지 논의가 진행됐으나
-    (같은 gate라도 source가 다르면 VGS 동일이 보장 안 됨 — 사용자가 제기, M57/M58 실제
-    connectivity로 검증됨) **이건 "진짜 미러인가"를 걸러줄 뿐 "diode 체인 구조 자체를
-    인식"하는 `find_diode_stacks()`의 역할과는 별개**라는 데까지 합의(사용자가 재지적) —
-    두 검사 다 필요하다는 잠정 결론, 구체적 설계/구현은 다음 세션.
-11. **⚠️ 다음 세션 최우선 — "아날로그 기능분석기.zip"/"회로도 추출기.zip" 검토**(세션18
-    끝에 사용자가 시작했다가 "이건 다른 세션에서 진행하자"며 명시적으로 중단) —
-    `skills/analog-gmid-design/assets/`에 새로 추가된 미확인 zip 파일 2개(아직 열어보지
-    않음). 사용자 말로는 "알려진 기능블럭들을 탐지하는 방법론"이 들어있다고 함 — 위 10번
-    (diode-stack/current_mirror 오탐 논의, "기능블럭 자동인식"이라는 같은 주제)과 직접
-    연결될 가능성이 높다. **다음 세션은 이 zip 파일들 내용부터 확인**하고, 그 내용을 갖고
-    10번 논의를 이어갈 것.
-12. **`run_harness.py` 재실행 전략은 여전히 미착수**(세션11 A절, 그리드 축소 or 다른
-    최적화 방식) — 8/9번으로 L3/L4/그룹분할/매칭성장 체인이 harness 최상위 경로에 전부
-    연결됐지만, 실제 전체 사이징 실행(`current_reuse_telescopic_ota`)은 여전히 손 안 댐.
+0. **세션19 전부 완료 + 전부 커밋됨(`d4bd4d9`)** — 다음 세션 시작 시 `git log`/
+   `git status`로 직접 재확인할 것(세션14 교훈). working tree엔 zip 파일 2개(아래
+   4번)와 세션18 스모크 스크립트만 untracked로 남아있는 게 정상. 상세는 "세션19
+   결론" 절 참고.
+1. **`analog-grammar` skill 신규 반입 완료**(세션19) — `skills/analog-grammar/`,
+   netlist에서 device role/idiom을 결정론적으로 도출하는 별도 skill. 이 저장소의
+   다른 skill과 동일한 구조(SKILL.md/references/skill-validation-prompt.md)로
+   설치, 실행 검증 완료(`PYTHONUTF8=1` 필요, Windows 콘솔 cp949 이슈).
+2. **matching 후보 오탐 필터 Tier 1 구현+self-test+커밋 완료**(세션19) —
+   `stick_diagram.py`에 `find_idiom_matches()`/`find_stack_edges()`/
+   `find_stacked_matching_candidates()` 신설 + `find_matching_candidates(transistors,
+   idiom_matches=None)` 확장(하위호환). M57/M58(current_mirror gate-only 오탐),
+   M11/MN(diff_pair source+W 우연일치 오탐), 캐스코드 대칭쌍(M2a/M2b류, "복합소자"
+   재귀 상속으로 커버) 세 가지 실사고/문서화된 한계를 전부 해소. self-test 30 전체
+   PASS, 전체 self-test suite(stick_diagram.py+sizing_recipe.py) 회귀 0건.
+3. **⚠️ "구현됐다"≠"harness에 연결됐다"(세션14 교훈 재적용)** — 2번의 세 함수는
+   self-test에서만 호출된 상태다. `find_matching_candidates()`의 실제 프로덕션
+   호출부(topology JSON 저작 워크플로우, `function-selection-map.md` §3/§10이
+   가리키는 곳)에 `idiom_matches=`를 실제로 넘기는 배선은 **아직 안 됐다** — 다음
+   세션 후보(사전 승인 필요, 엔진 로직 변경).
+4. **Tier 2(find_diode_stacks() 기반 find_hub_merge_candidates() 필터)는 "적용
+   불가"로 결론 — 폐기, 재시도 불필요.** 실측으로 확인됨(세션19): diode-stack의
+   내부 연결 net은 정의상 한쪽 소자의 drain 하나 + 다른 소자의 source 하나만
+   닿아 있어서, `find_hub_merge_candidates()`(source/drain을 역할별로 나눠
+   그룹핑)의 "크기 2 이상" 조건을 구조적으로 절대 못 채운다. 대신 관찰된 실제
+   혼합 현상(예: `Vx`={M1a,M1b,M58})은 `device_roles[name]["vertical_stack_id"]`
+   (VDD~GND 직렬 전압강하 체인 단위, 이미 topology.json에 있는 필드)로 전부
+   설명됨 — 단 이것도 증명된 오탐은 아니라(`find_hub_merge_candidates()` 자신이
+   "matching과 무관한 후보도 정상"이라고 선언) 이번엔 손 안 댐. 상세:
+   `analog-grammar-integration.md` §7.
+5. **`circuit-topology-extraction` skill은 아직 미설치**(analog-grammar만 반입,
+   사용자가 범위를 명시적으로 그렇게 좁힘) — 논문 PDF→netlist 추출이 필요해지면
+   설치+`analog-grammar`와 동일한 방식으로 연동 설계.
+6. **diode-stack current source(`solve_diode_stack_current()`) 배선 여부는 여전히
+   미결**(세션18 K절, 이번 세션엔 논의 안 함, 그대로 이월) — "이 저장소 4개 회로
+   중 실제로 필요한 곳이 없다"는 세션18 결론은 유효.
+7. **`run_harness.py` 재실행 전략은 여전히 미착수**(세션11 이후 지속 이월, 그리드
+   축소 or 다른 최적화 방식) — Tier 1/L3/L4/그룹분할/매칭성장 체인이 harness
+   최상위 경로에 대부분 연결됐지만(Tier 1은 위 3번 참고, 아직 미배선), 실제 전체
+   사이징 실행(`current_reuse_telescopic_ota`)은 여전히 손 안 댐.
+
+### (참고, 세션18까지의 이력 — 세션12~17 커밋 요약)
+세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`(매칭 목적
+핑거증가 L3+L4). 세션17 커밋 3개(시간순): `4bcaafc`(재설계안 3번 완화) →
+`69d9b39`(crossover 짝짓기 우선순위 재작성, D-1) → `4e38aa6`(offset 우선순위 가중치
++ branch composite 사전병합, F/G절). 세션18 커밋: `a6ab04b`(그룹분할 harness 배선).
+(세션12~18의 세부 항목은 각 세션 결론 절 및 아래 "작업 파일 위치" 절에 그대로 보존돼
+있다 — 위 0~7번이 세션19 시점 기준 최신 상태 요약이다.)
 
 ## 배경 — 이 기능이 뭐고 왜 하는가 (세션5~11 공통, 참고용)
 
@@ -1375,34 +1341,149 @@ stacks()`를 `current_mirror`/`hub_merge` 양쪽에 diode-체인 정보로 연�
 
 ---
 
+# 세션19 결론 — analog-grammar skill 반입 + matching 후보 오탐 필터 Tier 1 구현+커밋
+
+세션18이 남긴 "⚠️ 다음 세션 최우선 — zip 파일 2개 검토"부터 시작해, 그 내용을 갖고
+K/L절(diode-stack/`find_matching_candidates()` 오탐 논의)을 이어가려 했으나, 실제로는
+zip 내용이 그 논의를 대체하는 더 나은 해법으로 이어져 최종적으로 완전히 새로운 skill
+반입 + 실제 엔진 코드 구현까지 완주했다.
+
+## A. zip 파일 2개 검토 — 완성된 skill 패키지였음
+
+`아날로그 기능분석기.zip`(→ `analog-grammar`) / `회로도 추출기.zip`(→
+`circuit-topology-extraction`) 둘 다 다른 세션/도구가 만든 완성된 Claude skill
+패키지(SKILL.md + 스크립트 + 설계문서)였다. `analog-grammar`는 netlist에서 device
+role(DIODE_CONNECTED/CASCODE/AMPLIFYING/...) + L1 idiom(current-mirror/
+differential-pair/current-reuse-pair 등 11종)을 net 분류→role 배정→idiom 매칭
+6단계 파이프라인으로 결정론적으로 도출한다. `circuit-topology-extraction`은 논문
+PDF의 vector 회로도에서 netlist를 직접 추출(vision 불필요) — 이 프로젝트가 실제
+쓰는 논문(Xie & Chen current-reuse telescopic OTA)을 사례로 돌려 `topology.json`과
+일치하는 결과를 얻은 이력이 있었다.
+
+**핵심 발견**: `analog-grammar/scripts/idioms.py`의 `current-mirror` idiom이
+`(gate, source, type)`로 그룹핑한다 — 세션18 L-3에서 사용자가 제기했던 "VGS 동일하려면
+source도 같아야 한다"는 조건을 이미 구현하고 있었다. 이걸 재구현하는 대신 재사용하는
+쪽으로 방향을 정했다.
+
+## B. `analog-grammar` skill 반입 — `circuit-topology-extraction`만 이번엔 제외
+
+사용자가 "이 저장소의 다른 skill과 동일하게 관리되는 skill로 반입, 함께 release"를
+명시적으로 요구 — `skills/analog-grammar/`에 이 저장소 컨벤션 그대로 설치:
+`SKILL.md`(frontmatter+절대규칙+워크플로+Cross-Skill 참조) + `references/DESIGN.md`
+(정본, 원본 zip의 설계문서를 이 저장소 스타일로 재편집) + `references/consistency-map.md`
++ `skill-validation-prompt.md`(5-Check 구조) + `assets/`(원본 스크립트 4개, 바이트
+단위 무변경 + `examples/`). 원본의 최상위 `README.md`는 이 저장소 관례(폴더 내
+README.md 금지)에 따라 제거하고 내용을 SKILL.md에 흡수. 새 위치에서 `analyze.py`를
+직접 실행해 DESIGN.md가 주장하는 결과(Fig.2 current-reuse telescopic 자동 분석)와
+정확히 일치함을 확인(`PYTHONUTF8=1` 필요 — Windows 콘솔 cp949 이슈, SKILL.md에 메모).
+`circuit-topology-extraction`은 사용자가 범위를 "analog-grammar만"으로 명시적으로
+좁혀 이번엔 설치 안 함.
+
+## C. harness 연동 설계 — Tier 1/Tier 2로 재정의, 여러 차례 재설계
+
+### C-1. 첫 설계(role 필터) → 사용자 지적으로 idiom Match 직접 재사용으로 재설계
+처음엔 `classify_device_roles()`(Stage 1~2)의 role로 옛 net-only 그룹핑에 사후
+필터를 얹는 설계였으나, 사용자가 "role보다 Stage 3(비재귀 idiom 매칭)가 이미 응집된
+정보를 갖고 있지 않냐"고 지적 — `analog-grammar`의 `m_mirror()`/`m_diffpair()`가
+이미 내부에서 필요한 검사(diode 레퍼런스 존재/AMPLIFYING 요구)를 다 하고 있으므로,
+role 필터는 중복 구현이었음을 확인하고 폐기. `find_idiom_matches()`(Stage 1~3
+어댑터)가 낸 원본 Match 리스트를 `find_matching_candidates()`가 직접 소비하는
+쪽으로 재설계.
+
+### C-2. Tier 2(재귀적 "기능블럭" 아이디어) — 실측으로 두 번 재검토, 최종 폐기
+사용자가 "analog-grammar가 재귀적으로 기능블럭을 찾을 수 있다던데, 그걸 JSON
+기능블럭 필드로 두면 유용하지 않을까"라고 제안 — 확인해보니 그 재귀(L2 block 인식)는
+`analog-grammar` DESIGN.md 자신이 "미구현"이라고 명시한 기능이었다(상상으로 채우지
+않는 원칙 재확인). 대신 이미 있는 `find_diode_stacks()`(2026-07-30 M57/M58 사고로
+재작성된 함수 — 세션18이 "미배선"이라 불렀던 게 사실은 "이미 구현되어 있었다"는 걸
+이번에 재발견)를 `find_hub_merge_candidates()`에 배선하는 아이디어를 실측으로
+검증했으나, diode-stack의 내부 연결 net은 정의상 한쪽은 drain 하나, 다른 쪽은
+source 하나만 닿아있어 `find_hub_merge_candidates()`의 "크기 2 이상" 조건을
+구조적으로 절대 못 채운다는 게 밝혀져(모든 diode-stack 내부 net을 실제로 뽑아
+재확인) 이 방향은 최종 폐기.
+
+관찰된 실제 hub_merge 혼합 현상(`Vx`={M1a,M1b,M58} 등)은 `device_roles[name]
+["vertical_stack_id"]`(VDD~GND 직렬 전압강하 체인 단위, `allocate_stack_
+headroom()`이 쓰는 이미 있는 필드 — `_TEMPLATE.topology.json` 주석에서 정의 확인)로
+전부 설명됨을 확인했으나, 이것도 증명된 오탐이 아니라(`find_hub_merge_candidates()`
+자신이 "matching과 무관한 후보도 정상"이라고 선언) 손대지 않기로 함.
+
+### C-3. "캐스코드 대칭쌍" 커버리지 갭 발견 → "복합소자" 메커니즘으로 해결(사용자 제안)
+gate+source 그룹핑으로 재설계하면서, M2a/M2b류(같은 gate, 다른 source — `stick-
+diagram-euler-layout.md` §2.6이 이미 "gate 공유 기준으로는 걸리지만 캐스코드
+역할까지는 판별 못함"이라 기록해둔 카테고리)가 current_mirror 후보에서 완전히
+사라지는 회귀 위험을 발견 — 사용자가 "composite소자 개념을 적용할 수 없나"라고
+제안한 것이 결정적이었다. 세션16/17의 branch composite(`kcl_series_union()` 기반,
+**레이아웃** crossover 짝짓기용)과 정확히 같은 직렬 스택 개념을 반대 방향(matching
+후보 **발견**)으로 적용: 이미 확정된 매칭쌍(M1a/M1b) 위에 직접 stacked된 소자쌍
+(M2a/M2b)을 재귀적으로 상속 탐지. `analog-grammar`의 `stack_edges()`를 실제
+`current_reuse_telescopic_ota` connectivity에 돌려 M1a→M2a/M1b→M2b, M4a→M3a/
+M4b→M3b 정확히 재현됨을 확인 — §2.6이 기록해둔 두 캐스코드 대칭쌍 사례 전부 이
+메커니즘 하나로 설명됨.
+
+## D. 구현 — `stick_diagram.py` §1.7a~1.7c 신설
+
+- `_to_analog_grammar_devs()`/`_import_analog_grammar()` — 어댑터(soft-fail,
+  analog-grammar 없으면 `None`).
+- `find_idiom_matches(transistors, inputs=(), outputs=(), ...)` — Stage 1~3 실행,
+  겹침 해소 이전 원본 Match 리스트 반환(current-reuse-pair가 흡수해도 실제 W/L
+  매칭 단위는 원래 쌍이므로 resolve_overlaps() 건너뜀).
+- `find_matching_candidates(transistors, idiom_matches=None)` — 확장. `None`이면
+  기존 동작 완전 동일(하위호환). 주어지면 current_mirror는 `(kind,gate,source)`
+  + diode 레퍼런스 요구, diff_pair는 두 소자 다 role=AMPLIFYING 요구로 재계산.
+- `find_stack_edges()` / `find_stacked_matching_candidates(transistors, base_pairs,
+  stack_edges)` — 복합소자 상속. **구현 중 실측으로 버그 발견+수정**: 폴디드 노드
+  에서 한 소자 위에 극성이 다른 두 소자가 동시에 얹힐 수 있는데(`folded_cascode_
+  example()`의 M1 위에 M5(pmos)/M7(nmos) 동시 존재), 단순 `{lo: up}` dict
+  comprehension이 마지막 것만 남기고 조용히 덮어써 엉뚱한 소자를 골랐다 — "같은
+  kind로 좁히고 모호하면(0개/2개+) 포기"로 수정.
+
+## E. self-test + 회귀 확인 + 커밋
+
+`stick_diagram.py` Test 30(6개 항목) 전부 PASS: analog-grammar 사용 가능 확인,
+하위호환(idiom_matches=None), M57/M58 오탐 해소(양성대조 MrefA/MrefB는 유지),
+M11/MN 오탐 해소(양성대조 M1/M2는 유지, `folded_cascode_example()` fixture 재사용),
+캐스코드 대칭쌍(M5/M6) 복합소자 상속 확인, 어댑터 폴백 확인(gate 없는 fixture로
+자연스럽게 트리거 — `sys.path` 조작은 함수 자신이 멱등하게 재추가해 무의미함을
+확인 후 이 방식으로 전환). 전체 self-test suite(`stick_diagram.py` 30개 +
+`sizing_recipe.py`) exit 0, Traceback/AssertionError 0건. `git diff` 확인 결과
+편집은 순수 추가(313줄 추가, 삭제 5줄은 세션18의 기존 미커밋 변경).
+
+**커밋 `d4bd4d9`**(23개 파일, +4335/-88) — `analog-grammar` skill 신규 + Tier 1
+구현 + 세션18 잔여 배선 3건(H/I/J절, `sizing_recipe.py`/`run_harness.py`/
+`stick_diagram.py` J부분) 포함. zip 파일 2개(이제 `skills/analog-grammar`로
+추출·설치돼 중복)와 세션18 스모크 스크립트는 의도적으로 제외, working tree에
+untracked로 남아있음.
+
+## F. 알려진 한계 / 다음 세션 우선순위
+
+- **Tier 1 함수들이 실제 프로덕션 호출부에 아직 안 배선됨** — self-test에서만
+  호출된 상태(세션14 교훈과 동일한 패턴, 재발 주의). `find_matching_candidates()`의
+  실제 호출부(topology JSON 저작 워크플로우)에 `idiom_matches=`를 실제로 넘기는
+  건 다음 단계(엔진 로직 변경이라 사전 승인 필요).
+- Tier 2/vertical_stack_id 경계 아이디어는 폐기하지 않고 "실제 필요 사례가 나오면"
+  으로 유보(§C-2).
+- `circuit-topology-extraction` skill 미설치 상태 그대로.
+- 세션18 K절(`solve_diode_stack_current()` 배선 여부)은 이번 세션에 다시 논의
+  안 함 — 여전히 미결.
+
+---
+
 ## 다음 세션 작업 순서 (권장, 각 단계 사용자 승인 필수)
 
-1. **⚠️ 최우선 — zip 파일 2개 검토**: `skills/analog-gmid-design/assets/아날로그
-   기능분석기.zip` / `skills/analog-gmid-design/assets/회로도 추출기.zip`(둘 다
-   세션18 끝에 새로 생김, git에 untracked, **아직 한 번도 안 열어봄**). 사용자 말로는
-   "알려진 기능블럭들을 탐지하는 방법론"이 들어있다고 함 — 세션18 결론 K/L절(diode-
-   stack/`find_matching_candidates()` 오탐 논의)과 같은 주제("회로 기능블럭 자동인식")
-   일 가능성이 높으니, 이 zip 내용을 먼저 확인한 뒤 그 방법론을 갖고 K/L절 논의를
-   이어갈 것 — 순서를 바꾸지 말 것(zip 안 보고 K/L절부터 구현 설계하면 이미 있는
-   방법론과 충돌하거나 중복 설계할 위험).
-2. **diode-stack/`find_matching_candidates()` 오탐 필터 설계 마무리**(세션18 결론 K/L절
-   이어서, 1번 zip 검토 내용 반영) — 미결 사항: (a) `solve_diode_stack_current()`를
-   지금 배선할지 vs 실제 필요한 회로 생기면 할지(K절, AskUserQuestion이 인터럽트돼
-   미결), (b) `find_matching_candidates()`의 `current_mirror`에 source-일치 조건을
-   추가하는 구체적 코드 설계(L-3/L-4절, M2a/M2b류 대칭쌍을 걸러내지 않게 `find_
-   structural_symmetry_candidates()`와 역할을 어떻게 나눌지), (c) `find_diode_
-   stacks()`를 `current_mirror`/`hub_merge` 양쪽에 어떻게 연결할지(annotate만 할지,
-   구조적으로 배제할지). 이 세 가지 다 아직 코드 한 줄도 안 씀 — 설계 확정 후 구현+
-   self-test+회귀.
-3. **세션18에서 만든 커밋되지 않은 변경 3건 커밋 여부 확인**: `sizing_recipe.py`(H절,
-   `run_matching_safety_with_finger_growth()` 배선)/`stick_diagram.py`(J절, `check_
-   finger_width_compatibility()` 배선)/`run_harness.py`(I절, `save_instance_json()`
-   배선) — 전부 self-test+회귀 확인 완료 상태로 대기 중. 2번 논의가 끝나 diode-stack
-   관련 코드 변경이 생기면 한꺼번에 커밋할지, 지금 먼저 커밋할지 사용자에게 확인.
-4. `run_harness.py` 재실행 전략 논의(세션11 A절 — 그리드 축소 or 다른 최적화 방식) —
-   L3(핑거조정)+L4(gm/ID 재검증)+그룹분할+매칭성장 체인이 harness 최상위 경로에 전부
-   연결됐으니, 이 새 체인들이 실전(`current_reuse_telescopic_ota` 전체 사이징)에서
-   어떻게 동작하는지 end-to-end로 확인할 좋은 시점.
+1. **Tier 1(matching 후보 오탐 필터) 실제 배선** — `find_matching_candidates()`의
+   실제 프로덕션 호출부(topology JSON 저작 워크플로우, `function-selection-map.md`
+   §3/§10)에 `idiom_matches=find_idiom_matches(...)`를 실제로 넘기도록 배선.
+   세션14 교훈("구현됐다"≠"연결됐다") 재적용 — 배선 전 실제 호출 그래프부터
+   확인할 것.
+2. `run_harness.py` 재실행 전략 논의(세션11 A절 — 그리드 축소 or 다른 최적화 방식,
+   지속 이월) — L3(핑거조정)+L4(gm/ID 재검증)+그룹분할+매칭성장+Tier 1 체인이
+   harness 최상위 경로에 대부분 연결됐으니, end-to-end로 확인할 좋은 시점.
+3. diode-stack current source(`solve_diode_stack_current()`) 배선 여부(세션18 K절,
+   AskUserQuestion 인터럽트로 미결 — 그대로 이월) — 다시 물어볼 것.
+4. `circuit-topology-extraction` skill 설치 여부 — 논문 PDF→netlist 추출이 실제로
+   필요해지면(예: 새 회로 topology.json 저작 시) `analog-grammar`와 동일한 방식
+   (이 저장소 컨벤션대로 SKILL.md+references+skill-validation-prompt)으로 반입.
 5. L1/L2 잔여 항목(급하지 않음): `audit_current_forced.py`의 ⚠️ 12건(간접 근거,
    `current_reuse_telescopic_ota`) — 필요해지면 사람이 직접 사슬 추적해 확인.
 6. GBW 재검증 확장(범위 밖으로 미룸, 세션13 결론 D절) — 어느 topology.json이든
@@ -1704,6 +1785,39 @@ stacks()`를 `current_mirror`/`hub_merge` 양쪽에 diode-체인 정보로 연�
   with_finger_fixup()`의 그룹분할 폴백을 self-test 작성 전에 먼저 실행해 실제 반환값
   (`group_splits`/`branch_composites`/최종 `stack_id`/`audit.ok`/`cell_groups` 자동확장)
   을 확인한 스크립트(상상으로 assertion을 채우지 않는 원칙, 세션18 D절 근거).
+- `skills/analog-grammar/`(전체) — **세션19 신규 반입, 커밋 `d4bd4d9`**. `SKILL.md` +
+  `references/DESIGN.md`(정본)+`consistency-map.md` + `skill-validation-prompt.md` +
+  `assets/{analyze.py,netclass.py,idioms.py,sfg.py,run_example.sh,examples/}`(원본
+  zip 스크립트 바이트 단위 무변경). netlist → net 분류(Stage1) → device role
+  배정(Stage2) → L1 idiom 매칭(Stage3) → 계층 축약(Stage4) → signal flow graph
+  (Stage5) → 기능 가설(Stage6) 6단계 파이프라인, 결정론적(Stage6b만 LLM 개입).
+- `skills/analog-gmid-design/assets/stick_diagram.py` (**세션19 신설, 커밋 `d4bd4d9`**
+  — §1.7a~1.7c, `find_matching_candidates()` 직후)
+  - `_to_analog_grammar_devs(transistors)`/`_import_analog_grammar(*module_names)`
+    — **세션19 신설**, analog-grammar cross-skill import 어댑터(soft-fail, 없으면
+    `None` 튜플 반환). `../../analog-grammar/assets` 상대경로로 `sys.path` 삽입(멱등).
+  - `find_idiom_matches(transistors, inputs=(), outputs=(), feedbacks=(), biases=(),
+    clocks=())` — **세션19 신설**. analog-grammar Stage 1~3 실행, 겹침 해소 이전
+    원본 Match 리스트 반환. analog-grammar 없거나 gate 없는 소자뿐이면 `None`.
+  - `find_matching_candidates(transistors, idiom_matches=None)` — **세션19 확장**
+    (하위호환, `None`이면 옛 `(kind,gate)`/`(kind,source,w)` net-only 동작 완전
+    동일). `idiom_matches` 주면 current_mirror는 `(kind,gate,source)`+diode
+    레퍼런스 요구, diff_pair는 두 소자 다 role=AMPLIFYING 요구로 재계산(M57/M58,
+    M11/MN 오탐 해소 — 세션19 결론 §A~C 참고).
+  - `find_stack_edges(transistors)` — **세션19 신설**, analog-grammar `netclass.
+    stack_edges()` 재사용(role/net분류 불필요, 순수 connectivity).
+  - `find_stacked_matching_candidates(transistors, base_pairs, stack_edges)` —
+    **세션19 신설**, "복합소자" 개념(세션16/17 branch composite와 같은 직렬 스택
+    개념을 matching 후보 **발견** 방향으로 적용, 사용자 제안). 이미 확정된 매칭쌍
+    위에 직접 stacked된 소자쌍을 재귀적으로 상속 탐지 — 캐스코드 대칭쌍(M2a/M2b류)
+    커버. 폴디드 노드에서 극성이 다른 소자가 동시에 얹히는 경우 같은 kind로
+    좁히도록 구현(실측으로 버그 발견+수정, 세션19 결론 §D 참고).
+  - self-test "Test 30"(Test 29 직후) — **세션19 신설**, 6개 항목 전부 PASS(위
+    "세션19 결론" §E 상세). 전체 self-test suite 회귀 0줄.
+- `skills/analog-gmid-design/references/analog-grammar-integration.md` — **세션19
+  신규**, 위 연동의 설계 근거 전체(두 계층 재정의, cross-skill import 메커니즘,
+  role 어휘 매핑표, self-test 계획, Tier 2 폐기 근거). 구현 완료 후 "구현 완료"로
+  상태 갱신됨.
 
 ## 참고 — 사용자 협업 메모리 (자동 메모리 시스템에 저장됨, 요약만)
 
@@ -1882,3 +1996,35 @@ stacks()`를 `current_mirror`/`hub_merge` 양쪽에 diode-체인 정보로 연�
   찾아서 source-일치 검사가 아예 적용될 자리도 없었다). "이 개선 하나로 두 문제가 다
   풀리겠다"는 판단이 서면, 그 개선이 진짜로 같은 질문에 답하는지 반례(다른 함수/다른
   판정 기준)로 재확인할 것.
+- **세션19 신규**: "이 함수가 미배선"이라고 이전 세션 문서가 적어놨어도, 그게 "아직
+  없는 함수"인지 "이미 있는데 안 불리는 함수"인지는 다르다 — `find_diode_stacks()`를
+  세션19에서 Tier 2에 새로 설계하려다 실제로 grep해보니 이미 2026-07-30에 M57/M58
+  사고를 계기로 재작성까지 된 완성 함수였다. "미배선"이라는 과거 기록을 "아직 안
+  만들었다"로 넘겨짚지 말고, 새 함수를 설계하기 전에 항상 먼저 존재 여부를 코드로
+  확인할 것(세션14의 "harness에 연결 안 됨" 교훈과는 다른 종류의 실수 — 이번엔 "함수
+  자체가 없다"는 착각이었다).
+- **세션19 신규**: 사용자가 "이용가치가 있을까?"처럼 짧게 되묻는 질문은 방금 내가 내린
+  판단(예: Tier 2에 `find_diode_stacks()`를 쓰자는 제안)을 다시 근거로 검증하라는
+  요청일 수 있다 — 실제로 diode-stack의 내부 연결 net을 전부 뽑아 `find_hub_merge_
+  candidates()`의 역할별 그룹핑 조건과 대조해보니 "크기 2 이상" 조건을 구조적으로
+  절대 못 채운다는 게 드러나 그 제안 자체가 폐기됐다. 짧은 되물음을 "그냥 궁금해서"로
+  가볍게 넘기지 말고, 직전 판단을 다시 실측으로 검증하라는 신호로 받아들일 것.
+- **세션19 신규**: "오탐이라는 얘기야?"처럼 사용자가 내가 쓴 용어를 정확히 되짚으면,
+  방금 내가 "문제"라고 뭉뚱그려 부른 것이 실제로 증명 가능한 오류(M57/M58 — 성립
+  불가능하다고 논리적으로 확정 가능)인지, 아니면 그냥 애매함/맥락 부족(hub_merge
+  혼합 후보 — 사실 자체는 참이고 함수 자신이 "후보일 뿐"이라고 이미 선언)인지 구분해서
+  다시 답해야 한다. 두 개념을 섞어 "문제"라고 부르면 나중에 근거 없이 강한 조치(필터
+  추가 등)로 이어질 위험이 있다.
+- **세션19 신규**: "composite소자 개념을 적용할 수 없나"처럼 사용자가 기존에 이미 쓰인
+  개념(세션16/17의 branch composite, 원래 **레이아웃** crossover 짝짓기용)을 다른
+  문제(이번엔 matching 후보 **발견**)에 적용해보자고 제안하면, 실제로 같은 저수준
+  함수(`stack_edges()`/`kcl_series_union()`)를 정반대 방향으로 재사용할 수 있는지
+  실측으로 확인해볼 가치가 크다 — 이번엔 실제로 이미 있던 두 문서화된 오탐 사례
+  (M2a/M2b, M3a/M3b)가 이 방향 전환 하나로 전부 설명됐다. "이 개념을 다른 데도 쓸 수
+  있지 않을까"라는 질문은 가볍게 넘기지 말고 먼저 실제 connectivity로 검증할 것.
+- **세션19 신규**: 새 skill을 이 저장소로 반입할 때 "다른 skill과 동일하게 관리"라는
+  요구는 구체적으로 SKILL.md+`references/`(정본 문서+consistency-map.md)+`skill-
+  validation-prompt.md` 3종 세트, 그리고 이 저장소 고유 관례(폴더 내 최상위 README.md
+  금지, description ≤1024자, SKILL.md ≤5000 words)를 의미한다 — 원본 자료를 그대로
+  복사해 넣는 게 아니라 이 컨벤션에 맞춰 재편집해야 한다(원본 README.md 내용을
+  SKILL.md로 흡수, DESIGN.md를 references/로 이동 등).
