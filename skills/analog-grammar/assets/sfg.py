@@ -11,7 +11,7 @@ Stage 6 은 '구조 시그니처'까지만 결정론적으로 만들고, 그것�
 from collections import defaultdict
 from netclass import (RAILS, HIGH_Z, LOW_Z, BIAS, SIGNAL, INPUT, OUTPUT,
                       FEEDBACK, CLOCK, SUPPLY, GROUND,
-                      AMP, CASCODE, FOLLOWER, DIODE, CTRL_SRC,
+                      AMP, CASCODE, FLOAT_SRC, FOLLOWER, DIODE, CTRL_SRC,
                       ACTIVE_LOAD, CURR_SRC)
 
 
@@ -30,7 +30,7 @@ def build_sfg(devs, cls, imp, role):
                 E.append((g, dr, '-', n, 'gm'))
             if s not in RAILS and role[n] == FOLLOWER:
                 E.append((g, s, '+', n, 'follower'))
-        if role[n] == CASCODE and s not in RAILS and dr not in RAILS:
+        if role[n] in (CASCODE, FLOAT_SRC) and s not in RAILS and dr not in RAILS:
             E.append((s, dr, '+', n, 'cascode'))
     return E
 

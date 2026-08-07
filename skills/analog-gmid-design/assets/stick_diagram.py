@@ -1456,7 +1456,8 @@ def suggest_vertical_stack_composites(transistors: list, inputs=(), outputs=(),
     for d in devs: by_drain[d['D']].append(d)
     stack_fallback = []
     for up_d in devs:
-        if role.get(up_d['name']) not in (idioms_mod.CASCODE, idioms_mod.AMP, idioms_mod.CTRL_SRC):
+        if role.get(up_d['name']) not in (idioms_mod.CASCODE, netclass.FLOAT_SRC,
+                                            idioms_mod.AMP, idioms_mod.CTRL_SRC):
             continue
         if up_d['name'] in diffpair_legs:
             continue
@@ -1714,10 +1715,14 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
     `vertical_stack_id` 15개 gap을 손으로 채울 때도 이 composite 근거를 그대로 쓰되
     이름은 직접 붙였음).
 
-    **0. fan-in 후보 탐지(2026-08-07 추가, 사용자 지적으로 발견)**: `role=='CASCODE'`인
-    소자 `up`이 물리적으로 얹힐 수 있는 같은 kind `lo` 후보(`lo.drain == up.source`)가
-    **2개 이상**이면(예: `M9b`의 `source=Vop1`을 drain으로 쓰는 nmos가 `M3b`/`M10` 둘 다
-    있음) 순수 connectivity만으로는 어느 쪽이 진짜 물리적 이웃인지 원천적으로 못 가린다.
+    **0. fan-in 후보 탐지(2026-08-07 추가, 사용자 지적으로 발견; 2026-08-08 `role`
+    범위에 `FLOATING_CURRENT_SOURCE` 추가 -- `netclass.assign_roles()`가 `M9b`류
+    floating-current-source 다리를 더 이상 `CASCODE`로 안 잡으므로, 이 fan-in
+    탐지도 `CASCODE`/`FLOATING_CURRENT_SOURCE` 둘 다 봐야 `M9b` 실측 사례가 계속
+    잡힌다)**: `role`이 이 둘 중 하나인 소자 `up`이 물리적으로 얹힐 수 있는 같은
+    kind `lo` 후보(`lo.drain == up.source`)가 **2개 이상**이면(예: `M9b`의
+    `source=Vop1`을 drain으로 쓰는 nmos가 `M3b`/`M10` 둘 다 있음) 순수 connectivity만
+    으로는 어느 쪽이 진짜 물리적 이웃인지 원천적으로 못 가린다.
 
     **0-B. differential-pair branch 소속 여부로 재판정(2026-08-07 추가, 사용자 통찰)**:
     "이 소자 자신이 differential-pair의 핵심 신호경로 소속이 아니라면, 후보 중에서도
@@ -1787,7 +1792,7 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
         by_drain_kind[(t.drain, t.kind)].append(t.name)
     fan_in_candidates = {}
     for t in transistors:
-        if role.get(t.name) != "CASCODE":
+        if role.get(t.name) not in (netclass.CASCODE, netclass.FLOAT_SRC):
             continue
         candidates = [n for n in by_drain_kind.get((t.source, t.kind), []) if n != t.name]
         if len(candidates) > 1:

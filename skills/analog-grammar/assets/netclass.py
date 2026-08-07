@@ -201,10 +201,37 @@ DIODE       = 'DIODE_CONNECTED'
 CURR_SRC    = 'CURRENT_SOURCE'
 CTRL_SRC    = 'CONTROLLED_CURRENT_SOURCE'
 CASCODE     = 'CASCODE'
+FLOAT_SRC   = 'FLOATING_CURRENT_SOURCE'
 AMP         = 'AMPLIFYING'
 FOLLOWER    = 'SOURCE_FOLLOWER'
 SWITCH      = 'SWITCH'
 ACTIVE_LOAD = 'ACTIVE_LOAD'
+
+
+def _floating_source_legs(devs):
+    """Monticelli class-AB floating current source의 다리를 구한다: 서로 다른
+    kind(PMOS/NMOS)가 비-레일 노드 두 개 사이를 `a.S==b.D`이고 `a.D==b.S`인
+    anti-parallel loop로 마주보고(게이트는 서로 다른 독립 다이오드스택에서 옴,
+    레일 아님) 잇는 소자쌍 -- `idioms.py`의 `m_float_source()`와 정확히 같은 판정
+    기준(2026-08-08 신설, 그쪽 docstring에 실측 근거 상세 기록).
+
+    2026-08-08 추가(사용자 지적) -- `assign_roles()`가 이 다리들을 전부 `CASCODE`로
+    뭉뚱그리고 있었다(`current_reuse_telescopic_ota`의 `M9a`/`M9b`/`M18a`/`M18b`
+    실측 사례). `M9a`가 `M8`을 캐스코드하는 게 아니라 floating current source의
+    절반이라는 게 `idioms.m_cascode()`(2026-08-08 수정)에서 이미 드러났는데, 그보다
+    더 아래 계층인 이 함수가 여전히 `CASCODE`를 부여하면 `idioms.py`를 거치지 않는
+    모든 소비자(예: `analyze.py` Stage 2 role 표시)가 이 오분류를 그대로 물려받는다.
+    role 배정은 소자 하나만 보고는 못 하는 판단(파트너 소자와의 관계가 필요)이라
+    `assign_roles()` 본문 루프 전에 미리 전역으로 한 번 계산해 둔다."""
+    legs = set()
+    for a in devs:
+        for b in devs:
+            if a['name'] >= b['name'] or a['type'] == b['type']: continue
+            if a['S'] != b['D'] or a['D'] != b['S']: continue
+            if a['S'] in RAILS or a['D'] in RAILS: continue
+            if a['G'] == b['G'] or a['G'] in RAILS or b['G'] in RAILS: continue
+            legs.add(a['name']); legs.add(b['name'])
+    return legs
 
 
 def assign_roles(devs, cls, imp):
@@ -213,6 +240,7 @@ def assign_roles(devs, cls, imp):
     판정 순서가 중요하다 — 위쪽 규칙이 더 특수하다.
     """
     role = {}
+    float_legs = _floating_source_legs(devs)
     for d in devs:
         n, g, dr, s = d['name'], d['G'], d['D'], d['S']
         gc, sc = cls.get(g), cls.get(s)
@@ -234,6 +262,8 @@ def assign_roles(devs, cls, imp):
                 # 레일에 소스가 붙은 고정 바이어스 소자.
                 # 드레인이 이득 노드면 능동부하, 아니면 전류원.
                 role[n] = ACTIVE_LOAD if imp.get(dr) == HIGH_Z else CURR_SRC
+            elif n in float_legs:
+                role[n] = FLOAT_SRC         # 비-레일 anti-parallel 상보쌍 = floating 전류원
             else:
                 role[n] = CASCODE           # 소스가 내부 노드 = 직렬 적층
         else:

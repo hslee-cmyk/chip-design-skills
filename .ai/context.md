@@ -1,8 +1,10 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-08, 세션25 완료 — `m_cascode()`가 `M8`+`M9a`류를
-기능적으로 틀리게 캐스코드로 잡던 문제 발견/수정: `floating-current-source` idiom
-신설, `m_cascode()`에 `float_legs`/출력-도달성 제외 추가, 그 여파로 생긴 `stick_
-diagram.py` 레이아웃 회귀도 `physical-stack` 폴백으로 수정. 상세는 아래 "## E. 세션25"
-참고. `headroom_role`(0-C)은 이번 세션에도 착수 안 함 — 여전히 다음 세션 최우선)
+# 세션 컨텍스트 (최종 갱신: 2026-08-08, 세션25 완료 — `m_cascode()`/`netclass.
+assign_roles()`가 `M8`+`M9a`류를 기능적으로 틀리게 캐스코드로 잡던 문제 발견/수정:
+`floating-current-source` idiom + `FLOATING_CURRENT_SOURCE` role 신설, `m_cascode()`
+에 `float_legs`/출력-도달성 제외 추가, 그 여파로 생긴 `stick_diagram.py` 레이아웃
+회귀도 `physical-stack` 폴백으로 수정. 상세는 아래 "## E"/"## F" 참고. `headroom_role`
+(0-C) 재착수 중 `M10`/`M19`/`M9b`/`M18b`의 선언값 자체가 틀렸을 가능성 발견했으나
+`topology.json` 수정은 다음 세션으로 이월(F-2, 사용자 최종 확인 필요))
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
@@ -3928,3 +3930,71 @@ Test 40이 이 회귀를 정확히 잡아냄(`AssertionError: M1a/M2a가 같은 
 - **`vertical_stack_id` 재검증 불필요 확인됨** -- `physical-stack` 폴백이 `M8`+`M9a`
   등을 그대로 복구하므로, 세션24가 채운 15개 gap(`biasgen_vom_a`의 `M9a` 등)은 여전히
   유효/재현 가능. 별도 조치 불필요.
+
+## F. 세션25 후속 — `netclass.assign_roles()`도 `CASCODE`로 뭉뚱그리던 문제 수정 +
+`headroom_role`(0-C) 재착수 중 발견한 반례
+
+### F-1. `assign_roles()`에 `FLOATING_CURRENT_SOURCE` role 신설
+E절에서 `idioms.m_cascode()`는 고쳤지만, 그보다 아래 계층인 `netclass.assign_roles()`
+자체가 여전히 `M9a`/`M9b`/`M18a`/`M18b`를 `CASCODE`로 뭉뚱그리고 있다는 걸 사용자가
+직접 지적(`M18b`가 `CASCODE`로 뜨는 걸 보고). 사용자 확인: "완전히 새 카테고리가
+아니라 `CURRENT_SOURCE`의 floating 버전이어야 하지 않나" — 그대로 반영.
+
+**조치**: `netclass.py`에 `FLOAT_SRC = 'FLOATING_CURRENT_SOURCE'` 신설, `_floating_
+source_legs()`(`idioms.m_float_source()`와 동일 판정 기준을 role 배정 이전에 전역
+계산) 추가, `assign_roles()`의 `elif gc==BIAS` 분기에서 소스가 내부노드인 소자 중
+이 다리에 해당하면 `CASCODE` 대신 `FLOAT_SRC` 배정. 실측: `M9a`/`M9b`/`M18a`/`M18b`
+전부 `FLOATING_CURRENT_SOURCE`로 정확히 분류됨(고립 fixture + 실회로 양쪽 확인).
+
+**연쇄 수정(CASCODE 소비처 전부 점검)**: `sfg.py`의 `build_sfg()`(cascode 신호간선
+조건에 `FLOAT_SRC` 추가 -- 안 하면 `n1->Vop1` 양귀환 loop 탐지가 깨짐),
+`stick_diagram.py`의 `suggest_vertical_stack_composites()`(`physical-stack` 폴백의
+role 게이트에 `FLOAT_SRC` 추가 -- 안 하면 오늘 만든 폴백 자체가 다시 깨짐),
+`_propose_vertical_stack_ids()`의 fan-in 후보 탐지(`role=='CASCODE'` 단일 비교를
+`(CASCODE, FLOAT_SRC)` 튜플로 확장 -- 안 하면 `M9b` fan-in 탐지가 깨짐). self-test
+44개 전부 재통과, 실회로 `physical-stack`/`cascode-stack` 목록 전과 동일함을 재확인
+(회귀 없음). `references/analog-grammar-integration.md`의 §8 role 매핑 표에도
+`FLOATING_CURRENT_SOURCE` 행 추가 + `CASCODE` 행 예시에서 `M10`(아래 F-2로 의심 사례임)
+제거.
+
+### F-2. `headroom_role`(0-C) 재착수 — 6가지 가설이 실패한 이유가 "선언값 자체의 오류"
+였을 가능성 발견 (미확정, 다음 세션 결론 필요)
+세션24가 남긴 9개 불일치(`M17,M8,M18b,M9b,M36b,M39,M40,M63,M37b`)를 오늘 고친
+idiom/role로 재검토하다가, 사용자가 핵심을 짚음: "우리 hypothesis가 계속 반례를
+못 뚫는 게 아니라, **선언된 `headroom_role` 값 자체가 애초에 틀렸을 수 있다**"는
+관점 전환.
+
+**실측 근거**: `role==CURRENT_SOURCE`(레일에 직접 닿은 고정 바이어스) 소자 8개의
+`headroom_role` 선언을 전부 나열하면:
+```
+M6/M7(Vx tail)/M5(Vy tail)/M38(Ncmfb_tail) -> tail   (진짜 차동쌍 tail, 정상)
+M8(Vg15 위쪽 bias) -> mirror
+M17(Vg25 위쪽 bias) -> mirror
+M10(Vop1 아래쪽 bias) -> cascode   ⚠️ M8과 구조적으로 완전히 동일한 역할인데 다름
+M19(Vom1 아래쪽 bias) -> cascode   ⚠️ M17과 동일 패턴, 대칭 사례
+```
+`M10`/`M19`는 `M8`/`M17`과 정확히 같은 구조(같은 Monticelli floating loop의 반대쪽
+끝을 대주는 고정 전류원, 레일에 직접 닿아 있어 애초에 "캐스코드"의 정의(다른 소자
+위에 얹힘)를 만족할 수조차 없음)인데 `cascode`로 선언돼 있다 -- 설계 의도라기보다
+**선언 오류**로 강하게 의심됨.
+
+또한 `M9a`(gap, 비어있음)/`M9b`(mirror 선언) 그리고 `M18a`(gap)/`M18b`(mirror 선언)
+쌍에서, 같은 물리적 구조(Monticelli floating source 다리)의 한쪽만 채워진 비대칭
+패턴이 반복된다 -- 오늘 발견 이전에 누군가 `M9b`의 게이트가 다이오드(`M14a`) 기준을
+따라간다는 부분적 근거로 `mirror`를 채우고, `M9a`는 막혀서 비워둔 것으로 추정.
+`M9b`/`M18b`의 `mirror`도 `cascode`만큼 부정확할 가능성 높음(둘 다 floating source
+다리이지 진짜 mirror가 아님) -- `M37a`(gap)/`M37b`(tail 선언, CMFB 2차 differential
+pair의 다리)도 같은 비대칭 패턴이라 같이 재검토 대상.
+
+**미확정 -- 다음 세션 결론 필요**: 이 세션 안에 `topology.json`을 수정하지 않았다
+(대기열에 쌓아뒀다가 한꺼번에 반영하는 관례). 다음에 확정할 것:
+1. `M10`->`mirror`, `M19`->`mirror`로 정정할지 (구조적 근거는 확실하나 사용자 최종
+   확인 필요)
+2. `M9a`/`M9b`/`M18a`/`M18b`에 새 headroom_role 카테고리(가칭, `FLOATING_CURRENT_
+   SOURCE`와 이름을 맞출지 논의)를 신설해서 채울지, 아니면 다른 처리를 할지
+3. `M37a`/`M37b`(CMFB 2차 differential pair)도 같은 논리로 재검토 -- 이번 세션엔
+   미착수
+4. `M58`(bias-tap, E절 이월 항목)도 여전히 미해결 -- `cascode` 선언이 맞는지 별도
+   검토 필요
+5. 이 재검토가 끝나면 6가지 실패 가설과 9/35라는 숫자 자체를 다시 계산해야 할 수도
+   있음(선언값이 바뀌면 "불일치 개수"의 기준선도 바뀜)

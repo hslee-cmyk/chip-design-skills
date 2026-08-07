@@ -406,7 +406,8 @@ match_all()`이 내부적으로 이미 하는 검사를 이 프로젝트 쪽에�
 | analog-grammar role | 구조적 판정 근거 | `device_roles`의 개연적 대응 | 매핑 성격 |
 |---|---|---|---|
 | `DIODE_CONNECTED` | `G == D` | 대응 필드 없음(순수 구조 사실) | 신규 정보 — §6의 current_mirror 레퍼런스 판정에 직접 사용 |
-| `CASCODE` | gate=BIAS, source=내부 노드 | `headroom_role == "cascode"` | 교차검증 — 예: `M10`/`M11a`/`M11b`(headroom_role="cascode") |
+| `CASCODE` | gate=BIAS, source=내부 노드 | `headroom_role == "cascode"` | 교차검증 — 예: `M11a`/`M11b`(headroom_role="cascode"). ⚠️ `M10`은 예시에서 제외(2026-08-08 세션25 — `M10`은 role=`CURRENT_SOURCE`(레일에 직접 닿음)인데 `headroom_role`만 `cascode`로 선언돼 있어 선언 오류로 의심됨, `.ai/context.md` 세션25 참고, 아직 미확정) |
+| `FLOATING_CURRENT_SOURCE` | 서로 다른 kind가 비-레일 노드 2개 사이를 anti-parallel로 마주봄(Monticelli class-AB) | 대응 필드 없음(headroom_role에 아직 이 카테고리가 없음, `M9b`/`M18b`의 `headroom_role=="mirror"` 선언도 이 발견 이전 값이라 재검토 대상) | 신규(2026-08-08 세션25 신설) — `CASCODE`에서 분리됐던 role, 실측: `M9a`/`M9b`, `M18a`/`M18b` |
 | `CURRENT_SOURCE` | gate=BIAS, source=rail, drain≠HIGH_Z | `headroom_role == "tail"` 또는 `L_role == "bias_replica"`와 부분 겹침 | 교차검증(느슨함 — 1:1 대응 보장 안 됨) |
 | `ACTIVE_LOAD` | gate=BIAS, source=rail, drain=HIGH_Z | `headroom_role == "mirror"`류 일부 | 교차검증(느슨함 — mirror가 전부 active_load는 아님) |
 | `AMPLIFYING` | gate=SIGNAL/INPUT/OUTPUT, drain≠rail | 명시적 대응 필드 없음(diff_pair 입력쌍이 여기 해당) | §6의 diff_pair 필터에 직접 사용 |
