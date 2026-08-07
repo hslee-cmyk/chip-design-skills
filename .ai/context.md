@@ -11,7 +11,9 @@
 and_mirror_relations()`의 `structurally_symmetric_no_connection` 세 번째 버킷 추가,
 self-test Test 32~39), `skills/analog-grammar/assets/netclass.py`(세션23의 rail
 대소문자 버그 + 미러 구동 bias net 오분류 버그 수정 2건), `.ai/context.md`(이 문서
-자체) 커밋 완료 — 커밋 해시는 아래 "세션24 커밋" 참고. ⚠️ 과거 세션들이 의도적으로
+자체) 커밋 완료 — **커밋 `5677147`**(`feat(analog-gmid-design): differential/mirror
+관계 자동 정제 오케스트레이션 신설 + rail/bias net 분류 버그 수정`, 세션23+24 통합
+1개 커밋, 3 files changed). ⚠️ 과거 세션들이 의도적으로
 커밋에서 뺐던 파일(정리 여부는 여전히 사용자 판단, 세션24도 그대로 둠): `.bkit/*`
 (bkit 자체 세션 추적), 루트 zip 2개(사용자가 올린 별도 파일), `workspaces/current-
 reuse-telescopic-ota-report/smoke_run_harness_session18_save.py`(세션18 잔재),
