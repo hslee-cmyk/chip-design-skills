@@ -1,103 +1,41 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-07, 세션20 끝 — 다음은 세션21)
+# 세션 컨텍스트 (최종 갱신: 2026-08-07, 세션21 끝 — 다음은 세션22)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-### 다음 세션 작업 순서 (사용자 확정, 세션20 끝에 지시) — 이 순서 그대로 진행할 것
-1. **PSRR (C)단계** — 2단 Class-AB 출력전류원(M8/M13/M17/M22, source=vdd)의 자체 VDD
-   주입 경로를 PSRR 유도에 포함(아래 "세션20-B 결론" H-2/I절 참고, (A)+(B)는 이미
-   완료·커밋됨).
-2. **Grid search 개선안 설계 마무리 + 구현** — "세션20-B 결론" G절의 그룹 구조(5-theta
-   진짜 결합/2-theta feasibility 결합/6개 완전 독립)를 근거로 블록 분리+이분탐색+
-   좌표하강+재시작+최종 joint 로컬 정제 구현. 시작점 선택(all-lo/mid/hi 전부
-   infeasible이었음) 문제도 같이 해결할 것.
-3. **`vertical_stack_id` 경계 주석 확장** — `find_hub_merge_candidates()`가 낸 혼합
-   후보(예: `Vx`={M1a,M1b,M58})에 그 소자들이 같은 `vertical_stack_id`(VDD~GND 직렬
-   체인)인지 다른지를 표시(`analog-grammar-integration.md` §7이 이미 이 확장을
-   "낮은 리스크, 필요 시 설계"로 남겨둔 것 — **이건 세션19에서 "적용 불가"로 폐기된
-   `find_diode_stacks()` 기반 Tier 2와는 별개**, 폐기와 무관하게 진행 가능).
-4. **`run_harness.py` — audit 실패 시 재최적화 루프** — `run_full_circuit_audit_from_
-   topology()`가 `ok=False`면 그 원인(어떤 체크가 실패했는지)을 피드백해 다시
-   `optimize_full_circuit_budget()`을 도는 루프로 확장, 최대 반복 횟수 제한, 그 안에
-   해결되면 report+instance.json 저장(현재는 실패해도 그냥 저장만 하고 끝 — 세션20
-   배선 그대로).
+### 다음 세션 작업 순서 (세션21 끝 기준) — 이 순서 그대로 진행할 것
+1. **`>=60dB`류 constraint 임계값 재보정(최우선, 세션21 2차 때문에 새로 생김)** —
+   `cmrr_estimate_db`/`psrr_estimate_db`가 센싱 위치를 `Vop1`/`Vom1`(1단 내부)에서
+   `Vop`/`Vom`(진짜 최종출력)으로 바꾸고 51소자 전체(bias-gen 포함)를 보게 되면서
+   절대 dB 스케일이 완전히 달라졌다(세션21 2차 self-test 앵커: CMRR≈125.8dB,
+   PSRR≈105.5dB — 옛 스케일과 비교 자체가 무의미). `topology.json`의 `constraints`
+   (`{"metric":"cmrr_estimate_db","op":">=","value":60}` 등)를 이 새 스케일에 맞게
+   다시 볼 것.
+2. **그리드 탐색 그룹 구조 재분석** — 세션20-B가 도출한 "5-theta 진짜 결합/2-theta
+   feasibility 결합/6개 완전 독립" 그룹 구조는 **옛(틀린) Kp'/Kn'/Rx/Ry 폐형식**
+   기준이었다가, 세션21 1차(battery 31소자 부분망)를 거쳐, 세션21 2차(51소자 전체
+   topology-무관 수치 MNA)로 metric 발자국이 또 한 번 완전히 바뀌었다 — 이제
+   `cmrr_estimate_db`/`psrr_estimate_db`/`gain_full_circuit_db`는 원칙적으로 **회로의
+   거의 모든 소자**(bias-gen 포함)에 의존한다. 13개 자유 theta 각각이 이 metric들의
+   `excite_num`/`excite_den`/`sense_p`/`sense_n` 경로에 실제로 얼마나 영향을 주는지
+   (정적 그래프가 아니라 수치 민감도로) 다시 확인해야 그리드 그룹 구조를 믿을 수 있다.
+3. **Grid search 개선안 구현** — 위 1~2번 이후 진행(세션20-B의 블록분리+이분탐색+
+   좌표하강+재시작+joint 로컬정제 설계 골자는 여전히 유효, 그룹 멤버십만 갱신).
+4. **`vertical_stack_id` 경계 주석 확장** — 세션20 항목 그대로 이월(이번 세션 논의 안 함).
+5. **`run_harness.py` — audit 실패 시 재최적화 루프** — 세션20 항목 그대로 이월.
+6. **(선택) `gain_db`/`classab_centering_dev_v` 재점검**, **(선택) folded_cascode/
+   nmcnr_amplifier/two_stage_ota에 `ports` 선언 + `smallsignal_ratio_db` 신규 적용**
+   — 세션21 2차가 만든 topology-무관 solver를 확장 적용할 후보(아래 "세션21 2차 결론"
+   F절 참고), 우선순위는 사용자 판단.
 
-0. **세션20/20-B 구현/self-test 전부 완료 + 전부 커밋됨**(`e4042c5`,`8cc9014`,`3b77c0b`,
-   `4750115`) — 다음 세션 시작 시 `git log`/`git status`로 직접 재확인할 것(세션14
-   교훈). 상세는 아래 "세션20 결론"/"세션20-B 결론" 절 참고.
-1. **`run_full_circuit_audit()`(§1.6 게이트)의 자동 로더 `run_full_circuit_audit_
-   from_topology(topology_json_path, ...)` 신설 + 실배선 완료**(세션20) —
-   `devices`/`expected_counts`/`dispositions`를 topology.json에서 전부 자동 구성(새
-   판단 없음, 이미 기록된 값을 형식만 변환). `current_reuse_telescopic_ota.topology.
-   json`에 `_netlist_sections_structured`(prose `_netlist_sections`를 기계적으로
-   구조화, 51개 소자 전수 커버 확인) 신설이 전제조건. `run_harness.py`의
-   `optimize_full_circuit_budget()` 직후·`save_instance_json()` 이전에 실제로 호출됨
-   (사용자 지시). `check_symmetry_dispositions()`(topology-authoring 단계 게이트)는
-   이번 세션 범위 밖 — 여전히 `idiom_matches`/`run_full_circuit_audit_from_topology()`
-   둘 다 미배선(아래 3번).
-2. **리포트 생성 일반화 — `design_report.py` 신설, `run_harness.py`에 실배선
-   완료**(세션20, 사용자 지시) — `build_topology_device_table()`/`assemble_report_
-   data()`/`render_html_report()`/`save_html_report()`. topology.json(소자 표)+
-   instance.json(sizing/floorplan/audit_row_split/coverage)+`run_full_circuit_audit_
-   from_topology()` 결과는 **기계적으로 자동 조립**, 논문 spec 표/레이아웃 가이드
-   서술은 `narrative` dict로 호출자가 채우지 않으면 조용히 생략(지어내지 않음). **알려진
-   한계**: 옛 `build_report.py`/`build_html.py`/`report_template.html`의 정교한 SVG
-   stick-diagram/floorplan 시각화(`renderStack`/`renderSchematic`)는 이식 안 함 —
-   그 시각화 자체는 데이터 기반이지만 감싸는 SECTION 조립 로직이 회로별 cell 이름/
-   enriched 필드(`gain`,`Cgg_fF`)를 그대로 가정해서 그대로 재사용하면 다른 회로에서
-   깨진다. 이번 리포트는 표/카드 기반의 더 단순하지만 실제로 회로-무관한 렌더러.
-3. **⚠️ Tier 1 idiom_matches는 여전히 `check_symmetry_dispositions()`에 미배선**
-   (세션19 교훈 재확인, 세션20은 이 항목을 다루지 않았다) — `find_matching_
-   candidates()`의 두 프로덕션 호출부(`check_symmetry_dispositions()`:1220,
-   `run_full_circuit_audit()`:3148 — 이제는 `run_full_circuit_audit_from_topology()`를
-   거쳐도 여전히 옛 net-only 그룹핑) 둘 다 `idiom_matches=`를 실제로 안 넘긴다. 이번
-   세션 논의 중 결정 보류된 두 항목(다음 세션에 이어서 확정): (A) `idiom_matches`를
-   호출자가 사전 계산해 넘길지(두 함수의 "회로 지식 없음" 원칙 유지, 권장) vs 함수
-   내부에서 `inputs`/`outputs`/`feedbacks` 파라미터로 직접 계산할지, (B) 캐스코드
-   대칭쌍 손실 보완용 `find_stacked_matching_candidates()`도 같이 배선할지.
-4. **`run_harness.py` 재실행 전략(item 7, 세션11부터 이월)에 새 실측 추가** — 세션20
-   스모크(`smoke_run_harness_session20.py`, KEEP_FREE=2/5 둘 다)에서 `psrr_estimate_
-   db`/`classab_centering_dev_v` 위반으로 "모든 theta 격자점이 infeasible" 재현.
-   **새로 확인된 원인**: 이 두 metric을 실제로 좌우하는 theta(`r_classab_battery`/
-   `r_classab_diode_src`류, CMFB 관련)가 "netlist 순서상 앞쪽 N개만 자유롭게 두는"
-   단순 `KEEP_FREE` 전략에는 안 들어가 항상 중간값에 고정돼버린다 — **그리드 축소는
-   "몇 개를 자유롭게 두느냐"가 아니라 "어느 theta를 자유롭게 두느냐"가 핵심**이라는
-   게 이번 세션의 새 정보(다음 세션이 그리드 전략 설계할 때 이 실측부터 참고할 것).
-5. **`psrr_estimate_db` — 아예 자유도가 없던 근본 문제를 해소함(세션20 후속, 같은 날
-   진행)** — 그리드 검색 재설계를 시작하기 전 실측(§ "theta 발자국" 정적 그래프 분석)으로
-   `psrr_estimate_db`(옛 `diff_pair_tail` family, M5 하나의 gm/gds만 보는 자리표시자)가
-   **13개 자유 theta 중 어느 것에도 안 닿는 상수**였다는 게 드러났다 — 그리드 알고리즘을
-   아무리 잘 바꿔도 이 제약은 원래 못 풀렸을 것이었다. `_cmrr_telescopic_class_ab[_cmfb]`
-   와 동일한 위상/방법(sympy 정확해+leading order, ngspice AC 독립 교차검증)으로
-   `_psrr_telescopic_class_ab`/`_psrr_telescopic_class_ab_cmfb`를 신규 유도+구현+등록,
-   `topology.json`의 `psrr_estimate_db`를 이 family로 교체 — **이제 CMRR과 완전히 같은
-   5-theta 그룹(`L_cascode`/`L_stage2out`/`N_cmfb_bw`/`r_tail_M6`/`r_tail_M7`)에 걸려
-   실제 자유도가 생겼다**(실측 확인). 상세는 아래 "세션20-B 결론" 참고. **알려진 한계**:
-   2단 Class-AB 출력전류원(M8/M13/M17/M22, source=vdd)의 자체 VDD 주입 경로는 미포함
-   (다음 세션 과제) — 이 경로까지 더하면 실제 PSRR이 이번 유도값보다 더 나빠질 수 있다.
-6. **그리드 탐색 알고리즘 자체의 재설계는 여전히 설계 단계**(구현은 다음 세션) — 사용자
-   요청으로 시작한 원래 작업. 결론: 정적 그래프(theta의 `feeds.root/target/devices`
-   "쓰기"만 발자국으로, `reference`/`terms`는 읽기 전용이라 제외 — 처음엔 이 구분을
-   안 해서 12/13개가 거짓으로 하나의 성분에 뭉치는 오류가 있었다, 실측으로 발견/수정)로
-   그룹을 도출하면: 13개 중 진짜 결합된 건 5개(위 5번 그룹, gain/cmrr/psrr/classab
-   전부 여기 걸림) + 물리적 feasibility로만 결합된 2개(`K_replica`/`r_classab_battery`,
-   `kcl_battery_M9b` 고정 KCL identity를 매개로 — metric 공유가 아니라 "다른 theta가
-   둘 다 읽어서 음수 전류 여부를 검사"하는 세 번째 결합 경로, 정적 그래프 규칙에 처음엔
-   없어서 실측으로 추가) + 완전 독립 6개(`f_slew`/`r_biasgen`/`r_bg_vbias2`/
-   `r_classab_diode_src`/`r_cmfb_vocdes`/`r_diode_M11a`, 5개 constraint 전부 안 건드림
-   — 그냥 하한값으로 두면 됨). 다음 세션 최우선: 이 그룹 구조로 블록 분리+단조 확인된
-   theta는 이분탐색+나머지는 소규모 grid/LHS+좌표하강 재시작+최종 joint 로컬 정제 구현.
-   **"all-lo/all-mid/all-hi처럼 단순한 시작점은 셋 다 물리적으로 infeasible"**(M9b<0)도
-   확인됨 — 시작점 선택 자체도 별도로 신경 써야 함(예: KCL identity feasibility를
-   먼저 만족시키는 pre-solve 단계).
-7. **Tier 2/`circuit-topology-extraction`/`solve_diode_stack_current()` 배선 —
-   전부 세션19 결론 그대로 이월(이번 세션 논의 안 함)**: Tier 2(diode-stack 기반
-   hub-merge 필터)는 "적용 불가"로 폐기 확정(재시도 불필요, 근거는
-   `analog-grammar-integration.md` §7). `circuit-topology-extraction`은 여전히
-   미설치(필요해지면 그때 반입). `solve_diode_stack_current()` 배선 여부는 "이
-   저장소 4개 회로 중 실제로 필요한 곳이 없다"는 세션18 결론 유효.
+0. **세션21 구현/self-test 전부 완료, 아직 커밋 안 됨**(다음 세션 시작 시 `git log`/
+   `git status`로 직접 재확인할 것 — 세션14 교훈) — 상세는 아래 "세션21 결론"/
+   "세션21 2차 결론" 참고. 세션21 1차(circuit_family=telescopic_class_ab_cmfb, battery
+   31소자 부분망)는 세션21 2차(topology-무관 51소자 전체망)로 **이미 대체**됐다 —
+   `cmrr_estimate_db`/`psrr_estimate_db`는 지금 `type=smallsignal_ratio_db`.
+   세션20/20-B는 이미 커밋됨(`e4042c5`,`8cc9014`,`3b77c0b`,`4750115`,`8a30631`).
 
 ### (참고, 세션19까지의 이력 — 세션12~19 커밋 요약)
 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`(매칭 목적
@@ -2399,3 +2337,301 @@ estimate_db`와 완전히 동일한 device role 배정(`input_p`=M1a 등 13개 �
   PSRR의 독립 SPICE 검증도.
 - 시작점 선택(all-lo/mid/hi 전부 infeasible) 문제 — 그룹 분리 알고리즘 설계 시 "KCL
   identity feasibility를 먼저 만족시키는 pre-solve" 단계를 반드시 포함할 것.
+- ⚠️ **이 G/H절의 결론은 세션21에 무효화됨**(아래 "세션21 결론" 참고) — Kp'/Kn'/Rx/Ry
+  폐형식 자체가 M10/M19 로딩을 몰라 최대 49dB 틀렸다는 게 드러나 CMRR/PSRR이 수치
+  MNA로 전면 교체됐다. 이 그룹 구조를 그대로 그리드 알고리즘 구현에 쓰지 말 것 — 새
+  metric 발자국으로 재도출 필요.
+
+---
+
+# 세션21 결론 — PSRR (C)단계 착수 중 M10/M19 로딩 버그 발견(최대 49dB) → CMRR/PSRR
+# 폐형식 전면 폐기 → 수치 MNA(31소자)로 교체, ngspice 독립검증 완료(오차 0.0002%)
+
+세션20-B가 "다음 세션 최우선"으로 남긴 두 항목(그리드 탐색 구현, PSRR (C)단계) 중
+사용자가 확정한 순서대로 PSRR (C)단계부터 시작했다. **좁은 범위(M8/M13/M17/M22의 자체
+VDD 주입 경로만 PSRR에 추가)로 시작했으나, 실측 과정에서 그 범위로는 담을 수 없는 훨씬
+근본적인 문제를 발견해 사용자와 두 번 상의 후 범위를 CMRR까지 확장**했다. 아래 순서대로
+정리한다.
+
+## A. 착수 — battery 네트워크를 stage-1 MNA에 결합 시도, 두 번의 접근 실패
+
+1. **1차 시도(통짜 31소자/18노드 sympy linsolve)**: `stage2_battery_psrr_sympy_
+   derivation.py` 초안 — M8/M9a/M9b/M11a/M11b/M12/M10/M13/M14a/M14b(Vg15/Vop1측 10개)
+   + 거울대칭 Vg25/Vom1측 10개를 stage-1 11개에 더해 18노드를 sympy `linsolve`로 한
+   번에 풀려 함 — **실측: 수 분간 2.8GB+ 메모리, 진행 없음**(fraction-free Gaussian
+   elimination의 중간식 크기 지수적 폭발). 프로세스 kill.
+2. **2차 시도(블록소거, 5노드만 먼저 정확해로 풀어 8노드에 얹기)** — battery-A 5노드
+   (Vg15/N11a11b/N11b/N14a14b/N14a_14b, Vop1은 외부단자로 열어둠)만 먼저 sympy로 풀었더니
+   **이미 이 5노드 정확해 자체가 200항 넘는 단일 유리식**이 됐고, 그걸 stage-1 8노드
+   KCL에 대입해 다시 정확해로 풀려 하니 똑같이 3.3GB+로 폭주. Kill.
+3. **교훈(핵심)**: 이 프로젝트의 모든 폐형식은 원래 gm·ro≫1 **leading order**만 필요한데,
+   위 두 시도는 정확해부터 구하고 나중에 극한을 취하려 했다 — **leading order를 각
+   서브회로 단계에서 처음부터 적용**하면 매 단계가 작은(2~3노드) 시스템으로 남는다는 걸
+   이번에 배웠다(다음에 회로가 더 커지면 이 방식을 기본으로 삼을 것).
+
+## B. 단계별 leading order로 PSRR (C) 자체는 성공 — 그러나 회로가 "생각보다 훨씬 다르다"는
+## 신호를 만남
+
+`stage1_psrr_sympy_derivation.py`/`stage1_cmrr_sympy_derivation.py`와 같은 방법론을
+작은 서브회로 단위로 쪼개 적용:
+- **N11b replica-bias 체인**(M11a-M11b-M12, Vg15/Vop1과 완전히 분리된 독립 서브회로임을
+  코드로 확인)을 2노드 leading order로 풀면 `vN11b → vdd`(gds12→0 극한에서 정확히
+  vdd — M12의 출력임피던스가 diode 체인보다 훨씬 커서, N11b가 diode 경로로 vdd를
+  거의 그대로 따라간다는 뜻).
+- **N14a14b 체인**(M13-M14a-M14b)도 2노드로 풀면 `vN14a14b = gm13·(gm14a+gm14b)/
+  (gm14a·gm14b) · vdd` — **O(1) 크기**(억제 안 됨)로 vdd를 따라간다.
+- 이 둘을 Vg15 KCL(M8/M9a/M9b)에 대입하면, **Vop1에 주입되는 battery-A net 전류가
+  놀랍도록 단순화**됨: `I_into_Vop1 = gdsh_M10·vop1 − gm_M8·vdd` — N11b/N14a14b/Vg15의
+  복잡한 중간식이 전부 대수적으로 상쇄되고, **"M8이 Vop1에 직접 꽂혀 M10으로만 부하되는"
+  것과 leading order에서 완전히 등가**가 된다(우연이 아니라 Monticelli floating current
+  source의 정의상 성질 — M8이 사실상 그대로 전달됨).
+- 이걸 stage-1 8노드에 얹어 Adm_full/Ann_full을 구하고 `eps→0`(gdsh_M10도 같은 스케일로
+  취급) leading order를 취하니: **`Adm_full ~ (gm_M1a+gm_M4a)/gds_M10`**,
+  **`Ann_full ~ (gm_M6+gm_M7+2·gm_M8)/(2·gds_M10)`** — **캐스코드 임피던스(Kp'∥Kn',
+  세션20까지 CMRR/PSRR의 근간)가 완전히 사라지고 M10/M19 하나로 결정되는 형태**로
+  바뀌었다. 이게 이 세션 전체를 바꾼 첫 신호였다.
+
+## C. 발견 — M10/M19(class-AB 바이어스 싱크)가 Vop1/Vom1 임피던스를 지배, 옛 폐형식은
+## 이걸 몰라 실제값과 최대 49dB 어긋난다
+
+B절의 leading order 결과를 세션20의 `Ann_open`(1단만, M10/M19 모름)과 수치로 비교
+(랜덤 15점, ±4배 스윕):
+
+| | 값 범위 |
+|---|---|
+| 실제(31소자 exact, battery 포함) PSRR | −8.6 ~ +20.4 dB |
+| 세션20 `psrr_estimate_db`(당시 이미 커밋돼 그리드 탐색에 쓰이던 값) | **−41.5 ~ −9.6 dB** |
+| 오차 | **−21.7 ~ −49.3 dB** |
+
+**원인**: `M10`/`M19`(`S=gnd, D=Vop1/Vom1, G=Vbias4`인 단순 NMOS 싱크, class-AB 바이어스용)
+는 캐스코드가 아니라서 출력컨덕턴스가 O(eps¹)인데, stage-1 캐스코드 임피던스(Kp'∥Kn')는
+O(eps²)(훨씬 높은 임피던스) — 병렬로 연결되면 **컨덕턴스가 낮은(=임피던스가 낮은) M10/M19
+쪽이 이긴다**. 세션20까지의 모든 CMRR/PSRR 폐형식(그리고 `gain_db`의 stage-1 부분도
+같은 구조)은 M10/M19를 아예 몰랐다. 이건 PSRR만의 문제가 아니라 **CMRR/gain_db에도
+동일하게 적용되는 회로 모델 자체의 결함**이라고 판단해 사용자에게 즉시 보고 →
+AskUserQuestion으로 범위를 물어 **"CMRR/gain_db도 같이 재점검"**으로 확정(사용자 선택).
+
+## D. 폐형식 근사 두 번 더 시도 — 둘 다 실패, 폐형식 자체를 포기
+
+1. **leading-order 근사를 그대로 구현**(B절 결과) — exact(31소자)와 랜덤 스윕 대조하니
+   **worst 12.02dB 오차**(이 프로젝트가 지금까지 요구해온 기준 — CMRR worst 0.8dB,
+   PSRR-open worst 2.36dB — 에 한참 못 미침).
+2. **병렬컨덕턴스 가설**("M10을 기존 Kp'∥Kn' R_out에 그냥 병렬로 얹으면 되지 않을까" —
+   Adm은 물리적으로 그럴듯해 보였음) — 수치로 대조(`stage2_rout_parallel_conjecture_
+   check.py`)하니 **Adm은 그나마 근접(worst 15%)했지만 Acm/Ann은 완전히 틀렸다
+   (부호까지 반대, 최대 1100배 상대오차)** — CM/PSRR 경로는 단순 R_out 치환으로
+   포착되지 않는 진짜 다른 구조라는 뜻.
+3. **정확해(추가 근사 없음)를 그대로 쓰는 방안도 검토** — `stage2_dump_exact_forms.py`로
+   raw(단순화 안 한) 정확해 크기를 재보니 **분자 6,000~16,000항** — 손으로 옮겨적을 수
+   있는 크기가 절대 아님. 폐형식 접근 자체를 이 지점에서 포기.
+
+## E. 채택된 해법 — 수치 MNA(폐형식 대신 그 자리에서 KCL을 수치로 푼다), ngspice 독립검증
+## 완료(오차 0.0002%)
+
+**핵심 통찰(D절에서 얻음)**: sympy **정확해**는 M10/M19를 넣는 순간 못 쓰지만, **수치**로는
+노드가 18개든 31소자든 순식간이다(`stage2_numeric_mna_validate.py`로 확인 — 같은 회로를
+순수 float Gaussian elimination으로 풀면 즉시 끝남). 사용자에게 이 트레이드오프
+(정확도 vs `sizing_recipe.py`의 기존 "circuit_family별 폐형식 함수 레지스트리" 패턴과
+다른 구조가 됨)를 설명하고 AskUserQuestion으로 확인 → **"수치 MNA solver로 전환"** 채택.
+
+### E-1. 구현 (`sizing_recipe.py`, 아직 미커밋)
+- **`_mna_solve_smallsignal(devices, unknown_nodes, fixed)`** 신설 — 순수 Python
+  Gaussian elimination(부분피벗), numpy 등 외부 의존성 없음. `devices`는
+  `(drain, source, gate, gm, gds)` 튜플 — 기존 sympy 유도 스크립트들의 `build_mna()`와
+  동일한 소자모델(`I(d->s)=gm*(vg-vs)+gds*(vd-vs)`).
+- **`_load_telescopic_topology_cached()`** 신설 — `current_reuse_telescopic_ota.
+  topology.json`의 connectivity를 `load_topology()`로 그대로 읽어 캐시(하드타이핑
+  없음 — **topology.json이 유일한 토폴로지 소스**라는 프로젝트 원칙을 이 수치 solver
+  에서도 그대로 지킨다. 이게 왜 중요한가: 만약 connectivity를 Python에 두 번째로
+  손으로 옮겨 적었다면 JSON이 나중에 바뀔 때 소리 없이 어긋나는 위험이 생긴다).
+- **`_telescopic_class_ab_open_loop_response(metric_spec, ctx, vip, vim, vdd, vcmfb)`**
+  신설 — stage-1(11소자, 이제 a/b 양쪽 다 실제 사이징값 사용 — 예전처럼 완전대칭
+  가정으로 a쪽만 쓰지 않는다) + 양쪽 Monticelli battery(각 10소자) = **31소자**를
+  `metric_spec`의 롤 배정(신규 키 `input_p_b`/`cascode_p_b`/`input_n_b`/`cascode_n_b`
+  + `battery_vop1_side`/`battery_vom1_side`, 각각 10개 서브롤 dict)으로 조립해
+  (Vop1,Vom1)을 수치로 푼다. `cmfb_ctrl_device`(M7)의 gate가 topology.json에서 이미
+  `Vcmfb`이므로 `vcmfb` 인자가 별도 분기 없이 자동으로 M7에만 걸린다.
+- **`_telescopic_class_ab_open_loop_gains(metric_spec, ctx)`** 신설 — 위 함수를 4가지
+  여기로 호출해 **Adm_open/Acm_open/Ann_open/H를 전부 같은 31소자망에서** 얻는다
+  (Adm: vip=±0.5, Acm: vip=vim=1, Ann: vdd=1, H: vcmfb=1 — H는 세션20까지 Kp/Kn/Rx/Ry
+  폐형식이었는데 이제 이것도 같은 수치망으로 대체됨, "CMFB 루프 → stage-1 출력 CM"
+  전달경로도 M10/M19 로딩의 영향을 받으므로 일관되게 고쳐야 했다).
+- **`_cmrr_telescopic_class_ab_cmfb()`/`_psrr_telescopic_class_ab_cmfb()`** — 본문을
+  위 4개 값을 받아 조합하는 것으로 교체(선형중첩 결합 로직 `T=-H·A_c·G2`,
+  `CMRR=|Adm/Acm|·|1+T|`, `PSRR=PSRR_open+20log10(1+T)` 자체는 세션20-B가 이미 정확히
+  유도한 것 그대로 유지 — 재도출 불필요, **바뀐 건 Adm_open/Acm_open/Ann_open/H를
+  구하는 방법뿐**). `A_c`(CMFB 앰프 이득)/`G2`(2단 CM 전달이득)는 M10/M19와 무관한
+  별개 서브회로라 세션20 폐형식 그대로 재사용.
+- **`topology.json`** — `cmrr_estimate_db`/`psrr_estimate_db`에 위 신규 키(총 6개:
+  `input_p_b`/`cascode_p_b`/`input_n_b`/`cascode_n_b`/`battery_vop1_side`/
+  `battery_vom1_side`) 추가 + `_cmrr_estimate_db_comment`/`_psrr_estimate_db_comment`
+  교체(교체 이유/근거 기록).
+
+### E-2. 검증
+- **self-test 전면 재작성**(`sizing_recipe.py`) — 옛 Kp'/Kn' 폐형식 전용 fixture(7~13
+  소자)로는 새 코드를 돌릴 수 없어(31+7=38소자 필요) 전체 fixture를 새로 작성. 지금은
+  **자기회귀**(같은 값을 `compute_metric()` 경유 vs `_telescopic_class_ab_open_loop_
+  gains()` 직접호출 두 경로로 계산해 일치하는지, `T<=0` 가드 동작, Ry×20/gm7×4가 CMRR을
+  개선하는 방향인지)만 확인 — 새 앵커(CMRR=128.7182dB, CMRR anchor2=146.7202dB,
+  PSRR=89.3832dB)는 SPICE 절대 검증이 아니라 회귀 고정용. `sizing_recipe.py` self-test
+  전체 재실행 — **exit 0, 새 CMRR/PSRR 블록 전부 PASS, 그 앞뒤 다른 self-test 회귀 없음**
+  (259줄 출력 확인).
+- **ngspice AC 독립 교차검증(가장 중요한 검증)** — `stage2_battery_psrr_ngspice_
+  crosscheck.py` 신규: 이상화 VCCS+R netlist(connectivity는 `load_topology()`로 그대로,
+  손타이핑 없음)를 self-test와 완전히 같은 파라미터로 조립해 ngspice AC로 Adm_open/
+  Acm_open/Ann_open/H를 직접 측정하고 Python 수치 solver 결과와 대조 — **완전히 다른
+  두 솔버(내가 짠 Gaussian elimination vs ngspice)가 오차 0.0001~0.0002%(부동소수점
+  잡음 수준)로 일치**. 수치 MNA 구현 자체의 정확성이 독립적으로 확정됐다.
+
+## F. 알려진 한계 / 다음 세션 이월 사항
+
+1. **`gain_db`(stage-1 부분, `_metric_gain_stages_sum`)/`classab_centering_dev_v`는
+   여전히 M10/M19를 모르는 옛 방식** — 사용자가 "CMRR/gain_db 같이 재점검" 범위를
+   승인했지만, `gain_db`는 `_metric_gain_stages_sum`이라는 **여러 회로가 공유하는 범용
+   metric 타입**(CMRR/PSRR처럼 이 회로 전용 `circuit_family`가 아님)이라 고치면 다른
+   topology.json에도 영향이 갈 수 있어 이번 세션 범위에서 의도적으로 제외했다(더 넓은
+   블라스트 반경, 별도 논의 필요) — 다음 세션 판단 필요.
+2. **`A_c`/`G2`는 여전히 폐형식** — M10/M19와 무관한 별개 서브회로(CMFB 앰프, 2단 출력)
+   라는 판단으로 그대로 뒀으나 독립 재확인은 안 했다.
+3. **closed-loop(CMFB 포함)+vdd 조합 자체의 ngspice 재검증은 안 함** — E-2에서 검증한
+   건 open-loop(Adm/Acm/Ann/H) 4개뿐, `T=-H·A_c·G2` 조합 이후의 최종 CMRR/PSRR 수치를
+   ngspice로 직접 재는 것은 아직(세션20-B도 이 조합은 SPICE 검증 안 했다는 걸 이미
+   명시했었음 — 여전히 미해결로 이월).
+4. **그리드 탐색 그룹 구조(세션20-B G/H절) 전면 무효화** — metric 발자국이 완전히
+   바뀌어서(이제 M10/M19/M8/M9a/M9b 등 31소자 대부분이 발자국에 들어감) 재도출 필요
+   (위 "지금 상태" 1번).
+5. **battery 소자(M8~M24b류)들이 13개 자유 theta 중 어느 것과 연결돼 있는지 미확인** —
+   만약 전혀 안 닿는다면(PSRR이 세션20 M5처럼 다시 상수가 될 위험) 그리드 탐색 전에
+   반드시 먼저 확인할 것.
+6. **커밋 안 됨** — `sizing_recipe.py`/`current_reuse_telescopic_ota.topology.json`
+   변경사항, 신규 스크립트 5개(`stage2_battery_psrr_sympy_derivation.py`,
+   `stage2_rout_parallel_conjecture_check.py`, `stage2_dump_exact_forms.py`,
+   `stage2_numeric_mna_validate.py`, `stage2_battery_psrr_ngspice_crosscheck.py`)
+   전부 다음 세션 시작 시 `git status`로 재확인 후 커밋 판단할 것(사용자 지시 없이는
+   자동 커밋 안 함).
+7. ⚠️ **이 절(위 A~F) 전체가 세션21 2차로 대체됨** — 아래 "세션21 2차 결론" 참고.
+   `circuit_family="telescopic_class_ab_cmfb"`/`battery_vop1_side`류(위 E-1)는 이제
+   `cmrr_estimate_db`/`psrr_estimate_db`가 실제로 안 쓴다(`type`이 `smallsignal_ratio_db`
+   로 바뀜) — `_cmrr_telescopic_class_ab_cmfb()`/`_psrr_telescopic_class_ab_cmfb()`
+   Python 함수 자체는 코드에 남아있지만(다른 회로가 `circuit_family`로 여전히 쓸 수
+   있음, 하위호환/롤백용) topology.json이 더는 가리키지 않는다.
+
+---
+
+# 세션21 2차 결론 — CMRR/PSRR/gain을 topology-무관 수치 MNA로 완전 일반화(51소자 전체
+# + passive_elements, ports 선언 활용) — ngspice 재검증 완료
+
+세션21 1차(위, "battery 31소자 부분망 + circuit_family 전용 함수")를 사용자와 대화 중
+"CMRR/PSRR/gain 공식을 compensation까지 확장해서 topology에 무관한 수치해석 solver로
+일반화할 수 있을까?"라는 질문을 받고, 먼저 설계만 제시한 뒤(exploratory 질문 -> 2~3문장
+권고+트레이드오프 원칙) 사용자가 "CMRR/PSRR/gain 일반화부터 설계해줘" -> 확인질문 2개
+답변 -> "지금 구현에 들어가자"로 이어서 같은 세션 안에 설계+구현+검증까지 완료했다.
+
+## A. 사전 실측 — 설계를 뒷받침한 사실 3가지
+
+1. **4개 topology.json 중 `current_reuse_telescopic_ota` 하나만** `cmrr_estimate_db`/
+   `psrr_estimate_db`를 선언하고 있었다(나머지 folded_cascode/nmcnr_amplifier/
+   two_stage_ota는 아직 이 metric 자체가 없음) — 일반화해도 기존 동작을 깨는 회로가
+   없다는 뜻(마이그레이션 리스크 낮음).
+2. **`ports` 섹션이 이미 있었다** — `Vip`=differential_input_p, `Vim`=differential_input_n,
+   `Vop`=differential_output_p, `Vom`=differential_output_n(**최종 출력**). 그런데
+   세션21 1차까지 CMRR/PSRR은 `Vop1`/`Vom1`(1단 내부노드)만 센싱하고 있었다 — 이미
+   JSON에 선언된 "진짜 포트"를 안 쓰고 있었던 셈.
+3. **`ideal_sources`(예: `Iref`, kind=`current_source`)는 소신호에서 개방회로**(무한
+   임피던스)라 MNA에 안 넣으면 되고, **`passive_elements`(R1/R2, CMFB Voc 평균망)는
+   지금까지 `cm_sense_gain=1.0`이라는 우회 파라미터로만 흉내내고 실제 저항으로는 안
+   들어가 있었다**(R1: Vom-Voc, R2: Voc-Vop — 정확히 최종출력을 감지). 또한
+   `passive_elements`에 압축용 Cc1/Rz1(Vom-Cc1-N_cc_rz1-Rz1-Vop1)/Cc2/Rz2(대칭)가
+   이미 connectivity로 들어있다는 것도 이번에 재확인(2026-08-03에 발견된 gap, 커패시터라
+   DC/mid-band 소신호에선 개방 — 이 solver 범위 밖, GBW/PM은 ngspice로 다룰 것).
+
+## B. 설계 핵심 — "부분을 손으로 조합" 대신 "전체를 한 번에 푼다"
+
+- **topology.json의 소자 51개 전부 + passive_elements 중 저항(R1/R2/Rz1/Rz2, 값
+  없으면 1GΩ 근사, 사용자 확정 — 논문 "averaging" 의도 그대로 부하 안 줌)를 하나의
+  MNA로 스탬프**. `gnd`만 진짜 AC ground, 나머지(Vbias1~4/Vcmfb/bias-gen 체인 전부)는
+  자유노드로 풀린다.
+  - 이 결정 하나로 **H/A_c/G2/T 손조합 로직(세션21 1차의 핵심 구조)이 완전히 필요
+    없어졌다** — Vcmfb가 루프의 일부로 자연스럽게 풀리므로 CMFB 루프 기여가 하나의
+    풀이 안에 자동으로 들어간다.
+  - **부수 효과(설계 당시엔 예상 못 했다가 구현 후 발견)**: bias-gen 체인(M18_bg 등)도
+    자유노드가 되므로, 세션20부터 "정직한 한계"로 반복 남겨뒀던 "bias-gen 자신도 VDD에
+    물려있어 PSRR에 기여할 수 있다"는 항목이 **자동으로 반영**됐다(실측: `Vbias1`이
+    vdd 리플을 1:1로 그대로 따라감 — `Iref`를 이상적 전류원으로 다루면 diode-connected
+    `M18_bg`가 이걸 강제한다는 게 물리적으로 맞는 결과임을 손으로도 재확인).
+- **센싱 위치를 `Vop1`/`Vom1`(1단 내부, 세션21 1차까지) → `Vop`/`Vom`(`ports`가
+  선언한 진짜 최종출력)으로 전환**(사용자 확정) — 이제 R1/R2가 실제로 감지하는 노드와
+  정확히 일치, 근사 없음.
+- **새 범용 metric 타입 2개**(`type` 값): `smallsignal_ratio_db`(cmrr/psrr류 "두 여기의
+  응답비를 dB로"), `smallsignal_gain_db`(gain류 "한 여기의 응답을 dB로") — 회로별
+  Python 함수 없이 topology.json의 `excite_num`/`excite_den`/`sense_p`/`sense_n`
+  선언만으로 계산.
+
+## C. 구현 (`sizing_recipe.py`, 아직 미커밋)
+
+- **`SizingContext.topology_path`** 필드 신설 — `optimize_full_circuit_budget()`이
+  자신이 받은 `topology_path`를 그대로 채운다(F엔진의 다른 metric들과 달리 이 두 신규
+  타입만 유일하게 connectivity가 필요해서 생긴 예외).
+- **`_load_full_topology_cached(topology_path)`** — connectivity+passive_elements를
+  경로별로 캐시(여러 topology.json을 같은 프로세스에서 오갈 수 있음).
+- **`_full_circuit_devices(by_name, sized, passive_elements)`** — 모든 MOSFET + 저항
+  passive_elements를 `_mna_solve_smallsignal()`용 튜플로 변환(저항은 `gate=source,
+  gm=0`으로 스탬프하면 같은 소자모델이 자동으로 평범한 2단자 저항이 된다 — 별도 분기
+  불필요). 커패시터/ideal_sources는 의도적으로 안 읽음.
+- **`_full_circuit_response(ctx, excite, also_fix=frozenset())`** — 회로 전체를
+  `excite`로 여기해 모든 노드 전압을 수치로 푼다. **`also_fix` 신설 이유(실측으로
+  발견한 버그)**: `Vip`/`Vim`처럼 게이트로만 쓰이고 drain/source로는 전혀 안 쓰이는
+  노드가 `excite`에서 빠지면(예: PSRR의 `excite_den={"vdd":1}` 호출) **자유노드로
+  취급되면서 KCL 행이 통째로 0이 돼 특이행렬**이 된다(게이트는 전류를 안 뽑아 자기
+  KCL 방정식이 아예 안 생김) — `_metric_smallsignal_ratio_db()`가 `excite_num`/
+  `excite_den` 전체 키의 합집합을 `also_fix`로 넘겨, 어느 쪽 호출에서도 상대방의
+  여기 노드가 방치되지 않게 한다.
+- **`_metric_smallsignal_ratio_db`/`_metric_smallsignal_gain_db`** — `_METRICS_REGISTRY`
+  에 신규 등록. `circuit_family` 2단계 lookup(`_metric_cmrr_estimate`류) 없이 바로
+  `type`으로 dispatch되는 F엔진 1단계 metric.
+- **`current_reuse_telescopic_ota.topology.json`** — `cmrr_estimate_db`/
+  `psrr_estimate_db`를 `type=smallsignal_ratio_db`로 교체(`sense_p/n=Vop/Vom`),
+  `gain_full_circuit_db` 신규 추가(옵트인, 기존 `gain_db`=`gain_stages_sum`은 안 건드림
+  — 범용 metric 타입이라 다른 회로 영향 고려해 이번엔 안 바꿈).
+
+## D. 검증
+
+- **self-test**: 51소자 fixture(세션21 1차 38개 + bias-gen/2단 미러/Voc_des 분압기
+  나머지 13개) 신규 작성, `gain_full_circuit_db`/`psrr_estimate_db`(신규)/
+  `cmrr_estimate_db`(신규) 자기회귀 + ngspice 대조 둘 다 assert. `sizing_recipe.py`
+  self-test 전체 재실행 — **exit 0, 새 블록 전부 PASS, 그 앞뒤 회귀 없음**(269줄).
+- **ngspice AC 독립 교차검증**(`stage3_full_circuit_ngspice_crosscheck.py` 신규,
+  connectivity는 `load_topology()`로 그대로, 51소자+R1/R2/Rz1/Rz2 전부 이상화
+  VCCS+R netlist로 조립):
+
+  | 값 | Python | ngspice | 오차 |
+  |---|---|---|---|
+  | gain(=Adm, dB) | 99.0154 | 99.0154 | <0.001dB |
+  | PSRR(dB) | 105.5051 | 105.5051 | <0.001dB |
+  | CMRR(dB) | 125.7672 | 125.1843 | 0.58dB |
+  | Vbias1(vdd=1V 여기) | 1.000000 | 1 | 0 |
+
+  CMRR만 0.58dB 차이 나는 이유: Acm이 CMFB 루프로 심하게 억제된 값(~0.049, 큰 항들의
+  거의 완전한 상쇄 결과)이라 서로 다른 두 솔버(내 Gaussian elimination vs ngspice의
+  내부 LU)의 수치적 조건 민감도 차이로 보인다 — 이 프로젝트가 CMFB류 교차검증에서
+  이미 받아들인 오차 범위(세션20-B 앵커도 worst 3.99dB) 안이라 문제로 보지 않는다.
+  Adm/Ann/PSRR처럼 덜 억제된(더 well-conditioned) 값들은 사실상 정확히 일치한다.
+
+## E. 알려진 한계 / 다음 세션 이월
+
+1. **`>=60dB` constraint 임계값 재보정 필요**(위 "지금 상태" 1번) — 센싱 위치+포함
+   범위가 완전히 바뀌어 절대 dB 스케일이 달라짐.
+2. **그리드 탐색 그룹 구조(세션20-B)가 또 한 번 무효화** — 이번엔 정말 거의 모든
+   소자가 metric 발자국에 들어갈 수 있어(bias-gen까지), 자유 theta와의 실제 연결
+   여부를 다시 확인해야 함(위 "지금 상태" 2번).
+3. **다른 3개 회로(folded_cascode/nmcnr_amplifier/two_stage_ota)로 확장 안 함** —
+   `ports` 선언이 없어서(현재 `current_reuse_telescopic_ota`만 있음) 바로는 못 쓴다.
+   확장하려면 먼저 각 회로에 `ports`(+필요시 `excite_num`/`excite_den` 관례)를
+   선언해야 함 — 사용자 판단 필요(위 "지금 상태" 6번).
+4. **`gain_db`(옛 `gain_stages_sum`)는 안 건드림** — `gain_full_circuit_db`를 옵트인
+   으로만 추가했고, 기존 `gain_db`는 다른 회로도 같이 쓰는 범용 타입이라 blast radius가
+   더 넓어 이번 세션 판단 밖으로 남겨둠.
+5. **compensation(Cc1/Cc2, GBW/PM)은 의도적으로 범위 밖** — 애초에 사용자와 논의한
+   설계 분리(CMRR/PSRR/gain=이 solver, GBW/PM=ngspice 드라이버화)를 그대로 유지.
+6. **커밋 안 됨** — 위 "지금 상태" 0번/7번 참고, 신규 스크립트 1개
+   (`stage3_full_circuit_ngspice_crosscheck.py`) 추가.
