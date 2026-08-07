@@ -1642,7 +1642,35 @@ def find_verified_differential_and_mirror_relations(transistors: list, inputs=()
     조합/양방향/버킷 후보에서 중복 검출되면 `(direction, frozenset(devices))` 기준으로
     **버킷별로** 중복 제거한다(대표 branch 쌍 하나만 남김 -- 단, 승격된 `inputs=`로
     재실행해 같은 쌍이 `no_connection`에서 `differential`/`mirror`로 옮겨가는 것 자체는
-    막지 않는다, 버킷이 다르면 별개 dedup 대상)."""
+    막지 않는다, 버킷이 다르면 별개 dedup 대상).
+
+    ⚠️ `"{category}_branch_members"`(예: `"differential_branch_members"`) 필드도 함께
+    반환한다(2026-08-08 신설, 사용자 지적) -- 각 카테고리 비교에 **참여한 모든 branch의
+    소자 전체**(dedup으로 버려진 branch 조합 포함, 중복 없는 정렬된 이름 리스트). 위
+    소자쌍 dedup은 출력 리스트만 줄이지 이 필드에는 영향 없다 -- `Vx`처럼 두 소자
+    (`M6`/`M7`)가 병렬로 같은 tail을 먹이면 `[M6,M1a,...]`/`[M7,M1a,...]`/`[M6,M1b,...]`/
+    `[M7,M1b,...]` 네 chain이 전부 같은 signature 그룹이라 `(M1a,M1b)` 관계가 `M6`쪽
+    조합과 `M7`쪽 조합 양쪽에서 독립적으로 검출되는데, `devices` 기준 dedup이라 먼저
+    처리된 쪽만 출력 리스트에 남는다 -- 이때 `differential`(출력 리스트)만 보면 `M7`이
+    이 관계에 참여했다는 사실 자체가 사라지지만, `differential_branch_members`는 dedup
+    이전에 무조건 기록하므로 `M7`도 정확히 포함된다(`_propose_vertical_stack_ids()`의
+    fan-in 판정이 바로 이 필드를 쓴다, 실측: `M58`의 fan-in 후보 `M6`/`M7` 중 `M7`만
+    "차동쌍 소속 아님"으로 잘못 판정돼 `M58`->`M7`로 오확정되던 문제가 이걸로 해소되고
+    `M58`->`M57`로 정정됨).
+
+    ⚠️ **방향 인식 "상류 구간"만 누적(2026-08-08, 두 번의 시행착오 끝에 확정, 사용자
+    통찰)** -- `branch_members`는 각 (a,b) 비교마다 `ca`/`cb`의 **그 비교 위치까지의
+    상류 구간만** 담는다. `vdd_to_gnd`는 chain이 레일(VDD)에서 시작하므로 상류=앞쪽
+    (`ca[:pos+1]`), `gnd_to_vdd`는 반대 방향이라 상류=뒤쪽(`ca[pos:]`, 레일이 chain의
+    끝에 옴) -- 같은 `M10`/`M19`도 `vdd_to_gnd`에서는 위치3(하류, 제외)이지만
+    `gnd_to_vdd`의 역순 chain에서는 위치0(방향을 안 따지면 "상류"로 잘못 보임)이라,
+    방향을 명시적으로 반영해야 두 방향 모두 일관되게 "이 비교에 실제로 관여한 레일쪽
+    경로"만 남는다(사용자가 "differential branch와 symmetric branch를 동시에 보고
+    구별"하라고 지적한 게 이 지점 -- `M10`이 배제돼야 하는 이유는 `M19`와의 진짜
+    mirror 관계 때문이 아니라 -- `M3a`/`M3b`도 서로 mirror 관계이면서 동시에 진짜
+    differential branch 소속이라 그 기준은 틀렸었다 -- 이 특정 (M1a,M1b) 비교에
+    도달하는 상류 경로가 아니기 때문이다). `M3a`/`M3b`는 `M4a`/`M4b` differential
+    발견(위치4) 자체의 상류에 있어 그 발견을 통해 정확히 포함된다."""
     netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
     if netclass is None:
         return None
@@ -1666,6 +1694,7 @@ def find_verified_differential_and_mirror_relations(transistors: list, inputs=()
     categories = ("differential", "mirror", "structurally_symmetric_no_connection")
     seen = {c: set() for c in categories}
     out = {c: [] for c in categories}
+    branch_members = {c: set() for c in categories}
     for direction, terminal in (("vdd_to_gnd", "gnd"), ("gnd_to_vdd", "vdd")):
         composite_branches = suggest_vertical_stack_composites(
             transistors, inputs, outputs, feedbacks, biases, clocks, direction=direction)
@@ -1690,12 +1719,53 @@ def find_verified_differential_and_mirror_relations(transistors: list, inputs=()
                             category = "differential"
                         else:
                             category = "structurally_symmetric_no_connection"
+                        # ⚠️ 2026-08-08 추가(사용자 지적) -- dedup은 출력 리스트(같은 소자쌍
+                        # 중복 방지)에만 적용하고, 이 비교에 참여한 branch 소자는 dedup과
+                        # 무관하게 항상 누적한다. 예: Vx가 M6/M7 두 소자로부터 병렬 공급되면
+                        # [M6,M1a,...]/[M6,M1b,...]/[M7,M1a,...]/[M7,M1b,...] 네 chain이
+                        # 전부 같은 signature 그룹에 들어가 (M1a,M1b) 관계가 M6쪽 조합과
+                        # M7쪽 조합 양쪽에서 독립적으로 검출되는데, dedup_key가 (direction,
+                        # frozenset(devices))라 소자쌍만 보므로 먼저 처리된 M6쪽만 out에
+                        # 남고 M7쪽 발견은 조용히 버려졌다 -- 그 결과 "M7도 M1a/M1b 차동쌍의
+                        # 유효한 대안 tail"이라는 사실이 diff_branch_members에서 사라져,
+                        # _propose_vertical_stack_ids()의 fan-in 판정(M58 등)이 M7을
+                        # 차동쌍 소속이 아니라고 잘못 판단하게 만들었다(실측 발견).
+                        #
+                        # ⚠️ **어느 구간을 누적할지가 두 번 틀렸다, 둘 다 실측/사용자 지적으로
+                        # 발견**: (1차, 폐기) `ca`/`cb` 전체를 누적 -- 이 (ca,cb) 쌍 안에서
+                        # 이 위치(pos)보다 하류에 있는, 이 관계와 무관한 별개 분기(예:
+                        # `[M6,M1a,M2a,M19]` vs `[M6,M1b,M2b,M10]`의 위치3 `M19`/`M10`,
+                        # `M9b`의 fan-in 후보 중 하나이자 진짜 mirror 관계의 당사자)까지
+                        # 딸려 들어와 M9b의 재판정이 새로 깨졌다. (2차, 폐기) "core mirror
+                        # 당사자면 differential에서 배제" -- 방향과 무관하다는 장점은 있었지만
+                        # `M3a`/`M3b`처럼 **같은 differential branch 안에 물리적으로 스택된
+                        # 캐스코드이면서 동시에 서로 mirror 관계**(같은 게이트)인 소자까지
+                        # 배제해버려 Test 42가 깨졌다(`M3b`가 진짜 differential branch
+                        # 소속인데 제외됨).
+                        #
+                        # **진짜 일반적 해법(사용자 통찰 -- "differential branch와 symmetric
+                        # branch를 동시에 보고 구별")**: `M10`이 배제돼야 하는 이유는 "mirror
+                        # 당사자라서"가 아니라 -- `M3b`도 mirror 당사자이지만 배제되면 안
+                        # 되므로 -- **이 (M1a,M1b) 비교에 도달하기까지 실제로 거쳐온 상류
+                        # 경로가 아니기 때문**이다. `vdd_to_gnd`에서 상류는 chain의 **앞쪽**
+                        # (`ca[:pos+1]`, 레일=시작점)이고, `gnd_to_vdd`에서는 방향이 반대라
+                        # 상류가 chain의 **뒤쪽**(`ca[pos:]`, 레일=끝점)이다 -- 그래서 같은
+                        # `M10`/`M19`도 `vdd_to_gnd`에서는 하류(위치3, 절단으로 제외)지만
+                        # `gnd_to_vdd`의 역순 chain에서는 앞쪽(위치0)에 와서 예전 "항상 접두사"
+                        # 코드가 반대로 포함시켰던 것 -- 방향별로 상류 쪽 슬라이스를 쓰면
+                        # 이 모순이 해소된다. `M3a`/`M3b`는 `M4a`/`M4b` differential 위치(4)
+                        # 자체의 상류(`ca[:5]`)에 있어 그 발견을 통해 정확히 포함된다.
+                        upstream = slice(0, pos + 1) if direction == "vdd_to_gnd" else slice(pos, None)
+                        branch_members[category].update(ca[upstream])
+                        branch_members[category].update(cb[upstream])
                         dedup_key = (direction, frozenset((a, b)))
                         if dedup_key in seen[category]:
                             continue
                         seen[category].add(dedup_key)
                         out[category].append({"direction": direction, "devices": (a, b),
                                                 "branch_a": ca, "branch_b": cb, "position": pos})
+    for c in categories:
+        out[f"{c}_branch_members"] = sorted(branch_members[c])
     return out
 
 
@@ -1805,14 +1875,24 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
     # branch 소속이 아니라면, differential branch의 일부인 후보보다는 그렇지 않은
     # 후보가 더 적합하다"는 원칙(differential-pair의 핵심 신호경로를 곁가지 tap으로
     # 오염시키지 않음). 후보가 둘 다 걸리거나 둘 다 안 걸리면(구별 신호 없음) 여전히
-    # ambiguous로 남긴다(실측: current_reuse_telescopic_ota에서 이 규칙으로 M9b->M10,
-    # M18b->M19, M58->M7 셋 다 풀려서 ambiguous_alternatives가 결국 빈 딕셔너리가 됨 --
-    # 이건 이 회로의 실측 결과이지 일반 보장은 아니다, Test 41이 구별 신호가 아예 없는
-    # 합성 fixture로 여전히 ambiguous_{name}이 남는 경우를 검증한다).
-    diff_branch_members = set()
-    for r in relations.get("differential", []):
-        diff_branch_members.update(r["branch_a"])
-        diff_branch_members.update(r["branch_b"])
+    # ambiguous로 남긴다.
+    #
+    # ⚠️ 2026-08-08 수정(사용자 지적) -- 원래는 relations["differential"]의 branch_a/
+    # branch_b만 모았는데, find_verified_differential_and_mirror_relations()가 소자쌍
+    # 단위로 dedup하면서(같은 (a,b)가 여러 branch 조합에서 나오면 하나만 남김) M7처럼
+    # "M1a/M1b 차동쌍의 유효한 대안 tail"인데도 M6쪽 조합이 먼저 dedup에 남는 바람에
+    # branch_a/branch_b 어디에도 안 나타나는 소자가 생겼다(실측 발견: M58의 fan-in
+    # 후보 M6/M7 중 M7만 "differential branch 소속 아님"으로 잘못 판정되어 M58->M7로
+    # 오확정됨, 실제로는 M58->M57이 맞다 -- M7도 M6과 마찬가지로 진짜 tail이라
+    # differential branch 소속이어야 한다). find_verified_differential_and_mirror_
+    # relations()가 이제 dedup 이전에 비교에 참여한 모든 branch를 따로 누적해
+    # "differential_branch_members"로 반환하므로 그걸 직접 쓴다 -- 없으면(구버전
+    # relations 하위호환) branch_a/branch_b로 폴백.
+    diff_branch_members = set(relations.get("differential_branch_members") or [])
+    if not diff_branch_members:
+        for r in relations.get("differential", []):
+            diff_branch_members.update(r["branch_a"])
+            diff_branch_members.update(r["branch_b"])
 
     resolved, ambiguous = {}, set()
     for dev, candidates in fan_in_candidates.items():
@@ -1829,7 +1909,15 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
     def assign(names, idiom):
         filtered = []
         for n in names:
-            if n in ambiguous:
+            # ⚠️ 2026-08-08 수정(사용자 지적) -- 원래는 ambiguous 소자를 "어떤 composite
+            # 에도" 못 끼게 조용히 전부 막았다(M58이 M6/M7 중 뭘 골라야 할지 모른다는
+            # 이유로, M57과의 명확한 diode-cascode 관계까지 같이 막혀서 ambiguous_M58로
+            # 고립됨). ambiguous는 "이 소자의 특정 후보들 사이에서 못 고른다"는 뜻이지
+            # "이 소자가 다른 모든 관계에서도 무효"라는 뜻이 아니다 -- 그 후보가 실제로
+            # 이 composite 안에 있을 때만(=이 composite에 합류하는 게 곧 그 모호한 선택을
+            # 암묵적으로 확정하는 셈일 때만) 제외한다. 관련 없는 composite(M58+M57류)는
+            # 정상적으로 합류한다.
+            if n in ambiguous and any(c in names for c in fan_in_candidates.get(n, ())):
                 continue
             if n in resolved and resolved[n] not in names:
                 continue  # resolved 소자는 자기 파트너가 낀 composite에서만 합류한다
@@ -1848,11 +1936,6 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
                 members_of[existing].add(n)
         return existing
 
-    for name in ambiguous:
-        group_name = f"ambiguous_{name}"
-        group_of[name] = group_name
-        members_of[group_name].add(name)
-
     for direction in ("vdd_to_gnd", "gnd_to_vdd"):
         branches = suggest_vertical_stack_composites(
             transistors, base_inputs, outputs, feedbacks, biases, clocks, direction=direction)
@@ -1866,6 +1949,20 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
         for b in priority + rest:
             for c in b["composites"]:
                 assign(c["members"], c["idiom"])
+
+    # ⚠️ 2026-08-08 이동(사용자 지적) -- 원래는 이 pre-population이 위 composite 스캔보다
+    # *먼저* 실행됐다. 그러면 M58처럼 ambiguous인 소자가 M57과의 명확한 diode-cascode
+    # composite을 스캔에서 만나도, group_of에 이미 "ambiguous_M58"이 박혀 있어서
+    # assign()의 existing 재사용 로직이 그 이름을 그대로 물려받아 M57까지 억지로
+    # ambiguous_M58에 편입되는 문제가 있었다(위 assign() 필터를 "관련 없는 composite도
+    # 막는" 문제와 함께 고침, 실측 발견). 이제 스캔이 실제로 찾아준 명확한 관계를 먼저
+    # 전부 반영하고, **그러고도 여전히 그룹이 없는** ambiguous 소자만 고립시킨다.
+    for name in ambiguous:
+        if name in group_of:
+            continue
+        group_name = f"ambiguous_{name}"
+        group_of[name] = group_name
+        members_of[group_name].add(name)
 
     # 위 composite 스캔에서 resolved 소자의 파트너 composite이 한 번도 안 나왔으면
     # (드문 경우, 다른 회로에서 발생 가능) 안전망으로 직접 합류시킨다.
@@ -1898,9 +1995,16 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
         for m in members:
             out[m] = final_name
 
+    # ⚠️ 2026-08-08 추가(사용자 지적 이슈의 연쇄 수정) -- ambiguous pre-population을
+    # 스캔 뒤로 미루면서(위 참고) candidates_of(원래 "resolved 판정 통과 못함" 집합)
+    # 그대로 쓰면, 스캔이 나중에 실제 그룹을 찾아준 소자(M9b/M18b류 -- 원래 판정은
+    # ambiguous였지만 diode-cascode/physical-stack 스캔에서 자기 파트너를 찾아 진짜
+    # 그룹에 합류함)까지 "여전히 미해결"로 잘못 보고하게 된다. 최종적으로 자기 자신만의
+    # 고립 그룹(`ambiguous_{dev}`)에 남은 소자만 진짜 미해결이다.
     ambiguous_alternatives = {
         dev: sorted({group_of.get(c, c) for c in candidates})
-        for dev, candidates in candidates_of.items()}
+        for dev, candidates in candidates_of.items()
+        if group_of.get(dev) == f"ambiguous_{dev}"}
 
     return {"groups": out, "ambiguous_alternatives": ambiguous_alternatives}
 
@@ -8754,3 +8858,39 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 45 전체 PASS ===")
+
+    print()
+    print("=== Test 46: find_verified_differential_and_mirror_relations()의")
+    print("    differential_branch_members -- '진짜 differential branch 소속'과")
+    print("    'symmetric(mirror) branch 소속'을 방향(vdd_to_gnd/gnd_to_vdd)에 안")
+    print("    흔들리고 정확히 구별하는지(세션25, 사용자 통찰: M10은 M19와의 진짜")
+    print("    mirror 관계 당사자라 differential branch가 아니다, M3a/M3b는 M4a/M4b")
+    print("    differential 발견의 상류라 mirror 관계이면서도 진짜 differential branch")
+    print("    소속이다) 합성 fixture로 검증 ===")
+    _t46_fixture = _t35_fixture + [
+        Transistor("M7", "pmos", source="vdd", drain="Vx", gate="Vbias5"),
+        # M2a/M2b의 drain(Nout1/Nout2)에서 갈라지는 별개 mirror branch(M19/M10류) --
+        # M1a/M1b differential 발견과 같은 chain-prefix를 공유하지만 그 발견의 하류
+        # (혹은 gnd_to_vdd 역순에서는 상류처럼 보이는) 무관한 분기.
+        Transistor("Mfork_a", "nmos", source="gnd", drain="Nout1", gate="Vbias6"),
+        Transistor("Mfork_b", "nmos", source="gnd", drain="Nout2", gate="Vbias6"),
+    ]
+    _t46_result = refine_differential_and_mirror_relations(_t46_fixture, inputs=("Vip", "Vim"))
+    assert _t46_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t46_diff_mem = set(_t46_result["relations"]["differential_branch_members"])
+    for dev in ("M6", "M7", "M1a", "M1b", "M4a", "M4b", "M3a", "M3b"):
+        assert dev in _t46_diff_mem, \
+            f"{dev}는 진짜 differential branch 소속이어야 하는데 빠짐: {_t46_diff_mem}"
+    for dev in ("Mfork_a", "Mfork_b"):
+        assert dev not in _t46_diff_mem, \
+            f"{dev}는 별개 mirror branch 소속이라 제외돼야 하는데 포함됨: {_t46_diff_mem}"
+    print("    PASS: M6/M7(병렬 tail, 서로 structurally_symmetric_no_connection)과")
+    print("    M3a/M3b(M4a/M4b 발견의 상류이자 서로 mirror 관계)는 전부 differential")
+    print("    branch 소속으로 정확히 포함됨")
+    print("    PASS: Mfork_a/Mfork_b(M19/M10류 별개 mirror branch, M1a/M1b 발견과")
+    print("    chain-prefix만 우연히 겹침)는 정확히 제외됨 -- 방향 인식 상류 슬라이스가")
+    print("    이 구별을 만들어냄(단순 전체 체인 누적이나 무조건 mirror 배제 둘 다 실패했던")
+    print("    반례들)")
+
+    print()
+    print("  === Test 46 전체 PASS ===")

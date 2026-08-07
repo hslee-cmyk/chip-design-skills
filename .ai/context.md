@@ -4120,3 +4120,75 @@ mirror), `M9a`(gap→floating_current_source), `M9b`(mirror→floating_current_s
 검증 필요. (2) `M58`(bias-tap, E절)은 이번 세션 `_reaches_output()` 기준으로는 안
 잡혔지만 headroom_role 규칙으로는 `cascode`로 정확히 맞음 -- 여전히 "캐스코드"라는
 이름이 기능적으로 맞는 서술인지는 별개 문제로 남음(사용자 판단 필요시 재검토).
+
+## H. 세션25 후속 -- `vertical_stack_id` declared 값 재검토 착수, 그 과정에서
+`find_verified_differential_and_mirror_relations()`의 근본 한계 발견/수정
+
+### H-1. `vertical_stack_id_candidates`(물리적 스택 기준)와 declared `vertical_stack_id`
+(더 넓은/일관성 없는 기준)의 불일치 발견
+사용자가 `M36a`/`M36b`(CMFB 좌우 대칭 load)가 왜 같은 `vertical_stack_id_candidates`
+그룹으로 안 묶이는지 질문 -- 확인해보니 둘은 서로 다른 branch에 있어(각자 `vdd`에서
+독립적으로 시작해 `M37a`/`M37b`를 통해 내려가는 병렬 구조) `suggest_vertical_stack_
+composites()`(branch 단위로 독립 스캔)가 원천적으로 하나로 못 묶는다 -- **물리적
+직렬 스택**만 보는 이 함수의 정의상 정상 동작.
+
+이어서 declared `vertical_stack_id` 전체를 물리적 스택 기준과 대조해보니(`M6`/`M7`/`M5`
+가 전부 "stage1"로 묶인 것, `biasgen_vom_a`가 진짜 신호경로(`M8`+`M9a`)와 순수
+바이어스 생성(`M13`+`M11a`+`M11b`)을 뭉쳐놓은 것 등), **declared 값이 물리적 스택
+기준 하나가 아니라 "설계 단계"(1단/2단/3단) 같은 더 넓은 기준과 뒤섞여 있음**이
+드러남. 사용자 판단: **declared 값을 전부 물리적 스택 기준으로 분해**하기로 결정
+(진행 중, 아래 H-3에서 재개).
+
+### H-2. `M58`의 fan-in 재판정 오류 -- `find_verified_differential_and_mirror_
+relations()`의 근본 한계 발견/수정 (사용자가 직접 근본원인까지 추적)
+`vertical_stack_id_candidates` 재계산 중 `M58`이 `M57`(진짜 diode-cascode 파트너)이
+아니라 `M7`과 묶이는 걸 발견 -- 사용자가 근본원인을 직접 추적: `M7`이 `diff_branch_
+members`(fan-in 재판정에 쓰는 집합)에서 빠져 있었다. 이유: `Vx`가 `M6`/`M7` 둘로부터
+병렬 공급되는데, `find_verified_differential_and_mirror_relations()`가 `(M1a,M1b)`
+관계를 `M6`쪽 조합에서만 찾고 `M7`쪽의 독립적인 동일 발견은 **소자쌍 dedup**(같은
+`(a,b)`가 여러 branch 조합에서 나오면 대표 하나만 남김)에 조용히 버려 `M7`이 "차동쌍
+소속 아님"으로 오판정, 그 결과 `M58`이 `M7`로 잘못 확정됨.
+
+**시행착오 3라운드(전부 사용자가 반례로 잡아냄)**:
+1. **전체 체인 누적** -- `ca`/`cb` 전체를 `branch_members`에 넣음. `M7` 문제는
+   해결했지만 `M10`/`M19`(전혀 다른 mirror 관계의 당사자)까지 같은 chain-prefix를
+   공유한다는 이유만으로 `differential_branch_members`에 끌려 들어와 `M9b`의 기존
+   fan-in 재판정(`M9b`->`M10`)이 깨짐.
+2. **"mirror 당사자면 differential에서 배제"** -- 방향 무관하게 동작하지만, `M3a`/
+   `M3b`(같은 differential branch에 물리적으로 스택된 캐스코드이면서 동시에 서로
+   mirror 관계)까지 배제해버려 Test 42(`M9b`류 fan-in 재현)가 깨짐. 사용자가 핵심을
+   짚음: "**differential branch와 symmetric branch를 동시에 보고 각각의 branch에
+   속한 걸 구별**해야 한다" -- `M10`이 배제돼야 하는 이유는 "mirror 당사자라서"가
+   아니라(`M3b`도 mirror 당사자이지만 배제되면 안 됨) 그 특정 differential 비교에
+   실제로 도달하는 상류 경로가 아니기 때문.
+3. **방향 인식 상류 슬라이스(최종)** -- `vdd_to_gnd`는 chain이 레일에서 시작하므로
+   상류=앞쪽(`ca[:pos+1]`), `gnd_to_vdd`는 반대라 상류=뒤쪽(`ca[pos:]`). 같은 `M10`/
+   `M19`가 `vdd_to_gnd`에서는 위치3(하류, 정상 제외)인데 `gnd_to_vdd`의 역순 chain
+   에서는 위치0(방향 무시하면 상류로 오인)에 온다는 게 실측으로 확인된 근본 원인 --
+   방향별로 슬라이스 방향을 뒤집으면 `M6`/`M7`(진짜 상류)과 `M3a`/`M3b`(다른 differential
+   발견의 상류)는 포함되고 `M10`/`M19`(무관한 별개 분기)는 제외된다.
+
+**구현**: `find_verified_differential_and_mirror_relations()`가 `"{category}_branch_
+members"` 필드(`differential_branch_members`/`mirror_branch_members`/
+`structurally_symmetric_no_connection_branch_members`) 신설 -- 소자쌍 dedup과
+무관하게 방향 인식 상류 슬라이스로 누적. `_propose_vertical_stack_ids()`의
+`diff_branch_members`가 이 필드를 직접 사용(없으면 구버전 폴백). 부수 버그 2개 추가
+발견/수정: (a) `assign()`이 `ambiguous` 소자를 **관련 없는** composite에서도 막고
+있었음(`M58`이 `M57`과 묶이는 것까지 차단) -- 후보 그룹에 실제로 걸릴 때만 제외하도록
+좁힘. (b) `ambiguous` pre-population이 composite 스캔보다 먼저 실행돼 스캔이 찾은
+진짜 그룹을 가로챔 -- 스캔 뒤로 이동. (c) `ambiguous_alternatives`가 스캔으로 이미
+해소된 소자까지 "미해결"로 보고 -- 최종 `group_of`가 여전히 고립 상태인 것만
+필터링하도록 수정.
+
+**실측 검증**: `M6`/`M7`/`M1a`/`M1b`/`M4a`/`M4b`/`M3a`/`M3b` -- 전부 `differential_
+branch_members`에 정확히 포함. `M10`/`M19` -- 정확히 제외. `M58`이 이제 `M57`과 같은
+그룹(`diode-connected_3`)으로 정확히 묶임. `ambiguous_alternatives`는 다시 빈
+딕셔너리(전부 실제로 해소). `headroom_role` 37/37 유지(회귀 없음). self-test Test 46
+신설(`M6`/`M7`류 진짜 상류 tail 포함 + `M3a`/`M3b`류 mirror-이면서-differential 포함 +
+`Mfork_a`/`Mfork_b`류 무관 mirror 분기 제외, 세 가지 반례 패턴 전부 한 fixture로 검증),
+self-test 46개 전부 재통과.
+
+### H-3. 다음 순서
+H-1에서 하려던 declared `vertical_stack_id` 재분해 작업을, 이번에 고쳐진(더 정확해진)
+`vertical_stack_id_candidates` 데이터로 다시 계산해서 이어갈 것 -- 이전에 사용자에게
+보여준 이름 표(`biasgen_vom_a`분해 등)는 옛 데이터 기준이라 재생성 필요.
