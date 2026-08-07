@@ -4188,7 +4188,27 @@ branch_members`에 정확히 포함. `M10`/`M19` -- 정확히 제외. `M58`이 �
 `Mfork_a`/`Mfork_b`류 무관 mirror 분기 제외, 세 가지 반례 패턴 전부 한 fixture로 검증),
 self-test 46개 전부 재통과.
 
-### H-3. 다음 순서
-H-1에서 하려던 declared `vertical_stack_id` 재분해 작업을, 이번에 고쳐진(더 정확해진)
-`vertical_stack_id_candidates` 데이터로 다시 계산해서 이어갈 것 -- 이전에 사용자에게
-보여준 이름 표(`biasgen_vom_a`분해 등)는 옛 데이터 기준이라 재생성 필요.
+### H-3. declared `vertical_stack_id` 재분해 완료
+H-2 수정 이후 데이터로 표를 재생성해보니 `M9b`+`M10`, `M18b`+`M19`가 새로 하나의
+물리적 그룹으로 정확히 합쳐짐이 확인됨(H-2 수정의 직접적 효과 -- `M9b`의 fan-in이
+`M10`으로 올바르게 재확정되면서 그 그룹에 정상 합류). `topology.json`의 declared
+`vertical_stack_id`를 물리적 스택 기준으로 전부 재분해:
+
+```
+stage1 -> vx_tail_a(M6) / vx_tail_b(M7) / vy_tail(M5)
+biasgen_vom_a -> biasgen_vom_a(M8,M9a, 유지) / biasgen_vom_diode_src(M13) /
+                 biasgen_vom_battery_a(M11a,M11b)
+biasgen_vom_b + biasgen_vom_d -> biasgen_vom_battery_a_sink(M12) /
+                 biasgen_vom_battery_b(M14a,M14b) /
+                 biasgen_vom_floatsrc_sink(M9b,M10 -- 새로 합쳐짐)
+biasgen_vop_* -> Vom측과 대칭 동일 패턴(M18b+M19도 새로 합쳐짐)
+biasgen_tree_a/b/root -> vbias4_gen(M60) / vbias3_stack(M64,M63) / vbias3_gen(M61) /
+                 vbias2_stack(M58,M57) / biasgen_ref(M18_bg) / vbias4_stack(M66) /
+                 vbias2_gen(M68)
+cmfb_load -> cmfb_load_a(M36a) / cmfb_load_b(M36b) / cmfb_vocdes_gen(M39,M40)
+cmfb_tail, diffpair_*, output_stage_* -> 변경 없음(이미 물리 기준과 일치했음)
+```
+
+self-test 46개 전부 재통과, `headroom_role` 37/37 유지(회귀 없음). 다음 세션 이월:
+이 재분해가 다른 3개 회로에서도 일반화되는지는 미검증(이번 세션 전체가
+`current_reuse_telescopic_ota` 하나로만 확인됨, F/G/H절 공통 한계).
