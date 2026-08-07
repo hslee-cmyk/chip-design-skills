@@ -1596,10 +1596,9 @@ def shares_diffusion_node(ra: "Transistor", rb: "Transistor") -> bool:
     `audit_row_split()`이 이미 **선언된** matching pair 하나의 interdig/centroid 정책을
     정할 때만 쓴다 — rail(vdd/gnd) 공유도 유효한 근거로 인정한다(예: 둘 다 source=vdd인
     전류거울 쌍은 실제로 인접 배치 가능하고, §2.7이 이미 이런 쌍의 interdigitation을
-    검증했다). 이건 `geometry_colocation_union()`의 자동 발견 규칙(레일 공유를 일부러
-    제외 — 서로 무관한 기능블럭이 레일 하나로 뭉개지는 false positive 방지, 아래 참고)과는
-    **다른 목적의 다른 판단**이니 헷갈리지 말 것 — 여기는 이미 확정된 쌍 하나만 보므로 그런
-    과병합 위험이 없다."""
+    검증했다). 이건 `geometry_colocation_union()`(세션22부터 matching_pairs 기반 +
+    검증된 stacked-composite 확장만 쓴다, 아래 참고)과는 **다른 목적의 다른 판단**이니
+    헷갈리지 말 것 — 여기는 이미 확정된 쌍 하나만 보므로 무근거 그룹 확장 위험이 없다."""
     na = {ra.source, ra.drain} - {None}
     nb = {rb.source, rb.drain} - {None}
     return bool(na & nb)
@@ -1665,35 +1664,39 @@ def kcl_series_union(netlist: list, matching_pairs: list) -> dict:
 
 
 def geometry_colocation_union(netlist: list, matching_pairs: list) -> dict:
-    """L2 축B(2026-08-05, 세션10 L1/L2 구현) — `derive_stack_groups()`를 분리한 것 중
-    geometry(축B, `sizing_recipe.py`의 `stack_groups_geometry`) 쪽. `kcl_series_union()`과
-    똑같은 union-find 골격이지만 **자동 발견 규칙1이 다르다**(세션8 실측 근거):
+    """L2 축B(세션22 전면 재설계) — `derive_stack_groups()`를 분리한 것 중 geometry(축B,
+    `sizing_recipe.py`의 `stack_groups_geometry`, `assign_finger_geometry()`의 finger_w
+    공유 단위) 쪽. `kcl_series_union()`(현재 전류 propagation용, 이 함수와 목적이 다르므로
+    별개로 유지)과는 이제 union 규칙 자체가 다르다.
 
-    1. **같은 극성 + non-rail net + `drain=source`(직렬)만 자동 병합**. `kcl_series_union()`의
-       "정확히 2단자" 규칙과 달리 극성/방향을 명시적으로 본다:
-       - rail(vdd/gnd/vss)은 제외 — rail 공유는 회로 전체가 결국 거기 닿기 때문에 병합
-         근거로 쓰면 서로 무관한 기능블럭이 뭉개진다(실측: `current_reuse_telescopic_ota`
-         vdd 16회/gnd 13회 hub가 통째로 한 그룹이 되는 false positive).
-       - 같은 극성끼리만 — PMOS/NMOS는 다른 well이라 같은 diffusion 행에 못 들어간다.
-       - `drain=source`(직렬/캐스코드)만, `drain=drain`(합류/정션)은 제외 — 정션 노드는
-         레이아웃 인접의 근거가 아니다(예: `M2a.drain=Vom1=M18a.drain`은 회로 메커니즘일
-         뿐 인접 근거가 아님, `M8.drain=Vg15=M9a.source`는 진짜 stacked series라 병합 타당).
-    2. **선언된 `matching_pairs`**: 호출자가 `current_forced=true`로 거른 쌍만 넘긴다는
-       계약(L1) — `current_mirror`/`branch_symmetric`(축A=false, 순수 문서용) 선언은
-       geometry 강제병합에서 완전히 제외해야 하므로(안 그러면 문서용 hub 그룹이 무관한
-       기능블럭을 다시 끌고 들어와 매칭 품질을 악화시킨다, 실측: dx=6.00 vs 3~4) 이 함수는
-       받은 쌍을 그대로 병합할 뿐이고 필터링은 호출자(`sizing_recipe.py`) 책임이다.
+    ⚠️ 세션22 재설계 배경(`.ai/context.md` 세션22 참고) — 옛 버전(2026-08-05, 세션10)은
+    "같은 극성 + non-rail + drain=source"면 **선언 여부와 무관하게** 자동 병합했다. 이
+    규칙이 `current_reuse_telescopic_ota`의 `Vx` 노드(stage-1 tail/diff-pair 공유
+    노드)에 `M58`(bias-gen 하우스키핑 소자, source=Vx)이 얹혀있다는 이유만으로 전류
+    규모가 수십~수백 배 다른 `M57/M58`을 `M6/M7/M1a/M1b/M2a/M2b`와 한 finger-공유
+    stack으로 묶어 `assign_finger_geometry()`가 공통 finger_w를 못 찾고 크래시하는
+    실제 사고로 이어졌다. 사용자 확정 설계: **matching_pairs가 그룹의 유일한 근거이고
+    (base), 물리적 직렬 스택 관계는 그 base 위에 "레이아웃 최적화를 위해 추가로
+    묶을 수 있는 후보"로만 확장한다** — KCL(같은 전류)과 geometry(같은 finger_w)가
+    다른 질문이라는 원칙(세션10)은 유지하되, geometry 쪽의 "자동 발견"을 무근거
+    connectivity 추측 대신 이미 검증된 `find_stacked_matching_candidates()`(세션19
+    C-3, 복합소자 상속 — declared matching pair 위에 **직접 stacked**된(같은 극성,
+    `drain=source`) 소자를 재귀적으로 찾는다)로 교체한다.
+
+    1. **base**: `matching_pairs`(호출자가 `current_forced=true`로 거른 쌍만 넘긴다는
+       계약은 그대로 — `current_mirror`/`branch_symmetric`류 순수 문서용 선언은 여전히
+       제외)를 그대로 union한다.
+    2. **확장**: `find_stack_edges()`(analog-grammar 재사용, 없으면 soft-fail로 확장
+       생략) + `find_stacked_matching_candidates()`로 각 base pair 위에 재귀적으로
+       쌓인 소자를 찾아 같은 그룹으로 union한다. 이 상속은 **base pair의 대표 소자
+       바로 위에 직렬로 얹힌, 같은 kind인 소자**만 좇아가므로(M1a→M2a처럼), `M58`처럼
+       "같은 노드를 소스로 공유하는 병렬 소비자"(M1a/M1b의 **형제**이지 위에 얹힌 게
+       아님)는 애초에 후보에 안 들어온다 — 별도 예외처리 없이 알고리즘 자체가 걸러낸다.
+    3. matching_pairs에도 없고 어떤 base 위에도 안 얹힌 소자(M6/M7/M57/M58류)는
+       각자 독립 그룹(finger_w를 자유롭게 고를 수 있음)으로 남는다 — 이게 정답이다,
+       레이아웃 압축을 위해 finger_w를 공유해야 할 전기적 근거가 없다.
 
     반환 형태는 `kcl_series_union()`과 동일."""
-    by_drain: dict = defaultdict(list)
-    by_source: dict = defaultdict(list)
-    kind_of = {t.name: t.kind for t in netlist}
-    for t in netlist:
-        if t.drain is not None:
-            by_drain[t.drain].append(t.name)
-        if t.source is not None:
-            by_source[t.source].append(t.name)
-
     parent = {t.name: t.name for t in netlist}
 
     def find(x):
@@ -1707,16 +1710,18 @@ def geometry_colocation_union(netlist: list, matching_pairs: list) -> dict:
         if ra != rb:
             parent[ra] = rb
 
-    for net, drain_names in by_drain.items():
-        if net in _RAIL_NETS:
-            continue
-        for src_name in by_source.get(net, []):
-            for drain_name in drain_names:
-                if drain_name != src_name and kind_of[drain_name] == kind_of[src_name]:
-                    union(drain_name, src_name)
+    base_pairs = []
     for names in matching_pairs:
         for a, b in zip(names, names[1:]):
             union(a, b)
+            base_pairs.append((a, b))
+
+    stack_edges = find_stack_edges(netlist)
+    if stack_edges:
+        for (_kind, a, b), members in find_stacked_matching_candidates(
+                netlist, base_pairs, stack_edges).items():
+            union(a, members[0].name)
+            union(b, members[1].name)
 
     order = {t.name: i for i, t in enumerate(netlist)}
     groups: dict = defaultdict(list)
@@ -3605,6 +3610,15 @@ def _branch_composite_pair(a: str, b: str, devices_by_name: dict, matching_pairs
 
     leaf_net_a = outer_a1 if hub_net == outer_a0 else outer_a0
     leaf_net_b = outer_b1 if hub_net == outer_b0 else outer_b0
+    if leaf_net_a == leaf_net_b:
+        # 세션22 실측 발견 -- hub쪽/leaf쪽 둘 다 선언된 matching_pair라도, 두 branch의
+        # leaf net이 같은 물리 노드면(예: M36a-M37a/M36b-M37b -- M37a/M37b가 진짜
+        # 차동쌍이라 서로 다른 legs가 아니라 공유 tail net(Ncmfb_tail)로 만나는 경우)
+        # "거울 branch"가 아니다 -- 이대로 composite를 만들면 두 composite의 drain이
+        # 똑같아져 나중에 common_centroid_layout()이 "leaf가 서로 달라야 한다"로 크래시한다
+        # (구조 정합성 확인이 불완전했던 gap, 여기서 조용히 None으로 거부해 호출자가
+        # 기존 개별-소자 경로로 폴백하게 한다).
+        return None
     composite_a = Transistor(name=f"__branch__{hub_a}_{leaf_a}", kind=dev_hub_a.kind,
                               source=hub_net, drain=leaf_net_a, n_fingers=dev_hub_a.n_fingers)
     composite_b = Transistor(name=f"__branch__{hub_b}_{leaf_b}", kind=dev_hub_b.kind,
@@ -5705,20 +5719,25 @@ if __name__ == "__main__":
     print("  드러났다(splits=2, probe_crossover_pairing_alternatives.py) — 세션17")
     print("  _select_crossover_pairing()이 대안(Vbias2/Vom1 + Vop1/Vx, crossover는 미매칭")
     print("  M57/M58 쪽에서만)으로 자동 교체해 splits=0을 달성하는지 확인]")
+    print("  ⚠️ 세션22부터 이 8소자는 geometry_colocation_union()이 더 이상 자동으로")
+    print("  묶지 않는다(M6/M7/M57/M58은 matching_pairs가 없어 각자 독립 그룹 -- stack")
+    print("  M6 크래시의 근본원인이었던 Vx fan-out 자동병합을 제거했기 때문, .ai/")
+    print("  context.md 세션22 참고). 이 테스트는 find_min_crossover_layout()/짝짓기")
+    print("  로직 자체(레이아웃 압축을 위해 이 8개를 한 행에 두기로 **의도적으로**")
+    print("  선언했다고 가정)를 검증하는 것이므로, 그룹을 geometry_colocation_union()")
+    print("  경유가 아니라 직접(수동 override와 동일한 방식으로) 구성한다.")
     import os as _os1213
     _lib1213 = _os1213.path.join(_os1213.path.dirname(_os1213.path.abspath(__file__)), "library")
     _m6_trs, _m6_meta = load_topology(
         _os1213.path.join(_lib1213, "current_reuse_telescopic_ota.topology.json"))
     _m6_pairs_meta = _m6_meta["symmetry"]["matching_pairs"]
-    _m6_forced = [tuple(p["names"]) for p in _m6_pairs_meta if p.get("current_forced")]
-    _m6_groups = geometry_colocation_union(_m6_trs, _m6_forced)
-    _m6_names = _m6_groups["M6"]
     _m6_by_name = {t.name: t for t in _m6_trs}
+    _m6_order = {t.name: i for i, t in enumerate(_m6_trs)}
+    _m6_names = sorted({"M6", "M7", "M1a", "M1b", "M2a", "M2b", "M58", "M57"},
+                        key=lambda n: _m6_order[n])
     _m6_group_trs = [_dc_replace(_m6_by_name[n], stack_id="M6") for n in _m6_names]
     _m6_inside_pairs = [tuple(p["names"]) for p in _m6_pairs_meta
                          if set(p["names"]) <= set(_m6_names)]
-    assert set(_m6_names) == {"M6", "M7", "M1a", "M1b", "M2a", "M2b", "M58", "M57"}, \
-        f"M6 그룹 소자 구성이 예상과 다름(topology.json이 바뀌었을 수 있음): {_m6_names}"
 
     _m6_g = build_graph(_m6_group_trs)
     _m6_odd = check_euler_condition(_m6_g).odd_nodes

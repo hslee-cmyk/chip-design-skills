@@ -1161,13 +1161,27 @@ class SizingContext:
     `topology_path`를 그대로 채워둔다. `_metric_smallsignal_*()`(topology-무관 수치 MNA
     metric)류가 connectivity를 읽어야 할 때 이걸로 `load_topology()`를 호출한다 — F엔진의
     다른 metric들처럼 `ctx.sized`만 읽는 순수 계산기가 아니라 유일하게 connectivity가
-    필요한 예외이므로, 필요한 최소한(경로 문자열 하나)만 ctx에 얹었다."""
+    필요한 예외이므로, 필요한 최소한(경로 문자열 하나)만 ctx에 얹었다.
+
+    `kind_of`(세션22 신설) — `{device_name: "nmos"|"pmos"}`, `optimize_full_circuit_
+    budget()`이 자신이 이미 알고 있는 kind 매핑을 그대로 채워둔다. `_feed_metric_stage_
+    budget()`/`_feed_gm_target_convention()`/`_metric_flicker_plus_thermal_sum()`처럼
+    LUT에서 소자를 직접 사이징/평가하는 함수가 `ctx.spec["lut"]`(단일 LUT) 대신
+    `ctx.spec["lut_by_kind"][ctx.kind_of[name]]`로 소자별 정확한 kind의 LUT을 쓰기 위한
+    것 — 세션22 실측: `L_cascode`(devices=M2a/M2b/M3a/M3b, PMOS+NMOS 혼합)가 지금껏
+    단일(nmos) LUT으로 PMOS 소자까지 사이징하고 있었다(전기적으로 틀린 결과, `.ai/
+    context.md` 세션22 참고). ⚠️ kind을 구분 안 하는 단일 LUT 사이징은 실제 회로에서
+    정당화될 상황이 없다(사용자 지적, 세션22) — 그래서 `kind_of`/`lut_by_kind`가 없을 때
+    조용히 `ctx.spec["lut"]`로 폴백하지 않고, 위 세 함수 전부 `KeyError`를 그대로
+    전파한다(호출자가 `kind_of`/`lut_by_kind`를 안 채운 게 드러나야 한다). self-test
+    fixture도 전부 `kind_of`+`lut_by_kind`를 채우도록 갱신했다(§ self-test 참고)."""
     sized: dict = field(default_factory=dict)
     spec: dict = field(default_factory=dict)
     derived: dict = field(default_factory=dict)
     seed_currents: dict = field(default_factory=dict)
     mirror_ratios: dict = field(default_factory=dict)
     topology_path: str = ""
+    kind_of: dict = field(default_factory=dict)
 
 
 def _metric_sum_current(spec: dict, ctx: SizingContext) -> float:
@@ -1196,11 +1210,12 @@ def _metric_gain_stages_sum(spec: dict, ctx: SizingContext) -> float:
 
 def _metric_flicker_plus_thermal_sum(spec: dict, ctx: SizingContext) -> float:
     """F엔진(배치 7-3g, 2026-07-31) — `stages`(`[[dev,...], ...]`)의 입력환산 열+1/f 잡음
-    밀도를 RMS 합산(독립 잡음원 가정)해 V/√Hz로 반환. `ctx.spec["lut"]`가 `noise_1f_density()`
-    (SID_1F 필요)를 지원해야 한다 — 지원 안 하면 `ValueError`가 그대로 전파된다(조용히
-    스킵하지 않음). `ctx.spec`의 선택 키: `"gamma"`(기본 2/3, 열잡음 계수),
-    `"temperature_K"`(기본 300), `"freq"`(기본 1.0Hz)."""
-    lut = ctx.spec["lut"]
+    밀도를 RMS 합산(독립 잡음원 가정)해 V/√Hz로 반환. 소자별 `ctx.spec["lut_by_kind"]
+    [ctx.kind_of[name]]`(세션22부터, kind 구분 없는 단일 LUT은 stages가 NMOS/PMOS를 섞을 때
+    틀린 결과를 준다 — M1a/M4a처럼 실제로 섞여 있음)가 `noise_1f_density()`(SID_1F 필요)를
+    지원해야 한다 — 지원 안 하면 `ValueError`가 그대로 전파된다(조용히 스킵하지 않음).
+    `ctx.spec`의 선택 키: `"gamma"`(기본 2/3, 열잡음 계수), `"temperature_K"`(기본 300),
+    `"freq"`(기본 1.0Hz)."""
     gamma = ctx.spec.get("gamma", 2.0 / 3.0)
     freq = ctx.spec.get("freq", 1.0)
     kT = 1.380649e-23 * ctx.spec.get("temperature_K", 300.0)
@@ -1208,6 +1223,7 @@ def _metric_flicker_plus_thermal_sum(spec: dict, ctx: SizingContext) -> float:
     for stage in spec["stages"]:
         for name in stage:
             e = ctx.sized[name]
+            lut = ctx.spec["lut_by_kind"][ctx.kind_of[name]]
             s_thermal = 4 * kT * gamma / e["gm"]
             s_1f = lut.noise_1f_density(e["gm_id"], e["L"], e.get("vds", 0.6), e.get("vs", 0.0),
                                          e["W"], freq)
@@ -2077,14 +2093,15 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     CMFB 소자의 gds를 읽는 `telescopic_class_ab_cmfb` CMRR이 등장하면서 발현됐다 —
     `_feed_metric_stage_budget()`과 같은 방식(`lut.gm_gds_ratio()`)으로 채운다."""
     target = feed_spec["target"]
-    lut = ctx.spec["lut"]
+    kind = ctx.kind_of[target]
+    lut = ctx.spec["lut_by_kind"][kind]
     L, vds, vs = feed_spec["L"], feed_spec.get("vds", 0.6), feed_spec.get("vs", 0.0)
     gm_target = theta_value * ctx.spec[feed_spec["omega_key"]] * ctx.spec[feed_spec["cap_key"]]
     result = solve_id_for_target_gm(
         lut, L, vds, vs, feed_spec["W"], gm_target,
         gm_id_bounds=tuple(feed_spec.get("gm_id_bounds", (2.0, 30.0))))
     ctx.sized[target] = {"ID": result.ID, "gm": result.gm, "gm_id": result.gm_id,
-                          "W": feed_spec["W"], "L": L, "vds": vds, "vs": vs,
+                          "W": feed_spec["W"], "L": L, "vds": vds, "vs": vs, "kind": kind,
                           "gds": result.gm / lut.gm_gds_ratio(result.gm_id, L, vds, vs)}
 
 
@@ -2113,7 +2130,6 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
         raise ValueError(f"metric_stage_budget 핸들러는 gain_db만 구현됨(§7.3.2 유보) -- "
                           f"{feed_spec.get('metric')!r}은 미구현")
     L = theta_value
-    lut = ctx.spec["lut"]
     vds, vs = feed_spec.get("vds", 0.6), feed_spec.get("vs", 0.0)
     gm_id = feed_spec.get("gm_id", 15.0)
     for name in feed_spec["devices"]:
@@ -2121,11 +2137,14 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
         if "ID" not in entry:
             raise ValueError(f"{name}의 ID가 아직 없다 -- metric_stage_budget은 ID가 이미 "
                               f"확정된 뒤(A/B엔진 이후)에만 L을 배정할 수 있다")
+        kind = ctx.kind_of[name]
+        lut = ctx.spec["lut_by_kind"][kind]
         ID = entry["ID"]
         idu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
         gm_gds = lut.gm_gds_ratio(gm_id, L, vds, vs)
         gm = gm_id * ID
-        entry.update({"L": L, "W": L * ID / idu, "gm": gm, "gds": gm / gm_gds, "gm_id": gm_id})
+        entry.update({"L": L, "W": L * ID / idu, "gm": gm, "gds": gm / gm_gds, "gm_id": gm_id,
+                      "kind": kind, "vs": vs})
 
 
 _THETA_FEED_REGISTRY: dict = {
@@ -2314,7 +2333,7 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                 _vparent[ra] = rb
 
     def _evaluate(theta_values: dict):
-        ctx = SizingContext(spec=spec, topology_path=topology_path)
+        ctx = SizingContext(spec=spec, topology_path=topology_path, kind_of=kind_of)
         ctx.sized.update({k: dict(v) for k, v in spec.get("known_sizing", {}).items()})
         ctx.mirror_ratios.update(auto_mirror_ratios)
 
@@ -2622,13 +2641,17 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         # audit 체크를 담당하는 상호보완 관계 -- repair_matching_safety()의 _failing_
         # required_pairs()는 "3b."/"3c." 체크만 파싱하고 "1. euler[...]"는 건드리지 않는다,
         # stick_diagram.py:3070 확인됨).
-        # L4 재검증(revalidate_finger_override())은 lut_by_kind가 필수다 -- spec["lut"] 단일
-        # LUT(theta feed 'B' 등)만 쓰는 회로는 lut_by_kind 자체가 없으므로(2026-08-05 self-test
-        # _ofc_spec={"lut":lut,...}에서 실측 확인) 그 경우엔 fixup을 시도하지 않고 기존
-        # run_topology_pipeline() 그대로 호출(완전한 하위호환).
+        # L4 재검증(revalidate_finger_override())은 lut_by_kind가 필수다. spec에 lut_by_kind
+        # 자체가 없는 회로(theta feed 'A'/'A_signed'/'C'만 쓰고 'B'/'metric_stage_budget'은
+        # 전혀 없는 경우 -- 이 두 feed만 소자별 kind-LUT이 필요하다, 세션22 참고)는 fixup을
+        # 시도하지 않고 기존 run_topology_pipeline() 그대로 호출(완전한 하위호환). ⚠️
+        # 세션22부터 'B'/'metric_stage_budget'을 쓰는 회로는 spec["lut_by_kind"]가 항상
+        # 있어야 한다(kind 구분 없는 단일 lut 사이징은 전기적으로 틀린 결과를 준다 -- 이전엔
+        # spec["lut"] 폴백이 있었으나 제거함, `_ofc_spec`도 lut_by_kind를 갖도록 갱신).
         _lut_by_kind = spec.get("lut_by_kind")
         if _lut_by_kind is not None:
-            ctx_for_fixup = SizingContext(spec=spec, sized=sizing)
+            ctx_for_fixup = SizingContext(spec=spec, sized=sizing, kind_of=kind_of,
+                                           topology_path=topology_path)
             pipeline_result = run_topology_pipeline_with_finger_fixup(
                 topology_path, sizing_overrides, ctx_for_fixup, _lut_by_kind,
                 metrics_specs, constraints, floorplan_hints=spec.get("floorplan_hints"),
@@ -2834,6 +2857,14 @@ def apply_and_revalidate_pair_adjustment(transistors: list, matching_pairs: list
     (스킵된 이유는 `rejected`에 남지 않는다 -- gm/ID 위반이 아니라 애초에 시도 불가능했던
     것이라 구분).
 
+    ⚠️ 세션22 발견: 핑거조정이 요구하는 새 W가 물리적으로 실현 불가능한 gm_id를 요구하면
+    (예: 극소전류 소자의 W를 크게 늘리라는 후보 -- 실측: M9b/M18b가 91.5nA에 W를
+    1.17um->16.15um로 14배 늘리라는 후보를 만나 LUT 특성화 범위(gm_id<=26.8) 밖인
+    gm_id=30을 요구, `_invert_gm_id_for_current()`가 `ValueError`) `revalidate_finger_
+    override()`가 결과 dict 대신 예외를 던진다 -- 이것도 gm/ID 스펙 위반과 본질적으로
+    같은 "이 후보는 못 쓴다"는 신호이므로, A엔진의 `InfeasibleSizingError`와 같은 원칙으로
+    `rejected`에 기록하고 다음 후보로 넘어간다(크래시시키지 않는다).
+
     `max_candidates`(선택): 큰 그룹에서 후보가 많을 때 전부 재검증하면 비용이 커질 수 있어
     상한을 둘 수 있다(기본 `None` = 전부 시도).
 
@@ -2855,8 +2886,15 @@ def apply_and_revalidate_pair_adjustment(transistors: list, matching_pairs: list
 
         overrides = {name: (by_name[name].n_fingers + suggestion.delta_fingers) * by_name[name].finger_w
                      for name in suggestion.names}
-        result = revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs,
-                                             constraints, gm_id_bounds=gm_id_bounds)
+        try:
+            result = revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs,
+                                                 constraints, gm_id_bounds=gm_id_bounds)
+        except ValueError as e:
+            rejected.append({"suggestion": suggestion, "revalidation": {
+                "ok": False, "device_updates": {}, "metric_deltas": {},
+                "violated_constraints": [], "unaffected_metrics_skipped": [],
+                "error": f"gm_id 역산 실패(물리적으로 실현 불가능한 후보): {e}"}})
+            continue
         if result["ok"]:
             new_transistors = [
                 _dc_replace(t, n_fingers=t.n_fingers + suggestion.delta_fingers)
@@ -2961,8 +2999,17 @@ def apply_and_revalidate_matching_finger_growth(
                 "revalidation": None}
     delta = growth["delta_fingers"]
     overrides = {n: (by_name[n].n_fingers + delta) * by_name[n].finger_w for n in names}
-    result = revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs, constraints,
-                                         gm_id_bounds=gm_id_bounds)
+    try:
+        result = revalidate_finger_override(ctx, lut_by_kind, overrides, metrics_specs, constraints,
+                                             gm_id_bounds=gm_id_bounds)
+    except ValueError as e:
+        # 세션22 -- apply_and_revalidate_pair_adjustment()와 동일한 원칙(위 docstring
+        # 참고): 물리적으로 실현 불가능한 gm_id를 요구하는 후보는 gm/ID 스펙 위반과
+        # 똑같이 "이 후보는 못 쓴다"로 처리한다(크래시시키지 않는다).
+        return {"applied": False, "growth": growth, "transistors": list(transistors),
+                "revalidation": {"ok": False, "device_updates": {}, "metric_deltas": {},
+                                  "violated_constraints": [], "unaffected_metrics_skipped": [],
+                                  "error": f"gm_id 역산 실패(물리적으로 실현 불가능한 후보): {e}"}}
     if not result["ok"]:
         return {"applied": False, "growth": growth, "transistors": list(transistors),
                 "revalidation": result}
@@ -4084,7 +4131,8 @@ if __name__ == "__main__":
     print(f"    PASS: Mref W=40um, K=0.1 -> Mrepl W={_ctx_c.sized['Mrepl']['W']*1e6:.2f}um")
 
     print("  [feed 'B' (_feed_gm_target_convention) -- N*omega_c*C_cmfb를 gm_target으로 사이징]")
-    _ctx_b = SizingContext(spec={"lut": lut, "omega_c": 2 * math.pi * 1e6, "C_cmfb": 2e-12})
+    _ctx_b = SizingContext(spec={"lut_by_kind": {"nmos": lut}, "omega_c": 2 * math.pi * 1e6, "C_cmfb": 2e-12},
+                            kind_of={"Mcmfb": "nmos"})
     apply_theta_feed({"type": "B", "tag": "servo", "target": "Mcmfb", "omega_key": "omega_c",
                        "cap_key": "C_cmfb", "L": 0.5e-6, "W": 30e-6, "vds": 0.6,
                        "gm_id_bounds": [2.0, 28.0]}, 3.0, _ctx_b)
@@ -4100,7 +4148,8 @@ if __name__ == "__main__":
     print(f"    PASS: t_settle_total=40ns, f_slew=0.25 -> derived[t_slew]={_ctx_s.derived['t_slew']*1e9:.2f}ns")
 
     print("  [feed 'metric_stage_budget' -- theta(L)로 지정 devices의 L/W/gm/gds 재계산]")
-    _ctx_m = SizingContext(spec={"lut": lut}, sized={"M1": {"ID": 10e-6}, "M2": {"ID": 20e-6}})
+    _ctx_m = SizingContext(spec={"lut_by_kind": {"nmos": lut}}, sized={"M1": {"ID": 10e-6}, "M2": {"ID": 20e-6}},
+                            kind_of={"M1": "nmos", "M2": "nmos"})
     apply_theta_feed({"type": "metric_stage_budget", "metric": "gain_db", "devices": ["M1", "M2"],
                        "gm_id": 15.0, "vds": 0.6}, 0.5e-6, _ctx_m)
     assert _ctx_m.sized["M1"]["L"] == 0.5e-6 and _ctx_m.sized["M2"]["L"] == 0.5e-6
@@ -4149,7 +4198,7 @@ if __name__ == "__main__":
         _ofc_topo_path = _os.path.join(_ofc_tmpdir, "_test_only.topology.json")
         with open(_ofc_topo_path, "w", encoding="utf-8") as _f:
             json.dump(_ofc_topo, _f)
-        _ofc_spec = {"lut": lut, "omega_c": 2 * math.pi * 1e6, "cap": 2e-12}
+        _ofc_spec = {"lut": lut, "lut_by_kind": {"nmos": lut}, "omega_c": 2 * math.pi * 1e6, "cap": 2e-12}
         _ofc_full = optimize_full_circuit_budget(_ofc_topo_path, _ofc_spec, grid_points_per_theta=5)
         _theta_star, _sizing, _metrics = _ofc_full["theta_star"], _ofc_full["sizing"], _ofc_full["metrics"]
         assert _ofc_full["pipeline_result"] is not None, \
@@ -4160,7 +4209,7 @@ if __name__ == "__main__":
         _manual_best = None
         for _i in range(5):
             _N = _lerp(1.0, 5.0, _i / 4)
-            _ctx_manual = SizingContext(spec=_ofc_spec)
+            _ctx_manual = SizingContext(spec=_ofc_spec, kind_of={"Mtest": "nmos"})
             apply_theta_feed(_ofc_topo["sizing_roles"]["theta"][0]["feeds"], _N, _ctx_manual)
             _a_ids = propagate_topology_forced_currents(
                 [Transistor("Mtest", "nmos", source="gnd", drain="out", gate="vb")],
@@ -4362,9 +4411,10 @@ if __name__ == "__main__":
 
     print("  [_metric_flicker_plus_thermal_sum() -- 열+1/f 합산이 손계산과 일치]")
     _ctx_noise = SizingContext(
-        spec={"lut": _lut_with_noise, "freq": _freq_test, "temperature_K": 300.0},
+        spec={"lut_by_kind": {"nmos": _lut_with_noise}, "freq": _freq_test, "temperature_K": 300.0},
         sized={"M1": {"gm": 200e-6, "gm_id": 15.0, "L": 0.5e-6, "W": _w_target_test,
-                       "vds": 0.6, "vs": 0.0}})
+                       "vds": 0.6, "vs": 0.0}},
+        kind_of={"M1": "nmos"})
     _noise_result = compute_metric({"type": "flicker_plus_thermal_sum", "stages": [["M1"]]}, _ctx_noise)
     _kT = 1.380649e-23 * 300.0
     _s_th_expected = 4 * _kT * (2.0 / 3.0) / 200e-6
