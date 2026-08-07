@@ -1,41 +1,43 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-07, 세션21 끝 — 다음은 세션22)
+# 세션 컨텍스트 (최종 갱신: 2026-08-07, 세션22 끝 — 다음은 세션23)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-### 다음 세션 작업 순서 (세션21 끝 기준) — 이 순서 그대로 진행할 것
-1. **`>=60dB`류 constraint 임계값 재보정(최우선, 세션21 2차 때문에 새로 생김)** —
-   `cmrr_estimate_db`/`psrr_estimate_db`가 센싱 위치를 `Vop1`/`Vom1`(1단 내부)에서
-   `Vop`/`Vom`(진짜 최종출력)으로 바꾸고 51소자 전체(bias-gen 포함)를 보게 되면서
-   절대 dB 스케일이 완전히 달라졌다(세션21 2차 self-test 앵커: CMRR≈125.8dB,
-   PSRR≈105.5dB — 옛 스케일과 비교 자체가 무의미). `topology.json`의 `constraints`
-   (`{"metric":"cmrr_estimate_db","op":">=","value":60}` 등)를 이 새 스케일에 맞게
-   다시 볼 것.
-2. **그리드 탐색 그룹 구조 재분석** — 세션20-B가 도출한 "5-theta 진짜 결합/2-theta
-   feasibility 결합/6개 완전 독립" 그룹 구조는 **옛(틀린) Kp'/Kn'/Rx/Ry 폐형식**
-   기준이었다가, 세션21 1차(battery 31소자 부분망)를 거쳐, 세션21 2차(51소자 전체
-   topology-무관 수치 MNA)로 metric 발자국이 또 한 번 완전히 바뀌었다 — 이제
-   `cmrr_estimate_db`/`psrr_estimate_db`/`gain_full_circuit_db`는 원칙적으로 **회로의
-   거의 모든 소자**(bias-gen 포함)에 의존한다. 13개 자유 theta 각각이 이 metric들의
-   `excite_num`/`excite_den`/`sense_p`/`sense_n` 경로에 실제로 얼마나 영향을 주는지
-   (정적 그래프가 아니라 수치 민감도로) 다시 확인해야 그리드 그룹 구조를 믿을 수 있다.
-3. **Grid search 개선안 구현** — 위 1~2번 이후 진행(세션20-B의 블록분리+이분탐색+
-   좌표하강+재시작+joint 로컬정제 설계 골자는 여전히 유효, 그룹 멤버십만 갱신).
-4. **`vertical_stack_id` 경계 주석 확장** — 세션20 항목 그대로 이월(이번 세션 논의 안 함).
-5. **`run_harness.py` — audit 실패 시 재최적화 루프** — 세션20 항목 그대로 이월.
-6. **(선택) `gain_db`/`classab_centering_dev_v` 재점검**, **(선택) folded_cascode/
-   nmcnr_amplifier/two_stage_ota에 `ports` 선언 + `smallsignal_ratio_db` 신규 적용**
-   — 세션21 2차가 만든 topology-무관 solver를 확장 적용할 후보(아래 "세션21 2차 결론"
-   F절 참고), 우선순위는 사용자 판단.
+### 다음 세션 작업 순서 (세션22 끝 기준) — 이 순서 그대로 진행할 것
+1. **`run_harness.py`를 실제 theta bounds(전수/축소 그리드)로 재실행** — 세션22가
+   `optimize_full_circuit_budget()`의 end-to-end 크래시를 전부 없앴으므로(아래
+   "세션22 결론" 참고), 이제 처음으로 실제 그리드서치를 오래 돌려볼 가치가 있다.
+   세션11이 이미 8192개 조합 완주에 ~10시간이 걸릴 것으로 추정해뒀다 — 그대로 돌릴지,
+   자유 theta를 세션22 item 2(그룹 재분석)로 줄인 뒤 돌릴지 사용자와 먼저 정할 것.
+2. **`>=60dB` 등 constraint 임계값 재보정** — 세션21 2차 때 새 스케일(51소자 전체망)로
+   바뀐 뒤 세션22에서 "지금은 손대지 않고, 실제 최적화 결과가 쌓이면 그때 정한다"로
+   사용자가 명시적으로 결정. 1번(실제 grid search)이 실제 결과를 만들어주면 그걸
+   근거로 재론의할 것 — 손으로 만든 self-test fixture 앵커(CMRR≈125.8dB 등)나 세션22의
+   임시 1~2점 샘플(CMRR≈93~128dB 범위)은 전부 "스케일 감 잡기"용이었지 확정 근거가
+   아니다.
+3. **그리드 탐색 그룹 구조 재분석**(세션21 결론에서 이월, 아직 미착수) — 13개 자유
+   theta 각각이 `cmrr_estimate_db`/`psrr_estimate_db`/`gain_full_circuit_db`에 실제로
+   얼마나 영향을 주는지 수치 민감도로 확인. 세션22가 이 작업을 시도하다 stack M6
+   크래시를 만나 옆길로 샜다 — 이제 크래시가 없으니 바로 재개 가능(OAT 스윕 스크립트
+   초안이 `workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py`
+   에 있으나 완주는 못 함, 재사용/재작성 판단 필요).
+4. **`vertical_stack_id` 경계 확장 여부 재검토** — 세션22가 논의만 하고(설계 방향은
+   "matching_pairs가 base, 필요하면 확장" 쪽으로 이미 정리됨, 아래 "세션22 결론" B절)
+   실제 구현은 안 함. `resolve_stack_layout()`류 공용 solver 신설 여부도 아직 미결정
+   (세션22가 실제로는 `geometry_colocation_union()` 단일 함수 재설계로 문제를 풀어서
+   당장 급하지 않아짐 — 필요성 자체를 재검토할 것).
+5. **(선택) folded_cascode/nmcnr_amplifier/two_stage_ota에 `ports`+`smallsignal_*`
+   확장** — 세션21 2차 이월 항목, 우선순위는 사용자 판단.
 
-0. **세션21 구현/self-test 전부 완료, 아직 커밋 안 됨**(다음 세션 시작 시 `git log`/
-   `git status`로 직접 재확인할 것 — 세션14 교훈) — 상세는 아래 "세션21 결론"/
-   "세션21 2차 결론" 참고. 세션21 1차(circuit_family=telescopic_class_ab_cmfb, battery
-   31소자 부분망)는 세션21 2차(topology-무관 51소자 전체망)로 **이미 대체**됐다 —
-   `cmrr_estimate_db`/`psrr_estimate_db`는 지금 `type=smallsignal_ratio_db`.
-   세션20/20-B는 이미 커밋됨(`e4042c5`,`8cc9014`,`3b77c0b`,`4750115`,`8a30631`).
+0. **세션22 구현/self-test 전부 완료, 커밋 대기 중**(다음 세션 시작 시 `git log`/
+   `git status`로 직접 재확인할 것 — 세션14 교훈). 상세는 아래 "세션22 결론" 참고.
+   세션21은 이미 커밋됨(`d0acad9`,`80e32f2`). ⚠️ 커밋에서 의도적으로 뺀 파일(정리
+   여부는 사용자 판단): `.bkit/*`(bkit 자체 세션 추적), 루트 zip 2개(사용자가 올린
+   별도 파일), `workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_
+   session18_save.py`(세션18 잔재), `full_netlist_for_grammar.json`(세션22 analog-grammar
+   탐색용 1회성 변환 산출물).
 
 ### (참고, 세션19까지의 이력 — 세션12~19 커밋 요약)
 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`(매칭 목적
@@ -2635,3 +2637,177 @@ AskUserQuestion으로 범위를 물어 **"CMRR/gain_db도 같이 재점검"**으
    설계 분리(CMRR/PSRR/gain=이 solver, GBW/PM=ngspice 드라이버화)를 그대로 유지.
 6. **커밋 안 됨** — 위 "지금 상태" 0번/7번 참고, 신규 스크립트 1개
    (`stage3_full_circuit_ngspice_crosscheck.py`) 추가.
+
+---
+
+# 세션22 결론 — metrics dict 크래시 수정, 60dB 임계값 유지 결정, geometry_
+# colocation_union() 전면 재설계로 stack M6 크래시 근본 해결, `optimize_full_
+# circuit_budget()`이 이 프로젝트 역사상 처음으로 51소자 전체 회로에서 end-to-end
+# 크래시 없이 완주
+
+세션21이 남긴 최우선 항목("`>=60dB` 임계값 재보정, item 2 그리드 그룹 재분석과 함께")을
+이어가려다, 실측 확인 과정에서 훨씬 근본적인 구조적 버그를 연쇄로 발견해 그 해결에
+세션 대부분을 썼다. `run_harness.py` 계열이 이 회로에서 지금까지 단 한 번도 도달한
+적 없는 파이프라인 깊이까지 처음으로 뚫고 들어가면서, 아무도 실측한 적 없던 코드
+경로의 버그가 한 겹씩 드러났다 — 매번 "이게 마지막이겠지" 하고 고치면 그 다음 겹이
+나오는 패턴이 총 6~7회 반복됐다.
+
+## A. `>=60dB` 임계값 — 실측 근거 확보 시도 → 버그 발견 → 사용자가 "유지"로 결정
+
+1. **첫 실측**: 실제 production `topology.json` bounds로 대표 theta 조합(K_replica=0.1,
+   r_classab_battery=0.3, 나머지 11개 자유 theta는 중간값 고정)을 사이징하니
+   `optimize_full_circuit_budget()`이 **metrics 딕셔너리 안에 있으면 안 되는 주석 키**
+   (`_cmrr_psrr_estimate_db_comment`, 세션21 2차가 넣었는데 metrics 바깥에 둬야 한다는
+   2026-08-03 주석의 규칙을 위반)로 즉시 `TypeError` — `run_harness.py`가 지금껏 완주한
+   적이 없어 발견되지 않았던 실제 버그. 주석을 `_metrics_comment*`와 같은 레벨(metrics
+   바깥)로 옮겨 수정, `topology.json` JSON 유효성 재확인.
+2. 버그 수정 후 재실측: `cmrr_estimate_db≈93.16dB`, `psrr_estimate_db≈96.75dB`,
+   `gain_db≈77.04dB`(단, 이 조합은 `classab_centering_dev_v` 위반) — 세션21 self-test
+   앵커(CMRR≈125.8dB, PSRR≈105.5dB, 손으로 만든 fixture)와 함께 "새 스케일에서 60dB는
+   사실상 항상 만족되는 죽은 제약"이라는 정황 확보.
+3. **사용자 결정**: 60dB 값 자체는 물리적으로 여전히 "틀린" 문턱은 아니므로, 지금은
+   손대지 않고 **다음에 실제 최적화 결과가 쌓이면 그때 재보정**(아래 "지금 상태" 2번).
+   딱 2개 실측점(하나는 다른 제약 위반 상태)만으로 임계값을 확정하는 건 상상으로
+   채우는 것과 같다는 프로젝트 원칙에 따른 보수적 결정.
+
+## B. Item 2(그리드 그룹 재분석) 시도 중 "stack M6" 크래시 발견 → 근본원인까지 추적
+
+OAT(one-at-a-time) 민감도 스윕을 시도하는 과정에서, 나머지 12개 theta를 물리적으로
+유효한 값(K_replica=0.1, r_classab_battery=0.3)에 고정하고 각 theta를 하한/기준/상한으로
+흔드는 실험을 설계했으나, **baseline 자체가 `assign_finger_geometry()`에서 크래시**:
+
+```
+stack 'M6'(구성원 ['M1a','M1b','M2a','M2b','M57','M58','M6','M7'])에 대해
+어떤 finger_w 후보도 못 찾음
+```
+
+### B-1. 근본원인 진단 — `geometry_colocation_union()`의 무근거 자동병합
+`stack_groups_geometry`를 만드는 `geometry_colocation_union()`(세션10)의 rule1("같은
+극성 + non-rail + drain=source면 선언 여부 무관하게 자동 병합")이, `Vx`(stage-1 tail/
+diff-pair 공유 노드)에 `M58`(bias-gen 하우스키핑 소자, source=Vx)이 얹혀있다는 이유만
+으로 전류 규모가 수십~수백 배 다른 `M57/M58`을 `M6/M7/M1a/M1b/M2a/M2b`와 **한
+finger-공유 stack**으로 묶어 공통 finger_w를 못 찾은 것. 이건 세션10/11이 이미 진단한
+"부채꼴(fan-out) 전이적 병합" 패턴이 `geometry_colocation_union()`(finger_w 공유용)
+에서 재발한 것 — 세션11~15가 만든 euler-fixup 체인(`mirror_symmetric_trail` 등)은
+전혀 다른 grouping(`kcl_series_union()` 기반 stack_id)을 다뤄서 이 문제와 무관했다.
+
+### B-2. analog-grammar 실측 — "물리적 사실"과 "기능적 판단"은 다른 질문
+51소자 전체를 analog-grammar `analyze.py`에 직접 돌려보니(`stack_edges()`가 analog-
+grammar도 M6/M7→M58을 Vx 공유로 같은 스택으로 본다는 것 확인) 두 자동 도구(geometry_
+colocation_union/analog-grammar) 다 "물리적으로 같은 노드에 물려있다"는 사실은
+맞히지만 "그래도 기능적으로 다른 블록(bias-gen 하우스키핑 vs 신호경로)"이라는 **판단**
+은 어느 쪽도 못 한다는 게 확인됨 — 이 판단은 이미 `topology.json`의 `vertical_stack_id`
+(M6/M7=`stage1`, M57/M58=`biasgen_tree_b`)에만 있었다(단, M1a/M1b/M2a/M2b엔 애초에
+`vertical_stack_id` 자체가 선언 안 돼 있음 — compensation 경로로 결정된다는 이유로
+세션 배치7-5부터 의도적으로 비워둔 필드).
+
+analog-grammar의 raw idiom matching은 `matching_pairs` 자동화 후보로는 유용함도 확인
+(`M13+M17+M18_bg+M22+M6+M60+M61+M8` 8소자 current-mirror 정확히 재현) — 단
+`M36a+M7`(세션18 L-3/L-4가 이미 "다른 기능 블록" false positive로 확정해둔 사례)이
+raw 출력에 그대로 재현돼, 세션19가 설계만 하고 미배선한 Tier 1 필터가 왜 필요한지
+재확인. (오늘은 matching_pairs 자동화 자체는 구현 안 함 — 다음 세션 후보.)
+
+### B-3. composite(직렬 상속) 방식도 시도 — 유효하지만 이 문제는 못 풂
+`find_stacked_matching_candidates()`(세션19 C-3)를 실제 matching_pairs에 돌려보니
+7개 결과 전부가 이미 선언된 매칭쌍과 정확히 일치(좋은 교차검증) — 하지만 M6/M7/M57/M58
+은 애초에 어떤 matching_pairs의 씨앗도 아니라서(M6/M7은 서로 다른 게이트라 매칭쌍이
+아니고, M58은 어떤 확정쌍 위에도 안 얹혀 있음) 이 메커니즘의 전파가 시작되지 않는다 —
+"매칭 대칭성" 축과 "finger_w 공유" 축은 원래 다른 질문이라는 게 재확인됨.
+
+### B-4. 사용자 확정 설계 — "matching_pairs가 base, layout 최적화 위해 확장 가능"
+하위호환을 포기하고 정합성 있는 구조로 개선하기로 명시적 결정(사용자: "matching이
+안 되는 소자들을 stack에서 밀려내는 게 가능하지 않나" → "matching을 기본으로 그룹하고
+layout 최적화 위해 같은 그룹에 다른 것들을 추가하는 방향은 괜찮아 보인다"). 실측으로
+가설을 먼저 검증(`stack_groups_override`로 matching_pairs만의 union-find를 구성 —
+M6/M7/M57/M58 전부 독립 그룹으로 갈라짐)한 뒤, **`geometry_colocation_union()` 자체를
+재설계**:
+- **base**: `matching_pairs`(현행과 동일하게 `current_forced=True`만)를 그대로 union.
+- **확장**: `find_stack_edges()`(analog-grammar 재사용) + `find_stacked_matching_
+  candidates()`(세션19 C-3, 이미 검증됨)로 각 base pair 위에 재귀적으로 쌓인 소자를
+  같은 그룹으로 union — "base pair 대표 소자 바로 위에 직렬로 얹힌 같은 kind 소자"만
+  좇아가므로, `M58`처럼 "같은 노드를 소스로 공유하는 형제(병렬 소비자)"는 애초에
+  후보에 안 들어온다(별도 예외처리 없이 알고리즘 자체가 걸러냄).
+- rule1(무근거 자동 drain=source 병합)은 완전히 삭제.
+
+**실측 결과**: `folded_cascode`(다른 회로, PMOS 6개/NMOS 4개 diode-reference 체인)의
+기존 self-test 그룹은 **손대지 않았는데도 그대로 통과**(진짜 직렬 스택은 새 방식도
+똑같이 잡아내고, M58류 병렬 탭만 정확히 걸러짐) — 우연이 아니라 진짜 직렬 스택
+관계는 composite 상속으로도 재현되기 때문. `stick_diagram.py` self-test 전체(31개
+Test) exit 0, 회귀 없음.
+
+## C. `optimize_full_circuit_budget()` 재실행 → 연쇄로 드러난 나머지 버그 5개
+
+B절 수정 후 실제 production 회로(override 없이, 기본 동작만으로)를 다시 돌리자
+매번 더 깊이 들어가서 새 버그를 하나씩 만났다 — 전부 `run_harness.py`가 지금까지
+한 번도 이만큼 깊이 실행된 적이 없어 처음 드러난 것들이다. 발견 순서대로:
+
+1. **`revalidate_finger_override()` KeyError('kind')** — `_feed_metric_stage_budget()`
+   (L_cascode/L_stage2out theta가 씀)이 `ctx.spec["lut"]`(단일 LUT, kind 구분 없음)만
+   쓰고 `entry["kind"]`를 안 채우고 있었다. 근본원인 추적 결과 `_feed_gm_target_
+   convention()`("B" 타입)/`_metric_flicker_plus_thermal_sum()`(노이즈 metric)도 같은
+   패턴(단일 LUT, 소자별 kind 무시)임을 확인 — **세 곳 다 진짜 전기적 버그**였다
+   (`L_cascode`의 devices=`M2a,M2b,M3a,M3b`가 PMOS+NMOS 혼합인데 지금껏 전부 NMOS
+   LUT으로 사이징됐었음). 사용자 지적("kind 없이 단일 lut 쓰는 게 무슨 의미가
+   있나") 계기로 폴백을 아예 없애기로 결정 — `SizingContext.kind_of` 필드 신설,
+   `optimize_full_circuit_budget()`이 채워줌, 세 함수 전부 `lut_by_kind[kind_of[name]]`
+   필수 요구(조용한 폴백 없음, 없으면 KeyError로 즉시 드러남). self-test 3곳(단일 lut
+   fixture)도 `lut_by_kind`+`kind_of`를 갖도록 갱신.
+2. **`apply_and_revalidate_pair_adjustment()`가 물리적으로 불가능한 후보에 크래시** —
+   핑거조정 후보(M9b/M18b, 91.5nA 극소전류에 W를 14배 늘리라는 제안)가 LUT
+   특성화 범위(gm_id<=26.8) 밖의 gm_id=30을 요구해 `_invert_gm_id_for_current()`가
+   `ValueError`. A엔진의 `InfeasibleSizingError`와 같은 원칙으로 처리하도록
+   try/except 추가(이 후보를 `rejected`에 기록하고 다음 후보로).
+3. **`ctx_for_fixup`에 `topology_path` 누락** — euler-fixup 이후 재계산된 ctx로
+   세션21 2차 신규 metric(`smallsignal_ratio_db`, connectivity 재로드 필요)을 계산하려니
+   `ctx.topology_path`가 비어 있었다. `SizingContext(..., topology_path=topology_path)`로
+   채워 해결.
+4. **`_branch_composite_pair()`의 leaf-net 중복 미검증** — `M36a-M37a`/`M36b-M37b`
+   (hub쪽 `M36a/M36b`는 선언된 매칭쌍, leaf쪽 `M37a/M37b`도 선언된 매칭쌍이라 구조
+   조건은 통과)를 "거울 branch"로 합성했는데, `M37a/M37b`는 사실 **진짜 CMFB 차동쌍**
+   이라 서로 다른 legs가 아니라 공유 tail(`Ncmfb_tail`)로 만난다 — 두 composite의
+   drain이 똑같이 `Ncmfb_tail`이 돼 `common_centroid_layout()`이 "leaf가 서로 달라야
+   한다"로 크래시. hub/leaf 선언 여부 확인 다음에 **`leaf_net_a != leaf_net_b`** 검증을
+   추가해 이런 경우 `None`(기존 개별-소자 폴백)으로 조용히 거부하도록 수정.
+5. **`apply_and_revalidate_matching_finger_growth()`도 2번과 같은 클래스의 예외 미처리**
+   (자매 함수, `run_matching_safety_with_finger_growth()`가 씀) — 동일한 try/except
+   패턴 적용.
+
+**매 수정마다 `sizing_recipe.py`/`stick_diagram.py` self-test 전체를 재실행해 exit 0
+(회귀 없음)을 확인한 뒤 다음 단계로 진행**(중간에 한 번도 스킵 안 함).
+
+## D. 최종 결과 — 이 프로젝트 역사상 처음으로 end-to-end 완주
+
+C절 수정을 전부 반영한 뒤(override 없이, `geometry_colocation_union()`의 새 기본
+동작만으로) `optimize_full_circuit_budget()`을 다시 실행:
+
+```
+gain_db=77.21dB, gain_full_circuit_db=85.38dB
+cmrr_estimate_db=93.30dB, psrr_estimate_db=96.89dB
+classab_centering_dev_v=0.337 (제약 0.15 위반 — 정상적인 "이 조합은 스펙 미달" 보고)
+audit_ok=False (box-shape/matching quality 잔여 이슈 — 역시 정상적인 정직한 보고)
+```
+
+크래시가 전혀 없다 — `constraints` 위반이나 `audit_ok=False`는 이 harness가 원래
+정직하게 보고하도록 설계된 정상 동작이지, 버그가 아니다. `run_harness.py`가 지금까지
+단 한 번도 도달한 적 없었던 지점(A/B/C엔진 → `assign_finger_geometry` → euler-fixup
+→ matching-safety finger-growth → F엔진 metric 계산)을 처음으로 전부 통과했다.
+
+## E. 알려진 한계 / 다음 세션 이월
+
+1. **60dB 등 임계값은 여전히 미확정**(위 "지금 상태" 2번) — 이번엔 진짜 그리드서치
+   결과로 재론의할 것.
+2. **item 2(그리드 그룹 재분석)는 여전히 미완주** — B절 크래시 진단으로 옆길로 샜다,
+   이제 크래시가 없으니 재개 가능(위 "지금 상태" 3번).
+3. **`vertical_stack_id` 확장/`resolve_stack_layout()` 공용 solver는 설계 논의만
+   하고 구현 안 함** — B-4의 `geometry_colocation_union()` 단일 함수 재설계로 당장
+   급한 문제는 풀렸으므로, 필요성 자체를 다음 세션에 재검토할 것(위 "지금 상태" 4번).
+4. **matching_pairs 자동화(analog-grammar Tier 1 기반)는 설계 논의만 하고 구현 안 함**
+   (B-2) — 세션19의 "다음 세션 최우선"이었던 Tier 1 실배선과 같은 작업, 계속 이월 중.
+5. **실제 `run_harness.py`(진짜 theta bounds, 최대 8192 조합) 전체 재실행은 안 해봄**
+   — 세션11 추정으로 ~10시간 걸릴 수 있다, 사용자와 먼저 실행 전략(전수 vs 축소)을
+   정할 것(위 "지금 상태" 1번, 최우선).
+6. **`topology.json` 변경은 최소**(metrics 딕셔너리 구조 버그 수정 1건뿐) — 이번 세션의
+   핵심 변경은 전부 `sizing_recipe.py`/`stick_diagram.py`(엔진 코드)에 있다.
+7. **신규 스크립트**(참고용, 완주는 못 함): `workspaces/current-reuse-telescopic-ota-
+   report/sample_metrics_session22.py`(실측 샘플링), `theta_sensitivity_session22.py`
+   (OAT 민감도 스윕 초안, stack M6 크래시로 중단됨 — 재사용/재작성 판단 필요).
