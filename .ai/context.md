@@ -1,16 +1,137 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-07, 세션22 끝 — 다음은 세션23)
+# 세션 컨텍스트 (최종 갱신: 2026-08-07, 세션24 끝 — item 0/0-A/구조적 대칭쌍 3번째 버킷까지 완료, 커밋 완료)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
-### 다음 세션 작업 순서 (세션22 끝 기준) — 이 순서 그대로 진행할 것
-1. **`run_harness.py`를 실제 theta bounds(전수/축소 그리드)로 재실행** — 세션22가
+### 커밋 상태(세션24 끝) — 세션23+세션24 작업 전부 커밋 완료
+`skills/analog-gmid-design/assets/stick_diagram.py`(세션23 신규 함수 7개 + 세션24
+`refine_differential_and_mirror_relations()` 1개 + `find_verified_differential_
+and_mirror_relations()`의 `structurally_symmetric_no_connection` 세 번째 버킷 추가,
+self-test Test 32~39), `skills/analog-grammar/assets/netclass.py`(세션23의 rail
+대소문자 버그 + 미러 구동 bias net 오분류 버그 수정 2건), `.ai/context.md`(이 문서
+자체) 커밋 완료 — 커밋 해시는 아래 "세션24 커밋" 참고. ⚠️ 과거 세션들이 의도적으로
+커밋에서 뺐던 파일(정리 여부는 여전히 사용자 판단, 세션24도 그대로 둠): `.bkit/*`
+(bkit 자체 세션 추적), 루트 zip 2개(사용자가 올린 별도 파일), `workspaces/current-
+reuse-telescopic-ota-report/smoke_run_harness_session18_save.py`(세션18 잔재),
+`full_netlist_for_grammar.json`(세션22 analog-grammar 탐색용 1회성 변환 산출물).
+
+### (해결됨) item 0 — input 승격 오케스트레이션 `refine_differential_and_mirror_relations()`
+세션24에서 구현 완료(`stick_diagram.py` §1.7d, `find_verified_differential_and_
+mirror_relations()` 바로 뒤, `classify_symmetric_branch_pairs()` 앞에 위치).
+C-11 설계 스케치 1~4를 그대로 구현: `find_differential_pair_candidates()`로 후보
+수집 → gate net 추출 → `inputs=`에 승격 → `find_verified_differential_and_mirror_
+relations()` 재실행 → role/net class 변화를 조용히 덮지 않고 `role_changes`/
+`net_class_changes`로 명시적 보고. C-11이 "설계 논의 필요"로 남겨뒀던 **5번(고정점
+반복 여부)**은 while 루프로 결정: 새 후보가 더 안 나올 때까지 반복하되
+`max_iterations=5`(기본값)로 상한 — 무한루프 방지용이지 실측 근거로 정한 값은 아님,
+필요시 조정 가능. `find_differential_pair_candidates()`는 net 분류를 안 쓰므로
+후보 자체는 보통 1라운드 이후 안 바뀌어(재확인 라운드 포함) 통상 `iterations=2`
+`stop_reason="fixed_point"`로 수렴할 것으로 예상(self-test로 확인, `current_reuse_
+telescopic_ota` 실회로 검증은 아래 D절 신규 이월 항목 참고).
+
+self-test Test 38(`stick_diagram.py`)로 검증: `M37a`/`M37b`(CMFB 내부 differential
+pair, 게이트가 `Voc`/`Voc_des`) 패턴을 6소자로 축소 재현한 합성 fixture(`M60a`/
+`M60b`가 `Voc`/`Voc_des`를 게이트로 받고, `M60a`의 drain이 `M62`의 게이트를 구동)
+사용. 확인된 것: (1) 승격 전엔 `M60a`/`M60b`가 `find_verified_differential_and_
+mirror_relations()`에서 differential로 안 잡힘, (2) `refine_...()` 실행 후
+`promoted_inputs=={"Voc","Voc_des"}`, `iterations=2`, `stop_reason="fixed_point"`,
+`M60a`/`M60b`가 최종 `relations["differential"]`에 잡힘, (3) 연쇄효과 정확히 보고됨
+— `Voc`: `BIAS`→`INPUT`, `Vcmfb_a`(`M60a`의 drain): `BIAS`→`SIGNAL`, `M62` role:
+`ACTIVE_LOAD`→`AMPLIFYING`(세션23 실측 `Vcmfb`: `BIAS`→`SIGNAL`, `M7`:
+`CURRENT_SOURCE`→`AMPLIFYING`과 같은 메커니즘, 단 합성 fixture라 role 조합은
+다름). self-test 38개 전부 통과(exit code 0), 회귀 없음.
+
+### (해결됨, 세션24) item 0-A — 실회로 대조 실행
+`current_reuse_telescopic_ota.topology.json`(51소자)에 `refine_differential_and_
+mirror_relations(transistors, inputs=("Vip","Vim"))`를 직접 돌려 확인. **C-11의
+수동 검증과 정확히 일치**: `promoted_inputs=['Voc','Voc_des']`, `iterations=2`,
+`stop_reason='fixed_point'`, `M7`: `CURRENT_SOURCE`→`AMPLIFYING`, `Vcmfb`: `BIAS`→
+`SIGNAL`, `differential` 4건→6건(`M37a`/`M37b` 순증, C-11 실측과 동일).
+
+⚠️ **새로 발견된 것 — C-11이 못 봤던 5홉 전파 체인**: C-11은 `Vcmfb`/`M7` 한 홉만
+수동 확인했는데, 자동화된 함수는 그 뒤로 이어지는 체인 전체를 찾아냈다 — `M2a`/
+`M2b`/`M58` role도 `CASCODE`→`AMPLIFYING`로 바뀌고, `Vbias2`/`N58_57`/`N36b`/`Vx`
+net도 `SIGNAL`로 재분류됨. 전파 경로(직접 추적해서 버그 아님을 확인):
+```
+Voc(INPUT) -> M37a(G=Voc) -> Vcmfb(SIGNAL)
+  -> M7(G=Vcmfb) -> Vx(SIGNAL)
+    -> M58(S=Vx, G=Vbias2, cascode 규칙) -> N58_57(SIGNAL)
+      -> M57(diode-connected, S=N58_57, G=D=Vbias2) -> Vbias2(SIGNAL)
+        -> M2a/M2b/M58 자신의 role 재계산(gate=Vbias2가 이제 SIGNAL)
+```
+핵심 메커니즘: `M57`이 diode-connected(G=D=`Vbias2`)라서 `netclass.py`의 cascode/
+current-buffer 신호전파 규칙(1d, "소스가 신호이고 게이트가 미확정/BIAS면 드레인도
+신호")이 여기서 한 번 더 탄다 — `M58`이 `Vx`(신호)를 소스로 받아 신호를 계속
+실어나르는 캐스코드처럼 취급되고, 그게 diode 소자 `M57`을 거쳐 `Vbias2` 자체까지
+신호로 끌어올린다. `Vbias4`(같은 bias-gen 트리의 다른 가지, `M68`이 구동)는 이
+경로에 안 걸려 `BIAS`로 안 바뀜 — 체인이 전체 bias 트리를 오염시키지 않고 실제로
+연결된 가지만 정확히 따라간다는 뜻.
+
+⚠️ **사람 판단 필요(topology.json에 아직 반영 안 함)**: `M2a`/`M2b`/`M58`/`Vbias2`가
+CMFB 승격의 영향권 안에 있다는 게 이번에 처음 자동으로 드러난 사실이다 — 이걸
+`device_roles`에 반영할지, `M2a`/`M2b`(differential 2단 캐스코드 부하로 보임)가
+정말 CMFB 신호를 실어나르는 게 설계 의도인지는 다음 세션에 사람이 검토할 것
+(`refine_differential_and_mirror_relations()`는 진단만 하고 `topology.json`을
+쓰지 않으므로 아직 아무 부작용 없음).
+
+### (해결됨, 세션24) `find_verified_differential_and_mirror_relations()`에 세 번째
+### 버킷 `structurally_symmetric_no_connection` 추가 (사용자 지적: "이 대칭쌍들도
+### symmetric branch로 출력되도록 해")
+item 0-A 결과 표를 사용자에게 보여준 뒤, "구조적으로 거울쌍인 symmetric branch들은
+왜 표시 안 해?"라는 지적을 받음 — 원인 확인: `find_verified_differential_and_mirror_
+relations()`는 구조 매칭된 branch 쌍의 각 위치를 gate로 mirror/differential 둘로만
+분류하고, **둘 다 아니면 `continue`로 조용히 버렸다**(`classify_symmetric_branch_
+pairs()`(C-7/C-8)에는 있는 `structurally_symmetric_no_connection` 버킷이 이 함수엔
+없었음). `refine_differential_and_mirror_relations()`가 이 함수를 그대로 감싸므로
+같은 문제가 그대로 전파됐다.
+
+**수정**: `stick_diagram.py`의 `find_verified_differential_and_mirror_relations()`
+루프에서 "kind 다름" 또는 "gate 다르고 둘 다 INPUT 아님" 경우를 `continue`(버림) 대신
+`category = "structurally_symmetric_no_connection"`로 분류해 세 번째 버킷에 담도록
+수정(파일 한 곳, ~10줄). `differential`/`mirror` 판정 로직 자체는 손대지 않아 기존
+결과는 회귀 없음. `refine_differential_and_mirror_relations()`는 이 함수의 반환값을
+그대로 `relations`에 담으므로 별도 수정 없이 세 번째 버킷을 자동으로 받는다.
+
+**실회로 재확인**(`current_reuse_telescopic_ota`, `inputs=("Vip","Vim")`로 승격
+전 실행 기준): `structurally_symmetric_no_connection` 20건(방향 중복 제외 시 고유
+10쌍) — `M6`/`M7`(같은 tail net `Vx`에 병렬, 하나는 고정 bias `Vbias1` 하나는 CMFB
+출력 `Vcmfb`), `M36a`/`M36b`, `M9a`/`M18a`, `M9b`/`M18b`, `M11a`/`M20a`, `M11b`/
+`M20b`, `M14a`/`M23a`, `M14b`/`M24b`, `M15`/`M25`, `M16`/`M26` — 세션23 실측(`.ai/
+context.md` 세션23 C-8, `classify_symmetric_branch_pairs()`로 첫 divergence+하향
+전용 12건)과는 정확히 같은 방법론이 아니라(이번엔 모든 위치+양방향) 개수가 다르지만
+같은 계열의 신호. 사용자에게 보여준 이전 수동 계산(ad-hoc 스크립트) 결과와 정확히
+일치함을 재확인.
+
+self-test로 검증: (1) **Test 38 확장** — `M60a`/`M60b`(2차 differential pair
+후보)가 승격 **전**엔 `structurally_symmetric_no_connection`에 잡히고(조용히
+버려지지 않음), 승격 **후**엔 거기서 빠지고 `differential`로 옮겨가는지 확인.
+(2) **Test 39 신설** — 실회로의 `M6`/`M7` 패턴을 Test 35 fixture에 `M7t`(`M6`과
+같은 `Vx`를 drain으로 공유, 다른 gate)를 추가해 축소 재현, `structurally_symmetric_
+no_connection`에 정확히 잡히고 differential/mirror로는 안 새는지 + 기존 `M1a`/
+`M1b` 등 판정에 회귀가 없는지 확인. self-test 39개 전부 통과(exit code 0), 회귀 없음.
+
+### 다음 세션 작업 순서 — 이 순서 그대로 진행할 것 (세션24 item 0/0-A + 세 번째 버킷 완료 기준, 아래가 최신)
+
+**0-A-1. [0-B 전에, 짧으면 바로] 위 "사람 판단 필요" 절 검토** — `M2a`/`M2b`/`M58`
+role이 CMFB 승격으로 `AMPLIFYING`으로 바뀌는 게 설계 의도와 맞는지 확인하고,
+맞으면 `device_roles`에 반영할지 결정. `topology.json`의 connectivity는 이미
+정확하므로(이 발견은 role 재분류일 뿐 connectivity 변경이 아님) 급하지 않으면
+0-B로 바로 넘어가도 무방 — 사용자 판단.
+
+**0-B. [item 0 다음] `vertical_stack_id` 보완 + `resolve_stack_layout()` 신설** —
+세션22 B-5-5가 정리한 3갈래 중 남은 두 갈래. 상세 설계(원문 그대로, 요약 아님)는 아래
+"세션23 결론" D절 item "0-B"를 그대로 참고할 것 — 그 항목 자체에 이미 B-5-2(2계층
+정보 분리)/B-5-3(`resolve_stack_layout()` 4단계 orchestrator 설계) 원문 발췌가
+들어있어 재붙여넣기 없이 바로 구현 착수 가능하도록 적어뒀다.
+
+**1. `run_harness.py`를 실제 theta bounds(전수/축소 그리드)로 재실행** — 세션22가
    `optimize_full_circuit_budget()`의 end-to-end 크래시를 전부 없앴으므로(아래
    "세션22 결론" 참고), 이제 처음으로 실제 그리드서치를 오래 돌려볼 가치가 있다.
    세션11이 이미 8192개 조합 완주에 ~10시간이 걸릴 것으로 추정해뒀다 — 그대로 돌릴지,
-   자유 theta를 세션22 item 2(그룹 재분석)로 줄인 뒤 돌릴지 사용자와 먼저 정할 것.
+   자유 theta를 아래 item 3(그리드 탐색 그룹 구조 재분석)으로 줄인 뒤 돌릴지 사용자와
+   먼저 정할 것.
 2. **`>=60dB` 등 constraint 임계값 재보정** — 세션21 2차 때 새 스케일(51소자 전체망)로
    바뀐 뒤 세션22에서 "지금은 손대지 않고, 실제 최적화 결과가 쌓이면 그때 정한다"로
    사용자가 명시적으로 결정. 1번(실제 grid search)이 실제 결과를 만들어주면 그걸
@@ -23,22 +144,14 @@
    크래시를 만나 옆길로 샜다 — 이제 크래시가 없으니 바로 재개 가능(OAT 스윕 스크립트
    초안이 `workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py`
    에 있으나 완주는 못 함, 재사용/재작성 판단 필요).
-4. **`vertical_stack_id` 경계 확장 여부 재검토** — 세션22가 논의만 하고(설계 방향은
-   "matching_pairs가 base, 필요하면 확장" 쪽으로 이미 정리됨, 아래 "세션22 결론" B절)
-   실제 구현은 안 함. `resolve_stack_layout()`류 공용 solver 신설 여부도 아직 미결정
-   (세션22가 실제로는 `geometry_colocation_union()` 단일 함수 재설계로 문제를 풀어서
-   당장 급하지 않아짐 — 필요성 자체를 재검토할 것).
-5. **(선택) folded_cascode/nmcnr_amplifier/two_stage_ota에 `ports`+`smallsignal_*`
+4. **(선택) folded_cascode/nmcnr_amplifier/two_stage_ota에 `ports`+`smallsignal_*`
    확장** — 세션21 2차 이월 항목, 우선순위는 사용자 판단.
 
-0. **세션22 구현/self-test 전부 완료 + 전부 커밋됨**(`1bcb94e`=fix(geometry_
-   colocation_union 재설계+버그 6건), `d49f857`=docs(.ai/context.md 세션22 기록)) —
-   다음 세션 시작 시 `git log`/`git status`로 직접 재확인할 것(세션14 교훈). 상세는
-   아래 "세션22 결론" 참고. 세션21은 이미 커밋됨(`d0acad9`,`80e32f2`). ⚠️ 커밋에서
-   의도적으로 뺀 파일(정리 여부는 사용자 판단): `.bkit/*`(bkit 자체 세션 추적), 루트
-   zip 2개(사용자가 올린 별도 파일), `workspaces/current-reuse-telescopic-ota-report/
-   smoke_run_harness_session18_save.py`(세션18 잔재), `full_netlist_for_grammar.json`
-   (세션22 analog-grammar 탐색용 1회성 변환 산출물).
+⚠️ **item 1~4는 세션22 시점 우선순위 그대로다** — 세션23이 전혀 손대지 않은 영역
+(vertical_stack_id/differential-pair/mirror 자동화 실측에 세션23 전체를 씀). item
+0/0-B(세션23이 새로 만든 최우선순위)를 먼저 끝내고 나서 진행할 것 — 특히 item 4였던
+"vertical_stack_id 경계 확장 재검토"는 이제 item 0-B로 승격되어 구체적 설계까지
+끝난 상태이니 중복 재검토하지 말고 0-B 원문 설계 그대로 구현만 하면 된다.
 
 ### (참고, 세션19까지의 이력 — 세션12~19 커밋 요약)
 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`(매칭 목적
@@ -2749,6 +2862,80 @@ layout의 최적화를 기준으로 그룹하는 것(`geometry_colocation_union(
 관계는 composite 상속으로도 재현되기 때문. `stick_diagram.py` self-test 전체(31개
 Test) exit 0, 회귀 없음.
 
+## B-5. 보충 기록(세션23 시작 시 발견된 기록 누락분) — `resolve_stack_layout()` 3계층
+설계 제안 + topology.json 누적 지식베이스 철학
+
+B-4 실측 검증(아래) 과정에서 사용자가 제안한 더 큰 설계 방향이 원래 세션22 기록에는
+"B절 결정"만 남고 누락됐었다(세션23 시작 시 사용자가 지적 — `.ai/context.md`가 스스로도
+stale/불완전해질 수 있다는 세션14 교훈이 문서 자체 결함으로 재발한 사례) — 아래 보충한다.
+
+### B-5-1. 문제 재구조화 — finger_w/오일러 경로/매칭대칭이 사실 하나의 질문
+지금 이 세 관심사가 서로 다른 union-find로 각자 판단되고 있다는 게 구조적 위험이라는
+지적(사용자):
+
+| 관심사 | 지금 계산하는 함수 | 근거 |
+|---|---|---|
+| finger_w 호환 | `geometry_colocation_union()`(자동 추론, Vx fan-out에 취약 — 이 사고 원인) | 전기적 인접(drain=source) 추측 |
+| 오일러 경로(row 배치) | `kcl_series_union()` → `stack_id` → `audit_row_split()`/`mirror_symmetric_trail()` | 2단자 KCL 직렬 추측 |
+| 매칭 대칭 | `matching_pairs`(topology.json 선언) | 사람이 선언 |
+
+### B-5-2. 정보의 2계층 분리 제안(사용자 원안)
+- **Topology 계층**(instance 무관, `topology.json`에 누적): `vertical_stack_id`(물리적
+  직렬 branch 경계), `matching_pairs`(이미 있음). 사용자 지적 원문: "같은 전류가 흘러야
+  하는 branch류" 같은 기능적 tag는 layout instance마다 달라지지 않는 회로의 topology
+  특성이라 `topology.json`에 저장될 만하다 — M1a/M1b/M2a/M2b에 `vertical_stack_id`가
+  아예 없는 게 이번 사고의 실제 빈틈.
+- **Instance 계층**(이번 sizing 실행에서만 유효, 메모리 캐시): 실제 W로부터 나온
+  `finger_w`/`n_fingers` 선택값, 이번 실행에서 확정된 오일러 walk 시퀀스, 적용된 핑거
+  조정 내역 — "한 번 결정된 조합은 뒤쪽에서 재사용할 수 있도록 내부 자료구조에 저장해
+  매번 다시 계산하는 번거로움이 없도록"(사용자 원문, layout 상황에 따라 조합이 instance
+  마다 달라질 수 있는 정보라서). `SizingContext.layout_solution` 필드로 제안됨(미구현).
+
+### B-5-3. `resolve_stack_layout()`(가칭) 설계 제안 — 미구현
+기존 서브 solver(`search_stack_finger_w`, `mirror_symmetric_trail`,
+`suggest_pair_finger_adjustments`)를 재발명하지 않고 이것들을 묶는 layered orchestrator:
+1. `vertical_stack_id`로 1차 분할(이걸 유일한 권위 있는 경계로 — `geometry_colocation_
+   union()`의 자동 fan-out 추론이 이 경계를 넘으면 안 됨).
+2. 각 그룹 안에서 finger_w 탐색, 실패하면 그룹분할(세션11 B-5 원칙: 미매칭 소자 우선
+   분리) 후 재시도.
+3. 각 그룹 안에서 오일러 walk 구성, 실패하면 `suggest_pair_finger_adjustments()` 제안 →
+   2번부터 재검산(핑거가 바뀌면 W도 바뀌므로).
+4. 결과(그룹 멤버십·finger_w·walk 시퀀스·적용된 조정)를 구조체 하나로 반환,
+   `ctx.layout_solution`에 캐시.
+
+호출부 교체 제안: `optimize_full_circuit_budget()`이 따로 계산하는 `stack_groups_kcl`/
+`stack_groups_geometry`를 이 함수 하나로 대체, `assign_finger_geometry()`/
+`audit_row_split()`/`run_topology_pipeline_with_finger_fixup()`이 전부 이 캐시를 읽게.
+
+### B-5-4. `topology.json` 누적 지식베이스 철학(사용자 원안, 일반 원칙으로 기록)
+"topology.json은 실제로 sizing하고 layout하는 구현 횟수가 증가할수록(instance 구현
+횟수가 늘어날수록) 그 과정에서 생기는 모든 instance에 공통적으로 적용될 수 있는 정보들을
+누적하여 보관해야 한다"는 컨셉 — 초기엔 시행착오가 있지만, 자주 쓰는 topology는 누적된
+정보를 참고해 구현 속도가 빨라지고 spec 미달 확률이 낮아질 것이라는 예측. **이 관점에서
+전체 함수 설계를 재검토할 필요가 있으나, 세션22~23은 문제가 된 함수들을 이런 공용
+함수를 호출하는 방식으로 개선하는 좁은 범위로 한정** — 전체 재검토는 사용자가 명시적으로
+나중으로 미룸.
+
+### B-5-5. 테이블 위에 남은 3갈래 작업(세션22 종료 시점 기준, 우선순위 미정)
+1. `vertical_stack_id`를 M1a/M1b/M2a/M2b 등 빠진 소자까지 채우기(stack M6류 크래시의
+   선행 조건, `resolve_stack_layout()`이 이 경계에 의존하므로).
+2. `resolve_stack_layout()` 신설(B-5-3).
+3. `find_matching_candidates()` Tier 1 실배선 + `vertical_stack_id` 기반 "함정 감지"로
+   `matching_pairs` 자동판단(analog-grammar 활용) — 사용자가 이 세션에 새로 요청한 방향:
+   "매칭과 대칭을 판단하는 것을 사람이나 AI가 하지 않고, analog_grammar 함수들을 활용해서
+   tool이 직접 기능블럭을 판단해서 매칭해야 하는 소자들을 결정하고, 모호하거나 사람이
+   봐야 하는 소자들만 확인받도록" — 방향성은 B-2가 이미 실측으로 뒷받침(analog-grammar
+   raw idiom matching이 current_mirror 8소자는 정확히 재현하지만 `M36a+M7` false
+   positive도 그대로 재현 — Tier 1 필터가 이 함정을 걸러야 한다는 근거로 재확인됨).
+
+이 셋 중 실제로 착수한 건 없음(설계 논의만) — 아래 B-4 실측(matching_pairs 기반
+`stack_groups_override`로 stack M6 크래시가 실제로 사라짐을 확인)이 사용자의 "매칭 안
+되는 소자는 stack에서 밀어내면 되지 않나"는 가설을 직접 검증한 것이었고, 이 검증 결과가
+최종적으로 `geometry_colocation_union()` 재설계(B-4 본문 채택안)로 이어졌다 — 이 과정에서
+`run_topology_pipeline_with_finger_fixup()`까지 이 프로젝트 역사상 처음으로 뚫고 들어가
+새 버그(`revalidate_finger_override()` `KeyError('kind')`, 아래 C-1)를 직접 만났다. 위
+3갈래는 그 다음 단계로 테이블에 남아 있다.
+
 ## C. `optimize_full_circuit_budget()` 재실행 → 연쇄로 드러난 나머지 버그 5개
 
 B절 수정 후 실제 production 회로(override 없이, 기본 동작만으로)를 다시 돌리자
@@ -2825,3 +3012,490 @@ audit_ok=False (box-shape/matching quality 잔여 이슈 — 역시 정상적인
 7. **신규 스크립트**(참고용, 완주는 못 함): `workspaces/current-reuse-telescopic-ota-
    report/sample_metrics_session22.py`(실측 샘플링), `theta_sensitivity_session22.py`
    (OAT 민감도 스윕 초안, stack M6 크래시로 중단됨 — 재사용/재작성 판단 필요).
+
+---
+
+# 세션23 결론 — analog-grammar rail 대소문자 버그 발견, diff-pair topology-only 탐지 실패
+# 확인, vertical_stack_id 자동화 4회 실측(3실패+1성공: trace_vdd_to_gnd_branches() 신설)
+
+세션22가 남긴 B-5(보충 기록, 세션23 시작 시 발견)의 3갈래 작업 중 "analog-grammar 기반
+matching_pairs 자동판단"과 "vertical_stack_id 경계 확장"을 실측으로 파고들었다. composite
+소자 구성 함수를 설계하려던 원래 목표에서 시작해, 실제로 돌려보며 두 개의 중요한 신규
+발견(A/B절)과 vertical_stack_id 자동화 4회 실측(C절, 그중 1회 성공해 함수로 코드화)으로
+이어졌다.
+
+## A. analog-grammar 진짜 버그 발견 — rail net 이름 대소문자 불일치
+
+`skills/analog-grammar/assets/netclass.py`의 `RAILS_POS`/`RAILS_NEG`가 `{'VDD','GND',...}`
+**대문자만** 인식하는데, 이 프로젝트 topology.json은 `vdd`/`gnd` **소문자**를 쓴다 —
+그래서 지금까지 이 프로젝트 회로에 대한 모든 analog-grammar role 분류(`classify_nets`/
+`assign_roles`)가 rail을 못 알아본 상태로 진행되고 있었다(실측: `M6`가 `CURRENT_SOURCE`
+가 아니라 `CASCODE`로 오분류 등). rail 이름을 대문자로 바꿔 넣으면 role이 실제 회로와
+합리적으로 일치한다(`M6`/`M8`/`M17`→`CURRENT_SOURCE`, `M13`/`M22`/`M60`/`M61`→
+`ACTIVE_LOAD` 등). 참고로 세션22의 `M36a+M7` current-mirror 오탐 판정은
+이 버그와 무관하게 rail 수정 후에도 **그대로 재현됨**을 확인, 그 결론은 안 바뀐다.
+
+⚠️ **당일 원본 수정 완료**(처음엔 각 함수 내부에서 국소 대문자 변환으로 우회했으나,
+사용자가 "wrapper로 해결한 거냐"고 지적 → 우회가 두 함수(`suggest_vertical_stack_
+composites`/`classify_symmetric_branch_pairs`)에 완전히 동일한 6줄로 중복돼 있다는 게
+드러남 → "원본을 고쳐"로 확정): `netclass.py`의 `RAILS_POS`/`RAILS_NEG`/`RAILS`를
+`_CaseInsensitiveNetSet(frozenset)` 서브클래스로 바꿔 `__contains__`가 비교 전에
+`item.upper()`로 정규화하도록 수정 — 특정 대소문자 조합을 리터럴로 추가하는 대신 비교
+자체를 대소문자 무관하게 만들어, 호출자가 어떤 케이스 관례를 쓰든 항상 맞도록 했다(15곳
+전부 `in RAILS`/`in RAILS_POS`/`in RAILS_NEG` 형태라 이 한 곳만 고치면 전부 적용됨).
+이후 `stick_diagram.py`의 두 함수에서 중복돼 있던 로컬 우회 코드(각 6줄)도 제거 —
+소문자 `vdd`/`gnd` 그대로 넘겨도 정상 동작함을 재확인. **회귀**: self-test 34개 전부
+exit 0, `classify_symmetric_branch_pairs()`의 실측 수치(differential=4/mirror=5/
+no_connection=12)와 `fig2_telescopic.json` coverage=1.00 전부 우회 코드 제거 전후
+동일하게 재현.
+
+## A2. analog-grammar 두 번째 버그 발견 + 수정 — 미러 구동 bias net이 SIGNAL로 오분류
+(당일 수정 완료)
+
+C-6/C-7 작업 중 `M2a`/`M3a`(진짜 캐스코드 소자)가 analog-grammar에서 `role=AMPLIFYING`
+으로 나오는 걸 사용자가 이상하게 여겨 파고든 끝에 발견 — 이번엔 **당일 직접 수정**까지
+완료했다.
+
+### A2-1. 근본원인
+`netclass.py` §1e2("게이트를 구동하는 내부 넷" 분류) 원래 규칙: "diode로만 구동되면
+BIAS, 능동(non-diode) 드레인이 있으면 SIGNAL". 이 규칙은 그 능동 드레인을 만드는 소자
+**자신의 게이트가 이미 BIAS로 확정돼 있는 경우**를 놓친다 — current mirror는 정의상
+gate≠drain이라 이 규칙으로는 미러가 만드는 bias net을 원천적으로 절대 BIAS로 못 잡는다.
+실측: `Vbias1`(순수 diode `M18_bg`+외부 `Iref`, 진짜 DC) → `M60`(게이트=`Vbias1`인 미러)
+→ `Vbias4`(SIGNAL로 오분류) → `M68`(게이트=`Vbias4`인 미러) → `Vbias2`(SIGNAL로 오분류,
+연쇄) — 셋 다 AC 성분이 없는 순수 DC bias 트리(`topology.json`에 이미 `biasgen_tree_*`
+로 선언돼 있음)인데 SIGNAL로 잘못 분류됐다. 사용자 지적: "SIGNAL이라면 AC적으로 움직임이
+있어야 하는데 이건 정말 bias이고 AC적인 움직임은 없다" — 개념적으로도 명백히 틀린
+분류였다.
+
+### A2-2. 수정 (`skills/analog-grammar/assets/netclass.py`, `classify_nets()` §1e2)
+"diode로만 구동되는가"라는 단순 이분법 대신, 이 net을 드라이브하는(gate≠drain) 소자들의
+**게이트 클래스**를 재귀적으로 확인하도록 고쳤다 — 1d(신호 전파)와 동일한 고정점(`while
+changed`) 반복 패턴: 드라이버 전부의 게이트가 이미 `BIAS`로 확정돼 있으면 이 net도
+`BIAS`로 전파(미러/전류원의 안정성을 물려받음), 드라이버 게이트가 아직 미확정이면 다음
+라운드로 미룸(net 이름 처리 순서 무관하게 사슬 깊이만큼 자연 수렴), 끝까지 안 풀리면
+안전하게 SIGNAL로 폴백(조용히 BIAS로 단정하지 않음).
+
+### A2-3. 검증
+- `Vbias1`/`Vbias2`/`Vbias3`/`Vbias4`/`Vcmfb` 전부 `BIAS`로 재분류 확인.
+- `M2a`/`M2b`/`M3a`/`M3b` 전부 `role=CASCODE`로 재분류(기존 `AMPLIFYING`에서 정정).
+  단 `telescopic-cascode-node` idiom은 **여전히 미발동** — 이건 오늘 고친 것과 무관한
+  별개 이유(`Vom1` 노드에 `M2a`/`M3a` 외에 `M19`도 drain으로 얹혀 있어 이 idiom의
+  "정확히 2개" 조건을 못 채움).
+- **회귀**: 이 프로젝트 `stick_diagram.py` self-test 34개 전부 exit 0(Test 30/33/34처럼
+  analog-grammar에 크게 의존하는 테스트 포함, 전부 무회귀). analog-grammar 자체
+  예제(`examples/fig2_telescopic.json`/`fig3_classab.json`)도 `analyze.py`로 재실행 —
+  크래시 없음. 오히려 `fig2_telescopic.json`(같은 회로의 축소판, `M58`류 잡음 없는 깨끗한
+  버전)에서 `current-reuse-pair`(`M1a+M1b+M4a+M4b`)와 `cascoded-gain-node`(`M2a+M3a`,
+  `M2b+M3b`) idiom이 **새로 정확히 잡히며 coverage=1.00 달성** — 세션19가 교차검증
+  기준으로 삼았던 `DESIGN.md` §4 기대값(`current-reuse-pair`/`cascoded-gain-node`/
+  `tail-current-source`)과 정확히 일치. 버그 수정이 이 회로 하나를 넘어 analog-grammar
+  본연의 목적(idiom 인식)까지 개선했다는 뜻.
+
+rail 대소문자 버그(A절)는 이 A2절 작성 시점엔 손 안 댔었으나, 세션23 끝에서 사용자가
+"wrapper로 해결한 거냐"고 재차 확인하며 원본 수정까지 이어졌다(A절 하단 갱신 내용 참고
+— `_CaseInsensitiveNetSet`으로 근본 수정 + 로컬 우회 코드 제거 완료).
+
+## B. topology-only diff-pair 탐지 — 이 회로에서 구조적으로 실패
+
+rail 버그를 고친 뒤 `find_idiom_matches()`(current-mirror/cascode-stack/differential-pair)를
+`current_reuse_telescopic_ota`(51소자 전체)에 돌리면:
+- **current-mirror**: 잘 잡힘(`Vbias1` 8소자 그룹 정확 재현 + `Vbias4`쪽 8소자 그룹 신규 발견).
+  `M36a+M7` 오탐은 여전(세션22 결론 유효).
+- **cascode-stack**: 일부 잡힘(`M37a+M38`, `M37b+M38`).
+- **differential-pair: 단 한 건도 안 잡힘.** 원인: 진짜 diff pair `M1a`/`M1b`(둘 다
+  source=`Vx`)가 있는 `Vx` 노드에 `M58`(bias-gen 소자)도 같은 source로 얹혀 그룹 크기가
+  3이 되고, `idioms.m_diffpair()`가 "정확히 2개"만 요구해서 그룹 전체가 스킵됨.
+
+세션22가 `geometry_colocation_union()`(finger_w 그룹핑)에서 이미 발견한 "M58이 Vx를 통해
+fan-out으로 끼어드는" 문제가, 완전히 다른 함수(diff-pair 탐지)에서 **동일한 실패 패턴**으로
+재발 — topology(connectivity)만으로 자동 탐지하는 모든 접근이 이 회로에서 공통으로 부딪히는
+근본 취약점임을 재확인. **결론: 이 회로에서는 `matching_pairs`(사람 선언) 없이 diff pair를
+topology만으로 재발견할 수 없다.**
+
+## C. `vertical_stack_id` connectivity 자동화 — 4회 실측(3실패 + 1성공)
+
+원래 목표(composite 소자 구성 함수 신설)를 진행하려다, "그 composite이 결국
+`vertical_stack_id`와 얼마나 일치하는가"를 사용자가 직접 검증하자고 제안 — `current_reuse_
+telescopic_ota`의 실제 declared `vertical_stack_id`(36개 소자, 11개 그룹)를 사람이 선언한
+그대로 두고, **connectivity만으로 독립적으로 재구성해서 일치 여부를 대조**하는 방식으로
+4가지 규칙을 순서대로 실측했다.
+
+### C-1. 실패 — 엄격한 2단자 KCL(`kcl_series_union`, matching_pairs 없이)
+레일 제외 + 정확히 2단자인 net만 병합. 결과: 16개 다중-소자 후보 전부 declared vsid를
+가로질러 쪼개짐(예: `[M11a,M11b,M12]` 후보가 `M11a/M11b=biasgen_vom_a`, `M12=biasgen_
+vom_b`로 사람은 다르게 나눔) — **matching_pairs 인접쌍이 완전히 포함되는 후보 0/16개**.
+구조적 원인: `matching_pairs`는 항상 **다른 branch**(대칭인 두 반쪽)를 잇는 관계라 직접
+만나는 private net이 없고, KCL 후보는 항상 **같은 branch**(직렬)를 묶는다 — 두 축이
+이 회로에서 거의 서로소(disjoint)라 "KCL 후보 안에 matching pair 포함되면 확정"이라는
+규칙 자체가 애초에 거의 항상 공집합이 된다.
+
+### C-2. 실패 — 레일 제외 rail-to-rail 연결성분(단자 수 무관 union)
+분기 노드를 넘어가도록 허용(사용자 제안 검증). 결과: 51개 중 25개가 **서로 다른 declared
+vertical_stack_id 11개 전부를 한 덩어리로 섞은** 하나의 연결성분으로 붕괴 — `Vom1`/`Vop1`/
+`Vg15`/`Vg25`/`Vx`/`Vy` 같은 공유 노드를 넘어가면 이 folded/current-reuse 구조 특성상
+회로 절반이 통째로 이어져버림. 나머지 작은 성분(3개 이하)들은 C-1과 거의 같은 패턴으로
+declared 경계를 가로지름(`[M22,M23a,M24b]`→`{vop_a,vop_b}` 등), 딱 `[M39,M40]`→
+`{cmfb_load}` 하나만 깔끔히 일치.
+
+### C-3. 실패 — 소자 단위 분기별 경로 나열(공유 net의 다른 단자를 쓰는 이웃을 전부 다음
+hop 후보로)
+16개 시작점에서 **446개** branch로 조합 폭발 — 병렬 형제(`M1a`/`M1b`처럼 같은 kind가 같은
+Vx를 **둘 다 source로** 공유하는 관계)까지 "다음 소자"로 오인해서, 한 소자가 여러 개의
+서로 다른 root-to-leaf 경로에 중복 등장(분할이 아니게 됨). 사용자가 직접 5개의 정답
+branch를 예시로 제시(`M6/M1a/M2a/M3a/M4a/M5`, `M6/M1b/M2b/M3b/M4b/M5`, `M7/M1a/M2a/M3a/
+M4a/M5`, `M7/M1b/M2b/M3b/M4b/M5`, `M61/M64/M63/M5`) — 이걸로 정확한 규칙을 역산해 C-4로
+이어짐.
+
+### C-4. 성공 — kind별 entry/exit 고정 + drain=drain 만남 지점 (`trace_vdd_to_gnd_branches()`)
+PMOS는 `source(레일쪽)→drain(부하쪽)`, NMOS는 `drain(부하쪽)→source(레일쪽)` 순으로 "실제
+전류 방향"을 kind로 고정해서 소자를 이었다 — 이러면 병렬 형제(같은 kind, 같은 타입 단자
+공유)는 **구조적으로 절대** 다음 hop이 될 수 없고, PMOS drain과 NMOS drain이 만나는 진짜
+캐스코드 출력 노드(`M2a.drain==M3a.drain==Vom1`)만 정상적으로 이어진다. 사용자가 제시한
+5개 예시 branch **전부와 정확히 일치**했고, 조합 폭발 없이 **29개 완주 branch + 1개
+dead-end**(`M18_bg`→`Vbias1`, 트랜지스터가 아니라 `ideal_sources`의 `Iref` 전류원으로
+종단 — 버그 아니라 정직한 신호)로 수렴.
+
+**그럼에도 `vertical_stack_id`를 자동 확정하지는 못한다** — declared vsid 그룹은 이 함수가
+찾는 "하나의 물리 branch"와 정확히 대응하지 않고 두 가지 다른 카테고리로 어긋난다:
+1. **허브 공유형**: `M5`/`M6`/`M7`(`stage1`)은 각각 6개/4개/4개의 서로 다른 declared vsid와
+   같은 branch에서 만난다 — 이 셋은 "하나의 branch"가 아니라 **여러 branch가 공유하는
+   tail 소스/싱크 허브**이기 때문(`M5`는 거의 모든 NMOS branch의 공통 싱크, `M6`/`M7`은
+   `Vx`를 통해 여러 branch에 공통 공급).
+2. **인접쌍 분할형**: 하나의 물리 branch를 사람이 정확히 절반씩 둘로 쪼갠 경우가 대부분
+   (`[M11a,M11b(vom_a)]→[M12(vom_b)]`, `[M13(vom_a)]→[M14a,M14b(vom_b)]`,
+   `[M20a,M20b(vop_a)]→[M21(vop_b)]`, `[M22(vop_a)]→[M23a,M24b(vop_b)]`,
+   `[M36a,M36b(cmfb_load)]→[M37a,M37b,M38(cmfb_tail)]`) — branch 자체는 하나로 정확히
+   추적되는데, 사람이 그 안에서 "위쪽(ratio 미러 참조)"과 "아래쪽(전류 결정 tail)"을
+   `matching_sensitivity` 경계로 보이는 기준을 따라 별도 `vertical_stack_id`로 나눠뒀다.
+
+### C-5. branch tracing 단독으로는 여전히 미확정 — 그러나 종결 아니었음(C-6으로 이어짐)
+branch 골격(C-4)만으로는 `vertical_stack_id`가 자동 확정되지 않는다는 게 위 두 카테고리
+(허브 공유형/인접쌍 분할형)로 확인됐다 — 여기서 "connectivity만으로는 근본적으로 불가능"
+이라고 결론지을 뻔했으나, 사용자가 "이 함수가 내놓은 candidate들을 analog-grammar로
+composite소자로 먼저 재구성해보자"고 제안 — C-6에서 실제로 돌려보니 결론이 뒤집혔다.
+
+### C-6. 성공 — branch tracing + analog-grammar idiom matching 결합 (`suggest_vertical_
+stack_composites()`)
+C-4의 branch(예: `[M11a,M11b,M12]`)에 analog-grammar idiom matching(rail 대소문자 수정
+반영)을 겹쳐서, **branch 내부에서 연속된 부분열이 diode-connected/floating-battery/
+cascode-stack/push-pull 같은 idiom과 정확히 일치하면 그 부분열만 하나의 composite로
+병합**했다(`current-mirror`/`differential-pair`는 정의상 다른 branch를 잇는 관계라 제외).
+결과: `[M11a,M11b,M12]` → `M11a+M11b[floating-battery] | M12` — **정확히 사람이 선언한
+`biasgen_vom_a`={M11a,M11b} vs `biasgen_vom_b`={M12} 경계와 일치**. 51소자 전체
+29개 완주 branch에 전부 적용한 결과:
+
+- **63개 composite unit 중 62개가 단일 declared `vertical_stack_id`로 깨끗이 일치**
+  (`[M13(vom_a)]|[M14a,M14b(vom_b)]`, `[M20a,M20b(vop_a)]|[M21(vop_b)]`, `[M22(vop_a)]|
+  [M23a,M24b(vop_b)]`, `[M36a(cmfb_load)]|[M37a,M38(cascode-stack)]`, `[M60(active-load)]|
+  [M66(diode-connected)]`(서로 다른 declared 그룹 `tree_a`/`tree_root`인데도 안 섞이고
+  정확히 갈라짐), `[M39,M40(floating-battery)→cmfb_load 한 그룹]` 등).
+- **불일치는 단 1건**: `[M37a,M38]` → declared=`{None, cmfb_tail}` — 이것도 진짜 충돌이
+  아니라 `M37a`가 애초에 declared 값이 비어있던 gap(`M37a`/`M37b`는 진짜 CMFB 차동쌍인데
+  `M37b`만 `cmfb_tail`로 선언돼 있었음, 세션22가 이미 알던 gap)을 메우는 방향의 정당한
+  제안으로 읽힌다.
+- 신호경로 소자(`M1a`~`M4b`, declared 자체가 없음)는 어떤 idiom과도 안 묶여 소자 단위
+  그대로 남고, `stage1`(`M5`/`M6`/`M7`) 허브 소자도 다른 소자와 안 합쳐진 채 각 branch에
+  단독 등장 — 둘 다 declared 정보와 자연스럽게 정합적(합칠 근거가 없는 곳은 안 합치므로
+  "섞임" 오류로 집계되지 않는다).
+
+**결론**: branch 골격 단독(C-4)은 "어디서 병합해야 하는지"의 절반(같은 branch인지)만
+알고 "그 안에서 어디를 더 쪼개야 하는지"는 몰랐는데, analog-grammar의 idiom 판정
+(connectivity에서 결정론적으로 나오는 구조적 사실)이 바로 그 나머지 절반을 메웠다.
+`suggest_vertical_stack_composites()`(`stick_diagram.py` §1.7d)로 코드화, self-test
+Test 33(합성 fixture로 floating-battery 병합 경계 재현) 전부 통과, 회귀 없음.
+⚠️ 이 함수는 **제안만** 한다 — `topology.json`에 자동으로 쓰지 않으며, 62/63이라는
+성공률도 이 회로 하나의 결과다(다른 3개 회로 일반화는 미검증, 아래 "지금 상태" 참고).
+
+### C-7. branch 쌍 탐색 — gate 기반보다 "순수 구조(kind+idiom 시퀀스) 일치"가 훨씬
+포괄적임을 실측으로 확인
+C-6의 composite branch들을 서로 짝짓는 방법을 두 갈래로 실측 비교했다:
+1. **gate 기반**(fork에서 갈라진 소자의 gate가 같거나, 둘 다 선언된 `INPUT`이면 연결로
+   보고 전체 chain을 끝까지 검증) — `M6`/`M7` 시작 differential branch 4쌍은 잡지만,
+   `M13`-branch↔`M22`-branch류(각자 내부 net 이름이 달라 gate 자체가 다르고 `INPUT`도
+   아님)는 못 잡는다.
+2. **순수 구조 일치**(`suggest_vertical_stack_composites()`가 만든 composite 시퀀스의
+   `(길이, idiom, kind 튜플)`만 비교, gate 이름은 아예 안 봄) — 29개 branch 중 **26개가
+   11개 그룹으로 묶임**(`M13/M14a/M14b`↔`M22/M23a/M24b`, `M8/M9a/...`↔`M17/M18a/...`,
+   `M11a/M11b/M12`↔`M20a/M20b/M21`, `M15/M16`↔`M25/M26`, `M36a/M37a/M38`↔`M36b/M37b/M38`
+   등 vom/vop 대칭쌍 전부 포함). 짝 없는 3개(`M60/M66`, `M61/M64/M63/M5`, `M39/M40`)는
+   실제로 vop/vom 양쪽에 복제 안 되는 단일 기준전류/CMFB 출력 구조라 짝이 없는 게 맞다.
+
+### C-8. `classify_symmetric_branch_pairs()` — C-7의 구조적 쌍을 다시 analog-grammar
+gate 판정으로 3범주 분류
+C-7이 찾은 구조적 쌍을 무조건 하나로 취급하지 않고, "진짜 연결 근거가 있는가"를
+analog-grammar로 다시 검증해서 세분화해달라는 사용자 요청으로 설계했다. 첫 시도(전체
+chain이 끝까지 안 끊기고 다 이어져야 `mirror`로 인정)는 실측하니 **`mirror` 버킷이
+0개**로 나왔다 — `M8`/`M17`처럼 fork 지점 gate는 같아도(`Vbias1`) 그 다음 단계에서
+내부 net 이름(`M9a`의 gate=`N11b` vs `M18a`의 gate=`N20b`)이 달라 체인 전체 검증이
+실패했기 때문. 사용자가 "fork 지점(갈라지는 첫 소자)만 같은 gate면 mirror로 인정"으로
+기준을 명시적으로 정정 — 이 기준으로 다시 실측하니:
+
+```
+differential_branch_pairs = 4   (fork@M1a/M1b, 전부 gate=Vip/Vim)
+mirror_branch_pairs        = 5   (fork@M8/M17 ×4, fork@M13/M22 ×1, 전부 gate 동일)
+structurally_symmetric_no_connection = 12   (fork@M6/M7 ×8, fork@M11a/M20a, M15/M25,
+                                              M36a/M36b — gate가 다르고 둘 다 INPUT도 아님)
+```
+
+`mirror_branch_pairs`가 잡은 5쌍은 전부 `topology.json`에 **직접 선언된 matching_pairs가
+아닌** 관계(`M8`/`M17`은 같은 `current_mirror` 그룹의 일부일 뿐 서로 직접 선언된 쌍은
+아님)라, declared 정보 없이 순수 connectivity+gate 판정만으로 의미 있는 신호를 냈다는
+근거가 된다. `classify_symmetric_branch_pairs()`(`stick_diagram.py` §1.7d)로 코드화,
+self-test Test 34(3범주 합성 fixture, 각 1쌍씩 정확히 분류) 전부 통과, 회귀 없음.
+⚠️ 세 범주는 fork 지점 **하나만** 보고 판정한다 — chain 나머지 구간의 연결 여부는
+보지 않는다(의도된 단순화, 위 "0개 나왔던 첫 시도" 참고).
+
+### C-9. `find_differential_and_mirror_forks()` — telescopic 구조의 "두 번째
+differential pair"를 놓치는 문제를 양방향(VDD↓+GND↑) 탐지로 해결
+
+C-8까지의 판정은 전부 **VDD→GND 하향 한 방향**만 봤다. 사용자가 "M4a/M4b는 왜 안 봐?"
+라고 지적 — `[M6,M1a,M2a,M3a,M4a,M5]` vs `[M6,M1b,M2b,M3b,M4b,M5]`는 실제로
+`differential→mirror→mirror→differential`(M1a/M1b, M2a/M2b, M3a/M3b, M4a/M4b 순)로
+이어지는데, 첫 fork(`M1a`/`M1b`)만 보고 나머지는 계산조차 안 하고 있었다.
+
+**원인**: `current_reuse_telescopic_ota`는 PMOS 입력단(`M1a`/`M1b`)과 NMOS 입력단
+(`M4a`/`M4b`) 둘 다 `Vip`/`Vim`을 게이트로 받는 "current-reuse"(입력을 두 번 재사용) 구조
+— 즉 differential pair가 스택 안에 **두 층**으로 있다. 하향 추적에서 `M2a`→`M3a`→`M4a`
+구간은 분기 없는 직선이라(각 소자가 정확히 하나의 다음 소자로만 이어짐), `M4a`/`M4b`가
+같은 branch 안에서 나란히 서 있다는 사실 자체가 fork로 드러날 기회가 없다.
+
+**해결**: `trace_gnd_to_vdd_branches()`(`trace_vdd_to_gnd_branches()`의 완전한 반대
+방향 — PMOS는 drain→source, NMOS는 source→drain 순으로 GND에서 VDD까지 거슬러 올라감)
+를 신설해서, `M5`(공통 tail sink)에서 위로 올라가면 `M4a`/`M4b`가 **그 방향에서는 첫
+fork**로 바로 잡힘을 확인. `find_differential_and_mirror_forks()`가 두 방향의 branch
+tree 전체에서 fork를 각각 찾아(단일 divergence 하나가 아니라 tree 전체를 훑음) gate
+판정(mirror/differential)으로 분류하고 합친다. 실측 결과:
+
+```
+하향(VDD→GND): M6→(M1a,M1b) differential, M7→(M1a,M1b) differential   (2건, 시작점 2개)
+상향(GND→VDD): M5→(M4a,M4b) differential                              (1건)
+```
+
+`M2a`/`M2b`, `M3a`/`M3b`(둘 사이에 낀 mirror형 캐스코드)는 이번에도 어느 방향에서도
+fork로 안 잡힌다 — 이건 애초에 fork가 아니라 "두 개의 독립된 직선 branch를 나란히
+비교해야만" 보이는 관계라(C-7/C-8이 이미 다루는 영역), C-9의 범위 밖으로 확인됨.
+`trace_gnd_to_vdd_branches()`/`find_differential_and_mirror_forks()`(`stick_diagram.py`
+§1.7d)로 코드화, self-test Test 35(9소자 telescopic 합성 fixture, 하향/상향 각각 반대쪽
+pair를 놓친다는 것과 합쳤을 때 둘 다 잡힌다는 것 둘 다 검증) 전부 통과, 회귀 없음.
+
+## 정정: `M7`+`M36a`는 "오탐"이 아니라 진짜 mirror 관계였다
+
+세션18부터 반복 인용해온 "`M36a+M7` current-mirror 오탐"이라는 결론을 사용자가
+재검토 요청 — "전류가 ratio되는가 같아야 하는가만 다르지, VGS가 같으면 mirror가 맞는
+거 아닌가?"라고 정확히 지적했다. 세션18 L-3 원문을 다시 찾아 확인하니, 그때도 이미
+"둘 다 source=vdd → VGS 동일 조건은 만족하는데도 '다른 기능 블록'이라는 별개 사유로
+여전히 false_positive(사람 판단은 여전히 남음)"이라고 **스스로 그 긴장을 인정하고
+있었다** — 전기적 근거가 아니라 손으로 정한 판단이었다.
+
+**재검증(rail 버그 + 미러 bias net 오분류 버그를 A/A2절에서 이미 고친 상태로)**:
+`Vcmfb`는 `BIAS`로 분류되고(`Vbias1`과 동일 카테고리), `M7` role=`CURRENT_SOURCE`
+(`M6`과 동일), `M36a` role=`DIODE_CONNECTED`(`M18_bg`와 동일) — **`M7`/`M36a`를 진짜
+bias mirror(`M6`/`M18_bg`류)와 구조적으로 구별할 신호가 전혀 없다.** 즉 `M7`/`M36a`는
+"우연한 gate 일치"가 아니라, `M36a`(diode 기준)를 `M7`이 그대로 미러하는 **진짜
+전류미러 구조**다 — 다만 `Vcmfb`가 CMFB 부궤환 루프의 출력이라는 게 다를 뿐, 그 사실이
+mirror 관계 자체를 무효화하지는 않는다("ratio냐 1:1이냐"는 W 크기 문제일 뿐 mirror
+여부와는 별개 질문이라는 사용자 지적 그대로).
+
+**결론**: "오탐(false positive)"이라는 표현은 부정확했다 — 정확히는 "진짜 mirror
+관계이지만, `matching_pairs`에 선언해 레이아웃 매칭까지 강제할 필요는 없다고 설계자가
+판단한 사례"다(CMFB 부궤환이 소자 부정합을 스스로 보정해주므로 엄격한 인터디지테이션이
+덜 중요하다는 설계 판단으로 추정 — 단 이건 추정이고, 확정 근거는 아니다). 앞으로 이
+사례를 다시 언급할 때 "오탐"이 아니라 "matching_pairs 미선언(설계 판단)"으로 부를 것.
+
+## C-10. `find_verified_differential_and_mirror_relations()` — 진짜 branch 단위 비교로
+fork-tree 방식의 두 가지 남은 문제를 동시에 해결
+
+C-9(`find_differential_and_mirror_forks()`)는 fork-tree의 "갈라지는 지점"만 봐서 두
+문제가 있었다: (1) 소자 쌍 단위 비교라 `M1a`/`M58`, `M6`/`M7`, `M18a`/`M2a` 같은 무관한
+조합까지 후보로 나옴(사용자 지적: "branch단위로 비교하고 있는 거 맞아?"), (2) 한 방향
+호출당 fork 하나만 봐서 여러 층의 관계를 한 번에 못 봄.
+
+**해결**: `classify_symmetric_branch_pairs()`(C-7)의 원리 — **branch 전체의 composite
+구조(kind+idiom 시퀀스)가 완전히 같은 것끼리만 먼저 묶는다** — 를 `suggest_vertical_
+stack_composites()`에 `direction=` 파라미터를 추가해 상향까지 확장 적용하고, 매칭된
+branch 쌍 안에서 **첫 divergence만이 아니라 모든 위치**를 gate 판정(같은 gate=mirror,
+다른 gate+둘 다 `INPUT`=differential)한다.
+
+**실측**: `[M6,M1a,M2a,M3a,M4a,M5]`↔`[M6,M1b,M2b,M3b,M4b,M5]` 매칭 쌍 하나에서
+위치1(`M1a`/`M1b`)=differential, 위치2(`M2a`/`M2b`)=mirror, 위치3(`M3a`/`M3b`)=mirror,
+위치4(`M4a`/`M4b`)=differential **네 관계 전부가 하향 방향 한 번의 스캔만으로** 나온다
+— C-9가 상향까지 따로 돌려야 겨우 찾던 `M4a`/`M4b`가 이번엔 하향만으로도 잡힌다(branch
+전체를 미리 매칭해뒀기 때문). `M7`/`M36a`는 여전히 등장 안 함(구조가 다른 branch라
+애초에 비교 대상조차 안 됨 — 다만 위 정정에 따르면 이건 "오탐 필터링"이 아니라 그냥
+"이 두 branch가 구조적으로 매칭되지 않았을 뿐"이라는 뜻으로 재해석해야 한다).
+`current_reuse_telescopic_ota` 전체 결과: differential 4건(`M1a`/`M1b`,`M4a`/`M4b`
+각 양방향), mirror 12건(`M2a`/`M2b`,`M3a`/`M3b`,`M19`/`M10`,`M8`/`M17`,`M12`/`M21`,
+`M13`/`M22` 각 양방향 — `M19`/`M10`, `M12`/`M21`은 이번 전체-위치 스캔으로 새로 발견).
+
+`find_verified_differential_and_mirror_relations()`(`stick_diagram.py` §1.7d)로 코드화,
+self-test Test 36(Test 35의 9소자 telescopic fixture 재사용, 4관계 전부 하향 한 번의
+스캔으로 검출되는지 검증) 전부 통과, 회귀 없음.
+
+⚠️ **당시 남은 한계였으나 이후 C-11에서 완전히 해소됨**: `M37a`/`M37b`(CMFB 내부 2차
+differential pair, 게이트가 `Voc`/`Voc_des`로 `inputs=`에 선언한 `Vip`/`Vim`이 아님)는
+이 함수도 못 찾았다 — branch-매칭 문제가 아니라 net 분류 문제(`netclass.py` 자신이
+"구조만으로는 INPUT/BIAS 구별 불가, 이름 힌트 또는 사용자 선언 필요"라고 명시)였다.
+아래 두 단계로 완전히 풀렸다: (1) `Voc`/`Voc_des`를 `inputs=`에 수동 선언해 검증(잡힘,
+부작용 없음 확인) → (2) 사용자가 "먼저 differential pair를 찾고 나서 mirror를 분석해야
+정확해진다"는 통찰로 이어져, **선언 자체가 필요 없는** `find_differential_pair_
+candidates()`(C-11)로 최종 해결.
+
+## C-11. `Voc`/`Voc_des` 선언의 연쇄 효과 발견 → `find_differential_pair_candidates()`
+— 선언 없이 순수 connectivity만으로 진짜 differential pair 전부 발견
+
+### 검증 1 — `Voc`/`Voc_des`를 `inputs=`에 수동 선언
+`find_verified_differential_and_mirror_relations(..., inputs=('Vip','Vim','Voc',
+'Voc_des'))`로 재실행 → `M37a`/`M37b`가 정확히 differential로 잡히고, 나머지 결과(4개
+differential→6개로 `M37a`/`M37b`만 순증, mirror 12건은 완전히 동일)는 전혀 안 바뀜 —
+부작용 없이 깨끗하게 해결.
+
+### 검증 2 — 연쇄 효과: `Vcmfb`가 `BIAS`→`SIGNAL`로, `M7` role이 `CURRENT_SOURCE`→
+`AMPLIFYING`으로 재분류됨(사용자가 직접 예측하고 확인 요청)
+`Voc`가 `INPUT`으로 선언되면 `netclass.py`의 신호 전파 규칙(§1d, "게이트가 신호면
+드레인도 신호")이 `M37a`(gate=`Voc`)의 drain인 `Vcmfb`까지 SIGNAL로 끌어올린다 — 이
+전파는 오늘 A2절에서 고친 §1e2(미러 구동 bias net 재귀 전파)보다 **먼저** 실행되므로
+서로 충돌 없이 순서대로 맞물린다. 실측 확인: `Vcmfb`=`SIGNAL`(기존 `BIAS`에서 변경),
+`M7` role=`AMPLIFYING`(기존 `CURRENT_SOURCE`에서 변경), `M36a` role은 diode 판정이라
+게이트 클래스와 무관하게 그대로 `DIODE_CONNECTED`. **`M7`이 이제 `M6`(진짜 bias
+mirror)과 role로도 구조적으로 구별된다** — "오탐" 논쟁(위 정정 문단)의 근본 원인이었던
+잘못된 role 분류가 여기서 정정됨.
+
+### 사용자 통찰 — "differential pair를 먼저 찾고 나서 mirror를 분석해야 정확해진다"
+이 인과관계(`Voc` 선언 → `Vcmfb` 재분류 → `M7` role 재분류 → mirror 판정 정확도 향상)
+에서 사용자가 일반 원칙을 도출: mirror 분석은 net 분류(BIAS/SIGNAL, role)에 의존하는데
+그 분류 자체가 부정확하면(differential pair를 아직 못 찾아서) mirror 판정도 같이
+부정확해진다 — **순서가 중요하다**.
+
+### `find_differential_pair_candidates()` — 선언 없이 순수 connectivity로 해결
+"먼저 `Voc`/`Voc_des`를 알아야 선언할 수 있다"는 순환 의존을 피하기 위해, **INPUT/BIAS
+net 분류를 전혀 안 쓰는** differential-pair 후보 탐지를 설계했다: 구조적으로 매칭된
+branch 쌍(C-10과 동일 원리) 안에서, 위치별 소자쌍이 (1) 같은 kind (2) 다른 gate(mirror
+아님) (3) **같은 non-rail source(진짜 tail net)를 공유**하면 후보로 판정 — `Transistor.
+source`를 직접 비교할 뿐 `cls`(net 분류)를 전혀 참조하지 않는다.
+
+**실측**: `inputs=('Vip','Vim')`만 준 상태에서(또는 아예 `inputs=` 없이도, self-test로
+확인) 정확히 `M1a`/`M1b`(source=`Vx`), `M4a`/`M4b`(source=`Vy`), `M37a`/`M37b`
+(source=`Ncmfb_tail`) **3개만** 후보로 나온다. vop/vom 구조적 대응쌍(`M9a`/`M18a`,
+`M11a`/`M20a`, `M14a`/`M23a`, `M15`/`M25`, `M16`/`M26`, `M36a`/`M36b` — 전부 source가
+서로 다른 net이라 자동 제외)과 `M6`/`M7`(공유 source가 `vdd`, 레일이라 제외 — 레일은
+무한 전류 공급이라 "같은 tail 공유로 전류 스플릿"이라는 differential pair 정의 자체가
+성립 안 함)이 전부 깨끗하게 걸러진다.
+
+`find_differential_pair_candidates()`(`stick_diagram.py` §1.7d)로 코드화, self-test
+Test 37(Test 35 fixture를 `inputs=` **아예 안 넘기고** 호출, `M1a`/`M1b`+`M4a`/`M4b`
+둘 다 순수 connectivity만으로 검출되는지 검증) 전부 통과, 회귀 없음.
+
+**남은 오케스트레이션(다음 세션 최우선, 아래 C-12/D 참고)**: 이 함수가 찾은 후보의
+gate net을 자동으로 `inputs=`에 승격해서 `find_verified_differential_and_mirror_
+relations()`를 재실행하는 반복 정제 루프는 **아직 구현 안 함**(지금은 사람이 손으로
+검증 2에서 한 번 확인한 상태뿐 — 자동화된 함수/루프는 없음). 아래 C-12에 함수
+레퍼런스, D절에 명시적 다음 과제로 기록.
+
+## C-12. 함수 레퍼런스 정리 (세션23에 신설된 7개 + 세션24에 추가된 1개(8번), `stick_diagram.py` §1.7d, 의존 순서)
+
+| # | 함수 | 핵심 성질 | 반환 |
+|---|---|---|---|
+| 1 | `trace_vdd_to_gnd_branches(transistors)` | VDD→GND 하향, kind별 entry/exit 고정(PMOS: source→drain, NMOS: drain→source) + drain=drain 만남 지점. analog-grammar 불필요 | `{"branches": [{"chain":[...], "terminates_at": "gnd"\|"non_transistor"}, ...]}` |
+| 2 | `trace_gnd_to_vdd_branches(transistors)` | 1번의 완전한 반대 방향. analog-grammar 불필요 | 동일 형태, `terminates_at`이 `"vdd"`\|`"non_transistor"` |
+| 3 | `find_differential_and_mirror_forks(transistors, inputs=, outputs=, feedbacks=, biases=, clocks=)` | 1+2번 branch tree 전체의 fork(갈라지는 지점)를 gate 판정만으로 분류. **소자 쌍 단위**(branch 전체 비교 아님) — 무관한 조합도 섞여 나올 수 있음(초기 버전, 5/6번이 이 한계 해소) | `{"forks": [{"direction","fork_prefix","fork_devices","relation":"mirror"\|"differential"}, ...]}` |
+| 4 | `suggest_vertical_stack_composites(transistors, inputs=, outputs=, feedbacks=, biases=, clocks=, direction="vdd_to_gnd"\|"gnd_to_vdd")` | 1/2번 각 branch 내부 연속 부분열을 analog-grammar idiom(diode-connected/floating-battery/cascode-stack 등)으로 병합 — `vertical_stack_id` 후보 제안용(62/63 실측 일치) | `[{"chain","terminates_at","composites":[{"members","idiom"}, ...]}, ...]` |
+| 5 | `find_differential_pair_candidates(transistors, inputs=, outputs=, feedbacks=, biases=, clocks=)` | 4번 구조가 완전히 같은 branch끼리 묶은 뒤, **같은 non-rail source(진짜 tail) 공유 + 다른 gate**만으로 판정. **net 분류(INPUT/BIAS) 전혀 안 씀** — `inputs=` 선언 없이도 동작(핵심 성질, self-test로 확인) | `{"candidates": [{"direction","position","devices","shared_source"}, ...]}` |
+| 6 | `find_verified_differential_and_mirror_relations(transistors, inputs=, outputs=, feedbacks=, biases=, clocks=)` | 4번 기반, 구조 같은 branch 묶고 **모든 위치**를 gate 판정. 5번과 달리 `gate_class=='INPUT'`에 의존 — `inputs=`에 없는 2차 입력(`Voc`/`Voc_des`류)은 `differential`/`mirror` 대신 세 번째 버킷으로 감(**세션24 수정**: kind 다름/gate 근거 없음인 위치를 조용히 버리지 않고 `structurally_symmetric_no_connection`으로 명시 보고) | `{"differential": [...], "mirror": [...], "structurally_symmetric_no_connection": [...]}` — 각 원소 `{"direction","devices","branch_a","branch_b","position"}` |
+| 7 | `classify_symmetric_branch_pairs(transistors, inputs=, outputs=, feedbacks=, biases=, clocks=)` | 4번(하향 전용) 구조 매칭 + **첫 divergence 위치 하나만** 판정 — 6번보다 이전/단순 버전(하향만 지원) | `{"differential_branch_pairs","mirror_branch_pairs","structurally_symmetric_no_connection"}` |
+| 8 | `refine_differential_and_mirror_relations(transistors, inputs=, outputs=, feedbacks=, biases=, clocks=, max_iterations=5)` | **세션24 신설.** 5번+6번을 자동 오케스트레이션 — 5번 후보의 gate net을 `inputs=`에 자동 승격해 고정점까지 반복 후 6번 재실행, role/net class 변화를 명시적으로 보고 | `{"relations": 6번과 동일 형태, "promoted_inputs", "final_inputs", "role_changes":[{"device","before","after"}], "net_class_changes":[{"net","before","after"}], "iterations", "stop_reason"}` |
+
+**권장 사용 순서**: `refine_differential_and_mirror_relations()`(8번) 하나로 ①~③이
+자동 수행된다 — ① `find_differential_pair_candidates()`로 선언 없이 진짜
+differential pair 후보를 먼저 찾고 → ② 그 게이트를 `inputs=`에 승격 → ③
+`find_verified_differential_and_mirror_relations()`로 정확한 differential/mirror
+관계 확정하는 흐름을 5/6번을 직접 손으로 조합할 필요 없이 8번 호출 한 번으로 끝낸다
+(수동 조합이 필요한 경우, 예: 승격 없이 5/6번 각각의 원시 출력만 보고 싶을 때는
+여전히 개별 호출 가능). 3번/7번은 각각 더 단순했던 초기 버전(탐색 과정의 산물)이라
+지금은 5/6/8번이 더 정확하지만, 3번(fork-tree 전체 훑기)과 7번(하향 전용, 첫
+위치만)도 각자의 용도에서 여전히 유효하게 동작한다(전부 self-test로 검증됨, 폐기
+대상 아님).
+
+## D. 알려진 한계 / 다음 세션 이월
+
+0. **(해결됨, 세션24) input 승격 오케스트레이션** — `refine_differential_and_mirror_
+   relations()`(`stick_diagram.py` §1.7d)로 구현 완료, 아래 설계 스케치 (1)~(4)를
+   그대로 구현했고 (5)는 while 루프 고정점 반복(`max_iterations=5` 상한)으로 결정.
+   self-test Test 38로 검증(6소자 합성 fixture, 세션24 상세는 위 "지금 상태" 절
+   "(해결됨) item 0" 참고). ⚠️ `current_reuse_telescopic_ota` 실회로 대조 실행은
+   아직 안 함(다음 세션 item 0-A로 이월) — 아래는 세션23이 남긴 원래 설계 스케치
+   원문(역사 기록 보존, 이미 구현됐으므로 재구현 불필요):
+   `find_differential_pair_candidates()`(C-11, §1.7d)가 `inputs=` 선언 없이 순수
+   connectivity만으로 differential pair 후보(gate net 포함)를 찾아내는 것까지는 되는데,
+   그 후보의 gate net(예: `Voc`/`Voc_des`)을 **자동으로** `find_verified_differential_
+   and_mirror_relations()`의 `inputs=`에 승격해서 재실행하는 루프가 아직 없다 — 지금은
+   사람이 손으로 한 번(C-11 검증1) 확인했을 뿐, 코드화된 함수/자동화는 존재하지 않는다.
+   **다음 세션에 이 오케스트레이션 함수(가칭 `refine_differential_and_mirror_relations()`
+   류)를 신설할 것** — 설계 스케치: (1) `find_differential_pair_candidates()`로 1차
+   후보 수집 → (2) 후보들의 `devices` 쌍에서 gate net 전부 추출 → (3) 그 net들을 기존
+   `inputs=`에 합쳐 `find_verified_differential_and_mirror_relations()` 재실행 → (4)
+   재분류로 `role`/net class가 바뀐 소자가 있으면(예: `M7`의 `CURRENT_SOURCE`→
+   `AMPLIFYING`처럼) 그 변화도 결과에 명시적으로 포함(사람이 "왜 바뀌었는지" 바로
+   알 수 있게) → (5) 1~4를 고정점에 도달할 때까지(더 이상 새 후보가 안 나올 때까지)
+   반복할지는 설계 논의 필요(대부분 회로는 1회 반복으로 충분할 것으로 예상되나 미검증).
+0-B. **[item 0 다음 순서] B-5-5의 남은 두 갈래(vertical_stack_id 보완 / `resolve_
+   stack_layout()` 신설)를 이어서 진행할 것.** 세션22가 B-5-5에서 정리해둔 3갈래
+   작업 중 **3번(analog-grammar 기반 matching_pairs/differential 자동판단)은 이번
+   세션(C-1~C-12) 전체가 사실상 이 갈래를 깊게 판 결과물**이다 — 특히
+   `find_differential_pair_candidates()`(C-11)가 "tool이 직접 판단하고 모호한 것만
+   사람이 확인한다"는 B-5-5 3번의 원래 요구사항을 상당 부분 충족했다. 남은 건 **1번과
+   2번**:
+   1. `vertical_stack_id`를 `M1a`/`M1b`/`M2a`/`M2b`/`M4a`/`M4b`/`M37a` 등 빠진 소자까지
+      채우기(B-5-5 1번, C-6이 `M37a` gap을 재확인) — `resolve_stack_layout()`이 이
+      경계에 의존하므로 선행 조건.
+   2. `resolve_stack_layout()`(가칭, B-5-3 설계) 신설 — `vertical_stack_id`로 1차
+      분할 → finger_w 탐색 → 오일러 walk 구성 → 실패 시 `suggest_pair_finger_
+      adjustments()` 제안 후 재검산, 결과를 `ctx.layout_solution`에 캐시하는 layered
+      orchestrator. B-5-2의 2계층 정보 분리(topology 계층=`vertical_stack_id`/
+      `matching_pairs` vs instance 계층=finger_w/walk 시퀀스, 메모리 캐시)가 이
+      함수의 설계 기반.
+   **순서**: item 0(input 승격 오케스트레이션)을 먼저 끝낸 뒤 이 두 갈래로 이어갈 것 —
+   input 승격이 differential pair 인식의 마지막 정확도 문제를 닫아야, 그 위에서
+   `vertical_stack_id`를 채우고 `resolve_stack_layout()`을 설계하는 게 흔들리지 않는
+   기반 위에서 진행된다.
+1. **(해결됨) analog-grammar rail 대소문자 버그(A절) + 미러 구동 bias net 오분류
+   버그(A2절)** — 세션23 안에 둘 다 `netclass.py` 원본 수정까지 완료. rail 버그는
+   `RAILS_POS`/`RAILS_NEG`/`RAILS`를 대소문자 무관 `_CaseInsensitiveNetSet`으로 교체,
+   `stick_diagram.py`의 중복 로컬 우회 코드(2곳)도 제거. self-test 34개 전부 무회귀
+   확인. 다른 프로젝트가 이미 analog-grammar를 대문자 관례로 쓰고 있었다면(세션23
+   시점엔 확인된 사례 없음) 영향을 받을 수 있으나, 대소문자 무관 비교는 기존 대문자
+   입력도 그대로 계속 인식하므로(엄격히 상위호환) 실질적 회귀 위험은 낮다.
+2. **`M37a`/`M37b`의 `vertical_stack_id` gap**(C-6이 재확인) — `M37b`만 `cmfb_tail`
+   선언, `M37a`는 비어있음. 실제로 채울지는 사용자 판단 필요(작은 수정, 바로 처리 가능).
+3. **다른 3개 회로(folded_cascode/nmcnr_amplifier/two_stage_ota) 일반화는 미검증** —
+   C-6의 62/63 성공률도, C-7/C-8의 branch 쌍 분류(구조적 그룹 11개, differential 4/
+   mirror 5/no_connection 12)도 전부 `current_reuse_telescopic_ota` 하나에서만 확인됨.
+4. **여덟 함수(`trace_vdd_to_gnd_branches`/`trace_gnd_to_vdd_branches`/
+   `find_differential_and_mirror_forks`/`suggest_vertical_stack_composites`/
+   `classify_symmetric_branch_pairs`/`find_verified_differential_and_mirror_relations`/
+   `find_differential_pair_candidates`)를 실제로 `topology.json` 저작(예: `matching_
+   pairs` 자동 제안, `vertical_stack_id` 자동 제안)에 배선하는 오케스트레이션은
+   미구현** — 지금은 전부 진단/제안 도구로만 존재, "제안 채택 → `device_roles`/
+   `symmetry.matching_pairs` 자동 기입" 파이프라인은 없음(의도적 — 사람/AI 검토 없이
+   자동 채택하지 않는다는 원칙). 특히 `find_differential_pair_candidates()`가 찾은
+   후보의 gate net을 `find_verified_differential_and_mirror_relations()`의 `inputs=`
+   로 자동 승격하는 반복 정제 루프(C-11 마지막 문단)가 다음으로 자연스러운 확장.
+5. **원래 이번 세션 목표(composite 소자 구성 함수)는 결국 이 형태로 완료됨** — B/C절의
+   연쇄 실측을 거쳐 "matching_pairs 없이 자동 구성"에서 "vertical_stack_id 후보 제안"
+   으로 목표 자체가 진화했다. 세션22 B-5-5의 3갈래 중 이걸로 사실상 완결된 건
+   "matching_pairs 자동판단"과는 다른 갈래(vertical_stack_id 보완)이므로, `resolve_
+   stack_layout()`(B-5-3)과 "analog-grammar 기반 matching_pairs 자동판단"(B-5-5 3번)은
+   여전히 미착수.
+6. **`run_harness.py` 실전략(세션22 이월 최우선, 위 "지금 상태" 1번)은 이번 세션도
+   미착수** — vertical_stack_id 실측으로 세션 전체를 씀.
+7. **(해결됨) `M37a`/`M37b`(CMFB 내부 2차 differential pair) 자동 인식** — C-11에서
+   `find_differential_pair_candidates()`로 완전히 해결(선언 없이 순수 connectivity로
+   검출). `M37a`/`M37b`의 `vertical_stack_id` gap(`M37b`만 `cmfb_tail` 선언, `M37a`는
+   비어있음, C-6이 이미 재확인)은 이것과 별개 항목으로 여전히 남아있고, 실제로 채울지는
+   사용자 판단 필요.
+8. **`M7`+`M36a` "오탐" 용어 정정을 다른 문서/스킬에도 전파할지 검토** — 이번 세션
+   `.ai/context.md`에는 정정 문단을 추가했지만, 세션18~22에 걸쳐 이미 "오탐"으로 여러
+   번 기록된 과거 절들(§B, 세션22 B절 등) 자체를 소급 수정하지는 않았다(역사 기록
+   보존 원칙, 위 "item2가 뭐지?" 사례와 동일 판단) — 다만 `analog-grammar-integration.md`
+   등 다른 참조 문서에도 이 사례가 "오탐" 예시로 인용됐다면 그쪽은 정정이 필요할 수
+   있음, 다음 세션에 확인.

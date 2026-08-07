@@ -1153,6 +1153,697 @@ def find_stacked_matching_candidates(transistors: list, base_pairs: list,
     return out
 
 
+# ---------------------------------------------------------------------------
+# 1.7d) VDD->GND 물리 branch 추적 -- `vertical_stack_id`를 connectivity만으로 자동
+#       도출할 수 있는지 세션23이 4가지 방식을 직접 실측한 결과물(.ai/context.md 세션23
+#       참고). 아래 3가지는 전부 실패로 확정됨(재시도 불필요, 이유가 구조적이라 이 함수
+#       자체가 그 실패를 물려받지 않도록 설계됨):
+#       1) 엄격한 2단자 KCL(`kcl_series_union`, 레일 제외) -- 분기 노드에서 무조건
+#          멈춰서 너무 잘게 쪼갠다(matching_pairs로 확정되는 후보 0/16).
+#       2) 레일 제외 rail-to-rail 연결성분(단자 수 무관 union) -- 분기를 넘어가도록
+#          허용하니 반대로 너무 뭉친다(51개 중 25개가 서로 다른 11개 declared
+#          vertical_stack_id를 한 덩어리로 섞음).
+#       3) 소자 단위 분기별 경로 나열(공유 net의 "다른 단자를 쓰는 이웃"을 전부 다음
+#          hop 후보로 취급) -- 병렬 형제(같은 kind가 같은 종류 단자를 공유하는 관계,
+#          예: M1a.source==M1b.source==Vx)까지 "다음 소자"로 오인해 조합 폭발
+#          (16개 시작점 -> 446개 경로, 그나마도 분할이 아니라 소자가 여러 경로에
+#          중복 등장).
+#       아래 함수는 4번째 시도로, PMOS/NMOS 각각 실제 전류 방향에 맞는 "entry/exit
+#       단자"를 kind로 고정해서 병렬 형제(같은 kind, 같은 타입 단자 공유)는 구조적으로
+#       절대 다음 hop이 될 수 없게 막고, 대신 PMOS 출력과 NMOS 입력이 만나는
+#       drain=drain 지점(예: `M2a.drain==M3a.drain==Vom1`, 텔레스코픽/폴디드 캐스코드의
+#       실제 출력 노드)은 정상적으로 이어지도록 한다 -- 사용자가 직접 손으로 검증한
+#       5개 실제 branch(`current_reuse_telescopic_ota`)와 전부 정확히 일치했고,
+#       조합 폭발 없이 29개 완주 branch + 1개 dead-end로 수렴했다(세션23 실측).
+#       ⚠️ 그럼에도 `vertical_stack_id`를 자동 확정하지는 못한다(세션23 결론) --
+#       사람이 선언한 각 vertical_stack_id 그룹은 이 함수가 찾는 "하나의 물리
+#       branch"와 정확히 대응하지 않고, (a) 여러 branch가 공유하는 허브 소자
+#       집합(예: `stage1`={M6,M7,M5}, tail 공급/싱크 역할)이거나 (b) 하나의 branch를
+#       matching_sensitivity 경계로 상/하 반씩 쪼갠 것(예: `biasgen_vom_a`/`_b`)이라서다.
+#       이 함수는 그 자체로 유용한 진단/후보 도구(예: `resolve_stack_layout()`의
+#       재료, box-shape 감사)로 쓰되, `vertical_stack_id` 자동판정의 최종 답은 아니다.
+# ---------------------------------------------------------------------------
+
+def trace_vdd_to_gnd_branches(transistors: list) -> dict:
+    """PMOS는 source(레일쪽)->drain(부하쪽), NMOS는 drain(부하쪽)->source(레일쪽) 순으로
+    "전류가 실제로 흐르는 방향"을 kind로 고정해 소자를 잇는다 -- 이렇게 하면 같은 net을
+    공유하더라도 **같은 kind가 같은 타입 단자(둘 다 source 또는 둘 다 drain)를 공유하는
+    관계**(예: `M1a.source==M1b.source`, 병렬 형제)는 구조적으로 절대 다음 hop이 될 수
+    없고, **PMOS의 drain과 NMOS의 drain이 만나는 지점**(예: `M2a.drain==M3a.drain`,
+    캐스코드 출력 노드)만 정상적으로 다음 hop이 된다.
+
+    소자 t의 "entry_net"(전류가 들어오는 쪽) = `t.source`(pmos) 또는 `t.drain`(nmos).
+    "exit_net"(전류가 나가는 쪽) = `t.drain`(pmos) 또는 `t.source`(nmos). `entry_net(t)
+    == "vdd"`인 소자에서 시작해, 각 소자의 exit_net을 다음 소자의 entry_net과 매칭하며
+    재귀적으로 이어간다(레일이면 종료, 매칭되는 다음 소자가 여럿이면 진짜 전류 분기이므로
+    각각 별도 branch로 갈라짐 -- 병렬 형제는 애초에 이 매칭 관계에 들어오지 않으므로
+    분기 수가 실제 회로의 fan-out 수를 넘지 않는다).
+
+    반환: `{"branches": [{"chain": [소자명,...], "terminates_at": "gnd"|"non_transistor"},
+    ...]}`. `terminates_at="non_transistor"`는 버그가 아니라 "이 branch의 전류가 다음
+    트랜지스터가 아니라 회로 밖 요소(예: `ideal_sources`의 전류원)로 빠진다"는 정직한
+    신호다(예: `M18_bg`는 diode-connected로 `Vbias1`을 정하고, 그 전류는 `Iref`
+    이상적 전류원을 통해 `gnd`로 빠진다 -- 어떤 트랜지스터도 `Vbias1`을 entry_net으로
+    쓰지 않으므로 여기서 정상적으로 멈춘다)."""
+    by_name = {t.name: t for t in transistors}
+
+    def entry_net(t):
+        return t.source if t.kind == "pmos" else t.drain
+
+    def exit_net(t):
+        return t.drain if t.kind == "pmos" else t.source
+
+    by_entry = defaultdict(list)
+    for t in transistors:
+        by_entry[entry_net(t)].append(t.name)
+
+    def _trace(name, visited):
+        en = exit_net(by_name[name])
+        if en in _RAIL_NETS:
+            return [([name], en)]
+        nxts = [n for n in by_entry.get(en, []) if n not in visited]
+        if not nxts:
+            return [([name], None)]
+        out = []
+        for n in nxts:
+            for sub_chain, term in _trace(n, visited | {n}):
+                out.append(([name] + sub_chain, term))
+        return out
+
+    start_names = [t.name for t in transistors if entry_net(t) == "vdd"]
+    branches = [{"chain": chain, "terminates_at": "gnd" if term == "gnd" else "non_transistor"}
+                for name in start_names for chain, term in _trace(name, {name})]
+    return {"branches": branches}
+
+
+def trace_gnd_to_vdd_branches(transistors: list) -> dict:
+    """`trace_vdd_to_gnd_branches()`의 반대 방향 -- GND에서 시작해 VDD 쪽으로 거슬러
+    올라간다. entry/exit 단자를 반대로 고정한다: PMOS는 `drain(부하쪽)->source(레일쪽)`,
+    NMOS는 `source(레일쪽)->drain(부하쪽)` 순(하향 버전과 정확히 반대 -- "전류가 실제로
+    흐르는 방향"을 반대로 거슬러 올라가는 것뿐, 원리는 동일).
+
+    ⚠️ **왜 필요한가(세션23 실측 근거)**: telescopic/current-reuse처럼 differential pair가
+    스택 안에 여러 층(예: PMOS 입력단 + NMOS 입력단 재사용)으로 있으면, 하향 추적만으로
+    첫 fork만 보는 방식(`classify_symmetric_branch_pairs()`)은 스택 **상단**의
+    differential pair(`M1a`/`M1b`)만 잡고, 그 아래 분기 없는 직선 구간에 파묻힌
+    **두 번째** differential pair(`M4a`/`M4b`)는 완전히 놓친다 -- 반대 방향(GND에서
+    위로)으로 올라가면 그 두 번째 pair가 **자기 방향에서는 첫 fork**로 바로 드러난다.
+    `find_differential_and_mirror_forks()`가 이 함수와 `trace_vdd_to_gnd_branches()`를
+    같이 써서 양쪽에서 찾은 fork를 합친다.
+
+    반환 형태는 `trace_vdd_to_gnd_branches()`와 동일하되, `terminates_at`이 `"vdd"`|
+    `"non_transistor"`다(레일이 반대이므로)."""
+    by_name = {t.name: t for t in transistors}
+
+    def entry_net(t):
+        return t.drain if t.kind == "pmos" else t.source
+
+    def exit_net(t):
+        return t.source if t.kind == "pmos" else t.drain
+
+    by_entry = defaultdict(list)
+    for t in transistors:
+        by_entry[entry_net(t)].append(t.name)
+
+    def _trace(name, visited):
+        en = exit_net(by_name[name])
+        if en in _RAIL_NETS:
+            return [([name], en)]
+        nxts = [n for n in by_entry.get(en, []) if n not in visited]
+        if not nxts:
+            return [([name], None)]
+        out = []
+        for n in nxts:
+            for sub_chain, term in _trace(n, visited | {n}):
+                out.append(([name] + sub_chain, term))
+        return out
+
+    start_names = [t.name for t in transistors if entry_net(t) == "gnd"]
+    branches = [{"chain": chain, "terminates_at": "vdd" if term == "vdd" else "non_transistor"}
+                for name in start_names for chain, term in _trace(name, {name})]
+    return {"branches": branches}
+
+
+def find_differential_and_mirror_forks(transistors: list, inputs=(), outputs=(),
+                                         feedbacks=(), biases=(), clocks=()) -> dict | None:
+    """`trace_vdd_to_gnd_branches()`(하향) + `trace_gnd_to_vdd_branches()`(상향) 양쪽
+    branch tree에서 **첫 번째로 갈라지는 지점(fork)**을 전부 찾아, 그 fork의 소자쌍을
+    analog-grammar gate 판정(같은 gate=mirror, 다른 gate+둘 다 `INPUT`=differential)으로
+    분류한다. `classify_symmetric_branch_pairs()`와 같은 gate 판정 규칙을 쓰지만, 그
+    함수는 (구조가 같은 branch끼리 묶은 뒤) **그 쌍 안에서의** 첫 divergence만 보는
+    반면, 이 함수는 branch tree 전체의 **모든** fork를 훑는다는 게 다르다.
+
+    ⚠️ **한 방향만으로는 안 되는 이유(세션23 실측)**: `current_reuse_telescopic_ota`
+    에서 하향만 쓰면 `M1a`/`M1b`(PMOS 입력단) fork만 찾고, 상향만 쓰면 `M4a`/`M4b`
+    (NMOS 입력단 재사용) fork만 찾는다 -- 각 방향은 자기 시작점에서 가장 먼저 만나는
+    fork 하나만 보므로, 스택 안에 여러 층으로 있는 differential/mirror 관계 중
+    "그 방향에서 첫 번째로 마주치는 것"만 잡는다. 두 방향을 합쳐야 이 회로의 진짜
+    differential pair 2종류를 전부 찾는다(사용자 지적: "telescopic differential pair를
+    인식 못하는 문제").
+
+    analog-grammar가 없으면 `None`을 반환한다.
+
+    반환(있으면): `{"forks": [{"direction": "vdd_to_gnd"|"gnd_to_vdd", "fork_prefix":
+    [...], "fork_devices": (a, b), "relation": "mirror"|"differential"}, ...]}` --
+    gate로 관계를 못 찾은 fork(둘 다 무관한 소자, 다른 kind 등)는 조용히 건너뛴다(이
+    함수는 "관계가 있는 것"만 보고하는 목적이라, `classify_symmetric_branch_pairs()`의
+    `structurally_symmetric_no_connection`처럼 무관계도 보고하지 않는다 -- branch tree
+    전체를 훑으면 무관한 fork가 훨씬 많아서, 전부 보고하면 신호보다 잡음이 커진다)."""
+    netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+    if netclass is None:
+        return None
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return None
+    cls, _imp, _assume = netclass.classify_nets(devs, inputs, outputs, biases, feedbacks, clocks)
+
+    by_name = {t.name: t for t in transistors}
+
+    def gate_of(name):
+        return by_name[name].gate
+
+    def gate_class(name):
+        return cls.get(gate_of(name))
+
+    def _forks_of(branches):
+        forks = defaultdict(set)
+        for chain in branches:
+            for i in range(len(chain)):
+                forks[tuple(chain[:i])].add(chain[i])
+        return {prefix: members for prefix, members in forks.items() if len(members) >= 2}
+
+    def _classify_forks(branches, direction):
+        out = []
+        for prefix, members in _forks_of(branches).items():
+            members = sorted(members)
+            for i in range(len(members)):
+                for j in range(i + 1, len(members)):
+                    a, b = members[i], members[j]
+                    if by_name[a].kind != by_name[b].kind:
+                        continue
+                    if gate_of(a) == gate_of(b):
+                        relation = "mirror"
+                    elif gate_class(a) == "INPUT" and gate_class(b) == "INPUT":
+                        relation = "differential"
+                    else:
+                        continue
+                    out.append({"direction": direction, "fork_prefix": list(prefix),
+                                "fork_devices": (a, b), "relation": relation})
+        return out
+
+    down = trace_vdd_to_gnd_branches(transistors)
+    down_chains = [b["chain"] for b in down["branches"] if b["terminates_at"] == "gnd"]
+    up = trace_gnd_to_vdd_branches(transistors)
+    up_chains = [b["chain"] for b in up["branches"] if b["terminates_at"] == "vdd"]
+
+    return {"forks": _classify_forks(down_chains, "vdd_to_gnd")
+                     + _classify_forks(up_chains, "gnd_to_vdd")}
+
+
+def suggest_vertical_stack_composites(transistors: list, inputs=(), outputs=(),
+                                        feedbacks=(), biases=(), clocks=(),
+                                        direction: str = "vdd_to_gnd") -> list | None:
+    """`trace_vdd_to_gnd_branches()`(물리 branch 골격) + analog-grammar idiom matching
+    (diode-connected/floating-battery/cascode-stack/push-pull, branch **내부에서 연속된
+    부분열만** 병합)을 합쳐 `vertical_stack_id` 후보를 제안한다 -- 세션23 실측(5번째
+    시도)에서 `current_reuse_telescopic_ota`(51소자)에 돌려 63개 composite unit 중 62개가
+    사람이 선언한 `vertical_stack_id`와 정확히 일치, 나머지 1개(`M37a`+`M38`)도 진짜 충돌이
+    아니라 `M37a`의 declared 값이 애초에 비어있던 gap을 메우는 방향의 제안이었다(`.ai/
+    context.md` 세션23 C절 4가지 실패 + 이 5번째 성공 전체 기록 참고). 앞선 4가지 시도
+    (엄격한 2단자 KCL / 분기 허용 rail-to-rail 연결성분 / 소자 단위 분기별 경로 나열 /
+    kind 기반 방향 고정 branch tracing 단독)는 전부 `vertical_stack_id`를 재현하지
+    못했다 -- branch 골격만으로는 "허브 소자"와 "branch 내부 상/하 분할"을 구별 못 했는데,
+    analog-grammar의 idiom 판정(diode-connected 등 role은 connectivity에서 결정론적으로
+    도출됨)을 branch 위에 겹치면 바로 그 상/하 분할 경계가 자연스럽게 드러났다.
+
+    `current-mirror`/`differential-pair` idiom은 의도적으로 제외한다 -- 이 둘은 정의상
+    **서로 다른 branch**를 잇는 관계(대칭 쌍, §1.7d 주석 C절 참고)라 하나의 branch 안에서
+    연속된 부분열로 나타나지 않는다(포함시켜도 매칭될 일이 없어 무해하지만, 명시적으로
+    빼서 의도를 분명히 한다).
+
+    analog-grammar가 없으면(다른 skill이라 설치 여부가 환경에 좌우됨) `None`을 반환한다
+    (호출자는 이 보강 기능 없이 `trace_vdd_to_gnd_branches()`만 쓰는 폴백 필요).
+
+    `direction`: `"vdd_to_gnd"`(기본, 하향 -- `trace_vdd_to_gnd_branches()`) 또는
+    `"gnd_to_vdd"`(상향 -- `trace_gnd_to_vdd_branches()`). telescopic/current-reuse처럼
+    differential pair가 스택 안에 여러 층으로 있으면 한 방향만으로는 그중 일부만 branch
+    골격에 잡힐 수 있다(§1.7d 주석 C-9 참고) -- `find_verified_differential_and_mirror_
+    relations()`가 두 방향 다 호출해서 합친다.
+
+    반환(있으면): 해당 방향의 `trace_*_branches()`와 같은 `branches` 리스트에
+    `"composites"` 키를 추가한 것 -- `[{"chain", "terminates_at", "composites":
+    [{"members": [...], "idiom": str|None}, ...]}, ...]`. `idiom=None`인 composite는
+    어떤 idiom도 못 찾은 단일 소자(합쳐지지 않음)다.
+
+    ⚠️ **이 함수는 제안만 한다 -- `vertical_stack_id`를 자동으로 `topology.json`에 쓰지
+    않는다.** 62/63이라는 실측 성공률은 이 회로 하나의 결과이지 일반 보장이 아니고,
+    `M37a`/`M38` 사례처럼 "진짜 충돌"과 "gap 보완 제안"을 구별하는 것도 여전히 사람/AI
+    판단 몫이다(프로젝트 원칙: connectivity에서 결정론적으로 나온 사실도 최종 채택은
+    항상 검토 대상)."""
+    netclass, idioms_mod = _import_analog_grammar("netclass", "idioms")
+    if netclass is None:
+        return None
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return None
+    cls, imp, _assume = netclass.classify_nets(devs, inputs, outputs, biases, feedbacks, clocks)
+    role = netclass.assign_roles(devs, cls, imp)
+    matches = idioms_mod.match_all(devs, cls, imp, role)
+
+    candidates = sorted(
+        [(frozenset(m.devices), m.kind) for m in matches
+         if m.kind not in ("current-mirror", "differential-pair")],
+        key=lambda c: -len(c[0]))
+
+    def _composite(chain):
+        out, i, n = [], 0, len(chain)
+        while i < n:
+            matched = None
+            for size in range(n - i, 0, -1):
+                window = frozenset(chain[i:i + size])
+                for cset, kind in candidates:
+                    if cset == window:
+                        matched = (kind, chain[i:i + size])
+                        break
+                if matched:
+                    break
+            if matched:
+                out.append({"members": matched[1], "idiom": matched[0]})
+                i += len(matched[1])
+            else:
+                out.append({"members": [chain[i]], "idiom": None})
+                i += 1
+        return out
+
+    if direction == "gnd_to_vdd":
+        branch_result = trace_gnd_to_vdd_branches(transistors)
+    else:
+        branch_result = trace_vdd_to_gnd_branches(transistors)
+    return [{"chain": b["chain"], "terminates_at": b["terminates_at"],
+              "composites": _composite(b["chain"])}
+             for b in branch_result["branches"]]
+
+
+def find_differential_pair_candidates(transistors: list, inputs=(), outputs=(),
+                                        feedbacks=(), biases=(), clocks=()) -> dict | None:
+    """구조적으로 매칭된 branch 쌍(`suggest_vertical_stack_composites()`의 composite
+    시퀀스가 완전히 같은 branch끼리 묶음, C-10과 동일 원리) 안에서, 서로 다른 위치의
+    소자쌍이 (1) 같은 kind, (2) 다른 gate(=mirror 아님), (3) **같은 non-rail source(진짜
+    tail net)를 공유**하면 differential pair 후보로 판정한다.
+
+    ⚠️ **왜 이게 중요한가(사용자 통찰, 2026-08-07)**: "differential pair를 먼저 찾고
+    나서 mirror 관계를 분석해야 정확해진다" -- `Voc`를 `inputs=`로 미리 선언해야만
+    `M37a`/`M37b`를 찾을 수 있었던 `find_verified_differential_and_mirror_relations()`
+    와 정반대로, 이 함수는 **INPUT/BIAS net 분류를 전혀 안 쓴다**(net 분류 자체가
+    `Voc`처럼 이름 힌트도 없고 선언도 안 된 net엔 원천적으로 못 미친다는 게 이미
+    확인된 상태 -- `netclass.py` 자신도 "구조로 INPUT/BIAS 구별 불가"라고 명시). 대신
+    "같은 non-rail source를 공유한다"는 **순수 connectivity 사실**만으로 진짜
+    differential pair(`M1a`/`M1b`, `M4a`/`M4b`, `M37a`/`M37b`)를 전부, 그리고 정확히
+    그것들만 찾는다 -- 실측: vop/vom 구조적 대응쌍(`M9a`/`M18a`, `M11a`/`M20a`,
+    `M14a`/`M23a`, `M15`/`M25`, `M16`/`M26`, `M36a`/`M36b`)은 source가 서로 다른 net이라
+    자동으로 걸러지고, `M6`/`M7`도 공유하는 source가 `vdd`(레일)라 걸러진다 -- 레일은
+    무한 전류를 공급하는 외부 전원이라 "같은 tail을 공유해 전류가 스플릿된다"는 differential
+    pair의 정의 자체가 성립하지 않는다(`kcl_series_union()`이 레일을 제외하는 것과
+    같은 이유, 세션9).
+
+    **다음 단계(반복 정제, 이 함수 자체는 여기까지만)**: 여기서 찾은 후보의 gate
+    net들(예: `Voc`/`Voc_des`)을 `inputs=`로 승격해서 `find_verified_differential_and_
+    mirror_relations()`를 다시 돌리면, net 분류(`BIAS`→`SIGNAL`)와 role
+    (`CURRENT_SOURCE`→`AMPLIFYING` 등)까지 정확해진다는 게 검증됐다(`M7`의 role이
+    정확히 이렇게 바뀜, 세션23) -- 이 승격을 자동으로 수행하는 오케스트레이션은
+    아직 없음(다음 세션 후보).
+
+    analog-grammar가 없으면(`suggest_vertical_stack_composites()`가 의존) `None`을
+    반환한다. `inputs=`/`outputs=`/`feedbacks=`/`biases=`/`clocks=`는 composite 구성
+    자체(idiom matching 정확도)에만 간접적으로 쓰이고, 후보 판정 자체(같은 source
+    공유 여부)는 `Transistor.source`를 직접 비교하므로 net 분류와 무관하다.
+
+    반환(있으면): `{"candidates": [{"direction": "vdd_to_gnd"|"gnd_to_vdd", "position":
+    int, "devices": (a, b), "shared_source": str}, ...]}`. 같은 소자쌍이 양방향에서
+    중복 검출되면 `(direction, frozenset(devices))` 기준으로 direction별 1건만 남긴다."""
+    composites_down = suggest_vertical_stack_composites(
+        transistors, inputs, outputs, feedbacks, biases, clocks, direction="vdd_to_gnd")
+    if composites_down is None:
+        return None
+    composites_up = suggest_vertical_stack_composites(
+        transistors, inputs, outputs, feedbacks, biases, clocks, direction="gnd_to_vdd")
+
+    by_name = {t.name: t for t in transistors}
+
+    def signature(b):
+        return tuple((len(c["members"]), c["idiom"], tuple(by_name[m].kind for m in c["members"]))
+                     for c in b["composites"])
+
+    seen = set()
+    out = []
+    for direction, composite_branches, terminal in (
+            ("vdd_to_gnd", composites_down, "gnd"),
+            ("gnd_to_vdd", composites_up, "vdd")):
+        complete = [b for b in composite_branches if b["terminates_at"] == terminal]
+        groups = defaultdict(list)
+        for b in complete:
+            groups[signature(b)].append(b["chain"])
+        for chains in groups.values():
+            if len(chains) < 2:
+                continue
+            for i in range(len(chains)):
+                for j in range(i + 1, len(chains)):
+                    ca, cb = chains[i], chains[j]
+                    for pos, (a, b) in enumerate(zip(ca, cb)):
+                        if a == b:
+                            continue
+                        ta, tb = by_name[a], by_name[b]
+                        if ta.kind != tb.kind or ta.gate == tb.gate:
+                            continue
+                        if ta.source != tb.source or ta.source in _RAIL_NETS:
+                            continue
+                        key = (direction, frozenset((a, b)))
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        out.append({"direction": direction, "position": pos,
+                                     "devices": (a, b), "shared_source": ta.source})
+    return {"candidates": out}
+
+
+def find_verified_differential_and_mirror_relations(transistors: list, inputs=(), outputs=(),
+                                                       feedbacks=(), biases=(), clocks=()) -> dict | None:
+    """진짜 **branch 단위** 비교 -- `classify_symmetric_branch_pairs()`(C-7/C-8)의 원리
+    (composite 구조가 완전히 같은 branch끼리만 비교)를 상향까지 확장하고, 매칭된 branch
+    쌍 **안의 모든 위치**를 스캔한다(첫 divergence 하나만 보던 한계 해소).
+
+    ⚠️ **왜 필요한가**: `classify_symmetric_branch_pairs()`는 하향 전용+첫 divergence만
+    봐서 telescopic/current-reuse 구조의 **두 번째** differential pair(`M4a`/`M4b`)를
+    놓쳤다(C-9). `find_differential_and_mirror_forks()`(양방향, 하지만 fork-tree의
+    "갈라지는 지점"만 봄)로 이 문제는 풀었지만, 이번엔 fork가 아니라 **소자 쌍 단위**로
+    비교해서 `M1a`/`M58`, `M6`/`M7`, `M18a`/`M2a` 같은 무관한 조합까지 relation 후보로
+    새 게 나오는 문제가 있었다(진짜 branch 구조 일치 여부를 확인 안 했기 때문). 이 함수는
+    두 접근을 합친다 -- **먼저 branch 전체의 composite 구조가 완전히 같은 것끼리만** 묶고
+    (그래서 `M7`/`M36a`처럼 구조가 다른 branch는 애초에 비교조차 안 됨, C-7이 부수 효과로
+    확인한 필터), **그 다음 그 매칭된 쌍 안의 모든 위치**(첫 divergence만이 아니라)를
+    gate 판정한다.
+
+    실측(`current_reuse_telescopic_ota`, 하향 한 번의 스캔만으로): `M6/M1a.../M4a/M5`
+    vs `M6/M1b.../M4b/M5` 매칭 쌍 하나에서 위치1(`M1a`/`M1b`)=differential,
+    위치2(`M2a`/`M2b`)=mirror, 위치3(`M3a`/`M3b`)=mirror, 위치4(`M4a`/`M4b`)=differential
+    **네 관계 전부가 한 번에** 나온다 -- fork-tree 방식으로는 하향/상향 두 번 따로 돌려야
+    했던 것이 branch 단위 비교에서는 한쪽 방향만으로도 이미 다 드러난다(상향도 같이 돌려서
+    합치면 중복(예: 상향에서도 같은 `M1a`/`M1b`, `M4a`/`M4b`가 반대 순서로 다시 나옴) +
+    하향에서 못 보는 조합(예: `M17`/`M18a`쪽 상향 전용 매칭)을 추가로 잡는다 -- 방향별
+    출현 빈도 차이는 각 방향의 시작점 개수 차이일 뿐, 관계 자체가 다른 게 아니다).
+
+    ⚠️ **알려진 한계(아직 미해결)**: 이 함수도 `find_differential_and_mirror_forks()`와
+    같은 `gate_class(a)=='INPUT' and gate_class(b)=='INPUT'` 기준을 쓴다 -- `M37a`/`M37b`
+    (CMFB 내부 차동쌍, 게이트가 `Voc`/`Voc_des`로 `inputs=`에 선언한 `Vip`/`Vim`이 아님)
+    처럼 회로의 **2차/내부** differential pair는 여전히 못 찾는다. 이건 branch-매칭
+    문제가 아니라 net 분류 문제(`netclass.py` 자체가 "구조만으로는 INPUT/BIAS 구별
+    불가 -- 이름 힌트 또는 사용자 선언 필요"라고 명시)라 이 함수의 범위를 넘는다 --
+    호출자가 `inputs=`에 그런 2차 differential 입력 net까지 알고 있다면 명시적으로
+    추가해서 넘기면 잡힌다(검증됨, `M37a`/`M37b`가 정확히 `differential`로 옮겨감).
+    2차 입력을 아직 모르는 상태에서도 이 정보를 잃지 않도록, 그런 미확정 쌍은 아래
+    `structurally_symmetric_no_connection`으로 넘어가 최소한 "구조는 대칭인데 아직
+    관계를 확정 못 함"이라는 신호는 남는다.
+
+    ⚠️ **2026-08-07 수정(세션24, 사용자 지적)**: 원래 버전은 `kind`가 다르거나 gate가
+    달라도 둘 다 `INPUT`이 아니면 그 위치를 그냥 `continue`로 **조용히 버렸다** --
+    `classify_symmetric_branch_pairs()`(C-7/C-8)는 이런 경우를 `structurally_
+    symmetric_no_connection`으로 명시적으로 보고하는데, 이 함수만 그 세 번째 버킷이
+    없어서 "구조는 확실히 대칭인데 mirror/differential로 확정은 못 하는" 쌍(예: 실회로의
+    `M6`/`M7` -- 같은 tail net `Vx`에 병렬로 물린 소자지만 하나는 고정 bias, 하나는
+    CMFB 출력이라 게이트가 다르고 둘 다 INPUT도 아님)이 결과에서 완전히 사라지는 문제가
+    있었다. 이제 그런 위치도 `structurally_symmetric_no_connection`으로 명시적으로
+    보고한다(조용히 덮어쓰지/버리지 않는다는 프로젝트 전역 원칙) -- `differential`/
+    `mirror` 판정 로직 자체는 변경 없음(기존 두 버킷의 내용은 회귀 없음).
+
+    analog-grammar가 없으면 `None`을 반환한다.
+
+    반환(있으면): `{"differential": [...], "mirror": [...], "structurally_symmetric_
+    no_connection": [...]}` -- 각 원소는 `{"direction": "vdd_to_gnd"|"gnd_to_vdd",
+    "devices": (a, b), "branch_a", "branch_b", "position"}`. 같은 소자쌍이 여러 branch
+    조합/양방향/버킷 후보에서 중복 검출되면 `(direction, frozenset(devices))` 기준으로
+    **버킷별로** 중복 제거한다(대표 branch 쌍 하나만 남김 -- 단, 승격된 `inputs=`로
+    재실행해 같은 쌍이 `no_connection`에서 `differential`/`mirror`로 옮겨가는 것 자체는
+    막지 않는다, 버킷이 다르면 별개 dedup 대상)."""
+    netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+    if netclass is None:
+        return None
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return None
+    cls, _imp, _assume = netclass.classify_nets(devs, inputs, outputs, biases, feedbacks, clocks)
+
+    by_name = {t.name: t for t in transistors}
+
+    def gate_of(name):
+        return by_name[name].gate
+
+    def gate_class(name):
+        return cls.get(gate_of(name))
+
+    def signature(b):
+        return tuple((len(c["members"]), c["idiom"], tuple(by_name[m].kind for m in c["members"]))
+                     for c in b["composites"])
+
+    categories = ("differential", "mirror", "structurally_symmetric_no_connection")
+    seen = {c: set() for c in categories}
+    out = {c: [] for c in categories}
+    for direction, terminal in (("vdd_to_gnd", "gnd"), ("gnd_to_vdd", "vdd")):
+        composite_branches = suggest_vertical_stack_composites(
+            transistors, inputs, outputs, feedbacks, biases, clocks, direction=direction)
+        complete = [b for b in composite_branches if b["terminates_at"] == terminal]
+        groups = defaultdict(list)
+        for b in complete:
+            groups[signature(b)].append(b["chain"])
+        for chains in groups.values():
+            if len(chains) < 2:
+                continue
+            for i in range(len(chains)):
+                for j in range(i + 1, len(chains)):
+                    ca, cb = chains[i], chains[j]
+                    for pos, (a, b) in enumerate(zip(ca, cb)):
+                        if a == b:
+                            continue
+                        if by_name[a].kind != by_name[b].kind:
+                            category = "structurally_symmetric_no_connection"
+                        elif gate_of(a) == gate_of(b):
+                            category = "mirror"
+                        elif gate_class(a) == "INPUT" and gate_class(b) == "INPUT":
+                            category = "differential"
+                        else:
+                            category = "structurally_symmetric_no_connection"
+                        dedup_key = (direction, frozenset((a, b)))
+                        if dedup_key in seen[category]:
+                            continue
+                        seen[category].add(dedup_key)
+                        out[category].append({"direction": direction, "devices": (a, b),
+                                                "branch_a": ca, "branch_b": cb, "position": pos})
+    return out
+
+
+def classify_symmetric_branch_pairs(transistors: list, inputs=(), outputs=(),
+                                      feedbacks=(), biases=(), clocks=()) -> dict | None:
+    """`suggest_vertical_stack_composites()`가 만든 branch들 중 **composite 구조(kind+idiom
+    시퀀스)가 완전히 같은** branch끼리 묶은 뒤(순수 모양 비교, gate 이름 무관 -- 세션23 실측:
+    이 방식이 gate 기반 매칭보다 포괄적이어서 vom/vop 대칭쌍까지 전부 잡음), 그 안에서 다시
+    analog-grammar의 gate 판정으로 **첫 번째로 갈라지는 지점(fork)의 소자쌍만** 봐서 세
+    범주로 분류한다(2026-08-07 사용자 확정: "fork 지점만 같은 gate면 mirror로 인정" --
+    체인 전체가 끝까지 이어질 것을 요구하면 `M8`/`M17`처럼 시작은 같은 gate(`Vbias1`)라도
+    중간에 내부 net 이름이 갈라지는 정상적인 미러 관계까지 `mirror` 버킷에서 탈락하는 게
+    실측으로 확인됐다 -- fork 지점만 보는 게 이 회로에 맞는 기준).
+
+    각 구조적으로 동일한 그룹 안의 모든 branch 쌍에 대해, 두 chain이 처음 달라지는 위치
+    `idx`의 소자쌍 `(a, b)`를 보고:
+    - `kind(a) != kind(b)` 또는 (gate가 다르고 둘 다 `INPUT`으로 분류되지 않음) →
+      `structurally_symmetric_no_connection`(구조는 같지만 이 fork 지점 gate로는 연결
+      근거를 못 찾음 -- declared `matching_pairs`가 있는 관계일 수도 있으나, 이 함수는
+      declared 정보를 안 쓰고 순수 analog-grammar 판정만 본다).
+    - `gate(a) == gate(b)` → `mirror_branch_pairs`.
+    - `gate(a) != gate(b)`이고 둘 다 `INPUT`으로 분류됨(`inputs=` 힌트, 보통 `Vip`/`Vim`)
+      → `differential_branch_pairs`.
+
+    ⚠️ 세 범주는 **fork 지점 하나만 보고 상호배타적으로** 나뉜다 -- 세션23 실측 근거:
+    `current_reuse_telescopic_ota`(51소자)에서 differential=4, mirror=5,
+    structurally_symmetric_no_connection=12로 나뉘었고, `mirror`가 잡은 `M8`/`M17`
+    fork(4쌍)와 `M13`/`M22` fork(1쌍)는 전부 declared `matching_pairs`에는 없는 관계
+    (`M8`/`M17`은 오히려 declared `current_mirror`류 그룹의 일부이긴 하나 서로 직접
+    선언된 쌍은 아님)라 이 함수가 declared 정보 없이도 순수 connectivity+gate 판정만으로
+    의미 있는 신호를 낸다는 걸 보여준다.
+
+    analog-grammar가 없으면(다른 skill이라 설치 여부가 환경에 좌우됨) `None`을 반환한다.
+
+    반환(있으면): `{"differential_branch_pairs": [...], "mirror_branch_pairs": [...],
+    "structurally_symmetric_no_connection": [...]}` -- 각 원소는 `{"branch_a", "branch_b",
+    "fork_index", "fork_devices": (a, b)}`."""
+    netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+    if netclass is None:
+        return None
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return None
+    cls, _imp, _assume = netclass.classify_nets(devs, inputs, outputs, biases, feedbacks, clocks)
+
+    by_name = {t.name: t for t in transistors}
+
+    def gate_of(name):
+        return by_name[name].gate
+
+    def gate_class(name):
+        return cls.get(gate_of(name))
+
+    def first_divergence(ca, cb):
+        for i, (x, y) in enumerate(zip(ca, cb)):
+            if x != y:
+                return i
+        return None
+
+    def classify(ca, cb):
+        idx = first_divergence(ca, cb)
+        if idx is None:
+            return None, None
+        a, b = ca[idx], cb[idx]
+        if by_name[a].kind != by_name[b].kind:
+            return "structurally_symmetric_no_connection", idx
+        if gate_of(a) == gate_of(b):
+            return "mirror_branch_pairs", idx
+        if gate_class(a) == "INPUT" and gate_class(b) == "INPUT":
+            return "differential_branch_pairs", idx
+        return "structurally_symmetric_no_connection", idx
+
+    composite_branches = suggest_vertical_stack_composites(transistors, inputs, outputs,
+                                                              feedbacks, biases, clocks)
+    complete = [b for b in composite_branches if b["terminates_at"] == "gnd"]
+
+    def signature(b):
+        return tuple((len(c["members"]), c["idiom"], tuple(by_name[m].kind for m in c["members"]))
+                     for c in b["composites"])
+
+    groups = defaultdict(list)
+    for b in complete:
+        groups[signature(b)].append(b["chain"])
+
+    out = {"differential_branch_pairs": [], "mirror_branch_pairs": [],
+           "structurally_symmetric_no_connection": []}
+    for chains in groups.values():
+        if len(chains) < 2:
+            continue
+        for i in range(len(chains)):
+            for j in range(i + 1, len(chains)):
+                ca, cb = chains[i], chains[j]
+                category, idx = classify(ca, cb)
+                if category is None:
+                    continue
+                out[category].append({"branch_a": ca, "branch_b": cb, "fork_index": idx,
+                                        "fork_devices": (ca[idx], cb[idx])})
+    return out
+
+
+def refine_differential_and_mirror_relations(transistors: list, inputs=(), outputs=(),
+                                               feedbacks=(), biases=(), clocks=(),
+                                               max_iterations: int = 5) -> dict | None:
+    """`find_differential_pair_candidates()`(C-11)가 `inputs=` 선언 없이 순수
+    connectivity로 찾아낸 differential pair 후보의 gate net을 **자동으로**
+    `inputs=`에 승격해서 `find_verified_differential_and_mirror_relations()`를
+    재실행하는 오케스트레이션(`.ai/context.md` D절 item 0, 2026-08-07 사용자 지시로
+    세션24에 신설). 세션23까지는 이 승격을 사람이 손으로 한 번(`Voc`/`Voc_des`를
+    수동으로 `inputs=`에 넣어) 했을 뿐 코드화되어 있지 않았다.
+
+    **왜 반복(iteration)인가**: 한 번의 승격이 새 net을 SIGNAL로 바꾸고, 그 net을
+    게이트로 받는 다른 소자의 role도 바꿀 수 있다(아래 실측). 그 role 변화가 다시
+    새로운 differential-pair 후보를 드러낼 가능성을 이론적으로 배제할 수 없어서(세션23
+    C-11 마지막 문단이 "1회 반복으로 충분할 것으로 예상되나 미검증"이라고 명시),
+    새 후보가 더 이상 안 나올 때까지(고정점) 반복하되 `max_iterations`로 상한을 둔다
+    (무한루프 방지, 대부분 회로는 후보 재확인 라운드까지 포함해 2회 안에 고정점 도달 --
+    `find_differential_pair_candidates()`는 net 분류를 안 쓰므로 후보 자체는 첫 라운드
+    이후 보통 안 바뀐다).
+
+    **설계 스케치(그대로 구현)**:
+    1. `find_differential_pair_candidates(transistors, cur_inputs, ...)`로 후보 수집.
+    2. 후보 `devices` 쌍의 gate net(`by_name[dev].gate`)을 전부 추출해 아직 `cur_inputs`
+       에 없는 것만 승격 대상으로 모음.
+    3. 승격 대상이 없으면 고정점 도달, 종료. 있으면 `cur_inputs`에 합쳐 1로 돌아감.
+    4. 최종 `cur_inputs`로 `find_verified_differential_and_mirror_relations()` 재실행.
+    5. **role/net class가 바뀐 소자·net은 조용히 덮어쓰지 않고 결과에 명시**(프로젝트
+       전역 원칙) -- 원래 `inputs=`와 최종 `cur_inputs` 각각으로 `netclass.classify_
+       nets()`/`assign_roles()`를 돌려 전/후를 비교한다(실측 예: `Voc`가 `BIAS`→
+       `INPUT`으로 선언되면 그 net을 드라이브하는 소자의 drain net이 `BIAS`→`SIGNAL`로
+       재분류되고, 그 net을 게이트로 받는 소자의 role이 `ACTIVE_LOAD`/`CURRENT_SOURCE`
+       →`AMPLIFYING`으로 바뀔 수 있다 -- 세션23 `M7`: `CURRENT_SOURCE`→`AMPLIFYING`).
+
+    analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `None`을
+    반환한다.
+
+    반환(있으면): `{"relations": find_verified_differential_and_mirror_relations()의
+    최종 반환값, "promoted_inputs": [자동 승격된 gate net, 승격 순서대로, 중복 없음],
+    "final_inputs": tuple(원래 inputs 중복제거 + promoted_inputs), "role_changes":
+    [{"device", "before", "after"}, ...], "net_class_changes": [{"net", "before",
+    "after"}, ...], "iterations": int(실행한 라운드 수), "stop_reason": "fixed_point"|
+    "max_iterations_reached"}`. `role_changes`/`net_class_changes`는 `device`/`net`
+    이름 순 정렬, `before`/`after`가 다른 것만 포함(`before`가 `None`이면 원래
+    미분류였다가 새로 분류된 것)."""
+    by_name = {t.name: t for t in transistors}
+
+    def classify(cur_inputs):
+        netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
+        if netclass is None:
+            return None, None
+        devs = _to_analog_grammar_devs(transistors)
+        cls, imp, _assume = netclass.classify_nets(devs, cur_inputs, outputs, biases, feedbacks, clocks)
+        role = netclass.assign_roles(devs, cls, imp)
+        return cls, role
+
+    cur_inputs = tuple(dict.fromkeys(inputs))
+    cls_before, role_before = classify(cur_inputs)
+    if cls_before is None:
+        return None
+
+    promoted_inputs = []
+    iterations = 0
+    stop_reason = "fixed_point"
+    while True:
+        iterations += 1
+        candidates = find_differential_pair_candidates(
+            transistors, cur_inputs, outputs, feedbacks, biases, clocks)
+        if candidates is None:
+            return None
+        new_nets = []
+        known = set(cur_inputs)
+        for c in candidates["candidates"]:
+            for dev in c["devices"]:
+                g = by_name[dev].gate
+                if g not in known:
+                    new_nets.append(g)
+                    known.add(g)
+        if not new_nets:
+            break
+        promoted_inputs.extend(new_nets)
+        cur_inputs = cur_inputs + tuple(new_nets)
+        if iterations >= max_iterations:
+            stop_reason = "max_iterations_reached"
+            break
+
+    relations = find_verified_differential_and_mirror_relations(
+        transistors, cur_inputs, outputs, feedbacks, biases, clocks)
+    if relations is None:
+        return None
+
+    cls_after, role_after = classify(cur_inputs)
+
+    role_changes = sorted(
+        ({"device": name, "before": role_before.get(name), "after": after}
+         for name, after in role_after.items() if role_before.get(name) != after),
+        key=lambda r: r["device"])
+    net_class_changes = sorted(
+        ({"net": net, "before": cls_before.get(net), "after": cls_after.get(net)}
+         for net in set(cls_before) | set(cls_after)
+         if cls_before.get(net) != cls_after.get(net)),
+        key=lambda r: r["net"])
+
+    return {"relations": relations, "promoted_inputs": promoted_inputs,
+            "final_inputs": cur_inputs, "role_changes": role_changes,
+            "net_class_changes": net_class_changes, "iterations": iterations,
+            "stop_reason": stop_reason}
+
+
 @dataclass
 class SymmetryDispositionsVerdict:
     ok: bool
@@ -7189,3 +7880,299 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 31 전체 PASS ===")
+
+    print()
+    print("=== Test 32: trace_vdd_to_gnd_branches() -- 세션23 실측(4가지 vertical_stack_id")
+    print("    자동화 시도 중 유일하게 성공한 branch tracing)의 핵심 성질 3가지를 합성 fixture로")
+    print("    재확인: (1) 병렬 형제(같은 kind, 같은 타입 단자 공유)는 절대 안 이어짐,")
+    print("    (2) PMOS drain=NMOS drain 만남 지점은 정상적으로 이어짐, (3) 진짜 fan-out은")
+    print("    branch 여러 개로 정확히 갈라지고, 소비자가 없는 net은 non_transistor로 종료 ===")
+    _t32_fixture = [
+        Transistor("M6", "pmos", source="vdd", drain="Vx"),
+        Transistor("M7", "pmos", source="vdd", drain="Vx"),
+        Transistor("M1a", "pmos", source="Vx", drain="N1"),
+        Transistor("M1b", "pmos", source="Vx", drain="N2"),   # M1a의 병렬 형제 -- N2는 아무도 안 씀
+        Transistor("M2a", "pmos", source="N1", drain="Nout"),
+        Transistor("M3a", "nmos", source="Ngndmid", drain="Nout"),  # M2a와 drain=drain으로 만남
+        Transistor("M19", "nmos", source="gnd", drain="Nout"),      # Nout의 두 번째 소비자(진짜 fork)
+        Transistor("M4a", "nmos", source="gnd", drain="Ngndmid"),
+        Transistor("Mbg", "pmos", source="vdd", drain="Vbiasx", gate="Vbiasx"),  # diode, 소비자 없음
+    ]
+    _t32_result = trace_vdd_to_gnd_branches(_t32_fixture)
+    _t32_branches = _t32_result["branches"]
+    _t32_complete = [b for b in _t32_branches if b["terminates_at"] == "gnd"]
+    _t32_dead = [b for b in _t32_branches if b["terminates_at"] == "non_transistor"]
+    assert len(_t32_branches) == 7, f"branch 총 개수가 7이 아님(조합 폭발/과소탐지 재확인): {len(_t32_branches)}"
+    assert len(_t32_complete) == 4 and len(_t32_dead) == 3, \
+        f"완주/dead-end 분류가 예상과 다름: complete={len(_t32_complete)} dead={len(_t32_dead)}"
+    print(f"    PASS: branch 7개(완주 4 + non_transistor 3), 조합 폭발 없음")
+
+    for b in _t32_branches:
+        assert not ({"M1a", "M1b"} <= set(b["chain"])), \
+            f"병렬 형제 M1a/M1b가 같은 branch에 같이 들어감(회귀): {b['chain']}"
+    print("    PASS: M1a/M1b(같은 kind, 같은 Vx를 source로 공유하는 병렬 형제)는 어떤 branch에서도 안 이어짐")
+
+    assert ["M6", "M1a", "M2a", "M3a", "M4a"] in [b["chain"] for b in _t32_complete], \
+        "M2a(pmos)->M3a(nmos) drain=drain 만남 경로가 안 나옴"
+    assert ["M6", "M1a", "M2a", "M19"] in [b["chain"] for b in _t32_complete], \
+        "Nout의 두 번째 소비자(M19)로 갈라지는 fork branch가 안 나옴"
+    print("    PASS: M2a/M3a drain=drain 만남 정상 연결 + Nout에서 M3a/M19로 정확히 2-way fork")
+
+    _t32_mbg = [b for b in _t32_branches if b["chain"] == ["Mbg"]]
+    assert len(_t32_mbg) == 1 and _t32_mbg[0]["terminates_at"] == "non_transistor", \
+        "diode-connected Mbg(소비자 없는 Vbiasx)가 non_transistor로 안 끝남"
+    print("    PASS: 소비자 없는 net(Vbiasx)에서 dead-end가 non_transistor로 정직하게 보고됨")
+
+    print()
+    print("  === Test 32 전체 PASS ===")
+
+    print()
+    print("=== Test 33: suggest_vertical_stack_composites() -- branch tracing(Test 32) +")
+    print("    analog-grammar idiom matching(floating-battery 등)을 합쳐 세션23 5번째 실측")
+    print("    (62/63 vertical_stack_id 일치)의 핵심 성질을 합성 fixture로 재확인: 연속된")
+    print("    diode-connected 소자 쌍만 floating-battery로 병합되고, 그 아래 non-diode")
+    print("    소자는 별도 composite으로 남는지 ===")
+    _t33_probe = find_idiom_matches(folded_cascode_example())
+    assert _t33_probe is not None, "analog-grammar skill을 찾지 못함 -- Test 30과 동일 전제조건"
+    _t33_fixture = [
+        Transistor("Ma", "pmos", source="vdd", drain="Ntop", gate="Ntop"),   # diode(G=D)
+        Transistor("Mb", "pmos", source="Ntop", drain="Nmid", gate="Nmid"),  # diode(G=D), Ma 위에 직렬
+        Transistor("Mc", "nmos", source="gnd", drain="Nmid", gate="Vbias4"), # non-diode, 체인 종단
+    ]
+    _t33_result = suggest_vertical_stack_composites(_t33_fixture)
+    assert _t33_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    assert len(_t33_result) == 1, f"branch 1개짜리 fixture인데 결과가 {len(_t33_result)}개"
+    _t33_composites = _t33_result[0]["composites"]
+    assert _t33_result[0]["chain"] == ["Ma", "Mb", "Mc"], \
+        f"branch 골격 자체가 어긋남(Test 32 회귀 가능성): {_t33_result[0]['chain']}"
+    assert len(_t33_composites) == 2, f"composite 개수가 2가 아님(과잉/과소 병합): {_t33_composites}"
+    assert _t33_composites[0] == {"members": ["Ma", "Mb"], "idiom": "floating-battery"}, \
+        f"Ma/Mb가 floating-battery로 안 묶임: {_t33_composites[0]}"
+    assert _t33_composites[1]["members"] == ["Mc"], \
+        f"Mc가 diode 쌍에 잘못 흡수됨: {_t33_composites[1]}"
+    print(f"    PASS: [Ma,Mb](floating-battery) | [Mc] -- 사람이 vertical_stack_id를 이 경계로")
+    print(f"    쪼갠 실제 사례(M11a+M11b vs M12 등, .ai/context.md 세션23 C절)와 같은 패턴 재현")
+
+    print()
+    print("  === Test 33 전체 PASS ===")
+
+    print()
+    print("=== Test 34: classify_symmetric_branch_pairs() -- 구조가 완전히 같은 branch끼리")
+    print("    묶은 뒤(Test 33의 composite 시퀀스 비교), 첫 fork 지점의 gate 판정만으로")
+    print("    differential/mirror/no_connection 세 범주로 나누는지(2026-08-07 사용자 확정:")
+    print("    fork 지점만 보는 기준) 합성 fixture로 재확인 ===")
+    _t34_fixture = [
+        Transistor("Ga", "pmos", source="vdd", drain="gnd", gate="Vip"),   # differential 후보
+        Transistor("Gb", "pmos", source="vdd", drain="gnd", gate="Vim"),
+        Transistor("Ma", "nmos", source="gnd", drain="vdd", gate="Vbias1"),  # mirror 후보(같은 gate)
+        Transistor("Mb", "nmos", source="gnd", drain="vdd", gate="Vbias1"),
+        Transistor("Na1", "pmos", source="vdd", drain="Nx", gate="Vbiasx"),  # no_connection 후보
+        Transistor("Na2", "nmos", source="gnd", drain="Nx", gate="Vbiasy"),
+        Transistor("Nb1", "pmos", source="vdd", drain="Ny", gate="Vbiasz"),
+        Transistor("Nb2", "nmos", source="gnd", drain="Ny", gate="Vbiasw"),
+    ]
+    _t34_result = classify_symmetric_branch_pairs(_t34_fixture, inputs=("Vip", "Vim"))
+    assert _t34_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    assert {k: len(v) for k, v in _t34_result.items()} == {
+        "differential_branch_pairs": 1, "mirror_branch_pairs": 1,
+        "structurally_symmetric_no_connection": 1,
+    }, f"세 범주 개수가 예상과 다름(1/1/1이어야 함): { {k: len(v) for k, v in _t34_result.items()} }"
+    assert _t34_result["differential_branch_pairs"][0]["fork_devices"] == ("Ga", "Gb"), \
+        "Ga/Gb(gate=Vip/Vim, 둘 다 INPUT)이 differential로 안 잡힘"
+    assert _t34_result["mirror_branch_pairs"][0]["fork_devices"] == ("Ma", "Mb"), \
+        "Ma/Mb(gate=Vbias1 동일)가 mirror로 안 잡힘"
+    assert _t34_result["structurally_symmetric_no_connection"][0]["fork_devices"] == ("Na1", "Nb1"), \
+        "Na1/Nb1(gate가 다르고 둘 다 INPUT도 아님)이 no_connection으로 안 잡힘"
+    print("    PASS: differential=1(Ga/Gb), mirror=1(Ma/Mb), no_connection=1(Na1/Nb1) --")
+    print("    세션23 실측(current_reuse_telescopic_ota: differential=4, mirror=5, no_connection=12)")
+    print("    과 같은 분류 로직 재현")
+
+    print()
+    print("  === Test 34 전체 PASS ===")
+
+    print()
+    print("=== Test 35: trace_gnd_to_vdd_branches()/find_differential_and_mirror_forks() --")
+    print("    telescopic/current-reuse 구조처럼 differential pair가 스택 안에 여러 층으로")
+    print("    있을 때, 하향(VDD->GND) 단독으로는 위쪽 pair만, 상향(GND->VDD) 단독으로는")
+    print("    아래쪽 pair만 잡고, 양방향을 합쳐야 둘 다 잡히는지(세션23 실측 -- 사용자")
+    print("    지적: \"telescopic differential pair를 인식 못하는 문제\") 합성 fixture로 재현 ===")
+    _t35_fixture = [
+        Transistor("M6", "pmos", source="vdd", drain="Vx", gate="Vbias1"),
+        Transistor("M1a", "pmos", source="Vx", drain="N1", gate="Vip"),    # 위쪽 diff pair
+        Transistor("M1b", "pmos", source="Vx", drain="N2", gate="Vim"),
+        Transistor("M2a", "pmos", source="N1", drain="Nout1", gate="Vbias2"),
+        Transistor("M2b", "pmos", source="N2", drain="Nout2", gate="Vbias2"),
+        Transistor("M3a", "nmos", source="N3", drain="Nout1", gate="Vbias3"),
+        Transistor("M3b", "nmos", source="N4", drain="Nout2", gate="Vbias3"),
+        Transistor("M4a", "nmos", source="Vy", drain="N3", gate="Vip"),    # 아래쪽 diff pair
+        Transistor("M4b", "nmos", source="Vy", drain="N4", gate="Vim"),
+        Transistor("M5", "nmos", source="gnd", drain="Vy", gate="Vbias4"),
+    ]
+    _t35_down = trace_vdd_to_gnd_branches(_t35_fixture)
+    _t35_down_chains = [b["chain"] for b in _t35_down["branches"] if b["terminates_at"] == "gnd"]
+    assert _t35_down_chains == [["M6", "M1a", "M2a", "M3a", "M4a", "M5"],
+                                  ["M6", "M1b", "M2b", "M3b", "M4b", "M5"]], \
+        f"하향 branch 골격이 예상과 다름: {_t35_down_chains}"
+    _t35_up = trace_gnd_to_vdd_branches(_t35_fixture)
+    _t35_up_chains = [b["chain"] for b in _t35_up["branches"] if b["terminates_at"] == "vdd"]
+    assert _t35_up_chains == [["M5", "M4a", "M3a", "M2a", "M1a", "M6"],
+                                ["M5", "M4b", "M3b", "M2b", "M1b", "M6"]], \
+        f"상향 branch 골격이 예상과 다름(하향의 정확한 역순이어야 함): {_t35_up_chains}"
+    print("    PASS: 상향 branch가 하향 branch의 정확한 역순으로 재구성됨")
+
+    _t35_result = find_differential_and_mirror_forks(_t35_fixture, inputs=("Vip", "Vim"))
+    assert _t35_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t35_forks = _t35_result["forks"]
+    assert len(_t35_forks) == 2, f"fork가 정확히 2개(위/아래 diff pair 하나씩)여야 함: {_t35_forks}"
+    _t35_down_forks = [f for f in _t35_forks if f["direction"] == "vdd_to_gnd"]
+    _t35_up_forks = [f for f in _t35_forks if f["direction"] == "gnd_to_vdd"]
+    assert len(_t35_down_forks) == 1 and _t35_down_forks[0]["fork_devices"] == ("M1a", "M1b") \
+        and _t35_down_forks[0]["relation"] == "differential", \
+        f"하향에서 M1a/M1b differential fork를 못 찾음: {_t35_down_forks}"
+    assert len(_t35_up_forks) == 1 and _t35_up_forks[0]["fork_devices"] == ("M4a", "M4b") \
+        and _t35_up_forks[0]["relation"] == "differential", \
+        f"상향에서 M4a/M4b differential fork를 못 찾음(양방향 탐지의 핵심 --" \
+        f" 하향만으로는 이 fork가 분기 없는 직선 구간에 파묻혀 절대 안 보임): {_t35_up_forks}"
+    print("    PASS: 하향은 M1a/M1b(위쪽 diff pair)만, 상향은 M4a/M4b(아래쪽 diff pair)만")
+    print("    각자 찾고, 합쳐야 둘 다 잡힘 -- 세션23 실측(current_reuse_telescopic_ota:")
+    print("    하향 M1a/M1b ×2, 상향 M4a/M4b ×1)과 같은 패턴 재현")
+
+    print()
+    print("  === Test 35 전체 PASS ===")
+
+    print()
+    print("=== Test 36: find_verified_differential_and_mirror_relations() -- 진짜 branch")
+    print("    단위 비교(composite 구조가 완전히 같은 branch끼리만 묶음, C-7 원리를 양방향")
+    print("    으로 확장) + 매칭된 쌍 안의 모든 위치 스캔(첫 divergence만 보던 한계 해소).")
+    print("    Test 35의 telescopic fixture 하나로 differential/mirror 4가지 관계가 전부")
+    print("    (하향 스캔 한 번만으로도) 나오는지 재확인 ===")
+    _t36_result = find_verified_differential_and_mirror_relations(_t35_fixture, inputs=("Vip", "Vim"))
+    assert _t36_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t36_diff_devs = {r["devices"] for r in _t36_result["differential"]}
+    _t36_mirror_devs = {r["devices"] for r in _t36_result["mirror"]}
+    assert {("M1a", "M1b")} <= _t36_diff_devs, \
+        f"M1a/M1b differential이 안 잡힘: {_t36_diff_devs}"
+    assert {("M4a", "M4b")} <= _t36_diff_devs, \
+        f"M4a/M4b differential이 안 잡힘(양방향+전체위치 스캔의 핵심): {_t36_diff_devs}"
+    assert {("M2a", "M2b")} <= _t36_mirror_devs, f"M2a/M2b mirror가 안 잡힘: {_t36_mirror_devs}"
+    assert {("M3a", "M3b")} <= _t36_mirror_devs, f"M3a/M3b mirror가 안 잡힘: {_t36_mirror_devs}"
+    _t36_down_diff = [r for r in _t36_result["differential"] if r["direction"] == "vdd_to_gnd"]
+    assert {r["devices"] for r in _t36_down_diff} == {("M1a", "M1b"), ("M4a", "M4b")}, \
+        f"하향 방향 스캔 하나만으로 두 differential 관계가 전부 안 나옴: {_t36_down_diff}"
+    print("    PASS: M1a/M1b(위치1)+M4a/M4b(위치4) differential, M2a/M2b(위치2)+M3a/M3b")
+    print("    (위치3) mirror -- 전부 하향 방향 한 번의 branch-쌍 스캔만으로 동시에 검출됨")
+    print("    (find_differential_and_mirror_forks()는 fork-tree라 방향마다 하나씩만 봤었음)")
+
+    print()
+    print("  === Test 36 전체 PASS ===")
+
+    print()
+    print("=== Test 37: find_differential_pair_candidates() -- inputs= 선언 없이 순수")
+    print("    connectivity(같은 non-rail source 공유)만으로 진짜 differential pair를")
+    print("    찾는지(사용자 통찰: \"differential pair를 먼저 찾고 나서 mirror를 분석해야")
+    print("    정확해진다\") Test 35의 telescopic fixture로 재확인 ===")
+    _t37_result = find_differential_pair_candidates(_t35_fixture)  # inputs= 아예 안 넘김
+    assert _t37_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t37_devs = {c["devices"] for c in _t37_result["candidates"]}
+    assert ("M1a", "M1b") in _t37_devs, \
+        f"inputs= 선언 없이 M1a/M1b를 못 찾음(핵심 주장 실패): {_t37_devs}"
+    assert ("M4a", "M4b") in _t37_devs, \
+        f"inputs= 선언 없이 M4a/M4b를 못 찾음(핵심 주장 실패): {_t37_devs}"
+    _t37_sources = {c["devices"]: c["shared_source"] for c in _t37_result["candidates"]}
+    assert _t37_sources[("M1a", "M1b")] == "Vx" and _t37_sources[("M4a", "M4b")] == "Vy", \
+        f"shared_source가 예상과 다름: {_t37_sources}"
+    print("    PASS: inputs= 파라미터를 아예 안 넘겼는데도(Vip/Vim 선언 없음)")
+    print("    M1a/M1b(source=Vx)/M4a/M4b(source=Vy) 둘 다 순수 connectivity만으로 검출됨")
+
+    print()
+    print("  === Test 37 전체 PASS ===")
+
+    print()
+    print("=== Test 38: refine_differential_and_mirror_relations() -- input 승격")
+    print("    오케스트레이션(.ai/context.md D절 item 0, 세션24 신설). M37a/M37b류")
+    print("    (게이트가 inputs=에 없는 2차 differential pair)를 축소 재현한 합성")
+    print("    fixture로: (1) 승격 전에는 못 찾다가 승격 후 differential로 잡히는지,")
+    print("    (2) 그 승격의 연쇄효과로 다른 소자 role/net class가 바뀌었을 때 조용히")
+    print("    덮어쓰지 않고 명시적으로 보고하는지 검증 ===")
+    _t38_fixture = [
+        Transistor("M61", "nmos", source="gnd", drain="Ncmfb_tail", gate="Vbias_tail"),
+        Transistor("M60a", "nmos", source="Ncmfb_tail", drain="Vcmfb_a", gate="Voc"),
+        Transistor("M60b", "nmos", source="Ncmfb_tail", drain="Vcmfb_b", gate="Voc_des"),
+        Transistor("M63a", "pmos", source="vdd", drain="Vcmfb_a", gate="Vbias_x"),
+        Transistor("M63b", "pmos", source="vdd", drain="Vcmfb_b", gate="Vbias_x"),
+        Transistor("M62", "pmos", source="vdd", drain="Nload", gate="Vcmfb_a"),
+    ]
+    _t38_pre = find_verified_differential_and_mirror_relations(_t38_fixture)
+    assert _t38_pre is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t38_pre_devs = {r["devices"] for r in _t38_pre["differential"]}
+    assert ("M60a", "M60b") not in _t38_pre_devs, \
+        f"승격 전인데 M60a/M60b가 이미 differential로 잡힘(fixture 설계 오류): {_t38_pre_devs}"
+    _t38_pre_no_conn = {r["devices"] for r in _t38_pre["structurally_symmetric_no_connection"]}
+    assert ("M60a", "M60b") in _t38_pre_no_conn, \
+        f"승격 전 M60a/M60b가 세 번째 버킷에도 안 잡힘(조용히 버려짐, 세션24 수정 취지 위반): {_t38_pre_no_conn}"
+    print("    PASS: 승격 전(inputs= 미선언)에는 M60a/M60b가 differential로 안 잡히지만,")
+    print("    조용히 버려지지도 않고 structurally_symmetric_no_connection으로 명시 보고됨")
+    print("    (Voc/Voc_des가 기본 BIAS로 분류되어 gate_class=='INPUT' 조건을 못 만족)")
+
+    _t38_result = refine_differential_and_mirror_relations(_t38_fixture)
+    assert _t38_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    assert set(_t38_result["promoted_inputs"]) == {"Voc", "Voc_des"}, \
+        f"승격된 gate net이 예상과 다름: {_t38_result['promoted_inputs']}"
+    assert _t38_result["stop_reason"] == "fixed_point", \
+        f"고정점 도달 전에 반복이 끝남(예상 밖): {_t38_result['stop_reason']}"
+    _t38_post_devs = {r["devices"] for r in _t38_result["relations"]["differential"]}
+    assert ("M60a", "M60b") in _t38_post_devs, \
+        f"승격 후에도 M60a/M60b가 differential로 안 잡힘(오케스트레이션 핵심 실패): {_t38_post_devs}"
+    _t38_post_no_conn = {r["devices"] for r in _t38_result["relations"]["structurally_symmetric_no_connection"]}
+    assert ("M60a", "M60b") not in _t38_post_no_conn, \
+        f"승격 후에도 M60a/M60b가 여전히 세 번째 버킷에 남아 있음(differential로 옮겨가야 함): {_t38_post_no_conn}"
+    print(f"    PASS: Voc/Voc_des가 자동 승격됨(iterations={_t38_result['iterations']},")
+    print("    stop_reason=fixed_point) -- 승격 후 M60a/M60b가 no_connection에서 differential로 옮겨감")
+
+    _t38_role_changes = {c["device"]: (c["before"], c["after"]) for c in _t38_result["role_changes"]}
+    assert _t38_role_changes.get("M62") == ("ACTIVE_LOAD", "AMPLIFYING"), \
+        f"M62 role 변화가 예상과 다름(연쇄효과 보고 실패): {_t38_role_changes}"
+    _t38_net_changes = {c["net"]: (c["before"], c["after"]) for c in _t38_result["net_class_changes"]}
+    assert _t38_net_changes.get("Voc") == ("BIAS", "INPUT"), \
+        f"Voc net class 변화가 예상과 다름: {_t38_net_changes}"
+    assert _t38_net_changes.get("Vcmfb_a") == ("BIAS", "SIGNAL"), \
+        f"Vcmfb_a(M60a의 drain) net class 변화가 예상과 다름: {_t38_net_changes}"
+    print("    PASS: 승격의 연쇄효과(Voc: BIAS->INPUT, Vcmfb_a: BIAS->SIGNAL,")
+    print("    M62 role: ACTIVE_LOAD->AMPLIFYING)가 조용히 덮이지 않고 명시적으로 보고됨")
+    print("    (세션23 실측 Vcmfb: BIAS->SIGNAL, M7: CURRENT_SOURCE->AMPLIFYING과 같은 패턴)")
+
+    print()
+    print("  === Test 38 전체 PASS ===")
+
+    print()
+    print("=== Test 39: find_verified_differential_and_mirror_relations() -- 세 번째 버킷")
+    print("    structurally_symmetric_no_connection (세션24, 사용자 지적: \"이 대칭쌍들도")
+    print("    symmetric branch로 출력되도록 해\"). 구조는 완전히 대칭인데 gate로는")
+    print("    mirror/differential 어느 쪽도 확정 못 하는 쌍이 조용히 버려지지 않고")
+    print("    명시적으로 보고되는지, 실회로에서 실제로 나온 M6/M7 패턴(같은 tail net에")
+    print("    병렬로 물린 소자, 하나는 고정 bias 하나는 다른 신호)을 Test 35 fixture에")
+    print("    M7 analog(M7t)를 얹어 재현해 검증 ===")
+    _t39_fixture = _t35_fixture + [
+        Transistor("M7t", "pmos", source="vdd", drain="Vx", gate="Vbias_other"),
+    ]
+    _t39_result = find_verified_differential_and_mirror_relations(_t39_fixture, inputs=("Vip", "Vim"))
+    assert _t39_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    assert "structurally_symmetric_no_connection" in _t39_result, \
+        f"세 번째 버킷 키 자체가 없음(회귀): {sorted(_t39_result)}"
+    _t39_no_conn_devs = {r["devices"] for r in _t39_result["structurally_symmetric_no_connection"]}
+    assert ("M6", "M7t") in _t39_no_conn_devs, \
+        f"M6/M7t(구조 대칭이지만 gate 근거 없음)가 세 번째 버킷에 안 잡힘: {_t39_no_conn_devs}"
+    _t39_diff_devs = {r["devices"] for r in _t39_result["differential"]}
+    _t39_mirror_devs = {r["devices"] for r in _t39_result["mirror"]}
+    assert ("M6", "M7t") not in _t39_diff_devs and ("M6", "M7t") not in _t39_mirror_devs, \
+        f"M6/M7t가 잘못 differential/mirror로도 분류됨: diff={_t39_diff_devs}, mirror={_t39_mirror_devs}"
+    assert {("M1a", "M1b")} <= _t39_diff_devs and {("M4a", "M4b")} <= _t39_diff_devs, \
+        f"M7t 추가로 기존 differential 판정이 회귀함: {_t39_diff_devs}"
+    assert {("M2a", "M2b")} <= _t39_mirror_devs and {("M3a", "M3b")} <= _t39_mirror_devs, \
+        f"M7t 추가로 기존 mirror 판정이 회귀함: {_t39_mirror_devs}"
+    print("    PASS: M6/M7t(같은 Vx를 공유하는 병렬 소자, 게이트가 다르고 둘 다 INPUT 아님)가")
+    print("    structurally_symmetric_no_connection으로 명시 보고됨(differential/mirror 아님)")
+    print("    -- 실회로 M6/M7과 정확히 같은 패턴, 기존 M1a/M1b 등 판정도 회귀 없음")
+
+    print()
+    print("  === Test 39 전체 PASS ===")

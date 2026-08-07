@@ -17,9 +17,22 @@ Stage 1 과 2 는 전부 결정론적 그래프 연산이다. 단 하나의 예�
 import re
 from collections import defaultdict
 
-RAILS_POS = {'VDD', 'AVDD', 'DVDD', 'VCC', 'VDDA'}
-RAILS_NEG = {'GND', 'VSS', 'AGND', 'DGND', 'VSSA'}
-RAILS = RAILS_POS | RAILS_NEG
+
+class _CaseInsensitiveNetSet(frozenset):
+    """rail net 이름 대소문자와 무관하게 판정한다(2026-08-07 수정 -- 원래는 'VDD'/
+    'GND' 같은 대문자 리터럴만 인식해서, 소문자 관례(예: chip-design-skills 프로젝트의
+    'vdd'/'gnd')를 쓰는 호출자의 rail이 전부 인식 실패하던 버그가 있었다 -- rail이
+    인식 안 되면 이후 net 분류/role 배정/idiom 매칭 전부가 조용히 틀어진다). 특정
+    대소문자 조합을 새 리터럴로 추가하는 대신, 비교 자체를 대소문자 무관하게 만들어
+    호출자가 어떤 케이스 관례를 쓰든 항상 맞도록 한다."""
+
+    def __contains__(self, item):
+        return isinstance(item, str) and frozenset.__contains__(self, item.upper())
+
+
+RAILS_POS = _CaseInsensitiveNetSet({'VDD', 'AVDD', 'DVDD', 'VCC', 'VDDA'})
+RAILS_NEG = _CaseInsensitiveNetSet({'GND', 'VSS', 'AGND', 'DGND', 'VSSA'})
+RAILS = _CaseInsensitiveNetSet(set(RAILS_POS) | set(RAILS_NEG))
 
 # 이름 힌트. 구조적으로 판정 불가능한 것만 이걸로 가른다.
 # 적용된 힌트는 assumptions 로 전부 보고된다.
@@ -112,15 +125,61 @@ def classify_nets(devs, inputs=(), outputs=(), biases=(), feedbacks=(), clocks=(
     # 이 규칙이 없으면 level-shift 스택(class-AB floating battery)의 출력처럼
     # 내부에서 만들어져 게이트로 가는 넷이 미분류로 남고, Stage 2 에서
     # UNRESOLVED 가 연쇄한다.
-    diode_nodes = {d['D'] for d in devs if d['G'] == d['D']}
-    live_drains = {d['D'] for d in devs if d['G'] != d['D']}
+    #
+    # ⚠️ 2026-08-07 수정 -- "diode로만 구동되면 BIAS, 능동 드레인이면 SIGNAL"이라는
+    # 원래 규칙은 그 능동 드레인을 만드는 소자 자신의 게이트가 이미 BIAS인 경우를
+    # 놓친다. current mirror(정의상 G != D)로 만들어지는 bias net이 정확히 이 경우다
+    # -- 예: Vbias1(순수 diode 기준)을 게이트로 받는 미러 소자가 Vbias4를 드레인으로
+    # 만들면, Vbias4는 diode가 아니라는 이유만으로 SIGNAL이 되고, 이걸 다시 게이트로
+    # 받는 다음 미러 소자가 Vbias2를 만들면 그것도 SIGNAL이 된다 -- 실제로는 셋 다
+    # AC 성분이 없는 순수 DC bias 트리인데도(current_reuse_telescopic_ota의
+    # Vbias1->M60->Vbias4->M68->Vbias2 사슬로 실측 발견, chip-design-skills 프로젝트
+    # .ai/context.md 세션23 참고), "diode인가"만 보고 "그 소자의 게이트가 이미
+    # 안정된 BIAS인가"는 재귀적으로 확인하지 않아서 생기는 오분류다.
+    #
+    # 그래서 이 net을 드라이브하는(G != D) 소자들의 게이트 클래스를 본다 -- 전부
+    # BIAS로 이미 확정돼 있으면(고정 게이트로 일정 전류를 흘리는 미러/전류원이라는
+    # 뜻) 이 net도 BIAS로 전파한다. 아직 미확정인 게이트가 섞여 있으면 그 게이트가
+    # 풀릴 때까지 다음 라운드로 미룬다(1d의 신호 전파와 동일한 고정점 반복 패턴) --
+    # net 이름 처리 순서에 의존하지 않고, Vbias1->Vbias4->Vbias2처럼 몇 단이든
+    # 사슬 깊이만큼 자연히 수렴한다.
+    live_drivers = defaultdict(list)
+    for d in devs:
+        if d['G'] != d['D']:
+            live_drivers[d['D']].append(d)
+
+    changed = True
+    while changed:
+        changed = False
+        for n, ts in term.items():
+            if cls.get(n) not in (None, INTERNAL): continue
+            if not any(k == 'G' for _, k in ts): continue
+            drivers = live_drivers.get(n, [])
+            if not drivers:
+                cls[n] = BIAS
+                assume.append(f"[derived] {n} = BIAS  (diode 구동 DC 노드)")
+                changed = True
+                continue
+            driver_gate_classes = {cls.get(dr['G']) for dr in drivers}
+            if driver_gate_classes == {BIAS}:
+                cls[n] = BIAS
+                assume.append(f"[derived] {n} = BIAS  "
+                              f"(구동 소자 전부 게이트가 BIAS -- 미러/전류원 재귀 전파)")
+                changed = True
+            elif None not in driver_gate_classes:
+                cls[n] = SIGNAL
+                assume.append(f"[derived] {n} = SIGNAL  "
+                              f"(능동 드레인 구동, 구동 소자 게이트가 BIAS 아님)")
+                changed = True
+            # else: 구동 소자 게이트가 아직 미확정 -- 다음 라운드에 재시도
+
+    # 순환 의존 등으로 끝까지 안 풀린 net은 안전하게 SIGNAL로 폴백(조용히 BIAS로
+    # 단정하지 않음 -- 판정 불가 상태를 숨기지 않는다는 원칙).
     for n, ts in term.items():
         if cls.get(n) not in (None, INTERNAL): continue
         if not any(k == 'G' for _, k in ts): continue
-        # diode 로만 구동되면 DC 레벨(BIAS), 능동 소자 드레인이면 신호.
-        cls[n] = SIGNAL if n in live_drains else BIAS
-        assume.append(f"[derived] {n} = {cls[n]}  "
-                      f"({'능동 드레인 구동' if n in live_drains else 'diode 구동 DC 노드'})")
+        cls[n] = SIGNAL
+        assume.append(f"[derived] {n} = SIGNAL  (구동 소자 게이트 판정이 끝까지 안 풀림 -- 안전 폴백)")
 
     for n in term:
         cls.setdefault(n, INTERNAL)
