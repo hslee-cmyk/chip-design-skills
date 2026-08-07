@@ -1457,6 +1457,7 @@ def suggest_vertical_stack_composites(transistors: list, inputs=(), outputs=(),
     stack_fallback = []
     for up_d in devs:
         if role.get(up_d['name']) not in (idioms_mod.CASCODE, netclass.FLOAT_SRC,
+                                            netclass.DIODE_CASC,
                                             idioms_mod.AMP, idioms_mod.CTRL_SRC):
             continue
         if up_d['name'] in diffpair_legs:
@@ -1792,7 +1793,7 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
         by_drain_kind[(t.drain, t.kind)].append(t.name)
     fan_in_candidates = {}
     for t in transistors:
-        if role.get(t.name) not in (netclass.CASCODE, netclass.FLOAT_SRC):
+        if role.get(t.name) not in (netclass.CASCODE, netclass.FLOAT_SRC, netclass.DIODE_CASC):
             continue
         candidates = [n for n in by_drain_kind.get((t.source, t.kind), []) if n != t.name]
         if len(candidates) > 1:
@@ -2013,6 +2014,103 @@ def _propose_L_roles(transistors, relations, base_inputs, outputs, feedbacks, bi
     return out
 
 
+def _propose_headroom_roles(transistors, gm_id_role_candidates, vertical_stack_id_candidates,
+                              L_role_candidates, base_inputs, outputs, feedbacks, biases, clocks):
+    """`refine_differential_and_mirror_relations()`가 쓰는 내부 헬퍼 -- `topology.json`
+    `device_roles`의 `headroom_role`(`mirror`/`cascode`/`tail`/`floating_current_source`)
+    후보를 제안한다.
+
+    ⚠️ **6가지 실패한 가설 뒤에 나온 37/37 규칙(2026-08-08, 사용자와 함께 여러 라운드
+    반례 검증)** -- `.ai/context.md` 세션25 F/G절에 전체 경위 기록. 이전 6가지 가설
+    (up/lo 위치, `matching_pairs` 소속, diode 단독/체인, `m_mirror()` 단독, `m_mirror()`+
+    tail 제외(9/35까지), "lo-of-cascode-stack" 예외)은 전부 `m_cascode()`/`netclass.
+    assign_roles()` 자체가 `M9a`류(Monticelli floating current source)와 `M63`류
+    (diode-cascode)를 그냥 `CASCODE`로 뭉뚱그리던 **더 아래 계층의 오분류**를 물려받고
+    있었다 -- 그 두 role(`FLOATING_CURRENT_SOURCE`/`DIODE_REFERENCED_CASCODE`)이
+    `netclass.py`에 분리되고 나서야 이 규칙이 성립했다.
+
+    **최종 규칙(위→아래 순서로 첫 매치)**:
+    1. `role == FLOATING_CURRENT_SOURCE` → `floating_current_source`
+    2. `gm_id_role_candidates[dev] == "balanced"`(차동쌍 tail 전류원) → `tail`
+    3. `role in (CURRENT_SOURCE, ACTIVE_LOAD)`(레일에 직접 닿은 고정 바이어스) → `mirror`
+    4. `role == DIODE_REFERENCED_CASCODE`(diode 바로 아래서 그 노드를 게이트로 받음,
+       `idioms.m_diode_cascode()`) → 그 diode 파트너가 `current-mirror` idiom의 `ref`
+       이거나, 파트너의 `vertical_stack_id_candidates` 그룹에 그런 `ref`가 있거나,
+       파트너의 `L_role_candidates.symmetry_partner`가 `ref`면 → `mirror`, 아니면
+       → `cascode`
+    5. `role == CASCODE` → `cascode`
+    6. `role == DIODE_CONNECTED` → 규칙 4와 같은 "mirror_ref 여부/그룹·대칭 공유" 판정
+
+    **실측**: `current_reuse_telescopic_ota` 선언된 37개(`headroom_role`이 있는 전체)
+    **37/37 일치**(`M10`/`M19`/`M9a`/`M9b`/`M18a`/`M18b`/`M37b`/`M63`/`M39`/`M40`이
+    이번 세션에 선언 오류로 정정된 뒤 기준, `.ai/context.md` F/G절 참고 -- `M39`/`M40`
+    은 `M11a`/`M11b`와 구조적으로 동일한 diode-connected 2단 floating-battery(mirror_
+    ref도 대칭 파트너도 없음)인데 `mirror`로 잘못 선언돼 있었다, 사용자 지적으로 확정)
+    -- 이전 최고 기록(9/35 불일치)에서 크게 개선됐지만 **다른 회로에서의 일반성은
+    검증 안 됨**(이 회로 하나로만 확인, 프로젝트 원칙 그대로 사람 재검토 권장).
+
+    ⚠️ `M1a`/`M1b`/`M2a`/`M2b`/`M3a`/`M3b`/`M4a`/`M4b`/`M15`/`M16`/`M25`/`M26`류(차동쌍
+    자신 + 보상 스테이지)와 `M37a`/`M37b`(CMFB 2차 차동쌍, `M37b`도 이번 세션에 같은
+    이유로 gap 처리됨)는 `compensation.stage_devices`가 이미 L/W/gm을 결정하므로
+    `device_roles`에 `headroom_role`을 안 써도 되는 소자다 -- `_propose_gm_id_roles()`
+    와 똑같은 원칙(사용자 지적, 2026-08-08)으로 이 함수도 이 소자들을 **제외하지 않고**
+    51개 전부 일관되게 반환한다(하드코딩된 제외 목록을 두면 이 회로 전용이 되고, 다른
+    회로엔 이름이 안 맞아 조용히 무의미해진다) -- `topology.json`에 실제로 채택할지는
+    소자마다, 그리고 이 12+2개는 대개 다른 경로가 이미 값을 정하므로 채택 안 해도 됨.
+
+    analog-grammar가 없으면 `None`을 반환한다.
+
+    반환(있으면): `{device_name: "mirror"|"cascode"|"tail"|"floating_current_source"|
+    None, ...}` -- 51개 회로라면 51개 키 전부 포함(role이 이 규칙 어디에도 안 걸리면
+    `None`, 예: gate가 SIGNAL/INPUT을 직접 받는 `AMPLIFYING`류)."""
+    netclass, idioms_mod = _import_analog_grammar("netclass", "idioms")
+    if netclass is None:
+        return None
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return None
+    cls, imp, _assume = netclass.classify_nets(devs, base_inputs, outputs, biases, feedbacks, clocks)
+    role = netclass.assign_roles(devs, cls, imp)
+    matches = idioms_mod.match_all(devs, cls, imp, role)
+    mirror_refs = {m.ports['ref'] for m in matches if m.kind == 'current-mirror'}
+    diode_cascode_lo = {m.ports['lo']: m.ports['diode'] for m in matches if m.kind == 'diode-cascode'}
+
+    vs_groups = (vertical_stack_id_candidates or {}).get('groups', {})
+    group_has_ref = defaultdict(bool)
+    for n, g in vs_groups.items():
+        if n in mirror_refs and g:
+            group_has_ref[g] = True
+
+    def _diode_like_mirror(name):
+        if name in mirror_refs: return 'mirror'
+        if group_has_ref.get(vs_groups.get(name)): return 'mirror'
+        # 물리적으로 안 쌓여도(병렬 load쌍처럼) 구조적 좌우 대칭 파트너가 mirror_ref면
+        # 같은 취급(예: M36b의 대칭 파트너 M36a가 current-mirror ref).
+        partner = (L_role_candidates or {}).get(name, {}).get('symmetry_partner')
+        if partner and partner in mirror_refs: return 'mirror'
+        return 'cascode'
+
+    out = {}
+    for t in transistors:
+        n = t.name
+        r = role.get(n)
+        if r == netclass.FLOAT_SRC:
+            out[n] = 'floating_current_source'
+        elif gm_id_role_candidates and gm_id_role_candidates.get(n) == 'balanced':
+            out[n] = 'tail'
+        elif r in (netclass.CURR_SRC, netclass.ACTIVE_LOAD):
+            out[n] = 'mirror'
+        elif n in diode_cascode_lo:
+            out[n] = _diode_like_mirror(diode_cascode_lo[n])
+        elif r == netclass.CASCODE:
+            out[n] = 'cascode'
+        elif r == netclass.DIODE:
+            out[n] = _diode_like_mirror(n)
+        else:
+            out[n] = None
+    return out
+
+
 def refine_differential_and_mirror_relations(transistors: list, inputs=(), outputs=(),
                                                feedbacks=(), biases=(), clocks=(),
                                                max_iterations: int = 5) -> dict | None:
@@ -2066,6 +2164,11 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
     `find_differential_pair_candidates()`의 차동쌍 게이트를 seed로 `find_structural_
     symmetry_candidates()`(전역 좌우 대칭, kind 보존)를 자동으로 돌려 48/51 소자의
     진짜 좌우 파트너를 찾는다(35/36 declared 일치, `M38`만 문서화된 예외).
+    `headroom_role_candidates` 필드로 `headroom_role` 후보(`"mirror"`|`"cascode"`|
+    `"tail"`|`"floating_current_source"`|`None`)도 반환한다 -- `_propose_headroom_
+    roles()` 참고, 6가지 실패한 가설 끝에 37/37 declared 일치(2026-08-08, `M9a`류/
+    `M63`류를 role 계층(`FLOATING_CURRENT_SOURCE`/`DIODE_REFERENCED_CASCODE`)에서부터
+    분리한 뒤에야 성립).
 
     반환(있으면): `{"relations": find_verified_differential_and_mirror_relations()의
     최종 반환값, "promoted_inputs": [자동 승격된 gate net, 승격 순서대로, 중복 없음],
@@ -2076,7 +2179,8 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
     proposed_id, ...}, "ambiguous_alternatives": {device_name: [candidate_group_name,
     ...], ...}}, "gm_id_role_candidates": {device_name: "balanced"|"matching", ...},
     "L_role_candidates": {device_name: {"L_role","confirmed_by_structural_symmetry",
-    "symmetry_partner"}, ...}}`.
+    "symmetry_partner"}, ...}, "headroom_role_candidates": {device_name: "mirror"|
+    "cascode"|"tail"|"floating_current_source"|None, ...}}`.
     `role_changes`/`net_class_changes`는 `device`/`net` 이름 순 정렬,
     `before`/`after`가 다른 것만 포함(`before`가 `None`이면 원래 미분류였다가 새로
     분류된 것)."""
@@ -2133,6 +2237,9 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
         transistors, base_inputs, outputs, feedbacks, biases, clocks)
     L_role_candidates = _propose_L_roles(
         transistors, relations, base_inputs, outputs, feedbacks, biases, clocks)
+    headroom_role_candidates = _propose_headroom_roles(
+        transistors, gm_id_role_candidates, vertical_stack_id_candidates,
+        L_role_candidates, base_inputs, outputs, feedbacks, biases, clocks)
 
     cls_after, role_after = classify(cur_inputs)
 
@@ -2152,7 +2259,8 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
             "stop_reason": stop_reason,
             "vertical_stack_id_candidates": vertical_stack_id_candidates,
             "gm_id_role_candidates": gm_id_role_candidates,
-            "L_role_candidates": L_role_candidates}
+            "L_role_candidates": L_role_candidates,
+            "headroom_role_candidates": headroom_role_candidates}
 
 
 @dataclass
@@ -8586,3 +8694,63 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 44 전체 PASS ===")
+
+    print()
+    print("=== Test 45: refine_differential_and_mirror_relations()의")
+    print("    headroom_role_candidates -- 6가지 실패한 가설 끝에 나온 37/37 규칙")
+    print("    (role==FLOATING_CURRENT_SOURCE/DIODE_REFERENCED_CASCODE 분리 +")
+    print("    mirror_ref/그룹/대칭 판정, 세션25, 사용자와 함께 여러 라운드 검증)이")
+    print("    tail/cascode/mirror/floating_current_source 네 값 전부와 mirror_ref")
+    print("    유무에 따른 diode-cascode 분기(있음/없음)까지 실제로 가르는지 합성")
+    print("    fixture로 검증 ===")
+    _t45_fixture = _t35_fixture + [
+        # Monticelli floating-current-source 축소 재현(M8/M9a/M9b/M10)
+        Transistor("M8", "pmos", source="vdd", drain="Vg", gate="Vbias5"),
+        Transistor("M9a", "pmos", source="Vg", drain="Vout", gate="Nref1"),
+        Transistor("M9b", "nmos", source="Vout", drain="Vg", gate="Nref2"),
+        Transistor("M10", "nmos", source="gnd", drain="Vout", gate="Vbias6"),
+        # diode-cascode WITH mirror_ref: M50(bottom cs)-M51(lo)-M52(diode,top),
+        # M53이 M52와 (gate,source,type) 공유 -> M52가 current-mirror ref가 됨
+        Transistor("M50", "pmos", source="vdd", drain="Va", gate="Vbias7"),
+        Transistor("M51", "pmos", source="Va", drain="Vb", gate="Vc"),
+        Transistor("M52", "pmos", source="Vb", drain="Vc", gate="Vc"),
+        Transistor("M53", "pmos", source="Vb", drain="Vd", gate="Vc"),
+        # diode-cascode WITHOUT mirror_ref: M60(bottom cs)-M61(lo)-M62(diode,top),
+        # 짝 없는 단독 diode
+        Transistor("M60", "nmos", source="gnd", drain="Ve", gate="Vbias8"),
+        Transistor("M61", "nmos", source="Ve", drain="Vf", gate="Vg2"),
+        Transistor("M62", "nmos", source="Vf", drain="Vg2", gate="Vg2"),
+    ]
+    _t45_result = refine_differential_and_mirror_relations(_t45_fixture, inputs=("Vip", "Vim"))
+    assert _t45_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t45_hr = _t45_result["headroom_role_candidates"]
+    assert set(_t45_hr) == {t.name for t in _t45_fixture}, \
+        f"headroom_role_candidates가 fixture 전체 소자를 다 포함해야 함: {set(_t45_hr)}"
+    _t45_expected = {
+        "M6": "tail", "M5": "tail",                              # 진짜 차동쌍 tail
+        "M1a": None, "M1b": None, "M4a": None, "M4b": None,      # AMP(차동쌍 입력) -- 규칙 밖
+        "M2a": "cascode", "M2b": "cascode",                       # 고정 게이트 캐스코드
+        "M3a": "cascode", "M3b": "cascode",
+        "M8": "mirror", "M10": "mirror",                          # floating loop 위/아래 전류원
+        "M9a": "floating_current_source", "M9b": "floating_current_source",
+        "M50": "mirror",                                          # 레일에 직접 닿은 전류원
+        "M51": "mirror",     # diode-cascode lo, 파트너(M52)가 mirror_ref -> mirror
+        "M52": "mirror",     # diode 자신이 mirror_ref(M53가 미러함)
+        "M53": "cascode",    # M52를 미러하는 별도 branch, 고정 게이트 캐스코드
+        "M60": "mirror",                                          # 레일에 직접 닿은 전류원
+        "M61": "cascode",    # diode-cascode lo, 파트너(M62)가 mirror_ref 아님 -> cascode
+        "M62": "cascode",    # diode 자신도 mirror_ref 아니고 대칭 파트너도 없음
+    }
+    for name, expected in _t45_expected.items():
+        actual = _t45_hr.get(name)
+        assert actual == expected, \
+            f"{name}: headroom_role 후보가 {expected!r}이어야 하는데 {actual!r} -- 회귀 의심"
+    print("    PASS: tail(M6/M5) / cascode(M2a/M2b/M3a/M3b) / floating_current_source")
+    print("    (M9a/M9b) / mirror(M8/M10/M50/M60) 기본 갈래 전부 정확")
+    print("    PASS: diode-cascode lo가 diode 파트너의 mirror_ref 여부를 그대로 물려받음")
+    print("    -- M51(파트너 M52가 mirror_ref)=mirror, M61(파트너 M62가 mirror_ref 아님)=cascode")
+    print("    PASS: 차동쌍 입력(M1a/M1b/M4a/M4b)은 None(compensation.stage_devices 소관,")
+    print("    이 규칙 범위 밖) -- 51개(여기선 fixture 전체) 일관 반환, 하드코딩 제외 없음")
+
+    print()
+    print("  === Test 45 전체 PASS ===")

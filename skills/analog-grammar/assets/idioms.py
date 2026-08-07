@@ -78,6 +78,40 @@ def m_diode(devs, cls, imp, role):
             for d in devs if role[d['name']] == DIODE]
 
 
+@idiom('diode-cascode', priority=4)
+def m_diode_cascode(devs, cls, imp, role):
+    """diode-connected 소자(`up`, `up.G==up.D`) 바로 아래(직렬, `lo.D==up.S`)에 얹힌
+    같은 kind 소자 `lo`가 **자기 게이트를 그 diode의 노드로 그대로 받는**(`lo.G==up.D`)
+    패턴 -- `floating-battery`(둘 다 diode)와 달리 `lo`는 diode가 아니어도 된다.
+
+    2026-08-08 신설(사용자 지적) -- `M63`(role=`CASCODE`, gate=`Vbias3`)이 `M64`
+    (diode-connected, gate=drain=`Vbias3`) 바로 아래 얹혀 같은 노드를 게이트로 받고,
+    `M58`(role=`CASCODE`, gate=`Vbias2`)도 `M57`(diode, gate=drain=`Vbias2`)에 대해
+    정확히 같은 관계다 -- 이런 "diode-connected 위에 얹힌 캐스코드가 그 diode 노드로
+    자기 게이트를 직접 받는" 구조는 지금까지 `diode-connected`(단일 소자, `up`만 봄)와
+    `m_cascode()`(직렬 판정만, 게이트 출처는 안 봄) 어느 쪽도 명시적으로 못 잡고 있었다
+    -- 정밀한 다이오드 기준전압을 만드는 흔한 회로 패턴(예: 캐스코드된 diode reference)
+    인데 idiom 어휘에 이름이 없었다.
+
+    ⚠️ `ports['lo']`/`ports['diode']`로 소자 이름을 명시(2026-08-08 추가) -- `Match.
+    devices`는 `sorted()`라 이름 알파벳순대로 `(lo,diode)` 또는 `(diode,lo)`가 뒤섞여
+    나온다(예: `M63`/`M64`는 `lo`가 먼저(`M63<M64`), `M57`/`M58`은 `diode`가 먼저
+    (`M57<M58`)) -- `devices[0]`을 그냥 `lo`로 가정하면 소자 이름에 따라 조용히
+    틀린다(실측으로 직접 걸림, headroom_role 재평가 스크립트에서 처음 발견)."""
+    out, by_d = [], defaultdict(list)
+    for d in devs: by_d[d['D']].append(d)
+    for up in devs:
+        if role[up['name']] != DIODE: continue
+        for lo in by_d[up['S']]:
+            if lo['name'] == up['name'] or lo['type'] != up['type']: continue
+            if lo['G'] != up['D']: continue
+            out.append(Match('diode-cascode', [lo['name'], up['name']],
+                             {'lo': lo['name'], 'diode': up['name'],
+                              'diode_node': up['D'], 'lo_role': role[lo['name']]},
+                             note='diode 노드를 그대로 게이트로 받는 하위 캐스코드', priority=4))
+    return out
+
+
 @idiom('source-follower', priority=3)
 def m_follower(devs, cls, imp, role):
     return [Match('source-follower', [d['name']],

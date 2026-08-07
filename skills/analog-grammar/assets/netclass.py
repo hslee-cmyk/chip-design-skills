@@ -202,6 +202,7 @@ CURR_SRC    = 'CURRENT_SOURCE'
 CTRL_SRC    = 'CONTROLLED_CURRENT_SOURCE'
 CASCODE     = 'CASCODE'
 FLOAT_SRC   = 'FLOATING_CURRENT_SOURCE'
+DIODE_CASC  = 'DIODE_REFERENCED_CASCODE'
 AMP         = 'AMPLIFYING'
 FOLLOWER    = 'SOURCE_FOLLOWER'
 SWITCH      = 'SWITCH'
@@ -234,6 +235,27 @@ def _floating_source_legs(devs):
     return legs
 
 
+def _diode_cascode_legs(devs):
+    """diode-connected 소자(`up`, `up.G==up.D`) 바로 아래(직렬, `lo.D==up.S`)에 얹혀
+    그 diode의 노드를 그대로 게이트로 받는(`lo.G==up.D`) 소자를 구한다 -- `idioms.py`
+    의 `m_diode_cascode()`와 동일 판정 기준(2026-08-08 신설, 사용자 지적: `M63`이
+    `M64`(diode) 바로 아래서 같은 노드를 게이트로 받는 걸 idiom 층에서 잡았는데,
+    `assign_roles()`는 여전히 그냥 `CASCODE`로 뭉뚱그리고 있었다 -- `FLOAT_SRC`와
+    같은 이유로 role 계층에서도 분리해야 `idioms.py`를 안 거치는 소비자까지 정확해진다).
+    diode 여부(`up.G==up.D`) 자체는 role을 몰라도 판정 가능해서(자기참조 연결성 사실)
+    role 배정 이전에 안전하게 미리 계산할 수 있다."""
+    by_d = defaultdict(list)
+    for d in devs: by_d[d['D']].append(d)
+    legs = set()
+    for up in devs:
+        if up['G'] != up['D']: continue
+        for lo in by_d[up['S']]:
+            if lo['name'] == up['name']: continue
+            if lo['G'] != up['D']: continue
+            legs.add(lo['name'])
+    return legs
+
+
 def assign_roles(devs, cls, imp):
     """
     Stage 2. net class 가 주어지면 완전히 결정론적이다.
@@ -241,6 +263,7 @@ def assign_roles(devs, cls, imp):
     """
     role = {}
     float_legs = _floating_source_legs(devs)
+    diode_casc_legs = _diode_cascode_legs(devs)
     for d in devs:
         n, g, dr, s = d['name'], d['G'], d['D'], d['S']
         gc, sc = cls.get(g), cls.get(s)
@@ -264,6 +287,8 @@ def assign_roles(devs, cls, imp):
                 role[n] = ACTIVE_LOAD if imp.get(dr) == HIGH_Z else CURR_SRC
             elif n in float_legs:
                 role[n] = FLOAT_SRC         # 비-레일 anti-parallel 상보쌍 = floating 전류원
+            elif n in diode_casc_legs:
+                role[n] = DIODE_CASC        # 바로 위 diode의 노드를 게이트로 직접 받음
             else:
                 role[n] = CASCODE           # 소스가 내부 노드 = 직렬 적층
         else:

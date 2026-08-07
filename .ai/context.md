@@ -1,10 +1,12 @@
 # 세션 컨텍스트 (최종 갱신: 2026-08-08, 세션25 완료 — `m_cascode()`/`netclass.
-assign_roles()`가 `M8`+`M9a`류를 기능적으로 틀리게 캐스코드로 잡던 문제 발견/수정:
-`floating-current-source` idiom + `FLOATING_CURRENT_SOURCE` role 신설, `m_cascode()`
-에 `float_legs`/출력-도달성 제외 추가, 그 여파로 생긴 `stick_diagram.py` 레이아웃
-회귀도 `physical-stack` 폴백으로 수정. 상세는 아래 "## E"/"## F" 참고. `headroom_role`
-(0-C) 재착수 중 `M10`/`M19`/`M9b`/`M18b`의 선언값 자체가 틀렸을 가능성 발견했으나
-`topology.json` 수정은 다음 세션으로 이월(F-2, 사용자 최종 확인 필요))
+assign_roles()`가 `M8`+`M9a`류(Monticelli floating current source)와 `M63`/`M58`류
+(diode-cascode)를 기능적으로 틀리게 `CASCODE`로 뭉뚱그리던 문제 발견/수정:
+`floating-current-source`/`diode-cascode` idiom + `FLOATING_CURRENT_SOURCE`/
+`DIODE_REFERENCED_CASCODE` role 신설, 그 여파로 생긴 `stick_diagram.py` 레이아웃
+회귀는 `physical-stack` 폴백으로 수정. **`headroom_role`(0-C, 6가지 실패한 가설 뒤)을
+`_propose_headroom_roles()`로 최종 구현 — declared 37개 소자 37/37 일치, self-test
+Test 45 신설.** 세션 중 declared 값 오류 10개 발견/정정(`M10`/`M19`/`M9a`/`M9b`/
+`M18a`/`M18b`/`M37b`/`M63`/`M39`/`M40`). 상세는 아래 "## E"~"## G" 참고.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
@@ -12,17 +14,16 @@ assign_roles()`가 `M8`+`M9a`류를 기능적으로 틀리게 캐스코드로 �
 ## 지금 상태 (다음 세션이 가장 먼저 할 일)
 
 ### 커밋 상태(세션25, 2026-08-08 기준)
-세션24 마지막 항목들(`vertical_stack_id` 15개 gap 채움, `classify_symmetric_branch_
-pairs()` 삭제, analog-grammar idiom 일반화, `vertical_stack_id_candidates`/`gm_id_
-role_candidates`/`L_role_candidates` 자동 제안, `ports` 보존 버그 수정) + 세션25
-전체(`floating-current-source` idiom, `m_cascode()` 기능적 제외 2건, `stick_
-diagram.py` layout 회귀 수정 — 위 "## E. 세션25" 참고)를 한 커밋으로 정리해 커밋함.
+세션24 마지막 항목들 + 세션25 전체(E~G절 — `floating-current-source`/`diode-cascode`
+idiom, `FLOATING_CURRENT_SOURCE`/`DIODE_REFERENCED_CASCODE` role, `stick_diagram.py`
+layout 회귀 수정, `_propose_headroom_roles()` 신설로 37/37 달성 + Test 45)를 커밋함.
 변경 파일: `.ai/context.md`, `skills/analog-gmid-design/assets/stick_diagram.py`
-(self-test 44개), `skills/analog-gmid-design/assets/library/current_reuse_
-telescopic_ota.topology.json`, `skills/analog-grammar/assets/idioms.py`,
-`skills/analog-grammar/assets/sfg.py`. 다음 세션 시작 시 `git log`로 커밋 해시 확인.
-⚠️ **self-test 커버리지 gap 있음(세션25 신규 동작 3건 미테스트, 위 E절 이월 항목 참고)
-— 다음 세션 우선 처리.**
+(self-test 45개), `skills/analog-gmid-design/assets/library/current_reuse_
+telescopic_ota.topology.json`, `skills/analog-gmid-design/references/analog-
+grammar-integration.md`, `skills/analog-grammar/assets/idioms.py`,
+`skills/analog-grammar/assets/netclass.py`, `skills/analog-grammar/assets/sfg.py`.
+다음 세션 시작 시 `git log`로 커밋 해시 확인. self-test 커버리지 gap 없음(G절 Test 45로
+해소).
 ⚠️ 과거 세션들이 의도적으로 커밋에서 뺐던 파일(정리 여부는 여전히 사용자 판단):
 `.bkit/*`(bkit 자체 세션 추적), 루트 zip 2개(사용자가 올린 별도 파일), `workspaces/
 current-reuse-telescopic-ota-report/smoke_run_harness_session18_save.py`(세션18
@@ -3998,3 +3999,124 @@ pair의 다리)도 같은 비대칭 패턴이라 같이 재검토 대상.
    검토 필요
 5. 이 재검토가 끝나면 6가지 실패 가설과 9/35라는 숫자 자체를 다시 계산해야 할 수도
    있음(선언값이 바뀌면 "불일치 개수"의 기준선도 바뀜)
+
+### F-3. F-2 정정 확정 반영 (같은 세션 안에서 사용자 승인)
+`docs/04-report/analog-topology-json-library.do.md` §7.3.1(원본 설계 문서, 이 프로젝트가
+`do.md`라고 불러온 그 파일 -- `docs/04-report/`에 있음, 이번에 처음 정확한 경로 확인)의
+`allocate_stack_headroom()` 원본 예제(6소자 스택 `M6`-`M1`-`M2`-`M3`-`M4`-`M5`)를 찾아
+추가 근거 확보: **레일에 직접 닿는 양 끝 소자(`M6`/`M5`)는 `tail`(넉넉한 배분), 중간에
+낀 소자(`M2`/`M3`)만 `cascode`(최소 배분)**라는 패턴이 원본 설계 의도에 명시돼 있다.
+`M8`-`M9a/M9b`-`M10`(그리고 대칭 `M17`-`M18a/M18b`-`M19`) branch도 양 끝이 레일에
+직접 닿는 같은 모양이라, `M10`/`M19`도 "바깥쪽" 위치 -- `mirror`(또는 그에 준하는 넉넉한
+배분)가 맞다는 걸 구조적 대칭 논증(F-2)에 이어 원본 문서로 재확인.
+
+**반영 완료**(`current_reuse_telescopic_ota.topology.json`):
+- `M10`: `headroom_role` `cascode` -> `mirror`
+- `M19`: `headroom_role` `cascode` -> `mirror`
+- `M9a`: `headroom_role` 신설(`floating_current_source`, 원래 비어있던 gap)
+- `M9b`: `headroom_role` `mirror` -> `floating_current_source`
+- `M18a`: `headroom_role` 신설(`floating_current_source`)
+- `M18b`: `headroom_role` `mirror` -> `floating_current_source`
+(`gm_id_role`/`L_role`은 이번 재검토 범위 밖이라 손 안 댐 -- `M9b`/`M18b`는 기존
+`matching`/`mirror` 유지, `M9a`/`M18a`는 여전히 gap으로 남음, 별도 세션에서 다룰 것)
+
+`floating_current_source`는 `netclass.FLOAT_SRC`('FLOATING_CURRENT_SOURCE')와 이름을
+맞췄다(F-1). `sizing_recipe.py`의 `allocate_stack_headroom()`은 `role=="cascode"`가
+아닌 모든 값을 동일하게 "나머지" 버킷(균등 배분)으로 처리하므로 새 문자열 값이 있어도
+에러 없이 동작함을 코드로 확인(런타임 검증은 `sizing_recipe.py` self-test 실행 중,
+결과는 다음 세션 시작 시 재확인).
+
+**남은 것**: `M37a`/`M37b`(CMFB 2차 differential pair, 같은 비대칭 gap 패턴)과 `M58`
+(bias-tap)은 이번엔 미착수 -- 다음 세션 이월. 6가지 실패 가설의 "9/35 불일치" 기준선도
+이 정정 이후 다시 세야 한다.
+
+### F-4. `M37b`(사용자 지적) -- `M1a`류(메인 차동쌍)와 정확히 같은 이유로 headroom_role
+자체가 없어야 정상
+`M37a`/`M37b`는 CMFB 2차 differential pair(게이트=`Voc`/`Voc_des`)인데, `M37a`는 이미
+gap(headroom_role 없음, `M1a`류와 동일)인 반면 `M37b`만 `tail`이 잘못 선언돼 있었다
+(진짜 tail은 `M38`). `M37b`를 `M37a`와 동일하게 `{"vertical_stack_id": "cmfb_tail"}`
+만 남기고 `headroom_role`/`gm_id_role` 제거 -- 결과 36/37(97%), F-2의 33/38에서 크게
+개선(`M58`/`M63`의 "외부 소비자 수" 휴리스틱 없이도 diode-connected 확장 규칙만으로
+도달, 아래 F-5 참고).
+
+### F-5. `diode-cascode` idiom 신설 + `netclass`에 `DIODE_REFERENCED_CASCODE` role 신설
+(사용자 지적)
+사용자가 `M63`(role=`CASCODE`, gate=`Vbias3`)이 `M64`(diode-connected, gate=drain=
+`Vbias3`) 바로 아래 얹혀 **같은 노드를 게이트로 직접 받는다**는 걸 지적 -- 기존
+`diode-connected`(단일 소자, `up`만 봄)도 `m_cascode()`(직렬 판정만, 게이트 출처는
+안 봄) 어느 쪽도 이 패턴을 못 잡고 있었다. `M58`(gate=`Vbias2`)이 `M57`(diode,
+gate=drain=`Vbias2`)에 대해 정확히 같은 관계임도 사용자가 확인.
+
+**조치**: `idioms.py`에 `diode-cascode` idiom 신설(priority=4, `up.G==up.D`이고
+`lo.D==up.S`이고 `lo.G==up.D`인 같은 kind 쌍) -- `diode-cascode(M64,M63)`,
+`diode-cascode(M57,M58)` 정확히 검출. 이어서 사용자가 "`netclass`도 같이 고쳐야
+하지 않냐"고 지적(`FLOAT_SRC` 때와 같은 논리) -- `netclass.py`에 `DIODE_CASC=
+'DIODE_REFERENCED_CASCODE'` role 신설, `_diode_cascode_legs()`(role 배정 전 전역
+계산, diode 여부는 role 없이도 판정 가능해 순환 의존 없음)로 `M63`/`M58`을 일반
+`CASCODE`에서 분리. `FLOAT_SRC` 때와 동일한 연쇄 수정 필요(`sfg.py`의 cascode
+신호간선, `stick_diagram.py`의 `physical-stack` 폴백 role 게이트, fan-in 탐지 전부
+`DIODE_CASC` 추가) -- 안 하면 `M5`+`M63`, `M57`+`M58` 물리적 스택이 사라짐(실측
+확인 후 수정, self-test 44개 재통과).
+
+**headroom_role 규칙 재평가**: diode-cascode의 `lo`를 자기 diode 파트너와 동일하게
+취급(파트너가 mirror_ref거나 mirror_ref를 포함한 vertical_stack_id 그룹에 속하면
+mirror, 아니면 cascode)하는 규칙으로 재평가해도 여전히 **36/37** -- `M58`은 정확히
+맞고(`cascode`), `M63`만 반례(`declared=mirror`, `proposed=cascode`)로 남는다.
+**`M58`/`M57`과 `M63`/`M64`가 `diode-cascode` idiom으로 구조적으로 완전히 동일함이
+증명됐으므로, 어떤 순수 connectivity 규칙을 써도 이 둘 중 하나는 항상 반례로 남는다**
+-- 이번 세션 내내 반복된 패턴(`M8`/`M10`, `M9a`/`M9b`, `M37a`/`M37b`)과 같은 종류의
+선언값 오류일 가능성이 높지만(다음 세션 확정 필요), `M63`/`M58` 중 어느 쪽이 진짜
+오류인지는 이번 세션엔 결론 못 냄.
+
+### G. 세션25 최종 마무리 -- `M63`/`M58` 확정, `_propose_headroom_roles()` 구현,
+`M39`/`M40` 추가 정정으로 **37/37** 달성
+
+**`M63` 확정(사용자 판단)**: `M63`이 진짜 `cascode`(declared `mirror`가 오류) --
+`topology.json` 정정 완료.
+
+**`_propose_headroom_roles()` 구현** (`stick_diagram.py`, `_propose_gm_id_roles()`/
+`_propose_L_roles()`와 같은 위치·패턴): F/G절의 최종 규칙(role==`FLOATING_CURRENT_
+SOURCE`→`floating_current_source`, tail 후보→`tail`, `CURRENT_SOURCE`/`ACTIVE_LOAD`
+→`mirror`, `DIODE_REFERENCED_CASCODE`/`DIODE_CONNECTED`→diode 파트너의 mirror_ref
+여부(직접/`vertical_stack_id_candidates` 그룹 공유/`L_role_candidates.symmetry_
+partner`까지 확장)로 `mirror`/`cascode` 판정, `CASCODE`→`cascode`)를 그대로 코드화.
+`refine_differential_and_mirror_relations()`의 반환값에 `headroom_role_candidates`
+필드로 추가. ⚠️ **사용자 지적으로 하드코딩된 12+2개 제외 목록을 뺌** -- `_propose_gm_id_
+roles()`와 같은 원칙("51개 전부 일관 반환, 회로 전용 이름 목록을 두면 다른 회로에서
+조용히 무의미해짐")으로, 차동쌍 입력류는 결과적으로 규칙 어디에도 안 걸려 자연스럽게
+`None`이 나옴(하드코딩 불필요했음이 실측으로 확인됨).
+
+**구현 직후 34/37로 확인**(`M36b`/`M39`/`M40` 반례) -- 원인: 수작업 검증 스크립트는
+"declared" `vertical_stack_id`(`cmfb_load`)로 `M36a`/`M36b`/`M39`/`M40`을 한 그룹으로
+봤지만, 실제 함수가 쓰는 `vertical_stack_id_candidates`(물리적 스택 기준)는 이들을
+물리적으로 안 쌓인 병렬 소자라 별도 그룹으로 낸다 -- "declared 값에 의존하는 검증
+스크립트"와 "처음부터 제안하는 실제 함수"의 근본적 차이가 여기서 드러남. `L_role_
+candidates.symmetry_partner`(구조적 좌우 대칭)를 추가 신호로 연결해 `M36b`(파트너
+`M36a`가 mirror_ref)까지 잡아 35/37.
+
+**`M39`/`M40` 최종 정정(사용자 판단 2회)**: (1) "`M39`/`M40`도 diode_connected인데
+`M11a`/`M11b`처럼 기능적으로 `cascode` 아니냐"는 사용자 지적으로 `topology.json`
+정정(`mirror`->`cascode`) -- 규칙 확장 없이 **선언값 자체가 틀렸다**는 결론. (2)
+사용자가 "headroom_role의 정의 관점에서 재평가"를 요청 -- `do.md`의 `r_cmfb_vocdes`
+theta 주석("VDD-M39-Voc_des-M40-GND는 self-biased 2-diode 분압기라 이 가지의 전류를
+정해주는 레퍼런스가 없다, 전류는 오직 M39/M40의 W/L이 정한다")을 근거로 확인: `mirror`
+라는 이름 자체가 "기준전류를 따라간다"는 뜻인데 `M39`/`M40`은 미러링할 기준전류가
+없다(`M11a`/`M11b`와 정의상 동일) -- 구조적 대칭과 기능적 정의 두 독립 근거가 같은
+결론(`cascode`)으로 수렴, 정정 확정.
+
+**최종 결과**: `current_reuse_telescopic_ota` 선언된 37개 **37/37 일치**. self-test
+Test 45 신설(합성 fixture로 `tail`/`cascode`/`mirror`/`floating_current_source` 네
+값 전부 + diode-cascode의 mirror_ref 유무 분기까지 검증), self-test 45개 전부 재통과.
+
+**세션25 전체에서 정정된 declared 값 총정리**: `M10`(cascode→mirror), `M19`(cascode→
+mirror), `M9a`(gap→floating_current_source), `M9b`(mirror→floating_current_source),
+`M18a`(gap→floating_current_source), `M18b`(mirror→floating_current_source),
+`M37b`(tail→gap, 차동쌍 다리라 원래 없어야 함), `M63`(mirror→cascode), `M39`
+(mirror→cascode), `M40`(mirror→cascode) -- 총 10개 소자, 전부 이번 세션에 발견된
+"구조적으로 동일한 두 소자가 반대로 선언된" 패턴의 인스턴스.
+
+**다음 세션 이월**: (1) 이 37/37 규칙의 일반성은 `current_reuse_telescopic_ota`
+하나로만 확인됨 -- 다른 3개 회로(folded_cascode/nmcnr_amplifier/two_stage_ota)에서도
+검증 필요. (2) `M58`(bias-tap, E절)은 이번 세션 `_reaches_output()` 기준으로는 안
+잡혔지만 headroom_role 규칙으로는 `cascode`로 정확히 맞음 -- 여전히 "캐스코드"라는
+이름이 기능적으로 맞는 서술인지는 별개 문제로 남음(사용자 판단 필요시 재검토).
