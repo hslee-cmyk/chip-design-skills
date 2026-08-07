@@ -2718,10 +2718,23 @@ raw 출력에 그대로 재현돼, 세션19가 설계만 하고 미배선한 Tie
 ### B-4. 사용자 확정 설계 — "matching_pairs가 base, layout 최적화 위해 확장 가능"
 하위호환을 포기하고 정합성 있는 구조로 개선하기로 명시적 결정(사용자: "matching이
 안 되는 소자들을 stack에서 밀려내는 게 가능하지 않나" → "matching을 기본으로 그룹하고
-layout 최적화 위해 같은 그룹에 다른 것들을 추가하는 방향은 괜찮아 보인다"). 실측으로
-가설을 먼저 검증(`stack_groups_override`로 matching_pairs만의 union-find를 구성 —
-M6/M7/M57/M58 전부 독립 그룹으로 갈라짐)한 뒤, **`geometry_colocation_union()` 자체를
-재설계**:
+layout 최적화 위해 같은 그룹에 다른 것들을 추가하는 방향은 괜찮아 보인다").
+
+⚠️ **이 재설계 전에 사용자가 먼저 명시적으로 확인한 경계 조건(일반 방법론으로 기록)**:
+"kcl로 그룹하는 것(`kcl_series_union()`, A엔진 전류 propagation/`stack_id`용)과
+layout의 최적화를 기준으로 그룹하는 것(`geometry_colocation_union()`, finger_w
+공유용)은 차이가 있을 수 있다는 사항은 유지되어야 한다"(사용자 원문) — 즉 이번 재설계는
+**`geometry_colocation_union()` 하나에만** 적용하고 `kcl_series_union()`은 의도적으로
+안 건드렸다. **"matching_pairs가 base, 검증된 상속으로만 확장"이라는 방법론 자체는
+`geometry_colocation_union()`류(선언 없이 자동으로 물리적 병합 후보를 추측하는 함수)
+에 일반적으로 적용 가능한 원칙이지, `kcl_series_union()`류(전기적으로 강제되는 사실을
+찾는 함수, "무근거 추측"이 아니라 "2단자 net이면 전류가 같다"는 KCL 그 자체)에는
+해당하지 않는다** — 다음 세션에 다른 grouping 함수를 손볼 일이 생기면 이 구분부터
+먼저 확인할 것.
+
+실측으로 가설을 먼저 검증(`stack_groups_override`로 matching_pairs만의 union-find를
+구성 — M6/M7/M57/M58 전부 독립 그룹으로 갈라짐)한 뒤, **`geometry_colocation_union()`
+자체를 재설계**:
 - **base**: `matching_pairs`(현행과 동일하게 `current_forced=True`만)를 그대로 union.
 - **확장**: `find_stack_edges()`(analog-grammar 재사용) + `find_stacked_matching_
   candidates()`(세션19 C-3, 이미 검증됨)로 각 base pair 위에 재귀적으로 쌓인 소자를
