@@ -4,26 +4,105 @@ assign_roles()`가 `M8`+`M9a`류(Monticelli floating current source)와 `M63`/`M
 `floating-current-source`/`diode-cascode` idiom + `FLOATING_CURRENT_SOURCE`/
 `DIODE_REFERENCED_CASCODE` role 신설, 그 여파로 생긴 `stick_diagram.py` 레이아웃
 회귀는 `physical-stack` 폴백으로 수정. **`headroom_role`(0-C, 6가지 실패한 가설 뒤)을
-`_propose_headroom_roles()`로 최종 구현 — declared 37개 소자 37/37 일치, self-test
-Test 45 신설.** 세션 중 declared 값 오류 10개 발견/정정(`M10`/`M19`/`M9a`/`M9b`/
-`M18a`/`M18b`/`M37b`/`M63`/`M39`/`M40`). 상세는 아래 "## E"~"## G" 참고.)
+`_propose_headroom_roles()`로 최종 구현 — declared 37개 소자 37/37 일치.**
+`find_verified_differential_and_mirror_relations()`의 근본 한계(소자쌍 dedup이 `M7`을
+조용히 누락)도 발견/수정(H절) — declared `vertical_stack_id` 전체를 물리적 스택
+기준으로 재분해 완료. self-test Test 46개 전부 통과. 세션 중 declared 값 오류 10개
+발견/정정(`M10`/`M19`/`M9a`/`M9b`/`M18a`/`M18b`/`M37b`/`M63`/`M39`/`M40`) +
+`M9a`/`M18a`의 `gm_id_role`/`L_role` gap도 채움. 상세는 아래 "## E"~"## H" 참고.
+**다음 세션 최우선은 `resolve_stack_layout()` 설계 — 아래 "다음 세션 최우선" 절 먼저
+읽을 것.**)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
-## 지금 상태 (다음 세션이 가장 먼저 할 일)
+## 다음 세션 최우선 — `resolve_stack_layout()`(가칭) 설계
+
+### 왜 지금인가
+`B-5-5`(세션22)가 정리한 3갈래 작업 중 **1번(vertical_stack_id 완성)까지 이번
+세션(24~25)에 전부 끝났다** -- `vertical_stack_id`의 15개 gap을 채운 것(세션24)에
+이어, 이번 세션(25)에서는 그 값들이 **애초에 무슨 기준으로 묶여야 하는가** 자체를
+재정립했다: `stage1`/`biasgen_vom_a`/`cmfb_load`처럼 물리적 스택 기준과 설계 단계
+개념이 뒤섞여 있던 declared 값을, `vertical_stack_id_candidates`(순수 물리적 직렬
+스택 기준, `suggest_vertical_stack_composites()`)와 정확히 일치하도록 전부
+재분해했다(H-3). 그 과정에서 `find_verified_differential_and_mirror_relations()`의
+근본 버그(H-2, 소자쌍 dedup이 `M7`을 diff_branch_members에서 누락시켜 `M58`의
+fan-in 재판정이 틀리던 문제)까지 고쳐서, **지금 `vertical_stack_id_candidates`는
+이 회로에서 실측으로 100% 신뢰 가능한 상태**다(37/37 `headroom_role`, `ambiguous_
+alternatives` 빈 딕셔너리, `M58`↔`M57`/`M9b`↔`M10`/`M18b`↔`M19` 전부 정확히 병합).
+**`resolve_stack_layout()`의 1단계("`vertical_stack_id`를 유일한 권위 있는 경계로
+삼는다")가 의존하는 바로 그 데이터가 이제 막 정확해졌다** -- 2번(`resolve_stack_
+layout()` 신설)으로 넘어갈 준비가 된 시점이다.
+
+### 기존 설계 스케치 (B-5-3, 세션22~23, "가칭"·"미구현" 상태 그대로 남아있음)
+`docs/04-report/analog-topology-json-library.do.md`가 아니라 이 파일(`.ai/context.md`)
+자체의 B-5-3절에 있다(grep으로 찾을 것). 기존 서브 solver를 재발명하지 않고 묶는
+layered orchestrator로 설계됐다:
+1. **`vertical_stack_id`로 1차 분할** -- 이걸 유일한 권위 있는 경계로 삼는다(자동
+   fan-out 추론이 이 경계를 넘으면 안 됨).
+2. 각 그룹 안에서 finger_w 탐색(`search_stack_finger_w()`, `stick_diagram.py`),
+   실패하면 그룹분할(미매칭 소자 우선 분리) 후 재시도.
+3. 각 그룹 안에서 오일러 walk 구성(`mirror_symmetric_trail()`, `stick_diagram.py`),
+   실패하면 `suggest_pair_finger_adjustments()`(`stick_diagram.py`) 제안 → 2번부터
+   재검산(핑거가 바뀌면 W도 바뀜).
+4. 결과(그룹 멤버십·finger_w·walk 시퀀스·적용된 조정)를 구조체 하나로 반환,
+   `ctx.layout_solution`에 캐시.
+
+호출부 교체 제안(B-5-3 원문): `optimize_full_circuit_budget()`이 따로 계산하는
+`stack_groups_kcl`/`stack_groups_geometry`를 이 함수 하나로 대체, `assign_finger_
+geometry()`/`audit_row_split()`/`run_topology_pipeline_with_finger_fixup()`이 전부
+이 캐시를 읽게.
+
+⚠️ 위 세 서브 solver(`search_stack_finger_w`, `mirror_symmetric_trail`,
+`suggest_pair_finger_adjustments`) + `allocate_stack_headroom()`(`sizing_recipe.py`,
+do.md §7.3b) **전부 지금 코드에 실제로 존재함을 세션25 끝에 재확인**(grep으로 시그니처
+확인 완료) -- 설계 당시 이후 이름이 안 바뀌었다.
+
+### 이번 세션이 새로 밝혀서 설계에 반영해야 할 것
+1. **입력 소스 결정 필요(설계 논의 필요, 미확정)**: `resolve_stack_layout()`의 1단계가
+   `topology.json`의 **declared** `vertical_stack_id`를 읽어야 하는가, 아니면
+   `_propose_vertical_stack_ids()`(`refine_differential_and_mirror_relations()`의
+   `vertical_stack_id_candidates`)를 직접 호출해야 하는가? declared는 사람이 검토한
+   확정값(이 프로젝트 원칙: topology.json이 유일한 소스)이지만 이 회로 하나만 채워져
+   있다 -- 다른 회로(folded_cascode 등)는 declared가 비어있을 수 있어 그 경우
+   candidates로 폴백하는 로직이 필요할 수 있다.
+2. **`headroom_role`을 `allocate_stack_headroom()`과 연동할 것** -- `headroom_role`
+   이 이제 37/37 신뢰 가능하므로(세션25), `resolve_stack_layout()`의 finger_w 탐색
+   단계(2번)에서 `allocate_stack_headroom(vdd, stack=[{name,role,min_vds}, ...])`
+   (`sizing_recipe.py`)에 그대로 넘길 `role` 값의 출처로 `headroom_role`을 쓸 수
+   있다 -- 이전엔 이 값이 9/35 불일치라 못 미더웠지만 이제는 다르다.
+3. **`M9a`/`M9b`류(`floating_current_source`) 핑거/walk 처리를 특별히 검토할 것** --
+   이들은 서로 다른 kind(PMOS/NMOS)라 같은 physical column에 못 쌓이므로(세션25에서
+   확립), `vertical_stack_id`가 이들을 별도 그룹(`biasgen_vom_a`=`M8`+`M9a`,
+   `biasgen_vom_floatsrc_sink`=`M9b`+`M10`)으로 이미 정확히 분리해뒀다 -- 이
+   경계를 `resolve_stack_layout()`이 그대로 존중하면 되고, 별도 처리는 불필요할
+   가능성이 높다(확인만 필요).
+4. **다른 3개 회로 일반화 미검증** -- 이번 세션 전체가 `current_reuse_telescopic_ota`
+   하나로만 확인됨. `resolve_stack_layout()`을 이 회로로 먼저 검증한 뒤 최소 1개
+   다른 회로(예: `folded_cascode`, `vertical_stack_id` declared가 비어있을 가능성
+   높음 -- 입력 소스 결정(위 1번)이 먼저 필요한 이유)로 교차 검증할 것.
+
+### 그 다음 이월 항목 (우선순위 낮음)
+- `M58`의 `headroom_role="cascode"` 명칭 문제 -- **해결됨**(`M58`은 `M57` 위에 얹힌
+  진짜 diode-cascode 구조라 "cascode"가 정확한 서술임을 사용자가 확정, 위 세션25
+  기록 참고).
+- `run_harness.py` 실전략 -- 세션22부터 계속 이월, 이번 세션도 미착수.
+
+## 지금 상태 (세션25 완료 시점 기록)
 
 ### 커밋 상태(세션25, 2026-08-08 기준)
-세션24 마지막 항목들 + 세션25 전체(E~G절 — `floating-current-source`/`diode-cascode`
-idiom, `FLOATING_CURRENT_SOURCE`/`DIODE_REFERENCED_CASCODE` role, `stick_diagram.py`
-layout 회귀 수정, `_propose_headroom_roles()` 신설로 37/37 달성 + Test 45)를 커밋함.
-변경 파일: `.ai/context.md`, `skills/analog-gmid-design/assets/stick_diagram.py`
-(self-test 45개), `skills/analog-gmid-design/assets/library/current_reuse_
+세션24 마지막 항목들 + 세션25 전체(E~H절)가 커밋 5개로 나뉘어 반영됨:
+`1bf6d6d`(`m_cascode()` 기능적 수정) → `bc7e250`(`netclass.assign_roles()`도 같이
+수정) → `96c7832`(`headroom_role` 자동 제안 신설, 37/37) → `97b517b`(`differential_
+branch_members` 근본 수정) → `d72affd`(declared `vertical_stack_id` 재분해) →
+`f4123a6`(`M9a`/`M18a` gm_id_role/L_role gap). 이 `.ai/context.md` 갱신분(이 절 포함)은
+**아직 커밋 안 됨** -- 다음 세션 시작 시 `git log`/`git status`로 먼저 확인할 것.
+변경 파일 전체: `.ai/context.md`, `skills/analog-gmid-design/assets/stick_diagram.py`
+(self-test 46개), `skills/analog-gmid-design/assets/library/current_reuse_
 telescopic_ota.topology.json`, `skills/analog-gmid-design/references/analog-
 grammar-integration.md`, `skills/analog-grammar/assets/idioms.py`,
 `skills/analog-grammar/assets/netclass.py`, `skills/analog-grammar/assets/sfg.py`.
-다음 세션 시작 시 `git log`로 커밋 해시 확인. self-test 커버리지 gap 없음(G절 Test 45로
-해소).
+self-test 커버리지 gap 없음(Test 45/46으로 해소).
 ⚠️ 과거 세션들이 의도적으로 커밋에서 뺐던 파일(정리 여부는 여전히 사용자 판단):
 `.bkit/*`(bkit 자체 세션 추적), 루트 zip 2개(사용자가 올린 별도 파일), `workspaces/
 current-reuse-telescopic-ota-report/smoke_run_harness_session18_save.py`(세션18
@@ -4117,9 +4196,13 @@ mirror), `M9a`(gap→floating_current_source), `M9b`(mirror→floating_current_s
 
 **다음 세션 이월**: (1) 이 37/37 규칙의 일반성은 `current_reuse_telescopic_ota`
 하나로만 확인됨 -- 다른 3개 회로(folded_cascode/nmcnr_amplifier/two_stage_ota)에서도
-검증 필요. (2) `M58`(bias-tap, E절)은 이번 세션 `_reaches_output()` 기준으로는 안
-잡혔지만 headroom_role 규칙으로는 `cascode`로 정확히 맞음 -- 여전히 "캐스코드"라는
-이름이 기능적으로 맞는 서술인지는 별개 문제로 남음(사용자 판단 필요시 재검토).
+검증 필요.
+(2) **(해결됨)** `M58`의 `headroom_role="cascode"`가 기능적으로 정확한 서술인지는
+G절 시점엔 별개 문제로 남아있었으나, H절에서 `diode-cascode` idiom을 신설하며 확정됨:
+`M57`은 diode-connected, `M58`은 정확히 그 `M57` 위에 얹혀 같은 노드를 게이트로 받는
+**diode-cascode**(`DIODE_REFERENCED_CASCODE` role) 구조다(사용자 확인) -- "bias-tap"
+이라는 표현은 이 구조를 정확히 이름 붙이지 못한 세션25 E절 시점의 서술이었을 뿐,
+`M58`은 진짜 diode-cascode이므로 `headroom_role="cascode"`는 이름 그대로 정확하다.
 
 ## H. 세션25 후속 -- `vertical_stack_id` declared 값 재검토 착수, 그 과정에서
 `find_verified_differential_and_mirror_relations()`의 근본 한계 발견/수정
