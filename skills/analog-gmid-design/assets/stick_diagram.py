@@ -1244,7 +1244,7 @@ def trace_gnd_to_vdd_branches(transistors: list) -> dict:
 
     ⚠️ **왜 필요한가(세션23 실측 근거)**: telescopic/current-reuse처럼 differential pair가
     스택 안에 여러 층(예: PMOS 입력단 + NMOS 입력단 재사용)으로 있으면, 하향 추적만으로
-    첫 fork만 보는 방식(`classify_symmetric_branch_pairs()`)은 스택 **상단**의
+    첫 fork만 보는 방식(하향 전용, 세션23 C-7/C-8 초기 버전)은 스택 **상단**의
     differential pair(`M1a`/`M1b`)만 잡고, 그 아래 분기 없는 직선 구간에 파묻힌
     **두 번째** differential pair(`M4a`/`M4b`)는 완전히 놓친다 -- 반대 방향(GND에서
     위로)으로 올라가면 그 두 번째 pair가 **자기 방향에서는 첫 fork**로 바로 드러난다.
@@ -1289,9 +1289,9 @@ def find_differential_and_mirror_forks(transistors: list, inputs=(), outputs=(),
     """`trace_vdd_to_gnd_branches()`(하향) + `trace_gnd_to_vdd_branches()`(상향) 양쪽
     branch tree에서 **첫 번째로 갈라지는 지점(fork)**을 전부 찾아, 그 fork의 소자쌍을
     analog-grammar gate 판정(같은 gate=mirror, 다른 gate+둘 다 `INPUT`=differential)으로
-    분류한다. `classify_symmetric_branch_pairs()`와 같은 gate 판정 규칙을 쓰지만, 그
-    함수는 (구조가 같은 branch끼리 묶은 뒤) **그 쌍 안에서의** 첫 divergence만 보는
-    반면, 이 함수는 branch tree 전체의 **모든** fork를 훑는다는 게 다르다.
+    분류한다. `find_verified_differential_and_mirror_relations()`와 같은 gate 판정
+    규칙을 쓰지만, 그 함수는 (구조가 같은 branch끼리 묶은 뒤) **매칭된 쌍 안의 모든
+    위치**를 보는 반면, 이 함수는 branch tree 전체의 **모든** fork를 훑는다는 게 다르다.
 
     ⚠️ **한 방향만으로는 안 되는 이유(세션23 실측)**: `current_reuse_telescopic_ota`
     에서 하향만 쓰면 `M1a`/`M1b`(PMOS 입력단) fork만 찾고, 상향만 쓰면 `M4a`/`M4b`
@@ -1306,8 +1306,8 @@ def find_differential_and_mirror_forks(transistors: list, inputs=(), outputs=(),
     반환(있으면): `{"forks": [{"direction": "vdd_to_gnd"|"gnd_to_vdd", "fork_prefix":
     [...], "fork_devices": (a, b), "relation": "mirror"|"differential"}, ...]}` --
     gate로 관계를 못 찾은 fork(둘 다 무관한 소자, 다른 kind 등)는 조용히 건너뛴다(이
-    함수는 "관계가 있는 것"만 보고하는 목적이라, `classify_symmetric_branch_pairs()`의
-    `structurally_symmetric_no_connection`처럼 무관계도 보고하지 않는다 -- branch tree
+    함수는 "관계가 있는 것"만 보고하는 목적이라, `find_verified_differential_and_mirror_
+    relations()`의 `structurally_symmetric_no_connection`처럼 무관계도 보고하지 않는다 -- branch tree
     전체를 훑으면 무관한 fork가 훨씬 많아서, 전부 보고하면 신호보다 잡음이 커진다)."""
     netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
     if netclass is None:
@@ -1392,14 +1392,55 @@ def suggest_vertical_stack_composites(transistors: list, inputs=(), outputs=(),
 
     반환(있으면): 해당 방향의 `trace_*_branches()`와 같은 `branches` 리스트에
     `"composites"` 키를 추가한 것 -- `[{"chain", "terminates_at", "composites":
-    [{"members": [...], "idiom": str|None}, ...]}, ...]`. `idiom=None`인 composite는
-    어떤 idiom도 못 찾은 단일 소자(합쳐지지 않음)다.
+    [{"members": [...], "idiom": str|None, "ports": dict}, ...]}, ...]`. `idiom=None`인
+    composite는 어떤 idiom도 못 찾은 단일 소자(합쳐지지 않음, `ports={}`)다. `ports`는
+    2026-08-08 추가(사용자 지적) -- 원래 `idioms.py`의 `Match.ports`(예: `cascode-stack`
+    의 `lower_role`= 아래쪽 소자의 role, `mid`/`out`= 중간/출력 net)를 이 함수가 조용히
+    버리고 있었다 -- `M8`(`CURRENT_SOURCE`)과 `M9a`(`CASCODE`)가 물리적으로는 정확히
+    같은 PMOS diffusion column에 쌓을 수 있는 직렬 스택인데(이 사실 자체, 즉 layout
+    관점의 병합은 여전히 유효), composite로 뭉치고 나면 어느 쪽이 아래쪽 전류원이고
+    어느 쪽이 그 위 소자인지 구별할 정보가 사라지는 문제였다. 이제 `ports`에 그 정보가
+    그대로 남아있어(예: `M8`+`M9a`의 `ports={'mid':'Vg15','out':'Vop1','lower_role':
+    'CURRENT_SOURCE'}`), `headroom_role` 같은 후속 분류가 이 정보를 활용할 수 있다.
+    ⚠️ **정정(2026-08-08, 사용자 재지적)**: 이 예시를 "교과서적인 캐스코드된 전류미러
+    구조"라고 적었던 것은 틀렸다 -- `M9a`의 실제 기능은 `M8`의 출력 임피던스를 부스트
+    하는 캐스코드가 아니라, `M9a`(PMOS)/`M9b`(NMOS)가 이루는 Monticelli class-AB
+    floating current source의 절반이다(`M9a`/`M9b`가 비-레일 노드 `Vg15`<->`Vop1` 사이를
+    상보 anti-parallel로 마주보고 잇고, 이 두 노드는 각각 2단 출력쌍 `M15`/`M16`의
+    게이트다 -- `analog-grammar/assets/idioms.py`의 `floating-current-source` idiom,
+    2026-08-08 신설 참고). `M8`+`M9a`가 같은 diffusion column에 물리적으로 쌓일 수
+    있다는 layout 사실과, `M9a`가 캐스코드로 "기능"한다는 것은 별개 질문이고 후자는
+    틀렸다 -- `M8`은 이 floating loop 위쪽에 바이어스 전류를 대주는 독립 전류원일
+    뿐이다(`M10`이 아래쪽에서 같은 역할).
 
     ⚠️ **이 함수는 제안만 한다 -- `vertical_stack_id`를 자동으로 `topology.json`에 쓰지
     않는다.** 62/63이라는 실측 성공률은 이 회로 하나의 결과이지 일반 보장이 아니고,
     `M37a`/`M38` 사례처럼 "진짜 충돌"과 "gap 보완 제안"을 구별하는 것도 여전히 사람/AI
     판단 몫이다(프로젝트 원칙: connectivity에서 결정론적으로 나온 사실도 최종 채택은
-    항상 검토 대상)."""
+    항상 검토 대상).
+
+    ⚠️ **2026-08-08 추가(사용자 지적) -- 순수 구조 폴백, `netclass.stack_edges()` 직접
+    사용은 아님(첫 시도가 회귀를 냄, 아래 참고)**: `idioms.m_cascode()`가 같은 날
+    기능적으로 더 엄격해지면서(위 정정 문단 참고, `up.source`가 출력 쪽이면 -- low-Z라
+    캐스코드로 기능 못 함 -- 제외) `M8`+`M9a`처럼 물리적으로는 분명히 같은 well에
+    쌓이는데 기능적으로 "캐스코드"가 아닌 쌍이 idiom 매칭에서 빠지게 됐다. 이 함수의
+    목적(레이아웃 스택 후보 제안)에는 "기능적으로 뭐라고 부르는가"가 아니라 "같은
+    diffusion column에 물리적으로 쌓을 수 있는가"만 필요해서, 처음엔 `netclass.
+    stack_edges()`(role/기능 조건 전혀 없이 `X.source==Y.drain`이면 무조건 후보)를
+    그대로 폴백으로 썼다. **이게 Test 40을 깼다** -- `stack_edges()`는 fan-out 카디널
+    리티를 전혀 안 봐서, `M1a`(차동쌍 다리, source=`Vx`)와 `M6`(그 tail 전류원,
+    drain=`Vx`)도 그냥 "source==drain"이 성립한다는 이유만으로 물리적 스택 후보로
+    잡아버렸다 -- `Vx`는 `M6`/`M7` 둘 다 drain으로 물고 `M1a`/`M1b` 둘 다 source로
+    무는 **fan-out 노드**라 1:1 직렬 스택이 전혀 아닌데도(`m_cascode()`가 이미
+    `diffpair_legs` 제외로 이 함정을 정확히 피하고 있었다는 걸 이 폴백이 무시한 것).
+    그 결과 branch 훑기 알고리즘이 `M1a`를 `M6`과 먼저 묶어버려 `M1a`+`M2a`가 갈라짐.
+    **고침**: `stack_edges()`를 직접 안 쓰고, `m_cascode()`와 정확히 같은 1차 게이트
+    (role이 `CASCODE`/`AMPLIFYING`/`CONTROLLED_CURRENT_SOURCE`) + `diffpair_legs` 제외를
+    여기서도 그대로 적용한 뒤(`m_cascode()`가 2026-08-08에 새로 추가한 `float_legs`
+    제외와 출력-도달성 제외만 **의도적으로 생략** -- 이 둘은 "기능적으로 캐스코드가
+    아니다"라는 판단이지 "물리적으로 못 쌓는다"는 뜻이 아니므로), 그 결과를
+    `kind='physical-stack'`으로 폴백에 넣는다. idiom 매칭이 같은 윈도우에 이미 있으면
+    (정렬이 안정적이라 원래 순서 유지) 그쪽이 항상 우선한다."""
     netclass, idioms_mod = _import_analog_grammar("netclass", "idioms")
     if netclass is None:
         return None
@@ -1410,9 +1451,23 @@ def suggest_vertical_stack_composites(transistors: list, inputs=(), outputs=(),
     role = netclass.assign_roles(devs, cls, imp)
     matches = idioms_mod.match_all(devs, cls, imp, role)
 
+    diffpair_legs = {n for m in idioms_mod.m_diffpair(devs, cls, imp, role) for n in m.devices}
+    by_drain = defaultdict(list)
+    for d in devs: by_drain[d['D']].append(d)
+    stack_fallback = []
+    for up_d in devs:
+        if role.get(up_d['name']) not in (idioms_mod.CASCODE, idioms_mod.AMP, idioms_mod.CTRL_SRC):
+            continue
+        if up_d['name'] in diffpair_legs:
+            continue
+        for lo_d in by_drain[up_d['S']]:
+            if lo_d['name'] == up_d['name'] or lo_d['type'] != up_d['type']:
+                continue
+            stack_fallback.append((frozenset((lo_d['name'], up_d['name'])), 'physical-stack',
+                                   {'mid': up_d['S'], 'lower_role': role.get(lo_d['name'])}))
     candidates = sorted(
-        [(frozenset(m.devices), m.kind) for m in matches
-         if m.kind not in ("current-mirror", "differential-pair")],
+        [(frozenset(m.devices), m.kind, m.ports) for m in matches
+         if m.kind not in ("current-mirror", "differential-pair")] + stack_fallback,
         key=lambda c: -len(c[0]))
 
     def _composite(chain):
@@ -1421,17 +1476,17 @@ def suggest_vertical_stack_composites(transistors: list, inputs=(), outputs=(),
             matched = None
             for size in range(n - i, 0, -1):
                 window = frozenset(chain[i:i + size])
-                for cset, kind in candidates:
+                for cset, kind, ports in candidates:
                     if cset == window:
-                        matched = (kind, chain[i:i + size])
+                        matched = (kind, chain[i:i + size], ports)
                         break
                 if matched:
                     break
             if matched:
-                out.append({"members": matched[1], "idiom": matched[0]})
+                out.append({"members": matched[1], "idiom": matched[0], "ports": matched[2]})
                 i += len(matched[1])
             else:
-                out.append({"members": [chain[i]], "idiom": None})
+                out.append({"members": [chain[i]], "idiom": None, "ports": {}})
                 i += 1
         return out
 
@@ -1528,12 +1583,13 @@ def find_differential_pair_candidates(transistors: list, inputs=(), outputs=(),
 
 def find_verified_differential_and_mirror_relations(transistors: list, inputs=(), outputs=(),
                                                        feedbacks=(), biases=(), clocks=()) -> dict | None:
-    """진짜 **branch 단위** 비교 -- `classify_symmetric_branch_pairs()`(C-7/C-8)의 원리
-    (composite 구조가 완전히 같은 branch끼리만 비교)를 상향까지 확장하고, 매칭된 branch
+    """진짜 **branch 단위** 비교 -- 세션23 C-7/C-8이 확립한 원리(composite 구조가
+    완전히 같은 branch끼리만 비교)를 상향까지 확장하고, 매칭된 branch
     쌍 **안의 모든 위치**를 스캔한다(첫 divergence 하나만 보던 한계 해소).
 
-    ⚠️ **왜 필요한가**: `classify_symmetric_branch_pairs()`는 하향 전용+첫 divergence만
-    봐서 telescopic/current-reuse 구조의 **두 번째** differential pair(`M4a`/`M4b`)를
+    ⚠️ **왜 필요한가**: 하향 전용+첫 divergence만 보던 초기 접근(세션23 C-7/C-8,
+    `classify_symmetric_branch_pairs()` -- 세션24에 이 함수로 완전히 대체되어 삭제됨)은
+    telescopic/current-reuse 구조의 **두 번째** differential pair(`M4a`/`M4b`)를
     놓쳤다(C-9). `find_differential_and_mirror_forks()`(양방향, 하지만 fork-tree의
     "갈라지는 지점"만 봄)로 이 문제는 풀었지만, 이번엔 fork가 아니라 **소자 쌍 단위**로
     비교해서 `M1a`/`M58`, `M6`/`M7`, `M18a`/`M2a` 같은 무관한 조합까지 relation 후보로
@@ -1566,8 +1622,9 @@ def find_verified_differential_and_mirror_relations(transistors: list, inputs=()
 
     ⚠️ **2026-08-07 수정(세션24, 사용자 지적)**: 원래 버전은 `kind`가 다르거나 gate가
     달라도 둘 다 `INPUT`이 아니면 그 위치를 그냥 `continue`로 **조용히 버렸다** --
-    `classify_symmetric_branch_pairs()`(C-7/C-8)는 이런 경우를 `structurally_
-    symmetric_no_connection`으로 명시적으로 보고하는데, 이 함수만 그 세 번째 버킷이
+    `classify_symmetric_branch_pairs()`(세션23 C-7/C-8, 이 함수가 완전히 대체하면서
+    세션24에 삭제됨)는 이런 경우를 `structurally_symmetric_no_connection`으로 명시적으로
+    보고했었는데, 정작 이 함수엔 그 세 번째 버킷이
     없어서 "구조는 확실히 대칭인데 mirror/differential로 확정은 못 하는" 쌍(예: 실회로의
     `M6`/`M7` -- 같은 tail net `Vx`에 병렬로 물린 소자지만 하나는 고정 bias, 하나는
     CMFB 출력이라 게이트가 다르고 둘 다 INPUT도 아님)이 결과에서 완전히 사라지는 문제가
@@ -1640,100 +1697,314 @@ def find_verified_differential_and_mirror_relations(transistors: list, inputs=()
     return out
 
 
-def classify_symmetric_branch_pairs(transistors: list, inputs=(), outputs=(),
-                                      feedbacks=(), biases=(), clocks=()) -> dict | None:
-    """`suggest_vertical_stack_composites()`가 만든 branch들 중 **composite 구조(kind+idiom
-    시퀀스)가 완전히 같은** branch끼리 묶은 뒤(순수 모양 비교, gate 이름 무관 -- 세션23 실측:
-    이 방식이 gate 기반 매칭보다 포괄적이어서 vom/vop 대칭쌍까지 전부 잡음), 그 안에서 다시
-    analog-grammar의 gate 판정으로 **첫 번째로 갈라지는 지점(fork)의 소자쌍만** 봐서 세
-    범주로 분류한다(2026-08-07 사용자 확정: "fork 지점만 같은 gate면 mirror로 인정" --
-    체인 전체가 끝까지 이어질 것을 요구하면 `M8`/`M17`처럼 시작은 같은 gate(`Vbias1`)라도
-    중간에 내부 net 이름이 갈라지는 정상적인 미러 관계까지 `mirror` 버킷에서 탈락하는 게
-    실측으로 확인됐다 -- fork 지점만 보는 게 이 회로에 맞는 기준).
+def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, feedbacks, biases, clocks):
+    """`refine_differential_and_mirror_relations()`(아래)가 쓰는 내부 헬퍼 -- composite
+    병합(§1.7d `suggest_vertical_stack_composites()`, **base_inputs만 사용** -- 세션24
+    실측: promoted inputs를 쓰면 differential-pair 다리가 idiom 필터에서 정확히
+    제외되면서 그 다리가 자기 tail 위에 물리적으로 붙어있다는 사실 자체가 어느
+    composite에도 안 남는 부작용이 있었다, 아래 3번째 캐스케이드 참고)로 물리적 그룹의
+    뼈대를 세우고, `relations`(promoted inputs로 계산된 `find_verified_differential_
+    and_mirror_relations()` 결과)의 `branch_a`/`branch_b`+`position`으로 각 소자의
+    leg(`a`/`b`)를 확인해 이름에 반영한다.
 
-    각 구조적으로 동일한 그룹 안의 모든 branch 쌍에 대해, 두 chain이 처음 달라지는 위치
-    `idx`의 소자쌍 `(a, b)`를 보고:
-    - `kind(a) != kind(b)` 또는 (gate가 다르고 둘 다 `INPUT`으로 분류되지 않음) →
-      `structurally_symmetric_no_connection`(구조는 같지만 이 fork 지점 gate로는 연결
-      근거를 못 찾음 -- declared `matching_pairs`가 있는 관계일 수도 있으나, 이 함수는
-      declared 정보를 안 쓰고 순수 analog-grammar 판정만 본다).
-    - `gate(a) == gate(b)` → `mirror_branch_pairs`.
-    - `gate(a) != gate(b)`이고 둘 다 `INPUT`으로 분류됨(`inputs=` 힌트, 보통 `Vip`/`Vim`)
-      → `differential_branch_pairs`.
+    ⚠️ **제안일 뿐이다** -- `suggest_vertical_stack_composites()`와 같은 원칙(이 함수도
+    topology.json에 아무것도 쓰지 않는다). 이름 자체(`{idiom}_{순번}_{leg}`)는 기계적으로
+    생성되지, `diffpair_top_a`처럼 회로 기능을 아는 사람이 지은 이름과 같은 수준의
+    가독성은 없다 -- 실제 채택 시 이름을 사람이 다시 붙이는 걸 권장한다(세션24
+    `vertical_stack_id` 15개 gap을 손으로 채울 때도 이 composite 근거를 그대로 쓰되
+    이름은 직접 붙였음).
 
-    ⚠️ 세 범주는 **fork 지점 하나만 보고 상호배타적으로** 나뉜다 -- 세션23 실측 근거:
-    `current_reuse_telescopic_ota`(51소자)에서 differential=4, mirror=5,
-    structurally_symmetric_no_connection=12로 나뉘었고, `mirror`가 잡은 `M8`/`M17`
-    fork(4쌍)와 `M13`/`M22` fork(1쌍)는 전부 declared `matching_pairs`에는 없는 관계
-    (`M8`/`M17`은 오히려 declared `current_mirror`류 그룹의 일부이긴 하나 서로 직접
-    선언된 쌍은 아님)라 이 함수가 declared 정보 없이도 순수 connectivity+gate 판정만으로
-    의미 있는 신호를 낸다는 걸 보여준다.
+    **0. fan-in 후보 탐지(2026-08-07 추가, 사용자 지적으로 발견)**: `role=='CASCODE'`인
+    소자 `up`이 물리적으로 얹힐 수 있는 같은 kind `lo` 후보(`lo.drain == up.source`)가
+    **2개 이상**이면(예: `M9b`의 `source=Vop1`을 drain으로 쓰는 nmos가 `M3b`/`M10` 둘 다
+    있음) 순수 connectivity만으로는 어느 쪽이 진짜 물리적 이웃인지 원천적으로 못 가린다.
 
-    analog-grammar가 없으면(다른 skill이라 설치 여부가 환경에 좌우됨) `None`을 반환한다.
+    **0-B. differential-pair branch 소속 여부로 재판정(2026-08-07 추가, 사용자 통찰)**:
+    "이 소자 자신이 differential-pair의 핵심 신호경로 소속이 아니라면, 후보 중에서도
+    그 신호경로에 안 걸리는 쪽이 더 적합하다"는 원칙 -- `relations["differential"]`의
+    모든 `branch_a`/`branch_b` 멤버 합집합(`diff_branch_members`)을 구해서, 후보 중
+    **정확히 하나만** 거기 안 걸리면 그쪽으로 확정(`resolved`), 나머지 하나(또는
+    후보 전부가 걸리거나 전부 안 걸려서 구별 신호가 없으면)는 여전히 `ambiguous`로
+    남긴다. 실측(`current_reuse_telescopic_ota`): 이 규칙으로 `M9b`→`M10`(`M3b`는
+    differential branch 소속, `M10`은 아님), `M18b`→`M19`, `M58`→`M7`(`M6`은 그
+    differential branch의 대표 hub라 소속, `M7`은 대표로 안 뽑혀서 비소속) 셋 다
+    확정되어, 이 회로에서는 `ambiguous_alternatives`가 결국 빈 딕셔너리가 된다 --
+    단 이건 이 회로의 실측 결과이지 일반 보장이 아니다(differential branch 소속
+    여부로도 안 갈리는 회로/소자는 여전히 아래 `ambiguous_{name}`으로 남는다,
+    self-test Test 41의 합성 fixture가 정확히 그런 "구별 신호가 아예 없는" 경우를
+    검증한다).
 
-    반환(있으면): `{"differential_branch_pairs": [...], "mirror_branch_pairs": [...],
-    "structurally_symmetric_no_connection": [...]}` -- 각 원소는 `{"branch_a", "branch_b",
-    "fork_index", "fork_devices": (a, b)}`."""
+    **1. composite 스캔(양방향, base_inputs, differential-pair branch 우선)**: 소자가
+    처음 등장하는 composite(2개 이상 병합이든 단일 소자든 전부)에 그룹을 배정한다 --
+    0-B에서 아직도 `ambiguous`로 남은 소자는 이 composite 병합에서 제외하고 격리
+    그룹으로 따로 배정하며, `resolved`로 확정된 소자는 **자기 파트너가 포함된
+    composite에서만** 합류한다(다른 후보와 얽힌 composite에는 안 낌 -- 안전망으로,
+    파트너 composite이 이 스캔에서 한 번도 안 나오면 직접 합류시킨다). 각 방향의
+    branch들을 처리할 때 `relations["differential"]`의 chain과 정확히 일치하는
+    branch를 먼저 처리해 그 branch의 그룹 배정이 우선권을 갖게 한다(같은 물리적
+    그룹이 여러 branch/방향에서 다시 나오면 이미 배정된 그룹을 재사용하는 메커니즘
+    덕분). 이 재사용 메커니즘 덕분에 `M37a`/`M37b`/`M38`처럼 두 leg가 hub(`M38`)를
+    공유하면 **자동으로 하나의 그룹으로 합쳐진다**(정확히 기존 `cmfb_tail` 선언과
+    같은 모양, 실측으로 확인됨 -- leg가 둘 다 섞여 있으면 아래 3번에서 leg 접미사를
+    안 붙인다).
+
+    **2. differential/mirror 관계로 leg 접미사 부여 + singleton 흡수**: `relations`의
+    각 `differential`/`mirror` 원소에서 `branch_a[position]`/`branch_b[position]`이 각각
+    leg `a`/`b`다. 그 소자가 1번에서 이미 그룹을 받았으면 leg만 기록. 못 받았으면(예:
+    idiom이 하나도 안 맞아 composite로 안 묶이는 경우) `position`의 바로 옆(±1) 소자가
+    이미 그룹이 있으면 그 그룹에 흡수, 없으면 새 그룹 신설.
+
+    **3. 최종 이름 조립**: 그룹에 속한 소자들의 leg가 **전부 하나(`a`만 또는 `b`만)**면
+    그 leg를 접미사로 붙인다(`diffpair_top_a`류와 동일 패턴). leg가 섞여 있으면(hub
+    공유 그룹) 접미사 없이 그대로 둔다(`cmfb_tail`류와 동일 패턴). 어느 leg에도 안
+    걸리면(순수 composite만으로 배정된 그룹, 예: `stage1`류 후보) 접미사 없음.
+    `ambiguous_{name}`(0-B로도 못 푼 소자)은 이 조립을 거치지 않고 이름 그대로
+    반환된다(Test 41의 합성 fixture로 검증).
+
+    ⚠️ `ambiguous_{name}`으로 격리만 하고 끝나면 나중에 `resolve_stack_layout()`류
+    layout 함수가 이 소자를 어디에도 못 놓고 막힌다 -- 그래서 격리된 소자마다
+    **후보 그룹 이름 목록**(fan-in 후보 `lo` 각각이 속한 그룹, 아직 그룹이 없으면
+    자기 이름 그대로)도 같이 반환한다. layout 함수는 이 후보 중 하나를 골라(예:
+    헤드룸/핑거 호환성 기준) 그 그룹에 합류시키는 식으로 이 정보를 쓸 수 있다 --
+    이 함수 자체는 여전히 어느 쪽도 대신 고르지 않는다(제안만 하는 원칙 유지).
+
+    반환: `{"groups": {device_name: proposed_vertical_stack_id, ...}, "ambiguous_
+    alternatives": {device_name: [candidate_group_name, ...], ...}}` -- `groups`는
+    51개 회로라면 51개 키 전부 포함(모든 소자가 최소한 자기 혼자만의 singleton 그룹은
+    받는다). `ambiguous_alternatives`는 0-B로도 못 푼 소자만 키로 가진다(`current_
+    reuse_telescopic_ota`에서는 실측상 빈 딕셔너리, Test 41의 합성 fixture로 채워지는
+    경우를 검증). `suggest_vertical_stack_composites()`가 `None`을 반환하면
+    (analog-grammar 없음) 이 함수도 `None`."""
     netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
     if netclass is None:
         return None
     devs = _to_analog_grammar_devs(transistors)
-    if not devs:
-        return None
-    cls, _imp, _assume = netclass.classify_nets(devs, inputs, outputs, biases, feedbacks, clocks)
+    cls, imp, _assume = netclass.classify_nets(devs, base_inputs, outputs, biases, feedbacks, clocks)
+    role = netclass.assign_roles(devs, cls, imp)
 
-    by_name = {t.name: t for t in transistors}
-
-    def gate_of(name):
-        return by_name[name].gate
-
-    def gate_class(name):
-        return cls.get(gate_of(name))
-
-    def first_divergence(ca, cb):
-        for i, (x, y) in enumerate(zip(ca, cb)):
-            if x != y:
-                return i
-        return None
-
-    def classify(ca, cb):
-        idx = first_divergence(ca, cb)
-        if idx is None:
-            return None, None
-        a, b = ca[idx], cb[idx]
-        if by_name[a].kind != by_name[b].kind:
-            return "structurally_symmetric_no_connection", idx
-        if gate_of(a) == gate_of(b):
-            return "mirror_branch_pairs", idx
-        if gate_class(a) == "INPUT" and gate_class(b) == "INPUT":
-            return "differential_branch_pairs", idx
-        return "structurally_symmetric_no_connection", idx
-
-    composite_branches = suggest_vertical_stack_composites(transistors, inputs, outputs,
-                                                              feedbacks, biases, clocks)
-    complete = [b for b in composite_branches if b["terminates_at"] == "gnd"]
-
-    def signature(b):
-        return tuple((len(c["members"]), c["idiom"], tuple(by_name[m].kind for m in c["members"]))
-                     for c in b["composites"])
-
-    groups = defaultdict(list)
-    for b in complete:
-        groups[signature(b)].append(b["chain"])
-
-    out = {"differential_branch_pairs": [], "mirror_branch_pairs": [],
-           "structurally_symmetric_no_connection": []}
-    for chains in groups.values():
-        if len(chains) < 2:
+    by_drain_kind = defaultdict(list)
+    for t in transistors:
+        by_drain_kind[(t.drain, t.kind)].append(t.name)
+    fan_in_candidates = {}
+    for t in transistors:
+        if role.get(t.name) != "CASCODE":
             continue
-        for i in range(len(chains)):
-            for j in range(i + 1, len(chains)):
-                ca, cb = chains[i], chains[j]
-                category, idx = classify(ca, cb)
-                if category is None:
+        candidates = [n for n in by_drain_kind.get((t.source, t.kind), []) if n != t.name]
+        if len(candidates) > 1:
+            fan_in_candidates[t.name] = candidates
+
+    # ⚠️ 2026-08-07 추가(사용자 지적): fan-in 후보 중 정확히 하나만 differential-pair
+    # branch 소속이 아니면(예: M9b의 후보 M3b는 differential branch 멤버, M10은 아님)
+    # differential branch에 안 걸리는 쪽을 우선한다 -- "이 소자 자체가 differential
+    # branch 소속이 아니라면, differential branch의 일부인 후보보다는 그렇지 않은
+    # 후보가 더 적합하다"는 원칙(differential-pair의 핵심 신호경로를 곁가지 tap으로
+    # 오염시키지 않음). 후보가 둘 다 걸리거나 둘 다 안 걸리면(구별 신호 없음) 여전히
+    # ambiguous로 남긴다(실측: current_reuse_telescopic_ota에서 이 규칙으로 M9b->M10,
+    # M18b->M19, M58->M7 셋 다 풀려서 ambiguous_alternatives가 결국 빈 딕셔너리가 됨 --
+    # 이건 이 회로의 실측 결과이지 일반 보장은 아니다, Test 41이 구별 신호가 아예 없는
+    # 합성 fixture로 여전히 ambiguous_{name}이 남는 경우를 검증한다).
+    diff_branch_members = set()
+    for r in relations.get("differential", []):
+        diff_branch_members.update(r["branch_a"])
+        diff_branch_members.update(r["branch_b"])
+
+    resolved, ambiguous = {}, set()
+    for dev, candidates in fan_in_candidates.items():
+        outside = [c for c in candidates if c not in diff_branch_members]
+        inside = [c for c in candidates if c in diff_branch_members]
+        if len(outside) == 1 and inside:
+            resolved[dev] = outside[0]
+        else:
+            ambiguous.add(dev)
+    candidates_of = {dev: cands for dev, cands in fan_in_candidates.items() if dev in ambiguous}
+
+    group_of, members_of, counter = {}, defaultdict(set), defaultdict(int)
+
+    def assign(names, idiom):
+        filtered = []
+        for n in names:
+            if n in ambiguous:
+                continue
+            if n in resolved and resolved[n] not in names:
+                continue  # resolved 소자는 자기 파트너가 낀 composite에서만 합류한다
+            filtered.append(n)
+        names = filtered
+        if not names:
+            return None
+        existing = next((group_of[n] for n in names if n in group_of), None)
+        if existing is None:
+            key = idiom or "stack"
+            counter[key] += 1
+            existing = f"{key}_{counter[key]}"
+        for n in names:
+            if n not in group_of:
+                group_of[n] = existing
+                members_of[existing].add(n)
+        return existing
+
+    for name in ambiguous:
+        group_name = f"ambiguous_{name}"
+        group_of[name] = group_name
+        members_of[group_name].add(name)
+
+    for direction in ("vdd_to_gnd", "gnd_to_vdd"):
+        branches = suggest_vertical_stack_composites(
+            transistors, base_inputs, outputs, feedbacks, biases, clocks, direction=direction)
+        if branches is None:
+            return None
+        diff_chains = {tuple(r["branch_a"]) for r in relations.get("differential", [])} | \
+                      {tuple(r["branch_b"]) for r in relations.get("differential", [])}
+        priority, rest = [], []
+        for b in branches:
+            (priority if tuple(b["chain"]) in diff_chains else rest).append(b)
+        for b in priority + rest:
+            for c in b["composites"]:
+                assign(c["members"], c["idiom"])
+
+    # 위 composite 스캔에서 resolved 소자의 파트너 composite이 한 번도 안 나왔으면
+    # (드문 경우, 다른 회로에서 발생 가능) 안전망으로 직접 합류시킨다.
+    for dev, partner in resolved.items():
+        if dev in group_of:
+            continue
+        target = assign([partner], None) or group_of.get(partner)
+        group_of[dev] = target
+        members_of[target].add(dev)
+
+    leg_of = {}
+    for category in ("differential", "mirror"):
+        for r in relations.get(category, []):
+            pos = r["position"]
+            for letter, branch in (("a", r["branch_a"]), ("b", r["branch_b"])):
+                dev = branch[pos]
+                leg_of.setdefault(dev, letter)
+                if dev in group_of:
                     continue
-                out[category].append({"branch_a": ca, "branch_b": cb, "fork_index": idx,
-                                        "fork_devices": (ca[idx], cb[idx])})
+                neighbor = next((group_of[branch[j]] for j in (pos - 1, pos + 1)
+                                  if 0 <= j < len(branch) and branch[j] in group_of), None)
+                name = neighbor or assign([dev], category)
+                group_of[dev] = name
+                members_of[name].add(dev)
+
+    out = {}
+    for name, members in members_of.items():
+        legs = {leg_of[m] for m in members if m in leg_of}
+        final_name = f"{name}_{next(iter(legs))}" if len(legs) == 1 else name
+        for m in members:
+            out[m] = final_name
+
+    ambiguous_alternatives = {
+        dev: sorted({group_of.get(c, c) for c in candidates})
+        for dev, candidates in candidates_of.items()}
+
+    return {"groups": out, "ambiguous_alternatives": ambiguous_alternatives}
+
+
+def _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, clocks):
+    """`refine_differential_and_mirror_relations()`가 쓰는 내부 헬퍼 -- `topology.json`
+    `device_roles`의 `gm_id_role`(`matching`/`gain`/`balanced` 중 이 프로젝트가 실제로
+    쓰는 두 값) 후보를 제안한다.
+
+    ⚠️ **왜 이건 `headroom_role`과 달리 구조만으로 될까(사용자 지적, 2026-08-08)**:
+    처음엔 `headroom_role`의 `mirror`/`cascode` 구분처럼 이것도 안 될 거라 생각했으나,
+    이미 선언된 36개 소자 전체(`current_reuse_telescopic_ota`)를 대조해보니 **정확히
+    하나의 구조적 신호로 36/36 다 맞는다**는 게 실측으로 확인됐다: `find_differential_
+    pair_candidates()`가 찾은 `shared_source`(차동쌍이 공유하는 tail net)를 **drain으로
+    받는 소자**(=그 차동쌍에 tail 전류를 대는 소자, 예: `M6`/`M7`→`Vx`, `M5`→`Vy`,
+    `M38`→`Ncmfb_tail`) → `balanced`, **그 나머지 전부** → `matching`. `headroom_role`의
+    `mirror`/`cascode` 구분은 세 가지 구조적 가설(up/lo 위치, `matching_pairs` 소속,
+    diode 단독/체인)을 다 시도해도 반례가 나왔지만(sizing_roles.theta의 어떤 feed
+    타입이 이 소자를 결정하는지 같은, 구조 분석 범위 밖 정보가 필요해 보임), `gm_id_role`
+    은 "이 소자가 GBW가 중요한 차동쌍의 tail 전류원인가"라는 **단일 질문**만으로
+    충분했다 -- 회로 설계 원칙상 tail 전류원(GBW 직결)과 나머지(bias/mirror, gm/ID
+    최소화가 우선)라는 이분법이 정확히 이 신호와 일치하기 때문으로 보인다.
+
+    analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `None`을
+    반환한다.
+
+    반환(있으면): `{device_name: "balanced"|"matching", ...}` -- 51개 회로라면 51개
+    키 전부 포함. ⚠️ `M1a`/`M1b`/`M2a`/`M2b`/`M3a`/`M3b`/`M4a`/`M4b`/`M15`/`M16`/`M25`/
+    `M26`류(차동쌍 자신 + 보상 스테이지 소자)는 `compensation.stage_devices`/
+    `sizing_roles.theta`(type C)가 이미 L/W/gm을 직접 정하므로 `device_roles`에
+    `gm_id_role`을 안 써도 되는 소자다(`_device_roles_comment` 참고) -- 이 함수는
+    그 소자들도 포함해서 반환하지만(모든 51개에 일관되게 값을 매기는 게 후보 제안으로서
+    더 유용), `topology.json`에 실제로 반영할지는 소자마다 다를 수 있다."""
+    candidates = find_differential_pair_candidates(
+        transistors, base_inputs, outputs, feedbacks, biases, clocks)
+    if candidates is None:
+        return None
+    shared_sources = {c["shared_source"] for c in candidates["candidates"]}
+    return {t.name: "balanced" if t.drain in shared_sources else "matching"
+            for t in transistors}
+
+
+def _propose_L_roles(transistors, relations, base_inputs, outputs, feedbacks, biases, clocks):
+    """`refine_differential_and_mirror_relations()`가 쓰는 내부 헬퍼 -- `topology.json`
+    `device_roles`의 `L_role`(`mirror`=2.5*L_min | `bias_replica`=1.2*L_min) 후보를
+    제안한다.
+
+    ⚠️ **2026-08-08 두 번째 수정(사용자 지적: "극성을 고려해서 매칭 파트너를 잡게")**:
+    처음 버전은 `relations["mirror"]`(branch 구조가 완전히 같은 쌍만 봄, 10/36만
+    커버)로만 근거를 댔는데, `M11a`의 진짜 좌우 파트너가 (같은 스택 안의 `M11b`가
+    아니라) **`M20a`라는 걸 놓치는 문제**가 있었다 -- `M11a`/`M20a`는 서로 다른 branch
+    (vom쪽 diode 체인 vs vop쪽 diode 체인)에 있어서 `relations["mirror"]`(같은
+    matched-branch-pair 안에서만 비교)가 원천적으로 못 찾는다. 이미 있는
+    `find_structural_symmetry_candidates()`(§1.8, `transform="mirror"`로 kind를
+    보존하며 전역 netlist 자동매칭 -- 바로 이 함수가 세션6에서 `M11a`의 진짜 짝이
+    `M20a`임을 처음 밝혀낸 도구)를 seed 없이 놀리지 않고 연결했다: `find_differential_
+    pair_candidates()`가 찾은 각 차동쌍의 게이트 net(예: `Vip`/`Vim`, `Voc`/`Voc_des`)을
+    좌우 대응 seed로 자동 생성하고(+ `vdd`/`gnd` 자기자신 seed), `transform="mirror"`로
+    전역 대칭을 푼다. 실측: `current_reuse_telescopic_ota` 51개 중 **48개**가 풀리고
+    (`M11a<->M20a`, `M14a<->M23a`, `M9a<->M18a`, `M8<->M17` 등 정확히 declared
+    `matching_pairs`와 일치), `M39`/`M40`/`M7`만 `unresolved`로 남는다(이 함수 자체의
+    docstring이 명시하듯 "실패가 아니라 사람 판정 신호" -- `M7`은 `M6`과 원래 비대칭
+    설계라 정상).
+
+    **최종 규칙**: (1) tail 공급 소자(`gm_id_role=='balanced'`) -> `bias_replica`.
+    (2) `find_structural_symmetry_candidates()`의 `device_map`에서 **자기 자신이 아닌
+    다른 소자**로 풀리면 -> `mirror`, `confirmed_by_structural_symmetry=True`,
+    `symmetry_partner`에 그 소자 이름. (3) 그 외(unresolved거나 자기자신-대칭)는
+    여전히 `mirror`를 기본값으로 제안하되 `confirmed_by_structural_symmetry=False`
+    (이전 버전의 "기본값" 근거만 남음 -- 실측: `current_reuse_telescopic_ota`에서
+    이 경로로 떨어지는 건 tail 소자 자신 말고는 없음, 대부분 (2)로 확정됨).
+
+    ⚠️ **`M38`은 이 규칙의 유일한 예외(35/36)** -- `topology.json`의 `_M38_L_role_
+    comment`에 이미 상세히 문서화됨: `M38`도 tail 공급 소자(`gm_id_role=balanced`)라
+    이 규칙대로면 `bias_replica`가 나와야 하는데, 실제 declared 값은 `mirror`다.
+    CMFB 루프이득(`A_c`) 재분석 결과 `gds38`이 작을수록 `|A_c|`가 커져 CM 루프이득에
+    유리하다는 **전기적 분석**으로 사람이 의도적으로 override한 사례라, 구조 분석만으로
+    재현 가능한 성질이 아니다 -- 이 함수는 이 예외를 반영하지 않는다(구조적 기본값만
+    제안, `topology.json` 채택 시 `M38`은 사람이 직접 `mirror`로 남겨둘 것).
+
+    analog-grammar가 없으면 `None`을 반환한다.
+
+    반환(있으면): `{device_name: {"L_role": "bias_replica"|"mirror",
+    "confirmed_by_structural_symmetry": bool, "symmetry_partner": str|None}, ...}`."""
+    gm_id_roles = _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, clocks)
+    if gm_id_roles is None:
+        return None
+    candidates = find_differential_pair_candidates(
+        transistors, base_inputs, outputs, feedbacks, biases, clocks)
+    if candidates is None:
+        return None
+    by_name = {t.name: t for t in transistors}
+    seeds = {"vdd": "vdd", "gnd": "gnd"}
+    for c in candidates["candidates"]:
+        a, b = c["devices"]
+        ga, gb = by_name[a].gate, by_name[b].gate
+        seeds[ga] = gb
+        seeds[gb] = ga
+    symmetry = find_structural_symmetry_candidates(transistors, seeds, transform="mirror")
+
+    out = {}
+    for t in transistors:
+        if gm_id_roles[t.name] == "balanced":
+            out[t.name] = {"L_role": "bias_replica",
+                            "confirmed_by_structural_symmetry": False, "symmetry_partner": None}
+            continue
+        partner = symmetry.device_map.get(t.name)
+        confirmed = partner is not None and partner != t.name
+        out[t.name] = {"L_role": "mirror", "confirmed_by_structural_symmetry": confirmed,
+                        "symmetry_partner": partner if confirmed else None}
     return out
 
 
@@ -1772,14 +2043,38 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
     analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `None`을
     반환한다.
 
+    ⚠️ **2026-08-07 추가(세션24, 사용자 지시)**: `vertical_stack_id_candidates` 필드로
+    cascode-stack 등 composite 병합(물리적 그룹)과 differential-pair/mirror 관계(leg
+    a/b 판정)를 합친 최종 `vertical_stack_id` 후보를 같이 반환한다 -- 자세한 알고리즘은
+    `_propose_vertical_stack_ids()` 참고. **이 필드도 제안일 뿐이다**(topology.json에
+    자동으로 쓰지 않음, 이름도 기계적으로 생성되어 사람이 다시 붙이는 걸 권장). 같은
+    kind의 물리적 fan-in 후보가 2개 이상이라 구조만으로 못 가리는 소자는 `ambiguous_
+    {name}`으로 격리하고, `ambiguous_alternatives`에 그 소자가 들어갈 수 있는 후보
+    그룹 이름 목록을 같이 반환한다(2026-08-07 추가, 사용자 요청 -- 나중에 `resolve_
+    stack_layout()`류 layout 함수가 이 후보 중 하나를 골라 합류시킬 수 있도록).
+
+    ⚠️ **2026-08-08 추가(사용자 지시)**: `gm_id_role_candidates` 필드로 `device_roles`
+    `gm_id_role` 후보(`"balanced"`|`"matching"`)도 같이 반환한다 -- 자세한 근거는
+    `_propose_gm_id_roles()` 참고(36/36 실측 일치, `headroom_role`의 `mirror`/`cascode`
+    구분과 달리 이건 구조 신호 하나로 충분히 갈렸다). `L_role_candidates` 필드로
+    `L_role` 후보(`"mirror"`|`"bias_replica"`)도 반환한다 -- `_propose_L_roles()` 참고,
+    `find_differential_pair_candidates()`의 차동쌍 게이트를 seed로 `find_structural_
+    symmetry_candidates()`(전역 좌우 대칭, kind 보존)를 자동으로 돌려 48/51 소자의
+    진짜 좌우 파트너를 찾는다(35/36 declared 일치, `M38`만 문서화된 예외).
+
     반환(있으면): `{"relations": find_verified_differential_and_mirror_relations()의
     최종 반환값, "promoted_inputs": [자동 승격된 gate net, 승격 순서대로, 중복 없음],
     "final_inputs": tuple(원래 inputs 중복제거 + promoted_inputs), "role_changes":
     [{"device", "before", "after"}, ...], "net_class_changes": [{"net", "before",
     "after"}, ...], "iterations": int(실행한 라운드 수), "stop_reason": "fixed_point"|
-    "max_iterations_reached"}`. `role_changes`/`net_class_changes`는 `device`/`net`
-    이름 순 정렬, `before`/`after`가 다른 것만 포함(`before`가 `None`이면 원래
-    미분류였다가 새로 분류된 것)."""
+    "max_iterations_reached", "vertical_stack_id_candidates": {"groups": {device_name:
+    proposed_id, ...}, "ambiguous_alternatives": {device_name: [candidate_group_name,
+    ...], ...}}, "gm_id_role_candidates": {device_name: "balanced"|"matching", ...},
+    "L_role_candidates": {device_name: {"L_role","confirmed_by_structural_symmetry",
+    "symmetry_partner"}, ...}}`.
+    `role_changes`/`net_class_changes`는 `device`/`net` 이름 순 정렬,
+    `before`/`after`가 다른 것만 포함(`before`가 `None`이면 원래 미분류였다가 새로
+    분류된 것)."""
     by_name = {t.name: t for t in transistors}
 
     def classify(cur_inputs):
@@ -1791,7 +2086,8 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
         role = netclass.assign_roles(devs, cls, imp)
         return cls, role
 
-    cur_inputs = tuple(dict.fromkeys(inputs))
+    base_inputs = tuple(dict.fromkeys(inputs))
+    cur_inputs = base_inputs
     cls_before, role_before = classify(cur_inputs)
     if cls_before is None:
         return None
@@ -1826,6 +2122,13 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
     if relations is None:
         return None
 
+    vertical_stack_id_candidates = _propose_vertical_stack_ids(
+        transistors, relations, base_inputs, outputs, feedbacks, biases, clocks)
+    gm_id_role_candidates = _propose_gm_id_roles(
+        transistors, base_inputs, outputs, feedbacks, biases, clocks)
+    L_role_candidates = _propose_L_roles(
+        transistors, relations, base_inputs, outputs, feedbacks, biases, clocks)
+
     cls_after, role_after = classify(cur_inputs)
 
     role_changes = sorted(
@@ -1841,7 +2144,10 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
     return {"relations": relations, "promoted_inputs": promoted_inputs,
             "final_inputs": cur_inputs, "role_changes": role_changes,
             "net_class_changes": net_class_changes, "iterations": iterations,
-            "stop_reason": stop_reason}
+            "stop_reason": stop_reason,
+            "vertical_stack_id_candidates": vertical_stack_id_candidates,
+            "gm_id_role_candidates": gm_id_role_candidates,
+            "L_role_candidates": L_role_candidates}
 
 
 @dataclass
@@ -7946,49 +8252,17 @@ if __name__ == "__main__":
     assert _t33_result[0]["chain"] == ["Ma", "Mb", "Mc"], \
         f"branch 골격 자체가 어긋남(Test 32 회귀 가능성): {_t33_result[0]['chain']}"
     assert len(_t33_composites) == 2, f"composite 개수가 2가 아님(과잉/과소 병합): {_t33_composites}"
-    assert _t33_composites[0] == {"members": ["Ma", "Mb"], "idiom": "floating-battery"}, \
+    assert _t33_composites[0]["members"] == ["Ma", "Mb"] and _t33_composites[0]["idiom"] == "floating-battery", \
         f"Ma/Mb가 floating-battery로 안 묶임: {_t33_composites[0]}"
     assert _t33_composites[1]["members"] == ["Mc"], \
         f"Mc가 diode 쌍에 잘못 흡수됨: {_t33_composites[1]}"
+    assert isinstance(_t33_composites[1]["ports"], dict), \
+        f"ports는 항상 dict여야 함(단일 소자 idiom이 있으면 그 내용, 없으면 빈 dict): {_t33_composites[1]}"
     print(f"    PASS: [Ma,Mb](floating-battery) | [Mc] -- 사람이 vertical_stack_id를 이 경계로")
     print(f"    쪼갠 실제 사례(M11a+M11b vs M12 등, .ai/context.md 세션23 C절)와 같은 패턴 재현")
 
     print()
     print("  === Test 33 전체 PASS ===")
-
-    print()
-    print("=== Test 34: classify_symmetric_branch_pairs() -- 구조가 완전히 같은 branch끼리")
-    print("    묶은 뒤(Test 33의 composite 시퀀스 비교), 첫 fork 지점의 gate 판정만으로")
-    print("    differential/mirror/no_connection 세 범주로 나누는지(2026-08-07 사용자 확정:")
-    print("    fork 지점만 보는 기준) 합성 fixture로 재확인 ===")
-    _t34_fixture = [
-        Transistor("Ga", "pmos", source="vdd", drain="gnd", gate="Vip"),   # differential 후보
-        Transistor("Gb", "pmos", source="vdd", drain="gnd", gate="Vim"),
-        Transistor("Ma", "nmos", source="gnd", drain="vdd", gate="Vbias1"),  # mirror 후보(같은 gate)
-        Transistor("Mb", "nmos", source="gnd", drain="vdd", gate="Vbias1"),
-        Transistor("Na1", "pmos", source="vdd", drain="Nx", gate="Vbiasx"),  # no_connection 후보
-        Transistor("Na2", "nmos", source="gnd", drain="Nx", gate="Vbiasy"),
-        Transistor("Nb1", "pmos", source="vdd", drain="Ny", gate="Vbiasz"),
-        Transistor("Nb2", "nmos", source="gnd", drain="Ny", gate="Vbiasw"),
-    ]
-    _t34_result = classify_symmetric_branch_pairs(_t34_fixture, inputs=("Vip", "Vim"))
-    assert _t34_result is not None, "analog-grammar 있는데 None 반환(회귀)"
-    assert {k: len(v) for k, v in _t34_result.items()} == {
-        "differential_branch_pairs": 1, "mirror_branch_pairs": 1,
-        "structurally_symmetric_no_connection": 1,
-    }, f"세 범주 개수가 예상과 다름(1/1/1이어야 함): { {k: len(v) for k, v in _t34_result.items()} }"
-    assert _t34_result["differential_branch_pairs"][0]["fork_devices"] == ("Ga", "Gb"), \
-        "Ga/Gb(gate=Vip/Vim, 둘 다 INPUT)이 differential로 안 잡힘"
-    assert _t34_result["mirror_branch_pairs"][0]["fork_devices"] == ("Ma", "Mb"), \
-        "Ma/Mb(gate=Vbias1 동일)가 mirror로 안 잡힘"
-    assert _t34_result["structurally_symmetric_no_connection"][0]["fork_devices"] == ("Na1", "Nb1"), \
-        "Na1/Nb1(gate가 다르고 둘 다 INPUT도 아님)이 no_connection으로 안 잡힘"
-    print("    PASS: differential=1(Ga/Gb), mirror=1(Ma/Mb), no_connection=1(Na1/Nb1) --")
-    print("    세션23 실측(current_reuse_telescopic_ota: differential=4, mirror=5, no_connection=12)")
-    print("    과 같은 분류 로직 재현")
-
-    print()
-    print("  === Test 34 전체 PASS ===")
 
     print()
     print("=== Test 35: trace_gnd_to_vdd_branches()/find_differential_and_mirror_forks() --")
@@ -8176,3 +8450,134 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 39 전체 PASS ===")
+
+    print()
+    print("=== Test 40: refine_differential_and_mirror_relations()의")
+    print("    vertical_stack_id_candidates -- cascode-stack composite(물리) +")
+    print("    differential-pair/mirror 관계(leg a/b)를 합쳐 최종 vertical_stack_id")
+    print("    후보를 만드는지(세션24, 사용자 지시) Test 35 fixture로 검증 ===")
+    _t40_result = refine_differential_and_mirror_relations(_t35_fixture, inputs=("Vip", "Vim"))
+    assert _t40_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t40_cand = _t40_result["vertical_stack_id_candidates"]["groups"]
+    assert set(_t40_cand) == {t.name for t in _t35_fixture}, \
+        f"10개 소자 전부 후보를 받아야 함: {sorted(_t40_cand)}"
+    assert _t40_cand["M1a"] == _t40_cand["M2a"], \
+        f"M1a/M2a가 같은 vertical_stack_id 후보를 못 받음: {_t40_cand['M1a']} vs {_t40_cand['M2a']}"
+    assert _t40_cand["M1b"] == _t40_cand["M2b"], \
+        f"M1b/M2b가 같은 vertical_stack_id 후보를 못 받음: {_t40_cand['M1b']} vs {_t40_cand['M2b']}"
+    assert _t40_cand["M3a"] == _t40_cand["M4a"], \
+        f"M3a/M4a가 같은 vertical_stack_id 후보를 못 받음: {_t40_cand['M3a']} vs {_t40_cand['M4a']}"
+    assert _t40_cand["M3b"] == _t40_cand["M4b"], \
+        f"M3b/M4b가 같은 vertical_stack_id 후보를 못 받음: {_t40_cand['M3b']} vs {_t40_cand['M4b']}"
+    assert _t40_cand["M1a"] != _t40_cand["M1b"], \
+        f"M1a(leg a)/M1b(leg b)가 같은 그룹으로 잘못 합쳐짐: {_t40_cand['M1a']}"
+    assert _t40_cand["M1a"] != _t40_cand["M3a"], \
+        f"M1a/M2a(위쪽 stack)와 M3a/M4a(아래쪽 stack)가 잘못 합쳐짐: {_t40_cand['M1a']}"
+    assert _t40_cand["M1a"].endswith("_a") and _t40_cand["M1b"].endswith("_b"), \
+        f"leg 접미사가 안 붙음: M1a={_t40_cand['M1a']}, M1b={_t40_cand['M1b']}"
+    print("    PASS: M1a/M2a, M1b/M2b, M3a/M4a, M3b/M4b가 각각 같은 그룹으로 묶이고")
+    print("    (composite 병합), leg별로 다른 그룹+접미사(_a/_b)를 받음(differential 관계)")
+    print("    -- 10개 소자 전부 후보 반환, 서로 다른 물리 stack끼리는 안 섞임")
+
+    print()
+    print("  === Test 40 전체 PASS ===")
+
+    print()
+    print("=== Test 41: _propose_vertical_stack_ids()의 fan-in 모호성 탐지 --")
+    print("    같은 kind의 lo 후보가 2개 이상인 CASCODE 소자는 어느 쪽에도 억지로")
+    print("    합치지 않고 ambiguous_{name}으로 격리하는지(세션24, 실회로 M9b/M10")
+    print("    사례를 축소 재현) 검증 ===")
+    _t41_fixture = [
+        Transistor("Mup", "nmos", source="Vshared", drain="Vout", gate="Vbias_up"),
+        Transistor("Mlo1", "nmos", source="gnd", drain="Vshared", gate="Vbias_lo1"),
+        Transistor("Mlo2", "nmos", source="gnd", drain="Vshared", gate="Vbias_lo2"),
+    ]
+    _t41_result = refine_differential_and_mirror_relations(_t41_fixture, inputs=())
+    assert _t41_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t41_groups = _t41_result["vertical_stack_id_candidates"]["groups"]
+    _t41_alt = _t41_result["vertical_stack_id_candidates"]["ambiguous_alternatives"]
+    assert _t41_groups["Mup"] == "ambiguous_Mup", \
+        f"fan-in 후보 2개(Mlo1/Mlo2)인 Mup이 격리 안 됨: {_t41_groups}"
+    assert _t41_groups["Mlo1"] != _t41_groups["Mup"] and _t41_groups["Mlo2"] != _t41_groups["Mup"], \
+        f"Mup이 Mlo1/Mlo2 중 하나에 잘못 합쳐짐: {_t41_groups}"
+    print("    PASS: Mup(같은 kind lo 후보 2개, Mlo1/Mlo2)이 ambiguous_Mup으로 격리되고")
+    print("    Mlo1/Mlo2 어느 쪽과도 안 합쳐짐 -- 실회로 M9b(candidates=M3b,M10),")
+    print("    M18b(candidates=M3a,M19), M58(candidates=M6,M7)와 같은 패턴")
+
+    assert "Mup" in _t41_alt, f"ambiguous_alternatives에 Mup 후보 목록이 없음: {_t41_alt}"
+    assert set(_t41_alt["Mup"]) == {_t41_groups["Mlo1"], _t41_groups["Mlo2"]}, \
+        f"Mup의 후보 그룹이 Mlo1/Mlo2 자기 그룹과 안 맞음: {_t41_alt['Mup']} vs " \
+        f"{{{_t41_groups['Mlo1']!r}, {_t41_groups['Mlo2']!r}}}"
+    print("    PASS: ambiguous_alternatives['Mup']이 Mlo1/Mlo2 각자의 그룹 이름을")
+    print("    정확히 담고 있음 -- layout 함수가 이 중 하나를 골라 합류시킬 수 있는 근거")
+
+    print()
+    print("  === Test 41 전체 PASS ===")
+
+    print()
+    print("=== Test 42: fan-in 후보 중 differential-pair branch 소속 여부로 재판정 --")
+    print("    후보 2개 중 정확히 하나만 differential branch 소속이 아니면 그쪽으로")
+    print("    확정되어 ambiguous 상태를 벗어나는지(세션24, 사용자 통찰: 실회로")
+    print("    M9b->M10/M18b->M19/M58->M7이 이 규칙으로 풀림) 축소 재현으로 검증 ===")
+    _t42_fixture = _t35_fixture + [
+        Transistor("Mamb", "nmos", source="Nout2", drain="Vg_out", gate="Vbias_amb"),
+        Transistor("Mout", "nmos", source="gnd", drain="Nout2", gate="Vbias_out2"),
+    ]
+    _t42_result = refine_differential_and_mirror_relations(_t42_fixture, inputs=("Vip", "Vim"))
+    assert _t42_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t42_vsid = _t42_result["vertical_stack_id_candidates"]
+    assert "Mamb" not in _t42_vsid["ambiguous_alternatives"], \
+        f"Mamb가 differential branch 재판정으로 안 풀리고 여전히 ambiguous로 남음: {_t42_vsid['ambiguous_alternatives']}"
+    assert _t42_vsid["groups"]["Mamb"] == _t42_vsid["groups"]["Mout"], \
+        f"Mamb가 M3b(differential branch 소속) 대신 Mout(비소속)과 묶여야 하는데: {_t42_vsid['groups']}"
+    assert _t42_vsid["groups"]["Mamb"] != _t42_vsid["groups"].get("M3b"), \
+        f"Mamb가 M3b와 잘못 묶임(differential branch 오염): {_t42_vsid['groups']}"
+    print("    PASS: Mamb(fan-in 후보 M3b/Mout)가 M3b는 differential branch 소속이라")
+    print("    제외되고 Mout(비소속)과 묶임 -- 실회로 M9b->M10 패턴과 동일하게 재현됨")
+
+    print()
+    print("  === Test 42 전체 PASS ===")
+
+    print()
+    print("=== Test 43: refine_differential_and_mirror_relations()의")
+    print("    gm_id_role_candidates -- differential pair의 shared_source를 drain으로")
+    print("    받는 tail 소자만 balanced, 나머지 전부 matching인지(사용자 지시, 실회로")
+    print("    36/36 실측 일치가 근거) Test 35 fixture로 검증 ===")
+    _t43_result = refine_differential_and_mirror_relations(_t35_fixture, inputs=("Vip", "Vim"))
+    assert _t43_result is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t43_gmid = _t43_result["gm_id_role_candidates"]
+    assert set(_t43_gmid) == {t.name for t in _t35_fixture}, \
+        f"10개 소자 전부 후보를 받아야 함: {sorted(_t43_gmid)}"
+    assert _t43_gmid["M6"] == "balanced", \
+        f"M6(drain=Vx=M1a/M1b의 shared_source)는 balanced여야 함: {_t43_gmid['M6']}"
+    assert _t43_gmid["M5"] == "balanced", \
+        f"M5(drain=Vy=M4a/M4b의 shared_source)는 balanced여야 함: {_t43_gmid['M5']}"
+    _t43_matching = {"M1a", "M1b", "M2a", "M2b", "M3a", "M3b", "M4a", "M4b"}
+    assert all(_t43_gmid[n] == "matching" for n in _t43_matching), \
+        f"tail 공급 소자가 아닌 나머지는 전부 matching이어야 함: {_t43_gmid}"
+    print("    PASS: M6/M5(differential pair의 tail 전류 공급)만 balanced,")
+    print("    나머지 8개 소자는 전부 matching -- 실회로 36/36 규칙과 동일 패턴")
+
+    print()
+    print("  === Test 43 전체 PASS ===")
+
+    print()
+    print("=== Test 44: suggest_vertical_stack_composites()가 idioms.Match.ports를")
+    print("    조용히 버리지 않고 composite에 보존하는지(사용자 지적: M8/M9a가 물리적으론")
+    print("    캐스코드 스택이 맞지만, M8=mirror 기준/M9a=그 위 캐스코드라는 구분이")
+    print("    composite 단계에서 사라지고 있었음) Test 35 fixture로 검증 ===")
+    _t44_branches = suggest_vertical_stack_composites(_t35_fixture, inputs=("Vip", "Vim"), direction="vdd_to_gnd")
+    _t44_composite = None
+    for b in _t44_branches:
+        for c in b["composites"]:
+            if set(c["members"]) == {"M1a", "M2a"}:
+                _t44_composite = c
+                break
+    assert _t44_composite is not None, "M1a/M2a cascode-stack composite을 못 찾음(회귀)"
+    assert _t44_composite["ports"].get("lower_role") == "AMPLIFYING", \
+        f"lower_role(M1a의 role)이 ports에 보존돼야 함: {_t44_composite}"
+    print("    PASS: M1a/M2a composite의 ports에 lower_role='AMPLIFYING'(M1a의 role)이")
+    print("    그대로 보존됨 -- 이전엔 {'members','idiom'}만 남기고 버려지던 정보")
+
+    print()
+    print("  === Test 44 전체 PASS ===")

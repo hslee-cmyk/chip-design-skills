@@ -133,6 +133,9 @@ def hypothesise(sig):
     if 'floating-battery' in ids:
         H.append('class-AB 바이어스 (floating battery)')
         evid.append('diode-connected 직렬쌍이 게이트 구동 레벨차 생성')
+    if 'floating-current-source' in ids:
+        H.append('Monticelli floating current source (class-AB 출력단 quiescent 전류 고정)')
+        evid.append('상보형(PMOS/NMOS) 소자 쌍이 비-레일 노드 2개 사이를 anti-parallel loop로 순환')
     if 'current-mirror' in ids:
         H.append('current mirror 바이어싱')
     if sig['feedback_nets']:
