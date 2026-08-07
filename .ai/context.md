@@ -31,13 +31,14 @@
 5. **(선택) folded_cascode/nmcnr_amplifier/two_stage_ota에 `ports`+`smallsignal_*`
    확장** — 세션21 2차 이월 항목, 우선순위는 사용자 판단.
 
-0. **세션22 구현/self-test 전부 완료, 커밋 대기 중**(다음 세션 시작 시 `git log`/
-   `git status`로 직접 재확인할 것 — 세션14 교훈). 상세는 아래 "세션22 결론" 참고.
-   세션21은 이미 커밋됨(`d0acad9`,`80e32f2`). ⚠️ 커밋에서 의도적으로 뺀 파일(정리
-   여부는 사용자 판단): `.bkit/*`(bkit 자체 세션 추적), 루트 zip 2개(사용자가 올린
-   별도 파일), `workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_
-   session18_save.py`(세션18 잔재), `full_netlist_for_grammar.json`(세션22 analog-grammar
-   탐색용 1회성 변환 산출물).
+0. **세션22 구현/self-test 전부 완료 + 전부 커밋됨**(`1bcb94e`=fix(geometry_
+   colocation_union 재설계+버그 6건), `d49f857`=docs(.ai/context.md 세션22 기록)) —
+   다음 세션 시작 시 `git log`/`git status`로 직접 재확인할 것(세션14 교훈). 상세는
+   아래 "세션22 결론" 참고. 세션21은 이미 커밋됨(`d0acad9`,`80e32f2`). ⚠️ 커밋에서
+   의도적으로 뺀 파일(정리 여부는 사용자 판단): `.bkit/*`(bkit 자체 세션 추적), 루트
+   zip 2개(사용자가 올린 별도 파일), `workspaces/current-reuse-telescopic-ota-report/
+   smoke_run_harness_session18_save.py`(세션18 잔재), `full_netlist_for_grammar.json`
+   (세션22 analog-grammar 탐색용 1회성 변환 산출물).
 
 ### (참고, 세션19까지의 이력 — 세션12~19 커밋 요약)
 세션16 커밋: `58e608b`(크래시 수정 + branch 복합 매칭), `7a41a30`(매칭 목적
