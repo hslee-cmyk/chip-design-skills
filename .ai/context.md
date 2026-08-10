@@ -1,22 +1,38 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-08, 세션25 완료 — `m_cascode()`/`netclass.
-assign_roles()`가 `M8`+`M9a`류(Monticelli floating current source)와 `M63`/`M58`류
-(diode-cascode)를 기능적으로 틀리게 `CASCODE`로 뭉뚱그리던 문제 발견/수정:
-`floating-current-source`/`diode-cascode` idiom + `FLOATING_CURRENT_SOURCE`/
-`DIODE_REFERENCED_CASCODE` role 신설, 그 여파로 생긴 `stick_diagram.py` 레이아웃
-회귀는 `physical-stack` 폴백으로 수정. **`headroom_role`(0-C, 6가지 실패한 가설 뒤)을
-`_propose_headroom_roles()`로 최종 구현 — declared 37개 소자 37/37 일치.**
-`find_verified_differential_and_mirror_relations()`의 근본 한계(소자쌍 dedup이 `M7`을
-조용히 누락)도 발견/수정(H절) — declared `vertical_stack_id` 전체를 물리적 스택
-기준으로 재분해 완료. self-test Test 46개 전부 통과. 세션 중 declared 값 오류 10개
-발견/정정(`M10`/`M19`/`M9a`/`M9b`/`M18a`/`M18b`/`M37b`/`M63`/`M39`/`M40`) +
-`M9a`/`M18a`의 `gm_id_role`/`L_role` gap도 채움. 상세는 아래 "## E"~"## H" 참고.
-**다음 세션 최우선은 `resolve_stack_layout()` 설계 — 아래 "다음 세션 최우선" 절 먼저
-읽을 것.**)
+# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션26 완료 — `resolve_stack_layout()` 신설.
+당초 B-5-3 설계 스케치(그룹별 finger_w 탐색/오일러 재시도/매칭 완화까지 전부 새로
+오케스트레이션)는 정밀조사 결과 대부분 이미 구현·배선돼 있었음이 드러나 실제로 채운
+구멍은 **1차 물리 그룹 분할 경계**(`stack_groups_geometry`)를 자동추론
+(`geometry_colocation_union()`) 대신 declared `vertical_stack_id`로 대체하는 것 하나뿐.
+`sizing_recipe.py`에 `resolve_stack_layout()` 신설(우선순위: `stack_groups_override` >
+declared `vertical_stack_id` > analog-grammar candidates > `geometry_colocation_union()`
+레거시 폴백), `optimize_full_circuit_budget()`의 해당 계산 한 줄만 교체 — 나머지 3개
+소비 함수(`assign_finger_geometry`/`run_topology_pipeline_with_finger_fixup`/
+`audit_row_split`)는 이 값을 이어받는 단일 데이터 흐름의 하위 소비자라 별도 수정
+불필요(실측 확인). `current_reuse_telescopic_ota`(declared 경로, 51/51 일치) +
+`folded_cascode`(declared 전무 → candidates 폴백 경로, 새 회로 첫 교차검증)로 실측
+검증, `stick_diagram.py` 46개 + `sizing_recipe.py` 전체 self-test 회귀 없음. 상세는
+아래 "## I" 참고.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
-## 다음 세션 최우선 — `resolve_stack_layout()`(가칭) 설계
+## 다음 세션 최우선 — `resolve_stack_layout()` 신설 후 남은 이월 항목
+
+`resolve_stack_layout()` 자체는 세션26에 신설·검증 완료(아래 "## I" 참고). 남은 항목:
+
+1. **`folded_cascode`(candidates 폴백 경로) end-to-end 미검증** — 이번 세션은
+   `resolve_stack_layout()` 함수 자체만 독립적으로 스모크테스트했다(11개 그룹으로
+   정확히 분할되는 것까지만 확인). 그 그룹이 실제로 `optimize_full_circuit_budget()`
+   전체 파이프라인(`assign_finger_geometry()`의 finger_w 탐색 → euler fixup → audit)을
+   끝까지 통과하는지는 아직 안 태워봤다 — `folded_cascode.topology.json`엔
+   `sizing_roles`도 아직 없어서(이전 세션 기록 참고) 그 자체가 선행 조건이 될 수
+   있다. `ambiguous_M5`/`ambiguous_M6`류(candidates가 못 푼 소자를 singleton으로
+   격리한 결과)가 finger_w 탐색 단계에서 실제로 문제없이 처리되는지도 미확인.
+2. **`do.md` 문서화 누락** — `resolve_stack_layout()`을 do.md의 "배치 7-3x" 넘버링
+   체계에 아직 추가하지 않았다(코드 docstring + 이 파일에만 기록됨).
+3. `run_harness.py` 실전략 — 세션22부터 계속 이월, 이번 세션도 미착수.
+
+### (아래는 세션26 착수 전 남아있던 기존 설계 스케치 원문, 참고용으로 보존)
 
 ### 왜 지금인가
 `B-5-5`(세션22)가 정리한 3갈래 작업 중 **1번(vertical_stack_id 완성)까지 이번
@@ -4295,3 +4311,88 @@ cmfb_tail, diffpair_*, output_stage_* -> 변경 없음(이미 물리 기준과 �
 self-test 46개 전부 재통과, `headroom_role` 37/37 유지(회귀 없음). 다음 세션 이월:
 이 재분해가 다른 3개 회로에서도 일반화되는지는 미검증(이번 세션 전체가
 `current_reuse_telescopic_ota` 하나로만 확인됨, F/G/H절 공통 한계).
+
+## I. 세션26(2026-08-10) — `resolve_stack_layout()` 신설
+
+### I-1. 정밀조사로 드러난 것 — B-5-3 설계 스케치의 실제 구멍은 하나뿐이었다
+B-5-3(세션22~23)은 `resolve_stack_layout()`을 "그룹별 finger_w 탐색(`search_stack_
+finger_w()`) → 실패시 그룹분할 → 오일러 walk 구성(`mirror_symmetric_trail()`) →
+실패시 `suggest_pair_finger_adjustments()` 제안 → 재검산"까지 전부 새로
+오케스트레이션하는 함수로 스케치했다. 구현 착수 전 Explore agent로 데이터 흐름을
+정밀조사한 결과, 이 스케치는 **이미 대부분 구현·배선돼 있었다는 게 드러났다**:
+- `assign_finger_geometry()`(`stick_diagram.py:3735`)가 그룹마다 이미 `search_stack_
+  finger_w()`를 호출하고 있었다(정렬된 그룹 순회 + 이전 그룹의 `total_row_fingers`를
+  target으로 넘기는 방식까지 스케치와 동일).
+- `run_topology_pipeline_with_finger_fixup()`(`sizing_recipe.py:3173`)이 이미
+  `suggest_pair_finger_adjustments()` 제안 → 재검산 → 그래도 실패하면 그룹분할
+  (crossover routing)까지 폴백하는 전체 루프를 세션15~18에 걸쳐 완성해뒀다.
+- `run_matching_safety_with_finger_growth()`(`sizing_recipe.py:3022`)가 매칭 완화
+  (3b/3c) 쪽의 대칭 루프도 이미 세션16~18에 완성해뒀다.
+
+즉 실제로 비어있던 건 이 모든 함수가 공통으로 입력받는 **1차 물리 그룹 분할 경계**
+하나뿐이었다 — `stack_groups_geometry`가 지금까지 `geometry_colocation_union()`의
+자동 추론(전기적 인접 추측, B-5-1이 "이 사고 원인"이라 지목한 바로 그 union-find)
+하나에만 의존했고, 사람이 선언한 `vertical_stack_id`는 (`allocate_stack_headroom()`을
+통한 헤드룸 계산 경로에서만 쓰일 뿐) layout/오일러/finger_w 경로 어디에도 연결돼
+있지 않았다(`Transistor` dataclass에 `vertical_stack_id` 필드 자체가 없음, 정밀조사로
+실측 확인).
+
+**부수 발견**: `stack_groups_kcl`(`kcl_series_union()` 결과)은 이 교체 대상이 아니다
+— `stack_id_of`를 거쳐 A엔진(`propagate_topology_forced_currents()`)의 전류 전파
+에서만 쓰이는 **전기적 사실**(같은 전류가 흐르는 직렬 연결, override 불가)이라
+`stack_groups_geometry`(레이아웃 선택, override 가능)와 용도가 완전히 다르다 — 애초
+설계 논의 초기엔 이 둘을 하나로 묶어 생각했을 위험이 있었는데, 정밀조사로 명확히
+분리됨.
+
+### I-2. 구현 — `resolve_stack_layout()`(`sizing_recipe.py`, `optimize_full_circuit_
+budget()` 바로 위 신설)
+우선순위 4단계(높은 것부터, 완전한 하위호환 원칙):
+1. `stack_groups_override`(spec 레벨 명시적 override) — 기존 동작 그대로 최우선.
+2. declared `vertical_stack_id`(`device_roles`, topology.json) — 일부만 채워져
+   있으면(gap) 나머지는 각자 singleton 그룹으로 남긴다(자동으로 안 채움 — "사람이
+   검토한 값"과 "자동 추론값"이 한 그룹에 섞이는 걸 피하고 gap을 눈에 보이게 남겨
+   다음 세션에 사람이 채우도록 유도, 세션24 15개 gap을 손으로 채웠던 것과 같은 패턴).
+3. declared가 통째로 비어있으면(`folded_cascode`처럼 `device_roles` 키 자체가 없는
+   회로, 실측 확인됨) `refine_differential_and_mirror_relations(transistors)`의
+   `vertical_stack_id_candidates`(analog-grammar 기반 제안, `inputs=()` 기본값 —
+   `find_differential_pair_candidates()`의 자동 승격 루프가 스스로 입력을 찾아냄,
+   Test 38 패턴 재사용)로 폴백.
+4. analog-grammar 자체가 없어 candidates도 `None`이면 `geometry_colocation_union()`
+   (레거시 자동 추론)으로 최종 폴백.
+
+반환 계약은 `kcl_series_union()`/`geometry_colocation_union()`과 동일한 `{stack_id:
+[device_name, ...]}` — `assign_finger_geometry()`에 그대로 넘겨진다.
+
+**호출부 교체는 1곳뿐이었다**: `optimize_full_circuit_budget()`의 `stack_groups_
+geometry = spec.get("stack_groups_override") or geometry_colocation_union(...)` 한
+줄을 `resolve_stack_layout(...)` 호출로 교체. 원래 B-5-3이 "4곳"(`assign_finger_
+geometry`/`audit_row_split`/`run_topology_pipeline_with_finger_fixup` + 이 계산 자체)
+을 교체 대상으로 언급했지만, 정밀조사로 이 셋이 `assign_finger_geometry()`가 반환하는
+`sizing_overrides`의 `stack_id` 필드를 그대로 이어받는 **단일 데이터 흐름의 하위
+소비자**임이 드러나(`stick_diagram.py:3807`의 `overrides[name]["stack_id"]` →
+`sizing_overrides`를 받는 `run_topology_pipeline()`/`run_topology_pipeline_with_
+finger_fixup()`의 `_dc_replace(t, **sizing_overrides[t.name])` → `split_into_stacks()`
+가 그 `stack_id`로 그룹핑 → `audit_row_split()`이 그 그룹을 받음) 별도 수정이
+불필요했다.
+
+### I-3. 검증
+스모크테스트 3가지(`resolve_stack_layout()` 단독 호출):
+- `current_reuse_telescopic_ota`(declared 경로): 51개 소자 전부 declared
+  `vertical_stack_id`와 100% 일치하는 32개 그룹. `biasgen_vom_a=[M8,M9a]`/
+  `biasgen_vom_floatsrc_sink=[M9b,M10]` 분리도 정확(세션25 H-3 재분해 결과 그대로
+  반영됨).
+- `stack_groups_override` 최우선 확인: override 지정 시 다른 소스 계산 없이 그대로
+  반환.
+- `folded_cascode`(candidates 폴백 경로, **이번 세션 첫 다른 회로 교차검증**):
+  `device_roles` 완전히 빈 회로에서도 크래시 없이 13개 소자 전부 11개 그룹으로
+  분할(`cascode-stack_2=[M10,M8]`/`floating-battery_1=[M7,M9]` 등 물리적으로 타당한
+  제안, `ambiguous_M5`/`ambiguous_M6`는 안전하게 singleton 격리).
+
+회귀 확인: `stick_diagram.py` self-test 46개 전부 PASS(무변경 파일이라 예상대로).
+`sizing_recipe.py` 전체 self-test(exit code 0, `Traceback`/`AssertionError` 0건,
+PASS 62줄 포함) — `optimize_full_circuit_budget()`을 실배선으로 태우는 L5 테스트
+(M9b/M18b euler-blocked 자동해결)도 기존과 동일하게 PASS.
+
+### I-4. 알려진 한계 / 다음 세션 이월
+"다음 세션 최우선" 절 참고 — `folded_cascode` candidates 경로의 end-to-end(전체
+파이프라인) 미검증, `do.md` 문서화 누락, `run_harness.py` 실전략 계속 이월.

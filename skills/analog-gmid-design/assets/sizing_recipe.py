@@ -1966,7 +1966,8 @@ from stick_diagram import (Transistor, load_topology, propagate_topology_forced_
                             repair_matching_safety, split_into_stacks,
                             suggest_pair_finger_adjustments, PairAdjustmentSuggestion,
                             _branch_composite_pair, _failing_required_pairs,
-                            find_min_crossover_layout_with_branch_composite)
+                            find_min_crossover_layout_with_branch_composite,
+                            refine_differential_and_mirror_relations)
 
 
 @dataclass
@@ -2195,6 +2196,72 @@ class InfeasibleSizingError(ValueError):
     불가능하다"는 다른 종류의 신호라 별도 처리가 맞다)."""
 
 
+def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: dict,
+                          stack_groups_override: dict | None = None) -> dict:
+    """B-5-3 설계(`.ai/context.md` 세션22~25) 중 실제로 비어있던 조각 하나만 채운다 --
+    2026-08-10 정밀조사(Explore 조사) 결과, B-5-3이 "새로 만들어야 한다"고 제안했던
+    finger_w 탐색(`search_stack_finger_w()`)/오일러 재시도(`suggest_pair_finger_
+    adjustments()`)/매칭 완화(`run_matching_safety_with_finger_growth()`)는 전부 이미
+    구현·배선돼 있었다(`assign_finger_geometry()`가 그룹별로 `search_stack_finger_w()`를
+    이미 호출하고, `run_topology_pipeline_with_finger_fixup()`/`run_matching_safety_
+    with_finger_growth()`가 실패시 재시도까지 이미 오케스트레이션함) -- 진짜 빈 구멍은
+    이 함수들이 공통으로 입력받는 **1차 물리 그룹 분할 경계**(`stack_groups_geometry`,
+    지금까지 `geometry_colocation_union()`의 자동 추론 하나뿐이었다)를 사람이 선언한
+    `vertical_stack_id`로 대체하는 부분뿐이었다.
+
+    **우선순위**(높은 것부터, 완전한 하위호환 원칙 -- 기존 동작을 깨지 않고 새 소스를
+    윗단에 끼워 넣는다):
+    1. `stack_groups_override`(spec 레벨 명시적 override, 기존 그대로 최우선 -- 이 회로
+       인스턴스에서만 유효한 수동 지정이라 선언된 값보다도 더 구체적인 신호이므로).
+    2. `device_roles.*.vertical_stack_id` **declared**(topology.json, 사람이 검토/확정한
+       값 -- 프로젝트 원칙: topology.json이 유일한 토폴로지 소스). 일부 소자만 채워져
+       있으면(gap) 나머지는 각자 singleton 그룹으로 남긴다 -- gap난 소자를 candidates나
+       geometry_colocation_union으로 자동 채우면 "사람이 검토한 값"과 "자동 추론값"이
+       한 그룹 안에 섞여 신뢰도가 불명확해지므로, 채우는 대신 gap 자체를 눈에 보이게
+       남겨 다음 세션에 사람이 채우도록 유도한다(이 프로젝트 반복 패턴, `.ai/context.md`
+       세션24 `vertical_stack_id` 15개 gap도 이렇게 손으로 채웠다).
+    3. declared가 통째로 비어있는 회로(예: `folded_cascode.topology.json` -- 실측 확인
+       됨, `device_roles` 키 자체가 없음) -- `refine_differential_and_mirror_relations()`
+       의 `vertical_stack_id_candidates`(analog-grammar 기반 제안)로 폴백.
+    4. analog-grammar 자체가 없어 candidates도 `None`이면 `geometry_colocation_union()`
+       (레거시 자동 추론)으로 최종 폴백 -- 이 함수가 아예 없던 회로/환경에서도 완전한
+       하위호환을 보장한다.
+
+    반환은 `kcl_series_union()`/`geometry_colocation_union()`과 동일한 계약
+    `{stack_id: [device_name, ...]}` -- `assign_finger_geometry()`에 그대로 넘길 수 있다.
+
+    ⚠️ candidates 폴백 경로(3번)는 `refine_differential_and_mirror_relations(transistors)`를
+    `inputs=()` 기본값으로 호출한다 -- Test 38(`stick_diagram.py`)이 실측으로 보여주듯 이
+    함수는 `inputs=` 선언 없이도 `find_differential_pair_candidates()`의 자동 승격
+    루프로 스스로 입력을 찾아낸다. `topology.json`의 `ports` 선언(있으면)을 아직 파싱해
+    넘기지 않는 건 의도적 축소(정직한 한계) -- 이번 세션은 `current_reuse_telescopic_
+    ota`(declared 경로, 2번)로만 실측 검증했고 candidates 경로(3번)는 `folded_cascode`
+    교차검증에서 `ports` 없이도 동작하는지까지만 확인했다(ports 파싱은 필요해지면 추가)."""
+    if stack_groups_override:
+        return stack_groups_override
+
+    declared = {name: entry.get("vertical_stack_id")
+                for name, entry in device_roles.items()
+                if isinstance(entry, dict) and entry.get("vertical_stack_id")}
+    if declared:
+        groups = defaultdict(list)
+        for name, sid in declared.items():
+            groups[sid].append(name)
+        for t in transistors:
+            if t.name not in declared:
+                groups[t.name].append(t.name)
+        return dict(groups)
+
+    refined = refine_differential_and_mirror_relations(transistors)
+    if refined is not None and refined.get("vertical_stack_id_candidates"):
+        groups = defaultdict(list)
+        for name, sid in refined["vertical_stack_id_candidates"]["groups"].items():
+            groups[sid].append(name)
+        return dict(groups)
+
+    return geometry_colocation_union(transistors, matching_pairs)
+
+
 def optimize_full_circuit_budget(topology_path: str, spec: dict,
                                   grid_points_per_theta: int = 5) -> dict:
     """배치 7-3d/7-5 — spec(topology.json 경로 + design spec)만 받아 instance.json에 바로
@@ -2305,8 +2372,13 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     # 레일 제외+같은 극성+drain=source만 -- 각 함수 docstring 참고).
     _forced_pairs = [tuple(p["names"]) for p in pairs_meta if p["current_forced"]]
     stack_groups_kcl = kcl_series_union(transistors, _forced_pairs)
-    stack_groups_geometry = spec.get("stack_groups_override") or geometry_colocation_union(
-        transistors, _forced_pairs)
+    # 2026-08-10(resolve_stack_layout() 신설) -- 1차 물리 그룹 분할 경계를 자동추론
+    # (geometry_colocation_union) 대신 사람이 선언한 vertical_stack_id로 대체(우선순위는
+    # resolve_stack_layout() docstring 참고). stack_groups_kcl(위 줄, 전기적 KCL 그룹)은
+    # 이 교체와 무관 -- A엔진 전류 전파에만 쓰이는 별개의 사실이라 그대로 둔다.
+    stack_groups_geometry = resolve_stack_layout(
+        transistors, _forced_pairs, device_roles,
+        stack_groups_override=spec.get("stack_groups_override"))
     stack_id_of = {name: sid for sid, members in stack_groups_kcl.items() for name in members}
     transistors_stackid = [_dc_replace(t, stack_id=stack_id_of.get(t.name)) for t in transistors]
 
