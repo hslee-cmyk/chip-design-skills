@@ -1,18 +1,22 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션26 후속 완료 — `audit_vertical_stack_id_
-vs_kcl()` 신설 + `resolve_stack_layout()` declared 경로에 사전 감사 게이트 연결.
-`resolve_stack_layout()`(세션26 본편, "## I" 참고) 신설 직후 사용자와 "declared
-`vertical_stack_id`를 `stack_groups_kcl`에도 쓸 수 있지 않냐"는 근본 질문을 주고받다가,
-실측으로 (a) declared 미러쌍이 서로 다른 물리 branch에 있어 `kcl_series_union()`
-에서만 잡히는 경우(정상)와 (b) `M9a`/`M9b`류 floating-current-source가 3-branch
-KCL 허브라 declared로는 한 그룹인데 `kcl_series_union()`으로는 못 묶이는 경우(정상,
-MNA 필요)를 실제 회로에서 각각 확인 — 이걸 자동 분류하는 `audit_vertical_stack_id_
-vs_kcl()`(`stick_diagram.py`)을 신설했다. `resolve_stack_layout()`의 declared 분기
-앞단에 이 audit을 게이트로 연결(사용자 확정: review 대상 있으면 즉시 `ValueError`)
-— `optimize_full_circuit_budget()`의 "선언 누락시 즉시 에러" 원칙과 대칭. 실회로
-(51소자, 정합) + 합성 반례(원인불명 hub, 에러 유발) 둘 다 self-test로 검증,
-`stick_diagram.py` 47개(Test 47 신설) + `sizing_recipe.py` 전체(L5b 신설) self-test
-회귀 없음. 상세는 아래 "## J" 참고. 세션26 본편(`resolve_stack_layout()` 자체)은
-"## I" 참고.)
+# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션26 후속(2) 완료 — `merge_layout_groups_
+by_matching_pairs()` 신설(오일러 실현가능성 사전검사 포함) + legacy 대비 end-to-end
+품질비교. `resolve_stack_layout()`의 declared/candidates 그룹이 매칭 파트너를
+서로 다른 물리 branch에 흩어놓는 문제(`folded_cascode` 5개 매칭쌍 전부 3b/3c 실패
+실측)를 풀려고, `vertical_stack_id` 기반 그룹을 declared 매칭쌍으로 **그룹 단위**
+병합하는 함수를 신설 — `geometry_colocation_union()`의 위험한 재귀적 connectivity
+climb(무관한 두 매칭쌍이 공유 허브 소자를 통해 조용히 합쳐지는 실제 버그, `M6`/`folded_
+cascode`뿐 아니라 `current_reuse_telescopic_ota`의 `M3a`~`M4b`+`M9b`~`M19` 8소자
+그룹으로도 재현 확인)를 피해 선언된 매칭쌍만으로 안전하게 병합한다. 실제 51소자 회로로
+legacy vs 신규 end-to-end 비교: **box-shape는 신규가 명확히 승**(legacy 과병합이
+행 폭 비율 4.00으로 허용치 1.5 초과, 신규는 통과) — 그러나 **오일러 완결성은 신규가
+1개 더 못 품**(`cmfb_tail`/`biasgen_ref`). 사용자 지시로 병합 전 `check_euler_
+condition()`+`suggest_pair_finger_adjustments()` 사전검사를 추가했으나, 추적 결과
+`cmfb_tail`은 애초에 declared 자체가 이미 병합돼 있어 이 게이트가 손댈 수 없는 문제
+(정정, 초기 가설 오류)였고, `biasgen_ref`는 게이트가 `n_fingers=1` 기준으로는
+"1회 조정으로 풀린다"고 판단해 통과시켰지만 실제 sizing 이후 오일러 판정이 달라져
+여전히 못 풀리는(게이트 필요조건이지 충분조건 아님) 한계가 새로 드러남. 회귀 없음
+(`stick_diagram.py`/`sizing_recipe.py` 전체 self-test). 상세는 아래 "## K" 참고.
+세션26 본편(`resolve_stack_layout()` 자체)은 "## I", audit 게이트는 "## J" 참고.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
@@ -20,33 +24,33 @@ vs_kcl()`(`stick_diagram.py`)을 신설했다. `resolve_stack_layout()`의 decla
 ## 다음 세션 최우선 — `resolve_stack_layout()`/audit 게이트 신설 후 남은 이월 항목
 
 `resolve_stack_layout()`(세션26 본편, "## I")과 `audit_vertical_stack_id_vs_kcl()`
-+ declared 경로 감사 게이트(세션26 후속, "## J")는 신설·검증 완료. 남은 항목:
++ declared 경로 감사 게이트(세션26 후속, "## J") + 매칭쌍 그룹 병합/오일러 게이트
+(세션26 후속(2), "## K")는 신설·검증 완료. 남은 항목:
 
-1. **`folded_cascode`(candidates 폴백 경로) end-to-end 미검증** — `resolve_stack_
-   layout()` 함수 자체만 독립적으로 스모크테스트했다(11개 그룹으로 정확히 분할되는
-   것까지만 확인). 그 그룹이 실제로 `optimize_full_circuit_budget()` 전체 파이프라인
-   (`assign_finger_geometry()`의 finger_w 탐색 → euler fixup → audit)을 끝까지
-   통과하는지는 아직 안 태워봤다 — `folded_cascode.topology.json`엔 `sizing_roles`도
-   아직 없어서(이전 세션 기록 참고) 그 자체가 선행 조건이 될 수 있다. `ambiguous_M5`/
-   `ambiguous_M6`류(candidates가 못 푼 소자를 singleton으로 격리한 결과)가 finger_w
-   탐색 단계에서 실제로 문제없이 처리되는지도 미확인.
-2. **`audit_vertical_stack_id_vs_kcl()` 게이트를 candidates 경로(3번)에도 적용할지
-   재검토** — 세션26 후속 결론은 "declared만 게이트, candidates는 analog-grammar
-   자체의 `ambiguous_*` 격리로 이미 불확실성을 표시하니 별도 audit 불필요"였다(설계
-   시점 판단, 실제로 candidates 결과에 이 audit을 돌려서 review 대상이 나오는지는
-   미검증 -- `folded_cascode`로 확인해볼 가치 있음, 특히 item1과 묶어서).
-3. **매칭쌍 기반 그룹 병합(`merge_layout_groups_by_matching_pairs()`, 가칭) 미착수**
-   — 세션26 후속 대화에서 사용자가 제안하고 설계까지 합의된 방향("`_propose_vertical_
-   stack_id()`를 base로 삼고, 인접한 작은 그룹을 declared `matching_pairs`(기본
-   `current_forced=True`만, 세션9/10 dx 악화 사례 근거)로 묶어 layout에 적당한 크기로
-   재구성 -- 새 함수로 분리, `geometry_colocation_union()` 자체는 안 건드림")인데,
-   대화가 "vertical_stack_id를 stack_groups_kcl에 쓸 수 있는가" 근본 질문으로
-   샜다가 audit 함수 신설로 이어져 정작 이 병합 함수 구현은 착수하지 못했다. 다음
-   세션 최우선 후보 -- `folded_cascode` M1/M2·M3/M4가 서로 다른 declared/candidates
-   그룹에 흩어져 매칭품질(3b/3c)이 깨지는 문제(세션26 후속 대화 초반 실측)를 이게
-   직접 해결한다. `resolve_stack_layout()`의 tier 2(declared)/3(candidates) 둘 다에
-   적용하는 것으로 설계 합의됨(tier 4 legacy는 안 건드림).
-4. `run_harness.py` 실전략 — 세션22부터 계속 이월, 이번 세션도 미착수.
+1. **`cmfb_tail`(declared 자체의 euler-실현불가능) -- 별도 audit 필요** — `M37a`/
+   `M37b`/`M38`이 declared `vertical_stack_id="cmfb_tail"`로 이미 한 그룹인데, 이
+   3소자만으로 `n_fingers=1` 기준 오일러 조건이 이미 `impossible`(홀수차수 4개,
+   `Ncmfb_tail`이 `M37a`/`M37b`의 source이자 `M38`의 drain이라 3단자 허브 -- 세션26
+   후속(2) K-3 참고). `merge_layout_groups_by_matching_pairs()`의 오일러 게이트는
+   "병합으로 새로 생기는" 문제만 막지, declared로 이미 들어온 그룹은 손 못 댄다 --
+   `audit_vertical_stack_id_vs_kcl()`류로 "declared vertical_stack_id 그룹이 그
+   자체로 euler-실현가능한가"를 검증하는 별도 audit이 필요해 보인다(다음 세션 최우선
+   후보 1순위, `folded_cascode`류 다른 회로에도 같은 패턴이 있는지 확인 겸함).
+2. **`biasgen_ref`(`M18_bg`+`M60`+`M61`) -- 오일러 게이트의 필요조건/충분조건 격차**
+   — 게이트가 `n_fingers=1` 기준으로 "1회 조정(4→2)이면 풀린다"고 판단해 병합을
+   승인했지만, 실제 `optimize_full_circuit_budget()`(진짜 W 기반 finger 배분 이후)
+   에서는 크로스오버 분할을 5번 시도하고도 못 풀렸다(`unresolved_reason=pair_not_
+   found`). 게이트를 더 보수적으로 만들지(예: `suggest_pair_finger_adjustments()`가
+   제안한 조정이 실제로 유효하려면 무슨 추가 조건이 필요한지), 아니면 이 정도 격차는
+   감수하고(병합 안 했을 때보다는 여전히 나으므로) 그대로 둘지 판단 필요.
+3. **`folded_cascode`(candidates 폴백 경로) end-to-end 미검증** — `resolve_stack_
+   layout()` 함수 자체만 독립적으로 스모크테스트했다. 그 그룹이 실제로 `optimize_
+   full_circuit_budget()` 전체 파이프라인을 끝까지 통과하는지는 아직 안 태워봤다 --
+   `folded_cascode.topology.json`엔 `sizing_roles`도 아직 없어서 그 자체가 선행
+   조건이 될 수 있다.
+4. **`audit_vertical_stack_id_vs_kcl()` 게이트를 candidates 경로에도 적용할지 재검토**
+   — 세션26 후속 결론은 "declared만 게이트"였다(설계 시점 판단, 미검증).
+5. `run_harness.py` 실전략 — 세션22부터 계속 이월, 이번 세션도 미착수.
 
 ### (아래는 세션26 착수 전 남아있던 기존 설계 스케치 원문, 참고용으로 보존)
 
@@ -4532,3 +4536,92 @@ nets=[]` 그대로 노출).
 J-4 대화 초반에 발견된 "matching_pairs로 인접 작은 그룹 병합" 문제(`folded_cascode`
 M1/M2·M3/M4가 서로 다른 vsid 그룹에 흩어져 매칭품질이 깨지는 것)는 설계까지 합의됐지만
 이 절의 대화로 이어지느라 구현 미착수(3번, 다음 세션 최우선 후보).
+
+## K. 세션26 후속(2)(2026-08-10, 같은 날 이어서) — `merge_layout_groups_by_
+matching_pairs()` 신설 + legacy 대비 end-to-end 품질비교 + 오일러 실현가능성 게이트
+
+### K-1. 구현 — `merge_layout_groups_by_matching_pairs()`(`stick_diagram.py`, J-9
+3번 이월 항목 해소)
+J-4에서 사용자가 제안한 방향 그대로 구현: `vertical_stack_id` 기반 그룹(declared/
+candidates)을 base로 유지하고, declared 매칭쌍(`(a,b)`)마다 `a`가 속한 그룹과 `b`가
+속한 그룹을 **그룹 단위**(소자 단위 아님) union-find로 합친다. `geometry_colocation_
+union()`의 위험한 부분(`find_stacked_matching_candidates()`의 재귀적 connectivity
+climb)은 아예 안 쓰므로, `M6`(`folded_cascode`)처럼 서로 다른 두 매칭쌍의 "유일한
+상위 소자"로 동시에 잡혀 무관한 쌍을 우회 병합하는 버그가 구조적으로 재발 불가능
+(`M6`이 매칭쌍의 당사자가 아니므로 union 대상이 될 수 없음). 기본 병합 기준은
+`current_forced=True`만 권장(세션9/10 dx 악화 실측 근거 재확인, `resolve_stack_
+layout()`이 이미 쓰는 `matching_pairs` 인자를 그대로 재사용 -- 새 파라미터 불필요).
+`resolve_stack_layout()`의 tier 2(declared)/3(candidates) 둘 다에 연결, tier 4
+(legacy)는 안 건드림(합의대로).
+
+**실측**: `folded_cascode` 11개 그룹 → 8개(정확히 `{M1,M2}`/`{M3,M4}`/`{M7,M8,M9,
+M10}`으로 병합, `M5`/`M6`은 여전히 격리 유지). `current_reuse_telescopic_ota`
+declared 32개 → 20개(`M1a/M1b`, `M8/M17` 등 매칭 legs 정상 결합). Test 48(`stick_
+diagram.py`) 신설로 검증(`folded_cascode` 실회로, 병합 전 매칭쌍 전부 다른 그룹임을
+먼저 확인해 "문제 재현"부터 보장 -- 병합 후 정확한 그룹 확인 -- `current_forced=False`
+까지 넘기면 필터링 없이 그대로 병합됨을 확인해 "기본값 권장"과 "강제 아님"을 구분).
+
+### K-2. legacy 대비 end-to-end 품질비교(사용자 요청)
+실제 과거 harness 산출값(`workspaces/current-reuse-telescopic-ota-report/current_
+reuse_telescopic_ota.instance.json`)에서 34개 소자의 W를 회수 → declared
+`current_forced` 매칭쌍으로 vom↔vop 대칭 전파(38/51 커버) → `stack_groups_kcl`
+(`kcl_series_union()`) 그룹 안에서는 W를 강제로 정합화(전기적 동일 전류 제약 위반
+방지) → 나머지 13개는 합성값. `compensation`은 제거(known_sizing으로 A/B/C엔진
+전부 우회하는 순수 레이아웃 비교가 목적이라 재계산 불필요/방해). `optimize_full_
+circuit_budget()`을 `stack_groups_override`로 legacy/신규 그룹 각각 줘서 두 번 실행.
+
+**결과(⚠️ 반신뢰 -- 방법론 자체가 부분 합성 데이터임을 감안)**:
+| | legacy | 신규 |
+|---|---|---|
+| 전체 체크/실패 | 170/77 | 165/83 |
+| box-shape | **FAIL(비율 4.00, 허용 1.5)** | **PASS** |
+| euler-blocked 미해결 row | 1개(`M18_bg` 관련) | 2개(`biasgen_ref`+`cmfb_tail`) |
+
+box-shape는 신규가 명확히 승 -- legacy가 bias-gen 트리 17개 소자를 무관한 매칭쌍
+재귀 병합(`M9b`/`M18b`가 `M3a/M3b`+`M4a/M4b` 차동캐스코드 branch와 `M10/M19` tail
+미러쌍을 `Vop1`/`Vom1`(이미 이번 세션에 3+단자 허브로 확인한 그 net) 허브를 다리
+삼아 하나로 합치는 것, `folded_cascode`의 `M6` 사례와 정확히 같은 매커니즘 -- 실측
+확인)로 한 행에 다 몰아넣어 행 폭 비율이 4.00까지 벌어짐. 신규는 이 과병합이 아예
+없어서 이 실패 자체가 안 생김. euler-blocked는 신규가 1개 더 못 품(아래 K-3/K-4).
+
+### K-3. 사용자 지시 -- 오일러 실현가능성 사전검사 추가, 그리고 `cmfb_tail` 가설 정정
+사용자가 "merge_layout_groups가 병합하는 기준을 오일러 패스를 찾아서 과병합하지
+않도록" 개선을 요청. `merge_layout_groups_by_matching_pairs(transistors, groups,
+matching_pairs)`로 시그니처 확장(`transistors` 신규 인자), 매칭쌍마다 union하기
+**전에** 임시로 합쳐보고 `build_graph()`+`check_euler_condition()`으로 확인 --
+`path`/`circuit`이면 그대로 확정, `impossible`이면 그 임시 그룹 내부 매칭쌍만으로
+`suggest_pair_finger_adjustments()`를 돌려 1회 조정으로 홀수차수 2개 이하까지
+줄일 수 있는지 확인, 안 되면 그 매칭쌍은 건너뛰고 두 그룹을 분리된 채로 남긴다.
+
+`cmfb_tail`이 이 게이트로 고쳐졌는지 검증하려다 **초기 가설이 틀렸음을 발견** --
+`M37a`/`M37b`/`M38`은 declared `vertical_stack_id="cmfb_tail"`로 **이미 하나의
+그룹**이었다(병합으로 생긴 게 아님). 셋만으로도 `n_fingers=1` 기준 오일러가 이미
+`impossible`(홀수차수 4개: `Vcmfb`/`N36b`/`Ncmfb_tail`/`gnd` -- `Ncmfb_tail`이
+`M37a`/`M37b`의 source이자 `M38`의 drain인 3단자 허브라서). 이 게이트는 "병합으로
+**새로** 생기는" 문제만 막지, declared로 이미 들어온 그룹은 애초에 손댈 대상이
+아니다(입력으로 받은 `groups`를 쪼개는 로직이 없음, union만 하므로). 실제로 게이트
+적용 후 재실행해도 `cmfb_tail`은 그대로 blocked -- 그룹 구성 자체(`['M37a','M37b',
+'M38']`)도 그대로임을 실측 확인.
+
+### K-4. `biasgen_ref`(`M18_bg`+`M60`+`M61`) -- 게이트의 필요조건/충분조건 격차
+이건 진짜로 게이트가 작동한 사례(`M18_bg`/`M60`/`M61`이 declared 3-way 매칭쌍) --
+`n_fingers=1` 기준으로 `suggest_pair_finger_adjustments()`가 "홀수차수 4→2" 해법을
+찾아내 게이트가 병합을 승인했다(직접 재현 확인). 그런데 실제 `optimize_full_circuit_
+budget()`(K-2의 semi-synthetic known_sizing, 진짜 W 기반 finger 배분)에서는 여전히
+`unresolved_row=biasgen_ref_seg1_seg1_seg1_seg1_seg1`(크로스오버 분할 5회 시도 후도
+실패, `pair_not_found`)로 안 풀렸다. 원인: 게이트는 `n_fingers=1`(토폴로지 원본)만
+보고 판단하는데, 실제 파이프라인은 `assign_finger_geometry()`가 실측 W로 계산한
+전혀 다른 finger 수로 오일러를 다시 판정한다 -- 이 둘의 홀짝 결과가 항상 같다는
+보장이 없다. **게이트는 필요조건(베이스라인에서 최소 가능성)만 걸러내지, 충분조건
+(실제 sizing 이후에도 풀림)까지는 보장 못 한다** -- 정직한 한계로 기록.
+
+### K-5. 검증
+`stick_diagram.py` self-test 48개(Test 48 갱신, 새 시그니처 반영) 전부 PASS.
+`sizing_recipe.py` 전체 self-test(L5b 포함) 전부 PASS. 둘 다 exit 0, `Traceback`/
+`AssertionError` 0건 -- 오일러 게이트 추가가 기존 동작에 회귀를 주지 않음을 확인.
+
+### K-6. 알려진 한계 / 다음 세션 이월
+"다음 세션 최우선" 절 참고 -- (1) `cmfb_tail`류(declared 자체가 euler-실현불가능한
+그룹) 검증할 별도 audit 신설, (2) `biasgen_ref`류(게이트 필요조건/충분조건 격차)
+게이트 강화 여부 판단, (3) `folded_cascode` end-to-end 미검증, (4) candidates
+경로 audit 적용 재검토, (5) `run_harness.py` 실전략.

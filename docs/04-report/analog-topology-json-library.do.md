@@ -2060,6 +2060,29 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 
 ---
 
+### 배치 7-6d — `merge_layout_groups_by_matching_pairs()`: 매칭쌍 기반 그룹 병합 + 오일러 실현가능성 게이트 (신규, 같은 날 배치 7-6c 후속) ✅ 구현 완료(2026-08-10)
+
+> **배경**: 배치 7-6c 논의 초반에 발견됐던 이월 문제(`folded_cascode`의 `M1`/`M2`·
+> `M3`/`M4`가 서로 다른 `vertical_stack_id` 그룹에 흩어져 매칭품질 3b/3c가 깨짐)를
+> 여기서 해소. 사용자가 legacy(`geometry_colocation_union()`) 대비 end-to-end 품질을
+> 비교해보자고 제안 → 실측 결과 box-shape는 신규가 명확히 이겼지만 euler-blocked
+> row가 legacy보다 1개 더 생김(`cmfb_tail`) → 사용자가 "오일러 패스를 찾아서 과병합
+> 하지 않도록" 개선을 요청 → 게이트 추가 → 추적 중 `cmfb_tail`이 실은 병합과 무관한
+> declared 자체의 문제였음을 발견(초기 가설 정정) → `biasgen_ref`는 진짜 게이트
+> 대상이었지만 게이트의 필요조건/충분조건 격차를 새로 발견.
+
+| | 내용 |
+|---|---|
+| **문제** | `vertical_stack_id` 기반 그룹(declared/candidates)은 수직 방향(무엇이 직렬로 쌓였는가)만 답해서, 매칭 파트너가 서로 다른 물리 branch에 있으면 항상 다른 그룹으로 갈라진다 — `audit_row_split()`의 3b(interdigitation)/3c(common-centroid)가 실패(`folded_cascode` 5개 매칭쌍 전부 실측 확인). |
+| **구현(1차)** | `stick_diagram.py`에 `merge_layout_groups_by_matching_pairs(transistors, groups, matching_pairs) -> dict` 신설. `vertical_stack_id` 그룹을 그대로 두고, declared 매칭쌍마다 그 두 그룹을 **그룹 단위**(소자 단위 아님) union-find로 합친다 — `geometry_colocation_union()`의 위험한 재귀적 connectivity climb(`find_stacked_matching_candidates()`가 공유 허브 소자를 통해 무관한 두 매칭쌍을 조용히 합치는 버그, `M6`/`folded_cascode`뿐 아니라 `current_reuse_telescopic_ota`의 `M3a`~`M4b`+`M9b`~`M19` 8소자 그룹으로도 재현 확인)는 아예 안 쓴다. 기본 병합 기준은 `current_forced=True`만 권장(세션9/10 dx 악화 실측 근거, 새 파라미터 없이 `resolve_stack_layout()`이 이미 쓰는 `matching_pairs` 인자 재사용). `resolve_stack_layout()`의 tier 2(declared)/3(candidates) 둘 다에 연결, tier 4(legacy)는 안 건드림. |
+| **legacy 대비 end-to-end 품질비교(사용자 요청)** | 과거 harness 산출값(`current_reuse_telescopic_ota.instance.json`)에서 34개 소자 W 회수 + declared 매칭쌍 대칭전파(38/51) + `stack_groups_kcl` 제약으로 정합화 + 나머지 합성값, `compensation` 제거(순수 레이아웃 비교 목적) → `optimize_full_circuit_budget()`을 `stack_groups_override`로 legacy/신규 각각 실행. 결과(⚠️ 부분 합성 데이터, 반신뢰): box-shape는 신규 PASS vs legacy FAIL(비율 4.00, 허용 1.5 — legacy가 bias-gen 트리 17소자를 무관한 매칭쌍끼리 허브 다리로 과병합한 결과), euler-blocked 미해결 row는 legacy 1개 vs 신규 2개(`biasgen_ref`+`cmfb_tail`, 아래). |
+| **구현(2차, 사용자 지시) — 오일러 실현가능성 사전검사** | 매칭쌍마다 union하기 전에 임시로 합쳐 `build_graph()`+`check_euler_condition()` 확인 — `path`/`circuit`이면 확정, `impossible`이면 그 임시 그룹 내부 매칭쌍만으로 `suggest_pair_finger_adjustments()`가 1회 조정(홀수차수 ≤2)으로 풀 수 있는지 확인, 안 되면 그 매칭쌍은 건너뛰고 두 그룹을 분리 유지. |
+| **정직한 한계(둘 다 실측으로 새로 발견)** | (1) `cmfb_tail`(`M37a`/`M37b`/`M38`)은 declared `vertical_stack_id`로 **이미** 한 그룹이라(병합으로 생긴 게 아님) 이 게이트가 손댈 대상이 아니다 — 셋만으로도 `n_fingers=1` 기준 오일러가 이미 `impossible`(`Ncmfb_tail`이 3단자 허브). 게이트 적용 후에도 그대로 blocked(실측 재확인) — **초기 가설(병합이 원인) 정정**. (2) `biasgen_ref`(`M18_bg`+`M60`+`M61`, declared 3-way 매칭쌍)는 게이트가 실제로 작동해 승인한 사례지만(`suggest_pair_finger_adjustments()`가 `n_fingers=1` 기준 "4→2" 해법을 찾아 통과시킴, 직접 재현 확인) 실제 파이프라인(진짜 W 기반 finger 배분 이후)에서는 여전히 안 풀렸다(`unresolved_reason=pair_not_found`, 크로스오버 5회 시도) — **게이트는 필요조건(베이스라인에서 가능성 있음)만 확인하지, 충분조건(실제 sizing 이후에도 풀림)까지는 보장 못 한다.** |
+| **검증** | `stick_diagram.py` Test 48(신설/시그니처 갱신) — `folded_cascode` 실회로로 병합 전 문제 재현 확인 → 병합 후 정확한 그룹(`{M1,M2}`/`{M3,M4}`/`{M7,M8,M9,M10}`) 확인 → `M5`/`M6` 격리 유지 확인 → `current_forced=False`까지 넘기면 필터링 없이 그대로 병합됨(강제 아님) 확인. 회귀: `stick_diagram.py`/`sizing_recipe.py` 전체 self-test 둘 다 exit 0. |
+| **이월** | (1) `cmfb_tail`류(declared 자체가 euler-실현불가능한 그룹) 검증할 별도 audit 신설 — `audit_vertical_stack_id_vs_kcl()` 확장 후보. (2) `biasgen_ref`류 게이트 필요조건/충분조건 격차 — 게이트를 더 보수적으로 만들지 판단 필요. 상세 경위는 `.ai/context.md` "## K" 참고. |
+
+---
+
 ### 7.9 배치 7 검토용 열린 질문 (구현 전 확인 필요)
 
 1. ~~`run_topology_pipeline()`의 새 `cell_groups` 인자와 기존 `floorplan_hints.spine_groups`가

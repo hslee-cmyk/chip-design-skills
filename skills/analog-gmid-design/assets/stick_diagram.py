@@ -3055,6 +3055,114 @@ def audit_vertical_stack_id_vs_kcl(transistors: list, matching_pairs: list,
     return {"boundary_findings": boundary_findings, "hub_findings": hub_findings}
 
 
+def merge_layout_groups_by_matching_pairs(transistors: list, groups: dict,
+                                           matching_pairs: list) -> dict:
+    """2026-08-10 세션26 후속(`.ai/context.md` J-4/J-9) 논의에서 설계 합의된 함수 --
+    `vertical_stack_id`(declared/candidates 아무 쪽이든, `resolve_stack_layout()`의
+    tier 2/3 결과) 기반 그룹이 **수직 방향**만 답해서, 매칭 파트너가 서로 다른 물리
+    branch에 있으면(예: `folded_cascode`의 `M1`/`M2` 차동입력쌍, `M3`/`M4` 전류원쌍)
+    항상 서로 다른 그룹으로 쪼개진다는 문제를 푼다 -- 그 결과 `audit_row_split()`의
+    3b(interdigitation)/3c(common-centroid)가 실패하는 걸 실측으로 확인했다(`folded_
+    cascode` 5개 매칭쌍 전부 실패, `.ai/context.md` 세션26 후속 대화 초반).
+
+    `geometry_colocation_union()`을 고치는 대신 **새 함수로 분리한 이유**(설계
+    합의): `geometry_colocation_union()`은 `stick_diagram.py` Test 29가 `folded_
+    cascode`의 정확한 그룹 구성을 하드핀해둔 레거시 폴백이라 시맨틱을 바꾸면 안 되고,
+    그 함수의 위험한 부분(`find_stacked_matching_candidates()`의 재귀적 connectivity
+    climb -- `M6`/`M5`가 서로 다른 두 매칭쌍(`M1/M2`, `M3/M4`) 양쪽에 동시에 "유일한
+    상위 소자"로 잡혀 무관한 두 쌍을 조용히 하나로 합쳐버리는 실제 버그, 세션26 후속
+    J-1)와 안전한 부분(declared 매칭쌍 union)이 그 함수 안에 이미 섞여 있었다.
+
+    **이 함수는 그 위험한 부분(재귀적 connectivity climb)을 아예 안 쓴다** -- `vertical_
+    stack_id`가 이미 수직 방향(무엇이 진짜로 직렬로 쌓여있는가, cascode 다단 포함)을
+    전부 답해놨으므로, 남은 일은 **그룹과 그룹을 잇는 것**뿐이다: declared 매칭쌍
+    `(a, b)`마다 `a`가 속한 그룹과 `b`가 속한 그룹을 union하는 **그룹 단위(소자 단위
+    아님) union-find**. `M6`처럼 애초에 어느 매칭쌍에도 속하지 않는 소자(candidates가
+    `ambiguous_*`로 격리했든, declared에 아예 없든)는 이 함수가 절대 건드리지 않는다
+    -- 모호한 건 그대로 격리 유지, 확실한 매칭만 합친다는 프로젝트 원칙이 구조적으로
+    보장된다(`M6`을 통한 우회 병합 자체가 불가능 -- `M6`이 그룹 키가 아니라 매칭쌍의
+    당사자가 아니므로 union 대상이 될 수 없다).
+
+    ⚠️ **2026-08-10 추가(같은 날 end-to-end 품질비교 중 발견) -- 오일러 실현가능성
+    사전 검사**: 초판은 매칭쌍마다 무조건 그룹을 합쳤는데, `current_reuse_telescopic_
+    ota` 51소자 실회로로 `optimize_full_circuit_budget()`을 실제로 태워보니 `cmfb_tail`
+    (`M37a`/`M37b`/`M38`)이 병합 후 오일러 조건이 깨져서(4개 홀수차수) `run_topology_
+    pipeline_with_finger_fixup()`의 기존 자동수정으로도 못 풀리는 `unresolved_row`가
+    나왔다(legacy `geometry_colocation_union()`에는 없던 새 실패 -- 사용자 지적). 이제
+    매칭쌍마다 union하기 **전에** 먼저 시험적으로 합쳐보고(`build_graph()`+`check_euler_
+    condition()`), (a) 합친 결과가 이미 `path`/`circuit`이면 그대로 확정. (b) `impossible`
+    이면 그 임시 병합 그룹 내부의 매칭쌍만으로 `suggest_pair_finger_adjustments()`를
+    돌려 **한 번의 핑거 조정으로 2개 이하까지 줄일 수 있는지** 확인 -- 줄일 수 있으면
+    (`run_topology_pipeline_with_finger_fixup()`이 나중에 실제로 이 조정을 적용해 풀
+    수 있다는 근거이므로) 합치고, 줄일 수 없으면(핑거 조정 한 번으로도 안 풀리는 진짜
+    구조적 홀수차수 불균형) **이 매칭쌍은 건너뛰고 두 그룹을 분리된 채로 남긴다** --
+    과병합보다 "매칭 파트너가 다른 행에 남는 것"(3b/3c 실패, 인지 가능하고 눈에 보임)이
+    "오일러 자체가 안 풀리는 것"(euler-blocked, 자동수정 루프가 소진될 때까지 못 알아챔)
+    보다 낫다는 판단 -- 이 함수 자체는 여전히 `n_fingers=1`(원본 topology 상태) 기준
+    으로만 판단한다(실제 sizing 이후 finger 배분은 뒤 단계 `assign_finger_geometry()`
+    소관이므로 여기서 W/finger를 미리 알 필요는 없다, `n_fingers=1` 판정도 그 이후 실제
+    핑거 배분에서 동일 부모/자식 관계가 유지되는 한 유효하다).
+
+    `matching_pairs`: 병합 기준으로 쓸 선언된 쌍 목록, 호출자가 직접 고른다(새
+    파라미터로 "선택 가능하게" 만들지 않고 이 인자 자체가 선택지 -- `resolve_stack_
+    layout()`이 이미 쓰는 `current_forced=True` 필터링을 그대로 재사용하면 기본값이
+    된다). **기본으로 `current_forced=True`만 넘기길 권장** -- 세션9/10 실측: declared
+    `matching_pairs` **전부**(`branch_symmetric`/`current_mirror` 등 `current_forced=
+    False`까지)를 병합 기준으로 쓰면 무관한 hub 그룹을 끌고 들어와 매칭 품질이 악화된
+    선례가 있다(dx=6.00 vs 제외한 경우 dx=3~4). `M5`/`M6`(`folded_cascode`,
+    `current_forced=False`) 같은 쌍은 기본값으로는 병합 안 되고 각자 그룹에 남는다
+    (모호하면 병합하지 않는 게 안전).
+
+    반환은 `kcl_series_union()`/`geometry_colocation_union()`과 동일한 계약
+    `{stack_id: [device_name, ...]}` -- `assign_finger_geometry()`에 그대로 넘길 수
+    있다. 대표 키는 병합에 참여한 원본 그룹 키 중 사전순으로 가장 작은 것을 그대로
+    쓴다(새 이름을 짓지 않음 -- declared/candidates가 이미 붙인 의미 있는 이름을
+    보존하기 위해)."""
+    by_name = {t.name: t for t in transistors}
+    group_of = {name: gid for gid, members in groups.items() for name in members}
+    parent = {gid: gid for gid in groups}
+    root_members = {gid: list(members) for gid, members in groups.items()}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def euler_feasible(names):
+        trs = [by_name[n] for n in names if n in by_name]
+        verdict = check_euler_condition(build_graph(trs))
+        if verdict.kind != "impossible":
+            return True
+        name_set = set(names)
+        local_pairs = [(a, b) for a, b in pair_list if a in name_set and b in name_set]
+        suggestions = suggest_pair_finger_adjustments(trs, local_pairs)
+        return bool(suggestions) and suggestions[0].resulting_odd_count <= 2
+
+    pair_list = [(a, b) for names in matching_pairs for a, b in zip(names, names[1:])]
+
+    for a, b in pair_list:
+        ga, gb = group_of.get(a), group_of.get(b)
+        if ga is None or gb is None:
+            continue
+        ra, rb = find(ga), find(gb)
+        if ra == rb:
+            continue
+        tentative = root_members[ra] + root_members[rb]
+        if not euler_feasible(tentative):
+            continue
+        if ra < rb:
+            parent[rb] = ra
+            root_members[ra] = tentative
+            del root_members[rb]
+        else:
+            parent[ra] = rb
+            root_members[rb] = tentative
+            del root_members[ra]
+
+    return {gid: sorted(members) for gid, members in root_members.items()}
+
+
 # ---------------------------------------------------------------------------
 # 2.5) Finger 폭 정합성 검사 — 오일러 조건보다 먼저 확인해야 하는 더 기본적인 제약
 # ---------------------------------------------------------------------------
@@ -9049,3 +9157,70 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 47 전체 PASS ===")
+
+    print()
+    print("=== Test 48: merge_layout_groups_by_matching_pairs() -- vertical_stack_id 기반")
+    print("  그룹(수직 방향만 앎)이 서로 다른 물리 branch에 있는 매칭 파트너를 잡아주지")
+    print("  못하는 문제(2026-08-10 세션26 후속 J-4/J-9, folded_cascode 5개 매칭쌍 전부")
+    print("  3b/3c 실패 실측)를, geometry_colocation_union()의 위험한 재귀 climb 없이")
+    print("  그룹 단위 union만으로 해결하는지 -- folded_cascode 실회로(candidates 경로)로")
+    print("  검증. 손타이핑 넷리스트 없음 ===")
+    import os as _t48_os
+    _t48_lib = _t48_os.path.join(_t48_os.path.dirname(_t48_os.path.abspath(__file__)), "library")
+    _t48_trs, _t48_meta = load_topology(
+        _t48_os.path.join(_t48_lib, "folded_cascode.topology.json"))
+    _t48_pairs_meta = _t48_meta["symmetry"]["matching_pairs"]
+    _t48_forced = [tuple(p["names"]) for p in _t48_pairs_meta if p["current_forced"]]
+
+    _t48_refined = refine_differential_and_mirror_relations(_t48_trs)
+    assert _t48_refined is not None, "analog-grammar 있는데 None 반환(회귀)"
+    _t48_candidates = {}
+    for _name, _sid in _t48_refined["vertical_stack_id_candidates"]["groups"].items():
+        _t48_candidates.setdefault(_sid, []).append(_name)
+
+    _t48_before_pairs_together = sum(
+        1 for _names in _t48_forced
+        for _a, _b in zip(_names, _names[1:])
+        if any({_a, _b} <= set(_members) for _members in _t48_candidates.values()))
+    assert _t48_before_pairs_together == 0, \
+        f"병합 전에 이미 매칭쌍이 같은 그룹이면 이 테스트가 검증하려는 문제가 재현 안 됨: " \
+        f"{_t48_before_pairs_together}건"
+    print(f"    확인: 병합 전(candidates 그룹 {len(_t48_candidates)}개)에는 declared 매칭쌍 "
+          f"{len(_t48_forced)}개 전부 서로 다른 그룹(문제 재현)")
+
+    _t48_merged = merge_layout_groups_by_matching_pairs(_t48_trs, _t48_candidates, _t48_forced)
+    _t48_all_members = sorted(m for members in _t48_merged.values() for m in members)
+    assert _t48_all_members == sorted(t.name for t in _t48_trs), \
+        "merge_layout_groups_by_matching_pairs()가 소자를 빠뜨리거나 중복시킴"
+
+    _t48_group_sets = {frozenset(members) for members in _t48_merged.values()}
+    assert frozenset({"M1", "M2"}) in _t48_group_sets, f"M1/M2가 병합 안 됨: {_t48_group_sets}"
+    assert frozenset({"M3", "M4"}) in _t48_group_sets, f"M3/M4가 병합 안 됨: {_t48_group_sets}"
+    assert frozenset({"M7", "M8", "M9", "M10"}) in _t48_group_sets, \
+        f"M7/M8/M9/M10(두 물리스택이 M9/M10 매칭쌍으로 이어짐)이 병합 안 됨: {_t48_group_sets}"
+    print("    PASS: declared 매칭쌍(current_forced=True)마다 그룹이 정확히 합쳐짐 -- "
+          "{M1,M2}/{M3,M4}/{M7,M8,M9,M10}(M9/M10 매칭쌍이 두 물리스택을 이어붙임)")
+
+    for _isolated in ("M5", "M6"):
+        assert frozenset({_isolated}) in _t48_group_sets, \
+            f"{_isolated}(candidates가 ambiguous로 격리, current_forced=False라 매칭 기준에도 " \
+            f"없음)은 그대로 격리 유지돼야 하는데 다른 그룹과 합쳐짐: {_t48_group_sets}"
+    print("    PASS: M5/M6(ambiguous 격리 + current_forced=False) -- 매칭쌍 기준에 안 걸려서 "
+          "우회 병합도 전혀 안 되고 격리 그대로 유지됨(geometry_colocation_union()의 실제 "
+          "버그였던 M6을 통한 M1/M2<->M3/M4 우회 병합이 이 함수에선 구조적으로 불가능함을 확인)")
+
+    print()
+    print("  [current_forced=False까지 전부 넘기면(세션9/10 dx 악화 반례 재현 의도) M5/M6도")
+    print("  합쳐지는지 -- 이 함수 자체는 호출자가 넘긴 목록을 그대로 따른다는 것만 확인,")
+    print("  \"기본값은 current_forced=True만 권장\"이라는 docstring 권고와 대조용]")
+    _t48_all_pairs = [tuple(p["names"]) for p in _t48_pairs_meta]
+    _t48_merged_all = merge_layout_groups_by_matching_pairs(_t48_trs, _t48_candidates, _t48_all_pairs)
+    _t48_group_sets_all = {frozenset(members) for members in _t48_merged_all.values()}
+    assert any({"M5", "M6"} <= _s for _s in _t48_group_sets_all), \
+        f"current_forced=False 쌍까지 넘겼는데 M5/M6이 여전히 안 합쳐짐(함수가 필터링을 " \
+        f"몰래 하고 있다는 뜻-- 안 됨, 호출자 책임이어야 함): {_t48_group_sets_all}"
+    print("    OK: 호출자가 current_forced=False 쌍까지 넘기면 이 함수는 그대로 병합함 -- "
+          "필터링은 함수가 강제하지 않고 호출자(resolve_stack_layout())의 책임으로 남김")
+
+    print()
+    print("  === Test 48 전체 PASS ===")
