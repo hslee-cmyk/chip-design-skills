@@ -42,8 +42,19 @@ spec = {
     "Cf": 500e-15,
     "Cs": 500e-15,
     "C_Ltot": 1e-12,
-    "t_settle_total": 6.9 * 30e-9,  # t_lln*omega_c=6.9 정의를 그대로 이용한 총 정착시간(초)
-    "omega_c": 6.9 / 30e-9,         # 메인루프 unity-gain 각주파수 (N_cmfb_bw servo feed용)
+    # 2026-08-10(세션27) 정정 -- t_settle_total은 do.md §7.3.1 Level1 "t_s=t_slew+t_lln
+    # 배분"의 총합(논문 III.A "t_slew=10ns/t_lln=30ns"=40ns)이어야 하는데, 이전 값
+    # (6.9*30e-9≈207ns)은 t_lln*omega_c=6.9 정의를 엉뚱하게 총정착시간에 갖다 쓴 것이었다
+    # -- f_slew->t_lln 배선이 미완결이던 동안엔 t_settle_total이 실제로 아무 데도 안 읽혀서
+    # (derived[t_slew]를 아무도 안 읽음) 드러나지 않았을 뿐이다. 이제 t_lln=t_settle_total*
+    # (1-f_slew)로 실제 유도되므로 물리적으로 맞는 값(40ns)으로 정정 -- f_slew=0.25일 때
+    # t_slew=10ns/t_lln=30ns로 논문 수치와 정확히 재현됨(sizing_recipe.py self-test의
+    # _feed_settling_split 데모와 동일 값).
+    "t_settle_total": 40e-9,
+    # omega_c는 더 이상 여기서 손으로 줄 필요가 없다(compensation이 t_lln에서
+    # 자동 유도해 ctx.derived로 노출 -- _feed_gm_target_convention()이 우선 사용).
+    # 다만 compensation이 없는 회로/구형 spec과의 하위호환을 위해 폴백값으로 남겨둔다.
+    "omega_c": 6.9 / 30e-9,
 }
 
 try:

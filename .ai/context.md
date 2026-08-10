@@ -1,97 +1,123 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션26 후속(3) 완료 — `audit_vertical_stack_
-id_euler_feasibility()`/`find_euler_repair_options()` 신설 + `suggest_pair_finger_
-adjustments()`의 실제 `pair_map` 덮어쓰기 버그 수정. **다음 세션 최우선순위가
-사용자 지시로 재조정됨 — 아래 "다음 세션 최우선" 절을 반드시 먼저 읽을 것**(요약:
-①`run_harness.py`의 grid search 런타임 폭증(2^13≈8192 조합, ~10시간) 알고리즘
-개선 최우선 → ②`folded_cascode` end-to-end/candidates audit 재검토 → ③`run_
-topology_pipeline_with_finger_fixup()`의 라운드 예산 독점 문제, 이 순서로 진행).
-
-이번 배치 요약: `cmfb_tail`/`biasgen_ref`가 실제로 병합이 필요한 게 아니라 같은 행
-안 핑거 조정 하나로 풀린다는 걸 `find_euler_repair_options()`로 확인한 뒤, `biasgen_
-ref`의 실제 파이프라인 실행을 라운드별로 추적하다가 `suggest_pair_finger_adjustments()`
-의 `pair_map` 구성이 3-way 이상 declared 매칭 그룹(`itertools.combinations()`로
-풀린 모든 쌍 조합)을 받으면 나중 쌍이 앞 쌍 매핑을 조용히 덮어써 일부 조합(`(M18_bg,
-M60)`, 유일하게 gm/ID까지 통과하는 해법)이 후보에서 아예 사라지는 실제 버그를
-발견/수정. 수정 후 그 조합은 이제 실제로 시도되지만, 이번 semi-synthetic 사이징에서는
-셋 다 gm_id LUT 경계 문제로 여전히 거부됨(버그 수정과 별개 문제, 실제 sizing_roles로
-재확인 필요 — 아래 참고). 회귀 없음
-(`stick_diagram.py`/`sizing_recipe.py` 전체 self-test). 상세는 아래 "## K" 참고.
-세션26 본편(`resolve_stack_layout()` 자체)은 "## I", audit 게이트는 "## J" 참고.)
+# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션27 완료 — `f_slew→t_lln→omega_c→
+N_cmfb_bw` 배선 + `intended_role_type` 필드 신설 + 헤드룸(`allocate_stack_headroom()`)
+버그 5개 발견/수정(vsid 그룹핑, 값-동일 대표 선정, `_feed_metric_stage_budget()` vds
+미저장, M39/M40 role 오분류, vsid 선언 gap 6곳) + `suggest_headroom_stack_groups()`
+신설(교차검증용) + **stick_diagram.py Test 47 회귀 발견(미해결, 다음 세션 최우선)**.
+**다음 세션 최우선순위가 다시 재조정됨 — 아래 "다음 세션 최우선" 절을 반드시 먼저
+읽을 것**(요약: ①헤드룸 vsid 변경이 레이아웃 오일러 검증에 미친 영향 확인/재설계
+최우선 → ②`allocate_stack_headroom()`의 singleton 그룹 기본정책 재검토 → ③3개
+일반 함수(`derive_theta_dependency_graph()` 등) 구현 → ④scipy+SLSQP+multi-start
+구현 → ⑤다른 회로 교차검증, 이 순서로 진행). 세션27 상세 전체는 파일 맨 끝
+"# 세션27 결론" 참고.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
-## 다음 세션 최우선 — 사용자가 2026-08-10 세션 끝에 직접 재조정한 순서 (반드시 이
-순서대로 진행할 것 — 아래 "① 최우선" 항목부터 시작)
+## 다음 세션 최우선 — 사용자가 2026-08-10 세션(세션27) 끝에 재확인·재조정한 순서
+(반드시 이 순서대로 진행할 것 — 아래 "① 최우선" 항목부터 시작. 세션27 상세 근거·
+코드 위치·실측값은 전부 파일 맨 끝 "# 세션27 결론" 참고, 여기는 순서와 핵심 요약만)
 
-`resolve_stack_layout()`(세션26 본편, "## I"), `audit_vertical_stack_id_vs_kcl()` +
-declared 경로 감사 게이트(세션26 후속, "## J"), 매칭쌍 그룹 병합/오일러 게이트(세션26
-후속(2), "## K"), `audit_vertical_stack_id_euler_feasibility()`/`find_euler_repair_
-options()`/`suggest_pair_finger_adjustments()` `pair_map` 버그 수정(세션26 후속(3),
-"## L")까지 전부 신설·검증·커밋 완료. 다음 세션은 **아래 순서 그대로** 진행 —
-사용자가 명시적으로 재배열했으므로 임의로 순서를 바꾸지 말 것.
+세션26까지의 항목(`resolve_stack_layout()`, `audit_vertical_stack_id_vs_kcl()`,
+매칭쌍 그룹 병합/오일러 게이트, `pair_map` 버그 수정)은 전부 완료·커밋됨. 세션27은
+사용자 승인으로 grid search 런타임 문제 해결 방향(SLSQP+multi-start, 좌표하강 아님)을
+확정하고 착수했으나, 그 준비 과정(웜스타트 설계)에서 `f_slew`가 do.md 설계상 CMFB와
+연관돼야 한다는 gap → compensation 배선 → 그 과정에서 헤드룸 배정이 애초에 한 번도
+끝까지 실행된 적 없었다는 사실 → 헤드룸 버그 5개 연쇄 발견/수정 → **그 수정이
+레이아웃(오일러 경로) self-test를 깨뜨림(사용자가 세션 끝에 직접 지적)** 순서로
+범위가 확장됐다. SLSQP 본체(scipy 설치조차)는 아직 착수 전 — 지금 상태로 그 작업에
+들어가면 아직 검증 안 된 레이아웃 회귀 위에 쌓는 꼴이라 **순서를 바꾸지 말 것**.
 
-### ① 최우선 — `optimize_full_circuit_budget()`의 grid search 런타임 폭증 원인 해결(알고리즘 수정)
+### ① 최우선 — 헤드룸용 `vertical_stack_id` 변경이 레이아웃 오일러 검증에 미친 영향 확인 + 필요시 재설계
 
-**왜 이게 1순위인가(사용자 원문 근거)**: `cmfb_tail`/`biasgen_ref`가 이번 세션
-semi-synthetic 사이징(known_sizing 우회, 51소자 전체 균일 `gm_id=12` 비례식)에서
-gm_id LUT 경계 문제로 막힌 게 진짜 문제인지, 아니면 이 우회 방법론 자체의 artifact인지
-판단하려면 **`current_reuse_telescopic_ota.topology.json`에 실제 `sizing_roles`
-(theta/metrics/objective/constraints)를 선언해서 `optimize_full_circuit_budget()`을
-우회 없이 제대로 돌려봐야 한다**(세션26 후속(3) 끝, "다음 세션이 진행해야 할 것" 보고
-때 확인된 gap). 그런데 이 회로를 우회 없이 돌리면 "## A. `run_harness.py` 최종 진단"
-(이 파일 613행)이 이미 실측해둔 그대로 **grid search가 2¹³≈8192개 조합(자유 theta
-13개 × `grid_points_per_theta=2`) × 조합당 평균 4.4초 ≈ 10시간**이 걸린다 — 이 런타임
-폭증부터 해결(알고리즘 수정)하지 않으면 ①의 목적(우회 없는 실제 실행)을 실행할 수조차
-없다. 그래서 사용자가 이걸 다음 세션 최우선으로 명시적으로 지정했다.
+**사용자가 세션27 끝에 직접 지적**: "vertical_stack_id를 수정하면서 layout의 오일러
+path를 검증하는데 사용하면 문제가 생길 소지가 생겼다." 실측으로 확인됨 —
+`stick_diagram.py` self-test가 **Test 47**(`audit_vertical_stack_id_vs_kcl()` 검증,
+9446행 부근)에서 즉시 실패:
+```
+AssertionError: M11b/M12 경계가 안 잡힘: []
+```
+**원인**: Test 47은 "M11b/M12 사이에 vsid 경계가 있고 그 경계의 KCL 사유는
+`internal_series`/`N11b`"라는 걸 `audit_vertical_stack_id_vs_kcl()`의 **정상 동작
+예시**로 삼아 작성돼 있었다(9462~9466행) — 그 감사 함수 docstring이 "정상 케이스"
+예시로 인용한 바로 그 경계다. 그런데 세션27이 그 경계 자체가 헤드룸 관점에선 진짜
+버그(합쳐져야 함, 아래 "세션27 결론 ## D" 참고)였음을 실측으로 확인해 M11a/M11b/M12를
+`vertical_stack_id`로 합쳤고, 그 결과 이 "정상 divergence 예시"가 사라져 테스트가
+깨졌다.
 
-**출발점(이미 실측된 사실, "## A"절 그대로 재확인)**:
-- 원인 위치: `sizing_recipe.py`의 `optimize_full_circuit_budget()` grid loop
-  (`for combo in itertools.product(*grids)` 형태, 2227행 부근 — 정확한 현재 줄번호는
-  이번 세션 코드 변경으로 밀렸을 수 있으니 재확인할 것).
-- `current_reuse_telescopic_ota.topology.json`의 `sizing_roles.theta` 21개 중 자유
-  (bounds가 있어 grid 대상인) theta가 13개 — `grid_points_per_theta`를 그대로 두면
-  2¹³=8192, 3으로 올리면 3¹³≈160만(더 악화).
-- 스모크 테스트로 조합당 평균 4.4초 실측 확인됨(`workspaces/current-reuse-telescopic-
-  ota-report/smoke_run_harness_session11.py` 패턴 재사용 가능).
-- 세션A 시점엔 "그리드 범위를 어떻게 줄일지(또는 전수탐색 대신 다른 최적화 전략) 논의
-  후로 보류"라고만 남기고 미착수 상태로 이월돼 있었다 — **다음 세션은 이 논의를 실제로
-  시작하고 알고리즘을 고칠 것**.
-- 검토할 방향(미결정, 다음 세션에 사용자와 논의): (a) 좌표하강(coordinate descent)류로
-  13차원 전수탐색을 대체, (b) 일부 theta를 grid 대상에서 빼고 다른 방식(예: 이미
-  확정된 다른 theta에서 유도)으로 고정, (c) `grid_points_per_theta`를 theta별로
-  다르게(중요한 것만 세밀하게) 주는 비균일 grid, (d) 단계적(coarse-to-fine) grid 탐색.
-  **어느 것도 아직 사용자와 합의된 게 아니다 — 다음 세션에서 처음부터 논의할 것.**
-- 이 항목이 끝나야(런타임이 실용적인 수준으로 줄어야) `sizing_roles` 선언 → 우회 없는
-  `optimize_full_circuit_budget()` 실행 → `cmfb_tail`/`biasgen_ref`의 gm_id 경계
-  문제가 진짜인지 synthetic artifact였는지 최종 확인, 이 순서로 이어간다.
+**다음 세션 할 일(순서대로)**:
+1. Test 47이 쓰던 M11b/M12 예시를, **오늘 손 안 댄 다른 진짜 유효한 vsid/KCL
+   divergence 사례**로 교체(assert를 약화/삭제하지 말 것 — 감사 함수 자체의 검증력은
+   유지해야 함). 후보를 찾으려면 `audit_vertical_stack_id_vs_kcl()`을 이 회로에
+   다시 돌려 `boundary_findings` 전체를 훑고, 세션27이 안 건드린 다른 항목 중 하나를
+   고를 것.
+2. `stick_diagram.py` self-test는 Test 47에서 멈췄으므로 **그 뒤 나머지 테스트들이
+   세션27의 vsid 병합 6곳(M11a/M11b+M12, M13+M14a/M14b, M20a/M20b+M21,
+   M22+M23a/M24b, M58/M57+M68, M61+M64/M63)으로 추가로 깨지는지 아직 확인 안 됨** —
+   1번을 고친 뒤 전체 재실행 필수.
+3. **진짜 핵심 — 감사 테스트 통과와 별개로, 이 6개 병합 그룹이 실제로
+   `resolve_stack_layout()`(finger_w 탐색 + `mirror_symmetric_trail()`/
+   `check_euler_condition()`/`hierholzer()` 오일러 walk 구성)을 통과하는지 직접
+   실행 검증할 것** — 세션27은 헤드룸(사이징) 경로(`optimize_full_circuit_budget()`)
+   만 검증했고, 레이아웃 파이프라인(`resolve_stack_layout()`/`assign_finger_
+   geometry()`)은 이번 세션에 이 회로로 전혀 안 돌려봤다(스모크 테스트도 이 부분은
+   지나가지 않았을 가능성이 높음 — `optimize_full_circuit_budget()`의 마지막 단계라
+   그 앞 단계(theta 그리드/헤드룸)에서 먼저 막혔었으므로).
+4. **만약 실제로 오일러 구성이 실패하는 병합 그룹이 있다면(사용자가 우려한 시나리오)**
+   — `vertical_stack_id` 하나로 헤드룸(전기적 컬럼)과 레이아웃(오일러/row 배치) 두
+   목적을 동시에 만족 못 시킬 가능성을 재검토: 필드를 분리하는 재설계 검토(예: 헤드룸
+   전용 `headroom_stack_id` 신설, `vertical_stack_id`는 레이아웃 전용으로 남기거나
+   그 반대) — **이게 사용자가 말한 "재설계" 지점**. 분리한다면 두 필드가 서로 어떻게
+   다시 참조/정합성 검증돼야 하는지(예: 새 `audit_headroom_vs_layout_stack_id()`
+   같은 감사 함수 필요 여부)까지 설계할 것.
+5. 참고(세션27 도구): `suggest_headroom_stack_groups()`(`stick_diagram.py`, 세션27
+   신설)가 이 6개 병합을 자동으로 재현/교차검증해준다 — 4번 재설계 시 레이아웃 쪽
+   기준으로도 비슷한 "제안 함수"가 필요한지 참고할 것(기존 `suggest_vertical_stack_
+   composites()`가 이미 그 역할에 가까움 — `chain`/`composites` 두 단계 출력을 그대로
+   재사용 가능).
 
-### ② 그 다음 — `folded_cascode`/candidates 경로 검증 (구 "3순위")
+### ② 그 다음 — `allocate_stack_headroom()`의 "혼자 있는 non-cascode 소자" 기본정책 재검토
 
-1. **`folded_cascode`(candidates 폴백 경로) end-to-end 미검증** — `resolve_stack_
-   layout()` 함수 자체만 독립적으로 스모크테스트했다. 그 그룹이 실제로 `optimize_
-   full_circuit_budget()` 전체 파이프라인을 끝까지 통과하는지는 아직 안 태워봤다 --
-   `folded_cascode.topology.json`엔 `sizing_roles`도 아직 없어서 그 자체가 선행
-   조건이 될 수 있다(①에서 얻은 grid search 개선 노하우를 여기도 적용할 여지 있음).
-2. **`audit_vertical_stack_id_vs_kcl()` 게이트를 candidates 경로에도 적용할지 재검토**
-   — 세션26 후속 결론은 "declared만 게이트"였다(설계 시점 판단, 미검증).
+세션27이 M61/M64/M63 그룹에 `budget_reference_device: M5`를 달다가 발견(아직
+미수정, "세션27 결론 ## D-6" 참고): `M5`(1단 NMOS tail, `vertical_stack_id="vy_tail"`
+그룹에 **혼자**)가 `allocate_stack_headroom()`에서 **VDD 전체(1.8V)를 혼자 VDS로
+가져간다** — role이 "tail"(cascode 아님)이라 "남는 예산 균등분배" 로직을 타는데
+그룹에 혼자면 "균등분배"가 "전부 다 가짐"이 된다. 그 결과 `vdd - vds(M5) ≈ 0`이 돼
+버려 `M61_M64_M63` 그룹이 음수 VDS를 받는 실제 크래시(`search_gm_id_for_role()`의
+`ValueError`, `vds=-0.4`)로 발현됐다. M6/M7/M60/M66 등 다른 singleton "other"-role
+그룹도 같은 문제를 안고 있을 가능성이 높다(아직 전수조사 안 함 — ①을 먼저 끝내고
+착수). **재현 방법**: `.ai/context.md` 세션27 결론 ## D-6의 스크립트 그대로
+(K_replica=하한/r_classab_battery=상한으로 feasible한 theta를 넣고 전체 실행 —
+smoke test의 bounds-midpoint로는 이 경로 자체가 아직 안 드러남, K_replica/
+r_classab_battery 부등식을 먼저 만족시켜야 M9b infeasible을 지나 여기까지 도달함).
+① 항목(vsid 재설계)과 밀접하게 얽혀 있으므로, ①에서 vsid를 재설계하게 되면 이
+정책도 같이 재검토하는 게 자연스럽다 — 순서상 ① 다음이 맞다.
 
-### ③ 그 다음(사용자가 우선순위를 명시적으로 낮춤, 구 "2순위") — 라운드 예산 독점 문제
+### ③ 그 다음 — 3개 일반 함수 구현 (세션27 전반부 설계, 착수 전)
 
-`run_topology_pipeline_with_finger_fixup()`이 라운드당 blocked row **1개만**
-(`blocked[0]`)만 처리한다 — 세션26 후속(3) 실측: `biasgen_ref`가 크로스오버 분할을
-반복하며 `max_fixup_rounds=5`를 전부 써버려서 `cmfb_tail`은 단 한 번도 처리 기회를
-못 받고 원본 상태 그대로 남았다(`pair_map` 버그를 고쳐도 이 구조적 문제는 그대로).
-라운드마다 blocked row를 순환시키거나, 한 라운드 안에서 서로 독립인 여러 row를 동시에
-처리하는 방향을 검토. **①에서 실제 sizing_roles로 재실행해본 뒤에 이 문제가 실전에서
-실제로 발생하는지부터 재확인하고 착수하는 게 순서상 맞다**(현재는 semi-synthetic
-사이징에서만 관찰됨).
+`derive_theta_dependency_graph()`(dead/독립/격리 1:1 theta-metric 쌍 판정) /
+`extract_linear_feasibility_constraints()`(고정비율 A_signed 항에서 선형 부등식 자동
+추출) / `presolve_warm_start()`(위 둘을 조합해 SLSQP 시작점 생성) — "세션27 결론 ## A"
+에 설계 근거 전체 기록. K_replica/r_classab_battery 부등식(`r_classab_battery ≥
+K_replica·ID(M15)/(ID(M1a)+ID(M1b))`)과 L_cascode/L_stage2out 1D LUT 이분탐색
+웜스타트는 이미 손으로 유도·실측 검증 완료(세션27 중반, "세션27 결론 ## B" 참고) —
+이 함수들은 그 손유도를 일반화하는 것.
 
-### ④ 계속 이월
-`run_harness.py`의 나머지 실전략(①에서 grid 알고리즘 자체는 고치지만, 실제 회로
-스펙 선정/제약 튜닝 등 나머지 운영 이슈는 별개) — 세션22부터 계속 이월.
+### ④ 그 다음 — scipy 설치 + SLSQP + multi-start 구현
 
-### (아래는 세션26 착수 전 남아있던 기존 설계 스케치 원문, 참고용으로 보존)
+세션27 초반에 좌표하강 대신 이 방향으로 확정(이유: "세션27 결론 ## A" 참고 — 13개
+theta가 cmrr/psrr(전체회로 MNA)을 매개로 강결합돼 있어 축 방향 탐색이 구조적으로
+불리함을 실측 근거로 확인). scipy는 이 프로젝트 Python 환경(`C:\Python314`)에
+아직 미설치 확인됨.
+
+### ⑤ 그 다음 — 다른 회로 교차검증
+`folded_cascode` 등으로 `resolve_stack_layout()`/헤드룸/SLSQP 일반화 확인 — 세션22
+부터 계속 이월되던 항목, ①~④ 전부 끝난 뒤 진행.
+
+### ⑥ 계속 이월
+`run_harness.py`의 나머지 실전략(실제 회로 스펙 선정/제약 튜닝 등 운영 이슈) —
+세션22부터 계속 이월.
+
+### (아래는 세션27 착수 전 남아있던 기존 설계 스케치 원문, 참고용으로 보존)
 
 ### 왜 지금인가
 `B-5-5`(세션22)가 정리한 3갈래 작업 중 **1번(vertical_stack_id 완성)까지 이번
@@ -4763,3 +4789,362 @@ search 런타임 폭증(2¹³≈8192 조합, ~10시간, "## A"절) 원인을 먼
 `sizing_roles`를 선언해 우회 없이 `optimize_full_circuit_budget()`을 돌려봐야
 하는데, 지금 상태로는 그 실행 자체가 ~10시간 걸려 현실적으로 불가능하기 때문. 상세
 순서는 이 파일 맨 위 "다음 세션 최우선" 절(①~④) 참고 -- 그 순서를 그대로 따를 것.
+
+---
+
+# 세션27 결론 — grid search 알고리즘 방향(SLSQP) 확정 + warm-start 설계 중 발견한
+# f_slew/헤드룸 배선 gap 연쇄 수정 + 레이아웃 회귀 발견(미해결, 다음 세션 최우선)
+
+세션26이 남긴 "다음 세션 최우선"(그리드서치 런타임 알고리즘 개선)에 착수. 실제로는
+크게 다섯 갈래로 진행됐다: (A) 알고리즘 방향을 좌표하강 대신 SLSQP+multi-start로
+확정, (B) SLSQP 웜스타트를 위해 13개 자유 theta 전부를 하나씩 손으로 분석(닫힌 관계
+발견), (C) do.md §7.3.2가 2026-07-30부터 계획만 하고 미구현이던 `intended_role_type`
+태깅을 실제로 채움, (D) 그 과정에서 `f_slew`가 do.md 설계상 CMFB와 연관돼야 하는데
+미배선임을 발견 → 배선하다가 헤드룸 배정이 이 회로에서 한 번도 끝까지 실행된 적
+없었다는 사실이 드러나 버그 5개를 연쇄로 발견/수정, (E) 그 수정을 일반화하는
+`suggest_headroom_stack_groups()` 신설, (F) 그런데 그 vsid 변경이 레이아웃 오일러
+검증 self-test를 깨뜨림(사용자가 세션 끝에 지적, 미해결). SLSQP 본체(scipy 설치조차)
+는 착수 전이다 -- 아래 순서대로 상세 기록.
+
+## A. 알고리즘 방향 확정 — 좌표하강 대신 SLSQP + multi-start
+
+사용자 질문("좌표하강+재시작으로 조합폭발 문제를 풀 수 있나?")에 답하며 논의:
+- **순수 런타임(복잡도) 측면**: 좌표하강은 확실히 푼다 -- `O(k^13)`(전수탐색) →
+  `O(13·k·S·R)`(S=sweep 수, R=재시작 수)로, k=5/S=5/R=10이면 3,250번 평가(k=2
+  전수탐색 8192번보다도 적고, k=5 전수탐색 5¹³≈12억번과는 비교 불가). 게다가 지금까지
+  k=2로 경계값만 봤는데(중간값 없음, "## A"절 기존 지적) 좌표하강이면 축당 grid를
+  더 촘촘히(k=10~20) 줘도 여전히 빠르다.
+- **하지만 "제대로 된 해"를 찾는다는 보장은 없다**: 제약 경계가 축에 정렬 안 돼 있고
+  여러 변수가 동시에 움직여야 feasible 영역에 들어가는 경우, 축 하나씩 움직이는
+  탐색은 그 경계를 못 넘는다. **실측으로 확인된 이 회로의 상황이 정확히 이 케이스다**:
+  13개 theta가 `cmrr_estimate_db`/`psrr_estimate_db`(세션21부터 `smallsignal_
+  ratio_db` 타입, 전체회로 51소자 수치 MNA)를 매개로 전부 강결합돼 있다(아래 근거).
+  게다가 시작점 feasibility 문제(all-lo/mid/hi 전부 infeasible, 세션20-B G-3 실측)도
+  여전하다.
+- **결합 정도 실측 근거(중요, 잘못된 결론이었던 세션20-B G/H와 구분할 것)**: 세션20-B
+  가 만들었던 "5-theta 결합/2-theta feasibility 결합/6개 독립" 그룹 구조(옛 이 파일
+  2786~2916행대)는 **세션21에 CMRR/PSRR이 폐형식→전체회로 수치 MNA로 바뀌면서
+  무효화됐다**(이 파일에 이미 기록됨). 이번 세션에 직접 코드(`_full_circuit_devices()`,
+  `sizing_recipe.py` 1808행)를 확인해 재확인: `smallsignal_ratio_db`/`smallsignal_
+  gain_db` 타입 metric은 `by_name.items()`로 **무조건 전체 소자를 순회**해 MNA를
+  조립한다 -- 즉 이 두 metric의 진짜 read-footprint는 항상 "이 회로의 모든 소자"다.
+  13개 자유 theta 전부가 어떤 소자든 사이징하므로, 전부 cmrr/psrr을 매개로 서로
+  연결된다(완전그래프) -- 세션20-B의 그룹 분리가 유효했던 건 그 그래프 분석이
+  cmrr/psrr의 footprint를 (구식 폐형식 기준으로) 빈 집합으로 잘못 계산했기 때문이었을
+  뿐, 지금은 그렇지 않다.
+- **사용자 승인**: SLSQP(scipy) + multi-start로 진행 확정. 구현 시 주의할 실전 이슈
+  3가지(사용자에게 설명, 아직 코드화 안 함): (1) `InfeasibleSizingError`를 penalty
+  값으로 변환(예외를 던지면 SLSQP가 못 씀), (2) 유한차분 step 크기 튜닝(내부 고정점
+  반복/LUT 이분탐색이 완벽히 매끄럽지 않을 수 있음), (3) multi-start 여전히 필수
+  (non-convex).
+- **scipy 설치 상태**: 이 프로젝트 Python 환경(`C:\Python314`)에 **아직 설치 안 됨**
+  (`import scipy` 시도, `ModuleNotFoundError` 확인) -- 다음 세션 착수 시 설치부터.
+
+## B. Warm-start 설계 — 13개 자유 theta 전수 분석 (SLSQP 본체 구현 전 사전조사)
+
+`optimize_full_circuit_budget()`의 실제 코드(`_evaluate()` 내부 구조, feed 핸들러
+계약)를 하나씩 추적해 각 theta가 SLSQP 시작점(`x0`)으로 쓸 수 있는 닫힌 관계가
+있는지 손으로 유도. 결과:
+
+### B-1. 완전 제거 가능(자유차원에서 뺄 수 있음) — `f_slew`
+`_feed_settling_split()`이 만드는 `ctx.derived["t_slew"]`를 세션27 착수 시점엔
+아무도 안 읽음(compensation은 `spec`의 6개 고정 파라미터만 읽음) -- **증명 가능하게
+dead**였다. 단, do.md 설계의도상 진짜 죽은 게 아니라 미배선이었다는 걸 이후(## D)에
+재발견해 실제로 배선함 -- 최종적으로는 살아있는 theta가 됐다(**세션27 결론 시점
+기준으로는 더 이상 dead 아님**, 아래 D절 참고).
+
+### B-2. 트레이드오프 없이 즉시 확정 — `r_cmfb_vocdes`
+topology.json 자체 주석이 이미 명시: "이 theta는 CMRR 값에 직접 영향을 주지
+않는다(v(Voc_des)=0이라 M39/M40이 CMRR 식에 없음) -- power_uA/area_um2와 Voc_des
+DC 레벨에만 영향." `gain_db`/`mismatch_sigma_mV`/`classab_centering_dev_v`도
+M39/M40을 안 씀 -- 5개 제약 전부와 무관, `power_uA`(최소화 목표)만 올림 →
+**하한(0.02)에 고정하는 게 사실상 최적**.
+
+### B-3. 정확한 선형 부등식으로 결합 — `K_replica` / `r_classab_battery`
+`kcl_battery_M9b`(A_signed, terms=[M8:+1, M9a:-1])가 `ID(M9b)=ID(M8)-ID(M9a)>=0`을
+강제한다. `ID(M8)=r_classab_battery×(ID_M1a+ID_M1b)`, `ID(M9a)=K_replica×ID_M15` --
+`ID_M1a+ID_M1b`와 `ID_M15`는 compensation이 theta와 무관하게 미리 확정하는 상수라
+(스테이지 devices, `_evaluate()`가 compensation을 이론상 theta 루프보다 먼저 돌림),
+한 번만 계산해두면 **`r_classab_battery ≥ K_replica × ID_M15/(ID_M1a+ID_M1b)`**를
+정확한 수식으로 안다. Vop측(M17/M18a, `kcl_battery_M18b`)도 같은 theta 쌍이 그대로
+대칭 적용. **실측 검증**: bounds-midpoint(둘 다 중간값)로 두면 `M9b: ID=
+-5.58079e-06A <= 0`로 실제 infeasible(세션 후반 smoke test로 여러 번 재현) --
+`K_replica=하한(0.05)`, `r_classab_battery=상한(0.3)`으로 두면(부등식을 여유 있게
+만족) infeasible이 사라짐(세션 후반 실측, 아래 D-7 참고).
+
+### B-4. 문서화된 목표 고정쌍 — `r_tail_M6` + `r_tail_M7`
+topology.json 주석: "M6/M7의 합이 KCL상 ID(M1a)+ID(M1b)와 같아야 한다... 정확히
+강제하지는 않는다(옛 0.7:0.3 손-비율 heuristic과 같은 근사 수준)." → 웜스타트로
+정확히 `(0.7, 0.3)`(둘 다 bounds 안, 합=1.0, 옛 설계 heuristic과 일치) 사용 권장.
+
+### B-5. 1D LUT 이분탐색으로 직접 풀 수 있음 — `L_cascode` / `L_stage2out`
+`_feed_metric_stage_budget()`의 계산식 `gm=gm_id*ID`(L 무관!) + `gds=gm/gm_gds_ratio
+(gm_id,L,vds,vs)`(L만 영향)을 근거로: M2a/M3a(L_cascode 대상)의 ID/gm_id는 이미
+compensation+A엔진으로 theta 루프 전에 고정되므로, **`gain_db`의 stage1 기여분은
+`L_cascode` 단일 변수의 단조증가 함수**(분자 상수, 분모만 L-종속, sky130 LUT 실측:
+"gm/gds가 2.3배 L에서 3~5.5배 급증"). `L_stage2out`은 `gain_db`(단조)뿐 아니라
+`classab_centering_dev_v = |VGS_n(gm_id=15,L,0.6,0) - VGS_p(gm_id=15,L,0.6,0)|`
+(M15/M16의 `_metric_rail_referenced_voltage()`가 직접 계산, 이것도 L 하나의
+함수)에도 걸려 **진짜 트레이드오프**가 있다(gain은 L 클수록 유리, centering은 특정
+L에서 최소). → LUT 호출만으로(전체 회로 평가 없이) 이분탐색/스캔으로 직접 풀 수
+있다. **실측 검증(세션 후반)**: bounds-midpoint(5.75e-7)에서 `classab_centering_
+dev_v=0.336V`(허용치 0.15V 초과, 유일하게 실패한 제약 -- 나머지 4개는 bounds-
+midpoint로도 전부 통과: gain_db=77.2dB/mismatch=3.0mV/cmrr=101.4dB/psrr=95.0dB).
+**이 웜스타트(L_stage2out 재조정)가 아직 미적용 상태 -- 다음 세션 SLSQP 구현 시
+바로 쓸 수 있음.**
+
+### B-6. 나머지(하한 근처 시작 권장, 닫힌 관계 없음)
+`r_biasgen`/`r_bg_vbias2`/`r_diode_M11a`/`r_classab_diode_src` -- 전부 topology.json
+자체 주석이 "논문 근거 수치 없음, 하우스키핑 규모 근사"라고 명시. `power_uA=
+sum_current`(전체 소자 ID 합, `_metric_sum_current()` 확인)가 목적함수라 트레이드오프
+없는 한 하한이 유리. `N_cmfb_bw`만 지름길 없음(CMFB 루프이득에 실제로 걸림, do.md
+Level6) -- SLSQP가 알아서 조정하게 둘 것.
+
+## C. `intended_role_type` 필드 신설 — do.md §7.3.2 계획 완성
+
+`_TEMPLATE.topology.json`의 `_sizing_roles_comment`(2026-07-30부터 있던 주석)가
+"A/B/C/D 유형(do.md §7.3.1) 중 B/C/D만 태그한다"는 계획을 이미 갖고 있었는데 실제
+구현이 한 번도 없었음을 발견 -- 이번에 실제로 채움.
+
+- **값 21개 theta 전부**: D(진짜 자유도) 9개(`f_slew`/`K_replica`/`N_cmfb_bw`/
+  `r_cmfb_vocdes`/`r_biasgen`/`r_classab_battery`/`r_classab_diode_src`/
+  `r_diode_M11a`/`r_bg_vbias2`), A(위상-강제형) 8개(`N_cmfb_bw_mirror`/
+  `kcl_tail_M5`/`kcl_tail_M38`/`kcl_sink_M10`/`kcl_sink_M19`/`kcl_battery_M9b`/
+  `mirror_M18a`/`kcl_battery_M18b`), **B(스펙-타겟 역산형, gap 있음)** 4개
+  (`r_tail_M6`/`r_tail_M7` -- do.md §7.3.1(732행)이 명시적으로 지목했던 기존 gap,
+  `L_cascode`/`L_stage2out` -- 이번 세션에 새로 발견한 gap, 위 B-5 참고).
+- gap 있는 항목엔 `role_type_gap` 필드로 근거 남김. `feeds.type`(A/B/C/A_signed/
+  settling_split/metric_stage_budget, `_THETA_FEED_REGISTRY`의 실행 메커니즘
+  이름)과는 **다른 축**임을 스키마 주석에 명시(글자가 같아 혼동 위험).
+- `_TEMPLATE.topology.json`에도 스키마 문서 갱신(향후 회로 추가 시 참고).
+- **검증**: JSON 유효성 확인 + `sizing_recipe.py` self-test 전체 재실행(exit 0,
+  회귀 없음).
+
+## D. 헤드룸(`allocate_stack_headroom()`) 버그 연쇄 발견/수정
+
+### D-1. 착수 계기 — `f_slew`가 do.md 설계상 CMFB와 연관돼야 함을 재발견
+사용자 질문("cmfb에 f_slew가 연관 있다고 지난번에 분석하지 않았나?")으로 재조사.
+`do.md`의 zero-base 연역 사슬(배치 7-3c, mermaid 다이어그램, 665~704행)을 다시
+확인: **Level1(f_slew, t_slew/t_lln 배분) → Level2(gm1/gm2) → Level6(CMFB 전류
+= N×ωc에서 역산, N_cmfb_bw)** -- `f_slew`가 `t_lln`을 거쳐 `gm1`을 정하고, 그 `gm1`
+이 `ωc`(메인루프 대역폭)를 정해 `N_cmfb_bw`의 목표 gm(`N×ωc×Cc`)에 들어가야 한다는
+설계였다. 그런데 실제 코드 확인 결과 이 사슬의 **두 연결고리가 전부 미구현**이었다:
+(1) `f_slew`의 `t_slew`를 아무도 안 읽음(위 B-1), (2) `N_cmfb_bw`가 읽는
+`ctx.spec["omega_c"]`가 `t_lln`과 무관한 손으로 채운 상수(harness 스크립트들이
+`6.9/30e-9`로 계속 일치시켜뒀을 뿐, 자동 보장은 없었음).
+
+### D-2. `omega_c` 자동 유도 배선 (구조 변경 없음, 저위험)
+`current_reuse_telescopic_topology()`(`topology_library.py:297`)가 이미 논문
+Eq.2 그대로 `omega_c = 6.9/t_lln`을 계산하지만 반환 안 하고 있었음(클로저 안에
+갇힘) -- `topology_fn.exposed_params = {"omega_c": omega_c}`로 노출하도록 수정
+(`topology_library.py`, 314~320행 부근). `_evaluate()`가 `ctx.derived.update
+(getattr(topology_fn, "exposed_params", {}))`로 옮겨받고(`sizing_recipe.py`,
+compensation 블록 직후), `_feed_gm_target_convention()`(N_cmfb_bw가 쓰는 B타입
+핸들러)이 `omega_key`를 `ctx.spec`보다 `ctx.derived` 우선으로 읽도록 수정(2103행
+부근). **검증**: `current_reuse_telescopic_topology(t_lln=30e-9,...).exposed_
+params['omega_c']` == `6.9/30e-9` 정확히 일치 확인 + self-test 회귀 없음(기존
+harness 스크립트들이 이미 손으로 일치시켜뒀던 값이라 동작 변화 없음, 다만 이제
+자동 보장됨).
+
+### D-3. `f_slew → t_lln` 배선 (구조 변경, 사용자 승인 후 진행)
+`_feed_settling_split()`을 확장 -- `output_key`(기본 `t_slew`)뿐 아니라
+`complement_key`(기본 `t_lln`, `total - t_out`)도 `ctx.derived`에 저장하도록 수정
+(`sizing_recipe.py`, `_feed_settling_split()` 전체 재작성). `_evaluate()`에
+"settling_split 타입 feed만 compensation보다 먼저 적용"하는 예외 블록을 신설(이름이
+아니라 feed **타입**으로 골라내 일반화) -- compensation이 `comp["parameters"]`를
+읽을 때 `ctx.derived`에 있으면 그걸 `spec`보다 우선(같은 우선순위 패턴을
+`omega_c`처럼 t_lln에도 적용). **부작용 발견 및 정정**: `t_settle_total` 값이
+모든 harness/smoke 스크립트에서 `6.9*30e-9≈207ns`로 돼 있었는데, 이건 do.md의
+진짜 물리값(t_slew=10ns+t_lln=30ns=40ns, self-test 자체 데모가 쓰는 값과 일치)과
+무관한 값이었다(t_lln이 f_slew와 무관하던 동안엔 안 드러났던 잠재 버그) --
+`run_harness.py`/`run_harness_smoke.py`의 `t_settle_total`을 `40e-9`로 정정.
+
+### D-4. 헤드룸 crash 최초 발견 — `M11a`/`M11b` (M12 없이)
+`run_harness_smoke.py`(모든 theta bounds를 중간값으로 접어 1-combo로 실행하는
+구조 검증 스크립트, 24행 부근)로 전체 파이프라인을 처음 끝까지 돌려봄(f_slew
+배선 후). `allocate_stack_headroom()`에서 즉시 assert 실패:
+```
+AssertionError: 헤드룸 배정 합(0.4)이 vdd(1.8)와 불일치 -- other_entries가
+비어있는데 cascode 배정 합이 vdd와 안 맞으면 배분할 곳이 없어 이 assert가 실패한다.
+```
+`git stash`로 오늘 변경 전 원본 코드로 되돌려 **동일 지점에서 동일하게 실패함을
+확인**(제 변경이 만든 회귀가 아니라 이 회로가 애초에 한 번도 끝까지 실행된 적
+없던 상태에서 처음 드러난 pre-existing gap이었음을 검증) → `git stash pop`으로 복원.
+
+**최초 진단(틀렸다가 정정됨, 아래 D-5 참고)**: `M11a`/`M11b`(`headroom_role=
+cascode`, vsid=`biasgen_vom_battery_a`)만으로 헤드룸을 배정하려는데 나머지를
+배분할 "cascode 아닌" role이 그 그룹 안에 없어서 실패. 실제 회로는
+`VDD-M11a-N11a11b-M11b-N11b-M12-GND`(r_diode_M11a theta 주석에 이미 명시된 3소자
+단순 직렬)인데, `M12`(headroom_role=mirror)가 `biasgen_vom_battery_a_sink`라는
+**다른** vsid로 선언돼 있어 M11a/M11b만 떨어져 나온 것.
+
+### D-5. 그룹핑 기준 재검토 — vertical_stack_id vs KCL (사용자와 왕복 토론, 최종
+결론 = vertical_stack_id가 맞다)
+1. **1차 시도(틀림)**: "헤드룸은 전기적 개념이니 KCL(`stack_id_of`, `kcl_series_
+   union()` 기반)로 그룹핑해야 한다"고 판단해 `_evaluate()`의 헤드룸 루프
+   그룹핑 키를 `vertical_stack_id`에서 `stack_id_of`로 교체. `audit_vertical_
+   stack_id_vs_kcl()`(stick_diagram.py) docstring이 "M11b/M12 같은 경우가
+   vsid 경계는 기능적 이름 경계일 뿐 전기적 경계가 아닐 수 있다는 정상 사례"라고
+   문서화하고 있어 이 방향이 맞다고 판단했었음.
+2. **사용자 지적**: "headroom에서 vertical_stack_id를 활용하나? KCL이랑 분리해야
+   하는 것 아닌가?" → 확인 결과 원래도 vsid를 썼고, 이건 "M12가 실은 같은 컬럼인데
+   vsid 선언이 불완전했다"는 뜻이지 "그룹핑 기준 자체가 틀렸다"는 뜻이 아닐 수
+   있음을 재확인하려 함.
+3. **KCL 그룹핑으로 바꾼 결과 실제로 회귀 발생**: `two_stage_ota.topology.json`
+   self-test가 **즉시 잡아냄** -- `stage1`(M3 cascode/M4 cascode/M5 tail)이 vsid
+   로는 한 컬럼인데 KCL로는 갈린다(M5는 차동쌍 전체 전류를 받는 tail, M3/M4는 각
+   branch 전류라 "같은 전류"가 아님 -- 그래도 셋 다 VDD~GND 한 물리적 컬럼이라
+   헤드룸 VDS 합은 여전히 vdd여야 함). **KCL 그룹핑은 틀렸다** -- `vertical_stack_id`
+   로 되돌림(`_evaluate()`의 `vertical_groups`/`_ref_depth()` 둘 다 원복,
+   `sizing_recipe.py`).
+4. **근본 원인 재확정**: `M12`의 `vertical_stack_id` **선언 자체**가 불완전했던
+   것(M11a/M11b와 같은 물리적 컬럼인데 다른 이름). `resolve_stack_layout()`
+   docstring 재확인으로 개념 명확화: `vertical_stack_id`는 "수직 방향(무엇이
+   직렬로 쌓였는가)"만 답하고, "row"(interdigitation/common-centroid 배치,
+   `audit_row_split()` 3b/3c)는 그 위에 `merge_layout_groups_by_matching_pairs()`
+   가 별도로 얹는 **완전히 다른, 후속** 개념 -- PMOS/NMOS가 물리적으로 다른 well/
+   row(`stick_diagram.py` 예시: `S1_PMOS`/`S1_NMOS`, `biasgen_pmos`/`biasgen_nmos`)
+   에 들어가야 해서 하나의 `vertical_stack_id`(전기적 컬럼, 극성 무관)가 여러 row에
+   걸쳐 실현되는 게 정상이라는 것까지 사용자와 함께 확인(사용자가 "pmos stack row/
+   nmos stack row는 horizontal stack일 수 있다"고 지적, 이게 정확히 이 구조를
+   설명함). **결론: 헤드룸은 vertical_stack_id 기준이 맞다.**
+
+### D-6. `vertical_stack_id` 선언 정정 6곳 + `budget_reference_device` 2곳 신규 사용
+`M12`(→`biasgen_vom_battery_a`로 병합), `M21`(→`biasgen_vop_battery_a`), `M13`
+(→`biasgen_vom_battery_b`), `M22`(→`biasgen_vop_battery_b`) -- 전부 "3소자 단순
+직렬인데 중간에 선언이 갈린" 같은 패턴. 추가로 2건은 물리적 경로가 vdd/gnd가 아닌
+**다른 그룹이 이미 확정한 소자의 노드**에서 끝나는 "폴디드" 구조라
+`budget_reference_device`(2026-07-31부터 설계만 돼 있었고 이 프로젝트 어디서도
+실사용된 적 없던 필드, `allocate_stack_headroom()` 호출부의 `base_budget = vdd -
+ref_vds` 메커니즘)를 처음으로 실제 사용:
+- `M58`/`M57`(`vbias2_stack`) + `M68`(같은 vsid로 병합, `budget_reference_device:
+  "M6"`) -- 진짜 경로는 `Vx(=vdd-vds(M6))-M58-M57-Vbias2-M68-GND`(M6/M7 병렬 tail이
+  Vx를 먹임).
+- `M61`(`vbias3_stack`으로 M64/M63과 병합, `budget_reference_device: "M5"`) --
+  진짜 경로는 `VDD-M61-Vbias3-M64-M63-Vy(=vds(M5))-GND`(M5가 이미 Vy를 확정).
+- **`M39`/`M40`**: 별개 원인(그룹핑 문제 아님) -- 둘 다 `headroom_role="cascode"`
+  였는데, 실제로는 VDD-M39-Voc_des-M40-GND 2소자 self-biased 분압기(_correction_
+  log_5, 논문 "Voc_des=VDD/2=0.9V")라 "얇은 헤드�-- cascode" role이 물리적으로
+  안 맞았음(게다가 cascode뿐이면 배분할 other가 없어 assert 실패 위험도 있었음).
+  `"voltage_divider"`(새 자유 role 문자열, cascode만 아니면 뭐든 "균등분배" 취급되는
+  기존 계약 그대로 활용)로 정정 -- 각 0.9V 받아 논문 설계의도와 일치.
+
+### D-7. `_feed_metric_stage_budget()` vds 미저장 버그 (별도 발견)
+M11a/M11b/M12 수정 후에도 또 다른 crash: `_metric_sum_area`가 `M2a`/`M2b`(L_cascode
+대상)의 `ctx.sized[...]["W"]`를 못 찾음(`KeyError: 'W'`). 근본원인: `_feed_metric_
+stage_budget()`(`sizing_recipe.py`, `L_cascode`/`L_stage2out`이 쓰는 feed)이 `vds`
+를 LUT 조회(`gm_id_to_id_density`/`gm_gds_ratio`)에는 쓰면서 `entry.update({...})`
+에 **`vds` 자체를 저장하는 걸 빠뜨리고 있었다**(gm/gds/gm_id/kind/vs만 갱신). 헤드룸
+루프가 이 소자들의 vds를 못 찾아 "미확정"으로 오판 → 값-동일 그룹 대표 선정 로직과
+얽혀 추가 버그 유발(아래 D-8). **수정**: `entry.update({...})`에 `"vds": vds` 추가
+(2172행 부근). **부수 확인**: 이 버그 때문에 `classab_centering_dev_v`(M15/M16
+대상, 같은 feed 사용)도 이 소자들에 대해선 여태 `KeyError`로 계산 자체가 불가능했을
+것 -- 이번 수정으로 처음 계산 가능해짐(위 B-5 실측값이 이 수정 이후에 나온 것).
+
+### D-8. 값-동일 그룹(matching_pairs) 대표 선정 버그
+`M37a`/`M37b`(CMFB 차동쌍, current_forced 매칭쌍) 관련 crash. 헤드룸 루프의
+"matching_pairs로 묶인 값-동일 그룹당 대표 1개만 검사"(`_vfind` dedup) 로직이
+**members 리스트에서 "먼저 나온" 소자를 무조건 대표로 삼아** vds 여부를 검사했는데,
+`N_cmfb_bw`(B타입 feed)가 `M37a`(target)의 vds를 직접 채우고 `N_cmfb_bw_mirror`
+(A타입, root=M37b)는 **전류만** 전파하고 vds는 안 건드리는 계약이라, 마침 vds
+없는 `M37b`가 먼저 나오면 이미 풀린 그룹을 "미해결"로 오판했다. **수정**(2673~2727
+행 부근): 그룹 대표를 "먼저 나온 소자"가 아니라 "그룹 멤버 전체 중 이미 vds가 있는
+소자 우선"으로 검색하도록 재작성 + 그런 대표가 있으면 vds 없는 나머지 멤버(M37b)
+에게도 대표의 (gm_id,L,vds,vs)를 물려받아 자기 ID로 W/gm/gds를 LUT에서 재계산해
+채우는 전파 로직 신설(매칭쌍은 같은 물리 사이징을 공유한다는 전제, `_feed_metric_
+stage_budget()`과 동일 계산 패턴 재사용). 전부 없으면(headroom_role도 없는 진짜
+gap) 명확한 `ValueError`로 안내(조용히 잘못 추측 안 함).
+
+### D-9. 최종 검증 (세션27 헤드룸 수정 전체)
+- `sizing_recipe.py` self-test: exit 0, traceback/assertion 0건.
+- `run_harness_smoke.py`(bounds-midpoint 1-combo): 이제 헤드룸/vds 관련 crash
+  전부 사라지고, **정확히 예상된 지점**(K_replica/r_classab_battery bounds-
+  midpoint가 위 B-3 부등식을 안 만족)에서만 멈춤 -- `M9b: ID=-5.58079e-06A <= 0`.
+- **K_replica=하한(0.05)/r_classab_battery=상한(0.3)으로 부등식을 만족시키면 실제로
+  끝까지 완주**: `gain_db=77.21dB`(≥75.6 통과)/`mismatch_sigma_mV=3.01`(≤5.0
+  통과)/`cmrr_estimate_db=101.43dB`(≥60 통과)/`psrr_estimate_db=95.00dB`(≥60
+  통과)/`classab_centering_dev_v=0.336V`(≤0.15 **위반**, 유일한 실패 -- 위 B-5의
+  L_stage2out 재조정 웜스타트로 다음 세션에 풀 것).
+- **이 성공 실행 도중 새로 발견(별도 미해결 이슈, 다음 세션 ② 항목)**: `M61_M64_
+  M63` 그룹이 `budget_reference_device: M5`를 실제로 참조하자 `vds=-0.4`(음수)로
+  깨짐 -- `M5`가 `vy_tail` 그룹에 **혼자**라 "남는 예산 전부"(1.8V 그대로)를 혼자
+  가져가고 있었기 때문(`allocate_stack_headroom()`의 "cascode 아닌 role이 그룹에
+  혼자면 remaining 전부를 가짐" 기본정책 자체의 물리적 비현실성 -- 지금까지 아무도
+  이 값을 안 써서 조용히 넘어갔던 것뿐). **다음 세션 ② 항목, 아직 미수정.**
+
+## E. `suggest_headroom_stack_groups()` 신설 (`stick_diagram.py`, 교차검증 도구)
+
+사용자 질문("`vertical_stack_id_candidates`를 생성하는 함수가 애초에 이렇게 쪼개고
+있었던 것 아닌가?")으로 근본 원인을 더 추적. `suggest_vertical_stack_composites()`
+를 직접 실행해 확인: 이 함수의 `chain`(진짜 전기적 경로)은 **이미 M11a/M11b/M12를
+정확히 하나로 묶고 있었다**(`['M11a','M11b','M12']`). 문제는 `chain` 아래
+`composites`(idiom별 하위분류 -- "floating-battery"={M11a,M11b} vs
+"active-load"={M12})를 과거 세션이 **그대로 `vertical_stack_id`로 옮겨 쓴 것**.
+`composite`는 "이 소자들이 어떤 회로 idiom인가"에 답하고(여전히 유효, `headroom_
+role` 힌트 등에 쓸모 있음), 헤드룸이 필요한 건 "VDS 합이 vdd(의 일부)가 되는 하나의
+전기적 컬럼이 뭔가"라는 다른 질문 -- **하나의 컬럼(chain) 안에 idiom(composite)이
+여러 개 있는 게 정상**이라는 게 핵심(예: tail-current-source + cascode-stack +
+floating-battery가 한 컬럼 안에 줄줄이 있을 수 있음).
+
+**설계한 일반 규칙**: 같은 chain 안에서 composite를 이어 붙이되, **여러 chain에
+공통으로 나타나는 "허브" 소자**(M5/M6/M7/M1a류 -- 한 tail/입력 소자가 여러
+differential branch에서 재사용돼 여러 chain에 등장)를 만나면 멈춘다(허브는 이미
+자기 자신의 독립 그룹) -- 허브에 인접한 비-허브 세그먼트는 그 허브를 `budget_
+reference_device`로 받는다(chain이 `entry_net=vdd`에서 시작한다는 `trace_vdd_to_
+gnd_branches()`의 보장을 이용해, 세그먼트가 이미 vdd/gnd에 직접 닿아있으면 그쪽엔
+참조 불필요).
+
+**구현 중 발견/수정한 버그(explode)**: 최초 버전은 "composite 하나에 허브 멤버가
+하나라도 있으면 전체를 허브 취급"했는데, `{M6,M58}`처럼 **허브(M6)와 비허브(M58)가
+섞인 composite**가 있어(M6가 여러 chain에 나타나 허브지만 M58은 이 chain에만
+있는 전용 소자) M58까지 M6의 허브 그룹에 잘못 끌려 들어가는 문제가 있었다 --
+`_explode_mixed()` 헬퍼로 섞인 composite를 허브 멤버(1개씩 원자화)/비허브 run으로
+먼저 쪼갠 뒤 기존 병합 로직을 적용하도록 수정.
+
+**한계(정직하게 확인됨, 자동 적용 안 하는 이유)**: "chain에 몇 번 나타나는가"만으로
+허브를 판정하는 방식은 두 종류의 오탐이 있다: (1) `M8`처럼 진짜 전기적 3단자 허브
+(Vg15가 M8.drain/M9a.source/M9b.drain 공유)와, 단지 **하류 경로가 여러 개라 chain
+enumeration이 반복되는 것뿐**인 경우(예: M58/M57/M68이 M6-chain과 M7-chain 둘 다에
+나타나는 건 Vx가 M6/M7 병렬 tail을 먹기 때문이지 M58 자신이 fan-out은 아님)를
+구별 못 함, (2) M8+M9a처럼 물리적으로 진짜 직렬(M8.drain=M9a.source)이지만 M9a의
+반대쪽(drain)이 신호노드(Vop1, Monticelli floating current source의 절반)로
+이어지는 복잡한 구조는, chain을 끝까지 기계적으로 따라가 "헤드룸 그룹"으로 묶는 게
+오히려 틀린 판단일 수 있다(현재 declared 값 `biasgen_vom_a`={M8,M9a}만, 더 이상
+확장 안 함 -- 과거 세션의 신중한 판단으로 보이며 이번 세션에 건드리지 않음). **이런
+이유로 이 함수도 `suggest_vertical_stack_composites()`와 동일 원칙 -- 제안만 하고
+topology.json에 자동으로 안 쓴다.** 실측 검증: M11a/M11b/M12, M13/M14a/M14b,
+M20a/M20b/M21, M22/M23a/M24b, M61/M64/M63(ref=M5) -- 5곳은 이 함수가 정확히
+재현(교차검증 성공). M58/M57/M68(ref=M6)은 위 (1)번 한계로 자동 재현은 안 됐지만
+같은 원칙으로 손으로 정정.
+
+## F. `stick_diagram.py` 레이아웃 self-test 회귀 발견 (미해결 -- 다음 세션 최우선)
+
+세션 마지막에 **사용자가 직접 지적**: "vertical_stack_id를 수정하면서 layout의
+오일러 path를 검증하는데 사용하면 문제가 생길 소지가 생겼다." `stick_diagram.py`
+self-test를 이번 세션 처음으로 실행해보니 실제로 **Test 47**(9446행,
+`audit_vertical_stack_id_vs_kcl()` 검증)에서 즉시 실패:
+```
+AssertionError: M11b/M12 경계가 안 잡힘: []
+```
+Test 47(9462~9466행)은 "M11b/M12 사이에 vsid 경계가 있고 그 경계의 KCL 사유는
+`internal_series`/`N11b`"라는 걸 그 감사 함수의 **정상 동작 예시**로 삼아 작성돼
+있었다(이 함수 docstring이 인용하는 바로 그 예시). 세션27이 그 경계를 헤드룸 관점의
+진짜 버그로 확인해 병합했으니(위 D-6), 이 "정상 divergence 예시"가 없어져 테스트가
+깨진 것 -- **자세한 다음 세션 작업 순서는 이 파일 맨 위 "다음 세션 최우선 ①"에
+그대로 옮겨뒀다.** 요약: (1) Test 47을 다른 유효한 divergence 예시로 교체, (2)
+Test 47 이후 나머지 테스트가 오늘의 vsid 병합 6곳으로 추가로 깨지는지 미확인 --
+전체 재실행 필요, (3) 감사 테스트 통과와 별개로 `resolve_stack_layout()`(finger_w
+탐색+오일러 walk 구성)을 이 6개 그룹에 실제로 돌려 검증한 적이 세션27엔 전혀 없음
+-- 다음 세션 최우선 작업, (4) 만약 실제 오일러 구성 실패가 나오면 `vertical_stack_
+id` 필드를 헤드룸용/레이아웃용으로 분리하는 재설계까지 검토.
+
+## G. 이번 세션 전체 검증 상태
+- `sizing_recipe.py` self-test: PASS(exit 0, 회귀 없음) -- 여러 차례 재확인.
+- `run_harness_smoke.py`(current_reuse_telescopic_ota, bounds-midpoint): 헤드룸/
+  vds crash 전부 해소, 예상된 K_replica/r_classab_battery 제약에서만 정지(버그
+  아님, 위 D-9).
+- feasible theta(K_replica=하한/r_classab_battery=상한)로 전체 실행: 5개 제약 중
+  4개 통과, classab_centering만 웜스타트 필요(예상대로).
+- **`stick_diagram.py` self-test: FAIL(Test 47, 위 F절) -- 세션27 끝난 시점 기준
+  미해결.** 커밋 전 다음 세션에서 반드시 고칠 것(self-test가 깨진 상태로 커밋하지
+  않는 이 프로젝트 관례 유지).

@@ -1501,6 +1501,150 @@ def suggest_vertical_stack_composites(transistors: list, inputs=(), outputs=(),
              for b in branch_result["branches"]]
 
 
+def suggest_headroom_stack_groups(transistors: list, composites: list | None = None,
+                                    inputs=(), outputs=(), feedbacks=(), biases=(),
+                                    clocks=()) -> dict | None:
+    """2026-08-10(세션27) -- `suggest_vertical_stack_composites()`의 `composites`(idiom
+    경계)를 그대로 `device_roles.*.vertical_stack_id`로 옮기면 헤드룸(`allocate_stack_
+    headroom()`) 배정이 깨질 수 있다는 걸 실측으로 발견하고 만든 후속 함수. 두 질문은
+    다르다 -- **composite**는 "이 소자들이 어떤 회로 idiom인가"(floating-battery,
+    active-load 등, 문서화/`headroom_role` 힌트용으로 여전히 유효)에 답하고, 이 함수가
+    답하는 **헤드룸 그룹**은 "VDS 합이 vdd(또는 그 일부)가 돼야 하는 하나의 전기적
+    컬럼이 뭔가"에 답한다. 실제 사례(`current_reuse_telescopic_ota`): `M11a`/`M11b`
+    (floating-battery composite)와 `M12`(active-load composite)는 같은 `chain`
+    (`VDD-M11a-M11b-M12-GND`, 진짜 물리적 직렬)인데 서로 다른 composite라 서로 다른
+    `vertical_stack_id`로 선언돼 있었다 -- `M11a`/`M11b`만으로 `allocate_stack_headroom()`
+    을 호출하면 cascode role만 있고 나머지를 배분할 'other' role이 없어 assert가 실패했다.
+
+    **알고리즘**: 같은 `chain` 안에서 연속된 composite를 하나의 헤드룸 그룹으로 이어
+    붙이되, **여러 `chain`에 공통으로 나타나는 "허브" 소자**(`M5`/`M6`/`M7`/`M1a`류 --
+    한 tail/입력 소자가 여러 differential branch에서 재사용돼 여러 chain에 등장)를
+    만나면 거기서 멈춘다 -- 허브는 이미 자기 자신의 독립된 그룹이어야 한다(여러 branch가
+    같은 허브를 공유하므로 한 branch의 이웃과 합치면 안 됨). 허브에 바로 인접한(같은
+    chain 안, 병합되지 않은) 비-허브 그룹은 그 허브를 `budget_reference_device`로
+    받는다 -- `trace_vdd_to_gnd_branches()`의 `chain`은 항상 entry_net=vdd에서
+    시작하므로(docstring 참고), 그룹이 이미 `chain[0]`을 포함해 vdd에 직접 닿아있거나
+    `terminates_at="gnd"`이고 chain 끝까지 포함해 gnd에 직접 닿아있으면 그쪽엔 참조가
+    필요 없다 -- 그렇지 않은 한쪽에만 인접 허브를 참조로 단다(양쪽 다 허브에 막힌
+    "폴디드" 그룹은 현재 `budget_reference_device`가 참조 1개만 지원하므로 미지원 --
+    `unsupported_both_sides_hub`로 표시만 하고 참조는 비워둔다, 조용히 잘못 추측하지
+    않는다).
+
+    같은 허브(예: `M5`)가 여러 chain에 반복 등장해도 멤버 집합(frozenset)으로 정규화해
+    항상 같은 그룹으로 dedup한다. 헤드룸 목적이 아닌 순수 단일-소자 하이웨이(허브가 아닌
+    singleton composite, `idiom=None`인 미분류 소자 포함)도 인접 규칙 그대로 적용된다.
+
+    ⚠️ `suggest_vertical_stack_composites()`와 동일 원칙 -- **제안만 한다, topology.json에
+    자동으로 쓰지 않는다.** analog-grammar가 없어 `composites`(인자로 안 주면 내부에서
+    `suggest_vertical_stack_composites()`를 호출)가 `None`이면 이 함수도 `None`을 반환한다.
+
+    반환(있으면): `{"device_to_group": {device: group_id}, "group_ref_device":
+    {group_id: device|None}, "unsupported_both_sides_hub": [group_id, ...]}` --
+    `group_id`는 그룹 멤버 이름을 정렬해 이어붙인 문자열(사람이 읽을 수 있게, 실제
+    이름은 채택 시 자유롭게 바꿔도 됨)."""
+    if composites is None:
+        composites = suggest_vertical_stack_composites(
+            transistors, inputs, outputs, feedbacks, biases, clocks)
+        if composites is None:
+            return None
+
+    chain_membership = defaultdict(int)
+    for branch in composites:
+        for name in set(branch["chain"]):
+            chain_membership[name] += 1
+    hub_names = {name for name, count in chain_membership.items() if count > 1}
+
+    def _is_hub_composite(comp):
+        return any(m in hub_names for m in comp["members"])
+
+    def _explode_mixed(comps):
+        # 2026-08-10 -- composite 하나가 허브+비허브를 섞어 담을 수 있다(실제 사례:
+        # `{M6,M58}` "physical-stack" -- M6은 다른 여러 chain에도 나타나는 허브지만
+        # M58은 이 chain에만 있는 전용 소자다). 섞인 composite를 통째로 "허브 composite"
+        # 취급하면 M58까지 M6의 허브 그룹에 끌려 들어가 M6의 다른 chain에서의 정체성과
+        # 어긋난다 -- 허브 멤버는 1개씩 자기 자신의 원자 composite로, 나머지 비허브
+        # 멤버는 원래 순서를 유지한 채 별도 run으로 쪼갠다(이후 일반 병합 로직이
+        # 정상적으로 처리하도록).
+        out = []
+        for comp in comps:
+            members = comp["members"]
+            if len(members) == 1 or not any(m in hub_names for m in members):
+                out.append(comp)
+                continue
+            buf = []
+            for m in members:
+                if m in hub_names:
+                    if buf:
+                        out.append({"members": buf, "idiom": None, "ports": {}})
+                        buf = []
+                    out.append({"members": [m], "idiom": None, "ports": {}})
+                else:
+                    buf.append(m)
+            if buf:
+                out.append({"members": buf, "idiom": None, "ports": {}})
+        return out
+
+    device_to_key = {}
+    key_ref = {}
+    key_touches_vdd = defaultdict(bool)
+    key_touches_gnd = defaultdict(bool)
+    unsupported = set()
+
+    for branch in composites:
+        comps = _explode_mixed(branch["composites"])
+        n = len(comps)
+        i = 0
+        while i < n:
+            comp = comps[i]
+            if _is_hub_composite(comp):
+                key = frozenset(comp["members"])
+                for m in comp["members"]:
+                    device_to_key.setdefault(m, key)
+                key_ref.setdefault(key, None)
+                i += 1
+                continue
+            run_members = list(comp["members"])
+            j = i + 1
+            while j < n and not _is_hub_composite(comps[j]):
+                run_members.extend(comps[j]["members"])
+                j += 1
+            key = frozenset(run_members)
+            for m in run_members:
+                device_to_key.setdefault(m, key)
+            touches_vdd = (i == 0)
+            touches_gnd = (j == n and branch.get("terminates_at") == "gnd")
+            if touches_vdd:
+                key_touches_vdd[key] = True
+            if touches_gnd:
+                key_touches_gnd[key] = True
+            ref = None
+            if not touches_vdd and i > 0 and _is_hub_composite(comps[i - 1]):
+                ref = comps[i - 1]["members"][0]
+            if not touches_gnd and j < n and _is_hub_composite(comps[j]):
+                ref2 = comps[j]["members"][0]
+                if ref is not None and ref2 != ref:
+                    unsupported.add(key)
+                    ref = None
+                elif ref is None:
+                    ref = ref2
+            existing = key_ref.get(key, "_unset")
+            if existing == "_unset":
+                key_ref[key] = ref
+            elif existing != ref and ref is not None:
+                unsupported.add(key)
+            i = j
+
+    def _group_name(key):
+        return "_".join(sorted(key))
+
+    device_to_group = {m: _group_name(k) for m, k in device_to_key.items()}
+    group_ref_device = {_group_name(k): (None if k in unsupported else v)
+                         for k, v in key_ref.items()}
+    unsupported_names = [_group_name(k) for k in unsupported]
+    return {"device_to_group": device_to_group, "group_ref_device": group_ref_device,
+            "unsupported_both_sides_hub": unsupported_names}
+
+
 def find_differential_pair_candidates(transistors: list, inputs=(), outputs=(),
                                         feedbacks=(), biases=(), clocks=()) -> dict | None:
     """구조적으로 매칭된 branch 쌍(`suggest_vertical_stack_composites()`의 composite

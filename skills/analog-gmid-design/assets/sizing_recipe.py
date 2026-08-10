@@ -2099,7 +2099,14 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     kind = ctx.kind_of[target]
     lut = ctx.spec["lut_by_kind"][kind]
     L, vds, vs = feed_spec["L"], feed_spec.get("vds", 0.6), feed_spec.get("vs", 0.0)
-    gm_target = theta_value * ctx.spec[feed_spec["omega_key"]] * ctx.spec[feed_spec["cap_key"]]
+    omega_key = feed_spec["omega_key"]
+    # 2026-08-10(세션27) -- compensation의 topology_fn이 omega_c 등을 ctx.derived에 노출하면
+    # (예: current_reuse_telescopic_topology()의 Eq.2 omega_c=6.9/t_lln) spec의 손으로 채운
+    # 값보다 우선한다 -- do.md §7.3.1 Level2->Level6 사슬(gm1이 정하는 omega_c가 CMFB 대역폭
+    # 조건의 입력이어야 함)을 실제로 연결. ctx.derived에 없으면(compensation이 이 값을 안
+    # 드러내는 다른 topology_fn) 기존처럼 spec에서 그대로 읽어 하위호환 유지.
+    omega_val = ctx.derived[omega_key] if omega_key in ctx.derived else ctx.spec[omega_key]
+    gm_target = theta_value * omega_val * ctx.spec[feed_spec["cap_key"]]
     result = solve_id_for_target_gm(
         lut, L, vds, vs, feed_spec["W"], gm_target,
         gm_id_bounds=tuple(feed_spec.get("gm_id_bounds", (2.0, 30.0))))
@@ -2110,16 +2117,31 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
 
 def _feed_settling_split(feed_spec, theta_value: float, ctx: SizingContext) -> None:
     """`"settling_split"`(bare 문자열) 또는 `{"type":"settling_split","output_key":...,
-    "total_key":...}` — B엔진에 직접 붙지 않고(§7.3.2 콜아웃 "진짜 예외") `theta_value`(비율)
-    `* ctx.spec[total_key]`를 `ctx.derived[output_key]`에 저장하는 순수 스칼라 파생이다 —
-    이 값을 소비해 실제 gm 목표를 만드는 닫힌식(Level1→3)은 호출자가 `optimize_full_circuit_
-    budget()` 바깥/`topology_fn` 구성 시점에서 이어붙인다."""
+    "total_key":...,"complement_key":...}` — `theta_value`(비율) `* ctx.spec[total_key]`를
+    `ctx.derived[output_key]`에 저장하는 스칼라 파생이다.
+
+    2026-08-10(세션27) -- 이전엔 `output_key`(보통 t_slew)만 채우고 do.md §7.3.1 Level1이
+    말하는 "t_s=t_slew+t_lln 배분"의 나머지 절반(t_lln)은 아무도 계산하지 않아 `_evaluate()`가
+    `optimize_full_circuit_budget()` 바깥/`topology_fn` 구성 시점에서 이어붙여야 한다고
+    문서화만 해둔 채 실제로는 미배선 상태였다(f_slew가 사실상 dead theta였던 원인,
+    `.ai/context.md` 세션27 참고). 이제 `complement_key`(기본 `"t_lln"`)에
+    `total - theta_value*total`도 함께 저장한다 -- `optimize_full_circuit_budget()`의
+    `_evaluate()`가 compensation보다 이 feed를 먼저 적용하고, compensation이
+    `ctx.derived["t_lln"]`을 `spec["t_lln"]`보다 우선해 읽으면 f_slew->t_lln->omega_c->
+    N_cmfb_bw(do.md Level1->2->6) 사슬이 실제로 연결된다. `complement_key=None`을 명시하면
+    이 계산을 건너뛴다(다른 회로가 이 feed를 t_lln과 무관한 순수 스칼라 파생 용도로만
+    쓰고 싶을 때)."""
     if isinstance(feed_spec, str):
-        output_key, total_key = "t_slew", "t_settle_total"
+        output_key, total_key, complement_key = "t_slew", "t_settle_total", "t_lln"
     else:
         output_key = feed_spec.get("output_key", "t_slew")
         total_key = feed_spec.get("total_key", "t_settle_total")
-    ctx.derived[output_key] = theta_value * ctx.spec[total_key]
+        complement_key = feed_spec.get("complement_key", "t_lln")
+    total = ctx.spec[total_key]
+    t_out = theta_value * total
+    ctx.derived[output_key] = t_out
+    if complement_key:
+        ctx.derived[complement_key] = total - t_out
 
 
 def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
@@ -2146,8 +2168,15 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
         idu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
         gm_gds = lut.gm_gds_ratio(gm_id, L, vds, vs)
         gm = gm_id * ID
+        # 2026-08-10(세션27) -- vds는 위에서 LUT 조회에 이미 쓰였는데 entry에 저장하는 걸
+        # 빠뜨리고 있었다(gm/gds/gm_id/kind/vs만 갱신). 헤드룸 배정 루프가 이 소자의 vds를
+        # ctx.sized에서 못 찾아 "미확정"으로 오판하는 실제 버그로 발현(L_cascode/L_stage2out
+        # 대상 소자 M2a/M2b/M3a/M3b/M15/M16/M25/M26 전부 영향 -- M11a/M11b 등 이전 gap들
+        # 때문에 이 지점까지 실행이 도달한 적이 없어 여태 발견되지 않았다). 같은 이유로
+        # classab_centering_dev_v(_metric_rail_referenced_voltage()가 entry["vds"]를 직접
+        # 읽음)도 이 소자들에 대해선 KeyError로 계산 자체가 불가능했을 것.
         entry.update({"L": L, "W": L * ID / idu, "gm": gm, "gds": gm / gm_gds, "gm_id": gm_id,
-                      "kind": kind, "vs": vs})
+                      "kind": kind, "vs": vs, "vds": vds})
 
 
 _THETA_FEED_REGISTRY: dict = {
@@ -2452,12 +2481,30 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         ctx.sized.update({k: dict(v) for k, v in spec.get("known_sizing", {}).items()})
         ctx.mirror_ratios.update(auto_mirror_ratios)
 
+        # 2026-08-10(세션27) -- settling_split feed(f_slew)는 do.md §7.3.1 Level1이
+        # compensation(Level2)의 t_lln 입력을 정하므로, compensation보다 먼저 적용해야
+        # 한다 -- 나머지 A/B/C/A_signed/metric_stage_budget feed는 여전히 compensation
+        # 이후(아래 본 루프)가 맞다(compensation이 정한 ID를 참조하는 게 정상 순서, 바로
+        # 아래 comp 블록 주석 참고). 이름(f_slew)이 아니라 feed **타입**으로 골라내 다른
+        # 회로가 다른 이름을 써도 일반화되게 한다.
+        _presolved_theta_names = set()
+        for theta in thetas:
+            feeds = theta["feeds"]
+            feed_type = feeds if isinstance(feeds, str) else feeds.get("type")
+            if feed_type == "settling_split" and theta["name"] in theta_values:
+                apply_theta_feed(feeds, theta_values[theta["name"]], ctx)
+                _presolved_theta_names.add(theta["name"])
+
         # compensation을 A엔진/theta보다 먼저 실행한다 -- 순서가 중요하다: (1) A엔진의
         # 직렬-스택 전파(예: two_stage_ota의 M3/M4가 M1/M2와 같은 stack_groups 그룹)가
         # compensation이 정한 M1/M2의 ID를 시드로 써야 하고, (2) theta의 "A" root_ratio feed도
         # compensation이 정한 소자의 ID를 참조할 수 있다(예: 배치 7-3 current-reuse의
-        # r_biasgen이 신호경로 총전류를 참조). compensation 자체는 theta/A엔진 결과에
-        # 의존하지 않으므로(topology_fn은 spec만으로 완전 결정) 먼저 실행해도 안전하다.
+        # r_biasgen이 신호경로 총전류를 참조). compensation 자체는 (settling_split을 제외한)
+        # theta/A엔진 결과에 의존하지 않으므로(topology_fn은 spec + 위에서 미리 적용한
+        # settling_split derived값만으로 완전 결정) 먼저 실행해도 안전하다. **2026-08-10
+        # (세션27) 정정** -- "spec만으로 완전 결정"은 더 이상 무조건 참이 아니다: settling_split
+        # feed(f_slew)가 do.md Level1->Level2 사슬대로 t_lln을 정할 수 있어, 위에서 그 feed만
+        # 먼저 적용해뒀다(그 외 모든 theta는 여전히 compensation 이후, 아래 본 루프).
         if comp:
             stage_devices = comp.get("stage_devices")
             if not stage_devices:
@@ -2471,8 +2518,16 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                     "optimize_multistage()의 gm은 topology_fn이 이미 고정하므로 w_max 없이는 "
                     "'전력 최소화'가 'gm/ID를 격자 최대치로'와 같아져 W가 발산한다(문서화된 물성, "
                     "optimize_multistage() docstring 참고) -- spec['stage_w_max']를 지정할 것")
-            topology_fn = _COMPENSATION_REGISTRY[comp["function"]](
-                **{k: spec[k] for k in comp["parameters"]})
+            # 2026-08-10(세션27) -- comp["parameters"] 중 위 settling_split이 이미 ctx.derived에
+            # 채운 키(예: t_lln)가 있으면 spec의 고정값보다 우선한다(omega_c exposed_params와
+            # 같은 우선순위 패턴, 하위호환: derived에 없으면 기존처럼 spec 그대로).
+            comp_params = {k: (ctx.derived[k] if k in ctx.derived else spec[k])
+                           for k in comp["parameters"]}
+            topology_fn = _COMPENSATION_REGISTRY[comp["function"]](**comp_params)
+            # 2026-08-10(세션27) -- topology_fn이 omega_c 등을 exposed_params로 노출하면
+            # ctx.derived에 옮긴다(spec은 읽기 전용 계약이라 여기서 안 건드림) --
+            # _feed_gm_target_convention()이 이걸 spec보다 우선해 읽는다(위 함수 참고).
+            ctx.derived.update(getattr(topology_fn, "exposed_params", {}))
             luts = [spec["lut_by_kind"][kind_of[grp[0]]] for grp in stage_devices]
             comp_result = optimize_multistage(
                 topology_fn, luts, spec["L_candidates"], spec["VDS_candidates"], spec["gm_id_grid"],
@@ -2507,7 +2562,7 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             ctx.sized.setdefault(name, {}).setdefault("ID", idv)
 
         for theta in thetas:
-            if theta["name"] in theta_values:
+            if theta["name"] in theta_values and theta["name"] not in _presolved_theta_names:
                 apply_theta_feed(theta["feeds"], theta_values[theta["name"]], ctx)
 
         # A엔진 2차 패스 seed = compensation + 1차 패스가 이미 정한 ID 전부(위 병합 결과) +
@@ -2581,13 +2636,25 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
 
         vertical_groups = defaultdict(list)
         group_ref_device = {}
+        # 2026-08-10(세션27) -- 헤드룸(VDS 예산) 배분은 "같은 전류"(KCL)가 아니라 "같은
+        # 물리적 vdd~gnd 컬럼"(vertical_stack_id) 기준이어야 한다는 걸 실제로 확인했다.
+        # 한때 stack_id_of(kcl_series_union() 기반)로 바꿔봤으나 two_stage_ota self-test가
+        # 즉시 회귀로 잡아냈다 -- stage1(M3 cascode/M4 cascode/M5 tail)은 vsid로는 한
+        # 컬럼이지만 KCL로는 갈린다(M5는 차동쌍 전체 전류, M3/M4는 각 branch 전류라 "같은
+        # 전류"가 아님 -- 그래도 셋 다 VDD~GND 한 물리적 컬럼이라 VDS 합은 여전히 vdd여야
+        # 함). 즉 M11a/M11b(biasgen_vom_battery_a)/M12(..._sink) 문제의 진짜 원인은
+        # "그룹핑 기준이 틀림"이 아니라 "vsid 선언 자체가 불완전함"(M12가 원래 같은 물리적
+        # 컬럼인데 다른 이름을 받음)이었다 -- 아래에서 vsid 그대로 쓰고, 선언 쪽을
+        # 정정한다(device_roles의 M12/M21 vertical_stack_id를 M11a/M11b, M20a/M20b와
+        # 합침, topology.json 참고).
         for name, dr in device_roles.items():
             vsid = dr.get("vertical_stack_id")
-            if vsid:
-                vertical_groups[vsid].append(name)
-                ref = dr.get("budget_reference_device")
-                if ref:
-                    group_ref_device[vsid] = ref
+            if not vsid:
+                continue
+            vertical_groups[vsid].append(name)
+            ref = dr.get("budget_reference_device")
+            if ref:
+                group_ref_device[vsid] = ref
 
         # 폴디드 캐스코드처럼 한 vertical_stack_id 그룹이 vdd~gnd 전체가 아니라 vdd~(다른
         # 그룹이 이미 확정한 소자의 드레인 전압)만큼만 예산으로 갖는 경우를 위한 선택적 필드
@@ -2608,19 +2675,59 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             members = vertical_groups[vsid]
             # matching_pairs로 묶인 값-동일 그룹(_vfind)당 대표 1개씩만 집계 -- diff pair/미러
             # 쌍의 두 소자를 헤드룸 예산에 중복으로 합산하지 않기 위함(위 _vfind 주석 참고).
-            seen_value_groups = set()
+            # 2026-08-10(세션27) 정정 -- 이전엔 members 리스트에서 "먼저 나온" 소자를 무조건
+            # 대표로 써서 vds 여부를 검사했다. 그런데 값-동일 그룹의 두 소자가 vds를 채우는
+            # 경로가 다를 수 있다(실제 사례: M37a/M37b -- N_cmfb_bw B타입 feed가 target
+            # M37a의 vds를 직접 채우지만, 그 짝을 잇는 N_cmfb_bw_mirror A타입 feed는 전류만
+            # 전파하고 vds는 안 건드림) -- 이 경우 마침 vds 없는 쪽(M37b)이 먼저 나오면 이미
+            # 풀린 그룹을 "미해결"로 오판했다. 그룹 멤버 전체에서 **이미 vds가 있는 소자가
+            # 하나라도 있으면** 그 값을 쓰고(대표를 미리 정하지 않음), 전부 없을 때만 미해결
+            # 대표(headroom_role이 있는 소자 우선)를 고른다.
+            by_vgrp = defaultdict(list)
+            for m in members:
+                by_vgrp[_vfind(m)].append(m)
             known_vds_sum = 0.0
             unresolved = []
-            for m in members:
-                vgrp = _vfind(m)
-                if vgrp in seen_value_groups:
+            for vgrp, group_members in by_vgrp.items():
+                resolved = next((gm for gm in group_members
+                                  if ctx.sized.get(gm, {}).get("vds") is not None), None)
+                if resolved is not None:
+                    known_vds_sum += ctx.sized[resolved]["vds"]
+                    # 2026-08-10(세션27) -- 값-동일 그룹의 다른 멤버가 전류만 전파받고(예:
+                    # N_cmfb_bw_mirror처럼 A타입 mirror feed로만 연결된 M37b) gm_id/L/vds/W/
+                    # gds가 없을 수 있다(headroom_role/gm_id_role 둘 다 없어 아래 두 fill
+                    # 루프에서도 못 채워짐 -- M37a/M37b가 실제 사례, M37a는 N_cmfb_bw B타입
+                    # feed가 자기 완결적으로 다 채우지만 M37b는 전류만 받음). 대표(resolved)와
+                    # 같은 (gm_id,L,vds,vs)를 물려받되 자기 자신의 ID로 W/gm/gds를 LUT에서
+                    # 재계산해 채운다(매칭쌍이므로 같은 물리 사이징을 공유한다는 전제,
+                    # `_feed_metric_stage_budget()`과 동일한 계산 패턴) -- 이미 W가 있는
+                    # 멤버는 건드리지 않는다(하위호환).
+                    ref_entry = ctx.sized[resolved]
+                    for sib in group_members:
+                        sib_entry = ctx.sized.get(sib, {})
+                        if sib == resolved or "W" in sib_entry or "ID" not in sib_entry:
+                            continue
+                        gm_id2, L2 = ref_entry["gm_id"], ref_entry["L"]
+                        vds2, vs2 = ref_entry["vds"], ref_entry.get("vs", 0.0)
+                        kind2 = ctx.kind_of[sib]
+                        lut2 = spec["lut_by_kind"][kind2]
+                        ID2 = sib_entry["ID"]
+                        idu2 = lut2.gm_id_to_id_density(gm_id2, L2, vds2, vs2)
+                        gm_gds2 = lut2.gm_gds_ratio(gm_id2, L2, vds2, vs2)
+                        gm2 = gm_id2 * ID2
+                        sib_entry.update({"gm_id": gm_id2, "L": L2, "vds": vds2, "vs": vs2,
+                                          "kind": kind2, "W": L2 * ID2 / idu2, "gm": gm2,
+                                          "gds": gm2 / gm_gds2})
                     continue
-                seen_value_groups.add(vgrp)
-                vds = ctx.sized.get(m, {}).get("vds")
-                if vds is not None:
-                    known_vds_sum += vds
-                else:
-                    unresolved.append(m)
+                rep = next((gm for gm in group_members
+                            if "headroom_role" in device_roles.get(gm, {})), None)
+                if rep is None:
+                    raise ValueError(
+                        f"'{vsid}' 그룹의 값-동일 소자 {group_members} 전부 vds 미확정이고 "
+                        f"headroom_role도 없다 -- 이 소자들의 vds를 채울 경로(compensation/"
+                        f"metric_stage_budget/headroom_role 중 하나)가 topology.json에 "
+                        f"선언돼 있는지 확인할 것")
+                unresolved.append(rep)
             if not unresolved:
                 continue
             base_budget = spec["vdd"]

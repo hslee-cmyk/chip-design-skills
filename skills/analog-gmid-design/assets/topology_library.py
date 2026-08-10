@@ -311,6 +311,13 @@ def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float, Cc: fl
         gm2 = omega_p2 * (C_Ltot * cgg2 / Cc + cgg2 + C_Ltot)
         return [gmp, gmn, gm2]
 
+    # 2026-08-10(세션27) -- omega_c(Eq.2)는 do.md §7.3.1 Level2->Level6 사슬에서 CMFB
+    # 대역폭조건(N_cmfb_bw)의 입력이어야 하는데, 지금까지는 이 클로저 안에 갇혀 호출자가
+    # 꺼낼 방법이 없었다(N_cmfb_bw는 spec["omega_c"]라는 별도 손채움 상수를 읽어 t_lln과
+    # 무관하게 어긋날 수 있었음). optimize_multistage()/_evaluate()의 기존 반환 계약(gm
+    # 리스트만)을 안 바꾸려고, 함수 속성으로 노출한다 -- sizing_recipe.py의 _evaluate()가
+    # 있으면 ctx.derived로 옮겨 _feed_gm_target_convention()이 spec보다 우선해 읽는다.
+    topology_fn.exposed_params = {"omega_c": omega_c}
     return topology_fn
 
 

@@ -56,7 +56,19 @@
     " \"constraints\": [{\"metric\": \"gain_db\", \"op\": \">=\", \"value\": 75.6}]}",
     "theta[].feeds/metrics[].type의 정확한 enum과 실행 규약은 sizing_recipe.py의",
     "_THETA_FEED_REGISTRY(배치 7-3d)/_METRICS_REGISTRY(배치 7-3, 이 파일)를 정본으로 삼는다 —",
-    "이 주석은 방향만 보여주는 예시이지 스키마 검증기가 아니다."
+    "이 주석은 방향만 보여주는 예시이지 스키마 검증기가 아니다.",
+    "",
+    "**2026-08-10(세션27) theta[].intended_role_type — 위 A/B/C/D 태깅을 실제로 채우는 필드,",
+    "지금까지는 계획(이 주석)만 있고 구현이 없었다.** theta[] 각 항목에",
+    "\"intended_role_type\": \"A\"|\"B\"|\"C\"|\"D\"(do.md §7.3.1 값 그대로)를 채운다 — 이 값은",
+    "'이 theta가 회로상 원래 어떤 역할이어야 하는가'를 가리키며, feeds.type(A/B/C/A_signed/",
+    "settling_split/metric_stage_budget — _THETA_FEED_REGISTRY의 실행 메커니즘 이름)과는",
+    "**다른 축**이다(우연히 같은 글자를 쓰지만 혼동 금지). 실제 구현(feeds가 고르는 메커니즘)이",
+    "intended_role_type이 요구하는 것과 어긋나면(예: B로 역산돼야 하는데 A/D처럼 자유 ratio로",
+    "근사돼 있는 경우) 같은 항목에 \"role_type_gap\": \"...\"으로 그 불일치와 이유를 남긴다 —",
+    "없으면 구현이 의도와 일치한다는 뜻. 목적: 이 gap을 사람이 매번 do.md와 코드를 대조해",
+    "찾는 대신 감사 스크립트가 기계적으로 잡아내게 하는 것(current_reuse_telescopic_ota.",
+    "topology.json의 r_tail_M6/r_tail_M7, L_cascode/L_stage2out이 실제 사례)."
   ],
 
   "device_roles": null,

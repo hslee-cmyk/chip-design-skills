@@ -52,8 +52,9 @@ spec = {
     "Cf": 500e-15,
     "Cs": 500e-15,
     "C_Ltot": 1e-12,
-    "t_settle_total": 6.9 * 30e-9,
-    "omega_c": 6.9 / 30e-9,
+    # 2026-08-10(세션27) 정정 -- run_harness.py와 동일 사유(do.md Level1 총정착시간=40ns).
+    "t_settle_total": 40e-9,
+    "omega_c": 6.9 / 30e-9,  # compensation이 t_lln에서 자동 유도 -- 폴백용으로만 남김.
 }
 
 try:
