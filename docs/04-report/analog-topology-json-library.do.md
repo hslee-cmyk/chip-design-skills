@@ -2033,7 +2033,30 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 | **구현** | `sizing_recipe.py`에 `resolve_stack_layout(transistors, matching_pairs, device_roles, stack_groups_override=None)` 신설. 우선순위 4단계: (1) `stack_groups_override`(spec 명시, 기존 그대로 최우선) → (2) declared `vertical_stack_id`(gap난 소자는 자동으로 안 채우고 singleton으로 남겨 눈에 띄게 함) → (3) 통째로 비어있으면 `refine_differential_and_mirror_relations(transistors)`의 `vertical_stack_id_candidates`(analog-grammar 제안, `inputs=()` 기본값 — 자동 승격 루프로 스스로 입력을 찾음) → (4) analog-grammar도 없으면 `geometry_colocation_union()`(레거시) 최종 폴백. 반환 계약은 `{stack_id:[device,...]}`로 기존 두 union 함수와 동일 — `optimize_full_circuit_budget()`의 `stack_groups_geometry` 계산 한 줄만 이 함수 호출로 교체. |
 | **호출부 범위 재확인** | B-5-3은 4곳(`assign_finger_geometry`/`audit_row_split`/`run_topology_pipeline_with_finger_fixup` + 계산 자체) 교체를 언급했지만, 이 셋은 `assign_finger_geometry()`가 반환하는 `sizing_overrides`의 `stack_id` 필드를 그대로 이어받는 단일 데이터 흐름의 하위 소비자임이 확인돼(`stick_diagram.py:3807` → `run_topology_pipeline()`의 `_dc_replace()` → `split_into_stacks()` → `audit_row_split()`) 별도 수정이 불필요했다. |
 | **검증** | 스모크테스트 3가지: (a) `current_reuse_telescopic_ota`(declared 경로) — 51개 소자 전부 declared `vertical_stack_id`와 100% 일치하는 32개 그룹, `M8+M9a`/`M9b+M10` 분리 정확. (b) `stack_groups_override` 최우선 확인. (c) `folded_cascode`(declared 전무 → candidates 폴백, **배치 7 최초로 51소자 회로 밖 교차검증**) — `device_roles` 완전히 빈 상태에서도 크래시 없이 13개 소자 전부 11개 그룹(물리적으로 타당한 제안 + `ambiguous_M5`/`ambiguous_M6` singleton 격리)으로 분할. 회귀: `stick_diagram.py` self-test 46개 + `sizing_recipe.py` 전체 self-test(exit 0, PASS 62줄, `assertion`/`traceback` 0건) 전부 유지 — `optimize_full_circuit_budget()`을 실배선으로 태우는 L5 테스트(M9b/M18b euler-blocked 자동해결)도 기존과 동일하게 PASS. |
-| **정직한 한계** | `folded_cascode`의 candidates 경로는 `resolve_stack_layout()` 자체만 독립 검증됐다 — 그 결과 그룹이 `assign_finger_geometry()`의 finger_w 탐색부터 `audit_row_split()`까지 전체 파이프라인을 끝까지 통과하는지는 미검증(`folded_cascode.topology.json`에 `sizing_roles` 자체가 아직 없어 `optimize_full_circuit_budget()` end-to-end 실행의 선행 조건이 별도로 필요). `ports`(topology.json 선언, 있으면) 파싱은 안 함 — candidates 경로는 `inputs=()` 기본값과 자동 승격 루프에만 의존한다(정직한 축소, 필요해지면 추가). 상세 경위는 `.ai/context.md` "## I. 세션26" 참고. |
+| **정직한 한계** | `folded_cascode`의 candidates 경로는 `resolve_stack_layout()` 자체만 독립 검증됐다 — 그 결과 그룹이 `assign_finger_geometry()`의 finger_w 탐색부터 `audit_row_split()`까지 전체 파이프라인을 끝까지 통과하는지는 미검증(`folded_cascode.topology.json`에 `sizing_roles` 자체가 아직 없어 `optimize_full_circuit_budget()` end-to-end 실행의 선행 조건이 별도로 필요). `ports`(topology.json 선언, 있으면) 파싱은 안 함 — candidates 경로는 `inputs=()` 기본값과 자동 승증 루프에만 의존한다(정직한 축소, 필요해지면 추가). 상세 경위는 `.ai/context.md` "## I. 세션26" 참고. |
+
+---
+
+### 배치 7-6c — `audit_vertical_stack_id_vs_kcl()`: declared `vertical_stack_id`와 `kcl_series_union()` 정합성 감사 + `resolve_stack_layout()` 게이트 연결 (신규, 같은 날 배치 7-6b 직후) ✅ 구현 완료(2026-08-10)
+
+> **배경**: 배치 7-6b 직후 사용자가 "declared `vertical_stack_id`를 `stack_groups_kcl`
+> (`kcl_series_union()`)에도 쓸 수 있지 않냐"는 근본 질문을 제기 — 두 가지를 실측으로
+> 확인하며 논의가 이어졌다: (1) `M9a`/`M9b`류 floating-current-source가 `Vg15`/`Vop1`
+> 3-branch KCL 허브라 단순 union-find로 못 푸는 정상 사례라는 것(`propagate_topology_
+> forced_currents()`가 스스로 범위 밖이라 밝힌 그 케이스), (2) `M11a`/`M11b`(선언
+> `biasgen_vom_battery_a`)와 `M12`(선언 `biasgen_vom_battery_a_sink`)가 `N11b` 2단자로
+> 진짜 직렬 KCL 관계인데도 사람이 기능 이름 경계로 다른 `vertical_stack_id`를 붙여둔
+> 실제 사례 — "탐색 범위를 declared vsid로 제한하면 이 진짜 관계를 놓친다"는 구체적
+> 반례. 이 두 반례가 "vertical_stack_id는 KCL 탐색 입력으로 못 쓰지만, 사후 대조표로는
+> 쓸 수 있다"는 결론으로 이어졌다.
+
+| | 내용 |
+|---|---|
+| **문제** | declared `vertical_stack_id`(37/37~51/51 신뢰도로 끌어올린 값, 세션24~25)가 KCL 현실과 실제로 정합하는지 확인할 방법이 없었다 — `resolve_stack_layout()`(7-6b)이 이 값을 그대로 신뢰해 레이아웃 그룹을 만들지만, declared 값 자체의 내적 일관성(예: 선언 실수로 무관한 두 소자를 같은 vsid로 잘못 묶는 경우)을 검증하는 장치가 없었다. |
+| **구현** | `stick_diagram.py`에 `audit_vertical_stack_id_vs_kcl(transistors, matching_pairs, device_roles) -> dict` 신설(`geometry_colocation_union()` 바로 뒤 배치). `kcl_series_union()`이 union에 쓰는 것과 동일한 두 edge 종류(내부 2단자 net + declared `current_forced` matching_pairs)를 독립 재구성해, declared vsid와 갈리는 지점마다 원인을 자동 분류: `boundary_findings`(kcl은 같은데 vsid가 다름 — `internal_series`\|`declared_matching_pair`로 항상 설명 가능, 한쪽만 선언되면 `note`에 gap 표시) / `hub_findings`(vsid는 같은데 kcl이 갈림 — 그룹 멤버가 쓰는 net 중 3+단자인 `candidate_hub_nets`로 원인 후보 제시, 비어있으면 review 대상). 아무것도 자동으로 고치지 않는다(대조표만). |
+| **harness 연결 지점** | 후보 3곳(`optimize_full_circuit_budget()` 직접 / `load_topology()` / `resolve_stack_layout()`) 비교 검토 — 앞의 둘은 "AI는 이 함수 하나만 호출"이라는 단일 진입점 계약, 또는 vsid와 무관한 호출이 대부분이라는 이유로 제외. `resolve_stack_layout()`이 `vertical_stack_id`를 실제로 신뢰해 계산에 쓰는 유일한 지점이고 인자 구성도 정확히 일치해 이곳으로 결정(사용자 확인). declared 분기(tier 2) 진입 직전에 이 audit을 호출 — `hub_findings`의 `candidate_hub_nets`가 비었거나 `boundary_findings`에 gap이 있으면 **`ValueError`로 즉시 중단**(사용자 확정: "review 대상 있으면 명시적 에러" — 배치 7-3d의 "선언 누락시 즉시 에러" 원칙과 대칭). candidates 폴백(tier 3)에는 적용 안 함(analog-grammar가 이미 `ambiguous_*`로 자기 불확실성을 표시하므로) — 이 범위는 재검토 여지 있음(§7.9 신규 질문). |
+| **검증** | `stick_diagram.py` Test 47(신설) — `current_reuse_telescopic_ota.topology.json` 실회로(51소자, 손타이핑 없음)로 `M11b`/`M12`(`internal_series`, `N11b`)와 `M9a`/`M9b`·`M18a`/`M18b`(4개 declared 그룹 전부 `Vg15`/`Vg25` 3+단자 허브) 둘 다 정확히 분류됨을 확인, 원인불명 hub 0건·gap 0건. `sizing_recipe.py` L5b(신설) — (a) 같은 실회로로 게이트 통과 확인 (b) 완전히 무관한 두 2단자 직렬쌍을 합성 fixture로 만들어 그중 두 소자만 declared vsid로 잘못 합친 뒤 `ValueError`가 정확히 나는지 확인. 회귀: `stick_diagram.py` self-test 47개 + `sizing_recipe.py` 전체 self-test 둘 다 exit 0. |
+| **정직한 한계 / 이월** | candidates 경로(tier 3)에도 이 audit을 적용할지는 미결정(설계 시점 판단으로 보류, 실측 검증 없음). 이 논의 초반에 발견된 별개 문제 — `folded_cascode`의 `M1`/`M2`·`M3`/`M4`가 서로 다른 vsid 그룹에 흩어져 매칭품질(3b/3c)이 깨지는 것 — 은 사용자와 해법("declared `matching_pairs`로 인접 작은 그룹을 병합하는 새 함수, `geometry_colocation_union()` 자체는 안 건드림, 기본은 `current_forced=True`만 — 세션9/10의 "전체 matching_pairs 병합은 dx 악화" 실측 근거 재확인")까지 합의됐으나 이 audit 함수 작업으로 논의가 옮겨가 구현은 아직 착수 전(다음 세션 최우선 후보, `.ai/context.md` "## J-9" 참고). |
 
 ---
 

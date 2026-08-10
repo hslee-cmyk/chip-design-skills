@@ -2949,6 +2949,112 @@ def geometry_colocation_union(netlist: list, matching_pairs: list) -> dict:
     return result
 
 
+def audit_vertical_stack_id_vs_kcl(transistors: list, matching_pairs: list,
+                                    device_roles: dict) -> dict:
+    """L2 축A(`kcl_series_union()`)와 declared `vertical_stack_id`(topology.json
+    `device_roles`)가 서로 다른 질문에 답한다는 걸 2026-08-10 세션 대화에서 실측으로
+    확인한 뒤 만든 감사(audit) 도구 -- **탐색 입력이 아니라 사후 대조표**로 쓴다(대화
+    결론: `vertical_stack_id`로 KCL 탐색 범위를 좁히면 오히려 `M11b`/`M12`처럼 진짜
+    2단자 직렬 관계를 vsid 경계가 가로막아 놓친다, 실측 확인됨 -- 그래서 탐색기가
+    아니라 검증 대상으로 쓴다).
+
+    `kcl_series_union()`이 union할 때 실제로 쓰는 것과 **똑같은 두 종류의 edge**를
+    독립적으로 재구성한다(내부 2단자 net + declared `current_forced` matching_pairs) --
+    이 edge 목록 자체가 "왜 두 소자가 같은 kcl 그룹인가"의 증거이므로, `kcl_series_
+    union()`의 최종 그룹 딕셔너리만 봐서는 알 수 없는 **원인**을 그대로 들고 있다.
+
+    반환 `{"boundary_findings": [...], "hub_findings": [...]}`:
+
+    - **`boundary_findings`**: kcl edge(2단자 직렬 또는 declared 미러쌍)가 실제로
+      **다른 declared `vertical_stack_id`를 잇는 경우** 전부. `kind="internal_series"`
+      면 물리적으로 진짜 이어진 직렬 체인이 사람이 그은 기능적 경계(예:
+      `biasgen_vom_battery_a`→`_battery_a_sink`)를 가로지른다는 뜻(정상 -- 그저
+      "이 vsid 경계는 전기적 경계가 아니라 기능 이름 경계"라는 신호), `kind=
+      "declared_matching_pair"`면 선언된 미러쌍이 서로 다른 물리적 branch에 있다는
+      뜻(항상 정상 -- 미러 출력은 원래 다른 위치). 둘 다 review 불필요한 정상
+      케이스지만, **한쪽만 `vertical_stack_id`가 선언**된 edge는 `note`에 gap으로
+      표시 -- 이건 사람이 채워야 할 진짜 gap.
+    - **`hub_findings`**: 하나의 declared `vertical_stack_id` 그룹의 멤버들이 kcl로는
+      **여러 그룹으로 갈리는 경우** -- `candidate_hub_nets`에 그 그룹 멤버가 쓰는 net
+      중 3단자 이상인 것(원인 후보)을 전부 나열한다. 후보가 있으면 `M9a`/`M9b`류
+      floating-current-source처럼 "물리적으론 한 기능블럭이지만 전류는 3-branch
+      KCL이라 단순 union-find로 못 푸는" 정상 케이스(수치 MNA가 필요할 수 있다는
+      신호). **후보가 비어있으면(`candidate_hub_nets=[]`) 진짜 review 대상** --
+      3단자 이상 net도 없이 kcl이 갈렸다는 건 간접 연결(다른 소자를 거친 declared
+      pair 체인 등)이거나 declared `vertical_stack_id` 자체가 재검토가 필요하다는
+      뜻일 수 있다.
+
+    ⚠️ 이 함수는 아무것도 자동으로 고치거나 topology.json에 쓰지 않는다 -- 대조표만
+    낸다(이 프로젝트 전역 원칙: 제안만, 최종 판단은 사람)."""
+    net_uses: dict = defaultdict(list)
+    for t in transistors:
+        net_uses[t.source].append(t.name)
+        net_uses[t.drain].append(t.name)
+
+    edges = []
+    for net, uses in net_uses.items():
+        if net in _RAIL_NETS:
+            continue
+        if len(uses) == 2 and uses[0] != uses[1]:
+            edges.append((uses[0], uses[1], "internal_series", net))
+    for names in matching_pairs:
+        for a, b in zip(names, names[1:]):
+            edges.append((a, b, "declared_matching_pair", None))
+
+    parent = {t.name: t.name for t in transistors}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    for a, b, _kind, _detail in edges:
+        union(a, b)
+
+    vsid_of = {name: entry.get("vertical_stack_id")
+               for name, entry in device_roles.items()
+               if isinstance(entry, dict) and entry.get("vertical_stack_id")}
+
+    boundary_findings = []
+    for a, b, kind, detail in edges:
+        va, vb = vsid_of.get(a), vsid_of.get(b)
+        if va is not None and vb is not None and va != vb:
+            boundary_findings.append({"pair": (a, b), "kcl_reason": kind, "detail": detail,
+                                       "vsid_a": va, "vsid_b": vb, "note": None})
+        elif (va is None) != (vb is None):
+            boundary_findings.append({"pair": (a, b), "kcl_reason": kind, "detail": detail,
+                                       "vsid_a": va, "vsid_b": vb,
+                                       "note": "한쪽만 vertical_stack_id 선언됨(gap)"})
+
+    by_name = {t.name: t for t in transistors}
+    vsid_groups: dict = defaultdict(list)
+    for name, vsid in vsid_of.items():
+        vsid_groups[vsid].append(name)
+
+    hub_findings = []
+    for vsid, members in vsid_groups.items():
+        kcl_ids = {find(m) for m in members if m in parent}
+        if len(kcl_ids) > 1:
+            member_nets = set()
+            for m in members:
+                t = by_name[m]
+                member_nets.add(t.source)
+                member_nets.add(t.drain)
+            hub_nets = sorted((n, len(net_uses[n])) for n in member_nets
+                               if n not in _RAIL_NETS and len(net_uses.get(n, [])) >= 3)
+            hub_findings.append({"vsid": vsid, "members": sorted(members),
+                                  "kcl_subgroup_count": len(kcl_ids),
+                                  "candidate_hub_nets": hub_nets})
+
+    return {"boundary_findings": boundary_findings, "hub_findings": hub_findings}
+
+
 # ---------------------------------------------------------------------------
 # 2.5) Finger 폭 정합성 검사 — 오일러 조건보다 먼저 확인해야 하는 더 기본적인 제약
 # ---------------------------------------------------------------------------
@@ -8894,3 +9000,52 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 46 전체 PASS ===")
+
+    print()
+    print("=== Test 47: audit_vertical_stack_id_vs_kcl() -- declared vertical_stack_id와")
+    print("  kcl_series_union()의 불일치를 internal_series/declared_matching_pair/")
+    print("  multi_terminal_hub로 자동 분류하는지(2026-08-10 세션 대화, 사용자와 함께")
+    print("  M11b/M12 진짜 직렬 체인 + M9a/M9b류 floating-current-source 3-branch 허브")
+    print("  두 반례를 실측으로 확인한 뒤 신설) current_reuse_telescopic_ota.topology.json")
+    print("  실회로(51소자)로 검증 -- 손타이핑 넷리스트 없음 ===")
+    import os as _os47
+    _lib47 = _os47.path.join(_os47.path.dirname(_os47.path.abspath(__file__)), "library")
+    _t47_trs, _t47_meta = load_topology(
+        _os47.path.join(_lib47, "current_reuse_telescopic_ota.topology.json"))
+    _t47_pairs_meta = _t47_meta["symmetry"]["matching_pairs"]
+    _t47_forced = [tuple(p["names"]) for p in _t47_pairs_meta if p["current_forced"]]
+    _t47_device_roles = {k: v for k, v in (_t47_meta.get("device_roles") or {}).items()
+                          if not k.startswith("_")}
+    _t47_result = audit_vertical_stack_id_vs_kcl(_t47_trs, _t47_forced, _t47_device_roles)
+
+    _t47_m11b_m12 = [f for f in _t47_result["boundary_findings"]
+                      if set(f["pair"]) == {"M11b", "M12"}]
+    assert len(_t47_m11b_m12) == 1, f"M11b/M12 경계가 안 잡힘: {_t47_m11b_m12}"
+    assert _t47_m11b_m12[0]["kcl_reason"] == "internal_series" and _t47_m11b_m12[0]["detail"] == "N11b", \
+        f"M11b/M12는 N11b 2단자 직렬이 원인이어야 하는데: {_t47_m11b_m12[0]}"
+    print("    PASS: M11b(biasgen_vom_battery_a)/M12(biasgen_vom_battery_a_sink) -- "
+          "N11b 2단자 직렬(진짜 KCL 체인)이 declared vsid 기능 경계를 가로지름을 정확히 검출")
+
+    _t47_hub_by_vsid = {f["vsid"]: f for f in _t47_result["hub_findings"]}
+    for _vsid, _hub_net, _terminals_min in [
+            ("biasgen_vom_a", "Vg15", 3), ("biasgen_vom_floatsrc_sink", "Vg15", 3),
+            ("biasgen_vop_a", "Vg25", 3), ("biasgen_vop_floatsrc_sink", "Vg25", 3)]:
+        assert _vsid in _t47_hub_by_vsid, f"{_vsid} hub_finding 누락"
+        _nets = dict(_t47_hub_by_vsid[_vsid]["candidate_hub_nets"])
+        assert _nets.get(_hub_net, 0) >= _terminals_min, \
+            f"{_vsid}: {_hub_net}가 {_terminals_min}단자 이상 허브로 안 잡힘: {_nets}"
+    print("    PASS: M9a/M9b(Vg15/Vop1)·M18a/M18b(Vg25/Vom1) floating-current-source 4개")
+    print("    declared 그룹 전부 3+단자 허브(candidate_hub_nets)로 정확히 설명됨 -- ")
+    print("    kcl_series_union()의 union-find로는 못 푸는 3-branch KCL이라는 신호 그대로 반환")
+
+    _t47_unexplained_hubs = [f for f in _t47_result["hub_findings"] if not f["candidate_hub_nets"]]
+    _t47_gaps = [f for f in _t47_result["boundary_findings"] if f["note"]]
+    assert _t47_unexplained_hubs == [], \
+        f"실회로에서 원인 불명 hub_finding이 나오면 안 됨(이번 회로는 완전 정합): {_t47_unexplained_hubs}"
+    assert _t47_gaps == [], \
+        f"실회로에서 vertical_stack_id gap이 나오면 안 됨(51/51 선언 완료 회로): {_t47_gaps}"
+    print(f"    PASS: candidate_hub_nets 없는 review 대상 0건, vsid gap 0건 -- "
+          f"declared vertical_stack_id가 이 회로의 KCL 현실과 완전히 정합함을 재확인")
+
+    print()
+    print("  === Test 47 전체 PASS ===")

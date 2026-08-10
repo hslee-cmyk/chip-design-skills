@@ -1,36 +1,52 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션26 완료 — `resolve_stack_layout()` 신설.
-당초 B-5-3 설계 스케치(그룹별 finger_w 탐색/오일러 재시도/매칭 완화까지 전부 새로
-오케스트레이션)는 정밀조사 결과 대부분 이미 구현·배선돼 있었음이 드러나 실제로 채운
-구멍은 **1차 물리 그룹 분할 경계**(`stack_groups_geometry`)를 자동추론
-(`geometry_colocation_union()`) 대신 declared `vertical_stack_id`로 대체하는 것 하나뿐.
-`sizing_recipe.py`에 `resolve_stack_layout()` 신설(우선순위: `stack_groups_override` >
-declared `vertical_stack_id` > analog-grammar candidates > `geometry_colocation_union()`
-레거시 폴백), `optimize_full_circuit_budget()`의 해당 계산 한 줄만 교체 — 나머지 3개
-소비 함수(`assign_finger_geometry`/`run_topology_pipeline_with_finger_fixup`/
-`audit_row_split`)는 이 값을 이어받는 단일 데이터 흐름의 하위 소비자라 별도 수정
-불필요(실측 확인). `current_reuse_telescopic_ota`(declared 경로, 51/51 일치) +
-`folded_cascode`(declared 전무 → candidates 폴백 경로, 새 회로 첫 교차검증)로 실측
-검증, `stick_diagram.py` 46개 + `sizing_recipe.py` 전체 self-test 회귀 없음. 상세는
-아래 "## I" 참고.)
+# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션26 후속 완료 — `audit_vertical_stack_id_
+vs_kcl()` 신설 + `resolve_stack_layout()` declared 경로에 사전 감사 게이트 연결.
+`resolve_stack_layout()`(세션26 본편, "## I" 참고) 신설 직후 사용자와 "declared
+`vertical_stack_id`를 `stack_groups_kcl`에도 쓸 수 있지 않냐"는 근본 질문을 주고받다가,
+실측으로 (a) declared 미러쌍이 서로 다른 물리 branch에 있어 `kcl_series_union()`
+에서만 잡히는 경우(정상)와 (b) `M9a`/`M9b`류 floating-current-source가 3-branch
+KCL 허브라 declared로는 한 그룹인데 `kcl_series_union()`으로는 못 묶이는 경우(정상,
+MNA 필요)를 실제 회로에서 각각 확인 — 이걸 자동 분류하는 `audit_vertical_stack_id_
+vs_kcl()`(`stick_diagram.py`)을 신설했다. `resolve_stack_layout()`의 declared 분기
+앞단에 이 audit을 게이트로 연결(사용자 확정: review 대상 있으면 즉시 `ValueError`)
+— `optimize_full_circuit_budget()`의 "선언 누락시 즉시 에러" 원칙과 대칭. 실회로
+(51소자, 정합) + 합성 반례(원인불명 hub, 에러 유발) 둘 다 self-test로 검증,
+`stick_diagram.py` 47개(Test 47 신설) + `sizing_recipe.py` 전체(L5b 신설) self-test
+회귀 없음. 상세는 아래 "## J" 참고. 세션26 본편(`resolve_stack_layout()` 자체)은
+"## I" 참고.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
-## 다음 세션 최우선 — `resolve_stack_layout()` 신설 후 남은 이월 항목
+## 다음 세션 최우선 — `resolve_stack_layout()`/audit 게이트 신설 후 남은 이월 항목
 
-`resolve_stack_layout()` 자체는 세션26에 신설·검증 완료(아래 "## I" 참고). 남은 항목:
+`resolve_stack_layout()`(세션26 본편, "## I")과 `audit_vertical_stack_id_vs_kcl()`
++ declared 경로 감사 게이트(세션26 후속, "## J")는 신설·검증 완료. 남은 항목:
 
-1. **`folded_cascode`(candidates 폴백 경로) end-to-end 미검증** — 이번 세션은
-   `resolve_stack_layout()` 함수 자체만 독립적으로 스모크테스트했다(11개 그룹으로
-   정확히 분할되는 것까지만 확인). 그 그룹이 실제로 `optimize_full_circuit_budget()`
-   전체 파이프라인(`assign_finger_geometry()`의 finger_w 탐색 → euler fixup → audit)을
-   끝까지 통과하는지는 아직 안 태워봤다 — `folded_cascode.topology.json`엔
-   `sizing_roles`도 아직 없어서(이전 세션 기록 참고) 그 자체가 선행 조건이 될 수
-   있다. `ambiguous_M5`/`ambiguous_M6`류(candidates가 못 푼 소자를 singleton으로
-   격리한 결과)가 finger_w 탐색 단계에서 실제로 문제없이 처리되는지도 미확인.
-2. **`do.md` 문서화 누락** — `resolve_stack_layout()`을 do.md의 "배치 7-3x" 넘버링
-   체계에 아직 추가하지 않았다(코드 docstring + 이 파일에만 기록됨).
-3. `run_harness.py` 실전략 — 세션22부터 계속 이월, 이번 세션도 미착수.
+1. **`folded_cascode`(candidates 폴백 경로) end-to-end 미검증** — `resolve_stack_
+   layout()` 함수 자체만 독립적으로 스모크테스트했다(11개 그룹으로 정확히 분할되는
+   것까지만 확인). 그 그룹이 실제로 `optimize_full_circuit_budget()` 전체 파이프라인
+   (`assign_finger_geometry()`의 finger_w 탐색 → euler fixup → audit)을 끝까지
+   통과하는지는 아직 안 태워봤다 — `folded_cascode.topology.json`엔 `sizing_roles`도
+   아직 없어서(이전 세션 기록 참고) 그 자체가 선행 조건이 될 수 있다. `ambiguous_M5`/
+   `ambiguous_M6`류(candidates가 못 푼 소자를 singleton으로 격리한 결과)가 finger_w
+   탐색 단계에서 실제로 문제없이 처리되는지도 미확인.
+2. **`audit_vertical_stack_id_vs_kcl()` 게이트를 candidates 경로(3번)에도 적용할지
+   재검토** — 세션26 후속 결론은 "declared만 게이트, candidates는 analog-grammar
+   자체의 `ambiguous_*` 격리로 이미 불확실성을 표시하니 별도 audit 불필요"였다(설계
+   시점 판단, 실제로 candidates 결과에 이 audit을 돌려서 review 대상이 나오는지는
+   미검증 -- `folded_cascode`로 확인해볼 가치 있음, 특히 item1과 묶어서).
+3. **매칭쌍 기반 그룹 병합(`merge_layout_groups_by_matching_pairs()`, 가칭) 미착수**
+   — 세션26 후속 대화에서 사용자가 제안하고 설계까지 합의된 방향("`_propose_vertical_
+   stack_id()`를 base로 삼고, 인접한 작은 그룹을 declared `matching_pairs`(기본
+   `current_forced=True`만, 세션9/10 dx 악화 사례 근거)로 묶어 layout에 적당한 크기로
+   재구성 -- 새 함수로 분리, `geometry_colocation_union()` 자체는 안 건드림")인데,
+   대화가 "vertical_stack_id를 stack_groups_kcl에 쓸 수 있는가" 근본 질문으로
+   샜다가 audit 함수 신설로 이어져 정작 이 병합 함수 구현은 착수하지 못했다. 다음
+   세션 최우선 후보 -- `folded_cascode` M1/M2·M3/M4가 서로 다른 declared/candidates
+   그룹에 흩어져 매칭품질(3b/3c)이 깨지는 문제(세션26 후속 대화 초반 실측)를 이게
+   직접 해결한다. `resolve_stack_layout()`의 tier 2(declared)/3(candidates) 둘 다에
+   적용하는 것으로 설계 합의됨(tier 4 legacy는 안 건드림).
+4. `run_harness.py` 실전략 — 세션22부터 계속 이월, 이번 세션도 미착수.
 
 ### (아래는 세션26 착수 전 남아있던 기존 설계 스케치 원문, 참고용으로 보존)
 
@@ -4396,3 +4412,123 @@ PASS 62줄 포함) — `optimize_full_circuit_budget()`을 실배선으로 태�
 ### I-4. 알려진 한계 / 다음 세션 이월
 "다음 세션 최우선" 절 참고 — `folded_cascode` candidates 경로의 end-to-end(전체
 파이프라인) 미검증, `do.md` 문서화 누락, `run_harness.py` 실전략 계속 이월.
+
+## J. 세션26 후속(2026-08-10, 같은 날 이어서) — `audit_vertical_stack_id_vs_kcl()`
+신설 + `resolve_stack_layout()` declared 경로 감사 게이트
+
+### J-1. 발단 -- "vertical_stack_id를 stack_groups_kcl에도 쓸 수 있지 않냐"
+`resolve_stack_layout()`(I절) 완료 직후, 사용자가 `geometry_colocation_union()`의
+동작을 설명해달라고 요청 → 그 설명 중 `M6`/`M5`(folded_cascode)가 서로 다른 두
+declared matching_pair(`M1/M2`, `M3/M4`)의 "위에 얹힌 유일한 소자"로 동시에 잡혀
+`find_stacked_matching_candidates()`가 이 둘을 조용히 하나로 묶어버리는 실제 사고를
+`find_stack_edges()`/`find_stacked_matching_candidates()` 실측으로 확인(각 base pair
+입장에선 후보가 1개뿐이라 로컬하게는 모호하지 않지만, 전역적으로는 두 서로 다른
+matching_pair를 잇는 다리가 됨). 사용자가 이어서 "그럼 `vertical_stack_id`를
+KCL(`stack_groups_kcl`) 쪽에도 쓸 수 있지 않냐"는 근본 질문을 던짐 -- 여기서부터
+이 절이 시작된다.
+
+### J-2. rail 제외 이유 재확인 + floating-current-source 실측
+사용자 질문 1: "같은 vdd/gnd로 연결된 branch는 전류 통로가 될 수 있잖아?" → rail이
+전류 통로가 아니라는 게 아니라, "이 net을 쓰는 단자가 정확히 2개"라는 카운팅이
+rail(회로 전체가 물려있는 net)에서는 통계적으로 무의미해진다는 걸 재확인(`two_stage_
+ota`의 `M5`/`M7`이 우연히 `gnd`를 2번만 써서 거짓 KCL 관계를 만들었던 실제 사례
+재인용).
+
+사용자 질문 2: `M9a`/`M9b`(floating current source, Monticelli class-AB battery)의
+전하보존이 어떻게 되는가 → 실제 netlist 확인 결과, `M9a`(`source=Vg15,drain=Vop1`)와
+`M9b`(`source=Vop1,drain=Vg15`)는 **직렬이 아니라 같은 두 노드(`Vg15`↔`Vop1`) 사이를
+잇는 병렬 경로**임을 발견. `Vg15`는 `M8.drain`+`M9a.source`+`M9b.drain` 3단자,
+`Vop1`은 `M9a.drain`+`M9b.source`+`M10.drain` 3단자 -- 둘 다 `I_상류 = I_M9a + I_M9b`
+류 진짜 3-branch KCL 연립방정식이라 `propagate_topology_forced_currents()`의 2-규칙
+엔진(docstring이 스스로 "3개 이상 branch 합류 노드는 범위 밖"이라 명시)으로는 원천적
+으로 못 푼다 -- 세션19~21이 이 floating battery를 수치 MNA(`_telescopic_class_ab_
+open_loop_gains()`류, ngspice 대조 오차 0.0002%)로 별도로 풀었던 이유가 바로 이것임을
+재확인(`M18a`/`M18b`/`Vg25`/`Vom1` 쪽도 완전히 동일 구조로 대칭 확인).
+
+### J-3. `trace_vdd_to_gnd_branches()`로 "vdd→gnd branch = KCL"이라는 직관 검증
+사용자가 재질문: "정확히는 vdd부터 gnd로 흐르는 전류를 따진 vertical-stack-id 측면이
+있지 않냐" → 세션23이 이미 만들어둔 `trace_vdd_to_gnd_branches()`/`trace_gnd_to_vdd_
+branches()`(kind별 entry/exit 고정, 진짜 전류방향 추적)를 `M8`/`M9a`/`M9b`/`M10`
+영역에 직접 실행. 결과: `['M8','M9a','M10']`과 `['M8','M9b','M10']`이 **서로 다른
+branch 2개**로 갈라져 나옴(M8에서 이미 fan-out) -- "같은 vdd→gnd branch"와 "같은
+전류"가 **분기 없는 구간에서는 같은 말이지만, 허브(분기점)에서는 서로 다른 질문이
+된다**는 걸 실행 결과로 확인. 세션23이 "vertical_stack_id를 이 함수로 자동 확정 못한다"
+고 내렸던 결론(허브 공유/matching_sensitivity 경계 분할 두 이유)과 정확히 같은 결론에
+독립적으로 재도달.
+
+### J-4. "vertical_stack_id를 KCL 탐색의 기본 branch로 쓰면 이득이 있는가" -- 실측으로 기각
+사용자가 구체적으로 제안: `vertical_stack_id`를 kcl 탐색 범위(base search branch)로
+활용하면 이득이 있는지 분석 요청. `kcl_series_union()`이 이미 **전역 완전탐색**(net
+이름은 유일하므로 범위를 좁혀도 더 찾을 게 없음)이라는 걸 먼저 확인한 뒤, "범위를
+좁히면 오히려 놓치는 사례가 있는가"를 실측 -- **찾았다**: `M11a`/`M11b`(직렬,
+`biasgen_vom_battery_a`)와 `M12`(`biasgen_vom_battery_a_sink`, **다른** declared
+그룹)가 `N11b`(정확히 2단자)로 진짜 직렬 KCL 관계인데, 사람이 기능 이름 경계
+(battery vs sink)로 다른 vsid를 붙여놨다(`kcl_series_union()`으로 실측 확인: `M11b`/
+`M12` 같은 kcl 그룹 = `True`). **탐색 범위를 declared vsid로 제한했다면 이 진짜 KCL
+관계를 놓쳤을 것** -- 이득 없음을 넘어 실제 회귀(false negative)를 만든다는 걸
+구체적 반례로 확정. 대신 "탐색 입력이 아니라 사후 대조표(비교/감사)로 쓰면 이득이
+있다"는 방향으로 제안 전환 -- 51소자 실회로에서 kcl 그룹(17개) vs declared vsid
+그룹(32개)을 전수비교해 69쌍 불일치를 미리 확인, 전부 두 패턴(declared 미러쌍이
+다른 branch에 있음 / 3+단자 허브라 union-find로 못 품)으로 설명됨을 손으로 먼저
+확인한 뒤 다음 항목의 자동화 근거로 삼음.
+
+### J-5. `audit_vertical_stack_id_vs_kcl()` 신설(`stick_diagram.py`, `geometry_
+colocation_union()` 바로 뒤)
+`kcl_series_union()`이 union할 때 쓰는 것과 **똑같은 두 종류 edge**(내부 2단자 net +
+declared `current_forced` matching_pairs)를 독립 재구성해 union-find를 다시 돌리고,
+declared `vertical_stack_id`와 실제로 갈리는 지점마다 원인을 자동 분류:
+- `boundary_findings`: kcl edge가 서로 다른 declared vsid를 잇는 경우 -- `kind=
+  "internal_series"`(진짜 직렬, 기능 경계가 전기 경계를 가로지름, `M11b`/`M12`류)
+  vs `kind="declared_matching_pair"`(선언된 미러쌍, 다른 physical branch, 정상).
+  한쪽만 vsid 선언되면 `note`에 gap 표시.
+- `hub_findings`: 같은 declared vsid인데 kcl로 여러 그룹으로 갈리는 경우 -- 그
+  그룹 멤버가 쓰는 net 중 3+단자인 것을 `candidate_hub_nets`로 자동 탐색(있으면
+  floating-current-source류 정상 케이스, 비어있으면 진짜 review 대상).
+
+⚠️ 아무것도 자동으로 고치거나 topology.json에 쓰지 않는다 -- 대조표만 낸다(프로젝트
+전역 원칙: 제안만, 최종 판단은 사람).
+
+**실회로(51소자) 검증**(Test 47, `stick_diagram.py`, 손타이핑 넷리스트 없음 원칙):
+`M11b`/`M12`가 정확히 `internal_series`(`N11b`)로, `M9a`/`M9b`·`M18a`/`M18b`
+floating-current-source 4개 declared 그룹 전부 `Vg15`/`Vg25`(3+단자) 허브로 정확히
+설명됨. 이 회로는 원인불명 hub 0건, gap 0건 -- declared `vertical_stack_id`가 KCL
+현실과 완전히 정합함을 자동으로 재확인.
+
+### J-6. 최상위 harness 연결 지점 논의 + 사용자 확정
+"이 함수를 어디에 연결해야 하는가" 질문에 세 후보(`optimize_full_circuit_budget()`
+직접, `load_topology()`, `resolve_stack_layout()`)를 비교 -- `optimize_full_circuit_
+budget()`은 "AI는 이 함수 하나만 호출" 단일 진입점 계약과 "선언 **누락**시 에러"
+사전검사 성격이 이 audit("선언은 있는데 **내적 정합성**")과 안 맞고, `load_topology()`
+는 vsid 자체가 관심사 아닌 호출이 대부분이라 너무 이름. `resolve_stack_layout()`이
+`vertical_stack_id`를 실제로 신뢰해 계산에 쓰는 유일한 지점이고 인자(`transistors`/
+`matching_pairs`/`device_roles`)도 audit 함수와 정확히 일치 -- 이곳으로 결정.
+결과 처리 정책 두 안(1. 비차단 로그만 / 2. review 대상 있으면 명시적 에러) 중
+**사용자가 2번(명시적 에러) 확정** -- `optimize_full_circuit_budget()`의 "AI가 그
+자리를 코드로 메우지 않고 신호를 그대로 돌려받는다" 원칙과 대칭.
+
+### J-7. 구현 -- `resolve_stack_layout()` declared 분기에 게이트 연결
+declared 그룹을 조립하기 *전에* `audit_vertical_stack_id_vs_kcl()`을 호출, `hub_
+findings`의 `candidate_hub_nets`가 빈 항목이나 `boundary_findings`의 gap(`note`
+있음) 항목이 하나라도 있으면 `ValueError`(원인 목록을 그대로 메시지에 포함)로 즉시
+멈춘다. `internal_series`/`declared_matching_pair`로 설명되는 boundary나 3+단자
+net으로 설명되는 hub는 항상 정상이라 통과 -- 오직 원인불명 불일치만 막는다.
+candidates 폴백(tier 3)에는 적용 안 함(analog-grammar 제안 자체가 `ambiguous_*`
+격리로 이미 불확실성을 표시하므로) -- 이 범위 결정은 재검토 여지 있음("다음 세션
+최우선" 2번 참고.
+
+### J-8. 검증
+`sizing_recipe.py` L5b(신설, `optimize_full_circuit_budget()`의 L5 테스트 바로
+뒤) -- 두 케이스: (a) `current_reuse_telescopic_ota`(51소자, declared 전수 정합) →
+게이트 통과, 32개 그룹 정상 반환. (b) 합성 fixture(`T1..T4`, 두 개의 완전히 무관한
+2단자 직렬쌍을 declared vsid로 `T1`/`T3`만 `fake_merged`로 잘못 합침, 3+단자 허브도
+전혀 없음) → 예상대로 `ValueError`(메시지에 `vsid="fake_merged"`, `candidate_hub_
+nets=[]` 그대로 노출).
+
+회귀 확인: `stick_diagram.py` self-test 47개(Test 47 포함) + `sizing_recipe.py`
+전체 self-test(L5b 포함) 둘 다 exit 0, `Traceback`/`AssertionError` 0건.
+
+### J-9. 알려진 한계 / 다음 세션 이월
+"다음 세션 최우선" 절 참고 -- candidates 경로에도 이 audit을 적용할지 재검토(2번),
+J-4 대화 초반에 발견된 "matching_pairs로 인접 작은 그룹 병합" 문제(`folded_cascode`
+M1/M2·M3/M4가 서로 다른 vsid 그룹에 흩어져 매칭품질이 깨지는 것)는 설계까지 합의됐지만
+이 절의 대화로 이어지느라 구현 미착수(3번, 다음 세션 최우선 후보).

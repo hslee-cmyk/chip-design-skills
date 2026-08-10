@@ -1967,7 +1967,8 @@ from stick_diagram import (Transistor, load_topology, propagate_topology_forced_
                             suggest_pair_finger_adjustments, PairAdjustmentSuggestion,
                             _branch_composite_pair, _failing_required_pairs,
                             find_min_crossover_layout_with_branch_composite,
-                            refine_differential_and_mirror_relations)
+                            refine_differential_and_mirror_relations,
+                            audit_vertical_stack_id_vs_kcl)
 
 
 @dataclass
@@ -2220,6 +2221,19 @@ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: 
        한 그룹 안에 섞여 신뢰도가 불명확해지므로, 채우는 대신 gap 자체를 눈에 보이게
        남겨 다음 세션에 사람이 채우도록 유도한다(이 프로젝트 반복 패턴, `.ai/context.md`
        세션24 `vertical_stack_id` 15개 gap도 이렇게 손으로 채웠다).
+
+       ⚠️ **2026-08-10 신설(같은 세션 대화 후속)**: declared 값을 그룹으로 조립하기
+       *전에* `audit_vertical_stack_id_vs_kcl()`(`stick_diagram.py`)로 declared
+       `vertical_stack_id`가 KCL 현실과 정합하는지 먼저 확인한다 -- `hub_findings`에
+       `candidate_hub_nets`가 빈(원인 불명) 항목이 있거나 `boundary_findings`에 gap
+       (`note` 있음) 항목이 있으면 **`ValueError`로 즉시 멈춘다**(사용자 확정,
+       "review 대상 있으면 명시적 에러" -- `optimize_full_circuit_budget()`이 필수
+       선언 누락에 이미 적용 중인 "AI가 그 자리를 코드로 메우지 않고 신호를 그대로
+       돌려받는다" 원칙과 동일). `internal_series`/`declared_matching_pair`로 설명되는
+       boundary나 3+ 단자 net으로 설명되는 hub는 전부 정상(항상 있을 수 있는 경우)이라
+       통과 -- 오직 **원인을 알 수 없는** 불일치만 막는다. candidates 폴백(3번)에는
+       적용하지 않는다(analog-grammar 제안 자체가 이미 `ambiguous_*` 격리로 자기
+       불확실성을 표시하므로 별도 audit이 불필요).
     3. declared가 통째로 비어있는 회로(예: `folded_cascode.topology.json` -- 실측 확인
        됨, `device_roles` 키 자체가 없음) -- `refine_differential_and_mirror_relations()`
        의 `vertical_stack_id_candidates`(analog-grammar 기반 제안)로 폴백.
@@ -2244,6 +2258,19 @@ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: 
                 for name, entry in device_roles.items()
                 if isinstance(entry, dict) and entry.get("vertical_stack_id")}
     if declared:
+        audit = audit_vertical_stack_id_vs_kcl(transistors, matching_pairs, device_roles)
+        review_needed = (
+            [f for f in audit["hub_findings"] if not f["candidate_hub_nets"]] +
+            [f for f in audit["boundary_findings"] if f["note"]])
+        if review_needed:
+            raise ValueError(
+                f"declared vertical_stack_id가 KCL 현실과 안 맞는데 원인을 설명할 수 없는 "
+                f"지점이 {len(review_needed)}건 있습니다(audit_vertical_stack_id_vs_kcl()) -- "
+                f"{review_needed}. hub_findings의 candidate_hub_nets가 비어있으면 그 "
+                f"vertical_stack_id 그룹이 왜 KCL로 여러 그룹으로 갈리는지 3+단자 net으로도 "
+                f"설명이 안 된다는 뜻(선언 재검토 필요), boundary_findings에 note가 있으면 "
+                f"한쪽만 vertical_stack_id가 선언된 gap입니다. topology.json의 device_roles를"
+                f" 정정하거나 gap을 채운 뒤 다시 시도하세요.")
         groups = defaultdict(list)
         for name, sid in declared.items():
             groups[sid].append(name)
@@ -3916,6 +3943,49 @@ if __name__ == "__main__":
               f"(growth_rounds={len(_ofcb_result['pipeline_result']['growth_rounds'])}건, "
               f"unresolved_reason={_ofcb_result['pipeline_result'].get('unresolved_reason')}, "
               f"audit_ok={_ofcb_result['audit_ok']})")
+
+    print()
+    print("  [L5b resolve_stack_layout() -- declared vertical_stack_id를 audit_vertical_")
+    print("  stack_id_vs_kcl()로 사전 검증하는 게이트(2026-08-10, 사용자 확정: review 대상")
+    print("  있으면 명시적 에러). 실회로(정합) + 합성 fixture(원인불명 hub, 진짜 에러 유발)")
+    print("  둘 다 확인]")
+    import os as _rsl_os
+    _rsl_lib = _rsl_os.path.join(_rsl_os.path.dirname(_rsl_os.path.abspath(__file__)), "library")
+    _rsl_trs, _rsl_meta = load_topology(
+        _rsl_os.path.join(_rsl_lib, "current_reuse_telescopic_ota.topology.json"))
+    _rsl_pairs_meta = _rsl_meta["symmetry"]["matching_pairs"]
+    _rsl_forced = [tuple(p["names"]) for p in _rsl_pairs_meta if p["current_forced"]]
+    _rsl_device_roles = {k: v for k, v in (_rsl_meta.get("device_roles") or {}).items()
+                          if not k.startswith("_")}
+    _rsl_groups = resolve_stack_layout(_rsl_trs, _rsl_forced, _rsl_device_roles)
+    _rsl_declared_ok = all(v.get("vertical_stack_id") for v in _rsl_device_roles.values()
+                            if isinstance(v, dict))
+    assert _rsl_declared_ok, "이 fixture는 51/51 declared를 전제로 함(회귀 시 다른 검증으로 대체)"
+    _rsl_all_members = sorted(m for members in _rsl_groups.values() for m in members)
+    assert _rsl_all_members == sorted(t.name for t in _rsl_trs), \
+        "감사 게이트 통과 후에도 소자 누락/중복 없어야 함"
+    print(f"    PASS: current_reuse_telescopic_ota(51소자, declared 전수 정합) -- 감사 게이트 "
+          f"통과, {len(_rsl_groups)}개 그룹 정상 반환")
+
+    _rsl_bad_trs = [
+        Transistor("T1", "pmos", source="vdd", drain="Na", gate="g1"),
+        Transistor("T2", "nmos", source="gnd", drain="Na", gate="g2"),
+        Transistor("T3", "pmos", source="vdd", drain="Nb", gate="g3"),
+        Transistor("T4", "nmos", source="gnd", drain="Nb", gate="g4"),
+    ]
+    # T1/T2는 Na(2단자)로 진짜 직렬, T3/T4는 Nb(2단자)로 진짜 직렬 -- 서로 완전히 무관한
+    # 두 그룹인데, declared vertical_stack_id는 T1/T3를 "fake_merged"로 잘못 합쳐놨다고
+    # 가정(3+단자 허브도 전혀 없어 원인 불명 -- 진짜 선언 실수 시나리오).
+    _rsl_bad_roles = {
+        "T1": {"vertical_stack_id": "fake_merged"}, "T2": {"vertical_stack_id": "groupA_tail"},
+        "T3": {"vertical_stack_id": "fake_merged"}, "T4": {"vertical_stack_id": "groupB_tail"},
+    }
+    try:
+        resolve_stack_layout(_rsl_bad_trs, [], _rsl_bad_roles)
+        print("    FAIL: 원인 불명 vertical_stack_id 불일치인데 에러가 안 남")
+    except ValueError as e:
+        assert "vertical_stack_id" in str(e), f"에러 메시지가 원인을 안 가리킴: {e}"
+        print(f"    OK: 예상대로 ValueError -> {e}")
 
     print()
     print("  [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/")
