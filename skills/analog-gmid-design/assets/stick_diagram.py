@@ -3055,6 +3055,112 @@ def audit_vertical_stack_id_vs_kcl(transistors: list, matching_pairs: list,
     return {"boundary_findings": boundary_findings, "hub_findings": hub_findings}
 
 
+def _verified_euler_fix(transistors: list, local_pairs: list):
+    """`audit_vertical_stack_id_euler_feasibility()`/`merge_layout_groups_by_matching_
+    pairs()`/`find_euler_repair_options()`가 공유하는 내부 헬퍼(2026-08-10 신설,
+    세 곳에서 같은 로직이 중복되던 걸 통합) -- `transistors`(한 그룹)가 이미 오일러
+    조건을 만족하면 그대로 통과, 아니면 `local_pairs`(그 그룹 내부로 이미 필터링된
+    `(a, b)` 2-tuple 리스트)로 `suggest_pair_finger_adjustments()`를 돌려 1순위
+    제안부터 **실제로 적용한 그래프를 다시 전체 조건(연결성 포함)으로 재검증**한다.
+
+    ⚠️ `suggest_pair_finger_adjustments()`가 보고하는 `resulting_odd_count`는
+    연결성을 안 본다(내부적으로 `check_euler_condition().odd_nodes`의 길이만 세고
+    `.connected`는 버림, 2026-08-10 실측 발견) -- 그래서 서로 완전히 무관한(공유
+    net이 아예 없는) 두 소자가 한 그룹으로 잘못 섞이면 "홀수차수가 2개로 줄어드니
+    해결"처럼 보이지만 실제로는 여전히 끊긴 그래프다. 이 헬퍼는 그 착시를 피하려고
+    제안을 실제로 적용해 다시 확인한다.
+
+    반환: `(ok: bool, verified_suggestion: PairAdjustmentSuggestion | None)` --
+    `ok=True`이고 `verified_suggestion=None`이면 애초에 조정 없이도 이미 통과."""
+    verdict = check_euler_condition(build_graph(transistors))
+    if verdict.kind != "impossible":
+        return True, None
+    for sugg in suggest_pair_finger_adjustments(transistors, local_pairs):
+        trial = list(transistors)
+        for name in sugg.names:
+            idx = next(i for i, t in enumerate(trial) if t.name == name)
+            trial[idx] = _dc_replace(trial[idx], n_fingers=trial[idx].n_fingers + sugg.delta_fingers)
+        if check_euler_condition(build_graph(trial)).kind != "impossible":
+            return True, sugg
+    return False, None
+
+
+def audit_vertical_stack_id_euler_feasibility(transistors: list, device_roles: dict,
+                                               matching_pairs: list) -> dict:
+    """2026-08-10 세션26 후속(2) K-3에서 발견된 `cmfb_tail`류 문제를 정면으로 잡는
+    audit -- `audit_vertical_stack_id_vs_kcl()`(전기적 정합성)과는 다른 질문에 답한다:
+    **declared `vertical_stack_id` 그룹 하나가 그 자체로 오일러 실현 가능한가**.
+
+    `merge_layout_groups_by_matching_pairs()`의 오일러 게이트는 "병합으로 **새로**
+    생기는" 문제만 막는다 -- declared로 **이미** 하나의 그룹인 소자들(예: `M37a`/
+    `M37b`/`M38` -> `cmfb_tail`, `Ncmfb_tail`이 `M37a`/`M37b`의 source이자 `M38`의
+    drain인 3단자 허브라 `n_fingers=1` 기준으로 이미 홀수차수 4개)은 그 게이트가
+    손댈 대상이 아니다(union만 하지 입력으로 받은 그룹을 쪼개지 않으므로). 이 gap을
+    메운다 -- `resolve_stack_layout()`이 병합 이전에 이미 안고 있는 문제를 병합
+    이후에야 `optimize_full_circuit_budget()`의 `unresolved_row`로 뒤늦게 발견하는
+    대신, 그룹을 조립하는 시점에 바로 잡아낸다.
+
+    각 declared `vertical_stack_id` 그룹에 대해:
+    1. `build_graph()`+`check_euler_condition()`으로 `n_fingers=1`(topology 원본
+       상태) 기준 오일러 조건을 확인한다. `path`/`circuit`이면 정상(findings에서
+       제외).
+    2. `impossible`이면, 그 그룹 내부에 닫힌(양쪽 다 그룹 소속인) declared 매칭쌍만
+       추려 `suggest_pair_finger_adjustments()`로 후보를 받고, **1순위 제안을 실제로
+       적용한 그래프를 다시 `check_euler_condition()`으로 재검증**한다 -- ⚠️
+       2026-08-10 실측 발견: `suggest_pair_finger_adjustments()`가 보고하는
+       `resulting_odd_count`는 **연결성(connectivity)을 안 본다**(내부적으로
+       `check_euler_condition().odd_nodes`의 길이만 세고 `.connected`는 버림) --
+       그래서 서로 완전히 무관한(공유 net이 아예 없는) 두 소자가 한 declared
+       그룹으로 잘못 선언된 경우, 각자 짝수/홀수 차수만 보면 "2개로 줄어드니 해결"
+       처럼 보이지만 실제로는 여전히 끊긴 그래프라 오일러 경로 자체가 불가능하다
+       (합성 fixture로 직접 재현: 완전히 분리된 두 2단자 소자를 한 그룹으로 선언 →
+       `resulting_odd_count=2`로 보고되지만 재검증하면 여전히 `impossible`,
+       `connected=False`). 이 함수는 그 착시를 피하려고 제안을 실제로 적용해
+       **다시 전체 조건**(연결성 포함)을 확인한다 -- `path`/`circuit`이면 그제서야
+       `resolvable_by_finger_adjustment=True`.
+
+       ⚠️ 그럼에도 이 판정은 **필요조건일 뿐 충분조건은 아니다**(2026-08-10 K-4
+       실측, `biasgen_ref` 사례) -- `n_fingers=1` 기준 제안이 실제 sizing 이후
+       finger 수 기준으로는 안 통할 수 있다. 그래도 "이 baseline에서조차 연결성
+       포함 완전히 안 풀린다"(`resolvable=False`)와 "적어도 baseline에서는 실제로
+       풀린다"(`resolvable=True`)는 실질적으로 다른 심각도라 구분해 보고한다.
+
+    반환: `{"findings": [{"vsid", "members", "odd_nodes", "resolvable_by_finger_
+    adjustment", "verified_suggestion"(적용해서 실제로 통과 확인된
+    `PairAdjustmentSuggestion`|`None`)}, ...]}` -- 오일러가 이미 `path`/`circuit`인
+    정상 그룹은 findings에 안 나온다(사후 대조표 원칙 그대로: 문제 있는 것만 보고,
+    아무것도 자동으로 고치지 않는다).
+
+    ⚠️ `resolvable_by_finger_adjustment=False`인 항목이 진짜 구조적 review 대상이다
+    -- 어떤 매칭쌍 조정을 적용해봐도(연결성까지 포함해) 안 풀리는 경우는 그룹 구성
+    자체(예: 애초에 무관한 소자가 섞였거나, `stack_groups_override`로 수동 재구성이
+    필요)를 재검토해야 한다는 뜻이다."""
+    by_name = {t.name: t for t in transistors}
+    vsid_groups: dict = defaultdict(list)
+    for name, entry in device_roles.items():
+        if isinstance(entry, dict) and entry.get("vertical_stack_id"):
+            vsid_groups[entry["vertical_stack_id"]].append(name)
+
+    pair_list = [(a, b) for names in matching_pairs for a, b in zip(names, names[1:])]
+
+    findings = []
+    for vsid, members in vsid_groups.items():
+        trs = [by_name[n] for n in members if n in by_name]
+        verdict = check_euler_condition(build_graph(trs))
+        if verdict.kind != "impossible":
+            continue
+        member_set = set(members)
+        local_pairs = [(a, b) for a, b in pair_list if a in member_set and b in member_set]
+        ok, verified = _verified_euler_fix(trs, local_pairs)
+        findings.append({
+            "vsid": vsid, "members": sorted(members), "odd_nodes": verdict.odd_nodes,
+            "resolvable_by_finger_adjustment": ok,
+            "verified_suggestion": verified,
+        })
+
+    return {"findings": findings}
+
+
 def merge_layout_groups_by_matching_pairs(transistors: list, groups: dict,
                                            matching_pairs: list) -> dict:
     """2026-08-10 세션26 후속(`.ai/context.md` J-4/J-9) 논의에서 설계 합의된 함수 --
@@ -3101,7 +3207,12 @@ def merge_layout_groups_by_matching_pairs(transistors: list, groups: dict,
     보다 낫다는 판단 -- 이 함수 자체는 여전히 `n_fingers=1`(원본 topology 상태) 기준
     으로만 판단한다(실제 sizing 이후 finger 배분은 뒤 단계 `assign_finger_geometry()`
     소관이므로 여기서 W/finger를 미리 알 필요는 없다, `n_fingers=1` 판정도 그 이후 실제
-    핑거 배분에서 동일 부모/자식 관계가 유지되는 한 유효하다).
+    핑거 배분에서 동일 부모/자식 관계가 유지되는 한 유효하다). ⚠️ 핑거 조정 판정은
+    `suggest_pair_finger_adjustments()`의 `resulting_odd_count`를 그대로 믿지 않고
+    실제로 적용한 그래프를 다시 전체 조건(연결성 포함)으로 재검증한다 -- 그 값이
+    연결성을 안 보고 홀짝만 세기 때문에(`audit_vertical_stack_id_euler_feasibility()`
+    와 같은 이유로 실측 발견), 서로 완전히 무관한 두 그룹을 매칭쌍 하나로 잘못
+    이어붙이는 착시를 그대로 두면 놓칠 수 있다.
 
     `matching_pairs`: 병합 기준으로 쓸 선언된 쌍 목록, 호출자가 직접 고른다(새
     파라미터로 "선택 가능하게" 만들지 않고 이 인자 자체가 선택지 -- `resolve_stack_
@@ -3131,13 +3242,10 @@ def merge_layout_groups_by_matching_pairs(transistors: list, groups: dict,
 
     def euler_feasible(names):
         trs = [by_name[n] for n in names if n in by_name]
-        verdict = check_euler_condition(build_graph(trs))
-        if verdict.kind != "impossible":
-            return True
         name_set = set(names)
         local_pairs = [(a, b) for a, b in pair_list if a in name_set and b in name_set]
-        suggestions = suggest_pair_finger_adjustments(trs, local_pairs)
-        return bool(suggestions) and suggestions[0].resulting_odd_count <= 2
+        ok, _sugg = _verified_euler_fix(trs, local_pairs)
+        return ok
 
     pair_list = [(a, b) for names in matching_pairs for a, b in zip(names, names[1:])]
 
@@ -3161,6 +3269,73 @@ def merge_layout_groups_by_matching_pairs(transistors: list, groups: dict,
             del root_members[ra]
 
     return {gid: sorted(members) for gid, members in root_members.items()}
+
+
+def find_euler_repair_options(transistors: list, blocked_members: list, matching_pairs: list,
+                               candidate_groups: dict | None = None) -> dict:
+    """2026-08-10 세션26 후속(2) -- 사용자 질문("unresolved_row를 resolved로 만들려면
+    어떤 row를 병합해야 하는가")에 답하려고 신설. 실제 `optimize_full_circuit_budget()`
+    끝까지 태운 뒤 `unresolved_row`로 남은 그룹(`biasgen_ref_seg1_seg1_seg1_seg1_seg1`
+    = `M18_bg`/`M60`/`M61`, `n_fingers=7`)과 `cmfb_tail`(`M37a`/`M37b`/`M38`,
+    `n_fingers=5`)을 이 함수로 직접 진단해보니 **둘 다 실제로는 병합이 전혀 필요
+    없었다** -- 같은 행 안에서 핑거 조정 하나만으로 이미 풀린다는 게 실측으로
+    확인됐다(연결성까지 재검증 완료: `cmfb_tail`은 `M38` 핑거 5→6, `biasgen_ref`는
+    `M18_bg`+`M60` 또는 `M60`+`M61` 쌍 ±1). 즉 이 두 실패 사례의 진짜 원인은
+    "병합이 필요한 구조적 문제"가 아니라 **`run_topology_pipeline_with_finger_
+    fixup()`의 실제 탐색 전략이 이미 존재하는 이 해법을 못 찾고 있다**는 것이었다
+    -- 이 함수는 그 진단을 자동화하되(1단계), 정말로 같은 행만으로 안 풀리는 경우를
+    대비해 다른 row와의 병합 탐색(2단계)도 제공한다(요청하신 기능 자체는 완전히
+    구현하되, 실측으로 밝혀진 "지금 당장은 이 두 사례엔 불필요하다"는 사실도 그대로
+    보고한다 -- 상상으로 채우지 않는다는 원칙).
+
+    **1단계 -- 같은 행 안에서 먼저 확인**: `blocked_members`만으로 `_verified_euler_
+    fix()`를 돌린다. 여기서 풀리면(`same_row_fix`가 채워짐) 2단계는 아예 실행하지
+    않는다 -- 병합은 더 큰 그룹을 만드는 더 무거운 개입이라, 가벼운 해법이 있으면
+    그걸 우선한다.
+
+    **2단계 -- 같은 행만으로 안 풀리면 다른 row와의 병합 탐색**: `candidate_groups`
+    (다른 row 후보들, `{row_name: [device,...]}` -- 보통 같은 `stack_groups_geometry`
+    의 나머지 row 전부)를 하나씩 `blocked_members`와 임시로 합쳐보고
+    `_verified_euler_fix()`로 실현 가능한지 확인한다(직접 되거나, 합친 그룹 내부
+    매칭쌍으로 1회 조정하면 되거나). 실현 가능한 후보만 반환하되, **병합 후 그룹
+    크기가 작은 순**으로 정렬한다(가장 적게 섞는 병합을 우선 제안 -- 큰 그룹일수록
+    box-shape/finger_w 호환성이 깨질 위험이 커지므로, 세션26 후속 legacy 비교에서
+    실측한 그 위험).
+
+    반환: `{"same_row_fix": {"verified_suggestion": ...} | None,
+    "merge_candidates": [{"row", "members", "resolvable_by_finger_adjustment",
+    "verified_suggestion"}, ...]}` -- `same_row_fix`가 있으면 `merge_candidates`는
+    항상 빈 리스트(1단계에서 이미 풀렸으므로 2단계 자체를 안 돌림). `candidate_groups`
+    를 안 주고 1단계도 실패하면 `merge_candidates=[]`(탐색할 후보가 없었을 뿐, "병합
+    불가능"이라는 뜻이 아님 -- 호출자가 후보를 안 줬다는 뜻)."""
+    by_name = {t.name: t for t in transistors}
+    blocked_set = set(blocked_members)
+    pair_list = [(a, b) for names in matching_pairs for a, b in zip(names, names[1:])]
+
+    blocked_trs = [by_name[n] for n in blocked_members if n in by_name]
+    local_pairs = [(a, b) for a, b in pair_list if a in blocked_set and b in blocked_set]
+    ok, sugg = _verified_euler_fix(blocked_trs, local_pairs)
+    if ok:
+        return {"same_row_fix": {"verified_suggestion": sugg}, "merge_candidates": []}
+
+    merge_candidates = []
+    for row_name, members in (candidate_groups or {}).items():
+        if set(members) == blocked_set:
+            continue
+        combined_members = blocked_members + list(members)
+        combined_set = set(combined_members)
+        trs = [by_name[n] for n in combined_members if n in by_name]
+        c_pairs = [(a, b) for a, b in pair_list if a in combined_set and b in combined_set]
+        c_ok, c_sugg = _verified_euler_fix(trs, c_pairs)
+        if c_ok:
+            merge_candidates.append({
+                "row": row_name, "members": sorted(members),
+                "resolvable_by_finger_adjustment": c_sugg is not None,
+                "verified_suggestion": c_sugg,
+            })
+    merge_candidates.sort(key=lambda c: len(c["members"]))
+
+    return {"same_row_fix": None, "merge_candidates": merge_candidates}
 
 
 # ---------------------------------------------------------------------------
@@ -3785,26 +3960,40 @@ def suggest_pair_finger_adjustments(transistors: list[Transistor],
     ⚠️ `suggest_finger_adjustments()`와 마찬가지로 순수 그래프 계산이다 — gm/ID 스펙을
     깨지 않는지는 호출자가 별도로 재검증해야 한다(L4, 아직 미구현).
 
+    ⚠️ **2026-08-10 버그 수정(세션26 후속(2), 실측 발견)**: 이전 구현은 `pair_map:
+    name -> partner` 단일 매핑으로 "쌍"을 표현했는데, `matching_pairs`에 3-way 이상
+    declared 그룹의 **모든 쌍 조합**(예: `itertools.combinations(['A','B','C'], 2)` =
+    `[(A,B),(A,C),(B,C)]`, `run_topology_pipeline_with_finger_fixup()`이 실제로 이
+    형태로 넘김)이 들어오면 나중 쌍이 앞 쌍의 매핑을 조용히 덮어써서 일부 조합이
+    **후보에서 통째로 사라졌다**(`current_reuse_telescopic_ota`의 `M18_bg`/`M60`/
+    `M61` 실측: `(M18_bg,M60)` 조합-- 유일하게 gm/ID까지 통과하는 해법이었다 --가
+    이 덮어쓰기로 한 번도 시도되지 못해 `unresolved_row`로 5라운드를 전부 소진하는
+    실제 사고로 이어짐). 이제 **선언된 쌍마다 독립적인 조정 단위**로 취급한다(단일
+    매칭 커버가 아니라, 그 소자가 참여하는 모든 declared 쌍 각각을 후보로 낸다) --
+    한 소자가 여러 쌍에 동시에 나타나도(3-way 이상 그룹의 정상적인 모습) 전부 별도
+    후보로 살아남는다. 어느 쌍에도 없는 소자만 미매칭 단독 후보가 된다.
+
     반환: `resulting_odd_count` 오름차순 정렬(맨 앞이 가장 많이 개선되는 조정)."""
     baseline_graph = build_graph(transistors)
     baseline_odd = len(check_euler_condition(baseline_graph).odd_nodes)
 
-    pair_map = {t.name: t.name for t in transistors}
-    group_names = set(pair_map)
-    for a, b in matching_pairs:
-        if a in group_names and b in group_names:
-            pair_map[a] = b
-            pair_map[b] = a
-
+    group_names = {t.name for t in transistors}
     units = []
-    seen = set()
-    for t in transistors:
-        if t.name in seen:
+    seen_pairs = set()
+    paired_names = set()
+    for a, b in matching_pairs:
+        if a not in group_names or b not in group_names:
             continue
-        partner = pair_map[t.name]
-        seen.add(t.name)
-        seen.add(partner)
-        units.append((t.name,) if partner == t.name else tuple(sorted((t.name, partner))))
+        key = tuple(sorted((a, b)))
+        if key in seen_pairs:
+            continue
+        seen_pairs.add(key)
+        units.append(key)
+        paired_names.add(a)
+        paired_names.add(b)
+    for t in transistors:
+        if t.name not in paired_names:
+            units.append((t.name,))
 
     by_name = {t.name: t for t in transistors}
     results = []
@@ -9210,17 +9399,148 @@ if __name__ == "__main__":
           "버그였던 M6을 통한 M1/M2<->M3/M4 우회 병합이 이 함수에선 구조적으로 불가능함을 확인)")
 
     print()
-    print("  [current_forced=False까지 전부 넘기면(세션9/10 dx 악화 반례 재현 의도) M5/M6도")
-    print("  합쳐지는지 -- 이 함수 자체는 호출자가 넘긴 목록을 그대로 따른다는 것만 확인,")
-    print("  \"기본값은 current_forced=True만 권장\"이라는 docstring 권고와 대조용]")
+    print("  [current_forced=False까지 전부 넘기면(세션9/10 dx 악화 반례 재현 의도)")
+    print("  M5/M6도 시도는 되는지 -- ⚠️ 2026-08-10 오일러 게이트 신설 이후 재확인:")
+    print("  M5/M6은 공유 net이 아예 없어(source=Y/drain=Vg7 vs source=X/drain=out) 어떤")
+    print("  핑거조정으로도 연결 안 됨 -- 오일러 게이트가 이 병합 자체를 막는다(필터링과")
+    print("  다른 이유). 함수가 current_forced를 몰래 걸러서가 아니라 진짜 연결 불가능")
+    print("  해서 안 합쳐진다는 걸 구분해서 확인]")
     _t48_all_pairs = [tuple(p["names"]) for p in _t48_pairs_meta]
     _t48_merged_all = merge_layout_groups_by_matching_pairs(_t48_trs, _t48_candidates, _t48_all_pairs)
     _t48_group_sets_all = {frozenset(members) for members in _t48_merged_all.values()}
-    assert any({"M5", "M6"} <= _s for _s in _t48_group_sets_all), \
-        f"current_forced=False 쌍까지 넘겼는데 M5/M6이 여전히 안 합쳐짐(함수가 필터링을 " \
-        f"몰래 하고 있다는 뜻-- 안 됨, 호출자 책임이어야 함): {_t48_group_sets_all}"
-    print("    OK: 호출자가 current_forced=False 쌍까지 넘기면 이 함수는 그대로 병합함 -- "
+    assert frozenset({"M5"}) in _t48_group_sets_all and frozenset({"M6"}) in _t48_group_sets_all, \
+        f"M5/M6은 공유 net이 없어 오일러 게이트가 병합을 막아야 하는데 합쳐짐(회귀): {_t48_group_sets_all}"
+    print("    OK: M5/M6은 여전히 안 합쳐짐 -- current_forced 필터링이 아니라 오일러 게이트가 "
+          "막은 것(둘이 진짜 물리적으로 무관하므로 정당)")
+
+    print()
+    print("  [current_forced=False라도 실제로 물리적으로 이어진(오일러 실현 가능한) 쌍이면")
+    print("  이 함수가 필터링 없이 그대로 병합함을 합성 fixture로 확인 -- \"기본값은")
+    print("  current_forced=True만 권장\"이 강제가 아니라 권고일 뿐임을 증명]")
+    _t48_syn_trs = [
+        Transistor("Sa", "nmos", source="sn1", drain="sn2"),
+        Transistor("Sb", "nmos", source="sn2", drain="sn3"),  # Sa와 진짜 직렬(2단자 sn2 공유)
+    ]
+    _t48_syn_groups = {"Sa": ["Sa"], "Sb": ["Sb"]}
+    _t48_syn_merged = merge_layout_groups_by_matching_pairs(
+        _t48_syn_trs, _t48_syn_groups, [("Sa", "Sb")])  # current_forced 여부와 무관하게 이 함수는 그냥 쌍만 봄
+    assert frozenset({"Sa", "Sb"}) in {frozenset(v) for v in _t48_syn_merged.values()}, \
+        f"물리적으로 직렬(오일러 실현 가능)인 쌍은 current_forced 여부와 무관하게 병합돼야 함: {_t48_syn_merged}"
+    print("    OK: 물리적으로 이어진 쌍은 current_forced 값과 무관하게 병합됨 -- "
           "필터링은 함수가 강제하지 않고 호출자(resolve_stack_layout())의 책임으로 남김")
 
     print()
     print("  === Test 48 전체 PASS ===")
+
+    print()
+    print("=== Test 49: audit_vertical_stack_id_euler_feasibility() -- declared")
+    print("  vertical_stack_id 그룹이 그 자체로 오일러 실현 가능한지(merge_layout_")
+    print("  groups_by_matching_pairs()의 오일러 게이트가 손 못 대는, 병합 이전부터")
+    print("  이미 declared로 들어온 그룹의 문제) 검사. 2026-08-10 세션26 후속(2) K-3")
+    print("  cmfb_tail 추적 중 발견한 suggest_pair_finger_adjustments()의 연결성 착시")
+    print("  (resulting_odd_count는 홀짝만 보고 그래프가 끊겼는지는 안 봄)를 실제")
+    print("  적용+재검증으로 피하는지도 함께 검증 ===")
+    import os as _t49_os
+    _t49_lib = _t49_os.path.join(_t49_os.path.dirname(_t49_os.path.abspath(__file__)), "library")
+    _t49_trs, _t49_meta = load_topology(
+        _t49_os.path.join(_t49_lib, "current_reuse_telescopic_ota.topology.json"))
+    _t49_pairs_meta = _t49_meta["symmetry"]["matching_pairs"]
+    _t49_forced = [tuple(p["names"]) for p in _t49_pairs_meta if p["current_forced"]]
+    _t49_device_roles = {k: v for k, v in (_t49_meta.get("device_roles") or {}).items()
+                          if not k.startswith("_")}
+    _t49_result = audit_vertical_stack_id_euler_feasibility(_t49_trs, _t49_device_roles, _t49_forced)
+    _t49_by_vsid = {f["vsid"]: f for f in _t49_result["findings"]}
+    assert "cmfb_tail" in _t49_by_vsid, \
+        f"cmfb_tail(M37a/M37b/M38)이 findings에 안 잡힘(회귀 -- 이 그룹은 실제로 " \
+        f"n_fingers=1 기준 오일러 impossible이어야 함): {_t49_result}"
+    _t49_cmfb = _t49_by_vsid["cmfb_tail"]
+    assert _t49_cmfb["members"] == ["M37a", "M37b", "M38"], f"멤버 불일치: {_t49_cmfb}"
+    assert set(_t49_cmfb["odd_nodes"]) == {"N36b", "Ncmfb_tail", "Vcmfb", "gnd"}, \
+        f"홀수차수 노드 불일치: {_t49_cmfb['odd_nodes']}"
+    assert _t49_cmfb["resolvable_by_finger_adjustment"] is True, \
+        f"cmfb_tail은 M38(또는 M37a/M37b) 핑거 +1로 실제 검증 가능한데 False로 나옴: {_t49_cmfb}"
+    assert _t49_cmfb["verified_suggestion"] is not None
+    print(f"    PASS: cmfb_tail(M37a/M37b/M38) -- n_fingers=1 기준 오일러 impossible(홀수차수 4개, "
+          f"Ncmfb_tail이 M37a/M37b의 source이자 M38의 drain인 3단자 허브) 정확히 검출")
+    print(f"    PASS: resolvable_by_finger_adjustment=True -- 제안({_t49_cmfb['verified_suggestion']})을 "
+          f"실제로 적용해 재검증(연결성 포함)까지 통과함을 확인(단순 resulting_odd_count<=2 착시가 아님)")
+
+    _t49_other_findings = [f for f in _t49_result["findings"] if f["vsid"] != "cmfb_tail"]
+    assert _t49_other_findings == [], \
+        f"이 실회로에서 cmfb_tail 외 다른 declared 그룹은 전부 오일러 정상이어야 하는데 " \
+        f"추가로 잡힘: {_t49_other_findings}"
+    print("    PASS: 이 회로의 다른 declared vertical_stack_id 그룹은 전부 오일러 정상 "
+          "(cmfb_tail이 유일한 finding)")
+
+    print()
+    print("  [합성 fixture -- 완전히 무관한(공유 net 없는) 두 소자를 한 declared 그룹으로")
+    print("  잘못 선언한 경우, suggest_pair_finger_adjustments()의 resulting_odd_count가")
+    print("  연결성을 안 보고 착시를 일으키는지, 이 함수가 실제 적용+재검증으로 정확히")
+    print("  잡아내는지(진짜 review 대상 = resolvable_by_finger_adjustment=False) 확인]")
+    _t49_iso_trs = [
+        Transistor("T1", "nmos", source="n1", drain="n2"),
+        Transistor("T2", "nmos", source="n3", drain="n4"),
+    ]
+    _t49_iso_roles = {"T1": {"vertical_stack_id": "isolated_test_group"},
+                       "T2": {"vertical_stack_id": "isolated_test_group"}}
+    _t49_iso_result = audit_vertical_stack_id_euler_feasibility(_t49_iso_trs, _t49_iso_roles, [])
+    assert len(_t49_iso_result["findings"]) == 1, f"1건 잡혀야 함: {_t49_iso_result}"
+    _t49_iso_finding = _t49_iso_result["findings"][0]
+    assert _t49_iso_finding["resolvable_by_finger_adjustment"] is False, (
+        f"T1/T2는 서로 공유 net이 아예 없어 어떤 핑거 조정으로도 연결 안 됨(진짜 review "
+        f"대상)인데 True로 나옴 -- suggest_pair_finger_adjustments()의 resulting_odd_count "
+        f"착시(연결성 미검사)를 못 걸렀다는 뜻: {_t49_iso_finding}")
+    print("    PASS: 서로 무관한 두 소자를 잘못 한 그룹으로 선언한 경우 "
+          "resolvable_by_finger_adjustment=False로 정확히 구분됨(연결성 착시 회피 확인)")
+
+    print()
+    print("  === Test 49 전체 PASS ===")
+
+    print()
+    print("=== Test 50: find_euler_repair_options() -- unresolved_row를 resolved로")
+    print("  만들려면 어떤 row를 병합해야 하는지 찾는 탐색(2026-08-10 사용자 질문으로")
+    print("  신설). 실제 optimize_full_circuit_budget() 끝까지 태운 뒤 unresolved_row로")
+    print("  남았던 두 실사례(cmfb_tail/biasgen_ref)를 이 함수로 진단하면 놀랍게도")
+    print("  **병합이 전혀 필요 없다** -- 같은 행 안 핑거 조정 하나로 이미 풀린다(실측)")
+    print("  -- run_topology_pipeline_with_finger_fixup()이 이 해법을 못 찾고 포기했을")
+    print("  뿐. 그리고 합성 fixture로 '진짜 병합이 필요한' 경우도 검증 ===")
+    _t50_by_name = {t.name: t for t in _t49_trs}
+    _t50_cmfb_r = find_euler_repair_options(
+        _t49_trs, ["M37a", "M37b", "M38"], _t49_forced, candidate_groups=None)
+    assert _t50_cmfb_r["same_row_fix"] is not None, \
+        f"cmfb_tail은 같은 행 안에서 풀려야 하는데(Test 49로 이미 확인됨) 못 찾음: {_t50_cmfb_r}"
+    assert _t50_cmfb_r["merge_candidates"] == [], \
+        "same_row_fix가 있으면 merge_candidates는 항상 빈 리스트여야 함(2단계 안 돌림)"
+    print(f"    PASS: cmfb_tail -- 같은 행 안 조정으로 해결됨(병합 불필요), "
+          f"제안={_t50_cmfb_r['same_row_fix']['verified_suggestion']}")
+
+    _t50_bg_r = find_euler_repair_options(
+        _t49_trs, ["M18_bg", "M60", "M61"], _t49_forced, candidate_groups=None)
+    assert _t50_bg_r["same_row_fix"] is not None, \
+        f"biasgen_ref(M18_bg/M60/M61)도 같은 행 안에서 풀려야 하는데 못 찾음: {_t50_bg_r}"
+    print(f"    PASS: biasgen_ref(M18_bg/M60/M61) -- 같은 행 안 조정으로 해결됨(병합 불필요), "
+          f"제안={_t50_bg_r['same_row_fix']['verified_suggestion']} -- 즉 이 실사례들의 진짜 "
+          f"원인은 '병합이 필요한 구조적 문제'가 아니라 다운스트림 fixup 탐색 전략의 gap이었음")
+
+    print()
+    print("  [합성 fixture -- 같은 행 안에서는 절대 안 풀리는(서로 완전히 끊긴) blocked 그룹을")
+    print("  만들고, 후보 row 2개(하나는 진짜 다리 역할, 하나는 완전히 무관) 중 실제로 연결을")
+    print("  살려주는 쪽만 merge_candidates로 정확히 찾아내는지 확인]")
+    _t50_blocked = [Transistor("X1", "nmos", source="a", drain="b"),
+                    Transistor("X2", "nmos", source="c", drain="d")]
+    _t50_bridge = [Transistor("Y1", "nmos", source="b", drain="c")]
+    _t50_unrelated = [Transistor("Z1", "nmos", source="e", drain="f")]
+    _t50_all = _t50_blocked + _t50_bridge + _t50_unrelated
+    _t50_syn_r = find_euler_repair_options(
+        _t50_all, ["X1", "X2"], [],
+        candidate_groups={"bridge_row": ["Y1"], "unrelated_row": ["Z1"]})
+    assert _t50_syn_r["same_row_fix"] is None, \
+        f"X1/X2는 서로 완전히 끊겨 같은 행 안에서는 절대 안 풀려야 함: {_t50_syn_r}"
+    _t50_cand_rows = [c["row"] for c in _t50_syn_r["merge_candidates"]]
+    assert _t50_cand_rows == ["bridge_row"], \
+        f"다리 역할을 하는 bridge_row만 후보로 잡히고 unrelated_row는 빠져야 함: {_t50_cand_rows}"
+    print("    PASS: same_row_fix=None(진짜 병합 필요) -- bridge_row(b-c를 이어줌)만 "
+          "merge_candidates로 정확히 찾고, unrelated_row(완전히 무관)는 제외됨")
+
+    print()
+    print("  === Test 50 전체 PASS ===")

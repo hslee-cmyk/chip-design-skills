@@ -2083,6 +2083,25 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 
 ---
 
+### 배치 7-6e — `audit_vertical_stack_id_euler_feasibility()`/`find_euler_repair_options()` 신설 + `suggest_pair_finger_adjustments()` `pair_map` 버그 수정 (신규, 같은 날 배치 7-6d 후속) ✅ 구현 완료(2026-08-10)
+
+> **배경**: 배치 7-6d의 이월 항목 두 개를 정면으로 다루다가 예상 밖의 근본원인을
+> 발견했다 — `cmfb_tail`/`biasgen_ref` 둘 다 "declared 자체가 구조적으로 못 푼다"가
+> 아니라 실제로는 같은 행 안 핑거 조정 하나로 풀리는데, 실제 파이프라인의 탐색
+> 전략에 있던 버그(`pair_map` 덮어쓰기) 때문에 그 해법이 시도조차 안 되고 있었다.
+
+| | 내용 |
+|---|---|
+| **`audit_vertical_stack_id_euler_feasibility()`** | `stick_diagram.py` 신설 — declared `vertical_stack_id` 그룹 각각이 그 자체로(병합 이전부터) 오일러 실현 가능한지 검사. 구현 중 `suggest_pair_finger_adjustments()`의 `resulting_odd_count`가 연결성을 안 본다는 버그를 발견(합성 fixture로 실측: 완전히 무관한 두 소자를 한 그룹으로 선언하면 착시로 "해결"처럼 보고됨) — 제안을 실제로 적용한 그래프를 다시 전체 조건(연결성 포함)으로 재검증하도록 설계. 실회로 결과: `cmfb_tail`이 `resolvable_by_finger_adjustment=True`(`M38` +1로 실제 검증 통과) — 이 시점에 이미 "declared 자체의 구조적 문제"라는 배치 7-6d의 초기 가설이 틀렸음이 드러남. |
+| **`find_euler_repair_options()`** | 사용자 질문("unresolved_row를 resolved로 만들려면 어떤 row를 병합해야 하는가")에 답하려고 신설. 2단계: (1) blocked row 혼자 핑거조정으로 풀리는지 먼저 확인(병합보다 가벼운 개입 우선) (2) 안 풀리면 후보 row들과 임시로 합쳐보고 실현 가능해지는 것만 찾음. 실회로 결과 — **`cmfb_tail`/`biasgen_ref` 둘 다 병합이 전혀 필요 없었다**(같은 행 안에서 풀림, `biasgen_ref`는 실제 `n_fingers=7` 사이징 상태에서도 재검증 통과). `_verified_euler_fix()` 공유 헬퍼로 세 함수의 중복 로직 통합. |
+| **진짜 근본원인 추적** | `find_euler_repair_options()`가 "병합 불필요"라는데 실제 파이프라인은 왜 못 풀었는지 `pipeline_result["fixup_rounds"]`를 라운드별로 직접 추적. 발견 (1) `run_topology_pipeline_with_finger_fixup()`이 라운드당 blocked row 1개(`blocked[0]`)만 처리하는데 `biasgen_ref`가 크로스오버 분할을 반복하며 `max_fixup_rounds=5`를 전부 소진, `cmfb_tail`은 단 한 번도 처리 기회를 못 받음. (2) 결정적으로, `biasgen_ref`(`M18_bg`/`M60`/`M61` 3-way 매칭)의 시도 후보에서 **`(M18_bg,M60)`이 단 한 번도 시도되지 않음** — 유일하게 gm/ID까지 통과하는 해법이었는데도. |
+| **버그 수정(사용자 확정: "a로 고쳐줘")** | `run_topology_pipeline_with_finger_fixup()`이 3-way 이상 declared 그룹을 `itertools.combinations()`로 모든 쌍 조합(`(M18_bg,M60)`,`(M18_bg,M61)`,`(M60,M61)`)으로 풀어 넘기는데, `suggest_pair_finger_adjustments()`의 `pair_map: name->partner` 단일 매핑이 나중 쌍으로 앞 쌍을 조용히 덮어써 일부 조합을 후보에서 통째로 날렸다(2-element 체인을 가정한 설계가 N-way 조합 입력을 못 버팀). `pair_map` 단일 매핑 대신 **선언된 쌍마다 독립 조정 단위**로 취급하도록 재작성 — 한 소자가 여러 쌍에 동시에 나타나도 전부 후보로 살아남는다. 격리 유닛테스트 + 실제 파이프라인 재실행(round=0 rejected_count 4→6, `(M18_bg,M60)` 새로 포함) 둘 다로 수정 확인. |
+| **검증** | `stick_diagram.py` self-test 50개(Test 49/50 신설) + `sizing_recipe.py` 전체 self-test 둘 다 exit 0. |
+| **정직한 한계** | 버그 수정 후에도 `(M18_bg,M60)`이 이번 semi-synthetic 사이징(51소자 균일 gm_id=12 비례식, 실제 수렴된 사이징 아님)에서는 여전히 gm_id LUT 경계로 거부됨 — 버그 수정의 정확성과 별개로, 이 시나리오의 실패 자체는 방법론 artifact일 가능성이 높다(실제 확인은 다음 세션 최우선 과제로 이월). `cmfb_tail`도 라운드 예산 독점 구조가 그대로라 여전히 처리 기회를 못 받음. |
+| **다음 세션 최우선순위 재조정(사용자 지시)** | `cmfb_tail`/`biasgen_ref`의 gm_id 경계 문제가 실제인지 확인하려면 실제 `sizing_roles`를 선언해 우회 없이 돌려야 하는데, `current_reuse_telescopic_ota`는 grid search가 2¹³≈8192 조합·~10시간 걸린다(§7.9 근처 "## A"절 기존 진단). 그래서 이 런타임 폭증 알고리즘 개선을 다음 세션 최우선으로, 라운드 예산 독점 문제(위 이월 (2))는 그 다음으로 순서를 낮췄다. 상세는 `.ai/context.md` "## L-6"/"다음 세션 최우선" 절 참고. |
+
+---
+
 ### 7.9 배치 7 검토용 열린 질문 (구현 전 확인 필요)
 
 1. ~~`run_topology_pipeline()`의 새 `cell_groups` 인자와 기존 `floorplan_hints.spine_groups`가

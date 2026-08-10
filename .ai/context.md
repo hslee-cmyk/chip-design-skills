@@ -1,56 +1,95 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션26 후속(2) 완료 — `merge_layout_groups_
-by_matching_pairs()` 신설(오일러 실현가능성 사전검사 포함) + legacy 대비 end-to-end
-품질비교. `resolve_stack_layout()`의 declared/candidates 그룹이 매칭 파트너를
-서로 다른 물리 branch에 흩어놓는 문제(`folded_cascode` 5개 매칭쌍 전부 3b/3c 실패
-실측)를 풀려고, `vertical_stack_id` 기반 그룹을 declared 매칭쌍으로 **그룹 단위**
-병합하는 함수를 신설 — `geometry_colocation_union()`의 위험한 재귀적 connectivity
-climb(무관한 두 매칭쌍이 공유 허브 소자를 통해 조용히 합쳐지는 실제 버그, `M6`/`folded_
-cascode`뿐 아니라 `current_reuse_telescopic_ota`의 `M3a`~`M4b`+`M9b`~`M19` 8소자
-그룹으로도 재현 확인)를 피해 선언된 매칭쌍만으로 안전하게 병합한다. 실제 51소자 회로로
-legacy vs 신규 end-to-end 비교: **box-shape는 신규가 명확히 승**(legacy 과병합이
-행 폭 비율 4.00으로 허용치 1.5 초과, 신규는 통과) — 그러나 **오일러 완결성은 신규가
-1개 더 못 품**(`cmfb_tail`/`biasgen_ref`). 사용자 지시로 병합 전 `check_euler_
-condition()`+`suggest_pair_finger_adjustments()` 사전검사를 추가했으나, 추적 결과
-`cmfb_tail`은 애초에 declared 자체가 이미 병합돼 있어 이 게이트가 손댈 수 없는 문제
-(정정, 초기 가설 오류)였고, `biasgen_ref`는 게이트가 `n_fingers=1` 기준으로는
-"1회 조정으로 풀린다"고 판단해 통과시켰지만 실제 sizing 이후 오일러 판정이 달라져
-여전히 못 풀리는(게이트 필요조건이지 충분조건 아님) 한계가 새로 드러남. 회귀 없음
+# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션26 후속(3) 완료 — `audit_vertical_stack_
+id_euler_feasibility()`/`find_euler_repair_options()` 신설 + `suggest_pair_finger_
+adjustments()`의 실제 `pair_map` 덮어쓰기 버그 수정. **다음 세션 최우선순위가
+사용자 지시로 재조정됨 — 아래 "다음 세션 최우선" 절을 반드시 먼저 읽을 것**(요약:
+①`run_harness.py`의 grid search 런타임 폭증(2^13≈8192 조합, ~10시간) 알고리즘
+개선 최우선 → ②`folded_cascode` end-to-end/candidates audit 재검토 → ③`run_
+topology_pipeline_with_finger_fixup()`의 라운드 예산 독점 문제, 이 순서로 진행).
+
+이번 배치 요약: `cmfb_tail`/`biasgen_ref`가 실제로 병합이 필요한 게 아니라 같은 행
+안 핑거 조정 하나로 풀린다는 걸 `find_euler_repair_options()`로 확인한 뒤, `biasgen_
+ref`의 실제 파이프라인 실행을 라운드별로 추적하다가 `suggest_pair_finger_adjustments()`
+의 `pair_map` 구성이 3-way 이상 declared 매칭 그룹(`itertools.combinations()`로
+풀린 모든 쌍 조합)을 받으면 나중 쌍이 앞 쌍 매핑을 조용히 덮어써 일부 조합(`(M18_bg,
+M60)`, 유일하게 gm/ID까지 통과하는 해법)이 후보에서 아예 사라지는 실제 버그를
+발견/수정. 수정 후 그 조합은 이제 실제로 시도되지만, 이번 semi-synthetic 사이징에서는
+셋 다 gm_id LUT 경계 문제로 여전히 거부됨(버그 수정과 별개 문제, 실제 sizing_roles로
+재확인 필요 — 아래 참고). 회귀 없음
 (`stick_diagram.py`/`sizing_recipe.py` 전체 self-test). 상세는 아래 "## K" 참고.
 세션26 본편(`resolve_stack_layout()` 자체)은 "## I", audit 게이트는 "## J" 참고.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
-## 다음 세션 최우선 — `resolve_stack_layout()`/audit 게이트 신설 후 남은 이월 항목
+## 다음 세션 최우선 — 사용자가 2026-08-10 세션 끝에 직접 재조정한 순서 (반드시 이
+순서대로 진행할 것 — 아래 "① 최우선" 항목부터 시작)
 
-`resolve_stack_layout()`(세션26 본편, "## I")과 `audit_vertical_stack_id_vs_kcl()`
-+ declared 경로 감사 게이트(세션26 후속, "## J") + 매칭쌍 그룹 병합/오일러 게이트
-(세션26 후속(2), "## K")는 신설·검증 완료. 남은 항목:
+`resolve_stack_layout()`(세션26 본편, "## I"), `audit_vertical_stack_id_vs_kcl()` +
+declared 경로 감사 게이트(세션26 후속, "## J"), 매칭쌍 그룹 병합/오일러 게이트(세션26
+후속(2), "## K"), `audit_vertical_stack_id_euler_feasibility()`/`find_euler_repair_
+options()`/`suggest_pair_finger_adjustments()` `pair_map` 버그 수정(세션26 후속(3),
+"## L")까지 전부 신설·검증·커밋 완료. 다음 세션은 **아래 순서 그대로** 진행 —
+사용자가 명시적으로 재배열했으므로 임의로 순서를 바꾸지 말 것.
 
-1. **`cmfb_tail`(declared 자체의 euler-실현불가능) -- 별도 audit 필요** — `M37a`/
-   `M37b`/`M38`이 declared `vertical_stack_id="cmfb_tail"`로 이미 한 그룹인데, 이
-   3소자만으로 `n_fingers=1` 기준 오일러 조건이 이미 `impossible`(홀수차수 4개,
-   `Ncmfb_tail`이 `M37a`/`M37b`의 source이자 `M38`의 drain이라 3단자 허브 -- 세션26
-   후속(2) K-3 참고). `merge_layout_groups_by_matching_pairs()`의 오일러 게이트는
-   "병합으로 새로 생기는" 문제만 막지, declared로 이미 들어온 그룹은 손 못 댄다 --
-   `audit_vertical_stack_id_vs_kcl()`류로 "declared vertical_stack_id 그룹이 그
-   자체로 euler-실현가능한가"를 검증하는 별도 audit이 필요해 보인다(다음 세션 최우선
-   후보 1순위, `folded_cascode`류 다른 회로에도 같은 패턴이 있는지 확인 겸함).
-2. **`biasgen_ref`(`M18_bg`+`M60`+`M61`) -- 오일러 게이트의 필요조건/충분조건 격차**
-   — 게이트가 `n_fingers=1` 기준으로 "1회 조정(4→2)이면 풀린다"고 판단해 병합을
-   승인했지만, 실제 `optimize_full_circuit_budget()`(진짜 W 기반 finger 배분 이후)
-   에서는 크로스오버 분할을 5번 시도하고도 못 풀렸다(`unresolved_reason=pair_not_
-   found`). 게이트를 더 보수적으로 만들지(예: `suggest_pair_finger_adjustments()`가
-   제안한 조정이 실제로 유효하려면 무슨 추가 조건이 필요한지), 아니면 이 정도 격차는
-   감수하고(병합 안 했을 때보다는 여전히 나으므로) 그대로 둘지 판단 필요.
-3. **`folded_cascode`(candidates 폴백 경로) end-to-end 미검증** — `resolve_stack_
+### ① 최우선 — `optimize_full_circuit_budget()`의 grid search 런타임 폭증 원인 해결(알고리즘 수정)
+
+**왜 이게 1순위인가(사용자 원문 근거)**: `cmfb_tail`/`biasgen_ref`가 이번 세션
+semi-synthetic 사이징(known_sizing 우회, 51소자 전체 균일 `gm_id=12` 비례식)에서
+gm_id LUT 경계 문제로 막힌 게 진짜 문제인지, 아니면 이 우회 방법론 자체의 artifact인지
+판단하려면 **`current_reuse_telescopic_ota.topology.json`에 실제 `sizing_roles`
+(theta/metrics/objective/constraints)를 선언해서 `optimize_full_circuit_budget()`을
+우회 없이 제대로 돌려봐야 한다**(세션26 후속(3) 끝, "다음 세션이 진행해야 할 것" 보고
+때 확인된 gap). 그런데 이 회로를 우회 없이 돌리면 "## A. `run_harness.py` 최종 진단"
+(이 파일 613행)이 이미 실측해둔 그대로 **grid search가 2¹³≈8192개 조합(자유 theta
+13개 × `grid_points_per_theta=2`) × 조합당 평균 4.4초 ≈ 10시간**이 걸린다 — 이 런타임
+폭증부터 해결(알고리즘 수정)하지 않으면 ①의 목적(우회 없는 실제 실행)을 실행할 수조차
+없다. 그래서 사용자가 이걸 다음 세션 최우선으로 명시적으로 지정했다.
+
+**출발점(이미 실측된 사실, "## A"절 그대로 재확인)**:
+- 원인 위치: `sizing_recipe.py`의 `optimize_full_circuit_budget()` grid loop
+  (`for combo in itertools.product(*grids)` 형태, 2227행 부근 — 정확한 현재 줄번호는
+  이번 세션 코드 변경으로 밀렸을 수 있으니 재확인할 것).
+- `current_reuse_telescopic_ota.topology.json`의 `sizing_roles.theta` 21개 중 자유
+  (bounds가 있어 grid 대상인) theta가 13개 — `grid_points_per_theta`를 그대로 두면
+  2¹³=8192, 3으로 올리면 3¹³≈160만(더 악화).
+- 스모크 테스트로 조합당 평균 4.4초 실측 확인됨(`workspaces/current-reuse-telescopic-
+  ota-report/smoke_run_harness_session11.py` 패턴 재사용 가능).
+- 세션A 시점엔 "그리드 범위를 어떻게 줄일지(또는 전수탐색 대신 다른 최적화 전략) 논의
+  후로 보류"라고만 남기고 미착수 상태로 이월돼 있었다 — **다음 세션은 이 논의를 실제로
+  시작하고 알고리즘을 고칠 것**.
+- 검토할 방향(미결정, 다음 세션에 사용자와 논의): (a) 좌표하강(coordinate descent)류로
+  13차원 전수탐색을 대체, (b) 일부 theta를 grid 대상에서 빼고 다른 방식(예: 이미
+  확정된 다른 theta에서 유도)으로 고정, (c) `grid_points_per_theta`를 theta별로
+  다르게(중요한 것만 세밀하게) 주는 비균일 grid, (d) 단계적(coarse-to-fine) grid 탐색.
+  **어느 것도 아직 사용자와 합의된 게 아니다 — 다음 세션에서 처음부터 논의할 것.**
+- 이 항목이 끝나야(런타임이 실용적인 수준으로 줄어야) `sizing_roles` 선언 → 우회 없는
+  `optimize_full_circuit_budget()` 실행 → `cmfb_tail`/`biasgen_ref`의 gm_id 경계
+  문제가 진짜인지 synthetic artifact였는지 최종 확인, 이 순서로 이어간다.
+
+### ② 그 다음 — `folded_cascode`/candidates 경로 검증 (구 "3순위")
+
+1. **`folded_cascode`(candidates 폴백 경로) end-to-end 미검증** — `resolve_stack_
    layout()` 함수 자체만 독립적으로 스모크테스트했다. 그 그룹이 실제로 `optimize_
    full_circuit_budget()` 전체 파이프라인을 끝까지 통과하는지는 아직 안 태워봤다 --
    `folded_cascode.topology.json`엔 `sizing_roles`도 아직 없어서 그 자체가 선행
-   조건이 될 수 있다.
-4. **`audit_vertical_stack_id_vs_kcl()` 게이트를 candidates 경로에도 적용할지 재검토**
+   조건이 될 수 있다(①에서 얻은 grid search 개선 노하우를 여기도 적용할 여지 있음).
+2. **`audit_vertical_stack_id_vs_kcl()` 게이트를 candidates 경로에도 적용할지 재검토**
    — 세션26 후속 결론은 "declared만 게이트"였다(설계 시점 판단, 미검증).
-5. `run_harness.py` 실전략 — 세션22부터 계속 이월, 이번 세션도 미착수.
+
+### ③ 그 다음(사용자가 우선순위를 명시적으로 낮춤, 구 "2순위") — 라운드 예산 독점 문제
+
+`run_topology_pipeline_with_finger_fixup()`이 라운드당 blocked row **1개만**
+(`blocked[0]`)만 처리한다 — 세션26 후속(3) 실측: `biasgen_ref`가 크로스오버 분할을
+반복하며 `max_fixup_rounds=5`를 전부 써버려서 `cmfb_tail`은 단 한 번도 처리 기회를
+못 받고 원본 상태 그대로 남았다(`pair_map` 버그를 고쳐도 이 구조적 문제는 그대로).
+라운드마다 blocked row를 순환시키거나, 한 라운드 안에서 서로 독립인 여러 row를 동시에
+처리하는 방향을 검토. **①에서 실제 sizing_roles로 재실행해본 뒤에 이 문제가 실전에서
+실제로 발생하는지부터 재확인하고 착수하는 게 순서상 맞다**(현재는 semi-synthetic
+사이징에서만 관찰됨).
+
+### ④ 계속 이월
+`run_harness.py`의 나머지 실전략(①에서 grid 알고리즘 자체는 고치지만, 실제 회로
+스펙 선정/제약 튜닝 등 나머지 운영 이슈는 별개) — 세션22부터 계속 이월.
 
 ### (아래는 세션26 착수 전 남아있던 기존 설계 스케치 원문, 참고용으로 보존)
 
@@ -4625,3 +4664,102 @@ budget()`(K-2의 semi-synthetic known_sizing, 진짜 W 기반 finger 배분)에�
 그룹) 검증할 별도 audit 신설, (2) `biasgen_ref`류(게이트 필요조건/충분조건 격차)
 게이트 강화 여부 판단, (3) `folded_cascode` end-to-end 미검증, (4) candidates
 경로 audit 적용 재검토, (5) `run_harness.py` 실전략.
+
+## L. 세션26 후속(3)(2026-08-10, 같은 날 이어서) — `audit_vertical_stack_id_euler_
+feasibility()`/`find_euler_repair_options()` 신설 + `suggest_pair_finger_
+adjustments()`의 실제 `pair_map` 버그 발견/수정
+
+### L-1. `audit_vertical_stack_id_euler_feasibility()` 신설(`stick_diagram.py`)
+K-6 이월 항목 1번("cmfb_tail류 declared 자체의 euler-실현불가능 검증할 별도 audit")
+해소. declared `vertical_stack_id` 그룹 각각이 그 자체로(병합 이전부터) 오일러
+실현 가능한지 검사 -- `n_fingers=1` 기준 `impossible`이면, 그 그룹 내부 declared
+매칭쌍으로 `suggest_pair_finger_adjustments()` 1순위 제안을 **실제로 적용한 그래프를
+다시 전체 조건(연결성 포함)으로 재검증**해 `resolvable_by_finger_adjustment`를
+정한다.
+
+**구현 중 발견한 버그(중요)**: `suggest_pair_finger_adjustments()`가 보고하는
+`resulting_odd_count`는 **연결성을 안 본다**(내부적으로 `check_euler_condition().
+odd_nodes`의 길이만 세고 `.connected`는 버림) -- 합성 fixture(공유 net이 아예 없는
+두 소자를 한 declared 그룹으로 선언)로 실측 확인: "홀수차수 2개로 줄어드니 해결"처럼
+보고되지만 실제로는 여전히 끊긴 그래프. 그래서 제안을 실제 적용 후 재검증하는 방식으로
+설계.
+
+**실회로 결과(당시엔 놀라운 결과) — `cmfb_tail`(`M37a`/`M37b`/`M38`)은
+`resolvable_by_finger_adjustment=True`** — `M38` 핑거 +1로 실제 검증까지 통과함(초기
+가설, "declared 자체가 구조적으로 안 풀린다"는 틀렸음이 이 시점에 이미 드러남 -- 진짜
+원인은 L-4에서 발견). 이 회로는 `cmfb_tail`이 유일한 finding(다른 declared 그룹은
+전부 오일러 정상). Test 49(`stick_diagram.py`)로 실회로 + 합성 disconnection fixture
+(genuinely resolvable=False 검증) 둘 다 커버.
+
+### L-2. `find_euler_repair_options()` 신설(`stick_diagram.py`) -- 사용자 질문
+("unresolved_row를 resolved로 만들려면 어떤 row를 병합해야 하는가")에 답하려고 신설
+2단계 탐색: (1) 먼저 blocked row 혼자 핑거조정으로 풀리는지(병합보다 가벼운 개입
+우선), (2) 안 풀리면 `candidate_groups`(다른 row 후보들)를 하나씩 임시로 합쳐보고
+실현 가능해지는 후보만 그룹 크기 오름차순으로 반환.
+
+**실회로에 돌려본 결과 -- 병합이 전혀 필요 없었다**: `cmfb_tail`(`M38` +1)과
+`biasgen_ref`(`M18_bg`+`M60` 또는 `M60`+`M61` ±1, `n_fingers=7` 실사이징 상태에서도
+재검증 통과) 둘 다 **같은 행 안에서** 풀린다. 즉 "병합이 필요한 구조적 문제"가 아니라
+`run_topology_pipeline_with_finger_fixup()`의 실제 탐색 전략이 이미 존재하는 해법을
+못 찾고 있었다는 뜻 -- 질문의 프레임 자체가 재정의됨. 함수 자체는 합성 fixture(서로
+완전히 끊긴 blocked 그룹 + 다리 역할 후보 + 무관한 후보)로 "진짜 병합이 필요한 경우"의
+정확한 탐색도 검증(Test 50).
+
+`_verified_euler_fix()` 공유 헬퍼로 세 함수(`audit_vertical_stack_id_euler_
+feasibility`/`merge_layout_groups_by_matching_pairs`/`find_euler_repair_options`)의
+중복 로직 통합.
+
+### L-3. `biasgen_ref` 라운드별 실제 파이프라인 추적 -- 진짜 근본원인 발견
+`find_euler_repair_options()`가 "병합 불필요, 같은 행에서 풀림"이라고 했는데 실제
+`optimize_full_circuit_budget()`은 왜 `biasgen_ref`를 못 풀었는지 `pipeline_result
+["fixup_rounds"]`/`["group_splits"]`를 직접 추적:
+- **5라운드 전부를 `biasgen_ref`(및 그 크로스오버 분할 세그먼트들)가 독점** --
+  `run_topology_pipeline_with_finger_fixup()`은 라운드당 blocked row `blocked[0]`
+  1개만 처리하는데, `biasgen_ref`가 매 라운드 계속 첫 번째로 걸려 `cmfb_tail`은
+  단 한 번도 처리 기회를 못 받았다(원본 상태 그대로 남아있던 이유).
+- **결정적 발견 -- `(M18_bg, M60)` 조합이 단 한 번도 시도되지 않음**: 매 라운드
+  `(M18_bg, M61)`/`(M60, M61)`만 시도되고 둘 다 `gm_id=30이 LUT 범위[1.85,29.6] 밖`
+  으로 거부됨. 그런데 L-2에서 직접 검증한 해법은 정확히 `(M18_bg, M60)` 조합이었다.
+
+### L-4. 진짜 근본원인 -- `suggest_pair_finger_adjustments()`의 `pair_map` 덮어쓰기 버그
+`run_topology_pipeline_with_finger_fixup()`은 3-way declared 그룹(`M18_bg`/`M60`/
+`M61`)을 `itertools.combinations()`로 **모든 쌍의 조합** 3개(`(M18_bg,M60)`,
+`(M18_bg,M61)`, `(M60,M61)`)로 풀어서 넘긴다. 옛 구현은 `pair_map: name->partner`
+단일 매핑으로 짝을 표현했는데, 이 3개를 순서대로 대입하면 나중 쌍이 앞 쌍의 매핑을
+그냥 덮어쓴다 -- 손으로 추적하면 최종적으로 `M18_bg→M61`, `M60→M61`만 남고
+`(M18_bg,M60)` 관계 자체가 사라짐(2-element 체인 형태, 예: `zip(names,names[1:])`
+을 가정하고 짠 코드가 N-way 조합 형태를 받아 생기는 문제 -- `mirror_symmetric_
+trail()`에도 같은 패턴이 있지만 그쪽은 docstring에 "1:1 아닌 매칭쌍은 `None` 폴백"
+이라고 명시된 의도된 범위 제한이라 버그가 아님, `suggest_pair_finger_adjustments()`
+만 이 제한이 문서화 안 된 채 실제 N-way 그룹을 받고 있었던 게 문제).
+
+**수정(사용자 확정, "a로 고쳐줘")**: `pair_map` 단일 매핑 대신, **선언된 쌍마다
+독립적인 조정 단위**로 취급하도록 재작성 -- 한 소자가 여러 declared 쌍에 동시에
+나타나도(3-way 이상 그룹의 정상적인 모습) 전부 별도 후보로 살아남는다. 격리
+유닛테스트(`itertools.combinations(['M18_bg','M60','M61'], 2)`를 직접 넘겨 `(M18_bg,
+M60)`이 후보 목록에 나타나는지)와 실제 파이프라인 재실행(round=0 rejected_count가
+4→6으로 늘고 `(M18_bg,M60)` 두 개가 새로 포함됨) 둘 다로 수정 확인.
+
+**⚠️ 정직한 한계 -- 버그는 고쳐졌지만 이번 semi-synthetic 시나리오의 실패 자체는
+안 바뀜**: 새로 시도되는 `(M18_bg,M60)`도 **똑같이 `gm_id=30 LUT 범위 밖`으로
+거부됨** -- 3개 조합 전부 이번 세션 semi-synthetic 사이징(51소자 균일 `gm_id=12`
+비례식, 실제 수렴된 사이징 아님)에서 우연히 LUT 경계 바로 앞에 놓인 결과일 가능성이
+높다(버그 수정의 정확성과는 별개 문제). `cmfb_tail`도 여전히 차례를 못 받음(라운드
+예산 독점 구조 자체는 안 고쳤으므로). 이 버그 수정 자체는 일반적으로 유효
+(N-way 매칭 그룹을 가진 다른 회로/다른 사이징 상황에서는 실제로 유효한 해법을
+살려낼 것) -- 이번 시나리오에서 최종 결과가 안 바뀐 건 별개의, 아직 실측 확인이
+필요한 문제(다음 세션 ① 항목 참고).
+
+### L-5. 검증
+`stick_diagram.py` self-test 50개(Test 49/50 신설) 전부 PASS. `sizing_recipe.py`
+전체 self-test 전부 PASS. 둘 다 exit 0, `Traceback`/`AssertionError` 0건.
+
+### L-6. 다음 세션 최우선순위 재조정(사용자 지시, 2026-08-10 세션 끝)
+사용자가 이 세션 마지막에 다음 세션 순서를 직접 재배열: 원래 이월 예정이던 "라운드
+예산 독점 문제"(L-3에서 발견)는 우선순위를 낮추고, 대신 **`run_harness.py`의 grid
+search 런타임 폭증(2¹³≈8192 조합, ~10시간, "## A"절) 원인을 먼저 알고리즘으로
+해결**하는 걸 다음 세션 최우선으로 지정 -- 이유: `cmfb_tail`/`biasgen_ref`의 gm_id
+경계 문제가 진짜인지 semi-synthetic 방법론의 artifact인지 확인하려면 실제
+`sizing_roles`를 선언해 우회 없이 `optimize_full_circuit_budget()`을 돌려봐야
+하는데, 지금 상태로는 그 실행 자체가 ~10시간 걸려 현실적으로 불가능하기 때문. 상세
+순서는 이 파일 맨 위 "다음 세션 최우선" 절(①~④) 참고 -- 그 순서를 그대로 따를 것.
