@@ -6406,6 +6406,11 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
                               # `_netlist_sections_structured`(topology.json 최상위 키)가
                               # 없는 회로는 None -- 이 회로들엔 run_full_circuit_audit_
                               # from_topology()를 아직 쓸 수 없다(구조화 선행 필요).
+            "ideal_sources": [{"name":..., "kind": "current_source"|"voltage_source",
+                              "value_amp"|"value_volt":..., "implementable": False,
+                              "terminals": [net1, net2]}, ...] | None,  # 세션28 신설,
+                              # allocate_stack_headroom() singleton 우회의 물리적 근거
+                              # 검증용(전류원 종단=전압 자유=예산 흡수, 전압원 종단=별개 계약)
             "_linked_files_loaded": [str, ...]}
 
     ⚠️ 반환된 `transistors`는 **connectivity만** 채워져 있다(name/kind/source/drain/gate) —
@@ -6436,6 +6441,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
     all_dispositions = list(data["symmetry"].get("dispositions", []))
     all_device_roles = dict(data.get("device_roles") or {})
     all_netlist_sections_structured = dict(data.get("_netlist_sections_structured") or {})
+    all_ideal_sources = list(data.get("ideal_sources") or [])
 
     linked = data.get("linked_topology_files") or []
     base_dir = os.path.dirname(os.path.abspath(json_path))
@@ -6446,6 +6452,7 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
         all_dispositions.extend(linked_data["symmetry"].get("dispositions", []))
         all_device_roles.update(linked_data.get("device_roles") or {})
         all_netlist_sections_structured.update(linked_data.get("_netlist_sections_structured") or {})
+        all_ideal_sources.extend(linked_data.get("ideal_sources") or [])
 
     transistors = [Transistor(**d) for d in all_netlist]
     meta = {
@@ -6457,6 +6464,10 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
         "sizing_roles": data.get("sizing_roles"),  # 배치 7-3d(§7.3.2 D), 2026-07-31 신설
         "device_roles": all_device_roles or None,  # 배치 7-5, 2026-07-31 신설
         "netlist_sections_structured": all_netlist_sections_structured or None,  # 세션20 신설
+        # 2026-08-11(세션28 계속) 신설 -- passive_elements처럼 소자로 안 잡히는 "가짜" 소스
+        # (bias-gen 최상단 레퍼런스 전류원 등)를 헤드룸 루프가 실제로 대조하려면 필요
+        # (allocate_stack_headroom() singleton 우회의 ideal_sources 근거 검증용).
+        "ideal_sources": all_ideal_sources or None,
         "_linked_files_loaded": linked,
     }
     return transistors, meta

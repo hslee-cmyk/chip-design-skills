@@ -2421,6 +2421,51 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     comp = meta.get("compensation")
     pairs_meta = meta["symmetry"]["matching_pairs"]
     kind_of = {t.name: t.kind for t in transistors}
+    by_name = {t.name: t for t in transistors}
+
+    # 2026-08-11(세션28 계속) -- 사용자 통찰: ideal current source(전류 고정, 전압 자유)와
+    # ideal voltage source(전압 고정, 전류 자유)는 헤드룸 "합=vdd" 계약에 미치는 영향이
+    # 다르다. 일반 스택(양끝이 vdd/gnd 레일)은 KVL로 전압 강하 합이 반드시 vdd와 같아야
+    # 하지만(자유도 없음), 그룹의 한쪽 끝이 ideal current source면 그 경계는 "남는 전압을
+    # 군말 없이 흡수"하므로 그 제약 자체가 성립하지 않는다(M18_bg 실사례: topology.json의
+    # `ideal_sources`에 `Iref`(current_source, terminals=[Vbias1,gnd])가 선언돼 있고,
+    # M18_bg의 non-rail 단자가 정확히 Vbias1 -- diode_reference role의 "얇게 배정" 우회가
+    # 물리적으로 정당함을 이 선언으로 직접 검증할 수 있다). 아래 singleton thin-role
+    # 우회(`_ref_depth`/`referenced_devices` 처리부 근처)가 role 라벨만 믿지 않고 이
+    # `ideal_sources` 선언과 실제로 대조하도록 미리 인덱싱한다.
+    _rail_nets = frozenset({"vdd", "gnd", "vss"})
+    ideal_source_terminals = defaultdict(list)
+    for _src in (meta.get("ideal_sources") or []):
+        for _net in _src.get("terminals", []):
+            ideal_source_terminals[_net].append((_src.get("name"), _src.get("kind")))
+
+    def _thin_singleton_ideal_source_check(device_name):
+        """singleton thin-role 그룹이 `allocate_stack_headroom()`의 "합=vdd" 계약을
+        우회해도 되는지, role 라벨만 믿지 않고 실제 `ideal_sources` 선언과 대조해
+        검증한다. 반환: `(ok, detail)` -- `ok=True`면 non-rail 단자가 declared
+        current_source 종단(전압 자유, 남는 예산을 흡수)임을 확인한 것. `ok=False`면
+        `detail`에 원인(선언 없음/voltage_source 종단/등)을 담는다."""
+        dev = by_name.get(device_name)
+        if dev is None:
+            return False, f"'{device_name}' 트랜지스터를 찾을 수 없음"
+        open_nets = [n for n in (dev.source, dev.drain) if n not in _rail_nets]
+        if not open_nets:
+            return False, (
+                f"'{device_name}'의 양쪽 단자가 전부 레일(vdd/gnd/vss)임 -- "
+                f"singleton thin-role 우회가 상정하는 'non-rail 열린 노드' 패턴이 아님")
+        for net in open_nets:
+            for src_name, src_kind in ideal_source_terminals.get(net, []):
+                if src_kind == "current_source":
+                    return True, f"{net}가 ideal current_source '{src_name}' 종단(전압 자유)"
+                return False, (
+                    f"{net}가 ideal '{src_kind}' '{src_name}' 종단인데 current_source가 "
+                    f"아님 -- voltage_source 종단은 '합=그 전압'이라는 다른 계약이 필요한데 "
+                    f"이 코드베이스가 아직 그 케이스를 지원하지 않음")
+        return False, (
+            f"'{device_name}'의 non-rail 단자({open_nets}) 중 어느 것도 topology.json의 "
+            f"ideal_sources 선언과 안 맞음 -- role={device_roles.get(device_name, {}).get('headroom_role')!r}"
+            f"이 thin_roles인데 이 우회를 정당화할 근거가 없음(선언 누락 또는 role 오분류 "
+            f"가능성, 재검토할 것)")
 
     # 2026-08-05(세션10) L1 하드컷 -- kind(diff_pair/current_mirror/branch_symmetric/
     # current_matched) 4종 문자열을 폐지하고 독립된 두 축으로 분해했다: 축A
@@ -2838,9 +2883,24 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             # (policy.cascode_fn -- gm_id 있으면 공식, 없으면 min_vds)을 직접 배정한다.
             # "나머지"는 버려지는 게 아니라(1) 참조하는 그룹의 base_budget으로 넘어가거나,
             # (2)애초에 이 소자가 가질 이유가 없던 예산이다.
-            if len(stack_entries) == 1 and (
-                    stack_entries[0]["role"] in DEFAULT_POLICY.thin_roles
-                    or unresolved[0] in referenced_devices):
+            _thin_singleton = (len(stack_entries) == 1
+                                and stack_entries[0]["role"] in DEFAULT_POLICY.thin_roles)
+            _referenced_singleton = (len(stack_entries) == 1
+                                      and unresolved[0] in referenced_devices)
+            if _thin_singleton:
+                # 2026-08-11(세션28 계속) -- role 라벨("diode_reference")만 믿지 않고
+                # 실제 topology.json의 ideal_sources 선언과 대조해 이 우회가 물리적으로
+                # 정당한지 검증한다(사용자 지적: ideal current source(전류 고정, 전압
+                # 자유)만 "남는 예산"을 군말 없이 흡수한다 -- ideal voltage source는
+                # 전혀 다른 케이스). 검증 실패 시 조용히 넘어가지 않고 명시적 에러.
+                _ok, _detail = _thin_singleton_ideal_source_check(unresolved[0])
+                if not _ok:
+                    raise ValueError(
+                        f"'{unresolved[0]}'(role={stack_entries[0]['role']!r})가 singleton "
+                        f"thin-role 그룹이라 allocate_stack_headroom()의 '합=vdd' 계약을 "
+                        f"우회하려는데, ideal_sources 선언으로 정당화가 안 됨: {_detail}")
+                headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
+            elif _referenced_singleton:
                 headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
             else:
                 headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
@@ -4225,10 +4285,10 @@ if __name__ == "__main__":
 
     print()
     print("  [L5c 헤드룸 singleton 정책(다음 세션 최우선①, 2026-08-11 세션28) -- M5/M61,")
-    print("  M60/M66, M36a/M38, M18_bg(diode_reference), M7=M6/M36b=M36a(same_as_device)")
-    print("  전부를 실제 optimize_full_circuit_budget()으로 51소자 실회로 실행해 한 번에")
-    print("  검증. classab_centering_dev_v(세션27이 이미 분리해둔 별개 미해결 항목)만")
-    print("  임시로 제외 -- 이번 검증 범위 밖]")
+    print("  M60/M66, M36a/M38, M18_bg(diode_reference, ideal_sources 대조 검증 포함),")
+    print("  M7=M6/M36b=M36a(same_as_device) 전부를 실제 optimize_full_circuit_budget()")
+    print("  으로 51소자 실회로 실행해 한 번에 검증. classab_centering_dev_v(세션27이")
+    print("  이미 분리해둔 별개 미해결 항목)만 임시로 제외 -- 이번 검증 범위 밖]")
     import numpy as _l5c_np
     _l5c_lib = _rsl_os.path.join(_rsl_os.path.dirname(_rsl_os.path.abspath(__file__)), "library")
     _l5c_lutfile = _rsl_os.path.join(
@@ -4287,6 +4347,26 @@ if __name__ == "__main__":
         f"M18_bg(diode_reference)가 여전히 큰 값을 받음(회귀): {_l5c_sizing['M18_bg']['vds']}"
     print(f"    PASS: M18_bg(diode_reference)=={_l5c_sizing['M18_bg']['vds']}V -- thin_roles로 "
           f"얇게 배정됨(더 이상 ~vdd 아님)")
+
+    print("    [사용자 지적(2026-08-11) -- ideal current source(전압 자유)/voltage source")
+    print("    (전류 자유)는 헤드룸 '합=vdd' 계약에 영향이 다르다. role 라벨만 믿지 않고")
+    print("    실제 topology.json의 ideal_sources 선언과 대조하는지 -- 선언을 지우면(같은")
+    print("    M18_bg 케이스) 정확히 거부하는지 합성 fixture로 확인]")
+    _l5c_neg_topo = json.loads(json.dumps(_l5c_topo))  # deep copy
+    _l5c_neg_topo["ideal_sources"] = []
+    with _tempfile.TemporaryDirectory() as _l5c_neg_tmpdir:
+        _l5c_neg_path = _rsl_os.path.join(_l5c_neg_tmpdir, "current_reuse_telescopic_ota.l5c_neg.json")
+        with open(_l5c_neg_path, "w", encoding="utf-8") as _l5c_neg_f:
+            json.dump(_l5c_neg_topo, _l5c_neg_f)
+        try:
+            optimize_full_circuit_budget(_l5c_neg_path, _l5c_spec, grid_points_per_theta=1)
+            print("    FAIL: ideal_sources 선언이 없는데 우회가 조용히 성공함")
+            assert False, "ideal_sources 검증이 실제로 걸리지 않음(회귀)"
+        except ValueError as _l5c_neg_e:
+            assert "M18_bg" in str(_l5c_neg_e) and "ideal_sources" in str(_l5c_neg_e), \
+                f"에러 메시지가 원인을 안 가리킴: {_l5c_neg_e}"
+            print(f"    OK: ideal_sources 선언 제거 시 정확히 거부됨 -> {_l5c_neg_e}")
+
     assert abs(_l5c_sizing["M7"]["vds"] - _l5c_sizing["M6"]["vds"]) < 1e-9, \
         f"M7(same_as_device=M6)이 M6과 다른 값을 받음(회귀): M6={_l5c_sizing['M6']['vds']}, " \
         f"M7={_l5c_sizing['M7']['vds']}"

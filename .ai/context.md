@@ -5765,13 +5765,69 @@ exit 0, 회귀 0건.
 **남은 gap**: 없음 -- M5/M6/M60/M66/M36a/M38/M18_bg/M7/M36b 전부 해소. 다음 세션
 최우선은 다시 파일 맨 위 "① 3개 일반 함수 구현"(SLSQP 웜스타트 준비)으로 복귀.
 
-## X. 커밋 상태 (세션28 5단계 최종, 2026-08-11)
-변경 파일(이번 5단계분): `.ai/context.md`(이 갱신), `docs/04-report/analog-topology-
-json-library.do.md`(배치 7-6i 추가 예정), `skills/analog-gmid-design/assets/sizing_
-recipe.py`(`same_as_of` 파싱 + `_ref_depth()` 확장 + 헤드룸 루프 same_as 분리 처리
-+ L5c self-test 신설), `skills/analog-gmid-design/assets/library/current_reuse_
-telescopic_ota.topology.json`(M7/M36b `same_as_device` 선언 추가). self-test:
-`sizing_recipe.py` PASS(exit 0, 회귀 0건) -- 실행 결과는 다음 세션 시작 시 재확인.
-아직 커밋 안 됨 -- 다음 세션 시작 시 `git status`/`git log`로 먼저 확인할 것.
-헤드룸 singleton 정책 항목(다음 세션 최우선①이었던 것) 전체 완료 -- 다음 세션
-최우선은 "① 3개 일반 함수 구현"으로 복귀.
+## X. 커밋 상태 스냅샷 (M7/M36b 해소 시점, 커밋 `bb73912`로 반영됨 -- 아래 "## Y"가 이어서 ideal_sources 검증 기록)
+(당시 기록 그대로 보존: 변경 파일 `.ai/context.md`+`do.md`(배치 7-6i)+`sizing_recipe.py`
+(`same_as_of` 파싱+`_ref_depth()` 확장+헤드룸 루프 same_as 분리 처리+L5c self-test)+
+topology.json(M7/M36b `same_as_device`). 이후 커밋 `bb73912`("fix(analog-gmid-design):
+same_as_device 필드 신설 -- M7/M36b 해소, 헤드룸 singleton 정책 완전 종료")로 실제
+반영됨.)
+
+## Y. ideal_sources 기반 검증 신설 — role 라벨만 믿지 않고 실제 회로 선언과 대조
+
+사용자가 M18_bg 우회를 설명하는 중 통찰을 제기: "ideal current source는 전류는
+일정하지만 전압은 자유롭고, ideal voltage source는 전압은 일정하지만 전류는
+자유롭잖아. 이걸 반영하는 게 의미가 있을까?" → "바로 구현해"로 착수.
+
+**원리**: 일반 스택(양끝이 vdd/gnd 고정 전압 레일)은 KVL로 전압 강하 합이 반드시
+vdd와 같아야 한다(자유도 없음) -- `allocate_stack_headroom()`의 "합=vdd" assert가
+정확한 이유. 그런데 그룹의 한쪽 끝이 **ideal current source**(전류 고정, 전압
+자유)면 그 경계는 "남는 전압을 군말 없이 흡수"하므로 그 제약 자체가 성립하지
+않는다. 반대로 **ideal voltage source**(전압 고정, 전류 자유)로 끝나는 그룹은
+"합=vdd"가 아니라 "합=그 전압"이어야 하는, 이 코드베이스가 아직 다루지 않는
+세 번째 케이스다.
+
+**실측 확인**: `current_reuse_telescopic_ota.topology.json`의 `ideal_sources`에
+이미 `Iref`(`current_source`, `terminals: [Vbias1, gnd]`)가 선언돼 있고, 그
+주석이 정확히 이 원리를 사용자가 말한 그대로 적어뒀다("이 ideal current
+source가 Vbias1에서 gnd로 그대로 싱크한다"). M18_bg의 non-rail 단자가 정확히
+`Vbias1`이라 이 선언과 실제로 대조 가능함을 확인.
+
+**문제 발견**: `load_topology()`(`stick_diagram.py`)가 `meta` 딕셔너리를 화이트
+리스트 방식으로 구성하는데 `ideal_sources` 키가 애초에 빠져 있었다 -- topology.json
+원본엔 있어도 `sizing_recipe.py`의 `_evaluate()`에선 `meta.get("ideal_sources")`가
+항상 `None`이었다(1차 구현 후 실행해보고 발견 -- 검증이 항상 "선언 없음"으로
+거부되는 걸 보고 원인 추적).
+
+**구현**:
+1. `load_topology()`(`stick_diagram.py`) — `meta`에 `"ideal_sources"` 키 추가
+   (linked_topology_files 병합 로직도 다른 필드와 동일하게 적용), docstring 갱신.
+2. `optimize_full_circuit_budget()`(`sizing_recipe.py`) — `ideal_source_terminals`
+   (net → [(source_name, kind), ...]) 인덱스 구성 + `_thin_singleton_ideal_source_
+   check(device_name)` 헬퍼 신설: 소자의 non-rail 단자가 declared `current_source`
+   종단이면 `(True, detail)`, `voltage_source` 종단이거나 선언 자체가 없으면
+   `(False, detail)`.
+3. singleton thin-role 우회 지점에서 이 검증을 실제로 호출 -- 실패하면 조용히
+   넘어가지 않고 명시적 `ValueError`(선언 누락 또는 role 오분류 가능성을 메시지에
+   그대로 남김).
+
+**검증**: (a) 긍정 케이스 -- `load_topology()` 수정 후 M18_bg가 다시 정상적으로
+0.2V 배정받음(회로 전체 재실행 확인). (b) 부정 케이스(합성 -- `ideal_sources`를
+빈 배열로 지운 사본으로 같은 회로 재실행) -- 정확히 `ValueError`(M18_bg 언급,
+ideal_sources 언급)로 거부됨을 확인. L5c self-test에 이 부정 케이스를 새 assertion
+으로 추가. 전체 self-test exit 0, 회귀 0건.
+
+**의의**: `diode_reference` role 라벨을 "신뢰"하는 대신 실제 topology 선언과
+"검증"하는 구조로 바뀌었다 -- 다른 회로에서 누군가 실수로 `diode_reference`를
+잘못 붙이거나(진짜 ideal current source 종단이 아닌데) voltage_source 종단에
+붙이면 조용히 틀린 값을 내는 대신 명시적으로 거부된다.
+
+## Z. 커밋 상태 (세션28 6단계 최종, 2026-08-11)
+변경 파일(이번 6단계분): `.ai/context.md`(이 갱신), `docs/04-report/analog-topology-
+json-library.do.md`(배치 7-6j 추가 예정), `skills/analog-gmid-design/assets/stick_
+diagram.py`(`load_topology()`에 `ideal_sources` 필드 추가), `skills/analog-gmid-design/
+assets/sizing_recipe.py`(`ideal_source_terminals` 인덱스 + `_thin_singleton_ideal_
+source_check()` 신설 + 우회 지점에 검증 연결 + L5c에 부정 케이스 assertion 추가).
+self-test: `sizing_recipe.py`/`stick_diagram.py` 둘 다 PASS(exit 0, 회귀 0건) --
+`sizing_recipe.py` 실행 결과는 다음 세션 시작 시 재확인. 아직 커밋 안 됨 -- 다음
+세션 시작 시 `git status`/`git log`로 먼저 확인할 것. 다음 세션 최우선은 여전히
+"① 3개 일반 함수 구현"(SLSQP 웜스타트 준비).

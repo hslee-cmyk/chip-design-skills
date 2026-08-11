@@ -2179,6 +2179,24 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 
 ---
 
+### 배치 7-6j — `ideal_sources` 기반 검증 신설 — role 라벨 대신 실제 회로 선언과 대조 (신규, 세션28 6단계 2026-08-11) ✅ 구현 완료
+
+> **배경**: 배치 7-6h(M18_bg `diode_reference` 우회)를 설명하던 중 사용자 통찰 —
+> "ideal current source는 전류는 일정하지만 전압은 자유롭고, ideal voltage
+> source는 전압은 일정하지만 전류는 자유롭잖아. 이걸 반영하는 게 의미가 있을까?"
+> → "바로 구현해"로 착수.
+
+| | 내용 |
+|---|---|
+| **원리** | 일반 스택(양끝이 vdd/gnd 고정 전압 레일)은 KVL로 전압 강하 합이 반드시 vdd와 같아야 한다(자유도 없음) — `allocate_stack_headroom()`의 "합=vdd" assert가 정확한 이유. 그룹의 한쪽 끝이 **ideal current source**(전류 고정, 전압 자유)면 그 경계는 "남는 전압을 군말 없이 흡수"하므로 그 제약이 성립하지 않는다. 반대로 **ideal voltage source**(전압 고정, 전류 자유)로 끝나면 "합=vdd"가 아니라 "합=그 전압"이어야 하는, 이 코드베이스가 아직 안 다루는 세 번째 케이스다. |
+| **실측 확인** | `current_reuse_telescopic_ota.topology.json`의 `ideal_sources`에 이미 `Iref`(`current_source`, `terminals: [Vbias1, gnd]`)가 선언돼 있고, 그 주석이 정확히 이 원리를 사용자가 말한 그대로 적어뒀다. M18_bg의 non-rail 단자가 정확히 `Vbias1`이라 이 선언과 실제로 대조 가능함을 확인. |
+| **문제 발견** | `load_topology()`(`stick_diagram.py`)가 `meta` 딕셔너리를 화이트리스트 방식으로 구성하는데 `ideal_sources` 키가 애초에 빠져 있었다(1차 구현 후 실행해보고 발견 — 검증이 항상 "선언 없음"으로 거부되는 걸 보고 원인 추적). |
+| **구현** | (1) `load_topology()`(`stick_diagram.py`) — `meta`에 `"ideal_sources"` 키 추가(linked_topology_files 병합도 다른 필드와 동일 적용), docstring 갱신. (2) `optimize_full_circuit_budget()`(`sizing_recipe.py`) — `ideal_source_terminals`(net → [(source_name, kind), ...]) 인덱스 구성 + `_thin_singleton_ideal_source_check(device_name)` 헬퍼 신설: 소자의 non-rail 단자가 declared `current_source` 종단이면 `(True, detail)`, `voltage_source` 종단이거나 선언 자체가 없으면 `(False, detail)`. (3) singleton thin-role 우회 지점에서 이 검증을 실제로 호출 — 실패하면 조용히 넘어가지 않고 명시적 `ValueError`. |
+| **검증** | (a) 긍정 케이스 — M18_bg가 다시 정상적으로 0.2V 배정받음(회로 전체 재실행 확인). (b) 부정 케이스(합성 — `ideal_sources`를 빈 배열로 지운 사본) — 정확히 `ValueError`(M18_bg/ideal_sources 언급)로 거부됨. L5c self-test에 부정 케이스 assertion 추가. `sizing_recipe.py`/`stick_diagram.py` self-test 둘 다 exit 0, 회귀 0건. |
+| **의의** | `diode_reference` role 라벨을 "신뢰"하는 대신 실제 topology 선언과 "검증"하는 구조로 전환 — 다른 회로에서 이 role을 잘못 붙이거나(진짜 ideal current source 종단이 아닌데) voltage_source 종단에 붙이면 조용히 틀린 값 대신 명시적으로 거부된다. |
+
+---
+
 ### 7.9 배치 7 검토용 열린 질문 (구현 전 확인 필요)
 
 1. ~~`run_topology_pipeline()`의 새 `cell_groups` 인자와 기존 `floorplan_hints.spine_groups`가
