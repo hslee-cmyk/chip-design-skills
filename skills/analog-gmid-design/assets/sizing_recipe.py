@@ -179,28 +179,59 @@ def _multilinear_interp(grids, values, points):
 
     grids: 각 축의 1D 오름차순 배열 튜플(길이 N). values: grids로 색인되는 N차원 배열.
     points: (M, N) 조회 좌표 배열. 반환: (M,) 보간값.
-    """
-    import numpy as np
-    points = np.atleast_2d(np.asarray(points, dtype=float))
+
+    2026-08-11(세션29) -- 순수 스칼라(bisect + 파이썬 float) 구현으로 교체. 프로파일링
+    실측(51소자 실회로 evaluate() 1회 ~7~8초 중 대부분)으로 병목이 이 함수였음을 확인했는데,
+    호출 패턴이 거의 항상 M=1(`_query()`, 단일 좌표 조회) 또는 M~수십(`_gm_id_curve()`의 VGS
+    격자 스윕)로 작아서, 이런 크기에서는 매 호출마다 새로 만드는 numpy 배열(`np.clip`/
+    `np.searchsorted`/`np.where`/`np.zeros`/`np.ones`/`np.full` 등)의 **고정 오버헤드**가
+    실제 보간 연산량보다 훨씬 크다는 게 원인이었다(실측: `_multilinear_interp` 39,138회
+    호출에 10초 자체시간, M 크기와 거의 무관하게 호출당 ~0.26ms -- 원소 수 비례가 아니라
+    호출 자체의 numpy 디스패치 비용이 지배적이었다는 뜻). 알고리즘/수치 결과는 옛 구현과
+    동일하다(경계 클리핑·`searchsorted(side="right")-1`과 동치인 `bisect_right-1`·denom=0
+    처리까지 전부 대응 확인, 차분 테스트로 검증됨) -- `values`(LUT 4D 배열)만 numpy 그대로
+    쓰고 나머지는 순수 파이썬 스칼라 연산이다."""
+    import bisect
     ndim = len(grids)
-    idx_lo, frac = [], []
-    for d in range(ndim):
-        g = np.asarray(grids[d], dtype=float)
-        x = np.clip(points[:, d], g[0], g[-1])
-        i = np.clip(np.searchsorted(g, x, side="right") - 1, 0, len(g) - 2)
-        idx_lo.append(i)
-        denom = g[i + 1] - g[i]
-        frac.append(np.where(denom != 0, (x - g[i]) / np.where(denom == 0, 1, denom), 0.0))
-    result = np.zeros(points.shape[0])
-    for corner in range(2 ** ndim):
-        weight = np.ones(points.shape[0])
-        idx = []
+    grids = [g.tolist() if hasattr(g, "tolist") else list(g) for g in grids]
+    points_seq = points.tolist() if hasattr(points, "tolist") else points
+    if points_seq and not hasattr(points_seq[0], "__len__"):
+        points_seq = [points_seq]  # 1차원(단일 좌표, N개 스칼라)로 들어온 경우 (1,N)으로 승격
+
+    result = []
+    for point in points_seq:
+        idx_lo, frac = [], []
         for d in range(ndim):
-            bit = (corner >> d) & 1
-            weight = weight * (frac[d] if bit else (1 - frac[d]))
-            idx.append(idx_lo[d] + bit)
-        result = result + weight * values[tuple(idx)]
-    return result
+            g = grids[d]
+            n = len(g)
+            x = point[d]
+            if x <= g[0]:
+                i, f = 0, 0.0
+            elif x >= g[-1]:
+                i, f = n - 2, 1.0
+            else:
+                i = bisect.bisect_right(g, x) - 1
+                if i < 0:
+                    i = 0
+                elif i > n - 2:
+                    i = n - 2
+                denom = g[i + 1] - g[i]
+                f = (x - g[i]) / denom if denom != 0 else 0.0
+            idx_lo.append(i)
+            frac.append(f)
+        total = 0.0
+        for corner in range(2 ** ndim):
+            weight = 1.0
+            idx = []
+            for d in range(ndim):
+                bit = (corner >> d) & 1
+                weight *= frac[d] if bit else (1 - frac[d])
+                idx.append(idx_lo[d] + bit)
+            if weight != 0.0:
+                total += weight * float(values[tuple(idx)])
+        result.append(total)
+    import numpy as np
+    return np.asarray(result)
 
 
 class SemiEmpiricalGmIdLUT(GmIdLUT):
@@ -252,6 +283,17 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
             raise ValueError(f"ID 배열 shape {self.ID.shape} != 격자 shape {expected}")
         if self.SID_1F is not None and self.SID_1F.shape != expected:
             raise ValueError(f"SID_1F 배열 shape {self.SID_1F.shape} != 격자 shape {expected}")
+        # 2026-08-11(세션29) -- _gm_id_curve()가 매번 np.log(np.clip(self.ID,...))를 4D
+        # 배열 전체에 다시 돌리고 있었다(호출당 1회, evaluate() 1회당 수천 번) -- self.ID는
+        # 생성자 이후 불변이므로 여기서 한 번만 계산해 캐싱한다(프로파일링으로 발견한 중복,
+        # _multilinear_interp() 자체 최적화와 별개).
+        self._log_ID = np.log(np.clip(self.ID, 1e-18, None))
+        # 2026-08-11(세션29) -- _gm_id_curve(L,vds,vs)는 순수함수인데 search_gm_id_for_role()
+        # 이 gm_id_grid(기본 57점)를 스윕하는 동안 L/vds/vs는 그대로 두고 gm_id만 바꾼다 --
+        # 즉 같은 (L,vds,vs)로 이 곡선을 57번 새로 계산하고 있었다(프로파일링으로 발견,
+        # optimize_multistage() 캐싱과 같은 패턴). (L,vds,vs) 그대로를 키로 쓴다(반올림 없이 --
+        # 이 값들은 동일 호출 체인에서 재사용되는 같은 float라 오차 누적 걱정이 없다).
+        self._gm_id_curve_cache: dict = {}
 
     def _w_ref_effective(self, L: float) -> float:
         """이 L에서 ID/CGG 배열이 측정된 실제 기준폭. W_ref=None이면 단위소자(W*=L) 관례."""
@@ -261,16 +303,24 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         return _multilinear_interp(self.grids, array, [[L, vgs, vds, vs]])[0]
 
     def _gm_id_curve(self, L, vds, vs):
-        """고정 (L,vds,vs)에서 VGS 격자 전체에 대한 (ID, gm/ID) 배열을 반환 (역조회용)."""
+        """고정 (L,vds,vs)에서 VGS 격자 전체에 대한 (ID, gm/ID) 배열을 반환 (역조회용).
+        순수함수라 (L,vds,vs)별로 결과를 캐싱한다(위 `__init__`의 `_gm_id_curve_cache` 주석
+        참고 -- `search_gm_id_for_role()`의 gm_id 스윕이 이 캐시의 주 수혜자)."""
+        key = (L, vds, vs)
+        cached = self._gm_id_curve_cache.get(key)
+        if cached is not None:
+            return cached
         np = self.np
         n = len(self.VGS_grid)
         pts = np.column_stack([
             np.full(n, L), self.VGS_grid, np.full(n, vds), np.full(n, vs),
         ])
-        id_vals = np.exp(_multilinear_interp(self.grids, np.log(np.clip(self.ID, 1e-18, None)), pts))
+        id_vals = np.exp(_multilinear_interp(self.grids, self._log_ID, pts))
         gm_vals = _multilinear_interp(self.grids, self.GM, pts)
         gm_id_vals = gm_vals / np.clip(id_vals, 1e-18, None)
-        return id_vals, gm_id_vals
+        result = (id_vals, gm_id_vals)
+        self._gm_id_curve_cache[key] = result
+        return result
 
     def _solve_vgs(self, gm_id: float, L: float, vds: float, vs: float) -> float:
         """목표 gm/ID를 만족하는 VGS를 격자 위에서 역보간으로 찾는다 (gm/ID는 VGS에 단조감소)."""
@@ -2396,6 +2446,17 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     kind_of = {t.name: t.kind for t in transistors}
     by_name = {t.name: t for t in transistors}
 
+    # 2026-08-11(세션29) -- optimize_multistage()는 comp_params(대개 theta와 무관한 spec
+    # 고정값 + settling_split 하나가 채우는 t_lln류)만의 순수함수인데, LUT 격자 전체를
+    # 스윕하는 find_optimal_sizing()을 내부에서 여러 stage/그룹마다 도는 탓에 evaluate() 한
+    # 번의 비용 중 압도적 비중(프로파일 실측: 8초/call 중 약 3초)을 차지한다. SLSQP 유한차분이
+    # 같은 evaluate()를 theta 하나만 바꿔 반복 호출할 때 -- t_lln을 바꾸는 f_slew 자신을
+    # 흔드는 경우가 아니면 -- comp_params가 완전히 동일한데도 매번 이 비싼 그리드서치를
+    # 새로 돈다는 걸 이번 세션에 실측으로 발견해 결과를 comp_params 값 자체로 캐싱한다
+    # (순수함수 메모이제이션 -- optimize_multistage() 자신은 건드리지 않았으므로 다른
+    # 호출부/self-test 동작은 전혀 안 바뀐다).
+    _comp_cache: dict = {}
+
     # 2026-08-11(세션28 계속) -- 사용자 통찰: ideal current source(전류 고정, 전압 자유)와
     # ideal voltage source(전압 고정, 전류 자유)는 헤드룸 "합=vdd" 계약에 미치는 영향이
     # 다르다. 일반 스택(양끝이 vdd/gnd 레일)은 KVL로 전압 강하 합이 반드시 vdd와 같아야
@@ -2570,11 +2631,16 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             # _feed_gm_target_convention()이 이걸 spec보다 우선해 읽는다(위 함수 참고).
             ctx.derived.update(getattr(topology_fn, "exposed_params", {}))
             luts = [spec["lut_by_kind"][kind_of[grp[0]]] for grp in stage_devices]
-            comp_result = optimize_multistage(
-                topology_fn, luts, spec["L_candidates"], spec["VDS_candidates"], spec["gm_id_grid"],
-                objective=stage_objective, gain_min=spec.get("stage_gain_min"),
-                w_max=spec.get("stage_w_max"),
-                shared_gm_id_groups=comp.get("shared_gm_id_groups"))
+            _comp_cache_key = tuple(sorted(comp_params.items()))
+            if _comp_cache_key in _comp_cache:
+                comp_result = _comp_cache[_comp_cache_key]
+            else:
+                comp_result = optimize_multistage(
+                    topology_fn, luts, spec["L_candidates"], spec["VDS_candidates"],
+                    spec["gm_id_grid"], objective=stage_objective,
+                    gain_min=spec.get("stage_gain_min"), w_max=spec.get("stage_w_max"),
+                    shared_gm_id_groups=comp.get("shared_gm_id_groups"))
+                _comp_cache[_comp_cache_key] = comp_result
             if comp_result is None:
                 raise ValueError("optimize_multistage()가 실행가능점을 못 찾음 -- "
                                   "L_candidates/VDS_candidates/gm_id_grid를 확인하세요")
@@ -2936,7 +3002,9 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
 
 
 def optimize_full_circuit_budget(topology_path: str, spec: dict,
-                                  grid_points_per_theta: int = 5) -> dict:
+                                  grid_points_per_theta: int = 5,
+                                  search_method: str = "grid",
+                                  slsqp_kwargs: dict | None = None) -> dict:
     """배치 7-3d/7-5 — spec(topology.json 경로 + design spec)만 받아 instance.json에 바로
     옮길 수 있는 완성된 결과를 반환하는 **단일 진입점 harness**(2026-07-31 확장,
     do.md §10 "spec→instance.json 전체 workflow"를 실제로 실행 가능한 함수 하나로 묶음).
@@ -2959,7 +3027,10 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
        `compensation.stage_devices`로 소자별 병합 → `device_roles`의 `L_role`/
        `vertical_stack_id`(헤드룸, `allocate_stack_headroom()`)/`gm_id_role`
        (`search_gm_id_for_role()`) 순서로 나머지 소자 사이징 → `compute_metric()`.
-    4. `objective`/`constraints`로 θ* 선택(grid search, 재현성/최적성 보장).
+    4. `objective`/`constraints`로 θ* 선택 -- `search_method="grid"`(기본, 재현성/최적성
+       보장이지만 자유 theta가 많으면 격자 폭발, 세션27 실측) 또는 `search_method="slsqp"`
+       (세션29 신설, `_optimize_theta_slsqp()` — `presolve_warm_start()`가 만든 실현가능한
+       시작점에서 SLSQP+multi-start, scipy 필요, 훨씬 빠르지만 전역 최적 보장은 없음).
     5. 넷리스트 전체가 사이징됐으면(`assign_finger_geometry()`가 요구하는 W가 전부 있으면)
        `assign_finger_geometry()` → `run_topology_pipeline_with_finger_fixup()`(euler
        자동수정, 세션15) → FAIL이면(`lut_by_kind` 있을 때) `run_matching_safety_with_
@@ -2997,7 +3068,10 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     if not thetas:
         ctx, metrics_result = _evaluate({})
         theta_star, sizing = {}, ctx.sized
-    else:
+    elif search_method == "slsqp":
+        theta_star, sizing, metrics_result = _optimize_theta_slsqp(
+            topology_path, spec, ev, **(slsqp_kwargs or {}))
+    elif search_method == "grid":
         names = [t["name"] for t in thetas]
         # bounds[0]==bounds[1](고정값 -- 예: KCL 순수 합산을 표현하는 ratio=1.0 theta,
         # M5/M11a/M38 등)인 theta는 grid_points_per_theta와 무관하게 1개 점만 평가한다
@@ -3049,6 +3123,9 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                 f"물리적으로 불가능해 건너뛴 조합 {n_physically_infeasible}개(마지막 사유: "
                 f"{last_infeasible_reason}, theta={last_infeasible_theta})")
         _, theta_star, sizing, metrics_result = best
+    else:
+        raise ValueError(f"등록되지 않은 search_method {search_method!r} -- 'grid' 또는 "
+                          f"'slsqp'만 지원")
 
     sizing_overrides, pipeline_result, audit_ok = None, None, None
     if all(t.name in sizing and "W" in sizing[t.name] for t in transistors):
@@ -3575,6 +3652,145 @@ def extract_linear_feasibility_constraints(topology_path: str, spec: dict,
 
 
 # ---------------------------------------------------------------------------
+# 6.9c-2) 웜스타트 준비 2.5/3 — metric_stage_budget theta(L_cascode/L_stage2out류)의
+#         L을 LUT만으로(51소자 evaluate() 없이) 직접 찾는다(세션27 B-5 설계의 실제 구현,
+#         세션29 배선). 이 feed 타입은 ID를 안 건드리므로(_feed_metric_stage_budget()
+#         참고) 목적함수(power)엔 아예 영향이 없다 -- SLSQP가 objective gradient 0인 이런
+#         차원을 다른 차원과 같이 gradient 기반으로 섞어 최적화하다가 잘못된 방향(gain
+#         crash)으로 밀어버리는 걸 세션29 실측으로 확인(n_starts=6 중 4번이 똑같이 낮은
+#         gain_db로 수렴)했다 -- SLSQP 자유변수에서 아예 빼고 이 함수가 찾은 값을 고정값
+#         으로 쓴다(presolve_warm_start()/_optimize_theta_slsqp() 배선).
+# ---------------------------------------------------------------------------
+
+def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
+                                      reference_theta_values: dict = None,
+                                      n_scan: int = 61, n_scan_full_circuit: int = 21) -> dict:
+    """metric_stage_budget theta(`L_cascode`/`L_stage2out`류)의 웜스타트 L을 찾는다
+    (세션27 B-5가 손으로 확인한 두 가지 사실의 일반화 구현). theta별로 이 소자들의
+    devices에 **명시적으로 걸린** constraint 타입 집합을 본다:
+
+    - `gain_stages_sum` **하나만** 걸린 theta(예: `L_cascode`) -- LUT만으로(51소자
+      `evaluate()` 불필요) 이 theta의 devices만의 gm/gds 비를 bounds 양끝에서 비교해,
+      constraint 방향(`>=`면 큰 쪽, `<=`면 작은 쪽)에 유리한 극값을 고른다(세션27 실측:
+      gm/gds가 L에 단조증가 -- 다른 stage device는 이 theta의 L에 안 걸리므로 이 theta
+      몫의 소자만으로 방향 판단에 충분하고 안전하다).
+    - `battery_centering_deviation` **하나만** 걸린 theta -- 마찬가지로 LUT만으로
+      bounds를 `n_scan`점 그리드 스캔해(단조성 가정 없음) `|deviation|` 최소 L을 고른다.
+    - **둘 다 걸린** theta(예: `L_stage2out`) -- ⚠️ 2026-08-11(세션29) 실측으로 발견한
+      함정: `battery_centering_deviation`만 보고 최소화하면 그 최소점이 `gain_stages_sum`
+      을 크게 깨뜨릴 수 있다(이 회로 실측: centering만 최소화한 L=1.64e-7에서
+      `gain_db`가 77.2dB -> 58.9dB로 붕괴, SLSQP가 6번 중 4번 똑같이 이 값에 갇힘) --
+      `gain_stages_sum`은 다른 stage(예: M1a/M4a, 이 theta가 L을 안 정하는 소자)의
+      기여도 합산하므로 LUT만으로는(이 theta의 devices만 봐서는) 안전하게 판단할 수
+      없다. 이런 theta는 `reference_theta_values`(기본 bounds-midpoint, 나머지 free
+      theta는 이미 정해진 값 그대로)로 다른 모든 값을 고정한 채 `n_scan_full_circuit`점만
+      **실제 51소자 `evaluate()`로** 스캔해, 걸린 constraint를 전부 만족하는 점 중
+      centering이 최소인 것(전부 만족하는 점이 없으면 위반량 합이 최소인 것)을 고른다 --
+      점 수를 줄이는 대신(그리드 스캔이 아니라 21점) 정직하게 실측한다.
+    - 아무 것도 안 걸리면(등록 안 된 metric type뿐이거나 constraint 자체가 없음) bounds-
+      midpoint로 후퇴한다(조용히 방향을 추측하지 않는다).
+
+    반환: `{theta_name: L_value}` -- `metric_stage_budget` feed가 아니거나 bounds가
+    고정된(자유도 0) theta는 포함하지 않는다. 이미 처리된 theta의 값은 다음 theta의
+    `reference_theta_values`에도 반영된다(처리 순서: LUT-only 먼저, 실측-스캔 나중 --
+    `L_cascode`가 먼저 정해져야 `L_stage2out`의 실측 스캔이 그 값을 올바르게 반영한다)."""
+    ev = _build_theta_evaluator(topology_path, spec)
+    thetas, metrics_specs, constraints = ev["thetas"], ev["metrics_specs"], ev["constraints"]
+    kind_of, evaluate = ev["kind_of"], ev["evaluate"]
+
+    if reference_theta_values is None:
+        reference_theta_values = {t["name"]: (t["bounds"][0] + t["bounds"][1]) / 2.0 for t in thetas}
+    reference = dict(reference_theta_values)
+
+    def _vgs(name, L, gm_id, vds, vs):
+        lut = spec["lut_by_kind"][kind_of[name]]
+        return lut.vgs_for_gm_id(gm_id, L, vds, vs)
+
+    def _centering_dev(L, high, low, gm_id, vds, vs):
+        vgs_h = _vgs(high, L, gm_id, vds, vs)
+        level_h = (spec["vdd"] - vgs_h) if kind_of[high] == "pmos" else (0.0 + vgs_h)
+        vgs_l = _vgs(low, L, gm_id, vds, vs)
+        level_l = (spec["vdd"] - vgs_l) if kind_of[low] == "pmos" else (0.0 + vgs_l)
+        return abs((level_h + level_l) - spec["vdd"])
+
+    def _mean_gm_gds_db(L, devices, gm_id, vds, vs):
+        ratios = [spec["lut_by_kind"][kind_of[d]].gm_gds_ratio(gm_id, L, vds, vs) for d in devices]
+        return 20 * math.log10(sum(ratios) / len(ratios))
+
+    def _touching(devices):
+        found = []
+        for c in constraints:
+            fp = _metric_device_footprint(c["metric"], metrics_specs)
+            if fp != "ALL" and (set(devices) & fp):
+                found.append(c)
+        return found
+
+    stage_thetas = [t for t in thetas
+                     if isinstance(t["feeds"], dict) and t["feeds"].get("type") == "metric_stage_budget"
+                     and t["bounds"][0] != t["bounds"][1]]
+
+    result = {}
+    complex_thetas = []
+    for theta in stage_thetas:
+        feed = theta["feeds"]
+        devices = feed["devices"]
+        touching = _touching(devices)
+        types = {metrics_specs[c["metric"]]["type"] for c in touching}
+        if len(types & {"gain_stages_sum", "battery_centering_deviation"}) > 1:
+            complex_thetas.append(theta)  # 경쟁하는 제약 -- 3단계(실측 스캔)로 미룸
+            continue
+        lo, hi = theta["bounds"]
+        gm_id, vds, vs = feed.get("gm_id", 15.0), feed.get("vds", 0.6), feed.get("vs", 0.0)
+        if "battery_centering_deviation" in types:
+            mspec = metrics_specs[next(c["metric"] for c in touching
+                                        if metrics_specs[c["metric"]]["type"] == "battery_centering_deviation")]
+            best_L, best_dev = None, None
+            for i in range(n_scan):
+                L = _lerp(lo, hi, i / (n_scan - 1))
+                dev = _centering_dev(L, mspec["high_device"], mspec["low_device"], gm_id, vds, vs)
+                if best_dev is None or dev < best_dev:
+                    best_L, best_dev = L, dev
+            result[theta["name"]] = best_L
+        elif "gain_stages_sum" in types:
+            db_lo = _mean_gm_gds_db(lo, devices, gm_id, vds, vs)
+            db_hi = _mean_gm_gds_db(hi, devices, gm_id, vds, vs)
+            gain_c = next(c for c in touching
+                          if metrics_specs[c["metric"]]["type"] == "gain_stages_sum")
+            wants_high = gain_c["op"] in (">=", ">")
+            result[theta["name"]] = hi if (db_hi >= db_lo) == wants_high else lo
+        else:
+            result[theta["name"]] = (lo + hi) / 2.0
+        reference[theta["name"]] = result[theta["name"]]
+
+    for theta in complex_thetas:
+        feed = theta["feeds"]
+        lo, hi = theta["bounds"]
+        touching = _touching(feed["devices"])
+        centering_metric = next(c["metric"] for c in touching
+                                 if metrics_specs[c["metric"]]["type"] == "battery_centering_deviation")
+        best_L, best_score, best_feasible = None, None, False
+        for i in range(n_scan_full_circuit):
+            L = _lerp(lo, hi, i / (n_scan_full_circuit - 1))
+            trial = dict(reference, **{theta["name"]: L})
+            try:
+                _, metrics = evaluate(trial)
+            except InfeasibleSizingError:
+                continue
+            violations = [max(0.0, c["value"] - metrics[c["metric"]]) if c["op"] in (">=", ">")
+                          else max(0.0, metrics[c["metric"]] - c["value"])
+                          for c in touching]
+            feasible = all(v == 0.0 for v in violations)
+            score = metrics[centering_metric] if feasible else sum(violations)
+            if best_L is None or (feasible and not best_feasible) \
+                    or (feasible == best_feasible and score < best_score):
+                best_L, best_score, best_feasible = L, score, feasible
+        result[theta["name"]] = best_L if best_L is not None else (lo + hi) / 2.0
+        reference[theta["name"]] = result[theta["name"]]
+
+    return result
+
+
+# ---------------------------------------------------------------------------
 # 6.9d) 웜스타트 준비 3/3 — SLSQP 시작점(x0) 조립(세션29, 세션27 "## B" 웜스타트 설계의
 #       실제 구현). `extract_linear_feasibility_constraints()`로 실현가능한 기준점을 먼저
 #       확보하고(bounds-midpoint 전체가 이 회로에서 실제로 infeasible이기 때문 -- 세션27
@@ -3608,17 +3824,21 @@ def presolve_warm_start(topology_path: str, spec: dict) -> dict:
     5. 조립된 x0를 실제로 한 번 평가해(`evaluate()`) 정말 실현가능한지 확인하고 결과에
        포함한다(조용히 "아마 될 것"이라고 가정하지 않는다).
 
-    ⚠️ 미포함(세션27 B-5, 다음 단계 과제로 명시적으로 남김): `L_cascode`/`L_stage2out`류
-    `metric_stage_budget` theta는 LUT 1D 이분탐색으로 더 나은 시작값을 찾을 수 있다는 게
-    이미 손으로 검증돼 있지만(gain_db 단조/`classab_centering_dev_v` 준-단조 함수라는 사실,
-    세션27 실측), 이 함수는 아직 bounds-midpoint로만 채운다 -- gain 단조 가정이 이 metric_
-    stage_budget 핸들러가 `"gain_db"`만 구현한다는 제약과 맞물려 일반화하려면 추가 설계가
-    필요해서다(B-5 자신도 "다음 세션 SLSQP 구현 시 바로 쓸 수 있음"이라고만 적어뒀지 이번
-    세션에도 적용은 안 함).
+    2026-08-11(세션29 계속) -- `metric_stage_budget` theta(`L_cascode`/`L_stage2out`류)는
+    `search_stage_budget_L_warm_start()`로 LUT만 써서(51소자 evaluate() 불필요) 직접
+    찾은 값을 쓴다(세션27 B-5 설계의 실제 구현) -- SLSQP가 objective gradient 0인 이
+    차원들을 다른 차원과 섞어 gradient 기반으로 최적화하다 잘못된 방향(gain crash)으로
+    밀어버리는 걸 실측으로 확인한 뒤 추가(아래 `stage_budget_L` 참고).
 
     반환: `{"x0": {theta_name: value}, "feasible": bool, "infeasible_reason": str|None,
     "linear_constraints": extract_linear_feasibility_constraints()의 반환값 그대로,
-    "dependency_graph": derive_theta_dependency_graph()의 반환값 그대로, "notes": [str,...]}`."""
+    "dependency_graph": derive_theta_dependency_graph()의 반환값 그대로, "notes": [str,...],
+    "vote_determined": [theta_name,...], "stage_budget_L": [theta_name,...]}` --
+    `vote_determined`는 선형 feasibility 투표로 값이 이미 정해진 theta 이름 목록,
+    `stage_budget_L`은 `search_stage_budget_L_warm_start()`로 값이 정해진 theta 이름
+    목록(세션29 `_optimize_theta_slsqp()`가 이 둘을 합쳐 SLSQP 자유변수에서 제외하는 데
+    씀 -- `InfeasibleSizingError` 경계 근처는 gradient가 평평해
+    SLSQP가 다루기 나쁘고, 이미 실현가능하게 골라둔 값을 잃을 위험도 있다)."""
     ev = _build_theta_evaluator(topology_path, spec)
     thetas = ev["thetas"]
     objective, evaluate = ev["objective"], ev["evaluate"]
@@ -3658,6 +3878,11 @@ def presolve_warm_start(topology_path: str, spec: dict) -> dict:
         notes.append(f"선형 feasibility 부등식이 서로 다른 방향을 요구하는 theta: {conflicts} "
                       f"-- 자동 해결 불가, bounds-midpoint로 남김(SLSQP가 처리해야 함)")
 
+    stage_budget_L = search_stage_budget_L_warm_start(topology_path, spec,
+                                                        reference_theta_values=baseline)
+    for name, val in stage_budget_L.items():
+        baseline[name] = val
+
     graph = derive_theta_dependency_graph(topology_path, spec, baseline_theta_values=baseline)
 
     x0 = {}
@@ -3666,6 +3891,9 @@ def presolve_warm_start(topology_path: str, spec: dict) -> dict:
         lo, hi = t["bounds"]
         if name in vote_choice:
             x0[name] = vote_choice[name]
+            continue
+        if name in stage_budget_L:
+            x0[name] = stage_budget_L[name]
             continue
         entry = graph[name]
         cls = entry["classification"]
@@ -3689,7 +3917,234 @@ def presolve_warm_start(topology_path: str, spec: dict) -> dict:
                       "우선 확인할 것")
 
     return {"x0": x0, "feasible": feasible, "infeasible_reason": infeasible_reason,
-            "linear_constraints": linear_results, "dependency_graph": graph, "notes": notes}
+            "linear_constraints": linear_results, "dependency_graph": graph, "notes": notes,
+            "vote_determined": sorted(vote_choice), "stage_budget_L": sorted(stage_budget_L)}
+
+
+# ---------------------------------------------------------------------------
+# 6.9e) θ* 탐색 엔진 2/2 — SLSQP + multi-start(세션27 "## A" 확정, 세션29 실제 구현).
+#       grid search(§6.9 본 루프)의 대안 -- `optimize_full_circuit_budget(...,
+#       search_method="slsqp")`가 이 엔진을 호출한다. grid search는 재현성/최적성이
+#       보장되지만 자유 theta가 늘수록 `grid_points_per_theta**N`로 폭발한다(세션27
+#       실측: 13개 theta, 촘촘한 격자는 수 시간). SLSQP는 `presolve_warm_start()`가
+#       만든 실현가능한 시작점에서 지역 최적화하고, multi-start로 non-convexity를 보완한다.
+# ---------------------------------------------------------------------------
+
+def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
+                           n_starts: int = 6, maxiter: int = 80,
+                           eps: float = 2e-3, perturb_frac: float = 0.3,
+                           random_seed: int = 0, progress: bool = True) -> tuple:
+    """SLSQP + multi-start(세션27 "## A" 확정 방향)로 θ*를 찾는다 -- `optimize_full_
+    circuit_budget(..., search_method="slsqp")`의 내부 구현. 세션27 "## A"가 미리
+    정리해둔 실전 이슈 3가지를 그대로 반영한다:
+
+    (1) **`InfeasibleSizingError` -> penalty**: SLSQP는 목적함수/제약함수가 예외를
+        던지는 걸 못 다룬다 -- 이 예외가 나면 목적함수는 큰 상수(`_SLSQP_PENALTY`)를,
+        제약함수는 크게 위반된 값을 돌려줘 SLSQP가 그 방향을 피하도록 유도한다.
+    (2) **유한차분 step 크기**: theta들의 물리 단위/범위가 완전히 다르다(`L_cascode`류는
+        ~1e-7 스케일, `r_*` 비율은 0.02~0.9 스케일) -- 전부 [0,1] 정규화 좌표
+        (`(theta-lo)/(hi-lo)`)로 최적화해 단일 `eps`가 모든 차원에서 비슷한 의미를
+        갖게 한다(정규화 안 하면 스케일 작은 차원은 유한차분이 사실상 0 step이 되어
+        gradient가 0으로 나올 위험).
+    (3) **multi-start**: 여전히 필수(non-convex, cmrr/psrr가 전체회로 MNA라 국소
+        최적해가 여럿일 수 있음). 시작점 1개는 `presolve_warm_start()`의 x0, 나머지는
+        그 x0에서 SLSQP 자유변수(아래 참고)만 무작위로 흔든 변형이다.
+
+    자유도가 0인(bounds[0]==bounds[1]) theta는 애초에 최적화 벡터에서 제외하고 고정값
+    그대로 쓴다(grid search의 "고정값 theta는 1개 점만 평가" 최적화와 동일한 발상).
+    2026-08-11(세션29, 실측 프로파일링 후 추가) -- **SLSQP 자유변수도 `derive_theta_
+    dependency_graph()`가 `"coupled"`/`"ambiguous"`로 분류하고, 선형 feasibility 투표
+    (`"vote_determined"`)나 `search_stage_budget_L_warm_start()`(`"stage_budget_L"`)로
+    값이 정해지지 않은 theta로만 제한한다.** dead/isolated/vote-determined/stage-budget-L
+    theta는 이미 닫힌 관계(또는 LUT 직접탐색)로 최적값(또는 실현가능한 값)이 확정돼 있어
+    더 흔들 이유가 없다. vote-determined theta(예: `K_replica`)는 `InfeasibleSizingError`
+    경계 바로 위에 있어 그 근처에서 유한차분 gradient가 평평하거나(penalty 상수) 오히려
+    실현가능성을 깨뜨릴 위험이 있고, `metric_stage_budget` theta(`L_cascode`/`L_stage2out`
+    류)는 objective(power) gradient가 구조적으로 0이라 다른 차원과 섞여 최적화되면 방향을
+    잃는다는 게 실측 확인됐다(6회 multi-start 중 4회가 정확히 같은 낮은 gain_db로 수렴).
+    자유 차원 수를 줄이는 게 이 회로에서 13개 중 절반 이하로 실측 확인됨(evaluate() 1회가
+    LUT 보간 비용 때문에 초 단위로 느려서 -- 아래 캐시 참고 -- 차원 수가 곧 런타임).
+
+    **성능(세션29 실측 프로파일링)**: `evaluate()` 1회가 이 회로+sky130 샘플 LUT
+    조합에서 ~7~8초 걸린다(주로 `optimize_multistage()`의 LUT 격자 브루트포스 —
+    `find_optimal_sizing()` — 와 `search_gm_id_for_role()`의 다회 LUT 보간). 두 가지로
+    완화한다: (a) 이 함수 안에서 목적함수/제약함수가 **같은 x에서 evaluate()를 매번
+    새로 부르지 않도록** 캐싱(SLSQP가 유한차분 gradient를 구할 때 같은 x에서 목적함수와
+    제약함수 5개를 각각 부르므로 캐시 없이는 6배 중복 호출됨), (b) `_build_theta_
+    evaluator()`(`sizing_recipe.py`)의 comp_params 캐시 — theta 하나만 바뀐 유한차분
+    점들 중 `f_slew`(compensation의 `t_lln`에 유일하게 영향)가 안 바뀐 점들은
+    `optimize_multistage()`를 다시 안 돈다. 그래도 여전히 evaluate() 1회가 수 초대라
+    `maxiter`/`n_starts`를 무작정 키우지 말 것 — 기본값은 이 비용을 감안해 보수적으로
+    잡았다.
+
+    각 SLSQP 실행 결과는 **다시 실제 `constraints`로 재검증**한다(SLSQP가 tolerance
+    안에서 살짝 위반된 해를 `success=True`로 보고할 수 있어서, grid search가 하듯 최종
+    후보는 항상 실측으로 재확인 -- 이 프로젝트 전반의 "role/추정 대신 declared 계산과
+    대조" 원칙과 같은 정신). 전부 실패하면 `ValueError`(조용히 최선의 infeasible 해를
+    반환하지 않는다).
+
+    반환: `(theta_star: dict, sizing: dict, metrics_result: dict)` -- grid search
+    분기(`optimize_full_circuit_budget()`)와 동일한 반환 계약, 호출부가 이후 로직
+    (finger geometry 등)을 분기 없이 재사용할 수 있게 한다.
+
+    `progress=True`(기본)면 시작점/반복마다 `print()`로 진행 상황(경과시간/objective/
+    최대 제약위반량)을 찍는다(2026-08-11 세션29 추가 -- evaluate() 1회가 여전히 초 단위라
+    반복이 몇십 번이면 전체가 수십 분짜리 블랙박스가 되는 문제를 실측으로 겪었다 --
+    scipy의 `callback`을 그대로 활용, 이미 이번 스텝에서 평가한 x라 `_eval_cache`가
+    캐시로 갖고 있어 추가 evaluate() 호출 없이 공짜로 찍는다)."""
+    try:
+        import numpy as _np
+    except ImportError as e:
+        raise ImportError("search_method='slsqp'는 numpy가 필요하다 (`pip install numpy`)") from e
+    try:
+        from scipy.optimize import minimize as _scipy_minimize
+    except ImportError as e:
+        raise ImportError(
+            "search_method='slsqp'는 scipy가 필요하다 -- Windows 네이티브 인터프리터로 "
+            "`python -m pip install scipy` (CLAUDE.md 실행환경 참고, MSYS2 python 아님)") from e
+    import random as _random
+
+    thetas = ev["thetas"]
+    objective, constraints = ev["objective"], ev["constraints"]
+    evaluate = ev["evaluate"]
+
+    warm = presolve_warm_start(topology_path, spec)
+    x0_dict, graph = warm["x0"], warm["dependency_graph"]
+    held_names = set(warm["vote_determined"]) | set(warm["stage_budget_L"])
+    free_thetas = [t for t in thetas if t["bounds"][0] != t["bounds"][1]
+                   and t["name"] not in held_names
+                   and graph.get(t["name"], {}).get("classification") in ("coupled", "ambiguous")]
+    fixed_theta_values = {t["name"]: x0_dict[t["name"]] for t in thetas
+                           if t not in free_thetas}
+    if not free_thetas:
+        # SLSQP를 돌릴 자유변수가 없다(전부 고정/dead/isolated/vote-determined) -- x0
+        # 그대로 1회 평가해 반환.
+        ctx, metrics_result = evaluate(fixed_theta_values)
+        return dict(fixed_theta_values), ctx.sized, metrics_result
+
+    names = [t["name"] for t in free_thetas]
+    lo = _np.array([t["bounds"][0] for t in free_thetas])
+    hi = _np.array([t["bounds"][1] for t in free_thetas])
+    span = hi - lo  # free_thetas만 다루므로 전부 >0 보장(bounds[0]!=bounds[1]로 이미 필터링)
+
+    def _to_theta_values(x_norm):
+        vals = lo + _np.clip(x_norm, 0.0, 1.0) * span
+        theta_values = dict(fixed_theta_values)
+        theta_values.update(zip(names, (float(v) for v in vals)))
+        return theta_values
+
+    minimize_metric = "minimize" in objective
+    objective_metric = objective["minimize"] if minimize_metric else objective["maximize"]
+    _SLSQP_PENALTY = 1e6
+
+    # x_norm(같은 점)에서 목적함수 1개 + 제약함수 5개가 각자 evaluate()를 새로 부르면
+    # 유한차분 gradient 계산 때마다 동일 x를 최대 (1+len(constraints))배 중복 평가하게
+    # 된다 -- evaluate() 자체가 순수함수(같은 theta_values -> 같은 결과)이므로 x_norm을
+    # 반올림한 튜플로 캐싱해 이 중복을 없앤다.
+    _eval_cache: dict = {}
+
+    def _cached_evaluate(x_norm):
+        key = tuple(round(float(v), 9) for v in x_norm)
+        if key not in _eval_cache:
+            _eval_cache[key] = evaluate(_to_theta_values(x_norm))
+        return _eval_cache[key]
+
+    def _objective_fn(x_norm):
+        try:
+            _, metrics = _cached_evaluate(x_norm)
+        except InfeasibleSizingError:
+            return _SLSQP_PENALTY
+        val = metrics[objective_metric]
+        return val if minimize_metric else -val
+
+    def _make_constraint_fn(c):
+        op = c["op"]
+        def _fn(x_norm):
+            try:
+                _, metrics = _cached_evaluate(x_norm)
+            except InfeasibleSizingError:
+                return -_SLSQP_PENALTY  # 강한 위반으로 취급해 SLSQP가 이 방향을 피하게 함
+            val = metrics[c["metric"]]
+            if op in (">=", ">"):
+                return val - c["value"]
+            if op in ("<=", "<"):
+                return c["value"] - val
+            if op == "==":
+                return val - c["value"]
+            raise ValueError(f"등록되지 않은 constraint op {op!r}")
+        return _fn
+
+    scipy_constraints = [{"type": "eq" if c["op"] == "==" else "ineq",
+                           "fun": _make_constraint_fn(c)} for c in constraints]
+    bounds01 = [(0.0, 1.0)] * len(free_thetas)
+
+    x0_norm = _np.array([(x0_dict[n] - lo[i]) / span[i] for i, n in enumerate(names)])
+
+    rng = _random.Random(random_seed)
+    starts = [x0_norm]
+    for _ in range(max(0, n_starts - 1)):
+        x = x0_norm.copy()
+        for i in range(len(names)):
+            x[i] = min(1.0, max(0.0, x[i] + rng.uniform(-perturb_frac, perturb_frac)))
+        starts.append(x)
+
+    import time as _time
+    best = None
+    attempts = []
+    for start_idx, x_start in enumerate(starts):
+        iter_count = [0]
+        t_start = _time.time()
+        if progress:
+            print(f"[SLSQP] start {start_idx + 1}/{len(starts)} 시작 -- 자유변수 "
+                  f"{len(names)}개: {names}", flush=True)
+
+        def _callback(x_norm, _n=iter_count, _si=start_idx, _t0=t_start):
+            _n[0] += 1
+            if not progress:
+                return
+            try:
+                _, metrics = _cached_evaluate(x_norm)
+                obj = metrics[objective_metric]
+                viol = max((0.0 if _CONSTRAINT_OPS[c["op"]](metrics[c["metric"]], c["value"])
+                            else abs(metrics[c["metric"]] - c["value"])) for c in constraints)
+                print(f"  [SLSQP] start={_si + 1}/{len(starts)} iter={_n[0]} "
+                      f"elapsed={_time.time() - _t0:.1f}s {objective_metric}={obj:.4g} "
+                      f"max_violation={viol:.4g}", flush=True)
+            except InfeasibleSizingError:
+                print(f"  [SLSQP] start={_si + 1}/{len(starts)} iter={_n[0]} "
+                      f"elapsed={_time.time() - _t0:.1f}s infeasible point", flush=True)
+
+        result = _scipy_minimize(_objective_fn, x_start, method="SLSQP", bounds=bounds01,
+                                  constraints=scipy_constraints, callback=_callback,
+                                  options={"maxiter": maxiter, "eps": eps, "ftol": 1e-9})
+        if progress:
+            print(f"[SLSQP] start {start_idx + 1}/{len(starts)} 종료: success={result.success} "
+                  f"iters={iter_count[0]} elapsed={_time.time() - t_start:.1f}s "
+                  f"message={result.message!r} (누적 캐시={len(_eval_cache)}점)", flush=True)
+        theta_values = _to_theta_values(result.x)
+        try:
+            ctx, metrics = evaluate(theta_values)
+        except InfeasibleSizingError as e:
+            attempts.append(f"infeasible: {e}")
+            continue
+        feasible = all(_CONSTRAINT_OPS[c["op"]](metrics[c["metric"]], c["value"]) for c in constraints)
+        if not feasible:
+            violations = [f"{c['metric']}{c['op']}{c['value']}(실제={metrics[c['metric']]:.6g})"
+                          for c in constraints
+                          if not _CONSTRAINT_OPS[c["op"]](metrics[c["metric"]], c["value"])]
+            attempts.append(f"제약 위반: {violations}")
+            continue
+        obj_val = metrics[objective_metric] if minimize_metric else -metrics[objective_metric]
+        if best is None or obj_val < best[0]:
+            best = (obj_val, theta_values, ctx.sized, metrics)
+
+    if best is None:
+        raise ValueError(
+            f"SLSQP multi-start {len(starts)}회 전부 실현가능한 해를 못 찾음 -- "
+            f"n_starts/maxiter/eps를 조정하거나 search_method='grid'로 대체할 것. "
+            f"시도별 사유: {attempts}")
+    _, theta_star, sizing, metrics_result = best
+    return theta_star, sizing, metrics_result
 
 
 # ---------------------------------------------------------------------------
