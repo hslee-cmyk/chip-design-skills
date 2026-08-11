@@ -2147,6 +2147,22 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 
 ---
 
+### 배치 7-6h — `HeadroomPolicy.thin_roles` 일반화 + `diode_reference` role 신설 — M18_bg 해소 (신규, 세션28 4단계 2026-08-11) ✅ 구현 완료
+
+> **배경**: 배치 7-6g 직후 사용자가 "남은 gap은 정확히 뭐야?"라고 물어 M7/M18_bg/M36b
+> 세 gap을 설명한 뒤, "M18_bg는 어떻게 고치는 게 맞을까"로 이어져 착수.
+
+| | 내용 |
+|---|---|
+| **진단** | M18_bg(diode-connected, drain=gate=`Vbias1`, 전류가 외부 ideal current source로 정해지는 singleton 기준전압 생성기)는 cascode와 똑같이 "필요한 만큼만" 받으면 되지 "남는 예산을 나눠 가질" 이유가 없다. ⚠️ 그런데 diode-connected라고 전부 그런 건 아니다 — M39/M40도 diode-connected지만 세션27이 의도적으로 `voltage_divider` role을 신설해 "남는 예산을 둘이 나눠 갖는"(각 vdd/2) 동작을 만들었다. 진짜 구분 기준은 "diode-connected 여부"가 아니라 "이 소자가 예산을 나눠 가질 파트너/설계의도가 있는가"다. |
+| **구현** | `HeadroomPolicy`(`sizing_recipe.py`)에 `thin_roles: frozenset = frozenset({"cascode", "diode_reference"})` 신설 — `allocate_stack_headroom()`의 `role == "cascode"` 하드코딩 비교를 `role in policy.thin_roles`로 일반화(`cascode_entries/cascode_total` → `thin_entries/thin_total`로 변수명도 정리). M18_bg의 `headroom_role`을 `"mirror"` → `"diode_reference"`로 정정(M39/M40을 그대로 `"cascode"`로 안 쓴 것과 같은 원칙 — 물리적 역할이 다르면 role 문자열도 다르게 선언). |
+| **부수 발견(구현 중 실제로 잡은 크래시 위험)** | thin_roles를 일반화하면서 새 위험이 드러났다: singleton 그룹에 thin role 소자 하나만 있고 다른 역할이 전혀 없으면(M18_bg가 정확히 이 경우) `other_entries`가 비어 "남는 예산"을 받을 대상이 없어 `allocate_stack_headroom()`의 "합=vdd" assert 자체가 깨진다(thin_total=min_vds(0.2)≠vdd(1.8)). `_evaluate()` 헤드룸 루프의 배치 7-6g 우회 조건(참조되는 singleton)을 확장 — "singleton이고 (참조되고 있거나 OR role이 thin_roles에 있으면)" `allocate_stack_headroom()`을 아예 안 부르고 `policy.cascode_fn(entry)`을 직접 배정. |
+| **실측 검증** | feasible theta 51소자 전체 재실행 — `M18_bg: vds=0.2`(이전엔 1.8), 나머지 전 소자 값 동일(회귀 없음), metrics 전부 이전과 동일. |
+| **검증** | `sizing_recipe.py` self-test 신규 케이스 2건: (1) `diode_reference` role이 cascode와 동급으로 min_vds를 그대로 받는지, (2) `voltage_divider`(M39/M40류)는 thin_roles 일반화의 영향을 안 받고 여전히 vdd/2씩 균등분배되는지(회귀 대조군) — 둘 다 PASS, 전체 self-test exit 0·회귀 0건. |
+| **남은 gap** | `M7`/`M36b` — 둘 다 같은 근본원인: `budget_reference_device`가 "나머지"(vdd-ref) 관계만 표현 가능해 "동일"(parallel/matched-pair) 관계는 표현 못 함. 다음 세션 이후 새 메커니즘 설계 필요(예: `same_as_device` 필드). |
+
+---
+
 ### 7.9 배치 7 검토용 열린 질문 (구현 전 확인 필요)
 
 1. ~~`run_topology_pipeline()`의 새 `cell_groups` 인자와 기존 `floorplan_hints.spine_groups`가

@@ -266,7 +266,8 @@
     "M24b": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_battery_b"},
     "M23a": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_battery_b"},
 
-    "M18_bg": {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_ref"},
+    "M18_bg": {"headroom_role": "diode_reference",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_ref",
+     "_headroom_role_comment": "2026-08-11(세션28) 정정 -- 원래 'mirror'였는데, M18_bg는 diode-connected(drain=gate=Vbias1) 기준전압 생성기로 전류가 외부(ideal current source)에서 정해지는 singleton이라 '남는 예산을 나눠 가질 파트너'가 없다. non-cascode는 전부 '남는 예산 균등분배'로 처리되던 기존 계약상 singleton이면 균등분배가 '전부 다 가짐'이 돼 물리적으로 불가능한 값(~vdd)을 받고 있었다(M39/M40의 voltage_divider와는 다른 문제 -- 걔넨 둘이 짝지어 vdd/2를 의도적으로 나눠 갖지만 M18_bg는 혼자다). cascode와 똑같이 '필요한 만큼만' 받으면 되는 role이라 새 role 'diode_reference' 신설(M39/M40을 그대로 'cascode'로 안 쓴 것과 같은 이유 -- 물리적 역할이 다르면 role 문자열도 다르게 선언). allocate_stack_headroom()의 HeadroomPolicy.thin_roles에 'diode_reference'를 cascode와 동급으로 추가해 얇은 헤드룸을 받도록 함."},
     "M60":    {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias4_gen",
      "budget_reference_device": "M66",
      "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- M60(vdd-Vbias4, gate=Vbias1)과 M66(Vbias4-gnd, diode-connected)은 Test 47이 확인한 진짜 2단자 직렬(Vbias4, internal_series)인데 vsid가 따로였다(vbias4_gen/vbias4_stack). M11a/M11b/M12·M5/M61과 같은 패턴이지만 이번엔 병합 대신 budget_reference_device로 연결 -- M66이 diode-connected라 자기 완결적으로 작은 Vgs를 갖는 쪽(self-determining)이고 M60은 외부 게이트(Vbias1) 구동이라 '나머지'를 받는 쪽이 자연스럽다(M6/M58 패턴과 동일 방향). 수정 전엔 둘 다 독립적으로 '혼자니까 vdd 전부'를 받아 합이 vdd가 아니라 ~2*vdd였다(KVL 위반, 미해결 상태로 다음 세션 이월돼 있던 항목)."},

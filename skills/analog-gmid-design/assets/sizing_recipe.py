@@ -989,11 +989,27 @@ def _default_cascode_headroom(entry: dict) -> float:
 
 @dataclass
 class HeadroomPolicy:
-    """`allocate_stack_headroom()`의 배정 정책 — cascode 역할 소자의 헤드룸만 정책으로
-    갈아끼울 수 있게 분리했다(§7.9 질문 5, 2026-07-31 결정: 정책 객체/콜백으로 설계).
-    `cascode_fn(entry) -> float`: `{"name","role","min_vds"[,"gm_id","margin"]}` 하나를
-    받아 그 소자에 배정할 VDS를 반환."""
+    """`allocate_stack_headroom()`의 배정 정책 — "얇게"(thin) 배정받는 role의 헤드룸만
+    정책으로 갈아끼울 수 있게 분리했다(§7.9 질문 5, 2026-07-31 결정: 정책 객체/콜백으로
+    설계). `cascode_fn(entry) -> float`: `{"name","role","min_vds"[,"gm_id","margin"]}`
+    하나를 받아 그 소자에 배정할 VDS를 반환(이름은 유지하되 cascode 전용이 아니게 됨,
+    아래 `thin_roles` 참고).
+
+    `thin_roles`(2026-08-11 세션28 신설): "남는 예산 균등분배" 대신 `cascode_fn`으로
+    얇게 배정받는 role 집합. 기본은 `{"cascode", "diode_reference"}` -- `diode_reference`
+    는 M18_bg(diode-connected 기준전압 생성기, 외부 전류원으로 전류가 정해지는 singleton)
+    사례로 신설: cascode처럼 "필요한 만큼만" 받으면 되지 "남는 걸 다 가져갈" 이유가 없는
+    role인데, 예전엔 non-cascode는 전부 "남는 예산 균등분배"를 타서 singleton이면 그
+    "균등분배"가 "전부 다 가짐"이 됐다(M5/M60/M66/M18_bg 등에서 실측 확인, `.ai/
+    context.md` 세션28 참고). ⚠️ diode-connected라고 전부 이 집합에 넣으면 안 된다 --
+    `M39`/`M40`(`voltage_divider` role, VDD/2 self-biased 분압기)도 diode-connected지만
+    **의도적으로** "남는 예산을 둘이 나눠 갖는" 동작(각 vdd/2)을 원한다(session27이 이
+    사례 때문에 `cascode`를 그대로 못 쓰고 `voltage_divider`를 새로 만들었다 -- 물리적
+    역할이 다르면 role 문자열도 다르게 선언한다는 이 프로젝트 원칙 그대로). 구분 기준은
+    "diode-connected 여부"가 아니라 "이 소자가 예산을 나눠 가질 파트너/설계의도가
+    있는가"다."""
     cascode_fn: Callable[[dict], float] = _default_cascode_headroom
+    thin_roles: frozenset = frozenset({"cascode", "diode_reference"})
 
 
 DEFAULT_POLICY = HeadroomPolicy()
@@ -1004,25 +1020,26 @@ def allocate_stack_headroom(vdd: float, stack: list, policy: HeadroomPolicy = DE
     0.20/0.20/0.40/0.30)의 VDS를 "캐스코드는 얇게, 입력/tail은 넉넉하게"라는 **의도를 실행하는
     함수**로 대체한다.
 
-    `stack`: `[{"name","role","min_vds"[,"gm_id","margin"]}, ...]` — `role=="cascode"`는
-    `policy.cascode_fn(entry)`(기본: gm_id가 있으면 `2/gm_id+margin`, 없으면 `min_vds` 그대로)
-    만큼만 배정한다. 나머지 역할(`"input"`/`"tail"` 등)은 남는 예산(`vdd - cascode 합`)을
-    인원수로 균등 배분한다(가중치 배분이 필요해지면 `policy`를 확장 — 지금은 이 정책 하나로
-    충분함이 이 회로 하나로만 확인됨).
+    `stack`: `[{"name","role","min_vds"[,"gm_id","margin"]}, ...]` — `role`이
+    `policy.thin_roles`에 있으면(기본 `{"cascode","diode_reference"}`) `policy.cascode_fn
+    (entry)`(기본: gm_id가 있으면 `2/gm_id+margin`, 없으면 `min_vds` 그대로)만큼만
+    배정한다. 나머지 역할(`"input"`/`"tail"`/`"voltage_divider"` 등)은 남는 예산
+    (`vdd - thin 합`)을 인원수로 균등 배분한다(가중치 배분이 필요해지면 `policy`를
+    확장 — 지금은 이 정책 하나로 충분함이 이 회로 하나로만 확인됨).
 
     합이 `vdd`와 정확히 일치함을 함수 자체가 보장한다(assert) — 예전에 이 합을 안 맞춰
     3.2V(1.8V 레일 초과)로 잘못 짰던 실제 사고가 있었다(§3 실측 이력)."""
-    cascode_entries = [e for e in stack if e["role"] == "cascode"]
-    other_entries = [e for e in stack if e["role"] != "cascode"]
+    thin_entries = [e for e in stack if e["role"] in policy.thin_roles]
+    other_entries = [e for e in stack if e["role"] not in policy.thin_roles]
 
     result = {}
-    cascode_total = 0.0
-    for e in cascode_entries:
+    thin_total = 0.0
+    for e in thin_entries:
         v = policy.cascode_fn(e)
         result[e["name"]] = v
-        cascode_total += v
+        thin_total += v
 
-    remaining = vdd - cascode_total
+    remaining = vdd - thin_total
     if other_entries:
         share = remaining / len(other_entries)
         for e in other_entries:
@@ -1030,7 +1047,7 @@ def allocate_stack_headroom(vdd: float, stack: list, policy: HeadroomPolicy = DE
     total = sum(result.values())
     assert abs(total - vdd) < 1e-9 * max(vdd, 1.0), (
         f"헤드룸 배정 합({total})이 vdd({vdd})와 불일치 -- other_entries가 비어있는데 "
-        f"cascode 배정 합이 vdd와 안 맞으면 배분할 곳이 없어 이 assert가 실패한다.")
+        f"thin 배정 합이 vdd와 안 맞으면 배분할 곳이 없어 이 assert가 실패한다.")
     return result
 
 
@@ -2757,22 +2774,31 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                                "min_vds": spec.get("min_vds_by_role", {}).get(
                                    device_roles[m]["headroom_role"], 0.2)}
                               for m in unresolved]
-            # 2026-08-11(세션28 다음 최우선①) -- allocate_stack_headroom()은 "주어진 그룹이
-            # vdd(정확히는 remaining_vdd) 전체를 혼자 책임진다"는 계약을 강제한다(합이 정확히
-            # 일치함을 assert, §3 실측 이력의 3.2V 사고 재발 방지용 -- 이 계약 자체는 건드리지
-            # 않는다). 그런데 non-cascode 소자 1개뿐인 그룹이 다른 그룹의 budget_reference_
-            # device로 참조되고 있으면(예: M5), 이 그룹은 그 계약의 전제("내가 이 컬럼을 혼자
-            # 책임진다")가 애초에 성립하지 않는다 -- M5는 진짜 차동쌍 tail이고 vbias3_stack이
-            # 그 위에 참조로 얹혀사는 replica 체인일 뿐이다. 이 경우 remaining_vdd(=vdd 거의
-            # 전체)를 그대로 allocate_stack_headroom()에 넘기면 "혼자니까 균등분배가 100%"가
-            # 돼 물리적으로 불가능한 값(~vdd)이 나오고, 그 결과 이 소자를 참조하는 그룹의
-            # base_budget(=vdd-ref_vds)이 거의 0이 돼 음수 VDS 크래시로 이어진다(실측:
-            # M61_M64_M63, vds=-0.4). 그래서 이 특정 상황에서만 allocate_stack_headroom()을
-            # 아예 호출하지 않고 역할별 최소 헤드룸(min_vds)을 직접 배정한다 -- "나머지"는
-            # 버려지는 게 아니라 참조하는 그룹의 base_budget으로 그대로 넘어간다.
-            if (len(stack_entries) == 1 and stack_entries[0]["role"] != "cascode"
-                    and unresolved[0] in referenced_devices):
-                headroom = {unresolved[0]: stack_entries[0]["min_vds"]}
+            # 2026-08-11(세션28) -- allocate_stack_headroom()은 "주어진 그룹이
+            # remaining_vdd 전체를 혼자 책임진다"는 계약을 강제한다(합이 정확히 일치함을
+            # assert, §3 실측 이력의 3.2V 사고 재발 방지용 -- 이 계약 자체는 건드리지
+            # 않는다). 그런데 소자 1개뿐인 그룹은 이 계약의 전제("내가 이 컬럼을 혼자
+            # 책임진다")가 두 가지 이유로 깨질 수 있어 여기서 직접 우회한다:
+            # (1) 다른 그룹의 budget_reference_device로 참조되고 있으면(예: M5는 진짜
+            #     차동쌍 tail이고 vbias3_stack이 그 위에 참조로 얹혀사는 replica 체인) --
+            #     remaining_vdd(=vdd 거의 전체)를 그대로 넘기면 "혼자니까 균등분배가
+            #     100%"가 돼 물리적으로 불가능한 값이 나오고, 참조하는 그룹의
+            #     base_budget이 거의 0이 돼 음수 VDS 크래시로 이어진다(실측: M61_M64_
+            #     M63, vds=-0.4).
+            # (2) role이 `DEFAULT_POLICY.thin_roles`(cascode/diode_reference)면 애초에
+            #     "남는 예산을 나눠 가질" 대상이 아니라 "필요한 만큼만" 받아야 하는데,
+            #     혼자면 함께 나눌 other_entries가 아예 없어 allocate_stack_headroom()의
+            #     "합=vdd" assert 자체가 깨진다(thin_total(=min_vds, 예: 0.2~0.3V) !=
+            #     vdd). M18_bg(diode-connected 기준전압 생성기, 외부 전류원으로 전류가
+            #     정해지는 singleton)가 실제 사례.
+            # 두 경우 다 allocate_stack_headroom()을 아예 호출하지 않고 역할별 헤드룸
+            # (policy.cascode_fn -- gm_id 있으면 공식, 없으면 min_vds)을 직접 배정한다.
+            # "나머지"는 버려지는 게 아니라(1) 참조하는 그룹의 base_budget으로 넘어가거나,
+            # (2)애초에 이 소자가 가질 이유가 없던 예산이다.
+            if len(stack_entries) == 1 and (
+                    stack_entries[0]["role"] in DEFAULT_POLICY.thin_roles
+                    or unresolved[0] in referenced_devices):
+                headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
             else:
                 headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
             for m in unresolved:
@@ -4351,6 +4377,34 @@ if __name__ == "__main__":
     assert abs(_hr_result2["M2"] - _expected_cascode_v) < 1e-9, "gm_id 연동 헤드룸 계산 오류"
     assert abs(sum(_hr_result2.values()) - 1.8) < 1e-9, "gm_id 연동 시에도 합이 vdd와 불일치"
     print(f"    PASS: gm_id=17 -> cascode VDS={_expected_cascode_v:.4f}V(=2/17+0.05), 합 여전히 vdd와 일치")
+
+    print()
+    print("  [2026-08-11(세션28) HeadroomPolicy.thin_roles -- 'diode_reference'도 cascode와")
+    print("  동급으로 얇게 배정받는지(M18_bg 실사례: diode-connected 기준전압 생성기,")
+    print("  '남는 예산을 나눠 가질 파트너'가 없어 min_vds만 필요). voltage_divider(M39/M40)")
+    print("  처럼 의도적으로 남는 예산을 나눠 갖는 role은 여전히 그대로 동작하는지도 함께 확인]")
+    _hr_stack3 = [
+        {"name": "Mref", "role": "diode_reference", "min_vds": 0.20},
+        {"name": "Mtail", "role": "tail", "min_vds": 0.30},
+        {"name": "Minput", "role": "input", "min_vds": 0.40},
+    ]
+    _hr_result3 = allocate_stack_headroom(1.8, _hr_stack3)
+    assert abs(_hr_result3["Mref"] - 0.20) < 1e-12, \
+        f"diode_reference에 min_vds가 그대로 안 쓰임(thin_roles 배선 확인): {_hr_result3}"
+    assert abs(sum(_hr_result3.values()) - 1.8) < 1e-9, "diode_reference 포함 시에도 합이 vdd와 불일치"
+    print(f"    PASS: diode_reference(Mref)=min_vds 그대로, tail/input이 나머지(1.6V)를 균등분배"
+          f"({_hr_result3}), 합={sum(_hr_result3.values()):.4f}V == vdd")
+
+    _hr_divider = [
+        {"name": "Da", "role": "voltage_divider", "min_vds": 0.20},
+        {"name": "Db", "role": "voltage_divider", "min_vds": 0.20},
+    ]
+    _hr_result_div = allocate_stack_headroom(1.8, _hr_divider)
+    assert abs(_hr_result_div["Da"] - 0.9) < 1e-9 and abs(_hr_result_div["Db"] - 0.9) < 1e-9, \
+        f"voltage_divider(M39/M40류)는 여전히 vdd/2씩 균등분배여야 하는데(회귀): {_hr_result_div}"
+    print(f"    PASS: voltage_divider(Da/Db, diode-connected이지만 thin_roles에 없음) -- "
+          f"여전히 vdd/2씩 균등분배됨(M39/M40 설계의도 그대로 보존, thin_roles 일반화가 이 "
+          f"role을 건드리지 않음을 확인)")
 
     print()
     print("  [7-3e search_gm_id_for_role() -- role별 선택 방향(matching=최소, gain=gm/gds 최대, "
