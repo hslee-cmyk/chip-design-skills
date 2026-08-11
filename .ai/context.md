@@ -1,4 +1,4 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-11, 세션28 완료 — 3단계로 진행. **1단계**: 세션27이
+# 세션 컨텍스트 (최종 갱신: 2026-08-11, 세션28 완료 — 5단계로 진행. **1단계**: 세션27이
 남긴 최우선 항목①(헤드룸용 `vertical_stack_id` 병합이 레이아웃 오일러 검증에 미친 영향)을
 Test 47 교체+self-test 재실행+`resolve_stack_layout()` 직접 실행으로 검증하고 "재설계
 불필요"로 결론냈으나, **2단계**에서 사용자 질문("resolve_stack_layout에서 왜 pmos/nmos가
@@ -25,10 +25,15 @@ thin_roles` 신설(cascode 전용이던 "얇은 헤드룸" 정책을 일반화)�
 와 같은 원칙: diode-connected라도 "남는 예산을 나눠 가질 파트너가 있는가"가 진짜
 구분 기준이라 M39/M40은 안 건드림, 회귀 대조 self-test로 확인). 구현 중 singleton
 thin-role 그룹이 `allocate_stack_headroom()`의 "합=vdd" assert를 깰 수 있다는 걸
-미리 잡아 우회 조건도 확장. 남은 gap은 M7/M36b 둘 뿐(같은 근본원인 — `budget_
-reference_device`가 "나머지" 관계만 표현 가능, "동일" 관계는 못 담음).
-상세 전체는 파일 맨 끝 "# 세션28 결론"과 이어지는 "## N"~"## V" 참고, 배치 요약은
-`docs/04-report/analog-topology-json-library.do.md` 배치 7-6f/7-6g/7-6h.)
+미리 잡아 우회 조건도 확장. **5단계**: 사용자 지시("남은 gap도 지금 해결해")로
+M7/M36b까지 완전히 해소 — `budget_reference_device`("나머지" 관계)와 별개로
+`same_as_device`(동일값 관계) 필드 신설, `_ref_depth()` 위상정렬도 확장. 실측:
+`M7==M6`(0.3V), `M36b==M36a`(0.3V), 나머지 값 전부 무변화. 새 **L5c** self-test로
+이번 세션 헤드룸 수정 전체(vy_tail/vbias4/cmfb KVL 정합·M18_bg thin·M7=M6·
+M36b=M36a)를 51소자 실회로 1회 실행으로 한꺼번에 회귀 검증. **남은 gap 없음** --
+헤드룸 singleton 정책 항목 완전 종료.
+상세 전체는 파일 맨 끝 "# 세션28 결론"과 이어지는 "## N"~"## X" 참고, 배치 요약은
+`docs/04-report/analog-topology-json-library.do.md` 배치 7-6f~7-6i.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
@@ -128,21 +133,24 @@ cmrr=92.7≥60 통과/psrr=97.3≥60 통과) -- **이 회로가 sizing_roles 우
 **검증**: `sizing_recipe.py` self-test 전체 재실행 exit 0, 회귀 0건(two_stage_ota
 포함 다른 회로 영향 없음).
 
-**의도적으로 남긴 gap(문서화됨, 다음 세션 이월)** -- ⚠️ 아래 1번(`M18_bg`)은 같은
-세션 안에서 사용자 질문("남은 gap은 정확히 뭐야?" → "M18_bg는 어떻게 고치는 게
-맞을까")으로 이어서 해소됐다("세션28 결론 ## U" 참고). 최종 상태:
-1. ~~`M18_bg`(`biasgen_ref`) -- diode-connected 기준 생성기, 여전히 ~vdd~~
-   **해소됨** -- `HeadroomPolicy.thin_roles` 신설(cascode 전용이던 얇은 헤드룸
-   정책을 일반화) + `headroom_role`을 `"mirror"`→`"diode_reference"`로 정정.
-   M39/M40(`voltage_divider`, 마찬가지로 diode-connected지만 의도적으로 남는
-   예산을 나눠 가짐)은 안 건드림 -- 회귀 대조 self-test로 확인.
-2. `M7`(`vx_tail_b`) -- M6과 물리적으로 동일 노드(Vx)를 구동하는 병렬 tail이라
-   VDS가 이론상 같아야 하는데, `budget_reference_device`는 "나머지"(vdd-ref) 관계만
-   표현 가능해 "같음"(parallel) 관계는 이 메커니즘으로 못 담는다 -- 여전히 ~vdd를
-   독립적으로 받는다. 별도 해법 필요(예: M7의 vds를 M6과 직접 동일시하는 새 메커니즘).
-3. `M36b`(`cmfb_load_b`) -- M36a의 대칭 매칭 파트너인데 `budget_reference_device`가
-   그룹당 1개만 지원해 M36a만 참조가 걸렸다. M36b는 여전히 ~vdd. M7과 같은 근본원인
-   (동일 관계 표현 불가)이라 같은 해법으로 같이 풀릴 가능성이 높음.
+**gap 전체 해소 경위(같은 세션 안에서 이어서 진행)** -- 사용자 질문("남은 gap은
+정확히 뭐야?" → "M18_bg는 어떻게 고치는 게 맞을까" → "남은 gap도 지금 해결해")로
+아래 셋 전부 이 세션 안에서 해소됐다(세션28 결론 "## U"/"## W" 참고):
+1. `M18_bg`(`biasgen_ref`, diode-connected 기준 생성기) -- `HeadroomPolicy.
+   thin_roles` 신설(cascode 전용이던 얇은 헤드룸 정책을 일반화) + `headroom_role`을
+   `"mirror"`→`"diode_reference"`로 정정. M39/M40(`voltage_divider`, 마찬가지로
+   diode-connected지만 의도적으로 남는 예산을 나눠 가짐)은 안 건드림 -- 회귀 대조
+   self-test로 확인.
+2. `M7`(`vx_tail_b`, M6과 물리적으로 동일 노드 Vx를 구동하는 병렬 tail이라 VDS가
+   이론상 같아야 함) + `M36b`(`cmfb_load_b`, M36a의 대칭 매칭 파트너) -- 둘 다
+   `budget_reference_device`("나머지" 관계)로는 표현 못 하는 "동일" 관계였다.
+   새 필드 `same_as_device` 신설(device 단위 선언, `_ref_depth()` 위상정렬도
+   확장)로 해소 -- M7에 `same_as_device: M6`, M36b에 `same_as_device: M36a`.
+
+**최종 검증**: 새 **L5c** self-test(51소자 실회로, feasible theta 1회 실행)로
+이번 세션 헤드룸 수정 전체(vy_tail/vbias4/cmfb 컬럼 KVL 정합, M18_bg thin,
+M7==M6, M36b==M36a)를 한 번에 회귀 검증 -- self-test 전체 exit 0, 회귀 0건.
+**남은 gap 없음.**
 
 ### ① 다음 최우선 — 3개 일반 함수 구현 (세션27 전반부 설계, 착수 전)
 
@@ -5661,14 +5669,13 @@ D-9가 "한 번도 완주한 적 없다"고 기록했던 상태를 실제로 해
 다른 회로 영향 없음, `_evaluate()` 헤드룸 루프 변경이 "참조되는 singleton
 non-cascode" 조건에만 좁게 걸리므로 기존 통과 케이스는 그대로 유지).
 
-### S-6. 의도적으로 남긴 gap (문서화, 다음 세션 이월) -- ⚠️ M18_bg는 세션28 4단계에서 추가로 해소, 아래 "## U" 참고
+### S-6. 의도적으로 남긴 gap (문서화, 다음 세션 이월) -- ⚠️ 셋 다 세션28 안에서 전부 해소됨, "## U"/"## W" 참고
 
-1. **M7**(`vx_tail_b`) -- M6과 물리적으로 동일 노드(`Vx`)를 구동하는 병렬 tail이라
-   VDS가 이론상 같아야 하는데, `budget_reference_device`는 "나머지"(vdd-ref) 관계만
-   표현 가능해 "동일"(parallel) 관계는 못 담는다 -- 여전히 ~vdd를 독립적으로 받음.
-2. ~~M18_bg(`biasgen_ref`) -- 여전히 ~vdd~~ **(해소됨, "## U" 참고)**.
-3. **M36b**(`cmfb_load_b`) -- M36a의 대칭 매칭 파트너인데 `budget_reference_device`가
-   그룹당 1개만 지원해 M36a만 참조가 걸림. 여전히 ~vdd.
+1. ~~M7(`vx_tail_b`) -- M6과 물리적으로 동일 노드(`Vx`)를 구동하는 병렬 tail~~
+   **해소됨**("## W", `same_as_device: M6`).
+2. ~~M18_bg(`biasgen_ref`) -- 여전히 ~vdd~~ **해소됨**("## U", `diode_reference` role).
+3. ~~M36b(`cmfb_load_b`) -- M36a의 대칭 매칭 파트너~~ **해소됨**("## W",
+   `same_as_device: M36a`).
 
 ## T. 커밋 상태 스냅샷 ((A)+(B) 완료 시점, 커밋 `6566fb2`로 반영됨 -- 아래 "## U"가 이어서 M18_bg 기록)
 (당시 기록 그대로 보존: 변경 파일 `.ai/context.md`+`do.md`(배치 7-6g)+`sizing_recipe.py`
@@ -5717,13 +5724,54 @@ centering) 전부 이전과 동일. `sizing_recipe.py` self-test에 신규 케�
 같은 근본원인 -- `budget_reference_device`가 "나머지"만 표현하지 "같음"은 표현
 못 함. 다음 세션 이후 항목으로 이월, 필요해지면 새 메커니즘 설계 논의).
 
-## V. 커밋 상태 (세션28 4단계 최종, 2026-08-11)
-변경 파일(이번 4단계분): `.ai/context.md`(이 갱신), `docs/04-report/analog-topology-
-json-library.do.md`(배치 7-6h 추가 예정), `skills/analog-gmid-design/assets/sizing_
-recipe.py`(`HeadroomPolicy.thin_roles` 신설 + `allocate_stack_headroom()` 일반화 +
-`_evaluate()` 우회 조건 확장 + self-test 2건 추가), `skills/analog-gmid-design/
-assets/library/current_reuse_telescopic_ota.topology.json`(M18_bg `headroom_role`
-"mirror"->"diode_reference" 정정). self-test: `sizing_recipe.py` PASS(exit 0,
-회귀 0건) -- 실행 결과는 다음 세션 시작 시 재확인. 아직 커밋 안 됨 -- 다음 세션
-시작 시 `git status`/`git log`로 먼저 확인할 것. 다음 세션 최우선은 파일 맨 위
-"① 3개 일반 함수 구현"으로 이월(M7/M36b gap은 우선순위 낮은 이월 항목).
+## V. 커밋 상태 스냅샷 (M18_bg 해소 시점, 커밋 `fa2c077`로 반영됨 -- 아래 "## W"가 이어서 M7/M36b 기록)
+(당시 기록 그대로 보존: 변경 파일 `.ai/context.md`+`do.md`(배치 7-6h)+`sizing_recipe.py`
+(`HeadroomPolicy.thin_roles`+`allocate_stack_headroom()` 일반화+우회 조건 확장+
+self-test 2건)+topology.json(M18_bg `headroom_role` 정정). 이후 커밋 `fa2c077`
+("fix(analog-gmid-design): HeadroomPolicy.thin_roles 일반화 + diode_reference role
+신설 -- M18_bg 해소")로 실제 반영됨.)
+
+## W. M7/M36b 마저 해소 -- `same_as_device` 필드 신설 (동일값 참조, `budget_reference_device`와 구분)
+
+사용자 지시("남은 gap도 지금 해결해")로 착수. M7(`vx_tail_b`)/M36b(`cmfb_load_b`)
+둘 다 같은 근본원인 -- `budget_reference_device`는 "나머지"(vdd-ref) 관계만
+표현 가능한데, 이 둘이 필요한 건 "동일"(같은 두 노드를 공유하는 병렬 소자, 또는
+대칭 매칭 파트너) 관계다.
+
+**구현**(`sizing_recipe.py`, `_evaluate()` 헤드룸 루프):
+1. `same_as_of = {device_name: ref_device_name}` — `device_roles.*.same_as_device`
+   에서 device 단위로 직접 파싱(`budget_reference_device`는 vsid 그룹 단위 1개뿐
+   이라 M36b처럼 같은 그룹의 다른 멤버가 이미 그 슬롯을 쓰고 있어도 device 단위라면
+   문제없음).
+2. `_ref_depth()` 위상정렬을 `same_as_device` 의존관계까지 포함하도록 확장(그룹
+   안 아무 멤버든 참조가 있으면 그 대상 그룹이 먼저 풀리도록) — 순환 참조 감지도
+   두 필드 다 커버.
+3. 메인 루프에서 `unresolved`를 `same_as_members`/나머지로 분리 -- `same_as_
+   members`는 `allocate_stack_headroom()` 예산 계산에 아예 안 들어가고 참조
+   소자의 `vds`를 그대로 복사(아직 미확정이면 명시적 `ValueError`).
+
+**topology.json**: `M7`에 `same_as_device: "M6"`, `M36b`에 `same_as_device:
+"M36a"` 추가(`_headroom_role_comment`로 근거 기록).
+
+**실측 검증**: feasible theta 51소자 전체 재실행 -- `M7==M6`(=0.3V, 이전엔 M7만
+1.8V), `M36b==M36a`(=0.3V), 나머지 값(M5/M61/M64/M63/M60/M66/M36a/M37a/M38/
+M18_bg) 전부 변화 없음, metrics 동일. KVL 컬럼 합 셋 다 여전히 vdd와 정확히 일치.
+
+**self-test**: 기존 L5b 뒤에 새 **L5c** 신설 -- 51소자 실회로를 feasible theta로
+직접 실행해 이번 세션의 헤드룸 수정 전체(vy_tail/vbias4/cmfb KVL 정합, M18_bg
+thin, M7==M6, M36b==M36a)를 한 번에 검증하는 end-to-end 회귀 가드. 전체 self-test
+exit 0, 회귀 0건.
+
+**남은 gap**: 없음 -- M5/M6/M60/M66/M36a/M38/M18_bg/M7/M36b 전부 해소. 다음 세션
+최우선은 다시 파일 맨 위 "① 3개 일반 함수 구현"(SLSQP 웜스타트 준비)으로 복귀.
+
+## X. 커밋 상태 (세션28 5단계 최종, 2026-08-11)
+변경 파일(이번 5단계분): `.ai/context.md`(이 갱신), `docs/04-report/analog-topology-
+json-library.do.md`(배치 7-6i 추가 예정), `skills/analog-gmid-design/assets/sizing_
+recipe.py`(`same_as_of` 파싱 + `_ref_depth()` 확장 + 헤드룸 루프 same_as 분리 처리
++ L5c self-test 신설), `skills/analog-gmid-design/assets/library/current_reuse_
+telescopic_ota.topology.json`(M7/M36b `same_as_device` 선언 추가). self-test:
+`sizing_recipe.py` PASS(exit 0, 회귀 0건) -- 실행 결과는 다음 세션 시작 시 재확인.
+아직 커밋 안 됨 -- 다음 세션 시작 시 `git status`/`git log`로 먼저 확인할 것.
+헤드룸 singleton 정책 항목(다음 세션 최우선①이었던 것) 전체 완료 -- 다음 세션
+최우선은 "① 3개 일반 함수 구현"으로 복귀.

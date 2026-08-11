@@ -2670,6 +2670,7 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         # 컬럼인데 다른 이름을 받음)이었다 -- 아래에서 vsid 그대로 쓰고, 선언 쪽을
         # 정정한다(device_roles의 M12/M21 vertical_stack_id를 M11a/M11b, M20a/M20b와
         # 합침, topology.json 참고).
+        same_as_of = {}
         for name, dr in device_roles.items():
             vsid = dr.get("vertical_stack_id")
             if not vsid:
@@ -2678,6 +2679,16 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             ref = dr.get("budget_reference_device")
             if ref:
                 group_ref_device[vsid] = ref
+            # 2026-08-11(세션28 계속) -- budget_reference_device("나머지" 관계, vdd-ref)
+            # 로는 표현 못 하는 "동일" 관계(parallel/matched-pair, 예: M7=M6과 물리적으로
+            # 같은 두 노드를 구동하는 병렬 tail이라 VDS가 항상 정확히 같아야 함, M36b=M36a
+            # 대칭 매칭 파트너) 전용 필드. 헤드룸 예산 계산에 아예 참여하지 않고 참조
+            # 소자의 vds를 그대로 복사한다 -- device 단위 선언(그룹 단위인 budget_
+            # reference_device와 달리 같은 그룹 안에서도 멤버별로 다른 대상을 참조할 수
+            # 있게 함).
+            same_as = dr.get("same_as_device")
+            if same_as:
+                same_as_of[name] = same_as
 
         # 2026-08-11(세션28 다음 최우선①) -- 다른 그룹의 budget_reference_device가 가리키는
         # 소자 집합. 이 소자가 속한 자기 그룹의 헤드룸을 배정할 때 아래에서 참고한다(M5가
@@ -2690,16 +2701,27 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         # 그룹이 이미 확정한 소자의 드레인 전압)만큼만 예산으로 갖는 경우를 위한 선택적 필드
         # (배치 7-5b, 2026-07-31, NMCNR 회로 계기 -- 사용자와 함께 설계). `budget_reference_
         # device`가 가리키는 소자는 반드시 다른(먼저 처리되는) vertical_stack_id 그룹 소속이어야
-        # 하므로, 그 의존관계대로 그룹을 위상정렬한다(순환 참조는 즉시 ValueError).
+        # 하므로, 그 의존관계대로 그룹을 위상정렬한다(순환 참조는 즉시 ValueError). 2026-08-11
+        # 세션28 계속 -- `same_as_device` 의존관계도 같은 위상정렬에 포함(그룹 안 아무
+        # 멤버든 참조가 있으면 그 대상 그룹이 먼저 풀려야 함).
         def _ref_depth(vsid, _seen=frozenset()):
-            ref_dev = group_ref_device.get(vsid)
-            if ref_dev is None:
+            deps = [group_ref_device[vsid]] if vsid in group_ref_device else []
+            deps += [same_as_of[m] for m in vertical_groups[vsid] if m in same_as_of]
+            if not deps:
                 return 0
-            ref_vsid = device_roles.get(ref_dev, {}).get("vertical_stack_id")
-            if ref_vsid == vsid or vsid in _seen:
+            if vsid in _seen:
                 raise ValueError(
-                    f"vertical_stack_id 그룹 '{vsid}'의 budget_reference_device가 순환 참조한다")
-            return 1 + _ref_depth(ref_vsid, _seen | {vsid})
+                    f"vertical_stack_id 그룹 '{vsid}'의 budget_reference_device/"
+                    f"same_as_device가 순환 참조한다")
+            depths = []
+            for dep in deps:
+                dep_vsid = device_roles.get(dep, {}).get("vertical_stack_id")
+                if dep_vsid == vsid:
+                    raise ValueError(
+                        f"vertical_stack_id 그룹 '{vsid}'의 budget_reference_device/"
+                        f"same_as_device가 순환 참조한다")
+                depths.append(1 + _ref_depth(dep_vsid, _seen | {vsid}))
+            return max(depths)
 
         for vsid in sorted(vertical_groups.keys(), key=_ref_depth):
             members = vertical_groups[vsid]
@@ -2758,6 +2780,27 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                         f"metric_stage_budget/headroom_role 중 하나)가 topology.json에 "
                         f"선언돼 있는지 확인할 것")
                 unresolved.append(rep)
+            if not unresolved:
+                continue
+
+            # 2026-08-11(세션28 계속) -- same_as_device로 선언된 소자는 헤드룸 예산 계산에
+            # 아예 참여하지 않고 참조 대상의 vds를 그대로 복사한다(M7=M6, M36b=M36a --
+            # budget_reference_device로는 표현 못 하는 "동일" 관계). _ref_depth 위상정렬이
+            # 이미 참조 대상 그룹을 먼저 처리하도록 보장하므로 여기서는 ctx.sized에 값이
+            # 있어야 정상이고, 없으면 선언/순환 문제이므로 명시적으로 막는다.
+            same_as_members = [m for m in unresolved if m in same_as_of]
+            for m in same_as_members:
+                src = same_as_of[m]
+                src_vds = ctx.sized.get(src, {}).get("vds")
+                if src_vds is None:
+                    raise ValueError(
+                        f"'{m}'의 same_as_device('{src}')가 아직 VDS 미확정 -- 참조 소자가 "
+                        f"속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인)")
+                vgrp = _vfind(m)
+                for other in members:
+                    if _vfind(other) == vgrp:
+                        ctx.sized.setdefault(other, {})["vds"] = src_vds
+            unresolved = [m for m in unresolved if m not in same_as_of]
             if not unresolved:
                 continue
             base_budget = spec["vdd"]
@@ -4179,6 +4222,84 @@ if __name__ == "__main__":
     except ValueError as e:
         assert "vertical_stack_id" in str(e), f"에러 메시지가 원인을 안 가리킴: {e}"
         print(f"    OK: 예상대로 ValueError -> {e}")
+
+    print()
+    print("  [L5c 헤드룸 singleton 정책(다음 세션 최우선①, 2026-08-11 세션28) -- M5/M61,")
+    print("  M60/M66, M36a/M38, M18_bg(diode_reference), M7=M6/M36b=M36a(same_as_device)")
+    print("  전부를 실제 optimize_full_circuit_budget()으로 51소자 실회로 실행해 한 번에")
+    print("  검증. classab_centering_dev_v(세션27이 이미 분리해둔 별개 미해결 항목)만")
+    print("  임시로 제외 -- 이번 검증 범위 밖]")
+    import numpy as _l5c_np
+    _l5c_lib = _rsl_os.path.join(_rsl_os.path.dirname(_rsl_os.path.abspath(__file__)), "library")
+    _l5c_lutfile = _rsl_os.path.join(
+        _rsl_os.path.dirname(_rsl_os.path.abspath(__file__)), "sky130_nfet_pfet_lut_sample.npz")
+    with open(_rsl_os.path.join(_l5c_lib, "current_reuse_telescopic_ota.topology.json"),
+              "r", encoding="utf-8") as _l5c_f:
+        _l5c_topo = json.load(_l5c_f)
+    for _l5c_t in _l5c_topo["sizing_roles"]["theta"]:
+        if _l5c_t["name"] == "K_replica":
+            _l5c_t["bounds"] = [0.05, 0.05]
+        elif _l5c_t["name"] == "r_classab_battery":
+            _l5c_t["bounds"] = [0.3, 0.3]
+        else:
+            _l5c_lo, _l5c_hi = _l5c_t["bounds"]
+            _l5c_mid = (_l5c_lo + _l5c_hi) / 2.0
+            _l5c_t["bounds"] = [_l5c_mid, _l5c_mid]
+    _l5c_topo["sizing_roles"]["constraints"] = [
+        c for c in _l5c_topo["sizing_roles"]["constraints"] if c["metric"] != "classab_centering_dev_v"]
+    with _tempfile.TemporaryDirectory() as _l5c_tmpdir:
+        _l5c_topo_path = _rsl_os.path.join(_l5c_tmpdir, "current_reuse_telescopic_ota.l5c.json")
+        with open(_l5c_topo_path, "w", encoding="utf-8") as _l5c_f:
+            json.dump(_l5c_topo, _l5c_f)
+        _l5c_d = _l5c_np.load(_l5c_lutfile)
+        _l5c_nmos = SemiEmpiricalGmIdLUT(_l5c_d["L"], _l5c_d["VGS"], _l5c_d["VDS"], _l5c_d["VS"],
+                                          _l5c_d["ID_n"], _l5c_d["GM_n"], _l5c_d["GDS_n"], _l5c_d["CGG_n"],
+                                          W_ref=5e-6, SID_1F=_l5c_d["SID_1F_n"])
+        _l5c_pmos = SemiEmpiricalGmIdLUT(_l5c_d["L"], _l5c_d["VGS"], _l5c_d["VDS"], _l5c_d["VS"],
+                                          _l5c_d["ID_p"], _l5c_d["GM_p"], _l5c_d["GDS_p"], _l5c_d["CGG_p"],
+                                          W_ref=5e-6, SID_1F=_l5c_d["SID_1F_p"])
+        _l5c_spec = {
+            "lut_by_kind": {"nmos": _l5c_nmos, "pmos": _l5c_pmos}, "lut": _l5c_nmos, "vdd": 1.8,
+            "L_candidates": [float(v) for v in _l5c_nmos.L_grid],
+            "VDS_candidates": [float(v) for v in _l5c_nmos.VDS_grid[::24]],
+            "gm_id_grid": [4.0, 8.0, 12.0, 16.0, 20.0, 24.0],
+            "L_min": 0.15e-6, "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
+            "W_bounds": (1e-6, 200e-6), "min_vds_by_role": {"cascode": 0.2, "tail": 0.3, "mirror": 0.3},
+            "stage_objective": "power", "stage_w_max": 200e-6,
+            "min_finger_w": 1e-6, "max_finger_w": 40e-6,
+            "vth0_slope": {"nfet": 3.356e-3, "pfet": 5.856e-3},
+            "t_lln": 30e-9, "PM_target_deg": 70.0,
+            "Cc": 500e-15, "Cf": 500e-15, "Cs": 500e-15, "C_Ltot": 1e-12,
+            "t_settle_total": 40e-9, "omega_c": 6.9 / 30e-9,
+        }
+        _l5c_result = optimize_full_circuit_budget(_l5c_topo_path, _l5c_spec, grid_points_per_theta=1)
+    _l5c_sizing = _l5c_result["sizing"]
+    _l5c_vy_tail = sum(_l5c_sizing[n]["vds"] for n in ("M61", "M64", "M63", "M5"))
+    _l5c_vbias4 = _l5c_sizing["M60"]["vds"] + _l5c_sizing["M66"]["vds"]
+    _l5c_cmfb = _l5c_sizing["M36a"]["vds"] + _l5c_sizing["M37a"]["vds"] + _l5c_sizing["M38"]["vds"]
+    for _l5c_name, _l5c_sum in (("vy_tail(M61+M64+M63+M5)", _l5c_vy_tail),
+                                 ("vbias4(M60+M66)", _l5c_vbias4),
+                                 ("cmfb(M36a+M37a+M38)", _l5c_cmfb)):
+        assert abs(_l5c_sum - 1.8) < 1e-6, f"{_l5c_name} 합이 vdd(1.8V)와 불일치(회귀): {_l5c_sum}"
+    print(f"    PASS: vy_tail/vbias4/cmfb 세 컬럼 전부 vdd(1.8V)와 정확히 일치 -- "
+          f"M5/M61/M64/M63/M60/M66/M36a/M37a/M38 KVL 정합")
+    assert _l5c_sizing["M18_bg"]["vds"] < 0.5, \
+        f"M18_bg(diode_reference)가 여전히 큰 값을 받음(회귀): {_l5c_sizing['M18_bg']['vds']}"
+    print(f"    PASS: M18_bg(diode_reference)=={_l5c_sizing['M18_bg']['vds']}V -- thin_roles로 "
+          f"얇게 배정됨(더 이상 ~vdd 아님)")
+    assert abs(_l5c_sizing["M7"]["vds"] - _l5c_sizing["M6"]["vds"]) < 1e-9, \
+        f"M7(same_as_device=M6)이 M6과 다른 값을 받음(회귀): M6={_l5c_sizing['M6']['vds']}, " \
+        f"M7={_l5c_sizing['M7']['vds']}"
+    assert abs(_l5c_sizing["M36b"]["vds"] - _l5c_sizing["M36a"]["vds"]) < 1e-9, \
+        f"M36b(same_as_device=M36a)가 M36a와 다른 값을 받음(회귀): M36a={_l5c_sizing['M36a']['vds']}, " \
+        f"M36b={_l5c_sizing['M36b']['vds']}"
+    print(f"    PASS: M7==M6(={_l5c_sizing['M6']['vds']}V), M36b==M36a(={_l5c_sizing['M36a']['vds']}V) "
+          f"-- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사")
+    print(f"    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db="
+          f"{_l5c_result['metrics']['gain_db']:.2f}, mismatch_sigma_mV="
+          f"{_l5c_result['metrics']['mismatch_sigma_mV']:.2f}, cmrr_estimate_db="
+          f"{_l5c_result['metrics']['cmrr_estimate_db']:.2f}, psrr_estimate_db="
+          f"{_l5c_result['metrics']['psrr_estimate_db']:.2f})")
 
     print()
     print("  [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/")

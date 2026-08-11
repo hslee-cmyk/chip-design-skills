@@ -2163,6 +2163,22 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 
 ---
 
+### 배치 7-6i — `same_as_device` 필드 신설 — M7/M36b 해소, 헤드룸 singleton 정책 항목 완전 종료 (신규, 세션28 5단계 2026-08-11) ✅ 구현 완료
+
+> **배경**: 배치 7-6h가 남긴 gap(M7/M36b)을 사용자 지시("남은 gap도 지금 해결해")로
+> 이어서 처리.
+
+| | 내용 |
+|---|---|
+| **진단** | `M7`(`vx_tail_b`, source=vdd/drain=Vx)은 `M6`(source=vdd/drain=Vx)과 물리적으로 완전히 같은 두 노드를 구동하는 병렬 tail이라 VDS가 KVL상 항상 정확히 같아야 한다. `M36b`(`cmfb_load_b`)는 `M36a`의 대칭 매칭 파트너(CMFB load 차동쌍 반대쪽)라 이론상 같은 값이어야 한다. 둘 다 `budget_reference_device`("나머지"=vdd-ref 관계)로는 표현 불가능한 "동일" 관계가 필요했다. |
+| **구현** | `sizing_recipe.py`, `_evaluate()` 헤드룸 루프. `same_as_of = {device_name: ref_device_name}`을 `device_roles.*.same_as_device`에서 device 단위로 직접 파싱(`budget_reference_device`는 vsid 그룹 단위 1개뿐이라 `M36b`처럼 같은 그룹의 다른 멤버가 이미 그 슬롯을 쓰고 있어도 device 단위 필드라면 문제없음). `_ref_depth()` 위상정렬을 `same_as_device` 의존관계까지 포함하도록 확장(순환 참조 감지도 두 필드 다 커버). 메인 루프에서 `unresolved`를 `same_as_members`/나머지로 분리 — `same_as_members`는 `allocate_stack_headroom()` 예산 계산에 아예 안 들어가고 참조 소자의 `vds`를 그대로 복사(아직 미확정이면 명시적 `ValueError`). |
+| **topology.json** | `M7`에 `same_as_device: "M6"`, `M36b`에 `same_as_device: "M36a"` 추가(`_headroom_role_comment`로 근거 기록). |
+| **실측 검증** | feasible theta 51소자 전체 재실행 — `M7==M6`(=0.3V, 이전엔 M7만 1.8V), `M36b==M36a`(=0.3V), 나머지 값(M5/M61/M64/M63/M60/M66/M36a/M37a/M38/M18_bg) 전부 무변화, metrics 동일. KVL 컬럼 합 셋 다 여전히 vdd와 정확히 일치. |
+| **검증** | 기존 L5b 뒤에 새 **L5c** self-test 신설 — 51소자 실회로를 feasible theta로 직접 실행해 이번 세션의 헤드룸 수정 전체(vy_tail/vbias4/cmfb 컬럼 KVL 정합, M18_bg thin, M7==M6, M36b==M36a)를 한 번에 검증하는 end-to-end 회귀 가드. 전체 self-test exit 0, 회귀 0건. |
+| **남은 gap** | 없음 — 세션27이 발견한 M5/M61 헤드룸 크래시로 시작된 "다음 세션 최우선①(`allocate_stack_headroom()`의 혼자 있는 non-cascode 소자 기본정책)" 항목이 이 배치로 완전히 종료됨(M5/M6/M60/M66/M36a/M38/M18_bg/M7/M36b 전부 해소). |
+
+---
+
 ### 7.9 배치 7 검토용 열린 질문 (구현 전 확인 필요)
 
 1. ~~`run_topology_pipeline()`의 새 `cell_groups` 인자와 기존 `floorplan_hints.spine_groups`가

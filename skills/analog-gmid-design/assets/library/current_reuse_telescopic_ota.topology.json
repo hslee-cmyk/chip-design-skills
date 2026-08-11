@@ -237,7 +237,9 @@
   "_device_roles_comment": "2026-07-31 배치 7-5 -- do.md §7.3.1 A/B/C/D 분류표를 이 스키마(headroom_role/gm_id_role/L_role/vertical_stack_id)로 옮긴 1차 실행본. M1a/M1b/M4a/M4b/M15/M16(compensation.stage_devices)과 M2a/M2b/M3a/M3b(theta L_cascode가 metric_stage_budget으로 L/W/gm/gds/gm_id를 직접 계산)는 두 경로가 이미 전부 결정하므로 여기 없음. gm_id_role enum: matching(전류미러/바이어스, gm_id 최소화)/gain(캐스코드)/balanced(GBW 고정). L_role enum: mirror(2.5*L_min)/bias_replica(1.2*L_min). vertical_stack_id는 실제 물리적 직렬경로(vdd~gnd 한 branch) 단위로 묶었다 -- optimize_full_circuit_budget()을 이 회로에 실제로 실행해 완주 여부를 검증하는 것이 목적이며, 이 1차 배정이 실행 중 드러내는 gap(예: A엔진이 currently_mirror kind만 자동 미러링하고 branch_symmetric은 안 함, servo 피드가 diff pair 반대쪽을 안 채움 등)은 검증 결과 자체로 보고한다.",
   "device_roles": {
     "M6":  {"headroom_role": "tail",    "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "vx_tail_a"},
-    "M7":  {"headroom_role": "tail",    "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "vx_tail_b"},
+    "M7":  {"headroom_role": "tail",    "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "vx_tail_b",
+     "same_as_device": "M6",
+     "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M7(source=vdd,drain=Vx)은 M6(source=vdd,drain=Vx)과 물리적으로 완전히 같은 두 노드를 구동하는 병렬 tail이라 VDS(M7)=VDS(M6)이 KVL상 항상 정확히 같아야 한다. budget_reference_device(vdd-ref, '나머지' 관계)로는 이 '동일' 관계를 표현할 수 없어(M7에 걸면 vdd-vds(M6)이 나와 틀림) same_as_device(신규 필드)로 M6을 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M6의 vds를 그대로 복사."},
     "M5":  {"headroom_role": "tail",    "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "vy_tail"},
 
     "M8":   {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_a"},
@@ -284,7 +286,9 @@
      "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 Vx-M58-M57-Vbias2-M68-GND(M6/M7 병렬 tail이 Vx를 먹임, r_bg_vbias2 theta 주석 참고)라 M58/M57과 같은 물리적 컬럼인데 별도 vsid(vbias2_gen)였다 -- M58/M57과 합치고, 이 컬럼의 top이 vdd가 아니라 Vx(=vdd-vds(M6))이므로 budget_reference_device로 M6을 참조(suggest_headroom_stack_groups()가 M7도 동등 후보로 제안하나, M6/M7 둘 다 같은 Vx를 구동하는 병렬 tail이라 어느 쪽을 참조해도 이론상 같은 값 -- M6을 대표로 채택)."},
 
     "M36a": {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load_a"},
-    "M36b": {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load_b"},
+    "M36b": {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load_b",
+     "same_as_device": "M36a",
+     "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M36b는 M36a의 대칭 매칭 파트너(CMFB load 차동쌍 반대쪽, 둘 다 diode-connected)라 이론상 VDS가 동일해야 한다. budget_reference_device 슬롯은 이미 cmfb_tail(M38)이 M36a를 참조하는 데 쓰고 있어(그룹당 1개 제약) M36b는 별도로 same_as_device(신규 필드)로 M36a를 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M36a의 vds를 그대로 복사."},
     "M39":  {"headroom_role": "voltage_divider", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_vocdes_gen",
      "_headroom_role_comment": "2026-08-10(세션27) 정정 -- 원래 'cascode'였는데, M39/M40은 VDD-M39-Voc_des-M40-GND 2소자 self-biased 분압기(_correction_log_5, 논문 II.D 'Voc_des=0.9V=VDD/2')라 '얇은 헤드룸만'을 뜻하는 cascode role이 물리적으로 안 맞았다(게다가 스택 전원이 cascode면 나머지 예산을 배분할 'other' role이 없어 allocate_stack_headroom() assert가 실패했다). cascode가 아닌 role은 전부 동일하게 '남는 예산 균등분배'로 처리되므로(headroom_role 자유문자열 계약), 이 값 자체를 새로 짓기만 하면 된다 -- M39/M40 각각 vdd/2=0.9V를 받아 논문 설계의도와 일치."},
     "_M38_L_role_comment": "M38(CMFB 차동쌍 tail)의 L_role은 원래 M5(stage-1 tail)를 따라 'bias_replica'(1.2*L_min=0.18um)였고, 2026-08-03 배치 7-5b에서 'mirror'(2.5*L_min=0.375um)로 바꿨다. ⚠️ **그때 적은 근거(gds38 vs 2*gm36a*(gds39+gds40)/gm39 균형이 A_c의 부호를 정한다)는 폐기됐다** -- _correction_log_5에서 CMFB 넷리스트를 정정한 결과 M39/M40은 저임피던스 PMOS diode 분압기라 A_c 식에 아예 등장하지 않고, A_c는 다이오드 부하 차동쌍이라 **항상 음수**(-gm37/(2*gm36) 근방)이며 부호가 뒤집힐 여지 자체가 없다. 즉 '양귀환이라 바꿔야 한다'는 그때의 진단은 틀린 토폴로지에서 나온 허상이었다. 그럼에도 'mirror'를 유지하는 근거는 **별개이고 더 단순하다**: (a) M38은 tail 전류원이라 짧은 채널일 이유가 없다(전류 매칭·공정변동 관점에서 긴 L이 유리 -- 논문 II.D도 CMFB에 대해 'a larger channel length is used to reduce process variation'이라고 명시), (b) 정정된 A_c 식에서 gds38은 분모의 (A1+B1+gds38)에만 들어가므로 gds38이 작을수록 |A_c|가 (약간) 커져 CM 루프이득에 유리하다. ⚠️ 이 값은 여전히 논문에서 읽은 수치가 아니라 설계 판단이다 -- 최종 확인은 SPICE 필요.",
