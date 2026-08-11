@@ -3215,8 +3215,20 @@ def _verified_euler_fix(transistors: list, local_pairs: list):
     제안을 실제로 적용해 다시 확인한다.
 
     반환: `(ok: bool, verified_suggestion: PairAdjustmentSuggestion | None)` --
-    `ok=True`이고 `verified_suggestion=None`이면 애초에 조정 없이도 이미 통과."""
-    verdict = check_euler_condition(build_graph(transistors))
+    `ok=True`이고 `verified_suggestion=None`이면 애초에 조정 없이도 이미 통과.
+
+    ⚠️ **2026-08-11(세션28) kind 동질성 하드 게이트 대응** -- `build_graph()`가 이제
+    PMOS/NMOS가 섞인 그룹에 `ValueError`를 낸다(diffusion 공유 불가, 구조적으로
+    finger 조정으로 못 고치는 문제). 이 헬퍼의 세 호출부(`audit_vertical_stack_id_
+    euler_feasibility()`/`merge_layout_groups_by_matching_pairs()`/`find_euler_
+    repair_options()`) 전부 "ok=False로 취급하고 계속 진행"이 맞는 반응이라(병합
+    후보를 스킵하거나, review 대상으로 보고하거나) 여기서 한 번만 잡아 `(False,
+    None)`으로 정규화한다 -- kind mismatch는 `suggest_pair_finger_adjustments()`를
+    시도해봐야 절대 안 풀리므로 그 단계 자체를 건너뛴다."""
+    try:
+        verdict = check_euler_condition(build_graph(transistors))
+    except ValueError:
+        return False, None
     if verdict.kind != "impossible":
         return True, None
     for sugg in suggest_pair_finger_adjustments(transistors, local_pairs):
@@ -3271,14 +3283,24 @@ def audit_vertical_stack_id_euler_feasibility(transistors: list, device_roles: d
 
     반환: `{"findings": [{"vsid", "members", "odd_nodes", "resolvable_by_finger_
     adjustment", "verified_suggestion"(적용해서 실제로 통과 확인된
-    `PairAdjustmentSuggestion`|`None`)}, ...]}` -- 오일러가 이미 `path`/`circuit`인
-    정상 그룹은 findings에 안 나온다(사후 대조표 원칙 그대로: 문제 있는 것만 보고,
-    아무것도 자동으로 고치지 않는다).
+    `PairAdjustmentSuggestion`|`None`), "kind_mismatch"}, ...]}` -- 오일러가 이미
+    `path`/`circuit`인 정상 그룹은 findings에 안 나온다(사후 대조표 원칙 그대로:
+    문제 있는 것만 보고, 아무것도 자동으로 고치지 않는다).
 
     ⚠️ `resolvable_by_finger_adjustment=False`인 항목이 진짜 구조적 review 대상이다
     -- 어떤 매칭쌍 조정을 적용해봐도(연결성까지 포함해) 안 풀리는 경우는 그룹 구성
     자체(예: 애초에 무관한 소자가 섞였거나, `stack_groups_override`로 수동 재구성이
-    필요)를 재검토해야 한다는 뜻이다."""
+    필요)를 재검토해야 한다는 뜻이다.
+
+    ⚠️ **2026-08-11(세션28) `kind_mismatch` 필드 신설** -- `build_graph()`가 이제
+    PMOS/NMOS 혼합 그룹에 `ValueError`를 낸다(diffusion 공유 불가). 이 함수는 그
+    ValueError를 그룹별로 잡아 별도 finding으로 보고한다 -- `odd_nodes`/`resolvable_
+    by_finger_adjustment`(항상 `False`, kind 문제는 finger 조정으로 원천적으로 못
+    고침)/`verified_suggestion`(항상 `None`)은 이 경우 의미가 없으므로 `kind_mismatch
+    =True`와 `kinds`(그룹의 실제 kind 구성)만 채운다. 기존 홀짝-차수 findings는
+    `kind_mismatch=False`로 채워 두 원인을 명확히 구분한다 -- 이 회로 실측: 26개
+    declared vsid 그룹 중 8개(`biasgen_vom_battery_a`/`_b`, `biasgen_vop_battery_a`/
+    `_b`, `vbias2_stack`, `vbias3_stack`, `output_stage_a`/`_b`)가 kind_mismatch다."""
     by_name = {t.name: t for t in transistors}
     vsid_groups: dict = defaultdict(list)
     for name, entry in device_roles.items():
@@ -3290,7 +3312,15 @@ def audit_vertical_stack_id_euler_feasibility(transistors: list, device_roles: d
     findings = []
     for vsid, members in vsid_groups.items():
         trs = [by_name[n] for n in members if n in by_name]
-        verdict = check_euler_condition(build_graph(trs))
+        try:
+            verdict = check_euler_condition(build_graph(trs))
+        except ValueError:
+            findings.append({
+                "vsid": vsid, "members": sorted(members), "odd_nodes": None,
+                "resolvable_by_finger_adjustment": False, "verified_suggestion": None,
+                "kind_mismatch": True, "kinds": sorted({t.kind for t in trs}),
+            })
+            continue
         if verdict.kind != "impossible":
             continue
         member_set = set(members)
@@ -3299,7 +3329,7 @@ def audit_vertical_stack_id_euler_feasibility(transistors: list, device_roles: d
         findings.append({
             "vsid": vsid, "members": sorted(members), "odd_nodes": verdict.odd_nodes,
             "resolvable_by_finger_adjustment": ok,
-            "verified_suggestion": verified,
+            "verified_suggestion": verified, "kind_mismatch": False,
         })
 
     return {"findings": findings}
@@ -3413,6 +3443,60 @@ def merge_layout_groups_by_matching_pairs(transistors: list, groups: dict,
             del root_members[ra]
 
     return {gid: sorted(members) for gid, members in root_members.items()}
+
+
+def derive_horizontal_stack_groups(transistors: list, vertical_groups: dict,
+                                    matching_pairs: list) -> dict:
+    """2026-08-11(세션28 후반부) -- `vertical_stack_id`(전기적 VDD->GND 컬럼, 헤드룸/VDS
+    예산용)와 물리 레이아웃 행(같은 kind끼리 diffusion을 공유하는 오일러 trail 대상)이
+    애초에 서로 다른 두 개념이라는 사용자 통찰로 신설. 세션28 전반부는 `resolve_stack_
+    layout()`이 `vertical_stack_id` 그룹을 그대로 `merge_layout_groups_by_matching_
+    pairs()`에 넘겨 물리 레이아웃 그룹으로 썼는데, `vertical_stack_id`는 정의상 PMOS/NMOS
+    경계를 넘나든다(예: `output_stage_a`=class-AB 출력단, M15=pmos/M16=nmos가 한 전기적
+    컬럼) -- `build_graph()`의 kind 동질성 하드 게이트(같은 세션 신설)가 이걸 잡아냈다.
+
+    이 함수는 "두 stack 개념을 같은 근원 정보(branch 연결성 + declared `matching_pairs`)
+    에서 각자 다른 기준으로 파생시킨다"는 설계를 코드 두 줄로 구현한다:
+    1. **kind로 분할**: `vertical_groups`(수직 기준으로 이미 묶인 1차 그룹)의 각 그룹을
+       `t.kind`로 쪼갠다. 이미 kind 동질인 그룹(이 회로 26개 중 18개)은 이름 그대로 유지
+       -- 접미사로 인한 불필요한 이름 변경을 피한다. 실제로 섞인 그룹만 `{vsid}__{kind}`
+       서브그룹으로 나뉜다(예: `output_stage_a` -> `output_stage_a__pmos`={M15},
+       `output_stage_a__nmos`={M16}).
+    2. **대칭 branch 재병합**: 그 kind-homogeneous 서브그룹을 그대로 `merge_layout_
+       groups_by_matching_pairs()`에 넘긴다 -- 이 함수가 이미 "declared matching_pairs로
+       그룹과 그룹을 잇되 실제 오일러 재검증을 통과해야만 확정"하는 안전한 그룹 단위
+       union-find를 갖고 있으므로 재발명하지 않는다. `output_stage_a__pmos`(M15)와
+       `output_stage_b__pmos`(M25)는 `M15`-`M25` declared matching_pairs로 다시 만나
+       (kind가 이제 같으므로) 정상적으로 한 물리 행으로 재병합된다.
+
+    반환은 `merge_layout_groups_by_matching_pairs()`와 동일 계약 `{stack_id:
+    [device_name, ...]}` -- 반환된 모든 그룹은 항상 kind 동질이다(1단계가 보장, 2단계는
+    같은 kind끼리만 다시 합치므로 절대 재오염되지 않음).
+
+    ⚠️ 이건 `vertical_stack_id`를 대체하는 게 아니라 그 위에 얹는 **2번째 파생 축**이다
+    -- 헤드룸(`allocate_stack_headroom()`)은 여전히 원본 `vertical_stack_id`를 직접 읽고,
+    이 함수의 결과(`horizontal_stack_id` 성격의 그룹)는 오직 물리 레이아웃 파이프라인
+    (`assign_finger_geometry()`/`run_topology_pipeline()`)에만 쓰인다.
+
+    ⚠️ 2026-08-11 현재는 **candidates 전용**(topology.json에 영구 저장되는 declared
+    필드 없음, `vertical_stack_id`+`matching_pairs`+`kind`에서 매번 새로 계산) --
+    `vertical_stack_id` 자신도 세션22~23엔 candidates만이었다가 세션24~25에 검증 후
+    declared로 승격됐던 것과 같은 경로를 의도적으로 밟는다(`.ai/context.md` 세션28
+    "## Q" 참고). 다른 회로 최소 1개로 교차검증한 뒤 declared 승격을 논의할 것."""
+    by_name = {t.name: t for t in transistors}
+    split_groups = {}
+    for vsid, members in vertical_groups.items():
+        by_kind = defaultdict(list)
+        for name in members:
+            t = by_name.get(name)
+            if t is not None:
+                by_kind[t.kind].append(name)
+        if len(by_kind) <= 1:
+            split_groups[vsid] = members
+        else:
+            for kind, names in by_kind.items():
+                split_groups[f"{vsid}__{kind}"] = names
+    return merge_layout_groups_by_matching_pairs(transistors, split_groups, matching_pairs)
 
 
 def find_euler_repair_options(transistors: list, blocked_members: list, matching_pairs: list,
@@ -3559,7 +3643,33 @@ def build_graph(transistors: list[Transistor]) -> StackGraph:
     무관하므로 판정 결과는 그대로고, `hierholzer()`가 만드는 구체적 trail만 자연스럽게
     여러 트랜지스터를 번갈아 방문하는 형태가 된다 — 완벽한 대칭 패턴표(§2.5 INTERDIGITATION_
     PATTERNS)만큼 정교하진 않지만(그건 여전히 별도 후처리가 필요할 수 있다), 적어도 "한
-    소자를 다 쓴 뒤에야 다음 소자로 넘어가는" 최악의 뭉침은 기본값에서부터 막는다."""
+    소자를 다 쓴 뒤에야 다음 소자로 넘어가는" 최악의 뭉침은 기본값에서부터 막는다.
+
+    ⚠️ **2026-08-11(세션28) kind 동질성 하드 게이트 추가** — 이 함수가 만드는 그래프는
+    "이 트랜지스터들을 finger 단위로 이어붙인 하나의 물리 diffusion 행(Euler trail =
+    실제 배치 순서)"이라는 전제로 하류 전체(`check_euler_condition()`/`hierholzer()`/
+    `audit_row_split()`/`merge_layout_groups_by_matching_pairs()`/`audit_vertical_
+    stack_id_euler_feasibility()`)가 그 결과를 소비한다. 그런데 이 알고리즘 자체는
+    노드=net/엣지=트랜지스터인 순수 connectivity 그래프만 보고 `t.kind`를 전혀 참조하지
+    않아서, PMOS/NMOS가 섞인 그룹을 넣어도 수학적으로는 "유효한 오일러 경로"가 태연히
+    나온다 — 실측 확인(`vbias2_stack`=M57(pmos)/M58(pmos)/M68(nmos)): `hierholzer()`가
+    `M58→M57→M68` trail을 "path"로 확정했는데, 이는 PMOS(M57)와 NMOS(M68)가 diffusion을
+    공유하며 바로 이어붙는다는 뜻이라 물리적으로 존재할 수 없다(PMOS=n-well, NMOS=p-well/
+    p-sub, 같은 diffusion strip을 공유 불가). `split_into_stacks()`의 자동 `(kind,
+    finger_w)` 그룹핑에는 이 극성 동질성 규칙이 있었지만, `stack_id`가 이미 명시된
+    입력(`resolve_stack_layout()`의 `vertical_stack_id` 기반 그룹 등)은 그 규칙을 우회해
+    바로 여기로 들어왔다 — 그 결과 이 함수가 마지막 방어선이었는데 검사가 없었다. 이제
+    여기서 막는다: "finger 조정으로 풀 수 있는 홀수차수 불균형"과 범주가 다른, 조정으로
+    절대 못 푸는 구조적 불가능이므로 `EulerVerdict(kind="impossible")`(소프트 실패,
+    `suggest_pair_finger_adjustments()` 같은 자동수정 루프가 시도할 대상)가 아니라
+    즉시 `ValueError`(하드 실패, 호출자가 그룹 자체를 kind별로 재구성해야 함)로 낸다."""
+    kinds = {t.kind for t in transistors}
+    if len(kinds) > 1:
+        raise ValueError(
+            f"build_graph()에 서로 다른 kind가 섞인 소자 그룹이 들어왔다: "
+            f"{sorted((t.name, t.kind) for t in transistors)} -- PMOS/NMOS는 diffusion을 "
+            f"공유할 수 없어 하나의 물리 행(Euler trail 대상)이 될 수 없다(finger 조정으로도 "
+            f"못 고치는 구조적 문제). 호출자가 이 그룹을 kind별로 먼저 분리할 것.")
     g = StackGraph()
     max_fingers = max((t.n_fingers for t in transistors), default=0)
     for i in range(max_fingers):
@@ -9448,7 +9558,11 @@ if __name__ == "__main__":
     print("  multi_terminal_hub로 자동 분류하는지(2026-08-10 세션 대화, 사용자와 함께")
     print("  M11b/M12 진짜 직렬 체인 + M9a/M9b류 floating-current-source 3-branch 허브")
     print("  두 반례를 실측으로 확인한 뒤 신설) current_reuse_telescopic_ota.topology.json")
-    print("  실회로(51소자)로 검증 -- 손타이핑 넷리스트 없음 ===")
+    print("  실회로(51소자)로 검증 -- 손타이핑 넷리스트 없음. ⚠️ 원래 예시였던 M11b/M12는")
+    print("  세션27이 헤드룸 버그 수정으로 M11a/M11b/M12를 같은 vertical_stack_id로")
+    print("  합쳐 이 divergence 자체가 해소됐다(의도된 결과) -- 세션28에서 같은 패턴의")
+    print("  다른 실측 사례(M60/M66, Vbias4 2단자 직렬, 세션27이 손대지 않은 그룹)로")
+    print("  교체해 감사 함수의 검증력을 유지한다 ===")
     import os as _os47
     _lib47 = _os47.path.join(_os47.path.dirname(_os47.path.abspath(__file__)), "library")
     _t47_trs, _t47_meta = load_topology(
@@ -9459,13 +9573,13 @@ if __name__ == "__main__":
                           if not k.startswith("_")}
     _t47_result = audit_vertical_stack_id_vs_kcl(_t47_trs, _t47_forced, _t47_device_roles)
 
-    _t47_m11b_m12 = [f for f in _t47_result["boundary_findings"]
-                      if set(f["pair"]) == {"M11b", "M12"}]
-    assert len(_t47_m11b_m12) == 1, f"M11b/M12 경계가 안 잡힘: {_t47_m11b_m12}"
-    assert _t47_m11b_m12[0]["kcl_reason"] == "internal_series" and _t47_m11b_m12[0]["detail"] == "N11b", \
-        f"M11b/M12는 N11b 2단자 직렬이 원인이어야 하는데: {_t47_m11b_m12[0]}"
-    print("    PASS: M11b(biasgen_vom_battery_a)/M12(biasgen_vom_battery_a_sink) -- "
-          "N11b 2단자 직렬(진짜 KCL 체인)이 declared vsid 기능 경계를 가로지름을 정확히 검출")
+    _t47_m60_m66 = [f for f in _t47_result["boundary_findings"]
+                      if set(f["pair"]) == {"M60", "M66"}]
+    assert len(_t47_m60_m66) == 1, f"M60/M66 경계가 안 잡힘: {_t47_m60_m66}"
+    assert _t47_m60_m66[0]["kcl_reason"] == "internal_series" and _t47_m60_m66[0]["detail"] == "Vbias4", \
+        f"M60/M66는 Vbias4 2단자 직렬이 원인이어야 하는데: {_t47_m60_m66[0]}"
+    print("    PASS: M60(vbias4_gen)/M66(vbias4_stack) -- "
+          "Vbias4 2단자 직렬(진짜 KCL 체인)이 declared vsid 기능 경계를 가로지름을 정확히 검출")
 
     _t47_hub_by_vsid = {f["vsid"]: f for f in _t47_result["hub_findings"]}
     for _vsid, _hub_net, _terminals_min in [
@@ -9583,7 +9697,8 @@ if __name__ == "__main__":
     print("  이미 declared로 들어온 그룹의 문제) 검사. 2026-08-10 세션26 후속(2) K-3")
     print("  cmfb_tail 추적 중 발견한 suggest_pair_finger_adjustments()의 연결성 착시")
     print("  (resulting_odd_count는 홀짝만 보고 그래프가 끊겼는지는 안 봄)를 실제")
-    print("  적용+재검증으로 피하는지도 함께 검증 ===")
+    print("  적용+재검증으로 피하는지도 함께 검증. 2026-08-11(세션28) 신설 kind_mismatch")
+    print("  finding(PMOS/NMOS 혼합 declared 그룹)도 크래시 대신 구조화 보고되는지 확인 ===")
     import os as _t49_os
     _t49_lib = _t49_os.path.join(_t49_os.path.dirname(_t49_os.path.abspath(__file__)), "library")
     _t49_trs, _t49_meta = load_topology(
@@ -9604,17 +9719,38 @@ if __name__ == "__main__":
     assert _t49_cmfb["resolvable_by_finger_adjustment"] is True, \
         f"cmfb_tail은 M38(또는 M37a/M37b) 핑거 +1로 실제 검증 가능한데 False로 나옴: {_t49_cmfb}"
     assert _t49_cmfb["verified_suggestion"] is not None
+    assert _t49_cmfb["kind_mismatch"] is False, f"cmfb_tail은 전부 nmos인데 kind_mismatch=True: {_t49_cmfb}"
     print(f"    PASS: cmfb_tail(M37a/M37b/M38) -- n_fingers=1 기준 오일러 impossible(홀수차수 4개, "
           f"Ncmfb_tail이 M37a/M37b의 source이자 M38의 drain인 3단자 허브) 정확히 검출")
     print(f"    PASS: resolvable_by_finger_adjustment=True -- 제안({_t49_cmfb['verified_suggestion']})을 "
           f"실제로 적용해 재검증(연결성 포함)까지 통과함을 확인(단순 resulting_odd_count<=2 착시가 아님)")
 
+    # 2026-08-11(세션28) -- build_graph()의 kind 동질성 하드 게이트 신설 이후, 이 회로의
+    # declared vertical_stack_id 26개 중 8개가 실제로 PMOS/NMOS를 섞고 있음이 이 감사로
+    # 처음 드러났다(class-AB 출력단 output_stage_a/b 포함 -- "vertical_stack_id"가 VDD->GND
+    # 전기적 컬럼이라 애초에 정의상 극성 경계를 넘나드는 게 정상이라는 뜻, 세션28 대화
+    # 참고). 이 8개는 finger 조정으로 못 고치는 구조적 문제이므로 kind_mismatch=True로
+    # 명확히 구분돼야 한다 -- cmfb_tail(홀짝-차수 문제, kind_mismatch=False)과 섞이면 안 됨.
+    _t49_kind_mismatch_vsids = {"biasgen_vom_battery_a", "biasgen_vom_battery_b",
+                                 "biasgen_vop_battery_a", "biasgen_vop_battery_b",
+                                 "vbias2_stack", "vbias3_stack",
+                                 "output_stage_a", "output_stage_b"}
     _t49_other_findings = [f for f in _t49_result["findings"] if f["vsid"] != "cmfb_tail"]
-    assert _t49_other_findings == [], \
-        f"이 실회로에서 cmfb_tail 외 다른 declared 그룹은 전부 오일러 정상이어야 하는데 " \
-        f"추가로 잡힘: {_t49_other_findings}"
-    print("    PASS: 이 회로의 다른 declared vertical_stack_id 그룹은 전부 오일러 정상 "
-          "(cmfb_tail이 유일한 finding)")
+    _t49_other_vsids = {f["vsid"] for f in _t49_other_findings}
+    assert _t49_other_vsids == _t49_kind_mismatch_vsids, \
+        f"cmfb_tail 외 kind_mismatch finding 집합이 예상과 다름(회귀 또는 declared vsid 변경): " \
+        f"실제={_t49_other_vsids}, 예상={_t49_kind_mismatch_vsids}"
+    assert all(f["kind_mismatch"] is True for f in _t49_other_findings), \
+        f"kind_mismatch 그룹인데 False로 나온 항목: {[f for f in _t49_other_findings if not f['kind_mismatch']]}"
+    assert all(f["resolvable_by_finger_adjustment"] is False and f["verified_suggestion"] is None
+               for f in _t49_other_findings), \
+        f"kind_mismatch는 finger 조정으로 못 고치므로 resolvable/verified_suggestion 둘 다 " \
+        f"False/None이어야 하는데: {_t49_other_findings}"
+    assert all(f["kinds"] == ["nmos", "pmos"] for f in _t49_other_findings), \
+        f"kind_mismatch finding의 kinds 필드 불일치: {[f['kinds'] for f in _t49_other_findings]}"
+    print(f"    PASS: cmfb_tail 외 {len(_t49_other_findings)}개 declared vsid 그룹"
+          f"({sorted(_t49_other_vsids)})이 전부 kind_mismatch=True로 정확히 구분 보고됨 -- "
+          f"PMOS/NMOS 혼합(전기적 컬럼 개념상 정상)을 크래시 없이 감사 결과로 포착")
 
     print()
     print("  [합성 fixture -- 완전히 무관한(공유 net 없는) 두 소자를 한 declared 그룹으로")
@@ -9688,3 +9824,63 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 50 전체 PASS ===")
+
+    print()
+    print("=== Test 51: derive_horizontal_stack_groups() -- vertical_stack_id 그룹(전기적")
+    print("  컬럼, PMOS/NMOS 혼합 가능)을 kind로 분할한 뒤 declared matching_pairs로 대칭")
+    print("  branch끼리 재병합해 물리 레이아웃 행(kind 동질, 오일러 대상) 후보를 만드는지")
+    print("  검증(2026-08-11 세션28 후반부, 사용자 설계 제안 -- vertical_stack_id는 헤드룸")
+    print("  전용, 물리 레이아웃 행은 레이아웃 전용으로 두 축을 분리) ===")
+    _t51_by_name = {t.name: t for t in _t49_trs}
+    _t51_declared = {k: v.get("vertical_stack_id") for k, v in _t49_device_roles.items()
+                      if isinstance(v, dict) and v.get("vertical_stack_id")}
+    _t51_vgroups = defaultdict(list)
+    for _t51_name, _t51_sid in _t51_declared.items():
+        _t51_vgroups[_t51_sid].append(_t51_name)
+    for _t51_t in _t49_trs:
+        if _t51_t.name not in _t51_declared:
+            _t51_vgroups[_t51_t.name].append(_t51_t.name)
+
+    _t51_hgroups = derive_horizontal_stack_groups(_t49_trs, dict(_t51_vgroups), _t49_forced)
+
+    _t51_all_members = sorted(m for members in _t51_hgroups.values() for m in members)
+    assert _t51_all_members == sorted(t.name for t in _t49_trs), \
+        f"51/51 소자 전부 커버해야 하는데 손실/중복 발생: 실제 {len(_t51_all_members)}개"
+    print(f"    PASS: {len(_t51_hgroups)}개 물리 레이아웃 행으로 51/51 소자 전부 커버 "
+          f"(손실/중복 없음)")
+
+    for _t51_hsid, _t51_members in _t51_hgroups.items():
+        _t51_kinds = {_t51_by_name[m].kind for m in _t51_members if m in _t51_by_name}
+        assert len(_t51_kinds) <= 1, f"{_t51_hsid} 그룹이 kind 동질이 아님(회귀): {_t51_members} -> {_t51_kinds}"
+    print("    PASS: 반환된 모든 그룹이 kind 동질(PMOS/NMOS 혼합 0건)")
+
+    _t51_group_of = {m: hsid for hsid, members in _t51_hgroups.items() for m in members}
+    assert _t51_group_of["M15"] == _t51_group_of["M25"], \
+        f"output_stage_a/b의 PMOS 절반(M15/M25)이 M15-M25 매칭쌍으로 재병합돼야 함: {_t51_hgroups}"
+    assert _t51_group_of["M16"] == _t51_group_of["M26"], \
+        f"output_stage_a/b의 NMOS 절반(M16/M26)이 M16-M26 매칭쌍으로 재병합돼야 함: {_t51_hgroups}"
+    assert _t51_group_of["M15"] != _t51_group_of["M16"], \
+        "M15(pmos)/M16(nmos)는 같은 vertical_stack_id(output_stage_a)였지만 물리 행에서는 분리돼야 함"
+    print(f"    PASS: output_stage_a/output_stage_b(class-AB 출력단, 전기적으론 M15=pmos+"
+          f"M16=nmos 한 컬럼) -- PMOS 절반(M15,M25)/NMOS 절반(M16,M26)이 각각 kind 동질 "
+          f"물리 행으로 올바르게 재병합됨(vsid={_t51_group_of['M15']!r}/{_t51_group_of['M16']!r}) -- "
+          f"게이트만 있고 kind-split이 없던 상태(세션28 (a) 직후)에서는 이 재병합 자체가 안 됐었음")
+
+    print()
+    print("  [합성 fixture -- 매칭 파트너가 없는 순수 mixed-kind vsid 하나가 kind로만")
+    print("  정확히 쪼개지는지(병합 시도 없이) 확인]")
+    _t51_syn_trs = [
+        Transistor("SP1", "pmos", source="vdd", drain="mid"),
+        Transistor("SN1", "nmos", source="mid", drain="gnd"),
+    ]
+    _t51_syn_groups = derive_horizontal_stack_groups(
+        _t51_syn_trs, {"totem": ["SP1", "SN1"]}, [])
+    assert set(_t51_syn_groups.keys()) == {"totem__pmos", "totem__nmos"}, \
+        f"매칭 파트너 없는 mixed-kind 그룹은 kind별로만 쪼개져야 함: {_t51_syn_groups}"
+    assert _t51_syn_groups["totem__pmos"] == ["SP1"] and _t51_syn_groups["totem__nmos"] == ["SN1"], \
+        f"쪼개진 서브그룹 멤버 불일치: {_t51_syn_groups}"
+    print("    PASS: totem(SP1=pmos/SN1=nmos, 매칭쌍 없음) -- totem__pmos=[SP1]/"
+          "totem__nmos=[SN1]로 정확히 분할됨(재병합 시도는 없음, 매칭쌍이 없으므로 정상)")
+
+    print()
+    print("  === Test 51 전체 PASS ===")

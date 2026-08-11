@@ -1,98 +1,99 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-10, 세션27 완료 — `f_slew→t_lln→omega_c→
-N_cmfb_bw` 배선 + `intended_role_type` 필드 신설 + 헤드룸(`allocate_stack_headroom()`)
-버그 5개 발견/수정(vsid 그룹핑, 값-동일 대표 선정, `_feed_metric_stage_budget()` vds
-미저장, M39/M40 role 오분류, vsid 선언 gap 6곳) + `suggest_headroom_stack_groups()`
-신설(교차검증용) + **stick_diagram.py Test 47 회귀 발견(미해결, 다음 세션 최우선)**.
-**다음 세션 최우선순위가 다시 재조정됨 — 아래 "다음 세션 최우선" 절을 반드시 먼저
-읽을 것**(요약: ①헤드룸 vsid 변경이 레이아웃 오일러 검증에 미친 영향 확인/재설계
-최우선 → ②`allocate_stack_headroom()`의 singleton 그룹 기본정책 재검토 → ③3개
-일반 함수(`derive_theta_dependency_graph()` 등) 구현 → ④scipy+SLSQP+multi-start
-구현 → ⑤다른 회로 교차검증, 이 순서로 진행). 세션27 상세 전체는 파일 맨 끝
-"# 세션27 결론" 참고.)
+# 세션 컨텍스트 (최종 갱신: 2026-08-11, 세션28 완료 — 전반부는 세션27이 남긴 최우선
+항목①(헤드룸용 `vertical_stack_id` 병합이 레이아웃 오일러 검증에 미친 영향)을 Test 47
+교체+self-test 재실행+`resolve_stack_layout()` 직접 실행으로 검증하고 "재설계
+불필요"로 결론냈으나, 후반부에 사용자 질문("resolve_stack_layout에서 왜 pmos/nmos가
+같은 stack에 있는데 오일러 패쓰에 문제가 없지?")으로 그 결론이 **정정**됐다 --
+`check_euler_condition()`/`build_graph()`가 kind를 전혀 안 보는 순수 net-connectivity
+그래프 알고리즘이라 PMOS/NMOS가 섞여도 "유효한 경로"로 잘못 통과시키고 있었다(실측:
+`vbias2_stack`의 "검증된" trail이 M57(pmos)→M68(nmos) diffusion-인접을 요구 --
+물리적으로 불가능). declared vsid 26개 중 8개(`output_stage_a/b` class-AB 출력단
+포함)가 실제로 kind-mixed. 사용자 지시로 (a)/(b) 투트랙 완료:
+**(a)** `build_graph()`에 kind 동질성 하드 게이트 신설 + `_verified_euler_fix()`/
+`audit_vertical_stack_id_euler_feasibility()`가 크래시 대신 `kind_mismatch`
+finding으로 구조화 보고. **(b)** 사용자가 직접 설계 확정한 2축 분리(`vertical_
+stack_id`=전기적/수직, 물리 레이아웃 행=kind 동질+오일러/수평·대칭)를
+`derive_horizontal_stack_groups()`(신설, `merge_layout_groups_by_matching_pairs()`
+재사용)로 구현, `resolve_stack_layout()`에 배선. 실측 검증: `output_stage_a__pmos`
+(M15,M25)/`output_stage_a__nmos`(M16,M26) 정확히 재병합, 51/51 커버·전 그룹 kind
+동질, `audit_row_split()`의 3b 필수 게이트 PASS 확인(비교군: (a)만으로는 이 단계에서
+크래시). `stick_diagram.py`(Test 51 신설)/`sizing_recipe.py`(L5b invariant 추가)
+self-test 둘 다 exit 0·회귀 0건. `horizontal_stack_id`는 이번엔 candidates 전용
+(topology.json 미영구화, 다른 회로 교차검증 후 다음 세션에 승격 논의) --
+`vertical_stack_id` 자신의 candidates→declared 승격 경로를 그대로 재사용.
+상세 전체는 파일 맨 끝 "# 세션28 결론" 및 이어지는 "## N"~"## Q" 참고, 배치 요약은
+`docs/04-report/analog-topology-json-library.do.md` 배치 7-6f.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
 
-## 다음 세션 최우선 — 사용자가 2026-08-10 세션(세션27) 끝에 재확인·재조정한 순서
-(반드시 이 순서대로 진행할 것 — 아래 "① 최우선" 항목부터 시작. 세션27 상세 근거·
-코드 위치·실측값은 전부 파일 맨 끝 "# 세션27 결론" 참고, 여기는 순서와 핵심 요약만)
+## 다음 세션 최우선 — 세션28이 2026-08-11에 재조정한 순서 (⚠️ 세션28 후반부에 한 번 더 재조정됨)
+(반드시 이 순서대로 진행할 것. 세션28 상세 근거·코드 위치·실측값은 전부 파일 맨 끝
+"# 세션28 결론"과 그 뒤 "## N"/"## O" 참고, 여기는 순서와 핵심 요약만)
 
-세션26까지의 항목(`resolve_stack_layout()`, `audit_vertical_stack_id_vs_kcl()`,
-매칭쌍 그룹 병합/오일러 게이트, `pair_map` 버그 수정)은 전부 완료·커밋됨. 세션27은
-사용자 승인으로 grid search 런타임 문제 해결 방향(SLSQP+multi-start, 좌표하강 아님)을
-확정하고 착수했으나, 그 준비 과정(웜스타트 설계)에서 `f_slew`가 do.md 설계상 CMFB와
-연관돼야 한다는 gap → compensation 배선 → 그 과정에서 헤드룸 배정이 애초에 한 번도
-끝까지 실행된 적 없었다는 사실 → 헤드룸 버그 5개 연쇄 발견/수정 → **그 수정이
-레이아웃(오일러 경로) self-test를 깨뜨림(사용자가 세션 끝에 직접 지적)** 순서로
-범위가 확장됐다. SLSQP 본체(scipy 설치조차)는 아직 착수 전 — 지금 상태로 그 작업에
-들어가면 아직 검증 안 된 레이아웃 회귀 위에 쌓는 꼴이라 **순서를 바꾸지 말 것**.
+**⚠️ 세션28 전반부는 세션27의 최우선 항목①(헤드룸용 `vertical_stack_id` 병합이
+레이아웃 오일러 검증에 미친 영향)을 "완전히 해소, 재설계 불필요"로 결론냈었다 —
+이 결론은 세션28 후반부에 사용자 질문으로 촉발된 재조사로 정정됐다(아래 ①,
+"## N"/"## O" 참고). 재설계는 필요하다.**
 
-### ① 최우선 — 헤드룸용 `vertical_stack_id` 변경이 레이아웃 오일러 검증에 미친 영향 확인 + 필요시 재설계
+### ✅ (완료, 세션28 후반부) — `vertical_stack_id`의 헤드룸/레이아웃 역할 분리 재설계 (b)
 
-**사용자가 세션27 끝에 직접 지적**: "vertical_stack_id를 수정하면서 layout의 오일러
-path를 검증하는데 사용하면 문제가 생길 소지가 생겼다." 실측으로 확인됨 —
-`stick_diagram.py` self-test가 **Test 47**(`audit_vertical_stack_id_vs_kcl()` 검증,
-9446행 부근)에서 즉시 실패:
-```
-AssertionError: M11b/M12 경계가 안 잡힘: []
-```
-**원인**: Test 47은 "M11b/M12 사이에 vsid 경계가 있고 그 경계의 KCL 사유는
-`internal_series`/`N11b`"라는 걸 `audit_vertical_stack_id_vs_kcl()`의 **정상 동작
-예시**로 삼아 작성돼 있었다(9462~9466행) — 그 감사 함수 docstring이 "정상 케이스"
-예시로 인용한 바로 그 경계다. 그런데 세션27이 그 경계 자체가 헤드룸 관점에선 진짜
-버그(합쳐져야 함, 아래 "세션27 결론 ## D" 참고)였음을 실측으로 확인해 M11a/M11b/M12를
-`vertical_stack_id`로 합쳤고, 그 결과 이 "정상 divergence 예시"가 사라져 테스트가
-깨졌다.
+사용자 질문("resolve_stack_layout에서 왜 pmos/nmos가 같은 stack에 있는데 오일러
+패쓰에 문제가 없지?")으로 촉발 — `check_euler_condition()`/`build_graph()`가 순수
+net-connectivity 그래프 알고리즘이라 `t.kind`를 전혀 안 본다는 게 실측으로 드러났다.
+이 회로 declared vsid 26개 중 **8개**(`biasgen_vom/vop_battery_a/b`, `vbias2_stack`,
+`vbias3_stack`, `output_stage_a`/`b` class-AB 출력단)가 실제로 kind-mixed임을 확인 —
+"vertical_stack_id=VDD→GND 전기적 컬럼"이라는 정의상 나타나는 정상 패턴이다.
 
-**다음 세션 할 일(순서대로)**:
-1. Test 47이 쓰던 M11b/M12 예시를, **오늘 손 안 댄 다른 진짜 유효한 vsid/KCL
-   divergence 사례**로 교체(assert를 약화/삭제하지 말 것 — 감사 함수 자체의 검증력은
-   유지해야 함). 후보를 찾으려면 `audit_vertical_stack_id_vs_kcl()`을 이 회로에
-   다시 돌려 `boundary_findings` 전체를 훑고, 세션27이 안 건드린 다른 항목 중 하나를
-   고를 것.
-2. `stick_diagram.py` self-test는 Test 47에서 멈췄으므로 **그 뒤 나머지 테스트들이
-   세션27의 vsid 병합 6곳(M11a/M11b+M12, M13+M14a/M14b, M20a/M20b+M21,
-   M22+M23a/M24b, M58/M57+M68, M61+M64/M63)으로 추가로 깨지는지 아직 확인 안 됨** —
-   1번을 고친 뒤 전체 재실행 필수.
-3. **진짜 핵심 — 감사 테스트 통과와 별개로, 이 6개 병합 그룹이 실제로
-   `resolve_stack_layout()`(finger_w 탐색 + `mirror_symmetric_trail()`/
-   `check_euler_condition()`/`hierholzer()` 오일러 walk 구성)을 통과하는지 직접
-   실행 검증할 것** — 세션27은 헤드룸(사이징) 경로(`optimize_full_circuit_budget()`)
-   만 검증했고, 레이아웃 파이프라인(`resolve_stack_layout()`/`assign_finger_
-   geometry()`)은 이번 세션에 이 회로로 전혀 안 돌려봤다(스모크 테스트도 이 부분은
-   지나가지 않았을 가능성이 높음 — `optimize_full_circuit_budget()`의 마지막 단계라
-   그 앞 단계(theta 그리드/헤드룸)에서 먼저 막혔었으므로).
-4. **만약 실제로 오일러 구성이 실패하는 병합 그룹이 있다면(사용자가 우려한 시나리오)**
-   — `vertical_stack_id` 하나로 헤드룸(전기적 컬럼)과 레이아웃(오일러/row 배치) 두
-   목적을 동시에 만족 못 시킬 가능성을 재검토: 필드를 분리하는 재설계 검토(예: 헤드룸
-   전용 `headroom_stack_id` 신설, `vertical_stack_id`는 레이아웃 전용으로 남기거나
-   그 반대) — **이게 사용자가 말한 "재설계" 지점**. 분리한다면 두 필드가 서로 어떻게
-   다시 참조/정합성 검증돼야 하는지(예: 새 `audit_headroom_vs_layout_stack_id()`
-   같은 감사 함수 필요 여부)까지 설계할 것.
-5. 참고(세션27 도구): `suggest_headroom_stack_groups()`(`stick_diagram.py`, 세션27
-   신설)가 이 6개 병합을 자동으로 재현/교차검증해준다 — 4번 재설계 시 레이아웃 쪽
-   기준으로도 비슷한 "제안 함수"가 필요한지 참고할 것(기존 `suggest_vertical_stack_
-   composites()`가 이미 그 역할에 가까움 — `chain`/`composites` 두 단계 출력을 그대로
-   재사용 가능).
+**(a)**: `build_graph()` kind 동질성 하드 게이트 신설(이미 위 커밋에 기록됨).
 
-### ② 그 다음 — `allocate_stack_headroom()`의 "혼자 있는 non-cascode 소자" 기본정책 재검토
+**(b)**: 사용자가 직접 설계 방향을 확정 — "vertical_stack_id는 전기적(수직) 기준,
+물리 레이아웃 행은 kind 동질+오일러(수평/대칭) 기준, 둘은 같은 branch 정보에서
+각자 파생돼야 한다." 이 설계를 `derive_horizontal_stack_groups()`(`stick_diagram.py`,
+`merge_layout_groups_by_matching_pairs()` 바로 뒤)로 구현: ①vertical 그룹을 kind로
+분할 ②kind-homogeneous 서브그룹을 **기존** `merge_layout_groups_by_matching_pairs()`
+(재발명 안 함)에 넘겨 declared matching_pairs로 대칭 branch 재병합. `resolve_stack_
+layout()`(`sizing_recipe.py`)의 tier 2/3 두 호출부만 교체(2줄). 실측 검증:
+`output_stage_a__pmos`(M15,M25)/`output_stage_a__nmos`(M16,M26)가 정확히 재병합됨,
+21개 그룹으로 51/51 커버(손실 0)·전 그룹 kind 동질, `assign_finger_geometry()`→
+`build_stick_diagram()`→`audit_row_split()` 직접 실행으로 M15/M25·M16/M26의
+3b(interdigitation) 필수 게이트가 이제 PASS함을 확인(비교: (a)만 있던 상태를
+재현하면 이 단계에서 즉시 크래시 — (a) 단독으로는 완주 불가능이었음을 재확인).
+`stick_diagram.py` Test 51 신설 + `sizing_recipe.py` L5b에 kind 동질 invariant
+추가, 두 self-test 파일 exit 0·회귀 0건. 상세는 파일 맨 끝 "## Q" 참고,
+`docs/04-report/analog-topology-json-library.do.md` 배치 7-6f에도 기록.
+
+**의도적으로 안 한 것(다음 세션 이후 이월)**:
+1. `horizontal_stack_id`를 topology.json declared 필드로 영구화 — 지금은 candidates
+   전용(항상 재계산). `vertical_stack_id` 자신이 세션22~23 candidates → 세션24~25
+   declared로 승격된 경로를 그대로 밟는다. 다른 회로 최소 1개 교차검증 후 승격 논의.
+2. `SizingContext.layout_solution`(B-5-3 원안의 instance-level 캐시) 신설 — 재계산
+   비용이 순수 그래프 연산이라 저렴해 이번엔 불필요, 다음 세션 이후 항목.
+3. `output_stage_a`/`b`류의 cross-row common-centroid(3c) 재정의 — 이번 검증에서
+   3b(interdigitation)는 필수 게이트로 정상 PASS 확인했고, 3c는 이 pair 종류
+   (`ratio`+`shares_node`)에선 애초에 참고용(§2.7 원칙)이라 이번엔 급하지 않음 —
+   실제로 필수가 되는 `offset`/`branch_symmetric` 매칭쌍이 kind-mixed로 걸리는
+   사례가 나오면 그때 재검토.
+
+### ① 다음 최우선 — `allocate_stack_headroom()`의 "혼자 있는 non-cascode 소자" 기본정책 재검토
 
 세션27이 M61/M64/M63 그룹에 `budget_reference_device: M5`를 달다가 발견(아직
-미수정, "세션27 결론 ## D-6" 참고): `M5`(1단 NMOS tail, `vertical_stack_id="vy_tail"`
-그룹에 **혼자**)가 `allocate_stack_headroom()`에서 **VDD 전체(1.8V)를 혼자 VDS로
-가져간다** — role이 "tail"(cascode 아님)이라 "남는 예산 균등분배" 로직을 타는데
-그룹에 혼자면 "균등분배"가 "전부 다 가짐"이 된다. 그 결과 `vdd - vds(M5) ≈ 0`이 돼
-버려 `M61_M64_M63` 그룹이 음수 VDS를 받는 실제 크래시(`search_gm_id_for_role()`의
-`ValueError`, `vds=-0.4`)로 발현됐다. M6/M7/M60/M66 등 다른 singleton "other"-role
-그룹도 같은 문제를 안고 있을 가능성이 높다(아직 전수조사 안 함 — ①을 먼저 끝내고
-착수). **재현 방법**: `.ai/context.md` 세션27 결론 ## D-6의 스크립트 그대로
-(K_replica=하한/r_classab_battery=상한으로 feasible한 theta를 넣고 전체 실행 —
-smoke test의 bounds-midpoint로는 이 경로 자체가 아직 안 드러남, K_replica/
-r_classab_battery 부등식을 먼저 만족시켜야 M9b infeasible을 지나 여기까지 도달함).
-① 항목(vsid 재설계)과 밀접하게 얽혀 있으므로, ①에서 vsid를 재설계하게 되면 이
-정책도 같이 재검토하는 게 자연스럽다 — 순서상 ① 다음이 맞다.
+미수정, "세션27 결론 ## D-6" 참고, 세션28이 feasible theta 전체 실행으로 재확인):
+`M5`(1단 NMOS tail, `vertical_stack_id="vy_tail"` 그룹에 **혼자**)가
+`allocate_stack_headroom()`에서 **VDD 전체(1.8V)를 혼자 VDS로 가져간다** — role이
+"tail"(cascode 아님)이라 "남는 예산 균등분배" 로직을 타는데 그룹에 혼자면
+"균등분배"가 "전부 다 가짐"이 된다. 그 결과 `vdd - vds(M5) ≈ 0`이 돼버려
+`M61_M64_M63` 그룹(정확히는 `resolve_stack_layout()` 병합 후 `biasgen_ref` 그룹
+`{M18_bg,M60,M61,M63,M64}`)이 음수 VDS를 받는 실제 크래시(`search_gm_id_for_role()`
+의 `ValueError`, `entry={'ID':1.36e-6,'L':3.75e-7,'vds':-0.4,'vs':1.8}`, 세션28
+재현 재료 그대로)로 발현됐다. `vx_tail_a`(M6)/`vx_tail_b`(M7)/`vbias4_stack`
+(M66) 등 다른 singleton 그룹(세션28의 `resolve_stack_layout()` 결과, 아래 "세션28
+결론" 전체 목록 참고)도 같은 문제를 안고 있을 가능성이 높다(아직 전수조사 안 함).
+**재현 방법**: "세션28 결론 ## H" 스크립트 그대로(K_replica=0.05/r_classab_
+battery=0.3 고정, 나머지 bounds-midpoint, `grid_points_per_theta=1`로 즉시 재현
+— smoke test의 bounds-midpoint로는 이 경로 자체가 M9b infeasible에 막혀 안
+드러남).
 
-### ③ 그 다음 — 3개 일반 함수 구현 (세션27 전반부 설계, 착수 전)
+### ② 그 다음 — 3개 일반 함수 구현 (세션27 전반부 설계, 착수 전)
 
 `derive_theta_dependency_graph()`(dead/독립/격리 1:1 theta-metric 쌍 판정) /
 `extract_linear_feasibility_constraints()`(고정비율 A_signed 항에서 선형 부등식 자동
@@ -102,18 +103,20 @@ K_replica·ID(M15)/(ID(M1a)+ID(M1b))`)과 L_cascode/L_stage2out 1D LUT 이분탐
 웜스타트는 이미 손으로 유도·실측 검증 완료(세션27 중반, "세션27 결론 ## B" 참고) —
 이 함수들은 그 손유도를 일반화하는 것.
 
-### ④ 그 다음 — scipy 설치 + SLSQP + multi-start 구현
+### ③ 그 다음 — scipy 설치 + SLSQP + multi-start 구현
 
 세션27 초반에 좌표하강 대신 이 방향으로 확정(이유: "세션27 결론 ## A" 참고 — 13개
 theta가 cmrr/psrr(전체회로 MNA)을 매개로 강결합돼 있어 축 방향 탐색이 구조적으로
 불리함을 실측 근거로 확인). scipy는 이 프로젝트 Python 환경(`C:\Python314`)에
 아직 미설치 확인됨.
 
-### ⑤ 그 다음 — 다른 회로 교차검증
+### ④ 그 다음 — 다른 회로 교차검증(+ `horizontal_stack_id` declared 승격도 같이 논의)
 `folded_cascode` 등으로 `resolve_stack_layout()`/헤드룸/SLSQP 일반화 확인 — 세션22
-부터 계속 이월되던 항목, ①~④ 전부 끝난 뒤 진행.
+부터 계속 이월되던 항목, ①~③ 전부 끝난 뒤 진행. 이때 `derive_horizontal_stack_
+groups()`(세션28 신설)도 같은 회로로 교차검증하고, 통과하면 `horizontal_stack_id`를
+topology.json declared 필드로 승격할지 논의.
 
-### ⑥ 계속 이월
+### ⑤ 계속 이월
 `run_harness.py`의 나머지 실전략(실제 회로 스펙 선정/제약 튜닝 등 운영 이슈) —
 세션22부터 계속 이월.
 
@@ -5148,3 +5151,377 @@ id` 필드를 헤드룸용/레이아웃용으로 분리하는 재설계까지 �
 - **`stick_diagram.py` self-test: FAIL(Test 47, 위 F절) -- 세션27 끝난 시점 기준
   미해결.** 커밋 전 다음 세션에서 반드시 고칠 것(self-test가 깨진 상태로 커밋하지
   않는 이 프로젝트 관례 유지).
+
+# 세션28 결론 — 세션27이 남긴 최우선 항목①(vsid 병합이 레이아웃 오일러 검증에
+미친 영향)을 실측으로 해소, 재설계 불필요로 결론. 부수적으로 옛 ②(M5/M61 헤드룸
+버그)를 feasible theta 전체 실행으로 재확인(새 버그 아님)
+
+## H. Test 47 교체 — M11b/M12(세션27 병합으로 소멸) → M60/M66(동형 미손댐 사례)
+
+`audit_vertical_stack_id_vs_kcl()`을 이 회로에 재실행해(`boundary_findings` 전체
+조회) 세션27이 손대지 않은 다른 `internal_series` divergence 사례를 찾았다 --
+`{"pair": ["M60", "M66"], "kcl_reason": "internal_series", "detail": "Vbias4",
+"vsid_a": "vbias4_gen", "vsid_b": "vbias4_stack"}`. `M60`(PMOS, drain=Vbias4,
+source=vdd)과 `M66`(NMOS, drain=Vbias4, source=gnd)이 `Vbias4`라는 2단자
+internal-series 노드로 연결된, M11b/M12와 정확히 같은 구조의 진짜 KCL 체인이다
+-- 각자 다른 `vertical_stack_id`(`vbias4_gen`/`vbias4_stack`)로 선언돼 있어
+declared vsid 경계를 가로지르는 정상 divergence 예시로 그대로 재사용 가능. `M60`/
+`M66`은 세션27의 6곳 병합(M11a/M11b+M12, M13+M14a/M14b, M20a/M20b+M21,
+M22+M23a/M24b, M58/M57+M68, M61+M64/M63) 중 어디에도 속하지 않음을 `device_
+roles`에서 직접 확인 후 교체(`stick_diagram.py` 9446행 부근, assert 로직/검증력은
+그대로 -- pair/detail만 M60·M66·Vbias4로 치환).
+
+## I. self-test 50개 전체 재실행 -- 회귀 0건
+
+Test 47 교체 후 `stick_diagram.py`(9500여 줄, self-test 50개) 전체 재실행:
+exit code 0, `Traceback` 0건, "전체 PASS" 20건(Test 31~50 구간, 그 이전 구간도
+전부 통과 -- 출력에 나타나는 "FAIL" 문자열은 전부 의도된 반례 데모(회귀 테스트가
+"이 경우엔 FAIL해야 정상"임을 확인하는 대조군)일 뿐 실제 self-test 실패가 아님을
+개별 확인). 특히 **Test 49**(`audit_vertical_stack_id_euler_feasibility()`)가
+이 회로의 declared `vertical_stack_id` 그룹 **전부**(세션27의 6개 병합 포함)를
+`n_fingers=1` 기준으로 오일러 실현가능성 실측 검사했고, `cmfb_tail`(M37a/M37b/M38,
+세션27 병합과 무관한 기존 finding, `resolvable_by_finger_adjustment=True`로 이미
+해결 가능함까지 검증됨) 하나만 잡히고 **다른 모든 declared 그룹은 오일러 정상**
+이라는 결과 자체가 이미 이번 세션 핵심 질문(6개 병합이 레이아웃을 깼는가?)에 대한
+1차 답이었다(아래 J절에서 `resolve_stack_layout()` 직접 실행으로 재확인).
+
+## J. `resolve_stack_layout()` 직접 실행 — 6개 병합 그룹 전부 실제 오일러 게이트 통과 확인
+
+세션27이 감사 함수(`audit_vertical_stack_id_vs_kcl()`)만 검증하고 실제 레이아웃
+파이프라인(`resolve_stack_layout()`)은 이 회로로 한 번도 안 돌려봤다는 지적에 따라
+직접 실행: `resolve_stack_layout(transistors, forced_matching_pairs, device_roles)`
+가 예외 없이 완주해 16개 그룹(51개 소자 전부 포함, 누락/중복 없음)을 반환했다.
+
+**핵심 메커니즘 확인**(`sizing_recipe.py:2230` `resolve_stack_layout()` 내부):
+1. `audit_vertical_stack_id_vs_kcl()` 게이트 -- `review_needed`(unexplained hub +
+   gap)가 있으면 `ValueError`. Test 47/49로 이미 0건임을 확인했으므로 이 게이트는
+   통과가 보장돼 있었다(실제로 예외 없이 통과 재확인).
+2. declared `vertical_stack_id`로 1차 그룹 조립 (세션27의 6개 병합이 여기 반영됨).
+3. **`merge_layout_groups_by_matching_pairs()`**(`stick_diagram.py:3308`)로 2차
+   병합 -- declared 매칭쌍(`current_forced=True`)마다 그룹과 그룹을 union하기
+   *전에* **실제로 임시 병합해보고 `check_euler_condition()`으로 검사, 실패하면
+   `suggest_pair_finger_adjustments()`로 핑거 조정 후 재검증(연결성 포함)까지
+   실제로 적용해보는 오일러 게이트**(`euler_feasible()`/`_verified_euler_fix()`,
+   3387~3407행)를 통과해야만 병합이 확정된다 -- 실패하면 그 매칭쌍은 건너뛰고 두
+   그룹을 분리된 채로 남긴다(과병합 방지, 세션26 후속 K절 설계 그대로).
+
+즉 `resolve_stack_layout()`이 예외 없이 완주했고 그 반환값에 세션27의 6개 병합
+그룹이 (추가로 매칭쌍 기반 병합까지 거쳐) 그대로 포함돼 있다는 사실 자체가 **이
+6개 그룹이 실제 오일러 게이트를 통과했다는 직접 증거**다(감사만이 아니라 진짜
+`check_euler_condition()`/finger-adjustment 재검증까지 실행됐다는 뜻).
+
+**실제 반환된 16개 그룹**(세션27의 6개 declared 그룹은 아래처럼 매칭쌍 기반으로
+더 크게 병합됨 -- `biasgen_vom_battery_a`가 `vop` 쪽과, `vbias3_stack`이
+`biasgen_ref`와 합쳐지는 식. 이는 버그가 아니라 `folded_cascode`에서 이미 검증된
+"매칭 파트너가 다른 물리 branch에 있으면 그룹을 이어붙인다"는 의도된 동작, Test 48
+참고):
+```
+biasgen_ref -> M18_bg, M60, M61, M63, M64
+biasgen_vom_a -> M17, M18a, M8, M9a
+biasgen_vom_battery_a -> M11a, M11b, M12, M20a, M20b, M21   (세션27 vom_a ∪ vop_a)
+biasgen_vom_battery_b -> M13, M14a, M14b, M22, M23a, M24b   (세션27 vom_b ∪ vop_b)
+biasgen_vom_floatsrc_sink -> M10, M18b, M19, M9b
+cmfb_load_a -> M36a, M36b
+cmfb_tail -> M37a, M37b, M38
+cmfb_vocdes_gen -> M39, M40
+diffpair_bottom_a -> M3a, M3b, M4a, M4b
+diffpair_top_a -> M1a, M1b, M2a, M2b
+output_stage_a -> M15, M16, M25, M26
+vbias2_stack -> M57, M58, M68                                (세션27 병합 그대로)
+vbias4_stack -> M66
+vx_tail_a -> M6
+vx_tail_b -> M7
+vy_tail -> M5
+```
+`biasgen_ref`에 `M61`/`M63`/`M64`(세션27이 `vbias3_stack`으로 병합)가 `M18_bg`/
+`M60`과 합쳐져 들어간 것도 declared `matching_pairs`(`M18_bg`-`M60`,
+`M60`-`M61`)를 오일러 게이트 통과 후 그대로 반영한 결과 -- `vbias3_stack`이라는
+이름은 대표 키 선정 규칙(사전순 최소)에 따라 `biasgen_ref`에 흡수됨.
+
+## K. 결론 — vsid 재설계 불필요
+
+세션27 F절이 조건부로 남긴 "만약 오일러 구성이 실패하면 `vertical_stack_id`를
+헤드룸용/레이아웃용으로 분리 재설계"는 **조건이 성립하지 않았다** -- 6개 병합
+그룹 전부가 실제 오일러 게이트를 통과했으므로(위 J절), `vertical_stack_id` 하나로
+헤드룸(전기적 컬럼)과 레이아웃(오일러 walk) 두 목적을 동시에 만족시키는 현재
+설계를 그대로 유지한다. `headroom_stack_id` 신설이나 `audit_headroom_vs_layout_
+stack_id()` 같은 별도 감사 함수는 불필요.
+
+## L. 부수 발견 — feasible theta 전체 실행으로 옛 ②(M5/M61 헤드룸 버그) 재확인(새 버그 아님)
+
+위 J절 검증 도중, `optimize_full_circuit_budget()`을 feasible theta(K_replica=
+0.05=하한, r_classab_battery=0.3=상한, 나머지 bounds-midpoint,
+`grid_points_per_theta=1`)로 실제 실행해 레이아웃 단계(`assign_finger_geometry`)
+까지 도달하는지 확인하려 했으나, 그 전 사이징 단계에서 세션27이 이미 "다음 세션②"
+로 예고했던 바로 그 크래시가 그대로 재현됐다(새 버그 아님, 우선순위 재조정 근거로
+기록):
+```
+device name at failure: M61
+entry: {'ID': 1.3593880066325438e-06, 'L': 3.75e-07, 'vds': -0.4, 'vs': 1.8}
+dr: {'headroom_role': 'mirror', 'gm_id_role': 'matching', 'L_role': 'mirror',
+     'vertical_stack_id': 'vbias3_stack', 'budget_reference_device': 'M5'}
+ValueError: W_bounds=(1e-06, 0.0002) 안에 맞는 gm_id 후보가 없음(role='matching', ...)
+```
+원인은 세션27이 이미 정확히 진단한 그대로: `M5`(`vy_tail` 그룹에 혼자)가
+`allocate_stack_headroom()`에서 VDD 전체를 혼자 가져가 `M61`(`budget_reference_
+device: M5`로 `Vy`를 참조)에게 남는 예산이 음수가 된다. **이 항목을 고치지 않고는
+`optimize_full_circuit_budget()`이 이 회로로 feasible theta에서도 끝까지 완주한
+적이 여태 한 번도 없다** -- (당시엔) 다음 세션 최우선 ①로 승격한 근거였으나, 아래
+"## N"에서 서술하듯 세션28 후반부에 그보다 더 근본적인 kind-mismatch 문제가
+발견돼 우선순위 ①은 그쪽으로 다시 넘어갔다(이 항목은 ②로, 파일 맨 위 참고).
+재현 스크립트: `run_harness_smoke.py`를 베이스로 `K_replica`/`r_classab_battery`
+bounds를 `[0.05,0.05]`/`[0.3,0.3]`로 고정하고 나머지는 midpoint 고정, `grid_
+points_per_theta=1`로 `optimize_full_circuit_budget()` 호출.
+
+## M. 커밋 상태 (세션28 전반부 완료 시점, 2026-08-11 — ⚠️ 후반부 변경사항은 아래 "## N"
+이후에 별도 기록, 이 절은 전반부까지만의 스냅샷으로 보존)
+변경 파일: `.ai/context.md`(이 갱신), `skills/analog-gmid-design/assets/stick_
+diagram.py`(Test 47 fixture만 교체, 로직 변경 없음). `sizing_recipe.py`는 전반부
+세션에 코드 수정 없음(읽기/직접실행 검증만). self-test: PASS(exit 0, 회귀 0건).
+아직 커밋 안 됨 -- 다음 세션 시작 시 `git status`/`git log`로 먼저 확인할 것.
+
+# 세션28 후반부 — 사용자 질문으로 전반부 결론 정정, (a) kind 동질성 하드 게이트 적용
+
+전반부가 "① 해소, 재설계 불필요"로 결론낸 직후, 사용자가 핵심을 찌르는 질문을 던졌다:
+**"resolve_stack_layout에서 왜 pmos/nmos가 같은 stack에 있는데 오일러 패쓰에 문제가
+없지?"** -- 이 질문 하나가 전반부 검증 전체의 맹점을 드러냈다.
+
+## N. 근본원인 조사 — `check_euler_condition()`이 kind를 전혀 안 본다
+
+1. **`build_graph()`(`stick_diagram.py:3545`) 코드 직접 확인**: 노드=net, 엣지=
+   트랜지스터인 순수 무방향 멀티그래프를 만들 뿐, `t.kind`를 참조하는 줄이 단
+   하나도 없다. `check_euler_condition()`/`hierholzer()`도 마찬가지로 노드 차수
+   짝/홀과 연결성만 본다 -- PMOS/NMOS를 섞어도 수학적으로는 아무 차이가 없다.
+2. **실측으로 직접 확인**: `vbias2_stack`(M57=pmos/M58=pmos/M68=nmos)로 `build_
+   graph()`+`hierholzer()`를 직접 돌리니 `transistor_sequence=['M58','M57','M68']`
+   -- `check_euler_condition()`이 "path"(유효)로 확정한 이 trail은 M57(PMOS)과
+   M68(NMOS)가 diffusion을 공유하며 바로 이어붙는다는 뜻이라 물리적으로 존재할 수
+   없다(PMOS=n-well, NMOS=p-well/p-sub, 같은 diffusion strip 공유 불가).
+3. **kind 검사가 있던 유일한 곳이 우회당했다**: `split_into_stacks()`의 docstring에
+   "같은 diffusion strip에 물리려면 최소한 극성과 finger 폭이 같아야 한다"는 원칙이
+   있지만, 이건 `stack_id`가 **없을 때**의 자동 `(kind, finger_w)` 그룹핑에서만
+   적용된다(`split_into_stacks()` 우선순위 1번: "`stack_id` 명시하면 그대로 키로
+   쓴다" -- kind 재검증 없음). `vertical_stack_id` 기반 그룹(`resolve_stack_
+   layout()`)은 이미 `stack_id`가 명시돼 있어서 이 규칙 자체를 우회하고 `run_
+   topology_pipeline()`→`audit_row_split()`→`build_stick_diagram()`으로 그대로
+   들어가 Euler 검사를 받는다 -- kind 검사가 아예 존재하지 않았다.
+4. **원조(canonical) 예제는 전부 same-kind였다**: `folded_cascode_example()`의
+   "top" 스택(MP/M3/M4/M5/M6 전부 pmos)과 "bot" 스택(M9/M10/M7/M8/M11/MN 전부
+   nmos)을 보면, 이 프로젝트의 Euler/stick-diagram 코드는 원래 Maloberti PDF의
+   same-kind CMOS 물리 행을 대상으로 설계·검증됐음을 알 수 있다. 그런데 세션24~28의
+   `vertical_stack_id`는 "VDD→GND 전기적 컬럼"(헤드룸 계산 단위)이라 **정의상
+   PMOS/NMOS 경계를 넘나드는 게 정상**이다 -- 두 개념이 같은 파이프라인에 물리면서
+   kind 동질성 검증 부재가 그대로 노출됐다.
+5. **범위 확인**: 이 회로 declared vsid **26개 중 8개**가 kind-mixed임을 직접
+   전수조사로 확인 -- `biasgen_vom_battery_a`(M11a/pmos,M11b/pmos,M12/nmos),
+   `biasgen_vom_battery_b`(M13/pmos,M14a/nmos,M14b/nmos), `biasgen_vop_battery_
+   a`/`_b`(대칭), `vbias2_stack`(M57/pmos,M58/pmos,M68/nmos), `vbias3_stack`
+   (M61/pmos,M64/nmos,M63/nmos), **`output_stage_a`**(M15/pmos,M16/nmos),
+   **`output_stage_b`**(M25/pmos,M26/nmos) -- class-AB push-pull 출력단까지
+   포함돼 드문 예외가 아니라 정상 패턴임이 확인됐다.
+
+**결론: 전반부의 "재설계 불필요" 결론 정정.** 오일러 게이트가 "통과"한 게 아니라
+게이트 자체가 kind를 못 봐서 통과한 것처럼 보였을 뿐이다.
+
+## O. (a) 즉시 적용 — `build_graph()` kind 동질성 하드 게이트 (사용자 지시: "(a)는 바로 적용")
+
+**구현**: `build_graph()`(`stick_diagram.py:3545`) 시작부에 `{t.kind for t in
+transistors}`가 2개 이상이면 즉시 `ValueError`(호출부/소자별 kind 상세 포함).
+"finger 조정으로 못 고치는 구조적 불가능"이라 `EulerVerdict(kind="impossible")`
+(소프트 실패, 자동수정 루프 대상)이 아니라 하드 크래시로 낸다는 게 설계 의도.
+
+**하류 소비자 3곳 중 크래시를 흡수해야 하는 2곳 수정**(3번째 `find_euler_repair_
+options()`는 `_verified_euler_fix()`만 거치므로 자동으로 같이 고쳐짐):
+- `_verified_euler_fix()`(`audit_vertical_stack_id_euler_feasibility()`/`merge_
+  layout_groups_by_matching_pairs()`/`find_euler_repair_options()` 공유 헬퍼) --
+  첫 `check_euler_condition(build_graph(...))` 호출을 `try/except ValueError`로
+  감싸 `(False, None)`으로 정규화(kind mismatch는 `suggest_pair_finger_
+  adjustments()`를 시도해봐야 절대 안 풀리므로 그 단계 자체를 건너뜀).
+- `audit_vertical_stack_id_euler_feasibility()` -- 자체 첫 `check_euler_
+  condition(build_graph(trs))` 호출(`_verified_euler_fix()`를 거치기 전 단계)도
+  `try/except`로 감싸, 기존 홀짝-차수 finding과 구분되는 새 finding을 반환:
+  `{"vsid", "members", "odd_nodes": None, "resolvable_by_finger_adjustment":
+  False, "verified_suggestion": None, "kind_mismatch": True, "kinds": [...]}`
+  (기존 findings는 `kind_mismatch: False`로 채워 구분).
+
+**self-test 갱신**: `stick_diagram.py` Test 49가 "cmfb_tail 외엔 전부 오일러
+정상"(`_t49_other_findings == []`)이라고 잘못 기대하던 걸, 이제 정확히 8개
+kind_mismatch finding(위 vsid 목록)을 기대하도록 재작성 -- `kind_mismatch`/
+`kinds`/`resolvable_by_finger_adjustment`/`verified_suggestion` 필드 전부 검증.
+
+**검증**: `stick_diagram.py` self-test(exit 0, "전체 PASS" 20건, 회귀 0건),
+`sizing_recipe.py` self-test(exit 0, 회귀 0건, `kind_mismatch` 관련 자체 테스트는
+없지만 `resolve_stack_layout()`을 경유하는 L5b 테스트가 여전히 통과 -- 이 함수가
+새 게이트로 인한 예외를 전혀 안 내고 정상 동작함을 재확인).
+
+**부수 효과(버그 수정이 아니라 "조용한 오답"→"명시적 거부"로 바뀐 것)**:
+`resolve_stack_layout()`을 직접 재실행하니 반환 그룹 수가 **16개→20개**로
+바뀌었다 -- `merge_layout_groups_by_matching_pairs()`가 이제 물리적으로 불가능한
+매칭쌍 기반 병합을 정확히 거부하기 때문:
+```
+전(kind 게이트 없음, 세션28 전반부):
+  output_stage_a -> M15, M16, M25, M26            (output_stage_a+b 병합됨)
+  biasgen_vom_battery_a -> M11a,M11b,M12,M20a,M20b,M21  (vom+vop battery_a 병합됨)
+  biasgen_ref -> M18_bg, M60, M61, M63, M64        (biasgen_ref+vbias3_stack 병합됨)
+
+후(kind 게이트 적용, 세션28 후반부):
+  output_stage_a -> M15, M16                       (분리)
+  output_stage_b -> M25, M26                       (분리)
+  biasgen_vom_battery_a -> M11a, M11b, M12          (분리)
+  biasgen_vop_battery_a -> M20a, M20b, M21          (분리)
+  biasgen_ref -> M18_bg, M60                        (분리)
+  vbias3_stack -> M61, M63, M64                     (분리)
+  (biasgen_vom_battery_b/vop_battery_b도 동일 패턴으로 분리)
+```
+**이건 아직 "올바른 답"이 아니다** -- 그냥 "물리적으로 틀린 병합을 더 이상 안 한다"
+는 것뿐, 이 매칭쌍들(특히 `output_stage_a`/`b`의 class-AB M15↔M25/M16↔M26)이
+실제로 어떻게 레이아웃돼야 하는지는 (b)가 답해야 한다.
+
+**(b)는 사용자 지시대로 아직 미착수 -- 다음 논의 필요**(파일 맨 위 "다음 세션
+최우선 ①" 절에 논의 항목 4개 정리해둠): vertical_stack_id 필드 분리 여부, `output_
+stage_a`/`b`류 진짜 매칭쌍의 cross-row common-centroid 재정의, `merge_layout_
+groups_by_matching_pairs()`가 거부한 뒤 `audit_row_split()`이 뭐라고 보고하는지
+직접 실행 확인, 신규 감사 함수 필요 여부.
+
+## P. (a) 완료 시점 스냅샷 (더 이상 최신 아님 -- 아래 "## Q"가 (b) 완료까지 마저 기록)
+(당시 기록 그대로 보존: 변경 파일 `.ai/context.md`+`stick_diagram.py`(Test 47 교체+
+kind 게이트+Test 49 재작성), `sizing_recipe.py`는 이 시점까진 코드 수정 없음. self-test
+PASS. (b) 설계는 "사용자와 계속 논의 중(미완료)"라고 적혀 있었음 -- 아래 "## Q"에서
+그 논의가 실제로 어떻게 마무리됐는지 이어서 기록한다.)
+
+## Q. (b) 완료 — `derive_horizontal_stack_groups()` 신설, `vertical_stack_id`(전기적)와 물리 레이아웃 행(물리적) 2축 분리
+
+### Q-1. 사용자가 확정한 설계
+
+(b) 논의에서 사용자가 핵심 구조를 직접 정리했다: **"vertical_stack_id의 정의는
+물리적으로 VDD부터 GND까지 수직으로 쌓여있는 실제 stack -- layout을 위한 PMOS
+row/NMOS row와는 다른 개념이다. 우리가 필요한 stack은 2종류: (1) 전기적 관점의
+VDS budget용 수직 stack(수직 연결성 기준, 소자 개수·역할이 중요) (2) layout 관점의
+PMOS row/NMOS row(수평/오일러 path 연결성 기준, 같은 종류끼리 한붓그리기+branch간
+대칭성이 중요). 이 2개는 공통 정보(topology상 VDD→GND branch)로부터 파생돼야 하고,
+`vertical_stack_id`를 만드는 함수가 이미 대칭 branch 정보도 갖고 있으므로(declared
+`matching_pairs`) 기본 환경은 이미 갖춰져 있다 -- 다만 PMOS/NMOS가 섞인 걸 kind로
+분리해서 2개 row로 만들고 대칭성 고려해 병합하는 부분만 채우면 된다."**
+
+### Q-2. 조사 결과 -- 이미 설계가 대부분 갖춰져 있었다 (Explore 2회)
+
+1. `merge_layout_groups_by_matching_pairs()`(`stick_diagram.py:3338`)가 이미
+   "declared matching_pairs로 그룹과 그룹을 잇되 실제 오일러 재검증(`build_graph()`+
+   `check_euler_condition()`, 필요시 `suggest_pair_finger_adjustments()` 적용
+   재검증)을 통과해야만 확정"하는 안전한 그룹 단위 union-find를 완성된 형태로 갖고
+   있었다 -- kind로 미리 쪼갠 입력만 넣으면 재발명 없이 그대로 재사용 가능함을 직접
+   실행으로 확인.
+2. 원래 세션22~23 설계 스케치("B-5-3", `.ai/context.md:3383`, `resolve_stack_
+   layout()`이 실제로 구현되기 전 예고편)가 정확히 이 2계층 구조를 이미 제안했었다:
+   **Topology layer**(연결성 사실 -- `vertical_stack_id`/`matching_pairs`, 영구
+   저장) vs **Instance layer**(finger_w/walk 순서/적용된 조정 -- 인스턴스별,
+   `ctx.layout_solution` 메모리 캐시로 제안됐으나 미구현인 채로 남아있었음).
+3. 레이아웃→사이징 피드백 루프(`revalidate_finger_override()`/`run_topology_
+   pipeline_with_finger_fixup()`)는 이미 `optimize_full_circuit_budget()` 안에서
+   완전 자동으로 동작한다(`sizing_recipe.py:2873-2889`) -- 사용자가 요청한 "레이아웃
+   조정이 sizing에 피드백되는 루프"는 손댈 필요 없이 이미 존재했다.
+4. `Transistor.stack_id`(dataclass 필드, `stick_diagram.py:64`)와 `vertical_
+   stack_id`(topology.json 선언값)는 서로 다른 것 -- `resolve_stack_layout()`이
+   후자를 읽어 전자를 채우는 다리 역할. 헤드룸(`allocate_stack_headroom()`)은
+   `vertical_stack_id`를 직접 읽지 `resolve_stack_layout()`을 안 거친다 --
+   `resolve_stack_layout()`의 반환값은 애초부터 오직 물리 레이아웃 축(`assign_
+   finger_geometry()`)에만 쓰였다. 즉 이 함수는 처음부터 "물리 레이아웃 그룹 산출"이
+   목적이었고, 세션28 이전엔 그 내부 구현이 kind-safe가 아니었을 뿐 -- 이름/시그니처를
+   바꿀 필요 없이 내부만 교정하면 됐다.
+
+**범위 결정(사용자 확인)**: `horizontal_stack_id`를 지금 바로 topology.json declared
+필드로 영구화하지 않는다 -- `vertical_stack_id` 자신이 세션22~23엔 candidates만,
+세션24~25에 검증 후 declared로 승격됐던 경로를 그대로 밟는다. 개념/이름은 지금
+확정(1급 시민 함수로 명명)하되, 저장은 다른 회로 최소 1개로 교차검증한 뒤 다음
+세션에 결정.
+
+### Q-3. 구현
+
+**새 함수 `derive_horizontal_stack_groups(transistors, vertical_groups,
+matching_pairs)`** -- `stick_diagram.py`, `merge_layout_groups_by_matching_pairs()`
+바로 뒤:
+```python
+def derive_horizontal_stack_groups(transistors, vertical_groups, matching_pairs):
+    by_name = {t.name: t for t in transistors}
+    split_groups = {}
+    for vsid, members in vertical_groups.items():
+        by_kind = defaultdict(list)
+        for name in members:
+            t = by_name.get(name)
+            if t is not None:
+                by_kind[t.kind].append(name)
+        if len(by_kind) <= 1:
+            split_groups[vsid] = members          # 이미 kind 동질 -- 이름 유지
+        else:
+            for kind, names in by_kind.items():
+                split_groups[f"{vsid}__{kind}"] = names
+    return merge_layout_groups_by_matching_pairs(transistors, split_groups, matching_pairs)
+```
+1단계(kind 분할) + 2단계(기존 `merge_layout_groups_by_matching_pairs()`에 위임) --
+새 병합 알고리즘을 만들지 않는다. `resolve_stack_layout()`(`sizing_recipe.py:2230`)의
+tier 2(declared)/tier 3(candidates) 두 호출부에서 `merge_layout_groups_by_matching_
+pairs()` 직접 호출을 이 함수 호출로 교체(2줄) -- 함수 이름/시그니처는 그대로.
+
+### Q-4. 실측 검증
+
+**전체 회로(51소자)**: `derive_horizontal_stack_groups()`를 declared vsid 26개
+그룹에 실행 -- 21개 물리 레이아웃 행으로 51/51 소자 전부 커버(손실/중복 0), 반환된
+모든 그룹이 kind 동질. 핵심 사례:
+```
+output_stage_a__pmos -> M15, M25        (kinds=['pmos'])   # class-AB PMOS 쌍 재병합
+output_stage_a__nmos -> M16, M26        (kinds=['nmos'])   # NMOS 쌍도 재병합
+biasgen_vom_battery_a__pmos -> M11a, M11b, M20a, M20b (kinds=['pmos'])
+biasgen_vom_battery_a__nmos -> M12, M21               (kinds=['nmos'])
+biasgen_ref -> M18_bg, M60, M61                        (kinds=['pmos'])  # M61 정상 재합류
+```
+(a)만 있던 상태(kind 게이트는 있지만 kind-split 없음)에서는 `output_stage_a`/`b`가
+그냥 분리된 채(각 2소자, 매칭 파트너 못 찾음)로 남았었는데, 이제 **의도한 대로
+재병합**된다.
+
+**`audit_row_split()` 실측 개선 확인**(M15/M16/M25/M26 실제 topology 연결성 +
+M15-M25/M16-M26 declared matching_pairs로 직접 실행, `matching_sensitivity="ratio"`
+둘 다):
+- 새 그룹(`output_stage_a__pmos`={M15,M25}, `output_stage_a__nmos`={M16,M26})으로
+  `assign_finger_geometry()`→`split_into_stacks()`→`audit_row_split()` 실행 결과
+  `ok=True` -- `1. euler[output_stage_a__pmos/__nmos]` 둘 다 `path`(정상), `2.
+  box-shape` PASS, `3a. row-presence` 둘 다 있음, **`3b. interdigitation` PASS**
+  (이 pair 종류의 필수 게이트, §2.7: 전류거울류는 1행 interdigitation으로 충분),
+  `3c. common-centroid`는 FAIL이지만 `ratio`+`shares_node` 조합에선 참고용일 뿐
+  전체 `ok`에 영향 없음(설계대로).
+- **비교군**: (a) 게이트만 있던 상태를 그대로 재현(`output_stage_a`=[M15,M16],
+  `output_stage_b`=[M25,M26], kind-split 없이 `merge_layout_groups_by_matching_
+  pairs()`만 실행)하면 매칭쌍 병합은 정상적으로 거부되지만(그룹은 원래대로 유지),
+  그 그룹을 그대로 `assign_finger_geometry()`→`run_topology_pipeline()`에 넘기면
+  **`build_graph()`의 kind 게이트가 즉시 `ValueError`를 낸다**(`output_stage_a`
+  자체가 M15=pmos/M16=nmos 혼합이므로) -- 즉 **(a) 단독으로는 이 회로의 물리
+  레이아웃 파이프라인이 실제로 완주 불가능**했다는 걸 이번에 직접 확인했다(세션28
+  전반부는 이 부분까지 실행해보지 않았었음).
+
+### Q-5. self-test
+
+- `stick_diagram.py` **Test 51**(신설, Test 50 뒤) -- 51/51 커버·무손실, 반환된
+  모든 그룹 kind 동질(assert), `output_stage_a`/`b`의 M15/M25·M16/M26 재병합 명시
+  검증, 합성 fixture(매칭 파트너 없는 순수 mixed-kind 그룹은 kind로만 분할되고
+  병합 시도 없음 확인). PASS.
+- `sizing_recipe.py` L5b(`resolve_stack_layout()` 실회로 검증)에 "반환된 모든
+  그룹이 kind 동질" invariant assertion 추가 -- 이번 버그 재발 방지 가드. PASS.
+- 두 self-test 파일 전체 재실행 -- exit 0, 회귀 0건(각각 "전체 PASS" 21건/기존
+  카운트 그대로).
+
+### Q-6. 문서
+
+`docs/04-report/analog-topology-json-library.do.md` 배치 7-6f에 (a)+(b) 전체를
+기록(배경/구현/실측 검증/self-test/의도적 범위 축소 4~5칸 표, 기존 배치와 동일 형식).
+
+## R. 커밋 상태 (세션28 최종, 2026-08-11)
+변경 파일: `.ai/context.md`(이 갱신), `docs/04-report/analog-topology-json-library.
+do.md`(배치 7-6f 추가), `skills/analog-gmid-design/assets/stick_diagram.py`(Test 47
+fixture 교체 + `build_graph()` kind 하드 게이트 + `_verified_euler_fix()`/`audit_
+vertical_stack_id_euler_feasibility()` kind_mismatch 처리 + Test 49 재작성 +
+`derive_horizontal_stack_groups()` 신설 + Test 51 신설), `skills/analog-gmid-design/
+assets/sizing_recipe.py`(`derive_horizontal_stack_groups` import 추가 + `resolve_
+stack_layout()` 2개 호출부 교체 + docstring 갱신 + L5b kind 동질 invariant 추가).
+self-test: `stick_diagram.py`/`sizing_recipe.py` 둘 다 PASS(exit 0, 회귀 0건).
+아직 커밋 안 됨 -- 다음 세션 시작 시 `git status`/`git log`로 먼저 확인할 것.
+(a)/(b) 둘 다 완료 -- 다음 세션 최우선은 파일 맨 위 "① `allocate_stack_headroom()`
+singleton 정책"으로 이월.

@@ -1969,7 +1969,8 @@ from stick_diagram import (Transistor, load_topology, propagate_topology_forced_
                             find_min_crossover_layout_with_branch_composite,
                             refine_differential_and_mirror_relations,
                             audit_vertical_stack_id_vs_kcl,
-                            merge_layout_groups_by_matching_pairs)
+                            merge_layout_groups_by_matching_pairs,
+                            derive_horizontal_stack_groups)
 
 
 @dataclass
@@ -2271,20 +2272,25 @@ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: 
        (레거시 자동 추론)으로 최종 폴백 -- 이 함수가 아예 없던 회로/환경에서도 완전한
        하위호환을 보장한다.
 
-    ⚠️ **2026-08-10 추가 신설(같은 세션 대화 계속)**: 2번(declared)/3번(candidates)
-    둘 다 최종 반환 전에 `merge_layout_groups_by_matching_pairs(transistors, groups,
-    matching_pairs)`를 거친다 -- `vertical_stack_id`는 수직 방향(무엇이 직렬로 쌓였는가)만 답해서,
-    매칭 파트너가 서로 다른 물리 branch에 있으면(예: `folded_cascode`의 `M1`/`M2`
-    차동입력쌍) 항상 그룹이 갈라져 `audit_row_split()`의 3b/3c(interdigitation/
-    common-centroid)가 실패하는 문제(실측 확인, `folded_cascode` 5개 매칭쌍 전부)를
-    이 병합이 해결한다. `geometry_colocation_union()`의 위험한 재귀적 connectivity
-    climb(`M6`이 서로 다른 두 매칭쌍 양쪽에 걸려 무관한 쌍을 조용히 합치는 실제 버그,
-    위 3번 근처 문서 참고) 없이, **선언된 매칭쌍만으로 그룹과 그룹을 잇는** 안전한
-    union만 쓴다 -- `matching_pairs`(이미 이 함수가 받는 인자, `optimize_full_circuit_
-    budget()`은 `current_forced=True`만 필터링해 넘김)가 병합 기준이자 유일한 선택지다
-    (세션9/10 실측: 전체 matching_pairs를 병합 기준으로 쓰면 무관한 hub를 끌고 들어와
-    매칭 품질이 악화된 선례가 있어, `current_forced=True`만 넘기는 게 안전한 기본값).
-    4번(legacy)에는 적용 안 함(이미 자체적으로 매칭쌍 기반 병합을 하는 함수라 중복).
+    ⚠️ **2026-08-10 신설, 2026-08-11(세션28 후반부) `derive_horizontal_stack_groups()`로
+    교체**: 2번(declared)/3번(candidates) 둘 다 최종 반환 전에
+    `derive_horizontal_stack_groups(transistors, groups, matching_pairs)`를 거친다 --
+    `vertical_stack_id`는 전기적 VDD->GND 컬럼(무엇이 직렬로 쌓였는가)만 답해서 두 가지
+    문제가 있다: (1) 매칭 파트너가 서로 다른 물리 branch에 있으면(예: `folded_cascode`의
+    `M1`/`M2` 차동입력쌍) 항상 그룹이 갈라져 `audit_row_split()`의 3b/3c(interdigitation/
+    common-centroid)가 실패한다(실측 확인, `folded_cascode` 5개 매칭쌍 전부). (2) 정의상
+    PMOS/NMOS 경계를 넘나든다(예: `output_stage_a` class-AB 출력단이 M15=pmos/M16=nmos를
+    한 컬럼으로 묶음) -- 물리 레이아웃 행(Euler trail)은 같은 kind만 diffusion을 공유할
+    수 있으므로 이 그룹을 그대로 물리 행으로 쓸 수 없다(2026-08-11 `build_graph()` kind
+    동질성 하드 게이트로 발견). `derive_horizontal_stack_groups()`는 먼저 kind로 쪼갠 뒤
+    `merge_layout_groups_by_matching_pairs()`(선언된 매칭쌍만으로 그룹과 그룹을 잇는
+    안전한 union-find, `geometry_colocation_union()`의 위험한 재귀적 connectivity climb
+    없음)로 대칭 branch를 재병합해 두 문제를 함께 푼다 -- `matching_pairs`(이미 이 함수가
+    받는 인자, `optimize_full_circuit_budget()`은 `current_forced=True`만 필터링해 넘김)가
+    병합 기준이자 유일한 선택지다(세션9/10 실측: 전체 matching_pairs를 병합 기준으로 쓰면
+    무관한 hub를 끌고 들어와 매칭 품질이 악화된 선례가 있어, `current_forced=True`만
+    넘기는 게 안전한 기본값). 4번(legacy)에는 적용 안 함(이미 자체적으로 매칭쌍 기반
+    병합을 하는 함수라 중복).
 
     반환은 `kcl_series_union()`/`geometry_colocation_union()`과 동일한 계약
     `{stack_id: [device_name, ...]}` -- `assign_finger_geometry()`에 그대로 넘길 수 있다.
@@ -2322,14 +2328,14 @@ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: 
         for t in transistors:
             if t.name not in declared:
                 groups[t.name].append(t.name)
-        return merge_layout_groups_by_matching_pairs(transistors, dict(groups), matching_pairs)
+        return derive_horizontal_stack_groups(transistors, dict(groups), matching_pairs)
 
     refined = refine_differential_and_mirror_relations(transistors)
     if refined is not None and refined.get("vertical_stack_id_candidates"):
         groups = defaultdict(list)
         for name, sid in refined["vertical_stack_id_candidates"]["groups"].items():
             groups[sid].append(name)
-        return merge_layout_groups_by_matching_pairs(transistors, dict(groups), matching_pairs)
+        return derive_horizontal_stack_groups(transistors, dict(groups), matching_pairs)
 
     return geometry_colocation_union(transistors, matching_pairs)
 
@@ -4089,6 +4095,20 @@ if __name__ == "__main__":
         "감사 게이트 통과 후에도 소자 누락/중복 없어야 함"
     print(f"    PASS: current_reuse_telescopic_ota(51소자, declared 전수 정합) -- 감사 게이트 "
           f"통과, {len(_rsl_groups)}개 그룹 정상 반환")
+
+    # 2026-08-11(세션28 후반부) -- resolve_stack_layout()이 이제 derive_horizontal_stack_
+    # groups()를 거치므로(vertical_stack_id는 PMOS/NMOS를 섞을 수 있지만 물리 레이아웃 행은
+    # 그럴 수 없음), 반환된 모든 그룹이 항상 kind 동질이어야 한다는 게 이 함수의 새 불변식이다
+    # -- 이번 버그(build_graph()가 mixed-kind를 잡아내기 전엔 이 그룹이 조용히 PMOS/NMOS를
+    # 섞고 있었음, 8/26개 declared vsid에서 실측 확인)의 재발 방지 가드.
+    _rsl_by_name = {t.name: t for t in _rsl_trs}
+    for _rsl_sid, _rsl_members in _rsl_groups.items():
+        _rsl_kinds = {_rsl_by_name[m].kind for m in _rsl_members if m in _rsl_by_name}
+        assert len(_rsl_kinds) <= 1, \
+            f"resolve_stack_layout() 반환 그룹이 kind 동질이 아님(회귀 -- derive_horizontal_" \
+            f"stack_groups() 배선 확인할 것): {_rsl_sid} -> {_rsl_members} -> {_rsl_kinds}"
+    print(f"    PASS: {len(_rsl_groups)}개 그룹 전부 kind 동질(PMOS/NMOS 혼합 0건) -- "
+          f"derive_horizontal_stack_groups() 배선 확인")
 
     _rsl_bad_trs = [
         Transistor("T1", "pmos", source="vdd", drain="Na", gate="g1"),
