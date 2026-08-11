@@ -1,10 +1,11 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션28 최종 요약"(`## AA`~
-`## AE`)부터 먼저 읽을 것** — 이번 세션(세션28) 전체 타임라인 압축 요약 + 다음
-최우선 순서 + 다음 세션 시작 체크리스트가 거기 정리돼 있다. 아래는 세션 진행
-중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만
-찾아보면 된다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션29 결론"(`## AF`~`## AI`)
+부터 먼저 읽을 것** — 이번 세션(세션29) 작업 요약 + 다음 최우선 순서 + 다음 세션
+시작 체크리스트가 거기 정리돼 있다("# 세션28 최종 요약"은 세션29 착수 시점의
+출발점이었을 뿐 더 이상 최신이 아니다 -- 그대로 보존하되 지금은 참고용). 아래는
+세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가
+궁금할 때만 찾아보면 된다.
 
 ---
 
@@ -5951,3 +5952,120 @@ stack_groups()`(세션28 신설, 지금은 candidates 전용)도 같은 회로�
 4. **self-test는 항상 실제 회로(현재는 `current_reuse_telescopic_ota` 51소자)
    로 end-to-end 검증** -- 합성 fixture만으론 이번 세션에 발견된 문제들(M5의
    진짜 정체가 차동쌍 tail이라는 것 등) 상당수를 못 잡았을 것.
+
+# 세션29 결론 — 세션28이 남긴 최우선 항목①(SLSQP 웜스타트 3개 일반 함수) 구현 완료.
+# scipy 설치 + SLSQP 본체는 아직(다음 세션 최우선)
+
+세션 시작 시 세션28 "## AC①"이 지정한 순서 그대로 착수 -- `derive_theta_dependency_
+graph()`/`extract_linear_feasibility_constraints()`/`presolve_warm_start()` 3개
+함수를 세션27 "## B"(B-1~B-6)의 손유도를 일반화해 구현했다. 사용자가 사전에 결정한
+설계 기로 하나(전체회로 MNA metric과 얽힌 theta의 isolated 판정 방식 -- "1점 실측
+민감도 확인" vs "보수적 구조 분류만")에서 전자를 택함("2번을 권장하지 않은 이유" 질문에
+근거 설명 후 사용자가 "1번으로 진행해줘"로 확정) -- 이 선택이 실제로 세션27이 놓쳤던
+발견(K_replica가 사실은 cmrr/psrr에 유의미하게 결합돼 있다는 것 등, 아래 ## AG)까지
+끌어냈다.
+
+## AF. 구현 순서와 실측 검증 결과
+
+**0단계(선행 리팩터, 순수 구조 변경)**: `optimize_full_circuit_budget()`의 θ-무관
+setup + `_evaluate(theta_values)` 평가 클로저를 `_build_theta_evaluator(topology_path,
+spec)`로 추출(`sizing_recipe.py`) -- grid search 전체를 돌리지 않고 임의 theta 값
+한 점만 평가할 수 있어야 웜스타트 함수들이 성립하는데, 그 평가 로직이
+`optimize_full_circuit_budget()` 내부에 닫힌 클로저로 갇혀 있었다. 동작 변화 없는
+순수 추출(2411~2953행대를 그대로 옮김) -- self-test 전체(exit 0, Traceback/
+AssertionError 0건, 파일 끝까지 도달)로 회귀 없음 확인.
+
+**1단계 `derive_theta_dependency_graph()`**: theta별 feed 선언(A/A_signed/B/C/
+metric_stage_budget/settling_split)에서 직접 쓰는 소자(A/A_signed는 `stack_groups_
+kcl`로 KCL 직렬 그룹 전체까지 확장)를 뽑고, 각 constraint metric의 선언된 footprint
+(`gain_stages_sum`/`pelgrom_mismatch`/`battery_centering_deviation`/`rail_referenced_
+voltage`는 명시적 devices/stages, `smallsignal_ratio_db`/`smallsignal_gain_db`는
+"전체 소자")와 겹치는지로 1차 분류(dead/isolated/coupled 중 구조적으로 확실한 것만
+즉시 확정). 명시적 겹침 없이 전체회로 metric과만 걸친 "애매한" theta는 기준점에서
+`probe_frac`(기본 5%)만큼 살짝 밀어 실측 유한차분 민감도를 재고, `_db` metric은
+전체 bounds 스윙 0.5dB 미만이면 isolated로 확정(세션27 B-2의 "role 라벨/추측 대신
+declared 계산과 대조" 원칙을 그대로 함수화한 것). `baseline_theta_values`가 없으면
+(bounds-midpoint 자체가 이 회로에서 infeasible이라 이 함수가 직접 만들지 않는다)
+"ambiguous"로 정직하게 남긴다 -- 2단계가 이 baseline을 대준다.
+
+**2단계 `extract_linear_feasibility_constraints()`**: `A_signed` feed(KCL 뺄셈,
+`kcl_battery_M9b` 등)의 각 항 소자를, free `A`/`C` feed로 governing되면 그 theta에
+대한 선형항으로, **bounds가 고정된**(자유도 0) `A`/`C` feed로 governing되면 그 고정
+배수를 누적하며 재귀적으로 governing 소자까지 추적(순수 passthrough 체인 자동 해소
+-- `mirror_M18a`(1.0 고정)를 타고 `K_replica`까지 자동으로 닿는다), 그 외는 기준점
+(기본 bounds-midpoint)에서 얼린 상수로 흡수해 선형부등식 `sum(coeff_i*theta_i) +
+const >= 0`을 역산한다. **실측 검증**: `kcl_battery_M9b`에서 역산된 부등식이
+bounds-midpoint(K_replica=0.125, r_classab_battery=0.2)에서 `-5.580793744253678e-06`
+-- 세션27 D-9가 실측으로 보고한 값 `ID=-5.58079e-06A`와 **6자리까지 정확히 일치**.
+`kcl_battery_M18b`(Vop측 대칭)도 재귀 추적으로 동일한 2변수 부등식을 자동 도출(세션27
+B-3이 "같은 theta 쌍이 대칭 적용"이라고 손으로만 확인했던 것을 자동 재현).
+
+**3단계 `presolve_warm_start()`**: 2단계의 부등식에서 각 theta가 유리한 극값(계수
+양수면 상한, 음수면 하한)에 투표하게 해 **실현가능한 기준점**을 만들고(이 회로에서는
+`K_replica=하한(0.05)`/`r_classab_battery=상한(0.3)`으로 자동 수렴 -- 세션27 D-9의
+손튜닝을 그대로 재현), 그 기준점으로 1단계를 호출해 나머지를 분류한 뒤 x0을 조립
+(fixed/dead→하한, isolated→목적함수 민감도 부호로 유리한 극값, coupled/ambiguous→
+bounds-midpoint). 조립된 x0를 실제로 한 번 평가해 진짜 실현가능한지 재확인.
+
+## AG. 실측이 손유도를 능가한 지점 -- 1점 민감도 확인 방식을 택한 게 실제로 유효했다
+
+`derive_theta_dependency_graph()`가 이 회로에 대해 실제로 낸 분류(전부 `current_reuse_
+telescopic_ota` + sky130 샘플 LUT로 실측):
+- **isolated로 확정**: `r_cmfb_vocdes`(세션27 B-2가 손으로 예상한 그대로, cmrr
+  민감도 -0.475dB/unit·전체 스윙 0.086dB로 무시가능), `r_classab_diode_src`/
+  `r_diode_M11a`/`r_bg_vbias2`(세션27 B-6이 "닫힌 관계 없음, 하한 근처 권장"이라고만
+  적어뒀던 것을 실측으로 처음 확정).
+- **coupled로 확정(세션27이 미처 몰랐거나 반쯤만 알았던 것)**: `K_replica`가
+  cmrr(-28.4dB/unit)·psrr(-19.0dB/unit)에 실제로 유의미하게 결합돼 있음(세션27은
+  이 theta를 명시적으로 isolated/coupled 판정한 적이 없었다 -- B-3은 feasibility만
+  다뤘음), `r_biasgen`이 psrr에 유의미(+9.7dB/unit, 세션27 B-6은 "트레이드오프 없는
+  하우스키핑"이라고만 추정했었음), `N_cmfb_bw`는 세션27 B-6("CMFB 루프이득에 실제로
+  걸림, SLSQP가 조정하게 둘 것")과 정확히 일치.
+- `f_slew`: 이제 `t_lln`을 거쳐 compensation.stage_devices 전체(M1a/M1b/M4a/M4b/
+  M15/M16/M25/M26)에 닿아 `gain_db`/`mismatch_sigma_mV`/`classab_centering_dev_v`와
+  구조적으로 확실히 coupled -- 세션27 D-3가 배선한 뒤로 더 이상 dead가 아니라는 사실이
+  자동으로 재확인됨(B-1은 배선 전 상태의 기록으로만 유효).
+
+## AH. 부수 변경 — `InfeasibleSizingError`에 `sized_snapshot` 추가
+
+`extract_linear_feasibility_constraints()`가 A_signed 항 소자들의 실제 ID를 읽어야
+하는데, bounds-midpoint 자체가 infeasible인 조합에서는 `_evaluate()`가 예외를 던지며
+그 지역변수 `ctx`가 통째로 사라진다(메시지 문자열만 남음). `InfeasibleSizingError.
+__init__`에 `sized_snapshot: dict | None = None`을 추가하고 유일한 raise 지점
+(`sizing_recipe.py`, A_signed ID<=0 체크)에서 `sized_snapshot=dict(ctx.sized)`를
+넘기도록 수정 -- 메시지는 그대로, 기존 `except InfeasibleSizingError`(grid search
+루프 등)는 이 속성을 몰라도 하위호환. self-test 전체 재실행으로 회귀 없음 확인.
+
+## AI. 다음 세션 최우선
+
+### ① `L_cascode`/`L_stage2out` 1D LUT 이분탐색 웜스타트 (세션27 B-5, 아직 미적용)
+`presolve_warm_start()`는 이 두 theta를 지금 bounds-midpoint로만 채운다 -- gain_db
+단조/`classab_centering_dev_v` 준-단조라는 사실은 세션27이 이미 손으로 확인했지만
+(B-5), `metric_stage_budget` 핸들러가 `"gain_db"`만 구현하는 제약과 맞물려 일반화에
+추가 설계가 필요해 이번 세션엔 의도적으로 보류했다(`presolve_warm_start()` docstring에
+명시).
+
+### ② scipy 설치 + SLSQP + multi-start 본체 구현 (세션27 "## A"가 확정한 다음 단계)
+이 프로젝트 Python 환경(`C:\Python314`)에 scipy가 아직 없다(세션27에서 `import scipy`
+시도, `ModuleNotFoundError` 확인됨 -- 재확인 필요할 수 있음). `presolve_warm_start()`
+의 반환값(`x0`)을 시작점으로 실제 SLSQP+multi-start 최적화 루프를 구현 -- 실전 이슈
+3가지(세션27 "## A"에 이미 정리됨): (1) `InfeasibleSizingError`를 penalty 값으로
+변환, (2) 유한차분 step 크기 튜닝, (3) multi-start(non-convex이므로 여전히 필수).
+
+### ③ 다른 회로 교차검증(세션22부터 이월) -- ①②보다 후순위
+`folded_cascode` 등으로 3개 웜스타트 함수 + `derive_horizontal_stack_groups()`가
+일반화되는지 확인. 이번 세션 구현은 `current_reuse_telescopic_ota` 한 회로로만
+실측 검증했다(다른 회로의 `A_signed`/`metric_stage_budget` 조합에서 `_resolve()`
+재귀나 metric footprint 판정이 안 맞는 경우가 나올 수 있음 -- 나오면 그 자리에서
+`_metric_device_footprint()`/`_theta_feed_footprint()`에 새 분기를 추가할 것,
+조용히 우회하지 말 것).
+
+### ④ 계속 이월
+`run_harness.py`의 나머지 실전략(실제 회로 스펙 선정/제약 튜닝 등 운영 이슈) --
+세션22부터 계속 이월, 아직 착수 전.
+
+## AJ. 커밋 상태
+
+이번 세션(세션29)에서 수정한 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`
+(리팩터 1건 + 신규 함수 3개 + `InfeasibleSizingError` 확장 1건), `.ai/context.md`(이
+절). **아직 커밋 안 함** -- 사용자 확인 후 커밋할 것.
