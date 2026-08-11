@@ -2128,6 +2128,25 @@ harness로, 나머지 45개 소자는 여전히 회로별 고유 로직으로"�
 
 ---
 
+### 배치 7-6g — `allocate_stack_headroom()` singleton 그룹 기본정책 — M5/M61 헤드룸 크래시 해소 + M60/M66·M36a/cmfb_tail KVL 정합 (신규, 세션28 3단계 2026-08-11) ✅ 구현 완료
+
+> **배경**: 배치 7-6f 직후 사용자 지시로 다음 최우선 항목("`allocate_stack_headroom()`의
+> 혼자 있는 non-cascode 소자 기본정책 재검토")을 이어서 진행. 세션27 D-6/D-9가 발견했던
+> `M5`(`vy_tail` 그룹에 혼자) 관련 크래시(`M61_M64_M63` 그룹 `vds=-0.4`)의 근본원인을
+> 소자별 connectivity 직접 조회로 재확인하는 과정에서, 같은 클래스의 문제가 이 회로에
+> 최소 5곳(M5, M6, M60/M66, M36a/M36b, M18_bg) 더 있음을 전수조사로 발견.
+
+| | 내용 |
+|---|---|
+| **진단** | `allocate_stack_headroom()`(`sizing_recipe.py:1002`) 자체는 버그가 아니다 — "배정 합이 vdd와 정확히 일치"가 함수의 의도된, 이미 self-test로 보증된 계약(과거 3.2V 오배정 사고 재발 방지용). 문제는 호출부(`_evaluate()`의 헤드룸 루프)가 singleton 그룹에 "vdd 전체를 혼자 책임진다"는 잘못된 전제로 `remaining_vdd`를 통째로 넘기는 것. 소자별 실제 connectivity 조회로 케이스 구분: M5(`vy_tail`)는 drain(`Vy`)을 M63뿐 아니라 **M4a/M4b(진짜 차동쌍 tail)도 공유** — 신호 경로의 진짜 tail이라 세션27의 `budget_reference_device` 설계 방향 자체는 맞았음. M60↔M66(`Vbias4`, Test 47이 이미 확인한 진짜 2단자 직렬)과 M36a/M36b↔`cmfb_tail`(`Vcmfb` 공유 drain으로 진짜 물리적 한 컬럼)은 **아무도 서로 참조하지 않아** 각자 독립적으로 "혼자니까 vdd 전부"를 받아 KVL 위반/이중계산 중이었음(M11a/M11b/M12와 같은 클래스의 declared vsid 분절 문제, 단 이번엔 병합 대신 `budget_reference_device`가 맞는 모델링). |
+| **(A) 알고리즘 수정** | `sizing_recipe.py`, `_evaluate()` 헤드룸 루프. `referenced_devices = set(group_ref_device.values())` 계산 후, 그룹이 non-cascode 소자 1개뿐이고 그 소자가 `referenced_devices`에 있으면 `allocate_stack_headroom()`(전체 예산 강제소비 계약)을 호출하지 않고 역할별 `min_vds`를 직접 배정 — "나머지"는 버려지지 않고 참조하는 그룹의 `base_budget`으로 그대로 넘어감. `allocate_stack_headroom()` 자체·기존 self-test는 안 건드림, 진짜 다인원 "남는 예산 분배" 케이스는 이 조건에 안 걸려 기존 동작 유지. |
+| **(B) 선언 보완** | `current_reuse_telescopic_ota.topology.json` — `M60`에 `budget_reference_device: "M66"`(diode-connected M66이 self-determining), `M38`(cmfb_tail)에 `budget_reference_device: "M36a"` 추가. 세션27의 M11a/M11b/M12 정정과 동일 패턴(`_vertical_stack_id_comment`로 근거 기록). |
+| **실측 검증** | feasible theta(K_replica=하한/r_classab_battery=상한) 51소자 전체 실행 — `vy_tail`컬럼(M5=0.30+M63=0.20+M64=0.20+M61=1.10)=1.80V, `vbias4`컬럼(M60=1.50+M66=0.30)=1.80V, `cmfb`컬럼(M36a=0.30+M37a=0.60+M38=0.90)=1.80V, 전부 정확히 vdd. 크래시 완전 해소, **이 회로가 `sizing_roles` 우회 없이 51소자 전체를 끝까지 완주한 첫 실측**(gain_db=77.21≥75.6/mismatch_sigma_mV=3.01≤5.0/cmrr=92.7≥60/psrr=97.3≥60 전부 통과) — 유일한 잔여 실패는 세션27이 이미 분리해둔 별개 항목 `classab_centering_dev_v`(0.336>0.15, `L_stage2out` 재조정 웜스타트 필요, 이번 범위 밖). |
+| **검증** | `sizing_recipe.py` self-test 전체 재실행, exit 0·회귀 0건(`two_stage_ota` 등 다른 회로 영향 없음 — 수정이 "참조되는 singleton non-cascode" 조건에만 좁게 걸림). |
+| **정직한 한계 / 이월** | `M7`(`vx_tail_b`, M6과 물리적으로 동일 노드를 구동하는 병렬 tail이라 VDS가 이론상 같아야 하는데 `budget_reference_device`는 "나머지" 관계만 표현 가능해 "동일" 관계는 못 담음), `M18_bg`(diode-connected 기준 생성기, 여전히 ~vdd), `M36b`(M36a의 대칭 매칭 파트너인데 `budget_reference_device`가 그룹당 1개만 지원해 미참조) — 셋 다 크래시는 없지만 값 자체는 여전히 틀림, 다음 세션 이월. |
+
+---
+
 ### 7.9 배치 7 검토용 열린 질문 (구현 전 확인 필요)
 
 1. ~~`run_topology_pipeline()`의 새 `cell_groups` 인자와 기존 `floorplan_hints.spine_groups`가

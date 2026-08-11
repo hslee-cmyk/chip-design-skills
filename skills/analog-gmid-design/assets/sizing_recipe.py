@@ -2662,6 +2662,13 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             if ref:
                 group_ref_device[vsid] = ref
 
+        # 2026-08-11(세션28 다음 최우선①) -- 다른 그룹의 budget_reference_device가 가리키는
+        # 소자 집합. 이 소자가 속한 자기 그룹의 헤드룸을 배정할 때 아래에서 참고한다(M5가
+        # vbias3_stack의 참조 대상인 것처럼) -- 이런 소자는 "이 그룹이 vdd 전체를 혼자
+        # 책임지는 독립 컬럼"이 아니라 이미 다른 신호 경로(예: 진짜 차동쌍 tail)에 걸려있고
+        # 그 위에 다른 replica 체인이 참조로 얹혀사는 쪽이다.
+        referenced_devices = set(group_ref_device.values())
+
         # 폴디드 캐스코드처럼 한 vertical_stack_id 그룹이 vdd~gnd 전체가 아니라 vdd~(다른
         # 그룹이 이미 확정한 소자의 드레인 전압)만큼만 예산으로 갖는 경우를 위한 선택적 필드
         # (배치 7-5b, 2026-07-31, NMCNR 회로 계기 -- 사용자와 함께 설계). `budget_reference_
@@ -2750,7 +2757,24 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                                "min_vds": spec.get("min_vds_by_role", {}).get(
                                    device_roles[m]["headroom_role"], 0.2)}
                               for m in unresolved]
-            headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
+            # 2026-08-11(세션28 다음 최우선①) -- allocate_stack_headroom()은 "주어진 그룹이
+            # vdd(정확히는 remaining_vdd) 전체를 혼자 책임진다"는 계약을 강제한다(합이 정확히
+            # 일치함을 assert, §3 실측 이력의 3.2V 사고 재발 방지용 -- 이 계약 자체는 건드리지
+            # 않는다). 그런데 non-cascode 소자 1개뿐인 그룹이 다른 그룹의 budget_reference_
+            # device로 참조되고 있으면(예: M5), 이 그룹은 그 계약의 전제("내가 이 컬럼을 혼자
+            # 책임진다")가 애초에 성립하지 않는다 -- M5는 진짜 차동쌍 tail이고 vbias3_stack이
+            # 그 위에 참조로 얹혀사는 replica 체인일 뿐이다. 이 경우 remaining_vdd(=vdd 거의
+            # 전체)를 그대로 allocate_stack_headroom()에 넘기면 "혼자니까 균등분배가 100%"가
+            # 돼 물리적으로 불가능한 값(~vdd)이 나오고, 그 결과 이 소자를 참조하는 그룹의
+            # base_budget(=vdd-ref_vds)이 거의 0이 돼 음수 VDS 크래시로 이어진다(실측:
+            # M61_M64_M63, vds=-0.4). 그래서 이 특정 상황에서만 allocate_stack_headroom()을
+            # 아예 호출하지 않고 역할별 최소 헤드룸(min_vds)을 직접 배정한다 -- "나머지"는
+            # 버려지는 게 아니라 참조하는 그룹의 base_budget으로 그대로 넘어간다.
+            if (len(stack_entries) == 1 and stack_entries[0]["role"] != "cascode"
+                    and unresolved[0] in referenced_devices):
+                headroom = {unresolved[0]: stack_entries[0]["min_vds"]}
+            else:
+                headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
             for m in unresolved:
                 vds_val = headroom[m]
                 vgrp = _vfind(m)

@@ -1,27 +1,26 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-11, 세션28 완료 — 전반부는 세션27이 남긴 최우선
-항목①(헤드룸용 `vertical_stack_id` 병합이 레이아웃 오일러 검증에 미친 영향)을 Test 47
-교체+self-test 재실행+`resolve_stack_layout()` 직접 실행으로 검증하고 "재설계
-불필요"로 결론냈으나, 후반부에 사용자 질문("resolve_stack_layout에서 왜 pmos/nmos가
+# 세션 컨텍스트 (최종 갱신: 2026-08-11, 세션28 완료 — 3단계로 진행. **1단계**: 세션27이
+남긴 최우선 항목①(헤드룸용 `vertical_stack_id` 병합이 레이아웃 오일러 검증에 미친 영향)을
+Test 47 교체+self-test 재실행+`resolve_stack_layout()` 직접 실행으로 검증하고 "재설계
+불필요"로 결론냈으나, **2단계**에서 사용자 질문("resolve_stack_layout에서 왜 pmos/nmos가
 같은 stack에 있는데 오일러 패쓰에 문제가 없지?")으로 그 결론이 **정정**됐다 --
 `check_euler_condition()`/`build_graph()`가 kind를 전혀 안 보는 순수 net-connectivity
-그래프 알고리즘이라 PMOS/NMOS가 섞여도 "유효한 경로"로 잘못 통과시키고 있었다(실측:
-`vbias2_stack`의 "검증된" trail이 M57(pmos)→M68(nmos) diffusion-인접을 요구 --
-물리적으로 불가능). declared vsid 26개 중 8개(`output_stage_a/b` class-AB 출력단
-포함)가 실제로 kind-mixed. 사용자 지시로 (a)/(b) 투트랙 완료:
-**(a)** `build_graph()`에 kind 동질성 하드 게이트 신설 + `_verified_euler_fix()`/
-`audit_vertical_stack_id_euler_feasibility()`가 크래시 대신 `kind_mismatch`
-finding으로 구조화 보고. **(b)** 사용자가 직접 설계 확정한 2축 분리(`vertical_
-stack_id`=전기적/수직, 물리 레이아웃 행=kind 동질+오일러/수평·대칭)를
-`derive_horizontal_stack_groups()`(신설, `merge_layout_groups_by_matching_pairs()`
-재사용)로 구현, `resolve_stack_layout()`에 배선. 실측 검증: `output_stage_a__pmos`
-(M15,M25)/`output_stage_a__nmos`(M16,M26) 정확히 재병합, 51/51 커버·전 그룹 kind
-동질, `audit_row_split()`의 3b 필수 게이트 PASS 확인(비교군: (a)만으로는 이 단계에서
-크래시). `stick_diagram.py`(Test 51 신설)/`sizing_recipe.py`(L5b invariant 추가)
-self-test 둘 다 exit 0·회귀 0건. `horizontal_stack_id`는 이번엔 candidates 전용
-(topology.json 미영구화, 다른 회로 교차검증 후 다음 세션에 승격 논의) --
-`vertical_stack_id` 자신의 candidates→declared 승격 경로를 그대로 재사용.
-상세 전체는 파일 맨 끝 "# 세션28 결론" 및 이어지는 "## N"~"## Q" 참고, 배치 요약은
-`docs/04-report/analog-topology-json-library.do.md` 배치 7-6f.)
+그래프 알고리즘이라 PMOS/NMOS가 섞여도 "유효한 경로"로 잘못 통과시키고 있었다(declared
+vsid 26개 중 8개가 kind-mixed, `output_stage_a/b` class-AB 출력단 포함). 사용자 지시로
+(a)`build_graph()` kind 동질성 하드 게이트 + (b)`derive_horizontal_stack_groups()`
+신설(vertical_stack_id=전기적/수직 vs 물리 레이아웃 행=kind 동질+오일러/수평·대칭 2축
+분리, `merge_layout_groups_by_matching_pairs()` 재사용)로 완료 — 실측: `output_stage_
+a__pmos`/`__nmos` 정확히 재병합, `audit_row_split()` 3b PASS. 커밋 `1747f0f`.
+**3단계**: 다음 최우선이었던 `allocate_stack_headroom()`의 "혼자 있는 non-cascode
+소자" 기본정책(M5/M61 크래시)까지 사용자 지시("(A)+(B) 모두")로 완료 — (A) 헤드룸
+루프가 `budget_reference_device`로 참조되는 singleton 그룹에 전체 예산을 강제소비
+시키지 않고 역할별 min_vds를 직접 배정, (B) topology.json에 M60↔M66/M38↔M36a
+`budget_reference_device` 선언 보완(session27의 M11a/M11b/M12 정정과 같은 패턴).
+실측: 헤드룸 3개 컬럼(vy_tail/vbias4/cmfb) 전부 vdd와 정확히 일치, **이 회로가
+sizing_roles 우회 없이 51소자 전체 사이징을 끝까지 완주한 첫 실측**(gain/mismatch/
+cmrr/psrr 전부 통과, 남은 유일한 제약 위반은 세션27이 이미 분리해둔 classab_
+centering_dev_v, 이번 범위 밖). 남은 gap(M7/M18_bg/M36b, 문서화됨)은 다음 세션 이월.
+상세 전체는 파일 맨 끝 "# 세션28 결론"과 이어지는 "## N"~"## S" 참고, 배치 요약은
+`docs/04-report/analog-topology-json-library.do.md` 배치 7-6f/7-6g.)
 
 ## 작업 디렉토리
 `C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills`
@@ -74,26 +73,65 @@ layout()`(`sizing_recipe.py`)의 tier 2/3 두 호출부만 교체(2줄). 실측 
    실제로 필수가 되는 `offset`/`branch_symmetric` 매칭쌍이 kind-mixed로 걸리는
    사례가 나오면 그때 재검토.
 
-### ① 다음 최우선 — `allocate_stack_headroom()`의 "혼자 있는 non-cascode 소자" 기본정책 재검토
+### ✅ (완료, 세션28 3차) — `allocate_stack_headroom()`의 "혼자 있는 non-cascode 소자" 기본정책 재검토
 
-세션27이 M61/M64/M63 그룹에 `budget_reference_device: M5`를 달다가 발견(아직
-미수정, "세션27 결론 ## D-6" 참고, 세션28이 feasible theta 전체 실행으로 재확인):
-`M5`(1단 NMOS tail, `vertical_stack_id="vy_tail"` 그룹에 **혼자**)가
-`allocate_stack_headroom()`에서 **VDD 전체(1.8V)를 혼자 VDS로 가져간다** — role이
-"tail"(cascode 아님)이라 "남는 예산 균등분배" 로직을 타는데 그룹에 혼자면
-"균등분배"가 "전부 다 가짐"이 된다. 그 결과 `vdd - vds(M5) ≈ 0`이 돼버려
-`M61_M64_M63` 그룹(정확히는 `resolve_stack_layout()` 병합 후 `biasgen_ref` 그룹
-`{M18_bg,M60,M61,M63,M64}`)이 음수 VDS를 받는 실제 크래시(`search_gm_id_for_role()`
-의 `ValueError`, `entry={'ID':1.36e-6,'L':3.75e-7,'vds':-0.4,'vs':1.8}`, 세션28
-재현 재료 그대로)로 발현됐다. `vx_tail_a`(M6)/`vx_tail_b`(M7)/`vbias4_stack`
-(M66) 등 다른 singleton 그룹(세션28의 `resolve_stack_layout()` 결과, 아래 "세션28
-결론" 전체 목록 참고)도 같은 문제를 안고 있을 가능성이 높다(아직 전수조사 안 함).
-**재현 방법**: "세션28 결론 ## H" 스크립트 그대로(K_replica=0.05/r_classab_
-battery=0.3 고정, 나머지 bounds-midpoint, `grid_points_per_theta=1`로 즉시 재현
-— smoke test의 bounds-midpoint로는 이 경로 자체가 M9b infeasible에 막혀 안
-드러남).
+세션27이 M61/M64/M63 그룹에 `budget_reference_device: M5`를 달다가 발견했던 크래시
+(`M5`가 `allocate_stack_headroom()`에서 VDD 전체를 혼자 가져가 `M61` 그룹이 음수
+VDS를 받음)를 사용자 지시("(A)+(B) 모두")로 완전히 해소했다.
 
-### ② 그 다음 — 3개 일반 함수 구현 (세션27 전반부 설계, 착수 전)
+**진단(허니스트, "singleton이면 무조건 캡을 씌운다"가 아니라 케이스별 근본원인 확인)**:
+- `allocate_stack_headroom()` 자체는 버그가 아니다 — "배정 합이 vdd와 정확히
+  일치"가 이 함수의 의도된, 이미 테스트로 보증된 계약(`sizing_recipe.py` 자체
+  self-test가 검증). 문제는 **호출부**(`optimize_full_circuit_budget()`의 헤드룸
+  루프)가 M5 같은 소자를 "이 그룹이 vdd 전체를 혼자 책임진다"고 잘못 전제하고
+  넘기는 것.
+- M5는 단순 "병합 누락"이 아니었다 — M5의 drain(`Vy`)은 M63(bias-replica 체인)뿐
+  아니라 **M4a/M4b(진짜 차동쌍 tail 노드)도 공유**한다. M5는 신호 경로의 진짜
+  tail이고 `vbias3_stack`(M61/M64/M63)은 거기 얹혀사는 replica 체인 -- 세션27의
+  `budget_reference_device` 설계 방향이 맞았다. M6/`vbias2_stack`도 같은 패턴.
+- 반면 M60↔M66(Vbias4, Test 47이 이미 확인한 진짜 2단자 직렬), M36a/M36b(cmfb_load)
+  ↔`cmfb_tail`(M37a/M37b/M38, Vcmfb 공유 drain)은 **아무도 참조하지 않아** 각자
+  독립적으로 "혼자니까 vdd 전부"를 받아 KVL을 위반(둘이 각각 ~vdd씩, 합이 ~2×vdd)
+  하거나 이중계산하고 있었다 -- 아직 크래시는 없었지만 명백히 틀린 값.
+
+**(A) 알고리즘 수정** (`sizing_recipe.py`, `_evaluate()` 헤드룸 루프): 다른 그룹의
+`budget_reference_device`로 참조되는 소자 집합(`referenced_devices`)을 미리 계산.
+그룹이 non-cascode 소자 1개뿐이고 그 소자가 `referenced_devices`에 있으면,
+`allocate_stack_headroom()`(전체 예산 강제소비 계약)을 아예 호출하지 않고 역할별
+`min_vds`를 직접 배정 -- "나머지"는 버려지는 게 아니라 참조하는 그룹의
+`base_budget`으로 그대로 넘어가므로 정합성이 유지된다.
+
+**(B) 선언 보완**(session27의 M11a/M11b/M12 정정과 같은 패턴, topology.json):
+`M60`에 `budget_reference_device: "M66"`(M66이 diode-connected라 self-determining,
+M60이 나머지를 받는 쪽), `M38`(cmfb_tail 그룹)에 `budget_reference_device: "M36a"`
+추가.
+
+**실측 검증**(K_replica=하한/r_classab_battery=상한 feasible theta, 51소자 전체
+실행): 크래시 완전 해소, 헤드룸 배정이 전부 KVL 정합 -- `vy_tail`컬럼(M5=0.3+M63=
+0.2+M64=0.2+M61=1.1)=1.8V, `vbias4`컬럼(M60=1.5+M66=0.3)=1.8V, `cmfb`컬럼(M36a=0.3+
+M37a=0.6+M38=0.9)=1.8V, 전부 정확히 vdd. 사이징이 51소자 전체를 끝까지 통과해
+metrics 계산까지 도달(gain_db=77.21≥75.6 통과/mismatch_sigma_mV=3.01≤5.0 통과/
+cmrr=92.7≥60 통과/psrr=97.3≥60 통과) -- **이 회로가 sizing_roles 우회 없이 끝까지
+완주한 첫 실측**(세션27 D-9가 "한 번도 완주한 적 없다"고 기록했던 바로 그 상태 해소).
+유일한 잔여 제약 위반은 `classab_centering_dev_v`(0.336>0.15) -- 이건 세션27이 이미
+별도 항목으로 분리해둔 것(`L_stage2out` 재조정 웜스타트 필요, 아래 이월 ①에 포함,
+이번 헤드룸 수정과 무관).
+
+**검증**: `sizing_recipe.py` self-test 전체 재실행 exit 0, 회귀 0건(two_stage_ota
+포함 다른 회로 영향 없음).
+
+**의도적으로 남긴 gap(문서화됨, 다음 세션 이월)**:
+1. `M7`(`vx_tail_b`) -- M6과 물리적으로 동일 노드(Vx)를 구동하는 병렬 tail이라
+   VDS가 이론상 같아야 하는데, `budget_reference_device`는 "나머지"(vdd-ref) 관계만
+   표현 가능해 "같음"(parallel) 관계는 이 메커니즘으로 못 담는다 -- 여전히 ~vdd를
+   독립적으로 받는다. 별도 해법 필요(예: M7의 vds를 M6과 직접 동일시하는 새 메커니즘).
+2. `M18_bg`(`biasgen_ref`) -- diode-connected 기준 생성기, 아무도 참조 안 해서
+   여전히 ~vdd를 받는다(실제로는 작은 diode Vgs여야 함). 크래시는 없지만 값 자체가
+   틀림.
+3. `M36b`(`cmfb_load_b`) -- M36a의 대칭 매칭 파트너인데 `budget_reference_device`가
+   그룹당 1개만 지원해 M36a만 참조가 걸렸다. M36b는 여전히 ~vdd.
+
+### ① 다음 최우선 — 3개 일반 함수 구현 (세션27 전반부 설계, 착수 전)
 
 `derive_theta_dependency_graph()`(dead/독립/격리 1:1 theta-metric 쌍 판정) /
 `extract_linear_feasibility_constraints()`(고정비율 A_signed 항에서 선형 부등식 자동
@@ -103,20 +141,20 @@ K_replica·ID(M15)/(ID(M1a)+ID(M1b))`)과 L_cascode/L_stage2out 1D LUT 이분탐
 웜스타트는 이미 손으로 유도·실측 검증 완료(세션27 중반, "세션27 결론 ## B" 참고) —
 이 함수들은 그 손유도를 일반화하는 것.
 
-### ③ 그 다음 — scipy 설치 + SLSQP + multi-start 구현
+### ② 그 다음 — scipy 설치 + SLSQP + multi-start 구현
 
 세션27 초반에 좌표하강 대신 이 방향으로 확정(이유: "세션27 결론 ## A" 참고 — 13개
 theta가 cmrr/psrr(전체회로 MNA)을 매개로 강결합돼 있어 축 방향 탐색이 구조적으로
 불리함을 실측 근거로 확인). scipy는 이 프로젝트 Python 환경(`C:\Python314`)에
 아직 미설치 확인됨.
 
-### ④ 그 다음 — 다른 회로 교차검증(+ `horizontal_stack_id` declared 승격도 같이 논의)
+### ③ 그 다음 — 다른 회로 교차검증(+ `horizontal_stack_id` declared 승격도 같이 논의)
 `folded_cascode` 등으로 `resolve_stack_layout()`/헤드룸/SLSQP 일반화 확인 — 세션22
-부터 계속 이월되던 항목, ①~③ 전부 끝난 뒤 진행. 이때 `derive_horizontal_stack_
+부터 계속 이월되던 항목, ①② 전부 끝난 뒤 진행. 이때 `derive_horizontal_stack_
 groups()`(세션28 신설)도 같은 회로로 교차검증하고, 통과하면 `horizontal_stack_id`를
 topology.json declared 필드로 승격할지 논의.
 
-### ⑤ 계속 이월
+### ④ 계속 이월
 `run_harness.py`의 나머지 실전략(실제 회로 스펙 선정/제약 튜닝 등 운영 이슈) —
 세션22부터 계속 이월.
 
@@ -5513,15 +5551,119 @@ M15-M25/M16-M26 declared matching_pairs로 직접 실행, `matching_sensitivity=
 `docs/04-report/analog-topology-json-library.do.md` 배치 7-6f에 (a)+(b) 전체를
 기록(배경/구현/실측 검증/self-test/의도적 범위 축소 4~5칸 표, 기존 배치와 동일 형식).
 
-## R. 커밋 상태 (세션28 최종, 2026-08-11)
-변경 파일: `.ai/context.md`(이 갱신), `docs/04-report/analog-topology-json-library.
-do.md`(배치 7-6f 추가), `skills/analog-gmid-design/assets/stick_diagram.py`(Test 47
-fixture 교체 + `build_graph()` kind 하드 게이트 + `_verified_euler_fix()`/`audit_
-vertical_stack_id_euler_feasibility()` kind_mismatch 처리 + Test 49 재작성 +
-`derive_horizontal_stack_groups()` 신설 + Test 51 신설), `skills/analog-gmid-design/
-assets/sizing_recipe.py`(`derive_horizontal_stack_groups` import 추가 + `resolve_
-stack_layout()` 2개 호출부 교체 + docstring 갱신 + L5b kind 동질 invariant 추가).
-self-test: `stick_diagram.py`/`sizing_recipe.py` 둘 다 PASS(exit 0, 회귀 0건).
-아직 커밋 안 됨 -- 다음 세션 시작 시 `git status`/`git log`로 먼저 확인할 것.
-(a)/(b) 둘 다 완료 -- 다음 세션 최우선은 파일 맨 위 "① `allocate_stack_headroom()`
-singleton 정책"으로 이월.
+## R. 커밋 상태 스냅샷 ((a)/(b) 완료 시점, 커밋 `1747f0f`로 반영됨 -- 아래 "## S"가 이어서 헤드룸 수정 기록)
+(당시 기록 그대로 보존: 변경 파일 `.ai/context.md`+`do.md`(배치 7-6f)+`stick_diagram.py`
+(kind 게이트+`derive_horizontal_stack_groups()`+Test 51)+`sizing_recipe.py`(배선
+교체). 이후 커밋 `1747f0f`("fix(analog-gmid-design): build_graph() kind 동질성
+게이트 + derive_horizontal_stack_groups() 신설")로 실제 반영됨. 다음 세션 최우선이
+"① `allocate_stack_headroom()` singleton 정책"이라고 적혀 있었는데, 사용자가 같은
+세션 안에서 계속 진행하자고 지시해 아래 "## S"에서 그 항목까지 마저 완료했다.)
+
+## S. `allocate_stack_headroom()` singleton 정책 완료 — M5/M61 크래시 해소 + M60/M66·M36a/cmfb_tail KVL 정합
+
+### S-1. 진단 -- "singleton이면 무조건 캡" 대신 케이스별 근본원인 확인
+
+`allocate_stack_headroom()`(`sizing_recipe.py:1002`) 자체는 버그가 아니다 --
+"배정 합이 vdd와 정확히 일치"가 이 함수의 의도된 계약이고, 이미 자체 self-test
+(`_hr_stack`, `sizing_recipe.py` self-test 내)가 이걸 검증하고 있다(과거 "3.2V로
+잘못 짰던 실제 사고"의 재발 방지용이라는 docstring 근거까지 명시돼 있음). 문제는
+**호출부**(`optimize_full_circuit_budget()` 내부 `_evaluate()`의 헤드룸 루프)가
+M5 같은 singleton 그룹에 "이 그룹이 vdd 전체를 혼자 책임진다"고 잘못된 전제로
+`remaining_vdd`(≈vdd)를 통째로 넘기는 것이었다.
+
+**소자별 실제 connectivity를 직접 조회해 케이스를 구분**:
+- **M5**(`vy_tail`): drain(`Vy`)이 M63(`vbias3_stack`, bias-replica 체인)뿐 아니라
+  **M4a/M4b(진짜 차동쌍 tail 노드)도 공유**함을 확인 -- M5는 신호 경로의 진짜 tail,
+  `vbias3_stack`(M61/M64/M63)은 거기 참조로 얹혀사는 replica 체인. 세션27이 이미
+  `budget_reference_device: M5`를 `vbias3_stack`(정확히는 M61)에 선언한 설계
+  방향은 **맞다** -- 문제는 M5 자신의 그룹이 잘못된 값을 받는 것.
+- **M6**(`vx_tail_a`): 같은 패턴, 이미 `vbias2_stack`(M58/M57/M68, 대표 M68)이
+  `budget_reference_device: M6`으로 참조 중.
+- **M60↔M66**(`vbias4_gen`/`vbias4_stack`): Test 47이 이미 확인한 진짜 2단자 직렬
+  (`Vbias4`, `internal_series`)인데 아무도 서로 참조하지 않아 각자 독립적으로
+  "혼자니까 vdd 전부"를 받고 있었다 -- 합이 vdd가 아니라 ~2×vdd(KVL 위반). M66은
+  diode-connected(source=gnd, drain=gate=`Vbias4`)라 self-determining, M60은
+  외부 게이트(`Vbias1`) 구동이라 "나머지"를 받는 쪽.
+- **M36a/M36b↔cmfb_tail**: M36a의 drain(`Vcmfb`)이 M37a의 drain과 만나 진짜 물리적
+  VDD→GND 한 컬럼(M36a-M37a-M38, M36b-M37b는 병렬 branch로 같은 M38 tail 공유)을
+  이루는데 아무도 참조하지 않아 이중계산 중이었다.
+- **M18_bg**(`biasgen_ref`): diode-connected 기준 생성기, vdd/gate 양쪽 fanout을
+  확인한 결과 진짜 독립 branch가 맞지만(ideal current sink로 추정, transistor
+  connectivity만으로는 안 보임), 그래도 "vdd 전체"가 아니라 작은 diode Vgs여야
+  한다 -- 아무도 참조 안 해서 크래시는 없지만 값 자체가 틀림.
+
+### S-2. (A) 알고리즘 수정 -- `sizing_recipe.py`, `_evaluate()` 헤드룸 루프
+
+`group_ref_device` 딕셔너리를 다 채운 직후 `referenced_devices = set(group_ref_
+device.values())`를 계산(2026-08-11 신설). 그룹의 `stack_entries`가 1개뿐이고
+그 role이 `"cascode"`가 아니며 그 소자가 `referenced_devices`에 있으면:
+```python
+if (len(stack_entries) == 1 and stack_entries[0]["role"] != "cascode"
+        and unresolved[0] in referenced_devices):
+    headroom = {unresolved[0]: stack_entries[0]["min_vds"]}
+else:
+    headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
+```
+`allocate_stack_headroom()`의 "전체 예산 강제소비" 계약을 이 특정 상황에서만
+아예 우회한다 -- "나머지"는 버려지는 게 아니라 이 소자를 참조하는 그룹의
+`base_budget = vdd - ref_vds`로 그대로 넘어가므로 전체 정합성은 유지된다.
+`allocate_stack_headroom()` 자체(및 그 self-test)는 전혀 안 건드림 -- 여러
+non-cascode 소자가 진짜로 "남는 예산"을 나눠 가져야 하는 기존 검증된 케이스
+(예: 2-device tail+cascode 완결 컬럼)는 이 조건(참조당함)에 안 걸려 그대로 동작.
+
+### S-3. (B) 선언 보완 -- topology.json, session27의 M11a/M11b/M12 정정과 같은 패턴
+
+`current_reuse_telescopic_ota.topology.json`:
+- `M60`에 `"budget_reference_device": "M66"` + `_vertical_stack_id_comment` 추가.
+- `M38`에 `"budget_reference_device": "M36a"` + `_vertical_stack_id_comment` 추가
+  (M37a는 compensation의 `N_cmfb_bw` feed로 vds가 별도 확정되므로 `known_vds_sum`에
+  자동 반영됨 -- M38만 이 참조가 실제로 필요).
+
+### S-4. 실측 검증 (feasible theta, K_replica=하한/r_classab_battery=상한, 51소자 전체)
+
+`classab_centering_dev_v` 제약(세션27이 이미 별도 이월해둔 항목, 이번 범위 밖)만
+임시로 뺀 사본으로 `optimize_full_circuit_budget()`을 끝까지 실행해 `ctx.sized`의
+실제 vds 값을 직접 확인:
+```
+vy_tail 컬럼: M5=0.30 + M63=0.20 + M64=0.20 + M61=1.10 = 1.80V (=vdd)
+vbias4 컬럼:  M60=1.50 + M66=0.30                       = 1.80V (=vdd)
+cmfb 컬럼:    M36a=0.30 + M37a=0.60 + M38=0.90           = 1.80V (=vdd)
+```
+전부 vdd와 정확히 일치(부동소수점 오차 수준 이내). M18_bg=1.8(미수정, 예상대로),
+M7=1.8(미수정, 예상대로) -- 의도적으로 남긴 gap과 정확히 일치하는 결과.
+
+**제약 원상복구 후 재실행 결과** -- 크래시 없이 metrics까지 도달:
+```
+gain_db=77.21 (>=75.6 통과), mismatch_sigma_mV=3.01 (<=5.0 통과),
+cmrr_estimate_db=92.7 (>=60 통과), psrr_estimate_db=97.3 (>=60 통과),
+classab_centering_dev_v=0.336 (<=0.15 위반 -- 세션27이 이미 분리해둔 별개 항목)
+```
+**이 회로가 `sizing_roles` 우회 없이 51소자 전체를 끝까지 완주한 첫 실측**(세션27
+D-9가 "한 번도 완주한 적 없다"고 기록했던 상태를 실제로 해소) -- 남은 유일한
+실패는 이번 헤드룸 수정과 무관한, 이미 알려진 별개 항목뿐.
+
+### S-5. self-test
+
+`sizing_recipe.py` 전체 self-test 재실행 -- exit 0, 회귀 0건(`two_stage_ota` 등
+다른 회로 영향 없음, `_evaluate()` 헤드룸 루프 변경이 "참조되는 singleton
+non-cascode" 조건에만 좁게 걸리므로 기존 통과 케이스는 그대로 유지).
+
+### S-6. 의도적으로 남긴 gap (문서화, 다음 세션 이월)
+
+1. **M7**(`vx_tail_b`) -- M6과 물리적으로 동일 노드(`Vx`)를 구동하는 병렬 tail이라
+   VDS가 이론상 같아야 하는데, `budget_reference_device`는 "나머지"(vdd-ref) 관계만
+   표현 가능해 "동일"(parallel) 관계는 못 담는다 -- 여전히 ~vdd를 독립적으로 받음.
+2. **M18_bg**(`biasgen_ref`) -- 여전히 ~vdd(실제로는 작은 diode Vgs여야 함), 아무도
+   참조 안 해서 크래시는 없음.
+3. **M36b**(`cmfb_load_b`) -- M36a의 대칭 매칭 파트너인데 `budget_reference_device`가
+   그룹당 1개만 지원해 M36a만 참조가 걸림. 여전히 ~vdd.
+
+## T. 커밋 상태 (세션28 3단계 최종, 2026-08-11)
+변경 파일(이번 3단계분): `.ai/context.md`(이 갱신), `docs/04-report/analog-topology-
+json-library.do.md`(배치 7-6g 추가 예정), `skills/analog-gmid-design/assets/sizing_
+recipe.py`(`_evaluate()` 헤드룸 루프에 `referenced_devices` 계산 + singleton 우회
+로직 추가), `skills/analog-gmid-design/assets/library/current_reuse_telescopic_
+ota.topology.json`(M60/M38에 `budget_reference_device` 선언 추가). self-test:
+`sizing_recipe.py` PASS(exit 0, 회귀 0건). 아직 커밋 안 됨 -- 다음 세션 시작 시
+`git status`/`git log`로 먼저 확인할 것. 다음 세션 최우선은 파일 맨 위 "① 3개 일반
+함수 구현"으로 이월(M7/M18_bg/M36b gap은 우선순위 낮은 이월 항목으로 별도 추적).
