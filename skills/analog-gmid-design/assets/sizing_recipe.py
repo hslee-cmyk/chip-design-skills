@@ -2242,7 +2242,18 @@ class InfeasibleSizingError(ValueError):
     미확정, 등록 안 된 feed 타입 등 -- 진짜 선언 누락)는 여전히 즉시 크래시해서 알린다
     (§ do.md 7.3.2 "AI가 그 자리를 코드로 메우지 않고 신호를 그대로 돌려받는다" 원칙과
     구분: 이건 "선언이 없다"가 아니라 "선언은 있는데 이 특정 theta 값 조합에서 물리적으로
-    불가능하다"는 다른 종류의 신호라 별도 처리가 맞다)."""
+    불가능하다"는 다른 종류의 신호라 별도 처리가 맞다).
+
+    2026-08-11(세션29) -- `sized_snapshot`(선택) 추가: 예외가 나는 시점의 `ctx.sized`
+    스냅샷을 담아둔다. `extract_linear_feasibility_constraints()`가 A_signed 부호제약을
+    유도할 때, 바로 이 예외를 촉발한 조합에서 항(term) 소자들의 실제 ID를 읽어야 하는데
+    `ctx`는 `_evaluate()`의 지역변수라 예외가 밖으로 전파되면 정상적으로는 접근할 수 없다
+    -- 메시지 문자열을 파싱하는 대신 이 속성으로 깨끗하게 노출한다. 기존 호출부(메시지만
+    쓰는 `except InfeasibleSizingError`)는 이 속성을 몰라도 그대로 동작한다(하위호환)."""
+
+    def __init__(self, message: str, sized_snapshot: dict | None = None):
+        super().__init__(message)
+        self.sized_snapshot = sized_snapshot
 
 
 def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: dict,
@@ -2357,57 +2368,19 @@ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: 
     return geometry_colocation_union(transistors, matching_pairs)
 
 
-def optimize_full_circuit_budget(topology_path: str, spec: dict,
-                                  grid_points_per_theta: int = 5) -> dict:
-    """배치 7-3d/7-5 — spec(topology.json 경로 + design spec)만 받아 instance.json에 바로
-    옮길 수 있는 완성된 결과를 반환하는 **단일 진입점 harness**(2026-07-31 확장,
-    do.md §10 "spec→instance.json 전체 workflow"를 실제로 실행 가능한 함수 하나로 묶음).
+def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
+    """`optimize_full_circuit_budget()`의 세타-무관 setup + `_evaluate(theta_values)` 평가
+    클로저를 그대로 추출한 헬퍼(2026-08-11 세션29, 순수 리팩터 -- 동작 변화 없음. warm-start
+    (`derive_theta_dependency_graph()`/`presolve_warm_start()`)가 grid search 전체를 돌리지
+    않고 임의의 theta_values 한 점만 평가해야 해서 신설). `optimize_full_circuit_budget()`은
+    이 함수를 호출해 아래 반환값을 그대로 재사용한다 -- 내부 로직은 옮기기 전과 완전히 동일.
 
-    **AI는 이 함수 하나만 호출한다** — `propagate_topology_forced_currents()`/
-    `solve_id_for_target_gm()`/`select_layout_tool()` 등 원소 함수는 이 함수 내부에서만
-    호출되고, 실패 원인 분석 시에만 개별적으로 들여다보는 대상이다(2026-07-31 사용자 확정:
-    "이걸 순차적으로 실행시키는 harness함수 하나로 만들고 ai는 그걸 하나만 실행할 수 있도록").
-    이 함수가 필요한 선언(theta/metrics/device_roles/compensation.stage_devices)을 만나지
-    못하면 즉시 구체적인 `ValueError`를 낸다 — AI가 그 자리를 코드/공식으로 메우는 대신
-    "topology.json의 어느 필드가 비어있다"는 신호를 그대로 돌려받는다(2026-07-31 사고 재발
-    방지: Eq.6을 근거 없이 재구성해 등록했다가 되돌린 사건 참고).
-
-    **내부 실행 순서**(do.md §10과 대응):
-    1. `load_topology()` — connectivity + `sizing_roles`/`device_roles`/`compensation` 선언.
-    2. `derive_stack_groups()` — θ-무관, 1회만(플로어플랜용 가로 그룹).
-    3. θ 후보마다(또는 θ 없으면 1회): `apply_theta_feed()` → A엔진(`propagate_topology_
-       forced_currents()`, `matching_pairs`의 `current_mirror` 쌍은 비율 미선언 시 1:1
-       기본값으로 자동 시드) → compensation 있으면 `optimize_multistage()` 실행 후
-       `compensation.stage_devices`로 소자별 병합 → `device_roles`의 `L_role`/
-       `vertical_stack_id`(헤드룸, `allocate_stack_headroom()`)/`gm_id_role`
-       (`search_gm_id_for_role()`) 순서로 나머지 소자 사이징 → `compute_metric()`.
-    4. `objective`/`constraints`로 θ* 선택(grid search, 재현성/최적성 보장).
-    5. 넷리스트 전체가 사이징됐으면(`assign_finger_geometry()`가 요구하는 W가 전부 있으면)
-       `assign_finger_geometry()` → `run_topology_pipeline_with_finger_fixup()`(euler
-       자동수정, 세션15) → FAIL이면(`lut_by_kind` 있을 때) `run_matching_safety_with_
-       finger_growth()`(matching quality 3b/3c 자동수정 — 핑거증가 L3+L4 + gm/ID 예산
-       초과 시 인접배치 완화, 세션16/17/**세션18 배선**) 또는(`lut_by_kind` 없는 구형
-       spec) 기존 `repair_matching_safety()`.
-
-    `spec` 주요 키(회로마다 다름, 전부 선택이지만 해당 단계가 필요로 하면 없을 시 에러):
-    `"lut_by_kind"`({"nmos":LUT,"pmos":LUT}), `"vdd"`, `"L_candidates"`/`"VDS_candidates"`/
-    `"gm_id_grid"`(compensation `optimize_multistage()`용), `"L_min"`/`"L_min_by_kind"`,
-    `"W_bounds"`, `"min_vds_by_role"`, `"min_finger_w"`/`"max_finger_w"`, `"floorplan_hints"`,
-    `"cell_groups"`, `"known_sizing"`, 그 외 theta feed가 참조하는 이름 붙은 상수.
-
-    반환: `{"theta_star", "sizing", "metrics", "sizing_overrides", "pipeline_result",
-    "audit_ok"}` — `sizing_overrides`/`pipeline_result`는 넷리스트 전체가 사이징되지 않으면
-    `None`(부분 결과만 반환 — 단순 회로/미완성 선언 지원, §7.3.2 검증 (b)와 동일한 하위호환
-    사상). 모든 θ 격자점이 infeasible이면 `ValueError`. matching-safety 자동수정이 실행됐고
-    `lut_by_kind`가 있으면(세션18), `pipeline_result`에 `repaired_rows`/`repaired_audit` 외에
-    `growth_rounds`/`unresolved_pair`/`unresolved_reason`/`relaxed_pairs`(`run_matching_
-    safety_with_finger_growth()` 진단 필드 그대로)도 담긴다 — `audit_ok`가 최종 신호이고
-    이 필드들은 "왜/어떻게" 해결됐는지 보는 참고 정보다(세션16 E-3절 원칙과 동일).
-
-    ⚠️ 정직한 한계(2026-07-31): diode-stack(C유형) 전류의 `solve_diode_stack_current()`
-    자동 병합은 아직 없다(K_replica 면적비 theta feed는 W를 직접 설정할 뿐, KVL 전류 역산은
-    미연결) — 이런 소자가 있는 회로는 `device_roles`로 해당 소자의 `ID`를 `known_sizing`에
-    직접 시딩해 우회할 것."""
+    반환: `{"transistors","meta","thetas","metrics_specs","objective","constraints",
+    "device_roles","comp","pairs_meta","kind_of","by_name","stack_groups_geometry",
+    "stack_groups_kcl","evaluate"}` -- `"evaluate"`가 바로 그 `_evaluate(theta_values) ->
+    (ctx, metrics_result)` 클로저다(theta_values에 없는 theta는 적용되지 않은 채 평가됨 --
+    호출자가 필요한 theta는 전부 채워 넘길 것, 부분 평가를 원하면 나머지를 bounds-midpoint
+    등으로 채워 넣을 것)."""
     transistors, meta = load_topology(topology_path)
     roles = meta.get("sizing_roles") or {}
     thetas = roles.get("theta") or []
@@ -2932,7 +2905,8 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                 # InfeasibleSizingError로 구분해 grid search가 이 점만 건너뛰게 한다.
                 raise InfeasibleSizingError(
                     f"{name}: ID={entry['ID']:.6g}A <= 0 -- 이 theta 조합에서 물리적으로 "
-                    f"불가능한 전류(A_signed KCL 뺄셈이 음수가 됨)")
+                    f"불가능한 전류(A_signed KCL 뺄셈이 음수가 됨)",
+                    sized_snapshot=dict(ctx.sized))
             L, vds = entry.get("L"), entry.get("vds")
             if L is None or vds is None:
                 raise ValueError(f"{name}: L 또는 VDS가 미확정 -- device_roles의 L_role/"
@@ -2951,6 +2925,74 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
 
         metrics_result = {name: compute_metric(mspec, ctx) for name, mspec in metrics_specs.items()}
         return ctx, metrics_result
+
+    return {
+        "transistors": transistors, "meta": meta, "thetas": thetas,
+        "metrics_specs": metrics_specs, "objective": objective, "constraints": constraints,
+        "device_roles": device_roles, "comp": comp, "pairs_meta": pairs_meta,
+        "kind_of": kind_of, "by_name": by_name, "stack_groups_geometry": stack_groups_geometry,
+        "stack_groups_kcl": stack_groups_kcl, "evaluate": _evaluate,
+    }
+
+
+def optimize_full_circuit_budget(topology_path: str, spec: dict,
+                                  grid_points_per_theta: int = 5) -> dict:
+    """배치 7-3d/7-5 — spec(topology.json 경로 + design spec)만 받아 instance.json에 바로
+    옮길 수 있는 완성된 결과를 반환하는 **단일 진입점 harness**(2026-07-31 확장,
+    do.md §10 "spec→instance.json 전체 workflow"를 실제로 실행 가능한 함수 하나로 묶음).
+
+    **AI는 이 함수 하나만 호출한다** — `propagate_topology_forced_currents()`/
+    `solve_id_for_target_gm()`/`select_layout_tool()` 등 원소 함수는 이 함수 내부에서만
+    호출되고, 실패 원인 분석 시에만 개별적으로 들여다보는 대상이다(2026-07-31 사용자 확정:
+    "이걸 순차적으로 실행시키는 harness함수 하나로 만들고 ai는 그걸 하나만 실행할 수 있도록").
+    이 함수가 필요한 선언(theta/metrics/device_roles/compensation.stage_devices)을 만나지
+    못하면 즉시 구체적인 `ValueError`를 낸다 — AI가 그 자리를 코드/공식으로 메우는 대신
+    "topology.json의 어느 필드가 비어있다"는 신호를 그대로 돌려받는다(2026-07-31 사고 재발
+    방지: Eq.6을 근거 없이 재구성해 등록했다가 되돌린 사건 참고).
+
+    **내부 실행 순서**(do.md §10과 대응):
+    1. `load_topology()` — connectivity + `sizing_roles`/`device_roles`/`compensation` 선언.
+    2. `derive_stack_groups()` — θ-무관, 1회만(플로어플랜용 가로 그룹).
+    3. θ 후보마다(또는 θ 없으면 1회): `apply_theta_feed()` → A엔진(`propagate_topology_
+       forced_currents()`, `matching_pairs`의 `current_mirror` 쌍은 비율 미선언 시 1:1
+       기본값으로 자동 시드) → compensation 있으면 `optimize_multistage()` 실행 후
+       `compensation.stage_devices`로 소자별 병합 → `device_roles`의 `L_role`/
+       `vertical_stack_id`(헤드룸, `allocate_stack_headroom()`)/`gm_id_role`
+       (`search_gm_id_for_role()`) 순서로 나머지 소자 사이징 → `compute_metric()`.
+    4. `objective`/`constraints`로 θ* 선택(grid search, 재현성/최적성 보장).
+    5. 넷리스트 전체가 사이징됐으면(`assign_finger_geometry()`가 요구하는 W가 전부 있으면)
+       `assign_finger_geometry()` → `run_topology_pipeline_with_finger_fixup()`(euler
+       자동수정, 세션15) → FAIL이면(`lut_by_kind` 있을 때) `run_matching_safety_with_
+       finger_growth()`(matching quality 3b/3c 자동수정 — 핑거증가 L3+L4 + gm/ID 예산
+       초과 시 인접배치 완화, 세션16/17/**세션18 배선**) 또는(`lut_by_kind` 없는 구형
+       spec) 기존 `repair_matching_safety()`.
+
+    `spec` 주요 키(회로마다 다름, 전부 선택이지만 해당 단계가 필요로 하면 없을 시 에러):
+    `"lut_by_kind"`({"nmos":LUT,"pmos":LUT}), `"vdd"`, `"L_candidates"`/`"VDS_candidates"`/
+    `"gm_id_grid"`(compensation `optimize_multistage()`용), `"L_min"`/`"L_min_by_kind"`,
+    `"W_bounds"`, `"min_vds_by_role"`, `"min_finger_w"`/`"max_finger_w"`, `"floorplan_hints"`,
+    `"cell_groups"`, `"known_sizing"`, 그 외 theta feed가 참조하는 이름 붙은 상수.
+
+    반환: `{"theta_star", "sizing", "metrics", "sizing_overrides", "pipeline_result",
+    "audit_ok"}` — `sizing_overrides`/`pipeline_result`는 넷리스트 전체가 사이징되지 않으면
+    `None`(부분 결과만 반환 — 단순 회로/미완성 선언 지원, §7.3.2 검증 (b)와 동일한 하위호환
+    사상). 모든 θ 격자점이 infeasible이면 `ValueError`. matching-safety 자동수정이 실행됐고
+    `lut_by_kind`가 있으면(세션18), `pipeline_result`에 `repaired_rows`/`repaired_audit` 외에
+    `growth_rounds`/`unresolved_pair`/`unresolved_reason`/`relaxed_pairs`(`run_matching_
+    safety_with_finger_growth()` 진단 필드 그대로)도 담긴다 — `audit_ok`가 최종 신호이고
+    이 필드들은 "왜/어떻게" 해결됐는지 보는 참고 정보다(세션16 E-3절 원칙과 동일).
+
+    ⚠️ 정직한 한계(2026-07-31): diode-stack(C유형) 전류의 `solve_diode_stack_current()`
+    자동 병합은 아직 없다(K_replica 면적비 theta feed는 W를 직접 설정할 뿐, KVL 전류 역산은
+    미연결) — 이런 소자가 있는 회로는 `device_roles`로 해당 소자의 `ID`를 `known_sizing`에
+    직접 시딩해 우회할 것."""
+    ev = _build_theta_evaluator(topology_path, spec)
+    transistors, meta = ev["transistors"], ev["meta"]
+    thetas, metrics_specs = ev["thetas"], ev["metrics_specs"]
+    objective, constraints = ev["objective"], ev["constraints"]
+    pairs_meta, kind_of = ev["pairs_meta"], ev["kind_of"]
+    stack_groups_geometry = ev["stack_groups_geometry"]
+    _evaluate = ev["evaluate"]
 
     if not thetas:
         ctx, metrics_result = _evaluate({})
@@ -3107,6 +3149,547 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     return {"theta_star": theta_star, "sizing": sizing, "metrics": metrics_result,
             "sizing_overrides": sizing_overrides, "pipeline_result": pipeline_result,
             "audit_ok": audit_ok}
+
+
+# ---------------------------------------------------------------------------
+# 6.9b) 웜스타트 준비 1/3 — theta-metric 결합도 그래프(세션29, 세션27 "## B" 손유도의 일반화)
+#       theta 여러 개를 SLSQP 시작점(x0)으로 채우기 전에 "이 theta가 어느 제약에 실제로
+#       영향을 주는가"를 먼저 분류한다 -- dead(아무 것도 안 읽음)/isolated(목적함수만
+#       영향, 제약과 무관)/coupled(적어도 하나의 제약과 얽힘). 전체회로 MNA 기반
+#       metric(cmrr/psrr, smallsignal_ratio_db/gain_db 타입)은 구조상 이미 사이징된
+#       모든 소자를 읽으므로 "구조적으로는" 거의 모든 theta와 얽혀 보인다 -- 세션27
+#       B-2(r_cmfb_vocdes)가 실제로는 그 metric 값에 영향이 없다는 걸 손으로(v(Voc_des)=0
+#       소신호 사실) 확인했던 사례가 정확히 이 함정을 보여준다. 이 함수는 그 손유도를
+#       하드코딩하는 대신, "구조적으로 애매한"(전체회로 metric과만 겹치는) theta에 한해
+#       기준점에서 실제 유한차분 민감도를 재보고 그 결과로 isolated/coupled를 확정한다
+#       (role 라벨/추측이 아니라 declared 계산 자체와 대조하는 이 프로젝트의 기존 원칙,
+#       `_thin_singleton_ideal_source_check()`와 같은 정신).
+# ---------------------------------------------------------------------------
+
+_FULL_CIRCUIT_METRIC_TYPES = frozenset({"smallsignal_ratio_db", "smallsignal_gain_db"})
+_DEFAULT_ALL_DEVICES_METRIC_TYPES = frozenset({"sum_current", "sum_area"})
+
+
+def _metric_device_footprint(metric_name: str, metrics_specs: dict):
+    """metric_spec 선언만으로 이 metric이 실제로 읽는 소자 집합을 정적으로 판정한다.
+    전체회로 MNA를 도는 타입(`smallsignal_ratio_db`/`smallsignal_gain_db`, `_full_circuit_
+    devices()`가 무조건 전체 소자를 순회 -- 세션27 "## A" 실측 확인)은 문자열 `"ALL"`을
+    반환한다(집합이 아니라 "이 회로의 사이징된 소자 전부"라는 별도 신호 -- 명시적 리스트와
+    섞이지 않게 구분). 등록되지 않은 type은 조용히 빈 집합으로 넘어가지 않고 ValueError --
+    이 함수가 새 metric type을 놓치면 결합도 판정이 조용히 틀려지므로(과소평가 위험) 명시적
+    등록을 강제한다."""
+    mspec = metrics_specs[metric_name]
+    mtype = mspec["type"]
+    if mtype in _FULL_CIRCUIT_METRIC_TYPES:
+        return "ALL"
+    if mtype in ("gain_stages_sum", "flicker_plus_thermal_sum"):
+        return {d for stage in mspec["stages"] for d in stage}
+    if mtype == "pelgrom_mismatch":
+        return set(mspec["devices"])
+    if mtype == "battery_centering_deviation":
+        return {mspec["high_device"], mspec["low_device"]}
+    if mtype == "rail_referenced_voltage":
+        return {mspec["device"]}
+    if mtype in _DEFAULT_ALL_DEVICES_METRIC_TYPES:
+        devices = mspec.get("devices")
+        return set(devices) if devices else "ALL"
+    raise ValueError(
+        f"'{metric_name}'의 metric type {mtype!r}이 _metric_device_footprint()에 등록되지 "
+        f"않았다 -- derive_theta_dependency_graph()가 결합도를 과소평가(실제로는 걸려있는데 "
+        f"isolated로 오판)하지 않도록, 이 type이 어떤 소자를 읽는지 여기 새로 추가할 것")
+
+
+def _theta_feed_footprint(theta: dict) -> dict:
+    """theta 하나의 feed 선언만으로 "직접 쓰는 소자"(`roots`)와 "직접 쓰는 ctx.derived
+    키"(`derived_writes`, settling_split 전용)를 정적으로 추출한다. A/A_signed는 seed
+    전류만 채우고 실제 사이징(L/gm_id/vds)은 그 소자가 속한 KCL 직렬 그룹 전체에 전파되므로
+    (`propagate_topology_forced_currents()`), 호출자가 `stack_groups_kcl`로 root(s)를
+    그룹 전체로 확장한다(이 함수는 root만 반환 -- 확장은 그래프 조립 단계 책임)."""
+    feed = theta["feeds"]
+    ftype = feed if isinstance(feed, str) else feed["type"]
+    if ftype == "settling_split":
+        output_key = feed.get("output_key", "t_slew") if isinstance(feed, dict) else "t_slew"
+        complement_key = (feed.get("complement_key", "t_lln") if isinstance(feed, dict)
+                           else "t_lln")
+        writes = {output_key} | ({complement_key} if complement_key else set())
+        return {"roots": frozenset(), "derived_writes": frozenset(writes), "reads": frozenset()}
+    if ftype in ("A", "A_signed"):
+        roots = feed["root"] if isinstance(feed["root"], list) else [feed["root"]]
+        reads = (set(feed["reference"]) if ftype == "A"
+                 else {term["device"] for term in feed["terms"]})
+        return {"roots": frozenset(roots), "derived_writes": frozenset(), "reads": frozenset(reads)}
+    if ftype == "B":
+        return {"roots": frozenset({feed["target"]}), "derived_writes": frozenset(),
+                "reads": frozenset({feed["omega_key"]})}
+    if ftype == "C":
+        return {"roots": frozenset({feed["target"]}), "derived_writes": frozenset(),
+                "reads": frozenset({feed["reference"]})}
+    if ftype == "metric_stage_budget":
+        return {"roots": frozenset(feed["devices"]), "derived_writes": frozenset(),
+                "reads": frozenset()}
+    raise ValueError(f"등록되지 않은 feeds 타입 {ftype!r} -- _theta_feed_footprint()에 추가할 것")
+
+
+def derive_theta_dependency_graph(topology_path: str, spec: dict,
+                                   baseline_theta_values: dict = None,
+                                   probe_frac: float = 0.05,
+                                   sensitivity_tol: dict = None) -> dict:
+    """SLSQP 웜스타트 준비 1/3(세션27 "## B" B-1/B-2 손유도의 일반화) — 자유 theta 각각이
+    dead(아무 metric/objective도 안 읽음)/isolated(목적함수만 영향, 제약과는 무관 -- bounds
+    극값에 고정하는 게 사실상 최적)/coupled(적어도 하나의 제약과 실제로 얽힘 -- SLSQP가 직접
+    최적화해야 함) 중 무엇인지 판정한다. `fixed`(bounds[0]==bounds[1], 애초에 자유도가 0인
+    선언)는 별도 취급.
+
+    **판정 절차**:
+    1. feed 선언(`_theta_feed_footprint()`)에서 이 theta가 직접 쓰는 소자(root/target) 또는
+       `ctx.derived` 키(settling_split)를 뽑는다. derived 키는 `compensation.parameters`에
+       있으면 `compensation.stage_devices` 전체로, B타입 feed의 `omega_key`가 그 키를
+       읽으면 그 B타입의 target으로 해석해(간접 footprint) 소자 집합으로 환원한다 -- 아무
+       소비자도 없으면 **dead**(세션27 f_slew가 처음 발견됐을 때의 정확한 정의, 지금은
+       do.md Level1->2 배선으로 `t_lln`이 compensation.parameters에 있어 더 이상 dead 아님).
+    2. A/A_signed의 root는 `stack_groups_kcl`(같은 물리적 KCL 직렬 그룹)로 확장한다 --
+       root 소자 하나의 ID만 바뀌는 게 아니라 그 소자와 KCL로 묶인 전류전파 그룹 전체가
+       영향을 받기 때문(과소평가 방지 -- 불확실하면 "안 걸림"이 아니라 "걸림" 쪽으로 넓게
+       잡는다).
+    3. 이 footprint가 `constraints`의 각 metric 선언(`_metric_device_footprint()`)과
+       **명시적으로**(전체 소자 아닌 구체적 devices/stages 리스트) 겹치면 즉시 **coupled**
+       (구조적으로 확실함 -- 굳이 실측할 필요 없음).
+    4. 명시적 겹침이 없는데 전체회로 metric(`cmrr_estimate_db`/`psrr_estimate_db` 등
+       `smallsignal_*` 타입)과는 구조상 걸쳐 있으면(footprint가 비어있지 않으면 항상 걸침
+       -- `_full_circuit_devices()`가 사이징된 소자 전부를 읽으므로) **판정 보류**로 남기고
+       5로.
+    5. `baseline_theta_values`(기본: 호출자가 넘겨야 함 -- 없으면 실측 자체를 안 하고
+       "ambiguous"로 남긴다. bounds-midpoint를 이 함수가 자동으로 만들어 쓰지 않는 이유는
+       이 회로 자체가 bounds-midpoint에서 InfeasibleSizingError가 나기 때문(세션27 D-9,
+       K_replica/r_classab_battery 조합) -- 실현가능한 기준점을 찾는 일은
+       `extract_linear_feasibility_constraints()`/`presolve_warm_start()`의 책임이고 이
+       함수는 "받은 기준점에서 재본다"만 한다, 순환 의존 회피)에서 이 theta만
+       `probe_frac`(기본 5%)만큼 bounds 범위 안에서 살짝 밀어 재평가 -- 4에서 보류된 각
+       전체회로 metric의 유한차분 민감도를 재고, `sensitivity_tol`(기본: `_db` 접미사
+       metric은 전체 bounds 스윙에서 0.5dB, 그 외는 제약값의 1%)보다 작으면 그 metric에
+       한해 "실질적으로 무관"으로 확정한다. 보류된 전체회로 metric 전부가 무관으로
+       확정되면 **isolated**(numerically confirmed), 하나라도 유의미한 민감도가 나오면
+       **coupled**(numerically confirmed) — 세션27 B-2(r_cmfb_vocdes, isolated로 확정될
+       것으로 기대)와 N_cmfb_bw(CMFB 루프 이득에 실제로 걸림, coupled로 확정될 것으로 기대)를
+       가르는 게 이 단계다.
+    6. 목적함수(`objective`)에 대한 민감도(부호만, `presolve_warm_start()`가 isolated/dead
+       theta를 어느 bound 극값에 놓을지 정하는 데 씀)도 같은 평가에서 함께 얻는다 --
+       baseline이 있을 때만(없으면 `None`).
+
+    반환: `{theta_name: {"classification": "dead"|"isolated"|"coupled"|"fixed"|"ambiguous",
+    "feed_type", "target_devices"(list), "touches_constraints"(list of metric names,
+    구조적으로 확실한 것만), "full_circuit_candidates"(list, 4에서 보류된 metric들),
+    "sensitivity"({metric_name: d(metric)/d(theta)} or None), "objective_sensitivity"(float
+    or None), "evidence"(str, 사람이 읽는 판정 근거)}}`. `"ambiguous"`는 baseline이
+    없거나 baseline 평가 자체가 실패했거나(InfeasibleSizingError) probe 양방향이 다
+    실패해 5를 못 끝낸 경우만 나온다(조용히 isolated로 단정하지 않는다) --
+    `presolve_warm_start()`는 이 경우 안전한 기본값(bounds-midpoint)으로 폴백해야 한다."""
+    ev = _build_theta_evaluator(topology_path, spec)
+    thetas = ev["thetas"]
+    metrics_specs, objective, constraints = ev["metrics_specs"], ev["objective"], ev["constraints"]
+    comp, stack_groups_kcl, evaluate = ev["comp"], ev["stack_groups_kcl"], ev["evaluate"]
+    stack_id_of = {name: sid for sid, members in stack_groups_kcl.items() for name in members}
+
+    comp_param_keys = set(comp["parameters"]) if comp else set()
+    b_type_readers = {}  # {derived_key: target_device} -- B타입 feed가 ctx.derived에서 읽는 키
+    for _t in thetas:
+        _f = _t["feeds"]
+        if isinstance(_f, dict) and _f.get("type") == "B":
+            b_type_readers[_f["omega_key"]] = _f["target"]
+
+    def _expand_to_devices(feed_footprint: dict) -> set:
+        devices = {d for r in feed_footprint["roots"]
+                   for d in stack_groups_kcl.get(stack_id_of.get(r), {r})}
+        writes = feed_footprint["derived_writes"]
+        if comp and (writes & comp_param_keys):
+            devices |= {d for grp in comp["stage_devices"] for d in grp}
+        for key, target in b_type_readers.items():
+            if key in writes:
+                devices.add(target)
+        return devices
+
+    objective_metric = list(objective.values())[0]
+    constraint_names = [c["metric"] for c in constraints]
+    footprints = {name: _metric_device_footprint(name, metrics_specs)
+                  for name in set(constraint_names) | {objective_metric}}
+
+    graph = {}
+    for theta in thetas:
+        name = theta["name"]
+        lo, hi = theta["bounds"]
+        feed_type = theta["feeds"] if isinstance(theta["feeds"], str) else theta["feeds"]["type"]
+        if lo == hi:
+            graph[name] = {"classification": "fixed", "feed_type": feed_type,
+                            "target_devices": [], "touches_constraints": [],
+                            "full_circuit_candidates": [], "sensitivity": None,
+                            "objective_sensitivity": None,
+                            "evidence": f"bounds가 고정값({lo}) -- 설계 자유도 없음"}
+            continue
+        ff = _theta_feed_footprint(theta)
+        target_devices = _expand_to_devices(ff)
+        if not target_devices:
+            graph[name] = {"classification": "dead", "feed_type": feed_type,
+                            "target_devices": [], "touches_constraints": [],
+                            "full_circuit_candidates": [], "sensitivity": None,
+                            "objective_sensitivity": None,
+                            "evidence": ("derived key를 아무도 안 읽음(compensation.parameters/"
+                                         "B타입 omega_key 어디에도 없음) -- 값을 바꿔도 회로 "
+                                         "어디에도 영향 없음")}
+            continue
+        touches_constraints = [c for c in constraint_names
+                                if footprints[c] != "ALL" and target_devices & footprints[c]]
+        full_circuit_candidates = [c for c in constraint_names
+                                    if footprints[c] == "ALL" and c not in touches_constraints]
+        entry = {"classification": None, "feed_type": feed_type,
+                 "target_devices": sorted(target_devices),
+                 "touches_constraints": touches_constraints,
+                 "full_circuit_candidates": full_circuit_candidates,
+                 "sensitivity": None, "objective_sensitivity": None, "evidence": None}
+        if touches_constraints:
+            entry["classification"] = "coupled"
+            entry["evidence"] = f"명시적 footprint 겹침(구조적으로 확실) -- {touches_constraints}"
+            graph[name] = entry
+            continue
+        if not full_circuit_candidates:
+            entry["classification"] = "isolated"
+            entry["evidence"] = "어떤 제약 metric도 이 theta의 소자를 읽지 않음(구조적으로 확실)"
+            graph[name] = entry
+            continue
+        # 여기부터는 전체회로 metric과만 걸쳐 있어 구조 분석만으로는 결론 못 냄 -- 실측 필요
+        if baseline_theta_values is None:
+            entry["classification"] = "ambiguous"
+            entry["evidence"] = ("baseline_theta_values가 없어 실측 민감도를 못 잼 -- "
+                                  "extract_linear_feasibility_constraints() 등으로 먼저 "
+                                  "실현가능한 기준점을 구해 다시 호출할 것")
+            graph[name] = entry
+            continue
+        try:
+            base_ctx, base_metrics = evaluate(baseline_theta_values)
+        except InfeasibleSizingError as e:
+            entry["classification"] = "ambiguous"
+            entry["evidence"] = f"baseline_theta_values 자체가 infeasible: {e}"
+            graph[name] = entry
+            continue
+        span = hi - lo
+        base_val = baseline_theta_values[name]
+        step = probe_frac * span
+        probe_val = base_val + step if base_val + step <= hi else base_val - step
+        probe_theta_values = dict(baseline_theta_values, **{name: probe_val})
+        try:
+            probe_ctx, probe_metrics = evaluate(probe_theta_values)
+        except InfeasibleSizingError:
+            probe_val = base_val - step if probe_val > base_val else base_val + step
+            probe_theta_values[name] = probe_val
+            try:
+                probe_ctx, probe_metrics = evaluate(probe_theta_values)
+            except InfeasibleSizingError as e:
+                entry["classification"] = "ambiguous"
+                entry["evidence"] = f"양방향 probe 전부 infeasible -- 민감도 측정 불가: {e}"
+                graph[name] = entry
+                continue
+        d_theta = probe_val - base_val
+        sensitivity = {m: (probe_metrics[m] - base_metrics[m]) / d_theta
+                        for m in full_circuit_candidates}
+        entry["sensitivity"] = sensitivity
+        entry["objective_sensitivity"] = (
+            (probe_metrics[objective_metric] - base_metrics[objective_metric]) / d_theta)
+        tol = dict(sensitivity_tol or {})
+
+        def _tol_for(metric_name):
+            if metric_name in tol:
+                return tol[metric_name]
+            if metric_name.endswith("_db"):
+                return 0.5 / span  # 전체 bounds 스윙에서 0.5dB
+            threshold = next(c["value"] for c in constraints if c["metric"] == metric_name)
+            return 0.01 * abs(threshold) / span
+
+        negligible = {m: abs(s) < _tol_for(m) for m, s in sensitivity.items()}
+        if all(negligible.values()):
+            entry["classification"] = "isolated"
+            entry["evidence"] = (f"전체회로 metric {full_circuit_candidates}과 구조적으로는 "
+                                  f"걸쳐 있지만 실측 민감도가 전부 무시가능(threshold 대비): "
+                                  f"{sensitivity}")
+        else:
+            entry["classification"] = "coupled"
+            _sig = {m: v for m, v in sensitivity.items() if not negligible[m]}
+            entry["evidence"] = f"전체회로 metric 실측 민감도가 유의미: {_sig}"
+        graph[name] = entry
+    return graph
+
+
+# ---------------------------------------------------------------------------
+# 6.9c) 웜스타트 준비 2/3 — A_signed KCL 부호제약을 선형부등식으로 자동 추출(세션29,
+#       세션27 "## B" B-3 손유도의 일반화). `kcl_battery_M9b`류(`ID(root) = theta_value *
+#       sum(sign_i * ID(term_i))`, root 소자가 실재 트랜지스터라 ID<=0이면 물리적으로
+#       불가능 -- `InfeasibleSizingError`)에서, 각 항 소자의 ID가 **다른 free theta의
+#       A/C타입 feed로 선형(theta*상수)하게 결정**되는 경우에 한해 그 관계를 부등식으로
+#       역산한다(K_replica*ID_M15 <= r_classab_battery*(ID_M1a+ID_M1b) 같은 관계, 이번엔
+#       손으로 안 하고 feed 선언만으로 일반화). 항이 compensation처럼 theta와 무관하게
+#       고정된 값이면 상수항으로 흡수한다.
+# ---------------------------------------------------------------------------
+
+def extract_linear_feasibility_constraints(topology_path: str, spec: dict,
+                                            reference_theta_values: dict = None) -> list:
+    """SLSQP 웜스타트 준비 2/3(세션27 "## B" B-3 손유도의 일반화) — `A_signed` feed(KCL
+    뺄셈, `kcl_battery_M9b` 등)가 만드는 "이 항들의 부호합이 0 이상이어야 한다"는 물리적
+    제약(위반 시 `InfeasibleSizingError`)을, 가능하면 **다른 free theta들에 대한 선형
+    부등식**으로 역산해 반환한다 — grid search가 이 부등식을 만족 못 하는 조합을 시행착오로
+    찾아내는 대신(세션27 D-9가 실측으로 겪은 과정), `presolve_warm_start()`가 처음부터
+    실현가능한 시작점을 고를 수 있게 하기 위함이다.
+
+    **역산 절차**(항 소자 하나마다):
+    1. 그 소자가 어떤 free(bounds[0]!=bounds[1]) `"A"`(root, 여러 개 가능) 또는 `"C"`
+       (target) feed의 대상이면, 그 feed는 `ID(소자) = theta_value * reference_basis`
+       형태다 -- `reference_basis`(A는 reference 소자들 ID 합, C는 reference 소자 1개의
+       ID)는 이 항을 **그 theta에 대한 선형항**(계수=부호*reference_basis)으로 만든다.
+       `reference_basis` 자체는 `reference_theta_values`에서 얼려 읽은 숫자다(그 소자들이
+       또 다른 free theta에 얽혀 있어도 재귀적으로 풀지 않는다 -- 그러면 이론상 theta끼리
+       곱해지는 비선형 관계가 될 수 있어, "선형" 부등식이라는 이 함수의 계약 자체가 깨진다.
+       세션27 B-3 시점엔 이 reference_basis(ID_M1a+ID_M1b, ID_M15)가 compensation으로만
+       고정돼 진짜 상수였지만, 세션27 후반 D-3에서 `f_slew`(free)가 `t_lln`을 거쳐
+       compensation 자체에 배선돼(do.md Level1->2) 지금은 엄밀히는 `f_slew`에도 살짝
+       의존한다 -- 이 함수는 그 사실을 숨기지 않고, `reference_theta_values`가 고정하는
+       한 지점(기본 bounds-midpoint)에서 얼린 근사치라는 걸 그대로 반환값에 남긴다(웜스타트
+       용도로는 충분 -- 최종 정확도는 SLSQP가 책임진다).
+    2. 그 소자가 free feed의 대상이 아니라 **bounds가 고정된**(bounds[0]==bounds[1]) A/C
+       feed의 대상이면(예: `mirror_M18a`, theta=1.0 고정), 진짜 자유도가 없는 순수
+       passthrough이므로 그 고정 배수를 누적하며 `reference` 소자로 재귀 하강한다(1로
+       돌아감) -- 체인이 너무 깊으면(순환 의심) 명시적 에러.
+    3. 둘 다 아니면(compensation 등으로 직접 확정된 leaf, 또는 governing feed가 아예 없는
+       소자) `reference_theta_values`에서 얼린 숫자 그대로 상수항에 더한다.
+
+    A_signed 자신의 theta(예: `kcl_battery_M9b`)의 bounds가 부호를 안 가리면(0을
+    가로지르면) `ID(root)=theta_value*total`의 부호가 `total`만으로 안 정해지므로 단순화를
+    포기하고 `"dynamic"`으로 보고한다(이 프로젝트 회로들은 전부 이 theta가 1.0 고정이라
+    해당 없음 -- 일반화를 위해 남겨둔 방어 분기).
+
+    반환: 각 A_signed theta당 1개 dict의 리스트 -- `{"theta": name, "status": ...}`.
+    `status`:
+    - `"linear"`: `{"terms":[{"theta":name,"coeff":float},...], "constant":float, "op":">="}`
+      (`sum(coeff_i * theta_i) + constant >= 0` 형태 -- 계수가 2개 이상이면 세션27 B-3처럼
+      두 theta를 함께 골라야 하는 진짜 결합 제약, 1개면 그 theta 하나의 단순 하한/상한).
+    - `"numeric_only"`: 관련 theta가 전부 상수로 얼어붙어(자유도 없음) 부등식이 아니라
+      `reference_theta_values` 그 지점에서의 단순 실현가능 여부(`feasible_at_reference`)만
+      의미 있음.
+    - `"dynamic"`/`"unresolvable"`: 자동 역산 실패(이유는 `"reason"`) -- `presolve_warm_
+      start()`는 이 theta에 한해 grid search류 폴백이 필요할 수 있다(조용히 무시하지
+      말 것)."""
+    ev = _build_theta_evaluator(topology_path, spec)
+    thetas = ev["thetas"]
+    evaluate = ev["evaluate"]
+    by_theta_name = {t["name"]: t for t in thetas}
+
+    if reference_theta_values is None:
+        reference_theta_values = {t["name"]: (t["bounds"][0] + t["bounds"][1]) / 2.0
+                                   for t in thetas}
+
+    try:
+        ctx, _ = evaluate(reference_theta_values)
+        sized = ctx.sized
+    except InfeasibleSizingError as e:
+        if e.sized_snapshot is None:
+            raise ValueError(
+                "reference_theta_values가 infeasible인데 sized_snapshot이 없다 -- "
+                "InfeasibleSizingError가 A_signed ID<=0 경로가 아닌 다른 곳에서 났을 "
+                "가능성, 직접 확인할 것") from e
+        sized = e.sized_snapshot
+
+    # governing[device] = (theta_name, feed, is_free) -- 이 device의 ID를 직접 결정하는
+    # A(root)/C(target) feed. 여러 root를 가진 A feed는 root마다 같은 항목을 공유한다.
+    governing = {}
+    for t in thetas:
+        feed = t["feeds"]
+        if not isinstance(feed, dict):
+            continue
+        is_free = t["bounds"][0] != t["bounds"][1]
+        if feed["type"] == "A":
+            roots = feed["root"] if isinstance(feed["root"], list) else [feed["root"]]
+            for r in roots:
+                governing[r] = (t["name"], feed, is_free)
+        elif feed["type"] == "C":
+            governing[feed["target"]] = (t["name"], feed, is_free)
+
+    def _resolve(device: str, coeff: float, depth: int = 0):
+        """`coeff * ID(device)`를 (변수항 리스트, 상수) 쌍으로 분해한다."""
+        if depth > 20:
+            raise ValueError(f"'{device}' 근처에서 governing 체인이 너무 깊다(순환 의심)")
+        if device not in governing:
+            entry = sized.get(device)
+            if entry is None or "ID" not in entry:
+                raise ValueError(f"'{device}'의 ID를 reference point에서 못 구함(governing "
+                                  f"체인도 없음) -- 선언 누락이거나 평가 순서 문제")
+            return [], coeff * entry["ID"]
+        theta_name, feed, is_free = governing[device]
+        if is_free:
+            basis = (sum(sized[r]["ID"] for r in feed["reference"]) if feed["type"] == "A"
+                      else sized[feed["reference"]]["ID"])
+            return [{"theta": theta_name, "coeff": coeff * basis}], 0.0
+        fixed_val = by_theta_name[theta_name]["bounds"][0]
+        refs = feed["reference"] if feed["type"] == "A" else [feed["reference"]]
+        var_terms, const = [], 0.0
+        for ref_dev in refs:
+            v, c = _resolve(ref_dev, coeff * fixed_val, depth + 1)
+            var_terms += v
+            const += c
+        return var_terms, const
+
+    results = []
+    for theta in thetas:
+        feed = theta["feeds"]
+        if not (isinstance(feed, dict) and feed.get("type") == "A_signed"):
+            continue
+        lo, hi = theta["bounds"]
+        if not ((lo >= 0 and hi >= 0) or (lo <= 0 and hi <= 0)):
+            results.append({"theta": theta["name"], "status": "dynamic",
+                             "reason": ("이 A_signed theta 자신의 bounds가 부호를 안 가려서"
+                                        "(0을 가로지름) ID(root)=theta*total의 부호를 total "
+                                        "부호만으로 단순화할 수 없다")})
+            continue
+        try:
+            all_var_terms, const_sum = [], 0.0
+            for term in feed["terms"]:
+                v, c = _resolve(term["device"], term.get("sign", 1))
+                all_var_terms += v
+                const_sum += c
+        except ValueError as e:
+            results.append({"theta": theta["name"], "status": "unresolvable", "reason": str(e)})
+            continue
+        merged: dict = {}
+        for vt in all_var_terms:
+            merged[vt["theta"]] = merged.get(vt["theta"], 0.0) + vt["coeff"]
+        variable_terms = [{"theta": k, "coeff": v} for k, v in merged.items() if v != 0.0]
+        if not variable_terms:
+            results.append({"theta": theta["name"], "status": "numeric_only",
+                             "feasible_at_reference": const_sum >= 0, "value": const_sum,
+                             "reason": ("관련 항이 전부 (근사)상수 -- 자유 theta 쌍 관계가 "
+                                        "아니라 reference_theta_values 지점에서의 단순 "
+                                        "실현가능성만 확인됨")})
+            continue
+        results.append({
+            "theta": theta["name"], "status": "linear",
+            "inequality": {"terms": variable_terms, "constant": const_sum, "op": ">="},
+            "reason": (f"sum(coeff_i * theta_i) + {const_sum:.6g} >= 0 -- 계수는 "
+                       f"reference_theta_values에서 얼린 다른(governing 아닌) theta들 기준 "
+                       f"근사(위 docstring 1 참고)")})
+    return results
+
+
+# ---------------------------------------------------------------------------
+# 6.9d) 웜스타트 준비 3/3 — SLSQP 시작점(x0) 조립(세션29, 세션27 "## B" 웜스타트 설계의
+#       실제 구현). `extract_linear_feasibility_constraints()`로 실현가능한 기준점을 먼저
+#       확보하고(bounds-midpoint 전체가 이 회로에서 실제로 infeasible이기 때문 -- 세션27
+#       D-9), 그 기준점에서 `derive_theta_dependency_graph()`로 얻은 dead/isolated/coupled
+#       분류를 조합해 각 theta의 시작값을 정한다.
+# ---------------------------------------------------------------------------
+
+def presolve_warm_start(topology_path: str, spec: dict) -> dict:
+    """SLSQP 웜스타트 준비 3/3(세션27 "## B" 설계의 실제 구현) — `extract_linear_
+    feasibility_constraints()` + `derive_theta_dependency_graph()`를 조합해 SLSQP
+    시작점(x0)을 만든다. `optimize_full_circuit_budget()`이 grid search로 하던 일(θ*
+    선택)을 SLSQP로 바꿀 때, "아무 데서나 시작(bounds-midpoint)"이 이 회로에서는 이미
+    실현 불가능(세션27 D-9)이므로 이 함수가 반드시 선행돼야 한다.
+
+    **조립 순서**:
+    1. `extract_linear_feasibility_constraints()`(기본 bounds-midpoint 기준점)로 `A_signed`
+       KCL 부호제약을 선형부등식으로 얻는다. `"linear"` 결과의 각 항 `{theta, coeff}`에서
+       "이 부등식을 만족시키려면 이 theta는 어느 극값(coeff>0이면 상한, coeff<0이면
+       하한)이 유리한가"를 투표로 모은다 -- 같은 theta가 서로 다른 부등식에서 다른 극값을
+       요구하면(실제로 이 회로에선 발생하지 않음, 방어적으로만 처리) 자동 해결을 포기하고
+       bounds-midpoint로 남긴 뒤 `notes`에 남긴다.
+    2. 투표가 일치하는 theta는 그 극값으로, 나머지는 bounds-midpoint로 둔 **실현가능한
+       기준점**(`baseline`)을 만든다 -- 세션27 D-9의 `K_replica=하한/r_classab_battery=상한`
+       손튜닝을 자동 재현하는 지점이 바로 이것.
+    3. 이 `baseline`으로 `derive_theta_dependency_graph()`를 호출해 나머지(선형제약과
+       무관한) theta 전부를 dead/isolated/coupled로 분류한다.
+    4. 최종 x0: 선형제약 투표가 있던 theta는 그 값 그대로(제약 충족이 목적함수 방향보다
+       우선 -- infeasible로 SLSQP가 아예 시작을 못 하는 것보다 낫다), 그 외는 분류별로
+       -- `fixed`/`dead` → 하한, `isolated` → `objective_sensitivity` 부호로 유리한 극값,
+       `coupled`/`ambiguous` → bounds-midpoint(닫힌 관계 없음, SLSQP가 직접 풀 몫).
+    5. 조립된 x0를 실제로 한 번 평가해(`evaluate()`) 정말 실현가능한지 확인하고 결과에
+       포함한다(조용히 "아마 될 것"이라고 가정하지 않는다).
+
+    ⚠️ 미포함(세션27 B-5, 다음 단계 과제로 명시적으로 남김): `L_cascode`/`L_stage2out`류
+    `metric_stage_budget` theta는 LUT 1D 이분탐색으로 더 나은 시작값을 찾을 수 있다는 게
+    이미 손으로 검증돼 있지만(gain_db 단조/`classab_centering_dev_v` 준-단조 함수라는 사실,
+    세션27 실측), 이 함수는 아직 bounds-midpoint로만 채운다 -- gain 단조 가정이 이 metric_
+    stage_budget 핸들러가 `"gain_db"`만 구현한다는 제약과 맞물려 일반화하려면 추가 설계가
+    필요해서다(B-5 자신도 "다음 세션 SLSQP 구현 시 바로 쓸 수 있음"이라고만 적어뒀지 이번
+    세션에도 적용은 안 함).
+
+    반환: `{"x0": {theta_name: value}, "feasible": bool, "infeasible_reason": str|None,
+    "linear_constraints": extract_linear_feasibility_constraints()의 반환값 그대로,
+    "dependency_graph": derive_theta_dependency_graph()의 반환값 그대로, "notes": [str,...]}`."""
+    ev = _build_theta_evaluator(topology_path, spec)
+    thetas = ev["thetas"]
+    objective, evaluate = ev["objective"], ev["evaluate"]
+    by_theta_name = {t["name"]: t for t in thetas}
+    minimize = "minimize" in objective
+
+    def _better_bound(lo, hi, sensitivity):
+        if not sensitivity:  # None 또는 0.0 -- 방향 정보 없음, 안정적 기본값
+            return lo
+        increasing_is_good = (sensitivity < 0) if minimize else (sensitivity > 0)
+        return hi if increasing_is_good else lo
+
+    linear_results = extract_linear_feasibility_constraints(topology_path, spec)
+    notes = []
+    votes: dict = {}
+    for r in linear_results:
+        if r["status"] != "linear":
+            continue
+        for term in r["inequality"]["terms"]:
+            name = term["theta"]
+            if by_theta_name[name]["bounds"][0] == by_theta_name[name]["bounds"][1]:
+                continue  # 자유도 없는 theta -- 투표 대상 아님
+            votes.setdefault(name, set()).add("hi" if term["coeff"] > 0 else "lo")
+
+    baseline = {t["name"]: (t["bounds"][0] + t["bounds"][1]) / 2.0 for t in thetas}
+    vote_choice: dict = {}
+    conflicts = []
+    for name, prefs in votes.items():
+        lo, hi = by_theta_name[name]["bounds"]
+        if len(prefs) == 1:
+            choice = hi if next(iter(prefs)) == "hi" else lo
+            baseline[name] = choice
+            vote_choice[name] = choice
+        else:
+            conflicts.append(name)
+    if conflicts:
+        notes.append(f"선형 feasibility 부등식이 서로 다른 방향을 요구하는 theta: {conflicts} "
+                      f"-- 자동 해결 불가, bounds-midpoint로 남김(SLSQP가 처리해야 함)")
+
+    graph = derive_theta_dependency_graph(topology_path, spec, baseline_theta_values=baseline)
+
+    x0 = {}
+    for t in thetas:
+        name = t["name"]
+        lo, hi = t["bounds"]
+        if name in vote_choice:
+            x0[name] = vote_choice[name]
+            continue
+        entry = graph[name]
+        cls = entry["classification"]
+        if cls in ("fixed", "dead"):
+            x0[name] = lo
+        elif cls == "isolated":
+            x0[name] = _better_bound(lo, hi, entry["objective_sensitivity"])
+        else:  # "coupled" 또는 "ambiguous" -- 닫힌 관계 없음, SLSQP가 직접 풀 몫
+            x0[name] = baseline[name]
+            if cls == "ambiguous":
+                notes.append(f"{name}: derive_theta_dependency_graph()가 ambiguous로 분류"
+                              f"(실측 민감도 확인 실패, evidence={entry['evidence']!r}) -- "
+                              f"bounds-midpoint로 폴백")
+
+    try:
+        evaluate(x0)
+        feasible, infeasible_reason = True, None
+    except InfeasibleSizingError as e:
+        feasible, infeasible_reason = False, str(e)
+        notes.append("조립된 x0가 실제로는 infeasible -- 위 notes의 conflict/ambiguous 항목을 "
+                      "우선 확인할 것")
+
+    return {"x0": x0, "feasible": feasible, "infeasible_reason": infeasible_reason,
+            "linear_constraints": linear_results, "dependency_graph": graph, "notes": notes}
 
 
 # ---------------------------------------------------------------------------
