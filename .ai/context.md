@@ -1,4 +1,14 @@
-# 세션 컨텍스트 (최종 갱신: 2026-08-11, 세션28 완료 — 5단계로 진행. **1단계**: 세션27이
+# 세션 컨텍스트
+
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션28 최종 요약"(`## AA`~
+`## AE`)부터 먼저 읽을 것** — 이번 세션(세션28) 전체 타임라인 압축 요약 + 다음
+최우선 순서 + 다음 세션 시작 체크리스트가 거기 정리돼 있다. 아래는 세션 진행
+중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만
+찾아보면 된다.
+
+---
+
+(최종 갱신: 2026-08-11, 세션28 완료 — 5단계로 진행. **1단계**: 세션27이
 남긴 최우선 항목①(헤드룸용 `vertical_stack_id` 병합이 레이아웃 오일러 검증에 미친 영향)을
 Test 47 교체+self-test 재실행+`resolve_stack_layout()` 직접 실행으로 검증하고 "재설계
 불필요"로 결론냈으나, **2단계**에서 사용자 질문("resolve_stack_layout에서 왜 pmos/nmos가
@@ -5821,13 +5831,123 @@ ideal_sources 언급)로 거부됨을 확인. L5c self-test에 이 부정 케이
 잘못 붙이거나(진짜 ideal current source 종단이 아닌데) voltage_source 종단에
 붙이면 조용히 틀린 값을 내는 대신 명시적으로 거부된다.
 
-## Z. 커밋 상태 (세션28 6단계 최종, 2026-08-11)
+## Z. 커밋 상태 (세션28 6단계, 2026-08-11 -- 이 시점엔 아직 미커밋이었으나 같은 세션 안에서 바로 커밋됨, 최종 확정 상태는 파일 맨 끝 "# 세션28 최종 요약" 참고)
 변경 파일(이번 6단계분): `.ai/context.md`(이 갱신), `docs/04-report/analog-topology-
-json-library.do.md`(배치 7-6j 추가 예정), `skills/analog-gmid-design/assets/stick_
+json-library.do.md`(배치 7-6j 추가), `skills/analog-gmid-design/assets/stick_
 diagram.py`(`load_topology()`에 `ideal_sources` 필드 추가), `skills/analog-gmid-design/
 assets/sizing_recipe.py`(`ideal_source_terminals` 인덱스 + `_thin_singleton_ideal_
 source_check()` 신설 + 우회 지점에 검증 연결 + L5c에 부정 케이스 assertion 추가).
-self-test: `sizing_recipe.py`/`stick_diagram.py` 둘 다 PASS(exit 0, 회귀 0건) --
-`sizing_recipe.py` 실행 결과는 다음 세션 시작 시 재확인. 아직 커밋 안 됨 -- 다음
-세션 시작 시 `git status`/`git log`로 먼저 확인할 것. 다음 세션 최우선은 여전히
-"① 3개 일반 함수 구현"(SLSQP 웜스타트 준비).
+self-test: `sizing_recipe.py`/`stick_diagram.py` 둘 다 PASS(exit 0, 회귀 0건).
+커밋 `272dd5e`로 반영 완료.
+
+---
+
+# 세션28 최종 요약 (2026-08-11 세션 종료 시점 — 다음 세션은 반드시 이 절부터 읽을 것)
+
+사용자 지시("다음 세션에서 진행할께. 현재까지 context를 기록하고 다음 진행할
+우선순위도 자세히 저장해줘")로 세션 종료 전 마지막 정리. 위의 모든 절(`# 세션 컨텍스트`
+~ `## Z`)은 세션 진행 중 실시간으로 기록된 상세 이력이다 -- 지우지 않고 그대로
+보존한다(왜 그런 결정을 했는지, 어떤 시행착오가 있었는지가 전부 거기 있다). 이
+절은 그 전체를 다음 세션이 빠르게 재구성할 수 있도록 최종 압축한 것.
+
+## AA. 이번 세션(세션28) 전체 타임라인 요약
+
+세션27이 남긴 최우선 항목①(헤드룸용 `vertical_stack_id` 병합이 레이아웃 오일러
+검증에 미친 영향)에서 출발해, 총 **6단계**를 거쳐 완전히 새로운 다음 최우선
+항목(3개 일반 함수 구현)까지 도달했다:
+
+1. **`vertical_stack_id` 재설계 필요성 검증** — Test 47 교체 + `resolve_stack_
+   layout()` 직접 실행으로 처음엔 "재설계 불필요"로 결론(오판).
+2. **결론 정정 + 2축 분리 설계** — 사용자 질문("pmos/nmos가 같은 stack인데
+   오일러 문제 없나?")으로 `check_euler_condition()`이 kind를 안 본다는 근본
+   결함 발견. `build_graph()` kind 하드 게이트(a) + `derive_horizontal_stack_
+   groups()`(b, vertical_stack_id=전기적 vs 물리 레이아웃 행=kind 동질 2축
+   분리) 구현. **커밋 `1747f0f`.**
+3. **M5/M61 헤드룸 크래시 해소** — `allocate_stack_headroom()`의 singleton
+   non-cascode "혼자니까 남는 예산 전부" 기본정책 문제 진단, `referenced_
+   devices` 우회 + M60↔M66/M38↔M36a `budget_reference_device` 선언 보완.
+   **이 회로가 `sizing_roles` 우회 없이 51소자 전체를 처음으로 완주.**
+   **커밋 `6566fb2`.**
+4. **M18_bg 해소** — `HeadroomPolicy.thin_roles` 일반화(cascode 전용 →
+   `diode_reference`도 포함), M39/M40(`voltage_divider`)은 안 건드림.
+   **커밋 `fa2c077`.**
+5. **M7/M36b 해소** — `same_as_device` 필드 신설("나머지" 관계뿐이던
+   `budget_reference_device`와 별개로 "동일" 관계 표현). **헤드룸 singleton
+   정책 항목 완전 종료. 커밋 `bb73912`.**
+6. **`ideal_sources` 기반 검증 신설** — 사용자 통찰(ideal current source=전압
+   자유 vs voltage source=전류 자유)로 role 라벨만 믿던 우회를 실제 회로
+   선언과 대조하도록 강화. `load_topology()`에 `ideal_sources` 필드 추가(원래
+   빠져있던 버그도 같이 발견/수정). **커밋 `272dd5e`.**
+
+**세션 끝 시점 git 상태**: 전부 커밋됨, working tree clean(이 세션이 만진 4개
+파일 기준 -- `.ai/context.md`/`do.md`/`sizing_recipe.py`/`stick_diagram.py`/
+`current_reuse_telescopic_ota.topology.json`). `.bkit/*`·zip 2개·workspaces
+잔재 파일은 과거 세션부터 의도적으로 커밋 밖에 둔 것 그대로(손대지 않음).
+
+## AB. 다음 세션 시작 시 반드시 할 일
+
+1. `git log --oneline -8`로 이 세션의 6개 커밋(`1747f0f`~`272dd5e`)이 실제로
+   기록에 있는지 확인.
+2. `git status`로 working tree가 clean한지(또는 사용자가 세션 사이에 뭔가
+   바꿨는지) 확인.
+3. 아래 "## AC. 다음 최우선 순서"를 그대로 따라 진행 -- 순서를 바꾸지 말 것
+   (파일 맨 위 "다음 세션 최우선" 절과 내용 동일, 여기 다시 요약).
+
+## AC. 다음 최우선 순서 (파일 맨 위 "다음 세션 최우선"과 동일 -- 여기 재확인용)
+
+### ① 최우선 — 3개 일반 함수 구현 (SLSQP 웜스타트 준비, 세션27 전반부 설계, 아직 착수 전)
+
+세션27이 grid search 런타임 문제(13개 theta, 2¹³≈8192 조합·~10시간)를 풀기 위해
+좌표하강 대신 SLSQP+multi-start로 방향을 확정했고(이유는 "세션27 결론 ## A" --
+theta들이 cmrr/psrr을 매개로 강결합돼 축 방향 탐색이 구조적으로 불리함을 실측
+확인), 그 준비로 3개 함수가 설계까지만 끝난 상태다:
+- `derive_theta_dependency_graph()` — dead/독립/격리 1:1 theta-metric 쌍 판정.
+- `extract_linear_feasibility_constraints()` — 고정비율 A_signed 항에서 선형
+  부등식 자동 추출(예: `r_classab_battery ≥ K_replica·ID(M15)/(ID(M1a)+ID(M1b))`
+  같은 관계를 손으로 안 짜고 자동 도출).
+- `presolve_warm_start()` — 위 둘을 조합해 SLSQP 시작점 생성.
+
+K_replica/r_classab_battery 부등식과 L_cascode/L_stage2out 1D LUT 이분탐색
+웜스타트는 이미 손으로 유도·실측 검증까지 끝났다("세션27 결론 ## B" 참고) --
+이 3개 함수는 그 손유도를 일반화하는 작업이다. **설계 근거 전체는 "세션27 결론
+## A" 참고.**
+
+### ② 그 다음 — scipy 설치 + SLSQP + multi-start 구현
+①의 3개 함수가 준비되면, 이 프로젝트 Python 환경(`C:\Python314`)에 scipy를
+설치하고(아직 미설치 확인됨) 실제 SLSQP+multi-start 최적화 루프를 구현.
+
+### ③ 그 다음 — 다른 회로 교차검증 + `horizontal_stack_id` declared 승격 논의
+`folded_cascode` 등으로 `resolve_stack_layout()`/헤드룸/SLSQP 일반화 확인 —
+세션22부터 계속 이월되던 항목, ①② 전부 끝난 뒤 진행. 이때 `derive_horizontal_
+stack_groups()`(세션28 신설, 지금은 candidates 전용)도 같은 회로로 교차검증하고,
+통과하면 `horizontal_stack_id`를 topology.json declared 필드로 승격할지 논의
+(`vertical_stack_id` 자신이 밟았던 candidates→declared 경로를 재사용할 예정).
+
+### ④ 계속 이월
+`run_harness.py`의 나머지 실전략(실제 회로 스펙 선정/제약 튜닝 등 운영 이슈) --
+세션22부터 계속 이월, 아직 착수 전.
+
+## AD. 완전히 해소되어 더 이상 이월할 필요 없는 항목 (혼동 방지용 명시적 기록)
+
+다음 항목들은 세션28에서 **완전히 종료**됐다 -- 과거 세션(세션27 이전) 기록에
+"다음 세션 이월"로 남아있는 경우가 있어도 더 이상 유효하지 않다:
+- `vertical_stack_id`의 헤드룸/레이아웃 역할 분리 재설계 (`derive_horizontal_
+  stack_groups()` 신설로 완료).
+- `allocate_stack_headroom()`의 M5/M61 헤드룸 크래시 (완전 해소).
+- M18_bg/M7/M36b 헤드룸 singleton gap 3건 (전부 해소).
+- `build_graph()`의 kind 동질성 미검증 문제 (하드 게이트로 해소).
+
+## AE. 이번 세션에서 배운 방법론(다음 세션에도 적용할 것)
+
+1. **"완료"라고 결론 낸 것도 실측 없이는 믿지 말 것** -- 1단계에서 "재설계
+   불필요"로 결론냈다가 사용자의 날카로운 질문 하나로 뒤집혔다. 자신만만한
+   결론일수록 반례를 찾아보는 습관이 필요.
+2. **role 라벨/선언을 "신뢰"하지 말고 가능하면 실제 connectivity/declared
+   데이터와 "대조"할 것** -- `ideal_sources` 검증이 정확히 이 원칙의 산물.
+3. **핵심 엔진 코드(여러 회로에 영향)를 고칠 땐 먼저 진단을 사용자에게
+   공유하고 범위를 확인받은 뒤 구현** -- 이번 세션 내내 이 패턴을 유지했고
+   사용자가 매번 명확한 방향을 제시해줬다(예: "(A)+(B) 모두", "이 방향으로
+   진행해줘", "바로 구현해").
+4. **self-test는 항상 실제 회로(현재는 `current_reuse_telescopic_ota` 51소자)
+   로 end-to-end 검증** -- 합성 fixture만으론 이번 세션에 발견된 문제들(M5의
+   진짜 정체가 차동쌍 tail이라는 것 등) 상당수를 못 잡았을 것.
