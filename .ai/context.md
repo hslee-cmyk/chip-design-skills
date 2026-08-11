@@ -1,11 +1,12 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션29 결론"(`## AF`~`## AI`)
-부터 먼저 읽을 것** — 이번 세션(세션29) 작업 요약 + 다음 최우선 순서 + 다음 세션
-시작 체크리스트가 거기 정리돼 있다("# 세션28 최종 요약"은 세션29 착수 시점의
-출발점이었을 뿐 더 이상 최신이 아니다 -- 그대로 보존하되 지금은 참고용). 아래는
-세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가
-궁금할 때만 찾아보면 된다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션29 결론"(`## AF`~`## AQ`,
+특히 **`## AP`(다음 세션 최우선)**와 **`## AN`(M15/M16 독립 L 조사 배경)`**)부터 먼저
+읽을 것** — 이번 세션(세션29) 작업 요약 + 다음 최우선 순서 + 다음 세션 시작
+체크리스트가 거기 정리돼 있다(`## AI`/`## AJ`는 세션29 중반 스냅샷이라 stale —
+`## AK` 이후가 최신). "# 세션28 최종 요약"은 세션29 착수 시점의 출발점이었을 뿐 더
+이상 최신이 아니다(그대로 보존하되 지금은 참고용). 아래는 세션 진행 중 실시간으로
+쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
 
 ---
 
@@ -6036,36 +6037,151 @@ __init__`에 `sized_snapshot: dict | None = None`을 추가하고 유일한 rais
 넘기도록 수정 -- 메시지는 그대로, 기존 `except InfeasibleSizingError`(grid search
 루프 등)는 이 속성을 몰라도 하위호환. self-test 전체 재실행으로 회귀 없음 확인.
 
-## AI. 다음 세션 최우선
+## AI. (세션29 후반부에서 ①②까지 완료 — 아래 "## AK 이후" 참고, 이 절은 세션29
+중반 시점 기록으로 보존)
 
-### ① `L_cascode`/`L_stage2out` 1D LUT 이분탐색 웜스타트 (세션27 B-5, 아직 미적용)
-`presolve_warm_start()`는 이 두 theta를 지금 bounds-midpoint로만 채운다 -- gain_db
-단조/`classab_centering_dev_v` 준-단조라는 사실은 세션27이 이미 손으로 확인했지만
-(B-5), `metric_stage_budget` 핸들러가 `"gain_db"`만 구현하는 제약과 맞물려 일반화에
-추가 설계가 필요해 이번 세션엔 의도적으로 보류했다(`presolve_warm_start()` docstring에
-명시).
+### ① `L_cascode`/`L_stage2out` 1D LUT 이분탐색 웜스타트 (세션27 B-5) — ✅ 완료(세션29 후반)
+### ② scipy 설치 + SLSQP + multi-start 본체 구현 — ✅ 완료(세션29 후반)
+### ③ 다른 회로 교차검증(세션22부터 이월) — 여전히 다음 세션 이후 항목, "## AN" 참고
+### ④ `run_harness.py` 나머지 실전략 — 계속 이월, "## AN" 참고
 
-### ② scipy 설치 + SLSQP + multi-start 본체 구현 (세션27 "## A"가 확정한 다음 단계)
-이 프로젝트 Python 환경(`C:\Python314`)에 scipy가 아직 없다(세션27에서 `import scipy`
-시도, `ModuleNotFoundError` 확인됨 -- 재확인 필요할 수 있음). `presolve_warm_start()`
-의 반환값(`x0`)을 시작점으로 실제 SLSQP+multi-start 최적화 루프를 구현 -- 실전 이슈
-3가지(세션27 "## A"에 이미 정리됨): (1) `InfeasibleSizingError`를 penalty 값으로
-변환, (2) 유한차분 step 크기 튜닝, (3) multi-start(non-convex이므로 여전히 필수).
+## AJ. (세션29 중반 커밋 상태 기록 — 이후 실제로 커밋됨, "## AK" 참고)
 
-### ③ 다른 회로 교차검증(세션22부터 이월) -- ①②보다 후순위
-`folded_cascode` 등으로 3개 웜스타트 함수 + `derive_horizontal_stack_groups()`가
-일반화되는지 확인. 이번 세션 구현은 `current_reuse_telescopic_ota` 한 회로로만
-실측 검증했다(다른 회로의 `A_signed`/`metric_stage_budget` 조합에서 `_resolve()`
-재귀나 metric footprint 판정이 안 맞는 경우가 나올 수 있음 -- 나오면 그 자리에서
-`_metric_device_footprint()`/`_theta_feed_footprint()`에 새 분기를 추가할 것,
-조용히 우회하지 말 것).
+## AK. scipy 설치 + SLSQP 본체 구현 (세션29 후반, 위 ② 완료)
 
-### ④ 계속 이월
-`run_harness.py`의 나머지 실전략(실제 회로 스펙 선정/제약 튜닝 등 운영 이슈) --
-세션22부터 계속 이월, 아직 착수 전.
+Windows 네이티브 `C:\Python314\python.exe`로 `python -m pip install scipy` 실행 —
+scipy 1.18.0(cp314-win_amd64 wheel) 설치 확인. `_optimize_theta_slsqp()`
+(`sizing_recipe.py`) 신설 — `presolve_warm_start()`의 x0를 시작점으로 `[0,1]` 정규화
+좌표에서 `scipy.optimize.minimize(method="SLSQP")` multi-start. `optimize_full_circuit_
+budget(..., search_method="slsqp")`로 배선(`search_method="grid"`가 기본, 하위호환).
+자유변수는 `derive_theta_dependency_graph()`가 `"coupled"`/`"ambiguous"`로 분류하고
+선형 feasibility 투표(`vote_determined`)에도 안 걸린 theta로 제한(dead/isolated/
+vote-determined는 이미 닫힌 관계로 확정, 더 흔들 이유 없음).
 
-## AJ. 커밋 상태
+## AL. 성능 근본 수정 3건 (세션29 후반, 실측 프로파일링 계기)
 
-이번 세션(세션29)에서 수정한 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`
-(리팩터 1건 + 신규 함수 3개 + `InfeasibleSizingError` 확장 1건), `.ai/context.md`(이
-절). **아직 커밋 안 함** -- 사용자 확인 후 커밋할 것.
+최초 SLSQP 스모크 테스트(n_starts=2, maxiter=15)가 **21.6분** 걸리고도 실패 —
+`evaluate()` 1회가 ~8초임을 프로파일링으로 실측(`cProfile`). 사용자 확인 후
+`_multilinear_interp()` 자체를 근본 수정하기로 결정(3가지):
+
+1. **`_multilinear_interp()` numpy→스칼라 재작성** — 호출 패턴이 거의 항상 M=1(단일
+   좌표) 또는 M~수십(VGS grid sweep)인데, 이런 작은 크기에서는 numpy 배열 생성
+   고정 오버헤드가 실제 연산량보다 훨씬 컸다(실측: 호출당 ~0.26ms, 원소 수와 거의
+   무관). `bisect`+파이썬 float 스칼라 연산으로 교체 — **차분테스트로 옛 구현과
+   수치 완전 일치(5000+ 랜덤+경계점, 오차 0) 확인, 단일점 호출 20배 속도향상**.
+2. **`SemiEmpiricalGmIdLUT._log_ID` 캐싱** — `_gm_id_curve()`가 매번 `np.log(np.clip(
+   self.ID,...))`를 4D 배열 전체에 재계산하던 것을 `__init__`에서 1회만 계산.
+3. **`SemiEmpiricalGmIdLUT._gm_id_curve_cache` 캐싱** — `search_gm_id_for_role()`이
+   gm_id 후보(기본 57개)를 스윕하는 동안 `(L,vds,vs)`는 고정인데 `_gm_id_curve(L,vds,
+   vs)`(VGS grid 전체 batched interp)를 57번 새로 계산하고 있었다(순수함수, 세션 내
+   `optimize_multistage()` 캐싱과 같은 패턴) — `(L,vds,vs)` 키로 캐싱.
+4. (부수) `_build_theta_evaluator()`에 `optimize_multistage()` 결과 캐싱(`_comp_cache`,
+   `comp_params` 키) — f_slew(t_lln 유일한 theta 경로)가 안 바뀐 유한차분 점들은
+   이 비싼 그리드서치를 스킵.
+
+**결과**: `evaluate()` 1회 8.0초 → **0.79초**(약 10배). 4건 전부 self-test 전체
+재실행으로 회귀 0건 확인(sizing_recipe.py 299라인 + stick_diagram.py 51개).
+
+## AM. 웜스타트 L 탐색의 진짜 함정 발견 + 수정 (세션29 후반)
+
+성능 수정 후 SLSQP(n_starts=6, maxiter=60)가 **30.7분** 걸리고도 6/6 전부 실패 --
+6번 중 **4번이 정확히 같은 낮은 `gain_db`(58.7961)**로 수렴하는 패턴을 발견, 원인은
+`L_cascode`/`L_stage2out`(objective인 power에 영향 없는 차원)가 다른 자유변수와 섞여
+SLSQP gradient에 흔들리는 것으로 진단 -- `search_stage_budget_L_warm_start()` 신설해
+이 둘을 SLSQP 자유변수에서 제외(LUT만으로 찾은 값을 고정값으로 사용).
+
+**1차 구현의 버그**(`progress=True` 콜백으로 실시간 진단해 발견): `L_stage2out`을
+`classab_centering_dev_v`만 최소화하도록 짰더니(gain_stages_sum과의 경쟁을 안 봄)
+그 최소점(L=1.64e-7, 하한 근처)이 `gain_db`를 77.2dB→58.9dB로 붕괴시켰다 -- LUT만으로는
+`gain_stages_sum`이 다른 stage(M1a/M4a)의 기여도 합산한다는 걸 알 수 없어 안전하게
+판단 불가. **수정**: `gain_stages_sum`과 `battery_centering_deviation`이 동시에 걸린
+theta는 LUT-only를 포기하고, `reference_theta_values`(다른 free theta는 이미 정해진
+값)를 고정한 채 `n_scan_full_circuit`(기본 21)점만 **실제 51소자 evaluate()로** 스캔해
+두 제약을 다 만족하는 점 중 centering이 최소인 것(다 만족하는 점이 없으면 위반량 합이
+최소인 것)을 고른다. 결과: `gain_db=75.73dB`(통과, 마진 0.13dB)/`classab_centering_
+dev_v=0.306V`(세션27/28의 0.336V보다 개선됐지만 여전히 0.15 기준 위반).
+
+또 하나 추가(같은 계기로 발견): `_optimize_theta_slsqp()`가 30분+짜리 진행상황 없는
+블랙박스였다 -- `scipy.optimize.minimize`의 `callback`으로 반복마다 경과시간/objective/
+최대 제약위반량을 찍는 `progress=True`(기본값) 추가. 캐시된 점이라 추가 evaluate()
+호출 없이 공짜.
+
+## AN. `classab_centering_dev_v` 근본원인 규명 (세션29 후반, 사용자 질문 계기)
+
+**"입력쪽 centering 문제인가?"라는 질문에 LUT 직접 스캔으로 답변**: 아니다 -- 이
+metric은 입력 차동쌍과 완전히 무관하게 M15(pmos)/M16(nmos) 자신의 gm_id/L만으로
+계산된다. 진짜 원인은 `L_stage2out` theta 하나가 M15/M16(kind가 다른 두 소자)에
+**같은 (gm_id=15, L)을 강제**하는데, sky130 LUT에서 PMOS VGS는 L에 크게 움직이고
+(0.625V→1.08V) NMOS는 거의 안 움직여서(0.75V→0.68V) 둘의 합이 VDD가 되는 L은 하한
+(0.15µm) 근처뿐 -- 그런데 그 지점이 gain엔 최악이라 정반대 방향 요구가 충돌한다
+(LUT 실측 표는 아래 "## AO" 참고용으로 재현 가능).
+
+**독립 L을 주면 깨지는 것 조사(사용자 질문)**: 실제로 깨지는 "회로 설계 원칙"은
+없다 -- `matching_pairs`는 M15-M25/M16-M26(같은 kind끼리)만 요구하지 M15-M16을
+안 묶는다. 깨지는 건 **엔진 계약 2곳**뿐:
+1. `compensation.stage_devices`가 `[M15,M16,M25,M26]`을 통째로 1개 stage로 묶어
+   `optimize_multistage()`가 gm/gm_id/L을 넷 다 동일 배정(topology.json 주석에 이미
+   "전부 같은 compensation 결과로 강제 동일"이라고 명시돼 있음) -- PMOS그룹(M15,M25)/
+   NMOS그룹(M16,M26)으로 쪼개야 함.
+2. `_feed_metric_stage_budget()` feed 계약("theta 하나 = devices 리스트 전체에 같은
+   L·같은 gm_id") -- theta를 2개로 쪼개거나 device별 gm_id/L 오버라이드로 스키마
+   확장해야 함.
+이건 **여러 회로에 쓰는 공유 엔진 코드**([[feedback_act_decisively_within_analysis_
+authority]] 원칙 그대로 적용) -- compensation의 위상보상 수식이 "스테이지 gm은
+스칼라 하나"로 가정하고 있어서, PMOS/NMOS gm을 실제로 분리하면 그 가정 자체가 깨질
+수 있는지부터 확인이 먼저 필요하다.
+
+## AO. SLSQP 최종 성공 검증 (세션29 결론, classab_centering 별개 이슈로 분리)
+
+세션27/28 self-test(L5c)가 이미 확립해둔 관례(classab_centering_dev_v를 "이번 검증
+범위 밖"으로 명시적으로 제외) 그대로 따라 검증: topology.json을 임시 복사해 이 제약만
+빼고 `search_method="slsqp"`(n_starts=4, maxiter=40) 실행 -- **4/4 시작점 전부
+success=True**, 252초 만에 완주(자유변수 5개, `progress=True`로 실시간 확인). 결과:
+`gain_db=84.15dB`/`mismatch_sigma_mV=3.42`/`cmrr_estimate_db=96.50dB`/`psrr_estimate_
+db=103.38dB` 전부 통과, `power_uA=0.412µA`(bounds-midpoint 기준 0.620µA 대비 **약
+33% 절감** -- SLSQP가 실제로 목적함수를 개선한다는 첫 실측 증거). `audit_ok=False`는
+레이아웃/매칭 파이프라인(finger geometry) 결과로 theta 최적화와 별개 -- 이번 세션
+범위 밖(그리드서치도 같은 audit 체계를 그대로 씀).
+
+**전체 self-test 재실행(성능 3수정 + L 탐색 수정 + progress 콜백 전부 포함)으로
+회귀 0건 최종 확인**(sizing_recipe.py 299라인).
+
+## AP. 다음 세션 최우선 (세션29 최종 확정)
+
+### ① `M15`/`M16` 독립 L 조사 (세션29 후반 "## AN"에서 촉발, 최우선)
+`classab_centering_dev_v`(gain과 상충)를 실제로 해소할 수 있는지 확인하려면
+`compensation.stage_devices`(M15/M16/M25/M26 = 1 stage → PMOS/NMOS 2개로 분리)와
+`_feed_metric_stage_budget()`(theta당 device 리스트 전체에 같은 gm_id/L → device별
+오버라이드) 두 엔진 계약을 건드려야 한다.
+
+**⚠️ 원칙(사용자 확정, 2026-08-11)**: **"L을 통일하는 게 맞는 경우"와 "L을 독립적으로
+둬야 하는 경우"를 충분히 조사한 뒤에만 harness(엔진) 코드에 반영한다.** 이번 세션에
+정리된 잠정 기준(["## AN" 참고, 아직 조사 완료 아님):
+- 통일이 맞는 경우: (a) 같은 kind끼리 매칭(전류미러/차동쌍, Pelgrom 미스매치 최소화
+  목적), (b) 위상보상 방정식이 "이 스테이지 gm은 스칼라 하나"로 단순화하고 있을 때
+  (지금 이 회로의 `current_reuse_telescopic_topology()`가 이 경우로 보임 -- 실제로
+  PMOS/NMOS gm 분리를 감당할 수 있는 수식인지 **확인 필요**), (c) 레이아웃/공정변동
+  관리가 전기적 정확도보다 우선일 때.
+- 독립이 맞는 경우: (a) PMOS/NMOS처럼 애초에 다른 물성(Vth/이동도)인 소자를 "매칭"
+  명분으로 묶었지만 실제로 매칭 효과가 없을 때, (b) 두 소자가 서로 다른(때로 상충하는)
+  제약을 각자 책임질 때(지금 M15=Vop1 레벨/M16=Vg15 레벨, 합=VDD 요구 -- 정확히
+  이 경우로 보임).
+다음 세션은 이 기준을 (1) `current_reuse_telescopic_topology()`의 위상보상 수식이
+실제로 PMOS/NMOS gm을 분리해도 GBW/PM 역산이 유효한지 직접 확인, (2) 다른 topology.json
+(예: `folded_cascode`, `nmcnr_amplifier`)에도 비슷한 "한 theta가 여러 kind를 묶는"
+패턴이 있는지 조사, (3) 그 위에서만 `compensation.stage_devices`/`metric_stage_budget`
+스키마 변경을 설계 — 순서로 진행할 것. 확인 없이 바로 스키마부터 고치지 말 것.
+
+### ② 다른 회로 교차검증(세션22부터 이월, ①과 조사범위 일부 겹침 -- 같이 진행 가능)
+`folded_cascode` 등으로 3개 웜스타트 함수 + `_optimize_theta_slsqp()` + `derive_
+horizontal_stack_groups()`가 일반화되는지 확인. 이번 세션 구현/검증은 전부
+`current_reuse_telescopic_ota` 한 회로로만 이뤄졌다.
+
+### ③ `run_harness.py` 나머지 실전략 -- 계속 이월
+세션22부터 이월, 아직 착수 전.
+
+## AQ. 커밋 상태 (세션29 최종)
+
+세션29 중 커밋 2건 완료: `cbffd4f`(feat, 웜스타트 3개 함수), `145b7a1`(docs, 세션29
+중간 결론). **이후 작업(scipy 설치/SLSQP 엔진/성능 수정 3건/L 탐색 함정 수정/progress
+콜백/이 문서 갱신)은 아직 커밋 안 함** -- 다음 턴에 커밋 예정.
