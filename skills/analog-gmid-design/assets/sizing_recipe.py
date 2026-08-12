@@ -6398,8 +6398,8 @@ if __name__ == "__main__":
     print()
     print("# current_reuse_telescopic_topology() 등록 재확인(2026-07-31, 원문 Eq.2-6 재도출 후,")
     print("# gmp/gmn/gm2 3-stage로 재설계 -- stage_devices 계약을 안 바꾸고 '분배'를 topology_fn")
-    print("# 자신이 하도록 함, 사용자와 함께 설계) -- 실제(toy) LUT로 optimize_multistage()")
-    print("# 고정점 반복 실행.")
+    print("# 자신이 하도록 함, 사용자와 함께 설계. 2026-08-12(세션30) gmp2/gmn2 4-stage로 확장)")
+    print("# -- 실제(toy) LUT로 optimize_multistage() 고정점 반복 실행.")
     print("# [!] 실측 발견(2026-07-31): gm2/Cgg2(2단)는 5회 안에 안정적으로 수렴하지만,")
     print("# gmp/gmn(1단, Cgg1_total 되먹임)은 이 toy LUT에서 3-주기 한계 순환(limit cycle)에")
     print("# 빠진다 -- find_optimal_sizing()의 objective=power 동점 처리가 Cgg1이 미세하게")
@@ -6413,18 +6413,24 @@ if __name__ == "__main__":
     _crt_tf = _COMPENSATION_REGISTRY["current_reuse_telescopic_topology"](
         t_lln=30e-9, PM_target_deg=70.0, Cc=500e-15, Cf=500e-15, Cs=500e-15, C_Ltot=1e-12)
     _crt_result = optimize_multistage(
-        _crt_tf, [lut, lut, lut], [float(v) for v in lut.L_grid], [float(v) for v in lut.VDS_grid],
+        _crt_tf, [lut, lut, lut, lut], [float(v) for v in lut.L_grid], [float(v) for v in lut.VDS_grid],
         [i * 0.5 for i in range(4, 58)], objective="power", w_max=200e-6, max_iter=20)
     assert _crt_result is not None, "optimize_multistage()가 실행가능점을 못 찾음"
     assert abs(_crt_result["gms"][0] - _crt_result["gms"][1]) < 1e-9, "gmp != gmn(Eq.5 위반)"
-    assert _crt_result["gms"][2] > 0 and _crt_result["cggs"][2] > 0, "gm2/Cgg2가 비정상"
+    assert _crt_result["gms"][2] > 0 and _crt_result["cggs"][2] > 0, "gmp2/Cgg2(PMOS)가 비정상"
+    assert _crt_result["gms"][3] > 0 and _crt_result["cggs"][3] > 0, "gmn2/Cgg2(NMOS)가 비정상"
+    assert abs(_crt_result["gms"][2] - _crt_result["gms"][3]) < 1e-9, \
+        "gmp2 != gmn2(세션30 50:50 기본 분할 위반) -- 이 toy LUT 자체엔 shared_gm_id_groups를 " \
+        "안 넘겼으니 gm 목표값 자체(topology_fn 반환)가 이미 같아야 한다"
     assert _crt_result["converged"] is False, "이 toy LUT는 원래 한계 순환에 빠져야 하는데 수렴함 -- 회귀 확인 필요"
     assert _crt_result["cycle_detected"] is True, "순환 감지 fallback이 발동하지 않음"
     assert _crt_result["cycle_period"] == 3, f"예상 밖 순환 주기: {_crt_result['cycle_period']}"
     _crt_cgg1_total = _crt_result["cggs"][0] + _crt_result["cggs"][1]
     _crt_beta_final = 500e-15 / (500e-15 + 500e-15 + _crt_cgg1_total)
+    _crt_gm2_total = _crt_result["gms"][2] + _crt_result["gms"][3]
     print(f"  gmp={_crt_result['gms'][0]*1e6:.2f}uS, gmn={_crt_result['gms'][1]*1e6:.2f}uS, "
-          f"gm2={_crt_result['gms'][2]*1e3:.4f}mS, iters={_crt_result['iters']}, "
+          f"gmp2={_crt_result['gms'][2]*1e3:.4f}mS, gmn2={_crt_result['gms'][3]*1e3:.4f}mS "
+          f"(합=gm2={_crt_gm2_total*1e3:.4f}mS), iters={_crt_result['iters']}, "
           f"cycle_period={_crt_result['cycle_period']}(순환 구간 gm 평균으로 안정된 추정치)")
     print(f"  Cgg1_total(M1a+M4a, 평균 gm 기준 재sizing)={_crt_cgg1_total*1e15:.2f}fF -> "
           f"beta={_crt_beta_final:.4f}(원문의 고정 근사 0.48과 다를 수 있음 -- 이 LUT의 실제 "

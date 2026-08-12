@@ -270,25 +270,55 @@ def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float, Cc: fl
       받음")을 안 바꾸고, "합을 나누는 일"을 이 함수 자신이 하도록 함: PMOS M1a/M1b는
       `gmp`만, NMOS M4a/M4b는 `gmn`만 받아야 하는데, 이건 diff pair처럼 "각자 gm1을 온전히
       가짐"과 다른 패턴이라 그대로 두면 안 됨). `optimize_multistage()`는 스테이지 개수를
-      전혀 하드코딩하지 않는 제네릭 엔진(`n = len(luts)`)이라, 반환 리스트 길이를 2에서
-      3으로 늘리는 데 엔진 쪽 변경이 전혀 필요 없다 — `nmcnr_3stage_topology()`가 이미
-      3개(gm1/gm2/gm3)를 반환하는 것과 정확히 같은 메커니즘 재사용일 뿐이다.
+      전혀 하드코딩하지 않는 제네릭 엔진(`n = len(luts)`)이라, 반환 리스트 길이를 늘리는 데
+      엔진 쪽 변경이 전혀 필요 없다 — `nmcnr_3stage_topology()`가 이미 3개(gm1/gm2/gm3)를
+      반환하는 것과 정확히 같은 메커니즘 재사용일 뿐이다.
     - Eq.6(p.4): `omega_p2 ≈ gm2 / (C_Ltot*Cgg2/Cc + Cgg2 + C_Ltot)`, 그리고 **"Given
       phase margin PM = tan⁻¹(ωp2/ωc) [9]"**(원문이 직접 인용하는 참고문헌 — 표준 2-pole
       위상마진식) → `ωp2/ωc = tan(PM_target)`(원문 검산: PM=70°→tan(70°)=2.7475≈2.8,
-      원문이 준 "2.8"과 일치). `Cgg2`는 `prev_cggs[2]`(2단 게이트 커패시턴스,
-      `miller_ota_topology()`와 동일한 고정점 반복 패턴).
+      원문이 준 "2.8"과 일치). `Cgg2`는 2단 게이트 커패시턴스(`miller_ota_topology()`와
+      동일한 고정점 반복 패턴).
 
-    ⚠️ 원문이 다루지 않는 것(2026-07-31 확인, 사용자 질문에 대한 답): 피드백망(Cf/Cs)이
-    만드는 별도 극점/영점은 원문 어디에도 없다 — Eq.4의 β 근사와 Eq.6의 순수 2-pole PM식
-    뿐이다. 즉 피드백망은 β(저항성 감쇠)에만 관여하고 위상마진 계산 자체엔 추가 극점으로
-    들어가지 않는다는 게 원문의 명시적 모델링 범위다.
+    ⚠️ **2026-08-12(세션30) 정정 -- `gm2`를 `gmp2`/`gmn2`(M15/M25=PMOS, M16/M26=NMOS)로
+    분리 반환**: Eq.5와 같은 이유(gm1→gmp/gmn)가 아니라 정반대 이유다 -- Eq.5의 gmp/gmn은
+    "물리적으로 같은 값이어야 한다"(gmn=gmp 가정)는 게 원문 근거지만, Eq.6의 2단(M15/M25
+    PMOS·M16/M26 NMOS)은 서로 다른 kind라 **원문이 두 kind의 L을 같게 두라고 요구한 적이
+    없다**(원문 어디에도 M15/M16 간 matching 요구가 없음 -- 문헌조사로도 cross-kind 상보
+    출력쌍의 L 통일을 요구하는 회로이론적 원칙은 없음을 확인, `.ai/context.md` 세션30
+    참고). 오히려 `classab_centering_dev_v`(M15=Vop1 레벨/M16=Vg15 레벨, 합=VDD 요구)가
+    실측으로 확인한 건 **두 소자가 서로 다른 DC 동작점 제약을 각자 책임진다**는 것 --
+    같은 L 하나로 억지로 묶으면(세션29 "## AN") gain_db와 정반대 방향으로 상충한다.
+    `topology.json`의 declared `matching_pairs`도 이미 M15-M25(PMOS끼리)/M16-M26(NMOS끼리)
+    로만 선언돼 있고 M15-M16 cross-kind 매칭은 애초에 없다 -- 이 함수의 반환 분리는 그
+    선언을 그대로 따르는 것뿐이다. `gm2 = gmp2 + gmn2`(Eq.5의 gm1=gmp+gmn과 동일 항등식,
+    `gain_stages_sum` metric이 이미 `gm(M15)+gm(M16)` 병렬 합으로 계산하고 있었다 --
+    sizing_recipe.py `_metric_gain_stages_sum()` 참고, 이번 분리로 그 계산과 정확히
+    일치하게 됨). **분할 비율은 원문이 근거를 안 주므로 Eq.5와 같은 관례로 50:50
+    (`gmp2=gmn2=gm2/2`)을 기본값으로 둔다** -- 실제로 M15/M25(PMOS)와 M16/M26(NMOS)의
+    L이 서로 갈라지는 지점은 이 초기 분할이 아니라, 그 이후 `L_stage2out_p`/
+    `L_stage2out_n`(topology.json 별도 theta, 각자 독립 탐색)에서 결정된다 -- 이 함수는
+    "M15/M25가 gmp2를, M16/M26이 gmn2를 받는다"는 stage_devices 위치 매핑만 책임진다.
+    ⚠️ L은 독립이어도 **ID(M15)=ID(M16)는 여전히 강제돼야 한다** -- Vom이 M15.drain/
+    M16.drain 둘뿐인 2단자 net이라(사이징 엔진이 읽는 netlist 기준) push-pull 출력단의
+    순수 connectivity KCL이 요구하는 것(선언이 아니라 회로 위상 자체의 귀결, 세션30
+    self-test가 `propagate_topology_forced_currents()` ValueError로 실측 확인). gmp2=gmn2
+    50:50만으로는 부족하다 -- 두 스테이지가 각자 다른 kind LUT에서 독립적으로 gm_id를
+    고르면 ID=gm/gm_id가 갈라진다. topology.json의 `compensation.shared_gm_id_groups`에
+    `[2,3]`(이 함수의 stage index, M15/M25 그룹·M16/M26 그룹)을 추가해 gm_id만 공유시켜
+    해결한다(L은 `_size_group_at_gm_id()`가 그룹 안에서도 스테이지별로 독립 탐색 —
+    `shared_gm_id_groups`는 gm_id 공유일 뿐 L 공유가 아니다, sizing_recipe.py 확인).
 
-    반환: `topology_fn(prev_cggs) -> [gmp, gmn, gm2]`(3개, `prev_cggs`도 그에 맞춰 3개
-    — `prev_cggs[0]`=M1a/M1b PMOS의 Cgg, `prev_cggs[1]`=M4a/M4b NMOS의 Cgg, `prev_cggs[2]`
-    =2단 소자의 Cgg). β의 `Cgg1`은 `prev_cggs[0]+prev_cggs[1]`의 **합**이다 — M1a와 M4a
-    게이트가 물리적으로 같은 입력 핀(Vip/Vim)을 공유하므로, 그 핀에서 보이는 총
-    커패시턴스는 두 소자 게이트 커패시턴스의 합이기 때문이다.
+    반환: `topology_fn(prev_cggs) -> [gmp, gmn, gmp2, gmn2]`(4개, `prev_cggs`도 그에 맞춰
+    4개 — `prev_cggs[0]`=M1a/M1b PMOS의 Cgg, `prev_cggs[1]`=M4a/M4b NMOS의 Cgg,
+    `prev_cggs[2]`=M15/M25(PMOS) 2단 소자의 Cgg, `prev_cggs[3]`=M16/M26(NMOS) 2단 소자의
+    Cgg). β의 `Cgg1`은 `prev_cggs[0]+prev_cggs[1]`의 **합**이다 — M1a와 M4a 게이트가
+    물리적으로 같은 입력 핀(Vip/Vim)을 공유하므로, 그 핀에서 보이는 총 커패시턴스는 두
+    소자 게이트 커패시턴스의 합이기 때문이다. Eq.6의 `Cgg2`는 `prev_cggs[2]+prev_cggs[3]`
+    의 **합**을 그대로 쓴다(Cgg1과 같은 패턴 재사용, 세션29까지의 근사 수준을 유지 --
+    이전엔 4소자 전체를 PMOS LUT 하나로 뭉뚱그린 값이었는데 이제 각 kind 전용 LUT로 계산된
+    두 값의 합이라 오히려 더 정확해졌다. Cc가 실제로 M16.gate에만 물린다는 물리적 사실을
+    반영해 `prev_cggs[3]`만 쓰는 게 더 정밀할 수 있으나, 이건 Eq.6 자체의 물리적 재검토라
+    이번 세션 범위(L 독립화) 밖 -- 다음 조사 항목으로 남긴다).
 
     검증 상태: Eq.2/3/5/6 전부 원문 수식과 대조 확인(원문 수치 예제로 gm1(=gmp+gmn)=238µS/
     ωp2/ωc=2.8 재현). β는 원문의 고정 근사(0.48) 대신 `prev_cggs[0]+prev_cggs[1]` 고정점
@@ -304,12 +334,13 @@ def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float, Cc: fl
             cgg2 = C_Ltot * 0.1  # 초기 추정(miller_ota_topology와 같은 관례)
         else:
             cgg1_total = prev_cggs[0] + prev_cggs[1]  # M1a(PMOS)+M4a(NMOS), 같은 입력 핀 공유
-            cgg2 = prev_cggs[2]
+            cgg2 = prev_cggs[2] + prev_cggs[3]  # M15/M25(PMOS)+M16/M26(NMOS), Cgg1과 동일 패턴
         beta = Cf / (Cf + Cs + cgg1_total)
         gm1 = omega_c * Cc / beta
         gmp, gmn = gm1 / 2.0, gm1 / 2.0  # Eq.5: gmn=gmp 가정
         gm2 = omega_p2 * (C_Ltot * cgg2 / Cc + cgg2 + C_Ltot)
-        return [gmp, gmn, gm2]
+        gmp2, gmn2 = gm2 / 2.0, gm2 / 2.0  # 세션30: kind 경계 분리, 분할비 50:50은 기본값(위 docstring 참고)
+        return [gmp, gmn, gmp2, gmn2]
 
     # 2026-08-10(세션27) -- omega_c(Eq.2)는 do.md §7.3.1 Level2->Level6 사슬에서 CMFB
     # 대역폭조건(N_cmfb_bw)의 입력이어야 하는데, 지금까지는 이 클로저 안에 갇혀 호출자가
@@ -372,7 +403,7 @@ if __name__ == "__main__":
     assert abs(_ratio_expected - 2.8) < 0.06, "원문 수치 예제(2.8)와 너무 다름"
 
     print("  [Eq.4/5 cold-start(prev_cggs=None) -- Cgg1=0 가정, beta=0.5 정확히, gmp=gmn=gm1/2]")
-    gmp_cold, gmn_cold, gm2r_cold = tf4(None)
+    gmp_cold, gmn_cold, gmp2_cold, gmn2_cold = tf4(None)
     _beta_cold_expected = 500e-15 / (500e-15 + 500e-15 + 0.0)
     _gm1_cold_expected = (6.9 / 30e-9) * 500e-15 / _beta_cold_expected
     assert abs(gmp_cold - _gm1_cold_expected / 2) / (_gm1_cold_expected / 2) < 1e-9
@@ -381,7 +412,8 @@ if __name__ == "__main__":
           f"(원문의 beta=0.48 고정 근사와 달리 이 함수는 Cgg1=0에서 출발해 반복 수렴)")
 
     print("  [Eq.4 -- Cgg1_total(M1a+M4a 합)을 명시적으로 주면 beta/gmp/gmn이 그만큼 변함]")
-    gmp_fed, gmn_fed, gm2r_fed = tf4([30e-15, 20e-15, 500e-15])  # M1a Cgg=30fF, M4a Cgg=20fF 가정
+    gmp_fed, gmn_fed, gmp2_fed, gmn2_fed = tf4([30e-15, 20e-15, 300e-15, 200e-15])
+    # M1a Cgg=30fF, M4a Cgg=20fF, M15(PMOS) Cgg=300fF, M16(NMOS) Cgg=200fF 가정
     _beta_fed_expected = 500e-15 / (500e-15 + 500e-15 + 50e-15)
     _gm1_fed_expected = (6.9 / 30e-9) * 500e-15 / _beta_fed_expected
     assert abs(gmp_fed - _gm1_fed_expected / 2) / (_gm1_fed_expected / 2) < 1e-9
@@ -389,10 +421,18 @@ if __name__ == "__main__":
     print(f"    Cgg1_total=30fF+20fF=50fF -> beta={_beta_fed_expected:.4f}, "
           f"gmp=gmn={gmp_fed*1e6:.2f}uS (Cgg1=0일 때보다 커짐 확인)")
 
-    print("  [Eq.6 -- Cgg2(prev_cggs[2])를 키우면 gm2도 커짐(단조성, miller_ota_topology와 같은 성질)]")
-    assert gm2r_fed > gm2r_cold or abs(gm2r_fed - gm2r_cold) < 1e-15, "Cgg2 반영 확인"
-    print(f"    gm2(Cgg2=1pF*0.1 초기추정)={gm2r_cold*1e3:.4f}mS, "
-          f"gm2(Cgg2=500fF 명시)={gm2r_fed*1e3:.4f}mS")
+    print("  [세션30 -- gm2가 gmp2/gmn2로 분리되고 항상 gmp2=gmn2=gm2/2(50:50 기본값)임을 확인]")
+    assert gmp2_cold == gmn2_cold, "gmp2=gmn2(50:50 기본값)이 깨짐"
+    assert gmp2_fed == gmn2_fed, "gmp2=gmn2(50:50 기본값)이 깨짐(Cgg 반영 후)"
+    print(f"    gmp2=gmn2={gmp2_cold*1e3:.4f}mS(cold) -> {gmp2_fed*1e3:.4f}mS(Cgg2=300f+200f=500fF 반영) "
+          f"(합=gm2, Eq.6과 동일 스케일 -- 분할 자체는 50:50, 실제 L 독립화는 topology.json의 "
+          f"L_stage2out_p/L_stage2out_n theta가 담당)")
+
+    print("  [Eq.6 -- Cgg2(prev_cggs[2]+prev_cggs[3])를 키우면 gm2(=gmp2+gmn2)도 커짐(단조성)]")
+    _gm2_cold, _gm2_fed = gmp2_cold + gmn2_cold, gmp2_fed + gmn2_fed
+    assert _gm2_fed > _gm2_cold or abs(_gm2_fed - _gm2_cold) < 1e-15, "Cgg2 반영 확인"
+    print(f"    gm2(Cgg2=1pF*0.1 초기추정)={_gm2_cold*1e3:.4f}mS, "
+          f"gm2(Cgg2=500fF 명시)={_gm2_fed*1e3:.4f}mS")
     print("  참고: 원문의 beta=0.48/gm1=238uS는 실제 M1a/M4a 사이징에서 나온 Cgg1을 반복")
     print("  수렴시켜야 재현 여부를 알 수 있다(sizing_recipe.py의 optimize_multistage() 통합")
     print("  테스트 참고) -- 이 파일은 topology_fn 자체의 식(Eq.2-6)만 검증한다.")
