@@ -6372,9 +6372,79 @@ C-type feed로 F-type/B-type 타겟을 참조하게 되면 그때 같은 패턴�
 확인 -- **이 패턴은 `dense_candidates()`(이번 세션 신설) 하나뿐이었고 이미 수정
 완료, 다른 곳엔 없음.**
 
-## BA. 다음 세션 최우선 (세션30 최종 확정)
+## BC. 성능 감사(사용자 요청, "재계산으로 수행시간 소비하는 부분 전수 검사") -- 진행 중
+사용자 지시로 중단, **다음 세션 최우선①로 격상**
 
-### ① classab_centering_dev_v -- gm_id 독립화 조사 (AT에서 확정된 미해결, 최우선)
+AY(gm_id_to_id_density의 `_log_ID` 캐시 누락, 이미 수정·커밋됨)를 고친 뒤 "다른
+재계산 낭비도 있는지" 계속 감사하던 중, **커밋 안 된 새 발견**이 나온 시점에
+사용자가 문서화를 지시해 중단했다 -- 아래는 다음 세션이 이어서 바로 구현할 수 있게
+남기는 상세 기록이다 (⚠️ **아직 코드 수정 안 됨, self-test/성능 재측정도 안 됨**).
+
+**발견 내용**: `find_optimal_sizing()`의 L×VDS×gm_id 3중루프 한 번(한 조합)마다
+`gm_id_to_id_density()`/`gm_gds_ratio()`/(조건부)`cgg_absolute()`가 **각자 독립적
+으로** 정확히 같은 인자 `(gm_id, L, VDS, vs)`로 `_solve_vgs()`를 호출한다
+(`sizing_recipe.py`, 각각 359/374/369행 근처). `_solve_vgs()`(325~335행) 내부는:
+
+```python
+def _solve_vgs(self, gm_id, L, vds, vs):
+    _, gm_id_vals = self._gm_id_curve(L, vds, vs)   # (L,vds,vs)로 캐싱됨 -- 빠름
+    order = np.argsort(gm_id_vals)                   # ⚠️ 매 호출마다 재계산(캐싱 안 됨)
+    gm_id_sorted, vgs_sorted = gm_id_vals[order], self.VGS_grid[order]
+    ...
+    return float(np.interp(gm_id, gm_id_sorted, vgs_sorted))  # ⚠️ 이것도 매번
+```
+
+`_gm_id_curve(L,vds,vs)`는 세션29가 이미 (L,vds,vs)로 캐싱해뒀지만(`_gm_id_curve_
+cache`), **`_solve_vgs()` 자신은 캐싱이 없다** -- `np.argsort`(~49원소 정렬)와
+`np.interp` 역보간이 `find_optimal_sizing()` 한 조합당 **최대 3번(2~3개 호출부가
+전부 같은 gm_id를 쓰므로 완전히 중복) 재실행**된다. `search_gm_id_for_role()`의
+"gain" role 분기(각 feasible gm_id마다 `gm_gds_ratio()`를 또 부르는 2차 루프)에서도
+같은 인자로 재호출되는 경우가 있어 낭비가 더 누적될 수 있다(다음 세션에서 실측
+확인 필요).
+
+**제안하는 수정(다음 세션에서 구현)**: `__init__`에 `self._solve_vgs_cache: dict =
+{}` 신설(기존 `_gm_id_curve_cache`/`_log_ID`와 동일한 확립된 패턴), `_solve_vgs()`
+를 `(gm_id, L, vds, vs)` 키로 메모이즈. 순수함수(같은 4-tuple 입력 → 같은 출력)라
+정확성 위험 없음(캐시 크기도 `find_optimal_sizing()` 한 번의 전체 격자 크기로
+바운드됨, 예: L×VDS×gm_id ≈ 41×13×54 ≈ 28,782개 float 항목 -- 메모리 무시 가능).
+AY가 "2.7~3배" 속도향상을 냈는데, 이 수정은 **AY와 별개로 추가 speedup**을 낼
+가능성이 크다(AY는 `_query()` 자체의 배열 재계산을, 이건 `_solve_vgs()`의
+정렬+역보간 중복 호출을 없앤다 -- 겹치지 않는 별도 병목).
+
+**다음 세션 시작 시 할 일**:
+1. 위 `_solve_vgs_cache` 구현.
+2. `grep -n "_solve_vgs(" sizing_recipe.py`로 전체 호출부(중단 시점에 9곳까지 셈,
+   정확한 목록 미확정) 전수 확인 -- 캐시가 전부 올바르게 적중하는지.
+3. self-test(`sizing_recipe.py`/`stick_diagram.py`) 전체 재실행 exit 0 확인(순수
+   캐시라 값 변화 없어야 함 -- 회귀면 즉시 원인 재조사).
+4. 성능 재측정 -- 이번 세션이 쓴 방법 그대로 재현(스크래치패드 스크립트는 세션
+   종료로 사라지므로 다시 작성해야 함): `optimize_multistage()`를
+   `current_reuse_telescopic_topology()` + 실제 sky130 LUT로 직접 호출해
+   `time.time()` 전후 비교, `dense_L_candidates(n=41)`/`dense_candidates(VDS,n=13)`
+   조합으로 AY 수정 전/후/이번 수정 후 3단 비교하면 이상적.
+5. **이 감사(Task "전수로 검사") 자체가 아직 안 끝났다** -- `_solve_vgs()` 건 하나만
+   찾고 중단됐다. 다음으로 점검할 후보(우선순위 순, 아직 미착수):
+   - `search_gm_id_for_role()`의 gm_id_grid 스윕 루프(1155행 근처) -- `_solve_vgs`
+     캐싱 수혜를 받는지, 그 외 자체 재계산은 없는지.
+   - `_evaluate()`(`sizing_recipe.py`, `_build_theta_evaluator()` 안) -- theta
+     격자 탐색(`optimize_full_circuit_budget()`의 grid 모드) 매 조합마다
+     `load_topology()`/`device_roles`/`thetas` 등을 다시 만드는지, 아니면
+     `_build_theta_evaluator()`가 한 번만 계산하고 재사용하는지 재확인(이미
+     한 번만 하는 것으로 보이나 전수 확인 안 함).
+   - `stick_diagram.py`의 레이아웃 알고리즘(`assign_finger_geometry`/
+     `audit_row_split`/`derive_horizontal_stack_groups` 등) -- 이번 세션엔
+     아예 안 봄, LUT 재계산 패턴이 있는지 미확인.
+   - `_gm_id_curve_cache`/`_solve_vgs_cache`(신설 예정)가 LUT 인스턴스 생애주기
+     동안 무한정 커지는지(캐시 무효화/크기 제한 필요 여부) -- 지금까지는 한 세션
+     안에서 회로 1개짜리 실행이라 문제 없었지만, 여러 회로/여러 LUT를 오래 쓰는
+     장기 프로세스(예: 배치 최적화 스크립트)라면 재검토 여지.
+
+## BA. 다음 세션 최우선 (세션30 최종 확정, BC 반영해 재정렬)
+
+### ① 성능 감사 마무리 -- `_solve_vgs()` 캐싱 구현 + 감사 계속 (BC 참고, 최우선)
+위 BC 전체가 상세 내용 -- 구현·검증·잔여 점검 항목 전부 거기 있음.
+
+### ② classab_centering_dev_v -- gm_id 독립화 조사 (AT에서 확정된 미해결)
 L 독립화만으로는 gain_db/centering 동시만족이 물리적으로 불가능함이 확정됐다
 (400점 조인트 스캔). 다음 조사: (a) gm2p/gm2n(M15/M16의 gm_id)도 50:50 고정 대신
 독립 탐색하면 풀리는지(현재 `shared_gm_id_groups=[[2,3]]`가 gm_id를 강제 공유 중
@@ -6382,20 +6452,22 @@ L 독립화만으로는 gain_db/centering 동시만족이 물리적으로 불가
 다른 방식으로 유지하면서 gm_id만 갈라야 함, 설계 필요). (b) 안 풀리면 스펙 자체
 (V_swing/centering 허용치 0.15V)를 재검토해야 하는지 회로설계 관점에서 재확인.
 
-### ② 다른 회로 교차검증 (세션22부터 이월, 이번 세션 신설 메커니즘 4개 포함)
+### ③ 다른 회로 교차검증 (세션22부터 이월, 이번 세션 신설 메커니즘 4개 포함)
 `folded_cascode` 등으로 웜스타트 3함수+SLSQP+`derive_horizontal_stack_groups()`
 뿐 아니라 이번 세션 신설분(`dense_candidates()`/`reserved_vds_for_other_stack_
 members()`/`make_replica_feasibility_check()`/`stage_fT_targets`)도 일반화되는지
 확인 -- 전부 `current_reuse_telescopic_ota` 한 회로로만 검증됨.
 
-### ③ `run_harness.py` 나머지 실전략 -- 계속 이월
+### ④ `run_harness.py` 나머지 실전략 -- 계속 이월
 세션22부터 이월, 아직 착수 전.
 
-### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 필요
+### ⑤ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 필요
 AU③에서 발견, 필요 슬루 레이트가 출력 전압 스윙에 의존하는데 이 프로젝트에 아직
 V_swing 스펙이 없음 -- 사용자와 정의부터 논의할 것(임의로 만들지 말 것).
 
 ## BB. 커밋 상태 (세션30)
 
 세션30 코드 변경 커밋 완료: `9e12032`(fix, LUT 보간 전면화+B엔진 하류파급 근본수정
-5건+fT 준정적 검증 일반화). 이 문서 갱신은 별도 docs 커밋 예정.
+5건+fT 준정적 검증 일반화), `ca61e4d`(docs, 이 섹션 최초 기록). **BC(성능 감사
+`_solve_vgs()` 발견)는 아직 코드 미수정 -- 이 갱신(BC 추가+BA 재정렬)까지만 반영된
+채로 커밋 예정, 다음 세션이 실제 구현부터 시작.**
