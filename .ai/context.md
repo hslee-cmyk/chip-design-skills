@@ -7277,48 +7277,6 @@ gm_id=24.5 근처에서 이미 `~4.2e-10` 수준까지 붕괴, W가 수십 mm대
 3. L_p를 1.0µm(LUT 최대) 밖으로 더 열어볼 여지는 없음(이미 LUT 최대치, 외삽 불가 --
    BI도 같은 결론).
 
-## BE. 다음 세션 최우선 (세션31 최종 확정, BS 반영해 갱신)
-
-### ① `gain_db` 미달 -- exact VGS-매칭을 tolerance-band로 완화할지 결정 + 구현 (BS,
-최우선)
-BS가 확정한 근본원인(exact 매칭이 BI의 원래 부등식 제약보다 훨씬 좁음) 그대로.
-다음 세션 시작 시 BS의 옵션 1/2/3을 사용자에게 보고하고, 2번(tolerance-band 완화)로
-갈지 확정한 뒤: (승인되면) `gm_id_match_vgs_of` 재설계 -> self-test -> 실회로
-재검증(`gain_db>=75.6`) -> `.ai/context.md`에 결론 기록 -> 커밋 여부 확인. (1번을
-유지하기로 하면) `current_reuse_telescopic_ota`가 이 상태로는 `gain_db` 제약을 못
-만족한다는 걸 명시적으로 인정하고 회로/제약 자체의 재검토(다른 스테이지 배분, Cc/Cf
-재설계 등)로 방향 전환.
-
-### ② 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
-변경 없음, 상세는 위 BA③ 참고. `folded_cascode` 등으로 이번 세션 신설분(B/C/F 배치
-조회/캐시 공유 + BL의 gm_id_role/gm_id_match_vgs_of + BM의 declaration-order 검사기 +
-BR의 N-way 조인트 스캔)도 일반화되는지 아직 미검증(다른 회로엔 애초에 `gm_id_match_
-vgs_of`가 없어 조인트 스캔 경로 자체가 안 타서 회귀는 없음을 self-test로 확인했지만,
-"정확히 이 메커니즘이 필요한 새 회로"에서 검증된 적은 없음).
-
-### ③ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
-
-### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
-
-### ⑤ SLSQP 전체 실행 성능 재측정 (BH에서 신설, 변경 없음)
-C 구현의 실제 절감폭(`_comp_cache` 재사용)은 `presolve_warm_start()` 단독 검증만
-했고, 실제 `_optimize_theta_slsqp()` 전체(multi-start 포함, 수 분~수십 분대)에서
-전/후 비교는 아직 안 함.
-
-## BF. 커밋 상태 (세션31, BR/BS에서 갱신)
-
-**`21aae3a`(BK, L_grid_step)까지 커밋 완료.** 그 이후(BL~BS 전부) **미커밋**(BQ/BS는
-설계·조사만, 코드 변경 없음). `git status` 기준 수정된 파일은 `sizing_recipe.py`와
-`current_reuse_telescopic_ota.topology.json` 둘뿐(`run_harness.py`는 BK에서 이미
-커밋됨, 이번 세션엔 안 건드림). `.ai/context.md`(이 BL~BS 갱신분 포함)도 미커밋.
-**BS의 설계질문(exact vs tolerance-band 매칭)이 아직 사용자 확인 전이라 커밋하지
-않았음** -- 사용자가 "커밋해줘"라고 명시하지 않는 한 커밋 금지 원칙 그대로 유지,
-다음 세션에서 BS 방향 확정 + `gain_db` 목표 달성 후 사용자에게 커밋 여부 물을 것.
-
-self-test 최종 상태(세션31 종료 시점, BR 구현 반영): `sizing_recipe.py` 단독 실행 시
-exit 0, 트레이스백/AssertionError 없음, 마지막 `validate_theta_declaration_order()`
-섹션(BR이 확장한 metric-의존성 검사 포함)까지 정상 완주 -- 회귀 없음.
-
 ## BT. 세션31 계속(같은 세션, 사용자 "2번이 올바른 설계" 확인 + "응, 진행해줘") --
 tolerance-band 재설계 **구현 완료·검증됨**, `gain_db`는 개선됐으나 75.6dB 목표는
 여전히 미달(원인 확정, 별개 이슈와 얽혀 있음)
@@ -7403,40 +7361,6 @@ current_joint_scan()` 전면 재작성 -- BR의 "dependent/체인/위상정렬" 
 (M1a/M1b 사이징, 이 세션 범위 밖의 별개 작업) 병행, 둘 다 없이는 `gain_db` 단독
 75.6dB 도달 여부조차 이 자유도 안에서 확정 짓기 어렵다.
 
-## BE(최종). 다음 세션 최우선 (세션31 종료 시점 확정, BT 반영)
-
-### ① `gain_db>=75.6` AND `mismatch_sigma_mV<=5.0` 동시만족 재검증 (BT에서 신설)
-tolerance-band 재설계(BT)는 완료·검증됐고 `gain_db`를 71.14->72.38dB로 개선했지만
-아직 75.6dB 미달, SLSQP(n_starts=3/maxiter=25)로는 안 풀림. **`mismatch_sigma_mV`
-위반(M1a/M1b 사이징, 세션31 전체 기간 내내 미해결로 남아있던 별개 이슈)이 동시에
-걸려 있어 이번 세션에선 `gain_db` 단독으로 75.6dB에 닿을 수 있는지조차 명확히 못
-갈랐다.** 다음 세션: (a) SLSQP를 더 넉넉한 파라미터(n_starts>=5, maxiter>=50)로
-재시도해 두 제약이 동시에 풀리는지 먼저 확인, (b) 안 풀리면 `mismatch_sigma_mV`
-(M1a/M1b, 입력쌍 매칭)를 먼저 해소해야 `gain_db`만의 순수 여유를 볼 수 있는지 판단.
-
-### ② 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
-변경 없음 -- BR/BT의 N-way/tolerance-band 조인트 스캔이 `gm_id_match_vgs_of`가
-없는 다른 3개 회로엔 아예 안 타므로(self-test로 회귀 없음 확인) 다른 회로에서
-"정확히 이 메커니즘이 필요한" 실사례는 아직 없음.
-
-### ③ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
-
-### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
-
-### ⑤ SLSQP 전체 실행 성능 재측정 (BH에서 신설, 변경 없음)
-
-## BF(최종). 커밋 상태 (세션31 종료 시점, BT에서 갱신)
-
-**`21aae3a`(BK, L_grid_step)까지 커밋 완료.** 그 이후(BL~BT 전부) **미커밋**.
-`git status` 기준 수정 파일은 `sizing_recipe.py`/`current_reuse_telescopic_ota.
-topology.json` 둘뿐(`run_harness.py`는 BK에서 이미 커밋, 이번 세션 안 건드림).
-`.ai/context.md`(BL~BT 갱신분 포함)도 미커밋. **`gain_db>=75.6` AND `mismatch_
-sigma_mV<=5.0` 동시만족이 아직 확정 안 된 상태라 커밋 보류** -- 사용자가 "커밋해줘"
-명시 전까지 커밋 금지 원칙 유지.
-
-self-test 최종 상태(세션31 진짜 종료 시점, BT 반영): exit 0, 트레이스백/
-AssertionError 없음, 전수 PASS -- BT의 4건 실측 버그 수정 전부 반영된 상태로 재확인.
-
 ## BU. 세션31 계속(같은 세션, 사용자 "2번 먼저 해소해줘") -- `mismatch_sigma_mV`
 근본원인 해소 **구현 완료·검증됨** -- `gain_db>=75.6` AND `mismatch_sigma_mV<=5.0`
 **둘 다 동시 만족(SLSQP SUCCESS)으로 세션31 최종 목표 달성**
@@ -7495,30 +7419,146 @@ tolerance-band 재설계(BT)가 의도한 그대로) **전부 만족**.
 확정(BS) -> tolerance-band 재설계(BT) -> mismatch_sigma_mV 근본원인(compensation의
 constraint 무지) 해소(BU) -> **SLSQP SUCCESS**.
 
-## BE(진짜 최종). 다음 세션 최우선
+## BV. 다른 회로 교차검증 -- 세션31에서 실행 완료 (회귀 없음 확인)
+`folded_cascode`/`nmcnr_amplifier`/`two_stage_ota` 셋 다 실제 sky130 LUT로
+`_build_theta_evaluator()`/`evaluate()`(또는 `presolve_warm_start()`)를 직접 실행해
+확인 -- self-test의 정적 `validate_theta_declaration_order()` 통과만으로는 부족해서
+실제 실행까지 시도.
+- **`folded_cascode`**: `sizing_roles` 섹션 자체가 없음(theta/compensation/metrics
+  전부 미선언, 아직 골격만 있는 회로) -- `evaluate({})` 크래시 없이 10소자 사이징
+  성공(KCL/known_sizing만으로). 세션31 신설 메커니즘은 애초에 트리거될 게 없음.
+- **`nmcnr_amplifier`**: 마찬가지로 `sizing_roles` 없음 -- `evaluate({})`가 처음엔
+  `KeyError: 'GBW'`로 실패했으나, 이건 이 회로의 `compensation.parameters`(`GBW`/
+  `CL`/`kg`, `nmcnr_3stage_topology()` 시그니처)가 요구하는 값을 테스트 스펙에 안 넣은
+  **검증 스크립트 쪽 누락**이었을 뿐(엔진 버그 아님) -- 채워 넣으니 14소자 정상 사이징.
+- **`two_stage_ota`**: `theta` 1개(`kcl_tail_M5`)+`compensation`은 있지만
+  `_build_theta_evaluator()`가 `resolve_stack_layout()`의 `audit_vertical_stack_id_
+  vs_kcl()`에서 크래시(M3/M1, M4/M2, M6/M7 세 쌍의 `vertical_stack_id` 선언 gap) --
+  **세션31 이전 커밋(`21aae3a`)에서도 동일하게 크래시함을 직접 재현·확인**(baseline_
+  check 스크래치 재사용) -- 세션22~25부터 있던 토폴로지 선언 누락이지 이번 세션
+  회귀가 전혀 아님. 이 gap을 안 고치면 이 회로는 애초에 어떤 세션의 어떤 메커니즘도
+  검증할 수 없는 상태(별도 작업 필요, 오늘 범위 밖).
+
+**결론**: 세션31의 신규 메커니즘(gm_id_role/gm_id_match_vgs_of 일반화, N-way/
+tolerance-band 조인트 스캔, `make_matching_feasibility_check()`)은 셋 다 트리거
+조건(`gm_id_match_vgs_of` 선언, `pelgrom_mismatch`+constraint 선언)이 아예 없어서
+실행되지 않았다 -- **회귀는 없지만, "정확히 이 메커니즘이 필요한" 실사례로 검증된
+것도 아직 아니다**(그런 사례가 생기면 그때 실제로 검증). `two_stage_ota`는 그 이전에
+`vertical_stack_id` gap부터 메워야 다음 단계 검증이 가능(→ BW에서 해소).
+
+## BW. 세션31 계속(같은 세션, 사용자 지시 "gap을 메우는 네 제안을 코드화해서
+반영해넣을 수는 없나?" → "구현된 코드를 최상위 harness에서 topology.json을 읽을때
+없는 필드를 채우도록 배선해. 이때 관련있는 audit함수들과 필요함수를 모두 연결해") --
+`two_stage_ota`의 `vertical_stack_id` gap을 **일회성 수동 편집이 아니라 재사용
+가능한 함수 + `load_topology()` 자동배선**으로 해소, **구현 완료·검증됨**
+
+**경과**: BV가 발견한 `two_stage_ota`의 크래시(M3-M1/M4-M2/M6-M7 세 쌍이 KCL로는
+직렬인데 `vertical_stack_id`가 한쪽만 선언됨)를 손으로 추론(M1=M3와 같은 stage1,
+M2=M4와 같은 stage1, M6=M7과 같은 stage2)한 뒤, 사용자가 "이걸 코드화해서 반영"을
+요청. 첫 시도(differential-relation까지 union하는 확장판)는 사용자가 거부 -- 대신
+"harness가 topology.json을 읽을 때 자동으로 채우도록 배선하라"는 더 직접적인 지시로
+전환됨.
+
+**구현**(`stick_diagram.py`):
+1. `_kcl_and_matching_edges(transistors, matching_pairs)` -- `audit_vertical_stack_id_
+   vs_kcl()` 내부에 있던 edge 재구성 로직(내부 2단자 net + declared `current_forced`
+   matching_pairs)을 **단일 정의**로 추출(세션31의 `_shared_current_groups_from_
+   compensation()`과 같은 이유 -- 두 함수가 각자 다른 정의를 쓰면 어긋날 위험).
+   `audit_vertical_stack_id_vs_kcl()`은 이걸 재사용하도록 리팩터(동작 변화 없음).
+2. `propose_vertical_stack_id_gap_fill(transistors, matching_pairs, device_roles)` --
+   `audit_vertical_stack_id_vs_kcl()`의 `boundary_findings` 중 `kcl_reason==
+   "internal_series"`(진짜 2단자 직렬)이고 "한쪽만 선언됨(gap)"인 것만 뽑아, 선언
+   안 된 쪽이 KCL 파트너의 값을 그대로 물려받는 제안을 만든다. `declared_matching_
+   pair`(미러쌍) 갭은 **의도적으로 제외**(미러 출력이 회로 반대편에 있는 게 흔해
+   "같은 헤드룸 컬럼"이라는 보장이 없음 -- `audit_vertical_stack_id_vs_kcl()` 자체
+   docstring이 이미 이 구분을 명시). 같은 소자가 서로 다른 edge에서 다른 값을
+   물려받으면(충돌) `conflicts`로 분리(자동 확정 안 함).
+3. **`load_topology()`에 배선**(사용자 지시의 핵심) -- 모든 topology.json 로드
+   경로(linked file 병합 포함)의 마지막에 `propose_vertical_stack_id_gap_fill()`을
+   호출해 **충돌 없는 제안만** `device_roles`에 자동 반영(`setdefault(name,{})
+   ["vertical_stack_id"]=값`). `meta["_vertical_stack_id_autofilled"]`/`meta
+   ["_vertical_stack_id_conflicts"]`로 무엇이 자동 채워졌는지/뭐가 아직 안 풀렸는지
+   투명하게 노출(조용한 수정 금지 원칙, `refine_differential_and_mirror_relations()`의
+   `role_changes`/`net_class_changes`와 같은 패턴) -- `load_topology()`를 부르는
+   **모든** 하류 소비자(harness든 self-test든)가 자동으로 이 혜택을 받는다.
+
+**실측 버그 3건 발견·수정**(전부 self-test 회귀로 즉시 발견):
+1. `load_topology()`가 `all_matching_pairs`(raw `{"names":[...], "current_forced":...}`
+   dict 리스트)를 `propose_vertical_stack_id_gap_fill()`에 그대로 넘겨 `zip(names,
+   names[1:])`가 dict를 슬라이스하려다 크래시 -- 다른 호출부처럼 `[tuple(p["names"])
+   for p in ... if p.get("current_forced")]`로 미리 변환해야 했음(`.get()`으로 -- 일부
+   self-test 합성 fixture가 `current_forced` 키 자체를 생략해서 `p["current_forced"]`
+   직접 인덱싱은 그 fixture들에서 또 KeyError).
+2. `_kcl_and_matching_edges()` 추출 리팩터가 `audit_vertical_stack_id_vs_kcl()`
+   본문에서 `net_uses`(hub_findings 계산에 별도로 또 쓰임)까지 같이 들고 나가버려
+   `NameError` -- `net_uses` 재구성(O(n), 저렴)을 `audit_vertical_stack_id_vs_kcl()`
+   본문에 남겨둠(약간의 중복이지만 안전하고 저렴).
+3. self-test(Test 52 세 번째 블록)가 `load_topology()`를 호출해 이미 자동 채움된
+   `device_roles`에 대고 `propose_vertical_stack_id_gap_fill()`을 다시 부르는 바람에
+   "더 이상 gap이 없어 제안도 없음"으로 회귀 오탐 -- 원본 JSON을 `load_topology()`
+   우회하고 직접 읽어 함수 자체의 회귀를 검증하는 블록과, `load_topology()`의 자동
+   배선 자체를 검증하는 블록(`meta["_vertical_stack_id_autofilled"]`/`audit_vertical_
+   stack_id_vs_kcl()` gap 0건 재확인)으로 분리.
+
+**검증**: `stick_diagram.py`/`sizing_recipe.py` self-test 둘 다 전수 PASS/exit 0(Test 52
+신설분 포함, 회귀 없음). 실회로 재검증(`sizing_recipe.py`의 실제 `_build_theta_
+evaluator()`/`presolve_warm_start()` 경로, `cross_validate_others.py` 재사용) --
+`two_stage_ota`가 **이제 vertical_stack_id gap으로는 더 이상 크래시하지 않고
+`_build_theta_evaluator` OK -> `presolve_warm_start feasible=True`까지 완주**(compensation
+파라미터 GBW/CL/Z/NDP를 스펙에 채워준 뒤). `folded_cascode`/`nmcnr_amplifier`도
+동일 파이프라인으로 문제없이 재확인.
+
+**남은 이슈(이번 작업 범위 밖, 별개)**: `two_stage_ota`는 `constraints: []`(빈
+리스트)라 SLSQP/gain 목표가 아예 없음 -- gap이 풀려 "실행 가능"해졌을 뿐, 이 회로의
+실제 사이징 품질을 검증하려면 별도로 gain/노이즈 등 constraints를 채워야 함(오늘
+범위 밖, 다음에 필요하면).
+
+## BE. 다음 세션 최우선 (세션31 진짜 종료 시점 확정 -- BD~BW 전체 반영)
 
 ### ① 커밋 여부 확인 (최우선)
-세션31 전체 변경사항(`sizing_recipe.py`/`current_reuse_telescopic_ota.topology.json`)
-이 목표를 달성했으니, 다음 세션 시작 시 **가장 먼저** 사용자에게 커밋 여부를 물을 것
-(이 세션 안에서 미처 못 여쭤봤다면). 커밋 시 최소 2개 논리적 커밋으로 분리 고려:
-(a) 세션31 전체(BD~BT, `_solve_vgs`~tolerance-band), (b) BU(mismatch_sigma_mV,
-독립적인 별개 버그 수정) -- 또는 사용자 선호에 따라 하나로.
+세션31 전체(BD~BW)가 원래 목표(`current_reuse_telescopic_ota`의 `gain_db>=75.6`
+달성, BU에서 SLSQP SUCCESS로 확정)를 이미 달성했고, 그 이후 BV(다른 회로 교차검증)/
+BW(`two_stage_ota`의 `vertical_stack_id` gap 자동배선)까지 전부 self-test 검증
+완료 상태다. 다음 세션 시작 시 **가장 먼저** `git status`로 미커밋 변경사항이 남아
+있는지 확인하고, 남아 있으면 사용자에게 커밋 여부를 물을 것(이 세션 안에서 이미
+커밋을 지시받았다면 그 결과만 확인).
 
-### ② 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
-`folded_cascode`/`nmcnr_amplifier`/`two_stage_ota`에 이번 세션 신설분(B/C/F 배치조회/
-캐시공유, gm_id_role/gm_id_match_vgs_of 일반화, N-way/tolerance-band 조인트 스캔,
-`make_matching_feasibility_check()`)이 실제로 필요한 사례가 생기면 그때 일반화 검증.
-현재는 self-test로 회귀 없음만 확인된 상태(다른 회로엔 애초에 해당 메커니즘이 안 탐).
+### ② `two_stage_ota`에 gain/noise 등 constraints 채우기 (BW가 남긴 것)
+BW로 `vertical_stack_id` gap은 풀려 `_build_theta_evaluator()`/`presolve_warm_
+start()`가 크래시 없이 완주하지만, `sizing_roles.constraints`가 빈 리스트라 이
+회로의 실제 사이징 **품질**은 아직 아무 것도 검증된 게 없다(그냥 "실행 가능"해졌을
+뿐). Miller 2단 OTA 표준 스펙(gain/GBW/PM/노이즈 등)을 논의해 constraints를
+채우고, `current_reuse_telescopic_ota`처럼 SLSQP로 실제 최적화까지 돌려볼 가치가
+있음(오늘 범위 밖, 필요해지면).
 
-### ③ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
+### ③ 다른 2개 회로(`folded_cascode`/`nmcnr_amplifier`)도 `sizing_roles` 자체가
+없음 -- 이번 세션 신규 메커니즘(gm_id_role/gm_id_match_vgs_of, N-way/tolerance-band
+조인트 스캔, `make_matching_feasibility_check()`)이 "정확히 필요한" 실사례로
+검증된 적은 여전히 없다(BV 결론 그대로). 이 두 회로에 `sizing_roles`를 채우는 것
+자체가 먼저 필요한 별개 작업.
 
-### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
+### ④ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
 
-### ⑤ SLSQP 전체 실행 성능 재측정 (BH에서 신설, 변경 없음)
+### ⑤ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
 
-## BF(진짜 최종). 커밋 상태
+### ⑥ SLSQP 전체 실행 성능 재측정 (BH에서 신설, 변경 없음)
+C 구현의 실제 절감폭(`_comp_cache` 재사용)은 `presolve_warm_start()` 단독 검증만
+했고, 실제 `_optimize_theta_slsqp()` 전체(multi-start 포함, 수 분~수십 분대)에서
+전/후 비교는 아직 안 함.
 
-**`21aae3a`(BK, L_grid_step)까지 커밋 완료.** 그 이후(BL~BU 전부) **미커밋** --
-`gain_db>=75.6` AND `mismatch_sigma_mV<=5.0` 동시만족(SLSQP SUCCESS)까지 확인됐으니
-커밋 보류 이유는 이제 없음, **다음 세션 시작 시 즉시 사용자에게 커밋 여부 확인**.
-self-test 최종: exit 0, 전수 PASS, 회귀 없음(BU까지 전부 반영).
+## BF. 커밋 상태 (세션31 진짜 종료 시점, BW까지 반영)
+
+**`5dc4679`까지 커밋 완료**(BD~BU, `_solve_vgs` 캐싱부터 tolerance-band 재설계 +
+`mismatch_sigma_mV` 해소까지 -- 사용자가 명시적으로 "커밋해" 지시, `sizing_recipe.py`/
+`current_reuse_telescopic_ota.topology.json`/`.ai/context.md` 세 파일). **그 이후
+(BV/BW) 미커밋** -- `git status` 기준 수정된 파일은 `stick_diagram.py`(BW 신설,
+`propose_vertical_stack_id_gap_fill()`/`load_topology()` 배선)와 `.ai/context.md`
+(BV/BW 기록 + 이 절 갱신) 둘뿐. `two_stage_ota.topology.json`은 **파일 자체를
+건드리지 않았다**(BW가 harness 자동배선 방식을 채택했기 때문 -- gap이 있는 원본
+그대로, `load_topology()`가 읽을 때 메모리상에서만 채움). BV는 순수 조사라 코드
+변경 없음. 다음 세션 시작 시 이 두 파일(`stick_diagram.py`/`.ai/context.md`) 커밋
+여부를 사용자에게 확인할 것.
+
+self-test 최종 상태(세션31 진짜 종료 시점, BW 반영): `sizing_recipe.py`/`stick_
+diagram.py` 둘 다 단독 실행 시 exit 0, 트레이스백/AssertionError 없음, 전수 PASS --
+회귀 없음.

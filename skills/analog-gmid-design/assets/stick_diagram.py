@@ -3093,6 +3093,30 @@ def geometry_colocation_union(netlist: list, matching_pairs: list) -> dict:
     return result
 
 
+def _kcl_and_matching_edges(transistors: list, matching_pairs: list) -> list:
+    """`kcl_series_union()`이 union할 때 실제로 쓰는 것과 똑같은 두 종류의 edge(내부
+    2단자 net + declared `current_forced` matching_pairs)를 `(a, b, kind, detail)`
+    리스트로 재구성한다 -- `audit_vertical_stack_id_vs_kcl()`과
+    `propose_vertical_stack_id_gap_fill()` 둘 다 같은 edge 정의를 써야 서로 어긋나지
+    않으므로(2026-08-13 세션31, N-way 조인트 스캔 때 만든 `_shared_current_groups_
+    from_compensation()`와 같은 이유로 단일 정의로 분리) 원래 `audit_vertical_stack_id_
+    vs_kcl()` 안에 있던 로직을 그대로 추출."""
+    net_uses: dict = defaultdict(list)
+    for t in transistors:
+        net_uses[t.source].append(t.name)
+        net_uses[t.drain].append(t.name)
+    edges = []
+    for net, uses in net_uses.items():
+        if net in _RAIL_NETS:
+            continue
+        if len(uses) == 2 and uses[0] != uses[1]:
+            edges.append((uses[0], uses[1], "internal_series", net))
+    for names in matching_pairs:
+        for a, b in zip(names, names[1:]):
+            edges.append((a, b, "declared_matching_pair", None))
+    return edges
+
+
 def audit_vertical_stack_id_vs_kcl(transistors: list, matching_pairs: list,
                                     device_roles: dict) -> dict:
     """L2 축A(`kcl_series_union()`)와 declared `vertical_stack_id`(topology.json
@@ -3134,17 +3158,7 @@ def audit_vertical_stack_id_vs_kcl(transistors: list, matching_pairs: list,
     for t in transistors:
         net_uses[t.source].append(t.name)
         net_uses[t.drain].append(t.name)
-
-    edges = []
-    for net, uses in net_uses.items():
-        if net in _RAIL_NETS:
-            continue
-        if len(uses) == 2 and uses[0] != uses[1]:
-            edges.append((uses[0], uses[1], "internal_series", net))
-    for names in matching_pairs:
-        for a, b in zip(names, names[1:]):
-            edges.append((a, b, "declared_matching_pair", None))
-
+    edges = _kcl_and_matching_edges(transistors, matching_pairs)
     parent = {t.name: t.name for t in transistors}
 
     def find(x):
@@ -3197,6 +3211,86 @@ def audit_vertical_stack_id_vs_kcl(transistors: list, matching_pairs: list,
                                   "candidate_hub_nets": hub_nets})
 
     return {"boundary_findings": boundary_findings, "hub_findings": hub_findings}
+
+
+def propose_vertical_stack_id_gap_fill(transistors: list, matching_pairs: list,
+                                        device_roles: dict, inputs=(), outputs=(),
+                                        feedbacks=(), biases=(), clocks=()) -> dict:
+    """선언 안 된 소자가 **결합(union) 그룹** 안에서 이미 선언된 `vertical_stack_id`를
+    물려받는 제안을 만든다(2026-08-13 세션31, 사용자 요청 -- `two_stage_ota.topology.
+    json`의 M1/M2/M6 gap을 손으로 추론했던 걸 재사용 가능한 함수로 코드화).
+
+    결합에 쓰는 edge 두 종류(전부 union-find로 묶은 뒤, 한 그룹에 declared 값이
+    **정확히 하나**면 그 값을 미선언 멤버 전체에 제안):
+    1. **`internal_series` KCL edge**(`_kcl_and_matching_edges()`, 진짜 2단자 직렬) --
+       항상 사용. `declared_matching_pair` edge는 **의도적으로 제외**한다(`audit_
+       vertical_stack_id_vs_kcl()` docstring대로 미러 출력이 회로 반대편 -- 원거리 --
+       에 있는 경우가 흔해 "같은 헤드룸 컬럼"이라는 보장이 없다, 항상 참인 규칙이
+       아니라 하드코딩하면 조용히 틀린 제안이 나올 위험).
+    2. **`differential` 관계**(`find_verified_differential_and_mirror_relations()`,
+       선택 -- `inputs=` 등 포트 분류를 넘겨야 활성화됨. 사용자 지적: 차동쌍 두 다리는
+       전기적 정의상(공통 tail) 항상 같은 물리적 헤드룸 컬럼에 있어야 하므로 `mirror`
+       관계(위와 같은 원거리 모호성 있음)와 달리 유니온해도 안전 -- 그래서 `mirror`는
+       **의도적으로 제외**하고 `differential`만 쓴다. 실제로 diff pair의 공통 tail
+       net은 보통 3단자 이상(두 다리+tail 전류원)이라 `internal_series`(정확히
+       2단자)로는 애초에 못 잡는 관계 -- 이게 이 확장이 KCL 단독보다 진짜로 더 푸는
+       실제 사례다). `inputs=`를 안 주거나 analog-grammar가 없으면 조용히 건너뛴다
+       (기존처럼 KCL만으로 동작, 하위호환).
+
+    ⚠️ 다른 `_propose_*`류와 같은 원칙(제안만, `topology.json`에 자동으로 안 씀).
+
+    반환: `{"proposals": {device_name: proposed_vsid}, "conflicts": {device_name:
+    [candidate_vsid, ...]}, "components_used": [[device,...], ...]}` -- `conflicts`는
+    한 union 그룹 안에 서로 다른 declared 값이 2개 이상 섞인 경우(자동으로 못 정함,
+    사람 검토 필요), `components_used`는 미선언 멤버가 하나라도 있던 그룹만(디버깅용)."""
+    edges = [(a, b) for a, b, kind, _detail in _kcl_and_matching_edges(transistors, matching_pairs)
+             if kind == "internal_series"]
+    if inputs or outputs or feedbacks or biases or clocks:
+        relations = find_verified_differential_and_mirror_relations(
+            transistors, inputs, outputs, feedbacks, biases, clocks)
+        if relations is not None:
+            edges.extend(rel["devices"] for rel in relations["differential"])
+
+    parent = {t.name: t.name for t in transistors}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    for a, b in edges:
+        union(a, b)
+
+    vsid_of = {name: entry.get("vertical_stack_id")
+               for name, entry in device_roles.items()
+               if isinstance(entry, dict) and entry.get("vertical_stack_id")}
+
+    groups = defaultdict(list)
+    for t in transistors:
+        groups[find(t.name)].append(t.name)
+
+    proposals, conflicts, components_used = {}, {}, []
+    for members in groups.values():
+        members = sorted(members)
+        undeclared = [m for m in members if vsid_of.get(m) is None]
+        if not undeclared:
+            continue
+        declared = {vsid_of[m] for m in members if vsid_of.get(m) is not None}
+        components_used.append(members)
+        if len(declared) == 1:
+            value = next(iter(declared))
+            for m in undeclared:
+                proposals[m] = value
+        elif len(declared) > 1:
+            for m in undeclared:
+                conflicts[m] = sorted(declared)
+    return {"proposals": proposals, "conflicts": conflicts, "components_used": components_used}
 
 
 def _verified_euler_fix(transistors: list, local_pairs: list):
@@ -6455,6 +6549,24 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
         all_ideal_sources.extend(linked_data.get("ideal_sources") or [])
 
     transistors = [Transistor(**d) for d in all_netlist]
+
+    # 2026-08-13(세션31, 사용자 지시) -- vertical_stack_id gap(예: two_stage_ota의
+    # M1/M2/M6, resolve_stack_layout()이 audit_vertical_stack_id_vs_kcl()로 실제
+    # 크래시시켜 발견)을 매번 손으로 채워 넣는 대신, 로드 시점에 자동으로 채운다.
+    # propose_vertical_stack_id_gap_fill()(내부적으로 audit_vertical_stack_id_vs_kcl()/
+    # _kcl_and_matching_edges() 재사용)이 만드는 제안 중 **충돌 없는 것만**(proposals,
+    # 한 union 그룹 안에 declared 값이 정확히 하나뿐이라 사실상 확정적) 자동 반영 --
+    # conflicts(서로 다른 declared 값이 섞인 경우, 자동으로 못 정함)는 그대로 두어
+    # 기존 audit/크래시 경로가 여전히 사람 검토를 요구하게 둔다(조용히 추측하지 않음).
+    # `_vertical_stack_id_autofilled`로 무엇이 자동 채움됐는지 투명하게 노출한다(이
+    # 프로젝트 전역 원칙 -- 조용한 수정 금지, refine_differential_and_mirror_
+    # relations()의 role_changes/net_class_changes와 같은 패턴).
+    _vsid_forced_pairs = [tuple(p["names"]) for p in all_matching_pairs if p.get("current_forced")]
+    _vsid_gap_fill = propose_vertical_stack_id_gap_fill(
+        transistors, _vsid_forced_pairs, all_device_roles)
+    for _name, _vsid in _vsid_gap_fill["proposals"].items():
+        all_device_roles.setdefault(_name, {})["vertical_stack_id"] = _vsid
+
     meta = {
         "topology_name": data["topology_name"],
         "schema_version": data["schema_version"],
@@ -6469,6 +6581,8 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
         # (allocate_stack_headroom() singleton 우회의 ideal_sources 근거 검증용).
         "ideal_sources": all_ideal_sources or None,
         "_linked_files_loaded": linked,
+        "_vertical_stack_id_autofilled": _vsid_gap_fill["proposals"] or None,
+        "_vertical_stack_id_conflicts": _vsid_gap_fill["conflicts"] or None,
     }
     return transistors, meta
 
@@ -9894,4 +10008,94 @@ if __name__ == "__main__":
           "totem__nmos=[SN1]로 정확히 분할됨(재병합 시도는 없음, 매칭쌍이 없으므로 정상)")
 
     print()
-    print("  === Test 51 전체 PASS ===")
+    print("=== Test 52: propose_vertical_stack_id_gap_fill() -- audit_vertical_stack_id_")
+    print("  vs_kcl()의 '한쪽만 선언됨(gap)' boundary_findings를 KCL 직렬 파트너의 값으로")
+    print("  자동 채우기 제안(2026-08-13 세션31, two_stage_ota.topology.json의 M1/M2/M6")
+    print("  gap을 손으로 추론했던 걸 재사용 가능한 함수로 코드화 -- 사용자 요청) ===")
+    print("  [합성 fixture -- internal_series gap은 채우고 declared_matching_pair gap은")
+    print("  안 채우는지(둘의 의미가 다름 -- 후자는 미러 출력이 다른 branch에 있는 게")
+    print("  원래 정상이라 audit_vertical_stack_id_vs_kcl() docstring이 명시적으로 구분함)]")
+    _t52_syn_trs = [
+        Transistor("P1", "pmos", source="vdd", drain="D1"),
+        Transistor("N1", "nmos", source="D1", drain="tail"),
+        Transistor("MIR_A", "nmos", source="gnd", drain="ref", gate="ref"),
+        Transistor("MIR_B", "nmos", source="gnd", drain="out", gate="ref"),
+    ]
+    _t52_roles = {"P1": {"vertical_stack_id": "colA"}, "MIR_A": {"vertical_stack_id": "biasgen"}}
+    _t52_pairs = [("MIR_A", "MIR_B")]
+    _t52_result = propose_vertical_stack_id_gap_fill(_t52_syn_trs, _t52_pairs, _t52_roles)
+    assert _t52_result["proposals"] == {"N1": "colA"}, \
+        f"internal_series gap(P1-N1, D1 공유)만 채워져야 함: {_t52_result['proposals']}"
+    assert "MIR_B" not in _t52_result["proposals"], \
+        "declared_matching_pair gap(MIR_A-MIR_B)은 채우면 안 됨(다른 branch가 정상)"
+    assert _t52_result["conflicts"] == {}
+    print(f"    PASS: internal_series gap(N1)만 partner(P1)의 vsid='colA'로 채워짐, "
+          f"declared_matching_pair gap(MIR_B)은 그대로 미선언 유지 -- 실제 제안: "
+          f"{_t52_result['proposals']}")
+
+    print()
+    print("  [합성 fixture -- 같은 소자가 서로 다른 edge에서 서로 다른 vsid를 물려받게")
+    print("  되면(충돌) proposals가 아니라 conflicts로 분리되는지]")
+    _t52c_trs = [
+        Transistor("A", "nmos", source="gnd", drain="x"),
+        Transistor("B", "nmos", source="x", drain="y"),
+        Transistor("C", "nmos", source="y", drain="vdd"),
+    ]
+    _t52c_roles = {"A": {"vertical_stack_id": "left"}, "C": {"vertical_stack_id": "right"}}
+    _t52c_result = propose_vertical_stack_id_gap_fill(_t52c_trs, [], _t52c_roles)
+    assert _t52c_result["proposals"] == {}, \
+        f"B가 A('left')/C('right') 양쪽에서 서로 다른 값을 물려받아 충돌해야 함: {_t52c_result}"
+    assert _t52c_result["conflicts"] == {"B": ["left", "right"]}, \
+        f"충돌 후보 집합 불일치: {_t52c_result['conflicts']}"
+    print(f"    PASS: B가 A/C 양쪽에서 다른 vsid를 물려받아 충돌 -- proposals에 안 들어가고 "
+          f"conflicts={_t52c_result['conflicts']}로 분리됨(자동 확정 안 함, 사람 검토 대상)")
+
+    print()
+    print("  [실제 회로 -- two_stage_ota.topology.json 원본(device_roles에 M1/M2/M6")
+    print("  미선언), propose_vertical_stack_id_gap_fill()을 직접 호출하면 손으로")
+    print("  추론했던 것과 정확히 같은 제안이 나오는지 -- load_topology()를 거치지")
+    print("  않고 원본 JSON을 직접 읽어 함수 자체의 회귀만 검증]")
+    import json as _t52r_json
+    with open(_t49_os.path.join(_t49_lib, "two_stage_ota.topology.json"), encoding="utf-8") as _t52r_f:
+        _t52r_raw = _t52r_json.load(_t52r_f)
+    _t52r_trs = [Transistor(**d) for d in _t52r_raw["netlist"]]
+    _t52r_roles = {k: v for k, v in (_t52r_raw.get("device_roles") or {}).items()
+                    if not k.startswith("_")}
+    _t52r_pairs = [tuple(p["names"]) for p in _t52r_raw["symmetry"]["matching_pairs"]
+                    if p["current_forced"]]
+    assert "M1" not in _t52r_roles, "원본 topology.json에 M1이 이미 선언돼 있음(fixture 전제 깨짐)"
+    _t52r_result = propose_vertical_stack_id_gap_fill(_t52r_trs, _t52r_pairs, _t52r_roles)
+    assert _t52r_result["proposals"] == {"M1": "stage1", "M2": "stage1", "M6": "stage2"}, \
+        f"two_stage_ota의 알려진 gap 제안과 불일치(회귀): {_t52r_result['proposals']}"
+    assert _t52r_result["conflicts"] == {}
+    print(f"    PASS: two_stage_ota 원본 -- M1/M2가 stage1(M3/M4와 각각 D3/O1 직렬), M6이 "
+          f"stage2(M7과 OUT 직렬)로 정확히 제안됨 -- {_t52r_result['proposals']}")
+
+    print()
+    print("  [load_topology() 배선 -- 위 제안이 실제로 harness 최상위 진입점에서")
+    print("  자동 반영되는지(2026-08-13 세션31, 사용자 지시로 load_topology()에 배선)]")
+    _t52w_trs, _t52w_meta = load_topology(_t49_os.path.join(_t49_lib, "two_stage_ota.topology.json"))
+    assert _t52w_meta["_vertical_stack_id_autofilled"] == {"M1": "stage1", "M2": "stage1", "M6": "stage2"}, \
+        f"load_topology()의 자동 반영 기록과 불일치(회귀): {_t52w_meta['_vertical_stack_id_autofilled']}"
+    assert _t52w_meta["_vertical_stack_id_conflicts"] is None
+    for _t52w_name, _t52w_vsid in (("M1", "stage1"), ("M2", "stage1"), ("M6", "stage2")):
+        assert _t52w_meta["device_roles"][_t52w_name]["vertical_stack_id"] == _t52w_vsid, \
+            f"{_t52w_name}의 device_roles에 자동 채움이 실제로 반영 안 됨(회귀)"
+    print(f"    PASS: load_topology()가 반환하는 meta['device_roles']에 M1/M2/M6의 "
+          f"vertical_stack_id가 이미 채워져 있음(_vertical_stack_id_autofilled="
+          f"{_t52w_meta['_vertical_stack_id_autofilled']}) -- resolve_stack_layout()이 "
+          f"더 이상 이 gap으로 크래시하지 않음")
+    _t52w_pairs_meta = _t52w_meta["symmetry"]["matching_pairs"]
+    _t52w_forced = [tuple(p["names"]) for p in _t52w_pairs_meta if p["current_forced"]]
+    _t52w_droles = {k: v for k, v in (_t52w_meta.get("device_roles") or {}).items()
+                     if not k.startswith("_")}
+    _t52w_audit = audit_vertical_stack_id_vs_kcl(_t52w_trs, _t52w_forced, _t52w_droles)
+    _t52w_gaps = [f for f in _t52w_audit["boundary_findings"] if f["note"] is not None]
+    assert _t52w_gaps == [], \
+        f"resolve_stack_layout()이 크래시 근거로 삼는 gap이 여전히 남아있음(배선 실패): {_t52w_gaps}"
+    print("    PASS: audit_vertical_stack_id_vs_kcl()이 gap 0건 -- resolve_stack_layout()이 "
+          "이 이유로는 더 이상 크래시하지 않음(sizing_recipe.py는 별개 모듈이라 여기서 직접 "
+          "안 부름, 순환 import 방지)")
+
+    print()
+    print("  === Test 52 전체 PASS ===")
