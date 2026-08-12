@@ -6622,33 +6622,69 @@ D/E/A/F-1은 harness와 경합해 노이즈가 있었으나 F-2까지 반영 후
 베이스라인 대비 1차 호출 ~2배, 캐시 예열 후 반복 호출 ~3.7배 -- BC가 원래 기대했던
 "3배"를 F까지 구현하고서야 달성(초과)했다.
 
-## BE. 다음 세션 최우선 (세션31 최종 확정)
+## BH. 세션31 계속 -- B/C도 사용자 지시로 마저 구현 (전부 완료)
 
-### ① B/C 구현 여부·순서를 사용자와 확정
-사용자 승인 없이는 착수하지 않음. B(`make_replica_feasibility_check()`의 `check()`
-클로저 -- `search_gm_id_for_role()` 재스캔, replica 있는 스테이지에서 (L,VDS)당
-최대 ~114배)와 C(SLSQP warm-start 체인의 `_build_theta_evaluator()` 5중 재빌드,
-범위 최대지만 `ev`를 5개 함수에 관통시켜야 하는 가장 큰 리스크) 중 어느 쪽을
-먼저 할지, 혹은 둘 다 할지 논의 필요. B는 `_sizing_bundle()`(F-2 신설)을
-`search_gm_id_for_role()`의 내부 스캔에도 적용하면 부가 이득이 있을 수 있음
-(gm_id_to_id_density 재스캔이 이제 배치 조회로 조금 더 저렴해짐 -- 그러나
-"57점 스캔을 (L,VDS)당 한 번만" 문제 자체는 F-2로 해결되지 않음, 별도 캐싱 필요).
+사용자가 "그리고 남은 것도 구현해"로 B/C까지 이번 세션 안에 마저 진행하라고 지시,
+둘 다 완료.
 
-### ② classab_centering_dev_v -- gm_id 독립화 조사 (BA②에서 이월, 아직 미해결)
-세션30 BA②와 동일 -- 변경 없음, 상세는 위 BA② 참고.
+**B**(`search_gm_id_for_role()` 재스캔 중복): `SemiEmpiricalGmIdLUT.__init__`에
+`self._idu_scan_cache: dict = {}` 신설, `_idu_scan(L,vds,vs,gm_id_grid)` 메서드로
+`gm_id_to_id_density(gm_id,L,vds,vs)` 스캔 자체(`ID_target`/`role`/`W_bounds`와
+무관, `(L,vds,vs,gm_id_grid)`에만 의존)를 캐싱. `search_gm_id_for_role()`은 이제
+`lut._idu_scan(...)`이 반환한 `(gm_id,IDu)` 리스트 위에서 `W_bounds` 체크만 한다
+(`ID_target`에 의존하는 부분만 호출별로 재계산). `make_replica_feasibility_check()`의
+`check()` 클로저가 (L,VDS)당 최대 ~114배 반복하던 스캔이 이제 최초 1회만 계산된다.
 
-### ③ 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
-변경 없음, 상세는 위 BA③ 참고.
+**C**(SLSQP warm-start 체인 `_build_theta_evaluator()` 5중 재빌드): `derive_theta_
+dependency_graph()`/`extract_linear_feasibility_constraints()`/`search_stage_budget_
+L_warm_start()`/`presolve_warm_start()` 4개 함수 전부에 `ev: dict | None = None`
+옵트인 파라미터 추가(없으면 기존처럼 직접 빌드 -- 하위호환, 기존 호출부/self-test
+전부 무변경). `presolve_warm_start()`가 받은 `ev`를 하위 3개 함수 호출에 그대로
+물려주고, `_optimize_theta_slsqp()`가 자신이 이미 받은 `ev`를 `presolve_warm_start()`
+호출에 전달 -- 이제 SLSQP 경로 전체(`optimize_full_circuit_budget()`가 만든 ev
+1개)가 `_build_theta_evaluator()`를 1번만 호출한다(이전 5번).
 
-### ④ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
+**검증**: self-test(sizing_recipe.py 69 PASS/exit 0, stick_diagram.py 전체 PASS/
+exit 0) 회귀 없음. SLSQP 경로 전용 검증 -- 실제 sky130 LUT+`current_reuse_
+telescopic_ota` topology로 `presolve_warm_start()`를 (a) 외부에서 미리 만든 `ev`를
+넘긴 경우(수정 후 실제 경로 재현)와 (b) `ev=None`(항상 재빌드, 예전 동작)로 각각
+호출해 `x0`/`vote_determined`/`stage_budget_L`이 완전히 일치함을 확인(`feasible=True`
+둘 다). `_build_theta_evaluator()` 자체의 셋업 비용(`load_topology`+
+`resolve_stack_layout`)은 이 회로에서 이미 0.00s 수준으로 저렴하다는 것도 이번에
+실측으로 확인됐다 -- 즉 C의 실질적 이득은 셋업 재실행 자체보다는, 재빌드마다
+`_comp_cache`(compensation `optimize_multistage()` 그리드서치 결과 캐시)가 통째로
+버려지던 것을 막는 데서 온다(warm-start 체인의 여러 단계가 evaluate()를 호출하며
+같은 `comp_params`를 반복해 마주칠 가능성이 높음 -- 정확한 절감폭은 실제 SLSQP
+전체 실행(수 분~수십 분)에서만 드러나 이번 세션엔 별도로 재측정하지 않음).
 
-### ⑤ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
+**남은 감사 항목**: 없음 -- BD가 찾은 A/B/C/D/E/F 전부 이번 세션에 구현·검증 완료.
+
+## BE. 다음 세션 최우선 (세션31 최종 확정, BH 반영해 갱신)
+
+### ① classab_centering_dev_v -- gm_id 독립화 조사 (BA②에서 이월, 아직 미해결)
+세션30 BA②와 동일 -- 변경 없음, 상세는 위 BA② 참고. 재계산 성능 감사가 전부 끝났으니
+다시 이게 최우선.
+
+### ② 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
+변경 없음, 상세는 위 BA③ 참고. `folded_cascode` 등으로 이번 세션 신설분(B/C/F 배치
+조회/캐시 공유 포함)도 일반화되는지 아직 미검증.
+
+### ③ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
+
+### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
+
+### ⑤ SLSQP 전체 실행 성능 재측정 (BH에서 신설)
+C 구현의 실제 절감폭(`_comp_cache` 재사용)은 `presolve_warm_start()` 단독 검증만
+했고, 실제 `_optimize_theta_slsqp()` 전체(multi-start 포함, 수 분~수십 분대)에서
+전/후 비교는 아직 안 함 -- 다음 세션에서 시간 여유 있을 때 재측정 고려.
 
 ## BF. 커밋 상태 (세션31)
 
-`_solve_vgs_cache`(BD①) + D/E/A/F-1/F-2(BG) 전부 미커밋 -- self-test 통과 확인됐으나
-사용자 지시 없이 커밋하지 않는 원칙에 따라 작업트리에 남겨둠. B/C는 코드 변경 없음
-(발견/설계만). **다음 세션 시작 시 `git status`/`git diff`로 이 변경들이 여전히
-미커밋 상태인지 먼저 확인할 것 -- `sizing_recipe.py` 한 파일에 세션30 커밋
-이후 누적된 변경이 상당하므로, 커밋한다면 논리적 단위(성능 캐싱 vs 다음 세션의
-B/C)로 나눌지 사용자와 상의할 것.**
+**D/E/A/F-1/F-2(BG) 커밋 완료**: `326bb58`(perf, `_solve_vgs`/그리드리스트/배치보간
+캐싱 + D/E/A 국소수정) -- `sizing_recipe.py`/`.ai/context.md` 두 파일만, 사용자
+명시 지시로 커밋.
+
+**B/C(BH)는 아직 미커밋** -- 이 갱신(BH 추가) 작성 시점 기준. self-test 통과
+확인됐으나 사용자 지시 없이 커밋하지 않는 원칙에 따라 작업트리에 남겨둠. **다음
+세션 시작 시(또는 이 세션 내 사용자가 커밋을 지시하면) `git status`/`git diff`로
+B/C 변경이 여전히 미커밋 상태인지 먼저 확인할 것.**

@@ -362,6 +362,13 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         # __init__에서 한 번만 해서 재사용 가능(_log_ID와 같은 패턴). `_query()`/
         # `_gm_id_curve()`가 `self.grids` 대신 이걸 넘긴다.
         self._grids_list = [g.tolist() for g in self.grids]
+        # 2026-08-13(세션31, 감사 발견 'B' 구현) -- search_gm_id_for_role()의 gm_id_grid
+        # 스윕(gm_id마다 gm_id_to_id_density(gm_id,L,vds,vs) 호출)은 ID_target/role/W_bounds와
+        # 무관하게 (L,vds,vs,gm_id_grid)에만 의존하는 순수 계산인데, make_replica_feasibility_
+        # check()의 check() 클로저가 같은 (L,VDS)에 대해 (2 ratios x N replicas)번 이 전체
+        # 스캔을 반복하고 있었다(replica 있는 스테이지에서 최대 ~114배 중복, 성능감사 최대
+        # 개별낭비 후보). `_idu_scan()`이 이 스캔 결과를 캐싱한다.
+        self._idu_scan_cache: dict = {}
 
     def _w_ref_effective(self, L: float) -> float:
         """이 L에서 ID/CGG 배열이 측정된 실제 기준폭. W_ref=None이면 단위소자(W*=L) 관례."""
@@ -401,6 +408,33 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         gm_gds = vals[1] / vals[2]
         cgg_raw = vals[3] if need_cgg else None
         return IDu, gm_gds, cgg_raw
+
+    def _idu_scan(self, L: float, vds: float, vs: float, gm_id_grid: list) -> list:
+        """`gm_id_grid` 전체에 대해 `(gm_id, IDu)` 쌍을 계산해 `(L,vds,vs,gm_id_grid)` 키로
+        캐싱한다(감사 발견 'B' 구현, 세션31). `IDu=gm_id_to_id_density(gm_id,L,vds,vs)`는
+        `ID_target`/`role`/`W_bounds`와 무관하게 `(gm_id,L,vds,vs)`에만 의존하는 순수 계산인데
+        `search_gm_id_for_role()`이 매 호출마다(같은 `(L,vds,vs)`라도) 이 스캔을 처음부터
+        다시 돌리고 있었다 -- `make_replica_feasibility_check()`의 `check()` 클로저가 같은
+        `(L,VDS)`에 대해 (2 ratios × N replicas)번 반복 호출하는 게 실측 최대 개별낭비 사례
+        (replica 있는 스테이지에서 최대 ~114배). `ValueError`(LUT 범위 밖)/`IDu<=0`으로 걸러진
+        `gm_id`는 애초에 반환 리스트에서 빠진다(원래 `search_gm_id_for_role()` 루프의 필터링
+        순서 그대로 -- `ID_target`에 의존하는 `W_bounds` 체크만 호출부가 스캔 결과 위에서
+        따로 한다)."""
+        key = (L, vds, vs, tuple(gm_id_grid))
+        cached = self._idu_scan_cache.get(key)
+        if cached is not None:
+            return cached
+        scan = []
+        for gm_id in gm_id_grid:
+            try:
+                idu = self.gm_id_to_id_density(gm_id, L, vds, vs)
+            except ValueError:
+                continue
+            if idu <= 0:
+                continue
+            scan.append((gm_id, idu))
+        self._idu_scan_cache[key] = scan
+        return scan
 
     def _gm_id_curve(self, L, vds, vs):
         """고정 (L,vds,vs)에서 VGS 격자 전체에 대한 (ID, gm/ID) 배열을 반환 (역조회용).
@@ -1348,18 +1382,17 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
     한도 안에서만 호출부가 재조회를 건너뛸 수 있게 옵트인으로 노출한다(기존 호출부는 전부
     변경 없음 -- 인자를 안 주면 100% 이전과 동일).
 
-    후보가 하나도 없거나 `role`이 셋 중 하나가 아니면 즉시 `ValueError`."""
+    후보가 하나도 없거나 `role`이 셋 중 하나가 아니면 즉시 `ValueError`.
+
+    2026-08-13(세션31, 감사 발견 'B' 구현) -- gm_id_grid 스캔 자체(`ValueError`/`IDu<=0`
+    필터링까지)는 `ID_target`/`role`/`W_bounds`와 무관하게 `(L,vds,vs,gm_id_grid)`에만
+    의존한다 -- `lut._idu_scan()`으로 캐싱된 스캔 결과를 받아 `W_bounds` 체크만 여기서
+    한다(`_idu_scan()` docstring 참고)."""
     if gm_id_grid is None:
         gm_id_grid = [i * 0.5 for i in range(4, 61)]  # 2.0~30.0
     feasible = []
     idu_by_gm_id = {}
-    for gm_id in gm_id_grid:
-        try:
-            idu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
-        except ValueError:
-            continue
-        if idu <= 0:
-            continue
+    for gm_id, idu in lut._idu_scan(L, vds, vs, gm_id_grid):
         W = ID_target * L / idu
         if W_bounds[0] <= W <= W_bounds[1]:
             feasible.append(gm_id)
@@ -3787,7 +3820,8 @@ def _theta_feed_footprint(theta: dict) -> dict:
 def derive_theta_dependency_graph(topology_path: str, spec: dict,
                                    baseline_theta_values: dict = None,
                                    probe_frac: float = 0.05,
-                                   sensitivity_tol: dict = None) -> dict:
+                                   sensitivity_tol: dict = None,
+                                   ev: dict | None = None) -> dict:
     """SLSQP 웜스타트 준비 1/3(세션27 "## B" B-1/B-2 손유도의 일반화) — 자유 theta 각각이
     dead(아무 metric/objective도 안 읽음)/isolated(목적함수만 영향, 제약과는 무관 -- bounds
     극값에 고정하는 게 사실상 최적)/coupled(적어도 하나의 제약과 실제로 얽힘 -- SLSQP가 직접
@@ -3837,8 +3871,15 @@ def derive_theta_dependency_graph(topology_path: str, spec: dict,
     or None), "evidence"(str, 사람이 읽는 판정 근거)}}`. `"ambiguous"`는 baseline이
     없거나 baseline 평가 자체가 실패했거나(InfeasibleSizingError) probe 양방향이 다
     실패해 5를 못 끝낸 경우만 나온다(조용히 isolated로 단정하지 않는다) --
-    `presolve_warm_start()`는 이 경우 안전한 기본값(bounds-midpoint)으로 폴백해야 한다."""
-    ev = _build_theta_evaluator(topology_path, spec)
+    `presolve_warm_start()`는 이 경우 안전한 기본값(bounds-midpoint)으로 폴백해야 한다.
+
+    `ev`(2026-08-13 세션31, 감사 발견 'C' 구현, 선택): 이미 만들어둔 `_build_theta_
+    evaluator()` 결과가 있으면 넘긴다 -- 없으면(기본, 하위호환) 이 함수가 직접 만든다.
+    `presolve_warm_start()`가 `_optimize_theta_slsqp()`로부터 이미 받은 `ev`를 그대로
+    물려줘, `load_topology()`+`resolve_stack_layout()` 같은 비싼 셋업과 `_comp_cache`를
+    SLSQP warm-start 체인 전체(이 함수 포함 4곳)에서 재사용하기 위함이다(감사 발견:
+    이전엔 동일 `(topology_path,spec)`로 5번 독립 재빌드, 매번 `_comp_cache`도 폐기됨)."""
+    ev = ev or _build_theta_evaluator(topology_path, spec)
     thetas = ev["thetas"]
     metrics_specs, objective, constraints = ev["metrics_specs"], ev["objective"], ev["constraints"]
     comp, stack_groups_kcl, evaluate = ev["comp"], ev["stack_groups_kcl"], ev["evaluate"]
@@ -3983,7 +4024,8 @@ def derive_theta_dependency_graph(topology_path: str, spec: dict,
 # ---------------------------------------------------------------------------
 
 def extract_linear_feasibility_constraints(topology_path: str, spec: dict,
-                                            reference_theta_values: dict = None) -> list:
+                                            reference_theta_values: dict = None,
+                                            ev: dict | None = None) -> list:
     """SLSQP 웜스타트 준비 2/3(세션27 "## B" B-3 손유도의 일반화) — `A_signed` feed(KCL
     뺄셈, `kcl_battery_M9b` 등)가 만드는 "이 항들의 부호합이 0 이상이어야 한다"는 물리적
     제약(위반 시 `InfeasibleSizingError`)을, 가능하면 **다른 free theta들에 대한 선형
@@ -4027,8 +4069,11 @@ def extract_linear_feasibility_constraints(topology_path: str, spec: dict,
       의미 있음.
     - `"dynamic"`/`"unresolvable"`: 자동 역산 실패(이유는 `"reason"`) -- `presolve_warm_
       start()`는 이 theta에 한해 grid search류 폴백이 필요할 수 있다(조용히 무시하지
-      말 것)."""
-    ev = _build_theta_evaluator(topology_path, spec)
+      말 것).
+
+    `ev`(2026-08-13 세션31, 감사 발견 'C' 구현, 선택): `derive_theta_dependency_graph()`와
+    동일한 계약 -- 없으면 직접 만든다(하위호환), 있으면 재사용."""
+    ev = ev or _build_theta_evaluator(topology_path, spec)
     thetas = ev["thetas"]
     evaluate = ev["evaluate"]
     by_theta_name = {t["name"]: t for t in thetas}
@@ -4141,7 +4186,8 @@ def extract_linear_feasibility_constraints(topology_path: str, spec: dict,
 
 def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
                                       reference_theta_values: dict = None,
-                                      n_scan: int = 61, n_scan_full_circuit: int = 21) -> dict:
+                                      n_scan: int = 61, n_scan_full_circuit: int = 21,
+                                      ev: dict | None = None) -> dict:
     """metric_stage_budget theta(`L_cascode`/`L_stage2out`류)의 웜스타트 L을 찾는다
     (세션27 B-5가 손으로 확인한 두 가지 사실의 일반화 구현). theta별로 이 소자들의
     devices에 **명시적으로 걸린** constraint 타입 집합을 본다:
@@ -4170,8 +4216,11 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
     반환: `{theta_name: L_value}` -- `metric_stage_budget` feed가 아니거나 bounds가
     고정된(자유도 0) theta는 포함하지 않는다. 이미 처리된 theta의 값은 다음 theta의
     `reference_theta_values`에도 반영된다(처리 순서: LUT-only 먼저, 실측-스캔 나중 --
-    `L_cascode`가 먼저 정해져야 `L_stage2out`의 실측 스캔이 그 값을 올바르게 반영한다)."""
-    ev = _build_theta_evaluator(topology_path, spec)
+    `L_cascode`가 먼저 정해져야 `L_stage2out`의 실측 스캔이 그 값을 올바르게 반영한다).
+
+    `ev`(2026-08-13 세션31, 감사 발견 'C' 구현, 선택): `derive_theta_dependency_graph()`와
+    동일한 계약 -- 없으면 직접 만든다(하위호환), 있으면 재사용."""
+    ev = ev or _build_theta_evaluator(topology_path, spec)
     thetas, metrics_specs, constraints = ev["thetas"], ev["metrics_specs"], ev["constraints"]
     kind_of, evaluate = ev["kind_of"], ev["evaluate"]
 
@@ -4275,7 +4324,7 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
 #       분류를 조합해 각 theta의 시작값을 정한다.
 # ---------------------------------------------------------------------------
 
-def presolve_warm_start(topology_path: str, spec: dict) -> dict:
+def presolve_warm_start(topology_path: str, spec: dict, ev: dict | None = None) -> dict:
     """SLSQP 웜스타트 준비 3/3(세션27 "## B" 설계의 실제 구현) — `extract_linear_
     feasibility_constraints()` + `derive_theta_dependency_graph()`를 조합해 SLSQP
     시작점(x0)을 만든다. `optimize_full_circuit_budget()`이 grid search로 하던 일(θ*
@@ -4315,8 +4364,17 @@ def presolve_warm_start(topology_path: str, spec: dict) -> dict:
     `stage_budget_L`은 `search_stage_budget_L_warm_start()`로 값이 정해진 theta 이름
     목록(세션29 `_optimize_theta_slsqp()`가 이 둘을 합쳐 SLSQP 자유변수에서 제외하는 데
     씀 -- `InfeasibleSizingError` 경계 근처는 gradient가 평평해
-    SLSQP가 다루기 나쁘고, 이미 실현가능하게 골라둔 값을 잃을 위험도 있다)."""
-    ev = _build_theta_evaluator(topology_path, spec)
+    SLSQP가 다루기 나쁘고, 이미 실현가능하게 골라둔 값을 잃을 위험도 있다).
+
+    `ev`(2026-08-13 세션31, 감사 발견 'C' 구현, 선택): 이미 만들어둔 `_build_theta_
+    evaluator()` 결과가 있으면 넘긴다(`_optimize_theta_slsqp()`가 자신이 받은 `ev`를
+    그대로 넘겨준다) -- 없으면(기본, 하위호환) 이 함수가 직접 만든다. 아래 3개 하위함수
+    (`extract_linear_feasibility_constraints()`/`search_stage_budget_L_warm_start()`/
+    `derive_theta_dependency_graph()`) 호출에도 그대로 물려준다 -- 감사 발견: 이전엔
+    `optimize_full_circuit_budget()`이 이미 만든 `ev`를 이 함수부터 시작해 무시하고
+    동일 `(topology_path,spec)`로 5번(이 함수 자신 포함) 독립 재빌드했다(`load_topology()`/
+    `resolve_stack_layout()` 재실행 + `_comp_cache` 매번 폐기)."""
+    ev = ev or _build_theta_evaluator(topology_path, spec)
     thetas = ev["thetas"]
     objective, evaluate = ev["objective"], ev["evaluate"]
     by_theta_name = {t["name"]: t for t in thetas}
@@ -4328,7 +4386,7 @@ def presolve_warm_start(topology_path: str, spec: dict) -> dict:
         increasing_is_good = (sensitivity < 0) if minimize else (sensitivity > 0)
         return hi if increasing_is_good else lo
 
-    linear_results = extract_linear_feasibility_constraints(topology_path, spec)
+    linear_results = extract_linear_feasibility_constraints(topology_path, spec, ev=ev)
     notes = []
     votes: dict = {}
     for r in linear_results:
@@ -4356,11 +4414,11 @@ def presolve_warm_start(topology_path: str, spec: dict) -> dict:
                       f"-- 자동 해결 불가, bounds-midpoint로 남김(SLSQP가 처리해야 함)")
 
     stage_budget_L = search_stage_budget_L_warm_start(topology_path, spec,
-                                                        reference_theta_values=baseline)
+                                                        reference_theta_values=baseline, ev=ev)
     for name, val in stage_budget_L.items():
         baseline[name] = val
 
-    graph = derive_theta_dependency_graph(topology_path, spec, baseline_theta_values=baseline)
+    graph = derive_theta_dependency_graph(topology_path, spec, baseline_theta_values=baseline, ev=ev)
 
     x0 = {}
     for t in thetas:
@@ -4485,7 +4543,12 @@ def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
     objective, constraints = ev["objective"], ev["constraints"]
     evaluate = ev["evaluate"]
 
-    warm = presolve_warm_start(topology_path, spec)
+    # 2026-08-13(세션31, 감사 발견 'C' 구현) -- 위에서 이미 받은 ev(호출부 optimize_full_
+    # circuit_budget()이 만든 것)를 그대로 넘겨 presolve_warm_start() 이하 체인 전체가
+    # _build_theta_evaluator()를 재빌드하지 않게 한다(감사 발견: 이전엔 여기서부터 동일
+    # (topology_path,spec)로 5번 독립 재빌드 -- load_topology()/resolve_stack_layout()
+    # 재실행 + _comp_cache 매번 폐기, presolve_warm_start() docstring 참고).
+    warm = presolve_warm_start(topology_path, spec, ev=ev)
     x0_dict, graph = warm["x0"], warm["dependency_graph"]
     held_names = set(warm["vote_determined"]) | set(warm["stage_budget_L"])
     free_thetas = [t for t in thetas if t["bounds"][0] != t["bounds"][1]
