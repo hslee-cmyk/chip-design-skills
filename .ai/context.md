@@ -1,12 +1,11 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션29 결론"(`## AF`~`## AQ`,
-특히 **`## AP`(다음 세션 최우선)**와 **`## AN`(M15/M16 독립 L 조사 배경)`**)부터 먼저
-읽을 것** — 이번 세션(세션29) 작업 요약 + 다음 최우선 순서 + 다음 세션 시작
-체크리스트가 거기 정리돼 있다(`## AI`/`## AJ`는 세션29 중반 스냅샷이라 stale —
-`## AK` 이후가 최신). "# 세션28 최종 요약"은 세션29 착수 시점의 출발점이었을 뿐 더
-이상 최신이 아니다(그대로 보존하되 지금은 참고용). 아래는 세션 진행 중 실시간으로
-쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션30 결론"부터 먼저 읽을 것**
+— 이번 세션(세션30) 작업 요약 + 다음 최우선 순서 + 다음 세션 시작 체크리스트가 거기
+정리돼 있다. "# 세션29 결론"(`## AF`~`## AQ`)은 세션30 착수 시점의 출발점이었을 뿐 더
+이상 최신이 아니다(그대로 보존하되 지금은 참고용 -- M15/M16 독립 L 조사 배경은
+`## AN` 그대로 유효, 다만 그 후속 결론은 세션30에서 확정됨). 아래는 세션 진행 중
+실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
 
 ---
 
@@ -6154,9 +6153,10 @@ db=103.38dB` 전부 통과, `power_uA=0.412µA`(bounds-midpoint 기준 0.620µA 
 `_feed_metric_stage_budget()`(theta당 device 리스트 전체에 같은 gm_id/L → device별
 오버라이드) 두 엔진 계약을 건드려야 한다.
 
-**⚠️ 원칙(사용자 확정, 2026-08-11)**: **"L을 통일하는 게 맞는 경우"와 "L을 독립적으로
-둬야 하는 경우"를 충분히 조사한 뒤에만 harness(엔진) 코드에 반영한다.** 이번 세션에
-정리된 잠정 기준(["## AN" 참고, 아직 조사 완료 아님):
+**다음 세션 진행 순서(2026-08-11 확정)**: "L을 통일하는 게 맞는 경우"와 "L을
+독립적으로 둬야 하는 경우"를 먼저 충분히 조사하고, 그 조사 결과 위에서만 harness(엔진)
+코드 작업을 이어간다 -- 조사 없이 스키마부터 고치지 않는다. 이번 세션에 정리된 잠정
+기준("## AN" 참고, 아직 조사 완료 아님):
 - 통일이 맞는 경우: (a) 같은 kind끼리 매칭(전류미러/차동쌍, Pelgrom 미스매치 최소화
   목적), (b) 위상보상 방정식이 "이 스테이지 gm은 스칼라 하나"로 단순화하고 있을 때
   (지금 이 회로의 `current_reuse_telescopic_topology()`가 이 경우로 보임 -- 실제로
@@ -6166,11 +6166,11 @@ db=103.38dB` 전부 통과, `power_uA=0.412µA`(bounds-midpoint 기준 0.620µA 
   명분으로 묶었지만 실제로 매칭 효과가 없을 때, (b) 두 소자가 서로 다른(때로 상충하는)
   제약을 각자 책임질 때(지금 M15=Vop1 레벨/M16=Vg15 레벨, 합=VDD 요구 -- 정확히
   이 경우로 보임).
-다음 세션은 이 기준을 (1) `current_reuse_telescopic_topology()`의 위상보상 수식이
-실제로 PMOS/NMOS gm을 분리해도 GBW/PM 역산이 유효한지 직접 확인, (2) 다른 topology.json
+다음 세션은 (1) `current_reuse_telescopic_topology()`의 위상보상 수식이 실제로
+PMOS/NMOS gm을 분리해도 GBW/PM 역산이 유효한지 직접 확인, (2) 다른 topology.json
 (예: `folded_cascode`, `nmcnr_amplifier`)에도 비슷한 "한 theta가 여러 kind를 묶는"
-패턴이 있는지 조사, (3) 그 위에서만 `compensation.stage_devices`/`metric_stage_budget`
-스키마 변경을 설계 — 순서로 진행할 것. 확인 없이 바로 스키마부터 고치지 말 것.
+패턴이 있는지 조사, (3) 그 위에서 `compensation.stage_devices`/`metric_stage_budget`
+스키마 변경을 설계 — 순서로 진행한다.
 
 ### ② 다른 회로 교차검증(세션22부터 이월, ①과 조사범위 일부 겹침 -- 같이 진행 가능)
 `folded_cascode` 등으로 3개 웜스타트 함수 + `_optimize_theta_slsqp()` + `derive_
@@ -6185,3 +6185,217 @@ horizontal_stack_groups()`가 일반화되는지 확인. 이번 세션 구현/�
 세션29 중 커밋 2건 완료: `cbffd4f`(feat, 웜스타트 3개 함수), `145b7a1`(docs, 세션29
 중간 결론). **이후 작업(scipy 설치/SLSQP 엔진/성능 수정 3건/L 탐색 함정 수정/progress
 콜백/이 문서 갱신)은 아직 커밋 안 함** -- 다음 턴에 커밋 예정.
+
+# 세션30 결론 — M15/M16 독립 L 조사 완료(문헌+실측, 결론: gain_db/classab_centering_
+dev_v 동시만족 불가능 확정) + LUT 보간 전면화 + B엔진 하류파급 근본수정 5건
+
+세션29 "## AP①"(M15/M16 독립 L 조사)을 문헌조사(gm/ID 방법론+회로이론)로 착수, 실제
+`compensation.stage_devices` 분리 구현까지 진행하다가 사용자 지적("LUT는 이미 L을
+보간하는데 L_candidates가 왜 4개 앵커점에 갇혀 있냐")을 계기로 harness 전체의 LUT
+후보 구성을 감사 → 그 결과 B엔진(`optimize_multistage()`)이 `vertical_stack_id`
+헤드룸과 replica(K_replica류) 하류 소비자를 전혀 모른 채 L/VDS를 완전 자유변수로
+찾고 있었다는 근본 문제 2건을 발견·수정. "발견하면 근본원인까지 반드시 고치고 진행"
+(사용자가 이번 세션에 명시적으로 확정한 원칙)에 따라 즉흥 패치 대신 재사용 가능한
+일반 메커니즘으로 구현했다.
+
+## AR. M15/M16 독립 L 설계 확정 (문헌조사 + 로컬 코드 대조)
+
+**문헌조사 결론**: gm/ID 방법론(`gm-id-methodology.md`, Tsividis 준정적 규칙·Cortes&
+Bampi 다단 sizing)과 이 프로젝트가 이미 채택한 원칙("전류거울은 strong inversion,
+이득단은 weak/moderate -- 한 OTA 안에서도 소자별로 다른 동작점이 정상", §9.5)을
+근거로: **cross-kind(PMOS-NMOS) L 통일을 요구하는 회로이론적 원칙은 없다.** 통일이
+정당화되는 경우는 (a)같은 kind 매칭(전류미러/차동쌍), (b)위상보상식이 gm을 스칼라
+하나로 뭉뚱그릴 때, (c)레이아웃 대칭 우선일 때뿐.
+
+**로컬 코드 대조**: `topology.json`의 `matching_pairs`가 이미 M15-M25(PMOS끼리)/
+M16-M26(NMOS끼리)만 선언하고 M15-M16 cross-kind 매칭은 없음을 확인 -- 지금까지
+둘이 같은 L을 받은 건 회로적 요구가 아니라 `compensation.stage_devices`의 엔진
+구현 편의였다.
+
+**레이아웃 안전성 재확인**: `build_graph()`의 kind 동질성 하드 게이트(세션28)로 row는
+항상 kind 동질이라, M15(PMOS)/M16(NMOS)는 애초에 같은 물리 row로 병합된 적이 없다
+(`output_stage_a__pmos`={M15,M25}/`__nmos`={M16,M26}, 세션28부터 이미 분리) -- 이번
+분리는 레이아웃 병합 가정을 전혀 안 건드린다.
+
+## AS. `compensation.stage_devices` 분리 구현
+
+`topology_library.py`: Eq.6의 `gm2` 단일값을 Eq.5(gmp/gmn)와 같은 패턴으로
+`gmp2`/`gmn2` 2개로 분리 반환(4-stage), 50:50 기본 분할(원문 근거 없음, Eq.5와 동일
+관례). `topology.json`: `compensation.stage_devices` `[M15,M16,M25,M26]`(4개 단일
+그룹) → `[M15,M25]`/`[M16,M26]`(2그룹), theta `L_stage2out` → `L_stage2out_p`/
+`L_stage2out_n`.
+
+**self-test로 실제 KCL 위반을 재발견**: Vom 노드가 (사이징 엔진이 읽는 netlist
+기준) M15.drain/M16.drain 딱 2단자뿐인 net이라 `kcl_series_union()`이 이미 순수
+connectivity만으로 ID(M15)=ID(M16)를 강제하고 있었다(L 매칭과 무관한 진짜 push-pull
+출력단 KCL) -- `shared_gm_id_groups`에 `[2,3]`을 추가해 gm_id만 공유시켜 해결(L은
+`_size_group_at_gm_id()`가 그룹 안에서도 스테이지별로 독립 탐색하므로 L 독립성은
+유지됨).
+
+## AT. classab_centering_dev_v 최종 결론 -- **동시만족 불가능 확정**
+
+독립화 이후 실제 sky130 LUT로 400점 조인트 스캔(L_p×L_n, 0.15~1.0µm, 0.15~0.5µm
+구간 25nm 간격 집중) + SLSQP 4-start 전부 실행 — **gain_db≥75.6dB AND
+classab_centering_dev_v≤0.15V를 동시 만족하는 지점이 0개**(SLSQP 4/4 시작점 전부
+정확히 같은 지점 `classab_centering_dev_v=0.304257`에서 막힘, 나머지 제약은 전부
+통과). L 독립화로 trade-off 자체는 개선됐다(최선 centering 0.306V(구, 강제 단일
+L) → 0.058V(신, 하지만 이 지점은 gain_db=60dB대로 붕괴)) -- 그러나 gain 통과 구간과
+centering 통과 구간이 전혀 안 겹친다. **이건 탐색 해상도 문제가 아니라 이 소자쌍의
+실제 물리적 한계로 확정** -- 다음 세션 이후 항목: gm_id도 독립화해야 풀리는지,
+아니면 스펙 자체를 재검토(V_swing/centering 허용치 완화)해야 하는지 조사 필요(아래
+BA① 참고).
+
+## AU. gap3(harness 연동 감사) 발견 3건 처리
+
+harness 연동(어떤 함수가 최상위 `optimize_full_circuit_budget()`에 실제로 연결돼
+있는지) 감사 중 발견한 3건:
+
+1. **`estimate_area_budget()` 미연동** -- `select_layout_tool()`의 `area_budget=
+   "generous"` 승격 기준이 `do.md`에 이미 "확정된 공식 없음, 최소 2~3개 회로 실측
+   필요"로 명시적으로 보류돼 있던 의도된 gap. **그대로 둠**(임의 threshold를 만들면
+   이 세션 내내 지킨 "근거 없는 정책 발명 금지" 원칙 위반).
+2. **레거시 `run_sizing_pipeline()`/`load_sizing_targets()`/`write_sizing_results()`
+   (2026-07-28)** -- `optimize_full_circuit_budget()`(2026-07-31 이후 단일 진입점으로
+   확정)이 완전히 대체한 뒤 저장소 전체에서 self-test 말고는 호출부 0건(외부 스크립트
+   포함 전수 확인) -- **삭제**. 부수 발견: 진짜 harness 경로(`_evaluate()`)의
+   `_COMPENSATION_REGISTRY` 조회에 다른 모든 registry가 갖고 있는 "미등록 키 →
+   친절한 ValueError" 가드가 없었다(그 가드는 죽은 함수에만 있었음) -- 같은 패턴으로
+   추가.
+3. **`slew_rate()`/`check_quasi_static()` 검증 미연동** -- `find_optimal_sizing()`의
+   fT 인자가 `optimize_multistage()`에서 한 번도 안 넘겨져 준정적 검증이 실행된 적이
+   없었음(아래 AX에서 해소). slew_rate 쪽은 필요 슬루 레이트가 출력 전압 스윙
+   (V_swing)에 의존하는데 **이 프로젝트 어디에도 V_swing 스펙이 아직 모델링돼
+   있지 않다** -- 다음 세션 이후 항목(BA④).
+
+## AV. LUT 보간 미사용 발견 -- `dense_candidates()`/`dense_L_candidates()` 신설
+
+사용자 지적 계기: `SemiEmpiricalGmIdLUT`는 L/VDS/VS 축을 이미 다중선형보간하는데
+(`_multilinear_interp()`), `run_harness.py`를 포함한 **모든** `L_candidates`/
+`VDS_candidates` 구성부(골든 회귀 케이스 제외)가 실측 앵커점(L: sky130 4개)을 그대로
+쓰거나 성기게 데시메이션(VDS: `grid[::24]`로 49점→3점)해서 그 보간 능력을 검색이
+안 쓰고 있었다.
+
+`dense_candidates(grid, n)` 신설(`sizing_recipe.py`): 실측 범위 **안에서만**(외삽
+없음) `n`개 후보 생성 -- 실측점이 `n`보다 많으면(VDS) 보간 대신 균등 **서브샘플**
+(구현 중 자체 발견한 버그: 처음엔 앵커 전부를 무조건 앞에 붙여 VDS n=13 요청이
+실제로 최대 62개까지 나가는 문제가 있었음, 수정함), 적으면(L) 앵커 전부 + 등간격
+보간으로 채움. **앵커점을 항상 먼저 배치**해 `find_optimal_sizing()`의 tie-break
+(엄격부등식, 먼저 나온 후보 유지, objective="power"에서 L/VDS가 완전 동점)가
+"이유 없이 새 L을 골라 하류에 파급"시키지 않게 함(tie-break 로직 자체는 안 건드림,
+후보 **순서**만 바꿈).
+
+`run_harness.py` 갱신: `L_candidates=dense_L_candidates(nmos,n=41)`,
+`VDS_candidates=dense_candidates(nmos.VDS_grid,n=13)`, `gm_id_grid`도
+`search_gm_id_for_role()` 자체 기본값(2.0~30.0, 0.5간격, 57점)과 맞춤(기존
+`[4,8,...,24]` 6점은 밀도 부족으로 하류 소자 W_bounds 실패의 간접 원인이었음).
+
+## AW. B엔진 하류파급 근본수정 2건 (VDS 헤드룸 + replica feasibility)
+
+densify 직후 실측: DENSE 무작위 300점 샘플이 100% 크래시(BASELINE은 156/300 ok).
+근본원인 2가지를 순서대로 발견·수정:
+
+**(1) VDS 헤드룸**: `optimize_multistage()`의 B엔진이 `vertical_stack_id`(물리적
+VDD~GND 컬럼)를 전혀 모른 채 VDS를 완전 자유변수로 탐색 -- densify가 실제로
+KVL을 위반하는 값(M1a VDS=1.8V=vdd 전체, 캐스코드 M2a 몫이 하나도 안 남음)을
+찾아냈다(baseline은 후보 3개뿐이라 우연히 안전한 값만 나왔을 뿐). `reserved_vds_
+for_other_stack_members()` 신설(`sizing_recipe.py`) -- 같은 vsid의 다른 확정 소자
+(`metric_stage_budget` 고정 vds/`device_roles`의 `min_vds_by_role`)가 필요로 하는
+예산을 미리 빼서 스테이지별 VDS 상한 계산. `optimize_multistage()`의
+`VDS_candidates`가 "리스트의 리스트"(스테이지별 후보)도 받게 확장(`_resolve_vds()`,
+평평한 리스트면 기존과 100% 동일 하위호환). L5c self-test(단일 theta 고정점)의
+gain_db가 84.15→74.9dB로 낮아짐(물리적으로 불가능했던 VDS=1.8V가 없어진 정당한
+결과) -- 이 테스트 목적(헤드룸 KVL 검증)과 무관해 `gain_db`도 `classab_centering_
+dev_v`처럼 constraints에서 제외.
+
+**(2) replica feasibility**: `objective="area"`(M15/M25가 속한
+`shared_gm_id_groups` 경로)는 L이 작을수록 W가 줄어드는 **진짜(동점 아닌)** 승리라
+tie-break 순서 트릭이 안 통함 -- M15가 area 최적화로 L=0.235µm(비앵커점)을 진짜로
+선택, K_replica가 그 L을 물려받는 M9a가 `search_gm_id_for_role()`의 W_bounds를
+못 맞춰 크래시. `make_replica_feasibility_check()` 신설 -- 이 스테이지를
+`reference`로 삼는 C타입 replica feed가 있으면 그 `target`이 (K_replica 등 theta
+bounds 양끝에서) 여전히 feasible한지 확인하는 콜백을 만들어 `find_optimal_sizing()`
+의 새 `extra_feasible` 인자로 주입(엔진은 여전히 제네릭, "무엇을 확인할지" 모른 채
+콜백만 호출). theta_values(K_replica 비율)는 compensation 실행 시점엔 아직 안
+정해지므로, declared bounds 양끝 다 feasible해야 통과(W가 ID에 선형이라 양끝이
+안전하면 그 사이도 안전하다는 보수적 근거).
+
+**검증**: 무작위 300점 재실측 -- DENSE가 BASELINE과 **정확히 동일한 156/300 ok**로
+수렴(같은 이유(M9b KCL)로만 나머지 실패, M9a W_bounds 크래시 완전 소멸).
+`run_harness.py` 전체 grid(`grid_points_per_theta=2`, 16384개 조합) 크래시 없이
+완주(feasible point는 못 찾음 -- AT의 classab_centering_dev_v 결론과 grid_points_
+per_theta=2의 낮은 해상도 탓, 새 버그 아님).
+
+## AX. fT 준정적(quasi-static) 검증 일반화
+
+같은 감사 중 발견: `optimize_multistage()`가 `find_optimal_sizing()`에 `fT`를 한
+번도 안 넘겨 준정적 검증이 지금까지 전혀 실행된 적이 없었음. 문헌조사(`gm-id-
+methodology.md` §6.4 Miller pole-splitting "2단 gain-bandwidth > omega_T") +
+로컬 코드 대조로 확인: 기준주파수는 회로 전체에 하나가 아니라 **스테이지마다
+다르다**(입력단은 메인루프 unity-gain 주파수, 출력단은 그보다 높은 비지배극
+주파수). 엔진에 하드코딩하면 "엔진은 제네릭, topology_fn이 회로별 수식을 콜백으로
+제공" 원칙을 깨므로, `exposed_params`와 동일한 노출 패턴으로 선택적 함수 속성
+`topology_fn.stage_fT_targets`(Hz 리스트, 스테이지 위치 대응) 신설 --
+`current_reuse_telescopic_topology()`가 `omega_c`/`omega_p2`(이미 계산 중이던 값)로
+실제로 채움, 나머지 3개 topology_fn은 아직 미제공(기존 동작 100% 유지, 메커니즘은
+전 토폴로지에 열려 있음). 세션29 SLSQP 성공 결과(gain_db=84.15dB 등) 재현 검증 --
+fT 체크 활성화 후에도 4/4 성공·`max_violation=0` 유지, 회귀 없음 확정.
+
+## AY. 성능 감사 -- `gm_id_to_id_density()` 캐시 버그 발견
+
+densify 성능 실측 중 발견: `gm_id_to_id_density()`가 세션29가 `_gm_id_curve()`용으로
+이미 캐싱해둔 `self._log_ID`를 안 쓰고 매 호출마다 4D ID 배열 전체를
+`np.log(np.clip(...))`로 재계산하고 있었다(같은 클래스 안의 다른 메서드는 캐시를
+쓰는데 이 메서드만 빠짐). `find_optimal_sizing()`의 L×VDS×gm_id 3중루프 핫패스라
+영향이 큼 -- `self._log_ID` 재사용으로 교체, **전 상황 일관되게 2.7~3배 speedup**
+(기존 4×3 후보 0.61s→0.22s, L densify 4.66s→1.54s, L+VDS densify 28.0s→9.98s).
+self-test 회귀 0건(순수 캐시 재사용, 값 동일).
+
+## AZ. 하류파급/서브샘플 버그 전수 재감사 (사용자 요청)
+
+**"다른 엔진도 하류파급을 몰라도 되나?"**: 4개 회로 전수 조사(C-type feed의
+target/reference 전부 나열) -- C-type replica feed는 `current_reuse_telescopic_ota`
+하나에만, 그것도 2개뿐(`K_replica`: M15→M9a, `mirror_M18a`: M9a→M18a)이고 둘 다
+궁극적으로 M15(compensation)로 귀결 -- `make_replica_feasibility_check()`가 이미
+전부 커버. 나머지 3개 회로(folded_cascode/nmcnr/two_stage)는 C-type feed 자체가
+없음. B-type(N_cmfb_bw)은 L이 feed_spec에 고정 상수라 애초에 "탐색이 예측 못 한 L"
+문제가 성립 안 함. F-type(L_cascode/L_stage2out)은 theta bounds가 이미 연속이라
+별도 candidate-density 문제 없음(matching_pairs L consistency는 기존 하드에러가
+이미 전 엔진 공통으로 커버). **결론: 현재 4개 회로엔 추가 확장 불필요, 새 회로가
+C-type feed로 F-type/B-type 타겟을 참조하게 되면 그때 같은 패턴으로 확장.**
+부수 발견: `_feed_diode_stack_target()`의 "gm_id를 그대로 물려받는다" docstring이
+실제 동작(target에 `gm_id_role`이 있으면 `device_roles` 루프가 곧바로 재검색해
+덮어씀)과 어긋나 있어 docstring 정정.
+
+**"서브샘플 문제가 다른 곳에도 있나?"**: `dense_candidates()`를 극단 케이스(앵커
+1개/49개, n=1/2/전체/전체-1)로 견고성 재확인(전부 정상) + `stick_diagram.py`/
+`topology_library.py` 전체에 LUT 격자 기반 후보 구성 코드 자체가 없음을 grep으로
+확인 -- **이 패턴은 `dense_candidates()`(이번 세션 신설) 하나뿐이었고 이미 수정
+완료, 다른 곳엔 없음.**
+
+## BA. 다음 세션 최우선 (세션30 최종 확정)
+
+### ① classab_centering_dev_v -- gm_id 독립화 조사 (AT에서 확정된 미해결, 최우선)
+L 독립화만으로는 gain_db/centering 동시만족이 물리적으로 불가능함이 확정됐다
+(400점 조인트 스캔). 다음 조사: (a) gm2p/gm2n(M15/M16의 gm_id)도 50:50 고정 대신
+독립 탐색하면 풀리는지(현재 `shared_gm_id_groups=[[2,3]]`가 gm_id를 강제 공유 중
+-- 이게 KCL(ID(M15)=ID(M16)) 때문에 필요했던 제약이라, gm_id 독립화는 ID 동일성을
+다른 방식으로 유지하면서 gm_id만 갈라야 함, 설계 필요). (b) 안 풀리면 스펙 자체
+(V_swing/centering 허용치 0.15V)를 재검토해야 하는지 회로설계 관점에서 재확인.
+
+### ② 다른 회로 교차검증 (세션22부터 이월, 이번 세션 신설 메커니즘 4개 포함)
+`folded_cascode` 등으로 웜스타트 3함수+SLSQP+`derive_horizontal_stack_groups()`
+뿐 아니라 이번 세션 신설분(`dense_candidates()`/`reserved_vds_for_other_stack_
+members()`/`make_replica_feasibility_check()`/`stage_fT_targets`)도 일반화되는지
+확인 -- 전부 `current_reuse_telescopic_ota` 한 회로로만 검증됨.
+
+### ③ `run_harness.py` 나머지 실전략 -- 계속 이월
+세션22부터 이월, 아직 착수 전.
+
+### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 필요
+AU③에서 발견, 필요 슬루 레이트가 출력 전압 스윙에 의존하는데 이 프로젝트에 아직
+V_swing 스펙이 없음 -- 사용자와 정의부터 논의할 것(임의로 만들지 말 것).
+
+## BB. 커밋 상태 (세션30)
+
+세션30 코드 변경 커밋 완료: `9e12032`(fix, LUT 보간 전면화+B엔진 하류파급 근본수정
+5건+fT 준정적 검증 일반화). 이 문서 갱신은 별도 docs 커밋 예정.
