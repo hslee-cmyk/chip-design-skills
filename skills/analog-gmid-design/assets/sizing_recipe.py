@@ -193,7 +193,13 @@ def _multilinear_interp(grids, values, points):
     쓰고 나머지는 순수 파이썬 스칼라 연산이다."""
     import bisect
     ndim = len(grids)
-    grids = [g.tolist() if hasattr(g, "tolist") else list(g) for g in grids]
+    # 2026-08-13(세션31, F 설계 1단계) -- 이미 plain list인 grid는 그대로 쓴다(재변환/재복사
+    # 불필요 -- 이 함수는 grids를 읽기만 하고 절대 in-place mutate하지 않는다). 호출부
+    # (`SemiEmpiricalGmIdLUT._query()`/`_gm_id_curve()`)가 `self._grids_list`(__init__에서
+    # 한 번만 만든 캐시)를 넘기는 게 이제 기본 경로라, 매 호출마다 `list(g)` 얕은 복사를
+    # 반복하던 낭비를 없앤다(감사 발견 -- session29가 `.tolist()` 자체를 이미 병목으로
+    # 지목했으면서도 이 재변환/재복사는 남아있었다).
+    grids = [g.tolist() if hasattr(g, "tolist") else g for g in grids]
     points_seq = points.tolist() if hasattr(points, "tolist") else points
     if points_seq and not hasattr(points_seq[0], "__len__"):
         points_seq = [points_seq]  # 1차원(단일 좌표, N개 스칼라)로 들어온 경우 (1,N)으로 승격
@@ -232,6 +238,54 @@ def _multilinear_interp(grids, values, points):
         result.append(total)
     import numpy as np
     return np.asarray(result)
+
+
+def _multilinear_interp_point_multi(grids, arrays, point):
+    """`_multilinear_interp()`와 동일한 다중선형보간을, **단일 좌표**에서 **여러 배열을
+    한 번에** 계산한다(F 설계, 세션31 -- `find_optimal_sizing()`의 L×VDS×gm_id 핫루프에서
+    `gm_id_to_id_density()`/`gm_gds_ratio()`/`cgg_absolute()`가 같은 (L,vgs,vds,vs) 지점에서
+    각자 `_query()`를 불러 bisect 탐색(4축)을 3~4번 반복하던 것을 남은 최대 레버로 지목한
+    성능감사 후속). 축별 `idx_lo`/`frac`(bisect 탐색, 원래 비용의 핵심)을 **한 번만** 계산해
+    `arrays`의 배열 개수만큼 재사용한다 -- 각 배열에 대해 개별 `_multilinear_interp()`를
+    호출한 것과 수치적으로 동일한 결과를 낸다(같은 가중치/인덱스로 배열만 바꿔 합산하므로).
+
+    `grids`는 이미 plain list여야 한다(numpy 변환은 호출부 책임, `_multilinear_interp()`와
+    같은 계약). `point`는 (ndim,) 스칼라 좌표 하나(리스트/튜플). 반환: `arrays`와 같은
+    순서의 보간값 리스트."""
+    import bisect
+    ndim = len(grids)
+    idx_lo, frac = [], []
+    for d in range(ndim):
+        g = grids[d]
+        n = len(g)
+        x = point[d]
+        if x <= g[0]:
+            i, f = 0, 0.0
+        elif x >= g[-1]:
+            i, f = n - 2, 1.0
+        else:
+            i = bisect.bisect_right(g, x) - 1
+            if i < 0:
+                i = 0
+            elif i > n - 2:
+                i = n - 2
+            denom = g[i + 1] - g[i]
+            f = (x - g[i]) / denom if denom != 0 else 0.0
+        idx_lo.append(i)
+        frac.append(f)
+    totals = [0.0] * len(arrays)
+    for corner in range(2 ** ndim):
+        weight = 1.0
+        idx = []
+        for d in range(ndim):
+            bit = (corner >> d) & 1
+            weight *= frac[d] if bit else (1 - frac[d])
+            idx.append(idx_lo[d] + bit)
+        if weight != 0.0:
+            idx_t = tuple(idx)
+            for ai, arr in enumerate(arrays):
+                totals[ai] += weight * float(arr[idx_t])
+    return totals
 
 
 class SemiEmpiricalGmIdLUT(GmIdLUT):
@@ -294,13 +348,59 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         # optimize_multistage() 캐싱과 같은 패턴). (L,vds,vs) 그대로를 키로 쓴다(반올림 없이 --
         # 이 값들은 동일 호출 체인에서 재사용되는 같은 float라 오차 누적 걱정이 없다).
         self._gm_id_curve_cache: dict = {}
+        # 2026-08-12(세션30 감사 발견, 세션31 구현) -- _solve_vgs(gm_id,L,vds,vs)도 순수함수인데
+        # gm_id_to_id_density()/gm_gds_ratio()/cgg_absolute()/fT() 등이 find_optimal_sizing()의
+        # L×VDS×gm_id 3중루프 한 조합마다 각자 독립적으로 같은 (gm_id,L,vds,vs)로 이 함수를
+        # 호출하고 있었다 -- _gm_id_curve()는 세션29가 이미 (L,vds,vs)로 캐싱했지만, 그 위에서
+        # 매번 다시 도는 np.argsort/np.interp(정렬+역보간)는 캐싱이 없었다. _gm_id_curve_cache와
+        # 동일한 패턴으로 (gm_id,L,vds,vs) 4-tuple을 키로 캐싱한다.
+        self._solve_vgs_cache: dict = {}
+        # 2026-08-13(세션31, F 설계 1단계) -- `_multilinear_interp()`(세션29가 순수-파이썬
+        # bisect 구현으로 교체한 것, 위 클래스독스트링 밖 함수 참고)는 호출마다
+        # `grids = [g.tolist() ...]`로 self.grids(4개 numpy 배열, 원소 합 ~100개)를
+        # 매번 Python list로 재변환한다 -- self.grids는 생성자 이후 불변이라 이 변환도
+        # __init__에서 한 번만 해서 재사용 가능(_log_ID와 같은 패턴). `_query()`/
+        # `_gm_id_curve()`가 `self.grids` 대신 이걸 넘긴다.
+        self._grids_list = [g.tolist() for g in self.grids]
 
     def _w_ref_effective(self, L: float) -> float:
         """이 L에서 ID/CGG 배열이 측정된 실제 기준폭. W_ref=None이면 단위소자(W*=L) 관례."""
         return L if self.W_ref is None else self.W_ref
 
     def _query(self, array, L, vgs, vds, vs):
-        return _multilinear_interp(self.grids, array, [[L, vgs, vds, vs]])[0]
+        return _multilinear_interp(self._grids_list, array, [[L, vgs, vds, vs]])[0]
+
+    def _query_multi(self, arrays, L, vgs, vds, vs):
+        """`arrays`(같은 (L,vgs,vds,vs) 지점에서 함께 조회할 배열들, 예 `[self._log_ID,
+        self.GM, self.GDS]`)를 한 번의 bisect 탐색으로 동시에 보간한다(F 설계, 세션31) --
+        `_query()`를 배열마다 따로 부르면 같은 4축 bisect 탐색을 배열 개수만큼 반복하게 된다.
+        `_multilinear_interp_point_multi()` docstring 참고."""
+        return _multilinear_interp_point_multi(self._grids_list, arrays, [L, vgs, vds, vs])
+
+    def _sizing_bundle(self, gm_id: float, L: float, vds: float, vs: float = 0.0,
+                        need_cgg: bool = False):
+        """`find_optimal_sizing()`의 L×VDS×gm_id 핫루프 전용(F 설계, 세션31 -- 성능감사가
+        `_solve_vgs()` 캐싱 이후 남은 최대 레버로 지목: 이 루프 한 후보당 `gm_id_to_id_
+        density()`/`gm_gds_ratio()`/(조건부)`cgg_absolute()`가 각자 `_query()`를 따로 불러
+        같은 (L,vgs,vds,vs) 지점에서 bisect 탐색을 3~4번 반복했다). `_solve_vgs()` 1회(이미
+        캐시됨) + `_query_multi()` 1회로 ID/GM/GDS/(CGG)를 한 번에 얻는다.
+
+        반환: `(IDu, gm_gds_ratio, cgg_raw)` -- `cgg_raw`는 `need_cgg=False`면 `None`,
+        아니면 **아직 W_target으로 스케일링 안 된 값**(`cgg_absolute()`의 raw 그대로)이다.
+        `find_optimal_sizing()` 루프에서 W는 IDu를 먼저 알아야 나오는 값(`W=L*ID/IDu`)이라
+        Cgg 최종 스케일링(`cgg_raw*W/w_ref`, 곱셈 하나뿐)은 W가 나온 뒤 호출부가 한다 --
+        LUT 보간이 필요한 부분만 여기서 배치 처리하고, 나머지는 원래 `cgg_absolute()`와
+        정확히 같은 식이라 값 변화가 없다.
+
+        `gm_id_to_id_density()`/`gm_gds_ratio()`/`cgg_absolute()`를 이 값으로부터 재구성한
+        것과 수치적으로 동일하다(같은 `_solve_vgs`/`_query` 계산을 배치로 묶었을 뿐)."""
+        vgs = self._solve_vgs(gm_id, L, vds, vs)
+        arrays = [self._log_ID, self.GM, self.GDS] + ([self.CGG] if need_cgg else [])
+        vals = self._query_multi(arrays, L, vgs, vds, vs)
+        IDu = math.exp(vals[0]) * L / self._w_ref_effective(L)
+        gm_gds = vals[1] / vals[2]
+        cgg_raw = vals[3] if need_cgg else None
+        return IDu, gm_gds, cgg_raw
 
     def _gm_id_curve(self, L, vds, vs):
         """고정 (L,vds,vs)에서 VGS 격자 전체에 대한 (ID, gm/ID) 배열을 반환 (역조회용).
@@ -315,15 +415,21 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         pts = np.column_stack([
             np.full(n, L), self.VGS_grid, np.full(n, vds), np.full(n, vs),
         ])
-        id_vals = np.exp(_multilinear_interp(self.grids, self._log_ID, pts))
-        gm_vals = _multilinear_interp(self.grids, self.GM, pts)
+        id_vals = np.exp(_multilinear_interp(self._grids_list, self._log_ID, pts))
+        gm_vals = _multilinear_interp(self._grids_list, self.GM, pts)
         gm_id_vals = gm_vals / np.clip(id_vals, 1e-18, None)
         result = (id_vals, gm_id_vals)
         self._gm_id_curve_cache[key] = result
         return result
 
     def _solve_vgs(self, gm_id: float, L: float, vds: float, vs: float) -> float:
-        """목표 gm/ID를 만족하는 VGS를 격자 위에서 역보간으로 찾는다 (gm/ID는 VGS에 단조감소)."""
+        """목표 gm/ID를 만족하는 VGS를 격자 위에서 역보간으로 찾는다 (gm/ID는 VGS에 단조감소).
+        순수함수라 (gm_id,L,vds,vs)별로 결과를 캐싱한다(위 `__init__`의 `_solve_vgs_cache` 주석
+        참고 -- find_optimal_sizing()이 같은 4-tuple로 이 함수를 여러 호출부에서 중복 호출한다)."""
+        key = (gm_id, L, vds, vs)
+        cached = self._solve_vgs_cache.get(key)
+        if cached is not None:
+            return cached
         np = self.np
         _, gm_id_vals = self._gm_id_curve(L, vds, vs)
         order = np.argsort(gm_id_vals)  # np.interp는 오름차순 x를 요구
@@ -332,7 +438,9 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
             raise ValueError(
                 f"gm_id={gm_id:.3g}가 LUT 범위[{gm_id_sorted[0]:.3g},{gm_id_sorted[-1]:.3g}] 밖 — "
                 "VGS 스윕 범위를 넓히거나 moderate/weak inversion 쪽 gm/ID로 조정하세요.")
-        return float(np.interp(gm_id, gm_id_sorted, vgs_sorted))
+        result = float(np.interp(gm_id, gm_id_sorted, vgs_sorted))
+        self._solve_vgs_cache[key] = result
+        return result
 
     def gm_id_to_id_density(self, gm_id: float, L: float, vds: float, vs: float = 0.0) -> float:
         """size_transistor()의 `W=L*ID/IDu`가 기대하는 "W/L=1 기준 전류"를 반환.
@@ -535,13 +643,17 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
         for VDS in VDS_candidates:
             for gm_id in gm_id_grid:
                 try:
-                    IDu = lut.gm_id_to_id_density(gm_id, L, VDS, vs)
+                    # 2026-08-13(세션31, F-2 구현) -- gm_id_to_id_density()/gm_gds_ratio()/
+                    # cgg_absolute()를 각각 부르면 같은 (L,vgs,VDS,vs) 지점에서 LUT bisect
+                    # 탐색이 3~4번 반복된다(성능감사가 _solve_vgs 캐싱 이후 남은 최대 레버로
+                    # 지목) -- _sizing_bundle()로 한 번에 묶는다. Cgg는 W가 나온 뒤(IDu 필요)
+                    # 마지막에 raw*W/w_ref로 스케일링 -- cgg_absolute()와 동일한 식, 수치 동일.
+                    IDu, gain, cgg_raw = lut._sizing_bundle(gm_id, L, VDS, vs, need_cgg=(fT is not None))
                     ID = gm / gm_id
                     W = L * ID / IDu
-                    gain = lut.gm_gds_ratio(gm_id, L, VDS, vs)
                     fnqs_ok = True
                     if fT is not None:
-                        Cgg = lut.cgg_absolute(gm_id, L, VDS, vs, W)
+                        Cgg = cgg_raw * W / lut._w_ref_effective(L)
                         fnqs_ok = check_quasi_static(fT, gm, Cgg, quasi_static_margin).ok
                 except (ValueError, ZeroDivisionError):
                     continue
@@ -1212,7 +1324,7 @@ def allocate_stack_headroom(vdd: float, stack: list, policy: HeadroomPolicy = DE
 
 def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_target: float,
                            role: str, W_bounds: tuple = (1e-6, 200e-6),
-                           gm_id_grid: list | None = None) -> float:
+                           gm_id_grid: list | None = None, return_idu: bool = False):
     """배치 7-3e — `resize.py`의 균일한 매직넘버(`GM_ID_SIG=12`류, 역할 구분 없음)를
     "이 공정에서 W가 타당범위 안에 들면서 역할이 요구하는 방향의 극단"이라는 실제 LUT
     스캔으로 대체한다(sky130 실측: gm/ID를 논문 명시값 그대로 쓰면 W가 수천~수만 um로
@@ -1226,12 +1338,21 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
       게 sky130 실측으로 확인됨 — min-L NMOS만 국소 정점, PMOS/L≥0.35um은 정점 없이 단조증가).
     - `"balanced"`(신호/GBW 고정 등) — W_bounds를 만족하는 아무 지점(결정론적으로 gm_id
       오름차순 중 첫 feasible을 고른다 — `resize.py`의 "17로 순방향 사이징→W 비현실적→W
-      상한 고정 후 역산" 수동 flip이 이 role의 특수 사례였다).
+      상한 고정 후 역산" 수동 flip이 이 역할의 특수 사례였다).
+
+    `return_idu`(2026-08-13 세션31 신설, 기본 False -- 하위호환): True면 `gm_id` 대신
+    `(gm_id, IDu)`를 반환한다. 스캔 도중 이긴 `gm_id`의 `IDu`(=`lut.gm_id_to_id_density(...)`)는
+    이미 계산돼 있는데, 기존 호출부(`_evaluate()`의 gm_id_role 루프)가 이 반환값을 버리고
+    `size_transistor()`로 바로 이어서 동일 인자로 다시 조회하고 있었다(감사 발견 -- `_solve_vgs`
+    캐시가 정렬+역보간은 흡수해주지만 `_query(_log_ID,...)` 자체는 여전히 중복 실행됨). 이
+    한도 안에서만 호출부가 재조회를 건너뛸 수 있게 옵트인으로 노출한다(기존 호출부는 전부
+    변경 없음 -- 인자를 안 주면 100% 이전과 동일).
 
     후보가 하나도 없거나 `role`이 셋 중 하나가 아니면 즉시 `ValueError`."""
     if gm_id_grid is None:
         gm_id_grid = [i * 0.5 for i in range(4, 61)]  # 2.0~30.0
     feasible = []
+    idu_by_gm_id = {}
     for gm_id in gm_id_grid:
         try:
             idu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
@@ -1242,6 +1363,7 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
         W = ID_target * L / idu
         if W_bounds[0] <= W <= W_bounds[1]:
             feasible.append(gm_id)
+            idu_by_gm_id[gm_id] = idu
     if not feasible:
         # 2026-08-12(세션30) -- ValueError였던 걸 InfeasibleSizingError로 변경(harness
         # 연동 감사 중 발견: L_candidates densify로 compensation 단계 L이 옛 4개 앵커점을
@@ -1253,17 +1375,18 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
             f"W_bounds={W_bounds} 안에 드는 gm_id 후보가 없다(role={role!r}, "
             f"gm_id_grid={gm_id_grid[0]}~{gm_id_grid[-1]}) -- 범위를 넓히세요.")
     if role == "matching":
-        return min(feasible)
-    if role == "balanced":
-        return feasible[0]
-    if role == "gain":
+        best_gm_id = min(feasible)
+    elif role == "balanced":
+        best_gm_id = feasible[0]
+    elif role == "gain":
         best_gm_id, best_ratio = None, -1.0
         for gm_id in feasible:
             ratio = lut.gm_gds_ratio(gm_id, L, vds, vs)
             if ratio > best_ratio:
                 best_ratio, best_gm_id = ratio, gm_id
-        return best_gm_id
-    raise ValueError(f"알 수 없는 role: {role!r} -- 'matching'/'gain'/'balanced' 중 하나여야 한다")
+    else:
+        raise ValueError(f"알 수 없는 role: {role!r} -- 'matching'/'gain'/'balanced' 중 하나여야 한다")
+    return (best_gm_id, idu_by_gm_id[best_gm_id]) if return_idu else best_gm_id
 
 
 _L_ROLE_MULTIPLIERS = {
@@ -1364,6 +1487,12 @@ class SizingContext:
     mirror_ratios: dict = field(default_factory=dict)
     topology_path: str = ""
     kind_of: dict = field(default_factory=dict)
+    # 2026-08-13(세션31 감사 발견) -- `_telescopic_class_ab_open_loop_gains()`가 매번 31노드
+    # MNA 4개(Adm/Acm/Ann/H)를 새로 푸는데, `_cmrr_telescopic_class_ab_cmfb()`와 `_psrr_
+    # telescopic_class_ab_cmfb()`가 (완전히 동일한 metric_spec으로) 각자 독립 호출해 한
+    # 세타평가당 8개를 풀고 있었다(각자 절반은 `del`로 바로 버림). 이 ctx는 한 세타평가
+    # 동안만 살아있는 일회용 객체라 여기 캐시해도 이전 세타점 결과가 새는 위험이 없다.
+    _open_loop_gains_cache: dict = field(default_factory=dict)
 
 
 def _metric_sum_current(spec: dict, ctx: SizingContext) -> float:
@@ -1723,14 +1852,7 @@ def _telescopic_class_ab_open_loop_response(metric_spec: dict, ctx: SizingContex
       `cmfb_ctrl_device`(M7)는 이미 존재 -- topology.json에서 M7.gate가 실제로 "Vcmfb"이므로
       `vcmfb` 인자가 자동으로 M7에만 걸린다(별도 분기 불필요, connectivity가 그대로 결정)."""
     by_name = _load_telescopic_topology_cached()
-    device_names = []
-    for role in ("input_p", "input_p_b", "cascode_p", "cascode_p_b",
-                 "input_n", "input_n_b", "cascode_n", "cascode_n_b"):
-        device_names.append(metric_spec[role])
-    device_names += list(metric_spec["tail_p_devices"])
-    device_names.append(metric_spec["tail_n_device"])
-    device_names += list(metric_spec["battery_vop1_side"].values())
-    device_names += list(metric_spec["battery_vom1_side"].values())
+    device_names = _telescopic_open_loop_device_names(metric_spec)
 
     devs, nodes = [], []
     seen_nodes = set()
@@ -1750,13 +1872,59 @@ def _telescopic_class_ab_open_loop_response(metric_spec: dict, ctx: SizingContex
     return sol["Vop1"], sol["Vom1"]
 
 
+def _hashable_key(value):
+    """dict/list를 재귀적으로 해시 가능한 tuple로 변환(딕셔너리 키로 쓰기 위한 정규화).
+    `_telescopic_class_ab_open_loop_gains()`의 캐시 키용(2026-08-13 세션31) -- metric_spec이
+    `battery_vop1_side`처럼 중첩 dict 값을 가질 수 있어 단순 list->tuple 변환만으론 부족하다."""
+    if isinstance(value, dict):
+        return tuple(sorted((k, _hashable_key(v)) for k, v in value.items()))
+    if isinstance(value, list):
+        return tuple(_hashable_key(v) for v in value)
+    return value
+
+
+def _telescopic_open_loop_device_names(metric_spec: dict) -> list:
+    """`_telescopic_class_ab_open_loop_response()`가 조립하는 31소자망의 소자 이름 목록.
+    소자 열거(원래 그 함수 안에 있던 로직, 2026-08-13 세션31 리팩터로 공용 추출)와 캐시 키
+    구성(`_telescopic_class_ab_open_loop_gains()`) 둘 다 이 목록을 쓴다."""
+    names = []
+    for role in ("input_p", "input_p_b", "cascode_p", "cascode_p_b",
+                 "input_n", "input_n_b", "cascode_n", "cascode_n_b"):
+        names.append(metric_spec[role])
+    names += list(metric_spec["tail_p_devices"])
+    names.append(metric_spec["tail_n_device"])
+    names += list(metric_spec["battery_vop1_side"].values())
+    names += list(metric_spec["battery_vom1_side"].values())
+    return names
+
+
 def _telescopic_class_ab_open_loop_gains(metric_spec: dict, ctx: SizingContext) -> tuple:
     """Adm_open/Acm_open/Ann_open/H를 **전부 같은 31소자망**에서 각기 다른 여기(excitation)로
     구한다(세션21) -- Adm(vip=+0.5/vim=-0.5), Acm(vip=vim=1), Ann(vdd=1, PSRR용 VDD 리플),
     H(vcmfb=1, `v(stage-1 CM out)/v(Vcmfb)` -- CMFB 루프이득 T=-H*A_c*G2의 그 H). 넷 다
     battery의 M10/M19 부하 + M8/M17의 자체 VDD 주입 경로를 동일하게 반영한다(세션20까지는
     H/Acm_open/Ann_open이 Kp'/Kn'/Rx/Ry 폐형식만 썼고 M10/M19를 몰랐다 -- 세션21에 이
-    수치망으로 교체)."""
+    수치망으로 교체).
+
+    2026-08-13(세션31) -- `ctx._open_loop_gains_cache`에 캐싱한다. `_cmrr_telescopic_class_
+    ab_cmfb()`/`_psrr_telescopic_class_ab_cmfb()`가 "완전히 동일한" metric_spec으로 이 함수를
+    각자 독립 호출하고 있었다(감사 발견 -- 한 세타평가당 31노드 MNA 4개씩 총 8개를 풀고 절반을
+    바로 버림). ⚠️ **키에 metric_spec만 쓰면 틀린다**(첫 구현에서 실제로 회귀 발견,
+    self-test 앵커2가 앵커1과 같은 캐시 항목을 잘못 맞고 128.72dB를 반환 -- 기대값 146.72dB):
+    이 함수의 진짜 입력은 metric_spec이 가리키는 **소자 이름**뿐 아니라 그 소자들의 **현재
+    ctx.sized[name]["gm"]/["gds"]** 값이다(self-test가 같은 ctx/metric_spec을 재사용하면서
+    `ctx.sized["M5"]["gds"]`/`ctx.sized["M7"]["gm"]`을 직접 바꿔 두 번째 앵커를 만드는 패턴이라
+    metric_spec 내용만으로는 이 변화를 못 잡는다). 그래서 metric_spec 정규화 내용 + 실제 참조되는
+    31개 소자의 (gm,gds) 스냅샷을 함께 키로 쓴다 -- 실제 `_evaluate()` 파이프라인에서는 ctx가
+    한 세타평가 안에서만 살고 CMRR/PSRR 호출 사이에 sized 값이 안 바뀌므로 여전히 캐시가
+    맞아떨어지고, 이 self-test처럼 같은 ctx를 재사용하며 sized를 바꾸는 경우엔 올바르게
+    캐시 미스로 다시 계산한다."""
+    device_names = _telescopic_open_loop_device_names(metric_spec)
+    key = (_hashable_key(metric_spec),
+           tuple((n, ctx.sized[n]["gm"], ctx.sized[n]["gds"]) for n in device_names))
+    cached = ctx._open_loop_gains_cache.get(key)
+    if cached is not None:
+        return cached
     vop1_dm, vom1_dm = _telescopic_class_ab_open_loop_response(metric_spec, ctx, 0.5, -0.5, 0.0, 0.0)
     Adm_open = vop1_dm - vom1_dm
     vop1_cm, vom1_cm = _telescopic_class_ab_open_loop_response(metric_spec, ctx, 1.0, 1.0, 0.0, 0.0)
@@ -1765,7 +1933,9 @@ def _telescopic_class_ab_open_loop_gains(metric_spec: dict, ctx: SizingContext) 
     Ann_open = (vop1_ann + vom1_ann) / 2.0
     vop1_h, vom1_h = _telescopic_class_ab_open_loop_response(metric_spec, ctx, 0.0, 0.0, 0.0, 1.0)
     H = (vop1_h + vom1_h) / 2.0
-    return Adm_open, Acm_open, Ann_open, H
+    result = (Adm_open, Acm_open, Ann_open, H)
+    ctx._open_loop_gains_cache[key] = result
+    return result
 
 
 def _cmrr_telescopic_class_ab_cmfb(metric_spec: dict, ctx: SizingContext) -> float:
@@ -2546,8 +2716,25 @@ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: 
     return geometry_colocation_union(transistors, matching_pairs)
 
 
+def _metric_stage_budget_vds_by_device(thetas: list) -> dict:
+    """`metric_stage_budget` theta feed가 고정하는 `{device: vds}`를 `thetas` 전체에서
+    한 번 뽑아낸다(기본 0.6, `_feed_metric_stage_budget()`과 동일 기본값). `thetas`는
+    한 `_build_theta_evaluator()` 호출 동안 불변이므로, `reserved_vds_for_other_stack_
+    members()`가 그룹 멤버마다 이 스캔을 반복하지 않도록 호출부가 미리 한 번만 만들어
+    넘긴다(2026-08-13 세션31 감사 발견 -- 그전엔 멤버마다 `thetas` 전체를 재스캔했다)."""
+    metric_stage_budget_vds = {}
+    for t in thetas:
+        feed = t["feeds"]
+        if isinstance(feed, dict) and feed.get("type") == "metric_stage_budget":
+            v = feed.get("vds", 0.6)
+            for d in feed.get("devices", []):
+                metric_stage_budget_vds[d] = v
+    return metric_stage_budget_vds
+
+
 def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_roles: dict,
-                                          thetas: list, min_vds_by_role: dict) -> float | None:
+                                          metric_stage_budget_vds: dict,
+                                          min_vds_by_role: dict) -> float | None:
     """`vsid`(vertical_stack_id, VDD~GND 물리적 전기 컬럼) 그룹에서 `exclude_devices`(지금
     compensation이 VDS를 정하려는 스테이지 자신의 소자들)를 뺀 나머지 멤버가 이미
     확정적으로/최소한으로 필요로 하는 VDS 합을 반환한다 — `optimize_multistage()`의
@@ -2556,8 +2743,9 @@ def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_role
     실제로 KVL을 위반하는 값(예: VDS=vdd 전체)을 찾아냈다)를 고치기 위해 신설.
 
     나머지 멤버를 두 갈래로 분류해 합산한다:
-    - `metric_stage_budget` theta feed의 `devices`에 속하면 그 feed의 `vds`(기본 0.6,
-      `_feed_metric_stage_budget()`과 동일 기본값) -- 이미 고정값이라 정확히 그만큼.
+    - `metric_stage_budget_vds`(`_metric_stage_budget_vds_by_device(thetas)`가 미리 뽑아둔
+      `{device: vds}` -- 호출부가 그룹 멤버 루프 밖에서 한 번만 만들어 넘긴다)에 속하면
+      그 고정값 그대로.
     - `device_roles`에 `headroom_role`이 선언돼 있으면 `min_vds_by_role[role]`(기본 0.2)
       -- `allocate_stack_headroom()`이 실제로 배정할 값의 하한(최소 보장치)이므로 안전한
       보수적 예약.
@@ -2568,13 +2756,6 @@ def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_role
     상한을 씌우는 것보다 기존처럼 무제한으로 두는 게 안전하다(호출부가 이 경우 VDS
     상한을 적용하지 않는다)."""
     members = [m for m, dr in device_roles.items() if dr.get("vertical_stack_id") == vsid]
-    metric_stage_budget_vds = {}
-    for t in thetas:
-        feed = t["feeds"]
-        if isinstance(feed, dict) and feed.get("type") == "metric_stage_budget":
-            v = feed.get("vds", 0.6)
-            for d in feed.get("devices", []):
-                metric_stage_budget_vds[d] = v
     reserved = 0.0
     for m in members:
         if m in exclude_devices:
@@ -2872,6 +3053,11 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 # 고정 vds / device_roles의 min_vds_by_role)가 필요로 하는 몫을 미리
                 # 빼서 VDS_candidates 상한을 계산 -- comp_params(theta_values 무관, spec/
                 # device_roles만 의존)로만 결정되므로 위 _comp_cache_key 그대로 안전.
+                # 2026-08-13(세션31) -- metric_stage_budget_vds는 thetas 전체를 스캔해 만드는
+                # 값인데 thetas는 이 스코프 안에서 불변이므로, 그룹 멤버마다 매번 재스캔하던
+                # 걸 루프 밖에서 한 번만 만들어 재사용한다(감사 발견, _metric_stage_budget_
+                # vds_by_device() docstring 참고).
+                _metric_stage_budget_vds = _metric_stage_budget_vds_by_device(thetas)
                 _stage_vds_candidates = []
                 for grp in stage_devices:
                     cap = None
@@ -2880,7 +3066,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                         if vsid is None:
                             continue
                         reserved = reserved_vds_for_other_stack_members(
-                            vsid, set(grp), device_roles, thetas,
+                            vsid, set(grp), device_roles, _metric_stage_budget_vds,
                             spec.get("min_vds_by_role", {}))
                         if reserved is None:
                             continue
@@ -3259,7 +3445,13 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             lut = spec["lut_by_kind"][kind_of[name]]
             W_bounds = spec.get("W_bounds", (1e-6, 200e-6))
             try:
-                gm_id = search_gm_id_for_role(lut, L, vds, vs, entry["ID"], dr["gm_id_role"], W_bounds)
+                # 2026-08-13(세션31) -- return_idu=True로 스캔 도중 이미 계산된 IDu를 같이
+                # 받는다 -- 예전엔 이 IDu를 버리고 바로 아래서 size_transistor()가 동일
+                # 인자(gm_id,L,vds,vs)로 gm_id_to_id_density()를 재조회했다(감사 발견,
+                # search_gm_id_for_role() docstring 참고). W 계산식은 size_transistor()와
+                # 완전히 동일(W=L*ID/IDu) -- 값 변화 없음, 중복 조회만 제거.
+                gm_id, idu = search_gm_id_for_role(lut, L, vds, vs, entry["ID"], dr["gm_id_role"],
+                                                    W_bounds, return_idu=True)
             except InfeasibleSizingError as _sgfr_e:
                 # 2026-08-12(세션30) -- search_gm_id_for_role()의 에러 메시지엔 소자 이름이
                 # 없어 어느 소자가 실패했는지 알 수 없었다(진단 중 발견) -- 여기서 이름/L/vds/
@@ -3269,7 +3461,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     f"ID_target={entry['ID']:.4g}A): {_sgfr_e}",
                     sized_snapshot=dict(ctx.sized)) from _sgfr_e
             gm = entry["ID"] * gm_id
-            w = size_transistor(gm, gm_id, L, lut, vds, vs).W
+            w = L * entry["ID"] / idu
             gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vs)
             ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
                                 "kind": kind_of[name], "vs": vs}

@@ -6471,3 +6471,184 @@ V_swing 스펙이 없음 -- 사용자와 정의부터 논의할 것(임의로 �
 5건+fT 준정적 검증 일반화), `ca61e4d`(docs, 이 섹션 최초 기록). **BC(성능 감사
 `_solve_vgs()` 발견)는 아직 코드 미수정 -- 이 갱신(BC 추가+BA 재정렬)까지만 반영된
 채로 커밋 예정, 다음 세션이 실제 구현부터 시작.**
+
+## BD. 세션31 -- `_solve_vgs()` 캐싱 구현 완료 + 재계산 전수 감사(사용자 지시 "전수
+검사되었나?"로 촉발, 3개 병렬 에이전트로 나머지 ~4300행 전수 확인)
+
+BA①(`_solve_vgs_cache` 구현)을 실제로 구현·검증했고, 이어서 사용자가 "재계산
+비효율은 전수 검사되었나?"라고 물어 BC가 미완이라 명시했던 감사를 이번 세션에
+끝까지 마쳤다.
+
+**① `_solve_vgs_cache` 구현(완료, 검증됨)**: BC가 제안한 그대로 `__init__`에
+`self._solve_vgs_cache: dict = {}` 신설, `_solve_vgs()`를 `(gm_id,L,vds,vs)` 키로
+메모이즈(`sizing_recipe.py` 296/332-349행 근처). self-test 전수 재실행 확인 --
+`sizing_recipe.py`(69 PASS, exit 0), `stick_diagram.py`(전체 PASS, exit 0), 회귀 없음.
+
+**성능 실측(중요 -- BC의 "3배" 기대치 정정)**: 격리 스크립트로 실제 sky130 LUT +
+`dense_L_candidates(n=41)`/`dense_candidates(n=13)`/57점 gm_id_grid(L=43×VDS=13×
+gm_id=57, feasible 26508개)에서 `git stash`로 만든 진짜 전/후 A/B 비교:
+
+| 시나리오 | 수정 전 | 수정 후 | 개선 |
+|---|---|---|---|
+| 단일 `find_optimal_sizing()` 호출 | 2.467s | 2.172s | ~12% |
+| 같은 격자 재사용(2차 호출) | 1.981s | 1.597s | ~19% |
+| 7회 누적 반복 평균 | 2.083s/call | 1.639s/call | ~21% |
+
+BC는 "3배"를 기대했으나 실측은 **12~21%**다 -- `_solve_vgs`가 캐싱하는 정렬+역보간은
+후보 1개당 비용의 일부일 뿐이고, `gm_id_to_id_density`/`gm_gds_ratio`/`cgg_absolute`
+각각이 그 vgs에서 또 부르는 `_query()`(ID/GM/GDS/CGG 4개 별도 다차원 보간)는 이번
+캐시 대상이 아니라 그대로 남는다 -- **새로운 최적화 여지**(같은 vgs에서 4개 배열을
+한 번의 배치 보간으로 묶기)로 남겨둔다, 이번 세션엔 미착수.
+
+**② 재계산 전수 감사(신규 완료, 3개 병렬 Explore 에이전트로 파일 전체 ~6500행 커버)**:
+BC가 미완으로 남긴 "이 감사 자체가 안 끝났다" 항목을 마무리. 확인된 범위:
+- 1346~2174행(metric/MNA 함수), 2174~3610행(feed handler/theta evaluator),
+  3610~6474행(warm-start/SLSQP/finger-growth) 전체를 실제 함수 본문 단위로 읽음.
+- `_multilinear_interp()`(최하위 원시 보간) 호출부 전수 grep -- `_query()`/
+  `_gm_id_curve()` 두 캐시 경로만 존재, 우회 재계산 경로 없음 확인.
+
+**클린 확인(버그 아님)**: `_comp_cache`(compensation 그리드서치 캐시) 배선 정상,
+`_eval_cache`(SLSQP 유한차분 -- objective/제약이 같은 `x_norm`을 공유) 정상,
+`_load_telescopic_topology_cached()`/`_load_full_topology_cached()` 이름 그대로 진짜
+캐시, `_cmrr_telescopic_class_ab()`/`_psrr_telescopic_class_ab()`의 스칼라 공식
+중복은 LUT 호출이 없어 무시 가능(docstring이 이미 "기존 관례"로 인정), 모든
+`_feed_*`/finger-growth 함수 이상 없음, `stick_diagram.py`는 LUT 호출 자체가 없어
+해당 없음, `optimize_full_circuit_budget()`의 theta 콤보 루프는 `_build_theta_
+evaluator()`를 루프 밖에서 1회만 호출(정상).
+
+**새로 발견된 재계산 낭비 4건(전부 미수정 -- 코드 변경 안 함, 발견만 기록)**:
+
+- **(A) CMFB MNA 중복 solve**(`_cmrr_telescopic_class_ab_cmfb()`/`_psrr_telescopic_
+  class_ab_cmfb()`, 1834/1947행): 둘 다 `_telescopic_class_ab_open_loop_gains()`를
+  독립 호출 -- 완전히 동일한 `metric_spec`/`ctx`로 31노드 MNA(`_mna_solve_
+  smallsignal()`, 순수 Python 가우스소거 O(n³))를 4개씩 풀고 절반(`del Ann_open`/
+  `del Acm_open`)을 바로 버림. 세타평가 1회당 양쪽 metric 다 쓰면 최대 2배 낭비 --
+  `_solve_vgs`/AY와 같은 패턴(순수함수, 동일 인자, 형제 함수가 각자 호출)이지만
+  그리드 루프급은 아님.
+- **(B) `search_gm_id_for_role()` 재스캔**(`make_replica_feasibility_check()`의
+  `check()` 클로저, 2647행 -- `find_optimal_sizing()`의 `extra_feasible` 콜백으로
+  L×VDS×gm_id 루프 안에서 호출됨): 고정된 `(L,VDS)`에 대해 바깥 `gm_id`가 바뀔
+  때마다(그리고 `ratio in (lo,hi)` 2번씩) `search_gm_id_for_role()`이 내부에서
+  57점 `gm_id_grid`를 처음부터 다시 스캔(`gm_id_to_id_density`를 57번) -- 이
+  57점 스캔 자체는 `(L,VDS,vs)`에만 의존하고 바깥 `gm_id`/`ID_target`과 무관한데도
+  캐싱이 없다. replica 있는 스테이지에서 `(L,VDS)` 하나당 최대 ~114배 중복 --
+  **개별 낭비로는 이번에 찾은 것 중 가장 큼**, 세션30 신설분이라 이번이 최초 감사.
+- **(C) SLSQP warm-start 체인의 `_build_theta_evaluator()` 5중 재빌드**(가장 범위가
+  큼): `optimize_full_circuit_budget(..., search_method="slsqp")` 한 번 실행에
+  `_build_theta_evaluator(topology_path, spec)`가 동일 인자로 5번 불림 --
+  ① `optimize_full_circuit_budget()`(3360행, `ev` 생성 후 `_optimize_theta_slsqp()`에
+  전달) → ② `_optimize_theta_slsqp()`(4311행, **전달받은 `ev`를 안 쓰고**
+  `presolve_warm_start()` 호출) → ③ `presolve_warm_start()`(4142행 자체 빌드) →
+  ④ `extract_linear_feasibility_constraints()`(4154→3854행 재빌드) →
+  ⑤ `search_stage_budget_L_warm_start()`(4181→3997행 재빌드) →
+  ⑥ `derive_theta_dependency_graph()`(4186→3664행 재빌드). `_build_theta_evaluator()`는
+  `load_topology()`+`resolve_stack_layout()` 같은 비싼 셋업뿐 아니라 `optimize_
+  multistage()` 그리드서치를 담는 `_comp_cache`(2691행)도 매번 새로 만들어 -- 재빌드
+  때마다 직전 단계가 쌓은 캐시까지 통째로 버려진다. (`_optimize_theta_slsqp()` 자신의
+  유한차분 스텝은 `_eval_cache`로 이미 정상 -- 이건 별개로 확인 완료, 문제없음.)
+- **(D) `reserved_vds_for_other_stack_members()` 불변 dict 재구성**(2587행, 경미):
+  `thetas` 리스트 전체를 스캔해 만드는 `metric_stage_budget_vds`가 `vsid`/
+  `exclude_devices`와 무관하게 항상 같은데, 같은 `grp`의 멤버마다(`_build_theta_
+  evaluator()`의 2891~2899행 루프) 매번 재구성됨. LUT 호출 없어 영향 작음.
+- **(E) `_evaluate()`의 `gm_id_role` 루프 중복 조회**(3277~3288행, 중간): `search_
+  gm_id_for_role()`(3277행)이 이긴 `gm_id`에 대해 내부적으로 이미 `gm_id_to_id_
+  density(gm_id,L,vds,vs)`를 계산해놓고 버리는데, 바로 다음 줄 `size_transistor()`
+  (3287행)가 동일 인자로 다시 조회. `gm_id_role`이 있는 디바이스마다 `_evaluate()`
+  1회당 1번씩 -- 그리드 규모만큼 누적.
+
+**최초 계획은 "의도적으로 구현 안 함"이었으나, 사용자가 D/E/A와 F(아래 BG)까지
+이번 세션 안에 실제 구현하라고 지시해 진행했다** -- 아래 BG 참고. B/C만 여전히
+설계/발견 단계로 남아있다(엔진 여러 함수에 걸친 제어흐름 변경이라 리스크가 커서
+사용자 승인 없이 착수 안 함, 프로젝트 원칙 그대로).
+
+## BG. 세션31 실제 구현 -- D/E/A/F-1/F-2 (전부 완료, self-test 검증 완료)
+
+**D**(`reserved_vds_for_other_stack_members()`): `metric_stage_budget_vds` dict를
+`_metric_stage_budget_vds_by_device(thetas)`로 분리해 `_build_theta_evaluator()`의
+그룹 루프 밖에서 한 번만 생성하도록 수정. 함수 시그니처가 `thetas: list` 대신
+`metric_stage_budget_vds: dict`를 받게 바뀜(호출부 1곳만 존재, 같이 갱신).
+
+**E**(`_evaluate()`의 `gm_id_role` 루프): `search_gm_id_for_role()`에 `return_idu: bool
+= False` 옵트인 파라미터 추가(내부에서 이미 계산한 winning gm_id의 IDu를 함께 반환) --
+기존 호출부는 전부 무변경(하위호환). `_evaluate()`가 `return_idu=True`로 받은 IDu를
+직접 `W = L*ID/IDu`에 써서 `size_transistor()`의 재조회(`gm_id_to_id_density()`
+중복 호출)를 없앴다.
+
+**A**(CMFB MNA 중복 solve): `SizingContext`에 `_open_loop_gains_cache: dict` 필드
+신설, `_telescopic_class_ab_open_loop_gains()`를 캐싱. ⚠️ **구현 중 실제 회귀를
+하나 잡았다** -- 처음엔 캐시 키를 `metric_spec` 정규화 내용만으로 만들었는데,
+self-test 앵커2(`_cmfb_ctx.sized["M5"]["gds"]`/`["M7"]["gm"]`을 직접 바꿔 같은
+`ctx`/`metric_spec`을 재사용하는 케이스, 6643~6645행)가 앵커1과 같은 캐시 항목을
+잘못 히트해 128.7182dB를 반환(기대값 146.7202dB, self-test AssertionError로 즉시
+발각). 원인: 이 함수의 진짜 입력은 `metric_spec`이 아니라 **참조되는 31개 소자의
+실제 `ctx.sized[name]["gm"/"gds"]` 값**이다 -- `_telescopic_open_loop_device_names()`
+(리팩터로 추출, `_telescopic_class_ab_open_loop_response()`와 공용)로 소자 목록을
+뽑아 각 소자의 (gm,gds) 스냅샷을 `_hashable_key(metric_spec)`와 함께 키에 포함하도록
+수정, 재검증 통과. **교훈**: 캐시 키는 "이 dict가 같으면 결과가 같다"가 아니라
+"이 함수가 실제로 읽는 모든 가변 상태"를 기준으로 잡아야 한다 -- self-test가 이런
+류의 캐싱 버그를 잡아내는 안전망으로 실제로 작동함을 확인.
+
+**F-1**(그리드 리스트 캐싱): `__init__`에 `self._grids_list = [g.tolist() for g in
+self.grids]` 신설(불변값, `_log_ID`와 동일 패턴). `_query()`/`_gm_id_curve()`가
+`self.grids`(numpy) 대신 이걸 넘김. `_multilinear_interp()` 자신도 이미 list인
+grid는 재복사 안 하도록 수정(`list(g)` -> `g`, 읽기 전용이라 안전).
+
+**F-2**(배치 다중선형보간, 가장 큰 레버): `_multilinear_interp_point_multi(grids,
+arrays, point)` 신설 -- `_multilinear_interp()`와 동일한 bisect 탐색을 **한 번만**
+하고 여러 배열(ID/GM/GDS/CGG)에 동시 적용(수치적으로 배열별 개별 호출과 동일).
+`SemiEmpiricalGmIdLUT._query_multi()`/`_sizing_bundle(gm_id,L,vds,vs,need_cgg)`
+신설 -- 후자가 `_solve_vgs()` 1회 + `_query_multi()` 1회로 IDu/gm_gds_ratio/
+(조건부)cgg_raw를 한 번에 반환한다(Cgg의 W 스케일링은 W가 나온 뒤 호출부가
+곱셈 하나로 마무리 -- LUT 보간이 필요한 부분만 배치 처리). `find_optimal_sizing()`의
+L×VDS×gm_id 핫루프가 `gm_id_to_id_density`/`gm_gds_ratio`/`cgg_absolute` 3개
+개별 호출 대신 이 번들 하나만 쓰도록 교체.
+
+**검증**: `sizing_recipe.py` self-test 69 PASS(exit 0), `stick_diagram.py` 전체
+PASS(exit 0) -- D/E/A/F-1/F-2 전부 적용 후 회귀 없음. `run_harness.py` 재실행도
+캐싱 적용 전과 **완전히 동일한 수치**(`gain_db=74.01278480518118`,
+`mismatch_sigma_mV=9.199547462658856`, `classab_centering_dev_v=
+0.3723855605403654`)로 (무관한 기존 BA② 이슈로) 실패 -- 정확성 보존 재확인.
+
+**성능 실측(격리 스크립트, 실 sky130 LUT, L=43×VDS=13×gm_id=57, 26508개 candidate,
+D/E/A/F-1은 harness와 경합해 노이즈가 있었으나 F-2까지 반영 후 재측정은 백그라운드
+작업 없는 상태에서 측정 -- 아래는 그 값)**:
+
+| 단계 | 1차 호출 | 2차 호출(캐시 예열) | 7회 반복 평균 |
+|---|---|---|---|
+| 수정 전(베이스라인) | 2.467s | 1.981s | 2.083s |
+| `_solve_vgs` 캐싱만(BD①) | 2.172s | 1.597s | 1.639s |
+| D/E/A/F-1/F-2 전부 | **1.218s** | **0.526s** | **0.560s** |
+
+베이스라인 대비 1차 호출 ~2배, 캐시 예열 후 반복 호출 ~3.7배 -- BC가 원래 기대했던
+"3배"를 F까지 구현하고서야 달성(초과)했다.
+
+## BE. 다음 세션 최우선 (세션31 최종 확정)
+
+### ① B/C 구현 여부·순서를 사용자와 확정
+사용자 승인 없이는 착수하지 않음. B(`make_replica_feasibility_check()`의 `check()`
+클로저 -- `search_gm_id_for_role()` 재스캔, replica 있는 스테이지에서 (L,VDS)당
+최대 ~114배)와 C(SLSQP warm-start 체인의 `_build_theta_evaluator()` 5중 재빌드,
+범위 최대지만 `ev`를 5개 함수에 관통시켜야 하는 가장 큰 리스크) 중 어느 쪽을
+먼저 할지, 혹은 둘 다 할지 논의 필요. B는 `_sizing_bundle()`(F-2 신설)을
+`search_gm_id_for_role()`의 내부 스캔에도 적용하면 부가 이득이 있을 수 있음
+(gm_id_to_id_density 재스캔이 이제 배치 조회로 조금 더 저렴해짐 -- 그러나
+"57점 스캔을 (L,VDS)당 한 번만" 문제 자체는 F-2로 해결되지 않음, 별도 캐싱 필요).
+
+### ② classab_centering_dev_v -- gm_id 독립화 조사 (BA②에서 이월, 아직 미해결)
+세션30 BA②와 동일 -- 변경 없음, 상세는 위 BA② 참고.
+
+### ③ 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
+변경 없음, 상세는 위 BA③ 참고.
+
+### ④ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
+
+### ⑤ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
+
+## BF. 커밋 상태 (세션31)
+
+`_solve_vgs_cache`(BD①) + D/E/A/F-1/F-2(BG) 전부 미커밋 -- self-test 통과 확인됐으나
+사용자 지시 없이 커밋하지 않는 원칙에 따라 작업트리에 남겨둠. B/C는 코드 변경 없음
+(발견/설계만). **다음 세션 시작 시 `git status`/`git diff`로 이 변경들이 여전히
+미커밋 상태인지 먼저 확인할 것 -- `sizing_recipe.py` 한 파일에 세션30 커밋
+이후 누적된 변경이 상당하므로, 커밋한다면 논리적 단위(성능 캐싱 vs 다음 세션의
+B/C)로 나눌지 사용자와 상의할 것.**
