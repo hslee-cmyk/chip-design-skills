@@ -6722,37 +6722,6 @@ AT의 "동시만족 불가능 확정"은 **"L만 독립화했을 때"로 범위�
 이어가려면 이 절의 파라미터화(`I=gm2_total/(gm_id_p+gm_id_n)`)와 최적점을 그대로
 재현 스크립트로 다시 작성할 것.
 
-## BE. 다음 세션 최우선 (세션31 최종 확정, BH 반영해 갱신)
-
-### ① classab_centering_dev_v -- gm_id 독립화 조사 (BA②에서 이월, 아직 미해결)
-세션30 BA②와 동일 -- 변경 없음, 상세는 위 BA② 참고. 재계산 성능 감사가 전부 끝났으니
-다시 이게 최우선.
-
-### ② 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
-변경 없음, 상세는 위 BA③ 참고. `folded_cascode` 등으로 이번 세션 신설분(B/C/F 배치
-조회/캐시 공유 포함)도 일반화되는지 아직 미검증.
-
-### ③ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
-
-### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
-
-### ⑤ SLSQP 전체 실행 성능 재측정 (BH에서 신설)
-C 구현의 실제 절감폭(`_comp_cache` 재사용)은 `presolve_warm_start()` 단독 검증만
-했고, 실제 `_optimize_theta_slsqp()` 전체(multi-start 포함, 수 분~수십 분대)에서
-전/후 비교는 아직 안 함 -- 다음 세션에서 시간 여유 있을 때 재측정 고려.
-
-## BF. 커밋 상태 (세션31, BK에서 갱신)
-
-**D/E/A/F-1/F-2(BG) 커밋 완료**: `326bb58`(perf, `_solve_vgs`/그리드리스트/배치보간
-캐싱 + D/E/A 국소수정).
-
-**B/C(BH) 커밋 완료**: `9b086b0`(perf, gm_id_grid 재스캔 캐시 + SLSQP ev 공유) --
-둘 다 `sizing_recipe.py`/`.ai/context.md` 두 파일만, 사용자 명시 지시로 커밋.
-
-**BJ(L_grid_step 레이아웃 그리드 정렬)는 이 갱신 시점 기준 아직 미커밋** -- self-test
-+ 3개 경로(격자탐색/warm-start 스캔/SLSQP) 별도 검증 스크립트로 전부 통과 확인됐으나
-커밋 지시는 아직 없었음. 다음 세션 시작 시 `git status`로 확인할 것.
-
 ## BJ. 세션31 계속 -- L을 레이아웃 그리드(um 단위)에 정렬하는 기능 신설(구현+검증 완료,
 미커밋)
 
@@ -6851,3 +6820,705 @@ VDS_candidates용으로 계속 씀).
 그리드)로 바뀌어 compensation 단계(M1a/M4a)가 미세하게 다른 L 후보를 봤기 때문(예상된
 정상 차이 -- 후보 집합이 다르면 같은 탐색이라도 결과가 약간 달라질 수 있음, 물리적
 회귀 아님). L_grid_step 기능은 이걸로 완전히 배선·검증 완료.
+
+## BL. 세션31 계속 -- BI 후속: gm/ID role 결정을 "임의 탐색폭"이 아니라 **소자 role별
+기존 엔진 관례**로 일반화 (`gm_id_role` 옵션 확장 + `gm_id_match_vgs_of` 신설)
+
+**사용자 지시(요지)**: BI가 제안한 "새 탐색 차원(gm_id_p/gm_id_n 조인트 탐색)" 방향에
+대해, AskUserQuestion으로 "거친 조인트 격자 vs 57×57 전체 탐색" 트레이드오프를 물었다가
+**거부당함** -- "gmid를 바꾸는 부분이 어떤 부분인지 임의로 정하지 말고 다른 문헌들에서
+기준을 확인하고 확보해서 적용... 조사부터 해서 결과를 보고해" + "이게 일반화된
+접근법인가? 어느 topology에도 적용할 수 있는 수정이어야 해." 이 두 요구가 실제 설계를
+완전히 바꿨다.
+
+**핵심 발견(리서치)**: 이 엔진에 `search_gm_id_for_role(lut, L, vds, vs, ID_target, role,
+W_bounds, ...)`가 **이미 세션24부터 있었다**(`device_roles`의 정적 `gm_id_role` 필드용,
+위 550행대 §참고) -- `role="matching"`→최소 gm_id(전류미러/레플리카 매칭 우선),
+`role="gain"`→최대 gm/gds(이득 스테이지), `role="balanced"`→탐색폭 중 첫 실현가능점.
+이게 이미 문헌 관례(전류미러=매칭 우선=낮은 gm/ID, 이득단=효율 우선=적당~높은 gm/ID)를
+코드화한 것이었다 -- **새로 만들 필요가 없었다**, 다만 이 함수가 지금까지는
+`device_roles`(소자별 **정적** 선언)에서만 호출됐지, `metric_stage_budget` feed(theta가
+**동적으로** L을 정하는 경로, M15/M16처럼 compensation이 gm/ID를 먼저 정하고 이후 theta가
+role별로 다시 쪼개야 하는 경우)에서는 호출된 적이 없었다.
+
+M15(PMOS, 이득 스테이지 역할)와 M16(NMOS, class-AB centering을 위해 M15와 VGS를
+맞춰야 하는 역할)은 서로 다른 role이다 -- **M15는 "gain" role**(문헌 그대로,
+`search_gm_id_for_role(..., role="gain")`), **M16은 "그 반대쪽과 VGS를 맞춰야 하는
+role"**인데 이건 기존 3종(matching/gain/balanced) 어디에도 안 맞는 **새 role**이다
+(class-AB output-stage centering은 "매칭"도 "이득"도 아니라 "상대 소자의 게이트-소스
+전압을 복제해 출력 중점을 맞추는" 별개의 문헌 기준 -- op-amp class-AB output stage
+biasing의 표준 관례, `classab_centering_dev_v` 메트릭 자체가 이미 이 관례를
+`|VGS(high)-VGS(low)|`로 정식화해둔 것과 동일선상). 그래서 세 번째 옵션이 아니라
+**신규 파라미터** `gm_id_match_vgs_of: "<다른 소자 이름>"`을 만들었다 -- "이 소자의 gm_id를,
+`<다른 소자>`가 이미 확정한 VGS와 같아지도록 역산해서 고른다."
+
+**일반화 검증(사용자의 "어느 topology에도 적용 가능해야" 요구 충족 방식)**: 두 옵션
+다 **소자 이름을 코드에 하드코딩하지 않는다** -- `gm_id_role`/`gm_id_match_vgs_of` 둘
+다 topology.json의 feed 선언(`L_stage2out_p`/`L_stage2out_n`)에만 있고,
+`_feed_metric_stage_budget()`(엔진, `sizing_recipe.py:2629`)은 `feed_spec["devices"]`/
+`feed_spec.get("gm_id_role")`/`feed_spec.get("gm_id_match_vgs_of")`만 읽는다 -- 어떤
+회로든 "이 스테이지는 gain role", "이 스테이지는 다른 스테이지와 VGS를 맞춰야 하는
+role"이라고 선언하기만 하면 재사용된다(`current_reuse_telescopic_ota` 전용 로직 0줄).
+이전에 있었던 하드코딩(`mirror_M18a`처럼 소자 이름이 함수 본문에 박힌 코드, 사용자가
+중간에 별도로 지적한 문제 -- "왜 mirror_M18a처럼 소자이름이 코드에 있지?")과는 다른
+패턴임을 사용자에게 대조해 보고했음(그 지적은 K_replica/mirror_M18a **theta 선언**
+자체에 이름이 있는 것 -- 이건 데이터(topology.json)에 있는 게 정상, 문제였던 건 그
+**실행 순서**가 declaration order와 안 맞았던 쪽 -- 아래 BM 참고).
+
+**신설 프리미티브**: `SemiEmpiricalGmIdLUT.gm_id_for_vgs(target_vgs, L, vds, vs=0.0)`
+(`sizing_recipe.py:535`) -- 기존 `vgs_for_gm_id()`의 **역함수**, 이미 있던
+`_gm_id_curve_cache`(L,vds,vs 캐시)를 그대로 재사용해 `np.interp()` 한 번으로 O(1)
+(재계산 비효율 없음 -- 새 캐시 신설 불필요, 기존 캐시가 이미 커버).
+
+**`_feed_metric_stage_budget()` 최종 구조**(`sizing_recipe.py:2629-2747`, 전체 로직):
+1. `feed_spec`에서 `gm_id_match_vgs_of`/`gm_id_role`/`gm_id`(고정값 폴백) 중 어느 게
+   있는지 확인 -- 셋 다 없으면 기존처럼 `fixed_gm_id=15.0` 하위호환.
+2. `gm_id_match_vgs_of`가 있으면: companion(`ctx.sized[match_device]`, 반드시 이
+   theta보다 먼저 sizing 완료돼 있어야 함 -- 아래 BM의 declaration-order 계약)에서
+   `vgs_for_gm_id()`로 target_vgs를 역산 -> `gm_id_for_vgs()`로 이 소자의 gm_id를 정함.
+3. `gm_id_role`이 있으면: 기존 `search_gm_id_for_role()`을 그대로 재사용(중복 구현
+   없음).
+4. `devices`(이 theta가 담당하는 그룹, 보통 `[주소자, 그 replica류]`) 전부 같은
+   gm_id를 쓴다(기존 계약 유지) -- 첫 소자에서만 gm_id를 계산하고 나머지는 재사용
+   (재계산 비효율 방지, 기존 패턴 그대로).
+5. `ID` 확정은 BN(아래)의 shared-current 재계산 유무에 따라 갈림.
+
+**검증**: self-test 그대로 전부 PASS(개수는 이후 BM/BN 신설분과 합산해 최종 123개
+PASS 표시로 세션 종료 시점 재확인, 아래 참고), `verify_gm_id_match_vgs.py`(격리
+스크립트)로 M16의 gm_id가 실제로 M15의 VGS와 정확히 일치하는 지점으로 수렴함을 실측
+확인(`classab_centering_dev_v=0.000000`으로 완벽히 0 -- BI가 예측한 물리적 실현가능성
+그대로 재현). **BI가 조사로만 확인했던 것을 실제 프로덕션 엔진 코드로 옮긴 것까지는
+완료** -- 다만 `gain_db`가 여전히 미달(아래 BO)이라 이 메커니즘만으로 완결되진 않았다.
+
+## BM. 세션31 계속 -- theta 선언순서 **실제 버그** 발견+수정: `K_replica`/`mirror_M18a`가
+M15/M16의 **stale(compensation 시점) 값**을 참조하고 있었다
+
+**발견 경위**: BL 구현 검증 중, `current_reuse_telescopic_ota.topology.json`의 theta
+배열 순서를 보니 `K_replica`(M9a가 M15를 reference로 삼는 C타입 replica feed)와
+`mirror_M18a`가 `L_cascode`/`L_stage2out_p`/`L_stage2out_n`(M15/M16이 최종 gm_id/L을
+확정하는 theta)**보다 배열상 앞에** 선언돼 있었다. 이 엔진의 암묵 계약(문서화된 적
+없었음 -- 이번에 처음 명문화, 아래 참고)은 "theta 배열의 선언 순서 = 실행 순서"인데,
+`K_replica`가 M15를 참조하는 시점엔 아직 `L_stage2out_p`가 실행되지 않아 M15는
+**compensation이 잠정 배정한 초기값**(gm_id=15.0 공유값 등)만 갖고 있었다 -- 즉 M9a는
+BL이 방금 새로 계산한 "gain role" gm_id가 아니라 **그 이전의 stale 값**을 그대로
+복제하고 있었다.
+
+**사용자 정정**: 처음엔 이걸 "기존부터 있던 특성"이라 보고 넘어가려 했으나, 사용자가
+바로 지적: **"stale함은 특성이 아니고, 고쳐야 할 부분 아닌가?"** -- 맞는 지적으로,
+즉시 실제 버그로 재분류하고 수정.
+
+**수정**: `current_reuse_telescopic_ota.topology.json`의 theta 배열에서
+`L_cascode`/`L_stage2out_p`/`L_stage2out_n` 세 개를 원래 위치(배열 끝, `kcl_battery_
+M18b` 뒤)에서 **`f_slew` 바로 뒤, `K_replica`보다 앞으로** 이동 -- 이제 M15/M16이
+최종 gm_id/L을 다 정한 뒤에 `K_replica`/`mirror_M18a`가 그 값을 참조한다.
+`verify_reorder_gain.py`로 검증: M9a(K_replica)가 이제 M15의 **최종** L/gm_id와
+정확히 일치함을 확인("M15과 같은 L/gm_id인지 확인 -- replica 정확성" 주석 그대로
+PASS).
+
+**영구 회귀방지책 신설**: `validate_theta_declaration_order(meta: dict) -> list`
+(`sizing_recipe.py:2774`, `apply_theta_feed()` 바로 아래) -- 읽기전용 정적 검사기.
+`gm_id_match_vgs_of`(BL 신설)와 C타입 `reference`가 참조하는 소자가 **선언 순서상
+앞서** sizing되는지 확인, 위반 시 `[{theta, problem}, ...]` 리스트 반환(빈 리스트=
+문제 없음). `compensation.stage_devices`는 처음부터 이미 생산된 것으로 취급(예:
+M1a/M4a/M15/M16 자체는 항상 "생산됨"). self-test 5블록(합성 위반 fixture 2종 + 올바른
+순서 fixture + compensation 사전생산 fixture + 실제 라이브러리 topology.json 4개
+전부 순회) 전부 PASS, 4개 파일 전부 위반 0건(reorder 이후 회귀 없음 확인).
+
+**왜 일반화됐다고 볼 수 있나(사용자의 "일반화" 요구 대응)**: 이 검사기는 topology.json
+구조(theta 배열 + feeds.type)만 보고 판단 -- 특정 회로/소자 이름을 하드코딩하지 않는다.
+`current_reuse_telescopic_ota` 외 3개 회로(`_TEMPLATE`/`folded_cascode`/`nmcnr_
+amplifier`/`two_stage_ota`)에도 그대로 적용해 전부 위반 0건 확인(이 회로들은애초에
+이런 위반이 없었을 뿐 -- 검사기 자체는 공통).
+
+## BN. 세션31 계속 -- `classab_centering_dev_v` 엔진화 마지막 조각: 공유전류
+(`shared_current_group`) ID 재계산 -- **설계+구현 완료, 실효과 미확인(다음 세션 최우선)**
+
+BL로 M15/M16이 각자 독립 gm_id를 갖게 됐지만, compensation이 원래 `shared_gm_id_groups`
+로 정했던 `ID`(공유 gm_id 하나를 전제로 계산된 값)를 그대로 두면 `gm=gm_id*ID`가
+Eq.6(`current_reuse_telescopic_topology()`)이 강제하려던 그룹 총 gm(`gmp2+gmn2=gm2`,
+위상보상 목표)과 더 이상 안 맞는다 -- BI가 이미 증명한 파라미터화
+`I=gm_total/(gm_id_p+gm_id_n)`(KCL `ID(M15)=ID(M16)`을 대수적으로 항상 만족시키면서
+그룹 총 gm도 정확히 유지)를 그대로 엔진에 옮겼다.
+
+**구현**(`_evaluate()`, `sizing_recipe.py:3382-3397` 부근, compensation 배정 직후,
+cache hit/miss 분기 **바깥**이라 매 evaluate() 호출마다 무조건 실행됨 -- 캐시 우회
+아님, 확인됨):
+```python
+_shared_current_group = {}
+for _sg in (comp.get("shared_gm_id_groups") or []):
+    _sg_devices = [name for idx in _sg for name in stage_devices[idx]]
+    _sg_gm_total = sum(comp_result["gms"][idx] for idx in _sg)
+    for _name in _sg_devices:
+        _shared_current_group[_name] = {"gm_total": _sg_gm_total, "members": _sg_devices}
+if _shared_current_group:
+    ctx.derived["_shared_current_group"] = _shared_current_group
+```
+`_feed_metric_stage_budget()`(BL) 쪽에서: `gm_id_match_vgs_of`가 있는 theta
+(`L_stage2out_n`, M16)만 `shared_group = ctx.derived.get("_shared_current_group",
+{}).get(match_device)`를 조회하고, 있으면 `I_new = shared_group["gm_total"] /
+(companion["gm_id"] + gm_id_this)`로 재계산해 **이 theta의 devices(M16/M26)뿐 아니라
+그룹의 나머지 절반(M15/M25, 이 theta가 안 건드리는 companion 쪽)까지 소급 재계산**
+(`sizing_recipe.py:2736-2744`).
+
+**미해결(다음 세션 최우선, 아래 BO)**: `verify_sharedcur_out.txt` 실측 재검증에서
+`gain_db`가 이 수정 전/후 **소수점 6자리까지 완전히 동일**(71.135711, 재현 스크립트
+`verify_reorder_gain.py`/`verify_sharedcur_out` 결과 동일)했다 -- 기대값(`gm_total=
+808.88uS`, `gm_id_p=16.5`, `gm_id_n=4.366` -> `I_new≈38.77uA`)과 다르게 `ID`가
+`18.3837uA`(compensation 원래 값) 그대로 관측됨. 원인 미확정 -- 아래 BO에 조사 경과와
+다음 단서 정리.
+
+## BO. 세션31 종료 시점 미해결 버그 -- `gain_db` 재검증 미완료(다음 세션 최우선 ①)
+
+**증상**: BL(gm_id_role/gm_id_match_vgs_of) + BM(theta 재배치) + BN(공유전류 ID
+재계산) 세 가지를 전부 구현·배선했는데도 `presolve_warm_start()`의 x0 재현 결과가
+**bit-for-bit 동일**하다:
+- `M15: gm_id=16.500 L=1.0000um ID=18.3837uA`
+- `M16: gm_id=4.366 L=1.0000um ID=18.3837uA`
+- `gain_db=71.135711`(SLSQP 최종 실패, 문턱 75.6dB 미달), `classab_centering_dev_v=
+  0.000000`(이건 완벽 -- BL의 gm_id_match_vgs_of는 확실히 동작 중, gm_id 값 자체가
+  16.500/4.366으로 옛 공유값 15.0에서 바뀐 것도 확인됨).
+
+**모순**: gm_id는 새 값(16.5/4.366)인데 `ID`는 옛 compensation 값(18.3837uA)
+그대로다. `gm=gm_id*ID`이므로 gm 자체는 옛 ID 기준으로는 바뀌어야 정상인데(15.0 공유 ->
+16.5/4.366 独립), `gain_db`가 재배치/공유전류 수정 전후 **완전히** 동일한 건 이상하다
+-- 아래 4가지를 이번 세션에 실측/코드리딩으로 확인·배제했다:
+
+1. **배제**: `device_roles["M15"]`/`["M16"]`에 자체 `gm_id_role`이 없다(topology.json
+   확인: `"M15": {"vertical_stack_id": "output_stage_a"}`뿐) -- 그래서 `_evaluate()`
+   맨 끝의 별개 루프(`sizing_recipe.py:3700-3746`, `device_roles`의 정적 `gm_id_role`
+   재사이징 루프, theta 루프와 무관하게 항상 실행됨)는 M15/M16을 건드리지 않는다
+   (`if not dr.get("gm_id_role"): continue`로 스킵 확인). 애초 가장 유력했던 가설이
+   틀렸음을 확인.
+2. **배제**: `_feed_metric_stage_budget` 정의가 파일 안에 **하나뿐**(중복 정의로
+   나중 정의가 앞 정의를 덮어쓰는 시나리오 아님, grep으로 확인).
+3. **배제**: `_comp_cache` 캐시 히트 시에도 `_shared_current_group` 스냅샷 생성 코드
+   (BN)는 `if _comp_cache_key in _comp_cache: ... else: ...` 분기 **바깥**(합류 지점
+   이후)에 있어서, 캐시 히트든 미스든 매 evaluate() 호출마다 무조건 실행된다(코드
+   재확인 완료, `sizing_recipe.py:3308-3397`) -- 캐시가 스냅샷을 우회한다는 가설도
+   배제.
+4. **신규 발견(진짜 의심 지점)**: `_finalize()`(`_feed_metric_stage_budget` 내부
+   헬퍼, `sizing_recipe.py:2702-2716`)가 `ctx.sized[name].update({...})`할 때
+   **`"ID"` 키 자체를 갱신하지 않는다** -- `gm=gm_id*ID`는 지역변수로 정확히
+   계산해서 `"gm"` 키엔 반영하지만, `"ID"` 키는 그 `.update()` dict에 없어서 이전
+   값(compensation이 최초로 넣어둔 값)이 그대로 남는다. 이게 지금까지의 모든 디버그
+   출력(`entry["ID"]`를 직접 읽는 격리 스크립트들 포함)이 "ID가 그대로다"라고 보여준
+   이유일 가능성이 높다 -- **다만 이것만으로는 `gain_db`가 완전히 불변인 이유를
+   설명 못한다**(gm/gds 자체는 `_finalize` 내부에서 새 gm_id로 정확히 재계산되므로,
+   `ID` 키 표시가 stale이어도 `gm_id`가 15.0->16.5/4.366로 바뀐 이상 `gm`도
+   같이 바뀌어야 하고, 그러면 `gain_db`도 미세하게라도 달라져야 정상인데 6자리까지
+   완전 동일했다). 즉 두 가지 가능성이 남는다:
+   - (a) `shared_group`이 `L_stage2out_n` 처리 시점에 실제로는 `None`으로 평가되고
+     있어(스냅샷 dict 자체는 사후 검사로 존재를 확인했지만, **그 사후 검사는 함수
+     실행 도중의 실제 분기를 증명하지 못한다** -- 이 구분을 놓친 게 이번 세션 조사의
+     허점이었다) `else` 분기(`ctx.sized[name]["ID"]`, 즉 여전히 stale ID)로 떨어지고
+     있을 가능성. 이 경우도 gm_id 자체는 15->16.5/4.366로 바뀌었으니 gm은 달라져야
+     하는데 관측치가 안 달라진 것과는 여전히 안 맞는다.
+   - (b) BL/BM/BN 세 수정 **이전(이번 세션 시작 시점의 베이스라인)에 이미** M15/M16이
+     16.5/4.366/18.3837uA로 sizing되고 있었을 가능성(즉 BI 조사 이전부터 이미 이
+     조합이 나왔던 것이고, 오늘 세 가지 수정이 이 특정 x0/warm-start 경로에서는
+     **아직 한 번도 실질적으로 exercise되지 않았을** 가능성) -- 이러면 "수정 전후
+     동일"은 버그가 아니라 애초에 비교 대상(수정 전 baseline)이 잘못 잡힌 것일 수
+     있다. **이건 다음 세션에서 가장 먼저 확인해야 할 항목**(git stash로 BL/BM/BN
+     수정 전 상태로 되돌려 진짜 baseline을 다시 뜨고 비교, 또는 커밋 히스토리
+     `21aae3a`(BK, 이 세 수정 이전 마지막 커밋) 기준으로 같은 스크립트를 돌려 직접
+     대조).
+
+**다음 세션 착수 방법(구체적)**: 사후 `ctx.derived`/`ctx.sized` 검사로는 실행 도중의
+분기를 증명할 수 없다는 게 이번 세션 조사법의 근본 허점이었다 -- 다음 세션은:
+1. `_feed_metric_stage_budget()` 내부에 **임시** `print(f"[DEBUG] {devices} shared_
+   group={shared_group is not None} gm_id_this={gm_id_this} I_new=...")`를 `if
+   shared_group is not None:` 분기 양쪽에 직접 삽입해 실제 실행 경로를 확인(사후
+   추론 금지 -- `feedback_no_assumption_without_evidence` 메모리 원칙 그대로 적용).
+2. `_finalize()`가 `"ID"` 키를 안 쓰는 게 실제 버그인지(다른 호출부가 `entry["ID"]`를
+   나중에 읽어서 잘못된 값을 쓰는 경우가 있는지 grep) 확인 후, 필요하면
+   `ctx.sized[name].update({...})`에 `"ID": ID`를 추가(사이드이펙트 검토 필요 --
+   `_feed_metric_stage_budget`을 여러 theta가 같은 소자에 대해 반복 호출하는 경로가
+   있는지부터 확인할 것, 함부로 추가하면 다른 하류 로직이 참조하는 "compensation
+   원래 ID" 의미가 깨질 수 있음).
+3. 위 (b) 가설 확인 -- `git stash`(또는 `git diff HEAD -- sizing_recipe.py library/
+   current_reuse_telescopic_ota.topology.json` 저장 후 `git checkout 21aae3a --
+   ...`류로 임시 되돌리기, **절대 destructive 작업 전 확인 없이 실행 금지** -- 반드시
+   먼저 현재 uncommitted 변경사항을 diff로 저장해두고 사용자 승인 하에 진행)로 진짜
+   baseline(BL/BM/BN 이전) `gain_db`/`M15,M16 gm_id/ID`를 다시 뜬 뒤 비교.
+4. 근본원인 확정 후 수정 -> self-test 재실행(현재 123 PASS/exit 0 유지 확인) ->
+   `verify_*.py` 재현 스크립트로 `gain_db>=75.6` 달성 여부 최종 확인.
+
+## BP. 세션31 계속(같은 세션, 사용자 "계속 진행해") -- BO 버그 근본원인 확정: `_finalize()`
+`"ID"` 키 미기록 **실제 버그로 확인·수정**, 그러나 `gain_db`는 별개 원인으로 여전히 미달
+
+**방법 교정**: BO가 남긴 지적대로, 사후 `ctx.derived`/`ctx.sized` 검사만으로는 실행 중
+분기를 증명 못 한다는 게 맞았다 -- 이번엔 (1) `21aae3a`(BK, BL/BM/BN 이전) 커밋의
+`sizing_recipe.py`/`topology_library.py`/`stick_diagram.py`/topology.json을 `git show`로
+스크래치패드에 격리 추출해 진짜 baseline과 HEAD를 나란히 비교하고, (2)
+`_feed_metric_stage_budget()`/compensation 스냅샷 코드에 **임시 `print()`**를 직접
+삽입해 런타임 분기를 실측한 뒤 제거하는 방식으로 바꿨다.
+
+**baseline vs HEAD 비교 결과**(`verify_baseline.py`, 동일 x0 경로):
+| | gm_id(M15) | gm_id(M16) | ID(둘 다) | gain_db | classab_centering_dev_v |
+|---|---|---|---|---|---|
+| baseline(`21aae3a`) | 15.000(공유) | 15.000(공유) | 18.3837uA | 73.923986 | 0.372386 |
+| HEAD(BL/BM/BN 적용) | 16.500 | 4.366 | 18.3837uA(당시, 버그) | 71.135711 | 0.000000 |
+
+**이걸로 BO의 가설(b)("오늘 수정이 이 경로에서 아예 exercise된 적 없다")는 명백히
+배제** -- gm_id가 15.0/15.0(baseline)에서 16.5/4.366(HEAD)로 확실히 갈라졌다. 즉 BL의
+`gm_id_role`/`gm_id_match_vgs_of` 메커니즘은 실제로 동작 중이었다. BO가 "수정 전후
+완전히 동일"이라 봤던 건 **진짜 baseline이 아니라 BL/BM/BN을 이미 반영한 두 중간
+상태끼리(BM 직후 vs BN 직후)** 비교한 것이었다 -- 둘 다 이미 `_finalize()`의 "ID" 키
+버그(아래)를 안고 있어서 서로는 동일했을 뿐.
+
+**런타임 print 결과(진짜 스모킹건)**: `shared_group`은 `L_stage2out_n`(M16) 처리
+시점에 **정확히 non-None**으로 해석됐다(`{'gm_total': 0.0008088835299210353,
+'members': ['M15','M25','M16','M26']}`) -- BN의 `if shared_group is not None:` 분기가
+실제로 타고 있었다. `I_new`도 정확히 계산됐다(`gm_total/(16.5+4.3661)≈38.7655uA`) --
+`verify_baseline.py`의 CURRENT 쪽 출력을 보면 `gm(M15)=639.6308uS`인데 이건
+`16.5×38.7655uA`와 정확히 일치(구식 stale ID 18.3837uA 기준이면 16.5×18.3837uA=
+303.3uS로 전혀 다름) -- **`gm`/`gds`는 처음부터 I_new 기준으로 옳게 계산되고
+있었다.** 그런데도 디버그 스크립트가 읽은 `ctx.sized["M15"]["ID"]`는 계속
+18.3837uA(stale)를 보여줬다 -- 이게 `_finalize()`가 `.update({...})` dict에 `"ID"`
+키 자체를 안 넣는다는 BO 4번 발견의 최종 확인이다.
+
+**하류 파급(단순 표시 버그가 아니라 실제 버그였음을 확정)**: `_feed_diode_stack_target()`
+(C타입, `K_replica`/`mirror_M18a`)가 `ref["ID"]`(2551~2558행)를 읽어 `theta_value`
+배로 스케일해 target(M9a)에 그대로 물려준다 -- M15의 `"ID"`가 계속 stale이면 **BM의
+theta 재배치(L/gm_id staleness는 고쳤음) 이후에도 M9a는 여전히 잘못된 전류로
+사이징되고 있었다**(L/gm_id만 맞고 ID는 계속 틀림). 재배치만으로는 불충분했던 것.
+
+**수정**(`sizing_recipe.py:2715`, `_finalize()` 내부): `.update({...})` dict에
+`"ID": ID` 추가(한 줄). 사이드이펙트 점검: `entry["ID"]`를 읽는 다른 지점들(1617/2480/
+2516/3591/3707/3732/3742/4387/4390/4391/5098행)을 전수 확인 -- M15/M16/M25/M26이
+`_finalize()` 이후 이미 `"W"`를 갖게 되므로 3591행(`sib_entry` fill 루프)은 `"W" in
+sib_entry`로 스킵되어 영향 없음, 나머지는 각자 자기 자신의 최신 ID를 정상적으로
+읽어야 하는 지점들이라 "고쳐야 정상"인 케이스뿐(의도적으로 stale ID를 원하는 소비자
+없음 확인).
+
+**검증**: self-test 재실행 -- exit 0, 트레이스백/AssertionError 없음, 마지막
+`validate_theta_declaration_order()` 섹션까지 정상 완주(회귀 없음). 재현 스크립트
+재실행 -- `M15 ID=38.7655uA`/`M16 ID=38.7655uA`로 정확히 `I_new`와 일치하도록 수정
+확인(`gain_db=71.135711`은 **불변** -- 아래 BQ에서 그 이유를 설명).
+
+## BQ. `gain_db` 미달의 진짜 근본원인 확정: `gm_id_role="gain"`은 **단일 소자
+자기 자신의 gm/gds만 최대화**하는 기준이라, VGS-매칭으로 짝지어진 커플드 쌍에는
+틀린 목적함수다 (미구현 -- 설계 승인 필요)
+
+BP로 `_finalize()` 버그를 고쳤는데도 `gain_db=71.135711`이 그대로인 이유를
+`search_gm_id_for_role()`(`sizing_recipe.py:1442-1505`) 코드를 직접 읽어 확정했다:
+`role=="gain"` 분기(1497-1502행)는 `lut.gm_gds_ratio(gm_id, L, vds, vs)`를 gm_id_grid
+전체에서 최대화할 뿐 -- **`ID_target`/다른 소자와 완전히 무관**(gm/gds 비율 자체가
+gm/ID methodology에서 W/ID가 약분되는 "세기(intensive)" 양이라 원래 전류와 무관하게
+정의됨, 정상 설계). 즉 M15의 `gm_id_role="gain"`이 고른 16.5는 **"M15 혼자, 이 L/VDS
+에서 자기 gm/gds를 최대화하는 지점"**으로는 정확히 맞는 답이다.
+
+문제는 `gain_db` 메트릭 자체가 M15 혼자의 gm/gds가 아니라 **`(gm15+gm16)/(gds15+
+gds16)`(두 소자 합)**이라는 점 -- M16은 `gm_id_match_vgs_of="M15"`로 **centering을
+정확히 맞추기 위해 M15와 다른(더 나쁜 gm/gds인) gm_id=4.366으로 강제**된다. M15가
+자기 gm/gds만 보고 16.5를 고르면, 그 선택이 확정하는 target_vgs가 M16의 gm_id(그리고
+그 gm/gds)를 종속적으로 결정하는데 이 종속효과를 M15의 선택 기준(`search_gm_id_for_
+role`)이 전혀 못 본다 -- **"자기 최적"과 "쌍의 결합 최적"이 다른 문제**라 실제
+사이징이 BI가 찾은 합의점(`gm_id_p=24.5`, `gain2_db=48.40dB`, 합계 약 75.80dB)이 아니라
+`gm_id_p=16.5`(M15 단독 최적, 합계 71.14dB)에 갇혀 있다.
+
+**BI가 조인트 스캔으로 찾은 답과 지금 엔진이 낸 답이 다른 이유가 바로 이거다** --
+BI는 `(gm_id_p, gm_id_n)` 페어를 `gain2_db`(결합 지표) 기준으로 같이 최적화했지만,
+현재 엔진(BL)은 M15를 "gain" role로 독립적으로 먼저 정하고 M16만 그 뒤를 따라가게
+설계했다 -- 두 메커니즘 다 "일반화된 기존 역할 기준을 재사용한다"는 원칙은 지켰지만,
+**"gain" role 자체가 "짝이 VGS-매칭으로 종속된 상황"을 다루도록 설계돼 있지 않았다**.
+
+**제안하는 일반화된 해법(설계만, 미구현 -- 공유 엔진코드라 착수 전 승인 필요)**:
+`L_p`/`L_n`(theta_value)은 각자의 theta가 이미 확정한 상수이므로, `gm_id_match_vgs_of`
+관계가 있는 쌍에 대해서는 **M15의 gm_id를 독립적으로 먼저 정하지 않고, M16(짝을
+참조하는 쪽) 처리 시점에 가서 `gm_id_p` 자체를 1차원으로 스캔**한다(기존
+`gm_id_grid` 그대로 재사용, 새 탐색 차원 신설 아님 -- 재계산 비효율 관점에서 봐도
+57점 1-D 스캔 1회 추가일 뿐, BI가 처음 제안했다가 거부당한 "57×57 조인트" 같은
+조합폭발이 아니다):
+1. 각 `gm_id_p` 후보에 대해 `target_vgs=vgs_for_gm_id(gm_id_p,L_p,vds_p)` ->
+   `gm_id_n=gm_id_for_vgs(target_vgs,L_n,vds_n)`(이미 있는 함수 재사용) -> `I=gm_total/
+   (gm_id_p+gm_id_n)` -> `gm15=gm_id_p·I, gds15=I·gm_id_p/gm_gds_ratio(...)`, M16도 동일 ->
+   `gain2_db_candidate=20·log10((gm15+gm16)/(gds15+gds16))`.
+2. `feed_spec.get("metric")`(이미 `"gain_db"`로 선언돼 있음)을 그대로 목적함수로 써서
+   `gain2_db_candidate`를 최대화하는 `gm_id_p`를 고른다 -- **문헌 role 기준(gain=최대
+   gm/gds)이 개별 소자에서 커플드 쌍의 결합 지표로 일반화된 것**이지 임의 탐색폭이
+   아니다(BL에서 사용자가 세운 "문헌 근거" 원칙과 동일선상).
+3. 위 절차는 `gm_id_match_vgs_of`가 있는 feed(M16 쪽)가 처리될 때만 발동 -- 그 전에
+   `gm_id_role`(M15 쪽)로 이미 정해진 값은 **잠정값**으로 취급하고 이 단계에서
+   덮어쓴다(현재 `_finalize()`가 이미 여러 소자를 여러 번 다시 쓸 수 있는 구조이므로
+   구조 변경은 최소).
+4. `gm_id_match_vgs_of`가 없는 기존 topology(다른 3개 회로)는 이 경로를 안 타므로
+   완전히 하위호환.
+
+**착수 보류 이유**: 이건 `_feed_metric_stage_budget()`(공유 엔진 코드, 전 토폴로지
+공통)의 새 분기 신설이라 프로젝트 원칙("국소 메타데이터는 바로, 공유 엔진코드는
+승인 후")상 사용자 확인 없이 구현하지 않았다. 다음 세션(또는 이 세션 사용자 응답
+대기 중) 승인되면 위 1~4 그대로 구현 -> self-test -> `gain_db>=75.6` 실회로 재검증
+순서로 진행.
+
+## BR. 세션31 계속(같은 세션, 사용자 승인 "1번 검증기와 n-way로 확장설계를 진행해")
+-- N-way 공유전류 조인트 스캔 **구현 완료·검증됨**(gain_db 목표는 아직 미달, 근본
+원인은 BS에서 별도 확정)
+
+**사용자 확인 질문**: 구현 착수 전 "topology 무관한 일반엔진이 되는 건가?"라는
+날카로운 질문을 받고 재검토한 결과 두 가지 실제 허점을 자백/보완했다 -- (1)
+`compute_metric()`으로 결합 metric을 평가하려면 그 metric이 참조하는 **다른 스테이지
+소자**(예: stage1)도 이 시점에 이미 sizing돼 있어야 하는데, 이건 `validate_theta_
+declaration_order()`가 아직 검사 안 하던 **새로운** 순서 의존성이었다(우연히 이
+회로에선 항상 만족되지만 다른 토폴로지는 아닐 수 있음). (2) 이 설계는 "root 1개 +
+그걸 참조하는 dependent 1개"(2-소자)만 다루지 "N개가 얽히는" 경우는 다루지 않았다.
+사용자가 둘 다 확장하라고 승인.
+
+**구현**(`sizing_recipe.py`, 전부 신설 -- 기존 2-소자 전용 `shared_group`/`I_new`
+로컬 로직은 완전히 대체됨):
+1. `_metric_stage_budget_finalize(ctx, name, gm_id, ID, mL, mvds, mvs)` -- 예전엔
+   `_feed_metric_stage_budget()` 내부 클로저였던 `_finalize`를 모듈 레벨로 승격(조인트
+   스캔이 **여러 feed의 devices를 가로질러** 같은 계산을 해야 해서 한쪽에만 있으면
+   중복 구현이 됨).
+2. `_shared_current_groups_from_compensation(comp)` -- `shared_gm_id_groups`(스테이지
+   인덱스)를 소자명 frozenset 리스트로 펼치는 **단일 정의**. `_evaluate()`의 스냅샷
+   구성/`_build_shared_current_joint_plan()`/`validate_theta_declaration_order()`
+   셋이 전부 이걸 재사용 -- 세 곳이 각자 다른 정의를 쓰면 검증기와 실제 엔진이
+   어긋나는 위험이 생기므로 분리(사용자가 지적한 "진짜 일반화"의 핵심 요구사항).
+3. `_evenly_subsample(seq, n)` -- 이산 리스트(`gm_id_grid`류) 균등 서브샘플, `dense_
+   candidates()`의 이산판.
+4. `_build_shared_current_joint_plan(group_members, thetas)` -- **순수 함수**(정적
+   `thetas` 선언만 읽음, ctx/런타임 무관), 한 공유전류 그룹에 대해:
+   - 노드는 **feed**(devices 튜플) 단위(한 feed의 devices는 항상 같은 gm_id를 쓰는
+     기존 계약이라 진짜 자유도는 feed 개수만큼).
+   - `gm_id_match_vgs_of`가 **그룹 내부**를 가리키면 dependent, 아니면(그룹 밖 참조든
+     `gm_id_role`이든 고정이든) root/pinned로 분류.
+   - 위상정렬 + 순환 감지(`gm_id_match_vgs_of` 체인이 순환하면 즉시 `ValueError`).
+   - 각 dependent를 궁극적 조상까지 거슬러 올라가 **조상이 root인 체인만** 조인트
+     스캔 대상으로 묶는다(조상이 pinned인 체인은 스캔할 자유도가 없어 그대로 둠 --
+     불필요한 탐색차원을 늘리지 않는 설계적 절제, N-way라고 무조건 다 스캔하지
+     않음).
+   - 그룹에 결합이 하나도 없으면 `None`(기존 2-소자 이하 토폴로지는 전부 이 경로 --
+     완전 하위호환, 이번 세션 검증에서 확인된 그대로 다른 3개 회로는 영향 없음).
+   - `trigger_devices_key` = 그 그룹에 닿는 `metric_stage_budget` theta 중 **선언
+     순서상 마지막** 것(그래야 그룹 전체 소자의 L/VDS/gm_id가 다 확정된 뒤 스캔이
+     돎).
+5. `_run_shared_current_joint_scan(plan, ctx)` -- 실제 실행. root마다 하나의 자유도,
+   `search_stage_budget_L_warm_start()`가 이미 쓰는 조인트탐색 예산 공식(`target_
+   total**(1/k)`, 사용자가 이미 승인한 패턴)을 그대로 재사용해 K=1(이 프로젝트의
+   유일한 실제 사례)이면 기존 57점 1-D 스캔과 **정확히 동일한 비용**. 각 후보에서
+   dependent 체인을 위상순서로 VGS-매칭 해석하고, **실제** 공유전류 `I=gm_total/
+   sum(모든 그룹 멤버의 gm_id)`로 W_bounds를 검사(placeholder 안 씀 -- 처음엔 "I가
+   gain_db 비율에서 대수적으로 약분된다"는 걸 이용해 placeholder I=1로 스코어링만
+   하려 했으나, W_bounds 검사는 **실제** I가 필요해 결국 매 후보 실제 I를 계산하는
+   쪽으로 정리, 재계산 비효율은 없음 -- LUT 조회 자체는 기존과 같은 총 횟수). 목적함수는
+   로컬 재정의 없이 `ctx.derived["_metrics_specs"][plan["metric"]]`(topology.json이
+   선언한 것 그대로)를 `compute_metric()`으로 직접 평가.
+6. `_build_theta_evaluator()`가 토폴로지 로드 시 **한 번만** `_scb_plans`를 만들어
+   클로저로 재사용(evaluate()마다 다시 안 만듦 -- 재계산 비효율 방지, `_evaluate()`는
+   `ctx.derived["_scb_joint_plan_by_devices"]`에 참조만 꽂는다).
+7. `validate_theta_declaration_order()` 확장 -- `_build_shared_current_joint_plan()`
+   을 **그대로 재사용**해(별도 근사 아님, 런타임 엔진과 동일 정의) 각 그룹의 트리거
+   feed를 찾고, 그 `plan["metric"]`이 참조하는 다른 스테이지 소자가 이 시점에
+   `produced`에 있는지 검사 -- 없으면 위반으로 보고(BQ 설계 리뷰 중 발견한 허점 1번
+   해소).
+
+**버그 하나 발견·수정(구현 직후 self-test 회귀로 발견)**: 처음엔 root의 탐색격자로
+`ctx.spec["gm_id_grid"]`(compensation의 스테이지 조인트탐색 전용 키)를 재사용했는데,
+이건 `search_gm_id_for_role()`(예전 per-device "gain" 잠정 탐색이 실제로 썼던 것)의
+**자기 자신 기본격자**(2.0~30.0, 0.5간격, 57점, spec 키와 무관)와 다르다 -- L5c
+self-test(`gm_id_grid=[4,8,...,24]`처럼 훨씬 성긴 커스텀 spec을 쓰는 실제 사례)가
+이 불일치를 즉시 잡아냈다(M9b KCL이 음수가 되는 하류 회귀로 발현). `search_gm_id_
+for_role()`의 기본 해상도(57점)를 그대로 쓰도록 고쳐 해소 -- self-test 전수 재통과
+확인.
+
+**검증**: self-test 전수 PASS/exit 0(회귀 없음). 실회로 재검증(`verify_debug_
+minimal.py`) -- `_finalize()`의 "ID" 키가 이제 정확히 조인트 스캔이 정한 I를
+반영(`M15 ID=41.4616uA`, `M16 ID=41.4616uA` -- 둘이 정확히 같음, KCL 정합 확인)하고,
+`classab_centering_dev_v`는 여전히 0.000000(VGS 정확 매칭 유지). **`gain_db`는
+70.109132**로 이전(71.135711)보다 오히려 **약간 낮아짐** -- BQ가 예상했던 개선이
+실제로는 안 나타났다. 근본원인은 BS에서 확정.
+
+## BS. `gain_db` 여전히 미달인 진짜 근본원인 확정: **exact VGS-매칭이 BI의 원래
+조사보다 훨씬 빡빡한 제약**이었다 (설계 재검토 필요 -- 다음 세션 최우선)
+
+BR의 N-way 조인트 스캔은 정확히 설계대로 동작한다(self-test/실측 확인 완료) -- 그런데도
+`gain_db=70.11dB`로 BI가 조사에서 찾은 `75.80dB`에 한참 못 미친다. 실제 스캔 로그
+(임시 계측, 이번 세션에서 확인 후 제거)로 원인을 확정했다: **BI의 원래 조사와 BL/BQ가
+실제로 구현한 제약이 서로 다른 문제였다.**
+
+- **BI가 실제로 조사한 것**(`.ai/context.md` BI절 재확인): `(gm_id_p, gm_id_n, L_p,
+  L_n)` **네 변수 전부 독립**으로 조인트 스캔, 만족 조건은 `gain2_db>=48.20dB` **AND**
+  `classab_centering_dev_v<=0.15V`(**부등식**, `<=` -- 정확히 0을 요구하지 않음). 최적점:
+  `gm_id_p=24.5, L_p=1.0µm, gm_id_n=13.5, L_n=0.9646µm`(**gm_id_n=13.5는 VGS-매칭으로
+  유도된 값이 아니라 독립 스캔이 찾은 값** -- 우연히 `centering<=0.15V`를 만족했을 뿐).
+- **BL/BQ가 실제로 구현한 것**: `gm_id_match_vgs_of`로 M16의 gm_id를 M15의 VGS와
+  **정확히(등식)** 일치시킨다(`classab_centering_dev_v=0.000000`, 부등식 `<=0.15V`
+  요구보다 훨씬 강한 제약). L_p=L_n(같은 theta 쌍이 아니라 서로 다른 theta지만, 이번
+  x0에서는 둘 다 1.0µm로 수렴 -- BI와 우연히 같음)까지는 맞지만, gm_id_n이 **자유
+  변수가 아니라 gm_id_p의 결정론적 함수**라는 게 결정적 차이.
+
+**실측으로 확인한 결과**: L_p=1.0µm에서 `gm_id_p`를 1-D로 스캔한 이번 세션의 조인트
+스캔 로그를 보면, `gain2_db`에 해당하는 결합 스코어는 `gm_id_p`가 커질수록 계속
+**단조증가**하다가(15.5까지 확인, 68.6->70.1dB) `gm_id_p>=16.0`부터 W_bounds(`ID*L/
+IDu` 상한 200µm)를 어겨 전부 infeasible로 잘려나간다 -- BI가 찾은 `gm_id_p=24.5`
+지점은 **exact VGS-매칭 하에서는 W_bounds를 만족하지 않는다**(idu가 L=1.0µm,
+gm_id=24.5 근처에서 이미 `~4.2e-10` 수준까지 붕괴, W가 수십 mm대로 폭발 -- 실측
+확인). 즉 BI의 `gm_id_n=13.5`(독립 선택, VGS 매칭 아님)는 W_bounds를 만족하는
+**다른** 조합이었고, exact-매칭이 강제하는 `gm_id_n≈4~5`대(centering=0을 만족하려면
+그렇게 나옴)와는 다른 해였다 -- BI의 최적점 자체가 "매칭을 정확히 지키지 않아도
+0.15V 이내면 된다"는 **더 넓은 탐색공간**에서 나온 것이었는데, 엔진 구현(BL)은
+그보다 훨씬 좁은 "정확히 일치" 부분공간만 보고 있었다는 게 이번 세션 최종 확정.
+
+**옵션(다음 세션 확인 필요, 설계 트레이드오프라 승인 전 논의)**:
+1. **exact 매칭 유지**(현재 상태) -- `classab_centering_dev_v=0.000000`(문턱 0.15V
+   대비 압도적 여유)는 보장되지만 `gain_db`는 이 제약 하의 최댓값(약 70~71dB대,
+   `L_p`/W_bounds에 따라 다름)에 갇힌다 -- 75.6dB 문턱을 못 넘길 가능성이 높다.
+2. **tolerance-band 매칭으로 완화**: `gm_id_match_vgs_of`를 "정확히 그 VGS"가 아니라
+   "그 VGS ± 허용오차"로 바꿔, `classab_centering_dev_v<=0.15V`(실제 constraint
+   그대로) 안에서 `gm_id_n`도 **독립 자유도**로 함께 스캔(즉 root가 M15뿐 아니라
+   M16도 되는 2-D 조인트, `has_root_coupling` 판정과 `chains` 구조를 "정확히 일치해야
+   하는 dependent"에서 "허용범위 안에서 자유로운 root"로 바꿔야 함 -- BR이 이미
+   만든 K>=2 조인트 예산 공식이 그대로 재사용 가능하다는 게 이번 N-way 일반화의
+   실질적 이득). BI가 실제로 찾은 최적점(75.80dB)에 도달하려면 이 방향이 필요해
+   보인다.
+   이건 `gm_id_match_vgs_of`의 **의미 자체를 바꾸는**(등식 -> 부등식 허용오차) 재설계라
+   또 한 번의 공유 엔진코드 승인 사안 -- 다음 세션에 사용자와 먼저 확정할 것.
+3. L_p를 1.0µm(LUT 최대) 밖으로 더 열어볼 여지는 없음(이미 LUT 최대치, 외삽 불가 --
+   BI도 같은 결론).
+
+## BE. 다음 세션 최우선 (세션31 최종 확정, BS 반영해 갱신)
+
+### ① `gain_db` 미달 -- exact VGS-매칭을 tolerance-band로 완화할지 결정 + 구현 (BS,
+최우선)
+BS가 확정한 근본원인(exact 매칭이 BI의 원래 부등식 제약보다 훨씬 좁음) 그대로.
+다음 세션 시작 시 BS의 옵션 1/2/3을 사용자에게 보고하고, 2번(tolerance-band 완화)로
+갈지 확정한 뒤: (승인되면) `gm_id_match_vgs_of` 재설계 -> self-test -> 실회로
+재검증(`gain_db>=75.6`) -> `.ai/context.md`에 결론 기록 -> 커밋 여부 확인. (1번을
+유지하기로 하면) `current_reuse_telescopic_ota`가 이 상태로는 `gain_db` 제약을 못
+만족한다는 걸 명시적으로 인정하고 회로/제약 자체의 재검토(다른 스테이지 배분, Cc/Cf
+재설계 등)로 방향 전환.
+
+### ② 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
+변경 없음, 상세는 위 BA③ 참고. `folded_cascode` 등으로 이번 세션 신설분(B/C/F 배치
+조회/캐시 공유 + BL의 gm_id_role/gm_id_match_vgs_of + BM의 declaration-order 검사기 +
+BR의 N-way 조인트 스캔)도 일반화되는지 아직 미검증(다른 회로엔 애초에 `gm_id_match_
+vgs_of`가 없어 조인트 스캔 경로 자체가 안 타서 회귀는 없음을 self-test로 확인했지만,
+"정확히 이 메커니즘이 필요한 새 회로"에서 검증된 적은 없음).
+
+### ③ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
+
+### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
+
+### ⑤ SLSQP 전체 실행 성능 재측정 (BH에서 신설, 변경 없음)
+C 구현의 실제 절감폭(`_comp_cache` 재사용)은 `presolve_warm_start()` 단독 검증만
+했고, 실제 `_optimize_theta_slsqp()` 전체(multi-start 포함, 수 분~수십 분대)에서
+전/후 비교는 아직 안 함.
+
+## BF. 커밋 상태 (세션31, BR/BS에서 갱신)
+
+**`21aae3a`(BK, L_grid_step)까지 커밋 완료.** 그 이후(BL~BS 전부) **미커밋**(BQ/BS는
+설계·조사만, 코드 변경 없음). `git status` 기준 수정된 파일은 `sizing_recipe.py`와
+`current_reuse_telescopic_ota.topology.json` 둘뿐(`run_harness.py`는 BK에서 이미
+커밋됨, 이번 세션엔 안 건드림). `.ai/context.md`(이 BL~BS 갱신분 포함)도 미커밋.
+**BS의 설계질문(exact vs tolerance-band 매칭)이 아직 사용자 확인 전이라 커밋하지
+않았음** -- 사용자가 "커밋해줘"라고 명시하지 않는 한 커밋 금지 원칙 그대로 유지,
+다음 세션에서 BS 방향 확정 + `gain_db` 목표 달성 후 사용자에게 커밋 여부 물을 것.
+
+self-test 최종 상태(세션31 종료 시점, BR 구현 반영): `sizing_recipe.py` 단독 실행 시
+exit 0, 트레이스백/AssertionError 없음, 마지막 `validate_theta_declaration_order()`
+섹션(BR이 확장한 metric-의존성 검사 포함)까지 정상 완주 -- 회귀 없음.
+
+## BT. 세션31 계속(같은 세션, 사용자 "2번이 올바른 설계" 확인 + "응, 진행해줘") --
+tolerance-band 재설계 **구현 완료·검증됨**, `gain_db`는 개선됐으나 75.6dB 목표는
+여전히 미달(원인 확정, 별개 이슈와 얽혀 있음)
+
+**설계 확정 근거**(사용자 질문 "1과 2중 어떤게 올바른 설계야?"에 대한 답): 2번
+(tolerance-band)이 맞다 -- `classab_centering_dev_v<=0.15V`는 이미 topology.json이
+**부등식**으로 선언한 실제 스펙인데, BL/BQ의 exact 매칭(등식)은 이를 구현하기 위해
+채택한 지름길일 뿐 물리적 요구사항이 아니었다. BI의 최적점(75.80dB, centering=
+0.0001V)도 사실상 거의 완벽히 중심이 맞았다는 점에서 "정확도를 희생해 이득을 얻는"
+트레이드오프가 아니라 "불필요하게 좁혀놨던 2차원 탐색공간을 스펙이 실제로 허용하는
+만큼 되돌리는" 문제라고 판단, 사용자가 동의하고 진행 승인.
+
+**구현**(`sizing_recipe.py`, `_build_shared_current_joint_plan()`/`_run_shared_
+current_joint_scan()` 전면 재작성 -- BR의 "dependent/체인/위상정렬" 개념 전부 제거):
+1. `_build_shared_current_joint_plan()`: `gm_id_match_vgs_of`가 그룹 내부를 가리켜도
+   더 이상 "dependent"(등식 강제)로 분류하지 않는다 -- `gm_id_role`이 있든 `gm_id_
+   match_vgs_of`(그룹 내부 참조)가 있든 **동등하게 자유 root**. 그룹 밖 참조는 여전히
+   "pinned"(이 그룹의 관심사 아님). `has_root_coupling` 조건도 "dependent 존재"에서
+   "root가 2개 이상 존재"로 바뀜(BQ 분석 그대로: 자유도 1개면 자기 최적화가 이미
+   metric 최적화와 같다 -- Σgm_id_i/Σ(gm_id_i/ratio_i) 공식에서 항이 하나면 ratio_i
+   자체를 최대화하는 것과 동일, 조인트 스캔이 실제로 필요한 건 2개 이상부터). 위상정렬/
+   순환감지 로직 전부 삭제(더 이상 "누가 누굴 참조하는지" 그래프가 필요 없음 -- 다들
+   독립 root).
+2. `_run_shared_current_joint_scan()`: root마다 독립 자유도로 K-D 조인트 스캔(현재
+   실제 사례 K=2, M15/M16). 각 후보에서:
+   - 실제 공유전류 `I=gm_total/(pinned 합+후보 root들 합)`으로 W_bounds 검사(root뿐
+     아니라 pinned 소자도 I가 바뀌면 절대 gm/gds가 같이 바뀌므로 매 후보 재확정).
+   - **목표 metric 외에 topology.json이 실제로 선언한 다른 모든 constraint**(예:
+     `classab_centering_dev_v<=0.15V`)를 feasibility 필터로 강제 -- 목표 metric
+     자신의 문턱(`gain_db>=75.6`)은 여기서 강제하지 않음(최대화 대상과 게이트를
+     혼동하지 않음, 전체 feasibility는 `optimize_full_circuit_budget()` 몫).
+   - 목표 metric은 여전히 `compute_metric(ctx.derived["_metrics_specs"][plan
+     ["metric"]], ctx)`로 topology.json 선언 그대로 평가(로컬 재정의 없음).
+
+**실측 버그 3건 발견·수정(전부 이번 세션 안에서 자체 발견·해소, self-test/실측
+재검증까지 완료)**:
+1. **`InfeasibleSizingError`에 `sized_snapshot` 누락** -- 조인트 스캔이 전부
+   infeasible이면 던지는 예외에 `sized_snapshot=dict(ctx.sized)`가 없어서 `extract_
+   linear_feasibility_constraints()`(A_signed 부호제약 유도가 이 스냅샷을 요구)가
+   더 불명확한 `ValueError`로 재실패했다 -- 다른 `InfeasibleSizingError` 호출부 관례
+   그대로 추가.
+2. **`gm_id_to_id_density()`의 LUT 범위 밖 `ValueError` 미포착** -- root가 완전히
+   자유로워지면서 LUT 실측범위 밖(과도한 weak inversion) gm_id 후보도 스캔 대상에
+   들어오는데, `search_gm_id_for_role()`의 `_idu_scan()`이 내부적으로 걸러주던 보호가
+   여기 없어 크래시(self-test에서 발견) -- `try/except ValueError: return None`으로
+   "이 후보만 infeasible" 처리.
+3. **조인트탐색 예산 공식이 너무 좁았음**(실측으로 발견 -- L=1.0µm에 이미 알려진
+   실현가능점(exact-match 시절의 gm_id_p=15.5/gm_id_n≈4.0)조차 못 찾고 InfeasibleSizingError):
+   `search_stage_budget_L_warm_start()`의 `target_total**(1/k)` 예산 공식을 그대로
+   재사용했더니 K=2에서 차원당 겨우 11점(121 조합)뿐이라 BI가 실측으로 확인한 좁은
+   feasible 띠를 완전히 놓쳤다. L 탐색(후보마다 `optimize_multistage()`급 비용)과
+   달리 여기는 후보 하나가 LUT 보간+산술뿐이라 훨씬 큰 총예산(5000)을 감당 가능 --
+   K=2에서 BI가 실측으로 썼던 것과 동일한 57×57 전체 해상도가 나오도록 캡을 올림.
+4. **"다른 모든 constraint" 전부 강제가 무관한 소자의 미최적화 상태에 억울하게
+   걸림**(가장 중요한 발견 -- 실측: L=1.0µm의 알려진 실현가능점조차 `mismatch_sigma_
+   mV<=5.0`(M1a/M1b에만 의존, M15/M16과 완전 무관) 위반으로 거부됨, 이 constraint는
+   이 시점에 baseline x0가 아직 최적화 전이라 원래도 위반 상태였을 뿐). **이미 있던
+   `_metric_device_footprint(metric_name, metrics_specs)`**(`derive_theta_dependency_
+   graph()`가 쓰는 것과 동일한 기존 함수, 새로 안 만듦)로 각 constraint의 metric이
+   읽는 소자 집합을 판정해, **그 집합이 이 그룹 소자의 부분집합일 때만**(전체회로
+   `"ALL"`류 제외) feasibility 게이트로 강제하도록 수정 -- `classab_centering_dev_v`
+   (={M15,M16}⊆group)는 그대로 강제되고, `mismatch_sigma_mV`(={M1a,M1b}, group과
+   무관)는 이제 제외됨.
+
+**검증**: self-test 전수 PASS/exit 0(회귀 없음, 4건 수정 전부 반영). 실회로 재검증:
+- `presolve_warm_start()`: `feasible=True`(회귀 없음), `M15 gm_id=15.500/M16 gm_id=
+  6.000`(더 이상 M15의 exact-VGS 함수가 아니라 진짜 독립 값), `gain_db=72.383983`
+  (exact-match의 71.135711보다 **개선**), `classab_centering_dev_v=0.143529`(0.15V
+  문턱을 거의 다 씀 -- 설계 의도대로 tolerance 여유를 gain으로 전환하고 있음을 확인).
+- SLSQP 전체 최적화(n_starts=3, maxiter=25): **여전히 75.6dB 미달** -- 3회 시도 전부
+  `gain_db` 최댓값이 `72.384`(presolve_warm_start 값과 동일, SLSQP가 유의미하게
+  더 못 밀어붙임)에 머물렀고, **`mismatch_sigma_mV<=5.0`도 동시에 위반**(10.2~10.8,
+  이건 M1a/M1b 사이징 문제로 이번 세션의 M15/M16 조사와 완전히 별개 -- BI 조사
+  때부터 이미 알려진 미해결 이슈, `.ai/context.md` 여러 곳에서 반복 언급됨).
+
+**결론**: tolerance-band 재설계는 설계·구현 다 올바르게 됐고(exact-match보다
+`gain_db` 개선, self-test/실측 둘 다 정합) 이 자체로는 이번 세션의 목표(정직한
+일반화 + 스펙에 맞는 최적화)를 달성했다. 하지만 `current_reuse_telescopic_ota`가
+`gain_db>=75.6` **AND** `mismatch_sigma_mV<=5.0`를 **동시에** 만족하는지는 아직 확인
+안 됨 -- SLSQP가 25 iteration/3-start로는 두 제약을 동시에 못 풀었다. 다음 단계는
+(a) SLSQP 파라미터(n_starts/maxiter/eps) 확대 재시도, (b) mismatch_sigma_mV 해소
+(M1a/M1b 사이징, 이 세션 범위 밖의 별개 작업) 병행, 둘 다 없이는 `gain_db` 단독
+75.6dB 도달 여부조차 이 자유도 안에서 확정 짓기 어렵다.
+
+## BE(최종). 다음 세션 최우선 (세션31 종료 시점 확정, BT 반영)
+
+### ① `gain_db>=75.6` AND `mismatch_sigma_mV<=5.0` 동시만족 재검증 (BT에서 신설)
+tolerance-band 재설계(BT)는 완료·검증됐고 `gain_db`를 71.14->72.38dB로 개선했지만
+아직 75.6dB 미달, SLSQP(n_starts=3/maxiter=25)로는 안 풀림. **`mismatch_sigma_mV`
+위반(M1a/M1b 사이징, 세션31 전체 기간 내내 미해결로 남아있던 별개 이슈)이 동시에
+걸려 있어 이번 세션에선 `gain_db` 단독으로 75.6dB에 닿을 수 있는지조차 명확히 못
+갈랐다.** 다음 세션: (a) SLSQP를 더 넉넉한 파라미터(n_starts>=5, maxiter>=50)로
+재시도해 두 제약이 동시에 풀리는지 먼저 확인, (b) 안 풀리면 `mismatch_sigma_mV`
+(M1a/M1b, 입력쌍 매칭)를 먼저 해소해야 `gain_db`만의 순수 여유를 볼 수 있는지 판단.
+
+### ② 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
+변경 없음 -- BR/BT의 N-way/tolerance-band 조인트 스캔이 `gm_id_match_vgs_of`가
+없는 다른 3개 회로엔 아예 안 타므로(self-test로 회귀 없음 확인) 다른 회로에서
+"정확히 이 메커니즘이 필요한" 실사례는 아직 없음.
+
+### ③ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
+
+### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
+
+### ⑤ SLSQP 전체 실행 성능 재측정 (BH에서 신설, 변경 없음)
+
+## BF(최종). 커밋 상태 (세션31 종료 시점, BT에서 갱신)
+
+**`21aae3a`(BK, L_grid_step)까지 커밋 완료.** 그 이후(BL~BT 전부) **미커밋**.
+`git status` 기준 수정 파일은 `sizing_recipe.py`/`current_reuse_telescopic_ota.
+topology.json` 둘뿐(`run_harness.py`는 BK에서 이미 커밋, 이번 세션 안 건드림).
+`.ai/context.md`(BL~BT 갱신분 포함)도 미커밋. **`gain_db>=75.6` AND `mismatch_
+sigma_mV<=5.0` 동시만족이 아직 확정 안 된 상태라 커밋 보류** -- 사용자가 "커밋해줘"
+명시 전까지 커밋 금지 원칙 유지.
+
+self-test 최종 상태(세션31 진짜 종료 시점, BT 반영): exit 0, 트레이스백/
+AssertionError 없음, 전수 PASS -- BT의 4건 실측 버그 수정 전부 반영된 상태로 재확인.
+
+## BU. 세션31 계속(같은 세션, 사용자 "2번 먼저 해소해줘") -- `mismatch_sigma_mV`
+근본원인 해소 **구현 완료·검증됨** -- `gain_db>=75.6` AND `mismatch_sigma_mV<=5.0`
+**둘 다 동시 만족(SLSQP SUCCESS)으로 세션31 최종 목표 달성**
+
+**중간 삽입**: 이 지점 직전, 사용자가 M1a의 `L=0.2350um`을 보고 "L grid 위반 아니냐"고
+확인 요청 -- 실측으로 `0.235e-6 == 47 * 0.005e-6`(정확히 5nm 배수) 확인, **위반
+아님**. `layout_grid_L_candidates(..., n=41)`이 `[0.15,1.0]um` 구간의 171개 5nm-배수
+전체가 아니라 예산상 41개로 균등 서브샘플하기 때문에 후보 리스트 자체의 간격이
+~20~25nm로 보일 뿐(BJ 세션 의도된 설계, 개별 값은 전부 정확히 그리드 위) -- 버그
+아님을 확인하고 원래 작업으로 복귀.
+
+**근본원인**: `optimize_multistage()`/`find_optimal_sizing()`(compensation 스테이지의
+(L,VDS,gm_id) 그리드서치, `objective="power"`)는 `gain_min`/`w_max`/`fT`만 알고
+declared constraint(`mismatch_sigma_mV<=5.0`)는 **전혀 모른다** -- 그래서 M1a/M1b가
+power 최소화만 보고 L=0.235µm/W=2.505µm(W·L=0.589µm², 필요치 2.743µm²의 약 21%)를
+골라 mismatch가 10.79mV(문턱 5.0의 2배 이상)로 위반됐다. 이건 M15/M16(BL~BT) 작업과
+**완전히 별개** 코드 경로(`stage_devices[0]`, theta 아닌 compensation 전담)의 버그다.
+
+**구현**(재사용 위주, 새 하드코딩 없음): `make_replica_feasibility_check()`(세션30,
+K_replica L 하류파급 근본수정 -- `find_optimal_sizing()`의 기존 `extra_feasible(L,VDS,
+gm_id,ID)->bool` 훅)와 **완전히 같은 패턴**으로 `make_matching_feasibility_check(grp,
+metrics_specs, constraints, kind_of, spec)` 신설:
+- `grp`(지금 compensation이 사이징 중인 스테이지)를 `devices`로 선언한 `pelgrom_
+  mismatch` metric에 constraint(`<=`/`<`)가 걸려 있는지 정적으로 찾는다 -- 없으면
+  `None`(하위호환, 기존처럼 아무 것도 안 함).
+- 있으면, 스테이지 안 모든 소자가 같은 (L,VDS,gm_id,ID)를 공유한다는 compensation의
+  기존 불변식을 그대로 이용해 `W=L*ID/IDu`(IDu는 `find_optimal_sizing()`이 이미
+  계산하는 것과 같은 LUT 조회, 중복이지만 **콜백 시그니처가 W를 안 넘겨줘서** 어쩔 수
+  없이 재조회 -- `search_gm_id_for_role()`이 이미 감수하는 것과 같은 종류의 트레이드
+  오프, 값싼 LUT 보간 한 번)를 구해 `estimate_mismatch_sigma()`로 직접 판정.
+- `_evaluate()`의 `_stage_extra_feasible` 구성부에서 `make_replica_feasibility_check()`
+  와 새 함수를 `_combine_extra_feasible()`(AND 합성, 둘 다 `None`이면 `None`)로 묶어
+  넘긴다 -- `find_optimal_sizing()`/`optimize_multistage()`는 콜백 하나만 받으므로
+  **시그니처 변경 없이** 호출부에서 합성(공유 엔진코드 자체는 안 건드림, 최소 diff).
+
+**검증**: self-test 전수 PASS/exit 0(회귀 없음). 실회로 재검증(`presolve_warm_start`):
+`M1a: L=0.3400µm W=12.3488µm`(W·L=4.20µm², 필요치 2.74µm² 이상으로 확보) ->
+`mismatch_sigma_mV=4.0417`(목표 이하로 전환) -- **그리고 예상 밖으로 `gain_db`도
+72.38->76.18dB로 개선**(M1a/M1b가 커지면서 stage1 자체의 gm/gds도 같이 좋아진 것으로
+보임, 부수 효과). **SLSQP 전체 최적화(n_starts=3, maxiter=25) -- SUCCESS**:
+```
+gain_db=76.587, mismatch_sigma_mV=4.617, classab_centering_dev_v=0.14988,
+cmrr_estimate_db=100.334, psrr_estimate_db=106.401, gain_full_circuit_db=92.819
+(ngspice 교차검증 대상 -- 51소자 전체 MNA)
+```
+`classab_centering_dev_v`(0.14988)와 `mismatch_sigma_mV`(4.617) 둘 다 문턱을 거의
+다 쓸 만큼 빠듯하지만(설계가 실제로 두 tolerance를 최대로 활용해 gain을 짜낸 것 --
+tolerance-band 재설계(BT)가 의도한 그대로) **전부 만족**.
+
+**결론**: 세션31 전체(BD~BU)의 최우선 목표였던 `current_reuse_telescopic_ota`의
+`gain_db>=75.6` 달성이 **최종적으로 완료**됐다. 경로: `_solve_vgs` 캐싱/재계산 감사
+(BD~BH) -> `classab_centering_dev_v` 물리적 실현가능성 조사(BI) -> L_grid_step
+레이아웃 정렬(BJ~BK) -> gm_id role 문헌기반 일반화(BL) -> theta 선언순서 버그 수정+
+검증기(BM) -> 공유전류 재계산(BN) -> `_finalize()` "ID" 키 버그(BO~BP) -> "gain" role
+단독최적화 한계 규명(BQ) -> N-way 조인트 스캔(BR) -> exact-매칭이 스펙보다 좁았음
+확정(BS) -> tolerance-band 재설계(BT) -> mismatch_sigma_mV 근본원인(compensation의
+constraint 무지) 해소(BU) -> **SLSQP SUCCESS**.
+
+## BE(진짜 최종). 다음 세션 최우선
+
+### ① 커밋 여부 확인 (최우선)
+세션31 전체 변경사항(`sizing_recipe.py`/`current_reuse_telescopic_ota.topology.json`)
+이 목표를 달성했으니, 다음 세션 시작 시 **가장 먼저** 사용자에게 커밋 여부를 물을 것
+(이 세션 안에서 미처 못 여쭤봤다면). 커밋 시 최소 2개 논리적 커밋으로 분리 고려:
+(a) 세션31 전체(BD~BT, `_solve_vgs`~tolerance-band), (b) BU(mismatch_sigma_mV,
+독립적인 별개 버그 수정) -- 또는 사용자 선호에 따라 하나로.
+
+### ② 다른 회로 교차검증 (세션22부터 이월, BA③과 동일)
+`folded_cascode`/`nmcnr_amplifier`/`two_stage_ota`에 이번 세션 신설분(B/C/F 배치조회/
+캐시공유, gm_id_role/gm_id_match_vgs_of 일반화, N-way/tolerance-band 조인트 스캔,
+`make_matching_feasibility_check()`)이 실제로 필요한 사례가 생기면 그때 일반화 검증.
+현재는 self-test로 회귀 없음만 확인된 상태(다른 회로엔 애초에 해당 메커니즘이 안 탐).
+
+### ③ `run_harness.py` 나머지 실전략 -- 계속 이월 (BA④와 동일)
+
+### ④ slew_rate() 실제 연동 -- V_swing 스펙 정의 논의 선행 (BA⑤와 동일)
+
+### ⑤ SLSQP 전체 실행 성능 재측정 (BH에서 신설, 변경 없음)
+
+## BF(진짜 최종). 커밋 상태
+
+**`21aae3a`(BK, L_grid_step)까지 커밋 완료.** 그 이후(BL~BU 전부) **미커밋** --
+`gain_db>=75.6` AND `mismatch_sigma_mV<=5.0` 동시만족(SLSQP SUCCESS)까지 확인됐으니
+커밋 보류 이유는 이제 없음, **다음 세션 시작 시 즉시 사용자에게 커밋 여부 확인**.
+self-test 최종: exit 0, 전수 PASS, 회귀 없음(BU까지 전부 반영).

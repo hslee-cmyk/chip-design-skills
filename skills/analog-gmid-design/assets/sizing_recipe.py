@@ -532,6 +532,27 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         추가했다(이전엔 클래스 내부 전용이었다)."""
         return self._solve_vgs(gm_id, L, vds, vs)
 
+    def gm_id_for_vgs(self, target_vgs: float, L: float, vds: float, vs: float = 0.0) -> float:
+        """`vgs_for_gm_id()`의 역함수 -- 목표 VGS를 만족하는 gm/ID를 O(1) 역보간으로 찾는다
+        (탐색이 아니라 `_gm_id_curve(L,vds,vs)`가 이미 캐싱해둔 `(VGS_grid, gm_id_vals)` 곡선
+        직접 조회, 2026-08-13 세션31 신설). `VGS_grid`는 LUT 축이라 항상 오름차순 -- `_solve_vgs()`
+        (반대 방향 보간, gm_id_vals가 VGS_grid 오름차순에서는 내림차순이라 정렬이 필요함)와 달리
+        추가 정렬 없이 바로 `np.interp` 가능.
+
+        용도: 두 상보(complementary, 다른 kind) 소자가 KCL로 같은 전류(ID)를 흘리면서 DC
+        레벨(VGS)이 일치/특정 관계를 맞춰야 하는 role(예: class-AB push-pull 출력단, `.ai/
+        context.md` 세션31 BI/BJ 참고)에서, 한쪽 소자의 gm/ID는 통상 role 기반 탐색
+        (`search_gm_id_for_role()`)으로 정하고, 다른 쪽은 그 소자의 실제 VGS를 목표로 이
+        함수로 **탐색 없이 직접 역산**한다 -- `_feed_metric_stage_budget()`의
+        `gm_id_match_vgs_of` 옵션이 이 패턴의 실제 사용처."""
+        _, gm_id_vals = self._gm_id_curve(L, vds, vs)
+        vgs_grid = self.VGS_grid
+        if target_vgs < vgs_grid[0] or target_vgs > vgs_grid[-1]:
+            raise ValueError(
+                f"target_vgs={target_vgs:.3g}가 LUT VGS 범위[{vgs_grid[0]:.3g},"
+                f"{vgs_grid[-1]:.3g}] 밖 -- VGS 스윕 범위를 넓히거나 이 소자의 (L,vds)를 재검토할 것.")
+        return float(self.np.interp(target_vgs, vgs_grid, gm_id_vals))
+
     def noise_1f_density(self, gm_id: float, L: float, vds: float, vs: float,
                           W_target: float, freq: float = 1.0) -> float:
         """배치 7-3g(2026-07-31) — 목표 폭 `W_target`에서 1/f(flicker) 게이트환산 전압잡음
@@ -2605,39 +2626,370 @@ def _feed_settling_split(feed_spec, theta_value: float, ctx: SizingContext) -> N
         ctx.derived[complement_key] = total - t_out
 
 
+def _metric_stage_budget_finalize(ctx: SizingContext, name: str, gm_id: float, ID: float,
+                                   mL: float, mvds: float, mvs: float) -> None:
+    """`_feed_metric_stage_budget()`/`_run_shared_current_joint_scan()`이 공유하는 확정
+    헬퍼(2026-08-13 세션31, N-way 조인트 스캔 신설로 모듈 레벨로 승격 -- 이전엔
+    `_feed_metric_stage_budget()` 내부 클로저였는데, 조인트 스캔이 **여러 feed의 devices를
+    가로질러** 같은 계산을 해야 해서 한쪽에만 있으면 중복 구현이 된다)."""
+    kind = ctx.kind_of[name]
+    lut = ctx.spec["lut_by_kind"][kind]
+    idu = lut.gm_id_to_id_density(gm_id, mL, mvds, mvs)
+    gm_gds = lut.gm_gds_ratio(gm_id, mL, mvds, mvs)
+    gm = gm_id * ID
+    # 2026-08-10(세션27) -- vds는 위에서 LUT 조회에 이미 쓰였는데 entry에 저장하는 걸
+    # 빠뜨리고 있었다(gm/gds/gm_id/kind/vs만 갱신). 헤드룸 배정 루프가 이 소자의 vds를
+    # ctx.sized에서 못 찾아 "미확정"으로 오판하는 실제 버그로 발현(L_cascode/L_stage2out
+    # 대상 소자 M2a/M2b/M3a/M3b/M15/M16/M25/M26 전부 영향 -- M11a/M11b 등 이전 gap들
+    # 때문에 이 지점까지 실행이 도달한 적이 없어 여태 발견되지 않았다). 같은 이유로
+    # classab_centering_dev_v(_metric_rail_referenced_voltage()가 entry["vds"]를 직접
+    # 읽음)도 이 소자들에 대해선 KeyError로 계산 자체가 불가능했을 것.
+    # 2026-08-13(세션31, BO 조사 중 발견) -- "ID" 키 자체가 이 update()에 없었다(gm=
+    # gm_id*ID는 지역적으로 정확히 계산하면서 그 ID를 entry에 다시 써넣지 않음). 공유전류
+    # 재계산이 I_new로 gm/gds는 옳게 바꿔도 ctx.sized[name]["ID"]는 compensation이
+    # 최초로 넣어둔 stale 값에 계속 머물렀다 -- 이걸 읽는 하류 소비자(예: K_replica/
+    # mirror_M18a의 _feed_diode_stack_target()가 reference["ID"]를 그대로 스케일해 복제)
+    # 가 잘못된 전류를 물려받는 실제 버그로 이어진다(BM의 선언순서 재배치만으로는 L/gm_id
+    # staleness만 고쳐졌을 뿐 ID staleness는 그대로 남아 있었다).
+    ctx.sized[name].update({"L": mL, "W": mL * ID / idu, "gm": gm, "gds": gm / gm_gds,
+                             "gm_id": gm_id, "ID": ID, "kind": kind, "vs": mvs, "vds": mvds})
+
+
+def _shared_current_groups_from_compensation(comp: dict | None) -> list:
+    """`comp["shared_gm_id_groups"]`(compensation-스테이지 인덱스 쌍/N-튜플 리스트)를
+    `comp["stage_devices"]`(스테이지 인덱스 -> 소자명 리스트)로 펼쳐 "같은 전류를
+    공유하는 소자명 frozenset" 리스트로 바꾼다 -- **단일 정의**로 세 곳
+    (`_evaluate()`의 스냅샷 구성 / `_build_shared_current_joint_plan()` / `validate_
+    theta_declaration_order()`)이 전부 이걸 재사용한다(2026-08-13 세션31, N-way 확장
+    중 셋이 서로 다른 정의를 쓰면 검증기와 실제 엔진이 어긋나는 위험을 없애려고 분리)."""
+    if not comp:
+        return []
+    stage_devices = comp.get("stage_devices") or []
+    return [frozenset(name for idx in sg for name in stage_devices[idx])
+            for sg in (comp.get("shared_gm_id_groups") or [])]
+
+
+def _evenly_subsample(seq: list, n: int) -> list:
+    """정렬된 이산 리스트 `seq`에서 최대 `n`개를 균등 간격 인덱스로 뽑는다(`n>=len(seq)`면
+    그대로 반환) -- `dense_candidates()`가 LUT의 **연속** 축(L/VDS)에 하는 것과 같은
+    역할을 `gm_id_grid`류 **이산** 격자에 적용한다(2026-08-13 세션31, N-way 조인트
+    스캔의 차원당 예산 캡용 신설)."""
+    if n >= len(seq):
+        return list(seq)
+    if n <= 1:
+        return [seq[0]]
+    idxs, seen, out = [round(i * (len(seq) - 1) / (n - 1)) for i in range(n)], set(), []
+    for i in idxs:
+        if i not in seen:
+            seen.add(i)
+            out.append(seq[i])
+    return out
+
+
+def _build_shared_current_joint_plan(group_members: frozenset, thetas: list) -> dict | None:
+    """`group_members`(한 `shared_current_group`의 소자명 집합)에 대해, 2개 이상의
+    feed가 **독립 자유도**(`gm_id_role` 또는 `gm_id_match_vgs_of`)로 gm_id를 정하면
+    N-way 조인트 스캔 계획을 만든다. 하나 이하면 `None`(기존 단일-소자 per-feed 로직
+    그대로 -- 완전 하위호환, `current_reuse_telescopic_ota` 외 회로는 전부 이 경로).
+
+    순수 함수(정적 `thetas` 선언만 읽음, `ctx`/런타임 상태 무관) -- `_build_theta_
+    evaluator()`가 토폴로지 로드 시 **한 번만** 호출해 클로저로 재사용한다(evaluate()마다
+    다시 만들지 않음 -- 재계산 비효율 방지).
+
+    2026-08-13(세션31 BS, tolerance-band 재설계 -- 사용자 확정): `gm_id_match_vgs_of`가
+    **그룹 내부**를 참조해도 더 이상 "그 소자의 VGS와 정확히 같아야 하는 dependent"로
+    강제하지 않는다(BQ가 처음 그렇게 설계했으나, BS 조사로 이게 실제 스펙 -- `classab_
+    centering_dev_v<=0.15V`, **부등식** -- 보다 훨씬 좁은 인위적 등식 제약이었음이
+    드러남, `.ai/context.md` BS 참고). 대신 `gm_id_match_vgs_of`가 있는 feed도 `gm_id_
+    role`이 있는 feed와 **동등하게 자유 root**로 취급한다 -- "이 소자가 다른 소자와
+    관련된 값을 가져야 한다"는 사실 자체는 topology.json 선언에 여전히 남아있지만
+    (문서/가독성 + `_feed_metric_stage_budget()`의 1단계 잠정값 계산이 여전히 이 필드로
+    VGS 근사 seed를 만듦), **최종 확정은 실제 declared constraint(들)을 만족하는 조합
+    중 목표 metric을 최대화하는 조인트 스캔**이 담당한다(`_run_shared_current_joint_
+    scan()`). `gm_id_match_vgs_of`가 그룹 **바깥** 소자를 참조하면(이 그룹과 무관한
+    결합) 여전히 "pinned"로 취급 -- 그 관계는 이 그룹의 조인트 스캔 관심사가 아니다.
+
+    반환: `{"nodes": {devices_key: {"kind": "root"|"pinned", "feed": dict}}, "roots":
+    [devices_key,...], "trigger_devices_key": tuple, "metric": str}` --
+    `trigger_devices_key`는 이 그룹에 닿는 `metric_stage_budget` theta 중 **선언
+    순서상 마지막** 것(그래야 그룹 전체 소자의 L/VDS가 전부 확정된 뒤에 조인트 스캔이
+    돈다, `validate_theta_declaration_order()`가 검사하는 것과 동일한 "선언 순서=실행
+    순서" 계약)."""
+    touching = []
+    for i, t in enumerate(thetas):
+        feed = t["feeds"]
+        if not isinstance(feed, dict) or feed.get("type") != "metric_stage_budget":
+            continue
+        devs = tuple(feed.get("devices") or [])
+        if set(devs) & group_members:
+            touching.append((i, t["name"], feed, devs))
+    if not touching:
+        return None
+    devices_key_by_device = {d: dk for _, _, f, dk in touching for d in f["devices"]}
+    nodes = {}
+    for i, name, feed, devices_key in touching:
+        match_dev = feed.get("gm_id_match_vgs_of")
+        matches_in_group = match_dev is not None and match_dev in devices_key_by_device
+        is_root = feed.get("gm_id_role") is not None or matches_in_group
+        nodes[devices_key] = {"kind": "root" if is_root else "pinned", "feed": feed}
+
+    roots = [k for k, n in nodes.items() if n["kind"] == "root"]
+    if len(roots) < 2:
+        return None  # 자유도 1개 이하면 결합이 성립하지 않음(BQ 분석: 1-D 자기 최적화가
+                      # 이미 곧 metric 최적화와 같다 -- 조인트 스캔이 필요한 건 2개 이상)
+
+    trigger_index, trigger_name, trigger_feed, _ = max(touching, key=lambda x: x[0])
+    return {"nodes": nodes, "roots": roots,
+            "trigger_devices_key": tuple(trigger_feed["devices"]),
+            "metric": trigger_feed.get("metric", "gain_db")}
+
+
+def _run_shared_current_joint_scan(plan: dict, ctx: SizingContext) -> None:
+    """`_build_shared_current_joint_plan()`이 만든 계획을 실행 -- 그룹의 각 root(자유
+    gm_id) feed마다 하나의 자유도로 삼아 `ctx.spec["gm_id_grid"]`(BQ 회귀로 확정된
+    `search_gm_id_for_role()` 기본 해상도, 아래 참고) 위를 K-D 조인트로 스캔하면서,
+    **결합 목표 지표**(`plan["metric"]`, topology.json이 이미 선언한 것 그대로 -- 로컬
+    재정의 없음)를 최대화하는 조합을 찾는다.
+
+    2026-08-13(세션31 BS, tolerance-band 재설계 -- 사용자 확정 "2번이 올바른 설계"):
+    이전 버전(BQ~BR)은 `gm_id_match_vgs_of` 소자를 "다른 소자의 VGS와 **정확히**
+    같아야 하는 dependent"로 강제(등식)했는데, 실측으로 이게 실제 declared constraint
+    (`classab_centering_dev_v<=0.15V`, **부등식**)보다 훨씬 좁은 인위적 제약이었음이
+    드러났다(BI가 원래 조사에서 찾은 최적점은 그 등식 곡선 위에 없었음, `.ai/context.md`
+    BS 참고). 이제 그런 소자도 **완전히 자유로운 root**로 다루고, 대신 목표 metric
+    외에 **topology.json이 실제로 선언한 다른 모든 constraint**(예: `classab_
+    centering_dev_v<=0.15V`)를 후보마다 평가 가능한 범위 안에서 feasibility 필터로
+    강제한다(`ctx.derived["_constraints"]`, 로컬에서 "centering"류 개념을 하드코딩하지
+    않음 -- 어떤 constraint든 이 그룹 소자만으로 평가 가능하면 그대로 적용됨, 일반화).
+    목표 metric 자신의 문턱(`gain_db>=75.6`류)은 여기서 강제하지 않는다 -- 그건
+    "최대화할 대상"이지 "이 국소 스캔에서 만족을 요구할 게이트"가 아니다(전체 회로
+    수준의 최종 feasibility는 `optimize_full_circuit_budget()`가 담당).
+
+    **재계산 비효율 방지**: 새 탐색차원(root 개수 K)마다 격자를 그대로 곱하면
+    `len(gm_id_grid)**K`로 조합폭발한다 -- `search_stage_budget_L_warm_start()`와 같은
+    `target_total**(1/k)` 형태의 예산 공식을 쓰되, 여기 후보 평가는 그 함수(L 탐색,
+    후보마다 `optimize_multistage()`급 재계산)보다 훨씬 싸므로(LUT 보간+산술만) 총예산
+    자체를 훨씬 크게(5000) 잡는다 -- 아래 코드 주석 참고, K=2(이 프로젝트의 유일한
+    실제 사례, M15/M16)에서는 BI가 실측으로 쓴 것과 같은 57×57 전체 해상도가 그대로
+    나온다."""
+    group_members = frozenset(n for node in plan["nodes"].values()
+                               for n in node["feed"]["devices"])
+    shared_group = ctx.derived["_shared_current_group"][next(iter(group_members))]
+    gm_total = shared_group["gm_total"]
+    metrics_specs = ctx.derived["_metrics_specs"]
+    metric_spec = metrics_specs[plan["metric"]]
+    # 2026-08-13(세션31 BS, tolerance-band 재설계 중 실측으로 발견) -- "다른 모든
+    # constraint"를 무조건 강제하면, 이 그룹과 전혀 무관한 소자(예: mismatch_sigma_mV
+    # 는 M1a/M1b에만 의존)가 **이 evaluate() 시점에 아직 최적화 전이라 우연히 위반
+    # 상태**일 때 이 그룹의 모든 후보가 부당하게 infeasible로 판정됐다(실측 재현:
+    # L=1.0µm의 이미 알려진 실현가능점(15.5,4.0)조차 mismatch_sigma_mV=10.79
+    # 위반으로 거부됨 -- 이건 M15/M16과 무관한 기존 위반). 이미 있는 `_metric_device_
+    # footprint()`(정적으로 metric이 읽는 소자 집합을 판정, `derive_theta_dependency_
+    # graph()`가 쓰는 것과 동일 함수 -- 새로 안 만듦)로 그 constraint의 metric이 읽는
+    # 소자 집합이 **이 그룹 소자만으로 완전히 구성될 때만**(부분집합, "ALL"류 전체회로
+    # metric 제외) feasibility 게이트로 강제한다 -- 그룹과 무관한 아직-미최적화 상태에
+    # 억울하게 걸리지 않으면서도, `classab_centering_dev_v`(={M15,M16}⊆group)처럼 이
+    # 그룹만으로 완전히 결정되는 constraint는 그대로 강제된다.
+    other_constraints = [
+        c for c in ctx.derived.get("_constraints", [])
+        if c["metric"] != plan["metric"]
+        and isinstance(_metric_device_footprint(c["metric"], metrics_specs), set)
+        and _metric_device_footprint(c["metric"], metrics_specs) <= group_members]
+    W_bounds = ctx.spec.get("W_bounds", (1e-6, 200e-6))
+    roots = plan["roots"]
+    pinned = [k for k in plan["nodes"] if k not in roots]
+
+    def _rep_device(devices_key):
+        return devices_key[0]
+
+    # pinned feed(비결합 root/pinned)의 gm_id는 이미 per-feed 1단계에서 확정돼
+    # ctx.sized에 있다 -- 조인트 스캔 동안 안 바뀌므로 미리 합쳐 상수로 취급.
+    fixed_gm_id_sum = sum(ctx.sized[_rep_device(k)]["gm_id"] for k in pinned)
+
+    def _score_and_apply(root_gm_ids: dict) -> float | None:
+        """root_devices_key -> 후보 gm_id 매핑 하나를 실제로 ctx.sized에 반영 시도하고,
+        feasible(W_bounds + 다른 모든 평가 가능한 constraint 만족)하면 score를, 아니면
+        `None`을 반환한다. W_bounds는 이 후보가 만드는 **실제** 공유전류 I로 검사한다."""
+        I = gm_total / (fixed_gm_id_sum + sum(root_gm_ids.values()))
+        if I <= 0:
+            return None
+        for key, gm_id in root_gm_ids.items():
+            dev = ctx.sized[_rep_device(key)]
+            lut = ctx.spec["lut_by_kind"][dev["kind"]]
+            try:
+                # 이 (L,vds) 조합의 LUT 실측범위 밖 gm_id(과도한 weak inversion 등)는
+                # _solve_vgs()가 ValueError로 거부한다 -- search_gm_id_for_role()의
+                # _idu_scan()이 내부적으로 걸러주던 것과 동일한 상황, 여기서도 "이 후보는
+                # infeasible"로 취급하고 다음 후보로 넘어간다(크래시 아님).
+                idu = lut.gm_id_to_id_density(gm_id, dev["L"], dev["vds"], dev.get("vs", 0.0))
+            except ValueError:
+                return None
+            W = dev["L"] * I / idu
+            if not (W_bounds[0] <= W <= W_bounds[1]):
+                return None
+        # pinned 소자도 I가 바뀌면 절대 gm/gds가 같이 바뀐다(gm_id는 고정, gm=gm_id*I) --
+        # 다른 constraint(예: centering)가 이 소자들을 참조할 수 있으므로 함께 재확정.
+        for key in roots + pinned:
+            gm_id = root_gm_ids[key] if key in root_gm_ids else ctx.sized[_rep_device(key)]["gm_id"]
+            for name in plan["nodes"][key]["feed"]["devices"]:
+                dev = ctx.sized[name]
+                _metric_stage_budget_finalize(ctx, name, gm_id, I, dev["L"], dev["vds"],
+                                               dev.get("vs", 0.0))
+        for c in other_constraints:
+            cspec = metrics_specs.get(c["metric"])
+            if cspec is None:
+                continue
+            try:
+                cval = compute_metric(cspec, ctx)
+            except KeyError:
+                continue  # 방어적 fallback -- other_constraints는 이미 group_members
+                          # 부분집합으로 필터됐으므로 이론상 도달하지 않음
+            if not _CONSTRAINT_OPS[c["op"]](cval, c["value"]):
+                return None
+        return compute_metric(metric_spec, ctx)
+
+    # 2026-08-13(세션31 BQ, self-test 회귀로 발견) -- `ctx.spec["gm_id_grid"]`는
+    # compensation의 스테이지 (L,VDS,gm_id) 조인트 탐색 전용 격자로, `search_gm_id_
+    # for_role()`(per-feed 1단계 잠정 탐색이 실제로 쓰는 것)은 이 spec 키를 전혀 안
+    # 읽고 **자기 자신의 기본 격자**(2.0~30.0, 0.5간격, 57점)를 쓴다 -- 여기서
+    # `ctx.spec["gm_id_grid"]`를 재사용하면 두 메커니즘이 서로 다른 해상도로 갈라져(L5c
+    # self-test가 `gm_id_grid=[4,8,...,24]`처럼 훨씬 성긴 값을 쓰는 실제 사례로 발견,
+    # 회귀: 하류 KCL이 음수가 됨) 기존 `gm_id_role` 잠정 탐색과 다른 답을 낸다.
+    # `search_gm_id_for_role()`의 기본 해상도를 그대로 재사용한다(spec의 다른 용도
+    # 키를 재활용하지 않음).
+    base_grid = [i * 0.5 for i in range(4, 61)]
+    k = len(roots)
+    # 2026-08-13(세션31 BS, tolerance-band 재설계 중 실측으로 발견) -- `search_stage_
+    # budget_L_warm_start()`의 `target_total**(1/k)` 그대로(그 함수의 n_scan_full_circuit
+    # 기준)를 쓰면 K=2에서 차원당 약 11점(121 조합)뿐이라, BI가 실측으로 확인한 실제
+    # feasible 영역(narrow -- classab_centering_dev_v<=0.15V가 (gm_id_p,gm_id_n) 평면에서
+    # 좁은 띠를 이룸)을 그리드가 완전히 놓쳐 InfeasibleSizingError로 실패했다. L 탐색(각
+    # 후보가 optimize_multistage() 재호출급으로 비쌈)과 달리 여기 후보 평가는 LUT
+    # 보간+산술 몇 번뿐이라(캐시된 `_gm_id_curve`/`_idu_scan` 재사용) 훨씬 큰 총예산을
+    # 감당할 수 있다 -- 총 조합수를 5000으로 캡(K=1: 57, K=2: 57×57=3249<=5000이라 전체
+    # 해상도 유지, K=3: 5000**(1/3)≈17/차원, K=4+: 더 낮아짐)해 K=2(이 프로젝트의 유일한
+    # 실제 사례)에서는 BI가 썼던 것과 동일한 57×57 전체 해상도를 그대로 재현한다.
+    target_total = min(len(base_grid) ** max(k, 1), 5000)
+    per_dim_n = len(base_grid) if k <= 1 else max(2, round(target_total ** (1.0 / k)))
+    root_grids = [_evenly_subsample(base_grid, per_dim_n) for _ in roots]
+
+    best_score, best_combo = None, None
+    for combo in itertools.product(*root_grids):
+        candidate = dict(zip(roots, combo))
+        score = _score_and_apply(candidate)
+        if score is None:
+            continue
+        if best_score is None or score > best_score:
+            best_score, best_combo = score, candidate
+    if best_combo is None:
+        raise InfeasibleSizingError(
+            f"공유전류 조인트 스캔({plan['metric']!r})이 W_bounds/다른 constraint 안에서 "
+            f"실현가능한 조합을 하나도 못 찾음 -- roots={roots}",
+            sized_snapshot=dict(ctx.sized))
+    _score_and_apply(best_combo)  # 최종 확정(ctx.sized를 승자 조합으로 다시 반영)
+
+
 def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
-    """`{"type":"metric_stage_budget","metric":"gain_db","devices":[...][,"gm_id","vds","vs"]}`
-    — `theta_value` 자체가 채널길이 `L`이다. 지정된 `devices`(이미 `ID`가 확정돼 있어야 함,
-    A/B엔진 이후에만 호출)의 `L`/`W`/`gm`/`gds`를 이 `L`에서 재계산해 `ctx.sized`에 반영한다
-    (F엔진 `gain_stages_sum` metric이 바로 이 값을 읽음). gain 외 metric(noise/power stage
-    budget)은 아직 미구현(§7.3.2 콜아웃에 이미 명시된 유보 — 이름은 일반화했지만 핸들러
-    내부 계산은 gain_db 경로만 실제 동작)."""
+    """`{"type":"metric_stage_budget","metric":"gain_db","devices":[...][,"gm_id"|"gm_id_role"|
+    "gm_id_match_vgs_of","vds","vs"]}` — `theta_value` 자체가 채널길이 `L`이다. 지정된
+    `devices`(이미 `ID`가 확정돼 있어야 함, A/B엔진 이후에만 호출)의 `L`/`W`/`gm`/`gds`를
+    이 `L`에서 재계산해 `ctx.sized`에 반영한다(F엔진 `gain_stages_sum` metric이 바로 이
+    값을 읽음). gain 외 metric(noise/power stage budget)은 아직 미구현(§7.3.2 콜아웃에
+    이미 명시된 유보 — 이름은 일반화했지만 핸들러 내부 계산은 gain_db 경로만 실제 동작).
+
+    이 소자(들)의 gm/ID를 정하는 3가지 방법(상호배타, 우선순위 `gm_id_match_vgs_of` >
+    `gm_id_role` > `gm_id`(고정) 순 -- 하나만 쓰는 게 정상이라 실제로 겹칠 일은 드묾):
+
+    - `gm_id`(기본 15.0): 고정 gm/ID -- 기존 동작, 하위호환.
+    - `gm_id_role`(2026-08-13 세션31 신설, 선택): `"matching"`/`"gain"`/`"balanced"` --
+      `search_gm_id_for_role()`(이미 이 프로젝트가 다른 소자들에 쓰는 것과 동일한 역할
+      기반 gm/ID 탐색)을 그대로 재사용해 이 소자의 `ID`(이미 확정됨)에 대해 역할에 맞는
+      gm/ID를 탐색한다(고정 상수 대신 문헌 근거 있는 탐색 -- gm-id-methodology.md §7.1:
+      전류거울/매칭=strong inversion, §2.5=이득단은 gm/gds 최대화). 캐싱된 `_idu_scan()`
+      (세션31 B 구현)을 그대로 재사용하므로 재계산 비효율 없음. ⚠️ 이 소자가 같은 공유
+      전류 그룹 안에서 다른 소자의 `gm_id_match_vgs_of` 대상이면, 여기서 고른 값은
+      **잠정값**일 뿐이다 -- 아래 조인트 스캔이 최종 확정한다.
+    - `gm_id_match_vgs_of`(2026-08-13 세션31 신설, 선택): 고정/탐색 대신 **다른 소자
+      이름**을 준다 -- 그 소자의 실제 VGS(이미 `ctx.sized`에 있어야 함, 즉 이 theta가
+      처리되기 **전에** 그 소자를 sizing하는 theta가 먼저 처리되도록 `thetas` 배열
+      순서를 선언할 것)를 목표로 이 소자의 gm/ID를 `gm_id_for_vgs()`로 직접 역산(탐색
+      아님, `_gm_id_curve_cache` 재사용 O(1) 조회)한다.
+
+    용도(`gm_id_role`+`gm_id_match_vgs_of` 조합): class-AB push-pull 출력단처럼 두 상보
+    (kind가 다른) 소자가 KCL로 같은 ID를 흘리면서 DC 레벨(VGS)이 일치해야 하는 경우
+    (`battery_centering_deviation` metric이 검증하는 바로 그 관계 -- `high_device`=
+    `vdd-vgs_pmos`, `low_device`=`vgs_nmos`, 합=vdd 요구가 대수적으로 `vgs_nmos=
+    vgs_pmos`로 귀결됨, `_metric_battery_centering_deviation()` 참고): 한쪽 소자는
+    `gm_id_role`(예: `"gain"`)로 자유탐색하고, 다른 쪽은 `gm_id_match_vgs_of`로 그
+    결과에 종속시킨다 -- `.ai/context.md` 세션31 BI(물리적 실현가능성 실측 확인)/BQ
+    (근본원인: "gain" 역할 소자 혼자 자기 gm/gds만 최대화하면 dependent와의 **결합**
+    지표를 못 봄 -- N-way 조인트 스캔으로 수정) 참고.
+
+    ⚠️ 이 두 옵션 전부 topology-무관 일반 메커니즘이다(어떤 topology.json도 `metric_
+    stage_budget` theta에 이 필드를 선언하면 그대로 적용됨) -- 원문/이 회로 전용 로직
+    아님.
+
+    **공유전류 그룹 + N-way 조인트 스캔**(2026-08-13 세션31 BQ, `_build_shared_current_
+    joint_plan()`/`_run_shared_current_joint_scan()` 참고): `gm_id_match_vgs_of`로
+    gm_id를 compensation의 원래 선택과 다르게 바꾸면, `entry["ID"]`(compensation이 고른
+    값)를 그대로 쓸 경우 `gm=gm_id*ID`가 더 이상 그룹 총 gm(topology_fn의 위상보상
+    목표)과 일치하지 않게 된다 -- **게다가** "gain"류 root가 자기 소자 하나만 보고
+    독립적으로 gm_id를 고르면, dependent와의 **결합** 지표(예: `(gm_root+gm_dep)/
+    (gds_root+gds_dep)`)를 최적화하지 못한다(실측 확인, `.ai/context.md` BQ). 이 feed가
+    `_build_theta_evaluator()`가 미리 계산해둔 `ctx.derived["_scb_joint_plan_by_
+    devices"]`에서 자기 `devices`로 계획을 찾으면(=이 그룹에 닿는 `metric_stage_budget`
+    theta 중 **선언 순서상 마지막**이면) 그룹 전체를 결합 지표 기준으로 재확정한다.
+    계획이 없으면(그룹에 결합이 없거나 애초에 공유전류 그룹이 아닌 topology) 기존처럼
+    per-device 값을 그대로 쓴다(하위호환)."""
     if feed_spec.get("metric", "gain_db") != "gain_db":
         raise ValueError(f"metric_stage_budget 핸들러는 gain_db만 구현됨(§7.3.2 유보) -- "
                           f"{feed_spec.get('metric')!r}은 미구현")
     L = theta_value
     vds, vs = feed_spec.get("vds", 0.6), feed_spec.get("vs", 0.0)
-    gm_id = feed_spec.get("gm_id", 15.0)
-    for name in feed_spec["devices"]:
+    match_device = feed_spec.get("gm_id_match_vgs_of")
+    gm_id_role = feed_spec.get("gm_id_role")
+    fixed_gm_id = feed_spec.get("gm_id", 15.0)
+    target_vgs = None
+    if match_device is not None:
+        companion = ctx.sized.get(match_device)
+        if companion is None or "gm_id" not in companion:
+            raise ValueError(
+                f"gm_id_match_vgs_of={match_device!r}가 아직 sizing 안 됨 -- 이 theta보다 "
+                f"먼저 처리되도록 topology.json의 thetas 배열에서 {match_device!r}를 "
+                f"sizing하는 theta를 이 theta보다 앞에 선언할 것")
+        companion_lut = ctx.spec["lut_by_kind"][companion["kind"]]
+        target_vgs = companion_lut.vgs_for_gm_id(
+            companion["gm_id"], companion["L"], companion["vds"], companion.get("vs", 0.0))
+
+    W_bounds = ctx.spec.get("W_bounds", (1e-6, 200e-6))
+    devices = feed_spec["devices"]
+
+    # 1단계: 이 theta의 소자들이 쓸 gm_id를 정한다(전부 같은 gm_id를 쓰는 기존 계약 --
+    # 첫 소자에서 한 번만 계산) + entry["ID"]를 그대로 써 잠정 확정한다(조인트 스캔
+    # 대상이면 아래 2단계가 이 잠정값을 최종값으로 덮어씀).
+    gm_id_this = None
+    for name in devices:
         entry = ctx.sized.setdefault(name, {})
         if "ID" not in entry:
             raise ValueError(f"{name}의 ID가 아직 없다 -- metric_stage_budget은 ID가 이미 "
                               f"확정된 뒤(A/B엔진 이후)에만 L을 배정할 수 있다")
-        kind = ctx.kind_of[name]
-        lut = ctx.spec["lut_by_kind"][kind]
-        ID = entry["ID"]
-        idu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
-        gm_gds = lut.gm_gds_ratio(gm_id, L, vds, vs)
-        gm = gm_id * ID
-        # 2026-08-10(세션27) -- vds는 위에서 LUT 조회에 이미 쓰였는데 entry에 저장하는 걸
-        # 빠뜨리고 있었다(gm/gds/gm_id/kind/vs만 갱신). 헤드룸 배정 루프가 이 소자의 vds를
-        # ctx.sized에서 못 찾아 "미확정"으로 오판하는 실제 버그로 발현(L_cascode/L_stage2out
-        # 대상 소자 M2a/M2b/M3a/M3b/M15/M16/M25/M26 전부 영향 -- M11a/M11b 등 이전 gap들
-        # 때문에 이 지점까지 실행이 도달한 적이 없어 여태 발견되지 않았다). 같은 이유로
-        # classab_centering_dev_v(_metric_rail_referenced_voltage()가 entry["vds"]를 직접
-        # 읽음)도 이 소자들에 대해선 KeyError로 계산 자체가 불가능했을 것.
-        entry.update({"L": L, "W": L * ID / idu, "gm": gm, "gds": gm / gm_gds, "gm_id": gm_id,
-                      "kind": kind, "vs": vs, "vds": vds})
+        if gm_id_this is None:
+            lut = ctx.spec["lut_by_kind"][ctx.kind_of[name]]
+            if match_device is not None:
+                gm_id_this = lut.gm_id_for_vgs(target_vgs, L, vds, vs)
+            elif gm_id_role is not None:
+                gm_id_this = search_gm_id_for_role(lut, L, vds, vs, entry["ID"], gm_id_role, W_bounds)
+            else:
+                gm_id_this = fixed_gm_id
+    for name in devices:
+        _metric_stage_budget_finalize(ctx, name, gm_id_this, ctx.sized[name]["ID"], L, vds, vs)
+
+    # 2단계: 이 feed가 어느 공유전류 그룹의 "마지막"(선언순서) feed면 N-way 조인트
+    # 스캔을 돌려 그룹 전체를 재확정한다 -- `_build_theta_evaluator()`가 정적으로
+    # 미리 계산해둔 계획을 찾아볼 뿐, 여기서 그래프를 다시 만들지 않는다(재계산 없음).
+    plan = ctx.derived.get("_scb_joint_plan_by_devices", {}).get(tuple(devices))
+    if plan is not None:
+        _run_shared_current_joint_scan(plan, ctx)
 
 
 _THETA_FEED_REGISTRY: dict = {
@@ -2662,6 +3014,94 @@ def apply_theta_feed(feed_spec, theta_value: float, ctx: SizingContext) -> None:
         raise ValueError(f"등록되지 않은 feeds 타입: {feed_type!r} -- "
                           f"_feed_*() 핸들러를 새로 작성해 _THETA_FEED_REGISTRY에 등록할 것")
     entry.fn(feed_spec, theta_value, ctx)
+
+
+def validate_theta_declaration_order(meta: dict) -> list:
+    """`topology.json`의 `sizing_roles.theta` 배열이 "선언 순서=실행 순서"라는 이 엔진의
+    암묵적 계약(`optimize_full_circuit_budget()`의 `for theta in thetas:` 루프가 배열
+    순서 그대로 `apply_theta_feed()`를 부름)을 실제로 만족하는지 **읽기 전용**으로
+    검사한다(topology.json을 고치지 않음, 2026-08-13 세션31 신설).
+
+    이 계약을 어기는 순서 오류가 이 프로젝트에서 **실제로 두 번** 발생했다(`mirror_M18a`가
+    K_replica/kcl_battery_M18b보다 반드시 앞서야 하는데 한 번 실패한 뒤 수동 정정된 전례,
+    `topology.json` `mirror_M18a` 주석 참고 -- 그리고 `L_stage2out_p`/`L_stage2out_n`이
+    K_replica/mirror_M18a보다 뒤에 있어 M9a/M18a가 M15/M16의 stale한 compensation-직후
+    상태를 replica로 복제하던 세션31 버그, `.ai/context.md` BI~BL 참고) -- 이 함수는 이
+    반복되는 실수 클래스를 자동으로 잡아내는 안전망이다.
+
+    검사 대상(다른 소자의 **완전한** `ctx.sized` 항목 -- gm_id/L/vds/W 등, ID 하나만이
+    아님 -- 이 필요한, fallback 없는 강한 의존만):
+    - `metric_stage_budget`의 `gm_id_match_vgs_of` -- 참조되는 소자를 sizing하는 theta가
+      먼저 나와야 함.
+    - `C`타입의 `reference` -- 마찬가지.
+
+    ⚠️ `A`/`A_signed`타입의 `reference`/`terms[].device`는 이 함수의 검사 대상이 **아니다**
+    -- `_feed_root_ratio()`/`_feed_root_signed_sum()`가 `ctx.seed_currents` fallback을
+    이미 갖고 있어(각 함수 docstring 참고) ID만 있으면 되고 seed 단계여도 통과 가능하다 --
+    완전한 `ctx.sized` 항목을 요구하는 강한 의존과는 다른, 더 관대한 별개 계약이다.
+
+    compensation이 관리하는 소자(`meta["compensation"]["stage_devices"]`)는 theta 루프
+    시작 전에 이미 완전히 sizing되므로 처음부터 "생산됨"으로 취급한다.
+
+    **N-way 공유전류 조인트 스캔의 metric 의존성**(2026-08-13 세션31 BQ 신설): 어떤
+    공유전류 그룹의 "마지막"(선언순서) `metric_stage_budget` feed는 `_run_shared_
+    current_joint_scan()`이 `compute_metric()`으로 `plan["metric"]`(topology.json이
+    선언한 것 그대로)을 평가한다 -- 그 metric이 참조하는 **다른 스테이지 소자**(예:
+    `gain_stages_sum`의 다른 stage들)가 이 시점에 아직 안 sizing돼 있으면 `KeyError`로
+    죽거나(최소한 명확한 실패) 조용히 틀린 값을 낼 위험이 있다(설계 리뷰 중 발견 --
+    실제 검증 없이 "일반화됐다"고 주장할 뻔한 지점). `_build_shared_current_joint_
+    plan()`을 그대로 재사용해 어느 feed가 실제 트리거인지 판정하므로(런타임 엔진과
+    **같은 정의**, 별도 근사 아님) 오탐/누락이 없다.
+
+    반환: 위반 목록 `[{"theta": name, "problem": str}, ...]` -- 비어 있으면 전부 정상."""
+    thetas = ((meta.get("sizing_roles") or {}).get("theta")) or []
+    metrics_specs = ((meta.get("sizing_roles") or {}).get("metrics")) or {}
+    produced = set()
+    comp = meta.get("compensation")
+    if comp:
+        for grp in (comp.get("stage_devices") or []):
+            produced.update(grp)
+    scb_plans = {}
+    for group_members in _shared_current_groups_from_compensation(comp):
+        plan = _build_shared_current_joint_plan(group_members, thetas)
+        if plan is not None:
+            scb_plans[plan["trigger_devices_key"]] = plan
+    violations = []
+    for t in thetas:
+        feed = t["feeds"]
+        if not isinstance(feed, dict):
+            continue  # settling_split(문자열) -- 소자 sizing 없음, 의존/생산 둘 다 없음
+        ftype = feed.get("type")
+        if ftype == "metric_stage_budget" and feed.get("gm_id_match_vgs_of"):
+            dep = feed["gm_id_match_vgs_of"]
+            if dep not in produced:
+                violations.append({"theta": t["name"],
+                    "problem": f"gm_id_match_vgs_of={dep!r}를 참조하지만 {dep!r}를 "
+                               f"sizing하는 theta가 아직 선언 안 됨(순서 확인 필요)"})
+        elif ftype == "C":
+            dep = feed.get("reference")
+            if dep is not None and dep not in produced:
+                violations.append({"theta": t["name"],
+                    "problem": f"reference={dep!r}를 참조하지만 {dep!r}를 sizing하는 "
+                               f"theta가 아직 선언 안 됨(순서 확인 필요)"})
+        if ftype == "metric_stage_budget":
+            plan = scb_plans.get(tuple(feed.get("devices", [])))
+            if plan is not None:
+                mspec = metrics_specs.get(plan["metric"], {})
+                for stage in mspec.get("stages", []):
+                    for dname in stage:
+                        if dname not in produced:
+                            violations.append({"theta": t["name"],
+                                "problem": f"공유전류 조인트 스캔이 metric={plan['metric']!r}"
+                                           f"을 평가해야 하는데 그 metric이 참조하는 "
+                                           f"{dname!r}를 sizing하는 theta가 아직 선언 "
+                                           f"안 됨(순서 확인 필요)"})
+            produced.update(feed.get("devices", []))
+        elif ftype in ("C", "B"):
+            target = feed.get("target")
+            if target is not None:
+                produced.add(target)
+    return violations
 
 
 _CONSTRAINT_OPS = {">=": operator.ge, "<=": operator.le, ">": operator.gt,
@@ -2912,6 +3352,54 @@ def make_replica_feasibility_check(grp, thetas: list, device_roles: dict, kind_o
     return check
 
 
+def make_matching_feasibility_check(grp, metrics_specs: dict, constraints: list,
+                                     kind_of: dict, spec: dict):
+    """`grp`(지금 compensation이 L/VDS/gm_id를 정하려는 스테이지 소자들)를 `devices`로
+    선언한 `pelgrom_mismatch` metric에 declared constraint(`<=`/`<`)가 걸려 있으면, 그
+    constraint를 만족하는 (L,VDS,gm_id,ID) 후보만 통과시키는 `find_optimal_sizing(...,
+    extra_feasible=...)`용 콜백을 만든다. 해당하는 게 없으면 `None`(체크 없음, 하위호환).
+
+    2026-08-13(세션31 BT 후속) -- `make_replica_feasibility_check()`(바로 위, K_replica
+    L 하류파급 근본수정)와 **완전히 같은 패턴**: `optimize_multistage()`는 스테이지 자신의
+    objective(power/area)만 보고 (L,VDS,gm_id)를 고르는데, `mismatch_sigma_mV` 같은
+    declared constraint는 이 시점에 전혀 안 보인다(실측 발견: `current_reuse_telescopic_
+    ota`의 M1a/M1b가 power 최소화로 L=0.235µm/W=2.505µm를 골랐는데, `mismatch_sigma_
+    mV<=5.0`을 만족하려면 W*L이 지금의 약 4.7배 필요 -- `.ai/context.md` BT 이후 참고).
+    스테이지 안의 모든 소자는 같은 (L,VDS,gm_id,ID)를 공유한다는 compensation의 기존
+    불변식을 그대로 이용해, `find_optimal_sizing()`이 매 후보마다 이미 계산하는 IDu를
+    재조회(`lut.gm_id_to_id_density()`, LUT 실측범위 밖이면 그 후보는 그냥 infeasible)해
+    `W=L*ID/IDu`를 얻고 `estimate_mismatch_sigma()`로 직접 판정한다."""
+    applicable = []
+    grp_set = set(grp)
+    for mname, mspec in metrics_specs.items():
+        if mspec.get("type") != "pelgrom_mismatch":
+            continue
+        devs = set(mspec.get("devices") or [])
+        if devs and devs <= grp_set:
+            for c in constraints:
+                if c["metric"] == mname and c["op"] in ("<=", "<"):
+                    applicable.append((mspec, c))
+    if not applicable:
+        return None
+    lut = spec["lut_by_kind"][kind_of[grp[0]]]
+
+    def check(L, VDS, gm_id, ID):
+        try:
+            IDu = lut.gm_id_to_id_density(gm_id, L, VDS, 0.0)
+        except ValueError:
+            return False
+        W = L * ID / IDu
+        for mspec, c in applicable:
+            vth0_slope = spec["vth0_slope"][mspec["kind"]]
+            sigmas = [estimate_mismatch_sigma(vth0_slope, W * 1e6, L * 1e6)
+                      for _ in mspec["devices"]]
+            sigma_pair_mV = math.sqrt(sum(s * s for s in sigmas)) * 1e3
+            if not _CONSTRAINT_OPS[c["op"]](sigma_pair_mV, c["value"]):
+                return False
+        return True
+    return check
+
+
 def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     """`optimize_full_circuit_budget()`의 세타-무관 setup + `_evaluate(theta_values)` 평가
     클로저를 그대로 추출한 헬퍼(2026-08-11 세션29, 순수 리팩터 -- 동작 변화 없음. warm-start
@@ -3072,6 +3560,16 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             if ra != rb:
                 _vparent[ra] = rb
 
+    # 2026-08-13(세션31 BQ) -- N-way 공유전류 조인트 스캔 계획은 정적 thetas/compensation
+    # 선언만의 순수 함수라 evaluate()마다(그리드서치/SLSQP가 수백~수천 번 부를 수 있음)
+    # 다시 만들지 않고 여기서(토폴로지 로드 시) 한 번만 만들어 클로저로 재사용한다 --
+    # `_evaluate()`는 이 dict를 그대로 `ctx.derived`에 참조로만 꽂는다(재계산 없음).
+    _scb_plans = {}
+    for _group_members in _shared_current_groups_from_compensation(comp):
+        _plan = _build_shared_current_joint_plan(_group_members, thetas)
+        if _plan is not None:
+            _scb_plans[_plan["trigger_devices_key"]] = _plan
+
     def _evaluate(theta_values: dict):
         ctx = SizingContext(spec=spec, topology_path=topology_path, kind_of=kind_of)
         ctx.sized.update({k: dict(v) for k, v in spec.get("known_sizing", {}).items()})
@@ -3188,8 +3686,20 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 # W_bounds를 만족하는지 확인하는 콜백을 만들어 넘긴다(make_replica_
                 # feasibility_check() docstring 참고 -- gain_min/w_max와 달리 "다른 소자"의
                 # 제약이라 topology_fn/luts만으로는 표현 불가, 호출부가 주입).
+                # 2026-08-13(세션31 BT 후속) -- 같은 이유로 mismatch_sigma_mV(Pelgrom) 같은
+                # declared constraint도 이 스테이지의 (L,VDS,gm_id) 선택 시점엔 전혀 안 보였다
+                # (make_matching_feasibility_check() docstring 참고). find_optimal_sizing()의
+                # extra_feasible은 콜백 하나만 받으므로 둘 다 있으면 합성(AND)한다.
+                def _combine_extra_feasible(*checks):
+                    checks = [c for c in checks if c is not None]
+                    if not checks:
+                        return None
+                    return lambda L, VDS, gm_id, ID: all(c(L, VDS, gm_id, ID) for c in checks)
+
                 _stage_extra_feasible = [
-                    make_replica_feasibility_check(grp, thetas, device_roles, kind_of, spec)
+                    _combine_extra_feasible(
+                        make_replica_feasibility_check(grp, thetas, device_roles, kind_of, spec),
+                        make_matching_feasibility_check(grp, metrics_specs, constraints, kind_of, spec))
                     for grp in stage_devices]
                 comp_result = optimize_multistage(
                     topology_fn, luts, spec["L_candidates"], _stage_vds_candidates,
@@ -3211,6 +3721,33 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                                         "vds": st["VDS"], "vs": 0.0, "W": st["W"],
                                         "ID": gm_i / st["gm_id"], "gds": gds_i, "kind": kind_of[name],
                                         "_L_source": "compensation"}
+            # 2026-08-13(세션31) -- shared_gm_id_groups 각 그룹의 gm 합(=topology_fn이 정한
+            # 진짜 위상보상 목표, Eq.6류 -- 그룹 내부의 (L,VDS,gm_id) 선택과 무관하게 고정)을
+            # 미리 스냅샷해둔다. `_feed_metric_stage_budget()`의 `gm_id_match_vgs_of`가 이
+            # 스냅샷을 읽어 `I=gm_total/(gm_id_p+gm_id_n)`로 공유전류를 재계산할 때 쓴다 --
+            # 그렇게 안 하면(gm_id만 바꾸고 compensation이 고른 ID를 그대로 두면) 그룹 총
+            # gm이 더 이상 topology_fn의 목표와 안 맞게 된다(감사 발견, `.ai/context.md`
+            # 세션31 BI/BM 참고). group_of(아래)는 optimize_multistage()의 것과 별개로,
+            # 여기 스코프에서만 쓰는 device-name 기준 조회용이다.
+            _shared_current_group = {}
+            for _sg in (comp.get("shared_gm_id_groups") or []):
+                _sg_devices = [name for idx in _sg for name in stage_devices[idx]]
+                _sg_gm_total = sum(comp_result["gms"][idx] for idx in _sg)
+                for _name in _sg_devices:
+                    _shared_current_group[_name] = {"gm_total": _sg_gm_total, "members": _sg_devices}
+            if _shared_current_group:
+                ctx.derived["_shared_current_group"] = _shared_current_group
+                # 2026-08-13(세션31 BQ) -- _build_theta_evaluator()가 토폴로지 로드 시
+                # 한 번만 만들어둔 조인트 스캔 계획(정적, thetas 선언만의 함수)을 참조로만
+                # 꽂는다(재계산 없음) -- _run_shared_current_joint_scan()이 이걸로 결합
+                # 지표(gain_db 등)를 평가하려면 metrics_specs도 같이 필요하다. constraints
+                # (BS, tolerance-band 재설계)는 목표 metric 외 다른 declared constraint
+                # (예: classab_centering_dev_v<=0.15V)를 조인트 스캔 후보의 feasibility
+                # 필터로 그대로 재사용하기 위함 -- 로컬 재정의 없음, 참조만.
+                ctx.derived["_metrics_specs"] = metrics_specs
+                ctx.derived["_constraints"] = constraints
+                if _scb_plans:
+                    ctx.derived["_scb_joint_plan_by_devices"] = _scb_plans
 
         # A엔진 1차 패스(theta 루프보다 먼저, 2026-08-03 배치 7-5 실행 중 발견) -- compensation이
         # 정한 ID만으로 이미 결정되는 KCL 스택(예: current_reuse_telescopic_ota의 M1a-M2a-
@@ -4384,15 +4921,49 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
             result[theta["name"]] = quantize_L((lo + hi) / 2.0, _l_grid_step)
         reference[theta["name"]] = result[theta["name"]]
 
+    # 2026-08-13(세션31, 사용자 지시 "조인트 탐색으로 고쳐줘") -- complex_thetas를 서로
+    # 얽힌 그룹으로 묶는다: 같은 battery_centering_deviation metric을 건드리는 theta들은
+    # 서로 독립이 아니다(그 metric 값 자체가 그 theta들이 각각 sizing하는 소자 전부에
+    # 의존하므로 -- 예: classab_centering_dev_v는 L_stage2out_p가 정하는 M15와
+    # L_stage2out_n이 정하는 M16 둘 다 필요). 이전(순차 1D: theta 하나씩 스캔해 reference에
+    # 반영한 뒤 다음 theta 스캔)은 greedy coordinate descent 1라운드라 전역 최적을 놓칠 수
+    # 있다(실측 발견: gm_id_role/gm_id_match_vgs_of 도입으로 centering은 풀렸는데도 gain_db가
+    # 71dB대에 갇힘 -- L_p/L_n을 실제로 함께(조인트로) 스캔하면 75.6dB 이상 지점이 존재함이
+    # 별도 조사로 이미 확인됨, `.ai/context.md` 세션31 BI/BJ 참고).
+    _groups, _group_idx_by_metric = [], {}
     for theta in complex_thetas:
-        feed = theta["feeds"]
-        lo, hi = theta["bounds"]
-        touching = _touching(feed["devices"])
+        touching = _touching(theta["feeds"]["devices"])
         centering_metric = next(c["metric"] for c in touching
                                  if metrics_specs[c["metric"]]["type"] == "battery_centering_deviation")
-        best_L, best_score, best_feasible = None, None, False
-        for L in _grid_points_in_range(lo, hi, _l_grid_step, n=n_scan_full_circuit):
-            trial = dict(reference, **{theta["name"]: L})
+        if centering_metric not in _group_idx_by_metric:
+            _group_idx_by_metric[centering_metric] = len(_groups)
+            _groups.append([])
+        _groups[_group_idx_by_metric[centering_metric]].append(theta)
+
+    for group in _groups:
+        names = [t["name"] for t in group]
+        all_touching = {}
+        for t in group:
+            for c in _touching(t["feeds"]["devices"]):
+                all_touching[c["metric"]] = c  # 이름으로 중복 제거(그룹 멤버들이 겹치는 게 정상)
+        touching = list(all_touching.values())
+        centering_metric = next(c["metric"] for c in touching
+                                 if metrics_specs[c["metric"]]["type"] == "battery_centering_deviation")
+        k = len(group)
+        # 2026-08-13(세션31, "재계산 비효율 보장" 지시) -- 조인트 스캔은 그룹 크기 k에 대해
+        # 지수적으로 커진다(k차원 × 차원당 n점 = n^k evaluate() 호출, 각 호출이 51소자
+        # 실회로 전체를 푸는 무거운 연산). k=1이면 옛 순차 방식과 완전히 동일한 예산
+        # (per_dim_n=n_scan_full_circuit)으로 폴백하고, k>=2부터는 "총 evaluate() 호출 수를
+        # 옛 순차 방식의 총 예산(k*n_scan_full_circuit, 선형)과 같은 자릿수로 유지"하도록
+        # 차원당 점수를 줄인다(target_total**(1/k)) -- 그룹이 커져도 총 비용이 폭발하지 않고
+        # 옛 방식과 같은 선형 오더를 유지한다.
+        target_total = k * n_scan_full_circuit
+        per_dim_n = n_scan_full_circuit if k == 1 else max(2, round(target_total ** (1.0 / k)))
+        grids = [_grid_points_in_range(t["bounds"][0], t["bounds"][1], _l_grid_step, n=per_dim_n)
+                 for t in group]
+        best_combo, best_score, best_feasible = None, None, False
+        for combo in itertools.product(*grids):
+            trial = dict(reference, **dict(zip(names, combo)))
             try:
                 _, metrics = evaluate(trial)
             except InfeasibleSizingError:
@@ -4402,11 +4973,15 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
                           for c in touching]
             feasible = all(v == 0.0 for v in violations)
             score = metrics[centering_metric] if feasible else sum(violations)
-            if best_L is None or (feasible and not best_feasible) \
+            if best_combo is None or (feasible and not best_feasible) \
                     or (feasible == best_feasible and score < best_score):
-                best_L, best_score, best_feasible = L, score, feasible
-        result[theta["name"]] = best_L if best_L is not None else quantize_L((lo + hi) / 2.0, _l_grid_step)
-        reference[theta["name"]] = result[theta["name"]]
+                best_combo, best_score, best_feasible = combo, score, feasible
+        if best_combo is None:
+            best_combo = tuple(quantize_L((t["bounds"][0] + t["bounds"][1]) / 2.0, _l_grid_step)
+                                for t in group)
+        for name, L in zip(names, best_combo):
+            result[name] = L
+            reference[name] = L
 
     return result
 
@@ -7088,3 +7663,61 @@ if __name__ == "__main__":
     print(f"  Cgg1_total(M1a+M4a, 평균 gm 기준 재sizing)={_crt_cgg1_total*1e15:.2f}fF -> "
           f"beta={_crt_beta_final:.4f}(원문의 고정 근사 0.48과 다를 수 있음 -- 이 LUT의 실제 "
           f"소자 특성에서 나온 값)")
+
+    print()
+    print("# validate_theta_declaration_order() -- theta 배열 '선언 순서=실행 순서' 계약")
+    print("# 위반을 읽기 전용으로 검사(2026-08-13 세션31, mirror_M18a/L_stage2out_p·n에서")
+    print("# 실제로 두 번 발생한 순서 버그의 재발 방지 안전망, .ai/context.md BI~BL 참고)")
+
+    print("  [합성 fixture -- gm_id_match_vgs_of/C타입 reference가 선언 순서를 위반하면 잡아내는지]")
+    _vtdo_bad1 = {
+        "compensation": {"stage_devices": [["A"]]},
+        "sizing_roles": {"theta": [
+            {"name": "theta_n", "bounds": [0, 1], "feeds": {
+                "type": "metric_stage_budget", "metric": "gain_db", "devices": ["B"],
+                "gm_id_match_vgs_of": "A2"}},
+            {"name": "theta_p", "bounds": [0, 1], "feeds": {
+                "type": "metric_stage_budget", "metric": "gain_db", "devices": ["A2"]}},
+        ]}}
+    _vtdo_v1 = validate_theta_declaration_order(_vtdo_bad1)
+    assert len(_vtdo_v1) == 1 and _vtdo_v1[0]["theta"] == "theta_n", \
+        f"gm_id_match_vgs_of 순서위반을 못 잡음: {_vtdo_v1}"
+    print(f"    PASS: gm_id_match_vgs_of 순서위반 감지 -- {_vtdo_v1[0]['problem']}")
+
+    _vtdo_bad2 = {"compensation": None, "sizing_roles": {"theta": [
+        {"name": "c_theta", "bounds": [0, 1], "feeds": {"type": "C", "target": "X", "reference": "Y"}},
+        {"name": "y_theta", "bounds": [0, 1], "feeds": {"type": "C", "target": "Y", "reference": "Z"}},
+    ]}}
+    _vtdo_v2 = validate_theta_declaration_order(_vtdo_bad2)
+    assert {v["theta"] for v in _vtdo_v2} == {"c_theta", "y_theta"}, \
+        f"C타입 reference 연쇄 순서위반을 못 잡음: {_vtdo_v2}"
+    print(f"    PASS: C타입 reference 순서위반(연쇄 2건) 감지 -- {[v['theta'] for v in _vtdo_v2]}")
+
+    print("  [올바른 순서(reference가 앞에 옴)면 위반 0건인지]")
+    _vtdo_good = {"compensation": {"stage_devices": [["W"]]}, "sizing_roles": {"theta": [
+        {"name": "z_theta", "bounds": [0, 1], "feeds": {"type": "C", "target": "Z", "reference": "W"}},
+        {"name": "y_theta", "bounds": [0, 1], "feeds": {"type": "C", "target": "Y", "reference": "Z"}},
+    ]}}
+    assert validate_theta_declaration_order(_vtdo_good) == [], "올바른 순서인데 위반으로 오탐"
+    print("    PASS: 올바른 순서는 위반 0건")
+
+    print("  [compensation.stage_devices는 처음부터 생산됨으로 취급되는지]")
+    _vtdo_comp = {"compensation": {"stage_devices": [["M1a", "M1b"]]}, "sizing_roles": {"theta": [
+        {"name": "c_theta", "bounds": [0, 1], "feeds": {"type": "C", "target": "M2", "reference": "M1a"}},
+    ]}}
+    assert validate_theta_declaration_order(_vtdo_comp) == [], \
+        "compensation이 이미 sizing한 소자를 참조했는데 오탐 발생"
+    print("    PASS: compensation 관리 소자는 위반 없이 참조 가능")
+
+    print("  [실제 library topology.json 4개 전부 위반 0건인지(reorder 이후 회귀 확인)]")
+    import glob as _vtdo_glob
+    _vtdo_lib = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "library")
+    for _vtdo_path in sorted(_vtdo_glob.glob(_os.path.join(_vtdo_lib, "*.topology.json"))):
+        with open(_vtdo_path, "r", encoding="utf-8") as _vtdo_f:
+            _vtdo_data = json.load(_vtdo_f)
+        _vtdo_meta = {"sizing_roles": _vtdo_data.get("sizing_roles"),
+                      "compensation": _vtdo_data.get("compensation")}
+        _vtdo_v = validate_theta_declaration_order(_vtdo_meta)
+        _vtdo_name = _os.path.basename(_vtdo_path)
+        assert _vtdo_v == [], f"{_vtdo_name}에 선언 순서 위반: {_vtdo_v}"
+        print(f"    PASS: {_vtdo_name} -- 위반 0건")
