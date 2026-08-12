@@ -5,7 +5,7 @@ spec -> instance.json까지 완주시키는 harness-only 실행 스크립트.
 import sys, json, traceback
 sys.path.insert(0, r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets")
 import numpy as np
-from sizing_recipe import SemiEmpiricalGmIdLUT, optimize_full_circuit_budget
+from sizing_recipe import SemiEmpiricalGmIdLUT, optimize_full_circuit_budget, dense_L_candidates, dense_candidates
 from stick_diagram import save_instance_json, run_full_circuit_audit_from_topology
 from design_report import assemble_report_data, save_html_report
 
@@ -23,9 +23,26 @@ spec = {
     "lut_by_kind": {"nmos": nmos, "pmos": pmos},
     "lut": nmos,
     "vdd": 1.8,
-    "L_candidates": [float(v) for v in nmos.L_grid],
-    "VDS_candidates": [float(v) for v in nmos.VDS_grid[::24]],
-    "gm_id_grid": [4.0, 8.0, 12.0, 16.0, 20.0, 24.0],
+    # 2026-08-12(세션30) -- SemiEmpiricalGmIdLUT는 L/VDS 둘 다 이미 다중선형보간하는데
+    # (sizing_recipe.py 클래스 docstring), 이 후보 리스트를 실측 앵커점(L 4개) 그대로 쓰거나
+    # 과도하게 데시메이션(VDS 49점 -> 3점)해서 그 보간 능력을 검색이 안 쓰고 있었다 --
+    # dense_L_candidates()/dense_candidates()로 실측 범위 안에서 촘촘하게(외삽 없음).
+    # gm_id_to_id_density()의 중복 log(ID) 재계산 캐시 버그를 같이 고친 뒤 재실측
+    # (perf_test_dense.py, .ai/context.md 세션30): L=41/VDS=13이 10초 수준으로 내려가
+    # VDS도 13으로 올렸다 -- optimize_multistage()가 comp_params로 캐싱돼 호출 자체가
+    # 드물어 이 정도 비용은 감당 가능.
+    "L_candidates": dense_L_candidates(nmos, n=41),
+    "VDS_candidates": dense_candidates(nmos.VDS_grid, n=13),
+    # 2026-08-12(세션30) -- L_candidates를 densify하자 compensation 단계 L이 옛 4개
+    # 앵커점이 아닌 임의값이 될 수 있게 됐는데, matching_pairs로 그 L을 공유하는
+    # gm_id_role="matching" 소자는 search_gm_id_for_role()의 **훨씬 성긴**(step=4, 6점)
+    # gm_id_grid로 그 임의 L에서 feasible W를 못 찾아 ValueError로 전체 grid search가
+    # 크래시했다(diagnose_gm_id_fail.py로 재현 확인 -- DENSE 표본 200/200 크래시,
+    # BASELINE 200/200 성공). search_gm_id_for_role() 자체 문서화된 기본값(2.0~30.0,
+    # 0.5 간격)과 맞춰 57점으로 -- L만이 아니라 gm_id 쪽 탐색 해상도도 같이 촘촘해야
+    # LUT 보간을 실제로 쓰는 게 완성된다(gm_id_curve_cache가 (L,vds,vs)당 1회만 비싸고
+    # 그 안에서 gm_id 재조회는 저렴해 이 축을 넓혀도 상대적으로 싸다).
+    "gm_id_grid": [i * 0.5 for i in range(4, 61)],
     "L_min": 0.15e-6,
     "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
     "W_bounds": (1e-6, 200e-6),

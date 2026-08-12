@@ -320,6 +320,10 @@ def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float, Cc: fl
     반영해 `prev_cggs[3]`만 쓰는 게 더 정밀할 수 있으나, 이건 Eq.6 자체의 물리적 재검토라
     이번 세션 범위(L 독립화) 밖 -- 다음 조사 항목으로 남긴다).
 
+    함수 속성으로 `exposed_params`(omega_c) 외에 `stage_fT_targets`(2026-08-12 세션30
+    신설, `optimize_multistage()`가 읽는 선택적 속성 -- 스테이지별 준정적 검증 기준주파수
+    Hz 리스트, 함수 정의 아래 주석 참고)도 노출한다.
+
     검증 상태: Eq.2/3/5/6 전부 원문 수식과 대조 확인(원문 수치 예제로 gm1(=gmp+gmn)=238µS/
     ωp2/ωc=2.8 재현). β는 원문의 고정 근사(0.48) 대신 `prev_cggs[0]+prev_cggs[1]` 고정점
     반복으로 대체했으므로, 실제 공정 LUT에서 나오는 값은 원문의 0.48과 다를 수 있다(공정이
@@ -349,6 +353,15 @@ def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float, Cc: fl
     # 리스트만)을 안 바꾸려고, 함수 속성으로 노출한다 -- sizing_recipe.py의 _evaluate()가
     # 있으면 ctx.derived로 옮겨 _feed_gm_target_convention()이 spec보다 우선해 읽는다.
     topology_fn.exposed_params = {"omega_c": omega_c}
+    # 2026-08-12(세션30) -- optimize_multistage()가 읽는 선택적 속성(engine 문서 참고,
+    # sizing_recipe.py) -- 준정적(quasi-static) 유효성 검증의 스테이지별 기준주파수(Hz).
+    # 이미 위에서 구한 omega_c/omega_p2(rad/s)를 Hz로만 바꿔 재사용한다(새 수식 없음).
+    # 반환 gm 리스트[gmp,gmn,gmp2,gmn2]와 위치로 대응: 1단(M1a/M4a)은 메인루프
+    # unity-gain 주파수(omega_c) 기준, 2단(M15/M16류)은 그보다 높은 비지배극 목표
+    # (omega_p2, Eq.6) 기준 -- gm-id-methodology.md §6.4 Miller pole-splitting 안정조건
+    # "2단 gain-bandwidth > omega_T"(2단이 1단보다 더 빨라야 함)와 일치하는 방향.
+    topology_fn.stage_fT_targets = [omega_c / (2 * math.pi), omega_c / (2 * math.pi),
+                                     omega_p2 / (2 * math.pi), omega_p2 / (2 * math.pi)]
     return topology_fn
 
 

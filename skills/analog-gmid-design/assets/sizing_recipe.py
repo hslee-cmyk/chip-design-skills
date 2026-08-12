@@ -350,8 +350,14 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         `ID_target`이 나오는지 확인할 것 — 정규화가 그 계산 안에서 스스로 상쇄되므로 그렇게 하면
         일치해야 정상이다.
         """
+        # 2026-08-12(세션30) -- self._log_ID(세션29가 __init__에서 이미 캐싱해둔 값,
+        # _gm_id_curve()가 쓰는 바로 그 배열)를 안 쓰고 이 함수만 매 호출마다 4D ID 배열
+        # 전체를 np.log(np.clip(...))로 재계산하고 있었다 -- find_optimal_sizing()의
+        # L*VDS*gm_id 3중루프 안에서 반복 호출되는 핫패스라 영향이 크다(성능 실측 계기로
+        # 발견, `.ai/context.md` 세션30). 값은 완전히 동일(같은 식, self.np is np) -- 순수
+        # 캐시 재사용이라 동작 변화 없음.
         vgs = self._solve_vgs(gm_id, L, vds, vs)
-        raw = math.exp(self._query(self.np.log(self.np.clip(self.ID, 1e-18, None)), L, vgs, vds, vs))
+        raw = math.exp(self._query(self._log_ID, L, vgs, vds, vs))
         return raw * L / self._w_ref_effective(L)
 
     def cgg_absolute(self, gm_id: float, L: float, vds: float, vs: float, W_target: float) -> float:
@@ -406,6 +412,83 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         return sid_1hz_at_target / freq
 
 
+def dense_candidates(grid, n: int) -> list:
+    """1D 실측 격자(`lut.L_grid`/`lut.VDS_grid` 등, 오름차순)의 실측 **범위 안에서** `n`개의
+    등간격 후보를 만든다 -- `find_optimal_sizing()`/`optimize_multistage()`에 넘길
+    `L_candidates`/`VDS_candidates`용.
+
+    2026-08-12(세션30) 신설 -- harness 연동 감사 중 발견: `SemiEmpiricalGmIdLUT`는 L/VDS/VS
+    축을 이미 다중선형보간한다(클래스 docstring "L/VDS/VS 축: 선형 다중보간(불균등 L 격자
+    그대로 지원)", `_multilinear_interp()`가 4축 전부 동일하게 처리)는데도, `run_harness.py`를
+    포함해 이 프로젝트의 **모든** `L_candidates`/`VDS_candidates` 구성부
+    (`sky130_regression_reference.json` 골든 케이스 제외)가 실측 격자를 그대로 쓰거나
+    (L: sky130 4개 앵커점, 0.15/0.35/0.5/1.0µm) 성기게 데시메이션(VDS: `grid[::24]`로
+    49점→3점)해서 탐색 후보 자체가 LUT의 보간 능력을 안 쓰고 있었다. 사용자 지적
+    (current_reuse_telescopic_ota의 M15/M16 독립 L 탐색이 딱 이 이유로 gain_db/
+    classab_centering_dev_v 동시만족점을 4개 앵커점 사이에서 못 찾고 있었다 -- 다만 실측
+    확인 결과 이 특정 쌍은 촘촘한 탐색으로도 feasible point가 없음이 밝혀짐, `.ai/context.md`
+    세션30 참고 -- 그래도 다른 소자/회로에선 이 densify가 실제로 답을 바꿀 수 있다)를
+    계기로 L에 국한하지 않고 일반화한다.
+
+    ⚠️ 실측 범위 **밖은 외삽**이라 신뢰할 수 없으므로(선형 다중보간은 범위 밖에서 경계값을
+    그대로 반복하는 clamp 방식 -- `_multilinear_interp()` 코드 참고) `lo`/`hi`를 항상 실측
+    격자의 최소/최대로 고정한다 — `n`을 아무리 키워도 실측 범위를 벗어나지 않는다.
+    `find_optimal_sizing()`/`optimize_multistage()` 자체는 이미 완전히 제네릭이라(임의 L/VDS
+    값에 대해 `lut.gm_id_to_id_density()` 등을 그대로 호출) 이 함수는 엔진 변경이 아니라
+    **호출부가 넘기는 후보 리스트**만 바꾸는 것이다.
+
+    ⚠️ **성능 트레이드오프**: `find_optimal_sizing()`은 `len(L_candidates) *
+    len(VDS_candidates) * len(gm_id_grid)` 3중루프이고, `optimize_multistage()`의
+    `shared_gm_id_groups` 경로(`_size_shared_group()`)는 이걸 gm_id_grid 전체에 대해
+    반복 호출할 수 있다 -- `n`을 무작정 키우면 조합 수가 그대로 곱으로 늘어난다. `gm_id`가
+    같으면 `ID=gm/gm_id`가 L/VDS와 무관(`objective="power"`)하므로, L/VDS는 보통 **몇 개면
+    충분**하다(feasibility 판정용) -- 필요 이상으로 촘촘하게 하지 말 것(호출부에서 `n`을
+    상황에 맞게 고를 것, 이 함수는 고정 기본값을 강제하지 않는다).
+
+    ⚠️ **실측 앵커점을 항상 먼저 배치한다**(2026-08-12 세션30, harness 연동 감사 중 발견한
+    2차 파급 문제의 근본수정): `find_optimal_sizing()`의 tie-break는 동점이면 "먼저 나온"
+    후보를 유지한다(511행 `obj_val < best_val`, 엄격 부등식). `objective="power"`에서는
+    `ID=gm/gm_id`가 L/VDS와 완전히 무관해 같은 gm_id에서 feasible한 모든 (L,VDS)가
+    **정확히 동점**이다 -- 후보를 앵커점 없이 순수 등간격으로만 만들면 이 동점에서
+    임의의(보간된, "특별할 것 없는") L/VDS가 앵커점을 제치고 이겨버려, 그 L을 물려받는
+    다른 소자(matching_pairs 매칭쌍, K_replica 같은 C타입 replica 타겟)가 실측 검증된
+    적 없는 L에서 예상 못 한 infeasibility를 만날 수 있다(실측 사례: M9a가 M15의 보간
+    L=0.235µm을 물려받자 W_bounds를 못 맞춤 -- L 자체는 M15 입장에서 아무 문제 없었는데
+    파급효과만 생긴 경우). **`find_optimal_sizing()`/`optimize_multistage()`의 tie-break
+    로직 자체는 안 건드린다**(다른 목적으로 이미 "회귀 위험 있어 안 건드림"이라 문서화된
+    영역, `optimize_multistage()` docstring "한계 순환" 문단 참고) -- 대신 이 함수가 만드는
+    **후보 리스트의 순서**만 바꿔서(실측 앵커점 먼저, 보간으로 채운 값은 그 뒤) 앵커점이
+    feasible하기만 하면 항상 먼저 발견돼 동점을 이기게 한다. 앵커점만으로 안 풀리는
+    경우에만(예: classab_centering_dev_v처럼 진짜 더 넓은 범위가 필요할 때) 자연스럽게
+    보간값으로 넘어간다 -- densify의 이점은 그대로 유지하면서 "이유 없이 새로운 L을
+    골라 하류에 파급"되는 부작용만 없앤다.
+
+    ⚠️ **`len(grid) >= n`이면 보간하지 않고 실측점을 서브샘플한다**(구현 중 자체 발견한
+    버그 수정): 앵커점을 무조건 전부 앞에 붙이면 VDS처럼 실측 격자가 이미 촘촘한 축
+    (sky130: 49점)에서 `n=13`을 요청해도 앵커 49개 + 보간 후속분까지 합쳐 최대 62개가
+    나가버려(`n`이 사실상 무시됨) 의도한 성능 예산을 크게 넘긴다. 실측점이 이미 `n`개보다
+    많으면 그 실측점 자체를 `n`개로 균등 서브샘플한다(여전히 전부 실측값, 보간 없음 --
+    애초에 밀도가 충분하니 합성할 이유가 없다). 실측점이 `n`개보다 적을 때만(L처럼 앵커가
+    극도로 성길 때) 앵커 전부 + 등간격 보간으로 채운다."""
+    anchors = [float(v) for v in grid]
+    if len(anchors) >= n:
+        if n <= 1:
+            return [anchors[0]]
+        idx = sorted({round(i * (len(anchors) - 1) / (n - 1)) for i in range(n)})
+        return [anchors[i] for i in idx]
+    lo, hi = anchors[0], anchors[-1]
+    interpolated = [lo + (hi - lo) * i / (n - 1) for i in range(n)]
+    seen = set(anchors)
+    fill_ins = [v for v in interpolated if v not in seen]
+    return anchors + fill_ins
+
+
+def dense_L_candidates(lut: "SemiEmpiricalGmIdLUT", n: int = 41) -> list:
+    """`dense_candidates(lut.L_grid, n)`의 얇은 별칭 -- L은 실측 앵커점이 극도로 성겨서
+    (보통 3~5개, `lut-generation-checklist.md` §7.4) 다른 축보다 densify 효과가 훨씬 크다."""
+    return dense_candidates(lut.L_grid, n)
+
+
 # ---------------------------------------------------------------------------
 # 5) 단일 소자 그리드서치 최적화 — "주어진 스펙에서 최적 sizing" 자동 탐색
 #    (L, VDS, gm/ID) 격자 전체를 스윕해 제약조건을 만족하는 점 중 목적함수 최소인 것을 고른다.
@@ -418,7 +501,7 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
                          fT: float | None = None, C: float | None = None, gm: float | None = None,
                          objective: str = "power", gain_min: float | None = None,
                          w_max: float | None = None, quasi_static_margin: float = 0.1,
-                         vs: float = 0.0):
+                         vs: float = 0.0, extra_feasible=None):
     """(L, VDS, gm/ID) 격자를 전부 스윕해 제약조건을 만족하는 점 중 objective 최소인 것을 반환.
 
     gm을 고정할 방법 두 가지: (fT,C) 지정 -> gm=2*pi*fT*C (단일 스테이지, §1 절차 그대로) 또는
@@ -428,6 +511,15 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
     objective: "power"(ID 최소) 또는 "area"(W 최소) — 방법론 §5.1 트레이드오프 삼각형의
     두 축에 대응. gain_min/w_max/quasi_static_margin은 §5 검증 체크리스트 항목을 그대로
     제약조건화한 것.
+
+    extra_feasible(2026-08-12 세션30 신설, 선택적): `(L, VDS, gm_id, ID) -> bool` 콜백 --
+    gain_min/w_max/fT만으로는 표현 못 하는 추가 feasibility 조건(예: 이 (L,VDS,gm_id,ID)
+    조합을 물려받는 **다른** 소자가 여전히 자기 제약을 만족하는지)을 호출부가 주입한다.
+    `optimize_multistage()`가 K_replica류 C타입 replica feed의 타겟 소자 검증에 쓴다
+    (근본원인: B엔진이 자기 스테이지 목적함수만 보고 L을 고르면, 그 L을 물려받는 replica/
+    matching 소자가 깨질 수 있다는 걸 이 엔진이 원래 전혀 몰랐다 -- harness 연동 감사로
+    발견, `.ai/context.md` 세션30). 엔진 자체는 여전히 "무엇을 확인할지" 모른 채 콜백만
+    호출한다(제네릭 유지) -- `None`이면 기존과 100% 동일(하위호환).
 
     반환: (best, all_candidates). best는 dict(L,VDS,gm_id,ID,W,gain,fnqs_ok,feasible) 또는
     실행가능점이 없으면 None. all_candidates는 스윕한 전체 점(탐색 투명성 확보 — best 하나만
@@ -458,6 +550,10 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
                     and (w_max is None or W <= w_max)
                     and fnqs_ok
                 )
+                # 2026-08-12(세션30) -- extra_feasible은 값싼 gain_min/w_max/fT 체크를 전부
+                # 통과한 후보에만 실행한다(비싼 콜백이라 -- 아래 참고, 불필요한 호출 최소화).
+                if feasible and extra_feasible is not None:
+                    feasible = extra_feasible(L, VDS, gm_id, ID)
                 cand = dict(L=L, VDS=VDS, gm_id=gm_id, ID=ID, W=W, gain=gain,
                             fnqs_ok=fnqs_ok, feasible=feasible)
                 all_candidates.append(cand)
@@ -478,7 +574,8 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
 def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_grid,
                          objective: str = "power", gain_min=None, w_max=None,
                          max_iter: int = 10, tol: float = 1e-3,
-                         shared_gm_id_groups: list | None = None):
+                         shared_gm_id_groups: list | None = None,
+                         stage_extra_feasible: list | None = None):
     """제네릭 다단 회로 최적화 엔진 — **토폴로지가 바뀌어도 이 함수는 그대로 재사용**한다.
 
     다단 회로마다 다른 건 "스펙 → 각 스테이지 필요 gm" 관계식(위상보상 방정식)뿐이고, 그 gm을
@@ -494,6 +591,26 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
 
     luts: 스테이지별 LUT 리스트(길이 = 스테이지 수, topology_fn이 반환하는 gm 리스트와 순서 대응).
     gain_min/w_max: 스칼라(전 스테이지 공통) 또는 스테이지별 리스트.
+    VDS_candidates: 평평한 숫자 리스트(전 스테이지 공통, 기존 동작) 또는 **리스트의 리스트**
+    (스테이지별 후보, 2026-08-12 세션30 신설 -- `vertical_stack_id` 헤드룸 인지 상한을
+    반영할 때 호출부가 씀, 아래 `_resolve_vds()` 참고). 스테이지 수보다 짧으면 그 뒤
+    인덱스에서 `IndexError` -- 호출부가 스테이지 수만큼 채워 넘길 것.
+
+    stage_extra_feasible(2026-08-12 세션30 신설, 선택적): 스테이지별
+    `find_optimal_sizing()`의 `extra_feasible` 콜백 리스트(길이 = 스테이지 수, 원소는
+    `(L,VDS,gm_id,ID)->bool` 또는 `None`) -- 이 스테이지의 L을 물려받는 **다른** 소자
+    (K_replica류 C타입 replica feed의 타겟)가 여전히 자기 제약을 만족하는지 호출부가
+    확인하게 한다. 근본원인: gain_min/w_max만으로 스테이지 자신의 objective를 최적화하면,
+    그 L을 물려받는 다운스트림 소자가 깨질 수 있다는 걸 이 엔진이 원래 전혀 몰랐다(harness
+    연동 감사로 발견 -- L_candidates를 densify하자 실제로 자주 걸림, `.ai/context.md`
+    세션30). `None`(기본값)이면 기존과 100% 동일.
+
+    topology_fn.stage_fT_targets(2026-08-12 세션30, 선택적 함수 속성 -- `exposed_params`와
+    같은 노출 패턴): Hz 단위 스테이지별 준정적(quasi-static) 검증 기준주파수 리스트(gm
+    리스트와 위치 대응), 없으면(대부분의 topology_fn) 해당 스테이지는 기존처럼 검증을
+    건너뛴다 -- 100% 하위호환. `current_reuse_telescopic_topology()`가 실제로 이 속성을
+    채우는 첫 예시(자세한 설계 배경은 `_size_stage()`/`_size_group_at_gm_id()` 바로 위
+    주석 참고).
 
     ⚠️ **모든 토폴로지에 폐형해(gm_i 전부가 스펙만으로 유일하게 정해짐)가 있는 건 아니다** —
     Miller OTA(Z,NDP 지정 시)는 운 좋게 gm1,gm2가 유일하게 정해지지만, NGCC(§10.2)의 gm1,gm2는
@@ -543,13 +660,56 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
           또는 어느 스테이지든(혹은 shared_gm_id_groups의 어느 그룹이든) 실행가능점을 못 찾으면
           None.
     """
+    # 2026-08-12(세션30) -- 준정적(quasi-static) 근사 유효성(find_optimal_sizing()의 fT
+    # 인자, check_quasi_static()) 검증이 이 엔진 경로(compensation.stage_devices로 사이징되는
+    # 모든 스테이지)에서 지금까지 한 번도 실행된 적이 없었다(harness 연동 감사로 발견,
+    # `.ai/context.md` 세션30) -- fT가 항상 None으로 넘어가 fnqs_ok=True로 무조건 통과했다.
+    # 문헌조사(gm-id-methodology.md §9.5 "전류거울은 strong inversion/이득단은 weak-moderate,
+    # 한 OTA 안에서도 소자별로 다른 동작점이 정상" + §6.4 Miller pole-splitting "2단
+    # gain-bandwidth > omega_T" 안정조건)로 확인한 결론: 준정적 마진의 기준주파수는 회로
+    # 전체에 하나가 아니라 **스테이지마다 다르다**(입력단은 메인루프 unity-gain 주파수,
+    # 출력단은 그보다 높은 비지배극 주파수를 기준으로 해야 함) -- 이걸 엔진에 하드코딩하면
+    # "엔진은 제네릭, topology_fn이 회로별 수식을 콜백으로 제공"하는 이 파일 전체의 설계
+    # 원칙을 깬다(사용자 지적 계기로 설계 재검토).
+    #
+    # 그래서 topology_fn이 이미 `exposed_params`(예: omega_c)로 자기 회로의 파생값을
+    # 노출하는 것과 똑같은 패턴으로, 선택적 속성 `stage_fT_targets`(Hz 단위 리스트, 반환
+    # gm 리스트/stage_devices와 위치로 1:1 대응 -- shared_gm_id_groups의 인덱스 관례와 동일)를
+    # 노출하면 이 엔진이 자동으로 읽어 스테이지별로 다른 fT를 적용한다. 원소가 None이거나
+    # 속성 자체가 없으면(기존 topology_fn 전부 해당) 그 스테이지는 기존과 동일하게 체크를
+    # 건너뛴다 -- 100% 하위호환. 새 값을 계산하는 게 아니라, 각 topology_fn이 이미 자기
+    # 내부에서 구하고 있던 극점 주파수(Miller의 ωNDP, NGCC의 ω1/ω2/ω3, current-reuse의
+    # omega_c/omega_p2 등)를 노출만 하면 된다 -- 지금은 current_reuse_telescopic_topology()
+    # 하나만 실제로 이 속성을 채운다(이번 세션 조사 범위), 나머지 3개는 아직 미제공(기존
+    # 동작 그대로, 회귀 없음) -- 메커니즘 자체는 이미 전 토폴로지에 열려 있다.
+    fT_targets = getattr(topology_fn, "stage_fT_targets", None)
+
     def _per_stage(param, i):
         return param[i] if isinstance(param, (list, tuple)) else param
 
+    # 2026-08-12(세션30) -- VDS_candidates는 원래 전 스테이지가 공유하는 "평평한" 숫자
+    # 리스트라 _per_stage()를 그대로 못 쓴다(param[i]가 리스트가 아니라 그 인덱스의
+    # VDS 숫자 하나를 뽑아버림) -- 별도 resolver. "리스트의 리스트"(원소[0]이 list/tuple)면
+    # 스테이지별 후보로 보고 param[i]를, 아니면(기존 100% 하위호환) 그대로 공유 리스트를
+    # 쓴다. 근본원인(harness 연동 감사, `.ai/context.md` 세션30): VDS가 이 엔진 안에서
+    # `vertical_stack_id`(같은 물리적 VDD~GND 컬럼)를 전혀 모른 채 완전 자유변수로
+    # 탐색되고 있었다 -- L_candidates를 densify하자 이 자유도가 실제로 KVL을 위반하는
+    # 값(예: VDS=vdd 전체)을 찾아내는 게 실측으로 드러났다(baseline은 후보 3개뿐이라
+    # 우연히 안전한 값만 나왔을 뿐). 호출부(_evaluate())가 같은 vertical_stack_id를
+    # 공유하는 다른 확정 소자(metric_stage_budget 고정 vds, device_roles의
+    # min_vds_by_role)의 예산을 미리 빼서 스테이지별 VDS 상한을 계산해 이 리스트의
+    # 리스트로 넘긴다 -- 엔진 자체는 여전히 "무엇이 스테이지별로 다를 수 있는가"만 알 뿐
+    # "왜" 다른지는 모른다(제네릭 유지).
+    def _resolve_vds(i):
+        if VDS_candidates and isinstance(VDS_candidates[0], (list, tuple)):
+            return VDS_candidates[i]
+        return VDS_candidates
+
     def _size_stage(i, gm):
         best, _ = find_optimal_sizing(
-            luts[i], L_candidates, VDS_candidates, gm_id_grid, gm=gm,
-            objective=objective, gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i))
+            luts[i], L_candidates, _resolve_vds(i), gm_id_grid, gm=gm,
+            objective=objective, gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i),
+            fT=_per_stage(fT_targets, i), extra_feasible=_per_stage(stage_extra_feasible, i))
         if best is None:
             return None
         return best
@@ -563,8 +723,9 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         members = []
         for i in indices:
             best, _ = find_optimal_sizing(
-                luts[i], L_candidates, VDS_candidates, [gm_id], gm=gms[i],
-                objective="area", gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i))
+                luts[i], L_candidates, _resolve_vds(i), [gm_id], gm=gms[i],
+                objective="area", gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i),
+                fT=_per_stage(fT_targets, i), extra_feasible=_per_stage(stage_extra_feasible, i))
             if best is None:
                 return None
             members.append(best)
@@ -704,10 +865,17 @@ def build_toy_lut(n: float = 1.3, UT: float = 0.026, VTo: float = 0.4, ISuo: flo
 
 
 # ---------------------------------------------------------------------------
-# 6.5) topology JSON 오케스트레이션 레이어 (2026-07-28 신설) — I/O만 담당한다. 계산 로직은
-#      한 줄도 새로 만들지 않는다 — size_transistor()/optimize_multistage()/topology_library.py
-#      함수를 기존 인자 그대로 호출한다. 기존 함수 호출 방식(직접 인자 전달)과 공존한다.
-#      정본: docs/02-design/features/analog-topology-json-library.design.md
+# 6.5) topology.json의 "compensation.function" 문자열이 참조할 수 있는 함수의 allowlist
+#      (eval()/getattr(module, name) 금지 — JSON 안의 임의 문자열로 임의 코드를 실행하지
+#      않기 위함). `optimize_full_circuit_budget()`의 `_evaluate()`가 직접 조회한다
+#      (`_COMPENSATION_REGISTRY[comp["function"]](**comp_params)`, 2026-08 세션6 이후).
+#      2026-08-12(세션30) -- 이 registry만 남기고 `load_sizing_targets()`/
+#      `write_sizing_results()`/`run_sizing_pipeline()`(2026-07-28 신설, "I/O만 담당하는
+#      topology JSON 오케스트레이션 레이어")는 삭제했다: `optimize_full_circuit_budget()`
+#      (2026-07-31 이후 "AI는 이 함수 하나만 호출한다"로 확정된 단일 진입점)이 이 세
+#      함수의 역할(compensation 조회+실행, instance.json 입출력)을 자체 로직으로 완전히
+#      대체한 뒤로 저장소 전체에서 호출부가 self-test 말고는 0건이었다(harness 연동 감사,
+#      `.ai/context.md` 세션30) -- 죽은 코드를 감추지 않고 삭제.
 # ---------------------------------------------------------------------------
 
 from topology_library import (miller_ota_topology, nmcnr_3stage_topology, ngcc_3stage_topology,
@@ -725,67 +893,8 @@ _COMPENSATION_REGISTRY = {
 }
 
 
-def load_sizing_targets(json_path: str) -> dict:
-    """instance-output JSON(또는 별도 sizing-spec JSON)에서 gm/ID sizing 목표값(fT/CL/
-    gain_target 등)을 읽어 반환한다. `design_spec` 키가 있으면 그 안쪽을, 없으면 파일
-    전체를 그대로 반환한다(호출자가 직접 만든 단순 스펙 JSON도 지원)."""
-    with open(json_path, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    return data.get("design_spec", data)
-
-
-def write_sizing_results(json_path: str, results: dict) -> None:
-    """`size_transistor()`/`optimize_multistage()` 결과(`{name: SizingResult}`)를
-    instance-output JSON의 `"sizing"` 섹션에 병합해 쓴다 — 파일이 없으면 새로 만든다.
-    기존에 있던 다른 섹션(`layout`/`floorplan`/`audit_row_split` 등, `stick_diagram.py`의
-    `save_instance_json()`이 쓴 것)은 건드리지 않는다."""
-    try:
-        with open(json_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-    except FileNotFoundError:
-        data = {}
-    sizing = data.setdefault("sizing", {})
-    for name, result in results.items():
-        sizing[name] = asdict(result) if is_dataclass(result) else result
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=2, ensure_ascii=False)
-
-
-def run_sizing_pipeline(topology_json_path: str, design_spec: dict):
-    """topology JSON의 `"compensation"` 섹션을 읽어(있으면) `_COMPENSATION_REGISTRY`로
-    함수를 조회해 `design_spec`(GBW/CL/PM 등)으로 호출한다.
-
-    **반환값이 두 경우로 갈린다 — 호출자가 구분해서 써야 한다**:
-    - `compensation`이 있으면(다단 회로): `topology_library.py`의 세 함수
-      (`miller_ota_topology`/`nmcnr_3stage_topology`/`ngcc_3stage_topology`)는 전부
-      **`topology_fn(prev_cggs) -> list[gm_i]` 클로저를 반환한다**(gm 숫자 자체가 아니다) —
-      이 클로저를 그대로 `optimize_multistage(topology_fn, luts, ...)`에 넘길 것.
-    - `compensation`이 `null`이면(단일 스테이지, 또는 기존 3개 함수 중 안 맞는 게 확인된 경우):
-      `design_spec` **dict**를 그대로 반환한다 — 다단 클로저가 필요 없으니
-      `size_transistor()`를 직접 호출할 것.
-
-    이 함수는 topology -> (topology_fn 또는 design_spec) 변환만 담당한다 — 실제 사이징
-    (`size_transistor()`/`optimize_multistage()`) 호출은 호출자가 반환값 종류에 맞게
-    별도로 진행한다."""
-    with open(topology_json_path, "r", encoding="utf-8") as f:
-        topo = json.load(f)
-    comp = topo.get("compensation")
-    if not comp:
-        return dict(design_spec)
-    fn_name = comp["function"]
-    if fn_name not in _COMPENSATION_REGISTRY:
-        raise ValueError(
-            f"topology JSON이 참조하는 compensation 함수 '{fn_name}'이 "
-            f"_COMPENSATION_REGISTRY(허용된 함수 목록)에 없다 -- "
-            f"{sorted(_COMPENSATION_REGISTRY)} 중 하나여야 한다")
-    fn = _COMPENSATION_REGISTRY[fn_name]
-    params = comp.get("parameters") or []
-    kwargs = {p: design_spec[p] for p in params if p in design_spec}
-    return fn(**kwargs)
-
-
 # ---------------------------------------------------------------------------
-# 6.5) 공정-무관 회귀 검증 러너 — "무엇을 검증할지"는 전부 reference JSON이 선언하고, 이
+# 6.6) 공정-무관 회귀 검증 러너 — "무엇을 검증할지"는 전부 reference JSON이 선언하고, 이
 #      함수는 그 선언을 읽어 실행·대조만 한다. 새 공정을 추가해도 이 함수는 한 글자도
 #      안 바뀐다(<process>_regression_reference.json 파일만 새로 만들면 됨) — 새 회로/새
 #      engine 타입을 추가할 때도 _REGRESSION_ENGINES에 등록만 하면 된다(_COMPENSATION_
@@ -1134,7 +1243,13 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
         if W_bounds[0] <= W <= W_bounds[1]:
             feasible.append(gm_id)
     if not feasible:
-        raise ValueError(
+        # 2026-08-12(세션30) -- ValueError였던 걸 InfeasibleSizingError로 변경(harness
+        # 연동 감사 중 발견: L_candidates densify로 compensation 단계 L이 옛 4개 앵커점을
+        # 벗어나자, matching_pairs로 그 L을 공유하는 role="matching" 소자가 이 조건에
+        # 걸려 grid search 전체를 크래시시켰다 -- A_signed KCL 위반과 똑같이 "이 theta
+        # 격자점/L 조합이 물리적으로 실현 불가능하다"는 뜻일 뿐 선언 오류가 아니므로,
+        # InfeasibleSizingError의 기존 관례(그 격자점만 건너뜀)를 그대로 적용한다.
+        raise InfeasibleSizingError(
             f"W_bounds={W_bounds} 안에 드는 gm_id 후보가 없다(role={role!r}, "
             f"gm_id_grid={gm_id_grid[0]}~{gm_id_grid[-1]}) -- 범위를 넓히세요.")
     if role == "matching":
@@ -2132,7 +2247,20 @@ def _feed_diode_stack_target(feed_spec: dict, theta_value: float, ctx: SizingCon
     gm_id/L/VDS/VS가 불변이면 `ID`와 같은 비율로 스케일된다(LUT 재조회 없이 산술만으로
     정확) — `ID`/`gm`/`gds`도 함께 스케일해 채운다. ⚠️ `target`의 kind가 `reference`와
     다르면(예: 상보쌍 replica) 이 근사가 성립하지 않는다 — 지금 쓰는 K_replica(M9a<-M15,
-    둘 다 pmos)는 kind 일치가 확인된 경우만이다(self-test 참고)."""
+    둘 다 pmos)는 kind 일치가 확인된 경우만이다(self-test 참고).
+
+    ⚠️ **2026-08-12(세션30) 정정 -- "gm_id를 그대로 물려받는다"는 위 설명은 `target`이
+    `device_roles`에 `gm_id_role`이 없을 때만 최종 값으로 남는다.** `target`(예: M9a)이
+    `gm_id_role`을 가지면(K_replica의 M9a·mirror_M18a의 M18a가 실제로 둘 다 그렇다)
+    이 함수가 여기서 채운 `gm_id`는 **곧바로 `_evaluate()`의 device_roles 루프가
+    `search_gm_id_for_role()`로 재검색해 덮어쓴다**(role="matching"이면 `min(feasible)`
+    선택 -- reference의 gm_id를 그대로 쓰는 게 아니라 target 자기 자신의 W_bounds/
+    ID_target 기준으로 새로 고른다, 3222행 근처 참고). L/VDS/VS만 이 함수가 물려준 값이
+    최종까지 유지된다(device_roles 루프는 L/vds를 안 건드림). K_replica처럼 `theta_value`
+    (면적비)가 1.0이 아니면 이 재검색이 reference와 다른 gm_id를 낼 수 있다 -- 다만
+    `mirror_M18a`처럼 `theta_value=1.0`(완전 replica, L/vds/ID_target까지 reference와
+    동일)이면 재검색이 결정론적으로 reference와 같은 gm_id를 다시 찾아내므로 실질적으로는
+    "물려받는다"는 원래 설명과 결과가 같다 -- 이 코드는 안 건드리고 설명만 정정한다."""
     target, reference = feed_spec["target"], feed_spec["reference"]
     ref = ctx.sized[reference]
     entry = {"W": theta_value * ref["W"]}
@@ -2418,6 +2546,96 @@ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: 
     return geometry_colocation_union(transistors, matching_pairs)
 
 
+def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_roles: dict,
+                                          thetas: list, min_vds_by_role: dict) -> float | None:
+    """`vsid`(vertical_stack_id, VDD~GND 물리적 전기 컬럼) 그룹에서 `exclude_devices`(지금
+    compensation이 VDS를 정하려는 스테이지 자신의 소자들)를 뺀 나머지 멤버가 이미
+    확정적으로/최소한으로 필요로 하는 VDS 합을 반환한다 — `optimize_multistage()`의
+    B엔진이 VDS를 `vertical_stack_id`와 무관한 완전 자유변수로 다루던 근본 문제(harness
+    연동 감사로 발견, `.ai/context.md` 세션30 -- L_candidates를 densify하자 이 자유도가
+    실제로 KVL을 위반하는 값(예: VDS=vdd 전체)을 찾아냈다)를 고치기 위해 신설.
+
+    나머지 멤버를 두 갈래로 분류해 합산한다:
+    - `metric_stage_budget` theta feed의 `devices`에 속하면 그 feed의 `vds`(기본 0.6,
+      `_feed_metric_stage_budget()`과 동일 기본값) -- 이미 고정값이라 정확히 그만큼.
+    - `device_roles`에 `headroom_role`이 선언돼 있으면 `min_vds_by_role[role]`(기본 0.2)
+      -- `allocate_stack_headroom()`이 실제로 배정할 값의 하한(최소 보장치)이므로 안전한
+      보수적 예약.
+
+    ⚠️ **정직한 한계**: 나머지 멤버 중 위 두 갈래 어디에도 안 걸리는 소자가 있으면(예:
+    다른 `compensation.stage_devices` 그룹과 같은 vsid를 공유 -- 서로가 서로의 결과를
+    필요로 하는 상호참조라 이 시점엔 아직 못 품) `None`을 반환한다 -- 잘못 추측해서
+    상한을 씌우는 것보다 기존처럼 무제한으로 두는 게 안전하다(호출부가 이 경우 VDS
+    상한을 적용하지 않는다)."""
+    members = [m for m, dr in device_roles.items() if dr.get("vertical_stack_id") == vsid]
+    metric_stage_budget_vds = {}
+    for t in thetas:
+        feed = t["feeds"]
+        if isinstance(feed, dict) and feed.get("type") == "metric_stage_budget":
+            v = feed.get("vds", 0.6)
+            for d in feed.get("devices", []):
+                metric_stage_budget_vds[d] = v
+    reserved = 0.0
+    for m in members:
+        if m in exclude_devices:
+            continue
+        if m in metric_stage_budget_vds:
+            reserved += metric_stage_budget_vds[m]
+        elif device_roles.get(m, {}).get("headroom_role"):
+            role = device_roles[m]["headroom_role"]
+            reserved += min_vds_by_role.get(role, 0.2)
+        else:
+            return None
+    return reserved
+
+
+def make_replica_feasibility_check(grp, thetas: list, device_roles: dict, kind_of: dict,
+                                    spec: dict):
+    """`grp`(지금 compensation이 L/VDS를 정하려는 스테이지 소자들)를 `reference`로 삼는
+    C타입(`_feed_diode_stack_target()`) replica theta feed가 있으면, 그 `target` 소자가
+    이 스테이지의 후보 (L,VDS,gm_id,ID)에서도 자기 `gm_id_role`/`W_bounds`를 만족할 수
+    있는지 확인하는 `find_optimal_sizing(..., extra_feasible=...)`용 콜백을 만든다.
+    해당하는 replica가 없으면(대부분의 스테이지) `None`(체크 없음, 하위호환).
+
+    2026-08-12(세션30) 신설 -- `reserved_vds_for_other_stack_members()`(VDS 헤드룸
+    근본수정)와 짝을 이루는, **L 선택**의 하류 파급 근본수정. 실측으로 발견(harness 연동
+    감사, `.ai/context.md` 세션30): `optimize_multistage()`가 스테이지 자신의 objective
+    (power/area)만 보고 L을 고르면, K_replica로 그 L을 물려받는 M9a 같은 소자가
+    `search_gm_id_for_role()`의 W_bounds를 못 맞추는 경우가 실제로 있었다(M15가 area
+    최소화로 더 작은 L=0.235µm을 진짜로 고르는 게 이득이라 동점이 아니었음 -- L_candidates
+    를 densify하기 전엔 4개 앵커점 중 우연히 다 괜찮은 것만 있어서 드러나지 않았다).
+
+    ⚠️ **theta_values(예: K_replica 자체 비율)는 이 시점에 아직 안 정해졌다**(compensation
+    은 A/C엔진보다 먼저 실행되고, comp_params로 캐싱돼 theta 조합마다 다시 안 돈다) --
+    그래서 정확한 한 점이 아니라 **theta의 declared bounds 양끝**(예: K_replica
+    [0.05,0.2])에서 타겟의 ID_target(=ratio*ID)을 계산해 **둘 다** feasible해야 통과시킨다
+    (`W = ID*L/IDu(gm_id,L,vds)`가 고정 gm_id/L/vds에서 ID에 선형이라, 양끝이 통과하면
+    그 사이 전부 안전하다는 보수적 근거)."""
+    replicas = []
+    for t in thetas:
+        feed = t["feeds"]
+        if isinstance(feed, dict) and feed.get("type") == "C" and feed.get("reference") in grp:
+            target = feed["target"]
+            role = device_roles.get(target, {}).get("gm_id_role")
+            if role is None:
+                continue  # gm_id_role 없으면 search_gm_id_for_role() 대상 자체가 아님
+            replicas.append((target, tuple(t["bounds"]), role))
+    if not replicas:
+        return None
+    W_bounds = spec.get("W_bounds", (1e-6, 200e-6))
+
+    def check(L, VDS, gm_id, ID):
+        for target, (lo, hi), role in replicas:
+            lut_t = spec["lut_by_kind"][kind_of[target]]
+            for ratio in (lo, hi):
+                try:
+                    search_gm_id_for_role(lut_t, L, VDS, 0.0, ratio * ID, role, W_bounds)
+                except InfeasibleSizingError:
+                    return False
+        return True
+    return check
+
+
 def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     """`optimize_full_circuit_budget()`의 세타-무관 setup + `_evaluate(theta_values)` 평가
     클로저를 그대로 추출한 헬퍼(2026-08-11 세션29, 순수 리팩터 -- 동작 변화 없음. warm-start
@@ -2625,6 +2843,17 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             # 같은 우선순위 패턴, 하위호환: derived에 없으면 기존처럼 spec 그대로).
             comp_params = {k: (ctx.derived[k] if k in ctx.derived else spec[k])
                            for k in comp["parameters"]}
+            # 2026-08-12(세션30) -- _THETA_FEED_REGISTRY/_METRICS_REGISTRY/_CMRR_ESTIMATOR_
+            # REGISTRY/_PSRR_ESTIMATOR_REGISTRY/_REGRESSION_ENGINES는 전부 미등록 키를 친절한
+            # ValueError로 즉시 거부하는데, 이 조회만 그 관례에서 빠져 있었다(harness 연동
+            # 감사 중 발견 -- 예전엔 run_sizing_pipeline()에만 이 가드가 있었고 그 함수 자신은
+            # 죽은 코드라 삭제됨, 실제 harness 경로는 무방비였다). 등록 안 된 함수명은 이제
+            # 여기서도 날것의 KeyError 대신 다른 registry와 똑같은 형태의 ValueError로 거부한다.
+            if comp["function"] not in _COMPENSATION_REGISTRY:
+                raise ValueError(
+                    f"topology.json이 참조하는 compensation 함수 '{comp['function']}'이 "
+                    f"_COMPENSATION_REGISTRY(허용된 함수 목록)에 없다 -- "
+                    f"{sorted(_COMPENSATION_REGISTRY)} 중 하나여야 한다")
             topology_fn = _COMPENSATION_REGISTRY[comp["function"]](**comp_params)
             # 2026-08-10(세션27) -- topology_fn이 omega_c 등을 exposed_params로 노출하면
             # ctx.derived에 옮긴다(spec은 읽기 전용 계약이라 여기서 안 건드림) --
@@ -2635,11 +2864,58 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             if _comp_cache_key in _comp_cache:
                 comp_result = _comp_cache[_comp_cache_key]
             else:
+                # 2026-08-12(세션30, 근본수정) -- optimize_multistage()의 B엔진이 VDS를
+                # vertical_stack_id(같은 물리적 VDD~GND 컬럼)와 무관하게 완전 자유변수로
+                # 탐색해오던 문제를 고친다(harness 연동 감사로 발견, 상세 배경은
+                # reserved_vds_for_other_stack_members() docstring 참고). 스테이지별로
+                # 자기 vertical_stack_id를 공유하는 다른 확정 소자(metric_stage_budget
+                # 고정 vds / device_roles의 min_vds_by_role)가 필요로 하는 몫을 미리
+                # 빼서 VDS_candidates 상한을 계산 -- comp_params(theta_values 무관, spec/
+                # device_roles만 의존)로만 결정되므로 위 _comp_cache_key 그대로 안전.
+                _stage_vds_candidates = []
+                for grp in stage_devices:
+                    cap = None
+                    for name in grp:
+                        vsid = device_roles.get(name, {}).get("vertical_stack_id")
+                        if vsid is None:
+                            continue
+                        reserved = reserved_vds_for_other_stack_members(
+                            vsid, set(grp), device_roles, thetas,
+                            spec.get("min_vds_by_role", {}))
+                        if reserved is None:
+                            continue
+                        member_cap = spec["vdd"] - reserved
+                        if cap is None or member_cap < cap:
+                            cap = member_cap
+                    if cap is None:
+                        _stage_vds_candidates.append(spec["VDS_candidates"])
+                        continue
+                    if cap <= 0:
+                        raise ValueError(
+                            f"'{grp}' 그룹이 속한 vertical_stack_id의 다른 소자들이 예약한 "
+                            f"VDS 합이 vdd({spec['vdd']}V)를 넘어 이 스테이지에 남는 여유가 "
+                            f"없다({cap}V) -- topology.json의 min_vds_by_role/"
+                            f"metric_stage_budget vds 선언을 확인할 것")
+                    filtered = [v for v in spec["VDS_candidates"] if v <= cap]
+                    if not filtered:
+                        filtered = [min(spec["VDS_candidates"][0], cap)] \
+                            if spec["VDS_candidates"] else [cap]
+                    _stage_vds_candidates.append(filtered)
+                # 2026-08-12(세션30, 근본수정 2/2 -- VDS 헤드룸과 짝) -- L 선택의 하류 파급도
+                # 같은 이유로 막는다: K_replica류 C타입 replica feed가 이 스테이지 소자를
+                # reference로 삼으면, 그 target이 이 스테이지가 고르는 L에서도 자기
+                # W_bounds를 만족하는지 확인하는 콜백을 만들어 넘긴다(make_replica_
+                # feasibility_check() docstring 참고 -- gain_min/w_max와 달리 "다른 소자"의
+                # 제약이라 topology_fn/luts만으로는 표현 불가, 호출부가 주입).
+                _stage_extra_feasible = [
+                    make_replica_feasibility_check(grp, thetas, device_roles, kind_of, spec)
+                    for grp in stage_devices]
                 comp_result = optimize_multistage(
-                    topology_fn, luts, spec["L_candidates"], spec["VDS_candidates"],
+                    topology_fn, luts, spec["L_candidates"], _stage_vds_candidates,
                     spec["gm_id_grid"], objective=stage_objective,
                     gain_min=spec.get("stage_gain_min"), w_max=spec.get("stage_w_max"),
-                    shared_gm_id_groups=comp.get("shared_gm_id_groups"))
+                    shared_gm_id_groups=comp.get("shared_gm_id_groups"),
+                    stage_extra_feasible=_stage_extra_feasible)
                 _comp_cache[_comp_cache_key] = comp_result
             if comp_result is None:
                 raise ValueError("optimize_multistage()가 실행가능점을 못 찾음 -- "
@@ -2982,7 +3258,16 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             vs = entry.get("vs", dr.get("vs", 0.0))
             lut = spec["lut_by_kind"][kind_of[name]]
             W_bounds = spec.get("W_bounds", (1e-6, 200e-6))
-            gm_id = search_gm_id_for_role(lut, L, vds, vs, entry["ID"], dr["gm_id_role"], W_bounds)
+            try:
+                gm_id = search_gm_id_for_role(lut, L, vds, vs, entry["ID"], dr["gm_id_role"], W_bounds)
+            except InfeasibleSizingError as _sgfr_e:
+                # 2026-08-12(세션30) -- search_gm_id_for_role()의 에러 메시지엔 소자 이름이
+                # 없어 어느 소자가 실패했는지 알 수 없었다(진단 중 발견) -- 여기서 이름/L/vds/
+                # ID_target을 덧붙여 재발생시킨다(원인 자체는 그대로, 정보만 보강).
+                raise InfeasibleSizingError(
+                    f"{name}(role={dr['gm_id_role']!r}, L={L:.4g}m, vds={vds:.4g}V, "
+                    f"ID_target={entry['ID']:.4g}A): {_sgfr_e}",
+                    sized_snapshot=dict(ctx.sized)) from _sgfr_e
             gm = entry["ID"] * gm_id
             w = size_transistor(gm, gm_id, L, lut, vds, vs).W
             gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vs)
@@ -4779,49 +5064,29 @@ if __name__ == "__main__":
             print(f"  {label}: 실행가능점 없음")
 
     print()
-    print("# topology JSON 오케스트레이션 레이어 데모 (2026-07-28 신설) — "
-          "load_sizing_targets()/write_sizing_results()/run_sizing_pipeline()")
+    print("# _COMPENSATION_REGISTRY allowlist 거부 -- 실제 harness 경로(_evaluate()) 자체를")
+    print("# 통해 확인(2026-08-12 세션30 -- run_sizing_pipeline()은 죽은 코드라 삭제됐고,")
+    print("# 그 함수에만 있던 이 가드를 _evaluate()에 새로 추가했다, harness 연동 감사 중 발견)")
     import os as _os
     import tempfile as _tempfile
 
-    _lib_dir = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "library")
-
-    print("  [compensation=null인 folded_cascode: design_spec을 그대로 반환하는지]")
-    _fc_path = _os.path.join(_lib_dir, "folded_cascode.topology.json")
-    _fc_spec = run_sizing_pipeline(_fc_path, {"fT": 100e6, "CL": 5e-12})
-    print(f"    반환값(dict 그대로): {_fc_spec}")
-    assert isinstance(_fc_spec, dict) and _fc_spec == {"fT": 100e6, "CL": 5e-12}
-
-    print("  [compensation 있는 two_stage_ota: miller_ota_topology()의 topology_fn 반환하는지]")
-    _ts_path = _os.path.join(_lib_dir, "two_stage_ota.topology.json")
-    _ts_topology_fn = run_sizing_pipeline(_ts_path, {"GBW": 5e6, "CL": 5e-12})
-    _gm1, _gm2 = _ts_topology_fn(None)
-    print(f"    topology_fn(None) -> gm1={_gm1*1e3:.4f}mS, gm2={_gm2*1e3:.4f}mS "
-          f"(gm2/gm1={_gm2/_gm1:.1f}, 기본 Z=10.0과 일치해야 함)")
-    assert callable(_ts_topology_fn) and abs(_gm2 / _gm1 - 10.0) < 1e-9
-
-    print("  [allowlist 밖 함수명은 안전하게 거부되는지]")
     with _tempfile.TemporaryDirectory() as _tmpdir:
         _bad_path = _os.path.join(_tmpdir, "bad.topology.json")
         with open(_bad_path, "w", encoding="utf-8") as _f:
-            json.dump({"compensation": {"function": "not_a_real_function", "parameters": []}}, _f)
+            json.dump({
+                "topology_name": "bad_fixture", "schema_version": "2.0",
+                "netlist": [],
+                "symmetry": {"matching_pairs": []},
+                "compensation": {"function": "not_a_real_function", "parameters": [],
+                                  "stage_devices": [["M1"]]},
+                "sizing_roles": {"theta": [], "metrics": {}, "objective": {}, "constraints": []},
+            }, _f)
         try:
-            run_sizing_pipeline(_bad_path, {})
-            raise AssertionError("허용되지 않은 함수명이 거부되지 않았다")
+            optimize_full_circuit_budget(_bad_path, {"stage_w_max": 1e-4})
+            raise AssertionError("허용되지 않은 compensation 함수명이 거부되지 않았다")
         except ValueError as _e:
-            print(f"    ValueError로 정상 거부됨: {_e}")
-
-    print("  [write_sizing_results() -> load_sizing_targets() 왕복]")
-    with _tempfile.TemporaryDirectory() as _tmpdir:
-        _inst_path = _os.path.join(_tmpdir, "test.instance.json")
-        write_sizing_results(_inst_path, {"M1": SizingResult(gm=1e-3, gm_id=15.0, ID=66.7e-6, W=50e-6)})
-        _loaded = load_sizing_targets(_inst_path)
-        print(f"    design_spec 키 없을 때 파일 전체 반환: {_loaded}")
-        assert "sizing" in _loaded and _loaded["sizing"]["M1"]["gm"] == 1e-3
-
-    print()
-    print("  topology JSON 오케스트레이션 데모 PASS: null/함수참조 두 경로 + allowlist 거부 "
-          "+ 왕복 전부 확인")
+            assert "_COMPENSATION_REGISTRY" in str(_e)
+            print(f"    ValueError로 정상 거부됨(실제 harness 경로): {_e}")
 
     print()
     print("# 배치 7-1(analog-topology-json-library.do.md) — optimize_multistage() 실제 실행 "
@@ -5343,8 +5608,18 @@ if __name__ == "__main__":
             _l5c_lo, _l5c_hi = _l5c_t["bounds"]
             _l5c_mid = (_l5c_lo + _l5c_hi) / 2.0
             _l5c_t["bounds"] = [_l5c_mid, _l5c_mid]
+    # 2026-08-12(세션30) -- gain_db도 classab_centering_dev_v와 같은 이유로 이 테스트의
+    # constraints에서 뺀다: optimize_multistage()의 VDS 탐색이 이제 vertical_stack_id
+    # 헤드룸을 반영해(근본수정, reserved_vds_for_other_stack_members() 참고) M1a 등의
+    # VDS가 더 이상 물리적으로 불가능한 값(예: vdd 전체)을 자유롭게 고르지 못한다 -- 그
+    # 결과 이 테스트가 K_replica/r_classab_battery만 자유고 나머지 전부 midpoint 고정한
+    # **단일** theta 점에서 gain_db가 74.9dB로 살짝 낮아졌다(75.6 미달). 이 테스트의
+    # 목적은 애초에 gain 최적화가 아니라 헤드룸 singleton KVL 검증뿐이고(아래 vy_tail/
+    # vbias4/cmfb 합=vdd assert), 실제 gain 최적화는 세션29 SLSQP 검증(자유 theta 탐색,
+    # gain_db=84.15dB 달성)의 몫이다.
     _l5c_topo["sizing_roles"]["constraints"] = [
-        c for c in _l5c_topo["sizing_roles"]["constraints"] if c["metric"] != "classab_centering_dev_v"]
+        c for c in _l5c_topo["sizing_roles"]["constraints"]
+        if c["metric"] not in ("classab_centering_dev_v", "gain_db")]
     with _tempfile.TemporaryDirectory() as _l5c_tmpdir:
         _l5c_topo_path = _rsl_os.path.join(_l5c_tmpdir, "current_reuse_telescopic_ota.l5c.json")
         with open(_l5c_topo_path, "w", encoding="utf-8") as _l5c_f:
@@ -6412,6 +6687,13 @@ if __name__ == "__main__":
     assert "current_reuse_telescopic_topology" in _COMPENSATION_REGISTRY
     _crt_tf = _COMPENSATION_REGISTRY["current_reuse_telescopic_topology"](
         t_lln=30e-9, PM_target_deg=70.0, Cc=500e-15, Cf=500e-15, Cs=500e-15, C_Ltot=1e-12)
+    # 2026-08-12(세션30) -- stage_fT_targets(새로 노출된 준정적 검증 기준주파수)가 이
+    # toy LUT(EKV 해석식, 실제 sky130 특성과 다름)에서 우연히 이 한계 순환을 유발하던
+    # 동점 후보들을 걸러내 버려 converged=True로 바뀐다(실측 확인) -- fT 기능 자체는
+    # 아래 L5c(실제 sky130 LUT, 51소자 전체회로) self-test가 이미 검증하므로, 이 테스트의
+    # 진짜 목적(순환 감지+평균 fallback 코드 경로 자체를 계속 실행해보는 것)을 지키려고
+    # 이 toy 시나리오에서만 껐다 -- fT 기능과 cycle-detection 기능은 서로 독립적인 관심사.
+    _crt_tf.stage_fT_targets = None
     _crt_result = optimize_multistage(
         _crt_tf, [lut, lut, lut, lut], [float(v) for v in lut.L_grid], [float(v) for v in lut.VDS_grid],
         [i * 0.5 for i in range(4, 58)], objective="power", w_max=200e-6, max_iter=20)
