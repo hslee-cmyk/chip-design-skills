@@ -6659,6 +6659,69 @@ telescopic_ota` topology로 `presolve_warm_start()`를 (a) 외부에서 미리 �
 
 **남은 감사 항목**: 없음 -- BD가 찾은 A/B/C/D/E/F 전부 이번 세션에 구현·검증 완료.
 
+## BI. 세션31 계속 -- ①`classab_centering_dev_v` gm_id 독립화 조사: **물리적으로
+실현 가능함을 실측 확인**(엔진 변경 없음, 순수 검증 스크립트)
+
+사용자가 BE①(gm_id 독립화 조사)로 계속 진행하라고 지시. AT가 확정한 "L 독립화만으로는
+동시만족 불가능"을 넘어, BA②(a)가 제안한 "gm_id도 독립화하면 풀리는지"를 실측으로
+확인했다 -- **풀린다.**
+
+**방법**: 엔진을 건드리지 않고 실제 sky130 LUT + 실제 `evaluate()`로 얻은 ctx를 그대로
+쓰는 순수 조사 스크립트 2개.
+1. `presolve_warm_start()`로 얻은 실현가능한 baseline x0를 `evaluate()`해 M15/M16의
+   현재(gm_id 공유=15.0) 사이징을 얻고, `gm2_total=gm(M15)+gm(M16)`(Eq.6이 고정하는
+   불변량, =551.11uS)과 `stage1_gain_db`(=27.40dB, `gain_db_total - gain2_db`로 역산)를
+   실측.
+2. **새 파라미터화**: `gm_id_p`(M15)/`gm_id_n`(M16)을 독립으로 스캔하되, KCL이 실제로
+   요구하는 건 `ID(M15)=ID(M16)`뿐(gm_id 공유는 이 목적을 위한 기존 구현의 지름길일
+   뿐, AS절의 `_size_group_at_gm_id()` 참고)이므로 `I=gm2_total/(gm_id_p+gm_id_n)`,
+   `gmp2=I·gm_id_p`, `gmn2=I·gm_id_n`로 두면 **gm_id가 달라도 ID는 자동으로 같다**
+   (`ID(M15)=gmp2/gm_id_p=I=gmn2/gm_id_n=ID(M16)`, 대수적으로 항등식). 이 새 파라미터화로
+   `(gm_id_p,gm_id_n,L_p,L_n)` 조인트 스캔(57×57×25×25 격자, LUT 캐시 사전계산으로
+   1,809,648점을 수 초에 처리) -- **806개 지점이 `gain2_db>=48.20dB(=75.6-stage1)`
+   AND `classab_centering_dev_v<=0.15V`를 동시 만족**(최적점: centering=0.0001V,
+   gain2_db=48.40dB, `gm_id_p=24.5/L_p=1.0µm(LUT 최대 L, 외삽 아님)`,
+   `gm_id_n=13.5/L_n=0.9646µm`).
+3. **전체 constraint 재검증**(중요 -- 위 스캔은 gain_db/classab_centering_dev_v 둘만
+   봄): 이 최적점을 `ctx.sized['M15']/['M16']`에 직접 패치하고 `compute_metric()`으로
+   5개 constraint 전부(gain_db/mismatch_sigma_mV/cmrr_estimate_db/psrr_estimate_db/
+   classab_centering_dev_v) 재계산 -- `mismatch_sigma_mV`는 M1a/M1b(입력쌍)에만
+   의존한다는 topology.json 선언 그대로 패치 전/후 완전히 동일(10.7934, 이 baseline
+   x0 자체가 아직 미최적화라 이미 위반 상태였을 뿐 -- M15/M16 조사와 무관, 실제 theta
+   탐색이 풀 몫). `cmrr_estimate_db`/`psrr_estimate_db`는 M15/M16이 51소자 MNA에
+   포함돼 이론상 영향 있지만 **실측으로는 오히려 소폭 개선**(98.75→99.87dB,
+   104.49→105.56dB, 60dB 문턱 대비 압도적 여유라 예상대로). **gain_db(75.80dB)/
+   classab_centering_dev_v(0.0001V) 둘 다 PASS로 전환.**
+
+**결론**: `classab_centering_dev_v`의 물리적 한계(AT)는 "gm_id를 공유해야 한다"는
+**엔진 구현 지름길 때문에 생긴 인공적 제약**이었지, 회로 자체의 근본 한계가 아니었다.
+gm_id를 독립화하면(ID 동일성은 그대로 유지) 동시만족 지점이 실제로 존재한다 --
+AT의 "동시만족 불가능 확정"은 **"L만 독립화했을 때"로 범위를 좁혀야 정확한 진술**이었다.
+
+**엔진 구현에 필요한 것(아직 미착수 -- 설계+승인 필요, 공유 엔진코드)**:
+1. `optimize_multistage()`에 새 메커니즘 필요 -- 현재 `shared_gm_id_groups`는 "gm은
+   이미 같다(topology_fn이 그렇게 반환), gm_id만 공유 탐색"을 가정하는데, 이번 조사는
+   반대로 "**ID만 같아야 한다**(gm은 오히려 갈라져야 함), gm_id는 각자 독립 탐색"이
+   필요하다 -- 가칭 `shared_current_groups`: 그룹 총 `gm_target`(topology_fn이 주는
+   값 그대로)과 그룹 멤버 수만큼의 독립 `gm_id_i`를 받아 `I=gm_target/sum(gm_id_i)`로
+   전류를 정하고 `gm_i=I·gm_id_i`로 각자의 실제 gm을 역산 -- 이후 `(L_i,VDS_i)`는
+   `_size_group_at_gm_id()`처럼 스테이지별 독립 탐색. `gm_id_i`들의 탐색 자체는
+   `find_optimal_sizing()` 재사용 불가(gm이 미리 안 정해짐 -- ID/gm_id/gm 세 개가
+   서로 얽힌 새 탐색 루프 필요, 설계 필요).
+2. `current_reuse_telescopic_topology()`의 Eq.6 `gmp2=gmn2=gm2/2`(50:50 고정 분할)를
+   제거 -- 분할 비율이 이제 `gm_id_p/gm_id_n` 탐색 결과로 정해지는 종속변수가 되므로,
+   `topology_fn`은 `gm2_total`(분할 안 된 값)만 반환하고 분할은 엔진(1번 항목)이
+   책임져야 함(함수 반환 계약 변경).
+3. `search_gm_id_for_role()`류처럼 `objective`(power/area) 하에서 `(gm_id_p,gm_id_n)`
+   페어를 어떤 기준으로 고를지 정책 필요(이번 조사는 "gain 제약 만족하며 centering
+   최소"를 수동으로 골랐을 뿐, 자동 objective 함수로 일반화 안 됨).
+
+이건 `optimize_multistage()`(전 토폴로지 공유) + `current_reuse_telescopic_topology()`
+(이 회로 전용) 양쪽에 걸친 설계 변경이라, 착수 전 사용자 확인 필요(프로젝트 원칙 --
+공유 엔진코드는 승인 후). 조사 스크립트(재현 가능)는 세션 종료로 사라짐 -- 다음 세션에
+이어가려면 이 절의 파라미터화(`I=gm2_total/(gm_id_p+gm_id_n)`)와 최적점을 그대로
+재현 스크립트로 다시 작성할 것.
+
 ## BE. 다음 세션 최우선 (세션31 최종 확정, BH 반영해 갱신)
 
 ### ① classab_centering_dev_v -- gm_id 독립화 조사 (BA②에서 이월, 아직 미해결)
@@ -6678,13 +6741,113 @@ C 구현의 실제 절감폭(`_comp_cache` 재사용)은 `presolve_warm_start()`
 했고, 실제 `_optimize_theta_slsqp()` 전체(multi-start 포함, 수 분~수십 분대)에서
 전/후 비교는 아직 안 함 -- 다음 세션에서 시간 여유 있을 때 재측정 고려.
 
-## BF. 커밋 상태 (세션31)
+## BF. 커밋 상태 (세션31, BK에서 갱신)
 
 **D/E/A/F-1/F-2(BG) 커밋 완료**: `326bb58`(perf, `_solve_vgs`/그리드리스트/배치보간
-캐싱 + D/E/A 국소수정) -- `sizing_recipe.py`/`.ai/context.md` 두 파일만, 사용자
-명시 지시로 커밋.
+캐싱 + D/E/A 국소수정).
 
-**B/C(BH)는 아직 미커밋** -- 이 갱신(BH 추가) 작성 시점 기준. self-test 통과
-확인됐으나 사용자 지시 없이 커밋하지 않는 원칙에 따라 작업트리에 남겨둠. **다음
-세션 시작 시(또는 이 세션 내 사용자가 커밋을 지시하면) `git status`/`git diff`로
-B/C 변경이 여전히 미커밋 상태인지 먼저 확인할 것.**
+**B/C(BH) 커밋 완료**: `9b086b0`(perf, gm_id_grid 재스캔 캐시 + SLSQP ev 공유) --
+둘 다 `sizing_recipe.py`/`.ai/context.md` 두 파일만, 사용자 명시 지시로 커밋.
+
+**BJ(L_grid_step 레이아웃 그리드 정렬)는 이 갱신 시점 기준 아직 미커밋** -- self-test
++ 3개 경로(격자탐색/warm-start 스캔/SLSQP) 별도 검증 스크립트로 전부 통과 확인됐으나
+커밋 지시는 아직 없었음. 다음 세션 시작 시 `git status`로 확인할 것.
+
+## BJ. 세션31 계속 -- L을 레이아웃 그리드(um 단위)에 정렬하는 기능 신설(구현+검증 완료,
+미커밋)
+
+사용자 지시: "실제 레이아웃시에는 소수점자리의 L은 구현 못해... 실제 길이가 um단위로
+맞춰지는 값이면 좋겠어... 일반화하여 적용할 수 있도록." + "이 설계변경이 재계산
+비효율을 만들지 않도록 보장해줘."
+
+**핵심 원칙**: `L_min`의 정수배가 아니라 **공정 레이아웃 그리드 해상도**(`spec
+["L_grid_step"]`, m 단위 -- 값 자체는 이 엔진이 추측하지 않고 PDK 문서에서 가져올
+것, `feedback_no_paper_values_derive_rationally` 원칙과 동일)의 배수로 L을 스냅한다.
+L을 고르는 경로가 두 갈래(격자탐색 후보 리스트 / theta 연속탐색)라 적용 방식이 다르다.
+
+**신설 함수(`sizing_recipe.py`, `dense_L_candidates()` 바로 아래)**:
+- `quantize_L(L, grid_step, mode="nearest"|"floor"|"ceil")` -- 핵심 프리미티브.
+- `_grid_points_in_range(lo, hi, grid_step, n=None)` -- `[lo,hi]` 구간의 grid_step
+  배수를 나열, `n` 넘으면 `dense_candidates()`와 동일한 균등 서브샘플로 캡(**재계산
+  비효율 방지의 핵심** -- grid_step이 촘촘해도(예: 5nm, `[0.15,1.0]um` 구간에 171점)
+  기존 호출부의 후보 개수 예산(예: `dense_L_candidates(n=41)`의 41)을 그대로 유지).
+- `layout_grid_L_candidates(lut, grid_step, L_min=None, n=None)` -- `dense_L_
+  candidates()`의 그리드 정렬 대체재, `_grid_points_in_range()`의 얇은 wrapper.
+  `find_optimal_sizing()`/`optimize_multistage()`은 `L_candidates`를 불투명 리스트로
+  받으므로 **엔진 코드 변경 없이 호출부가 넘기는 후보만 교체**하면 적용됨(그대로
+  BI의 `shared_current_groups` 제안과도 자동 합성).
+
+**적용 지점 3곳(엔진 코드 변경, 전부 `feeds.type=="metric_stage_budget"`로 "이
+theta는 L이다"를 판별 -- `_feed_metric_stage_budget()`의 기존 계약 그대로 재사용,
+새 선언 필드 불필요)**:
+1. `optimize_full_circuit_budget()`의 grid search 격자 생성(`_theta_grid_points()`
+   신설) -- L-타입 theta는 `_lerp()` 대신 `_grid_points_in_range(..., n=
+   grid_points_per_theta)`로 **같은 예산**(`grid_points_per_theta`) 안에서만 그리드
+   점을 고른다 -- 조합 수(`grid_points_per_theta ** len(free_thetas)`) 불변.
+2. `search_stage_budget_L_warm_start()`의 4개 L 선택 경로(`battery_centering_
+   deviation` 단독 스캔/`gain_stages_sum` 단독 경계값/무관 시 중점/`complex_thetas`
+   실측 스캔) 전부 grid_step으로 스냅 -- 스캔 경로는 `_grid_points_in_range(...,
+   n=n_scan`/`n_scan_full_circuit)`로 **같은 예산** 유지, 경계값/중점 경로는
+   `quantize_L()` 단발 호출(추가 LUT 조회 없음).
+3. `_optimize_theta_slsqp()` -- 연속최적화 자체는 그대로 두고(격자로 제약하면 gradient
+   탐색이 깨짐), **결과에만** `_snap_l_thetas()`로 스냅한 뒤 **기존에 이미 있던 단일
+   재검증 `evaluate()` 호출** 자리에 그 스냅값을 넣는다(raw 결과는 별도로 검증하지
+   않음 -- evaluate() 호출 횟수가 스냅 도입 전/후 정확히 동일, 이것이 "재계산 비효율
+   보장" 요구의 핵심 이행 지점).
+
+**`L_grid_step` 필수 여부**: 전역 필수가 아니라 **"L-타입 free theta가 실제로 있을
+때만" 필수** -- 없으면(예: L5c self-test처럼 모든 theta를 `bounds=[mid,mid]`로 고정한
+경우) 조용히 기존 동작 그대로(하위호환), 있는데 `L_grid_step`이 없으면 즉시 명확한
+`ValueError`(어느 theta가 원인인지 이름까지 포함).
+
+**검증**(전부 격리 스크립트, 실제 sky130 LUT + `current_reuse_telescopic_ota`
+topology, self-test는 69 PASS/exit 0 그대로 -- 기존 스위트는 이 신규 경로를 직접
+운동시키지 않아 별도 검증 필요했음):
+1. `L_grid_step` 없이 `search_stage_budget_L_warm_start()`/grid search 호출 ->
+   둘 다 명확한 `ValueError` 확인.
+2. `quantize_L`/`_grid_points_in_range`(n=41 캡 -- 171점->41점 확인)/`layout_grid_
+   L_candidates` 저수준 유닛 확인 -- 전부 grid_step 배수, n 캡 정상 동작.
+3. `search_stage_budget_L_warm_start()` 단독 호출 -- 반환된 L 전부 grid 위 확인.
+4. `presolve_warm_start()` 전체(1~3 전부 경유) -- `feasible=True`, x0의 L-theta
+   전부 grid 위, 정확도(feasibility) 손실 없음 확인.
+5. grid-search 경로(`optimize_full_circuit_budget(search_method="grid")`) -- 작은
+   후보 격자로 크래시 없이 완주 확인(기존 ②이슈로 infeasible 종료는 정상, L_grid_step
+   관련 에러 없음).
+6. SLSQP 경로(`search_method="slsqp"`, n_starts=1/maxiter=3) -- 크래시 없이 완주
+   확인(수렴 안 함은 반복수가 적어서, 정상).
+
+## BK. sky130 실제 `L_grid_step` 값 확보 + `run_harness.py` 배선 완료
+
+**값 확보**: `/c/pdk/sky130_fd_pr`(로컬 PDK)는 SPICE 모델 레포일 뿐 레이아웃 그리드를
+정의하는 LEF/tech/DRC 파일이 없다(cells의 `.bins.csv`는 BSIM 모델 구간분할 경계 L값일
+뿐 제조그리드와 무관) -- 로컬에서 확인 불가, 사용자 지시로 웹 확인. **sky130 tech
+LEF(`sky130hs.tlef`, OpenROAD-Project 배포, open_pdks 기반)에서 원문 그대로 확인**:
+```
+UNITS
+  DATABASE MICRONS 1000 ;
+END UNITS
+MANUFACTURINGGRID 0.005 ;
+```
+LEF 스펙상 `MANUFACTURINGGRID`는 항상 um 단위로 명시되는 표준 키워드라 단위 혼동
+여지가 없다 -- **`L_grid_step = 0.005e-6`(m) = 5nm로 확정**. (참고: 중간에 magic
+`.tech` 파일의 `scalefactor 10 nanometers`를 오독해 10nm로 잘못 해석한 시도가
+있었으나, magic 내부 좌표 단위(scalefactor)와 실제 제조그리드(MANUFACTURINGGRID)는
+다른 개념 -- LEF의 명시적 키워드 쪽이 훨씬 신뢰도 높은 1차 소스라 그걸 채택.)
+
+**`run_harness.py` 배선**: `L_GRID_STEP = 0.005e-6`(출처 주석 포함) 상수 신설,
+`spec["L_candidates"]`를 `dense_L_candidates(nmos, n=41)`에서 `layout_grid_L_
+candidates(nmos, L_GRID_STEP, n=41)`로 교체(같은 n=41 예산 유지), `spec["L_grid_step"]
+=L_GRID_STEP` 추가(이제 `L_cascode`/`L_stage2out_p`/`L_stage2out_n` theta가 이 필드를
+필수로 요구함). `dense_L_candidates` import 제거(더 이상 안 씀, `dense_candidates`는
+VDS_candidates용으로 계속 씀).
+
+**검증**: `run_harness.py` 재실행 완료 -- `L_grid_step` 관련 에러 없음. 결과는 배선
+전과 사실상 동일(같은 기존 ②이슈로 infeasible): `gain_db=74.0042dB`(배선 전
+74.0128dB)/`mismatch_sigma_mV=9.2002`(배선 전 9.1995)/`classab_centering_dev_v=
+0.37238556...`(배선 전과 소수점 10자리까지 완전 일치) -- `L_cascode`/`L_stage2out_p`/
+`L_stage2out_n` 전부 `1e-6`(=1.0um, 5nm 그리드 위 정확한 정수배 200×5nm)로 경계값에
+안착해 classab_centering 쪽은 차이가 아예 없고, gain_db/mismatch의 미세한 차이는
+`L_candidates`가 `dense_L_candidates()`(보간)에서 `layout_grid_L_candidates()`(5nm
+그리드)로 바뀌어 compensation 단계(M1a/M4a)가 미세하게 다른 L 후보를 봤기 때문(예상된
+정상 차이 -- 후보 집합이 다르면 같은 탐색이라도 결과가 약간 달라질 수 있음, 물리적
+회귀 아님). L_grid_step 기능은 이걸로 완전히 배선·검증 완료.

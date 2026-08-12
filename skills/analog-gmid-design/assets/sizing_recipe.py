@@ -631,6 +631,68 @@ def dense_L_candidates(lut: "SemiEmpiricalGmIdLUT", n: int = 41) -> list:
     return dense_candidates(lut.L_grid, n)
 
 
+def quantize_L(L: float, grid_step: float, mode: str = "nearest") -> float:
+    """L을 `grid_step`(공정 레이아웃 그리드 해상도, m 단위 -- 예: sky130 poly 그리드)의
+    배수로 스냅한다(2026-08-13 세션31, 사용자 지시 -- 실제 레이아웃에서 임의 소수점 L을
+    구현할 수 없다는 제약을 반영). `grid_step` 값 자체는 이 함수가 정하지 않는다 -- 실제
+    PDK 문서에서 가져올 것(feedback_no_paper_values_derive_rationally 원칙과 동일하게,
+    값을 추측하지 않는다).
+
+    `mode`: `"nearest"`(반올림 -- 후보 리스트 생성용, `layout_grid_L_candidates()`가
+    내부적으로 씀) / `"floor"`/`"ceil"`(한쪽으로 치우쳐 스냅해야 할 때 -- 예: 선언된
+    bounds `[lo,hi]` 안에 반드시 남아야 하는 SLSQP 사후처리, `lo`는 ceil로 올림해야
+    bounds 하한을 안 벗어나고 `hi`는 floor로 내려야 상한을 안 벗어난다)."""
+    if grid_step <= 0:
+        raise ValueError(f"grid_step={grid_step}은 0보다 커야 한다")
+    fn = {"nearest": round, "floor": math.floor, "ceil": math.ceil}.get(mode)
+    if fn is None:
+        raise ValueError(f"알 수 없는 mode={mode!r} -- 'nearest'/'floor'/'ceil' 중 하나")
+    return fn(L / grid_step) * grid_step
+
+
+def _grid_points_in_range(lo: float, hi: float, grid_step: float, n: int | None = None) -> list:
+    """`[lo,hi]` 구간 안에서 `grid_step`의 배수인 점을 전부(또는 `n`개로 서브샘플해)
+    반환한다 -- `layout_grid_L_candidates()`/`optimize_full_circuit_budget()`의
+    `metric_stage_budget`(L) theta 격자탐색/`search_stage_budget_L_warm_start()`의 LUT
+    스캔이 전부 이 저수준 헬퍼를 공유한다. `n`으로 서브샘플할 때는 `dense_candidates()`와
+    동일한 균등 인덱스 선택 패턴을 쓴다(성능 예산 보존 -- grid_step이 촘촘해도 `n`을
+    넘는 후보를 만들지 않는다, 세션31 "재계산 비효율 보장" 지시 참고)."""
+    start = quantize_L(lo, grid_step, mode="ceil")
+    end = quantize_L(hi, grid_step, mode="floor")
+    if start > end:
+        raise ValueError(
+            f"[{lo},{hi}] 구간 안에 grid_step={grid_step}의 배수가 하나도 없다 -- "
+            f"grid_step이 구간 폭보다 크거나 bounds/grid_step을 재확인할 것")
+    count = int(round((end - start) / grid_step)) + 1
+    all_points = [start + i * grid_step for i in range(count)]
+    if n is None or len(all_points) <= n:
+        return all_points
+    idx = sorted({round(i * (len(all_points) - 1) / (n - 1)) for i in range(n)})
+    return [all_points[i] for i in idx]
+
+
+def layout_grid_L_candidates(lut: "SemiEmpiricalGmIdLUT", grid_step: float,
+                              L_min: float | None = None, n: int | None = None) -> list:
+    """공정 레이아웃 그리드(`grid_step`, m 단위)에 정렬된 L 후보를 만든다 --
+    `dense_L_candidates()`(보간 기반, 임의 소수점 L을 생성할 수 있음)의 대체재. 태생적으로
+    전부 `grid_step`의 배수라 사후 스냅이 불필요하다(`find_optimal_sizing()`은 `L_candidates`
+    를 그대로 순회만 하는 불투명 리스트로 받으므로, 이 함수는 **호출부가 넘기는 후보
+    리스트만 바꾸는 것**이고 엔진(`find_optimal_sizing()`/`optimize_multistage()`) 자체는
+    변경이 필요 없다).
+
+    `L_min`(기본: LUT 실측 하한, `lut.L_grid[0]`)부터 LUT 실측 상한(`lut.L_grid[-1]`,
+    외삽 없음 -- `dense_candidates()`와 동일 원칙)까지 `grid_step` 간격으로 나열한다.
+    `n`이 주어지고 격자점 개수가 `n`을 넘으면 `dense_candidates()`와 동일한 서브샘플로
+    `n`개로 줄인다(2026-08-13 세션31, 사용자 지시 "이 설계변경이 재계산 비효율을
+    만들지 않도록 보장" -- `grid_step`이 촘촘해도(예: 5nm) `find_optimal_sizing()`의
+    L×VDS×gm_id 3중루프 격자 크기가 `dense_L_candidates(n=41)` 등 기존 호출부가 쓰던
+    예산을 넘지 않게 호출부가 반드시 `n`을 지정할 것 -- 제네릭 유지를 위해 강제 기본값은
+    두지 않는다)."""
+    lo = L_min if L_min is not None else float(lut.L_grid[0])
+    hi = float(lut.L_grid[-1])
+    return _grid_points_in_range(lo, hi, grid_step, n)
+
+
 # ---------------------------------------------------------------------------
 # 5) 단일 소자 그리드서치 최적화 — "주어진 스펙에서 최적 sizing" 자동 탐색
 #    (L, VDS, gm/ID) 격자 전체를 스윕해 제약조건을 만족하는 점 중 목적함수 최소인 것을 고른다.
@@ -3589,9 +3651,30 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         # 하나 늘 때마다 전체 격자 조합 수가 grid_points_per_theta배씩 곱해져(현재 회로는
         # 이런 고정 theta가 8개라 2^8=256배) 탐색이 사실상 끝나지 않았다(실측: 40분+ 무응답,
         # 강제 종료 후 발견) — 값이 어차피 하나뿐이니 여러 번 평가할 이유가 없다.
-        grids = [[t["bounds"][0]] if t["bounds"][0] == t["bounds"][1] else
-                 [_lerp(t["bounds"][0], t["bounds"][1], i / (grid_points_per_theta - 1))
-                  for i in range(grid_points_per_theta)] for t in thetas]
+        #
+        # 2026-08-13(세션31, 사용자 지시) -- metric_stage_budget theta(L_cascode/
+        # L_stage2out류, `_feed_metric_stage_budget()` 계약상 theta_value 자체가 항상
+        # L이다)는 `_lerp()`의 임의 소수점 대신 spec["L_grid_step"](공정 레이아웃 그리드
+        # 해상도, m 단위 -- 값 자체는 이 엔진이 추측하지 않음)의 배수만 격자점으로 쓴다.
+        # `grid_points_per_theta` 예산은 그대로 유지(그리드 정렬이 "격자점 위치"만
+        # 바꿀 뿐 "격자점 개수"는 안 바꾼다 -- 재계산 비효율 방지, `_grid_points_in_range()`
+        # docstring 참고). 그 외 theta는 기존 `_lerp()` 그대로(하위호환).
+        def _theta_grid_points(t):
+            lo, hi = t["bounds"]
+            if lo == hi:
+                return [lo]
+            is_l_theta = isinstance(t["feeds"], dict) and t["feeds"].get("type") == "metric_stage_budget"
+            if is_l_theta:
+                l_grid_step = spec.get("L_grid_step")
+                if l_grid_step is None:
+                    raise ValueError(
+                        f"theta {t['name']!r}는 metric_stage_budget(L 그 자체)인데 "
+                        f"spec['L_grid_step']이 없다 -- 실제 레이아웃에서 임의 소수점 L을 "
+                        f"구현할 수 없으므로 공정 레이아웃 그리드 해상도(m 단위, PDK 문서 "
+                        f"기준)를 명시적으로 선언할 것")
+                return _grid_points_in_range(lo, hi, l_grid_step, n=grid_points_per_theta)
+            return [_lerp(lo, hi, i / (grid_points_per_theta - 1)) for i in range(grid_points_per_theta)]
+        grids = [_theta_grid_points(t) for t in thetas]
         best = None
         last_metrics, last_theta = None, None
         n_physically_infeasible = 0
@@ -4255,6 +4338,16 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
                      if isinstance(t["feeds"], dict) and t["feeds"].get("type") == "metric_stage_budget"
                      and t["bounds"][0] != t["bounds"][1]]
 
+    # 2026-08-13(세션31, 사용자 지시) -- 이 함수가 다루는 theta는 전부 metric_stage_budget
+    # (theta_value 자체가 L)이므로 spec["L_grid_step"](공정 레이아웃 그리드 해상도, m 단위)로
+    # 전부 스냅한다 -- 값 자체는 이 엔진이 추측하지 않는다(quantize_L() docstring 참고).
+    _l_grid_step = spec.get("L_grid_step") if stage_thetas else None
+    if stage_thetas and _l_grid_step is None:
+        raise ValueError(
+            f"metric_stage_budget(L) theta {[t['name'] for t in stage_thetas]}가 있는데 "
+            f"spec['L_grid_step']이 없다 -- 공정 레이아웃 그리드 해상도(m 단위)를 명시적으로 "
+            f"선언할 것")
+
     result = {}
     complex_thetas = []
     for theta in stage_thetas:
@@ -4271,8 +4364,7 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
             mspec = metrics_specs[next(c["metric"] for c in touching
                                         if metrics_specs[c["metric"]]["type"] == "battery_centering_deviation")]
             best_L, best_dev = None, None
-            for i in range(n_scan):
-                L = _lerp(lo, hi, i / (n_scan - 1))
+            for L in _grid_points_in_range(lo, hi, _l_grid_step, n=n_scan):
                 dev = _centering_dev(L, mspec["high_device"], mspec["low_device"], gm_id, vds, vs)
                 if best_dev is None or dev < best_dev:
                     best_L, best_dev = L, dev
@@ -4283,9 +4375,13 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
             gain_c = next(c for c in touching
                           if metrics_specs[c["metric"]]["type"] == "gain_stages_sum")
             wants_high = gain_c["op"] in (">=", ">")
-            result[theta["name"]] = hi if (db_hi >= db_lo) == wants_high else lo
+            # 2026-08-13(세션31) -- hi/lo를 그대로 쓰면 bounds 자체가 그리드에 안 맞을 수
+            # 있다 -- floor(hi)/ceil(lo)로 bounds 안쪽으로 스냅(바깥으로 벗어나지 않게).
+            result[theta["name"]] = (quantize_L(hi, _l_grid_step, "floor")
+                                      if (db_hi >= db_lo) == wants_high
+                                      else quantize_L(lo, _l_grid_step, "ceil"))
         else:
-            result[theta["name"]] = (lo + hi) / 2.0
+            result[theta["name"]] = quantize_L((lo + hi) / 2.0, _l_grid_step)
         reference[theta["name"]] = result[theta["name"]]
 
     for theta in complex_thetas:
@@ -4295,8 +4391,7 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
         centering_metric = next(c["metric"] for c in touching
                                  if metrics_specs[c["metric"]]["type"] == "battery_centering_deviation")
         best_L, best_score, best_feasible = None, None, False
-        for i in range(n_scan_full_circuit):
-            L = _lerp(lo, hi, i / (n_scan_full_circuit - 1))
+        for L in _grid_points_in_range(lo, hi, _l_grid_step, n=n_scan_full_circuit):
             trial = dict(reference, **{theta["name"]: L})
             try:
                 _, metrics = evaluate(trial)
@@ -4310,7 +4405,7 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
             if best_L is None or (feasible and not best_feasible) \
                     or (feasible == best_feasible and score < best_score):
                 best_L, best_score, best_feasible = L, score, feasible
-        result[theta["name"]] = best_L if best_L is not None else (lo + hi) / 2.0
+        result[theta["name"]] = best_L if best_L is not None else quantize_L((lo + hi) / 2.0, _l_grid_step)
         reference[theta["name"]] = result[theta["name"]]
 
     return result
@@ -4567,6 +4662,27 @@ def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
     hi = _np.array([t["bounds"][1] for t in free_thetas])
     span = hi - lo  # free_thetas만 다루므로 전부 >0 보장(bounds[0]!=bounds[1]로 이미 필터링)
 
+    # 2026-08-13(세션31, 사용자 지시) -- SLSQP는 연속최적화라 L-타입 theta(metric_stage_
+    # budget, theta_value 자체가 L)도 임의 소수점 값을 낸다 -- 격자로 제약하면 gradient
+    # 기반 탐색 자체가 깨지므로 탐색은 그대로 연속으로 두고, 최종 결과에만
+    # spec["L_grid_step"]로 스냅한다(아래 재검증 직전 -- _to_theta_values() 바로 다음
+    # 참고). raw 결과는 검증하지 않고 스냅된 값 하나만 검증해 evaluate() 호출 횟수를
+    # 스냅 도입 전/후 정확히 동일하게 유지한다(재계산 비효율 방지 지시 참고).
+    _l_theta_names = {n for n, t in zip(names, free_thetas)
+                       if isinstance(t["feeds"], dict) and t["feeds"].get("type") == "metric_stage_budget"}
+    if _l_theta_names and spec.get("L_grid_step") is None:
+        raise ValueError(
+            f"SLSQP 자유변수에 metric_stage_budget(L) theta {sorted(_l_theta_names)}가 "
+            f"있는데 spec['L_grid_step']이 없다 -- 공정 레이아웃 그리드 해상도(m 단위)를 "
+            f"명시적으로 선언할 것")
+
+    def _snap_l_thetas(theta_values):
+        if not _l_theta_names:
+            return theta_values
+        step = spec["L_grid_step"]
+        return {n: (quantize_L(v, step) if n in _l_theta_names else v)
+                for n, v in theta_values.items()}
+
     def _to_theta_values(x_norm):
         vals = lo + _np.clip(x_norm, 0.0, 1.0) * span
         theta_values = dict(fixed_theta_values)
@@ -4661,7 +4777,7 @@ def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
             print(f"[SLSQP] start {start_idx + 1}/{len(starts)} 종료: success={result.success} "
                   f"iters={iter_count[0]} elapsed={_time.time() - t_start:.1f}s "
                   f"message={result.message!r} (누적 캐시={len(_eval_cache)}점)", flush=True)
-        theta_values = _to_theta_values(result.x)
+        theta_values = _snap_l_thetas(_to_theta_values(result.x))
         try:
             ctx, metrics = evaluate(theta_values)
         except InfeasibleSizingError as e:

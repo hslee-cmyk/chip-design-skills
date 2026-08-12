@@ -5,7 +5,8 @@ spec -> instance.json까지 완주시키는 harness-only 실행 스크립트.
 import sys, json, traceback
 sys.path.insert(0, r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets")
 import numpy as np
-from sizing_recipe import SemiEmpiricalGmIdLUT, optimize_full_circuit_budget, dense_L_candidates, dense_candidates
+from sizing_recipe import (SemiEmpiricalGmIdLUT, optimize_full_circuit_budget, dense_candidates,
+                            layout_grid_L_candidates)
 from stick_diagram import save_instance_json, run_full_circuit_audit_from_topology
 from design_report import assemble_report_data, save_html_report
 
@@ -13,6 +14,11 @@ LUTFILE = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog
 TOPO = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets\library\current_reuse_telescopic_ota.topology.json"
 INSTANCE_OUT = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\workspaces\current-reuse-telescopic-ota-report\current_reuse_telescopic_ota.instance.json"
 REPORT_OUT = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\workspaces\current-reuse-telescopic-ota-report\current_reuse_telescopic_ota.report.html"
+# 2026-08-13(세션31) -- sky130 tech LEF(sky130hs.tlef, OpenROAD-Project 배포)의
+# "MANUFACTURINGGRID 0.005 ;" 원문으로 확인된 실제 제조그리드(um 단위) -- 이 값 자체는
+# 추측이 아니라 웹에서 원문 대조로 확보함(.ai/context.md 세션31 참고). 레이아웃에서
+# 임의 소수점 L을 구현할 수 없다는 제약을 반영하는 quantize_L()류 함수의 grid_step 인자로 씀.
+L_GRID_STEP = 0.005e-6
 
 d = np.load(LUTFILE)
 W_REF = 5e-6
@@ -26,12 +32,17 @@ spec = {
     # 2026-08-12(세션30) -- SemiEmpiricalGmIdLUT는 L/VDS 둘 다 이미 다중선형보간하는데
     # (sizing_recipe.py 클래스 docstring), 이 후보 리스트를 실측 앵커점(L 4개) 그대로 쓰거나
     # 과도하게 데시메이션(VDS 49점 -> 3점)해서 그 보간 능력을 검색이 안 쓰고 있었다 --
-    # dense_L_candidates()/dense_candidates()로 실측 범위 안에서 촘촘하게(외삽 없음).
+    # dense_candidates()로 VDS는 실측 범위 안에서 촘촘하게(외삽 없음).
     # gm_id_to_id_density()의 중복 log(ID) 재계산 캐시 버그를 같이 고친 뒤 재실측
     # (perf_test_dense.py, .ai/context.md 세션30): L=41/VDS=13이 10초 수준으로 내려가
     # VDS도 13으로 올렸다 -- optimize_multistage()가 comp_params로 캐싱돼 호출 자체가
     # 드물어 이 정도 비용은 감당 가능.
-    "L_candidates": dense_L_candidates(nmos, n=41),
+    # 2026-08-13(세션31) -- L_candidates는 dense_L_candidates()(임의 소수점 보간) 대신
+    # layout_grid_L_candidates()(L_GRID_STEP 배수만 나열)로 교체 -- 실제 레이아웃에서
+    # 구현 못 하는 소수점 L을 애초에 후보에서 배제한다(n=41로 기존과 동일한 격자 크기
+    # 예산 유지, sizing_recipe.py layout_grid_L_candidates() docstring 참고).
+    "L_candidates": layout_grid_L_candidates(nmos, L_GRID_STEP, n=41),
+    "L_grid_step": L_GRID_STEP,
     "VDS_candidates": dense_candidates(nmos.VDS_grid, n=13),
     # 2026-08-12(세션30) -- L_candidates를 densify하자 compensation 단계 L이 옛 4개
     # 앵커점이 아닌 임의값이 될 수 있게 됐는데, matching_pairs로 그 L을 공유하는
