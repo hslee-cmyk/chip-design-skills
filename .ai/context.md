@@ -7513,7 +7513,8 @@ evaluator()`/`presolve_warm_start()` 경로, `cross_validate_others.py` 재사�
 실제 사이징 품질을 검증하려면 별도로 gain/노이즈 등 constraints를 채워야 함(오늘
 범위 밖, 다음에 필요하면).
 
-## BE. 다음 세션 최우선 (세션31 진짜 종료 시점 확정 -- BD~BW 전체 반영)
+## BE. 다음 세션 최우선 (세션31 진짜 종료 시점 확정 -- BD~BW 전체 반영) -- ⚠️ STALE,
+**BZ절이 최신이다(②가 BX/BY로 진행/이월됨) -- 다음 세션은 BZ부터 읽을 것**
 
 ### ① 커밋 여부 확인 (최우선)
 세션31 전체(BD~BW)가 원래 목표(`current_reuse_telescopic_ota`의 `gain_db>=75.6`
@@ -7562,3 +7563,178 @@ C 구현의 실제 절감폭(`_comp_cache` 재사용)은 `presolve_warm_start()`
 self-test 최종 상태(세션31 진짜 종료 시점, BW 반영): `sizing_recipe.py`/`stick_
 diagram.py` 둘 다 단독 실행 시 exit 0, 트레이스백/AssertionError 없음, 전수 PASS --
 회귀 없음.
+
+## BW2. 세션31 계속(같은 세션, BX보다 먼저 -- 사용자가 이미지로 NMCNR 논문 Table 1을
+제공, "이걸로 nmcnr 스펙을 채워") -- `nmcnr_amplifier.topology.json`에 논문 원문
+목표 스펙 문서화(엔진/사이징 로직 변경 없음, 순수 문서화)
+
+**경과**: BE③이 이미 지목했던 "`folded_cascode`/`nmcnr_amplifier`도 `sizing_roles`
+자체가 없음" 항목 중 `nmcnr_amplifier` 쪽을, 사용자가 논문(Leung/Mok/Ki, "Right-
+Half-Plane Zero Removal Technique...", 1999 -- 이 회로의 기존 `source` 필드가 이미
+인용하고 있던 바로 그 논문) Table 1(NMC vs NMCNR 비교, p.602)을 이미지로 제공하며
+"NMCNR 스펙을 채워"라고 지시. `nmcnr_3stage_topology(GBW, CL, PM_target_deg, kg)`의
+CL(부하 커패시턴스)이 이미지 표엔 없어 막혔는데, 사용자가 논문 원본 PDF 경로(`G:\내
+드라이브\work\Todoc\기술문서\Gm_over_Id\(Bible-concept) RIGHT-HALF-PLANE_ZERO_
+REMOVAL_TECHNIQUE.pdf`)를 알려줘 직접 읽어 Table 1 캡션 "loading condition 100pF/
+25kΩ"에서 **CL=100pF**를 확인(추측 아님, 원문 확인).
+
+**반영**: `nmcnr_amplifier.topology.json`에 `_paper_target_spec`/`_paper_target_spec_
+comment` 필드 신설(문서 전용, `sizing_roles`/`device_roles`는 여전히 `null`로 안
+건드림 -- 그 자체를 채우는 건 별개 작업, BE③/BZ③ 그대로 미해결). 기록한 값: GBW=816kHz,
+CL=100pF, PM_target_deg=46°, kg=null(원문 미지정, 자유도로 명시), gain_db>100dB(NMC/
+NMCNR 공통), SR+/-=0.36/0.31V/µs, Ts+/-=3.03/3.04µs, PSRR 4종(1kHz/10kHz×+/-),
+Pconsumption=400µW(공통), 공급 ±1V(harness 작성 시 rail-to-rail 2.0V로 다룰지는 검증
+필요), Area=0.18mm²(공정종속이라 목표로 안 씀, 참고용만). self-test 재실행으로 회귀
+없음 확인(`load_topology()`가 문서 전용 필드는 그냥 무시하고 통과).
+
+**다음(BZ③에 이월)**: 이 값들을 실제 harness spec(GBW/CL/PM_target_deg)으로 쓰려면
+`device_roles`(M101/M104-M109/M202/M203/M204/M302, 11개)와 `sizing_roles`(폐형식이라
+theta 자유탐색은 없지만 metrics/constraints는 필요)를 채워야 함 -- 오늘 범위 밖.
+
+## BX. 세션31 계속(같은 세션, BE② 착수 -- `two_stage_ota` constraints 채우기 및
+L 자유도 4개 확장) -- **구현 완료, self-test PASS, 실제 sky130 60dB는 미달성(45~50dB
+플래토)**
+
+**목표**: BE②가 남긴 "`two_stage_ota`에 gain/mismatch constraints 채우기"를 진행.
+`gain_db>=60`(웹 문헌조사로 "typical" 2단 Miller OTA 목표 확인)/`mismatch_sigma_mV<=5.0`
+(current_reuse와 동일 문턱 재사용)을 `sizing_roles.constraints`에 신설.
+
+**실측 버그 2건 발견·수정**(전부 이번 세션 안에서 자체 발견·해소):
+1. **`_full_circuit_response()`가 `vdd`를 AC 접지로 안 고정**(가장 심각) -- `two_stage_ota`는
+   M3/M4/M6 딱 3개만 vdd에 물려 있어(current_reuse처럼 소자가 많아 우연히 안정되는 회로와
+   다름) vdd가 사실상 무규제 자유노드가 되어 D3/O1이 수백V로 튀는 비물리적 해가 나왔다
+   (gain_db=7.6dB로 실측, 손계산 대조로 명백히 틀림). `smallsignal_gain_db`/`smallsignal_
+   ratio_db` metric_spec의 `excite`에 `"vdd":0.0`을 명시하는 걸로 해결(PSRR류는 반대로
+   vdd를 절대 고정하면 안 됨 -- 그게 측정 대상 그 자체).
+2. **`_full_circuit_response()`가 고정노드(gnd 등)를 반환 dict에 안 담음** -- 싱글엔디드
+   출력(`OUT` vs `gnd`)을 `sense_p`/`sense_n`으로 쓰는 metric_spec이 `KeyError`로 죽었다
+   (기존 4개 회로 호출부는 전부 자유노드 쌍(Vop/Vom)이라 안 걸렸던 gap). `return {**fixed,
+   **sol}`로 고정노드도 조회 가능하게 확장(기존 호출부는 100% 동일 동작, 자유노드/고정노드
+   집합이 서로소라 겹쳐쓸 값 없음).
+
+**설계 확장(사용자와 여러 라운드 논의, `_feed_metric_stage_budget()` 3건 확장)**:
+사용자가 "L의 자유도가 몇 개냐"를 직접 프레임: L1=M3/M4(mirror), L2=M1/M2(diff pair,
+compensation 기존), L3=M6(compensation 기존), L4=M5/M7(같은 gate=bias 공유하는 두
+독립 전류원, `vertical_stack_id`는 stage1/stage2로 서로 다르지만 stick_diagram.py의
+`current_mirror` 신 의미(같은 gate+source 공유라는 구조적 사실)로 레이아웃 행은 이미
+공유하도록 `stack_groups_override`에 선언돼 있었음, current_reuse류 M18_bg 패턴). 기존엔
+L1/L4가 `device_roles.L_role`(mirror=2.5×L_min/bias_replica=1.2×L_min 고정 배수)로
+박혀 있어 이득과 무관하게 사이징됐다 -- 이게 `current_reuse_telescopic_ota`처럼 gain_db
+constraint를 걸었을 때 실질 이득 상한을 만드는 근본원인이었다(M4/M7의 낮은 gds가
+stage1/stage2 gds를 각각 지배).
+1. **`select_L_by_role()` 대신 `L_mirror_M3`/`L_mirror_M5` theta 신설**(`metric_stage_
+   budget`, L_cascode/L_stage2out와 동일 기존 메커니즘 재사용, 새 서치 알고리즘 없음) --
+   device_roles의 `L_role`/`gm_id_role`은 제거(`optimize_full_circuit_budget()`의 두
+   처리 루프가 값 없으면 그냥 skip이라 재계산 낭비 없음, 사용자가 명시적으로 확인 요청한
+   항목).
+2. **`_feed_metric_stage_budget()`을 소자별 gm_id 계산으로 수정**(엔진) -- 예전엔
+   `devices[0]`의 ID로 딱 한 번 계산해 그룹 전체에 적용(진짜 matched 미러쌍 M15/M25류만
+   전제). M5/M7처럼 ID가 다른(Z=10배 차이) "독립 전류원 두 개가 L만 공유"하는 경우를
+   위해 소자별로 각자 ID 기준 재계산 -- `_idu_scan()` 캐시가 `(L,vds,vs,gm_id_grid)`만
+   키로 써서 재계산 비효율 없음(ID 같은 기존 그룹은 결과 100% 동일).
+3. **`gm_id_role`이 문자열 외에 `{device: role}` dict도 받도록 확장** -- 같은 L을
+   공유해도 전기적 역할이 다른 소자(M5=tail, gds가 differential gain과 무관/M7=2단
+   출력부하, gds가 gain 직결)에 다른 role을 줄 수 있게.
+4. **`gm_id_min`/`gm_id_max`(선택) 추가** -- `gm_id_role="matching"`이 실제 sky130
+   LUT에서 격자 하한(2.0, 깊은 strong inversion)까지 밀리면 gm/gds<1(음수 dB)로
+   무너지는 게 실측 확인됨(toy LUT는 gds=ID/VA 단순모델이라 이 문제가 안 보였음 --
+   "toy LUT 숫자를 설계에 쓰지 말 것" 원칙이 또 실증됨). M3/M4는 `gm_id_min=8.0`(strong/
+   moderate 경계 근방, gm-id-methodology.md 491행 "moderate~strong inversion이 유리"가
+   원문 그대로 극단이 아님을 재확인)으로 gds 붕괴 방지.
+5. **새 `gm_id_role="moderate"` 신설**(`search_gm_id_for_role()`) -- 사용자가 `"balanced"`
+   (오름차순 첫 feasible=사실상 면적최소화, 전기적 근거 없는 우연적 규칙)의 정당성을
+   문제 제기해서 나온 결론: feasible 목록의 **중앙 인덱스**를 고르는 새 role을 추가해
+   gm-id-methodology.md §5.2 "Moderate Inversion이 최적"(전류·면적·이득 3중 절충점)을
+   실제로 구현. `"balanced"`는 손대지 않음(다른 회로 회귀값 보호) -- M5는 `"moderate"`로,
+   M7은 `"gain"`(M4의 stage2 대응물, 애초에 어떤 전류비 매칭도 요구된 적 없어 "matching"을
+   가장할 근거가 없었음)으로 확정.
+
+**시행착오 경로**(값 그대로 기록 -- 다음에 비슷한 상황에서 반복하지 않도록):
+vdd 버그 수정 전 gain_db=7.6dB(실측, 비물리적) → 버그 수정 후 47.85dB(L1/L4 아직
+고정 heuristic) → L1/L4를 이득 탐색으로 전환(toy LUT) 56.6dB → real sky130 LUT로
+교차검증하니 오히려 21.9dB(M3/4/M5/M7이 `gm_id_role="matching"`으로 격자 하한까지
+밀려 gds 붕괴, toy LUT에선 안 보이던 문제) → `gm_id_min=8.0`(M3/4)+M5/M7 role 재검토
+시작 → M7을 `"gain"`으로: 31.9dB → M5를 `"moderate"`로: **45.5dB**(real sky130,
+`stage_gain_min`=30dB 기준) → `stage_gain_min`을 30~42dB로 스윕해도 **~50dB에서
+플래토**(diminishing returns, `gm_id_min`/`L_candidates`(sky130 LUT 최대 L=1.0um)가
+새로운 병목).
+
+**미해결(다음 세션 최우선으로 이월)**:
+- ① **`two_stage_ota`의 `gain_db>=60`이 실제 sky130 LUT로는 아직 미달성**(45~50dB
+  플래토, `stage_w_max`/`L_candidates` 확대나 GBW/Z/NDP 스펙 자체 재검토가 필요할 수
+  있음 -- 60dB가 "typical" 문헌값일 뿐 이 정확한 스펙(GBW=20MHz/CL=3pF/Z=10/NDP=4)에서
+  달성 가능하다고 검증된 적은 없었다는 걸 이번에 알게 됨). self-test(`sizing_recipe.py`
+  `__main__`)는 toy LUT 한계(46~58dB 플래토, 60dB 근처엔도 못 감)를 우회하려고 **self-test
+  전용 임시 topology.json 복사본**(gain_db 문턱만 50dB로 낮춤, 실제 라이브러리 파일은
+  안 건드림)을 씀 -- 진짜 60dB 검증은 `run_harness.py`류 실제 sky130 하네스로 별도 확인할 것.
+- ② **`"balanced"` role의 장기적 용도 재검토**(2026-08-13, 사용자 명시 지시) -- `"moderate"`
+  신설로 "전기적 선호 없음"의 진짜 의도는 이제 `"moderate"`가 담당하는 게 맞다는 데
+  사용자와 합의. `current_reuse_telescopic_ota` 등 기존 회로가 `"balanced"`를 쓰는
+  곳(M6/M7/M38 tail류)을 감사해서 `"moderate"`로 옮기는 게 나을지 검토할 것 -- 단,
+  `sky130_regression_reference.json` 골든값이 걸려 있어 신중하게(회귀값 재확인 필요).
+  이번 세션에서는 손대지 않음(범위 밖으로 명시적 보류).
+- ③ `symmetry.matching_pairs`에 M5/M7을 정식 선언할지 여부(레이아웃 행은 이미 공유하는데
+  formal 선언은 없는 gap, 이번 세션에서 발견만 하고 안 고침).
+
+**커밋 상태**: 이 절(BW2/BX) 작업분(`sizing_recipe.py`/`stick_diagram.py`/
+`two_stage_ota.topology.json`/`nmcnr_amplifier.topology.json`/`.ai/context.md`)은
+이 세션 안에서 사용자 지시로 커밋됨(아래 BZ절 커밋 해시 참고).
+
+## BY. 세션31 계속(같은 세션, BX 직후 -- 사용자 지적 "이것이 L값 조정등을 매칭을
+고려해서 최대한 자제한 결과 이렇게 된건가?"/"physical_stack_id는 어떻지?") -- BX
+본문에 이미 흡수된 두 차례 설계 정정의 경위만 별도 기록(재발 방지용 교훈)
+
+BX 작업 도중 사용자가 두 차례 핵심적인 재검토를 유도했다 -- 둘 다 "AI가 그럴듯해
+보이는 이유를 댔지만 실측/기존 선언을 다시 보니 틀렸다"는 패턴이라 별도로 남긴다.
+
+1. **"L을 매칭 때문에 자제한 결과인가?"** -- 처음엔 stage2 이득 상한(~32dB, toy LUT)이
+   "M7의 L을 어떤 매칭 고려 때문에 못 키운 것"이라는 인상을 줬는데, 실측하니 매칭과
+   무관했다(M7은 매칭 파트너가 없는 단독 소자, `stack_w_max`+toy LUT의 성긴 L 격자
+   4점이 진짜 원인). 교훈: "왜 이 값이 이렇게 나왔는가"는 반드시 실제 코드 경로를
+   추적해 확인하고, 그럴듯한 서사(매칭 때문일 것이다)로 대체하지 않는다.
+2. **"physical_stack_id는 어떻지?"** -- AI가 `vertical_stack_id`(헤드룸 예산용,
+   M5="stage1"/M7="stage2"로 다름)만 보고 "M5/M7은 물리적으로 무관하니 L을 분리해도
+   된다"고 결론 내렸는데, 사용자가 "physical_stack_id"(실제로는 `stack_groups_
+   override`, 레이아웃 행 그룹핑 -- self-test에 이미 `"M5":["M5","M7"]`로 선언돼
+   있었음, 근거: stick_diagram.py의 `current_mirror` 신 의미)를 확인하라고 유도해
+   틀렸음이 드러났다. 결론이 뒤집혀 "L 분리"가 아니라 "L 공유 유지 + gm_id_role만
+   소자별로"(BX의 최종 해법)로 정정됨. 교훈: 이 프로젝트엔 "물리적 그룹"을 나타내는
+   필드가 하나가 아니다(`vertical_stack_id`=헤드룸 예산 축, `stack_groups_override`/
+   `derive_stack_groups()`=실제 레이아웃 행 축) -- 하나만 보고 물리적 배치를 판단하지
+   말고 둘 다 확인할 것.
+
+## BZ. 다음 세션 최우선 (세션31 진짜 최신 -- BW2/BX/BY 전체 반영, **여기부터 시작**)
+
+### ① `two_stage_ota`의 `gain_db>=60` 실제 sky130 미달성 건 (최우선, 사용자 명시 지시)
+BX가 45~50dB까지 끌어올렸지만 60dB 문턱을 못 넘었다. 다음 세션 시작 시 바로 이어서:
+- `workspaces/`에 `run_harness.py`류 실제 sky130 하네스를 만들어(현재는 self-test
+  안의 임시 스크립트로만 검증됨, `library/two_stage_ota.topology.json` 자체를 대상
+  으로 하는 정식 harness가 없음) 진짜 60dB 달성 여부를 다시 확인할 것.
+- 안 되면 다음 레버들을 순서대로 검토: (a) `stage_w_max`를 500um보다 더 키움(면적
+  비용 감수), (b) `L_candidates`를 sky130 LUT의 물리적 최대 L(1.0um)보다 더 조밀하게
+  하거나 다른 소자 K를 재검토, (c) `GBW=20MHz/CL=3pF/Z=10/NDP=4` 스펙 자체를 재검토
+  (이 스펙에서 60dB가 애초에 달성 가능한지 gm-id-methodology.md §6.4 worked example
+  ["gain 82dB"]과 재대조 -- 그 82dB는 이 프로젝트가 재현한 값이 아니라 문헌 예제
+  숫자였다는 걸 상기할 것, BX 실측과의 괴리 원인 규명 필요), (d) 60dB 목표 자체를
+  재조정(예: 실측 가능한 50dB대로 낮춤, 사용자 승인 필요).
+- self-test(`sizing_recipe.py` `__main__`)가 지금 쓰는 "gain_db 문턱만 50dB로 낮춘
+  임시 topology 복사본"은 구조 검증용으로 계속 유지해도 됨(실제 라이브러리 파일의
+  60dB와는 별개 목적) -- 실제 60dB 검증은 별도 하네스로 할 것.
+
+### ② `"balanced"` role 장기 마이그레이션 감사 (사용자 명시 지시, BX 미해결 ②와 동일)
+`current_reuse_telescopic_ota` 등이 쓰는 `"balanced"` 선언들을 감사해 `"moderate"`로
+옮길 후보를 찾을 것 -- `sky130_regression_reference.json` 골든값 재확인 필수.
+
+### ③ `nmcnr_amplifier`의 `device_roles`/`sizing_roles` 채우기 (BW2가 남긴 것)
+`_paper_target_spec`(GBW=816kHz/CL=100pF/PM_target_deg=46°)은 문서화만 됐다 --
+11개 device_roles(M101/M104-M109/M202/M203/M204/M302)와 sizing_roles(폐형식이라
+theta 자유탐색 없음, metrics/constraints만 필요)를 채워야 실제 사이징 가능.
+
+### ④ `symmetry.matching_pairs`에 M5/M7 정식 선언 여부 (BX/BY가 발견만 함)
+레이아웃 행은 이미 공유(`stack_groups_override`)하는데 formal matching_pairs 선언은
+없는 gap -- current_forced=false로 구조적 사실만 선언할지, 그대로 둘지 결정 필요.
+
+### ⑤ `folded_cascode`도 `sizing_roles` 자체가 없음 (BE③/BW2와 동일, 계속 이월)
+
+### ⑥ `run_harness.py` 나머지 실전략 / slew_rate() 연동 / SLSQP 성능 재측정 (BA④⑤/BH,
+계속 이월, 변경 없음)

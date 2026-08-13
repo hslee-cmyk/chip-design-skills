@@ -2407,7 +2407,13 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
     ⚠️ **2026-08-08 추가(사용자 지시)**: `gm_id_role_candidates` 필드로 `device_roles`
     `gm_id_role` 후보(`"balanced"`|`"matching"`)도 같이 반환한다 -- 자세한 근거는
     `_propose_gm_id_roles()` 참고(36/36 실측 일치, `headroom_role`의 `mirror`/`cascode`
-    구분과 달리 이건 구조 신호 하나로 충분히 갈렸다). `L_role_candidates` 필드로
+    구분과 달리 이건 구조 신호 하나로 충분히 갈렸다). **2026-08-13 정정(사용자 지시)**:
+    이 필드에 최종 노출되는 값은 `_propose_gm_id_roles()`의 원본(balanced/matching)이
+    아니라, `L_role_candidates`가 있는(=mirror 또는 bias_replica로 분류된) 모든 소자를
+    `"matching"`으로 덮어쓴 값이다(mirror/bias_replica 둘 다 레이아웃 매칭이 필요하므로
+    -- `"balanced"`는 W_bounds 안 아무 feasible gm/ID나 골라 매칭을 보호하지 않음).
+    `_propose_headroom_roles()`에 넘기는 원본 신호(tail 판정)는 이 덮어쓰기 이전 값을
+    그대로 쓰므로 `headroom_role_candidates`는 영향받지 않는다. `L_role_candidates` 필드로
     `L_role` 후보(`"mirror"`|`"bias_replica"`)도 반환한다 -- `_propose_L_roles()` 참고,
     `find_differential_pair_candidates()`의 차동쌍 게이트를 seed로 `find_structural_
     symmetry_candidates()`(전역 좌우 대칭, kind 보존)를 자동으로 돌려 48/51 소자의
@@ -2501,12 +2507,27 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
          if cls_before.get(net) != cls_after.get(net)),
         key=lambda r: r["net"])
 
+    # 2026-08-13 -- 사용자 지시(two_stage_ota의 M3/M4/M5/M7 L 자유도 확장 논의 계기,
+    # "mirror나 bias_replica는 매칭특성을 요구하니까" -- balanced 롤은 W_bounds 안
+    # 아무 feasible값이나 골라 매칭을 전혀 보호하지 않는 반면 matching 롤은 명시적으로
+    # strong inversion을 골라 매칭에 유리함, gm-id-methodology.md §7.1). L_role이
+    # mirror든 bias_replica든(이 함수 스코프의 모든 소자가 결국 둘 중 하나로 분류됨,
+    # `_propose_L_roles()` 참고) gm_id_role 제안값을 "matching"으로 통일한다.
+    # ⚠️ `headroom_role_candidates`는 이미 위에서 원래(balanced/matching) 신호로 계산이
+    # 끝난 뒤라 이 override와 무관하다 -- `_propose_headroom_roles()`의 "balanced"==tail
+    # 판정 로직은 원본 `gm_id_role_candidates`를 그대로 썼으므로 안 깨진다(여기서 만드는
+    # 건 최종 노출용 별도 dict일 뿐, 위 호출에 넘긴 원본은 그대로 둠).
+    gm_id_role_candidates_final = {
+        name: ("matching" if L_role_candidates and name in L_role_candidates else raw)
+        for name, raw in (gm_id_role_candidates or {}).items()
+    }
+
     return {"relations": relations, "promoted_inputs": promoted_inputs,
             "final_inputs": cur_inputs, "role_changes": role_changes,
             "net_class_changes": net_class_changes, "iterations": iterations,
             "stop_reason": stop_reason,
             "vertical_stack_id_candidates": vertical_stack_id_candidates,
-            "gm_id_role_candidates": gm_id_role_candidates,
+            "gm_id_role_candidates": gm_id_role_candidates_final,
             "L_role_candidates": L_role_candidates,
             "headroom_role_candidates": headroom_role_candidates}
 
@@ -9539,23 +9560,27 @@ if __name__ == "__main__":
 
     print()
     print("=== Test 43: refine_differential_and_mirror_relations()의")
-    print("    gm_id_role_candidates -- differential pair의 shared_source를 drain으로")
-    print("    받는 tail 소자만 balanced, 나머지 전부 matching인지(사용자 지시, 실회로")
-    print("    36/36 실측 일치가 근거) Test 35 fixture로 검증 ===")
+    print("    gm_id_role_candidates -- 2026-08-13 정정(사용자 지시, two_stage_ota L 자유도")
+    print("    확장 논의 계기) -- L_role(mirror/bias_replica) 둘 다 레이아웃 매칭이 필요하므로")
+    print("    최종 노출값은 전부 matching으로 통일됐는지(원래 tail 소자만 balanced였던 걸")
+    print("    matching으로 덮어씀), headroom_role_candidates(tail 판정)는 원본 신호를 써서")
+    print("    안 바뀌는지 Test 35 fixture로 검증 ===")
     _t43_result = refine_differential_and_mirror_relations(_t35_fixture, inputs=("Vip", "Vim"))
     assert _t43_result is not None, "analog-grammar 있는데 None 반환(회귀)"
     _t43_gmid = _t43_result["gm_id_role_candidates"]
     assert set(_t43_gmid) == {t.name for t in _t35_fixture}, \
         f"10개 소자 전부 후보를 받아야 함: {sorted(_t43_gmid)}"
-    assert _t43_gmid["M6"] == "balanced", \
-        f"M6(drain=Vx=M1a/M1b의 shared_source)는 balanced여야 함: {_t43_gmid['M6']}"
-    assert _t43_gmid["M5"] == "balanced", \
-        f"M5(drain=Vy=M4a/M4b의 shared_source)는 balanced여야 함: {_t43_gmid['M5']}"
-    _t43_matching = {"M1a", "M1b", "M2a", "M2b", "M3a", "M3b", "M4a", "M4b"}
-    assert all(_t43_gmid[n] == "matching" for n in _t43_matching), \
-        f"tail 공급 소자가 아닌 나머지는 전부 matching이어야 함: {_t43_gmid}"
-    print("    PASS: M6/M5(differential pair의 tail 전류 공급)만 balanced,")
-    print("    나머지 8개 소자는 전부 matching -- 실회로 36/36 규칙과 동일 패턴")
+    assert all(_t43_gmid[n] == "matching" for n in _t43_gmid), \
+        f"L_role(mirror/bias_replica)로 덮이는 소자는 전부 matching으로 덮어써야 함(M5/M6 " \
+        f"tail 소자 포함): {_t43_gmid}"
+    _t43_headroom = _t43_result["headroom_role_candidates"]
+    assert _t43_headroom.get("M6") == "tail" and _t43_headroom.get("M5") == "tail", \
+        (f"gm_id_role_candidates를 matching으로 덮어써도 headroom_role_candidates의 tail "
+         f"판정(원본 balanced 신호 사용)은 안 바뀌어야 함: M6={_t43_headroom.get('M6')!r}, "
+         f"M5={_t43_headroom.get('M5')!r}")
+    print("    PASS: 10개 소자 전부 gm_id_role_candidates='matching'(M5/M6 tail 소자도 포함,")
+    print("    매칭 보호가 필요하다는 사용자 판단 반영) -- 그러나 headroom_role_candidates는")
+    print("    M5/M6 둘 다 여전히 'tail'로 정확히 분류됨(내부 원본 신호는 안 바뀜)")
 
     print()
     print("  === Test 43 전체 PASS ===")

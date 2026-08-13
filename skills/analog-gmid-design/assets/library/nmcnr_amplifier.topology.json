@@ -14,6 +14,37 @@
     "notes": "gm1(stage_devices[0])=입력 차동쌍 M102/M103(둘 다 같은 gm1을 받음, diff_pair). gm2(stage_devices[1])=M201 하나뿐 -- M202/M203/M204는 전류미러+바이어스 소자일 뿐 신호를 나르는 gm2 소자가 아니다(2026-07-31 확인: 처음엔 M202를 gm2로 오인했다가 사용자가 실제 이미지로 정정 -- M201의 gate가 스테이지1 출력(M109 drain)을 직접 받고, M201의 drain이 M203(다이오드 연결)/M204 전류미러를 거쳐 스테이지2 출력(M202/M204 drain 공유 노드)으로 신호전류를 흘리는 구조). gm3(stage_devices[2])=M301(gate=스테이지2 출력)."
   },
 
+  "_paper_target_spec_comment": "2026-08-13 -- 사용자가 논문 원문 PDF(경로: G:\\내 드라이브\\work\\Todoc\\기술문서\\Gm_over_Id\\(Bible-concept) RIGHT-HALF-PLANE_ZERO_REMOVAL_TECHNIQUE.pdf)를 직접 보여줘 Table 1(p.602, 'Measured results of the NMC and NMCNR amplifier with loading condition 100pF/25kΩ')의 NMCNR 열을 그대로 옮김 -- 이 회로(topology_name=nmcnr_amplifier)가 바로 이 논문의 NMCNR(structure 4) 구현이므로 원문 인용이 곧 이 회로의 목표 스펙이다(current_reuse_telescopic_ota의 gain_db>=75.6과 같은 선례). AMS 0.8um 공정 실측치라 이 프로젝트의 sky130 재설계와 공정이 다르지만, GBW/PM/PSRR 등 topology-level 목표(폐형식 gm 방정식이나 소신호 회로해석으로 재현 가능한 값)는 그대로 목표로 채택 가능 -- 반면 Area(0.18mm²)는 공정 종속(레이아웃 밀도)이라 목표로 쓰지 않는다(참고용으로만 기록). ⚠️ 이 필드는 문서화 전용이다 -- sizing_roles/device_roles가 여전히 null(아래 TODO 그대로)이라 엔진이 이 값을 아직 읽지 않는다. 실제 harness spec dict(run_harness.py류)를 작성할 때 GBW/CL/PM_target_deg를 여기서 그대로 가져다 쓸 것.",
+  "_paper_target_spec": {
+    "loading_condition": "100pF ∥ 25kΩ (Table 1 캡션, GBW/PM/SR/Ts/PSRR 측정 조건)",
+    "compensation_parameters": {
+      "GBW_hz": 816000,
+      "CL_farad": 1.0e-10,
+      "PM_target_deg": 46.0,
+      "kg": null,
+      "_kg_comment": "논문이 kg=gm2/gm3에 수치를 안 준다(topology_library.py의 nmcnr_3stage_topology() docstring이 이미 '원문이 확정한 자유도'로 확인해둔 사실과 일치) -- 기본값 0.5(Cm2>0 조건만 만족하는 임의값) 사용 여부는 harness 작성 시 판단."
+    },
+    "performance_targets_nmcnr": {
+      "dc_gain_db": {"op": ">", "value": 100, "_comment": "NMC/NMCNR 공통(NMCNR 고유 개선 아님) -- 'DC gain of both amplifiers are greater than 100dB'"},
+      "gbw_hz": 816000,
+      "pm_deg": 46.0,
+      "slew_rate_pos_v_per_us": 0.36,
+      "slew_rate_neg_v_per_us": 0.31,
+      "settling_time_pos_us": 3.03,
+      "settling_time_neg_us": 3.04,
+      "_settling_slew_comment": "'measured at unity-feedback configuration with 0.5V step input' -- 이 프로젝트 slew_rate()(sizing_recipe.py:166)는 아직 실전선 미배선(.ai/context.md BA⑤/BE⑤ 참고, V_swing 스펙 정의 선행 필요).",
+      "psrr_pos_1khz_db": 92.61,
+      "psrr_pos_10khz_db": 75.62,
+      "psrr_neg_1khz_db": 106.44,
+      "psrr_neg_10khz_db": 84.62,
+      "power_consumption_w": 4.0e-4,
+      "_power_comment": "NMC/NMCNR 공통(400uW, 표에서 두 열이 합쳐진 셀)",
+      "supply_v": {"vdd": 1.0, "vss": -1.0, "_comment": "±1V 분할 공급 -- 이 프로젝트 엔진(headroom budget)은 net 이름을 임의 문자열로만 다루므로 rail-to-rail 총 스윙(2.0V)을 harness spec의 vdd 필드로 주면 될 것으로 보이나, 실제 검증은 harness 작성 시 필요."},
+      "area_mm2": {"value": 0.18, "_comment": "공정 종속(AMS 0.8um) -- sky130 재설계 목표로 채택하지 않음, 참고용."},
+      "process": "AMS(Austria Micro Systeme Group) 0.8um double-metal double-poly CMOS"
+    }
+  },
+
   "netlist": [
     {"name": "M101", "kind": "pmos", "source": "vdd", "drain": "NodeTail", "gate": "VB1"},
     {"name": "M102", "kind": "pmos", "source": "NodeTail", "drain": "NodeF1", "gate": "Vin_n"},
