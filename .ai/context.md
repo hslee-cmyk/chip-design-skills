@@ -7738,3 +7738,908 @@ theta 자유탐색 없음, metrics/constraints만 필요)를 채워야 실제 �
 
 ### ⑥ `run_harness.py` 나머지 실전략 / slew_rate() 연동 / SLSQP 성능 재측정 (BA④⑤/BH,
 계속 이월, 변경 없음)
+
+## CA. 세션31 계속(같은 세션, BZ① 착수 -- 사용자 지시 "①번부터 시작해줘") --
+`workspaces/two-stage-ota-report/run_harness.py` 신설(실제 sky130 LUT harness), **실측
+결과: gain_db>=60 실제 sky130으로도 미달성, 근본원인은 LUT 자체의 L 상한(1um)이지 sky130
+물리 한계가 아님(신규 발견, 사용자 결정 필요 -- 이번 세션 안에서는 미해결)**
+
+**목표**: BZ①이 지목한 대로, self-test가 toy LUT로만 검증한 `two_stage_ota`의
+`gain_db>=60`을 `library/two_stage_ota.topology.json` 원본(constraints 그대로) +
+실제 sky130 LUT(`sky130_nfet_pfet_lut_sample.npz`)로 재확인할 정식 harness를
+`current_reuse_telescopic_ota`의 `run_harness.py`와 동일 패턴으로 신설.
+
+**신설 파일**: `workspaces/two-stage-ota-report/run_harness.py`(정식 harness, spec은
+`sizing_recipe.py` self-test의 `_tso_spec`에서 GBW/CL/Z/NDP/`stage_gain_min`/
+`stack_groups_override`를 그대로 재사용하고 LUT만 toy->sky130 실측 LUT로, L_candidates/
+VDS_candidates만 `current_reuse`의 실제 harness 관례(`dense_candidates()`/
+`layout_grid_L_candidates()`, `L_GRID_STEP=5nm`)로 교체) + `diagnose_gain_sweep.py`/
+`diagnose_gain_sweep2.py`(진단 전용, gain_db constraint를 0으로 낮춘 임시 topology
+사본으로 infeasible 크래시 없이 achieved gain_db를 직접 관찰 -- `library/
+two_stage_ota.topology.json` 원본은 세 스크립트 전부 미변경).
+
+**vdd 설계 결정(harness가 새로 내린 것, topology.json엔 vdd 필드가 없음)**: LUT
+특성화 범위가 VDS 0~1.8V(sky130 nominal rail)라 `current_reuse`의 실제 harness와
+동일하게 vdd=1.8V 채택 -- gm-id-methodology.md §6.4 worked example의 1.2V 문헌값과는
+다르다(그 82dB는 이 프로젝트가 재현한 값이 아니라 문헌 수치, topology.json
+`_target_spec_comment`에 이미 기록됨). 1.8V가 헤드룸 여유를 더 준다는 점에서 60dB
+달성에 유리한 방향으로 이미 관대하게 잡은 값 -- 그런데도 미달성이었다는 게 아래 실측의
+전제.
+
+**실측 경로(값 그대로 기록)**:
+1. `run_harness.py`(`stage_w_max=200e-6`, current_reuse 실제 harness와 동일값) --
+   **infeasible**(gain_db>=60 위반). 격자 탐색이 시도한 마지막 조합(L_mirror_M3=
+   L_mirror_M5=1e-6, LUT의 L 상한)에서 gain_db=47.74dB.
+2. `stage_w_max`를 500um으로 확대(self-test의 toy LUT 대응과 동일 레버) -- 여전히
+   **infeasible**, 마지막 조합 gain_db=49.32dB(200um 대비 소폭 개선).
+3. `diagnose_gain_sweep.py`(gain_db constraint를 0으로 낮춘 진단): `stage_gain_min`
+   (M1/M2/M6 compensation 스테이지 floor)만 스윕하고 L_mirror_M3/M5는 자유 격자로
+   두면, 상위 gain_db 제약이 없어 격자 탐색이 순수 objective(전력 최소화)만 보고
+   L_mirror를 **최솟값**(1.5e-7, LUT L 하한)으로 골라 gain_db=36~38dB로 오히려
+   하락 -- L_mirror 격자 탐색이 gain_db 상위 제약 없이는 gain을 전혀 고려하지
+   않는다는 걸 재확인(1차 시도 해석의 함정: "마지막 평가 조합"이 25개 중 최댓값이라는
+   보장이 없었다는 뜻이기도 함).
+4. `diagnose_gain_sweep2.py`(L_mirror_M3/M5를 LUT L 상한 1e-6으로 **고정**, gain_db
+   제약 없이 `stage_gain_min`만 스윕 -- 위 3의 혼선을 분리한 통제 실험): `stage_w_max=
+   500e-6`에서 `stage_gain_min=30/34/38/42dB`/stage 각각 gain_db=49.32/50.25/**51.12**
+   (38dB에서 최댓값)/50.80 -- **46dB/stage부터는 `optimize_multistage()` 자체가
+   실행가능점을 못 찾아 즉시 ValueError**(L=1um 고정 상태에서 그 이상 stage_gain_min을
+   요구하면 M1/M2 또는 M6 개별 스테이지가 이 LUT L 범위 안에서 아예 만족 불가능).
+   `stage_w_max`를 1500um(3배)로 더 키워도 **동일한 46dB/stage 벽**(오히려 최댓값은
+   50.26dB로 소폭 하락, W 예산은 이 벽의 원인이 아님을 확인) -- **면적/전력 예산이
+   아니라 LUT의 L 격자 자체가 병목**임이 확정됨.
+
+**근본원인 규명(신규 발견, 이번 세션 최대 성과)**: `sky130_lut_sweep.py`(80행)의
+`L_GRID_UM = [0.15, 0.35, 0.5, 1.0]` -- 이 프로젝트가 쓰는 `sky130_nfet_pfet_lut_
+sample.npz`는 파일명 그대로 **"sample"**, L을 딱 4개 앵커점(0.15/0.35/0.5/1.0um)에서만
+ngspice로 실측한 제한된 데이터셋이다. `SemiEmpiricalGmIdLUT`는 이 4점 사이를 다중선형
+**보간**만 할 뿐 **외삽은 하지 않으므로**(클래스 docstring, 세션30 이래 프로젝트 전반의
+`L_candidates` 관례가 전제하는 바로 그 제약) L>1um은 이 LUT로는 원천적으로 평가 불가능
+-- 즉, 방금 발견한 "L=1um에서 stage gain 벽"은 **sky130 공정의 물리적 한계가 아니라
+이 특정 LUT 파일의 생성 범위 한계**다. Miller 2단 OTA에서 이득을 더 올리려면(캐스코드
+없는 단순 common-source/diode 부하 구조라 gain=gm*ro, ro∝L) 표준적으로 L을 몇 um까지
+늘리는 것도 흔한 설계 선택인데, 지금 LUT로는 그 설계공간 자체가 안 보인다.
+
+**BX의 toy LUT 결론과의 관계(중요)**: BX는 toy LUT(VA=5*L(um) 단순모델)로 "~50dB에서
+플래토"를 발견하고 "toy LUT 숫자를 설계에 쓰지 말 것" 원칙을 재확인한다고 기록했는데,
+이번 실제 sky130 LUT 실측이 **거의 같은 플래토(51.12dB)를 재현**했다 -- 그런데 이번
+근본원인 규명으로 이게 "toy LUT가 부정확해서"가 아니라 "**두 LUT 다 같은 L 상한(1um)
+근방에서 gds 곡선이 유사하게 거동해서**"였다는 게 드러났다(우연이 아니라 toy LUT의
+VA=5*L(um)도 L=1um에서 ro가 유한한 값으로 정체되는 형태라 같은 종류의 벽에 부딪힌
+것으로 보임 -- 정밀 대조는 안 했으나 플래토 위치가 거의 일치하는 게 방증). 즉 BX가
+"toy LUT 한계"로 돌렸던 원인 진단이 **부분적으로만 맞았다**(LUT가 부정확한 것도 맞지만,
+더 근본적인 원인은 두 LUT 다 공유하는 L 범위 제약이었다).
+
+**미해결(다음 세션 최우선, 사용자 결정 필요 -- 이번 세션 안에서 임의로 진행하지 않음)**:
+공유 자원(`sky130_nfet_pfet_lut_sample.npz`)을 건드리는 재생성은 `current_reuse_
+telescopic_ota`/`folded_cascode`/`nmcnr_amplifier` 등 라이브러리 전체가 쓰는 LUT라
+영향범위가 넓다(공유 엔진코드/공유자원은 사전 논의 후 진행 원칙) -- 다음 레버 중 사용자
+선택 필요:
+- (a) **LUT를 L>1um까지 확장 재생성**(`sky130_lut_sweep.py`의 `L_GRID_UM`에 앵커점
+  추가, ngspice로 재실측 -- 시간비용 있음, 라이브러리 전체 공유 자원이라 다른 3개
+  회로의 회귀값(`sky130_regression_reference.json`)에 영향 없는지 재확인 필요)가
+  근본적으로 맞는 해법으로 보이지만 비용이 크다.
+- (b) `gain_db` 목표를 실측 가능한 ~50dB대로 낮춘다(BX가 이미 toy LUT로 예견했고 이번에
+  실제 LUT로 교차검증됨 -- 문헌의 "typical 60dB"보다 다소 보수적이지만 이 정확한 스펙
+  (GBW=20MHz/CL=3pF/Z=10/NDP=4)+이 LUT 범위에서 물리적으로 확인된 상한에 맞춘 값).
+- (c) GBW/CL/Z/NDP 스펙 자체를 재검토(예: GBW를 낮추면 gm1 목표가 낮아져 같은 L에서
+  ID가 줄고 stage_w_max 여유가 생기지만, gain=gm*ro 자체는 L 상한과 무관하게 그대로
+  묶여 있어 이 레버의 효과는 제한적일 것으로 예상 -- 검증 안 됨).
+- (d) `L_mirror_M3`/`L_mirror_M5`의 `bounds` 상한 자체를 topology.json에서 1.0e-6보다
+  더 넓게 선언(예: 2e-6)해두는 안 -- 그런데 LUT가 보간 못 하는 범위라 결국 (a) 없이는
+  무의미(그대로 두면 `L_candidates`/`layout_grid_L_candidates()`가 LUT `L_grid` 밖의
+  점을 못 만들어 여전히 1um에서 막힘).
+
+**커밋 상태**: 이 절 작업분(`workspaces/two-stage-ota-report/`의 3개 스크립트 + 로그,
+`.ai/context.md` 이 절)은 아직 미커밋 -- `library/two_stage_ota.topology.json`을 포함한
+라이브러리 파일은 이번 세션에서 전혀 건드리지 않았다(진단 전용 임시 사본만 사용).
+
+## CB. 세션31 계속(같은 세션, CA 직후 -- 사용자가 (a) LUT 확장 재생성 선택) -- LUT L
+격자 확장 실행 중(진행 중, 완료 시 이 절에 결과 이어 기록할 것)
+
+**결정**: CA가 제시한 4개 레버 중 사용자가 (a)를 선택 -- `sky130_nfet_pfet_lut_sample.npz`의
+L 앵커점을 `[0.15, 0.35, 0.5, 1.0]`(기존)에서 `[0.15, 0.35, 0.5, 1.0, 1.5, 2.5, 4.0]`(신규
+3점 추가)로 확장, `sky130_lut_sweep.py`를 실제로 재실행해 ngspice로 새 앵커점만 실측.
+
+**회귀 안전성 사전 분석(실행 전 확인)**:
+- 새 앵커점은 반드시 **기존 4점 뒤에만 추가**(오름차순 유지) -- `ac_sweep_checkpoints/*_L{0..3}_
+  VS*.npz` 40개 체크포인트는 인덱스가 안 바뀌어 그대로 재사용됨(재계산 없음, 새 앵커 3개×VS
+  5개×소자 2종=30개 조합만 신규 ngspice 실행).
+- `sky130_regression_reference.json`의 유일한 자동 회귀 게이트(`nmcnr_3stage_GBW5M_CL10p_
+  PM70_kg0.5`)는 `L_candidates: "lut.L"`(raw LUT.L 배열 그대로)을 쓰는데, `objective="power"`
+  동점 tie-break가 "먼저 나온 후보 유지"(`find_optimal_sizing()` 511행)라 배열 **맨 앞**
+  원소(L=0.15um)가 여전히 이긴다 -- 골든값(`expected.stages[*].L=1.5e-7` 등)은 그대로일
+  것으로 예상(끝에만 추가했으므로 앞쪽 원소 순서 불변). 재실행 후 self-test로 실측 재확인 예정.
+- `current_reuse_telescopic_ota`의 실제 harness(`layout_grid_L_candidates(nmos, L_GRID_STEP,
+  n=41)`)는 `lut.L_grid[-1]`(상한)이 1.0um->4.0um로 바뀌어 후보 밀도가 달라진다(자동 회귀
+  게이트는 없음 -- `current_reuse_telescopic_ota.instance.json`은 이미 커밋된 정적 산출물이라
+  안 건드려지지만, 그 harness를 재실행하면 다른 결과가 나올 수 있다는 뜻). 이번 세션에서
+  재실행할 계획은 없으나, 다음에 그 harness를 다시 돌릴 일이 있으면 이 사실을 먼저 상기할 것.
+
+**실행**: `sky130_lut_sweep.py`를 백그라운드로 실행(`run_in_background`, task id `bbkmb84ea`,
+로그: `sky130_lut_sweep_extend_L.log`) -- 신규 30개 조합(기존 40개 조합 대비 약 55분의
+75%인 약 40분 예상, 스크립트 docstring의 "전체 스윕 약 55분/40조합" 실측치 기준 선형 추정).
+
+**다음 세션(또는 이 세션 완료 시) 필수 확인 순서**:
+1. `sky130_lut_sweep_extend_L.log` 끝까지 정상 종료 확인(각 조합 완료 로그 40+30=70줄,
+   마지막에 `Saved to ...npz` + `ID_n/CGG_n/...` min/max 출력).
+2. `sizing_recipe.py` self-test 재실행 -- 특히 `nmcnr_3stage_GBW5M_CL10p_PM70_kg0.5`
+   회귀 케이스가 여전히 PASS인지(사전 분석대로면 PASS 예상, 실측 필수).
+3. `workspaces/two-stage-ota-report/run_harness.py`(spec의 `L_candidates`를
+   `layout_grid_L_candidates(nmos, L_GRID_STEP, n=41)`에서 새 상한(4.0um)까지 쓰도록,
+   또는 필요시 `n`을 키워 해상도 보존)를 재실행해 `gain_db>=60` 실제 달성 여부 재확인.
+
+## CC. 세션31 계속(같은 세션, CB의 LUT 확장 백그라운드 실행 중 -- 사용자 지시 "현재
+최적화된 값으로 stick layout까지 진행, box shape로 만들 수 있는지 확인") -- **box_shape
+FAIL(max_ratio=2.36>1.5), 별개의 신규 gap도 발견(`_netlist_sections_structured` 부재)**
+
+**목적**: LUT 확장이 끝나기 전, **지금까지 실제 sky130 LUT로 확인된 최선의 achievable
+사이징**(gain_db~50~51dB대, CA 실측)으로 stick diagram/box-shape 감사까지 실제로
+완주시켜본다 -- gain_db>=60 constraint는 아직 미달성이라 `optimize_full_circuit_budget()`이
+그대로면 즉시 ValueError로 죽으므로, self-test와 동일 패턴(gain_db 문턱만 50으로 임시로
+낮춘 topology 사본, `library/two_stage_ota.topology.json` 원본은 미변경)으로 사이징을
+끝까지 통과시켰다. 신설 스크립트: `workspaces/two-stage-ota-report/check_box_shape.py`.
+
+**사이징 결과**(stage_gain_min=38dB/stage, stage_w_max=500um, grid_points_per_theta=5 --
+CA의 diagnose_gain_sweep2.py와 완전히 같은 조건은 아님, 5점 격자라 L_mirror_M3가 정확히
+1e-6이 아니라 3.6e-7로 뽑혀 gain_db=50.26(CA의 51.12와 소폭 다름, 같은 근사 범위)):
+`M1/M2`(L=0.36um,W=481.72um,gm_id=24), `M3/M4`(L=0.36um,W=5.99um,gm_id=8), `M5`(L=1.0um,
+W=15.78um,gm_id=11.5), `M6`(L=0.405um,W=498.24um,gm_id=15.5), `M7`(L=1.0um,W=199.71um,
+gm_id=14).
+
+**box_shape 감사 -- FAIL**: `max_ratio=2.364`(허용치 1.5 초과), 행 폭(finger count)
+`{'M3':12, 'M6':26, 'M1':26, 'M5':11}` -- matching-safety 자동수정(`repaired_rows`)이 이미
+개입했는데도 못 고침. **coverage는 OK**(7개 소자 전부 stick diagram 행에 배치됨, 빠진 소자
+없음). 이건 **gain_db 미달성과 별개의 독립적인 문제**다 -- M6(2단 출력, W~500um급)와
+M3/M5(1단 부하/tail, W~6~16um급)의 극단적 W 격차가 box-shape 비율을 넘는 구조인데, 이건
+`sizing_recipe.py` self-test(2026-08-05 세션10)가 toy LUT로 이미 예견하고 "L4(사이징->
+레이아웃 연결) 미설계, repair로도 못 고침"이라고 정직하게 기록해뒀던 바로 그 한계가 **실제
+sky130 LUT로도 그대로 재현**된 것이다(.ai/context.md 세션10/BF 참고). gain_db>=60이 나중에
+LUT 확장으로 달성되더라도, 이 box-shape 문제는 **별도로 안 풀린다** -- L4(assign_finger_
+geometry()가 스테이지 간 극단적 W 격차를 다루는 방법) 설계가 필요한 독립 이슈로 다음
+세션에 이월.
+
+**신규 발견(gain_db와 무관한 별개 gap)**: `library/two_stage_ota.topology.json`에
+`_netlist_sections_structured`가 없다(`current_reuse_telescopic_ota.topology.json`엔
+있음) -- `run_full_circuit_audit_from_topology()`가 이 필드를 요구해 즉시 ValueError.
+지금까지 `optimize_full_circuit_budget()`이 gain_db>=60 infeasible로 먼저 죽어서 이 단계
+까지 온 적이 없어 안 드러났던 gap -- box-shape 확인 요청 덕분에 처음 발견됨. 이 회로가
+`current_reuse`처럼 완전히 instance-ready한 리포트(design_report.py의 `assemble_report_
+data()`가 `full_circuit_audit` 결과를 필요로 함)까지 가려면 이것도 채워야 한다(오늘 범위
+밖, 이월).
+
+**PROVISIONAL 산출물**(정식 아님, gain_db=50.26<60 미달성 상태 그대로 저장 -- 라이브러리
+파일 아님, box-shape 감사 자체를 위한 임시 결과물): `workspaces/two-stage-ota-report/
+two_stage_ota.PROVISIONAL_gain51.instance.json`. HTML report는 `_netlist_sections_
+structured` gap 때문에 생성 못 함(위 참고).
+
+**다음 세션 이월 항목(CB의 LUT 확장 후속 확인 순서에 추가)**:
+4. LUT 확장 후 `gain_db>=60`이 실제로 달성되면, 그 사이징으로 box_shape 재확인할 것 --
+   이번 CC의 FAIL(max_ratio=2.36)이 이 특정 사이징 조합(M6 W~500um vs M3/M5 W~6~16um)에서
+   나온 것이라 L 상한이 넓어져 gain 달성 경로 자체가 바뀌면(예: M3/M4/M5/M7의 L이 1um보다
+   커지면 필요 W가 줄어 격차가 완화될 수도 있음, 검증 안 됨) 결과가 달라질 수 있다.
+5. box_shape 문제 자체(L4 미설계, M6 vs M3/M5 극단적 W 격차)는 gain_db 달성 여부와
+   무관하게 별도로 풀어야 함 -- `assign_finger_geometry()`/`repair_matching_safety()`가
+   스테이지 간 큰 W 격차를 다루는 방법을 설계할 것.
+6. `_netlist_sections_structured`를 `library/two_stage_ota.topology.json`에 채울 것
+   (current_reuse의 실제 구조를 참고해 이 회로의 넷리스트 실제 connectivity로 도출 --
+   topology.json이 유일한 토폴로지 소스 원칙, 추측 금지).
+
+## CD. 세션31 계속(같은 세션, CC 직후 -- 사용자 지시 "극단적인 W격자를 다루는 방법을
+설계하자" -> 여러 라운드 논의/재검토 끝에 3개의 실제 엔진 버그를 순차 발견·수정
+-- **stick_diagram.py/sizing_recipe.py self-test 둘 다 exit 0, 전수 PASS 재확인됨**,
+M6 row_split 자체는 아직 미구현(다음 세션 최우선으로 이월)**
+
+**경과 요약**(사용자와 여러 차례 정정을 주고받으며 진행됨, 재발 방지용으로 경위 그대로 기록):
+1. 처음 제안(row_split으로 M1/M6을 2행씩 쪼개면 §8.5 공식상 저비용)이 성급했음을
+   `find_diffusion_safe_split_points()`로 자체 검증하다 발견 -- 그런데 **이 검증 자체가
+   틀렸다**(사용자 지적: "M1/M2는 common centroid로 해야하고... 이미 multi행으로 할 수있는
+   함수를 만들어 놨는데... 혹시 최상위 harness에 연결 안 된건가?"). 수동으로 만든 단일행
+   합성 fixture로 테스트한 게 원인 -- 실제 harness 경로(`repair_matching_safety()`)로
+   재확인하니 M1/M2는 **이미** `common_centroid_layout()`로 자동 2행 분할되어 있고
+   common-centroid(3c)도 PASS 상태였다(`M1_repair0`/`M1_repair1`, dx=0.00). 진짜 문제는
+   매칭 파트너가 없는 **M6 단독**뿐임을 재확정.
+2. 사용자 제안으로 M6/M3/M4(같은 PMOS 그룹)를 `search_shared_finger_w()`(Case B)로 통합
+   재배분 가능한지 실측 -- **안 됨**(스냅오차 0%면 통합행폭 341~938개로 폭발, 행폭을 26
+   이하로 강제하면 M3/M4 스냅오차 247~316%로 사이징 자체가 무의미해짐, NGCC 3단 사례와
+   동일 패턴). M6 folding(별도 물리 행, 추가 contact/via)이 유일한 경로임을 사용자가 명시
+   승인.
+3. `assign_finger_geometry()`에 `row_split` 추가하려고 `save_instance_json()`의 실제
+   저장 경로를 추적하다가 **훨씬 근본적인 버그 두 개를 순차 발견**(둘 다 사용자에게 즉시
+   보고 후 "근본 수정" 지시받아 진행):
+   - **버그 A(저장 불일치)**: `optimize_full_circuit_budget()`이 `run_matching_safety_
+     with_finger_growth()`의 수리 결과(`repaired_rows`/`repaired_audit`)를
+     `pipeline_result`에 **추가만** 하고, `save_instance_json()`이 실제로 읽는
+     `pipeline_result["transistors"]`/`["box_shape"]`/`["audit_row_split"]`는 수리
+     *이전* 스냅샷 그대로 남겨뒀다 -- 최상위 반환값 `audit_ok`(=`repaired_audit.ok`)는
+     정확한데, **저장되는 instance.json은 그 정확한 상태와 불일치**했다(two_stage_ota의
+     M1/M2가 실제로는 common-centroid 2행으로 성공 수리됐는데 instance.json엔 여전히
+     1행·3c FAIL로 저장됨, 실측 확인). `sizing_recipe.py`(4232행 `optimize_full_circuit_
+     budget()`)에서 `repaired_rows`를 최종 정본으로 승격해 `transistors`/`box_shape`
+     (`check_box_shape()` 재계산)/`audit_row_split`(=`repaired_audit`)을 덮어쓰도록 수정.
+     `floorplan`/`coverage`는 정직한 한계로 갱신 대상에서 제외(floorplan 재패킹은 별도
+     비용 있는 작업, coverage는 소자 집합 자체가 안 바뀌어 갱신해도 값 불변 -- 주석으로
+     명시).
+   - **버그 B(euler 잔여문제, 훨씬 깊음)**: 버그 A를 고치자 self-test(11소자 M3a 그룹)가
+     즉시 깨졌다 -- `repair_matching_safety()`가 M4a/M4b를 3c 수리로 새 행에 빼내면서
+     **원래 행에 남은 나머지 소자들의 euler 조건(한붓그리기 가능 여부)이 깨지는 걸 아무도
+     검증/복구하지 않고 있었다**(저장 버그가 지금까지 이 사실을 가려왔을 뿐, `repair_
+     matching_safety()`가 이번에 새로 만든 버그가 아니다). 첫 시도(핑거증가->그룹분할
+     폴백, `run_topology_pipeline_with_finger_fixup()`의 euler-fixup 전략을 그대로
+     `rows` 표현에 재적용)로도 안 풀려 더 깊이 파보니, 진짜 원인은 단순 홀짝 불균형이
+     아니라 **그래프 자체가 분리된 별개 컴포넌트로 쪼개짐**이었다(M3a가 M4a와 공유하던
+     내부노드 `N3a4a`가 M4a를 빼내자 이 행 안에서 아무와도 안 이어짐 -- 홀수차수 노드가
+     우연히 정확히 2개라 겉보기엔 "거의 다 됐다"로 보이지만 실제론 disconnection이라
+     핑거증가로 절대 못 고침). **근본 수정**: `sizing_recipe.py`에 `_fixup_euler_blocked_
+     rows()` 신설 -- (1) 먼저 connectivity 기준으로 컴포넌트 분리 여부를 직접 확인(간단한
+     source/drain 그래프 BFS), 분리돼 있으면 즉시 각 컴포넌트를 별도 물리 행으로 나눔(항상
+     안전 -- 컴포넌트 사이엔 공유 엣지가 없어 crossover 배선 자체가 무의미). (2) 분리가
+     아니라 단순 홀짝 문제면 `apply_and_revalidate_pair_adjustment()`(핑거증가)를 시도하되,
+     **적용됐다고 바로 믿지 않고 실제로 euler가 풀렸는지 재확인**(적용은 gm/ID 유효성만
+     보장할 뿐 euler 완전 해결은 보장 안 함 -- 실측으로 발견: 홀수차수가 줄어도 0/2개로
+     안 떨어지고 계속 blocked로 남는 경우가 있었음). 안 풀렸으면 무한 재시도 대신 곧바로
+     `find_min_crossover_layout_with_branch_composite()`(그래프 이론상 항상 성공)로
+     그룹분할. `run_matching_safety_with_finger_growth()`의 **모든** 반환 지점(4곳)에서
+     이 정리 함수를 거치도록(`_finalize()` 로컬 클로저) 배선.
+
+**검증**: `sizing_recipe.py`/`stick_diagram.py` self-test 둘 다 재실행 -- **exit 0,
+전수 PASS**(11소자 M3a 그룹 self-test의 euler 체크 전부 True로 재확인, box-shape 비율은
+여전히 FAIL이지만 그건 이 self-test가 원래부터 검증 대상으로 삼지 않는 별개 항목).
+
+**아직 안 한 것(원래 요청, 다음 세션 최우선)**: `assign_finger_geometry()`에 `row_split`
+파라미터 자체는 **아직 구현 전**이다 -- 이번 절(CD)은 그 구현의 **전제조건**(저장 일관성,
+euler 안전망)을 먼저 다진 것. 다음 세션에서:
+1. `assign_finger_geometry()`에 `row_split: dict[stack_id, n_rows]` 추가 -- M6을 명시적으로
+   n_rows개 물리 행으로 균등 분할(folding, 추가 contact/via 비용 명시).
+2. `two_stage_ota`에 `row_split={"M6": 2}` 적용 -- 새로 고친 `_fixup_euler_blocked_rows()`
+   덕분에 이 분할이 euler를 깨더라도 자동으로 안전하게 복구되는지도 같이 확인.
+3. `check_box_shape.py`로 최종 box_shape PASS 여부 재확인.
+4. LUT 확장(CB, 백그라운드 실행) 완료 여부 확인 -- 이 세션 종료 시점에 아직 진행 중이었다
+   (PMOS L=2.5um 부근, 약 78분 경과). 완료되면 self-test 회귀(`nmcnr_3stage` 골든값) +
+   `run_harness.py` 재실행으로 `gain_db>=60` 달성 여부 확인.
+
+**커밋 상태**: `stick_diagram.py`(grid_step 옵션 2건, `check_box_shape`/`build_stick_
+diagram`/`audit_row_split` 등 import 추가는 `sizing_recipe.py` 쪽)/`sizing_recipe.py`
+(저장버그 A + euler버그 B 수정, `_fixup_euler_blocked_rows()` 신설)/`sky130_lut_sweep.py`
+(L_GRID_UM 확장)/`.ai/context.md`(CA~CD) 전부 미커밋 -- 다음 세션 시작 시 커밋 여부 확인할 것.
+
+## CE. 세션31 계속(같은 세션, CD 직후 -- 사용자 지시 "이어서 row_split 구현까지 진행해줘")
+-- **`row_split` 구현 완료, two_stage_ota box_shape 실제로 PASS 달성**(gain_db 미달성
+상태의 잠정 사이징 기준, LUT 확장 완료 후 재확인 필요)
+
+**구현**(`stick_diagram.py`): `apply_explicit_row_split(rows, row_split)` 신설 --
+`{stack_id: n_rows}`로 지정된 stack의 **소자별로 독립적으로** n_fingers를 n_rows개
+물리 행에 최대한 고르게 분배(나머지는 앞쪽부터 +1)하고 각 조각에 새 `stack_id`
+(`f"{sid}_split{i}"`)를 부여한다. `common_centroid_layout()`(매칭쌍 전용, N>=2 요구)과
+달리 매칭 무관, 단독 소자도 가능 -- 순수 면적/비율 목적이라 자동 판단 없이 **명시적
+선언**만 적용(§8.5 원칙). 단일 소자를 자기 자신과만 접으므로(2-node multigraph) euler는
+분할 후 항상 자동으로 유효(짝수 fingers=닫힌회로/홀수=열린경로, 항상 성립 -- 별도 검증
+불필요).
+
+**배선**(`sizing_recipe.py` `optimize_full_circuit_budget()`): `spec["row_split"]`이
+있으면 `run_topology_pipeline_with_finger_fixup()`/`run_topology_pipeline()` 직후,
+`repair_matching_safety()` 진입 **이전에** 즉시 적용 -- `transistors`/`box_shape`/
+`audit_row_split`을 그 자리에서 재계산해 `pipeline_result`에 반영(CD절이 고친 "저장
+불일치" 버그를 여기서 새로 만들지 않기 위해 즉시 갱신 원칙 재사용). W/ID/gm_id는 안
+바뀌므로 `sizing`/`sizing_overrides` 갱신 불필요.
+
+**적용**: `workspaces/two-stage-ota-report/check_box_shape.py`의 spec에
+`"row_split": {"M6": 2}` 추가(라이브러리 `two_stage_ota.topology.json` 원본은 미변경,
+harness spec에서만 선언).
+
+**결과(실측)**: `box_shape.ok=True, max_ratio=1.182`(행 폭 `{'M3':12, 'M6_split0':13,
+'M6_split1':13, 'M5':11, 'M1_repair0':13, 'M1_repair1':13}`) -- CC의 2.36에서 1.18로
+개선, 허용치(1.5) 이내 PASS. `audit_ok=True`(box-shape 포함 전체 audit 통과). `instance.
+json`(CD가 고친 저장 경로로 정확히 반영 확인됨)에 M6이 실제로 2개 물리 인스턴스
+(`M6_split0`/`M6_split1`, 13핑거씩)로, M1/M2도 `common_centroid_layout()`이 낸 2행
+common-centroid(`M1_repair0`=M1×7+M2×6, `M1_repair1`=M2×7+M1×6)로 정확히 저장됨.
+coverage.ok=True(7개 소자 전부 존재).
+
+**검증**: `stick_diagram.py`/`sizing_recipe.py` self-test 둘 다 재실행 -- exit 0, 전수
+PASS(회귀 없음).
+
+**⚠️ 이 결과는 gain_db=50.26(<60, 잠정) 사이징 기준이다** -- CB의 LUT 확장이 끝나 실제
+`gain_db>=60`을 달성하면 사이징 조합 자체가 바뀔 수 있어(특히 M3/M4/M5/M7의 L이 1um보다
+커지면 필요 W가 줄 수 있음, CC가 이미 지적한 그대로) box_shape를 **그 최종 사이징으로
+다시 확인**해야 한다 -- 이번 PASS가 최종 결론이 아니라 "row_split 메커니즘 자체가
+동작한다"는 검증이다.
+
+**다음 세션 최우선(갱신)**:
+1. LUT 확장(CB) 완료 확인 -- self-test 회귀(`nmcnr_3stage` 골든값) 재확인 필수.
+2. `run_harness.py`(실제 `library/two_stage_ota.topology.json`, gain_db>=60 그대로)를
+   `row_split={"M6": 2}` 포함해 재실행 -- gain_db 달성 여부 + 그 최종 사이징으로
+   box_shape PASS 여부 재확인.
+3. PASS 확인되면 `row_split={"M6": 2}`를 `library/two_stage_ota.topology.json`(또는
+   그 harness)에 정식 반영 여부 결정.
+4. `_netlist_sections_structured`를 `two_stage_ota.topology.json`에 채우는 것(CC가
+   남긴 별개 gap)은 여전히 미해결.
+
+**커밋 상태**: 이번 절(CE) 작업분(`stick_diagram.py`/`sizing_recipe.py`의 `row_split`
+구현, `workspaces/two-stage-ota-report/check_box_shape.py`, `.ai/context.md`)도 CA~CD와
+함께 전부 미커밋 -- 다음 세션 시작 시 한꺼번에 커밋 여부 확인할 것.
+
+## CF. 세션31 계속(같은 세션, LUT 확장 백그라운드 스윕 완료 후 검증 -- 자동 트리거,
+사용자 재확인 대기 없이 계획대로 진행) -- **핵심 결론: LUT L 확장(CB)은 gain_db>=60
+미달성 문제를 해결하지 못했다. 근본원인 가설(CB)이 실측으로 반증됨**
+
+**LUT 확장 완료**: `sky130_lut_sweep.py` 백그라운드 실행 총 6597초(≈110분), L 격자
+`[0.15, 0.35, 0.5, 1.0, 1.5, 2.5, 4.0]`(um)로 확장 완료. self-test 회귀 재확인 --
+`sizing_recipe.py` self-test PASS 78건(확장 전과 정확히 동일 개수), `nmcnr_3stage_
+GBW5M_CL10p_PM70_kg0.5` 골든값도 PASS(CB의 사전분석대로 앵커 끝에만 추가해 tie-break
+순서 보존됨 -- 예측이 실측으로 확인됨).
+
+**topology.json 갱신**: `library/two_stage_ota.topology.json`의 `L_mirror_M3`/`L_mirror_
+M5` theta `bounds` 상한을 `1.0e-6` -> `4.0e-6`(새 LUT 상한과 일치)로 확장 -- 이거 없이는
+LUT를 확장해도 theta 탐색 자체가 여전히 1um에서 막힌다(그리드가 넓어져도 탐색 범위 선언은
+별개).
+
+**실측 경로(값 그대로 기록, 반증 과정)**:
+1. 1차 시도(L_mirror_M3/M5를 옛 harness 그대로 `grid_points_per_theta=5`) -- `run_
+   harness.py`류로 안 돌리고 진단 스크립트로 먼저 확인. L_mirror_M3/M5를 **둘 다** 새
+   상한(4.0um)에 고정하고 `stage_gain_min`을 스윕 -- **오히려 악화**(최대 43.30dB @
+   38dB/stage, 옛 1um 상한 결과 51.12dB보다 낮음). 원인 추적: M3/M4 단독은 L=4um에서
+   실제로 gm/gds 개선 확인됨(11.56dB@0.15um -> 18.34dB@4um, LUT 직접 조회로 검증) --
+   하지만 **M5/M7이 같은 theta(L_mirror_M5)를 공유**하는데, L=4um에서 M7의 요구 W가
+   ID_density 저하로 커져 `stage_w_max=500um` 예산에 몰리면서 검색이 M7의 gm_id를
+   13.50(양호)에서 6.50(strong inversion, gds 3.6배 악화)으로 후퇴시킴(실측: gds(M7)
+   168.77uS@L=1um -> 614.85uS@L=4um) -- **L을 무조건 키우는 게 능사가 아니라, 공유
+   theta의 부작용(W 예산 경쟁)까지 봐야 한다는 걸 재확인**.
+2. L_mirror_M3/L_mirror_M5를 **독립적으로** 탐색하게 두고(`grid_points_per_theta=9`,
+   진짜 2D 격자 검색) `stage_gain_min` 스윕 -- 그런데 `gain_db` 상위 제약을 0으로
+   풀어두면 다시 순수 전력최소화가 L을 최솟값으로 끌어내려(CA에서 이미 겪은 함정 재발)
+   무의미한 결과만 나옴.
+3. **올바른 방법**: `gain_db` 제약값 자체를 45~60까지 스윕해 어디서 infeasible로
+   넘어가는지 직접 이분 탐색(`stage_gain_min`은 기본 30dB/stage 고정, L 탐색이 9x9
+   격자로 진짜 최적점을 찾게 둠) -- **gain_db>=50은 FEASIBLE(실제 50.07), gain_db>=52
+   부터 INFEASIBLE**. 즉 **진짜 2D 탐색으로도 달성 가능한 상한은 ~50~51dB로, L=1um
+   상한이던 예전(51.12dB)과 사실상 동일**(오차범위 내, 개선 없음).
+4. `stage_w_max`를 500um -> 2000um(4배, 전력비용 887uA->1870uA 감수)로 올려도 상한은
+   50.40dB로 **거의 안 움직임** -- 면적/전력 예산도 병목이 아님을 재확인(§8.5류 "행
+   개수/면적으로 해결 가능한가" 질문에 대한 답이 최종적으로 "아니오"로 확정).
+
+**결론**: `two_stage_ota`의 `gain_db>=60`은 **L 범위도 면적/전력 예산도 아닌, GBW=20MHz/
+CL=3pF/Z=10/NDP=4라는 compensation 스펙 자체**(`miller_ota_topology()`가 이 스펙으로
+정하는 gm1/gm2 절대값)와 sky130 실측 gds 특성의 조합이 만드는 근본 한계로 보인다 --
+CA/CB가 세운 "L 범위 확장이 근본 해법"이라는 가설은 **110분의 실측 투자로 반증됐다**(가설
+자체는 그 시점 증거로 합리적이었음 -- toy LUT와 real LUT가 우연히 비슷한 위치에서
+플래토를 보인 것이 L 범위 문제라는 착시를 만들었을 뿐, 진짜 원인은 처음부터 스펙
+자체였을 가능성이 높다).
+
+**box-shape는 그대로 유효**: CE의 `row_split={"M6":2}` 메커니즘 자체는 이 결론과 무관하게
+정상 작동한다(gain_db=50.07 사이징으로도 다시 확인 가능 -- 다음 세션 재확인 대상).
+
+**다음 세션 최우선(CA의 레버 메뉴로 회귀, 이제 (a)는 반증되어 제외)**:
+- (b) `gain_db` 목표를 실측 가능한 ~50dB대로 낮춘다 -- 이번 세션 최종 실측(50.07~50.40)이
+  가장 강력한 근거. 문헌 typical 60dB보다 보수적이지만 "이 정확한 스펙에서 물리적으로
+  확인된 상한"에 맞춘 값.
+- (c) GBW/CL/Z/NDP 스펙 자체를 재검토 -- 이번 세션 결론상 **가장 유망한 남은 레버**.
+  예: GBW를 낮추면 gm1/gm2 절대 목표가 낮아져 같은 L/W에서 ID가 줄고, 그러면 같은
+  gm_id에서도 gds가 좋아지는 효과가 있을 수 있다(검증 안 됨, 다음 세션 실측 필요) --
+  또는 Z/NDP 비율 조정으로 두 스테이지 간 이득 배분을 재조정.
+- LUT는 이제 L=4um까지 확장된 상태로 유지(다른 3개 회로 self-test 회귀 없음 확인됨,
+  되돌릴 이유 없음) -- `L_mirror_M3`/`L_mirror_M5` bounds도 4.0e-6로 유지.
+
+**커밋 상태**: 이 절(CF) 작업분(`sky130_nfet_pfet_lut_sample.npz`(바이너리, LUT 확장
+결과물)/`library/two_stage_ota.topology.json`(bounds 확장)/`.ai/context.md`) 포함
+CA~CF 전부 미커밋 -- 다음 세션 시작 시 한꺼번에 커밋 여부 확인할 것.
+
+## CG. 세션31 계속(같은 세션, CF 직후 -- 사용자 질문 "M5/M7이 같은 theta를 공유한다는 게
+무슨뜻이야?"에 답한 뒤, 사용자 지시 "M5/M7을 다른 row로 분리하면 어떻게 되는지 확인해줘.
+스펙meet하는지와 layout까지") -- **진단 스크립트로만 검증(topology.json/harness 실 파일은
+미변경), 결론: gain_db는 ~1dB만 개선(50→51.1), 여전히 60 미달성 -- layout은 오히려
+악화되고, 되돌리려면 소자 4개를 접어야(row_split) 함 -- 순수 트레이드오프 확인용**
+
+**실험 설계**: `library/two_stage_ota.topology.json`을 건드리지 않고 임시 사본에서만
+`L_mirror_M5`(devices=[M5,M7], 공유 theta 1개)를 독립 theta 2개로 쪼갰다 -- `L_M5`
+(devices=[M5], gm_id_role="moderate")/`L_M7`(devices=[M7], gm_id_role="gain"), 둘 다
+bounds=[1.5e-7, 4.0e-6]. `stack_groups_override`도 `"M5":["M5","M7"]`(강제 합행) 대신
+`"M5":["M5"]`/`"M7":["M7"]`(독립 stack)로 분리.
+
+**① 스펙(gain_db) 재확인**(gain_db 임계값 45~60 스윕, `grid_points_per_theta=7`, 이제
+자유 theta가 3개(L_mirror_M3/L_M5/L_M7)라 7^3=343 격자 -- 여전히 10초 내외로 저렴):
+`gain_db>=50` FEASIBLE(실제 51.14), `gain_db>=52`부터 INFEASIBLE. **CF의 공유-theta
+결과(50.07~50.40)보다 약 1dB 개선됐지만(51.14), 여전히 60에는 한참 못 미치고 52부터
+막힌다** -- M5/M7 공유가 병목의 일부였던 건 맞지만(예상대로 L_M5가 최솟값 0.15um으로
+내려가 M5는 아예 짧게, L_M7=0.79um으로 M7만 따로 최적화됨), 그 기여가 겨우 ~1dB라 CF의
+핵심 결론(진짜 병목은 GBW/Z/NDP 스펙 자체)은 바뀌지 않는다.
+
+**② layout(box-shape) 재확인**: 위 sizing(gain_db=51.14) 그대로 `row_split={"M6":2}`만
+적용해 box_shape를 다시 돌리면 -- **오히려 악화**됐다: `max_ratio=2.0`(FAIL, CE의
+1.18/PASS보다 나쁨). 원인: M5/M7이 분리되며 각자 독립 Case A stack이 됐는데, seed-cascade
+알고리즘이 M3/M5/M7을 전부 24핑거로 맞추면서(M6_split/M1_repair는 12핑거) 새로운 2:1
+불균형이 생겼다 -- **공유 theta였을 때 우연히 두 그룹의 총 W가 비슷해 행폭이 잘 맞았던
+게, 분리되며 깨진 것**(의도한 개선이 아니라 부수효과). `row_split`을 M3/M5/M6/M7
+**4개 stack 전부**에 적용(각 2행씩 folding)하면 `max_ratio=1.0`(완벽 PASS)까지 회복
+되지만, 그러려면 **소자 4개**를 접어야 한다(CE에서는 M6 하나만 접으면 됐음) -- 추가
+contact/via 비용이 그만큼 커진다.
+
+**결론(트레이드오프 명확화)**:
+| 구성 | gain_db 상한 | box_shape | folding 필요 소자 |
+|---|---|---|---|
+| M5/M7 공유(CE/CF 그대로) | ~50.1~50.4 | 1.18(PASS) | M6 1개 |
+| M5/M7 분리, M6만 folding | ~51.1 | 2.0(FAIL) | M6 1개(불충분) |
+| M5/M7 분리, M3/M5/M6/M7 전부 folding | ~51.1 | 1.0(PASS) | 4개 |
+
+M5/M7 분리는 gain_db를 ~1dB 개선하지만(여전히 60 미달성) layout 비용을 4배로 늘린다 --
+**이 트레이드오프가 그럴 가치가 있는지는 사용자 판단 필요**(1dB가 최종 스펙 결정에
+의미 있는 여유인지, 아니면 애초에 CF 결론대로 스펙 자체를 재검토하는 게 더 근본적인지).
+
+**커밋 상태**: 이번 절(CG)은 **진단 전용**(임시 topology 사본만 사용) -- `library/
+two_stage_ota.topology.json`/harness 파일 전부 미변경. `.ai/context.md`(CG)만 갱신,
+CA~CG 전부 미커밋 상태 유지.
+
+## CH. 세션31 계속(같은 세션, CG 직후 -- 사용자 지시 "folding해서 끝까지 가보자. 이건
+지난번 수정한 함수로 해볼 수 있는거지?") -- **CG가 진단 사본으로만 확인했던 조합(M5/M7
+theta 분리 + 4개 소자 folding)을 실제 library/two_stage_ota.topology.json 변경으로
+끝까지 실행 -- gain_db=51.14, box_shape.ok=True(max_ratio=1.00, 완벽), audit_ok=True**
+
+**확인 답변**: 네, CD~CE에서 만든 `apply_explicit_row_split()`(stick_diagram.py) +
+`optimize_full_circuit_budget()`의 `spec["row_split"]` 배선(sizing_recipe.py)을 그대로
+재사용— 새 엔진 코드 불필요, M3/M5/M6/M7 4개에 `row_split`을 지정하기만 하면 된다.
+
+**실제 변경(library/two_stage_ota.topology.json)**:
+1. `sizing_roles.theta`의 `L_mirror_M5`(devices=[M5,M7], 공유 theta 1개)를 독립 theta
+   2개로 분리: `L_M5`(devices=[M5], gm_id_role="moderate")/`L_M7`(devices=[M7],
+   gm_id_role="gain"), 둘 다 bounds=[1.5e-7, 4.0e-6]. 각 theta의 `_comment`에 "왜
+   전에는 공유했다가(같은 행=같은 L 요구) 이번에 분리했는지(row_split으로 물리적 folding이
+   가능해져 그 전제가 깨짐)"를 경위 그대로 남김(재발 방지, 이전 결정 경위도 보존).
+2. `constraints`의 `gain_db>=60`은 **미변경**(달성 여부와 무관하게 목표로 유지 -- CF/CG의
+   교훈: 목표를 몰래 낮추지 않는다).
+
+**self-test 동기화**(`sizing_recipe.py` `_tso_spec`): `stack_groups_override`를
+`"M5":["M5","M7"]`(공유 행) -> `"M5":["M5"],"M7":["M7"]`(독립)로 갱신 -- L이 이제
+서로 달라질 수 있어(L_M5≠L_M7) 한 물리 행에 억지로 묶으면 실제로 그릴 수 없는 조합이
+된다. self-test는 `box_shape.ok`를 하드 assert하지 않으므로(원래도 그랬음, L4 미설계로
+알려진 한계) `row_split` 없이도 통과.
+
+**신설 harness**: `workspaces/two-stage-ota-report/check_box_shape_M5M7split.py` --
+gain_db 문턱만 51.0(CG 실측 상한 51.14보다 살짝 낮은 안전값)으로 낮춘 임시 사본 사용(원본
+60은 미변경), `stack_groups_override`(M5/M7 독립) + `row_split={"M3":2,"M5":2,"M6":2,
+"M7":2}`(4개 전부 2행 folding) 적용, `grid_points_per_theta=7`(자유 theta 3개 -- L_mirror_
+M3/L_M5/L_M7 -- 7^3=343 격자, 실측 몇 초 내).
+
+**결과(실측, CG의 진단 사본 결과와 정확히 일치 -- 이번엔 실제 라이브러리 파일 기준)**:
+- `theta_star`: `L_mirror_M3=2.715um, L_M5=0.15um(하한), L_M7=0.79um`
+- `gain_db=51.14`(<60, 여전히 미달성 -- CF/CG 결론 그대로, 이건 folding으로 해결되는
+  문제가 아니다), `audit_ok=True`
+- `box_shape.ok=True, max_ratio=1.00`(완벽) -- 행 폭 전부 12(`M3_split0/1`, `M5_split0/1`,
+  `M6_split0/1`, `M7_split0/1`, `M1_repair0/1` 10개 행 전부 12핑거)
+- `coverage.ok=True`(7개 소자 전부 존재)
+- `instance.json` 저장분 확인: M3/M4/M5/M6/M7 각각 실제로 2개 물리 인스턴스(`_split0`/
+  `_split1`, 각 6~12핑거)로, M1/M2는 여전히 `common_centroid_layout()`의 2행
+  common-centroid(`M1_repair0/1`)로 정확히 저장됨.
+
+**검증**: `sizing_recipe.py`/`stick_diagram.py` self-test 둘 다 재실행 -- exit 0, 전수
+PASS(회귀 없음, `two_stage_ota` self-test 블록도 정상 -- box_shape.ok=False는 여전히
+출력되는데 이건 self-test 자체가 `row_split` 없이 도는 것뿐이라 예상된 결과, L4 미설계
+한계 그대로).
+
+**최종 결론(gain_db>=60 노력 전체 요약, CA~CH)**: 이번 세션에서 시도한 모든 레버
+(LUT L 범위 1um->4um 확장, M5/M7 theta 분리, 면적예산 500um->2000um, box-shape
+folding)가 각자 목적은 달성했지만(LUT 확장은 회귀 없이 완료, folding은 box-shape를
+완벽하게 풀었다) **gain_db>=60 자체는 어느 조합으로도 달성되지 않았다** -- 실측 상한은
+일관되게 ~50~51dB 근방에 수렴한다(50.07 -> 50.40(면적 4배) -> 51.14(M5/M7 분리) 순으로
+미세하게만 개선). 이건 이제 "탐색/레이아웃 메커니즘의 한계"가 아니라 **GBW=20MHz/
+CL=3pF/Z=10/NDP=4 compensation 스펙 자체가 sky130 실측 물성과 만나 만드는 물리적
+상한**이라는 결론이 여러 독립적 레버로 반증 시도를 거치며 강하게 뒷받침됐다.
+
+**다음 세션 최우선(변경 없음, CF/CG 레버 메뉴 유지)**:
+- (b) `gain_db` 목표를 실측 상한(~51dB)에 맞게 낮춘다 -- 가장 근거가 탄탄한 선택지.
+- (c) GBW/CL/Z/NDP 스펙 자체를 재검토(Z/NDP 비율 조정으로 두 스테이지 이득 배분 재조정
+  등) -- 아직 미탐색, 다음으로 유망한 레버.
+- box_shape/row_split 메커니즘 자체는 이제 검증 완료된 도구로 확정 -- 목표 gain_db가
+  최종 확정되면 그 사이징으로 다시 한번 최종 확인만 하면 된다(메커니즘 재검증 불필요).
+- `_netlist_sections_structured`(CC가 남긴 별개 gap)는 여전히 미해결.
+
+**커밋 상태**: `library/two_stage_ota.topology.json`(theta 분리)/`sizing_recipe.py`
+(self-test stack_groups_override 동기화)/`workspaces/two-stage-ota-report/check_box_
+shape_M5M7split.py`(신설)/`.ai/context.md`(CH) 포함 CA~CH 전부 미커밋 -- 다음 세션
+시작 시 한꺼번에 커밋 여부 확인할 것.
+
+## CI. 세션31 계속(같은 세션, CH 직후 -- 사용자 질문 "L이 늘어나도 finger수만 같으면
+row의 폭은 같나?") -- **신규 발견(기록만, 미수정): `check_box_shape()`의 "row width"는
+순수 finger 개수(n_fingers)일 뿐 `finger_w`를 전혀 반영하지 않는다 -- CH의
+"box_shape.ok=True, max_ratio=1.00"는 실제 물리적 정사각형을 보장하지 않는다**
+
+**실측**(CH가 저장한 `two_stage_ota.PROVISIONAL_gain51_M5M7split.instance.json`의
+실제 `finger_w`/`n_fingers`를 곱해 물리적 행 길이를 직접 계산):
+
+| 행 | n_fingers | finger_w | 실제 물리적 행 길이 |
+|---|---|---|---|
+| M5_split0/1 | 12 | 0.22um | **2.63um** |
+| M3_split0/1 | 6 | 3.83um | 22.97um |
+| M7_split0/1 | 12 | 8.28um | 99.31um |
+| M1_repair0/1 | 6 | 39.84um | 239.03um |
+| M6_split0/1 | 12 | 20.52um | 246.24um |
+
+**핑거 개수는 전부 6~12로 균일한데(그래서 `check_box_shape()`가 ratio=1.00 PASS로
+판정) 실제 물리적 행 길이는 2.63um~246.24um로 94배 차이난다.** 원인: `run_topology_
+pipeline()`의 `row_widths = {name: sum(t.n_fingers for t in devs) ...}`(stick_
+diagram.py) -- **`finger_w`를 전혀 곱하지 않는다**. `FloorplanBlock`(같은 파일,
+`block_from_row_widths()`) 역시 자기 docstring에 이미 명시: "width/height는 절대
+물리 치수가 아니라 **비율 프록시**(finger 개수/행 개수 기반)" -- 이건 이번에 발견한
+버그가 아니라 이 skill 전체의 **기존에 문서화된 설계 한계**다. L에 대한 원래 질문의
+답: L은 이 모델의 어느 축(width=finger개수, height=행개수)에도 전혀 반영되지 않는다
+-- 실제 레이아웃에서 L이 커지면 세로(게이트 길이 방향) 치수가 커지는데, 이 skill의
+box-shape 체크는 그 축 자체를 측정하지 않는다.
+
+**왜 지금 처음 눈에 띄었나**: 지금까지 이 프로젝트의 다른 회로/사례들은 finger_w가
+같은 자릿수 범위 안에 있어서(예: current_reuse류) "finger 개수 균형 ≈ 물리적 길이
+균형"이 우연히 성립했다 -- `two_stage_ota`의 M6(구조적으로 큰 stage2 출력 소자)과
+M5(구조적으로 작은 tail 소자)처럼 W가 94배 벌어지는 극단적 스펙트럼에서 처음으로
+이 근사가 완전히 깨지는 사례가 나온 것.
+
+**미해결(사용자 지시로 지금은 기록만, 수정 보류)**: `check_box_shape()`/
+`block_from_row_widths()`가 `n_fingers` 대신 `n_fingers * finger_w`(실제 물리
+길이)로 비교하도록 고치는 게 근본 수정 방향으로 보이나, 이건 라이브러리 전체
+(4개 회로 공유)가 쓰는 핵심 게이트라 사전 논의·회귀 검증 없이 손대지 않는다 -- 다음에
+box-shape 정확도를 다시 다룰 때 최우선으로 검토할 것.
+
+## CJ. 세션31 계속(같은 세션, CI 직후 -- 사용자 지시 "일단 기록만 해두고 (c) 스펙
+재검토로 넘어가자") -- (c) GBW/CL/Z/NDP 스펙 재검토 착수, 진행 중
+
+**방향 설정**: `miller_ota_topology(GBW, CL, Z, NDP)`(topology_library.py) 원문 확인 --
+`wT=2π·GBW`, `Cm=(NDP/Z)·(C1+C2+sqrt((C1+C2)²+4·C1·C2·Z/NDP))`, `gm1=wT·Cm`,
+`gm2=Z·gm1` -- **gm1/gm2는 GBW/CL/Z/NDP 네 값만으로 완전히 결정**(자유도 없음).
+
+**가설**: gain_db(stage) ≈ 20·log10((gm/ID)·VA(L))에 가깝다(gm-id-methodology.md
+핵심식) -- VA(L)은 전류 절대량과 거의 무관하게 L에만 의존하는 경향(단순모델 근사).
+GBW를 낮추면 gm1/gm2 절대값이 비례해서 낮아지고, 같은 gm_id(gm/ID)를 쓴다면 ID도
+비례해서 낮아진다(ID=gm/gm_id) -- ID가 낮아지면 같은 L에서 필요한 W(=ID/ID_density)도
+줄어들어, `stage_w_max`/`W_bounds` 예산에 덜 몰리면서 **더 큰 L(현재 4um 상한까지)을
+예산 초과 없이 쓸 여유가 생길 수 있다** -- CF/CG가 이미 확인한 "면적을 늘려도 안 됐다"는
+반증과는 다른 메커니즘(면적을 "더 주는" 게 아니라 "덜 필요하게" 만드는 것). 검증 필요
+(다음 스텝).
+
+**실측(가설 확인됨)**: GBW 임계값 이분탐색(gain_db>=60 기준, Z=10/NDP=4 고정) --
+20MHz/15MHz/10MHz/5MHz 전부 INFEASIBLE, **2.5MHz부터 FEASIBLE**(실제 60.15dB,
+power=90uA, mismatch=0.535mV). 정밀 경계: 3.0MHz INFEASIBLE, 2.5MHz FEASIBLE -- **GBW
+임계값은 2.5~3.0MHz 사이**. 가설 그대로 GBW를 낮추면 gain_db>=60이 실제로 열린다 --
+**게다가 전력도 오히려 10배 가까이 줄어든다**(887uA->90uA). CF/CG(면적 레버)와
+근본적으로 다른, **처음으로 실효성이 확인된 레버**.
+
+## CK. 세션31 계속(같은 세션, CJ 직후 -- 사용자 질문 "Z는 물리적으로 어디까지 줄일 수
+있어?") -- Z를 낮춰 GBW 여유를 더 벌 수 있는지 검증, **결론: Z는 부차적 레버(최대
++20%만 개선), GBW가 압도적으로 지배적인 변수**
+
+**PM(Z,NDP) 근사식 유도**(gm-id-methodology.md §6.4 원문 pole/zero 정의로 직접 유도,
+Z=10/NDP=4의 문서 명시값 "PM≈70°"로 검증): `PM ≈ 90° - arctan(1/NDP) - arctan(1/Z)`.
+Z=10,NDP=4 대입 -> 70.25°(문서값과 일치, 공식 검증됨). NDP=4 고정 시 PM=60°(이 프로젝트가
+NMCNR 3단에서 이미 쓰는 안정성 하한, `nmcnr_3stage_topology()`의 하드 제약과 동일 기준)를
+만족하는 **Z의 실용적 하한 ≈ 3.5**(절대적 물리 하한은 Z>1이지만 PM->0°에 가까워져 무의미).
+
+**실측**(Z=10/7/5/3.5 × GBW 스윕, gain_db>=60 기준 feasibility): GBW 상한이 Z=10일 때
+2.5MHz, Z=7/5/3.5일 때 3.0MHz로 **딱 20%만 개선되고 그 이상은 전혀 안 움직인다**(Z=7/5
+둘 다 3.5MHz부터 다시 INFEASIBLE). 전력은 오히려 Z를 낮출수록 소폭 증가(90->125uA).
+**결론: Z는 GBW 병목을 거의 해소하지 못한다** -- 진짜 지배 변수는 GBW 하나.
+
+## CL. 세션31 계속(같은 세션, CK 직후 -- 사용자 지시 "GBW와 gain의 최적점을 찾아봐") --
+**GBW 20MHz~1MHz 전 구간 정밀 스윕으로 "무릎(knee)" 곡선 확인, 사용자가 GBW=7MHz에서
+최종 타협 결정**
+
+**실측**(각 GBW에서 이분탐색으로 achievable 최대 gain_db 확인, Z=10/NDP=4 고정):
+
+| GBW(MHz) | 최대 gain_db | power(uA) |
+|---|---|---|
+| 20.0(원 스펙) | 51.14 | 886.73 |
+| 15.0 | 52.51 | 688.38 |
+| 10.0 | 55.90 | 457.96 |
+| 7.0 | 57.53 | 291.27 |
+| 5.0 | 58.94 | 195.67 |
+| 4.0 | 59.93 | 156.40 |
+| 2.5 | 60.55 | 90.15 |
+| 2.0 | 60.54 | 70.42 |
+| 1.5 | 61.11 | 53.53 |
+| 1.0 | 62.00 | 33.01 |
+
+뚜렷한 수확체감 곡선 -- 20→10MHz(절반)만 줄여도 +4.76dB인데, 10→5MHz는 +3.04dB,
+5→2.5MHz는 겨우 +1.61dB. "무릎"은 10MHz 직후~7MHz 부근. **사용자가 이 무릎 지점에서
+최종 타협 결정: GBW=7MHz**(gain_db≈57.5dB, power≈291uA).
+
+## CM. 세션31 계속(같은 세션, CL 직후 -- 사용자 지시로 GBW=7MHz 확정 실행 도중, "M5/M7은
+다시 같은 row로 해줘"로 CH의 theta 분리를 원복) -- **GBW=7MHz + M5/M7 공유 theta(원복) +
+M6만 row_split으로 최종 완주. `library/two_stage_ota.topology.json`에 정식 반영,
+self-test 회귀 없음 재확인**
+
+**M5/M7 원복 이유**: CH에서 시도한 M5/M7 theta 분리는 +1dB(gain_db 50.1→51.1) 대가로
+folding 소자를 1개(M6)에서 4개(M3/M5/M6/M7)로 늘려야 했다 -- GBW=7MHz 레버가 gain_db를
+이미 57.5dB까지 훨씬 크게 끌어올린 상황에서는 그 +1dB가 4배 folding 비용에 안 맞는다고
+판단, 사용자 지시로 `L_mirror_M5`(devices=[M5,M7], 공유 theta) + `stack_groups_
+override`(M5+M7 한 행)로 원복.
+
+**topology.json 정식 반영**(`library/two_stage_ota.topology.json`):
+1. `sizing_roles.theta`: `L_M5`/`L_M7`(CH가 만든 독립 theta 2개) 삭제, `L_mirror_M5`
+   (devices=[M5,M7], gm_id_role={"M5":"moderate","M7":"gain"}) 원복 -- 각 theta의
+   `_comment`에 CH->CJ 왕복 경위를 그대로 기록(재발 방지).
+2. `sizing_roles.constraints`의 `gain_db>=60` -> **`gain_db>=57`**(GBW=7MHz 실측
+   57.55dB에 작은 여유를 둔 값, 원 60dB 목표는 sky130 실측으로 물리적 달성 불가 확정됨).
+3. `_target_spec_comment`에 (3)번 항목 추가 -- GBW 20MHz->7MHz 확정 경위(CA~CL 요약,
+   GBW 스윕 표, 사용자의 "무릎 지점" 결정) 전체 기록.
+4. `sizing_recipe.py`의 self-test `_tso_spec.stack_groups_override`도 동일하게 원복
+   (M5/M7 공유 행).
+
+**신설/갱신**: `workspaces/two-stage-ota-report/run_harness.py`를 최종본으로 전면
+재작성 -- **더 이상 gain_db 문턱을 임시로 낮춘 사본이 필요 없다**(topology.json 자체의
+`gain_db>=57`이 이제 실제 달성 가능한 정식 목표이므로 원본을 그대로 사용). `GBW=7e6`,
+`stack_groups_override`(M5/M7 공유), `row_split={"M6":2}`, `grid_points_per_theta=7`
+(L 범위가 4um로 넓어져 5점은 너무 성김, CF/CG 실측으로 확인된 값).
+
+**최종 실행 결과**(실제 `library/two_stage_ota.topology.json` 기준, 더 이상 PROVISIONAL
+아님):
+- `gain_db=57.55`(constraint `>=57` 만족), `mismatch_sigma_mV=0.44`(`<=5.0` 만족)
+- `power_uA=291.27`(원 스펙 대비 -67%)
+- `audit_ok=True`
+- `box_shape.ok=True, max_ratio=1.20`(행 폭 `{'M3':10,'M6_split0':12,'M6_split1':12,
+  'M5':10,'M1_repair0':12,'M1_repair1':12}`) -- M6만 folding, M5/M7은 공유 행 그대로
+- `coverage.ok=True`
+- `instance.json` 저장: `workspaces/two-stage-ota-report/two_stage_ota.instance.json`
+  (정식 파일명, PROVISIONAL 접미사 없음)
+- `report.html`은 여전히 생략(`_netlist_sections_structured` gap, CC가 남긴 별개
+  미해결 항목 -- box-shape/사이징 결과와 무관)
+
+**검증**: `sizing_recipe.py`/`stick_diagram.py` self-test 둘 다 재실행 -- exit 0,
+전수 PASS(topology.json 되돌리기 과정에서 JSON 트레일링 콤마 오류가 한 번 났었으나
+즉시 발견·수정, 최종적으로 유효 JSON 확인 완료).
+
+**세션31 two_stage_ota 작업 최종 상태(BZ①~CM 전체 요약)**: gain_db>=60(문헌 typical
+목표)은 sky130 실측으로 달성 불가능함이 확정됐고, GBW를 20MHz->7MHz로 낮추는 스펙
+변경(사용자 승인)으로 gain_db=57.55dB/전력 -67%를 달성했다. box-shape는 M6 단독
+folding(`row_split`)으로 PASS(1.20). 남은 미해결 gap: `_netlist_sections_structured`
+(CC, HTML 리포트 생성 차단), `check_box_shape()`가 `finger_w`를 반영 안 하는 물리적
+부정확성(CI, 기록만 하고 수정 보류).
+
+**커밋 상태**: `library/two_stage_ota.topology.json`(theta 원복+gain_db 57+
+_target_spec_comment 갱신)/`sizing_recipe.py`(self-test stack_groups_override 원복)/
+`workspaces/two-stage-ota-report/run_harness.py`(최종본 전면 재작성)/`.ai/context.md`
+(CJ~CM) 포함 CA~CM 전부 미커밋 -- 다음 세션 시작 시 한꺼번에 커밋 여부 확인할 것.
+
+## CN. 세션31 계속(같은 세션, CM 직후 -- 사용자 지시 "_netlist_sections gap을 수정해줘")
+-- **CC가 남긴 마지막 gap 완전 해소. 부수적으로 발견한 별개 버그(design_report.py)도
+같이 수정. 실제 브라우저로 report.html 렌더링까지 확인 완료**
+
+**1) `_netlist_sections_structured` 추가**(`library/two_stage_ota.topology.json`):
+current_reuse_telescopic_ota와 동일 스키마(`_netlist_sections`(prose) + `_netlist_
+sections_structured`(dict) + 설명 comment)로 신설 -- **새 판단 없이** 이 파일이 이미
+선언한 두 필드를 그대로 재표현: `compensation.stage_devices`(`[["M1","M2"],["M6"]]`)가
+M1/M2=1단, M6=2단으로, `device_roles.vertical_stack_id`가 M3/M4/M5="stage1", M7=
+"stage2"로 이미 확정해뒀다 -- 합치면 `stage1`={M1,M2,M3,M4,M5}, `stage2`={M6,M7}로
+7개 소자 전수 커버(confidence 둘 다 HIGH, 논문 Figure 해석이 필요 없는 경우라 current_
+reuse의 MEDIUM/LOW보다 높음).
+
+**2) 이 필드를 추가하자 즉시 드러난 2차 gap -- `symmetry.dispositions`**: `run_full_
+circuit_audit_from_topology()`의 체크 "3. every matching/hub-merge candidate has a
+recorded disposition"이 6개 후보(전수, connectivity로 직접 확인)를 미판정으로 잡아냈다
+-- current_reuse의 실제 판정 사례(카테고리 어휘: `real_match`/`false_positive_shared_
+supply_rail`/`false_positive_consumer_reads_bias` 등)를 정본으로 재사용해 전수 판정:
+- `hub_merge/pmos/vdd`(M3,M4,M6) -> `false_positive_shared_supply_rail`(전원 레일
+  공유는 매칭 신호 아님, current_reuse와 동일 사유)
+- `hub_merge/nmos/CS`(M1,M2) -> `real_match`(matching_pairs의 diff pair 그 자체)
+- `hub_merge/nmos/gnd`(M5,M7) -> `false_positive_shared_supply_rail`(동일 사유)
+- `current_mirror/pmos/D3`(M3,M4) -> `real_match`(matching_pairs의 diode+mirror
+  그 자체)
+- `current_mirror/nmos/bias`(M5,M7) -> `false_positive_consumer_reads_bias`('bias'는
+  이 골격 netlist 안에서 생성 안 되는 순수 외부 참조 노드, M5/M7은 서로 다른 독립
+  전류원이 그 레퍼런스를 읽는 것뿐 -- compensation.notes가 이미 명시한 사실의 재확인)
+- `diff_pair/nmos/CS`(M1,M2) -> `real_match`(위 hub_merge/CS와 같은 실체, 다른
+  후보발견 규칙으로 중복 검출된 것)
+
+`run_full_circuit_audit_from_topology()` 재실행 -- **`ok=True`, 3개 체크 전부 PASS**.
+
+**3) `run_harness.py` 재실행 중 세 번째(별개) 버그 발견·수정 -- `design_report.py`**:
+`render_html_report()`의 box_shape 처리 블록이 `bs`(단일 `BoxShapeVerdict`를 dict화한
+것, cell_groups 안 쓰는 회로)를 "여러 cell의 {cell명:verdict} 모음"으로 잘못 판정해
+`dict(cell=k, **v)`가 `v`(bool/str 값)에 `**`를 시도하며 `TypeError`. 바로 아래
+`audit_row_split` 블록이 이미 쓰던 올바른 판별 기준(`"ok" not in ars`)을 box_shape
+블록에도 동일하게 적용해 수정 -- 이것도 지금까지 `_netlist_sections_structured` gap이
+`full_circuit_audit`을 먼저 죽여서 이 코드 경로 자체가 한 번도 실행된 적 없어 숨어있던
+버그(current_reuse는 cell_groups를 쓰는지 여부와 무관하게, box_shape가 단일
+BoxShapeVerdict인 회로가 지금까지 report.html까지 완주한 적이 없었다는 뜻).
+
+**검증**: `sizing_recipe.py`/`stick_diagram.py`/`design_report.py` self-test 전부
+재실행 -- exit 0, 전수 PASS(design_report.py 자체 self-test 4건도 PASS, box_shape
+단일-dict 경로가 그 self-test의 실제 데이터로는 우연히 안 걸렸던 것으로 보임 -- 이번
+실측이 최초로 이 경로를 노출시킴). `run_harness.py` 재실행 -- **`report.html`까지
+완전히 생성됨**(이전엔 `full_circuit_audit` 실패로 생략됐었음).
+
+**브라우저 확인**: `file://`가 확장 권한 문제로 막혀 로컬 HTTP 서버(`python -m
+http.server 8791`)로 우회, claude-in-chrome으로 실제 렌더링 스크린샷 확인 -- §1
+Topology/§2 Sizing/§3 Box-shape(방금 고친 부분, 단일 판정 테이블로 정상 렌더링,
+ok=True/ratio=1.20)/§4 audit_row_split/§5 coverage/§6 run_full_circuit_audit(3개
+체크 전부 PASS)/§7 floorplan까지 전부 정상 표시 확인. 확인 후 탭/서버 정리 완료.
+
+**세션31 two_stage_ota 작업 최종 상태(BZ①~CN, 사실상 완결)**: gain_db(60->57, GBW
+20->7MHz로 물리적 한계 우회)/box-shape(M6 row_split)/audit(_netlist_sections_
+structured+dispositions) 3대 gap 전부 해소, self-test 전수 PASS, 실제 harness가
+instance.json+report.html까지 끝까지 완주. 남은 항목은 CI가 기록한(수정 보류)
+`check_box_shape()`의 finger_w 미반영 부정확성뿐.
+
+**커밋 상태**: `library/two_stage_ota.topology.json`(_netlist_sections_structured+
+dispositions 추가)/`design_report.py`(box_shape 단일/다중 판별 버그 수정)/`.ai/
+context.md`(CN) 포함 CA~CN 전부 미커밋 -- 다음 세션 시작 시 한꺼번에 커밋 여부
+확인할 것.
+
+## CO. 세션31 계속(같은 세션, CN 직후 -- report.html을 artifact로 발행 후 stick diagram
+섹션을 새로 추가하는 과정에서, 사용자가 artifact의 floorplan 섹션을 보고 "왜 M1/M6는
+12 finger로 2행 분리가 안 되었지?" 질문 -- 실측으로 확인한 진짜 원인은 **floorplan이
+row_split/matching-repair 이전 스냅샷으로 단 한 번만 계산되고 다시는 갱신되지 않던
+엔진 gap**이었고, 사용자 지시로 근본 수정) -- **`floorplan`이 이제 최종 물리 행
+구성을 정확히 반영, 부수효과로 aspect_ratio 3.43->1.09/packing_density 0.405->0.515
+개선까지 확인됨**
+
+**원인 확인**(코드로 직접 추적): `optimize_full_circuit_budget()`에서 `floorplan`은
+`run_topology_pipeline_with_finger_fixup()` 호출 시점(4406행)에 **딱 한 번**만
+계산된다 -- 그 뒤에 오는 `row_split` 적용(4431행)도, `audit_ok=False`일 때의
+matching-safety repair(4448행, M1/M2를 common-centroid 2행으로 쪼개는 바로 그
+단계)도 `transistors`/`box_shape`/`audit_row_split`은 갱신하지만 **`floorplan`은
+어디에서도 다시 계산하지 않는다** -- CD절이 이미 "floorplan 재패킹은 비용 있는 별도
+작업"이라고 정직하게 기록해뒀던 바로 그 한계가, 이번에 artifact로 시각화하면서 실제로
+눈에 띄는 불일치(§03/§04는 6개 최종 행을 보여주는데 §08만 M1/M6을 24폭 통짜 블록
+2개로 보여줌)로 드러난 것.
+
+**근본 수정**:
+1. `stick_diagram.py`에 `rebuild_floorplan(row_widths, floorplan_hints=None)` 신설 --
+   `run_topology_pipeline()`이 이미 하던 floorplan 조립 로직(spine_groups 기본값
+   구성 -> `block_from_row_widths()` -> `pack_floorplan_grouped()`)을 그대로 추출한
+   것(동작 변화 없음). `run_topology_pipeline()`도 이 함수를 호출하도록 리팩터.
+2. `sizing_recipe.py`의 `optimize_full_circuit_budget()`에서, `row_split`/matching-
+   repair가 전부 끝난 **직후**(함수의 사실상 마지막 단계, `if all(t.name in
+   sizing...):` 블록의 끝) `pipeline_result["transistors"]`(이 시점엔 이미 최종
+   물리 행 구성)로 `_final_rows`/`_final_row_widths`를 다시 계산하고,
+   `rebuild_floorplan()`으로 `floorplan`을 새로 packing해 덮어쓴다.
+
+**검증**: `sizing_recipe.py`/`stick_diagram.py` self-test 둘 다 exit 0, 전수 PASS.
+`run_harness.py` 재실행 -- `two_stage_ota.instance.json`의 `floorplan.placements`가
+이제 정확히 6개 행(M3, M6_split0, M6_split1, M5, M1_repair0, M1_repair1)을 보여줌,
+`box_shape`/stick-diagram과 완전히 일치. **부수효과로 발견**: 이전엔 M1/M6이 24폭
+통짜 블록 2개(비정상적으로 넓적한 셀)로 잡혀 `aspect_ratio=3.43`/`packing_density=
+0.405`였는데, 올바른 6행 구조로 다시 패킹하니 `aspect_ratio=1.09`(거의 정사각형)/
+`packing_density=0.515`로 크게 개선됨 -- floorplan 부정확성이 box-shape 개선 효과를
+실제로 숨기고 있었다는 뜻(이번 수정으로 이 회로의 floorplan 수치가 처음으로 정확해짐).
+
+**artifact 갱신**: report.html 아티팩트의 §08 Physical floorplan을 이 새 정확한
+6행 데이터(bbox 12&times;11, aspect_ratio=1.09, packing_density=0.515)로 갱신,
+재발행(URL 동일).
+
+**커밋 상태**: `stick_diagram.py`(`rebuild_floorplan()` 신설, `run_topology_pipeline()`
+리팩터)/`sizing_recipe.py`(`optimize_full_circuit_budget()` 끝에 floorplan 재계산
+배선)/`.ai/context.md`(CO) 포함 CA~CO 전부 미커밋 -- 다음 세션 시작 시 한꺼번에 커밋
+여부 확인할 것.
+
+## CP. 세션31 계속(같은 세션, CO 직후 -- 사용자 질문 "모든 row가 오일러 패쓰를
+만족하나?") -- 실측 검증, 전부 만족(기록용, 코드 변경 없음)
+
+`build_stick_diagram()`을 최종 `instance.json`의 실제 netlist(6개 물리 행)에 직접
+재실행해 확인:
+
+| 행 | status | connected | 형태 |
+|---|---|---|---|
+| M3 | ok | True | open path(홀수차수 노드: D3, O1) |
+| M6_split0 | ok | True | closed circuit(홀수차수 노드 0개) |
+| M6_split1 | ok | True | closed circuit(홀수차수 노드 0개) |
+| M5 | ok | True | open path(홀수차수 노드: CS, OUT) |
+| M1_repair0 | ok | True | closed circuit(홀수차수 노드 0개) |
+| M1_repair1 | ok | True | closed circuit(홀수차수 노드 0개) |
+
+6개 행 전부 `status=ok`, `connected=True` -- CD절의 `_fixup_euler_blocked_rows()`
+근본수정과 이번 세션 전체의 row_split/repair 배선이 최종적으로 모두 유효한 물리
+배치를 만들어냈음을 재확인.
+
+## CQ. 세션31 최종 요약 -- **다음 세션은 여기부터 읽을 것** (BZ①~CP 전체 무손실 압축)
+
+### 무엇을 했나 (한 문장씩)
+1. **BZ①~BX**(이전 세션 마무리): `two_stage_ota`(2단 Miller OTA, sky130, 7소자)의
+   `gain_db>=60`이 toy LUT에서도 실제 sky130 LUT에서도 안 됨을 발견, L 자유도 4개
+   확장(L_mirror_M3/M5 신설)까지는 했지만 60dB 미달성 상태로 이월.
+2. **CA**: 실제 sky130 LUT(`run_harness.py` 신설)로 `gain_db>=60` 재확인 -- 여전히
+   불가능, 최대 ~51dB. `stage_w_max`(면적예산) 500um->2000um까지 올려도 거의 안
+   움직임 확인.
+3. **CB~CC**: `check_box_shape()`가 `finger_w`를 안 보고 순수 `n_fingers`(핑거 개수)
+   만 비교한다는 **모델링 한계**를 발견(기록만, 미수정 -- CI에서 재확인).
+4. **CD**: box-shape 진단 중 **엔진 버그 2건** 발견·수정 -- (A) repair 성공해도
+   `save_instance_json()`이 repair *이전* 스냅샷을 저장하던 저장 불일치, (B)
+   `repair_matching_safety()`가 매칭쌍을 새 행으로 빼내며 원래 행을 euler-invalid
+   (심하면 그래프 disconnection)로 방치하던 문제 -- `_fixup_euler_blocked_rows()`
+   신설로 근본 수정.
+5. **CE**: `apply_explicit_row_split()`(`stick_diagram.py`) 신설 -- 매칭 파트너
+   없는 단독 소자(M6)를 명시적으로 n개 물리 행으로 folding하는 메커니즘. M6만
+   2행 folding해 box_shape PASS(1.18) 최초 달성.
+6. **CF**: LUT를 L=1um->4um로 확장(ngspice 재실측, 110분)했지만 **gain_db>=60
+   달성에는 실패** -- 근본원인이 L 범위가 아니었음을 확인(가설 반증).
+7. **CG**: M5/M7 theta 분리(공유 L -> 독립 L) 시도 -- gain_db +1dB만 개선, box-shape는
+   오히려 악화(4개 소자 folding 필요) -- 진단만, 미채택.
+8. **CH**: **GBW를 낮추는 게 유일하게 유효한 레버**임을 발견 -- 20MHz~1MHz 전 구간
+   스윕, "무릎(knee)" 지점 확인, 사용자가 **GBW=7MHz**로 최종 결정(gain_db=57.5dB,
+   전력 -67%). M5/M7은 CG 시도를 사용자 지시로 원복(공유 theta 유지).
+9. **CN**: `_netlist_sections_structured`/`symmetry.dispositions` 추가로
+   `run_full_circuit_audit_from_topology()` 완전 PASS 달성. 부수적으로
+   `design_report.py`의 box_shape 단일/다중 판별 버그도 발견·수정, 실제 브라우저로
+   report.html 렌더링 확인.
+10. **CO**: report.html을 artifact로 발행 후 사용자가 floorplan 불일치를 지적 ->
+    `floorplan`이 row_split/repair *이전* 스냅샷으로 단 한 번만 계산되고 다시
+    갱신 안 되던 gap 발견 -- `rebuild_floorplan()` 신설로 근본 수정, 부수효과로
+    aspect_ratio 3.43->1.09/packing_density 0.405->0.515 개선 확인.
+11. **CP**: 6개 물리 행 전부 오일러 조건 만족 재확인(정보 검증, 변경 없음).
+
+### 최종 확정 스펙 (two_stage_ota)
+- **GBW=7MHz**(원 스펙 20MHz에서 하향 확정, `.ai/context.md` CH 근거)
+- `gain_db>=57`(topology.json 정식 constraint, 원 60dB는 이 프로세스/면적예산에서
+  물리적으로 달성 불가능 확정) -- 실측 57.55dB
+- `mismatch_sigma_mV<=5.0` -- 실측 0.44mV
+- `power_uA` 실측 291.27(원 20MHz 스펙 대비 -67%)
+- `Z=10, NDP=4`(원래 값 유지 -- Z를 3.5까지 낮춰도 GBW 여유가 거의 안 늘어 부차적
+  레버로 판명)
+- box_shape: `M6`만 `row_split={"M6":2}`로 2행 folding, `max_ratio=1.20` PASS
+- floorplan: `bbox=12x11, aspect_ratio=1.09, packing_density=0.515`
+- `audit_ok=True`, `run_full_circuit_audit.ok=True`(3/3), `coverage.ok=True`,
+  6개 물리 행 전부 오일러 조건 만족
+
+### 이번 세션에 고친 엔진(공유 코드) 버그/기능 -- 전부 self-test 회귀 없음 확인됨
+| 파일 | 내용 |
+|---|---|
+| `stick_diagram.py` | `search_stack_finger_w()`/`search_shared_finger_w()`에 `grid_step` opt-in 추가(공정 manufacturing grid 스냅) |
+| `stick_diagram.py` | `apply_explicit_row_split(rows, row_split)` 신설 -- 명시적 소자 folding |
+| `stick_diagram.py` | `rebuild_floorplan(row_widths, floorplan_hints)` 신설 -- floorplan 재계산 가능하게 추출 |
+| `sizing_recipe.py` | `optimize_full_circuit_budget()`: repair 결과가 `save_instance_json()` 저장 경로에 실제로 반영되도록 수정(저장 불일치 버그) |
+| `sizing_recipe.py` | `_fixup_euler_blocked_rows()` 신설 -- matching-safety repair가 남긴 euler/disconnection 잔여문제 자동 복구 |
+| `sizing_recipe.py` | `optimize_full_circuit_budget()`: `spec["row_split"]` 배선 |
+| `sizing_recipe.py` | `optimize_full_circuit_budget()`: 함수 끝에서 `floorplan` 최종 재계산 배선 |
+| `design_report.py` | `render_html_report()`의 box_shape 단일/다중(cell_groups) 판별 버그 수정 |
+| `sky130_lut_sweep.py` | `L_GRID_UM`을 `[0.15,0.35,0.5,1.0]`에서 `[...,1.5,2.5,4.0]`으로 확장(끝에만 추가, 기존 앵커/체크포인트/회귀값 보존) |
+
+### 여전히 미해결(다음 세션 이월, 우선순위순)
+1. **CI**: `check_box_shape()`/`block_from_row_widths()`가 `n_fingers`만 비교하고
+   `finger_w`(따라서 실제 물리 길이)를 전혀 반영하지 않는 모델링 한계 -- 라이브러리
+   전체가 쓰는 핵심 게이트라 사전 논의 후 수정할 것(기록만 해둔 상태, 실제 값 스펙트럼이
+   극단적인 회로에서 "PASS"가 물리적으로 무의미할 수 있음이 이번 세션에서 실증됨).
+2. `folded_cascode`/`nmcnr_amplifier`는 여전히 `sizing_roles` 자체가 없음(BE③/BW2/BZ⑤와
+   동일, 계속 이월 -- 이번 세션 신규 메커니즘들이 "정확히 필요한" 실사례로 검증된 적은
+   여전히 없음).
+3. `"balanced"` role의 장기 마이그레이션 감사(BZ②, 계속 이월 -- `sky130_regression_
+   reference.json` 골든값 재확인 필요, 신중하게).
+4. `symmetry.matching_pairs`에 M5/M7 정식 선언 여부(BZ④, 계속 이월).
+5. `run_harness.py` 나머지 실전략 / `slew_rate()` 실제 연동 / SLSQP 전체 실행 성능
+   재측정(BA④⑤/BH, 계속 이월, 이번 세션 손 안 댐).
+6. `nmcnr_amplifier`의 `_paper_target_spec`을 실제 `device_roles`/`sizing_roles`로
+   구현(BW2/BZ③, 계속 이월).
+
+### 산출물
+- `workspaces/two-stage-ota-report/run_harness.py`: 최종 harness(재현 가능,
+  `GBW=7e6`/`row_split={"M6":2}` 등 최종 spec 전부 포함) -- 실행하면 `instance.json`
+  +`report.html` 완주.
+- `two_stage_ota.instance.json`/`two_stage_ota.report.html`: 최종 산출물(PROVISIONAL
+  접미사 없는 정식 파일).
+- report.html을 재구성한 artifact: `https://claude.ai/code/artifact/335632bf-6c04-4c91-9060-68fec6eb3da7`
+  (§01~§08, stick diagram 시각화 포함 -- 재발행 시 URL 유지하려면 이 URL을 `Artifact`
+  도구의 `url` 파라미터로 넘길 것).
+
+### 커밋 상태 (다음 세션 시작 시 최우선 확인)
+
+**이번 세션(CA~CP) 작업분 -- 커밋 대상**:
+- 수정된 추적 파일: `.ai/context.md`, `skills/analog-gmid-design/assets/{design_
+  report.py, sizing_recipe.py, stick_diagram.py, sky130_lut_sweep.py, sky130_nfet_
+  pfet_lut_sample.npz, library/two_stage_ota.topology.json}`
+- 신규 미추적: `skills/analog-gmid-design/assets/ac_sweep_checkpoints/*.npz`(LUT
+  확장 체크포인트, 25개 -- L4/L5/L6 인덱스의 nfet/pfet × VS0~4)/`workspaces/two-
+  stage-ota-report/`(신규 디렉터리 전체 -- `run_harness.py`/`check_box_shape*.py`류
+  진단 스크립트/`two_stage_ota.instance.json`/`two_stage_ota.report.html`/각종
+  `.log` 포함)
+
+**이 세션 시작 전부터 있던, 무관한 미추적 파일(건드리지 않음, 커밋 판단에서 제외)**:
+- `.bkit/audit/2026-08-0{7,10,11,12,13}.jsonl`(bkit 자체 로그)
+- `skills/analog-gmid-design/assets/아날로그 기능분석기.zip`,
+  `skills/analog-gmid-design/assets/회로도 추출기.zip`
+- `workspaces/current-reuse-telescopic-ota-report/full_netlist_for_grammar.json`,
+  `workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session18_save.py`
+- `.bkit/audit/2026-08-06.jsonl`/`.bkit/state/session-history.json`/`skills/
+  analog-gmid-design/assets/.bkit/runtime/*`(수정된 추적 파일 쪽, 전부 bkit 자체
+  상태 파일 -- 이 세션 작업과 무관)
+
+다음 세션 시작 시 사용자에게 커밋 여부부터 확인할 것(위 "이번 세션 작업분" 목록만
+대상으로 -- bkit 로그류는 별개로 판단).
+
+### 다음 세션 시작 순서(권장)
+1. 위 "커밋 상태" 확인 및 필요 시 커밋.
+2. "여전히 미해결" 목록에서 우선순위 논의(특히 1번 `check_box_shape()` finger_w
+   반영 여부가 라이브러리 전체에 영향을 주는 근본 이슈).
+3. `two_stage_ota` 자체는 사실상 완결(gain/box-shape/floorplan/audit 전부 PASS) --
+   추가 요청 없으면 다른 회로(`folded_cascode`/`nmcnr_amplifier`)로 이동 검토.

@@ -77,7 +77,15 @@ CKPT_DIR = os.path.join(OUTPUT_DIR, "ac_sweep_checkpoints")
 # ---------------------------------------------------------------------------
 # 스윕 격자 (Jespers-style VGS/VDS 49점, L 4개, VS 5개 — 데모 규모, 필요시 조정)
 # ---------------------------------------------------------------------------
-L_GRID_UM = [0.15, 0.35, 0.5, 1.0]
+# 2026-08-13(세션31 계속, BZ①/CA -- two_stage_ota gain_db>=60이 L=1.0um(기존 상한)까지의
+# LUT로는 실제 sky130 LUT로도 물리적으로 불가능함을 실측 확인(.ai/context.md 세션31 CA)한 뒤
+# 사용자 지시로 L 상한 확장. 기존 4개 앵커점([0.15,0.35,0.5,1.0])은 그대로 두고 **뒤에만
+# 추가**한다(오름차순 유지 -- ac_sweep_checkpoints/*_L{0..3}_VS*.npz 40개가 그대로 재사용되고,
+# sky130_regression_reference.json의 nmcnr_3stage 회귀 케이스는 L_candidates="lut.L"로 raw
+# LUT.L 배열을 그대로 쓰는데 objective=power 동점 tie-break가 "먼저 나온 후보 유지"라 앞쪽
+# 원소 순서/값이 안 바뀌면 골든값도 안 바뀐다 -- 새 앵커는 반드시 끝에만 추가할 것, 중간
+# 삽입은 기존 인덱스를 밀어 체크포인트 캐시와 회귀 케이스를 둘 다 깬다).
+L_GRID_UM = [0.15, 0.35, 0.5, 1.0, 1.5, 2.5, 4.0]
 N_VGS, N_VDS = 49, 49
 VGS_START, VGS_STOP = 0.0, 1.8   # sky130 nfet_01v8/pfet_01v8은 1.8V 소자
 VDS_START, VDS_STOP = 0.0, 1.8

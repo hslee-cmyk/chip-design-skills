@@ -1,0 +1,392 @@
+{
+  "schema_version": "2.0",
+  "topology_ref": "C:\\Users\\HSLEE\\AppData\\Local\\Temp\\two_stage_ota_boxshape_M5M7split.topology.json",
+  "sizing": {
+    "M1": {
+      "gm": 0.0005618494701177184,
+      "gm_id": 24.5,
+      "L": 2.45e-07,
+      "vds": 1.05,
+      "vs": 0.0,
+      "W": 0.00047806333537022517,
+      "ID": 2.2932631433376262e-05,
+      "gds": 1.6106276703764222e-05,
+      "kind": "nmos",
+      "_L_source": "compensation"
+    },
+    "M2": {
+      "gm": 0.0005618494701177184,
+      "gm_id": 24.5,
+      "L": 2.45e-07,
+      "vds": 1.05,
+      "vs": 0.0,
+      "W": 0.00047806333537022517,
+      "ID": 2.2932631433376262e-05,
+      "gds": 1.6106276703764222e-05,
+      "kind": "nmos",
+      "_L_source": "compensation"
+    },
+    "M6": {
+      "gm": 0.005618494701177184,
+      "gm_id": 15.0,
+      "L": 4.4e-07,
+      "vds": 0.8999999999999999,
+      "vs": 0.0,
+      "W": 0.0004924812181774593,
+      "ID": 0.00037456631341181224,
+      "gds": 6.711030596571605e-05,
+      "kind": "pmos",
+      "_L_source": "compensation"
+    },
+    "M3": {
+      "ID": 2.2932631433376262e-05,
+      "L": 2.715e-06,
+      "W": 4.594697334130369e-05,
+      "gm": 0.0001834610514670101,
+      "gds": 1.824865785089483e-05,
+      "gm_id": 8.0,
+      "kind": "pmos",
+      "vs": 0.0,
+      "vds": 0.2
+    },
+    "M4": {
+      "ID": 2.2932631433376262e-05,
+      "L": 2.715e-06,
+      "W": 4.594697334130369e-05,
+      "gm": 0.0001834610514670101,
+      "gds": 1.824865785089483e-05,
+      "gm_id": 8.0,
+      "kind": "pmos",
+      "vs": 0.0,
+      "vds": 0.2
+    },
+    "M7": {
+      "ID": 0.00037456631341181224,
+      "L": 7.900000000000001e-07,
+      "W": 0.00019861966685368157,
+      "gm": 0.005618494701177184,
+      "gds": 0.00017575668662706982,
+      "gm_id": 15.0,
+      "kind": "nmos",
+      "vs": 0.0,
+      "vds": 0.2
+    },
+    "M5": {
+      "ID": 4.5865262866752524e-05,
+      "L": 1.5e-07,
+      "W": 5.251369261580013e-06,
+      "gm": 0.0006650463115679116,
+      "gds": 6.521229148067816e-05,
+      "gm_id": 14.5,
+      "kind": "nmos",
+      "vs": 0.0,
+      "vds": 0.2
+    }
+  },
+  "netlist": [
+    {
+      "name": "M3",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "D3",
+      "n_fingers": 6,
+      "finger_w": 3.828914445108641e-06,
+      "w": 4.594697334130369e-05,
+      "gate": "D3",
+      "stack_id": "M3_split0"
+    },
+    {
+      "name": "M4",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "O1",
+      "n_fingers": 6,
+      "finger_w": 3.828914445108641e-06,
+      "w": 4.594697334130369e-05,
+      "gate": "D3",
+      "stack_id": "M3_split0"
+    },
+    {
+      "name": "M3",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "D3",
+      "n_fingers": 6,
+      "finger_w": 3.828914445108641e-06,
+      "w": 4.594697334130369e-05,
+      "gate": "D3",
+      "stack_id": "M3_split1"
+    },
+    {
+      "name": "M4",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "O1",
+      "n_fingers": 6,
+      "finger_w": 3.828914445108641e-06,
+      "w": 4.594697334130369e-05,
+      "gate": "D3",
+      "stack_id": "M3_split1"
+    },
+    {
+      "name": "M6",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "OUT",
+      "n_fingers": 12,
+      "finger_w": 2.0520050757394137e-05,
+      "w": 0.0004924812181774593,
+      "gate": "O1",
+      "stack_id": "M6_split0"
+    },
+    {
+      "name": "M6",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "OUT",
+      "n_fingers": 12,
+      "finger_w": 2.0520050757394137e-05,
+      "w": 0.0004924812181774593,
+      "gate": "O1",
+      "stack_id": "M6_split1"
+    },
+    {
+      "name": "M5",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "CS",
+      "n_fingers": 12,
+      "finger_w": 2.1880705256583388e-07,
+      "w": 5.251369261580013e-06,
+      "gate": "bias",
+      "stack_id": "M5_split0"
+    },
+    {
+      "name": "M5",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "CS",
+      "n_fingers": 12,
+      "finger_w": 2.1880705256583388e-07,
+      "w": 5.251369261580013e-06,
+      "gate": "bias",
+      "stack_id": "M5_split1"
+    },
+    {
+      "name": "M7",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "OUT",
+      "n_fingers": 12,
+      "finger_w": 8.275819452236732e-06,
+      "w": 0.00019861966685368157,
+      "gate": "bias",
+      "stack_id": "M7_split0"
+    },
+    {
+      "name": "M7",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "OUT",
+      "n_fingers": 12,
+      "finger_w": 8.275819452236732e-06,
+      "w": 0.00019861966685368157,
+      "gate": "bias",
+      "stack_id": "M7_split1"
+    },
+    {
+      "name": "M2",
+      "kind": "nmos",
+      "source": "CS",
+      "drain": "O1",
+      "n_fingers": 6,
+      "finger_w": 3.9838611280852095e-05,
+      "w": 0.0004780633353702251,
+      "gate": "vin_n",
+      "stack_id": "M1_repair0"
+    },
+    {
+      "name": "M1",
+      "kind": "nmos",
+      "source": "CS",
+      "drain": "D3",
+      "n_fingers": 6,
+      "finger_w": 3.9838611280852095e-05,
+      "w": 0.0004780633353702251,
+      "gate": "vin_p",
+      "stack_id": "M1_repair0"
+    },
+    {
+      "name": "M1",
+      "kind": "nmos",
+      "source": "CS",
+      "drain": "D3",
+      "n_fingers": 6,
+      "finger_w": 3.9838611280852095e-05,
+      "w": 0.0004780633353702251,
+      "gate": "vin_p",
+      "stack_id": "M1_repair1"
+    },
+    {
+      "name": "M2",
+      "kind": "nmos",
+      "source": "CS",
+      "drain": "O1",
+      "n_fingers": 6,
+      "finger_w": 3.9838611280852095e-05,
+      "w": 0.0004780633353702251,
+      "gate": "vin_n",
+      "stack_id": "M1_repair1"
+    }
+  ],
+  "floorplan": {
+    "placements": {
+      "M3": {
+        "x": -12.0,
+        "y": 0.0,
+        "width": 24,
+        "height": 1
+      },
+      "M6": {
+        "x": -12.0,
+        "y": 2.0,
+        "width": 24,
+        "height": 1
+      },
+      "M1": {
+        "x": -12.0,
+        "y": 4.0,
+        "width": 24,
+        "height": 1
+      },
+      "M5": {
+        "x": -12.0,
+        "y": 6.0,
+        "width": 24,
+        "height": 1
+      },
+      "M7": {
+        "x": -12.0,
+        "y": 8.0,
+        "width": 24,
+        "height": 1
+      }
+    },
+    "bbox": {
+      "width": 24.0,
+      "height": 9.0
+    },
+    "aspect_ratio": 2.6666666666666665,
+    "packing_density": 0.5555555555555556
+  },
+  "box_shape": {
+    "ok": true,
+    "row_widths": {
+      "M3_split0": 12,
+      "M3_split1": 12,
+      "M6_split0": 12,
+      "M6_split1": 12,
+      "M5_split0": 12,
+      "M5_split1": 12,
+      "M7_split0": 12,
+      "M7_split1": 12,
+      "M1_repair0": 12,
+      "M1_repair1": 12
+    },
+    "message": "PASS: 행 폭 {'M3_split0': 12, 'M3_split1': 12, 'M6_split0': 12, 'M6_split1': 12, 'M5_split0': 12, 'M5_split1': 12, 'M7_split0': 12, 'M7_split1': 12, 'M1_repair0': 12, 'M1_repair1': 12}, 최대/최소 비율=1.00 (허용치 이내)"
+  },
+  "audit_row_split": {
+    "ok": true,
+    "checks": [
+      {
+        "name": "1. euler[M3_split0]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M3_split1]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M6_split0]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M6_split1]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M5_split0]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M5_split1]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M7_split0]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M7_split1]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M1_repair0]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[M1_repair1]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "2. box-shape",
+        "ok": true,
+        "detail": "PASS: 행 폭 {'M3_split0': 12, 'M3_split1': 12, 'M6_split0': 12, 'M6_split1': 12, 'M5_split0': 12, 'M5_split1': 12, 'M7_split0': 12, 'M7_split1': 12, 'M1_repair0': 12, 'M1_repair1': 12}, 최대/최소 비율=1.00 (허용치 이내)"
+      },
+      {
+        "name": "3a. row-presence[M3/M4] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['M3_split0', 'M3_split1']; M3/M4 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M3/M4]",
+        "ok": true,
+        "detail": "M3_split0: 인접; M3_split1: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M3/M4] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M3 centroid=(2.50,0.50), M4 centroid=(8.50,0.50), |dx|=6.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M1/M2] (kind=sensitivity=offset,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['M1_repair0', 'M1_repair1']; M1/M2 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M1/M2] [참고용 -- 이 kind는 필수 아님]",
+        "ok": true,
+        "detail": "M1_repair0: 인접; M1_repair1: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M1/M2]",
+        "ok": true,
+        "detail": "M1 centroid=(5.50,8.50), M2 centroid=(5.50,8.50), |dx|=0.00 |dy|=0.00 (허용오차 0.5)"
+      }
+    ]
+  },
+  "coverage": {
+    "ok": true,
+    "missing": []
+  }
+}

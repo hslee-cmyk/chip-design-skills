@@ -233,7 +233,14 @@ def render_html_report(report: dict) -> str:
 
     if report.get("box_shape") is not None:
         bs = report["box_shape"]
-        bs_list = bs if isinstance(bs, list) else [bs] if not isinstance(bs, dict) else \
+        # 2026-08-13(세션31 CN, 실측 발견) -- bs가 dict이기만 하면 무조건 "여러 cell의
+        # {cell명: verdict} 모음"으로 오판했다 -- cell_groups를 안 쓰는 회로(예: two_stage_
+        # ota)는 bs 자체가 단일 BoxShapeVerdict를 그대로 dict화한 것({"ok":...,
+        # "row_widths":...,...})이라 .items()로 돌리면 "ok"/"row_widths" 등 필드명을
+        # cell 이름으로 잘못 펼쳐 dict(cell=k, **v)가 bool/str 값에 **를 시도해 TypeError가
+        # 났다. 바로 아래 audit_row_split 블록이 이미 쓰는 "ok" not in ars 판별을 여기도
+        # 그대로 적용(같은 두 형태를 구분하는 동일한 문제라 같은 판별 기준을 재사용).
+        bs_list = bs if isinstance(bs, list) else [bs] if not isinstance(bs, dict) or "ok" in bs else \
             [dict(cell=k, **v) for k, v in bs.items()]
         _section("Box-shape check (from instance.json)", _kv_table(bs_list))
 

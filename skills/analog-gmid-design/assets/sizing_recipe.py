@@ -2470,7 +2470,9 @@ from stick_diagram import (Transistor, load_topology, propagate_topology_forced_
                             refine_differential_and_mirror_relations,
                             audit_vertical_stack_id_vs_kcl,
                             merge_layout_groups_by_matching_pairs,
-                            derive_horizontal_stack_groups)
+                            derive_horizontal_stack_groups,
+                            check_box_shape, build_stick_diagram, audit_row_split,
+                            apply_explicit_row_split, rebuild_floorplan)
 
 
 @dataclass
@@ -4418,6 +4420,29 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             pipeline_result = run_topology_pipeline(
                 topology_path, sizing_overrides, floorplan_hints=spec.get("floorplan_hints"),
                 cell_groups=spec.get("cell_groups"))
+
+        # 2026-08-13(세션31 이어, 사용자 승인 -- CD절 "M6 folding" 논의 결론) --
+        # spec["row_split"](`{stack_id: n_rows}`)이 있으면 매칭 자동판단(repair_matching_
+        # safety())과 별개로, 명시적으로 지정된 stack을 여기서 즉시 접는다. box-shape
+        # ratio만을 위한 순수 물리 재배치라 W/ID/gm_id는 안 바뀐다(apply_explicit_row_
+        # split() docstring 참고) -- sizing/sizing_overrides 갱신 불필요, transistors/
+        # box_shape/audit_row_split만 이 새 물리 구조를 반영하도록 갱신한다(CD절이 고친
+        # "repair 결과 미저장" 버그와 똑같은 함정을 여기서 새로 만들지 않기 위해 즉시 갱신).
+        if spec.get("row_split"):
+            _rs_rows = split_into_stacks(pipeline_result["transistors"])
+            _rs_rows = apply_explicit_row_split(_rs_rows, spec["row_split"])
+            _rs_transistors = [t for devs in _rs_rows.values() for t in devs]
+            _rs_row_widths = {rn: sum(t.n_fingers for t in devs) for rn, devs in _rs_rows.items()}
+            _rs_matching_pairs = [pair for p in pairs_meta
+                                    for pair in itertools.combinations(p["names"], 2)]
+            _rs_pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
+                                      for pair in itertools.combinations(p["names"], 2)}
+            pipeline_result = dict(
+                pipeline_result, transistors=_rs_transistors,
+                box_shape=check_box_shape(_rs_row_widths),
+                audit_row_split=audit_row_split(_rs_rows, matching_pairs=_rs_matching_pairs,
+                                                  pair_sensitivity=_rs_pair_sensitivity))
+
         audit = pipeline_result["audit_row_split"]
         audit_ok = audit.ok if hasattr(audit, "ok") else all(v.ok for v in audit.values())
         if not audit_ok:
@@ -4466,11 +4491,55 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                     unresolved_reason=match_fix["unresolved_reason"],
                     relaxed_pairs=match_fix["relaxed_pairs"])
             else:
+                # ⚠️ 정직한 한계(2026-08-13 세션31 이어) -- lut_by_kind가 없는 구형 spec
+                # 경로라 run_matching_safety_with_finger_growth()(및 그 안의 euler 잔여문제
+                # 자동수정, _fixup_euler_blocked_rows())를 못 쓴다 -- 그 함수는 gm/ID
+                # 재검증에 LUT가 필요하다. 3c 수리가 이 경로에서도 원리상 같은 euler 잔여
+                # 문제를 남길 수 있지만, 현재 라이브러리 4개 회로 전부 lut_by_kind를 쓰므로
+                # (실측 확인) 이 분기는 실전에서 아직 노출되지 않았다 -- 노출되면 별도 처리 필요.
                 repaired_rows, repaired_audit = repair_matching_safety(
                     rows, matching_pairs_tuples, pair_sensitivity)
                 pipeline_result = dict(pipeline_result, repaired_rows=repaired_rows,
                                         repaired_audit=repaired_audit)
             audit_ok = repaired_audit.ok
+            # 2026-08-13(세션31 이어, 사용자 지시 -- box-shape 진단 도중 발견된 저장 버그) --
+            # 지금까지는 위에서 repaired_rows/repaired_audit를 pipeline_result에 "추가"만
+            # 했을 뿐, save_instance_json()이 실제로 읽는 pipeline_result["transistors"]/
+            # ["box_shape"]/["audit_row_split"]는 여전히 repair *이전* 스냅샷 그대로였다 --
+            # 즉 audit_ok(위 줄)는 repaired_audit을 정확히 반영하는데(성공적으로 3c를
+            # 고쳤으면 True), 정작 instance.json에 저장되는 netlist/box_shape/audit_
+            # row_split은 그 성공을 반영하지 못하고 옛 FAIL 상태 그대로 저장되는 불일치가
+            # 있었다(two_stage_ota의 M1/M2가 실제로 common-centroid 2행으로 성공 수리됐는데
+            # 저장된 instance.json엔 여전히 1행·3c FAIL로 나온 것으로 실측 발견,
+            # `.ai/context.md` 세션31 CD 참고). repaired_rows를 최종 정본으로 승격해
+            # transistors/box_shape/audit_row_split을 덮어써서 저장 경로와 반환값의 audit_ok가
+            # 항상 같은 사실을 가리키도록 한다. ⚠️ floorplan/coverage는 이 갱신에서 제외
+            # (정직한 한계로 남김) -- floorplan은 euler-fixup 시점(matching-safety repair
+            # *이전*)의 transistors로 이미 packing이 끝난 상태라 이 시점에 다시 패킹하려면
+            # pack_floorplan() 재호출이 필요한 별도 작업이고(비용 있음), coverage는 repair가
+            # 소자 이름 자체를 빼거나 더하지 않으므로(집합은 그대로, 행 구성만 바뀜) 갱신해도
+            # 값이 바뀌지 않는다(재확인 불필요).
+            repaired_transistors = [t for devs in repaired_rows.values() for t in devs]
+            repaired_row_widths = {rn: sum(t.n_fingers for t in devs)
+                                     for rn, devs in repaired_rows.items()}
+            pipeline_result = dict(
+                pipeline_result, transistors=repaired_transistors,
+                box_shape=check_box_shape(repaired_row_widths),
+                audit_row_split=repaired_audit)
+
+        # 2026-08-13(세션31 CO, 사용자 실측 발견 -- 리포트 아티팩트의 floorplan이 row_split/
+        # repair 이전 통짜 블록(예: M6 1개, width=24)을 보여주는데 box-shape/stick-diagram은
+        # 이미 최종 행(M6_split0/M6_split1 등)을 보여주는 불일치가 실제로 눈에 띄었다) --
+        # floorplan은 지금까지 run_topology_pipeline_with_finger_fixup() 호출 시점(row_split/
+        # matching-repair *이전*)에 단 한 번만 계산되고 그 뒤로 갱신된 적이 없었다(CD 절이
+        # "정직한 한계"로만 남겨뒀던 부분의 근본 수정). 이 시점의 pipeline_result["transistors"]
+        # 는 row_split(있었다면)과 matching-safety repair(있었다면) 둘 다 이미 반영된 진짜
+        # 최종 물리 행 구성이므로, 그 구성으로 floorplan을 다시 packing한다.
+        _final_rows = split_into_stacks(pipeline_result["transistors"])
+        _final_row_widths = {rn: sum(t.n_fingers for t in devs) for rn, devs in _final_rows.items()}
+        pipeline_result = dict(
+            pipeline_result,
+            floorplan=rebuild_floorplan(_final_row_widths, spec.get("floorplan_hints")))
 
     return {"theta_star": theta_star, "sizing": sizing, "metrics": metrics_result,
             "sizing_overrides": sizing_overrides, "pipeline_result": pipeline_result,
@@ -5788,6 +5857,136 @@ def apply_and_revalidate_matching_finger_growth(
             "revalidation": result}
 
 
+def _fixup_euler_blocked_rows(rows: dict, matching_pairs: list, pair_sensitivity: dict,
+                               ctx: SizingContext, lut_by_kind: dict, metrics_specs: dict,
+                               constraints: list, gm_id_bounds: tuple = (2.0, 30.0),
+                               max_rounds: int = 5) -> tuple:
+    """`repair_matching_safety()`(3c 수리 -- 일부 소자를 `common_centroid_layout()`으로
+    새 행에 빼냄)가 원래 행에 **남은 나머지 소자들**의 euler 조건(짝수차수 -- 한붓그리기
+    가능 여부)까지 보존한다는 보장은 없다 -- 2026-08-13(세션31 이어) 실측 발견: `two_stage_
+    ota` box-shape 진단 중 `save_instance_json()`이 repair *이전* 스냅샷을 저장하던 버그를
+    고치자(그 자체는 별개 수정), self-test(11소자 M3a 그룹, M4a/M4b+M10/M19를 3c 수리로
+    빼낸 뒤) 남은 행 `m3a_row`가 `status=blocked, odd_nodes=['Vbias3','gnd']`로 방치되는
+    게 처음으로 드러났다(지금까지는 이 저장 버그가 이 사실을 가려왔을 뿐, `repair_matching_
+    safety()`가 새로 만든 버그가 아니다). `run_topology_pipeline_with_finger_fixup()`이
+    euler-fixup에 쓰는 것과 **정확히 같은 전략**(1순위: `apply_and_revalidate_pair_
+    adjustment()`로 매칭쌍 핑거증가, 안 되면 2순위: `find_min_crossover_layout_with_
+    branch_composite()`로 그래프 이론상 항상 성공하는 그룹분할)을 그 함수와 달리
+    `topology_path` 재로드 없이 `rows` 표현에 직접 적용한다 -- 두 저수준 함수
+    (`apply_and_revalidate_pair_adjustment()`/`find_min_crossover_layout_with_branch_
+    composite()`) 다 애초에 `row_transistors`를 직접 받는 API라 재사용 가능하다.
+
+    이미 euler-clean이면(대다수 회로/대다수 라운드) 즉시 그대로 반환 -- 비용 없음.
+
+    ⚠️ 2026-08-13(세션31 이어) 실측으로 드러난 두 번째 층위 -- M4a/M4b를 새 행으로 빼내면
+    남은 행(M3a/M3b/M9b/M18b/M5/M64/M63)이 단순 홀짝 불균형이 아니라 **그래프 자체가
+    분리된 두 조각**(M3a/M3b/M9b/M18b 클러스터 vs M5/M63/M64 클러스터, M3a가 M4a와
+    공유하던 내부노드 `N3a4a`가 이제 이 행 안에서 아무와도 안 이어짐)으로 쪼개질 수 있다
+    -- `check_euler_condition()`은 이 경우도 홀수차수 노드가 우연히 정확히 2개일 수 있어
+    (컴포넌트마다 1개씩) `status=blocked`인데도 겉보기엔 "거의 다 됐다"로 보인다.
+    **핑거증가(parity 조정)는 끊어진 컴포넌트를 다시 잇지 못한다** -- 그래서 disconnection
+    이 감지되면 핑거증가/크로스오버 둘 다 시도하지 않고 **각 컴포넌트를 곧바로 별도
+    물리 행으로 분리한다**(항상 안전 -- 컴포넌트 사이엔 애초에 공유 엣지가 없으므로
+    crossover 배선 자체가 무의미, 그냥 두 개의 독립된 행이 되는 게 맞는 답).
+
+    반환: `(rows, ctx)` -- 갱신된 물리 행 구성과(그룹분할/컴포넌트분리는 순수 재배치라
+    ctx 불변, 핑거증가만 W/gm_id/gm/gds가 바뀌므로 ctx도 갱신) SizingContext."""
+    def _connected_components(transistors: list) -> list:
+        net_to_devs = defaultdict(list)
+        for t in transistors:
+            net_to_devs[t.source].append(t)
+            net_to_devs[t.drain].append(t)
+        visited, components = set(), []
+        for t in transistors:
+            if t.name in visited:
+                continue
+            comp, stack, seen_names = [], [t], {t.name}
+            while stack:
+                cur = stack.pop()
+                comp.append(cur)
+                for net in (cur.source, cur.drain):
+                    for other in net_to_devs[net]:
+                        if other.name not in seen_names:
+                            seen_names.add(other.name)
+                            stack.append(other)
+            visited |= seen_names
+            components.append(comp)
+        return components
+
+    current_rows = {k: list(v) for k, v in rows.items()}
+    cur_ctx = ctx
+    for _ in range(max_rounds):
+        blocked_row = None
+        for row_name, devs in current_rows.items():
+            r = build_stick_diagram(devs).get(row_name)
+            if r is None or r.status != "ok":
+                blocked_row = row_name
+                break
+        if blocked_row is None:
+            return current_rows, cur_ctx
+
+        row_transistors = current_rows[blocked_row]
+        components = _connected_components(row_transistors)
+        if len(components) > 1:
+            del current_rows[blocked_row]
+            for comp_idx, comp in enumerate(components):
+                comp_stack_id = f"{blocked_row}_comp{comp_idx}"
+                current_rows[comp_stack_id] = [_dc_replace(t, stack_id=comp_stack_id)
+                                                 for t in comp]
+            continue
+
+        row_names = {t.name for t in row_transistors}
+        row_pairs = [(a, b) for (a, b) in matching_pairs if a in row_names and b in row_names]
+
+        fix = apply_and_revalidate_pair_adjustment(
+            row_transistors, row_pairs, cur_ctx, lut_by_kind, metrics_specs, constraints,
+            gm_id_bounds=gm_id_bounds)
+        resolved_by_growth = False
+        if fix["applied"]:
+            new_n = {t.name: t.n_fingers for t in fix["transistors"]}
+            candidate_devs = [
+                _dc_replace(t, n_fingers=new_n[t.name]) if t.name in new_n else t
+                for t in row_transistors]
+            # 2026-08-13 -- "applied"는 gm/ID가 유효한 후보를 찾았다는 뜻일 뿐, 그 후보가
+            # 이 행의 euler를 실제로 완전히 푼다는 보장은 아니다(실측: 홀수차수가 줄어도
+            # 0/2개로 안 떨어지고 계속 blocked로 남는 경우가 있었다) -- 적용 *후* 실제로
+            # 풀렸는지 다시 확인하고, 안 풀렸으면 무한정 재시도하지 않고 바로 그룹분할로
+            # 넘어간다(아래) -- 그래프 이론상 항상 성공하는 쪽이 훨씬 안전하다.
+            r2 = build_stick_diagram(candidate_devs).get(blocked_row)
+            if r2 is not None and r2.status == "ok":
+                resolved_by_growth = True
+                current_rows[blocked_row] = candidate_devs
+                for name, u in fix["revalidation"]["device_updates"].items():
+                    cur_ctx = _dc_replace(cur_ctx, sized={
+                        **cur_ctx.sized, name: {**cur_ctx.sized[name], "W": u["new_W"],
+                                                 "gm_id": u["new_gm_id"], "gm": u["new_gm"],
+                                                 "gds": u["new_gds"]}})
+        if resolved_by_growth:
+            continue
+
+        # 핑거증가로 안 풀리면(또는 애초에 후보가 없으면) 그룹분할(그래프 이론상 항상
+        # 성공, run_topology_pipeline_with_finger_fixup()과 동일 근거) -- 세그먼트는
+        # 소자를 통째로 한쪽에만 배정한다(finger 단위 분할 아님, find_min_crossover_
+        # layout_with_branch_composite() 자체의 보장 -- W/n_fingers는 안 바뀌므로 ctx
+        # 갱신 불필요). 원본 row_transistors(성장 시도 전 상태) 기준으로 분할한다 --
+        # 실패한 성장 후보를 반영하지 않는다.
+        row_pair_sensitivity = {k: v for k, v in pair_sensitivity.items() if set(k) <= row_names}
+        split = find_min_crossover_layout_with_branch_composite(
+            row_transistors, row_pairs, row_pair_sensitivity)
+        by_name = {t.name: t for t in row_transistors}
+        del current_rows[blocked_row]
+        for seg_idx, seg in enumerate(split["segments"]):
+            seg_stack_id = f"{blocked_row}_seg{seg_idx}"
+            seg_device_names, seen = [], set()
+            for nm in seg["transistor_sequence"]:
+                if nm not in seen:
+                    seen.add(nm)
+                    seg_device_names.append(nm)
+            current_rows[seg_stack_id] = [_dc_replace(by_name[nm], stack_id=seg_stack_id)
+                                            for nm in seg_device_names]
+    return current_rows, cur_ctx
+
+
 def run_matching_safety_with_finger_growth(
         rows: dict, matching_pairs: list, pair_sensitivity: dict, ctx: SizingContext,
         lut_by_kind: dict, metrics_specs: dict, constraints: list,
@@ -5856,12 +6055,29 @@ def run_matching_safety_with_finger_growth(
                     entry["interdig_ok"] = check.ok
                     break
 
+    # 2026-08-13(세션31 이어, 사용자 지시 -- box-shape 진단 도중 발견된 euler 잔여문제
+    # 근본수정) -- repair_matching_safety()가 3c 수리로 일부 소자를 새 행에 빼내면서 원래
+    # 행에 남은 나머지가 euler-blocked로 방치될 수 있다(_fixup_euler_blocked_rows()
+    # docstring 참고, 실측: two_stage_ota box-shape 작업 중 11소자 M3a self-test에서 발견).
+    # 이 함수의 **모든** 반환 지점에서 최종 rows/ctx를 내보내기 전에 반드시 이 euler
+    # 정리를 거치고 그 결과로 audit을 다시 계산한다 -- 그래야 반환되는 audit이 실제로
+    # 저장/보고될 최종 물리 구조와 항상 일치한다(저장 버그와 같은 종류의 불일치 재발 방지).
+    def _finalize(rows_in, ctx_in):
+        fixed_rows, fixed_ctx = _fixup_euler_blocked_rows(
+            rows_in, matching_pairs, pair_sensitivity, ctx_in, lut_by_kind,
+            metrics_specs, constraints, gm_id_bounds=gm_id_bounds)
+        fixed_audit = audit_row_split(fixed_rows, matching_pairs=matching_pairs,
+                                       pair_sensitivity=pair_sensitivity)
+        _backfill_interdig_ok(fixed_audit)
+        return fixed_rows, fixed_ctx, fixed_audit
+
     result = None
     for round_idx in range(max_rounds):
         current_rows, result = repair_matching_safety(
             current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys)
         _backfill_interdig_ok(result)
         if result.ok:
+            current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
                     "growth_rounds": growth_rounds, "unresolved_pair": None,
                     "unresolved_reason": None, "relaxed_pairs": relaxed_pairs}
@@ -5883,7 +6099,11 @@ def run_matching_safety_with_finger_growth(
         failing_3c = [(x, y) for (x, y) in failing_3c
                       if frozenset({x, y}) not in relaxed_pair_keys]
         if not failing_3c:
+            # euler 실패는 "3c." 접두사가 아니라서 failing_3c에 절대 안 잡힌다(위 필터
+            # 참고) -- 그래서 이 분기에 도달했다고 euler까지 깨끗하다는 보장이 없다(실측
+            # 발견 사례 그대로). _finalize()가 그 가능성을 항상 마지막에 확인/수정한다.
             reason = "relaxed_to_layout" if relaxed_pairs else "only_3b_failures_left"
+            current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
                     "growth_rounds": growth_rounds, "unresolved_pair": None,
                     "unresolved_reason": reason, "relaxed_pairs": relaxed_pairs}
@@ -5891,6 +6111,7 @@ def run_matching_safety_with_finger_growth(
         a, b = failing_3c[0]
         all_devs = {t.name: t for devs in current_rows.values() for t in devs}
         if a not in all_devs or b not in all_devs:
+            current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
                     "growth_rounds": growth_rounds, "unresolved_pair": (a, b),
                     "unresolved_reason": "pair_not_found", "relaxed_pairs": relaxed_pairs}
@@ -5916,6 +6137,7 @@ def run_matching_safety_with_finger_growth(
                 relaxed_pairs.append({"pair": (a, b), "reason": "gm_id_budget_exceeded",
                                        "trim_recommended": True, "interdig_ok": None})
                 continue
+            current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
                     "growth_rounds": growth_rounds, "unresolved_pair": (a, b),
                     "unresolved_reason": reason, "relaxed_pairs": relaxed_pairs}
@@ -5933,6 +6155,7 @@ def run_matching_safety_with_finger_growth(
     current_rows, result = repair_matching_safety(
         current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys)
     _backfill_interdig_ok(result)
+    current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
     return {"rows": current_rows, "audit": result, "ctx": cur_ctx, "growth_rounds": growth_rounds,
             "unresolved_pair": None if result.ok else "unknown",
             "unresolved_reason": None if result.ok else "max_rounds_exceeded",
@@ -7269,6 +7492,11 @@ if __name__ == "__main__":
         # 있어 repair가 나중에 억지로 합치며 각자 독립 배정된 finger 수가 그대로 더해져 폭이
         # 2배로 부풀었음). matching_pairs 그대로 묶으니(M5+M7 한 그룹, M6 단독) 알고리즘
         # 변경 없이 바로 box-shape 비율 1.20으로 통과.
+        # 2026-08-13(세션31 CH->CJ) -- CH에서 topology.json의 L_mirror_M5를 L_M5/L_M7(독립
+        # theta)로 한 번 분리했다가, GBW=20MHz->7MHz(무릎 지점) 레버가 gain_db를 훨씬 크게
+        # 개선한 뒤 M5/M7 분리가 주는 +1dB가 4배 늘어난 folding 비용에 안 맞는다고 판단해
+        # 사용자 지시로 공유 theta(L_mirror_M5, devices=[M5,M7])로 원복 -- stack_groups_
+        # override도 다시 M5+M7 한 행으로.
         "stack_groups_override": {"M1": ["M1", "M2"], "M3": ["M3", "M4"],
                                     "M5": ["M5", "M7"], "M6": ["M6"]},
     }

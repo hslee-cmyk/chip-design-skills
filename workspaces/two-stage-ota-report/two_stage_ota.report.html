@@ -1,0 +1,95 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>two_stage_ota.topology.json</title>
+<style>
+:root{
+  --paper:#eef1f4; --paper-raise:#ffffff; --ink:#161b22; --muted:#5b6472; --line:#d3d9e0;
+  --accent:#3a5a78; --accent-soft:#d7e2ea;
+  --ok:#2e7d5b; --ok-soft:#d9ecdf; --warn:#a8720a; --warn-soft:#f3e3c2; --bad:#b23b3b; --bad-soft:#f5d9d9;
+  --mono: ui-monospace, "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  --sans: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#11151b; --paper-raise:#181e26; --ink:#e6ebf1; --muted:#8b96a3; --line:#2a323d;
+    --accent:#7fa4c4; --accent-soft:#1d2b38;
+    --ok:#5fbd8d; --ok-soft:#173427; --warn:#d9a63e; --warn-soft:#3a2e12; --bad:#e07a7a; --bad-soft:#3a1f1f;
+  }
+}
+*{box-sizing:border-box;}
+body{ background:var(--paper); color:var(--ink); font-family:var(--sans); margin:0; padding:0 20px 80px; line-height:1.5; }
+.wrap{max-width:1100px; margin:0 auto;}
+header.top{ padding:22px 0 14px; border-bottom:1px solid var(--line); margin-bottom:32px; }
+header.top h1{ font-size:1.2rem; margin:0 0 6px; }
+header.top .sub{color:var(--muted); font-size:0.82rem; max-width:80ch;}
+section.rsec{margin-bottom:44px;}
+section.rsec h2{font-size:1.1rem; margin:0 0 10px;}
+.twrap{overflow-x:auto;}
+table.sizing{ width:100%; border-collapse:collapse; font-size:0.82rem; background:var(--paper-raise); border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; }
+table.sizing th, table.sizing td{ padding:7px 10px; text-align:left; border-bottom:1px solid var(--line); vertical-align:top; }
+table.sizing th{ font-size:0.66rem; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; }
+table.sizing tr:last-child td{border-bottom:none;}
+.finding{ font-size:0.84rem; background:var(--warn-soft); border:1px solid var(--line); border-radius:var(--radius); padding:12px 16px; margin-top:10px; }
+.finding.ok{background:var(--ok-soft);}
+.finding.bad{background:var(--bad-soft);}
+.scope-note{font-size:0.78rem; color:var(--muted); border-left:2px solid var(--warn); padding:6px 0 6px 12px; margin-top:10px; max-width:90ch;}
+footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); font-size:0.76rem; color:var(--muted); }
+</style>
+<div class="wrap">
+<header class="top"><h1>two_stage_ota.topology.json</h1>
+</header>
+<section class="rsec"><h2>&sect;1 Topology (from topology.json)</h2><div class="twrap"><table class="sizing"><thead><tr><th>name</th><th>kind</th><th>role</th></tr></thead><tbody><tr><td>M3/M4</td><td>pmos</td><td>M3: headroom_role=cascode, vertical_stack_id=stage1, vs=0.0 | M4: headroom_role=cascode, vertical_stack_id=stage1, vs=0.0</td></tr><tr><td>M6</td><td>pmos</td><td>M6: vertical_stack_id=stage2</td></tr><tr><td>M1/M2</td><td>nmos</td><td>M1: vertical_stack_id=stage1 | M2: vertical_stack_id=stage1</td></tr><tr><td>M5</td><td>nmos</td><td>M5: headroom_role=tail, vertical_stack_id=stage1, vs=0.0</td></tr><tr><td>M7</td><td>nmos</td><td>M7: headroom_role=tail, vertical_stack_id=stage2, vs=0.0</td></tr></tbody></table></div></section>
+<section class="rsec"><h2>&sect;2 Sizing (from instance.json)</h2><div class="twrap"><table class="sizing"><thead><tr><th>name</th><th>gm</th><th>gm_id</th><th>L</th><th>vds</th><th>vs</th><th>W</th><th>ID</th><th>gds</th><th>kind</th><th>_L_source</th></tr></thead><tbody><tr><td>M1</td><td>0.00022615770233123887</td><td>25.5</td><td>2.45e-07</td><td>1.2</td><td>0.0</td><td>0.00047769044641792407</td><td>8.868929503185838e-06</td><td>6.298179555880131e-06</td><td>nmos</td><td>compensation</td></tr><tr><td>M2</td><td>0.00022615770233123887</td><td>25.5</td><td>2.45e-07</td><td>1.2</td><td>0.0</td><td>0.00047769044641792407</td><td>8.868929503185838e-06</td><td>6.298179555880131e-06</td><td>nmos</td><td>compensation</td></tr><tr><td>M6</td><td>0.0022615770233123888</td><td>19.0</td><td>7.3e-07</td><td>1.3499999999999999</td><td>0.0</td><td>0.0004902296367179258</td><td>0.00011903036964802046</td><td>1.2160512527931409e-05</td><td>pmos</td><td>compensation</td></tr><tr><td>M3</td><td>7.09514360254867e-05</td><td>8.0</td><td>2.715e-06</td><td>0.2</td><td>0.0</td><td>1.7769459585684673e-05</td><td>8.868929503185838e-06</td><td>7.057456989946366e-06</td><td>pmos</td><td></td></tr><tr><td>M4</td><td>7.09514360254867e-05</td><td>8.0</td><td>2.715e-06</td><td>0.2</td><td>0.0</td><td>1.7769459585684673e-05</td><td>8.868929503185838e-06</td><td>7.057456989946366e-06</td><td>pmos</td><td></td></tr><tr><td>M7</td><td>0.002083031468840358</td><td>17.5</td><td>1.435e-06</td><td>0.2</td><td>0.0</td><td>0.00018403212636545598</td><td>0.00011903036964802046</td><td>3.629609331228716e-05</td><td>nmos</td><td></td></tr><tr><td>M5</td><td>0.00022172323757964596</td><td>12.5</td><td>1.435e-06</td><td>0.2</td><td>0.0</td><td>9.838170814942153e-06</td><td>1.7737859006371676e-05</td><td>9.118294250766627e-06</td><td>nmos</td><td></td></tr></tbody></table></div></section>
+<section class="rsec"><h2>&sect;3 Box-shape check (from instance.json)</h2><div class="twrap"><table class="sizing"><thead><tr><th>ok</th><th>row_widths</th><th>message</th></tr></thead><tbody><tr><td>True</td><td>{&#x27;M3&#x27;: 10, &#x27;M6_split0&#x27;: 12, &#x27;M6_split1&#x27;: 12, &#x27;M5&#x27;: 10, &#x27;M1_repair0&#x27;: 12, &#x27;M1_repair1&#x27;: 12}</td><td>PASS: 행 폭 {&#x27;M3&#x27;: 10, &#x27;M6_split0&#x27;: 12, &#x27;M6_split1&#x27;: 12, &#x27;M5&#x27;: 10, &#x27;M1_repair0&#x27;: 12, &#x27;M1_repair1&#x27;: 12}, 최대/최소 비율=1.20 (허용치 이내)</td></tr></tbody></table></div></section>
+<section class="rsec"><h2>&sect;4 audit_row_split() (from instance.json)</h2><div class="finding ok"><b>(combined)</b>: PASS<br>- 3c. common-centroid[M3/M4] [참고용 -- 이 kind는 필수 아님]: M3 centroid=(2.00,0.00), M4 centroid=(7.00,0.00), |dx|=5.00 |dy|=0.00 (허용오차 0.5)</div></section>
+<section class="rsec"><h2>&sect;5 check_stick_diagram_coverage() (from instance.json)</h2><div class="finding ok"><b>PASS</b></div></section>
+<section class="rsec"><h2>&sect;6 run_full_circuit_audit() -- device count / net-name / matching-disposition</h2><div class="finding ok"><b>run_full_circuit_audit</b>: PASS<div class="twrap"><table class="sizing"><thead><tr><th>name</th><th>ok</th><th>detail</th></tr></thead><tbody><tr><td>1. device count vs manifest</td><td>True</td><td>total 7 == expected 7</td></tr><tr><td>2. net-name case consistency</td><td>True</td><td>all net names already single-case</td></tr><tr><td>3. every matching/hub-merge candidate has a recorded disposition</td><td>True</td><td>6 candidate groups, all disposed</td></tr></tbody></table></div></div></section>
+<section class="rsec"><h2>&sect;7 Physical floorplan (from instance.json)</h2><pre>{
+  &quot;placements&quot;: {
+    &quot;M3&quot;: {
+      &quot;x&quot;: -6.0,
+      &quot;y&quot;: 0.0,
+      &quot;width&quot;: 10,
+      &quot;height&quot;: 1
+    },
+    &quot;M6_split0&quot;: {
+      &quot;x&quot;: -6.0,
+      &quot;y&quot;: 2.0,
+      &quot;width&quot;: 12,
+      &quot;height&quot;: 1
+    },
+    &quot;M6_split1&quot;: {
+      &quot;x&quot;: -6.0,
+      &quot;y&quot;: 4.0,
+      &quot;width&quot;: 12,
+      &quot;height&quot;: 1
+    },
+    &quot;M5&quot;: {
+      &quot;x&quot;: -6.0,
+      &quot;y&quot;: 6.0,
+      &quot;width&quot;: 10,
+      &quot;height&quot;: 1
+    },
+    &quot;M1_repair0&quot;: {
+      &quot;x&quot;: -6.0,
+      &quot;y&quot;: 8.0,
+      &quot;width&quot;: 12,
+      &quot;height&quot;: 1
+    },
+    &quot;M1_repair1&quot;: {
+      &quot;x&quot;: -6.0,
+      &quot;y&quot;: 10.0,
+      &quot;width&quot;: 12,
+      &quot;height&quot;: 1
+    }
+  },
+  &quot;bbox&quot;: {
+    &quot;width&quot;: 12.0,
+    &quot;height&quot;: 11.0
+  },
+  &quot;aspect_ratio&quot;: 1.0909090909090908,
+  &quot;packing_density&quot;: 0.5151515151515151
+}</pre></section>
+<footer>Generated by design_report.py (analog-gmid-design skill, 세션20) -- topology.json/instance.json/run_full_circuit_audit_from_topology()에서 자동 조립. narrative 섹션은 호출자가 채운 값을 그대로 옮긴 것.</footer>
+</div>

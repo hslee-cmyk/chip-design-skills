@@ -4438,16 +4438,34 @@ def search_unit_cell_sizing(nominal_w: float, candidate_unit_widths: list,
 # 5.7) Cell shape(box) 균형 탐색 — §8 지원 도구
 # ---------------------------------------------------------------------------
 
+def _quantize_to_grid(x: float, grid_step: float, mode: str = "nearest") -> float:
+    """`sizing_recipe.quantize_L()`과 정확히 같은 공식(길이 치수를 `grid_step`의 배수로
+    스냅)의 로컬 사본 — `sizing_recipe.py`가 이 파일(`stick_diagram.py`)을 import하므로
+    반대 방향 import는 순환참조가 된다(2026-08-13 세션31 이어, box-shape finger_w에도
+    공정 manufacturing grid를 적용하기 위해 신설 — `.ai/context.md` 세션31 CD 참고).
+    구현이 3줄짜리 순수 함수라 사본 유지 비용이 낮다."""
+    if grid_step <= 0:
+        raise ValueError(f"grid_step={grid_step}은 0보다 커야 한다")
+    fn = {"nearest": round, "floor": math.floor, "ceil": math.ceil}.get(mode)
+    if fn is None:
+        raise ValueError(f"알 수 없는 mode={mode!r}")
+    return fn(x / grid_step) * grid_step
+
+
 @dataclass
 class BoxLayoutCandidate:
     finger_w: float                  # 이 stack에 쓸 unit cell 폭(um) — 다른 stack과 다를 수 있다
     n_fingers_per_device: dict       # {device_name: n_fingers}
     total_row_fingers: int           # 이 stack 전체 행의 finger 총합 = 물리적 행 길이(box 판정 기준)
+    snap_error_per_device: dict = field(default_factory=dict)  # grid_step 지정 시만 채워짐(그 외 빈 dict = 오차 0)
+    max_snap_error: float = 0.0      # snap_error_per_device의 최댓값(grid_step 미지정이면 0.0)
 
 
 def search_stack_finger_w(devices: dict, target_row_fingers: int,
                            min_finger_w: float = 1.0, max_finger_w: float = 40.0,
-                           tol_fingers: int = 3, max_n: int = 200) -> list:
+                           tol_fingers: int = 3, max_n: int = 200,
+                           grid_step: float | None = None,
+                           max_snap_error: float = 0.01) -> list:
     """§8 "cell shape(box) 판단 기준"을 실제로 실행 가능하게 만드는 탐색 도구.
 
     배경(2026-07-23 사용자 피드백): N단(예: 3핑거)과 P단(예: 32핑거)처럼 stack마다 총 W가
@@ -4476,30 +4494,58 @@ def search_stack_finger_w(devices: dict, target_row_fingers: int,
     뒤, 나온 total_row_fingers들을 호출자가 직접 비교해서 그 조합이 정말 서로 가까운지
     판단해야 한다(2-stack 이상을 동시에 맞추는 완전탐색은 하지 않는다 — search_unit_cell_sizing
     과 같은 철학: "후보 생성"까지만 하고 최종 채택은 §5 재검증 + 설계자 판단에 맡긴다).
-    """
+
+    `grid_step`(선택, m 단위 — 예: sky130 MANUFACTURINGGRID 5nm, `sizing_recipe.py`의
+    `L_grid_step`과 동일 근거): 주어지면 후보 finger_w를 공정 그리드에 스냅한다(`_quantize_
+    to_grid()`) — 그리드 스냅 전엔 `base_w/n1`이 항상 정확히 나누어떨어졌지만, 스냅 후엔
+    작은 오차가 남는다(예: sky130 5nm 그리드 실측 최악 케이스 W 상대오차 0.25% —
+    `.ai/context.md` 세션31 CD 참고). W는 gm/ID LUT의 `W_ref` 선형 스케일링이라(L처럼
+    비선형 재보간이 필요 없음) 이 정도 오차는 gm/gds/ID에도 선형으로만 실려 안전하다.
+    `max_snap_error`(기본 1%)를 넘는 소자가 하나라도 있으면 그 후보는 버린다. 반환되는
+    `BoxLayoutCandidate.snap_error_per_device`/`max_snap_error`로 실제 오차를 확인할 것.
+    `grid_step=None`(기본)이면 기존 동작(정확히 나누어떨어지는 후보만, 오차 0) 그대로 —
+    100% 하위호환, 기존 호출부는 전혀 영향받지 않는다."""
     names = list(devices.keys())
     widths = list(devices.values())
     if not widths:
         return []
     base_w = widths[0]
     results = []
+    seen_fw = set()
     for n1 in range(1, max_n + 1):
         fw = base_w / n1
+        if grid_step is not None:
+            fw = _quantize_to_grid(fw, grid_step, mode="nearest")
+            if fw <= 0 or fw in seen_fw:
+                continue
+            seen_fw.add(fw)
         if not (min_finger_w <= fw <= max_finger_w):
             continue
         per_device = {}
+        snap_err = {}
         total = 0
         ok = True
         for name, w in zip(names, widths):
             n = w / fw
-            if abs(n - round(n)) > 1e-6 or round(n) < 1:
-                ok = False
-                break
-            per_device[name] = round(n)
-            total += round(n)
+            if grid_step is None:
+                if abs(n - round(n)) > 1e-6 or round(n) < 1:
+                    ok = False
+                    break
+                per_device[name] = round(n)
+            else:
+                rn = max(1, round(n))
+                err = abs(w - rn * fw) / w
+                if err > max_snap_error:
+                    ok = False
+                    break
+                per_device[name] = rn
+                snap_err[name] = err
+            total += per_device[name]
         if ok and abs(total - target_row_fingers) <= tol_fingers:
-            results.append(BoxLayoutCandidate(finger_w=fw, n_fingers_per_device=per_device,
-                                               total_row_fingers=total))
+            results.append(BoxLayoutCandidate(
+                finger_w=fw, n_fingers_per_device=per_device, total_row_fingers=total,
+                snap_error_per_device=dict(snap_err),
+                max_snap_error=max(snap_err.values()) if snap_err else 0.0))
     results.sort(key=lambda c: (abs(c.total_row_fingers - target_row_fingers), c.finger_w))
     return results
 
@@ -4584,6 +4630,51 @@ def assign_finger_geometry(sizing_results: dict, stack_groups: dict, area_priors
     return overrides
 
 
+def apply_explicit_row_split(rows: dict, row_split: dict) -> dict:
+    """`row_split`(`{stack_id: n_rows}`)에 명시된 stack을 `n_rows`개 물리 행으로 균등
+    분할한다 -- box-shape 비율을 맞추기 위한 **명시적 소자 folding**(2026-08-13 세션31,
+    사용자 승인 -- `two_stage_ota`의 M6처럼 매칭 파트너가 없는 단독 소자가 box-shape
+    비율을 지배할 때, 그 소자 자체를 여러 병렬 물리 인스턴스로 접는 것 -- 추가 contact/via
+    비용이 실제로 든다). `repair_matching_safety()`/`common_centroid_layout()`이 이미
+    하는 "매칭 품질(3c) 개선을 위한 자동 재배치"와는 목적이 다르다 -- 그건 자동 판단이지만,
+    이건 순수 면적/비율 목적이라 자동으로 판단하지 않고 **호출자가 명시적으로 선언**해야만
+    적용된다(§8.5 원칙: box-shape FAIL을 수용할지 분할할지는 설계자 판단).
+
+    `rows`의 각 stack 안에 소자가 여러 개(예: 매칭쌍)여도 **소자별로 독립적으로** 접는다
+    (`_fixup_euler_blocked_rows()`의 `_connected_components()`처럼 여러 소자를 하나로
+    묶어 재배치하는 게 아니다 -- 이건 "이 stack의 모든 소자를 각자 n_rows로 접어라"는
+    단순 요청). 소자의 `n_fingers`를 `n_rows`로 최대한 고르게 나누고(나머지는 앞쪽 조각부터
+    +1), 0개가 되는 조각은 만들지 않는다(n_fingers < n_rows면 실제로는 그보다 적은 행만
+    생긴다 -- 조용히 무시하지 않고 반환된 행 개수로 그 사실이 드러난다).
+
+    각 조각은 새 `stack_id` `f"{sid}_split{i}"`를 받는다. `row_split`에 없는 stack은
+    손대지 않고 그대로 반환한다(기본 동작 100% 보존, opt-in).
+
+    반환: 갱신된 `rows` dict."""
+    new_rows = {}
+    for sid, devs in rows.items():
+        n_rows = row_split.get(sid)
+        if not n_rows or n_rows <= 1:
+            new_rows[sid] = list(devs)
+            continue
+        per_device_chunks = {}
+        for t in devs:
+            base, rem = divmod(t.n_fingers, n_rows)
+            chunk_ns = [base + (1 if i < rem else 0) for i in range(n_rows)]
+            per_device_chunks[t.name] = [n for n in chunk_ns if n > 0]
+        max_chunks = max((len(v) for v in per_device_chunks.values()), default=0)
+        for i in range(max_chunks):
+            split_sid = f"{sid}_split{i}"
+            row_devs = []
+            for t in devs:
+                chunks = per_device_chunks[t.name]
+                if i < len(chunks):
+                    row_devs.append(_dc_replace(t, n_fingers=chunks[i], stack_id=split_sid))
+            if row_devs:
+                new_rows[split_sid] = row_devs
+    return new_rows
+
+
 # ---------------------------------------------------------------------------
 # 5.75) Cell shape(box) 균형 — 가로 배치(Case B) 자매 함수. search_stack_finger_w()(Case A,
 #       위)는 "행 폭(n_fingers)을 목표로 고정하고 stack마다 finger_w를 다르게 찾아" 여러 행을
@@ -4604,7 +4695,8 @@ class SharedFingerWCandidate:
 
 
 def search_shared_finger_w(devices: dict, min_finger_w: float = 0.4, max_finger_w: float = 45.0,
-                            min_fingers: int = 1, max_n: int = 200) -> list:
+                            min_fingers: int = 1, max_n: int = 200,
+                            grid_step: float | None = None) -> list:
     """§4.2/Case B — 여러 stage에 걸친 소자들이 **하나의 공통 finger_w**를 쓰도록(=행 높이를
     통일해 좌우로 나란히 배치할 수 있도록) finger_w 후보를 찾는다. `search_stack_finger_w()`
     (Case A)의 정반대 방향 자매 함수: 거기서는 n_fingers를 고정하고 finger_w를 stack마다
@@ -4626,11 +4718,22 @@ def search_shared_finger_w(devices: dict, min_finger_w: float = 0.4, max_finger_
 
     반환: 후보를 **최대 스냅 오차가 작은 순**으로 정렬한 `SharedFingerWCandidate` 리스트.
     후보 finger_w는 각 소자의 W/k(k=1..max_n)를 전부 모은 값들에서 가져온다 — "적어도 한
-    소자에게는 정확히 맞는" 값들이 전체적으로도 좋은 근사일 가능성이 높기 때문이다."""
+    소자에게는 정확히 맞는" 값들이 전체적으로도 좋은 근사일 가능성이 높기 때문이다.
+
+    `grid_step`(선택, m 단위 — `search_stack_finger_w()`와 동일 근거/`_quantize_to_grid()`
+    재사용): 주어지면 seed finger_w를 공정 그리드에 스냅한다. 이 함수는 애초에 "정확히
+    안 맞을 수 있다"는 전제로 설계돼 `snap_error`를 이미 항상 계산하므로(§8.2와 달리
+    tolerance로 후보를 버리지 않음), 그리드 스냅은 seed 생성 단계에 한 줄만 추가하면
+    충분하다 — 스냅으로 늘어나는 오차는 반환된 `max_snap_error`에 그대로 반영되어 호출자가
+    판단한다. `grid_step=None`(기본)이면 기존 동작 그대로."""
     seeds = set()
     for w in devices.values():
         for k in range(1, max_n + 1):
             fw = w / k
+            if grid_step is not None:
+                fw = _quantize_to_grid(fw, grid_step, mode="nearest")
+                if fw <= 0:
+                    continue
             if min_finger_w <= fw <= max_finger_w:
                 seeds.add(fw)
     results = []
@@ -6336,6 +6439,33 @@ def block_from_row_widths(name: str, row_widths: dict) -> FloorplanBlock:
     return FloorplanBlock(name, width=max(row_widths.values()), height=len(row_widths))
 
 
+def rebuild_floorplan(row_widths: dict, floorplan_hints: dict | None = None) -> FloorplanResult:
+    """`row_widths`(`{row_name: finger_count}`)만으로 floorplan을 새로 packing한다 --
+    `run_topology_pipeline()`의 §8 floorplan 조립 로직(spine_groups 기본값 구성 ->
+    `block_from_row_widths()` -> `pack_floorplan_grouped()`)을 그대로 추출한 것(동작
+    변화 없음, `run_topology_pipeline()`도 이 함수를 호출하도록 리팩터됨).
+
+    2026-08-13(세션31 CO) 신설 -- `optimize_full_circuit_budget()`이 `row_split`/
+    matching-safety repair로 물리 행 구성을 재조정한 *뒤*에도 `floorplan`을 다시 계산할
+    수 있도록 재사용 가능한 함수로 분리했다. 배경: 지금까지 `floorplan`은 그 재조정
+    *이전*(euler-fixup 직후) 시점의 `row_widths`로 딱 한 번만 계산되고 다시는 갱신되지
+    않아서, box-shape/stick-diagram은 최종 물리 행(예: `M6_split0`/`M6_split1` 2개)을
+    보여주는데 floorplan만 재조정 이전의 통짜 블록(예: `M6` 1개, width=합산값)을 보여주는
+    불일치가 있었다(실측 발견: `two_stage_ota`, `.ai/context.md` 세션31 CO 참고).
+
+    `floorplan_hints.spine_groups`가 있으면 그 그룹핑을(예: 여러 row를 한 macro-block으로
+    묶는 지정), 없으면 각 row를 독립 spine으로 취급(`run_topology_pipeline()`의 기존
+    기본값과 동일)."""
+    hints = floorplan_hints or {}
+    spine_groups_names = hints.get("spine_groups") or {name: [name] for name in row_widths}
+    blocks_by_name = {name: block_from_row_widths(name, {name: row_widths[name]})
+                      for name in row_widths}
+    spine_groups = {gname: [blocks_by_name[bname] for bname in members if bname in blocks_by_name]
+                    for gname, members in spine_groups_names.items()}
+    return pack_floorplan_grouped(spine_groups, hints.get("mirror_pairs") or [],
+                                    net_weights=hints.get("net_weights"))
+
+
 def _pack_by_subkind(blocks: list, sub_kind: dict, gap: float = 1.0, height_steps: int = 40):
     """`blocks`를 `sub_kind`(예: `{"cmfb_p1": "pmos", "cmfb_n1": "nmos", ...}` — 같은 물리
     diffusion/폴러리티에 속하는 row를 묶는 키)로 나눠, 각 하위그룹을 **공통 목표 높이에
@@ -6738,13 +6868,9 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
             audit_row[cell_name] = audit_row_split(cell_rows, matching_pairs=cell_pairs,
                                                     pair_sensitivity=cell_pair_sensitivity)
 
-    spine_groups_names = hints.get("spine_groups") or {name: [name] for name in row_widths}
-    blocks_by_name = {name: block_from_row_widths(name, {name: row_widths[name]})
-                      for name in row_widths}
-    spine_groups = {gname: [blocks_by_name[bname] for bname in members if bname in blocks_by_name]
-                    for gname, members in spine_groups_names.items()}
-    floorplan = pack_floorplan_grouped(spine_groups, hints.get("mirror_pairs") or [],
-                                        net_weights=hints.get("net_weights"))
+    # 2026-08-13(세션31 CO) -- rebuild_floorplan()으로 추출(동작 변화 없음, optimize_full_
+    # circuit_budget()이 row_split/repair 이후 재호출할 수 있도록 재사용 가능하게 만든 것).
+    floorplan = rebuild_floorplan(row_widths, hints)
 
     sized_names = {t.name for t in transistors}
     stick_diagram_devices = {name: [t.name for t in devs] for name, devs in rows.items()}
