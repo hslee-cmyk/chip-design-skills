@@ -10007,3 +10007,42 @@ balance 역할을 한다"를 내포하므로 matching이 구조적으로 맞다(
 fill()` 4번째 소스 docstring + review_needed 메시지 둘 다 갱신). `gm_id_role_candidates`가
 이미 이런 소자에 "matching"을 정확히 제안하고 있어(실측 확인) 로직 변경은 없음, 순수
 메시지/문서 정정 -- self-test 전체 재실행 exit 0.
+
+## P. 이월 항목 ② 해소 -- `nmcnr_amplifier`의 M108/M109/M203/M204, 구조 신호 두 건 확장
+
+**M108/M109 -- 진짜 detection 버그, 근본 수정**: `M102`/`M103`(diffpair) → 폴디드 캐스코드
+`M106`/`M107` → `M108`(diode 레퍼런스)/`M109`(그 미러) -- `two_stage_ota`의 M3/M4와
+정확히 같은 패턴인데 캐스코드가 한 단 끼어 있어(diffpair leg 자기 drain이 아니라 그 위
+캐스코드 drain에 부하가 앉음) 기존 `find_diffpair_branch_load_partners()`(1-hop만 확인)가
+못 찾아 declared `matching`과 오탐 충돌 중이었다. `_walk_cascode_top()`(단일 fanout인
+동안만 걷는 순수 connectivity 헬퍼, 캐스코드 없으면 첫 걸음에서 즉시 멈춰 기존 동작
+그대로) 신설해 `find_diffpair_branch_load_partners()`가 각 branch를 캐스코드 체인
+꼭대기까지 먼저 올라간 뒤 부하를 찾도록 확장 -- M108<->M109 정확히 검출, 오탐 충돌 해소.
+
+**M203/M204 -- 사용자 통찰로 세 번째 일반 신호 발견**: M203/M204는 diffpair도 구조
+대칭도 전혀 없는 순수 단일-종단 3단 캐스케이드(M201→M203/M204→M301→M302)라 위 확장으로도
+안 잡혔다. 사용자 지적: "M203이 M201의 신호 스윙을 그대로 받는 능동부하 자신이면서
+diode-connected이고, M204는 그 전압을 그대로 복사해 M301을 구동하는 driver다 -- 목적이
+전류비가 아니라 전압 copy로 보인다"는 게 M3/M4와 M203/M204를 잇는 **더 근본적인 공통
+원리**임이 드러남: diffpair/구조 대칭이라는 "차동 균형" 프레임이 아니라, **diode-connected
+레퍼런스 자신의 노드가 고정 BIAS가 아니라 SIGNAL이면, 그 레퍼런스를 미러하는 다리는
+목적이 전류비가 아니라 신호-종속 전압/전류 관계의 "복사"이므로 matching이 필요하다**는
+원칙 -- diffpair 존재 여부와 완전히 무관. 실측 확인(`netclass.classify_nets()`의 `cls`):
+`M203`/`M108`의 노드(NodeC/NodeM1)는 `SIGNAL`, 반면 `current_reuse_telescopic_ota`의
+`M18_bg`/`M66`, `folded_cascode`의 `MN`/`MP`/`M9`(전부 기존에 "gain 안전"으로 확인된
+고정 레퍼런스)는 전부 `BIAS` -- 완벽하게 갈림, 반례 없음.
+
+**구현**: `refine_differential_and_mirror_relations()`에 `signal_referenced_mirror_legs`
+필드 신설(`m_mirror()`의 `active_load_legs`와 같은 곳에서 같은 매치 재사용, 재계산 없음)
+-- `current-mirror` idiom match의 `ref`(diode-connected 자신) 게이트가 `cls`상 `SIGNAL`
+이면 그 그룹의 non-ref 다리 전부를 이 dict에 등록. `propose_device_roles_gap_fill()`의
+`gain_role_candidates` 제외 조건에 세 번째 항목으로 추가(구조 대칭/diffpair branch-load에
+이어), 이 신호에 걸리는 소자엔 명시적으로 `gm_id_role="matching"`을 제안(기존엔 파트너가
+없어 아무 제안도 안 났던 gap -- M204가 정확한 예: 구조 대칭 파트너 없음에도 이제
+"matching" 명시 제안). review_needed 정보성 메시지도 세 원인(구조 대칭/diffpair
+branch-load/signal-referenced 레퍼런스)을 구분해서 표시하도록 갱신.
+
+**검증**: `M109`/`M204` 둘 다 declared `matching`과의 충돌 완전 해소(정보성 기록으로
+전환), `M202`/`M302`(diode 레퍼런스 자체가 없는 진짜 독립 active-load, M7과 동종)는
+그대로 "gain" 후보 유지(회귀 없음 확인). `stick_diagram.py`/`sizing_recipe.py` self-test
+전체 exit 0, 프로덕션 harness 2건 gain_db byte-identical 재확인.
