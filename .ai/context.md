@@ -10162,10 +10162,14 @@ run_harness.py`(세션31 신설, 세션32/33이 "포함 여부 확인 필요"로
    필터 없이 모든 declared matching_pairs에 L 일치를 강제한다(원칙 위반, 세션33이 발견).
    4개 실회로에 대해 현재는 완전한 no-op임을 세션33이 실측 확인했으나, 수정 자체는 아직
    미적용 -- 다음에 관련 코드를 다시 만지게 되면 자연스럽게 같이 처리 가능.
-2. **workspaces 정리** -- `workspaces/run_harness.py`(세션31 신설, 커밋 대상 포함 여부),
-   `workspaces/two-stage-ota-report/run_harness.py`(레거시 복사본, 삭제 여부) 둘 다 세션
-   32부터 "확인 필요"로 계속 이월 중, 아직 아무도 답을 안 줌 -- 다음 세션에서 사용자에게
-   직접 물어볼 것.
+2. ✅ **(완료, 세션35)** ~~workspaces 정리~~ -- 사용자에게 직접 확인(AskUserQuestion) 후
+   해소. `workspaces/run_harness.py`(세션31 통합본)를 커밋하고, 그걸로 완전히 대체된
+   `workspaces/two-stage-ota-report/run_harness.py`(로컬에 box_shape 필드명 임시 수정만
+   있고 미커밋 -- 방치하면 `max_ratio` KeyError로 깨지는 상태였음), `workspaces/
+   current-reuse-telescopic-ota-report/run_harness.py`(레거시 복사본) 둘 다 `git rm -f`로
+   삭제. 커밋 `5054026`. 통합본 `ast.parse()` 문법 확인만 했고 전체 실행(10분+ 소요)은
+   생략 -- 세션34 "## 2 최종 검증 상태"가 이미 이 통합 harness로 두 회로를 재실행해
+   byte-identical을 확인해뒀다.
 3. **`folded_cascode`/`nmcnr_amplifier`에 `sizing_roles` 자체가 없음**(세션31 BE③/BW2,
    `.ai/context.md` 7739행 근처) -- 2026-08-14 직접 재확인: 두 파일 다 `sizing_roles:
    null`. theta 자유탐색이 원천적으로 불가능해 `optimize_full_circuit_budget()`으로
