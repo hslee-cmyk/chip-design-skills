@@ -2,46 +2,251 @@
   "schema_version": "2.0",
   "topology_name": "folded_cascode",
   "source": "Maloberti PDF p.34-38 worked example — folded_cascode_example()에서 이관, netlist는 stick_diagram.py의 dataclasses.asdict(Transistor) 덤프 결과에서 connectivity 필드만 추림",
-
   "_schema_note": "2026-07-28 재설계(사용자 지적) — n_fingers/finger_w/w/stack_id와 layout(groups/row_splits/adjacency_guide)를 여기서 전부 제거했다. 이유: matching 배치(interdigitation/common-centroid), Euler trail, row 분할은 전부 finger 개수·finger_w가 정해져야만 계산 가능한데, 그건 사이징 결과값이다 — topology 단계엔 존재하지 않는다. 실제로 이전 버전에서 row_splits에 특정 사이징에서만 유효한 고정 시퀀스를 저장하려다, 재사이징하면 그 시퀀스 자체가 무의미해진다는 게 드러났다(Batch 2 구현 중 실측). topology.json은 이제 사이징과 무관한 것만 담는다: connectivity(name/kind/source/drain/gate)와 그 connectivity만으로 결정되는 matching kind(find_matching_candidates()도 W/finger 없이 이 정보만 본다). 실제 layout(n_fingers/finger_w/w/stack_id/row 분할/floorplan)은 사이징 이후 instance-output JSON 단계에서 기존 탐색 함수(search_stack_finger_w()/audit_row_split()/common_centroid_layout()/pack_floorplan_grouped())를 실제로 실행해서 얻는다 — 미리 박아두지 않는다.",
-
   "compensation": null,
   "_compensation_status": "not_applicable",
-
   "netlist": [
-    {"name": "MP", "kind": "pmos", "source": "vdd", "drain": "vb1", "gate": "vb1"},
-    {"name": "M3", "kind": "pmos", "source": "vdd", "drain": "X", "gate": "vb1"},
-    {"name": "M4", "kind": "pmos", "source": "vdd", "drain": "Y", "gate": "vb1"},
-    {"name": "M5", "kind": "pmos", "source": "Y", "drain": "Vg7", "gate": "bias3"},
-    {"name": "M6", "kind": "pmos", "source": "X", "drain": "out", "gate": "bias3"},
-    {"name": "M1", "kind": "pmos", "source": "tail", "drain": "X", "gate": "vin_p"},
-    {"name": "M2", "kind": "pmos", "source": "tail", "drain": "Y", "gate": "vin_n"},
-    {"name": "M9", "kind": "nmos", "source": "gnd", "drain": "Vg9", "gate": "Vg9"},
-    {"name": "M10", "kind": "nmos", "source": "gnd", "drain": "Vg10", "gate": "Vg9"},
-    {"name": "M7", "kind": "nmos", "source": "Vg9", "drain": "Vg7", "gate": "Vg7"},
-    {"name": "M8", "kind": "nmos", "source": "Vg10", "drain": "out", "gate": "Vg7"},
-    {"name": "M11", "kind": "nmos", "source": "gnd", "drain": "tail", "gate": "vb2"},
-    {"name": "MN", "kind": "nmos", "source": "gnd", "drain": "vb2", "gate": "vb2"}
+    {
+      "name": "MP",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "vb1",
+      "gate": "vb1"
+    },
+    {
+      "name": "M3",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "X",
+      "gate": "vb1"
+    },
+    {
+      "name": "M4",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Y",
+      "gate": "vb1"
+    },
+    {
+      "name": "M5",
+      "kind": "pmos",
+      "source": "Y",
+      "drain": "Vg7",
+      "gate": "bias3"
+    },
+    {
+      "name": "M6",
+      "kind": "pmos",
+      "source": "X",
+      "drain": "out",
+      "gate": "bias3"
+    },
+    {
+      "name": "M1",
+      "kind": "pmos",
+      "source": "tail",
+      "drain": "X",
+      "gate": "vin_p"
+    },
+    {
+      "name": "M2",
+      "kind": "pmos",
+      "source": "tail",
+      "drain": "Y",
+      "gate": "vin_n"
+    },
+    {
+      "name": "M9",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vg9",
+      "gate": "Vg9"
+    },
+    {
+      "name": "M10",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vg10",
+      "gate": "Vg9"
+    },
+    {
+      "name": "M7",
+      "kind": "nmos",
+      "source": "Vg9",
+      "drain": "Vg7",
+      "gate": "Vg7"
+    },
+    {
+      "name": "M8",
+      "kind": "nmos",
+      "source": "Vg10",
+      "drain": "out",
+      "gate": "Vg7"
+    },
+    {
+      "name": "M11",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "tail",
+      "gate": "vb2"
+    },
+    {
+      "name": "MN",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "vb2",
+      "gate": "vb2"
+    }
   ],
-
   "ideal_sources": [
-    {"name": "Ibg", "kind": "current_source", "value_amp": null, "implementable": false,
-     "terminals": ["vb1", "vb2"],
-     "_comment": "2026-08-05(세션9, 사용자 정정지시, 2차) -- MP(gate=drain=vb1 다이오드, tail과는 별개 노드로 분리)와 MN(gate=drain=vb2 다이오드)은 각각 독립된 진짜 다이오드 레퍼런스, 이 둘 사이의 전류 관계를 이 ideal source가 모델링. M11(gnd->tail, gate=vb2=MN 미러)은 diff pair의 실제 tail 전류원 -- vb1과는 별개 노드."}
+    {
+      "name": "Ibg",
+      "kind": "current_source",
+      "value_amp": null,
+      "implementable": false,
+      "terminals": [
+        "vb1",
+        "vb2"
+      ],
+      "_comment": "2026-08-05(세션9, 사용자 정정지시, 2차) -- MP(gate=drain=vb1 다이오드, tail과는 별개 노드로 분리)와 MN(gate=drain=vb2 다이오드)은 각각 독립된 진짜 다이오드 레퍼런스, 이 둘 사이의 전류 관계를 이 ideal source가 모델링. M11(gnd->tail, gate=vb2=MN 미러)은 diff pair의 실제 tail 전류원 -- vb1과는 별개 노드."
+    }
   ],
   "_netlist_correction_2026-08-05": "세션9, 사용자 정정지시로 원래 bias1~bias5(외부 바이어스로 단순화된 버전)를 실제 다이오드+미러 레퍼런스 구조로 전면 재구성(여러 차례 정정 끝에 최종 확정, 세부 경위는 .ai/context.md 세션9 절 참고). 최종 구조: (1) MP(gate=drain=vb1, PMOS 다이오드) -> M3/M4가 미러(X/Y 폴딩 전류원). (2) M9(gate=drain=Vg9, NMOS 다이오드) -> M10이 미러(gate=Vg9, drain=Vg10) -- X/Y 폴딩 노드와는 분리된 별개 캐스코드 스택 노드. (3) M7(gate=drain=Vg7, NMOS 다이오드, source=Vg9) -> M8이 미러(source=Vg10, gate=Vg7, drain=out) -- X-branch(M5) 신호전류를 다이오드+미러로 반전해 Y-branch(M6) 출력과 'out'에서 상쇄하는 differential-to-single-ended 구조. (4) M5(source=Y)/M6(source=X)는 교차(cross-coupled) -- 다이오드 아님, 외부 bias3만 공유. (5) MN(gate=drain=vb2, 독립 다이오드) -> M11이 미러(gate=vb2, drain=tail)해서 diff pair(M1/M2)의 실제 tail 전류원 역할. (6) vb1(MP측)과 vb2(MN측) 두 독립 레퍼런스 사이의 전류 관계는 ideal_sources의 Ibg(current_source, vb1-vb2)로 모델링(트랜지스터 아님, 값 미상 TBD). X/Y는 diff pair 드레인+PMOS 전류원 드레인+캐스코드 소스만 남는 순수 폴딩 노드(3단자씩). 사용자 최종 확인 완료.",
-
   "symmetry": {
     "_matching_pairs_comment": "2026-08-05(세션9, 사용자 정정지시로 netlist를 다이오드+미러 구조로 확정한 뒤 재검토) -- M3/M4는 MP(gate=drain=tail) 다이오드의 미러, M9/M10은 M9(gate=drain=X) 다이오드+M10 미러, M7/M8은 M7(gate=drain=Vg7) 다이오드+M8 미러 -- 셋 다 같은 패턴(다이오드 레퍼런스+미러 출력)이라 current_matched(축A=강제)가 타당하다. M5/M6은 다이오드 없이 외부 bias3만 공유(구조적 유사성뿐, KCL/미러 근거 없음)라 branch_symmetric 유지.",
     "matching_pairs": [
-      {"names": ["M3", "M4"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "MP(gate=drain=vb1, PMOS 다이오드)의 미러 -- M3.gate=M4.gate=vb1=MP.gate=MP.drain."},
-      {"names": ["M9", "M10"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "M9(gate=drain=X, NMOS 폴딩 다이오드)의 미러 -- M10.gate=X=M9.gate=M9.drain."},
-      {"names": ["M1", "M2"], "current_forced": true, "matching_sensitivity": "offset"},
-      {"names": ["M5", "M6"], "current_forced": false, "matching_sensitivity": "ratio"},
-      {"names": ["M7", "M8"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08-05(세션9 정정, branch_symmetric에서 재분류) -- M7(gate=drain=Vg7, NMOS 다이오드)의 미러 -- M8.gate=Vg7=M7.gate=M7.drain. M9/M10과 완전히 같은 패턴(differential-to-single-ended 변환용 X-branch 다이오드+out 미러)."}
+      {
+        "names": [
+          "M3",
+          "M4"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "MP(gate=drain=vb1, PMOS 다이오드)의 미러 -- M3.gate=M4.gate=vb1=MP.gate=MP.drain."
+      },
+      {
+        "names": [
+          "M9",
+          "M10"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "M9(gate=drain=X, NMOS 폴딩 다이오드)의 미러 -- M10.gate=X=M9.gate=M9.drain."
+      },
+      {
+        "names": [
+          "M1",
+          "M2"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "offset"
+      },
+      {
+        "names": [
+          "M5",
+          "M6"
+        ],
+        "current_forced": false,
+        "matching_sensitivity": "ratio"
+      },
+      {
+        "names": [
+          "M7",
+          "M8"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08-05(세션9 정정, branch_symmetric에서 재분류) -- M7(gate=drain=Vg7, NMOS 다이오드)의 미러 -- M8.gate=Vg7=M7.gate=M7.drain. M9/M10과 완전히 같은 패턴(differential-to-single-ended 변환용 X-branch 다이오드+out 미러)."
+      },
+      {
+        "names": [
+          "M11",
+          "MN"
+        ],
+        "matching_sensitivity": "ratio",
+        "current_forced": true,
+        "_comment": "propose_device_roles_gap_fill() 자동 제안 -- source=layer1_current_mirror_fallback(diode-connected 소자 확인됨, role=고정 레퍼런스류 확인됨), confidence=high"
+      }
     ]
+  },
+  "device_roles": {
+    "MP": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "mirror",
+      "vs": 0.0
+    },
+    "M3": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "mirror",
+      "vs": 0.0
+    },
+    "M4": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "mirror",
+      "vs": 0.0
+    },
+    "M5": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "cascode",
+      "vs": 0.0
+    },
+    "M6": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "cascode",
+      "vs": 0.0
+    },
+    "M1": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "cascode",
+      "vs": 0.0
+    },
+    "M2": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "cascode",
+      "vs": 0.0
+    },
+    "M9": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "mirror",
+      "vs": 0.0
+    },
+    "M10": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "mirror",
+      "vs": 0.0
+    },
+    "M7": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "mirror",
+      "vs": 0.0
+    },
+    "M8": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "cascode",
+      "vs": 0.0
+    },
+    "M11": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "mirror",
+      "vs": 0.0
+    },
+    "MN": {
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "mirror",
+      "vs": 0.0
+    }
   }
 }

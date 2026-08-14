@@ -144,6 +144,17 @@ def m_active_load(devs, cls, imp, role):
 
 @idiom('current-mirror', priority=4)
 def m_mirror(devs, cls, imp, role):
+    """⚠️ 2026-08-14(chip-design-skills 세션34, 사용자 지적) -- 미러의 non-ref leg가
+    `role`상 `AMPLIFYING`으로 나올 수 있다(gate net이 SIGNAL로 분류되면 `assign_roles()`의
+    role 우선순위상 `ACTIVE_LOAD` 판정보다 `AMP`가 항상 먼저 걸림, 예: 5T/2단 OTA의
+    `M4` -- diode 레퍼런스 `M3`을 미러하면서 동시에 자기 게이트가 반대쪽 diffpair branch
+    net이라 SIGNAL로 분류됨). 이건 "active-load가 아니다"라는 뜻이 아니라 role의 단일
+    라벨 설계가 "게이트가 신호를 받는다"와 "드레인이 HIGH_Z 이득노드다"라는 **동시에 참일
+    수 있는 두 사실** 중 하나만 표현할 수 있어서 생기는 그림자일 뿐이다 -- `role`을 덮어쓰지
+    않고(다른 소비자가 이미 `role`의 단일 라벨 계약에 기대고 있음), 이 idiom이 이미 받고
+    있는(그러나 지금까지 안 쓰던) `imp` 파라미터로 non-ref leg 각각의 실제 임피던스 등급을
+    직접 확인해 `active_load_legs` 포트로 노출한다 -- role 라벨과 무관하게 "이 미러의 어느
+    leg가 실제로 HIGH_Z 이득노드에 앉아있는가"를 소비자가 직접 물을 수 있게 한다."""
     out, grp = [], defaultdict(list)
     for d in devs:
         grp[(d['G'], d['S'], d['type'])].append(d)
@@ -151,8 +162,11 @@ def m_mirror(devs, cls, imp, role):
         if len(ms) < 2: continue
         ref = [m['name'] for m in ms if role[m['name']] == DIODE]
         if not ref: continue
+        active_load_legs = [m['name'] for m in ms
+                             if m['name'] != ref[0] and imp.get(m['D']) == HIGH_Z]
         out.append(Match('current-mirror', [m['name'] for m in ms],
-                         {'ref': ref[0], 'bias': g, 'rail': s},
+                         {'ref': ref[0], 'bias': g, 'rail': s,
+                          'active_load_legs': active_load_legs},
                          note=f"{t}, ratio branches={len(ms)}", priority=4))
     return out
 

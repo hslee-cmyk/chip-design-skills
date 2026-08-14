@@ -60,6 +60,13 @@ class Transistor:
                                      # §3.5 check_finger_width_compatibility()가 W/finger_w의
                                      # 정수 여부를 검사한다 — n_fingers 자체는 여전히 호출자가
                                      # 직접 정해서 넣는다(이 필드는 검증용이지 자동 계산용이 아니다).
+    l: float | None = None          # channel length(m, gm/ID sizing 결과값 -- sizing_recipe.py의
+                                     # sizing[name]["L"]에서 옴). finger_w/w와 동일한 선택적 필드
+                                     # 패턴: 있으면 compute_row_geometry()가 실제 물리 폭 계산에
+                                     # 쓰고, 없으면 그 소자는 근사 계산에서 빠진다(approx 플래그로
+                                     # 명시, 조용히 대체하지 않음). 이 필드는 gm/ID 지식을 요구하지
+                                     # 않는 순수 치수값이라 이 모듈의 "gm/ID를 모르는 순수 그래프
+                                     # 모듈" 경계(위 모듈 docstring 20-24행)를 깨지 않는다.
     gate: str | None = None          # gate net 이름(선택) — §2.6 matching 그룹 자동 탐지에만 사용
     stack_id: str | None = None     # 명시적 stack 배정(지정 시 극성/폭 자동 그룹핑보다 우선)
 
@@ -1013,6 +1020,15 @@ def find_matching_candidates(transistors: list, idiom_matches: list | None = Non
     current_mirror = {k: v for k, v in by_gate.items() if len(v) >= 2}
     diff_pair = {}
     for (kind, source, w), group in by_source.items():
+        # ⚠️ 2026-08-14 세션34 정정(실측으로 발견 -- 합성 fixture에서 재현, 실제 4개 라이브러리
+        # 회로에는 우연히 노출된 적 없었던 잠재 버그) -- source가 레일(vdd/gnd/vss)이면 제외해야
+        # 한다. 레일은 무한 전류를 공급하는 외부 전원이라 "같은 tail을 공유해 전류가 스플릿된다"는
+        # diff_pair의 정의 자체가 성립하지 않는다(`find_differential_pair_candidates()`가 이미
+        # 이 이유로 명시적으로 배제하고 있음, 위 그 함수 docstring 참고 -- 이 함수는 그 배제를
+        # 빠뜨리고 있었다). 서로 무관한 두 소자가 우연히 같은 레일을 source로 공유하기만 해도
+        # (극단적으로는 회로에 정확히 2개만 있으면) diff_pair로 오탐된다.
+        if source in _RAIL_NETS:
+            continue
         if len(group) != 2:
             continue
         if group[0].gate is not None and group[1].gate is not None and group[0].gate != group[1].gate:
@@ -1724,7 +1740,95 @@ def find_differential_pair_candidates(transistors: list, inputs=(), outputs=(),
                         seen.add(key)
                         out.append({"direction": direction, "position": pos,
                                      "devices": (a, b), "shared_source": ta.source})
+
+    # ⚠️ 2026-08-14 층위1 폴백 추가(사용자 지시, 근본원인 수정) -- 위 branch-composite
+    # 비교는 두 branch의 idiom 라벨까지 완전히 같아야만 후보를 낸다. diode+mirror
+    # 비대칭 부하(예: 5T/2단 OTA의 M3=diode-connected 레퍼런스/M4=active-load 미러 --
+    # 같은 "1단 부하" 위치인데 하나는 diode-connected, 하나는 아니라서 idiom 라벨
+    # 자체가 다름)가 있으면 두 branch가 영원히 다른 signature 그룹으로 갈려 이 함수가
+    # 근본적으로 못 찾는다(실측: two_stage_ota에서 M1/M2가 이 이유로 후보 0건 --
+    # M1쪽 composite=[diode-connected(M3),...], M2쪽 composite=[active-load(M4),...]).
+    # `find_matching_candidates()`(role/idiom 분류가 전혀 필요 없는 순수 (kind,source,w)
+    # 그룹핑, `Transistor.source`만 직접 비교)는 이 경우도 이미 정확히 찾는다 --
+    # `propose_device_roles_gap_fill()`의 current_mirror 층위1 폴백(세션33)과 동일
+    # 원칙을 이 함수 자체(모든 호출부의 공통 근본원인)에 적용한다. 순수 additive
+    # (branch-composite 비교가 이미 찾은 걸 덮어쓰지 않고, 못 찾던 것만 보충)라 기존
+    # 실측(Test 37 등)에 회귀가 없다."""
+    for (kind, source, _w), group in _diff_pair_layer1_groups(transistors).items():
+        if len(group) != 2:
+            continue
+        a, b = group[0].name, group[1].name
+        key = ("layer1_fallback", frozenset((a, b)))
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append({"direction": "layer1_fallback", "position": None,
+                     "devices": (a, b), "shared_source": source})
     return {"candidates": out}
+
+
+def _diff_pair_layer1_groups(transistors: list) -> dict:
+    """`find_matching_candidates()`의 `diff_pair` net-only 판정(같은 kind + 같은
+    non-rail source + 다른 gate, role/idiom 분류 불필요)만 떼어낸 헬퍼 -- `find_
+    differential_pair_candidates()`의 층위1 폴백 전용(중복 구현 방지, `find_matching_
+    candidates()`의 W-일치 필터는 topology 저작 단계엔 아직 W가 없어 항상 통과한다)."""
+    by_source = defaultdict(list)
+    for t in transistors:
+        if t.source in _RAIL_NETS:
+            continue
+        by_source[(t.kind, t.source, t.w)].append(t)
+    return {k: v for k, v in by_source.items()
+            if len(v) == 2 and v[0].gate is not None and v[1].gate is not None
+            and v[0].gate != v[1].gate}
+
+
+def find_diffpair_branch_load_partners(transistors: list, diffpair_devices: list) -> dict:
+    """`.ai/context.md` 세션34(2026-08-14) -- 사용자 지적 계기 신설. diffpair(예: `M1`/`M2`)의
+    **두 drain에 각각 직접 물린 부하 소자**를 서로의 "branch load partner"로 판정한다.
+
+    ⚠️ **왜 `find_structural_symmetry_candidates()`(전역 그래프 자기동형)로는 안 되는가**:
+    5T/2단 OTA류의 표준 비대칭 부하(예: `two_stage_ota`의 `M3`=diode-connected 레퍼런스/
+    `M4`=그 미러 부하, 둘 다 diffpair의 각 branch 위에 직접 앉아있음)는 진짜로 그래프
+    자기동형이 아니다 -- `M3`은 gate==drain(자기 자신), `M4`는 gate=D3(다른 net)라 좌우
+    net 재라벨링으로 서로를 사상할 수 없다(실측 확인: 부트스트랩 입력 승격을 고쳐도
+    `find_structural_symmetry_candidates()`는 이 둘을 끝까지 못 찾는다). 하지만 이 둘이
+    diffpair의 두 branch 위에 정확히 하나씩 앉아있다는 사실 자체는 idiom 라벨과 무관하게
+    순수 1-hop connectivity(diffpair leg의 drain net을 누가 물고 있는가)만으로 결정론적으로
+    확인 가능하다 -- 이 함수가 그 신호만 뽑아낸다.
+
+    `diffpair_devices`: `find_differential_pair_candidates()`의 `candidates` 리스트
+    (또는 그 하위집합) -- 각 원소의 `"devices"`(a,b) 쌍만 쓴다.
+
+    **판정 규칙**: 각 diffpair (a,b)에 대해, drain(a)/drain(b)가 서로 다르고(같으면 애초에
+    "두 branch"가 아니므로 스킵), 그 drain을 가진 소자가 a/b 자신을 뺴고 **각각 정확히
+    1개씩**이며 같은 kind면, 그 둘을 서로의 partner로 등록한다. **애매하면(부하가 0개거나
+    2개 이상, 또는 kind가 다르면) 아무것도 등록하지 않는다** -- 이 프로젝트 전역 원칙(근거
+    없는 기본값을 채우지 않음)을 그대로 따른다.
+
+    반환: `{device_name: partner_device_name, ...}` -- 근거 있는 쌍만(sparse dict)."""
+    by_name = {t.name: t for t in transistors}
+    by_drain = defaultdict(list)
+    for t in transistors:
+        by_drain[t.drain].append(t)
+    out = {}
+    seen_pairs = set()
+    for c in diffpair_devices:
+        a, b = c["devices"]
+        key = frozenset((a, b))
+        if key in seen_pairs:
+            continue
+        seen_pairs.add(key)
+        da, db = by_name[a].drain, by_name[b].drain
+        if da == db:
+            continue
+        loads_a = [t.name for t in by_drain.get(da, []) if t.name != a]
+        loads_b = [t.name for t in by_drain.get(db, []) if t.name != b]
+        if len(loads_a) == 1 and len(loads_b) == 1:
+            la, lb = loads_a[0], loads_b[0]
+            if by_name[la].kind == by_name[lb].kind and la != lb:
+                out[la] = lb
+                out[lb] = la
+    return out
 
 
 def find_verified_differential_and_mirror_relations(transistors: list, inputs=(), outputs=(),
@@ -2175,20 +2279,45 @@ def _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, c
     analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `None`을
     반환한다.
 
-    반환(있으면): `{device_name: "balanced"|"matching", ...}` -- 51개 회로라면 51개
-    키 전부 포함. ⚠️ `M1a`/`M1b`/`M2a`/`M2b`/`M3a`/`M3b`/`M4a`/`M4b`/`M15`/`M16`/`M25`/
-    `M26`류(차동쌍 자신 + 보상 스테이지 소자)는 `compensation.stage_devices`/
-    `sizing_roles.theta`(type C)가 이미 L/W/gm을 직접 정하므로 `device_roles`에
-    `gm_id_role`을 안 써도 되는 소자다(`_device_roles_comment` 참고) -- 이 함수는
-    그 소자들도 포함해서 반환하지만(모든 51개에 일관되게 값을 매기는 게 후보 제안으로서
-    더 유용), `topology.json`에 실제로 반영할지는 소자마다 다를 수 있다."""
+    ⚠️ **2026-08-14 정정(사용자 지시 -- `load_topology()` 자동배선 중 실측 발견)**: 원래는
+    `t.drain in shared_sources`가 아니면 무조건 `"matching"`을 채웠다 -- **연결관계가 전혀
+    없는 고립 소자에도** `"matching"`이 나온다는 뜻이라(실측: 소자 1개짜리 netlist),
+    이 함수를 자동 파이프라인에 걸면 근거 없는 값이 조용히 주입되는 위험이 있었다. 이제는
+    `_propose_L_roles()`가 이미 계산하는 것과 동일한 전역 좌우 구조 대칭(`find_structural_
+    symmetry_candidates(transform="mirror")`, 부트스트랩이 찾은 차동쌍 gate net으로 seed
+    자동 구성)에서 **자기 자신이 아닌 다른 소자로 실제로 풀리는 경우만** `"matching"`으로
+    확정한다 -- 그 외(대칭 파트너를 못 찾음)는 이 dict에서 아예 뺀다(값을 안 채움, 틀린
+    기본값을 넣지 않음).
+
+    반환(있으면): `{device_name: "balanced"|"matching", ...}` -- **이제 sparse dict다**
+    (근거 있는 소자만 키로 있음, 51개 회로 전부가 아닐 수 있음 -- 이전 버전과 반대).
+    `M1a`/`M1b`/`M2a`/`M2b`/`M3a`/`M3b`/`M4a`/`M4b`/`M15`/`M16`/`M25`/`M26`류(차동쌍 자신 +
+    보상 스테이지 소자)는 `compensation.stage_devices`/`sizing_roles.theta`(type C)가 이미
+    L/W/gm을 직접 정하므로 `device_roles`에 `gm_id_role`을 안 써도 되는 소자이지만, 이
+    함수는 여전히(구조적으로 매칭 파트너가 실제로 있으면) 포함한다 -- `topology.json`에
+    실제로 반영할지는 소자마다 다를 수 있다."""
     candidates = find_differential_pair_candidates(
         transistors, base_inputs, outputs, feedbacks, biases, clocks)
     if candidates is None:
         return None
     shared_sources = {c["shared_source"] for c in candidates["candidates"]}
-    return {t.name: "balanced" if t.drain in shared_sources else "matching"
-            for t in transistors}
+    by_name = {t.name: t for t in transistors}
+    seeds = {"vdd": "vdd", "gnd": "gnd"}
+    for c in candidates["candidates"]:
+        a, b = c["devices"]
+        ga, gb = by_name[a].gate, by_name[b].gate
+        seeds[ga] = gb
+        seeds[gb] = ga
+    symmetry = find_structural_symmetry_candidates(transistors, seeds, transform="mirror")
+    out = {}
+    for t in transistors:
+        if t.drain in shared_sources:
+            out[t.name] = "balanced"
+            continue
+        partner = symmetry.device_map.get(t.name)
+        if partner is not None and partner != t.name:
+            out[t.name] = "matching"
+    return out
 
 
 def _propose_L_roles(transistors, relations, base_inputs, outputs, feedbacks, biases, clocks):
@@ -2231,8 +2360,16 @@ def _propose_L_roles(transistors, relations, base_inputs, outputs, feedbacks, bi
 
     analog-grammar가 없으면 `None`을 반환한다.
 
+    ⚠️ **2026-08-14 정정(사용자 지시)**: 이전엔 대칭 파트너를 못 찾은 소자도 `"mirror"`를
+    기본값으로 채우고 `confirmed_by_structural_symmetry=False`로만 표시했다 -- 근거 없는
+    값이 자동 파이프라인에 조용히 흘러들어갈 위험이 있었다(`_propose_gm_id_roles()`와
+    동일 문제, 같은 이유로 정정). 이제 tail 공급 소자도 아니고 구조 대칭 파트너도 없으면
+    이 dict에서 아예 뺀다 -- `confirmed_by_structural_symmetry=False`인 항목은 더 이상
+    안 나온다(있으면 항상 `True`).
+
     반환(있으면): `{device_name: {"L_role": "bias_replica"|"mirror",
-    "confirmed_by_structural_symmetry": bool, "symmetry_partner": str|None}, ...}`."""
+    "confirmed_by_structural_symmetry": bool, "symmetry_partner": str|None}, ...}` --
+    **이제 sparse dict다**(근거 있는 소자만)."""
     gm_id_roles = _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, clocks)
     if gm_id_roles is None:
         return None
@@ -2251,14 +2388,18 @@ def _propose_L_roles(transistors, relations, base_inputs, outputs, feedbacks, bi
 
     out = {}
     for t in transistors:
-        if gm_id_roles[t.name] == "balanced":
+        if gm_id_roles.get(t.name) == "balanced":
             out[t.name] = {"L_role": "bias_replica",
                             "confirmed_by_structural_symmetry": False, "symmetry_partner": None}
             continue
         partner = symmetry.device_map.get(t.name)
         confirmed = partner is not None and partner != t.name
-        out[t.name] = {"L_role": "mirror", "confirmed_by_structural_symmetry": confirmed,
-                        "symmetry_partner": partner if confirmed else None}
+        if confirmed:
+            out[t.name] = {"L_role": "mirror", "confirmed_by_structural_symmetry": True,
+                            "symmetry_partner": partner}
+        # else: 근거(tail 공급도 아니고 구조 대칭 파트너도 없음) 없이 "mirror"를 기본값으로
+        # 채우지 않는다(2026-08-14 정정, _propose_gm_id_roles()와 동일 이유) -- 이 dict에서
+        # 그냥 뺀다.
     return out
 
 
@@ -2308,6 +2449,18 @@ def _propose_headroom_roles(transistors, gm_id_role_candidates, vertical_stack_i
 
     analog-grammar가 없으면 `None`을 반환한다.
 
+    ⚠️ **2026-08-14 -- `_propose_gm_id_roles()`/`_propose_L_roles()`와 달리 이 함수는
+    그대로 둔다(사용자 지시로 시도했다가 Test 45 회귀로 잘못됐음을 확인하고 되돌림)**:
+    gm_id_role="matching"/L_role="mirror"는 다른 소자와의 매칭 관계가 있어야만 의미가
+    있는 "이 소자를 저 소자와 짝지어 매칭 배치하라"는 제안이라, 매칭 파트너가 없는
+    고립 소자에 붙으면 `select_L_by_role()`/`search_gm_id_for_role()`을 실제로 실행시켜
+    크래시까지 낸다(그래서 구조 대칭 파트너가 실제로 확인될 때만 값을 낸다). 반면
+    `headroom_role`(특히 규칙 3, `CURR_SRC`/`ACTIVE_LOAD` → `mirror`)은 **소자 자신의
+    connectivity만으로 완결되는 독립 판정**이다 -- "레일에 직접 물린 고정 전류원인가"는
+    매칭 파트너 유무와 무관하게 참/거짓이 정해지고(Test 45의 M8이 실측 반례: 매칭
+    파트너가 fixture에 전혀 없어도 여전히 `mirror`가 정답), `allocate_stack_headroom()`의
+    VDS 예산 라벨일 뿐이라 크래시를 유발하지도 않는다.
+
     반환(있으면): `{device_name: "mirror"|"cascode"|"tail"|"floating_current_source"|
     None, ...}` -- 51개 회로라면 51개 키 전부 포함(role이 이 규칙 어디에도 안 걸리면
     `None`, 예: gate가 SIGNAL/INPUT을 직접 받는 `AMPLIFYING`류)."""
@@ -2346,6 +2499,17 @@ def _propose_headroom_roles(transistors, gm_id_role_candidates, vertical_stack_i
             out[n] = 'floating_current_source'
         elif gm_id_role_candidates and gm_id_role_candidates.get(n) == 'balanced':
             out[n] = 'tail'
+        # 2026-08-14 -- 이 규칙(레일에 직접 닿은 고정 바이어스 => mirror)은 gm_id_role/
+        # L_role과 달리 **소자 자신의 connectivity만으로 완결되는 독립 판정**이다(다른
+        # 소자와의 매칭 관계가 전제 조건이 아니다 -- "이 소자가 레일에 직접 물린 고정
+        # 전류원/부하인가"는 그 소자 하나만 봐도 답이 나온다). 실측(Test 45 합성 fixture,
+        # M8): 매칭 파트너가 fixture에 전혀 없어도 M8은 여전히 'mirror'가 맞다. 처음엔
+        # gm_id_role/L_role과 같은 이유(고립 소자에도 'mirror' 나옴)로 여기도 confirmed
+        # 소자만으로 좁혔다가, 이 회귀로 잘못됐음을 확인하고 되돌렸다 -- headroom_role은
+        # gm_id_role/L_role(select_L_by_role()/search_gm_id_for_role()을 실제로 실행시켜
+        # TypeError를 내는 위험한 필드)과 달리 allocate_stack_headroom()의 VDS 예산 배분
+        # 라벨일 뿐이라, 매칭 파트너 없이 붙어도 크래시를 유발하지 않는다(위험의 성격이
+        # 다르다).
         elif r in (netclass.CURR_SRC, netclass.ACTIVE_LOAD):
             out[n] = 'mirror'
         elif n in diode_cascode_lo:
@@ -2522,6 +2686,28 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
         for name, raw in (gm_id_role_candidates or {}).items()
     }
 
+    branch_load_partner_candidates = find_diffpair_branch_load_partners(
+        transistors, find_differential_pair_candidates(
+            transistors, cur_inputs, outputs, feedbacks, biases, clocks)["candidates"])
+
+    # ⚠️ 2026-08-14(세션34, 사용자 지적) -- role_after 하나만으로 "이 소자가 active-load
+    # 성격을 가진다"를 판정하면 M4류(current-mirror의 non-ref leg인데 gate net이 SIGNAL로
+    # 분류돼 role이 AMPLIFYING으로 나오는 경우, netclass.assign_roles()의 단일-role 우선순위
+    # 설계상 ACTIVE_LOAD 판정보다 AMP 판정이 항상 먼저 걸림)을 놓친다. `idioms.m_mirror()`가
+    # 이제 `active_load_legs` 포트(role과 무관하게 imp만으로 판정)로 이 경우도 노출하므로
+    # (`analog-grammar/assets/idioms.py` 동일 세션 수정) 그 결과를 role 기반 집합과 합친다.
+    active_load_leg_candidates = set()
+    _netclass_al, _idioms_al = _import_analog_grammar("netclass", "idioms")
+    if _netclass_al is not None:
+        active_load_leg_candidates = {n for n, r in role_after.items()
+                                        if r == _netclass_al.ACTIVE_LOAD}
+        _devs_al = _to_analog_grammar_devs(transistors)
+        _cls_al, _imp_al, _ = _netclass_al.classify_nets(_devs_al, cur_inputs, outputs, biases,
+                                                            feedbacks, clocks)
+        for m in _idioms_al.match_all(_devs_al, _cls_al, _imp_al, role_after):
+            if m.kind == "current-mirror":
+                active_load_leg_candidates.update(m.ports.get("active_load_legs", []))
+
     return {"relations": relations, "promoted_inputs": promoted_inputs,
             "final_inputs": cur_inputs, "role_changes": role_changes,
             "net_class_changes": net_class_changes, "iterations": iterations,
@@ -2529,7 +2715,10 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
             "vertical_stack_id_candidates": vertical_stack_id_candidates,
             "gm_id_role_candidates": gm_id_role_candidates_final,
             "L_role_candidates": L_role_candidates,
-            "headroom_role_candidates": headroom_role_candidates}
+            "headroom_role_candidates": headroom_role_candidates,
+            "role_candidates": role_after,
+            "branch_load_partner_candidates": branch_load_partner_candidates,
+            "active_load_leg_candidates": active_load_leg_candidates}
 
 
 @dataclass
@@ -3312,6 +3501,522 @@ def propose_vertical_stack_id_gap_fill(transistors: list, matching_pairs: list,
             for m in undeclared:
                 conflicts[m] = sorted(declared)
     return {"proposals": proposals, "conflicts": conflicts, "components_used": components_used}
+
+
+def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matching_pairs_meta: list,
+                                    compensation_stage_devices: list | None = None,
+                                    inputs=(), outputs=(), feedbacks=(), biases=(), clocks=()) -> dict:
+    """`symmetry.matching_pairs`/`device_roles`(`gm_id_role`/`L_role`/`headroom_role`)를 **netlist
+    connectivity만으로** 제안한다(2026-08-14, `.ai/context.md` 세션32 I절 설계 + 다음 세션 실측
+    검증을 반영해 확정). `vertical_stack_id`는 제안하지 않는다 -- I-1의 `propose_vertical_stack_
+    id_gap_fill()`이 이미 그 필드를 전담하고(같은 이유: mirror edge를 vsid 유니온에 안 쓰는 것과
+    동일 원칙), 이 함수와 역할이 겹치면 두 제안이 서로 다른 값을 낼 위험이 생긴다.
+
+    호출자가 `inputs=`를 안 줘도(기본값 `()`) 동작한다 -- `refine_differential_and_mirror_
+    relations()`의 부트스트랩(포트 분류 없이 diffpair 후보를 찾고 그 gate net을 자동 승격, 고정점
+    까지 반복)에 그대로 맡긴다. `inputs=`를 준다면 그 위에서 시작할 뿐 결과가 틀려지지 않는다.
+
+    **실측으로 확정된 3단계 소스(세션32 I-3 설계 대비 2가지 확장)**:
+    1. `relations["mirror"]`/`relations["differential"]`(branch-composite 비교, 기존 I-3
+       설계 그대로) -- `differential` -> `matching_sensitivity="offset", current_forced=True`
+       (공유 tail의 차동쌍은 KCL로 물리적으로 강제되는 관계, 4개 회로 전수 확인 무예외).
+       `mirror` -> `"ratio", current_forced=False`(기본 제안일 뿐 -- 진짜 강제 여부는
+       `sizing_roles`/theta 선언에만 있어 netlist로는 확정 불가, 아래 review_needed 참고).
+    2. **신규(세션32엔 없었음)** `find_structural_symmetry_candidates(transform="mirror")` --
+       seed를 손으로 안 넣고 1번이 이미 찾은 `differential` 쌍의 gate net(+ `vdd`/`gnd`/`vss`)만
+       기계적으로 넣는다. 51소자 실회로 실측: 1번만으로는 declared 21그룹 중 9그룹만 찾지만, 이
+       보강을 더하면 18그룹(진짜 2-소자 매칭쌍 전부, 오탐 0건)까지 늘어난다 -- composite 비교가
+       "rail-to-rail branch 전체가 완전히 같아야" 찾는 것과 달리, 이건 전역 좌우 net 재라벨링
+       (graph automorphism)이라 물리적으로 먼 위치(예: `M8`<->`M17`)의 매칭도 찾는다.
+    3. **신규(세션32엔 없었음)** 층위1 폴백(`find_matching_candidates()`) -- 1번/2번이 전혀
+       못 찾는 회로(실측: `folded_cascode`/`two_stage_ota`/`nmcnr_amplifier`처럼 folding node나
+       cross-coupling이 있어 branch 전체가 안 대칭인 회로, composite 비교가 통째로 0건을 냄)를
+       위한 안전망. `diff_pair` 태그는 정확히 2소자면 그대로 채택(1번과 동일 근거, 4개 회로
+       전수 무예외 확인). `current_mirror` 태그는 정확히 2소자이고 그중 diode-connected
+       (`gate==drain`) 소자가 있을 때만 채택(`ratio`, `current_forced=False`) -- diode 레퍼런스가
+       없는 경우(예: `folded_cascode`의 `M5`/`M6`, 같은 `bias3`를 공유하지만 "구조적 유사성뿐
+       KCL 근거 없음"이라고 그 파일 자신의 주석에 명시)는 채택하지 않고 `review_needed`로 넘긴다.
+
+    이미 `matching_pairs_meta`에 (부분집합으로) 포함된 쌍은 다시 제안하지 않는다.
+
+    **device_roles**: `find_verified_differential_and_mirror_relations()`/`find_structural_
+    symmetry_candidates()`가 이미 검증한 구조 신호로 `refine_differential_and_mirror_relations()`가
+    함께 반환하는 `gm_id_role_candidates`/`L_role_candidates`/`headroom_role_candidates`를 그대로
+    옮긴다(51소자 실회로 실측: `gm_id_role` 33/37, `L_role` 36/37, `headroom_role` 34/37 declared
+    일치 -- 세션32가 수동으로 `inputs=("Vip","Vim")`을 미리 넣고 검증했던 수치보다 부트스트랩
+    전용이라 약간 낮지만, 사람이 포트를 미리 알려줄 필요가 전혀 없다는 게 이 함수의 존재 이유다).
+    `compensation_stage_devices`에 있는 소자도 **똑같이 제안한다**(세션32 I-3 "정정 3" 그대로
+    -- "스킵하면 spec 기반 재설계 검증 자체가 안 된다"는 근거). ⚠️ 2026-08-14 실측 경위: 처음엔
+    이 "충돌 시 compensation이 이긴다"는 전제가 `gm_id_role`엔 실제로 안 지켜진다는 걸 발견하고
+    (`L_role`은 `_AUTHORITATIVE_L_SOURCES` 가드로 안전했지만 `gm_id_role`엔 대칭 가드가 없어서
+    `search_gm_id_for_role()`이 그대로 돌아 compensation이 정한 사이징을 덮어쓰는 진짜 버그였음)
+    한때 이 함수에서 compensation 소속 소자를 통째로 건너뛰도록 막았으나, 사용자 지시("가드를
+    만들어야지 왜 제외해")로 방향을 바꿔 **근본원인(sizing_recipe.py의 누락된 가드)을 직접
+    고쳤다** -- `_AUTHORITATIVE_GM_ID_SOURCES={"compensation"}`(gm_id_role 루프 진입 직전 가드,
+    `_evaluate()` 내부, `_L_source=="compensation"`이면 스킵). `_AUTHORITATIVE_L_SOURCES`를
+    그대로 재사용하지 않은 이유: 그 집합엔 `"replica"`도 있는데, C타입 K_replica feed는 정반대로
+    **이 gm_id_role 루프가 재검색해서 값을 덮어쓰는 것 자체가 설계 의도**다(`_feed_diode_stack_
+    target()` docstring에 이미 명시돼 있었음 -- L/vds/vs만 replica가 권위 있고 gm_id는 처음부터
+    placeholder). 이제 이 함수는 compensation 소속 여부와 무관하게 제안하고, `review_needed`에
+    "compensation 소속이라 gm_id_role은 가드로 무시됨(안전)"이라는 참고 정보만 남긴다.
+
+    이미 `device_roles`에 선언된 값과 제안값이 다르면 **그 소자의 그 필드는 조용히 덮어쓰지 않고**
+    `review_needed`로만 보고한다(프로젝트 전역 원칙).
+
+    **4번째 소스(2026-08-14 세션34 신설) -- "gain" `gm_id_role` 제안**: 사용자 질문("mirror
+    구조로 bias를 잡아주지만 실제로는 gain stage의 load인 경우를 mirror 대신 gain으로
+    분류해야 하지 않나")에서 시작 -- `active_load_leg_candidates`(레일에 직접 물린 소자의
+    드레인이 HIGH_Z 이득노드, `role`이 `AMPLIFYING`으로 가려진 경우까지 `idioms.m_mirror()`의
+    `active_load_legs` 포트로 포함, `two_stage_ota`의 `M7`/`M4` 둘 다 실측 확인) 중 **파트너가
+    전혀 없는 소자만** `gm_id_role="gain"`을 제안한다 -- 파트너 유무는 두 가지 메커니즘으로
+    확인한다: (1) `L_role_candidates[name].symmetry_partner`(전역 그래프 자기동형, 예:
+    `current_reuse_telescopic_ota`의 `M13`<->`M22`), (2) `branch_load_partner_candidates`
+    (diffpair 두 branch에 각각 앉은 부하, 예: `two_stage_ota`의 `M3`<->`M4`, `find_diffpair_
+    branch_load_partners()` 참고). **왜 파트너가 있으면 자동 결정 안 하는가**: 실측 반례
+    `M3`/`M4` -- 둘 다 diffpair branch의 active-load라는 점만 보면 `M13`/`M22`(파트너 있음,
+    후보였다가 보류)와 같은 패턴처럼 보이지만, `M3`/`M4`는 `gain_db` 붕괴를 막으려고 세션31이
+    이미 `gm_id_role="matching"`(+`gm_id_min=8.0`)으로 확정한 사례 -- diffpair 두 branch의
+    부하 미스매치가 입력 오프셋에 직결되면 "matching"이 맞고, 아닌 경우(`M7`처럼 파트너
+    자체가 없어 아무도 이 소자의 전류/L에 기대지 않음)만 "gain"이 안전하다는 게 이번 세션의
+    결론이다 -- 파트너가 "있다"는 사실만으로 matching/gain 어느 쪽이 맞는지는 구조로 확정
+    불가(실제 회로 성능 판단 필요), 그래서 파트너 있는 소자는 이 4번째 소스에서 제안하지
+    않고 조용히 넘어간다(기존 1~3번 소스가 이미 처리하거나, 처리 못하면 review_needed의
+    다른 경로로 드러난다).
+
+    analog-grammar가 없으면(`refine_differential_and_mirror_relations()`가 의존) 빈 제안 +
+    `unavailable_reason`을 반환한다.
+
+    반환: `{"matching_pairs_proposals": [{"names","matching_sensitivity","current_forced",
+    "_comment"}, ...], "device_roles_proposals": {device_name: {"gm_id_role"?,"L_role"?,
+    "headroom_role"?}, ...}, "review_needed": [...], "diagnostics": {"promoted_inputs",
+    "final_inputs", "structural_symmetry_unresolved"}}`."""
+    refined = refine_differential_and_mirror_relations(transistors, inputs, outputs, feedbacks,
+                                                          biases, clocks)
+    if refined is None:
+        return {"matching_pairs_proposals": [], "device_roles_proposals": {}, "review_needed": [],
+                "unavailable_reason": "analog-grammar를 import할 수 없어 이 오케스트레이션 전체가 "
+                                        "동작하지 않는다(refine_differential_and_mirror_relations()가 "
+                                        "None을 반환)."}
+
+    relations = refined["relations"]
+    by_name = {t.name: t for t in transistors}
+    gm_id_role_candidates = refined["gm_id_role_candidates"] or {}
+    L_role_candidates = refined["L_role_candidates"] or {}
+    headroom_role_candidates = refined["headroom_role_candidates"] or {}
+    active_load_leg_candidates = refined.get("active_load_leg_candidates") or set()
+    branch_load_partner_candidates = refined.get("branch_load_partner_candidates") or {}
+
+    # ⚠️ 4번째 소스(2026-08-14 세션34) -- 위 docstring "gain gm_id_role 제안" 참고.
+    # 파트너(구조 대칭 또는 diffpair branch-load)가 전혀 없는 active-load 소자만 "gain"으로
+    # 덮어쓴다 -- gm_id_role_candidates가 이미 이 소자에 값을 냈다면(구조 대칭 파트너가
+    # 있다는 뜻이므로 아래 no-partner 조건에서 걸러짐) 여기서 안 건드린다.
+    gain_role_candidates = {
+        name for name in active_load_leg_candidates
+        if not (L_role_candidates.get(name) or {}).get("symmetry_partner")
+        and name not in branch_load_partner_candidates
+    }
+
+    seed_net_pairs = {net: net for net in _RAIL_NETS}
+    for rel in relations["differential"]:
+        a, b = rel["devices"]
+        ga, gb = by_name[a].gate, by_name[b].gate
+        seed_net_pairs[ga] = gb
+        seed_net_pairs[gb] = ga
+    structural = find_structural_symmetry_candidates(transistors, seed_net_pairs, transform="mirror")
+
+    declared_covered = set()
+    for p in matching_pairs_meta:
+        for a, b in itertools.combinations(p["names"], 2):
+            declared_covered.add(frozenset((a, b)))
+
+    matching_pairs_proposals = []
+    seen = set()
+
+    def _propose_pair(a, b, sensitivity, current_forced, source, confidence="high"):
+        key = frozenset((a, b))
+        if key in declared_covered or key in seen:
+            return
+        seen.add(key)
+        aa, bb = sorted((a, b))
+        matching_pairs_proposals.append({
+            "names": [aa, bb], "matching_sensitivity": sensitivity, "current_forced": current_forced,
+            "_comment": f"propose_device_roles_gap_fill() 자동 제안 -- source={source}, "
+                        f"confidence={confidence}"})
+
+    # ⚠️ 2026-08-14 정정(사용자 지적 -- "대칭적인 branch이면 branch 전류가 같아야 하는것
+    # 아니야?") -- mirror/structural_symmetry 출처는 원래 current_forced=False 기본값이었다
+    # (근거 없이 추측, "current_forced은 netlist만으로 결정 불가"라는 이전 결론을 여기
+    # 잘못 적용함). 4개 실회로의 declared current_forced를 전수 재조사한 결과: **2-소자
+    # matching_pairs는 예외 없이 current_forced=True**였다(current_reuse_telescopic_ota
+    # 18/18, folded_cascode 4/5 -- 유일한 예외 M5/M6은 diode 참조가 아예 없는 "구조적
+    # 유사성뿐" 케이스로 애초에 이 함수가 그런 경우는 제안하지 않음, two_stage_ota 2/2).
+    # current_forced=False는 오직 **3개 이상(N-ary) 그룹**(예: Vbias1을 공유하는 7-way
+    # 문서화 그룹, 서로 다른 전류 스케일이 섞여 있음)과 diode 참조가 netlist에 아예 안
+    # 보이는 경우(nmcnr_amplifier의 M104/M105 등, 이 함수는 diode 미확인 시 애초에 제안
+    # 안 함)에만 나타난다. mirror/structural_symmetry는 이미 "진짜 매칭 관계가 확인된
+    # 2-소자 쌍"만 내므로(대칭 branch는 설계 의도상 같은 전류를 흘리도록 사이징되는 게
+    # 정상) True가 맞는 기본값이다. ⚠️ 이 기본값도 100% 확실하진 않다(M38처럼 사람이
+    # 전기적 이유로 override한 선례가 있음) -- 그래서 differential(순수 KCL, 예외 0건)과
+    # 달리 review 게이트 대상에 그대로 남긴다(require_device_roles_reviewed() 확장, 아래).
+    for rel in relations["mirror"]:
+        a, b = rel["devices"]
+        _propose_pair(a, b, "ratio", True, "branch_composite_mirror")
+    for rel in relations["differential"]:
+        a, b = rel["devices"]
+        _propose_pair(a, b, "offset", True, "branch_composite_differential",
+                       confidence="high(공유 tail KCL로 물리적 강제, review 불필요)")
+    for a, b in structural.device_map.items():
+        if a == b:
+            continue
+        low_conf = frozenset((a, b)) in structural.low_confidence_pairs
+        _propose_pair(a, b, "ratio", True, "structural_symmetry",
+                       confidence="low(단자 1개 근거)" if low_conf else "high")
+
+    # ⚠️ 실측으로 발견(2026-08-14) -- 층위1 current_mirror 태그는 "같은 gate를 공유"만
+    # 확인하므로, diode-connected 참조가 있어도 그 gate를 읽는 상대가 진짜 미러 출력이
+    # 아니라 Monticelli floating-current-source(예: 51소자 회로의 M9a/M9b/M18a/M18b)나
+    # CMFB 피드백을 받는 소자(M7, gate=Vcmfb)일 수 있다 -- 이 경우 그룹을 매칭쌍으로
+    # 제안하면 오탐이다(51소자 회로에서 실측: {M11b,M9a}, {M14a,M9b}, {M18a,M20b},
+    # {M18b,M23a}, {M36a,M7} 5건 전부 declared에 없는 오탐이었음).
+    #
+    # ⚠️ 2026-08-14 세션34 정정(사용자 지적, `folded_cascode`의 M11/MN 계기) -- 원래는
+    # `headroom_role_candidates in ("mirror","cascode")`로 걸렀는데, 이건 잘못된 대리
+    # 신호였다: `folded_cascode`의 `M11`(diffpair 진짜 tail, `ideal_sources`의 `Ibg`가
+    # MN/MP 각각을 독립된 진짜 바이어스 레퍼런스로 명시)은 `headroom_role='tail'`이라
+    # 이 조건에 걸려 review 후보에서 통째로 빠졌다 -- `tail`이라는 사실 자체가 오탐의
+    # 원인이 아니었다(사용자 지적: "M11이 tail이라는 것" 자체는 `Ibg` ideal source로
+    # 오히려 확인되는 정상 사실). 진짜 오탐 원인은 게이트가 **CMFB처럼 동적으로 조정되는
+    # 신호**(고정 레퍼런스가 아님)인가였다 -- 실측: `M7`의 `role`은 `AMPLIFYING`이다
+    # (게이트 `Vcmfb`가 `netclass.classify_nets()`에서 BIAS가 아니라 SIGNAL로 분류돼
+    # `assign_roles()`의 role 우선순위상 AMP가 먼저 걸림), 반면 `M11`의 `role`은
+    # `CURRENT_SOURCE`다(게이트 `vb2`가 진짜 고정 BIAS로 분류됨) -- `headroom_role`이
+    # 아니라 **`role`**(고정 레퍼런스=CURRENT_SOURCE/ACTIVE_LOAD/CASCODE vs 동적/신호=
+    # AMPLIFYING/CONTROLLED_CURRENT_SOURCE)이 정확한 구분 신호였다. floating_current_
+    # source(M9a류)는 role 자체가 FLOATING_CURRENT_SOURCE라 이 허용 목록에 없어 여전히
+    # 배제된다(회귀 없음, 아래 self-test로 재확인).
+    _netclass_lcmf, _idioms_lcmf = _import_analog_grammar("netclass", "idioms")
+    _static_ref_roles = (
+        (_netclass_lcmf.DIODE, _netclass_lcmf.CURR_SRC, _netclass_lcmf.ACTIVE_LOAD,
+         _netclass_lcmf.CASCODE) if _netclass_lcmf is not None else ())
+    role_candidates = refined.get("role_candidates") or {}
+
+    # ⚠️ 2026-08-14 세션34 추가(사용자 지적, `folded_cascode`의 M7/M8 계기) -- role 하나만
+    # 보면 M8(`AMPLIFYING`, 게이트 Vg7이 M5 폴딩 노드와 겹쳐 SIGNAL로 분류됨)이 위 정적
+    # 레퍼런스 집합에서 빠진다. 하지만 M8은 `M10`(role=`CURRENT_SOURCE`, 정적 레퍼런스)
+    # 위에 물리적으로 직렬 적층된(`idioms.m_cascode()`의 `cascode-stack`, `lower_role`
+    # 포트가 이미 이 정보를 갖고 있음) 소자다 -- 아래에 정적 레퍼런스가 있으면 그 위에
+    # 캐스코드로 쌓인 소자도 "이 전류경로가 고정 레퍼런스에서 온다"는 성질을 물려받는다
+    # (`_propose_headroom_roles()`의 `_diode_like_mirror()`가 diode-cascode에 이미 쓰는
+    # 것과 같은 "적층으로 성질 상속" 패턴). 고정점까지 반복(다단 캐스코드 대비, `M7`/`M8`
+    # 실측은 1단이면 충분하나 일반화).
+    static_like_roles = {n for n, r in role_candidates.items() if r in _static_ref_roles}
+    if _idioms_lcmf is not None:
+        _devs_lcmf = _to_analog_grammar_devs(transistors)
+        _cls_lcmf, _imp_lcmf, _ = _netclass_lcmf.classify_nets(
+            _devs_lcmf, refined["final_inputs"], outputs, biases, feedbacks, clocks)
+        _cascode_matches = [m for m in _idioms_lcmf.match_all(_devs_lcmf, _cls_lcmf, _imp_lcmf, role_candidates)
+                             if m.kind == "cascode-stack"]
+        for _ in range(len(_cascode_matches) + 1):
+            grew = False
+            for m in _cascode_matches:
+                lo_name, up_name = m.devices
+                if lo_name in static_like_roles and up_name not in static_like_roles:
+                    static_like_roles.add(up_name)
+                    grew = True
+            if not grew:
+                break
+
+    matching_candidates = find_matching_candidates(transistors)
+    for group in matching_candidates["diff_pair"].values():
+        if len(group) == 2:
+            _propose_pair(group[0].name, group[1].name, "offset", True, "layer1_diff_pair_fallback")
+    for group in matching_candidates["current_mirror"].values():
+        if (len(group) == 2 and any(t.gate == t.drain for t in group)
+                and all(name in static_like_roles for name in (t.name for t in group))):
+            # diode-connected 참조가 실제로 확인된 2-소자 미러 -- 위와 동일 근거로 True
+            # (folded_cascode의 M9/M10, M7/M8 실측: 둘 다 declared current_forced=True).
+            _propose_pair(group[0].name, group[1].name, "ratio", True,
+                           "layer1_current_mirror_fallback(diode-connected 소자 확인됨, "
+                           "role=고정 레퍼런스류 확인됨)")
+
+    compensation_names = set(compensation_stage_devices or [])
+
+    device_roles_proposals = {}
+    review_needed = []
+    for t in transistors:
+        name = t.name
+        existing = device_roles.get(name) if isinstance(device_roles.get(name), dict) else {}
+        proposal = {}
+        if name in gain_role_candidates:
+            proposal["gm_id_role"] = "gain"
+        elif name in gm_id_role_candidates:
+            proposal["gm_id_role"] = gm_id_role_candidates[name]
+        if name in L_role_candidates:
+            proposal["L_role"] = L_role_candidates[name].get("L_role")
+        if headroom_role_candidates.get(name) is not None:
+            proposal["headroom_role"] = headroom_role_candidates[name]
+        if not proposal:
+            continue
+        conflicts = {f: (existing.get(f), v) for f, v in proposal.items()
+                     if f in existing and existing[f] is not None and existing[f] != v}
+        if conflicts:
+            review_needed.append({"device": name, "field_conflicts": conflicts,
+                                    "note": "이미 선언된 값과 제안이 달라 자동 반영하지 않음"})
+            continue
+        device_roles_proposals[name] = proposal
+        if name in compensation_names:
+            review_needed.append({"device": name, "note": "compensation.stage_devices 소속 -- "
+                                    "gm_id_role 제안은 sizing_recipe.py의 _AUTHORITATIVE_GM_ID_"
+                                    "SOURCES 가드(2026-08-14 신설)로 무시되므로 충돌 없이 안전하게 "
+                                    "적용된다(사람이 참고용으로만 확인할 것, 자동 반영 자체를 "
+                                    "막을 필요는 없음)."})
+
+    for name in sorted(active_load_leg_candidates - gain_role_candidates):
+        sym_partner = (L_role_candidates.get(name) or {}).get("symmetry_partner")
+        br_partner = branch_load_partner_candidates.get(name)
+        partner_desc = f"구조 대칭 partner={sym_partner}" if sym_partner else \
+            f"diffpair branch-load partner={br_partner}"
+        review_needed.append({"device": name, "note": f"active-load 성격(레일 직결+HIGH_Z "
+            f"드레인)인데 {partner_desc}가 있어 'gain' 자동 제안 안 함 -- 실제 회로 성능상 "
+            f"이 partner와의 전류/L 매칭이 필요한지({partner_desc.split('=')[0]}가 있다고 "
+            f"자동으로 'matching'이 맞는 것도 아님, `two_stage_ota`의 M3/M4 -- 파트너 있어도 "
+            f"matching이 맞았던 실측 사례 -- 와 `current_reuse_telescopic_ota`의 M13/M22 -- "
+            f"파트너 있지만 gain이 더 나을 수 있는 사례, 아직 미확정 -- 참고) 사람 판단 필요."})
+
+    tentative_pairs_meta = matching_pairs_meta + matching_pairs_proposals
+    disp = check_symmetry_dispositions(transistors, tentative_pairs_meta, dispositions={})
+    if disp.undisposed:
+        review_needed.append({"undisposed_candidates": disp.undisposed,
+                                "note": "제안으로도 못 채운 층위1/2 candidate -- current_forced 세분화는 "
+                                         "sizing_roles/theta 선언이 있어야만 판단 가능하거나(예: 51소자 "
+                                         "실회로의 Vbias1 8-소자 그룹), 그 외엔 사람 판단이 필요하다."})
+    if disp.case_collisions:
+        review_needed.append({"case_collisions": disp.case_collisions})
+
+    return {
+        "matching_pairs_proposals": matching_pairs_proposals,
+        "device_roles_proposals": device_roles_proposals,
+        "review_needed": review_needed,
+        "diagnostics": {"promoted_inputs": refined["promoted_inputs"],
+                          "final_inputs": refined["final_inputs"],
+                          "structural_symmetry_unresolved": structural.unresolved},
+    }
+
+
+def apply_device_roles_gap_fill(topology_json_path: str, result: dict) -> dict:
+    """`propose_device_roles_gap_fill()`의 순수 결과를 받아 **실제로 topology.json 파일을 읽고
+    병합하고 다시 쓴다**(`symmetry.matching_pairs`/`device_roles` 갱신) -- I-3 정정 2(세션32)
+    그대로: `vertical_stack_id`(층위4, `propose_vertical_stack_id_gap_fill()`)와 달리 이 필드들은
+    사이징 결과에 직접 영향을 주므로 `load_topology()`의 메모리상 자동채움이 아니라 파일 자체를
+    영구히 갱신하는 쪽을 사용자가 확정했다.
+
+    이미 declared된 쌍/필드와 충돌하는 제안은 `propose_device_roles_gap_fill()` 단계에서 이미
+    걸러져 있지만(review_needed로만 보고, proposals에는 안 실림), 방어적으로 여기서도 다시 한 번
+    확인한다 -- 조용히 덮어쓰지 않는다.
+
+    ⚠️ `json.dump(..., indent=2)`로 다시 쓰기 때문에, 원본 파일이 사람이 손으로 넣은 섹션 사이
+    빈 줄 등 부가적 포맷팅을 갖고 있었다면 그 포맷팅은 사라진다(값 자체는 100% 보존 -- 모든
+    `_comment`/`_correction_log_*` 긴 문자열은 원래도 줄바꿈 없는 단일 JSON 문자열이라 내용
+    손실은 없다). 실제 라이브러리 파일에 적용하기 전에 diff를 사람이 검토할 것을 권장한다.
+
+    반환: `{"applied_matching_pairs": [[a,b],...], "applied_device_roles": {device_name:
+    {최종 저장된 entry}, ...}, "review_needed": result["review_needed"] 그대로 전달}`."""
+    with open(topology_json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    existing_pairs = data["symmetry"]["matching_pairs"]
+    existing_covered = set()
+    for p in existing_pairs:
+        for a, b in itertools.combinations(p["names"], 2):
+            existing_covered.add(frozenset((a, b)))
+
+    applied_pairs = []
+    for p in result.get("matching_pairs_proposals", []):
+        key = frozenset(p["names"])
+        if key in existing_covered:
+            continue
+        existing_pairs.append(dict(p))
+        existing_covered.add(key)
+        applied_pairs.append(p["names"])
+
+    device_roles = data.get("device_roles")
+    if device_roles is None:
+        device_roles = {}
+    applied_roles = {}
+    for name, proposal in result.get("device_roles_proposals", {}).items():
+        entry = device_roles.get(name)
+        if not isinstance(entry, dict):
+            entry = {}
+        skip = False
+        for field, value in proposal.items():
+            if field in entry and entry[field] is not None and entry[field] != value:
+                skip = True
+                break
+        if skip:
+            continue
+        entry.update(proposal)
+        entry.setdefault("vs", 0.0)
+        device_roles[name] = entry
+        applied_roles[name] = dict(entry)
+    data["device_roles"] = device_roles or None
+
+    with open(topology_json_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    return {"applied_matching_pairs": applied_pairs, "applied_device_roles": applied_roles,
+            "review_needed": result.get("review_needed", [])}
+
+
+def find_authoritative_sizing_devices(meta: dict) -> set:
+    """`gm_id_role`/`L_role`가 없어도(또는 있어도 무시돼도) 안전한 소자 이름 집합을
+    `meta`(`load_topology()`의 반환값)만으로 계산한다 -- 2026-08-14, `_AUTHORITATIVE_L_
+    SOURCES`/`_AUTHORITATIVE_GM_ID_SOURCES`(`sizing_recipe.py`)가 실제로 보호하는 소자와
+    **반드시 같은 정의**여야 한다(실측으로 발견한 사고: `current_reuse_telescopic_ota`의
+    `L_cascode` theta(`metric_stage_budget`) 대상 `M2a`/`M2b`/`M3a`/`M3b`에
+    `propose_device_roles_gap_fill()`이 제안한 `L_role="mirror"`를 실제로 적용했더니, 당시
+    `sizing_recipe.py`에 이 소자들을 보호하는 가드가 없어서 `select_L_by_role()`이 그
+    theta의 그리드서치 결과를 조용히 덮어써 `gain_db`가 76.48->74.8로 떨어지는 회귀가
+    실제로 발생했다 -- 이 함수는 그 사고를 `optimize_full_circuit_budget()` 실행 **전에**
+    미리 잡아내는 `require_device_roles_reviewed()`의 재료다).
+
+    포함 대상(전부 `sizing_recipe.py`의 `_evaluate()`가 `ctx.sized[name]["_L_source"]`를
+    `compensation`/`replica`/`metric_stage_budget`/`gm_target_convention`으로 태그하는
+    소자와 정확히 대응):
+    - `compensation.stage_devices`(전부 flatten).
+    - `sizing_roles.theta[].feeds.type`이 `"metric_stage_budget"`인 항목의 `devices`.
+    - `sizing_roles.theta[].feeds.type`이 `"B"`인 항목의 `target`(N×ωc 컨벤션,
+      `_feed_gm_target_convention()`).
+    - `sizing_roles.theta[].feeds.type`이 `"C"`인 항목의 `target`(replica, `_feed_diode_
+      stack_target()`) -- `L`만 보호되고 `gm_id`는 의도적으로 재검색 대상이지만(위
+      함수 docstring 참고), 이 함수는 `gm_id_role`/`L_role` 둘 다 "리뷰 불필요"로 넓게
+      잡는다(과잉 허용 방향 -- 그 소자의 `gm_id_role`은 구조 대칭 근거로 제안되는
+      값이라 다른 confirmed 제안과 신뢰도가 다르지 않다, 안전-critical한 건 L 쪽이었다)."""
+    out = set()
+    comp = meta.get("compensation") or {}
+    for grp in comp.get("stage_devices", []):
+        out.update(grp)
+    thetas = (meta.get("sizing_roles") or {}).get("theta") or []
+    for t in thetas:
+        feeds = t.get("feeds")
+        if not isinstance(feeds, dict):
+            continue
+        ftype = feeds.get("type")
+        if ftype == "metric_stage_budget":
+            out.update(feeds.get("devices", []))
+        elif ftype in ("B", "C"):
+            target = feeds.get("target")
+            if target is not None:
+                out.add(target)
+    return out
+
+
+def find_unreviewed_device_roles(meta: dict) -> dict:
+    """`load_topology()`가 `_device_roles_autofilled`로 노출하는 제안(=topology.json
+    파일엔 아직 없고 이번 load 시점에 메모리상으로만 채워진 값) 중, `gm_id_role`/`L_role`
+    필드이면서 `find_authoritative_sizing_devices()`의 보호를 못 받는 소자만 골라낸다.
+    `headroom_role`/`vertical_stack_id`는 여기 안 걸린다(`select_L_by_role()`/`search_
+    gm_id_for_role()`을 실제로 실행시켜 값을 바꾸는 필드가 아니라 크래시/오사이징 위험이
+    질적으로 다르다 -- Test 45 회귀로 확인됨, `_propose_headroom_roles()` docstring 참고).
+
+    반환: `{device_name: {"gm_id_role": value, ...}}` -- gm_id_role/L_role 중 실제로
+    unreviewed인 필드만 포함(둘 다 없으면 그 소자는 키 자체가 없음). 비어 있으면 review
+    없이 안전하게 `optimize_full_circuit_budget()`을 돌려도 된다는 뜻."""
+    authoritative = find_authoritative_sizing_devices(meta)
+    autofilled = meta.get("_device_roles_autofilled") or {}
+    out = {}
+    for name, proposal in autofilled.items():
+        if name in authoritative:
+            continue
+        risky = {f: v for f, v in proposal.items() if f in ("gm_id_role", "L_role")}
+        if risky:
+            out[name] = risky
+    return out
+
+
+def find_unreviewed_matching_pairs(meta: dict) -> list:
+    """`load_topology()`가 `_matching_pairs_autofilled`로 노출하는, 아직 topology.json에
+    없는 매칭쌍 중 `differential`이 아닌 것만 골라낸다.
+
+    ⚠️ 2026-08-14 신설(사용자 지적으로 발견한 실제 위험 -- "대칭적인 branch이면 branch
+    전류가 같아야 하는것 아니야?"라는 질문에 답하며 두 가지를 재확인했다): (1)
+    `propose_device_roles_gap_fill()`이 `mirror`/`structural_symmetry`/층위1 미러 폴백에
+    제안하는 `current_forced`를 4개 실회로 전수 재조사 후 `True`로 정정했다(2-소자
+    matching_pairs는 예외 없이 True였다, 위 함수 docstring 참고). (2) 그런데
+    `sizing_recipe.py`의 `_evaluate()`(3963행 근처, "matching_pairs로 선언된 두 소자는
+    반드시 같은 L을 써야")는 **`current_forced` 값과 무관하게 `pairs_meta`의 모든 쌍**에
+    L 일치를 강제/전파한다 -- 즉 `current_forced=False`인 매칭쌍도 실제 sizing(L 값)에
+    영향을 준다는 뜻이라, "matching_pairs는 게이트 대상이 아니다"(구버전 결론)는 틀렸다.
+
+    안전한 유일한 카테고리는 `differential`(공유 tail의 KCL 분배, 순수 물리 법칙이라
+    review 없이도 항상 참 -- `matching_sensitivity="offset"`은 이 프로젝트 전체에서
+    `differential` 출처에만 붙는 값이라 기계적으로 식별 가능하다). 그 외(`mirror`/
+    `structural_symmetry`/층위1 미러 폴백, 전부 `matching_sensitivity="ratio"`)는
+    `current_forced=True`가 실측상 압도적으로 맞는 기본값이지만 100% 확실친 않다(M38처럼
+    구조적 기본값을 사람이 전기적 이유로 override한 선례가 실제로 있음) -- 그래서 여전히
+    review 대상이다.
+
+    ⚠️ 2026-08-14 추가 정정: `ratio`(review 필요) 제안은 애초에 `load_topology()`가
+    `meta["symmetry"]["matching_pairs"]`(=`all_matching_pairs`)에 자동 병합하지 않는다
+    (그러면 review 없이도 sizing L 전파에 영향을 줄 수 있으므로) -- 그래서 `_matching_
+    pairs_autofilled`가 아니라 `_matching_pairs_needs_review`(병합 안 된 순수 제안
+    목록)에서 읽는다.
+
+    반환: `[{"names",...}, ...]` -- unreviewed하고 review가 필요한 매칭쌍 리스트. 비어
+    있으면 review 없이 안전하다는 뜻."""
+    return list(meta.get("_matching_pairs_needs_review") or [])
+
+
+def require_device_roles_reviewed(topology_json_path: str, meta: dict) -> None:
+    """`optimize_full_circuit_budget()`이 실제 사이징(`select_L_by_role()`/`search_gm_id_
+    for_role()`/matching_pairs L 전파)을 돌리기 **전에** 호출하는 게이트(2026-08-14,
+    사용자 지시 -- "구조적으로 명확한 기능과 필요한 기능을 구분해서 사용자가 review해준
+    적이 없는 부분은 error로 띄우고 일단 review를 받고 review받았다는 표시를 해서
+    optimize함수가 실행되도록"). `device_roles`(gm_id_role/L_role)와 `matching_pairs`
+    둘 다 검사한다(이름은 `device_roles`만 가리키지만 하위호환을 위해 유지, 실제로는
+    `find_unreviewed_matching_pairs()`도 함께 확인).
+
+    "review받았다는 표시"를 이 프로젝트에 새 스키마/플래그로 새로 만들지 않는다 -- **이미
+    있는 declared-vs-autofilled 경계를 그대로 재사용**한다: `apply_device_roles_gap_fill()`
+    로 topology.json에 실제로 값을 써넣는 행위 자체가 "사람이 검토하고 받아들였다"는
+    증거이고(값을 그대로 받아들이든, 제안과 다른 값으로 직접 고쳐 쓰든 둘 다 "review완료"로
+    친다), `find_unreviewed_device_roles()`/`find_unreviewed_matching_pairs()`가 그 반대
+    (아직 파일엔 없고 메모리 제안으로만 존재)를 정확히 골라낸다. 새 상태를 만들지 않으므로
+    "제안 내용이 나중에 바뀌면 리뷰가 stale해지는" 문제도 없다 -- 파일에 이미 쓰인 값과
+    다른 새 제안이 나오면 그건 다시 자동 채움 목록에 안 잡히고(이미 declared라
+    `propose_device_roles_gap_fill()`이 애초에 제안하지 않음, 대신 자동으로 다른 값을
+    강제하지도 않음 -- 사람이 선언한 값이 최종이다) 그대로 유지된다.
+
+    `find_authoritative_sizing_devices()`가 보호하는 소자(compensation/metric_stage_
+    budget/B/C 대상)는 device_roles 쪽 게이트 대상에서 애초에 제외한다 -- `gm_id_role`/
+    `L_role`이 있어도 `sizing_recipe.py`의 `_AUTHORITATIVE_L_SOURCES`/`_AUTHORITATIVE_
+    GM_ID_SOURCES` 가드가 무시하므로 review를 요구할 이유가 없다("구조적으로 명확해
+    review 불필요"의 첫 번째 카테고리). `matching_pairs` 쪽은 `differential`(순수 KCL
+    물리 법칙, 예외 없음)만 두 번째 카테고리로 제외한다 -- 자세한 이유는 `find_unreviewed_
+    matching_pairs()` docstring 참고.
+
+    아무것도 unreviewed면 조용히 반환한다(에러 없음). 하나라도 있으면 정확히 무엇이
+    unreviewed인지, 그리고 어떻게 review를 완료하는지(파일에 직접 쓰거나 `apply_device_
+    roles_gap_fill()`을 호출)를 담은 `ValueError`를 낸다."""
+    unreviewed_roles = find_unreviewed_device_roles(meta)
+    unreviewed_pairs = find_unreviewed_matching_pairs(meta)
+    if not unreviewed_roles and not unreviewed_pairs:
+        return
+    lines = [f"  - device_roles[{name!r}]: {fields}" for name, fields in sorted(unreviewed_roles.items())]
+    lines += [f"  - matching_pairs: {p['names']} (matching_sensitivity={p['matching_sensitivity']!r}, "
+              f"current_forced={p['current_forced']!r})" for p in unreviewed_pairs]
+    raise ValueError(
+        "optimize_full_circuit_budget() 실행 전 review가 필요하다 -- 아래 device_roles/"
+        "matching_pairs는 propose_device_roles_gap_fill()이 netlist 구조만으로 추론한 "
+        "제안일 뿐, 아직 topology.json에 사람이 검토·확정한 적이 없다(구조적으로 명확한 "
+        "compensation/metric_stage_budget/replica 대상 소자와 differential 매칭쌍은 이미 "
+        "제외됨, 잘못된 추론값으로 sizing/layout이 조용히 진행되는 걸 막기 위한 게이트):\n"
+        + "\n".join(lines) +
+        f"\n\nreview 방법: 위 제안이 맞다고 판단하면 propose_device_roles_gap_fill()로 다시 "
+        f"계산한 결과를 apply_device_roles_gap_fill({topology_json_path!r}, result)로 "
+        "topology.json에 실제로 써서 '검토완료'로 표시할 것(제안과 다른 값이 맞다고 "
+        "판단하면 그 값을 직접 파일에 써도 동일하게 review완료로 인정됨). 그 다음부터는 "
+        "이 소자들이 declared로 인식되어 이 게이트를 통과한다.")
 
 
 def _verified_euler_fix(transistors: list, local_pairs: list):
@@ -4554,13 +5259,21 @@ def assign_finger_geometry(sizing_results: dict, stack_groups: dict, area_priors
                             min_finger_w: float = 1.0, max_finger_w: float = 40.0) -> dict:
     """배치 7-6(2026-07-31) — `size_transistor()`가 만든 raw `W`(사이징 결과)와
     `derive_stack_groups()`가 만든 stack 후보를 이어 `run_topology_pipeline()`이 요구하는
-    `sizing_overrides`(`{name: {"n_fingers","finger_w","w","stack_id"}}`)를 자동 구성한다
+    `sizing_overrides`(`{name: {"n_fingers","finger_w","w","stack_id","l"}}`)를 자동 구성한다
     — bootstrapping 문제(`search_stack_finger_w()`/`search_unit_cell_sizing()` 둘 다 "맞출
     참조값"이 이미 있어야 동작하는데, 맨 처음 stack엔 맞출 대상이 없음)를 seed 선택으로
     해결한다.
 
-    `sizing_results`: `{device_name: SizingResult 또는 {"W": float, ...}}` — `size_transistor()`
-    류의 결과, `.W` 속성 또는 `["W"]` 키 둘 다 받는다.
+    `sizing_results`: `{device_name: SizingResult 또는 {"W": float, "L": float, ...}}` —
+    `size_transistor()`류의 결과, `.W` 속성 또는 `["W"]` 키 둘 다 받는다. **2026-08-13(세션31)**:
+    `l`(channel length, `Transistor.l` — box-shape/floorplan 실제 물리 폭 계산에 쓰임)도
+    같은 방식으로 뽑아서 `overrides`에 함께 채운다 — `sizing_results[name]`이 대문자
+    `"L"` 키(`optimize_full_circuit_budget()`의 `ctx.sized`가 실제로 쓰는 키)인 반면
+    `Transistor`/`overrides`는 소문자 `l`이다: **의도적 rename**이지 통과시키는 키가
+    아니다(이 프로젝트가 반복 겪은 키 이름 불일치 사고를 피하려고 여기 명시해둔다).
+    L이 없는 입력(예: `{"W": val}`만 있는 self-test/legacy 호출)이면 `overrides[name]["l"]
+    = None`이 되고, 이는 `Transistor.l=None`과 동일한 의미(근사 계산에서 그 소자만
+    빠짐, `compute_row_geometry()` 참고)다 — 조용히 실패하지 않는다.
 
     정책(§7.9 질문12(a) — 미결, 아래 참고): `stack_groups`를 총 W 합 내림차순 정렬해 가장
     큰 stack을 **seed**로 놓고, 그 stack 자체의 `search_stack_finger_w()` 후보 중
@@ -4581,6 +5294,14 @@ def assign_finger_geometry(sizing_results: dict, stack_groups: dict, area_priors
     def _w_of(name):
         r = sizing_results[name]
         return r.W if hasattr(r, "W") else r["W"]
+
+    def _l_of(name):
+        r = sizing_results[name]
+        if hasattr(r, "L"):
+            return r.L
+        if isinstance(r, dict):
+            return r.get("L")
+        return None
 
     stacks = {sid: {n: _w_of(n) for n in members} for sid, members in stack_groups.items()}
     order = sorted(stacks.keys(), key=lambda sid: sum(stacks[sid].values()), reverse=True)
@@ -4610,7 +5331,8 @@ def assign_finger_geometry(sizing_results: dict, stack_groups: dict, area_priors
                     for name, w in devices.items():
                         n = max(1, round(w / best_unit.unit_w))
                         overrides[name] = {"n_fingers": n, "finger_w": best_unit.unit_w,
-                                           "w": n * best_unit.unit_w, "stack_id": sid}
+                                           "w": n * best_unit.unit_w, "stack_id": sid,
+                                           "l": _l_of(name)}
                     assigned_targets.append(sum(overrides[n]["n_fingers"] for n in devices))
                     assigned_finger_widths.append(best_unit.unit_w)
                     continue
@@ -4623,7 +5345,8 @@ def assign_finger_geometry(sizing_results: dict, stack_groups: dict, area_priors
         for name in devices:
             n = best.n_fingers_per_device[name]
             overrides[name] = {"n_fingers": n, "finger_w": best.finger_w,
-                               "w": n * best.finger_w, "stack_id": sid}
+                               "w": n * best.finger_w, "stack_id": sid,
+                               "l": _l_of(name)}
         assigned_targets.append(best.total_row_fingers)
         assigned_finger_widths.append(best.finger_w)
 
@@ -4751,49 +5474,197 @@ def search_shared_finger_w(devices: dict, min_finger_w: float = 0.4, max_finger_
     return results
 
 
+# ---------------------------------------------------------------------------
+# 5.8) 실제 물리 치수 근사 — Transistor.l/finger_w 기반 행 폭/높이 (2026-08-13 세션31 신설)
+#
+# 왜: check_box_shape()/block_from_row_widths()가 지금까지 row_widths={row: n_fingers 합}만
+# 받아서 실제 물리 폭(L에 비례하는 finger pitch)도, 실제 물리 높이(finger_w)도 전혀 반영하지
+# 못했다. sizing↔layout 피드백 루프가 실제로 수렴하려면(레이아웃에서 고친 finger/finger_w가
+# 다시 sizing에 반영돼 면적이 실제로 최소화돼야 하므로) 이 추정치가 real layout과 상관성이
+# 있어야 한다는 게 이 신설의 근거(.ai/context.md 세션31 CQ 이후 사용자 지적) — 기존
+# "실제 물리 치수로 착각하지 말 것, 순수 비율 프록시" 원칙보다 이 요구가 우선한다.
+# ---------------------------------------------------------------------------
+
+PROCESS_GEOMETRY = {
+    # sky130 poly pitch/gate-to-gate spacing(CPP)이 미확보 상태다 -- 로컬 PDK
+    # (/c/pdk/sky130_fd_pr)엔 SPICE 모델만 있고 LEF/tech 파일이 전혀 없고,
+    # references/lut-generation-checklist.md §8.2의 W_min/L_min과 동일하게 "sky130
+    # 자신도 1차 출처로 확정 못함" 처지다. 확보 전까지 L 이외의 추가 폭(overhead)은
+    # 0으로 둔다(과소평가 근사) -- 확보되면 이 값 하나만 교체하면 전체 파이프라인에
+    # 반영된다(호출부 수정 불필요).
+    "finger_pitch_overhead_m": 0.0,
+}
+
+
+def pitch(l: float) -> float:
+    """finger 1개가 실제로 차지하는 폭(gate 방향) 근사치.
+
+    ⚠️ sky130 CPP(poly pitch/gate-to-gate spacing)를 확보하기 전까지의 **잠정 근사**다:
+    `pitch(l) = l + PROCESS_GEOMETRY["finger_pitch_overhead_m"]`(현재 0 — L 이외 추가 폭
+    없음으로 둔다). 실제로는 poly-to-poly spacing/contact 여유가 있어 진짜 pitch는 l보다
+    크다 — 이 함수는 그 사실을 숨기지 않고 **과소평가(낙관적) 근사**임을 호출자에게
+    명시하기 위해 존재한다(값을 호출부마다 따로 박아넣지 않고 반드시 이 함수를 거치게
+    해서, CPP 확보 시 `PROCESS_GEOMETRY` 한 곳만 고치면 되게 만든다)."""
+    return l + PROCESS_GEOMETRY["finger_pitch_overhead_m"]
+
+
+@dataclass
+class RowGeometry:
+    row_name: str
+    width_m: float | None       # sum(n_fingers * pitch(l)) -- 결측 있으면 None
+    height_m: float | None      # 그 행의 finger_w(균일해야 함) -- 결측 있으면 None
+    n_fingers_total: int
+    approx_devices: list = field(default_factory=list)  # l/finger_w 없어 근사에서 빠진 소자명
+
+
+def compute_row_geometry(rows: dict, tol: float = 1e-9) -> dict:
+    """`rows: {row_name: [Transistor,...]}` -> `{row_name: RowGeometry}`.
+
+    width_m: 그 행의 실제 물리 폭 근사 = `sum(t.n_fingers * pitch(t.l) for t in devices)`
+    (한 행 안에 서로 다른 l을 가진 소자가 섞여도 각자의 pitch로 기여분을 따로 계산한다 —
+    Euler trail로 여러 소자가 한 diffusion strip에 섞이는 게 이 모듈의 정상 동작이므로).
+
+    height_m: 그 행의 실제 물리 높이 = 그 행에 속한 모든 소자의 `finger_w`. **반드시
+    동일해야 한다** — 물리적으로 diffusion strip 하나는 폭(=finger_w)이 하나뿐이다.
+    `check_finger_width_compatibility()`는 이 균일성을 보장하지 않는다(소자별 W/finger_w
+    정수배만 검사한다) — 여기서 새로 검증한다: 한 행 안에서 finger_w가 다르면 물리적으로
+    불가능하므로 `ValueError`(`build_graph()`의 kind 동질성 하드 게이트와 같은 성격).
+
+    `l` 또는 `finger_w`가 없는 소자가 있으면(아직 실사이징 전 등) 그 소자는
+    `RowGeometry.approx_devices`에 이름이 남고, 그 행의 `width_m`/`height_m`은 `None`이
+    된다(조용히 옛 finger-count 근사로 대체하지 않는다 — 이 모듈의 기존 "조용한 자동
+    수정 금지" 원칙과 동일). 호출자(`check_box_shape` 등)가 `None`을 어떻게 다룰지는
+    거기서 결정한다."""
+    geoms = {}
+    for row_name, devices in rows.items():
+        approx = [t.name for t in devices if t.l is None or t.finger_w is None]
+        n_total = sum(t.n_fingers for t in devices)
+        if approx:
+            geoms[row_name] = RowGeometry(row_name, width_m=None, height_m=None,
+                                           n_fingers_total=n_total, approx_devices=approx)
+            continue
+        finger_ws = {t.finger_w for t in devices}
+        if len(finger_ws) > 1:
+            raise ValueError(
+                f"행 {row_name!r}: 같은 diffusion strip인데 finger_w가 소자마다 다름"
+                f"({ {t.name: t.finger_w for t in devices} }) -- 물리적으로 불가능하다"
+                f"(diffusion strip 하나는 폭이 하나뿐). §2.7/§8로 행 구성을 다시 정할 것.")
+        width_m = sum(t.n_fingers * pitch(t.l) for t in devices)
+        height_m = next(iter(finger_ws))
+        geoms[row_name] = RowGeometry(row_name, width_m=width_m, height_m=height_m,
+                                       n_fingers_total=n_total, approx_devices=[])
+    return geoms
+
+
 @dataclass
 class BoxShapeVerdict:
-    ok: bool
-    row_widths: dict          # {row_label: finger_count}
-    max_ratio: float          # max(width)/min(width)
+    ok: bool                 # rectangular and elongation_ok
+    rectangular: bool        # row_width_tol 통과 여부(행 폭들이 서로 일치 -> 진짜 직사각형)
+    elongation_ok: bool      # max_elongation 통과 여부(max_elongation=None이면 항상 True)
+    row_widths: dict         # {row_label: width_m} -- 실제 물리 폭(m). 결측 있으면 finger_count 근사
+    row_heights: dict        # {row_label: height_m} -- 실제 물리 높이(m). 결측 있으면 1(옛 근사)
+    total_width_m: float
+    total_height_m: float
+    width_ratio: float       # max(row_widths)/min(row_widths) -- rectangular 판정 근거
+    elongation: float        # max(total_w,total_h)/min(total_w,total_h)
+    approx: bool             # 하나 이상의 행이 l/finger_w 없어 근사(finger_count)로 계산됐으면 True
     message: str
 
 
-def check_box_shape(row_widths: dict, max_ratio: float = 1.5) -> BoxShapeVerdict:
+def check_box_shape(rows: dict, row_width_tol: float = 1.5,
+                     max_elongation: float | None = None,
+                     orientation: str = "either") -> BoxShapeVerdict:
     """§8 cell shape 게이트 — **SPICE 검증으로 넘어가기 전에 반드시 통과해야 하는 체크포인트**.
 
     이 세션에서 반복된 실수(Example 1: nstack 3 vs pstack 32, 10.7:1 'ㄱ'자 셀 / Example 2:
     diffpair 9×2행 vs tailstack 24 vs loadstack 38)는 전부 "sizing → SPICE 검증"으로 바로
-    넘어가고 box-shape를 나중에야(혹은 사용자가 지적해서야) 확인했기 때문에 생겼다 —
-    §8/§2.7에 탐색 도구(`search_stack_finger_w`, `common_centroid_layout` 등)는 있었지만, 그
-    결과가 실제로 "박스에 가까운가"를 **명시적으로 PASS/FAIL 판정하는 게이트가 없어서**
-    사람이 눈대중으로 넘어가기 쉬웠다. `check_euler_condition()`/`check_finger_width_compatibility()`
-    처럼 이 함수도 명시적 gate로 만들어, §6 워크플로우에서 **SPICE 재검증 이전에 반드시
-    호출**하도록 강제한다.
+    넘어가고 box-shape를 나중에야(혹은 사용자가 지적해서야) 확인했기 때문에 생겼다.
 
-    row_widths: {row_label: finger_count} — 실제 물리적 행이 될 모든 stack/행의 finger
-    개수. common-centroid로 나눈 stack은 **행별로 따로** 넣을 것(예: diffpair를 2행으로
-    나눴다면 "diffpair_row0", "diffpair_row1"을 각각 넣는다 — 나누기 전 합계를 넣으면
-    실제 물리적 형태를 반영하지 못한다).
+    2026-08-13(세션31): "행 폭이 다르면 쌓아도 직사각형이 안 된다"는 것과 "직사각형이어도
+    너무 길쭉하면 문제다"는 것은 **서로 다른 질문**이라(사용자 지적) 판정을 둘로 분리한다:
 
-    max_ratio: 허용 가능한 최대/최소 행 폭 비율(기본 1.5). 이보다 크면 실무에서 셀이 너무
-    길쭉해진다(Example 1의 최초 10.7:1은 이 게이트를 통과 못 했을 결과다).
+    1) **직사각형 형성 여부**(`rectangular`): `compute_row_geometry(rows)`가 계산한 각 행의
+       실제 물리 폭(`width_m`)이 서로 얼마나 일치하는지 — `max(width)/min(width) <=
+       row_width_tol`이어야 쌓았을 때 계단형이 아니라 진짜 직사각형이 된다. 이게 옛
+       `max_ratio`가 실질적으로 하던 역할(Example 1의 10.7:1이 바로 이 실패)이다 — 이름만
+       명확히 하고 기본값(1.5)은 그대로 유지한다.
+    2) **길이 제한**(`elongation_ok`, opt-in): 1)을 통과해 직사각형이 만들어진 뒤, 전체
+       폭(`total_width_m` = 각 행 폭의 최댓값, 1)이 PASS면 전부 거의 같음) 대 전체
+       높이(`total_height_m` = 각 행 높이의 합)의 비율이 너무 크면 지나치게 길쭉한
+       직사각형이 된다 — 예전엔 모든 행 height가 구조적으로 1로 고정돼 있어 이 축 자체가
+       검사된 적이 없었다. `max_elongation=None`(기본)이면 이 축은 검사하지 않는다(기존
+       회로가 이 신설 게이트로 갑자기 FAIL하지 않도록). `orientation`으로 허용 방향을
+       고른다: `"wide"`(가로로만 길게 허용, height<=width 강제), `"tall"`(세로로만 길게
+       허용, width<=height 강제), `"either"`(기본, 어느 방향이든 `max_elongation` 이내면
+       OK).
+
+    rows: `{row_label: [Transistor,...]}` — 실제 물리적 행이 될 모든 stack/행에 속한
+    소자 리스트. common-centroid로 나눈 stack은 **행별로 따로** 넣을 것.
+
+    l/finger_w가 없는 소자가 있는 행은 `compute_row_geometry()`가 `width_m=None`을
+    반환하고, 여기서는 그 행만 옛 finger-count 근사(`sum(t.n_fingers ...)`, height=1)로
+    대체해 계산을 계속하되 `BoxShapeVerdict.approx=True`로 명시한다(조용히 넘어가지
+    않음 — 어떤 행이 근사인지는 `message`에 남는다).
 
     ⚠️ FAIL이면 §5 sizing↔layout 피드백 루프로 돌아가 §8(`search_stack_finger_w`)이나
-    §2.7(`common_centroid_layout`)로 finger_w·행 구성을
-    다시 정해야 한다 — **SPICE 검증은 이 게이트를 통과한 뒤에만 진행할 것.** finger_w를
-    나중에 바꾸면 §8.3(폭 의존 전류 오차)에 따라 SPICE도 다시 돌려야 하므로, 순서를 지키는
-    쪽이 재작업을 줄인다.
+    §2.7(`common_centroid_layout`)로 finger_w·행 구성을 다시 정해야 한다.
     """
-    if not row_widths:
-        return BoxShapeVerdict(ok=True, row_widths={}, max_ratio=1.0, message="행이 없음 — 검사 대상 없음")
+    if not rows:
+        return BoxShapeVerdict(ok=True, rectangular=True, elongation_ok=True, row_widths={},
+                                row_heights={}, total_width_m=0.0, total_height_m=0.0,
+                                width_ratio=1.0, elongation=1.0, approx=False,
+                                message="행이 없음 — 검사 대상 없음")
+
+    geoms = compute_row_geometry(rows)
+    approx_rows = [name for name, g in geoms.items() if g.width_m is None]
+    row_widths, row_heights = {}, {}
+    for name, g in geoms.items():
+        if g.width_m is None:
+            row_widths[name] = float(g.n_fingers_total)   # 옛 finger-count 근사로 대체
+            row_heights[name] = 1.0
+        else:
+            row_widths[name] = g.width_m
+            row_heights[name] = g.height_m
+
     widths = list(row_widths.values())
-    ratio = max(widths) / min(widths)
-    ok = ratio <= max_ratio
+    width_ratio = max(widths) / min(widths)
+    rectangular = width_ratio <= row_width_tol
+
+    total_width_m = max(widths)
+    total_height_m = sum(row_heights.values())
+    elongation = max(total_width_m, total_height_m) / min(total_width_m, total_height_m)
+
+    orientation_ok = True
+    if orientation == "wide":
+        orientation_ok = total_height_m <= total_width_m
+    elif orientation == "tall":
+        orientation_ok = total_width_m <= total_height_m
+    magnitude_ok = max_elongation is None or elongation <= max_elongation
+    elongation_ok = orientation_ok and magnitude_ok
+
+    ok = rectangular and elongation_ok
     verdict = "PASS" if ok else "FAIL"
-    detail = "허용치 이내" if ok else f"허용치({max_ratio}) 초과 — §8/§2.7로 finger_w·행 구성을 다시 정할 것"
-    message = f"{verdict}: 행 폭 {dict(row_widths)}, 최대/최소 비율={ratio:.2f} ({detail})"
-    return BoxShapeVerdict(ok=ok, row_widths=dict(row_widths), max_ratio=ratio, message=message)
+    rect_detail = "직사각형 형성 OK" if rectangular else (
+        f"행 폭 비율({width_ratio:.2f}) > row_width_tol({row_width_tol}) -- 계단형, "
+        f"§8/§2.7로 finger_w·행 구성을 다시 정할 것")
+    if max_elongation is None:
+        elong_detail = ""
+    elif elongation_ok:
+        elong_detail = " / 길이 제한 OK"
+    elif not orientation_ok:
+        elong_detail = (f" / orientation={orientation!r} 위반 -- "
+                         f"total_width_m={total_width_m:.3g}, total_height_m={total_height_m:.3g}"
+                         f"(방향이 안 맞음, elongation 수치 자체는 {elongation:.2f}"
+                         f"{'<=' if magnitude_ok else '>'}max_elongation({max_elongation})와 무관하게 FAIL)")
+    else:
+        elong_detail = f" / elongation({elongation:.2f}) > max_elongation({max_elongation})"
+    approx_detail = f" [근사: {approx_rows}]" if approx_rows else ""
+    message = f"{verdict}: {rect_detail}{elong_detail}{approx_detail}"
+    return BoxShapeVerdict(ok=ok, rectangular=rectangular, elongation_ok=elongation_ok,
+                            row_widths=row_widths, row_heights=row_heights,
+                            total_width_m=total_width_m, total_height_m=total_height_m,
+                            width_ratio=width_ratio, elongation=elongation,
+                            approx=bool(approx_rows), message=message)
 
 
 # ---------------------------------------------------------------------------
@@ -5171,6 +6042,15 @@ class AuditCheck:
 class AuditResult:
     checks: list = field(default_factory=list)
     ok: bool = True
+    # 2026-08-14(세션32, 사용자 지적 -- 재계산 비효율 감사 중 발견) -- audit_row_split()이
+    # "2. box-shape" 체크를 위해 이미 내부에서 check_box_shape()를 계산해두고도 ok/message만
+    # AuditCheck에 남기고 그 구조화된 BoxShapeVerdict 객체 자체는 버리고 있었다 -- 그래서
+    # 이 audit 결과와 별개로 box_shape가 또 필요한 호출자(예: sizing_recipe.py의
+    # pipeline_result["box_shape"])는 같은 rows에 check_box_shape()를 또 불러야 했다(순수
+    # 함수라 결과는 항상 같지만, "한 번 계산한 걸 저장해서 참조" 원칙에는 어긋난다). 이
+    # 필드에 그 객체를 그대로 보관해 재계산 없이 재사용할 수 있게 한다 -- 순수 추가 필드라
+    # 기존 .ok/.checks만 쓰던 호출부는 전혀 영향 없다.
+    box_shape: "BoxShapeVerdict | None" = None
 
     def add(self, name, ok, detail=""):
         self.checks.append(AuditCheck(name, ok, detail))
@@ -5179,7 +6059,7 @@ class AuditResult:
 
 
 def run_full_circuit_audit(devices: dict, expected_counts: dict, dispositions: dict,
-                            box_shape_checks: dict | None = None, max_ratio: float = 1.5,
+                            box_shape_checks: dict | None = None, row_width_tol: float = 1.5,
                             accept_fail_blocks: set | None = None) -> AuditResult:
     """리포트를 "완료"로 선언하기 전 **반드시 이 함수 하나로** 전체 회로를 감사한다 —
     sub-block마다 따로 짠 1회용 검증 스크립트를 다시 만들지 않는다(이게 바로 이 함수가 막으려는
@@ -5202,11 +6082,14 @@ def run_full_circuit_audit(devices: dict, expected_counts: dict, dispositions: d
       — 반드시 tag로 구분해서 저장할 것). `category`는 `real_match` 또는
       `false_positive_{coincidental|diode_chain|consumer_reads_bias|feedback_loop}` 중 하나를
       권장하지만 이 함수는 문자열 값 자체를 검사하지 않는다 — **키가 존재하는지만** 검사한다.
-    - `box_shape_checks`: `{block_label: {row_id: n_fingers_total}}` — sub-block별 실제 행 폭.
-      common-centroid로 물리 행이 2개로 쪼개진 그룹(§2.7)은 `common_centroid_layout()` 등으로
-      이미 계산된 `row_widths`를 그대로 넣을 것 — 이 함수가 그 분할을 자동으로 재계산하지
-      않는다(단일 Transistor 리스트로는 "같은 소자가 2개 물리 행에 나눠 들어간다"는 구조를
-      표현할 수 없기 때문 — 이건 알려진 한계이지 숨겨진 가정이 아니다).
+    - `box_shape_checks`: `{block_label: {row_id: [Transistor,...]}}` — sub-block별 실제 물리
+      행 구성(2026-08-13 세션31: `check_box_shape()`가 실제 물리 치수를 계산하도록 바뀌면서
+      `{row_id: n_fingers_total}`에서 이 형태로 재정의됨 — `l`/`finger_w`가 있는 `Transistor`
+      리스트를 넘겨야 실제 폭/높이가 계산된다, 없으면 `approx=True`로 근사). common-centroid로
+      물리 행이 2개로 쪼개진 그룹(§2.7)은 그 두 행을 각각의 `row_id`로 넣을 것 — 이 함수가
+      그 분할을 자동으로 재계산하지 않는다(단일 Transistor 리스트로는 "같은 소자가 2개 물리
+      행에 나눠 들어간다"는 구조를 표현할 수 없기 때문 — 이건 알려진 한계이지 숨겨진 가정이
+      아니다).
     - `accept_fail_blocks`: box-shape FAIL을 근거와 함께 수용하기로 한 block 이름 집합(예:
       CMFB — §8.5 분할비용 계산 후 수용). 없으면 모든 block이 PASS여야 한다.
 
@@ -5258,8 +6141,8 @@ def run_full_circuit_audit(devices: dict, expected_counts: dict, dispositions: d
 
     # 4) sub-block별 box-shape
     accept_fail_blocks = accept_fail_blocks or set()
-    for block, row_widths in (box_shape_checks or {}).items():
-        v = check_box_shape(row_widths, max_ratio=max_ratio)
+    for block, block_rows in (box_shape_checks or {}).items():
+        v = check_box_shape(block_rows, row_width_tol=row_width_tol)
         accepted = block in accept_fail_blocks and not v.ok
         result.add(f"4. box-shape [{block}]", v.ok or accepted,
                    v.message + ("  (FAIL accepted — see report reasoning)" if accepted else ""))
@@ -5367,7 +6250,7 @@ def select_layout_tool(matching_sensitivity: str, shares_node: bool,
 
 def audit_row_split(rows: dict, matching_pairs: list | None = None,
                      pair_sensitivity: dict | None = None,
-                     max_ratio: float = 1.5, area_budget: str | None = None) -> AuditResult:
+                     row_width_tol: float = 1.5, area_budget: str | None = None) -> AuditResult:
     """box-shape를 위해 한 functional group을 여러 물리 행으로 재구성했을 때 **반드시 이
     함수 하나만** 호출한다 — 그때그때 손으로 `build_stick_diagram()`/`check_box_shape()`/
     interdigitation을 따로따로 확인하다가 순서를 빼먹는 실수(실제 사고, 위 §6.65 docstring)를
@@ -5429,12 +6312,10 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None,
            가능하므로 별개로 요구한다.
          - `ra`/`rb` 조회 실패(구 `"unknown"` 폴백): 보수적으로 **3b와 3c 둘 다 필수**."""
     result = AuditResult()
-    row_widths: dict = {}
     sequences: dict = {}
     reps: dict = {}  # name -> 대표 Transistor(gate/source 조회용, 행 무관하게 아무거나 하나)
 
     for row_name, devices in rows.items():
-        row_widths[row_name] = sum(t.n_fingers for t in devices)
         for t in devices:
             reps.setdefault(t.name, t)
 
@@ -5457,8 +6338,9 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None,
             result.add(f"1. euler[{row_name}]", True, f"odd_nodes={r.odd_nodes}")
             sequences[row_name] = r.transistor_sequence
 
-    bs = check_box_shape(row_widths, max_ratio=max_ratio)
+    bs = check_box_shape(rows, row_width_tol=row_width_tol)
     result.add("2. box-shape", bs.ok, bs.message)
+    result.box_shape = bs  # 호출자가 재계산 없이 참조할 수 있게 원본 객체를 보관(위 필드 docstring)
 
     pair_sensitivity = pair_sensitivity or {}
 
@@ -5599,16 +6481,36 @@ def _failing_required_pairs(result: AuditResult) -> list:
     return seen
 
 
-def _layout_result_to_rows(layout: dict, templates: dict, base_row_name: str) -> dict:
+def _layout_result_to_rows(layout: dict, templates: dict, base_row_name: str,
+                            existing_rows: dict | None = None) -> dict:
     """`interdigitate_layout()`/`common_centroid_layout()`의 반환값(`"rows"`: 각 원소가
     `transistor_sequence`를 가진 새 물리 행)을 실제 `{row_name: [Transistor,...]}`로
     변환한다 — 각 이름의 `transistor_sequence` 등장 횟수가 그 행에서의 `n_fingers`다.
     `templates`: `{name: Transistor}` — 원본 소자(kind/source/drain/gate 등 connectivity
-    필드를 그대로 복사하고 `n_fingers`/`stack_id`만 새로 채운다)."""
+    필드를 그대로 복사하고 `n_fingers`/`stack_id`만 새로 채운다).
+
+    ⚠️ 2026-08-14(세션32, 사용자 절대원칙 "만들면 반드시 배선" 이행 중 실측 발견) --
+    새 행 이름을 항상 `f"{base_row_name}_repair0"`(i는 이 호출 안에서만 0부터 -- 여러
+    라운드에 걸쳐 전역적으로 유일하지 않음)로 지었다 -- `repair_matching_safety()`에서
+    한 "hub" 소자(예: 여러 매칭쌍에 동시에 걸린 M18_bg류 current_mirror 기준 소자)가
+    라운드마다 새 파트너와 반복해서 재배치될 때, 예전에 함께 있다가 떨어져나가
+    다른 소자만 남은 행("X_repair0" = 남은 소자 하나)의 이름을, 나중에 완전히 무관한
+    다른 쌍이 우연히 같은 `base_row_name`을 거쳐 같은 이름을 다시 생성해 `current_rows.
+    update(new_rows)`가 **조용히 덮어써서 그 남은 소자를 통째로 지워버렸다**(실측:
+    current_reuse_telescopic_ota, M17/M18_bg/M61 3개가 이렇게 사라짐 -- repro 스크립트로
+    `pair=(M8,M61)` 처리 중 'M17' 소실을 직접 확인). `existing_rows`(호출자가 넘긴,
+    이 시점의 `current_rows` -- 필터/삭제까지 끝난 뒤의 최신 상태)에 이미 있는 이름은
+    건너뛰고 다음 `_repair{i}`를 시도해 충돌을 원천 차단한다."""
     result = {}
-    for i, row in enumerate(layout["rows"]):
+    reserved = set(existing_rows.keys()) if existing_rows is not None else set()
+    for row in layout["rows"]:
         counts = Counter(row["transistor_sequence"])
+        i = 0
         new_row_name = f"{base_row_name}_repair{i}"
+        while new_row_name in reserved:
+            i += 1
+            new_row_name = f"{base_row_name}_repair{i}"
+        reserved.add(new_row_name)
         result[new_row_name] = [_dc_replace(templates[name], n_fingers=n, stack_id=new_row_name)
                                  for name, n in counts.items()]
     return result
@@ -5696,6 +6598,23 @@ def _branch_composite_pair(a: str, b: str, devices_by_name: dict, matching_pairs
     dev_hub_b, dev_leaf_b = devices_by_name[hub_b], devices_by_name[leaf_b]
     if dev_hub_a.n_fingers != dev_leaf_a.n_fingers or dev_hub_b.n_fingers != dev_leaf_b.n_fingers:
         return None  # 한 컬럼인데 finger 수가 다름 -- 이상 케이스, 방어적으로 skip
+    # 2026-08-13(세션31, box-shape 실제 물리 치수 반영 중 발견) -- hub_a/leaf_a/hub_b/leaf_b
+    # 4개 실제 소자는 interdigitate_layout()/common_centroid_layout() 뒤 _layout_result_
+    # to_rows()를 거쳐 결국 **같은 물리 행(같은 diffusion strip)**에 함께 배치된다 -- 그러려면
+    # finger_w가 전부 같은 unit cell이어야 한다(§2.5 INTERDIGITATION_PATTERNS의 전제와 동일,
+    # compute_row_geometry()가 새로 추가한 행 내 finger_w 균일성 게이트와 같은 이유). 이
+    # 검증이 없어서 서로 다른 finger_w(예: 별도 stack에서 각자 assign_finger_geometry()가
+    # 고른 값)를 가진 소자들을 한 물리 행으로 합치는 결과가 실제로 나왔다(실측: current_
+    # reuse_telescopic_ota L5c 테스트의 M12/M19, finger_w 1.158um vs 1.074um). n_fingers
+    # 불일치와 동일하게 물리적으로 불가능한 조합이므로 같은 방식(None, 호출자가 기존
+    # 개별-소자 경로로 폴백하거나 skip)으로 방어한다.
+    _fw_known = {v for v in (dev_hub_a.finger_w, dev_leaf_a.finger_w,
+                              dev_hub_b.finger_w, dev_leaf_b.finger_w) if v is not None}
+    # finger_w가 아직 없는 소자(순수 구조 테스트, 사이징 이전 load_topology() 산출물 등)는
+    # 비교 대상에서 뺀다 -- None을 "다르다"로 오판하지 않는다(approx 취급과 동일 원칙).
+    if len(_fw_known) > 1 and not all(
+            math.isclose(x, y, rel_tol=1e-9) for x in _fw_known for y in _fw_known):
+        return None  # 4개 소자가 같은 diffusion strip에 들어가는데 finger_w가 다름 -- 물리적으로 불가능
 
     leaf_net_a = outer_a1 if hub_net == outer_a0 else outer_a0
     leaf_net_b = outer_b1 if hub_net == outer_b0 else outer_b0
@@ -5921,6 +6840,9 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
             composite = _branch_composite_pair(a, b, all_devs_by_name, matching_pairs)
             if composite is not None:
                 ca, cb = composite["composite_a"], composite["composite_b"]
+                # (finger_w 물리 정합성 검증은 _branch_composite_pair() 안에서 실제 4개
+                # 소자로 이미 확인됨 -- ca/cb는 finger_w 없는 합성 래퍼라 여기서 비교 불가.
+                # 아래 §2.5 INTERDIGITATION_PATTERNS 참고, 2026-08-13 세션31 신설.)
                 expand_map = composite["expand"]
                 hub_a, leaf_a = expand_map[ca.name]
                 hub_b, leaf_b = expand_map[cb.name]
@@ -5949,17 +6871,25 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
                 if any(n not in devs2 for n in real_names):
                     continue  # branch 구성원 일부가 이미 없어짐 -- 안전하게 skip
                 base_row_name = origin2[hub_a]
-                new_rows = _layout_result_to_rows({"rows": expanded_rows}, devs2, base_row_name)
+                # 2026-08-14(세션32) -- 이름 충돌 방지를 위해 필터/삭제를 먼저 끝내고
+                # (남겨진 다른 소자가 있는 행은 그대로, 빈 행은 삭제) 그 *이후*의
+                # current_rows를 existing_rows로 넘겨야 한다 -- _layout_result_to_rows()
+                # docstring 참고(같은 이름을 나중에 다른 쌍이 재생성해 덮어쓰던 버그).
                 for rn in set(origin2.values()):
                     current_rows[rn] = [t for t in current_rows[rn] if t.name not in real_names]
                     if not current_rows[rn]:
                         del current_rows[rn]
+                new_rows = _layout_result_to_rows({"rows": expanded_rows}, devs2, base_row_name,
+                                                   existing_rows=current_rows)
                 current_rows.update(new_rows)
                 progressed = True
                 touched_this_round.update(real_names)
                 continue
             if ta.source != tb.source:
                 continue  # 공유 hub 없음 + branch 복합도 안 됨 -- 이 도구들 적용 불가(정직한 한계)
+            if (ta.finger_w is not None and tb.finger_w is not None
+                    and not math.isclose(ta.finger_w, tb.finger_w, rel_tol=1e-9)):
+                continue  # finger_w가 다른 unit cell -- 위 composite 경로와 동일 이유로 적용 불가
             sens = _sensitivity_of_pair(a, b)
             # 세션17: relaxed_pairs에 있으면 select_layout_tool()의 판단을 무시하고
             # interdigitate_layout을 강제한다(위 docstring "relaxed_pairs" 참고).
@@ -5978,11 +6908,15 @@ def repair_matching_safety(rows: dict, matching_pairs: list, pair_sensitivity: d
                 n_rows = min(2, ta.n_fingers, tb.n_fingers)
                 layout = common_centroid_layout([ta, tb], n_rows=n_rows)
             base_row_name = origin_rows[a]
-            new_rows = _layout_result_to_rows(layout, {a: ta, b: tb}, base_row_name)
+            # 2026-08-14(세션32) -- 필터/삭제를 먼저 끝낸 뒤 그 이후의 current_rows를
+            # existing_rows로 넘긴다(_layout_result_to_rows() docstring 참고 -- 이름
+            # 충돌로 남은 소자가 조용히 덮어써지던 실측 버그의 근본수정).
             for rn in set(origin_rows.values()):
                 current_rows[rn] = [t for t in current_rows[rn] if t.name not in (a, b)]
                 if not current_rows[rn]:
                     del current_rows[rn]
+            new_rows = _layout_result_to_rows(layout, {a: ta, b: tb}, base_row_name,
+                                               existing_rows=current_rows)
             current_rows.update(new_rows)
             progressed = True
             touched_this_round.update((a, b))
@@ -6432,17 +7366,25 @@ def pack_floorplan(spine: list, mirror_pairs: list, gap: float = 1.0, height_ste
     )
 
 
-def block_from_row_widths(name: str, row_widths: dict) -> FloorplanBlock:
-    """stick diagram의 row_widths(§8 box-shape 입력과 동일한 dict)를 하나의 FloorplanBlock으로
-    집계한다 — width=그 block 안 최대 행 폭(finger 수), height=행 개수. 이 두 값을 실제 물리
-    치수로 착각하지 말 것(§6.7 docstring 참고) — 상대 비율 비교에만 쓴다."""
-    return FloorplanBlock(name, width=max(row_widths.values()), height=len(row_widths))
+def block_from_rows(name: str, rows: dict) -> FloorplanBlock:
+    """`rows`(`{row_name: [Transistor,...]}`, §8 box-shape 입력과 동일한 dict)를 하나의
+    FloorplanBlock으로 집계한다 — 2026-08-13 세션31: `compute_row_geometry()`로 실제 물리
+    폭/높이를 계산해서 쓴다(옛 `block_from_row_widths()`는 width=최대 행의 finger 개수,
+    height=행 개수(=항상 1, `rebuild_floorplan()`이 매번 단일 행 dict로 호출했으므로)로
+    실제 치수를 전혀 반영 못 했다 — `Transistor.finger_w`가 이미 있었는데도 안 쓰던
+    구조적 버그). l/finger_w 결측 행은 `compute_row_geometry()`가 `width_m=None`을 주므로
+    옛 finger-count/height=1 근사로 대체한다(조용히 넘기지 않고 `approx_devices`로 추적됨
+    — 상위 호출자가 필요하면 `compute_row_geometry(rows)`를 직접 불러 확인할 것)."""
+    geoms = compute_row_geometry(rows)
+    widths = [g.width_m if g.width_m is not None else float(g.n_fingers_total) for g in geoms.values()]
+    heights = [g.height_m if g.height_m is not None else 1.0 for g in geoms.values()]
+    return FloorplanBlock(name, width=max(widths), height=sum(heights))
 
 
-def rebuild_floorplan(row_widths: dict, floorplan_hints: dict | None = None) -> FloorplanResult:
-    """`row_widths`(`{row_name: finger_count}`)만으로 floorplan을 새로 packing한다 --
+def rebuild_floorplan(rows: dict, floorplan_hints: dict | None = None) -> FloorplanResult:
+    """`rows`(`{row_name: [Transistor,...]}`)만으로 floorplan을 새로 packing한다 --
     `run_topology_pipeline()`의 §8 floorplan 조립 로직(spine_groups 기본값 구성 ->
-    `block_from_row_widths()` -> `pack_floorplan_grouped()`)을 그대로 추출한 것(동작
+    `block_from_rows()` -> `pack_floorplan_grouped()`)을 그대로 추출한 것(동작
     변화 없음, `run_topology_pipeline()`도 이 함수를 호출하도록 리팩터됨).
 
     2026-08-13(세션31 CO) 신설 -- `optimize_full_circuit_budget()`이 `row_split`/
@@ -6453,17 +7395,71 @@ def rebuild_floorplan(row_widths: dict, floorplan_hints: dict | None = None) -> 
     보여주는데 floorplan만 재조정 이전의 통짜 블록(예: `M6` 1개, width=합산값)을 보여주는
     불일치가 있었다(실측 발견: `two_stage_ota`, `.ai/context.md` 세션31 CO 참고).
 
+    같은 세션 후반(box-shape 실제 물리 치수 반영)에서 `row_widths: {name: finger_count}`
+    대신 `rows: {name: [Transistor,...]}`를 받도록 재정의했다 — `block_from_rows()`가
+    실제 폭/높이를 계산하려면 `Transistor.l`/`finger_w`가 필요하기 때문(§8 CI 이월 항목
+    해소, `.ai/context.md` 참고).
+
     `floorplan_hints.spine_groups`가 있으면 그 그룹핑을(예: 여러 row를 한 macro-block으로
-    묶는 지정), 없으면 각 row를 독립 spine으로 취급(`run_topology_pipeline()`의 기존
-    기본값과 동일)."""
+    묶는 지정) 그대로 쓴다. **2026-08-13(세션31, 사용자 지시 + 문헌 확인)**: 없으면 더 이상
+    "행 하나=독립 spine"(옛 기본값)이 아니라 **kind(pmos/nmos)별 2개 super-block**으로
+    묶는다 -- Xiao/Young/He/Pun, "Practical Placement and Routing Techniques for Analog
+    Circuit Designs"(CUHK) §IV.C: "약 90%의 NMOS/PMOS가 source를 GND/Vdd에 물려 안정된
+    전원 공급과 IR-drop 완화를 위해 같은 극성끼리 붙여 놓는다 -- NMOS와 PMOS를 두
+    super-block으로 취급해 배치에서 서로 contiguous하도록 강제한다." PMOS 행들이 서로
+    떨어져 배치되면 매번 n-well 경계/guard-ring 비용이 드는데, 같은 극성끼리 붙이면
+    well을 공유해 면적을 아낄 수 있다(반대로 PMOS/NMOS를 번갈아 배치하는 건 면적
+    최적화 관점에서 불리함, 사용자 지적). 이 그룹핑은 이미 있는 `pack_group_as_unit()`
+    (super-block 내부를 촘촘히 먼저 패킹한 뒤 하나의 블록으로 상위 packing에 넘김)을
+    그대로 재사용한다 -- 새 packing 알고리즘이 아니라 기본 그룹 구성만 바꾼 것.
+
+    2026-08-13(세션31, box-shape/floorplan 실측 상관성 개선 중 신설) -- `FloorplanResult.
+    row_split_candidates`(`evaluate_row_split_candidates()`)의 diffusion-safe 분할점 검증
+    (`splittable` 필드)이 지금까지 `transistor_sequences`를 아무도 안 넘겨줘서 항상
+    `"not_verified"`(`None`)였다 -- 자동 row_split 재시도 루프(호출자, 예:
+    `workspaces/run_harness.py`)가 "안전하게 쪼갤 수 있는 후보만" 골라 쓰려면 이 값이
+    실제로 채워져 있어야 한다. 여기서 각 row마다 `build_stick_diagram()`을 다시 계산해
+    채운다(`audit_row_split()`이 이미 하는 것과 같은 계산 1회 추가뿐 -- 비용 문제 없음).
+    euler 실패(status != "ok")한 행은 sequence가 무의미하므로 건너뛴다(그 행만
+    not_verified로 남고 나머지는 정상 검증됨 -- 부분 실패를 전체 실패로 안 키운다).
+    `spine_groups`로 여러 row를 하나의 group으로 묶은 경우, 그 group 블록의 이름은 어떤
+    개별 row 이름과도 안 맞으므로(합쳐진 블록이라 단일 sequence가 없음) 그 그룹은 여전히
+    "not_verified"로 정직하게 남는다(기본 1행=1그룹 경우에만 실제로 채워짐).
+
+    ⚠️ 2026-08-13(세션31, box-shape 실측 물리 치수 반영 직후 실측으로 발견) -- `pack_
+    floorplan_grouped()`/`pack_floorplan()`류의 `gap` 기본값(1.0)은 옛 finger-count
+    좌표계(블록 폭이 대략 1~50 사이 정수)를 전제로 정해진 값이다. `block_from_rows()`가
+    이제 실제 물리 치수(m 단위, 대략 1e-8~1e-4 스케일)를 만들어내면서, `gap=1.0`(사실상
+    1미터)이 블록 크기를 통째로 집어삼켜 aspect_ratio가 수만대1로 튀는 버그가 실측
+    확인됐다(`two_stage_ota`, floorplan.aspect_ratio=125605 -- 명백히 물리적으로
+    무의미). `gap`도 CPP/spacing과 같은 "미확보 PDK 상수" 범주라 절대값을 지어내지
+    않고, 대신 **블록 크기에 비례하는 상대값**(중앙값 폭의 5%)을 쓴다 -- 실제 spacing
+    규칙을 확보하면 이 비율만 교체하면 된다."""
     hints = floorplan_hints or {}
-    spine_groups_names = hints.get("spine_groups") or {name: [name] for name in row_widths}
-    blocks_by_name = {name: block_from_row_widths(name, {name: row_widths[name]})
-                      for name in row_widths}
+    spine_groups_names = hints.get("spine_groups")
+    if not spine_groups_names:
+        spine_groups_names = defaultdict(list)
+        for name, devs in rows.items():
+            kind = devs[0].kind if devs else "nmos"
+            spine_groups_names[kind].append(name)
+        spine_groups_names = dict(spine_groups_names)
+    blocks_by_name = {name: block_from_rows(name, {name: rows[name]})
+                      for name in rows}
     spine_groups = {gname: [blocks_by_name[bname] for bname in members if bname in blocks_by_name]
                     for gname, members in spine_groups_names.items()}
+    transistor_sequences = {}
+    for name, devs in rows.items():
+        out = build_stick_diagram(devs)
+        r = out.get(name)
+        if r is not None and r.status == "ok":
+            transistor_sequences[name] = r.transistor_sequence
+    all_widths = sorted(b.width for b in blocks_by_name.values() if b.width > 0)
+    gap = hints.get("gap")
+    if gap is None:
+        gap = 0.05 * all_widths[len(all_widths) // 2] if all_widths else 1.0
     return pack_floorplan_grouped(spine_groups, hints.get("mirror_pairs") or [],
-                                    net_weights=hints.get("net_weights"))
+                                    gap=gap, net_weights=hints.get("net_weights"),
+                                    transistor_sequences=transistor_sequences)
 
 
 def _pack_by_subkind(blocks: list, sub_kind: dict, gap: float = 1.0, height_steps: int = 40):
@@ -6718,6 +7714,65 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
     for _name, _vsid in _vsid_gap_fill["proposals"].items():
         all_device_roles.setdefault(_name, {})["vertical_stack_id"] = _vsid
 
+    # 2026-08-14(사용자 지시 -- 절대원칙 "만들면 반드시 배선하라", vsid 선례와 동일 패턴으로
+    # 배선) -- symmetry.matching_pairs/device_roles(gm_id_role/L_role/headroom_role) 둘 다
+    # propose_device_roles_gap_fill()의 **충돌 없는 제안만** 매 load 시점에 자동으로
+    # 메모리상 병합한다(파일은 안 건드림 -- apply_device_roles_gap_fill()만 파일을 쓴다,
+    # 그건 여전히 명시적으로 호출하는 authoring-time 도구).
+    #
+    # ⚠️ 처음엔 device_roles를 자동 병합에서 뺐었다(실측: 매칭 관계가 전혀 없는 고립 소자
+    # 1개짜리 netlist에도 `gm_id_role="matching"`/`L_role="mirror"`가 근거 없이 붙었음) --
+    # 근본원인(`_propose_gm_id_roles()`/`_propose_L_roles()`가 매칭 신호 없이도 기본값을
+    # 채우던 것)을 실제로 고쳤다(두 함수 모두 구조 대칭 파트너가 확인된 소자만 값을 냄,
+    # 이 docstring 상단 대신 그 두 함수 자신의 docstring에 정정 이력 기록). 이제 안전해서
+    # device_roles도 vsid와 동일하게 자동 병합한다. `compensation.stage_devices` 소속
+    # 소자에 `gm_id_role`을 채워도 안전하다는 건 `sizing_recipe.py`의
+    # `_AUTHORITATIVE_GM_ID_SOURCES` 가드로 실측 검증됨(이 세션).
+    _comp = data.get("compensation")
+    _comp_stage_devices = [n for grp in (_comp or {}).get("stage_devices", []) for n in grp]
+    _droles_gap_fill = propose_device_roles_gap_fill(
+        transistors, all_device_roles, all_matching_pairs,
+        compensation_stage_devices=_comp_stage_devices)
+    # 2026-08-14 -- device_roles_proposals를 그대로 "_device_roles_autofilled"로 노출하면
+    # 안 된다(실측으로 발견한 버그): propose_device_roles_gap_fill()의 conflict 검사는
+    # "이미 declared된 값과 제안이 **다를 때만**" 걸러내므로, 이미 declared된 값과 제안이
+    # **우연히 같으면** 그 필드도 그대로 proposal에 남는다 -- 그러면 이미 사람이 검토·확정한
+    # 필드까지 "review 안 됨"으로 잘못 보고돼 require_device_roles_reviewed()가 불필요하게
+    # 막는다(current_reuse_telescopic_ota의 M10/M11a/M11b 등 실측 재현). 실제로 **새로
+    # 채워진**(파일에 없었던) 필드만 추적한다.
+    _device_roles_autofilled = {}
+    for _name, _proposal in _droles_gap_fill["device_roles_proposals"].items():
+        _entry = all_device_roles.setdefault(_name, {})
+        _newly_added = {}
+        for _field, _value in _proposal.items():
+            if _entry.get(_field) is None:
+                _entry[_field] = _value
+                _newly_added[_field] = _value
+        if _newly_added:
+            _device_roles_autofilled[_name] = _newly_added
+    # 2026-08-14(사용자 지적으로 발견 -- "대칭적인 branch이면 branch 전류가 같아야 하는것
+    # 아니야?" 계기로 current_forced 기본값을 True로 정정한 뒤, `sizing_recipe.py`의
+    # matching_pairs L 전파 루프가 `current_forced` 값과 무관하게 **모든** 선언된 쌍에
+    # 작동한다는 걸 재확인했다 -- 즉 review 안 된 매칭쌍을 메모리상으로만 자동 병합해도
+    # 실제 sizing(L 값)에 영향을 줄 수 있다는 뜻이라, `differential`(순수 KCL, review
+    # 불필요)만 자동 병합하고 나머지(`mirror`/`structural_symmetry`/층위1 폴백, 전부
+    # `matching_sensitivity="ratio"`)는 review 게이트를 통과하기 전까지 메모리에도 안
+    # 넣는다 -- `require_device_roles_reviewed()`의 Tier 구분(`find_unreviewed_matching_
+    # pairs()`)과 정확히 같은 기준을 여기서도 적용해 일관성을 맞춘다.
+    _droles_new_pairs = []
+    _droles_needs_review_pairs = []
+    _droles_existing_pair_keys = {frozenset(p["names"]) for p in all_matching_pairs}
+    for _p in _droles_gap_fill["matching_pairs_proposals"]:
+        _key = frozenset(_p["names"])
+        if _key in _droles_existing_pair_keys:
+            continue  # 이미 declared -- review 완료로 취급, 어느 목록에도 안 넣음
+        if _p.get("matching_sensitivity") == "offset":
+            all_matching_pairs.append(_p)
+            _droles_existing_pair_keys.add(_key)
+            _droles_new_pairs.append(_p)
+        else:
+            _droles_needs_review_pairs.append(_p)  # ratio -- 메모리에도 자동 병합 안 함
+
     meta = {
         "topology_name": data["topology_name"],
         "schema_version": data["schema_version"],
@@ -6734,6 +7789,16 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
         "_linked_files_loaded": linked,
         "_vertical_stack_id_autofilled": _vsid_gap_fill["proposals"] or None,
         "_vertical_stack_id_conflicts": _vsid_gap_fill["conflicts"] or None,
+        "_matching_pairs_autofilled": _droles_new_pairs or None,
+        # ratio(mirror/structural_symmetry/층위1 폴백) 제안 -- offset(differential)과 달리
+        # review 전까지 all_matching_pairs에 자동 병합 안 됨(위 주석 참고). require_device_
+        # roles_reviewed()/find_unreviewed_matching_pairs()가 이 필드로 review 필요 여부를 판단.
+        "_matching_pairs_needs_review": _droles_needs_review_pairs or None,
+        "_device_roles_autofilled": _device_roles_autofilled or None,
+        # 충돌(이미 declared된 값과 다름) 때문에 자동 반영 안 되고 review만 필요한 항목 +
+        # 층위1/2 candidate인데 아직 확정 못 한 것들(예: current_forced 세분화가 sizing_
+        # roles/theta 정보 없이는 불가능한 경우) -- vsid의 conflicts와 같은 투명성 원칙.
+        "_device_roles_gap_fill_review_needed": _droles_gap_fill["review_needed"] or None,
     }
     return transistors, meta
 
@@ -6833,7 +7898,6 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
         )
 
     rows = split_into_stacks(transistors)  # {stack_id: [Transistor, ...]}
-    row_widths = {name: sum(t.n_fingers for t in devs) for name, devs in rows.items()}
 
     pairs_meta = meta["symmetry"]["matching_pairs"]
     # audit_row_split()은 순수 2-tuple 쌍 계약이다 -- names가 2개보다 많은 그룹(기준 소자
@@ -6850,7 +7914,7 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
     effective_cell_groups = cell_groups if cell_groups is not None else hints.get("spine_groups")
 
     if effective_cell_groups is None:
-        box_shape = check_box_shape(row_widths)
+        box_shape = check_box_shape(rows)
         audit_row = audit_row_split(rows, matching_pairs=matching_pairs,
                                      pair_sensitivity=pair_sensitivity)
     else:
@@ -6858,8 +7922,7 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
         audit_row = {}
         for cell_name, row_names in effective_cell_groups.items():
             cell_rows = {rn: rows[rn] for rn in row_names if rn in rows}
-            cell_row_widths = {rn: row_widths[rn] for rn in row_names if rn in row_widths}
-            box_shape[cell_name] = check_box_shape(cell_row_widths)
+            box_shape[cell_name] = check_box_shape(cell_rows)
             cell_device_names = {t.name for devs in cell_rows.values() for t in devs}
             cell_pairs = [(a, b) for (a, b) in matching_pairs
                           if a in cell_device_names and b in cell_device_names]
@@ -6870,7 +7933,7 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
 
     # 2026-08-13(세션31 CO) -- rebuild_floorplan()으로 추출(동작 변화 없음, optimize_full_
     # circuit_budget()이 row_split/repair 이후 재호출할 수 있도록 재사용 가능하게 만든 것).
-    floorplan = rebuild_floorplan(row_widths, hints)
+    floorplan = rebuild_floorplan(rows, hints)
 
     sized_names = {t.name for t in transistors}
     stick_diagram_devices = {name: [t.name for t in devs] for name, devs in rows.items()}
@@ -6887,7 +7950,7 @@ def run_topology_pipeline(topology_json_path: str, sizing_overrides: dict,
 
 def run_full_circuit_audit_from_topology(topology_json_path: str,
                                            box_shape_checks: dict | None = None,
-                                           max_ratio: float = 1.5,
+                                           row_width_tol: float = 1.5,
                                            accept_fail_blocks: set | None = None) -> AuditResult:
     """`run_full_circuit_audit()`(§1.6)의 자동 로더 -- topology.json 경로 하나만 주면
     `devices`/`expected_counts`/`dispositions`를 `load_topology()`가 이미 읽은 정보에서
@@ -6902,7 +7965,7 @@ def run_full_circuit_audit_from_topology(topology_json_path: str,
     무의미해지므로(빈 expected_counts는 "선언 없음"과 같다) 조용히 넘어가지 않고
     `ValueError`를 낸다.
 
-    `box_shape_checks`/`max_ratio`/`accept_fail_blocks`는 사이징/레이아웃 이후에만 나오는
+    `box_shape_checks`/`row_width_tol`/`accept_fail_blocks`는 사이징/레이아웃 이후에만 나오는
     정보라 topology.json에 없다 -- `run_full_circuit_audit()`에 그대로 전달한다(호출자가
     `run_topology_pipeline()`류의 반환값에서 직접 뽑아 넘길 것, 이 함수가 자동 변환하지
     않는다 -- box_shape의 형태가 `cell_groups` 유무로 달라져 자동 변환이 오히려 조용한
@@ -6937,7 +8000,7 @@ def run_full_circuit_audit_from_topology(topology_json_path: str,
     }
 
     return run_full_circuit_audit(devices, expected_counts, dispositions,
-                                    box_shape_checks=box_shape_checks, max_ratio=max_ratio,
+                                    box_shape_checks=box_shape_checks, row_width_tol=row_width_tol,
                                     accept_fail_blocks=accept_fail_blocks)
 
 
@@ -6949,7 +8012,11 @@ def _box_shape_json(bs):
     독립된 cell 3개(core_signal/bias_tail/stage2_output)를 갖는 회로에서 실측 필요성 확인."""
     if isinstance(bs, dict):
         return {name: _box_shape_json(v) for name, v in bs.items()}
-    return {"ok": bs.ok, "row_widths": bs.row_widths, "message": bs.message}
+    return {"ok": bs.ok, "rectangular": bs.rectangular, "elongation_ok": bs.elongation_ok,
+            "row_widths": bs.row_widths, "row_heights": bs.row_heights,
+            "total_width_m": bs.total_width_m, "total_height_m": bs.total_height_m,
+            "width_ratio": bs.width_ratio, "elongation": bs.elongation,
+            "approx": bs.approx, "message": bs.message}
 
 
 def _audit_result_json(ar):
@@ -8008,22 +9075,62 @@ if __name__ == "__main__":
 
     print()
     print("=== Test 13: check_box_shape() 게이트 — SPICE 전에 반드시 통과해야 하는 §8 체크포인트 ===")
+    print("  2026-08-13(세션31): rows: dict[str, list[Transistor]] 기반으로 재작성 --")
+    print("  finger_w=l=1.0 균일값을 쓰면 pitch(l)=1.0이라 옛 finger-count 수치를 그대로 재현한다.")
+
+    def _row13(row, n, finger_w=1.0, l=1.0, kind="nmos"):
+        return {row: [Transistor(f"{row}_dev", kind, source="s", drain="d",
+                                  n_fingers=n, finger_w=finger_w, l=l)]}
+
     print("  Example 1의 실제 최초 실수(nstack=3, pstack=32)를 이 게이트에 넣으면:")
-    before1 = check_box_shape({"nstack": 3, "pstack": 32})
+    before1 = check_box_shape({**_row13("nstack", 3), **_row13("pstack", 32)})
     print(f"  {before1.message}")
     print("  §8로 고친 뒤(8:8):")
-    after1 = check_box_shape({"nstack": 8, "pstack": 8})
+    after1 = check_box_shape({**_row13("nstack", 8), **_row13("pstack", 8)})
     print(f"  {after1.message}")
     print(f"  -> 게이트가 실수는 FAIL로, 수정본은 PASS로 정확히 구분: "
           f"{'OK' if (not before1.ok and after1.ok) else 'FAIL'}")
     print("  Example 2의 실제 최초 실수(diffpair 2행x9, tailstack 24, loadstack 38)를 넣으면:")
-    before2 = check_box_shape({"diffpair_row0": 9, "diffpair_row1": 9, "tailstack": 24, "loadstack": 38})
+    before2 = check_box_shape({**_row13("diffpair_row0", 9), **_row13("diffpair_row1", 9),
+                                **_row13("tailstack", 24), **_row13("loadstack", 38)})
     print(f"  {before2.message}")
     print("  §8로 고친 뒤(전부 폭 10):")
-    after2 = check_box_shape({"diffpair_row0": 10, "diffpair_row1": 10, "tailstack": 10, "loadstack": 10})
+    after2 = check_box_shape({**_row13("diffpair_row0", 10), **_row13("diffpair_row1", 10),
+                               **_row13("tailstack", 10), **_row13("loadstack", 10)})
     print(f"  {after2.message}")
     print(f"  -> 게이트가 실수는 FAIL로, 수정본은 PASS로 정확히 구분: "
           f"{'OK' if (not before2.ok and after2.ok) else 'FAIL'}")
+
+    print("  결측치(l/finger_w 없음) 근사 처리 확인:")
+    approx_verdict = check_box_shape({"row_full": [Transistor("full_dev", "nmos", source="s",
+                                                                 drain="d", n_fingers=8,
+                                                                 finger_w=1.0, l=1.0)],
+                                       "row_bare": [Transistor("bare_dev", "nmos", source="s",
+                                                                 drain="d", n_fingers=8)]})
+    print(f"  {approx_verdict.message}")
+    print(f"  -> approx=True로 명시(조용히 finger-count로 대체하지 않음): "
+          f"{'OK' if approx_verdict.approx else 'FAIL'}")
+
+    print("  높이(finger_w) 편차 축 -- 폭은 같지만 finger_w가 다른 두 행(elongation 신설 축):")
+    tall_rows = {**_row13("row_thin", 8, finger_w=1.0, l=1.0),
+                 **_row13("row_thick", 8, finger_w=6.0, l=1.0)}
+    # width_m 둘 다 8(정합) / total_height_m=1+6=7 -> elongation=8/7≈1.14, max_elongation=1.1로
+    # 걸리게 설정(마진 없이 정확히 걸리도록 수치를 직접 계산해서 잡음).
+    tall_verdict = check_box_shape(tall_rows, max_elongation=1.1, orientation="either")
+    print(f"  {tall_verdict.message} (row_heights={tall_verdict.row_heights}, "
+          f"elongation={tall_verdict.elongation:.2f})")
+    print(f"  -> 폭은 정합(rectangular)이지만 elongation 축이 새로 FAIL을 잡아냄: "
+          f"{'OK' if (tall_verdict.rectangular and not tall_verdict.elongation_ok) else 'FAIL'}")
+
+    print("  orientation 선택(가로로만 길게 허용 vs 세로로만 길게 허용):")
+    wide_rows = {**_row13("row_a", 20, finger_w=1.0, l=1.0),
+                 **_row13("row_b", 20, finger_w=1.0, l=1.0)}  # width=20, height=2 -> 가로로 김
+    wide_ok = check_box_shape(wide_rows, max_elongation=15.0, orientation="wide")
+    tall_fail = check_box_shape(wide_rows, max_elongation=15.0, orientation="tall")
+    print(f"  wide 허용 시: {wide_ok.message}")
+    print(f"  tall 허용 시(방향 안 맞음): {tall_fail.message}")
+    print(f"  -> orientation이 방향까지 구분: "
+          f"{'OK' if (wide_ok.elongation_ok and not tall_fail.elongation_ok) else 'FAIL'}")
 
     print()
     print("=== Test 14: stage 경계를 넘는 stack 병합 — Maloberti p.29 'Layout Oriented Design' 재현 ===")
@@ -8143,26 +9250,37 @@ if __name__ == "__main__":
     print("=== Test 17: pack_floorplan() — 실제 Xie&Chen 51-소자 회로 전체 블록으로 검증 ===")
     print("  (첫 버전은 spine을 세로 한 줄로 쌓기만 해 빈 공간이 많았다 -- 사용자가 직접 지적한")
     print("  뒤 skyline/bottom-left 2D packing으로 재작성. 여기서 실측으로 개선을 확인한다.)")
+    def _blk(name, row_fingers):
+        """block_from_rows() 자체 self-test 헬퍼(2026-08-13 세션31) -- finger_w=l=1.0
+        균일값을 쓰면 width_m=n_fingers, height_m=행 개수가 그대로 나와 옛
+        block_from_row_widths({row: n_fingers}) 리터럴 dict 시대의 수치를 그대로 재현한다
+        (이 Test 17은 pack_floorplan()의 패킹 알고리즘 자체를 검증하는 것이 목적이라
+        실제 물리 치수 정확도는 무관 -- 상대적 크기 관계만 보존하면 충분)."""
+        rows_ = {rn: [Transistor(f"{name}_{rn}", "nmos", source="s", drain="d",
+                                   n_fingers=n, finger_w=1.0, l=1.0)]
+                 for rn, n in row_fingers.items()}
+        return block_from_rows(name, rows_)
+
     spine = [
-        block_from_row_widths("S1_PMOS", {"row0": 8, "row1": 8}),
-        block_from_row_widths("S1_NMOS", {"row0": 8, "row1": 8}),
-        block_from_row_widths("S1_TAILP", {"row0": 10}),
-        block_from_row_widths("S1_TAILN", {"row0": 7}),
-        block_from_row_widths("biasgen_pmos", {"row0": 5}),
-        block_from_row_widths("biasgen_nmos", {"row0": 4}),
-        block_from_row_widths("cmfb_p1", {"row0": 2}),
-        block_from_row_widths("cmfb_p2", {"row0": 1}),
-        block_from_row_widths("cmfb_n1", {"top": 2, "bot": 2}),
-        block_from_row_widths("cmfb_n2", {"row0": 2}),
+        _blk("S1_PMOS", {"row0": 8, "row1": 8}),
+        _blk("S1_NMOS", {"row0": 8, "row1": 8}),
+        _blk("S1_TAILP", {"row0": 10}),
+        _blk("S1_TAILN", {"row0": 7}),
+        _blk("biasgen_pmos", {"row0": 5}),
+        _blk("biasgen_nmos", {"row0": 4}),
+        _blk("cmfb_p1", {"row0": 2}),
+        _blk("cmfb_p2", {"row0": 1}),
+        _blk("cmfb_n1", {"top": 2, "bot": 2}),
+        _blk("cmfb_n2", {"row0": 2}),
     ]
     mirror_pairs = [
-        (block_from_row_widths("classab_p1", {"row0": 3}), block_from_row_widths("classabL_p1", {"row0": 3})),
-        (block_from_row_widths("classab_p2", {"row0": 2}), block_from_row_widths("classabL_p2", {"row0": 2})),
-        (block_from_row_widths("classab_n1_new", {"row0": 2}), block_from_row_widths("classabL_n1_new", {"row0": 2})),
-        (block_from_row_widths("classab_n2_new", {"row0": 2}), block_from_row_widths("classabL_n2_new", {"row0": 2})),
-        (block_from_row_widths("classab_n_mirror", {"top": 2, "bot": 2}), block_from_row_widths("classabL_n_mirror", {"top": 2, "bot": 2})),
-        (block_from_row_widths("S2_M15", {"row0": 1}), block_from_row_widths("S2_M25", {"row0": 1})),
-        (block_from_row_widths("S2_M16", {"row0": 1}), block_from_row_widths("S2_M26", {"row0": 1})),
+        (_blk("classab_p1", {"row0": 3}), _blk("classabL_p1", {"row0": 3})),
+        (_blk("classab_p2", {"row0": 2}), _blk("classabL_p2", {"row0": 2})),
+        (_blk("classab_n1_new", {"row0": 2}), _blk("classabL_n1_new", {"row0": 2})),
+        (_blk("classab_n2_new", {"row0": 2}), _blk("classabL_n2_new", {"row0": 2})),
+        (_blk("classab_n_mirror", {"top": 2, "bot": 2}), _blk("classabL_n_mirror", {"top": 2, "bot": 2})),
+        (_blk("S2_M15", {"row0": 1}), _blk("S2_M25", {"row0": 1})),
+        (_blk("S2_M16", {"row0": 1}), _blk("S2_M26", {"row0": 1})),
     ]
     r3 = pack_floorplan(spine, mirror_pairs, gap=1.0)
 
@@ -8186,7 +9304,7 @@ if __name__ == "__main__":
         print("  row-split 후보 없음 -- 특정 행 하나가 전체 비율을 지배하지 않음")
 
     print("  대칭 깨진 경우도 확인(좌우 크기 다르게):")
-    asym_pairs = [(block_from_row_widths("R", {"row0": 5}), block_from_row_widths("L", {"row0": 3}))]
+    asym_pairs = [(_blk("R", {"row0": 5}), _blk("L", {"row0": 3}))]
     r4 = pack_floorplan([], asym_pairs, gap=1.0)
     print(f"  symmetry_max_error={r4.symmetry_max_error:.3f} -> "
           f"{'OK(비대칭을 있는 그대로 보고)' if r4.symmetry_max_error == 2.0 else 'FAIL'}")
@@ -9071,8 +10189,9 @@ if __name__ == "__main__":
 
     print()
     print("=== Test 29: derive_stack_groups()/assign_finger_geometry() (배치 7-6, 2026-07-31) ===")
-    print("  folded_cascode.topology.json 전체(13개 소자, 5개 matching_pairs)를 그대로 사용")
-    print("  -- 손타이핑 넷리스트 없음(topology.json 단일 소스 원칙).")
+    print("  folded_cascode.topology.json 전체(13개 소자, matching_pairs -- 세션34에 M11/MN")
+    print("  gap-fill 반영 후 6개)를 그대로 사용 -- 손타이핑 넷리스트 없음(topology.json")
+    print("  단일 소스 원칙).")
 
     print()
     print("  [geometry_colocation_union() -- 2026-08-05(세션10) L1/L2 하드컷: derive_stack_groups()가")
@@ -9100,11 +10219,19 @@ if __name__ == "__main__":
         f"PMOS 6개(M1..M6)가 diff_pair+drain=source 체인으로 한 그룹이 돼야 하는데 안 됨: {_fc_group_sets}"
     assert frozenset({"M7", "M8", "M9", "M10"}) in _fc_group_sets, \
         f"NMOS 4개(M7..M10)가 current_matched+drain=source 체인으로 한 그룹이 돼야 하는데 안 됨: {_fc_group_sets}"
-    for _singleton in ("MP", "M11", "MN"):
-        assert frozenset({_singleton}) in _fc_group_sets, \
-            f"{_singleton}은 다른 어떤 소자와도 안 묶여야 하는데(rail만 공유, drain=source 체인/matching_pair 없음) 그룹이 다름"
+    assert frozenset({"MP"}) in _fc_group_sets, \
+        "MP는 다른 어떤 소자와도 안 묶여야 하는데(rail만 공유, drain=source 체인/matching_pair 없음) 그룹이 다름"
+    # ⚠️ 2026-08-14 세션34 정정 -- M11/MN은 더 이상 고립 singleton이 아니다.
+    # propose_device_roles_gap_fill()의 층위1 current_mirror 폴백(role 기반 정적
+    # 레퍼런스 판정으로 정정된 뒤, `.ai/context.md` 세션34 참고)이 M11(diffpair 진짜
+    # tail, `ideal_sources`의 `Ibg`로 MN이 독립 레퍼런스임이 확인됨)/MN(diode-connected
+    # 레퍼런스) 쌍을 declared matching_pairs(ratio, current_forced=True)로 실제
+    # topology.json에 반영했다 -- 다른 declared 2-소자 mirror쌍(M9/M10, M7/M8)과 정확히
+    # 같은 패턴이라 이제 이 둘도 같은 이유로 한 그룹이 된다.
+    assert frozenset({"M11", "MN"}) in _fc_group_sets, \
+        f"M11/MN이 declared matching_pair(current_forced=True)로 한 그룹이 돼야 하는데 안 됨: {_fc_group_sets}"
     print(f"    PASS: {len(_fc_groups)}개 그룹 -- PMOS 6개(M1..M6), NMOS 4개(M7..M10, 다이오드 "
-          f"레퍼런스 체인), MP/M11/MN(단독) 전부 확인")
+          f"레퍼런스 체인), M11/MN(diffpair tail+레퍼런스 미러쌍), MP(단독) 전부 확인")
 
     print()
     print("  [geometry_colocation_union() -- 재현성: 같은 입력 다시 넣으면 완전히 같은 그룹]")
@@ -9119,11 +10246,12 @@ if __name__ == "__main__":
     # 합성해서 채우는 게 정당하다(§1 스키마 원칙). matching pair는 W를 동일하게 둬서
     # search_stack_finger_w()가 실제로 후보를 찾을 수 있게 구성.
     _fc_sizing_results = {
-        "M3": {"W": 30e-6}, "M4": {"W": 30e-6},
-        "M9": {"W": 24e-6}, "M10": {"W": 24e-6},
-        "M1": {"W": 80e-6}, "M2": {"W": 80e-6},
-        "M5": {"W": 30e-6}, "M6": {"W": 30e-6}, "M7": {"W": 40e-6}, "M8": {"W": 40e-6},
-        "MP": {"W": 20e-6}, "M11": {"W": 16e-6}, "MN": {"W": 16e-6},
+        "M3": {"W": 30e-6, "L": 0.5e-6}, "M4": {"W": 30e-6, "L": 0.5e-6},
+        "M9": {"W": 24e-6, "L": 0.5e-6}, "M10": {"W": 24e-6, "L": 0.5e-6},
+        "M1": {"W": 80e-6, "L": 0.35e-6}, "M2": {"W": 80e-6, "L": 0.35e-6},
+        "M5": {"W": 30e-6, "L": 1.0e-6}, "M6": {"W": 30e-6, "L": 1.0e-6},
+        "M7": {"W": 40e-6, "L": 0.5e-6}, "M8": {"W": 40e-6, "L": 0.5e-6},
+        "MP": {"W": 20e-6, "L": 1.5e-6}, "M11": {"W": 16e-6, "L": 0.5e-6}, "MN": {"W": 16e-6, "L": 0.5e-6},
     }
     _fc_overrides = assign_finger_geometry(_fc_sizing_results, _fc_groups,
                                             min_finger_w=1e-6, max_finger_w=40e-6)
@@ -9137,8 +10265,13 @@ if __name__ == "__main__":
             f"{_name}: 배정된 w가 원래 sizing W와 너무 다름"
         _owning_group = next(sid for sid, members in _fc_groups.items() if _name in members)
         assert _ov["stack_id"] == _owning_group, f"{_name}: stack_id가 자기 그룹 키와 다름"
+        # 2026-08-13(세션31) -- overrides["l"]이 sizing_results[name]["L"]과 정확히 일치하는지
+        # 확인(assign_finger_geometry()의 "L"(대문자, sizing 쪽 키) -> "l"(소문자, Transistor
+        # 필드) 의도적 rename이 조용히 깨지지 않았는지 잡는 회귀 테스트).
+        assert _ov["l"] == _fc_sizing_results[_name]["L"], \
+            f"{_name}: overrides['l']={_ov['l']} != sizing_results['L']={_fc_sizing_results[_name]['L']}"
     print(f"    PASS: {len(_fc_overrides)}개 소자 전부 n_fingers*finger_w==w로 원래 W 정확히 "
-          f"재현, stack_id가 derive_stack_groups() 그룹 키와 일치")
+          f"재현, stack_id가 derive_stack_groups() 그룹 키와 일치, l이 sizing_results의 L과 일치")
     _row_lengths = {}
     for _name, _ov in _fc_overrides.items():
         _row_lengths.setdefault(_ov["stack_id"], 0)
@@ -10214,7 +11347,12 @@ if __name__ == "__main__":
                     if not k.startswith("_")}
     _t52r_pairs = [tuple(p["names"]) for p in _t52r_raw["symmetry"]["matching_pairs"]
                     if p["current_forced"]]
-    assert "M1" not in _t52r_roles, "원본 topology.json에 M1이 이미 선언돼 있음(fixture 전제 깨짐)"
+    # 2026-08-14 -- "M1" not in _t52r_roles였던 원래 검사는 propose_device_roles_gap_fill()을
+    # 이 파일에 실제 적용한 뒤로 더 이상 유효한 전제가 아니다(M1이 이제 gm_id_role/L_role/
+    # headroom_role은 갖지만 vertical_stack_id는 여전히 없음 -- 그게 이 함수가 실제로
+    # 검사하는 필드다). 정확한 전제로 좁힌다.
+    assert _t52r_roles.get("M1", {}).get("vertical_stack_id") is None, \
+        "원본 topology.json에 M1의 vertical_stack_id가 이미 선언돼 있음(fixture 전제 깨짐)"
     _t52r_result = propose_vertical_stack_id_gap_fill(_t52r_trs, _t52r_pairs, _t52r_roles)
     assert _t52r_result["proposals"] == {"M1": "stage1", "M2": "stage1", "M6": "stage2"}, \
         f"two_stage_ota의 알려진 gap 제안과 불일치(회귀): {_t52r_result['proposals']}"
@@ -10250,3 +11388,373 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 52 전체 PASS ===")
+
+    print()
+    print("=== Test 53: propose_device_roles_gap_fill() -- netlist(+load_topology())만으로")
+    print("  symmetry.matching_pairs/device_roles 재구성 -- 51소자 실회로 회귀(2026-08-14")
+    print("  신설, 사용자 요청 -- 'netlist 정보만 가지고 이 필드들을 구성해봐') ===")
+    _t53_trs, _t53_meta = load_topology(
+        _t49_os.path.join(_t49_lib, "current_reuse_telescopic_ota.topology.json"))
+    _t53_result = propose_device_roles_gap_fill(_t53_trs, {}, [])
+    _t53_declared_pairs = _t53_meta["symmetry"]["matching_pairs"]
+    _t53_declared_keys = set()
+    for _t53_p in _t53_declared_pairs:
+        for _t53_a, _t53_b in itertools.combinations(_t53_p["names"], 2):
+            _t53_declared_keys.add(frozenset((_t53_a, _t53_b)))
+    _t53_proposed_keys = {frozenset(p["names"]) for p in _t53_result["matching_pairs_proposals"]}
+    assert len(_t53_proposed_keys) == 18, \
+        f"제안 개수 회귀(branch-composite 9 + structural_symmetry 9): {len(_t53_proposed_keys)}"
+    assert _t53_proposed_keys <= _t53_declared_keys, \
+        f"declared에 없는 오탐 발생(회귀): {sorted(sorted(k) for k in _t53_proposed_keys - _t53_declared_keys)}"
+    for _t53_pair in (("M1a", "M1b"), ("M4a", "M4b"), ("M37a", "M37b"),  # branch-composite differential
+                        ("M8", "M17"), ("M13", "M22"),                    # branch-composite mirror
+                        ("M11a", "M20a"), ("M15", "M25"), ("M36a", "M36b")):  # structural_symmetry
+        assert frozenset(_t53_pair) in _t53_proposed_keys, f"{_t53_pair}가 제안에서 빠짐(회귀)"
+    print(f"    PASS: 51소자 실회로에서 {len(_t53_proposed_keys)}개 매칭쌍 제안, 전부 declared "
+          f"21그룹의 부분집합(오탐 0건) -- branch-composite(differential/mirror) + "
+          f"structural_symmetry(전역 좌우대칭) 두 소스를 합친 결과, 어느 쪽도 손으로 넣은 "
+          f"inputs= 없이 순수 부트스트랩만으로 나옴")
+
+    for _t53_name, _t53_expected in (
+            ("M8", {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror"}),
+            ("M1a", {"gm_id_role": "matching", "L_role": "mirror"}),
+            ("M5", {"gm_id_role": "matching", "L_role": "bias_replica", "headroom_role": "tail"})):
+        _t53_actual = _t53_result["device_roles_proposals"].get(_t53_name)
+        for _t53_field, _t53_val in _t53_expected.items():
+            assert _t53_actual is not None and _t53_actual.get(_t53_field) == _t53_val, \
+                f"{_t53_name}.{_t53_field} 제안 회귀: {_t53_actual}"
+    print(f"    PASS: device_roles_proposals -- M8/M1a/M5의 gm_id_role/L_role/headroom_role "
+          f"제안이 declared 값과 정확히 일치(51개 중 다수가 일치하는 세션 검증 재확인, "
+          f"전수는 아님 -- gm_id_role 33/37, L_role 36/37, headroom_role 34/37, 다음 세션 diff 필요)")
+    assert len(_t53_result["review_needed"]) >= 1, "undisposed_candidates review가 하나도 없음(회귀)"
+    print(f"    PASS: review_needed에 undisposed_candidates 보고됨(층위1/2가 찾았지만 이 함수가 "
+          f"확정 못 한 candidate -- 7-way Vbias1 문서화 그룹처럼 current_forced 세분화가 "
+          f"sizing_roles/theta 정보 없이는 원천적으로 불가능한 경우가 여기 담김)")
+
+    print()
+    print("  [compensation_stage_devices를 넘겨도 M1a/M4a/M15/M25 등 8개 소자에 gm_id_role이")
+    print("  그대로 제안되는지(2026-08-14 사용자 지시로 방향 전환 -- 처음엔 위험을 피하려고")
+    print("  이 8개를 건너뛰게 만들었으나, '가드를 만들어야지 왜 제외해'라는 지적으로 근본원인")
+    print("  (sizing_recipe.py의 누락된 gm_id_role 가드)을 직접 고치는 쪽으로 정정. 이제 이 함수는")
+    print("  다시 compensation 소속과 무관하게 제안하고, review_needed에 참고 정보만 남긴다]")
+    _t53_stage_devices = _t53_meta["compensation"]["stage_devices"]
+    _t53_flat_stage = [n for grp in _t53_stage_devices for n in grp]
+    assert "M1a" in _t53_flat_stage, "fixture 전제 확인(compensation.stage_devices 구조 변경됨?)"
+    _t53_result_comp = propose_device_roles_gap_fill(
+        _t53_trs, {}, [], compensation_stage_devices=_t53_flat_stage)
+    for _t53_comp_name in _t53_flat_stage:
+        assert "gm_id_role" in _t53_result_comp["device_roles_proposals"].get(_t53_comp_name, {}), \
+            f"{_t53_comp_name}(compensation.stage_devices 소속)에 gm_id_role이 다시 제안 안 됨(회귀): " \
+            f"{_t53_result_comp['device_roles_proposals'].get(_t53_comp_name)}"
+    assert any(r.get("device") in _t53_flat_stage and "compensation.stage_devices" in r.get("note", "")
+                for r in _t53_result_comp["review_needed"]), \
+        "compensation 소속 소자의 참고 안내가 review_needed에 안 남음(회귀)"
+    print(f"    PASS: compensation_stage_devices={sorted(_t53_flat_stage)} 전부에 gm_id_role이 "
+          f"정상 제안되고, review_needed엔 '가드로 무시되니 안전' 참고 정보만 남음")
+
+    print()
+    print("  [실제로 M1(compensation.stage_devices 소속)에 gm_id_role을 채운 topology.json으로")
+    print("  optimize_full_circuit_budget()을 돌려도 sizing 결과가 안 채운 원본과 완전히 같은지")
+    print("  -- _AUTHORITATIVE_GM_ID_SOURCES 가드가 실제로 동작하는지, workspaces/run_harness.py의")
+    print("  실제 검증된 spec(_spec_two_stage_ota())을 그대로 재사용해 회귀 검증]")
+    _t53g_workspaces = _t49_os.path.normpath(_t49_os.path.join(_t49_lib, "..", "..", "..", "..", "workspaces"))
+    _t53g_harness_path = _t49_os.path.join(_t53g_workspaces, "run_harness.py")
+    if not _t49_os.path.exists(_t53g_harness_path):
+        print(f"    SKIP: {_t53g_harness_path}를 못 찾아 실제 사이징 회귀는 건너뜀")
+    else:
+        import importlib.util as _t53g_ilu
+        _t53g_spec_mod = _t53g_ilu.spec_from_file_location("_t53g_run_harness", _t53g_harness_path)
+        _t53g_harness = _t53g_ilu.module_from_spec(_t53g_spec_mod)
+        _t53g_spec_mod.loader.exec_module(_t53g_harness)
+        from sizing_recipe import optimize_full_circuit_budget
+
+        _t53g_two_stage_path = _t49_os.path.join(_t49_lib, "two_stage_ota.topology.json")
+        with open(_t53g_two_stage_path, encoding="utf-8") as _t53g_f:
+            _t53g_raw = json.load(_t53g_f)
+        _t53g_spec = _t53g_harness._spec_two_stage_ota()
+        _t53g_before = optimize_full_circuit_budget(
+            _t53g_two_stage_path, dict(_t53g_spec), grid_points_per_theta=_t53g_harness.SPECS["two_stage_ota"]["grid_points_per_theta"])
+
+        import tempfile as _t53g_tempfile
+        with _t53g_tempfile.TemporaryDirectory() as _t53g_tmpdir:
+            _t53g_mut_path = _t49_os.path.join(_t53g_tmpdir, "two_stage_ota.mutated.topology.json")
+            _t53g_mut = dict(_t53g_raw)
+            _t53g_mut["device_roles"] = dict(_t53g_raw["device_roles"])
+            # 2026-08-14 -- M1은 원본에 device_roles 자체가 없다(compensation.stage_devices
+            # 소속이라 사람 저자가 의도적으로 비워둔 자리, 이 Test 53 앞부분에서 이미 확인됨) --
+            # 그 빈 자리에 gm_id_role만 새로 채워 넣는 게 정확히 이 회귀가 검증하려는 시나리오다.
+            _t53g_mut["device_roles"]["M1"] = {"gm_id_role": "matching"}
+            with open(_t53g_mut_path, "w", encoding="utf-8") as _t53g_f:
+                json.dump(_t53g_mut, _t53g_f)
+            _t53g_after = optimize_full_circuit_budget(
+                _t53g_mut_path, dict(_t53g_spec), grid_points_per_theta=_t53g_harness.SPECS["two_stage_ota"]["grid_points_per_theta"])
+        assert _t53g_before["sizing"]["M1"] == _t53g_after["sizing"]["M1"], \
+            f"M1에 gm_id_role='matching'을 채웠는데 sizing 결과가 바뀜(가드 실패, 진짜 회귀): " \
+            f"{_t53g_before['sizing']['M1']} vs {_t53g_after['sizing']['M1']}"
+        assert _t53g_before["theta_star"] == _t53g_after["theta_star"], \
+            "gm_id_role 추가가 theta_star까지 바꿈(가드가 전혀 안 먹힘)"
+        print("    PASS: two_stage_ota의 M1(compensation.stage_devices 소속)에 gm_id_role="
+              "'matching'을 실제로 채워도 optimize_full_circuit_budget() 최종 sizing.M1/"
+              "theta_star가 안 채운 원본과 완전히 동일함(_AUTHORITATIVE_GM_ID_SOURCES 가드 "
+              "실측 확인, run_harness.py의 실제 검증된 spec 그대로 재사용)")
+
+    print()
+    print("  === Test 53 전체 PASS ===")
+
+    print()
+    print("=== Test 54: propose_device_roles_gap_fill() -- 층위1 폴백(비대칭/폴딩 구조라")
+    print("  branch-composite/structural_symmetry가 전부 0건인 회로) 안전망 검증 --")
+    print("  folded_cascode 실회로 회귀 ===")
+    _t54_trs, _t54_meta = load_topology(_t49_os.path.join(_t49_lib, "folded_cascode.topology.json"))
+    _t54_result = propose_device_roles_gap_fill(_t54_trs, {}, [])
+    _t54_proposed_keys = {frozenset(p["names"]) for p in _t54_result["matching_pairs_proposals"]}
+    for _t54_pair in (("M1", "M2"), ("M9", "M10"), ("M7", "M8")):
+        assert frozenset(_t54_pair) in _t54_proposed_keys, \
+            f"층위1 폴백이 {_t54_pair}를 못 찾음(회귀) -- diff_pair 또는 diode-connected 미러여야 함"
+    assert frozenset(("M3", "M4")) not in _t54_proposed_keys, \
+        "M3/M4는 3-way 후보({M3,M4,MP})라 이 함수가 확정 안 하고 review로 넘겨야 하는데 제안됨(회귀)"
+    print(f"    PASS: composite/structural_symmetry가 이 회로에서 0건인데도(폴딩 구조라 branch "
+          f"전체가 안 대칭) 층위1 폴백이 diff_pair(M1/M2)와 diode-connected 미러(M9/M10,M7/M8)를 "
+          f"정확히 재현 -- proposed={sorted(sorted(k) for k in _t54_proposed_keys)}")
+    print("    (참고: M11/MN도 같은 패턴(MN이 diode, M11이 소비자, 둘 다 headroom_role="
+          "mirror)이라 제안됨 -- 이 파일엔 declared로 없지만, folded_cascode.topology.json은 "
+          "이 4개 라이브러리 회로 중 유일하게 symmetry.dispositions 배열 자체가 없어서 "
+          "check_symmetry_dispositions()로 한 번도 완결성 검증을 안 받은 파일이다. 오탐인지 "
+          "원래 파일의 누락인지는 이 함수가 판단할 수 없다 -- review_needed로 남을 뿐, 이 "
+          "함수 자신의 결함으로 취급하지 않는다.)")
+    _t54_undisposed_tags = {u[0:3] for r in _t54_result["review_needed"]
+                              for u in r.get("undisposed_candidates", [])}
+    assert ("current_mirror", "pmos", "vb1") in _t54_undisposed_tags, \
+        "3-way {M3,M4,MP} 후보가 review_needed에 안 남음(회귀)"
+    print("    PASS: {M3,M4,MP} 3-way 후보와 (다이오드 없는) M5/M6은 review_needed의 "
+          "undisposed_candidates에만 남고 matching_pairs_proposals엔 안 실림")
+
+    print()
+    print("  === Test 54 전체 PASS ===")
+
+    print()
+    print("=== Test 55: apply_device_roles_gap_fill() -- 실제 파일 읽기/병합/쓰기 왕복 +")
+    print("  멱등성(같은 결과를 두 번 적용해도 중복 안 생김) ===")
+    import tempfile as _t55_tempfile, shutil as _t55_shutil
+    with _t55_tempfile.TemporaryDirectory() as _t55_tmpdir:
+        _t55_path = _t49_os.path.join(_t55_tmpdir, "folded_cascode.topology.json")
+        _t55_shutil.copy(_t49_os.path.join(_t49_lib, "folded_cascode.topology.json"), _t55_path)
+
+        _t55_trs, _t55_meta = load_topology(_t55_path)
+        _t55_before_pairs = len(_t55_meta["symmetry"]["matching_pairs"])
+        _t55_before_pair_keys = {frozenset(p["names"]) for p in _t55_meta["symmetry"]["matching_pairs"]}
+        # ⚠️ 2026-08-14 -- folded_cascode.topology.json 원본이 이제(사용자 승인으로 실제
+        # 적용됨) M1/M2/M9/M10/M7/M8/M11/MN 8쌍 중 일부를 이미 declared로 갖고 있을 수 있다
+        # -- 이 테스트는 "몇 쌍이 새로 채워지는가"를 하드코딩하지 않고, propose()가 이번에
+        # 실제로 낸 제안 집합에서 **현재 파일이 이미 아는 것**을 뺀 나머지만 기대값으로 쓴다
+        # (파일이 나중에 더 채워져도 이 테스트가 stale해지지 않도록).
+        _t55_result_empty = propose_device_roles_gap_fill(_t55_trs, {}, [])
+        _t55_expected_new = sorted(
+            (sorted(frozenset(p["names"])) for p in _t55_result_empty["matching_pairs_proposals"]
+             if frozenset(p["names"]) not in _t55_before_pair_keys))
+        _t55_apply1 = apply_device_roles_gap_fill(_t55_path, _t55_result_empty)
+        assert sorted(_t55_apply1["applied_matching_pairs"]) == _t55_expected_new, \
+            f"파일에 실제로 반영된 쌍이 기대와 다름(이미 declared인 쌍은 걸러지고 새 쌍만 " \
+            f"남아야 함): applied={_t55_apply1['applied_matching_pairs']} expected={_t55_expected_new}"
+
+        with open(_t55_path, encoding="utf-8") as _t55_f:
+            _t55_written = json.load(_t55_f)
+        assert len(_t55_written["symmetry"]["matching_pairs"]) == _t55_before_pairs + len(_t55_expected_new), \
+            f"파일에 새 쌍 {len(_t55_expected_new)}개가 실제로 추가되지 않음(쓰기 실패)"
+        assert _t55_written["device_roles"] is not None and "M9" in _t55_written["device_roles"], \
+            "device_roles가 파일에 실제로 안 써짐"
+        assert _t55_written["device_roles"]["M9"]["vs"] == 0.0, \
+            "vs 기본값(템플릿 관례) 미적용"
+        print(f"    PASS: 파일에 실제로 matching_pairs {_t55_before_pairs}->"
+              f"{len(_t55_written['symmetry']['matching_pairs'])}(신규 {_t55_expected_new}), "
+              f"device_roles {len(_t55_written['device_roles'])}개 소자로 반영됨(디스크에 "
+              f"다시 읽어 확인)")
+
+        _t55_trs2, _t55_meta2 = load_topology(_t55_path)
+        _t55_result2 = propose_device_roles_gap_fill(
+            _t55_trs2, _t55_meta2["device_roles"] or {}, _t55_meta2["symmetry"]["matching_pairs"])
+        _t55_apply2 = apply_device_roles_gap_fill(_t55_path, _t55_result2)
+        assert _t55_apply2["applied_matching_pairs"] == [], \
+            f"멱등성 위반 -- 이미 반영된 쌍을 다시 적용하려 함: {_t55_apply2['applied_matching_pairs']}"
+        print("    PASS: 같은 파일에 다시 적용해도 새로 추가되는 쌍/필드가 0개(멱등성 확인)")
+
+    print()
+    print("  === Test 55 전체 PASS ===")
+
+    print()
+    print("=== Test 56: propose_device_roles_gap_fill()/apply_device_roles_gap_fill() --")
+    print("  이미 선언된 값과 제안이 충돌하면 조용히 덮어쓰지 않고 review_needed로만")
+    print("  보고하는지(프로젝트 전역 원칙) 합성 fixture로 검증 ===")
+    _t56_trs = [
+        Transistor("MA", "pmos", source="tail", drain="outA", gate="vin_p"),
+        Transistor("MB", "pmos", source="tail", drain="outB", gate="vin_n"),
+        Transistor("MT", "pmos", source="vdd", drain="tail", gate="biasp"),
+        # 2026-08-14 -- outA/outB가 gnd까지 안 이어지면(dangling) find_differential_pair_
+        # candidates()(branch가 terminates_at="gnd"이어야 함)가 후보를 못 찾아 MA/MB가
+        # confirmed 안 되고, 그러면 애초에 "gm_id_role='matching' 제안 vs 기존 'balanced'
+        # 선언 충돌"이라는 이 테스트의 전제 자체가 성립 안 한다(gm_id_role이 아예 제안 안
+        # 됨) -- 실제 회로처럼 완결된 branch를 만들기 위해 NMOS 부하를 추가.
+        Transistor("MLA", "nmos", source="gnd", drain="outA", gate="biasn"),
+        Transistor("MLB", "nmos", source="gnd", drain="outB", gate="biasn"),
+    ]
+    _t56_conflicting_roles = {"MA": {"gm_id_role": "balanced"}}  # 실제 제안은 "matching"이어야 함
+    _t56_result = propose_device_roles_gap_fill(_t56_trs, _t56_conflicting_roles, [])
+    assert "MA" not in _t56_result["device_roles_proposals"], \
+        "충돌하는 소자가 조용히 device_roles_proposals에 실림(원칙 위반)"
+    assert any(r.get("device") == "MA" and "field_conflicts" in r for r in _t56_result["review_needed"]), \
+        f"MA의 충돌이 review_needed에 안 남음(회귀): {_t56_result['review_needed']}"
+    assert "MB" in _t56_result["device_roles_proposals"], \
+        "충돌 없는 MB까지 같이 걸러짐(과잉 차단, 회귀)"
+    print(f"    PASS: MA(기존 선언 gm_id_role=balanced, 제안=matching -- 충돌)는 "
+          f"device_roles_proposals에서 빠지고 review_needed로만 보고됨, 충돌 없는 MB는 정상 제안됨")
+
+    with _t55_tempfile.TemporaryDirectory() as _t56_tmpdir:
+        _t56_path = _t49_os.path.join(_t56_tmpdir, "conflict_fixture.topology.json")
+        with open(_t56_path, "w", encoding="utf-8") as _t56_f:
+            json.dump({
+                "schema_version": "2.0", "topology_name": "conflict_fixture", "source": "self-test",
+                "compensation": None, "_compensation_status": "not_applicable",
+                "netlist": [_dc_asdict(t) for t in _t56_trs],
+                "symmetry": {"matching_pairs": []},
+                "device_roles": _t56_conflicting_roles,
+            }, _t56_f)
+        _t56_applied = apply_device_roles_gap_fill(_t56_path, _t56_result)
+        with open(_t56_path, encoding="utf-8") as _t56_f:
+            _t56_written = json.load(_t56_f)
+        assert _t56_written["device_roles"]["MA"]["gm_id_role"] == "balanced", \
+            "apply_device_roles_gap_fill()이 이미 선언된 MA.gm_id_role을 덮어씀(원칙 위반)"
+        print("    PASS: apply_device_roles_gap_fill()도 파일에 이미 있던 MA.gm_id_role=balanced를 "
+              "그대로 유지(제안값 matching으로 덮어쓰지 않음)")
+
+    print()
+    print("  === Test 56 전체 PASS ===")
+
+    print()
+    print("=== Test 57: find_authoritative_sizing_devices()/find_unreviewed_device_roles()/")
+    print("  require_device_roles_reviewed() -- optimize_full_circuit_budget() 실행 전 review")
+    print("  게이트(2026-08-14 사용자 지시 -- '구조적으로 명확한 기능과 필요한 기능을")
+    print("  구분해서... review 안 된 부분은 error로 띄우고... review 받았다는 표시를")
+    print("  해서 optimize함수가 실행되도록'). 실측 사고 재발 방지: current_reuse_")
+    print("  telescopic_ota의 L_cascode(metric_stage_budget) 대상 M2a/M2b/M3a/M3b에")
+    print("  자동 제안된 L_role이 실제로 적용됐다가 그 theta 탐색을 무력화해 gain_db가")
+    print("  76.48->74.8로 떨어지는 회귀를 이 세션이 직접 재현/원인규명했다 ===")
+    _t57_lib_path = _t49_os.path.join(_t49_lib, "current_reuse_telescopic_ota.topology.json")
+    with open(_t57_lib_path, encoding="utf-8") as _t57_f:
+        _t57_raw = json.load(_t57_f)
+    _t57_trs, _t57_meta = load_topology(_t57_lib_path)
+    _t57_authoritative = find_authoritative_sizing_devices(_t57_meta)
+    for _t57_name in ("M1a", "M4a", "M15", "M25"):  # compensation.stage_devices
+        assert _t57_name in _t57_authoritative, f"{_t57_name}(compensation)이 authoritative에 안 잡힘"
+    for _t57_name in ("M2a", "M2b", "M3a", "M3b"):  # L_cascode(metric_stage_budget) 대상
+        assert _t57_name in _t57_authoritative, \
+            f"{_t57_name}(metric_stage_budget 대상)이 authoritative에 안 잡힘(회귀 -- 실제 사고 재발 위험)"
+    assert "M37a" in _t57_authoritative, "M37a(N_cmfb_bw, B타입 대상)가 authoritative에 안 잡힘"
+    assert "M8" not in _t57_authoritative, "M8(일반 소자)이 잘못 authoritative로 잡힘(과잉 허용)"
+    print(f"    PASS: compensation({sorted({'M1a','M4a','M15','M25'})})/metric_stage_budget"
+          f"({sorted({'M2a','M2b','M3a','M3b'})})/B타입(M37a) 전부 authoritative로 잡히고, "
+          f"일반 소자(M8)는 안 잡힘")
+
+    _t57_unreviewed_real = find_unreviewed_device_roles(_t57_meta)
+    assert _t57_unreviewed_real == {}, \
+        f"실제 라이브러리 파일(이미 review 완료된 상태)인데 unreviewed가 남음(회귀): {_t57_unreviewed_real}"
+    require_device_roles_reviewed(_t57_lib_path, _t57_meta)  # 예외 안 나야 정상
+    print("    PASS: 실제 current_reuse_telescopic_ota.topology.json(이미 review 완료)은 "
+          "find_unreviewed_device_roles()=={}이고 require_device_roles_reviewed()도 "
+          "조용히 통과함")
+
+    print()
+    print("  [합성 fixture -- 일반 소자(authoritative 아님)의 gm_id_role/L_role이 파일에")
+    print("  없으면(=아직 review 안 됨) require_device_roles_reviewed()가 명확한 ValueError를")
+    print("  내고, apply_device_roles_gap_fill()로 review를 완료하면 그 다음부터 통과하는지]")
+    _t57_mut = json.loads(json.dumps(_t57_raw))  # deep copy
+    _t57_mut["device_roles"]["M8"] = {"headroom_role": "mirror", "vertical_stack_id": "biasgen_vom_a",
+                                        "vs": 0.0}  # gm_id_role/L_role 일부러 뺌(review 전 상태 재현)
+    with _t55_tempfile.TemporaryDirectory() as _t57_tmpdir:
+        _t57_mut_path = _t49_os.path.join(_t57_tmpdir, "crt_unreviewed.topology.json")
+        with open(_t57_mut_path, "w", encoding="utf-8") as _t57_f:
+            json.dump(_t57_mut, _t57_f)
+        _t57_mut_trs, _t57_mut_meta = load_topology(_t57_mut_path)
+        _t57_unreviewed = find_unreviewed_device_roles(_t57_mut_meta)
+        assert "M8" in _t57_unreviewed, \
+            f"M8의 gm_id_role/L_role을 일부러 뺐는데 unreviewed로 안 잡힘(회귀): {_t57_unreviewed}"
+        assert set(_t57_unreviewed["M8"]) == {"gm_id_role", "L_role"}, \
+            f"M8의 unreviewed 필드가 예상과 다름: {_t57_unreviewed['M8']}"
+        try:
+            require_device_roles_reviewed(_t57_mut_path, _t57_mut_meta)
+            raise AssertionError("unreviewed device_roles가 있는데 ValueError가 안 남(회귀)")
+        except ValueError as _t57_e:
+            assert "M8" in str(_t57_e), f"에러 메시지에 M8이 없음: {_t57_e}"
+            print(f"    PASS: M8의 gm_id_role/L_role이 review 안 된 상태 -- "
+                  f"require_device_roles_reviewed()가 ValueError로 명확히 막음")
+
+        # review 완료(apply_device_roles_gap_fill()로 파일에 실제로 씀) 이후 통과하는지
+        _t57_propose = propose_device_roles_gap_fill(
+            _t57_mut_trs, _t57_mut_meta.get("device_roles") or {},
+            _t57_mut_meta["symmetry"]["matching_pairs"])
+        apply_device_roles_gap_fill(_t57_mut_path, _t57_propose)
+        _t57_trs2, _t57_meta2 = load_topology(_t57_mut_path)
+        require_device_roles_reviewed(_t57_mut_path, _t57_meta2)  # 이제 예외 안 나야 정상
+        print("    PASS: apply_device_roles_gap_fill()로 M8의 gm_id_role/L_role을 파일에 "
+              "실제로 쓴 뒤로는(review 완료 표시) require_device_roles_reviewed()가 통과함")
+
+    print()
+    print("  === Test 57 전체 PASS ===")
+
+    print()
+    print("=== Test 58: find_unreviewed_matching_pairs() -- matching_pairs도 review 게이트")
+    print("  대상(2026-08-14, 사용자 재지적 -- '대칭적인 branch이면 branch 전류가 같아야")
+    print("  하는것 아니야?' 계기로 두 가지를 재확인: (1) mirror/structural_symmetry 출처의")
+    print("  current_forced 기본값을 False->True로 정정(4회로 declared 전수 재조사, 2-소자")
+    print("  쌍은 예외 없이 True), (2) sizing_recipe.py의 matching_pairs L 전파가 current_")
+    print("  forced 값과 무관하게 모든 선언된 쌍에 작동함을 재확인 -- 'current_forced=False는")
+    print("  sizing에 안 쓰인다'는 이전 주장이 틀렸었다). 그래서 differential(offset)만")
+    print("  load_topology()가 메모리에도 자동 병합하고, mirror류(ratio)는 review 전까지")
+    print("  병합도 안 하고 review 목록에만 남긴다 -- folded_cascode의 실제 gap(M11/MN,")
+    print("  diode-connected MN + 소비자 M11이지만 한때 이 파일이 한 번도 check_symmetry_")
+    print("  dispositions() 검증을 받은 적 없어 사람이 확정하지 않았던 사례 -- 2026-08-14")
+    print("  세션34에 사용자 승인으로 실제 declared에 반영됐으므로, 이 테스트는 이제 임시")
+    print("  사본에서 그 declared 쌍을 다시 지워 '아직 review 안 된 상태'를 재현한다(실제")
+    print("  라이브러리 파일이 나중에 더 채워져도 이 테스트가 stale해지지 않도록)) ===")
+    import tempfile as _t58_tempfile, shutil as _t58_shutil
+    _t58_srcdir = _t58_tempfile.mkdtemp()
+    _t58_path = _t49_os.path.join(_t58_srcdir, "folded_cascode.topology.json")
+    _t58_shutil.copy(_t49_os.path.join(_t49_lib, "folded_cascode.topology.json"), _t58_path)
+    with open(_t58_path, "r", encoding="utf-8") as _t58_f:
+        _t58_raw = json.load(_t58_f)
+    _t58_raw["symmetry"]["matching_pairs"] = [
+        p for p in _t58_raw["symmetry"]["matching_pairs"] if set(p["names"]) != {"M11", "MN"}]
+    if isinstance(_t58_raw.get("device_roles"), dict):
+        for _t58_n in ("M11", "MN"):
+            _t58_raw["device_roles"].pop(_t58_n, None)
+    with open(_t58_path, "w", encoding="utf-8") as _t58_f:
+        json.dump(_t58_raw, _t58_f)
+    _t58_trs, _t58_meta = load_topology(_t58_path)
+    _t58_declared_keys = {frozenset(p["names"]) for p in _t58_meta["symmetry"]["matching_pairs"]}
+    assert frozenset(("M11", "MN")) not in _t58_declared_keys, \
+        "M11/MN이 declared에 있음(임시 사본에서 방금 지웠는데도 남아있으면 이 테스트 setup 자체가 잘못됨)"
+    _t58_needs_review = find_unreviewed_matching_pairs(_t58_meta)
+    assert any(set(p["names"]) == {"M11", "MN"} for p in _t58_needs_review), \
+        f"M11/MN이 find_unreviewed_matching_pairs()에 안 잡힘(회귀): {_t58_needs_review}"
+    assert all(p.get("matching_sensitivity") != "offset" for p in _t58_needs_review), \
+        "offset(differential) 제안이 review 목록에 잘못 섞임(differential은 review 불필요해야 함)"
+    print(f"    PASS: folded_cascode의 M11/MN(ratio, 아직 declared 아님)이 find_unreviewed_"
+          f"matching_pairs()에 정확히 잡힘: {[p['names'] for p in _t58_needs_review]}")
+
+    try:
+        require_device_roles_reviewed(_t58_path, _t58_meta)
+        raise AssertionError("M11/MN이 unreviewed인데 require_device_roles_reviewed()가 통과함(회귀)")
+    except ValueError as _t58_e:
+        assert "M11" in str(_t58_e) and "MN" in str(_t58_e), f"에러 메시지에 M11/MN이 없음: {_t58_e}"
+        print("    PASS: require_device_roles_reviewed()가 M11/MN 때문에 ValueError로 명확히 막음")
+
+    print()
+    print("  [differential(offset) 출처는 review 없이도 메모리에 자동 병합되는지 -- M1/M2")
+    print("  (folded_cascode, 이미 declared)로 회귀 없음만 재확인(새 제안은 이미 declared라")
+    print("  없어야 정상, 순수 하위호환 확인)]")
+    assert find_unreviewed_matching_pairs(_t58_meta) == [
+        p for p in find_unreviewed_matching_pairs(_t58_meta) if set(p["names"]) != {"M1", "M2"}], \
+        "이미 declared된 M1/M2(differential)가 review 목록에 잘못 나타남"
+    print("    PASS: 이미 declared된 differential 쌍(M1/M2)은 review 목록에 안 나타남")
+
+    print()
+    print("  === Test 58 전체 PASS ===")

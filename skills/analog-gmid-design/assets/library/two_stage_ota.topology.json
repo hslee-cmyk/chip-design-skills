@@ -2,92 +2,315 @@
   "schema_version": "2.0",
   "topology_name": "two_stage_ota",
   "source": "Maloberti PDF p.28-33 worked example — two_stage_ota_example()에서 이관, netlist는 connectivity 필드만 추림(n_fingers/finger_w/w/stack_id는 사이징 산출물이라 제외)",
-
   "compensation": {
     "function": "miller_ota_topology",
-    "parameters": ["GBW", "CL", "Z", "NDP"],
-    "stage_devices": [["M1", "M2"], ["M6"]],
+    "parameters": [
+      "GBW",
+      "CL",
+      "Z",
+      "NDP"
+    ],
+    "stage_devices": [
+      [
+        "M1",
+        "M2"
+      ],
+      [
+        "M6"
+      ]
+    ],
     "_stage_devices_comment": "배치 7-5(2026-07-31 신설) -- optimize_multistage()가 낸 stage별(gm/gm_id/L/W/VDS) 결과를 실제 소자에 병합하는 매핑. 1단(gm1)은 M1/M2 둘 다에 동일 값(diff pair, 각 소자가 개별적으로 gm1을 가짐 -- 합산 아님), 2단(gm2)은 M6 하나.",
     "notes": "구조적으로 표준 2단 Miller OTA와 정확히 일치: 1단(M1/M2 diff pair + M3/M4 diode-mirror 부하, 출력 O1) -> 2단(M6 common-source, gate=O1, 출력 OUT) + M7(2단 전류원, OUT을 M6과 공유). miller_ota_topology(GBW, CL, Z, NDP)가 gm1(1단)/gm2(2단) 목표를 계산하는 정확히 이 구조를 모델링한다(gm-id-methodology.md §6.4, 원문 Eq 8.13-8.15 대조 완료 — topology_library.py 자체 docstring 참고). ⚠️ 이 필드는 '앞으로 이 topology를 재사이징할 때 어느 방정식을 쓰는가'를 가리킨다 — 지금 netlist의 W값 자체가 이 함수로 역산된 값이라는 뜻은 아니다(PDF 예제값을 그대로 옮김, gm/ID 방법론으로 재도출한 적 없음). 재사이징 시 run_sizing_pipeline()이 GBW/CL(+Z/NDP 기본값 10.0/4.0)로 이 함수를 호출해 gm1/gm2 목표를 얻고, size_transistor()로 각 단의 W를 새로 구할 것. 2026-08-05(세션9 정정): M5/M7이 gate=bias를 공유한다고 '미러 부하'로 잘못 기술했던 것을 바로잡음 — 같은 gate+source(rail) 공유는 current_mirror급 구조적 사실일 뿐 전류가 같다는 근거가 아니다(사용자 확인: M5는 매칭 의도 없음, NDP로 1단/2단 전류비가 다를 수 있음). M6/M7은 OUT이 정확히 2단자 net이라 KCL로 I(M6)=I(M7)이 강제되지만, 이건 소자 미스매치와 무관한 순수 위상적 사실이라(진짜 current_mirror/diff_pair와 달리 레이아웃 interdig로 개선될 매칭 오차가 없음) matching_pairs에 선언하지 않는다 — derive_stack_groups()의 '정확히 2단자면 병합' 규칙이 선언 없이도 이미 자동으로 stack_id를 같게 묶어준다(2026-08-05 세션9, 사용자 지적으로 정정: 한 번 current_matched로 선언했다가 '매칭'이라는 신호 자체가 부적절하다고 판단해 도로 뺐다)."
   },
   "_compensation_status": "resolved",
-
   "_netlist_sections": "1단(M1,M2,M3,M4,M5 -- 5개, 확신도 HIGH) / 2단(M6,M7 -- 2개, 확신도 HIGH)",
   "_netlist_sections_structured_comment": "2026-08-13(세션31 CN) -- 위 _netlist_sections(prose)를 run_full_circuit_audit_from_topology()가 expected_counts로 기계적으로 파싱할 수 있게 구조화한 것(current_reuse_telescopic_ota와 동일 패턴, stick_diagram.py 세션20 신설 필드). 새 판단 없음 -- 이 파일이 이미 선언한 두 필드를 그대로 재표현했을 뿐이다: compensation.stage_devices(`[[\"M1\",\"M2\"],[\"M6\"]]`)가 M1/M2를 1단, M6을 2단으로 이미 확정했고, device_roles.vertical_stack_id가 M3/M4/M5를 \"stage1\", M7을 \"stage2\"로 이미 확정했다 -- 이 둘을 합치면 7개 소자 전수가 중복/누락 없이 두 섹션으로 나뉜다(current_reuse처럼 논문 Figure를 해석해 새로 판단할 필요가 없는 경우라 confidence는 둘 다 HIGH -- 이미 검증된 선언의 재표현이므로).",
   "_netlist_sections_structured": {
-    "stage1": {"label": "1단(M1/M2 diff pair + M3/M4 diode-mirror 부하 + M5 tail)", "confidence": "HIGH",
-                "devices": ["M1", "M2", "M3", "M4", "M5"]},
-    "stage2": {"label": "2단(M6 common-source 출력 + M7 tail 전류원)", "confidence": "HIGH",
-                "devices": ["M6", "M7"]}
+    "stage1": {
+      "label": "1단(M1/M2 diff pair + M3/M4 diode-mirror 부하 + M5 tail)",
+      "confidence": "HIGH",
+      "devices": [
+        "M1",
+        "M2",
+        "M3",
+        "M4",
+        "M5"
+      ]
+    },
+    "stage2": {
+      "label": "2단(M6 common-source 출력 + M7 tail 전류원)",
+      "confidence": "HIGH",
+      "devices": [
+        "M6",
+        "M7"
+      ]
+    }
   },
-
   "device_roles": {
     "_comment": "배치 7-5(2026-07-31 신설) -- compensation.stage_devices에 없는 소자(M3/M4/M5/M7, A유형)만 채운다. M1/M2/M6은 optimize_multistage()가 gm_id/L/VDS까지 전부 결정하므로 역할 태그가 필요 없다. vertical_stack_id는 allocate_stack_headroom()이 vdd 예산을 나눌 물리적 세로 스택 단위(stage1=M3/M4/M1/M2/M5가 공유하는 vdd->gnd 경로, stage2=M6/M7이 공유하는 별도 경로) -- M1/M2/M6은 이미 VDS가 정해져 있으므로 이 스택 계산에서 그만큼을 뺀 나머지 예산만 M3/M4/M5/M7에 배분한다. 2026-08-13(세션31 이어, 사용자 지시로 L 자유도 4개로 확장) -- M3/M4/M5/M7의 `L_role`/`gm_id_role`을 여기서 뺐다(아래 sizing_roles.theta의 L_mirror_M3/L_mirror_M5가 이제 이 둘을 직접 결정 -- `optimize_full_circuit_budget()`의 device_roles 처리 루프 둘 다(`dr.get('L_role')`/`dr.get('gm_id_role')` 체크, sizing_recipe.py 3826/4089행) 값이 없으면 그냥 skip이라 재계산 낭비가 없다). `headroom_role`/`vertical_stack_id`/`vs`는 그대로 유지(레이아웃 분류·VDS 헤드룸 예산 계산에 여전히 필요, L/gm_id 결정과는 별개 용도).",
-    "M3": {"headroom_role": "cascode", "vertical_stack_id": "stage1", "vs": 0.0},
-    "M4": {"headroom_role": "cascode", "vertical_stack_id": "stage1", "vs": 0.0},
-    "M5": {"headroom_role": "tail", "vertical_stack_id": "stage1", "vs": 0.0},
-    "M7": {"headroom_role": "tail", "vertical_stack_id": "stage2", "vs": 0.0}
+    "M3": {
+      "headroom_role": "cascode",
+      "vertical_stack_id": "stage1",
+      "vs": 0.0
+    },
+    "M4": {
+      "headroom_role": "cascode",
+      "vertical_stack_id": "stage1",
+      "vs": 0.0
+    },
+    "M5": {
+      "headroom_role": "tail",
+      "vertical_stack_id": "stage1",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "bias_replica"
+    },
+    "M7": {
+      "headroom_role": "tail",
+      "vertical_stack_id": "stage2",
+      "vs": 0.0
+    },
+    "M6": {
+      "headroom_role": "mirror",
+      "vs": 0.0
+    },
+    "M1": {
+      "headroom_role": "cascode",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M2": {
+      "headroom_role": "cascode",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    }
   },
-
   "netlist": [
-    {"name": "M3", "kind": "pmos", "source": "vdd", "drain": "D3", "gate": "D3"},
-    {"name": "M4", "kind": "pmos", "source": "vdd", "drain": "O1", "gate": "D3"},
-    {"name": "M6", "kind": "pmos", "source": "vdd", "drain": "OUT", "gate": "O1"},
-    {"name": "M1", "kind": "nmos", "source": "CS", "drain": "D3", "gate": "vin_p"},
-    {"name": "M2", "kind": "nmos", "source": "CS", "drain": "O1", "gate": "vin_n"},
-    {"name": "M5", "kind": "nmos", "source": "gnd", "drain": "CS", "gate": "bias"},
-    {"name": "M7", "kind": "nmos", "source": "gnd", "drain": "OUT", "gate": "bias"}
+    {
+      "name": "M3",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "D3",
+      "gate": "D3"
+    },
+    {
+      "name": "M4",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "O1",
+      "gate": "D3"
+    },
+    {
+      "name": "M6",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "OUT",
+      "gate": "O1"
+    },
+    {
+      "name": "M1",
+      "kind": "nmos",
+      "source": "CS",
+      "drain": "D3",
+      "gate": "vin_p"
+    },
+    {
+      "name": "M2",
+      "kind": "nmos",
+      "source": "CS",
+      "drain": "O1",
+      "gate": "vin_n"
+    },
+    {
+      "name": "M5",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "CS",
+      "gate": "bias"
+    },
+    {
+      "name": "M7",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "OUT",
+      "gate": "bias"
+    }
   ],
-
   "symmetry": {
     "_matching_pairs_comment": "2026-08-05(세션9) -- M5/M7(kind=current_matched)로 잘못 선언돼 있던 걸 발견해 M6/M7(진짜 KCL 근거, OUT 2단자)로 고쳤다가 다시 뺐다. M6/M7은 derive_stack_groups()의 '정확히 2단자면 병합' 규칙이 선언 없이 자동으로 처리하고, 이건 소자 미스매치가 아니라 순수 위상적(KCL) 사실이라 interdig 등 레이아웃 매칭으로 개선될 게 없어 matching_pairs(소자 매칭 선언용)에 넣는 게 오히려 잘못된 신호다 -- compensation.notes에 산문으로 그 관계를 기록해뒀다. M5는 매칭 의도 자체가 없음(사용자 확인, NDP로 1단/2단 전류비가 달라도 됨).",
     "matching_pairs": [
-      {"names": ["M3", "M4"], "current_forced": true, "matching_sensitivity": "ratio"},
-      {"names": ["M1", "M2"], "current_forced": true, "matching_sensitivity": "offset"}
+      {
+        "names": [
+          "M3",
+          "M4"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio"
+      },
+      {
+        "names": [
+          "M1",
+          "M2"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "offset"
+      }
     ],
     "_dispositions_comment": "2026-08-13(세션31 CN) -- run_full_circuit_audit_from_topology()의 '3. every matching/hub-merge candidate has a recorded disposition' 게이트가 요구하는 필드(current_reuse_telescopic_ota와 동일 스키마/카테고리 어휘 재사용, _netlist_sections_structured와 짝을 이루는 마지막 gap). find_hub_merge_candidates()/find_matching_candidates()가 이 7소자 netlist에서 실제로 찾아낸 6개 후보를 전수 판정했다(추측 없이 connectivity로 직접 확인).",
     "dispositions": [
-      {"tag": "hub_merge", "kind": "pmos", "key": "vdd", "category": "false_positive_shared_supply_rail",
-       "reason": "M3/M4/M6이 vdd를 source로 공유 -- current_reuse와 동일 사유(공급 레일 공유는 매칭/병합 후보 조건이 아님). M3/M4의 진짜 매칭 관계는 matching_pairs(ratio)에 이미 별도 기록됨, M6은 무관한 2단 소자."},
-      {"tag": "hub_merge", "kind": "nmos", "key": "CS", "category": "real_match",
-       "reason": "M1/M2 -- 이미 matching_pairs에 offset-sensitivity 진짜 매칭쌍(diff pair tail 공유)으로 기록됨. find_hub_merge_candidates()가 같은 관계를 source 공유로도 발견한 것뿐."},
-      {"tag": "hub_merge", "kind": "nmos", "key": "gnd", "category": "false_positive_shared_supply_rail",
-       "reason": "M5/M7이 gnd를 source로 공유 -- current_reuse와 동일 사유(공급 레일 공유, 병합 후보 아님). 이 둘의 실제 구조적 관계(gate=bias 공유)는 아래 current_mirror/nmos/bias 항목에서 별도 판정."},
-      {"tag": "current_mirror", "kind": "pmos", "key": "D3", "category": "real_match",
-       "reason": "M3(diode, gate=drain=D3)/M4(gate=D3) -- 이미 matching_pairs에 ratio 진짜 매칭쌍(diode+mirror 부하)으로 기록됨. find_matching_candidates()가 같은 관계를 diode 체인으로도 발견한 것뿐."},
-      {"tag": "current_mirror", "kind": "nmos", "key": "bias", "category": "false_positive_consumer_reads_bias",
-       "reason": "M5/M7이 같은 'bias' 넷을 gate로 공유하지만, compensation.notes가 이미 명시하듯 이건 매칭이 아니다 -- M5(1단 tail 전류)와 M7(2단 tail 전류, NDP로 1단/2단 전류비가 달라도 됨)은 서로 다른 독립 전류원이고 'bias'는 이 골격 netlist 안에서 생성되지 않는 순수 외부 참조 노드(외부 bias-gen 서브회로 미포함)다 -- 둘 다 그 외부 레퍼런스를 읽는 독립 소비자일 뿐(current_reuse의 Vbias1/Vbias4 false_positive_consumer_reads_bias 패턴과 동일). 레이아웃상 같은 gate+source(rail) 공유라는 구조적 사실 자체는 stick_diagram.py의 current_mirror 신 의미(같은 물리 행 배치 가능)로 stack_groups_override에 별도 반영돼 있다 -- 이건 전류-비율 매칭과는 다른 층위."},
-      {"tag": "diff_pair", "kind": "nmos", "key": "CS", "category": "real_match",
-       "reason": "M1/M2 -- matching_pairs 기록과 동일(위 hub_merge/nmos/CS 항목과 같은 실체, diff_pair 후보 규칙으로 별도 발견됨)."}
+      {
+        "tag": "hub_merge",
+        "kind": "pmos",
+        "key": "vdd",
+        "category": "false_positive_shared_supply_rail",
+        "reason": "M3/M4/M6이 vdd를 source로 공유 -- current_reuse와 동일 사유(공급 레일 공유는 매칭/병합 후보 조건이 아님). M3/M4의 진짜 매칭 관계는 matching_pairs(ratio)에 이미 별도 기록됨, M6은 무관한 2단 소자."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "nmos",
+        "key": "CS",
+        "category": "real_match",
+        "reason": "M1/M2 -- 이미 matching_pairs에 offset-sensitivity 진짜 매칭쌍(diff pair tail 공유)으로 기록됨. find_hub_merge_candidates()가 같은 관계를 source 공유로도 발견한 것뿐."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "nmos",
+        "key": "gnd",
+        "category": "false_positive_shared_supply_rail",
+        "reason": "M5/M7이 gnd를 source로 공유 -- current_reuse와 동일 사유(공급 레일 공유, 병합 후보 아님). 이 둘의 실제 구조적 관계(gate=bias 공유)는 아래 current_mirror/nmos/bias 항목에서 별도 판정."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "pmos",
+        "key": "D3",
+        "category": "real_match",
+        "reason": "M3(diode, gate=drain=D3)/M4(gate=D3) -- 이미 matching_pairs에 ratio 진짜 매칭쌍(diode+mirror 부하)으로 기록됨. find_matching_candidates()가 같은 관계를 diode 체인으로도 발견한 것뿐."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "nmos",
+        "key": "bias",
+        "category": "false_positive_consumer_reads_bias",
+        "reason": "M5/M7이 같은 'bias' 넷을 gate로 공유하지만, compensation.notes가 이미 명시하듯 이건 매칭이 아니다 -- M5(1단 tail 전류)와 M7(2단 tail 전류, NDP로 1단/2단 전류비가 달라도 됨)은 서로 다른 독립 전류원이고 'bias'는 이 골격 netlist 안에서 생성되지 않는 순수 외부 참조 노드(외부 bias-gen 서브회로 미포함)다 -- 둘 다 그 외부 레퍼런스를 읽는 독립 소비자일 뿐(current_reuse의 Vbias1/Vbias4 false_positive_consumer_reads_bias 패턴과 동일). 레이아웃상 같은 gate+source(rail) 공유라는 구조적 사실 자체는 stick_diagram.py의 current_mirror 신 의미(같은 물리 행 배치 가능)로 stack_groups_override에 별도 반영돼 있다 -- 이건 전류-비율 매칭과는 다른 층위."
+      },
+      {
+        "tag": "diff_pair",
+        "kind": "nmos",
+        "key": "CS",
+        "category": "real_match",
+        "reason": "M1/M2 -- matching_pairs 기록과 동일(위 hub_merge/nmos/CS 항목과 같은 실체, diff_pair 후보 규칙으로 별도 발견됨)."
+      }
     ]
   },
-
   "sizing_roles": {
     "_comment": "2026-08-05(세션10) 신설 -- 축A 규칙1에 레일 제외를 추가하면서(kcl_series_union(), stick_diagram.py) M5(1단 tail)가 더 이상 gnd 우연 2단자 병합으로 M7의 전류를 빌려 쓰지 못하게 됐다(그 병합 자체가 세션9가 지적한 '같은 gate+rail 공유는 매칭 근거 부족' 오류의 또 다른 얼굴이었다 -- M5/M7은 실제로 다른 전류일 수 있다는 게 이미 확인된 상태). M5의 진짜 전류 근거는 매칭이 아니라 CS 노드(M1.source/M2.source/M5.drain 3단자 합류)의 순수 KCL 항등식 ID(M5)=ID(M1)+ID(M2) -- current_reuse_telescopic_ota의 kcl_tail_M5/kcl_tail_M38과 정확히 같은 패턴(3단자 tail 합류는 propagate_topology_forced_currents()의 2-rule로 자동으로 안 풀리는 정직한 한계, 고정 A타입 theta bounds=[1,1]로 명시). **2026-08-13 정정(세션31 이어, 사용자 지시)**: '이 회로는 폐형식이라 theta 자유탐색이 없다'는 원래 서술은 gm1/gm2/W(=M1/M2/M6, compensation이 결정)에만 해당했다 -- 실제로는 레이아웃 매칭이 필요한 M3/M4(mirror)·M5/M7(bias_replica, 사용자 재분류)의 L도 자유도였는데 지금까지 `device_roles.L_role` 고정배수 휴리스틱(mirror=2.5x/bias_replica=1.2x L_min)에 묶여 있었다. gain_db>=60 constraint를 채우려다 이 고정 L(특히 M4/M7의 낮은 gds)이 전체회로 이득의 실질 상한(~59.6dB)을 만든다는 게 실측으로 드러나(vdd 미고정 버그 수정 후 gain_db=47.85dB) L_mirror_M3/L_mirror_M5 두 theta를 신설, 이 둘도 이제 진짜 grid/SLSQP 탐색 대상이다(L1=M3/M4, L4=M5/M7, 사용자가 정리한 '4개 L 자유도' 프레임 그대로 -- L2=M1/M2, L3=M6은 이미 compensation이 담당).",
     "theta": [
-      {"name": "kcl_tail_M5", "bounds": [1.0, 1.0], "feeds": {"type": "A", "tag": "tail_kcl_sum", "root": "M5", "reference": ["M1", "M2"]},
-       "_comment": "current_reuse_telescopic_ota의 kcl_tail_M5와 동일 사유(diff pair 양쪽 다리가 전부 tail로 모임) -- ID(M5)=ID(M1)+ID(M2), 설계 자유도 없는 순수 KCL 합. L_mirror_M5(아래, devices=[M5,M7])보다 반드시 앞에 와야 한다 -- metric_stage_budget이 M5의 ID를 요구하는데 그 ID를 이 theta가 정한다(theta 배열 순서=처리 순서 규약, L_cascode/L_stage2out류와 동일 관례)."},
-      {"name": "L_mirror_M3", "bounds": [1.5e-7, 4.0e-6], "feeds": {"type": "metric_stage_budget", "metric": "gain_db", "devices": ["M3", "M4"], "gm_id_role": "matching", "gm_id_min": 8.0, "vds": 0.2},
-       "intended_role_type": "B",
-       "_comment": "2026-08-13(세션31 이어) 신설 -- L1(사용자 프레임: M3/M4, 1단 diode+mirror 부하). ID는 A엔진이 이미 자동 전파해둔다(D3가 M1.drain/M3.drain뿐인 2단자 net이라 ID(M3)=ID(M1) 자동 병합, matching_pairs가 ID(M4)=ID(M3) 강제) -- kcl_tail_M5보다 앞뒤 어느 위치든 무방(A엔진 산출물은 theta 루프 시작 전에 이미 확정, 3796행대 1차 패스). gm_id_role='matching'(strong inversion, gm-id-methodology.md §7.1)으로 매칭 특성을 보장하면서 L만 이득 방향으로 탐색 -- vds=0.2는 min_vds_by_role.cascode와 동일 규모(헤드룸을 M1/M2/M6에 양보). **gm_id_min=8.0 추가(2026-08-13, 실측으로 발견 후 사용자 지시)**: 실제 sky130 LUT로 실측한 결과 'matching'이 격자 하한(2.0)까지 밀리면 이 소자(M3/M4, stage1 부하)의 gm/gds가 0.52(-5.6dB, 거의 순수 저항)까지 무너져 전체회로 gain_db를 오히려 악화시켰다(gm_id=2→gm/gds=0.52, gm_id=8→6.4(16.1dB), gm_id=10→14.1(23.0dB), L=1um 실측 스캔) -- gm-id-methodology.md 491행 '정전류원·전류거울·차동쌍은 mismatch 억제 위해 moderate~strong inversion이 유리'가 원문 그대로 '극단'이 아니라 '~moderate' 구간을 권고함을 재확인, gm_id_min=8.0(strong/moderate 경계 근방)으로 매칭에 유리한 낮은 gm/ID를 유지하면서 gds 붕괴는 피한다."},
-      {"name": "L_mirror_M5", "bounds": [1.5e-7, 4.0e-6], "feeds": {"type": "metric_stage_budget", "metric": "gain_db", "devices": ["M5", "M7"], "gm_id_role": {"M5": "moderate", "M7": "gain"}, "vds": 0.2},
-       "intended_role_type": "B",
-       "_comment": "2026-08-13(세션31 CJ -- CH에서 한 번 L_M5/L_M7(독립 theta)로 분리했다가 사용자 지시로 다시 원복). 분리 시도 경위: 공유 시 gain_db 상한 ~50.1~50.4dB, 분리 시 ~51.1dB(+1dB) -- 그런데 분리하면 box-shape가 오히려 악화(1.18->2.0)돼 M3/M5/M6/M7 4개 소자 전부를 folding해야 다시 PASS(1.0)했다(CG/CH 실측). 이후(CJ) GBW를 20MHz->7MHz(무릎 지점)로 낮추는 별도 레버가 gain_db=57.53dB(GBW=7MHz)까지 훨씬 크게 끌어올린 상태에서는 M5/M7 분리가 주는 +1dB가 4배 늘어난 folding 비용에 비해 가치가 낮다고 판단, 사용자 지시로 공유 theta로 복귀. gm_id_role은 소자별 dict(M5=moderate/M7=gain)로 유지(CH 이전과 동일 근거 -- M5는 gds가 differential gain에 거의 안 들어가는 tail, M7은 2단 출력부하로 gds가 gain 직결)."}
+      {
+        "name": "kcl_tail_M5",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "tail_kcl_sum",
+          "root": "M5",
+          "reference": [
+            "M1",
+            "M2"
+          ]
+        },
+        "_comment": "current_reuse_telescopic_ota의 kcl_tail_M5와 동일 사유(diff pair 양쪽 다리가 전부 tail로 모임) -- ID(M5)=ID(M1)+ID(M2), 설계 자유도 없는 순수 KCL 합. L_mirror_M5(아래, devices=[M5,M7])보다 반드시 앞에 와야 한다 -- metric_stage_budget이 M5의 ID를 요구하는데 그 ID를 이 theta가 정한다(theta 배열 순서=처리 순서 규약, L_cascode/L_stage2out류와 동일 관례)."
+      },
+      {
+        "name": "L_mirror_M3",
+        "bounds": [
+          1.5e-07,
+          4e-06
+        ],
+        "feeds": {
+          "type": "metric_stage_budget",
+          "metric": "gain_db",
+          "devices": [
+            "M3",
+            "M4"
+          ],
+          "gm_id_role": "matching",
+          "gm_id_min": 8.0,
+          "vds": 0.2
+        },
+        "intended_role_type": "B",
+        "_comment": "2026-08-13(세션31 이어) 신설 -- L1(사용자 프레임: M3/M4, 1단 diode+mirror 부하). ID는 A엔진이 이미 자동 전파해둔다(D3가 M1.drain/M3.drain뿐인 2단자 net이라 ID(M3)=ID(M1) 자동 병합, matching_pairs가 ID(M4)=ID(M3) 강제) -- kcl_tail_M5보다 앞뒤 어느 위치든 무방(A엔진 산출물은 theta 루프 시작 전에 이미 확정, 3796행대 1차 패스). gm_id_role='matching'(strong inversion, gm-id-methodology.md §7.1)으로 매칭 특성을 보장하면서 L만 이득 방향으로 탐색 -- vds=0.2는 min_vds_by_role.cascode와 동일 규모(헤드룸을 M1/M2/M6에 양보). **gm_id_min=8.0 추가(2026-08-13, 실측으로 발견 후 사용자 지시)**: 실제 sky130 LUT로 실측한 결과 'matching'이 격자 하한(2.0)까지 밀리면 이 소자(M3/M4, stage1 부하)의 gm/gds가 0.52(-5.6dB, 거의 순수 저항)까지 무너져 전체회로 gain_db를 오히려 악화시켰다(gm_id=2→gm/gds=0.52, gm_id=8→6.4(16.1dB), gm_id=10→14.1(23.0dB), L=1um 실측 스캔) -- gm-id-methodology.md 491행 '정전류원·전류거울·차동쌍은 mismatch 억제 위해 moderate~strong inversion이 유리'가 원문 그대로 '극단'이 아니라 '~moderate' 구간을 권고함을 재확인, gm_id_min=8.0(strong/moderate 경계 근방)으로 매칭에 유리한 낮은 gm/ID를 유지하면서 gds 붕괴는 피한다."
+      },
+      {
+        "name": "L_mirror_M5",
+        "bounds": [
+          1.5e-07,
+          4e-06
+        ],
+        "feeds": {
+          "type": "metric_stage_budget",
+          "metric": "gain_db",
+          "devices": [
+            "M5",
+            "M7"
+          ],
+          "gm_id_role": {
+            "M5": "moderate",
+            "M7": "gain"
+          },
+          "vds": 0.2
+        },
+        "intended_role_type": "B",
+        "_comment": "2026-08-13(세션31 CJ -- CH에서 한 번 L_M5/L_M7(독립 theta)로 분리했다가 사용자 지시로 다시 원복). 분리 시도 경위: 공유 시 gain_db 상한 ~50.1~50.4dB, 분리 시 ~51.1dB(+1dB) -- 그런데 분리하면 box-shape가 오히려 악화(1.18->2.0)돼 M3/M5/M6/M7 4개 소자 전부를 folding해야 다시 PASS(1.0)했다(CG/CH 실측). 이후(CJ) GBW를 20MHz->7MHz(무릎 지점)로 낮추는 별도 레버가 gain_db=57.53dB(GBW=7MHz)까지 훨씬 크게 끌어올린 상태에서는 M5/M7 분리가 주는 +1dB가 4배 늘어난 folding 비용에 비해 가치가 낮다고 판단, 사용자 지시로 공유 theta로 복귀. gm_id_role은 소자별 dict(M5=moderate/M7=gain)로 유지(CH 이전과 동일 근거 -- M5는 gds가 differential gain에 거의 안 들어가는 tail, M7은 2단 출력부하로 gds가 gain 직결)."
+      }
     ],
     "_target_spec_comment": "2026-08-13 -- 사용자 지시로 웹 문헌조사를 거쳐 '일반적인(typical)' 2단 Miller OTA 스펙을 채움(이 회로 고유 논문 스펙표가 없는 worked-example 골격 회로라 current_reuse_telescopic_ota류처럼 원 논문 수치를 그대로 못 가져옴 -- 그래서 이번엔 논문값 그대로 인용이 아니라 '일반적 typical target'을 명시적으로 요청받음). (1) gain_db>=60(최초 목표): 2단 Miller-compensated op-amp의 표준 typical 목표로 여러 문헌이 공통 인용(예: 'DC gain of 60dB and phase margin of 60 are typical design goals for two-stage Miller compensated op-amps' -- 웹 검색, academia.edu/scribd 소재 2단 Miller OTA 설계 자료 다수). 참고로 이 프로젝트 자체 방법론 문서(gm-id-methodology.md §6.4, Cortes&Bampi 계열)가 이미 이 회로와 정확히 같은 스펙(GBW=20MHz/CL=3pF/Z=10/NDP=4, compensation.parameters 그대로)의 worked example로 'gain 82dB, PM≈70°, IDC≈105uA, 면적 200~250um², Cm≈1.41pF'를 보고한다 -- 60dB는 그 82dB보다 충분히 보수적인(달성 가능성 높은) 문턱이라 목표로 채택. PM≈70°은 Z=10/NDP=4 자체가 이미 인코딩하는 설계의도이지만(§6.4 레시피 'Z=10,NDP=4 지정 → PM 60~70°'), 이 코드베이스에 GBW/PM 역방향 검증 함수가 없어(sizing_recipe.py 5390행대 주석, nmcnr류의 nmcnr_predict_notch()에 해당하는 함수가 miller_ota_topology엔 없음) constraint로 선언해도 검증 대상이 없다 -- 그래서 PM은 constraint로 넣지 않고 이 주석에 설계의도로만 남긴다. (2) mismatch_sigma_mV<=5.0: 새 문헌값이 아니라 이 프로젝트가 같은 metric type(pelgrom_mismatch)에 이미 쓰고 있는 current_reuse_telescopic_ota의 문턱(5.0mV)을 재사용 -- 입력쌍 오프셋의 '일반적' 문턱으로 프로젝트 내 일관성 유지. **(3) 2026-08-13(세션31 CA~CJ) 정정 -- GBW=20MHz/gain_db>=60 조합은 실제 sky130 LUT(L 최대 4um까지 확장, 면적예산 4배까지 확대, M5/M7 theta 분리 등 모든 레버 실측 시도 후)로 물리적으로 달성 불가능함이 확정됐다(진짜 상한 ~50~51dB, `.ai/context.md` 세션31 CF~CH 참고) -- GBW를 낮추는 게 유일하게 유효한 레버였다(`miller_ota_topology()`의 gm1=2π·GBW·Cm 관계상 GBW를 낮추면 같은 면적에서 훨씬 긴 L을 쓸 여유가 생김, 실측 확인). GBW 20MHz→1MHz 전 구간을 스윕해 'GBW를 낮출수록 달성 gain_db가 오르지만 10MHz 부근부터 수확체감(무릎)'이 확인됐다(20MHz:51.1dB/887uA → 10MHz:55.9dB/458uA → 7MHz:57.5dB/291uA → 4MHz:59.9dB/156uA → 2.5MHz:60.6dB/90uA) -- 사용자가 '무릎 지점'(GBW≈10MHz 직후, 수확체감이 본격화되기 직전)에서 타협하기로 결정, **GBW=7MHz(원 스펙 대비 약 1/3, gain_db는 오히려 +6.4dB 개선, 전력은 오히려 66% 절감)를 이 회로의 최종 target spec으로 확정**. `gain_db>=60` constraint도 이 결정에 맞춰 `>=57`로 하향(실측 57.55dB에 작은 여유를 둔 값). GBW 자체는 harness spec 값이라 이 topology.json에 저장되지 않는다 -- 재현하려면 `workspaces/two-stage-ota-report/`의 최종 harness에서 `GBW=7e6`를 확인할 것.",
     "metrics": {
-      "power_uA": {"type": "sum_current"},
-      "area_um2": {"type": "sum_area"},
-      "gain_db": {"type": "smallsignal_gain_db",
-                  "excite": {"vin_p": 0.5, "vin_n": -0.5, "bias": 0.0, "vdd": 0.0}, "sense_mode": "diff",
-                  "sense_p": "OUT", "sense_n": "gnd",
-                  "_comment": "topology-무관 전체회로 수치 MNA(sizing_recipe.py 세션21 신설, current_reuse_telescopic_ota/two_stage_ota 등 4개 회로 공용) 재사용 -- gain_stages_sum(단순 gm합/gds합)은 이 회로의 5T diff-pair+전류미러 구조(M1/M3가 diode 기준쪽, M2/M4가 출력쪽, 거울이득이 이미 gm1/(gds2+gds4) 폐형식에 녹아있음)에선 소자를 어떻게 나열해도 gm을 중복/누락 계산하기 쉬워(예: M2+M4를 나열하면 M4의 gm까지 더해져 과대추정) 부정확하다 -- 실제 KCL을 푸는 smallsignal_gain_db가 이 구조에 더 안전하다. OUT은 단일단(싱글엔디드) 출력이라 sense_n='gnd'(항상 0V 고정)로 사실상 v(OUT) 자체를 잰다. excite에 'bias':0.0을 명시(2026-08-13, self-test MNA 특이행렬 크래시로 발견) -- M5/M7.gate='bias'가 이 넷리스트엔 drain/source로 전혀 안 쓰이는(외부 bias-gen 서브회로가 이 골격 topology.json엔 아직 없음) 순수 게이트 전용 노드라 자유노드로 두면 KCL 행이 통째로 0이 되어 특이행렬이 된다(_full_circuit_response() docstring의 also_fix 설명과 동일 현상) -- 이상적 DC bias 소스는 소신호에서 AC 접지이므로 0V로 고정하는 게 물리적으로도 맞다. 'vdd':0.0도 명시(2026-08-13, 실측으로 발견한 훨씬 심각한 버그) -- vdd를 안 고정하면 M3/M4/M6(딱 3개)만 vdd에 물려있는 이 작은 회로에서 vdd가 사실상 무규제 자유노드가 되어(전류 균형을 잡아줄 다른 경로가 거의 없음) D3/O1이 수백V로 튀는 비물리적 해가 나왔다(gain_db가 7.6dB로 실측됨 -- 손계산 대조 결과 명백히 틀린 값). 이상적 전원은 소신호에서 AC 접지라는 표준 가정을 명시적으로 걸어야 한다(current_reuse처럼 vdd에 물린 소자가 많아 우연히 안정되는 회로와 달리, 이 작은 회로는 명시 없이는 그 우연에 기댈 수 없다) -- 고정 후 gain_db=47.85dB로 손계산(stage1 gm2/(gds2+gds4)≈26.6dB + stage2 gm6/(gds6+gds7)≈21.65dB ≈ 48.3dB)과 합리적으로 일치. PSRR류 metric은 반대로 vdd를 절대 고정하면 안 된다(그게 측정 대상 그 자체)."},
-      "mismatch_sigma_mV": {"type": "pelgrom_mismatch", "devices": ["M1", "M2"], "kind": "nfet"}
+      "power_uA": {
+        "type": "sum_current"
+      },
+      "area_um2": {
+        "type": "sum_area"
+      },
+      "gain_db": {
+        "type": "smallsignal_gain_db",
+        "excite": {
+          "vin_p": 0.5,
+          "vin_n": -0.5,
+          "bias": 0.0,
+          "vdd": 0.0
+        },
+        "sense_mode": "diff",
+        "sense_p": "OUT",
+        "sense_n": "gnd",
+        "_comment": "topology-무관 전체회로 수치 MNA(sizing_recipe.py 세션21 신설, current_reuse_telescopic_ota/two_stage_ota 등 4개 회로 공용) 재사용 -- gain_stages_sum(단순 gm합/gds합)은 이 회로의 5T diff-pair+전류미러 구조(M1/M3가 diode 기준쪽, M2/M4가 출력쪽, 거울이득이 이미 gm1/(gds2+gds4) 폐형식에 녹아있음)에선 소자를 어떻게 나열해도 gm을 중복/누락 계산하기 쉬워(예: M2+M4를 나열하면 M4의 gm까지 더해져 과대추정) 부정확하다 -- 실제 KCL을 푸는 smallsignal_gain_db가 이 구조에 더 안전하다. OUT은 단일단(싱글엔디드) 출력이라 sense_n='gnd'(항상 0V 고정)로 사실상 v(OUT) 자체를 잰다. excite에 'bias':0.0을 명시(2026-08-13, self-test MNA 특이행렬 크래시로 발견) -- M5/M7.gate='bias'가 이 넷리스트엔 drain/source로 전혀 안 쓰이는(외부 bias-gen 서브회로가 이 골격 topology.json엔 아직 없음) 순수 게이트 전용 노드라 자유노드로 두면 KCL 행이 통째로 0이 되어 특이행렬이 된다(_full_circuit_response() docstring의 also_fix 설명과 동일 현상) -- 이상적 DC bias 소스는 소신호에서 AC 접지이므로 0V로 고정하는 게 물리적으로도 맞다. 'vdd':0.0도 명시(2026-08-13, 실측으로 발견한 훨씬 심각한 버그) -- vdd를 안 고정하면 M3/M4/M6(딱 3개)만 vdd에 물려있는 이 작은 회로에서 vdd가 사실상 무규제 자유노드가 되어(전류 균형을 잡아줄 다른 경로가 거의 없음) D3/O1이 수백V로 튀는 비물리적 해가 나왔다(gain_db가 7.6dB로 실측됨 -- 손계산 대조 결과 명백히 틀린 값). 이상적 전원은 소신호에서 AC 접지라는 표준 가정을 명시적으로 걸어야 한다(current_reuse처럼 vdd에 물린 소자가 많아 우연히 안정되는 회로와 달리, 이 작은 회로는 명시 없이는 그 우연에 기댈 수 없다) -- 고정 후 gain_db=47.85dB로 손계산(stage1 gm2/(gds2+gds4)≈26.6dB + stage2 gm6/(gds6+gds7)≈21.65dB ≈ 48.3dB)과 합리적으로 일치. PSRR류 metric은 반대로 vdd를 절대 고정하면 안 된다(그게 측정 대상 그 자체)."
+      },
+      "mismatch_sigma_mV": {
+        "type": "pelgrom_mismatch",
+        "devices": [
+          "M1",
+          "M2"
+        ],
+        "kind": "nfet"
+      }
     },
-    "objective": {"minimize": "power_uA"},
+    "objective": {
+      "minimize": "power_uA"
+    },
     "constraints": [
-      {"metric": "gain_db",           "op": ">=", "value": 57},
-      {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0}
+      {
+        "metric": "gain_db",
+        "op": ">=",
+        "value": 57
+      },
+      {
+        "metric": "mismatch_sigma_mV",
+        "op": "<=",
+        "value": 5.0
+      }
     ]
   }
 }

@@ -47,7 +47,8 @@
       "gm_id": 8.0,
       "kind": "pmos",
       "vs": 0.0,
-      "vds": 0.2
+      "vds": 0.2,
+      "_L_source": "metric_stage_budget"
     },
     "M4": {
       "ID": 8.868929503185838e-06,
@@ -58,7 +59,8 @@
       "gm_id": 8.0,
       "kind": "pmos",
       "vs": 0.0,
-      "vds": 0.2
+      "vds": 0.2,
+      "_L_source": "metric_stage_budget"
     },
     "M7": {
       "ID": 0.00011903036964802046,
@@ -69,7 +71,8 @@
       "gm_id": 17.5,
       "kind": "nmos",
       "vs": 0.0,
-      "vds": 0.2
+      "vds": 0.2,
+      "_L_source": "metric_stage_budget"
     },
     "M5": {
       "ID": 1.7737859006371676e-05,
@@ -80,7 +83,8 @@
       "gm_id": 12.5,
       "kind": "nmos",
       "vs": 0.0,
-      "vds": 0.2
+      "vds": 0.2,
+      "_L_source": "metric_stage_budget"
     }
   },
   "netlist": [
@@ -92,6 +96,7 @@
       "n_fingers": 5,
       "finger_w": 3.5538919171369345e-06,
       "w": 1.7769459585684673e-05,
+      "l": 2.715e-06,
       "gate": "D3",
       "stack_id": "M3"
     },
@@ -103,6 +108,7 @@
       "n_fingers": 5,
       "finger_w": 3.5538919171369345e-06,
       "w": 1.7769459585684673e-05,
+      "l": 2.715e-06,
       "gate": "D3",
       "stack_id": "M3"
     },
@@ -114,6 +120,7 @@
       "n_fingers": 12,
       "finger_w": 2.0426234863246907e-05,
       "w": 0.0004902296367179258,
+      "l": 7.3e-07,
       "gate": "O1",
       "stack_id": "M6_split0"
     },
@@ -125,6 +132,7 @@
       "n_fingers": 12,
       "finger_w": 2.0426234863246907e-05,
       "w": 0.0004902296367179258,
+      "l": 7.3e-07,
       "gate": "O1",
       "stack_id": "M6_split1"
     },
@@ -136,6 +144,7 @@
       "n_fingers": 1,
       "finger_w": 2.0426234863246907e-05,
       "w": 2.0426234863246907e-05,
+      "l": 1.435e-06,
       "gate": "bias",
       "stack_id": "M5"
     },
@@ -147,6 +156,7 @@
       "n_fingers": 9,
       "finger_w": 2.0426234863246907e-05,
       "w": 0.00018383611376922217,
+      "l": 1.435e-06,
       "gate": "bias",
       "stack_id": "M5"
     },
@@ -158,6 +168,7 @@
       "n_fingers": 6,
       "finger_w": 3.980753720149367e-05,
       "w": 0.000477690446417924,
+      "l": 2.45e-07,
       "gate": "vin_n",
       "stack_id": "M1_repair0"
     },
@@ -169,6 +180,7 @@
       "n_fingers": 6,
       "finger_w": 3.980753720149367e-05,
       "w": 0.000477690446417924,
+      "l": 2.45e-07,
       "gate": "vin_p",
       "stack_id": "M1_repair0"
     },
@@ -180,6 +192,7 @@
       "n_fingers": 6,
       "finger_w": 3.980753720149367e-05,
       "w": 0.000477690446417924,
+      "l": 2.45e-07,
       "gate": "vin_p",
       "stack_id": "M1_repair1"
     },
@@ -191,70 +204,86 @@
       "n_fingers": 6,
       "finger_w": 3.980753720149367e-05,
       "w": 0.000477690446417924,
+      "l": 2.45e-07,
       "gate": "vin_n",
       "stack_id": "M1_repair1"
     }
   ],
   "floorplan": {
     "placements": {
-      "M3": {
-        "x": -6.0,
-        "y": 0.0,
-        "width": 10,
-        "height": 1
-      },
-      "M6_split0": {
-        "x": -6.0,
-        "y": 2.0,
-        "width": 12,
-        "height": 1
-      },
-      "M6_split1": {
-        "x": -6.0,
-        "y": 4.0,
-        "width": 12,
-        "height": 1
-      },
-      "M5": {
-        "x": -6.0,
-        "y": 6.0,
-        "width": 10,
-        "height": 1
-      },
       "M1_repair0": {
-        "x": -6.0,
-        "y": 8.0,
-        "width": 12,
-        "height": 1
+        "x": -2.4347000000000003e-05,
+        "y": 0.0,
+        "width": 2.94e-06,
+        "height": 3.980753720149367e-05
       },
       "M1_repair1": {
-        "x": -6.0,
-        "y": 10.0,
-        "width": 12,
-        "height": 1
+        "x": -2.0969000000000002e-05,
+        "y": 0.0,
+        "width": 2.94e-06,
+        "height": 3.980753720149367e-05
+      },
+      "M5": {
+        "x": -1.7591e-05,
+        "y": 0.0,
+        "width": 1.4350000000000002e-05,
+        "height": 2.0426234863246907e-05
+      },
+      "M6_split0": {
+        "x": -2.803e-06,
+        "y": 0.0,
+        "width": 8.76e-06,
+        "height": 2.0426234863246907e-05
+      },
+      "M6_split1": {
+        "x": 6.395000000000001e-06,
+        "y": 0.0,
+        "width": 8.76e-06,
+        "height": 2.0426234863246907e-05
+      },
+      "M3": {
+        "x": -2.803e-06,
+        "y": 2.086423486324691e-05,
+        "width": 2.715e-05,
+        "height": 3.5538919171369345e-06
       }
     },
     "bbox": {
-      "width": 12.0,
-      "height": 11.0
+      "width": 4.8694000000000005e-05,
+      "height": 3.980753720149367e-05
     },
-    "aspect_ratio": 1.0909090909090908,
-    "packing_density": 0.5151515151515151
+    "aspect_ratio": 1.2232356840747458,
+    "packing_density": 0.77545354922986
   },
   "box_shape": {
-    "ok": true,
+    "ok": false,
+    "rectangular": false,
+    "elongation_ok": true,
     "row_widths": {
-      "M3": 10,
-      "M6_split0": 12,
-      "M6_split1": 12,
-      "M5": 10,
-      "M1_repair0": 12,
-      "M1_repair1": 12
+      "M3": 2.715e-05,
+      "M6_split0": 8.76e-06,
+      "M6_split1": 8.76e-06,
+      "M5": 1.4350000000000002e-05,
+      "M1_repair0": 2.94e-06,
+      "M1_repair1": 2.94e-06
     },
-    "message": "PASS: 행 폭 {'M3': 10, 'M6_split0': 12, 'M6_split1': 12, 'M5': 10, 'M1_repair0': 12, 'M1_repair1': 12}, 최대/최소 비율=1.20 (허용치 이내)"
+    "row_heights": {
+      "M3": 3.5538919171369345e-06,
+      "M6_split0": 2.0426234863246907e-05,
+      "M6_split1": 2.0426234863246907e-05,
+      "M5": 2.0426234863246907e-05,
+      "M1_repair0": 3.980753720149367e-05,
+      "M1_repair1": 3.980753720149367e-05
+    },
+    "total_width_m": 2.715e-05,
+    "total_height_m": 0.000144447670909865,
+    "width_ratio": 9.23469387755102,
+    "elongation": 5.320356202941621,
+    "approx": false,
+    "message": "FAIL: 행 폭 비율(9.23) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
   },
   "audit_row_split": {
-    "ok": true,
+    "ok": false,
     "checks": [
       {
         "name": "1. euler[M3]",
@@ -288,8 +317,8 @@
       },
       {
         "name": "2. box-shape",
-        "ok": true,
-        "detail": "PASS: 행 폭 {'M3': 10, 'M6_split0': 12, 'M6_split1': 12, 'M5': 10, 'M1_repair0': 12, 'M1_repair1': 12}, 최대/최소 비율=1.20 (허용치 이내)"
+        "ok": false,
+        "detail": "FAIL: 행 폭 비율(9.23) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
       },
       {
         "name": "3a. row-presence[M3/M4] (kind=sensitivity=ratio,shares_node=True)",

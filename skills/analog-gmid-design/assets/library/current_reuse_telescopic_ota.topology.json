@@ -2,29 +2,82 @@
   "schema_version": "2.0",
   "topology_name": "current_reuse_telescopic_ota",
   "source": "Xie & Chen, \"A 126uW Current-Reuse Telescopic OTA with Class-AB Output Stage\" (UT Austin). 2026-07-29 사용자와 함께 논문 PDF 처음부터 끝까지(본문+부록) 재확인, 회로도는 이미지로 직접 재판독(상세 이력: skills/analog-gmid-design/references/sky130-worked-example.md '2026-07-29 논문 재확인' 표 참고). 2026-07-28 버전의 오류(아래 _correction_log)를 이번에 전부 바로잡았다.",
-
   "_passive_elements_comment": "2026-08-03(배치 7-5e, 사용자 지적) -- R1/R2를 왜 netlist에 안 넣었냐는 질문에 재검토: `netlist`(kind: pmos/nmos)는 sizing_recipe.py/stick_diagram.py 전체(227곳, `.kind`/LUT 룩업/stack 배정/레이아웃)가 '트랜지스터'라고 가정하고 읽는 배열이라, 여기에 'kind: resistor'를 섞으면 그 227곳이 깨질 위험이 크다 -- 그래서 `netlist`는 안 건드리고 별도 `passive_elements` 배열을 신설해 R1/R2를 실제 connectivity 데이터로 기록한다(사이징 엔진은 이 배열을 안 읽으므로 회귀 없음, topology_to_markdown.py만 이걸 읽어 표에 반영).",
   "passive_elements": [
-    {"name": "R1", "kind": "resistor", "value_ohm": null, "terminals": ["Vom", "Voc"],
-     "_comment": "논문 II.D 원문 'R1 and R2 are used to averaging the differential signal (Vop and Vom) to common mode voltage (Voc)' -- 값은 원문에 명시 안 됨."},
-    {"name": "R2", "kind": "resistor", "value_ohm": null, "terminals": ["Voc", "Vop"]},
-    {"name": "Cc1", "kind": "capacitor", "value_farad": null, "terminals": ["Vom", "N_cc_rz1"],
-     "_comment": "2026-08-03 -- 사용자가 논문 원본 PDF(원본 경로: G:\\내 드라이브\\work\\Todoc\\논문모음\\A 126uW Current-Reuse Telescopic OTA with Class-AB Output Stage.pdf)를 직접 보고 확정: Vom-Cc-Rz-M16.gate 직렬 경로. Cc/Rz 사이 중간노드(N_cc_rz1)는 원문 라벨이 아니라 이 JSON이 새로 부여한 내부 노드 이름(다른 N-접두 노드와 동일 관례). compensation.parameters의 'Cc' 심볼과 이 소자는 같은 물리 커패시터를 가리키지만, 저 심볼은 사이징 공식 입력값일 뿐 이전엔 netlist/passive_elements 어디에도 connectivity로 안 들어가 있었다(2026-08-03 세션에서 발견된 gap)."},
-    {"name": "Rz1", "kind": "resistor", "value_ohm": null, "terminals": ["N_cc_rz1", "Vop1"],
-     "_comment": "nulling resistor, 값은 이 프로젝트에서 독립 재유도 안 됨(workspaces/current-reuse-telescopic-ota-report/REPORT_DATA.json out_of_scope 참고) -- 테이프아웃 전 SPICE로 RHP-zero 상쇄 조건 확인 필요."},
-    {"name": "Cc2", "kind": "capacitor", "value_farad": null, "terminals": ["Vop", "N_cc_rz2"],
-     "_comment": "Vom측 Cc1과 대칭(사용자 확인): Vop-Cc-Rz-M26.gate."},
-    {"name": "Rz2", "kind": "resistor", "value_ohm": null, "terminals": ["N_cc_rz2", "Vom1"],
-     "_comment": "Vom측 Rz1과 대칭, 값 미확정(Rz1 주석 참고)."}
+    {
+      "name": "R1",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "Vom",
+        "Voc"
+      ],
+      "_comment": "논문 II.D 원문 'R1 and R2 are used to averaging the differential signal (Vop and Vom) to common mode voltage (Voc)' -- 값은 원문에 명시 안 됨."
+    },
+    {
+      "name": "R2",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "Voc",
+        "Vop"
+      ]
+    },
+    {
+      "name": "Cc1",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "Vom",
+        "N_cc_rz1"
+      ],
+      "_comment": "2026-08-03 -- 사용자가 논문 원본 PDF(원본 경로: G:\\내 드라이브\\work\\Todoc\\논문모음\\A 126uW Current-Reuse Telescopic OTA with Class-AB Output Stage.pdf)를 직접 보고 확정: Vom-Cc-Rz-M16.gate 직렬 경로. Cc/Rz 사이 중간노드(N_cc_rz1)는 원문 라벨이 아니라 이 JSON이 새로 부여한 내부 노드 이름(다른 N-접두 노드와 동일 관례). compensation.parameters의 'Cc' 심볼과 이 소자는 같은 물리 커패시터를 가리키지만, 저 심볼은 사이징 공식 입력값일 뿐 이전엔 netlist/passive_elements 어디에도 connectivity로 안 들어가 있었다(2026-08-03 세션에서 발견된 gap)."
+    },
+    {
+      "name": "Rz1",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "N_cc_rz1",
+        "Vop1"
+      ],
+      "_comment": "nulling resistor, 값은 이 프로젝트에서 독립 재유도 안 됨(workspaces/current-reuse-telescopic-ota-report/REPORT_DATA.json out_of_scope 참고) -- 테이프아웃 전 SPICE로 RHP-zero 상쇄 조건 확인 필요."
+    },
+    {
+      "name": "Cc2",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "Vop",
+        "N_cc_rz2"
+      ],
+      "_comment": "Vom측 Cc1과 대칭(사용자 확인): Vop-Cc-Rz-M26.gate."
+    },
+    {
+      "name": "Rz2",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "N_cc_rz2",
+        "Vom1"
+      ],
+      "_comment": "Vom측 Rz1과 대칭, 값 미확정(Rz1 주석 참고)."
+    }
   ],
-
   "_ideal_sources_comment": "2026-08-03(세션 4, 사용자 지적) -- `passive_elements`(R/C/Rz 등)는 값이 미상이어도 언젠가 실제 사이징·레이아웃 대상이 되는 '진짜' 물리 소자다. 반면 논문 회로도에 그려진 ideal current/voltage source(예: bias-gen 최상단 마스터 레퍼런스 전류원)는 그 자체로는 절대 실리콘으로 구현되지 않는 모델링 편의 소자(외부 핀에서 주입되는 이상적 자극, 또는 상위 레벨 시스템이 공급한다고 가정하는 값)다 -- `passive_elements`에 섞으면 나중에 사이징/레이아웃 코드가 이걸 실제 소자로 착각해 처리하려 들 위험이 있다. 그래서 별도 `ideal_sources` 배열을 신설하고, 각 항목에 `implementable: false`를 명시해 '이 소자는 최종 구현에서 반드시 제외해야 한다'는 걸 스키마 레벨에서 표시한다(사이징 엔진은 여전히 `netlist`/`passive_elements`처럼 이 배열도 안 읽으므로 기존 227곳 회귀 없음, `topology_to_markdown.py`만 이걸 읽어 별도 표로 '구현 불가' 경고와 함께 렌더링).",
   "ideal_sources": [
-    {"name": "Iref", "kind": "current_source", "value_amp": 1.2e-6, "implementable": false,
-     "terminals": ["Vbias1", "gnd"],
-     "_comment": "2026-08-03 -- 사용자 확인(정정): 전류원 상단=Vbias1, 하단=gnd -- 즉 vdd->M18_bg(diode-connected, drain=gate=Vbias1)로 흘러든 전류를 이 ideal current source가 Vbias1에서 gnd로 그대로 싱크한다(M18_bg가 그 전류를 지탱하는 데 필요한 Vgs를 스스로 만들어내며 Vbias1 값이 정해짐). 이 전류가 Vbias1을 gate로 공유하는 나머지 미러(M60/M61/M6/M8/M13/M22/M17)의 전류를 전부 결정한다. 값 1.2uA는 사용자가 논문 원문에서 직접 확인(2026-08-03). 실제 칩에서는 밴드갭+저항 등으로 구현되겠지만 그건 이 topology.json의 범위 밖이라 별도 회로로 다뤄야 한다."}
+    {
+      "name": "Iref",
+      "kind": "current_source",
+      "value_amp": 1.2e-06,
+      "implementable": false,
+      "terminals": [
+        "Vbias1",
+        "gnd"
+      ],
+      "_comment": "2026-08-03 -- 사용자 확인(정정): 전류원 상단=Vbias1, 하단=gnd -- 즉 vdd->M18_bg(diode-connected, drain=gate=Vbias1)로 흘러든 전류를 이 ideal current source가 Vbias1에서 gnd로 그대로 싱크한다(M18_bg가 그 전류를 지탱하는 데 필요한 Vgs를 스스로 만들어내며 Vbias1 값이 정해짐). 이 전류가 Vbias1을 gate로 공유하는 나머지 미러(M60/M61/M6/M8/M13/M22/M17)의 전류를 전부 결정한다. 값 1.2uA는 사용자가 논문 원문에서 직접 확인(2026-08-03). 실제 칩에서는 밴드갭+저항 등으로 구현되겠지만 그건 이 topology.json의 범위 밖이라 별도 회로로 다뤄야 한다."
+    }
   ],
-
   "_known_dangling_nets": {
     "Voc": "R1/R2로 최종 출력 Vom/Vop를 평균해 구동됨(위 passive_elements 참고) -- topology_to_markdown.py의 '구동 소자 없는 net' 플래그는 netlist(트랜지스터)만 보므로 여전히 뜬다, 하지만 passive_elements를 포함하면 실제로는 고아가 아니다.",
     "Vim": "opamp의 differential input 신호(음극) -- 칩 외부에서 인가되는 핀이라 topology.json 안에 이걸 구동하는 소자가 없는 게 정상(2026-08-03 사용자 확인, 아래 ports 참고).",
@@ -32,409 +85,1802 @@
   },
   "ports": {
     "_comment": "2026-08-03(사용자 확인) -- 이 회로(opamp)의 최상위 4개 differential I/O 신호 역할 명시. netlist connectivity 자체는 안 바꾸고 순수 문서화 목적(예: 향후 report/testbench 생성 스크립트가 '어느 net이 입력/출력인지'를 topology.json에서 바로 읽을 수 있게).",
-    "Vip": {"role": "differential_input_p", "direction": "input"},
-    "Vim": {"role": "differential_input_n", "direction": "input"},
-    "Vop": {"role": "differential_output_p", "direction": "output"},
-    "Vom": {"role": "differential_output_n", "direction": "output"}
+    "Vip": {
+      "role": "differential_input_p",
+      "direction": "input"
+    },
+    "Vim": {
+      "role": "differential_input_n",
+      "direction": "input"
+    },
+    "Vop": {
+      "role": "differential_output_p",
+      "direction": "output"
+    },
+    "Vom": {
+      "role": "differential_output_n",
+      "direction": "output"
+    }
   },
   "_confidence_note": "총 51개 소자, 전부 HIGH confidence(2026-07-30 사용자와 함께 논문 Fig.1/2/3/6/7/8 전체를 이미지로 직접 재판독하며 아래 항목까지 전부 확인 완료 -- 더 이상 LOW/MEDIUM 항목 없음). Fig.2/Fig.6(1단, 11개 -- Vip/Vim/Vom1/Vop1/Vcmfb 라벨 + M1a/M4a 게이트=Vip/Vim 확인). Fig.5(CMFB, 7개 -- 불일치 없음). Fig.3/Fig.7(2단 Class-AB Vom측 12개 + Vop측 12개, 대칭 확인) -- M9a/M18a의 게이트는 Vom1/Vop1이 아니라 각각 M11b/M20b의 drain(=Vg15/Vg25, 자기 자신의 다이오드 노드에 diode-connected)이라는 걸 사용자가 직접 확인해 정정. M13/M8/M22/M17은 전부 게이트가 Vbias1에 병렬로 묶인 동일 구조(paralleled current source)임을 사용자가 확인. bias-gen(Fig.8, 9개) -- M61->M58->M57(PMOS stacked diode, 게이트 둘 다 M57의 drain=Vbias_p로 묶임, 'vdd' 라벨은 well/body bias일 뿐 소스 연결 아님)->M68(전류 루프 완성)/M60->M64->M63(NMOS stacked diode, 게이트 둘 다 M63의 drain=Vbias3로 묶임) 전부 사용자와 재검증 완료. 'Nxx'/'N_bg_xx'로 시작하는 net 이름은 원문 라벨이 아니라 내부 노드에 새로 부여한 이름이다 -- 원문에 실제 있는 라벨은 Vx/Vy/Vom1/Vop1/Vom/Vop/Vip/Vim/Vbias1~4/Vcmfb/Voc/Voc_des/Vbias_p1/Vbias_p2/Vbias_n1/Vbias_n2/Vbias_p(appendix 로컬 이름, 각각 main 회로의 Vbias2/Vbias1/Vbias3/Vbias4/Vbias2로 매핑 확인)뿐이다.",
-
   "_correction_log_8": "2026-08-04(세션 5, run_harness.py 첫 KCL 완주 시도 중 발견 -- M8/M13/M22/M17(r_classab_src)과 M11a/M11b/M12(r_diode_M11a)가 서로 다른 free theta인데 derive_stack_groups()가 matching_pairs의 branch_symmetric 쌍(M11a-M14a, M11b-M14b, M12-M10)을 무조건 병합해 8개 소자가 하나의 stack_id로 묶이며 즉시 ValueError -- 이 디버깅 과정에서 M14a/M14b, M23a/M24b의 connectivity 자체를 사용자와 재확인) -- **_correction_log_6이 'M14b.source: N14a14b->gnd, Vop1과 연결'이라고 확정했던 것 중 Vop1 연결 부분과, 'M23a/M24b는 Vom1 연결 유지, 정정 대상 아님'이라고 판정했던 부분이 둘 다 실은 옛 Vg16/Vg26 블랭킷 병합의 잔재였고 틀렸다** -- artifact(current_reuse_telescopic_ota — connectivity review, 2026-08-03)가 이 연결을 '확정'으로 문서화했던 것도 독립 재검증이 아니라 그 블랭킷 병합을 그대로 기록한 것뿐이었다(재검증으로 오인해 한 차례 오판 반복, workspaces/current-reuse-telescopic-ota-report/pending_topology_corrections.md '2026-08-04 (세션5)' 섹션에 전체 경위 기록). 사용자가 'Vop와 Vom쪽 회로는 완전 대칭이어야 해(M6.gate/M7.gate 제외)' 원칙으로 재확인한 결과: **M13-M14a-M14b, M22-M23a-M24b 둘 다 Vop1/Vom1(상대측 1단 출력)과 전혀 안 닿는 독립 3단 직렬 체인**이다(M11a-M11b-M12, M20a-M20b-M21과 동일 유형) -- 즉 이 회로엔 애초에 '한쪽만 출력버스에 물리는 의도된 비대칭'이 없고, 두 세트(M11/M13-계열) 전부 같은 패턴이었다. 정정: `M14a.source`(Vop1→`N14a_14b` 신설), `M14b.drain/gate`(Vop1→`N14a_14b`), `M23a.source`(N24b23a→`N23a24b` 신설), `M23a.drain/gate`(Vom1→`N24b23a`, M22.drain과 동일), `M24b.source`(Vom1→gnd), `M24b.drain/gate`(N24b23a→`N23a24b`). `M14b.source=gnd`/`M13.drain=gate=N14a14b`(M14a와 공유)/`M22.drain=N24b23a`는 변경 없음. **후속조치 필요**: (1) `symmetry.matching_pairs`의 `{M11a,M14a}`/`{M11b,M14b}`/`{M20a,M24b}`/`{M20b,M23a}` 4건이 이 connectivity 변경으로 stale해질 가능성 -- rerun_symmetry.py 재실행해서 실제 값으로 갱신할 것(손으로 고치지 않는 관례 유지). (2) 원래 디버깅 계기였던 derive_stack_groups() KCL 병합 버그(branch_symmetric을 A엔진 stack_id에 그대로 재사용하는 문제) 자체는 이 connectivity 정정과 별개로 여전히 남아있을 수 있음 -- run_harness.py 재실행으로 확인 필요.",
-
   "_correction_log_5": "2026-08-03(배치 7-5c) CMFB(Fig.5) 7개 소자 전면 정정 -- 직전 세션이 M36a/M36b를 'M36a가 diode, M36b가 그 게이트를 공유하는 미러'로 읽고 CMRR 식을 유도했는데(커밋 b63e394), 사용자가 원문 Fig.5를 직접 보여줘 틀렸음이 드러났다. 이번엔 픽셀 판독이 아니라 **PDF 벡터 프리미티브를 직접 추출**해(PyMuPDF page.get_drawings(), page 3의 선분 좌표를 전부 뽑아 노드 단위로 재구성) 아래를 확정했다 -- 추정이 아니라 도면 좌표 그 자체다. (1) **Vcmfb = M36a 자신의 diode 노드**: M36a의 게이트 배선이 x=399.74(게이트판) -> 좌 x=389.64 -> 하 y=264.5 -> 우 x=418.95 로 돌아 자기 drain 수직선(x=419.16, y=253.3~313.53)에 붙는다. 그 수직선 아래끝이 M37a의 drain이다. 즉 M36a.gate=M36a.drain=M37a.drain='Vcmfb'(전부 한 노드). 이전 버전의 'M36b.drain=Vcmfb'는 오독. (2) **M36b는 미러가 아니라 완전히 독립된 자기 자신의 diode**: 게이트 배선이 x=476.67 -> 우 x=486.77 -> 하 y=264.5 -> 좌 x=457.4로 돌아 자기 drain 수직선(x=457.58)에 붙는다. M36a의 게이트 배선(x=389.64 브래킷)과 **서로 만나는 선분이 없다**. (3) **M39도 독립 diode**: 게이트 배선 x=511.38 -> 좌 x=501.28 -> 하 y=264.5 -> 우 x=530.7 로 자기 drain(x=530.92) 접속. gate=drain='Voc_des'. 이전의 'M39.gate=N36'은 오독. (4) **M40은 nmos가 아니라 PMOS이고, source가 Voc_des·gate=drain=gnd다**(이전엔 nmos/source=gnd/drain=Voc_des/gate=Vbias4로 3중 오독). 근거: 이 도면의 화살표 규약은 'NMOS는 소스 화살표가 채널바 바깥, PMOS는 안쪽'인데(M38 nmos: 아래단자 화살표 꼭짓점 x=437.47로 채널바 x=426.91 바깥 / M36a pmos: 위단자 화살표 꼭짓점 x=403.41로 채널바에 붙음), M40의 위단자 화살표는 꼭짓점 x=515.05 = 자기 채널바 위치 -> PMOS 소스. 그리고 M40의 게이트 배선은 x=511.38 -> 좌 x=501.28 -> 하 y=365.19 -> 우 x=530.95인데, Voc_des 수직선(x=530.92)은 y=344.16에서 끝나고 y=365.19에 있는 것은 gnd로 내려가는 수직선(x=530.66, y=357.01~380.0)이다. Vbias4 배선(y=364.39)은 x=423.24(M38 게이트)에서 끝나 M40까지 가지 않는다. 결과적으로 VDD-M39-Voc_des-M40-GND는 **PMOS diode 2단 분압기**이고, 두 소자가 같으면 Voc_des=VDD/2=0.9V -- 논문 abstract의 'stabilize the output common-mode voltage level to 0.9V'(VDD=1.8V)와 정확히 일치한다(교차검증). (5) **CM 감지망**: 논문 II.D 원문 'R1 and R2 are used to averaging the differential signal (Vop and Vom) to common mode voltage (Voc)' -- Voc는 최종(2단) 출력 Vom/Vop의 저항 평균이다(1단 출력이 아니다). 벡터 좌표로도 확인(x=376.05 수직선이 Vom 포트에서 R1 지그재그를 거쳐 y=319.95에서 M37a 게이트판 x=399.74로 나가고, 다시 R2를 거쳐 Vop 포트로 내려간다). R1/R2는 트랜지스터가 아니라 netlist 스키마(kind: pmos/nmos) 대상이 아니므로 소자로 넣지 않고, CMRR metric_spec의 cm_sense_* 키로 반영했다(sizing_roles.metrics 주석 참고). 이 정정으로 CMFB 앰프는 '미러 부하 5T OTA'가 아니라 **다이오드 부하 차동쌍**이 되어 이득이 A_c = v(Vcmfb)/v(Voc) ~= -gm37/(2*gm36) 즉 O(1) 감쇠로 떨어진다(직전 세션 유도보다 훨씬 낮다 -- 회로가 원래 이렇다).",
-
   "_correction_log_4": "2026-08-03(배치 7-5b, CMFB netlist 재검증 중 발견 -- 원본 PDF Fig.1(page 2, 고해상도 재렌더링)을 직접 확대해 M8/M11a/M13(Vom측), M22/M20a/M17(Vop측) 연결을 재확인) -- _confidence_note가 이미 '**M13/M8/M22/M17은 전부 게이트가 Vbias1에 병렬로 묶인 동일 구조(paralleled current source)**'라고 명시(2026-07-30, 사용자 확인)했는데, 실제 netlist 필드는 이와 모순되게 M8.drain='N8_11a'=M11a.source(즉 M8이 M11a-M11b 다이오드 스택 '위'에 직렬로 쌓인 것처럼 선언)로 돼 있었다 -- prose 검증은 맞았는데 JSON 인코딩 단계에서 어긋난 전형적 케이스. 이미지 재확인(VDD 레일에 M8/M11a/M13이 각각 독립적으로 소스 연결된 것을 픽셀 단위로 확인, Vop측 M22/M20a/M17도 대칭 확인)으로 정정: M8/M13(그리고 M22/M17)은 VDD에서 독립적으로 소스를 받는 병렬 전류원이고, M11a(그리고 M20a)의 source도 M8.drain이 아니라 VDD -- M8/M13(M22/M17)의 drain은 다이오드 스택의 '위'(M11a.source)가 아니라 '아래'(M11b.drain=Vg15, M20b.drain=Vg25, 즉 M15/M25.gate와 같은 노드)에서 합류한다. Appendix Fig.7(page 7, 600dpi 재렌더링, Cadence 인스턴스명은 다르지만 구조 대응 확인)에서도 동일 패턴(M42의 drain이 M48-M49 다이오드 스택의 '아래'에서 M53.gate와 합류)으로 교차 확인.",
   "_correction_log_3": "2026-08-03(배치 7-5 optimize_full_circuit_budget() 첫 실행 중 발견) -- M63의 source가 'gnd'로 잘못 적혀 있었다. 그 결과 M64의 drain(N64_63)이 netlist 전체에서 단 한 번만 쓰이는 net(=끊어진 노드)이 됐다 -- derive_stack_groups()의 2단자-net 병합 규칙으로 이런 단선을 실제로 실행해보고 나서야 A엔진이 M6(Vbias1 소비자)의 전류를 못 정하는 것으로 발현됐다. _confidence_note가 서술하는 의도(M60->M64->M63 stacked-diode, M64가 M63 위에 캐스코드로 쌓임)와 맞추려면 M63.source가 M64.drain과 같은 net(N64_63)이어야 한다 -- 정정함.",
   "_correction_log_2": "2026-07-30 추가 정정(사용자와 함께 Fig.8 확대 이미지로 M58/M57/M68/M64/M63 재검증): M58/M57의 'vdd' 라벨은 소스 연결이 아니라 PMOS의 well/body bias 태그였다 -- 실제로는 M61(전류원, gate=Vbias1) -> M58(gate=M57의 drain) -> M57(gate=자기 drain=Vbias_p) 순서의 stacked diode이고, M58/M57 둘 다 게이트가 스택 맨 아래(M57의 drain)로 함께 묶인다. M68(nmos, gate=Vbias4)의 drain도 이 Vbias_p 노드에 연결되어 VDD->M61->M58->M57->M68->GND 전류 경로를 완성한다. 이전 버전의 'M57 gate=Vip'는 오독이었다(정정). M64/M63도 같은 stacked-diode 패턴(NMOS, 둘 다 게이트가 스택 맨 아래 M63의 drain=Vbias3로 묶임) -- M60(전류원)->M64->M63->gnd. 이전 버전의 'M63 gate=Vbias4 추정'은 필요 없어졌다(정정). 남은 미해결(LOW): M13/M17의 정확한 2차 전류원 역할, M9a/M18a의 정확한 gate(Vom1/Vop1 대칭 가정).",
-
   "_correction_log_7": "2026-08-03(세션 4, bias-gen 블록 후속 라운드 -- 사용자가 논문 원본 PDF를 계속 직접 보면서 불러준 정정을 대기열(workspaces/current-reuse-telescopic-ota-report/pending_topology_corrections.md '2026-08-03 세션 4, 후속 라운드 -- bias-gen' 섹션)에 모았다가 '한꺼번에 반영해' 지시로 일괄 반영) -- M60/M61/M64/M63/M58/M57/M68 7개 소자의 connectivity가 전면 재구성됐다. 핵심 변경: (1) M60.drain: N60_64 -> Vbias4(M66와 합류, M60는 더 이상 M64/M63 diode 스택을 안 먹임). (2) M61.drain: N_bg_61 -> Vbias3(M64/M63 diode 스택을 대신 먹임). (3) M64/M63 diode 위치가 뒤바뀜 -- 기존엔 'M63가 diode(gate=drain=Vbias3)'였는데(_correction_log_2 근거) 실제로는 'M64가 diode'(M64.gate=M64.drain=M63.gate=Vbias3, M63.gate만 그 노드를 읽는 소비자)였다. (4) M63.source: Vbias3(자기 자신의 옛 diode 노드) -> Vy(1단 NMOS tail) -- M63가 diode가 아니게 되면서 source가 완전히 다른 net으로. (5) M58.source: N_bg_61 -> Vx(1단 PMOS tail) -- (3)/(4)와 대칭. (6) M57/M58/M68이 공유하던 'Vbias_p'라는 net 이름 자체가 사라지고 전부 'Vbias2'로 흡수됨(M57.drain=M57.gate=M58.gate=M68.drain=Vbias2) -- 기존 Vbias2는 M2a.gate/M2b.gate(1단 캐스코드 바이어스)만 쓰던 net이었는데 이 bias-gen 서브블록도 같은 net을 직접 공유하는 것으로 정정. 소멸된 net: N60_64, N_bg_61, Vbias_p(3개). N64_63은 이름은 유지되지만 가리키는 단자가 바뀜(기존 M64.drain=M63.source였던 게 이제 M64.source=M63.drain으로, diode 위치가 반대가 되면서 자연히 뒤바뀜). M18_bg는 이번 라운드에서 재확인만 됐고 변경 없음(source=vdd, drain=gate=Vbias1). 대기 중 반영 전 여러 차례 정정(예: M58.source가 처음엔 Vbias2로 나왔다가 Vx로, M63.source가 처음엔 Vbias3로 나왔다가 Vy로 재정정됨)이 있었다 -- 최종 확정값만 반영, 중간값은 pending 파일에 이력으로만 남김. 이번엔 지난 라운드(_correction_log_6)와 달리 symmetry.dispositions 재생성도 같은 배치에서 즉시 수행(find_matching_candidates()/find_hub_merge_candidates()/check_symmetry_dispositions() 재실행, 재현 스크립트 workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py 그대로 재사용) -- Vx/Vy 그룹에 M58/M63이 새로 합류하며 diff_pair 후보(정확히 2개 조건)가 깨져 사라졌고, Vbias2 그룹에 M57/M58이 합류했다(Vbias_p 소멸). 관련 disposition reason 텍스트 갱신 + 'diff_pair/Vx', 'diff_pair/Vy', 'current_mirror/Vbias_p' 3건 삭제(완전 obsolete) 후 재실행 결과 ok=True, undisposed 0건 확인.",
   "_correction_log_6": "2026-08-03(세션 4, 사용자가 논문 원본 PDF를 직접 보면서 한 문장씩 불러준 정정을 대기열에 모았다가 '한꺼번에 반영해' 지시로 일괄 반영, 근거: workspaces/current-reuse-telescopic-ota-report/pending_topology_corrections.md) -- (1) M14b.source: N14a14b -> gnd (M14a/M14b가 공유 source 노드로 묶인 구조가 아니라 N14a14b-M14a-Vop1-M14b-gnd의 독립 diode 2단 스택으로 정정, M11a/M11b·M20a/M20b와 같은 패턴). M23a/M24b(Vop측 대응)는 이 정정 대상이 아니라고 사용자가 명시적으로 확인 -- Vom/Vop가 이 지점에서 의도적으로 비대칭임(임의로 대칭 강제 안 함). (2) M17/M22 drain 스왑: 기존엔 M22.drain=Vg25(M18a/M18b 공급), M17.drain=N24b23a(M23a/M24b 공급)로 돼 있었는데 실제로는 반대(M17.drain=Vg25, M22.drain=N24b23a)임을 사용자가 확인 -- Vom측 대응관계(M8.drain=Vg15->M9a/M9b, M13.drain=N14a14b->M14a/M14b)와 맞춰보면 원래도 M13<->M17, M8<->M22가 구조적으로 대응돼야 앞뒤가 맞다. (3) 교차결합(cross-coupling) 확인 -- Vom측 2단 Class-AB 내부노드(기존 이름 'Vg16', M9a/M9b/M10/M14a/M14b/M16이 공유)가 실제로는 'Vop1'(Vop측 1단 출력, M2b.drain=M3b.drain)과 동일 물리노드이고, 대칭으로 Vop측 내부노드(기존 이름 'Vg26', M18a/M18b/M19/M23a/M24b/M26이 공유)는 'Vom1'(Vom측 1단 출력, M2a.drain=M3a.drain)과 동일 물리노드다 -- 즉 1단 차동출력이 반대쪽 2단 Class-AB 바이어스 노드로 그대로 넘어가는 교차결합 구조. 'Vg16'/'Vg26'이라는 net 이름은 이번 정정으로 완전히 없어지고 'Vop1'/'Vom1'으로 대체됐다(Vg15/Vg25는 이번 정정 대상 아님 -- 그대로 유지). passive_elements의 Rz1/Rz2 terminals도 함께 갱신(N_cc_rz1-Vop1, N_cc_rz2-Vom1). **미해결 flag**: symmetry.dispositions 배열의 'Vg16'/'Vg26'을 key로 쓰는 항목들(find_matching_candidates()/find_hub_merge_candidates() 실측 출력 스냅샷, 위 _comment 참고)은 이번 netlist 변경으로 stale해졌다 -- 손으로 고치지 않았다(이 배열은 실제 함수 재호출 결과만 반영하는 관례, 손 작성 금지 원칙 유지). 다음 세션에서 두 함수를 재호출해 symmetry 섹션 전체를 재생성할 것.",
   "_correction_log": "2026-07-28 버전에서 발견해 2026-07-29 바로잡은 오류 3가지(사용자가 논문 재열람하며 직접 지적): (1) Fig.4('biasing circuit')는 실제 회로 소자가 아니라 Fig.2의 아키텍처를 설명하기 위한 참고 다이어그램이었다 -- 논문 본문 III.C절의 'the other side of Vx and Vy is marked in Figure 3'는 오탈자(Figure 2가 맞음)이고, Fig.2는 Fig.4의 참고 구조에서 Vbias1/Vbias2 자리를 Vip/Vim으로 바꾼 변형이다. 그 결과 이전 버전이 Fig.4에서 옮겨적은 M27/M28/M29/M33/M34/M31/M32/M30/M35(9개)는 전부 가상의 소자였다 -- 실제 bias-gen은 Appendix Fig.8(완전히 다른 Cadence 인스턴스 이름 M18/M60/M61/M64/M63/M58/M57/M66/M68)이다. (2) Fig.1 전체 스키매틱을 다시 보니 Class-AB 2단이 Vom측(Fig.3에 그려짐, 이미 모델링됨)과 별개로 Vop측(M22/M20a/M20b/M17/M18a/M18b/M21/M19/M24b/M23a 10개, Fig.1에만 있고 별도 그림 없음)이 실제로 존재 -- 이전 버전은 M13/M25/M26 3개 placeholder만 넣고 나머지 9개가 completely 누락, M26의 gate도 Vom측 M16과 같은 net(Vg16)으로 잘못 공유돼 있었다. Appendix Fig.7(2단 실측 스키매틱, size+DC 동작점)로 Vop/Vom 양쪽 다 재확인해 Vop측 12개 전부 추가. (3) M9a(그리고 Vop측 대응 M18a)의 극성이 nmos로 잘못 들어가 있었다 -- Fig.7 appendix가 Monticelli floating current source는 PMOS+NMOS 상보쌍(id 부호로 확인: M46=음수전류=PMOS, M45=양수전류=NMOS)임을 보여줘 pmos로 정정.",
-
   "compensation": {
     "function": "current_reuse_telescopic_topology",
-    "parameters": ["t_lln", "PM_target_deg", "Cc", "Cf", "Cs", "C_Ltot"],
-    "stage_devices": [["M1a", "M1b"], ["M4a", "M4b"], ["M15", "M25"], ["M16", "M26"]],
-    "shared_gm_id_groups": [[0, 1], [2, 3]],
+    "parameters": [
+      "t_lln",
+      "PM_target_deg",
+      "Cc",
+      "Cf",
+      "Cs",
+      "C_Ltot"
+    ],
+    "stage_devices": [
+      [
+        "M1a",
+        "M1b"
+      ],
+      [
+        "M4a",
+        "M4b"
+      ],
+      [
+        "M15",
+        "M25"
+      ],
+      [
+        "M16",
+        "M26"
+      ]
+    ],
+    "shared_gm_id_groups": [
+      [
+        0,
+        1
+      ],
+      [
+        2,
+        3
+      ]
+    ],
     "_shared_gm_id_groups_comment": "2026-08-03(배치 7-5 실행 중 발견) -- stage_devices[0](M1a/M1b, gmp)과 stage_devices[1](M4a/M4b, gmn)은 물리적으로 하나의 직렬 KCL 스택(M1a->M2a->M3a->M4a)이라 ID까지 같아야 한다(Eq.5는 gm만 같게 강제, ID는 별개). optimize_multistage()가 두 스테이지를 독립적으로 최적화하면 gm은 같아도 gm_id/ID가 달라져 A엔진에서 'KCL 위반'으로 실패했다 -- shared_gm_id_groups=[[0,1]]로 두 스테이지가 gm_id 하나를 공유하도록 지정해 해결. 2026-08-12(세션30) [2,3] 추가 -- stage_devices[2]/[3](M15/M25, M16/M26)을 분리한 직후 self-test(L5c)가 `propagate_topology_forced_currents()`에서 정확히 같은 유형의 KCL ValueError를 실측으로 재현했다: Vom 노드가 (사이징 엔진이 읽는 netlist 기준) M15.drain/M16.drain **딱 2개 단자뿐인 2단자 net**이라(R1은 별도 passive_elements 배열이라 엔진이 안 읽음), kcl_series_union()이 이미 순수 connectivity만으로 ID(M15)=ID(M16)를 강제하고 있었다 -- 이건 L 매칭과 무관한 **진짜 물리적 push-pull 출력단 정상전류 KCL**(선언이 아니라 회로 위상 자체의 귀결)이다. gm2가 gmp2=gmn2(50:50)로 이미 같아도, 두 스테이지를 독립적으로 optimize_multistage()하면(각자 다른 kind LUT에서 각자 최적 gm_id를 고름) ID=gm/gm_id가 갈라진다 -- shared_gm_id_groups=[[2,3]]으로 gm_id만 공유시켜 ID(M15)=ID(M16)를 회복한다. **L은 여전히 독립**이다 -- _size_group_at_gm_id()는 공유 그룹 안에서도 L/VDS는 스테이지별 자기 kind LUT로 각자 탐색하고 gm_id 하나만 고정하므로(코드 확인, sizing_recipe.py), 이 gm_id 공유가 L_stage2out_p/L_stage2out_n의 독립적 L 탐색을 막지 않는다.",
     "_stage_devices_comment": "2026-07-31 -- 이전 _stage_devices_pending 메모(gmp/gmn 분배가 stage_devices 계약과 안 맞을 거라는 우려)는 stale이었다: current_reuse_telescopic_topology()가 이미 [gmp,gmn,gm2] 3개를 위치별로 반환하고, optimize_full_circuit_budget()의 병합 코드(sizing_recipe.py 배치 7-3d)도 stage_devices[i]<->gms[i] 위치기반 매핑만 하므로 그룹0(M1a/M1b)은 gmp만, 그룹1(M4a/M4b)은 gmn만 정확히 받는다 -- 별도 스키마 확장 불필요. 2026-08-03(배치 7-5 실행 중 발견/보정): M25/M26(Vop측 출력 -- symmetry.matching_pairs상 M15/M25, M16/M26이 branch_symmetric)이 device_roles 어디에도 없어 optimize_full_circuit_budget()이 이 둘의 W를 못 채우고 조용히 partial 결과만 반환하는 gap이 있었다(에러 없이 sizing_overrides=None) -- stage_devices의 '그룹 전원이 같은 stage gm을 받는다' 계약이 branch_symmetric 의미와 정확히 일치하므로 새 메커니즘 대신 그룹에 편입시켜 해결.",
     "_stage_devices_comment_session30": "2026-08-12(세션30) -- 옛 stage_devices[2]=[M15,M16,M25,M26](4개, 단일 L/gm_id 강제)를 [M15,M25](PMOS)/[M16,M26](NMOS) 2그룹으로 분리. 계기: L_stage2out(옛 단일 theta)이 gain_db와 classab_centering_dev_v(M15=Vop1 레벨/M16=Vg15 레벨, 합=VDD 요구)에 동시에 걸려 실제로 상충함이 세션29 '## AN'에서 실측 확인됨 -- M15/M16을 하나의 L로 묶는 게 회로적 요구가 아니라 엔진 구현 편의였다는 게 사용자와 함께 진행한 문헌조사(gm/ID 방법론은 cross-kind 쌍을 독립 변수로 다룸, Pelgrom/전류미러 매칭은 same-kind에만 성립)+코드 대조(symmetry.matching_pairs가 이미 M15-M25/M16-M26만 선언하고 M15-M16 cross-kind 매칭은 없음)로 확인됨(`.ai/context.md` 세션30 참고). 레이아웃 안전성: build_graph()의 kind 동질성 하드 게이트(세션28)로 row는 항상 kind 동질이라 M15(PMOS)/M16(NMOS)는 애초에 같은 물리 row로 병합된 적이 없다(output_stage_a__pmos={M15,M25}/__nmos={M16,M26}, 세션28부터 이미 분리) -- 이번 분리는 레이아웃 병합 가정을 전혀 건드리지 않는다. M15-M25/M16-M26(같은 kind, declared matching_pairs)는 각자 그룹 안에서 여전히 L 공유가 강제된다(sizing_recipe.py의 matching pair L 불일치 하드에러, 2704~2742행 그대로 유효) -- '독립'은 오직 cross-kind 경계에서만 허용, same-kind 매칭 요구는 그대로 유지하는 게 이 변경의 원칙(자세한 논의는 세션30 대화 참고: L은 기본적으로 공유, declared matching_pairs가 없고 값싼 LUT 검토로 상충이 증명된 경계에서만 독립).",
     "notes": "2026-07-31 사용자와 함께 원문(Xie & Chen) PDF p.3-4를 직접 확인해 Eq.2-6 전체를 재도출하고 topology_library.py에 구현·등록함(이전에 AI가 Eq.6의 PM->omega_p2/omega_c 관계식을 근거 없이 재구성해 등록했다가 사용자 지적으로 되돌린 뒤, 이번엔 원문 인용 'PM=tan^-1(omega_p2/omega_c) [9]'을 직접 확인). beta(Eq.4)도 원문의 고정 근사(0.48) 대신 prev_cggs[0](1단 자기 자신의 Cgg1) 고정점 반복으로 대체 -- toy LUT로 실제 수렴 확인(beta≈0.457, gm1≈252uS, 5회 반복 수렴, sizing_recipe.py self-test 참고)."
   },
   "_compensation_status": "resolved",
-
   "_netlist_sections": "Fig.2/Fig.6 1단(M6,M7,M1a/b,M2a/b,M3a/b,M4a/b,M5 -- 11개, 확신도 HIGH) / Fig.3/Fig.7-우 2단 Class-AB Vom측(M8,M11a/b,M15,M9a/b,M12,M10,M14a/b,M16,M13 -- 12개, 확신도 MEDIUM) / Fig.1+Fig.7-좌 2단 Class-AB Vop측(M22,M20a/b,M25,M18a/b,M21,M19,M24b,M23a,M26,M17 -- 12개, 확신도 MEDIUM, 2026-07-29 신규) / Fig.8 bias-gen(M18_bg,M60,M61,M64,M63,M58,M57,M66,M68 -- 9개, 확신도 LOW, 2026-07-29 Fig.4에서 교체) / Fig.5 CMFB(M36a/b,M37a/b,M38,M39,M40 -- 7개, 확신도 MEDIUM)",
   "_netlist_sections_structured_comment": "2026-08-06(세션20) -- 위 _netlist_sections(prose)를 run_full_circuit_audit_from_topology()가 expected_counts로 기계적으로 파싱할 수 있게 구조화한 것. 새 판단 없음 -- prose가 이미 선언한 소자 목록/블록 경계를 dict로만 재표현(51개 전수 커버, 중복/누락 0 확인됨). prose(_netlist_sections)는 사람이 읽는 원본으로 그대로 유지.",
   "_netlist_sections_structured": {
     "stage1_diffpair": {
       "label": "Fig.2/Fig.6 1단",
       "confidence": "HIGH",
-      "devices": ["M6", "M7", "M1a", "M1b", "M2a", "M2b", "M3a", "M3b", "M4a", "M4b", "M5"]
+      "devices": [
+        "M6",
+        "M7",
+        "M1a",
+        "M1b",
+        "M2a",
+        "M2b",
+        "M3a",
+        "M3b",
+        "M4a",
+        "M4b",
+        "M5"
+      ]
     },
     "classab_vom": {
       "label": "Fig.3/Fig.7-우 2단 Class-AB Vom측",
       "confidence": "MEDIUM",
-      "devices": ["M8", "M11a", "M11b", "M15", "M9a", "M9b", "M12", "M10", "M14a", "M14b", "M16", "M13"]
+      "devices": [
+        "M8",
+        "M11a",
+        "M11b",
+        "M15",
+        "M9a",
+        "M9b",
+        "M12",
+        "M10",
+        "M14a",
+        "M14b",
+        "M16",
+        "M13"
+      ]
     },
     "classab_vop": {
       "label": "Fig.1+Fig.7-좌 2단 Class-AB Vop측",
       "confidence": "MEDIUM",
-      "devices": ["M22", "M20a", "M20b", "M25", "M18a", "M18b", "M21", "M19", "M24b", "M23a", "M26", "M17"]
+      "devices": [
+        "M22",
+        "M20a",
+        "M20b",
+        "M25",
+        "M18a",
+        "M18b",
+        "M21",
+        "M19",
+        "M24b",
+        "M23a",
+        "M26",
+        "M17"
+      ]
     },
     "biasgen": {
       "label": "Fig.8 bias-gen",
       "confidence": "LOW",
-      "devices": ["M18_bg", "M60", "M61", "M64", "M63", "M58", "M57", "M66", "M68"]
+      "devices": [
+        "M18_bg",
+        "M60",
+        "M61",
+        "M64",
+        "M63",
+        "M58",
+        "M57",
+        "M66",
+        "M68"
+      ]
     },
     "cmfb": {
       "label": "Fig.5 CMFB",
       "confidence": "MEDIUM",
-      "devices": ["M36a", "M36b", "M37a", "M37b", "M38", "M39", "M40"]
+      "devices": [
+        "M36a",
+        "M36b",
+        "M37a",
+        "M37b",
+        "M38",
+        "M39",
+        "M40"
+      ]
     }
   },
-
   "netlist": [
-    {"name": "M6",  "kind": "pmos", "source": "vdd", "drain": "Vx", "gate": "Vbias1"},
-    {"name": "M7",  "kind": "pmos", "source": "vdd", "drain": "Vx", "gate": "Vcmfb"},
-    {"name": "M1a", "kind": "pmos", "source": "Vx", "drain": "N1a2a", "gate": "Vip"},
-    {"name": "M1b", "kind": "pmos", "source": "Vx", "drain": "N1b2b", "gate": "Vim"},
-    {"name": "M2a", "kind": "pmos", "source": "N1a2a", "drain": "Vom1", "gate": "Vbias2"},
-    {"name": "M2b", "kind": "pmos", "source": "N1b2b", "drain": "Vop1", "gate": "Vbias2"},
-    {"name": "M3a", "kind": "nmos", "source": "N3a4a", "drain": "Vom1", "gate": "Vbias3"},
-    {"name": "M3b", "kind": "nmos", "source": "N3b4b", "drain": "Vop1", "gate": "Vbias3"},
-    {"name": "M4a", "kind": "nmos", "source": "Vy", "drain": "N3a4a", "gate": "Vip"},
-    {"name": "M4b", "kind": "nmos", "source": "Vy", "drain": "N3b4b", "gate": "Vim"},
-    {"name": "M5",  "kind": "nmos", "source": "gnd", "drain": "Vy", "gate": "Vbias4"},
-
-    {"name": "M8",  "kind": "pmos", "source": "vdd", "drain": "Vg15", "gate": "Vbias1"},
-    {"name": "M11a","kind": "pmos", "source": "vdd", "drain": "N11a11b", "gate": "N11a11b"},
-    {"name": "M11b","kind": "pmos", "source": "N11a11b", "drain": "N11b", "gate": "N11b"},
-    {"name": "M15", "kind": "pmos", "source": "vdd", "drain": "Vom", "gate": "Vg15"},
-    {"name": "M9a", "kind": "pmos", "source": "Vg15", "drain": "Vop1", "gate": "N11b"},
-    {"name": "M9b", "kind": "nmos", "source": "Vop1", "drain": "Vg15", "gate": "N14a14b"},
-    {"name": "M12", "kind": "nmos", "source": "gnd", "drain": "N11b", "gate": "Vbias4"},
-    {"name": "M10", "kind": "nmos", "source": "gnd", "drain": "Vop1", "gate": "Vbias4"},
-    {"name": "M14a","kind": "nmos", "source": "N14a_14b", "drain": "N14a14b", "gate": "N14a14b"},
-    {"name": "M14b","kind": "nmos", "source": "gnd", "drain": "N14a_14b", "gate": "N14a_14b"},
-    {"name": "M16", "kind": "nmos", "source": "gnd", "drain": "Vom", "gate": "Vop1"},
-    {"name": "M13", "kind": "pmos", "source": "vdd", "drain": "N14a14b", "gate": "Vbias1"},
-
-    {"name": "M22", "kind": "pmos", "source": "vdd", "drain": "N24b23a", "gate": "Vbias1"},
-    {"name": "M20a","kind": "pmos", "source": "vdd", "drain": "N20a20b", "gate": "N20a20b"},
-    {"name": "M20b","kind": "pmos", "source": "N20a20b", "drain": "N20b", "gate": "N20b"},
-    {"name": "M25", "kind": "pmos", "source": "vdd", "drain": "Vop", "gate": "Vg25"},
-    {"name": "M18a","kind": "pmos", "source": "Vg25", "drain": "Vom1", "gate": "N20b"},
-    {"name": "M18b","kind": "nmos", "source": "Vom1", "drain": "Vg25", "gate": "N24b23a"},
-    {"name": "M21", "kind": "nmos", "source": "gnd", "drain": "N20b", "gate": "Vbias4"},
-    {"name": "M19", "kind": "nmos", "source": "gnd", "drain": "Vom1", "gate": "Vbias4"},
-    {"name": "M23a","kind": "nmos", "source": "N23a24b", "drain": "N24b23a", "gate": "N24b23a"},
-    {"name": "M24b","kind": "nmos", "source": "gnd", "drain": "N23a24b", "gate": "N23a24b"},
-    {"name": "M26", "kind": "nmos", "source": "gnd", "drain": "Vop", "gate": "Vom1"},
-    {"name": "M17", "kind": "pmos", "source": "vdd", "drain": "Vg25", "gate": "Vbias1"},
-
-    {"name": "M18_bg","kind": "pmos", "source": "vdd", "drain": "Vbias1", "gate": "Vbias1"},
-    {"name": "M60",    "kind": "pmos", "source": "vdd", "drain": "Vbias4", "gate": "Vbias1"},
-    {"name": "M61",    "kind": "pmos", "source": "vdd", "drain": "Vbias3", "gate": "Vbias1"},
-    {"name": "M64",    "kind": "nmos", "source": "N64_63", "drain": "Vbias3", "gate": "Vbias3"},
-    {"name": "M63",    "kind": "nmos", "source": "Vy", "drain": "N64_63", "gate": "Vbias3"},
-    {"name": "M58",    "kind": "pmos", "source": "Vx", "drain": "N58_57", "gate": "Vbias2"},
-    {"name": "M57",    "kind": "pmos", "source": "N58_57", "drain": "Vbias2", "gate": "Vbias2"},
-    {"name": "M66",    "kind": "nmos", "source": "gnd", "drain": "Vbias4", "gate": "Vbias4"},
-    {"name": "M68",    "kind": "nmos", "source": "gnd", "drain": "Vbias2", "gate": "Vbias4"},
-
-    {"name": "M36a","kind": "pmos", "source": "vdd", "drain": "Vcmfb", "gate": "Vcmfb"},
-    {"name": "M36b","kind": "pmos", "source": "vdd", "drain": "N36b", "gate": "N36b"},
-    {"name": "M37a","kind": "nmos", "source": "Ncmfb_tail", "drain": "Vcmfb", "gate": "Voc"},
-    {"name": "M37b","kind": "nmos", "source": "Ncmfb_tail", "drain": "N36b", "gate": "Voc_des"},
-    {"name": "M38", "kind": "nmos", "source": "gnd", "drain": "Ncmfb_tail", "gate": "Vbias4"},
-    {"name": "M39", "kind": "pmos", "source": "vdd", "drain": "Voc_des", "gate": "Voc_des"},
-    {"name": "M40", "kind": "pmos", "source": "Voc_des", "drain": "gnd", "gate": "gnd"}
+    {
+      "name": "M6",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vx",
+      "gate": "Vbias1"
+    },
+    {
+      "name": "M7",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vx",
+      "gate": "Vcmfb"
+    },
+    {
+      "name": "M1a",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "N1a2a",
+      "gate": "Vip"
+    },
+    {
+      "name": "M1b",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "N1b2b",
+      "gate": "Vim"
+    },
+    {
+      "name": "M2a",
+      "kind": "pmos",
+      "source": "N1a2a",
+      "drain": "Vom1",
+      "gate": "Vbias2"
+    },
+    {
+      "name": "M2b",
+      "kind": "pmos",
+      "source": "N1b2b",
+      "drain": "Vop1",
+      "gate": "Vbias2"
+    },
+    {
+      "name": "M3a",
+      "kind": "nmos",
+      "source": "N3a4a",
+      "drain": "Vom1",
+      "gate": "Vbias3"
+    },
+    {
+      "name": "M3b",
+      "kind": "nmos",
+      "source": "N3b4b",
+      "drain": "Vop1",
+      "gate": "Vbias3"
+    },
+    {
+      "name": "M4a",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "N3a4a",
+      "gate": "Vip"
+    },
+    {
+      "name": "M4b",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "N3b4b",
+      "gate": "Vim"
+    },
+    {
+      "name": "M5",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vy",
+      "gate": "Vbias4"
+    },
+    {
+      "name": "M8",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vg15",
+      "gate": "Vbias1"
+    },
+    {
+      "name": "M11a",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N11a11b",
+      "gate": "N11a11b"
+    },
+    {
+      "name": "M11b",
+      "kind": "pmos",
+      "source": "N11a11b",
+      "drain": "N11b",
+      "gate": "N11b"
+    },
+    {
+      "name": "M15",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vom",
+      "gate": "Vg15"
+    },
+    {
+      "name": "M9a",
+      "kind": "pmos",
+      "source": "Vg15",
+      "drain": "Vop1",
+      "gate": "N11b"
+    },
+    {
+      "name": "M9b",
+      "kind": "nmos",
+      "source": "Vop1",
+      "drain": "Vg15",
+      "gate": "N14a14b"
+    },
+    {
+      "name": "M12",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "N11b",
+      "gate": "Vbias4"
+    },
+    {
+      "name": "M10",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vop1",
+      "gate": "Vbias4"
+    },
+    {
+      "name": "M14a",
+      "kind": "nmos",
+      "source": "N14a_14b",
+      "drain": "N14a14b",
+      "gate": "N14a14b"
+    },
+    {
+      "name": "M14b",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "N14a_14b",
+      "gate": "N14a_14b"
+    },
+    {
+      "name": "M16",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vom",
+      "gate": "Vop1"
+    },
+    {
+      "name": "M13",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N14a14b",
+      "gate": "Vbias1"
+    },
+    {
+      "name": "M22",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N24b23a",
+      "gate": "Vbias1"
+    },
+    {
+      "name": "M20a",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N20a20b",
+      "gate": "N20a20b"
+    },
+    {
+      "name": "M20b",
+      "kind": "pmos",
+      "source": "N20a20b",
+      "drain": "N20b",
+      "gate": "N20b"
+    },
+    {
+      "name": "M25",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vop",
+      "gate": "Vg25"
+    },
+    {
+      "name": "M18a",
+      "kind": "pmos",
+      "source": "Vg25",
+      "drain": "Vom1",
+      "gate": "N20b"
+    },
+    {
+      "name": "M18b",
+      "kind": "nmos",
+      "source": "Vom1",
+      "drain": "Vg25",
+      "gate": "N24b23a"
+    },
+    {
+      "name": "M21",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "N20b",
+      "gate": "Vbias4"
+    },
+    {
+      "name": "M19",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vom1",
+      "gate": "Vbias4"
+    },
+    {
+      "name": "M23a",
+      "kind": "nmos",
+      "source": "N23a24b",
+      "drain": "N24b23a",
+      "gate": "N24b23a"
+    },
+    {
+      "name": "M24b",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "N23a24b",
+      "gate": "N23a24b"
+    },
+    {
+      "name": "M26",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vop",
+      "gate": "Vom1"
+    },
+    {
+      "name": "M17",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vg25",
+      "gate": "Vbias1"
+    },
+    {
+      "name": "M18_bg",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vbias1",
+      "gate": "Vbias1"
+    },
+    {
+      "name": "M60",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vbias4",
+      "gate": "Vbias1"
+    },
+    {
+      "name": "M61",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vbias3",
+      "gate": "Vbias1"
+    },
+    {
+      "name": "M64",
+      "kind": "nmos",
+      "source": "N64_63",
+      "drain": "Vbias3",
+      "gate": "Vbias3"
+    },
+    {
+      "name": "M63",
+      "kind": "nmos",
+      "source": "Vy",
+      "drain": "N64_63",
+      "gate": "Vbias3"
+    },
+    {
+      "name": "M58",
+      "kind": "pmos",
+      "source": "Vx",
+      "drain": "N58_57",
+      "gate": "Vbias2"
+    },
+    {
+      "name": "M57",
+      "kind": "pmos",
+      "source": "N58_57",
+      "drain": "Vbias2",
+      "gate": "Vbias2"
+    },
+    {
+      "name": "M66",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vbias4",
+      "gate": "Vbias4"
+    },
+    {
+      "name": "M68",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Vbias2",
+      "gate": "Vbias4"
+    },
+    {
+      "name": "M36a",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vcmfb",
+      "gate": "Vcmfb"
+    },
+    {
+      "name": "M36b",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N36b",
+      "gate": "N36b"
+    },
+    {
+      "name": "M37a",
+      "kind": "nmos",
+      "source": "Ncmfb_tail",
+      "drain": "Vcmfb",
+      "gate": "Voc"
+    },
+    {
+      "name": "M37b",
+      "kind": "nmos",
+      "source": "Ncmfb_tail",
+      "drain": "N36b",
+      "gate": "Voc_des"
+    },
+    {
+      "name": "M38",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "Ncmfb_tail",
+      "gate": "Vbias4"
+    },
+    {
+      "name": "M39",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Voc_des",
+      "gate": "Voc_des"
+    },
+    {
+      "name": "M40",
+      "kind": "pmos",
+      "source": "Voc_des",
+      "drain": "gnd",
+      "gate": "gnd"
+    }
   ],
-
   "symmetry": {
     "_comment": "2026-07-29 재구성 후 find_matching_candidates()/find_hub_merge_candidates()를 실제로 재호출해 아래 matching_pairs/dispositions를 갱신(실측 출력 근거, 손 작성 아님). M9a/M18a가 pmos로 바뀌면서 M9a/M9b는 더 이상 같은 극성의 current_mirror가 아니라 PMOS+NMOS 상보쌍이 됐다 — 이런 쌍은 물리적으로 같은 diffusion에 못 들어가므로(극성이 다름) interdigitation/common-centroid 매칭 대상이 아니다(각 극성 내에서 자기 짝과만 매칭). 그래서 matching_pairs에서 제외했다. 2026-08-03(세션 4, _correction_log_6 배치 반영 직후 후속조치로 find_matching_candidates()/find_hub_merge_candidates()/check_symmetry_dispositions()를 다시 실제로 재호출) -- 재실행 결과 dispositions 25건 중 10건이 stale이었다(re-run script: workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py 재현 가능). 4건(Vg15/Vg16/Vg25/Vg26 키의 current_mirror)은 실제 관계는 그대로 살아있고 키 이름만 바뀐 것(Vg15→N11b, Vg25→N20b는 이번 세션과 무관하게 예전부터 있었으나 누락됐던 관계, Vg16→Vop1/Vg26→Vom1은 이번 세션 교차결합 병합으로 개명) -- 새 키로 재등록. 6건(N3a4a/N3b4b/N8_11a/N22_20a/Vg15·hub_merge/Vg25·hub_merge)은 재실행 결과 더 이상 어느 후보로도 안 잡혀 완전히 삭제(과거 어느 시점 netlist가 바뀐 뒤 dispositions에 반영 안 된 채 방치된 진짜 stale). 새로 4건(current_mirror: N14a14b, N24b23a — 이번 세션과 무관하게 원래부터 있었는데 처음 발견됨)과 4건(hub_merge: Vom1×2, Vop1×2 — 이번 세션 교차결합 병합이 만든 진짜 신규 후보)이 추가됐다. matching_pairs는 이번 재실행으로 새로 채택할 real_match가 없어 변경 없음(전부 false_positive로 disposed).",
     "matching_pairs": [
-      {"names": ["M1a", "M1b"], "current_forced": true, "matching_sensitivity": "offset"},
-      {"names": ["M4a", "M4b"], "current_forced": true, "matching_sensitivity": "offset"},
-      {"names": ["M2a", "M2b"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- branch_symmetric에서 재분류. M2a.ID=M1a.ID(2단자 net 직렬 KCL), M1a=M1b(compensation.stage_devices[0] 같은 그룹, 강제 동일) → M2a=M2b가 이미 수학적으로 강제됨(사용자 지적 '대응 branch는 대칭 유지 위해 같은 전류여야' 계기로 전체 branch_symmetric 재감사)."},
-      {"names": ["M3a", "M3b"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- 위와 동일 논리(M3a=M4a 직렬, M4a=M4b compensation 강제)."},
-      {"names": ["M8", "M17"], "current_forced": true, "matching_sensitivity": "ratio"},
-      {"names": ["M13", "M22"], "current_forced": true, "matching_sensitivity": "ratio"},
-      {"names": ["M18_bg", "M8", "M13", "M17", "M22", "M60", "M61"], "current_forced": false, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6, 사용자 지적 계기) -- 전부 gate=Vbias1을 공유하는 진짜 mirror branch(구조적 사실). M8/M17=신호경로 규모, M13/M22=하우스키핑 규모(진짜 같은 전류는 위에 별도 current_forced=true로 이미 선언됨, 겹쳐도 무방 -- 이 그룹은 순수 문서화+L_role=mirror 일치 검증용). **2026-08-05(세션10) 정정**: M18_bg/M60/M61은 이 문서용 그룹엔 여전히 남지만(같은 Vbias1 mirror branch라는 구조적 사실은 유효), 실제 current_forced 근거는 아래 별도 그룹으로 옮겼다 -- audit_current_forced.py가 r_biasgen theta(root=[M18_bg,M60,M61,M66])의 실제 강제와 이 항목의 current_forced=false 선언이 모순됨을 잡아냄(M58/M57과 같은 유형의 과소선언). M6은 제외(같은 Vbias1을 읽지만 headroom_role=tail/L_role=bias_replica로 이 7개(전부 L_role=mirror)와 다른 카테고리 -- 같은 matching_pairs 그룹에 넣으면 L 불일치 ValueError)."},
-      {"names": ["M18_bg", "M60", "M61"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08-05(세션10, audit_current_forced.py가 발견) -- r_biasgen theta(root=[M18_bg,M60,M61,M66], reference=[M1a,M1b])가 셋 다 같은 theta_value로 동시에 시드해 실제로 같은 전류로 강제한다(theta 자체 주석: 'M60/M61은 M18_bg와 같은 게이트를 읽는 병렬 하우스키핑 전류원'). M12/M21(r_diode_M11a)과 같은 패턴 -- 위 7-소자 문서용 그룹(current_forced=false)과 모순돼 있던 걸 정정. M66은 nmos(다른 극성, 다른 branch)라 layout 매칭 대상이 아니므로 이 선언엔 포함하지 않음(KCL상으로는 r_biasgen이 M66도 같은 전류로 강제하지만 그건 theta가 이미 반영하고 있어 matching_pairs 선언과 무관)."},
-      {"names": ["M11a", "M20a"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- 옛 {M11a,M14a}를 대체. find_structural_symmetry_candidates(mirror)(2026-08 세션6 신설, stick_diagram.py)로 전체 netlist를 좌우 자동매칭한 결과 M11a의 진짜 좌우 대응은 M20a임이 확인됨(M11a-M11b-M12 Vom측 다이오드체인 ↔ M20a-M20b-M21 Vop측 다이오드체인, sizing_roles.theta의 r_diode_M11a가 이미 이 6개를 하나의 root=list로 묶어 같은 전류로 시드하고 있었음 -- KCL은 맞았는데 matching_pairs 문서만 stale이었다). 옛 {M11a,M14a}는 _correction_log_6/_correction_log_8이 만든 블랭킷 병합의 잔재(M14a/M14b connectivity가 세션5에 재정정되며 stale해질 거라고 이미 경고돼 있었는데 rerun 전까지 방치됨) -- M11a와 M14a는 애초에 전혀 다른 역할(M11a=배터리 replica bias 생성, M14a=M13의 다이오드 체인 구성원)이라 관계 자체가 없다. **branch_symmetric->current_matched 2차 정정**: 사용자 지적('대응 branch는 대칭 유지 위해 같은 전류여야') 계기로 재확인 -- r_diode_M11a가 이미 같은 전류를 강제하고 있었으므로 애초에 current_matched가 맞았다."},
-      {"names": ["M11b", "M20b"], "current_forced": true, "matching_sensitivity": "ratio"},
-      {"names": ["M12", "M21"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) -- M12/M21은 M11a/M20a와 달리 gate=Vbias4를 실제로 공유하는 진짜 current_matched(구조도 대칭이고 전류도 진짜 같음, r_diode_M11a theta가 이미 강제) -- branch_symmetric이 아니라 current_matched로 분류."},
-      {"names": ["M14a", "M23a"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- 옛 {M20a,M24b}를 대체(M14a/M23a가 진짜 좌우 대응, M20a는 위에서 M11a와 이미 별도로 짝지어짐). branch_symmetric->current_matched 2차 정정: M14a.ID=M13.ID(직렬 KCL), M13=M22(r_classab_diode_src 강제), M22.ID=M23a.ID(직렬 KCL) -> M14a=M23a가 이미 수학적으로 강제됨."},
-      {"names": ["M14b", "M24b"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- 옛 {M20b,M23a}를 대체(M14b/M24b가 진짜 좌우 대응). 위와 같은 사슬로 전류 강제 확인."},
-      {"names": ["M10", "M19"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) -- find_structural_symmetry_candidates(mirror) 대조로 matching_pairs 누락 발견(둘 다 gate=Vbias4·source=gnd 공유, drain만 다름 -- 구조로도 진짜 current_mirror 모양). kcl_sink_M10/kcl_sink_M19(A_signed KCL theta)가 이미 완전히 같은 값으로 강제하므로 current_matched로 선언."},
-      {"names": ["M15", "M25"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- compensation.stage_devices의 같은 그룹(gm/gm_id/ID 동일)을 받으므로 이미 강제 동일 -- branch_symmetric->current_matched. 2026-08-12(세션30) 갱신: 옛 4개(M15,M16,M25,M26) 단일 그룹이 [M15,M25](PMOS)/[M16,M26](NMOS) 2그룹으로 분리됐지만, 이 쌍(M15-M25, 둘 다 PMOS)은 여전히 같은 그룹에 남아 강제 동일 관계는 변화 없음."},
-      {"names": ["M16", "M26"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- 위와 동일 compensation 그룹. 2026-08-12(세션30) 갱신: M15-M25와 같은 사유로 이 쌍(M16-M26, 둘 다 NMOS)도 분리된 자기 그룹 안에서 강제 동일 관계 유지."},
-      {"names": ["M9a", "M18a"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- mirror_M18a theta(type C, ratio=1.0 완전 replica)가 이미 강제 동일 -- branch_symmetric->current_matched."},
-      {"names": ["M9b", "M18b"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- kcl_battery_M9b(=M8-M9a)와 kcl_battery_M18b(=M17-M18a), M8=M17·M9a=M18a가 이미 강제되므로 M9b=M18b도 수학적으로 강제됨 -- branch_symmetric->current_matched."},
-      {"names": ["M10", "M12", "M19", "M21"], "current_forced": false, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) -- 옛 {M12,M10}/{M21,M19} branch_symmetric을 대체. 넷 다 gate=Vbias4·source=gnd 공유(진짜 구조적 mirror)지만 M12/M21(r_diode_M11a, 하우스키핑 규모)과 M10/M19(kcl_sink, 출력버스 KCL)는 서로 다른 값 -- 같은 gate 공유가 곧 같은 전류를 뜻하지 않는다는 M8/M13류 원칙 그대로 적용, KCL 병합 없는 current_forced=false로 재분류(branch_symmetric은 정의상 '공유 노드 없음'인데 이 넷은 두 노드(source/gate)를 공유해 애초에 branch_symmetric 정의에도 안 맞았다). L_role=mirror로 4개 전부 동일해 L 불일치 없음."},
-      {"names": ["M37a", "M37b"], "current_forced": true, "matching_sensitivity": "offset"},
-      {"names": ["M36a", "M36b"], "current_forced": true, "matching_sensitivity": "ratio",
-       "_comment": "2026-08(세션6) 정정 -- M36a.ID=M37a.ID, M36b.ID=M37b.ID(둘 다 2단자 net 직렬 KCL), M37a=M37b(N_cmfb_bw_mirror theta, ratio=1.0 강제) -> M36a=M36b도 수학적으로 강제됨 -- branch_symmetric->current_matched."}
+      {
+        "names": [
+          "M1a",
+          "M1b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "offset"
+      },
+      {
+        "names": [
+          "M4a",
+          "M4b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "offset"
+      },
+      {
+        "names": [
+          "M2a",
+          "M2b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- branch_symmetric에서 재분류. M2a.ID=M1a.ID(2단자 net 직렬 KCL), M1a=M1b(compensation.stage_devices[0] 같은 그룹, 강제 동일) → M2a=M2b가 이미 수학적으로 강제됨(사용자 지적 '대응 branch는 대칭 유지 위해 같은 전류여야' 계기로 전체 branch_symmetric 재감사)."
+      },
+      {
+        "names": [
+          "M3a",
+          "M3b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- 위와 동일 논리(M3a=M4a 직렬, M4a=M4b compensation 강제)."
+      },
+      {
+        "names": [
+          "M8",
+          "M17"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio"
+      },
+      {
+        "names": [
+          "M13",
+          "M22"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio"
+      },
+      {
+        "names": [
+          "M18_bg",
+          "M8",
+          "M13",
+          "M17",
+          "M22",
+          "M60",
+          "M61"
+        ],
+        "current_forced": false,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6, 사용자 지적 계기) -- 전부 gate=Vbias1을 공유하는 진짜 mirror branch(구조적 사실). M8/M17=신호경로 규모, M13/M22=하우스키핑 규모(진짜 같은 전류는 위에 별도 current_forced=true로 이미 선언됨, 겹쳐도 무방 -- 이 그룹은 순수 문서화+L_role=mirror 일치 검증용). **2026-08-05(세션10) 정정**: M18_bg/M60/M61은 이 문서용 그룹엔 여전히 남지만(같은 Vbias1 mirror branch라는 구조적 사실은 유효), 실제 current_forced 근거는 아래 별도 그룹으로 옮겼다 -- audit_current_forced.py가 r_biasgen theta(root=[M18_bg,M60,M61,M66])의 실제 강제와 이 항목의 current_forced=false 선언이 모순됨을 잡아냄(M58/M57과 같은 유형의 과소선언). M6은 제외(같은 Vbias1을 읽지만 headroom_role=tail/L_role=bias_replica로 이 7개(전부 L_role=mirror)와 다른 카테고리 -- 같은 matching_pairs 그룹에 넣으면 L 불일치 ValueError)."
+      },
+      {
+        "names": [
+          "M18_bg",
+          "M60",
+          "M61"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08-05(세션10, audit_current_forced.py가 발견) -- r_biasgen theta(root=[M18_bg,M60,M61,M66], reference=[M1a,M1b])가 셋 다 같은 theta_value로 동시에 시드해 실제로 같은 전류로 강제한다(theta 자체 주석: 'M60/M61은 M18_bg와 같은 게이트를 읽는 병렬 하우스키핑 전류원'). M12/M21(r_diode_M11a)과 같은 패턴 -- 위 7-소자 문서용 그룹(current_forced=false)과 모순돼 있던 걸 정정. M66은 nmos(다른 극성, 다른 branch)라 layout 매칭 대상이 아니므로 이 선언엔 포함하지 않음(KCL상으로는 r_biasgen이 M66도 같은 전류로 강제하지만 그건 theta가 이미 반영하고 있어 matching_pairs 선언과 무관)."
+      },
+      {
+        "names": [
+          "M11a",
+          "M20a"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- 옛 {M11a,M14a}를 대체. find_structural_symmetry_candidates(mirror)(2026-08 세션6 신설, stick_diagram.py)로 전체 netlist를 좌우 자동매칭한 결과 M11a의 진짜 좌우 대응은 M20a임이 확인됨(M11a-M11b-M12 Vom측 다이오드체인 ↔ M20a-M20b-M21 Vop측 다이오드체인, sizing_roles.theta의 r_diode_M11a가 이미 이 6개를 하나의 root=list로 묶어 같은 전류로 시드하고 있었음 -- KCL은 맞았는데 matching_pairs 문서만 stale이었다). 옛 {M11a,M14a}는 _correction_log_6/_correction_log_8이 만든 블랭킷 병합의 잔재(M14a/M14b connectivity가 세션5에 재정정되며 stale해질 거라고 이미 경고돼 있었는데 rerun 전까지 방치됨) -- M11a와 M14a는 애초에 전혀 다른 역할(M11a=배터리 replica bias 생성, M14a=M13의 다이오드 체인 구성원)이라 관계 자체가 없다. **branch_symmetric->current_matched 2차 정정**: 사용자 지적('대응 branch는 대칭 유지 위해 같은 전류여야') 계기로 재확인 -- r_diode_M11a가 이미 같은 전류를 강제하고 있었으므로 애초에 current_matched가 맞았다."
+      },
+      {
+        "names": [
+          "M11b",
+          "M20b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio"
+      },
+      {
+        "names": [
+          "M12",
+          "M21"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) -- M12/M21은 M11a/M20a와 달리 gate=Vbias4를 실제로 공유하는 진짜 current_matched(구조도 대칭이고 전류도 진짜 같음, r_diode_M11a theta가 이미 강제) -- branch_symmetric이 아니라 current_matched로 분류."
+      },
+      {
+        "names": [
+          "M14a",
+          "M23a"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- 옛 {M20a,M24b}를 대체(M14a/M23a가 진짜 좌우 대응, M20a는 위에서 M11a와 이미 별도로 짝지어짐). branch_symmetric->current_matched 2차 정정: M14a.ID=M13.ID(직렬 KCL), M13=M22(r_classab_diode_src 강제), M22.ID=M23a.ID(직렬 KCL) -> M14a=M23a가 이미 수학적으로 강제됨."
+      },
+      {
+        "names": [
+          "M14b",
+          "M24b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- 옛 {M20b,M23a}를 대체(M14b/M24b가 진짜 좌우 대응). 위와 같은 사슬로 전류 강제 확인."
+      },
+      {
+        "names": [
+          "M10",
+          "M19"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) -- find_structural_symmetry_candidates(mirror) 대조로 matching_pairs 누락 발견(둘 다 gate=Vbias4·source=gnd 공유, drain만 다름 -- 구조로도 진짜 current_mirror 모양). kcl_sink_M10/kcl_sink_M19(A_signed KCL theta)가 이미 완전히 같은 값으로 강제하므로 current_matched로 선언."
+      },
+      {
+        "names": [
+          "M15",
+          "M25"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- compensation.stage_devices의 같은 그룹(gm/gm_id/ID 동일)을 받으므로 이미 강제 동일 -- branch_symmetric->current_matched. 2026-08-12(세션30) 갱신: 옛 4개(M15,M16,M25,M26) 단일 그룹이 [M15,M25](PMOS)/[M16,M26](NMOS) 2그룹으로 분리됐지만, 이 쌍(M15-M25, 둘 다 PMOS)은 여전히 같은 그룹에 남아 강제 동일 관계는 변화 없음."
+      },
+      {
+        "names": [
+          "M16",
+          "M26"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- 위와 동일 compensation 그룹. 2026-08-12(세션30) 갱신: M15-M25와 같은 사유로 이 쌍(M16-M26, 둘 다 NMOS)도 분리된 자기 그룹 안에서 강제 동일 관계 유지."
+      },
+      {
+        "names": [
+          "M9a",
+          "M18a"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- mirror_M18a theta(type C, ratio=1.0 완전 replica)가 이미 강제 동일 -- branch_symmetric->current_matched."
+      },
+      {
+        "names": [
+          "M9b",
+          "M18b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- kcl_battery_M9b(=M8-M9a)와 kcl_battery_M18b(=M17-M18a), M8=M17·M9a=M18a가 이미 강제되므로 M9b=M18b도 수학적으로 강제됨 -- branch_symmetric->current_matched."
+      },
+      {
+        "names": [
+          "M10",
+          "M12",
+          "M19",
+          "M21"
+        ],
+        "current_forced": false,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) -- 옛 {M12,M10}/{M21,M19} branch_symmetric을 대체. 넷 다 gate=Vbias4·source=gnd 공유(진짜 구조적 mirror)지만 M12/M21(r_diode_M11a, 하우스키핑 규모)과 M10/M19(kcl_sink, 출력버스 KCL)는 서로 다른 값 -- 같은 gate 공유가 곧 같은 전류를 뜻하지 않는다는 M8/M13류 원칙 그대로 적용, KCL 병합 없는 current_forced=false로 재분류(branch_symmetric은 정의상 '공유 노드 없음'인데 이 넷은 두 노드(source/gate)를 공유해 애초에 branch_symmetric 정의에도 안 맞았다). L_role=mirror로 4개 전부 동일해 L 불일치 없음."
+      },
+      {
+        "names": [
+          "M37a",
+          "M37b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "offset"
+      },
+      {
+        "names": [
+          "M36a",
+          "M36b"
+        ],
+        "current_forced": true,
+        "matching_sensitivity": "ratio",
+        "_comment": "2026-08(세션6) 정정 -- M36a.ID=M37a.ID, M36b.ID=M37b.ID(둘 다 2단자 net 직렬 KCL), M37a=M37b(N_cmfb_bw_mirror theta, ratio=1.0 강제) -> M36a=M36b도 수학적으로 강제됨 -- branch_symmetric->current_matched."
+      }
     ],
     "dispositions": [
-      {"tag": "hub_merge", "kind": "pmos", "key": "Vx", "category": "real_match",
-       "reason": "M1a/M1b -- 이미 matching_pairs에 diff_pair로 기록된 진짜 매칭쌍. find_hub_merge_candidates()가 source 공유(Vx)로도 같은 그룹을 발견한 것뿐(find_matching_candidates()의 diff_pair 판정과 동일 신호). 2026-08-03(세션 4 후속 라운드, _correction_log_7) -- M58.source도 Vx로 정정되며 이 그룹에 M58이 추가됐다(3명: M1a/M1b/M58). M58은 M1a/M1b와 매칭쌍이 아니라 bias-gen 서브블록이 1단 PMOS tail net을 그대로 읽는 것뿐(diff_pair 판정에서도 빠짐 -- 3명이 되며 'exactly 2' 조건이 깨져 diff_pair 후보 자체가 사라졌다, 아래 diff_pair/Vx 항목 삭제 참고) -- 매칭 배치 대상 아님."},
-      {"tag": "hub_merge", "kind": "nmos", "key": "Vy", "category": "real_match",
-       "reason": "M4a/M4b -- 이미 matching_pairs에 diff_pair로 기록된 진짜 매칭쌍(source 공유 Vy). 2026-08-03(세션 4 후속 라운드, _correction_log_7) -- M63.source도 Vy로 정정되며 이 그룹에 M63이 추가됐다(3명: M4a/M4b/M63). 위 Vx/M58과 대칭인 사유로 매칭 배치 대상 아님(diff_pair 후보도 동일 이유로 사라짐, 아래 diff_pair/Vy 항목 삭제 참고)."},
-      {"tag": "hub_merge", "kind": "nmos", "key": "Ncmfb_tail", "category": "real_match",
-       "reason": "M37a/M37b -- 이미 matching_pairs에 diff_pair로 기록된 진짜 매칭쌍(CMFB 차동 비교기, source 공유)."},
-      {"tag": "diff_pair", "kind": "nmos", "key": "Ncmfb_tail", "category": "real_match",
-       "reason": "M37a/M37b -- matching_pairs 기록과 동일."},
-      {"tag": "current_mirror", "kind": "pmos", "key": "Vbias2", "category": "real_match",
-       "reason": "M2a/M2b -- 이미 matching_pairs에 branch_symmetric으로 기록된 진짜 매칭쌍(캐스코드, 게이트 공유 Vbias2). 2026-08-03(세션 4 후속 라운드, _correction_log_7 -- Vbias_p net이 통째로 Vbias2에 흡수) -- M57/M58도 이 그룹에 새로 합류(4명: M2a/M2b/M57/M58). M57(diode, gate=drain=Vbias2)/M58(그 diode 노드를 읽는 소비자)은 M2a/M2b와 무관한 별개의 diode→mirror 체인(Vg15/M11b-M15 등과 동일 패턴)이 우연히 같은 레퍼런스 net을 공유할 뿐 -- 매칭 배치 대상 아님. 옛 'current_mirror/pmos/Vbias_p'(M57/M58 real_match로 잘못 disposed)는 삭제(아래 참고) -- M57/M58은 애초에 real_match가 아니라 diode-chain false-positive였다(2026-07-29 당시 오분류). **2026-08-05(세션10) 추가 정정**: 이 disposition은 진작 correct였는데 matching_pairs 쪽에 {M58,M57}=current_mirror 항목이 stale하게 남아 이 결론과 모순돼 있었다(M64/M63 쌍둥이 구조는 이미 matching_pairs에서 빠져있었던 것과 비교해 발견 -- 사용자 지적으로 M58.drain=M57.source·M58.gate=M57.gate=M57.drain 재확인, current_mirror 정의(별도 branch)를 애초에 충족 못함) -- matching_pairs에서 삭제."},
-      {"tag": "current_mirror", "kind": "pmos", "key": "Vcmfb", "category": "false_positive_diode_chain",
-       "reason": "2026-08-03(_correction_log_5로 CMFB netlist 정정 후 find_matching_candidates() 재실행 결과 새로 나타난 그룹) -- M36a(자기 자신의 diode, gate=drain=Vcmfb)와 M7(1단 PMOS tail, gate=Vcmfb)이 같은 Vcmfb 넷을 게이트로 공유한다. 하지만 M36a는 그 넷을 '만드는' diode이고 M7은 그걸 '읽는' 소비자다(게다가 서로 다른 블록: CMFB 앰프 vs 1단 tail) -- Vg15/M11b-M15와 정확히 같은 diode->mirror 체인 패턴이라 interdigitation 매칭 대상이 아니다. 이전 버전의 'N36 3-way 미러(M36a/M36b/M39)'는 오독에서 나온 그룹이라 삭제됨(N36 넷 자체가 없어짐)."},
-      {"tag": "current_mirror", "kind": "pmos", "key": "Vbias1", "category": "false_positive_consumer_reads_bias",
-       "reason": "M6/M8/M13/M22/M17/M18_bg/M60/M61이 전부 같은 Vbias1 레퍼런스를 gate로 읽는 소비자다. **2026-08(세션6) 3차 정정** -- 원래는 'M8/M13, M22/M17이 진짜 매칭쌍'으로 판단했는데(같은 gate=같은 전류라는 오판) 틀렸다: 역할이 다르다(M8/M17=Vg15/Vg25 배터리 노드 공급, 신호경로 규모 / M13/M22=다이오드 체인만 먹임, 하우스키핑 규모). **진짜 '같은 전류' 매칭은 좌우(Vom/Vop) 대응인 M8↔M17, M13↔M22**뿐이라 이 둘은 별도로 `current_matched`(엔진이 KCL 강제 병합하는 새 kind, 2026-08 세션6 신설 -- sizing_roles.theta의 r_classab_battery=[M8,M17]/r_classab_diode_src=[M13,M22]가 이미 같은 값을 시드하므로 병합해도 충돌 없음)로 채택했다. 나머지 구조적 사실(8개 전부가 진짜 Vbias1 mirror branch라는 것 자체, 다만 전류는 소자마다 다름)은 `current_mirror`(KCL 병합 안 하는 새 kind, 순수 문서화 -- M6 제외 7개, L_role=mirror로 다 같음)로 별도 채택했다(matching_pairs 참고) -- 그래서 여기 이 disposition의 실질 대상은 **M6뿐**이다(1단 tail 독립 소비자, L_role=bias_replica로 나머지 7개와도 다름 -- 애초에 어느 매칭 그룹에도 안 들어감)."},
-      {"tag": "current_mirror", "kind": "nmos", "key": "Vbias3", "category": "false_positive_consumer_reads_bias",
-       "reason": "M3a/M3b는 이미 branch_symmetric으로 별도 기록됨(진짜 매칭쌍). M64/M63은 bias-gen의 Vbias3 레퍼런스 생성 stacked-diode 쌍(2026-07-30 확인), 매칭 배치 불필요."},
-      {"tag": "current_mirror", "kind": "nmos", "key": "Vbias4", "category": "false_positive_consumer_reads_bias",
-       "reason": "M5(1단 tail)/M12·M10(Vom측 Class-AB)/M21·M19(Vop측 Class-AB)/M66·M68(bias-gen)/M38(CMFB tail)이 전부 같은 Vbias4를 읽는 서로 다른 블록의 독립 소비자. **2026-08(세션6) 3차 정정**: M10/M12/M19/M21은 이제 matching_pairs에 전부 채택됨 -- 진짜 같은 전류인 M12↔M21/M10↔M19(각각 current_matched)와, 넷 다 공유하는 구조적 사실 자체({M10,M12,M19,M21} current_mirror, KCL 병합 없음)까지 위에 선언돼 있다. 그래서 이 disposition의 실질 대상은 **M5/M66/M68/M38뿐**(진짜 단순 소비자, 서로 다른 블록 소속이라 매칭 대상 아님)."},
-      {"tag": "current_mirror", "kind": "pmos", "key": "N11b", "category": "false_positive_diode_chain",
-       "reason": "2026-08-03(세션 4, find_matching_candidates() 재실행으로 발견 -- 이번 세션 정정과 무관하게 예전부터 있었으나 이전 dispositions에 누락돼 있던 관계) -- M11b(diode, gate=drain=N11b)가 M9a(Monticelli PMOS측)의 게이트를 미는 diode→mirror 체인 -- hub-leaf 병렬쌍이 아니므로 interdigitation 대상 아님. (이전 버전은 이 관계를 'current_mirror/pmos/Vg15'로 기록했었는데, M11b.gate가 이미 그전에 N11b로 바뀌어 있어 그 disposition 자체가 stale이었다 -- 이번 재실행으로 실제 키(N11b)로 정정 등록.)"},
-      {"tag": "current_mirror", "kind": "nmos", "key": "N14a14b", "category": "false_positive_diode_chain",
-       "reason": "2026-08-03(세션 4 재실행 발견, 이번 세션 정정과 무관 -- 원래부터 있었으나 누락) -- M14a(diode, gate=drain=N14a14b)가 M9b(Monticelli NMOS측)의 게이트를 미는 diode→mirror 체인 -- 매칭 배치 불필요."},
-      {"tag": "current_mirror", "kind": "pmos", "key": "N20b", "category": "false_positive_diode_chain",
-       "reason": "2026-08-03(세션 4 재실행 발견, 이번 세션 정정과 무관 -- 원래부터 있었으나 누락) -- M20b(diode, gate=drain=N20b)가 M18a(Vop측 Monticelli PMOS측)의 게이트를 미는 diode→mirror 체인 -- Vom측 N11b/M11b-M9a와 동일 패턴(대칭)."},
-      {"tag": "current_mirror", "kind": "nmos", "key": "N24b23a", "category": "false_positive_diode_chain",
-       "reason": "2026-08-04(세션5, M22/M23a/M24b connectivity 정정 후 재실행으로 멤버 갱신 -- 관계 자체는 예전 'M24b가 diode'와 동일 패턴이지만 이제 diode 소자가 M23a로 바뀜) -- M23a(diode, gate=drain=N24b23a)가 M18b의 게이트를 미는 diode→mirror 체인 -- Vom측 N14a14b/M14a-M9b와 동일 패턴(대칭). (이전 버전은 이 자리를 M24b가 채웠으나, M22-M23a-M24b가 Vom1과 무관한 독립 체인으로 재구성되며 M23a가 상단 diode 역할로 바뀜.)"},
-      {"tag": "hub_merge", "kind": "pmos", "key": "Vom1", "category": "false_positive_cross_coupling_shared_net",
-       "reason": "2026-08-03(세션 4, Vg26→Vom1 교차결합 병합으로 신규 발생) -- M2a(1단 차동출력)와 M18a(2단 Vop측 Monticelli PMOS측)가 drain을 공유하지만, 서로 완전히 다른 스테이지/기능(1단 출력 vs 2단 floating battery)이라 물리적 매칭·병합 대상이 아니다 -- 교차결합 설계 의도로 우연히 같은 net을 쓸 뿐."},
-      {"tag": "hub_merge", "kind": "pmos", "key": "Vop1", "category": "false_positive_cross_coupling_shared_net",
-       "reason": "2026-08-03(세션 4, Vg16→Vop1 교차결합 병합으로 신규 발생) -- 위 Vom1/M2a-M18a와 대칭인 반대쪽(Vom측 교차결합): M2b(1단 차동출력)와 M9a(2단 Vom측 Monticelli PMOS측)."},
-      {"tag": "hub_merge", "kind": "nmos", "key": "Vom1", "category": "false_positive_unrelated_blocks_share_net",
-       "reason": "2026-08-04(세션5, M22/M23a/M24b가 Vom1과 무관한 독립 체인으로 재구성되며 멤버 갱신 -- 이전엔 M18b/M24b였으나 그 관계 자체가 사라짐) -- M19(독립 sink)와 M3a(1단 차동출력)가 우연히 같은 net(Vom1)을 공유할 뿐, 서로 다른 블록의 무관한 소자다 -- 매칭/병합 대상 아님."},
-      {"tag": "hub_merge", "kind": "nmos", "key": "Vop1", "category": "false_positive_unrelated_blocks_share_net",
-       "reason": "2026-08-04(세션5, M13/M14a/M14b가 Vop1과 무관한 독립 체인으로 재구성되며 멤버 갱신 -- 이전엔 M14a/M9b였으나 그 관계 자체가 사라짐) -- 위와 대칭: M10(독립 sink)과 M3b(1단 차동출력)가 우연히 같은 net(Vop1)을 공유할 뿐, 매칭/병합 대상 아님."},
-      {"tag": "hub_merge", "kind": "pmos", "key": "vdd", "category": "false_positive_shared_supply_rail",
-       "reason": "vdd를 source로 공유하는 PMOS 소자 16개(M6/M7/M8/M15/M9a/M13/M22/M25/M18a/M17/M18_bg/M60/M61/M36a/M36b/M39)가 통째로 한 그룹으로 잡힌다(M58/M57은 2026-07-29 정정 후 vdd 직결이 아니라 stacked-diode라 이 목록에서 빠짐). 공급 레일 공유는 매칭/병합 배치 후보 조건이 아니다 — 개별 소자 간 실제 매칭 관계는 current_mirror/diff_pair/branch_symmetric으로 이미 별도 기록됨."},
-      {"tag": "hub_merge", "kind": "nmos", "key": "gnd", "category": "false_positive_shared_supply_rail",
-       "reason": "gnd를 공유하는 NMOS 소자 10개(M5/M9b/M12/M16/M18b/M21/M26/M66/M68/M38)가 한 그룹으로 잡힌다. 동일 사유(공급 레일 공유, 병합 후보 아님). (2026-08-03: M40은 nmos가 아니라 pmos였고 source가 gnd도 아니어서 이 그룹에서 빠졌다 -- _correction_log_5.)"},
-      {"tag": "none", "kind": "pmos", "key": "Voc_des", "category": "false_positive_cascode_stack_node",
-       "reason": "2026-08-03 -- M39/M40은 어느 detector에도 그룹으로 잡히지 않는다(게이트를 공유하지도, source를 공유하지도 않는 서로 독립된 두 PMOS diode다). 그런데도 여기 명시적으로 남기는 이유: 이 둘은 VDD-M39-Voc_des-M40-GND 2단 PMOS diode 분압기라 **W/L 비가 곧 Voc_des(=논문 목표 출력 CM 0.9V=VDD/2)를 정한다** -- detector가 못 잡는다고 매칭이 불필요한 게 아니라, 오히려 공정변동에 가장 민감한 쌍이다(논문 II.D: 'Because ensuring a stable common mode is essential in this design, a larger channel length is used to reduce process variation'). 직렬 스택이라 interdigitation 대상은 아니고, 같은 L·같은 방향·근접 배치(common-centroid 불가)로 다뤄야 한다."}
+      {
+        "tag": "hub_merge",
+        "kind": "pmos",
+        "key": "Vx",
+        "category": "real_match",
+        "reason": "M1a/M1b -- 이미 matching_pairs에 diff_pair로 기록된 진짜 매칭쌍. find_hub_merge_candidates()가 source 공유(Vx)로도 같은 그룹을 발견한 것뿐(find_matching_candidates()의 diff_pair 판정과 동일 신호). 2026-08-03(세션 4 후속 라운드, _correction_log_7) -- M58.source도 Vx로 정정되며 이 그룹에 M58이 추가됐다(3명: M1a/M1b/M58). M58은 M1a/M1b와 매칭쌍이 아니라 bias-gen 서브블록이 1단 PMOS tail net을 그대로 읽는 것뿐(diff_pair 판정에서도 빠짐 -- 3명이 되며 'exactly 2' 조건이 깨져 diff_pair 후보 자체가 사라졌다, 아래 diff_pair/Vx 항목 삭제 참고) -- 매칭 배치 대상 아님."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "nmos",
+        "key": "Vy",
+        "category": "real_match",
+        "reason": "M4a/M4b -- 이미 matching_pairs에 diff_pair로 기록된 진짜 매칭쌍(source 공유 Vy). 2026-08-03(세션 4 후속 라운드, _correction_log_7) -- M63.source도 Vy로 정정되며 이 그룹에 M63이 추가됐다(3명: M4a/M4b/M63). 위 Vx/M58과 대칭인 사유로 매칭 배치 대상 아님(diff_pair 후보도 동일 이유로 사라짐, 아래 diff_pair/Vy 항목 삭제 참고)."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "nmos",
+        "key": "Ncmfb_tail",
+        "category": "real_match",
+        "reason": "M37a/M37b -- 이미 matching_pairs에 diff_pair로 기록된 진짜 매칭쌍(CMFB 차동 비교기, source 공유)."
+      },
+      {
+        "tag": "diff_pair",
+        "kind": "nmos",
+        "key": "Ncmfb_tail",
+        "category": "real_match",
+        "reason": "M37a/M37b -- matching_pairs 기록과 동일."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "pmos",
+        "key": "Vbias2",
+        "category": "real_match",
+        "reason": "M2a/M2b -- 이미 matching_pairs에 branch_symmetric으로 기록된 진짜 매칭쌍(캐스코드, 게이트 공유 Vbias2). 2026-08-03(세션 4 후속 라운드, _correction_log_7 -- Vbias_p net이 통째로 Vbias2에 흡수) -- M57/M58도 이 그룹에 새로 합류(4명: M2a/M2b/M57/M58). M57(diode, gate=drain=Vbias2)/M58(그 diode 노드를 읽는 소비자)은 M2a/M2b와 무관한 별개의 diode→mirror 체인(Vg15/M11b-M15 등과 동일 패턴)이 우연히 같은 레퍼런스 net을 공유할 뿐 -- 매칭 배치 대상 아님. 옛 'current_mirror/pmos/Vbias_p'(M57/M58 real_match로 잘못 disposed)는 삭제(아래 참고) -- M57/M58은 애초에 real_match가 아니라 diode-chain false-positive였다(2026-07-29 당시 오분류). **2026-08-05(세션10) 추가 정정**: 이 disposition은 진작 correct였는데 matching_pairs 쪽에 {M58,M57}=current_mirror 항목이 stale하게 남아 이 결론과 모순돼 있었다(M64/M63 쌍둥이 구조는 이미 matching_pairs에서 빠져있었던 것과 비교해 발견 -- 사용자 지적으로 M58.drain=M57.source·M58.gate=M57.gate=M57.drain 재확인, current_mirror 정의(별도 branch)를 애초에 충족 못함) -- matching_pairs에서 삭제."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "pmos",
+        "key": "Vcmfb",
+        "category": "false_positive_diode_chain",
+        "reason": "2026-08-03(_correction_log_5로 CMFB netlist 정정 후 find_matching_candidates() 재실행 결과 새로 나타난 그룹) -- M36a(자기 자신의 diode, gate=drain=Vcmfb)와 M7(1단 PMOS tail, gate=Vcmfb)이 같은 Vcmfb 넷을 게이트로 공유한다. 하지만 M36a는 그 넷을 '만드는' diode이고 M7은 그걸 '읽는' 소비자다(게다가 서로 다른 블록: CMFB 앰프 vs 1단 tail) -- Vg15/M11b-M15와 정확히 같은 diode->mirror 체인 패턴이라 interdigitation 매칭 대상이 아니다. 이전 버전의 'N36 3-way 미러(M36a/M36b/M39)'는 오독에서 나온 그룹이라 삭제됨(N36 넷 자체가 없어짐)."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "pmos",
+        "key": "Vbias1",
+        "category": "false_positive_consumer_reads_bias",
+        "reason": "M6/M8/M13/M22/M17/M18_bg/M60/M61이 전부 같은 Vbias1 레퍼런스를 gate로 읽는 소비자다. **2026-08(세션6) 3차 정정** -- 원래는 'M8/M13, M22/M17이 진짜 매칭쌍'으로 판단했는데(같은 gate=같은 전류라는 오판) 틀렸다: 역할이 다르다(M8/M17=Vg15/Vg25 배터리 노드 공급, 신호경로 규모 / M13/M22=다이오드 체인만 먹임, 하우스키핑 규모). **진짜 '같은 전류' 매칭은 좌우(Vom/Vop) 대응인 M8↔M17, M13↔M22**뿐이라 이 둘은 별도로 `current_matched`(엔진이 KCL 강제 병합하는 새 kind, 2026-08 세션6 신설 -- sizing_roles.theta의 r_classab_battery=[M8,M17]/r_classab_diode_src=[M13,M22]가 이미 같은 값을 시드하므로 병합해도 충돌 없음)로 채택했다. 나머지 구조적 사실(8개 전부가 진짜 Vbias1 mirror branch라는 것 자체, 다만 전류는 소자마다 다름)은 `current_mirror`(KCL 병합 안 하는 새 kind, 순수 문서화 -- M6 제외 7개, L_role=mirror로 다 같음)로 별도 채택했다(matching_pairs 참고) -- 그래서 여기 이 disposition의 실질 대상은 **M6뿐**이다(1단 tail 독립 소비자, L_role=bias_replica로 나머지 7개와도 다름 -- 애초에 어느 매칭 그룹에도 안 들어감)."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "nmos",
+        "key": "Vbias3",
+        "category": "false_positive_consumer_reads_bias",
+        "reason": "M3a/M3b는 이미 branch_symmetric으로 별도 기록됨(진짜 매칭쌍). M64/M63은 bias-gen의 Vbias3 레퍼런스 생성 stacked-diode 쌍(2026-07-30 확인), 매칭 배치 불필요."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "nmos",
+        "key": "Vbias4",
+        "category": "false_positive_consumer_reads_bias",
+        "reason": "M5(1단 tail)/M12·M10(Vom측 Class-AB)/M21·M19(Vop측 Class-AB)/M66·M68(bias-gen)/M38(CMFB tail)이 전부 같은 Vbias4를 읽는 서로 다른 블록의 독립 소비자. **2026-08(세션6) 3차 정정**: M10/M12/M19/M21은 이제 matching_pairs에 전부 채택됨 -- 진짜 같은 전류인 M12↔M21/M10↔M19(각각 current_matched)와, 넷 다 공유하는 구조적 사실 자체({M10,M12,M19,M21} current_mirror, KCL 병합 없음)까지 위에 선언돼 있다. 그래서 이 disposition의 실질 대상은 **M5/M66/M68/M38뿐**(진짜 단순 소비자, 서로 다른 블록 소속이라 매칭 대상 아님)."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "pmos",
+        "key": "N11b",
+        "category": "false_positive_diode_chain",
+        "reason": "2026-08-03(세션 4, find_matching_candidates() 재실행으로 발견 -- 이번 세션 정정과 무관하게 예전부터 있었으나 이전 dispositions에 누락돼 있던 관계) -- M11b(diode, gate=drain=N11b)가 M9a(Monticelli PMOS측)의 게이트를 미는 diode→mirror 체인 -- hub-leaf 병렬쌍이 아니므로 interdigitation 대상 아님. (이전 버전은 이 관계를 'current_mirror/pmos/Vg15'로 기록했었는데, M11b.gate가 이미 그전에 N11b로 바뀌어 있어 그 disposition 자체가 stale이었다 -- 이번 재실행으로 실제 키(N11b)로 정정 등록.)"
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "nmos",
+        "key": "N14a14b",
+        "category": "false_positive_diode_chain",
+        "reason": "2026-08-03(세션 4 재실행 발견, 이번 세션 정정과 무관 -- 원래부터 있었으나 누락) -- M14a(diode, gate=drain=N14a14b)가 M9b(Monticelli NMOS측)의 게이트를 미는 diode→mirror 체인 -- 매칭 배치 불필요."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "pmos",
+        "key": "N20b",
+        "category": "false_positive_diode_chain",
+        "reason": "2026-08-03(세션 4 재실행 발견, 이번 세션 정정과 무관 -- 원래부터 있었으나 누락) -- M20b(diode, gate=drain=N20b)가 M18a(Vop측 Monticelli PMOS측)의 게이트를 미는 diode→mirror 체인 -- Vom측 N11b/M11b-M9a와 동일 패턴(대칭)."
+      },
+      {
+        "tag": "current_mirror",
+        "kind": "nmos",
+        "key": "N24b23a",
+        "category": "false_positive_diode_chain",
+        "reason": "2026-08-04(세션5, M22/M23a/M24b connectivity 정정 후 재실행으로 멤버 갱신 -- 관계 자체는 예전 'M24b가 diode'와 동일 패턴이지만 이제 diode 소자가 M23a로 바뀜) -- M23a(diode, gate=drain=N24b23a)가 M18b의 게이트를 미는 diode→mirror 체인 -- Vom측 N14a14b/M14a-M9b와 동일 패턴(대칭). (이전 버전은 이 자리를 M24b가 채웠으나, M22-M23a-M24b가 Vom1과 무관한 독립 체인으로 재구성되며 M23a가 상단 diode 역할로 바뀜.)"
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "pmos",
+        "key": "Vom1",
+        "category": "false_positive_cross_coupling_shared_net",
+        "reason": "2026-08-03(세션 4, Vg26→Vom1 교차결합 병합으로 신규 발생) -- M2a(1단 차동출력)와 M18a(2단 Vop측 Monticelli PMOS측)가 drain을 공유하지만, 서로 완전히 다른 스테이지/기능(1단 출력 vs 2단 floating battery)이라 물리적 매칭·병합 대상이 아니다 -- 교차결합 설계 의도로 우연히 같은 net을 쓸 뿐."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "pmos",
+        "key": "Vop1",
+        "category": "false_positive_cross_coupling_shared_net",
+        "reason": "2026-08-03(세션 4, Vg16→Vop1 교차결합 병합으로 신규 발생) -- 위 Vom1/M2a-M18a와 대칭인 반대쪽(Vom측 교차결합): M2b(1단 차동출력)와 M9a(2단 Vom측 Monticelli PMOS측)."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "nmos",
+        "key": "Vom1",
+        "category": "false_positive_unrelated_blocks_share_net",
+        "reason": "2026-08-04(세션5, M22/M23a/M24b가 Vom1과 무관한 독립 체인으로 재구성되며 멤버 갱신 -- 이전엔 M18b/M24b였으나 그 관계 자체가 사라짐) -- M19(독립 sink)와 M3a(1단 차동출력)가 우연히 같은 net(Vom1)을 공유할 뿐, 서로 다른 블록의 무관한 소자다 -- 매칭/병합 대상 아님."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "nmos",
+        "key": "Vop1",
+        "category": "false_positive_unrelated_blocks_share_net",
+        "reason": "2026-08-04(세션5, M13/M14a/M14b가 Vop1과 무관한 독립 체인으로 재구성되며 멤버 갱신 -- 이전엔 M14a/M9b였으나 그 관계 자체가 사라짐) -- 위와 대칭: M10(독립 sink)과 M3b(1단 차동출력)가 우연히 같은 net(Vop1)을 공유할 뿐, 매칭/병합 대상 아님."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "pmos",
+        "key": "vdd",
+        "category": "false_positive_shared_supply_rail",
+        "reason": "vdd를 source로 공유하는 PMOS 소자 16개(M6/M7/M8/M15/M9a/M13/M22/M25/M18a/M17/M18_bg/M60/M61/M36a/M36b/M39)가 통째로 한 그룹으로 잡힌다(M58/M57은 2026-07-29 정정 후 vdd 직결이 아니라 stacked-diode라 이 목록에서 빠짐). 공급 레일 공유는 매칭/병합 배치 후보 조건이 아니다 — 개별 소자 간 실제 매칭 관계는 current_mirror/diff_pair/branch_symmetric으로 이미 별도 기록됨."
+      },
+      {
+        "tag": "hub_merge",
+        "kind": "nmos",
+        "key": "gnd",
+        "category": "false_positive_shared_supply_rail",
+        "reason": "gnd를 공유하는 NMOS 소자 10개(M5/M9b/M12/M16/M18b/M21/M26/M66/M68/M38)가 한 그룹으로 잡힌다. 동일 사유(공급 레일 공유, 병합 후보 아님). (2026-08-03: M40은 nmos가 아니라 pmos였고 source가 gnd도 아니어서 이 그룹에서 빠졌다 -- _correction_log_5.)"
+      },
+      {
+        "tag": "none",
+        "kind": "pmos",
+        "key": "Voc_des",
+        "category": "false_positive_cascode_stack_node",
+        "reason": "2026-08-03 -- M39/M40은 어느 detector에도 그룹으로 잡히지 않는다(게이트를 공유하지도, source를 공유하지도 않는 서로 독립된 두 PMOS diode다). 그런데도 여기 명시적으로 남기는 이유: 이 둘은 VDD-M39-Voc_des-M40-GND 2단 PMOS diode 분압기라 **W/L 비가 곧 Voc_des(=논문 목표 출력 CM 0.9V=VDD/2)를 정한다** -- detector가 못 잡는다고 매칭이 불필요한 게 아니라, 오히려 공정변동에 가장 민감한 쌍이다(논문 II.D: 'Because ensuring a stable common mode is essential in this design, a larger channel length is used to reduce process variation'). 직렬 스택이라 interdigitation 대상은 아니고, 같은 L·같은 방향·근접 배치(common-centroid 불가)로 다뤄야 한다."
+      }
     ]
   },
-
   "_device_roles_comment": "2026-07-31 배치 7-5 -- do.md §7.3.1 A/B/C/D 분류표를 이 스키마(headroom_role/gm_id_role/L_role/vertical_stack_id)로 옮긴 1차 실행본. M1a/M1b/M4a/M4b/M15/M16(compensation.stage_devices)과 M2a/M2b/M3a/M3b(theta L_cascode가 metric_stage_budget으로 L/W/gm/gds/gm_id를 직접 계산)는 두 경로가 이미 전부 결정하므로 여기 없음. gm_id_role enum: matching(전류미러/바이어스, gm_id 최소화)/gain(캐스코드)/balanced(GBW 고정). L_role enum: mirror(2.5*L_min)/bias_replica(1.2*L_min). vertical_stack_id는 실제 물리적 직렬경로(vdd~gnd 한 branch) 단위로 묶었다 -- optimize_full_circuit_budget()을 이 회로에 실제로 실행해 완주 여부를 검증하는 것이 목적이며, 이 1차 배정이 실행 중 드러내는 gap(예: A엔진이 currently_mirror kind만 자동 미러링하고 branch_symmetric은 안 함, servo 피드가 diff pair 반대쪽을 안 채움 등)은 검증 결과 자체로 보고한다.",
   "device_roles": {
-    "M6":  {"headroom_role": "tail",    "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "vx_tail_a"},
-    "M7":  {"headroom_role": "tail",    "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "vx_tail_b",
-     "same_as_device": "M6",
-     "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M7(source=vdd,drain=Vx)은 M6(source=vdd,drain=Vx)과 물리적으로 완전히 같은 두 노드를 구동하는 병렬 tail이라 VDS(M7)=VDS(M6)이 KVL상 항상 정확히 같아야 한다. budget_reference_device(vdd-ref, '나머지' 관계)로는 이 '동일' 관계를 표현할 수 없어(M7에 걸면 vdd-vds(M6)이 나와 틀림) same_as_device(신규 필드)로 M6을 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M6의 vds를 그대로 복사."},
-    "M5":  {"headroom_role": "tail",    "gm_id_role": "balanced", "L_role": "bias_replica", "vertical_stack_id": "vy_tail"},
-
-    "M8":   {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_a"},
-    "M13":  {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_battery_b",
-     "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M12와 동일 패턴(VDD-M13-M14a-M14b-GND 3소자 단순 직렬 컬럼인데 M13만 따로 'biasgen_vom_diode_src'였음) -- M14a/M14b와 같은 vsid로 합침."},
-    "M11a": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_battery_a"},
-    "M11b": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_battery_a"},
-    "M9a":  {"headroom_role": "floating_current_source", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_a"},
-    "M9b":  {"headroom_role": "floating_current_source", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_floatsrc_sink"},
-    "M12":  {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_battery_a",
-     "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 원래 'biasgen_vom_battery_a_sink'로 M11a/M11b('biasgen_vom_battery_a')와 다른 vsid였다. 그런데 실제 회로는 VDD-M11a-N11a11b-M11b-N11b-M12-GND(r_diode_M11a theta 주석에 이미 명시)인 단순 3소자 직렬 컬럼 하나뿐이라, M12를 따로 떼면 M11a/M11b만으로 vdd 헤드룸 배정을 시도하다 배분할 곳(cascode 아닌 role)이 없어 allocate_stack_headroom() assert가 실패했다(2026-08-10 세션에서 발견). M11a/M11b와 같은 vsid로 합쳐 하나의 물리적 컬럼으로 취급 -- audit_vertical_stack_id_vs_kcl()가 이 경계를 'kind=internal_series'(정상적으로 갈릴 수 있는 기능적 경계)로 분류했던 건 KCL 같은-전류 여부에 대한 판단일 뿐, 헤드룸(같은 물리적 컬럼) 판단과는 별개임을 이번에 확인했다."},
-    "M10":  {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_floatsrc_sink"},
-    "M14a": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_battery_b"},
-    "M14b": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vom_battery_b"},
-
-    "M22":  {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_battery_b",
-     "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M13과 대칭인 Vop측 동일 사유(M23a/M24b와 같은 물리적 컬럼으로 합침)."},
-    "M17":  {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_a"},
-    "M20a": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_battery_a"},
-    "M20b": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_battery_a"},
-    "M18a": {"headroom_role": "floating_current_source", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_a"},
-    "M18b": {"headroom_role": "floating_current_source", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_floatsrc_sink"},
-    "M21":  {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_battery_a",
-     "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M12와 대칭인 Vop측 동일 사유(M20a/M20b와 같은 물리적 컬럼으로 합침)."},
-    "M19":  {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_floatsrc_sink"},
-    "M24b": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_battery_b"},
-    "M23a": {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_vop_battery_b"},
-
-    "M18_bg": {"headroom_role": "diode_reference",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "biasgen_ref",
-     "_headroom_role_comment": "2026-08-11(세션28) 정정 -- 원래 'mirror'였는데, M18_bg는 diode-connected(drain=gate=Vbias1) 기준전압 생성기로 전류가 외부(ideal current source)에서 정해지는 singleton이라 '남는 예산을 나눠 가질 파트너'가 없다. non-cascode는 전부 '남는 예산 균등분배'로 처리되던 기존 계약상 singleton이면 균등분배가 '전부 다 가짐'이 돼 물리적으로 불가능한 값(~vdd)을 받고 있었다(M39/M40의 voltage_divider와는 다른 문제 -- 걔넨 둘이 짝지어 vdd/2를 의도적으로 나눠 갖지만 M18_bg는 혼자다). cascode와 똑같이 '필요한 만큼만' 받으면 되는 role이라 새 role 'diode_reference' 신설(M39/M40을 그대로 'cascode'로 안 쓴 것과 같은 이유 -- 물리적 역할이 다르면 role 문자열도 다르게 선언). allocate_stack_headroom()의 HeadroomPolicy.thin_roles에 'diode_reference'를 cascode와 동급으로 추가해 얇은 헤드룸을 받도록 함."},
-    "M60":    {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias4_gen",
-     "budget_reference_device": "M66",
-     "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- M60(vdd-Vbias4, gate=Vbias1)과 M66(Vbias4-gnd, diode-connected)은 Test 47이 확인한 진짜 2단자 직렬(Vbias4, internal_series)인데 vsid가 따로였다(vbias4_gen/vbias4_stack). M11a/M11b/M12·M5/M61과 같은 패턴이지만 이번엔 병합 대신 budget_reference_device로 연결 -- M66이 diode-connected라 자기 완결적으로 작은 Vgs를 갖는 쪽(self-determining)이고 M60은 외부 게이트(Vbias1) 구동이라 '나머지'를 받는 쪽이 자연스럽다(M6/M58 패턴과 동일 방향). 수정 전엔 둘 다 독립적으로 '혼자니까 vdd 전부'를 받아 합이 vdd가 아니라 ~2*vdd였다(KVL 위반, 미해결 상태로 다음 세션 이월돼 있던 항목)."},
-    "M64":    {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias3_stack"},
-    "M63":    {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias3_stack"},
-    "M61":    {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias3_stack",
-     "budget_reference_device": "M5",
-     "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 VDD-M61-Vbias3-M64-M63-Vy-M5-GND라 M64/M63과 같은 물리적 컬럼인데 별도 vsid(vbias3_gen)였다 -- M64/M63과 합치고, 이 컬럼의 bottom이 gnd가 아니라 Vy(=vds(M5))이므로 budget_reference_device로 M5를 참조. suggest_headroom_stack_groups()(stick_diagram.py, 2026-08-10 신설)가 이 그룹+참조를 정확히 재현해 교차검증됨."},
-    "M58":    {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias2_stack"},
-    "M57":    {"headroom_role": "cascode", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias2_stack"},
-    "M66":    {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias4_stack"},
-    "M68":    {"headroom_role": "mirror",  "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "vbias2_stack",
-     "budget_reference_device": "M6",
-     "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 Vx-M58-M57-Vbias2-M68-GND(M6/M7 병렬 tail이 Vx를 먹임, r_bg_vbias2 theta 주석 참고)라 M58/M57과 같은 물리적 컬럼인데 별도 vsid(vbias2_gen)였다 -- M58/M57과 합치고, 이 컬럼의 top이 vdd가 아니라 Vx(=vdd-vds(M6))이므로 budget_reference_device로 M6을 참조(suggest_headroom_stack_groups()가 M7도 동등 후보로 제안하나, M6/M7 둘 다 같은 Vx를 구동하는 병렬 tail이라 어느 쪽을 참조해도 이론상 같은 값 -- M6을 대표로 채택)."},
-
-    "M36a": {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load_a"},
-    "M36b": {"headroom_role": "mirror", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_load_b",
-     "same_as_device": "M36a",
-     "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M36b는 M36a의 대칭 매칭 파트너(CMFB load 차동쌍 반대쪽, 둘 다 diode-connected)라 이론상 VDS가 동일해야 한다. budget_reference_device 슬롯은 이미 cmfb_tail(M38)이 M36a를 참조하는 데 쓰고 있어(그룹당 1개 제약) M36b는 별도로 same_as_device(신규 필드)로 M36a를 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M36a의 vds를 그대로 복사."},
-    "M39":  {"headroom_role": "voltage_divider", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_vocdes_gen",
-     "_headroom_role_comment": "2026-08-10(세션27) 정정 -- 원래 'cascode'였는데, M39/M40은 VDD-M39-Voc_des-M40-GND 2소자 self-biased 분압기(_correction_log_5, 논문 II.D 'Voc_des=0.9V=VDD/2')라 '얇은 헤드룸만'을 뜻하는 cascode role이 물리적으로 안 맞았다(게다가 스택 전원이 cascode면 나머지 예산을 배분할 'other' role이 없어 allocate_stack_headroom() assert가 실패했다). cascode가 아닌 role은 전부 동일하게 '남는 예산 균등분배'로 처리되므로(headroom_role 자유문자열 계약), 이 값 자체를 새로 짓기만 하면 된다 -- M39/M40 각각 vdd/2=0.9V를 받아 논문 설계의도와 일치."},
+    "M6": {
+      "headroom_role": "tail",
+      "gm_id_role": "balanced",
+      "L_role": "bias_replica",
+      "vertical_stack_id": "vx_tail_a"
+    },
+    "M7": {
+      "headroom_role": "tail",
+      "gm_id_role": "balanced",
+      "L_role": "bias_replica",
+      "vertical_stack_id": "vx_tail_b",
+      "same_as_device": "M6",
+      "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M7(source=vdd,drain=Vx)은 M6(source=vdd,drain=Vx)과 물리적으로 완전히 같은 두 노드를 구동하는 병렬 tail이라 VDS(M7)=VDS(M6)이 KVL상 항상 정확히 같아야 한다. budget_reference_device(vdd-ref, '나머지' 관계)로는 이 '동일' 관계를 표현할 수 없어(M7에 걸면 vdd-vds(M6)이 나와 틀림) same_as_device(신규 필드)로 M6을 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M6의 vds를 그대로 복사."
+    },
+    "M5": {
+      "headroom_role": "tail",
+      "gm_id_role": "balanced",
+      "L_role": "bias_replica",
+      "vertical_stack_id": "vy_tail"
+    },
+    "M8": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_a",
+      "vs": 0.0
+    },
+    "M13": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_battery_b",
+      "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M12와 동일 패턴(VDD-M13-M14a-M14b-GND 3소자 단순 직렬 컬럼인데 M13만 따로 'biasgen_vom_diode_src'였음) -- M14a/M14b와 같은 vsid로 합침.",
+      "vs": 0.0
+    },
+    "M11a": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_battery_a",
+      "vs": 0.0
+    },
+    "M11b": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_battery_a",
+      "vs": 0.0
+    },
+    "M9a": {
+      "headroom_role": "floating_current_source",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_a",
+      "vs": 0.0
+    },
+    "M9b": {
+      "headroom_role": "floating_current_source",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_floatsrc_sink",
+      "vs": 0.0
+    },
+    "M12": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_battery_a",
+      "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 원래 'biasgen_vom_battery_a_sink'로 M11a/M11b('biasgen_vom_battery_a')와 다른 vsid였다. 그런데 실제 회로는 VDD-M11a-N11a11b-M11b-N11b-M12-GND(r_diode_M11a theta 주석에 이미 명시)인 단순 3소자 직렬 컬럼 하나뿐이라, M12를 따로 떼면 M11a/M11b만으로 vdd 헤드룸 배정을 시도하다 배분할 곳(cascode 아닌 role)이 없어 allocate_stack_headroom() assert가 실패했다(2026-08-10 세션에서 발견). M11a/M11b와 같은 vsid로 합쳐 하나의 물리적 컬럼으로 취급 -- audit_vertical_stack_id_vs_kcl()가 이 경계를 'kind=internal_series'(정상적으로 갈릴 수 있는 기능적 경계)로 분류했던 건 KCL 같은-전류 여부에 대한 판단일 뿐, 헤드룸(같은 물리적 컬럼) 판단과는 별개임을 이번에 확인했다.",
+      "vs": 0.0
+    },
+    "M10": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_floatsrc_sink",
+      "vs": 0.0
+    },
+    "M14a": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_battery_b",
+      "vs": 0.0
+    },
+    "M14b": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vom_battery_b",
+      "vs": 0.0
+    },
+    "M22": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_battery_b",
+      "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M13과 대칭인 Vop측 동일 사유(M23a/M24b와 같은 물리적 컬럼으로 합침).",
+      "vs": 0.0
+    },
+    "M17": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_a",
+      "vs": 0.0
+    },
+    "M20a": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_battery_a",
+      "vs": 0.0
+    },
+    "M20b": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_battery_a",
+      "vs": 0.0
+    },
+    "M18a": {
+      "headroom_role": "floating_current_source",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_a",
+      "vs": 0.0
+    },
+    "M18b": {
+      "headroom_role": "floating_current_source",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_floatsrc_sink",
+      "vs": 0.0
+    },
+    "M21": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_battery_a",
+      "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M12와 대칭인 Vop측 동일 사유(M20a/M20b와 같은 물리적 컬럼으로 합침).",
+      "vs": 0.0
+    },
+    "M19": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_floatsrc_sink",
+      "vs": 0.0
+    },
+    "M24b": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_battery_b",
+      "vs": 0.0
+    },
+    "M23a": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_vop_battery_b",
+      "vs": 0.0
+    },
+    "M18_bg": {
+      "headroom_role": "diode_reference",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "biasgen_ref",
+      "_headroom_role_comment": "2026-08-11(세션28) 정정 -- 원래 'mirror'였는데, M18_bg는 diode-connected(drain=gate=Vbias1) 기준전압 생성기로 전류가 외부(ideal current source)에서 정해지는 singleton이라 '남는 예산을 나눠 가질 파트너'가 없다. non-cascode는 전부 '남는 예산 균등분배'로 처리되던 기존 계약상 singleton이면 균등분배가 '전부 다 가짐'이 돼 물리적으로 불가능한 값(~vdd)을 받고 있었다(M39/M40의 voltage_divider와는 다른 문제 -- 걔넨 둘이 짝지어 vdd/2를 의도적으로 나눠 갖지만 M18_bg는 혼자다). cascode와 똑같이 '필요한 만큼만' 받으면 되는 role이라 새 role 'diode_reference' 신설(M39/M40을 그대로 'cascode'로 안 쓴 것과 같은 이유 -- 물리적 역할이 다르면 role 문자열도 다르게 선언). allocate_stack_headroom()의 HeadroomPolicy.thin_roles에 'diode_reference'를 cascode와 동급으로 추가해 얇은 헤드룸을 받도록 함."
+    },
+    "M60": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "vbias4_gen",
+      "budget_reference_device": "M66",
+      "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- M60(vdd-Vbias4, gate=Vbias1)과 M66(Vbias4-gnd, diode-connected)은 Test 47이 확인한 진짜 2단자 직렬(Vbias4, internal_series)인데 vsid가 따로였다(vbias4_gen/vbias4_stack). M11a/M11b/M12·M5/M61과 같은 패턴이지만 이번엔 병합 대신 budget_reference_device로 연결 -- M66이 diode-connected라 자기 완결적으로 작은 Vgs를 갖는 쪽(self-determining)이고 M60은 외부 게이트(Vbias1) 구동이라 '나머지'를 받는 쪽이 자연스럽다(M6/M58 패턴과 동일 방향). 수정 전엔 둘 다 독립적으로 '혼자니까 vdd 전부'를 받아 합이 vdd가 아니라 ~2*vdd였다(KVL 위반, 미해결 상태로 다음 세션 이월돼 있던 항목).",
+      "vs": 0.0
+    },
+    "M64": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "vbias3_stack",
+      "vs": 0.0
+    },
+    "M63": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "vbias3_stack",
+      "vs": 0.0
+    },
+    "M61": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "vbias3_stack",
+      "budget_reference_device": "M5",
+      "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 VDD-M61-Vbias3-M64-M63-Vy-M5-GND라 M64/M63과 같은 물리적 컬럼인데 별도 vsid(vbias3_gen)였다 -- M64/M63과 합치고, 이 컬럼의 bottom이 gnd가 아니라 Vy(=vds(M5))이므로 budget_reference_device로 M5를 참조. suggest_headroom_stack_groups()(stick_diagram.py, 2026-08-10 신설)가 이 그룹+참조를 정확히 재현해 교차검증됨.",
+      "vs": 0.0
+    },
+    "M58": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "vbias2_stack",
+      "vs": 0.0
+    },
+    "M57": {
+      "headroom_role": "cascode",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "vbias2_stack",
+      "vs": 0.0
+    },
+    "M66": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "vbias4_stack",
+      "vs": 0.0
+    },
+    "M68": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "vbias2_stack",
+      "budget_reference_device": "M6",
+      "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 Vx-M58-M57-Vbias2-M68-GND(M6/M7 병렬 tail이 Vx를 먹임, r_bg_vbias2 theta 주석 참고)라 M58/M57과 같은 물리적 컬럼인데 별도 vsid(vbias2_gen)였다 -- M58/M57과 합치고, 이 컬럼의 top이 vdd가 아니라 Vx(=vdd-vds(M6))이므로 budget_reference_device로 M6을 참조(suggest_headroom_stack_groups()가 M7도 동등 후보로 제안하나, M6/M7 둘 다 같은 Vx를 구동하는 병렬 tail이라 어느 쪽을 참조해도 이론상 같은 값 -- M6을 대표로 채택).",
+      "vs": 0.0
+    },
+    "M36a": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "cmfb_load_a",
+      "vs": 0.0
+    },
+    "M36b": {
+      "headroom_role": "mirror",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "cmfb_load_b",
+      "same_as_device": "M36a",
+      "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M36b는 M36a의 대칭 매칭 파트너(CMFB load 차동쌍 반대쪽, 둘 다 diode-connected)라 이론상 VDS가 동일해야 한다. budget_reference_device 슬롯은 이미 cmfb_tail(M38)이 M36a를 참조하는 데 쓰고 있어(그룹당 1개 제약) M36b는 별도로 same_as_device(신규 필드)로 M36a를 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M36a의 vds를 그대로 복사.",
+      "vs": 0.0
+    },
+    "M39": {
+      "headroom_role": "voltage_divider",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "cmfb_vocdes_gen",
+      "_headroom_role_comment": "2026-08-10(세션27) 정정 -- 원래 'cascode'였는데, M39/M40은 VDD-M39-Voc_des-M40-GND 2소자 self-biased 분압기(_correction_log_5, 논문 II.D 'Voc_des=0.9V=VDD/2')라 '얇은 헤드룸만'을 뜻하는 cascode role이 물리적으로 안 맞았다(게다가 스택 전원이 cascode면 나머지 예산을 배분할 'other' role이 없어 allocate_stack_headroom() assert가 실패했다). cascode가 아닌 role은 전부 동일하게 '남는 예산 균등분배'로 처리되므로(headroom_role 자유문자열 계약), 이 값 자체를 새로 짓기만 하면 된다 -- M39/M40 각각 vdd/2=0.9V를 받아 논문 설계의도와 일치."
+    },
     "_M38_L_role_comment": "M38(CMFB 차동쌍 tail)의 L_role은 원래 M5(stage-1 tail)를 따라 'bias_replica'(1.2*L_min=0.18um)였고, 2026-08-03 배치 7-5b에서 'mirror'(2.5*L_min=0.375um)로 바꿨다. ⚠️ **그때 적은 근거(gds38 vs 2*gm36a*(gds39+gds40)/gm39 균형이 A_c의 부호를 정한다)는 폐기됐다** -- _correction_log_5에서 CMFB 넷리스트를 정정한 결과 M39/M40은 저임피던스 PMOS diode 분압기라 A_c 식에 아예 등장하지 않고, A_c는 다이오드 부하 차동쌍이라 **항상 음수**(-gm37/(2*gm36) 근방)이며 부호가 뒤집힐 여지 자체가 없다. 즉 '양귀환이라 바꿔야 한다'는 그때의 진단은 틀린 토폴로지에서 나온 허상이었다. 그럼에도 'mirror'를 유지하는 근거는 **별개이고 더 단순하다**: (a) M38은 tail 전류원이라 짧은 채널일 이유가 없다(전류 매칭·공정변동 관점에서 긴 L이 유리 -- 논문 II.D도 CMFB에 대해 'a larger channel length is used to reduce process variation'이라고 명시), (b) 정정된 A_c 식에서 gds38은 분모의 (A1+B1+gds38)에만 들어가므로 gds38이 작을수록 |A_c|가 (약간) 커져 CM 루프이득에 유리하다. ⚠️ 이 값은 여전히 논문에서 읽은 수치가 아니라 설계 판단이다 -- 최종 확인은 SPICE 필요.",
-    "M38":  {"headroom_role": "tail",   "gm_id_role": "balanced", "L_role": "mirror", "vertical_stack_id": "cmfb_tail",
-     "budget_reference_device": "M36a",
-     "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- 진짜 전기적 경로는 VDD-M36a-Vcmfb-M37a-Ncmfb_tail-M38-GND(M36b-N36b-M37b도 같은 M38 tail을 공유하는 병렬 branch)라 cmfb_load_a/cmfb_tail이 같은 물리적 컬럼인데 별도 vsid였다 -- M5/M61·M6/M68과 같은 패턴으로 budget_reference_device를 M36a에 연결(M37a는 compensation의 N_cmfb_bw feed로 vds가 별도 확정되므로 known_vds_sum에 자동 반영됨, M38만 이 참조가 실제로 필요). ⚠️ 정직한 한계: M36b는 대칭 매칭 파트너(M36a와 이론상 같은 값)지만 budget_reference_device는 그룹당 1개만 지원해 아직 참조가 안 걸려있다(M6/M7 사례와 같은 이월 항목, 다음 세션에서 M36b/M7도 같은 문제인지 전수조사 필요)."},
-    "M40":  {"headroom_role": "voltage_divider", "gm_id_role": "matching", "L_role": "mirror", "vertical_stack_id": "cmfb_vocdes_gen"},
-    "M37b": {"vertical_stack_id": "cmfb_tail"},
-    "M37a": {"vertical_stack_id": "cmfb_tail"},
-
+    "M38": {
+      "headroom_role": "tail",
+      "gm_id_role": "balanced",
+      "L_role": "mirror",
+      "vertical_stack_id": "cmfb_tail",
+      "budget_reference_device": "M36a",
+      "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- 진짜 전기적 경로는 VDD-M36a-Vcmfb-M37a-Ncmfb_tail-M38-GND(M36b-N36b-M37b도 같은 M38 tail을 공유하는 병렬 branch)라 cmfb_load_a/cmfb_tail이 같은 물리적 컬럼인데 별도 vsid였다 -- M5/M61·M6/M68과 같은 패턴으로 budget_reference_device를 M36a에 연결(M37a는 compensation의 N_cmfb_bw feed로 vds가 별도 확정되므로 known_vds_sum에 자동 반영됨, M38만 이 참조가 실제로 필요). ⚠️ 정직한 한계: M36b는 대칭 매칭 파트너(M36a와 이론상 같은 값)지만 budget_reference_device는 그룹당 1개만 지원해 아직 참조가 안 걸려있다(M6/M7 사례와 같은 이월 항목, 다음 세션에서 M36b/M7도 같은 문제인지 전수조사 필요)."
+    },
+    "M40": {
+      "headroom_role": "voltage_divider",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "vertical_stack_id": "cmfb_vocdes_gen"
+    },
+    "M37b": {
+      "vertical_stack_id": "cmfb_tail",
+      "gm_id_role": "matching",
+      "L_role": "mirror",
+      "headroom_role": "cascode",
+      "vs": 0.0
+    },
+    "M37a": {
+      "vertical_stack_id": "cmfb_tail",
+      "headroom_role": "cascode",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
     "_vertical_stack_id_only_comment": "2026-08-07 세션24 -- 위 _device_roles_comment가 명시한 대로 M1a/M1b/M2a/M2b/M3a/M3b/M4a/M4b/M15/M16/M25/M26은 headroom_role/gm_id_role/L_role을 compensation.stage_devices/metric_stage_budget 경로가 이미 전부 결정하므로 여기 없는 게 맞다(회귀 아님) -- 다만 vertical_stack_id(물리적 직렬 branch 경계)는 그 경로들이 채워주지 않아 8개 소자(M1a/M1b/M2a/M2b/M3a/M3b/M4a/M4b) + 출력단 2개 push-pull 쌍(M15/M16, M25/M26)이 gap으로 남아있었다(resolve_stack_layout() 선행 조건, 0-B). suggest_vertical_stack_composites()(stick_diagram.py §1.7d, base declared inputs=(Vip,Vim)만 사용 -- Voc/Voc_des로 승격된 inputs를 쓰면 role 재분류로 이 composite 자체가 사라지는 회귀가 확인됨, refine_differential_and_mirror_relations()와는 다른 목적/다른 inputs 세트)가 모든 branch/양방향에서 일관되게 찾아준 물리적 페어를 그대로 옮겼다. M9a->biasgen_vom_a, M18a->biasgen_vop_a, M37a->cmfb_tail은 기존 선언된 그룹 확장(각각 M8/M17/M38 위에 직접 얹힌 물리적 스택, source=대상의 drain으로 확인). diffpair_top_a/b, diffpair_bottom_a/b, output_stage_a/b는 이 gap-filling에서 신설된 이름 -- composite 경계는 함수가 결정론적으로 냈지만 이름 문자열 자체는 사람이 붙였다(레퍼토리: diffpair_top=PMOS 입력쌍(M1)+PMOS 캐스코드(M2), diffpair_bottom=NMOS 캐스코드(M3)+NMOS current-reuse 입력쌍(M4), output_stage=push-pull 2단 출력(M15/M16=Vom, M25/M26=Vop)).",
-    "M1a": {"vertical_stack_id": "diffpair_top_a"},
-    "M2a": {"vertical_stack_id": "diffpair_top_a"},
-    "M1b": {"vertical_stack_id": "diffpair_top_b"},
-    "M2b": {"vertical_stack_id": "diffpair_top_b"},
-    "M3a": {"vertical_stack_id": "diffpair_bottom_a"},
-    "M4a": {"vertical_stack_id": "diffpair_bottom_a"},
-    "M3b": {"vertical_stack_id": "diffpair_bottom_b"},
-    "M4b": {"vertical_stack_id": "diffpair_bottom_b"},
-    "M15": {"vertical_stack_id": "output_stage_a"},
-    "M16": {"vertical_stack_id": "output_stage_a"},
-    "M25": {"vertical_stack_id": "output_stage_b"},
-    "M26": {"vertical_stack_id": "output_stage_b"}
+    "M1a": {
+      "vertical_stack_id": "diffpair_top_a",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M2a": {
+      "vertical_stack_id": "diffpair_top_a",
+      "headroom_role": "cascode",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M1b": {
+      "vertical_stack_id": "diffpair_top_b",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M2b": {
+      "vertical_stack_id": "diffpair_top_b",
+      "headroom_role": "cascode",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M3a": {
+      "vertical_stack_id": "diffpair_bottom_a",
+      "headroom_role": "cascode",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M4a": {
+      "vertical_stack_id": "diffpair_bottom_a",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M3b": {
+      "vertical_stack_id": "diffpair_bottom_b",
+      "headroom_role": "cascode",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M4b": {
+      "vertical_stack_id": "diffpair_bottom_b",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M15": {
+      "vertical_stack_id": "output_stage_a",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M16": {
+      "vertical_stack_id": "output_stage_a",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M25": {
+      "vertical_stack_id": "output_stage_b",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    },
+    "M26": {
+      "vertical_stack_id": "output_stage_b",
+      "vs": 0.0,
+      "gm_id_role": "matching",
+      "L_role": "mirror"
+    }
   },
-
   "sizing_roles": {
     "_comment": "2026-07-31 배치 7-5 -- do.md §7.3.2 JSON 예시(theta/metrics/objective/constraints)를 그대로 옮김. theta[].feeds는 do.md에 적힌 그대로이며(root/reference/target/omega_key/cap_key/L/W 등 do.md에 명시 안 된 추가 키는 여기서 새로 만들어 채우지 않았다 -- optimize_full_circuit_budget() 실행 검증에서 어느 필드가 부족한지 그대로 드러나게 하는 것이 이번 배치 7-5의 목적).",
     "_intended_role_type_schema_comment": "2026-08-10(세션27) -- do.md §7.3.2가 2026-07-30에 이미 계획(_TEMPLATE.topology.json의 _sizing_roles_comment에 그 흔적이 남아있음)했으나 실제로 구현된 적 없던 A/B/C/D 태깅을 이제 theta[]마다 채운다. 값은 do.md §7.3.1의 '회로가 이 theta에 요구하는 역할' 유형(A=위상강제형/B=스펙-타겟 역산형/C=KVL·다이오드스택 역산형/D=비율-원칙형, 진짜 남은 자유도) 그대로 -- `feeds.type`(A/B/C/A_signed/settling_split/metric_stage_budget, _THETA_FEED_REGISTRY의 실행 메커니즘 이름)과는 **다른 축**이니 글자가 같아도 혼동하지 말 것. 목적: '의도한 유형'과 '실제 구현 메커니즘'이 어긋나는 곳(예: r_tail_M6/r_tail_M7은 do.md가 B라고 명시적으로 지목했는데 실제로는 자유 ratio로 근사돼 있고, L_cascode/L_stage2out은 2026-08-10 세션 분석 결과 B가 맞는 걸로 새로 드러났는데 grid-search 자유 theta로 구현돼 있음)을 앞으로 감사 스크립트가 기계적으로 잡아내게 하는 것 -- 어긋나는 항목엔 `role_type_gap` 필드로 이유를 남긴다(없으면 실제 구현이 의도와 일치한다는 뜻).",
     "theta": [
-      {"name": "f_slew",      "bounds": [0.1, 0.5],   "feeds": "settling_split",
-       "intended_role_type": "D",
-       "_role_type_comment": "do.md §7.3.1 Level1(① f_slew 비율) -- 논문도 정확한 배분비를 안 주는 진짜 설계 자유도. do.md의 사슬(Level1->Level2 gm1->Level6 omega_c->N_cmfb_bw)상 CMFB와 간접 연관되도록 설계됐으나, 2026-08-10 세션 확인: 현재 compensation은 spec의 6개 고정 파라미터만 읽고 derived[t_slew]를 아무도 안 읽어 미배선 상태였다(별도로 배선 작업 진행)."},
-      {"name": "L_cascode",   "bounds": [1.5e-7, 1.0e-6], "feeds": {"type": "metric_stage_budget", "metric": "gain_db", "devices": ["M2a","M2b","M3a","M3b"]},
-       "intended_role_type": "B",
-       "role_type_gap": "do.md 원표(§7.3.1)엔 없는 theta(세션 이후 신설, 미분류 상태로 남아있었음). 2026-08-10 세션 분석: `_feed_metric_stage_budget()`이 gm_id=15.0/vds=0.6 고정값을 쓰고 gm=gm_id*ID(L 무관)라, ID가 compensation으로 이미 상수 고정된 이 회로에선 gain_db(stage1 기여분)가 L_cascode 하나만의 단조함수다 -- 목표 gain_db에서 LUT 이분탐색으로 직접 역산 가능(B)한데 지금은 grid-search 자유 theta(D처럼 취급)로 구현돼 있다. warm-start 프리솔브로 우회 예정, 근본 배선은 별도 과제.",
-       "_comment": "2026-08-03(배치 7-5 실행 중 발견) -- 원래 bounds=[1,5]는 do.md 초안의 미실행 placeholder였다. _feed_metric_stage_budget()은 theta_value를 그대로 L(미터)로 쓰므로(문서화된 계약) L=1.0(1미터!) 같은 물리적으로 불가능한 값이 나왔다 -- 실제 sky130 LUT의 L_candidates 범위([1.5e-7,1.0e-6]m)로 정정. 2026-08-13(세션31) -- K_replica(M9a<-M15 replica)/mirror_M18a(M18a<-M9a replica)보다 반드시 앞으로 재배치(원래 위치는 배열 맨 끝, K_replica/mirror_M18a보다 한참 뒤였음) -- theta 배열 순서=처리 순서 규약상, metric_stage_budget이 M15/M16(및 이 소자)의 최종 L/gm_id/W/gm/gds를 확정하기 전에 K_replica가 먼저 그 값을 읽어가면 M9a가 M15의 stale한(compensation 직후, 아직 L_stage2out_p 반영 전) 상태를 복제하게 된다 -- mirror_M18a가 이미 문서화해둔 것과 정확히 같은 종류의 순서 버그(사용자 지적으로 발견, 재발 방지 차 세 metric_stage_budget theta 전부를 K_replica보다 앞으로 옮김)."},
-      {"name": "L_stage2out_p", "bounds": [1.5e-7, 1.0e-6], "feeds": {"type": "metric_stage_budget", "metric": "gain_db", "devices": ["M15","M25"], "gm_id_role": "gain"},
-       "intended_role_type": "B",
-       "role_type_gap": "L_cascode와 같은 gap(B타입인데 자유 grid theta로 구현) -- 2026-08-12(세션30): 옛 L_stage2out(M15/M16/M25/M26 4개 단일)을 kind 경계로 분리한 절반(PMOS). gain_db(stage 'M15' 항)에만 걸리고 classab_centering_dev_v는 이제 L_stage2out_p/L_stage2out_n 두 자유도의 '차이'로 표현되므로 두 theta를 함께 보는 국소 탐색이 여전히 필요하다.",
-       "_comment": "L_cascode와 동일 이유로 bounds 정정(2026-08-03). 2026-08-12(세션30) -- devices를 M15/M25(PMOS, 같은 kind 매칭쌍)로 좁혔다. 이유: M15(PMOS)/M16(NMOS)는 서로 다른 kind라 하나의 공유 L로는 gain_db(넓은 L 선호)와 classab_centering_dev_v(M15/M16 VGS 합=VDD 요구)가 상충한다는 게 세션29 '## AN'에서 실측 확인됨 -- declared matching_pairs도 M15-M25(PMOS끼리)만 요구하지 M15-M16 cross-kind 매칭은 없다(문헌조사+코드대조 결론, `.ai/context.md` 세션30 참고). M25(Vop측, M15의 branch_symmetric 파트너)는 그대로 포함 -- 안 넣으면 matching pair L 불일치 에러가 남(2026-08-03 실행 중 발견, 이 원칙은 그대로 유효). 2026-08-13(세션31) -- gm_id 고정값(15.0) 대신 gm_id_role='gain'(search_gm_id_for_role() 재사용, gm_id_for_vgs.md 참고)으로 자유탐색 -- L_stage2out_n이 이 소자의 실제 VGS에 종속되므로(gm_id_match_vgs_of), 이 소자는 gain 방향으로 자유롭게 최적화되는 게 맞다. K_replica/mirror_M18a보다 앞으로 재배치(위 L_cascode 주석 참고, mirror_M18a가 이미 문서화한 것과 같은 순서 버그)."},
-      {"name": "L_stage2out_n", "bounds": [1.5e-7, 1.0e-6], "feeds": {"type": "metric_stage_budget", "metric": "gain_db", "devices": ["M16","M26"], "gm_id_match_vgs_of": "M15"},
-       "intended_role_type": "B",
-       "role_type_gap": "L_stage2out_p와 동일 gap(NMOS 절반).",
-       "_comment": "2026-08-12(세션30) -- L_stage2out_p와 대칭인 NMOS 절반(M16/M26). bounds 근거는 L_stage2out_p와 동일. M26(Vom측, M16의 branch_symmetric 파트너)을 포함해 matching pair L 불일치를 방지한다. 2026-08-13(세션31) -- gm_id 고정값(15.0) 대신 gm_id_match_vgs_of='M15'로 이 소자의 gm/ID를 M15의 실제 VGS에 맞춰 직접 역산(탐색 아님) -- classab_centering_dev_v(=|VGS(M16)-VGS(M15)|, battery_centering_deviation의 high=M15/low=M16 조합이 대수적으로 이렇게 귀결됨, _metric_battery_centering_deviation() 참고)가 이 대수적 항등식으로 자동 0에 가까워진다(AT가 확정한 'L만 독립화해선 gain_db/classab_centering_dev_v 동시만족 불가능'이 실제로는 gm_id까지 독립화하면 풀림을 세션31 BI 조사가 실측 확인, .ai/context.md BI/BJ/BK/BL 참고). 반드시 L_stage2out_p **바로 뒤**에 와야 한다(gm_id_match_vgs_of가 M15의 완전히 확정된 상태를 읽어야 함)."},
-      {"name": "K_replica",   "bounds": [0.05, 0.2],  "feeds": {"type": "C", "target": "M9a", "reference": "M15"},
-       "intended_role_type": "D",
-       "_role_type_comment": "do.md §7.3.1 Level5(② K_replica) -- M9a/M15 면적비, 논문이 수치를 안 주는 진짜 설계 자유도(replica는 target 대비 작게 두는 원칙만 있음)."},
-      {"name": "N_cmfb_bw",   "bounds": [2, 5],       "feeds": {"type": "B", "tag": "servo", "target": "M37a", "omega_key": "omega_c", "cap_key": "Cc", "L": 0.35e-6, "W": 5e-6, "gm_id_bounds": [2.0, 26.0]},
-       "intended_role_type": "D",
-       "_role_type_comment": "do.md §7.3.1 Level6(③ N_cmfb_bw) -- CMFB 대역폭이 메인루프 대비 몇 배 빨라야 하는가, 논문이 '0.7:0.3은 heuristic'이라 자인한 바로 그 진짜 자유도."},
-      {"name": "N_cmfb_bw_mirror", "bounds": [1.0, 1.0], "feeds": {"type": "A", "tag": "cmfb_diffpair_mirror", "root": "M37b", "reference": ["M37a"]},
-       "intended_role_type": "A",
-       "_comment": "M37a/M37b는 diff_pair(대칭 두 다리)라 current_mirror 자동 시드(auto_mirror_ratios) 대상이 아님 -- N_cmfb_bw servo feed가 M37a만 직접 사이징하므로, ratio=1.0 고정 A타입 theta로 M37b에 같은 전류를 명시 전파(2026-08-03, 배치 7-5 실행 중 발견한 gap)."},
-      {"name": "r_cmfb_vocdes", "bounds": [0.02, 0.2], "feeds": {"type": "A", "tag": "cmfb_vocdes_ref", "root": "M39", "reference": ["M37a", "M37b"]},
-       "intended_role_type": "D",
-       "_comment": "2026-08-03(배치 7-5c, _correction_log_5의 CMFB 정정 직후 optimize_full_circuit_budget()을 실제로 돌려보고 나서 발현된 gap -- 'M39: A엔진이 전류를 못 정했다') -- 정정 전에는 M39.gate='N36'이라 M36a의 current_mirror로 auto_mirror_ratios가 전류를 자동 시드했는데, 실제 회로에서 M39는 **자기 자신의 독립 diode**라 미러 레퍼런스가 없다. 그리고 VDD-M39-Voc_des-M40-GND는 self-biased 2-diode 분압기라 **회로 안 어디에도 이 가지의 전류를 정해주는 레퍼런스가 없다**(전류는 오직 M39/M40의 W/L이 정한다) -- 즉 이건 엔진 결함이 아니라 진짜 설계 자유도다. 논문 II.D가 'The desired common-mode circuit Voc_des is generated by two transistors (M39 and M40) instead of two large resistors **in order to reduce the current flow**'라고 명시하므로 '작은 전류'라는 것만 알 수 있고 절대값은 원문에 없다 -- CMFB 차동쌍 전류(M37a+M37b=M38 tail) 대비 비율을 탐색 대상 theta로 노출한다(bounds 0.02~0.2는 r_biasgen(0.02~0.15)과 같은 '하우스키핑 전류' 규모, 원문 수치가 아니라 물리적 타당성만 있는 범위 -- 정직한 한계). M40의 전류는 Voc_des가 2단자 net이라 derive_stack_groups()가 자동 전파한다. ⚠️ 이 theta는 CMRR 값에 직접 영향을 주지 않는다(v(Voc_des)=0이라 M39/M40이 CMRR 식에 없음) -- power_uA/area_um2와 Voc_des DC 레벨에만 영향."},
-      {"name": "r_biasgen",   "bounds": [0.02, 0.15], "feeds": {"type": "A", "tag": "biasgen_root",
-       "root": ["M18_bg", "M60", "M61", "M66"], "reference": ["M1a", "M1b"]},
-       "intended_role_type": "D",
-       "_role_type_comment": "do.md §7.3.1 Level7(④ r_biasgen) -- 전력 스펙이 없어 순수 하우스키핑 최소화 원칙으로만 정하는 진짜 자유도.",
-       "_comment": "root=순수 bias-gen 기준전류 트리(M18_bg가 diode로 Vbias1을 정의, M60/M61은 M18_bg와 같은 게이트를 읽는 병렬 하우스키핑 전류원, M66은 별도 diode(Vbias4)지만 같은 기준전류 규모로 근사). reference=[M1a,M1b](신호경로 총전류 대표값) -- do.md '신호경로 총전류 대비 비율' 정의 그대로. 2026-08-03(배치 7-5 실행 중 정정): 처음엔 M6/M8/M13/M22/M17도 여기 같이 넣었으나, 이 소자들은 '작은 하우스키핑 전류'가 아니라 스테이지-1 tail/Class-AB 전류원처럼 신호경로 규모의 큰 전류를 흘려야 하는 소자라 같은 작은 비율(0.02~0.15)로 묶는 게 물리적으로 틀렸다(실측 확인 전 발견, 실행 전 자체 재검토로 분리) -- r_tail_M6/r_tail_M7/r_classab_src로 별도 분리."},
-      {"name": "r_tail_M6",   "bounds": [0.5, 0.9],  "feeds": {"type": "A", "tag": "stage1_tail_split", "root": "M6", "reference": ["M1a", "M1b"]},
-       "intended_role_type": "B",
-       "role_type_gap": "do.md §7.3.1(732행)이 명시적으로 'M6·M7 내부 분할비 | B | CMFB에 필요한 gm_cmfb에서 역산해야 함(Level6)'이라고 지목했다 -- N_cmfb_bw의 gm_cmfb 목표에서 LUT 역산으로 도출돼야 하는데, 실제로는 옛 0.7:0.3 heuristic을 자유 ratio theta로 근사한 채 남아있다(아래 _comment). 2026-08-10 세션이 이 gap을 재확인 -- 아직 미배선.",
-       "_comment": "2026-08-03(배치 7-5) -- M6/M7(둘 다 gate가 Vbias1/Vcmfb, 병렬로 Vx를 구동)의 합이 KCL상 ID(M1a)+ID(M1b)(=2*ID_branch)와 같아야 한다(Vx가 4단자 합류 노드라 A엔진의 2-rule로 자동으로는 안 풀림 -- 정직한 한계, do.md propagate_topology_forced_currents() docstring 참고). M6(Vbias1 고정바이어스, 대부분 몫)과 M7(Vcmfb 제어, 나머지)을 각자 독립 theta 비율로 근사 -- 정확히 2*ID_branch로 합산되도록 강제하지는 않는다(옛 resize.py의 0.7:0.3 손-비율 heuristic과 같은 근사 수준, 다만 이제 고정 상수가 아니라 탐색 대상)."},
-      {"name": "r_tail_M7",   "bounds": [0.1, 0.4],  "feeds": {"type": "A", "tag": "stage1_tail_split", "root": "M7", "reference": ["M1a", "M1b"]},
-       "intended_role_type": "B",
-       "role_type_gap": "r_tail_M6과 동일 gap(do.md §7.3.1 732행) -- N_cmfb_bw의 gm_cmfb 역산에서 나머지 몫으로 도출돼야 함.",
-       "_comment": "r_tail_M6과 짝 -- CMFB가 조정하는 나머지 몫(근사, 위 주석 참고)."},
-      {"name": "r_classab_battery", "bounds": [0.1, 0.3], "feeds": {"type": "A", "tag": "classab_top_source",
-       "root": ["M8", "M17"], "reference": ["M1a", "M1b"]},
-       "intended_role_type": "D",
-       "_role_type_comment": "do.md 원표(§7.3.1)에 없는 theta(세션6 신설) -- 전력 스펙 부재로 신호경로 대비 비율 원칙만 있는 진짜 자유도(r_biasgen과 같은 범주). K_replica와는 kcl_battery_M9b/M18b(A_signed, 아래)를 통해 물리적 feasibility로만 결합됨(2026-08-10 세션 도출: r_classab_battery >= K_replica*ID(M15)/(ID(M1a)+ID(M1b))).",
-       "_comment": "2026-08(세션6 정정, 원래 2026-08-03 배치 7-5의 `r_classab_src`를 분리) -- 사용자 지적('M8 branch와 M13 branch가 mirror구조라고 같은 전류를 가정하는 건 너무 단순화, 구조적 대칭이 우선돼야')이 계기. M8/M17은 둘 다 gate=Vbias1을 공유하지만(matching_pairs상 M8-M13, M22-M17이 각각 current_mirror), 실제 회로 역할은 다르다 -- M8/M17은 Vg15/Vg25(Monticelli 배터리 노드, M9a/M9b·M18a/M18b·M15/M25.gate가 물리는 신호경로 규모 전류)를 직접 공급하는 반면, M13/M22는 그냥 하우스키핑 다이오드 체인(M14a/M14b, M23a/M24b)만 먹인다 -- '같은 게이트=같은 전류'가 아니라 '같은 물리적 역할(Vg15/Vg25 배터리 공급)'을 기준으로 M8↔M17(좌우 쌍, root=list로 동시 시드)만 묶었다. bounds는 기존 r_classab_src 그대로(신호경로 규모)."},
-      {"name": "r_classab_diode_src", "bounds": [0.02, 0.15], "feeds": {"type": "A", "tag": "classab_diode_chain_source",
-       "root": ["M13", "M22"], "reference": ["M1a", "M1b"]},
-       "intended_role_type": "D",
-       "_comment": "2026-08(세션6 정정) -- r_classab_battery(M8/M17)에서 분리된 나머지 절반. M13/M22는 N14a14b/N24b23a(M14a/M14b, M23a/M24b 다이오드 체인)만 먹이는 하우스키핑 전류원이라, r_diode_M11a/r_bg_vbias2와 같은 '신호경로 대비 작은 비율' 카테고리로 근사(bounds 동일 [0.02,0.15]) -- M11a-chain과 값이 같다고 가정하지 않는다(Fig.7b 실측이 M11a-chain≠M13-chain을 이미 확인, 세션6 앞선 대화 참고), 독립 free theta로 유지. **⚠️ M8/M17과 값이 크게 벌어지면 kcl_battery_M9b/M18b(=M8-M9a, M17-M18a)가 음수가 되어 InfeasibleSizingError로 그 격자점만 건너뛴다(2026-08 세션6 신설, 정상 동작) -- grid search가 이 제약을 자동으로 걸러낸다."},
-      {"name": "kcl_tail_M5", "bounds": [1.0, 1.0], "feeds": {"type": "A", "tag": "tail_kcl_sum", "root": "M5", "reference": ["M4a", "M4b"]},
-       "intended_role_type": "A",
-       "_comment": "2026-08-03(배치 7-5 실행 중 발견) -- Vy 노드가 M4a.source/M4b.source/M5.drain 3단자 합류라 derive_stack_groups()의 2단자-net 규칙으로 자동 병합이 안 됨(M6/M7의 Vx 노드와 같은 패턴). M6/M7과 달리 M5는 설계 자유도가 없는 순수 KCL 합(ID(M5)=ID(M4a)+ID(M4b), 양쪽 diff pair 다리가 전부 tail로 모임) -- 그래서 자유 탐색 theta가 아니라 ratio=1.0 고정 A타입으로 정확한 합을 명시."},
-      {"name": "kcl_tail_M38", "bounds": [1.0, 1.0], "feeds": {"type": "A", "tag": "tail_kcl_sum", "root": "M38", "reference": ["M37a", "M37b"]},
-       "intended_role_type": "A",
-       "_comment": "2026-08-03(배치 7-5) -- Ncmfb_tail 노드가 M37a.source/M37b.source/M38.drain 3단자 합류, M5와 정확히 같은 패턴(CMFB 차동쌍의 공유 tail) -- ID(M38)=ID(M37a)+ID(M37b)."},
-      {"name": "r_diode_M11a", "bounds": [0.02, 0.15], "feeds": {"type": "A", "tag": "diode_bias_ratio", "root": ["M11a", "M11b", "M12", "M20a", "M20b", "M21"], "reference": ["M1a", "M1b"]},
-       "intended_role_type": "D",
-       "_comment": "2026-08-03(배치 7-5d, netlist 재검증 후 정정, 2차) -- 사용자 확인: VDD->M11a->M11b->N11b->M12->GND가 M8/M13과 무관한 완전히 독립된 서브회로(직렬 2-다이오드+싱크)다. M12(gate=Vbias4, gm_id_role=matching)가 이 체인 전체의 전류를 정하는 실질 소자이므로, M11a/M11b/M12 셋 다 root 리스트에 넣어 같은 theta_value*reference로 동시에 시드한다(직렬이라 어차피 셋 다 같은 ID여야 함 -- r_classab_src가 M8/M13/M22/M17을 병렬로 동시 시드하는 것과 같은 root=list 패턴, 여기서는 그 목록이 '병렬 소자들'이 아니라 '한 직렬 체인의 전체 구성원'이라는 차이만 있다). 논문 II.B절 원문(M11a/M11b가 subthreshold 영역, Vg15≈1.3V 타깃)이 정확한 비율은 안 주므로 r_tail_M6/r_tail_M7과 같은 자유 비율 theta로 근사, subthreshold 힌트 반영해 r_biasgen과 같은 작은 범위 채택. **2026-08-04(세션5) 병합**: 원래 별도 theta였던 Vop측 대칭 체인(M20a/M20b/M21, 옛 r_diode_M20a)을 이 root 리스트에 합쳤다 -- 사용자가 확정한 '완전 대칭(M6.gate/M7.gate 제외)' 원칙상 두 체인은 항상 같은 비율이어야 하는데, 독립 theta로 두면 grid search가 서로 다른 값을 고를 수 있어 대칭이 깨질 위험이 있었다(발견 계기: theta 개수 증가로 인한 탐색공간 폭발 문제를 사용자와 논의하던 중, '같은 전류로 묶을 수 있는 branch가 더 있지 않냐'는 질문으로 이 누락을 재발견). 자유 theta 수 14->13으로 감소, 동시에 대칭성 위반 가능성도 제거."},
-      {"name": "r_bg_vbias2", "bounds": [0.02, 0.15], "feeds": {"type": "A", "tag": "biasgen_root", "root": ["M58", "M57"], "reference": ["M1a", "M1b"]},
-       "intended_role_type": "D",
-       "_comment": "2026-08-04(세션5, M10/M19 정정과 같은 배치에서 run_harness.py 재실행 중 연쇄로 발견 -- 'M58: A엔진이 전류를 못 정했다') -- M58(source=Vx, drain=N58_57, gate=Vbias2)/M57(diode, gate=drain=Vbias2)는 N58_57(2단자 net)로 진짜 KCL 직렬이지만, 이 체인 전체의 절대 전류를 정하는 시드가 없었다. _correction_log_7이 기록한 'M61->M58->M57' 구조는 그 이후 정정(M61.drain: N_bg_61->Vbias3)으로 이미 stale해졌고, 현재 M58.source=Vx라 실제로는 1단 tail net(Vx)의 또 다른 독립 소비자(M6/M7과 같은 패턴)다 -- r_biasgen과 같은 '신호경로 대비 작은 하우스키핑 비율'로 근사(정직한 한계, 논문에 이 전류를 정하는 식 없음)."},
-      {"name": "kcl_sink_M10", "bounds": [1.0, 1.0], "feeds": {"type": "A_signed", "tag": "output_bus_sink_kcl", "root": "M10",
-       "terms": [{"device": "M8", "sign": 1}, {"device": "M1b", "sign": 1}, {"device": "M4b", "sign": -1}]},
-       "intended_role_type": "A",
-       "_comment": "2026-08(세션6, 사용자 지적 'M10과 M8은 같은 branch 전류인데 독립적이야?'가 계기) -- 옛 `r_sink_vop1vom1`(free ratio theta, [0.02,0.15])을 대체. `load_topology()` connectivity만으로 조립한 sympy 재유도(workspaces/current-reuse-telescopic-ota-report/spice/vg15_vop1_kcl_sympy_derivation.py)로 확정: Vg15 KCL(I_M8=I_M9a+I_M9b) + Vop1 KCL(I_M2b+I_M9a+I_M9b=I_M3b+I_M10)을 연립하면 I_M9b가 소거되어 `I(M10)=I(M8)+I(M2b)-I(M3b)`, M2b/M3b는 2단자 net으로 각각 M1b/M4b와 직렬 강제되므로 `=I(M8)+I(M1b)-I(M4b)`. do.md §7.3.1(733행)이 애초에 'M12/M10 | 유형A | M8/M9b계 KCL 직렬'이라고 명시했던 원래 설계 의도와 일치 -- 세션5에서 branch_symmetric 오용 버그(우연히 M12 전류를 물려받던 것)를 고치며 이 KCL 연결이 같이 사라지고 '논문에 공식 없음'을 사유로 자유 theta가 대신 들어왔던 것뿐, 실제로는 설계 자유도 없는 순수 KCL(bounds=[1,1])이다."},
-      {"name": "kcl_sink_M19", "bounds": [1.0, 1.0], "feeds": {"type": "A_signed", "tag": "output_bus_sink_kcl", "root": "M19",
-       "terms": [{"device": "M17", "sign": 1}, {"device": "M1a", "sign": 1}, {"device": "M4a", "sign": -1}]},
-       "intended_role_type": "A",
-       "_comment": "kcl_sink_M10과 대칭인 Vop측(Vom1 노드: M2a.drain/M3a.drain/M18a.drain/M18b.source/M19.drain) -- 동일 유도, M17(=M8의 Vop측 대응)·M1a/M4a(=M1b/M4b의 Vop측 대응)로 항만 교체."},
-      {"name": "kcl_battery_M9b", "bounds": [1.0, 1.0], "feeds": {"type": "A_signed", "tag": "monticelli_kcl_sum", "root": "M9b",
-       "terms": [{"device": "M8", "sign": 1}, {"device": "M9a", "sign": -1}]},
-       "intended_role_type": "A",
-       "_role_type_comment": "do.md §7.3.1(735행) 'M9b(및 M18b) | A(변형) | quiescent 시점엔... 절차상 A와 동일'과 일치.",
-       "_comment": "2026-08(세션6 정정, 원래 2026-08-03 배치 7-5 작성분 대체) -- 옛 공식(`ID(M9b)=ID(M11a체인)+ID(M9a)`, type A 양수합)의 근거였던 'Vg15 노드가 M11b.drain/M9a.drain/M9b.drain 3단자 합류'라는 주장이 실제 netlist와 다름을 발견(M11b.drain='N11b', M9a.drain='Vop1' -- 둘 다 Vg15가 아니다, vg15_vop1_kcl_sympy_derivation.py로 확인). Vg15의 진짜 3단자는 M8.drain/M9a.source/M9b.drain -- KCL: `ID(M8)=ID(M9a)+ID(M9b)` → `ID(M9b)=ID(M8)-ID(M9a)`(뺄셈이라 옛 A타입으론 표현 불가, 세션6 신설 A_signed로 교체). 설계 자유도 없는 순수 KCL(bounds=[1,1])인 건 그대로."},
-      {"name": "mirror_M18a", "bounds": [1.0, 1.0], "feeds": {"type": "C", "target": "M18a", "reference": "M9a"},
-       "intended_role_type": "A",
-       "_role_type_comment": "do.md §7.3.1(739행) 'Vop측 12개 전부 | A | Vom측 미러'와 일치 -- ratio=1.0 완전 replica라 설계 자유도 없음(feeds.type=C는 실행 메커니즘일 뿐, 역할 자체는 A).",
-       "_comment": "2026-08-03(배치 7-5) -- M18a는 M9a의 branch_symmetric 파트너(Vop측 구조적 복제, Monticelli PMOS측) -- K_replica처럼 W만이 아니라 완전한 replica(W/ID/gm/gds/gm_id/L/vds, ratio=1.0)로 M9a를 그대로 물려받는다. K_replica(target=M9a)보다, 그리고 아래 kcl_battery_M18b(reference로 M18a를 참조)보다 반드시 앞에 와야 함(theta 배열 순서 버그로 한 번 실패 후 정정, 2026-08-03)."},
-      {"name": "kcl_battery_M18b", "bounds": [1.0, 1.0], "feeds": {"type": "A_signed", "tag": "monticelli_kcl_sum", "root": "M18b",
-       "terms": [{"device": "M17", "sign": 1}, {"device": "M18a", "sign": -1}]},
-       "intended_role_type": "A",
-       "_comment": "kcl_battery_M9b와 대칭인 Vop측(Vg25 노드: M17.drain/M18a.source/M18b.drain) -- 동일 유도·동일 사유(세션6 정정, 옛 reference=[M20a,M18a] 양수합 공식 대체)."}
+      {
+        "name": "f_slew",
+        "bounds": [
+          0.1,
+          0.5
+        ],
+        "feeds": "settling_split",
+        "intended_role_type": "D",
+        "_role_type_comment": "do.md §7.3.1 Level1(① f_slew 비율) -- 논문도 정확한 배분비를 안 주는 진짜 설계 자유도. do.md의 사슬(Level1->Level2 gm1->Level6 omega_c->N_cmfb_bw)상 CMFB와 간접 연관되도록 설계됐으나, 2026-08-10 세션 확인: 현재 compensation은 spec의 6개 고정 파라미터만 읽고 derived[t_slew]를 아무도 안 읽어 미배선 상태였다(별도로 배선 작업 진행)."
+      },
+      {
+        "name": "L_cascode",
+        "bounds": [
+          1.5e-07,
+          1e-06
+        ],
+        "feeds": {
+          "type": "metric_stage_budget",
+          "metric": "gain_db",
+          "devices": [
+            "M2a",
+            "M2b",
+            "M3a",
+            "M3b"
+          ]
+        },
+        "intended_role_type": "B",
+        "role_type_gap": "do.md 원표(§7.3.1)엔 없는 theta(세션 이후 신설, 미분류 상태로 남아있었음). 2026-08-10 세션 분석: `_feed_metric_stage_budget()`이 gm_id=15.0/vds=0.6 고정값을 쓰고 gm=gm_id*ID(L 무관)라, ID가 compensation으로 이미 상수 고정된 이 회로에선 gain_db(stage1 기여분)가 L_cascode 하나만의 단조함수다 -- 목표 gain_db에서 LUT 이분탐색으로 직접 역산 가능(B)한데 지금은 grid-search 자유 theta(D처럼 취급)로 구현돼 있다. warm-start 프리솔브로 우회 예정, 근본 배선은 별도 과제.",
+        "_comment": "2026-08-03(배치 7-5 실행 중 발견) -- 원래 bounds=[1,5]는 do.md 초안의 미실행 placeholder였다. _feed_metric_stage_budget()은 theta_value를 그대로 L(미터)로 쓰므로(문서화된 계약) L=1.0(1미터!) 같은 물리적으로 불가능한 값이 나왔다 -- 실제 sky130 LUT의 L_candidates 범위([1.5e-7,1.0e-6]m)로 정정. 2026-08-13(세션31) -- K_replica(M9a<-M15 replica)/mirror_M18a(M18a<-M9a replica)보다 반드시 앞으로 재배치(원래 위치는 배열 맨 끝, K_replica/mirror_M18a보다 한참 뒤였음) -- theta 배열 순서=처리 순서 규약상, metric_stage_budget이 M15/M16(및 이 소자)의 최종 L/gm_id/W/gm/gds를 확정하기 전에 K_replica가 먼저 그 값을 읽어가면 M9a가 M15의 stale한(compensation 직후, 아직 L_stage2out_p 반영 전) 상태를 복제하게 된다 -- mirror_M18a가 이미 문서화해둔 것과 정확히 같은 종류의 순서 버그(사용자 지적으로 발견, 재발 방지 차 세 metric_stage_budget theta 전부를 K_replica보다 앞으로 옮김)."
+      },
+      {
+        "name": "L_stage2out_p",
+        "bounds": [
+          1.5e-07,
+          1e-06
+        ],
+        "feeds": {
+          "type": "metric_stage_budget",
+          "metric": "gain_db",
+          "devices": [
+            "M15",
+            "M25"
+          ],
+          "gm_id_role": "gain"
+        },
+        "intended_role_type": "B",
+        "role_type_gap": "L_cascode와 같은 gap(B타입인데 자유 grid theta로 구현) -- 2026-08-12(세션30): 옛 L_stage2out(M15/M16/M25/M26 4개 단일)을 kind 경계로 분리한 절반(PMOS). gain_db(stage 'M15' 항)에만 걸리고 classab_centering_dev_v는 이제 L_stage2out_p/L_stage2out_n 두 자유도의 '차이'로 표현되므로 두 theta를 함께 보는 국소 탐색이 여전히 필요하다.",
+        "_comment": "L_cascode와 동일 이유로 bounds 정정(2026-08-03). 2026-08-12(세션30) -- devices를 M15/M25(PMOS, 같은 kind 매칭쌍)로 좁혔다. 이유: M15(PMOS)/M16(NMOS)는 서로 다른 kind라 하나의 공유 L로는 gain_db(넓은 L 선호)와 classab_centering_dev_v(M15/M16 VGS 합=VDD 요구)가 상충한다는 게 세션29 '## AN'에서 실측 확인됨 -- declared matching_pairs도 M15-M25(PMOS끼리)만 요구하지 M15-M16 cross-kind 매칭은 없다(문헌조사+코드대조 결론, `.ai/context.md` 세션30 참고). M25(Vop측, M15의 branch_symmetric 파트너)는 그대로 포함 -- 안 넣으면 matching pair L 불일치 에러가 남(2026-08-03 실행 중 발견, 이 원칙은 그대로 유효). 2026-08-13(세션31) -- gm_id 고정값(15.0) 대신 gm_id_role='gain'(search_gm_id_for_role() 재사용, gm_id_for_vgs.md 참고)으로 자유탐색 -- L_stage2out_n이 이 소자의 실제 VGS에 종속되므로(gm_id_match_vgs_of), 이 소자는 gain 방향으로 자유롭게 최적화되는 게 맞다. K_replica/mirror_M18a보다 앞으로 재배치(위 L_cascode 주석 참고, mirror_M18a가 이미 문서화한 것과 같은 순서 버그)."
+      },
+      {
+        "name": "L_stage2out_n",
+        "bounds": [
+          1.5e-07,
+          1e-06
+        ],
+        "feeds": {
+          "type": "metric_stage_budget",
+          "metric": "gain_db",
+          "devices": [
+            "M16",
+            "M26"
+          ],
+          "gm_id_match_vgs_of": "M15"
+        },
+        "intended_role_type": "B",
+        "role_type_gap": "L_stage2out_p와 동일 gap(NMOS 절반).",
+        "_comment": "2026-08-12(세션30) -- L_stage2out_p와 대칭인 NMOS 절반(M16/M26). bounds 근거는 L_stage2out_p와 동일. M26(Vom측, M16의 branch_symmetric 파트너)을 포함해 matching pair L 불일치를 방지한다. 2026-08-13(세션31) -- gm_id 고정값(15.0) 대신 gm_id_match_vgs_of='M15'로 이 소자의 gm/ID를 M15의 실제 VGS에 맞춰 직접 역산(탐색 아님) -- classab_centering_dev_v(=|VGS(M16)-VGS(M15)|, battery_centering_deviation의 high=M15/low=M16 조합이 대수적으로 이렇게 귀결됨, _metric_battery_centering_deviation() 참고)가 이 대수적 항등식으로 자동 0에 가까워진다(AT가 확정한 'L만 독립화해선 gain_db/classab_centering_dev_v 동시만족 불가능'이 실제로는 gm_id까지 독립화하면 풀림을 세션31 BI 조사가 실측 확인, .ai/context.md BI/BJ/BK/BL 참고). 반드시 L_stage2out_p **바로 뒤**에 와야 한다(gm_id_match_vgs_of가 M15의 완전히 확정된 상태를 읽어야 함)."
+      },
+      {
+        "name": "K_replica",
+        "bounds": [
+          0.05,
+          0.2
+        ],
+        "feeds": {
+          "type": "C",
+          "target": "M9a",
+          "reference": "M15"
+        },
+        "intended_role_type": "D",
+        "_role_type_comment": "do.md §7.3.1 Level5(② K_replica) -- M9a/M15 면적비, 논문이 수치를 안 주는 진짜 설계 자유도(replica는 target 대비 작게 두는 원칙만 있음)."
+      },
+      {
+        "name": "N_cmfb_bw",
+        "bounds": [
+          2,
+          5
+        ],
+        "feeds": {
+          "type": "B",
+          "tag": "servo",
+          "target": "M37a",
+          "omega_key": "omega_c",
+          "cap_key": "Cc",
+          "L": 3.5e-07,
+          "W": 5e-06,
+          "gm_id_bounds": [
+            2.0,
+            26.0
+          ]
+        },
+        "intended_role_type": "D",
+        "_role_type_comment": "do.md §7.3.1 Level6(③ N_cmfb_bw) -- CMFB 대역폭이 메인루프 대비 몇 배 빨라야 하는가, 논문이 '0.7:0.3은 heuristic'이라 자인한 바로 그 진짜 자유도."
+      },
+      {
+        "name": "N_cmfb_bw_mirror",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "cmfb_diffpair_mirror",
+          "root": "M37b",
+          "reference": [
+            "M37a"
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "M37a/M37b는 diff_pair(대칭 두 다리)라 current_mirror 자동 시드(auto_mirror_ratios) 대상이 아님 -- N_cmfb_bw servo feed가 M37a만 직접 사이징하므로, ratio=1.0 고정 A타입 theta로 M37b에 같은 전류를 명시 전파(2026-08-03, 배치 7-5 실행 중 발견한 gap)."
+      },
+      {
+        "name": "r_cmfb_vocdes",
+        "bounds": [
+          0.02,
+          0.2
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "cmfb_vocdes_ref",
+          "root": "M39",
+          "reference": [
+            "M37a",
+            "M37b"
+          ]
+        },
+        "intended_role_type": "D",
+        "_comment": "2026-08-03(배치 7-5c, _correction_log_5의 CMFB 정정 직후 optimize_full_circuit_budget()을 실제로 돌려보고 나서 발현된 gap -- 'M39: A엔진이 전류를 못 정했다') -- 정정 전에는 M39.gate='N36'이라 M36a의 current_mirror로 auto_mirror_ratios가 전류를 자동 시드했는데, 실제 회로에서 M39는 **자기 자신의 독립 diode**라 미러 레퍼런스가 없다. 그리고 VDD-M39-Voc_des-M40-GND는 self-biased 2-diode 분압기라 **회로 안 어디에도 이 가지의 전류를 정해주는 레퍼런스가 없다**(전류는 오직 M39/M40의 W/L이 정한다) -- 즉 이건 엔진 결함이 아니라 진짜 설계 자유도다. 논문 II.D가 'The desired common-mode circuit Voc_des is generated by two transistors (M39 and M40) instead of two large resistors **in order to reduce the current flow**'라고 명시하므로 '작은 전류'라는 것만 알 수 있고 절대값은 원문에 없다 -- CMFB 차동쌍 전류(M37a+M37b=M38 tail) 대비 비율을 탐색 대상 theta로 노출한다(bounds 0.02~0.2는 r_biasgen(0.02~0.15)과 같은 '하우스키핑 전류' 규모, 원문 수치가 아니라 물리적 타당성만 있는 범위 -- 정직한 한계). M40의 전류는 Voc_des가 2단자 net이라 derive_stack_groups()가 자동 전파한다. ⚠️ 이 theta는 CMRR 값에 직접 영향을 주지 않는다(v(Voc_des)=0이라 M39/M40이 CMRR 식에 없음) -- power_uA/area_um2와 Voc_des DC 레벨에만 영향."
+      },
+      {
+        "name": "r_biasgen",
+        "bounds": [
+          0.02,
+          0.15
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "biasgen_root",
+          "root": [
+            "M18_bg",
+            "M60",
+            "M61",
+            "M66"
+          ],
+          "reference": [
+            "M1a",
+            "M1b"
+          ]
+        },
+        "intended_role_type": "D",
+        "_role_type_comment": "do.md §7.3.1 Level7(④ r_biasgen) -- 전력 스펙이 없어 순수 하우스키핑 최소화 원칙으로만 정하는 진짜 자유도.",
+        "_comment": "root=순수 bias-gen 기준전류 트리(M18_bg가 diode로 Vbias1을 정의, M60/M61은 M18_bg와 같은 게이트를 읽는 병렬 하우스키핑 전류원, M66은 별도 diode(Vbias4)지만 같은 기준전류 규모로 근사). reference=[M1a,M1b](신호경로 총전류 대표값) -- do.md '신호경로 총전류 대비 비율' 정의 그대로. 2026-08-03(배치 7-5 실행 중 정정): 처음엔 M6/M8/M13/M22/M17도 여기 같이 넣었으나, 이 소자들은 '작은 하우스키핑 전류'가 아니라 스테이지-1 tail/Class-AB 전류원처럼 신호경로 규모의 큰 전류를 흘려야 하는 소자라 같은 작은 비율(0.02~0.15)로 묶는 게 물리적으로 틀렸다(실측 확인 전 발견, 실행 전 자체 재검토로 분리) -- r_tail_M6/r_tail_M7/r_classab_src로 별도 분리."
+      },
+      {
+        "name": "r_tail_M6",
+        "bounds": [
+          0.5,
+          0.9
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "stage1_tail_split",
+          "root": "M6",
+          "reference": [
+            "M1a",
+            "M1b"
+          ]
+        },
+        "intended_role_type": "B",
+        "role_type_gap": "do.md §7.3.1(732행)이 명시적으로 'M6·M7 내부 분할비 | B | CMFB에 필요한 gm_cmfb에서 역산해야 함(Level6)'이라고 지목했다 -- N_cmfb_bw의 gm_cmfb 목표에서 LUT 역산으로 도출돼야 하는데, 실제로는 옛 0.7:0.3 heuristic을 자유 ratio theta로 근사한 채 남아있다(아래 _comment). 2026-08-10 세션이 이 gap을 재확인 -- 아직 미배선.",
+        "_comment": "2026-08-03(배치 7-5) -- M6/M7(둘 다 gate가 Vbias1/Vcmfb, 병렬로 Vx를 구동)의 합이 KCL상 ID(M1a)+ID(M1b)(=2*ID_branch)와 같아야 한다(Vx가 4단자 합류 노드라 A엔진의 2-rule로 자동으로는 안 풀림 -- 정직한 한계, do.md propagate_topology_forced_currents() docstring 참고). M6(Vbias1 고정바이어스, 대부분 몫)과 M7(Vcmfb 제어, 나머지)을 각자 독립 theta 비율로 근사 -- 정확히 2*ID_branch로 합산되도록 강제하지는 않는다(옛 resize.py의 0.7:0.3 손-비율 heuristic과 같은 근사 수준, 다만 이제 고정 상수가 아니라 탐색 대상)."
+      },
+      {
+        "name": "r_tail_M7",
+        "bounds": [
+          0.1,
+          0.4
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "stage1_tail_split",
+          "root": "M7",
+          "reference": [
+            "M1a",
+            "M1b"
+          ]
+        },
+        "intended_role_type": "B",
+        "role_type_gap": "r_tail_M6과 동일 gap(do.md §7.3.1 732행) -- N_cmfb_bw의 gm_cmfb 역산에서 나머지 몫으로 도출돼야 함.",
+        "_comment": "r_tail_M6과 짝 -- CMFB가 조정하는 나머지 몫(근사, 위 주석 참고)."
+      },
+      {
+        "name": "r_classab_battery",
+        "bounds": [
+          0.1,
+          0.3
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "classab_top_source",
+          "root": [
+            "M8",
+            "M17"
+          ],
+          "reference": [
+            "M1a",
+            "M1b"
+          ]
+        },
+        "intended_role_type": "D",
+        "_role_type_comment": "do.md 원표(§7.3.1)에 없는 theta(세션6 신설) -- 전력 스펙 부재로 신호경로 대비 비율 원칙만 있는 진짜 자유도(r_biasgen과 같은 범주). K_replica와는 kcl_battery_M9b/M18b(A_signed, 아래)를 통해 물리적 feasibility로만 결합됨(2026-08-10 세션 도출: r_classab_battery >= K_replica*ID(M15)/(ID(M1a)+ID(M1b))).",
+        "_comment": "2026-08(세션6 정정, 원래 2026-08-03 배치 7-5의 `r_classab_src`를 분리) -- 사용자 지적('M8 branch와 M13 branch가 mirror구조라고 같은 전류를 가정하는 건 너무 단순화, 구조적 대칭이 우선돼야')이 계기. M8/M17은 둘 다 gate=Vbias1을 공유하지만(matching_pairs상 M8-M13, M22-M17이 각각 current_mirror), 실제 회로 역할은 다르다 -- M8/M17은 Vg15/Vg25(Monticelli 배터리 노드, M9a/M9b·M18a/M18b·M15/M25.gate가 물리는 신호경로 규모 전류)를 직접 공급하는 반면, M13/M22는 그냥 하우스키핑 다이오드 체인(M14a/M14b, M23a/M24b)만 먹인다 -- '같은 게이트=같은 전류'가 아니라 '같은 물리적 역할(Vg15/Vg25 배터리 공급)'을 기준으로 M8↔M17(좌우 쌍, root=list로 동시 시드)만 묶었다. bounds는 기존 r_classab_src 그대로(신호경로 규모)."
+      },
+      {
+        "name": "r_classab_diode_src",
+        "bounds": [
+          0.02,
+          0.15
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "classab_diode_chain_source",
+          "root": [
+            "M13",
+            "M22"
+          ],
+          "reference": [
+            "M1a",
+            "M1b"
+          ]
+        },
+        "intended_role_type": "D",
+        "_comment": "2026-08(세션6 정정) -- r_classab_battery(M8/M17)에서 분리된 나머지 절반. M13/M22는 N14a14b/N24b23a(M14a/M14b, M23a/M24b 다이오드 체인)만 먹이는 하우스키핑 전류원이라, r_diode_M11a/r_bg_vbias2와 같은 '신호경로 대비 작은 비율' 카테고리로 근사(bounds 동일 [0.02,0.15]) -- M11a-chain과 값이 같다고 가정하지 않는다(Fig.7b 실측이 M11a-chain≠M13-chain을 이미 확인, 세션6 앞선 대화 참고), 독립 free theta로 유지. **⚠️ M8/M17과 값이 크게 벌어지면 kcl_battery_M9b/M18b(=M8-M9a, M17-M18a)가 음수가 되어 InfeasibleSizingError로 그 격자점만 건너뛴다(2026-08 세션6 신설, 정상 동작) -- grid search가 이 제약을 자동으로 걸러낸다."
+      },
+      {
+        "name": "kcl_tail_M5",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "tail_kcl_sum",
+          "root": "M5",
+          "reference": [
+            "M4a",
+            "M4b"
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "2026-08-03(배치 7-5 실행 중 발견) -- Vy 노드가 M4a.source/M4b.source/M5.drain 3단자 합류라 derive_stack_groups()의 2단자-net 규칙으로 자동 병합이 안 됨(M6/M7의 Vx 노드와 같은 패턴). M6/M7과 달리 M5는 설계 자유도가 없는 순수 KCL 합(ID(M5)=ID(M4a)+ID(M4b), 양쪽 diff pair 다리가 전부 tail로 모임) -- 그래서 자유 탐색 theta가 아니라 ratio=1.0 고정 A타입으로 정확한 합을 명시."
+      },
+      {
+        "name": "kcl_tail_M38",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "tail_kcl_sum",
+          "root": "M38",
+          "reference": [
+            "M37a",
+            "M37b"
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "2026-08-03(배치 7-5) -- Ncmfb_tail 노드가 M37a.source/M37b.source/M38.drain 3단자 합류, M5와 정확히 같은 패턴(CMFB 차동쌍의 공유 tail) -- ID(M38)=ID(M37a)+ID(M37b)."
+      },
+      {
+        "name": "r_diode_M11a",
+        "bounds": [
+          0.02,
+          0.15
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "diode_bias_ratio",
+          "root": [
+            "M11a",
+            "M11b",
+            "M12",
+            "M20a",
+            "M20b",
+            "M21"
+          ],
+          "reference": [
+            "M1a",
+            "M1b"
+          ]
+        },
+        "intended_role_type": "D",
+        "_comment": "2026-08-03(배치 7-5d, netlist 재검증 후 정정, 2차) -- 사용자 확인: VDD->M11a->M11b->N11b->M12->GND가 M8/M13과 무관한 완전히 독립된 서브회로(직렬 2-다이오드+싱크)다. M12(gate=Vbias4, gm_id_role=matching)가 이 체인 전체의 전류를 정하는 실질 소자이므로, M11a/M11b/M12 셋 다 root 리스트에 넣어 같은 theta_value*reference로 동시에 시드한다(직렬이라 어차피 셋 다 같은 ID여야 함 -- r_classab_src가 M8/M13/M22/M17을 병렬로 동시 시드하는 것과 같은 root=list 패턴, 여기서는 그 목록이 '병렬 소자들'이 아니라 '한 직렬 체인의 전체 구성원'이라는 차이만 있다). 논문 II.B절 원문(M11a/M11b가 subthreshold 영역, Vg15≈1.3V 타깃)이 정확한 비율은 안 주므로 r_tail_M6/r_tail_M7과 같은 자유 비율 theta로 근사, subthreshold 힌트 반영해 r_biasgen과 같은 작은 범위 채택. **2026-08-04(세션5) 병합**: 원래 별도 theta였던 Vop측 대칭 체인(M20a/M20b/M21, 옛 r_diode_M20a)을 이 root 리스트에 합쳤다 -- 사용자가 확정한 '완전 대칭(M6.gate/M7.gate 제외)' 원칙상 두 체인은 항상 같은 비율이어야 하는데, 독립 theta로 두면 grid search가 서로 다른 값을 고를 수 있어 대칭이 깨질 위험이 있었다(발견 계기: theta 개수 증가로 인한 탐색공간 폭발 문제를 사용자와 논의하던 중, '같은 전류로 묶을 수 있는 branch가 더 있지 않냐'는 질문으로 이 누락을 재발견). 자유 theta 수 14->13으로 감소, 동시에 대칭성 위반 가능성도 제거."
+      },
+      {
+        "name": "r_bg_vbias2",
+        "bounds": [
+          0.02,
+          0.15
+        ],
+        "feeds": {
+          "type": "A",
+          "tag": "biasgen_root",
+          "root": [
+            "M58",
+            "M57"
+          ],
+          "reference": [
+            "M1a",
+            "M1b"
+          ]
+        },
+        "intended_role_type": "D",
+        "_comment": "2026-08-04(세션5, M10/M19 정정과 같은 배치에서 run_harness.py 재실행 중 연쇄로 발견 -- 'M58: A엔진이 전류를 못 정했다') -- M58(source=Vx, drain=N58_57, gate=Vbias2)/M57(diode, gate=drain=Vbias2)는 N58_57(2단자 net)로 진짜 KCL 직렬이지만, 이 체인 전체의 절대 전류를 정하는 시드가 없었다. _correction_log_7이 기록한 'M61->M58->M57' 구조는 그 이후 정정(M61.drain: N_bg_61->Vbias3)으로 이미 stale해졌고, 현재 M58.source=Vx라 실제로는 1단 tail net(Vx)의 또 다른 독립 소비자(M6/M7과 같은 패턴)다 -- r_biasgen과 같은 '신호경로 대비 작은 하우스키핑 비율'로 근사(정직한 한계, 논문에 이 전류를 정하는 식 없음)."
+      },
+      {
+        "name": "kcl_sink_M10",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "tag": "output_bus_sink_kcl",
+          "root": "M10",
+          "terms": [
+            {
+              "device": "M8",
+              "sign": 1
+            },
+            {
+              "device": "M1b",
+              "sign": 1
+            },
+            {
+              "device": "M4b",
+              "sign": -1
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "2026-08(세션6, 사용자 지적 'M10과 M8은 같은 branch 전류인데 독립적이야?'가 계기) -- 옛 `r_sink_vop1vom1`(free ratio theta, [0.02,0.15])을 대체. `load_topology()` connectivity만으로 조립한 sympy 재유도(workspaces/current-reuse-telescopic-ota-report/spice/vg15_vop1_kcl_sympy_derivation.py)로 확정: Vg15 KCL(I_M8=I_M9a+I_M9b) + Vop1 KCL(I_M2b+I_M9a+I_M9b=I_M3b+I_M10)을 연립하면 I_M9b가 소거되어 `I(M10)=I(M8)+I(M2b)-I(M3b)`, M2b/M3b는 2단자 net으로 각각 M1b/M4b와 직렬 강제되므로 `=I(M8)+I(M1b)-I(M4b)`. do.md §7.3.1(733행)이 애초에 'M12/M10 | 유형A | M8/M9b계 KCL 직렬'이라고 명시했던 원래 설계 의도와 일치 -- 세션5에서 branch_symmetric 오용 버그(우연히 M12 전류를 물려받던 것)를 고치며 이 KCL 연결이 같이 사라지고 '논문에 공식 없음'을 사유로 자유 theta가 대신 들어왔던 것뿐, 실제로는 설계 자유도 없는 순수 KCL(bounds=[1,1])이다."
+      },
+      {
+        "name": "kcl_sink_M19",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "tag": "output_bus_sink_kcl",
+          "root": "M19",
+          "terms": [
+            {
+              "device": "M17",
+              "sign": 1
+            },
+            {
+              "device": "M1a",
+              "sign": 1
+            },
+            {
+              "device": "M4a",
+              "sign": -1
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "kcl_sink_M10과 대칭인 Vop측(Vom1 노드: M2a.drain/M3a.drain/M18a.drain/M18b.source/M19.drain) -- 동일 유도, M17(=M8의 Vop측 대응)·M1a/M4a(=M1b/M4b의 Vop측 대응)로 항만 교체."
+      },
+      {
+        "name": "kcl_battery_M9b",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "tag": "monticelli_kcl_sum",
+          "root": "M9b",
+          "terms": [
+            {
+              "device": "M8",
+              "sign": 1
+            },
+            {
+              "device": "M9a",
+              "sign": -1
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_role_type_comment": "do.md §7.3.1(735행) 'M9b(및 M18b) | A(변형) | quiescent 시점엔... 절차상 A와 동일'과 일치.",
+        "_comment": "2026-08(세션6 정정, 원래 2026-08-03 배치 7-5 작성분 대체) -- 옛 공식(`ID(M9b)=ID(M11a체인)+ID(M9a)`, type A 양수합)의 근거였던 'Vg15 노드가 M11b.drain/M9a.drain/M9b.drain 3단자 합류'라는 주장이 실제 netlist와 다름을 발견(M11b.drain='N11b', M9a.drain='Vop1' -- 둘 다 Vg15가 아니다, vg15_vop1_kcl_sympy_derivation.py로 확인). Vg15의 진짜 3단자는 M8.drain/M9a.source/M9b.drain -- KCL: `ID(M8)=ID(M9a)+ID(M9b)` → `ID(M9b)=ID(M8)-ID(M9a)`(뺄셈이라 옛 A타입으론 표현 불가, 세션6 신설 A_signed로 교체). 설계 자유도 없는 순수 KCL(bounds=[1,1])인 건 그대로."
+      },
+      {
+        "name": "mirror_M18a",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "C",
+          "target": "M18a",
+          "reference": "M9a"
+        },
+        "intended_role_type": "A",
+        "_role_type_comment": "do.md §7.3.1(739행) 'Vop측 12개 전부 | A | Vom측 미러'와 일치 -- ratio=1.0 완전 replica라 설계 자유도 없음(feeds.type=C는 실행 메커니즘일 뿐, 역할 자체는 A).",
+        "_comment": "2026-08-03(배치 7-5) -- M18a는 M9a의 branch_symmetric 파트너(Vop측 구조적 복제, Monticelli PMOS측) -- K_replica처럼 W만이 아니라 완전한 replica(W/ID/gm/gds/gm_id/L/vds, ratio=1.0)로 M9a를 그대로 물려받는다. K_replica(target=M9a)보다, 그리고 아래 kcl_battery_M18b(reference로 M18a를 참조)보다 반드시 앞에 와야 함(theta 배열 순서 버그로 한 번 실패 후 정정, 2026-08-03)."
+      },
+      {
+        "name": "kcl_battery_M18b",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "tag": "monticelli_kcl_sum",
+          "root": "M18b",
+          "terms": [
+            {
+              "device": "M17",
+              "sign": 1
+            },
+            {
+              "device": "M18a",
+              "sign": -1
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "kcl_battery_M9b와 대칭인 Vop측(Vg25 노드: M17.drain/M18a.source/M18b.drain) -- 동일 유도·동일 사유(세션6 정정, 옛 reference=[M20a,M18a] 양수합 공식 대체)."
+      }
     ],
     "_metrics_comment": "2026-08-03(배치 7-5 실행 중 발견) -- cmrr_estimate_db/psrr_estimate_db가 do.md 초안의 자리표시자 키(tail_device/input_device, circuit_family=telescopic_class_ab for PSRR)를 그대로 옮겨온 상태라 실제 _cmrr_telescopic_class_ab()/_PSRR_ESTIMATOR_REGISTRY 시그니처와 안 맞았다(KeyError/미등록 family) -- sizing_recipe.py self-test가 검증한 실제 키 이름(input_p/cascode_p/input_n/cascode_n/tail_p_devices/tail_n_device)과 PSRR의 유일한 등록 family(diff_pair_tail)로 정정.",
     "_metrics_comment_2": "2026-08-03(배치 7-5b) -- cmrr_estimate_db의 circuit_family를 telescopic_class_ab(1단 open-loop)에서 telescopic_class_ab_cmfb(CMFB 루프 포함)로 교체. 이유: open-loop 식은 Rx(=M6∥M7)/Ry(=M5)/캐스코드 L·gm_id를 물리적으로 가능한 극단까지 밀어도 CMRR이 2dB를 못 넘는 것이 실측으로 확인됐고(논문은 94.4dB 보고), 이 회로의 실제 지배 기여자는 M7(gate=Vcmfb)이 stage-1 PMOS tail을 조절하는 CMFB 폐루프이기 때문이다. 아래 CMFB 소자 배정은 손타이핑이 아니라 이 파일 netlist 배열 자체로 검증된다(sizing_recipe.py self-test가 load_topology()로 assert). ⚠️ metrics 딕셔너리 안에는 '_'로 시작하는 주석 키를 넣으면 안 된다(optimize_full_circuit_budget()이 metrics의 모든 항목을 metric_spec으로 그대로 compute_metric()에 넘긴다 -- 2026-08-03 실행 중 TypeError로 확인).",
     "_metrics_comment_3": "2026-08-03(배치 7-5c, _correction_log_5의 CMFB netlist 정정에 맞춰 cmrr_estimate_db 키 교체) -- (1) cmfb_mirror_diode/cmfb_mirror_out -> cmfb_load_sense(M36a)/cmfb_load_ref(M36b): 두 소자는 미러가 아니라 차동쌍 양쪽의 **독립 diode 부하**다. (2) cmfb_replica_source/cmfb_replica_sink(M39/M40) **삭제**: 정정된 회로에서 Voc_des는 PMOS diode 2개짜리 저임피던스 분압기라 소신호로 v(Voc_des)=0이고(sympy·ngspice 양쪽에서 확인), M39/M40은 CMRR 식에 아예 등장하지 않는다 -- 다만 넷리스트 assert(self-test)로는 계속 검증한다. (3) cmfb_stage2_devices 신설: 논문 II.D 원문대로 Voc가 **최종(2단) 출력** Vom/Vop의 R1/R2 평균이므로 stage-1 -> 최종출력 CM 전달이득 G2 = -(Sum gm)/(Sum gds)가 CM 루프이득에 들어간다. gain_db의 2단 stage(['M15','M16'])와 같은 소자·같은 식을 재사용해 새 가정을 도입하지 않는다. cm_sense_gain은 이제 'R1/R2 평균망 자체의 이득'으로 재정의되며 R1=R2 이상적 평균이라 1.0(감쇠 없음)이다 -- 직전 세션의 'stage-1 출력 CM 감지' 가정은 원문과 어긋나므로 폐기.",
     "_cmrr_psrr_estimate_db_comment": "2026-08-07(세션21 2차, topology-무관 일반화) -- 세션21 1차(circuit_family=telescopic_class_ab_cmfb, battery_vop1_side류 이 회로 전용 폐형식/부분망 조합)를 다시 전면 교체. 이제 type=smallsignal_ratio_db(sizing_recipe.py _metric_smallsignal_ratio_db(), 회로 무관 범용 함수) -- topology.json의 소자 전부(51개, bias-gen/CMFB/battery 포함) + passive_elements(R1/R2, 값 없으면 1GΩ 근사)를 그대로 하나의 수치 MNA로 풀어 ports가 선언한 진짜 최종출력(Vop/Vom, 예전엔 1단 내부노드 Vop1/Vom1이었음)에서 직접 잰다. H/A_c/G2/T 손조합 로직이 완전히 사라졌다(CMFB 루프+bias-gen의 자체 vdd 결합이 전부 하나의 풀이에 자동 반영). ⚠️ Vop1/Vom1→Vop/Vom 전환 + bias-gen 결합 포함으로 절대 dB 값이 크게 바뀌므로, 아래 constraints의 >=60dB 임계값은 다음 세션(그리드 탐색 재설계와 함께) 재보정 필요 -- `.ai/context.md` 세션21 F절 참고. ngspice 교차검증은 stage2_battery_psrr_ngspice_crosscheck.py가 검증한 '1단+battery' 부분망까지만이고, 이번에 새로 포함된 CMFB/bias-gen 전체망 자체는 아직 독립 재검증 안 함(다음 세션 과제). (2026-08-07 세션22 정정: 이 주석 키가 원래 metrics 딕셔너리 **안**에 있었는데, 2026-08-03 세션 주석(_metrics_comment_2)이 이미 경고한 'metrics 안에 _ 주석 키 금지' 규칙을 위반해 optimize_full_circuit_budget() 실행 시 TypeError로 크래시하는 실제 버그였다 -- run_harness.py가 지금껏 완주한 적이 없어 발견되지 않고 있었다. metrics 바깥(다른 _metrics_comment*와 같은 레벨)으로 이동만 하고 내용은 그대로 보존.)",
     "metrics": {
-      "power_uA":          {"type": "sum_current"},
-      "area_um2":          {"type": "sum_area"},
-      "gain_db":           {"type": "gain_stages_sum", "stages": [["M1a","M4a","M2a","M3a"], ["M15","M16"]]},
-      "noise_v_rthz":      {"type": "flicker_plus_thermal_sum", "stages": [["M1a","M4a"]]},
-      "mismatch_sigma_mV": {"type": "pelgrom_mismatch", "devices": ["M1a","M1b"], "kind": "pfet"},
-      "cmrr_estimate_db":  {"type": "smallsignal_ratio_db",
-                            "excite_num": {"Vip": 0.5, "Vim": -0.5}, "sense_num": "diff",
-                            "excite_den": {"Vip": 1.0, "Vim": 1.0}, "sense_den": "common",
-                            "sense_p": "Vop", "sense_n": "Vom"},
-      "psrr_estimate_db":  {"type": "smallsignal_ratio_db",
-                            "excite_num": {"Vip": 0.5, "Vim": -0.5}, "sense_num": "diff",
-                            "excite_den": {"vdd": 1.0}, "sense_den": "common",
-                            "sense_p": "Vop", "sense_n": "Vom"},
-      "gain_full_circuit_db": {"type": "smallsignal_gain_db",
-                            "excite": {"Vip": 0.5, "Vim": -0.5}, "sense_mode": "diff",
-                            "sense_p": "Vop", "sense_n": "Vom"},
-      "vg15_level_v":      {"type": "rail_referenced_voltage", "device": "M15", "rail": "vdd"},
-      "vop1_level_v":      {"type": "rail_referenced_voltage", "device": "M16", "rail": "gnd"},
-      "classab_centering_dev_v": {"type": "battery_centering_deviation", "high_device": "M15", "low_device": "M16"}
+      "power_uA": {
+        "type": "sum_current"
+      },
+      "area_um2": {
+        "type": "sum_area"
+      },
+      "gain_db": {
+        "type": "gain_stages_sum",
+        "stages": [
+          [
+            "M1a",
+            "M4a",
+            "M2a",
+            "M3a"
+          ],
+          [
+            "M15",
+            "M16"
+          ]
+        ]
+      },
+      "noise_v_rthz": {
+        "type": "flicker_plus_thermal_sum",
+        "stages": [
+          [
+            "M1a",
+            "M4a"
+          ]
+        ]
+      },
+      "mismatch_sigma_mV": {
+        "type": "pelgrom_mismatch",
+        "devices": [
+          "M1a",
+          "M1b"
+        ],
+        "kind": "pfet"
+      },
+      "cmrr_estimate_db": {
+        "type": "smallsignal_ratio_db",
+        "excite_num": {
+          "Vip": 0.5,
+          "Vim": -0.5
+        },
+        "sense_num": "diff",
+        "excite_den": {
+          "Vip": 1.0,
+          "Vim": 1.0
+        },
+        "sense_den": "common",
+        "sense_p": "Vop",
+        "sense_n": "Vom"
+      },
+      "psrr_estimate_db": {
+        "type": "smallsignal_ratio_db",
+        "excite_num": {
+          "Vip": 0.5,
+          "Vim": -0.5
+        },
+        "sense_num": "diff",
+        "excite_den": {
+          "vdd": 1.0
+        },
+        "sense_den": "common",
+        "sense_p": "Vop",
+        "sense_n": "Vom"
+      },
+      "gain_full_circuit_db": {
+        "type": "smallsignal_gain_db",
+        "excite": {
+          "Vip": 0.5,
+          "Vim": -0.5
+        },
+        "sense_mode": "diff",
+        "sense_p": "Vop",
+        "sense_n": "Vom"
+      },
+      "vg15_level_v": {
+        "type": "rail_referenced_voltage",
+        "device": "M15",
+        "rail": "vdd"
+      },
+      "vop1_level_v": {
+        "type": "rail_referenced_voltage",
+        "device": "M16",
+        "rail": "gnd"
+      },
+      "classab_centering_dev_v": {
+        "type": "battery_centering_deviation",
+        "high_device": "M15",
+        "low_device": "M16"
+      }
     },
     "_classab_centering_comment": "2026-08(세션6) -- 사용자가 'M11a-chain과 M13-chain 전류를 같게 해야 Vom이 안 치우친다'는 가설을 제기해 검토한 결과: M9a/M9b 자신의 전류는 그 두 chain이 아니라 K_replica(M9a~M15)/kcl_battery_M9b(=ID(M11a-chain)+ID(M9a))로 이미 결정되고, M13-chain 전류는 이 KCL에 아예 안 들어간다(Fig.7b가 두 chain 전류가 다르다고 실측 확인한 것과 일치) -- 그래서 두 chain을 강제로 같게 만드는 대신, 사용자가 말한 'swing 최대화=DC bias centering' 원리 자체를 M15/M16(Vg15/Vop1, 이 둘이 진짜 Vom을 만드는 출력단 게이트)의 실제 DC 레벨로 직접 검증하는 metric을 신설했다. 근거: 논문 Section II.B \"the gate voltage of M15 is pushed to about 1.3V and ... M16 ... about 0.5V\" -- 1.3+0.5=VDD로 정확히 센터링. 절대 수치(1.3V/0.5V)는 그 논문 공정 Vth 종속이라 그대로 안 쓰고(값 인용 금지 원칙), '두 레벨의 합=VDD' 위상적 관계만 constraint로 가져왔다. tolerance(0.15V, 아래 constraints)는 이 프로젝트가 독립 도출한 게 아니라 공학적으로 타당해 보이는 근사치일 뿐 -- SPICE 검증 전까지는 정직한 한계로 남는다.",
-    "objective": {"minimize": "power_uA"},
+    "objective": {
+      "minimize": "power_uA"
+    },
     "constraints": [
-      {"metric": "gain_db",           "op": ">=", "value": 75.6},
-      {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0},
-      {"metric": "cmrr_estimate_db",  "op": ">=", "value": 60},
-      {"metric": "psrr_estimate_db",  "op": ">=", "value": 60},
-      {"metric": "classab_centering_dev_v", "op": "<=", "value": 0.15}
+      {
+        "metric": "gain_db",
+        "op": ">=",
+        "value": 75.6
+      },
+      {
+        "metric": "mismatch_sigma_mV",
+        "op": "<=",
+        "value": 5.0
+      },
+      {
+        "metric": "cmrr_estimate_db",
+        "op": ">=",
+        "value": 60
+      },
+      {
+        "metric": "psrr_estimate_db",
+        "op": ">=",
+        "value": 60
+      },
+      {
+        "metric": "classab_centering_dev_v",
+        "op": "<=",
+        "value": 0.15
+      }
     ]
   }
 }

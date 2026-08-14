@@ -32,6 +32,7 @@ import itertools
 import json
 import math
 import operator
+import re
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field, is_dataclass, replace as _dc_replace
 from typing import Callable
@@ -644,12 +645,6 @@ def dense_candidates(grid, n: int) -> list:
     seen = set(anchors)
     fill_ins = [v for v in interpolated if v not in seen]
     return anchors + fill_ins
-
-
-def dense_L_candidates(lut: "SemiEmpiricalGmIdLUT", n: int = 41) -> list:
-    """`dense_candidates(lut.L_grid, n)`의 얇은 별칭 -- L은 실측 앵커점이 극도로 성겨서
-    (보통 3~5개, `lut-generation-checklist.md` §7.4) 다른 축보다 densify 효과가 훨씬 크다."""
-    return dense_candidates(lut.L_grid, n)
 
 
 def quantize_L(L: float, grid_step: float, mode: str = "nearest") -> float:
@@ -2472,7 +2467,9 @@ from stick_diagram import (Transistor, load_topology, propagate_topology_forced_
                             merge_layout_groups_by_matching_pairs,
                             derive_horizontal_stack_groups,
                             check_box_shape, build_stick_diagram, audit_row_split,
-                            apply_explicit_row_split, rebuild_floorplan)
+                            apply_explicit_row_split, rebuild_floorplan,
+                            check_stick_diagram_coverage,
+                            require_device_roles_reviewed)
 
 
 @dataclass
@@ -2626,9 +2623,15 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     result = solve_id_for_target_gm(
         lut, L, vds, vs, feed_spec["W"], gm_target,
         gm_id_bounds=tuple(feed_spec.get("gm_id_bounds", (2.0, 30.0))))
+    # 2026-08-14 -- _L_source 태그 추가(metric_stage_budget에서 발견한 것과 동일 유형의
+    # 근본원인을 이 feed 타입에서도 선제적으로 막음): 이 소자의 L/gm_id는 N×ωc 컨벤션
+    # 자체가 확정하는 값이라(theta_value가 곧 대역폭 배수), device_roles의 gm_id_role/
+    # L_role이 뒤이어 덮어쓰면 이 theta의 의도가 무력화된다 -- compensation/replica/
+    # metric_stage_budget과 동급의 권위 있는 출처로 등록한다.
     ctx.sized[target] = {"ID": result.ID, "gm": result.gm, "gm_id": result.gm_id,
                           "W": feed_spec["W"], "L": L, "vds": vds, "vs": vs, "kind": kind,
-                          "gds": result.gm / lut.gm_gds_ratio(result.gm_id, L, vds, vs)}
+                          "gds": result.gm / lut.gm_gds_ratio(result.gm_id, L, vds, vs),
+                          "_L_source": "gm_target_convention"}
 
 
 def _feed_settling_split(feed_spec, theta_value: float, ctx: SizingContext) -> None:
@@ -2685,8 +2688,16 @@ def _metric_stage_budget_finalize(ctx: SizingContext, name: str, gm_id: float, I
     # mirror_M18a의 _feed_diode_stack_target()가 reference["ID"]를 그대로 스케일해 복제)
     # 가 잘못된 전류를 물려받는 실제 버그로 이어진다(BM의 선언순서 재배치만으로는 L/gm_id
     # staleness만 고쳐졌을 뿐 ID staleness는 그대로 남아 있었다).
+    # 2026-08-14 -- _L_source 태그 추가(실측으로 발견한 진짜 버그의 근본수정): 이 소자의
+    # L/gm_id는 metric_stage_budget theta(예: L_cascode)의 그리드서치가 이미 확정한 값인데,
+    # 이 태그가 없어서 device_roles의 gm_id_role/L_role(propose_device_roles_gap_fill()이
+    # 자동으로 제안·반영한 값 포함)이 뒤이어 이 소자를 다시 덮어썼다 -- current_reuse_
+    # telescopic_ota의 M2a/M2b/M3a/M3b에 L_role="mirror"를 채웠더니 L_cascode theta
+    # 탐색이 무의미해지며 gain_db가 76.48->74.8로 떨어지는 실제 회귀로 발현(SLSQP 재현,
+    # 이 세션에 실측). compensation/replica와 동급의 권위 있는 출처로 등록한다.
     ctx.sized[name].update({"L": mL, "W": mL * ID / idu, "gm": gm, "gds": gm / gm_gds,
-                             "gm_id": gm_id, "ID": ID, "kind": kind, "vs": mvs, "vds": mvds})
+                             "gm_id": gm_id, "ID": ID, "kind": kind, "vs": mvs, "vds": mvds,
+                             "_L_source": "metric_stage_budget"})
 
 
 def _shared_current_groups_from_compensation(comp: dict | None) -> list:
@@ -3535,6 +3546,14 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     호출자가 필요한 theta는 전부 채워 넘길 것, 부분 평가를 원하면 나머지를 bounds-midpoint
     등으로 채워 넣을 것)."""
     transistors, meta = load_topology(topology_path)
+    # 2026-08-14(사용자 지시) -- 실제 sizing 계산(아래 device_roles.gm_id_role/L_role 루프,
+    # _evaluate()가 thetas가 비어도 최소 1회 실행함)에 들어가기 전에, load_topology()가
+    # netlist만으로 자동 제안한(아직 topology.json에 사람이 검토·확정하지 않은) gm_id_role/
+    # L_role이 있으면 여기서 막는다 -- current_reuse_telescopic_ota의 L_cascode theta 대상
+    # 소자에 이런 제안이 조용히 적용돼 그 theta의 그리드서치를 무력화한 실제 사고(이 세션
+    # 실측 재현) 재발 방지. compensation/metric_stage_budget/B/C 대상처럼 구조적으로 안전이
+    # 이미 보장된 소자는 require_device_roles_reviewed()가 알아서 제외한다.
+    require_device_roles_reviewed(topology_path, meta)
     roles = meta.get("sizing_roles") or {}
     thetas = roles.get("theta") or []
     metrics_specs = roles.get("metrics") or {}
@@ -3906,7 +3925,20 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # 권위 있는 값이라 device_roles의 L_role(휴리스틱 배수)이 덮어쓰면 안 된다 —
         # "compensation"이었을 때와 정확히 같은 이유(spec 기반 근거가 있는 쪽이 이긴다)로
         # "replica"도 이 집합에 추가.
-        _AUTHORITATIVE_L_SOURCES = {"compensation", "replica"}
+        # 2026-08-14 추가(실측으로 발견한 진짜 버그) -- `metric_stage_budget` theta(예:
+        # `L_cascode`, `_feed_metric_stage_budget()`/`_metric_stage_budget_finalize()`)가
+        # 관리하는 L도 이 그리드서치 자체가 spec 근거로 확정하는 값이라 동급으로 권위
+        # 있다. 빠져 있었을 때: `current_reuse_telescopic_ota`의 M2a/M2b/M3a/M3b(모두
+        # `L_cascode` theta 대상)에 `propose_device_roles_gap_fill()`이 자동 제안한
+        # `L_role="mirror"`를 실제로 채웠더니, 이 loop가 `L_cascode`의 그리드서치 결과를
+        # `select_L_by_role()`의 고정 배수(L_min*2.5)로 조용히 덮어써서 그 theta 탐색
+        # 자체를 무력화했다 -- SLSQP가 `gain_db>=75.6` 제약을 76.48에서 74.8로 못 채우는
+        # 실제 회귀로 발현(재현 확인됨).
+        # 2026-08-14 -- "B"타입(N×ωc 컨벤션, `_feed_gm_target_convention()`)도 같은 이유로
+        # 추가(그 함수 docstring 정정 참고) -- 실측 회귀는 metric_stage_budget에서만
+        # 재현됐지만, 같은 취약점 클래스라 발견 즉시 선제 수정.
+        _AUTHORITATIVE_L_SOURCES = {"compensation", "replica", "metric_stage_budget",
+                                      "gm_target_convention"}
 
         for name, dr in device_roles.items():
             if dr.get("L_role"):
@@ -4171,10 +4203,29 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                             # 앉은 소자의 body-effect/LUT 조회가 vs=0을 잘못 쓰지 않도록 전파.
                             other_entry.setdefault("vs", ref_vds)
 
+        # 2026-08-14 -- L_role의 _AUTHORITATIVE_L_SOURCES(3905행)와 대칭되는 gm_id_role
+        # 가드가 원래 없었다(실측으로 발견 -- propose_device_roles_gap_fill()이
+        # compensation.stage_devices 소속 소자에 gm_id_role="matching"을 채우면, 여기서
+        # search_gm_id_for_role()이 그대로 돌아 optimize_multistage()가 이미 정한 gm_id/W를
+        # 덮어써버리는 진짜 버그였다 -- L_role은 안전한데 gm_id_role만 위험했던 비대칭).
+        # ⚠️ `_AUTHORITATIVE_L_SOURCES`(={"compensation","replica","metric_stage_budget"})를
+        # 그대로 재사용하면 안 된다 -- "replica"(C타입 K_replica feed)는 정반대로 **이
+        # 루프가 재검색해서 gm_id를 덮어쓰는 것 자체가 설계 의도**다(_feed_diode_stack_
+        # target() docstring 2568행 "이 함수가 여기서 채운 gm_id는 곧바로 _evaluate()의
+        # device_roles 루프가 search_gm_id_for_role()로 재검색해 덮어쓴다" 참고 -- L/vds/vs만
+        # replica가 권위 있고 gm_id는 애초에 placeholder). 반면 "metric_stage_budget"은
+        # gm_id도 자기 자신의 theta 탐색(gm_id_match_vgs_of/gm_id_role/고정 gm_id, `_feed_
+        # metric_stage_budget()` 참고)이 이미 확정하므로 L과 마찬가지로 권위 있다 -- 이
+        # 소자를 여기서 또 건드리면(실측: current_reuse_telescopic_ota의 M2a/M2b/M3a/M3b,
+        # `L_cascode` theta 대상) 그 theta 탐색 자체가 무력화된다(SLSQP gain_db 76.48->74.8
+        # 회귀로 재현 확인, `_AUTHORITATIVE_L_SOURCES`와 동일 근본원인·동일 수정).
+        _AUTHORITATIVE_GM_ID_SOURCES = {"compensation", "metric_stage_budget", "gm_target_convention"}
         for name, dr in device_roles.items():
             if not dr.get("gm_id_role"):
                 continue
             entry = ctx.sized.get(name, {})
+            if entry.get("_L_source") in _AUTHORITATIVE_GM_ID_SOURCES:
+                continue
             if "ID" not in entry:
                 raise ValueError(f"{name}: A엔진(propagate_topology_forced_currents)이 전류를 "
                                   f"못 정했다 -- mirror_ratios/seed_currents(theta feeds)를 확인할 것")
@@ -4231,6 +4282,62 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     }
 
 
+# ---------------------------------------------------------------------------
+# 6.9c) box-shape/floorplan 자동 재시도 (2026-08-14 세션32, 사용자 지시) -- 원래
+#       `workspaces/run_harness.py`가 외부에서 `optimize_full_circuit_budget()`을
+#       통째로 재호출하며 돌리던 row_split 재시도 루프를 이 함수 안으로 옮긴다. 세션18
+#       "순수 함수" 원칙(§1.6)을 뒤집는 결정이지만, 그 외부 루프가 매 라운드 theta/gm-ID
+#       그리드서치(가장 비싼 부분)까지 처음부터 재실행하고 있었다 -- row_split은 이미
+#       정해진 W/gm_id를 물리적으로 접기만 하는 순수 layout 작업이라 grid search와 무관한데도
+#       그랬다(사용자 실측 지적: current_reuse_telescopic_ota 10분+ 무응답). 아래 세 헬퍼는
+#       `run_harness.py`가 쓰던 로직을 그대로(동작 변경 없이) 옮긴 것 -- `_pick_split_target()`
+#       만 `excluded` 인자가 새로 추가됐다(아래 backtracking용).
+# ---------------------------------------------------------------------------
+
+_SPLIT_SUFFIX_RE = re.compile(r"(_split\d+|_repair\d+)+$")
+
+
+def _base_stack_id(row_name: str) -> str:
+    """`apply_explicit_row_split()`(`_split{i}`)/`repair_matching_safety()`(`_repair{i}`,
+    반복 적용되면 `_repair0_repair0`처럼 중첩)가 붙인 접미사를 벗겨 원래 `row_split`이
+    참조하는 base stack_id를 복원한다(`workspaces/run_harness.py`에서 그대로 이전)."""
+    return _SPLIT_SUFFIX_RE.sub("", row_name)
+
+
+def _pick_split_target(floorplan, current_row_split: dict, excluded: frozenset = frozenset(),
+                        max_split_per_stack: int = 6):
+    """`floorplan.row_split_candidates`에서 diffusion-safe(`splittable=True`)한 후보 중
+    가장 지배적인(`value/bbox` 비율이 큰) 것을 골라 base stack_id를 반환한다. `excluded`에
+    있는 stack(이번 탐색에서 이미 `max_split_per_stack`까지 밀어붙였는데도 개선을 못 만든
+    stack, 아래 재시도 루프의 backtracking)은 건너뛴다. 이미 `max_split_per_stack`만큼
+    접은 stack도 더 안 늘린다(무한 루프 방지). 후보가 없으면 `None`(자동 조정 불가 --
+    호출자가 정직하게 포기하고 마지막 상태를 그대로 쓸 차례)."""
+    candidates = [c for c in floorplan.row_split_candidates if c.get("splittable")]
+    if not candidates:
+        return None
+    candidates.sort(key=lambda c: c["value"] / c["bbox"] if c["bbox"] else 0.0, reverse=True)
+    for c in candidates:
+        stack_id = _base_stack_id(c["name"])
+        if stack_id in excluded:
+            continue
+        if current_row_split.get(stack_id, 1) < max_split_per_stack:
+            return stack_id
+    return None
+
+
+def _score_floorplan(floorplan, floorplan_target: dict) -> float:
+    """`floorplan_target`(`{"max_aspect_ratio":..., "min_packing_density":...}`) 대비
+    이 floorplan이 얼마나 못 미치는지를 하나의 스칼라로 합산한다(0이면 목표 완전 충족,
+    낮을수록 좋음) -- 아래 재시도 루프가 라운드끼리 "개선됐는지"를 비교하는 유일한 기준.
+    새 휴리스틱을 지어내지 않고 `floorplan_target`이 이미 선언한 두 지표(aspect_ratio 상한/
+    packing_density 하한)에서 상대오차로 그대로 도출한다."""
+    max_ar = floorplan_target.get("max_aspect_ratio")
+    min_pd = floorplan_target.get("min_packing_density")
+    aspect_excess = (max(0.0, floorplan.aspect_ratio - max_ar) / max_ar) if max_ar else 0.0
+    density_deficit = (max(0.0, min_pd - floorplan.packing_density) / min_pd) if min_pd else 0.0
+    return aspect_excess + density_deficit
+
+
 def optimize_full_circuit_budget(topology_path: str, spec: dict,
                                   grid_points_per_theta: int = 5,
                                   search_method: str = "grid",
@@ -4274,6 +4381,15 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     `"W_bounds"`, `"min_vds_by_role"`, `"min_finger_w"`/`"max_finger_w"`, `"floorplan_hints"`,
     `"cell_groups"`, `"known_sizing"`, 그 외 theta feed가 참조하는 이름 붙은 상수.
 
+    `"row_split"`(`{stack_id: n_rows}`, 선택): box-shape를 위한 명시적 초기 folding(§CD절,
+    `apply_explicit_row_split()`). `"floorplan_target"`(`{"max_aspect_ratio":...,
+    "min_packing_density":...}`, 선택, 2026-08-14 세션32 신설)이 **함께** 주어지면, 이
+    `row_split`을 시작점 삼아 목표를 만족할 때까지 **theta/gm-ID 그리드서치를 다시 돌리지
+    않고** row_split만 자동으로 조정하는 내부 재시도 루프가 켜진다(`"max_split_per_stack"`
+    기본 6, `"max_layout_retry_rounds"` 기본 6). `floorplan_target`이 없으면 `row_split`은
+    그대로 1회만 적용되고 끝(세션31까지의 동작과 100% 동일, 완전 하위호환) — 이 루프는
+    opt-in이다.
+
     반환: `{"theta_star", "sizing", "metrics", "sizing_overrides", "pipeline_result",
     "audit_ok"}` — `sizing_overrides`/`pipeline_result`는 넷리스트 전체가 사이징되지 않으면
     `None`(부분 결과만 반환 — 단순 회로/미완성 선언 지원, §7.3.2 검증 (b)와 동일한 하위호환
@@ -4282,6 +4398,9 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
     `growth_rounds`/`unresolved_pair`/`unresolved_reason`/`relaxed_pairs`(`run_matching_
     safety_with_finger_growth()` 진단 필드 그대로)도 담긴다 — `audit_ok`가 최종 신호이고
     이 필드들은 "왜/어떻게" 해결됐는지 보는 참고 정보다(세션16 E-3절 원칙과 동일).
+    `floorplan_target`이 주어졌으면 `pipeline_result["layout_retry_rounds"]`
+    (`[{"target","row_split","score_before","score_after","accepted"}, ...]`)에 재시도
+    루프가 실제로 무엇을 시도했는지 전부 남는다(참고 정보, `growth_rounds`와 같은 패턴).
 
     ⚠️ 정직한 한계(2026-07-31): diode-stack(C유형) 전류의 `solve_diode_stack_current()`
     자동 병합은 아직 없다(K_replica 면적비 theta feed는 W를 직접 설정할 뿐, KVL 전류 역산은
@@ -4380,7 +4499,7 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
 
     sizing_overrides, pipeline_result, audit_ok = None, None, None
     if all(t.name in sizing and "W" in sizing[t.name] for t in transistors):
-        sizing_overrides = assign_finger_geometry(
+        _base_sizing_overrides = assign_finger_geometry(
             sizing, stack_groups_geometry, area_priors=spec.get("area_priors"),
             min_finger_w=spec.get("min_finger_w", 1e-6), max_finger_w=spec.get("max_finger_w", 40e-6))
         # 2026-08(세션15) -- euler-blocked row(체크1)는 sizing(핑거) 조정으로 먼저 자동
@@ -4403,143 +4522,236 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
         if _lut_by_kind is not None:
             ctx_for_fixup = SizingContext(spec=spec, sized=sizing, kind_of=kind_of,
                                            topology_path=topology_path)
-            pipeline_result = run_topology_pipeline_with_finger_fixup(
-                topology_path, sizing_overrides, ctx_for_fixup, _lut_by_kind,
+            _base_pipeline_result = run_topology_pipeline_with_finger_fixup(
+                topology_path, _base_sizing_overrides, ctx_for_fixup, _lut_by_kind,
                 metrics_specs, constraints, floorplan_hints=spec.get("floorplan_hints"),
                 cell_groups=spec.get("cell_groups"),
                 gm_id_bounds=spec.get("gm_id_bounds", (2.0, 30.0)))
             # fixup이 sizing(W/gm_id/gm/gds)과 layout(n_fingers/w)을 바꿨을 수 있으므로,
-            # 최종 반환값의 sizing_overrides/sizing 둘 다 fixup 이후 상태로 갱신한다 --
-            # 안 그러면 finger 조정이 반영 안 된 stale 값이 instance.json으로 흘러나가는
-            # 버그가 생긴다.
-            sizing_overrides = pipeline_result["sizing_overrides"]
-            sizing = pipeline_result["ctx"].sized
-            metrics_result = {name: compute_metric(mspec, pipeline_result["ctx"])
-                               for name, mspec in metrics_specs.items()}
+            # euler-fixup까지 끝난 이 baseline(_base_*)의 sizing_overrides/sizing을 fixup
+            # 이후 상태로 갱신한다 -- 안 그러면 finger 조정이 반영 안 된 stale 값이
+            # instance.json으로 흘러나가는 버그가 생긴다.
+            _base_sizing_overrides = _base_pipeline_result["sizing_overrides"]
+            _base_sizing = _base_pipeline_result["ctx"].sized
+            _base_metrics_result = {name: compute_metric(mspec, _base_pipeline_result["ctx"])
+                                     for name, mspec in metrics_specs.items()}
         else:
-            pipeline_result = run_topology_pipeline(
-                topology_path, sizing_overrides, floorplan_hints=spec.get("floorplan_hints"),
+            _base_pipeline_result = run_topology_pipeline(
+                topology_path, _base_sizing_overrides, floorplan_hints=spec.get("floorplan_hints"),
                 cell_groups=spec.get("cell_groups"))
+            _base_sizing, _base_metrics_result = sizing, metrics_result
 
-        # 2026-08-13(세션31 이어, 사용자 승인 -- CD절 "M6 folding" 논의 결론) --
-        # spec["row_split"](`{stack_id: n_rows}`)이 있으면 매칭 자동판단(repair_matching_
-        # safety())과 별개로, 명시적으로 지정된 stack을 여기서 즉시 접는다. box-shape
-        # ratio만을 위한 순수 물리 재배치라 W/ID/gm_id는 안 바뀐다(apply_explicit_row_
-        # split() docstring 참고) -- sizing/sizing_overrides 갱신 불필요, transistors/
-        # box_shape/audit_row_split만 이 새 물리 구조를 반영하도록 갱신한다(CD절이 고친
-        # "repair 결과 미저장" 버그와 똑같은 함정을 여기서 새로 만들지 않기 위해 즉시 갱신).
-        if spec.get("row_split"):
-            _rs_rows = split_into_stacks(pipeline_result["transistors"])
-            _rs_rows = apply_explicit_row_split(_rs_rows, spec["row_split"])
-            _rs_transistors = [t for devs in _rs_rows.values() for t in devs]
-            _rs_row_widths = {rn: sum(t.n_fingers for t in devs) for rn, devs in _rs_rows.items()}
-            _rs_matching_pairs = [pair for p in pairs_meta
-                                    for pair in itertools.combinations(p["names"], 2)]
-            _rs_pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
-                                      for pair in itertools.combinations(p["names"], 2)}
-            pipeline_result = dict(
-                pipeline_result, transistors=_rs_transistors,
-                box_shape=check_box_shape(_rs_row_widths),
-                audit_row_split=audit_row_split(_rs_rows, matching_pairs=_rs_matching_pairs,
-                                                  pair_sensitivity=_rs_pair_sensitivity))
+        # 2026-08-14(세션32, 사용자 지시 -- 재계산 비효율 해소) -- 원래(세션31까지) 여기서
+        # 1회만 실행되던 "row_split 적용 -> audit -> (필요시) matching-safety repair(핑거
+        # 증가 포함) -> floorplan 재계산" 블록을 순수 함수 클로저로 뽑았다. 로직 자체는
+        # 세션31 그대로(동작 변경 없음) -- 매번 위 _base_*(euler-fixup까지 끝난, row_split과
+        # 무관한 상태)에서 새로 시작하므로 라운드끼리 서로 오염시키지 않는다(예: 이전
+        # 라운드의 핑거증가가 다음 라운드로 몰래 상속되는 일이 없다). 이 클로저 자체는
+        # theta/gm-ID 그리드서치를 전혀 건드리지 않으므로, 아래 재시도 루프가 이걸 여러
+        # row_split 후보에 반복 호출해도 가장 비싼 부분은 단 한 번도 다시 안 돈다.
+        def _evaluate_row_split(candidate_row_split: dict) -> dict:
+            pr = dict(_base_pipeline_result)
+            ov, sz, mr = _base_sizing_overrides, _base_sizing, _base_metrics_result
 
-        audit = pipeline_result["audit_row_split"]
-        audit_ok = audit.ok if hasattr(audit, "ok") else all(v.ok for v in audit.values())
-        if not audit_ok:
-            rows = split_into_stacks(pipeline_result["transistors"])
-            # audit_row_split()/repair_matching_safety()는 순수 2-tuple 쌍 계약이다(docstring:
-            # "[(name_a, name_b), ...]") -- names가 2개보다 많은 그룹(예: 기준 소자 하나를
-            # 여러 소자가 미러하는 current_mirror)은 모든 쌍별 조합으로 펼쳐서 넘긴다
-            # (2026-08-01, 3개짜리 그룹에서 실제로 발견된 unpack 에러 수정).
-            matching_pairs_tuples = [pair for p in pairs_meta
-                                      for pair in itertools.combinations(p["names"], 2)]
-            pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
-                                 for pair in itertools.combinations(p["names"], 2)}
-            # 세션18 -- matching quality(3b/3c) 자동수정도 이제 핑거증가(L3+L4, 세션16)+
-            # gm/ID 예산으로 막히면 인접배치로 완화(세션17 설계안 3번)까지 이어붙인
-            # run_matching_safety_with_finger_growth()로 승격한다 -- euler 체인이 세션15에
-            # 먼저 이렇게 승격됐던 것과 대칭(.ai/context.md 세션18 재점검에서 이 배선
-            # 누락을 발견). lut_by_kind가 없는 구형 spec은 gm/ID 재검증이 불가능하므로
-            # 기존 bare repair_matching_safety()로 폴백(완전 하위호환, 위 euler 분기와
-            # 동일 가드 재사용 -- 그 분기에서만 pipeline_result["ctx"]가 존재한다).
-            if _lut_by_kind is not None:
-                match_fix = run_matching_safety_with_finger_growth(
-                    rows, matching_pairs_tuples, pair_sensitivity, pipeline_result["ctx"],
-                    _lut_by_kind, metrics_specs, constraints,
-                    gm_id_bounds=spec.get("gm_id_bounds", (2.0, 30.0)))
-                repaired_rows, repaired_audit = match_fix["rows"], match_fix["audit"]
-                # 핑거증가가 실제로 W/n_fingers를 바꿨을 수 있으므로(위 euler 분기의
-                # _sync_finger_fixup()과 동일 이유) sizing_overrides/sizing을 최종 상태로
-                # 동기화한다 -- 안 하면 grown finger가 반영 안 된 stale 값이 instance.json
-                # 으로 흘러나간다. common-centroid 회전배치로 소자 하나가 여러 행에
-                # n_fingers 조각으로 나뉠 수 있어(세션16 F절 함정) 행별로 합산해야 정확하다.
-                final_n_fingers: dict = {}
-                for devs in repaired_rows.values():
-                    for t in devs:
-                        final_n_fingers[t.name] = final_n_fingers.get(t.name, 0) + t.n_fingers
-                for name, n in final_n_fingers.items():
-                    entry = sizing_overrides[name]
-                    if n != entry["n_fingers"]:
-                        sizing_overrides[name] = {**entry, "n_fingers": n, "w": n * entry["finger_w"]}
-                sizing = match_fix["ctx"].sized
-                metrics_result = {name: compute_metric(mspec, match_fix["ctx"])
-                                   for name, mspec in metrics_specs.items()}
-                pipeline_result = dict(
-                    pipeline_result, repaired_rows=repaired_rows, repaired_audit=repaired_audit,
-                    growth_rounds=match_fix["growth_rounds"],
-                    unresolved_pair=match_fix["unresolved_pair"],
-                    unresolved_reason=match_fix["unresolved_reason"],
-                    relaxed_pairs=match_fix["relaxed_pairs"])
-            else:
-                # ⚠️ 정직한 한계(2026-08-13 세션31 이어) -- lut_by_kind가 없는 구형 spec
-                # 경로라 run_matching_safety_with_finger_growth()(및 그 안의 euler 잔여문제
-                # 자동수정, _fixup_euler_blocked_rows())를 못 쓴다 -- 그 함수는 gm/ID
-                # 재검증에 LUT가 필요하다. 3c 수리가 이 경로에서도 원리상 같은 euler 잔여
-                # 문제를 남길 수 있지만, 현재 라이브러리 4개 회로 전부 lut_by_kind를 쓰므로
-                # (실측 확인) 이 분기는 실전에서 아직 노출되지 않았다 -- 노출되면 별도 처리 필요.
-                repaired_rows, repaired_audit = repair_matching_safety(
-                    rows, matching_pairs_tuples, pair_sensitivity)
-                pipeline_result = dict(pipeline_result, repaired_rows=repaired_rows,
-                                        repaired_audit=repaired_audit)
-            audit_ok = repaired_audit.ok
-            # 2026-08-13(세션31 이어, 사용자 지시 -- box-shape 진단 도중 발견된 저장 버그) --
-            # 지금까지는 위에서 repaired_rows/repaired_audit를 pipeline_result에 "추가"만
-            # 했을 뿐, save_instance_json()이 실제로 읽는 pipeline_result["transistors"]/
-            # ["box_shape"]/["audit_row_split"]는 여전히 repair *이전* 스냅샷 그대로였다 --
-            # 즉 audit_ok(위 줄)는 repaired_audit을 정확히 반영하는데(성공적으로 3c를
-            # 고쳤으면 True), 정작 instance.json에 저장되는 netlist/box_shape/audit_
-            # row_split은 그 성공을 반영하지 못하고 옛 FAIL 상태 그대로 저장되는 불일치가
-            # 있었다(two_stage_ota의 M1/M2가 실제로 common-centroid 2행으로 성공 수리됐는데
-            # 저장된 instance.json엔 여전히 1행·3c FAIL로 나온 것으로 실측 발견,
-            # `.ai/context.md` 세션31 CD 참고). repaired_rows를 최종 정본으로 승격해
-            # transistors/box_shape/audit_row_split을 덮어써서 저장 경로와 반환값의 audit_ok가
-            # 항상 같은 사실을 가리키도록 한다. ⚠️ floorplan/coverage는 이 갱신에서 제외
-            # (정직한 한계로 남김) -- floorplan은 euler-fixup 시점(matching-safety repair
-            # *이전*)의 transistors로 이미 packing이 끝난 상태라 이 시점에 다시 패킹하려면
-            # pack_floorplan() 재호출이 필요한 별도 작업이고(비용 있음), coverage는 repair가
-            # 소자 이름 자체를 빼거나 더하지 않으므로(집합은 그대로, 행 구성만 바뀜) 갱신해도
-            # 값이 바뀌지 않는다(재확인 불필요).
-            repaired_transistors = [t for devs in repaired_rows.values() for t in devs]
-            repaired_row_widths = {rn: sum(t.n_fingers for t in devs)
-                                     for rn, devs in repaired_rows.items()}
-            pipeline_result = dict(
-                pipeline_result, transistors=repaired_transistors,
-                box_shape=check_box_shape(repaired_row_widths),
-                audit_row_split=repaired_audit)
+            # 2026-08-13(세션31 이어, 사용자 승인 -- CD절 "M6 folding" 논의 결론) --
+            # candidate_row_split(`{stack_id: n_rows}`)이 있으면 매칭 자동판단(repair_
+            # matching_safety())과 별개로, 명시적으로 지정된 stack을 여기서 즉시 접는다.
+            # box-shape ratio만을 위한 순수 물리 재배치라 W/ID/gm_id는 안 바뀐다
+            # (apply_explicit_row_split() docstring 참고) -- sizing/sizing_overrides
+            # 갱신 불필요, transistors/box_shape/audit_row_split만 이 새 물리 구조를
+            # 반영하도록 갱신한다.
+            if candidate_row_split:
+                _rs_rows = split_into_stacks(pr["transistors"])
+                _rs_rows = apply_explicit_row_split(_rs_rows, candidate_row_split)
+                _rs_transistors = [t for devs in _rs_rows.values() for t in devs]
+                _rs_matching_pairs = [pair for p in pairs_meta
+                                        for pair in itertools.combinations(p["names"], 2)]
+                _rs_pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
+                                          for pair in itertools.combinations(p["names"], 2)}
+                # 2026-08-14(세션32) -- audit_row_split()이 "2. box-shape" 체크를 위해
+                # 내부에서 이미 check_box_shape(_rs_rows)를 계산하므로(AuditResult.box_shape
+                # 필드 참고), 여기서 같은 _rs_rows에 그 함수를 또 부르지 않고 audit 결과에
+                # 실려온 걸 그대로 재사용한다.
+                _rs_audit = audit_row_split(_rs_rows, matching_pairs=_rs_matching_pairs,
+                                              pair_sensitivity=_rs_pair_sensitivity)
+                pr = dict(pr, transistors=_rs_transistors,
+                          box_shape=_rs_audit.box_shape, audit_row_split=_rs_audit)
 
-        # 2026-08-13(세션31 CO, 사용자 실측 발견 -- 리포트 아티팩트의 floorplan이 row_split/
-        # repair 이전 통짜 블록(예: M6 1개, width=24)을 보여주는데 box-shape/stick-diagram은
-        # 이미 최종 행(M6_split0/M6_split1 등)을 보여주는 불일치가 실제로 눈에 띄었다) --
-        # floorplan은 지금까지 run_topology_pipeline_with_finger_fixup() 호출 시점(row_split/
-        # matching-repair *이전*)에 단 한 번만 계산되고 그 뒤로 갱신된 적이 없었다(CD 절이
-        # "정직한 한계"로만 남겨뒀던 부분의 근본 수정). 이 시점의 pipeline_result["transistors"]
-        # 는 row_split(있었다면)과 matching-safety repair(있었다면) 둘 다 이미 반영된 진짜
-        # 최종 물리 행 구성이므로, 그 구성으로 floorplan을 다시 packing한다.
-        _final_rows = split_into_stacks(pipeline_result["transistors"])
-        _final_row_widths = {rn: sum(t.n_fingers for t in devs) for rn, devs in _final_rows.items()}
-        pipeline_result = dict(
-            pipeline_result,
-            floorplan=rebuild_floorplan(_final_row_widths, spec.get("floorplan_hints")))
+            audit = pr["audit_row_split"]
+            ok = audit.ok if hasattr(audit, "ok") else all(v.ok for v in audit.values())
+            if not ok:
+                rows = split_into_stacks(pr["transistors"])
+                # audit_row_split()/repair_matching_safety()는 순수 2-tuple 쌍 계약이다
+                # (docstring: "[(name_a, name_b), ...]") -- names가 2개보다 많은 그룹
+                # (예: 기준 소자 하나를 여러 소자가 미러하는 current_mirror)은 모든
+                # 쌍별 조합으로 펼쳐서 넘긴다(2026-08-01, 3개짜리 그룹에서 실제로
+                # 발견된 unpack 에러 수정).
+                matching_pairs_tuples = [pair for p in pairs_meta
+                                          for pair in itertools.combinations(p["names"], 2)]
+                pair_sensitivity = {pair: p["matching_sensitivity"] for p in pairs_meta
+                                     for pair in itertools.combinations(p["names"], 2)}
+                # 세션18 -- matching quality(3b/3c) 자동수정도 이제 핑거증가(L3+L4, 세션16)+
+                # gm/ID 예산으로 막히면 인접배치로 완화(세션17 설계안 3번)까지 이어붙인
+                # run_matching_safety_with_finger_growth()로 승격한다. lut_by_kind가
+                # 없는 구형 spec은 gm/ID 재검증이 불가능하므로 기존 bare repair_matching_
+                # safety()로 폴백(완전 하위호환, 위 euler 분기와 동일 가드 재사용 -- 그
+                # 분기에서만 pr["ctx"]가 존재한다).
+                if _lut_by_kind is not None:
+                    match_fix = run_matching_safety_with_finger_growth(
+                        rows, matching_pairs_tuples, pair_sensitivity, pr["ctx"],
+                        _lut_by_kind, metrics_specs, constraints,
+                        gm_id_bounds=spec.get("gm_id_bounds", (2.0, 30.0)))
+                    repaired_rows, repaired_audit = match_fix["rows"], match_fix["audit"]
+                    # 핑거증가가 실제로 W/n_fingers를 바꿨을 수 있으므로(위 euler 분기의
+                    # _sync_finger_fixup()과 동일 이유) 이 라운드의 sizing_overrides/sizing을
+                    # 최종 상태로 동기화한다 -- ov를 여기서만 복사해(baseline인 _base_
+                    # sizing_overrides는 절대 안 건드림, 다른 라운드가 이 라운드의 핑거증가를
+                    # 물려받지 않도록) grown finger를 반영한다. common-centroid 회전배치로
+                    # 소자 하나가 여러 행에 n_fingers 조각으로 나뉠 수 있어(세션16 F절 함정)
+                    # 행별로 합산해야 정확하다.
+                    final_n_fingers: dict = {}
+                    for devs in repaired_rows.values():
+                        for t in devs:
+                            final_n_fingers[t.name] = final_n_fingers.get(t.name, 0) + t.n_fingers
+                    ov = dict(ov)
+                    for name, n in final_n_fingers.items():
+                        entry = ov[name]
+                        if n != entry["n_fingers"]:
+                            ov[name] = {**entry, "n_fingers": n, "w": n * entry["finger_w"]}
+                    sz = match_fix["ctx"].sized
+                    mr = {name: compute_metric(mspec, match_fix["ctx"])
+                          for name, mspec in metrics_specs.items()}
+                    pr = dict(
+                        pr, repaired_rows=repaired_rows, repaired_audit=repaired_audit,
+                        growth_rounds=match_fix["growth_rounds"],
+                        unresolved_pair=match_fix["unresolved_pair"],
+                        unresolved_reason=match_fix["unresolved_reason"],
+                        relaxed_pairs=match_fix["relaxed_pairs"])
+                else:
+                    # ⚠️ 정직한 한계(2026-08-13 세션31 이어) -- lut_by_kind가 없는 구형 spec
+                    # 경로라 run_matching_safety_with_finger_growth()를 못 쓴다 -- 그 함수는
+                    # gm/ID 재검증에 LUT가 필요하다. 현재 라이브러리 4개 회로 전부 lut_by_
+                    # kind를 쓰므로(실측 확인) 이 분기는 실전에서 아직 노출되지 않았다.
+                    repaired_rows, repaired_audit = repair_matching_safety(
+                        rows, matching_pairs_tuples, pair_sensitivity)
+                    pr = dict(pr, repaired_rows=repaired_rows, repaired_audit=repaired_audit)
+                ok = repaired_audit.ok
+                # 2026-08-13(세션31 이어, 사용자 지시 -- box-shape 진단 도중 발견된 저장
+                # 버그) -- repaired_rows를 최종 정본으로 승격해 transistors/box_shape/
+                # audit_row_split을 덮어써서 이 라운드가 반환하는 pr과 ok가 항상 같은
+                # 사실을 가리키도록 한다(예전엔 이 갱신이 누락돼 instance.json에 repair
+                # *이전* 스냅샷이 저장되는 불일치가 있었다, `.ai/context.md` 세션31 CD 참고).
+                # box_shape는 repaired_audit(위에서 이미 audit_row_split(repaired_rows, ...)로
+                # 계산됨)에 실려온 걸 그대로 쓴다 -- 같은 repaired_rows에 check_box_shape()를
+                # 또 부르지 않는다(2026-08-14 세션32, 위 row_split 블록과 동일한 이유).
+                repaired_transistors = [t for devs in repaired_rows.values() for t in devs]
+                # 2026-08-14(세션32, 사용자 절대원칙 -- "만들면 반드시 배선") --
+                # check_stick_diagram_coverage()("sizing은 됐는데 layout이 통째로 빠짐 최후의
+                # 방어선"으로 stick_diagram.py 자신이 명시)가 지금까지 run_topology_pipeline()
+                # 안(matching-safety repair *이전* 시점)에서만 호출되고 repair 이후엔 한 번도
+                # 재호출된 적이 없었다 -- repair_matching_safety()/run_matching_safety_with_
+                # finger_growth()가 소자를 조용히 빠뜨려도 잡아낼 방법이 없었다(실측: 세션32
+                # current_reuse_telescopic_ota 첫 완주에서 M17/M18_bg/M61 3개가 최종 netlist에서
+                # 통째로 사라진 걸 발견 -- run_full_circuit_audit/coverage 둘 다 이 시점 이후라
+                # 못 잡음). repair 직후 여기서 다시 호출해 재검증한다 -- repair는 재배치만 해야
+                # 하므로(핑거증가는 개수를 바꾸지만 이름을 없애지 않음) repair 전 이름 집합과
+                # 정확히 같아야 한다. 어긋나면 조용히 저장하지 않고 즉시 실패한다(run_topology_
+                # pipeline()의 "누락 소자 즉시 ValueError" 원칙과 동일 -- PRE-FLIGHT 사고27과
+                # 같은 실패 유형을 여기서도 반복하지 않는다).
+                _pre_repair_names = {t.name for devs in rows.values() for t in devs}
+                _repair_coverage = check_stick_diagram_coverage(
+                    _pre_repair_names,
+                    {rn: [t.name for t in devs] for rn, devs in repaired_rows.items()})
+                if not _repair_coverage.ok:
+                    raise ValueError(
+                        f"matching-safety repair(repair_matching_safety()/run_matching_safety_"
+                        f"with_finger_growth()) 이후 소자가 사라졌다: {sorted(_repair_coverage.missing)} "
+                        f"-- repair는 재배치만 해야 하므로 이 소자 집합이 repair 전후로 정확히 "
+                        f"같아야 한다. repair 함수 내부의 근본원인을 고칠 것(조용히 저장하지 않음)."
+                    )
+                pr = dict(
+                    pr, transistors=repaired_transistors,
+                    box_shape=repaired_audit.box_shape,
+                    audit_row_split=repaired_audit)
+
+            # 2026-08-13(세션31 CO) -- floorplan은 row_split(있었다면)과 matching-safety
+            # repair(있었다면) 둘 다 이미 반영된 이 시점의 pr["transistors"](진짜 최종
+            # 물리 행 구성)로 다시 packing해야 한다(안 그러면 리포트의 floorplan이 옛
+            # 통짜 블록을 보여주는 불일치가 생김, 실측 발견).
+            _final_rows = split_into_stacks(pr["transistors"])
+            pr = dict(pr, floorplan=rebuild_floorplan(_final_rows, spec.get("floorplan_hints")))
+            return {"pipeline_result": pr, "sizing_overrides": ov, "sizing": sz,
+                    "metrics_result": mr, "audit_ok": ok}
+
+        # 2026-08-14(세션32) -- spec["floorplan_target"](`{"max_aspect_ratio":...,
+        # "min_packing_density":...}`)이 없으면(대다수 회로, 하위호환) 위 클로저를 딱
+        # 1번만 평가하고 끝 -- 세션31까지의 동작과 100% 동일. 있을 때만 아래 재시도
+        # 루프가 켜진다(opt-in, 원래 `workspaces/run_harness.py`가 외부에서 하던 것과
+        # 동일한 row_split 자동조정을 여기로 옮긴 것). row_split은 라운드끼리 절대
+        # 리셋하지 않고 누적한다(동일 조합이 두 번 나올 수 없음, `_pick_split_target()`이
+        # 매번 그 시점 floorplan에서 가장 지배적인 후보를 결정론적으로 고름 -- 랜덤 아님).
+        #
+        # backtracking(사용자 지적: "한 단계만 보고 포기하면 몇 단계 더 접었으면 됐을
+        # 경우를 놓친다") -- 한 stack을 골랐으면(probe_target) max_split_per_stack까지
+        # 계속 한 단계씩 더 밀어붙이다가(probe_row_split, 매 라운드 +1), 그 한계에
+        # 도달했는데도 한 번도 best_score를 못 이겼을 때만 그 stack을 이번 탐색에서
+        # 제외(excluded)하고 다음으로 지배적인 후보로 넘어간다. 개선되면(몇 단계째든)
+        # 바로 채택(best 갱신)하고 처음부터 다시 가장 지배적인 후보를 고른다 -- "되돌리기"는
+        # 별도 undo가 필요 없다(각 라운드가 이미 _base_*에서 새로 계산하는 순수함수라,
+        # best를 안 덮어쓰면 그게 곧 되돌린 것).
+        #
+        # 남는 한계(정직하게 문서화, 지금 범위 밖) -- 이건 여전히 탐욕적 1-stack-at-a-time
+        # 탐색이다: "두 stack을 동시에 바꿔야만 개선되는" 조합은 원리상 못 찾는다 --
+        # pack_floorplan() 자신의 docstring이 이미 인정하는 "완전한 non-slicing floorplan
+        # 최적화는 이 skill 범위를 넘는다"와 같은 종류의 한계.
+        _base_row_split = dict(spec.get("row_split", {}))
+        round0 = _evaluate_row_split(_base_row_split)
+        floorplan_target = spec.get("floorplan_target")
+        layout_retry_rounds: list = []
+
+        if floorplan_target is None:
+            chosen, chosen_row_split = round0, _base_row_split
+        else:
+            max_split_per_stack = spec.get("max_split_per_stack", 6)
+            max_layout_retry_rounds = spec.get("max_layout_retry_rounds", 6)
+            best, best_row_split = round0, _base_row_split
+            best_score = _score_floorplan(best["pipeline_result"]["floorplan"], floorplan_target)
+            excluded: set = set()
+            probe_target, probe_row_split = None, None
+            for _ in range(max_layout_retry_rounds):
+                if best_score <= 0.0:
+                    break
+                if probe_target is None:
+                    probe_target = _pick_split_target(
+                        best["pipeline_result"]["floorplan"], best_row_split,
+                        excluded=excluded, max_split_per_stack=max_split_per_stack)
+                    if probe_target is None:
+                        break
+                    probe_row_split = dict(best_row_split)
+                probe_row_split[probe_target] = probe_row_split.get(probe_target, 1) + 1
+                trial = _evaluate_row_split(probe_row_split)
+                trial_score = _score_floorplan(trial["pipeline_result"]["floorplan"], floorplan_target)
+                improved = trial_score < best_score
+                layout_retry_rounds.append({
+                    "target": probe_target, "row_split": dict(probe_row_split),
+                    "score_before": best_score, "score_after": trial_score, "accepted": improved})
+                if improved:
+                    best, best_score, best_row_split = trial, trial_score, dict(probe_row_split)
+                    probe_target = None
+                elif probe_row_split[probe_target] >= max_split_per_stack:
+                    excluded.add(probe_target)
+                    probe_target = None
+                # else: 아직 max_split_per_stack 전이면 같은 target을 다음 라운드에 한 단계 더
+            chosen, chosen_row_split = best, best_row_split
+
+        pipeline_result = chosen["pipeline_result"]
+        sizing_overrides = chosen["sizing_overrides"]
+        sizing = chosen["sizing"]
+        metrics_result = chosen["metrics_result"]
+        audit_ok = chosen["audit_ok"]
+        pipeline_result = dict(pipeline_result, row_split=chosen_row_split)
+        if floorplan_target is not None:
+            pipeline_result = dict(pipeline_result, layout_retry_rounds=layout_retry_rounds)
 
     return {"theta_star": theta_star, "sizing": sizing, "metrics": metrics_result,
             "sizing_overrides": sizing_overrides, "pipeline_result": pipeline_result,
@@ -6787,6 +6999,13 @@ if __name__ == "__main__":
             "stack_groups_override": {"m3a_row": _l4c_names},
             "min_finger_w": 0.1e-6, "max_finger_w": 40e-6,
             "gm_id_bounds": (2.0, 28.0),
+            # 2026-08-14 -- load_topology()가 이제 propose_device_roles_gap_fill()을 자동
+            # 배선해서(사용자 지시, 절대원칙) 이 fixture의 netlist에서도 L_role이 자동으로
+            # 채워질 수 있다 -- 이 테스트는 known_sizing으로 device_roles를 완전히 우회하는
+            # 시나리오를 검증하려는 것이지만, L_role 루프 자체는(권위 있는 소스가 아니면)
+            # 여전히 도는다는 게 기존 계약이라 L_min이 없으면 크래시한다. 실제 스펙은 항상
+            # L_min을 주므로(예: _spec_two_stage_ota()) 여기도 맞춘다.
+            "L_min": 0.1e-6,
         }
         _ofcb_result = optimize_full_circuit_budget(_ofcb_topo_path, _ofcb_spec)
         assert _ofcb_result["pipeline_result"]["unresolved_row"] is None, \
@@ -7329,11 +7548,35 @@ if __name__ == "__main__":
         print(f"    PASS: ValueError -- {str(_e_feed)[:60]}...")
 
     print()
-    print("  [optimize_full_circuit_budget() -- sizing_roles 없는 회로(folded_cascode)는 "
+    print("  [optimize_full_circuit_budget() -- sizing_roles/device_roles 둘 다 없는 회로는 "
           "즉시 빈 결과로 통과]")
+    # 2026-08-14 -- 원래 이 fixture로 folded_cascode.topology.json을 그대로 썼다("sizing_roles
+    # 없는 실회로"의 편의상 예시였을 뿐, 이 테스트의 실제 의도는 "device_roles가 비어 있으면
+    # L_role 루프가 아무것도 안 하고 빈 결과를 낸다"였다) -- propose_device_roles_gap_fill()/
+    # apply_device_roles_gap_fill()을 실제로 그 파일에 적용해 device_roles를 채운 뒤로 이
+    # fixture 전제(device_roles 없음)가 깨졌다. 이 테스트가 실제로 검증하려는 것과 무관한
+    # 외부 상태(실제 라이브러리 파일의 최신 내용)에 더 이상 의존하지 않도록, 의도를 그대로
+    # 담은 최소 합성 fixture로 교체한다(device_roles/sizing_roles 둘 다 명시적으로 없음).
+    # ⚠️ 2026-08-14 세션34 재정정 -- Mo(gate='vb', 레일 소스+고정 바이어스 게이트 단일
+    # 소자)가 propose_device_roles_gap_fill()의 새 4번째 소스("파트너 없는 active-load ->
+    # gm_id_role='gain' 제안", 이 세션에서 신설)에 걸려 require_device_roles_reviewed()가
+    # 더 이상 조용히 통과하지 않게 됐다 -- 이 테스트의 의도(sizing_roles/device_roles가
+    # 완전히 비어있을 때 optimize_full_circuit_budget()이 즉시 빈 결과를 내는지)와 무관한
+    # 충돌이라, Mo를 diode-connected(gate=자기 drain)로 바꿔 애초에 gap-fill의 어떤 제안
+    # 대상도 아니게 만든다(diode-connected 단독 소자는 mirror 그룹조차 안 됨, len(ms)<2).
     _lib_dir_recipe = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), "library")
-    _ofc_result = optimize_full_circuit_budget(
-        _os.path.join(_lib_dir_recipe, "folded_cascode.topology.json"), {"lut": lut})
+    _ofc_empty_topo = {
+        "schema_version": "2.0", "topology_name": "_test_empty_roles", "source": "self-test",
+        "linked_topology_files": [], "compensation": None, "_compensation_status": "not_applicable",
+        "netlist": [{"name": "Mo", "kind": "nmos", "source": "gnd", "drain": "out", "gate": "out"}],
+        "symmetry": {"matching_pairs": [], "dispositions": []},
+        "sizing_roles": None, "device_roles": None,
+    }
+    with _tempfile.TemporaryDirectory() as _ofc_empty_tmpdir:
+        _ofc_empty_path = _os.path.join(_ofc_empty_tmpdir, "_test_empty_roles.topology.json")
+        with open(_ofc_empty_path, "w", encoding="utf-8") as _ofc_empty_f:
+            json.dump(_ofc_empty_topo, _ofc_empty_f)
+        _ofc_result = optimize_full_circuit_budget(_ofc_empty_path, {"lut": lut})
     assert _ofc_result["theta_star"] == {} and _ofc_result["metrics"] == {}, \
         "sizing_roles 없는데 빈 결과가 아님"
     assert _ofc_result["sizing_overrides"] is None and _ofc_result["pipeline_result"] is None, \
@@ -7545,7 +7788,16 @@ if __name__ == "__main__":
         "compensation": {"function": "miller_ota_topology",
                           "parameters": ["GBW", "CL", "Z", "NDP"],
                           "stage_devices": [["Ma"], ["Mc"]]},
-        "device_roles": {"Mb": {"headroom_role": None, "gm_id_role": None,
+        # 2026-08-14 세션34 -- gm_id_role을 명시적으로 False로 선언(원래 None) -- Mb(레일
+        # 소스+HIGH_Z 드레인, 파트너 없는 고립 소자)가 propose_device_roles_gap_fill()의 새
+        # 4번째 소스("gm_id_role=gain" 제안) 대상이 됐다. 이 테스트는 Mb의 matching_pairs를
+        # 일부러 current_forced=False로 둬(L_role 재설계만 검증하려는 의도) Mb의 ID를 A엔진이
+        # 절대 못 정하게 설계돼 있다 -- 어떤 값이든 gm_id_role이 채워지면(심지어 declared로
+        # 직접 줘도) sizing_recipe.py의 gm_id_role 루프가 "ID 없음"으로 즉시 ValueError를
+        # 낸다(이 fixture 고유의 제약, 버그 아님). False는 None과 달리 "이미 명시적으로
+        # 결정됨(해당없음)"으로 인식돼 gain 제안과 충돌 처리(자동 병합 안 됨 -> review 불필요)
+        # 되면서도, falsy라 gm_id_role 루프 자체는 여전히 건너뛴다(None과 동일 동작).
+        "device_roles": {"Mb": {"headroom_role": None, "gm_id_role": False,
                                   "L_role": "mirror", "vertical_stack_id": None, "vs": 0.0}},
     }
     with _tempfile.TemporaryDirectory() as _lrec_tmpdir:
