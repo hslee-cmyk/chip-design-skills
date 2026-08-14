@@ -3700,31 +3700,24 @@ def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matchin
          _netclass_lcmf.CASCODE) if _netclass_lcmf is not None else ())
     role_candidates = refined.get("role_candidates") or {}
 
-    # ⚠️ 2026-08-14 세션34 추가(사용자 지적, `folded_cascode`의 M7/M8 계기) -- role 하나만
-    # 보면 M8(`AMPLIFYING`, 게이트 Vg7이 M5 폴딩 노드와 겹쳐 SIGNAL로 분류됨)이 위 정적
-    # 레퍼런스 집합에서 빠진다. 하지만 M8은 `M10`(role=`CURRENT_SOURCE`, 정적 레퍼런스)
-    # 위에 물리적으로 직렬 적층된(`idioms.m_cascode()`의 `cascode-stack`, `lower_role`
-    # 포트가 이미 이 정보를 갖고 있음) 소자다 -- 아래에 정적 레퍼런스가 있으면 그 위에
-    # 캐스코드로 쌓인 소자도 "이 전류경로가 고정 레퍼런스에서 온다"는 성질을 물려받는다
-    # (`_propose_headroom_roles()`의 `_diode_like_mirror()`가 diode-cascode에 이미 쓰는
-    # 것과 같은 "적층으로 성질 상속" 패턴). 고정점까지 반복(다단 캐스코드 대비, `M7`/`M8`
-    # 실측은 1단이면 충분하나 일반화).
+    # ⚠️ 2026-08-14 세션34(사용자 지적, `folded_cascode`의 M7/M8 계기, 이후 같은 세션에서
+    # `idioms.propagate_reference_role_through_cascode()`로 일반화 재배선) -- role
+    # 하나만 보면 M8(`AMPLIFYING`, 게이트 Vg7이 M5 폴딩 노드와 겹쳐 SIGNAL로 분류됨)이
+    # 위 정적 레퍼런스 집합에서 빠진다. 하지만 M8은 `M10`(role=`CURRENT_SOURCE`, 정적
+    # 레퍼런스) 위에 물리적으로 직렬 적층된(`idioms.m_cascode()`의 `cascode-stack`) 소자다
+    # -- 아래에 정적 레퍼런스가 있으면 그 위에 캐스코드로 쌓인 소자도 "이 전류경로가 고정
+    # 레퍼런스에서 온다"는 성질을 물려받는다. "무엇을 정적 레퍼런스로 볼지"(아래
+    # `_static_ref_roles`)는 이 호출부의 판단이라 그대로 seed로 넘긴다 -- 전파 알고리즘
+    # 자체(다단 캐스코드 고정점 반복)는 소비자 무관 순수 그래프 유틸리티라
+    # `idioms.py`(`m_cascode()` 바로 옆)로 옮겨 재사용 가능하게 했다.
     static_like_roles = {n for n, r in role_candidates.items() if r in _static_ref_roles}
     if _idioms_lcmf is not None:
         _devs_lcmf = _to_analog_grammar_devs(transistors)
         _cls_lcmf, _imp_lcmf, _ = _netclass_lcmf.classify_nets(
             _devs_lcmf, refined["final_inputs"], outputs, biases, feedbacks, clocks)
-        _cascode_matches = [m for m in _idioms_lcmf.match_all(_devs_lcmf, _cls_lcmf, _imp_lcmf, role_candidates)
-                             if m.kind == "cascode-stack"]
-        for _ in range(len(_cascode_matches) + 1):
-            grew = False
-            for m in _cascode_matches:
-                lo_name, up_name = m.devices
-                if lo_name in static_like_roles and up_name not in static_like_roles:
-                    static_like_roles.add(up_name)
-                    grew = True
-            if not grew:
-                break
+        _all_matches_lcmf = _idioms_lcmf.match_all(_devs_lcmf, _cls_lcmf, _imp_lcmf, role_candidates)
+        static_like_roles = _idioms_lcmf.propagate_reference_role_through_cascode(
+            _all_matches_lcmf, static_like_roles)
 
     matching_candidates = find_matching_candidates(transistors)
     for group in matching_candidates["diff_pair"].values():

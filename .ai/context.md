@@ -9967,3 +9967,16 @@ harness.py`(세션31 신설, 세션32/33이 "포함 여부 확인 필요"로 이
 세션도 손 안 댔고 사용자가 이번 커밋 범위로 명시하지 않아 계속 이월), `workspaces/two-
 stage-ota-report/run_harness.py`(세션31에 통합된 레거시 복사본, 삭제 여부 미결 이월)는
 전부 이번 커밋에서 제외한다.
+
+## N. 커밋 후 소규모 리팩터 -- cascode-stack 상속을 `idioms.py`로 일반화(사용자 요청)
+
+커밋(`fa2fcfb`) 직후, 사용자 질문("cascode-stack 상속은 일반화해서 analog-grammar의
+idiom을 확장할 수 있나?")에 답하며 G절의 고정점 반복 루프(다단 캐스코드로 "정적
+레퍼런스" 성질을 전파하는 순수 그래프 유틸리티, 소비자 무관)를 `idioms.py`의
+`m_cascode()` 바로 옆으로 이동 -- 신설 함수 `propagate_reference_role_through_cascode
+(matches, seed_names)`. **무엇을 "정적 레퍼런스"로 볼지(`_static_ref_roles`)는 idiom
+레이어가 정하지 않고 여전히 호출부(`stick_diagram.py`)가 seed로 넘긴다**(사용자가
+명시적으로 요구한 설계 방향) -- `netclass.assign_roles()`의 단일-라벨 `role` 계약은
+안 건드림(`m_mirror()`의 `active_load_legs`와 동일 원칙). 순수 코드 이동(로직 변경
+없음) -- `stick_diagram.py` self-test 전체 재실행 exit 0, `sizing_recipe.py` self-test
+exit 0, 프로덕션 harness 2건 gain_db byte-identical 재확인, 회귀 0건.

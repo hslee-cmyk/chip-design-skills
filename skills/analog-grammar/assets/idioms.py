@@ -280,6 +280,44 @@ def m_cascode(devs, cls, imp, role):
     return out
 
 
+def propagate_reference_role_through_cascode(matches, seed_names):
+    """`m_cascode()`가 이미 찾은 `cascode-stack` 관계(`Match.devices=[lo,up]`,
+    `up.source==lo.drain`)를 따라, 호출부가 "이 성질을 가진 소자"로 판정한
+    `seed_names`를 위쪽(캐스코드로 쌓인 소자)으로 전파한다 -- `lo`가 이미 그 성질을
+    가지면(seed_names에 있거나 이전 반복에서 전파돼 들어왔으면) `up`도 "같은 전류경로가
+    그 성질을 가진 소자에서 온다"는 사실을 물려받는다. 고정점까지 반복(다단 캐스코드
+    지원 -- 세션34 실측은 1단이면 충분했지만 일반화).
+
+    ⚠️ **무엇을 seed로 볼지는 이 함수가 정하지 않는다** -- `analog-gmid-design/
+    chip-design-skills` 세션34(2026-08-14, `.ai/context.md` 참고) 신설 계기: `folded_
+    cascode`의 `M8`(`role='AMPLIFYING'`, 게이트가 폴딩 노드와 겹쳐 신호로 분류됨)이
+    `M10`(`role='CURRENT_SOURCE'`, 정적 레퍼런스) 위에 물리적으로 쌓여 있는데도 "정적
+    레퍼런스"로 분류돼야 하는 케이스가 계기였다 -- 그런데 "무엇이 정적 레퍼런스인가"
+    (`DIODE_CONNECTED`/`CURRENT_SOURCE`/`ACTIVE_LOAD`/`CASCODE`였다)는 그 소비자의
+    판단이지 이 함수(또는 idiom 레이어)가 하드코딩할 성질이 아니다 -- 다른 소비자는
+    다른 seed 기준을 쓸 수 있다. 그래서 `seed_names`를 그대로 받는다(`role` 자체를
+    재분류하거나 덮어쓰지 않음 -- `netclass.assign_roles()`의 단일-라벨 계약에 기대는
+    다른 소비자를 깨지 않기 위함, `m_mirror()`의 `active_load_legs`와 같은 원칙).
+
+    `matches`: `idioms.match_all()`(또는 그 부분집합)의 반환값 그대로 -- `kind==
+    'cascode-stack'`이 아닌 Match는 내부에서 걸러진다.
+
+    반환: `seed_names`를 포함해 전파로 확장된 **새** set(`seed_names` 원본은 변경
+    안 함)."""
+    cascode_matches = [m for m in matches if m.kind == 'cascode-stack']
+    out = set(seed_names)
+    for _ in range(len(cascode_matches) + 1):
+        grew = False
+        for m in cascode_matches:
+            lo_name, up_name = m.devices
+            if lo_name in out and up_name not in out:
+                out.add(up_name)
+                grew = True
+        if not grew:
+            break
+    return out
+
+
 @idiom('push-pull-output', priority=6)
 def m_pushpull(devs, cls, imp, role):
     """Class-AB / CMOS inverter 형 출력단: 상보 쌍이 출력 노드를 공유."""
