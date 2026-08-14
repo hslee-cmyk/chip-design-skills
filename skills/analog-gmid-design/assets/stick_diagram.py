@@ -3572,16 +3572,22 @@ def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matchin
     확인한다: (1) `L_role_candidates[name].symmetry_partner`(전역 그래프 자기동형, 예:
     `current_reuse_telescopic_ota`의 `M13`<->`M22`), (2) `branch_load_partner_candidates`
     (diffpair 두 branch에 각각 앉은 부하, 예: `two_stage_ota`의 `M3`<->`M4`, `find_diffpair_
-    branch_load_partners()` 참고). **왜 파트너가 있으면 자동 결정 안 하는가**: 실측 반례
-    `M3`/`M4` -- 둘 다 diffpair branch의 active-load라는 점만 보면 `M13`/`M22`(파트너 있음,
-    후보였다가 보류)와 같은 패턴처럼 보이지만, `M3`/`M4`는 `gain_db` 붕괴를 막으려고 세션31이
-    이미 `gm_id_role="matching"`(+`gm_id_min=8.0`)으로 확정한 사례 -- diffpair 두 branch의
-    부하 미스매치가 입력 오프셋에 직결되면 "matching"이 맞고, 아닌 경우(`M7`처럼 파트너
-    자체가 없어 아무도 이 소자의 전류/L에 기대지 않음)만 "gain"이 안전하다는 게 이번 세션의
-    결론이다 -- 파트너가 "있다"는 사실만으로 matching/gain 어느 쪽이 맞는지는 구조로 확정
-    불가(실제 회로 성능 판단 필요), 그래서 파트너 있는 소자는 이 4번째 소스에서 제안하지
-    않고 조용히 넘어간다(기존 1~3번 소스가 이미 처리하거나, 처리 못하면 review_needed의
-    다른 경로로 드러난다).
+    branch_load_partners()` 참고).
+
+    **왜 파트너가 있으면 "gain"을 제안 안 하는가(2026-08-14 정정-- 처음엔 "구조로 확정
+    불가, 사람 판단 필요"라고 봤으나 재검토로 더 강한 결론이 나옴)**: 두 파트너 메커니즘
+    다 정의상 "이 소자가 differential balance 역할을 한다"는 사실을 이미 내포한다 -- 구조
+    대칭 partner는 주변 서브그래프 전체가 좌우대칭이라는 뜻이고, diffpair branch-load
+    partner는 정의상 differential pair의 두 branch에 앉은 부하다(어느 쪽이든 미스매치가
+    곧바로 차동 비대칭/오프셋으로 이어짐). 실측 확인된 2건 -- `two_stage_ota`의 `M3`/`M4`
+    (세션31이 `gain_db` 붕괴 방지를 위해 `matching`+`gm_id_min=8.0`으로 확정), `current_
+    reuse_telescopic_ota`의 `M13`<->`M22`/`M12`<->`M21`(각각 Vom쪽/Vop쪽 class-AB
+    quiescent 바이어스를 독립 net(N14a14b/N24b23a 등)으로 생성해 M9a/M9b<->M18a/M18b
+    Monticelli 쌍에 먹이는 구조, netlist 직접 추적으로 확인) -- 전부 "matching"이 맞았고
+    반례는 없었다. 그래서 파트너 있는 소자는 이 4번째 소스에서 "gain"을 제안하지 않는다
+    (`gm_id_role_candidates`의 기존 경로가 이미 "matching"을 정확히 제안한다 -- 파트너
+    없는 소자만 새로 다루면 되는 gap이었다), review_needed에는 판단을 요구하는 미확정
+    항목이 아니라 이 근거를 투명하게 남기는 정보성 기록만 남긴다.
 
     analog-grammar가 없으면(`refine_differential_and_mirror_relations()`가 의존) 빈 제안 +
     `unavailable_reason`을 반환한다.
@@ -3764,17 +3770,31 @@ def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matchin
                                     "적용된다(사람이 참고용으로만 확인할 것, 자동 반영 자체를 "
                                     "막을 필요는 없음)."})
 
+    # ⚠️ 2026-08-14 세션34 정정(사용자 지시로 "단일 공유 net vs 독립 net" 구분을 새 신호로
+    # 일반화하려다 발견) -- 파트너(구조 대칭 또는 diffpair branch-load) 유무만으로 이미
+    # "matching이 구조적으로 맞다"가 결정된다는 게 재검토로 드러났다: 두 메커니즘 다 정의상
+    # "이 소자가 differential balance 역할을 한다"는 사실을 이미 내포한다 -- 구조 대칭
+    # partner는 주변 서브그래프 전체가 좌우대칭이라는 뜻이고, diffpair branch-load partner는
+    # 정의상 differential pair의 두 branch에 앉은 부하다. 실측 2건(`two_stage_ota`의 M3/M4,
+    # `current_reuse_telescopic_ota`의 M13/M22 -- 각각 Vom쪽/Vop쪽 class-AB quiescent
+    # 바이어스를 독립 생성해 서로 다른 net(N14a14b/N24b23a)으로 넘기는 것까지 실측 확인,
+    # `.ai/context.md` 세션34 참고) 전부 이 원칙과 일치, 반례 없음 -- "파트너가 있는데
+    # gain이 나을 수도 있다"는 이전 버전의 불확실한 표현은 근거 없는 추측이었다(정정).
+    # `gm_id_role_candidates`가 이미 이런 소자에 "matching"을 정확히 제안하므로(구조 대칭
+    # partner가 있으면 자동으로 "matching", `_propose_gm_id_roles()` 참고) 여기서 추가로
+    # 할 일은 없다 -- 이 review_needed 항목은 그 근거를 투명하게 남기는 정보성 기록일 뿐,
+    # 사람 판단을 요구하지 않는다.
     for name in sorted(active_load_leg_candidates - gain_role_candidates):
         sym_partner = (L_role_candidates.get(name) or {}).get("symmetry_partner")
         br_partner = branch_load_partner_candidates.get(name)
         partner_desc = f"구조 대칭 partner={sym_partner}" if sym_partner else \
             f"diffpair branch-load partner={br_partner}"
         review_needed.append({"device": name, "note": f"active-load 성격(레일 직결+HIGH_Z "
-            f"드레인)인데 {partner_desc}가 있어 'gain' 자동 제안 안 함 -- 실제 회로 성능상 "
-            f"이 partner와의 전류/L 매칭이 필요한지({partner_desc.split('=')[0]}가 있다고 "
-            f"자동으로 'matching'이 맞는 것도 아님, `two_stage_ota`의 M3/M4 -- 파트너 있어도 "
-            f"matching이 맞았던 실측 사례 -- 와 `current_reuse_telescopic_ota`의 M13/M22 -- "
-            f"파트너 있지만 gain이 더 나을 수 있는 사례, 아직 미확정 -- 참고) 사람 판단 필요."})
+            f"드레인)인데 {partner_desc}가 있음 -- 파트너 존재 자체가 differential balance "
+            f"역할을 내포하므로 'gain'이 아니라 'matching'이 구조적으로 맞다(실측 2건, "
+            f"`two_stage_ota` M3/M4·`current_reuse_telescopic_ota` M13/M22 전부 일치, "
+            f"반례 없음) -- 정보성 기록일 뿐 별도 판단 불필요, gm_id_role_candidates가 "
+            f"이미 'matching'을 정확히 제안 중."})
 
     tentative_pairs_meta = matching_pairs_meta + matching_pairs_proposals
     disp = check_symmetry_dispositions(transistors, tentative_pairs_meta, dispositions={})

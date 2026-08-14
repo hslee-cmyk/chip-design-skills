@@ -9980,3 +9980,30 @@ idiom을 확장할 수 있나?")에 답하며 G절의 고정점 반복 루프(�
 안 건드림(`m_mirror()`의 `active_load_legs`와 동일 원칙). 순수 코드 이동(로직 변경
 없음) -- `stick_diagram.py` self-test 전체 재실행 exit 0, `sizing_recipe.py` self-test
 exit 0, 프로덕션 harness 2건 gain_db byte-identical 재확인, 회귀 0건.
+
+## O. 이월 항목 ① 해소 -- M13/M22/M12/M21의 matching vs gain 실측 확정("파트너 있으면
+matching"으로 일반화)
+
+`.ai/context.md` 다음 세션 이월 항목 ①(M13/M22/M12/M21의 최종 판단)을 실제 netlist 추적으로
+해소. `M13`(N14a14b 생성)→`M9b` 게이트, `M22`(N24b23a 생성)→`M18b` 게이트 -- `M9a/M9b`
+(Vom쪽)/`M18a/M18b`(Vop쪽)는 각각 class-AB 출력단(`M15/M16`, `M25/M26`)의 quiescent 전류를
+잡는 Monticelli floating-current-source 쌍. `M13`/`M22`가 **서로 다른 net을 독립 생성**해
+Vom쪽/Vop쪽 바이어스를 각각 결정하므로 둘의 미스매치가 그대로 출력단 좌우 비대칭(오프셋)
+으로 이어짐 -- `two_stage_ota`의 M3/M4와 정확히 같은 메커니즘. `M12`/`M21`도 동일 패턴
+(N11b/N20b). **결론: declared `gm_id_role='matching'`이 맞음, 코드/파일 변경 불필요.**
+대조군으로 `M60`/`M61`/`M68`이 생성하는 `Vbias4`/`Vbias3`/`Vbias2`는 Vom쪽/Vop쪽 소비자가
+**같은 net을 공유**해서 읽어(예: M2a/M2b 둘 다 Vbias2) 미스매치가 양쪽에 동일하게 영향을
+줘 차동 비대칭이 안 생김 -- 이게 애초에 이들이 partner가 없는(C절 신호가 안 잡히는) 이유와
+같은 근본 이유임을 확인.
+
+**일반화 시도 -- "단일 공유 net vs 독립 net" 구분을 새 신호로 만들려다 실패(중복 발견)**:
+사용자 지시로 시도했으나, partner가 있는 두 소자의 drain은 서로 다른 물리적 소자이므로
+정의상 거의 항상 다른 net이라 이 체크가 이미 있는 "partner 있음/없음" 판정과 완전히
+같은 결과만 낸다는 게 드러남 -- 새 신호 불필요. **대신 더 강한 결론으로 일반화**: partner가
+있으면(구조 대칭이든 diffpair branch-load든) 그 존재 자체가 이미 "이 소자는 differential
+balance 역할을 한다"를 내포하므로 matching이 구조적으로 맞다(실측 2건 M3/M4, M13/M22
+전부 일치, 반례 0건). J절 review_needed의 "미확정, 사람 판단 필요" 문구가 과하게
+불확실했던 것으로 판단해 "정보성 기록, 판단 불필요"로 정정(`propose_device_roles_gap_
+fill()` 4번째 소스 docstring + review_needed 메시지 둘 다 갱신). `gm_id_role_candidates`가
+이미 이런 소자에 "matching"을 정확히 제안하고 있어(실측 확인) 로직 변경은 없음, 순수
+메시지/문서 정정 -- self-test 전체 재실행 exit 0.
