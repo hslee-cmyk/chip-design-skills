@@ -1,13 +1,10 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션34 최종 요약"부터 먼저 읽을 것**
-— 그 절 하나만 읽어도 세션34 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
-시작 순서)가 재현 가능하도록 정리돼 있다. **파일 중간의 "# 세션34 결론"(M절 질문에
-처음 답한 시점)은 세션34가 그 뒤로도 N~Q절까지 한참 더 이어졌기 때문에 더 이상 최신이
-아니다** -- 그 결론이 남긴 이월 항목(M13/M22 판단, nmcnr_amplifier M109/M204)은 전부
-세션34 안에서 마저 해소됐다(맨 끝 "# 세션34 최종 요약" 참고). "# 세션33 결론"/"# 세션32
-결론"/"# 세션31 결론"은 더 이전 이력이다. 아래는 세션 진행 중 실시간으로 쌓인 상세
-이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션35 최종 요약"부터 먼저 읽을 것**
+— 그 절 하나만 읽어도 세션35 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
+시작 순서)가 재현 가능하도록 정리돼 있다. "# 세션34 최종 요약"/"# 세션34 결론"/"# 세션33
+결론"/"# 세션32 결론"/"# 세션31 결론"은 더 이전 이력이다. 아래는 세션 진행 중 실시간으로
+쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
 
 ---
 
@@ -10170,11 +10167,37 @@ run_harness.py`(세션31 신설, 세션32/33이 "포함 여부 확인 필요"로
    삭제. 커밋 `5054026`. 통합본 `ast.parse()` 문법 확인만 했고 전체 실행(10분+ 소요)은
    생략 -- 세션34 "## 2 최종 검증 상태"가 이미 이 통합 harness로 두 회로를 재실행해
    byte-identical을 확인해뒀다.
-3. **`folded_cascode`/`nmcnr_amplifier`에 `sizing_roles` 자체가 없음**(세션31 BE③/BW2,
-   `.ai/context.md` 7739행 근처) -- 2026-08-14 직접 재확인: 두 파일 다 `sizing_roles:
-   null`. theta 자유탐색이 원천적으로 불가능해 `optimize_full_circuit_budget()`으로
-   실제 SLSQP 최적화를 못 돌리는 상태(`two_stage_ota`/`current_reuse_telescopic_ota`만
-   현재 이게 가능함).
+3. ✅ **(진단 완료, 세션35 -- 원래 진단 자체가 부정확했음이 드러남)** ~~`folded_cascode`/
+   `nmcnr_amplifier`에 `sizing_roles` 자체가 없음~~ -- 실제로 `optimize_full_circuit_
+   budget()` 코드를 읽고 두 파일을 직접 실행해보니 **`sizing_roles=null`은 문제가 아니었다**
+   (thetas가 비면 `_evaluate({})` 1회만 호출, 자유 theta 없는 회로의 정상 동작 -- 두 파일
+   자신의 주석도 이미 그렇게 설명하고 있었다). 진짜 원인은 완전히 다른 두 gap이었고, 이걸
+   실행 기반으로 구조화해 잡아내는 신규 도구 `diagnose_sizing_roles_gap()`(`sizing_
+   recipe.py`, `propose_device_roles_gap_fill()`과 대응하는 sizing_roles 쪽 진단기, 사용자
+   지시 "device_role/symmetry처럼 sizing_role도 자동으로 채우는 걸 설계하고 통합하자"로
+   신설)을 만들어 `workspaces/run_harness.py`의 실패 경로에 실제로 배선했다(만들고 안 쓰는
+   것 금지 원칙, ★절대원칙★ 참고 -- `python run_harness.py folded_cascode`/`nmcnr_amplifier`
+   양쪽 다 실제 실행해 구조화된 gap 리포트가 정확히 출력됨을 확인). ⚠️ 이 도구는 device_
+   roles 자동제안과 근본적으로 다르다 -- theta bounds/constraints의 숫자는 spec(설계
+   목표)에서 오는 값이라 connectivity만으로 지어낼 수 없으므로, 이 도구는 절대 숫자를
+   대신 채우지 않고 "무엇이 왜 비어있는가"만 구조화해서 알려준다(gap 종류 3가지:
+   `unresolved_current`/`unresolved_vds_or_L`/`other`).
+   **실제로 발견된 gap**: (a) `folded_cascode`는 `MP`/`MN`(두 독립 다이오드 레퍼런스)의
+   전류를 대는 `ideal_sources`의 `Ibg`가 `value_amp: null`(TBD)로 선언돼 있어 A엔진이
+   못 품(`docs/04-report`로 재확인: 이 회로는 지금까지 구조 검증에만 쓰였고 실전 사이징은
+   한 번도 시도된 적 없었음). (b) `nmcnr_amplifier`는 두 겹의 gap -- ① `_paper_target_
+   spec.PM_target_deg`(46도, 논문 실측치)를 그대로 쓰면 `nmcnr_3stage_topology()` 자신의
+   `PM_target_deg>60` 전제(수식 근사 조건)와 충돌해 즉시 거부됨(46도는 "설계 입력"이 아니라
+   기생성분 포함 "측정 결과"라 그대로 쓰면 안 됨). ② PM을 60도 초과로 고쳐도 `M101`을
+   비롯해 `M104`~`M107`/`M202`/`M302`(전부 `VB1`~`VB5` 외부 바이어스 net에만 게이트가
+   물림) 바이어스 전류망 전체가 `ideal_sources` 선언 자체가 아예 없어(`folded_cascode`의
+   `Ibg`보다 더 큰 gap -- 그쪽은 최소한 미정 전류원의 '존재'는 선언돼 있었다) A엔진이 못
+   품. 두 회로 다 `Ibg`/바이어스망 목표 전류값은 사람이 정해야 하는 값이라 이번 세션에선
+   확정하지 않고 이월(다음 항목 참고).
+   **후속 이월**: `Ibg`(folded_cascode)와 바이어스망 전류/`PM_target_deg` 설계목표
+   (nmcnr_amplifier) 확정은 다음 세션. `workspaces/run_harness.py`의 `SPECS`에 두 회로
+   모두 등록은 해뒀다(`folded_cascode`/`nmcnr_amplifier` 키) -- 지금은 의도적으로 위 gap에서
+   실패하는 상태(spec 값 중 `PM_target_deg=70.0`은 테스트 전용 임시값, 확정 아님).
 4. **`nmcnr_amplifier`의 `_paper_target_spec`이 선언만 되고 미구현**(세션31 BW2/BZ③,
    7735행 근처) -- 2026-08-14 직접 재확인: `_paper_target_spec` 필드에 `GBW_hz=816000`
    (816kHz)/`CL_farad=1e-10`(100pF)/`PM_target_deg=46.0`(논문 Table 1, NMCNR loading
@@ -10199,3 +10222,249 @@ run_harness.py`(세션31 신설, 세션32/33이 "포함 여부 확인 필요"로
 세션 안에서 전부 해소·검증·커밋까지 완료했지만, **세션31이 남긴 이월 항목 5개(③~⑦)는
 세션32~34 내내 놓치고 있었다가 이번에 재조사로 발견됨** -- 다음 세션도 "이월 항목"을
 새로 정리할 때 바로 위 세션만 보지 말고 그 이전 세션들의 이월 목록까지 거슬러 확인할 것.
+
+---
+
+# 세션35 최종 요약 -- workspaces 정리 + sizing_roles 자동진단 도구 신설 + folded_cascode
+전체 사이징 완주(Ibg 미정 gap 최초 해소, gain/PM/CMRR/PSRR 스펙 역산 power 최소화) +
+"stacked current mirror의 top은 gain" 일반화를 analog-grammar에 신규 이식. 이 절 하나만
+읽어도 전체가 재현 가능하다.
+
+## 1. 무엇을 했나(시간 순)
+
+**① workspaces 정리**(세션32~34가 계속 이월하던 항목) -- 세션31이 만들어둔 통합
+`workspaces/run_harness.py`를 커밋하고, 완전히 대체된 구버전 `two-stage-ota-report/
+run_harness.py`/`current-reuse-telescopic-ota-report/run_harness.py`를 삭제(커밋
+`5054026`). two-stage 쪽은 box_shape 필드명이 이미 바뀌어 실행하면 깨지는 상태였음.
+
+**② `diagnose_sizing_roles_gap()` 신설**(`sizing_recipe.py`) -- 세션34가 "folded_cascode/
+nmcnr_amplifier의 sizing_roles=null이 문제"라고 오진단했던 걸 재조사해 정정: `sizing_
+roles=null`은 자유 theta 없는 회로의 정상 상태였다(코드로 확인). 진짜 원인은 실행 기반
+으로만 드러나는 두 종류 gap(전류 미확정/컴펜세이션 함수 자체 전제 위반)이었고, 이 진단
+도구가 그 실패를 구조화된 리포트로 바꾼다(숫자는 지어내지 않음, "무엇이 왜 비었는지"만
+알려줌). `workspaces/run_harness.py`의 실패 경로에 실제 배선(만들면 반드시 배선 원칙).
+
+**③ folded_cascode의 Ibg 전체 KCL 유도 + 실제 전체 사이징 완주**(이 회로가 지금까지
+구조 검증에만 쓰였고 실전 사이징은 한 번도 없었음을 이번에 발견) --
+- Maloberti 원본(*Layout of Analog CMOS IC* p.34, 웹검색으로 원문 PDF 확인) 자체엔
+  절대 바이어스 전류값이 없다(순수 W비율 레이아웃 연습 예제) -- W **비율**(MP:M3:M4=
+  20:30:30 등)만 구조적 제약으로 채택하고 절대 W값은 버림(다른 공정의 임의 단위라
+  sky130에 안 맞음).
+- 이 비율에서 KCL을 재유도: X/Y 폴딩 노드(M1/M3/M6, M2/M4/M5)가 3-way 병합이라는 게
+  핵심 -- 처음 손계산(1.0×Ibg)이 틀렸고, netlist를 다시 추적해 폴딩 branch 전류가
+  **2.0×Ibg**임을 정정 확인.
+- 이 KCL을 `sizing_roles.theta`로 표현하려고 새 theta feed 타입 `"const"` 신설(참조
+  대상 없는 "진짜 자유 루트" 전류를 표현할 방법이 기존 "A"(비율)/"B"/"C" 타입엔 없었음).
+- **새 엔진 기능 -- `device_roles.*.fold_group`**(`sizing_recipe.py`의
+  `_fold_group_check()`) -- 폴디드 캐스코드의 X/Y 노드처럼 서로 다른 방향에서 온
+  branch가 한 노드에서 합류하는 구조는 `allocate_stack_headroom()`의 "한 컬럼이 vdd
+  전체를 혼자 책임진다" 전제(`_thin_singleton`/`_referenced_singleton`과 나란한 세 번째
+  우회 경로)를 벗어난다 -- `ideal_sources` 대신 connectivity(같은 fold_group 선언 소자와
+  실제 노드 공유)로 정당성을 검증.
+- **버그 발견 -- M6/M8이 `gm_id_role="matching"`으로 잘못 분류돼 있었음**: 실제 캐스코드
+  (출력저항을 만드는 소자)인데 "matching"(gm/gds 최소화, strong inversion)으로 선언돼
+  baseline gain이 -0.2dB(사실상 무이득)이었다. `search_gm_id_for_role()`의 `"gain"`
+  role(gm/gds 최대화, 원래 캐스코드용으로 문서화돼 있었음)로 정정 -- gain 26.4dB로
+  정상화(첫 KCL-only 버전, Ibg=10uA 고정).
+- **새 메트릭 2종 신설**(`sizing_recipe.py`) -- `"folded_cascode_gain_db"`(표준 캐스코드
+  폐형식 `Adm=gm1·(Rout_p‖Rout_n)`), `"folded_cascode_pm_deg"`(2-pole 근사, LUT의
+  `cgg_absolute()`로 non-dominant pole 실계산) -- 둘 다 sympy 전수 유도·ngspice
+  교차검증은 아직 없음(정직한 한계, docstring에 명시). CMRR/PSRR은 기존 `"diff_pair_
+  tail"`(M11 기반 1차 근사)을 그대로 재사용.
+- **spec 역산 최적화**: Ibg=10uA(임의 선택)로 계산한 gain/PM/CMRR/PSRR을 그대로 "만족
+  해야 할 스펙"으로 채택하고, Ibg를 자유변수로 풀어 최소 전력점을 탐색(SLSQP는 이
+  회로의 이산 gm_id 격자 탐색 때문에 선형탐색이 불안정해 실패, 400점 정밀 그리드로
+  대체) -- **Ibg~2.1uA에서 power_uA~40(190uA 대비 4.7배 절감)으로 gain(39.7dB)/
+  PM(88.8°)/CMRR(24.0dB)/PSRR(29.5dB) 전부 만족**하는 지점 확정. `python run_harness.py
+  folded_cascode`로 실제 harness 완주 확인(coverage.ok=True, 13/13 사이징 완료).
+- 이 과정에서 M5도 M6과 정확히 대칭인 캐스코드(gate=bias3 고정 bias)인데 아직
+  "matching"으로 남아있던 걸 발견해 "gain"으로 통일.
+
+**④ "stacked current mirror의 top은 gain" 원칙을 analog-grammar(`idioms.py`)에 일반화**
+(사용자 통찰 -- "current mirror가 active load가 될 수 있다는 건 잘 알려진 사실, 이걸
+구현했던 것으로 알고 있는데") --
+- `idioms.find_cascoded_active_load_legs(devs, matches, imp)` 신설 -- `m_mirror()`의
+  `active_load_legs`는 "다리 자기 자신의 드레인이 HIGH_Z인가"만 보는데, 그 다리 위에
+  캐스코드가 쌓이면(예: folded_cascode의 M10 위 M8) 자기 드레인은 그 캐스코드의
+  소스라 **정상적으로** LOW_Z 분류된다(`netclass.classify_nets()` §1f, 버그 아님) --
+  캐스코드 스택 꼭대기까지 걸어 올라가 진짜 이득노드를 다시 찾는다.
+- **버그 수정 -- `propagate_reference_role_through_cascode()`**: `Match.devices`가
+  `tuple(sorted(...))`라 `lo_name, up_name = m.devices`로 그냥 언패킹하면 소자 이름의
+  알파벳/자릿수 순서가 물리적 lo/up 순서와 우연히 다를 때 뒤바뀌는 잠재 버그를 발견 --
+  `devs`(D/S 보유)로 `ports['mid']`와 대조해 다시 식별하는 `_cascode_lo_up_pairs()`
+  공유 헬퍼로 교체(세션34 원본 사용처도 `devs` 인자를 새로 받도록 시그니처 변경).
+- `stick_diagram.py`의 `propose_device_roles_gap_fill()`에 6번째 소스로 배선.
+- **리팩터**(사용자 지적 -- "seed name을 주는 helper를 이미 만들어뒀는데 그걸 재사용
+  안 했다") -- `find_cascoded_active_load_legs()`가 자체 스택 워킹 루프를 새로 짜는
+  대신 `propagate_reference_role_through_cascode()`를 그대로 재사용하도록 재작성(미러
+  다리 전체를 seed로 주고 전파, `전파결과 - seed`로 "새로 편입된" top만 추출) --
+  leg==top(캐스코드 없음) 케이스가 애초에 seed에 남아있어 "새로 편입"에 안 잡히므로,
+  아래 ⑤의 필터(`leg != top`)가 구조적으로 불필요해짐(반환 타입도 `dict`에서 `set`으로
+  단순화, `stick_diagram.py` 소비부도 맞춰 정리). 리팩터 전/후 4개 회로 결과 완전히
+  동일함을 재확인(아래 검증 상태).
+- **실측 정정 2회**(둘 다 4개 라이브러리 파일 전체 실행으로 발견) -- (1) 처음엔 top에
+  제외조건(구조 대칭/branch-load/signal-referenced 파트너)을 하나도 안 걸었더니
+  `current_reuse_telescopic_ota`의 M12/M13/M21/M22, `nmcnr_amplifier`의 M109/M204처럼
+  세션34가 "matching이 맞다"고 이미 검증 확정한 소자들까지 gain으로 재제안하는 과다탐지
+  발생 -- git stash로 오늘 변경 전/후를 정확히 diff해서 원인이 "leg==top(캐스코드가
+  전혀 없는 경우)까지 무조건 합친 것"임을 확정. (2) `leg != top`(진짜 캐스코드 스택이
+  있는 경우)만 제외조건 없이 합치도록 좁혀서 해소 -- 최종 확인: folded_cascode만
+  M5/M6/M8=gain(충돌 없음)이 새로 생기고, 나머지 3개 회로는 오늘 이전과 완전히 동일한
+  conflict 목록(M38/M5/M6/M60/M61/M68/M7 current_reuse, M202/M302 nmcnr -- 전부 오늘
+  작업과 무관한 기존 이월 항목, git stash로 확인)으로 정확히 복원됨.
+
+## 2. 최종 검증 상태
+
+- `sizing_recipe.py`/`stick_diagram.py` self-test 전체 -- 둘 다 exit 0, 실제
+  Traceback 없음(재실행 3회, `find_cascoded_active_load_legs` 정정 전/후 전부 확인).
+- `python run_harness.py folded_cascode` 실제 실행 -- theta_star/metrics 재현성 확인
+  (M5 gain 정정 전후로 동일한 Ibg=2.1128e-6/power_uA=4.014e-5/gain_db=39.735/
+  pm_deg=88.837/cmrr_db=24.001/psrr_db=29.456), `coverage.ok=True`. `audit_ok`/
+  `floorplan_ok`는 False(레이아웃/핑거 튜닝 전, 사이징 정확성과 무관 -- 다른 회로들도
+  첫 실행 땐 같은 상태). `report.html`은 `_netlist_sections_structured` 부재로 생략
+  (오늘과 무관한 기존 gap).
+- `two_stage_ota`/`current_reuse_telescopic_ota`/`nmcnr_amplifier` 3개 회로의
+  `propose_device_roles_gap_fill()` 제안/conflict 목록이 오늘 세션 이전(git stash로
+  직접 대조)과 **완전히 동일** -- 새 6번째 소스가 folded_cascode 밖으로 부작용을
+  전혀 안 낸다는 걸 실측 확인.
+
+## 3. 커밋 상태 -- **사용자 지시로 세션 끝에 전부 커밋**(§3.5까지 포함)
+
+이 세션이 만진 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`(진단 도구/
+새 theta feed/새 메트릭/fold_group 헤드룸 우회), `skills/analog-gmid-design/assets/
+stick_diagram.py`(6번째 gain 소스 배선 + BIAS-net 필터 2곳), `skills/analog-grammar/
+assets/idioms.py`(`find_cascoded_active_load_legs`/`_cascode_lo_up_pairs` 신설,
+`propagate_reference_role_through_cascode` 시그니처 수정, `m_mirror()` BIAS 필터),
+`skills/analog-gmid-design/assets/library/folded_cascode.topology.json`(device_roles/
+sizing_roles 전체 채움), `workspaces/run_harness.py`(`folded_cascode`/`nmcnr_amplifier`
+SPECS 등록, `diagnose_sizing_roles_gap()` 실패 경로 배선), `workspaces/folded-cascode-
+report/`(신규 디렉토리+`instance.json`), `.ai/context.md`(이 절). workspaces 정리
+(§1①)는 이미 별도로 커밋됨(`5054026`/`54d9640`) -- 나머지 전부 이 세션 마지막에 한
+커밋(또는 논리적으로 나눈 몇 개 커밋)으로 묶임, 정확한 커밋 해시는 `git log`로 확인할 것
+(이 문서가 자기 자신의 커밋을 예측할 수 없어 해시는 안 적는다).
+
+## 3.5 세션 종료 후 추가 작업(사용자가 대화 이어서 지시, 커밋 전)
+
+**① `cls`(BIAS) 필터를 active-load 탐지 2곳에 추가**(사용자 지적 -- "신호경로인지는
+analog-grammar를 쓰면 알 수 있잖아") -- `idioms.m_mirror()`의 `active_load_legs`와
+`idioms.find_cascoded_active_load_legs()` 둘 다 `imp==HIGH_Z`(위상적 사실)만 보고
+`cls==BIAS`(그 노드가 실제로 다른 바이어스 생성기가 읽어가는 순수 DC 기준 노드인지)는
+구분 못 했다 -- `netclass.classify_nets()`가 이미 계산해주는 `cls`로 필터 추가.
+`stick_diagram.py`의 `refine_differential_and_mirror_relations()`(1차 소스,
+`role_after==ACTIVE_LOAD`)에도 동일 필터 추가(별도 계산 경로였음).
+
+**실측 결과**: `current_reuse_telescopic_ota`의 M60/M61(드레인 Vbias3/Vbias4, 진짜
+바이어스 노드)은 정확히 해소됨. **M68은 여전히 남음** -- `propose_device_roles_gap_
+fill()`이 내부 부트스트랩에서 `(Vip,Vim)`뿐 아니라 `(Voc,Voc_des)`(CMFB 관련)까지
+"입력"으로 승격시키는데, 이 승격된 입력 기준으로 재분류하면 `Vbias2`가 `BIAS`가
+아니라 `SIGNAL`로 나온다(손으로 `(Vip,Vim)`만 넣으면 `BIAS`로 나와 혼동 발생) --
+CMFB 루프가 실제로 Vbias2에 영향을 주는지, 아니면 부트스트랩 휴리스틱의 한계인지는
+이 회로의 CMFB 구조를 더 파야 확정 가능(다음 세션 이월).
+
+**② M202/M302(nmcnr_amplifier) 재확인**: `cls[NodeS2]=SIGNAL`, `cls[Vout]=OUTPUT`
+(둘 다 M60/M61과 반대로 진짜 신호 경로) -- gain 제안이 오탐이 아니라 **folded_
+cascode의 M6/M8과 같은 종류의 미발견 버그일 가능성이 높다**고 판단(둘 다 gate=고정
+외부 bias, 파트너 없는 PMOS 전류원, drain이 진짜 신호/출력 노드). 다만 nmcnr_
+amplifier는 바이어스망(M101/M104-M107 등, VB1~VB5) gap 때문에 아직 harness로 실측
+확인이 불가능 -- 사용자 지시로 이 바이어스망 gap을 ideal voltage source(`ideal_
+sources`에 `"kind":"voltage_source"` 신규 지원, `_thin_singleton_ideal_source_check()`
+가 이미 "아직 지원 안 함"으로 명시해뒀던 gap)로 풀어보기로 함 -- **이 작업은 세션
+종료 시점까지 착수만 하고 미완료**(다음 세션 최우선, §4 참고).
+
+self-test 2종 재실행(exit 0, 회귀 없음) -- 4개 회로 `propose_device_roles_gap_fill()`
+결과: `two_stage_ota`=변화 없음, `current_reuse_telescopic_ota`=M60/M61 conflict
+해소·M38/M5/M6/M7/M68 그대로, `nmcnr_amplifier`=M202/M302 그대로(정보 유지, 진짜
+후보로 재해석), `folded_cascode`=M5/M6/M8=gain 그대로.
+
+## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-15 세션35 종료 시점 최신)
+
+### ① [최우선] `nmcnr_amplifier` 바이어스망 gap -- **ideal voltage source로 풀기로 확정,
+착수만 하고 미완료**
+
+사용자 지시: "바이어스망 gap부터 풀고 나서 실측으로 확인해줘. ideal source인 ideal
+voltage source를 사용해서 바이어스망 gap을 풀어봐." -- folded_cascode의 `Ibg`(ideal
+**current** source)와 대칭으로, `VB1`~`VB5`(전부 게이트 전용 net, source/drain 어디에도
+안 나타남 -- 순수 외부 바이어스 전압)를 `ideal_sources`에 `"kind":"voltage_source"`로
+선언해서 풀자는 것.
+
+**지금까지 확인/설계한 내용**(다음 세션이 여기서 바로 이어갈 것):
+
+1. **`_thin_singleton_ideal_source_check()`(`sizing_recipe.py`)가 이미 이 gap을
+   명시적으로 인지하고 있다** -- voltage_source 종단을 만나면 `"voltage_source 종단은
+   '합=그 전압'이라는 다른 계약이 필요한데 이 코드베이스가 아직 그 케이스를 지원하지
+   않음"`이라고 **의도적으로 거부**하는 코드가 이미 있다(현재 `current_source`만
+   지원). 이 함수를 확장해 voltage_source 종단도 통과시키는 게 첫 단추.
+2. **전류(ID) 문제는 전압만으로 못 푼다 -- 근본적 자유도 문제 재확인**: `device_roles`의
+   sizing 흐름은 항상 `ID → (gm_id 탐색) → W` 순서로 간다(`search_gm_id_for_role()`).
+   게이트 전압(`VB1` 등)만 알면 `Vgs`는 구해지지만, `ID = W × ID_density(gm_id, ...)`
+   에서 `W`가 또 다른 미지수라 게이트 전압 하나만으로 전류가 안 나온다(순수 전압
+   source는 헤드룸/바이어스 앵커링에는 쓸 수 있어도, **전류 자체는 여전히
+   `known_sizing`(engineering 선택값, folded_cascode의 `Ibg=10uA`와 같은 패턴) 같은
+   별도 경로로 시딩해야 한다**는 게 이번 세션 막바지에 재확인된 결론). 다만
+   `SemiEmpiricalGmIdLUT`에 `vgs_for_gm_id(gm_id,L,vds,vs)`(정방향)와 `gm_id_for_vgs
+   (target_vgs,L,vds,vs)`(역방향, `sizing_recipe.py:536` 근처) 둘 다 이미 있다는 걸
+   찾아뒀다 -- **`Vgs`를 알면 `gm_id`는 바로 역산 가능**하다는 뜻이라, "전압 source로
+   `gm_id`를 고정하고 `known_sizing`으로 `ID`(또는 다른 소자와의 비율)만 별도로 주는"
+   조합이 유력한 다음 설계 후보다(완전히 확정은 안 됨, 다음 세션에서 이어서 설계할 것).
+3. **넷리스트 재추적 결과(전체 다시 확인 완료)**: 이 회로의 stage 1(compensation이
+   직접 관리하는 M102/M103 diffpair 제외)은 **folded_cascode와 구조적으로 매우
+   유사한 폴디드 캐스코드**다 -- `NodeF1`(M102.D/M104.D/M106.S, 3-way)과 `NodeF2`
+   (M103.D/M105.D/M107.S, 3-way)가 folded_cascode의 X/Y와 정확히 같은 패턴(diffpair
+   다리 + 능동부하 다리가 만나 캐스코드로 빠짐). **다만 folded_cascode와 결정적으로
+   다른 점**: Maloberti 원본처럼 참고할 만한 W비율 소스가 없다 -- `M104`/`M106`이
+   `M102`의 전류를 정확히 어떤 비율로 나눠 갖는지(폴딩 비율) 알려주는 문헌/구조적
+   힌트가 전혀 없다. 이건 folded_cascode의 Maloberti W비율에 해당하는 **새 설계
+   결정**이 필요하다는 뜻(다음 세션 최우선 하위 과제).
+4. **`M101`(tail) KCL**: `I(M101) = I(M102)+I(M103)`(folded_cascode의 `M11=M1+M2`와
+   동일 패턴, compensation이 이미 `I(M102)=I(M103)`를 고정해주므로 `M101=2×I(M102)`).
+5. **`M108`/`M109`(PMOS diode+mirror, `NodeM1`/`NodeM2`)**: `M108`이 `NodeM1`(=
+   `M106`의 drain)의 다이오드 레퍼런스, `M109`가 미러해 `NodeM2`(=`M107`의 drain)에
+   전류를 공급 -- 이건 이미 세션34가 "matching이 맞다"로 검증 확정해둔 부분이라
+   안 건드림.
+6. **M202/M302 -- gain 재분류이 유력**(§3.5-② 참고): `NodeS2`(M202의 drain)=`cls
+   SIGNAL`, `Vout`(M302의 drain)=`cls OUTPUT` -- 둘 다 진짜 신호 경로, folded_cascode
+   의 M6/M8과 완전히 같은 패턴(파트너 없는 PMOS 전류원, 게이트=고정 외부 bias). 다만
+   바이어스망이 안 풀려 있어 harness로 실측(gain 개선 여부) 확인이 아직 불가능 --
+   ①을 먼저 풀어야 이 재분류를 실측으로 검증할 수 있다.
+
+**다음 세션 진행 순서(권장)**: (a) `_thin_singleton_ideal_source_check()`에
+`voltage_source` 지원 추가 → (b) `VB1`~`VB5`를 `ideal_sources`(`kind:"voltage_source"`)
+로 선언, 실제 전압값은 논문 Table 1/그림에 없으므로 합리적으로 도출하거나 사용자에게
+직접 확인(VDD=1.0V/VSS=-1.0V 레일 안에서) → (c) `M104`/`M106`(및 대칭 `M105`/`M107`)의
+폴딩 비율을 새로 설계(folded_cascode의 Maloberti 비율에 해당하는 근거가 없으므로
+사용자와 논의해 합리적으로 도출) → (d) `PM_target_deg`도 여전히 논문 46도 그대로 못
+씀(60도 초과 필요, 이월 항목②와 동일 이슈, 같이 정할 것) → (e) `sizing_roles.theta`
+전체 KCL 유도 + `fold_group`/`vertical_stack_id` 채움(folded_cascode와 같은 패턴,
+다만 3-stage라 X/Y 폴딩 노드가 2세트) → (f) harness로 실제 완주 확인 → (g) M202/M302
+gain 재분류를 실측으로 검증.
+
+### ② `current_reuse_telescopic_ota`의 M68 -- CMFB 관련 net 승격이 원인, 미해결
+
+BIAS-net 필터(§3.5-①)로 M60/M61은 해소됐지만 M68은 남는다 -- `propose_device_roles_
+gap_fill()`의 내부 부트스트랩이 `(Vip,Vim)` 외에 `(Voc,Voc_des)`(CMFB 관련 net)까지
+"입력"으로 승격시키면 `Vbias2`(M68의 드레인)가 `BIAS`가 아니라 `SIGNAL`로 재분류된다
+-- CMFB 루프가 실제로 Vbias2에 영향을 주는 구조인지, 아니면 부트스트랩 휴리스틱의
+한계(오탐)인지 이 회로의 CMFB 서브블록을 직접 추적해야 확정 가능. 급하지 않음.
+
+### ③ folded_cascode의 gain/PM 폐형식 SPICE 검증
+
+`_metric_folded_cascode_gain_db()`/`_metric_folded_cascode_pm_deg()`가 sympy 전수
+유도·ngspice 교차검증 없이 등록됨(세션35 §1③ 참고) -- 다른 CMRR/PSRR 폐형식들의
+검증 수준에 맞추려면 필요. ①(nmcnr) 대비 우선순위 낮음.
+
+### ④ folded_cascode의 `audit_ok`/`floorplan_ok`/`report.html`
+
+레이아웃/핑거 튜닝, `_netlist_sections_structured` 보완 필요(사이징 정확성과 무관,
+별개 범위). 급하지 않음.
+
+### ⑤ 세션33 L절/세션31 BZ②/BA④⑤/BH
+
+세션34가 이미 이월해둔 항목, 아직 급하지 않음(위 세션34 최종 요약 §4 그대로 유지).
+
+## 5. 다음 세션 시작 순서
+
+**바로 §4-①(nmcnr_amplifier 바이어스망, ideal voltage source)부터 이어갈 것** --
+사용자가 이번 세션 마지막에 명시적으로 지시한 다음 작업이고, 위에 진행 순서(a)~(g)까지
+구체적으로 적어뒀다. 커밋은 이미 이 세션 안에서 완료된 상태로 시작한다(§3 참고, 다음
+세션 시작 시 별도 확인 불필요). ②~⑤는 사용자가 별도로 우선순위를 지시하지 않는 한
+①을 끝낸 뒤 순서대로 진행.
