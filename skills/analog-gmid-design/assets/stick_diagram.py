@@ -1782,99 +1782,6 @@ def _diff_pair_layer1_groups(transistors: list) -> dict:
             and v[0].gate != v[1].gate}
 
 
-def _walk_cascode_top(node: str, arrived_via: str | None, by_source: dict) -> tuple:
-    """`find_diffpair_branch_load_partners()` 전용 헬퍼(2026-08-14 세션34 후속, `nmcnr_
-    amplifier`의 `M108`/`M109` 계기 -- 아래 함수 docstring 참고). `node`에서 시작해
-    **단일 fanout**(그 net을 source로 쓰는 소자가 정확히 1개)인 동안만 캐스코드 체인을
-    위로 따라간다 -- `trace_vdd_to_gnd_branches()`류가 이미 쓰는 순수 connectivity 걷기와
-    같은 원칙(idiom/role 분류 불필요, 애매하면(fanout≠1이거나 레일 도달) 그 자리에서
-    멈춘다, 추측하지 않음).
-
-    반환: `(final_node, last_hop_device_name_or_None)` -- `last_hop_device_name`은
-    `final_node`가 시작 `node`와 다르면(=적어도 한 번 걸었으면) 그 마지막 hop 소자,
-    안 걸었으면 `None`."""
-    seen_nodes = {node}
-    while node not in _RAIL_NETS:
-        candidates = by_source.get(node, [])
-        if len(candidates) != 1:
-            break
-        nxt = candidates[0]
-        if nxt.drain in seen_nodes:
-            break
-        arrived_via = nxt.name
-        node = nxt.drain
-        seen_nodes.add(node)
-    return node, arrived_via
-
-
-def find_diffpair_branch_load_partners(transistors: list, diffpair_devices: list) -> dict:
-    """`.ai/context.md` 세션34(2026-08-14) -- 사용자 지적 계기 신설. diffpair(예: `M1`/`M2`)의
-    **두 branch 꼭대기에 각각 앉은 부하 소자**를 서로의 "branch load partner"로 판정한다.
-
-    ⚠️ **왜 `find_structural_symmetry_candidates()`(전역 그래프 자기동형)로는 안 되는가**:
-    5T/2단 OTA류의 표준 비대칭 부하(예: `two_stage_ota`의 `M3`=diode-connected 레퍼런스/
-    `M4`=그 미러 부하, 둘 다 diffpair의 각 branch 위에 직접 앉아있음)는 진짜로 그래프
-    자기동형이 아니다 -- `M3`은 gate==drain(자기 자신), `M4`는 gate=D3(다른 net)라 좌우
-    net 재라벨링으로 서로를 사상할 수 없다(실측 확인: 부트스트랩 입력 승격을 고쳐도
-    `find_structural_symmetry_candidates()`는 이 둘을 끝까지 못 찾는다). 하지만 이 둘이
-    diffpair의 두 branch 위에 앉아있다는 사실 자체는 idiom 라벨과 무관하게 순수
-    connectivity만으로 결정론적으로 확인 가능하다 -- 이 함수가 그 신호만 뽑아낸다.
-
-    ⚠️ **2026-08-14 세션34 후속 확장(같은 세션, `nmcnr_amplifier`의 `M108`/`M109` 실측
-    계기) -- 캐스코드를 거쳐 한 단 더 위에 있는 부하도 잡는다**: 처음 버전은 diffpair
-    leg의 **자기 drain**에 직접 물린 부하만 봤는데, `nmcnr_amplifier`는 diffpair(`M102`/
-    `M103`)와 진짜 부하(`M108`=diode 레퍼런스/`M109`=그 미러, `two_stage_ota`의 M3/M4와
-    정확히 같은 패턴) 사이에 폴디드 캐스코드(`M106`/`M107`)가 한 단 끼어 있어서(`M102`→
-    `NodeF1`→[`M106`]→`NodeM1`→[`M108`/`M109`]) 원래 1-hop 버전은 못 찾았다(실측: `M109`가
-    파트너 없이 고립돼 `gm_id_role="gain"` 오탐 제안이 declared `"matching"`과 충돌했음).
-    `_walk_cascode_top()`(단일 fanout인 동안만 걷는 순수 connectivity 헬퍼, 애매하면 그
-    자리에서 멈춤)으로 각 branch의 drain에서 캐스코드 체인 꼭대기까지 먼저 올라간 뒤,
-    그 꼭대기 노드에서 부하를 찾는다 -- 캐스코드가 없는 회로(`two_stage_ota`의 M3/M4처럼
-    diffpair 바로 위에 부하가 있는 경우)는 첫 걸음에서 fanout≠1이라 즉시 멈추므로 기존
-    동작 그대로 재현된다(회귀 없음, self-test로 확인).
-
-    `diffpair_devices`: `find_differential_pair_candidates()`의 `candidates` 리스트
-    (또는 그 하위집합) -- 각 원소의 `"devices"`(a,b) 쌍만 쓴다.
-
-    **판정 규칙**: 각 diffpair (a,b)에 대해, 각 branch를 drain(a)/drain(b)에서
-    `_walk_cascode_top()`으로 꼭대기까지 걷는다. 두 꼭대기 노드가 서로 다르고(같으면
-    애초에 "두 branch"가 아니므로 스킵), 그 노드를 drain으로 쓰는 소자가 걸어 올라오며
-    마지막으로 거친 소자(`arrived_via`, 없으면 diffpair leg 자신)를 뺴고 **각각 정확히
-    1개씩**이며 같은 kind면, 그 둘을 서로의 partner로 등록한다. **애매하면(부하가 0개거나
-    2개 이상, 또는 kind가 다르면) 아무것도 등록하지 않는다** -- 이 프로젝트 전역 원칙(근거
-    없는 기본값을 채우지 않음)을 그대로 따른다.
-
-    반환: `{device_name: partner_device_name, ...}` -- 근거 있는 쌍만(sparse dict)."""
-    by_name = {t.name: t for t in transistors}
-    by_drain = defaultdict(list)
-    by_source = defaultdict(list)
-    for t in transistors:
-        by_drain[t.drain].append(t)
-        if t.source not in _RAIL_NETS:
-            by_source[t.source].append(t)
-    out = {}
-    seen_pairs = set()
-    for c in diffpair_devices:
-        a, b = c["devices"]
-        key = frozenset((a, b))
-        if key in seen_pairs:
-            continue
-        seen_pairs.add(key)
-        top_a, via_a = _walk_cascode_top(by_name[a].drain, a, by_source)
-        top_b, via_b = _walk_cascode_top(by_name[b].drain, b, by_source)
-        if top_a == top_b:
-            continue
-        excl_a, excl_b = (via_a or a), (via_b or b)
-        loads_a = [t.name for t in by_drain.get(top_a, []) if t.name != excl_a]
-        loads_b = [t.name for t in by_drain.get(top_b, []) if t.name != excl_b]
-        if len(loads_a) == 1 and len(loads_b) == 1:
-            la, lb = loads_a[0], loads_b[0]
-            if by_name[la].kind == by_name[lb].kind and la != lb:
-                out[la] = lb
-                out[lb] = la
-    return out
-
-
 def find_verified_differential_and_mirror_relations(transistors: list, inputs=(), outputs=(),
                                                        feedbacks=(), biases=(), clocks=()) -> dict | None:
     """진짜 **branch 단위** 비교 -- 세션23 C-7/C-8이 확립한 원리(composite 구조가
@@ -2730,18 +2637,20 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
         for name, raw in (gm_id_role_candidates or {}).items()
     }
 
-    branch_load_partner_candidates = find_diffpair_branch_load_partners(
-        transistors, find_differential_pair_candidates(
-            transistors, cur_inputs, outputs, feedbacks, biases, clocks)["candidates"])
-
     # ⚠️ 2026-08-14(세션34, 사용자 지적) -- role_after 하나만으로 "이 소자가 active-load
     # 성격을 가진다"를 판정하면 M4류(current-mirror의 non-ref leg인데 gate net이 SIGNAL로
     # 분류돼 role이 AMPLIFYING으로 나오는 경우, netclass.assign_roles()의 단일-role 우선순위
     # 설계상 ACTIVE_LOAD 판정보다 AMP 판정이 항상 먼저 걸림)을 놓친다. `idioms.m_mirror()`가
-    # 이제 `active_load_legs` 포트(role과 무관하게 imp만으로 판정)로 이 경우도 노출하므로
-    # (`analog-grammar/assets/idioms.py` 동일 세션 수정) 그 결과를 role 기반 집합과 합친다.
+    # 이제 `active_load_legs`/`ref_is_signal` 포트(role과 무관하게 imp/cls만으로 판정)로
+    # 이 경우도 노출하고, `idioms.m_diffpair_branch_load()`(같은 세션 후속, `nmcnr_
+    # amplifier`의 M108/M109 계기로 캐스코드 관통까지 지원)가 diffpair 두 branch의
+    # 부하를 직접 idiom으로 찾으므로(`analog-grammar/assets/idioms.py` 동일 세션 수정),
+    # 이 세 신호를 **`match_all()` 한 번**으로 전부 뽑는다(재계산 없음, `find_diffpair_
+    # branch_load_partners()`/`find_differential_pair_candidates()` 별도 재호출 불필요 --
+    # `m_diffpair_branch_load()`가 내부적으로 `m_diffpair()`를 재사용해 그 역할을 대체).
     active_load_leg_candidates = set()
     signal_referenced_mirror_legs = {}
+    branch_load_partner_candidates = {}
     _netclass_al, _idioms_al = _import_analog_grammar("netclass", "idioms")
     if _netclass_al is not None:
         active_load_leg_candidates = {n for n, r in role_after.items()
@@ -2750,25 +2659,18 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
         _cls_al, _imp_al, _ = _netclass_al.classify_nets(_devs_al, cur_inputs, outputs, biases,
                                                             feedbacks, clocks)
         _matches_al = _idioms_al.match_all(_devs_al, _cls_al, _imp_al, role_after)
-        _gate_of_al = {d["name"]: d["G"] for d in _devs_al}
         for m in _matches_al:
             if m.kind == "current-mirror":
                 active_load_leg_candidates.update(m.ports.get("active_load_legs", []))
-                # ⚠️ 2026-08-14 세션34 후속(사용자 지적, `nmcnr_amplifier`의 M203/M204
-                # 계기) -- diode-connected 레퍼런스 자신의 노드(gate==drain)가 고정 BIAS가
-                # 아니라 SIGNAL로 분류되면(예: M203의 NodeC -- M201의 신호 스윙을 그대로
-                # 받는 이득단의 능동부하 자신이 diode-connected), 그 레퍼런스를 미러하는
-                # 다리는 diffpair/구조 대칭이 전혀 없어도 "matching"이 필요하다 -- 목적이
-                # 전류비가 아니라 그 신호-종속 전압/전류 관계를 그대로 "복사"하는 것이기
-                # 때문(사용자 표현: "전류보다는 전압 copy가 목적"). `M18_bg`/`M66`류(고정
-                # BIAS 레퍼런스, 안전하게 "gain" 가능)와 정반대 사례 -- 실측: `current_
-                # reuse_telescopic_ota`/`folded_cascode`의 모든 기존 레퍼런스는 BIAS,
-                # `nmcnr_amplifier`의 `M203`/`M108`만 SIGNAL(회귀 없음, self-test 확인).
                 ref = m.ports.get("ref")
-                if ref is not None and _cls_al.get(_gate_of_al.get(ref)) == _netclass_al.SIGNAL:
+                if ref is not None and m.ports.get("ref_is_signal"):
                     for leg in m.devices:
                         if leg != ref:
                             signal_referenced_mirror_legs[leg] = ref
+            elif m.kind == "diffpair-branch-load":
+                la, lb = m.devices
+                branch_load_partner_candidates[la] = lb
+                branch_load_partner_candidates[lb] = la
 
     return {"relations": relations, "promoted_inputs": promoted_inputs,
             "final_inputs": cur_inputs, "role_changes": role_changes,
@@ -3634,8 +3536,8 @@ def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matchin
     전혀 없는 소자만** `gm_id_role="gain"`을 제안한다 -- 파트너 유무는 두 가지 메커니즘으로
     확인한다: (1) `L_role_candidates[name].symmetry_partner`(전역 그래프 자기동형, 예:
     `current_reuse_telescopic_ota`의 `M13`<->`M22`), (2) `branch_load_partner_candidates`
-    (diffpair 두 branch에 각각 앉은 부하, 예: `two_stage_ota`의 `M3`<->`M4`, `find_diffpair_
-    branch_load_partners()` 참고).
+    (diffpair 두 branch에 각각 앉은 부하, 예: `two_stage_ota`의 `M3`<->`M4`, `idioms.
+    m_diffpair_branch_load()` 참고).
 
     **왜 파트너가 있으면 "gain"을 제안 안 하는가(2026-08-14 정정-- 처음엔 "구조로 확정
     불가, 사람 판단 필요"라고 봤으나 재검토로 더 강한 결론이 나옴)**: 두 파트너 메커니즘

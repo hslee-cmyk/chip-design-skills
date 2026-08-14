@@ -10046,3 +10046,32 @@ branch-load/signal-referenced 레퍼런스)을 구분해서 표시하도록 갱�
 전환), `M202`/`M302`(diode 레퍼런스 자체가 없는 진짜 독립 active-load, M7과 동종)는
 그대로 "gain" 후보 유지(회귀 없음 확인). `stick_diagram.py`/`sizing_recipe.py` self-test
 전체 exit 0, 프로덕션 harness 2건 gain_db byte-identical 재확인.
+
+## Q. P절 신호 두 건을 analog-grammar idiom 레이어로 일반화(사용자 요청)
+
+사용자 질문("이게 analog-grammar에서 일반화될 수 있나?")에 두 부분으로 나눠 답함:
+(1) `signal_referenced_mirror_legs`(SIGNAL vs BIAS 판정) -- `m_mirror()`가 이미 `cls`를
+파라미터로 받고 레퍼런스 게이트 net(`g`)도 이미 계산 중이라, `active_load_legs`처럼
+`ref_is_signal` 포트 하나만 추가하면 되는 깔끔한 이동. (2) `find_diffpair_branch_load_
+partners()`(캐스코드 관통 부하 탐지) -- `Transistor` 객체·자체 diffpair 후보 리스트를
+다루던 걸 `idioms.py` 표준 `(devs,cls,imp,role)` 서명 + `Match` 반환 형식으로 재작성해야
+해서 범위가 더 큼 -- 사용자가 "이것도 이번에" 선택.
+
+**구현**: `idioms.py`에 `m_diffpair_branch_load()`(`@idiom('diffpair-branch-load',
+priority=4)`) 신설 -- `m_diffpair()`를 내부 재사용하고, 새 헬퍼 `_walk_single_fanout_top()`
+(`stick_diagram.py`의 `_walk_cascode_top()`을 `devs` dict 표현으로 이식, `kind` 제한
+없음 -- `m_cascode()`와 달리 폴디드 캐스코드처럼 kind가 바뀌는 전기적 경로도 다뤄야
+해서 `m_cascode()`의 물리적 적층 판정과는 별개 헬퍼로 유지)로 각 diffpair branch를
+꼭대기까지 걸은 뒤 부하를 매칭한다. `m_mirror()`엔 `ref_is_signal` 포트 추가(`cls.get(g)
+== SIGNAL`, 재계산 없음). `stick_diagram.py`의 `find_diffpair_branch_load_partners()`/
+`_walk_cascode_top()`은 완전히 삭제(다른 호출부/self-test 없음 확인) -- `refine_
+differential_and_mirror_relations()`가 이제 **`match_all()` 한 번**으로 `active_load_
+leg_candidates`/`signal_referenced_mirror_legs`/`branch_load_partner_candidates` 세
+신호를 전부 뽑는다(이전엔 `find_diffpair_branch_load_partners()`가 `find_differential_
+pair_candidates()`를 별도로 재호출했음 -- 이제 `m_diffpair_branch_load()`가 내부적으로
+`m_diffpair()`를 재사용해 그 중복도 없어짐).
+
+**검증**: `M108`/`M109`/`M204`의 declared `matching`과의 충돌 여전히 해소된 상태 재확인,
+`stick_diagram.py`/`sizing_recipe.py` self-test 전체 exit 0, 프로덕션 harness 2건
+gain_db byte-identical 재확인 -- 순수 리팩터(대상 위치만 이동, 판정 로직 자체는 무변화),
+회귀 0건.

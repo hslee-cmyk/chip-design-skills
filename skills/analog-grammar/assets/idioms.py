@@ -154,7 +154,16 @@ def m_mirror(devs, cls, imp, role):
     않고(다른 소비자가 이미 `role`의 단일 라벨 계약에 기대고 있음), 이 idiom이 이미 받고
     있는(그러나 지금까지 안 쓰던) `imp` 파라미터로 non-ref leg 각각의 실제 임피던스 등급을
     직접 확인해 `active_load_legs` 포트로 노출한다 -- role 라벨과 무관하게 "이 미러의 어느
-    leg가 실제로 HIGH_Z 이득노드에 앉아있는가"를 소비자가 직접 물을 수 있게 한다."""
+    leg가 실제로 HIGH_Z 이득노드에 앉아있는가"를 소비자가 직접 물을 수 있게 한다.
+
+    ⚠️ **2026-08-14 세션34 후속(사용자 지적, `nmcnr_amplifier`의 `M203`/`M204` 계기) --
+    `ref_is_signal` 포트 추가**: diode-connected 레퍼런스(`ref`) 자신의 노드(`g`, 곧
+    `ref`의 gate==drain)가 고정 `BIAS`가 아니라 `SIGNAL`이면(예: `M203`이 `M201`의 신호
+    스윙을 그대로 받는 이득단 능동부하 자신이면서 동시에 diode-connected인 경우), 그
+    레퍼런스를 미러하는 다리들의 목적은 전류비가 아니라 신호-종속 전압/전류 관계를
+    그대로 "복사"하는 것이다(diffpair/구조 대칭이 전혀 없어도 성립하는 원칙, `M3`/`M4`류
+    diffpair branch-load와는 별개의 독립 신호). `g`는 이미 계산돼 있고 `cls`도 이미
+    파라미터로 받고 있어 재계산 없이 그대로 노출한다."""
     out, grp = [], defaultdict(list)
     for d in devs:
         grp[(d['G'], d['S'], d['type'])].append(d)
@@ -166,7 +175,8 @@ def m_mirror(devs, cls, imp, role):
                              if m['name'] != ref[0] and imp.get(m['D']) == HIGH_Z]
         out.append(Match('current-mirror', [m['name'] for m in ms],
                          {'ref': ref[0], 'bias': g, 'rail': s,
-                          'active_load_legs': active_load_legs},
+                          'active_load_legs': active_load_legs,
+                          'ref_is_signal': cls.get(g) == SIGNAL},
                          note=f"{t}, ratio branches={len(ms)}", priority=4))
     return out
 
@@ -315,6 +325,79 @@ def propagate_reference_role_through_cascode(matches, seed_names):
                 grew = True
         if not grew:
             break
+    return out
+
+
+def _walk_single_fanout_top(node, arrived_via, by_source):
+    """`m_diffpair_branch_load()` 전용 헬퍼 -- `node`에서 시작해 **단일 fanout**(그 net을
+    source로 쓰는 소자가 정확히 1개)인 동안만 위로 걷는다(레일 도달 또는 fanout≠1이면
+    멈춤, 추측하지 않음). `kind` 제한이 없다 -- `m_cascode()`(같은 kind만 인정, 물리적
+    diffusion 적층 판정)와 달리 이건 **전기적 신호 경로**(예: PMOS diffpair 다리 ->
+    폴딩 노드 -> NMOS 캐스코드처럼 kind가 바뀌는 폴디드 캐스코드도 포함)라 별개 헬퍼다.
+
+    반환: `(final_node, last_hop_device_name_or_arrived_via)`."""
+    seen = {node}
+    while node not in RAILS:
+        candidates = by_source.get(node, [])
+        if len(candidates) != 1:
+            break
+        nxt = candidates[0]
+        if nxt['D'] in seen:
+            break
+        arrived_via = nxt['name']
+        node = nxt['D']
+        seen.add(node)
+    return node, arrived_via
+
+
+@idiom('diffpair-branch-load', priority=4)
+def m_diffpair_branch_load(devs, cls, imp, role):
+    """`.ai/context.md`(chip-design-skills) 세션34(2026-08-14) 후속 -- `m_diffpair()`가
+    찾은 diffpair의 **두 branch 꼭대기에 각각 앉은 부하**를 매칭한다(예: 5T/2단 OTA의
+    diode+mirror 비대칭 부하 `M3`/`M4`, 또는 폴디드 캐스코드를 한 단 거쳐야 나오는
+    `nmcnr_amplifier`의 `M108`/`M109`).
+
+    ⚠️ **왜 `m_mirror()`/`m_cascode()`만으론 못 찾는가**: `M3`(diode-connected)/`M4`(그
+    미러)는 `gate==drain` 여부가 달라 그래프 자기동형이 아니고, `m_mirror()`가 찾는
+    "같은 gate 공유 그룹"에도 안 걸린다(서로 다른 gate: `M3.gate=D3`, `M4.gate=D3`는
+    같지만 -- 실제로는 같은 gate라 `m_mirror()`가 찾긴 하지만, 그건 우연이고 `nmcnr_
+    amplifier`의 `M108`/`M109`처럼 gate가 다른 경우(`M108.gate=NodeM1`, `M109.gate=
+    NodeM1`도 같지만 폴디드 캐스코드 뒤라 diffpair와 직접 안 이어짐)는 그 신호 하나로
+    "이게 diffpair의 부하다"라는 문맥 자체를 못 얻는다). 이 idiom은 diffpair(문맥) +
+    branch 꼭대기 부하(위치)를 명시적으로 연결한다.
+
+    각 diffpair leg의 drain에서 `_walk_single_fanout_top()`으로 전기적 신호 경로를
+    (kind 무관, 단일 fanout인 동안만) 꼭대기까지 걷는다 -- `two_stage_ota`의 M3/M4처럼
+    캐스코드가 아예 없으면 첫 걸음에서 fanout≠1이라 즉시 멈춰(diffpair leg 자기 drain이
+    곧 꼭대기) 원래 1-hop 판정과 동일해진다. 두 꼭대기 노드가 다르고, 그 노드를 drain으로
+    쓰는 소자가 (걸어 올라오며 마지막으로 거친 소자를 뺴고) **각각 정확히 1개씩**이며
+    같은 kind면 매칭한다. **애매하면(부하가 0개거나 2개 이상, kind가 다르면) 아무것도
+    매칭하지 않는다** -- 근거 없는 기본값을 채우지 않는다는 프로젝트 전역 원칙.
+
+    반환: `[Match('diffpair-branch-load', [load_a, load_b], {'diffpair': (a, b),
+    'top_a', 'top_b'}), ...]`."""
+    by_name = _by_name(devs)
+    by_drain, by_source = defaultdict(list), defaultdict(list)
+    for d in devs:
+        by_drain[d['D']].append(d)
+        if d['S'] not in RAILS:
+            by_source[d['S']].append(d)
+
+    out = []
+    for dp in m_diffpair(devs, cls, imp, role):
+        a, b = dp.devices
+        top_a, via_a = _walk_single_fanout_top(by_name[a]['D'], a, by_source)
+        top_b, via_b = _walk_single_fanout_top(by_name[b]['D'], b, by_source)
+        if top_a == top_b:
+            continue
+        loads_a = [d['name'] for d in by_drain.get(top_a, []) if d['name'] != via_a]
+        loads_b = [d['name'] for d in by_drain.get(top_b, []) if d['name'] != via_b]
+        if len(loads_a) == 1 and len(loads_b) == 1:
+            la, lb = loads_a[0], loads_b[0]
+            if la != lb and by_name[la]['type'] == by_name[lb]['type']:
+                out.append(Match('diffpair-branch-load', [la, lb],
+                                 {'diffpair': (a, b), 'top_a': top_a, 'top_b': top_b},
+                                 note=f"diffpair={a}/{b}", priority=4))
     return out
 
 
