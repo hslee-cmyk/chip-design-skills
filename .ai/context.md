@@ -10433,7 +10433,10 @@ voltage source를 사용해서 바이어스망 gap을 풀어봐." -- folded_casc
 직접 확인(VDD=1.0V/VSS=-1.0V 레일 안에서) → (c) `M104`/`M106`(및 대칭 `M105`/`M107`)의
 폴딩 비율을 새로 설계(folded_cascode의 Maloberti 비율에 해당하는 근거가 없으므로
 사용자와 논의해 합리적으로 도출) → (d) `PM_target_deg`도 여전히 논문 46도 그대로 못
-씀(60도 초과 필요, 이월 항목②와 동일 이슈, 같이 정할 것) → (e) `sizing_roles.theta`
+씀(`nmcnr_3stage_topology()` 자신의 `PM_target_deg>60` 전제 위반, 세션35 초반
+`diagnose_sizing_roles_gap()` 검증 때 이미 발견된 이슈 그대로 -- 60도 초과의 별도
+설계 목표값을 (b)/(c)와 같이 정할 것, 예: `current_reuse_telescopic_ota`처럼 70.0)
+→ (e) `sizing_roles.theta`
 전체 KCL 유도 + `fold_group`/`vertical_stack_id` 채움(folded_cascode와 같은 패턴,
 다만 3-stage라 X/Y 폴딩 노드가 2세트) → (f) harness로 실제 완주 확인 → (g) M202/M302
 gain 재분류를 실측으로 검증.
@@ -10457,14 +10460,38 @@ gap_fill()`의 내부 부트스트랩이 `(Vip,Vim)` 외에 `(Voc,Voc_des)`(CMFB
 레이아웃/핑거 튜닝, `_netlist_sections_structured` 보완 필요(사이징 정확성과 무관,
 별개 범위). 급하지 않음.
 
-### ⑤ 세션33 L절/세션31 BZ②/BA④⑤/BH
+### ⑤ 세션34 이전부터 계속 이월 중인 항목 5개(전부 급하지 않음, 위 세션34 최종 요약
+§4의 원문 그대로 -- **이 목록 자체를 다음 세션이 또 놓치지 않도록 여기서도 전부
+명시적으로 재나열한다**, 파일 맨 위 경고 -- "이월 항목 갱신 시 바로 위 세션만 보지
+말 것" -- 가 지목한 바로 그 실수를 반복하지 않기 위함):
 
-세션34가 이미 이월해둔 항목, 아직 급하지 않음(위 세션34 최종 요약 §4 그대로 유지).
+1. **세션33 L절** -- `sizing_recipe.py` 3963행 근처 L 일치 전파 루프가 `current_forced`
+   필터 없이 모든 declared matching_pairs에 L 일치를 강제(원칙 위반, 4개 실회로엔 현재
+   no-op임을 세션33이 실측 확인, 수정 자체는 미적용).
+2. **`nmcnr_amplifier`의 `_paper_target_spec`이 선언만 되고 미구현**(세션31 BW2/BZ③)
+   -- `GBW_hz=816000`/`CL_farad=1e-10`/`PM_target_deg=46.0`이 필드에 박혀있지만
+   `sizing_roles.constraints`/`metrics`로 옮기는 작업이 안 됨. ⚠️ **위 §4-①(nmcnr
+   바이어스망) 작업을 끝내면 사실상 같이 해소된다** -- 그 작업 자체가 이 회로의
+   `sizing_roles`를 처음부터 채우는 일이라, 완료 시 이 항목은 자동으로 닫힘(별도
+   작업 아님, 체크리스트에서 빠뜨리지 않기 위해 명시).
+3. **`two_stage_ota`의 `symmetry.matching_pairs`에 M5/M7 정식 선언 누락**(세션31
+   BX/BY) -- declared pairs는 `[[M3,M4],[M1,M2]]`뿐, M5/M7(레이아웃 행은
+   `stack_groups_override`로 이미 공유 중인데 formal matching_pairs 선언은 없음,
+   `current_forced=false`로 구조적 사실만 선언할지 결정 필요) -- **이건 §4-①/②와
+   무관한 완전히 독립된 항목**이라 저절로 안 풀림, 별도로 처리해야 함.
+4. **`"balanced"` role의 `"moderate"` 마이그레이션 감사**(세션31 BZ②) --
+   `sky130_regression_reference.json` 골든값이 걸려 있어 보류된 채 이월(파일 재검증
+   안 함).
+5. **`run_harness.py` 나머지 실전략 / `slew_rate()` 실제 연동 / SLSQP 전체 실행 성능
+   재측정**(세션31 BA④⑤/BH) -- 그 뒤 전혀 재언급 없음(파일 재검증 안 함).
 
 ## 5. 다음 세션 시작 순서
 
 **바로 §4-①(nmcnr_amplifier 바이어스망, ideal voltage source)부터 이어갈 것** --
 사용자가 이번 세션 마지막에 명시적으로 지시한 다음 작업이고, 위에 진행 순서(a)~(g)까지
 구체적으로 적어뒀다. 커밋은 이미 이 세션 안에서 완료된 상태로 시작한다(§3 참고, 다음
-세션 시작 시 별도 확인 불필요). ②~⑤는 사용자가 별도로 우선순위를 지시하지 않는 한
+세션 시작 시 별도 확인 불필요). ①을 끝내면 §4-⑤-2(nmcnr `_paper_target_spec`)가
+자동으로 같이 닫히니 별도 확인만 하면 된다. ②~⑤(특히 ⑤-3 `two_stage_ota`의 M5/M7
+matching_pairs -- 완전히 독립된 항목이라 ①/②를 끝내도 저절로 안 풀림)는 사용자가
+별도로 우선순위를 지시하지 않는 한
 ①을 끝낸 뒤 순서대로 진행.
