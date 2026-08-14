@@ -1653,6 +1653,74 @@ def _metric_gain_stages_sum(spec: dict, ctx: SizingContext) -> float:
     return total_db
 
 
+def _folded_cascode_rout(spec: dict, ctx: SizingContext) -> tuple:
+    """`folded_cascode` 계열 단일 스테이지의 출력저항(표준 캐스코드 폐형식, 2026-08-15
+    세션35 신설) -- `_metric_folded_cascode_gain_db`/`_metric_folded_cascode_pm_deg`가
+    공유하는 헬퍼(중복 방지). Rout_p(PMOS 캐스코드 branch) = gm(cascode_p)·ro(cascode_p)·
+    (ro(fold_leg_a)‖ro(fold_leg_b)) -- 폴딩 노드(예: X)에 diffpair 다리와 PMOS 전류원이
+    같이 물려 그 둘의 ro가 병렬로 캐스코드 소스단 임피던스를 이룬다. Rout_n(NMOS 캐스코드
+    branch, 미러를 거쳐 출력에 실림) = gm(cascode_n)·ro(cascode_n)·ro(mirror_n) -- 이쪽은
+    diode+미러 체인이라 병렬 항 없이 단일 ro. 반환: `(Rout_p, Rout_n, Rout_p‖Rout_n)`.
+
+    metric_spec 키: `{"cascode_p","fold_leg_a","fold_leg_b","cascode_n","mirror_n"}`
+    (예: folded_cascode.topology.json -- cascode_p=M6, fold_leg_a=M1, fold_leg_b=M3,
+    cascode_n=M8, mirror_n=M10)."""
+    def ro(name):
+        return 1.0 / ctx.sized[name]["gds"]
+    ro_fold = 1.0 / (1.0 / ro(spec["fold_leg_a"]) + 1.0 / ro(spec["fold_leg_b"]))
+    rout_p = ctx.sized[spec["cascode_p"]]["gm"] * ro(spec["cascode_p"]) * ro_fold
+    rout_n = ctx.sized[spec["cascode_n"]]["gm"] * ro(spec["cascode_n"]) * ro(spec["mirror_n"])
+    rout = 1.0 / (1.0 / rout_p + 1.0 / rout_n)
+    return rout_p, rout_n, rout
+
+
+def _metric_folded_cascode_gain_db(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-08-15 세션35 신설) -- 단일 스테이지 folded-cascode의 DC 이득 표준 폐형식
+    (문헌 표준: Razavi *Design of Analog CMOS Integrated Circuits* 등이 공통으로 주는
+    `Adm = gm1·(Rout_p‖Rout_n)` 형태 -- diffpair 한쪽 다리의 gm과 병렬 출력저항의 곱).
+    이 프로젝트의 다른 CMRR/PSRR 폐형식(예: `_cmrr_telescopic_class_ab`)과 달리 sympy
+    전수 유도·ngspice 교차검증은 아직 안 했다(2026-08-15 세션35, 사용자 승인 범위 --
+    "gain은 잘 알려진 표준식이라 유도 리스크가 낮다"는 전제로 우선 등록, 최종 확인은
+    SPICE가 필요하다는 이 프로젝트의 일반 원칙 그대로 적용).
+
+    metric_spec 키: `_folded_cascode_rout()`와 동일 + `"gm1_device"`(예: M1 -- diffpair
+    한쪽 다리, matching 선언으로 M2와 gm이 같다고 전제)."""
+    gm1 = ctx.sized[spec["gm1_device"]]["gm"]
+    _, _, rout = _folded_cascode_rout(spec, ctx)
+    return 20 * math.log10(abs(gm1 * rout))
+
+
+def _metric_folded_cascode_pm_deg(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-08-15 세션35 신설) -- 단일 스테이지 folded-cascode의 위상여유, 2-pole
+    근사(`PM = 90도 - atan(GBW/p2)`, 표준 형태). 지배극은 출력(`p1 = 1/(2π·Rout·CL)`),
+    GBW = gm1/(2π·CL) = Adm·p1. 2차극은 폴딩 노드(예: X)의 국소 임피던스(≈1/gm(cascode_p),
+    캐스코드 소스단이 낮은 임피던스를 만드는 표준 근사)와 그 노드의 기생 커패시턴스로
+    추정: `p2 = gm(cascode_p) / (2π·C_fold)`.
+
+    ⚠️ **정직한 한계**(`_psrr_telescopic_class_ab`류와 같은 투명성 원칙): (1) `C_fold`는
+    폴딩 노드에 물린 소자들의 `cgg_absolute()`(게이트 커패시턴스) 합으로 근사한다 -- 이
+    프로젝트 LUT가 drain/source 접합 커패시턴스(Cdb/Csb) 모델을 갖고 있지 않아서 쓰는
+    대체 근사이지 그 노드의 진짜 지배 성분(주로 Cdb/Csb)을 직접 모델링한 것이 아니다.
+    (2) Y-branch(M5-M7-M9-M10 캐스코드 체인)에 있는 추가 극(Vg7/Vg9/Vg10)은 모델링하지
+    않는다 -- X-branch 2차극 하나만 지배적이라고 가정한다(단일 스테이지 folded cascode가
+    일반적으로 PM이 90도에 가깝다는 사실과 부합하는 근사). 정확한 값은 SPICE AC 시뮬레이션
+    필요.
+
+    metric_spec 키: `_folded_cascode_rout()`와 동일 + `"gm1_device"`, `"CL"`(부하 커패시턴스,
+    F 단위), `"fold_cap_devices"`(폴딩 노드 기생캡을 근사할 소자 목록, 예: [M1,M3,M6])."""
+    gm1 = ctx.sized[spec["gm1_device"]]["gm"]
+    _, _, rout = _folded_cascode_rout(spec, ctx)
+    CL = spec["CL"]
+    gbw_hz = gm1 / (2 * math.pi * CL)
+    c_fold = 0.0
+    for name in spec["fold_cap_devices"]:
+        e = ctx.sized[name]
+        lut = ctx.spec["lut_by_kind"][ctx.kind_of[name]]
+        c_fold += lut.cgg_absolute(e["gm_id"], e["L"], e["vds"], e.get("vs", 0.0), e["W"])
+    p2_hz = ctx.sized[spec["cascode_p"]]["gm"] / (2 * math.pi * c_fold)
+    return 90.0 - math.degrees(math.atan(gbw_hz / p2_hz))
+
+
 def _metric_flicker_plus_thermal_sum(spec: dict, ctx: SizingContext) -> float:
     """F엔진(배치 7-3g, 2026-07-31) — `stages`(`[[dev,...], ...]`)의 입력환산 열+1/f 잡음
     밀도를 RMS 합산(독립 잡음원 가정)해 V/√Hz로 반환. 소자별 `ctx.spec["lut_by_kind"]
@@ -2424,6 +2492,8 @@ _METRICS_REGISTRY = {
     "sum_current":              _metric_sum_current,
     "sum_area":                 _metric_sum_area,
     "gain_stages_sum":          _metric_gain_stages_sum,
+    "folded_cascode_gain_db":   _metric_folded_cascode_gain_db,      # 세션35
+    "folded_cascode_pm_deg":    _metric_folded_cascode_pm_deg,       # 세션35
     "flicker_plus_thermal_sum": _metric_flicker_plus_thermal_sum,   # 배치 7-3g
     "pelgrom_mismatch":         _metric_pelgrom_mismatch,            # 배치 7-3h
     "cmrr_estimate":            _metric_cmrr_estimate,               # 배치 7-3i
@@ -2514,6 +2584,23 @@ def _feed_root_ratio(feed_spec: dict, theta_value: float, ctx: SizingContext) ->
     total = sum(_ref_id(r) for r in feed_spec["reference"])
     for root in roots:
         ctx.seed_currents[root] = theta_value * total
+
+
+def _feed_root_const(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
+    """`{"type":"const","tag":...,"root":<device>|[<device>,...]}` — A엔진 `seed_currents`에
+    `theta_value`(절대 전류, A) 그 자체를 `root`의 seed 전류로 채운다(2026-08-15 세션35 신설,
+    사용자 지시 -- "sizing 제약을 없애고 스펙을 맞출 때 sizing이 어떻게 되는지 역으로 보고
+    싶다"). `_feed_root_ratio`(type "A")는 항상 `reference` 소자의 이미 확정된 전류에 대한
+    **비율**만 표현할 수 있어서(예: MP→M3/M4 미러비 1.5), `reference` 자체가 없는 진짜
+    "루트"(예: `folded_cascode`의 `Ibg` -- 어떤 소자의 전류에도 종속되지 않는 독립 바이어스
+    기준) 자체를 탐색 자유변수로 만들 방법이 없었다 -- `spec["known_sizing"]`으로 고정값을
+    박아두는 게 유일한 길이었다(§7.3.2 표기상 "C유형"과 다른, 진짜 "자유 루트"). 이 타입은
+    `reference`가 필요 없는 만큼 `_feed_root_ratio`보다 더 단순한 특수 케이스다 -- 새 엔진을
+    만든 게 아니라 A엔진(`propagate_topology_forced_currents`)의 seed 자유도를 theta 탐색이
+    닿을 수 있게 여는 것뿐이다."""
+    roots = feed_spec["root"] if isinstance(feed_spec["root"], list) else [feed_spec["root"]]
+    for root in roots:
+        ctx.seed_currents[root] = theta_value
 
 
 def _feed_root_signed_sum(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
@@ -3129,6 +3216,7 @@ _THETA_FEED_REGISTRY: dict = {
     "C":                    FeedHandler(_feed_diode_stack_target, touches=["C"]),
     "B":                    FeedHandler(_feed_gm_target_convention, touches=["B"]),
     "A":                    FeedHandler(_feed_root_ratio, touches=["A"]),
+    "const":                FeedHandler(_feed_root_const, touches=["A"]),  # 세션35
     "A_signed":             FeedHandler(_feed_root_signed_sum, touches=["A"]),  # 세션6
     "metric_stage_budget":  FeedHandler(_feed_metric_stage_budget, touches=["B", "F"]),
     # 새 feed 타입이 필요해지면 여기 한 줄만 등록하면 된다 -- optimize_full_circuit_budget()은
@@ -3622,6 +3710,52 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             f"ideal_sources 선언과 안 맞음 -- role={device_roles.get(device_name, {}).get('headroom_role')!r}"
             f"이 thin_roles인데 이 우회를 정당화할 근거가 없음(선언 누락 또는 role 오분류 "
             f"가능성, 재검토할 것)")
+
+    def _fold_group_check(device_name):
+        """singleton `fold_group` 우회가 정당한지, 선언(`device_roles.*.fold_group`)만
+        믿지 않고 실제 netlist connectivity와 대조해 검증한다(2026-08-15 세션35, 사용자
+        지시 "새 기능을 추가해"로 신설). `folded_cascode`의 X/Y 폴딩 노드처럼 서로 다른
+        방향에서 온 두 branch가 한 노드에서 합류하는 구조는 `allocate_stack_headroom()`의
+        "한 방향 직렬 스택(또는 `budget_reference_device`로 잇는 체인)" 전제 자체를
+        벗어난다 -- `_thin_singleton_ideal_source_check()`와 같은 정신(role 라벨만 믿지
+        않고 실제 구조로 검증)이지만, 정당화 근거가 `ideal_sources`가 아니라 "같은
+        `fold_group`을 선언한 다른 소자와 실제로 같은 net을 공유하는가"다.
+
+        반환: `(ok, detail)` -- `ok=True`면 이 소자의 non-rail 단자가 같은 `fold_group`을
+        선언한 다른 소자의 단자와 실제로 겹침(같은 물리적 병합 노드)을 확인한 것."""
+        dev = by_name.get(device_name)
+        if dev is None:
+            return False, f"'{device_name}' 트랜지스터를 찾을 수 없음"
+        fold_group = device_roles.get(device_name, {}).get("fold_group")
+        if fold_group is None:
+            return False, f"'{device_name}'에 fold_group 선언이 없음"
+        open_nets = {n for n in (dev.source, dev.drain) if n not in _rail_nets}
+        if not open_nets:
+            return False, (
+                f"'{device_name}'의 양쪽 단자가 전부 레일(vdd/gnd/vss)임 -- "
+                f"fold_group 우회가 상정하는 'non-rail 병합 노드' 패턴이 아님")
+        siblings = [t.name for t in transistors
+                    if t.name != device_name
+                    and device_roles.get(t.name, {}).get("fold_group") == fold_group]
+        if not siblings:
+            return False, (
+                f"'{device_name}'과 같은 fold_group({fold_group!r})을 선언한 다른 소자가 "
+                f"없음 -- fold_group은 최소 2개 이상의 소자가 같은 노드를 공유할 때만 "
+                f"의미가 있음")
+        for sib_name in siblings:
+            sib = by_name.get(sib_name)
+            if sib is None:
+                continue
+            sib_nets = {n for n in (sib.source, sib.drain) if n not in _rail_nets}
+            shared = open_nets & sib_nets
+            if shared:
+                return True, (
+                    f"{sorted(shared)}를 '{sib_name}'과 공유(같은 fold_group={fold_group!r} "
+                    f"병합 노드)")
+        return False, (
+            f"'{device_name}'의 non-rail 단자({sorted(open_nets)})가 같은 fold_group을 "
+            f"선언한 소자 {siblings} 중 누구와도 실제로 겹치지 않음 -- fold_group 선언이 "
+            f"connectivity와 안 맞음(오분류 가능성, 재검토할 것)")
 
     # 2026-08-05(세션10) L1 하드컷 -- kind(diff_pair/current_mirror/branch_symmetric/
     # current_matched) 4종 문자열을 폐지하고 독립된 두 축으로 분해했다: 축A
@@ -4169,10 +4303,21 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             # (policy.cascode_fn -- gm_id 있으면 공식, 없으면 min_vds)을 직접 배정한다.
             # "나머지"는 버려지는 게 아니라(1) 참조하는 그룹의 base_budget으로 넘어가거나,
             # (2)애초에 이 소자가 가질 이유가 없던 예산이다.
+            _fold_group_singleton = (len(stack_entries) == 1
+                                      and device_roles.get(unresolved[0], {}).get("fold_group")
+                                      is not None)
+            # 2026-08-15(세션35) -- fold_group이 명시적으로 선언돼 있으면(사람/AI가 "이
+            # 소자는 병합 노드라 ideal_sources 근거가 아니라 connectivity 근거로 우회한다"고
+            # 확정한 것) thin_roles(예: "cascode")에도 걸리는 소자라도 ideal_sources 전용
+            # 경로(_thin_singleton) 대신 이 새 경로를 타야 한다 -- 안 그러면 fold_group을
+            # 선언해도 역할이 우연히 thin_roles에 속하면(예: M6="cascode") 여전히
+            # ideal_sources 요구로 막힌다(실측으로 발견).
             _thin_singleton = (len(stack_entries) == 1
-                                and stack_entries[0]["role"] in DEFAULT_POLICY.thin_roles)
+                                and stack_entries[0]["role"] in DEFAULT_POLICY.thin_roles
+                                and not _fold_group_singleton)
             _referenced_singleton = (len(stack_entries) == 1
-                                      and unresolved[0] in referenced_devices)
+                                      and unresolved[0] in referenced_devices
+                                      and not _fold_group_singleton)
             if _thin_singleton:
                 # 2026-08-11(세션28 계속) -- role 라벨("diode_reference")만 믿지 않고
                 # 실제 topology.json의 ideal_sources 선언과 대조해 이 우회가 물리적으로
@@ -4187,6 +4332,24 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                         f"우회하려는데, ideal_sources 선언으로 정당화가 안 됨: {_detail}")
                 headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
             elif _referenced_singleton:
+                headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
+            elif _fold_group_singleton:
+                # 2026-08-15(세션35, 사용자 지시 "새 기능을 추가해"로 신설) -- 폴디드
+                # 캐스코드의 X/Y 노드처럼 서로 다른 방향에서 온 branch가 한 노드에서
+                # 합류하는 구조. allocate_stack_headroom()의 "한 컬럼이 vdd 전체를 혼자
+                # 책임진다" 전제가 안 맞는 세 번째 패턴(위 _thin_singleton/_referenced_
+                # singleton과 나란히) -- 정당화 근거는 ideal_sources가 아니라 실제
+                # connectivity(같은 fold_group 선언 소자와 노드 공유)로 검증한다. thin_
+                # roles/referenced_singleton과 동일하게 role-기반 cascode_fn만 배정하고,
+                # 병합 노드 전압의 정확한 KVL 일치(각 branch가 실제로 같은 Vx에 도달하는지)는
+                # 이 근사가 보장하지 않는다 -- 이 프로젝트의 다른 singleton 우회들과 동일한
+                # 근사 수준(§HeadroomPolicy 참고, 엄밀한 KVL 솔버가 아니라 역할 기반 실용적
+                # 배정).
+                _ok, _detail = _fold_group_check(unresolved[0])
+                if not _ok:
+                    raise ValueError(
+                        f"'{unresolved[0]}'가 fold_group 선언으로 allocate_stack_headroom()의 "
+                        f"'합=vdd' 계약을 우회하려는데, connectivity로 정당화가 안 됨: {_detail}")
                 headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
             else:
                 headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
@@ -4336,6 +4499,89 @@ def _score_floorplan(floorplan, floorplan_target: dict) -> float:
     aspect_excess = (max(0.0, floorplan.aspect_ratio - max_ar) / max_ar) if max_ar else 0.0
     density_deficit = (max(0.0, min_pd - floorplan.packing_density) / min_pd) if min_pd else 0.0
     return aspect_excess + density_deficit
+
+
+def diagnose_sizing_roles_gap(topology_path: str, spec: dict) -> dict:
+    """`propose_device_roles_gap_fill()`(stick_diagram.py)과 대응하는 `sizing_roles` 쪽
+    진단 도구(2026-08-15, 사용자 지시 -- "device_role/symmetry는 자동으로 채우는 게
+    run_harness에 통합됐는데, sizing_role도 자동으로 채우는 걸 설계하고 통합하자").
+
+    ⚠️ **근본적 차이**: `device_roles`/`matching_pairs`는 netlist connectivity만으로 구조적
+    으로 제안 가능하다(analog-grammar 그래프 분석, 값을 지어내지 않아도 된다). `sizing_
+    roles.theta`의 bounds나 `constraints`의 목표값은 **spec(설계 목표)에서 오는 숫자**라
+    connectivity만으로 유도할 수 없다 -- 이 함수는 그 숫자를 대신 짓지 않는다. 대신
+    "이 회로가 `sizing_roles=null`(자유 theta 없음) 상태로 `optimize_full_circuit_
+    budget()`을 실제로 완주할 수 있는가"를 **실제로 1회 평가**(`propagate_topology_forced_
+    currents()` 실행 + `compensation.function` 실제 호출)해 판정하고, 실패하면 지금까지
+    함수 깊은 곳에서 날것의 `ValueError`로만 터지던 것을 구조화된 gap 리포트로 바꾼다
+    (`folded_cascode`의 `Ibg`(ideal_sources, `value_amp=null`) 미정, `nmcnr_amplifier`의
+    `PM_target_deg=46`(논문 실측치, `nmcnr_3stage_topology()`의 `PM_target_deg>60` 전제와
+    충돌) 두 실사례로 이 두 gap 종류를 실측 확인함, `.ai/context.md` 세션35 참고).
+
+    `sizing_roles.theta`가 이미 선언돼 있으면(자유 theta가 있는 회로) 이 함수는 할 일이
+    없다 -- `{"status": "has_theta"}`만 반환(이런 회로는 애초에 이 진단 대상이 아니다).
+
+    반환: `{"status": "ok"|"has_theta"|"gap", "kind": "unresolved_current"|
+    "unresolved_vds_or_L"|"other"|None, ...}`
+    - `"ok"`: theta 없이도(sizing_roles=null이 맞음) 넷리스트 전체 전류가 실제로 다 풀림 --
+      지금 상태가 최종적으로 맞다는 뜻.
+    - `"gap"`/`"unresolved_current"`: 특정 소자의 전류(`ID`)를 A엔진(`propagate_topology_
+      forced_currents`)이 못 정함 -- `"device"`(그 소자 이름), `"ideal_source_hint"`(그
+      소자가 물린 `ideal_sources` 선언, 있으면 -- 보통 `value_amp=null`인 미정 전류원이
+      원인), `"fix_hint"`.
+    - `"gap"`/`"unresolved_vds_or_L"`: ID는 풀렸지만 `L`/`VDS`가 미확정(`device_roles`의
+      `L_role`/`vertical_stack_id` 선언 부족, singleton headroom 그룹이 참조할 예산이
+      없는 경우 등) -- `"device"`, `"fix_hint"`.
+    - `"gap"`/`"other"`: 위 두 패턴에 안 맞는 다른 `ValueError`(예: `compensation.function`이
+      `comp_params` 조합 자체를 거부함 -- `nmcnr_3stage_topology`의 `PM_target_deg<=60`
+      가드가 실제 사례) -- `"message"`에 원인이 그대로 담겨 있으니 직접 읽을 것, 이
+      함수가 패턴을 인식 못 했다고 원인을 지어내지 않는다."""
+    ev = _build_theta_evaluator(topology_path, spec)
+    if ev["thetas"]:
+        return {"status": "has_theta",
+                "message": "sizing_roles.theta가 이미 선언돼 있음 -- 이 진단은 "
+                            "theta 없는(sizing_roles=null) 회로 전용"}
+    try:
+        ev["evaluate"]({})
+    except ValueError as e:
+        msg = str(e)
+        marker = "A엔진(propagate_topology_forced_currents)이 전류를 못 정했다"
+        if marker in msg:
+            device = msg.split(":", 1)[0]
+            by_name = ev["by_name"]
+            t = by_name.get(device)
+            hint = None
+            if t is not None:
+                dev_terminals = {t.source, t.drain, t.gate}
+                for src in (ev["meta"].get("ideal_sources") or []):
+                    if dev_terminals & set(src.get("terminals", ())):
+                        hint = src
+                        break
+            return {"status": "gap", "kind": "unresolved_current", "device": device,
+                    "message": msg, "ideal_source_hint": hint,
+                    "fix_hint": (f"'{device}'의 ID를 spec['known_sizing']['{device}']['ID']로 "
+                                 f"직접 시드하거나, sizing_roles.theta에 이 소자(또는 그 레퍼런스 "
+                                 f"루트)를 목표로 하는 새 theta를 선언할 것 -- 어느 쪽이든 실제 "
+                                 f"전류/전력 목표값이 spec에서 와야 하며, 이 함수는 그 값을 "
+                                 f"대신 지어내지 않는다.")}
+        marker2 = "L 또는 VDS가 미확정"
+        if marker2 in msg:
+            device = msg.split(":", 1)[0]
+            return {"status": "gap", "kind": "unresolved_vds_or_L", "device": device,
+                    "message": msg,
+                    "fix_hint": (f"'{device}'의 device_roles에 L_role/vertical_stack_id가 "
+                                 f"선언돼 있는지, 그 소자가 속한 headroom 그룹(singleton이면 "
+                                 f"budget_reference_device/thin_roles 등)이 예산을 실제로 "
+                                 f"받을 수 있는 구조인지 확인할 것 -- 이것도 값을 대신 "
+                                 f"지어내지 않는다.")}
+        return {"status": "gap", "kind": "other", "message": msg,
+                "fix_hint": "위 두 패턴(전류 미확정/VDS·L 미확정)에 안 맞는 다른 ValueError -- "
+                            "message를 직접 읽을 것(예: compensation.function이 comp_params "
+                            "조합 자체를 거부하는 경우, nmcnr_3stage_topology의 "
+                            "PM_target_deg<=60 가드가 실제 사례)."}
+    return {"status": "ok",
+            "message": "sizing_roles=null로도 넷리스트 전체 전류가 전부 풀림 -- "
+                        "이 상태가 최종적으로 맞다."}
 
 
 def optimize_full_circuit_budget(topology_path: str, spec: dict,
@@ -4774,7 +5020,13 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
 # ---------------------------------------------------------------------------
 
 _FULL_CIRCUIT_METRIC_TYPES = frozenset({"smallsignal_ratio_db", "smallsignal_gain_db"})
-_DEFAULT_ALL_DEVICES_METRIC_TYPES = frozenset({"sum_current", "sum_area"})
+# 2026-08-15(세션35) -- cmrr_estimate/psrr_estimate는 circuit_family별로 실제 footprint가
+# 다르다(diff_pair_tail은 tail_device 하나, telescopic_class_ab류는 여러 소자) -- family마다
+# 별도 분기를 추가하는 대신, 이 타입들에 "devices" 키가 없으면 안전한 쪽(과소평가 대신
+# "ALL")으로 fallback하는 _DEFAULT_ALL_DEVICES_METRIC_TYPES에 편입한다(SLSQP 웜스타트가
+# 이 metric을 isolated로 잘못 보고 커플링을 놓치는 사고를 방지 -- 위 docstring 참고).
+_DEFAULT_ALL_DEVICES_METRIC_TYPES = frozenset({"sum_current", "sum_area",
+                                                 "cmrr_estimate", "psrr_estimate"})
 
 
 def _metric_device_footprint(metric_name: str, metrics_specs: dict):
@@ -4797,6 +5049,13 @@ def _metric_device_footprint(metric_name: str, metrics_specs: dict):
         return {mspec["high_device"], mspec["low_device"]}
     if mtype == "rail_referenced_voltage":
         return {mspec["device"]}
+    if mtype == "folded_cascode_gain_db":
+        return {mspec["gm1_device"], mspec["fold_leg_a"], mspec["fold_leg_b"],
+                mspec["cascode_p"], mspec["cascode_n"], mspec["mirror_n"]}
+    if mtype == "folded_cascode_pm_deg":
+        return ({mspec["gm1_device"], mspec["fold_leg_a"], mspec["fold_leg_b"],
+                 mspec["cascode_p"], mspec["cascode_n"], mspec["mirror_n"]}
+                | set(mspec["fold_cap_devices"]))
     if mtype in _DEFAULT_ALL_DEVICES_METRIC_TYPES:
         devices = mspec.get("devices")
         return set(devices) if devices else "ALL"
@@ -4825,6 +5084,9 @@ def _theta_feed_footprint(theta: dict) -> dict:
         reads = (set(feed["reference"]) if ftype == "A"
                  else {term["device"] for term in feed["terms"]})
         return {"roots": frozenset(roots), "derived_writes": frozenset(), "reads": frozenset(reads)}
+    if ftype == "const":
+        roots = feed["root"] if isinstance(feed["root"], list) else [feed["root"]]
+        return {"roots": frozenset(roots), "derived_writes": frozenset(), "reads": frozenset()}
     if ftype == "B":
         return {"roots": frozenset({feed["target"]}), "derived_writes": frozenset(),
                 "reads": frozenset({feed["omega_key"]})}
@@ -7634,6 +7896,102 @@ if __name__ == "__main__":
             f"theta*(N={_theta_star['N']})가 전수비교 최적 N({_manual_best[1]})과 다름"
         print(f"    PASS: theta*=N={_theta_star['N']:.3f}, power_uA={_metrics['power_uA']*1e6:.4f}uA "
               f"-- {5}개 격자점 전수비교와 정확히 일치(재현성+최적성 확인)")
+
+    print()
+    print("  [diagnose_sizing_roles_gap() -- device_role/symmetry의 propose_device_roles_"
+          "gap_fill()과 대응하는 sizing_roles 쪽 진단 도구, 2026-08-15 세션35 신설]")
+    # 2026-08-15 -- 사용자 지시("sizing role을 자동으로 넣는 것도 설계하고 통합하자")로
+    # 신설. device_roles와 달리 sizing_roles의 theta bounds/constraints 목표값은 spec(설계
+    # 목표)에서 오는 숫자라 connectivity만으로 지어낼 수 없다 -- 그래서 이 함수는 숫자를
+    # 대신 채우지 않고, "sizing_roles=null 상태로 실제 완주 가능한가"를 실행 기반으로
+    # 진단해 지금까지 optimize_full_circuit_budget() 깊은 곳에서 날것의 ValueError로만
+    # 터지던 실패를 구조화된 gap 리포트로 바꾼다. 아래 5개 케이스는 전부 실제로 실행해
+    # 확인한 결과(추측 없음, folded_cascode/nmcnr_amplifier는 실제 라이브러리 파일).
+    _diag_lut = build_toy_lut()
+
+    print("  [1. 정상 케이스 -- known_sizing으로 전류/L/VDS가 다 채워지면 status=ok]")
+    _diag_ok_topo = {
+        "schema_version": "2.0", "topology_name": "_diag_ok", "source": "self-test",
+        "linked_topology_files": [], "compensation": None, "_compensation_status": "not_applicable",
+        "netlist": [{"name": "Mo", "kind": "nmos", "source": "gnd", "drain": "out", "gate": "out"}],
+        "symmetry": {"matching_pairs": [], "dispositions": []}, "sizing_roles": None,
+        "device_roles": {"Mo": {"gm_id_role": "matching", "L_role": "mirror",
+                                  "headroom_role": "mirror", "vs": 0.0}},
+    }
+    with _tempfile.TemporaryDirectory() as _diag_tmp:
+        _diag_path = _os.path.join(_diag_tmp, "_diag_ok.topology.json")
+        with open(_diag_path, "w", encoding="utf-8") as _f:
+            json.dump(_diag_ok_topo, _f)
+        _diag_spec_ok = {"lut_by_kind": {"nmos": _diag_lut}, "vdd": 1.8, "L_min": 0.5e-6,
+                           "W_bounds": (1e-6, 50e-6), "min_vds_by_role": {"mirror": 0.2},
+                           "known_sizing": {"Mo": {"ID": 1e-5, "L": 0.5e-6, "vds": 0.6, "vs": 0.0}}}
+        _diag_r1 = diagnose_sizing_roles_gap(_diag_path, _diag_spec_ok)
+        assert _diag_r1["status"] == "ok", f"known_sizing으로 다 채웠는데 ok가 아님: {_diag_r1}"
+        print(f"    PASS: {_diag_r1}")
+
+        print("  [2. ID는 있는데 L/VDS 미확정 -- kind=unresolved_vds_or_L]")
+        _diag_spec_novds = dict(_diag_spec_ok, known_sizing={"Mo": {"ID": 1e-5}})
+        _diag_r2 = diagnose_sizing_roles_gap(_diag_path, _diag_spec_novds)
+        assert _diag_r2["status"] == "gap" and _diag_r2["kind"] == "unresolved_vds_or_L", \
+            f"L/VDS 미확정 케이스인데 kind가 다름: {_diag_r2}"
+        assert _diag_r2["device"] == "Mo"
+        print(f"    PASS: {_diag_r2}")
+
+        print("  [3. known_sizing 자체가 없으면 -- kind=unresolved_current]")
+        _diag_r3 = diagnose_sizing_roles_gap(_diag_path,
+                                               {k: v for k, v in _diag_spec_ok.items() if k != "known_sizing"})
+        assert _diag_r3["status"] == "gap" and _diag_r3["kind"] == "unresolved_current", \
+            f"seed 자체가 없는 케이스인데 kind가 다름: {_diag_r3}"
+        assert _diag_r3["device"] == "Mo" and _diag_r3["ideal_source_hint"] is None, \
+            "ideal_sources 선언이 아예 없는 회로인데 hint가 채워짐"
+        print(f"    PASS: {_diag_r3}")
+
+    print("  [4. 실제 라이브러리 파일 folded_cascode -- 세션35 안에서 이 gap 자체를 "
+          "해소했다(Ibg를 KCL 유도+자유 theta로 배선) -- 이제 has_theta로 조기 반환됨을 "
+          "재확인(회귀 감시: diagnose_sizing_roles_gap()이 '더 이상 gap이 아니다'를 "
+          "정확히 인식하는지)]")
+    _diag_fc_path = _os.path.join(_lib_dir_recipe, "folded_cascode.topology.json")
+    _diag_r4 = diagnose_sizing_roles_gap(_diag_fc_path, {})
+    assert _diag_r4["status"] == "has_theta", \
+        f"folded_cascode는 세션35에서 Ibg를 free theta로 배선했으니 has_theta여야 하는데: {_diag_r4}"
+    print(f"    PASS: {_diag_r4}")
+
+    print("  [5. 실제 라이브러리 파일 nmcnr_amplifier -- PM_target_deg=46(논문 실측치)은 "
+          "nmcnr_3stage_topology()의 PM>60 전제와 충돌해 kind=other]")
+    _diag_nm_path = _os.path.join(_lib_dir_recipe, "nmcnr_amplifier.topology.json")
+    _diag_nm_base_spec = {
+        "lut_by_kind": {"nmos": _diag_lut, "pmos": _diag_lut}, "vdd": 2.0,
+        "GBW": 816000.0, "CL": 1e-10, "kg": 0.5,
+        "L_candidates": [float(v) for v in _diag_lut.L_grid],
+        "VDS_candidates": [float(v) for v in _diag_lut.VDS_grid],
+        "gm_id_grid": [i * 0.5 for i in range(4, 61)],
+        "L_min": 0.15e-6, "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
+        "W_bounds": (1e-6, 200e-6), "stage_objective": "power", "stage_w_max": 500e-6,
+        "min_vds_by_role": {"cascode": 0.2, "mirror": 0.2},
+    }
+    _diag_r5 = diagnose_sizing_roles_gap(_diag_nm_path, dict(_diag_nm_base_spec, PM_target_deg=46.0))
+    assert _diag_r5["status"] == "gap" and _diag_r5["kind"] == "other", \
+        f"PM=46은 compensation 함수 자체 가드에 걸려야 하는데: {_diag_r5}"
+    assert "60도" in _diag_r5["message"], f"원인이 PM 가드가 아닌 다른 이유로 보임: {_diag_r5}"
+    print(f"    PASS: {_diag_r5}")
+
+    print("  [6. 같은 파일, PM_target_deg=70(테스트 전용 유효값)으로 그 가드는 통과해도 "
+          "M101(바이어스 소자, ideal_sources 선언 자체가 없음)에서 또 다른 unresolved_current]")
+    _diag_r6 = diagnose_sizing_roles_gap(_diag_nm_path, dict(_diag_nm_base_spec, PM_target_deg=70.0))
+    assert _diag_r6["status"] == "gap" and _diag_r6["kind"] == "unresolved_current", \
+        f"PM 가드를 통과하면 M101의 진짜 gap(바이어스 전류 미선언)이 드러나야 하는데: {_diag_r6}"
+    assert _diag_r6["device"] == "M101" and _diag_r6["ideal_source_hint"] is None, \
+        f"nmcnr_amplifier는 ideal_sources 필드 자체가 없어 hint가 항상 None이어야: {_diag_r6}"
+    print(f"    PASS: {_diag_r6} -- PM_target_deg만 고치는 걸로는 부족하고, M101/M104-M107/"
+          f"M202/M302(VB1~VB5 외부 바이어스로만 게이트가 물린 소자 전부) 바이어스 전류망이 "
+          f"이 topology.json에 통째로 미선언 상태라는 걸 실행 기반으로 확인 -- 다음 세션 "
+          f"이월 항목으로 남긴다(사람이 정할 spec 값이 필요, 이 함수가 대신 짓지 않음).")
+
+    print("  [7. sizing_roles.theta가 이미 선언된 회로는 status=has_theta로 조기 반환]")
+    _diag_tso_path = _os.path.join(_lib_dir_recipe, "two_stage_ota.topology.json")
+    _diag_r7 = diagnose_sizing_roles_gap(_diag_tso_path, {})
+    assert _diag_r7["status"] == "has_theta", f"two_stage_ota는 theta가 있는데: {_diag_r7}"
+    print(f"    PASS: {_diag_r7}")
 
     print()
     print("  [제약을 만족하는 격자점이 하나도 없으면 즉시 ValueError]")

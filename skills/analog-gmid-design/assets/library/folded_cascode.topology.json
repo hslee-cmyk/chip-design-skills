@@ -173,80 +173,270 @@
     "MP": {
       "gm_id_role": "matching",
       "L_role": "mirror",
-      "headroom_role": "mirror",
-      "vs": 0.0
+      "headroom_role": "diode_reference",
+      "vs": 0.0,
+      "vertical_stack_id": "biasgen_mp"
     },
     "M3": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m3",
+      "fold_group": "g_x"
     },
     "M4": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m4",
+      "fold_group": "g_y"
     },
     "M5": {
-      "gm_id_role": "matching",
+      "gm_id_role": "gain",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m5",
+      "fold_group": "g_y"
     },
     "M6": {
-      "gm_id_role": "matching",
+      "gm_id_role": "gain",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m6",
+      "fold_group": "g_x"
     },
     "M1": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m1",
+      "fold_group": "g_tail"
     },
     "M2": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m2",
+      "fold_group": "g_tail"
     },
     "M9": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m9",
+      "fold_group": "g_y"
     },
     "M10": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m10",
+      "fold_group": "g_vg10"
     },
     "M7": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m7",
+      "fold_group": "g_y"
     },
     "M8": {
-      "gm_id_role": "matching",
+      "gm_id_role": "gain",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m8",
+      "fold_group": "g_vg10"
     },
     "M11": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "col_m11",
+      "fold_group": "g_tail"
     },
     "MN": {
       "gm_id_role": "matching",
       "L_role": "mirror",
-      "headroom_role": "mirror",
-      "vs": 0.0
+      "headroom_role": "diode_reference",
+      "vs": 0.0,
+      "vertical_stack_id": "biasgen_mn"
     }
-  }
+  },
+  "_device_roles_comment_fold": "2026-08-15(세션35) -- fold_group(신규 헤드룸 우회 메커니즘, sizing_recipe.py _fold_group_check() 참고): X 노드(M1/M3/M6)와 Y 노드(M4/M5/M7/M9)는 서로 다른 방향에서 온 branch가 한 노드에서 합류하는 폴딩 구조라 allocate_stack_headroom()의 '한 컬럼이 vdd 전체를 혼자 책임진다' 전제가 안 맞는다 -- 각 소자를 독립 singleton vertical_stack_id로 선언하고 fold_group으로 '같은 병합 노드를 공유한다'는 근거를 connectivity로 검증받는다(ideal_sources 대신). MP/MN은 headroom_role을 mirror에서 diode_reference로 정정(M18_bg 선례와 동일 -- Ibg ideal_sources가 남는 전압을 흡수). M6/M8은 gm_id_role을 matching에서 gain으로 정정 -- 이 둘은 진짜 캐스코드(출력저항을 만드는 소자)인데 matching(gm/gds 최소화, strong inversion)으로 잘못 분류돼 있어서 baseline gain이 -0.2dB(사실상 무이득)로 나온 게 실측으로 드러남. search_gm_id_for_role()의 gain role(gm/gds 최대화)이 원래 캐스코드용으로 문서화돼 있었는데 이 회로엔 안 쓰이고 있었다.",
+  "sizing_roles": {
+    "theta": [
+      {
+        "name": "Ibg",
+        "bounds": [
+          5e-07,
+          5e-05
+        ],
+        "feeds": {
+          "type": "const",
+          "root": [
+            "MP",
+            "MN"
+          ]
+        },
+        "intended_role_type": "D",
+        "_comment": "folded_cascode 유일한 자유변수 -- Maloberti 원본(Layout of Analog CMOS IC p.34)엔 절대 바이어스 전류값이 없다(W비율만 있음, 세션35 웹검색으로 확인). 이 theta가 그 gap을 '탐색 자유변수'로 만든다."
+      },
+      {
+        "name": "r_split_M1_M2",
+        "bounds": [
+          0.5,
+          0.5
+        ],
+        "feeds": {
+          "type": "A",
+          "root": [
+            "M1",
+            "M2"
+          ],
+          "reference": [
+            "MN"
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "diffpair가 tail 전류를 반씩 나눠 가짐(순수 KCL, 자유도 없음)."
+      },
+      {
+        "name": "r_mirror_M3_M4",
+        "bounds": [
+          1.5,
+          1.5
+        ],
+        "feeds": {
+          "type": "A",
+          "root": [
+            "M3",
+            "M4"
+          ],
+          "reference": [
+            "MP"
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "Maloberti 원본 W비율(MP=20,M3=M4=30)에서 유도한 미러비 1.5 -- 구조적 설계 결정으로 고정(자유도 없음), Ibg만 자유."
+      },
+      {
+        "name": "kcl_fold_M6",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "root": "M6",
+          "terms": [
+            {
+              "device": "M1"
+            },
+            {
+              "device": "M3"
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "X 노드 KCL(M1+M3가 들어와 M6로 나감), 자유도 없음."
+      },
+      {
+        "name": "kcl_fold_M5",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "root": "M5",
+          "terms": [
+            {
+              "device": "M2"
+            },
+            {
+              "device": "M4"
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "Y 노드 KCL(M2+M4가 들어와 M5로 나감), 자유도 없음."
+      }
+    ],
+    "metrics": {
+      "power_uA": {
+        "type": "sum_current"
+      },
+      "gain_db": {
+        "type": "folded_cascode_gain_db",
+        "gm1_device": "M1",
+        "fold_leg_a": "M1",
+        "fold_leg_b": "M3",
+        "cascode_p": "M6",
+        "cascode_n": "M8",
+        "mirror_n": "M10"
+      },
+      "pm_deg": {
+        "type": "folded_cascode_pm_deg",
+        "gm1_device": "M1",
+        "fold_leg_a": "M1",
+        "fold_leg_b": "M3",
+        "cascode_p": "M6",
+        "cascode_n": "M8",
+        "mirror_n": "M10",
+        "CL": 1e-12,
+        "fold_cap_devices": [
+          "M1",
+          "M3",
+          "M6"
+        ]
+      },
+      "cmrr_db": {
+        "type": "cmrr_estimate",
+        "circuit_family": "diff_pair_tail",
+        "tail_device": "M11"
+      },
+      "psrr_db": {
+        "type": "psrr_estimate",
+        "circuit_family": "diff_pair_tail",
+        "tail_device": "M11"
+      }
+    },
+    "objective": {
+      "minimize": "power_uA"
+    },
+    "constraints": [
+      {
+        "metric": "gain_db",
+        "op": ">=",
+        "value": 26.362895926174772
+      },
+      {
+        "metric": "pm_deg",
+        "op": ">=",
+        "value": 88.71745471633821
+      },
+      {
+        "metric": "cmrr_db",
+        "op": ">=",
+        "value": 15.22017857621175
+      },
+      {
+        "metric": "psrr_db",
+        "op": ">=",
+        "value": 19.586929919807382
+      }
+    ]
+  },
+  "_sizing_roles_comment": "2026-08-15(세션35, 사용자 지시 -- '이 값으로 gain/PM/CMRR/PSRR 설정, sizing 제약을 없애고 스펙 맞출 때 sizing이 어떻게 되는지 역으로 보고 싶다, power 최소화가 목표') -- Ibg=10uA(임의 선택, KCL 유도만 검증하던 세션35 1단계 결과)로 계산한 gain_db/pm_deg/cmrr_db/psrr_db를 그대로 '만족해야 할 스펙'으로 삼고, Ibg를 자유변수로 풀어 그 스펙을 만족하는 최소 전력점을 찾았다(python run_harness.py folded_cascode 실측: Ibg~2.1uA, power_uA~40(190uA 대비 4.7배 절감), gain_db~39.7, pm_deg~88.8, cmrr_db~24.0, psrr_db~29.5 -- 전부 여유 있게 만족). ⚠️ 이 gain_db/pm_deg 폐형식은 사이징 자체와 달리 sympy 전수 유도·ngspice 교차검증을 아직 거치지 않았다(sizing_recipe.py의 _metric_folded_cascode_gain_db()/_metric_folded_cascode_pm_deg() docstring 참고) -- 최종 확인은 SPICE 필요. CL=1pF은 세션35가 고른 대표값(스펙 없음)."
 }

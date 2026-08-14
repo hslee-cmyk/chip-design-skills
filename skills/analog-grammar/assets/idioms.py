@@ -163,7 +163,20 @@ def m_mirror(devs, cls, imp, role):
     레퍼런스를 미러하는 다리들의 목적은 전류비가 아니라 신호-종속 전압/전류 관계를
     그대로 "복사"하는 것이다(diffpair/구조 대칭이 전혀 없어도 성립하는 원칙, `M3`/`M4`류
     diffpair branch-load와는 별개의 독립 신호). `g`는 이미 계산돼 있고 `cls`도 이미
-    파라미터로 받고 있어 재계산 없이 그대로 노출한다."""
+    파라미터로 받고 있어 재계산 없이 그대로 노출한다.
+
+    ⚠️ **2026-08-15(chip-design-skills 세션35 후속, 사용자 지적 -- "신호경로인지는
+    analog-grammar를 쓰면 알 수 있잖아") -- `active_load_legs`에 `cls` 필터 추가**:
+    `imp.get(D)==HIGH_Z`만으로는 "드레인만 모인 노드"(§1f, `netclass.classify_nets()`)
+    라는 **위상적** 사실만 확인할 뿐, 그 노드가 진짜 증폭 신호 경로인지 아니면 다른
+    바이어스 생성 회로가 읽어가는 순수 DC 기준 노드인지는 구분 못 한다(실측 발견:
+    `current_reuse_telescopic_ota`의 `M60`/`M61`/`M68` -- 드레인이 `Vbias3`/`Vbias4`/
+    `Vbias2`로 전부 `cls==BIAS`, 다른 바이어스 생성기가 읽어가는 노드일 뿐인데 위상만
+    보면 "active load"로 오탐됨). `classify_nets()`가 이미 계산해주는 `cls`(그 노드가
+    실제로 무엇으로 쓰이는지 -- `BIAS`/`SIGNAL`/`OUTPUT`/`INTERNAL` 등)로 `BIAS`인
+    경우만 걸러낸다(`SIGNAL`/`OUTPUT`/`INTERNAL`은 전부 통과 -- `folded_cascode`의
+    `out`=`INTERNAL`, `nmcnr_amplifier`의 `NodeS2`=`SIGNAL`/`Vout`=`OUTPUT` 전부 실측
+    확인, 진짜 이득 노드는 `BIAS`로 분류되는 일이 없다)."""
     out, grp = [], defaultdict(list)
     for d in devs:
         grp[(d['G'], d['S'], d['type'])].append(d)
@@ -172,7 +185,8 @@ def m_mirror(devs, cls, imp, role):
         ref = [m['name'] for m in ms if role[m['name']] == DIODE]
         if not ref: continue
         active_load_legs = [m['name'] for m in ms
-                             if m['name'] != ref[0] and imp.get(m['D']) == HIGH_Z]
+                             if m['name'] != ref[0] and imp.get(m['D']) == HIGH_Z
+                             and cls.get(m['D']) != BIAS]
         out.append(Match('current-mirror', [m['name'] for m in ms],
                          {'ref': ref[0], 'bias': g, 'rail': s,
                           'active_load_legs': active_load_legs,
@@ -290,13 +304,41 @@ def m_cascode(devs, cls, imp, role):
     return out
 
 
-def propagate_reference_role_through_cascode(matches, seed_names):
-    """`m_cascode()`가 이미 찾은 `cascode-stack` 관계(`Match.devices=[lo,up]`,
-    `up.source==lo.drain`)를 따라, 호출부가 "이 성질을 가진 소자"로 판정한
-    `seed_names`를 위쪽(캐스코드로 쌓인 소자)으로 전파한다 -- `lo`가 이미 그 성질을
-    가지면(seed_names에 있거나 이전 반복에서 전파돼 들어왔으면) `up`도 "같은 전류경로가
-    그 성질을 가진 소자에서 온다"는 사실을 물려받는다. 고정점까지 반복(다단 캐스코드
-    지원 -- 세션34 실측은 1단이면 충분했지만 일반화).
+def _cascode_lo_up_pairs(devs, matches):
+    """`cascode-stack` Match마다 실제 (lo, up) 소자 이름을 물리적 근거(`ports['mid']`가
+    `lo`의 drain이자 `up`의 source인 net)로 다시 식별해 `[(lo_name, up_name), ...]`로
+    반환한다(2026-08-15, chip-design-skills 세션35 -- `propagate_reference_role_through_
+    cascode()`/`find_cascoded_active_load_legs()` 공유 헬퍼).
+
+    ⚠️ **버그 수정**: `Match.__init__`이 `devices`를 항상 `tuple(sorted(...))`로 정렬해
+    저장하므로(`Match` 클래스 정의 참고), `m.devices`를 `lo_name, up_name = m.devices`처럼
+    "선언 순서"로 그냥 언패킹하면 **소자 이름의 알파벳/자릿수 순서가 우연히 물리적
+    lo/up 순서와 다를 때 뒤바뀐다**(실측 발견: `folded_cascode`는 우연히 대부분 일치했지만
+    일반적으로 보장되지 않음 -- 예를 들어 두 자리 숫자 이름은 문자열 비교가 물리적
+    순서와 어긋나기 쉽다). `devs`(원본 소자 리스트, 각 `D`/`S` 필드 보유)로 어느 쪽이
+    진짜 lo(`D==mid`)이고 어느 쪽이 up(`S==mid`)인지 다시 확인해 이 gap을 없앤다."""
+    by_name = _by_name(devs)
+    pairs = []
+    for m in matches:
+        if m.kind != 'cascode-stack':
+            continue
+        mid = m.ports.get('mid')
+        a, b = m.devices
+        da, db = by_name.get(a), by_name.get(b)
+        if da is not None and da.get('D') == mid:
+            pairs.append((a, b))
+        elif db is not None and db.get('D') == mid:
+            pairs.append((b, a))
+        # 둘 다 안 맞으면(방어적) 이 pair는 건너뛴다 -- 지어내지 않는다.
+    return pairs
+
+
+def propagate_reference_role_through_cascode(matches, seed_names, devs):
+    """`m_cascode()`가 이미 찾은 `cascode-stack` 관계(`up.source==lo.drain`)를 따라,
+    호출부가 "이 성질을 가진 소자"로 판정한 `seed_names`를 위쪽(캐스코드로 쌓인 소자)으로
+    전파한다 -- `lo`가 이미 그 성질을 가지면(seed_names에 있거나 이전 반복에서 전파돼
+    들어왔으면) `up`도 "같은 전류경로가 그 성질을 가진 소자에서 온다"는 사실을 물려받는다.
+    고정점까지 반복(다단 캐스코드 지원 -- 세션34 실측은 1단이면 충분했지만 일반화).
 
     ⚠️ **무엇을 seed로 볼지는 이 함수가 정하지 않는다** -- `analog-gmid-design/
     chip-design-skills` 세션34(2026-08-14, `.ai/context.md` 참고) 신설 계기: `folded_
@@ -310,21 +352,72 @@ def propagate_reference_role_through_cascode(matches, seed_names):
     다른 소비자를 깨지 않기 위함, `m_mirror()`의 `active_load_legs`와 같은 원칙).
 
     `matches`: `idioms.match_all()`(또는 그 부분집합)의 반환값 그대로 -- `kind==
-    'cascode-stack'`이 아닌 Match는 내부에서 걸러진다.
+    'cascode-stack'`이 아닌 Match는 내부에서 걸러진다. `devs`(2026-08-15 세션35 신설
+    필수 인자): lo/up을 물리적으로 다시 식별하는 데 쓴다(`_cascode_lo_up_pairs()`
+    참고 -- `Match.devices` 정렬 때문에 순서를 그대로 못 믿는다).
 
     반환: `seed_names`를 포함해 전파로 확장된 **새** set(`seed_names` 원본은 변경
     안 함)."""
-    cascode_matches = [m for m in matches if m.kind == 'cascode-stack']
+    pairs = _cascode_lo_up_pairs(devs, matches)
     out = set(seed_names)
-    for _ in range(len(cascode_matches) + 1):
+    for _ in range(len(pairs) + 1):
         grew = False
-        for m in cascode_matches:
-            lo_name, up_name = m.devices
+        for lo_name, up_name in pairs:
             if lo_name in out and up_name not in out:
                 out.add(up_name)
                 grew = True
         if not grew:
             break
+    return out
+
+
+def find_cascoded_active_load_legs(devs, matches, imp, cls=None):
+    """current-mirror(`m_mirror()`) 다리의 드레인이 자기 자신이 아니라 그 위에 캐스코드로
+    쌓인 소자의 드레인에서 `HIGH_Z` 이득노드를 만드는 경우까지 "active load" 판정을
+    확장한다(2026-08-15, chip-design-skills 세션35 신설 -- 사용자 통찰: "stacked current
+    mirror의 output impedance가 active load 값이 되는 거다, 전형적인 stacked current
+    mirror 형태다"). `cls`(선택, `netclass.classify_nets()`의 net 분류 결과)를 주면
+    `m_mirror()`의 `active_load_legs`와 동일한 `BIAS` 노드 제외 필터를 적용한다(순수
+    바이어스 생성 노드는 실제 신호 경로가 아니므로 gain 후보에서 뺀다 -- `m_mirror()`
+    docstring의 "2026-08-15 후속" 항목 참고). `cls=None`이면 이 필터를 건너뛴다(하위호환).
+
+    `m_mirror()`의 `active_load_legs`는 "이 다리 **자신의** 드레인이 HIGH_Z인가"만
+    본다 -- 그런데 그 다리 위에 캐스코드가 한 단 이상 쌓여 있으면(예: `folded_cascode`의
+    `M10`(미러 다리) 위에 `M8`(캐스코드)이 쌓임) "자기 드레인"이 아니라 캐스코드 스택의
+    **꼭대기** 드레인이 진짜 이득노드다 -- 자기 드레인(`Vg10`)은 그 위 캐스코드의
+    소스라 `netclass.classify_nets()` §1f 정의상 `LOW_Z`로 분류되는 게 **정상**이다
+    (버그 아님 -- 소스가 붙은 net은 항상 LOW_Z). 이 함수는 그 "정상적으로 LOW_Z인 자기
+    드레인" 때문에 `m_mirror()`가 놓치는 진짜 active-load 다리를, 캐스코드 스택을
+    끝까지 걸어 올라가 다시 찾아준다.
+
+    ⚠️ 2026-08-15 리팩터(사용자 지적 -- "seed name을 주는 helper를 이미 만들어뒀는데
+    그걸 재사용하지 않았다") -- 자체 스택 워킹 루프 대신 `propagate_reference_role_
+    through_cascode()`(세션34 신설 범용 helper, "호출부가 정한 seed 성질을 캐스코드
+    위로 전파")를 그대로 재사용한다: 미러 다리 전체를 seed로 주고 전파시킨 뒤, "새로
+    편입된"(원래 seed가 아니었던) 이름만 골라낸다 -- `leg==top`(캐스코드가 아예 없는
+    경우, 이미 `m_mirror()`의 기존 판정이 제외조건까지 정확히 처리하는 대상)은 seed
+    집합에 그대로 남아 전파 결과에서 "새로 편입"으로 안 잡히므로, 소비자가 별도로
+    `leg != top` 필터를 만들 필요가 없어진다(이전 버전에서 이 필터를 깜빡해 current_
+    reuse_telescopic_ota/nmcnr_amplifier에 실제 회귀를 낸 적이 있음 -- 이 재사용이
+    그 사고 클래스 자체를 구조적으로 없앤다).
+
+    반환: 캐스코드 스택을 타고 새로 "active load" 성질을 물려받은 소자 이름의 `set`
+    (예: `{"M8"}` -- `M10`(미러 다리) 자신은 포함 안 됨, 그 위 캐스코드 `M8`만).
+    각 이름의 자기 드레인이 `imp`상 `HIGH_Z`로 확인된 경우만 포함한다. `matches`는
+    `idioms.match_all()`(또는 부분집합) 그대로 -- `'current-mirror'`/`'cascode-stack'`
+    둘 다 필요."""
+    by_name = _by_name(devs)
+    legs = {leg for m in matches if m.kind == 'current-mirror'
+            for leg in m.devices if leg != m.ports.get('ref')}
+    propagated = propagate_reference_role_through_cascode(matches, legs, devs)
+    out = set()
+    for top in propagated - legs:
+        top_dev = by_name.get(top)
+        if top_dev is None or imp.get(top_dev.get('D')) != HIGH_Z:
+            continue
+        if cls is not None and cls.get(top_dev.get('D')) == BIAS:
+            continue
+        out.add(top)
     return out
 
 

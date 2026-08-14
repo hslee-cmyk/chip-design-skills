@@ -35,7 +35,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets")
 import numpy as np
 from sizing_recipe import (SemiEmpiricalGmIdLUT, optimize_full_circuit_budget, dense_candidates,
-                            layout_grid_L_candidates)
+                            layout_grid_L_candidates, diagnose_sizing_roles_gap)
 from stick_diagram import save_instance_json, run_full_circuit_audit_from_topology
 from design_report import assemble_report_data, save_html_report
 
@@ -190,6 +190,76 @@ def _spec_current_reuse_telescopic_ota():
     }
 
 
+def _spec_folded_cascode():
+    """2026-08-15(세션35) -- 완주 확인됨. `MP`(PMOS 다이오드 레퍼런스)의 전류를 대는
+    `ideal_sources`의 `Ibg`가 원래 `value_amp: null`(TBD)이었던 gap을 다음 3단계로
+    해소했다: (1) `diagnose_sizing_roles_gap()`으로 gap을 구조화된 리포트로 진단(날것의
+    스택트레이스 대신), (2) Maloberti 원본(`Layout of Analog CMOS IC` p.34, 웹검색으로
+    원문 확인 -- W비율만 있고 절대 전류값은 없음)의 미러비를 `sizing_roles.theta`(type
+    "A"/"A_signed", 전부 고정값)로 KCL 유도, (3) `Ibg` 자체는 새 theta feed 타입 `"const"`
+    (사용자 지시로 신설)로 자유변수화해 gain/PM/CMRR/PSRR 스펙(topology.json의
+    `sizing_roles.constraints` 참고 -- Ibg=10uA 임의값의 baseline 실측을 그대로 스펙으로
+    채택)을 만족하는 최소 전력점을 탐색. 이 과정에서 X/Y 폴딩 노드의 헤드룸 분배를 위한
+    새 엔진 기능(`device_roles.*.fold_group`, `sizing_recipe.py`의 `_fold_group_check()`)
+    과 새 성능 메트릭(`folded_cascode_gain_db`/`folded_cascode_pm_deg`)도 신설했다. 실측:
+    Ibg~2.1uA에서 power_uA~40(Ibg=10uA 대비 4.7배 절감)으로 gain/PM/CMRR/PSRR 전부
+    만족. ⚠️ gain/PM 폐형식은 sympy 전수 유도·ngspice 교차검증 전이다(각 메트릭 함수
+    docstring 참고) -- 최종 확인은 SPICE 필요. `.ai/context.md` 세션35 참고."""
+    return {
+        "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
+        "lut": _NMOS,
+        "vdd": 1.8,
+        "L_candidates": layout_grid_L_candidates(_NMOS, L_GRID_STEP, n=41),
+        "L_grid_step": L_GRID_STEP,
+        "VDS_candidates": dense_candidates(_NMOS.VDS_grid, n=13),
+        "gm_id_grid": [i * 0.5 for i in range(4, 61)],
+        "L_min": 0.15e-6,
+        "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
+        "W_bounds": (1e-6, 200e-6),
+        "min_vds_by_role": {"cascode": 0.2, "mirror": 0.2},
+        "min_finger_w": 1e-6,
+        "max_finger_w": 40e-6,
+        "vth0_slope": {"nfet": 3.356e-3, "pfet": 5.856e-3},
+    }
+
+
+def _spec_nmcnr_amplifier():
+    """2026-08-15(세션35) -- `diagnose_sizing_roles_gap()` 통합 검증 겸 등록. ⚠️ 이 회로도
+    아직 **끝까지 사이징되지 않는다**, 원인 2건 둘 다 실행 기반으로 확인됨(`.ai/context.md`
+    세션35 참고):
+    1. `topology.json`의 `_paper_target_spec.PM_target_deg`(46도, 논문 실측치)를 그대로
+       쓰면 `nmcnr_3stage_topology()` 자신의 `PM_target_deg>60` 전제(수식 유도의 근사
+       조건)와 충돌해 즉시 거부된다 -- 그래서 아래 `PM_target_deg=70.0`은 설계 목표용
+       **테스트/개발 전용 임시값**이다(current_reuse_telescopic_ota와 같은 값을 재사용했을
+       뿐, 확정 스펙 아님) -- 최종값은 사람이 정할 것.
+    2. PM_target_deg를 60도 초과로 고쳐도, `M101`(디프페어 tail 전류원)을 시작으로
+       `M101`/`M104`~`M107`/`M202`/`M302`(전부 `VB1`~`VB5` 외부 바이어스 net에만 게이트가
+       물려 있음) 바이어스 전류망 전체가 `ideal_sources` 선언 자체가 없어(folded_cascode의
+       `Ibg`보다도 더 큰 gap -- 그쪽은 최소한 미정 전류원의 '존재'는 선언돼 있었다)
+       A엔진이 못 푼다. 다음 세션에서 이 바이어스 네트워크의 목표 전류/전력을 사람이
+       정해야 한다."""
+    return {
+        "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
+        "lut": _NMOS,
+        "vdd": 2.0,
+        "GBW": 816000.0, "CL": 1e-10, "kg": 0.5,
+        "PM_target_deg": 70.0,  # 위 docstring 1번 -- 테스트 전용 임시값, 확정 스펙 아님
+        "L_candidates": layout_grid_L_candidates(_NMOS, L_GRID_STEP, n=41),
+        "L_grid_step": L_GRID_STEP,
+        "VDS_candidates": dense_candidates(_NMOS.VDS_grid, n=13),
+        "gm_id_grid": [i * 0.5 for i in range(4, 61)],
+        "L_min": 0.15e-6,
+        "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
+        "W_bounds": (1e-6, 200e-6),
+        "stage_objective": "power",
+        "stage_w_max": 500e-6,
+        "min_vds_by_role": {"cascode": 0.2, "mirror": 0.2},
+        "min_finger_w": 1e-6,
+        "max_finger_w": 40e-6,
+        "vth0_slope": {"nfet": 3.356e-3, "pfet": 5.856e-3},
+    }
+
+
 # circuit_key -> 실행 설정. 새 회로를 추가할 땐 이 dict에 항목만 추가할 것 -- 새
 # run_harness*.py 파일을 만들지 않는다(모듈 docstring 참고).
 SPECS = {
@@ -215,6 +285,26 @@ SPECS = {
         # 바로잡는다.
         "search_method": "slsqp",
         "slsqp_kwargs": {"n_starts": 3, "maxiter": 25},
+    },
+    "folded_cascode": {
+        "topology_file": "folded_cascode.topology.json",
+        "spec_fn": _spec_folded_cascode,
+        "grid_points_per_theta": 400,
+        "report_dir": "folded-cascode-report",
+        # 2026-08-15(세션35) -- 자유 theta가 Ibg 1개뿐이라 촘촘한 그리드가 저렴하다.
+        # SLSQP는 시도했으나 pm_deg 제약이 이 회로의 gm_id 격자 탐색(연속이 아니라 이산
+        # search_gm_id_for_role() 스캔) 때문에 매끄럽지 않아 3회 multi-start 전부 실현
+        # 불가능한 해로 수렴(선형탐색 실패) -- 1차원이라 정밀 그리드가 더 안정적이고
+        # 저렴해 이쪽을 채택(_spec_folded_cascode() docstring 참고).
+    },
+    "nmcnr_amplifier": {
+        "topology_file": "nmcnr_amplifier.topology.json",
+        "spec_fn": _spec_nmcnr_amplifier,
+        "grid_points_per_theta": 5,
+        "report_dir": "nmcnr-amplifier-report",
+        # 2026-08-15(세션35) -- 아직 완주 안 됨(바이어스 전류망 미선언, _spec_nmcnr_
+        # amplifier() docstring 참고) -- 실패 시 diagnose_sizing_roles_gap()이 구조화된
+        # gap 리포트를 이어 출력한다.
     },
 }
 
@@ -311,6 +401,21 @@ def run(circuit_key: str) -> None:
     except Exception as e:
         print(f"[FAIL] {type(e).__name__}: {e}")
         traceback.print_exc()
+        # 2026-08-15(세션35, 사용자 지시 -- "device_role/symmetry처럼 sizing_role도 자동으로
+        # 채우는 걸 설계하고 통합하자") -- ValueError는 sizing_roles=null 상태에서
+        # optimize_full_circuit_budget()이 A엔진/L-VDS/compensation 중 하나를 못 풀었을 때도
+        # 나는 흔한 경로다(folded_cascode의 Ibg 미정, nmcnr_amplifier의 PM_target_deg<=60
+        # 사례로 실측). 날것의 스택트레이스만 보고 사람이 원인을 다시 추적하지 않도록,
+        # 같은 topo/spec으로 diagnose_sizing_roles_gap()을 한 번 더 돌려 구조화된 gap
+        # 리포트를 이어 출력한다(진단 함수 자체가 값을 지어내지는 않는다 -- sizing_recipe.py
+        # diagnose_sizing_roles_gap() docstring 참고).
+        if isinstance(e, ValueError):
+            print()
+            print("[diagnose_sizing_roles_gap() 추가 진단]")
+            try:
+                print(" ", diagnose_sizing_roles_gap(topo, spec))
+            except Exception as _diag_e:
+                print(f"  (진단 자체도 실패: {type(_diag_e).__name__}: {_diag_e})")
 
 
 if __name__ == "__main__":

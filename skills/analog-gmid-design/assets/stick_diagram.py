@@ -2653,11 +2653,21 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
     branch_load_partner_candidates = {}
     _netclass_al, _idioms_al = _import_analog_grammar("netclass", "idioms")
     if _netclass_al is not None:
-        active_load_leg_candidates = {n for n, r in role_after.items()
-                                        if r == _netclass_al.ACTIVE_LOAD}
         _devs_al = _to_analog_grammar_devs(transistors)
         _cls_al, _imp_al, _ = _netclass_al.classify_nets(_devs_al, cur_inputs, outputs, biases,
                                                             feedbacks, clocks)
+        _by_name_al = {d["name"]: d for d in _devs_al}
+        # 2026-08-15(세션35 후속, 사용자 지적 -- "신호경로인지는 analog-grammar를 쓰면
+        # 알 수 있다") -- role_after==ACTIVE_LOAD만으로는 위상(레일 소스+HIGH_Z 드레인)
+        # 사실만 보고, 그 드레인이 진짜 신호 경로인지 다른 바이어스 생성기가 읽어가는
+        # 순수 DC 기준 노드(cls==BIAS)인지 구분 못 한다(idioms.m_mirror() 같은 세션 수정과
+        # 동일 원칙 -- current_reuse_telescopic_ota의 M60/M61/M68 실측 계기, 드레인이
+        # Vbias3/Vbias4/Vbias2로 전부 cls==BIAS).
+        active_load_leg_candidates = {
+            n for n, r in role_after.items()
+            if r == _netclass_al.ACTIVE_LOAD
+            and _cls_al.get(_by_name_al.get(n, {}).get("D")) != _netclass_al.BIAS
+        }
         _matches_al = _idioms_al.match_all(_devs_al, _cls_al, _imp_al, role_after)
         for m in _matches_al:
             if m.kind == "current-mirror":
@@ -3690,7 +3700,36 @@ def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matchin
             _devs_lcmf, refined["final_inputs"], outputs, biases, feedbacks, clocks)
         _all_matches_lcmf = _idioms_lcmf.match_all(_devs_lcmf, _cls_lcmf, _imp_lcmf, role_candidates)
         static_like_roles = _idioms_lcmf.propagate_reference_role_through_cascode(
-            _all_matches_lcmf, static_like_roles)
+            _all_matches_lcmf, static_like_roles, _devs_lcmf)
+        # ⚠️ 6번째 소스(2026-08-15 세션35, 사용자 통찰 -- "stacked current mirror의 output
+        # impedance가 active load 값이 되는 거다, 전형적인 stacked current mirror 형태다")
+        # -- m_mirror()의 active_load_legs는 다리 "자기 자신의" 드레인이 HIGH_Z인지만
+        # 본다. 그 다리 위에 캐스코드가 쌓여 있으면(예: folded_cascode의 M10 위 M8) 자기
+        # 드레인은 그 캐스코드의 소스라 정상적으로 LOW_Z로 분류돼(netclass.classify_nets()
+        # §1f) 놓친다 -- 캐스코드 스택 꼭대기까지 걸어 올라가 진짜 이득노드를 다시 찾는다
+        # (idioms.find_cascoded_active_load_legs(), _cascode_lo_up_pairs() 공유).
+        # `leg`(비율을 정하는 아래층, 예: M10)는 그대로 두고 `top`(임피던스를 만드는
+        # 위층, 예: M8)만 gain 후보에 추가한다 -- 아래 3가지 제외조건(구조 대칭/diffpair
+        # branch-load/signal-referenced 파트너)은 "비율 정밀도가 그 소자 자신의 W/L에
+        # 달려있다"는 전제로 만들어졌는데, top은 그 전제가 성립하지 않는다(비율은 이미
+        # leg에서 확정됨, top의 역할은 순수 임피던스 부스트) -- 그래서 top엔 그 제외를
+        # 적용하지 않는다(사용자 확정: "gain이니 gain으로 봐야 한다", folded_cascode의
+        # M8이 branch_load_partner_candidates에 걸려도 gain이 맞음을 실측 확인).
+        cascoded_active_load_legs = _idioms_lcmf.find_cascoded_active_load_legs(
+            _devs_lcmf, _all_matches_lcmf, _imp_lcmf, cls=_cls_lcmf)
+    else:
+        cascoded_active_load_legs = set()
+    # 2026-08-15(리팩터, 사용자 지적 -- "seed name 주는 helper를 이미 만들어뒀는데 재사용
+    # 안 했다") -- find_cascoded_active_load_legs()가 이제 propagate_reference_role_
+    # through_cascode()를 내부에서 재사용해서 "새로 캐스코드로 편입된 소자"만 반환한다
+    # (leg==top, 즉 캐스코드가 전혀 없는 경우는 자동으로 빠짐 -- 그런 소자는 이미 위
+    # active_load_leg_candidates 경로가 제외조건까지 정확히 적용해 처리하는 대상이다,
+    # current_reuse_telescopic_ota의 M12/M13/M21/M22·nmcnr_amplifier의 M109/M204가
+    # 실제 사례). 그래서 여기서 제외조건 없이 그대로 합쳐도 안전하다(idioms.py의
+    # find_cascoded_active_load_legs() docstring 참고 -- 예전엔 이 필터를 여기서 손으로
+    # 다시 걸어야 했는데, 그러다 실제로 한 번 빠뜨려 회귀를 낸 적이 있다 -- 재사용이
+    # 그 사고 클래스 자체를 구조적으로 없앤다).
+    gain_role_candidates |= cascoded_active_load_legs
 
     matching_candidates = find_matching_candidates(transistors)
     for group in matching_candidates["diff_pair"].values():
