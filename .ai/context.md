@@ -1,13 +1,13 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션34 결론"부터 먼저 읽을 것**
-— 이번 세션(세션34) 작업 요약 + 검증 결과 + 다음 세션 시작 체크리스트가 거기 정리돼
-있다. "# 세션33 결론"(M절 질문)은 세션34가 그 질문에 답하며 시작한 출발점일 뿐 더
-이상 최신이 아니다(M절이 남긴 current_mirror (a)ratio-matching vs (b)gain-stage-load
-구분 문제는 세션34가 근본원인까지 파고들어 구현·검증·실제 반영까지 완료했다 -- 세션34
-결론 참고). "# 세션32 결론"/"# 세션31 결론"은 더 이전 이력이다. 아래는 세션 진행
-중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만
-찾아보면 된다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션34 최종 요약"부터 먼저 읽을 것**
+— 그 절 하나만 읽어도 세션34 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
+시작 순서)가 재현 가능하도록 정리돼 있다. **파일 중간의 "# 세션34 결론"(M절 질문에
+처음 답한 시점)은 세션34가 그 뒤로도 N~Q절까지 한참 더 이어졌기 때문에 더 이상 최신이
+아니다** -- 그 결론이 남긴 이월 항목(M13/M22 판단, nmcnr_amplifier M109/M204)은 전부
+세션34 안에서 마저 해소됐다(맨 끝 "# 세션34 최종 요약" 참고). "# 세션33 결론"/"# 세션32
+결론"/"# 세션31 결론"은 더 이전 이력이다. 아래는 세션 진행 중 실시간으로 쌓인 상세
+이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
 
 ---
 
@@ -9941,32 +9941,19 @@ partner(C절)도 diffpair branch-load partner(E절)도 없는 소자만** `gm_id
   조정(M절 참고, 엔진 로직 자체는 무변화).
 - **library topology.json 4개** -- L절 참고, gap-fill 실제 반영.
 
-## 다음 세션 시작 순서
+## 다음 세션 시작 순서 (⚠️ 이 절은 M절 직후 시점 스냅샷 -- 더 이상 최신 아님, 세션34가
+그 뒤로도 N~Q절까지 계속 이어져 아래 이월 ①·②를 전부 해소했다. **파일 맨 끝 "# 세션34
+최종 요약"이 진짜 최신 상태다 -- 다음 세션은 반드시 그쪽부터 읽을 것.**)
 
-**특별한 최우선 없음** -- 이 세션이 스스로 발견한 모든 회귀/버그를 그 세션 안에서 해소하고
-실측 검증까지 완료했다. 이월 항목:
-1. M13/M22/M12/M21(`current_reuse_telescopic_ota`, 파트너 있는 active-load)의 matching
-   vs gain 최종 판단 -- review_needed에만 남아있음, 급하지 않으면 다음에 열어봐도 됨(J절
-   참고, 실제 회로 성능/미스매치 민감도 판단 필요).
-2. `nmcnr_amplifier`의 M109/M204(D절 수정 후 AMPLIFYING으로 재분류됨) -- 이 세션 범위
-   밖으로 남겨둔 별도 질문, 필요해지면 재조사.
-3. 세션33 L절(3963행 L 일치 전파 루프의 `current_forced` 필터 누락) -- 이 세션은 손 안 댐,
-   여전히 미해결로 이월(4개 실회로에 대해 no-op임은 세션33이 이미 확인, 급하지 않음).
+~~1. M13/M22/M12/M21(`current_reuse_telescopic_ota`, 파트너 있는 active-load)의 matching
+   vs gain 최종 판단~~ → O절에서 해소(matching이 맞음 확정, 코드 변경 없음).
+~~2. `nmcnr_amplifier`의 M109/M204~~ → P절에서 해소(구조 신호 확장으로 오탐 충돌 제거).
+3. 세션33 L절(3963행 L 일치 전파 루프의 `current_forced` 필터 누락) -- 세션34 전체가 손
+   안 댐, 여전히 미해결로 이월(4개 실회로에 대해 no-op임은 세션33이 이미 확인, 급하지 않음).
 4. 세션32/33에서 이월된 나머지 항목(레거시 `workspaces/*/run_harness.py` 삭제 여부 등)도
-   여전히 유효, 이 세션은 안 건드림.
+   여전히 유효, 세션34 전체가 안 건드림.
 
-## 커밋 상태(세션34 종료 시점)
-
-이 세션이 직접 작업한 파일(`idioms.py`/`stick_diagram.py`/`sizing_recipe.py`/library
-topology.json 4개 + 검증 과정에서 재생성된 `workspaces/{two-stage-ota-report,current-
-reuse-telescopic-ota-report}/*.instance.json`/`.report.html` + 이 `.ai/context.md`)만
-커밋 대상으로 스테이징한다. `.bkit/*`(bkit 자체 상태, 무관), zip 파일 2개(세션32 이전부터
-존재, 무관), `workspaces/current-reuse-telescopic-ota-report/full_netlist_for_grammar.
-json`/`smoke_run_harness_session18_save.py`(세션18부터 존재, 무관), `workspaces/run_
-harness.py`(세션31 신설, 세션32/33이 "포함 여부 확인 필요"로 이월해둔 항목 -- 이번
-세션도 손 안 댔고 사용자가 이번 커밋 범위로 명시하지 않아 계속 이월), `workspaces/two-
-stage-ota-report/run_harness.py`(세션31에 통합된 레거시 복사본, 삭제 여부 미결 이월)는
-전부 이번 커밋에서 제외한다.
+## 커밋 상태(M절 직후 시점 스냅샷 -- 더 이상 최신 아님, 파일 맨 끝 "# 세션34 최종 요약" 참고)
 
 ## N. 커밋 후 소규모 리팩터 -- cascode-stack 상속을 `idioms.py`로 일반화(사용자 요청)
 
@@ -10075,3 +10062,100 @@ pair_candidates()`를 별도로 재호출했음 -- 이제 `m_diffpair_branch_loa
 `stick_diagram.py`/`sizing_recipe.py` self-test 전체 exit 0, 프로덕션 harness 2건
 gain_db byte-identical 재확인 -- 순수 리팩터(대상 위치만 이동, 판정 로직 자체는 무변화),
 회귀 0건.
+
+# 세션34 최종 요약 -- current_mirror의 active-load vs ratio-matching 구조 판정 완결 +
+analog-grammar idiom 레이어 2건 일반화. **다음 세션 최우선 없음(이 세션이 발견한 항목
+전부 해소) -- 이월은 세션33 L절(급하지 않음)과 세션32/33 workspaces 정리(미결)뿐.**
+이 절 하나만 읽고도 전체가 재현 가능하도록 정리한다(위 A~Q절은 실시간 상세 기록, 필요할
+때만 참고).
+
+## 1. 무엇을 했나(시간 순)
+
+세션33 M절이 남긴 질문("current_mirror의 (a)ratio-matching vs (b)gain-stage-load를
+netlist 구조만으로 구분할 수 있나")에서 시작해, 결국 **5개의 구조적 신호**를 확립했다:
+
+1. **`netclass.ACTIVE_LOAD` role** -- 순수 connectivity(레일 소스+`imp==HIGH_Z` 드레인).
+   기존에 이미 있던 신호, 이걸로는 (a)/(b) 구분이 불충분함을 확인(반례: `two_stage_ota`의
+   M4).
+2. **구조 대칭 partner**(`find_structural_symmetry_candidates`, 전역 그래프 자기동형) --
+   `current_reuse_telescopic_ota`의 M13<->M22류. 이 신호가 있으면 **matching이 구조적으로
+   맞다**(파트너 존재 자체가 differential balance 역할을 내포, 반례 없음 -- O절에서 확정).
+3. **diffpair branch-load partner**(`idioms.m_diffpair_branch_load()`, 세션34 신설 후
+   Q절에서 idiom으로 재작성) -- diffpair 두 branch 꼭대기(캐스코드를 거쳐도 됨, `_walk_
+   single_fanout_top()`)에 각각 앉은 부하. `two_stage_ota`의 M3/M4, `nmcnr_amplifier`의
+   M108/M109(P절, 캐스코드 한 단 관통) 검출. 이것도 있으면 matching이 맞다.
+4. **`idioms.m_mirror()`의 `active_load_legs` 포트** -- role이 AMPLIFYING으로 가려진
+   active-load(예: M4, 게이트가 diffpair branch net과 겹쳐 SIGNAL로 분류됨)도 role과
+   무관하게 검출(F절).
+5. **`signal_referenced_mirror_legs`**(`idioms.m_mirror()`의 `ref_is_signal` 포트, Q절에서
+   `m_mirror()` 자체에 통합) -- diode-connected 레퍼런스 **자신의 노드**가 고정 BIAS가
+   아니라 SIGNAL이면(예: `nmcnr_amplifier`의 M203 -- M201의 신호 스윙을 그대로 받는
+   이득단 능동부하 자신이 diode-connected), diffpair/구조 대칭이 전혀 없어도 그 미러
+   다리는 matching이 맞다(사용자 통찰: "목적이 전류비가 아니라 전압 copy" -- M203/M204
+   계기, P절).
+
+또한 사용자 지적으로 **버그 3건을 실제로 재현·수정**했다: (a) `find_differential_pair_
+candidates()`가 diode+mirror 비대칭 부하(표준 5T/2단 OTA 패턴)를 원천적으로 못 찾던
+결함(D절, 층위1 폴백 내장), (b) `find_matching_candidates()`의 레일 제외 누락(H절, 합성
+fixture 디버깅 중 발견), (c) `layer1_current_mirror_fallback`의 게이트 조건이 `headroom_
+role`(대리 신호, `folded_cascode`의 M11/MN을 놓침)이었던 걸 `role`+cascode-stack 상속
+(사용자 지적, G절)으로 정정.
+
+**최종 정책**(J절, O/P절로 확정): active-load 소자 중 위 5개 신호 어느 것으로도 파트너/
+레퍼런스-신호 관계가 안 잡히는 소자만 `gm_id_role="gain"` 자동 제안. 파트너/신호-레퍼런스
+관계가 있으면 `matching`(구조적으로 확정, 반례 0건 -- M3/M4, M13/M22, M203/M204 전부 일치).
+
+**analog-grammar 일반화 2건**(사용자 요청, N절/Q절): cascode-stack 상속 로직을
+`idioms.propagate_reference_role_through_cascode()`로, diffpair branch-load 탐지를
+`idioms.m_diffpair_branch_load()` + `m_mirror()`의 `ref_is_signal` 포트로 각각 이전 --
+`stick_diagram.py`에 있던 임시 구현은 완전히 삭제하고 idiom 레이어가 원본이 됨. "무엇을
+정적 레퍼런스로 볼지"(seed) 등 소비자별 판단은 계속 호출부가 넘기는 원칙 유지(idiom
+레이어는 순수 그래프 유틸리티만 제공).
+
+**적용**: 4개 library topology.json 전부에 gap-fill 실제 반영(L절, 구조적 diff로 무손실
+확인) + `folded_cascode`에 M11/MN matching_pair 신규 추가.
+
+## 2. 최종 검증 상태(이 세션 끝 시점, 전부 재확인 완료)
+
+- `stick_diagram.py` self-test 전체(Test 1~58) -- exit 0.
+- `sizing_recipe.py` self-test 전체 -- exit 0.
+- 프로덕션 harness 2건 재실행 -- `two_stage_ota` gain_db=57.54761636494632, `current_
+  reuse_telescopic_ota` gain_db=76.48334376337718 -- **세션32/33 baseline과 byte-
+  identical, 회귀 0건**.
+- `current_reuse_telescopic_ota`의 M12/M13/M21/M22, `nmcnr_amplifier`의 M108/M109/M204
+  전부 declared `matching`과의 충돌 완전 해소(review_needed는 정보성 기록만 남음).
+
+## 3. 커밋 상태 -- **전부 커밋 완료, 작업 트리 깨끗함**
+
+이 세션에서 만든 커밋 5개(순서대로):
+1. `fa2fcfb` -- current_mirror active-load vs ratio-matching 근본원인 수정 5건 + 4개
+   library topology.json 반영(A~M절, L절 참고).
+2. `ec88076` -- cascode-stack 상속을 `idioms.py`로 일반화(N절).
+3. `a4292ef` -- M13/M22/M12/M21 matching 판단 확정 + review 메시지 정정(O절).
+4. `dcaaef5` -- `nmcnr_amplifier` M108/M109/M203/M204 gain 오탐 해소(P절).
+5. `e9d3312` -- diffpair branch-load 탐지를 `idioms.py`로 일반화(Q절).
+
+`git status --short` 재확인 결과 이 세션이 만진 파일은 전부 커밋됐고, 남은 미커밋/미추적
+항목은 전부 **세션34 이전부터 있던, 이 세션과 무관한 leftover**뿐이다: `.bkit/*`(bkit 자체
+상태), zip 파일 2개(세션32 이전), `workspaces/current-reuse-telescopic-ota-report/full_
+netlist_for_grammar.json`/`smoke_run_harness_session18_save.py`(세션18부터), `workspaces/
+run_harness.py`(세션31 신설, 세션32/33이 "포함 여부 확인 필요"로 이월해둔 채 그대로),
+`workspaces/two-stage-ota-report/run_harness.py`(세션31에 통합된 레거시 복사본, 삭제 여부
+미결) -- 전부 이번에도 안 건드림, 계속 이월.
+
+## 4. 다음 세션 이월 항목(우선순위 순, 둘 다 급하지 않음)
+
+1. **세션33 L절** -- `sizing_recipe.py` 3963행 근처 L 일치 전파 루프가 `current_forced`
+   필터 없이 모든 declared matching_pairs에 L 일치를 강제한다(원칙 위반, 세션33이 발견).
+   4개 실회로에 대해 현재는 완전한 no-op임을 세션33이 실측 확인했으나, 수정 자체는 아직
+   미적용 -- 다음에 관련 코드를 다시 만지게 되면 자연스럽게 같이 처리 가능.
+2. **workspaces 정리** -- `workspaces/run_harness.py`(세션31 신설, 커밋 대상 포함 여부),
+   `workspaces/two-stage-ota-report/run_harness.py`(레거시 복사본, 삭제 여부) 둘 다 세션
+   32부터 "확인 필요"로 계속 이월 중, 아직 아무도 답을 안 줌 -- 다음 세션에서 사용자에게
+   직접 물어볼 것.
+
+## 5. 다음 세션 시작 순서
+
+**특별한 최우선 없음.** 위 이월 항목 1/2 중 하나를 사용자에게 먼저 확인하거나(어느 걸
+먼저 할지 사용자 선택), 사용자가 새 작업을 지시하면 그걸 우선한다. 이 세션이 스스로
+발견한 모든 문제는 이 세션 안에서 전부 해소·검증·커밋까지 완료했다.
