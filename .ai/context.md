@@ -11415,19 +11415,32 @@ self-test 전체(`sizing_recipe.py`/`stick_diagram.py`) + 4개 회로 harness �
   세션 전체에 걸쳐(§1-⑥ 이전/이후, ⑪ 이후, ⑳ 이후 전부) 반복 확인돼온 baseline과 정확히
   일치(회귀 없음, 이 회로는 새 메커니즘 둘 다 안 씀 -- Monticelli 체인은 이번 세션 범위 밖).
 
-## 3. 커밋 상태 -- **세션38 전반은 커밋 완료, 후반(§1-⑧~⑳ 전체)은 아직 커밋 전**
+## 3. 커밋 상태 -- **세션38은 전부 커밋 완료됨(2026-08-19 세션 끝 시점, working tree 클린)**
 
-전반 커밋 `81a915b`(+ docs `f0792ba`) -- device_roles `gm_id_match_vgs_of` Pass 2 + self-test
-2건(`sizing_recipe.py`), `propose_device_roles_gap_fill()`의 `gm_id_match_vgs_of` 우선 가드
-(`stick_diagram.py`), M204 device_roles 변경 + constraints baseline + 주석(`nmcnr_amplifier.
-topology.json`), harness 결과물(`nmcnr_amplifier.instance.json`). **후반(§1-⑧~⑳)은 사용자
-확인 후 커밋할 것** -- 수정된 파일: `sizing_recipe.py`(헤드룸 레벨 `_ref_depth()` 확장+pre-pass
-+self-test 2건, `_feed_metric_stage_budget()`의 theta feed 레벨 `vds_match_vgs_of` 신설),
-`nmcnr_amplifier.topology.json`(M204에 `vds_match_vgs_of:"M301"`, M109에 `vds_match_vgs_of:
-"M201"` 추가 + constraints 재갱신 2회 + 주석), `nmcnr_amplifier.instance.json`(harness
-재실행 결과물), `two_stage_ota.topology.json`(`L_mirror_M3` feed에 `vds_match_vgs_of:
-{"M4":"M6"}` 추가 + 주석), `two_stage_ota.instance.json`(harness 재실행 결과물). `stick_
-diagram.py`는 후반에서 추가 변경 없음.
+세션38 커밋 4개(오래된 순):
+1. `81a915b` -- device_roles `gm_id_match_vgs_of` Pass 2 신설 + self-test 2건
+   (`sizing_recipe.py`), `propose_device_roles_gap_fill()`의 `gm_id_match_vgs_of` 우선
+   가드(`stick_diagram.py`), M204 device_roles 변경 + constraints baseline + 주석
+   (`nmcnr_amplifier.topology.json`), harness 결과물(`nmcnr_amplifier.instance.json`).
+2. `f0792ba` -- 위 전반부 문서화(docs).
+3. `b864239` -- M109/M201 + M4/M6 KVL gap 해소 -- `sizing_recipe.py`(헤드룸 레벨
+   `_ref_depth()` 확장+pre-pass+self-test 2건은 이미 1번 커밋에 포함, 이 커밋은 `_feed_
+   metric_stage_budget()`의 theta feed 레벨 `vds_match_vgs_of` 신설), `nmcnr_amplifier.
+   topology.json`(M109에 `vds_match_vgs_of:"M201"` 추가 + constraints 재갱신 + 주석),
+   `nmcnr_amplifier.instance.json`(harness 재실행 결과물), `two_stage_ota.topology.json`
+   (`L_mirror_M3` feed에 `vds_match_vgs_of:{"M4":"M6"}` 추가 + 주석), `two_stage_ota.
+   instance.json`/`two_stage_ota.report.html`(harness 재실행 결과물).
+4. `6ede82f` -- 위 후반부 문서화(docs, 이 문서 §1-⑭~⑳/§4①③ 반영).
+
+수정된 핵심 파일 최종 상태: `skills/analog-gmid-design/assets/sizing_recipe.py`(device_
+roles Pass 2 + 헤드룸 `vds_match_vgs_of` pre-pass + `_ref_depth()` 확장 + `_feed_metric_
+stage_budget()`의 theta feed 레벨 `vds_match_vgs_of` + self-test 4건), `skills/analog-
+gmid-design/assets/stick_diagram.py`(`propose_device_roles_gap_fill()`의 `gm_id_match_
+vgs_of` 우선 가드), `skills/analog-gmid-design/assets/library/nmcnr_amplifier.topology.
+json`(M204/M109에 `vds_match_vgs_of` 추가, constraints 3회 갱신), `skills/analog-gmid-
+design/assets/library/two_stage_ota.topology.json`(`L_mirror_M3`에 `vds_match_vgs_of`
+추가). `workspaces/`의 `nmcnr-amplifier-report`/`two-stage-ota-report` 결과물도 전부
+커밋됨.
 
 ## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션38 종료 시점 최신 -- **사용자가 ①을
 명시적으로 최우선으로 지정**)
@@ -11501,10 +11514,20 @@ ota`의 Monticelli unresolved_devices)
 
 ## 5. 다음 세션 시작 순서
 
-**커밋 확인 먼저 할 것** -- 세션38 전반(`81a915b`/`f0792ba`)은 이미 커밋됐지만, 후반(§1-⑧~⑳
-전체, M204/M301+M109/M201+M4/M6 KVL 수정 + theta feed 레벨 `vds_match_vgs_of` 신설)은
-아직 커밋 전이다(§3 참고). 사용자에게 커밋 여부를 확인받은 뒤 진행. **①(Phase 1/Phase 2
+**커밋 확인 불필요** -- 세션38은 커밋 4개(`81a915b`/`f0792ba`/`b864239`/`6ede82f`, §3
+참고)로 전부 완료됐고 working tree가 클린하다(다음 세션 시작 시 `git status`로 재확인만
+하면 됨, 별도 커밋 승인 절차 없이 바로 다음 작업으로 진입 가능). **①(Phase 1/Phase 2
 아키텍처, DC/AC 분리)이 최우선 이월 항목이다** -- 사용자가 세션 중 명시적으로 우선순위를
-지정했다. 다음 세션은 이 설계를 실제로 구현할지(그래프 위상정렬 엔진 신설, 큰 작업) 또는
-발견되는 사례마다 계속 pairwise로 대응할지(③의 패턴 재사용, 작은 작업) 먼저 사용자와
-확인하고 시작할 것.
+지정했다. 다음 세션은 이 설계를 실제로 구현할지(그래프 위상정렬 엔진 신설 -- `_ref_depth()`
+를 gate 체인 N-hop까지 확장, 방향 판정을 `compensation.stage_devices` 신호경로 순서로
+일반화, load의 gain-budget theta 승격까지 포함하는 큰 작업) 또는 발견되는 사례마다 계속
+pairwise로 대응할지(③의 검증된 패턴 재사용 -- load에 `vds_match_vgs_of` 추가, 방향은
+신호경로 순서로 판정, 작은 작업) 먼저 사용자와 재확인하고 시작할 것. 사용자가 다른 우선순위
+(②~⑥ 중 하나)를 지시하면 그쪽으로 유연하게 진행.
+
+**세션38 전체가 남긴 실질적 결과**: `nmcnr_amplifier`는 `pm_deg` 48.32도(세션37 시작
+시점)에서 최종 71.94도(목표 70도에 근접)까지, 3개 세션(37+37 연속+38)에 걸친 일련의
+gm_id_role/gm_id_match_vgs_of/vds_match_vgs_of 수정으로 점진적으로 정확해졌다.
+`two_stage_ota`는 이번 세션의 M4/M6 KVL 수정만으로 `gain_db`가 57.55->62.79dB로
+개선됐다(별도 회로 자유도를 안 늘리고 기존 회귀 오류만 고쳤을 뿐인데도 나온 결과 --
+이 KVL gap 클래스가 실측 성능에 실제로 영향을 준다는 강한 증거).
