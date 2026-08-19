@@ -10985,6 +10985,37 @@ pm_deg>=76.744)으로 갱신. `sizing_recipe.py`/`stick_diagram.py` self-test �
   `"matching"`으로 되돌렸다(`git diff` 확인 결과 이 세션 커밋 이후로 순수 원복, 실제 파일
   변경 없음) -- `pm_deg=76.74도` baseline 그대로 유지.
 
+**⑫ (같은 세션 이어서, 사용자 질문 "matching/gain 원리를 정리하면? 새 role이 필요한가?")
+`sizing_recipe.py`에 다섯 번째 gm_id_role `"load"` 신설 + M108/M109/M202/M302에 실제 적용 --
+pm_deg=76.74도->77.89도로 추가 개선** -- §1-⑪의 발견(`"gain"`=`gm/gds` 최대화는 캐스코드
+전용, 비캐스코드 단순 전류원엔 다른 물리량이 필요)을 일반 원리로 정리: (1) 캐스코드(gm이
+ro에 곱해 기여) -- `"gain"`이 논리적으로 정확한 기준. (2) 비캐스코드 단순 전류원(ro 자체로만
+기여) -- `gds` 최소화(=`ro` 최대화)가 필요한데 이건 `gm/gds`와 **다른 물리량**이라 `"gain"`이
+대신 최적화 안 해줌(소자·VDS마다 `gds` vs `gm_id` 곡선 모양이 달라 지름길 없음, 매번 전수
+스캔 필요). (3) VDS가 다른 declared 미러쌍(예: M203/M204) -- 개별 최적화 자체가 무의미,
+"같은 gm_id를 공유해야 한다"는 제약이 우선인 별개 문제(이건 새 role로 해결 안 됨, 조인트
+탐색이 필요 -- 범위 밖으로 이월). 사용자와 이름 논의(`AskUserQuestion`, 기존 4개 role이
+전부 "왜 이 값을 고르는가"라는 설계 의도로 이름 붙었다는 컨벤션 확인) 후 `"load"`로 확정
+(active load라는 회로적 역할을 담음, 사용자 선택 -- `"ro_max"` 같은 수식 그대로의 이름은
+컨벤션과 안 맞아 기각). 사용자가 "무조건 최대화가 맞나, 조정의 의미가 크지 않나"라고
+재지적한 부분은 문서화로 반영: 지금은 `"gain"`과 동일하게 최댓값 하나만 고르지만(이 회로의
+`objective`가 전력 최소화이고 이 소자들 `ID`가 KCL로 고정돼 있어 `ro` 최대화에 실질 비용이
+없는 상황이라 안전), 면적/기생커패시턴스가 실제 비용인 상황에서는 `"moderate"`처럼 중간값을
+고르는 변형이 향후 필요할 수 있음을 docstring에 명시(아직 안 쓰이는 옵션은 미리 안 만든다는
+원칙 그대로, 필요해지면 그때 확장).
+
+구현: `search_gm_id_for_role()`에 `elif role == "load":` 분기 신설(`"gain"`과 동일하게
+`feasible` 전체를 전수 스캔하되 `gm_gds_ratio` 대신 `gds`(`=gm_id*ID_target/ratio`)를
+직접 최소화, 즉 `ro` 최댓값을 찾음). self-test 신설(`sizing_recipe.py` 7-3e 절, toy LUT로
+"load"가 실제 `ro` 전수조사 최댓값과 일치하는지 확인). 실제 적용: `nmcnr_amplifier.
+topology.json`의 M108/M109(R1의 비캐스코드 가지, M106/M107은 캐스코드라 `"gain"` 유지)/
+M202(R2의 원래 동기 소자)/M302(R3의 비캐스코드 가지)를 `"load"`로 재분류 -- 실측: M109는
+`"gain"`과 우연히 동일(`gm_id=17.5`, 변화 없음), **M302는 `"load"`가 `"gain"`보다 실제로
+더 나음**(`ro=40199Ω` vs `36834Ω`, +9.1% -- `"gain"`도 완벽한 지름길이 아니었다는 뜻),
+M202는 `"load"`(`ro=250266Ω`)가 원래 `"matching"`(`245505Ω`)보다도 소폭 더 낫고 `"gain"`
+(`129938Ω`)보다는 훨씬 나음. 최종 결과: `pm_deg=76.74도->77.89도`, `gain_db=114.23->
+114.44dB`, `power_uA` 완전히 불변. constraints를 이 최종 baseline으로 재갱신.
+
 ## 2. 최종 검증 상태
 
 - `sizing_recipe.py`/`stick_diagram.py` self-test 전체 exit 0(신설 테스트 포함, 회귀 없음).
@@ -11021,6 +11052,12 @@ pm_deg>=76.744)으로 갱신. `sizing_recipe.py`/`stick_diagram.py` self-test �
   완전히 동일, 예상대로), `cmrr_db`/`psrr_db`는 M101 tail 기준이라 무변화. `folded_cascode`/
   `two_stage_ota` 재실행 -- 둘 다 기존과 완전히 동일한 metrics(회귀 없음, `gm_id_role="gain"`
   은 이미 다른 회로가 쓰던 기존 role, 새 엔진 코드 추가 없음).
+- ⑫ 적용 후: `sizing_recipe.py`/`stick_diagram.py`/`topology_library.py` self-test 전체
+  재실행 exit 0(`"load"` role 신설 self-test 포함). `python run_harness.py nmcnr_amplifier`
+  -- `pm_deg=77.8929368576998도`, `gain_db=114.44430870730115dB`, `power_uA` 완전히 불변.
+  `folded_cascode`/`two_stage_ota`/`current_reuse_telescopic_ota`(SLSQP 경로 포함) 전부
+  재실행 -- 넷 다 기존과 완전히 동일한 metrics(회귀 없음, `"load"` role은 nmcnr_amplifier만
+  사용해 다른 회로엔 영향 없음).
 
 ## 3. 커밋 상태
 
@@ -11042,22 +11079,27 @@ design/references/function-selection-map.md`/`sky130-worked-example.md`(함수�
 (디렉터리 자체가 없어서 만듦, `.instance.json` 포함). §1-⑩ 적용분: `nmcnr_amplifier.
 topology.json`의 `device_roles`(M106/M107/M108/M109/M302 `gm_id_role` 5곳 `matching`->
 `gain`) + `constraints`(새 baseline)만 추가 변경 -- B타입 theta 3개는 시도 후 되돌려서
-최종 diff엔 안 남음.
+최종 diff엔 안 남음. §1-⑫ 적용분: `sizing_recipe.py`의 `search_gm_id_for_role()`에 다섯
+번째 role `"load"` 신설 + self-test 추가, `nmcnr_amplifier.topology.json`의 M108/M109/
+M202/M302 `gm_id_role`을 `"load"`로 재분류 + `constraints`를 그 새 baseline으로 재갱신.
 
 ## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션37 종료 시점 최신)
 
-### ① [완결] `nmcnr_amplifier`의 `pm_deg` -- 48.32도 -> 76.74도로 회복(§1-⑧⑨⑩)
+### ① [완결] `nmcnr_amplifier`의 `pm_deg` -- 48.32도 -> 77.89도로 회복(§1-⑧⑨⑩⑪⑫)
 
 §1-⑧(Eq10/11 근사 자체가 이상화 극한에서도 과다보정)과 §1-⑨(실제 R1/R2/R3가 낮아 과소보정,
 세 스테이지 동시 저하의 3중 상호작용)로 원인을 완전히 규명한 뒤, §1-⑩에서 실제 수정까지
 완료했다 -- 진짜 원인은 "R1/R3의 L이 작아서"가 아니라 "device_roles.gm_id_role='matching'을
 쓰고 있어서"(matching은 gm_id 최소화라 오히려 출력저항을 깎아먹음)였고, 5곳을 `gm_id_role=
-"gain"`으로 바꾸는 것만으로(L도 안 건드림, 새 theta도 없음) `pm_deg=76.74도`(목표 70도에
-근접, gain_db도 100.1->114.2dB 동반 개선, power_uA 불변, floorplan_ok도 부수적으로 개선)를
-달성했다. 남은 것: 정확히 70.0도까지 더 좁히고 싶다면(현재 +6.74도 초과) `gm_id_role`을
-"gain"과 "matching" 사이의 중간 지점(예: `gm_id_min`/`gm_id_max`로 gain 탐색 범위를 살짝
-제한)으로 미세조정하는 추가 작업이 가능하나, 76.74도 자체도 이미 "합리적으로 도출된, 정직하게
-검증된" 값이라 급하지 않음(사용자 판단 필요 -- 이대로 baseline 확정할지, 더 좁힐지).
+"gain"`으로 바꾸는 것만으로(L도 안 건드림, 새 theta도 없음) `pm_deg=76.74도`를 달성했다.
+§1-⑪(사용자 질문 "M202도 gain 아닌가")로 캐스코드/비캐스코드 구분 원리를 더 정교화하고,
+§1-⑫에서 다섯 번째 role `"load"`(비캐스코드 소자 전용, `gds` 직접 최소화)를 신설해
+M108/M109/M202/M302에 적용 -- 최종 `pm_deg=77.89도`(목표 70도에 근접, gain_db도 100.1->
+114.4dB 동반 개선, power_uA 불변, floorplan_ok도 부수적으로 개선)로 마무리됐다. 남은 것:
+정확히 70.0도까지 더 좁히고 싶다면 `"load"`/`"gain"`의 중간 지점(예: `gm_id_min`/
+`gm_id_max`로 탐색 범위를 살짝 제한)으로 미세조정하는 추가 작업이 가능하나, 77.89도 자체도
+이미 "합리적으로 도출된, 정직하게 검증된" 값이라 급하지 않음(사용자 판단 필요 -- 이대로
+baseline 확정할지, 더 좁힐지).
 
 ### ② `nmcnr_amplifier`의 `audit_ok`/`floorplan_ok`/`_netlist_sections_structured`
 

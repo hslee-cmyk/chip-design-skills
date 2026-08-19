@@ -1467,6 +1467,31 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
       면적·이득의 3중 절충점)이 말하는 개념을 이 프로젝트의 "feasible 후보 스캔"
       아키텍처 위에 가장 낮은 비용으로 구현한 것이다. `"balanced"`는 그대로 유지된다
       (다른 회로의 기존 선언·회귀값에 영향 없음, 순수 추가).
+    - `"load"`(2026-08-19 세션37 연속 신설, 사용자 지시 -- nmcnr_amplifier M109/M302/M202
+      실측이 계기) — **캐스코드가 아닌 단순 전류원(active load)이 `ro` 자체로만 회로에
+      기여할 때** 전용. `"gain"`은 `gm/gds`를 최대화하는데, 이건 `R = gm(소자)·ro(소자)·
+      (...)`처럼 gm이 실제로 곱해져 기여하는 캐스코드에만 논리적으로 맞는 기준이다 --
+      캐스코드가 아닌 소자(예: 폴디드 캐스코드의 비캐스코드 branch, 단순 PMOS/NMOS 전류원
+      부하)는 `gm`이 그 기여식에 안 나타나므로 `gds` 자체를 최소화(=`ro` 최대화)하는 게
+      맞는 기준인데, 이건 `gm/gds`와 **다른 물리량**이라 "gain"이 대신 최적화해주지
+      않는다(실측 확인: `gds` vs `gm_id` 곡선 모양이 소자마다 다르다 -- 어떤 소자는
+      단조감소(`gm_id`↑→`ro`↑, "gain"이 우연히 유리), 어떤 소자는 중간에 피크가 있어
+      `"gain"`이 그 피크를 훌쩍 지나쳐 오히려 손해였다(M202, vds=1.0V: `gm_id≈3.5`에서
+      `ro` 피크, `"gain"`이 고른 `gm_id=16`은 피크 대비 거의 절반). `"matching"`(gm_id
+      최소화)도 우연히 맞을 때(feasible 하한이 곧 피크 이전 구간이면)와 틀릴 때(피크가
+      더 낮은 gm_id에 있으면)가 갈린다 -- 지름길이 없고 매번 스캔해서 실제 `ro` 최댓값을
+      찾아야 한다는 게 이번 세션의 결론. `"moderate"`처럼 "왜 이 값인가"가 이름에 담겨야
+      한다는 이 프로젝트의 관례를 따라 `"ro_max"`(수식 그대로) 대신 **회로적 역할**
+      (이 소자는 이득을 만들지 않는 단순 부하/전류원이다)을 담은 `"load"`로 명명(사용자
+      선택, 2026-08-19). `feasible` 전체를 스캔해 `gds`가 가장 작은(=`ro`가 가장 큰)
+      `gm_id`를 고른다 -- `"gain"`과 동일하게 "극단으로 미는" 방식이 아니라 "실제 최댓값을
+      찾는" 방식(정직한 스캔, 방향을 가정하지 않음)이라는 점에서 `"matching"`/`"balanced"`
+      류와 다르다. ⚠️ 이 role도 `"gain"`처럼 **무조건 최댓값**을 고른다(중간값 옵션은
+      아직 없음) -- 이 프로젝트의 다른 회로들처럼 `objective`가 전력 최소화이고 이 소자들의
+      `ID`가 KCL로 이미 고정돼 있는 한(`W`만 커질 뿐 전력 비용이 없음) 무조건 최대화가
+      안전하지만, 면적/기생커패시턴스가 실제 비용인 상황이라면 `"moderate"`처럼 중간값을
+      고르는 변형이 필요할 수 있다 -- 그런 요구가 실제로 나오면 그때 확장할 것(아직 쓰이지
+      않는 옵션을 미리 만들지 않는다는 이 프로젝트 원칙 그대로).
 
     `return_idu`(2026-08-13 세션31 신설, 기본 False -- 하위호환): True면 `gm_id` 대신
     `(gm_id, IDu)`를 반환한다. 스캔 도중 이긴 `gm_id`의 `IDu`(=`lut.gm_id_to_id_density(...)`)는
@@ -1517,9 +1542,21 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
             ratio = lut.gm_gds_ratio(gm_id, L, vds, vs)
             if ratio > best_ratio:
                 best_ratio, best_gm_id = ratio, gm_id
+    elif role == "load":
+        # 2026-08-19(세션37 연속) -- "gain"과 대칭적인 형태(feasible 전체를 스캔해 최댓값을
+        # 찾음)지만 최대화 대상이 gm/gds가 아니라 ro(=1/gds) 자체다. gds = gm_id*ID_target/
+        # gm_gds_ratio로 역산(별도 gds() 접근자가 LUT에 없어 이미 있는 gm_gds_ratio()를
+        # 재사용 -- gm=gm_id*ID_target 정의 그대로).
+        best_gm_id, best_ro = None, -1.0
+        for gm_id in feasible:
+            ratio = lut.gm_gds_ratio(gm_id, L, vds, vs)
+            gds = gm_id * ID_target / ratio
+            ro = 1.0 / gds
+            if ro > best_ro:
+                best_ro, best_gm_id = ro, gm_id
     else:
         raise ValueError(f"알 수 없는 role: {role!r} -- "
-                          f"'matching'/'gain'/'balanced'/'moderate' 중 하나여야 한다")
+                          f"'matching'/'gain'/'balanced'/'moderate'/'load' 중 하나여야 한다")
     return (best_gm_id, idu_by_gm_id[best_gm_id]) if return_idu else best_gm_id
 
 
@@ -7831,6 +7868,20 @@ if __name__ == "__main__":
     assert abs(lut.gm_gds_ratio(_gm_id_gain, _role_L, _role_vds, 0.0) - _best_ratio_direct) < 1e-9, \
         "gain role이 실제 gm/gds 최댓값을 못 고름"
     print("    PASS: matching=최소gm_id, gain=gm/gds 실측 최댓값과 일치, balanced=오름차순 첫 feasible")
+
+    print("  [2026-08-19 세션37 연속 신설 -- 'load' role: gm/gds가 아니라 ro(=1/gds) 자체를")
+    print("  최대화. nmcnr_amplifier M202(vds=1.0V) 실측으로 발견 -- 이 조건에서 gm_id가")
+    print("  중간(~3.5)에서 ro가 피크라 'gain'(gm/gds 최대, gm_id=16)은 오히려 손해였다]")
+    _gm_id_load = search_gm_id_for_role(lut, _role_L, _role_vds, 0.0, _role_id_target,
+                                         role="load", W_bounds=(1e-6, 200e-6))
+    def _ro_direct(g):
+        return 1.0 / (g * _role_id_target / lut.gm_gds_ratio(g, _role_L, _role_vds, 0.0))
+    _best_ro_direct = max(_ro_direct(g) for g in _feasible_check)
+    assert abs(_ro_direct(_gm_id_load) - _best_ro_direct) < 1e-6, \
+        "load role이 실제 ro 최댓값을 못 고름"
+    print(f"    PASS: load(ro 최대) gm_id={_gm_id_load:.2f}, ro={_ro_direct(_gm_id_load):.3e} == "
+          f"feasible 전수조사 최댓값과 일치(nmcnr_amplifier M202 실측 -- .ai/context.md 세션37 "
+          f"참고 -- 이 role을 신설하게 된 계기이자 sky130 실제 LUT에서의 검증)")
 
     print("  [W_bounds 안에 후보가 하나도 없으면 즉시 ValueError]")
     try:

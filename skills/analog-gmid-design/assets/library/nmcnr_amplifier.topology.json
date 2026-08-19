@@ -511,12 +511,12 @@
       {
         "metric": "gain_db",
         "op": ">=",
-        "value": 114.22877538740224
+        "value": 114.44430870730115
       },
       {
         "metric": "pm_deg",
         "op": ">=",
-        "value": 76.74383194615382
+        "value": 77.8929368576998
       },
       {
         "metric": "cmrr_db",
@@ -530,7 +530,7 @@
       }
     ]
   },
-  "_sizing_roles_comment": "2026-08-19 갱신(세션37, .ai/context.md 세션36 §4-① 이어감) -- metrics 신설: gain_db/pm_deg는 sizing_recipe.py의 새 F엔진(_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg, 세션37)이 topology_library.nmcnr_predict_ac_response()(2026-08-19 세션37 연속 작업으로 nmcnr_predict_notch()에서 개명 -- 4-노드 KCL 정확해, sympy 유도+ngspice/실트랜지스터 교차검증까지 이미 완료된 함수, 개명과 함께 독립 sympy 재유도로 대수 오류 없음도 재확인됨. 지금까지 스모크테스트 용도로만 쓰이다 이번에 처음 실제 배선됨, ★절대원칙★ 참고)를 실사이징값(ctx.sized)으로 호출해 계산한다(folded_cascode의 gain/PM 폐형식보다 신뢰도가 높음 -- 근사가 아니라 정확해). cmrr_db/psrr_db는 folded_cascode와 동일하게 diff_pair_tail 근사(tail_device=M101, 이 회로의 진짜 tail). PM_target_deg=70.0(run_harness.py, nmcnr_3stage_topology()의 PM_target_deg>60 구조적 전제 대비 10도 여유 -- current_reuse_telescopic_ota와 동일 값으로 확정, 논문 46도는 이 구조적 전제 자체를 위반해 채택 불가, 사용자 확인 완료)도 이 세션에서 최종 확정됐다. constraints는 2026-08-19 `python run_harness.py nmcnr_amplifier` 실측 baseline(theta_star가 전부 고정값이라 이 값 자체가 유일한 후보점, 'null 유지' 대신 folded_cascode의 'baseline 실측을 그대로 스펙으로 채택' 선례 그대로 따름)을 그대로 채웠다 -- gain_db=100.105dB(논문 NMCNR 목표 '>100dB'와 우연히 거의 정확히 일치, 참고용일 뿐 이 스펙을 그대로 인용한 게 아니라 sky130 재설계 실측치임), pm_deg=48.320deg(PM_target_deg=70도로 gm 목표를 정했지만 3-스테이지 실제 폴 배치+M109 비캐스코드 branch 때문에 정확한 4-노드 해는 그보다 낮게 나옴 -- Eq10/11이 '우세극이 나머지와 충분히 떨어져 있다'는 근사 위에서 유도된 식이라는 nmcnr_3stage_topology() 자체의 경고와 일치하는 정직한 결과, SPICE 최종 확인 전까지는 이 값이 잠정 스펙), cmrr_db/psrr_db는 diff_pair_tail 근사(order-of-magnitude, folded_cascode와 동일 한계). `python run_harness.py nmcnr_amplifier`가 이제 KeyError 없이 끝까지 완주함(audit_ok/floorplan_ok는 여전히 False -- 레이아웃/row_split 튜닝은 이 항목과 무관한 별개 gap, 다음 세션 이월). theta는 세션37에 `propose_theta_kcl_gap_fill()`(compensation_stage_devices=[M102,M103,M201,M301] 지정)+`apply_theta_kcl_gap_fill()`(신설)로 4개(kcl_M203/kcl_M302/r_mirror_M204_M203/kcl_M202) 추가 -- 지금까지 stage2/3(M202/M203/M204/M302)는 sizing_roles.theta가 아예 없었는데(엔진이 다른 경로로 암묵적으로 사이징하고 있었음), 이 4개가 그 gap을 명시적 KCL 구조로 채운다. 기존 stage1 7개(Ibg_tail 등)는 이미 이 세션 baseline 실측까지 끝난 확정 설계라 `apply_theta_kcl_gap_fill()`의 '충돌 시 스킵' 계약대로 안 건드림(제안 자체도 다름 -- 예: M108/M109를 M101의 ratio 0.5 대신 독립 자유 root로 봄, compensation_stage_devices가 M102/M103까지만 알고 M108/M109의 '스테이지1 전류생성원' 설계 의도는 모르기 때문 -- 의도적으로 재검토 대상에서 제외). 4개 신규 theta 적용 후 harness 재실행 -- metrics 전부 소수점까지 완전히 동일(power_uA=0.0018984.../gain_db=100.10522.../pm_deg=48.32012.../cmrr_db=4.47634.../psrr_db=2.59687...) -- 엔진이 이미 이 KCL 구조와 물리적으로 일치하게 M202/M203/M204/M302를 사이징하고 있었다는 뜻이라 constraints 재측정 불필요. 2026-08-19 세션37 연속(사용자 지시 'R1/R3를 늘리는 실제 사이징 변경 시도') -- pm_deg=48.32도가 목표(70도) 대비 낮은 원인을 device_roles.gm_id_role='matching'(M106/M107/M108/M109/M302)으로 좁혀 해결: 'matching'은 gm_id를 최소화하는 선택이라 R1/R3(stage1/3 출력저항)를 오히려 갉아먹고 있었다(search_gm_id_for_role() 실측 확인 -- 'gain'(gm/gds 직접 최대화) 역할로 바꾸면 같은 L(375nm)에서도 R1 기여 소자(M107) gm*ro가 18.98→45.78(2.4배), R3 기여 소자(M302) ro가 6876Ω→36834Ω(5.4배)로 즉시 개선됨). device_roles의 gm_id_role만 5곳 'matching'->'gain'으로 변경(새 theta 없음, L도 안 건드림) -- pm_deg=48.32도->76.74deg(목표 70도에 근접), gain_db=100.11dB->114.23dB, power_uA는 완전히 불변(ID가 안 바뀌므로 당연), floorplan_ok도 False->True로 개선(부수 효과, W 재분배로 aspect_ratio 1.612->1.383). constraints를 이 새 baseline으로 갱신.",
+  "_sizing_roles_comment": "2026-08-19 갱신(세션37, .ai/context.md 세션36 §4-① 이어감) -- metrics 신설: gain_db/pm_deg는 sizing_recipe.py의 새 F엔진(_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg, 세션37)이 topology_library.nmcnr_predict_ac_response()(2026-08-19 세션37 연속 작업으로 nmcnr_predict_notch()에서 개명 -- 4-노드 KCL 정확해, sympy 유도+ngspice/실트랜지스터 교차검증까지 이미 완료된 함수, 개명과 함께 독립 sympy 재유도로 대수 오류 없음도 재확인됨. 지금까지 스모크테스트 용도로만 쓰이다 이번에 처음 실제 배선됨, ★절대원칙★ 참고)를 실사이징값(ctx.sized)으로 호출해 계산한다(folded_cascode의 gain/PM 폐형식보다 신뢰도가 높음 -- 근사가 아니라 정확해). cmrr_db/psrr_db는 folded_cascode와 동일하게 diff_pair_tail 근사(tail_device=M101, 이 회로의 진짜 tail). PM_target_deg=70.0(run_harness.py, nmcnr_3stage_topology()의 PM_target_deg>60 구조적 전제 대비 10도 여유 -- current_reuse_telescopic_ota와 동일 값으로 확정, 논문 46도는 이 구조적 전제 자체를 위반해 채택 불가, 사용자 확인 완료)도 이 세션에서 최종 확정됐다. constraints는 2026-08-19 `python run_harness.py nmcnr_amplifier` 실측 baseline(theta_star가 전부 고정값이라 이 값 자체가 유일한 후보점, 'null 유지' 대신 folded_cascode의 'baseline 실측을 그대로 스펙으로 채택' 선례 그대로 따름)을 그대로 채웠다 -- gain_db=100.105dB(논문 NMCNR 목표 '>100dB'와 우연히 거의 정확히 일치, 참고용일 뿐 이 스펙을 그대로 인용한 게 아니라 sky130 재설계 실측치임), pm_deg=48.320deg(PM_target_deg=70도로 gm 목표를 정했지만 3-스테이지 실제 폴 배치+M109 비캐스코드 branch 때문에 정확한 4-노드 해는 그보다 낮게 나옴 -- Eq10/11이 '우세극이 나머지와 충분히 떨어져 있다'는 근사 위에서 유도된 식이라는 nmcnr_3stage_topology() 자체의 경고와 일치하는 정직한 결과, SPICE 최종 확인 전까지는 이 값이 잠정 스펙), cmrr_db/psrr_db는 diff_pair_tail 근사(order-of-magnitude, folded_cascode와 동일 한계). `python run_harness.py nmcnr_amplifier`가 이제 KeyError 없이 끝까지 완주함(audit_ok/floorplan_ok는 여전히 False -- 레이아웃/row_split 튜닝은 이 항목과 무관한 별개 gap, 다음 세션 이월). theta는 세션37에 `propose_theta_kcl_gap_fill()`(compensation_stage_devices=[M102,M103,M201,M301] 지정)+`apply_theta_kcl_gap_fill()`(신설)로 4개(kcl_M203/kcl_M302/r_mirror_M204_M203/kcl_M202) 추가 -- 지금까지 stage2/3(M202/M203/M204/M302)는 sizing_roles.theta가 아예 없었는데(엔진이 다른 경로로 암묵적으로 사이징하고 있었음), 이 4개가 그 gap을 명시적 KCL 구조로 채운다. 기존 stage1 7개(Ibg_tail 등)는 이미 이 세션 baseline 실측까지 끝난 확정 설계라 `apply_theta_kcl_gap_fill()`의 '충돌 시 스킵' 계약대로 안 건드림(제안 자체도 다름 -- 예: M108/M109를 M101의 ratio 0.5 대신 독립 자유 root로 봄, compensation_stage_devices가 M102/M103까지만 알고 M108/M109의 '스테이지1 전류생성원' 설계 의도는 모르기 때문 -- 의도적으로 재검토 대상에서 제외). 4개 신규 theta 적용 후 harness 재실행 -- metrics 전부 소수점까지 완전히 동일(power_uA=0.0018984.../gain_db=100.10522.../pm_deg=48.32012.../cmrr_db=4.47634.../psrr_db=2.59687...) -- 엔진이 이미 이 KCL 구조와 물리적으로 일치하게 M202/M203/M204/M302를 사이징하고 있었다는 뜻이라 constraints 재측정 불필요. 2026-08-19 세션37 연속(사용자 지시 'R1/R3를 늘리는 실제 사이징 변경 시도') -- pm_deg=48.32도가 목표(70도) 대비 낮은 원인을 device_roles.gm_id_role='matching'(M106/M107/M108/M109/M302)으로 좁혀 해결: 'matching'은 gm_id를 최소화하는 선택이라 R1/R3(stage1/3 출력저항)를 오히려 갉아먹고 있었다(search_gm_id_for_role() 실측 확인 -- 'gain'(gm/gds 직접 최대화) 역할로 바꾸면 같은 L(375nm)에서도 R1 기여 소자(M107) gm*ro가 18.98→45.78(2.4배), R3 기여 소자(M302) ro가 6876Ω→36834Ω(5.4배)로 즉시 개선됨). device_roles의 gm_id_role만 5곳 'matching'->'gain'으로 변경(새 theta 없음, L도 안 건드림) -- pm_deg=48.32도->76.74deg(목표 70도에 근접), gain_db=100.11dB->114.23dB, power_uA는 완전히 불변(ID가 안 바뀌므로 당연), floorplan_ok도 False->True로 개선(부수 효과, W 재분배로 aspect_ratio 1.612->1.383). constraints를 이 새 baseline으로 갱신. 2026-08-19 세션37 추가 연속(사용자 질문 'M202/M203/M204도 gain 아닌가' -> M202 gain 실측 시도 시 오히려 pm_deg 76.74->66.61도로 악화 발견 -> 원인 규명 -> 사용자와 함께 새 gm_id_role 'load' 설계) -- 'gain'(gm/gds 최대화)은 M107처럼 gm이 ro에 곱해져 기여하는 캐스코드에만 논리적으로 맞는 기준이고, M109/M302/M202처럼 ro 자체로만 기여하는 비캐스코드 단순 전류원엔 다른 물리량(gds 최소화=ro 최대화)이 필요함을 실측으로 확인(gds vs gm_id 곡선 모양이 소자·VDS마다 달라 '지름길'이 없음 -- M202는 VDS=1.0V에서 gm_id≈3.5가 피크인데 'gain'이 고른 gm_id=16은 피크를 훌쩍 지나쳐 절반 수준). sizing_recipe.py의 search_gm_id_for_role()에 다섯 번째 role 'load' 신설(feasible 전체를 스캔해 실제 ro 최댓값을 찾음, 'gain'과 동일한 전수조사 방식이지만 대상 물리량이 다름) -- M108/M109/M202/M302를 'gain'/'matching'에서 'load'로 재분류(M106/M107은 캐스코드라 'gain' 그대로 유지, M108은 M109와 declared pair라 일관성 위해 함께 변경하되 VDS가 같아 어차피 값은 안 바뀜). 실측: M109는 'gain'과 'load'가 우연히 동일(gm_id=17.5, 변화 없음), M302는 'load'가 'gain'보다 실제로 더 나음(gm_id=11.0/ro=40199Ω, 'gain'의 gm_id=16.0/ro=36834Ω 대비 +9.1%), M202는 'load'(gm_id=3.5/ro=250266Ω)가 원래 'matching'(gm_id=3.0/ro=245505Ω)보다도 소폭 더 낫고 'gain'(gm_id=16.0/ro=129938Ω)보다는 훨씬 나음. 최종: pm_deg=76.74->77.89deg, gain_db=114.23->114.44dB(둘 다 소폭 추가 개선), power_uA 완전히 불변. constraints를 이 최종 baseline으로 재갱신.",
   "device_roles": {
     "M101": {
       "gm_id_role": "matching",
@@ -589,7 +589,7 @@
       "vertical_stack_id": "col_m107"
     },
     "M108": {
-      "gm_id_role": "gain",
+      "gm_id_role": "load",
       "L_role": "mirror",
       "headroom_role": "mirror",
       "vs": 0.0,
@@ -597,7 +597,7 @@
       "vertical_stack_id": "col_m108"
     },
     "M109": {
-      "gm_id_role": "gain",
+      "gm_id_role": "load",
       "L_role": "mirror",
       "headroom_role": "mirror",
       "vs": 0.0,
@@ -610,7 +610,7 @@
       "vertical_stack_id": "stage2_diode_ref"
     },
     "M202": {
-      "gm_id_role": "matching",
+      "gm_id_role": "load",
       "L_role": "mirror",
       "headroom_role": "mirror",
       "vs": 0.0,
@@ -636,7 +636,7 @@
       "vertical_stack_id": "stage3_output"
     },
     "M302": {
-      "gm_id_role": "gain",
+      "gm_id_role": "load",
       "L_role": "mirror",
       "headroom_role": "mirror",
       "vs": 0.0,
