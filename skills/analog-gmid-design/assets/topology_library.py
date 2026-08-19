@@ -22,6 +22,7 @@ sizing해서 쓰는 경우가 대부분이라, 이 라이브러리는 시간이 
 §6.4, §10.2, §10.4.
 """
 from __future__ import annotations
+import functools
 import math
 
 
@@ -79,7 +80,21 @@ def nmcnr_3stage_topology(GBW: float, CL: float, PM_target_deg: float = 65.0, kg
     "노치가 흔하다"는 인상은 정정 전 잘못된 조사에서 온 것이니 새 회로에서 노치 유무를 실제로
     확인하기 전까지 가정하지 말 것.
 
+    ⚠️⚠️ **(2026-08-19 세션37 연속) Eq10/11 근사는 물리적으로 타당한 PM_target(60~90도)
+    전 구간에서 사실상 항상 깨져 있다는 게 `nmcnr_check_dominant_pole_approximation()`으로
+    정량 확인됐다** — GBW·CL·kg와 무관하게(대수적으로 완전히 소거됨) PM_target_deg 하나에만
+    좌우되며, 60~90도 구간에서 "이상화된(R→무한대) 정확해" 기준 GBW가 Eq10 예측보다 2.5~21배
+    높고 PM은 +40~+72도 더 나온다(비현실적인 149도 근처에서만 근사가 성립). 이 함수가 반환하는
+    gm1/gm2/gm3로 실제 사이징하면, `PM_target_deg`로 지정한 값을 그대로 믿지 말고 **반드시**
+    `nmcnr_predict_ac_response()`(또는 사이징 전 스크리닝용으로 `nmcnr_check_dominant_pole_
+    approximation(GBW, CL, PM_target_deg, kg)`)로 실제 PM을 재확인할 것 — 이 함수 자체는
+    Eq10/11의 검증 상태(아래)와 무관하게 **원문 수식을 그대로 구현**해 반환하므로(원문 대조는
+    이미 완료됨, 문제는 원문 수식 자체의 근사 정확도), 이 경고와 별개로 계속 동작한다. 아래
+    `topology_fn.dominant_pole_check`(호출 시 자동 계산, `nmcnr_check_dominant_pole_
+    approximation()`의 반환값 그대로)로 이 특정 스펙의 위반 정도를 바로 확인할 수 있다.
+
     검증 상태: Eq 6~11 전체 원문 이미지 대조 검증 완료. kg는 원문이 확정한 자유도(수치 예제 없음).
+    Eq10/11 자체의 근사 정확도는 위 경고 참고(원문 전사는 맞지만 근사가 실전에서 잘 안 맞음).
     """
     wGBW = 2 * math.pi * GBW
     gm3 = 4 * wGBW * CL
@@ -92,6 +107,14 @@ def nmcnr_3stage_topology(GBW: float, CL: float, PM_target_deg: float = 65.0, kg
     def topology_fn(prev_cggs):
         return [gm1, gm2, gm3]
 
+    # 2026-08-19(세션37 연속) -- ngcc_3stage_topology()의 topology_fn.stage_fT_targets와
+    # 동일 관례로 진단 결과를 반환 함수에 매달아둔다(★절대원칙★ "만들면 반드시 배선하라" --
+    # nmcnr_check_dominant_pole_approximation()을 만들고 끝내지 않고, 이 실제 진입점에서
+    # 항상 자동으로 계산되게 배선함). 계산 비용(주파수 스윕 4000점)이 작지 않아 호출자가
+    # 필요할 때만 보게 지연 평가하고 싶을 수 있으나, optimize_multistage()가 topology_fn을
+    # 반복 호출하는 빈도(회로당 수 회)를 감안하면 매번 재계산해도 실사용에 문제없는 비용이라
+    # 단순하게 즉시 계산해 붙인다.
+    topology_fn.dominant_pole_check = nmcnr_check_dominant_pole_approximation(GBW, CL, PM_target_deg, kg)
     return topology_fn
 
 
@@ -220,6 +243,90 @@ def nmcnr_predict_ac_response(gm1: float, gm2: float, gm3: float, R1: float, R2:
             crossings.append((f_c, pm))
 
     return dict(crossings=crossings, notch=len(crossings) > 1, dc_gain_db=dc_gain_db)
+
+
+@functools.lru_cache(maxsize=256)
+# 2026-08-19(세션37 연속) -- `nmcnr_3stage_topology()`가 이 함수를 topology_fn에 자동으로
+# 붙이는데(아래), 그 팩토리 자체는 `sizing_recipe.py`의 `_COMPENSATION_REGISTRY[...](**comp_
+# params)` 호출부(4017행 근처)가 **theta 그리드서치 평가마다** 재호출한다(comp_params가
+# 변하지 않아도 `_comp_cache`는 그 다음 단계(`comp_result`)만 캐싱, 이 팩토리 자체는 무방비) --
+# 4000점 주파수 스윕을 매 그리드점마다 반복 계산하지 않도록 순수함수(입력 4개 float)를 그대로
+# `lru_cache`. nmcnr_amplifier는 현재 theta가 전부 고정 단일점이라 실질 영향은 없지만, 앞으로
+# nmcnr 회로에 실제 grid search가 붙으면 이게 없으면 재계산 폭발이 된다("수정마다 재계산 효율
+# 점검을 설계 단계부터" 원칙 적용).
+def nmcnr_check_dominant_pole_approximation(GBW: float, CL: float, PM_target_deg: float, kg: float,
+                                             R_ideal: float = 1e15) -> dict:
+    """`nmcnr_3stage_topology()`의 Eq 10/11이 전제하는 "우세극이 나머지 극점들과 충분히
+    떨어져 있다"는 근사가 **주어진 스펙(GBW/PM_target/kg)에서 실제로 성립하는지** 검증한다
+    (2026-08-19 세션37 연속, 사용자 지시 "Eq10/11 근사 한계도 다시 유도하자"로 신설).
+
+    **방법**: Eq 10/11로 gm1/gm2/gm3를 구한 뒤, `nmcnr_predict_ac_response()`를 `R1=R2=R3=
+    R_ideal`(기본 1e15Ω, "무한대"에 근접한 값)로 호출해 **R1/R2/R3가 유한해서 생기는 오차를
+    배제한, Cm1/Cm2/Rm만으로 결정되는 이상화된 정확해**의 GBW/PM을 구한다(R을 1e3→1e15까지
+    스윕해 1e9 이상에서 수치적으로 수렴함을 실측 확인 — `.ai/context.md` 세션37 참고). 이
+    "R→무한대 극한의 정확해"를 Eq 10/11이 예측한 값과 비교한다 — **둘이 안 맞으면 그 자체가
+    이미 Eq10/11의 결함**(R을 무한대로 보내 이상화까지 했는데도 안 맞으므로, R1/R2/R3가
+    유한해서 생기는 오차와는 무관하게 근사식 자체의 문제)이라는 뜻이다.
+
+    **발견 1 -- GBW/CL/kg는 무관, PM_target_deg 하나만 좌우한다(놀랍지만 대수로 확인됨)**:
+    Cm1/Cm2/Rm(=`nmcnr_compensation_elements()`)을 대입해 R→무한대 극한을 sympy로 풀면
+    `H(s) = gm3·(4·CL·gm1·s+gm3²) / [4·CL·s·(2·CL²·s²+2·CL·gm3·s+gm3²)]`로 정리되는데,
+    분모의 `D(s)=2·CL²·(gm2-gm3)·s²+2·CL·gm3·(gm2-gm3)·s+gm3³·(kg-1)`가 `gm2=kg·gm3`를
+    대입하면 `gm3·(kg-1)·[2·CL²·s²+2·CL·gm3·s+gm3²]`로 인수분해되고, 이 `(kg-1)` 인자가
+    분자의 `(kg-1)`과 **정확히 소거**돼 최종 `H(s)`엔 `kg`가 아예 안 남는다(수치로도 확인:
+    kg=0.05~0.95 스윕에도 crossing이 소수점 8자리까지 불변). 또한 `gm1=gm3/tan(PM_target-60°)`
+    `gm3=4·wGBW·CL`이 전부 (GBW·CL) 곱에 선형 비례하므로, GBW나 CL을 아무리 바꿔도
+    (`gm1/gm3`, 즉 PM_target_deg만 고정하면) `gbw_ratio`/`pm_diff_deg`는 **완전히 불변**이다
+    (실측: GBW 16배 축소, CL 100배 확대 둘 다 소수점 6자리까지 동일값). **즉 이 근사가
+    성립하는지는 GBW·CL·kg와 무관하게 오직 PM_target_deg 하나로만 결정된다.**
+
+    **발견 2 -- 물리적으로 타당한 PM_target 60~90도 전 구간에서 근사가 사실상 항상 깨져
+    있다**: PM_target_deg를 61도~140도까지 스윕하면 `gbw_ratio`(실제/Eq10)가 21.4배(61도)에서
+    시작해 단조감소하지만 90도 근처에서도 여전히 2.5~3배, 140도에서야 겨우 1.0배 근처로
+    수렴한다(`pm_diff_deg`는 61도에서 +40도, 90도 근처에서 +68~72도로 오히려 더 벌어졌다가
+    140도 이후 줄어듦). `valid=True`(문턱: ratio 0.5~2.0, |diff|<15도)가 나오는 지점은
+    149도 근처(`tan(PM-60°)`의 특이점 150도 바로 아래) 뿐 -- **실무에서 쓸 일이 없는 값**이다.
+    결론: **NMCNR 구조에서 Eq10/11의 "우세극 분리" 전제는 물리적으로 의미 있는 PM_target
+    범위(60~90도) 전체에서 사실상 항상 깨져 있다** — 이 프로젝트의 `nmcnr_amplifier`
+    (GBW=816kHz/CL=1e-10F/PM_target=70도)가 특별히 나쁜 경우가 아니라 NMCNR 토폴로지
+    자체의 구조적 특성으로 보인다(다른 논문 예제/공정으로 일반화됐는지는 검증 안 함).
+
+    ⚠️ **정직한 한계 -- 이 R→무한대 진단과 실제 `nmcnr_amplifier` 실측(pm_deg=48.32도, 목표
+    70도 대비 **낮음**)은 방향이 다르다**: 이 함수(R→무한대 극한)는 PM이 목표보다 오히려
+    **높게**(70도→124.6도) 나온다고 진단하는데, 실제 유한 R1/R2/R3(진짜 스테이지 출력저항)를
+    쓰는 `nmcnr_predict_ac_response()`의 실측은 PM이 목표보다 **낮게**(70도→48.32도) 나왔다
+    (`.ai/context.md` 세션37 초반 참고). 즉 Eq10/11 자체의 근사 오류(이 함수가 진단하는 것)와
+    R1/R2/R3가 유한해서 생기는 별도 오차가 **서로 다른 방향으로 작용**하며, 실제 회로에서는
+    후자가 더 강하게 지배한다는 뜻이다 — 이 함수는 전자만 분리해서 정량화한다(둘을 합친
+    "진짜 원인"은 아직 완전히 규명 안 됨, 다음 세션 이월 가능).
+
+    반환: `{"gm1","gm2","gm3", "eq10_gbw_hz","eq11_pm_deg" (Eq10/11이 예측한 값),
+    "exact_ideal_gbw_hz","exact_ideal_pm_deg" (R→무한대 극한 정확해), "gbw_ratio" (exact/eq10),
+    "pm_diff_deg" (exact-eq11), "valid"(bool, `gbw_ratio`가 0.5~2.0 안이고 `pm_diff_deg`
+    절댓값이 15도 미만이면 True -- 두 문턱 다 임의값, 엄밀한 이론적 근거는 없고 "6.7배/54도"
+    같은 명백한 위반과 "정상 근사"를 가르는 실용적 눈금일 뿐이니 경계 근처 값은 항상 사람이
+    직접 `nmcnr_predict_ac_response()`로 재확인할 것)}`."""
+    wGBW = 2 * math.pi * GBW
+    gm3 = 4 * wGBW * CL
+    pm_rad = math.radians(PM_target_deg - 60.0)
+    if pm_rad <= 0:
+        raise ValueError("PM_target_deg는 60도보다 커야 한다(NMCNR 구조상 PM>60도 보장)")
+    gm1 = gm3 / math.tan(pm_rad)
+    gm2 = kg * gm3
+
+    exact = nmcnr_predict_ac_response(gm1, gm2, gm3, R_ideal, R_ideal, R_ideal, CL=CL, kg=kg,
+                                       f_start=1.0, f_stop=1e10, n_points=4000)
+    if not exact["crossings"]:
+        return dict(gm1=gm1, gm2=gm2, gm3=gm3, eq10_gbw_hz=GBW, eq11_pm_deg=PM_target_deg,
+                    exact_ideal_gbw_hz=None, exact_ideal_pm_deg=None,
+                    gbw_ratio=None, pm_diff_deg=None, valid=False)
+    exact_gbw_hz, exact_pm_deg = exact["crossings"][0]
+    gbw_ratio = exact_gbw_hz / GBW
+    pm_diff_deg = exact_pm_deg - PM_target_deg
+    valid = (0.5 <= gbw_ratio <= 2.0) and (abs(pm_diff_deg) < 15.0)
+    return dict(gm1=gm1, gm2=gm2, gm3=gm3, eq10_gbw_hz=GBW, eq11_pm_deg=PM_target_deg,
+                exact_ideal_gbw_hz=exact_gbw_hz, exact_ideal_pm_deg=exact_pm_deg,
+                gbw_ratio=gbw_ratio, pm_diff_deg=pm_diff_deg, valid=valid)
 
 
 # ---------------------------------------------------------------------------
@@ -404,6 +511,13 @@ if __name__ == "__main__":
     tf2 = nmcnr_3stage_topology(GBW=5e6, CL=10e-12, PM_target_deg=70.0, kg=0.5)
     gm1n, gm2n, gm3n = tf2(None)
     print(f"  gm1={gm1n*1e3:.4f}mS  gm2={gm2n*1e3:.4f}mS  gm3={gm3n*1e3:.4f}mS")
+    assert hasattr(tf2, "dominant_pole_check"), \
+        "topology_fn.dominant_pole_check가 배선 안 됨(★절대원칙★ 위반 -- 만들고 안 씀)"
+    print(f"  dominant_pole_check: valid={tf2.dominant_pole_check['valid']} "
+          f"(gbw_ratio={tf2.dominant_pole_check['gbw_ratio']:.2f}배, "
+          f"pm_diff={tf2.dominant_pole_check['pm_diff_deg']:+.1f}deg -- PM_target=70도는 "
+          f"물리적으로 타당한 구간이라 valid=False가 기대값)")
+    assert tf2.dominant_pole_check["valid"] is False
 
     print("# nmcnr_predict_ac_response() 스모크 테스트 — sky130-worked-example.md §12.3 실측치로 대조")
     Cm1, Rm, Cm2 = nmcnr_compensation_elements(gm1n, gm2n, gm3n, CL=10e-12, kg=0.5)
@@ -456,6 +570,46 @@ if __name__ == "__main__":
     assert all(d == 0 for d in _num_diffs), f"num 계수가 재유도와 다름: {_num_diffs}"
     assert all(d == 0 for d in _den_diffs), f"den 계수가 재유도와 다름: {_den_diffs}"
     print("  PASS: 하드코딩된 num(3개)/den(4개) 계수 전부 sympy 독립 재유도와 항별로 정확히 일치")
+
+    print("# nmcnr_check_dominant_pole_approximation() -- Eq10/11의 '우세극' 전제 자체를")
+    print("  R->무한대 극한의 정확해와 대조 검증(2026-08-19 세션37 연속)")
+    _diag_bad = nmcnr_check_dominant_pole_approximation(GBW=816000.0, CL=1e-10, PM_target_deg=70.0, kg=0.5)
+    print(f"  [nmcnr_amplifier 실제 스펙: GBW=816kHz/CL=1e-10F/PM_target=70도/kg=0.5]")
+    print(f"    Eq10/11 예측: GBW={_diag_bad['eq10_gbw_hz']/1e3:.1f}kHz  PM={_diag_bad['eq11_pm_deg']:.1f}deg")
+    print(f"    R->무한대 정확해: GBW={_diag_bad['exact_ideal_gbw_hz']/1e6:.3f}MHz  "
+          f"PM={_diag_bad['exact_ideal_pm_deg']:.1f}deg")
+    print(f"    gbw_ratio={_diag_bad['gbw_ratio']:.2f}배  pm_diff={_diag_bad['pm_diff_deg']:+.1f}deg  "
+          f"valid={_diag_bad['valid']}")
+    assert _diag_bad["valid"] is False, "이미 실측으로 확인된 위반 사례인데 valid=True로 나옴(회귀)"
+    print("    PASS: 이미 실측 확인된 위반(6.7배/+54.6deg)을 정확히 재현 -- Eq10/11 근사가 "
+          "이 스펙에서 실제로 깨져 있음을 회귀 감시")
+
+    print("  [GBW/CL/kg 불변성 -- gbw_ratio/pm_diff가 PM_target_deg에만 의존하고 GBW/CL/kg와는")
+    print("  완전히 무관함을 확인(sympy 인수분해로도 확인: R->무한대 극한에서 (kg-1) 인자가")
+    print("  분자/분모에서 정확히 소거돼 H(s) 자체가 kg와 무관해진다)]")
+    _diag_gbw2 = nmcnr_check_dominant_pole_approximation(GBW=50e3, CL=1e-10, PM_target_deg=70.0, kg=0.5)
+    _diag_cl2 = nmcnr_check_dominant_pole_approximation(GBW=816e3, CL=1e-8, PM_target_deg=70.0, kg=0.5)
+    _diag_kg2 = nmcnr_check_dominant_pole_approximation(GBW=816e3, CL=1e-10, PM_target_deg=70.0, kg=0.9)
+    for _label, _d in [("GBW 16배 축소", _diag_gbw2), ("CL 100배 확대", _diag_cl2), ("kg=0.9", _diag_kg2)]:
+        assert abs(_d["gbw_ratio"] - _diag_bad["gbw_ratio"]) < 1e-5, f"{_label}: gbw_ratio가 달라짐"
+        # 1e-2도 오차 허용 -- log-스페이스 주파수 격자(n_points=4000)가 스케일마다 크로스오버를
+        # 살짝 다른 지점에서 보간해서 생기는 수치 잡음(실측: 최대 0.006도), 물리적 차이 아님.
+        assert abs(_d["pm_diff_deg"] - _diag_bad["pm_diff_deg"]) < 1e-2, f"{_label}: pm_diff가 달라짐"
+    print("    PASS: GBW/CL/kg를 크게 바꿔도 gbw_ratio/pm_diff 불변 -- 이 근사의 성립 여부는 "
+          "오직 PM_target_deg 하나에만 좌우됨(놀라운 결과지만 sympy 인수분해로 확인된 사실)")
+
+    print("  [PM_target_deg만 바꿔가며 valid=True가 되는 지점 탐색 -- 물리적으로 타당한 60~90도")
+    print("  구간 전체에서 근사가 깨져 있고(ratio 2.5~21배, pm_diff +40~+72도, 전부 valid=False),")
+    print("  150도(=tan 특이점) 근처의 비현실적 극단값에서만 valid=True가 됨을 확인]")
+    for _pm in (70.0, 90.0, 120.0):
+        _d = nmcnr_check_dominant_pole_approximation(GBW=816e3, CL=1e-10, PM_target_deg=_pm, kg=0.5)
+        assert _d["valid"] is False, f"PM_target={_pm}도가 물리적으로 타당한 구간인데 valid=True로 나옴"
+    _diag_edge = nmcnr_check_dominant_pole_approximation(GBW=816e3, CL=1e-10, PM_target_deg=149.0, kg=0.5)
+    assert _diag_edge["valid"] is True, "149도(비현실적 극단값)에서도 valid=False -- 근사가 절대 안 맞는지 재확인 필요"
+    print(f"    PASS: PM_target=70/90/120도 전부 valid=False(물리적으로 타당한 구간은 전부 위반), "
+          f"149도(비현실적)에서만 valid=True(ratio={_diag_edge['gbw_ratio']:.3f}, "
+          f"pm_diff={_diag_edge['pm_diff_deg']:+.2f}deg) -- Eq10/11은 NMCNR 구조의 물리적으로 "
+          f"타당한 PM_target 전 구간에서 사실상 항상 깨져 있다는 결론")
 
     print("# NGCC 3단 (Lee et al. Table 4 예제: k=4, GB=10MHz, CL=10pF, alpha=0.3) — 전체 재현")
     tf3 = ngcc_3stage_topology(GB=10e6, k=4.0, CL=10e-12, alpha=0.3)

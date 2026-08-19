@@ -10836,6 +10836,49 @@ docstring에도 "원래 이름 nmcnr_predict_notch()에서 변경"이라고 옛 
 됐다** -- §4-①(다음 이월)의 "낮은 PM 재검토"는 이제 `nmcnr_3stage_topology()`의 Eq10/11 근사
 한계(우세극 가정) 쪽으로 원인이 좁혀졌다.
 
+**⑧ (같은 세션 이어서, 사용자 지시 "Eq10/11 근사 한계도 다시 유도하자") `nmcnr_3stage_
+topology()`의 Eq10/11 근사를 독립 재유도해 한계를 정량화, `nmcnr_check_dominant_pole_
+approximation()` 신설 + `nmcnr_3stage_topology()`에 자동 배선** -- `topology-fn-derivation-
+guide.md`가 이미 기록한 Eq10/11의 "원문 전사"(이미지 대조)와 별개로, "이 근사 자체가 실제로
+얼마나 정확한가"는 한 번도 독립적으로 재검증된 적이 없었다. `nmcnr_predict_ac_response()`에
+`Cm1/Cm2/Rm`을 대입하고 `R1,R2,R3→무한대`(스테이지 출력저항 유한값이 만드는 오차를 배제한
+이상화 극한)로 보낸 정확해를 sympy로 구해 `H(s)=gm3·(4·CL·gm1·s+gm3²)/[4·CL·s·(2·CL²·s²+
+2·CL·gm3·s+gm3²)]`라는 닫힌 형태를 얻었다 -- 놀랍게도 **`kg`가 분자/분모에서 정확히 소거돼
+`H(s)`에 아예 안 남고**(0.05~0.95 스윕에도 소수점 8자리까지 불변, 원문 자체의 "kg는 GBW/PM에
+안 나타난다"는 서술과 일치·강화), `gm1/gm3`(=PM_target_deg)만 고정하면 GBW·CL을 아무리
+바꿔도 근사의 정확도(비율/차이)가 **완전히 불변**임도 확인(16배/100배 스케일 변화에도 소수점
+5~6자리까지 동일). 즉 **이 근사가 맞는지는 GBW·CL·kg와 무관하게 오직 `PM_target_deg` 하나로만
+결정된다**는, 원문 자체엔 없던 새로운 구조적 사실을 발견했다.
+
+실측: `nmcnr_amplifier` 스펙(PM_target=70도)에서 Eq10/11 예측(GBW=816kHz/PM=70도) 대비 R→
+무한대 정확해는 GBW≈5.45MHz(**6.7배**)/PM≈124.6도(**+54.6도**)로 크게 어긋난다. PM_target을
+61~140도까지 스윕해도 물리적으로 타당한 60~90도 구간 전체(ratio 2.5~21배)에서 근사가 깨져
+있고, 150도(`tan(PM-60)` 특이점) 바로 아래의 비현실적 극단값 근처에서만 성립한다(149도에서
+ratio=0.993). **결론: NMCNR 구조에서 Eq10/11의 우세극 가정은 실무에서 쓸 수 있는 PM_target
+범위 전체에서 사실상 항상 깨져 있다** -- `nmcnr_amplifier`가 특별히 나쁜 사례가 아니라
+NMCNR 토폴로지 자체의 구조적 특성으로 보인다.
+
+⚠️ **정직한 한계(사용자에게 반드시 전달할 것) -- 방향 불일치**: 이 R→무한대 진단은 PM이
+목표보다 **높게**(124.6도) 나온다고 말하는데, 실제 `nmcnr_amplifier`의 진짜 유한 R1/R2/R3
+실측(세션37 초반, §1-⑤)은 PM이 목표보다 **낮게**(48.32도) 나왔다 -- 두 오차가 서로 다른
+방향으로 작용하고, 실제 회로에서는 유한 R 효과(이 진단 범위 밖)가 더 강하게 지배한다는 뜻.
+"Eq10/11 자체의 근사 오류"(이번에 정량화한 것)와 "R1/R2/R3가 유한해서 생기는 별도 오차"는
+서로 다른 두 가지 문제이고, 이번 세션은 전자만 완전히 규명했다 -- 후자(둘을 합친 "진짜
+원인")는 아직 규명 안 됨, 다음 세션 이월 가능.
+
+배선: `nmcnr_check_dominant_pole_approximation(GBW, CL, PM_target_deg, kg, R_ideal=1e15)`
+(`topology_library.py` 신설, `functools.lru_cache`로 재계산 방지 -- `_COMPENSATION_REGISTRY`
+팩토리 호출부가 theta 그리드서치 평가마다 재호출되는 경로라 캐싱 없이는 낭비, "수정마다
+재계산 효율 점검" 원칙 적용)를 `nmcnr_3stage_topology()`가 반환하는 `topology_fn`에
+`topology_fn.dominant_pole_check` 속성으로 자동 배선(ngcc의 `topology_fn.stage_fT_targets`와
+동일 관례) -- ★절대원칙★대로 만들고 끝내지 않고 실제 진입점에 실배선. self-test 신설
+(`topology_library.py` `__main__`): (a) nmcnr_amplifier 실제 스펙의 위반(6.7배/+54.6도)
+재현, (b) GBW 16배 축소/CL 100배 확대/kg=0.9 세 가지 변화에도 ratio/diff 불변 확인,
+(c) PM_target 70/90/120도(물리적으로 타당) 전부 valid=False, 149도(비현실적)에서만
+valid=True 확인, (d) `topology_fn.dominant_pole_check` 속성이 실제로 채워지는지 확인.
+`sizing_recipe.py`/`stick_diagram.py` self-test + `nmcnr_amplifier`/`folded_cascode`
+harness 재실행 -- 전부 회귀 없음(topology_fn 생성 비용이 미세하게 늘었을 뿐 수치는 불변).
+
 ## 2. 최종 검증 상태
 
 - `sizing_recipe.py`/`stick_diagram.py` self-test 전체 exit 0(신설 테스트 포함, 회귀 없음).
@@ -10861,6 +10904,11 @@ docstring에도 "원래 이름 nmcnr_predict_notch()에서 변경"이라고 옛 
   `grep -rn nmcnr_predict_notch`로 코드/문서 전체 재검색 -- 남은 참조는 의도적으로 남긴
   2곳뿐(`.ai/context.md`의 세션36/37 과거 기록, `topology_library.py`의 "원래 이름"이라고
   옛 이름을 명시하는 개명 이력 문단).
+- ⑧ 적용 후: `topology_library.py` 독립 실행 -- 신설 self-test 4건(위반 재현/GBW·CL·kg 불변성/
+  PM_target 스윕/`topology_fn.dominant_pole_check` 배선 확인) 전부 PASS. `sizing_recipe.py`/
+  `stick_diagram.py` self-test + `nmcnr_amplifier`/`folded_cascode` harness 재실행 -- 전부
+  metrics 완전 동일(회귀 없음, `nmcnr_3stage_topology()`에 진단 계산이 추가됐지만 `lru_cache`
+  덕에 반복 호출 비용 없음, gm1/gm2/gm3 반환값 자체는 그대로).
 
 ## 3. 커밋 상태
 
@@ -10872,23 +10920,29 @@ stick_diagram.py`(`apply_theta_kcl_gap_fill()` 신설 + `propose_theta_kcl_gap_f
 `compensation_stage_devices` 파라미터 신설 + Test 61 확장/Test 62 신설),
 `skills/analog-gmid-design/assets/topology_library.py`(`nmcnr_predict_notch()` →
 `nmcnr_predict_ac_response()` 개명 + 개명 이력/독립 재유도 문단 + `__main__`에 sympy 회귀
-가드 신설), `skills/analog-gmid-design/references/function-selection-map.md`/
-`sky130-worked-example.md`(함수명 갱신), `skills/analog-gmid-design/assets/library/
-two_stage_ota.topology.json`(참고용 언급 1건 함수명 갱신), `workspaces/run_harness.py`
-(PM_target_deg 확정 코멘트 갱신 + 함수명 갱신). 신규 생성: `workspaces/nmcnr-amplifier-report/`
-(디렉터리 자체가 없어서 만듦, `.instance.json` 포함).
+가드 신설 + `nmcnr_check_dominant_pole_approximation()` 신설 + `nmcnr_3stage_topology()`에
+`topology_fn.dominant_pole_check` 자동 배선 + `functools` import 추가), `skills/analog-gmid-
+design/references/function-selection-map.md`/`sky130-worked-example.md`(함수명 갱신),
+`skills/analog-gmid-design/references/topology-fn-derivation-guide.md`(§3에 Eq10/11 근사
+한계 재유도 결과 신설), `skills/analog-gmid-design/assets/library/two_stage_ota.topology.json`
+(참고용 언급 1건 함수명 갱신), `workspaces/run_harness.py`(PM_target_deg 확정 코멘트 갱신 +
+함수명 갱신). 신규 생성: `workspaces/nmcnr-amplifier-report/`(디렉터리 자체가 없어서 만듦,
+`.instance.json` 포함).
 
 ## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션37 종료 시점 최신)
 
-### ① [최우선 후보] `nmcnr_amplifier`의 `pm_deg=48.32도` 낮은 값 재검토
+### ① [최우선 후보] `nmcnr_amplifier`의 `pm_deg=48.32도` 낮은 값 -- "진짜 원인" 완전 규명 필요
 
-`PM_target_deg=70.0`으로 gm 목표를 잡았는데 실제 4-노드 정확해로 나온 PM은 48.32도로 상당히
-낮다 -- `nmcnr_3stage_topology()` 자신의 docstring 경고("Eq 10/11은 우세극이 나머지와 충분히
-떨어져 있다는 근사 위에서 유도된 식")와 일치하는 정직한 결과이긴 하지만, 이 값이 최종 스펙으로
-받아들일 만한지(SPICE 교차검증 없이) 사용자와 논의가 필요할 수 있다. `_nmcnr_predict()`의
-as-built 해석(목표 gm 대신 실사이징 gm으로 Cm1/Rm/Cm2를 다시 계산)이 이 낮은 PM에 얼마나
-기여했는지(목표-gm 방식과 비교)도 궁금하면 확인해볼 만하다. 급하지 않음(constraints는 이미
-이 실측값 자체를 baseline으로 채택해 자기충족적이라 harness 자체는 막히지 않는다).
+§1-⑧의 재유도로 Eq10/11 근사 자체의 오류는 정량화됐지만(R→무한대 극한에서 PM이 목표보다
+오히려 **높게** 나옴, +54.6도), 실제 `nmcnr_amplifier`(유한 R1/R2/R3)는 PM이 목표보다
+**낮게**(-21.7도, 48.32도) 나왔다 -- **방향이 반대**라 Eq10/11 근사 오류만으로는 실제 회로의
+문제를 설명 못 한다. 다음 조사 방향 후보: (a) 유한 R1/R2/R3 자체가 만드는 추가 위상지연을
+정량화(예: `nmcnr_predict_ac_response()`를 실제 R1/R2/R3로, 그리고 R→무한대로 각각 돌려
+"유한 R이 PM에 주는 순수 기여분"을 분리), (b) `_nmcnr_predict()`의 as-built 해석(목표 gm
+대신 실사이징 gm으로 Cm1/Rm/Cm2를 다시 계산)이 이 낮은 PM에 얼마나 기여했는지(목표-gm 방식과
+비교) 확인, (c) 이 값을 그대로 최종 스펙으로 받아들일지(SPICE 교차검증 없이) 사용자와 논의.
+급하지 않음(constraints는 이미 이 실측값 자체를 baseline으로 채택해 자기충족적이라 harness
+자체는 막히지 않는다) -- 다만 "왜 이런지 완전히 이해"는 아직 안 끝났다.
 
 ### ② `nmcnr_amplifier`의 `audit_ok`/`floorplan_ok`/`_netlist_sections_structured`
 
@@ -10923,11 +10977,12 @@ sections_structured`가 없어 `run_full_circuit_audit_from_topology()`가 스�
 
 ## 5. 다음 세션 시작 순서
 
-**커밋 여부부터 사용자에게 확인**(§3 참고, 이 세션은 안 함). 그 다음 §4-①(`pm_deg=48.32도`가
-받아들일 만한 값인지 사용자와 논의 -- §1-⑦의 독립 재유도로 `nmcnr_predict_ac_response()`
-자체의 버그 가능성은 배제됐으니, 이제 논의 범위는 `nmcnr_3stage_topology()`의 Eq10/11 근사
-한계로 좁혀졌다)부터 이어갈 것을 권장하되, 급하지 않으므로 사용자가 다른 우선순위(②③④ 중
-하나)를 지시하면 그쪽으로 유연하게 진행. `nmcnr_amplifier`의 사이징 자체는 이제 (레이아웃
-제외) 완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap과 `propose_
+**커밋 여부부터 사용자에게 확인**(§3 참고, 이 세션은 안 함). 그 다음 §4-①(`pm_deg=48.32도`의
+"진짜 원인" 완전 규명 -- §1-⑦로 `nmcnr_predict_ac_response()` 자체의 버그 가능성은 배제됐고,
+§1-⑧으로 Eq10/11 근사 오류도 정량화됐지만 **방향이 반대**(근사 오류는 PM을 높이는 쪽, 실제
+회로는 PM이 낮게 나옴)라 유한 R1/R2/R3 효과를 별도로 분리 조사해야 완전히 설명된다)부터
+이어갈 것을 권장하되, 급하지 않으므로 사용자가 다른 우선순위(②③④ 중 하나)를 지시하면 그쪽으로
+유연하게 진행. `nmcnr_amplifier`의 사이징 자체는 이제 (레이아웃 제외) 완결 상태 -- "만들면
+반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap과 `propose_
 theta_kcl_gap_fill()` 적용 여부 결정(옛 §4-③) 둘 다 세션37로 닫혔다.
 ①을 끝낸 뒤 순서대로 판단.
