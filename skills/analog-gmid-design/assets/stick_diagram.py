@@ -3824,6 +3824,7 @@ def _kcl_terminal_sign(kind: str, terminal: str) -> int:
 
 def propose_theta_kcl_gap_fill(transistors: list, matching_pairs_meta: list,
                                  ideal_sources: list | None = None,
+                                 compensation_stage_devices: list | None = None,
                                  inputs=(), outputs=(), feedbacks=(), biases=(), clocks=()) -> dict:
     """`sizing_roles.theta`의 전류(ID) 구조(`"const"`/`"A"`/`"A_signed"` feed -- gm_id를
     직접 다루는 `"B"`/`"C"`/`"metric_stage_budget"`류는 범위 밖)를 connectivity와
@@ -3883,10 +3884,25 @@ def propose_theta_kcl_gap_fill(transistors: list, matching_pairs_meta: list,
     ⚠️ 다른 `propose_*`류와 같은 원칙 -- 아무것도 자동으로 안 씀(제안만 반환). 자유
     root의 `bounds`는 항상 `[1e-05, 1e-05]`(folded_cascode/nmcnr_amplifier가 이미 쓴
     "1차 실행 가능하게 하는 임의값" 관행 그대로) + `review_needed`에 반드시 표시된다 --
-    최종 숫자는 사람이 스펙 맞춰 정할 것. `compensation.stage_devices`(gm_id를 compensation
-    이 별도로 관리)는 이 함수가 인지하지 못한다 -- 그 소자들이 KCL 자유 root로 잘못
-    제안되면(예: `nmcnr_amplifier`의 `M201`/`M301`과 얽힌 `M203`/`M204`/`M301`) 사람이
-    compensation 쪽 설계와 함께 재검토할 것.
+    최종 숫자는 사람이 스펙 맞춰 정할 것.
+
+    `compensation_stage_devices`(2026-08-19 세션37 신설, `propose_device_roles_gap_fill()`의
+    동명 파라미터와 동일 계약 -- `[n for grp in topology["compensation"]["stage_devices"]
+    for n in grp]`로 caller가 미리 평탄화해서 넘긴다) -- 이 소자들(예: `nmcnr_amplifier`의
+    `M102`/`M103`/`M201`/`M301`)은 gm_id를 compensation이 별도로 관리하므로 **이 함수의
+    theta 자유도 구조에 안 들어간다**: 함수 시작 시 곧바로 `resolved`에 편입시키되 이
+    소자들 자체의 `theta_proposals` 항목은 만들지 않는다(compensation이 이미 그 소자의
+    gm/ID를 결정하므로 이 함수가 또 다른 값을 강제하면 충돌). ⚠️ 이 파라미터를 안 주면
+    (기본 `None`, 하위호환) 예전처럼 compensation 소속 소자도 평범한 KCL 자유 root로
+    잘못 제안될 수 있다(2026-08-18 세션36이 처음 발견한 한계, 실제 사례: `nmcnr_amplifier`
+    의 `M301`이 `r_free_M301`이라는 독립 `const` 자유 root로 제안돼 compensation의 gm3
+    target 탐색과 정면으로 충돌하고, `M201`이 resolved로 안 잡혀 있던 탓에 `M203`/`M204`도
+    "compensation과 무관한 독립 자유쌍"으로 잘못 묶였다 -- `compensation_stage_devices`를
+    주면 `M301`은 아예 제안 대상에서 빠지고, `M203`은 `M201`(compensation이 결정)에서 온
+    KCL(`kcl_M203`)로, `M204`는 그 `M203`의 declared mirror(규칙 2.5)로 **올바르게**
+    재분류된다). 검증 패스(`_sim_ids`)에서는 compensation 소속 소자에 순수 검증용
+    placeholder(`1e-05`)를 채워 넣는다(이 함수 자신의 theta로 낸 값이 아니라 부호 일관성만
+    확인하기 위한 것 -- 실제 값은 compensation이 정한다).
 
     반환: `{"theta_proposals": [{"name",...,"bounds","feeds","intended_role_type",
     "_comment"}, ...], "review_needed": [{"device"|"devices", "reason"}, ...],
@@ -3946,7 +3962,10 @@ def propose_theta_kcl_gap_fill(transistors: list, matching_pairs_meta: list,
             forced_pair_of[a] = b
             forced_pair_of[b] = a
 
-    resolved: set = set()
+    # 2026-08-19(세션37) -- compensation 소속 소자는 시작부터 resolved로 편입(이 함수의
+    # theta 구조엔 안 들어가지만, 다른 소자가 이들을 KCL/캐스코드/미러로 참조할 땐 "이미
+    # 결정된 값"으로 취급되게 하기 위함 -- 위 docstring 참고).
+    resolved: set = set(compensation_stage_devices or [])
     theta_proposals: list = []
     review_needed: list = []
 
@@ -4120,7 +4139,11 @@ def propose_theta_kcl_gap_fill(transistors: list, matching_pairs_meta: list,
     # 값이어야 한다"는 신호인데, 조용히 넘기면 사람이 못 알아챈다. theta_proposals를
     # 실제로 bounds 중앙값으로 평가해 음수/0이 나오는 소자를 전부 찾아 review_needed에
     # 남긴다(지어내지 않는다 원칙 -- 문제를 숨기지 않고 구조화된 형태로 보고).
-    _sim_ids: dict = {}
+    # 2026-08-19(세션37) -- compensation 소속 소자는 theta_proposals에 없어 이 검증 루프가
+    # 자연스럽게 채우지 못한다(참조하는 다른 theta가 `_sim_ids.get(r, 0.0)`으로 0을 받아
+    # 가짜 "전류 0/음수" 경고를 낼 위험) -- 순수 검증용 placeholder(1e-05, 이 함수의 다른
+    # 자유 root와 동일 관행)로 미리 채워 이 오탐을 막는다. 실제 값은 compensation이 정한다.
+    _sim_ids: dict = {n: 1e-05 for n in (compensation_stage_devices or [])}
     for _t in theta_proposals:
         _feed, _mid = _t["feeds"], sum(_t["bounds"]) / 2.0
         _root_list = _feed["root"] if isinstance(_feed["root"], list) else [_feed["root"]]
@@ -4145,6 +4168,61 @@ def propose_theta_kcl_gap_fill(transistors: list, matching_pairs_meta: list,
     unresolved_devices = [t.name for t in transistors if t.name not in resolved]
     return {"theta_proposals": theta_proposals, "review_needed": review_needed,
             "unresolved_devices": unresolved_devices}
+
+
+def apply_theta_kcl_gap_fill(topology_json_path: str, result: dict) -> dict:
+    """`propose_theta_kcl_gap_fill()`의 순수 결과를 받아 **실제로 topology.json 파일을 읽고
+    병합하고 다시 쓴다**(`sizing_roles.theta`에 새 항목 append) -- `apply_fold_group_gap_fill()`
+    과 정확히 같은 계약: 이미 declared된 소자와 충돌하면 그 제안은 조용히 건너뛴다(덮어쓰지
+    않는다), 파일을 통째로 다시 씀.
+
+    "충돌"의 정의(2026-08-19 세션37 신설) -- 제안 하나(`theta_proposals[i]`)가 다루는
+    root 소자 중 **단 하나라도** 이미 기존 `sizing_roles.theta`의 어느 항목의 root에
+    들어있으면 그 제안 전체를 스킵한다(부분 적용 안 함 -- 예: `nmcnr_amplifier`의 `kcl_M101`
+    제안은 `M101`이 이미 기존 `Ibg_tail` theta의 root라서 스킵되고, `r_free_M108_M109`도
+    `M108`/`M109`가 이미 기존 `r_fold_M108_M109`의 root라서 스킵된다 -- 이 두 소자는 이미
+    이번 세션 baseline 실측까지 끝난 확정 설계라 재제안으로 조용히 갈아엎지 않는다). 이미
+    theta가 있는 소자를 전혀 다루지 않는 순수 신규 제안(예: 지금까지 `sizing_roles.theta`가
+    아예 없던 `M202`/`M203`/`M204`/`M302`)만 실제로 추가된다.
+
+    반환: `{"applied": [theta_name, ...], "skipped_conflict": [{"name","conflicting_devices"}
+    , ...]}`."""
+    with open(topology_json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    sizing_roles = data.get("sizing_roles")
+    if sizing_roles is None:
+        sizing_roles = {}
+    existing_theta = sizing_roles.get("theta") or []
+
+    existing_roots: set = set()
+    for t in existing_theta:
+        feed = t.get("feeds")
+        if not isinstance(feed, dict):
+            continue
+        root = feed.get("root")
+        existing_roots.update(root if isinstance(root, list) else [root])
+
+    applied, skipped = [], []
+    for proposal in result.get("theta_proposals", []):
+        feed = proposal["feeds"]
+        root = feed["root"] if isinstance(feed["root"], list) else [feed["root"]]
+        conflicting = [n for n in root if n in existing_roots]
+        if conflicting:
+            skipped.append({"name": proposal["name"], "conflicting_devices": conflicting})
+            continue
+        existing_theta.append(proposal)
+        existing_roots.update(root)
+        applied.append(proposal["name"])
+
+    sizing_roles["theta"] = existing_theta
+    data["sizing_roles"] = sizing_roles
+
+    with open(topology_json_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    return {"applied": applied, "skipped_conflict": skipped}
 
 
 def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matching_pairs_meta: list,
@@ -12658,6 +12736,33 @@ if __name__ == "__main__":
           f"compensation.stage_devices(M201/M301)와 얽혀 있어 이 함수 혼자서는 온칩 "
           f"레퍼런스를 못 찾음(정직한 한계, 사람이 compensation 쪽과 함께 재검토할 것)")
 
+    print("  [compensation_stage_devices=[M102,M103,M201,M301]을 주면 위 한계가 풀리는지 -- "
+          "2026-08-19 세션37 신설]")
+    _t61c_flat = [n for grp in _t61_meta["compensation"]["stage_devices"] for n in grp]
+    _t61c_result = propose_theta_kcl_gap_fill(
+        _t61_trs, _t61_meta["symmetry"]["matching_pairs"],
+        ideal_sources=_t61_meta.get("ideal_sources"), compensation_stage_devices=_t61c_flat,
+        inputs=("Vin_p", "Vin_n"))
+    assert _t61c_result["unresolved_devices"] == [], \
+        f"compensation 제외해도 전부 resolve돼야 하는데: {_t61c_result['unresolved_devices']}"
+    _t61c_names = {t["name"] for t in _t61c_result["theta_proposals"]}
+    _t61c_roots = {n for t in _t61c_result["theta_proposals"]
+                    for n in (t["feeds"]["root"] if isinstance(t["feeds"]["root"], list)
+                              else [t["feeds"]["root"]])}
+    assert not (_t61c_roots & set(_t61c_flat)), \
+        f"compensation 소속 소자가 theta root로 잘못 제안됨: {_t61c_roots & set(_t61c_flat)}"
+    assert "kcl_M203" in _t61c_names, \
+        "M201(compensation)이 resolved로 처리되면 M203은 독립 자유쌍이 아니라 KCL로 유도돼야 함"
+    _t61c_by_name = {t["name"]: t for t in _t61c_result["theta_proposals"]}
+    assert _t61c_by_name["kcl_M203"]["feeds"]["terms"] == [{"device": "M201", "sign": 1}], \
+        "kcl_M203이 M201에서 유도돼야 함: " + str(_t61c_by_name["kcl_M203"])
+    assert "r_mirror_M204_M203" in _t61c_names, \
+        "M204는 M203의 declared mirror(규칙 2.5)로 재분류돼야 함(더 이상 독립 자유쌍 아님)"
+    assert "kcl_M302" in _t61c_names, \
+        "M301(compensation)이 resolved로 처리되면 M302는 그 KCL 유도값이어야 함"
+    print(f"    PASS: M201/M301이 theta 구조에서 빠지고, M203({_t61c_by_name['kcl_M203']['feeds']}) "
+          f"이 M201에서 KCL로, M204가 M203의 declared mirror로 재분류됨(더 이상 독립 자유쌍 아님)")
+
     print("  [folded_cascode -- 규칙 2.7(gate mirror, MP->M3/M4)가 실제로 필요한지 재확인 "
           "-- 처음엔 이 규칙이 없어서 MP가 회로 나머지와 완전히 단절된 고아 자유변수로 "
           "남았었다(실측 발견)]")
@@ -12687,3 +12792,53 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 61 전체 PASS ===")
+
+    print()
+    print("=== Test 62: apply_theta_kcl_gap_fill() -- propose_theta_kcl_gap_fill() 결과를")
+    print("  실제 topology.json에 반영(2026-08-19 세션37 신설, 사용자 지시 'propose_theta")
+    print("  적용하자'). 이미 declared된 소자를 다루는 제안은 충돌로 스킵되고(M101/M108/M109")
+    print("  등 이미 baseline 실측까지 끝난 stage1은 그대로), stage2/3(M202/M203/M204/M302,")
+    print("  세션37에 이 함수로 처음 채워진 소자)만 실제로 추가되는지 검증한다. 실제 라이브러리")
+    print("  파일은 이미 세션37에 이 4개가 적용된 상태이므로, 임시 사본에서 그 4개를 제거해")
+    print("  '적용 전' 상태를 재구성한 뒤 테스트한다(파일 현재 상태와 무관하게 항상 재현 가능")
+    print("  하도록) ===")
+    import tempfile as _t62_tempfile, shutil as _t62_shutil
+
+    _T62_NEW_NAMES = {"kcl_M203", "r_mirror_M204_M203", "kcl_M202", "kcl_M302"}
+    with _t62_tempfile.TemporaryDirectory() as _t62_tmpdir:
+        _t62_path = _t49_os.path.join(_t62_tmpdir, "nmcnr_amplifier.topology.json")
+        _t62_shutil.copy(_t49_os.path.join(_t49_lib, "nmcnr_amplifier.topology.json"), _t62_path)
+        with open(_t62_path, encoding="utf-8") as _f:
+            _t62_data = json.load(_f)
+        # '적용 전' 상태 재구성(이 함수로 세션37에 이미 추가된 4개를 제거) -- stage1 7개만 남김
+        _t62_data["sizing_roles"]["theta"] = [
+            t for t in _t62_data["sizing_roles"]["theta"] if t["name"] not in _T62_NEW_NAMES]
+        with open(_t62_path, "w", encoding="utf-8") as _f:
+            json.dump(_t62_data, _f, indent=2, ensure_ascii=False)
+        _t62_before_names = {t["name"] for t in _t62_data["sizing_roles"]["theta"]}
+        assert _t62_before_names == {"Ibg_tail", "r_split_M102_M103", "r_fold_M108_M109",
+                                       "kcl_M104", "kcl_M105", "r_series_M106", "r_series_M107"}
+        _t62_before_by_name = {t["name"]: t for t in _t62_data["sizing_roles"]["theta"]}
+        _t62_applied = apply_theta_kcl_gap_fill(_t62_path, _t61c_result)
+        assert set(_t62_applied["applied"]) == _T62_NEW_NAMES, \
+            f"실제로 추가돼야 할 신규 theta 집합이 예상과 다름: {_t62_applied['applied']}"
+        _t62_skipped_names = {s["name"] for s in _t62_applied["skipped_conflict"]}
+        assert _t62_skipped_names == {"kcl_M101", "r_free_M108_M109", "r_series_M106",
+                                        "r_series_M107", "kcl_M104", "kcl_M105"}, \
+            f"이미 declared된 stage1 소자를 다루는 제안이 스킵되지 않음: {_t62_skipped_names}"
+        with open(_t62_path, encoding="utf-8") as _f:
+            _t62_after = json.load(_f)
+        _t62_after_names = {t["name"] for t in _t62_after["sizing_roles"]["theta"]}
+        assert _t62_after_names == _t62_before_names | _T62_NEW_NAMES, \
+            "적용 후 theta 목록이 (기존 7개 + 신규 4개)와 일치하지 않음"
+        # 기존 7개 theta는 값 자체가 한 글자도 안 바뀌었는지 확인(스킵=완전 불변 보장)
+        for _name in _t62_before_names:
+            _after_entry = next(t for t in _t62_after["sizing_roles"]["theta"] if t["name"] == _name)
+            assert _after_entry == _t62_before_by_name[_name], \
+                f"기존 theta {_name!r}가 스킵됐는데도 값이 바뀜(apply_ 계약 위반)"
+    print(f"    PASS: 신규 적용={sorted(_t62_applied['applied'])}, 충돌로 스킵된 기존 "
+          f"소자={sorted(_t62_skipped_names)} -- 기존 7개 theta는 바이트 단위로 불변, "
+          f"파일 밖(임시 디렉터리)에서만 검증해 실제 라이브러리 파일은 안 건드림")
+
+    print()
+    print("  === Test 62 전체 PASS ===")

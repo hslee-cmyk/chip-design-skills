@@ -10782,6 +10782,35 @@ nmcnr_amplifier` 실행 -- **세션35/36이 막혀 있던 `objective["maximize"]
 재실행해 동일 결과로 재현 확인(deterministic, theta_star가 전부 고정 단일점이라 재실행해도
 같은 값).
 
+**⑥ (같은 세션 이어서, 사용자 지시 "propose_theta 적용하자") `propose_theta_kcl_gap_fill()`을
+`nmcnr_amplifier`에 실제 적용** -- 세션36 §4-②로 남겨뒀던 결정을 이 세션 안에서 마저 처리.
+먼저 `compensation_stage_devices` 없이 그냥 돌려보니 `M301`(compensation.stage_devices, gm3
+관리 소자)이 `r_free_M301`이라는 독립 `const` 자유 root로 제안돼 compensation의 gm3 target
+탐색과 정면 충돌할 뻔했다(함수 자신의 docstring이 이미 "이 함수가 compensation.stage_devices를
+인지 못 한다"고 경고해둔 바로 그 한계, 세션36 §3-③-2가 이미 지목했던 개선 후보) -- 그래서
+**`propose_theta_kcl_gap_fill()`에 `compensation_stage_devices` 파라미터를 신설**(2026-08-19,
+`propose_device_roles_gap_fill()`의 동명 파라미터와 동일 계약): 이 소자들을 함수 시작부터
+`resolved`로 편입시키되 이들 자신은 theta_proposals에 안 넣는다(compensation이 이미 값을
+결정하므로 이 함수가 또 다른 값을 강제하면 충돌) -- `M301`/`M201`을 자유 root/KCL root에서
+제외하니 그 파급으로 `M203`(`M201`의 diode 레퍼런스, KCL로 정확히 유도됨)/`M204`(`M203`의
+declared mirror)가 "독립 자유쌍"에서 "compensation 소속 M201에서 유도되는 KCL 관계"로 **더
+정확하게 재분류**됐다(부작용이 아니라 이 파라미터가 의도한 개선 그 자체). 검증 패스의
+`_sim_ids`에도 compensation 소속 소자에 순수 검증용 placeholder(1e-05)를 미리 채워 가짜
+"전류 0/음수" 오탐을 방지. `apply_theta_kcl_gap_fill()`(신설, `apply_fold_group_gap_fill()`과
+동일한 "충돌 시 스킵" 계약 -- 제안이 다루는 root 소자 중 하나라도 이미 declared theta의
+root면 그 제안 전체를 건너뜀)로 실제 파일에 반영: **`M101`/`M108`/`M109`/`M104`/`M105`/
+`M106`/`M107`(이미 이 세션 baseline 실측까지 끝난 stage1 7개)은 전부 충돌로 스킵돼 한 글자도
+안 바뀌었고**, 지금까지 `sizing_roles.theta`가 아예 없던 stage2/3 4개 소자(`M202`/`M203`/
+`M204`/`M302`)에 대해서만 `kcl_M203`/`kcl_M302`/`r_mirror_M204_M203`/`kcl_M202` 4개가 새로
+추가됐다(theta 7개→11개). `python run_harness.py nmcnr_amplifier` 재실행 -- **metrics가
+소수점까지 완전히 동일**(power_uA/gain_db/pm_deg/cmrr_db/psrr_db 전부 이전 실측과 정확히
+일치) -- 엔진이 이미 이 KCL 구조와 물리적으로 일치하게 이 4개 소자를 암묵적으로 사이징하고
+있었다는 뜻이라 `constraints` 재측정이 불필요했다(그냥 지금까지 그 사실이 `sizing_roles.
+theta`에 명시적으로 문서화돼 있지 않았을 뿐). `sizing_recipe.py`/`stick_diagram.py` self-test에
+Test 61 확장(`compensation_stage_devices` 경로 검증) + Test 62(`apply_theta_kcl_gap_fill()`
+신설 검증, 임시 사본에서만 테스트해 실제 라이브러리 파일은 self-test가 직접 건드리지 않음)
+신설 -- 전체 재실행 exit 0.
+
 ## 2. 최종 검증 상태
 
 - `sizing_recipe.py`/`stick_diagram.py` self-test 전체 exit 0(신설 테스트 포함, 회귀 없음).
@@ -10796,14 +10825,21 @@ nmcnr_amplifier` 실행 -- **세션35/36이 막혀 있던 `objective["maximize"]
   `current_reuse_telescopic_ota`(SLSQP 경로)는 이번 세션엔 재실행하지 않았다 -- `_metric_
   device_footprint()`에 추가한 `nmcnr_gain_db`/`nmcnr_pm_deg` 분기는 그 회로의 metric_spec과
   무관한 새 elif라 이론상 영향 없음(다음 세션에서 시간 나면 재확인해도 좋음, 급하지 않음).
+- ⑥ 적용 후: `sizing_recipe.py`/`stick_diagram.py` self-test 전체 재실행 exit 0(Test 61 확장
+  + Test 62 신설 포함). `python run_harness.py nmcnr_amplifier`/`folded_cascode` 재실행 --
+  둘 다 metrics 완전 동일(회귀 없음, `propose_theta_kcl_gap_fill()`의 새 파라미터는 기본값
+  `None`이라 하위호환).
 
 ## 3. 커밋 상태
 
 이 세션은 아직 커밋 안 됨(다음 세션 시작 시 확인) -- 수정 파일: `.ai/context.md`(이 절),
 `skills/analog-gmid-design/assets/library/nmcnr_amplifier.topology.json`(metrics/objective/
-constraints 신설), `skills/analog-gmid-design/assets/sizing_recipe.py`(F엔진 3종+self-test
-신설), `workspaces/run_harness.py`(PM_target_deg 확정 코멘트 갱신). 신규 생성:
-`workspaces/nmcnr-amplifier-report/`(디렉터리 자체가 없어서 만듦, `.instance.json` 포함).
+constraints 신설 + theta 4개 추가), `skills/analog-gmid-design/assets/sizing_recipe.py`
+(F엔진 3종+self-test 신설), `skills/analog-gmid-design/assets/stick_diagram.py`
+(`apply_theta_kcl_gap_fill()` 신설 + `propose_theta_kcl_gap_fill()`의 `compensation_stage_
+devices` 파라미터 신설 + Test 61 확장/Test 62 신설), `workspaces/run_harness.py`(PM_target_deg
+확정 코멘트 갱신). 신규 생성: `workspaces/nmcnr-amplifier-report/`(디렉터리 자체가 없어서
+만듦, `.instance.json` 포함).
 
 ## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션37 종료 시점 최신)
 
@@ -10824,12 +10860,14 @@ sections_structured`가 없어 `run_full_circuit_audit_from_topology()`가 스�
 생략됨) -- 세션36 §4 목록의 folded_cascode 항목 ④(레이아웃/핑거 튜닝)와 같은 카테고리, 사이징
 정확성과 무관한 별개 범위. 급하지 않음.
 
-### ③ `propose_theta_kcl_gap_fill()`을 `nmcnr_amplifier`에 실제로 적용할지 결정(세션36 §4-②
-그대로 이월, 이번 세션에 진전 없음)
+### ③ `propose_theta_kcl_gap_fill()`의 정직한 한계 -- Monticelli class-AB 패턴은 여전히 미지원
+(세션36 §3-③-1 그대로, 이번 세션 `compensation_stage_devices`로 §3-③-2는 해소됐지만 §3-③-1은
+안 건드림)
 
-순수 함수로만 검증됐고 `apply_` 짝 함수가 없다. `M101`/`M108`/`M109`의 theta는 이미 손으로
-파일에 있으므로, 재실행해서 비교 검증만 할지/완전히 새로 갈아엎을지/앞으로 "새 회로 저작 시
-1차 초안 생성용"으로만 쓸지 사용자 판단 필요.
+`idioms.m_float_source()`가 이미 이 패턴(anti-parallel 상보쌍)을 찾아주는데 이 함수는 아직
+그 idiom을 재사용 안 함. `current_reuse_telescopic_ota`의 `M9a`/`M9b`/`M18a`/`M18b`가 여전히
+`unresolved_devices`로 남는다(정직하게 보고는 되지만 풀리지는 않음, 아래 ④-5와 동일 항목이라
+중복 이월임을 명시).
 
 ### ④ 세션34 이전부터 계속 이월 중인 항목 5개(전부 급하지 않음, 원문 그대로 재나열 --
 "이월 목록 갱신 시 바로 위 세션만 보지 말 것" 경고를 이번에도 지킴)
@@ -10851,6 +10889,6 @@ sections_structured`가 없어 `run_full_circuit_audit_from_topology()`가 스�
 **커밋 여부부터 사용자에게 확인**(§3 참고, 이 세션은 안 함). 그 다음 §4-①(`pm_deg=48.32도`가
 받아들일 만한 값인지 사용자와 논의)부터 이어갈 것을 권장하되, 급하지 않으므로 사용자가 다른
 우선순위(②③④ 중 하나)를 지시하면 그쪽으로 유연하게 진행. `nmcnr_amplifier`의 사이징 자체는
-이제 (레이아웃 제외) 완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap은
-세션37로 닫혔다.
+이제 (레이아웃 제외) 완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap과
+`propose_theta_kcl_gap_fill()` 적용 여부 결정(옛 §4-③) 둘 다 세션37로 닫혔다.
 ①을 끝낸 뒤 순서대로 판단.

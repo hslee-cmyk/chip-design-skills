@@ -240,84 +240,297 @@
     "theta": [
       {
         "name": "Ibg_tail",
-        "bounds": [1e-05, 1e-05],
-        "feeds": {"type": "const", "root": ["M101"]},
+        "bounds": [
+          1e-05,
+          1e-05
+        ],
+        "feeds": {
+          "type": "const",
+          "root": [
+            "M101"
+          ]
+        },
         "intended_role_type": "D",
         "_comment": "M101(tail)의 gate=VB1은 이 넷리스트 밖 외부 바이어스라 절대 전류값이 KCL로 안 나온다(folded_cascode의 Ibg와 정확히 같은 패턴 -- 2026-08-18 세션, .ai/context.md 세션35가 '바이어스망 gap'이라 부르던 것의 실체가 net 분류 문제가 아니라 이 전류 자유도였음을 재확인). 1차값은 folded_cascode 세션35 1단계와 동일하게 임의의 10uA로 고정해 harness가 실제로 완주하는지부터 확인한다 -- power 최소화 탐색은 그 다음 단계."
       },
       {
         "name": "r_split_M102_M103",
-        "bounds": [0.5, 0.5],
-        "feeds": {"type": "A", "root": ["M102", "M103"], "reference": ["M101"]},
+        "bounds": [
+          0.5,
+          0.5
+        ],
+        "feeds": {
+          "type": "A",
+          "root": [
+            "M102",
+            "M103"
+          ],
+          "reference": [
+            "M101"
+          ]
+        },
         "intended_role_type": "A",
         "_comment": "diffpair(M102/M103)가 tail 전류를 반씩 나눠 가짐(순수 KCL, 자유도 없음) -- folded_cascode의 r_split_M1_M2와 동일 패턴."
       },
       {
         "name": "r_fold_M108_M109",
-        "bounds": [0.5, 0.5],
-        "feeds": {"type": "A", "root": ["M108", "M109"], "reference": ["M101"]},
+        "bounds": [
+          0.5,
+          0.5
+        ],
+        "feeds": {
+          "type": "A",
+          "root": [
+            "M108",
+            "M109"
+          ],
+          "reference": [
+            "M101"
+          ]
+        },
         "intended_role_type": "A",
         "_comment": "2026-08-18 재정정(사용자 지적, 2차) -- 1차 정정에서 M108을 'root'로 바꾸면서도 여전히 그 값을 M104-M102(NodeF1 뺄셈)로 유도하는 실수를 반복했다. 사용자 설명으로 인과관계를 다시 확정: M108/M109(다이오드+미러 쌍, current_forced=true)가 진짜 전류생성원(diode-connected로 스스로 얼마의 전류를 흘릴지 '정의'하는 소자)이고, M106/M107은 그 생성원의 drain(=NodeM1/NodeM2) DC 바이어스가 NodeF1/NodeF2 쪽 신호 스윙에 흔들리지 않도록 격리하는 순수 캐스코드(voltage block)일 뿐 -- 캐스코드는 절대 전류를 스스로 정의하지 않는다. M104는 M102(diffpair 다리)와 M108(생성전류)의 **합**을 감당하도록 sizing된다(아래 kcl_M104/kcl_M105, 뺄셈이 아니라 덧셈으로 정정 -- 이전 버전의 '캐스코드 전류가 음수 안 되게 K>1' 논리 자체가 잘못된 인과관계에서 나온 것이었다, 합산이라 애초에 음수가 될 위험이 없다). 그래서 진짜 자유도는 M108/M109(root, 이 theta)이고 M104/M105는 유도값이다 -- K=0.5(M101=tail 기준, diffpair 다리 하나와 같은 크기)를 1차값으로 선택: I(M108)=I(M109)=0.5*I_tail=I(M102), 그 결과 I(M104)=I(M105)=I(M102)+I(M108)=I_tail 정확히(깔끔한 값이라 1차 검증에 적합) -- 최종값은 gain/PM 등 실측 스펙 맞추며 조정 가능."
       },
       {
         "name": "kcl_M104",
-        "bounds": [1.0, 1.0],
-        "feeds": {"type": "A_signed", "root": "M104",
-                  "terms": [{"device": "M102", "sign": 1}, {"device": "M108", "sign": 1}]},
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "root": "M104",
+          "terms": [
+            {
+              "device": "M102",
+              "sign": 1
+            },
+            {
+              "device": "M108",
+              "sign": 1
+            }
+          ]
+        },
         "intended_role_type": "A",
         "_comment": "NodeF1 KCL(sympy로 확인: I(M102)+I(M106)=I(M104), M106=M108이므로 I(M104)=I(M102)+I(M108)) -- M104는 diffpair 다리 전류와 M108(전류생성원)이 캐스코드(M106)를 통해 내려보내는 전류의 합을 그대로 흡수하도록 sizing된다, 자유도 없음."
       },
       {
         "name": "kcl_M105",
-        "bounds": [1.0, 1.0],
-        "feeds": {"type": "A_signed", "root": "M105",
-                  "terms": [{"device": "M103", "sign": 1}, {"device": "M109", "sign": 1}]},
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "root": "M105",
+          "terms": [
+            {
+              "device": "M103",
+              "sign": 1
+            },
+            {
+              "device": "M109",
+              "sign": 1
+            }
+          ]
+        },
         "intended_role_type": "A",
         "_comment": "M104측(kcl_M104)과 대칭인 NodeF2 KCL: I(M105)=I(M103)+I(M109)."
       },
       {
         "name": "r_series_M106",
-        "bounds": [1.0, 1.0],
-        "feeds": {"type": "A", "root": ["M106"], "reference": ["M108"]},
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A",
+          "root": [
+            "M106"
+          ],
+          "reference": [
+            "M108"
+          ]
+        },
         "intended_role_type": "A",
         "_comment": "M106(캐스코드, voltage block)은 전류를 스스로 정의하지 않고 M108(전류생성원)이 정한 값을 그대로 따라간다(NodeM1에 이 둘뿐이라 순수 직렬, ratio=1.0)."
       },
       {
         "name": "r_series_M107",
-        "bounds": [1.0, 1.0],
-        "feeds": {"type": "A", "root": ["M107"], "reference": ["M109"]},
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A",
+          "root": [
+            "M107"
+          ],
+          "reference": [
+            "M109"
+          ]
+        },
         "intended_role_type": "A",
         "_comment": "M106측(r_series_M106)과 대칭 -- M107은 M109를 그대로 따라간다."
+      },
+      {
+        "name": "kcl_M203",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "root": "M203",
+          "terms": [
+            {
+              "device": "M201",
+              "sign": 1
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "NodeC net KCL(PMOS source->drain/NMOS drain->source 관례, _kcl_terminal_sign()) -- propose_theta_kcl_gap_fill() 자동 제안, 자유도 없음."
+      },
+      {
+        "name": "kcl_M302",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "root": "M302",
+          "terms": [
+            {
+              "device": "M301",
+              "sign": 1
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "Vout net KCL(PMOS source->drain/NMOS drain->source 관례, _kcl_terminal_sign()) -- propose_theta_kcl_gap_fill() 자동 제안, 자유도 없음."
+      },
+      {
+        "name": "r_mirror_M204_M203",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A",
+          "root": [
+            "M204"
+          ],
+          "reference": [
+            "M203"
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "M204는 declared current_forced 매칭쌍(M203와)의 미러 -- source/drain으로 안 이어진 순수 게이트 미러라 실제 W비율은 topology 단계에서 모름, ratio=1.0은 placeholder(review 필요). propose_theta_kcl_gap_fill() 자동 제안."
+      },
+      {
+        "name": "kcl_M202",
+        "bounds": [
+          1.0,
+          1.0
+        ],
+        "feeds": {
+          "type": "A_signed",
+          "root": "M202",
+          "terms": [
+            {
+              "device": "M204",
+              "sign": 1
+            }
+          ]
+        },
+        "intended_role_type": "A",
+        "_comment": "NodeS2 net KCL(PMOS source->drain/NMOS drain->source 관례, _kcl_terminal_sign()) -- propose_theta_kcl_gap_fill() 자동 제안, 자유도 없음."
       }
     ],
     "metrics": {
-      "power_uA": {"type": "sum_current"},
+      "power_uA": {
+        "type": "sum_current"
+      },
       "gain_db": {
         "type": "nmcnr_gain_db",
-        "gm1_device": "M102", "gm2_device": "M201", "gm3_device": "M301",
-        "stage1_cascode_n": "M107", "stage1_fold_leg_a": "M103", "stage1_fold_leg_b": "M105",
-        "stage1_mirror_p": "M109", "stage2_devices": ["M202", "M204"],
-        "stage3_devices": ["M301", "M302"], "CL": 1e-10, "kg": 0.5
+        "gm1_device": "M102",
+        "gm2_device": "M201",
+        "gm3_device": "M301",
+        "stage1_cascode_n": "M107",
+        "stage1_fold_leg_a": "M103",
+        "stage1_fold_leg_b": "M105",
+        "stage1_mirror_p": "M109",
+        "stage2_devices": [
+          "M202",
+          "M204"
+        ],
+        "stage3_devices": [
+          "M301",
+          "M302"
+        ],
+        "CL": 1e-10,
+        "kg": 0.5
       },
       "pm_deg": {
         "type": "nmcnr_pm_deg",
-        "gm1_device": "M102", "gm2_device": "M201", "gm3_device": "M301",
-        "stage1_cascode_n": "M107", "stage1_fold_leg_a": "M103", "stage1_fold_leg_b": "M105",
-        "stage1_mirror_p": "M109", "stage2_devices": ["M202", "M204"],
-        "stage3_devices": ["M301", "M302"], "CL": 1e-10, "kg": 0.5
+        "gm1_device": "M102",
+        "gm2_device": "M201",
+        "gm3_device": "M301",
+        "stage1_cascode_n": "M107",
+        "stage1_fold_leg_a": "M103",
+        "stage1_fold_leg_b": "M105",
+        "stage1_mirror_p": "M109",
+        "stage2_devices": [
+          "M202",
+          "M204"
+        ],
+        "stage3_devices": [
+          "M301",
+          "M302"
+        ],
+        "CL": 1e-10,
+        "kg": 0.5
       },
-      "cmrr_db": {"type": "cmrr_estimate", "circuit_family": "diff_pair_tail", "tail_device": "M101"},
-      "psrr_db": {"type": "psrr_estimate", "circuit_family": "diff_pair_tail", "tail_device": "M101"}
+      "cmrr_db": {
+        "type": "cmrr_estimate",
+        "circuit_family": "diff_pair_tail",
+        "tail_device": "M101"
+      },
+      "psrr_db": {
+        "type": "psrr_estimate",
+        "circuit_family": "diff_pair_tail",
+        "tail_device": "M101"
+      }
     },
-    "objective": {"minimize": "power_uA"},
+    "objective": {
+      "minimize": "power_uA"
+    },
     "constraints": [
-      {"metric": "gain_db", "op": ">=", "value": 100.10522099728999},
-      {"metric": "pm_deg", "op": ">=", "value": 48.32012021429867},
-      {"metric": "cmrr_db", "op": ">=", "value": 4.476344188206636},
-      {"metric": "psrr_db", "op": ">=", "value": 2.596865150438907}
+      {
+        "metric": "gain_db",
+        "op": ">=",
+        "value": 100.10522099728999
+      },
+      {
+        "metric": "pm_deg",
+        "op": ">=",
+        "value": 48.32012021429867
+      },
+      {
+        "metric": "cmrr_db",
+        "op": ">=",
+        "value": 4.476344188206636
+      },
+      {
+        "metric": "psrr_db",
+        "op": ">=",
+        "value": 2.596865150438907
+      }
     ]
   },
-  "_sizing_roles_comment": "2026-08-19 갱신(세션37, .ai/context.md 세션36 §4-① 이어감) -- metrics 신설: gain_db/pm_deg는 sizing_recipe.py의 새 F엔진(_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg, 세션37)이 topology_library.nmcnr_predict_notch()(4-노드 KCL 정확해, sympy 유도+ngspice/실트랜지스터 교차검증까지 이미 완료된 함수 -- 지금까지 스모크테스트 용도로만 쓰이다 이번에 처음 실제 배선됨, ★절대원칙★ 참고)를 실사이징값(ctx.sized)으로 호출해 계산한다(folded_cascode의 gain/PM 폐형식보다 신뢰도가 높음 -- 근사가 아니라 정확해). cmrr_db/psrr_db는 folded_cascode와 동일하게 diff_pair_tail 근사(tail_device=M101, 이 회로의 진짜 tail). PM_target_deg=70.0(run_harness.py, nmcnr_3stage_topology()의 PM_target_deg>60 구조적 전제 대비 10도 여유 -- current_reuse_telescopic_ota와 동일 값으로 확정, 논문 46도는 이 구조적 전제 자체를 위반해 채택 불가, 사용자 확인 완료)도 이 세션에서 최종 확정됐다. constraints는 2026-08-19 `python run_harness.py nmcnr_amplifier` 실측 baseline(theta_star가 전부 고정값이라 이 값 자체가 유일한 후보점, 'null 유지' 대신 folded_cascode의 'baseline 실측을 그대로 스펙으로 채택' 선례 그대로 따름)을 그대로 채웠다 -- gain_db=100.105dB(논문 NMCNR 목표 '>100dB'와 우연히 거의 정확히 일치, 참고용일 뿐 이 스펙을 그대로 인용한 게 아니라 sky130 재설계 실측치임), pm_deg=48.320deg(PM_target_deg=70도로 gm 목표를 정했지만 3-스테이지 실제 폴 배치+M109 비캐스코드 branch 때문에 정확한 4-노드 해는 그보다 낮게 나옴 -- Eq10/11이 '우세극이 나머지와 충분히 떨어져 있다'는 근사 위에서 유도된 식이라는 nmcnr_3stage_topology() 자체의 경고와 일치하는 정직한 결과, SPICE 최종 확인 전까지는 이 값이 잠정 스펙), cmrr_db/psrr_db는 diff_pair_tail 근사(order-of-magnitude, folded_cascode와 동일 한계). `python run_harness.py nmcnr_amplifier`가 이제 KeyError 없이 끝까지 완주함(audit_ok/floorplan_ok는 여전히 False -- 레이아웃/row_split 튜닝은 이 항목과 무관한 별개 gap, 다음 세션 이월).",
+  "_sizing_roles_comment": "2026-08-19 갱신(세션37, .ai/context.md 세션36 §4-① 이어감) -- metrics 신설: gain_db/pm_deg는 sizing_recipe.py의 새 F엔진(_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg, 세션37)이 topology_library.nmcnr_predict_notch()(4-노드 KCL 정확해, sympy 유도+ngspice/실트랜지스터 교차검증까지 이미 완료된 함수 -- 지금까지 스모크테스트 용도로만 쓰이다 이번에 처음 실제 배선됨, ★절대원칙★ 참고)를 실사이징값(ctx.sized)으로 호출해 계산한다(folded_cascode의 gain/PM 폐형식보다 신뢰도가 높음 -- 근사가 아니라 정확해). cmrr_db/psrr_db는 folded_cascode와 동일하게 diff_pair_tail 근사(tail_device=M101, 이 회로의 진짜 tail). PM_target_deg=70.0(run_harness.py, nmcnr_3stage_topology()의 PM_target_deg>60 구조적 전제 대비 10도 여유 -- current_reuse_telescopic_ota와 동일 값으로 확정, 논문 46도는 이 구조적 전제 자체를 위반해 채택 불가, 사용자 확인 완료)도 이 세션에서 최종 확정됐다. constraints는 2026-08-19 `python run_harness.py nmcnr_amplifier` 실측 baseline(theta_star가 전부 고정값이라 이 값 자체가 유일한 후보점, 'null 유지' 대신 folded_cascode의 'baseline 실측을 그대로 스펙으로 채택' 선례 그대로 따름)을 그대로 채웠다 -- gain_db=100.105dB(논문 NMCNR 목표 '>100dB'와 우연히 거의 정확히 일치, 참고용일 뿐 이 스펙을 그대로 인용한 게 아니라 sky130 재설계 실측치임), pm_deg=48.320deg(PM_target_deg=70도로 gm 목표를 정했지만 3-스테이지 실제 폴 배치+M109 비캐스코드 branch 때문에 정확한 4-노드 해는 그보다 낮게 나옴 -- Eq10/11이 '우세극이 나머지와 충분히 떨어져 있다'는 근사 위에서 유도된 식이라는 nmcnr_3stage_topology() 자체의 경고와 일치하는 정직한 결과, SPICE 최종 확인 전까지는 이 값이 잠정 스펙), cmrr_db/psrr_db는 diff_pair_tail 근사(order-of-magnitude, folded_cascode와 동일 한계). `python run_harness.py nmcnr_amplifier`가 이제 KeyError 없이 끝까지 완주함(audit_ok/floorplan_ok는 여전히 False -- 레이아웃/row_split 튜닝은 이 항목과 무관한 별개 gap, 다음 세션 이월). theta는 세션37에 `propose_theta_kcl_gap_fill()`(compensation_stage_devices=[M102,M103,M201,M301] 지정)+`apply_theta_kcl_gap_fill()`(신설)로 4개(kcl_M203/kcl_M302/r_mirror_M204_M203/kcl_M202) 추가 -- 지금까지 stage2/3(M202/M203/M204/M302)는 sizing_roles.theta가 아예 없었는데(엔진이 다른 경로로 암묵적으로 사이징하고 있었음), 이 4개가 그 gap을 명시적 KCL 구조로 채운다. 기존 stage1 7개(Ibg_tail 등)는 이미 이 세션 baseline 실측까지 끝난 확정 설계라 `apply_theta_kcl_gap_fill()`의 '충돌 시 스킵' 계약대로 안 건드림(제안 자체도 다름 -- 예: M108/M109를 M101의 ratio 0.5 대신 독립 자유 root로 봄, compensation_stage_devices가 M102/M103까지만 알고 M108/M109의 '스테이지1 전류생성원' 설계 의도는 모르기 때문 -- 의도적으로 재검토 대상에서 제외). 4개 신규 theta 적용 후 harness 재실행 -- metrics 전부 소수점까지 완전히 동일(power_uA=0.0018984.../gain_db=100.10522.../pm_deg=48.32012.../cmrr_db=4.47634.../psrr_db=2.59687...) -- 엔진이 이미 이 KCL 구조와 물리적으로 일치하게 M202/M203/M204/M302를 사이징하고 있었다는 뜻이라 constraints 재측정 불필요.",
   "device_roles": {
     "M101": {
       "gm_id_role": "matching",
