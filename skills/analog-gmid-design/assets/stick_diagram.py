@@ -3478,6 +3478,675 @@ def propose_vertical_stack_id_gap_fill(transistors: list, matching_pairs: list,
     return {"proposals": proposals, "conflicts": conflicts, "components_used": components_used}
 
 
+def propose_fold_group_gap_fill(transistors: list, matching_pairs: list, device_roles: dict,
+                                  ideal_sources: list | None = None) -> dict:
+    """`device_roles.*.fold_group`(`sizing_recipe.py`의 `_fold_group_check()`가 검증하는
+    헤드룸 우회 근거) 대상을 **connectivity만으로** 제안한다(2026-08-18, 사용자 대화로
+    설계 확정 -- `folded_cascode.topology.json`의 손으로 확정한 `fold_group` 11개 소자를
+    선언 0개인 상태(cold start)에서 100% 재현하는 것으로 검증됨, 아래 알고리즘 설명 참고).
+
+    **왜 `_kcl_and_matching_edges()`를 수정하지 않는가**: 처음엔 "PMOS/NMOS 경계가 항상
+    drain-drain"이라는 사실(사용자 지적)을 반영해 그 함수의 `internal_series` 판정에
+    kind-awareness를 추가하려 했으나, 실제로는 불필요했다 -- 정상 회로에서 degree-2 net은
+    항상 진짜 직렬(같은 kind면 S-D, 다른 kind면 D-D)이므로, 그 함수가 이미 하는 "net을
+    쓰는 소자가 정확히 2개면 union"이라는 kind-blind 규칙 자체가 이미 옳다. 문제는 그
+    규칙이 **아니라**, union된 컬럼의 경계가 항상 레일에 닿는다는 걸 검증 안 하는 것뿐이었다
+    (아래 2단계가 그 검증을 담당). 그래서 공유 함수는 전혀 안 건드리고 이 함수를 순수
+    후처리로 얹었다.
+
+    **3단계 알고리즘**:
+    1. **직렬 union** -- `_kcl_and_matching_edges()`의 `internal_series` edge(정확히 2개
+       소자가 쓰는 net, `ideal_sources` 종단 net은 제외 -- 그건 `_thin_singleton_ideal_
+       source_check()`의 별도 경로)로 union-find. `device_roles`에 이미 declared
+       `vertical_stack_id`가 있는 소자는 그 declared 그룹을 우선하고(사람 선언 존중,
+       `propose_vertical_stack_id_gap_fill()`의 conflict 처리와 동일 정신), 없는 소자만
+       이 union에 참여한다 -- 부분적으로만 declared된 회로(예: 앞으로 `nmcnr_amplifier`에
+       사람이 몇 개만 먼저 채워넣는 경우)에서도 안전하게 동작하도록.
+    2. **레일-앵커 검증(해체)** -- 1번에서 만들어진 각 다중-멤버 컴포넌트의 "바깥 경계"
+       net(컴포넌트 안에서 정확히 1개 소자만 쓰는 net)이 전부 `_RAIL_NETS` 또는
+       `ideal_sources` 종단인지 확인한다. 전부 그렇다면(예: `M201`-`NodeC`-`M203`,
+       `vdd`↔`vss` 양끝 레일 도달) 정상적인 다중-멤버 `vertical_stack_id` 컬럼으로 남긴다
+       (fold_group 불필요). 하나라도 non-rail net(예: `folded_cascode`의 `Y`, 그 자체가
+       아직 안 풀린 진짜 fold 노드)이면 이 컴포넌트 전체를 다시 singleton으로 해체하고,
+       해체 전 내부에 있던 직렬 edge를 기억해둔다(3단계에서 재사용).
+    3. **fold_group 결합** -- 1)원래부터 singleton이던 소자, 2)해체된 소자 전부를 대상으로,
+       (a) degree>=3 net(진짜 다방향 합류, 예: `X`/`Y`/`tail`) 체이닝 + (b) 2번에서 해체되며
+       기억해둔 내부 직렬 edge, 둘을 합쳐 다시 union-find. 크기 2 이상인 최종 컴포넌트가
+       `fold_group` 제안 대상 -- 라벨은 `f"fold_{정렬된 첫 소자명}"`(결정론적, 사람이 나중에
+       재명명 가능).
+
+    **"진짜 fold"와 "이미 아는 idiom"을 구분해서 보고한다**(2026-08-18, 사용자 지적 --
+    "M1/M2/M11은 fold가 아니고 differential pair의 전형적인 구조야"): degree>=3 hub net이라고
+    전부 "미분류 fold"로 뭉뚱그리면 안 된다 -- `find_matching_candidates()`(순수 connectivity,
+    `W`/사이징 결과 불필요)로 `diff_pair`/`current_mirror` 후보를 먼저 찾고, 제안된
+    `fold_group` 멤버 중 그 후보에 포함된 소자는 `reason`에 `"diffpair_tail"` 또는
+    `"current_mirror_reference"`로 표시한다(`folded_cascode`의 `tail` 노드: `M1`/`M2`=
+    `diff_pair`, `M11`=`MN`의 `current_mirror` -- 둘 다 이미 아는 패턴). 어떤 후보에도
+    안 걸리는 소자는 `"unclassified_fold"`(예: `X`/`Y` 노드의 `M1`/`M3`/`M6` 등 -- 각자
+    다른 이유로 따로 분류되고 그 자체를 설명하는 idiom이 없는 진짜 미분류 합류)로 표시한다.
+    이 라벨은 헤드룸 엔진 동작에 아무 영향이 없다(둘 다 그대로 `fold_group` 필드/
+    `_fold_group_check()`를 재사용) -- 사람이 리뷰할 때 "흔한 패턴"과 "이 회로만의 특이
+    구조"를 구분하려는 정보성 표시일 뿐이다.
+
+    **`vertical_stack_id_proposals`**: `fold_group`이 제안된 소자 중 아직 `vertical_stack_id`가
+    없는 소자에는 `f"col_{소자명.lower()}"`(결정론적 singleton 라벨)도 같이 제안한다 --
+    `fold_group`은 "이 소자가 singleton 컬럼"이라는 전제 위에서만 의미가 있으므로, 두 필드는
+    사실상 함께 채워져야 한다(`propose_vertical_stack_id_gap_fill()`과 책임이 안 겹치는 이유:
+    그 함수는 declared 값을 union 그룹 안에서 "전파"만 하지 완전히 새 라벨을 만들지 않는다 --
+    이 함수는 정확히 그 반대 상황, declared가 하나도 없는 singleton 소자를 다룬다).
+
+    ⚠️ 다른 `propose_*` 함수들과 같은 원칙 -- 이 함수는 아무것도 안 씀(제안만 반환).
+    실제 파일 반영은 `apply_fold_group_gap_fill()`.
+
+    반환: `{"proposals": {device: fold_group_label}, "reason": {device: "diffpair_tail"|
+    "current_mirror_reference"|"unclassified_fold"}, "vertical_stack_id_proposals":
+    {device: vsid_label}, "normal_multi_member_columns": [[device,...], ...],
+    "dissolved_components": [[device,...], ...]}`."""
+    by_name = {t.name: t for t in transistors}
+    ideal_terms = set()
+    for src in (ideal_sources or []):
+        ideal_terms.update(src.get("terminals", []))
+
+    declared_vsid = {name: entry.get("vertical_stack_id")
+                      for name, entry in device_roles.items()
+                      if isinstance(entry, dict) and entry.get("vertical_stack_id")}
+
+    # Stage 1: declared 소자는 자기 declared 그룹에, 나머지만 internal_series로 union
+    series_edges = [(a, b) for a, b, kind, _d in _kcl_and_matching_edges(transistors, matching_pairs)
+                     if kind == "internal_series"
+                     and not any(n in ideal_terms for n in
+                                 (by_name[a].source, by_name[a].drain,
+                                  by_name[b].source, by_name[b].drain))]
+    parent = {t.name: t.name for t in transistors}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    for a, b in series_edges:
+        if a not in declared_vsid and b not in declared_vsid:
+            union(a, b)
+
+    comp = defaultdict(list)
+    for t in transistors:
+        if t.name in declared_vsid:
+            comp[("declared", declared_vsid[t.name])].append(t.name)
+        else:
+            comp[("computed", find(t.name))].append(t.name)
+
+    # Stage 2: 다중-멤버(computed) 컴포넌트가 레일에 양끝 도달하는지 검증, 아니면 해체
+    final_singletons = set()
+    normal_multi_member_columns = []
+    dissolved_components = []
+    dissolved_internal_edges = []
+    for key, members in comp.items():
+        if len(members) == 1:
+            final_singletons.add(members[0])
+            continue
+        if key[0] == "declared":
+            # 사람이 이미 확정한 다중-멤버 declared 그룹은 안 건드리되(재해체 안 함),
+            # normal_multi_member_columns에는 그대로 기록한다 -- 2026-08-18 실측 발견:
+            # 이 필드를 기록 안 하면 "이미 declared된 정상 컬럼"과 "아직 아무것도 모름"이
+            # 반환값에서 구분이 안 돼(둘 다 그냥 빠짐), 이 함수를 반복 호출하는 쪽(예:
+            # 검증용 self-test, 사람의 재확인)이 이미 끝난 컬럼을 계속 "미확인"으로 오인함.
+            normal_multi_member_columns.append(sorted(members))
+            continue
+        boundary_nets = []
+        for name in members:
+            t = by_name[name]
+            for n in (t.source, t.drain):
+                touches = sum(1 for m2 in members
+                               if by_name[m2].source == n or by_name[m2].drain == n)
+                if touches == 1:
+                    boundary_nets.append(n)
+        anchored = all((n in _RAIL_NETS or n in ideal_terms) for n in boundary_nets)
+        if anchored:
+            normal_multi_member_columns.append(sorted(members))
+        else:
+            final_singletons.update(members)
+            dissolved_components.append(sorted(members))
+            for a, b in series_edges:
+                if a in members and b in members:
+                    dissolved_internal_edges.append((a, b))
+
+    # Stage 3: singleton끼리 (a) hub net(degree>=3) 체이닝 + (b) 해체된 내부 edge + (c) 이미
+    # declared라 Stage1/2를 거치지 않고 곧장 final_singletons에 들어간 소자끼리의 degree=2
+    # net(예: `Vg7`=M5.drain/M7.drain -- 둘 다 이미 declared singleton이라 Stage2 해체가
+    # 애초에 발동 안 하므로 이 edge가 없으면 fold_group 체인이 M5/M7/M9/M6/M8/M10 쪽에서
+    # 끊긴다, 2026-08-18 실측 발견) -- 셋을 합쳐 재결합 -> fold_group.
+    net_uses = defaultdict(list)
+    for t in transistors:
+        net_uses[t.source].append(t.name)
+        net_uses[t.drain].append(t.name)
+
+    fedges = set(tuple(sorted(e)) for e in dissolved_internal_edges)
+    for net, uses in net_uses.items():
+        if net in _RAIL_NETS or net in ideal_terms:
+            continue
+        devs_here = sorted(set(u for u in uses if u in final_singletons))
+        if len(uses) >= 3 and len(devs_here) >= 2:
+            for a, b in zip(devs_here, devs_here[1:]):
+                fedges.add(tuple(sorted((a, b))))
+        elif len(uses) == 2 and len(devs_here) == 2:
+            fedges.add(tuple(sorted(devs_here)))
+
+    parent2 = {n: n for n in final_singletons}
+
+    def find2(x):
+        while parent2[x] != x:
+            parent2[x] = parent2[parent2[x]]
+            x = parent2[x]
+        return x
+
+    def union2(a, b):
+        ra, rb = find2(a), find2(b)
+        if ra != rb:
+            parent2[ra] = rb
+
+    for a, b in fedges:
+        union2(a, b)
+
+    fcomp = defaultdict(list)
+    for n in final_singletons:
+        fcomp[find2(n)].append(n)
+
+    # 이미 아는 idiom(diff_pair/current_mirror)으로 설명되는 소자 표시(사용자 지적 반영 --
+    # degree>=3라고 전부 "미분류 fold"로 뭉뚱그리지 않는다).
+    candidates = find_matching_candidates(transistors)
+    diffpair_devices = {t.name for group in candidates["diff_pair"].values() for t in group}
+    mirror_devices = {t.name for group in candidates["current_mirror"].values() for t in group}
+
+    proposals, reason, vsid_proposals = {}, {}, {}
+    for members in fcomp.values():
+        if len(members) < 2:
+            continue
+        label = f"fold_{sorted(members)[0].lower()}"
+        for name in members:
+            proposals[name] = label
+            if name in diffpair_devices:
+                reason[name] = "diffpair_tail"
+            elif name in mirror_devices:
+                reason[name] = "current_mirror_reference"
+            else:
+                reason[name] = "unclassified_fold"
+            if name not in declared_vsid:
+                vsid_proposals[name] = f"col_{name.lower()}"
+
+    return {"proposals": proposals, "reason": reason,
+            "vertical_stack_id_proposals": vsid_proposals,
+            "normal_multi_member_columns": normal_multi_member_columns,
+            "dissolved_components": dissolved_components}
+
+
+def apply_fold_group_gap_fill(topology_json_path: str, result: dict) -> dict:
+    """`propose_fold_group_gap_fill()`의 순수 결과를 받아 **실제로 topology.json 파일을
+    읽고 병합하고 다시 쓴다**(`device_roles.*.fold_group`/`device_roles.*.vertical_stack_id`
+    갱신) -- `apply_device_roles_gap_fill()`과 정확히 같은 계약(이미 declared된 값과
+    충돌하면 그 소자는 조용히 건너뛴다, 파일을 통째로 다시 씀).
+
+    반환: `{"applied_fold_group": {device_name: label, ...}, "applied_vertical_stack_id":
+    {device_name: label, ...}}`."""
+    with open(topology_json_path, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    device_roles = data.get("device_roles")
+    if device_roles is None:
+        device_roles = {}
+
+    applied_fold_group, applied_vsid = {}, {}
+    for name, fg in result.get("proposals", {}).items():
+        entry = device_roles.get(name)
+        if not isinstance(entry, dict):
+            entry = {}
+        if entry.get("fold_group") is not None and entry["fold_group"] != fg:
+            continue  # 충돌 -- 조용히 덮어쓰지 않음
+        vsid_proposal = result.get("vertical_stack_id_proposals", {}).get(name)
+        if (vsid_proposal is not None and entry.get("vertical_stack_id") is not None
+                and entry["vertical_stack_id"] != vsid_proposal):
+            continue  # vsid 충돌도 동일하게 방어
+        entry["fold_group"] = fg
+        entry.setdefault("vs", 0.0)
+        if vsid_proposal is not None and entry.get("vertical_stack_id") is None:
+            entry["vertical_stack_id"] = vsid_proposal
+            applied_vsid[name] = vsid_proposal
+        device_roles[name] = entry
+        applied_fold_group[name] = fg
+
+    data["device_roles"] = device_roles or None
+
+    with open(topology_json_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    return {"applied_fold_group": applied_fold_group, "applied_vertical_stack_id": applied_vsid}
+
+
+def audit_theta_root_direction(transistors: list, sizing_roles: dict | None,
+                                 inputs=(), outputs=(), feedbacks=(), biases=(), clocks=()) -> list:
+    """`sizing_roles.theta`의 `"A"`/`"A_signed"` feed가 `root`(이 theta가 전류를 **정의**하는
+    소자)의 값을, `analog-grammar`의 `idioms.m_cascode()`가 이미 찾아둔 캐스코드 관계에서
+    **`root`가 lo(전류생성원 쪽)인데 정작 그 위에 얹힌 up(캐스코드)을 reference/terms로
+    참조**하는 경우를 찾는다 -- **방향이 거꾸로일 가능성이 높다는 신호**(캐스코드는 전류를
+    정의하지 않고 그 아래 소자가 이미 정한 전류를 그대로 물려받을 뿐이므로, lo가 자기 위의
+    up을 참조해 자기 값을 정하는 건 인과관계가 뒤바뀐 것).
+
+    2026-08-18 신설 동기(3단계 정정 이력): (1) `nmcnr_amplifier`의 `M106`(캐스코드)/
+    `M108`(다이오드) 관계를 사람 손으로 재추론하다 방향을 두 번 틀림 -- 사용자가
+    "analog-grammar가 이미 이 관계를 알고 있지 않냐"고 지적. (2) 처음엔 role 우선순위
+    비교(`DIODE_CONNECTED` root가 `CASCODE` reference를 참조하면 항상 걸어냄) + `bounds`
+    퇴화 여부로 짰는데, `current_reuse_telescopic_ota`의 `r_cmfb_vocdes`(root=`M39`=diode,
+    reference=`M37a`/`M37b`=cascode, 하지만 게이트로만 연결된 전압 구동 관계라 실제 KCL
+    아님)에 오탐 -- 자체 source/drain 인접 그래프로 "실제 연결" 여부를 확인하도록 정정.
+    (3) 사용자 재지적("이미 하는 analog-grammar 함수가 있지 않나? cascode구조를 seed를
+    주어서 탐색하는?") -- `idioms.propagate_reference_role_through_cascode()`가 정확히
+    그 역할인데 처음엔 안 썼다. 재확인해보니 `m_cascode()`가 **같은 kind끼리의 직렬(`up.S==
+    lo.D`)만** 인정해서 `M106`(nmos)/`M108`(pmos)처럼 **PMOS/NMOS 경계(drain-drain 접합)**
+    캐스코드는 아예 못 찾는다는 게 드러남 -- `idioms.m_cascode()` 자체에 cross-kind D-D
+    분기를 신설(2026-08-18, `up.source`가 non-rail이어야 함 -- 안 그러면 `M15`/`M16` 같은
+    complementary push-pull 출력단까지 오탐, 실측으로 발견) -- 이제 이 함수가 idiom 결과를
+    그대로 재사용한다(자체 인접 그래프/BFS는 폐기).
+
+    반환: `[{"theta": name, "root": root_dev, "reference": ref_dev, "note": ...}, ...]` --
+    analog-grammar를 못 불러오면 빈 리스트(다른 analog-grammar 연동 함수와 동일한 하위호환
+    원칙). ⚠️ 다른 `propose_*`/`audit_*`류와 같은 원칙 -- 아무것도 자동으로 안 고친다(찾기만).
+    ⚠️ `m_cascode()`가 찾는 lo/up 관계에 안 걸리는 방향 오류(예: 둘 다 CASCODE도 DIODE도
+    아닌 CURRENT_SOURCE류 두 소자 중 어느 쪽이 진짜 자유도인가, nmcnr_amplifier가 처음에
+    `M104`를 자유변수로 잘못 뒀던 것과 같은 유형)는 KCL 자유도 개수를 세는 별도 분석이
+    필요해 이 함수 범위 밖이다."""
+    netclass_mod, idioms_mod = _import_analog_grammar("netclass", "idioms")
+    if netclass_mod is None or idioms_mod is None:
+        return []
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return []
+    matches = find_idiom_matches(transistors, inputs, outputs, feedbacks, biases, clocks)
+    if matches is None:
+        return []
+
+    findings = []
+    for theta in (sizing_roles or {}).get("theta") or []:
+        feed = theta.get("feeds")
+        if not isinstance(feed, dict):
+            continue
+        ftype = feed.get("type")
+        if ftype not in ("A", "A_signed"):
+            continue
+        roots = feed["root"] if isinstance(feed["root"], list) else [feed["root"]]
+        if ftype == "A":
+            others = list(feed.get("reference") or [])
+        else:
+            others = [term["device"] for term in feed.get("terms") or []]
+        for root_dev in roots:
+            # root_dev를 seed로 캐스코드 체인을 위로 전파 -- other_dev가 그 안에 있으면
+            # root_dev가 lo(전류생성원)이고 other_dev가 그 위에 얹힌 up(캐스코드)이라는 뜻
+            # (다단 캐스코드까지 고정점 반복으로 커버).
+            reachable_up = idioms_mod.propagate_reference_role_through_cascode(
+                matches, {root_dev}, devs) - {root_dev}
+            for other_dev in others:
+                if other_dev not in reachable_up:
+                    continue
+                findings.append({
+                    "theta": theta.get("name"), "root": root_dev, "reference": other_dev,
+                    "note": (f"root={root_dev!r}이 캐스코드 체인에서 reference/terms의 "
+                             f"{other_dev!r}보다 아래(lo, 전류생성원)인데, {other_dev!r}은 "
+                             f"그 위에 얹힌 캐스코드다(idioms.m_cascode()) -- root의 값을 "
+                             f"자기보다 위에 있는 캐스코드에서 끌어오는 건 방향이 거꾸로일 "
+                             f"가능성이 높음")})
+    return findings
+
+
+# 2026-08-18(사용자 승인 -- "propose_theta_kcl_gap_fill 만들자") -- 전류(ID) KCL 구조를
+# connectivity + analog-grammar idiom만으로 제안한다. "이 회로에 어떤 종류의 자유도가
+# 있는지"(root/reference 방향, diffpair 50/50 분배, 캐스코드 추종, KCL 합)는 오늘 세션
+# 내내 확인했듯 대부분 구조적으로 결정되고(자유도 없음), 진짜 자유도(예: nmcnr_amplifier의
+# Ibg_tail/r_fold_M108_M109)는 딱 "이 소자는 온칩 레퍼런스가 없다"는 사실만 구조로
+# 알 수 있을 뿐 그 절대값/비율 자체는 사람 판단이 필요하다 -- 그래서 이 함수는 자유도
+# 있는 소자엔 `const` placeholder(값은 항상 review 대상)만 제안하고, 나머지(자유도 없는
+# 관계)는 실제 ratio/부호까지 확정해서 제안한다.
+def _kcl_terminal_sign(kind: str, terminal: str) -> int:
+    """PMOS/NMOS의 관례적 전류 방향(2026-08-18 세션, 사용자 지적 "PMOS/NMOS 경계는 항상
+    drain-drain" 이후 sympy로 재확인한 부호 규칙)을 net 기준 부호로 변환한다 -- PMOS는
+    source->drain(그 net에 전류를 **공급**하는 쪽이 drain, +1 / **흡수**하는 쪽이 source,
+    -1), NMOS는 drain->source(그 반대, drain=-1/source=+1)다. 어떤 net에 모인 모든
+    소자의 이 부호*ID 합은 KCL로 항상 0이다(nmcnr_amplifier의 NodeF1/NodeM1/NodeM2를
+    이 부호로 sympy 재유도해 검증 완료, 세션 앞부분 참고)."""
+    if kind == "pmos":
+        return 1 if terminal == "drain" else -1
+    return -1 if terminal == "drain" else 1
+
+
+def propose_theta_kcl_gap_fill(transistors: list, matching_pairs_meta: list,
+                                 ideal_sources: list | None = None,
+                                 inputs=(), outputs=(), feedbacks=(), biases=(), clocks=()) -> dict:
+    """`sizing_roles.theta`의 전류(ID) 구조(`"const"`/`"A"`/`"A_signed"` feed -- gm_id를
+    직접 다루는 `"B"`/`"C"`/`"metric_stage_budget"`류는 범위 밖)를 connectivity와
+    analog-grammar idiom만으로 제안한다.
+
+    **알고리즘(고정점 반복)** -- 아무것도 "resolved"(전류가 이미 어떤 theta로 정의됐다)
+    상태 없이 시작해서, 아래 규칙을 더 이상 진전이 없을 때까지 반복 적용한다(전부 실측
+    검증 중 발견한 버그를 고치며 확정된 순서 -- 처음엔 1/2/3/4만 있었는데 folded_cascode
+    실행 검증으로 2.5/2.7이 빠졌던 것과 규칙 2가 hub 노드에서 오판정하는 걸 둘 다 실측으로
+    발견했다):
+
+    1. **diffpair 50/50 분배**(`idioms.m_diffpair()`) -- 두 다리의 tail net을 drain으로
+       공급하는 소자(tail 전류원)가 이미 resolved면, 두 다리를 `ratio=0.5`로 동시에
+       resolved 처리(`"A"` feed, `root=[다리A,다리B]`, `reference=[tail]`).
+    2. **캐스코드 추종**(`idioms.m_cascode()`의 `cascode-stack` Match, `ports['lo']`/
+       `['up']`/`['mid']` 직접 사용) -- `lo`가 resolved면 `up`도 `ratio=1.0`으로 resolved.
+       ⚠️ **`mid` net의 실제 사용자 수가 정확히 2일 때만** 적용한다 -- 3 이상(hub/fold
+       노드)이면 규칙 2를 건너뛰고 규칙 3에 맡긴다(실측 발견한 진짜 버그: `folded_cascode`의
+       X 노드(`M1`/`M3`/`M6`, 3-way fold)에서 `m_cascode()`가 `M3`→`M6`을 2소자 캐스코드로
+       오판정해 `ratio=1.0`을 적용했더니, 그 값이 `M1`의 KCL에 그대로 흘러들어가
+       `I(M1)=0`이라는 물리적으로 틀린 결과를 냈다 -- 세 번째 기여자(`M1`)를 무시한 2소자
+       단순화가 원인).
+    2.5. **declared mirror**(`symmetry.matching_pairs`의 `current_forced=true` 쌍) --
+       규칙 2/1이 다루지 않는(source/drain 비인접, diffpair 아님) 순수 게이트 미러 관계.
+       한쪽이 resolved면 나머지를 `ratio=1.0`(placeholder, review 대상)으로 resolved.
+    2.7. **gate mirror**(`idioms.m_mirror()`) -- declared 매칭쌍에도 없는 diode 레퍼런스
+       ↔ 미러 출력 관계(예: `folded_cascode`의 `MP`→`M3`/`M4` -- `M3`/`M4`끼리만 declared
+       pair고 `MP`와는 안 묶여 있음). 이 규칙이 없으면 `MP`가 회로 나머지와 완전히 단절된
+       고아 자유변수로 남는다(실측 발견).
+    3. **KCL 합**(net 인접 그래프, `_kcl_terminal_sign()`) -- 레일도 아니고 `ideal_sources`
+       종단도 아닌 net에서, 그 net을 source/drain으로 쓰는 소자 중 **정확히 1개만**
+       미해결이면 나머지(전부 resolved)의 부호 있는 합으로 그 1개를 구한다(`"A_signed"`
+       feed).
+    4. **자유 root 승격**(교착 시에만, **한 번에 하나씩**) -- 1~3을 더 못 돌리는데 미해결
+       소자가 남으면, **레일에 직접 닿은 단자가 있는** 소자 중 diode-connected(`gate==
+       drain`, 자기참조로 스스로 동작점을 고정하는 진짜 전류생성원) 후보를 최우선으로,
+       없으면 그 외 레일 인접 소자 중 아무거나 **딱 하나만** `const` placeholder로 resolved
+       처리(review 필수 표시)하고 곧바로 1~3으로 돌아간다 -- 실측 발견한 버그: 교착 시
+       레일 인접 소자를 전부 한꺼번에 승격시켰더니 `M104`/`M202`처럼 KCL로 풀렸어야 할
+       소자까지 조기에 자유 root로 잘못 확정됐다. declared `matching_pairs`(`current_
+       forced=true`)로 묶인 파트너가 같이 승격 대상이면 **하나의 theta로 합쳐 제안**한다
+       (`root=[a,b]`) -- 별개 theta 2개로 선언하면 대칭이 구조적으로 보장 안 되던 사고
+       (`M104`/`M105`)를 반복하지 않기 위함.
+    5. 그래도 남는 미해결 소자(레일 인접 단자가 하나도 없어 4번도 못 거는 경우 -- `idioms.
+       m_float_source()`의 Monticelli class-AB floating current source류가 실제 사례,
+       `current_reuse_telescopic_ota`의 `M9a`/`M9b`/`M18a`/`M18b` 등 -- 이 패턴은 아직
+       이 함수의 규칙 범위 밖이다, 정직한 한계)는 `unresolved_devices`로만 보고한다(값을
+       지어내지 않음).
+
+    **마지막 검증 패스**: 모든 theta_proposals를 `bounds` 중앙값으로 직접 재평가해(내부
+    `_sim_ids`, `sizing_recipe.py` 의존 없이 이 함수 자신이 계산) 결과 전류가 0 이하인
+    소자를 찾아 `review_needed`에 추가한다 -- 실측 발견: 서로 다른 독립 자유 root
+    그룹(예: `folded_cascode`의 `MP`측/`M9`-`M10`측)이 같은 KCL 노드로 수렴하면, 둘 다
+    같은 placeholder 값(`1e-05`)을 받아 우연히 상쇄돼 0이 나올 수 있다(구조 결함이
+    아니라 "이 자유 root들의 실제 값을 서로 조율해야 한다"는 신호 -- 조용히 넘기지 않는다).
+
+    ⚠️ 다른 `propose_*`류와 같은 원칙 -- 아무것도 자동으로 안 씀(제안만 반환). 자유
+    root의 `bounds`는 항상 `[1e-05, 1e-05]`(folded_cascode/nmcnr_amplifier가 이미 쓴
+    "1차 실행 가능하게 하는 임의값" 관행 그대로) + `review_needed`에 반드시 표시된다 --
+    최종 숫자는 사람이 스펙 맞춰 정할 것. `compensation.stage_devices`(gm_id를 compensation
+    이 별도로 관리)는 이 함수가 인지하지 못한다 -- 그 소자들이 KCL 자유 root로 잘못
+    제안되면(예: `nmcnr_amplifier`의 `M201`/`M301`과 얽힌 `M203`/`M204`/`M301`) 사람이
+    compensation 쪽 설계와 함께 재검토할 것.
+
+    반환: `{"theta_proposals": [{"name",...,"bounds","feeds","intended_role_type",
+    "_comment"}, ...], "review_needed": [{"device"|"devices", "reason"}, ...],
+    "unresolved_devices": [...]}` -- analog-grammar를 못 불러오면 전부 빈 값 +
+    `unavailable_reason`."""
+    netclass_mod, idioms_mod = _import_analog_grammar("netclass", "idioms")
+    if netclass_mod is None or idioms_mod is None:
+        return {"theta_proposals": [], "review_needed": [], "unresolved_devices": [],
+                "unavailable_reason": "analog-grammar를 import할 수 없음"}
+    devs = _to_analog_grammar_devs(transistors)
+    if not devs:
+        return {"theta_proposals": [], "review_needed": [], "unresolved_devices": [],
+                "unavailable_reason": "gate가 있는 소자가 없음"}
+    by_name = {t.name: t for t in transistors}
+    matches = find_idiom_matches(transistors, inputs, outputs, feedbacks, biases, clocks)
+    if matches is None:
+        return {"theta_proposals": [], "review_needed": [], "unresolved_devices": [],
+                "unavailable_reason": "find_idiom_matches() 실패"}
+
+    ideal_terms = set()
+    for src in (ideal_sources or []):
+        ideal_terms.update(src.get("terminals", []))
+
+    diffpair_legs = [(m.devices[0], m.devices[1], m.ports["tail"])
+                      for m in matches if m.kind == "differential-pair"]
+    # 2026-08-18 신설(folded_cascode 실행 검증 중 발견) -- idioms.m_mirror()는 (gate,source,
+    # type)이 전부 같은 소자군에서 diode-connected 레퍼런스(ref)와 그 미러 출력(non-ref)을
+    # 찾는다. MP(diode)->M3/M4(미러)처럼 **게이트로만** 이어지는 관계(source/drain 인접
+    # 아님, declared matching_pairs에도 없음 -- M3/M4끼리만 서로 쌍으로 declared돼 있고
+    # MP와는 안 묶여 있음)는 규칙 2(캐스코드)도 규칙 2.5(declared mirror)도 못 잡아서 MP가
+    # 회로 나머지와 완전히 단절된 고아 자유변수로 남는 실제 사고가 있었다.
+    gate_mirror_groups = [(m.ports["ref"], [n for n in m.devices if n != m.ports["ref"]])
+                           for m in matches if m.kind == "current-mirror"]
+
+    net_uses: dict = defaultdict(list)  # net -> [(device_name, 'source'|'drain')]
+    for t in transistors:
+        if t.source not in _RAIL_NETS:
+            net_uses[t.source].append((t.name, "source"))
+        if t.drain not in _RAIL_NETS:
+            net_uses[t.drain].append((t.name, "drain"))
+
+    # 2026-08-18 신설(folded_cascode 실행 검증 중 발견한 진짜 버그) -- m_cascode()의
+    # same-kind 규칙(up.S==lo.D)은 그 net이 진짜 2소자 직렬인지 3-way+ hub(fold 노드)인지
+    # 구분하지 않는다. X 노드(M1/M3/M6, 3-way fold)에서 M6.source==M3.drain(같은 kind)이라
+    # (lo=M3,up=M6) 캐스코드-추종(ratio=1.0)으로 잘못 제안됐고, 그 값이 M1의 KCL(규칙 3,
+    # I(M1)=I(M6)-I(M3))에 그대로 흘러들어가 I(M1)=0이라는 물리적으로 틀린 결과를 냈다
+    # (M1이라는 세 번째 기여자를 무시한 채 2소자 관계로 단순화했기 때문). mid net의
+    # 실제 사용자 수(`net_uses`)가 정확히 2일 때만(진짜 직렬) 규칙 2를 적용하고, 3 이상
+    # (hub/fold)이면 규칙 2는 건너뛰고 규칙 3(KCL 합, 모든 기여자를 정확히 반영)에 맡긴다.
+    lo_up_pairs = [(m.ports["lo"], m.ports["up"]) for m in matches
+                   if m.kind == "cascode-stack" and len(net_uses.get(m.ports["mid"], [])) == 2]
+
+    forced_pair_of: dict = {}
+    for p in matching_pairs_meta:
+        if p.get("current_forced") and len(p["names"]) == 2:
+            a, b = p["names"]
+            forced_pair_of[a] = b
+            forced_pair_of[b] = a
+
+    resolved: set = set()
+    theta_proposals: list = []
+    review_needed: list = []
+
+    def _mark(names, theta):
+        for n in names:
+            resolved.add(n)
+        theta_proposals.append(theta)
+
+    def _run_rules_1_to_3() -> bool:
+        """규칙 1(diffpair)/2(캐스코드)/2.5(mirror)/3(KCL 합)을 진전이 없을 때까지
+        반복한다. 하나라도 새로 resolve됐으면 True."""
+        any_progress = False
+        progressed = True
+        while progressed:
+            progressed = False
+            # 규칙 1: diffpair 50/50
+            for leg_a, leg_b, tail_net in diffpair_legs:
+                if leg_a in resolved or leg_b in resolved:
+                    continue
+                tail_devs = [n for n, t in by_name.items() if t.drain == tail_net]
+                if len(tail_devs) != 1 or tail_devs[0] not in resolved:
+                    continue
+                _mark([leg_a, leg_b], {
+                    "name": f"r_split_{leg_a}_{leg_b}", "bounds": [0.5, 0.5],
+                    "feeds": {"type": "A", "root": [leg_a, leg_b], "reference": [tail_devs[0]]},
+                    "intended_role_type": "A",
+                    "_comment": (f"diffpair({leg_a}/{leg_b})가 tail({tail_devs[0]}) 전류를 "
+                                 f"반씩 나눠 가짐(idioms.m_diffpair()로 탐지, 자유도 없음) -- "
+                                 f"propose_theta_kcl_gap_fill() 자동 제안.")})
+                progressed = any_progress = True
+
+            # 규칙 2: 캐스코드 추종(source/drain으로 직접 이어진 관계, idioms.m_cascode())
+            for lo, up in lo_up_pairs:
+                if up in resolved or lo not in resolved:
+                    continue
+                _mark([up], {
+                    "name": f"r_series_{up}", "bounds": [1.0, 1.0],
+                    "feeds": {"type": "A", "root": [up], "reference": [lo]},
+                    "intended_role_type": "A",
+                    "_comment": (f"{up}(캐스코드)은 전류를 스스로 정의하지 않고 {lo}(그 아래 "
+                                 f"전류를 정하는 소자)를 그대로 따라감(idioms.m_cascode() lo/up, "
+                                 f"자유도 없음) -- propose_theta_kcl_gap_fill() 자동 제안.")})
+                progressed = any_progress = True
+
+            # 규칙 2.5: mirror(게이트로만 연결되는 declared current_forced 쌍 -- 2026-08-18
+            # 신설, 실측 발견: M203(diode)/M204(mirror output)는 source/drain을 전혀 안
+            # 공유해서(M204.gate==M203.drain일 뿐) 규칙 2(m_cascode, source/drain 인접
+            # 전용)가 못 잡는다. declared current_forced=true 매칭쌍이면서 한쪽이 이미
+            # resolved면 나머지를 ratio=1.0으로 propose -- 실제 W비율은 아직 topology
+            # 단계에선 모르므로 1.0을 review 대상 placeholder로 쓴다(sizing_recipe.py의
+            # auto_mirror_ratios와 동일 기본값 관례).
+            for a, b in list(forced_pair_of.items()):
+                if a in resolved or b not in resolved:
+                    continue
+                if (b, a) in lo_up_pairs or (a, b) in lo_up_pairs:
+                    continue  # 이미 규칙 2(캐스코드)가 다루는 관계 -- 중복 제안 방지
+                is_diffpair_pair = any({a, b} == {la, lb} for la, lb, _t in diffpair_legs)
+                if is_diffpair_pair:
+                    continue  # 규칙 1이 다루는 관계
+                _mark([a], {
+                    "name": f"r_mirror_{a}_{b}", "bounds": [1.0, 1.0],
+                    "feeds": {"type": "A", "root": [a], "reference": [b]},
+                    "intended_role_type": "A",
+                    "_comment": (f"{a}는 declared current_forced 매칭쌍({b}와)의 미러 -- "
+                                 f"source/drain으로 안 이어진 순수 게이트 미러라 실제 W비율은 "
+                                 f"topology 단계에서 모름, ratio=1.0은 placeholder(review 필요). "
+                                 f"propose_theta_kcl_gap_fill() 자동 제안.")})
+                review_needed.append({"devices": [a, b],
+                                       "reason": "미러 비율 1.0은 placeholder -- 실제 W비율로 재확인 필요"})
+                progressed = any_progress = True
+
+            # 규칙 2.7: gate mirror(idioms.m_mirror() -- diode 레퍼런스가 게이트만으로
+            # 미러 출력을 구동하는 관계, declared matching_pairs에도 없고 source/drain도
+            # 안 이어짐 -- 2026-08-18 신설, folded_cascode 실행 검증 중 발견: MP(diode)가
+            # M3/M4(둘 다 M3/M4끼리만 declared pair, MP와는 무관)를 게이트로만 미러하는데
+            # 이 관계를 못 잡아서 MP가 회로 나머지와 완전히 단절된 고아 자유변수로 남았다.
+            for ref, outputs in gate_mirror_groups:
+                if ref not in resolved:
+                    continue
+                for out_dev in outputs:
+                    if out_dev in resolved:
+                        continue
+                    _mark([out_dev], {
+                        "name": f"r_mirror_{out_dev}_{ref}", "bounds": [1.0, 1.0],
+                        "feeds": {"type": "A", "root": [out_dev], "reference": [ref]},
+                        "intended_role_type": "A",
+                        "_comment": (f"{out_dev}는 {ref}(diode 레퍼런스)를 게이트로만 "
+                                     f"미러(idioms.m_mirror(), source/drain 비인접) -- 실제 "
+                                     f"W비율은 topology 단계에서 모름, ratio=1.0은 "
+                                     f"placeholder(review 필요). propose_theta_kcl_gap_fill() "
+                                     f"자동 제안.")})
+                    review_needed.append({"devices": [out_dev, ref],
+                                           "reason": "미러 비율 1.0은 placeholder -- 실제 W비율로 재확인 필요"})
+                    progressed = any_progress = True
+
+            # 규칙 3: KCL 합(net에서 정확히 1개만 미해결)
+            for net, uses in net_uses.items():
+                if net in ideal_terms or len(uses) < 2:
+                    continue
+                unresolved_here = [(n, term) for n, term in uses if n not in resolved]
+                if len(unresolved_here) != 1:
+                    continue
+                root_name, root_term = unresolved_here[0]
+                root_sign = _kcl_terminal_sign(by_name[root_name].kind, root_term)
+                terms = []
+                for n, term in uses:
+                    if n == root_name:
+                        continue
+                    other_sign = _kcl_terminal_sign(by_name[n].kind, term)
+                    terms.append({"device": n, "sign": -root_sign * other_sign})
+                _mark([root_name], {
+                    "name": f"kcl_{root_name}", "bounds": [1.0, 1.0],
+                    "feeds": {"type": "A_signed", "root": root_name, "terms": terms},
+                    "intended_role_type": "A",
+                    "_comment": (f"{net} net KCL(PMOS source->drain/NMOS drain->source 관례, "
+                                 f"_kcl_terminal_sign()) -- propose_theta_kcl_gap_fill() 자동 "
+                                 f"제안, 자유도 없음.")})
+                progressed = any_progress = True
+        return any_progress
+
+    _run_rules_1_to_3()
+
+    # 규칙 4: 교착 시에만, **한 번에 하나씩만** 자유 root로 승격하고 곧바로 규칙 1~3을
+    # 다시 돌린다(2026-08-18 정정, 실측 발견 -- 교착 시 레일 인접 소자를 전부 한꺼번에
+    # 승격시켰더니 M104/M202처럼 KCL로 풀렸어야 할 소자까지 조기에 자유 root로 잘못
+    # 확정됐다). diode-connected(gate==drain, 자기참조로 스스로 동작점을 고정하는 진짜
+    # 전류생성원) 후보를 항상 우선한다 -- 그런 후보가 하나도 없을 때만 diode가 아닌
+    # 레일 인접 소자를 승격한다(예: nmcnr_amplifier의 M101 -- tail, diode 아님).
+    while True:
+        unresolved_all = [t.name for t in transistors if t.name not in resolved]
+        if not unresolved_all:
+            break
+        rail_adjacent = [n for n in unresolved_all
+                          if by_name[n].source in _RAIL_NETS or by_name[n].drain in _RAIL_NETS]
+        if not rail_adjacent:
+            break  # 레일 인접 후보가 아예 없음 -- 5번(진짜 미분류)으로 남김
+        diode_candidates = [n for n in rail_adjacent if by_name[n].gate == by_name[n].drain]
+        pick = diode_candidates[0] if diode_candidates else rail_adjacent[0]
+        partner = forced_pair_of.get(pick)
+        if partner is not None and partner in rail_adjacent:
+            names = sorted([pick, partner])
+            _mark(names, {
+                "name": f"r_free_{names[0]}_{names[1]}", "bounds": [1e-05, 1e-05],
+                "feeds": {"type": "const", "root": names},
+                "intended_role_type": "D",
+                "_comment": (f"{names[0]}/{names[1]}는 온칩 레퍼런스가 없는 자유 root로 "
+                             f"보임(레일에 직접 닿음 + declared current_forced 매칭쌍이라 "
+                             f"하나로 합침 -- 별개 theta 2개로 선언하면 대칭이 구조적으로 "
+                             f"보장 안 됨, 이번 세션 M104/M105 사고와 동일 클래스). "
+                             f"propose_theta_kcl_gap_fill() 자동 제안 -- 값은 임의(1차 "
+                             f"실행용), 사람이 스펙 맞춰 재확인할 것.")})
+            review_needed.append({"devices": names,
+                                   "reason": "자유 root(placeholder 값, 사람 확인 필요)"})
+        else:
+            _mark([pick], {
+                "name": f"r_free_{pick}", "bounds": [1e-05, 1e-05],
+                "feeds": {"type": "const", "root": [pick]},
+                "intended_role_type": "D",
+                "_comment": (f"{pick}은 온칩 레퍼런스가 없는 자유 root로 보임(레일에 직접 "
+                             f"닿음, 다른 소자에서 전류를 유도할 KCL/캐스코드/diffpair/mirror "
+                             f"관계가 없음). propose_theta_kcl_gap_fill() 자동 제안 -- 값은 "
+                             f"임의(1차 실행용), 사람이 스펙 맞춰 재확인할 것.")})
+            review_needed.append({"devices": [pick],
+                                   "reason": "자유 root(placeholder 값, 사람 확인 필요)"})
+        _run_rules_1_to_3()  # 방금 승격한 root로 규칙 1~3이 더 풀 수 있는지 즉시 재시도
+
+    # 2026-08-18 신설(folded_cascode 실행 검증 중 발견) -- 서로 다른 자유 root 그룹(예:
+    # MP측 / M9-M10측)이 같은 KCL 노드로 수렴하면, 둘 다 같은 placeholder 값(1e-5)을 받는
+    # 이 함수의 기본 평가에서는 우연히 상쇄돼 0(또는 음수)이 나올 수 있다(I(M1)=I(M6)-I(M3)
+    # 실측 사례) -- 이건 theta **구조** 자체의 결함이 아니라 "이 자유 root들이 서로 조율된
+    # 값이어야 한다"는 신호인데, 조용히 넘기면 사람이 못 알아챈다. theta_proposals를
+    # 실제로 bounds 중앙값으로 평가해 음수/0이 나오는 소자를 전부 찾아 review_needed에
+    # 남긴다(지어내지 않는다 원칙 -- 문제를 숨기지 않고 구조화된 형태로 보고).
+    _sim_ids: dict = {}
+    for _t in theta_proposals:
+        _feed, _mid = _t["feeds"], sum(_t["bounds"]) / 2.0
+        _root_list = _feed["root"] if isinstance(_feed["root"], list) else [_feed["root"]]
+        if _feed["type"] == "const":
+            _val = _mid
+        elif _feed["type"] == "A":
+            _val = _mid * sum(_sim_ids.get(r, 0.0) for r in _feed["reference"])
+        else:  # A_signed
+            _val = _mid * sum(_term.get("sign", 1) * _sim_ids.get(_term["device"], 0.0)
+                               for _term in _feed["terms"])
+        for _r in _root_list:
+            _sim_ids[_r] = _val
+    nonpositive = sorted(n for n, v in _sim_ids.items() if v <= 0)
+    if nonpositive:
+        review_needed.append({
+            "devices": nonpositive,
+            "reason": ("bounds 중앙값(placeholder)으로 평가하면 전류가 0 또는 음수로 나옴 -- "
+                       "서로 다른 자유 root 그룹이 같은 KCL 노드로 수렴하는데 우연히 같은 "
+                       "placeholder 값을 받아서일 가능성이 높음(구조 결함 아님). 자유 root "
+                       "값을 정할 때 이 소자들이 양수가 되도록 서로 조율할 것.")})
+
+    unresolved_devices = [t.name for t in transistors if t.name not in resolved]
+    return {"theta_proposals": theta_proposals, "review_needed": review_needed,
+            "unresolved_devices": unresolved_devices}
+
+
 def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matching_pairs_meta: list,
                                     compensation_stage_devices: list | None = None,
                                     inputs=(), outputs=(), feedbacks=(), biases=(), clocks=()) -> dict:
@@ -11799,3 +12468,222 @@ if __name__ == "__main__":
 
     print()
     print("  === Test 58 전체 PASS ===")
+
+    print()
+    print("=== Test 59: propose_fold_group_gap_fill()/apply_fold_group_gap_fill() --")
+    print("  선언 0개(cold start)에서 folded_cascode의 declared fold_group 11개 소자를")
+    print("  전부 재현하는지 + nmcnr_amplifier에 적용해 실제 파일에 반영되는지 ===")
+
+    _t59_trs, _t59_meta = load_topology(_t49_os.path.join(_t49_lib, "folded_cascode.topology.json"))
+    _t59_pairs = [p["names"] for p in _t59_meta["symmetry"]["matching_pairs"]]
+    _t59_declared_fold = {name for name, e in _t59_meta["device_roles"].items() if e.get("fold_group")}
+
+    _t59_cold_roles = {name: {} for name in _t59_meta["device_roles"]}
+    _t59_result_cold = propose_fold_group_gap_fill(_t59_trs, _t59_pairs, _t59_cold_roles,
+                                                     ideal_sources=_t59_meta.get("ideal_sources"))
+    assert set(_t59_result_cold["proposals"].keys()) == _t59_declared_fold, \
+        (f"cold-start 제안이 declared fold_group과 다름 -- 제안에만: "
+         f"{set(_t59_result_cold['proposals']) - _t59_declared_fold}, declared에만: "
+         f"{_t59_declared_fold - set(_t59_result_cold['proposals'])}")
+    print(f"    PASS: folded_cascode cold-start 제안이 declared {len(_t59_declared_fold)}개 소자와 "
+          f"정확히 일치(MP/MN은 ideal_sources 종단이라 제외됨)")
+
+    _t59_result_warm = propose_fold_group_gap_fill(_t59_trs, _t59_pairs, _t59_meta["device_roles"],
+                                                     ideal_sources=_t59_meta.get("ideal_sources"))
+    assert set(_t59_result_warm["proposals"].keys()) == _t59_declared_fold, \
+        "이미 전부 declared된 상태(warm)에서도 동일 멤버십이 나와야 함(Vg7/Vg9/Vg10 같은 " \
+        "degree=2 net으로만 이어지는 소자가 hub-net 체이닝만으로는 안 잡히는 회귀 방지)"
+    print("    PASS: 이미 전부 declared된(warm) 상태에서도 동일 멤버십 재현(Vg7/Vg9/Vg10 경계 포함)")
+
+    print("  [find_matching_candidates() 기반 reason 라벨링 -- M1/M2는 diffpair_tail, "
+          "M11은 current_mirror_reference로 구분되는지(둘 다 'tail' 노드 소속이지만 "
+          "서로 다른 이유, 사용자 지적 반영)]")
+    assert _t59_result_cold["reason"]["M1"] == "diffpair_tail", _t59_result_cold["reason"]["M1"]
+    assert _t59_result_cold["reason"]["M2"] == "diffpair_tail", _t59_result_cold["reason"]["M2"]
+    assert _t59_result_cold["reason"]["M11"] == "current_mirror_reference", _t59_result_cold["reason"]["M11"]
+    print("    PASS: M1/M2=diffpair_tail, M11=current_mirror_reference로 정확히 구분됨")
+
+    print("  [apply_fold_group_gap_fill() -- 이미 declared된 회로에 적용하면 전부 충돌로 "
+          "스킵되고(값이 다른 라벨이라 덮어쓰지 않음) 파일이 안 바뀌는지]")
+    import tempfile as _t59_tempfile, shutil as _t59_shutil
+    with _t59_tempfile.TemporaryDirectory() as _t59_tmpdir1:
+        _t59_path1 = _t49_os.path.join(_t59_tmpdir1, "folded_cascode.topology.json")
+        _t59_shutil.copy(_t49_os.path.join(_t49_lib, "folded_cascode.topology.json"), _t59_path1)
+        with open(_t59_path1, encoding="utf-8") as _f:
+            _t59_before = json.load(_f)
+        _t59_applied_warm = apply_fold_group_gap_fill(_t59_path1, _t59_result_warm)
+        assert _t59_applied_warm["applied_fold_group"] == {}, \
+            f"이미 declared된 fold_group을 덮어씀(원칙 위반): {_t59_applied_warm['applied_fold_group']}"
+        with open(_t59_path1, encoding="utf-8") as _f:
+            _t59_after = json.load(_f)
+        assert _t59_after["device_roles"] == _t59_before["device_roles"], \
+            "충돌로 전부 스킵됐어야 하는데 device_roles가 실제로 바뀜"
+        print("    PASS: 전부 충돌로 스킵됨(fold_group 라벨이 달라도 이미 declared된 값을 "
+              "안 건드림), 파일도 안 바뀜")
+
+    print("  [nmcnr_amplifier -- 실제 fold_group 없는 회로에 propose+apply, 파일에 실제로 "
+          "반영되는지 + M201/M203 같은 정상 2-소자 컬럼은 fold_group을 안 받는지]")
+    _t59_nmcnr_trs, _t59_nmcnr_meta = load_topology(
+        _t49_os.path.join(_t49_lib, "nmcnr_amplifier.topology.json"))
+    _t59_nmcnr_pairs = [p["names"] for p in _t59_nmcnr_meta["symmetry"]["matching_pairs"]]
+    _t59_nmcnr_result = propose_fold_group_gap_fill(
+        _t59_nmcnr_trs, _t59_nmcnr_pairs, _t59_nmcnr_meta["device_roles"],
+        ideal_sources=_t59_nmcnr_meta.get("ideal_sources"))
+    _t59_expected_fold9 = {f"M10{i}" for i in range(1, 10)}
+    assert set(_t59_nmcnr_result["proposals"].keys()) == _t59_expected_fold9, \
+        f"nmcnr_amplifier fold_group 제안이 예상(M101~M109)과 다름: {sorted(_t59_nmcnr_result['proposals'])}"
+    assert len(set(_t59_nmcnr_result["proposals"].values())) == 1, \
+        "M101~M109가 하나로 연결된 체인인데 fold_group 라벨이 여러 개로 쪼개짐(회귀)"
+    _t59_normal_cols = {frozenset(m) for m in _t59_nmcnr_result["normal_multi_member_columns"]}
+    for _pair in (["M201", "M203"], ["M202", "M204"], ["M301", "M302"]):
+        assert frozenset(_pair) in _t59_normal_cols, \
+            f"{_pair}가 정상 2-소자 컬럼(레일 양끝 도달)으로 안 잡힘: {_t59_normal_cols}"
+        for _name in _pair:
+            assert _name not in _t59_nmcnr_result["proposals"], \
+                f"{_name}은 vdd/vss 양끝에 정확히 닿는 정상 컬럼인데 fold_group이 잘못 제안됨"
+    print(f"    PASS: M101~M109(9개)가 하나의 fold_group으로, M201/M203·M202/M204·M301/M302는 "
+          f"정상 2-소자 컬럼(fold_group 불필요)으로 정확히 구분됨")
+
+    with _t59_tempfile.TemporaryDirectory() as _t59_tmpdir2:
+        _t59_path2 = _t49_os.path.join(_t59_tmpdir2, "nmcnr_amplifier.topology.json")
+        _t59_shutil.copy(_t49_os.path.join(_t49_lib, "nmcnr_amplifier.topology.json"), _t59_path2)
+        _t59_applied_nmcnr = apply_fold_group_gap_fill(_t59_path2, _t59_nmcnr_result)
+        assert set(_t59_applied_nmcnr["applied_fold_group"].keys()) == _t59_expected_fold9, \
+            f"nmcnr_amplifier 파일 적용 결과가 예상과 다름: {_t59_applied_nmcnr}"
+        with open(_t59_path2, encoding="utf-8") as _f:
+            _t59_nmcnr_written = json.load(_f)
+        for _name in _t59_expected_fold9:
+            assert _t59_nmcnr_written["device_roles"][_name]["fold_group"] is not None, \
+                f"{_name}.fold_group이 파일에 실제로 안 써짐"
+            assert _t59_nmcnr_written["device_roles"][_name]["vertical_stack_id"] == f"col_{_name.lower()}", \
+                f"{_name}.vertical_stack_id가 예상 라벨로 안 써짐"
+        print("    PASS: nmcnr_amplifier.topology.json(임시 사본)에 fold_group/vertical_stack_id "
+              "9개 소자 실제로 반영됨(디스크에서 다시 읽어 확인)")
+
+    print()
+    print("  === Test 59 전체 PASS ===")
+
+    print()
+    print("=== Test 60: audit_theta_root_direction() -- sizing_roles.theta의 'A'/'A_signed'")
+    print("  feed가 캐스코드 체인에서 lo(전류생성원)인 root를 그 위에 얹힌 up(캐스코드)에서")
+    print("  유도하는(방향이 거꾸로인) 경우를 idioms.m_cascode()/propagate_reference_role_")
+    print("  through_cascode()로 잡아내는지(2026-08-18, 사용자 지적 3단계 -- 'analog-grammar를")
+    print("  통해서 각 소자의 관계를 알고 있는 것 아닌가' -> 'm_cascode()가 이미 하지 않나' ->")
+    print("  실측 결과 m_cascode()가 PMOS/NMOS 경계(drain-drain)를 못 잡는 gap을 발견해 그")
+    print("  자체를 확장. 그 확장 검증 중 m_diffpair()가 CTRL_SRC(FEEDBACK게이트 CMFB 차동쌍)를")
+    print("  놓치는 별개 gap도 발견해 같이 확장) ===")
+
+    _t60_trs, _t60_meta = load_topology(_t49_os.path.join(_t49_lib, "nmcnr_amplifier.topology.json"))
+    _t60_clean = audit_theta_root_direction(_t60_trs, _t60_meta["sizing_roles"], inputs=("Vin_p", "Vin_n"))
+    assert _t60_clean == [], f"실제(정정된) nmcnr_amplifier가 깨끗해야 하는데: {_t60_clean}"
+    print(f"    PASS: 실제 nmcnr_amplifier.topology.json(M108/M109가 lo, M106/M107이 그 위에 "
+          f"얹힌 up인 현재 설계)는 findings 0건 -- M106<->M108은 PMOS/NMOS 경계(drain-drain) "
+          f"캐스코드라 m_cascode()의 cross-kind 확장이 실제로 이 검증에 쓰임")
+
+    print("  [세션 초반 실제로 저질렀던 버그(M106을 root로 두고 M108을 그 반대로 참조) 재현 -- "
+          "잡히는지]")
+    import copy as _t60_copy
+    _t60_buggy = _t60_copy.deepcopy(_t60_meta["sizing_roles"])
+    _t60_buggy["theta"] = [t for t in _t60_buggy["theta"] if t["name"] not in ("kcl_M104", "r_series_M106")]
+    _t60_buggy["theta"].append({
+        "name": "kcl_M106_BUGGY", "bounds": [1.0, 1.0],
+        "feeds": {"type": "A_signed", "root": "M106",
+                  "terms": [{"device": "M104", "sign": 1}, {"device": "M102", "sign": -1}]}})
+    _t60_buggy["theta"].append({
+        "name": "r_series_M108_BUGGY", "bounds": [1.0, 1.0],
+        "feeds": {"type": "A", "root": ["M108"], "reference": ["M106"]}})
+    _t60_buggy_findings = audit_theta_root_direction(_t60_trs, _t60_buggy, inputs=("Vin_p", "Vin_n"))
+    assert len(_t60_buggy_findings) == 1, f"버그 재현판이 정확히 1건 잡혀야 하는데: {_t60_buggy_findings}"
+    assert (_t60_buggy_findings[0]["root"] == "M108"
+            and _t60_buggy_findings[0]["reference"] == "M106"), \
+        f"잡힌 방향이 예상과 다름: {_t60_buggy_findings}"
+    print(f"    PASS: root='M108'(lo)가 reference='M106'(그 위에 얹힌 up)에서 유도되는 거꾸로 "
+          f"방향을 정확히 1건 잡아냄")
+
+    print("  [current_reuse_telescopic_ota의 kcl_tail_M38(root=M38 tail, reference=M37a/M37b "
+          "CMFB 차동쌍)이 오탐 없는지 -- M37a/M37b는 게이트(Voc/Voc_des)가 FEEDBACK으로 "
+          "분류돼 role=CONTROLLED_CURRENT_SOURCE가 되는데, m_diffpair()가 원래 role==AMP만 "
+          "인정해 이 CMFB 차동쌍을 못 알아보고 m_cascode()가 'M38 위에 얹힌 캐스코드'로 "
+          "오분류하던 걸 실측으로 발견(m_cascode() cross-kind 확장과는 별개 gap) -- "
+          "m_diffpair()에 CTRL_SRC도 추가해 정정, feedbacks=('Voc','Voc_des')를 정확히 "
+          "선언하면 오탐이 사라지는지 재확인(회귀 감시)]")
+    _t60_crt_trs, _t60_crt_meta = load_topology(
+        _t49_os.path.join(_t49_lib, "current_reuse_telescopic_ota.topology.json"))
+    _t60_crt_findings = audit_theta_root_direction(
+        _t60_crt_trs, _t60_crt_meta["sizing_roles"], inputs=("Vip", "Vim"),
+        feedbacks=("Voc", "Voc_des"))
+    assert _t60_crt_findings == [], \
+        f"kcl_tail_M38(CMFB 차동쌍) 오탐이 재발함: {_t60_crt_findings}"
+    print("    PASS: feedbacks를 정확히 선언하면 kcl_tail_M38 오탐 없음")
+
+    print("  [나머지 실제 library 회로(folded_cascode/two_stage_ota)도 findings 0건인지 -- "
+          "이미 검증된 설계에 오탐이 없어야 함(inputs는 각 회로 실제 net 이름 그대로)]")
+    _t60_fc_trs, _t60_fc_meta = load_topology(_t49_os.path.join(_t49_lib, "folded_cascode.topology.json"))
+    _t60_fc_findings = audit_theta_root_direction(_t60_fc_trs, _t60_fc_meta["sizing_roles"],
+                                                    inputs=("vin_p", "vin_n"))
+    assert _t60_fc_findings == [], f"folded_cascode에 오탐: {_t60_fc_findings}"
+    _t60_tso_trs, _t60_tso_meta = load_topology(_t49_os.path.join(_t49_lib, "two_stage_ota.topology.json"))
+    _t60_tso_findings = audit_theta_root_direction(_t60_tso_trs, _t60_tso_meta["sizing_roles"],
+                                                     inputs=("vin_p", "vin_n"))
+    assert _t60_tso_findings == [], f"two_stage_ota에 오탐: {_t60_tso_findings}"
+    print("    PASS: folded_cascode/two_stage_ota 둘 다 findings 0건")
+
+    print()
+    print("  === Test 60 전체 PASS ===")
+
+    print()
+    print("=== Test 61: propose_theta_kcl_gap_fill() -- 전류(ID) KCL 구조를 connectivity +")
+    print("  analog-grammar idiom만으로 제안(2026-08-18, 사용자 승인 후 신설 -- 'propose_")
+    print("  theta_kcl_gap_fill 만들자'). 규칙 1(diffpair 50/50)/2(캐스코드 추종)/2.5(declared")
+    print("  mirror)/2.7(gate mirror)/3(KCL 합)/4(자유 root 승격, diode 우선)를 실측으로")
+    print("  검증한다 ===")
+
+    _t61_trs, _t61_meta = load_topology(_t49_os.path.join(_t49_lib, "nmcnr_amplifier.topology.json"))
+    _t61_result = propose_theta_kcl_gap_fill(
+        _t61_trs, _t61_meta["symmetry"]["matching_pairs"],
+        ideal_sources=_t61_meta.get("ideal_sources"), inputs=("Vin_p", "Vin_n"))
+    assert _t61_result["unresolved_devices"] == [], \
+        f"nmcnr_amplifier는 전부 resolve돼야 하는데: {_t61_result['unresolved_devices']}"
+    _t61_by_name = {t["name"]: t for t in _t61_result["theta_proposals"]}
+    assert set(_t61_by_name["r_split_M102_M103"]["feeds"]["root"]) == {"M102", "M103"}, \
+        "diffpair 50/50 규칙(M102/M103)이 안 잡힘"
+    assert _t61_by_name["r_series_M106"]["feeds"]["reference"] == ["M108"], \
+        "M106이 M108(lo)을 따라가야 하는데(캐스코드 추종): " + str(_t61_by_name["r_series_M106"])
+    _t61_free_names = {n for t in _t61_result["theta_proposals"] if t["feeds"]["type"] == "const"
+                        for n in t["feeds"]["root"]}
+    assert _t61_free_names == {"M101", "M108", "M109", "M203", "M204", "M301"}, \
+        f"nmcnr_amplifier의 자유 root 집합이 예상과 다름: {_t61_free_names}"
+    print(f"    PASS: nmcnr_amplifier 전부 resolve(자유 root={sorted(_t61_free_names)}), "
+          f"diffpair 50/50·캐스코드 추종 관계 정확 -- M203/M204/M301은 이 함수 범위 밖인 "
+          f"compensation.stage_devices(M201/M301)와 얽혀 있어 이 함수 혼자서는 온칩 "
+          f"레퍼런스를 못 찾음(정직한 한계, 사람이 compensation 쪽과 함께 재검토할 것)")
+
+    print("  [folded_cascode -- 규칙 2.7(gate mirror, MP->M3/M4)가 실제로 필요한지 재확인 "
+          "-- 처음엔 이 규칙이 없어서 MP가 회로 나머지와 완전히 단절된 고아 자유변수로 "
+          "남았었다(실측 발견)]")
+    _t61_fc_trs, _t61_fc_meta = load_topology(_t49_os.path.join(_t49_lib, "folded_cascode.topology.json"))
+    _t61_fc_result = propose_theta_kcl_gap_fill(
+        _t61_fc_trs, _t61_fc_meta["symmetry"]["matching_pairs"],
+        ideal_sources=_t61_fc_meta.get("ideal_sources"), inputs=("vin_p", "vin_n"))
+    assert _t61_fc_result["unresolved_devices"] == [], \
+        f"folded_cascode는 전부 resolve돼야 하는데: {_t61_fc_result['unresolved_devices']}"
+    _t61_fc_by_name = {t["name"]: t for t in _t61_fc_result["theta_proposals"]}
+    assert "r_mirror_M3_MP" in _t61_fc_by_name and "r_mirror_M4_MP" in _t61_fc_by_name, \
+        "MP->M3/M4 게이트 미러(규칙 2.7)가 안 잡힘 -- MP가 다시 고아 변수로 남을 위험"
+    print("    PASS: MP->M3/M4 게이트 미러(규칙 2.7)가 정확히 잡혀서 MP가 고립되지 않음")
+
+    print("  [서로 다른 자유 root 그룹(MP측/M9-M10측)이 같은 KCL 노드로 수렴하면 placeholder "
+          "값 충돌(0/음수)을 review_needed로 잡아내는지 -- 실측으로 처음 발견한 현상(구조 "
+          "결함이 아니라 '이 자유 root들을 서로 조율해야 한다'는 신호), 조용히 넘기지 "
+          "않는지 회귀 감시]")
+    _t61_nonpositive_flags = [r for r in _t61_fc_result["review_needed"]
+                                if "전류가 0 또는 음수" in r["reason"]]
+    assert len(_t61_nonpositive_flags) == 1, \
+        f"MP측/M9-M10측 수렴 경고가 정확히 1건이어야 하는데: {_t61_nonpositive_flags}"
+    assert set(_t61_nonpositive_flags[0]["devices"]) == {"M1", "M2", "M11", "MN"}, \
+        f"경고 대상 소자가 예상과 다름: {_t61_nonpositive_flags[0]}"
+    print(f"    PASS: {_t61_nonpositive_flags[0]['devices']}에 placeholder 값 충돌 경고 "
+          f"정확히 1건")
+
+    print()
+    print("  === Test 61 전체 PASS ===")

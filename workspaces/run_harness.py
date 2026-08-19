@@ -224,20 +224,30 @@ def _spec_folded_cascode():
 
 
 def _spec_nmcnr_amplifier():
-    """2026-08-15(세션35) -- `diagnose_sizing_roles_gap()` 통합 검증 겸 등록. ⚠️ 이 회로도
-    아직 **끝까지 사이징되지 않는다**, 원인 2건 둘 다 실행 기반으로 확인됨(`.ai/context.md`
-    세션35 참고):
-    1. `topology.json`의 `_paper_target_spec.PM_target_deg`(46도, 논문 실측치)를 그대로
-       쓰면 `nmcnr_3stage_topology()` 자신의 `PM_target_deg>60` 전제(수식 유도의 근사
-       조건)와 충돌해 즉시 거부된다 -- 그래서 아래 `PM_target_deg=70.0`은 설계 목표용
-       **테스트/개발 전용 임시값**이다(current_reuse_telescopic_ota와 같은 값을 재사용했을
-       뿐, 확정 스펙 아님) -- 최종값은 사람이 정할 것.
-    2. PM_target_deg를 60도 초과로 고쳐도, `M101`(디프페어 tail 전류원)을 시작으로
-       `M101`/`M104`~`M107`/`M202`/`M302`(전부 `VB1`~`VB5` 외부 바이어스 net에만 게이트가
-       물려 있음) 바이어스 전류망 전체가 `ideal_sources` 선언 자체가 없어(folded_cascode의
-       `Ibg`보다도 더 큰 gap -- 그쪽은 최소한 미정 전류원의 '존재'는 선언돼 있었다)
-       A엔진이 못 푼다. 다음 세션에서 이 바이어스 네트워크의 목표 전류/전력을 사람이
-       정해야 한다."""
+    """2026-08-15(세션35) 최초 등록 -- 2026-08-18(세션36)에 바이어스 전류망 gap을 완전히
+    해소했다(이 docstring이 stale해졌던 걸 세션36 끝에 정정). ⚠️ 이 회로는 **아직도 끝까지
+    사이징되지 않지만, 남은 원인은 하나뿐**이다(`.ai/context.md` 세션36 §4-① 참고):
+
+    `sizing_roles.metrics`/`objective`/`constraints`가 아직 `null`이라 `optimize_full_
+    circuit_budget()`이 마지막 단계(`objective["maximize"]`)에서 `KeyError`를 낸다 --
+    15개 소자(`M101`~`M302`) 전체의 전류(KCL)/gm_id/L/W sizing 자체는 실제로 끝까지
+    완주한다(세션36에 `python run_harness.py nmcnr_amplifier` 실행으로 직접 확인).
+    `folded_cascode`의 `gain_db`/`pm_deg`/`cmrr_db`/`psrr_db` 폐형식 메트릭 패턴
+    (`sizing_recipe.py`의 `_metric_folded_cascode_*`, `_METRICS_REGISTRY`)을 참고하되
+    3단 구조(gm1/gm2/gm3)에 맞는 새 폐형식 설계가 필요하다.
+
+    ⚠️ 세션35가 여기 적어뒀던 "바이어스 전류망(M101/M104~M107/M202/M302)이 `ideal_
+    sources` 선언 없이 A엔진이 못 푼다"는 **틀린 진단이었다**(세션36 재조사로 밝혀짐 --
+    `ideal_sources`/`voltage_source` 확장은 애초에 불필요, 실제로 필요했던 건 `M108`/
+    `M109`를 진짜 전류생성원 root로 두는 KCL 구조뿐이었다). `nmcnr_amplifier.topology.
+    json`에 `fold_group`/`vertical_stack_id`/`sizing_roles.theta`(7개)가 세션36에 전부
+    채워져 있다 -- 더 이상 gap 아님, 재작업 불필요.
+
+    `PM_target_deg`(아래 70.0)는 여전히 **테스트/개발 전용 임시값**이다 -- `topology.json`의
+    `_paper_target_spec.PM_target_deg`(46도, 논문 실측치)는 `nmcnr_3stage_topology()`
+    자신의 `PM_target_deg>60` 전제와 충돌해 그대로 못 쓴다(`current_reuse_telescopic_ota`
+    와 같은 70.0을 재사용했을 뿐, 확정 스펙 아님). 이 값을 확정하는 것도 위 metrics 설계와
+    함께 다음 세션의 최우선 과제다."""
     return {
         "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
         "lut": _NMOS,
@@ -302,9 +312,10 @@ SPECS = {
         "spec_fn": _spec_nmcnr_amplifier,
         "grid_points_per_theta": 5,
         "report_dir": "nmcnr-amplifier-report",
-        # 2026-08-15(세션35) -- 아직 완주 안 됨(바이어스 전류망 미선언, _spec_nmcnr_
-        # amplifier() docstring 참고) -- 실패 시 diagnose_sizing_roles_gap()이 구조화된
-        # gap 리포트를 이어 출력한다.
+        # 2026-08-18(세션36 갱신, 세션35의 stale 코멘트 정정) -- 바이어스 전류망 gap은
+        # 해소됨(_spec_nmcnr_amplifier() docstring 참고). 아직 완주 안 되는 유일한 이유는
+        # sizing_roles.metrics/objective/constraints 미설계(PM_target_deg 확정도 같이
+        # 필요) -- .ai/context.md 세션36 §4-①.
     },
 }
 

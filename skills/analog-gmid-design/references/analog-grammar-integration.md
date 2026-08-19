@@ -453,6 +453,36 @@ analog-grammar가 도출할 수 없다 — 매핑 대상이 아니다.
    (DESIGN.md §4 — `current-reuse-pair`/`cascoded-gain-node`/`tail-current-source`)와
    일치하는지 확인.
 
+## 10.5. (2026-08-18 추가) §6 이후 신설된 재사용 유틸리티 카탈로그 -- 새 코드 작성 전 필독
+
+이 문서가 §6 구현 시점(2026-08-06) 이후 갱신 안 된 사이, `idioms.py`에 REGISTRY 밖
+유틸리티 함수가 여러 개 더 생겼다(세션34/35/오늘). **이 문서가 그동안 이 함수들을
+카탈로그화하지 않아서, 이 함수들을 몰라 Transistor connectivity 위에 같은 로직을
+손으로 다시 짜는 사고가 실제로 있었다**(`stick_diagram.py`의 `audit_theta_root_
+direction()` — 캐스코드 root/follower 방향 판정을 자체 source/drain BFS로 3번
+다시 짜다가, `idioms.propagate_reference_role_through_cascode()`가 이미 그 역할을
+한다는 걸 뒤늦게 발견해 재사용으로 전환). 앞으로 이 문서를 읽는 AI/사람은 **새
+그래프 탐색/역할 전파 코드를 짜기 전에 아래 표부터 확인할 것**.
+
+| 함수 | 위치 | 반환/용도 |
+|---|---|---|
+| `m_cascode(devs, cls, imp, role)` | `idioms.py` | `cascode-stack` Match 리스트. 같은 kind 직렬(`up.S==lo.D`) + PMOS/NMOS 경계 cross-kind(`up.D==lo.D`, 2026-08-18 신설) 둘 다 인식. `ports['lo']`/`ports['up']`에 항상 명시. |
+| `_cascode_lo_up_pairs(devs, matches)` | `idioms.py` | `cascode-stack` Match들을 `[(lo_name, up_name), ...]`로 정리(명시된 `lo`/`up` 우선, 없으면 `mid` 기반 추론으로 하위호환). |
+| `propagate_reference_role_through_cascode(matches, seed_names, devs)` | `idioms.py` | seed 소자 집합을 캐스코드 체인 위로 고정점 반복 전파. **"두 소자 중 어느 쪽이 전류를 먼저 정하는 root/lo인가" 판단에 직접 쓸 것** -- `audit_theta_root_direction()`(`stick_diagram.py`)의 실제 사용 예: `root_dev`를 seed로 전파해 `reference`/`terms`의 소자가 그 안에 있으면(=root보다 위에 얹힌 캐스코드) 방향이 거꾸로라고 판정. |
+| `find_cascoded_active_load_legs(devs, matches, imp, cls=None)` | `idioms.py` | current-mirror 다리 위에 캐스코드가 쌓여 진짜 이득노드(HIGH_Z)가 그 위로 옮겨간 경우까지 active-load 판정 확장. `propose_device_roles_gap_fill()`(`stick_diagram.py`)의 gain role 6번째 소스. |
+| `m_tail(devs, cls, imp, role)` | `idioms.py` | tail-current-source 판정. `(CURR_SRC, CTRL_SRC)` 둘 다 인정 -- `m_diffpair()`도 2026-08-18부터 이와 일관되게 `CTRL_SRC`(CMFB FEEDBACK게이트 차동쌍)를 인정하도록 확장됨. |
+| `netclass.stack_edges(devs)` | `netclass.py` | role/net분류 불필요, 순수 connectivity로 "X.source==Y.drain이면 Y가 X 위에 얹혀있다" 전부. `find_stacked_matching_candidates()`(§6.3)의 재료. |
+| `propose_fold_group_gap_fill()`/`apply_fold_group_gap_fill()` | `stick_diagram.py` | (analog-grammar 유틸은 아니지만 같은 카테고리) `device_roles.*.fold_group`/`vertical_stack_id` 제안+실제 파일 반영 -- 2026-08-18 신설. |
+| `audit_theta_root_direction()` | `stick_diagram.py` | `sizing_roles.theta`의 `"A"`/`"A_signed"` feed 방향이 캐스코드 체인과 모순되는지 검사(제안 아님, lint) -- 2026-08-18 신설, 위 `propagate_reference_role_through_cascode()`를 재사용. |
+
+**2026-08-18 `idioms.py` 확장 2건**(위 표의 `m_cascode()`/`m_diffpair()` 관련, 새 회로
+저작 시 알아둘 것):
+1. `m_cascode()`가 이제 PMOS/NMOS 경계(drain-drain 접합, 다이오드/미러가 캐스코드에
+   전류를 공급하는 구조)도 인식한다 -- 단, `up.source`가 레일이면 제외(complementary
+   push-pull 출력단 오탐 방지, 실측 발견: `current_reuse_telescopic_ota`의 `M15`/`M16`).
+2. `m_diffpair()`가 `role==AMPLIFYING`뿐 아니라 `CONTROLLED_CURRENT_SOURCE`(FEEDBACK
+   게이트, CMFB 비교기 차동쌍)도 인정한다 -- 실측 발견: `M37a`/`M37b`.
+
 ## 10. 구현 확정 시 문서 갱신 목록
 
 - `function-selection-map.md` §3 줄65: "게이트 공유 여부로 판단" → "게이트+소스

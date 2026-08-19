@@ -236,95 +236,176 @@
       }
     ]
   },
-  "sizing_roles": null,
-  "_sizing_roles_comment": "이 회로는 optimize_full_circuit_budget()의 다변수 예산 탐색(theta grid search)이 필요한 자유도가 없다(GBW/PM_target_deg/kg는 compensation.parameters로 직접 spec에서 주어짐) -- null 유지.",
+  "sizing_roles": {
+    "theta": [
+      {
+        "name": "Ibg_tail",
+        "bounds": [1e-05, 1e-05],
+        "feeds": {"type": "const", "root": ["M101"]},
+        "intended_role_type": "D",
+        "_comment": "M101(tail)의 gate=VB1은 이 넷리스트 밖 외부 바이어스라 절대 전류값이 KCL로 안 나온다(folded_cascode의 Ibg와 정확히 같은 패턴 -- 2026-08-18 세션, .ai/context.md 세션35가 '바이어스망 gap'이라 부르던 것의 실체가 net 분류 문제가 아니라 이 전류 자유도였음을 재확인). 1차값은 folded_cascode 세션35 1단계와 동일하게 임의의 10uA로 고정해 harness가 실제로 완주하는지부터 확인한다 -- power 최소화 탐색은 그 다음 단계."
+      },
+      {
+        "name": "r_split_M102_M103",
+        "bounds": [0.5, 0.5],
+        "feeds": {"type": "A", "root": ["M102", "M103"], "reference": ["M101"]},
+        "intended_role_type": "A",
+        "_comment": "diffpair(M102/M103)가 tail 전류를 반씩 나눠 가짐(순수 KCL, 자유도 없음) -- folded_cascode의 r_split_M1_M2와 동일 패턴."
+      },
+      {
+        "name": "r_fold_M108_M109",
+        "bounds": [0.5, 0.5],
+        "feeds": {"type": "A", "root": ["M108", "M109"], "reference": ["M101"]},
+        "intended_role_type": "A",
+        "_comment": "2026-08-18 재정정(사용자 지적, 2차) -- 1차 정정에서 M108을 'root'로 바꾸면서도 여전히 그 값을 M104-M102(NodeF1 뺄셈)로 유도하는 실수를 반복했다. 사용자 설명으로 인과관계를 다시 확정: M108/M109(다이오드+미러 쌍, current_forced=true)가 진짜 전류생성원(diode-connected로 스스로 얼마의 전류를 흘릴지 '정의'하는 소자)이고, M106/M107은 그 생성원의 drain(=NodeM1/NodeM2) DC 바이어스가 NodeF1/NodeF2 쪽 신호 스윙에 흔들리지 않도록 격리하는 순수 캐스코드(voltage block)일 뿐 -- 캐스코드는 절대 전류를 스스로 정의하지 않는다. M104는 M102(diffpair 다리)와 M108(생성전류)의 **합**을 감당하도록 sizing된다(아래 kcl_M104/kcl_M105, 뺄셈이 아니라 덧셈으로 정정 -- 이전 버전의 '캐스코드 전류가 음수 안 되게 K>1' 논리 자체가 잘못된 인과관계에서 나온 것이었다, 합산이라 애초에 음수가 될 위험이 없다). 그래서 진짜 자유도는 M108/M109(root, 이 theta)이고 M104/M105는 유도값이다 -- K=0.5(M101=tail 기준, diffpair 다리 하나와 같은 크기)를 1차값으로 선택: I(M108)=I(M109)=0.5*I_tail=I(M102), 그 결과 I(M104)=I(M105)=I(M102)+I(M108)=I_tail 정확히(깔끔한 값이라 1차 검증에 적합) -- 최종값은 gain/PM 등 실측 스펙 맞추며 조정 가능."
+      },
+      {
+        "name": "kcl_M104",
+        "bounds": [1.0, 1.0],
+        "feeds": {"type": "A_signed", "root": "M104",
+                  "terms": [{"device": "M102", "sign": 1}, {"device": "M108", "sign": 1}]},
+        "intended_role_type": "A",
+        "_comment": "NodeF1 KCL(sympy로 확인: I(M102)+I(M106)=I(M104), M106=M108이므로 I(M104)=I(M102)+I(M108)) -- M104는 diffpair 다리 전류와 M108(전류생성원)이 캐스코드(M106)를 통해 내려보내는 전류의 합을 그대로 흡수하도록 sizing된다, 자유도 없음."
+      },
+      {
+        "name": "kcl_M105",
+        "bounds": [1.0, 1.0],
+        "feeds": {"type": "A_signed", "root": "M105",
+                  "terms": [{"device": "M103", "sign": 1}, {"device": "M109", "sign": 1}]},
+        "intended_role_type": "A",
+        "_comment": "M104측(kcl_M104)과 대칭인 NodeF2 KCL: I(M105)=I(M103)+I(M109)."
+      },
+      {
+        "name": "r_series_M106",
+        "bounds": [1.0, 1.0],
+        "feeds": {"type": "A", "root": ["M106"], "reference": ["M108"]},
+        "intended_role_type": "A",
+        "_comment": "M106(캐스코드, voltage block)은 전류를 스스로 정의하지 않고 M108(전류생성원)이 정한 값을 그대로 따라간다(NodeM1에 이 둘뿐이라 순수 직렬, ratio=1.0)."
+      },
+      {
+        "name": "r_series_M107",
+        "bounds": [1.0, 1.0],
+        "feeds": {"type": "A", "root": ["M107"], "reference": ["M109"]},
+        "intended_role_type": "A",
+        "_comment": "M106측(r_series_M106)과 대칭 -- M107은 M109를 그대로 따라간다."
+      }
+    ],
+    "metrics": null,
+    "objective": null,
+    "constraints": null
+  },
+  "_sizing_roles_comment": "2026-08-18 갱신(세션35의 'null 유지' 결론을 정정) -- '이 회로는 GBW/PM/kg가 compensation.parameters로 주어져 자유도가 없다'는 이전 결론은 compensation이 관리하는 gm1/gm2/gm3(M102/M103/M201/M301)에만 해당했다. 그 나머지 바이어스망(M101 tail 전류, M104/M105 폴딩 전류비)은 이 넷리스트의 KCL만으로 절대값이 안 나오는 진짜 자유도이고(§4-①로 부르던 '바이어스망 gap'의 정체), sympy KCL 재유도(위 각 theta의 _comment)로 부호까지 확인해 theta 7개로 표현했다. metrics/objective/constraints는 아직 null -- PM_target_deg 재설정(논문 46도가 nmcnr_3stage_topology()의 PM_target_deg>60 전제를 위반하는 별도 gap, 다음 작업)과 gain/PM/CMRR/PSRR 폐형식 설계가 선행돼야 채울 수 있다.",
   "device_roles": {
     "M101": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m101"
     },
     "M102": {
       "headroom_role": "cascode",
       "vs": 0.0,
       "gm_id_role": "matching",
-      "L_role": "mirror"
+      "L_role": "mirror",
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m102"
     },
     "M103": {
       "headroom_role": "cascode",
       "vs": 0.0,
       "gm_id_role": "matching",
-      "L_role": "mirror"
+      "L_role": "mirror",
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m103"
     },
     "M104": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m104"
     },
     "M105": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m105"
     },
     "M106": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0
+      "vs": 0.0,
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m106"
     },
     "M107": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0
+      "vs": 0.0,
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m107"
     },
     "M108": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m108"
     },
     "M109": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "fold_group": "fold_m101",
+      "vertical_stack_id": "col_m109"
     },
     "M201": {
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "stage2_diode_ref"
     },
     "M202": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "stage2_output"
     },
     "M203": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "stage2_diode_ref"
     },
     "M204": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "stage2_output"
     },
     "M301": {
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "stage3_output"
     },
     "M302": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vs": 0.0,
+      "vertical_stack_id": "stage3_output"
     }
   },
-  "_device_roles_comment": "TODO(pending) -- compensation.stage_devices(M102/M103/M201/M301)가 아닌 나머지 11개 소자(M101,M104-M109,M202,M203,M204,M302 -- 바이어스 전류원/캐스코드/미러)의 headroom_role/gm_id_role/L_role/vertical_stack_id는 아직 채우지 않았다. 이건 '확인 안 됨'이 아니라 '이번 세션의 스코프가 topology(넷리스트+매칭+compensation 함수 참조) 확정까지였고, 사이징까지 실제로 돌리는 건 다음 배치'라는 뜻 -- optimize_full_circuit_budget()으로 이 회로를 실제 사이징하려면 이 필드를 먼저 채워야 한다."
+  "_device_roles_comment": "2026-08-18 갱신 -- vertical_stack_id는 15개 소자 전부 채워짐(M101~M109는 propose_fold_group_gap_fill()/apply_fold_group_gap_fill()로 자동 제안+실제 파일 반영, fold_group='fold_m101' 하나로 연결됨 -- NodeTail/NodeF1/NodeF2/NodeM1/NodeM2가 전부 degree>=3 hub 또는 rail-미도달 체인이라 allocate_stack_headroom()의 '합=vdd' 컬럼 전제를 못 만족해 singleton+fold_group 우회가 필요했음, folded_cascode의 fold_group 패턴과 동일 검증 방식으로 확인. M201/M203=stage2_diode_ref, M202/M204=stage2_output, M301/M302=stage3_output은 vdd/vss 양끝에 정확히 닿는 정상 2-소자 컬럼이라 fold_group 불필요, audit_vertical_stack_id_vs_kcl()로 boundary_findings/hub_findings 0건 확인됨). 아직 안 채워진 건 sizing_roles(=null 그대로, 이 회로는 compensation.parameters로 GBW/PM/kg가 주어져 theta grid search 대상 자유도가 없다는 게 원래 설계 전제였으나, M101 tail 전류/M104·M105 폴딩 전류비는 이 넷리스트의 KCL만으로 안 나오는 진짜 자유도라 이번 세션에서 재확인됨 -- folded_cascode의 Ibg처럼 sizing_roles.theta에 const feed로 새로 등록해야 함, 다음 세션 이월)."
 }

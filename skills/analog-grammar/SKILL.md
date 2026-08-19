@@ -54,6 +54,18 @@ netlist를 보고 바로 "current-reuse telescopic OTA구나"라고 답하는 �
 실제 사례: Fig.3의 `push-pull-output` 미검출은 상류 추출기가 수동소자를
 지원하지 않아 소스 노드가 잘못 잡힌 결과였다. [→DESIGN.md §4]
 
+### 4. 캐스코드 체인/root-follower 방향 로직을 새로 짜지 않는다 — 이미 있다
+
+`idioms.py`에는 `@idiom` REGISTRY(11개 idiom)와 별개로 재사용 가능한 유틸리티
+함수가 있다: `m_cascode()`, `_cascode_lo_up_pairs()`,
+`propagate_reference_role_through_cascode()`(seed 소자 집합을 캐스코드 체인 위로
+전파 — "누가 전류를 먼저 정하는가" 방향 판단), `find_cascoded_active_load_legs()`.
+Transistor connectivity 위에서 그래프 탐색/BFS를 새로 짜기 전에 **반드시 이 목록부터
+확인한다** — 2026-08-18(chip-design-skills 세션) 실제로 이걸 몰라서 같은 로직을
+손으로 다시 짜다가 방향을 두 번 틀린 사고가 있었다(`idioms.py` 모듈 docstring
+상단, `references/analog-grammar-integration.md`에 상세 카탈로그). [→idioms.py
+모듈 docstring]
+
 ## 워크플로
 
 > Windows에서 콘솔이 cp949(기본 코드페이지)면 한글/em-dash 출력에서
@@ -160,7 +172,10 @@ priority는 **더 특수한 패턴일수록 높게**. 겹침 해소에서 우선
   SKILL.md 수정 시 `skill-validation-prompt.md` 절차로 재검증한다.
 - `assets/netclass.py` — Stage 1(net 분류) + Stage 2(device role 배정).
 - `assets/idioms.py` — Stage 3(L1 idiom 매칭) + Stage 4(계층 축약). `REGISTRY`에
-  `@idiom` 데코레이터로 등록된 11개 idiom 함수.
+  `@idiom` 데코레이터로 등록된 11개 idiom 함수 + REGISTRY 밖 재사용 유틸리티
+  (`m_cascode()`/`propagate_reference_role_through_cascode()`/`_cascode_lo_up_pairs()`/
+  `find_cascoded_active_load_legs()` — 절대 규칙 4 참고, 모듈 docstring 상단에 전체
+  카탈로그).
 - `assets/sfg.py` — Stage 5(signal flow graph) + Stage 6(구조 시그니처/기능 가설).
 - `assets/analyze.py` — 6단계 파이프라인을 순서대로 실행하는 CLI 러너. 사람이 읽을
   텍스트 리포트 + `--json`으로 후속 처리용 구조화 출력을 낸다.

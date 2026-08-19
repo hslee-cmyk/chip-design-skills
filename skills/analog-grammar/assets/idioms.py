@@ -20,6 +20,35 @@ priority 가 높을수록 겹침 해소에서 우선한다 (더 특수한 패턴
 주의: 패턴을 YAML DSL 로 만들지 않았다. 아날로그 idiom 은 'role 조건 +
 넷 클래스 조건 + 그래프 형태'의 조합이라 선언형으로 짜면 금세 표현력이
 부족해지고, 반쪽짜리 DSL 은 파이썬보다 읽기 어렵다.
+
+⚠️⚠️ **`@idiom` REGISTRY에 없는 재사용 가능한 유틸리티 함수들 (신규 코드 작성 전 필독)**
+------------------------------------------------------------------------------
+2026-08-18(chip-design-skills 세션) -- 이 파일 안의 REGISTRY 밖 함수(아래)를 몰라서
+Transistor connectivity 위에 새 그래프 탐색/BFS 코드를 손으로 다시 짜다가 방향을
+두 번 틀린 사고가 실제로 있었다(`audit_theta_root_direction()`, 3차 재작성 끝에
+이 함수들 재사용으로 정착). **캐스코드 체인/root-follower 방향/diode 레퍼런스 전파
+같은 걸 다루려 한다면, 새 코드를 짜기 전에 먼저 이 목록부터 확인할 것**:
+
+- `m_cascode(devs, cls, imp, role)` -- 캐스코드로 기능하는 소자쌍을 찾는다(같은 kind
+  직렬 `up.S==lo.D` + 2026-08-18 신설 PMOS/NMOS 경계 `up.D==lo.D` cross-kind 둘 다).
+  `Match.kind=='cascode-stack'`, `ports`에 `lo`/`up`이 항상 명시됨.
+- `_cascode_lo_up_pairs(devs, matches)` -- `cascode-stack` Match들을 `[(lo_name,
+  up_name), ...]`로 정리(순서 모호성 없이).
+- `propagate_reference_role_through_cascode(matches, seed_names, devs)` -- **seed로
+  준 소자 집합("이 성질을 가졌다고 판정한 소자들")을 캐스코드 체인 위로 전파**한다
+  (다단 캐스코드까지 고정점 반복). "A가 B보다 전류를 먼저 정하는 쪽인가?"(root/
+  reference 방향, lo/up 방향) 판단이 필요하면 이 함수를 먼저 쓸 것 -- 직접 BFS를
+  짜지 않는다.
+- `find_cascoded_active_load_legs(devs, matches, imp, cls=None)` -- current-mirror
+  다리 위에 캐스코드가 쌓여 진짜 이득노드(HIGH_Z)가 그 위로 옮겨간 경우까지
+  active-load 판정을 확장(`m_mirror()`의 `active_load_legs`가 놓치는 부분).
+- `netclass.stack_edges(devs)` -- role/net분류 불필요, 순수 connectivity로
+  "X.source==Y.drain이면 Y가 X 위에 얹혀있다"는 관계 전부를 낸다(레이어별 대칭쌍
+  전파, `find_stacked_matching_candidates()` 참고).
+
+`references/analog-grammar-integration.md`(analog-gmid-design skill)에 더 상세한
+연동 설계/self-test 계획이 있다 -- 그 문서도 이 유틸리티들이 신설되기 전(§6까지만)
+버전이라 함께 갱신 대상이다.
 """
 from collections import defaultdict, deque
 from netclass import (RAILS, RAILS_POS, RAILS_NEG, HIGH_Z, LOW_Z,
@@ -217,7 +246,18 @@ def m_diffpair(devs, cls, imp, role):
     class=`INPUT`)과 `M58`(`gate=Vbias2`, class=`SIGNAL`)은 게이트 net **class**가
     다르다는 게 실측으로 확인된 구별점 -- 진짜 differential pair는 두 입력이 의미상
     대칭인 같은 종류의 net(둘 다 `INPUT`, 또는 승격된 2차 입력이면 둘 다 그 class)이어야
-    한다는 원칙을 `cls.get(a['G']) == cls.get(b['G'])` 조건으로 코드화했다."""
+    한다는 원칙을 `cls.get(a['G']) == cls.get(b['G'])` 조건으로 코드화했다.
+
+    ⚠️ 2026-08-18 확장(chip-design-skills 세션, `m_cascode()` cross-kind 확장 검증 중
+    실측 발견) -- `role==AMP`만 인정하던 게 **CMFB 비교기 차동쌍**(게이트가 `FEEDBACK`으로
+    분류돼 `role=CONTROLLED_CURRENT_SOURCE`가 되는 경우, 예: `current_reuse_telescopic_
+    ota`의 `M37a`(gate=`Voc`)/`M37b`(gate=`Voc_des`))을 놓쳤다 -- 그 결과 `m_cascode()`의
+    `diffpair_legs` 제외가 안 먹혀 `M38`(tail) 위에 얹힌 평범한 캐스코드로 오분류됐다.
+    이 파일의 `m_tail()`(위, CMFB 제어/DC 바이어스 tail을 `(CURR_SRC, CTRL_SRC)` 둘 다
+    인정)과 원래 비일관됐던 부분 -- `AMP`뿐 아니라 `CTRL_SRC`도 "진짜 신호를 증폭/비교하는
+    소자"로 인정한다(둘 다 게이트가 실제 신호 클래스를 받는다는 점은 같고, `FEEDBACK`이냐
+    `SIGNAL/INPUT/OUTPUT`이냐만 다르다 -- `assign_roles()`의 role 우선순위상 `FEEDBACK`이
+    먼저 걸려 `CTRL_SRC`가 되는 것뿐, 기능은 differential 비교와 동일)."""
     out, grp = [], defaultdict(list)
     for d in devs:
         if d['S'] in RAILS: continue
@@ -228,7 +268,7 @@ def m_diffpair(devs, cls, imp, role):
             for j in range(i + 1, len(ms)):
                 a, b = ms[i], ms[j]
                 if a['G'] == b['G']: continue
-                if role[a['name']] != AMP or role[b['name']] != AMP: continue
+                if role[a['name']] not in (AMP, CTRL_SRC) or role[b['name']] not in (AMP, CTRL_SRC): continue
                 if cls.get(a['G']) != cls.get(b['G']): continue
                 out.append(Match('differential-pair', [a['name'], b['name']],
                                  {'tail': tail, 'inp': a['G'], 'inm': b['G'],
@@ -284,7 +324,25 @@ def m_cascode(devs, cls, imp, role):
     `mid`/`out`으로 바꿔 부른다고 해결되는 게 아니라(source가 low-Z라는 물리적 사실은
     안 바뀜), 애초에 캐스코드로 기능하고 있지 않다는 뜻이라 매칭 자체를 제외한다
     (`_reaches_output()`, `outputs=` 미선언 시엔 `cls`에 `OUTPUT`이 없어 이 조건이
-    항상 거짓 -- 부작용 없음)."""
+    항상 거짓 -- 부작용 없음).
+
+    ⚠️ 2026-08-18 확장(chip-design-skills 세션, 사용자 지적 -- "PMOS/NMOS 경계는 항상
+    drain-drain이야", "m_cascode() 자체를 확장(근본 해결)") -- 위 `up.S==lo.D`(같은 kind만
+    인정) 판정 하나로는 **PMOS/NMOS 경계 캐스코드**(다이오드로 전류를 생성하는 소자와
+    반대 kind의 캐스코드가 drain-drain으로 만나는 구조, 예: `nmcnr_amplifier`의 `M108`
+    (pmos 다이오드)/`M106`(nmos 캐스코드) — `M106.source`가 아니라 `M106.drain`이
+    `M108.drain`과 같은 노드다)를 아예 못 잡는다는 게 실측으로 드러났다 -- `by_d[up['S']]`
+    루프만으로는 `M104`(같은 kind, source=drain 체인)만 잡히고 `M108`은 통째로 빠졌다.
+    같은 `up` 필터(role/diffpair·float 제외/`_reaches_output` 기능성 검사)를 그대로 쓰되,
+    `lo` 탐색을 `by_d[up['D']]`(같은 drain을 쓰는 **다른** kind)로 한 번 더 돈다 --
+    같은 kind 탐색과 겹치지 않도록 `lo['type'] == up['type']`인 건 여기서 제외한다.
+
+    ⚠️ **`ports['lo']`/`ports['up']`을 명시**(2026-08-08 `m_diode_cascode()`가 이미 쓰던
+    패턴과 동일 이유) -- 이 cross-kind 케이스는 `up`의 drain과 `lo`의 drain이 **똑같은
+    노드**라 기존 `_cascode_lo_up_pairs()`의 `ports['mid']` 기반 추론(`da.get('D')==mid`)이
+    양쪽 다 참이 되어 어느 쪽이 lo인지 못 가른다 -- 처음부터 명시해서 이 모호성 자체를
+    없앤다(같은 kind 케이스에도 일관되게 명시 -- `_cascode_lo_up_pairs()`가 이제 명시된
+    키를 최우선으로 본다)."""
     out, by_d = [], defaultdict(list)
     for d in devs: by_d[d['D']].append(d)
     diffpair_legs = {n for m in m_diffpair(devs, cls, imp, role) for n in m.devices}
@@ -298,8 +356,34 @@ def m_cascode(devs, cls, imp, role):
         for lo in by_d[up['S']]:
             if lo['name'] == up['name'] or lo['type'] != up['type']: continue
             out.append(Match('cascode-stack', [lo['name'], up['name']],
-                             {'mid': up['S'], 'out': up['D'],
+                             {'lo': lo['name'], 'up': up['name'],
+                              'mid': up['S'], 'out': up['D'],
                               'lower_role': role[lo['name']]},
+                             note=up['type'], priority=4))
+        # 2026-08-18 -- `up`이 진짜 "무언가 위에 쌓인" 소자이려면 `up.source`가 레일이면
+        # 안 된다(레일=그 컬럼의 맨 밑/맨 위, 더 이상 아래에 쌓일 게 없다는 뜻). 이 조건이
+        # 없으면 `current_reuse_telescopic_ota`의 `M15`(pmos,source=vdd)/`M16`
+        # (nmos,source=gnd)처럼 **같은 출력 노드(Vom)를 서로 다른 레일에서 각자 독립적으로
+        # 구동하는 complementary push-pull 출력단**까지 "캐스코드"로 오탐한다(실측 발견 --
+        # 겉보기엔 D-D 접합이라 구조가 똑같아 보이지만, 기능적으로는 캐스코드(하나가 나머지
+        # 위에 얹혀 전류를 그냥 통과시킴)가 전혀 아니라 서로 독립적으로 전류를 생성하는
+        # 두 소자가 우연히 한 노드에서 만나는 것뿐이다). `up.source`가 non-rail(내부 노드,
+        # 즉 진짜 다른 컬럼 위에 앉아 있음)일 때만 캐스코드 관계로 인정한다.
+        if up['S'] in RAILS: continue
+        for lo in by_d[up['D']]:
+            if lo['name'] == up['name'] or lo['type'] == up['type']: continue
+            # D-D 접합은 대칭이라(둘 다 drain이 같은 노드) lo/up 둘 다 `up` 필터(role in
+            # CASCODE/AMP/CTRL_SRC)를 통과하면 방향이 반대인 Match 2개가 동시에 나오는
+            # 모순이 실측으로 드러났다(nmcnr_amplifier의 M107(CASCODE)/M109(AMPLIFYING) --
+            # 둘 다 이 loop에서 up 후보라 (lo=M107,up=M109)와 (lo=M109,up=M107)이 둘 다
+            # 생성됨). CASCODE는 정의상 전류를 생성하지 않으므로(이 확장 자체의 전제) lo가
+            # CASCODE면 그 방향은 무조건 배제한다 -- 남는 진짜 생성원 쪽(M109, AMPLIFYING)만
+            # lo로 채택된다.
+            if role[lo['name']] == CASCODE: continue
+            out.append(Match('cascode-stack', [lo['name'], up['name']],
+                             {'lo': lo['name'], 'up': up['name'],
+                              'mid': up['D'], 'out': up['D'],
+                              'lower_role': role[lo['name']], 'cross_kind_boundary': True},
                              note=up['type'], priority=4))
     return out
 
@@ -316,11 +400,22 @@ def _cascode_lo_up_pairs(devs, matches):
     lo/up 순서와 다를 때 뒤바뀐다**(실측 발견: `folded_cascode`는 우연히 대부분 일치했지만
     일반적으로 보장되지 않음 -- 예를 들어 두 자리 숫자 이름은 문자열 비교가 물리적
     순서와 어긋나기 쉽다). `devs`(원본 소자 리스트, 각 `D`/`S` 필드 보유)로 어느 쪽이
-    진짜 lo(`D==mid`)이고 어느 쪽이 up(`S==mid`)인지 다시 확인해 이 gap을 없앤다."""
+    진짜 lo(`D==mid`)이고 어느 쪽이 up(`S==mid`)인지 다시 확인해 이 gap을 없앤다.
+
+    ⚠️ 2026-08-18 확장 -- `ports['lo']`/`ports['up']`이 명시돼 있으면(2026-08-18부터
+    `m_cascode()`가 항상 명시함) 그 값을 최우선으로 쓴다. PMOS/NMOS 경계 캐스코드
+    (`cross_kind_boundary`, `up.D==lo.D`)는 `up`/`lo` 둘 다 `D==mid`를 만족해 아래
+    `mid` 기반 추론이 어느 쪽인지 못 가르기 때문에 명시가 필수다 -- `ports['lo']`가
+    없는(과거 방식으로 만들어진, 또는 이 함수 밖에서 합성한) Match만 기존 `mid` 기반
+    추론으로 하위호환 처리한다."""
     by_name = _by_name(devs)
     pairs = []
     for m in matches:
         if m.kind != 'cascode-stack':
+            continue
+        explicit_lo, explicit_up = m.ports.get('lo'), m.ports.get('up')
+        if explicit_lo is not None and explicit_up is not None:
+            pairs.append((explicit_lo, explicit_up))
             continue
         mid = m.ports.get('mid')
         a, b = m.devices

@@ -7956,36 +7956,20 @@ if __name__ == "__main__":
         f"folded_cascode는 세션35에서 Ibg를 free theta로 배선했으니 has_theta여야 하는데: {_diag_r4}"
     print(f"    PASS: {_diag_r4}")
 
-    print("  [5. 실제 라이브러리 파일 nmcnr_amplifier -- PM_target_deg=46(논문 실측치)은 "
-          "nmcnr_3stage_topology()의 PM>60 전제와 충돌해 kind=other]")
+    print("  [5/6. 실제 라이브러리 파일 nmcnr_amplifier -- 원래(세션35) PM_target_deg=46 "
+          "(논문 실측치)이 nmcnr_3stage_topology()의 PM>60 전제와 충돌해 kind=other로 걸렸고, "
+          "PM=70으로 그 가드를 우회해도 M101(바이어스 소자, 전류가 KCL만으로 안 나옴)에서 "
+          "또 다른 unresolved_current gap이 드러났었다(당시 sizing_roles=null). 2026-08-18 "
+          "세션이 그 M101 tail 전류/M104,M105 폴딩비를 sympy KCL 재유도 + 7개 theta로 실제로 "
+          "배선했으므로(fold_group/vertical_stack_id 15개 소자 전부 확정 위, PM_target_deg는 "
+          "아직 46인 채 -- 그건 여전히 별도 gap), 이제 folded_cascode/two_stage_ota와 동일하게 "
+          "has_theta로 조기 반환되는지 재확인한다(회귀 감시)]")
     _diag_nm_path = _os.path.join(_lib_dir_recipe, "nmcnr_amplifier.topology.json")
-    _diag_nm_base_spec = {
-        "lut_by_kind": {"nmos": _diag_lut, "pmos": _diag_lut}, "vdd": 2.0,
-        "GBW": 816000.0, "CL": 1e-10, "kg": 0.5,
-        "L_candidates": [float(v) for v in _diag_lut.L_grid],
-        "VDS_candidates": [float(v) for v in _diag_lut.VDS_grid],
-        "gm_id_grid": [i * 0.5 for i in range(4, 61)],
-        "L_min": 0.15e-6, "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
-        "W_bounds": (1e-6, 200e-6), "stage_objective": "power", "stage_w_max": 500e-6,
-        "min_vds_by_role": {"cascode": 0.2, "mirror": 0.2},
-    }
-    _diag_r5 = diagnose_sizing_roles_gap(_diag_nm_path, dict(_diag_nm_base_spec, PM_target_deg=46.0))
-    assert _diag_r5["status"] == "gap" and _diag_r5["kind"] == "other", \
-        f"PM=46은 compensation 함수 자체 가드에 걸려야 하는데: {_diag_r5}"
-    assert "60도" in _diag_r5["message"], f"원인이 PM 가드가 아닌 다른 이유로 보임: {_diag_r5}"
-    print(f"    PASS: {_diag_r5}")
-
-    print("  [6. 같은 파일, PM_target_deg=70(테스트 전용 유효값)으로 그 가드는 통과해도 "
-          "M101(바이어스 소자, ideal_sources 선언 자체가 없음)에서 또 다른 unresolved_current]")
-    _diag_r6 = diagnose_sizing_roles_gap(_diag_nm_path, dict(_diag_nm_base_spec, PM_target_deg=70.0))
-    assert _diag_r6["status"] == "gap" and _diag_r6["kind"] == "unresolved_current", \
-        f"PM 가드를 통과하면 M101의 진짜 gap(바이어스 전류 미선언)이 드러나야 하는데: {_diag_r6}"
-    assert _diag_r6["device"] == "M101" and _diag_r6["ideal_source_hint"] is None, \
-        f"nmcnr_amplifier는 ideal_sources 필드 자체가 없어 hint가 항상 None이어야: {_diag_r6}"
-    print(f"    PASS: {_diag_r6} -- PM_target_deg만 고치는 걸로는 부족하고, M101/M104-M107/"
-          f"M202/M302(VB1~VB5 외부 바이어스로만 게이트가 물린 소자 전부) 바이어스 전류망이 "
-          f"이 topology.json에 통째로 미선언 상태라는 걸 실행 기반으로 확인 -- 다음 세션 "
-          f"이월 항목으로 남긴다(사람이 정할 spec 값이 필요, 이 함수가 대신 짓지 않음).")
+    _diag_r56 = diagnose_sizing_roles_gap(_diag_nm_path, {})
+    assert _diag_r56["status"] == "has_theta", \
+        f"nmcnr_amplifier는 2026-08-18에 M101/M104/M105/M106/M107/M108 theta를 배선했으니 " \
+        f"has_theta여야 하는데: {_diag_r56}"
+    print(f"    PASS: {_diag_r56}")
 
     print("  [7. sizing_roles.theta가 이미 선언된 회로는 status=has_theta로 조기 반환]")
     _diag_tso_path = _os.path.join(_lib_dir_recipe, "two_stage_ota.topology.json")
