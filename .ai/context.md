@@ -1,11 +1,11 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션37 최종 요약"부터 먼저 읽을 것**
-— 그 절 하나만 읽어도 세션37 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
-시작 순서)가 재현 가능하도록 정리돼 있다. "# 세션36 최종 요약"/"# 세션35 최종 요약"/
-"# 세션34 최종 요약"/"# 세션34 결론"/"# 세션33 결론"/"# 세션32 결론"/"# 세션31 결론"은
-더 이전 이력이다. 아래는 세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정
-결정의 "왜"가 궁금할 때만 찾아보면 된다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션38 최종 요약"부터 먼저 읽을 것**
+— 그 절 하나만 읽어도 세션38 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
+시작 순서)가 재현 가능하도록 정리돼 있다. "# 세션37 최종 요약"/"# 세션36 최종 요약"/
+"# 세션35 최종 요약"/"# 세션34 최종 요약"/"# 세션34 결론"/"# 세션33 결론"/
+"# 세션32 결론"/"# 세션31 결론"은 더 이전 이력이다. 아래는 세션 진행 중 실시간으로
+쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
 
 ---
 
@@ -11169,3 +11169,123 @@ gap_fill()` 적용 여부 결정, `gm_id_role` 분류 원리 정립(`"load"` rol
 닫혔다. **급한 이월 항목이 하나도 없는 드문 상태**이니, 다음 세션은 사용자가 새 작업을
 지시하면 그걸 우선하고, 별다른 지시가 없으면 §4의 ②~⑤ 중 아무거나(전부 우선순위 동급,
 급하지 않음) 골라 진행하면 된다.
+
+# 세션38 최종 요약 -- device_roles에 gm_id_match_vgs_of 신설(theta 레벨 동명 메커니즘의 일반화) +
+nmcnr_amplifier M204에 실제 적용, 세션37 §4④가 이월한 "VDS 다른 declared matching_pairs의
+조인트 gm_id 탐색" gap을 완결. 이 절 하나만 읽어도 전체가 재현 가능하다.
+
+## 0. 세션 시작 시점 재확인
+
+세션37이 커밋 8개(`3f7b226`~`f1f127a`)로 종료한 뒤 사용자가 커밋 개수 오타를 정정하는 문서
+커밋 2개(`0049e6b`/`8876d35`)를 추가로 남긴 상태에서 시작 -- `git status`로 이 세션이 건드릴
+파일 기준 working tree가 클린함을 먼저 확인했다. 사용자에게 세션37 §4의 이월 항목 4개
+(②floorplan/audit, ③Monticelli 미지원, ④조인트 gm_id 탐색, ⑤세션34 이전 5개 소항목) 중
+우선순위를 물어 **④**를 선택받았다.
+
+## 1. 무엇을 했나(시간 순)
+
+**① 기존 메커니즘 조사** -- `_build_shared_current_joint_plan()`/`_run_shared_current_joint_
+scan()`(세션31 BQ)이 세션37 §4④가 "구조적으로 가장 가까운 선례"로 지목했던 함수였지만, 실제로
+읽어보니 `compensation.shared_gm_id_groups` + `metric_stage_budget` theta 전용이라 M203/M204
+(순수 `device_roles.gm_id_role`, theta 없음)에는 적용 대상이 아니었다. 대신 `_feed_metric_
+stage_budget()`가 이미 갖고 있던 `gm_id_match_vgs_of` 필드(theta feed 레벨, 세션31 신설 --
+다른 소자의 실제 VGS를 `lut.gm_id_for_vgs()`로 역산)가 정확히 필요한 메커니즘이었다 --
+`device_roles` 레벨엔 이 필드가 없어서 M203/M204가 이 관계를 놓치고 있었을 뿐.
+
+**② 근본원인 재확인** -- `sizing_recipe.py`의 `device_roles.gm_id_role` 처리 루프(~4535행)를
+직접 읽어 확정: 이 루프는 소자마다 완전히 독립적으로 `search_gm_id_for_role()`을 호출한다.
+M203(다이오드, vds=1.85V)/M204(미러, vds=1.0V)는 `gate=NodeC`/`source=vss`가 물리적으로
+공유돼 VGS가 KVL로 완전히 강제 동일해야 하는데, 이 루프는 그 관계를 전혀 모른 채 각자 role
+기준으로 독립 탐색해 세션37 §1-⑪에서 실측한 대로 "matching"에서는 우연히 6.0으로 같았지만
+"gain"으로 바꾸면 17.5/18.5로 실제로 갈라졌다.
+
+**③ 설계 확정(사용자 승인)** -- 공유 엔진(`sizing_recipe.py`/`stick_diagram.py`) 수정이라
+"국소 메타데이터는 바로, 공유 엔진코드는 승인 후" 원칙에 따라 진행 전 설계를 제시하고
+`AskUserQuestion`으로 승인받았다: (1) `device_roles`에 `gm_id_match_vgs_of`(theta 레벨과
+동일 의미) 신설, (2) 4535행 루프를 2-pass로 분리(Pass 1=기존 `gm_id_role` 독립 탐색, Pass
+2=신설 `gm_id_match_vgs_of` -- companion의 실제 VGS를 `vgs_for_gm_id()`로 구해 `gm_id_
+for_vgs()`로 역산), (3) M204를 `gm_id_role: "matching"` -> `gm_id_match_vgs_of: "M203"`로
+변경(M203은 root로 유지), (4) self-test + 4개 회로 harness 재실행으로 회귀 확인.
+
+**④ 구현** -- `sizing_recipe.py`의 device_roles 루프 뒤(기존 Pass 1 루프 직후, `metrics_
+result` 계산 전)에 Pass 2 신설. companion이 `_AUTHORITATIVE_GM_ID_SOURCES`/gm_id_role로
+이미 확정돼 있어야 하며(2-pass 고정 순서, 체인은 미지원 -- 필요해지면 확장), companion이
+아직 sizing 안 됐으면 명확한 `ValueError`. `gm_id_for_vgs()`가 LUT VGS 범위 밖이면 `ValueError`
+를 `InfeasibleSizingError`로 감싸 grid search가 그 조합만 건너뛰게 함(기존 관례와 동일).
+
+**⑤ 리뷰 게이트 회귀 발견 및 수정** -- M204의 `gm_id_role`을 제거하고 `gm_id_match_vgs_of`로
+바꾸자 `require_device_roles_reviewed()`가 즉시 막았다: `propose_device_roles_gap_fill()`
+(`stick_diagram.py`)의 4번째 소스("signal_referenced_mirror_legs" -- 공교롭게도 이 소스 자체가
+세션37에 M203/M204를 계기로 이미 신설돼 있었다)가 M204에 여전히 `gm_id_role="matching"`을
+제안하고, 이게 "unreviewed"로 잡혔다(파일에 declared 안 됐으므로). 근본원인 수정: `propose_
+device_roles_gap_fill()`의 proposal 루프 맨 앞에 "이미 declared `gm_id_match_vgs_of`가 있으면
+`gm_id_role` 제안 자체를 건너뛴다" 가드 추가(두 필드는 "이 소자의 gm/ID를 어떻게 정하는가"에
+대한 상호배타적 양자택일 -- 우선순위가 아니라 양자택일임을 주석에 명시).
+
+**⑥ self-test 신설**(`sizing_recipe.py`, 7-3d 절 근처) -- 2-소자 합성 fixture(Ma=diode-
+connected 레퍼런스, Mb=미러, `symmetry.matching_pairs`에 `current_forced=true`로 declared,
+`known_sizing`으로 L/vds/ID 직접 시드해 headroom/A엔진 복잡도 우회). `_build_theta_
+evaluator()["evaluate"]({})`를 직접 호출(전체 `optimize_full_circuit_budget()`은 이 2-소자
+toy 회로에 없는 레이아웃 spec 필드를 요구해 무관한 실패를 낼 수 있어 우회). 검증: (a) Mb의
+`gm_id`가 `lut.vgs_for_gm_id(gm_id_a,...)` -> `lut.gm_id_for_vgs(...)` 왕복 계산과 정확히
+일치(Mb는 `gm_id_role`이 아예 없어 이 값은 2차 pass로만 나올 수 있음 -- 없으면 KeyError로
+바로 드러남), (b) `gm_id_match_vgs_of`가 존재하지 않는 소자를 참조하면 명확한 `ValueError`.
+⚠️ `build_toy_lut()`는 VGS(gm_id,L,vds)가 vds와 무관한 단순 모델이라(실측 확인) gm_id_a와
+gm_id_b가 이 toy LUT에서는 값 자체가 같게 나온다 -- "값이 다르다"가 아니라 "정확한 역산값과
+일치한다"가 이 테스트의 실제 단언이다.
+
+**⑦ `nmcnr_amplifier.topology.json`에 실제 적용** -- M204를 `{"gm_id_role":"matching",...}`
+에서 `{"gm_id_match_vgs_of":"M203",...}`로 변경. 첫 harness 재실행에서 baseline constraints
+(세션37이 확정한 `gain_db>=114.4443`/`pm_deg>=77.8929`)를 근소하게 위반(`gain_db=114.4279`/
+`pm_deg=77.8019`) -- 이 메커니즘이 실제로 사이징을 바꿨다는 증거이자 예상된 결과. constraints를
+이 새 baseline으로 갱신(`gain_db>=114.4279299513672`/`pm_deg>=77.80185387842204`, 기존 세션37
+관례 그대로) -- 재실행해 정확히 재현되고 `OK`로 완주함을 확인. `_sizing_roles_comment`/
+`_device_roles_comment`에 이번 변경의 근거와 수치를 기록.
+
+## 2. 최종 검증 상태
+
+- `sizing_recipe.py`/`stick_diagram.py` self-test 전체 exit 0(신설 테스트 2건 포함, 회귀 없음).
+- `python run_harness.py nmcnr_amplifier` -- `OK`로 완주, metrics=`{power_uA=0.0018984...(불변),
+  gain_db=114.42793..., pm_deg=77.80185..., cmrr_db=4.47634...(불변), psrr_db=2.59687...(불변)}`.
+  `floorplan_ok=True`(부수적으로 이전 세션과 동일하게 유지, aspect_ratio=1.383). `audit_ok=False`는
+  이 세션 범위 밖(레이아웃/row_split, 세션37부터 이월 중이던 §4② 그대로).
+- `python run_harness.py folded_cascode` / `two_stage_ota` -- 둘 다 세션37과 완전히 동일한
+  metrics로 재현(회귀 없음, 두 회로 모두 `gm_id_match_vgs_of`를 쓰지 않아 device_roles Pass 2가
+  no-op).
+- `python run_harness.py current_reuse_telescopic_ota`(SLSQP 경로) -- `gain_db=76.48334...`로
+  세션 전체에 걸쳐 반복 확인돼온 baseline과 정확히 일치(회귀 없음, 이 회로도 `gm_id_match_
+  vgs_of`를 쓰지 않음 -- `propose_device_roles_gap_fill()`의 신설 가드도 이 회로의 기존 declared
+  `device_roles`엔 영향 없음을 실측 확인).
+
+## 3. 커밋 상태 -- **세션38은 커밋 완료됨(2026-08-19 세션 끝 시점)**
+
+커밋 `81a915b` -- device_roles Pass 2 신설 + self-test 2건(`sizing_recipe.py`), `propose_
+device_roles_gap_fill()`의 `gm_id_match_vgs_of` 우선 가드(`stick_diagram.py`), M204 device_
+roles 변경 + constraints 새 baseline + 주석 갱신(`nmcnr_amplifier.topology.json`), harness
+재실행 결과물(`nmcnr_amplifier.instance.json`) 4개 파일. 이 문서 갱신은 별도 docs 커밋으로
+이어짐(git log 참고).
+
+## 4. 다음 세션 이월 항목(2026-08-19 세션38 종료 시점 최신)
+
+### ① [완결] VDS가 다른 declared matching_pairs의 조인트 gm_id 탐색 (세션37 §4④ 그대로 승계)
+
+M203/M204 사례는 `device_roles.gm_id_match_vgs_of` 신설로 완전히 해소됐다. 일반 메커니즘
+자체(theta 레벨과 device_roles 레벨 양쪽 다 존재)가 이제 이 프로젝트에 있으므로, 다른 회로에서
+비슷한 패턴(VDS가 다른 declared 미러쌍)이 나오면 바로 재사용 가능 -- 추가 설계 불필요.
+
+### ② `nmcnr_amplifier`의 `audit_ok`/`floorplan_ok`/`_netlist_sections_structured` (세션37 §4②
+그대로, 미착수)
+
+### ③ `propose_theta_kcl_gap_fill()`의 Monticelli class-AB 미지원 (세션36/37 이어, 미착수)
+
+### ④ 세션34 이전부터 계속 이월 중인 항목 5개 (세션37 §4⑤ 그대로, 원문 재나열 없이 위치만 승계
+-- L 일치 전파 필터/`two_stage_ota` M5·M7 matching_pairs 누락/`"balanced"`→`"moderate"` 마이그
+레이션 감사/`run_harness.py` 나머지 실전략/`current_reuse_telescopic_ota`의 Monticelli
+unresolved_devices)
+
+## 5. 다음 세션 시작 순서
+
+**커밋 확인 불필요** -- 이 세션은 커밋 `81a915b`(+ 이 문서 갱신 docs 커밋)로 완료됐고 working
+tree가 클린하다(다음 세션 시작 시 `git status`로 재확인만 하면 됨). 급한 이월 항목이 없다
+(①이 이 세션으로 완결됨) -- 다음 세션은 사용자 지시를 우선하고, 없으면 §4의 ②~④ 중 아무거나
+골라 진행하면 된다.
