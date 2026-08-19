@@ -11062,7 +11062,7 @@ M202는 `"load"`(`ro=250266Ω`)가 원래 `"matching"`(`245505Ω`)보다도 소�
 ## 3. 커밋 상태 -- **세션37은 전부 커밋 완료됨(2026-08-19 세션 끝 시점, working tree 클린)**
 
 `git status`가 이 세션이 건드린 파일 기준으로 클린함(`.bkit/` 자동 churn과 이 세션과 무관한
-기존 untracked 파일 몇 개만 남음, 아래 §5 참고). 세션37 커밋 7개(오래된 순):
+기존 untracked 파일 몇 개만 남음, 아래 §5 참고). 세션37 커밋 8개(오래된 순):
 
 1. `3f7b226` -- nmcnr_amplifier 바이어스망 gap 완전 해소(fold_group/theta) + KCL 자동 제안
    도구 2종(`propose_fold_group_gap_fill`/`apply_fold_group_gap_fill`) + analog-grammar
