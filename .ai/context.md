@@ -11059,29 +11059,36 @@ M202는 `"load"`(`ro=250266Ω`)가 원래 `"matching"`(`245505Ω`)보다도 소�
   재실행 -- 넷 다 기존과 완전히 동일한 metrics(회귀 없음, `"load"` role은 nmcnr_amplifier만
   사용해 다른 회로엔 영향 없음).
 
-## 3. 커밋 상태
+## 3. 커밋 상태 -- **세션37은 전부 커밋 완료됨(2026-08-19 세션 끝 시점, working tree 클린)**
 
-이 세션은 아직 커밋 안 됨(다음 세션 시작 시 확인) -- 수정 파일: `.ai/context.md`(이 절),
-`skills/analog-gmid-design/assets/library/nmcnr_amplifier.topology.json`(metrics/objective/
-constraints 신설 + theta 4개 추가 + 함수명 갱신), `skills/analog-gmid-design/assets/
-sizing_recipe.py`(F엔진 3종+self-test 신설 + 함수명 갱신), `skills/analog-gmid-design/assets/
-stick_diagram.py`(`apply_theta_kcl_gap_fill()` 신설 + `propose_theta_kcl_gap_fill()`의
-`compensation_stage_devices` 파라미터 신설 + Test 61 확장/Test 62 신설),
-`skills/analog-gmid-design/assets/topology_library.py`(`nmcnr_predict_notch()` →
-`nmcnr_predict_ac_response()` 개명 + 개명 이력/독립 재유도 문단 + `__main__`에 sympy 회귀
-가드 신설 + `nmcnr_check_dominant_pole_approximation()` 신설 + `nmcnr_3stage_topology()`에
-`topology_fn.dominant_pole_check` 자동 배선 + `functools` import 추가), `skills/analog-gmid-
-design/references/function-selection-map.md`/`sky130-worked-example.md`(함수명 갱신),
-`skills/analog-gmid-design/references/topology-fn-derivation-guide.md`(§3에 Eq10/11 근사
-한계 재유도 결과 신설), `skills/analog-gmid-design/assets/library/two_stage_ota.topology.json`
-(참고용 언급 1건 함수명 갱신), `workspaces/run_harness.py`(PM_target_deg 확정 코멘트 갱신 +
-함수명 갱신 + grid_points_per_theta는 5로 원복). 신규 생성: `workspaces/nmcnr-amplifier-report/`
-(디렉터리 자체가 없어서 만듦, `.instance.json` 포함). §1-⑩ 적용분: `nmcnr_amplifier.
-topology.json`의 `device_roles`(M106/M107/M108/M109/M302 `gm_id_role` 5곳 `matching`->
-`gain`) + `constraints`(새 baseline)만 추가 변경 -- B타입 theta 3개는 시도 후 되돌려서
-최종 diff엔 안 남음. §1-⑫ 적용분: `sizing_recipe.py`의 `search_gm_id_for_role()`에 다섯
-번째 role `"load"` 신설 + self-test 추가, `nmcnr_amplifier.topology.json`의 M108/M109/
-M202/M302 `gm_id_role`을 `"load"`로 재분류 + `constraints`를 그 새 baseline으로 재갱신.
+`git status`가 이 세션이 건드린 파일 기준으로 클린함(`.bkit/` 자동 churn과 이 세션과 무관한
+기존 untracked 파일 몇 개만 남음, 아래 §5 참고). 세션37 커밋 7개(오래된 순):
+
+1. `3f7b226` -- nmcnr_amplifier 바이어스망 gap 완전 해소(fold_group/theta) + KCL 자동 제안
+   도구 2종(`propose_fold_group_gap_fill`/`apply_fold_group_gap_fill`) + analog-grammar
+   캐스코드/차동쌍 인식 확장(§1-①~⑥에 해당, 세션36에서 이어받아 이 세션 맨 처음 커밋)
+2. `e35bdae` -- `sizing_roles.metrics`/`objective`/`constraints` 신설 + `nmcnr_predict_notch()`
+   최초 배선(§4-① 완료, 당시 이름)
+3. `4eb2c51` -- `propose_theta_kcl_gap_fill()`에 `compensation_stage_devices` 인지 추가 +
+   `apply_theta_kcl_gap_fill()` 신설 + 실제 적용(§1-⑥)
+4. `f98098b` -- `nmcnr_predict_notch()` → `nmcnr_predict_ac_response()` 독립 재유도+개명(§1-⑦)
+5. `9707fd8` -- Eq10/11 근사 한계 독립 재유도, `nmcnr_check_dominant_pole_approximation()`
+   신설+배선(§1-⑧)
+6. `6190905` -- `pm_deg` 48.32도→76.74도 회복(`gm_id_role` matching→gain 5곳, §1-⑩)
+7. `5a47513` -- M202 "gain" 시도 기록(역효과로 원복, 문서만, §1-⑪)
+8. `f1f127a` -- 다섯 번째 role `"load"` 신설 + 적용, `pm_deg` 77.89도까지 추가 개선(§1-⑫)
+
+수정된 핵심 파일(최종 상태): `skills/analog-gmid-design/assets/library/nmcnr_amplifier.
+topology.json`(metrics/objective/constraints/theta 11개/device_roles gm_id_role 다수 갱신),
+`skills/analog-gmid-design/assets/sizing_recipe.py`(F엔진 3종 + `search_gm_id_for_role()`
+`"load"` role + self-test 다수), `skills/analog-gmid-design/assets/stick_diagram.py`
+(`apply_theta_kcl_gap_fill()` + `compensation_stage_devices` 파라미터), `skills/analog-
+gmid-design/assets/topology_library.py`(`nmcnr_predict_ac_response()` 개명 + `nmcnr_check_
+dominant_pole_approximation()` 신설), `skills/analog-gmid-design/references/function-
+selection-map.md`/`sky130-worked-example.md`/`topology-fn-derivation-guide.md`(문서 갱신),
+`skills/analog-gmid-design/assets/library/two_stage_ota.topology.json`(참고용 언급 갱신),
+`workspaces/run_harness.py`(PM_target_deg 확정 + 함수명 갱신). 신규 생성:
+`workspaces/nmcnr-amplifier-report/`(디렉터리+`.instance.json`, 커밋됨).
 
 ## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션37 종료 시점 최신)
 
@@ -11114,10 +11121,27 @@ sections_structured`가 없어 `run_full_circuit_audit_from_topology()`가 스�
 
 `idioms.m_float_source()`가 이미 이 패턴(anti-parallel 상보쌍)을 찾아주는데 이 함수는 아직
 그 idiom을 재사용 안 함. `current_reuse_telescopic_ota`의 `M9a`/`M9b`/`M18a`/`M18b`가 여전히
-`unresolved_devices`로 남는다(정직하게 보고는 되지만 풀리지는 않음, 아래 ④-5와 동일 항목이라
+`unresolved_devices`로 남는다(정직하게 보고는 되지만 풀리지는 않음, 아래 ⑤-5와 동일 항목이라
 중복 이월임을 명시).
 
-### ④ 세션34 이전부터 계속 이월 중인 항목 5개(전부 급하지 않음, 원문 그대로 재나열 --
+### ④ [신규 발견, 미해결] VDS가 다른 declared matching_pairs의 "조인트 gm_id 탐색"이
+`search_gm_id_for_role()`/`gm_id_role` 메커니즘 밖에 있음(§1-⑪, M203/M204 실측 계기)
+
+`M203`(다이오드, vds=1.85V)/`M204`(미러 출력, vds=1.0V)처럼 **같은 gm_id를 공유해야 하는데
+VDS가 서로 다른** declared 미러쌍은, 개별 소자마다 `gm_id_role`을 독립적으로 골라서는 최적화가
+안 된다(각자 다른 vds에서 각자의 role 기준을 적용하면 gm_id가 갈라져 미러비가 깨짐 -- 실측:
+"gain" 적용 시 17.5/18.5로 분리). 이번 세션엔 "matching"(gm_id 최소화)이 우연히 W_bounds
+feasible 하한과 겹쳐 이미 최적이었다는 걸 손으로 스캔해서 확인만 했지(§1-⑪ 말미), **엔진에
+이 "제약된 조인트 탐색"을 위한 일반 메커니즘은 아직 없다** -- `_build_shared_current_joint_
+plan()`/`_run_shared_current_joint_scan()`(세션31 BQ, `gm_id_match_vgs_of`용으로 이미 존재)이
+구조적으로 가장 가까운 선례이니, 이 gap을 실제로 메우려면 그 메커니즘을 declared matching_pairs
+(전체) 케이스로 일반화하는 방향이 유력해 보인다(설계만 해봤을 뿐 구현은 안 함). 다른 회로에도
+VDS가 다른 declared pair가 있으면 같은 문제가 재현될 수 있다 -- 아직 실제 문제를 일으킨 사례는
+`current_reuse_telescopic_ota`의 기존 `gm_id_match_vgs_of` 조합들뿐(이미 그 메커니즘으로
+처리됨), nmcnr의 M203/M204는 이번에 "우연히 안전"했을 뿐이라는 걸 인지하고 있을 것. 급하지
+않음(당장 깨진 회로 없음).
+
+### ⑤ 세션34 이전부터 계속 이월 중인 항목 5개(전부 급하지 않음, 원문 그대로 재나열 --
 "이월 목록 갱신 시 바로 위 세션만 보지 말 것" 경고를 이번에도 지킴)
 
 1. **세션33 L절** -- `sizing_recipe.py` 3963행 근처 L 일치 전파 루프가 `current_forced` 필터
@@ -11134,9 +11158,14 @@ sections_structured`가 없어 `run_full_circuit_audit_from_topology()`가 스�
 
 ## 5. 다음 세션 시작 순서
 
-**커밋 여부부터 사용자에게 확인**(§3 참고, 이 세션은 안 함). §4-①(`pm_deg`)은 §1-⑦⑧⑨⑩으로
-원인 규명+실제 수정까지 완료됐다(48.32도->76.74도) -- 남은 건 76.74도를 그대로 baseline으로
-확정할지, 70.0도에 더 가깝게 미세조정할지 사용자 판단뿐(급하지 않음). 사용자가 다른
-우선순위(②③④ 중 하나)를 지시하면 그쪽으로 유연하게 진행. `nmcnr_amplifier`의 사이징 자체는
-이제 (레이아웃 제외) 완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap과
-`propose_theta_kcl_gap_fill()` 적용 여부 결정(옛 §4-③) 둘 다 세션37로 닫혔다.
+**커밋 확인 불필요** -- 이 세션은 8개 커밋(3f7b226~f1f127a, §3 참고) 전부 완료됐고 working
+tree가 클린하다(다음 세션 시작 시 `git status`로 재확인만 하면 됨, 별도 커밋 승인 절차 없이
+바로 다음 작업으로 진입 가능). §4-①(`pm_deg`)은 §1-⑦⑧⑨⑩⑪⑫로 원인 규명+실제 수정까지
+완료됐다(48.32도->77.89도) -- 남은 건 77.89도를 그대로 baseline으로 확정할지, 70.0도에 더
+가깝게 미세조정할지 사용자 판단뿐(급하지 않음). 사용자가 다른 우선순위(②③④⑤ 중 하나)를
+지시하면 그쪽으로 유연하게 진행. `nmcnr_amplifier`의 사이징 자체는 이제 (레이아웃 제외)
+완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap, `propose_theta_kcl_
+gap_fill()` 적용 여부 결정, `gm_id_role` 분류 원리 정립(`"load"` role 신설) 셋 다 세션37로
+닫혔다. **급한 이월 항목이 하나도 없는 드문 상태**이니, 다음 세션은 사용자가 새 작업을
+지시하면 그걸 우선하고, 별다른 지시가 없으면 §4의 ②~⑤ 중 아무거나(전부 우선순위 동급,
+급하지 않음) 골라 진행하면 된다.
