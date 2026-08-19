@@ -11417,7 +11417,9 @@ self-test 전체(`sizing_recipe.py`/`stick_diagram.py`) + 4개 회로 harness �
 
 ## 3. 커밋 상태 -- **세션38은 전부 커밋 완료됨(2026-08-19 세션 끝 시점, working tree 클린)**
 
-세션38 커밋 4개(오래된 순):
+세션38 커밋 5개(오래된 순, 세션37의 `8876d35`(커밋 개수 오타 정정 docs)와 동일한 성격으로
+5번째가 이 문서 자체의 사소한 정정이라 §1 서술에서는 4개로 요약했었다 -- 완전성을 위해
+여기 §3에는 전부 기록):
 1. `81a915b` -- device_roles `gm_id_match_vgs_of` Pass 2 신설 + self-test 2건
    (`sizing_recipe.py`), `propose_device_roles_gap_fill()`의 `gm_id_match_vgs_of` 우선
    가드(`stick_diagram.py`), M204 device_roles 변경 + constraints baseline + 주석
@@ -11431,6 +11433,8 @@ self-test 전체(`sizing_recipe.py`/`stick_diagram.py`) + 4개 회로 harness �
    (`L_mirror_M3` feed에 `vds_match_vgs_of:{"M4":"M6"}` 추가 + 주석), `two_stage_ota.
    instance.json`/`two_stage_ota.report.html`(harness 재실행 결과물).
 4. `6ede82f` -- 위 후반부 문서화(docs, 이 문서 §1-⑭~⑳/§4①③ 반영).
+5. `3eac37a` -- §3/§5의 "후반부 아직 커밋 전" stale 문구를 실제 최종 상태로 정정하는
+   순수 docs 커밋(이 절 자체의 자기참조적 정정, 세션37의 `8876d35`와 동일 패턴).
 
 수정된 핵심 파일 최종 상태: `skills/analog-gmid-design/assets/sizing_recipe.py`(device_
 roles Pass 2 + 헤드룸 `vds_match_vgs_of` pre-pass + `_ref_depth()` 확장 + `_feed_metric_
@@ -11514,8 +11518,8 @@ ota`의 Monticelli unresolved_devices)
 
 ## 5. 다음 세션 시작 순서
 
-**커밋 확인 불필요** -- 세션38은 커밋 4개(`81a915b`/`f0792ba`/`b864239`/`6ede82f`, §3
-참고)로 전부 완료됐고 working tree가 클린하다(다음 세션 시작 시 `git status`로 재확인만
+**커밋 확인 불필요** -- 세션38은 커밋 5개(`81a915b`/`f0792ba`/`b864239`/`6ede82f`/
+`3eac37a`, §3 참고)로 전부 완료됐고 working tree가 클린하다(다음 세션 시작 시 `git status`로 재확인만
 하면 됨, 별도 커밋 승인 절차 없이 바로 다음 작업으로 진입 가능). **①(Phase 1/Phase 2
 아키텍처, DC/AC 분리)이 최우선 이월 항목이다** -- 사용자가 세션 중 명시적으로 우선순위를
 지정했다. 다음 세션은 이 설계를 실제로 구현할지(그래프 위상정렬 엔진 신설 -- `_ref_depth()`
@@ -11525,9 +11529,10 @@ pairwise로 대응할지(③의 검증된 패턴 재사용 -- load에 `vds_match
 신호경로 순서로 판정, 작은 작업) 먼저 사용자와 재확인하고 시작할 것. 사용자가 다른 우선순위
 (②~⑥ 중 하나)를 지시하면 그쪽으로 유연하게 진행.
 
-**세션38 전체가 남긴 실질적 결과**: `nmcnr_amplifier`는 `pm_deg` 48.32도(세션37 시작
-시점)에서 최종 71.94도(목표 70도에 근접)까지, 3개 세션(37+37 연속+38)에 걸친 일련의
-gm_id_role/gm_id_match_vgs_of/vds_match_vgs_of 수정으로 점진적으로 정확해졌다.
+**세션38 전체가 남긴 실질적 결과**: `nmcnr_amplifier`는 `pm_deg` 48.32도(세션37 §1-⑤,
+metrics 최초 배선 직후 실측값)에서 최종 71.94도(목표 70도에 근접)까지, 세션37(gm_id_role
+matching->gain/load)과 세션38(gm_id_match_vgs_of, vds_match_vgs_of 2건)에 걸친 일련의
+수정으로 점진적으로 정확해졌다.
 `two_stage_ota`는 이번 세션의 M4/M6 KVL 수정만으로 `gain_db`가 57.55->62.79dB로
 개선됐다(별도 회로 자유도를 안 늘리고 기존 회귀 오류만 고쳤을 뿐인데도 나온 결과 --
 이 KVL gap 클래스가 실측 성능에 실제로 영향을 준다는 강한 증거).
