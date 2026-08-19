@@ -317,8 +317,10 @@ SPECS = {
         "report_dir": "nmcnr-amplifier-report",
         # 2026-08-19(세션37 갱신, 세션36의 stale 코멘트 정정) -- sizing_roles.metrics(gain_db/
         # pm_deg/cmrr_db/psrr_db)와 objective(minimize power_uA)가 등록됨, PM_target_deg=
-        # 70.0도 확정 스펙으로 결정됨(_spec_nmcnr_amplifier() docstring 참고). constraints는
-        # 아직 null -- 이 실행으로 baseline 실측을 얻어 채워 넣을 예정(.ai/context.md 세션37).
+        # 70.0도 확정 스펙으로 결정됨(_spec_nmcnr_amplifier() docstring 참고). constraints도
+        # baseline 실측값으로 채워짐 -- pm_deg=48.32도(목표 대비 낮음)의 원인을 device_roles.
+        # gm_id_role='matching'->'gain'(M106/M107/M108/M109/M302)으로 규명·수정해 76.74도까지
+        # 회복됐다(.ai/context.md 세션37 §1-⑩ 참고, gain_db도 100.1->114.2dB 동반 개선).
     },
 }
 

@@ -91,10 +91,10 @@
       "L": 3.75e-07,
       "_L_source": "L_role",
       "vds": 0.3500000000000001,
-      "gm_id": 2.0,
-      "gm": 0.00017090264035528476,
-      "W": 3.0282117861867257e-06,
-      "gds": 0.00014542838630314116,
+      "gm_id": 16.0,
+      "gm": 0.001367221122842278,
+      "W": 0.00017976881426397506,
+      "gds": 2.7148760443299772e-05,
       "kind": "pmos",
       "vs": 0.0
     },
@@ -115,10 +115,10 @@
       "L": 3.75e-07,
       "_L_source": "L_role",
       "vds": 0.2,
-      "gm_id": 6.5,
-      "gm": 3.2500000000000004e-05,
-      "W": 1.0026683842936168e-06,
-      "gds": 9.55463121498991e-06,
+      "gm_id": 17.5,
+      "gm": 8.750000000000001e-05,
+      "W": 6.404020488818283e-05,
+      "gds": 2.2640042354157166e-06,
       "kind": "pmos",
       "vs": 0.0
     },
@@ -127,10 +127,10 @@
       "L": 3.75e-07,
       "_L_source": "L_role",
       "vds": 0.2,
-      "gm_id": 6.5,
-      "gm": 3.2500000000000004e-05,
-      "W": 1.0026683842936168e-06,
-      "gds": 9.55463121498991e-06,
+      "gm_id": 17.5,
+      "gm": 8.750000000000001e-05,
+      "W": 6.404020488818283e-05,
+      "gds": 2.2640042354157166e-06,
       "kind": "pmos",
       "vs": 0.0
     },
@@ -163,10 +163,10 @@
       "L": 3.75e-07,
       "_L_source": "L_role",
       "vds": 0.2,
-      "gm_id": 13.5,
-      "gm": 6.75e-05,
-      "W": 1.022934312489721e-06,
-      "gds": 3.555480482022967e-06,
+      "gm_id": 24.0,
+      "gm": 0.00012000000000000002,
+      "W": 0.00011619123435705377,
+      "gds": 2.6210623688507523e-06,
       "kind": "nmos",
       "vs": 0.0
     },
@@ -175,10 +175,10 @@
       "L": 3.75e-07,
       "_L_source": "L_role",
       "vds": 0.2,
-      "gm_id": 13.5,
-      "gm": 6.75e-05,
-      "W": 1.022934312489721e-06,
-      "gds": 3.555480482022967e-06,
+      "gm_id": 24.0,
+      "gm": 0.00012000000000000002,
+      "W": 0.00011619123435705377,
+      "gds": 2.6210623688507523e-06,
       "kind": "nmos",
       "vs": 0.0
     }
@@ -201,9 +201,9 @@
       "kind": "nmos",
       "source": "NodeF1",
       "drain": "NodeM1",
-      "n_fingers": 1,
-      "finger_w": 1.022934312489721e-06,
-      "w": 1.022934312489721e-06,
+      "n_fingers": 26,
+      "finger_w": 4.468893629117452e-06,
+      "w": 0.00011619123435705376,
       "l": 3.75e-07,
       "gate": "VB3",
       "stack_id": "col_m106"
@@ -213,9 +213,9 @@
       "kind": "nmos",
       "source": "NodeF2",
       "drain": "NodeM2",
-      "n_fingers": 1,
-      "finger_w": 1.022934312489721e-06,
-      "w": 1.022934312489721e-06,
+      "n_fingers": 26,
+      "finger_w": 4.468893629117452e-06,
+      "w": 0.00011619123435705376,
       "l": 3.75e-07,
       "gate": "VB3",
       "stack_id": "col_m107"
@@ -225,9 +225,9 @@
       "kind": "pmos",
       "source": "vdd",
       "drain": "NodeM1",
-      "n_fingers": 1,
-      "finger_w": 1.0026683842936168e-06,
-      "w": 1.0026683842936168e-06,
+      "n_fingers": 13,
+      "finger_w": 4.926169606783294e-06,
+      "w": 6.404020488818283e-05,
       "l": 3.75e-07,
       "gate": "NodeM1",
       "stack_id": "col_m108"
@@ -237,9 +237,9 @@
       "kind": "pmos",
       "source": "vdd",
       "drain": "NodeM2",
-      "n_fingers": 1,
-      "finger_w": 1.0026683842936168e-06,
-      "w": 1.0026683842936168e-06,
+      "n_fingers": 13,
+      "finger_w": 4.926169606783294e-06,
+      "w": 6.404020488818283e-05,
       "l": 3.75e-07,
       "gate": "NodeM1",
       "stack_id": "col_m108"
@@ -309,9 +309,9 @@
       "kind": "pmos",
       "source": "vdd",
       "drain": "Vout",
-      "n_fingers": 1,
-      "finger_w": 3.0282117861867257e-06,
-      "w": 3.0282117861867257e-06,
+      "n_fingers": 26,
+      "finger_w": 6.914185163999041e-06,
+      "w": 0.00017976881426397506,
       "l": 3.75e-07,
       "gate": "VB5",
       "stack_id": "stage3_output__pmos"
@@ -392,84 +392,84 @@
   "floorplan": {
     "placements": {
       "col_m102_repair0": {
-        "x": -1.182375e-05,
+        "x": -2.6363250000000002e-05,
         "y": 0.0,
         "width": 3.185e-06,
         "height": 3.811176400474633e-05
       },
       "col_m102_repair1": {
-        "x": -8.60125e-06,
+        "x": -2.285975e-05,
         "y": 0.0,
         "width": 3.185e-06,
         "height": 3.811176400474633e-05
       },
       "stage3_output__pmos": {
-        "x": -5.37875e-06,
+        "x": -1.9356250000000003e-05,
         "y": 0.0,
-        "width": 3.75e-07,
-        "height": 3.0282117861867257e-06
+        "width": 9.75e-06,
+        "height": 6.914185163999041e-06
+      },
+      "col_m108": {
+        "x": -9.287750000000003e-06,
+        "y": 0.0,
+        "width": 9.75e-06,
+        "height": 4.926169606783294e-06
       },
       "stage2_diode_ref__pmos": {
-        "x": -4.96625e-06,
+        "x": 7.807499999999976e-07,
         "y": 0.0,
         "width": 6.37e-06,
         "height": 2.3823343292809722e-06
       },
       "col_m101": {
-        "x": 1.4412499999999991e-06,
+        "x": 7.469249999999996e-06,
         "y": 0.0,
         "width": 3.75e-07,
         "height": 1.1447598877530022e-06
       },
       "stage2_output__pmos": {
-        "x": 1.853749999999999e-06,
+        "x": 8.162749999999999e-06,
         "y": 0.0,
         "width": 3.75e-07,
         "height": 1.0683991986440026e-06
       },
-      "col_m108": {
-        "x": 2.266249999999999e-06,
-        "y": 0.0,
-        "width": 7.5e-07,
-        "height": 1.0026683842936168e-06
-      },
       "stage3_output__nmos": {
-        "x": 3.0537499999999977e-06,
+        "x": 8.856250000000002e-06,
         "y": 0.0,
         "width": 6.37e-06,
         "height": 1.765889652967693e-05
       },
       "col_m104_repair0": {
-        "x": 9.461249999999997e-06,
+        "x": 1.5544750000000004e-05,
         "y": 0.0,
         "width": 7.5e-07,
         "height": 6.404855713841757e-06
       },
-      "stage2_diode_ref__nmos": {
-        "x": 1.0248749999999997e-05,
-        "y": 0.0,
-        "width": 7.5e-07,
-        "height": 2.3823343292809722e-06
-      },
       "col_m106": {
-        "x": 1.1036249999999998e-05,
+        "x": 1.6613250000000002e-05,
         "y": 0.0,
-        "width": 3.75e-07,
-        "height": 1.022934312489721e-06
+        "width": 9.75e-06,
+        "height": 4.468893629117452e-06
       },
       "col_m107": {
-        "x": 1.1448749999999998e-05,
-        "y": 0.0,
-        "width": 3.75e-07,
-        "height": 1.022934312489721e-06
+        "x": 1.6613250000000002e-05,
+        "y": 4.787393629117452e-06,
+        "width": 9.75e-06,
+        "height": 4.468893629117452e-06
+      },
+      "stage2_diode_ref__nmos": {
+        "x": 1.5544750000000004e-05,
+        "y": 6.723355713841757e-06,
+        "width": 7.5e-07,
+        "height": 2.3823343292809722e-06
       }
     },
     "bbox": {
-      "width": 2.36475e-05,
+      "width": 5.2726500000000004e-05,
       "height": 3.811176400474633e-05
     },
-    "aspect_ratio": 1.611661444327998,
-    "packing_density": 0.7993883469553166
+    "aspect_ratio": 1.3834704684210786,
+    "packing_density": 0.8157716040924524
   },
   "box_shape": {
     "ok": false,
@@ -477,38 +477,38 @@
     "elongation_ok": true,
     "row_widths": {
       "col_m101": 3.75e-07,
-      "col_m106": 3.75e-07,
-      "col_m107": 3.75e-07,
-      "col_m108": 7.5e-07,
+      "col_m106": 9.75e-06,
+      "col_m107": 9.75e-06,
+      "col_m108": 9.75e-06,
       "stage2_diode_ref__pmos": 6.37e-06,
       "stage2_output__pmos": 3.75e-07,
       "stage2_diode_ref__nmos": 7.5e-07,
       "stage3_output__nmos": 6.37e-06,
-      "stage3_output__pmos": 3.75e-07,
+      "stage3_output__pmos": 9.75e-06,
       "col_m102_repair0": 3.185e-06,
       "col_m102_repair1": 3.185e-06,
       "col_m104_repair0": 7.5e-07
     },
     "row_heights": {
       "col_m101": 1.1447598877530022e-06,
-      "col_m106": 1.022934312489721e-06,
-      "col_m107": 1.022934312489721e-06,
-      "col_m108": 1.0026683842936168e-06,
+      "col_m106": 4.468893629117452e-06,
+      "col_m107": 4.468893629117452e-06,
+      "col_m108": 4.926169606783294e-06,
       "stage2_diode_ref__pmos": 2.3823343292809722e-06,
       "stage2_output__pmos": 1.0683991986440026e-06,
       "stage2_diode_ref__nmos": 2.3823343292809722e-06,
       "stage3_output__nmos": 1.765889652967693e-05,
-      "stage3_output__pmos": 3.0282117861867257e-06,
+      "stage3_output__pmos": 6.914185163999041e-06,
       "col_m102_repair0": 3.811176400474633e-05,
       "col_m102_repair1": 3.811176400474633e-05,
       "col_m104_repair0": 6.404855713841757e-06
     },
-    "total_width_m": 6.37e-06,
-    "total_height_m": 0.00011334185679343008,
-    "width_ratio": 16.986666666666665,
-    "elongation": 17.7930701402559,
+    "total_width_m": 9.75e-06,
+    "total_height_m": 0.00012804325002698752,
+    "width_ratio": 26.0,
+    "elongation": 13.132641028408978,
     "approx": false,
-    "message": "FAIL: 행 폭 비율(16.99) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
+    "message": "FAIL: 행 폭 비율(26.00) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
   },
   "audit_row_split": {
     "ok": false,
@@ -521,12 +521,12 @@
       {
         "name": "1. euler[col_m106]",
         "ok": true,
-        "detail": "odd_nodes=['NodeF1', 'NodeM1']"
+        "detail": "odd_nodes=[]"
       },
       {
         "name": "1. euler[col_m107]",
         "ok": true,
-        "detail": "odd_nodes=['NodeF2', 'NodeM2']"
+        "detail": "odd_nodes=[]"
       },
       {
         "name": "1. euler[col_m108]",
@@ -556,7 +556,7 @@
       {
         "name": "1. euler[stage3_output__pmos]",
         "ok": true,
-        "detail": "odd_nodes=['Vout', 'vdd']"
+        "detail": "odd_nodes=[]"
       },
       {
         "name": "1. euler[col_m102_repair0]",
@@ -576,7 +576,7 @@
       {
         "name": "2. box-shape",
         "ok": false,
-        "detail": "FAIL: 행 폭 비율(16.99) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
+        "detail": "FAIL: 행 폭 비율(26.00) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
       },
       {
         "name": "3a. row-presence[M102/M103] (kind=sensitivity=offset,shares_node=True)",
@@ -621,7 +621,7 @@
       {
         "name": "3c. common-centroid[M106/M107]",
         "ok": false,
-        "detail": "M106 centroid=(0.00,1.00), M107 centroid=(0.00,2.00), |dx|=0.00 |dy|=1.00 (허용오차 0.5)"
+        "detail": "M106 centroid=(12.50,1.00), M107 centroid=(12.50,2.00), |dx|=0.00 |dy|=1.00 (허용오차 0.5)"
       },
       {
         "name": "3a. row-presence[M108/M109] (kind=sensitivity=ratio,shares_node=True)",
@@ -636,7 +636,7 @@
       {
         "name": "3c. common-centroid[M108/M109] [참고용 -- 이 kind는 필수 아님]",
         "ok": false,
-        "detail": "M108 centroid=(0.00,3.00), M109 centroid=(1.00,3.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+        "detail": "M108 centroid=(6.00,3.00), M109 centroid=(19.00,3.00), |dx|=13.00 |dy|=0.00 (허용오차 0.5)"
       },
       {
         "name": "3a. row-presence[M203/M204] (kind=sensitivity=ratio,shares_node=True)",

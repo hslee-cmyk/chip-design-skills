@@ -10866,6 +10866,49 @@ NMCNR 토폴로지 자체의 구조적 특성으로 보인다.
 서로 다른 두 가지 문제이고, 이번 세션은 전자만 완전히 규명했다 -- 후자(둘을 합친 "진짜
 원인")는 아직 규명 안 됨, 다음 세션 이월 가능.
 
+**⑨ (같은 세션 이어서, 사용자 지시 "유한 R1/R2/R3 효과 분리 조사 계속하자") 유한 R1/R2/R3가
+PM을 어떻게 48.32도까지 끌어내리는지 정량 규명 -- §4-①(진짜 원인 미규명)을 사실상 완결** --
+`nmcnr_amplifier`의 실제 사이징값(`workspaces/nmcnr-amplifier-report/nmcnr_amplifier.
+instance.json`)에서 R1=6029.9Ω/R2=131744.9Ω/R3=5251.2Ω(`_nmcnr_stage1_rout()`/병렬 ro로
+계산, gm1/gm2/gm3는 여전히 Eq10/11 target과 정확히 일치)를 구해 `nmcnr_predict_ac_response()`
+로 여러 조합을 대조(새 영구 함수는 안 만듦 -- 1회성 진단용 ad-hoc 스크립트, 기존 검증된
+`nmcnr_predict_ac_response()`/`_nmcnr_stage1_rout()`만 재사용):
+
+1. **단일/이중 스테이지만 실측값, 나머지는 이상화(R→무한대)** -- R1만 실측(R2,R3 이상화):
+   PM=127.36도. R2만 실측: 124.96도. R3만 실측: 127.71도. 어느 조합이든(2개 실측+1개 이상화
+   포함) PM은 여전히 124~130도 근방(이상화 극한 124.58도와 거의 같음) -- **한두 스테이지만
+   실측값이어도 PM은 거의 안 떨어진다.**
+2. **셋 다 동시에 실측값일 때만** PM이 48.32도로 급락한다(DC/루프이득도 이상화 118.2dB →
+   실측 100.1dB로 18dB 하락, 세 스테이지 이득의 곱이라 셋 다 낮아야 크게 빠짐 -- 개별 스테이지
+   DC이득 20log10(gm_i·R_i) 합으로 정확히 재현됨). 즉 **PM 붕괴는 세 스테이지가 동시에
+   낮은 R을 가질 때만 나타나는 3중 상호작용**이지, 어느 한 스테이지의 "약한 고리"가 아니다.
+3. **민감도 스윕(R1,R2,R3를 동시에 같은 배율 λ로 확대)** -- λ=1(실측)에서 48.32도로 시작해
+   λ=2에서 83.05도, λ=3에서 110.32도, λ=5에서 122.22도, λ=10 이후 124.6~124.8도(이상화
+   극한)에 사실상 도달 -- **실측값의 5~10배만 커져도 PM이 거의 전부 회복된다, 매우 예민한
+   문턱 거동**(cliff가 아니라 λ=1~5 구간에서 매끄럽게 급상승). 단일 스테이지만 확대(나머지
+   둘은 실측 고정)해도 비슷한 모양의 회복 곡선이 나오지만 필요한 배율이 훨씬 큼(λ~100~1000
+   이상이어야 128도 근방까지 회복) -- 세 스테이지를 동시에 조금씩 개선하는 쪽이 한 스테이지만
+   크게 개선하는 것보다 압도적으로 효율적임을 정량 확인.
+4. **메커니즘(정성적 설명)**: DC 시점(s=0 근방)엔 `Cm1`/`Cm2`가 개방회로라 보상망 커플링이
+   없고 3단 DC이득은 단순히 `gm1·R1 × gm2·R2 × gm3·R3`의 곱(로그 합)이다. RHP-zero
+   완전제거 기법(Cm1/Cm2/Rm 네트워크)은 각 스테이지가 충분히 높은 고유이득(`gm·R≫1`)을
+   갖는다는 암묵적 전제 위에서 극점/영점을 정확히 상쇄하도록 설계된다 -- 실제 스테이지
+   이득이 낮아지면(이 회로처럼 저전력을 위해 짧은 L/얕은 오버드라이브를 쓰면 `gds`가 커져
+   `R_i`가 작아짐) 이 상쇄가 불완전해지고 잔류 극점이 위상여유를 깎아먹는다(표준적인
+   nested-Miller 보상 이론의 일반적 함정 -- 이 프로젝트에 국한된 버그가 아니라 물리적
+   현상으로 보인다, 완전한 해석적(sympy) 증명은 안 함).
+
+**종합 결론(§1-⑧+⑨를 합친 완전한 그림)**: `nmcnr_amplifier`의 `pm_deg=48.32도`(목표 70도)는
+두 가지 서로 다른 방향의 오차가 겹친 결과다 -- (a) Eq10/11 근사 자체가 이상화 극한에서도
+목표보다 훨씬 높은 PM(124.6도)을 준다는 **과다보정 경향**과, (b) 실제 R1/R2/R3가 이상화
+가정보다 훨씬 낮아 그 과다보정분을 다시 깎아먹다 못해 목표 아래로 떨어뜨리는 **루프이득 부족에
+의한 과소보정**. 이 둘이 우연히 겹쳐 48.32도가 나왔을 뿐, 이 값 자체를 신뢰할 근거는 없다.
+실무적 함의: R1/R3를 늘리는 방향(예: M107/M109/M301/M302의 L을 늘려 gds를 낮춤, 전력/면적과
+트레이드오프)이 PM 회복에 효과적일 것으로 보이나, 정확히 70도를 맞추려면 이 두 효과를 감안해
+gm1(=PM_target_deg)을 반복적으로 재조정하는 절차가 필요하다(Eq10/11을 그대로 믿고 한 번에
+계산할 수 없다는 뜻) -- 이런 반복 보정 절차를 실제로 구현할지는 사용자 판단 필요, 다음 세션
+이월.
+
 배선: `nmcnr_check_dominant_pole_approximation(GBW, CL, PM_target_deg, kg, R_ideal=1e15)`
 (`topology_library.py` 신설, `functools.lru_cache`로 재계산 방지 -- `_COMPENSATION_REGISTRY`
 팩토리 호출부가 theta 그리드서치 평가마다 재호출되는 경로라 캐싱 없이는 낭비, "수정마다
@@ -10878,6 +10921,35 @@ NMCNR 토폴로지 자체의 구조적 특성으로 보인다.
 valid=True 확인, (d) `topology_fn.dominant_pole_check` 속성이 실제로 채워지는지 확인.
 `sizing_recipe.py`/`stick_diagram.py` self-test + `nmcnr_amplifier`/`folded_cascode`
 harness 재실행 -- 전부 회귀 없음(topology_fn 생성 비용이 미세하게 늘었을 뿐 수치는 불변).
+
+**⑩ (같은 세션 이어서, 사용자 지시 "b" -- R1/R3를 늘리는 실제 사이징 변경 시도) 실제로 시도해
+`pm_deg=48.32도 -> 76.74도`(목표 70도에 근접)로 회복 -- 원인은 "L이 작아서"가 아니라
+"gm_id_role='matching'을 쓰고 있어서"였다** -- 처음엔 §1-⑨의 예상대로 M107/M109/M301/M302의
+L을 늘리는 접근(`metric_stage_budget`, B타입 theta 3개 신설, `two_stage_ota`의 `L_mirror_M3`
+선례 재사용)을 시도했으나, `gm_id_role='matching'`(이 소자들의 기존 device_roles 선언)인
+채로 L만 넓게 탐색하게 했더니 **`objective="maximize pm_deg"`로 바꿔 강제로 밀어붙여도
+L이 원래값(375nm)에서 거의 안 움직였다**(pm_deg 48.32->48.47도, 사실상 무변화) -- 이상하게
+여겨 `search_gm_id_for_role()`을 직접 실측: `role="matching"`은 **gm_id를 최소화**하는
+선택인데, L이 커질수록 W_bounds(1~200um) 제약과 상호작용해 feasible gm_id 자체가 더 낮게
+밀리고(M107 예: L=375nm→gm_id=13.5/gm·ro=18.98, L=4um→gm_id=2.5/gm·ro=0.72, **26배 악화**),
+그 결과 R1/R3 기여분(gm·ro 또는 ro)이 L을 늘려도 **오히려 나빠지는** 역설적 상황이었다 --
+"matching"은 애초에 전류미러 매칭 정밀도용이지 출력임피던스 극대화용이 아니었다(이름 그대로의
+역할이 문제가 아니라, R1/R3를 키우려면 애초에 이 역할 자체를 안 쓰는 게 정답이었다는 뜻).
+`gm_id_role="gain"`(=이 프로젝트가 이미 갖고 있던, `gm/gds`를 직접 최대화하는 role)로
+바꿔 같은 실측을 반복하니 **같은 L(375nm)에서조차** M107 gm·ro=45.78(2.4배), M109
+ro=441695Ω(4.2배), M302 ro=36834Ω(5.4배)로 즉시 개선됐다 -- **L을 전혀 안 늘려도 되는
+훨씬 간단한 수정**이라는 걸 발견하고, 신설했던 B타입 theta 3개를 전부 되돌리고(원복,
+`git diff`에 안 남도록 완전 제거) 대신 **`device_roles`의 `gm_id_role`만 5곳(M106/M107/
+M108/M109/M302) `"matching"`->`"gain"`으로 변경**하는 훨씬 단순한 수정으로 교체했다(새
+theta 없음, L도 안 건드림, `objective`/`grid_points_per_theta`도 원래 값(`minimize power_uA`/
+5)으로 되돌림). 실측 결과: `pm_deg=76.74도`(목표 70도에 6.74도 초과, §4-①이 우려하던 임의
+방향 오차와 달리 이번엔 목표에 훨씬 가까움), `gain_db=100.11dB->114.23dB`(동반 개선),
+`power_uA`는 **완전히 불변**(ID가 KCL로 고정돼 있어 gm_id_role 변경이 전류에 영향 없음,
+예상대로), `floorplan_ok`도 `False`(aspect_ratio 1.612)->`True`(1.383)로 부수 개선(W
+재분배 결과, 의도한 목표는 아니었음). constraints를 이 새 baseline(gain_db>=114.229/
+pm_deg>=76.744)으로 갱신. `sizing_recipe.py`/`stick_diagram.py` self-test 전체 재실행 +
+`folded_cascode`/`two_stage_ota` harness 재실행 -- 전부 회귀 없음(`gm_id_role="gain"`은
+이미 다른 회로가 쓰던 기존 메커니즘 재사용일 뿐 새 엔진 코드 아님).
 
 ## 2. 최종 검증 상태
 
@@ -10909,6 +10981,12 @@ harness 재실행 -- 전부 회귀 없음(topology_fn 생성 비용이 미세하
   `stick_diagram.py` self-test + `nmcnr_amplifier`/`folded_cascode` harness 재실행 -- 전부
   metrics 완전 동일(회귀 없음, `nmcnr_3stage_topology()`에 진단 계산이 추가됐지만 `lru_cache`
   덕에 반복 호출 비용 없음, gm1/gm2/gm3 반환값 자체는 그대로).
+- ⑩ 적용 후: `sizing_recipe.py`/`stick_diagram.py` self-test 전체 재실행 exit 0.
+  `python run_harness.py nmcnr_amplifier` -- `pm_deg=76.74383194615382도`(재실행해도 동일,
+  deterministic), `gain_db=114.22877538740224dB`, `power_uA=0.001898404012114057`(변경 전과
+  완전히 동일, 예상대로), `cmrr_db`/`psrr_db`는 M101 tail 기준이라 무변화. `folded_cascode`/
+  `two_stage_ota` 재실행 -- 둘 다 기존과 완전히 동일한 metrics(회귀 없음, `gm_id_role="gain"`
+  은 이미 다른 회로가 쓰던 기존 role, 새 엔진 코드 추가 없음).
 
 ## 3. 커밋 상태
 
@@ -10926,23 +11004,26 @@ design/references/function-selection-map.md`/`sky130-worked-example.md`(함수�
 `skills/analog-gmid-design/references/topology-fn-derivation-guide.md`(§3에 Eq10/11 근사
 한계 재유도 결과 신설), `skills/analog-gmid-design/assets/library/two_stage_ota.topology.json`
 (참고용 언급 1건 함수명 갱신), `workspaces/run_harness.py`(PM_target_deg 확정 코멘트 갱신 +
-함수명 갱신). 신규 생성: `workspaces/nmcnr-amplifier-report/`(디렉터리 자체가 없어서 만듦,
-`.instance.json` 포함).
+함수명 갱신 + grid_points_per_theta는 5로 원복). 신규 생성: `workspaces/nmcnr-amplifier-report/`
+(디렉터리 자체가 없어서 만듦, `.instance.json` 포함). §1-⑩ 적용분: `nmcnr_amplifier.
+topology.json`의 `device_roles`(M106/M107/M108/M109/M302 `gm_id_role` 5곳 `matching`->
+`gain`) + `constraints`(새 baseline)만 추가 변경 -- B타입 theta 3개는 시도 후 되돌려서
+최종 diff엔 안 남음.
 
 ## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션37 종료 시점 최신)
 
-### ① [최우선 후보] `nmcnr_amplifier`의 `pm_deg=48.32도` 낮은 값 -- "진짜 원인" 완전 규명 필요
+### ① [완결] `nmcnr_amplifier`의 `pm_deg` -- 48.32도 -> 76.74도로 회복(§1-⑧⑨⑩)
 
-§1-⑧의 재유도로 Eq10/11 근사 자체의 오류는 정량화됐지만(R→무한대 극한에서 PM이 목표보다
-오히려 **높게** 나옴, +54.6도), 실제 `nmcnr_amplifier`(유한 R1/R2/R3)는 PM이 목표보다
-**낮게**(-21.7도, 48.32도) 나왔다 -- **방향이 반대**라 Eq10/11 근사 오류만으로는 실제 회로의
-문제를 설명 못 한다. 다음 조사 방향 후보: (a) 유한 R1/R2/R3 자체가 만드는 추가 위상지연을
-정량화(예: `nmcnr_predict_ac_response()`를 실제 R1/R2/R3로, 그리고 R→무한대로 각각 돌려
-"유한 R이 PM에 주는 순수 기여분"을 분리), (b) `_nmcnr_predict()`의 as-built 해석(목표 gm
-대신 실사이징 gm으로 Cm1/Rm/Cm2를 다시 계산)이 이 낮은 PM에 얼마나 기여했는지(목표-gm 방식과
-비교) 확인, (c) 이 값을 그대로 최종 스펙으로 받아들일지(SPICE 교차검증 없이) 사용자와 논의.
-급하지 않음(constraints는 이미 이 실측값 자체를 baseline으로 채택해 자기충족적이라 harness
-자체는 막히지 않는다) -- 다만 "왜 이런지 완전히 이해"는 아직 안 끝났다.
+§1-⑧(Eq10/11 근사 자체가 이상화 극한에서도 과다보정)과 §1-⑨(실제 R1/R2/R3가 낮아 과소보정,
+세 스테이지 동시 저하의 3중 상호작용)로 원인을 완전히 규명한 뒤, §1-⑩에서 실제 수정까지
+완료했다 -- 진짜 원인은 "R1/R3의 L이 작아서"가 아니라 "device_roles.gm_id_role='matching'을
+쓰고 있어서"(matching은 gm_id 최소화라 오히려 출력저항을 깎아먹음)였고, 5곳을 `gm_id_role=
+"gain"`으로 바꾸는 것만으로(L도 안 건드림, 새 theta도 없음) `pm_deg=76.74도`(목표 70도에
+근접, gain_db도 100.1->114.2dB 동반 개선, power_uA 불변, floorplan_ok도 부수적으로 개선)를
+달성했다. 남은 것: 정확히 70.0도까지 더 좁히고 싶다면(현재 +6.74도 초과) `gm_id_role`을
+"gain"과 "matching" 사이의 중간 지점(예: `gm_id_min`/`gm_id_max`로 gain 탐색 범위를 살짝
+제한)으로 미세조정하는 추가 작업이 가능하나, 76.74도 자체도 이미 "합리적으로 도출된, 정직하게
+검증된" 값이라 급하지 않음(사용자 판단 필요 -- 이대로 baseline 확정할지, 더 좁힐지).
 
 ### ② `nmcnr_amplifier`의 `audit_ok`/`floorplan_ok`/`_netlist_sections_structured`
 
@@ -10977,12 +11058,9 @@ sections_structured`가 없어 `run_full_circuit_audit_from_topology()`가 스�
 
 ## 5. 다음 세션 시작 순서
 
-**커밋 여부부터 사용자에게 확인**(§3 참고, 이 세션은 안 함). 그 다음 §4-①(`pm_deg=48.32도`의
-"진짜 원인" 완전 규명 -- §1-⑦로 `nmcnr_predict_ac_response()` 자체의 버그 가능성은 배제됐고,
-§1-⑧으로 Eq10/11 근사 오류도 정량화됐지만 **방향이 반대**(근사 오류는 PM을 높이는 쪽, 실제
-회로는 PM이 낮게 나옴)라 유한 R1/R2/R3 효과를 별도로 분리 조사해야 완전히 설명된다)부터
-이어갈 것을 권장하되, 급하지 않으므로 사용자가 다른 우선순위(②③④ 중 하나)를 지시하면 그쪽으로
-유연하게 진행. `nmcnr_amplifier`의 사이징 자체는 이제 (레이아웃 제외) 완결 상태 -- "만들면
-반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap과 `propose_
-theta_kcl_gap_fill()` 적용 여부 결정(옛 §4-③) 둘 다 세션37로 닫혔다.
-①을 끝낸 뒤 순서대로 판단.
+**커밋 여부부터 사용자에게 확인**(§3 참고, 이 세션은 안 함). §4-①(`pm_deg`)은 §1-⑦⑧⑨⑩으로
+원인 규명+실제 수정까지 완료됐다(48.32도->76.74도) -- 남은 건 76.74도를 그대로 baseline으로
+확정할지, 70.0도에 더 가깝게 미세조정할지 사용자 판단뿐(급하지 않음). 사용자가 다른
+우선순위(②③④ 중 하나)를 지시하면 그쪽으로 유연하게 진행. `nmcnr_amplifier`의 사이징 자체는
+이제 (레이아웃 제외) 완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap과
+`propose_theta_kcl_gap_fill()` 적용 여부 결정(옛 §4-③) 둘 다 세션37로 닫혔다.
