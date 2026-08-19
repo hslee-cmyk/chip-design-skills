@@ -1,12 +1,11 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션36 최종 요약"부터 먼저 읽을 것**
-— 그 절 하나만 읽어도 세션36 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
-시작 순서)가 재현 가능하도록 정리돼 있다. **⚠️ 세션36은 세션 끝에 아직 커밋 안 됨(전부
-working tree에만 있음) -- 다음 세션 시작 시 가장 먼저 확인할 것.** "# 세션35 최종
-요약"/"# 세션34 최종 요약"/"# 세션34 결론"/"# 세션33 결론"/"# 세션32 결론"/"# 세션31
-결론"은 더 이전 이력이다. 아래는 세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다
--- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션37 최종 요약"부터 먼저 읽을 것**
+— 그 절 하나만 읽어도 세션37 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
+시작 순서)가 재현 가능하도록 정리돼 있다. "# 세션36 최종 요약"/"# 세션35 최종 요약"/
+"# 세션34 최종 요약"/"# 세션34 결론"/"# 세션33 결론"/"# 세션32 결론"/"# 세션31 결론"은
+더 이전 이력이다. 아래는 세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정
+결정의 "왜"가 궁금할 때만 찾아보면 된다.
 
 ---
 
@@ -10710,4 +10709,148 @@ nmcnr_amplifier`가 지금 정확히 그 지점에서 멈춰 있으므로 가장
 recipe.py`의 `_metric_folded_cascode_gain_db()` 등, `_METRICS_REGISTRY`)을 참고하되
 3단 구조(gm1/gm2/gm3)에 맞는 새 폐형식이 필요하다는 걸 염두에 둘 것. §4-②(`propose_
 theta_kcl_gap_fill()`을 nmcnr에 실제 적용할지)는 사용자가 먼저 결정해주면 좋고, 아니면
+
+# 세션37 최종 요약 -- nmcnr_amplifier의 sizing_roles.metrics/objective/constraints 신설(세션36
+§4-① 완료) + 이미 존재하던 nmcnr_predict_notch()를 처음으로 실사이징 파이프라인에 배선. 이 절
+하나만 읽어도 전체가 재현 가능하다.
+
+## 0. 세션 시작 시점 재확인
+
+세션36이 working tree에 남겨둔 6개 파일(nmcnr_amplifier.topology.json/sizing_recipe.py/
+stick_diagram.py/analog-grammar-integration.md/idioms.py/SKILL.md)을 사용자 확인 후 그대로
+커밋(`3f7b226`)하고 시작했다 -- git diff --stat으로 세션36 요약과 실제 diff가 일치함을 먼저
+확인. 그 다음 §4-①(PM_target_deg 확정 → nmcnr metrics/objective/constraints 설계)로 바로 진입.
+
+## 1. 무엇을 했나(시간 순)
+
+**① PM_target_deg=70.0 확정** -- `nmcnr_3stage_topology()`가 구조적으로 `PM_target_deg>60`을
+요구하는데(그렇지 않으면 `pm_rad<=0`으로 `ValueError`), 논문 원문값 46도는 이 전제 자체를
+위반해 채택 불가(세션35/36이 이미 발견). "논문 값 그대로 인용 금지, 값은 합리적으로 도출"
+원칙에 따라 사용자에게 직접 확인(AskUserQuestion) -- `current_reuse_telescopic_ota`가 이미
+채택한 70.0(구조적 하한 대비 10도 여유)을 그대로 재사용하는 안으로 확정. `run_harness.py`의
+"테스트 전용 임시값" 코멘트를 전부 "확정 스펙" 표현으로 갱신.
+
+**② `topology_library.nmcnr_predict_notch()` 발견 및 재사용 결정** -- gain/PM 폐형식을 새로
+유도하기 전에 기존 코드를 먼저 확인하니, `nmcnr_3stage_topology()` 근처에 이미 **4-노드 KCL
+정확해**(sympy 유도 + ngspice AC + 실제 sky130 트랜지스터 재조립까지 교차검증 완료, 2026-07-31
+작업)인 `nmcnr_predict_notch()`가 있었다 -- 다만 지금까지 `topology_library.py` `__main__`의
+스모크테스트(손으로 옮긴 논문 실측 gain/gm 조합)로만 쓰이고 실제 사이징 파이프라인의
+`sizing_roles.metrics`에는 한 번도 배선된 적이 없었다. `folded_cascode`의 근사식(sympy 검증
+전)보다 신뢰도가 높은 이 기존 함수를 새로 유도하는 대신 재사용하기로 사용자에게 확인
+(AskUserQuestion) -- ★절대원칙★(만들면 반드시 배선하라) 그대로, 세션37의 핵심 작업은 새 폐형식
+유도가 아니라 **이미 만들어진 검증된 도구를 실제로 배선하는 것**이었다.
+
+**③ `sizing_recipe.py`에 F엔진 3종 신설**(`_nmcnr_stage1_rout()`/`_nmcnr_predict()`/
+`_metric_nmcnr_gain_db()`/`_metric_nmcnr_pm_deg()`, `_METRICS_REGISTRY`에 `nmcnr_gain_db`/
+`nmcnr_pm_deg` 등록, `_metric_device_footprint()`에도 등록):
+- `_nmcnr_stage1_rout()` -- stage1(NodeM2) 출력저항. `_folded_cascode_rout()`를 재사용할 수
+  없었다(그 함수는 양쪽 branch 다 캐스코드라고 전제) -- nmcnr stage1은 **한쪽만 캐스코드인
+  비대칭 구조**(NMOS쪽 M107은 캐스코드+폴딩 legs, PMOS쪽 M109는 다이오드(M108) 미러로만
+  전류가 정해지는 단순 전류원, 자체 캐스코드 없음)라 새로 유도했다: Rout_n=gm(M107)·ro(M107)·
+  (ro(M103)‖ro(M105)), Rout_p=ro(M109), R1=Rout_n‖Rout_p.
+- `_nmcnr_predict()` -- gm1/gm2/gm3와 R1/R2/R3를 **전부 실사이징값(ctx.sized)**으로 구해
+  `nmcnr_predict_notch()`를 호출(스모크테스트는 목표-gm 방식을 썼지만, "실제로 만들면 Cm1/
+  Rm/Cm2도 이 실측 gm 기준으로 정해질 것"이라는 as-built 해석을 명시적으로 선택해 기록).
+  gm2/gm3는 compensation.stage_devices가 가리키는 소자(M201/M301) 자신의 gm을 그대로 쓴다
+  (M201→M203/M204 릴레이는 matching_pairs가 1:1 전류미러를 보장하므로 gm2를 감쇠/증폭하지
+  않는다고 전제, 이 전제는 compensation.stage_devices=[M201] 선언 자체에 이미 내장돼 있음).
+  `_open_loop_gains_cache`와 동일한 이유(gain_db/pm_deg 두 metric이 같은 세타평가에서 완전히
+  동일한 입력으로 각자 호출)로 `ctx._nmcnr_predict_cache`(SizingContext 새 필드) 캐싱.
+- `_metric_nmcnr_pm_deg()`는 0dB 교차가 없으면(PM 정의 불가) `ValueError`, 교차가 2개 이상
+  (`notch=True`)이면 "PM 하나로 대표 불가"로 마찬가지로 `ValueError` -- 조용히 `crossings[0]`을
+  집어 쓰지 않는다(이 프로젝트의 "정직한 한계" 원칙 그대로).
+
+**④ self-test 신설**(`sizing_recipe.py` self-test, "세션37" 표시) -- (a) `load_topology()`로
+`nmcnr_amplifier.topology.json`의 실제 connectivity(M107/M109→NodeM2→M201.gate, M202/M204→
+NodeS2→M301.gate, M301/M302→Vout)가 metric_spec의 소자 역할 배정과 일치하는지 먼저 확인
+(current_reuse_telescopic_ota 테스트와 동일 관례, "topology.json이 유일한 소스" 원칙),
+(b) `_nmcnr_stage1_rout()`을 손계산과 대조, (c) `_metric_nmcnr_gain_db`/`_metric_nmcnr_pm_deg`가
+`nmcnr_predict_notch()` 직접호출과 정확히 일치하는지(<1e-9), (d) 0dB 교차 없음 케이스의
+`ValueError`. `sizing_recipe.py`/`stick_diagram.py` self-test 전체 재실행 -- 둘 다 exit 0,
+회귀 없음.
+
+**⑤ `nmcnr_amplifier.topology.json`의 `sizing_roles.metrics`/`objective`/`constraints` 신설
+및 실제 harness 완주** -- metrics: `power_uA`(sum_current), `gain_db`/`pm_deg`(신설한
+nmcnr_gain_db/nmcnr_pm_deg), `cmrr_db`/`psrr_db`(`folded_cascode`와 동일하게 diff_pair_tail
+근사, tail_device=M101). objective: `{"minimize":"power_uA"}`. `python run_harness.py
+nmcnr_amplifier` 실행 -- **세션35/36이 막혀 있던 `objective["maximize"] KeyError` 없이
+처음으로 끝까지 완주**: `metrics={'power_uA': 0.0018984, 'gain_db': 100.105, 'pm_deg': 48.320,
+'cmrr_db': 4.476, 'psrr_db': 2.597}`. (도중에 `nmcnr-amplifier-report/` 디렉터리 자체가 없어
+`FileNotFoundError`가 한 번 났다 -- 이 회로가 이 단계까지 온 게 처음이라 디렉터리가 생성된
+적이 없었을 뿐인 무관한 1회성 이슈, `mkdir`로 해결.) 이 baseline 실측값을 `folded_cascode`의
+"baseline 실측을 그대로 스펙으로 채택" 선례 그대로 `constraints`(전부 `>=`)에 채워 넣고
+재실행해 동일 결과로 재현 확인(deterministic, theta_star가 전부 고정 단일점이라 재실행해도
+같은 값).
+
+## 2. 최종 검증 상태
+
+- `sizing_recipe.py`/`stick_diagram.py` self-test 전체 exit 0(신설 테스트 포함, 회귀 없음).
+- `python run_harness.py nmcnr_amplifier` -- KeyError 없이 완주, metrics 5개 전부 유한값.
+  `audit_ok=False`/`floorplan_ok=False`는 **이 세션 범위 밖의 별개 gap**(row_split/floorplan
+  레이아웃 튜닝, 세션34 이전부터 이월 중이던 §4-④ 항목과 동일 카테고리) -- metrics/objective/
+  constraints 자체는 정상 통과(constraints가 baseline과 정확히 일치하는 `>=`라 자명하게 통과,
+  엔진이 예외 없이 theta_star를 반환한 것 자체가 근거).
+- `python run_harness.py folded_cascode` / `two_stage_ota` 재실행 -- 둘 다 기존과 동일한
+  metrics로 재현(회귀 없음), `sizing_recipe.py` 공유 엔진 변경(신규 메트릭 타입 추가는 순수
+  추가라 기존 분기에 영향 없음)이 다른 회로에 영향을 주지 않았음을 확인.
+  `current_reuse_telescopic_ota`(SLSQP 경로)는 이번 세션엔 재실행하지 않았다 -- `_metric_
+  device_footprint()`에 추가한 `nmcnr_gain_db`/`nmcnr_pm_deg` 분기는 그 회로의 metric_spec과
+  무관한 새 elif라 이론상 영향 없음(다음 세션에서 시간 나면 재확인해도 좋음, 급하지 않음).
+
+## 3. 커밋 상태
+
+이 세션은 아직 커밋 안 됨(다음 세션 시작 시 확인) -- 수정 파일: `.ai/context.md`(이 절),
+`skills/analog-gmid-design/assets/library/nmcnr_amplifier.topology.json`(metrics/objective/
+constraints 신설), `skills/analog-gmid-design/assets/sizing_recipe.py`(F엔진 3종+self-test
+신설), `workspaces/run_harness.py`(PM_target_deg 확정 코멘트 갱신). 신규 생성:
+`workspaces/nmcnr-amplifier-report/`(디렉터리 자체가 없어서 만듦, `.instance.json` 포함).
+
+## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션37 종료 시점 최신)
+
+### ① [최우선 후보] `nmcnr_amplifier`의 `pm_deg=48.32도` 낮은 값 재검토
+
+`PM_target_deg=70.0`으로 gm 목표를 잡았는데 실제 4-노드 정확해로 나온 PM은 48.32도로 상당히
+낮다 -- `nmcnr_3stage_topology()` 자신의 docstring 경고("Eq 10/11은 우세극이 나머지와 충분히
+떨어져 있다는 근사 위에서 유도된 식")와 일치하는 정직한 결과이긴 하지만, 이 값이 최종 스펙으로
+받아들일 만한지(SPICE 교차검증 없이) 사용자와 논의가 필요할 수 있다. `_nmcnr_predict()`의
+as-built 해석(목표 gm 대신 실사이징 gm으로 Cm1/Rm/Cm2를 다시 계산)이 이 낮은 PM에 얼마나
+기여했는지(목표-gm 방식과 비교)도 궁금하면 확인해볼 만하다. 급하지 않음(constraints는 이미
+이 실측값 자체를 baseline으로 채택해 자기충족적이라 harness 자체는 막히지 않는다).
+
+### ② `nmcnr_amplifier`의 `audit_ok`/`floorplan_ok`/`_netlist_sections_structured`
+
+`floorplan.aspect_ratio=1.612 > 1.5`로 FAIL, `audit_row_split`도 FAIL 항목 있음, `_netlist_
+sections_structured`가 없어 `run_full_circuit_audit_from_topology()`가 스킵됨(`report.html`도
+생략됨) -- 세션36 §4 목록의 folded_cascode 항목 ④(레이아웃/핑거 튜닝)와 같은 카테고리, 사이징
+정확성과 무관한 별개 범위. 급하지 않음.
+
+### ③ `propose_theta_kcl_gap_fill()`을 `nmcnr_amplifier`에 실제로 적용할지 결정(세션36 §4-②
+그대로 이월, 이번 세션에 진전 없음)
+
+순수 함수로만 검증됐고 `apply_` 짝 함수가 없다. `M101`/`M108`/`M109`의 theta는 이미 손으로
+파일에 있으므로, 재실행해서 비교 검증만 할지/완전히 새로 갈아엎을지/앞으로 "새 회로 저작 시
+1차 초안 생성용"으로만 쓸지 사용자 판단 필요.
+
+### ④ 세션34 이전부터 계속 이월 중인 항목 5개(전부 급하지 않음, 원문 그대로 재나열 --
+"이월 목록 갱신 시 바로 위 세션만 보지 말 것" 경고를 이번에도 지킴)
+
+1. **세션33 L절** -- `sizing_recipe.py` 3963행 근처 L 일치 전파 루프가 `current_forced` 필터
+   없이 모든 declared matching_pairs에 L 일치를 강제(원칙 위반, 4개 실회로엔 현재 no-op임을
+   세션33이 실측 확인, 수정 자체는 미적용).
+2. **`two_stage_ota`의 `symmetry.matching_pairs`에 M5/M7 정식 선언 누락**(세션31 BX/BY) --
+   완전히 독립된 항목, 저절로 안 풀림.
+3. **`"balanced"` role의 `"moderate"` 마이그레이션 감사**(세션31 BZ②) -- 보류 유지.
+4. **`run_harness.py` 나머지 실전략 / `slew_rate()` 실제 연동 / SLSQP 전체 실행 성능
+   재측정**(세션31 BA④⑤/BH) -- 재검증 안 함.
+5. **`current_reuse_telescopic_ota`의 Monticelli class-AB floating current source 패턴**
+   -- `propose_theta_kcl_gap_fill()`이 아직 지원 못 함(세션36 §3-③-1 그대로), `M9a`/`M9b`/
+   `M18a`/`M18b`가 `unresolved_devices`로 남음. 급하지 않음.
+
+## 5. 다음 세션 시작 순서
+
+**커밋 여부부터 사용자에게 확인**(§3 참고, 이 세션은 안 함). 그 다음 §4-①(`pm_deg=48.32도`가
+받아들일 만한 값인지 사용자와 논의)부터 이어갈 것을 권장하되, 급하지 않으므로 사용자가 다른
+우선순위(②③④ 중 하나)를 지시하면 그쪽으로 유연하게 진행. `nmcnr_amplifier`의 사이징 자체는
+이제 (레이아웃 제외) 완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap은
+세션37로 닫혔다.
 ①을 끝낸 뒤 순서대로 판단.

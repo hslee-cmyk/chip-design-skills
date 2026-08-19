@@ -243,17 +243,20 @@ def _spec_nmcnr_amplifier():
     json`에 `fold_group`/`vertical_stack_id`/`sizing_roles.theta`(7개)가 세션36에 전부
     채워져 있다 -- 더 이상 gap 아님, 재작업 불필요.
 
-    `PM_target_deg`(아래 70.0)는 여전히 **테스트/개발 전용 임시값**이다 -- `topology.json`의
-    `_paper_target_spec.PM_target_deg`(46도, 논문 실측치)는 `nmcnr_3stage_topology()`
-    자신의 `PM_target_deg>60` 전제와 충돌해 그대로 못 쓴다(`current_reuse_telescopic_ota`
-    와 같은 70.0을 재사용했을 뿐, 확정 스펙 아님). 이 값을 확정하는 것도 위 metrics 설계와
-    함께 다음 세션의 최우선 과제다."""
+    `PM_target_deg=70.0`(아래)는 2026-08-19(세션37)에 **확정 스펙으로 결정됨** -- `topology.
+    json`의 `_paper_target_spec.PM_target_deg`(46도, 논문 실측치)는 `nmcnr_3stage_topology()`
+    자신의 `PM_target_deg>60` 전제와 구조적으로 충돌해 그대로 못 쓴다(사용자 확인 완료).
+    `current_reuse_telescopic_ota`와 동일 값(구조적 하한 60도 대비 10도 여유)을 채택 --
+    "논문 값 그대로 인용 금지, 값은 합리적으로 도출" 원칙에 따른 최종 결정이며 더 이상
+    임시값이 아니다. gain_db/pm_deg metrics는 `sizing_roles.metrics`에 등록됨(`sizing_
+    recipe.py`의 `_metric_nmcnr_gain_db`/`_metric_nmcnr_pm_deg`, `topology_library.
+    nmcnr_predict_notch()` 배선) -- `.ai/context.md` 세션37 참고."""
     return {
         "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
         "lut": _NMOS,
         "vdd": 2.0,
         "GBW": 816000.0, "CL": 1e-10, "kg": 0.5,
-        "PM_target_deg": 70.0,  # 위 docstring 1번 -- 테스트 전용 임시값, 확정 스펙 아님
+        "PM_target_deg": 70.0,  # 2026-08-19(세션37) 확정 스펙 -- 위 docstring 참고
         "L_candidates": layout_grid_L_candidates(_NMOS, L_GRID_STEP, n=41),
         "L_grid_step": L_GRID_STEP,
         "VDS_candidates": dense_candidates(_NMOS.VDS_grid, n=13),
@@ -312,10 +315,10 @@ SPECS = {
         "spec_fn": _spec_nmcnr_amplifier,
         "grid_points_per_theta": 5,
         "report_dir": "nmcnr-amplifier-report",
-        # 2026-08-18(세션36 갱신, 세션35의 stale 코멘트 정정) -- 바이어스 전류망 gap은
-        # 해소됨(_spec_nmcnr_amplifier() docstring 참고). 아직 완주 안 되는 유일한 이유는
-        # sizing_roles.metrics/objective/constraints 미설계(PM_target_deg 확정도 같이
-        # 필요) -- .ai/context.md 세션36 §4-①.
+        # 2026-08-19(세션37 갱신, 세션36의 stale 코멘트 정정) -- sizing_roles.metrics(gain_db/
+        # pm_deg/cmrr_db/psrr_db)와 objective(minimize power_uA)가 등록됨, PM_target_deg=
+        # 70.0도 확정 스펙으로 결정됨(_spec_nmcnr_amplifier() docstring 참고). constraints는
+        # 아직 null -- 이 실행으로 baseline 실측을 얻어 채워 넣을 예정(.ai/context.md 세션37).
     },
 }
 

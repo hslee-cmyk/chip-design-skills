@@ -1,0 +1,662 @@
+{
+  "schema_version": "2.0",
+  "topology_ref": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\\library\\nmcnr_amplifier.topology.json",
+  "sizing": {
+    "M102": {
+      "gm": 0.011630844446059083,
+      "gm_id": 30.0,
+      "L": 2.45e-07,
+      "vds": 0.3,
+      "vs": 0.0,
+      "W": 0.0004954529320617023,
+      "ID": 0.0003876948148686361,
+      "gds": 0.001567854436121266,
+      "kind": "pmos",
+      "_L_source": "compensation"
+    },
+    "M103": {
+      "gm": 0.011630844446059083,
+      "gm_id": 30.0,
+      "L": 2.45e-07,
+      "vds": 0.3,
+      "vs": 0.0,
+      "W": 0.0004954529320617023,
+      "ID": 0.0003876948148686361,
+      "gds": 0.001567854436121266,
+      "kind": "pmos",
+      "_L_source": "compensation"
+    },
+    "M201": {
+      "gm": 0.0010254158421317086,
+      "gm_id": 30.0,
+      "L": 2.45e-07,
+      "vds": 0.15,
+      "vs": 0.0,
+      "W": 6.194069256130528e-05,
+      "ID": 3.418052807105695e-05,
+      "gds": 0.00023458644827524953,
+      "kind": "pmos",
+      "_L_source": "compensation"
+    },
+    "M301": {
+      "gm": 0.002050831684263417,
+      "gm_id": 24.0,
+      "L": 2.45e-07,
+      "vds": 1.65,
+      "vs": 0.0,
+      "W": 0.00045913130977160013,
+      "ID": 8.545132017764238e-05,
+      "gds": 4.500248375799692e-05,
+      "kind": "nmos",
+      "_L_source": "compensation"
+    },
+    "M202": {
+      "ID": 3.418052807105695e-05,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 1.0,
+      "gm_id": 3.0,
+      "gm": 0.00010254158421317085,
+      "W": 1.0683991986440026e-06,
+      "gds": 4.073238588040451e-06,
+      "kind": "pmos",
+      "vs": 0.0
+    },
+    "M203": {
+      "ID": 3.418052807105695e-05,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 1.85,
+      "gm_id": 6.0,
+      "gm": 0.0002050831684263417,
+      "W": 1.0587272056975698e-06,
+      "gds": 2.477466932062128e-06,
+      "kind": "nmos",
+      "vs": 0.0
+    },
+    "M204": {
+      "ID": 3.418052807105695e-05,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 1.0,
+      "gm_id": 6.0,
+      "gm": 0.0002050831684263417,
+      "W": 1.0996437703554821e-06,
+      "gds": 3.5171869009923684e-06,
+      "kind": "nmos",
+      "vs": 0.0
+    },
+    "M302": {
+      "ID": 8.545132017764238e-05,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 0.3500000000000001,
+      "gm_id": 2.0,
+      "gm": 0.00017090264035528476,
+      "W": 3.0282117861867257e-06,
+      "gds": 0.00014542838630314116,
+      "kind": "pmos",
+      "vs": 0.0
+    },
+    "M101": {
+      "ID": 1e-05,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 0.2,
+      "gm_id": 4.0,
+      "gm": 4e-05,
+      "W": 1.1447598877530022e-06,
+      "gds": 2.96631135204666e-05,
+      "kind": "pmos",
+      "vs": 0.0
+    },
+    "M108": {
+      "ID": 5e-06,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 0.2,
+      "gm_id": 6.5,
+      "gm": 3.2500000000000004e-05,
+      "W": 1.0026683842936168e-06,
+      "gds": 9.55463121498991e-06,
+      "kind": "pmos",
+      "vs": 0.0
+    },
+    "M109": {
+      "ID": 5e-06,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 0.2,
+      "gm_id": 6.5,
+      "gm": 3.2500000000000004e-05,
+      "W": 1.0026683842936168e-06,
+      "gds": 9.55463121498991e-06,
+      "kind": "pmos",
+      "vs": 0.0
+    },
+    "M104": {
+      "ID": 0.00039269481486863613,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 0.2,
+      "gm_id": 2.0,
+      "gm": 0.0007853896297372723,
+      "W": 6.404855713841757e-06,
+      "gds": 0.001399216920541562,
+      "kind": "nmos",
+      "vs": 0.0
+    },
+    "M105": {
+      "ID": 0.00039269481486863613,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 0.2,
+      "gm_id": 2.0,
+      "gm": 0.0007853896297372723,
+      "W": 6.404855713841757e-06,
+      "gds": 0.001399216920541562,
+      "kind": "nmos",
+      "vs": 0.0
+    },
+    "M106": {
+      "ID": 5e-06,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 0.2,
+      "gm_id": 13.5,
+      "gm": 6.75e-05,
+      "W": 1.022934312489721e-06,
+      "gds": 3.555480482022967e-06,
+      "kind": "nmos",
+      "vs": 0.0
+    },
+    "M107": {
+      "ID": 5e-06,
+      "L": 3.75e-07,
+      "_L_source": "L_role",
+      "vds": 0.2,
+      "gm_id": 13.5,
+      "gm": 6.75e-05,
+      "W": 1.022934312489721e-06,
+      "gds": 3.555480482022967e-06,
+      "kind": "nmos",
+      "vs": 0.0
+    }
+  },
+  "netlist": [
+    {
+      "name": "M101",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "NodeTail",
+      "n_fingers": 1,
+      "finger_w": 1.1447598877530022e-06,
+      "w": 1.1447598877530022e-06,
+      "l": 3.75e-07,
+      "gate": "VB1",
+      "stack_id": "col_m101"
+    },
+    {
+      "name": "M106",
+      "kind": "nmos",
+      "source": "NodeF1",
+      "drain": "NodeM1",
+      "n_fingers": 1,
+      "finger_w": 1.022934312489721e-06,
+      "w": 1.022934312489721e-06,
+      "l": 3.75e-07,
+      "gate": "VB3",
+      "stack_id": "col_m106"
+    },
+    {
+      "name": "M107",
+      "kind": "nmos",
+      "source": "NodeF2",
+      "drain": "NodeM2",
+      "n_fingers": 1,
+      "finger_w": 1.022934312489721e-06,
+      "w": 1.022934312489721e-06,
+      "l": 3.75e-07,
+      "gate": "VB3",
+      "stack_id": "col_m107"
+    },
+    {
+      "name": "M108",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "NodeM1",
+      "n_fingers": 1,
+      "finger_w": 1.0026683842936168e-06,
+      "w": 1.0026683842936168e-06,
+      "l": 3.75e-07,
+      "gate": "NodeM1",
+      "stack_id": "col_m108"
+    },
+    {
+      "name": "M109",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "NodeM2",
+      "n_fingers": 1,
+      "finger_w": 1.0026683842936168e-06,
+      "w": 1.0026683842936168e-06,
+      "l": 3.75e-07,
+      "gate": "NodeM1",
+      "stack_id": "col_m108"
+    },
+    {
+      "name": "M201",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "NodeC",
+      "n_fingers": 26,
+      "finger_w": 2.3823343292809722e-06,
+      "w": 6.194069256130528e-05,
+      "l": 2.45e-07,
+      "gate": "NodeM2",
+      "stack_id": "stage2_diode_ref__pmos"
+    },
+    {
+      "name": "M202",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "NodeS2",
+      "n_fingers": 1,
+      "finger_w": 1.0683991986440026e-06,
+      "w": 1.0683991986440026e-06,
+      "l": 3.75e-07,
+      "gate": "VB4",
+      "stack_id": "stage2_output__pmos"
+    },
+    {
+      "name": "M203",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "NodeC",
+      "n_fingers": 1,
+      "finger_w": 2.3823343292809722e-06,
+      "w": 2.3823343292809722e-06,
+      "l": 3.75e-07,
+      "gate": "NodeC",
+      "stack_id": "stage2_diode_ref__nmos"
+    },
+    {
+      "name": "M204",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "NodeS2",
+      "n_fingers": 1,
+      "finger_w": 2.3823343292809722e-06,
+      "w": 2.3823343292809722e-06,
+      "l": 3.75e-07,
+      "gate": "NodeC",
+      "stack_id": "stage2_diode_ref__nmos"
+    },
+    {
+      "name": "M301",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "Vout",
+      "n_fingers": 26,
+      "finger_w": 1.765889652967693e-05,
+      "w": 0.0004591313097716002,
+      "l": 2.45e-07,
+      "gate": "NodeS2",
+      "stack_id": "stage3_output__nmos"
+    },
+    {
+      "name": "M302",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "Vout",
+      "n_fingers": 1,
+      "finger_w": 3.0282117861867257e-06,
+      "w": 3.0282117861867257e-06,
+      "l": 3.75e-07,
+      "gate": "VB5",
+      "stack_id": "stage3_output__pmos"
+    },
+    {
+      "name": "M102",
+      "kind": "pmos",
+      "source": "NodeTail",
+      "drain": "NodeF1",
+      "n_fingers": 7,
+      "finger_w": 3.811176400474633e-05,
+      "w": 0.0004954529320617023,
+      "l": 2.45e-07,
+      "gate": "Vin_n",
+      "stack_id": "col_m102_repair0"
+    },
+    {
+      "name": "M103",
+      "kind": "pmos",
+      "source": "NodeTail",
+      "drain": "NodeF2",
+      "n_fingers": 6,
+      "finger_w": 3.811176400474633e-05,
+      "w": 0.0004954529320617023,
+      "l": 2.45e-07,
+      "gate": "Vin_p",
+      "stack_id": "col_m102_repair0"
+    },
+    {
+      "name": "M103",
+      "kind": "pmos",
+      "source": "NodeTail",
+      "drain": "NodeF2",
+      "n_fingers": 7,
+      "finger_w": 3.811176400474633e-05,
+      "w": 0.0004954529320617023,
+      "l": 2.45e-07,
+      "gate": "Vin_p",
+      "stack_id": "col_m102_repair1"
+    },
+    {
+      "name": "M102",
+      "kind": "pmos",
+      "source": "NodeTail",
+      "drain": "NodeF1",
+      "n_fingers": 6,
+      "finger_w": 3.811176400474633e-05,
+      "w": 0.0004954529320617023,
+      "l": 2.45e-07,
+      "gate": "Vin_n",
+      "stack_id": "col_m102_repair1"
+    },
+    {
+      "name": "M104",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "NodeF1",
+      "n_fingers": 1,
+      "finger_w": 6.404855713841757e-06,
+      "w": 6.404855713841757e-06,
+      "l": 3.75e-07,
+      "gate": "VB2",
+      "stack_id": "col_m104_repair0"
+    },
+    {
+      "name": "M105",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "NodeF2",
+      "n_fingers": 1,
+      "finger_w": 6.404855713841757e-06,
+      "w": 6.404855713841757e-06,
+      "l": 3.75e-07,
+      "gate": "VB2",
+      "stack_id": "col_m104_repair0"
+    }
+  ],
+  "floorplan": {
+    "placements": {
+      "col_m102_repair0": {
+        "x": -1.182375e-05,
+        "y": 0.0,
+        "width": 3.185e-06,
+        "height": 3.811176400474633e-05
+      },
+      "col_m102_repair1": {
+        "x": -8.60125e-06,
+        "y": 0.0,
+        "width": 3.185e-06,
+        "height": 3.811176400474633e-05
+      },
+      "stage3_output__pmos": {
+        "x": -5.37875e-06,
+        "y": 0.0,
+        "width": 3.75e-07,
+        "height": 3.0282117861867257e-06
+      },
+      "stage2_diode_ref__pmos": {
+        "x": -4.96625e-06,
+        "y": 0.0,
+        "width": 6.37e-06,
+        "height": 2.3823343292809722e-06
+      },
+      "col_m101": {
+        "x": 1.4412499999999991e-06,
+        "y": 0.0,
+        "width": 3.75e-07,
+        "height": 1.1447598877530022e-06
+      },
+      "stage2_output__pmos": {
+        "x": 1.853749999999999e-06,
+        "y": 0.0,
+        "width": 3.75e-07,
+        "height": 1.0683991986440026e-06
+      },
+      "col_m108": {
+        "x": 2.266249999999999e-06,
+        "y": 0.0,
+        "width": 7.5e-07,
+        "height": 1.0026683842936168e-06
+      },
+      "stage3_output__nmos": {
+        "x": 3.0537499999999977e-06,
+        "y": 0.0,
+        "width": 6.37e-06,
+        "height": 1.765889652967693e-05
+      },
+      "col_m104_repair0": {
+        "x": 9.461249999999997e-06,
+        "y": 0.0,
+        "width": 7.5e-07,
+        "height": 6.404855713841757e-06
+      },
+      "stage2_diode_ref__nmos": {
+        "x": 1.0248749999999997e-05,
+        "y": 0.0,
+        "width": 7.5e-07,
+        "height": 2.3823343292809722e-06
+      },
+      "col_m106": {
+        "x": 1.1036249999999998e-05,
+        "y": 0.0,
+        "width": 3.75e-07,
+        "height": 1.022934312489721e-06
+      },
+      "col_m107": {
+        "x": 1.1448749999999998e-05,
+        "y": 0.0,
+        "width": 3.75e-07,
+        "height": 1.022934312489721e-06
+      }
+    },
+    "bbox": {
+      "width": 2.36475e-05,
+      "height": 3.811176400474633e-05
+    },
+    "aspect_ratio": 1.611661444327998,
+    "packing_density": 0.7993883469553166
+  },
+  "box_shape": {
+    "ok": false,
+    "rectangular": false,
+    "elongation_ok": true,
+    "row_widths": {
+      "col_m101": 3.75e-07,
+      "col_m106": 3.75e-07,
+      "col_m107": 3.75e-07,
+      "col_m108": 7.5e-07,
+      "stage2_diode_ref__pmos": 6.37e-06,
+      "stage2_output__pmos": 3.75e-07,
+      "stage2_diode_ref__nmos": 7.5e-07,
+      "stage3_output__nmos": 6.37e-06,
+      "stage3_output__pmos": 3.75e-07,
+      "col_m102_repair0": 3.185e-06,
+      "col_m102_repair1": 3.185e-06,
+      "col_m104_repair0": 7.5e-07
+    },
+    "row_heights": {
+      "col_m101": 1.1447598877530022e-06,
+      "col_m106": 1.022934312489721e-06,
+      "col_m107": 1.022934312489721e-06,
+      "col_m108": 1.0026683842936168e-06,
+      "stage2_diode_ref__pmos": 2.3823343292809722e-06,
+      "stage2_output__pmos": 1.0683991986440026e-06,
+      "stage2_diode_ref__nmos": 2.3823343292809722e-06,
+      "stage3_output__nmos": 1.765889652967693e-05,
+      "stage3_output__pmos": 3.0282117861867257e-06,
+      "col_m102_repair0": 3.811176400474633e-05,
+      "col_m102_repair1": 3.811176400474633e-05,
+      "col_m104_repair0": 6.404855713841757e-06
+    },
+    "total_width_m": 6.37e-06,
+    "total_height_m": 0.00011334185679343008,
+    "width_ratio": 16.986666666666665,
+    "elongation": 17.7930701402559,
+    "approx": false,
+    "message": "FAIL: 행 폭 비율(16.99) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
+  },
+  "audit_row_split": {
+    "ok": false,
+    "checks": [
+      {
+        "name": "1. euler[col_m101]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeTail', 'vdd']"
+      },
+      {
+        "name": "1. euler[col_m106]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeF1', 'NodeM1']"
+      },
+      {
+        "name": "1. euler[col_m107]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeF2', 'NodeM2']"
+      },
+      {
+        "name": "1. euler[col_m108]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeM1', 'NodeM2']"
+      },
+      {
+        "name": "1. euler[stage2_diode_ref__pmos]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[stage2_output__pmos]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeS2', 'vdd']"
+      },
+      {
+        "name": "1. euler[stage2_diode_ref__nmos]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeC', 'NodeS2']"
+      },
+      {
+        "name": "1. euler[stage3_output__nmos]",
+        "ok": true,
+        "detail": "odd_nodes=[]"
+      },
+      {
+        "name": "1. euler[stage3_output__pmos]",
+        "ok": true,
+        "detail": "odd_nodes=['Vout', 'vdd']"
+      },
+      {
+        "name": "1. euler[col_m102_repair0]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeF1', 'NodeTail']"
+      },
+      {
+        "name": "1. euler[col_m102_repair1]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeF2', 'NodeTail']"
+      },
+      {
+        "name": "1. euler[col_m104_repair0]",
+        "ok": true,
+        "detail": "odd_nodes=['NodeF1', 'NodeF2']"
+      },
+      {
+        "name": "2. box-shape",
+        "ok": false,
+        "detail": "FAIL: 행 폭 비율(16.99) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것"
+      },
+      {
+        "name": "3a. row-presence[M102/M103] (kind=sensitivity=offset,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['col_m102_repair0', 'col_m102_repair1']; M102/M103 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M102/M103] [참고용 -- 이 kind는 필수 아님]",
+        "ok": true,
+        "detail": "col_m102_repair0: 인접; col_m102_repair1: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M102/M103]",
+        "ok": true,
+        "detail": "M102 centroid=(6.00,9.46), M103 centroid=(6.00,9.54), |dx|=0.00 |dy|=0.08 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M104/M105] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['col_m104_repair0']; M104/M105 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M104/M105]",
+        "ok": true,
+        "detail": "col_m104_repair0: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M104/M105] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M104 centroid=(0.00,11.00), M105 centroid=(1.00,11.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M106/M107] (kind=sensitivity=ratio,shares_node=False)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: []; M106/M107 중 한쪽만 있는 행: ['col_m106', 'col_m107'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M106/M107] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "col_m106: NOT 인접; col_m107: NOT 인접"
+      },
+      {
+        "name": "3c. common-centroid[M106/M107]",
+        "ok": false,
+        "detail": "M106 centroid=(0.00,1.00), M107 centroid=(0.00,2.00), |dx|=0.00 |dy|=1.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M108/M109] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['col_m108']; M108/M109 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M108/M109]",
+        "ok": true,
+        "detail": "col_m108: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M108/M109] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M108 centroid=(0.00,3.00), M109 centroid=(1.00,3.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      },
+      {
+        "name": "3a. row-presence[M203/M204] (kind=sensitivity=ratio,shares_node=True)",
+        "ok": true,
+        "detail": "두 소자 모두 있는 행: ['stage2_diode_ref__nmos']; M203/M204 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)"
+      },
+      {
+        "name": "3b. interdigitation[M203/M204]",
+        "ok": true,
+        "detail": "stage2_diode_ref__nmos: 인접"
+      },
+      {
+        "name": "3c. common-centroid[M203/M204] [참고용 -- 이 kind는 필수 아님]",
+        "ok": false,
+        "detail": "M203 centroid=(0.00,6.00), M204 centroid=(1.00,6.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)"
+      }
+    ]
+  },
+  "coverage": {
+    "ok": true,
+    "missing": []
+  }
+}

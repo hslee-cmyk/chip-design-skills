@@ -290,11 +290,34 @@
         "_comment": "M106측(r_series_M106)과 대칭 -- M107은 M109를 그대로 따라간다."
       }
     ],
-    "metrics": null,
-    "objective": null,
-    "constraints": null
+    "metrics": {
+      "power_uA": {"type": "sum_current"},
+      "gain_db": {
+        "type": "nmcnr_gain_db",
+        "gm1_device": "M102", "gm2_device": "M201", "gm3_device": "M301",
+        "stage1_cascode_n": "M107", "stage1_fold_leg_a": "M103", "stage1_fold_leg_b": "M105",
+        "stage1_mirror_p": "M109", "stage2_devices": ["M202", "M204"],
+        "stage3_devices": ["M301", "M302"], "CL": 1e-10, "kg": 0.5
+      },
+      "pm_deg": {
+        "type": "nmcnr_pm_deg",
+        "gm1_device": "M102", "gm2_device": "M201", "gm3_device": "M301",
+        "stage1_cascode_n": "M107", "stage1_fold_leg_a": "M103", "stage1_fold_leg_b": "M105",
+        "stage1_mirror_p": "M109", "stage2_devices": ["M202", "M204"],
+        "stage3_devices": ["M301", "M302"], "CL": 1e-10, "kg": 0.5
+      },
+      "cmrr_db": {"type": "cmrr_estimate", "circuit_family": "diff_pair_tail", "tail_device": "M101"},
+      "psrr_db": {"type": "psrr_estimate", "circuit_family": "diff_pair_tail", "tail_device": "M101"}
+    },
+    "objective": {"minimize": "power_uA"},
+    "constraints": [
+      {"metric": "gain_db", "op": ">=", "value": 100.10522099728999},
+      {"metric": "pm_deg", "op": ">=", "value": 48.32012021429867},
+      {"metric": "cmrr_db", "op": ">=", "value": 4.476344188206636},
+      {"metric": "psrr_db", "op": ">=", "value": 2.596865150438907}
+    ]
   },
-  "_sizing_roles_comment": "2026-08-18 갱신(세션35의 'null 유지' 결론을 정정) -- '이 회로는 GBW/PM/kg가 compensation.parameters로 주어져 자유도가 없다'는 이전 결론은 compensation이 관리하는 gm1/gm2/gm3(M102/M103/M201/M301)에만 해당했다. 그 나머지 바이어스망(M101 tail 전류, M104/M105 폴딩 전류비)은 이 넷리스트의 KCL만으로 절대값이 안 나오는 진짜 자유도이고(§4-①로 부르던 '바이어스망 gap'의 정체), sympy KCL 재유도(위 각 theta의 _comment)로 부호까지 확인해 theta 7개로 표현했다. metrics/objective/constraints는 아직 null -- PM_target_deg 재설정(논문 46도가 nmcnr_3stage_topology()의 PM_target_deg>60 전제를 위반하는 별도 gap, 다음 작업)과 gain/PM/CMRR/PSRR 폐형식 설계가 선행돼야 채울 수 있다.",
+  "_sizing_roles_comment": "2026-08-19 갱신(세션37, .ai/context.md 세션36 §4-① 이어감) -- metrics 신설: gain_db/pm_deg는 sizing_recipe.py의 새 F엔진(_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg, 세션37)이 topology_library.nmcnr_predict_notch()(4-노드 KCL 정확해, sympy 유도+ngspice/실트랜지스터 교차검증까지 이미 완료된 함수 -- 지금까지 스모크테스트 용도로만 쓰이다 이번에 처음 실제 배선됨, ★절대원칙★ 참고)를 실사이징값(ctx.sized)으로 호출해 계산한다(folded_cascode의 gain/PM 폐형식보다 신뢰도가 높음 -- 근사가 아니라 정확해). cmrr_db/psrr_db는 folded_cascode와 동일하게 diff_pair_tail 근사(tail_device=M101, 이 회로의 진짜 tail). PM_target_deg=70.0(run_harness.py, nmcnr_3stage_topology()의 PM_target_deg>60 구조적 전제 대비 10도 여유 -- current_reuse_telescopic_ota와 동일 값으로 확정, 논문 46도는 이 구조적 전제 자체를 위반해 채택 불가, 사용자 확인 완료)도 이 세션에서 최종 확정됐다. constraints는 2026-08-19 `python run_harness.py nmcnr_amplifier` 실측 baseline(theta_star가 전부 고정값이라 이 값 자체가 유일한 후보점, 'null 유지' 대신 folded_cascode의 'baseline 실측을 그대로 스펙으로 채택' 선례 그대로 따름)을 그대로 채웠다 -- gain_db=100.105dB(논문 NMCNR 목표 '>100dB'와 우연히 거의 정확히 일치, 참고용일 뿐 이 스펙을 그대로 인용한 게 아니라 sky130 재설계 실측치임), pm_deg=48.320deg(PM_target_deg=70도로 gm 목표를 정했지만 3-스테이지 실제 폴 배치+M109 비캐스코드 branch 때문에 정확한 4-노드 해는 그보다 낮게 나옴 -- Eq10/11이 '우세극이 나머지와 충분히 떨어져 있다'는 근사 위에서 유도된 식이라는 nmcnr_3stage_topology() 자체의 경고와 일치하는 정직한 결과, SPICE 최종 확인 전까지는 이 값이 잠정 스펙), cmrr_db/psrr_db는 diff_pair_tail 근사(order-of-magnitude, folded_cascode와 동일 한계). `python run_harness.py nmcnr_amplifier`가 이제 KeyError 없이 끝까지 완주함(audit_ok/floorplan_ok는 여전히 False -- 레이아웃/row_split 튜닝은 이 항목과 무관한 별개 gap, 다음 세션 이월).",
   "device_roles": {
     "M101": {
       "gm_id_role": "matching",

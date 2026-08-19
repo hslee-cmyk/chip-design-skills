@@ -1103,7 +1103,7 @@ def build_toy_lut(n: float = 1.3, UT: float = 0.026, VTo: float = 0.4, ISuo: flo
 # ---------------------------------------------------------------------------
 
 from topology_library import (miller_ota_topology, nmcnr_3stage_topology, ngcc_3stage_topology,
-                               current_reuse_telescopic_topology)
+                               current_reuse_telescopic_topology, nmcnr_predict_notch)
 
 # topology JSON의 "compensation.function" 문자열이 참조할 수 있는 함수의 명시적 allowlist.
 # JSON 안의 임의 문자열로 임의 코드를 실행하지 않기 위함 — eval()/getattr(module, name) 금지.
@@ -1627,6 +1627,11 @@ class SizingContext:
     # 세타평가당 8개를 풀고 있었다(각자 절반은 `del`로 바로 버림). 이 ctx는 한 세타평가
     # 동안만 살아있는 일회용 객체라 여기 캐시해도 이전 세타점 결과가 새는 위험이 없다.
     _open_loop_gains_cache: dict = field(default_factory=dict)
+    # 2026-08-19(세션37) -- `_nmcnr_predict()`(nmcnr_amplifier의 gain_db/pm_deg가 공유)가
+    # `nmcnr_predict_notch()`(4-노드 KCL, 2000점 주파수 스윕) 결과를 캐싱 -- 위 `_open_loop_
+    # gains_cache`와 동일한 이유(gain_db/pm_deg 두 metric이 같은 세타평가에서 완전히 동일한
+    # 입력으로 각자 호출하므로 캐시 없인 스윕을 2번 돈다), 다만 반환 dict 구조가 달라 별도 필드로 분리.
+    _nmcnr_predict_cache: dict = field(default_factory=dict)
 
 
 def _metric_sum_current(spec: dict, ctx: SizingContext) -> float:
@@ -1719,6 +1724,111 @@ def _metric_folded_cascode_pm_deg(spec: dict, ctx: SizingContext) -> float:
         c_fold += lut.cgg_absolute(e["gm_id"], e["L"], e["vds"], e.get("vs", 0.0), e["W"])
     p2_hz = ctx.sized[spec["cascode_p"]]["gm"] / (2 * math.pi * c_fold)
     return 90.0 - math.degrees(math.atan(gbw_hz / p2_hz))
+
+
+def _nmcnr_stage1_rout(spec: dict, ctx: SizingContext) -> float:
+    """`nmcnr_amplifier` stage1(폴디드 캐스코드)의 출력저항 폐형식(2026-08-19 세션37 신설,
+    `.ai/context.md` 세션36 §4-① 이어감). NodeM2(=gm2 소자의 게이트가 받는 stage1 출력)에는
+    NMOS 캐스코드(`stage1_cascode_n`, 예 M107)와 캐스코드 없는 단순 PMOS 전류원
+    (`stage1_mirror_p`, 예 M109) 두 branch가 만난다 — `_folded_cascode_rout()`와 달리
+    **한쪽만 캐스코드인 비대칭 구조**(PMOS 쪽은 다이오드(M108) 미러로만 전류가 정해지는
+    단순 전류원, 자체 캐스코드 트랜지스터가 없음)라 그 헬퍼를 재사용할 수 없어 새로 유도했다.
+
+    Rout_n(NMOS 캐스코드 branch) = gm(cascode_n)·ro(cascode_n)·(ro(fold_leg_a)‖ro(fold_leg_b))
+    — 폴딩 노드(NodeF2)에 diffpair 다리(`stage1_fold_leg_a`, 예 M103)와 NMOS 전류원
+    (`stage1_fold_leg_b`, 예 M105)이 같이 물려 그 둘의 ro가 병렬로 캐스코드 소스단 임피던스를
+    이룬다(`_folded_cascode_rout()`의 Rout_p 유도와 동일 원리, NMOS/PMOS만 반대).
+    Rout_p(PMOS mirror branch) = ro(mirror_p) — 캐스코드가 없어 자기 ro뿐.
+
+    metric_spec 키: `"stage1_cascode_n"`, `"stage1_fold_leg_a"`, `"stage1_fold_leg_b"`,
+    `"stage1_mirror_p"`."""
+    def ro(name):
+        return 1.0 / ctx.sized[name]["gds"]
+    ro_fold = 1.0 / (1.0 / ro(spec["stage1_fold_leg_a"]) + 1.0 / ro(spec["stage1_fold_leg_b"]))
+    cascode_n = spec["stage1_cascode_n"]
+    rout_n = ctx.sized[cascode_n]["gm"] * ro(cascode_n) * ro_fold
+    rout_p = ro(spec["stage1_mirror_p"])
+    return 1.0 / (1.0 / rout_n + 1.0 / rout_p)
+
+
+def _nmcnr_predict(spec: dict, ctx: SizingContext) -> dict:
+    """`nmcnr_amplifier`(3단 NMCNR) F엔진(2026-08-19 세션37 신설) — `topology_library.
+    nmcnr_predict_notch()`(4-노드 KCL 정확해, sympy 유도 + ngspice/실트랜지스터 재조립
+    교차검증까지 이미 완료된 함수, `.ai/context.md` 세션 2026-07-31 참고)를 이 회로의
+    **실사이징값**으로 호출하는 공유 헬퍼 — `_metric_nmcnr_gain_db`/`_metric_nmcnr_pm_deg`가
+    같은 세타평가에서 동일 입력으로 각자 호출하므로 `ctx._nmcnr_predict_cache`로 캐싱한다
+    (`_telescopic_class_ab_open_loop_gains()`와 동일 이유·동일 캐시 키 관례).
+
+    ⚠️ 이 함수가 나오기 전까지 `nmcnr_predict_notch()`는 `topology_library.py` `__main__`의
+    스모크테스트(손으로 옮긴 논문 실측 gain/gm 조합)로만 쓰였고 실제 사이징 파이프라인에
+    배선된 적이 없었다 — ★절대원칙★(만들면 반드시 배선) 그대로 이번에 처음 metrics 엔진에
+    배선한다.
+
+    gm1/gm2/gm3와 R1/R2/R3 전부 **실사이징 실측값**(`ctx.sized`)만 쓴다 — compensation이
+    산출한 "목표" gm이 아니라 실제로 gm_id 격자탐색을 거쳐 확정된 값이다. `nmcnr_compensation_
+    elements()`가 이 gm1/gm2/gm3로 Cm1/Rm/Cm2를 다시 계산하므로, "이 사이징대로 실제로
+    보상망을 만들면 Cm1/Rm/Cm2도 이 실측 gm 기준으로 정해질 것"이라는 물리적으로 일관된
+    as-built 해석을 택했다(스모크테스트의 목표-gm 방식과 다른 선택, 정직하게 기록).
+    gm2/gm3는 `compensation.stage_devices`가 가리키는 소자(예 M201/M301) 자신의 gm을 그대로
+    쓴다 — M201→M203(다이오드)/M204(미러) 릴레이는 matching_pairs가 current_forced+동일
+    gm_id_role="matching"을 선언해 1:1 전류미러(gm204≈gm203)를 보장하므로 이 릴레이가 gm2를
+    감쇠/증폭하지 않는다고 전제한다(compensation.stage_devices=[M201] 자체가 이미 이 전제
+    위에서 M201만 gm2 결정 소자로 지정해뒀다).
+
+    R1(stage1, NodeM2)은 `_nmcnr_stage1_rout()`, R2(stage2, NodeS2)/R3(stage3, Vout)는 양쪽
+    다 캐스코드 없는 단순 병렬 ro(`stage2_devices`/`stage3_devices` 두 소자의 ro‖ro).
+
+    metric_spec 키: `"gm1_device"`, `"gm2_device"`, `"gm3_device"`, `_nmcnr_stage1_rout()`와
+    동일 4개(`stage1_cascode_n`/`stage1_fold_leg_a`/`stage1_fold_leg_b`/`stage1_mirror_p`),
+    `"stage2_devices"`(2개 리스트), `"stage3_devices"`(2개 리스트), `"CL"`, `"kg"`."""
+    def ro(name):
+        return 1.0 / ctx.sized[name]["gds"]
+    footprint = sorted({spec["gm1_device"], spec["gm2_device"], spec["gm3_device"],
+                         spec["stage1_cascode_n"], spec["stage1_fold_leg_a"],
+                         spec["stage1_fold_leg_b"], spec["stage1_mirror_p"],
+                         *spec["stage2_devices"], *spec["stage3_devices"]})
+    key = (_hashable_key(spec),
+           tuple((n, ctx.sized[n]["gm"], ctx.sized[n]["gds"]) for n in footprint))
+    cached = ctx._nmcnr_predict_cache.get(key)
+    if cached is not None:
+        return cached
+    gm1 = ctx.sized[spec["gm1_device"]]["gm"]
+    gm2 = ctx.sized[spec["gm2_device"]]["gm"]
+    gm3 = ctx.sized[spec["gm3_device"]]["gm"]
+    R1 = _nmcnr_stage1_rout(spec, ctx)
+    s2a, s2b = spec["stage2_devices"]
+    R2 = 1.0 / (1.0 / ro(s2a) + 1.0 / ro(s2b))
+    s3a, s3b = spec["stage3_devices"]
+    R3 = 1.0 / (1.0 / ro(s3a) + 1.0 / ro(s3b))
+    result = nmcnr_predict_notch(gm1, gm2, gm3, R1, R2, R3, CL=spec["CL"], kg=spec["kg"])
+    ctx._nmcnr_predict_cache[key] = result
+    return result
+
+
+def _metric_nmcnr_gain_db(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-08-19 세션37 신설) — `nmcnr_amplifier`의 DC 이득, `_nmcnr_predict()`의
+    `dc_gain_db`(4-노드 KCL 정확해) 그대로. notch(복수 0dB 교차) 여부와 무관하게 DC 이득
+    자체는 항상 잘 정의된 값이라 그대로 반환한다."""
+    return _nmcnr_predict(spec, ctx)["dc_gain_db"]
+
+
+def _metric_nmcnr_pm_deg(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-08-19 세션37 신설) — `nmcnr_amplifier`의 위상여유, `_nmcnr_predict()`의
+    첫(최저주파) 0dB 교차 지점 PM. ⚠️ **정직한 한계**: 0dB 교차가 아예 없으면(예: DC 이득이
+    이미 0dB 미만) `ValueError` — PM이 정의 불가능한 상태를 조용히 넘기지 않는다. 교차가
+    2개 이상(`notch=True`)이면 "위상여유"라는 단일 숫자로 이 회로를 대표하는 것 자체가
+    오도할 수 있어(`nmcnr_predict_notch()` docstring 참고) 마찬가지로 `ValueError` — 이
+    경우 `crossings` 전체 리스트를 직접 확인해야 한다."""
+    result = _nmcnr_predict(spec, ctx)
+    crossings = result["crossings"]
+    if not crossings:
+        raise ValueError("nmcnr_pm_deg: 0dB 교차가 없다 -- DC 이득이 이미 0dB 미만이거나 "
+                          f"위상여유가 정의되지 않는 상태다(dc_gain_db={result['dc_gain_db']:.2f}dB)")
+    if result["notch"]:
+        raise ValueError(
+            f"nmcnr_pm_deg: 0dB 교차가 {len(crossings)}개(notch=True)라 PM 하나로 대표할 수 "
+            f"없다 -- crossings={crossings} 를 직접 확인할 것")
+    return crossings[0][1]
 
 
 def _metric_flicker_plus_thermal_sum(spec: dict, ctx: SizingContext) -> float:
@@ -2494,6 +2604,8 @@ _METRICS_REGISTRY = {
     "gain_stages_sum":          _metric_gain_stages_sum,
     "folded_cascode_gain_db":   _metric_folded_cascode_gain_db,      # 세션35
     "folded_cascode_pm_deg":    _metric_folded_cascode_pm_deg,       # 세션35
+    "nmcnr_gain_db":            _metric_nmcnr_gain_db,               # 세션37
+    "nmcnr_pm_deg":             _metric_nmcnr_pm_deg,                # 세션37
     "flicker_plus_thermal_sum": _metric_flicker_plus_thermal_sum,   # 배치 7-3g
     "pelgrom_mismatch":         _metric_pelgrom_mismatch,            # 배치 7-3h
     "cmrr_estimate":            _metric_cmrr_estimate,               # 배치 7-3i
@@ -5056,6 +5168,11 @@ def _metric_device_footprint(metric_name: str, metrics_specs: dict):
         return ({mspec["gm1_device"], mspec["fold_leg_a"], mspec["fold_leg_b"],
                  mspec["cascode_p"], mspec["cascode_n"], mspec["mirror_n"]}
                 | set(mspec["fold_cap_devices"]))
+    if mtype in ("nmcnr_gain_db", "nmcnr_pm_deg"):
+        return ({mspec["gm1_device"], mspec["gm2_device"], mspec["gm3_device"],
+                 mspec["stage1_cascode_n"], mspec["stage1_fold_leg_a"],
+                 mspec["stage1_fold_leg_b"], mspec["stage1_mirror_p"]}
+                | set(mspec["stage2_devices"]) | set(mspec["stage3_devices"]))
     if mtype in _DEFAULT_ALL_DEVICES_METRIC_TYPES:
         devices = mspec.get("devices")
         return set(devices) if devices else "ALL"
@@ -8276,6 +8393,77 @@ if __name__ == "__main__":
         raise AssertionError("미등록 circuit_family인데 에러가 안 났다")
     except ValueError as _e_fam:
         print(f"    PASS: ValueError -- {str(_e_fam)[:70]}...")
+
+    print()
+    print("  [세션37: nmcnr_gain_db/nmcnr_pm_deg -- nmcnr_amplifier.topology.json 실제")
+    print("  connectivity가 metric_spec 소자 역할 배정과 일치하는지 먼저 확인]")
+    _nmcnr_topo_path = _os.path.join(_lib_dir_recipe, "nmcnr_amplifier.topology.json")
+    _nmcnr_transistors, _ = load_topology(_nmcnr_topo_path)
+    _nmcnr_by_name = {t.name: t for t in _nmcnr_transistors}
+    # stage1 출력(NodeM2)에 M107(캐스코드)/M109(단순 미러) 둘 다 실제로 물려 있는지
+    assert _nmcnr_by_name["M107"].drain == _nmcnr_by_name["M109"].drain == "NodeM2", \
+        "M107/M109가 실제로 NodeM2에서 만나지 않음 -- stage1 R1 유도의 합류 전제가 깨짐"
+    assert _nmcnr_by_name["M107"].source == "NodeF2", "M107.source != NodeF2"
+    assert _nmcnr_by_name["M103"].drain == _nmcnr_by_name["M105"].drain == "NodeF2", \
+        "M103/M105가 실제로 NodeF2(M107의 폴딩 소스 노드)에서 만나지 않음"
+    # stage1 출력이 실제로 gm2 소자(M201)의 게이트로 들어가는지
+    assert _nmcnr_by_name["M201"].gate == "NodeM2", "M201.gate != NodeM2 -- gm1->gm2 전달 경로가 아님"
+    # stage2 출력(NodeS2)에 M202/M204 둘 다 물려 있고, gm3 소자(M301)의 게이트로 들어가는지
+    assert _nmcnr_by_name["M202"].drain == _nmcnr_by_name["M204"].drain == "NodeS2", \
+        "M202/M204가 실제로 NodeS2에서 만나지 않음 -- stage2 R2 유도의 합류 전제가 깨짐"
+    assert _nmcnr_by_name["M301"].gate == "NodeS2", "M301.gate != NodeS2 -- gm2->gm3 전달 경로가 아님"
+    # stage3 출력(Vout)에 M301/M302 둘 다 물려 있는지
+    assert _nmcnr_by_name["M301"].drain == _nmcnr_by_name["M302"].drain == "Vout", \
+        "M301/M302가 실제로 Vout에서 만나지 않음 -- stage3 R3 유도의 합류 전제가 깨짐"
+    print("    PASS: M107/M109->NodeM2->M201.gate, M202/M204->NodeS2->M301.gate, "
+          "M301/M302->Vout 전부 실제 connectivity와 일치")
+
+    print("  [_nmcnr_stage1_rout()/_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg -- 손계산과 대조]")
+    _nmcnr_spec = {
+        "gm1_device": "M102", "gm2_device": "M201", "gm3_device": "M301",
+        "stage1_cascode_n": "M107", "stage1_fold_leg_a": "M103", "stage1_fold_leg_b": "M105",
+        "stage1_mirror_p": "M109", "stage2_devices": ["M202", "M204"],
+        "stage3_devices": ["M301", "M302"], "CL": 1e-10, "kg": 0.5,
+    }
+    _nmcnr_sized = {
+        "M102": {"gm": 1e-3, "gds": 1e-8},
+        "M103": {"gm": 1e-3, "gds": 2e-6}, "M105": {"gm": 1e-3, "gds": 2e-6},
+        "M107": {"gm": 2e-3, "gds": 1e-6}, "M109": {"gm": 1e-3, "gds": 5e-6},
+        "M201": {"gm": 0.2e-3, "gds": 1e-8},
+        "M202": {"gm": 1e-3, "gds": 4e-6}, "M204": {"gm": 1e-3, "gds": 4e-6},
+        "M301": {"gm": 0.5e-3, "gds": 3e-6}, "M302": {"gm": 1e-3, "gds": 3e-6},
+    }
+    _nmcnr_ctx = SizingContext(sized=_nmcnr_sized)
+    # 손계산: R1(비대칭 -- M107만 캐스코드, M109는 단순 미러)
+    _ro103, _ro105, _ro107, _ro109 = 1/2e-6, 1/2e-6, 1/1e-6, 1/5e-6
+    _ro_fold_expected = 1.0 / (1.0/_ro103 + 1.0/_ro105)
+    _rout_n_expected = 2e-3 * _ro107 * _ro_fold_expected
+    _R1_expected = 1.0 / (1.0/_rout_n_expected + 1.0/_ro109)
+    _R1_actual = _nmcnr_stage1_rout(_nmcnr_spec, _nmcnr_ctx)
+    assert abs(_R1_actual - _R1_expected) / _R1_expected < 1e-9
+    _R2_expected = 1.0 / (1.0/(1/4e-6) + 1.0/(1/4e-6))
+    _R3_expected = 1.0 / (1.0/(1/3e-6) + 1.0/(1/3e-6))
+    _nmcnr_expected = nmcnr_predict_notch(1e-3, 0.2e-3, 0.5e-3, _R1_expected, _R2_expected,
+                                           _R3_expected, CL=1e-10, kg=0.5)
+    _nmcnr_gain_actual = compute_metric({"type": "nmcnr_gain_db", **_nmcnr_spec}, _nmcnr_ctx)
+    _nmcnr_pm_actual = compute_metric({"type": "nmcnr_pm_deg", **_nmcnr_spec}, _nmcnr_ctx)
+    assert abs(_nmcnr_gain_actual - _nmcnr_expected["dc_gain_db"]) < 1e-9
+    assert abs(_nmcnr_pm_actual - _nmcnr_expected["crossings"][0][1]) < 1e-9
+    print(f"    PASS: R1={_R1_actual:.3e}ohm(손계산과 일치), gain_db={_nmcnr_gain_actual:.2f}dB, "
+          f"pm_deg={_nmcnr_pm_actual:.2f}deg -- 전부 nmcnr_predict_notch() 직접호출과 일치")
+    print("    (같은 spec/ctx로 gain_db/pm_deg 재호출 시 _nmcnr_predict_cache 재사용됨 -- "
+          "_open_loop_gains_cache와 동일 관례)")
+
+    print("  [_metric_nmcnr_pm_deg -- 0dB 교차가 아예 없으면(gm1이 극단적으로 작아 DC이득이 "
+          "이미 0dB 미만) ValueError]")
+    _nmcnr_sized_low_gain = dict(_nmcnr_sized)
+    _nmcnr_sized_low_gain["M102"] = {"gm": 1e-9, "gds": 1e-8}
+    _nmcnr_ctx_low = SizingContext(sized=_nmcnr_sized_low_gain)
+    try:
+        compute_metric({"type": "nmcnr_pm_deg", **_nmcnr_spec}, _nmcnr_ctx_low)
+        raise AssertionError("0dB 교차가 없어야 하는데 에러가 안 났다")
+    except ValueError as _e_nocross:
+        print(f"    PASS: ValueError -- {str(_e_nocross)[:70]}...")
 
     print()
     print("  [cmrr_estimate -- telescopic_class_ab family: metric_spec의 소자 역할 배정이")
