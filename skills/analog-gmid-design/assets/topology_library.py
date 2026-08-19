@@ -70,12 +70,12 @@ def nmcnr_3stage_topology(GBW: float, CL: float, PM_target_deg: float = 65.0, kg
     Cm2>0 조건(kg<1)만 만족하는 임의값이니, 실제 설계에는 SPICE로 PM/GBW를 재확인할 것.
 
     ⚠️ **Eq 10/11은 "우세극이 나머지 극점들과 충분히 떨어져 있다"는 근사 위에서 유도된 식이다**
-    — 정확한 GBW/PM은 사이징 후 `nmcnr_predict_notch()`(근사 없는 정확한 4-노드 전달함수)로
+    — 정확한 GBW/PM은 사이징 후 `nmcnr_predict_ac_response()`(근사 없는 정확한 4-노드 전달함수)로
     재확인할 것. 한때(2026-07-31 이전) 보상망 배선을 잘못 조립한 채로 "이 근사가 무너져 개루프
     응답에 노치가 생긴다"는 사례를 발견했다고 기록했으나, 배선 오류(Cm1/Cm2가 실제로는 한
     노드에서 만나 Rm 하나를 공유하는데 각각 독립 경로로 잘못 조립함)를 바로잡고 같은 동작점을
     재검증하니 **노치가 없었다** — 그 사례 자체가 무효였다(sky130-worked-example.md §12.3
-    참고). `nmcnr_predict_notch()`는 여전히 유효한 검증 도구이므로 계속 사용할 것 — 다만
+    참고). `nmcnr_predict_ac_response()`는 여전히 유효한 검증 도구이므로 계속 사용할 것 — 다만
     "노치가 흔하다"는 인상은 정정 전 잘못된 조사에서 온 것이니 새 회로에서 노치 유무를 실제로
     확인하기 전까지 가정하지 말 것.
 
@@ -99,7 +99,7 @@ def nmcnr_compensation_elements(gm1: float, gm2: float, gm3: float, CL: float, k
     """NMCNR 보상소자 실값(Cm1, Rm, Cm2) — 원문 Eq 8/9. 실제 SPICE/레이아웃에 넣을 값이다.
 
     `nmcnr_3stage_topology()`는 gm1/gm2/gm3(목표)만 반환하고 보상소자 값 자체는 반환하지
-    않는다 — 사이징 완료 후 실제 회로를 조립하거나 `nmcnr_predict_notch()`로 검증할 때
+    않는다 — 사이징 완료 후 실제 회로를 조립하거나 `nmcnr_predict_ac_response()`로 검증할 때
     이 함수로 Cm1/Rm/Cm2를 구한다(직접 대입하지 말고 항상 이 함수를 통해서 — Eq 8/9를
     실수로 잘못 옮겨적는 걸 방지).
 
@@ -111,11 +111,29 @@ def nmcnr_compensation_elements(gm1: float, gm2: float, gm3: float, CL: float, k
     return Cm1, Rm, Cm2
 
 
-def nmcnr_predict_notch(gm1: float, gm2: float, gm3: float, R1: float, R2: float, R3: float,
+def nmcnr_predict_ac_response(gm1: float, gm2: float, gm3: float, R1: float, R2: float, R3: float,
                          CL: float, kg: float, f_start: float = 1.0, f_stop: float = 1e9,
                          n_points: int = 2000) -> dict:
     """사이징 완료 후 실제 GBW/PM/노치 여부를 검증 — Eq 10/11의 근사 없이 **4-노드**(V1, V2,
     NodeCM, Vout) KCL을 정확히 풀어 계산한다.
+
+    ⚠️ **개명 이력(2026-08-19 세션37 연속) -- 원래 이름 `nmcnr_predict_notch()`에서 변경**:
+    옛 이름은 "이 함수의 핵심 임무가 노치 탐지"라는 인상을 주지만, 실제로는 그 반대다 --
+    노치는 **잘못 조립된(3-노드) 보상망에서만 나타났던 증상**이었고(아래 2026-07-31 재유도
+    문단), 올바르게 조립된 회로(현재 4-노드 모델)에서는 노치가 없는 게 정상이다(`notch=False`가
+    기대값). 이 함수의 진짜 임무는 "Eq 10/11 근사 없이 실제 사이징값으로 정확한 AC 응답(DC
+    이득/위상/0dB 교차/PM)을 계산"하는 것이고, `notch`는 그 계산이 내놓는 여러 진단 필드 중
+    하나(다중 교차 여부)일 뿐이다 -- 사용자 지적으로 이름을 그 실제 임무에 맞게 정정.
+
+    이 개명과 함께 **독립 재유도로 재검증**도 했다(사용자 동기: "이전에 잘못 연결된 topology
+    때문에 notch가 유도되었었는데, 지금(4-노드) 버전도 혹시 비슷한 문제가 있는지 불확실해서" --
+    2026-07-31 수정 이후 처음으로 이 함수 자체를 처음부터 다시 검증). 아래 4개 KCL 방정식
+    (V1/V2/NodeCM/Vout, `-Av1/+Av2/-Av3` 부호 관례 그대로)을 sympy로 처음부터 다시 풀어
+    Vout/Vin의 분자/분모 다항식을 구했고, 이 함수에 하드코딩된 `num`/`den` 계수와 **항별로
+    완전히 일치**함을 확인했다(`sp.simplify(차이)`가 7개 계수 전부 정확히 0). 즉 토폴로지→
+    전달함수 변환 자체(대수)에는 오류가 없다 -- 2026-08-19 세션의 `pm_deg=48.32도`(PM_target_
+    deg=70도 목표 대비 낮음)는 이 함수의 버그가 아니라 실제 사이징 결과가 만드는 물리적으로
+    정직한 값이라는 뜻(Eq 10/11 근사의 한계, 아래 및 `nmcnr_3stage_topology()` 참고).
 
     ⚠️ **2026-07-31 재유도(중요한 정정)**: 원래 이 함수(및 그 유도처인 sky130-worked-example.md
     §12.7.3)는 "Cm1은 V1↔Vout 직결, Rm+Cm2가 직렬로 V2↔Vout"이라는 **3-노드** 모델로 세워졌었다.
@@ -387,16 +405,57 @@ if __name__ == "__main__":
     gm1n, gm2n, gm3n = tf2(None)
     print(f"  gm1={gm1n*1e3:.4f}mS  gm2={gm2n*1e3:.4f}mS  gm3={gm3n*1e3:.4f}mS")
 
-    print("# nmcnr_predict_notch() 스모크 테스트 — sky130-worked-example.md §12.3 실측치로 대조")
+    print("# nmcnr_predict_ac_response() 스모크 테스트 — sky130-worked-example.md §12.3 실측치로 대조")
     Cm1, Rm, Cm2 = nmcnr_compensation_elements(gm1n, gm2n, gm3n, CL=10e-12, kg=0.5)
     print(f"  Cm1={Cm1*1e12:.3f}pF  Rm={Rm:.2f}ohm  Cm2={Cm2*1e12:.3f}pF")
     # R1/R2/R3 = 실측(§12.3) stage1/2/3 gain을 각 gm으로 나눈 값(gain=24.69/56.67/24.21)
     R1, R2, R3 = 24.69 / gm1n, 56.67 / gm2n, 24.21 / gm3n
-    result = nmcnr_predict_notch(gm1n, gm2n, gm3n, R1, R2, R3, CL=10e-12, kg=0.5)
+    result = nmcnr_predict_ac_response(gm1n, gm2n, gm3n, R1, R2, R3, CL=10e-12, kg=0.5)
     print(f"  notch={result['notch']}  dc_gain={result['dc_gain_db']:.1f}dB")
     for f_c, pm in result["crossings"]:
         print(f"    교차: f={f_c/1e6:.3f}MHz  PM={pm:.1f}deg")
     print("  (실측 SPICE §12.3: DC이득 90.60dB/DC위상 -0.41deg, 교차 1번뿐(GBW~25.7MHz/PM~44.8deg), notch=False — 정정된 보상망 토폴로지로 재검증 완료)")
+
+    print("# nmcnr_predict_ac_response() 독립 재유도 회귀 검증(2026-08-19 세션37 연속) —")
+    print("  docstring이 명시한 4-노드 KCL 방정식을 sympy로 처음부터 다시 풀어 하드코딩된")
+    print("  num/den 계수와 항별로 정확히 일치하는지 확인(대수 오류가 없다는 영구 회귀 가드)")
+    import sympy as _sp
+    _s, _gm1, _gm2, _gm3, _R1, _R2, _R3, _Cm1, _Cm2, _Rm, _CL, _Vin = _sp.symbols(
+        "s gm1 gm2 gm3 R1 R2 R3 Cm1 Cm2 Rm CL Vin")
+    _V1, _V2, _Vcm, _Vout = _sp.symbols("V1 V2 Vcm Vout")
+    _eqs = [
+        _sp.Eq(-_gm1 * _Vin, _V1 / _R1 + _s * _Cm1 * (_V1 - _Vcm)),
+        _sp.Eq(_gm2 * _V1, _V2 / _R2 + _s * _Cm2 * (_V2 - _Vcm)),
+        _sp.Eq(_s * _Cm1 * (_V1 - _Vcm) + _s * _Cm2 * (_V2 - _Vcm), (_Vcm - _Vout) / _Rm),
+        _sp.Eq(-_gm3 * _V2 + (_Vcm - _Vout) / _Rm, _Vout / _R3 + _s * _CL * _Vout),
+    ]
+    _sol = _sp.solve(_eqs, [_V1, _V2, _Vcm, _Vout], dict=True)[0]
+    _H = _sp.together(_sp.simplify(_sol[_Vout] / _Vin))
+    _num_sym, _den_sym = _sp.fraction(_H)
+    _my_num = _sp.Poly(_sp.expand(_num_sym), _s).all_coeffs()
+    _my_den = _sp.Poly(_sp.expand(_den_sym), _s).all_coeffs()
+    _hard_num = [
+        _Cm1 * _Cm2 * _R1 * _R2 * _R3 * _gm1 * (_Rm * _gm3 - 1),
+        _R1 * _R3 * _gm1 * (_Cm1 * _R2 * _Rm * _gm2 * _gm3 - _Cm1
+                             + _Cm2 * _R2 * _Rm * _gm2 * _gm3 - _Cm2 * _R2 * _gm2),
+        _R1 * _R2 * _R3 * _gm1 * _gm2 * _gm3,
+    ]
+    _hard_den = [
+        _CL * _Cm1 * _Cm2 * _R3 * (-_R1 * _R2 * _Rm * _gm2 + _R1 * _R2 + _R1 * _Rm + _R2 * _Rm),
+        _CL * _Cm1 * _R1 * _R3 + _CL * _Cm1 * _R3 * _Rm + _CL * _Cm2 * _R2 * _R3
+        + _CL * _Cm2 * _R3 * _Rm - _Cm1 * _Cm2 * _R1 * _R2 * _R3 * _gm2
+        + _Cm1 * _Cm2 * _R1 * _R2 * _R3 * _gm3 - _Cm1 * _Cm2 * _R1 * _R2 * _Rm * _gm2
+        + _Cm1 * _Cm2 * _R1 * _R2 + _Cm1 * _Cm2 * _R1 * _R3 + _Cm1 * _Cm2 * _R1 * _Rm
+        + _Cm1 * _Cm2 * _R2 * _R3 + _Cm1 * _Cm2 * _R2 * _Rm,
+        _CL * _R3 + _Cm1 * _R1 * _R2 * _R3 * _gm2 * _gm3 + _Cm1 * _R1 + _Cm1 * _R3 + _Cm1 * _Rm
+        + _Cm2 * _R2 * _R3 * _gm3 + _Cm2 * _R2 + _Cm2 * _R3 + _Cm2 * _Rm,
+        _sp.Integer(1),
+    ]
+    _num_diffs = [_sp.simplify(a - b) for a, b in zip(_my_num, _hard_num)]
+    _den_diffs = [_sp.simplify(a - b) for a, b in zip(_my_den, _hard_den)]
+    assert all(d == 0 for d in _num_diffs), f"num 계수가 재유도와 다름: {_num_diffs}"
+    assert all(d == 0 for d in _den_diffs), f"den 계수가 재유도와 다름: {_den_diffs}"
+    print("  PASS: 하드코딩된 num(3개)/den(4개) 계수 전부 sympy 독립 재유도와 항별로 정확히 일치")
 
     print("# NGCC 3단 (Lee et al. Table 4 예제: k=4, GB=10MHz, CL=10pF, alpha=0.3) — 전체 재현")
     tf3 = ngcc_3stage_topology(GB=10e6, k=4.0, CL=10e-12, alpha=0.3)

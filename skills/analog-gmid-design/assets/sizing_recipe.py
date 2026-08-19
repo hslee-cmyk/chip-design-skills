@@ -1103,7 +1103,7 @@ def build_toy_lut(n: float = 1.3, UT: float = 0.026, VTo: float = 0.4, ISuo: flo
 # ---------------------------------------------------------------------------
 
 from topology_library import (miller_ota_topology, nmcnr_3stage_topology, ngcc_3stage_topology,
-                               current_reuse_telescopic_topology, nmcnr_predict_notch)
+                               current_reuse_telescopic_topology, nmcnr_predict_ac_response)
 
 # topology JSON의 "compensation.function" 문자열이 참조할 수 있는 함수의 명시적 allowlist.
 # JSON 안의 임의 문자열로 임의 코드를 실행하지 않기 위함 — eval()/getattr(module, name) 금지.
@@ -1628,7 +1628,7 @@ class SizingContext:
     # 동안만 살아있는 일회용 객체라 여기 캐시해도 이전 세타점 결과가 새는 위험이 없다.
     _open_loop_gains_cache: dict = field(default_factory=dict)
     # 2026-08-19(세션37) -- `_nmcnr_predict()`(nmcnr_amplifier의 gain_db/pm_deg가 공유)가
-    # `nmcnr_predict_notch()`(4-노드 KCL, 2000점 주파수 스윕) 결과를 캐싱 -- 위 `_open_loop_
+    # `nmcnr_predict_ac_response()`(4-노드 KCL, 2000점 주파수 스윕) 결과를 캐싱 -- 위 `_open_loop_
     # gains_cache`와 동일한 이유(gain_db/pm_deg 두 metric이 같은 세타평가에서 완전히 동일한
     # 입력으로 각자 호출하므로 캐시 없인 스윕을 2번 돈다), 다만 반환 dict 구조가 달라 별도 필드로 분리.
     _nmcnr_predict_cache: dict = field(default_factory=dict)
@@ -1753,13 +1753,13 @@ def _nmcnr_stage1_rout(spec: dict, ctx: SizingContext) -> float:
 
 def _nmcnr_predict(spec: dict, ctx: SizingContext) -> dict:
     """`nmcnr_amplifier`(3단 NMCNR) F엔진(2026-08-19 세션37 신설) — `topology_library.
-    nmcnr_predict_notch()`(4-노드 KCL 정확해, sympy 유도 + ngspice/실트랜지스터 재조립
+    nmcnr_predict_ac_response()`(4-노드 KCL 정확해, sympy 유도 + ngspice/실트랜지스터 재조립
     교차검증까지 이미 완료된 함수, `.ai/context.md` 세션 2026-07-31 참고)를 이 회로의
     **실사이징값**으로 호출하는 공유 헬퍼 — `_metric_nmcnr_gain_db`/`_metric_nmcnr_pm_deg`가
     같은 세타평가에서 동일 입력으로 각자 호출하므로 `ctx._nmcnr_predict_cache`로 캐싱한다
     (`_telescopic_class_ab_open_loop_gains()`와 동일 이유·동일 캐시 키 관례).
 
-    ⚠️ 이 함수가 나오기 전까지 `nmcnr_predict_notch()`는 `topology_library.py` `__main__`의
+    ⚠️ 이 함수가 나오기 전까지 `nmcnr_predict_ac_response()`는 `topology_library.py` `__main__`의
     스모크테스트(손으로 옮긴 논문 실측 gain/gm 조합)로만 쓰였고 실제 사이징 파이프라인에
     배선된 적이 없었다 — ★절대원칙★(만들면 반드시 배선) 그대로 이번에 처음 metrics 엔진에
     배선한다.
@@ -1800,7 +1800,7 @@ def _nmcnr_predict(spec: dict, ctx: SizingContext) -> dict:
     R2 = 1.0 / (1.0 / ro(s2a) + 1.0 / ro(s2b))
     s3a, s3b = spec["stage3_devices"]
     R3 = 1.0 / (1.0 / ro(s3a) + 1.0 / ro(s3b))
-    result = nmcnr_predict_notch(gm1, gm2, gm3, R1, R2, R3, CL=spec["CL"], kg=spec["kg"])
+    result = nmcnr_predict_ac_response(gm1, gm2, gm3, R1, R2, R3, CL=spec["CL"], kg=spec["kg"])
     ctx._nmcnr_predict_cache[key] = result
     return result
 
@@ -1817,7 +1817,7 @@ def _metric_nmcnr_pm_deg(spec: dict, ctx: SizingContext) -> float:
     첫(최저주파) 0dB 교차 지점 PM. ⚠️ **정직한 한계**: 0dB 교차가 아예 없으면(예: DC 이득이
     이미 0dB 미만) `ValueError` — PM이 정의 불가능한 상태를 조용히 넘기지 않는다. 교차가
     2개 이상(`notch=True`)이면 "위상여유"라는 단일 숫자로 이 회로를 대표하는 것 자체가
-    오도할 수 있어(`nmcnr_predict_notch()` docstring 참고) 마찬가지로 `ValueError` — 이
+    오도할 수 있어(`nmcnr_predict_ac_response()` docstring 참고) 마찬가지로 `ValueError` — 이
     경우 `crossings` 전체 리스트를 직접 확인해야 한다."""
     result = _nmcnr_predict(spec, ctx)
     crossings = result["crossings"]
@@ -8443,14 +8443,14 @@ if __name__ == "__main__":
     assert abs(_R1_actual - _R1_expected) / _R1_expected < 1e-9
     _R2_expected = 1.0 / (1.0/(1/4e-6) + 1.0/(1/4e-6))
     _R3_expected = 1.0 / (1.0/(1/3e-6) + 1.0/(1/3e-6))
-    _nmcnr_expected = nmcnr_predict_notch(1e-3, 0.2e-3, 0.5e-3, _R1_expected, _R2_expected,
+    _nmcnr_expected = nmcnr_predict_ac_response(1e-3, 0.2e-3, 0.5e-3, _R1_expected, _R2_expected,
                                            _R3_expected, CL=1e-10, kg=0.5)
     _nmcnr_gain_actual = compute_metric({"type": "nmcnr_gain_db", **_nmcnr_spec}, _nmcnr_ctx)
     _nmcnr_pm_actual = compute_metric({"type": "nmcnr_pm_deg", **_nmcnr_spec}, _nmcnr_ctx)
     assert abs(_nmcnr_gain_actual - _nmcnr_expected["dc_gain_db"]) < 1e-9
     assert abs(_nmcnr_pm_actual - _nmcnr_expected["crossings"][0][1]) < 1e-9
     print(f"    PASS: R1={_R1_actual:.3e}ohm(손계산과 일치), gain_db={_nmcnr_gain_actual:.2f}dB, "
-          f"pm_deg={_nmcnr_pm_actual:.2f}deg -- 전부 nmcnr_predict_notch() 직접호출과 일치")
+          f"pm_deg={_nmcnr_pm_actual:.2f}deg -- 전부 nmcnr_predict_ac_response() 직접호출과 일치")
     print("    (같은 spec/ctx로 gain_db/pm_deg 재호출 시 _nmcnr_predict_cache 재사용됨 -- "
           "_open_loop_gains_cache와 동일 관례)")
 

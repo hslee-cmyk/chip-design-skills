@@ -250,7 +250,7 @@ def _spec_nmcnr_amplifier():
     "논문 값 그대로 인용 금지, 값은 합리적으로 도출" 원칙에 따른 최종 결정이며 더 이상
     임시값이 아니다. gain_db/pm_deg metrics는 `sizing_roles.metrics`에 등록됨(`sizing_
     recipe.py`의 `_metric_nmcnr_gain_db`/`_metric_nmcnr_pm_deg`, `topology_library.
-    nmcnr_predict_notch()` 배선) -- `.ai/context.md` 세션37 참고."""
+    nmcnr_predict_ac_response()` 배선) -- `.ai/context.md` 세션37 참고."""
     return {
         "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
         "lut": _NMOS,

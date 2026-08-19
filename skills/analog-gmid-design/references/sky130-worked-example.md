@@ -408,7 +408,7 @@ Fig.3을 사용자와 함께 확대 이미지로 node-by-node 재확인한 결�
 
 **1) 4-노드 KCL 재유도**: V1(스테이지1 출력)/V2(스테이지2 출력)/NodeCM/Vout 네 노드로 KCL을
 세워(`sympy.solve()`) 정확한 전달함수를 구했다(분자 2차/분모 3차). `topology_library.py`의
-`nmcnr_predict_notch()`가 이 4-노드 모델로 구현돼 있다.
+`nmcnr_predict_ac_response()`가 이 4-노드 모델로 구현돼 있다.
 
 **2) 대표 동작점(gm1=7.1267mS, gm2=0.6283mS, gm3=1.2566mS, R1=3465Ω, R2=90188Ω,
 R3=19269Ω, CL=10pF, kg=0.5)을 정정된 식에 대입**:

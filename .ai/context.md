@@ -10811,6 +10811,31 @@ Test 61 확장(`compensation_stage_devices` 경로 검증) + Test 62(`apply_thet
 신설 검증, 임시 사본에서만 테스트해 실제 라이브러리 파일은 self-test가 직접 건드리지 않음)
 신설 -- 전체 재실행 exit 0.
 
+**⑦ (같은 세션 이어서, 사용자 지시 "nmcnr_predict_notch를 다시 유도하고, 이름을 바꾸자")
+`topology_library.nmcnr_predict_notch()`를 독립 재유도 + `nmcnr_predict_ac_response()`로
+개명** -- 동기: 사용자가 "이전에 잘못 연결된 topology 때문에 notch가 유도되었었는데(2026-07-31
+이전의 3-노드 모델 버그, `nmcnr_3stage_topology()` docstring에 이미 기록됨), 지금(4-노드)
+버전도 비슷한 문제가 있는지 불확실하다"고 지적 -- 2026-07-31 수정 이후 이 함수 자체를 처음부터
+다시 검증한 적이 없었다. docstring이 명시한 4-노드 KCL 방정식(V1/V2/NodeCM/Vout, `-Av1/+Av2/
+-Av3` 부호 관례)을 sympy로 **완전히 처음부터** 다시 풀어(하드코딩된 num/den을 참고하지 않고
+독립적으로 유도) Vout/Vin의 분자/분모 다항식을 구했고, 하드코딩된 계수 7개(num 3개+den 4개)와
+`sp.simplify(차이)`가 **전부 정확히 0**임을 확인 -- 대수(토폴로지→전달함수 변환) 자체엔 오류가
+없다는 게 이번 재유도의 결론. 이 검증을 `topology_library.py` `__main__`에 영구 회귀 가드로
+추가(매번 재실행 시 sympy로 다시 풀어 assert). 개명 이유: "notch"라는 이름이 "이 함수의 핵심
+임무가 노치 탐지"라는 잘못된 인상을 준다 -- 실제로는 노치가 잘못 조립된(3-노드) 보상망에서만
+나타났던 증상이고, 올바른 회로에서는 `notch=False`가 정상이며, 이 함수의 진짜 임무는 "Eq 10/11
+근사 없이 정확한 AC 응답(DC이득/위상/0dB 교차/PM)을 계산"하는 것이다(`notch`는 그 결과가 담는
+진단 필드 중 하나일 뿐). 관련 파일 전부 이름 변경(정의: `topology_library.py`, 호출:
+`sizing_recipe.py`의 `_nmcnr_predict()`, 문서: `nmcnr_amplifier.topology.json`/
+`function-selection-map.md`/`sky130-worked-example.md`/`run_harness.py`/`two_stage_ota.
+topology.json`(참고용 언급 1건)) -- `.ai/context.md`의 세션36/37 과거 기록은 **당시 실제
+이름을 그대로 남기는 게 맞아 고치지 않았다**(히스토리 왜곡 방지, `topology_library.py`의 새
+docstring에도 "원래 이름 nmcnr_predict_notch()에서 변경"이라고 옛 이름을 의도적으로 남김).
+**결론적으로 이번 세션 앞부분의 `pm_deg=48.32도`(PM_target_deg=70도 목표 대비 낮음)는 이
+함수의 버그가 아니라 실제 사이징이 만드는 물리적으로 정직한 값이라는 게 이 재유도로 재확인
+됐다** -- §4-①(다음 이월)의 "낮은 PM 재검토"는 이제 `nmcnr_3stage_topology()`의 Eq10/11 근사
+한계(우세극 가정) 쪽으로 원인이 좁혀졌다.
+
 ## 2. 최종 검증 상태
 
 - `sizing_recipe.py`/`stick_diagram.py` self-test 전체 exit 0(신설 테스트 포함, 회귀 없음).
@@ -10829,17 +10854,29 @@ Test 61 확장(`compensation_stage_devices` 경로 검증) + Test 62(`apply_thet
   + Test 62 신설 포함). `python run_harness.py nmcnr_amplifier`/`folded_cascode` 재실행 --
   둘 다 metrics 완전 동일(회귀 없음, `propose_theta_kcl_gap_fill()`의 새 파라미터는 기본값
   `None`이라 하위호환).
+- ⑦ 적용 후: `topology_library.py` 독립 실행 -- 신설한 sympy 회귀 가드 PASS(num/den 계수
+  7개 전부 재유도와 일치). `sizing_recipe.py`/`stick_diagram.py` self-test 전체 재실행 exit 0
+  (개명이 import/호출부를 안 깼는지 확인). `python run_harness.py nmcnr_amplifier` 재실행 --
+  metrics 소수점까지 완전히 동일(개명은 순수 리네이밍이라 수치 영향 없음, 예상대로).
+  `grep -rn nmcnr_predict_notch`로 코드/문서 전체 재검색 -- 남은 참조는 의도적으로 남긴
+  2곳뿐(`.ai/context.md`의 세션36/37 과거 기록, `topology_library.py`의 "원래 이름"이라고
+  옛 이름을 명시하는 개명 이력 문단).
 
 ## 3. 커밋 상태
 
 이 세션은 아직 커밋 안 됨(다음 세션 시작 시 확인) -- 수정 파일: `.ai/context.md`(이 절),
 `skills/analog-gmid-design/assets/library/nmcnr_amplifier.topology.json`(metrics/objective/
-constraints 신설 + theta 4개 추가), `skills/analog-gmid-design/assets/sizing_recipe.py`
-(F엔진 3종+self-test 신설), `skills/analog-gmid-design/assets/stick_diagram.py`
-(`apply_theta_kcl_gap_fill()` 신설 + `propose_theta_kcl_gap_fill()`의 `compensation_stage_
-devices` 파라미터 신설 + Test 61 확장/Test 62 신설), `workspaces/run_harness.py`(PM_target_deg
-확정 코멘트 갱신). 신규 생성: `workspaces/nmcnr-amplifier-report/`(디렉터리 자체가 없어서
-만듦, `.instance.json` 포함).
+constraints 신설 + theta 4개 추가 + 함수명 갱신), `skills/analog-gmid-design/assets/
+sizing_recipe.py`(F엔진 3종+self-test 신설 + 함수명 갱신), `skills/analog-gmid-design/assets/
+stick_diagram.py`(`apply_theta_kcl_gap_fill()` 신설 + `propose_theta_kcl_gap_fill()`의
+`compensation_stage_devices` 파라미터 신설 + Test 61 확장/Test 62 신설),
+`skills/analog-gmid-design/assets/topology_library.py`(`nmcnr_predict_notch()` →
+`nmcnr_predict_ac_response()` 개명 + 개명 이력/독립 재유도 문단 + `__main__`에 sympy 회귀
+가드 신설), `skills/analog-gmid-design/references/function-selection-map.md`/
+`sky130-worked-example.md`(함수명 갱신), `skills/analog-gmid-design/assets/library/
+two_stage_ota.topology.json`(참고용 언급 1건 함수명 갱신), `workspaces/run_harness.py`
+(PM_target_deg 확정 코멘트 갱신 + 함수명 갱신). 신규 생성: `workspaces/nmcnr-amplifier-report/`
+(디렉터리 자체가 없어서 만듦, `.instance.json` 포함).
 
 ## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션37 종료 시점 최신)
 
@@ -10887,8 +10924,10 @@ sections_structured`가 없어 `run_full_circuit_audit_from_topology()`가 스�
 ## 5. 다음 세션 시작 순서
 
 **커밋 여부부터 사용자에게 확인**(§3 참고, 이 세션은 안 함). 그 다음 §4-①(`pm_deg=48.32도`가
-받아들일 만한 값인지 사용자와 논의)부터 이어갈 것을 권장하되, 급하지 않으므로 사용자가 다른
-우선순위(②③④ 중 하나)를 지시하면 그쪽으로 유연하게 진행. `nmcnr_amplifier`의 사이징 자체는
-이제 (레이아웃 제외) 완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap과
-`propose_theta_kcl_gap_fill()` 적용 여부 결정(옛 §4-③) 둘 다 세션37로 닫혔다.
+받아들일 만한 값인지 사용자와 논의 -- §1-⑦의 독립 재유도로 `nmcnr_predict_ac_response()`
+자체의 버그 가능성은 배제됐으니, 이제 논의 범위는 `nmcnr_3stage_topology()`의 Eq10/11 근사
+한계로 좁혀졌다)부터 이어갈 것을 권장하되, 급하지 않으므로 사용자가 다른 우선순위(②③④ 중
+하나)를 지시하면 그쪽으로 유연하게 진행. `nmcnr_amplifier`의 사이징 자체는 이제 (레이아웃
+제외) 완결 상태 -- "만들면 반드시 배선하라" 원칙 관점에서 이 회로의 핵심 gap과 `propose_
+theta_kcl_gap_fill()` 적용 여부 결정(옛 §4-③) 둘 다 세션37로 닫혔다.
 ①을 끝낸 뒤 순서대로 판단.

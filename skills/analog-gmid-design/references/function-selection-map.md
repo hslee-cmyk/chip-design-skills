@@ -52,7 +52,7 @@ SKILL.md 핵심 원칙: **harness → 원소 함수 → (없을 때만) 새 코�
 | 2단 Miller OTA | `miller_ota_topology(GBW, CL, Z=10.0, NDP=4.0)` | 완전 결정(자유도 없음), 원문 수식 대조 완료 |
 | 3단 NMCNR(RHP-zero 완전제거) | `nmcnr_3stage_topology(GBW, CL, PM_target_deg=65.0, kg=0.5)` | `kg`는 원문 자체가 남긴 자유도 — 기본값은 임의값, 실사용 전 SPICE 재확인 필수 |
 | NMCNR 보상소자 실값(Cm1/Rm/Cm2) | `nmcnr_compensation_elements(gm1, gm2, gm3, CL, kg)` | §3(수동소자도 확정 필수)의 적용 사례 |
-| NMCNR 사이징 후 GBW/PM/노치 재검증 | `nmcnr_predict_notch(gm1, gm2, gm3, R1, R2, R3, ...)` | 근사식(Eq 10/11)이 아니라 정확한 4-노드 전달함수 — **사이징 후 반드시 호출** |
+| NMCNR 사이징 후 GBW/PM/노치 재검증 | `nmcnr_predict_ac_response(gm1, gm2, gm3, R1, R2, R3, ...)` | 근사식(Eq 10/11)이 아니라 정확한 4-노드 전달함수 — **사이징 후 반드시 호출** |
 | 3단 NGCC | `ngcc_3stage_topology(GB, k, CL, alpha, mu_ratio=None)` | gm1/gm2/gm3 전부 원문 Eq로 완전 결정. `mu_ratio`는 설계 자유도가 아니라 공정 파라미터 — 자기 공정 값으로 교체 |
 | Miller OTA의 Cc(보상캡) 실값 | 별도 함수 없음 — `gms[0]/(2π·GBW)`로 호출자가 직접 계산 | `optimize_multistage()`가 반환하는 `gms[0]`(=gm1)과 스펙의 GBW만 있으면 1줄로 나온다 — "값이 없다"고 스킵하지 말 것(§3 참고) |
 | Miller OTA의 nulling resistor Rz 실값 | 별도 함수 없음 — `1/gms[1]`(=1/gm2)로 호출자가 직접 계산 | `gm-id-methodology.md` §6.4/§6.7의 표준식(R≈1/gm2). NMCNR/NGCC 등 다른 토폴로지의 보상소자 식도 필요하면 같은 문서 §10에서 찾을 것 — 새로 유도하지 말 것 |
