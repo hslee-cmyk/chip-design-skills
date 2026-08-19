@@ -239,10 +239,13 @@
           ],
           "gm_id_role": "matching",
           "gm_id_min": 8.0,
-          "vds": 0.2
+          "vds": 0.2,
+          "vds_match_vgs_of": {
+            "M4": "M6"
+          }
         },
         "intended_role_type": "B",
-        "_comment": "2026-08-13(세션31 이어) 신설 -- L1(사용자 프레임: M3/M4, 1단 diode+mirror 부하). ID는 A엔진이 이미 자동 전파해둔다(D3가 M1.drain/M3.drain뿐인 2단자 net이라 ID(M3)=ID(M1) 자동 병합, matching_pairs가 ID(M4)=ID(M3) 강제) -- kcl_tail_M5보다 앞뒤 어느 위치든 무방(A엔진 산출물은 theta 루프 시작 전에 이미 확정, 3796행대 1차 패스). gm_id_role='matching'(strong inversion, gm-id-methodology.md §7.1)으로 매칭 특성을 보장하면서 L만 이득 방향으로 탐색 -- vds=0.2는 min_vds_by_role.cascode와 동일 규모(헤드룸을 M1/M2/M6에 양보). **gm_id_min=8.0 추가(2026-08-13, 실측으로 발견 후 사용자 지시)**: 실제 sky130 LUT로 실측한 결과 'matching'이 격자 하한(2.0)까지 밀리면 이 소자(M3/M4, stage1 부하)의 gm/gds가 0.52(-5.6dB, 거의 순수 저항)까지 무너져 전체회로 gain_db를 오히려 악화시켰다(gm_id=2→gm/gds=0.52, gm_id=8→6.4(16.1dB), gm_id=10→14.1(23.0dB), L=1um 실측 스캔) -- gm-id-methodology.md 491행 '정전류원·전류거울·차동쌍은 mismatch 억제 위해 moderate~strong inversion이 유리'가 원문 그대로 '극단'이 아니라 '~moderate' 구간을 권고함을 재확인, gm_id_min=8.0(strong/moderate 경계 근방)으로 매칭에 유리한 낮은 gm/ID를 유지하면서 gds 붕괴는 피한다."
+        "_comment": "2026-08-13(세션31 이어) 신설 -- L1(사용자 프레임: M3/M4, 1단 diode+mirror 부하). ID는 A엔진이 이미 자동 전파해둔다(D3가 M1.drain/M3.drain뿐인 2단자 net이라 ID(M3)=ID(M1) 자동 병합, matching_pairs가 ID(M4)=ID(M3) 강제) -- kcl_tail_M5보다 앞뒤 어느 위치든 무방(A엔진 산출물은 theta 루프 시작 전에 이미 확정, 3796행대 1차 패스). gm_id_role='matching'(strong inversion, gm-id-methodology.md §7.1)으로 매칭 특성을 보장하면서 L만 이득 방향으로 탐색 -- vds=0.2는 min_vds_by_role.cascode와 동일 규모(헤드룸을 M1/M2/M6에 양보). **gm_id_min=8.0 추가(2026-08-13, 실측으로 발견 후 사용자 지시)**: 실제 sky130 LUT로 실측한 결과 'matching'이 격자 하한(2.0)까지 밀리면 이 소자(M3/M4, stage1 부하)의 gm/gds가 0.52(-5.6dB, 거의 순수 저항)까지 무너져 전체회로 gain_db를 오히려 악화시켰다(gm_id=2→gm/gds=0.52, gm_id=8→6.4(16.1dB), gm_id=10→14.1(23.0dB), L=1um 실측 스캔) -- gm-id-methodology.md 491행 '정전류원·전류거울·차동쌍은 mismatch 억제 위해 moderate~strong inversion이 유리'가 원문 그대로 '극단'이 아니라 '~moderate' 구간을 권고함을 재확인, gm_id_min=8.0(strong/moderate 경계 근방)으로 매칭에 유리한 낮은 gm/ID를 유지하면서 gds 붕괴는 피한다. 2026-08-19 갱신(세션38 연속, 사용자와 함께 재정식화한 DC-root 원리) -- M4.drain=O1=M6.gate라 VSG(M6)=VSD(M4)가 KVL로 강제되는데, vds=0.2(위)는 아무 전기적 근거 없는 추정값이었다(실측: M6의 실제 gm_id=19.0로 역산한 VSG=1.004V인데 M4는 0.2V로 사이징돼 0.8V 어긋남). M4는 stage1의 LOAD(compensation 관리 아님, 여유 있음)이고 M6은 compensation이 GBW/PM/CL에서 유도한 진짜 스펙이므로, LOAD가 gm-스테이지에 맞추는 게 맞는 방향(M204/M301, M109/M201과 동일 원리) -- `vds_match_vgs_of={'M4':'M6'}` 신설(M3는 diode 레퍼런스 자신이라 이 관계 없음, 그대로 vds=0.2 유지). `_feed_metric_stage_budget()`에 이 필드를 새로 지원하도록 sizing_recipe.py 확장(device_roles 헤드룸 레벨의 동명 필드와 같은 원리, `vgs_for_gm_id()` 재사용)."
       },
       {
         "name": "L_mirror_M5",

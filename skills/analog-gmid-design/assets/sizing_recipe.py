@@ -3253,6 +3253,20 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
                           f"{feed_spec.get('metric')!r}은 미구현")
     L = theta_value
     vds, vs = feed_spec.get("vds", 0.6), feed_spec.get("vs", 0.0)
+    # 2026-08-19(세션38 연속, two_stage_ota M4/M6 계기 -- 사용자와 함께 재정식화한 원리) --
+    # `vds`(위)는 여태 이 feed의 모든 devices에 똑같이 적용되는 하드코딩 상수였다. 그런데
+    # M3/M4(이 feed)의 M4는 stage1의 LOAD(출력임피던스)이고 그 drain(O1)이 stage2의 gm 소자
+    # M6(compensation 관리)의 게이트를 직접 구동한다 -- VSG(M6)=VSD(M4)가 KVL로 강제되는데
+    # vds=0.2는 아무 근거 없는 추정값이었다(실측: M6의 실제 gm_id로 역산한 VSG=1.004V인데
+    # M4는 0.2V로 사이징되고 있었음). "load를 거슬러 올라가면 결국 root(differential input
+    # 또는 compensation의 진짜 스펙)에 닿는다"는 원리대로, LOAD가 그 root 쪽(compensation
+    # 소자)에 맞춰야 한다 -- `device_roles.vds_match_vgs_of`(헤드룸 레벨, 세션38 앞부분
+    # 신설)와 정확히 같은 개념을 theta feed 레벨에도 추가한다. `{device_name: ref_device}`
+    # dict만 받는다(이 feed의 devices 중 일부만 다운스트림에 물려있을 수 있으므로 -- 예:
+    # M3는 diode 레퍼런스 자신이라 이 관계가 없고 M4만 있음. `gm_id_role`처럼 문자열
+    # 하나로 그룹 전체에 적용하는 형태는 지원 안 함 -- 물리적으로 그룹의 일부 소자에만
+    # 해당하는 관계이지 그룹 공통 속성이 아니므로 오히려 혼동을 줄임).
+    vds_match_of = feed_spec.get("vds_match_vgs_of") or {}
     match_device = feed_spec.get("gm_id_match_vgs_of")
     gm_id_role = feed_spec.get("gm_id_role")
     fixed_gm_id = feed_spec.get("gm_id", 15.0)
@@ -3315,8 +3329,24 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
         shared_match_gm_id = lut0.gm_id_for_vgs(target_vgs, L, vds, vs)
 
     gm_id_by_device = {}
+    vds_by_device = {}
     for name in devices:
         entry = ctx.sized.setdefault(name, {})
+        ref = vds_match_of.get(name)
+        if ref is not None:
+            ref_entry = ctx.sized.get(ref)
+            if ref_entry is None or "gm_id" not in ref_entry or "L" not in ref_entry \
+                    or ref_entry.get("vds") is None:
+                raise ValueError(
+                    f"{name}: vds_match_vgs_of={ref!r}가 아직 gm_id/L/vds 미확정 -- compensation."
+                    f"stage_devices는 항상 theta보다 먼저 실행되므로(_evaluate() 실행 순서) 보통 "
+                    f"이 에러는 {ref!r}가 실제로 compensation.stage_devices에 있는지, 오타는 "
+                    f"없는지를 뜻한다")
+            ref_lut = ctx.spec["lut_by_kind"][ref_entry["kind"]]
+            vds_by_device[name] = ref_lut.vgs_for_gm_id(
+                ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vs", 0.0))
+        else:
+            vds_by_device[name] = vds
         if "ID" not in entry:
             # 2026-08-13(세션31 이어, two_stage_ota L_mirror_M5 신설 중 발견) -- type "A"
             # root_ratio feed(예: kcl_tail_M5)는 A엔진이 theta 루프 전체가 끝난 뒤 한 번만
@@ -3344,13 +3374,13 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
             this_role = gm_id_role.get(name) if isinstance(gm_id_role, dict) else gm_id_role
             lut = ctx.spec["lut_by_kind"][ctx.kind_of[name]]
             gm_id_by_device[name] = search_gm_id_for_role(
-                lut, L, vds, vs, entry["ID"], this_role, W_bounds,
+                lut, L, vds_by_device[name], vs, entry["ID"], this_role, W_bounds,
                 gm_id_grid=search_gm_id_grid)
         else:
             gm_id_by_device[name] = fixed_gm_id
     for name in devices:
         _metric_stage_budget_finalize(
-            ctx, name, gm_id_by_device[name], ctx.sized[name]["ID"], L, vds, vs)
+            ctx, name, gm_id_by_device[name], ctx.sized[name]["ID"], L, vds_by_device[name], vs)
 
     # 2단계: 이 feed가 어느 공유전류 그룹의 "마지막"(선언순서) feed면 N-way 조인트
     # 스캔을 돌려 그룹 전체를 재확정한다 -- `_build_theta_evaluator()`가 정적으로
@@ -4285,6 +4315,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # 정정한다(device_roles의 M12/M21 vertical_stack_id를 M11a/M11b, M20a/M20b와
         # 합침, topology.json 참고).
         same_as_of = {}
+        vds_match_of = {}
         for name, dr in device_roles.items():
             vsid = dr.get("vertical_stack_id")
             if not vsid:
@@ -4303,6 +4334,18 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             same_as = dr.get("same_as_device")
             if same_as:
                 same_as_of[name] = same_as
+            # 2026-08-19(세션38 연속, 사용자 지시 "지금 바로 고치자") -- same_as_device("같은
+            # 값을 그대로 복사")와 대칭이지만 복사 대상이 다른 물리량인 관계 전용 필드.
+            # nmcnr_amplifier의 M204(drain=NodeS2)/M301(gate=NodeS2, source=vss 공유) 계기 --
+            # M301의 게이트가 M204의 드레인과 물리적으로 같은 노드라 VGS(M301)=VDS(M204)가
+            # KVL로 강제되는데, M301의 gm_id는 compensation(PM_target 기반 gm3)이 독립적으로
+            # 정하고 M204의 vds는 headroom이 독립적으로 정해 이 관계가 지금까지 전혀
+            # 검증·강제되지 않고 있었다(실측: 두 값이 실제로 어긋남). M301의 gm을 물러서게
+            # 하면 Rm=1/gm3(RHP-zero 완전제거 조건) 설계 근거가 깨지므로, 맞춰야 할 건 M301이
+            # 아니라 M204의 vds(=M202과 나누는 헤드룸 배분)다.
+            vds_match = dr.get("vds_match_vgs_of")
+            if vds_match:
+                vds_match_of[name] = vds_match
 
         # 2026-08-11(세션28 다음 최우선①) -- 다른 그룹의 budget_reference_device가 가리키는
         # 소자 집합. 이 소자가 속한 자기 그룹의 헤드룸을 배정할 때 아래에서 참고한다(M5가
@@ -4317,28 +4360,54 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # device`가 가리키는 소자는 반드시 다른(먼저 처리되는) vertical_stack_id 그룹 소속이어야
         # 하므로, 그 의존관계대로 그룹을 위상정렬한다(순환 참조는 즉시 ValueError). 2026-08-11
         # 세션28 계속 -- `same_as_device` 의존관계도 같은 위상정렬에 포함(그룹 안 아무
-        # 멤버든 참조가 있으면 그 대상 그룹이 먼저 풀려야 함).
+        # 멤버든 참조가 있으면 그 대상 그룹이 먼저 풀려야 함). 2026-08-19(세션38 연속) --
+        # `vds_match_vgs_of` 의존관계도 동일하게 포함(참조 대상의 gm_id/L/vds가 먼저
+        # 확정돼야 VGS를 역산할 수 있음 -- same_as_device와 완전히 같은 위상정렬 요구).
         def _ref_depth(vsid, _seen=frozenset()):
             deps = [group_ref_device[vsid]] if vsid in group_ref_device else []
             deps += [same_as_of[m] for m in vertical_groups[vsid] if m in same_as_of]
+            deps += [vds_match_of[m] for m in vertical_groups[vsid] if m in vds_match_of]
             if not deps:
                 return 0
             if vsid in _seen:
                 raise ValueError(
                     f"vertical_stack_id 그룹 '{vsid}'의 budget_reference_device/"
-                    f"same_as_device가 순환 참조한다")
+                    f"same_as_device/vds_match_vgs_of가 순환 참조한다")
             depths = []
             for dep in deps:
                 dep_vsid = device_roles.get(dep, {}).get("vertical_stack_id")
                 if dep_vsid == vsid:
                     raise ValueError(
                         f"vertical_stack_id 그룹 '{vsid}'의 budget_reference_device/"
-                        f"same_as_device가 순환 참조한다")
+                        f"same_as_device/vds_match_vgs_of가 순환 참조한다")
                 depths.append(1 + _ref_depth(dep_vsid, _seen | {vsid}))
             return max(depths)
 
         for vsid in sorted(vertical_groups.keys(), key=_ref_depth):
             members = vertical_groups[vsid]
+            # 2026-08-19(세션38 연속) -- vds_match_vgs_of 멤버는 아래 by_vgrp/known_vds_sum
+            # 계산이 시작되기 **전에** 먼저 vds를 채운다. _ref_depth() 위상정렬이 참조 대상의
+            # 그룹을 먼저 처리하도록 보장하므로 여기 도달했을 때 참조 소자는 이미 gm_id/L/vds가
+            # 확정돼 있어야 정상이다(없으면 선언/순환 문제). 이렇게 미리 채워두면 아래 기존
+            # by_vgrp 루프가 이 멤버를 "이미 풀린 소자"로 자연스럽게 인식해(line ~4374의
+            # `ctx.sized.get(gm,{}).get("vds") is not None` 체크) known_vds_sum에 정확히
+            # 반영되고, 같은 그룹의 나머지 멤버(예: M204와 짝인 M202)가 vdd에서 이 값을 뺀
+            # 진짜 나머지 예산을 받는다 -- 아래 코드는 단 한 줄도 안 건드림(재사용).
+            for m in members:
+                if m not in vds_match_of or ctx.sized.get(m, {}).get("vds") is not None:
+                    continue
+                ref = vds_match_of[m]
+                ref_entry = ctx.sized.get(ref, {})
+                if "gm_id" not in ref_entry or "L" not in ref_entry or ref_entry.get("vds") is None:
+                    raise ValueError(
+                        f"'{m}'의 vds_match_vgs_of('{ref}')가 아직 gm_id/L/vds 미확정 -- 참조 "
+                        f"소자가 속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인), "
+                        f"또는 '{ref}'의 gm_id가 compensation/metric_stage_budget/"
+                        f"gm_target_convention/gm_id_role 중 하나로 확정 가능한지 확인할 것")
+                ref_lut = spec["lut_by_kind"][ctx.kind_of[ref]]
+                target_vgs = ref_lut.vgs_for_gm_id(
+                    ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vs", 0.0))
+                ctx.sized.setdefault(m, {})["vds"] = target_vgs
             # matching_pairs로 묶인 값-동일 그룹(_vfind)당 대표 1개씩만 집계 -- diff pair/미러
             # 쌍의 두 소자를 헤드룸 예산에 중복으로 합산하지 않기 위함(위 _vfind 주석 참고).
             # 2026-08-10(세션27) 정정 -- 이전엔 members 리스트에서 "먼저 나온" 소자를 무조건
@@ -8203,6 +8272,82 @@ if __name__ == "__main__":
             assert "gm_id_match_vgs_of" in str(_gmv_e) and "Mz" in str(_gmv_e), \
                 f"에러 메시지에 gm_id_match_vgs_of/Mz가 없음: {_gmv_e}"
             print(f"    PASS: ValueError -- {str(_gmv_e)[:70]}...")
+
+    print()
+    print("  [device_roles.vds_match_vgs_of -- 2026-08-19 세션38 연속 신설, 헤드룸 루프가 다른 "
+          "컬럼(다른 vertical_stack_id 그룹) 소자의 VGS를 이 소자의 VDS로 강제하는지, 그리고 "
+          "같은 컬럼의 나머지 소자가 남는 예산을 정확히 흡수하는지 (nmcnr_amplifier M204/M301 "
+          "계기 -- M301.gate=M204.drain이라 VGS(M301)=VDS(M204)가 KVL로 강제됨)]")
+    # 실제 M202(pmos)/M204(nmos) 컬럼 구조를 그대로 축소 복제한다(단일 소자끼리는 audit_
+    # vertical_stack_id_vs_kcl()이 "진짜 vdd~gnd 컬럼"으로 인정하지 않는다 -- PMOS/NMOS가
+    # 드레인 노드를 공유해야 KCL이 성립함). col_a=Ka(pmos)+Ma(nmos, 드레인=NodeA)/col_b=
+    # Kb(pmos)+Mb(nmos, 드레인=NodeB, 게이트=NodeA -- 그래서 VGS(Mb)=VDS(Ma)가 KVL로
+    # 강제되고, vds_match_vgs_of="Ma"로 그 관계를 선언한다). Ma는 known_sizing으로 gm_id/L/ID를
+    # 직접 시드(compensation이 채우는 것과 동일한 역할, vds는 일부러 안 줘서 col_a 헤드룸이
+    # 직접 풀게 함 -- _ref_depth() 위상정렬이 col_a를 col_b보다 먼저 처리하는지까지 검증).
+    _vmv_vdd = 1.8
+    _vmv_topo = {
+        "schema_version": "2.0", "topology_name": "_vmv_test", "source": "self-test",
+        "linked_topology_files": [], "compensation": None, "_compensation_status": "not_applicable",
+        "netlist": [
+            {"name": "Ka", "kind": "pmos", "source": "vdd", "drain": "NodeA", "gate": "vb_ka"},
+            {"name": "Ma", "kind": "nmos", "source": "vss", "drain": "NodeA", "gate": "vb_ma"},
+            {"name": "Kb", "kind": "pmos", "source": "vdd", "drain": "NodeB", "gate": "vb_kb"},
+            {"name": "Mb", "kind": "nmos", "source": "vss", "drain": "NodeB", "gate": "NodeA"},
+        ],
+        "symmetry": {"matching_pairs": [], "dispositions": []}, "sizing_roles": None,
+        "device_roles": {
+            # Ma는 일부러 gm_id_role을 안 준다(known_sizing으로 compensation처럼 gm_id를
+            # 외부에서 고정). Ka/Kb/Mb는 propose_device_roles_gap_fill()의 자동 제안(파트너
+            # 없는 active load -> "gain"류)이 require_device_roles_reviewed()를 막지 않도록
+            # gm_id_role을 명시 선언해둔다(이 테스트가 검증하려는 vds 흐름과는 무관, review
+            # 게이트 통과용).
+            "Ka": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror",
+                   "vertical_stack_id": "col_a", "vs": 0.0},
+            "Ma": {"headroom_role": "mirror", "vertical_stack_id": "col_a", "vs": 0.0},
+            "Kb": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror",
+                   "vertical_stack_id": "col_b", "vs": 0.0},
+            "Mb": {"vds_match_vgs_of": "Ma", "gm_id_role": "matching", "L_role": "mirror",
+                   "headroom_role": "mirror", "vertical_stack_id": "col_b", "vs": 0.0},
+        },
+    }
+    _vmv_known = {"Ka": {"ID": 1e-5, "vs": 0.0}, "Ma": {"ID": 1e-5, "L": 0.5e-6, "gm_id": 15.0, "vs": 0.0},
+                  "Kb": {"ID": 1e-5, "vs": 0.0}, "Mb": {"ID": 1e-5, "vs": 0.0}}
+    with _tempfile.TemporaryDirectory() as _vmv_tmp:
+        _vmv_path = _os.path.join(_vmv_tmp, "_vmv_test.topology.json")
+        with open(_vmv_path, "w", encoding="utf-8") as _f:
+            json.dump(_vmv_topo, _f)
+        _vmv_spec = {"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _vmv_vdd, "L_min": 0.15e-6,
+                     "W_bounds": (1e-6, 200e-6), "min_vds_by_role": {"mirror": 0.2},
+                     "known_sizing": _vmv_known}
+        _vmv_ctx, _ = _build_theta_evaluator(_vmv_path, _vmv_spec)["evaluate"]({})
+    _vmv_vds_a = _vmv_ctx.sized["Ma"]["vds"]
+    assert abs(_vmv_vds_a - _vmv_vdd / 2) < 1e-9, \
+        f"Ka/Ma 둘 다 'mirror'라 균등분배(vdd/2={_vmv_vdd/2})가 나와야 하는데 Ma.vds={_vmv_vds_a}"
+    _vmv_target_vgs = lut.vgs_for_gm_id(15.0, 0.5e-6, _vmv_vds_a, 0.0)
+    _vmv_vds_b = _vmv_ctx.sized["Mb"]["vds"]
+    _vmv_vds_kb = _vmv_ctx.sized["Kb"]["vds"]
+    assert abs(_vmv_vds_b - _vmv_target_vgs) < 1e-9, \
+        f"Mb.vds({_vmv_vds_b})가 Ma의 VGS 역산값({_vmv_target_vgs})과 다름"
+    assert abs(_vmv_vds_kb - (_vmv_vdd - _vmv_target_vgs)) < 1e-9, \
+        f"Kb.vds({_vmv_vds_kb})가 vdd에서 Mb의 강제값을 뺀 나머지({_vmv_vdd - _vmv_target_vgs})와 다름"
+    print(f"    PASS: Ma.vds={_vmv_vds_a:.4f}V(col_a 균등분배, Mb와 무관하게 독립적으로 먼저 확정) "
+          f"-- Mb.vds={_vmv_vds_b:.4f}V(=Ma의 VGS 역산과 정확히 일치) -- "
+          f"Kb.vds={_vmv_vds_kb:.4f}V(=vdd-Mb, 나머지 예산 정확히 흡수)")
+
+    print("  [vds_match_vgs_of가 순환 참조하면 ValueError]")
+    _vmv_cyc_topo = json.loads(json.dumps(_vmv_topo))
+    _vmv_cyc_topo["device_roles"]["Ma"]["vds_match_vgs_of"] = "Mb"
+    with _tempfile.TemporaryDirectory() as _vmv_cyc_tmp:
+        _vmv_cyc_path = _os.path.join(_vmv_cyc_tmp, "_vmv_cyc.topology.json")
+        with open(_vmv_cyc_path, "w", encoding="utf-8") as _f:
+            json.dump(_vmv_cyc_topo, _f)
+        try:
+            _build_theta_evaluator(_vmv_cyc_path, _vmv_spec)["evaluate"]({})
+            raise AssertionError("Ma<->Mb 순환 참조인데 에러가 안 났다")
+        except ValueError as _vmv_cyc_e:
+            assert "순환 참조" in str(_vmv_cyc_e), f"순환 참조 에러가 아님: {_vmv_cyc_e}"
+            print(f"    PASS: ValueError -- {str(_vmv_cyc_e)[:70]}...")
 
     print()
     print("  [diagnose_sizing_roles_gap() -- device_role/symmetry의 propose_device_roles_"

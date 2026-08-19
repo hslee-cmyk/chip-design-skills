@@ -40,56 +40,56 @@ footer{ margin-top:60px; padding-top:20px; border-top:1px solid var(--line); fon
 <header class="top"><h1>two_stage_ota.topology.json</h1>
 </header>
 <section class="rsec"><h2>&sect;1 Topology (from topology.json)</h2><div class="twrap"><table class="sizing"><thead><tr><th>name</th><th>kind</th><th>role</th></tr></thead><tbody><tr><td>M3/M4</td><td>pmos</td><td>M3: headroom_role=cascode, vertical_stack_id=stage1, vs=0.0 | M4: headroom_role=cascode, vertical_stack_id=stage1, vs=0.0</td></tr><tr><td>M6</td><td>pmos</td><td>M6: headroom_role=mirror, vs=0.0, vertical_stack_id=stage2</td></tr><tr><td>M1/M2</td><td>nmos</td><td>M1: headroom_role=cascode, vs=0.0, gm_id_role=matching, L_role=mirror, vertical_stack_id=stage1 | M2: headroom_role=cascode, vs=0.0, gm_id_role=matching, L_role=mirror, vertical_stack_id=stage1</td></tr><tr><td>M5</td><td>nmos</td><td>M5: headroom_role=tail, vertical_stack_id=stage1, vs=0.0, gm_id_role=matching, L_role=bias_replica</td></tr><tr><td>M7</td><td>nmos</td><td>M7: headroom_role=tail, vertical_stack_id=stage2, vs=0.0</td></tr></tbody></table></div></section>
-<section class="rsec"><h2>&sect;2 Sizing (from instance.json)</h2><div class="twrap"><table class="sizing"><thead><tr><th>name</th><th>gm</th><th>gm_id</th><th>L</th><th>vds</th><th>vs</th><th>W</th><th>ID</th><th>gds</th><th>kind</th><th>_L_source</th></tr></thead><tbody><tr><td>M1</td><td>0.00022615770233123887</td><td>25.5</td><td>2.45e-07</td><td>1.2</td><td>0.0</td><td>0.00047769044641792407</td><td>8.868929503185838e-06</td><td>6.298179555880131e-06</td><td>nmos</td><td>compensation</td></tr><tr><td>M2</td><td>0.00022615770233123887</td><td>25.5</td><td>2.45e-07</td><td>1.2</td><td>0.0</td><td>0.00047769044641792407</td><td>8.868929503185838e-06</td><td>6.298179555880131e-06</td><td>nmos</td><td>compensation</td></tr><tr><td>M6</td><td>0.0022615770233123888</td><td>19.0</td><td>7.3e-07</td><td>1.3499999999999999</td><td>0.0</td><td>0.0004902296367179258</td><td>0.00011903036964802046</td><td>1.2160512527931409e-05</td><td>pmos</td><td>compensation</td></tr><tr><td>M3</td><td>7.09514360254867e-05</td><td>8.0</td><td>2.715e-06</td><td>0.2</td><td>0.0</td><td>1.7769459585684673e-05</td><td>8.868929503185838e-06</td><td>7.057456989946366e-06</td><td>pmos</td><td>metric_stage_budget</td></tr><tr><td>M4</td><td>7.09514360254867e-05</td><td>8.0</td><td>2.715e-06</td><td>0.2</td><td>0.0</td><td>1.7769459585684673e-05</td><td>8.868929503185838e-06</td><td>7.057456989946366e-06</td><td>pmos</td><td>metric_stage_budget</td></tr><tr><td>M7</td><td>0.002083031468840358</td><td>17.5</td><td>1.435e-06</td><td>0.2</td><td>0.0</td><td>0.00018403212636545598</td><td>0.00011903036964802046</td><td>3.629609331228716e-05</td><td>nmos</td><td>metric_stage_budget</td></tr><tr><td>M5</td><td>0.00022172323757964596</td><td>12.5</td><td>1.435e-06</td><td>0.2</td><td>0.0</td><td>9.838170814942153e-06</td><td>1.7737859006371676e-05</td><td>9.118294250766627e-06</td><td>nmos</td><td>metric_stage_budget</td></tr></tbody></table></div></section>
-<section class="rsec"><h2>&sect;3 Box-shape check (from instance.json)</h2><div class="twrap"><table class="sizing"><thead><tr><th>ok</th><th>rectangular</th><th>elongation_ok</th><th>row_widths</th><th>row_heights</th><th>total_width_m</th><th>total_height_m</th><th>width_ratio</th><th>elongation</th><th>approx</th><th>message</th></tr></thead><tbody><tr><td>False</td><td>False</td><td>True</td><td>{&#x27;M3&#x27;: 2.715e-05, &#x27;M6_split0&#x27;: 8.76e-06, &#x27;M6_split1&#x27;: 8.76e-06, &#x27;M5&#x27;: 1.4350000000000002e-05, &#x27;M1_repair0&#x27;: 2.94e-06, &#x27;M1_repair1&#x27;: 2.94e-06}</td><td>{&#x27;M3&#x27;: 3.5538919171369345e-06, &#x27;M6_split0&#x27;: 2.0426234863246907e-05, &#x27;M6_split1&#x27;: 2.0426234863246907e-05, &#x27;M5&#x27;: 2.0426234863246907e-05, &#x27;M1_repair0&#x27;: 3.980753720149367e-05, &#x27;M1_repair1&#x27;: 3.980753720149367e-05}</td><td>2.715e-05</td><td>0.000144447670909865</td><td>9.23469387755102</td><td>5.320356202941621</td><td>False</td><td>FAIL: 행 폭 비율(9.23) &gt; row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것</td></tr></tbody></table></div></section>
-<section class="rsec"><h2>&sect;4 audit_row_split() (from instance.json)</h2><div class="finding bad"><b>(combined)</b>: FAIL<br>- 2. box-shape: FAIL: 행 폭 비율(9.23) &gt; row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것<br>- 3c. common-centroid[M3/M4] [참고용 -- 이 kind는 필수 아님]: M3 centroid=(2.00,0.00), M4 centroid=(7.00,0.00), |dx|=5.00 |dy|=0.00 (허용오차 0.5)</div></section>
+<section class="rsec"><h2>&sect;2 Sizing (from instance.json)</h2><div class="twrap"><table class="sizing"><thead><tr><th>name</th><th>gm</th><th>gm_id</th><th>L</th><th>vds</th><th>vs</th><th>W</th><th>ID</th><th>gds</th><th>kind</th><th>_L_source</th></tr></thead><tbody><tr><td>M1</td><td>0.00022615770233123887</td><td>25.5</td><td>2.45e-07</td><td>1.2</td><td>0.0</td><td>0.00047769044641792407</td><td>8.868929503185838e-06</td><td>6.298179555880131e-06</td><td>nmos</td><td>compensation</td></tr><tr><td>M2</td><td>0.00022615770233123887</td><td>25.5</td><td>2.45e-07</td><td>1.2</td><td>0.0</td><td>0.00047769044641792407</td><td>8.868929503185838e-06</td><td>6.298179555880131e-06</td><td>nmos</td><td>compensation</td></tr><tr><td>M6</td><td>0.0022615770233123888</td><td>19.0</td><td>7.3e-07</td><td>1.3499999999999999</td><td>0.0</td><td>0.0004902296367179258</td><td>0.00011903036964802046</td><td>1.2160512527931409e-05</td><td>pmos</td><td>compensation</td></tr><tr><td>M3</td><td>7.09514360254867e-05</td><td>8.0</td><td>7.900000000000001e-07</td><td>0.2</td><td>0.0</td><td>4.141683456367947e-06</td><td>8.868929503185838e-06</td><td>1.4994588541636701e-05</td><td>pmos</td><td>metric_stage_budget</td></tr><tr><td>M4</td><td>7.09514360254867e-05</td><td>8.0</td><td>7.900000000000001e-07</td><td>1.003732413924684</td><td>0.0</td><td>2.846198087231387e-06</td><td>8.868929503185838e-06</td><td>5.842272335000425e-07</td><td>pmos</td><td>metric_stage_budget</td></tr><tr><td>M7</td><td>0.0022615770233123888</td><td>19.0</td><td>7.900000000000001e-07</td><td>0.2</td><td>0.0</td><td>0.00017578131935505048</td><td>0.00011903036964802046</td><td>4.1020585796994134e-05</td><td>nmos</td><td>metric_stage_budget</td></tr><tr><td>M5</td><td>0.00023946109658601762</td><td>13.5</td><td>7.900000000000001e-07</td><td>0.2</td><td>0.0</td><td>6.785075002185617e-06</td><td>1.7737859006371676e-05</td><td>9.670694396219077e-06</td><td>nmos</td><td>metric_stage_budget</td></tr></tbody></table></div></section>
+<section class="rsec"><h2>&sect;3 Box-shape check (from instance.json)</h2><div class="twrap"><table class="sizing"><thead><tr><th>ok</th><th>rectangular</th><th>elongation_ok</th><th>row_widths</th><th>row_heights</th><th>total_width_m</th><th>total_height_m</th><th>width_ratio</th><th>elongation</th><th>approx</th><th>message</th></tr></thead><tbody><tr><td>False</td><td>False</td><td>True</td><td>{&#x27;M3&#x27;: 1.5800000000000001e-06, &#x27;M6_split0&#x27;: 8.76e-06, &#x27;M6_split1&#x27;: 8.76e-06, &#x27;M5&#x27;: 7.9e-06, &#x27;M1_repair0&#x27;: 2.94e-06, &#x27;M1_repair1&#x27;: 2.94e-06}</td><td>{&#x27;M3&#x27;: 2.0426234863246907e-05, &#x27;M6_split0&#x27;: 2.0426234863246907e-05, &#x27;M6_split1&#x27;: 2.0426234863246907e-05, &#x27;M5&#x27;: 2.0426234863246907e-05, &#x27;M1_repair0&#x27;: 3.980753720149367e-05, &#x27;M1_repair1&#x27;: 3.980753720149367e-05}</td><td>8.76e-06</td><td>0.00016132001385597497</td><td>5.544303797468355</td><td>18.41552669588755</td><td>False</td><td>FAIL: 행 폭 비율(5.54) &gt; row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것</td></tr></tbody></table></div></section>
+<section class="rsec"><h2>&sect;4 audit_row_split() (from instance.json)</h2><div class="finding bad"><b>(combined)</b>: FAIL<br>- 2. box-shape: FAIL: 행 폭 비율(5.54) &gt; row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것<br>- 3c. common-centroid[M3/M4] [참고용 -- 이 kind는 필수 아님]: M3 centroid=(0.00,0.00), M4 centroid=(1.00,0.00), |dx|=1.00 |dy|=0.00 (허용오차 0.5)</div></section>
 <section class="rsec"><h2>&sect;5 check_stick_diagram_coverage() (from instance.json)</h2><div class="finding ok"><b>PASS</b></div></section>
 <section class="rsec"><h2>&sect;6 run_full_circuit_audit() -- device count / net-name / matching-disposition</h2><div class="finding ok"><b>run_full_circuit_audit</b>: PASS<div class="twrap"><table class="sizing"><thead><tr><th>name</th><th>ok</th><th>detail</th></tr></thead><tbody><tr><td>1. device count vs manifest</td><td>True</td><td>total 7 == expected 7</td></tr><tr><td>2. net-name case consistency</td><td>True</td><td>all net names already single-case</td></tr><tr><td>3. every matching/hub-merge candidate has a recorded disposition</td><td>True</td><td>6 candidate groups, all disposed</td></tr></tbody></table></div></div></section>
 <section class="rsec"><h2>&sect;7 Physical floorplan (from instance.json)</h2><pre>{
   &quot;placements&quot;: {
     &quot;M1_repair0&quot;: {
-      &quot;x&quot;: -2.4347000000000003e-05,
+      &quot;x&quot;: -1.7427500000000002e-05,
       &quot;y&quot;: 0.0,
       &quot;width&quot;: 2.94e-06,
       &quot;height&quot;: 3.980753720149367e-05
     },
     &quot;M1_repair1&quot;: {
-      &quot;x&quot;: -2.0969000000000002e-05,
+      &quot;x&quot;: -1.4092500000000003e-05,
       &quot;y&quot;: 0.0,
       &quot;width&quot;: 2.94e-06,
       &quot;height&quot;: 3.980753720149367e-05
     },
     &quot;M5&quot;: {
-      &quot;x&quot;: -1.7591e-05,
+      &quot;x&quot;: -1.0757500000000003e-05,
       &quot;y&quot;: 0.0,
-      &quot;width&quot;: 1.4350000000000002e-05,
+      &quot;width&quot;: 7.9e-06,
+      &quot;height&quot;: 2.0426234863246907e-05
+    },
+    &quot;M3&quot;: {
+      &quot;x&quot;: -2.4625000000000006e-06,
+      &quot;y&quot;: 0.0,
+      &quot;width&quot;: 1.5800000000000001e-06,
       &quot;height&quot;: 2.0426234863246907e-05
     },
     &quot;M6_split0&quot;: {
-      &quot;x&quot;: -2.803e-06,
+      &quot;x&quot;: -4.875000000000004e-07,
       &quot;y&quot;: 0.0,
       &quot;width&quot;: 8.76e-06,
       &quot;height&quot;: 2.0426234863246907e-05
     },
     &quot;M6_split1&quot;: {
-      &quot;x&quot;: 6.395000000000001e-06,
+      &quot;x&quot;: 8.667500000000001e-06,
       &quot;y&quot;: 0.0,
       &quot;width&quot;: 8.76e-06,
       &quot;height&quot;: 2.0426234863246907e-05
-    },
-    &quot;M3&quot;: {
-      &quot;x&quot;: -2.803e-06,
-      &quot;y&quot;: 2.086423486324691e-05,
-      &quot;width&quot;: 2.715e-05,
-      &quot;height&quot;: 3.5538919171369345e-06
     }
   },
   &quot;bbox&quot;: {
-    &quot;width&quot;: 4.8694000000000005e-05,
+    &quot;width&quot;: 3.4855000000000004e-05,
     &quot;height&quot;: 3.980753720149367e-05
   },
-  &quot;aspect_ratio&quot;: 1.2232356840747458,
-  &quot;packing_density&quot;: 0.77545354922986
+  &quot;aspect_ratio&quot;: 1.1420897203125424,
+  &quot;packing_density&quot;: 0.710832087821426
 }</pre></section>
 <footer>Generated by design_report.py (analog-gmid-design skill, 세션20) -- topology.json/instance.json/run_full_circuit_audit_from_topology()에서 자동 조립. narrative 섹션은 호출자가 채운 값을 그대로 옮긴 것.</footer>
 </div>
