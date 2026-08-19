@@ -11170,9 +11170,15 @@ gap_fill()` 적용 여부 결정, `gm_id_role` 분류 원리 정립(`"load"` rol
 지시하면 그걸 우선하고, 별다른 지시가 없으면 §4의 ②~⑤ 중 아무거나(전부 우선순위 동급,
 급하지 않음) 골라 진행하면 된다.
 
-# 세션38 최종 요약 -- device_roles에 gm_id_match_vgs_of 신설(theta 레벨 동명 메커니즘의 일반화) +
-nmcnr_amplifier M204에 실제 적용, 세션37 §4④가 이월한 "VDS 다른 declared matching_pairs의
-조인트 gm_id 탐색" gap을 완결. 이 절 하나만 읽어도 전체가 재현 가능하다.
+# 세션38 최종 요약 -- (전반) device_roles에 gm_id_match_vgs_of 신설(theta 레벨 동명 메커니즘의
+일반화) + nmcnr_amplifier M204에 실제 적용, 세션37 §4④가 이월한 "VDS 다른 declared
+matching_pairs의 조인트 gm_id 탐색" gap을 완결. (후반) 사용자가 대화 중 직접 발견한 새 gap --
+M301.gate=M204.drain(같은 노드)인데 VGS(M301)=VDS(M204)라는 KVL 관계가 전혀 검증·강제되지
+않고 있었음 -- 을 그 자리에서 즉시 설계·구현·적용(`device_roles.vds_match_vgs_of` 신설). 이
+발견을 사용자와의 대화로 일반화해 같은 클래스의 gap 2건(M109/M201, M4/M6)을 추가로 찾아
+해소했고, "DC bias 해석 vs AC amplification 해석을 분리해야 한다"는 아키텍처 원리로
+최종 종합 -- Phase 1(DC)/Phase 2(AC) 재구성 설계를 다음 세션 최우선 이월 항목으로 남겼다.
+이 절 하나만 읽어도 전체가 재현 가능하다.
 
 ## 0. 세션 시작 시점 재확인
 
@@ -11242,50 +11248,263 @@ gm_id_b가 이 toy LUT에서는 값 자체가 같게 나온다 -- "값이 다르
 관례 그대로) -- 재실행해 정확히 재현되고 `OK`로 완주함을 확인. `_sizing_roles_comment`/
 `_device_roles_comment`에 이번 변경의 근거와 수치를 기록.
 
+**⑧ (같은 세션 이어서, 사용자 질문 연쇄) 대화로 M301/M204 KVL gap 발견** -- 사용자가 "M204가
+ro를 늘리는 쪽으로 sizing되냐"(§1-⑦ 직후 질문) -> "vds는 M202가 정하고 gm_id는 M203의 VGS를
+따르는 거냐" -> "그럼 M301의 vgs가 결국 M204의 vds인데, M301을 sizing할 때는 어떻게 해?" 순으로
+질문을 이어갔다. 마지막 질문에 답하려고 M301의 실제 sizing 경로(`_L_source: "compensation"` --
+`optimize_multistage()`가 PM_target_deg 기반 gm3 목표로 독립적으로 gm_id=24.0을 정함, device_
+roles의 gm_id_role/gm_id_match_vgs_of 루프는 `_AUTHORITATIVE_GM_ID_SOURCES` 가드로 아예 건드리지
+않음)를 실측하다가, M301.gate=`NodeS2`=M204.drain(둘 다 source=vss 공유)이라 **VGS(M301)=
+VDS(M204)가 KVL로 강제된다**는 사실과, 실제 값이 서로 어긋난다는 걸 직접 계산으로 확인했다:
+`lut.vgs_for_gm_id(gm_id=24.0, L=2.45e-7, vds=1.65, vs=0)=0.536V`인데 당시 M204.vds=1.0V --
+0.464V 어긋남. compensation과 headroom이 서로를 전혀 모른 채 독립적으로 이 두 값을 정하고
+있었다는 뜻. 사용자가 "지금 바로 고치자"고 지시.
+
+**⑨ 왜 M301의 gm을 바꾸는 게 답이 아닌가** -- `Rm=1/gm3`(원문 Eq 6, RHP-zero 완전제거 조건)이
+compensation이 정한 이 gm3 값 자체로 보상망(Cm1/Cm2/Rm)을 설계하므로, M301의 실제 gm이 물러서면
+그 설계 근거가 깨진다. 맞춰야 할 건 M301이 아니라 M204의 vds(M202과 나누는 헤드룸 배분)라고
+결론짓고, 이 방향으로 설계를 진행했다.
+
+**⑩ 기존 인프라 재사용 설계 + 사용자 승인** -- `sizing_recipe.py`의 헤드룸 루프에 이미
+`same_as_device`(다른 소자의 vds를 그대로 복사, M7=M6류)와 그 의존관계를 위상정렬하는
+`_ref_depth()`가 있음을 확인 -- 다른 점은 "값을 그대로 복사"가 아니라 "VGS로 환산한 값"이
+필요하다는 것. 설계를 사용자에게 제시하고 `AskUserQuestion`으로 승인받았다: (1) `device_roles`에
+`vds_match_vgs_of`(same_as_device의 자매 필드, gm_id_match_vgs_of와 이름 컨벤션 일치) 신설 --
+"이 소자의 VDS는 참조 소자의 VGS와 같다", (2) `_ref_depth()`에 이 필드도 의존관계로 등록(참조
+대상의 컬럼이 먼저 풀리도록), (3) 헤드룸 루프에서 그룹 처리 맨 앞에 pre-pass 추가 -- `target_vgs
+= ref_lut.vgs_for_gm_id(ref.gm_id, ref.L, ref.vds, ref.vs)`를 구해 `ctx.sized[m]["vds"]`에 직접
+기입, 그 다음은 **기존 by_vgrp/known_vds_sum/unresolved 코드가 그대로** 처리(새 분기 불필요 --
+"이미 풀린 소자"로 자연스럽게 인식돼 같은 컬럼의 나머지 멤버가 정확한 나머지 예산을 받음), (4)
+M204에 `vds_match_vgs_of: "M301"` 추가, (5) self-test + 4개 회로 회귀 확인.
+
+**⑪ 구현 + 실제 적용** -- `_ref_depth()`에 `vds_match_of[m]` deps 추가(같은 패턴, 순환 참조
+에러 메시지에도 `vds_match_vgs_of` 포함). 헤드룸 루프 `for vsid in sorted(...)` 바로 다음에
+pre-pass 삽입(참조 소자가 미확정이면 명확한 `ValueError`). `nmcnr_amplifier.topology.json`의
+M204에 `"vds_match_vgs_of": "M301"` 추가(`gm_id_match_vgs_of: "M203"`은 그대로 유지 -- 서로
+다른 두 물리량에 대한 두 개의 독립적 KVL 제약이라 공존 가능). 첫 harness 재실행에서 baseline
+constraints(`gain_db>=114.4279`/`pm_deg>=77.8019`)를 위반(실제=`113.1195`/`71.3718`) -- 예상된
+결과, 이 새 baseline으로 갱신 후 재실행해 `OK`로 완주 확인. 실측: **M204.vds=1.0V->0.536V**(M301의
+VGS와 정확히 일치), **M202.vds=1.0V->1.464V**(나머지 예산을 정확히 흡수, vdd=2.0V 기준). PM은
+71.37도로 목표(70도)에 더 근접(이전 77.80도보다 개선), `power_uA`/`cmrr_db`/`psrr_db` 완전히
+불변. `_sizing_roles_comment`/`_device_roles_comment`에 발견 경위+수치 기록.
+
+**⑫ self-test 신설**(`sizing_recipe.py`, gm_id_match_vgs_of 테스트 바로 뒤) -- 실제 M202/M204/
+M301 구조를 4-소자로 축소 복제(단일 소자로는 `audit_vertical_stack_id_vs_kcl()`이 "진짜
+vdd~gnd 컬럼"으로 인정하지 않아 PMOS+NMOS가 드레인을 공유해야 함을 실측으로 발견 -- 처음엔
+2-소자 넷리스트로 시도했다가 이 audit에 걸려 재설계): `Ka(pmos)+Ma(nmos)`가 `col_a`(드레인
+공유=`NodeA`), `Kb(pmos)+Mb(nmos)`가 `col_b`(드레인 공유=`NodeB`, `Mb.gate=NodeA`) --
+`Mb.vds_match_vgs_of="Ma"`. `known_sizing`으로 Ma의 gm_id=15.0/L만 시드(compensation 역할
+모사, vds는 일부러 안 줘서 헤드룸이 직접 풀게 함). 검증: (a) `Ma.vds=vdd/2`(col_a 균등분배,
+`_ref_depth()`가 col_a를 col_b보다 먼저 처리한다는 증거), (b) `Mb.vds`가 `lut.vgs_for_gm_id
+(15.0, L, Ma.vds, 0)`와 정확히 일치, (c) `Kb.vds = vdd - Mb.vds`(나머지 예산 정확히 흡수), (d)
+Ma<->Mb 순환 참조 시 `ValueError`. 구현 중 두 가지 실측 이슈 해결: `propose_device_roles_gap_
+fill()`의 자동 "gain" 제안이 review 게이트를 막아 Ka/Kb/Mb에 `gm_id_role`을 명시 선언(vds
+흐름과 무관, review 통과용), `L_role` 누락으로 gm_id_role 루프가 `ValueError`(L 미확정)를 내
+`L_role: "mirror"`도 추가. 전체 재실행 exit 0.
+
+**⑬ topology.json 편집 중 JSON 문법 사고 + 즉시 수정** -- `_sizing_roles_comment`에 사용자의
+직접 인용문("지금 바로 고치자")을 ASCII 큰따옴표로 그대로 넣어 JSON 파싱이 깨졌다(`json.load()`
+실패 실측 확인) -- 이 파일의 기존 관례(인용은 작은따옴표)를 따라 즉시 정정, `json.load()` 재검증
++ harness 재실행으로 복구 확인.
+
+**⑭ (같은 세션 이어서, 사용자 질문 연쇄 "m204는 ro값을 늘리는 쪽으로 sizing되는 거야?" ->
+"m202에 따라 m204.drain vds가 정해지고, vgs는 유지한채 gmid를 가지고, 그 vds에 ids를 맞추는
+방식이구나?" -> "m301의 vgs가 결국 m204의 vds인데... m301을 sizing할때는 어떻게 해?") 이
+질문들에 정확히 답하는 과정에서 M301/M204 KVL gap을 처음 발견** -- ⑧~⑬으로 이미 요약됨(§1
+윗부분 참고). 사용자가 "지금 바로 고치자"고 지시해 그 자리에서 설계·구현·적용까지 마쳤다.
+
+**⑮ 사용자가 이 발견을 일반화 -- "m109/m201도 같은 문제, 모든 topology가 이 문제를 갖는다"**
+-- 사용자 지시: "고치기 전에 승인받아"에 따라 먼저 4개 실회로 전수 감사를 진행했다. 첫
+시도(전체 netlist connectivity 스캔, "gate가 다른 소자의 drain/source에 물린 모든 경우")는
+340건이 나와 대부분 가짜양성이었다(current_reuse_telescopic_ota의 mirror bias-chain --
+양쪽 다 `gm_id_role="matching"`을 쓰는 관례적으로 안전한 패턴). `compensation.stage_devices`
+소속 소자(=`_AUTHORITATIVE_GM_ID_SOURCES`, gm_id가 GBW/PM/CL 같은 진짜 전기 스펙에서
+오는 소자)의 gate가 rail도 외부 bias net도 아닌 내부 노드에 물린 경우만으로 좁히자 실행
+가능한 목록이 나왔다: nmcnr의 M201.gate=NodeM2<-M107/M109, two_stage_ota의 M6.gate=O1
+<-M4, current_reuse_telescopic_ota의 M15/M25/M16/M26(Monticelli 다중 driver, 더 복잡).
+`lut.vgs_for_gm_id()`로 실측: M109 기준 mismatch=**0.677V**, M4/M6 mismatch=**0.804V** --
+M301/M204(0.464V)보다도 컸다.
+
+**⑯ 사용자가 방향 판단 기준을 정정 -- "M4/M6은 진짜 '충돌'이 아니다"** -- 처음엔
+`_AUTHORITATIVE_GM_ID_SOURCES` 태그 소속 여부로 "M4도 authoritative(`metric_stage_budget`),
+M6도 authoritative(`compensation`) -> 방향 불명확, 사람 판단 필요"로 잘못 분류했다.
+`two_stage_ota`의 `L_mirror_M3` theta를 직접 읽어보니 M4의 `vds=0.2`는 **theta feed 안에
+하드코딩된 추정 상수**였을 뿐(`_L_source="metric_stage_budget"` 태그는 L 자체가 gain_db
+탐색 대상이라는 뜻이지 vds가 근거 있다는 뜻이 아니었음), M6의 gm2는 `miller_ota_topology()`
+가 GBW/PM/CL에서 실제로 유도한 값이었다. 즉 태그만으로는 "진짜 스펙"과 "그냥 추정값"을
+구분 못 한다 -- **신호경로 순서**(compensation.stage_devices 배열의 앞->뒤, load가 앞
+stage 출력임피던스/뒷단이 gm)가 방향을 정하는 진짜 기준이라고 재정식화했다(사용자 지시로
+계획 수정).
+
+**⑰ 사용자가 원리를 한 번 더 확장 -- "load를 거슬러 올라가면 differential input" +
+"load는 gain을 만드는 output impedance라 gain 배분 값으로 정할 수 있는 문제"** -- 이
+관찰로 ④(gain-budget theta 확장, 아래 §4)가 다음 세션 최우선 이월 항목으로 격상됐다(사용자
+명시 지시). 지금 M202/M204·M107/M109 같은 load는 `L_role="mirror"`(고정 2.5x 배수)로만
+사이징되고 진짜 gain-budget theta(`metric_stage_budget`, `current_reuse_telescopic_ota`의
+`L_cascode`류)를 안 쓰고 있다 -- 이번 세션은 그 gap을 `vds_match_vgs_of`(KVL 정합)로만
+메웠지, load 자체를 gain-budget 탐색으로 승격하는 건 손대지 않았다(범위 밖으로 명시 합의).
+
+**⑱ 사용자가 Monticelli를 "해법 없음"으로 넘긴 것을 재반박 -- "M15.gate를 쫓아가면
+M9a.source=M9b.drain이고, 이건 M9a.gate=M11b.drain이야. root를 쫓아가면 root branch나
+input이 있다는 원리는 같잖아"** -- 정확한 지적이었다: Vg15에 M8/M9a/M9b 셋이 동시에
+물린 걸 "대표를 못 고른다"로 넘겼던 게 성급했다. M9a.gate를 한 홉 더 쫓아가면 N11b(=M11b.
+drain)에 닿고, 이건 다시 M12.drain에 닿고, 결국 M18_bg(외부 이상전류원으로 전류가 고정되는
+diode 기준점)까지 이어진다 -- **1-hop이 아니라 N-hop 체인에도 같은 root-추적 원리가
+적용된다**는 뜻. M15도 `compensation.stage_devices` 소속(class-AB 출력, session31이
+`battery_centering_deviation`/`gm_id_match_vgs_of`/N-way joint scan을 이미 이 정확한
+패턴을 위해 만들어뒀음)이라 방향 규칙은 동일(뒷단 M15가 권위, 바이어스망 전체가 M15에
+맞춰 역산) -- "해법이 없다"가 아니라 "이미 있는 도구를 이 체인에 배선하는 문제"로
+재분류했다(이월 항목 ④ 설명 갱신, 아래 §4).
+
+**⑲ 사용자가 DC/AC 분리 원리로 최종 종합 -- "AC signal은 input이 root, bias망의 시작점은
+DC 전압이다. DC bias 최적화를 먼저 하고 AC gain 타겟을 그 위에서 맞춰야 한다"** -- 지금까지
+발견한 모든 gap(M301/M204, M109/M201, M4/M6, Monticelli 체인)을 관통하는 재해석: **DC
+도메인**(root=rail+외부 고정 전류원, 도구=headroom/`same_as_device`/`budget_reference_
+device`/`vds_match_vgs_of`)과 **AC 도메인**(root=differential input, 도구=compensation/
+`gm_id_role="gain"/"load"`)이 지금까지 서로의 결과를 확인 없이 독립적으로 값을 확정해왔던
+것 자체가 근본원인이었다는 결론. 두 도메인은 결합돼 있다(DC 헤드룸이 부족하면 AC 스윙/이득이
+꺾인다) 하지만 개념적으로는 별개의 최적화 문제 -- **Phase 1(DC 그래프를 완전히 정합되게
+먼저 풀기) -> Phase 2(Phase 1이 남긴 진짜 자유도만 AC 타겟에 맞춰 탐색)**로 아키텍처를
+재구성하자는 게 최종 합의된 방향(④, 최우선 이월). 이번 세션은 이 아키텍처를 설계 문서로만
+남기고, pairwise 사례(M109/M201, M4/M6)는 지금 있는 `vds_match_vgs_of` 메커니즘으로 바로
+적용했다(사용자 승인, "그래, 진행해").
+
+**⑳ 실제 구현 -- M109/M201(nmcnr, 헤드룸 레벨) + M4/M6(two_stage_ota, theta feed 레벨)** --
+(a) `nmcnr_amplifier.topology.json`의 M109에 `vds_match_vgs_of: "M201"` 추가(기존
+`gm_id_match_vgs_of`/`vds_match_vgs_of` 메커니즘 그대로 재사용, 코드 변경 없음) -- 실측:
+M109.vds=0.2V(fold_group_singleton 우회의 min_vds 플레이스홀더였을 뿐 근거 없었음)->
+0.8766V(M201의 실제 VGS와 정확히 일치), gain_db=113.1195->113.2532dB, pm_deg=71.3718->
+71.9414deg(추가 개선). M107(같은 NodeM2를 공유하는 반대편 폴딩 다리)은 이번엔 안 건드림
+-- fold_group 병합 노드의 기존 근사 한계로 남겨둠(세션28부터 문서화된 한계, 새로 발견한
+게 아님).
+(b) **`_feed_metric_stage_budget()`에 theta feed 레벨 `vds_match_vgs_of` 신설**(신규
+코드, `sizing_recipe.py`) -- 기존 헤드룸 레벨 필드와 같은 이름·같은 원리지만 다른 주입점
+(theta feed 안의 하드코딩 `vds` 상수를 대신함). `{device_name: ref_device}` dict만
+지원(그룹의 일부 소자에만 해당하는 관계라 `gm_id_role`류 문자열 공유 폼은 의미가 없음
+-- M3는 diode 레퍼런스 자신이라 이 관계가 없고 M4만 있음). `vds_by_device` 딕셔너리를
+gm_id 탐색 루프와 finalize 루프 둘 다에서 공유(재계산 없음). compensation이 항상 두 번째
+theta 루프보다 먼저 실행되므로(`_evaluate()` 4025행 vs 4188행) M6(compensation)은 M4의
+feed가 처리될 때 이미 확정돼 있음(실행순서 검증 완료, 별도 위상정렬 불필요 -- 헤드룸
+레벨과 달리 theta feed는 이미 compensation 다음에 오는 단일 루프라 `_ref_depth()`류
+장치가 필요 없음). `two_stage_ota.topology.json`의 `L_mirror_M3` feed에 `vds_match_
+vgs_of: {"M4":"M6"}` 추가. 실측: M4.vds=0.2V(하드코딩 추정값)->1.0037V(M6의 실제 VSG와
+정확히 일치), M4.gds가 12배 감소(ro 12배 증가), **gain_db=57.5476->62.7854dB로 크게
+개선**(이전엔 M4의 ro가 부당하게 낮게 묶여 있었다는 뜻).
+self-test 전체(`sizing_recipe.py`/`stick_diagram.py`) + 4개 회로 harness 재실행 -- 전부
+회귀 없음(current_reuse_telescopic_ota의 `gain_db=76.48334...`는 이 세션 전체에 걸쳐
+불변, 이 회로는 새 메커니즘을 안 씀). `nmcnr_amplifier`/`two_stage_ota` constraints를
+각각 새 baseline으로 갱신.
+
 ## 2. 최종 검증 상태
 
-- `sizing_recipe.py`/`stick_diagram.py` self-test 전체 exit 0(신설 테스트 2건 포함, 회귀 없음).
-- `python run_harness.py nmcnr_amplifier` -- `OK`로 완주, metrics=`{power_uA=0.0018984...(불변),
-  gain_db=114.42793..., pm_deg=77.80185..., cmrr_db=4.47634...(불변), psrr_db=2.59687...(불변)}`.
-  `floorplan_ok=True`(부수적으로 이전 세션과 동일하게 유지, aspect_ratio=1.383). `audit_ok=False`는
-  이 세션 범위 밖(레이아웃/row_split, 세션37부터 이월 중이던 §4② 그대로).
-- `python run_harness.py folded_cascode` / `two_stage_ota` -- 둘 다 세션37과 완전히 동일한
-  metrics로 재현(회귀 없음, 두 회로 모두 `gm_id_match_vgs_of`를 쓰지 않아 device_roles Pass 2가
-  no-op).
+- `sizing_recipe.py`/`stick_diagram.py` self-test 전체 exit 0(gm_id_match_vgs_of 테스트 2건 +
+  vds_match_vgs_of(헤드룸 레벨) 테스트 2건, 총 4건 신설, 회귀 없음) -- ⑬ JSON 사고 정정,
+  ⑳(theta feed 레벨 `vds_match_vgs_of` 신설) 이후 최종 재실행까지 전부 기준.
+- `python run_harness.py nmcnr_amplifier` -- `OK`로 완주, **최종** metrics=`{power_uA=
+  0.0018984...(전체 세션 동안 완전 불변), gain_db=113.25322..., pm_deg=71.94138...,
+  cmrr_db=4.47634...(불변), psrr_db=2.59687...(불변)}`(⑦의 114.4279/77.8019 -> ⑪의
+  113.1195/71.3718 -> ⑳(a)의 113.2532/71.9414까지 3단계로 갱신됨, 매 단계 실측 baseline
+  그대로 채택). `audit_ok=False`는 이 세션 범위 밖(레이아웃/row_split, 세션37부터 이월 중이던
+  §4③ 그대로).
+- `python run_harness.py two_stage_ota` -- **최종** metrics=`{power_uA=0.00029127...(불변),
+  area_um2=7.41684e-10(변화 -- L_mirror_M3가 다른 L로 수렴), gain_db=57.5476->**62.7854dB**
+  (⑳(b) 적용 후 크게 개선), mismatch_sigma_mV=0.43871...(불변)}`.
+- `python run_harness.py folded_cascode` -- 세션37과 완전히 동일한 metrics로 재현(회귀 없음,
+  이 회로는 compensation이 없어 이번 세션의 어떤 메커니즘도 안 씀).
 - `python run_harness.py current_reuse_telescopic_ota`(SLSQP 경로) -- `gain_db=76.48334...`로
-  세션 전체에 걸쳐 반복 확인돼온 baseline과 정확히 일치(회귀 없음, 이 회로도 `gm_id_match_
-  vgs_of`를 쓰지 않음 -- `propose_device_roles_gap_fill()`의 신설 가드도 이 회로의 기존 declared
-  `device_roles`엔 영향 없음을 실측 확인).
+  세션 전체에 걸쳐(§1-⑥ 이전/이후, ⑪ 이후, ⑳ 이후 전부) 반복 확인돼온 baseline과 정확히
+  일치(회귀 없음, 이 회로는 새 메커니즘 둘 다 안 씀 -- Monticelli 체인은 이번 세션 범위 밖).
 
-## 3. 커밋 상태 -- **세션38은 커밋 완료됨(2026-08-19 세션 끝 시점)**
+## 3. 커밋 상태 -- **세션38 전반은 커밋 완료, 후반(§1-⑧~⑳ 전체)은 아직 커밋 전**
 
-커밋 `81a915b` -- device_roles Pass 2 신설 + self-test 2건(`sizing_recipe.py`), `propose_
-device_roles_gap_fill()`의 `gm_id_match_vgs_of` 우선 가드(`stick_diagram.py`), M204 device_
-roles 변경 + constraints 새 baseline + 주석 갱신(`nmcnr_amplifier.topology.json`), harness
-재실행 결과물(`nmcnr_amplifier.instance.json`) 4개 파일. 이 문서 갱신은 별도 docs 커밋으로
-이어짐(git log 참고).
+전반 커밋 `81a915b`(+ docs `f0792ba`) -- device_roles `gm_id_match_vgs_of` Pass 2 + self-test
+2건(`sizing_recipe.py`), `propose_device_roles_gap_fill()`의 `gm_id_match_vgs_of` 우선 가드
+(`stick_diagram.py`), M204 device_roles 변경 + constraints baseline + 주석(`nmcnr_amplifier.
+topology.json`), harness 결과물(`nmcnr_amplifier.instance.json`). **후반(§1-⑧~⑳)은 사용자
+확인 후 커밋할 것** -- 수정된 파일: `sizing_recipe.py`(헤드룸 레벨 `_ref_depth()` 확장+pre-pass
++self-test 2건, `_feed_metric_stage_budget()`의 theta feed 레벨 `vds_match_vgs_of` 신설),
+`nmcnr_amplifier.topology.json`(M204에 `vds_match_vgs_of:"M301"`, M109에 `vds_match_vgs_of:
+"M201"` 추가 + constraints 재갱신 2회 + 주석), `nmcnr_amplifier.instance.json`(harness
+재실행 결과물), `two_stage_ota.topology.json`(`L_mirror_M3` feed에 `vds_match_vgs_of:
+{"M4":"M6"}` 추가 + 주석), `two_stage_ota.instance.json`(harness 재실행 결과물). `stick_
+diagram.py`는 후반에서 추가 변경 없음.
 
-## 4. 다음 세션 이월 항목(2026-08-19 세션38 종료 시점 최신)
+## 4. 다음 세션 이월 항목(우선순위 순, 2026-08-19 세션38 종료 시점 최신 -- **사용자가 ①을
+명시적으로 최우선으로 지정**)
 
-### ① [완결] VDS가 다른 declared matching_pairs의 조인트 gm_id 탐색 (세션37 §4④ 그대로 승계)
+### ① [최우선, 신규 설계 -- 세션38 후반 대화로 확정] DC bias-point 해석과 AC amplification
+해석을 명시적으로 분리하는 Phase 1/Phase 2 아키텍처 + load의 gain-budget theta 승격
 
-M203/M204 사례는 `device_roles.gm_id_match_vgs_of` 신설로 완전히 해소됐다. 일반 메커니즘
-자체(theta 레벨과 device_roles 레벨 양쪽 다 존재)가 이제 이 프로젝트에 있으므로, 다른 회로에서
-비슷한 패턴(VDS가 다른 declared 미러쌍)이 나오면 바로 재사용 가능 -- 추가 설계 불필요.
+**배경(§1-⑭~⑲ 대화 요약)**: 이번 세션에서 발견한 M204/M301, M109/M201, M4/M6 KVL gap
+3건이 전부 "AC 스펙(compensation의 gm)과 DC 배치(headroom/theta 상수)가 서로 확인 없이
+독립적으로 값을 확정"이라는 같은 근본원인이었다는 게 사용자와의 대화로 드러났다. 사용자의
+최종 종합: **DC 도메인**(root=rail+외부 고정 전류원 diode 기준점, 도구=headroom/`same_as_
+device`/`budget_reference_device`/`vds_match_vgs_of`)과 **AC 도메인**(root=differential
+input, 도구=compensation/`gm_id_role`)은 결합돼 있지만(DC 헤드룸 부족->AC 스윙/이득 저하)
+개념적으로는 별개의 최적화 문제 -- **Phase 1(DC 그래프를 rail/외부전류원 root까지 완전히
+정합되게 먼저 풀기) -> Phase 2(Phase 1이 남긴 진짜 자유도만 AC 타겟(gain/PM/GBW)에 맞춰
+탐색)**로 엔진을 재구성해야 한다.
 
-### ② `nmcnr_amplifier`의 `audit_ok`/`floorplan_ok`/`_netlist_sections_structured` (세션37 §4②
-그대로, 미착수)
+**설계 요소**(전부 §1-⑭~⑲ 대화에서 도출, 미구현):
+1. **Root-추적 그래프 위상정렬 확장**: 지금 헤드룸 레벨 `_ref_depth()`(same_as_device/
+   budget_reference_device/vds_match_vgs_of 의존관계)를 gate 체인까지 N-hop으로 확장 --
+   모든 소자의 단자 전압을 rail/외부 전류원 root 또는 compensation의 진짜 AC 스펙까지
+   추적하는 하나의 완결된 DC 그래프.
+2. **방향 판정 규칙**: `_AUTHORITATIVE_GM_ID_SOURCES` 태그 소속 여부가 아니라
+   `compensation.stage_devices` 배열의 **신호경로 순서**(앞 stage=load, 뒷 stage=gm)로
+   판정한다(M4/M6 사례로 확정된 교훈 -- 태그만으로는 "진짜 스펙"과 "그냥 추정 상수"를
+   구분 못 함).
+3. **Monticelli/다중-driver 수렴 노드**: "해법 없음"이 아니라 같은 root-추적 원리의 N-hop
+   사례(§1-⑱, M9a.gate->M11b.drain->M12.drain->M18_bg). session31이 이미 만든 `gm_id_
+   match_vgs_of`/`battery_centering_deviation`/N-way joint scan을 이 체인에 실제로
+   배선하는 문제로 재분류됨 -- `propose_theta_kcl_gap_fill()`의 Monticelli 자동인식
+   부재(구 ④, 아래 ④로 유지)와 사실상 같은 작업.
+4. **Load의 gain-budget theta 승격**(§1-⑰): M202/M204·M107/M109 같은 load가 지금
+   `L_role="mirror"`(고정 2.5x 배수)로만 정해지는데, "load는 그 stage의 gain을 만드는
+   output impedance"라는 원리대로 `metric_stage_budget`류 진짜 gain-budget theta로
+   승격하면(`current_reuse_telescopic_ota`의 `L_cascode`가 선례) `vds_match_vgs_of`의
+   강제 override 없이도 KVL 정합이 gain 탐색의 자연스러운 부산물이 될 수 있다 -- 이번
+   세션은 이 승격 없이 override만으로 gap을 메웠다(범위 밖으로 명시 합의, §1-⑰).
 
-### ③ `propose_theta_kcl_gap_fill()`의 Monticelli class-AB 미지원 (세션36/37 이어, 미착수)
+**이번 세션에 실제로 적용한 것(설계는 위, 구현은 기존 pairwise 메커니즘 재사용)**:
+- M204/M301(§1-⑧~⑬, 헤드룸 레벨) -- 완결.
+- M109/M201(§1-⑳(a), 헤드룸 레벨, 기존 메커니즘 그대로 재사용) -- 완결.
+- M4/M6(§1-⑳(b), theta feed 레벨, `_feed_metric_stage_budget()`에 새 필드 신설) -- 완결.
 
-### ④ 세션34 이전부터 계속 이월 중인 항목 5개 (세션37 §4⑤ 그대로, 원문 재나열 없이 위치만 승계
--- L 일치 전파 필터/`two_stage_ota` M5·M7 matching_pairs 누락/`"balanced"`→`"moderate"` 마이그
-레이션 감사/`run_harness.py` 나머지 실전략/`current_reuse_telescopic_ota`의 Monticelli
-unresolved_devices)
+**다음 세션이 할 일**: 위 설계 요소 1~4를 실제 코드로 구현할지, 아니면 지금처럼 발견된
+사례마다 pairwise로 `vds_match_vgs_of`를 적용하는 방식을 계속 쓸지 사용자와 재확인 --
+전자는 훨씬 일반적이지만 훨씬 큰 작업(그래프 위상정렬 엔진 신설)이다.
+
+### ② [완결] VDS가 다른 declared matching_pairs의 조인트 gm_id 탐색 (세션37 §4④ 그대로 승계)
+
+M203/M204 사례는 `device_roles.gm_id_match_vgs_of` 신설로 완전히 해소됐다.
+
+### ③ [완결] compensation-driven 소자와 그 게이트를 구동하는 load 사이의 KVL gap 3건
+
+M301/M204, M109/M201(둘 다 nmcnr, 헤드룸 레벨), M4/M6(two_stage_ota, theta feed 레벨) --
+전부 `vds_match_vgs_of`로 해소(§1-⑧~⑬, ⑳). ①의 일반 아키텍처가 구현되기 전까지는, 새로
+발견되는 사례도 이 pairwise 패턴(load에 `vds_match_vgs_of` 추가, 방향은 신호경로 순서로
+판정)으로 즉시 대응 가능.
+
+### ④ Monticelli 체인(current_reuse_telescopic_ota의 M15/M25/M16/M26 등)의 자동 배선
+(세션36/37의 "미지원" 이월 항목 재분류 -- §1-⑱ 참고, "해법 없음"이 아니라 ①의 그래프
+확장+`propose_theta_kcl_gap_fill()` 배선 문제)
+
+### ⑤ `nmcnr_amplifier`의 `audit_ok`/`floorplan_ok`/`_netlist_sections_structured` (세션37
+§4② 그대로, 미착수 -- 이번 세션에 M202/M204/M109 vds가 여러 번 바뀌었으니 floorplan_ok
+재확인 가치 있음)
+
+### ⑥ 세션34 이전부터 계속 이월 중인 항목 5개 (세션37 §4⑤ 그대로, 원문 재나열 없이 위치만
+승계 -- L 일치 전파 필터/`two_stage_ota` M5·M7 matching_pairs 누락/`"balanced"`→
+`"moderate"` 마이그레이션 감사/`run_harness.py` 나머지 실전략/`current_reuse_telescopic_
+ota`의 Monticelli unresolved_devices)
 
 ## 5. 다음 세션 시작 순서
 
-**커밋 확인 불필요** -- 이 세션은 커밋 `81a915b`(+ 이 문서 갱신 docs 커밋)로 완료됐고 working
-tree가 클린하다(다음 세션 시작 시 `git status`로 재확인만 하면 됨). 급한 이월 항목이 없다
-(①이 이 세션으로 완결됨) -- 다음 세션은 사용자 지시를 우선하고, 없으면 §4의 ②~④ 중 아무거나
-골라 진행하면 된다.
+**커밋 확인 먼저 할 것** -- 세션38 전반(`81a915b`/`f0792ba`)은 이미 커밋됐지만, 후반(§1-⑧~⑳
+전체, M204/M301+M109/M201+M4/M6 KVL 수정 + theta feed 레벨 `vds_match_vgs_of` 신설)은
+아직 커밋 전이다(§3 참고). 사용자에게 커밋 여부를 확인받은 뒤 진행. **①(Phase 1/Phase 2
+아키텍처, DC/AC 분리)이 최우선 이월 항목이다** -- 사용자가 세션 중 명시적으로 우선순위를
+지정했다. 다음 세션은 이 설계를 실제로 구현할지(그래프 위상정렬 엔진 신설, 큰 작업) 또는
+발견되는 사례마다 계속 pairwise로 대응할지(③의 패턴 재사용, 작은 작업) 먼저 사용자와
+확인하고 시작할 것.
