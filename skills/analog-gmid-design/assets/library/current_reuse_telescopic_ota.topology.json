@@ -993,6 +993,8 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_a",
+      "budget_reference_device": "M10",
+      "_budget_reference_device_comment": "2026-08-19(세션39) -- 'biasgen_vom_a'(M8+M9a)는 지금까지 vdd~gnd 전체 컬럼으로 잘못 취급됐다. 실제로는 M9a.drain=Vop1(=M10.drain, M10.source=gnd라 V(Vop1)=VDS(M10))이라 이 컬럼의 진짜 예산은 vdd-V(Vop1)이다 -- budget_reference_device='M10'으로 정정(기존 필드 그대로 재사용, 새 계산 로직 없음). `.ai/context.md` 세션39 Monticelli floating battery 분석 참고.",
       "vs": 0.0
     },
     "M9b": {
@@ -1000,6 +1002,8 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_floatsrc_sink",
+      "budget_reference_device": "M8",
+      "_budget_reference_device_comment": "2026-08-19(세션39) -- 'biasgen_vom_floatsrc_sink'(M9b+M10)도 대칭으로 잘못됐다: M9b.drain=Vg15(=M8.drain, M8.source=vdd라 V(Vg15)=vdd-VDS(M8))이라 이 컬럼의 진짜 예산은 V(Vg15)=vdd-VDS(M8)다 -- budget_reference_device='M8'로 정정. M9a그룹(biasgen_vom_a)이 M10을, 이 그룹(biasgen_vom_floatsrc_sink)이 M8을 서로 다른 상대 그룹의 멤버로 참조하는 상호참조라 fixed-point worklist(세션39 신설, _ref_depth() 단일재귀로는 순환으로 오판했을 케이스) 없이는 못 풀린다.",
       "vs": 0.0
     },
     "M12": {
@@ -1015,6 +1019,8 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_floatsrc_sink",
+      "vds_match_vgs_of": "M16",
+      "_vds_match_vgs_of_comment": "2026-08-19(세션39) -- M10.drain=Vop1=M16.gate이고 둘 다 source=gnd 공유라 VGS(M16)=VDS(M10)이 KVL로 강제된다(M203/M204와 정확히 같은 패턴). M16은 compensation.stage_devices 소속이라 gm_id가 이미 AC 스펙(GBW/PM)에서 확정되므로 M16이 권위 있는 쪽 -- M10의 vds를 M16의 VGS로 맞춘다.",
       "vs": 0.0
     },
     "M14a": {

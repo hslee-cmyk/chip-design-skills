@@ -3538,6 +3538,20 @@ class InfeasibleSizingError(ValueError):
         self.sized_snapshot = sized_snapshot
 
 
+class _HeadroomDependencyNotReady(Exception):
+    """2026-08-19(세션39) 신설 -- `_evaluate()`의 헤드룸 루프 안에서만 쓰는 내부 전용 신호.
+
+    `vertical_stack_id` 그룹을 처리하다가 `vds_match_vgs_of`/`same_as_device`/
+    `budget_reference_device`가 가리키는 참조 소자가 **아직** 안 풀려 있으면 던진다 --
+    "선언이 잘못됐다"가 아니라 "지금은 순서가 안 됐지만 다른 그룹이 먼저 풀리면 나중에
+    될 수도 있다"는 뜻. 바깥의 fixed-point worklist(아래 `_resolve_vertical_group()`
+    호출부)가 이 예외를 잡아 그 그룹을 다음 pass로 미룬다 -- 한 pass를 통째로 돌려도
+    진전이 하나도 없으면(어떤 그룹도 못 풀리면) 그때 비로소 진짜 순환/선언 누락으로
+    보고 `ValueError`를 낸다. `ValueError`를 상속하지 않는다 -- self-test 등 기존
+    `except ValueError` 코드가 이 신호를 "진짜 에러"로 오인해 삼키면 안 되기 때문(worklist
+    루프 밖으로는 절대 새어나가지 않게 설계됐지만, 방어적으로 타입을 분리해둔다)."""
+
+
 def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: dict,
                           stack_groups_override: dict | None = None) -> dict:
     """B-5-3 설계(`.ai/context.md` 세션22~25) 중 실제로 비어있던 조각 하나만 채운다 --
@@ -4354,36 +4368,20 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # 그 위에 다른 replica 체인이 참조로 얹혀사는 쪽이다.
         referenced_devices = set(group_ref_device.values())
 
-        # 폴디드 캐스코드처럼 한 vertical_stack_id 그룹이 vdd~gnd 전체가 아니라 vdd~(다른
-        # 그룹이 이미 확정한 소자의 드레인 전압)만큼만 예산으로 갖는 경우를 위한 선택적 필드
-        # (배치 7-5b, 2026-07-31, NMCNR 회로 계기 -- 사용자와 함께 설계). `budget_reference_
-        # device`가 가리키는 소자는 반드시 다른(먼저 처리되는) vertical_stack_id 그룹 소속이어야
-        # 하므로, 그 의존관계대로 그룹을 위상정렬한다(순환 참조는 즉시 ValueError). 2026-08-11
-        # 세션28 계속 -- `same_as_device` 의존관계도 같은 위상정렬에 포함(그룹 안 아무
-        # 멤버든 참조가 있으면 그 대상 그룹이 먼저 풀려야 함). 2026-08-19(세션38 연속) --
-        # `vds_match_vgs_of` 의존관계도 동일하게 포함(참조 대상의 gm_id/L/vds가 먼저
-        # 확정돼야 VGS를 역산할 수 있음 -- same_as_device와 완전히 같은 위상정렬 요구).
-        def _ref_depth(vsid, _seen=frozenset()):
-            deps = [group_ref_device[vsid]] if vsid in group_ref_device else []
-            deps += [same_as_of[m] for m in vertical_groups[vsid] if m in same_as_of]
-            deps += [vds_match_of[m] for m in vertical_groups[vsid] if m in vds_match_of]
-            if not deps:
-                return 0
-            if vsid in _seen:
-                raise ValueError(
-                    f"vertical_stack_id 그룹 '{vsid}'의 budget_reference_device/"
-                    f"same_as_device/vds_match_vgs_of가 순환 참조한다")
-            depths = []
-            for dep in deps:
-                dep_vsid = device_roles.get(dep, {}).get("vertical_stack_id")
-                if dep_vsid == vsid:
-                    raise ValueError(
-                        f"vertical_stack_id 그룹 '{vsid}'의 budget_reference_device/"
-                        f"same_as_device/vds_match_vgs_of가 순환 참조한다")
-                depths.append(1 + _ref_depth(dep_vsid, _seen | {vsid}))
-            return max(depths)
-
-        for vsid in sorted(vertical_groups.keys(), key=_ref_depth):
+        # 2026-08-19(세션39) -- 한 vertical_stack_id 그룹을 실제로 풀어보는 로직 전체를
+        # 함수로 뽑았다(로직 자체는 세션28~38의 기존 코드 그대로, 옮기기만 함). 예전엔
+        # `_ref_depth()`(그룹 하나당 재귀 깊이 하나)로 미리 처리 순서를 통째로 정렬한 뒤
+        # 이 바디를 한 바퀴만 돌렸는데, 그러면 두 그룹이 서로 다른 멤버를 통해 맞물리는
+        # 경우(예: A그룹은 B그룹의 소자 X를, B그룹은 A그룹의 소자 Y를 각각 참조 --
+        # Monticelli류 floating battery에서 실제로 발생, `.ai/context.md` 세션38→39 참고)를
+        # "순환 참조"로 오판해 막았다. 실제로는 순환이 아니라 X의 pre-pass(vds_match_vgs_of)
+        # 값만 있으면 A그룹이 먼저 완결되고, 그 다음에야 B그룹의 나머지 멤버(Y가 아닌 쪽)가
+        # 풀리는 **선형** 순서가 있다 -- 그룹 단위 단일 패스 정렬로는 이 순서를 찾을 수
+        # 없었을 뿐. 아래 fixed-point worklist(이 함수 정의 바로 뒤)가 대신 여러 pass에
+        # 걸쳐 "지금 풀 수 있는 그룹부터" 반복 시도하며, 참조 대상이 아직 준비 안 됐을 때는
+        # `_HeadroomDependencyNotReady`(진짜 에러가 아니라 "나중에 다시 시도" 신호)만
+        # 던진다 -- 어떤 pass에서도 진전이 없을 때만 비로소 진짜 순환/선언 누락으로 판단한다.
+        def _resolve_vertical_group(vsid):
             members = vertical_groups[vsid]
             # 2026-08-19(세션38 연속) -- vds_match_vgs_of 멤버는 아래 by_vgrp/known_vds_sum
             # 계산이 시작되기 **전에** 먼저 vds를 채운다. _ref_depth() 위상정렬이 참조 대상의
@@ -4399,7 +4397,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 ref = vds_match_of[m]
                 ref_entry = ctx.sized.get(ref, {})
                 if "gm_id" not in ref_entry or "L" not in ref_entry or ref_entry.get("vds") is None:
-                    raise ValueError(
+                    raise _HeadroomDependencyNotReady(
                         f"'{m}'의 vds_match_vgs_of('{ref}')가 아직 gm_id/L/vds 미확정 -- 참조 "
                         f"소자가 속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인), "
                         f"또는 '{ref}'의 gm_id가 compensation/metric_stage_budget/"
@@ -4464,7 +4462,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                         f"선언돼 있는지 확인할 것")
                 unresolved.append(rep)
             if not unresolved:
-                continue
+                return
 
             # 2026-08-11(세션28 계속) -- same_as_device로 선언된 소자는 헤드룸 예산 계산에
             # 아예 참여하지 않고 참조 대상의 vds를 그대로 복사한다(M7=M6, M36b=M36a --
@@ -4476,7 +4474,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 src = same_as_of[m]
                 src_vds = ctx.sized.get(src, {}).get("vds")
                 if src_vds is None:
-                    raise ValueError(
+                    raise _HeadroomDependencyNotReady(
                         f"'{m}'의 same_as_device('{src}')가 아직 VDS 미확정 -- 참조 소자가 "
                         f"속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인)")
                 vgrp = _vfind(m)
@@ -4485,13 +4483,13 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                         ctx.sized.setdefault(other, {})["vds"] = src_vds
             unresolved = [m for m in unresolved if m not in same_as_of]
             if not unresolved:
-                continue
+                return
             base_budget = spec["vdd"]
             ref_dev = group_ref_device.get(vsid)
             if ref_dev is not None:
                 ref_vds = ctx.sized.get(ref_dev, {}).get("vds")
                 if ref_vds is None:
-                    raise ValueError(
+                    raise _HeadroomDependencyNotReady(
                         f"'{vsid}'의 budget_reference_device('{ref_dev}')가 아직 VDS 미확정 -- "
                         f"참조 소자가 속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인)")
                 base_budget = spec["vdd"] - ref_vds
@@ -4583,6 +4581,51 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                             # 전압(=ref_dev 자신의 vds, source=vss이므로) -- 폴딩 노드 위에
                             # 앉은 소자의 body-effect/LUT 조회가 vs=0을 잘못 쓰지 않도록 전파.
                             other_entry.setdefault("vs", ref_vds)
+
+        # 2026-08-19(세션39) -- fixed-point worklist: "지금 풀 수 있는 그룹부터" 여러 pass에
+        # 걸쳐 반복 시도한다. 매 pass마다 아직 안 풀린(`pending`) 그룹을 전부 한 번씩 시도해
+        # `_HeadroomDependencyNotReady`가 나면 다음 pass로 미루고, 성공하면 `pending`에서
+        # 뺀다. 정렬은 매 pass `sorted()`로 고정해 그룹 처리 순서가 실행마다 흔들리지 않게
+        # 한다(재현성).
+        #
+        # ⚠️ "이번 pass에서 완결된 그룹이 0개"는 "진전이 없다"와 **같지 않다** -- 실제로
+        # 손으로 시뮬레이션해보다가 발견한 버그: 그룹 A(예: Monticelli의 biasgen_vom_a)가
+        # 그룹 B(biasgen_vom_floatsrc_sink)의 pre-pass 멤버(vds_match_vgs_of)를 필요로
+        # 하는데, 이번 pass에서 A가 B보다 **먼저** 시도되면 A는 실패하고, 그 다음 B는
+        # pre-pass로 그 멤버의 vds를 채우긴 하지만 B 자신의 budget_reference_device(A쪽
+        # 멤버 참조)가 아직 준비 안 돼 B도 결국 실패한다 -- "이번 pass에 완결된 그룹 0개"
+        # 이지만 B의 pre-pass가 실제로 새 vds를 하나 채웠으니 진전은 있었다(다음 pass에서
+        # A가 그 값을 보고 풀린다). 그래서 진전 여부는 "그룹이 완결됐는가"가 아니라
+        # **"ctx.sized에 vds가 있는 소자 수가 이번 pass 동안 늘었는가"**로 판단한다 --
+        # `_HeadroomDependencyNotReady`를 던지는 세 지점(vds_match_vgs_of pre-pass/
+        # same_as_device/budget_reference_device) 전부 "참조 대상의 vds가 아직 없다"만
+        # 검사하므로, 이 카운트가 늘지 않았다는 건 어떤 그룹도 다음 pass에 새로 풀릴 수
+        # 없다는 뜻과 정확히 같다(완전성 확인됨). 늘지 않았는데 pending이 남아있으면
+        # 그제서야 진짜 순환 참조/선언 누락으로 확정해 에러를 낸다 -- 막힌 그룹마다 정확히
+        # 어떤 참조가 아직 안 풀렸는지(`last_error`)를 전부 모아서 보여준다(기존
+        # `_ref_depth()`의 재귀 순환 감지보다 오히려 더 구체적 -- 처음 발견한 순환 하나만
+        # 보여주는 게 아니라 그 시점에 막힌 그룹 전부를 한 번에 보여줌).
+        def _vds_filled_count():
+            return sum(1 for _e in ctx.sized.values() if _e.get("vds") is not None)
+
+        pending = sorted(vertical_groups.keys())
+        while pending:
+            _progress_before = _vds_filled_count()
+            resolved_this_pass = []
+            last_error = {}
+            for vsid in pending:
+                try:
+                    _resolve_vertical_group(vsid)
+                    resolved_this_pass.append(vsid)
+                except _HeadroomDependencyNotReady as _hdnr:
+                    last_error[vsid] = _hdnr
+            pending = [v for v in pending if v not in resolved_this_pass]
+            if pending and _vds_filled_count() == _progress_before:
+                raise ValueError(
+                    f"vertical_stack_id 그룹 {pending}가 서로 의존관계를 완결할 수 없다"
+                    f"(budget_reference_device/same_as_device/vds_match_vgs_of 순환 참조 또는 "
+                    f"선언 누락) -- 그룹별로 막힌 지점: "
+                    + "; ".join(f"'{v}': {last_error[v]}" for v in pending))
 
         # 2026-08-14 -- L_role의 _AUTHORITATIVE_L_SOURCES(3905행)와 대칭되는 gm_id_role
         # 가드가 원래 없었다(실측으로 발견 -- propose_device_roles_gap_fill()이
@@ -8348,6 +8391,117 @@ if __name__ == "__main__":
         except ValueError as _vmv_cyc_e:
             assert "순환 참조" in str(_vmv_cyc_e), f"순환 참조 에러가 아님: {_vmv_cyc_e}"
             print(f"    PASS: ValueError -- {str(_vmv_cyc_e)[:70]}...")
+
+    print()
+    print("  [fixed-point worklist -- 2026-08-19 세션39 신설, _ref_depth() 단일재귀 정렬을 "
+          "대체. 두 vertical_stack_id 그룹이 서로 다른 멤버를 통해 맞물릴 때(Monticelli "
+          "floating battery -- nmcnr M9a/M9b/M11a/M11b/M12 계기, `.ai/context.md` 세션38→39 "
+          "참고) 예전엔 순환 참조로 오판했다. 실제로는 grpB의 pre-pass(vds_match_vgs_of, "
+          "N만 있으면 즉시 가능) -> grpA 완결(budget_reference_device로 grpB의 pre-pass "
+          "결과 참조) -> grpB의 나머지 멤버 완결(budget_reference_device로 grpA 결과 참조) "
+          "순으로 풀리는 선형 순서가 있다]")
+    # N: 이미 완전히 확정된 소자(compensation+자기 headroom 그룹까지 다 끝난 M16을 모사) --
+    # known_sizing으로 gm_id/L/vds를 전부 직접 시드해 자기 그룹 없이 독립적으로 참조 가능.
+    # S(=M10 모사): vds_match_vgs_of="N" (드레인이 N의 게이트와 물리적으로 같다고 가정).
+    # F(=M9b 모사): S와 같은 grpB, 자유 헤드룸 배정 대상.
+    # T2(=M9a 모사)/T(=M8 모사): grpA. T2.budget_reference_device="S"(grpA가 grpB의 pre-pass
+    # 결과를 참조) -- grpB는 반대로 F.budget_reference_device="T2"(grpB가 grpA의 메인 결과를
+    # 참조) -- 이 둘이 바로 "서로 다른 멤버를 통해 맞물리는" 진짜 상호참조다.
+    _fpw_vdd = 1.8
+    _fpw_topo = {
+        "schema_version": "2.0", "topology_name": "_fpw_test", "source": "self-test",
+        "linked_topology_files": [], "compensation": None, "_compensation_status": "not_applicable",
+        "netlist": [
+            {"name": "N", "kind": "nmos", "source": "vss", "drain": "NodeOut", "gate": "vb_n"},
+            {"name": "S", "kind": "nmos", "source": "vss", "drain": "NodeMid", "gate": "vb_s"},
+            {"name": "F", "kind": "nmos", "source": "NodeMid", "drain": "NodeTop", "gate": "vb_f"},
+            {"name": "T2", "kind": "pmos", "source": "NodeX", "drain": "NodeTop", "gate": "vb_t2"},
+            {"name": "T", "kind": "pmos", "source": "vdd", "drain": "NodeX", "gate": "vb_t"},
+        ],
+        "symmetry": {"matching_pairs": [], "dispositions": []}, "sizing_roles": None,
+        "device_roles": {
+            "N": {"gm_id_role": "matching", "L_role": "mirror", "vs": 0.0},
+            "S": {"vds_match_vgs_of": "N", "gm_id_role": "matching", "L_role": "mirror",
+                  "headroom_role": "mirror", "vertical_stack_id": "grpB", "vs": 0.0},
+            "F": {"budget_reference_device": "T2", "gm_id_role": "matching", "L_role": "mirror",
+                  "headroom_role": "mirror", "vertical_stack_id": "grpB", "vs": 0.0},
+            "T2": {"budget_reference_device": "S", "gm_id_role": "matching", "L_role": "mirror",
+                   "headroom_role": "mirror", "vertical_stack_id": "grpA", "vs": 0.0},
+            "T": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror",
+                  "vertical_stack_id": "grpA", "vs": 0.0},
+        },
+    }
+    _fpw_known = {"N": {"ID": 1e-5, "L": 0.5e-6, "gm_id": 15.0, "vds": 0.9, "vs": 0.0},
+                  "S": {"ID": 1e-5, "vs": 0.0}, "F": {"ID": 1e-5, "vs": 0.0},
+                  "T2": {"ID": 1e-5, "vs": 0.0}, "T": {"ID": 1e-5, "vs": 0.0}}
+    with _tempfile.TemporaryDirectory() as _fpw_tmp:
+        _fpw_path = _os.path.join(_fpw_tmp, "_fpw_test.topology.json")
+        with open(_fpw_path, "w", encoding="utf-8") as _f:
+            json.dump(_fpw_topo, _f)
+        _fpw_spec = {"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _fpw_vdd, "L_min": 0.15e-6,
+                     "W_bounds": (1e-6, 200e-6), "min_vds_by_role": {"mirror": 0.2},
+                     "known_sizing": _fpw_known}
+        _fpw_ctx, _ = _build_theta_evaluator(_fpw_path, _fpw_spec)["evaluate"]({})
+    # 기대값 손계산: S.vds = VGS(N) (vds_match_vgs_of) -- grpB pre-pass.
+    _fpw_target_vgs_n = lut.vgs_for_gm_id(15.0, 0.5e-6, 0.9, 0.0)
+    _fpw_vds_s = _fpw_ctx.sized["S"]["vds"]
+    assert abs(_fpw_vds_s - _fpw_target_vgs_n) < 1e-9, \
+        f"S.vds({_fpw_vds_s})가 N의 VGS 역산값({_fpw_target_vgs_n})과 다름"
+    # grpA(T+T2) base_budget = vdd - S.vds, T/T2 둘 다 role="mirror"라 균등분배.
+    _fpw_vds_t = _fpw_ctx.sized["T"]["vds"]
+    _fpw_vds_t2 = _fpw_ctx.sized["T2"]["vds"]
+    _fpw_base_a = _fpw_vdd - _fpw_vds_s
+    assert abs((_fpw_vds_t + _fpw_vds_t2) - _fpw_base_a) < 1e-9, \
+        f"T.vds+T2.vds({_fpw_vds_t + _fpw_vds_t2})가 grpA base_budget({_fpw_base_a})과 다름"
+    assert abs(_fpw_vds_t - _fpw_vds_t2) < 1e-9, \
+        f"T/T2 둘 다 role=mirror라 균등분배여야 하는데 T.vds={_fpw_vds_t}, T2.vds={_fpw_vds_t2}"
+    # grpB(F+S) base_budget = vdd - T2.vds(grpA 완결 후에야 확정) -- F.vds = base_budget_B - S.vds.
+    _fpw_vds_f = _fpw_ctx.sized["F"]["vds"]
+    _fpw_base_b = _fpw_vdd - _fpw_vds_t2
+    assert abs((_fpw_vds_f + _fpw_vds_s) - _fpw_base_b) < 1e-9, \
+        f"F.vds+S.vds({_fpw_vds_f + _fpw_vds_s})가 grpB base_budget({_fpw_base_b})과 다름"
+    print(f"    PASS: S.vds={_fpw_vds_s:.4f}V(=N의 VGS, grpB pre-pass -- grpA보다 먼저 준비됨) -- "
+          f"T.vds={_fpw_vds_t:.4f}V/T2.vds={_fpw_vds_t2:.4f}V(grpA, base=vdd-S.vds로 균등분배) -- "
+          f"F.vds={_fpw_vds_f:.4f}V(grpB 나머지, base=vdd-T2.vds -- grpA 완결 **후**에야 계산 가능, "
+          f"_ref_depth() 단일재귀였다면 순환으로 막혔을 상호참조가 fixed-point로 정상 수렴)")
+
+    print("  [두 그룹의 budget_reference_device가 서로를 직접 가리키면(pre-pass로도 못 "
+          "뚫리는 진짜 순환) 여전히 ValueError -- 어느 pass에서도 vds가 하나도 안 늘어나야 함]")
+    # grpX={X}, grpY={Y} -- singleton 그룹끼리 budget_reference_device로 서로를 가리킨다
+    # (vds_match_vgs_of/pre-pass 탈출구 자체가 없는 가장 단순한 진짜 순환). referenced_
+    # singleton 분기에서도 ref_dev 준비 여부 확인은 stack_entries 구성보다 먼저 실행되므로
+    # (본문 코드 순서 확인됨) headroom_role 없이도 이 지점에서 막힌다.
+    _fpw_cyc2_topo = {
+        "schema_version": "2.0", "topology_name": "_fpw_cyc2_test", "source": "self-test",
+        "linked_topology_files": [], "compensation": None, "_compensation_status": "not_applicable",
+        "netlist": [
+            {"name": "X", "kind": "pmos", "source": "vdd", "drain": "NodeX", "gate": "vb_x"},
+            {"name": "Y", "kind": "nmos", "source": "vss", "drain": "NodeX", "gate": "vb_y"},
+        ],
+        "symmetry": {"matching_pairs": [], "dispositions": []}, "sizing_roles": None,
+        "device_roles": {
+            "X": {"budget_reference_device": "Y", "gm_id_role": "matching", "L_role": "mirror",
+                  "headroom_role": "mirror", "vertical_stack_id": "grpX", "vs": 0.0},
+            "Y": {"budget_reference_device": "X", "gm_id_role": "matching", "L_role": "mirror",
+                  "headroom_role": "mirror", "vertical_stack_id": "grpY", "vs": 0.0},
+        },
+    }
+    _fpw_cyc2_known = {"X": {"ID": 1e-5, "vs": 0.0}, "Y": {"ID": 1e-5, "vs": 0.0}}
+    with _tempfile.TemporaryDirectory() as _fpw_cyc2_tmp:
+        _fpw_cyc2_path = _os.path.join(_fpw_cyc2_tmp, "_fpw_cyc2.topology.json")
+        with open(_fpw_cyc2_path, "w", encoding="utf-8") as _f:
+            json.dump(_fpw_cyc2_topo, _f)
+        _fpw_cyc2_spec = {"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _fpw_vdd,
+                           "L_min": 0.15e-6, "W_bounds": (1e-6, 200e-6),
+                           "min_vds_by_role": {"mirror": 0.2}, "known_sizing": _fpw_cyc2_known}
+        try:
+            _build_theta_evaluator(_fpw_cyc2_path, _fpw_cyc2_spec)["evaluate"]({})
+            raise AssertionError("X<->Y가 서로 budget_reference_device로 순환 참조하는데 "
+                                  "에러가 안 났다")
+        except ValueError as _fpw_cyc2_e:
+            assert "grpX" in str(_fpw_cyc2_e) and "grpY" in str(_fpw_cyc2_e), \
+                f"막힌 그룹(grpX/grpY)이 에러 메시지에 없음: {_fpw_cyc2_e}"
+            print(f"    PASS: ValueError -- {str(_fpw_cyc2_e)[:90]}...")
 
     print()
     print("  [diagnose_sizing_roles_gap() -- device_role/symmetry의 propose_device_roles_"

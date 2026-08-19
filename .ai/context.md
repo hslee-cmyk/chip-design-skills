@@ -1,11 +1,11 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션38 최종 요약"부터 먼저 읽을 것**
-— 그 절 하나만 읽어도 세션38 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
-시작 순서)가 재현 가능하도록 정리돼 있다. "# 세션37 최종 요약"/"# 세션36 최종 요약"/
-"# 세션35 최종 요약"/"# 세션34 최종 요약"/"# 세션34 결론"/"# 세션33 결론"/
-"# 세션32 결론"/"# 세션31 결론"은 더 이전 이력이다. 아래는 세션 진행 중 실시간으로
-쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션39 최종 요약"부터 먼저 읽을 것**
+— 그 절 하나만 읽어도 세션39 전체(무엇을 했나/최종 검증 상태/커밋 상태/이월 항목/다음
+시작 순서)가 재현 가능하도록 정리돼 있다. "# 세션38 최종 요약"/"# 세션37 최종 요약"/
+"# 세션36 최종 요약"/"# 세션35 최종 요약"/"# 세션34 최종 요약"/"# 세션34 결론"/
+"# 세션33 결론"/"# 세션32 결론"/"# 세션31 결론"은 더 이전 이력이다. 아래는 세션 진행
+중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가 궁금할 때만 찾아보면 된다.
 
 ---
 
@@ -11536,3 +11536,200 @@ matching->gain/load)과 세션38(gm_id_match_vgs_of, vds_match_vgs_of 2건)에 �
 `two_stage_ota`는 이번 세션의 M4/M6 KVL 수정만으로 `gain_db`가 57.55->62.79dB로
 개선됐다(별도 회로 자유도를 안 늘리고 기존 회귀 오류만 고쳤을 뿐인데도 나온 결과 --
 이 KVL gap 클래스가 실측 성능에 실제로 영향을 준다는 강한 증거).
+
+---
+
+# 세션39 최종 요약 -- 세션38이 최우선으로 남긴 "DC bias-point 해석과 AC amplification
+해석을 분리하는 Phase 1/Phase 2 아키텍처"의 첫 실제 구현. 사용자가 전체 구현(설계 요소
+1~4 전부)을 선택했으나, `current_reuse_telescopic_ota`의 Monticelli floating battery
+(M8/M9a/M9b/M10, `.ai/context.md` 세션38 §1-⑱)를 실제로 손으로 KVL을 끝까지 풀어보니
+"자동 N-hop 그래프 엔진"이 아니라 **기존 primitive(`vds_match_vgs_of`/
+`budget_reference_device`)가 이미 정확한 답을 주는데, 그룹 단위 단일패스 정렬
+(`_ref_depth()`)이 두 그룹이 서로 다른 멤버를 통해 맞물리는 경우를 못 풀 뿐**임이
+드러났다 -- 그래서 이번 세션의 실제 구현 범위는 (a) 헤드룸 루프를 fixed-point
+worklist로 재구성(순수 스케줄링 일반화, 새 계산 로직 없음), (b) 그 위에서 Monticelli
+KVL 3건을 실제 선언으로 해소, 이 둘로 좁혀졌다(사용자와 두 차례 재확인 후 합의). 자동
+탐지/제안 엔진과 load의 gain-budget theta 승격(설계 요소 4)은 이번에도 범위 밖 --
+다음 세션 최우선 이월.
+
+## 0. 세션 시작 시점
+
+세션38이 커밋 5개(`81a915b`~`3eac37a`)로 종료 후 사용자가 사소한 문서 정정 커밋
+(`4746105`)을 하나 더 남긴 상태에서 시작(working tree 클린, `.bkit/*`·zip 2개 등
+과거부터 의도적으로 커밋 제외해온 파일만 잔존 -- `git status`로 확인 완료). `/clear`
+직후 `.ai/context.md`를 읽고 세션38 §4의 이월 항목 중 사용자가 명시 지정한 ①(Phase
+1/2 아키텍처, DC/AC 분리)로 바로 진입했다.
+
+## 1. 무엇을 했나(시간 순)
+
+**① 범위 확정(사용자와 2회 재확인)** -- "① 전체 구현" 선택을 받은 뒤, 실제 코드
+(`sizing_recipe.py` 헤드룸 루프 4260~4600행대, device_roles `gm_id_role`/
+`gm_id_match_vgs_of` 루프)를 직접 읽고 `current_reuse_telescopic_ota.topology.json`을
+`topology_to_markdown.py`로 뽑은 connectivity 표(feedback_schematic_image_reading_
+unreliable 원칙대로 회로도 대신 net 기준 표로 확인)와 대조해 M204/M301류(단방향,
+한쪽만 확정되면 역산 가능)와 Monticelli(M8/M9a/M9b/M10, 양방향 결합)가 근본적으로
+다른 문제임을 사용자에게 먼저 설명 -- "1:1 KVL 자동 제안만" vs "Monticelli 연립 KVL
+솔버까지"로 범위를 물어 후자를 선택받았다.
+
+**② Monticelli 구조를 손으로 완전히 유도** -- `topology_to_markdown.py`가 뽑은
+connectivity 표(Net별/소자별 연결 표)로 실제 넷 연결을 확인: `M8`(pmos,
+source=vdd,drain=Vg15,gate=Vbias1) + `M9a`(pmos, source=Vg15,drain=Vop1,
+gate=N11b) = vsid `biasgen_vom_a`(기존엔 vdd~gnd 전체 컬럼으로 잘못 취급), `M9b`
+(nmos, source=Vop1,drain=Vg15,gate=N14a14b) + `M10`(nmos, source=gnd,drain=Vop1,
+gate=Vbias4) = vsid `biasgen_vom_floatsrc_sink`(마찬가지로 vdd 전체로 오판). 손
+유도로 확인한 진짜 KVL: (1) `M10.drain=Vop1=M16.gate`이고 둘 다 source=gnd 공유라
+`VGS(M16)=VDS(M10)`(M204/M301과 정확히 같은 패턴, M16이 `compensation.stage_
+devices` 소속이라 권위 있는 쪽) -- `M10.vds_match_vgs_of="M16"`. (2) `biasgen_vom_a`
+의 진짜 예산은 `vdd-V(Vop1)`인데 `V(Vop1)=VDS(M10)`이므로 `budget_reference_
+device="M10"`을 M9a에 추가하면 기존 계산식(`base_budget=vdd-ref.vds`)이 그대로
+맞는다. (3) `biasgen_vom_floatsrc_sink`의 진짜 예산은 `V(Vg15)=vdd-VDS(M8)`이므로
+`budget_reference_device="M8"`을 M9b에 추가. (1)은 단방향(M16이 이미 완결) 체인이라
+기존 `_ref_depth()` 그대로 처리 가능하지만, (2)/(3)은 서로 다른 그룹의 서로 다른
+멤버를 참조하는 **상호참조**(grpA가 grpB의 M10을, grpB가 grpA의 M8을 각각 참조)라
+`_ref_depth()`(그룹당 재귀 깊이 하나)가 이걸 순환 참조로 오판함을 손 시뮬레이션으로
+미리 확인 -- 실제로는 "M10 pre-pass(M16만 있으면 즉시) -> grpA 완결(M10 참조) -> grpB
+나머지 완결(grpA의 M8 참조)" 순서의 **선형** 해가 있다.
+
+**③ fixed-point worklist 설계 + 사용자 승인** -- 그룹 단위 단일패스 정렬을 삭제하고,
+그룹 처리 로직 전체를 `_resolve_vertical_group(vsid)` 함수로 뽑은 뒤 "지금 풀 수 있는
+그룹부터" 여러 pass에 걸쳐 재시도하는 worklist로 교체하는 설계를 사용자에게 제시하고
+`AskUserQuestion`으로 승인받았다: 기존 3곳의 즉시 `ValueError`(vds_match_vgs_of
+pre-pass/same_as_device/budget_reference_device 미확정)를 새 내부 전용 예외
+`_HeadroomDependencyNotReady`로 바꿔 "지금은 준비 안 됐지만 나중에 될 수 있다"는
+신호로 쓰고, 한 pass를 통째로 돌렸는데도 진전이 전혀 없을 때만 진짜 순환/선언 누락
+으로 확정.
+
+**④ 구현 + 진전 판정 버그 자체 발견·수정** -- (a) `_HeadroomDependencyNotReady`
+클래스 신설(`InfeasibleSizingError` 바로 뒤). (b) 헤드룸 루프 바디 전체를
+`_resolve_vertical_group(vsid)`로 감싸고(로직 자체는 그대로 옮기기만 함, 바깥
+for-loop의 `continue` 2곳만 함수 안 `return`으로 교체 -- 안 바꾸면 "loop 밖 continue"
+`SyntaxError`), 3곳의 `ValueError`를 `_HeadroomDependencyNotReady`로 교체. (c)
+worklist 1차 구현("이번 pass에 완결된 그룹이 0개면 실패")을 손으로 시뮬레이션하다가
+**자체 발견한 버그**: grpA가 grpB보다 먼저 시도되는 순서면, grpA는 실패하고 grpB는
+pre-pass로 M10을 채우긴 하지만(진전!) grpB 자신도 grpA의 M8을 기다리느라 결국
+실패해 "이번 pass 완결 그룹 0개"가 나오는데, 이건 진전이 없는 게 아니라 다음 pass에
+grpA가 풀릴 수 있는 진짜 진전이다 -- "그룹 완결 수"가 아니라 **"ctx.sized에 vds가
+채워진 소자 수가 이번 pass 동안 늘었는가"**로 진전 판정을 바꿔 해결(세 `_HeadroomDep
+endencyNotReady` 지점 전부 "참조 대상 vds 없음"만 검사하므로 이 카운트가 이 조건의
+완전한 대리지표임을 확인).
+
+**⑤ self-test 3건 신설**(`sizing_recipe.py`, 기존 `vds_match_vgs_of` 순환 테스트
+바로 뒤) -- (a) N(=M16 모사, known_sizing으로 완전 확정)/S(=M10)/F(=M9b)/T2(=M9a)/
+T(=M8) 5소자 fixture로 실제 Monticelli 상호참조를 그대로 축소 복제, S.vds/T·T2.vds/
+F.vds가 정확한 값으로 2 pass만에 수렴함을 수치까지 검증(1차 시도는 KeyError로 실패
+-- device_roles를 통째로 지운 소자가 다른 루프에서 kind_of 조회 실패를 일으킴을
+실측으로 발견 후 fixture 수정). (b) 진짜 순환(X<->Y가 서로 budget_reference_device로
+직접 참조, pre-pass 탈출구 없음)은 여전히 명확한 `ValueError`로 잡히는지("grpX"/
+"grpY" 둘 다 에러 메시지에 있는지까지 확인). (c) 기존 `vds_match_vgs_of` 순환 테스트
+(M204/M301류 패턴)가 새 에러 메시지 형식에서도 "순환 참조" 문자열을 그대로 포함하는지
+회귀 확인. `py_compile` + 전체 self-test 재실행 exit 0(회귀 없음), 4개 회로 harness
+재실행 결과가 세션38 baseline과 **전부 완전히 동일**함을 먼저 확인(알고리즘 리팩터
+자체는 어떤 회로 값도 안 바꿈 -- current_reuse_telescopic_ota의 SLSQP(70초+/스타트)는
+백그라운드로 재실행).
+
+**⑥ classab_centering_dev_v 위험 발견 + 사용자 확인** -- 실제 선언 3건을
+`current_reuse_telescopic_ota.topology.json`에 적용하기 직전, baseline metrics를
+다시 보다가 이 회로에 이미 `classab_centering_dev_v`(V(Vg15)+V(Vop1)의 합이 VDD에
+가까운지, 논문 Section II.B 기반, constraint `<=0.15`)가 있고 실측값이 **0.14987577
+로 턱걸이 통과** 중임을 발견했다. Vg15/Vop1을 정확한 값으로 강제 확정하면 SLSQP가
+이 constraint를 맞추려고 암묵적으로 쓰던 자유도가 사라져 개선/악화/infeasible 셋 중
+하나가 나올 수 있다고 판단, 적용 여부를 사용자에게 물어 "적용하고 실측 확인"으로
+진행 승인을 받았다.
+
+**⑦ 실제 적용 + 실측(우려했던 위험은 발생하지 않음, 오히려 정합성 개선 확인)** --
+`M9a.budget_reference_device="M10"`, `M9b.budget_reference_device="M8"`,
+`M10.vds_match_vgs_of="M16"` 3건을 comment와 함께 추가(JSON 문법 검증 통과). harness
+재실행(백그라운드, SLSQP 3-start) -- `gain_db=76.48334`/`classab_centering_dev_v=
+0.14987577` **완전히 불변**(theta_star도 동일). 직접 `_build_theta_evaluator()`를
+같은 theta_star로 호출해 적용 전/후 `ctx.sized`를 대조한 결과, 실제로는 값이 크게
+바뀌었음을 확인: **M8.vds 1.2V->0.3V, M9b.vds 0.9V->0.6242V, M10.vds 0.9V->0.8758V**
+(전부 예전엔 물리적으로 틀린 근사였다는 뜻) -- 그런데 새 `M10.vds`(0.87578130502...V)
+가 **전체회로 MNA로 독립 계산되는 `vop1_level_v` metric과 소수점 끝까지 정확히
+일치**함을 확인, 이건 이 세션의 손 유도가 실제로 물리적으로 정확했다는 강한 교차검증
+이다(이전엔 0.9V로 0.024V 어긋나 있었음). `classab_centering_dev_v`/`gain_db`가
+불변인 이유도 직접 확인: 이 두 metric은 M8/M9a/M9b/M10의 헤드룸 vds를 전혀 안 읽는
+독립된 전체회로 계산 경로라 애초에 그 자유도와 무관했다(우려가 기우였음이 밝혀짐).
+`cmrr_estimate_db`(98.2->95.6dB)/`psrr_estimate_db`(107.9->105.3dB)는 소폭 변했는데
+이건 오히려 정상 -- 이 두 metric은 M8/M10의 실제 gm/gds를 반영하고(self-test
+docstring에 "Ann_open이 M8/M17/M10/M19 전부 반영"이라 이미 명시돼 있었음), vds가
+정확해지며 gm/gds도 정확해진 결과다(둘 다 constraint 60dB는 여유 있게 통과, 최종
+결과 `OK` 불변). 나머지 3개 회로(nmcnr_amplifier/two_stage_ota/folded_cascode)는
+이 topology.json과 무관해 영향 없음을 재실행으로 재확인(전부 세션38 baseline과 완전
+동일).
+
+## 2. 최종 검증 상태
+
+- `sizing_recipe.py` self-test 전체 exit 0(fixed-point worklist self-test 3건
+  신설 포함, 회귀 없음) -- 알고리즘 리팩터 직후 1회, Monticelli 선언 3건 추가 전
+  1회, 최종 1회까지 총 3회 재확인.
+- `python run_harness.py current_reuse_telescopic_ota`(SLSQP) -- `OK`,
+  **최종** metrics={power_uA=0.0002548695...(불변), gain_db=76.48334376337718
+  (불변), mismatch_sigma_mV=4.617857465886722(불변), cmrr_estimate_db=
+  95.6014694974583(98.2->95.6, 정확해짐), psrr_estimate_db=105.3040044926563
+  (107.9->105.3, 정확해짐), gain_full_circuit_db=90.13284973786595(92.7->90.1),
+  vg15_level_v=0.7743429273806026(불변), vop1_level_v=0.8757813050202109(불변,
+  이제 M10.vds와 정확히 일치), classab_centering_dev_v=0.14987576759918642
+  (완전 불변, constraint<=0.15 여유있게 통과)}. `run_full_circuit_audit.ok=True`
+  (불변). `audit_ok`(row_split 레이아웃)=False는 세션38부터 이월 중이던 별개
+  이슈(§4⑤) 그대로.
+- `python run_harness.py nmcnr_amplifier`/`two_stage_ota`/`folded_cascode` --
+  전부 세션38 baseline과 **완전히 동일**한 metrics로 재현(회귀 없음, 이 세션의
+  모든 변경은 `current_reuse_telescopic_ota.topology.json`에만 적용됨).
+
+## 3. 커밋 상태 -- **세션39는 아직 커밋 전**(이 문서 갱신 포함, 다음 턴에 사용자
+확인 후 커밋 예정)
+
+변경된 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`(fixed-point
+worklist 리팩터 + `_HeadroomDependencyNotReady` 신설 + self-test 3건, +224/-35줄),
+`skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.
+json`(M9a/M9b에 `budget_reference_device` + M10에 `vds_match_vgs_of` + 근거
+comment 3건), `workspaces/current-reuse-telescopic-ota-report/current_reuse_
+telescopic_ota.instance.json`(harness 재실행 결과물), `.ai/context.md`(이 절).
+`report.html`/`full_netlist_for_grammar.json`/`smoke_run_harness_session18_
+save.py`는 세션18/22부터 이어진 기존 미커밋 상태 그대로(이번 세션이 새로 만든
+파일 아님).
+
+## 4. 다음 세션 이월 항목(우선순위 순)
+
+### ① [다음 최우선] DC/AC 분리 아키텍처의 남은 절반 -- 자동 탐지/제안 엔진 +
+load의 gain-budget theta 승격 (세션38 §4① 설계 요소 2/4, 세션39가 다 못 끝냄)
+
+이번 세션은 "primitive가 이미 있으면 스케줄링만 고치면 풀린다"는 걸 실증했지만
+(fixed-point worklist), **어떤 소자 쌍/체인에 `vds_match_vgs_of`/`budget_
+reference_device`를 선언해야 하는지 찾는 건 여전히 전부 사람(이번 세션은 Claude가
+`topology_to_markdown.py` connectivity 표를 손으로 추적)이 했다.** 세션38 설계
+요소 1(자동 N-hop 탐지, `propose_theta_kcl_gap_fill()`류 자동 제안기)과 4(load의
+`L_role="mirror"` 고정배수 대신 진짜 gain-budget theta로 승격, `metric_stage_
+budget`류)는 이번에도 손을 안 댔다. 세션38이 이미 정리한 방향 판정 규칙
+(`compensation.stage_devices` 신호경로 순서, 태그 소속 여부 아님)은 이번 세션의
+M16(권위) vs M10(피참조) 선택에서 실제로 재확인·재사용됐다 -- 다음 세션이 자동화를
+설계할 때 이 규칙을 그대로 가져다 쓰면 된다.
+
+### ② Monticelli 나머지(M11a/M11b/M12/M13/M14a/M14b 컬럼 자체의 검증, class-AB
+출력단 M15/M16/M25/M26)
+
+이번 세션은 M8/M9a/M9b/M10 floating battery **하나**만 고쳤다. `biasgen_vom_
+battery_a`(M11a/M11b/M12)와 `biasgen_vom_battery_b`(M13/M14a/M14b) 두 diode 컬럼
+자체는 헤드룸 계산상 정상(단순 3소자 직렬, 세션27부터 검증됨)이지만, 이번 세션이
+Vg15/Vop1을 강제 확정하면서 **class-AB 출력단(M15/M16/M25/M26) 자체의 quiescent
+bias가 물리적으로 맞는지**(예: M15의 실제 VGS가 Vg15와 vdd 차이로 계산했을 때
+`ID(M15)`가 헤드룸이 가정한 값과 일치하는지)는 이번 세션 범위 밖 -- 세션38 §1-⑱이
+"root를 쫓아가면 M18_bg까지 이어진다"고 언급한 더 긴 체인(M9a.gate->M11b->M12->
+M18_bg)도 아직 안 됨(이번 세션은 M11b/N11b를 "이미 헤드룸으로 풀리는 값"으로만
+참조했지, 그 체인 자체를 검증하진 않았다).
+
+### ③ [세션38 §4②] `nmcnr_amplifier`의 `audit_ok`/`floorplan_ok`/
+`_netlist_sections_structured` (세션37부터 이월, 미착수)
+
+### ④ 세션34 이전부터 계속 이월 중인 항목 5개 (세션37/38 §4⑤/⑥ 그대로 승계 --
+L 일치 전파 필터/`two_stage_ota` M5·M7 matching_pairs 누락/`"balanced"`->
+`"moderate"` 마이그레이션 감사/`run_harness.py` 나머지 실전략/`current_reuse_
+telescopic_ota`의 Monticelli unresolved_devices)
+
+## 5. 다음 세션 시작 순서
+
+**커밋 확인 필요** -- 세션39는 이 문서 갱신까지 포함해 아직 커밋 전이다(다음 턴에
+사용자에게 커밋 여부를 확인할 예정이었음 -- 만약 그 전에 세션이 끝났다면 `git
+status`로 이 절에 나열된 파일들이 실제로 커밋됐는지부터 확인할 것). 커밋이 안 됐다면
+먼저 커밋 여부를 사용자와 확인한 뒤 다음 작업(①, 자동 탐지 엔진 설계)으로 진입할
+것. 사용자가 다른 우선순위(②~④)를 지시하면 그쪽으로 유연하게 진행.
