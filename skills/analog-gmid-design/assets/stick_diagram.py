@@ -4499,7 +4499,17 @@ def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matchin
         name = t.name
         existing = device_roles.get(name) if isinstance(device_roles.get(name), dict) else {}
         proposal = {}
-        if name in gain_role_candidates:
+        if existing.get("gm_id_match_vgs_of"):
+            # 2026-08-19(세션38, sizing_recipe.py의 device_roles.gm_id_match_vgs_of 2차 pass
+            # 신설과 짝 -- nmcnr_amplifier M204 계기) -- gm_id_role과 gm_id_match_vgs_of는
+            # "이 소자의 gm/ID를 어떻게 정하는가"에 대한 상호배타적인 두 방법이다(우선순위
+            # 아니라 양자택일 -- companion의 실제 VGS로 역산하는 쪽이 role 기반 독립 탐색보다
+            # 항상 더 정확하다, 물리적으로 게이트·소스가 공유된 미러쌍이라는 뜻이므로). 이미
+            # declared gm_id_match_vgs_of가 있으면 여기서 gm_id_role을 제안하지 않는다 --
+            # 안 그러면 declared 필드가 "review 안 됨"으로 오탐돼(require_device_roles_
+            # reviewed() 회귀, 실측 발견) 매 load마다 불필요한 리뷰 게이트에 걸린다.
+            pass
+        elif name in gain_role_candidates:
             proposal["gm_id_role"] = "gain"
         elif name in signal_referenced_mirror_legs:
             # diode-connected 레퍼런스 자신의 노드가 SIGNAL(고정 BIAS 아님) -- 목적이

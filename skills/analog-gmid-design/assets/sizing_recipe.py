@@ -4582,6 +4582,71 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
                                 "kind": kind_of[name], "vs": vs}
 
+        # 2026-08-19(세션38) -- device_roles의 gm_id_match_vgs_of: 위 루프(gm_id_role)와
+        # 대칭인 2차 pass. `_feed_metric_stage_budget()`의 동명 필드(3219행 docstring)를
+        # theta-무관 device_roles 레벨로 일반화한 것 -- nmcnr_amplifier의 M203(다이오드
+        # 레퍼런스)/M204(미러) 실측 계기(.ai/context.md 세션37 §1-⑪/§4④): 게이트·소스가
+        # 물리적으로 공유된(gate=NodeC, source=vss 둘 다 동일) 순수 미러쌍은 VDS가 서로
+        # 달라도 VGS는 KVL로 완전히 강제 동일해야 하는데, 기존 루프는 이 관계를 전혀 모른
+        # 채 두 소자의 gm_id를 각자 role 기준으로 독립 탐색했다(우연히 같을 수도, 실측처럼
+        # gain/load로 바꾸면 17.5/18.5로 갈라질 수도 있었음 -- 관계를 보장하는 메커니즘
+        # 자체가 없었다는 게 진짜 문제). 이 pass는 "root"(gm_id_role로 위 루프가 이미
+        # 확정한 소자, 또는 compensation/metric_stage_budget/gm_target_convention처럼
+        # 이 루프 이전에 이미 권위 있게 확정된 소자)의 실제 VGS를 `vgs_for_gm_id()`로
+        # 구해, "dependent" 소자의 gm_id를 자기 자신의 (L,vds,vs)에서 `gm_id_for_vgs()`로
+        # 역산한다(탐색 아님, O(1) 보간 -- gm_id_match_vgs_of의 기존 사용처와 동일 함수
+        # 재사용, 새 계산 로직 없음). 2-pass 고정 순서(gm_id_role 전부 -> gm_id_match_vgs_of
+        # 전부)라 companion이 반드시 gm_id_role 소자이거나 이 루프 이전에 이미 sizing된
+        # 소자여야 한다 -- companion이 또 다른 gm_id_match_vgs_of 소자인 체인은 아직
+        # 미지원(필요해지면 확장, 지금은 실제 사용처가 1단 체인뿐이라 원칙대로 안 만듦).
+        # 선택적 필드(옵트인) -- 안 쓰면 기존 동작과 100% 동일, 다른 회로엔 영향 없음.
+        for name, dr in device_roles.items():
+            match_device = dr.get("gm_id_match_vgs_of")
+            if not match_device:
+                continue
+            entry = ctx.sized.get(name, {})
+            if entry.get("_L_source") in _AUTHORITATIVE_GM_ID_SOURCES:
+                continue
+            if "ID" not in entry:
+                raise ValueError(f"{name}: A엔진(propagate_topology_forced_currents)이 전류를 "
+                                  f"못 정했다 -- mirror_ratios/seed_currents(theta feeds)를 확인할 것")
+            if entry["ID"] <= 0:
+                raise InfeasibleSizingError(
+                    f"{name}: ID={entry['ID']:.6g}A <= 0 -- 이 theta 조합에서 물리적으로 "
+                    f"불가능한 전류(A_signed KCL 뺄셈이 음수가 됨)",
+                    sized_snapshot=dict(ctx.sized))
+            L, vds = entry.get("L"), entry.get("vds")
+            if L is None or vds is None:
+                raise ValueError(f"{name}: L 또는 VDS가 미확정 -- device_roles의 L_role/"
+                                  f"vertical_stack_id 선언을 확인할 것")
+            vs = entry.get("vs", dr.get("vs", 0.0))
+            companion = ctx.sized.get(match_device)
+            if companion is None or "gm_id" not in companion:
+                raise ValueError(
+                    f"{name}: gm_id_match_vgs_of={match_device!r}가 아직 sizing 안 됐다 -- "
+                    f"device_roles 처리는 gm_id_role 소자 전체를 먼저 확정한 뒤 "
+                    f"gm_id_match_vgs_of 소자를 처리한다(2-pass, 선언 순서 무관) -- "
+                    f"{match_device!r}가 gm_id_role/compensation/metric_stage_budget/"
+                    f"gm_target_convention 중 하나로 이미 확정 가능한지 확인할 것 "
+                    f"(gm_id_match_vgs_of 체인은 아직 미지원)")
+            companion_lut = spec["lut_by_kind"][kind_of[match_device]]
+            target_vgs = companion_lut.vgs_for_gm_id(
+                companion["gm_id"], companion["L"], companion["vds"], companion.get("vs", 0.0))
+            lut = spec["lut_by_kind"][kind_of[name]]
+            try:
+                gm_id = lut.gm_id_for_vgs(target_vgs, L, vds, vs)
+            except ValueError as _gifv_e:
+                raise InfeasibleSizingError(
+                    f"{name}(gm_id_match_vgs_of={match_device!r}, target_vgs={target_vgs:.4g}V, "
+                    f"L={L:.4g}m, vds={vds:.4g}V): {_gifv_e}",
+                    sized_snapshot=dict(ctx.sized)) from _gifv_e
+            idu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
+            gm = entry["ID"] * gm_id
+            w = L * entry["ID"] / idu
+            gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vs)
+            ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
+                                "kind": kind_of[name], "vs": vs}
+
         metrics_result = {name: compute_metric(mspec, ctx) for name, mspec in metrics_specs.items()}
         return ctx, metrics_result
 
@@ -8064,6 +8129,80 @@ if __name__ == "__main__":
             f"theta*(N={_theta_star['N']})가 전수비교 최적 N({_manual_best[1]})과 다름"
         print(f"    PASS: theta*=N={_theta_star['N']:.3f}, power_uA={_metrics['power_uA']*1e6:.4f}uA "
               f"-- {5}개 격자점 전수비교와 정확히 일치(재현성+최적성 확인)")
+
+    print()
+    print("  [device_roles.gm_id_match_vgs_of -- 2026-08-19 세션38 신설, gm_id_role 루프의 2차 "
+          "pass가 실제로 companion의 VGS로 결합되는지 (nmcnr_amplifier M203/M204 계기)]")
+    # Ma(diode-connected 레퍼런스, gate=drain=NodeC)/Mb(gate=NodeC, source 공유)는 게이트·소스가
+    # 물리적으로 같은 노드에 묶여 VGS가 항상 같아야 하지만 VDS는 다르다(현실의 M203/M204와 동일
+    # 패턴) -- known_sizing으로 둘 다 L/vds를 직접 시드해(headroom 우회, 위 diagnose_sizing_
+    # roles_gap() 테스트 1과 동일 패턴) 이 2차 pass만 격리해서 검증한다. current_forced=True로
+    # 선언했으므로 ID는 반드시 같아야 한다(propagate_topology_forced_currents()의 KCL 제약 --
+    # 실측으로 확인: 다르게 주면 즉시 ValueError, 이 테스트 자신의 전제를 실제로 검증해줌).
+    _gmv_topo = {
+        "schema_version": "2.0", "topology_name": "_gmv_test", "source": "self-test",
+        "linked_topology_files": [], "compensation": None, "_compensation_status": "not_applicable",
+        "netlist": [
+            {"name": "Ma", "kind": "nmos", "source": "vss", "drain": "NodeC", "gate": "NodeC"},
+            {"name": "Mb", "kind": "nmos", "source": "vss", "drain": "out", "gate": "NodeC"},
+        ],
+        "symmetry": {"matching_pairs": [
+            {"names": ["Ma", "Mb"], "current_forced": True, "matching_sensitivity": "ratio"}],
+            "dispositions": []}, "sizing_roles": None,
+        "device_roles": {
+            "Ma": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror", "vs": 0.0},
+            "Mb": {"gm_id_match_vgs_of": "Ma", "L_role": "mirror", "headroom_role": "mirror", "vs": 0.0},
+        },
+    }
+    _gmv_L, _gmv_vds_a, _gmv_vds_b = 0.5e-6, 0.8, 0.5  # ⚠️ 일부러 다른 VDS
+    _gmv_known = {"Ma": {"ID": 1e-5, "L": _gmv_L, "vds": _gmv_vds_a, "vs": 0.0},
+                  "Mb": {"ID": 1e-5, "L": _gmv_L, "vds": _gmv_vds_b, "vs": 0.0}}
+    with _tempfile.TemporaryDirectory() as _gmv_tmp:
+        _gmv_path = _os.path.join(_gmv_tmp, "_gmv_test.topology.json")
+        with open(_gmv_path, "w", encoding="utf-8") as _f:
+            json.dump(_gmv_topo, _f)
+        _gmv_spec = {"lut_by_kind": {"nmos": lut}, "vdd": 1.8, "L_min": 0.15e-6,
+                     "W_bounds": (1e-6, 200e-6), "min_vds_by_role": {"mirror": 0.2},
+                     "known_sizing": _gmv_known}
+        # optimize_full_circuit_budget()이 아니라 _build_theta_evaluator()+evaluate({})를 직접
+        # 쓴다 -- 이 테스트가 검증하려는 건 device_roles 2차 pass 하나뿐이고, 전체 harness는
+        # assign_finger_geometry()/run_topology_pipeline_with_finger_fixup() 같은 무관한 레이아웃
+        # 단계까지 통과해야 해서(이 2-소자 toy 회로엔 그 단계용 spec 필드가 없어 실패함) 이
+        # 테스트의 의도와 무관한 실패를 낼 수 있다(위 "합성 sizing_roles" 테스트와 달리 이 fixture는
+        # 레이아웃까지 검증할 의도가 없음).
+        _gmv_ev = _build_theta_evaluator(_gmv_path, _gmv_spec)
+        _gmv_ctx, _ = _gmv_ev["evaluate"]({})
+    _gmv_gm_id_a, _gmv_gm_id_b = _gmv_ctx.sized["Ma"]["gm_id"], _gmv_ctx.sized["Mb"]["gm_id"]
+    _gmv_target_vgs = lut.vgs_for_gm_id(_gmv_gm_id_a, _gmv_L, _gmv_vds_a, 0.0)
+    _gmv_expected_gm_id_b = lut.gm_id_for_vgs(_gmv_target_vgs, _gmv_L, _gmv_vds_b, 0.0)
+    assert abs(_gmv_gm_id_b - _gmv_expected_gm_id_b) < 1e-9, \
+        f"Mb의 gm_id({_gmv_gm_id_b})가 Ma의 VGS 역산값({_gmv_expected_gm_id_b})과 다름"
+    # ⚠️ build_toy_lut()는 구조 검증 전용 단순 모델이라 VGS(gm_id,L,vds)가 vds와 무관하다(실측
+    # 확인) -- 그래서 gm_id_a==gm_id_b가 나오는 게 이 toy LUT에서는 정상이다(실제 sky130 LUT의
+    # M203/M204라면 vds가 달라 갈라짐, .ai/context.md 세션37 §1-⑪ 실측 참고). 이 테스트가 실제로
+    # 검증하는 건 "값이 다르다"가 아니라 "Mb의 gm_id가 Ma의 VGS를 역산한 정확한 값과 일치한다"는
+    # 것 자체다 -- Mb는 device_roles에 gm_id_role이 아예 없으므로(gm_id_match_vgs_of만 있음),
+    # 이 2차 pass가 없으면 Mb는 애초에 sizing되지 않아 아래 딕셔너리 접근이 KeyError로 죽는다
+    # (즉 이 테스트가 통과한다는 사실 자체가 이미 2차 pass가 실제로 실행됐다는 증거).
+    print(f"    PASS: Ma(root,'matching')=gm_id {_gmv_gm_id_a:.3f}@vds={_gmv_vds_a}V, "
+          f"Mb(gm_id_match_vgs_of=Ma)=gm_id {_gmv_gm_id_b:.3f}@vds={_gmv_vds_b}V -- "
+          f"companion VGS 역산과 정확히 일치(Mb에 gm_id_role이 없으므로 이 값은 2차 pass로만 "
+          f"나올 수 있음)")
+
+    print("  [gm_id_match_vgs_of가 아직 sizing 안 된(존재하지 않는) 소자를 참조하면 ValueError]")
+    _gmv_bad_topo = json.loads(json.dumps(_gmv_topo))
+    _gmv_bad_topo["device_roles"]["Mb"]["gm_id_match_vgs_of"] = "Mz"
+    with _tempfile.TemporaryDirectory() as _gmv_bad_tmp:
+        _gmv_bad_path = _os.path.join(_gmv_bad_tmp, "_gmv_bad.topology.json")
+        with open(_gmv_bad_path, "w", encoding="utf-8") as _f:
+            json.dump(_gmv_bad_topo, _f)
+        try:
+            _build_theta_evaluator(_gmv_bad_path, _gmv_spec)["evaluate"]({})
+            raise AssertionError("존재하지 않는 companion인데 에러가 안 났다")
+        except ValueError as _gmv_e:
+            assert "gm_id_match_vgs_of" in str(_gmv_e) and "Mz" in str(_gmv_e), \
+                f"에러 메시지에 gm_id_match_vgs_of/Mz가 없음: {_gmv_e}"
+            print(f"    PASS: ValueError -- {str(_gmv_e)[:70]}...")
 
     print()
     print("  [diagnose_sizing_roles_gap() -- device_role/symmetry의 propose_device_roles_"
