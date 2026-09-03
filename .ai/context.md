@@ -12780,10 +12780,70 @@ block(OTA/bandgap 등) 인식을 구현할 때 이 "seed→확장→다음 stage
 
 ## 7. 다음 세션 최우선 순서 (갱신)
 
-1. `two_stage_ota` + `current_reuse_telescopic_ota`(output_stage_a) 공통의 **DC/AC
-   아키텍처 분리 설계** -- 이제 두 회로에서 같은 패턴(compensation의 AC 도메인 스테이지
-   VDS 선택이 DC KVL과 상충)이 확인됐으니, 회로마다 손으로 우회하지 말고 일반 메커니즘을
-   설계할 때 두 실측 사례를 함께 참고할 것.
-2. `two_stage_ota`의 stage2(M6+M7) 실측, `stick_diagram.py` Test 53g의
-   `_AUTHORITATIVE_GM_ID_SOURCES` 가드 본연의 검증 재개(위 1번 완료 후).
-3. (급하지 않음) 세션40의 block-coordinate 탐색(gain_db≈69.4dB) 재실행.
+**커밋(`3250baa`/`40e93fe`) 이후 사용자 지시로 다음 세션 이월 항목 전체를 다시
+점검한 결과, §4의 "완료" 판정과 별개로 새로운 실측 발견이 하나 더 나왔다(§7-0,
+diffpair보다 더 위험한 유형 -- 크래시 없이 조용히 틀린 값을 냄). 순서를 그 발견을
+반영해 재정렬한다.**
+
+### 7-0. (신규 발견, 최우선 후보) `biasgen_vop_a`에 `budget_reference_device` 누락
+-- diffpair와 같은 유형이지만 크래시하지 않고 조용히 틀린 값을 냄
+
+**실측(2026-08-24 재점검, `_verify_group_kvl_sum`에 임시 디버그 프린트로 확인)**:
+`biasgen_vom_a`(M8/M9a, "vom"측 floating battery 상단)에는 이미
+`budget_reference_device: "M10"`가 M9a에 선언돼 있어서(§9039 근방, Monticelli
+패턴) M9a.vds가 정확히 계산된다(=0.1928V, 대칭 파트너 M9b.vds와 정확히 일치).
+**그런데 대칭인 `biasgen_vop_a`(M17/M18a, "vop"측)엔 이 참조가 아예 없다** -- 그
+결과 M18a.vds가 `vdd - VDS(M17)`로(=0.8609V) 잘못 계산되고, **물리적으로 반드시
+같아야 하는**(M18a/M18b는 정확히 같은 두 노드 Vg25/Vom1을 반대 방향으로 잇는
+anti-parallel 쌍이라 VDS는 노드 전압차 하나로 정의상 동일해야 함) 대칭 파트너
+M18b.vds(=0.1928V, `biasgen_vop_floatsrc_sink`가 `budget_reference_device:
+"M17"`을 propose_device_roles_gap_fill()의 6번째 소스로 **런타임에만** 자동
+추론해서 얻은 정확한 값)와 **완전히 다르다**(0.8609 vs 0.1928).
+
+**왜 여태 self-test/SLSQP 둘 다 통과했는가**: `biasgen_vop_a`와 `biasgen_vop_
+floatsrc_sink`는 서로 다른 vertical_stack_id라 `_verify_group_kvl_sum()`이 각자
+독립적으로만 "내 그룹 합=vdd"를 확인한다 -- `biasgen_vop_a`(M17+M18a)도 그 자체로는
+합이 정확히 vdd(1.8V)가 되므로(참조 없이 `allocate_stack_headroom()`이 남는 예산
+전부를 그 그룹에 배정하는 계약상 항상 성립) **개별 그룹 검증은 통과하지만, 두
+그룹에 걸친 "M18a와 M18b는 물리적으로 같은 값이어야 한다"는 상위 제약을 어느
+메커니즘도 확인하지 않는다.** diffpair 문제와 달리 크래시로 드러나지 않고 조용히
+틀린 값(M18a가 실제보다 훨씬 큼)을 최종 결과에 흘려보낸다는 게 더 위험하다.
+
+**왜 vom측은 맞고 vop측만 빠졌는가(확실치 않음, 다음 세션 확인 필요)**: `biasgen_
+vom_a`/`biasgen_vom_floatsrc_sink`는 `budget_reference_device`가 **파일에 명시
+선언**돼 있는데, `biasgen_vop_floatsrc_sink`의 `M17` 참조는 **파일엔 없고
+`load_topology()`의 6번째 소스 자동추론(런타임 전용, 파일엔 안 씀)에서만** 나온다
+-- `biasgen_vop_a`는 아마 같은 6번째 소스가 Vom1의 4-way 공유(M2a/M3a/M18a/M19)
+때문에 모호하다고 판단해 `review_needed`로 보류시킨 것으로 보인다(§2의 그 판정
+기준과 동일 패턴). 즉 vom측은 세션38/39가 손으로 채운 declared 선언이고, vop측은
+그 대칭 작업이 애초에 안 됐던 걸로 보인다(vom측만 채워지고 vop측이 빠진 이전
+세션들의 패턴 -- M2a/M3b의 fold_group 코멘트도 "a측만 상세, b측은 대칭이라고만
+적음"과 같은 유형의 누락).
+
+**제안하는 수정(다음 세션에서 사용자와 함께 검증 후 적용)**: `M18a`에
+`budget_reference_device: "M19"`를 추가(`biasgen_vom_a`의 `M9a.budget_reference_
+device="M10"`과 정확히 대칭) -- 이러면 `biasgen_vop_a`의 base_budget이
+`vdd-VDS(M19)`가 되어, M18a가 M18b와 동일한 값(0.1928V)으로 정확히 계산될 것으로
+예상된다(실제로 fixed-point worklist 순서/순환 문제가 없는지는 재검증 필요 --
+`biasgen_vop_floatsrc_sink`가 이미 M17을 참조하므로 `biasgen_vop_a`가 M19를
+참조하면 상호참조가 되는데, 이게 Monticelli 패턴처럼 fixed-point로 풀리는지
+확인할 것).
+
+### 7-1. `two_stage_ota` + `current_reuse_telescopic_ota`(output_stage_a **및
+대칭인 output_stage_b -- M25/M26, 같은 `L_stage2out_p`/`L_stage2out_n` theta로
+같이 처리되므로 output_stage_a와 동일한 갭이 있을 것이 거의 확실, 아직 실측 도달
+전**) 공통의 **DC/AC 아키텍처 분리 설계** -- 두 회로에서 같은 패턴(compensation의
+AC 도메인 스테이지 VDS 선택이 DC KVL과 상충)이 확인됐으니, 회로마다 손으로
+우회하지 말고 일반 메커니즘을 설계할 때 실측 사례 전부(two_stage_ota의 stage1_out,
+current_reuse의 output_stage_a/b)를 함께 참고할 것.
+
+### 7-2. `two_stage_ota`의 stage2(M6+M7) 실측, `stick_diagram.py` Test 53g의
+`_AUTHORITATIVE_GM_ID_SOURCES` 가드 본연의 검증 재개(7-1 완료 후).
+
+### 7-3. (급하지 않음) 세션40의 block-coordinate 탐색(gain_db≈69.4dB) 재실행.
+
+**우선순위 재정렬 근거**: 7-0(biasgen_vop_a)이 가장 먼저인 이유는 (a) 원인이
+명확히 진단됐고(파일 하나에 필드 하나 추가로 시도해볼 수 있는 규모), (b) 크래시가
+아니라 **조용한 오차**라 지금 당장 눈에 안 띄어도 이후 실제 회로 특성(class-AB
+바이어스 정확도)에 영향을 줄 수 있어 방치 위험이 더 크기 때문. 7-1(DC/AC
+아키텍처)은 훨씬 크고 다회로에 걸친 설계 작업이라 그 다음.
