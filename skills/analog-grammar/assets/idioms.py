@@ -53,7 +53,8 @@ Transistor connectivity 위에 새 그래프 탐색/BFS 코드를 손으로 다�
 from collections import defaultdict, deque
 from netclass import (RAILS, RAILS_POS, RAILS_NEG, HIGH_Z, LOW_Z,
                       DIODE, CURR_SRC, CTRL_SRC, CASCODE, AMP, FOLLOWER,
-                      SWITCH, ACTIVE_LOAD, BIAS, SIGNAL, INPUT, OUTPUT, FEEDBACK)
+                      SWITCH, ACTIVE_LOAD, BIAS, SIGNAL, INPUT, OUTPUT, FEEDBACK,
+                      is_mutual_loop_partner)
 
 REGISTRY = []
 
@@ -651,10 +652,8 @@ def m_float_source(devs, cls, imp, role):
     out, seen = [], set()
     for a in devs:
         for b in devs:
-            if a['name'] >= b['name'] or a['type'] == b['type']: continue
-            if a['S'] != b['D'] or a['D'] != b['S']: continue
-            if a['S'] in RAILS or a['D'] in RAILS: continue
-            if a['G'] == b['G'] or a['G'] in RAILS or b['G'] in RAILS: continue
+            if a['name'] >= b['name']: continue
+            if not is_mutual_loop_partner(a, b): continue
             key = frozenset((a['name'], b['name']))
             if key in seen: continue
             seen.add(key)
@@ -696,14 +695,27 @@ def m_telescopic(devs, cls, imp, role):
     folded cascode 와의 구별점: telescopic 은 두 cascode 가 같은 전류
     경로 위에 있고, folded 는 별도 전류 가지를 통해 접힌다.
     여기서는 이득 노드 형태만 판정하고 fold 여부는 SFG 단계로 넘긴다.
+
+    2026-08-24(chip-design-skills, 사용자 지적으로 발견) -- 원래는 `len(ms) != 2`로
+    이 노드에 드레인을 대는 소자 수를 그대로 셌다. 고립된 fixture(순수 1단만)에서는
+    이득 노드에 진짜 cascode 2개뿐이라 문제가 없었지만, 실제 완성된 회로에서는 같은
+    이득 노드에 floating-current-source(Monticelli class-AB battery)나 단순
+    current-mirror sink가 **추가로** 드레인을 댈 수 있다(`current_reuse_telescopic_ota`
+    의 Vom1 실측: M2a/M3a(진짜 cascode) 외에 M18a(floating battery)/M19(mirror sink)도
+    drain=Vom1이라 len(ms)==4가 되어 이 idiom이 통째로 스킵됐다 -- 그 결과 M18a가
+    엉뚱하게 M3a의 cascode-stack 후보로 오매칭되는 회귀로 이어짐). role==CASCODE로
+    먼저 걸러낸 뒤 그 개수가 2인지 보면, 몇 개의 소자가 이 노드에 더 물려 있든
+    "진짜 상보형 cascode 쌍"만 정확히 골라낸다(role 배정 자체가 이미 floating-
+    current-source/current-source를 CASCODE와 구분해주므로 새 판정 로직 불필요).
     """
     out, by_d = [], defaultdict(list)
     for d in devs: by_d[d['D']].append(d)
     for node, ms in by_d.items():
-        if node in RAILS or imp.get(node) != HIGH_Z or len(ms) != 2: continue
-        if not all(role[m['name']] == CASCODE for m in ms): continue
-        if ms[0]['type'] == ms[1]['type']: continue
-        out.append(Match('cascoded-gain-node', [m['name'] for m in ms],
+        if node in RAILS or imp.get(node) != HIGH_Z: continue
+        cascodes = [m for m in ms if role[m['name']] == CASCODE]
+        if len(cascodes) != 2: continue
+        if cascodes[0]['type'] == cascodes[1]['type']: continue
+        out.append(Match('cascoded-gain-node', [m['name'] for m in cascodes],
                          {'node': node}, note='상보형 cascode 대향', priority=8))
     return out
 

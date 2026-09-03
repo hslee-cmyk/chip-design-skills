@@ -61,6 +61,34 @@ def terminals(devs):
     return t
 
 
+def is_mutual_loop_partner(a, b):
+    """두 소자가 서로 다른 두 non-rail 노드 사이를 반대 방향으로 마주보고 잇는
+    anti-parallel 2-사이클(`a.S==b.D and a.D==b.S`, kind가 다름, 레일 아님, 게이트도
+    서로 다르고 레일 아님)을 이루는지 -- G==D(diode-connected)처럼 특정 idiom의
+    이름/분류 결과에 기대지 않는 순수 raw connectivity 사실이다.
+
+    2026-08-24(chip-design-skills, 사용자 지시로 신설) -- Stage 1(`classify_nets()`의
+    임피던스 등급, 아래 참고)과 Stage 3(`idioms.py`의 `floating-current-source`)가
+    **같은 원시 조건**을 각자 다른 목적으로 재사용한다. G==D를 Stage 1(1e2, BIAS 판정)
+    과 Stage 3(`diode-connected` idiom)가 이미 이렇게 공유하는 것과 동일한 패턴 --
+    Stage 1이 Stage 3의 *분류 결과*를 소비하는 게 아니라(그러면 순환), 둘 다 netlist
+    원시 정보만 보고 독립적으로 같은 조건을 계산할 뿐이므로 순환이 아니다."""
+    if a['name'] == b['name'] or a['type'] == b['type']:
+        return False
+    if a['S'] != b['D'] or a['D'] != b['S']:
+        return False
+    if a['S'] in RAILS or a['D'] in RAILS:
+        return False
+    if a['G'] == b['G'] or a['G'] in RAILS or b['G'] in RAILS:
+        return False
+    return True
+
+
+def has_mutual_loop_partner(dev, devs):
+    """`dev`가 어떤 다른 소자와 `is_mutual_loop_partner()` 관계를 이루는지."""
+    return any(is_mutual_loop_partner(dev, o) for o in devs if o['name'] != dev['name'])
+
+
 def classify_nets(devs, inputs=(), outputs=(), biases=(), feedbacks=(), clocks=()):
     """
     Stage 1. 반환: (netclass dict, impedance dict, assumptions list)
@@ -185,10 +213,19 @@ def classify_nets(devs, inputs=(), outputs=(), biases=(), feedbacks=(), clocks=(
         cls.setdefault(n, INTERNAL)
 
     # --- 1f. 임피던스 등급 -------------------------------------------------
+    # 2026-08-24(chip-design-skills, 사용자 지시로 수정) -- source 단자가 하나라도
+    # 있으면 무조건 LOW_Z였는데, `is_mutual_loop_partner()`(anti-parallel floating
+    # loop, 위 참고)의 절반인 소자의 source는 예외다: 이 노드가 실제로 저임피던스라서
+    # source가 붙은 게 아니라, floating loop 구조상 부수적으로 생기는 것뿐이다(실측:
+    # `current_reuse_telescopic_ota`의 Vom1 -- 진짜 상보형 cascode 이득 노드인데
+    # floating-current-source 절반(M18b)의 source가 물려 있어 LOW_Z로 오분류되던
+    # 회귀). 이 예외를 빼면 나머지 source 판정 원칙(소스가 붙으면 저임피던스)은 그대로.
+    dev_by_name = {d['name']: d for d in devs}
     imp = {}
     for n, ts in term.items():
         if n in RAILS: imp[n] = RAIL_Z; continue
-        kinds = [k for _, k in ts]
+        kinds = [k for dname, k in ts
+                 if not (k == 'S' and has_mutual_loop_partner(dev_by_name[dname], devs))]
         if all(k == 'D' for k in kinds) or set(kinds) <= {'D', 'G'}:
             imp[n] = HIGH_Z          # 드레인만 모인 노드 = 이득 노드
         else:

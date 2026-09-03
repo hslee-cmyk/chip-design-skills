@@ -1240,6 +1240,8 @@
     "M2a": {
       "vertical_stack_id": "diffpair_top_a",
       "headroom_role": "cascode",
+      "budget_reference_device": ["M6", "M3a", "M4a", "M5"],
+      "_budget_reference_device_comment": "2026-08-24(세션42, 사용자 지시 옵션1) -- diffpair_top_a(M1a+M2a)는 vdd-M6-M1a-M2a-M3a-M4a-M5-gnd 6소자 단일 branch의 절반일 뿐이라, 나머지 4소자(M6/M3a/M4a/M5) 전체를 참조해야 이 그룹의 진짜 예산(vdd-그 4소자 합)이 나온다(budget_reference_device를 list로 확장, sizing_recipe.py _sum_ref_vds() 참고). diffpair_bottom_a도 대칭으로 이쪽(M2a)을 되참조해 fixed-point worklist로 상호 수렴(Monticelli floating battery 상호참조와 동일 패턴) -- fold_group=vom1_fold(세션41 오판, Vom1이 진짜 fold가 아니라 이 6소자 단일 branch 내부 접합점임을 세션42가 확인)는 제거.",
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
@@ -1253,6 +1255,7 @@
     "M2b": {
       "vertical_stack_id": "diffpair_top_b",
       "headroom_role": "cascode",
+      "budget_reference_device": ["M7", "M3b", "M4b", "M5"],
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
@@ -1260,6 +1263,7 @@
     "M3a": {
       "vertical_stack_id": "diffpair_bottom_a",
       "headroom_role": "cascode",
+      "budget_reference_device": ["M6", "M1a", "M2a", "M5"],
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
@@ -1273,6 +1277,7 @@
     "M3b": {
       "vertical_stack_id": "diffpair_bottom_b",
       "headroom_role": "cascode",
+      "budget_reference_device": ["M7", "M1b", "M2b", "M5"],
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
