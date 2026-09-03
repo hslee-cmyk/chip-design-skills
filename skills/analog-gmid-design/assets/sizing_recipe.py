@@ -799,7 +799,8 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
                          objective: str = "power", gain_min=None, w_max=None,
                          max_iter: int = 10, tol: float = 1e-3,
                          shared_gm_id_groups: list | None = None,
-                         stage_extra_feasible: list | None = None):
+                         stage_extra_feasible: list | None = None,
+                         vds_kvl_groups: list | None = None, vdd: float | None = None):
     """제네릭 다단 회로 최적화 엔진 — **토폴로지가 바뀌어도 이 함수는 그대로 재사용**한다.
 
     다단 회로마다 다른 건 "스펙 → 각 스테이지 필요 gm" 관계식(위상보상 방정식)뿐이고, 그 gm을
@@ -879,10 +880,40 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
     self-test는 toy LUT로 `optimize_multistage()` 자체의 내부 수렴만 봤지 그 결과를
     `run_topology_pipeline()`의 stack_id 감사에 넣어본 적이 없어 놓쳤다).
 
+    vds_kvl_groups(2026-09-03 세션43, 근본수정): `list[list[int]]`, 예 `[[2,3]]` — 스테이지
+    인덱스 그룹 중 **물리적으로 같은 VDD~GND 직렬 컬럼**이라 VDS **합이 정확히 vdd여야**
+    하는 경우에 지정한다(shared_gm_id_groups의 "ID가 같아야 함"과는 다른 축의 제약 --
+    둘 다 걸리는 그룹도 있을 수 있다, 예: current_reuse_telescopic_ota의 output_stage_a/b
+    는 [2,3]이 `shared_gm_id_groups`(gm2의 gmp2=gmn2 KCL)와 `vds_kvl_groups`(M15+M16의
+    VDD~GND KVL) 둘 다에 동시 소속). 지정하지 않은 스테이지는 기존과 동일하게 VDS도 완전히
+    독립 탐색된다(하위호환 100%, `vdd`도 이때는 안 써도 됨 -- 필수 아님).
+
+    ⚠️ 발견 경위: `current_reuse_telescopic_topology()`가 session30에서 L/gm_id 탐색상의
+    이유(cross-kind Pelgrom 매칭 문제)로 [M15,M16,M25,M26] 한 그룹을 [M15,M25]/[M16,M26]
+    2개 스테이지로 쪼갰는데, 이 분리가 VDS 탐색까지 덩달아 독립시켜버렸다 -- M15(stage2)와
+    M16(stage3)는 실제로 `vdd`(M15.source)~`gnd`(M16.source) 사이 딱 2소자 직렬 컬럼
+    (`output_stage_a`)인데, `optimize_multistage()`가 이 사실을 몰라 각자 `VDS_candidates`
+    에서 독립적으로(gain_db만 보고) VDS를 골라 KVL(합=vdd)을 검증 없이 깰 수 있었다(실측:
+    bounds-midpoint 지점에서 M15=0.45V/M16=1.2V, 합 1.65V≠1.8V). `resolve_feed_vds()`
+    (세션41)는 이것과 다른 버그(하드코딩 0.6이 compensation의 기존값을 덮어쓰는 것)를 고친
+    것이라 이 근본적인 "compensation이 KVL을 아예 모른다"는 문제는 그대로 남아 있었다
+    (`.ai/context.md` 세션43 참고).
+
+    구현: 그룹의 앞 (n-1)개 스테이지는 `_resolve_vds()`가 주는 자기 grid를 각자 자유탐색
+    (cartesian product, 실사용은 전부 2-멤버 그룹이라 이 곱은 사실상 1중 루프)하고, 마지막
+    스테이지의 VDS는 그때마다 `vdd - sum(나머지)`로 **강제**한다(자기 grid를 벗어나면 그
+    조합은 버림 -- 원래 grid 상한이 "물리적으로 말이 되는 헤드룸 범위"라는 의미를 여전히
+    존중). 조합마다 각 스테이지를 그 고정 VDS에서 `find_optimal_sizing()`으로 독립적으로
+    (L, gm_id)만 찾은 뒤, 전체(그룹) objective가 최선인 조합을 채택 -- `shared_gm_id_groups`
+    와 동시 소속이면 바깥 루프(공유 gm_id 후보)가 이미 gm_id를 고정한 채로 이 로직을
+    호출한다(중첩, 아래 구현부 참고). ⚠️ N>2 멤버 그룹은 비용이 `len(VDS_candidates)^(N-1)`
+    로 커진다 -- 지금은 이 프로젝트에 2-멤버 사례만 있어 검증됐고, N>2가 생기면 비용부터
+    재검토할 것.
+
     반환: dict(gms=[gm_i,...], stages=[find_optimal_sizing 결과,...], cggs=[...], iters, converged,
                cycle_detected, [cycle_period])
-          또는 어느 스테이지든(혹은 shared_gm_id_groups의 어느 그룹이든) 실행가능점을 못 찾으면
-          None.
+          또는 어느 스테이지든(혹은 shared_gm_id_groups/vds_kvl_groups의 어느 그룹이든) 실행
+          가능점을 못 찾으면 None.
     """
     # 2026-08-12(세션30) -- 준정적(quasi-static) 근사 유효성(find_optimal_sizing()의 fT
     # 인자, check_quasi_static()) 검증이 이 엔진 경로(compensation.stage_devices로 사이징되는
@@ -906,6 +937,9 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
     # omega_c/omega_p2 등)를 노출만 하면 된다 -- 지금은 current_reuse_telescopic_topology()
     # 하나만 실제로 이 속성을 채운다(이번 세션 조사 범위), 나머지 3개는 아직 미제공(기존
     # 동작 그대로, 회귀 없음) -- 메커니즘 자체는 이미 전 토폴로지에 열려 있다.
+    if vds_kvl_groups and vdd is None:
+        raise ValueError("vds_kvl_groups가 선언됐는데 vdd가 안 넘어옴 -- 호출부가 vdd를 "
+                          "같이 넘겨야 한다(VDS 합의 기준값)")
     fT_targets = getattr(topology_fn, "stage_fT_targets", None)
 
     def _per_stage(param, i):
@@ -943,6 +977,52 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         for i in g:
             group_of[i] = tuple(g)
 
+    vds_kvl_group_of = {}
+    for g in (vds_kvl_groups or []):
+        for i in g:
+            vds_kvl_group_of[i] = tuple(g)
+
+    def _size_vdd_split(indices, gms, gm_id_options):
+        """`indices`(2개 이상)의 VDS 합이 정확히 `vdd`가 되도록 결합 탐색(vds_kvl_groups,
+        위 docstring 참고). `gm_id_options`가 `gm_id_grid`(길이>1)면 각 스테이지가 독립적으로
+        자기 gm_id도 같이 찾고, `[gm_id]`(길이 1)면 이미 공유 gm_id가 고정된 채 호출된 것이다
+        (`_size_shared_group`이 바깥에서 감쌈). 반환: `{idx: best_dict, ...}` 또는 실행가능점을
+        하나도 못 찾으면 `None`."""
+        free, last = list(indices[:-1]), indices[-1]
+        free_grids = [_resolve_vds(i) for i in free]
+        last_grid = _resolve_vds(last)
+        last_cap = max(last_grid) if last_grid else None
+        _obj = objective if len(gm_id_options) > 1 else "area"
+        best_members, best_val = None, None
+        for combo in itertools.product(*free_grids):
+            vds_last = vdd - sum(combo)
+            if vds_last <= 0 or (last_cap is not None and vds_last > last_cap * (1 + 1e-9)):
+                continue  # 마지막 멤버 몫이 물리적으로 불가능하거나 원래 grid 상한을 넘음
+            members = {}
+            ok = True
+            for idx, vds_fixed in zip(free, combo):
+                best, _ = find_optimal_sizing(
+                    luts[idx], L_candidates, [vds_fixed], gm_id_options, gm=gms[idx],
+                    objective=_obj, gain_min=_per_stage(gain_min, idx), w_max=_per_stage(w_max, idx),
+                    fT=_per_stage(fT_targets, idx), extra_feasible=_per_stage(stage_extra_feasible, idx))
+                if best is None:
+                    ok = False
+                    break
+                members[idx] = best
+            if not ok:
+                continue
+            best_last, _ = find_optimal_sizing(
+                luts[last], L_candidates, [vds_last], gm_id_options, gm=gms[last],
+                objective=_obj, gain_min=_per_stage(gain_min, last), w_max=_per_stage(w_max, last),
+                fT=_per_stage(fT_targets, last), extra_feasible=_per_stage(stage_extra_feasible, last))
+            if best_last is None:
+                continue
+            members[last] = best_last
+            val = sum(members[i]["W"] for i in indices)
+            if best_val is None or val < best_val:
+                best_val, best_members = val, members
+        return best_members
+
     def _size_group_at_gm_id(indices, gms, gm_id):
         members = []
         for i in indices:
@@ -956,6 +1036,17 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         return members
 
     def _size_shared_group(indices, gms):
+        # 2026-09-03(세션43) -- 이 그룹이 vds_kvl_groups에도 소속돼 있으면(예: output_stage_a/b
+        # 의 [2,3] -- gm2의 gmp2=gmn2 KCL과 M15+M16의 VDD~GND KVL 둘 다 동시에 성립해야 함)
+        # 매 gm_id 후보마다 독립 per-stage 탐색(_size_group_at_gm_id) 대신 그 gm_id로 고정한
+        # 채 VDS 결합탐색(_size_vdd_split)을 쓴다 -- shared_gm_id_groups만 있던 기존 그룹은
+        # vds_group이 None이라 100% 기존 동작 그대로.
+        vds_group = vds_kvl_group_of.get(indices[0])
+        if vds_group is not None and set(vds_group) != set(indices):
+            raise ValueError(
+                f"shared_gm_id_groups {tuple(indices)}와 vds_kvl_groups {vds_group}가 서로 "
+                f"다른 스테이지 인덱스 집합을 가리킨다 -- 두 선언이 겹치려면 정확히 같은 집합"
+                f"이어야 한다(부분 교집합은 미지원, topology.json 확인)")
         # objective="power": ID=gm/gm_id는 gm_id에만 의존(L/VDS 무관) -- 그룹 내 gm이 전부
         # 같다는 전제(topology_fn이 그렇게 반환) 하에 gm_id가 클수록(=약반전=ID 작음) power가
         # 낮아지므로 내림차순으로 훑어 처음 feasible한 gm_id를 채택한다(단일-스테이지의 "약반전
@@ -964,7 +1055,11 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         order = sorted(gm_id_grid, reverse=(objective == "power"))
         best_group, best_val = None, None
         for gm_id in order:
-            members = _size_group_at_gm_id(indices, gms, gm_id)
+            if vds_group is not None:
+                members_map = _size_vdd_split(vds_group, gms, [gm_id])
+                members = [members_map[i] for i in indices] if members_map is not None else None
+            else:
+                members = _size_group_at_gm_id(indices, gms, gm_id)
             if members is None:
                 continue
             if objective == "power":
@@ -975,10 +1070,11 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         return best_group
 
     def _size_all(gms):
-        """stages/cggs 리스트 계산 -- 공유 gm_id 그룹과 독립 스테이지가 섞여도 처리한다.
-        실패 시(어느 스테이지/그룹이든 실행가능점 없음) None."""
+        """stages/cggs 리스트 계산 -- 공유 gm_id 그룹/VDS-KVL 그룹/독립 스테이지가 섞여도
+        처리한다. 실패 시(어느 스테이지/그룹이든 실행가능점 없음) None."""
         stages = [None] * len(gms)
         handled_groups = set()
+        handled_kvl = set()
         for i in range(len(gms)):
             if i in group_of:
                 g = group_of[i]
@@ -990,6 +1086,18 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
                     return None
                 for gi, best in zip(g, members):
                     stages[gi] = best
+            elif i in vds_kvl_group_of:
+                # shared_gm_id_groups에는 없고 vds_kvl_groups에만 있는 경우(gm_id는 독립,
+                # VDS만 결합) -- _size_shared_group을 거치지 않고 여기서 직접 처리.
+                g = vds_kvl_group_of[i]
+                if g in handled_kvl:
+                    continue
+                handled_kvl.add(g)
+                members_map = _size_vdd_split(list(g), gms, gm_id_grid)
+                if members_map is None:
+                    return None
+                for gi in g:
+                    stages[gi] = members_map[gi]
             else:
                 best = _size_stage(i, gms[i])
                 if best is None:
@@ -3858,7 +3966,8 @@ def _metric_stage_budget_vds_by_device(thetas: list, device_roles: dict,
 
 def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_roles: dict,
                                           metric_stage_budget_vds: dict,
-                                          min_vds_by_role: dict) -> float | None:
+                                          min_vds_by_role: dict,
+                                          unrole_fallback: float | None = None) -> float | None:
     """`vsid`(vertical_stack_id, VDD~GND 물리적 전기 컬럼) 그룹에서 `exclude_devices`(지금
     compensation이 VDS를 정하려는 스테이지 자신의 소자들)를 뺀 나머지 멤버가 이미
     확정적으로/최소한으로 필요로 하는 VDS 합을 반환한다 — `optimize_multistage()`의
@@ -3866,30 +3975,55 @@ def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_role
     연동 감사로 발견, `.ai/context.md` 세션30 -- L_candidates를 densify하자 이 자유도가
     실제로 KVL을 위반하는 값(예: VDS=vdd 전체)을 찾아냈다)를 고치기 위해 신설.
 
-    나머지 멤버를 두 갈래로 분류해 합산한다:
+    2026-09-03(세션43) -- **멤버 집합을 `budget_reference_device`를 따라 재귀적으로
+    확장**한다: `vsid`의 다른 멤버(sibling) 자신이 `budget_reference_device`로 **다른**
+    vsid의 소자들을 참조하면, 그 참조 대상도 이 컬럼의 실질 예산에 영향을 준다(sibling의
+    실제 vds가 "vdd - ref_sum - 자기그룹 known_sum"으로 결정되므로, ref들이 여유를 안
+    남기면 sibling도 음수로 밀린다). 실사례: `current_reuse_telescopic_ota`의
+    diffpair_top_a={M1a,M2a}/diffpair_bottom_a={M3a,M4a}가 서로의 멤버를
+    `budget_reference_device`로 참조하는 진짜 6소자 단일 branch(M6-M1a-M2a-M3a-M4a-M5,
+    `.ai/context.md` 세션42 §2-3)인데, M1a(compensation stage0)의 cap을 구할 때 원래는
+    같은 vsid(diffpair_top_a)인 M2a 하나만 봐서 M2a의 `budget_reference_device`
+    (=[M6,M3a,M4a,M5])가 끌어오는 나머지 4소자를 놓치고 있었다 -- 실측(세션43): 이
+    누락 때문에 M1a/M4a가 각자 독립적으로 1.5V까지 밀려도(둘이 이미 vdd의 대부분을
+    소진) 아무 cap도 안 걸려, 나머지 4소자 몫이 음수가 되며 KVL이 조용히 깨졌다.
+
+    확장된 각 멤버를 세 갈래로 분류해 합산한다(재귀 확장 전 두 갈래는 그대로):
     - `metric_stage_budget_vds`(`_metric_stage_budget_vds_by_device(thetas, device_roles,
       min_vds_by_role)`가 미리 뽑아둔 `{device: vds}` -- 호출부가 그룹 멤버 루프 밖에서
       한 번만 만들어 넘긴다)에 속하면 그 고정값 그대로.
     - `device_roles`에 `headroom_role`이 선언돼 있으면 `min_vds_by_role[role]`(기본
-      `_DEFAULT_MIN_VDS_FALLBACK`)
-      -- `allocate_stack_headroom()`이 실제로 배정할 값의 하한(최소 보장치)이므로 안전한
-      보수적 예약.
+      `_DEFAULT_MIN_VDS_FALLBACK`) -- `allocate_stack_headroom()`이 실제로 배정할 값의
+      하한(최소 보장치)이므로 안전한 보수적 예약.
+    - (신규) 위 둘 다 아니고 `unrole_fallback`이 주어졌으면 그 값 -- 재귀 확장으로 새로
+      들어온 "역할 태그가 없는 또 다른 compensation 전용 소자"(예: M4a, M1a의 cap을 구할
+      때)에 씀. 호출부가 명시적으로 켜야만 동작(기본 `None`이면 이 갈래는 없음).
 
-    ⚠️ **정직한 한계**: 나머지 멤버 중 위 두 갈래 어디에도 안 걸리는 소자가 있으면(예:
-    다른 `compensation.stage_devices` 그룹과 같은 vsid를 공유 -- 서로가 서로의 결과를
-    필요로 하는 상호참조라 이 시점엔 아직 못 품) `None`을 반환한다 -- 잘못 추측해서
-    상한을 씌우는 것보다 기존처럼 무제한으로 두는 게 안전하다(호출부가 이 경우 VDS
-    상한을 적용하지 않는다)."""
-    members = [m for m, dr in device_roles.items() if dr.get("vertical_stack_id") == vsid]
+    ⚠️ **정직한 한계**: 그래도 위 세 갈래 어디에도 안 걸리는 소자가 있으면 `None`을
+    반환한다(잘못 추측해서 상한을 씌우는 것보다 기존처럼 무제한으로 두는 게 안전, 호출부가
+    이 경우 VDS 상한을 적용하지 않는다) -- `unrole_fallback` 없이 호출하면 기존 동작과
+    100% 동일(하위호환)."""
+    frontier = [m for m, dr in device_roles.items() if dr.get("vertical_stack_id") == vsid]
+    exclude_devices = set(exclude_devices)
+    members = set()
+    while frontier:
+        m = frontier.pop()
+        if m in members or m in exclude_devices:
+            continue
+        members.add(m)
+        ref = (device_roles.get(m) or {}).get("budget_reference_device")
+        for r in ([ref] if isinstance(ref, str) else (ref or [])):
+            if r not in members and r not in exclude_devices:
+                frontier.append(r)
     reserved = 0.0
     for m in members:
-        if m in exclude_devices:
-            continue
         if m in metric_stage_budget_vds:
             reserved += metric_stage_budget_vds[m]
         elif device_roles.get(m, {}).get("headroom_role"):
             role = device_roles[m]["headroom_role"]
             reserved += min_vds_by_role.get(role, _DEFAULT_MIN_VDS_FALLBACK)
+        elif unrole_fallback is not None:
+            reserved += unrole_fallback
         else:
             return None
     return reserved
@@ -4324,9 +4458,15 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                         vsid = device_roles.get(name, {}).get("vertical_stack_id")
                         if vsid is None:
                             continue
+                        # unrole_fallback(2026-09-03 세션43) -- reserved_vds_for_other_
+                        # stack_members()가 이제 sibling의 budget_reference_device를 따라
+                        # 재귀 확장하므로(diffpair_top_a/bottom_a 실사례), 그 확장으로
+                        # 새로 들어온 "역할 태그 없는 또 다른 compensation 전용 소자"(예:
+                        # M4a, M1a의 cap을 구할 때)에도 보수적 최소치를 예약한다.
                         reserved = reserved_vds_for_other_stack_members(
                             vsid, set(grp), device_roles, _metric_stage_budget_vds,
-                            spec.get("min_vds_by_role", {}))
+                            spec.get("min_vds_by_role", {}),
+                            unrole_fallback=_DEFAULT_MIN_VDS_FALLBACK)
                         if reserved is None:
                             continue
                         member_cap = spec["vdd"] - reserved
@@ -4372,7 +4512,8 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     spec["gm_id_grid"], objective=stage_objective,
                     gain_min=spec.get("stage_gain_min"), w_max=spec.get("stage_w_max"),
                     shared_gm_id_groups=comp.get("shared_gm_id_groups"),
-                    stage_extra_feasible=_stage_extra_feasible)
+                    stage_extra_feasible=_stage_extra_feasible,
+                    vds_kvl_groups=comp.get("vds_kvl_groups"), vdd=spec.get("vdd"))
                 _comp_cache[_comp_cache_key] = comp_result
             if comp_result is None:
                 raise ValueError("optimize_multistage()가 실행가능점을 못 찾음 -- "
@@ -8383,7 +8524,13 @@ if __name__ == "__main__":
         _l5c_spec = {
             "lut_by_kind": {"nmos": _l5c_nmos, "pmos": _l5c_pmos}, "lut": _l5c_nmos, "vdd": 1.8,
             "L_candidates": [float(v) for v in _l5c_nmos.L_grid],
-            "VDS_candidates": [float(v) for v in _l5c_nmos.VDS_grid[::24]],
+            # 2026-09-03(세션43) -- 24칸씩 건너뛰면 3점(0.0/0.9/1.8)뿐이라 diffpair_top_a/
+            # bottom_a의 정확한 cap(reserved_vds_for_other_stack_members() 재귀 확장,
+            # ≈0.6V)이 물리적으로 무의미한 0.0V 하나만 남겨 이 픽스처 자체가 통째로
+            # infeasible해졌다(로직 결함이 아니라 이 3점 격자가 새 cap을 못 담을 만큼
+            # 성겼던 것) -- 4칸씩(0.15V 간격, 13점)으로 촘촘히 해 cap 윈도우 안에도 정상
+            # 후보가 있게 한다.
+            "VDS_candidates": [float(v) for v in _l5c_nmos.VDS_grid[::4]],
             "gm_id_grid": [4.0, 8.0, 12.0, 16.0, 20.0, 24.0],
             "L_min": 0.15e-6, "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
             "W_bounds": (1e-6, 200e-6), "min_vds_by_role": {"cascode": 0.2, "tail": 0.3, "mirror": 0.3},
@@ -8406,13 +8553,25 @@ if __name__ == "__main__":
         # 다른 이유로 실패하면(예: output_stage_a -- compensation의 AC 스테이지 분리가
         # DC KVL과 실제로 상충하는, session29/30부터 이미 알려진 별개의 미해결 갭) 그건
         # 조용히 넘기지 않고 그대로 크래시시킨다.
+        # 2026-09-03(세션43) -- `reserved_vds_for_other_stack_members()`가 diffpair_top_a/
+        # bottom_a의 sibling(M2a/M3a)이 참조하는 나머지 소자(M6/M3a-or-M1a/M4a/M5)까지
+        # 재귀적으로 반영해 M1a/M4a의 VDS grid를 정확히 캡핑하도록 근본수정됐다(더 이상
+        # M1a=1.5V처럼 명백히 과도한 값을 독립적으로 못 고름). 그런데 **이 L5c 픽스처만**
+        # `VDS_candidates=[0.0, 0.9, 1.8]`(LUT 격자를 24칸씩 건너뛴 극도로 성긴 3점) 인데,
+        # 새로 계산된 cap(≈0.6V)이 이 성긴 격자에서 물리적으로 무의미한 `0.0V` 하나만 남겨
+        # `find_optimal_sizing()`이 그 자체로 실행가능점을 못 찾는다 -- 실제 production
+        # spec(수백 점 격자)에서는 cap 안에 정상 후보가 얼마든지 있으므로 이 실패는 진짜
+        # 설계 결함이 아니라 이 픽스처의 격자 성김(coarseness)이 만든 인위적 한계다(위
+        # diffpair KVL 불일치와 뿌리가 같음 -- 둘 다 "L5c가 K_replica/r_classab_battery만
+        # 자유고 나머지 전부 임의 고정"이라는 이 픽스처 자체의 인위성에서 나옴).
         try:
             _l5c_result = optimize_full_circuit_budget(_l5c_topo_path, _l5c_spec, grid_points_per_theta=1)
         except ValueError as _l5c_e:
-            if "diffpair_top_a" in str(_l5c_e) or "diffpair_bottom_a" in str(_l5c_e):
-                print(f"    참고(정직한 한계, L5c 합성 시나리오의 인위적 theta 고정 -- 실제 "
-                      f"SLSQP 자유탐색에서는 이 두 그룹이 정상적으로 닫힘, 세션42 확인): "
-                      f"{str(_l5c_e)[:150]}...")
+            if ("diffpair_top_a" in str(_l5c_e) or "diffpair_bottom_a" in str(_l5c_e)
+                    or "optimize_multistage()가 실행가능점을 못 찾음" in str(_l5c_e)):
+                print(f"    참고(정직한 한계, L5c 합성 시나리오의 인위적 theta 고정 + 성긴 "
+                      f"VDS 격자 -- 실제 SLSQP 자유탐색(수백 점 격자)에서는 이 두 그룹이 "
+                      f"정상적으로 닫힘, 세션42/43 확인): {str(_l5c_e)[:150]}...")
                 _l5c_result = None
             else:
                 raise

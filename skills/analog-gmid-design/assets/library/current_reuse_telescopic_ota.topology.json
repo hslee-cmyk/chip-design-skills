@@ -149,6 +149,13 @@
         3
       ]
     ],
+    "vds_kvl_groups": [
+      [
+        2,
+        3
+      ]
+    ],
+    "_vds_kvl_groups_comment": "2026-09-03(세션43, 근본수정) -- stage_devices[2]=[M15,M25]/[3]=[M16,M26]는 shared_gm_id_groups로 ID(=KCL)만 묶여 있었지, VDS는 여전히 각자 독립적으로(gain_db만 보고) 탐색되고 있었다. 그런데 M15(source=vdd)/M16(source=gnd)는 둘 다 drain=Vom인 딱 2소자 VDD~GND 컬럼(output_stage_a, device_roles.vertical_stack_id로도 이미 그렇게 선언돼 있음 -- M25/M26의 output_stage_b도 Vop에서 동일 구조라 M15와 항상 같은 값을 받으므로 자동으로 같이 풀림)이라 VDS(M15)+VDS(M16)=vdd가 KVL로 강제돼야 한다. 실측(세션43): bounds-midpoint 지점에서 M15=0.45V/M16=1.2V(합 1.65V≠1.8V, `_verify_group_kvl_sum()`이 처음 실측으로 잡아냄) -- compensation이 이 KVL을 아예 몰랐다는 뜻. `optimize_multistage()`에 신설된 `vds_kvl_groups` 결합탐색(gain_db 목표는 그대로 유지한 채 VDS(M15)+VDS(M16)=vdd 제약 하에서 탐색)으로 근본수정 -- `.ai/context.md` 세션43 참고.",
     "_shared_gm_id_groups_comment": "2026-08-03(배치 7-5 실행 중 발견) -- stage_devices[0](M1a/M1b, gmp)과 stage_devices[1](M4a/M4b, gmn)은 물리적으로 하나의 직렬 KCL 스택(M1a->M2a->M3a->M4a)이라 ID까지 같아야 한다(Eq.5는 gm만 같게 강제, ID는 별개). optimize_multistage()가 두 스테이지를 독립적으로 최적화하면 gm은 같아도 gm_id/ID가 달라져 A엔진에서 'KCL 위반'으로 실패했다 -- shared_gm_id_groups=[[0,1]]로 두 스테이지가 gm_id 하나를 공유하도록 지정해 해결. 2026-08-12(세션30) [2,3] 추가 -- stage_devices[2]/[3](M15/M25, M16/M26)을 분리한 직후 self-test(L5c)가 `propagate_topology_forced_currents()`에서 정확히 같은 유형의 KCL ValueError를 실측으로 재현했다: Vom 노드가 (사이징 엔진이 읽는 netlist 기준) M15.drain/M16.drain **딱 2개 단자뿐인 2단자 net**이라(R1은 별도 passive_elements 배열이라 엔진이 안 읽음), kcl_series_union()이 이미 순수 connectivity만으로 ID(M15)=ID(M16)를 강제하고 있었다 -- 이건 L 매칭과 무관한 **진짜 물리적 push-pull 출력단 정상전류 KCL**(선언이 아니라 회로 위상 자체의 귀결)이다. gm2가 gmp2=gmn2(50:50)로 이미 같아도, 두 스테이지를 독립적으로 optimize_multistage()하면(각자 다른 kind LUT에서 각자 최적 gm_id를 고름) ID=gm/gm_id가 갈라진다 -- shared_gm_id_groups=[[2,3]]으로 gm_id만 공유시켜 ID(M15)=ID(M16)를 회복한다. **L은 여전히 독립**이다 -- _size_group_at_gm_id()는 공유 그룹 안에서도 L/VDS는 스테이지별 자기 kind LUT로 각자 탐색하고 gm_id 하나만 고정하므로(코드 확인, sizing_recipe.py), 이 gm_id 공유가 L_stage2out_p/L_stage2out_n의 독립적 L 탐색을 막지 않는다.",
     "_stage_devices_comment": "2026-07-31 -- 이전 _stage_devices_pending 메모(gmp/gmn 분배가 stage_devices 계약과 안 맞을 거라는 우려)는 stale이었다: current_reuse_telescopic_topology()가 이미 [gmp,gmn,gm2] 3개를 위치별로 반환하고, optimize_full_circuit_budget()의 병합 코드(sizing_recipe.py 배치 7-3d)도 stage_devices[i]<->gms[i] 위치기반 매핑만 하므로 그룹0(M1a/M1b)은 gmp만, 그룹1(M4a/M4b)은 gmn만 정확히 받는다 -- 별도 스키마 확장 불필요. 2026-08-03(배치 7-5 실행 중 발견/보정): M25/M26(Vop측 출력 -- symmetry.matching_pairs상 M15/M25, M16/M26이 branch_symmetric)이 device_roles 어디에도 없어 optimize_full_circuit_budget()이 이 둘의 W를 못 채우고 조용히 partial 결과만 반환하는 gap이 있었다(에러 없이 sizing_overrides=None) -- stage_devices의 '그룹 전원이 같은 stage gm을 받는다' 계약이 branch_symmetric 의미와 정확히 일치하므로 새 메커니즘 대신 그룹에 편입시켜 해결.",
     "_stage_devices_comment_session30": "2026-08-12(세션30) -- 옛 stage_devices[2]=[M15,M16,M25,M26](4개, 단일 L/gm_id 강제)를 [M15,M25](PMOS)/[M16,M26](NMOS) 2그룹으로 분리. 계기: L_stage2out(옛 단일 theta)이 gain_db와 classab_centering_dev_v(M15=Vop1 레벨/M16=Vg15 레벨, 합=VDD 요구)에 동시에 걸려 실제로 상충함이 세션29 '## AN'에서 실측 확인됨 -- M15/M16을 하나의 L로 묶는 게 회로적 요구가 아니라 엔진 구현 편의였다는 게 사용자와 함께 진행한 문헌조사(gm/ID 방법론은 cross-kind 쌍을 독립 변수로 다룸, Pelgrom/전류미러 매칭은 same-kind에만 성립)+코드 대조(symmetry.matching_pairs가 이미 M15-M25/M16-M26만 선언하고 M15-M16 cross-kind 매칭은 없음)로 확인됨(`.ai/context.md` 세션30 참고). 레이아웃 안전성: build_graph()의 kind 동질성 하드 게이트(세션28)로 row는 항상 kind 동질이라 M15(PMOS)/M16(NMOS)는 애초에 같은 물리 row로 병합된 적이 없다(output_stage_a__pmos={M15,M25}/__nmos={M16,M26}, 세션28부터 이미 분리) -- 이번 분리는 레이아웃 병합 가정을 전혀 건드리지 않는다. M15-M25/M16-M26(같은 kind, declared matching_pairs)는 각자 그룹 안에서 여전히 L 공유가 강제된다(sizing_recipe.py의 matching pair L 불일치 하드에러, 2704~2742행 그대로 유효) -- '독립'은 오직 cross-kind 경계에서만 허용, same-kind 매칭 요구는 그대로 유지하는 게 이 변경의 원칙(자세한 논의는 세션30 대화 참고: L은 기본적으로 공유, declared matching_pairs가 없고 값싼 LUT 검토로 상충이 증명된 경계에서만 독립).",
@@ -943,7 +950,8 @@
       "headroom_role": "tail",
       "gm_id_role": "balanced",
       "L_role": "bias_replica",
-      "vertical_stack_id": "vx_tail_a"
+      "vertical_stack_id": "diffpair_branch_a",
+      "_vertical_stack_id_comment": "2026-09-03(세션43, diffpair 병합 근본수정) -- 기존 'vx_tail_a'(M6 단독)를 없애고 실제 물리적 단일 branch(M6-M1a/b-M2a/b-M3a/b-M4a/b-M5, vdd~gnd, M7은 same_as_device로 이미 별도 처리)를 통째로 'diffpair_branch_a' 하나로 병합했다. 근본원인: diffpair_top_a={M1a,M2a}/diffpair_bottom_a={M3a,M4a}가 서로를 budget_reference_device로 참조하는 상호순환은 대수적으로 미결정(M2a.vds+M3a.vds=상수 하나에 미지수 둘 -- 직접 대입하면 항등식만 나옴, 세션43 확인)이라 근본적으로 못 풀렸다. symmetry.matching_pairs가 이미 M1a=M1b/M2a=M2b/M3a=M3b/M4a=M4b를 선언해뒀으므로(_vfind 대표 1개만 집계), 이 10소자를 한 vsid로 합치면 allocate_stack_headroom()의 기존 계약(cascode류 thin role은 얇게, tail류는 남는 예산 균등분배)이 그대로 적용된다 -- M1a/M4a(compensation 기결정)는 known_vds_sum, M2a/M3a(cascode)는 각자 role 최소치, M6/M5(tail)가 정확히 남는 예산을 절반씩 받는다(assert로 합=vdd 보장). `.ai/context.md` 세션43 참고."
     },
     "M7": {
       "headroom_role": "tail",
@@ -957,7 +965,7 @@
       "headroom_role": "tail",
       "gm_id_role": "balanced",
       "L_role": "bias_replica",
-      "vertical_stack_id": "vy_tail"
+      "vertical_stack_id": "diffpair_branch_a"
     },
     "M8": {
       "headroom_role": "mirror",
@@ -1071,6 +1079,8 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_a",
+      "budget_reference_device": "M19",
+      "_budget_reference_device_comment": "2026-08-24(세션42 이월, 세션43 정정) -- 'biasgen_vop_a'(M17+M18a)는 M9a(biasgen_vom_a)와 대칭인데 이 참조가 빠져 있었다. 실제로는 M18a.drain=Vom1(=M19.drain, M19.source=gnd라 V(Vom1)=VDS(M19))이라 이 컬럼의 진짜 예산은 vdd-V(Vom1)=vdd-VDS(M19)다 -- budget_reference_device='M19'로 추가(M9a.budget_reference_device='M10'과 정확히 대칭). stick_diagram.py의 6번째 소스 자동추론이 이를 스스로 못 채운 이유: M18a의 열린 단자 Vom1을 drain으로 공유하는 소자가 M2a/M3a/M19 3개(4-way 공유)라 로컬 연결성만으론 유일하게 결정할 수 없어 review_needed로 보류됐다(cascoded-gain-node의 M2a/M3a는 이 KVL 관계와 무관 -- 별개의 이득노드 branch). biasgen_vop_floatsrc_sink(M18b+M19)의 M17 참조는 Vg25를 drain으로 공유하는 소자가 M17 하나뿐이라 이미 자동추론이 정확히 채우고 있었다(파일엔 미선언, 런타임 전용) -- 대칭인 이쪽만 수동 보강. `.ai/context.md` 세션42 §7-0/세션43 참고.",
       "vs": 0.0
     },
     "M18b": {
@@ -1231,59 +1241,58 @@
       "L_role": "mirror"
     },
     "_vertical_stack_id_only_comment": "2026-08-07 세션24 -- 위 _device_roles_comment가 명시한 대로 M1a/M1b/M2a/M2b/M3a/M3b/M4a/M4b/M15/M16/M25/M26은 headroom_role/gm_id_role/L_role을 compensation.stage_devices/metric_stage_budget 경로가 이미 전부 결정하므로 여기 없는 게 맞다(회귀 아님) -- 다만 vertical_stack_id(물리적 직렬 branch 경계)는 그 경로들이 채워주지 않아 8개 소자(M1a/M1b/M2a/M2b/M3a/M3b/M4a/M4b) + 출력단 2개 push-pull 쌍(M15/M16, M25/M26)이 gap으로 남아있었다(resolve_stack_layout() 선행 조건, 0-B). suggest_vertical_stack_composites()(stick_diagram.py §1.7d, base declared inputs=(Vip,Vim)만 사용 -- Voc/Voc_des로 승격된 inputs를 쓰면 role 재분류로 이 composite 자체가 사라지는 회귀가 확인됨, refine_differential_and_mirror_relations()와는 다른 목적/다른 inputs 세트)가 모든 branch/양방향에서 일관되게 찾아준 물리적 페어를 그대로 옮겼다. M9a->biasgen_vom_a, M18a->biasgen_vop_a, M37a->cmfb_tail은 기존 선언된 그룹 확장(각각 M8/M17/M38 위에 직접 얹힌 물리적 스택, source=대상의 drain으로 확인). diffpair_top_a/b, diffpair_bottom_a/b, output_stage_a/b는 이 gap-filling에서 신설된 이름 -- composite 경계는 함수가 결정론적으로 냈지만 이름 문자열 자체는 사람이 붙였다(레퍼토리: diffpair_top=PMOS 입력쌍(M1)+PMOS 캐스코드(M2), diffpair_bottom=NMOS 캐스코드(M3)+NMOS current-reuse 입력쌍(M4), output_stage=push-pull 2단 출력(M15/M16=Vom, M25/M26=Vop)).",
+    "_diffpair_branch_merge_comment": "2026-09-03(세션43, 근본수정) -- 옛 diffpair_top_a/b·diffpair_bottom_a/b 4개 vsid(세션24가 gap-filling으로 신설)를 없애고 물리적 단일 branch(vdd-M6-M1a-M2a-M3a-M4a-M5-gnd, M7/M2b/M3b은 아래 same_as_device로 별도 처리)의 나머지 8소자(M1a/M1b/M2a/M3a/M4a/M4b + M6 + M5)를 'diffpair_branch_a' 하나로 병합했다. 근본원인: M2a<->M3a(및 대칭 M2b<->M3b)의 budget_reference_device 상호참조가 대수적으로 미결정(M2x.vds+M3x.vds=상수 하나뿐인데 미지수가 둘, 직접 대입하면 항등식만 나옴 -- 세션42가 도입한 이 메커니즘 자체가 처음부터 안 풀리는 설계였음을 세션43이 실측+대수로 확인)이었다. symmetry.matching_pairs의 M1a=M1b/M4a=M4b는 matching_sensitivity='offset'이라 _vfind()가 대표 1개만 헤드룸 예산에 집계해주므로 그대로 병합에 포함시켰다 -- 반면 M2a=M2b/M3a=M3b는 'ratio'라 _vfind()가 안 묶는다(session41이 의도적으로 그렇게 설계, two_stage_ota M3/M4류처럼 진짜 값이 다를 수 있는 ratio 쌍과 구분하기 위함). 그래서 M2b/M3b는 이 그룹에 안 넣고 별도 'diffpair_shadow_b'에서 same_as_device로 처리한다(아래 M2b 주석 참고, M7=M6과 동일 패턴) -- 안 그러면 known_vds_sum이 이중 계산된다(실측 확인). 병합 결과 새 코드 없이 allocate_stack_headroom()의 기존 계약(cascode류 thin role은 각자 role 최소치만, tail류는 남는 예산을 인원수로 균등분배, 합=vdd는 함수 자체 assert로 보장)이 정확히 들어맞는다: M1a/M4a(compensation 기결정, known_vds_sum)+M2a/M3a(cascode, 각자 min_vds)+M6/M5(tail, 남는 예산 정확히 절반씩). branch_b(M7-M1b-M2b-M3b-M4b-M5)의 KVL은 M7=M6/M1b=M1a/M4b=M4a/M2b=M2a/M3b=M3a/M5 공유가 전부 구조적으로 강제되므로 branch_a와 대수적으로 항상 동일해 별도 검증 없이도 자동으로 성립한다. `.ai/context.md` 세션43 참고.",
     "M1a": {
-      "vertical_stack_id": "diffpair_top_a",
+      "vertical_stack_id": "diffpair_branch_a",
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M2a": {
-      "vertical_stack_id": "diffpair_top_a",
+      "vertical_stack_id": "diffpair_branch_a",
       "headroom_role": "cascode",
-      "budget_reference_device": ["M6", "M3a", "M4a", "M5"],
-      "_budget_reference_device_comment": "2026-08-24(세션42, 사용자 지시 옵션1) -- diffpair_top_a(M1a+M2a)는 vdd-M6-M1a-M2a-M3a-M4a-M5-gnd 6소자 단일 branch의 절반일 뿐이라, 나머지 4소자(M6/M3a/M4a/M5) 전체를 참조해야 이 그룹의 진짜 예산(vdd-그 4소자 합)이 나온다(budget_reference_device를 list로 확장, sizing_recipe.py _sum_ref_vds() 참고). diffpair_bottom_a도 대칭으로 이쪽(M2a)을 되참조해 fixed-point worklist로 상호 수렴(Monticelli floating battery 상호참조와 동일 패턴) -- fold_group=vom1_fold(세션41 오판, Vom1이 진짜 fold가 아니라 이 6소자 단일 branch 내부 접합점임을 세션42가 확인)는 제거.",
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M1b": {
-      "vertical_stack_id": "diffpair_top_b",
+      "vertical_stack_id": "diffpair_branch_a",
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M2b": {
-      "vertical_stack_id": "diffpair_top_b",
+      "vertical_stack_id": "diffpair_shadow_b",
       "headroom_role": "cascode",
-      "budget_reference_device": ["M7", "M3b", "M4b", "M5"],
+      "same_as_device": "M2a",
+      "_same_as_device_comment": "2026-09-03(세션43) -- M2a/M2b는 symmetry.matching_pairs상 matching_sensitivity='ratio'라 _vfind()가 union하지 않는다(session41의 의도적 설계 -- ratio 쌍은 진짜 VDS가 다를 수 있는 two_stage_ota M3/M4류와 구분하기 위함). 하지만 이 회로에서 M2a/M2b는 L_cascode theta feed(devices=[M2a,M2b,M3a,M3b])가 애초에 단 하나의 vds를 계산해 넷 다 동일하게 적용하므로(resolve_feed_vds(devices[0]) 기존 계약) 물리적으로 100% 동일 -- ratio 분류는 미스매치 분석 목적일 뿐 헤드룸 VDS 동일성과는 별개 축이다. M2a와 같은 'diffpair_branch_a'에 두면 _vfind가 안 묶어 known_vds_sum이 이중 계산되므로(실측 확인) 별도의 작은 vsid로 분리하고 same_as_device로 M2a 값을 그대로 복사(M7=M6과 동일 패턴) -- 이 그룹 자체는 _verify_group_kvl_sum()의 same_as_device 스킵 규칙으로 검증 대상에서 빠진다(정상, M7/vx_tail_b와 동일).",
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M3a": {
-      "vertical_stack_id": "diffpair_bottom_a",
+      "vertical_stack_id": "diffpair_branch_a",
       "headroom_role": "cascode",
-      "budget_reference_device": ["M6", "M1a", "M2a", "M5"],
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M4a": {
-      "vertical_stack_id": "diffpair_bottom_a",
+      "vertical_stack_id": "diffpair_branch_a",
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M3b": {
-      "vertical_stack_id": "diffpair_bottom_b",
+      "vertical_stack_id": "diffpair_shadow_b",
       "headroom_role": "cascode",
-      "budget_reference_device": ["M7", "M1b", "M2b", "M5"],
+      "same_as_device": "M3a",
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M4b": {
-      "vertical_stack_id": "diffpair_bottom_b",
+      "vertical_stack_id": "diffpair_branch_a",
       "vs": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"

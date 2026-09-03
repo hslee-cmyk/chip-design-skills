@@ -12847,3 +12847,449 @@ current_reuse의 output_stage_a/b)를 함께 참고할 것.
 아니라 **조용한 오차**라 지금 당장 눈에 안 띄어도 이후 실제 회로 특성(class-AB
 바이어스 정확도)에 영향을 줄 수 있어 방치 위험이 더 크기 때문. 7-1(DC/AC
 아키텍처)은 훨씬 크고 다회로에 걸친 설계 작업이라 그 다음.
+
+# 세션43 -- §7-0(biasgen_vop_a budget_reference_device 누락) 수정 + 실측 검증 완료
+
+세션42 §7-0이 제안한 수정을 그대로 적용하고, 실제로 M18a.vds가 M18b.vds와
+일치하는지까지 실측으로 끝까지 확인했다.
+
+## 1. 수정 내용
+
+`current_reuse_telescopic_ota.topology.json`의 `M18a`(device_roles)에
+`budget_reference_device: "M19"` 추가(`_budget_reference_device_comment`로 근거
+기록) -- `M9a.budget_reference_device: "M10"`(biasgen_vom_a)과 정확히 대칭.
+적용 전 netlist로 재확인: M18a.drain=Vom1=M19.drain, M19.source=gnd → V(Vom1)=
+VDS(M19)이므로 이 컬럼(M17+M18a)의 진짜 예산은 vdd-VDS(M19).
+
+## 2. `stick_diagram.py` 자동추론이 왜 이걸 못 채웠는지 코드로 확인(버그 아님)
+
+`propose_device_roles_gap_fill()`의 6번째 소스(`budget_reference_device_
+candidates` 루프, sizing_recipe.py 아님 stick_diagram.py L4425 부근)는 "열린
+단자를 drain으로 공유하는 소자가 정확히 1개"일 때만 제안한다. M18a의 열린 단자
+Vom1은 M2a/M3a(cascoded-gain-node, §2의 analog-grammar 버그 수정으로 이미 정확히
+식별된 별개의 이득노드 branch)/M19까지 3개가 공유하는 진짜 4-way 노드라 이 조건에
+안 걸려 `review_needed`로 정당하게 보류됐다(로컬 연결성만으론 유일 결정 불가 --
+이건 이 회로 전용이 아니라 일반 원칙, 코드 주석에 이미 명시돼 있음). 대칭인
+`M18b`→`M17` 참조는 Vg25를 drain으로 공유하는 소자가 M17 하나뿐이라 자동추론이
+이미 정확히 채우고 있었다(파일엔 미선언, 런타임 전용) -- 그래서 M18b는 그대로
+두고 M18a만 수동 보강했다.
+
+## 3. 실측 검증 -- `_verify_group_kvl_sum()` 재확인만으론 불충분했던 이유
+
+`sizing_recipe.py`/`stick_diagram.py` self-test 둘 다 exit 0을 재확인했지만,
+`sizing_recipe.py`의 L5c(51소자 실회로 self-test)는 이 지점에서 `diffpair_
+bottom_a` known-limitation으로 먼저 걸려(`_l5c_result=None`) biasgen_vop_a
+검증까지 도달하지 못했다 -- **self-test green만으로는 이 수정이 실제로 맞물려
+동작하는지 확인이 안 된다**([[feedback_no_assumption_without_evidence]] 원칙에
+따라 추가로 격리 검증 실행).
+
+`run_harness.py current_reuse_telescopic_ota`(실제 SLSQP, sky130 LUT)를 백그라운드
+실행했더니 §7-1(이미 알려진 이월 항목, output_stage_a DC/AC 미분리)에서 그대로
+크래시 -- **이번 수정과 무관한 별개 문제**임을 트레이스백으로 확인(M15=0.45V,
+M16=1.2V, 합 1.65V≠1.8V, session29/30부터 알려진 그 갭 그대로).
+
+이 크래시가 pass 1 도중(vertical_stack_id 알파벳순 처리 -- `biasgen_vom_a`/
+`biasgen_vop_a`가 `output_stage_a`보다 먼저 옴) 일어나는 바람에, `biasgen_vom_a`/
+`biasgen_vop_a` 그룹이 pass 1 안에서 자기 참조 대상(M10/M19, 각각
+`biasgen_vom_floatsrc_sink`/`biasgen_vop_floatsrc_sink` 소속)이 이미 pass 1
+안에서 준비됐음에도 fixed-point pass 2를 못 밟고 미확정(`_HeadroomDependencyNotReady`
+로 pending에 남은 채) 상태로 관찰됐다(M8/M17은 확정, M9a/M18a는 미확정 -- 참조
+안 하는 "정상" 멤버가 참조하는 멤버보다 먼저 결정되는 `_resolve_vertical_group()`
+내부 순서를 그대로 보여줌, 새 버그 아님).
+
+**검증 스크립트**(`ValueError`의 traceback frame에서 `_evaluate()`의 지역변수
+`ctx`/`_resolve_vertical_group`를 직접 꺼내는 순수 디버깅 기법, 소스 미수정)로
+`biasgen_vom_a`/`biasgen_vop_a` 두 그룹만 수동으로 pass 2를 마저 밟게 하자(이미
+pass 1에서 참조 대상이 준비돼 있었으므로 새 로직 추가 없이 기존 fixed-point
+worklist를 한 스텝 더 돌린 것뿐):
+
+```
+M17: vds=0.9643008906564403   M8:  vds=0.9643008906564403  (동일 -- a/b측 대칭)
+M18a: vds=0.014519366107880072  M9a: vds=0.014519366107880072
+M18b: vds=0.014519366107880072  M9b: vds=0.014519366107880072
+M19: vds=0.8211797432356797   M10: vds=0.8211797432356797
+```
+
+**M18a.vds == M18b.vds(0.014519366107880072V, diff=0.0)로 정확히 일치** -- 수정
+전엔 M18a가 `vdd-VDS(M17)`(≈0.836V, §7-0이 실측했던 값 0.8609V와 같은 계열의
+잘못된 계산)로 조용히 틀렸던 것이, 수정 후 대칭 파트너 M18b와 독립적으로 계산해도
+정확히 같은 값에 도달한다. `biasgen_vom_a`/`biasgen_vom_floatsrc_sink`(이미 있던
+참조)도 재확인 삼아 같이 검증했고 마찬가지로 정확히 일치(M9a==M9b) -- 회귀 없음.
+
+## 4. 최종 확인
+
+- `python sizing_recipe.py` self-test: exit 0.
+- `python stick_diagram.py` self-test: exit 0.
+- 격리 검증(위 §3): M18a.vds==M18b.vds 정확히 일치(diff=0.0), M9a==M9b/M17==M8/
+  M19==M10도 회귀 없이 유지.
+- `run_harness.py current_reuse_telescopic_ota` 전체 실행은 여전히 §7-1
+  (output_stage_a DC/AC 미분리, 세션29/30부터 이월)에서 멈춘다 -- **이번 수정
+  범위 밖**, §7-1 작업이 끝나야 전체 파이프라인이 끝까지 돈다.
+
+## 5. 커밋 상태 -- 사용자 확인 필요
+
+변경 파일: `library/current_reuse_telescopic_ota.topology.json`(M18a 필드 추가),
+`.ai/context.md`(이 절). 커밋 여부는 다음 턴에서 사용자에게 확인할 것.
+
+## 6. 다음 세션 최우선 순서 (갱신 -- §7-0 완료로 하나 줄어듦, 세션43 이어서 §7-1 착수)
+
+1. (유일한 실질 남은 과제, 기존 §7-1과 동일) `two_stage_ota`의 stage1_out +
+   `current_reuse_telescopic_ota`의 output_stage_a/output_stage_b 공통의
+   **DC/AC 아키텍처 분리 설계**. compensation(AC 도메인)이 정하는 스테이지와
+   headroom(DC 도메인)이 정하는 스테이지를 조율하는 일반 메커니즘 신설 필요 --
+   착수 전 사용자와 설계 방향부터 논의. **-> 이 항목, 세션43에서 실제로 착수함,
+   아래 새 절 참고.**
+2. 그 설계가 끝나면 자동으로 딸려오는 확인 항목: `two_stage_ota`의 stage2(M6+M7)
+   실측, `stick_diagram.py` Test 53g의 `_AUTHORITATIVE_GM_ID_SOURCES` 가드 본연의
+   검증 재개.
+
+---
+
+# 세션43 (이어서) -- §7-1 DC/AC 아키텍처 분리 착수: output_stage_a/b 완전 해결 +
+diffpair_top_a/bottom_a 대폭 개선(2.2V -> 0.05V 불일치, 완전 해결은 아님)
+
+§7-0(biasgen_vop_a) 완료 후 사용자 지시로 §7-1(DC/AC 분리)에 바로 착수했다. 큰
+설계 결정이라 착수 전 사용자와 두 차례(방향/추가범위) `AskUserQuestion`으로
+확인하며 진행했다.
+
+## 1. 근본원인 재확인 (실측)
+
+`.ai/context.md` 세션38~42 전체를 재독해 이 문제의 이력을 재구성한 뒤, 실제
+코드를 실측으로 재확인했다 -- **세션41의 `resolve_feed_vds()`(하드코딩 0.6이
+compensation의 기존값을 덮어쓰던 버그 수정)는 이것과 다른 버그를 고친 것이고,
+"compensation이 KVL을 아예 모른다"는 진짜 근본원인은 그대로 남아 있었다**:
+
+`current_reuse_telescopic_ota`의 `output_stage_a`(M15+M16, 진짜 VDD~GND 2소자
+컬럼)는 session30에서 L/gm_id 탐색상의 이유(cross-kind Pelgrom 매칭 문제)로
+`compensation.stage_devices`에 `[M15,M25]`(그룹2)/`[M16,M26]`(그룹3)로 분리됐는데,
+이 분리가 VDS 선택까지 독립시켜버렸다 -- `optimize_multistage()`가 그룹2/3의 VDS를
+완전히 독립적으로(gain_db만 보고) grid search한다. 실측(bounds-midpoint 지점,
+`_build_theta_evaluator()` + traceback frame에서 `ctx` 직접 추출): M15=0.45V,
+M16=1.2V, 합 1.65V≠1.8V. 세션41 검증은 `presolve_warm_start()`의 "실현가능한
+기준점"(당시 실제 theta_star)에서 우연히 0.9/0.9로 닫혔을 뿐, 일반적으로 보장된
+게 아니었다.
+
+## 2. 사용자 결정 -- Option A(compensation 내부 결합탐색) 채택
+
+두 방향(A: compensation이 KVL 제약 하에서 gain_db 최적 조합을 탐색 / B: headroom이
+먼저 고정 분배하고 compensation은 그 안에서만 탐색)을 제시, 트레이드오프(B는 AC
+성능을 DC의 임의 분배에 종속시켜 손실 위험) 설명 후 **A 채택**.
+
+## 3. `output_stage_a`/`b` 수정 -- `optimize_multistage()`에 `vds_kvl_groups` 신설,
+완전 해결
+
+`sizing_recipe.py`의 `optimize_multistage()`에 새 매개변수 `vds_kvl_groups`(예
+`[[2,3]]`)/`vdd` 추가 -- 선언된 스테이지 인덱스 그룹은 VDS 합이 정확히 `vdd`가
+되도록 결합탐색한다(앞 n-1개 멤버는 자기 grid에서 자유탐색, 마지막 멤버는
+`vdd-나머지합`으로 강제, 조합마다 각 스테이지가 그 고정 VDS에서 `find_optimal_
+sizing()`으로 (L,gm_id)만 독립적으로 찾은 뒤 그룹 전체 objective 최선 채택).
+`shared_gm_id_groups`(gm2의 gmp2=gmn2 KCL)와 동시 소속인 경우(`[2,3]`이 바로 그
+사례)까지 처리하도록 `_size_shared_group()`도 확장(공유 gm_id 후보마다 안쪽에서
+VDS 결합탐색). `current_reuse_telescopic_ota.topology.json`의
+`compensation.vds_kvl_groups: [[2,3]]`로 선언.
+
+**실측(격리 검증, traceback frame에서 ctx 직접 추출)**: 수정 전 M15=0.45V/
+M16=1.2V(합 1.65V) -> 수정 후 **M15=1.05V/M16=0.75V, 합=1.8V=vdd, 정확히 일치**.
+self-test(`sizing_recipe.py`/`stick_diagram.py`) exit 0, `folded_cascode`/
+`nmcnr_amplifier`는 harness 결과 완전 동일(byte-diff 0), `two_stage_ota`는
+라인번호만 다르고 에러 내용(`stage1_out` 불일치) 완전 동일 -- **회귀 0건**.
+`vds_kvl_groups`를 선언 안 하면 기존 동작 100% 그대로(하위호환, 새 로직은
+opt-in).
+
+## 4. `diffpair_top_a`/`bottom_a` -- 연관된 별개 발견 + 사용자 승인 하 이어서 수정
+
+output_stage_a 수정 후 실제 harness(백그라운드)가 다음 지점(`diffpair_bottom_a`)
+에서 새로 크래시 -- A/B 비교(같은 참조점에서 `vds_kvl_groups` 있음/없음 비교)로
+**내 수정이 만든 회귀가 아니라, output_stage_a가 막고 있던 다음 그룹이 처음
+드러난 것**임을 먼저 확인(원래도 있던 문제, 순서상 나중에 도달).
+
+**구조**: `M6-M1a-M2a-M3a-M4a-M5`(vdd~gnd 6소자 단일 branch, 세션42 §2-3이 이미
+확정한 진짜 current-reuse 텔레스코픽 branch). M1a(compensation stage0)/M4a(stage1)
+는 자기 `vertical_stack_id`(`diffpair_top_a`/`diffpair_bottom_a`)가 있지만, 그
+그룹의 sibling(M2a/M3a)이 **다른** vsid의 멤버(M6/M3a-or-M1a/M4a/M5)를
+`budget_reference_device`로 참조하는데, 기존 `reserved_vds_for_other_stack_
+members()`는 "같은 vsid 멤버"만 봐서 이 참조 체인을 못 따라가 M1a/M4a의
+VDS_candidates에 사실상 cap이 안 걸리고 있었다(실측: bounds-midpoint에서
+M1a=M4a=1.5V, 나머지 4소자 몫이 음수로 밀려 KVL이 조용히 깨짐, diff=+2.2V).
+
+**수정**: `reserved_vds_for_other_stack_members()`를 재귀 확장(같은 vsid
+멤버에서 시작해, 그 멤버의 `budget_reference_device`를 따라 다른 vsid의
+멤버까지 fixed-point로 계속 편입) + 새 `unrole_fallback` 매개변수(역할 태그가
+없는 소자 -- 재귀로 새로 편입된 또 다른 compensation 전용 소자, 예: M1a의 cap을
+구할 때 M4a -- 에 보수적 최소치(`_DEFAULT_MIN_VDS_FALLBACK`)를 예약, 기본값
+`None`이면 기존 동작 100% 동일). 호출부(`_evaluate()`의 cap 계산 루프)에서
+`unrole_fallback=_DEFAULT_MIN_VDS_FALLBACK`로 호출.
+
+**실측**: M1a/M4a가 각자 독립적으로 1.5V까지 밀리던 것이 -> **M1a=0.6V, M4a=0.15V
+로 정확히 캡핑**됨(수정 전엔 사실상 무제한). diffpair_bottom_a 불일치가
+**diff=+2.2V -> diff=-0.05V로 97.7% 개선**됐으나 **완전히 0은 아니다** --
+cap은 "충분한 여유를 보수적으로 예약"할 뿐 정확한 결합탐색(§3의 `vds_kvl_
+groups`처럼 vdd에 정확히 닫히도록 강제)은 아니기 때문. 완전히 닫으려면 이
+6소자 mixed-governance branch(compensation 2개 + headroom 4개, 서로 다른
+메커니즘이 얽힘)에도 §3과 같은 결합탐색을 확장해야 하는데, output_stage_a의
+"순수 compensation 2-멤버" 케이스보다 훨씬 큰 일반화라 이번 세션엔 손대지
+않았다(§6 이월).
+
+**self-test 회귀 발견 + 수정**: `sizing_recipe.py`의 L5c 합성 self-test(자체
+`VDS_candidates`가 24칸씩 건너뛴 3점(0.0/0.9/1.8)뿐이던 픽스처)가 새로 정확해진
+cap(≈0.6V) 때문에 물리적으로 무의미한 `VDS=0.0` 하나만 남아 `optimize_multistage()`
+가 아예 실행가능점을 못 찾는 새 실패 모드를 냄(기존 except가 "diffpair_top_a/
+bottom_a" 메시지만 잡아서 못 걸림) -- **근본수정**: 이 픽스처의 `VDS_candidates`
+샘플링을 4칸씩(13점, 0.15V 간격)으로 촘촘히 해 cap 윈도우 안에도 정상 후보가
+있게 함(로직 결함이 아니라 픽스처 자체의 인위적 성김이 원인이었음, 실제 production
+spec은 이미 수백 점 격자라 영향 없음). except도 "실행가능점을 못 찾음" 메시지까지
+넓혀 방어적으로 유지.
+
+## 5. 최종 확인
+
+- `python sizing_recipe.py`/`python stick_diagram.py` self-test: 둘 다 exit 0.
+- `folded_cascode`/`nmcnr_amplifier` harness: 결과 완전 동일(byte-diff 0, 회귀 0건).
+- `two_stage_ota` harness: 에러 메시지/값 완전 동일(라인번호만 다름, 회귀 0건 --
+  `stage1_out` 갭은 이번 세션 범위 밖 그대로).
+- `current_reuse_telescopic_ota` 실제 프로덕션(`run_harness.py`, sky130 LUT,
+  bounds-midpoint 진단점): **output_stage_a는 완전히 닫힘**(M15=1.05V/M16=0.75V,
+  합=vdd 정확히 일치) -- 파이프라인이 그 지점을 통과해 다음 지점(`diffpair_bottom_a`)
+  까지 진행. **diffpair_bottom_a는 diff=-0.05V로 크게 개선됐지만 완전히 닫히진
+  않아, 여전히 이 지점에서 멈춘다**(`presolve_warm_start()`의 기준점 평가 단계).
+
+## 6. 커밋 상태 -- 사용자 확인 필요
+
+변경 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`(`optimize_multistage()`
+의 `vds_kvl_groups`/`_size_vdd_split()` 신설, `reserved_vds_for_other_stack_
+members()` 재귀 확장 + `unrole_fallback`, L5c 픽스처 grid 촘촘화 + except 확장),
+`skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json`
+(`compensation.vds_kvl_groups` 선언 + 근거 comment), `.ai/context.md`(이 절).
+커밋 여부는 다음 턴에서 사용자에게 확인할 것.
+
+## 7. 다음 세션(또는 이번 세션 계속) 우선순위
+
+1. **`diffpair_top_a`/`bottom_a`를 완전히 닫을지 결정** -- 현재 상태(diff=0.05V,
+   보수적 cap)로 known-limitation 처리하고 넘어갈지, `vds_kvl_groups`류 결합탐색을
+   이 6소자 mixed-governance branch까지 확장해 완전히 닫을지 사용자와 논의.
+   후자를 선택하면: compensation의 stage0([M1a,M1b])/stage1([M4a,M4b]) VDS
+   탐색을 headroom의 M2a/M3a leftover 계산과 진짜로 결합해야 하는데(compensation
+   grid search ↔ headroom dynamic role-based allocation이 서로 다른 메커니즘이라
+   출력_stage_a보다 훨씬 큰 설계), 착수 전 방향부터 다시 확인 필요.
+2. 1이 끝나면(또는 known-limitation으로 넘기면) `two_stage_ota`의 `stage1_out`
+   (M4/M2/M5, headroom `budget_reference_device` + theta-feed `vds_match_vgs_of`가
+   뒤섞인 다른 구조 -- output_stage_a의 순수 compensation 메커니즘과 다름, 별도
+   분석 필요)로 이월.
+3. 그 다음 자동으로 딸려오는 항목: `two_stage_ota`의 stage2(M6+M7) 실측,
+   `stick_diagram.py` Test 53g의 `_AUTHORITATIVE_GM_ID_SOURCES` 가드 본연의 검증
+   재개, 세션40의 block-coordinate 탐색(gain_db≈69.4dB) 재실행.
+
+---
+
+# 세션43 (계속) -- diffpair 완전 닫기 시도 -> 근본원인 한 겹 더 발견 ->
+구현 -> 실측 검증 중 더 깊은 구조적 문제 확인 -> **되돌림**(현재 §7의 0.05V
+상태로 복귀, 순수 상태 유지)
+
+사용자가 "지금 완전히 닫기"를 선택해 진행했다. 결과적으로 근본원인은 하나 더
+정확히 규명했지만, 그걸 고치는 구현이 실제로는 개선이 아니라 악화(B측 데드락)
+였음을 실측으로 확인해 **전부 되돌렸다** -- 최종 코드 상태는 위 §7의 재귀적 cap
+(diff=0.05V) 그대로다. 이 절은 순수 기록 목적(다음에 이 경로를 또 시도하지
+않도록).
+
+## 1. 새로 찾은 진짜 근본원인 -- theta feed가 headroom의 KVL 계산을 죽은 코드로 만듦
+
+`L_cascode` theta(`{"type":"metric_stage_budget","devices":["M2a","M2b","M3a","M3b"]}`)
+가 처리되는 시점에 M2a/M3a는 아직 아무 값도 없다 -- `resolve_feed_vds()`가 role
+폴백(headroom_role="cascode" -> `min_vds_by_role["cascode"]=0.2V`)으로 **조용히
+확정**해버린다. 그러면 나중에 헤드룸 루프(`_resolve_vertical_group`)가 diffpair_
+top_a/bottom_a를 처리할 때 "이미 vds가 있다"고 보고 그냥 넘어가 -- 세션42가 만든
+`budget_reference_device` 상호참조 KVL 계산(M2a<->M3a)이 **한 번도 실행되지
+않는다**(죽은 코드). 세션42/43(§1-4)의 `_feed_metric_stage_budget()` 3631행 주석이
+이미 "L_cascode devices=[M2a,M2b,M3a,M3b]가 조인트 스캔 크래시 회피 때문에 tier3
+추정치로 즉시 확정된다"고 스스로 문서화해뒀던 바로 그 트레이드오프다 -- 몰랐던 게
+아니라 알고도 미뤄둔 것.
+
+## 2. 시도한 수정 -- `_vds_source` 태그 + `_resolve_vertical_group()` 재분류
+
+`resolve_feed_vds()`가 `(vds, source)`를 반환하도록 확장(`"resolved"`/`"declared"`/
+`"role"`/`"default"`), 호출부(`_feed_metric_stage_budget()`/`_feed_gm_target_
+convention()`)가 `ctx.sized[name]["_vds_source"]`에 남김. `_resolve_vertical_
+group()`의 "이미 resolved" 판정을 `_pending_role_fallback(m)`(vds_source=="role"
+AND budget_reference_device 선언)이면 "아직 미확정"으로 재분류하도록 확장, 배정부
+에서 gm_id/L은 보존하고 vds/W/gm/gds만 LUT로 재계산.
+
+추가로 실측 중 발견한 **별개의 우선순위 버그**: M2a/M3a가 `_thin_singleton`(role=
+cascode가 thin_roles에 있음)과 `_referenced_singleton`(다른 그룹이 참조 중) 둘 다에
+해당하는데, if/elif 순서상 `_thin_singleton`이 먼저 걸려 `ideal_sources` 선언
+요구 검증이 걸린다(M2a는 ideal_sources 대상이 아니라 실패) -- `_referenced_
+singleton`을 먼저 검사하도록 순서 교체(두 분기 결과값은 100% 동일, 검증 게이트만
+다름 -- 이 자체는 안전한 수정이었음, 재현 필요하면 재사용 가능).
+
+## 3. 실측 검증 결과 -- "성공"은 착시였고 B측은 실제로 악화
+
+A측(diffpair_top_a/bottom_a)은 에러 없이 통과했지만, **값 자체는 전혀 안 바뀌었다**
+(M2a/M3a 여전히 0.2V, role 폴백 그대로) -- `_referenced_singleton` 분기가 `budget_
+reference_device`의 leftover 계산(`allocate_stack_headroom()`)을 아예 안 타고
+`cascode_fn()`(=role 최소치) 그대로 반환하기 때문이다. 즉 "재분류"는 검증을
+건너뛰지 않게는 했지만 **정확한 값을 계산하게 만들지는 못했다** -- `_verify_
+group_kvl_sum()` 자체도 `_referenced_singleton` 그룹은 원래 검증 대상에서
+제외되므로(설계상 "참조하는 쪽이 검증 책임"), 이 경로에서는 애초에 검증도 안 된다.
+
+B측(diffpair_top_b/bottom_b)은 더 나빠졌다 -- M2b/M3b는 `L_cascode`의 조인트 스캔
+즉시-소비 대상이 아니어서(세션42의 defer 조건, `_joint_scan_needs_now=False`)
+애초에 **아무 값도 없이**(`_L_source="metric_stage_budget_vds_deferred"`, vds
+키 자체가 없음) 헤드룸 루프에 진입한다. 반면 A측(M2a/M3a)은 즉시-소비 대상이라
+role 폴백값(0.2V)이라도 존재했다 -- 이 "우연한 부트스트랩 값"이 A측 fixed-point
+worklist가 (착시적으로) 수렴하게 만든 유일한 이유였다. B측은 그 부트스트랩이 없어
+M2b가 M3b를, M3b가 M2b를 서로 기다리는 **진짜 순환**에 빠져 "vertical_stack_id
+그룹이 서로 의존관계를 완결할 수 없다" 에러로 크래시했다(수정 전엔 도달한 적
+없던 지점이라 이 데드락 자체가 이번에 처음 드러남).
+
+**결론적 근본 통찰**: `diffpair_top_x`(M2x)와 `diffpair_bottom_x`(M3x)의
+`budget_reference_device` 상호참조는 대수적으로 **`M2x.vds + M3x.vds = 상수`**
+하나의 방정식만 주고 미지수는 둘이라 **근본적으로 미결정(underdetermined)**이다
+(직접 대입해 확인: 두 leftover 공식이 서로한테 대입하면 항등식 `b=b`가 나옴,
+독립방정식이 아님). 세션42가 이 필드를 선언할 때 "상호참조로 풀린다"고 여겼던
+전제 자체가 틀렸다 -- 실제로 풀리려면 M2x/M3x 중 하나가 이미 확정돼 있거나(부트
+스트랩), 분배 비율을 결정하는 제3의 규칙(예: `L_cascode` feed가 이미 M2x=M3x를
+강제하므로 "정확히 반씩 나눈다")이 따로 필요하다.
+
+## 4. 되돌림
+
+위 §2의 수정 전부(resolve_feed_vds 반환형/두 호출부/`_metric_stage_budget_
+finalize` 시그니처/두 호출부/`_resolve_vertical_group`의 재분류 로직 및 배정부
+재계산/`_thin_singleton`↔`_referenced_singleton` 순서교체) 전부 원래대로 되돌림.
+최종 코드는 §7 이전 상태(diffpair는 `reserved_vds_for_other_stack_members()`의
+재귀 확장 cap만 적용된 상태, diff=0.05V)와 완전히 동일 -- self-test
+(`sizing_recipe.py`/`stick_diagram.py`) 둘 다 exit 0 재확인.
+
+## 5. 다음에 diffpair를 정말 완전히 닫으려면 (설계 메모)
+
+§3의 통찰대로, `budget_reference_device` 상호참조만으로는 절대 안 풀린다.
+필요한 것: **"L_cascode feed가 이미 M2x=M3x(같은 vds)를 강제하므로, 남는 예산을
+정확히 반씩 나눈다"는 명시적 규칙**. 후보 구현: (a) `L_cascode` feed 자체가 vds를
+결정할 때 `resolve_feed_vds()`의 role 폴백 대신 "이 branch의 나머지(M1a/M4a/M6/M5,
+이미 알려진 값)를 빼고 2로 나눈 값"을 계산하도록 특수 로직 추가(단, M1a/M4a/M6/M5
+가 이 시점에 전부 준비돼 있어야 함 -- M6/M5는 헤드룸 루프 소속이라 이 시점엔 아직
+없을 수 있어 순서 문제가 남음), 또는 (b) `budget_reference_device`를 상호참조
+대신 "M2x/M3x를 하나의 headroom 그룹으로 합쳐 `allocate_stack_headroom()`이
+정상적으로 균등분배하게" 재설계(topology.json의 vertical_stack_id 구조 자체를
+바꾸는 것 -- diffpair_top_a/bottom_a를 없애고 새 통합 vsid 신설). 둘 다 이번
+세션 범위를 넘는 새 설계라 다음 세션에 사용자와 처음부터 다시 논의할 것 -- 지금은
+§7의 0.05V known-limitation으로 남겨두는 게 적절하다(현재 상태가 실제로 안전하고
+graceful하게 실패하며, 억지로 "닫은 척"하는 것보다 정직함).
+
+---
+
+# 세션43 (계속 2) -- diffpair 완전 닫기 **성공** -- 위 §5의 (b) 설계를 실제로
+구현, 새 코드 없이 topology.json 재구성만으로 KVL 정확히 0 달성
+
+사용자가 "미결정 설계문제를 해결하고 싶어 좀더 구체화하자"고 요청, 위 §5의 막연한
+설계 메모를 실제로 구체화해 구현까지 완료했다.
+
+## 1. 구체화 -- 왜 (b)가 실제로 동작하는지 정확히 도출
+
+핵심 재발견: `allocate_stack_headroom()`은 이미 "cascode류 thin role은 각자 role
+최소치만, 나머지(tail 등)는 **남는 예산을 인원수로 균등분배**"하도록 설계돼 있고
+(§thin_roles/other_entries), 합=vdd를 함수 자신의 assert로 보장한다 -- **이게
+바로 필요한 "정확히 반씩 나눈다"는 규칙 그 자체**였다. `budget_reference_device`
+상호참조 대신, 물리적 단일 branch(M6-M1a-M2a-M3a-M4a-M5, vdd~gnd)를 그냥 **하나의
+vertical_stack_id로 병합**하면 이 기존 함수가 자동으로 정확한 분배를 해준다.
+
+`symmetry.matching_pairs`를 재확인해 정확한 구조를 파악: M1a=M1b/M4a=M4b는
+`matching_sensitivity="offset"`(`_vfind()`가 union → 헤드룸 집계에서 대표 1개만
+카운트), 반면 **M2a=M2b/M3a=M3b는 "ratio"**(session41이 의도적으로 `_vfind()`가
+안 묶게 설계 -- two_stage_ota M3/M4류처럼 진짜 값이 다를 수 있는 ratio 쌍과
+구분하기 위함)라서 그냥 합치면 `known_vds_sum`이 이중 계산된다(실측으로 최초
+시도에서 발견 -- cap이 0V까지 떨어져 크래시). M2a/M2b(및 M3a/M3b)는 `L_cascode`
+theta feed(devices=[M2a,M2b,M3a,M3b]) 자체가 애초에 vds 하나만 계산해 넷 다 동일
+적용하므로 물리적으로 100% 동일값이지만, 그건 "ratio 미스매치 분류"와는 별개
+축이다(미스매치 분석 목적 vs 헤드룸 VDS 동일성은 직교하는 관심사).
+
+## 2. 최종 설계
+
+- **`diffpair_branch_a`**(신설, 8소자): M6, M1a, M1b, M2a, M3a, M4a, M4b, M5.
+  `budget_reference_device` 전부 제거. M1a/M4a는 compensation이 이미 확정(known_
+  vds_sum), M2a/M3a는 headroom_role="cascode"(thin, 각자 role 최소치), M6/M5는
+  headroom_role="tail"(남는 예산 정확히 절반씩 -- `allocate_stack_headroom()`의
+  `other_entries` 균등분배가 자동으로 처리).
+- **`diffpair_shadow_b`**(신설, 2소자): M2b(`same_as_device: M2a`), M3b
+  (`same_as_device: M3a`) -- M7=M6과 완전히 동일한 기존 패턴 재사용. 이 그룹
+  자체는 `_verify_group_kvl_sum()`의 same_as_device 스킵 규칙으로 검증 대상에서
+  자동 제외(정상, M7/vx_tail_b와 동일 근거).
+- 옛 `diffpair_top_a/b`·`diffpair_bottom_a/b`·`vx_tail_a`·`vy_tail` 4+2개 vsid는
+  전부 삭제(문자열만 없어짐, 소자 자체는 그대로).
+- branch_b(M7-M1b-M2b-M3b-M4b-M5)의 KVL은 M7=M6/M1b=M1a/M4b=M4a/M2b=M2a/M3b=M3a/
+  M5 공유가 전부 구조적으로 강제되므로 branch_a와 대수적으로 항상 동일해 별도
+  검증 없이도 자동 성립(증명: 두 등식이 완전히 같은 변수로 치환됨).
+- **코드 변경 없음** -- 순수 topology.json 재구성. `allocate_stack_headroom()`/
+  `_vfind()`/`same_as_device`/`_verify_group_kvl_sum()` 전부 기존 그대로 재사용.
+
+## 3. 실측 검증 -- 완전 성공
+
+- 격리 검증(bounds-midpoint 참조점): **M6(0.475V)+M1a(0.3V)+M2a(0.2V)+M3a(0.2V)
+  +M4a(0.15V)+M5(0.475V) = 1.8V = vdd, diff=0.0 정확히 일치** -- `_verify_group_
+  kvl_sum()` 통과, 에러 없음. 파이프라인이 이 지점을 완전히 통과해 훨씬 더 먼
+  지점(M9a, biasgen 영역 -- 완전히 별개의 미탐색 지점)까지 진행.
+- `sizing_recipe.py` self-test: exit 0. **L5c(51소자 실회로 self-test)가 이제
+  known-limitation 우회 없이 완전히 완주**(`gain_db=71.06dB, mismatch_sigma_mV=
+  2.99, cmrr_estimate_db=80.45, psrr_estimate_db=91.21`) -- 세션42 이후 계속
+  known-limitation으로 우회하던 지점이 처음으로 진짜 완주함.
+- `stick_diagram.py` self-test: 1건 실패 발견 -> 수정 -> exit 0. Test 49
+  (`audit_vertical_stack_id_euler_feasibility()`의 kind-mixed vsid 감사)가
+  하드코딩된 "예상 kind-mixed vsid 집합"에 새 `diffpair_branch_a`/`diffpair_
+  shadow_b`가 없어서 실패 -- 이건 회귀가 아니라 의도된 topology 변경을 테스트가
+  못 따라간 것(감사 함수 자체는 새 kind-mixed 그룹 2개를 정확히 감지·보고했음,
+  output_stage_a/b와 동일한 "진짜 전기적 컬럼이라 극성 경계를 넘나드는 게 정상"
+  이유). 예상 집합에 두 이름 추가해 해결.
+- `folded_cascode`/`two_stage_ota`/`nmcnr_amplifier` harness 재실행: **3개 전부
+  byte-diff 0**(완전 동일) -- 회귀 0건.
+- `current_reuse_telescopic_ota` 실제 프로덕션 SLSQP harness(3-start) 재실행:
+  **KVL 크래시는 완전히 사라짐**(3-start 전부 25 iteration 끝까지 크래시 없이
+  완주, 세션 내내 반복되던 output_stage_a/diffpair KVL ValueError가 한 번도
+  안 남) -- 이 세션의 원래 목표(KVL 무결성)는 완전히 달성됨. 다만 **다른 종류의
+  실패**로 끝남: `gain_db>=75.6` 제약을 3-start 전부 못 채움(실측
+  `gain_db≈52.48/52.17/52.78dB`, 목표에 크게 못 미침). 세션40 이전~세션42까지
+  반복 확인돼온 `gain_db=76.48dB` 베이스라인과 크게 어긋난다.
+
+## 4-b. 중요한 새 발견 -- 옛 gain_db=76.48dB 베이스라인이 KVL 위반 위에서
+계산됐을 가능성
+
+이번 세션 전체(§7-0/§7-1/diffpair 병합)가 고친 버그들의 공통점: **compensation/
+theta feed가 KVL을 몰라서, 물리적으로 불가능한(헤드룸 예산을 초과하는) VDS
+조합을 자유롭게 고를 수 있었다.** 옛 `gain_db=76.48dB`는 바로 이 "물리적으로
+불가능한 자유도"(예: M1a/M4a가 실제로는 낼 수 없는 조합, 또는 output_stage_a의
+M15/M16이 KVL 없이 독립적으로 고른 조합)를 SLSQP가 이용해 도달한 값이었을
+가능성이 높다 -- 이번에 KVL을 실제로 강제하니(디버깅 목적이 아니라 진짜 물리적
+제약으로) 그 자유도가 사라져 실제 달성 가능한 gain이 훨씬 낮게(~52dB) 드러났다.
+**즉 이번 세션이 고친 건 "크래시"뿐 아니라 "가짜로 좋아 보이던 성능 수치"였을
+수 있다** -- 아직 확정은 아니지만(다른 원인 가능성도 있음, 아래 §5 참고), 이
+세션이 목표했던 "물리적으로 정직한 KVL"이라는 관점에서는 이게 오히려 올바른
+방향의 증거다(정직한 실패가 거짓 성공보다 낫다는 이 프로젝트의 반복된 원칙과
+정확히 부합).
+
+## 5. 다음 세션 최우선 순서 (갱신)
+
+1. **[최우선, 신규] gain_db≈52dB(목표 75.6dB) 미달 원인 분석** -- §4-b의 가설
+   (옛 76.48dB가 KVL 위반 위에서 나온 값)을 실제로 검증할 것: (a) 이번에 새로
+   닫힌 KVL 제약(output_stage_a의 vds_kvl_groups, diffpair_branch_a의 균등분배)
+   때문에 M15/M16 또는 M2a/M3a/M6/M5가 예전보다 훨씬 얇은 헤드룸을 받게 됐는지
+   실측 대조, (b) 그게 gain_db 하락의 실제 원인인지 민감도 분석, (c) 원인이
+   확정되면 이게 "이 회로/스펙 조합에서는 애초에 75.6dB가 물리적으로 불가능했다"
+   는 뜻인지(스펙 재검토 필요), 아니면 "SLSQP가 더 나은 지점을 못 찾은 것뿐"인지
+   (n_starts/maxiter 확장, 세션40의 block-coordinate 탐색 재시도 등) 판단.
+   **회로 스펙(75.6dB 요구치) 자체를 건드리는 판단이라 사용자와 반드시 논의 후
+   진행할 것.**
+2. M9a 관련 새 발견("W_bounds 안에 드는 gm_id 후보가 없다", bounds-midpoint
+   참조점에서 vds=0.01114V로 지나치게 얇음) -- diffpair와 무관한 완전히 새로운
+   지점이라 이번 세션 범위였는지, 별도 이월 항목인지 다음에 판단 필요(이 지점은
+   이번 수정 전엔 diffpair가 막고 있어 한 번도 도달한 적 없었을 가능성이 높음 --
+   output_stage_a 때와 같은 "양파 껍질" 패턴). 1번과 같은 근본원인(예산 재분배)
+   일 가능성도 있으니 1번 조사 시 함께 확인.
+3. `two_stage_ota`의 `stage1_out`(별개 구조, output_stage_a/diffpair와 다른
+   headroom+theta-feed 혼합 메커니즘)로 이월.
+
+## 6. 커밋 상태 -- 사용자 확인 필요
+
+변경 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`(§3 이전 절 그대로,
+diffpair 병합 자체는 코드 변경 없음), `skills/analog-gmid-design/assets/stick_
+diagram.py`(Test 49 예상 vsid 집합 갱신), `skills/analog-gmid-design/assets/
+library/current_reuse_telescopic_ota.topology.json`(diffpair_branch_a/
+diffpair_shadow_b 재구성), `.ai/context.md`(이 절 전체). 커밋 여부는 다음 턴에서
+사용자에게 확인할 것 -- 단, §5-1(gain_db 미달 원인)이 이 세션 변경 자체의
+버그인지 아니면 정직하게 드러난 사실인지 먼저 판단한 뒤 커밋하는 게 안전할 수
+있음(사용자와 상의).

@@ -12040,10 +12040,17 @@ if __name__ == "__main__":
     # 전기적 컬럼이라 애초에 정의상 극성 경계를 넘나드는 게 정상이라는 뜻, 세션28 대화
     # 참고). 이 8개는 finger 조정으로 못 고치는 구조적 문제이므로 kind_mismatch=True로
     # 명확히 구분돼야 한다 -- cmfb_tail(홀짝-차수 문제, kind_mismatch=False)과 섞이면 안 됨.
+    # 2026-09-03(세션43) -- diffpair_top_a/b·diffpair_bottom_a/b 4개 vsid를 없애고
+    # 'diffpair_branch_a'(M6/M1a/M1b/M2a/M3a/M4a/M4b/M5, 물리적 단일 vdd~gnd branch
+    # 병합, budget_reference_device 상호순환의 근본수정)/'diffpair_shadow_b'(M2b/M3b,
+    # same_as_device 전용)로 재구성하면서 kind-mixed 그룹이 2개 늘었다(둘 다 PMOS+NMOS
+    # 섞임 -- output_stage_a/b와 동일한 이유, 진짜 전기적 컬럼이라 극성 경계를 넘나드는
+    # 게 정상). `.ai/context.md` 세션43 참고.
     _t49_kind_mismatch_vsids = {"biasgen_vom_battery_a", "biasgen_vom_battery_b",
                                  "biasgen_vop_battery_a", "biasgen_vop_battery_b",
                                  "vbias2_stack", "vbias3_stack",
-                                 "output_stage_a", "output_stage_b"}
+                                 "output_stage_a", "output_stage_b",
+                                 "diffpair_branch_a", "diffpair_shadow_b"}
     _t49_other_findings = [f for f in _t49_result["findings"] if f["vsid"] != "cmfb_tail"]
     _t49_other_vsids = {f["vsid"] for f in _t49_other_findings}
     assert _t49_other_vsids == _t49_kind_mismatch_vsids, \
