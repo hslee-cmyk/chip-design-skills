@@ -721,7 +721,8 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
                          fT: float | None = None, C: float | None = None, gm: float | None = None,
                          objective: str = "power", gain_min: float | None = None,
                          w_max: float | None = None, quasi_static_margin: float = 0.1,
-                         vs: float = 0.0, extra_feasible=None):
+                         vs: float = 0.0, extra_feasible=None,
+                         power_tolerance: float | None = None):
     """(L, VDS, gm/ID) 격자를 전부 스윕해 제약조건을 만족하는 점 중 objective 최소인 것을 반환.
 
     gm을 고정할 방법 두 가지: (fT,C) 지정 -> gm=2*pi*fT*C (단일 스테이지, §1 절차 그대로) 또는
@@ -729,8 +730,11 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
     miller_ota()가 이렇게 쓴다). fT를 지정하면 준정적 조건(fT<=margin*f_nqs)도 같이 검사한다.
 
     objective: "power"(ID 최소) 또는 "area"(W 최소) — 방법론 §5.1 트레이드오프 삼각형의
-    두 축에 대응. gain_min/w_max/quasi_static_margin은 §5 검증 체크리스트 항목을 그대로
-    제약조건화한 것.
+    두 축에 대응. "gain"(2026-09-03 세션43 신설 -- gm/gds 최댓값, 즉 gain 필드 최대화)은
+    `power_tolerance` 재선정(아래)이 그룹 멤버별 (L,VDS) 선택에 쓴다 -- 단독 objective로
+    직접 부를 일은 거의 없다(gm이 고정된 상태에서 gds만 최소화하면 L이 무한히 커질 수
+    있어 w_max 없이 쓰면 안 됨, "power" objective="power"엔 w_max 필수 경고와 동일 이유).
+    gain_min/w_max/quasi_static_margin은 §5 검증 체크리스트 항목을 그대로 제약조건화한 것.
 
     extra_feasible(2026-08-12 세션30 신설, 선택적): `(L, VDS, gm_id, ID) -> bool` 콜백 --
     gain_min/w_max/fT만으로는 표현 못 하는 추가 feasibility 조건(예: 이 (L,VDS,gm_id,ID)
@@ -740,6 +744,20 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
     matching 소자가 깨질 수 있다는 걸 이 엔진이 원래 전혀 몰랐다 -- harness 연동 감사로
     발견, `.ai/context.md` 세션30). 엔진 자체는 여전히 "무엇을 확인할지" 모른 채 콜백만
     호출한다(제네릭 유지) -- `None`이면 기존과 100% 동일(하위호환).
+
+    power_tolerance(2026-09-03 세션43 신설, 선택, `objective="power"`에서만 적용) --
+    `gm`이 (compensation처럼) 외부에서 고정되면 `ID=gm/gm_id`가 L·VDS와 완전히 무관해져,
+    "전력 최소화"가 사실상 "gm_id 전역 최댓값 하나만 고르기"가 된다 — 그런데 그 전역
+    최댓값이 **딱 하나의 (L,VDS)에서만** 나오고, 근소하게 못한 gm_id(예: 0.5 격자
+    한 칸 아래)는 훨씬 넓은 L·VDS 범위에서 feasible한 경우가 실측으로 확인됐다
+    (`current_reuse_telescopic_ota`의 M4a: 전역최적 gm_id=24.5는 L=0.245um/VDS=0.15V
+    유일점에서 gm/gds=15.3인데, gm_id=24.0(ID 겨우 +2%)은 L을 최대 0.92um까지 쓸 수
+    있는 35개 후보가 있고 그중 최댓값이 gm/gds=121.9 -- 8배/약 18dB 차이,
+    `.ai/context.md` 세션43 참고). 이 값을 주면(예: `0.05`=5%) "진짜 최소 ID의
+    `(1+power_tolerance)` 배 이내인 feasible 후보들 중 `gain`(gm/gds)이 최댓값인 것"을
+    최종 `best`로 재선정한다(순수 후처리 -- 메인 스윕 루프 자체는 안 건드림, 최소 ID
+    자체를 찾는 로직도 그대로). `None`(기본값)이면 기존 동작과 100% 동일(하위호환) --
+    이 재선정 단계 자체가 아예 실행되지 않는다.
 
     반환: (best, all_candidates). best는 dict(L,VDS,gm_id,ID,W,gain,fnqs_ok,feasible) 또는
     실행가능점이 없으면 None. all_candidates는 스윕한 전체 점(탐색 투명성 확보 — best 하나만
@@ -782,10 +800,30 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
                             fnqs_ok=fnqs_ok, feasible=feasible)
                 all_candidates.append(cand)
                 if feasible:
-                    obj_val = ID if objective == "power" else W
-                    best_val = (best["ID"] if objective == "power" else best["W"]) if best else None
+                    # 2026-09-03(세션43) -- "gain" objective 신설(power_tolerance가 그룹
+                    # 멤버별 선택에 쓴다, 아래 _size_group_at_gm_id()/_size_vdd_split() 참고):
+                    # gain(=gm/gds)을 최대화(=-gain을 최소화). 기존 "power"(ID 최소)/
+                    # "area"(W 최소)는 그대로.
+                    if objective == "power":
+                        obj_val = ID
+                    elif objective == "area":
+                        obj_val = W
+                    else:
+                        obj_val = -gain
+                    if best is None:
+                        best_val = None
+                    elif objective == "power":
+                        best_val = best["ID"]
+                    elif objective == "area":
+                        best_val = best["W"]
+                    else:
+                        best_val = -best["gain"]
                     if best is None or obj_val < best_val:
                         best = cand
+    if objective == "power" and power_tolerance is not None and best is not None:
+        threshold = best["ID"] * (1.0 + power_tolerance)
+        near_optimal = [c for c in all_candidates if c["feasible"] and c["ID"] <= threshold]
+        best = max(near_optimal, key=lambda c: c["gain"])
     return best, all_candidates
 
 
@@ -800,7 +838,8 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
                          max_iter: int = 10, tol: float = 1e-3,
                          shared_gm_id_groups: list | None = None,
                          stage_extra_feasible: list | None = None,
-                         vds_kvl_groups: list | None = None, vdd: float | None = None):
+                         vds_kvl_groups: list | None = None, vdd: float | None = None,
+                         power_tolerance: float | None = None):
     """제네릭 다단 회로 최적화 엔진 — **토폴로지가 바뀌어도 이 함수는 그대로 재사용**한다.
 
     다단 회로마다 다른 건 "스펙 → 각 스테이지 필요 gm" 관계식(위상보상 방정식)뿐이고, 그 gm을
@@ -967,7 +1006,8 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         best, _ = find_optimal_sizing(
             luts[i], L_candidates, _resolve_vds(i), gm_id_grid, gm=gm,
             objective=objective, gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i),
-            fT=_per_stage(fT_targets, i), extra_feasible=_per_stage(stage_extra_feasible, i))
+            fT=_per_stage(fT_targets, i), extra_feasible=_per_stage(stage_extra_feasible, i),
+            power_tolerance=power_tolerance)
         if best is None:
             return None
         return best
@@ -982,17 +1022,23 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         for i in g:
             vds_kvl_group_of[i] = tuple(g)
 
-    def _size_vdd_split(indices, gms, gm_id_options):
+    def _size_vdd_split(indices, gms, gm_id_options, member_objective=None):
         """`indices`(2개 이상)의 VDS 합이 정확히 `vdd`가 되도록 결합 탐색(vds_kvl_groups,
         위 docstring 참고). `gm_id_options`가 `gm_id_grid`(길이>1)면 각 스테이지가 독립적으로
         자기 gm_id도 같이 찾고, `[gm_id]`(길이 1)면 이미 공유 gm_id가 고정된 채 호출된 것이다
-        (`_size_shared_group`이 바깥에서 감쌈). 반환: `{idx: best_dict, ...}` 또는 실행가능점을
-        하나도 못 찾으면 `None`."""
+        (`_size_shared_group`이 바깥에서 감쌈). `member_objective`(2026-09-03 세션43 신설,
+        선택)를 주면 gm_id가 고정된 경우(`len(gm_id_options)==1`)의 기본값 "area" 대신 그
+        값을 쓴다 -- `_size_shared_group`의 `power_tolerance` 재선정 루프가 "gain"을 넘겨
+        멤버별 (L,VDS)도 gain 우선으로 고르게 한다(안 주면 기존 100% 동일). 반환:
+        `{idx: best_dict, ...}` 또는 실행가능점을 하나도 못 찾으면 `None`."""
         free, last = list(indices[:-1]), indices[-1]
         free_grids = [_resolve_vds(i) for i in free]
         last_grid = _resolve_vds(last)
         last_cap = max(last_grid) if last_grid else None
-        _obj = objective if len(gm_id_options) > 1 else "area"
+        if len(gm_id_options) > 1:
+            _obj = objective
+        else:
+            _obj = member_objective if member_objective is not None else "area"
         best_members, best_val = None, None
         for combo in itertools.product(*free_grids):
             vds_last = vdd - sum(combo)
@@ -1004,7 +1050,8 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
                 best, _ = find_optimal_sizing(
                     luts[idx], L_candidates, [vds_fixed], gm_id_options, gm=gms[idx],
                     objective=_obj, gain_min=_per_stage(gain_min, idx), w_max=_per_stage(w_max, idx),
-                    fT=_per_stage(fT_targets, idx), extra_feasible=_per_stage(stage_extra_feasible, idx))
+                    fT=_per_stage(fT_targets, idx), extra_feasible=_per_stage(stage_extra_feasible, idx),
+                    power_tolerance=power_tolerance)
                 if best is None:
                     ok = False
                     break
@@ -1014,7 +1061,8 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
             best_last, _ = find_optimal_sizing(
                 luts[last], L_candidates, [vds_last], gm_id_options, gm=gms[last],
                 objective=_obj, gain_min=_per_stage(gain_min, last), w_max=_per_stage(w_max, last),
-                fT=_per_stage(fT_targets, last), extra_feasible=_per_stage(stage_extra_feasible, last))
+                fT=_per_stage(fT_targets, last), extra_feasible=_per_stage(stage_extra_feasible, last),
+                power_tolerance=power_tolerance)
             if best_last is None:
                 continue
             members[last] = best_last
@@ -1023,12 +1071,16 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
                 best_val, best_members = val, members
         return best_members
 
-    def _size_group_at_gm_id(indices, gms, gm_id):
+    def _size_group_at_gm_id(indices, gms, gm_id, member_objective=None):
+        """`member_objective`(2026-09-03 세션43 신설, 선택) -- 기본 "area" 대신 쓸 objective.
+        `_size_shared_group`의 `power_tolerance` 재선정 루프가 "gain"을 넘긴다(안 주면
+        기존 100% 동일)."""
+        _obj = member_objective if member_objective is not None else "area"
         members = []
         for i in indices:
             best, _ = find_optimal_sizing(
                 luts[i], L_candidates, _resolve_vds(i), [gm_id], gm=gms[i],
-                objective="area", gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i),
+                objective=_obj, gain_min=_per_stage(gain_min, i), w_max=_per_stage(w_max, i),
                 fT=_per_stage(fT_targets, i), extra_feasible=_per_stage(stage_extra_feasible, i))
             if best is None:
                 return None
@@ -1053,6 +1105,48 @@ def optimize_multistage(topology_fn, luts, L_candidates, VDS_candidates, gm_id_g
         # 우선" tie-break와 같은 방향). objective="area"는 전 gm_id를 훑어 그룹 총 W가 최소인
         # 것을 채택한다.
         order = sorted(gm_id_grid, reverse=(objective == "power"))
+        # 2026-09-03(세션43) -- power_tolerance가 있으면(find_optimal_sizing()의 동명 매개변수와
+        # 같은 개념, 여기서는 그룹 전체가 gm_id 하나를 공유하므로 ID_total=Σgm/gm_id로 gm_id에
+        # 반비례) "처음 feasible한 gm_id에서 즉시 return"을 멈추고, 그 gm_id의
+        # `(1+power_tolerance)` 배 이내(=gm_id가 `gm_id_best/(1+power_tolerance)`보다 크거나
+        # 같은) 동안 계속 훑어 그룹 gain(Σgm/Σgds, `_metric_gain_stages_sum()`이 실제로 읽는
+        # 값과 동일한 정의)이 최댓값인 조합을 채택한다. 실측 계기: M1a/M4a(current_reuse_
+        # telescopic_ota)가 여기를 거치는데, 전역 최적 gm_id는 L=0.245um/VDS=0.15V 유일점
+        # (gm/gds~15)에서만 나오고, ID가 2%만 더 큰 바로 아래 gm_id는 L을 최대 0.92um까지
+        # 쓸 수 있는 35개 후보가 있어 그중 gm/gds~122(8배)까지 나온다(`.ai/context.md` 세션43
+        # 참고). `power_tolerance=None`(기본값)이면 이 블록 전체가 건너뛰어져 기존 동작과
+        # 100% 동일(하위호환).
+        if objective == "power" and power_tolerance is not None:
+            near_optimal = []
+            gm_id_best = None
+            for gm_id in order:
+                if gm_id_best is not None and gm_id < gm_id_best / (1.0 + power_tolerance):
+                    break
+                if vds_group is not None:
+                    members_map = _size_vdd_split(vds_group, gms, [gm_id], member_objective="gain")
+                    members = [members_map[i] for i in indices] if members_map is not None else None
+                else:
+                    members = _size_group_at_gm_id(indices, gms, gm_id, member_objective="gain")
+                if members is None:
+                    continue
+                if gm_id_best is None:
+                    gm_id_best = gm_id
+                near_optimal.append(members)
+            if not near_optimal:
+                return None
+
+            def _group_gain(members):
+                # find_optimal_sizing()의 candidate dict는 "gm"/"gds"를 직접 안 담고
+                # ID/gm_id/gain(=gm/gds 비율)만 담는다 -- gm=ID*gm_id, gds=gm/gain으로 역산.
+                gm_sum = 0.0
+                gds_sum = 0.0
+                for m in members:
+                    gm_m = m["ID"] * m["gm_id"]
+                    gm_sum += gm_m
+                    gds_sum += gm_m / m["gain"]
+                return gm_sum / gds_sum
+
+            return max(near_optimal, key=_group_gain)
         best_group, best_val = None, None
         for gm_id in order:
             if vds_group is not None:
@@ -4532,7 +4626,8 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     gain_min=spec.get("stage_gain_min"), w_max=spec.get("stage_w_max"),
                     shared_gm_id_groups=comp.get("shared_gm_id_groups"),
                     stage_extra_feasible=_stage_extra_feasible,
-                    vds_kvl_groups=comp.get("vds_kvl_groups"), vdd=spec.get("vdd"))
+                    vds_kvl_groups=comp.get("vds_kvl_groups"), vdd=spec.get("vdd"),
+                    power_tolerance=spec.get("stage_power_tolerance"))
                 _comp_cache[_comp_cache_key] = comp_result
             if comp_result is None:
                 raise ValueError("optimize_multistage()가 실행가능점을 못 찾음 -- "

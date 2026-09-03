@@ -164,6 +164,16 @@ def _spec_current_reuse_telescopic_ota():
         "min_vds_by_role": {"cascode": 0.2, "tail": 0.3, "mirror": 0.3},
         "stage_objective": "power",
         "stage_w_max": 200e-6,
+        # 2026-09-03(세션43) -- gm이 compensation으로 고정되면 ID=gm/gm_id가 L/VDS와
+        # 완전히 무관해져, "전력 최소화"의 전역 최적 gm_id가 L/VDS 격자 딱 한 점에서만
+        # feasible한 경우가 실측으로 확인됐다(M1a/M4a: 전역최적 gm_id=24.5는 gm/gds~15인
+        # 유일점인데, ID가 2%만 더 큰 바로 아래 gm_id는 L을 최대 0.92um까지 쓸 수 있는
+        # 35개 후보가 있고 그중 gm/gds~122까지 나옴 -- 8배/약 18dB 차이). 5%는 방금 실측
+        # 확인한 진짜 지점(2%)보다 여유를 둬 다른 소자/스테이지에서도 비슷한 기회를
+        # 놓치지 않게 한 값(사용자 승인, `.ai/context.md` 세션43 참고). `optimize_
+        # multistage()`/`find_optimal_sizing()`의 `power_tolerance`가 `None`이면(기본값)
+        # 이 필드 자체가 없어도 기존 동작과 100% 동일 -- 이 회로에만 opt-in.
+        "stage_power_tolerance": 0.05,
         "min_finger_w": 1e-6,
         "max_finger_w": 40e-6,
         "vth0_slope": {"nfet": 3.356e-3, "pfet": 5.856e-3},

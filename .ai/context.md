@@ -13359,8 +13359,92 @@ cmrr/psrr 등)은 전혀 안 걸림, gain_db 하나만 유일한 병목.
      ro 곱)이 아니라 "Σgm/Σgds" 근사라 실제 회로 성능과 얼마나 어긋나는지 --
      `gain_full_circuit_db`(전체회로 MNA 기반, 별도 metric)와 대조해볼 가치 있음.
 
-## 5. 커밋 상태 -- cap dedup 수정 미커밋
+## 5. 커밋 완료 -- `1a8cf4e`
 
-변경 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`(`reserved_vds_for_
-other_stack_members()`의 `vfind` 매개변수 신설 + 호출부 반영), `.ai/context.md`
-(이 절). 커밋 여부는 다음 턴에서 사용자에게 확인할 것.
+cap dedup 수정 + 이 절의 민감도 분석을 커밋 `1a8cf4e`로 확정(사용자 지시).
+
+---
+
+# 세션43 (계속 4) -- compensation objective 조정: power_tolerance 신설, gain_db
++4.4dB 개선하지만 cmrr/psrr이 새로 위반됨(진짜 트레이드오프 발견)
+
+사용자 지시로 §4의 방향 3번("stage1 compensation objective가 gain을 전혀 안 봄")을
+실제로 파고들어 구현했다.
+
+## 1. 정확한 메커니즘 재확인
+
+M1a/M4a는 `shared_gm_id_groups`(compensation stage_devices[0]/[1])를 거쳐
+`_size_shared_group()`이라는 별도 경로로 처리된다(`_size_stage()`가 아님). 여기서
+`objective="power"`는 gm_id_grid를 **내림차순**으로 훑다 **처음 feasible한 gm_id에서
+즉시 return**한다 -- gain을 전혀 안 본다. 실측(`find_optimal_sizing()`을 실제 spec/
+gm으로 직접 호출): 전역 최적 gm_id=24.5는 L=0.245um/VDS=0.15V **유일점**(gm/gds≈15)
+에서만 나오는데, ID가 겨우 **2%** 더 큰 바로 아래 gm_id=24.0은 L을 최대 0.92um까지
+쓸 수 있는 **35개** 후보가 있고 그중 최댓값이 gm/gds≈122(**8배**) -- 완전히 공짜에
+가까운 기회를 놓치고 있었다.
+
+## 2. 구현 -- `power_tolerance`(신설) + `objective="gain"`(신설)
+
+- `find_optimal_sizing()`에 `power_tolerance`(기본 `None`, `objective="power"`에만
+  적용) 신설 -- 메인 스윕 후 "진짜 최소 ID의 `(1+power_tolerance)`배 이내 feasible
+  후보 중 gain(gm/gds) 최댓값"으로 `best`를 후처리 재선정. 새 `objective="gain"`
+  모드(gain 최대화)도 함께 신설.
+- `_size_shared_group()`의 내림차순 gm_id 루프에 동일 개념 배선: `power_tolerance`가
+  있으면 "처음 feasible에서 즉시 return" 대신 `gm_id >= gm_id_best/(1+power_tolerance)`
+  구간을 전부 훑어(그룹 전체 ID_total=Σgm/gm_id이므로 이 부등식이 정확히 대응),
+  그룹 gain(Σgm/Σgds, `_metric_gain_stages_sum()`과 동일 정의)이 최댓값인 조합을
+  채택. `_size_group_at_gm_id()`/`_size_vdd_split()`에 `member_objective` 매개변수
+  신설(기본 "area" 그대로, 여기서만 "gain"으로 오버라이드) -- 그룹 gm_id는 고정해도
+  멤버별 (L,VDS) 선택 자체가 여전히 area 최소화만 보면 gain 기회를 못 잡기 때문
+  (1차 구현에서 이 누락으로 개선폭이 미미했다가, 고치자 25.75→29.17dB로 뛴 실측
+  확인됨).
+- `_evaluate()`의 compensation 호출부가 `spec.get("stage_power_tolerance")`를
+  `optimize_multistage()`에 그대로 전달. `run_harness.py`의
+  `_spec_current_reuse_telescopic_ota()`에만 `stage_power_tolerance: 0.05`(사용자
+  승인) 추가 -- 다른 3개 회로/self-test spec은 이 필드가 없어 `None`이라 100%
+  기존 동작(하위호환 확인됨, 아래 §3).
+
+## 3. 검증 -- 개선은 확실하지만 새로운 트레이드오프 발견
+
+- self-test(`sizing_recipe.py`/`stick_diagram.py`) exit 0, `folded_cascode`/
+  `nmcnr_amplifier`/`two_stage_ota` harness 회귀 0건(byte-diff 또는 라인번호만
+  다른 동일 에러) -- self-test 자체 spec에는 `stage_power_tolerance`가 없어
+  완전히 dormant임도 재확인(pt1/pt2 로그 완전 동일).
+- bounds-midpoint 진단점: stage1 gain **25.75dB -> 29.17dB(+3.4dB)**, M4a
+  vds=0.15V->0.6V(M1a와 대칭), gds 4.4배 개선.
+- **실제 SLSQP 3-start 재실행**: `gain_db` **52.6~53.0dB -> 56.8~57.4dB(+4.4dB)**
+  확실한 개선. **그런데 이전엔 `gain_db` 하나만 위반이었는데, 이제
+  `cmrr_estimate_db>=60`(실제 51.2~53.9dB)과 `psrr_estimate_db>=60`(실제
+  55.3~58.9dB)이 새로 위반되기 시작했다** -- 수정 전 로그(`run_harness_out5.log`)
+  는 gain_db 단독 위반만 보고했었는데, 수정 후(`run_harness_out6.log`) 3-start
+  전부 세 constraint가 동시에 위반된다. gain을 위해 L을 키운 선택이 CMRR/PSRR
+  (`smallsignal_ratio_db` 타입, 전체회로 MNA 기반 -- `_metric_gain_stages_sum()`의
+  단순 근사와 달리 실제 소신호 회로 전체를 푼다)을 갉아먹은 것으로 보인다 -- **진짜
+  트레이드오프이지 버그가 아니다**(cmrr/psrr도 결국 gds/출력임피던스에 민감한
+  지표라, gain을 올리는 바로 그 메커니즘(gds 감소)이 다른 경로로 cmrr/psrr 비율도
+  같이 흔들 수 있음 -- 정확한 인과는 미확인, 추가 조사 필요).
+
+## 4. 다음 결정 필요 (사용자와 논의)
+
+1. **현재 5% tolerance를 그대로 둘지, 줄일지, 아니면 gain 재선정 기준 자체를
+   확장할지**: gain_db만 보고 재선정하는 대신 cmrr/psrr까지 반영한 복합 점수로
+   재선정하면(예: 세 metric 모두의 여유분 합/최솟값 최대화) 이 트레이드오프를
+   완화할 수 있을 것 -- 다만 `_size_shared_group()`은 아직 전체회로 MNA 결과에
+   접근 못 해(gain_stages_sum 근사만 계산 가능) 이 방향은 상당한 추가 설계가
+   필요하다.
+2. 5% 유지 시 gain_db 미달 폭이 75.6-57.4=18.2dB로 여전히 크게 남는다 -- §4(이전
+   목록)의 다른 방향(스펙 재확인/theta bounds 확장/근사 모델 정확도 검증)도 함께
+   봐야 완전한 그림이 될 것.
+3. cmrr/psrr 위반의 정확한 인과관계(왜 L을 키우면 이 값들이 나빠지는지)를 규명하지
+   않은 채 진행하면 다음에 또 놀랄 수 있다 -- 최소한 어느 소자의 L 변화가 cmrr/psrr
+   식의 어느 항에 들어가는지는 한 번 짚고 넘어가는 게 안전.
+
+## 5. 커밋 상태 -- power_tolerance 기능 전체 미커밋
+
+변경 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`(`find_optimal_
+sizing()`의 `power_tolerance`/`objective="gain"` 신설, `optimize_multistage()`의
+`power_tolerance` 매개변수 + `_size_shared_group()`/`_size_vdd_split()`/
+`_size_group_at_gm_id()`의 `member_objective` 배선, `_evaluate()` 호출부 반영),
+`workspaces/run_harness.py`(`_spec_current_reuse_telescopic_ota()`에
+`stage_power_tolerance: 0.05` 추가), `.ai/context.md`(이 절). **커밋 여부는 §4의
+트레이드오프를 사용자와 논의한 뒤 결정할 것** -- gain_db는 개선됐지만 cmrr/psrr이
+새로 위반되는 상태를 "완결"로 볼지 "부분적 진전"으로 볼지는 사용자 판단 필요.
