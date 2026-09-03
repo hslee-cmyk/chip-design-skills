@@ -4121,7 +4121,13 @@ def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_role
     if vfind is not None:
         seen_groups = set()
         deduped = set()
-        for m in members:
+        # 2026-09-03(세션44, 재현성 버그 수정) -- `members`가 set이라 이전엔 `for m in
+        # members:`가 문자열 해시 순서(PYTHONHASHSEED, 프로세스마다 무작위)로 순회돼
+        # "그룹당 첫 번째로 만난 멤버가 대표"라는 이 dedup 로직이 실행마다 다른 대표를
+        # 골랐다 -- 같은 theta/topology 입력인데도 M1a류 VDS 캡이 실행마다 달라지는
+        # 비결정성으로 실측 확인됨(diagnose_power_tolerance_controlled.py, 세션44).
+        # sorted()로 순서를 고정해 재현성을 회복한다(집합의 내용 자체는 그대로).
+        for m in sorted(members):
             g = vfind(m)
             if g in seen_groups:
                 continue
@@ -4129,7 +4135,7 @@ def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_role
             deduped.add(m)
         members = deduped
     reserved = 0.0
-    for m in members:
+    for m in sorted(members):
         if m in metric_stage_budget_vds:
             reserved += metric_stage_budget_vds[m]
         elif device_roles.get(m, {}).get("headroom_role"):

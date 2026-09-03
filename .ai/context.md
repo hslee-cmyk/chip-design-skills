@@ -1,12 +1,15 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션42 최종 완료 -- fold_group
-오판 근본원인(analog-grammar 버그) 수정 + budget_reference_device 다중참조 확장 +
-DC/AC 갭 2건 추가 발견"부터 먼저 읽을 것.** 그 위의 "# 세션42 완료 -- 세션41 회귀
-수정 + self-test 전수 재통과"는 세션42 **중반** 시점 스냅샷이고, 그 뒤 사용자와의
-긴 회로원리 논의 끝에 그 절의 전제(fold_group=vom1_fold가 옳다는 가정) 자체가
-틀렸음이 밝혀져 대부분 무효화됐다 -- 맨 끝 절이 최종 결론이다. "# 세션41 실제 최종
-상태"/"# 세션41 완료"/"# 세션40 최종 요약"~"# 세션31 결론"은 더 이전 이력이다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션44 결론 -- power_tolerance
+cmrr/psrr '트레이드오프'는 SLSQP 아티팩트였음 확인 + gain_db 목표 재도출(75.6→54,
+논문 인용 탈피) + reserved_vds_for_other_stack_members() 재현성 버그(set 순회
+순서 비결정성) 발견/수정 + 전수 재발 조사"부터 먼저 읽을 것.** 세션44가 세션43이
+남긴 "cmrr/psrr 트레이드오프"를 근본까지 파고든 결과, 진짜 트레이드오프가 아니라
+①gain_db=75.6 목표 자체가 애초에 근거 없는 논문 인용값이었던 문제 + ②그 목표를
+SLSQP가 영원히 못 채우며 방황하다 다른 자유변수를 망가뜨린 문제 + ③set 순회
+순서가 프로세스마다 랜덤해서(PYTHONHASHSEED) 같은 입력에도 다른 결과가 나오던
+재현성 버그, 이 세 가지가 겹쳐서 만든 착시였다 -- 자세한 경위는 맨 끝 절 참고.
+"# 세션42 최종 완료"~"# 세션31 결론"은 더 이전 이력이다.
 아래는 세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가
 궁금할 때만 찾아보면 된다.
 
@@ -13448,3 +13451,184 @@ sizing()`의 `power_tolerance`/`objective="gain"` 신설, `optimize_multistage()
 `stage_power_tolerance: 0.05` 추가), `.ai/context.md`(이 절). **커밋 여부는 §4의
 트레이드오프를 사용자와 논의한 뒤 결정할 것** -- gain_db는 개선됐지만 cmrr/psrr이
 새로 위반되는 상태를 "완결"로 볼지 "부분적 진전"으로 볼지는 사용자 판단 필요.
+
+---
+
+# 세션44 결론 -- power_tolerance cmrr/psrr "트레이드오프"는 SLSQP 아티팩트였음 확인 +
+gain_db 목표 재도출(75.6→54, 논문 인용 탈피) + reserved_vds_for_other_stack_members()
+재현성 버그(set 순회 순서 비결정성) 발견/수정
+
+세션43(계속4)이 "gain_db+4.4dB 개선했지만 cmrr/psrr이 새로 위반됨(진짜 트레이드오프인지
+불명확)"으로 이월한 문제를 사용자 지시("cmrr/psrr 트레이드오프 인과규명")로 끝까지 판
+결과, **진짜 회로 트레이드오프가 아니라 세 가지 문제가 겹친 착시**였음이 밝혀졌다.
+최종적으로 이 회로가 **처음으로 5개 sizing 제약(gain/mismatch/cmrr/psrr/classab) 전부를
+통과**하는 데까지 도달했다.
+
+## A. 1차 조사 -- 같은 theta 고정 A/B로 "진짜 M1a/M4a 영향인지" 격리
+
+`power_tolerance` OFF/ON을 서로 다른 SLSQP 실행으로 비교하면 거의 모든 51개 소자가 다
+바뀌어 원인을 못 좁혔다(1차 시도). **같은 theta_star를 고정한 채 `power_tolerance`만
+켜고/꺼서** 재계산했더니 반전이 나왔다: `gain_db` 52.48→57.03dB(+4.5dB, 의도한 효과)인데
+`cmrr_estimate_db`는 67.63→66.78dB(−0.85dB, 거의 무변화)이고 `psrr_estimate_db`는
+77.78→89.02dB(오히려 +11.2dB 개선). **M1a/M4a의 gain 재선정 자체는 cmrr/psrr을 안
+해친다** -- 세션43이 본 큰 위반은 다른 원인이었다는 뜻.
+
+## B. 2차 조사 -- 진짜 원인은 SLSQP가 도달 불가능한 gain_db≥75.6을 쫓다 방황한 것
+
+세션43-3이 이미 확정한 사실(`gain_db≥75.6`은 현재 theta bounds에서 물리적으로 도달
+불가능, 천장 ~57dB)과 결합: n_starts=1(순수 warm-start, seed 무관하게 항상 동일 지점에
+수렴 확인)로 OFF/ON을 비교하면 서로 다른 지점(`r_tail_M6` 0.50→0.696, `N_cmfb_bw`
+3.5→2.0, `f_slew` 0.3→0.1)으로 수렴한다 -- `power_tolerance`가 gain_db의 gradient
+landscape를 바꿔 SLSQP의 로컬 탐색 경로 자체가 달라진 것. **SLSQP가 영원히 못 채울
+gain_db 제약을 계속 쫓다가, gain_db를 고작 +0.4dB 개선하는 대가로 cmrr −13dB/psrr
+−32dB라는 극히 나쁜 트레이드를 받아들이고 있었다** -- 회로가 강요한 트레이드오프가
+아니라 "만족 불가능한 제약을 향한 무의미한 탐색"의 부작용.
+
+## C. gain_db≥75.6의 근거 조사 -- 애초부터 논문 값 그대로의 인용이었음 확인
+
+사용자 지시("1번으로 먼저 진행하자" -- 목표 자체를 바꾸는 방향)로 `gain_db≥75.6`의
+도출 근거를 추적: `docs/04-report/analog-topology-json-library.do.md` 1275행
+(2026-07-31, batch 7-3d, 이 프로젝트 아주 초기)에 "θ*의 `Av_total`이 **논문
+결과치(75.6dB)를 오차범위 내로 재현**하는지"가 검증 기준으로 명시돼 있었다 --
+`classab_centering_dev_v`/`cmrr_estimate_db`(세션6/22에서 각각 재검토받음)와 달리
+`gain_db=75.6`만 도출 근거 주석 없이 프로젝트 원칙("논문 값 그대로 인용 금지, 값은
+합리적으로 도출")을 위반한 채 방치돼 있었다. 더 결정적으로: 과거 "77.21dB 달성"
+기록(세션25)조차 세션43-3이 이미 확인했듯 M1a+M4a VDS 합만으로 VDD를 초과하는
+물리적으로 불가능한 회로에서 나온 값이었다 -- 즉 75.6dB가 이 회로/공정(sky130,
+gm/ID 재설계)에서 달성 가능하다는 근거는 처음부터 없었다.
+
+## D. gain_db 목표 재도출 -- 75.6 → 54dB (실측 물리적 상한 기준, 사용자 승인)
+
+사용자가 "실측 물리적 상한을 근거로 재설정" 방향을 확정. 확인 과정:
+1. gain_db를 objective로 놓고 무제한 최대화(다른 4개 제약은 유지)하면 `cmrr_estimate_
+   db`/`psrr_estimate_db`가 실제로 깨진다(50.1dB/56.4dB) -- 이 회로는 진짜 물리적
+   상한이 있고 그 근처에서 gain과 cmrr/psrr이 실제로 트레이드오프 관계다(허구가 아님,
+   §A/B의 "가짜 아티팩트"와는 다른 결).
+2. 그런데도 mismatch/cmrr/psrr/classab_centering을 전부 만족하면서 gain_db=57.03dB
+   (cmrr=66.78/psrr=89.02/mismatch=4.06/classab=0.148, 전부 통과)를 내는 지점을 이
+   프로젝트 자체 SLSQP 탐색기가 실측으로 찾아냈다(§A의 그 지점).
+3. 사용자가 이 실측 검증된 달성점(57.03dB)에서 3dB 안전마진을 둔 **54dB**를 신규
+   목표로 확정(SLSQP가 경계에 딱 붙어 방황하는 것을 막고, LUT 격자 해상도/재현성
+   편차를 흡수하기 위함).
+
+`current_reuse_telescopic_ota.topology.json`의 `gain_db` constraint를 75.6→54로
+수정하고 `_gain_db_target_comment`에 위 도출 경위 전체를 기록(값 인용 금지 원칙 준수).
+
+## E. 재설정 직후 실측 -- gain_db 병목은 해소, cmrr만 소폭(~5dB) 미달로 좁혀짐
+
+`gain_db≥54`로 harness 재실행: SLSQP가 더 이상 무한정 방황하지 않음(`max_violation`이
+더 이상 gain_db 하나에 안 묶임). 그런데 **cmrr_estimate_db가 여러 다른 탐색 시도
+(n_starts up to 8, perturb_frac 0.5, 서로 다른 seed)에 걸쳐 매우 일관되게
+54.7~54.8dB(목표 60 대비 −5.2dB)로 수렴** -- psrr은 오히려 통과 지점(60.35)도 나옴.
+이렇게 여러 무작위 시작점에서 안정적으로 재현되는 걸 보고 "CMRR 진짜 구조적 상한
+(~55dB)일 가능성"으로 잠정 판단했었다 -- 그러나 §F에서 이 판단 자체가 틀렸음이 드러남.
+
+## F. "구조적 상한" 재검증 중 진짜 재현성 버그 발견
+
+§A에서 찾았던 cmrr=66.78dB 지점(theta_star_on)이 새 `gain_db≥54` 제약에서도 여전히
+feasible한지 직접 검증하려고 그 theta 값을 그대로 `ev["evaluate"]()`에 넣었는데,
+**완전히 같은 스크립트를 3번 반복 실행했더니 cmrr이 53.71/53.71/62.69로 달랐다**(같은
+입력인데 실행마다 다른 출력 -- 순수 함수여야 할 `evaluate()`가 비결정적이었다는 뜻).
+`PYTHONHASHSEED`를 명시적으로 고정하면(어떤 값이든) 매번 정확히 같은 결과가 나오고,
+값 1~10으로 스윕하면 seed에 따라 53.71/62.49/66.78 등 최소 3가지 다른 결과가 재현
+가능하게 나온다는 걸 확인 -- **파이썬 해시 무작위화(PYTHONHASHSEED, 프로세스마다
+랜덤)가 원인**이라는 게 실측으로 확정됨.
+
+## G. 근본원인 확정 -- `reserved_vds_for_other_stack_members()`의 set 순회 순서
+
+`sizing_recipe.py:4061`(세션43에서 신설된 함수) -- `members`/`deduped`가 소자명
+**문자열의 `set`**인데 `for m in members:`로 그대로 순회하고 있었다(dedup 대표 선택
+루프 4121~4130행, 최종 합산 루프 4131~4142행). CPython은 문자열 해시를 프로세스마다
+`PYTHONHASHSEED`로 무작위화하므로 `set`의 순회 순서가 실행마다 다르다 -- "그룹당
+첫 번째로 만난 멤버가 대표"라는 이 dedup 로직이 실행마다 다른 대표(예: M4a vs M4b)를
+골랐다. ctx.sized 덤프로 직접 대조(hashseed=1 vs 9): **M1a.vds가 0.6V vs 0.45V**로
+갈리고, 이게 KCL로 이어진 M5/M6/M7의 gm_id(12.0/14.0, 5.5/9.5, 11.0/15.5)까지 흔들어
+결국 51소자 중 37개의 sizing이 실행마다 달랐다.
+
+**중요: `stick_diagram.py:5442`(`check_euler_condition()`)에 완전히 같은 버그 클래스가
+2026-07-27에 이미 한 번 발견되어 `sorted()`/`min()`으로 고쳐진 이력이 있다** -- 즉 이
+버그 패턴이 이 코드베이스에서 최소 두 번 독립 발생했다(사용자가 이 사실을 지적,
+§I에서 전수 재발 조사로 이어짐).
+
+**정정(사용자 질문으로 드러남)**: 이 버그가 "SLSQP 한 번의 실행 안에서 유한차분
+gradient를 오염시킨다"는 최초 설명은 부정확했다 -- 직접 실측(버그 있던 코드로 되돌려
+같은 프로세스 안에서 유한차분 스텝 크기(2e-3)만큼 다른 theta 2개를 평가)한 결과, 같은
+프로세스 안에서는 대표 선택이 완전히 일관됐다(`PYTHONHASHSEED`가 프로세스 시작 시
+한 번만 정해지므로, 같은 문자열 집합의 순회 순서는 그 프로세스 생애주기 동안 항상
+같다). 실제 메커니즘은 "프로세스(=한 번의 실행) 전체에 고정된, 그러나 실행마다
+달라지는 편향" -- SLSQP 내부 gradient는 오염 안 되지만, harness를 다시 실행할 때마다
+"최적화하려는 문제 정의 자체"가 미묘하게 달라지고 있었다.
+
+## H. 수정 + 검증
+
+`sizing_recipe.py` 4130행/4138행 `for m in members:` → `for m in sorted(members):`로
+수정(집합 내용은 그대로, 순회 순서만 고정). 검증:
+- self-test: `sizing_recipe.py`/`stick_diagram.py` 둘 다 exit=0.
+- **재현성 회복 확인**: `PYTHONHASHSEED` 미지정(매 프로세스 무작위)으로 동일 스크립트
+  5회 반복 실행 -- 수정 전엔 값이 갈렸는데 수정 후엔 5회 전부 정확히 동일(gain=57.03,
+  cmrr=66.78, psrr=89.02).
+- **harness 재실행 -- 이 회로 역사상 처음으로 5개 제약 전부 통과**: `gain_db=56.98
+  (≥54)/mismatch_sigma_mV=4.06(≤5.0)/cmrr_estimate_db=61.67(≥60)/psrr_estimate_db=
+  73.66(≥60)/classab_centering_dev_v=0.1496(≤0.15, 여유 거의 없음)` 전부 통과,
+  `instance.json`/`report.html` 저장까지 완주(레이아웃 `audit_ok=False`는 별개의
+  기존 row_split 이슈, floorplan 자체는 정상 -- 오늘 범위 밖).
+
+## I. 회귀 확인 + 전수 재발 조사(사용자 지시, 이 세션 끝에 착수 -- 결과는 다음 세션에서 확인)
+
+- `folded_cascode`/`nmcnr_amplifier`: 이전과 동일 상태(레이아웃 audit만 FAIL, sizing
+  정상) -- 회귀 없음.
+- `two_stage_ota`: FAIL 하나 발생했으나, 수정 전 코드로 되돌려 같은 걸 돌려봐도
+  **바이트 단위로 동일한 에러**('stage1_out' 그룹 VDS KVL 불일치)가 나는 걸 확인 --
+  이 세션 수정과 무관한 기존 결함.
+- 사용자 질문("이런 랜덤성이 탐색에 도움이 되는가?")에 대한 답: 아니다 -- 문자열 해시
+  순서는 theta/목적함수 품질과 무관한 순수 잡음이라 "우연히 좋은 지점을 만난 것"이지
+  탐색 메커니즘이 아니다. 의도된 다중-지역해 탐색은 `_optimize_theta_slsqp()`의
+  `n_starts`/`perturb_frac`(seed로 재현 가능)이 맡아야 할 역할이고, 이건 버그 수정과
+  별개로 여전히 유효한 레버(예산을 늘릴지는 다음 세션 판단).
+- **사용자 지시로 이 버그 클래스의 전수 재발 조사를 fork agent로 착수**(`sizing_recipe.
+  py`/`stick_diagram.py`/`topology_library.py`/`design_report.py` 전체에서 "문자열
+  set을 순회 순서에 의존하는 방식으로 쓰는" 패턴 전수 스캔, CONFIRMED_BUG/
+  THEORETICAL_ONLY로 분류) -- **이 세션이 끝나는 시점에 결과가 아직 안 돌아왔다.
+  다음 세션 최우선 항목 ①로 이월**(아래 §J).
+
+## J. 커밋 상태 -- 미커밋
+
+변경 파일(전부 미커밋): `skills/analog-gmid-design/assets/sizing_recipe.py`(재현성
+버그 수정), `skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.
+topology.json`(gain_db 목표 75.6→54 + `_gain_db_target_comment`), `.ai/context.md`
+(이 절), `workspaces/current-reuse-telescopic-ota-report/current_reuse_telescopic_
+ota.instance.json`/`report.html`(harness 재실행 산출물). 커밋은 다음 세션 §K(전수
+재발 조사 결과)까지 확인한 뒤 한 번에 하는 게 나을지, 지금 나눠 커밋할지 사용자 판단
+필요.
+
+## K. 전수 재발 조사 결과(같은 세션 안에서 완료, fork agent)
+
+`sizing_recipe.py`/`stick_diagram.py`/`topology_library.py`/`design_report.py`
+전체(`next(iter(...))` 15건 + `set(`/`frozenset(` 대입 ~72건, 약 50곳을 코드 로직까지
+직접 읽어서 판정)를 훑은 결과:
+
+- **CONFIRMED_BUG 추가 발견 없음** -- §G에서 이미 고친 `reserved_vds_for_other_stack_
+  members()` 1건이 유일했다.
+- **THEORETICAL_ONLY 1건**: `stick_diagram.py:1659`, 소자명 조합을 담은 `set`
+  (`unsupported`)을 `[_group_name(k) for k in unsupported]`로 그대로 리스트화해
+  `unsupported_both_sides_hub` 필드에 담는다 -- 이 필드를 실제로 읽는 다른 코드가
+  현재 없어(grep 확인) 지금 당장 판정을 뒤집진 않는다(진단 출력 순서만 흔들림).
+  낮은 우선순위, 다음에 이 필드를 실제로 소비하는 코드가 생기기 전에 `sorted()`로
+  선제 정리하면 좋음(급하지 않음).
+- 나머지 ~48곳은 전부 안전(순수 멤버십 테스트/`len==1` 가드 뒤 `next(iter())`/숫자
+  원소 집합(해시 무작위화 무관)/`dict.items()`(집합 아님)/이미 `sorted()` 적용/
+  순서 무관한 집합연산).
+
+**결론: 이 버그 클래스는 이번 세션에 완전히 해소됐다고 봐도 됨** -- `stick_diagram.
+py:1659`만 여유 있을 때 정리.
+
+## L. 다음 세션 최우선
+
+1. `stick_diagram.py:1659`(THEORETICAL_ONLY) 정리 여부 결정 -- 급하지 않음.
+2. `classab_centering_dev_v=0.1496`(기준 0.15)이 여유가 거의 없다 -- SLSQP가 이
+   경계 바로 위에서 안정적으로 머무는지, 아니면 다른 시작점/seed에서 이 제약이 깨질
+   수 있는지 추가 확인 가치 있음(§I의 n_starts 논의와 연결).
+3. `audit_ok=False`(레이아웃 row_split) -- 오늘 범위 밖으로 남겨둔 기존 이슈, 착수
+   여부 판단 필요.
+4. 위 전부 정리되면 커밋(§J) -- 재현성 버그 수정 자체는 이미 self-test/harness/회귀
+   확인까지 끝났으니 바로 커밋해도 무방(사용자 판단).
