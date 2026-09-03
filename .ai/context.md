@@ -12739,15 +12739,44 @@ current_reuse_telescopic_ota`, sky130 실측 LUT)에서 정상적으로 vdd에 �
   토폴로지 해석은 파일 하나짜리라도 절대 혼자 판단 금지, 기존 태그도 재검증" 원칙 추가
   (2026-08-24 correction 절).
 
-## 6. 커밋 상태 -- 전부 아직 미커밋
+## 6. 커밋 상태 -- **완료** (커밋 `3250baa`)
 
-변경 파일: `sizing_recipe.py`(§1 defer 정밀화 + §3/§4 known-limitation 3곳 + 에러
-메시지 개선 + budget_reference_device 다중참조 확장), `stick_diagram.py`(§2 golden
-value 정정 2곳 + fold_group 배제조건 + list-aware 수정 2곳), `skills/analog-grammar/
-assets/idioms.py`/`netclass.py`(§2의 진짜 근본원인 수정, is_mutual_loop_partner
-공용 헬퍼), `library/current_reuse_telescopic_ota.topology.json`(fold_group 제거
-+ budget_reference_device 리스트 4곳 추가), `library/two_stage_ota.topology.json`
-(세션41 변경 그대로, 이번 세션 안 건드림), `.ai/context.md`. **커밋 여부 확인 필요**.
+`git commit 3250baa "feat(analog-gmid-design): fold_group 오판 근본원인(analog-
+grammar 버그) 수정 + KVL 다중참조 확장"` -- 사용자 승인 후 세션42 전체(세션41
+이어받은 변경 포함) 커밋 완료. 포함 파일: `sizing_recipe.py`, `stick_diagram.py`,
+`skills/analog-grammar/assets/idioms.py`/`netclass.py`, `library/current_reuse_
+telescopic_ota.topology.json`, `library/two_stage_ota.topology.json`, `.ai/
+context.md` (7개 파일, +2349/-510). `.bkit/*` 상태 파일(감사로그/세션이력 등)은
+이 작업과 무관해 커밋에서 의도적으로 제외 -- 여전히 working tree에 modified로
+남아 있음(bkit 툴 자체가 갱신하는 것, 매 세션 정상).
+
+## 6b. 이번 세션에 참고했던 자료 -- 이미 유실됨(확인함)
+
+`C:\Users\HSLEE\AppData\Local\Temp\DESIGN.md`(analog-grammar 원 설계문서, 6단계
+파이프라인/L0-L3 계층/12개 L1 idiom 명세, §2의 `cascoded-gain-node` idiom이 이번
+세션 근본원인 진단의 결정적 근거였음)를 세션 종료 시점에 재확인한 결과 **이미
+OS 임시 디렉터리에서 삭제되어 없다.** 원본은 복구 불가 -- 다만 §2에 이 문서의
+핵심 내용(6단계 파이프라인 구조, L1 idiom 12종 우선순위표, `cascoded-gain-node`/
+`push-pull-output` idiom 정의, §4 실증 예제의 정확한 출력)을 이미 옮겨 적어뒀으니
+다음 세션은 그걸로 충분할 것이다. 혹시 사용자가 원본 DESIGN.md를 다른 곳에
+따로 갖고 있다면, 이번처럼 다시 유실되지 않도록 `skills/analog-grammar/
+references/`(또는 유사 경로)로 리포지토리 안에 복사해두길 권한다 -- analog-
+grammar의 원 설계 의도를 담은 유일한 문서로 보이는데 지금 이 프로젝트 안
+어디에도 존재하지 않는다.
+
+## 6c. 구현하지 않은 설계 아이디어 -- "iterative stage decomposition"
+
+근본원인(§2)을 찾기 전, 사용자와 함께 "differential-pair/current-reuse-pair를
+seed로 삼아 cascode-stack으로 확장(이미 stage 멤버인 소자에서만 확장)하고, 그
+출력노드에서 current-mirror 계열 idiom 소속만 active load로 흡수, floating-
+current-source 계열은 전혀 다른 별개 stage로 분리 -- 이걸 반복해 stage를 하나씩
+완전히 떼어낸다"는 일반 알고리즘을 상세히 설계했다(§2 발견 이전 시점의 여러 대화
+턴). **결과적으로 이번 사례는 기존 `cascoded-gain-node` idiom의 버그 2건만
+고치면 충분해서 이 새 알고리즘은 구현하지 않았다** -- 하지만 이 설계 자체는
+버리지 않는 게 좋을 것 같다: DESIGN.md §5 항목 7("L2 block 인식 -- 축약 그래프
+위 2차 매칭")이 정확히 이 방향의 후속 확장이라고 명시하고 있어서, 나중에 L2
+block(OTA/bandgap 등) 인식을 구현할 때 이 "seed→확장→다음 stage" 반복 패턴을
+다시 참고할 가치가 있다.
 
 ## 7. 다음 세션 최우선 순서 (갱신)
 
