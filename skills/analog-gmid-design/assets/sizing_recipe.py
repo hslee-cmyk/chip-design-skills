@@ -3967,7 +3967,8 @@ def _metric_stage_budget_vds_by_device(thetas: list, device_roles: dict,
 def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_roles: dict,
                                           metric_stage_budget_vds: dict,
                                           min_vds_by_role: dict,
-                                          unrole_fallback: float | None = None) -> float | None:
+                                          unrole_fallback: float | None = None,
+                                          vfind=None) -> float | None:
     """`vsid`(vertical_stack_id, VDD~GND 물리적 전기 컬럼) 그룹에서 `exclude_devices`(지금
     compensation이 VDS를 정하려는 스테이지 자신의 소자들)를 뺀 나머지 멤버가 이미
     확정적으로/최소한으로 필요로 하는 VDS 합을 반환한다 — `optimize_multistage()`의
@@ -4002,7 +4003,15 @@ def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_role
     ⚠️ **정직한 한계**: 그래도 위 세 갈래 어디에도 안 걸리는 소자가 있으면 `None`을
     반환한다(잘못 추측해서 상한을 씌우는 것보다 기존처럼 무제한으로 두는 게 안전, 호출부가
     이 경우 VDS 상한을 적용하지 않는다) -- `unrole_fallback` 없이 호출하면 기존 동작과
-    100% 동일(하위호환)."""
+    100% 동일(하위호환).
+
+    `vfind`(2026-09-03 세션43 신설, 선택) -- `_evaluate()`가 이미 만들어둔 `_vfind()`
+    (matching_sensitivity="offset"인 쌍만 union, `symmetry.matching_pairs` 기반)를
+    그대로 넘기면, 확장된 멤버 중 offset-매칭 쌍(예: M4a/M4b -- compensation이 같은
+    스테이지로 항상 동일한 vds를 주는 진짜 같은 값)을 대표 1개로만 예약한다. 안 주면
+    (기본 `None`) 기존처럼 멤버 각각을 독립적으로 예약(하위호환, 다만 이 경우 offset
+    쌍이 이중 예약돼 cap이 필요 이상 타이트해질 수 있다 -- 실측: `diffpair_branch_a`에서
+    M4a/M4b 이중 예약으로 cap이 0.4V로 나왔는데 dedup하면 0.6V가 정확함)."""
     frontier = [m for m, dr in device_roles.items() if dr.get("vertical_stack_id") == vsid]
     exclude_devices = set(exclude_devices)
     members = set()
@@ -4015,6 +4024,16 @@ def reserved_vds_for_other_stack_members(vsid: str, exclude_devices, device_role
         for r in ([ref] if isinstance(ref, str) else (ref or [])):
             if r not in members and r not in exclude_devices:
                 frontier.append(r)
+    if vfind is not None:
+        seen_groups = set()
+        deduped = set()
+        for m in members:
+            g = vfind(m)
+            if g in seen_groups:
+                continue
+            seen_groups.add(g)
+            deduped.add(m)
+        members = deduped
     reserved = 0.0
     for m in members:
         if m in metric_stage_budget_vds:
@@ -4466,7 +4485,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                         reserved = reserved_vds_for_other_stack_members(
                             vsid, set(grp), device_roles, _metric_stage_budget_vds,
                             spec.get("min_vds_by_role", {}),
-                            unrole_fallback=_DEFAULT_MIN_VDS_FALLBACK)
+                            unrole_fallback=_DEFAULT_MIN_VDS_FALLBACK, vfind=_vfind)
                         if reserved is None:
                             continue
                         member_cap = spec["vdd"] - reserved

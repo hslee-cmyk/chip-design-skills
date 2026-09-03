@@ -13283,13 +13283,84 @@ M15/M16이 KVL 없이 독립적으로 고른 조합)를 SLSQP가 이용해 도�
 3. `two_stage_ota`의 `stage1_out`(별개 구조, output_stage_a/diffpair와 다른
    headroom+theta-feed 혼합 메커니즘)로 이월.
 
-## 6. 커밋 상태 -- 사용자 확인 필요
+## 6. 커밋 완료 -- `fe99943`
 
-변경 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`(§3 이전 절 그대로,
-diffpair 병합 자체는 코드 변경 없음), `skills/analog-gmid-design/assets/stick_
-diagram.py`(Test 49 예상 vsid 집합 갱신), `skills/analog-gmid-design/assets/
-library/current_reuse_telescopic_ota.topology.json`(diffpair_branch_a/
-diffpair_shadow_b 재구성), `.ai/context.md`(이 절 전체). 커밋 여부는 다음 턴에서
-사용자에게 확인할 것 -- 단, §5-1(gain_db 미달 원인)이 이 세션 변경 자체의
-버그인지 아니면 정직하게 드러난 사실인지 먼저 판단한 뒤 커밋하는 게 안전할 수
-있음(사용자와 상의).
+사용자 지시로 위 §1~5(output_stage_a `vds_kvl_groups` + diffpair_branch_a 병합)
+전체를 커밋 `fe99943`로 확정. gain_db 미달은 별도 이월(§5-1)로 남기고 커밋.
+
+---
+
+# 세션43 (계속 3) -- gain_db≈52dB 미달 원인 민감도 분석
+
+사용자 지시로 §5-1(gain_db 미달 원인)을 실제로 파고들었다.
+
+## 1. 같은 theta 지점(bounds-midpoint)에서 구버전 vs 신버전 직접 대조
+
+`git show HEAD~1`로 커밋 직전(diffpair/output_stage_a 버그가 그대로 있던) 버전의
+`sizing_recipe.py`/`topology.json`을 별도 모듈로 로드해, 동일한 bounds-midpoint
+theta 참조점에서 `_metric_gain_stages_sum()`의 stage1([M1a,M4a,M2a,M3a])/
+stage2([M15,M16]) 값을 나란히 비교했다:
+
+| | stage1 | stage2 | 합계 |
+|---|---|---|---|
+| 구버전(버그) | 28.65dB | 41.09dB | 69.74dB |
+| 신버전(수정 직후) | 25.24dB | **41.91dB** | 67.15dB |
+
+**결정적 발견**: 구버전에서 M1a=1.5V, M4a=1.5V였다 -- **이 둘만 더해도 3.0V로
+vdd(1.8V)를 이미 초과**한다(나머지 4소자가 전부 0V라도 물리적으로 불가능).
+stage2도 M15+M16=1.65V≠1.8V로 KVL이 깨진 채 41dB를 냈었다. **옛 76.48dB
+베이스라인은 처음부터 물리적으로 존재할 수 없는 회로 위에서 계산된 값이었다**
+-- "최적이 아니다" 수준이 아니라 애초에 실현 불가능. stage2는 오히려 개선됐다
+(compensation이 output_stage_a KVL 제약 안에서도 진짜 최적점을 찾아냄).
+
+## 2. cap 이중계산 버그 발견 + 수정 -- 작지만 실질적인 추가 개선
+
+stage1(25.24dB)이 신버전 안에서도 최선인지 확인하다가, `reserved_vds_for_other_
+stack_members()`의 재귀 확장이 `_vfind()`(matching_pairs offset dedup)를 안 써서
+M4a/M4b를 이중 예약(0.2V×2)하고 있음을 발견 -- 실측: M1a의 cap이 0.4V로 계산돼
+있었는데 정확히는 0.6V여야 했다. `reserved_vds_for_other_stack_members()`에
+`vfind` 매개변수 신설(주면 확장된 멤버를 offset-매칭 대표 1개로만 예약, 안 주면
+기존 100% 동일 동작) + 호출부에서 `_evaluate()`가 이미 만든 `_vfind`를 그대로
+전달. 효과: bounds-midpoint에서 M1a=0.3V->0.6V로 회복, stage1=25.24->25.75dB로
+소폭 개선. self-test exit 0, 3개 회로 harness 회귀 0건(byte-diff 또는 라인번호만
+다른 동일 에러) 재확인.
+
+## 3. 실제 SLSQP 재실행 -- 결론: dedup 수정은 미미한 개선, 근본 원인은 확정됨
+
+cap dedup 수정 반영 후 3-start 전부 재실행: **gain_db≈52.6~53.0dB**(수정 전
+52.17~53.02dB와 사실상 동일, +0.3dB 남짓의 미미한 개선). 3-start가 서로 다른
+시작점에서 출발했는데도 거의 같은 값(52.6~53.0dB)에 수렴한다는 것 자체가 --
+SLSQP가 지역 최적점에 우연히 갇힌 게 아니라 **현재 topology/theta bounds/LUT
+조합에서의 진짜 천장에 도달했다**는 강한 신호다. `max_violation`도 시종일관
+`gain_db>=75.6`과의 차이(75.6-52.x≈22.6~23)와 정확히 일치 -- 다른 제약(mismatch/
+cmrr/psrr 등)은 전혀 안 걸림, gain_db 하나만 유일한 병목.
+
+## 4. 최종 결론
+
+1. **옛 76.48dB 베이스라인은 애초에 물리적으로 불가능한 회로였다**(M1a+M4a
+   합만으로 vdd 초과) -- 이번 세션이 KVL을 실제로 강제하기 전까지 아무도 이걸
+   검증하지 않았을 뿐. "회귀"가 아니라 "숨어있던 거짓 성공을 걷어낸 것".
+2. 이번 세션의 cap dedup 수정은 정당하고 작지만 실질적인 개선(+0.3dB)이었다 --
+   유지할 가치 있음(이미 코드에 반영, 커밋 대상).
+3. **현재 이 회로/스펙 조합에서 SLSQP가 안정적으로 도달하는 진짜 천장은
+   gain_db≈52.6~53.0dB로 보인다** -- `gain_db>=75.6` 제약은 이 근사 모델
+   (`_metric_gain_stages_sum()`의 "Σgm/Σgds" 단순합, 실제 캐스코드 이득 공식이
+   아님)과 현재 theta bounds(L_cascode 등)로는 달성 불가능해 보인다.
+4. 다음으로 파고들 가치가 있는 방향(순위 없음, 사용자와 논의 필요):
+   - `gain_db` 목표(75.6dB)의 근거 자체를 재확인 -- 원문/스펙에서 실제 요구치가
+     맞는지, 아니면 이 근사 모델 기준으로는 애초에 달성 불가능한 수치였는지.
+   - theta bounds 확장 여지 확인 -- 예: `L_cascode` bounds가 `[0.15um,1.0um]`인데
+     더 큰 L(면적 대가로 gds 개선)이 허용되면 stage1 gain을 더 끌어올릴 수 있는지.
+   - stage1의 compensation objective가 "power"라 M1a/M4a의 (L,VDS) 선택이 gain을
+     전혀 고려하지 않는다(gm_id만 최대화하면 ID는 고정, L/VDS는 사실상 임의 tie-
+     break) -- gain_min 제약을 이 스테이지에 직접 걸거나 objective를 조정하면
+     회복 여지가 있는지.
+   - `_metric_gain_stages_sum()` 자체가 진짜 캐스코드 gain 공식(gm·Rout, cascode
+     ro 곱)이 아니라 "Σgm/Σgds" 근사라 실제 회로 성능과 얼마나 어긋나는지 --
+     `gain_full_circuit_db`(전체회로 MNA 기반, 별도 metric)와 대조해볼 가치 있음.
+
+## 5. 커밋 상태 -- cap dedup 수정 미커밋
+
+변경 파일: `skills/analog-gmid-design/assets/sizing_recipe.py`(`reserved_vds_for_
+other_stack_members()`의 `vfind` 매개변수 신설 + 호출부 반영), `.ai/context.md`
+(이 절). 커밋 여부는 다음 턴에서 사용자에게 확인할 것.
