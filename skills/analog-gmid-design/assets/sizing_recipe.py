@@ -3380,52 +3380,70 @@ def _build_shared_current_joint_plan(group_members: frozenset, thetas: list) -> 
             "metric": trigger_feed.get("metric", "gain_db")}
 
 
-def _run_shared_current_joint_scan(plan: dict, ctx: SizingContext) -> None:
-    """`_build_shared_current_joint_plan()`이 만든 계획을 실행 -- 그룹의 각 root(자유
-    gm_id) feed마다 하나의 자유도로 삼아 `ctx.spec["gm_id_grid"]`(BQ 회귀로 확정된
-    `search_gm_id_for_role()` 기본 해상도, 아래 참고) 위를 K-D 조인트로 스캔하면서,
-    **결합 목표 지표**(`plan["metric"]`, topology.json이 이미 선언한 것 그대로 -- 로컬
-    재정의 없음)를 최대화하는 조합을 찾는다.
+def _shared_current_root_grids(plan: dict) -> tuple:
+    """`_run_shared_current_joint_scan()`(1단계, 로컬 constraint만)과 세션44(계속)의
+    `_refine_shared_current_joint_scan_for_full_circuit_constraints()`(2단계, 전체회로
+    constraint까지)가 **똑같은 격자**를 쓰도록 뽑아낸 순수 함수(재계산 비효율 방지 --
+    두 단계가 각자 다른 격자를 만들면 재현성/일관성이 깨진다). 반환: `(roots, root_grids)`.
 
-    2026-08-13(세션31 BS, tolerance-band 재설계 -- 사용자 확정 "2번이 올바른 설계"):
-    이전 버전(BQ~BR)은 `gm_id_match_vgs_of` 소자를 "다른 소자의 VGS와 **정확히**
-    같아야 하는 dependent"로 강제(등식)했는데, 실측으로 이게 실제 declared constraint
-    (`classab_centering_dev_v<=0.15V`, **부등식**)보다 훨씬 좁은 인위적 제약이었음이
-    드러났다(BI가 원래 조사에서 찾은 최적점은 그 등식 곡선 위에 없었음, `.ai/context.md`
-    BS 참고). 이제 그런 소자도 **완전히 자유로운 root**로 다루고, 대신 목표 metric
-    외에 **topology.json이 실제로 선언한 다른 모든 constraint**(예: `classab_
-    centering_dev_v<=0.15V`)를 후보마다 평가 가능한 범위 안에서 feasibility 필터로
-    강제한다(`ctx.derived["_constraints"]`, 로컬에서 "centering"류 개념을 하드코딩하지
-    않음 -- 어떤 constraint든 이 그룹 소자만으로 평가 가능하면 그대로 적용됨, 일반화).
-    목표 metric 자신의 문턱(`gain_db>=75.6`류)은 여기서 강제하지 않는다 -- 그건
-    "최대화할 대상"이지 "이 국소 스캔에서 만족을 요구할 게이트"가 아니다(전체 회로
-    수준의 최종 feasibility는 `optimize_full_circuit_budget()`가 담당).
+    2026-08-13(세션31 BQ, self-test 회귀로 발견) -- `ctx.spec["gm_id_grid"]`는
+    compensation의 스테이지 (L,VDS,gm_id) 조인트 탐색 전용 격자로, `search_gm_id_
+    for_role()`(per-feed 1단계 잠정 탐색이 실제로 쓰는 것)은 이 spec 키를 전혀 안
+    읽고 **자기 자신의 기본 격자**(2.0~30.0, 0.5간격, 57점)를 쓴다 -- 여기서
+    `ctx.spec["gm_id_grid"]`를 재사용하면 두 메커니즘이 서로 다른 해상도로 갈라져(L5c
+    self-test가 `gm_id_grid=[4,8,...,24]`처럼 훨씬 성긴 값을 쓰는 실제 사례로 발견,
+    회귀: 하류 KCL이 음수가 됨) 기존 `gm_id_role` 잠정 탐색과 다른 답을 낸다.
+    `search_gm_id_for_role()`의 기본 해상도를 그대로 재사용한다(spec의 다른 용도
+    키를 재활용하지 않음).
 
-    **재계산 비효율 방지**: 새 탐색차원(root 개수 K)마다 격자를 그대로 곱하면
-    `len(gm_id_grid)**K`로 조합폭발한다 -- `search_stage_budget_L_warm_start()`와 같은
-    `target_total**(1/k)` 형태의 예산 공식을 쓰되, 여기 후보 평가는 그 함수(L 탐색,
-    후보마다 `optimize_multistage()`급 재계산)보다 훨씬 싸므로(LUT 보간+산술만) 총예산
-    자체를 훨씬 크게(5000) 잡는다 -- 아래 코드 주석 참고, K=2(이 프로젝트의 유일한
-    실제 사례, M15/M16)에서는 BI가 실측으로 쓴 것과 같은 57×57 전체 해상도가 그대로
-    나온다."""
+    2026-08-13(세션31 BS, tolerance-band 재설계 중 실측으로 발견) -- `search_stage_
+    budget_L_warm_start()`의 `target_total**(1/k)` 그대로(그 함수의 n_scan_full_circuit
+    기준)를 쓰면 K=2에서 차원당 약 11점(121 조합)뿐이라, BI가 실측으로 확인한 실제
+    feasible 영역(narrow -- classab_centering_dev_v<=0.15V가 (gm_id_p,gm_id_n) 평면에서
+    좁은 띠를 이룸)을 그리드가 완전히 놓쳐 InfeasibleSizingError로 실패했다. L 탐색(각
+    후보가 optimize_multistage() 재호출급으로 비쌈)과 달리 여기 후보 평가는 LUT
+    보간+산술 몇 번뿐이라(캐시된 `_gm_id_curve`/`_idu_scan` 재사용) 훨씬 큰 총예산을
+    감당할 수 있다 -- 총 조합수를 5000으로 캡(K=1: 57, K=2: 57×57=3249<=5000이라 전체
+    해상도 유지, K=3: 5000**(1/3)≈17/차원, K=4+: 더 낮아짐)해 K=2(이 프로젝트의 유일한
+    실제 사례)에서는 BI가 썼던 것과 동일한 57×57 전체 해상도를 그대로 재현한다."""
+    roots = plan["roots"]
+    base_grid = [i * 0.5 for i in range(4, 61)]
+    k = len(roots)
+    target_total = min(len(base_grid) ** max(k, 1), 5000)
+    per_dim_n = len(base_grid) if k <= 1 else max(2, round(target_total ** (1.0 / k)))
+    root_grids = [_evenly_subsample(base_grid, per_dim_n) for _ in roots]
+    return roots, root_grids
+
+
+def _make_shared_current_scorer(plan: dict, ctx: SizingContext):
+    """`_run_shared_current_joint_scan()`/`_refine_shared_current_joint_scan_for_full_
+    circuit_constraints()`가 공유하는 후보 채점기 팩토리 -- 세션44(계속)에서 두 단계가
+    똑같은 로컬 채점 로직을 쓰도록 `_run_shared_current_joint_scan()` 본문에서 뽑아냈다
+    (동작 변화 없음, 순수 리팩터). 반환된 클로저(`root_devices_key -> gm_id` 매핑 하나를
+    받아 `ctx.sized`에 실제로 반영하고, feasible하면 `plan['metric']` 점수를, 아니면
+    `None`을 돌려준다)는 매번 `ctx.sized`를 그 후보로 덮어쓰는 **부수효과가 있다** --
+    호출자가 마지막으로 넘긴 후보가 `ctx.sized`에 남는다.
+
+    2026-08-13(세션31 BS, tolerance-band 재설계 중 실측으로 발견) -- "다른 모든
+    constraint"를 무조건 강제하면, 이 그룹과 전혀 무관한 소자(예: mismatch_sigma_mV
+    는 M1a/M1b에만 의존)가 **이 evaluate() 시점에 아직 최적화 전이라 우연히 위반
+    상태**일 때 이 그룹의 모든 후보가 부당하게 infeasible로 판정됐다(실측 재현:
+    L=1.0µm의 이미 알려진 실현가능점(15.5,4.0)조차 mismatch_sigma_mV=10.79
+    위반으로 거부됨 -- 이건 M15/M16과 무관한 기존 위반). 이미 있는 `_metric_device_
+    footprint()`(정적으로 metric이 읽는 소자 집합을 판정, `derive_theta_dependency_
+    graph()`가 쓰는 것과 동일 함수 -- 새로 안 만듦)로 그 constraint의 metric이 읽는
+    소자 집합이 **이 그룹 소자만으로 완전히 구성될 때만**(부분집합, "ALL"류 전체회로
+    metric 제외) feasibility 게이트로 강제한다 -- 그룹과 무관한 아직-미최적화 상태에
+    억울하게 걸리지 않으면서도, `classab_centering_dev_v`(={M15,M16}⊆group)처럼 이
+    그룹만으로 완전히 결정되는 constraint는 그대로 강제된다. "ALL"류(전체회로 MNA가
+    필요한 cmrr/psrr 등)는 여기서 못 본다 -- 그건 `_refine_shared_current_joint_scan_
+    for_full_circuit_constraints()`(2단계, 전체 회로가 사이징된 뒤에만 실행)의 몫이다."""
     group_members = frozenset(n for node in plan["nodes"].values()
                                for n in node["feed"]["devices"])
     shared_group = ctx.derived["_shared_current_group"][next(iter(group_members))]
     gm_total = shared_group["gm_total"]
     metrics_specs = ctx.derived["_metrics_specs"]
     metric_spec = metrics_specs[plan["metric"]]
-    # 2026-08-13(세션31 BS, tolerance-band 재설계 중 실측으로 발견) -- "다른 모든
-    # constraint"를 무조건 강제하면, 이 그룹과 전혀 무관한 소자(예: mismatch_sigma_mV
-    # 는 M1a/M1b에만 의존)가 **이 evaluate() 시점에 아직 최적화 전이라 우연히 위반
-    # 상태**일 때 이 그룹의 모든 후보가 부당하게 infeasible로 판정됐다(실측 재현:
-    # L=1.0µm의 이미 알려진 실현가능점(15.5,4.0)조차 mismatch_sigma_mV=10.79
-    # 위반으로 거부됨 -- 이건 M15/M16과 무관한 기존 위반). 이미 있는 `_metric_device_
-    # footprint()`(정적으로 metric이 읽는 소자 집합을 판정, `derive_theta_dependency_
-    # graph()`가 쓰는 것과 동일 함수 -- 새로 안 만듦)로 그 constraint의 metric이 읽는
-    # 소자 집합이 **이 그룹 소자만으로 완전히 구성될 때만**(부분집합, "ALL"류 전체회로
-    # metric 제외) feasibility 게이트로 강제한다 -- 그룹과 무관한 아직-미최적화 상태에
-    # 억울하게 걸리지 않으면서도, `classab_centering_dev_v`(={M15,M16}⊆group)처럼 이
-    # 그룹만으로 완전히 결정되는 constraint는 그대로 강제된다.
     other_constraints = [
         c for c in ctx.derived.get("_constraints", [])
         if c["metric"] != plan["metric"]
@@ -3484,35 +3502,46 @@ def _run_shared_current_joint_scan(plan: dict, ctx: SizingContext) -> None:
                 return None
         return compute_metric(metric_spec, ctx)
 
-    # 2026-08-13(세션31 BQ, self-test 회귀로 발견) -- `ctx.spec["gm_id_grid"]`는
-    # compensation의 스테이지 (L,VDS,gm_id) 조인트 탐색 전용 격자로, `search_gm_id_
-    # for_role()`(per-feed 1단계 잠정 탐색이 실제로 쓰는 것)은 이 spec 키를 전혀 안
-    # 읽고 **자기 자신의 기본 격자**(2.0~30.0, 0.5간격, 57점)를 쓴다 -- 여기서
-    # `ctx.spec["gm_id_grid"]`를 재사용하면 두 메커니즘이 서로 다른 해상도로 갈라져(L5c
-    # self-test가 `gm_id_grid=[4,8,...,24]`처럼 훨씬 성긴 값을 쓰는 실제 사례로 발견,
-    # 회귀: 하류 KCL이 음수가 됨) 기존 `gm_id_role` 잠정 탐색과 다른 답을 낸다.
-    # `search_gm_id_for_role()`의 기본 해상도를 그대로 재사용한다(spec의 다른 용도
-    # 키를 재활용하지 않음).
-    base_grid = [i * 0.5 for i in range(4, 61)]
-    k = len(roots)
-    # 2026-08-13(세션31 BS, tolerance-band 재설계 중 실측으로 발견) -- `search_stage_
-    # budget_L_warm_start()`의 `target_total**(1/k)` 그대로(그 함수의 n_scan_full_circuit
-    # 기준)를 쓰면 K=2에서 차원당 약 11점(121 조합)뿐이라, BI가 실측으로 확인한 실제
-    # feasible 영역(narrow -- classab_centering_dev_v<=0.15V가 (gm_id_p,gm_id_n) 평면에서
-    # 좁은 띠를 이룸)을 그리드가 완전히 놓쳐 InfeasibleSizingError로 실패했다. L 탐색(각
-    # 후보가 optimize_multistage() 재호출급으로 비쌈)과 달리 여기 후보 평가는 LUT
-    # 보간+산술 몇 번뿐이라(캐시된 `_gm_id_curve`/`_idu_scan` 재사용) 훨씬 큰 총예산을
-    # 감당할 수 있다 -- 총 조합수를 5000으로 캡(K=1: 57, K=2: 57×57=3249<=5000이라 전체
-    # 해상도 유지, K=3: 5000**(1/3)≈17/차원, K=4+: 더 낮아짐)해 K=2(이 프로젝트의 유일한
-    # 실제 사례)에서는 BI가 썼던 것과 동일한 57×57 전체 해상도를 그대로 재현한다.
-    target_total = min(len(base_grid) ** max(k, 1), 5000)
-    per_dim_n = len(base_grid) if k <= 1 else max(2, round(target_total ** (1.0 / k)))
-    root_grids = [_evenly_subsample(base_grid, per_dim_n) for _ in roots]
+    return _score_and_apply
+
+
+def _run_shared_current_joint_scan(plan: dict, ctx: SizingContext) -> None:
+    """`_build_shared_current_joint_plan()`이 만든 계획을 실행 -- 그룹의 각 root(자유
+    gm_id) feed마다 하나의 자유도로 삼아 K-D 조인트로 스캔하면서, **결합 목표 지표**
+    (`plan["metric"]`, topology.json이 이미 선언한 것 그대로 -- 로컬 재정의 없음)를
+    최대화하는 조합을 찾는다. 격자 생성은 `_shared_current_root_grids()`, 채점은
+    `_make_shared_current_scorer()`에 위임(세션44 계속, 순수 리팩터 -- 아래 동작 자체는
+    변화 없음).
+
+    2026-08-13(세션31 BS, tolerance-band 재설계 -- 사용자 확정 "2번이 올바른 설계"):
+    이전 버전(BQ~BR)은 `gm_id_match_vgs_of` 소자를 "다른 소자의 VGS와 **정확히**
+    같아야 하는 dependent"로 강제(등식)했는데, 실측으로 이게 실제 declared constraint
+    (`classab_centering_dev_v<=0.15V`, **부등식**)보다 훨씬 좁은 인위적 제약이었음이
+    드러났다(BI가 원래 조사에서 찾은 최적점은 그 등식 곡선 위에 없었음, `.ai/context.md`
+    BS 참고). 이제 그런 소자도 **완전히 자유로운 root**로 다루고, 대신 목표 metric
+    외에 **이 그룹 소자만으로 평가 가능한 다른 모든 declared constraint**를 후보마다
+    feasibility 필터로 강제한다. 목표 metric 자신의 문턱(`gain_db>=75.6`류)은 여기서
+    강제하지 않는다 -- 그건 "최대화할 대상"이지 "이 국소 스캔에서 만족을 요구할
+    게이트"가 아니다(전체 회로 수준의 최종 feasibility는 `optimize_full_circuit_
+    budget()`가 담당).
+
+    ⚠️ **이 스캔은 전체회로가 필요한 constraint(cmrr/psrr 등, `smallsignal_ratio_db`
+    류)를 못 본다** -- 이 시점(theta 루프 도중)엔 이 그룹 밖 대부분의 소자가 아직
+    사이징 전이라 전체회로 MNA를 부를 수 없다(`_full_circuit_devices()`가 KeyError로
+    거부). 세션44(계속)에서 사용자 회로질문("M15/M16의 gm을 맞추면?")을 계기로 이
+    맹점이 실제로 `cmrr_estimate_db`를 놓치는 사례(gm_id=17.5가 classab 한도 안에서
+    gain만 최대화, cmrr 여유는 우연에 맡겨짐 -- 실측: worst-margin이 gm_id=17.5에서
+    거의 0인데 gm_id≈12가 4개 제약 전부에 더 큰 여유를 줌)로 확인됐다 -- 이 스캔
+    직후가 아니라 **전체 회로가 다 사이징된 뒤**(`_evaluate()` 끝, 최종 metrics 계산
+    직전) `_refine_shared_current_joint_scan_for_full_circuit_constraints()`가 이
+    맹점을 보정한다(아래 함수)."""
+    roots, root_grids = _shared_current_root_grids(plan)
+    score_fn = _make_shared_current_scorer(plan, ctx)
 
     best_score, best_combo = None, None
     for combo in itertools.product(*root_grids):
         candidate = dict(zip(roots, combo))
-        score = _score_and_apply(candidate)
+        score = score_fn(candidate)
         if score is None:
             continue
         if best_score is None or score > best_score:
@@ -3522,7 +3551,73 @@ def _run_shared_current_joint_scan(plan: dict, ctx: SizingContext) -> None:
             f"공유전류 조인트 스캔({plan['metric']!r})이 W_bounds/다른 constraint 안에서 "
             f"실현가능한 조합을 하나도 못 찾음 -- roots={roots}",
             sized_snapshot=dict(ctx.sized))
-    _score_and_apply(best_combo)  # 최종 확정(ctx.sized를 승자 조합으로 다시 반영)
+    score_fn(best_combo)  # 최종 확정(ctx.sized를 승자 조합으로 다시 반영)
+
+
+def _refine_shared_current_joint_scan_for_full_circuit_constraints(
+        plan: dict, ctx: SizingContext, top_n: int = 20) -> None:
+    """세션44(계속) 신설 -- `_run_shared_current_joint_scan()`(1단계)이 이 그룹 소자
+    만으로는 평가 못 해 놓쳤던 **전체회로 constraint**(`_metric_device_footprint()`가
+    `"ALL"`을 반환하는 타입, 지금은 `smallsignal_ratio_db`/`smallsignal_gain_db` --
+    이름을 하드코딩하지 않는다, 다른 회로/타입이 생겨도 그대로 동작)를, 전체 회로가
+    사이징 완료된 뒤(`_evaluate()`가 이 함수를 호출하는 시점) 확인하고 필요하면
+    보정한다. **회로에 특화된 로직이 아니다** -- "공유전류 조인트 스캔을 쓰는 그룹 +
+    그 시점엔 못 보던 전역 constraint"라는 구조적 패턴에만 반응한다(사용자 지적으로
+    설계 방향 확정).
+
+    **전수 재스캔은 안 한다**(최대 5000개 후보 × 전체회로 MNA 여러 번 = evaluate() 1회가
+    수십 배 느려짐, 감당 불가 -- 사용자 지적으로 아래 방식 채택): 1단계와 똑같은 저렴한
+    로컬 스캔(`_shared_current_root_grids()`/`_make_shared_current_scorer()`, LUT
+    보간+산술만이라 저렴)을 한 번 더 돌려 로컬 목표(`plan["metric"]`) 기준 상위
+    `top_n`개 후보만 추린 뒤, **그 후보들만** 실제 전체회로 MNA로 확인한다 -- 최대
+    `top_n`번의 추가 MNA 평가로 비용 상한이 걸린다.
+
+    흐름: (1) 1단계 결과가 이미 전역 constraint를 전부 만족하면 **추가 비용 없이 즉시
+    반환**(대부분의 회로/경우 -- 이 그룹을 안 쓰는 회로는 `global_constraints`를 볼
+    필요조차 없다). (2) 위반이면 로컬 스캔을 재실행해 상위 `top_n`개 후보를 로컬
+    점수 내림차순으로 순회하며, 로컬+전역 constraint를 **전부** 만족하는 첫 후보를
+    채택하고 즉시 반환. (3) `top_n` 안에서 못 찾으면 1단계 결과(가장 로컬최적)로
+    되돌린다 -- 이 로컬 스캔이 전체 feasibility를 보장할 책임은 없다(세션31 BS 원칙
+    그대로) -- 남은 위반은 `optimize_full_circuit_budget()`의 최종 feasibility 판정이
+    그대로 보고한다."""
+    metrics_specs = ctx.derived.get("_metrics_specs") or {}
+    constraints = ctx.derived.get("_constraints") or []
+    global_constraints = [c for c in constraints
+                           if _metric_device_footprint(c["metric"], metrics_specs) == "ALL"]
+    if not global_constraints:
+        return  # 이 회로/그룹엔 전역 constraint가 없음(하위호환 -- 대부분의 경우)
+
+    def _all_global_satisfied() -> bool:
+        for c in global_constraints:
+            cspec = metrics_specs.get(c["metric"])
+            if cspec is None:
+                continue
+            val = compute_metric(cspec, ctx)
+            if not _CONSTRAINT_OPS[c["op"]](val, c["value"]):
+                return False
+        return True
+
+    if _all_global_satisfied():
+        return  # 1단계 결과가 이미 전역 constraint까지 만족 -- 흔한 경우, 추가 MNA 0회
+
+    roots, root_grids = _shared_current_root_grids(plan)
+    score_fn = _make_shared_current_scorer(plan, ctx)
+    ranked = []
+    for combo in itertools.product(*root_grids):
+        candidate = dict(zip(roots, combo))
+        score = score_fn(candidate)
+        if score is not None:
+            ranked.append((score, candidate))
+    if not ranked:
+        return  # 로컬 스캔 자체가 후보를 하나도 못 찾음 -- 1단계가 이미 InfeasibleSizingError로
+                 # 죽었을 것이므로 방어적 처리일 뿐, 정상 경로에선 도달 안 함
+    ranked.sort(key=lambda x: x[0], reverse=True)
+
+    for _, candidate in ranked[:top_n]:
+        score_fn(candidate)  # ctx.sized에 반영해야 전역 constraint를 실제로 계산할 수 있다
+        if _all_global_satisfied():
+            return  # 로컬+전역 전부 만족하는 후보 확정
+    score_fn(ranked[0][1])  # top_n 안에서 못 찾음 -- 1단계 결과(가장 로컬최적)로 되돌림
 
 
 def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
@@ -5404,6 +5499,14 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vs)
             ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
                                 "kind": kind_of[name], "vs": vs}
+
+        # 2026-09-03(세션44 계속) -- 이 회로가 전부 사이징된 지금이 처음으로 전체회로
+        # constraint(cmrr/psrr 등)를 정직하게 확인할 수 있는 시점이다 -- 공유전류 조인트
+        # 스캔(있는 회로만, 대부분은 빈 dict라 이 루프가 0회 실행됨)이 그 시점엔 못 보고
+        # 지나친 전역 constraint를 여기서 보정한다(`_refine_shared_current_joint_scan_
+        # for_full_circuit_constraints()` docstring 참고 -- circuit-agnostic).
+        for _scb_plan in (ctx.derived.get("_scb_joint_plan_by_devices") or {}).values():
+            _refine_shared_current_joint_scan_for_full_circuit_constraints(_scb_plan, ctx)
 
         metrics_result = {name: compute_metric(mspec, ctx) for name, mspec in metrics_specs.items()}
         return ctx, metrics_result
