@@ -37,11 +37,12 @@
       "name": "Rz1",
       "kind": "resistor",
       "value_ohm": null,
+      "nulling_reference_device": "M16",
       "terminals": [
         "N_cc_rz1",
         "Vop1"
       ],
-      "_comment": "nulling resistor, 값은 이 프로젝트에서 독립 재유도 안 됨(workspaces/current-reuse-telescopic-ota-report/REPORT_DATA.json out_of_scope 참고) -- 테이프아웃 전 SPICE로 RHP-zero 상쇄 조건 확인 필요."
+      "_comment": "2026-09-03(세션44 계속) -- nulling resistor, 값을 1차 원리로 도출: Cc+Rz가 출력(Vom)에서 2단 NMOS(M16.gate=Vop1)로 피드백되는 표준 구조의 RHP-zero는 z=1/[Cc*(1/gm(M16)-Rz)]이고, Rz=1/gm(M16)일 때 zero가 무한대로 밀려나 완전히 상쇄된다(Razavi류 nulling-resistor 기법, 논문 인용 아님). value_ohm은 정적 상수로 안 박고 null로 남겨둔다 -- M16의 gm은 sizing 결과에 따라 바뀌는 값이라, sizing_recipe.py의 _full_circuit_devices()가 nulling_reference_device를 보고 매 평가마다 1/gm(M16)을 동적으로 계산해 MNA에 넣는다(ctx 캐시로 재계산 방지, _resolve_nulling_resistor_ohm() 참고). 리포팅은 sizing_roles.metrics의 rz1_ohm 참고."
     },
     {
       "name": "Cc2",
@@ -57,11 +58,12 @@
       "name": "Rz2",
       "kind": "resistor",
       "value_ohm": null,
+      "nulling_reference_device": "M26",
       "terminals": [
         "N_cc_rz2",
         "Vom1"
       ],
-      "_comment": "Vom측 Rz1과 대칭, 값 미확정(Rz1 주석 참고)."
+      "_comment": "2026-09-03(세션44 계속) -- Vom측 Rz1과 대칭(Rz1 주석 참고) -- Vop측은 Cc2+Rz2가 M26.gate(Vom1)로 피드백되므로 참조 소자는 M26(M16과 declared matching_pairs로 byte-identical, 세션44에서 실측 확인)."
     }
   ],
   "_ideal_sources_comment": "2026-08-03(세션 4, 사용자 지적) -- `passive_elements`(R/C/Rz 등)는 값이 미상이어도 언젠가 실제 사이징·레이아웃 대상이 되는 '진짜' 물리 소자다. 반면 논문 회로도에 그려진 ideal current/voltage source(예: bias-gen 최상단 마스터 레퍼런스 전류원)는 그 자체로는 절대 실리콘으로 구현되지 않는 모델링 편의 소자(외부 핀에서 주입되는 이상적 자극, 또는 상위 레벨 시스템이 공급한다고 가정하는 값)다 -- `passive_elements`에 섞으면 나중에 사이징/레이아웃 코드가 이걸 실제 소자로 착각해 처리하려 들 위험이 있다. 그래서 별도 `ideal_sources` 배열을 신설하고, 각 항목에 `implementable: false`를 명시해 '이 소자는 최종 구현에서 반드시 제외해야 한다'는 걸 스키마 레벨에서 표시한다(사이징 엔진은 여전히 `netlist`/`passive_elements`처럼 이 배열도 안 읽으므로 기존 227곳 회귀 없음, `topology_to_markdown.py`만 이걸 읽어 별도 표로 '구현 불가' 경고와 함께 렌더링).",
@@ -1864,6 +1866,14 @@
         "type": "rail_referenced_voltage",
         "device": "M16",
         "rail": "gnd"
+      },
+      "rz1_ohm": {
+        "type": "nulling_resistor_ohm",
+        "device": "M16"
+      },
+      "rz2_ohm": {
+        "type": "nulling_resistor_ohm",
+        "device": "M26"
       },
       "classab_centering_dev_v": {
         "type": "battery_centering_deviation",

@@ -1656,7 +1656,13 @@ def suggest_headroom_stack_groups(transistors: list, composites: list | None = N
     device_to_group = {m: _group_name(k) for m, k in device_to_key.items()}
     group_ref_device = {_group_name(k): (None if k in unsupported else v)
                          for k, v in key_ref.items()}
-    unsupported_names = [_group_name(k) for k in unsupported]
+    # 2026-09-03(세션44 후속, THEORETICAL_ONLY 재발조사 정리) -- `unsupported`가
+    # frozenset의 set이라 원래 `[_group_name(k) for k in unsupported]`는 문자열 해시
+    # 순서(PYTHONHASHSEED, 프로세스마다 무작위)로 리스트를 만들었다 -- 이 필드를 읽는
+    # 코드가 지금은 없어 판정에 영향은 없지만(§K 참고), 나중에 소비 코드가 생기기 전에
+    # sorted()로 선제 정리한다(reserved_vds_for_other_stack_members()와 같은 버그
+    # 클래스 재발 방지).
+    unsupported_names = sorted(_group_name(k) for k in unsupported)
     return {"device_to_group": device_to_group, "group_ref_device": group_ref_device,
             "unsupported_both_sides_hub": unsupported_names}
 

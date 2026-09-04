@@ -1939,6 +1939,14 @@ class SizingContext:
     # gains_cache`와 동일한 이유(gain_db/pm_deg 두 metric이 같은 세타평가에서 완전히 동일한
     # 입력으로 각자 호출하므로 캐시 없인 스윕을 2번 돈다), 다만 반환 dict 구조가 달라 별도 필드로 분리.
     _nmcnr_predict_cache: dict = field(default_factory=dict)
+    # 2026-09-03(세션44 계속) -- `_resolve_nulling_resistor_ohm()`(Rz=1/gm(ref_device),
+    # Miller Cc+Rz 널링저항의 RHP-zero 상쇄 공식)가 참조하는 소자의 gm은 이 회로에서
+    # SLSQP 자유변수 5개 어디에도 안 걸려(L_stage2out_p/n이 presolve에서 미리 확정)
+    # 한 SLSQP 탐색 전체 동안 사실상 상수인데, `_full_circuit_devices()`가 cmrr/psrr/
+    # gain_full_circuit_db 계산마다(한 세타평가당 여러 번) 새로 MNA를 조립하면서 매번
+    # `1/gm`을 다시 계산하면 낭비다(사용자 지적) -- `_open_loop_gains_cache`와 동일한
+    # 이유로 ctx(한 세타평가 동안만 사는 일회용 객체)에 캐시한다.
+    _nulling_resistor_cache: dict = field(default_factory=dict)
 
 
 def _metric_sum_current(spec: dict, ctx: SizingContext) -> float:
@@ -2231,6 +2239,15 @@ def _metric_battery_centering_deviation(spec: dict, ctx: SizingContext) -> float
     low = _metric_rail_referenced_voltage(
         {"device": spec["low_device"], "rail": "gnd"}, ctx)
     return abs((high + low) - ctx.spec["vdd"])
+
+
+def _metric_nulling_resistor_ohm(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(세션44 계속 신설) -- `Rz`(Miller `Cc`+`Rz` 널링저항) 리포팅용. 실제 MNA
+    배선은 `_full_circuit_devices()`의 `nulling_reference_device` 경로가 담당(같은
+    `ctx._nulling_resistor_cache`를 공유해 재계산 없이 동일 값을 그대로 노출) -- 이
+    metric은 instance.json/리포트에서 Rz 값을 눈으로 확인할 수 있게 하는 창구다.
+    도출 공식/근거는 `_resolve_nulling_resistor_ohm()` docstring 참고."""
+    return _resolve_nulling_resistor_ohm(ctx, spec["device"])
 
 
 def _cmrr_diff_pair_tail(metric_spec: dict, ctx: SizingContext) -> float:
@@ -2768,9 +2785,37 @@ def _load_full_topology_cached(topology_path: str) -> tuple:
 _DEFAULT_SENSE_RESISTOR_OHM = 1.0e9   # R1/R2류 "averaging만, 부하 없음" 근사(세션21, 사용자 확정)
 
 
-def _full_circuit_devices(by_name: dict, sized: dict, passive_elements: list) -> list:
+def _resolve_nulling_resistor_ohm(ctx: SizingContext, ref_device: str) -> float:
+    """세션44(계속) 신설 -- Miller `Cc`+`Rz`(널링 저항, 출력→`Cc`→`Rz`→2단 소자 게이트)
+    보상망의 표준 RHP-zero 상쇄 공식: `z = 1/[Cc·(1/gm2 - Rz)]`, `Rz = 1/gm2`로 두면
+    zero가 무한대로 밀려나 완전히 상쇄된다(1차 원리 도출, 논문 값 인용 아님 -- Razavi류
+    nulling-resistor 기법). `gm2`는 `ref_device`(이 회로는 `M16`/`M26`, 2단 push-pull
+    출력의 NMOS 쪽 -- Cc/Rz가 물리적으로 그 게이트에 피드백된다)의 이미 확정된 `gm`.
+
+    do.md 970행이 "이 회로엔 zero-nulling resistor 보상이(자유변수로는) 안 쓰인다"고
+    명시한 건 여전히 유효하다 -- 이건 **자유 theta가 아니라 M16/M26의 gm이 확정된 뒤
+    그 값에서 그대로 도출되는 종속값**이라, `sizing_roles.theta`에 새 자유도를 추가하는
+    게 아니다.
+
+    `ref_device`의 gm은 `L_stage2out_p`/`L_stage2out_n`(M15/M16을 정하는 theta)이
+    presolve 단계에서 이미 확정되고 SLSQP 자유변수 5개 어디에도 안 걸려, 한 SLSQP
+    탐색 전체 동안 사실상 상수다 -- `ctx._nulling_resistor_cache`(한 세타평가 동안만
+    사는 ctx에 캐시, `_open_loop_gains_cache`와 동일 패턴)로 `_full_circuit_devices()`가
+    cmrr/psrr/gain_full_circuit_db 계산마다(한 세타평가당 여러 번) 반복 호출해도
+    `1/gm` 재계산이 한 번만 일어나게 한다(사용자 지적, 재계산 비효율 방지 원칙)."""
+    cached = ctx._nulling_resistor_cache.get(ref_device)
+    if cached is not None:
+        return cached
+    gm = ctx.sized[ref_device]["gm"]
+    r_ohm = 1.0 / gm
+    ctx._nulling_resistor_cache[ref_device] = r_ohm
+    return r_ohm
+
+
+def _full_circuit_devices(by_name: dict, ctx: SizingContext, passive_elements: list) -> list:
     """topology.json의 **모든** MOSFET + passive_elements 중 저항(`kind="resistor"`,
-    `value_ohm` 미기재면 `_DEFAULT_SENSE_RESISTOR_OHM`)을 `_mna_solve_smallsignal()`용
+    `value_ohm` 미기재면 `nulling_reference_device` 선언 시 `_resolve_nulling_resistor_
+    ohm()`, 둘 다 없으면 `_DEFAULT_SENSE_RESISTOR_OHM`)을 `_mna_solve_smallsignal()`용
     `(drain,source,gate,gm,gds)` 튜플로 변환한다. 저항은 gate=source, gm=0으로 스탬프하면
     같은 소자모델이 자동으로 평범한 2단자 저항 스탬프가 된다(별도 분기 불필요).
 
@@ -2781,6 +2826,7 @@ def _full_circuit_devices(by_name: dict, sized: dict, passive_elements: list) ->
     기여는 0). 이 두 가정 덕분에 bias-gen 체인(예: Iref로 구동되는 M18_bg류 미러)도 특별
     취급 없이 **다른 모든 소자와 똑같이** 자유노드로 풀리고, 그 결과 bias-gen 자신의
     vdd 결합까지 저절로(그리고 정직하게 최악의 경우로) 반영된다."""
+    sized = ctx.sized
     devs = []
     for name, t in by_name.items():
         s = sized.get(name)
@@ -2791,7 +2837,11 @@ def _full_circuit_devices(by_name: dict, sized: dict, passive_elements: list) ->
     for p in passive_elements:
         if p.get("kind") != "resistor":
             continue
-        r_ohm = p.get("value_ohm") or _DEFAULT_SENSE_RESISTOR_OHM
+        r_ohm = p.get("value_ohm")
+        if r_ohm is None:
+            ref_device = p.get("nulling_reference_device")
+            r_ohm = (_resolve_nulling_resistor_ohm(ctx, ref_device) if ref_device
+                      else _DEFAULT_SENSE_RESISTOR_OHM)
         a, b = p["terminals"]
         devs.append((a, b, b, 0.0, 1.0 / r_ohm))
     return devs
@@ -2817,7 +2867,7 @@ def _full_circuit_response(ctx: SizingContext, excite: dict, also_fix: frozenset
         raise ValueError("ctx.topology_path가 비어있다 -- SizingContext(topology_path=...) "
                           "로 채워야 _full_circuit_response()를 쓸 수 있다")
     by_name, passive_elements = _load_full_topology_cached(ctx.topology_path)
-    devs = _full_circuit_devices(by_name, ctx.sized, passive_elements)
+    devs = _full_circuit_devices(by_name, ctx, passive_elements)
     fixed = {"gnd": 0.0}
     fixed.update({n: 0.0 for n in also_fix})
     fixed.update(excite)
@@ -2924,6 +2974,7 @@ _METRICS_REGISTRY = {
     "psrr_estimate":            _metric_psrr_estimate,               # 배치 7-3i
     "rail_referenced_voltage":  _metric_rail_referenced_voltage,     # 세션6
     "battery_centering_deviation": _metric_battery_centering_deviation,  # 세션6
+    "nulling_resistor_ohm":     _metric_nulling_resistor_ohm,         # 세션44 계속
     "smallsignal_ratio_db":     _metric_smallsignal_ratio_db,        # 세션21, topology-무관
     "smallsignal_gain_db":      _metric_smallsignal_gain_db,         # 세션21, topology-무관
 }
@@ -5984,6 +6035,8 @@ def _metric_device_footprint(metric_name: str, metrics_specs: dict):
     if mtype == "battery_centering_deviation":
         return {mspec["high_device"], mspec["low_device"]}
     if mtype == "rail_referenced_voltage":
+        return {mspec["device"]}
+    if mtype == "nulling_resistor_ohm":
         return {mspec["device"]}
     if mtype == "folded_cascode_gain_db":
         return {mspec["gm1_device"], mspec["fold_leg_a"], mspec["fold_leg_b"],

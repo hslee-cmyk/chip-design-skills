@@ -1,15 +1,11 @@
 # 세션 컨텍스트
 
-**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션44 결론 -- power_tolerance
-cmrr/psrr '트레이드오프'는 SLSQP 아티팩트였음 확인 + gain_db 목표 재도출(75.6→54,
-논문 인용 탈피) + reserved_vds_for_other_stack_members() 재현성 버그(set 순회
-순서 비결정성) 발견/수정 + 전수 재발 조사"부터 먼저 읽을 것.** 세션44가 세션43이
-남긴 "cmrr/psrr 트레이드오프"를 근본까지 파고든 결과, 진짜 트레이드오프가 아니라
-①gain_db=75.6 목표 자체가 애초에 근거 없는 논문 인용값이었던 문제 + ②그 목표를
-SLSQP가 영원히 못 채우며 방황하다 다른 자유변수를 망가뜨린 문제 + ③set 순회
-순서가 프로세스마다 랜덤해서(PYTHONHASHSEED) 같은 입력에도 다른 결과가 나오던
-재현성 버그, 이 세 가지가 겹쳐서 만든 착시였다 -- 자세한 경위는 맨 끝 절 참고.
-"# 세션42 최종 완료"~"# 세션31 결론"은 더 이전 이력이다.
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 파일 맨 끝 "# 세션44 (계속) -- classab
+Up/Down settling 대칭성 재검토: M15/M16 자체 비대칭 실측 확인했으나 M15≡M25/
+M16≡M26 좌우대칭 구조가 이미 상쇄함을 논문 Table I로 확정"부터 먼저 읽을 것.**
+그 앞의 "# 세션44 결론"(gain_db 재도출/재현성 버그 수정, 이미 커밋 `c67cf75`)은
+같은 세션44의 1부이고, "계속" 절이 2부(이월 항목 착수 + 사용자 회로질문으로 촉발된
+class-AB 대칭성 심층조사)다. "# 세션42 최종 완료"~"# 세션31 결론"은 더 이전 이력이다.
 아래는 세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가
 궁금할 때만 찾아보면 된다.
 
@@ -13632,3 +13628,121 @@ py:1659`만 여유 있을 때 정리.
    여부 판단 필요.
 4. 위 전부 정리되면 커밋(§J) -- 재현성 버그 수정 자체는 이미 self-test/harness/회귀
    확인까지 끝났으니 바로 커밋해도 무방(사용자 판단).
+
+---
+
+# 세션44 (계속) -- classab Up/Down settling 대칭성 재검토: M15/M16 자체 비대칭
+실측 확인했으나 M15≡M25/M16≡M26 좌우대칭 구조가 이미 상쇄함을 논문 Table I로 확정
+
+세션44 결론(위 §A~§K, 커밋 `c67cf75`)이 남긴 이월 항목을 "1부터 순차적으로"
+진행하다가, 사용자의 회로 질문으로 class-AB 출력단 대칭성을 깊이 파고들게 됐다.
+
+## L-1. 이월 항목 ① -- `stick_diagram.py:1659` 정리(완료, 미커밋)
+
+세션44가 전수 재발조사에서 남긴 유일한 THEORETICAL_ONLY 항목. `unsupported_names
+= [_group_name(k) for k in unsupported]`(`unsupported`가 frozenset의 set)를
+`sorted(_group_name(k) for k in unsupported)`로 수정 -- `reserved_vds_for_other_
+stack_members()`와 같은 클래스(문자열 set 순회 순서 비결정성)를 선제 정리. 이
+필드를 읽는 코드가 지금은 없어 회귀 위험 없음, self-test(`stick_diagram.py`)
+exit=0 확인.
+
+## L-2. 이월 항목 ② -- `classab_centering_dev_v` 여유(0.1496/0.15) 안정성 확인(완료)
+
+`require_feasible=True`로 seed 0/1/2 각각 SLSQP(n_starts=3, maxiter=20) 재실행 --
+**3/3 feasible, `classab_centering_dev_v`가 세 seed 전부 정확히 0.14956으로 동일**.
+이유: SLSQP 자유변수 5개(`f_slew`/`N_cmfb_bw`/`r_cmfb_vocdes`/`r_tail_M6`/
+`r_tail_M7`) 중 어느 것도 `L_stage2out_p`/`L_stage2out_n`(M15/M16의 gm_id를
+정하는 theta, `gm_id_match_vgs_of` 메커니즘)에 안 닿는다 -- 이 값은 SLSQP 이전
+presolve 단계에서 이미 확정되므로 seed와 무관하게 항상 같다. **결론: 여유가
+빡빡한(0.0004V) 건 사실이지만 "운 좋게 걸린" 게 아니라 이 회로/공정 조합의 구조적
+고정값 -- 다른 seed/시작점에서 깨질 위험은 없음. 코드 수정 불필요.**
+
+## L-3. 사용자 질문 -- "classab_centering_dev_v가 M15/M16 gm_id 확정 이후에
+유도되는 값이 맞나?"
+
+코드로 확인: `_metric_battery_centering_deviation()`(`sizing_recipe.py:2210`)은
+F엔진(metric 계산기)으로, `ctx.sized[M15]`/`ctx.sized[M16]`의 **이미 확정된**
+gm_id/L/vds를 읽어(`_metric_rail_referenced_voltage()` 경유) `lut.vgs_for_gm_id()`
+로 VGS를 역산할 뿐이다 -- sizing을 "구하는" 로직이 아니라 사후 검증. 순서: 
+`L_stage2out_p`(M15, `gm_id_role='gain'` 자유탐색) → 바로 뒤 `L_stage2out_n`
+(M16, `gm_id_match_vgs_of='M15'`로 M15의 실제 VGS를 역산, 세션31이 "반드시
+L_stage2out_p 바로 뒤에 와야 한다"고 명시) → F엔진이 그 결과를 마지막에 확인.
+
+## L-4. 사용자 질문(핵심) -- "M15/M16 gm_id가 다른데 rising/falling 구동
+대칭성에 영향 없나?"
+
+**1차 조사(LUT 기반, ID-VGS 비선형성)**: 이 프로젝트엔 rise/fall 대칭성을 보는
+metric이 아예 없음(확인됨 -- `slew_rate(ID,C)=ID/C` 헬퍼는 있으나 M15/M16 개별
+비교엔 안 쓰임). sky130 LUT로 M15/M16의 실제 ID-VGS 대곡선을 직접 조회(방법
+검증: 정지 ID가 instance.json의 24.7021uA와 정확히 일치 -- `size_transistor()`의
+`W=L*ID/IDu` 정의를 따라 `ID=IDu*W/L`로 역산해야 함, 처음에 `/L`을 빠뜨려
+7자리수 틀린 값이 나왔다가 정정). **같은 |ΔVGS| 부스트 가정 시**: M15(PMOS,
+gm_id=10.0, strong inversion) 대비 M16(NMOS, gm_id=17.5, weak inversion 쪽)이
+ΔVGS=300mV급에서 거의 2.7배 더 크게 ID가 늘어남(비대칭비 0.368) -- 실재하는
+비선형성 비대칭.
+
+**2차 조사(배터리 자체 비대칭 포함)**: M9a/M9b(class-AB floating battery,
+Monticelli 구조, Vg15<->Vop1를 잇는 anti-parallel PMOS/NMOS)도 이미 DC
+비대칭(ID 1.235uA vs 1.541uA, 25% 차이)임을 instance.json에서 확인. 51소자
+전체회로 MNA(이 프로젝트가 이미 ngspice로 교차검증해둔 신뢰 가능한 solver,
+`_full_circuit_response`)로 배터리의 실제 소신호 전달비를 직접 측정:
+**dVg15/dVop1 = 1.5047**(1:1이 아니라 배터리가 1.5배 증폭 전달). 이 실측 전달비를
+1차 분석에 반영(M16 ΔVGS=x, M15 ΔVGS=1.505x)하면 비대칭이 완화되지만(300mV급에서
+0.368→0.628) **완전히 상쇄되진 않음** -- M16(falling 담당)이 여전히 더 크게
+부스트됨. 한계: 이 1.505배는 소신호 선형모델 값이라 진짜 대신호(배터리 소자 하나가
+컷오프되는 영역)에서는 더 커질 가능성 있음(과소평가 방향) -- 확정하려면 트랜지스터
+레벨 SPICE 트랜지언트가 필요.
+
+## L-5. sky130 PDK 로컬 존재 확인 + Rz1/Rz2 미도출 확인 + 사용자가 논문 스펙표 제공
+
+SPICE 트랜지언트를 시도하려다 "로컬에 sky130 모델이 없다"고 잘못 판단했다가
+사용자 정정으로 재확인: **`C:\pdk\sky130_fd_pr`에 실제로 있음**(LUT 생성 스크립트
+`sky130_lut_sweep.py`가 이미 이 경로를 씀, `nfet_01v8`/`pfet_01v8` cell 확인).
+넷리스트를 짜다가 `Rz1`/`Rz2`(nulling resistor) 값이 이 프로젝트에서 한 번도
+도출된 적이 없다는 걸 발견(topology.json `value_ohm: null`, `do.md` 970행이
+명시적으로 "이 회로엔 zero-nulling resistor 보상이 안 쓰인다"고 확인) -- 사용자가
+이걸 반박하며 재확인을 요청했으나, 재조사 결과 원래 판단이 맞았음(사용자도 동의는
+안 했지만 반박 없이 다음 자료 제공으로 넘어감). 이 지점에서 **사용자가 논문 원문
+TABLE I(design specifications and result summary)를 이미지로 제공**:
+`C1=C2=500fF/CL=1pF`, `Adm(open-loop DC gain)=75.6dB`(← `gain_db=75.6` 목표가
+왜 정확히 이 값이었는지 재확인), `CMRR/PSRR>=60dB`(각각 94.4dB/82.28dB 달성),
+**`Settling time Up<=40ns/Down<=40ns`, 실측 결과 Up=Down=37.885ns(소수점까지
+완전히 동일)**.
+
+## L-6. 최종 해소 -- 좌우대칭(M15≡M25, M16≡M26)이 M15/M16 내부 비대칭을 이미 상쇄함
+
+Table I의 "Up=Down 완전 동일"을 보고 재검토: 이 회로는 완전 차동이라 Vom(M15/M16
+담당)과 Vop(M25/M26 담당)가 거울대칭이고, `symmetry.matching_pairs` 선언으로
+M15-M25/M16-M26이 강제된다. **이번 세션 harness 결과로 직접 대조 확인**: M15와
+M25가 byte-identical(L=0.15um, gm_id=10.0, vds=1.2V, ID=24.7021uA, gm/gds
+전부 동일), M16과 M26도 byte-identical. 이제 "Settling Up"(차동출력 Vop-Vom
+증가 방향, Vop는 M25가 밀어올리고 **동시에** Vom은 M16이 끌어내림 -> 관여 소자
+{M25,M16})과 "Settling Down"(Vop는 M26이 끌어내리고 Vom은 M15가 밀어올림 ->
+관여 소자 {M26,M15})을 비교하면, M25≡M15/M26≡M16이므로 **{M25,M16}과 {M26,M15}는
+정확히 같은 두 소자 특성의 집합**이다 -- 어느 방향이든 "PMOS 부스터 1개(M15류) +
+NMOS 부스터 1개(M16류)"가 똑같이 관여하므로, M15 자체가 M16보다 약하게
+부스트되더라도 **차동 출력의 Up/Down 시간은 좌우대칭 구조가 이미 강제로
+맞춰준다** -- 논문 Table I의 완전한 Up=Down 일치와 정확히 부합.
+
+**정정**: L-4의 "M15 vs M16 비대칭"은 실재하는 사실이지만(§1/§2 실측), 이건
+"Vom 한쪽만 떼어놓고 봤을 때"의 얘기였다. 실제 스펙(차동 Up/Down settling)에는
+영향을 주지 않는다 -- SPICE 트랜지언트까지 갈 필요 없이, 이미 강제되고 있는
+`matching_pairs`(M15-M25/M16-M26) 선언 자체가 답이었다.
+
+## L-7. 남은 정직한 한계 / 다음 세션 참고
+
+1. L-4의 M15-vs-M16 단일 소자 비대칭 자체는 여전히 사실로 남는다 -- 다만 그
+   비대칭이 상쇄되는 것은 "좌우 완전대칭 + matching_pairs 강제"라는 **구조적
+   전제**에 의존한다. 이 전제가 실제로 항상 성립하는지(예: 레이아웃 기생 성분,
+   두 출력단 사이의 미세한 로딩 차이, CMFB 루프가 두 출력을 완전히 대칭으로
+   보정하는지)는 이번 조사 범위 밖 -- 이상적인 소자 매칭 가정 하의 결론이다.
+   실제 실리콘/포스트레이아웃 검증 전까지는 이 결론도 "정직한 한계"로 남는다.
+   (SPICE 트랜지언트 자체는 이제 도구가 갖춰졌으니 -- `C:\pdk\sky130_fd_pr` 로컬
+   존재 확인됨 -- 필요하면 언제든 다음 세션에서 시도 가능.)
+2. `Rz1`/`Rz2`(nulling resistor) 값이 이 프로젝트에서 한 번도 도출된 적이
+   없다는 게 이번 조사로 재확인됨(`do.md` 970행 "이 회로엔 안 쓰임"이 명시돼
+   있지만, 실제 안정적 트랜지언트/SPICE 검증을 하려면 결국 필요해질 수 있음) --
+   급하지 않지만 인지해둘 것.
+3. 이월 항목 ③(레이아웃 `audit_ok=False`, row_split)은 이번 세션에서 아직
+   착수 안 함.
+4. `stick_diagram.py:1659` 수정(L-1)은 아직 미커밋 -- 다음 커밋 때 포함할 것.
