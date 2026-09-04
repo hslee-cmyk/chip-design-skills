@@ -312,6 +312,24 @@ diff_pair가 요구하는 role=AMPLIFYING 조건을 애초에 통과 못하기 �
 경로로 넘어가면 gate 우연 일치로는 더 이상 안 잡히므로, `find_stacked_matching_
 candidates()`(복합소자 기반 상속, 위 표 참고)를 별도로 함께 써야 한다.
 
+### 2.6.1 `find_verified_differential_and_mirror_relations()`의 fan-in 오판정 — 방향 인식 상류 슬라이스로 해결
+
+**증상(세션25)**: 병렬 tail(예: `Vx`가 `M6`/`M7` 둘로부터 병렬 공급되는 구조)에서, 진짜
+파트너(`M57`)가 아니라 `M7`이 `M58`과 잘못 묶이는 버그가 발생했다.
+
+**근본원인**: 이 함수가 `(M1a,M1b)` 차동쌍 관계를 `M6`쪽 조합에서만 찾고, `M7`쪽에서
+독립적으로도 같은 관계가 성립한다는 걸 "소자쌍 dedup" 로직이 조용히 버려 `M7`이 "차동쌍
+소속 아님"으로 오판됨.
+
+**시행착오(3라운드)**: (1) 전체 체인을 누적해서 봤더니 다른 무관한 관계까지 오염됨. (2)
+"mirror 당사자면 무조건 배제"로 바꿨더니 이번엔 진짜 mirror-겸-differential 관계까지 배제됨.
+(3) **방향 인식 상류 슬라이스**(`vdd_to_gnd` 방향이면 앞쪽이 상류, `gnd_to_vdd` 방향이면
+반대로 뒤쪽이 상류 — 방향별로 "상류"의 정의 자체가 다름)로 해결.
+
+**일반 교훈**: differential branch와 symmetric branch를 동시에 보고 각각의 branch에 실제로
+속한 소자를 구별해야 한다 — "mirror 당사자라는 이유만으로 배제"하면 안 되고, 그 특정 비교에
+실제로 (전류 방향상) 도달하는 상류 경로인지가 판정 기준이어야 한다.
+
 ## 2.7 Unit 소자 복제 — 1D interdigitation과 2D common-centroid 중 언제 무엇을 쓰는가
 
 **실무 원칙**: matching이 중요한 소자 그룹은 **동일한 크기의 unit 소자를 N개 반복**해서
@@ -499,6 +517,74 @@ node1~4 사이에 필요한 만큼 반복 배치했다는 뜻).
 M9/M10=25µm은 그 stack의 finger 폭(8µm)으로 나누어떨어지지 않아서(38/8=4.75, 25/8=3.125)
 40µm/24µm로 조정됐다 — **이 조정의 실제 동기는 오일러 패리티가 아니라 이 정수-배수 제약이었다**
 (§6.1에서 자세히 검증).
+
+## 3.6 `vertical_stack_id`(전기적 VDD~GND 컬럼)와 물리 레이아웃 행(kind 동질)은 다른 두 축이다
+
+**발견 경위(2026-08, 세션28)**: 사용자 질문("`resolve_stack_layout()`에서 왜 PMOS/NMOS가
+같은 stack에 있는데 오일러 패스에 문제가 없지?")으로 촉발됐다. `vertical_stack_id`(전기적으로
+VDD~GND 한 컬럼을 이루는 소자 그룹, 예: class-AB 출력단의 M15(PMOS)+M16(NMOS))를 그대로
+§3~§4의 물리 레이아웃 행(diffusion strip)으로 취급하면, PMOS와 NMOS를 같은 물리적 행에
+놓으라는 잘못된 결과가 나올 수 있다.
+
+**근본원인**: `build_graph()`/`check_euler_condition()`은 순수 net-connectivity 그래프
+알고리즘이라 `Transistor.kind`(pmos/nmos)를 전혀 참조하지 않는다 — 무방향 그래프이므로
+PMOS/NMOS를 섞어도 수학적으로는 차이가 없어 보인다. 실측 결과 이 회로의 declared
+`vertical_stack_id` 26개 중 **8개**가 실제로 kind-mixed(PMOS+NMOS 혼재)였는데도 오일러
+조건 검사를 통과하고 있었다(예: `vbias2_stack`의 hierholzer 결과가 `M57`(PMOS)과
+`M68`(NMOS)이 diffusion을 공유하며 바로 이어붙는, 물리적으로 불가능한 trail을 "path"(정상)로
+확정한 사례). "게이트를 통과했다"는 관찰이 실제로는 "게이트가 그 조건을 볼 수 없어서 그냥
+통과한 것"이었다는 뜻 — 검증 함수가 실제로 무엇을 체크하는지(무엇을 체크 **안** 하는지)를
+코드로 직접 확인하지 않은 채 "통과했다"를 근거로 삼으면 안 된다는 일반 교훈이기도 하다
+(related: `known-incidents.md`에 이 발견의 서사가 별도로 기록됨 — 여기서는 기술적 해법만
+다룬다).
+
+**해법 — 두 축을 명시적으로 분리**:
+1. `build_graph()`에 **kind 동질성 하드 게이트**를 신설 — 다른 kind는 애초에 같은 그래프에
+   넣지 않는다.
+2. `derive_horizontal_stack_groups()` 신설 — `vertical_stack_id`(전기적 KVL 그룹) 안에서
+   kind로 먼저 쪼갠 뒤, 기존 `merge_layout_groups_by_matching_pairs()`(재사용, 재발명 안 함)로
+   declared `matching_pairs` 기준 대칭 branch를 재병합해 **물리 레이아웃 행**을 만든다.
+
+이후 `resolve_stack_layout()`은 electrical 질문(KVL, `vertical_stack_id`)과 physical 질문
+(오일러 trail/대칭 배치, 물리 레이아웃 행)을 각각 별도 축에서 파생해 참조한다 — "이 두 값이
+같은 축의 다른 표현"이라고 가정하지 말 것.
+
+### 3.6.1 `vertical_stack_id` 자체를 connectivity로 자동 유도하기 — naive 시도 3개 실패, 1개 성공
+
+`vertical_stack_id`(전기적 VDD~GND 컬럼) 선언 자체를 connectivity(KCL)만으로 자동 재구성하는
+시도(세션23)에서, 직관적인 규칙 4가지 중 3개가 실패했다:
+
+1. **엄격 2단자 KCL union** — matching_pairs와 KCL 경계가 거의 서로소라 결과가 항상 공집합에
+   가까움.
+2. **rail 제외 전체 연결성분** — 51개 소자 중 25개가 declared 11개 그룹을 전부 섞은 한 덩어리로
+   붕괴(너무 성김).
+3. **소자 단위 분기별 경로 나열** — 병렬 형제(예: `M1a`/`M1b`)를 다음 hop으로 잘못 인식해
+   조합이 446개까지 폭발.
+
+**성공한 규칙**: PMOS는 source(레일쪽)→drain(부하쪽), NMOS는 drain(부하쪽)→source(레일쪽)
+순으로 **kind별로 "실제 전류 방향"을 고정**해 추적한다(`trace_vdd_to_gnd_branches()`) — 병렬
+형제는 구조적으로 다음 hop이 될 수 없고, PMOS/NMOS의 drain끼리 만나는 지점만 진짜 캐스코드
+접합으로 인식된다. 사용자가 제시한 5개 정답 branch와 정확히 일치했고, 조합 폭발 없이 29개
+branch로 수렴했다.
+
+**한계**: 이 branch 골격만으로는 `vertical_stack_id`를 완전 자동 확정하지 못한다 — "허브
+공유형"(예: M5/M6/M7처럼 여러 branch가 tail 하나를 공유)과 "인접쌍 분할형"(사람이 하나의
+branch를 기능 이름 경계로 둘로 쪼갬)이라는 두 어긋남 패턴이 남는다. 이건 branch tracing 결과에
+analog-grammar idiom matching을 결합(`suggest_vertical_stack_composites()`)해야 최종
+해소된다(실측 62/63 일치).
+
+## 3.7 오일러 게이트는 필요조건이지 충분조건이 아니다 — `n_fingers=1` 기준 검증의 한계
+
+병합 전 오일러 실현가능성 게이트(§4.1)는 기본적으로 `n_fingers=1`(topology.json 원본,
+아직 실제로 사이징되지 않은 상태)만 보고 병합을 승인한다. 하지만 실제 파이프라인은 이후
+`assign_finger_geometry()`가 실측 W로 계산한 **전혀 다른 finger 수**로 오일러를 다시
+판정한다 — 이 둘의 홀짝 결과가 항상 같다는 보장은 없다.
+
+**정직한 한계로 기록**: 이 게이트는 필요조건(베이스라인에서 최소한의 가능성이 있는지)만
+걸러내는 것이지, 충분조건(실제 사이징 이후에도 계속 풀린다는 것)까지는 보장하지 못한다.
+`assign_finger_geometry()` 이후 단계(euler 자동수정, `run_topology_pipeline_with_finger_
+fixup()`)가 이 gap을 실제로 흡수하는 하류 안전망이다 — `n_fingers=1` 게이트 통과를 "이 그룹은
+완전히 안전하다"는 뜻으로 오독하지 말 것.
 
 ## 4. Stack 분할 절차 (PDF p.25)
 
@@ -832,6 +918,23 @@ attempt... not completed"는 finger 순서/배선 시도가 미완성이었을 �
 
 ## 8. Cell shape(정사각형) 판단 기준
 
+> **역사적 배경(2026-08 세션31 "CR" 재설계)**: `check_box_shape()`는 원래 각 행의
+> `n_fingers`(finger **개수**)만 비교했다 — `finger_w`(finger 폭)와 `l`(채널 길이)는 전혀
+> 안 봤다. 실측(2단 Miller OTA, W가 94배 벌어지는 스펙트럼)으로 이 함정이 드러났다: 6개 행
+> 전부 finger 개수가 6~12로 균일해 `max_ratio=1.00 PASS`였는데, 실제 물리적 행 길이는
+> `n_fingers*finger_w`로 직접 계산하면 2.63µm~246.24µm로 **94배** 차이가 났다 — PASS 자체가
+> 물리적으로 무의미했던 것이다. 세션31이 `Transistor.l` 필드 + `PROCESS_GEOMETRY`/`pitch(l)`/
+> `RowGeometry`/`compute_row_geometry(rows)`(`assets/stick_diagram.py:6389-6457`)를 신설해
+> 이 함정을 엔진 레벨에서 근본적으로 없앴다 — 아래 §8.1~§8.5, 그리고 현재
+> `check_box_shape(rows, row_width_tol=1.5, max_elongation=None, orientation="either")`
+> (`assets/stick_diagram.py:6475`)의 시그니처와 서술은 전부 이 **재설계 이후** 상태를
+> 반영한다. `rectangular`(행 폭 일치, 옛 `max_ratio`의 실질적 역할)와 `elongation_ok`(전체
+> 길이 제한, opt-in)를 명시적으로 분리한 것도 이 재설계의 일부다 — 부수 효과로, PMOS/NMOS를
+> 2개 super-block으로 묶는 well-merging 그룹핑(문헌 근거: Xiao/Young/He/Pun, CUHK,
+> "Practical Placement and Routing Techniques for Analog Circuit Designs" §IV.C)만으로
+> `aspect_ratio` 1.008→1.223/`packing_density`=0.775로 즉시 개선된 사례도 이 세션에서 확인됨
+> (row_split 추가 조정 없이).
+
 - 목표: 모든 stack의 finger 개수를 비슷하게 맞춰 **stack 높이 × stack 폭이 1:1에 가깝게**
   만든다(극단적으로 긴 직사각형은 실제 칩 floorplan에서 배치 효율이 떨어지고 배선도 길어짐,
   더 심한 경우 stack별 폭이 너무 다르면 여러 stack을 쌓았을 때 사각형이 아니라 계단/'ㄱ'자
@@ -1036,6 +1139,31 @@ Maloberti p.29 예제를 짝수 k=8(가능)/홀수 k=7(불가능)로 실제 재�
 `search_shared_finger_w()`(§4.2, Case B) — Example 3의 실제 9개 소자로 정직하게 검증한
 결과 schematic이 가로로 흐르는데도 Case B가 수학적으로 안 맞음(131:1 행폭 비율 또는
 426% 스냅 오차)을 확인, 실제로 채택한 Case A가 옳았음을 사후 검증)을 바로 확인할 수 있다.
+
+## 9.5 row_split 재시도는 gm/ID 그리드서치와 분리된 별도 루프여야 한다 — 재계산 효율
+
+**사용자 원문(세션31→32 전환 계기)**: "sizing하는 것과 layout shape 맞추는 것은 별개의
+작업이잖아... 오로지 전기적 특성에 영향을 줄 수 있을 때만 optimize로 다시 최적화하고 layout
+iteration을 돌려야 해."
+
+**증상**: `current_reuse_telescopic_ota`(51소자, 자유 theta 13개)가 §8 box-shape 자동조정을
+위해 `optimize_full_circuit_budget()`(gm/ID 그리드서치 전체 — 이 파이프라인에서 가장 비싼
+부분)을 row_split 재시도 매 라운드마다 처음부터 다시 호출해, 10분+ 무응답이 발생했다.
+
+**해법**: euler-fixup/matching-safety repair(핑거증가가 실제 gm/ID 재검증을 요구하는,
+전기적으로 유의미한 루프)는 그대로 안쪽에 두되, **row_split 적용만** baseline 결과에서 매번
+새로 시작하는 얇은 클로저(`_evaluate_row_split()`)로 분리한다 — theta 그리드서치는 전혀
+재실행하지 않는다. `floorplan_target`이 있으면:
+- `_pick_split_target()` — `floorplan.row_split_candidates` 중 diffusion-safe(`splittable=True`)
+  하면서 가장 지배적인(`value/bbox` 비율이 큰) 후보를 고른다.
+- `_score_floorplan()` — `floorplan_target`(`max_aspect_ratio`/`min_packing_density`) 대비
+  얼마나 못 미치는지를 상대오차 합산으로 스칼라화해, 라운드끼리 "개선됐는지"를 비교한다.
+- 한 stack을 골랐으면 `max_split_per_stack`까지 계속 밀어붙이다, 그래도 개선이 없으면
+  그때만 포기(`excluded`)하고 다음 후보로 넘어가는 **backtracking** 루프.
+
+**일반 원칙**: 재시도 루프를 설계할 때는 "이번 재시도가 정말 비용이 큰 부분(여기서는 gm/ID
+그리드서치)까지 다시 계산해야 하는가"를 항상 먼저 물을 것 — 전기적 재계산이 필요 없는 순수
+기하학적 조정(row_split)은 baseline 결과 위에서 독립적으로 반복해야 한다.
 
 ## 10. Definition of Done (Layout 단계 체크리스트)
 

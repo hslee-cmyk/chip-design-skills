@@ -60,3 +60,44 @@
 LUT 재스윕 ~40분)을 하게 된다 — `check_box_shape()`를 건너뛰고 SPICE로 바로 갔다가 재작업했던
 실수와 같은 종류다. 자세한 사고 경위는 `sky130-worked-example.md` §3, 원리 설명은
 `assets/sizing_recipe.py`의 `gm_id_to_id_density()` docstring 참고.
+
+## 3. sympy 폐형식(closed-form) 대신 수치 MNA를 기본으로 삼을 것 (세션21, CMRR/PSRR 최대 49dB 오차 사고)
+
+CMFB/class-AB처럼 **여러 소자가 상호 연결된 서브회로**(floating battery, 캐스코드 임피던스와
+병렬로 물리는 저컨덕턴스 바이어스 싱크 등)를 포함한 회로의 소신호 응답(CMRR/PSRR/gain)을
+sympy로 **정확해(exact closed-form)**를 구해서 풀려는 시도는 하지 말 것 — 이 프로젝트에서
+실제로 큰 대가를 치르고 폐기된 접근이다.
+
+**증상**: `current_reuse_telescopic_ota`의 캐스코드 임피던스 폐형식 기반 `psrr_estimate_db`가
+실제(31소자 exact) 값과 최대 **49dB** 어긋남(폐형식 −41.5~−9.6dB vs 실제 −8.6~+20.4dB).
+
+**시도했다가 실패한 것(순서대로)**:
+1. 31소자/18노드를 sympy `linsolve()`로 통짜로 풀기 — fraction-free Gaussian elimination의
+   중간식이 지수적으로 폭발, 수 분간 2.8GB+ 메모리, 진행 없음.
+2. 5노드 서브회로를 먼저 **정확해**로 풀어 8노드에 대입 — 그 정확해 자체가 200항 넘는 유리식이
+   되어 다시 폭주(3.3GB+). raw 분자가 6,000~16,000항까지 확인됨.
+3. leading-order 근사를 그대로 구현 — exact 대비 worst 12.02dB 오차, 이 프로젝트 기준(worst
+   2.36dB) 미달.
+4. "추가 저컨덕턴스 소자(M10/M19)를 기존 Rout에 그냥 병렬로 얹기" 가설 — Adm은 근접했지만
+   Acm/Ann은 부호까지 반대, 최대 1100배 오차.
+
+**근본원인**: `M10`/`M19`(class-AB 바이어스 싱크, 캐스코드가 아니라 출력컨덕턴스 O(eps¹))가
+캐스코드 임피던스(O(eps²), 훨씬 높음)와 병렬로 물리면 **컨덕턴스가 낮은 쪽이 회로를 지배**하는데,
+옛 폐형식은 애초에 이 소자의 존재 자체를 모델링하지 않았다. sympy **정확해**는 이런 소자가
+하나 추가되는 순간 다항식 크기가 감당 불가능해진다 — 이건 근사식이 부정확했던 게 아니라
+"정확해 자체를 구하는 접근"이 소자 수에 지수적으로 못 버틴다는 구조적 문제다.
+
+**해결**: `_mna_solve_smallsignal()`(`assets/sizing_recipe.py:2395`, 순수 Python Gaussian
+elimination·부분피벗, 외부 의존성 없음) 신설 — 정확해가 아니라 **수치**로 풀면 노드 개수(18개든
+51개든)와 무관하게 즉시 끝난다. connectivity는 `load_topology()`로 그대로 읽어(손타이핑 없음)
+topology.json이 나중에 바뀌어도 solver가 조용히 어긋나지 않게 했다(`_full_circuit_devices()`/
+`_full_circuit_response()`, 같은 파일 :2815/:2850).
+
+**검증**: 완전히 다른 두 솔버(자체 Gaussian elimination vs ngspice AC 시뮬레이션)로
+교차검증해 오차 0.0001~0.0002%(부동소수점 잡음 수준)까지 확인 — **새 numeric solver를 실전
+배치 전 반드시 독립 시뮬레이터로 재검증**할 것(§2의 LUT↔SPICE 교차검증과 같은 정신).
+
+**일반 원칙**: 회로가 상호 연결된 서브회로(floating battery, CMFB, 저컨덕턴스 바이어스 싱크가
+캐스코드와 병렬로 물리는 구조 등)를 포함하면 **sympy 정확해는 처음부터 포기하고 수치 MNA를
+기본으로 삼을 것** — leading order를 손으로 미리 적용해도 소자가 하나만 추가되면(위 사례의
+M10/M19) 다시 실패할 수 있다.

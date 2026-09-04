@@ -1,15 +1,15 @@
 {
   "version": "3.0",
-  "lastUpdated": "2026-07-28T02:15:34.951Z",
+  "lastUpdated": "2026-09-04T00:00:00.000Z",
   "activeFeatures": [
     "verilog-rtl-debugger",
     "verilog-tb-analyst",
     "verilog-tb-coder",
     "verilog-tb-reviewer",
     "verilog-tb-architect-advisor",
-    "analog-topology-json-library"
+    "gain-budget-gmid-sizing"
   ],
-  "primaryFeature": "verilog-tb-reviewer",
+  "primaryFeature": "gain-budget-gmid-sizing",
   "features": {
     "verilog-rtl-debugger": {
       "phase": "completed",
@@ -294,13 +294,49 @@
       "matchRate": null,
       "iterationCount": 0,
       "requirements": [],
-      "documents": {},
+      "documents": {
+        "plan": "docs/01-plan/features/analog-topology-json-library.plan.md"
+      },
       "timestamps": {
         "started": "2026-07-28T02:15:34.917Z",
-        "lastUpdated": "2026-07-28T02:15:34.918Z"
+        "lastUpdated": "2026-09-04T00:00:00.000Z"
       },
       "previousPhase": "plan",
-      "autoAdvanced": true
+      "autoAdvanced": true,
+      "status": "reference_only",
+      "note": "2026-09-04 사용자 지시로 design 단계에서 종료(do/check/report로 더 진행하지 않음). 산출물(topology JSON library 스키마, stick_diagram.py 오케스트레이션 레이어, library/*.topology.json)은 계속 사용하되 이후 작업(예: gain-budget-gmid-sizing)에서는 reference로만 참조한다 -- 이 feature 자체의 PDCA 사이클은 여기서 닫힘."
+    },
+    "gain-budget-gmid-sizing": {
+      "phase": "plan",
+      "phaseNumber": 1,
+      "matchRate": null,
+      "iterationCount": 0,
+      "requirements": [],
+      "documents": {
+        "plan": "docs/01-plan/features/gain-budget-gmid-sizing.plan.md"
+      },
+      "timestamps": {
+        "started": "2026-09-04T00:00:00.000Z",
+        "lastUpdated": "2026-09-04T00:10:00.000Z"
+      },
+      "lastFile": "docs/01-plan/features/gain-budget-gmid-sizing.plan.md",
+      "stateMachine": {
+        "currentState": "plan",
+        "previousState": null,
+        "stateHistory": ["plan"],
+        "retryCount": 0,
+        "maxRetries": 5,
+        "circuitBreakerOpen": false
+      },
+      "metrics": {
+        "qualityScore": null,
+        "conventionCompliance": null,
+        "apiCompliance": null,
+        "cycleTimeMs": null,
+        "iterationEfficiency": null
+      },
+      "phaseTimestamps": {},
+      "automationLevel": 2
     }
   },
   "pipeline": {
@@ -311,7 +347,7 @@
   "session": {
     "startedAt": "2026-03-16T12:01:01.791Z",
     "onboardingCompleted": false,
-    "lastActivity": "2026-07-28T02:15:34.951Z"
+    "lastActivity": "2026-09-04T00:00:00.000Z"
   },
   "history": [
     {
@@ -325,6 +361,18 @@
       "feature": "analog-topology-json-library",
       "phase": "design",
       "action": "updated"
+    },
+    {
+      "timestamp": "2026-09-04T00:00:00.000Z",
+      "feature": "gain-budget-gmid-sizing",
+      "phase": "plan",
+      "action": "created"
+    },
+    {
+      "timestamp": "2026-09-04T00:00:00.000Z",
+      "feature": "analog-topology-json-library",
+      "phase": "design",
+      "action": "closed_reference_only"
     }
   ],
   "stateMachine": {

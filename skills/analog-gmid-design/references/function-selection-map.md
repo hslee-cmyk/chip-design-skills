@@ -85,7 +85,7 @@ SKILL.md 핵심 원칙: **harness → 원소 함수 → (없을 때만) 새 코�
 |---|---|---|
 | 여러 stack을 세로로 쌓을 때 stack별 다른 finger_w로 목표 행폭 맞추기(Case A) | `search_stack_finger_w(devices, target_row_fingers, min_finger_w=1.0, max_finger_w=40.0, tol_fingers=3)` | §8.2 |
 | 여러 stage를 가로로 나란히 놓을 때 공통 finger_w 하나로 맞추기(Case B) | `search_shared_finger_w(devices, min_finger_w=0.4, max_finger_w=45.0, min_fingers=1)` | §4.2 — Case A/B 중 어느 쪽이 맞는지는 반드시 **둘 다 실행**해서 스냅오차/행폭비율로 비교 후 결정(schematic 방향은 출발 가설일 뿐) |
-| box-shape 비율 PASS/FAIL 판정(SPICE 이전 필수 게이트) | `check_box_shape(row_widths, max_ratio=1.5)` | §8 — `check_euler_condition()`과 동급의 명시적 게이트, 눈대중 금지 |
+| box-shape 비율 PASS/FAIL 판정(SPICE 이전 필수 게이트) | `check_box_shape(rows, row_width_tol=1.5, max_elongation=None, orientation="either")` — `rows: {row_label: [Transistor,...]}`(2026-08 세션31 "CR" 재설계로 시그니처 변경, 옛 `check_box_shape(row_widths, max_ratio=1.5)`는 폐기 — `n_fingers` 개수만 비교해 `finger_w`/`l`을 무시하던 함정을 없앴다, `stick-diagram-euler-layout.md` §8 역사적 배경 참고) | §8 — `check_euler_condition()`과 동급의 명시적 게이트, 눈대중 금지. 내부적으로 `compute_row_geometry(rows)`(`RowGeometry`: `width_m=sum(n_fingers*pitch(l))`, `height_m=finger_w`)로 실제 물리 치수를 계산해 `rectangular`(행 폭 일치)와 `elongation_ok`(전체 길이 제한, opt-in)를 분리 판정한다 |
 | nominal W 근방 unit-cell 정수배 후보 생성 | `search_unit_cell_sizing(nominal_w, candidate_unit_widths, min_n=1, max_n=20)` | §5.5 |
 | box-shape FAIL을 최종으로 받아들이기 전, 물리 행 분할 비용을 숫자로 계산 | (전용 함수 없음 — `ceil(총_핑거수 / (다른 극성 최대 행폭 × max_ratio))`을 호출자가 계산) | §8.5 — 정성적 설명만으로 FAIL을 최종 결론 삼지 말 것 |
 

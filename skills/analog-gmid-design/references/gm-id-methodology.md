@@ -792,6 +792,187 @@ White noise `i²w,d = 4kBTγ·gd0`, induced gate noise 계수 δ, 그리고 `α�
 
 ---
 
+## 13. 이 프로젝트의 실전 사이징 엔진 교훈 (sizing_recipe.py 적용 경험)
+
+> §1~§12는 문헌 요약이다. 이 절은 그 방법론을 `assets/sizing_recipe.py` 엔진으로 실제
+> 구현·운영하며 얻은, 문헌에는 없는 **이 프로젝트 고유의 발견**을 모은다(2026-08~09,
+> `.ai/context.md` 세션31~37 전수 재검토). §9(deep-submicron)처럼 "책의 가정이 어디서
+> 깨지는가"의 연장선이되, 출처가 논문이 아니라 이 엔진 자체의 실측이다.
+
+### 13.1 커플드 소자쌍의 gm_id 최적화 — 단일소자 role 기준은 틀린 목적함수일 수 있다
+
+`gm_id_role="gain"`(gm/gds 자기 자신만 최대화)은 소자가 **독립적**일 때만 옳다. 두 소자가
+`gm_id_match_vgs_of`로 결합돼(한쪽이 다른 쪽의 VGS를 그대로 복제) 있으면, "혼자 최적"인
+gm_id가 상대 소자의 gm_id(따라서 gm/gds)까지 종속적으로 강제한다 — 이 종속효과는 단일소자
+role 기준에 전혀 보이지 않는다.
+
+**실측**(`current_reuse_telescopic_ota` M15/M16): M15(`gm_id_role="gain"`)가 "혼자 최적"인
+gm_id=16.5를 고르면 `gain_db`가 71.14dB에 갇힌다. 커플드 쌍을 **하나의 결합 목적함수**로
+보는 N-way 조인트 스캔으로 바꾸면 75.80dB까지 오른다.
+
+시도했다가 실패한 접근: "VGS 정확히 일치"를 **등식** 제약으로 조인트 스캔에 구현 — 물리적으로
+gm_id_n이 gm_id_p의 결정론적 함수가 되어 탐색공간이 지나치게 좁아지고, W_bounds 안의 feasible
+조합이 원래 최적점을 포함하지 못했다. 근본원인은 topology.json이 이미 **부등식**
+(`classab_centering_dev_v<=0.15V`)으로 선언한 tolerance를, 엔진 구현이 등식으로 좁힌 것이
+지름길이었을 뿐 스펙 요구사항이 아니었다는 것.
+
+**원칙**: 소자 A/B가 `gm_id_match_vgs_of` 등으로 결합돼 있고 그 결합에 **부등식 tolerance**가
+declared돼 있으면, "한쪽을 role 기준으로 독립 최적화 → 다른쪽이 종속" 패턴을 쓰지 말 것 —
+처음부터 결합 metric을 목적함수로 하는 조인트 스캔을 설계한다. declared inequality는
+feasibility 필터로만 강제하고, 목표 metric(최대화 대상)과 게이트(제약)를 혼동하지 않는다.
+
+### 13.2 "동시만족 불가능" 결론은 엔진 구현의 지름길 때문이었다 — gm_id 독립화로 반증
+
+세션30은 L만 독립화(M15/M16 각자 다른 L, ID는 KCL로 공유)한 400점 조인트 스캔+SLSQP로
+"`gain_db>=75.6dB` AND `classab_centering_dev_v<=0.15V` 동시만족 지점 0개"를 "물리적 한계"로
+확정했다. 그런데 세션31이 **gm_id도 독립화**(`I=gm2_total/(gm_id_p+gm_id_n)` 파라미터화로
+ID 동일성은 유지하되 gm_id는 각자 탐색)한 새 조인트 스캔(57×57×25×25)을 돌리자 **806개
+지점이 동시만족**했다(최적점 centering=0.0001V).
+
+**결론 정정**: "동시만족 불가능"은 회로 자체의 근본 한계가 아니라, **`shared_gm_id_groups`가
+"gm_id를 공유해야 한다"고 가정하는 엔진 구현의 지름길** 때문에 생긴 인공적 제약이었다.
+
+> ⚠️ **이 발견은 지금 진행 중인 `docs/01-plan/features/gain-budget-gmid-sizing.plan.md`
+> (gain-budget-first 재설계) §2 "stage 내 input+cascode 동시결정"과 정확히 같은 문제**다 —
+> 그룹 내 여러 소자의 gm_id를 어떻게 갈라 배정할지. 재설계 시 이 조사 결과를 그대로 재사용할
+> 수 있다: `shared_gm_id_groups`(gm_id를 공유, ID는 자동으로 같아짐)와 대칭인 **가칭
+> `shared_current_groups`(ID만 공유하도록 강제하고 gm_id는 각 소자가 독립적으로 탐색)** 메커니즘이
+> 필요하다는 설계 메모가 이미 세션31에서 나왔다 — §2의 "cascode는 gm/gds 최대화로 먼저 확정,
+> input은 잔여 gain 목표에서 역산"이라는 순서 자체가 이 `shared_current_groups` 아이디어의
+> 구체적 적용 사례이기도 하다.
+
+### 13.3 current mirror 다리(leg)가 ratio-matching인지 gain-stage load인지 — 5개 구조 신호
+
+겉보기엔 같은 current-mirror idiom이라도, "전류비를 보존해야 하는 진짜 미러"(L을 파트너와
+강제 일치)와 "실제로는 gain-stage의 능동부하"(L을 독립적으로 조절해야 gm/gds 최대화 가능)는
+**물리적으로 다른 역할**이다. 이 프로젝트가 4개 회로 전수 검증(반례 0건)으로 확정한 판정
+순서는 다음 5개 신호를 차례로 확인하는 것이다 — 어느 것도 단독으로는 충분하지 않다:
+
+1. **`netclass.ACTIVE_LOAD`(레일 소스+HIGH_Z 드레인) 단독 — 불충분.** 반례: `two_stage_ota`의
+   M4는 ACTIVE_LOAD인데 실제로는 matching이 맞다(CMRR/offset에 직결).
+2. **구조 대칭 partner**(`find_structural_symmetry_candidates()`, 전역 그래프 자기동형) —
+   있으면 matching이 구조적으로 맞다. 파트너 존재 자체가 differential balance 역할을 내포한다
+   (4개 회로 전수 반례 0건).
+3. **diffpair branch-load partner**(`m_diffpair_branch_load()`, 캐스코드를 관통해서도 검출) —
+   diffpair 두 branch 꼭대기에 각각 앉은 부하는 서로 partner, matching이 맞다.
+4. **`active_load_legs`** — role 라벨이 AMPLIFYING으로 가려진 경우도 role과 무관하게 HIGH_Z
+   여부로 검출.
+5. **`signal_referenced_mirror_legs` — 가장 비직관적.** diode-connected **레퍼런스 자신의
+   노드**가 고정 BIAS가 아니라 SIGNAL이면(예: 앞단 신호 스윙을 그대로 받는 이득단 능동부하
+   자신이 diode-connected), diffpair/구조 대칭이 전혀 없어도 그 미러 다리는 matching이 맞다 —
+   "목적이 전류비가 아니라 전압 copy"이기 때문. `netclass.classify_nets()`의 `cls`(SIGNAL/BIAS)
+   로 판정(4개 회로 전수 반례 0건).
+
+**최종 정책**: 5개 신호 중 어느 것으로도 파트너/레퍼런스-신호 관계가 안 잡히는 소자만
+`gm_id_role="gain"`(L 독립) 자동 제안 — 나머지는 `matching`(L 강제 일치). 캐스코드로 쌓인
+스택의 top도 bottom의 "정적 레퍼런스" 성질을 물려받는다(`propagate_reference_role_through_
+cascode()` → `find_cascoded_active_load_legs()`로 일반화).
+
+**교훈**: 흔한 idiom도 "구조가 같다"만으로 role을 단정하지 말 것 — 이 판정에 5개의 서로 다른
+신호가 필요했다는 것 자체가, 겉보기엔 같은 회로 패턴이 물리적으로는 완전히 다른 두 역할(전류비
+보존 vs 이득 부하)일 수 있다는 걸 보여준다.
+
+### 13.4 절대 바이어스 값이 없는 논문 — spec 역산으로 최소전력점 찾기
+
+일부 원 논문(예: `folded_cascode`의 출처, Maloberti *Layout of Analog CMOS IC* p.34)은 순수
+W 비율(레이아웃 연습 예제)만 주고 절대 바이어스 전류값을 안 준다. "값은 논문에서 그대로
+인용하지 않고 논리적으로 도출한다"는 이 프로젝트 원칙과 결합해 쓰는 절차:
+
+1. 임의 seed 전류(예: Ibg=10µA)로 계산한 gain/PM/CMRR/PSRR을 **그대로 "만족해야 할 스펙"으로
+   채택**한다(논문이 안 준 절대값을, 논문이 준 비율로 계산한 결과를 스펙으로 승격).
+2. 그 전류(Ibg)를 자유변수로 풀어, 채택한 스펙 전부를 만족하는 **최소 전력점**을 탐색한다.
+   (`folded_cascode` 실측: SLSQP는 이 회로의 이산 gm_id 격자 특성 때문에 불안정 실패 — 400점
+   정밀 그리드로 대체. 결과: Ibg~2.1uA에서 power 4.7배 절감, 190uA→40uA.)
+
+**부수 발견**(먼저 의심할 것): 이 탐색 과정에서 `M6`/`M8`(진짜 캐스코드)이 `gm_id_role=
+"matching"`(strong inversion, gm/gds 최소화)으로 잘못 분류돼 baseline gain이 -0.2dB(사실상
+무이득)였다. `"gain"` role(gm/gds 최대화, 원래 캐스코드용 의도)로 정정하니 26.4dB로 정상화됨 —
+**논문 원문에 없는 값을 도출하기 전에, 엔진에 이미 있는 role 오분류부터 먼저 의심할 것.**
+
+이 절차를 지원하는 신규 엔진 요소: `sizing_roles.theta`의 4번째 feed 타입 `"const"`(참조 대상
+없는 진짜 자유 루트 전류 표현, 기존 A/B/C 타입엔 없던 것), `device_roles.*.fold_group`(폴딩
+노드처럼 서로 다른 방향 branch가 한 노드에서 합류하는 구조가 `allocate_stack_headroom()`의
+"한 컬럼이 vdd 전체를 혼자 책임진다" 전제를 벗어날 때의 우회 경로 — `ideal_sources` 대신
+connectivity로 정당성을 검증한다).
+
+### 13.5 그리드서치에 declared constraint를 끼워넣는 법 — extra_feasible 콜백 합성
+
+`optimize_multistage()`/`find_optimal_sizing()`은 `gain_min`/`w_max`/`fT`만 알고,
+`pelgrom_mismatch<=5.0` 같은 topology.json이 declared한 다른 constraint는 전혀 모른다 —
+power 최소화만 보고 W를 작게 골라 mismatch가 문턱의 2배 이상으로 위반될 수 있다.
+
+해결 패턴(`make_replica_feasibility_check()` 선례를 일반화): 그 스테이지가 공유하는
+`(L,VDS,gm_id,ID)` 불변식을 이용해 declared metric을 직접 판정하는
+`extra_feasible(L,VDS,gm_id,ID) -> bool` 콜백을 만들고(`make_matching_feasibility_check(grp,
+metrics_specs, constraints, kind_of, spec)`), `_combine_extra_feasible()`(AND 합성)로 기존
+콜백과 묶어 넘긴다 — `find_optimal_sizing()`/`optimize_multistage()`의 시그니처는 바꾸지
+않는다.
+
+**재사용 원칙**: compensation 그리드서치 스테이지에 "이 스테이지 소자만으로 판정 가능한
+declared constraint"가 있으면, 새 탐색 로직을 만들지 말고 이 `extra_feasible` 콜백 합성
+패턴을 재사용할 것.
+
+### 13.6 gm_id_role의 정적 선언 → 동적 feed 확장, `gm_id_match_vgs_of` 신설
+
+M15(이득단, gm_id를 자기 gain 기준으로 자유탐색)와 M16(class-AB centering, **상대 소자의
+VGS를 그대로 복제**해야 함)은 서로 다른 gm_id 선택 기준이 필요했다. "임의로 탐색폭을 정하지
+말고 문헌 기준을 조사해서 적용하라"는 지시에 따라 확인한 결과, 기존
+`search_gm_id_for_role(role="matching"|"gain"|"balanced")`가 이미 문헌 관례(전류미러=매칭
+우선=낮은 gm/ID, 이득단=효율 우선, §7.1 참고)를 코드화한 것이었다 — 새로 만들 필요 없이 이
+함수를 **동적 feed 경로**(`metric_stage_budget`)에도 연결했다.
+
+M16류(class-AB centering)는 기존 3종 어디에도 안 맞는 진짜 새 role이라
+`gm_id_match_vgs_of: "<다른 소자>"` 신규 파라미터로 추가(다른 소자가 확정한 VGS를 역산해서
+자기 gm_id를 맞춤) — `gm_id_for_vgs()`(`vgs_for_gm_id()`의 역함수, `sizing_recipe.py:536`)
+신설.
+
+**일반화 원칙**: 소자 이름을 코드에 하드코딩하지 않고 topology.json의 feed 선언에만 두면
+(엔진은 `feed_spec.get("gm_id_match_vgs_of")`만 읽음) 어느 회로든 재사용된다.
+
+### 13.7 gm_id_role 5종 분류 — "matching"이 output-resistance 소자엔 틀린 목적함수였다
+
+세션37, `nmcnr_amplifier`의 위상마진(`pm_deg=48.32도`, 목표 70도)을 회복하려고 R1/R3
+(스테이지 출력저항)를 늘리는 소자(M107/M109/M301/M302)의 L을 넓게 탐색했으나 `objective=
+"maximize pm_deg"`로 강제해도 L이 거의 안 움직였다. 원인: 이 소자들의 기존 `gm_id_role=
+"matching"`이 **gm_id를 최소화**하는 선택인데, L이 커질수록 `W_bounds` 제약과 상호작용해
+feasible gm_id 자체가 더 낮게 밀려(M107: L=375nm→gm_id=13.5/gm·ro=18.98, L=4um→gm_id=2.5/
+gm·ro=0.72, **26배 악화**) R1/R3 기여분이 L을 늘려도 오히려 나빠지는 역설이 생겼다 —
+`"matching"`은 전류미러 매칭 정밀도용이지 출력임피던스 극대화용이 아니었다.
+
+`gm_id_role="gain"`(이미 있던, `gm/gds` 직접 최대화)으로 바꾸니 **같은 L(375nm)에서조차**
+즉시 개선(`pm_deg=48.32도→76.74도`, `gain_db=100.1→114.23dB`, `power_uA` 완전 불변 — ID가
+KCL로 고정돼 gm_id_role 변경이 전류에 영향 없음) — L을 전혀 안 늘려도 되는 훨씬 간단한 수정.
+
+**"gain"도 만능은 아니었다**: 사용자가 "M202도 gain 아닌가?"로 재질문 → 실측하니 M202(vds가
+높은 **비-캐스코드 단순 전류원**, ro가 R2 기여분의 전부)에 `"gain"`을 적용하자 `pm_deg`가
+오히려 66.61도로 나빠짐. 원인: `"gain"`은 `gm/gds`(intrinsic gain)를 최대화할 뿐 `ro` 자체를
+최대화하지 않는다 — 캐스코드(gm이 ro에 **곱해져** 기여)에서는 두 목표가 대체로 같은 방향이지만,
+VDS가 높은 비-캐스코드 단순 전류원에서는 어긋날 수 있다(M202 실측: `"gain"`의 `ro=129938Ω`이
+진짜 최댓값 `ro=250266Ω`(gm_id≈3.5)의 절반).
+
+**5번째 role `"load"` 신설**(`search_gm_id_for_role()`에 `elif role=="load"` 분기,
+`"gain"`과 동일하게 feasible 전체를 스캔하되 `gm_gds_ratio` 대신 `gds`를 직접 최소화 —
+즉 `ro` 최댓값을 찾음). 최종 분류 원리:
+1. **캐스코드**(gm이 ro에 곱해 기여) → `"gain"`이 논리적으로 정확.
+2. **비캐스코드 단순 전류원**(ro 자체로만 기여) → `"load"`(`gds` 최소화, `gm/gds`와 다른
+   물리량이라 소자·VDS마다 곡선 모양이 달라 지름길 없음, 매번 전수 스캔 필요).
+3. **VDS가 다른 declared 미러쌍**(예: M203/M204) → 개별 최적화 자체가 무의미, "같은 gm_id를
+   공유해야 한다"는 제약이 우선인 별개 문제(§13.6의 `gm_id_match_vgs_of`로 해결).
+
+이름은 "회로적 역할"로 짓는다는 이 프로젝트 컨벤션에 따라(`"ro_max"` 같은 수식 그대로의
+이름은 기각) `"load"`(active load라는 역할)로 확정. `"load"`도 지금은 `"gain"`과 동일하게
+무조건 최댓값만 고르지만(이 소자들의 `ID`가 KCL로 고정돼 `ro` 최대화에 실질 전력비용이
+없는 상황이라 안전), 면적/기생커패시턴스가 실제 비용인 상황에서는 `"moderate"`처럼 중간값을
+고르는 변형이 향후 필요할 수 있음을 docstring에 명시(아직 안 쓰는 옵션은 미리 안 만든다는
+원칙 그대로).
+
+**교훈**: 겉보기엔 "이 소자가 이득에 기여하는가"라는 하나의 질문 같아도, 실제로는 "gm이
+기여식에 곱으로 들어가는가(캐스코드) vs ro 자체가 기여식인가(단순 전류원)"에 따라 최적화해야
+할 물리량 자체가 다르다 — `gm/gds` 최대화와 `gds` 최소화(`ro` 최대화)는 서로 다른 축이며,
+한쪽이 다른 쪽을 대신 최적화해주지 않는다.
+
+---
+
 ## 부록: 방법론 요약 (1-page cheat)
 
 ```

@@ -498,3 +498,56 @@ direction()` — 캐스코드 root/follower 방향 판정을 자체 source/drain
 - `analog-grammar/SKILL.md`의 "Cross-Skill 참조"는 이미 이 문서를 가리키고 있음
   (반입 시 미리 추가함) — 구현 완료 후 "설계안" → "구현 완료, 커밋 `<hash>`"로 갱신.
 - 이 문서 자체의 최상단 상태 줄("설계안, 미구현")을 구현 완료 후 갱신.
+
+## 11. netclass.py 자체의 실측 발견 버그 2건 + 개념 정정 1건 (2026-08 세션23)
+
+§0~§10은 "이 프로젝트가 analog-grammar를 어떻게 소비하는가"를 다룬다. 이 절은 그 소비
+과정에서 실제로 드러난, **analog-grammar 라이브러리(`netclass.py`) 자신의 버그**다 —
+소비 측(`stick_diagram.py`)이 아니라 원본 라이브러리의 결함이라 별도로 기록한다.
+
+### 11.1 rail 대소문자 불일치 — 이 프로젝트의 모든 role 분류가 rail을 인식 못 하고 있었다
+
+`netclass.py`의 `RAILS_POS`/`RAILS_NEG`가 `{VDD, GND}` **대문자**만 인식하는데, 이
+프로젝트의 모든 `topology.json`은 `vdd`/`gnd` **소문자**를 쓴다. 즉 analog-grammar
+반입 이후 이 프로젝트에서 실행된 모든 role 분류가 **처음부터 rail을 하나도 인식하지
+못한 채** 진행되고 있었다 — 예: `M6`(진짜 tail current-source, source=vdd)이
+`CURRENT_SOURCE`가 아니라 `CASCODE`로 오분류.
+
+**해결**: `RAILS_POS`/`RAILS_NEG`/`RAILS`를 대소문자 무관 비교(`.upper()` 정규화)를
+지원하는 `_CaseInsensitiveNetSet(frozenset)`으로 교체 — 원본 라이브러리 코드를 직접
+수정(이 프로젝트 쪽 wrapper로 국소 우회하지 않음. "wrapper로 해결한 거냐"는 사용자의
+재확인 질문에 대해 원본 수정으로 확정한 경위 포함).
+
+**교훈**: cross-skill로 반입한 라이브러리를 "이미 검증된 도구"로 무비판적으로 신뢰하지
+말 것 — 이 프로젝트의 명명 관례(소문자 rail)가 그 라이브러리의 암묵적 가정(대문자
+rail)과 다를 수 있고, 이런 불일치는 크래시가 아니라 **조용한 오분류**로만 나타나
+발견이 늦어진다.
+
+### 11.2 전류미러가 구동하는 bias net이 SIGNAL로 오분류 — "diode로만 구동" 판정 규칙의 구조적 사각
+
+`netclass.py`의 BIAS net 판정 규칙("diode-connected 소자로만 구동되면 BIAS")은 **전류미러가
+만드는 bias net**을 원천적으로 못 잡는다 — 전류미러는 정의상 `gate != drain`(미러 출력)이므로
+"diode로만 구동"이라는 전제 자체가 성립하지 않는다. 실측: `Vbias1`(진짜 diode 레퍼런스가
+구동) → `M60` 미러 출력 → `Vbias4`(전류미러로만 구동, diode 아님) 체인에서 `Vbias4`가
+BIAS 대신 SIGNAL로 오분류.
+
+**해결**: 드라이버 소자의 게이트 클래스를 **재귀적(고정점 반복)**으로 확인하도록 규칙
+확장 — "diode-only" 이분법 대신 "이 net을 구동하는 소자 전부의 게이트가 이미 BIAS로
+분류돼 있으면, 이 net도 BIAS로 전파한다".
+
+**부수 효과(중요)**: 이 수정으로 `M7`/`M36a`가 `M6`/`M18_bg`와 **구조적으로 구별 불가능**
+해졌다 — §11.3 참고.
+
+### 11.3 "오탐(false positive)" 용어 정정 — ratio냐 1:1이냐는 mirror 여부와 무관
+
+세션18부터 "`M36a`+`M7` current-mirror 오탐"으로 반복 인용되던 결론을, 사용자가 "전류가
+ratio되는가 정확히 같아야 하는가만 다르지 VGS가 같으면 mirror가 맞는 것 아니냐"고
+재검토를 요청했다. §11.1/§11.2의 두 버그를 고친 뒤 재검증하니, `M7`(role
+`CURRENT_SOURCE`)/`M36a`(role `DIODE_CONNECTED`)가 진짜 bias mirror(`M6`/`M18_bg`)와
+구조적으로 구별할 신호가 **전혀 없다**는 게 확인됐다.
+
+**개념 정정**: "ratio냐 1:1이냐"는 W 크기(사이징) 문제일 뿐, mirror 관계 자체를 무효화하지
+않는다. 이런 사례는 "오탐"(구조 탐지 알고리즘의 실수)이 아니라 "`matching_pairs` 미선언"
+(사람/AI가 아직 안 내린 **설계 판단**)이라고 불러야 정확하다 — 두 표현은 책임 소재가
+다르다: 전자는 "탐지 로직을 고쳐야 한다"는 뜻이고, 후자는 "이 회로에서 실제로 매칭이
+필요한지는 설계자가 결정할 문제"라는 뜻이다.
