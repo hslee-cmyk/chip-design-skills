@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 3.3
+version: 3.4
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -173,6 +173,9 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
   - [ ] `L_candidates_product()` + `resolve_stage_sizing()`의 L outer-loop(§7.6 (3)) —
         cascode/load/tail의 L을 면적 오름차순으로 전수 스캔하며 각 L_combo에서 §7.2를
         결정론적으로 실행, `extra_feasible`(§13.5 기존 패턴)로 cmrr/psrr/mismatch 판정
+  - [ ] **`sweep_area_power_pareto(sizing_spec, luts) -> ParetoReport`**(§7.9, v3.4) — 면적
+        예산 미선언 시 전력-면적 Pareto front를 뽑아 제시하고 정지(엔진이 예산을 지어내지
+        않는다). 선택 결과는 `global_spec.constraints`의 `area_um2`로 기록
   - [ ] `make_cmrr_psrr_feasibility_check(...)` — §13.5의 `make_matching_feasibility_check()`
         와 동일 패턴으로 `global_spec.constraints`를 `extra_feasible` 콜백으로 변환
         (metric 계산 자체는 기존 `smallsignal_ratio_db`/`pelgrom_mismatch` 무변경 재사용)
@@ -398,8 +401,11 @@ SPICE 폐루프 재검증 4단계.
     // 계산 로직은 기존 metric(smallsignal_ratio_db/pelgrom_mismatch) 완전 무변경 재사용.
     "constraints": [
       {"metric": "gain_db",           "op": ">=", "value": 54},
-      {"metric": "area_um2",          "op": "<=", "value": 2000},   // v3.3 -- 면적 예산(선언 권장:
-                                                                    // 없으면 W_max만 상한이 되어 배분이 축퇴)
+      {"metric": "area_um2",          "op": "<=", "value": 2000},   // v3.3 -- 면적 예산.
+                                                                    // v3.4: **생략 가능** -- 생략하면
+                                                                    // 엔진이 전력-면적 Pareto front를
+                                                                    // 뽑아 제시하고 정지한다(§7.9),
+                                                                    // 사람이 고른 값이 여기 기록된다
       {"metric": "cmrr_estimate_db",  "op": ">=", "value": 60},
       {"metric": "psrr_estimate_db",  "op": ">=", "value": 60},
       {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0}
@@ -942,12 +948,36 @@ sizing space다.**
  5) gm_id_i 확정 -> gain_budget_i = gm_id_i x V_A_i   <- **유도된 배분(출력)**
  6) 이 배분으로 §7.2의 stage 알고리즘 실행(§7.2 로직 자체는 무변경)
  7) 실현: 각 branch의 미러비 k_i = ID_i/ID_ref 를 W 비율로 sizing
-
-**면적 예산이 선언되지 않으면**: 소자별 `W_max`가 유일한 면적 상한이 되어 gm_id가 그 경계까지
-밀리고 배분이 다시 축퇴된다 -> `global_spec.constraints`에 **면적 예산 선언을 권장**(§7.1).
-가중합(alpha:beta)도 수학적으로는 동등하지만 가중치를 사람이 지어내야 해 결정론이 깨지므로
-기본으로 삼지 않는다.
 ```
+
+**면적 예산이 선언되지 않으면 -> Pareto front fallback(v3.4, 사용자 확정)**: 예산이 없으면
+`W_max`만 상한이 되어 배분이 축퇴되는데, 그렇다고 엔진이 예산을 **지어내면 안 된다**(값을
+지어내지 않는다는 이 프로젝트 원칙). 대신 **전력-면적 Pareto front를 뽑아 사람에게 제시하고
+선택을 받는다** -- 문헌 정본 §6.4가 "등전력·등면적 contour를 겹쳐 절충점을 사람이 고른다"고
+한 그 절차를, 고를 수 있는 후보 집합을 계산해 제시하는 형태로 자동화한 것이다.
+
+```
+sweep_area_power_pareto(sizing_spec, luts) -> ParetoReport      # 신규
+ 1) 스윕 구간 결정(양끝을 물리로 고정 -- 임의값 없음)
+      A_min = gain_target을 겨우 만족하는 최소 면적
+              (gm_id를 낮출수록 면적은 줄지만 gain이 떨어진다 -> gain 제약이 하한을 정함)
+      A_max = d(전력)/d(면적)이 임계 이하로 떨어지는 수확체감 지점
+              (실측 근거: gm_id 22->26 구간은 전력 -15%에 면적 147배 -- 이미 A_max 너머)
+ 2) [A_min, A_max]를 **로그 등간격** N점(기본 12)으로 샘플(면적이 지수적으로 변하므로)
+ 3) 각 점에서 위 KKT+active-set 해법을 그대로 1회 실행 -> (area, power, gain, 배분) 기록
+    · 탐색이 아니라 해석해라서 점당 비용이 작고, LUT 스캔 캐시(P2)를 점들끼리 공유한다
+ 4) Pareto 지배 관계로 필터 -> 비지배 점만 남김
+ 5) ParetoReport 반환: 각 점의 (면적, 전력, gain 여유, stage별 유도 배분, 활성 제약 목록)
+```
+
+**엔진은 여기서 자동으로 한 점을 고르지 않는다** -- `ParetoReport`를 반환하고 **정지**한다
+(§3.2 P1 -- 예산을 지어내 조용히 진행하는 것이 곧 "조용한 실패"다). 사람이 한 점을 고르면
+그 면적이 `global_spec.constraints`의 `area_um2`로 기록되고, 그 다음부터는 §7.9 본 해법이 **완전히 결정론적으로** 동작한다 --
+즉 이 fallback은 "결정론을 포기하는 경로"가 아니라 **"빠진 스펙 하나를 사람에게 받아오는
+경로"**다. 리포트는 §8.5의 HTML 산출물에 그대로 실어 사람이 검토할 수 있게 한다.
+
+가중합(alpha:beta) 방식은 이 fallback이 있으면 필요 없다 -- 가중치를 지어내는 대신 후보를
+보여주고 고르게 하는 쪽이 임의성이 없고 근거도 남는다.
 
 **v3.1이 버려지지 않는다**: v3.1의 "ID_root 1-D 해찾기"는 **모든 stage가 비활성일 때의 특수
 케이스**(3)의 `ID_i = const = I*`)로 이 일반해에 흡수된다.
@@ -1138,6 +1168,9 @@ topology만 다시 다듬고 싶을 때 `author_topology_spec()`만 재실행) �
 
 내부 순차 호출(사용자가 명시한 "사이징→레이아웃→피드백→재사이징" 루프 + ★신설 물리 정합성
 검증 게이트):
+0. **(v3.4) 면적 예산 확인** — `global_spec.constraints`에 `area_um2`가 없으면
+   `sweep_area_power_pareto()`를 실행해 `ParetoReport`를 반환하고 **여기서 정지**한다
+   (사람이 한 점을 고른 뒤 재실행). 있으면 1번으로 진행.
 1. `gmid_sizing_engine.size_all_stages()` — §7.2 알고리즘으로 전체 gm_id/L/W 1차 확정
    (diode-connected 소자는 §7.3의 고정점 solver로 vds까지 함께 확정)
 2. `gmid_sizing_engine.resolve_headroom()` — 기존 `allocate_stack_headroom()`/
@@ -1257,3 +1290,4 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 | 3.1 | 2026-09-07 | **`gain_budget_db`를 입력에서 출력으로 격하(사용자 결정)** — 사용자는 총 gain 목표(`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 배분은 §7.9 Phase 2가 `A_i,max` 실측 + root current 1-D 단조 해찾기로 유도해 instance.json/리포트에 기록한다. §7.9에 그 유도 절차(gm_i←compensation / V_A_i←L_combo+VDS예산 / ID_i=k_i×ID_root / Σ20log10(...)=gain_target 해찾기 / 유도된 배분으로 §7.2 실행)를 확정본으로 명시. §7.1 스키마에서 `gain_budget_db`·`gain_allocation`·`gain_allocation_check` 제거하고 `gain_budget_db_override`(기본 null, 논문 재현용 예외)만 남김. §3.1 요구사항5와 §7.4 원칙3(둘 다 '배분은 탐색/사용자 지정으로 남긴다'였음)을 개정하고, 사고4와의 관계를 명시 — 사고4의 본질은 '값을 논문에서 찾지 말고 회로에서 도출하라'이고 v3.1은 그 도출을 자유 탐색에서 물리 실측 기반 결정론으로 좁힌 것이라 충돌하지 않음. 문헌 정본(§6.4)이 gain을 스펙이 아니라 등고선으로 다루는 것과도 일치. §2.2의 '배분 탐색 고도화는 범위 밖' 항목은 In Scope로 이동 |
 | 3.2 | 2026-09-07 | **문헌 정합성 검증에서 발견한 갭 해소** — 웹검색(Murmann/Boser/Silveira-Flandre-Jespers 등)과 프로젝트 문헌 정본(§6.4)을 v3.1과 대조한 결과, v3.1의 `ID_i=k_i×ID_root` 1-D 해찾기가 **Jespers의 2D sizing space `(gm/ID₁, gm/ID₂)`를 `k_i` 고정 단면의 1D 선으로 축소**하고 있었음을 확인(k_i는 바이어스 미러비로 조정 가능한 값이라 곧 두 번째 축이다). 해소는 `k_i`를 탐색 축에 추가하는 게 아니라 **변수 자체를 `gm_id_i`로 바꾸는 재정식화**로 했다 — `ID_i=gm_i/gm_id_i`이고 `k_i`는 그 전류를 실현하는 파생값이므로 theta 폭발 없이 N-D 공간 전체를 덮는다. 해법은 탐색이 아니라 해석해+활성제약(active set): min-power면 각 stage가 자기 상한(gm_id_phys/W_max/fT_min)까지 독립 최대화(gain과 power가 같은 방향이라 결합 없음), area가 목적에 들어가면 gain 등식이 binding해져 KKT 정류조건이 **비활성 stage끼리 ID_i=const**를 준다(2단 대수 검증). v3.1의 1-D 해찾기는 '모든 stage 비활성' 특수 케이스로 흡수. 파일럿의 stage2/stage1 전류비 5.34가 자유 선택이 아니라 class-AB 구동 하한이라는 **활성 제약의 결과**임도 설명됨. §7.1 objective에 area/가중합 옵션을 열고, §7.8 DOF 진단의 전류 축 계수법도 gm_id_i 기준으로 정정. 정직한 한계: 순수 power 최소화에서는 배분이 축퇴(자유도 없음)되고, 진짜 배분 문제는 area가 목적에 들어갈 때만 나타남 |
 | 3.3 | 2026-09-07 | **면적 제약형 채택(사용자 선택) — v3.2가 남긴 배분 축퇴 문제 해소**. LUT 실측으로 전력(ID=gm/gm_id)과 면적(W·L)이 gm_id 축에서 **정확히 반대 방향**임을 확인(gm=75µS 고정, L=0.35µm: gm_id 5→26에서 전력 15→2.9µA로 감소하는 동안 면적은 0.13→509µm²로 **4000배 폭발**, gain은 28→77.6으로 포화 — gm_id 22→26 구간은 gain +0.05dB에 면적 147배). 따라서 목적함수는 **전력 최소화 하나**로 두고 **면적은 `global_spec.constraints`의 `area_um2` 상한**으로 건다(가중합 α:β는 가중치를 사람이 지어내야 해 결정론이 깨지므로 기본에서 제외). 이러면 전력 최소화가 gm_id를 weak inversion으로 밀 때 면적 제약이 먼저 걸리고, KKT 정류조건 `gm_i/gm_id_i² = μ·∂Area_i/∂gm_id_i`가 **"면적 1단위당 전력을 가장 많이 아끼는 stage부터 배분"**이라는 규칙을 주어 **배분이 유일하게 결정**된다 — 면적 예산이 교환비 μ를 정하므로 임의 가중치가 필요 없다. 남는 자유 입력은 면적 예산 하나인데 이는 전력·gain 목표와 같은 정상적 설계 스펙이다. 문헌 정본 §6.4의 '등전력·등면적·등이득 contour 겹쳐 절충점 선택'을 결정론적으로 자동화한 구조. 면적 예산 미선언 시 W_max만 상한이 되어 축퇴가 재발하므로 선언을 권장으로 명시 |
+| 3.4 | 2026-09-07 | **면적 예산 미선언 시 Pareto front fallback 신설(사용자 확정)** — 예산이 없으면 배분이 축퇴되는데 엔진이 예산을 지어내서는 안 되므로, `sweep_area_power_pareto()`가 전력-면적 Pareto front를 계산해 제시하고 **정지**한다(자동 선택 금지, §3.2 P1). 스윕 구간의 양끝을 물리로 고정해 임의값을 없앰: A_min은 gain_target을 겨우 만족하는 최소 면적, A_max는 d전력/d면적이 임계 이하로 떨어지는 수확체감 지점(실측 근거: gm_id 22→26이 전력 −15%에 면적 147배로 이미 A_max 너머). 로그 등간격 12점에서 KKT+active-set 해법을 각각 1회 실행하고 Pareto 비지배 점만 남겨 (면적, 전력, gain 여유, stage별 유도 배분, 활성 제약)을 리포트한다 — 해석해라 점당 비용이 작고 LUT 스캔 캐시를 공유(P2). 사람이 고른 점이 `area_um2` 제약으로 기록되면 그 다음부터는 완전 결정론적으로 동작하므로, 이 fallback은 결정론을 포기하는 경로가 아니라 **빠진 스펙 하나를 사람에게 받아오는 경로**다. 이로써 가중합(α:β) 방식은 불필요해졌다. §8.4 harness에 0단계 분기, §2.1에 신규 함수 등록 |
