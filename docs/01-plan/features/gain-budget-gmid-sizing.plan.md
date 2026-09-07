@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 1.0
+version: 2.5
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -24,9 +24,9 @@ version: 1.0
 | Perspective | Content |
 |-------------|---------|
 | **Problem** | `current_reuse_telescopic_ota`의 SPICE 트랜지언트 폐루프 검증을 시도하다가, 헤드룸(VDS) 배정이 diode-connected 소자(gate=drain, Vgs=Vds가 물리적으로 강제)의 실제 필요 Vgs를 무시하고 role 라벨 기반 상수(기본 0.2V)를 그대로 배정한다는 걸 실측으로 확인했다(16개 diode-connected 소자 중 최대 1.02V 오차 — M36a/M36b는 실제 1.32V 필요한데 0.3V만 할당돼 물리적으로 불가능). 원인을 추적하니 국소 버그가 아니라 파이프라인 순서 자체의 문제였다: 현재 아키텍처는 `L → VDS(헤드룸) → gm_id` 순서로 사이징하는데(`optimize_full_circuit_budget()`, `sizing_recipe.py:5679-5687`), VDS가 gm_id보다 먼저, 그것도 role 라벨 기반 상수/근사식으로 확정되기 때문에 Vgs=Vds 결합 제약이 있는 소자는 애초에 자기일관된 답을 낼 수 없다. |
-| **Solution** | gm/ID sizing 방법론을 "stage를 정확히 나누고, 각 stage가 낼 gain을 먼저 배분한 뒤, 그 gain에서 유도되는 gm_id로 사이징한다 — output stage에만 driving capability(slew rate/CL)를 추가로 얹는다"는 원칙으로 baseline부터 재설계한다. VDS/헤드룸은 gm_id가 정해진 *이후*에, connectivity(gate==drain)로 diode-connected 여부를 직접 판정해 해석하므로, 이번에 발견한 버그가 재설계의 자연스러운 부산물로 해소된다. |
+| **Solution** | gm/ID sizing 방법론을 "stage를 정확히 나누고, 각 stage가 낼 gain을 먼저 배분한 뒤, 그 gain에서 유도되는 gm_id로 사이징한다 — output stage에만 driving capability(slew rate/CL)를 추가로 얹는다"는 원칙으로 baseline부터 재설계한다. VDS/헤드룸은 gm_id가 정해진 *이후*에, connectivity(gate==drain)로 diode-connected 여부를 직접 판정해 해석하므로, 이번에 발견한 버그가 재설계의 자연스러운 부산물로 해소된다. **그리고 이걸로 끝내지 않는다(2026-09-04 확정, §3.1 요구사항 6) — 사이징된 모든 소자의 전압/전류 관계가 실제로 KVL/KCL을 만족하는지 전체회로 단위로 검증하는 `verify_node_voltage_consistency()`/`cross_check_with_spice()` 게이트(§7.5)를 파이프라인에 상시 내장한다.** diode-connected 자기일관성은 이 검증기가 잡아내는 여러 위반 패턴 중 하나일 뿐이다. |
 | **Function/UX Effect** | AI/사용자가 새 회로를 사이징할 때 "이 stage가 몇 dB를 낼지"를 명시적으로 배분하는 게 1급 입력이 되고, 개별 소자의 gm_id/L을 role 휴리스틱으로 따로 추측할 필요가 없어진다. 헤드룸도 diode-connected 소자마다 실측 SPICE와 부합하는 값이 나와, 이후 SPICE 폐루프 검증(트랜지언트 포함)이 실제로 수렴할 수 있게 된다. |
-| **Core Value** | 물리적 정확성(physical correctness) — "gm/ID sizing은 회로의 물리적 topology 연결을 보지 않고는 할 수 없다"는 이번 세션 핵심 지적을 아키텍처 차원에서 반영한다. 재사용 가능한 계층(LUT 인터페이스, connectivity, post-sizing 레이아웃, 사후검증 metric)은 그대로 두고 사이징 "결정 순서"만 근본적으로 바꾸는 최소침습 재설계다. |
+| **Core Value** | 물리적 정확성(physical correctness) — "gm/ID sizing은 회로의 물리적 topology 연결을 보지 않고는 할 수 없다"는 이번 세션 핵심 지적을 아키텍처 차원에서 반영한다. 재사용 가능한 계층(LUT 인터페이스, connectivity, post-sizing 레이아웃, 사후검증 metric)은 그대로 두고 사이징 "결정 순서"만 근본적으로 바꾸는 최소침습 재설계다. `.ai/context.md` 세션6~44 전체 자산화(v2.0, §1.4)로 확인됨: 이 방향은 새 발명이 아니라 세션38이 합의만 하고 못 끝낸 "DC bias vs AC amplification 도메인 분리" 아키텍처의 실제 완성이며, 헤드룸 재설계도 기존 `resolve_feed_vds()`/`_resolve_vertical_group()` 인프라를 재사용하는 쪽으로 한층 더 최소침습화됐다. |
 
 ---
 
@@ -37,7 +37,7 @@ version: 1.0
 | **WHY** | gm/ID sizing 엔진이 VDS(헤드룸)를 gm_id보다 먼저, role 라벨 기반 상수로 확정하는 구조라 diode-connected 소자(Vgs=Vds 물리적 강제)에서 최대 1.02V 오차가 나고, 이게 SPICE 폐루프 DC 동작점을 출력단 레일 고정으로 발산시킨다(2026-09-04 세션, SPICE 트랜지언트 검증 중 발견) |
 | **WHO** | `analog-gmid-design` skill로 아날로그 IC를 sizing하는 (fresh) agent 세션들 + 사용자(hoseung.lee) |
 | **RISK** | gm_id를 gain에서 직접 역산하는 신규 함수(§2)가 캐스코드+입력 소자의 2변수 결합을 제대로 못 풀면 회귀 위험. `known-incidents.md` "사고4"(단별 이득배분은 탐색이 맞다)와의 철학적 충돌을 잘못 봉합하면 예전에 이미 폐기된 접근을 반복하는 셈 — 이번 세션 사용자 확정으로 "배분 자체는 여전히 탐색/사용자 지정, 배분 이후 gain→gm_id 역산 한 단계만 결정론화"로 경계를 명확히 함 |
-| **SUCCESS** | (1) `_solve_diode_connected_vgs_fixed_point()`가 16개 diode-connected 소자 전부에서 `vgs_for_gm_id(gm_id,L,vds*,vs)==vds*` 자기일관점에 수렴(현재 오차 0.05~1.02V → 0). (2) `current_reuse_telescopic_ota`를 새 엔진으로 재사이징해도 기존 constraints(gain≥54dB, cmrr/psrr/mismatch/classab)를 여전히 만족. (3) 새 사이징 결과로 만든 sky130 트랜지스터 레벨 SPICE 넷리스트의 `.op`이 rail-lock 없이 수렴 |
+| **SUCCESS** | (0) ★최우선: `verify_node_voltage_consistency(ctx)`가 사이징된 **전체회로**(51소자, diode-connected뿐 아니라)에서 KVL/KCL/VGS Violation 0건 — 이게 이번 재설계의 근본 동기(§3.1 요구사항 6). (1) 그 부분집합으로, `_solve_diode_connected_vgs_fixed_point()`가 16개 diode-connected 소자 전부에서 `vgs_for_gm_id(gm_id,L,vds*,vs)==vds*` 자기일관점에 수렴(현재 오차 0.05~1.02V → 0). (2) `current_reuse_telescopic_ota`를 새 엔진으로 재사이징해도 기존 constraints(gain≥54dB, cmrr/psrr/mismatch/classab)를 여전히 만족. (3) `cross_check_with_spice()`(sky130 트랜지스터 레벨 SPICE `.op`)이 rail-lock 없이 수렴하고 (0)의 LUT 기반 예측과 일치 |
 | **SCOPE** | 이번 계획: JSON 스키마 설계 + 신규 사이징 알고리즘 설계 + 헤드룸 해석기 재설계 + 파일럿 회로(`current_reuse_telescopic_ota`) 1개 이관·검증. 나머지 3개 토폴로지(folded_cascode/nmcnr_amplifier/two_stage_ota) 이관은 파일럿 검증 후 별도 작업으로 이연 |
 
 ---
@@ -79,8 +79,15 @@ baseline부터 재설계하기로 확정했다.
 - `.ai/context.md` "세션44 (계속)"/"세션44 (계속 2)" — diode-connected 헤드룸 버그 발견 경위
 - `skills/analog-gmid-design/references/gm-id-methodology.md` §2.5/§4/§6.4/§6.7 — 기존
   "GBW/PM→gm, gain은 사후 readback" 방향의 근거
+- `skills/analog-gmid-design/references/gm-id-methodology.md` §13(§13.1/§13.2/§13.3/§13.7
+  특히) — 이 프로젝트 엔진 실전 운영에서 나온 고유 발견, §7.2 알고리즘 개정의 직접 근거
+  (2026-09-04 §1.4 추가)
 - `skills/analog-gmid-design/references/known-incidents.md` "사고4" — 단별 이득배분을
   닫힌 식으로 강제하려다 탐색+제약조건으로 정정한 전례(이번 재설계와의 경계 구분 필요)
+- `skills/analog-gmid-design/references/known-incidents.md` "사고10/16/19/21/22/23/24" —
+  오늘 발견한 헤드룸 버그와 같은 클래스의 5개 선례 + §7.3 개정이 재사용하는 기존 인프라
+  (`resolve_feed_vds()`/`_resolve_vertical_group()`)의 출처, §8.4 위험(사고16) 근거
+  (2026-09-04 §1.4 추가)
 - `skills/analog-gmid-design/references/topology-fn-derivation-guide.md` — 기존 GBW/PM→gm
   reverse-derivation 절차(compensation 방향이 반대가 됨에 따라 참고용으로 남김)
 - `docs/01-plan/features/analog-topology-json-library.plan.md` — topology.json을
@@ -88,6 +95,46 @@ baseline부터 재설계하기로 확정했다.
   이번 재설계가 그 원칙을 device_roles/sizing_roles/compensation까지 완성한다
 - `skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json` —
   파일럿 회로의 현재 connectivity + (폐기 대상) device_roles/sizing_roles/compensation
+
+### 1.4 이 재설계의 역사적 선례 (2026-09-04 `.ai/context.md` 세션6~44 전체 자산화로 발견)
+
+이 계획을 세운 뒤 `.ai/context.md`(세션6~44) 전체를 `references/*.md`로 자산화하다가, 오늘의
+diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래스가 최소 5번 반복** 발견/부분수정
+됐었고, 이번 재설계가 실제로는 세션38이 설계만 하고 못 끝낸 아키텍처를 완성하는 작업임이
+드러났다. 아래는 이 계획을 직접 수정하게 만든 선례만 추린 것(전체는 `known-incidents.md` 사고
+10/16/19/21/22/23/24, `gm-id-methodology.md` §13 참고):
+
+- **`known-incidents.md` 사고21(세션38) ★★ — 이 재설계의 진짜 원형**: "AC signal은 input이
+  root, bias망의 시작점은 DC 전압이다. DC bias 최적화를 먼저 하고 AC gain 타겟을 그 위에서
+  맞춰야 한다"는 **Phase 1(DC 그래프 완전 정합) → Phase 2(남은 자유도만 AC 타겟에 맞춰 탐색)**
+  아키텍처가 세션38에서 이미 사용자와 합의됐으나 **당시 미구현**으로 남았다. 이 계획의 "VDS를
+  gm_id 확정 이후에만 푼다"는 순서 자체가 정확히 이 Phase 1/Phase 2를 구현하는 것 — 새 개념이
+  아니라 세션38 합의를 실제로 완성하는 작업이다. `device_roles.vds_match_vgs_of`/
+  `gm_id_match_vgs_of`(참조 소자의 VGS를 그대로 이 소자의 VDS/gm_id로 강제 동일화하는 이미
+  구현된 primitive)를 §7.2/§7.3에서 그대로 재사용할 것 — 새로 발명하지 않는다.
+- **사고22(세션39)/사고24(세션41) — 재사용할 기존 메커니즘**: 여러 소자/그룹이 서로 다른
+  멤버를 통해 맞물리는 상호참조 헤드룸 문제는 이미 `_resolve_vertical_group(vsid)` +
+  `_HeadroomDependencyNotReady` 예외 기반 **fixed-point worklist**로 풀려 있고("지금 풀 수
+  있는 그룹부터, ctx.sized에 vds가 채워진 소자 수가 늘었는지로 진전 판정"), 소자 하나의 vds를
+  결정하는 우선순위는 이미 `resolve_feed_vds(name, declared_vds, ctx)`(① 이미 `ctx.sized`에
+  있으면 그 값을 존중 ② declared_vds ③ role 기반 폴백)로 통합돼 있다. §7.3을 이 기존 인프라를
+  **대체**하는 대신 **확장**하는 설계로 바꾼다(아래 §7.3 참고).
+- **사고23/24(세션40~41) ★★★★ — 오늘 버그가 실제로 사는 함수**: `resolve_feed_vds()`/
+  `_feed_vds_fallback()`가 바로 오늘 발견한 diode-connected 헤드룸 버그의 정확한 코드 위치다.
+  사고24는 "하드코딩 복붙 4곳"을 하나로 통합해 **중복은 해결**했지만, `gate==drain`(Vgs=Vds
+  강제) 소자의 **물리적 정확성**은 그때도 다루지 않았다 — 이번 재설계가 메워야 할 정확히 그
+  간극.
+- **`gm-id-methodology.md` §13.1/§13.2 — §7.2 stage 알고리즘 보강 근거**: "커플드 소자쌍은
+  단일소자 role 기준(예: 캐스코드가 자기 혼자 gm/gds 최대화)으로 최적화하면 결합 최적점을
+  놓친다"(M15/M16 실측: 71.14dB→75.80dB), "gm_id 독립화로 806개 지점 동시만족 발견"(세션31,
+  `shared_gm_id_groups`의 대칭 개념으로 가칭 `shared_current_groups`—ID만 공유, gm_id는 독립
+  탐색—필요성 제기). §7.2의 "stage 내 input+cascode 동시결정" 요구사항이 정확히 이 문제의
+  구체 사례.
+- **§13.7 — §7.2에 빠져있던 구분**: cascode(gm이 ro에 곱해 기여 → `gm_id_role="gain"`,
+  `gm/gds` 최대화)와 **비캐스코드 단순 전류원 부하**(ro 자체가 기여 → 신설된 `role="load"`,
+  `gds` 최소화 — `gm/gds`와 다른 물리량이라 서로 대신 최적화 안 됨, 실측: `"gain"` 적용 시
+  `ro`가 진짜 최댓값의 절반에 그침)는 **서로 다른 목적함수가 필요**하다. `role="load"`는 이미
+  `search_gm_id_for_role()`에 구현돼 있다(§7.2 개정 참고).
 
 ---
 
@@ -100,25 +147,46 @@ baseline부터 재설계하기로 확정했다.
       `headroom.policy`, `bias_devices`(stage 밖 diode-reference/mirror 소자)
 - [ ] `topology.json`을 순수 connectivity 전용으로 되돌림 — `device_roles`/`sizing_roles`/
       `compensation` 필드 제거(새 `sizing_spec.json`으로 이관)
-- [ ] 신규 함수 구현(`sizing_recipe.py`, §7.2):
+- [ ] 신규 함수 구현(`sizing_recipe.py`, §7.2/§7.3 — 2026-09-04 §1.4 자산화 반영으로 축소됨):
   - [ ] `_solve_diode_connected_vgs_fixed_point(gm_id, L, vs, lut)` — 이번 세션 스크래치패드
-        `node_dc_propagate.py`에서 프로토타입 검증 완료, 그대로 이식
+        `node_dc_propagate.py`에서 프로토타입 검증 완료, 그대로 이식. connectivity
+        (`gate==drain`) 기반 판정, §7.2 stage 사이징 직후 `ctx.sized[name]["vds"]`에 기입해
+        기존 `resolve_feed_vds()` 우선순위①(이미 있으면 존중)로 자연스럽게 보호되게 함
   - [ ] `gm_id_for_gm_gds_ratio(target_ratio, L, vds, vs)` — `gm_id_for_vgs()`(:536)와 동일
         패턴의 O(1) 역보간, gm/gds 축 신규
-  - [ ] `resolve_stage_sizing(stage_spec, ID, luts)` — stage 알고리즘(§7.2) 구현체
-  - [ ] `_resolve_device_headroom(device, ctx)` — `allocate_stack_headroom()`/`HeadroomPolicy`
-        대체, connectivity(`gate==drain`) 기반 판정
+  - [ ] `resolve_stage_sizing(stage_spec, ID, luts)` — stage 알고리즘(§7.2, cascode=`role="gain"`
+        /load=`role="load"` 구분 포함) 구현체
+  - [ ] ~~`_resolve_device_headroom(device, ctx)`(`allocate_stack_headroom()`/`HeadroomPolicy`
+        대체)~~ — **취소(§7.3 개정)**: `resolve_feed_vds()`/`_resolve_vertical_group()`가
+        이미 구현돼 있어(사고22/24) 전면 교체 대신 위 diode-connected solver를 그 우선순위
+        체인 앞단에 끼워넣는 것으로 충분함이 드러남
   - [ ] `solve_compensation_for_gbw_pm(stage_gms, targets)` — 기존 `topology_fn`(GBW/PM→gm)의
-        역방향(gm들→Cc/Rz)
+        역방향(gm들→Cc/Rz). `device_roles.vds_match_vgs_of`/`gm_id_match_vgs_of`(사고21,
+        이미 구현됨)를 stage 간 결합 소자에 그대로 재사용 — 새 결합 메커니즘 발명하지 않음
+  - [ ] **★ `verify_node_voltage_consistency(ctx)`**(§7.5) — 전체 netlist 노드전압 재구성 +
+        상호모순/VGS 불일치 검사. 이번 재설계의 가장 근본적인 요구사항(§3.1 요구사항 6)의
+        직접 구현체 — diode-connected뿐 아니라 **모든** 소자의 V/I 관계를 검증
+  - [ ] **★ `cross_check_with_spice(instance_data)`**(§7.5) — sky130 SPICE `.op` 독립 교차검증,
+        스크래치패드 `build_transient_netlist.py`를 skill asset으로 정식 편입
+  - [ ] `L_candidates_product()` + `resolve_stage_sizing()`의 L outer-loop(§7.6 (3)) —
+        cascode/load/tail의 L을 면적 오름차순으로 전수 스캔하며 각 L_combo에서 §7.2를
+        결정론적으로 실행, `extra_feasible`(§13.5 기존 패턴)로 cmrr/psrr/mismatch 판정
+  - [ ] `make_cmrr_psrr_feasibility_check(...)` — §13.5의 `make_matching_feasibility_check()`
+        와 동일 패턴으로 `global_spec.constraints`를 `extra_feasible` 콜백으로 변환
+        (metric 계산 자체는 기존 `smallsignal_ratio_db`/`pelgrom_mismatch` 무변경 재사용)
+  - [ ] **`diagnose_sizing_dof(sizing_spec, topology) -> DofReport`**(§7.8) — 사이징 시작
+        전에 "목표 개수 대비 실제 자유도가 충분한가"를 스키마+connectivity만으로 판정
+        (`ok`/`underdetermined`/`overconstrained`), `overconstrained`면 어느 목표끼리
+        같은 자유도를 다투는지 명시 보고하고 반복을 아예 시작하지 않음(사고19 재발 방지)
 - [ ] 파일럿 회로 이관: `current_reuse_telescopic_ota`를 새 스키마로 재작성, 새 엔진으로
       재사이징
 - [ ] 회귀 검증: 기존 사후검증 metric(`gain_db`/`cmrr_estimate_db`/`psrr_estimate_db`/
       `mismatch_sigma_mV`/`classab_centering_dev_v`)이 기존 constraints를 여전히 만족하는지 확인
-- [ ] diode-connected 자기일관성 검증: 16개 소자 전부 `vgs_for_gm_id(gm_id,L,vds*,vs)==vds*`
-      수렴 확인
-- [ ] SPICE 폐루프 재검증: 이번 세션에서 만든 sky130 SPICE 넷리스트 생성기(스크래치패드
-      `build_transient_netlist.py`)로 새 사이징 결과의 `.op` 수렴 확인 → 원래 목표였던
-      class-AB Up/Down settling 트랜지언트 검증 재개
+- [ ] **전체회로 물리 정합성 검증**(§7.5, diode-connected 16개 소자 포함하되 그것만이 아님):
+      `verify_node_voltage_consistency()`가 Violation 0건 보고 — diode-connected 자기일관성
+      (`vgs_for_gm_id(gm_id,L,vds*,vs)==vds*`)은 이 검증의 특수 케이스로 포함됨
+- [ ] SPICE 폐루프 재검증: `cross_check_with_spice()`로 새 사이징 결과의 `.op` 수렴 확인
+      (rail-lock 없음) → 원래 목표였던 class-AB Up/Down settling 트랜지언트 검증 재개
 
 ### 2.2 Out of Scope
 
@@ -150,6 +218,18 @@ baseline부터 재설계하기로 확정했다.
 5. gain 배분 자체(`gain_budget_db`가 어떻게 정해지는지)는 여전히 탐색 또는 사용자 명시로
    자유도를 남겨야 한다(사고4 원칙 유지) — 다만 "배분된 gain_i → gm_id_i" 단계만은 예외 없이
    결정론적 역산이어야 한다.
+6. **★ 이번 재설계의 가장 근본적인 동기(사용자 확정, 2026-09-04) — 전체회로 물리 정합성
+   검증**: 사이징된 **모든** 소자(diode-connected뿐 아니라)의 전압(VGS/VDS)·전류(ID) 관계가
+   실제로 KVL/KCL을 만족하는지, 파이프라인 마지막에 **전체 netlist 단위로** 독립 검증하는
+   단계가 있어야 한다 — 개별 vertical_stack_id/그룹 내부 KVL 합만 맞는지 보는 게 아니라
+   (그건 이미 `allocate_stack_headroom()`의 assert가 함), 서로 다른 경로로 같은 net에
+   도달하는 두 소자가 실제로 같은 전압을 예측하는지, 그리고 어떤 소자가 게이트로 받는
+   내부 net의 실제 전압이 그 소자가 사이징될 때 가정한 VGS와 일치하는지까지 검증해야 한다.
+   오늘 diode-connected 버그를 발견한 방식(§7.5 참고 — 레일에서부터 소자별 vds를 따라 전체
+   netlist의 노드전압을 직접 재구성하고, 독립된 두 번째 solver(SPICE)로 교차검증) 자체가
+   이 요구사항의 프로토타입이었다 — 이걸 **1회성 디버깅 스크립트가 아니라 파이프라인의
+   상시 검증 게이트**로 승격하는 게 이번 재설계의 핵심 목적이다(diode-connected 헤드룸
+   수정은 이 검증기가 잡아낸 여러 사례 중 하나일 뿐 전부가 아니다).
 
 ### 3.2 Non-Functional Requirements
 
@@ -170,9 +250,14 @@ baseline부터 재설계하기로 확정했다.
       문서화됨
 - [ ] `current_reuse_telescopic_ota`가 새 스키마 + 새 엔진으로 재사이징되어 instance.json이
       갱신됨
-- [ ] 16개 diode-connected 소자 전부 자기일관 헤드룸 확인(오차 → 0)
+- [ ] **★ (최우선, §3.1 요구사항 6) `verify_node_voltage_consistency(ctx)`가 51소자 전체에서
+      Violation 0건** — diode-connected 16개 소자의 자기일관 헤드룸(오차→0)은 이 검증의
+      부분집합으로 포함되지만, 그 외 소자의 게이트-내부net VGS 불일치/노드 상호모순도 전부
+      확인됨
 - [ ] 기존 constraints(gain≥54dB, cmrr/psrr/mismatch/classab) 전부 재확인
-- [ ] sky130 SPICE `.op`이 rail-lock 없이 수렴(원래 세션 목표였던 트랜지언트 검증 재개 가능)
+- [ ] `cross_check_with_spice()`(sky130 SPICE `.op`)이 rail-lock 없이 수렴하고
+      `verify_node_voltage_consistency()`의 LUT 기반 예측과 일치(원래 세션 목표였던 트랜지언트
+      검증 재개 가능)
 
 ### 4.2 Quality Criteria
 
@@ -189,6 +274,7 @@ baseline부터 재설계하기로 확정했다.
 | "gain이 주도"로 뒤집으면서 GBW/PM이 실제로 안 맞는 회로가 나올 위험 | `solve_compensation_for_gbw_pm()`은 검증(§4.1 DoD)에 GBW/PM 재확인을 포함해야 함 — 이번 계획 문서에는 명시했으나 구현 단계에서 실제 검증 스텝으로 반드시 실행 |
 | 사고4 재발(배분 자체를 결정론화하려는 유혹) | §3.1 요구사항 5번으로 명시적 경계를 문서에 고정 — 구현 시 이 경계를 벗어나는 변경은 별도 승인 필요 |
 | 4개 토폴로지 동시 이관 시 범위 폭발 | §2.2 Out of Scope로 파일럿 1개만 우선 명시 |
+| §8.4 사이징↔레이아웃 피드백 루프가 반복마다 소자를 재배치하며 조용히 소자를 삭제할 위험(2026-09-04 §1.4 추가 — `known-incidents.md` 사고16: `_layout_result_to_rows()`의 행 이름 카운터가 호출 전역에서 유일하지 않아 무관한 반복끼리 이름이 충돌 → `dict.update()`가 이전 결과를 조용히 덮어써 51소자 중 3개가 실제로 사라진 전례) | §8.4의 반복 피드백 구현 시 행/그룹 이름 생성 카운터가 **전체 파이프라인 호출에 걸쳐 유일**한지(지역 카운터가 아닌지) 명시적으로 검증할 것 — 사고16이 신설한 "repair 이후 재검증 게이트"(`check_stick_diagram_coverage()`) 패턴을 §8.4의 5~6단계(수렴/실패 판정)에도 동일하게 적용해, 반복마다 넷리스트 소자 수가 그대로인지 재확인하는 스텝을 넣는다 |
 
 ---
 
@@ -198,15 +284,20 @@ baseline부터 재설계하기로 확정했다.
 
 - **재설계(신규 작성)**: `device_roles`, `sizing_roles`(`theta`/`metrics`/`objective`/
   `constraints`), `compensation` — topology.json에서 제거되고 `sizing_spec.json`으로 대체
-- **재설계(신규 함수)**: `allocate_stack_headroom()`/`HeadroomPolicy`/`_default_cascode_headroom()`
-  대체(`_resolve_device_headroom()`), `search_gm_id_for_role()`의 역할 축소(cascode gm/gds
-  최대화 용도로만 재사용), `optimize_multistage()`/`topology_fn`의 GBW/PM→gm 방향 반전
-- **무변경(재사용)**: `SemiEmpiricalGmIdLUT`/`vgs_for_gm_id()`/`gm_id_for_vgs()`/
-  `gm_id_to_id_density()`/`gm_gds_ratio()`, `size_transistor()`/`converge_with_parasitics()`,
-  `load_topology()`/connectivity 파싱, `symmetry.matching_pairs`/analog-grammar idiom 탐지,
-  `assign_finger_geometry()`/euler 자동수정/matching-safety 자동수정/floorplan,
-  `cmrr_estimate_db`/`psrr_estimate_db`/`pelgrom_mismatch`/`nulling_resistor_ohm`/
-  `battery_centering_deviation` 등 사후검증 metric 전부
+- **재설계(신규 함수, 2026-09-04 §1.4 반영으로 축소)**: `_solve_diode_connected_vgs_fixed_point()`
+  신규 추가(그 외 `allocate_stack_headroom()`/`HeadroomPolicy`는 **무변경 재사용**으로 전환 —
+  아래 참고), `search_gm_id_for_role()`의 `role="gain"`/`role="load"` 둘 다 재사용(cascode/load
+  구분, §13.7 이미 구현됨), `optimize_multistage()`/`topology_fn`의 GBW/PM→gm 방향 반전
+- **무변경(재사용, 2026-09-04 §1.4 반영으로 확장)**: `SemiEmpiricalGmIdLUT`/`vgs_for_gm_id()`/
+  `gm_id_for_vgs()`/`gm_id_to_id_density()`/`gm_gds_ratio()`, `size_transistor()`/
+  `converge_with_parasitics()`, `load_topology()`/connectivity 파싱, `symmetry.matching_pairs`/
+  analog-grammar idiom 탐지, `assign_finger_geometry()`/euler 자동수정/matching-safety
+  자동수정/floorplan, `cmrr_estimate_db`/`psrr_estimate_db`/`pelgrom_mismatch`/
+  `nulling_resistor_ohm`/`battery_centering_deviation` 등 사후검증 metric 전부 — **여기에
+  `allocate_stack_headroom()`/`HeadroomPolicy`/`resolve_feed_vds()`/`_resolve_vertical_group()`/
+  `device_roles.vds_match_vgs_of`/`gm_id_match_vgs_of`도 추가**(§7.3 개정: 전면 교체가 아니라
+  diode-connected solver를 기존 우선순위 체인에 끼워넣는 방식으로 바뀌어 이 함수들은 그대로
+  둔다)
 
 ### 6.2 Current Consumers
 
@@ -234,7 +325,14 @@ SPICE 폐루프 재검증 4단계.
   "global_spec": {
     "vdd": 1.8,
     "objective": {"minimize": "power_uA"},
-    "closed_loop_accuracy_db": null
+    "closed_loop_accuracy_db": null,
+    // §7.6 -- CMRR/PSRR/mismatch는 stage별 배분이 아니라 전역 declared constraint로 선언.
+    // 계산 로직은 기존 metric(smallsignal_ratio_db/pelgrom_mismatch) 완전 무변경 재사용.
+    "constraints": [
+      {"metric": "cmrr_estimate_db",  "op": ">=", "value": 60},
+      {"metric": "psrr_estimate_db",  "op": ">=", "value": 60},
+      {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0}
+    ]
   },
 
   "stages": [
@@ -243,7 +341,9 @@ SPICE 폐루프 재검증 4단계.
       "devices": {
         "input":   ["M1a","M1b","M4a","M4b"],
         "cascode": ["M2a","M2b","M3a","M3b"],
-        "load":    []
+        "load":    [],
+        "tail":    ["M6","M7","M5"]   // §7.6 -- ID를 KCL로 정할 뿐 gain엔 기여 안 함,
+                                       // gds가 CMRR/PSRR을 좌우(role="load"로 사이징)
       },
       "ID_source": {"type": "kcl"},
       "gain_budget_db": 30.0,
@@ -251,7 +351,7 @@ SPICE 폐루프 재검증 4단계.
     },
     {
       "id": "stage2_output",
-      "devices": {"input": ["M15","M16","M25","M26"], "cascode": [], "load": []},
+      "devices": {"input": ["M15","M16","M25","M26"], "cascode": [], "load": [], "tail": []},
       "ID_source": {"type": "kcl"},
       "gain_budget_db": 24.0,
       "gain_allocation": {"method": "explicit"},
@@ -298,14 +398,21 @@ SPICE 폐루프 재검증 4단계.
 - `sizing_roles.theta`의 A/B/C/D taxonomy 폐기 — 배분 자체가 자유인 것만
   `gain_allocation.method="search"`로 남김.
 
-### 7.2 신규 사이징 알고리즘 (stage 1개 기준)
+### 7.2 신규 사이징 알고리즘 (stage 1개 기준) — §1.4의 §13.1/§13.2/§13.7 반영으로 개정
 
 ```
 입력: stage.gain_budget_db, stage.devices.{input,cascode,load}, ID(KCL로 이미 확정)
 
-1. cascode 소자: L 후보군에서 gm/gds 최대화 지점을 스캔(기존 search_gm_id_for_role(role="gain")
-   재사용) → (L_cas, gm_id_cas) 확정, ro 기여분 = gm_gds_ratio(gm_id_cas, L_cas, vds_cas) 확정.
-2. 필요한 input 쪽 intrinsic gain = 10^(gain_budget_db/20) / (cascode가 만든 ro 부스트) →
+1. cascode 소자(gm이 ro에 곱해서 기여하는 진짜 캐스코드): L 후보군에서 gm/gds 최대화 지점을
+   스캔(기존 search_gm_id_for_role(role="gain") 재사용) → (L_cas, gm_id_cas) 확정, ro 기여분
+   = gm_gds_ratio(gm_id_cas, L_cas, vds_cas) 확정.
+1'. load 소자(캐스코드가 아니라 ro 자체로만 기여하는 단순 전류원 — §13.7 신규 구분,
+    **§7.2 원안에서 빠져 있던 부분**): 같은 스캔을 gm_gds_ratio 대신 gds 최소화 기준으로
+    실행(이미 구현된 role="load", search_gm_id_for_role()에 존재) — gm/gds 최대화와 gds
+    최소화는 서로 다른 물리량이라(§13.7 실측: "gain" 적용 시 ro가 진짜 최댓값의 절반에 그침)
+    load를 cascode와 같은 기준으로 최적화하면 안 된다. stage.devices.cascode/load 서브분류
+    (§7.1 스키마)는 바로 이 구분을 스키마 레벨에서 강제하기 위한 것.
+2. 필요한 input 쪽 intrinsic gain = 10^(gain_budget_db/20) / (cascode+load가 만든 ro 부스트) →
    input의 목표 gm/gds_effective 역산.
 3. input 소자: gm_gds_ratio(gm_id, L, vds)가 2번 목표값과 같아지는 gm_id를 LUT 이분탐색으로
    직접 역산(신규 gm_id_for_gm_gds_ratio()).
@@ -316,25 +423,63 @@ ID 상향 후 위 1~4를 그 ID로 실행 — 같은 gm_id에서 ID만 커지면
 생기는 방향(배분과 충돌하지 않음).
 ```
 
-캐스코드 없는 단순 stage는 "cascode 부스트=1(0dB)"로 두면 2/3단계가 자연스럽게 특수 케이스로
+캐스코드/load 둘 다 없는 단순 stage는 "부스트=1(0dB)"로 두면 2/3단계가 자연스럽게 특수 케이스로
 커버된다.
 
-### 7.3 헤드룸(VDS) 해석기 재설계
+**⚠️ 이 순서(1→1'→2→3)가 옳은 이유, 그리고 언제 안 통하는지(§13.1/§13.2 근거)**: 1/1'단계가
+"각 소자 독립 최적화"인데도 정당한 이유는, cascode/load의 목적함수(gm/gds 또는 gds)가 **다른
+소자와 결합되지 않은 자기 자신만의 함수**이기 때문이다(ID가 이미 고정, 목적함수가 자기
+자신만의 (L,gm_id)의 함수라 곱셈적으로 나중에 합쳐도 전역 최적과 같다). 반면 §13.1이 실측한
+"결합 최적점을 놓치는" 실패 사례(M15/M16, gm_id_match_vgs_of로 VGS가 강제 동일화된 쌍)는
+**목적함수 자체가 다른 소자의 선택에 의존**하는 경우다 — 이런 결합(주로 `vds_match_vgs_of`/
+`gm_id_match_vgs_of`로 명시적으로 선언된 관계, 대개 stage 경계를 넘어서 발생, §1.4 참고)가
+있는 소자쌍은 이 순차 알고리즘이 아니라 §13.1의 결합 목적함수 조인트 스캔으로 별도 처리해야
+한다 — stage 내부 cascode/load/input 관계는 이 결합이 없는 게 일반적이라 순차 알고리즘이
+맞지만, 스키마 작성 시(§8.3) `vds_match_vgs_of`/`gm_id_match_vgs_of`가 선언된 소자가 우연히
+같은 stage 안에 들어가면 이 예외를 적용해야 함을 `resolve_stage_sizing()` docstring에
+명시할 것.
+
+### 7.3 헤드룸(VDS) 해석기 재설계 — §1.4의 사고22/24 반영으로 "전면 교체"에서 "확장"으로 개정
+
+**원안(v1.0)은 `allocate_stack_headroom()`/`HeadroomPolicy`를 통째로 새 함수로 대체하려 했다.
+그런데 자산화 과정에서 이미 이 문제의 절반(중복 하드코딩 제거, 상호참조 스케줄링)이 풀려있는
+기존 인프라가 있음이 드러났다 — 이번 개정은 그 인프라를 재사용해 신규 코드를 최소화한다:**
+
+- `resolve_feed_vds(name, declared_vds, ctx)`(사고24, 이미 구현됨) — 소자 하나의 vds를 정하는
+  **우선순위 체인**: ① `ctx.sized[name]`에 이미 vds가 있으면 그 값을 존중(다른 메커니즘이
+  먼저 정함) ② `declared_vds`(spec 명시값) ③ `_feed_vds_fallback()`(role 기반 폴백).
+- `_resolve_vertical_group(vsid)`(사고22, 이미 구현됨) — 여러 그룹이 서로 다른 멤버를 통해
+  맞물리는 상호참조 헤드룸 문제를 위한 **fixed-point worklist**(`_HeadroomDependencyNotReady`
+  예외로 "아직 준비 안 됨"을 표시하고 여러 pass에 걸쳐 재시도, "ctx.sized에 vds가 채워진 소자
+  수가 이번 pass 동안 늘었는가"로 진전 판정).
+
+**개정된 설계**: diode-connected 소자의 Vgs=Vds 자기일관점은 §7.2 stage 사이징 알고리즘의
+**출력**으로 취급해 `ctx.sized[name]["vds"]`에 **먼저** 기입한다 — 그러면 `resolve_feed_vds()`
+의 우선순위 ①("이미 있으면 존중")이 자동으로 이 값을 지키고, role 기반 폴백(③, 오늘 버그의
+근원)은 애초에 발동하지 않는다. 새로 필요한 건 딱 하나:
 
 ```
-_resolve_device_headroom(device, ctx) -> float(vds):
-    if connectivity(device).gate == connectivity(device).drain:
-        # diode-connected: Vgs=Vds 자기일관점을 고정점 반복으로 직접 푼다
-        return _solve_diode_connected_vgs_fixed_point(gm_id, L, vs, lut)
-    else:
-        # 외부 게이트 구동(캐스코드/입력/tail): 기존 Jespers 근사 유지
-        return 2.0/gm_id + margin
+_solve_diode_connected_vgs_fixed_point(gm_id, L, vs, lut) -> float(vds)
+    # 이번 세션 스크래치패드 node_dc_propagate.py에서 프로토타입 검증 완료.
+    # gate==drain(connectivity(device).gate == connectivity(device).drain, role 라벨이
+    # 아니라 load_topology()가 파싱한 netlist로 직접 판정)인 소자에 대해,
+    # vds* = lut.vgs_for_gm_id(gm_id, L, vds*, vs)를 만족하는 고정점을 반복으로 푼다.
 
-vertical_stack 안에서: diode-connected 소자는 위 값으로 먼저 확정(예산에서 제외 —
-기존 budget_reference_device 패턴 재사용) → 나머지가 남은 vdd를 분배.
+호출 시점: §7.2가 diode-connected 소자의 gm_id를 확정한 직후(bias_devices든 stage 소속이든
+무관 — connectivity 기반 판정이라 소속과 무관하게 동작), ctx.sized[name]["vds"]에 즉시 기입.
+그 이후 헤드룸 루프(_resolve_vertical_group)는 이 값을 resolve_feed_vds() 우선순위①로 그대로
+존중하며 정상 동작 — allocate_stack_headroom()/HeadroomPolicy 자체를 교체할 필요 없음.
+만약 diode-connected 소자끼리 서로 다른 멤버를 통해 맞물리는 경우(사고22 Monticelli류 패턴이
+diode-connected 소자 간에도 나타날 가능성)가 생기면, 새 알고리즘을 발명하지 말고 기존
+_resolve_vertical_group()의 fixed-point worklist에 이 pre-pass를 끼워넣는 방식으로 확장할 것
+(사고22의 교훈: "새 계산 로직을 발명하기 전에 기존 primitive로 스케줄링 순서만 고치면
+풀리는지부터 손 시뮬레이션할 것").
 ```
 
-`gate == drain` 판정은 `load_topology()`가 이미 파싱한 `netlist`에서 추가 인프라 없이 가능하다.
+**신규 함수 목록 재확정(§2 In Scope 갱신)**: `allocate_stack_headroom()`/`HeadroomPolicy`
+대체(`_resolve_device_headroom()`) 항목은 **취소** — 대신
+`_solve_diode_connected_vgs_fixed_point()` 하나만 신규 구현하고
+`resolve_feed_vds()`/`_resolve_vertical_group()`는 무변경 재사용.
 
 ### 7.4 확정된 설계 원칙 (사용자 승인 완료, 이번 세션 AskUserQuestion)
 
@@ -345,6 +490,382 @@ vertical_stack 안에서: diode-connected 소자는 위 값으로 먼저 확정(
 3. `known-incidents.md` 사고4와의 경계: **배분 자체(어느 stage가 얼마의 gain을 가질지)는
    여전히 탐색/사용자 지정**으로 남기고, "배분된 gain_i → gm_id_i" 이 한 단계만 결정론적
    역산으로 바꾼다.
+
+### 7.5 전체회로 물리 정합성 검증기 (★ 신설 — §3.1 요구사항 6, 이번 재설계의 핵심 동기)
+
+**왜 diode-connected 자기일관성(§7.3)만으로는 부족한가**: §7.3은 "gate==drain인 소자"라는
+**한 가지** 위반 패턴만 잡는다. 하지만 이번 세션이 실제로 겪은 문제는 이보다 일반적이다 —
+diode-connected가 아니어도, 어떤 소자의 게이트가 내부 net에 물려 있고 그 net의 실제 전압이
+그 소자가 사이징될 때 가정한 VGS와 다르면, KVL이 조용히 깨진다(예: 사고21의 M301/M204,
+사고19/23의 헤드룸 상호참조 — 전부 "diode-connected 여부"와 무관한 사례였다). §7.3이
+diode-connected라는 **부분집합**을 고쳤을 뿐, "이 파이프라인이 사이징한 회로가 실제로 물리
+법칙(KVL/KCL)을 만족하는가"를 **전체 netlist 단위로** 확인하는 일반 검증기는 아직 없었다.
+
+**설계**: 이번 세션에서 diode-connected 버그를 실제로 발견한 방법(스크래치패드
+`node_dc_propagate.py`/`build_transient_netlist.py`) 자체를 그대로 상시 검증 함수로
+승격한다 — 2단계 검증, 둘 다 §8.4(사이징↔레이아웃 수렴)의 **마지막 게이트**로 실행하고
+`run_sizing_layout_convergence()`가 이 게이트를 통과해야만 Stage 3로 넘어간다:
+
+```
+1단계 — LUT 기반 노드전압 재구성 + 상호모순 검사(빠름, 항상 실행):
+  verify_node_voltage_consistency(ctx) -> list[Violation]
+    - vdd/gnd에서 시작해, 사이징이 확정한 각 소자의 (kind, source, drain, vds)를 따라
+      전체 netlist의 모든 net 전압을 전파(이번 세션 node_dc_propagate.py와 동일 알고리즘 —
+      "특정 vertical_stack_id 안에서만" 이 아니라 회로 **전체**를 훑는다).
+    - 같은 net에 서로 다른 경로로 두 번 이상 도달하면(예: fold_group처럼 여러 branch가
+      한 노드에서 합류) 두 예측이 일치하는지 확인(허용오차 ~1mV) — 불일치하면 Violation
+      (관련 소자 2개 + 예측값 차이).
+    - 게이트가 vdd/gnd/외부 입력이 아닌 내부 net에 물린 모든 소자에 대해: 재구성된
+      Vgate/Vsource로 실제 Vgs를 계산하고, 그 소자의 (gm_id,L,vds,vs)가 lut.vgs_for_gm_id()
+      로 예측하는 Vgs와 비교 — 어긋나면 Violation("이 소자는 사이징 당시 가정한 게이트
+      전압을 실제 회로가 못 준다").
+
+2단계 — SPICE 독립 교차검증(느림, Stage 2 최종 수렴 시 1회만 실행):
+  cross_check_with_spice(instance_data) -> bool
+    - 이번 세션 build_transient_netlist.py를 skill asset으로 정식 편입해 sky130 트랜지스터
+      레벨 넷리스트를 자동 생성, ngspice `.op`을 실행.
+    - 1단계의 LUT 기반 노드전압 재구성 결과와 SPICE `.op`의 실제 수렴값을 대조 — 어긋나면
+      1단계 자체가 놓친 로딩 경로가 있다는 뜻(LUT 전파는 각 소자를 독립적으로 보지만 SPICE는
+      비선형 소자 간 상호작용까지 다 푼다).
+    - rail-lock(출력이 VDD/GND에 고정)이나 수렴 실패 자체도 Violation으로 보고.
+```
+
+**정직한 실패 원칙**: 두 검증 중 하나라도 Violation을 보고하면 `run_sizing_layout_convergence()`
+는 성공을 선언하지 않고 Violation 목록과 함께 명시적으로 실패한다(§1.5 원칙 — 값을 지어내거나
+조용히 넘어가지 않는다). 이 검증기는 diode-connected 사례(§7.3)를 특수 케이스로 포함하므로,
+§7.3의 고정점 solver가 이 검증기의 1단계 안에서 자연스럽게 호출된다(별도 통합 불필요).
+
+**신규 함수**: `verify_node_voltage_consistency(ctx)`, `cross_check_with_spice(instance_data)`
+— §2 In Scope/§8.4 harness 순서에 반영(아래).
+
+### 7.6 CMRR/PSRR/mismatch를 gain-budget 방법론에 결합하는 법 (★ 신설, 2026-09-04)
+
+**왜 gain_budget_db처럼 배분할 수 없나**: CMRR/PSRR은 differential gain과 **물리적으로 다른
+경로**(공통모드 신호경로, VDD 리플 주입경로)에서 결정되고, dB로 stage마다 깔끔히 더해지지도
+않는다 — 대개 **한 소자(tail/바이어스)의 gds가 병목**이 되는 전역(whole-circuit) 특성이다.
+따라서 `gain_budget_db`처럼 사전 배분하지 않고, **기존 검증 metric을 재사용한 feasibility
+필터**로 다룬다(새 계산 로직 0개).
+
+**(1) 스키마: `stages[].devices`에 `tail` 서브롤 신설**
+
+```jsonc
+"devices": {
+  "input": [...], "cascode": [...], "load": [...],
+  "tail": ["M6","M7"]   // NEW -- ID를 KCL로 정할 뿐 gain엔 기여 안 함, gds가 CMRR/PSRR을 좌우
+}
+```
+tail은 §7.2의 `load`와 **동일하게** 기존 `role="load"`(gds 최소화, §13.7 구현됨)로 사이징한다 —
+새 알고리즘이 아니라 "이 소자가 왜 존재하는가"를 스키마에 명시하는 것이 목적(CMRR/PSRR
+관점에서 이 소자의 gds가 중요하다는 사실이 지금 스키마엔 어디에도 안 드러남).
+
+**(2) CMRR/PSRR/mismatch는 stage 배분이 아니라 `global_spec.constraints`로 선언**
+
+```jsonc
+"global_spec": {
+  "constraints": [
+    {"metric": "cmrr_estimate_db",  "op": ">=", "value": 60},
+    {"metric": "psrr_estimate_db",  "op": ">=", "value": 60},
+    {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0}
+  ]
+}
+```
+계산 로직(`smallsignal_ratio_db` MNA, `pelgrom_mismatch`)은 **완전 무변경 재사용**(§6.1) —
+여기선 문턱만 선언한다.
+
+**(3) 알고리즘: cascode/load/tail의 L을 좁은 outer-loop로 탐색, gain 역산은 그대로 결정론적**
+
+L이 커지면 gds가 줄어(ro↑) CMRR/PSRR에 유리하지만 면적/기생커패시턴스 비용이 든다. 이
+트레이드오프만 새 탐색 차원으로 열고, **gm_id 역산 자체는 건드리지 않는다**:
+
+```
+resolve_stage_sizing(stage_spec, ID, luts, global_constraints):
+  for L_combo in L_candidates_product(cascode, load, tail):   # 면적 작은 순 오름차순
+      1. cascode/load/tail: role="gain"/"load" 최적화(§7.2 step1/1', 무변경)
+      2. input: gain 잔여치에서 gm_id 결정론적 역산(§7.2 step2/3, 무변경)
+      3. size_transistor()로 W 확정
+      4. extra_feasible(global_constraints) 판정 -- cmrr/psrr/mismatch 문턱 만족?
+         (§13.5 `make_*_feasibility_check()`/`_combine_extra_feasible()` 콜백 합성 패턴 재사용)
+      5. 만족하는 첫 L_combo 채택(면적 최소부터 봤으므로 area-최소해)
+  전부 실패 -> InfeasibleSizingError("이 gain_budget_db 배분으로는 CMRR/PSRR/mismatch를
+  동시에 못 맞춘다")
+```
+
+**이 설계가 사고4 원칙을 안 깨는 이유**: 새로 열리는 자유도는 **cascode/load/tail의 L 하나뿐**
+이고, "가장 작은 면적부터 시도해 첫 feasible 채택"이라는 결정론적 규칙으로 탐색한다. `gain_i →
+gm_id_i` 역산은 각 L_combo 안에서 여전히 100% 결정론적이다(§3.1 요구사항 5 유지).
+⚠️ 단, L 오름차순 탐색은 "작은 것부터 보되 **전 구간을 실제로 스캔**"이어야 한다 — §13.7 실측
+(M107: L=375nm→4µm에서 `gm·ro` 26배 **악화**)대로 gds의 L 의존성은 단조가 아니라 지름길이 없다.
+
+**(4) Infeasible이면 gain 배분 재탐색으로 피드백**
+
+`gain_allocation.method="search"`가 선언된 stage면 이 infeasibility가 "gain 배분 자체를 다시
+탐색하라"는 신호가 된다(기존 theta search 메커니즘 재사용). `method="explicit"`이면 사용자에게
+그대로 보고(조용히 타협하지 않음, §1.5).
+
+**(5) 물리적 대칭(레이아웃)은 이번 범위 밖 — 책임 분담 명시**
+
+`cmrr_estimate_db`/`psrr_estimate_db`는 **이상적 대칭**을 가정한 소신호 계산이고,
+`pelgrom_mismatch`는 **그 대칭에서 벗어나는 정도**의 통계적 추정이다 — 둘을 함께 declared
+constraint로 걸면 "이상적 대칭 + 현실적 미스매치"를 커버한다. 레이아웃이 그 대칭을 실제로
+구현하는지(interdigitation/common-centroid/euler)는 이번 재설계에서 **무변경 재사용**하는
+계층(§6.1)의 책임으로 남긴다.
+
+### 7.7 L 변경 규칙 (★ 신설, 2026-09-04 — §7.6의 L 탐색이 레이아웃을 깨지 않게 하는 원칙)
+
+§7.6이 L을 새 탐색 차원으로 열었으므로, "L을 언제/어떻게 바꿔도 되는가"의 규칙이 필요하다.
+아래는 전부 기존 자산에서 근거를 찾아 정리한 것이다(신규 발명 없음).
+
+| 규칙 | 내용 | 근거 |
+|---|---|---|
+| **R1. 누가 바꿀 수 있나** | §13.3의 **5개 구조 신호**로 먼저 판정 — 하나라도 걸리면 L은 파트너와 **강제 일치**(독립 변경 금지), 아무 신호도 안 걸리는 소자만 L 독립 탐색 대상 | `gm-id-methodology.md` §13.3(4개 회로 전수, 반례 0건) |
+| **R2. 매칭 그룹은 전원 동시에** | 매칭은 **동일 기하(unit cell)** 전제로 공정 gradient를 상쇄하는 기법이라, 그룹 중 한 소자만 L이 달라지면 전제가 깨진다 — 바꾸려면 그룹 전원을 같은 값으로 한 번에 | `stick-diagram-euler-layout.md` §2.5("W = N × unit_cell"이 조립 방식의 정의) |
+| **R3. LUT 실측 격자 밖 금지** | `SemiEmpiricalGmIdLUT`는 보간만 하고 외삽은 안 한다 — sky130 sample LUT은 L 앵커 4개(0.15/0.35/0.5/1.0µm) | `lut-generation-checklist.md` §7.7 |
+| **R4. L↑가 항상 이득이 아니다 — 전수 스캔** | M107 실측: L=375nm→4µm에서 `gm·ro`가 **26배 악화**(L↑ → W_bounds와 상호작용해 feasible gm_id가 더 낮게 밀림). gds의 L 의존성은 소자·VDS마다 곡선이 달라 지름길 없음 | `gm-id-methodology.md` §13.7 |
+| **R4b. 이득이 부족하면 L보다 VDS를 먼저 조정한다 ★** | 문헌 실측(45nm 2단 Miller OTA): L=100nm 고정·V_A 상수 가정으로 41.4dB 미달 → **VDS를 축으로 2회 반복**하자 같은 L에서 **61.4dB 달성**(면적 페널티 0). 우리 sky130 LUT 재측정(gm_id=15, ID=5µA): **VDS 0.2→1.2V는 gm/gds를 21.7→93.2(+329%)로 올리면서 W를 1.332→1.126µm(−15%)로 오히려 줄이는 반면, L 0.15→4µm는 gm/gds를 17.8→280.4(+1480%)로 올리는 대가로 W를 0.636→11.9µm(+1770%, 18.7배)** 쓴다 — R5/R6의 레이아웃 재검증 비용이 정확히 이 W 변화량에 비례하므로, **§7.7 자체가 "VDS를 먼저 소진하라"는 근거**다. ⚠️ VDS 조정도 IDu를 통해 W를 ~15% 바꾸므로 R8(수렴 루프 내부 + 커버리지 재확인)은 VDS에도 동일 적용한다 | `gm-id-methodology.md` §9.4/§9.5, 본 세션 LUT 실측(§7.9) |
+| **R5. 직접 영향 — 행 폭** | 행 물리 폭 = `Σ n_fingers × pitch(l)`, `pitch(l)=l+overhead`. L은 행 폭에 **선형으로 직접** 들어가므로 L 변경 시 `check_box_shape()` 재실행이 **필수 게이트**(눈대중 금지) | `stick_diagram.py:6400/6421`, 레이아웃 문서 §8/§8.2 절차 5 |
+| **R6. 간접 영향 — W→n_fingers 연쇄** | L이 바뀌면 같은 (gm_id, ID) 유지를 위해 W가 바뀌고 → `n_fingers` 변화 → 행 길이·interdigitation 패턴·`check_finger_width_compatibility()`(W는 finger_w의 정수배) 전부 재판정 대상 | 레이아웃 문서 §3.5 |
+| **R7. 안 깨지는 것 2가지(정직 명시)** | (a) **오일러 패스는 L과 무관** — `build_graph()`/`check_euler_condition()`은 net-connectivity 그래프라 `l`을 안 본다(구조적 하드 게이트는 kind 동질성뿐). (b) **같은 물리 행 안에서 `l`은 달라도 되지만 `finger_w`는 반드시 같아야 한다** — `compute_row_geometry()`가 한 행 안의 서로 다른 `l`을 각자 pitch로 계산하도록 명시 설계됨("Euler trail로 여러 소자가 한 diffusion strip에 섞이는 게 정상 동작"), 반면 `finger_w`가 행 안에서 다르면 물리적으로 불가능해 `ValueError`. **단 그 행의 소자들이 매칭 그룹이면 R1/R2가 우선해 L도 일치시켜야 한다.** | 사고11(2축 분리), `stick_diagram.py:6421` docstring |
+| **R8. 수렴 루프 "안"에서만 바꾼다** | L 변경 → 사이징 재계산(gm_id/W) → finger 재배분 → §3.5/§8 게이트 재실행 → §7.5 물리 정합성 검증. §7.6의 L 탐색은 §8.4 수렴 루프 **밖에서 따로 돌리면 안 되고 루프 안에** 들어가야 하며, 반복 재배치가 소자를 조용히 잃을 수 있으므로(사고16: 51소자 중 3개 소실) 매 반복 커버리지 재확인 게이트를 함께 돈다 | 사고16, §8.4 |
+
+> **⚠️ branch(전기적)와 row(물리적)를 혼동하지 말 것(R7 관련 실제 질의로 명확화, 2026-09-04)**:
+> 하나의 `vertical_stack_id`(=branch, 전기적 VDD~GND 컬럼)에 PMOS와 NMOS가 섞이는 건 **정상**
+> 이고(class-AB 출력단의 정의 자체), 그 둘이 **서로 다른 L을 쓰는 것도 이미 정상 동작**이다 —
+> 파일럿 회로 실측: `output_stage_a`의 M15(pmos, L=0.150µm)와 M16(nmos, L=0.830µm)로 5.5배
+> 차이. 이게 가능한 이유는 R7 때문이 아니라 사고11의 **2축 분리**(`derive_horizontal_stack_
+> groups()`가 전기적 그룹을 kind로 먼저 쪼개 `__pmos`/`__nmos` 행을 따로 만든다) 때문이다 —
+> PMOS와 NMOS는 애초에 같은 물리 행에 못 들어간다. R7 (b)가 말하는 건 **같은 행(당연히 같은
+> kind) 안에서** `l`이 달라도 되는가에 대한 훨씬 좁은 얘기다.
+
+---
+
+### 7.8 DOF 사전 진단 — 목표 개수 대비 자유도가 충분한가 (★ 신설, 2026-09-07)
+
+**왜 필요한가**: §7.2/§7.6/§7.7은 "어느 자유도가 어느 목표를 담당하는가"를 암묵적으로 전제한다.
+그 전제(아래 직교 분해)가 성립하면 gain 배분과 compensation을 **반복 없이 1-pass로** 풀 수
+있지만, 회로 구조(KCL 결합)에 따라 전제가 깨질 수 있다. 사고19가 겪은 게 정확히 이것 —
+상호참조로 풀릴 것 같던 관계가 실제로는 대수적으로 underdetermined였고, **손으로 직접 대입
+검산해서야** 확인됐다(그 전까지는 "착시적 통과"와 "순환 데드락"을 오갔다). 그 검산을 사이징
+시작 **전에** 자동으로 한 번 하는 것이 이 절의 목적이다.
+
+**직교 분해 전제(§7.2/§7.6이 의존하는 것)** — 이게 성립하면 반복이 원리적으로 불필요하다:
+
+| 목표 | 담당 자유도 | 성립 근거 |
+|---|---|---|
+| `stages[].gain_budget_db` | `gm_id`, `L`, **`VDS`** | intrinsic gain = `gm_id × V_A(L, VDS)` — **ID에 1차적으로 무관**. ⚠️ **2026-09-07 보정**: 초안은 `V_A(L)`로 적어 **VDS 축을 누락**했다 — `V_A`는 VDS의 강한 함수이고(§9.4, CLM+DIBL로 비단조), VDS는 KVL로 묶인 **제로섬 공유자원**이라 stage 간 결합을 만든다. 이 결합을 다루는 게 §7.9다 |
+| `compensation.targets.GBW_hz` | stage별 **ID 스케일** | `gm = gm_id × ID` — gm_id를 안 건드리고 gm만 스케일 |
+| `compensation.targets.PM_target_deg` | `Cc` (`Rz=1/gm2`는 종속) | |
+| `stages[].driving_spec`(slew/settling) | 출력단 ID 하한 | `max(KCL ID, SR×CL)`(§7.2) |
+| `global_spec.constraints`(cmrr/psrr/mismatch) | cascode/load/tail의 `L_combo` | §7.6 |
+
+파일럿 회로 실측으로 이 전제가 실제로 성립함을 확인: stage1 ID=4.626µA / stage2 ID=24.702µA
+(**비율 5.34가 바이어스 미러비로 조정 가능** — 옛 스키마의 `r_tail_M6`/`K_replica`류가 그
+노브였다), gm_id는 stage1 22/15, stage2 10/17.5로 각자 독립. 즉 이 회로는 목표 수와 자유도
+수가 맞아 **over-constrained가 아니다.**
+
+**진단 알고리즘**:
+
+```
+diagnose_sizing_dof(sizing_spec, topology) -> DofReport:
+  1. 목표 수집: stages[].gain_budget_db / global_spec.constraints /
+     compensation.targets / stages[].driving_spec
+  2. 자유도 수집(스키마 + connectivity만 보고, 사이징 계산 없이):
+     - gm_id: stage별 input 소자 수. 단 matching_pairs/gm_id_match_vgs_of로 묶인 소자는
+       1개로 축약(사고21의 primitive가 선언한 강제 동일 관계를 그대로 인정).
+     - ID 스케일: A엔진(propagate_topology_forced_currents)의 KCL 그래프에서 **실제로
+       독립적으로 정할 수 있는 root current 개수** -- 여기가 핵심 판정. 두 stage의 ID가
+       KCL로 강제 동일(또는 고정비)이면 자유도 2개가 아니라 1개로 합산한다.
+     - L: R1(§13.3 5개 신호)로 "독립 변경 가능"으로 판정된 소자 그룹 수(§7.7).
+     - Cc: compensation.solves_for 중 종속 항목(Rz=1/gm2) 제외한 개수.
+  3. 목표별 담당 자유도 대조 -> 부족하면 **어느 목표끼리 같은 자유도를 놓고 다투는지**
+     구체적으로 명시. 예:
+       "GBW와 PM이 둘 다 hard target인데 이 회로는 stage1/stage2의 ID가 KCL로 고정비라
+        실질 자유도가 Cc 하나뿐이다(1 DOF vs 2 target)."
+  4. 반환: status = "ok" | "underdetermined"(자유도가 남음 -- 최적화 여지 있음, 실패 아님)
+     | "overconstrained"(자유도 부족 -- 목표 충돌, 아래 대응 필요)
+```
+
+**언제 실행하나**: Stage 1 `author_topology_spec()`의 **마지막 단계**(§8.3에 반영) — 즉
+`sizing_spec.json`이 완성된 직후, 사이징을 **시작하기 전**. 스키마와 connectivity만 보므로
+LUT 조회/그리드서치 비용이 없다.
+
+**`overconstrained`일 때 무엇을 하나 — 조용히 iterate하지 않는다**: 사고19의 "착시적 수렴/
+순환 데드락" 재발 방지가 이 판정의 존재 이유다. 명시적으로 보고하고 사용자/AI가 셋 중 하나를
+고른다:
+1. `gain_allocation.method="search"`로 배분을 자유화(§7.6(4)의 조건부 피드백이 이때 발동)
+2. 목표 하나를 완화(예: PM을 hard target 대신 범위 제약으로)
+3. 회로 구조 자체를 바꿔 DOF를 늘림(예: stage2 전류를 독립 제어하는 미러 추가) — 이건
+   topology 변경이므로 Stage 1로 되돌아가는 일이다
+
+**제한적 반복(iteration)은 이 조건에서만 허용**: `DofReport.status == "ok"`인데도 §7.6의
+L_combo가 전부 실패하는 경우 — 즉 **자유도는 충분한데 실제 수치가 안 맞는 경우**에만 §7.6(4)의
+gain 배분 재탐색이 발동한다. `overconstrained`면 반복을 **아예 시작하지 않는다**(돌려봐야
+수렴할 수 없다는 게 이미 대수적으로 확정된 상황 — 사고19가 두 leftover 공식을 서로 대입해
+항등식 `b=b`만 나옴을 증명한 것과 같은 종류).
+
+**기생 커패시턴스 반복은 별개(그대로 유지)**: W가 정해져야 `Cgg`/`CJD`를 알고 그게 pole을
+옮겨 PM에 영향을 준다 — 이 소규모 고정점 반복은 기존 `converge_with_parasitics()`(방법론
+§4.2, 3~4회)가 이미 담당하며 이번 재설계에서 **무변경 재사용**한다. DOF 진단과 무관한 축이다.
+
+**신규 함수**: `diagnose_sizing_dof(sizing_spec, topology) -> DofReport` (§2 In Scope/§8.3에 반영).
+
+---
+
+### 7.9 헤드룸(VDD) 자원배분 — "배분"의 진짜 대상 (★ 신설, 2026-09-07)
+
+**출발점(사용자 지적)**: "stage별로 물리적으로 가능한 gain 상한이 있는 것은 분명하다."
+맞다 — 그리고 그 상한 `A_i,max`가 무엇으로 정해지는지 따져보면 **배분해야 할 자원이 gain이
+아니라 VDD 헤드룸**임이 드러난다.
+
+**`A_i,max`를 정하는 5가지 요소** (`A_i,max = max over (gm_id, L, VDS) of [gm/gds]`):
+
+| # | 제약 | 성격 |
+|---|---|---|
+| ① | `gm/ID ≤ 1/(n·U_T)` — 300K에서 **≈32.7 V⁻¹**(250K 39.7 / 350K 27.6) | 물리 상수 |
+| ② | `W = L·ID/IDu(gm_id,L,VDS) ≤ W_max` — gm_id↑ 시 IDu 급감으로 W 폭발 | 제조 제약 |
+| ③ | `L ∈` LUT 실측 격자(§7.7 R3), **비단조**(§13.7) | 데이터/면적 제약 |
+| ④ | **`VDS ≤` 그 소자에 배분된 헤드룸 예산** — `V_A(L,VDS)` 상한을 정함, **비단조**(§9.4) | ← **유일한 설계 자유도** |
+| ⑤ | 캐스코드 부스트 `(gm/gds)_cas` | topology 고정 |
+
+①②③⑤는 물리·제조·데이터·topology가 정하고, **④(VDS 예산)만 우리가 배분한다.**
+
+**숨어 있던 순환 의존성**:
+
+```
+A_i,max  <-  VDS 예산_i  <-  헤드룸 배분(VDD 나누기)
+   |                                    ^
+   v                                    |
+gain 배분  ->  gm_id  ->  VDS 실제 확정(§7.3)  ->  달성 gain 측정  ---+
+```
+
+VDS 예산을 정하려면 gain 기여도를 알아야 하고, gain을 알려면 VDS를 알아야 한다. §7.8의 직교
+분해가 `V_A`의 VDS 축을 누락했기 때문에 이 순환이 보이지 않았다(§7.8 표 보정 완료).
+
+**순환을 끊는 구조 — 사고21의 Phase 분리 + 문헌의 2회 반복(§9.4)**:
+
+```
+Phase 1 (DC 자원배분): VDD 헤드룸을 stack/소자에 초기 배분
+    하한(강제): 출력 swing 스펙, diode-connected Vgs=Vds(§7.3), 포화 유지 Vdsat
+    여유분 배분: 초기 seed 규칙  <- equal-margin(각 stage가 자기 상한 대비 동일 여유율)이
+                 여기 자리잡는다. **최종값이 아니라 첫 반복의 출발점**이므로 임의성 부담이 없다.
+Phase 2 (AC 사이징):   그 VDS 예산 하에서 A_i,max를 LUT로 실측(위 ①~⑤ 전부 반영)
+    Sum(A_i,max) < gain_target  ->  Phase 1로 즉시 피드백(이 예산으론 물리적으로 불가능)
+    충분하면 root current 1-D 단조 해찾기로 gain 배분을 **유도**(별도 배분 규칙 불필요)
+    ->  gm_id/L/W 확정
+Phase 3 (검증+피드백): §7.3 헤드룸 실제 확정 + §7.5 물리 정합성 검증
+    달성 gain < 목표  ->  `dA_i/dVDS_j`를 LUT로 실측해 "1V가 가장 많은 dB를 만드는 소자"에게
+    헤드룸 재배분  ->  Phase 2 재실행 (문헌 실측: 2회로 41.4dB -> 61.4dB)
+종료: 수렴, 또는 "swing 하한을 깨지 않고는 목표 불가능"으로 정직한 실패(§1.5)
+```
+
+**비용 순 중첩 루프 — 싼 노브를 안쪽에**:
+
+```
+outer:  레이아웃 수렴 (§8.4, finger/euler 피드백)          <- 가장 비쌈
+  mid:    L_combo 탐색 (§7.6, 면적 오름차순)                <- 비쌈 (W +1770%)
+    inner:  VDS 재배분 <-> gain 달성 (Phase 1<->3, ~2회)     <- 쌈 (W -15%, 제로섬)
+```
+
+이 중첩이 §9.5("L을 늘리기 전에 VDS 반복부터")를 **구조적으로 강제**하고, §7.7 R8("L 변경은
+수렴 루프 안에서만")을 자동으로 만족하며, §7.6의 "면적 오름차순 첫 feasible"도 mid 루프로 그대로
+살아남는다.
+
+**두 노브의 자원 성격이 다르다는 게 핵심**:
+
+| 노브 | gain 효과(실측) | W(레이아웃) 영향(실측) | 자원 성격 | 매칭 제약 |
+|---|---|---|---|---|
+| **VDS** 0.2→1.2V | 21.7 → 93.2 (**+329%**) | 1.332 → 1.126µm (**−15%**, 감소) | **제로섬**(VDD 공유) | 없음(KVL 정합만) |
+| **L** 0.15→4µm | 17.8 → 280.4 (+1480%) | 0.636 → 11.9µm (**+1770%**) | 소자별 독립(면적 지불) | **있음**(R1/R2) |
+
+(sky130 LUT, gm_id=15/ID=5µA 기준 본 세션 실측) — VDS는 "무료지만 총량이 VDD로 고정된"
+제로섬 자원이라 **재배분**이 관건이고, L은 "면적을 지불하면 무제한"이라 **구매 결정**이다.
+무료 자원을 최적 배분한 뒤 부족분만 유료로 사는 순서가 원리적으로 맞다.
+
+**부수 발견 — `min_vds=0.2V` 기본값은 gain 관점에서도 최악의 지점**: VDS 0.2→0.4V만으로
+`gm/gds`가 **21.7→52.2(2.4배)** 뛴다. 즉 오늘 발견한 diode-connected 버그(0.2V 상수 할당)는
+헤드룸 KVL만 깬 게 아니라 **그 소자들의 intrinsic gain을 2배 이상 깎고 있었다**(사고23의
+"vds 여유 0.01V면 사실상 triode"와 같은 맥락) — 이번 재설계의 동기가 하나 더 늘었다.
+
+**⚠️ 미확정(사용자 결정 필요)**: 이 구조에서 `stages[].gain_budget_db`는 Phase 2가 **유도**하는
+값이 되므로, 스키마상 **입력이 아니라 출력(리포트용)으로 격하**하는 게 논리적으로 일관된다
+(문헌 정본 §6.4도 gain을 스펙이 아니라 등고선 contour로 다룬다). 다만 이는 §7.4 원칙 3(사용자
+승인 완료 — "배분 자체는 탐색/사용자 지정으로 남긴다")을 바꾸는 것이라 **이번 개정에서는
+보류**하고, `gain_budget_db`를 입력으로 유지한 채 §7.9를 그 위에 얹는다. 다음 세션에서 결정할 것.
+
+**신규 함수**: `allocate_headroom_budget(stages, vdd, swing_spec) -> dict`(Phase 1),
+`measure_stage_gain_ceiling(stage, vds_budget, luts) -> A_max`(Phase 2 ①~⑤ 실측),
+`redistribute_headroom_by_gain_gradient(ctx) -> dict`(Phase 3, `dA/dVDS` 실측 기반).
+
+---
+
+### 7.10 초기 L 선택 기준 (★ 신설, 2026-09-07 — §7.6 L_combo 탐색의 시작점)
+
+**왜 필요한가**: 현재 엔진은 `_L_ROLE_MULTIPLIERS = {"mirror": 2.5, "bias_replica": 1.2}`
+(×L_min) 고정배수만 갖고 있고, 캐스코드/신호경로는 `select_L_by_role()`이 명시적으로 거부하며
+"theta 탐색이 대신 결정"으로 비워둔 상태다. 코드 주석 자신이 2.5배를 "실무 관례 2~3배의 **중간값**
+(범위 내 대표값)"이라 밝히고 있어 임의성이 남아 있었다. §7.6이 L을 탐색 차원으로 열었으므로
+**그 탐색의 시작점**을 원리적으로 정할 필요가 있다.
+
+**측정 1 — L을 늘릴 때 얻는 것과 잃는 것** (본 세션 sky130 LUT 실측, nmos, gm_id=15, ID=5µA, VDS=0.6V):
+
+| L/L_min | gain배(gm/gds) | 면적배(W·L) | fT배 | mismatch 개선배(√WL) |
+|---|---|---|---|---|
+| 1.0 (0.15µm) | 1.00 | 1.00 | 1.000 | 1.00 |
+| **2.3 (0.35µm)** | **3.91** | **4.29** | 0.288 | 2.07 |
+| 3.3 (0.50µm) | 5.94 | 8.94 | 0.149 | 2.99 |
+| 6.7 (1.0µm) | 8.47 | 34.5 | 0.041 | 5.87 |
+| 26.7 (4.0µm) | 15.80 | **498.8** | **0.003** | 22.33 |
+
+- **gain 수확체감이 극심**: 첫 2.3배 구간이 gain 3.91배를 주는데, 이후 L을 11.6배 더 늘려도 4배만 추가.
+- **fT는 L²에 반비례로 붕괴**(fT=gm/2πCgg, Cgg∝W·L∝L²): 2.3배에서 이미 1/3.5, 6.7배면 1/24
+  → **fT가 L 상한을 정하는 진짜 제약**이다(기생 pole이 GBW를 침범하면 PM이 무너진다).
+- **mismatch 개선은 √(W·L)이라 완만**: 2.3배 → 2.07배.
+
+**측정 2 — 한계효율 knee의 위치** (`Δ(gm/gds)/Δ(W·L)` = 면적 1단위당 얻는 gain):
+
+| | 0.15→0.35 | 0.35→0.50 | 0.50→1.0 | 1.0→1.5 |
+|---|---|---|---|---|
+| nmos gm_id=8 | **406** | 205 | 74 | 13 |
+| nmos gm_id=15 | **165** | 81 | 18 | 5.4 |
+| nmos gm_id=22 | **25.5** | 5.9 | 1.0 | 0.5 |
+| pmos gm_id=15 | **최대** | 25.8 | 17.8 | 3.5 |
+
+**kind와 gm_id를 바꿔도 knee는 항상 `L ≈ 2~3 × L_min`** 구간이다 — 즉 기존 `mirror: 2.5×L_min`
+배수는 "관례의 중간값(임의 선택)"이 아니라 **실측 knee와 일치**함이 사후 검증됐다(근거가 생겼으니
+주석의 "임의 대표값" 표현은 구현 시 이 실측으로 대체할 것).
+
+**원칙 — 초기 L은 knee에서 시작하되 물리 제약으로 clamp한다**:
+
+```
+L_init = knee(kind, gm_id, vds)          # 한계 gain/면적 효율이 최대인 구간의 상단, LUT 실측
+clamp:
+    L <= L_max(fT)     : fT(L) >= N x GBW      (N~5~10, 기생 pole의 GBW 침범 방지)
+    L >= L_min(match)  : sigma_VT = A_VT/sqrt(W*L) <= 목표(§7.6 global_spec.constraints)
+    L in LUT 실측 격자  (§7.7 R3, 외삽 금지)
+role별 방향 편향:
+    cascode(role="gain")        : knee 이상으로 밀어도 됨(ID 고정이라 전력비용 0) -- fT 상한이 우선
+    mirror/matching             : knee + mismatch 하한(면적이 매칭에 직접 기여)
+    속도 임계(GBW 담당 입력단)   : fT 상한이 지배 -> knee보다 작을 수도 있음
+    tail/load(§7.6)             : gds 최소화가 목적 -> CMRR/PSRR을 만족하는 최소 L
+```
+
+**왜 L_min이 아니라 knee에서 시작하나**: §7.6의 L_combo 탐색은 "면적 오름차순 첫 feasible"이므로
+시작점은 원칙적으로 "제약이 허용하는 최소 L"이어야 한다. 그런데 그걸 그냥 `L_min`으로 두면
+gain이 너무 낮아(측정 1: L_min에서 gm/gds=17.75, 약 25dB) 대부분의 조합이 infeasible로 버려져
+탐색이 낭비된다 — **knee에서 시작하는 것이 실용적이며, knee 아래는 fT가 정말 급한 소자에만
+내려간다.**
+
+**§7.7 R4b와의 결합(중요)**: knee에서 시작 → gain이 부족하면 **먼저 VDS 재배분**(§7.9 inner
+루프, W −15%) → 그래도 부족할 때만 L을 knee 위로 올린다(§7.6 mid 루프, W +1770%). 즉 §7.10은
+"어디서 출발하나", §7.7 R4b는 "부족하면 어느 노브부터 쓰나"를 각각 답한다.
+
+**⚠️ 실측으로 찾은 반례 — "면적은 L에 단조 증가"가 아니다**: pmos 일부 구간에서 **L을 늘렸는데
+`W·L`이 오히려 감소**했다(한계효율이 `inf`로 계산됨). `IDu`가 L에 비단조이기 때문이며, §7.7 R4의
+"지름길 없이 전수 스캔" 원칙이 여기서도 확인된다 — knee 탐색도 닫힌 식이 아니라 격자 전수
+스캔으로 구현할 것.
+
+**신규 함수**: `measure_L_knee(lut, kind, gm_id, vds, L_grid) -> float`(측정 2의 한계효율 스캔),
+`L_bounds_from_ft_and_matching(spec, stage) -> (L_lo, L_hi)`(fT 상한/mismatch 하한 계산) —
+둘 다 §7.6의 `L_candidates_product()`가 탐색 범위를 정할 때 호출한다.
 
 ---
 
@@ -390,36 +911,55 @@ topology만 다시 다듬고 싶을 때 `author_topology_spec()`만 재실행) �
 1. netlist 등록/검증(connectivity만, 값 없음) — 기존 `load_topology()`/스키마 검증 재사용
 2. `symmetry.matching_pairs`/`dispositions` 자동탐지 — 기존 analog-grammar idiom 탐지
    (`find_matching_candidates()` 등, `stick_diagram.py`에서 import) 재사용
-3. gain-stage 후보(§1 스키마의 `stages[].devices.{input,cascode,load}`) 자동제안(신규) —
-   사람이 최종 확정
+3. gain-stage 후보(§1 스키마의 `stages[].devices.{input,cascode,load}`) 자동제안(신규 —
+   단, 판정 로직은 신규 발명이 아니라 §1.4의 `gm-id-methodology.md` §13.3(current mirror
+   다리가 ratio-matching인지 gain-stage load인지 판정하는 5개 구조 신호 — 구조 대칭 partner/
+   diffpair branch-load partner/active_load_legs/signal_referenced_mirror_legs, 4개 회로
+   전수 반례 0건으로 검증됨)를 그대로 재사용: 5개 신호 중 하나라도 파트너/레퍼런스-신호
+   관계가 잡히면 `devices.cascode` 또는 그 회로의 기존 matching 소자로, 아무 신호도 안
+   잡히는 소자만 `devices.input`/`devices.load` 자동 후보로 제안) — 사람이 최종 확정
 4. `ideal_sources`/`passive_elements` connectivity 등록
 5. figure-of-merit 스펙(`global_spec`, `stages[].gain_budget_db`, `driving_spec`,
    `gain_allocation_check`) 등록 — 사람이 확정하는 입력을 받아 스키마에 채워넣는 역할
 6. 완성된 `topology.json` + `sizing_spec.json`을 `library/`에 저장
+7. **`diagnose_sizing_dof()` 실행(§7.8)** — 사이징을 시작하기 전에 목표 대비 자유도를
+   대조해 `overconstrained`면 여기서 멈추고 명시 보고(Stage 2로 넘기지 않는다). 스키마와
+   connectivity만 보므로 LUT 조회/탐색 비용 없음
 
 ### 8.4 Stage 2 — `gmid_sizing_engine.py` + `stick_diagram.py` + `sizing_layout_convergence.py`
 
 **파일명 근거**: "sizing_recipe"(도구 모음 느낌) → "gmid_sizing_engine"(gm/ID 방법론을
 결정론적으로 실행하는 엔진이라는 정체성 명시). 기존 `sizing_recipe.py`의 LUT 인터페이스/
-`size_transistor()`/사후검증 metric은 그대로 옮기고, 이번 계획(§2/§3/§4)의 gain-budget-first
-알고리즘(`resolve_stage_sizing()`)과 헤드룸 해석기(`_resolve_device_headroom()`)가 이 파일의
+`size_transistor()`/사후검증 metric/`resolve_feed_vds()`/`_resolve_vertical_group()`은 그대로
+옮기고, 이번 계획(§7.2)의 gain-budget-first 알고리즘(`resolve_stage_sizing()`), diode-connected
+고정점 solver(§7.3의 `_solve_diode_connected_vgs_fixed_point()`), 전체회로 물리 정합성
+검증기(§7.5의 `verify_node_voltage_consistency()`/`cross_check_with_spice()`)가 이 파일의
 핵심부가 된다.
 
 **harness**: `run_sizing_layout_convergence(topology_spec) -> instance_data`
 (`sizing_layout_convergence.py`에 위치, 실제 계산 로직은 갖지 않고 아래 순서로 호출만 한다)
 
-내부 순차 호출(사용자가 명시한 "사이징→레이아웃→피드백→재사이징" 루프):
-1. `gmid_sizing_engine.size_all_stages()` — §2 알고리즘으로 전체 gm_id/L/W 1차 확정
-2. `gmid_sizing_engine.resolve_headroom()` — §3 헤드룸 해석기로 VDS 확정
+내부 순차 호출(사용자가 명시한 "사이징→레이아웃→피드백→재사이징" 루프 + ★신설 물리 정합성
+검증 게이트):
+1. `gmid_sizing_engine.size_all_stages()` — §7.2 알고리즘으로 전체 gm_id/L/W 1차 확정
+   (diode-connected 소자는 §7.3의 고정점 solver로 vds까지 함께 확정)
+2. `gmid_sizing_engine.resolve_headroom()` — 기존 `allocate_stack_headroom()`/
+   `resolve_feed_vds()`/`_resolve_vertical_group()`(무변경 재사용, §7.3)로 나머지 VDS 확정
 3. `stick_diagram.assign_finger_geometry()` — finger/width 배분
 4. `stick_diagram.check_euler_condition()`/`resolve_stack_layout()` — 오일러 패스 레이아웃
    가능성 검증
 5. 4번이 실패하거나 finger 수/width가 바뀌면(레이아웃 제약으로 인한 조정) → 그 변경분을
    1번 사이징 엔진에 피드백(예: W 상한 축소로 gm_id 재탐색) → 2~4 재실행
-6. 수렴(레이아웃 목표 달성 + 사이징 constraint 유지)하면 종료, 최대 반복 초과 시 명시적
-   실패 보고(조용히 타협하지 않음 — 이 프로젝트 §1.5 원칙)
+6. 수렴(레이아웃 목표 달성 + 사이징 constraint 유지)하면 §7.5의 검증 게이트로 진입:
+   `gmid_sizing_engine.verify_node_voltage_consistency(ctx)` 실행(항상, 빠름) — Violation이
+   있으면 **1번으로 돌아가지 않고 즉시 실패 보고**(어느 소자/net에서 KVL/VGS 불일치가
+   났는지 포함) — §1.5 원칙(조용히 타협하지 않음).
+7. 6번을 통과하면(파일럿 회로 최초 검증 시, 또는 `verify_spice=True` 옵션 시)
+   `gmid_sizing_engine.cross_check_with_spice(instance_data)` 실행(느림, sky130 SPICE `.op`
+   1회) — 여기서도 Violation이 있으면 실패 보고. 둘 다 통과해야 최종 성공.
+8. 최대 반복(5번) 초과 시에도 명시적 실패 보고(조용히 타협하지 않음).
 
-`sizing_layout_convergence.py`는 1~6단계를 순서대로 호출하는 얇은 오케스트레이션만 담고,
+`sizing_layout_convergence.py`는 1~8단계를 순서대로 호출하는 얇은 오케스트레이션만 담고,
 실제 계산 로직은 전부 `gmid_sizing_engine.py`/`stick_diagram.py`에 남는다(레이어 분리 원칙
 유지, `run_topology_pipeline_with_finger_fixup()`가 이미 증명한 패턴과 동일).
 
@@ -510,3 +1050,9 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 | 1.0 | 2026-09-04 | 초안 작성 — SPICE 트랜지언트 검증 중 발견한 diode-connected 헤드룸 버그를 계기로 gain-budget-first 근본 재설계안 정리 |
 | 1.1 | 2026-09-04 | §8 추가 — 3단계 실행 파이프라인(topology 수집/gm-ID 사이징+레이아웃 수렴/결과물 산출)을 대표하는 5개 신규 파일 + top-level harness 함수 구조 확정, self-test를 `tests/test_<module>.py`로 분리하는 방침 확정 |
 | 1.2 | 2026-09-04 | `stick_diagram.py`의 기존 인라인 self-test(8980~12923줄)도 `tests/test_stick_diagram.py`로 이관하는 것으로 §8.2/§8.8/Next Steps 수정(처음엔 재구조화 범위 밖으로 뒀으나 사용자 지시로 포함) |
+| 2.0 | 2026-09-04 | `.ai/context.md` 세션6~44 전체 자산화(사고1~24, gm-id-methodology.md §13) 결과를 반영 — §1.4 신설(이 재설계가 세션38의 미완성 DC/AC Phase1/Phase2 아키텍처를 완성하는 작업임을 확인), §7.2(cascode/load 목적함수 구분 — gm/gds 최대화 vs gds 최소화, §13.7 반영), §7.3(전면 교체 설계를 취소하고 기존 `resolve_feed_vds()`/`_resolve_vertical_group()` 우선순위 체인·fixed-point worklist를 재사용하는 최소침습 설계로 개정, 신규 함수를 `_solve_diode_connected_vgs_fixed_point()` 하나로 축소), §8.3(gain-stage 자동분류에 5개 구조 신호 재사용 명시), §5(사고16 레이아웃 피드백 루프 위험 추가), §6.1/§1.3(Changed/Related Documents 갱신) |
+| 2.1 | 2026-09-04 | 사용자 지적("각 소자의 전압/전류 관계가 물리적으로 맞는지 검증돼야 한다 — 이게 재설계 이유")을 반영해 §3.1에 요구사항 6(전체회로 물리 정합성 검증, ★최우선) 신설, §7.5 신설(`verify_node_voltage_consistency()`/`cross_check_with_spice()` — diode-connected만이 아니라 모든 소자의 KVL/KCL/VGS를 노드전압 재구성+SPICE 독립 교차검증으로 상시 검증하는 파이프라인 게이트, 이번 세션 diode-connected 버그를 실제로 찾아낸 방법론을 공식 함수로 승격), §8.4 harness 순서에 이 검증을 6~7단계로 삽입, §2.1/§4.1/Context Anchor SUCCESS/Executive Summary Solution을 이 요구사항이 diode-connected 수정을 포함하는 상위 목표임을 드러내도록 갱신 |
+| 2.2 | 2026-09-04 | §7.6 신설(CMRR/PSRR/mismatch 결합 — `devices.tail` 서브롤 + `global_spec.constraints` 전역 선언 + cascode/load/tail의 L을 면적 오름차순으로 전수 스캔하는 outer-loop에 §13.5 `extra_feasible` 콜백 합성 재사용, gain→gm_id 역산의 결정론성은 각 L_combo 안에서 그대로 유지), §7.7 신설(L 변경 규칙 R1~R8 — 전기적 판정(§13.3 5신호)→LUT 격자(§7.7 자산)→전수 스캔 필요성(§13.7 M107 26배 악화)→행 폭 직접영향(`pitch(l)`)/W→n_fingers 간접영향→오일러·finger_w와의 직교성→수렴 루프 내부 실행), §7.1 스키마에 `devices.tail`/`global_spec.constraints` 반영, §2.1에 신규 함수 2개 추가. R7은 사용자 질의로 "branch(전기적, PMOS/NMOS 혼재 정상·L 상이 정상)와 row(물리적, kind 동질·finger_w 균일 강제)의 2축 구분"을 명시하도록 정정(파일럿 실측 M15 L=0.150µm vs M16 L=0.830µm 인용) |
+| 2.3 | 2026-09-07 | "stage별 gain 배분과 compensation을 iterative하게 최적화할 필요가 있나"라는 사용자 질의에 대한 결론을 §7.8로 반영 — gm_id⊥ID 직교성(intrinsic gain=gm_id×V_A(L)은 ID에 무관, gm=gm_id×ID)으로 gain 배분과 compensation이 서로 다른 변수를 건드리므로 **전면 반복은 원리적으로 불필요**함을 파일럿 실측(stage1 4.626µA/stage2 24.702µA, 비율 5.34가 미러비로 조정 가능)으로 확인. 대신 `diagnose_sizing_dof()` 사전 진단을 신설해 목표 대비 자유도를 Stage 1 마지막에 판정하고, `overconstrained`면 반복을 아예 시작하지 않고 어느 목표끼리 충돌하는지 명시 보고(사고19의 착시적 수렴/순환 데드락 재발 방지). 제한적 반복은 `status=="ok"`인데 §7.6 L_combo가 실패할 때만 발동, 기생 커패시턴스 반복(`converge_with_parasitics()`)은 별개 축으로 무변경 유지 |
+| 2.4 | 2026-09-07 | "stage별 물리적 gain 상한이 분명히 있다"는 사용자 지적을 파고들어 **배분의 진짜 대상이 gain이 아니라 VDD 헤드룸**임을 확인하고 §7.9 신설 — A_i,max를 정하는 5요소 중 VDS 예산만이 설계 자유도이고, 이 때문에 숨은 순환(A_max←VDS예산←헤드룸배분 / gain배분→gm_id→VDS확정→달성gain)이 존재함을 도출. 사고21 Phase 분리 + 문헌 §9.4의 'VDS 2회 반복'(45nm 실측 41.4→61.4dB, 면적 페널티 0)으로 순환을 끊는 3-Phase 구조와 **비용 순 중첩 루프**(outer 레이아웃 / mid L_combo / inner VDS) 확정. 근거로 sky130 LUT 직접 실측(VDS 0.2→1.2V: gain +329%/W −15% vs L 0.15→4µm: gain +1480%/W +1770%)을 §7.7 R4b로 추가하고, §7.8 직교분해 표의 V_A 축 누락(V_A(L)→V_A(L,VDS))을 보정. 부수 발견: min_vds=0.2V 기본값이 gm/gds를 2.4배 깎는 최악 지점. equal-margin은 폐기가 아니라 Phase 1 초기 seed로 이동. gain_budget_db 입력→출력 격하는 §7.4 원칙3 변경이라 보류(미확정 표기) |
+| 2.5 | 2026-09-07 | §7.10 신설(초기 L 선택 기준) — sky130 LUT 직접 실측으로 (a) L 증가의 gain 수확체감(첫 2.3배가 3.91배를 주고 이후 11.6배 더 늘려도 4배만 추가), (b) fT의 L² 반비례 붕괴(2.3배에서 1/3.5, 6.7배에서 1/24)가 L 상한의 진짜 제약임, (c) 한계효율 knee가 kind/gm_id와 무관하게 항상 L≈2~3×L_min임을 확인 — 기존 `_L_ROLE_MULTIPLIERS`의 `mirror: 2.5×`가 '관례의 임의 중간값'이 아니라 실측 knee와 일치함이 사후 검증됨. 초기 L = knee에서 시작하되 fT 상한/mismatch 하한/LUT 격자로 clamp하고 role별로 방향 편향. 부수 반례: pmos 일부 구간에서 L↑인데 W·L↓(IDu 비단조) — '면적은 L에 단조'라는 가정이 깨지므로 knee 탐색도 전수 스캔으로 구현할 것 |
