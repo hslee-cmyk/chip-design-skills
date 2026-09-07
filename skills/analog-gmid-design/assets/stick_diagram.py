@@ -175,7 +175,7 @@ def interdigitate_layout(transistors: list, base: str | None = None, repeat: int
         raise ValueError("최소 1개 소자가 필요하다")
     hub_nets = {t.source for t in transistors}
     if len(hub_nets) != 1:
-        raise ValueError(f"모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: {hub_nets}")
+        raise ValueError(f"모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: {sorted(hub_nets)}")
     hub_net = next(iter(hub_nets))
     names = [t.name for t in transistors]
     if len(set(names)) != len(names):
@@ -482,7 +482,7 @@ def common_centroid_layout(transistors: list, n_rows: int | None = None,
         raise ValueError(f"최소 2개 소자가 필요하다(n={len(transistors)})")
     hub_nets = {t.source for t in transistors}
     if len(hub_nets) != 1:
-        raise ValueError(f"모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: {hub_nets}")
+        raise ValueError(f"모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: {sorted(hub_nets)}")
     hub_net = next(iter(hub_nets))
     names = [t.name for t in transistors]
     if len(set(names)) != len(names):
@@ -939,6 +939,17 @@ def _common_centroid_nway_search(names: list, leaf_of: dict, hub_net, counts: di
 #        한다"는 사실을 사람이 기억해야 하는 구조였으므로, 공용 헬퍼로 뽑아 양쪽이 호출하게
 #        한다 — 동작은 기존과 동일(순수 리팩터), 앞으로 이 검사를 고치면 한 곳만 고치면 된다.
 # ---------------------------------------------------------------------------
+
+def _sorted_setmap(mapping) -> dict:
+    """`{key: set}` 형태를 **결정론적으로** 렌더링한다(키 정렬 + 값 정렬 리스트).
+
+    2026-09-07 신설. set/frozenset을 f-string에 그대로 넣으면 파이썬의 문자열 해시 랜덤화
+    때문에 **같은 입력에서도 실행마다 원소 순서가 달라진다** -- 실제로 이 파일의 self-test
+    출력 7줄이 실행마다 흔들려 "이관 전/후 stdout diff"를 회귀 판정 단위로 쓸 수 없었다
+    (계획 문서 §8.8이 요구하는 대조 방식). 판정 로직은 전부 순서 무관(`len()==0`/`==`/`in`)
+    이었으므로 **표시만** 결정론화한 것이고 동작은 바뀌지 않는다."""
+    return {k: sorted(mapping[k]) for k in sorted(mapping)}
+
 
 def _scan_case_collisions(net_names) -> dict:
     """net 이름들(순회 가능한 문자열 iterable)을 대소문자 무시하고 그룹핑해, 표기가
@@ -5828,7 +5839,7 @@ def find_min_crossover_layout(transistors: list, matching_pairs: list | None = N
     if matching_pairs is None:
         hub_nets = {t.source for t in transistors}
         if len(hub_nets) != 1:
-            raise ValueError(f"모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: {hub_nets}")
+            raise ValueError(f"모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: {sorted(hub_nets)}")
         drains = [t.drain for t in transistors]
         if len(set(drains)) != len(drains):
             raise ValueError(f"모든 소자의 drain(leaf)이 서로 달라야 한다: {drains}")
@@ -7017,7 +7028,7 @@ def run_full_circuit_audit(devices: dict, expected_counts: dict, dispositions: d
     all_nets = (net for name, (kind, s, d, g, block) in devices.items() for net in (s, d, g))
     bad = _scan_case_collisions(all_nets)
     result.add("2. net-name case consistency", len(bad) == 0,
-               f"case collisions: {bad}" if bad else "all net names already single-case")
+               f"case collisions: {_sorted_setmap(bad)}" if bad else "all net names already single-case")
 
     # 3) 전체 목록 기준 매칭/hub-merge 후보 전수 판정 대조
     trs = [Transistor(name, kind, source=s, drain=d, gate=g, n_fingers=1)
@@ -9041,7 +9052,8 @@ if __name__ == "__main__":
         print(render_stick_diagram(res))
         got_odd = set(res.odd_nodes)
         want_odd = expected_odd_nodes[stack_id]
-        print(f"  홀수차수 노드={got_odd or '{}'}, pptx 정답 기준 기대값={want_odd or '{}'} "
+        print(f"  홀수차수 노드={sorted(got_odd) or '{}'}, "
+              f"pptx 정답 기준 기대값={sorted(want_odd) or '{}'} "
               f"-> {'일치' if got_odd == want_odd else '불일치'}")
 
     print()
@@ -9171,7 +9183,7 @@ if __name__ == "__main__":
     print("=== Test 8: 2-Stage OTA(PDF p.28~p.33) 실제 넷리스트 — 3개 stack 전부 닫힌 회로 확인 ===")
     for stack_id, res in build_stick_diagram(two_stage_ota_example()).items():
         print(render_stick_diagram(res))
-        print(f"  홀수차수 노드={set(res.odd_nodes) or '{}'} -> "
+        print(f"  홀수차수 노드={sorted(set(res.odd_nodes)) or '{}'} -> "
               f"{'닫힌 회로(기대대로)' if not res.odd_nodes else '경로(예상과 다름)'}")
 
     print()
@@ -10379,7 +10391,7 @@ if __name__ == "__main__":
     ]
     v_case = check_symmetry_dispositions(vsd_case_trs, matching_pairs=[])
     print(f"  ok={v_case.ok} (대소문자 차이가 있으니 FAIL이어야 정상)")
-    print(f"  case_collisions={v_case.case_collisions}")
+    print(f"  case_collisions={_sorted_setmap(v_case.case_collisions)}")
     assert not v_case.ok and v_case.case_collisions, \
         "대소문자 불일치(사고9와 동일 패턴)를 잡아내지 못했다"
 
@@ -11217,7 +11229,7 @@ if __name__ == "__main__":
     _old_mirror_sets = {frozenset(t.name for t in g) for g in _old_mirror["current_mirror"].values()}
     assert frozenset({"M57", "M58"}) in _old_mirror_sets, \
         "옛 동작(gate만 봄)이 M57/M58을 current_mirror로 잡는지부터 재현 안 됨 -- fixture 확인 필요"
-    print(f"    옛 동작(재현): {[sorted(s) for s in _old_mirror_sets]} -- M57/M58 오탐 포함 확인")
+    print(f"    옛 동작(재현): {sorted(sorted(s) for s in _old_mirror_sets)} -- M57/M58 오탐 포함 확인")
 
     _mirror_matches = find_idiom_matches(_mirror_fixture)
     _new_mirror = find_matching_candidates(_mirror_fixture, idiom_matches=_mirror_matches)

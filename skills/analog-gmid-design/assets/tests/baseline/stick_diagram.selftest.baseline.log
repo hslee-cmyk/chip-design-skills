@@ -1,0 +1,1257 @@
+=== Test 1a: pptx slide 2의 원본 연결 그래프 (finger 1개씩, node 1-2-3-4 체인) ===
+stack row (path):
+1  2   3   4 
+   M1  M2  M3
+  (odd_nodes=['1', '4'] — 홀수차수 노드가 정확히 2개(1, 4)라 open path여야 함)
+
+=== Test 1b: 실제 finger 수(M1=4, M2=2, M3=4)를 반영하면 모든 노드가 짝수차수 → 닫힌 회로 ===
+stack row (circuit):
+1  2   1   2   3   4   3   4   3   2   1 
+   M1  M1  M1  M2  M3  M3  M3  M3  M2  M1
+  (odd_nodes=[] — 비어있으면 closed circuit, start=end)
+
+=== Test 2: 홀수차수 노드 4개인 예(한붓그리기 불가능 + 조정 후보 확인) ===
+stack row2: 한붓그리기 불가능(홀수차수 노드 4개: ['a', 'b', 'e', 'f'], connected=True)
+조정 후보(상위 5개, 반드시 §5 체크리스트로 재검증 후 채택):
+  MA fingers+1 → 차수 개선: 홀수 노드 4개 → 2개
+  ME fingers+1 → 차수 개선: 홀수 노드 4개 → 2개
+  MX fingers+1 → 차수 개선: 홀수 노드 4개 → 2개
+  MB fingers+1 → 총 홀수 노드 수는 그대로(불균형이 다른 노드로 이동)
+  MD fingers+1 → 총 홀수 노드 수는 그대로(불균형이 다른 노드로 이동)
+
+=== Test 3: 극성이 다르면 자동으로 별도 stack으로 분리되는지 확인 ===
+  자동 분할된 stack 수: 2 (기대: 2 — pmos 1개, nmos 1개)
+stack ('pmos', 5.0) (circuit):
+vdd   x   vdd   x   vdd
+     MP2  MP1  MP2  MP1
+stack ('nmos', 3.0) (circuit):
+gnd   y   gnd   y   gnd
+     MN2  MN1  MN2  MN1
+
+=== Test 4: Folded Cascode(PDF p.34~p.38) 실제 넷리스트 — pptx 원본 정답과 대조 ===
+stack top (path):
+X  outA  X   outA  X   vdd  Y   outB  Y   outB  Y   outB  Y   vdd  X   outA  X   vdd  tail  vdd  Y 
+    M5   M5   M5   M5   M3  M4   M6   M6   M6   M6   M6   M6   M4  M3   M5   M5   M3   MP    MP  M4
+  홀수차수 노드=['X', 'Y'], pptx 정답 기준 기대값=['X', 'Y'] -> 일치
+stack mid (circuit):
+X  tail  Y   tail  X   tail  Y   tail  X   tail  Y   tail  X   tail  Y   tail  X   tail  Y   tail  X 
+    M1   M2   M2   M1   M1   M2   M2   M1   M1   M2   M2   M1   M1   M2   M2   M1   M1   M2   M2   M1
+  홀수차수 노드={}, pptx 정답 기준 기대값={} -> 일치
+stack bot (path):
+outA  X   outA  X   gnd   Y   outB  Y   outB  Y   gnd  vb2  gnd  vb1  gnd  X   outA  X   gnd   Y   outB
+      M7   M7   M7   M9  M10   M8   M8   M8   M8  M10   MN   MN  M11  M11  M9   M7   M7   M9  M10   M8 
+  홀수차수 노드=['outA', 'outB'], pptx 정답 기준 기대값=['outA', 'outB'] -> 일치
+
+=== Test 5: PDF p.14 'Axis of Symmetries' — folded cascode top 행의 실제 대칭성 검증 ===
+  원본 시퀀스: 555555344PP334666666
+  축대칭(5<->6, 3<->4, P<->P) 만족: True
+  왼쪽 절반만으로 재구성: 555555344PP334666666 -> 원본과 일치: True
+
+=== Test 5.5: mirror_symmetric_trail() — 세션11 L3(D), 실제 회로 2개로 교차검증 ===
+  [사례1: folded_cascode top row — MP(self-pair,2f)/M3-M4(3f)/M5-M6(6f)]
+  성공: True
+  전체 그래프에서 유효한 walk: True (finger_count_mismatch={})
+  거울대칭 만족: True
+  구성된 시퀀스: ['M5', 'M5', 'M5', 'M5', 'M3', 'M3', 'M5', 'M5', 'M3', 'MP', 'MP', 'M4', 'M6', 'M6', 'M4', 'M4', 'M6', 'M6', 'M6', 'M6']
+  [사례2: current_reuse_telescopic_ota 그룹 M8 — M8/M17, M9a/M18a(둘 다 1:1, self-pair 없음)]
+  성공: True
+  전체 그래프에서 유효한 walk: True (finger_count_mismatch={})
+  거울대칭 만족: True
+  구성된 시퀀스: ['M9a', 'M8', 'M17', 'M18a'] (손 검증한 [M9a,M8,M17,M18a]와 일치: True)
+  [사례3(음성 대조): build_stick_diagram()에 matching_pairs를 안 주면 기존 동작과 완전히 동일해야 함]
+  matching_pairs=None -> method=graph vs graph (둘 다 'graph'여야 하위호환): True
+  시퀀스도 완전히 동일: True
+
+=== Test 5.6: suggest_pair_finger_adjustments() + mirror_symmetric_trail() 다리 지원
+    — 세션12, current_reuse_telescopic_ota M3a 그룹(11소자) 실측 재현 ===
+  [1. 조정 전: build_graph()+check_euler_condition() 그대로면 홀수차수 6개(다중 trail 필요)]
+  홀수차수 노드: ['Vbias3', 'Vg15', 'Vg25', 'Vom1', 'Vop1', 'gnd'] (6개)
+  [2. suggest_pair_finger_adjustments() — 매칭쌍 단위 제안 1순위가 M9b/M18b 동시 +1인지]
+  1순위 제안: PairAdjustmentSuggestion(names=('M18b', 'M9b'), delta_fingers=1, resulting_odd_count=2, note='차수 개선: 홀수 노드 6개 → 2개')
+  M9b/M18b 쌍을 +1 -> 홀수 6->2개로 최대 개선: True
+  [3. 조정 후: mirror_symmetric_trail()이 대표 조합 탐색 + 홀수 self-pair 다리로 11소자 전체를 구성하는지]
+  성공: True
+  전체 그래프에서 유효한 walk: True (finger_count_mismatch={})
+  총 finger 수: 13 (기대: 13)
+  구성된 시퀀스: ['M64', 'M63', 'M5', 'M19', 'M18b', 'M18b', 'M3a', 'M4a', 'M4b', 'M3b', 'M9b', 'M9b', 'M10']
+  [4(회귀 대조). 조정 없이 원본 그대로면 여전히 None(폴백)이어야 함 -- 다리만으로는 안 풀림]
+  성공: None (None이어야 정상 -- 핑거조정과 다리 지원 둘 다 있어야 풀림)
+
+=== Test 6: matching 그룹 자동 탐지 — folded cascode 넷리스트에서 전류거울/차동쌍 추출 ===
+  current_mirror 후보:
+    gate=bias2(pmos): ['M3', 'M4']
+    gate=bias3(pmos): ['M5', 'M6']
+    gate=bias5(nmos): ['M9', 'M10']
+    gate=bias4(nmos): ['M7', 'M8']
+  diff_pair 후보:
+    source=tail(pmos): ['M1', 'M2']
+  기대한 4개 전류거울/캐스코드쌍과 일치: True
+  차동쌍 M1/M2 탐지: True
+
+=== Test 7: unit cell 사이징 후보 탐색 — nominal W 근방에서 정수배 후보 생성 ===
+  unit_w=8.0um x 5 = 40.0um (상대오차 8.1%)
+  unit_w=10.0um x 4 = 40.0um (상대오차 8.1%)
+  unit_w=8.0um x 4 = 32.0um (상대오차 13.5%)
+
+=== Test 8: 2-Stage OTA(PDF p.28~p.33) 실제 넷리스트 — 3개 stack 전부 닫힌 회로 확인 ===
+stack top (circuit):
+D3  vdd  OUT  vdd  OUT  vdd  OUT  vdd  OUT  vdd  O1  vdd  D3
+     M3   M6   M6   M6   M6   M6   M6   M6   M6  M4   M4  M3
+  홀수차수 노드={} -> 닫힌 회로(기대대로)
+stack mid (circuit):
+CS  O1  CS  D3  CS  O1  CS  D3  CS  O1  CS  D3  CS
+    M2  M2  M1  M1  M2  M2  M1  M1  M2  M2  M1  M1
+  홀수차수 노드={} -> 닫힌 회로(기대대로)
+stack bot (circuit):
+CS  gnd  OUT  gnd  OUT  gnd  OUT  gnd  CS  gnd  OUT  gnd  CS
+     M5   M7   M7   M7   M7   M7   M7  M5   M5   M7   M7  M5
+  홀수차수 노드={} -> 닫힌 회로(기대대로)
+
+=== Test 9: 홀수 개수 매칭쌍의 교차 대칭 배치 — folded cascode M9/M10(각 3개) 실제 사례 ===
+  원본 시퀀스 전체 축대칭: True
+  M9/M10(각 3개) 가능한 대칭 분할 후보: [(1, 2, 2, 1), (2, 1, 1, 2), (0, 3, 3, 0), (3, 0, 0, 3)]
+  실제 pptx가 채택한 분할(M9좌,M9우,M10좌,M10우): (1, 2, 2, 1) -> 후보 목록에 포함: True
+  '최대한 섞는다' 원칙에 따른 1순위(최선) 추천: (1, 2, 2, 1) -> 실제 채택값과 일치: True
+
+=== Test 10: §8 box-shape 탐색 — Intrinsic Gain Stage 예제(N=15um 1소자 vs P=80+80um 2소자) ===
+  기존 방식(두 stack 모두 finger_w=5um 고정): nstack=3개, pstack=32개 → 10.7:1, 'ㄱ'자 비정상 셀
+  pstack(M2=M2b=80um) 후보 중 상위 3개: [BoxLayoutCandidate(finger_w=20.0, n_fingers_per_device={'M2': 4, 'M2b': 4}, total_row_fingers=8, snap_error_per_device={}, max_snap_error=0.0), BoxLayoutCandidate(finger_w=16.0, n_fingers_per_device={'M2': 5, 'M2b': 5}, total_row_fingers=10, snap_error_per_device={}, max_snap_error=0.0), BoxLayoutCandidate(finger_w=26.666666666666668, n_fingers_per_device={'M2': 3, 'M2b': 3}, total_row_fingers=6, snap_error_per_device={}, max_snap_error=0.0)]
+  nstack(M1=15um) 후보 중 상위 3개: [BoxLayoutCandidate(finger_w=1.875, n_fingers_per_device={'M1': 8}, total_row_fingers=8, snap_error_per_device={}, max_snap_error=0.0), BoxLayoutCandidate(finger_w=1.6666666666666667, n_fingers_per_device={'M1': 9}, total_row_fingers=9, snap_error_per_device={}, max_snap_error=0.0), BoxLayoutCandidate(finger_w=2.142857142857143, n_fingers_per_device={'M1': 7}, total_row_fingers=7, snap_error_per_device={}, max_snap_error=0.0)]
+  채택: pstack finger_w=20.0um(총 8개), nstack finger_w=1.875um(총 8개) -> 8:8 거의 정사각형 box
+
+=== Test 11: §2.7 2D common-centroid 표 기반 경로 — M2/M2b(전류거울, 4:4) ===
+  M2/M2b는 1행만으로도 y방향 gradient는 못 잡는다 — ABBA/BAAB 2행으로 그것까지
+  상쇄한다. 2026-07-24 세 번째 정정: ABBA/BAAB는 추가 metal layer 없이도 실제로
+  1개 layer로 실현 가능하다(직접 검증됨) — 표의 모든 pattern이 그런 건 아니라서
+  (예: ABA/BAB는 불가능) 이 함수가 이제 반환 전 각 행을 직접 검증한다.
+  (2026-07-28 4차: 옛 common_centroid_layout(pattern_key=...)는 common_centroid_
+  layout_nway()에 완전히 흡수돼 제거됨 — 내부 헬퍼 _common_centroid_from_pattern_
+  table()을 직접 검증하고, nway의 N=2 비율 자동 dispatch도 아래 Test 12.5에서 확인)
+  pattern=('ABBA', 'BAAB') repeat=1
+  row0: ['M2', 'M2b', 'M2b', 'M2']  node_sequence: ['out', 'vdd', 'bias', 'vdd', 'out']
+  row1: ['M2b', 'M2', 'M2', 'M2b']  node_sequence: ['bias', 'vdd', 'out', 'vdd', 'bias']
+  검증: total_a(M2)=4, total_b(M2b)=4 (둘 다 4여야 함) -> OK
+  (node_sequence가 채워져 있다는 것 자체가 각 행이 1개 layer로 실현 가능한 오일러
+  경로임을 이 함수가 이미 검증했다는 뜻이다 — 실패했다면 ValueError가 났을 것.)
+  위/아래 두 행이 서로 point-symmetric(common-centroid)해서 1D interdigitation보다
+  고차 gradient 잔여 mismatch를 더 줄인다(실측: 1D~0.04% vs 2D~0.02%, §2.7 인용 문헌).
+  대조: 'ABA'/'BAB'는 hub-leaf 구조로 1개 layer 실현이 불가능한 패턴이다(직접 검증됨)
+  — 이 함수가 그걸 걸러내는지 확인:
+  OK: 예상대로 ValueError -> pattern_key=('ABA', 'BAB')의 행 순서 ABAABA은 hub-leaf 구조로는 1개 metal layer 오일러 경로가 아니다 — 이 pattern_key는 추가 layer 없이는 이 구조에 못 쓴다(예: 'ABA'/'BAB'는 항상 이렇게 실패한다). 다른 pattern_key를 쓰거나 `pattern_key=None`(그래프 기반 계산)을 대신 쓸 것.
+  대조 2: 표에는 3-소자 패턴(ABCCBA/CBAABC)도 있지만 이 함수는 2-소자 전용 —
+  KeyError가 아니라 명확한 ValueError로 거부하는지 확인(2026-07-28 병합 중 발견/수정):
+  OK: 예상대로 ValueError(명확한 메시지) -> pattern_key=('ABCCBA', 'CBAABC')는 ['A', 'B', 'C'] 문자를 쓰는 3-소자 이상 패턴이다 -- _common_centroid_from_pattern_table()은 2-소자(A/B) 전용이다(2026-07-28 실측 발견: 예전 unit_cell_common_centroid_layout()은 letter_to_name에 A/B만 등록해놓고 이런 pattern_key를 주면 KeyError로 불명확하게 죽었다).
+
+=== Test 12: common_centroid_layout() 회전 경로 — 홀수 개수(M1/M2 차동쌍 9:9)도
+  실제 오일러 trail 기반 2행 ===
+  표 기반 경로는 COMMON_CENTROID_PATTERNS의 정해진 repeat만 지원해 홀수를 못
+  다룬다 — Example 2의 M1/M2(각 9개, 홀수)는 §2.5.4 비대칭 분할을 2행으로 확장한
+  회전 경로(_common_centroid_nway_exact, pattern_key 없음)로 처리해야 한다.
+  2026-07-24 두 번째 수정: row1을 round-robin으로 손으로 섞던 것에서, hub-leaf
+  쌍(tail 공유)의 실제 build_graph()+hierholzer()로 계산하도록 바꿨다 — 매 finger
+  완전 1:1 교대(ABAB...)는 hub-leaf 구조에서 그래프 이론적으로 불가능하다(§2.5.6).
+  9:9 대칭 분할 후보(상위3): [(4, 5, 5, 4), (5, 4, 4, 5), (3, 6, 6, 3)]
+  method=rotation_exact residual=0.0 (회전 경로여야 함, 표 대상 아님)
+  row0: ['M1', 'M2', 'M2', 'M1', 'M1', 'M2', 'M2', 'M1', 'M1']
+    node_sequence: ['d1', 'tail', 'd2', 'tail', 'd1', 'tail', 'd2', 'tail', 'd1', 'tail']
+  row1: ['M2', 'M1', 'M1', 'M2', 'M2', 'M1', 'M1', 'M2', 'M2']
+    node_sequence: ['d2', 'tail', 'd1', 'tail', 'd2', 'tail', 'd1', 'tail', 'd2', 'tail']
+
+=== Test 12.5: common_centroid_layout() — 대칭(1:1)에서 표/회전 두 경로가
+  실제로 같은 패턴을 내는지 + 비율(2:1)에서 표 기반 흡수(pattern_table)가 회전보다
+  나은지 실측(2026-07-28: 옛 common_centroid_layout()의 두 경로를 흡수·통합) ===
+  표 경로 rows: [['M2', 'M2b', 'M2b', 'M2'], ['M2b', 'M2', 'M2', 'M2b']]
+  nway 회전 경로(method=rotation_exact) rows: [['M2b', 'M2', 'M2', 'M2b'], ['M2', 'M2b', 'M2b', 'M2']]
+  -> 두 경로가 (행 순서 무관) 같은 물리 패턴 집합인가: OK
+  대조: pattern_key로만 가능한 비율(2:1) 패턴 — nway가 이제 자동으로 표를 찾아
+  흡수하는지 확인(2026-07-28 4차, 사용자 요청 '표 기반 경로도 nway에 흡수'):
+  count_a=4,count_b=2 -> method=pattern_table, residual=0.0, rows=[['M2', 'M2', 'M2b'], ['M2b', 'M2', 'M2']]
+  OK: nway가 표 기반 비율 패턴을 자동으로 찾아 residual=0 달성
+  (대조: 탐색 경로만 썼다면 residual=0.75까지 나왔음을 실측 확인했었다 —
+  탐색 경로는 회전/swap 후보를 못 만들어 표만큼 못한다)
+
+=== Test 12.6: interdigitate_layout() — common_centroid_layout()와 동급으로 재설계
+  (내부 검증 + crossover 폴백, dict 반환) — 사용자 요청, 2026-07-28 5차 ===
+  base='AB' repeat=2, M3=M4=2 -> method=pattern_table, rows=[['M3', 'M4', 'M4', 'M3']]
+  OK: 표에 정확히 맞는 repeat -> method=pattern_table, crossover 0
+  base='AABA'(3:1 비율, hub-leaf 무효로 알려진 표) -> method=search, crossover_count=0
+  OK: 표가 hub-leaf 무효라 자동으로 탐색 경로로 폴백(예외 없이 성공)
+  base='ABC'(3소자, hub-leaf 무효로 알려진 표) -> method=search, crossover_count=1 (0보다 크면 crossover 폴백까지 쓴 것)
+  OK: 3소자 hub-leaf는 0-crossover가 원천 불가능(§18) -> crossover 폴백으로 성공
+  base 없음(2소자, 3:3) -> method=search, crossover_count=0, residual=0.0667
+  OK: base 없이도 2소자는 여전히 0-crossover로 성공
+  base 없음(3소자, 예전엔 ValueError였음) -> method=search, crossover_count=1
+  OK: base 없이도 이제 N>=2 전부 지원(예전 '2소자 전용' 제약 제거) — crossover
+  폴백까지 있어 실패하지 않는다(round-robin이 counts만 보고 그래프로 직접 계산하므로
+  base='ABC'와 결과가 우연이 아니라 필연적으로 동일하다 — 둘 다 {M3:1,M4:1,M5:1}
+  이라는 같은 Counter로 귀결되기 때문)
+  검증: 두 행 모두 실제로 인접 finger가 공유 net을 갖는 유효한 오일러 경로인가(1차 원리 재확인) -> row0=True, row1=True
+  검증: 총 M1=9, 총 M2=9(둘 다 9여야 함), row1==swap(row0)(reverse 없음) -> True, 두 행이 서로 다른가(퇴화 방지) -> True
+  열(column) 평균 상쇄 확인: M1 열평균=4.000, M2 열평균=4.000 (가까울수록 좋음 — 완전일치는 균등분할일 때만 보장됨)
+
+=== Test 12.7: common_centroid_layout() — N=3 이상 hub-leaf common-centroid ===
+  2026-07-28 신설(사용자 요청: common_centroid_layout()의 3-소자 확장). COMMON_CENTROID_
+  PATTERNS의 ABCCBA/CBAABC는 hub-leaf로 실현 불가능함을 실측 확인(아래 대조) — 대신
+  N개 leaf를 회전 대칭으로 N개 행에 배치하면 항상 모든 소자가 모든 열을 정확히 1번씩
+  지나가 진짜 common-centroid가 됨을 이론+실측으로 확인했다. 2026-07-28 2차: 사용자
+  요청으로 Transistor 리스트 입력 + n_rows(N 위아래 자유 지정) 지원으로 일반화.
+  N=3, count=6 각각(균등) -> 3개 행, method=rotation_exact, residual=0.0:
+    row0: ['MA', 'MC', 'MC', 'MB', 'MB', 'MA']
+    row1: ['MB', 'MA', 'MA', 'MC', 'MC', 'MB']
+    row2: ['MC', 'MB', 'MB', 'MA', 'MA', 'MC']
+  열평균: {'MA': 2.5, 'MC': 2.5, 'MB': 2.5} (전부 일치해야 진짜 common-centroid), 소자별 총 개수: {'MA': 6, 'MC': 6, 'MB': 6} (전부 6이어야 함)
+  OK: MA/MB/MC 열평균 완전 일치 + 소자별 총 개수 전부 6 + method=rotation_exact(증명된 최적)
+  각 행이 실제로 유효한 hub-leaf walk인지 1차 원리로 재확인(구성 로직을 그냥 믿지 않음):
+    row0 독립 재검증: OK(유효)
+    row1 독립 재검증: OK(유효)
+    row2 독립 재검증: OK(유효)
+  대조: PDF 표의 3-소자 패턴(ABCCBA/CBAABC)은 hub-leaf 구조로 애초에 실현 불가능함을
+  재확인(모든 repeat에서 None — 이게 이 함수를 새로 만든 이유다):
+    repeat=1 top=ABCCBA -> OK(예상대로 무효)
+    repeat=1 bot=CBAABC -> OK(예상대로 무효)
+    repeat=2 top=ABCCBAABC -> OK(예상대로 무효)
+    repeat=2 bot=CBAABCCBA -> OK(예상대로 무효)
+  N=2로 넣으면 회전 1회=swap과 동등한지 확인:
+    N=2 rows: [['M2b', 'M2', 'M2', 'M2b'], ['M2', 'M2b', 'M2b', 'M2']], 열평균={'M2b': 1.5, 'M2': 1.5}, method=rotation_exact, residual=0.0
+  대조군 — 실패 케이스들:
+    OK: 4소자 count=5(모든 block 홀수) -> crossover 폴백으로 성공, crossover_count=1, residual=0.0(변화 없음)
+    OK: 소자 부족 거부 -> 최소 2개 소자가 필요하다(n=1)
+    OK: 중복 이름 거부 -> 소자 이름에 중복이 있다: ['MA', 'MA']
+    OK: hub 불일치 거부 -> 모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: ['tail', 'vdd']
+
+=== Test 12.8: common_centroid_layout() 일반화 — 소자 개수가 다르거나 n_rows를
+  N 위아래로 지정(사용자 요청, 2026-07-28 2차) — 휴리스틱 탐색 경로(증명된 최적 아님) ===
+  [개수가 다름(A=6,B=4,C=2), n_rows 미지정 -> 기본 n_rows=N=3, 탐색 경로로 감]
+    rows=[['A', 'B', 'B', 'C'], ['B', 'A', 'A', 'C'], ['A', 'A', 'A', 'B']], method=search, residual=0.6667
+    OK: 개수가 달라도 각 행이 실제로 유효한 walk임을 재확인
+  [n_rows=4 (N=3보다 많음, 더 잘게 쪼갬) -- 슬라이싱만으론 모든 phase가 오일러 조건을
+  못 만족했으나 보정(parity repair) 추가 후 성공함을 확인]
+    rows=[['A', 'B'], ['B', 'C', 'C', 'A', 'A'], ['A', 'B'], ['B', 'A', 'A']], residual=0.1667
+    OK: n_rows=4 전부 유효한 walk(보정 성공)
+  [n_rows=2 (N=3보다 적음, 회전을 다 못 채움) -- 잔차가 0이 아닐 수 있음을 확인]
+    rows=[['A', 'B', 'B', 'A', 'A', 'C'], ['A', 'B', 'B', 'A', 'A', 'C']], residual=0.7000, method=search
+  [균등 개수(N=3, 전부 8) + n_rows=3(=N) 명시 -- target_rows==N+개수 균등이면
+  n_rows를 명시했어도 회전 경로(잔차 0)로 가야 정상(2026-07-28 버그 수정 확인)]
+    method=rotation_exact, residual=0.0000
+  [버그 재현+수정 확인: N=2, n_rows=2(=N) 명시 -- 사용자 지적으로 발견됨]
+  기존 탐색 경로(비례 라운드로빈+균등분할)는 '하나의 선형 시퀀스를 자르는' 방식이라
+  swap 관계(두 행이 서로 뒤바뀐 관계)인 후보를 구조적으로 못 만든다 -- 주기적인
+  시퀀스를 반으로 자르면 항상 똑같은 두 조각만 나오기 때문이다(실측 확인, 아래).
+  finger 수를 늘려가며 확인:
+    n_fingers=   2 -> method=rotation_exact, residual=0.000000 -> OK
+    n_fingers=   4 -> method=rotation_exact, residual=0.000000 -> OK
+    n_fingers=   6 -> method=rotation_exact, residual=0.000000 -> OK
+    n_fingers=   8 -> method=rotation_exact, residual=0.000000 -> OK
+    n_fingers=  10 -> method=rotation_exact, residual=0.000000 -> OK
+    n_fingers=  20 -> method=rotation_exact, residual=0.000000 -> OK
+    n_fingers=  50 -> method=rotation_exact, residual=0.000000 -> OK
+    n_fingers= 101 -> method=rotation_exact, residual=0.000000 -> OK
+    OK: 전부 회전 경로로 가서 잔차 0 (수정 전엔 n_fingers=2에서 residual=1.0까지 나왔었다)
+
+=== Test 12.9: n_rows==N 전수 스윕(N=2~6, count 다양) — dispatch 버그 수정 후
+  전체 회귀 + '최대한 균등한 분배가 우연히 홀수뿐이면 포기하던' 2차 버그 발견/수정 ===
+  사용자 요구: '다른 n_rows 값(3,4,5)에서도 같은 버그 없는지 다 스윕해봐' — N=2~6,
+  count 다양(N,N+1,N+2,N+3,4,6,8,10,20,50,101 중 count>=N인 것)로 전수 확인.
+  결과: 회귀(residual!=0인데 통과) 0건, ValueError로 거부 0건
+  OK: 회귀 없음. ValueError 사례: [] (2026-07-28 3차 crossover 폴백 추가 후로는 이 스윕 범위(count>=n_dev) 안에서는
+  전부 0건이어야 정상 — find_min_crossover_layout()이 절대 실패하지 않으므로)
+  [발견된 2차 버그: N=4,count=20처럼 '최대한 균등'([5,5,5,5], 전부 홀수)이 오일러
+  불가일 때, 살짝 덜 균등해도 홀짝만 맞는 배분([6,6,4,4] 등)이 있으면 회전 자체는
+  똑같이 잔차 0을 보장하는데(row_0 블록 배분과 무관), 예전엔 그걸 안 찾고 바로
+  ValueError를 냈다 — _fix_block_parity()로 홀수쌍을 짝지어 1개씩 주고받는 보정 추가]
+    N=4, count=20(균등분배 [5,5,5,5]는 전부 홀수라 원래 실패) -> method=rotation_exact, residual=0.0
+    실제 채택된(보정 후) 블록 배분 확인 — row0의 A 개수 등으로 짝수 배분임을 간접 확인: 소자별 총합 A=20(=20이어야 함)
+    OK: 보정으로 잔차 0 달성 (수정 전엔 ValueError로 거부됐었다)
+  [소자별 개수(count)가 소자 수(N)보다 작으면(예: N=4, 각 2개씩) 명확한 ValueError인지
+  확인 — 이 스윕 중 발견: 균등분배 시 일부 소자가 0개가 되는 경우가 있었다]
+    OK: count < 소자 수는 명확한 ValueError로 거부 -> count=2가 소자 수 n=4보다 작다 — row_0에서 소자마다 최소 1개 이상의 finger가 필요한데(균등 분배 시 일부가 0개가 된다) count가 부족하다. count를 늘리거나 n_rows를 소자 수보다 작게 지정해 탐색 경로로 갈 것
+
+=== Test 12.9b: 회전 경로에 crossover 폴백 통합 (사용자 요청, 2026-07-28 3차) ===
+  사용자 질문: 'common_centroid도 최소 crossover routing 조건을 추가하면
+  어떻게 되지?' -> 프로토타입으로 먼저 확인: 회전은 순수 relabeling이라 row_0에
+  crossover가 있어도 잔차 0 증명은 그대로 유지됨을 확인한 뒤 통합.
+  [Test 12.9에서 '진짜 불가능'으로 확인됐던 10개 조합 전부 재확인 -- 이제는
+  ValueError 대신 crossover_count>0으로 성공해야 하고, 잔차는 여전히 0이어야 함]
+    N=3, count=3: method=rotation_exact, residual=0.0, crossover_count=1
+    N=4, count=4: method=rotation_exact, residual=0.0, crossover_count=1
+    N=4, count=5: method=rotation_exact, residual=0.0, crossover_count=1
+    N=5, count=5: method=rotation_exact, residual=0.0, crossover_count=2
+    N=5, count=6: method=rotation_exact, residual=0.0, crossover_count=1
+    N=5, count=7: method=rotation_exact, residual=0.0, crossover_count=1
+    N=6, count=6: method=rotation_exact, residual=0.0, crossover_count=2
+    N=6, count=7: method=rotation_exact, residual=0.0, crossover_count=2
+    N=6, count=8: method=rotation_exact, residual=0.0, crossover_count=1
+    N=6, count=9: method=rotation_exact, residual=0.0, crossover_count=1
+  OK: 10개 조합 전부 crossover_count>0으로 성공 + 잔차 정확히 0 + 각 segment
+  독립적으로 유효한 walk (이전엔 전부 ValueError로 거부됐던 조합들)
+  [이미 0-crossover로 성공하던 케이스(N=2,count=4)는 전혀 안 바뀌었는지 회귀 확인]
+    crossover_count=0 (0이어야 함), rows=[['A', 'B', 'B', 'A'], ['B', 'A', 'A', 'B']]
+    OK: 기존 0-crossover 케이스는 전혀 안 바뀜
+
+=== Test 12.10: n_rows != N(N보다 크거나 작은 경우) 전수 스윕 — 사용자 요구 ===
+  '나머지 n_rows도 스윕해봐(N보다 크거나 작은 경우)' — N=2~6, n_rows=1~2N+1,
+  finger 다양(총 360개 조합)으로 크래시/구조 오류/잔차 지표 결함을 확인.
+  2026-07-28 4차: 탐색 경로에도 crossover 폴백이 추가돼 이제 실패가 훨씬 줄어든다 —
+  행 전체(transistor_sequence)가 아니라 각 segment를 독립적으로 검증한다(crossover가
+  있으면 flat 시퀀스 자체는 더 이상 단일 연속 walk가 아닌 게 정상이기 때문).
+  260개 조합: 크래시 0건, 구조 오류(무효 segment/개수·행수 불일치) 0건, ValueError 0건, 성공한 조합의 crossover 총합=926
+  OK: 크래시/구조 오류 없음 (모든 결과가 segment 단위로 유효한 walk + 개수/행수 일치)
+  [발견된 잔차 지표 결함: 길이 1인 행을 건너뛰면 그 행에만 있는 소자가 완전히
+  안 잡혀 잔차가 거짓으로 낮게(0.0) 나올 수 있었다 — _common_centroid_residual()에
+  '중립값 0.5' 처리 추가로 최소한 그 소자가 반드시 기록되도록 수정]
+    A=[0,0.33],B=[0.67,1](비대칭) + C(길이1 행에만 존재) -> residual=0.6667 (C가 반영돼 0이 아님을 확인)
+  [발견된 더 근본적 한계: 소자 하나가 통째로 자기 행에만 격리되면(다른 소자와 단
+  한 번도 같은 행에 있어본 적 없음) 그 자체는 대칭적으로 보여 잔차가 낮게 나올 수
+  있다 — n_rows가 총 finger 수 대비 너무 많으면(모든 행 길이가 1) 구조적으로
+  피할 수 없다. isolated_pairs 필드를 추가해 이 상황을 정직하게 드러낸다:]
+    N=2,count=2,n_rows=4(모든 행이 길이 1일 수밖에 없음) -> rows=[['A'], ['B'], ['A'], ['B']]
+    residual=0.0, isolated_pairs=1 (0이 아님 — A/B가 단 한 행에서도 같이 있어본 적 없다는 뜻, residual만 보면 놓칠 뻔함)
+    OK: isolated_pairs로 격리 상황이 정직하게 드러남
+  [증명된 최적 경로(rotation_exact)는 항상 isolated_pairs=0인지 확인]
+    OK: n_rows 미지정(회전 경로)이면 isolated_pairs=0 (rows=[['A', 'B'], ['B', 'A']])
+
+=== Test 12.11: INTERDIGITATION_PATTERNS 표 전체 — interdigitate_layout()가 표/탐색+
+  crossover 중 맞는 경로를 자동으로 찾는지 전수 스윕(§18 발견의 연장,
+  2026-07-28 5차: interdigitate_layout()를 common_centroid_layout()와 동급으로
+  재설계 — 검증+crossover 폴백을 함수 내부로 흡수) ===
+  32개 조합 중 method=pattern_table 7건 (A 4개 + AB의 repeat 1,2,3 = 7건 예상과 일치), 나머지 25건은
+  전부 method=search로 자동 폴백해 예외 없이 성공(hub-leaf 무효였던 표도 crossover까지
+  동원해 결과를 낸다)
+  OK: interdigitate_layout()가 이제 common_centroid_layout()처럼 검증+폴백을 함수
+  내부에서 전부 처리한다 -- 호출자가 별도로 _hubleaf_sequence_node_path()를 부를
+  필요가 없어졌다.
+
+=== Test 12.12: find_min_crossover_layout() — 최소 crossover 배치 신설 ===
+  사용자 요청: 'crossover routing이 최소인 조합을 찾아 갯수도 표시, 우선순위는
+  crossover가 안 생기는 연속 diffusion' -- route inspection/T-join 정리 적용.
+  [이미 가능한 경우(0 crossover) — 우선순위대로 단일 연속 diffusion부터 확인]
+    crossover_count=0, segments=[['A', 'B', 'B', 'A']]
+  [ABC 3소자 1개씩(4개 홀수차수 노드, m=2) -> crossover=1이어야 함]
+    crossover_count=1, segments=[['B'], ['C', 'A']]
+    OK: crossover=1, 전체 소자 3개 그대로 보존
+  [6소자 1개씩(6개 홀수차수 노드, m=3) -> crossover=2, 소자 6개 보존]
+    crossover_count=2, segments=[['B', 'F'], ['E', 'D'], ['C', 'A']]
+  [각 segment 내부가 실제로 유효한 hub-leaf walk인지 1차 원리로 재확인]
+    OK: 모든 segment가 독립적으로 유효한 walk (crossover로 이어붙이는 지점만 끊김)
+  [ABCD 표 패턴(4소자 1개씩)이 실제로 crossover=1로 해결되는지 -- 사용자가
+  질문했던 INTERDIGITATION_PATTERNS의 무효 패턴에 실제 답을 주는 사례]
+    crossover_count=1, segments=[['B', 'D'], ['C', 'A']]
+  [대조군 -- 입력 검증]
+    OK: 빈 리스트 거부 -> 최소 1개 이상의 소자가 필요하다
+    OK: hub 불일치 거부 -> 모든 소자가 같은 hub(source)를 공유해야 한다 — 실제: ['tail', 'vdd']
+
+=== Test 12.13: find_min_crossover_layout() matching_pairs 확장(세션15) —
+  node_map 기반 짝짓기로 hub-leaf 아닌 일반 그룹도 지원, 세션17에 짝짓기 선택
+  방식 자체가 재작성됨(아래) ===
+  [실전: current_reuse_telescopic_ota.topology.json M6 그룹(8소자) — 핑거조정
+  으로는 절대 못 푸는 실제 사례(세션15 probe로 확인, .ai/context.md 참고).
+  ⚠️ 세션16 D-1에서 이 사례의 tier1 짝짓기(Vom1/Vop1 직접)가 실제로는 matching_
+  pairs(M1a/M1b, M2a/M2b)를 서로 다른 segment로 갈라놓는 최악의 선택이었음이
+  드러났다(splits=2, probe_crossover_pairing_alternatives.py) — 세션17
+  _select_crossover_pairing()이 대안(Vbias2/Vom1 + Vop1/Vx, crossover는 미매칭
+  M57/M58 쪽에서만)으로 자동 교체해 splits=0을 달성하는지 확인]
+  ⚠️ 세션22부터 이 8소자는 geometry_colocation_union()이 더 이상 자동으로
+  묶지 않는다(M6/M7/M57/M58은 matching_pairs가 없어 각자 독립 그룹 -- stack
+  M6 크래시의 근본원인이었던 Vx fan-out 자동병합을 제거했기 때문, .ai/
+  context.md 세션22 참고). 이 테스트는 find_min_crossover_layout()/짝짓기
+  로직 자체(레이아웃 압축을 위해 이 8개를 한 행에 두기로 **의도적으로**
+  선언했다고 가정)를 검증하는 것이므로, 그룹을 geometry_colocation_union()
+  경유가 아니라 직접(수동 override와 동일한 방식으로) 구성한다.
+    baseline odd_nodes(4): ['Vbias2', 'Vom1', 'Vop1', 'Vx']
+    (회귀 대조: 옛 tier1 짝짓기([('Vom1', 'Vop1'), ('Vx', 'Vbias2')])는 splits=2 -- 세션16 D-1 재현)
+    crossover_count=1, node_pairing_fallback_used=False
+    PASS: crossover=1(m=2) 그대로(T-join 불변, 세션16 tier1과 동일), 하지만 splits=2(옛 tier1) -> splits=0(세션17 _select_crossover_pairing)으로 개선 -- M1a/M1b/M2a/M2b가 이제 같은 segment에 유지되고 crossover는 미매칭 M57/M58 쪽에서만 발생, 소자 8개 전부 보존
+  [node_map 역산 단위 확인 -- M2a/M2b가 서로 공유 끝이 없어도 Vom1<->Vop1이
+  바로 나오는지(체인 전이 없이 규칙 자체로 유도됨을 확인)]
+    PASS: Vom1<->Vop1(거울쌍), Vx(자기대응), Vbias2(orphan) 전부 예상과 일치
+  [폴백 발동 확인 -- matching_pairs가 텅 비어 전부 orphan이면(자기대응 노드가
+  하나도 없음) 기존 방식(순서대로)으로 폴백하고 그 사실이 플래그로 남는지]
+    crossover_count=1, node_pairing_fallback_used=True
+    PASS: matching_pairs=[] -> node_map이 텅 비어 전부 orphan -> 전부 폴백 짝짓기
+  [회귀 -- matching_pairs=None(기존 호출부 경로, 하위호환)이면 hub-leaf 사전조건과
+  순서대로 짝짓기가 완전히 그대로인지 -- 위 ABC/6소자 테스트가 이미 이 경로를 타므로
+  여기선 node_pairing_fallback_used가 정확히 None(신규 로직 미개입)인지만 추가 확인]
+    PASS: matching_pairs=None 경로는 node_pairing_fallback_used=None
+  [세션17 offset 우선순위 가중치 -- _count_matching_pair_splits()의
+  pair_sensitivity 튜플 채점이 offset 쌍을 ratio 쌍보다 우선 보호하는지.
+  ⚠️ 실제 회로(M6 등)로 '동점인데 가중치로 갈리는' 진짜 tradeoff 사례를 여러
+  구조(순수 star, hub-bridge 1개/2개, leaf-bridge)로 찾아봤으나 못 찾음(전부
+  offset 쌍이 항상 갈라지거나 항상 안 갈라지는 두 극단으로만 수렴함, hierholzer
+  순회 특성 때문 -- probe_offset_tradeoff*.py, 스크래치패드). 그래서 segment를
+  손으로 구성해 채점 함수 자체를 직접 검증한다(그래프 탐색에 의존하지 않는 확실한
+  검증), 그리고 M6 실제 회로로는 pair_sensitivity를 줘도 이미 달성한 (0,0)이
+  안 깨지는지(회귀 안전성)만 확인]
+    PASS: pair_sensitivity 없으면 스칼라(=2), 있으면 (offset=1,other=1) 튜플
+    PASS: 스칼라로는 완전히 동점(둘 다 1)이라 가중치 없이는 근거 없이 아무 후보나
+    선택됐을 상황 -- pair_sensitivity를 주면 (0,1)<(1,0)로 offset 보호 후보가
+    항상 결정적으로 이김
+    PASS: _is_perfect_crossover_score()가 스칼라/튜플 둘 다 올바르게 판정
+  [M6 실제 회로 회귀 -- pair_sensitivity를 줘도 이미 달성한 (0,0)이 안 깨지는지]
+    PASS: pair_sensitivity 지정해도 M6 그룹은 여전히 (0,0) 유지(회귀 없음), crossover_count=1
+
+=== Test 13: check_box_shape() 게이트 — SPICE 전에 반드시 통과해야 하는 §8 체크포인트 ===
+  2026-08-13(세션31): rows: dict[str, list[Transistor]] 기반으로 재작성 --
+  finger_w=l=1.0 균일값을 쓰면 pitch(l)=1.0이라 옛 finger-count 수치를 그대로 재현한다.
+  Example 1의 실제 최초 실수(nstack=3, pstack=32)를 이 게이트에 넣으면:
+  FAIL: 행 폭 비율(10.67) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것
+  §8로 고친 뒤(8:8):
+  PASS: 직사각형 형성 OK
+  -> 게이트가 실수는 FAIL로, 수정본은 PASS로 정확히 구분: OK
+  Example 2의 실제 최초 실수(diffpair 2행x9, tailstack 24, loadstack 38)를 넣으면:
+  FAIL: 행 폭 비율(4.22) > row_width_tol(1.5) -- 계단형, §8/§2.7로 finger_w·행 구성을 다시 정할 것
+  §8로 고친 뒤(전부 폭 10):
+  PASS: 직사각형 형성 OK
+  -> 게이트가 실수는 FAIL로, 수정본은 PASS로 정확히 구분: OK
+  결측치(l/finger_w 없음) 근사 처리 확인:
+  PASS: 직사각형 형성 OK [근사: ['row_bare']]
+  -> approx=True로 명시(조용히 finger-count로 대체하지 않음): OK
+  높이(finger_w) 편차 축 -- 폭은 같지만 finger_w가 다른 두 행(elongation 신설 축):
+  FAIL: 직사각형 형성 OK / elongation(1.14) > max_elongation(1.1) (row_heights={'row_thin': 1.0, 'row_thick': 6.0}, elongation=1.14)
+  -> 폭은 정합(rectangular)이지만 elongation 축이 새로 FAIL을 잡아냄: OK
+  orientation 선택(가로로만 길게 허용 vs 세로로만 길게 허용):
+  wide 허용 시: PASS: 직사각형 형성 OK / 길이 제한 OK
+  tall 허용 시(방향 안 맞음): FAIL: 직사각형 형성 OK / orientation='tall' 위반 -- total_width_m=20, total_height_m=2(방향이 안 맞음, elongation 수치 자체는 10.00<=max_elongation(15.0)와 무관하게 FAIL)
+  -> orientation이 방향까지 구분: OK
+
+=== Test 14: stage 경계를 넘는 stack 병합 — Maloberti p.29 'Layout Oriented Design' 재현 ===
+  슬라이드 원문: 1단 PMOS 부하(M3/M4)와 2단 PMOS gain 소자(M6)를 stage가 다름에도
+  '같은 극성 + vdd 공유'라는 이유만으로 한 물리 행에 합친다. 이걸 재현하고, 3개 이상의
+  leaf가 한 hub를 공유하면 공통 finger 수 k가 반드시 짝수여야 함을 직접 검증한다.
+  check_multi_leaf_hub_parity() 공식 vs 실제 build_graph()+check_euler_condition(): 3-leaf 조합 64개 전수 대조 -> 전부 일치(OK)
+  find_hub_merge_candidates(): stack_id로 이미 stage1_load/stage2_gain으로 나뉜 M3/M4/M6를
+  hub=vdd 공유만으로 다시 묶어내는가 -> OK: ['M3', 'M4', 'M6']
+  짝수 k=8: 실제 그래프 판정=circuit(홀수차수 0개), 공식 판정=circuit(m=0) -> OK
+  홀수 k=7: 실제 그래프 판정=impossible(홀수차수 4개), 공식 판정=impossible(m=3) -> OK
+  -> Maloberti 슬라이드가 '공통 finger 수 k'를 요구하는 이유가 단순 규칙이 아니라
+  실제 그래프 이론(leaf 3개 이상이면 k는 짝수여야 함)이었음을 직접 확인.
+
+=== Test 15: search_shared_finger_w() — 가로 배치(Case B) 탐색, Example 3로 정직하게 검증 ===
+  Case A(search_stack_finger_w)는 n_fingers를 고정하고 stack마다 finger_w를 다르게
+  찾아 세로로 쌓는다. Case B는 반대로 finger_w 하나를 stage 전체가 공유하고
+  n_fingers를 자유도로 둬서 좌우로 배치한다 — schematic이 좌→우로 흐르면 이 모드가
+  기본 후보다. 하지만 실제로 맞는지는 반드시 숫자로 확인해야 한다(가정 금지).
+  제약 없이 스냅 오차만 최소화: finger_w=0.5996um, 최대 스냅오차=0.61% -> 오차는 작지만 행 폭 비율이 131:1(M1b/M1c=4핑거 vs M3b/M3c=523핑거) — 실무에서 못 쓸 정도로 한쪽 stage만 극단적으로 넓어진다.
+  행 폭 비율을 25:1로 강제 제한: finger_w=12.5450um -> 이번엔 M1b/M1c 스냅오차가 426%까지 뛴다(1개 finger로는 2.384um를 도저히 못 맞춤) — 도저히 실무에서 쓸 수 없는 수준.
+  -> 결론: Example 3는 gm3/gm1≈24배 차이 때문에 소자 W 범위가 130배(M1b 2.384um vs
+  M3b 313.626um)까지 벌어져 있다 — schematic이 좌→우로 흐르는 3단 캐스케이드라도
+  Case B(공통 finger_w 하나)를 전체에 적용하면 숫자가 안 맞는다는 게 직접 확인됐다.
+  이번 세션에서 실제로 채택한 Case A(§8, load3만 4행으로 쪼갬)가 이 회로에는 맞는
+  선택이었다 — schematic 방향은 출발 가설일 뿐, search_shared_finger_w()의
+  최대 스냅오차/행폭비율 트레이드오프로 반드시 재확인해야 함을 보여주는 사례.
+
+=== Test 16: run_full_circuit_audit() — 4단계 harness가 실제로 잡아내는지 확인 ===
+  작은 합성 회로(2단 미러 M1/M2 + M3, diff 입력 M4/M5)로 4가지 실패 모드를 재현:
+  (a) 대소문자 불일치를 안 고치고, 판정도 안 채운 상태 -> 여러 항목 FAIL 기대:
+      [PASS] 1. device count vs manifest: total 5 == expected 5
+      [FAIL] 2. net-name case consistency: case collisions: {'bias': ['Bias', 'bias']}
+      [FAIL] 3. every matching/hub-merge candidate has a recorded disposition: UNDISPOSED: [(('hub_merge', 'nmos', 'gnd'), ['M1', 'M2', 'M3']), (('hub_merge', 'pmos', 'tail'), ['M4', 'M5']), (('current_mirror', 'nmos', 'bias'), ['M1', 'M2']), (('diff_pair', 'pmos', 'tail'), ['M4', 'M5'])]
+      전체 결과: FAIL -> OK(의도대로 FAIL)
+  (b) net 이름을 정규화하고 모든 후보에 판정을 채운 뒤 -> 전부 PASS 기대:
+      [PASS] 1. device count vs manifest: total 5 == expected 5
+      [PASS] 2. net-name case consistency: all net names already single-case
+      [FAIL] 3. every matching/hub-merge candidate has a recorded disposition: UNDISPOSED: [(('diff_pair', 'pmos', 'tail'), ['M4', 'M5'])]
+      전체 결과: FAIL -> FAIL(예상과 다름 — dispositions 키를 재확인할 것)
+
+=== Test 17: pack_floorplan() — 실제 Xie&Chen 51-소자 회로 전체 블록으로 검증 ===
+  (첫 버전은 spine을 세로 한 줄로 쌓기만 해 빈 공간이 많았다 -- 사용자가 직접 지적한
+  뒤 skyline/bottom-left 2D packing으로 재작성. 여기서 실측으로 개선을 확인한다.)
+  overlap check: 0개 쌍 겹침 -> OK(겹침 없음)
+  bbox=18.0x16.0, aspect_ratio=1.12, packing_density=33.7%, symmetry_max_error=0.000
+  -> OK(대칭 완전 보존), OK(box-shape 목표 <=1.5 충족)
+  row-split 후보 없음 -- 특정 행 하나가 전체 비율을 지배하지 않음
+  대칭 깨진 경우도 확인(좌우 크기 다르게):
+  symmetry_max_error=2.000 -> OK(비대칭을 있는 그대로 보고)
+
+=== Test 18: find_diffusion_safe_split_points() — 실제 S1_TAILP 시퀀스로 검증 ===
+  사용자 지적: "packing할 때 MOS의 diffusion 영역이 고려돼서 엉뚱하게 split되는
+  문제가 없도록 해야 한다" -- 실제 S1_TAILP(M6:M7 tail, 이 세션에서 실제
+  build_stick_diagram()이 반환한 시퀀스)로 확인.
+  S1_TAILP 시퀀스 ['M6', 'M6', 'M6', 'M6', 'M7', 'M6', 'M7', 'M6', 'M7', 'M6']
+  안전 분할 지점: [] -> OK(안전 지점 없음 -- M6/M7이 완전히 인터리브돼 어디를 잘라도 소자가 갈라짐)
+  biasgen_pmos 시퀀스 ['M29', 'M28', 'M27', 'M33', 'M34']
+  안전 분할 지점: [1, 2, 3, 4] -> OK(각 소자가 통째로 한쪽에만 있는 지점 존재)
+
+  evaluate_row_split_candidates()에 실제 시퀀스를 줬을 때 vs 안 줬을 때:
+  시퀀스 제공: diffusion_check=verified, splittable=False -> OK
+  시퀀스 미제공: diffusion_check=not_verified, splittable=None -> OK(정직하게 미확인으로 표시)
+
+  skyline_pack_best_width() 단독 사용(대칭쌍 없는 단일 그룹 packing):
+  spine 단독: bbox=12.0x13.0, overlap=0 -> OK
+
+=== Test 19: pack_floorplan_grouped() — 기능 그룹이 실제로 흩어지지 않는지 확인 ===
+  사용자 지적: "cmfb_n1은 왜 어중간하게 중간에 배치돼 있지?" -- pack_floorplan()이
+  평평한 spine 리스트를 순수 공간 최적화로만 packing해서, CMFB의 나머지 행들과
+  떨어져 Stage-1 사이에 끼어드는 실제 결과가 나왔었다. 그룹 단위 packing으로 재검증.
+  overlap check: 0 -> OK
+  bbox=18.0x18.0, aspect_ratio=1.00, packing_density=47.8%, symmetry_max_error=0.000
+  group 'stage1' stays contiguous (no unrelated block sandwiched in): OK
+  group 'biasgen' stays contiguous (no unrelated block sandwiched in): OK
+  group 'cmfb' stays contiguous (no unrelated block sandwiched in): OK
+
+=== Test 20: net_weights — 신호선 근접 배치, 실제 vbias1 연결로 검증 ===
+  사용자 지적: "배치는 신호선과 근접한 곳에 위치시키면 좋겠어, routing delay가
+  없어지지." -- bias-gen(vbias1 소스)과 classab_p2(M8/M13, vbias1을 게이트로
+  읽는 소자)가 실제로는 10칸이나 떨어져 있었다(사&sect;7은 '바로 옆에 둬야 한다'고
+  이미 명시했었는데 &sect;8 좌표는 이를 전혀 반영 못 했다).
+  net_weights 없음: biasgen<->classab_p2 y거리=10.0, bbox=18.0x18.0, aspect=1.00
+  net_weights 적용: biasgen<->classab_p2 y거리=5.0, bbox=19.0x14.0, aspect=1.36
+  -> OK(거리 개선, box-shape 목표(<=1.5) 안에서)
+  overlap check (net_weights 적용 후): 0 -> OK
+  group 'stage1' still contiguous after net_weights: OK
+  group 'biasgen' still contiguous after net_weights: OK
+  group 'cmfb' still contiguous after net_weights: OK
+
+=== Test 21: sub_kind — 같은 diffusion(폴러리티)별로 나눠 배치하면 더 compact한지 실측 ===
+  사용자 제안: "cmfb_n1은 top/bot 합친 것인데, 다른 cmfb 행과 높이 맞춰 옆으로 배치하면
+  P/N 영역이 구분되면서 더 compact해지지 않을까 -- 확인하는 기능도 보강해달라."
+  Stage-1 단독: flat=10x9(ratio=1.11) vs by-kind=19x4(ratio=4.75)
+  -> flat이 이미 거의 정사각형(1.11), by-kind는 P열/N열을 옆으로 붙이며 옆으로 길쭉해짐
+  (4.75) -- 초기엔 '그룹 자체 밀도'로 골랐다가 이 사례에서 전체 회로 aspect ratio가
+  오히려 악화되는 걸 발견하고 ratio 기준으로 바꿨다 -- 아래에서 전체 회로로 재확인)
+  전체 회로: sub_kinds 없음 bbox=19.0x14.0 aspect=1.36 density=58.3%
+  전체 회로: sub_kinds 적용 bbox=19.0x14.0 aspect=1.36 density=58.3%
+  -> OK(ratio 기준 선택이 Stage-1의 해로운 by-kind 분할을 올바르게 거부, 결과 동일 유지)
+  overlap check: 0 -> OK
+
+=== Test 21.5: check_symmetry_dispositions() — 매칭 후보를 조용히 빼먹는 것 차단 ===
+  2026-07-28 신설(사용자 지적): find_matching_candidates()는 '후보'만 낸다 --
+  AI가 그 후보를 실제로 채택/기각 판단해서 기록했는지, 조용히 빠뜨린 후보는 없는지
+  run_full_circuit_audit() 3번 체크(매 candidate는 disposition을 가져야 함)와
+  똑같은 원리를 topology-authoring 단계(가벼운 인자로)에 적용한다.
+  [MA/MB(진짜 diff_pair)를 matching_pairs에 빼먹은 상황]
+  ok=False (빠뜨린 후보가 있으니 FAIL이어야 정상)
+    UNDISPOSED: ('diff_pair', 'nmos', 'tail', ['MA', 'MB'])
+    UNDISPOSED: ('hub_merge', 'nmos', 'tail', ['MA', 'MB'])
+  [MA/MB를 matching_pairs에 정상 기록하면 PASS]
+  ok=True
+  [net 이름 대소문자 불일치(사고9와 동일 패턴)를 잡아내는지 -- Vbias1 vs vbias1]
+  ok=False (대소문자 차이가 있으니 FAIL이어야 정상)
+  case_collisions={'vbias1': ['Vbias1', 'vbias1']}
+  [실전: current_reuse_telescopic_ota.topology.json 전체 재검증]
+  ok=True (41개 소자, 21개 matching_pairs + 20개 dispositions로 전부 처리됨)
+
+  [linked_topology_files -- 회로가 여러 파일로 쪼개져도 항상 전체를 합쳐서 보는지]
+  2026-07-28 신설(사용자 지적, PRE-FLIGHT 사고8 재발 방지): sub-block별로 파일을
+  나눠도 어느 파일을 진입점으로 읽든 형제 파일 전부가 자동으로 합쳐져야 한다.
+  partA만 읽었는데 로드된 소자 수: 3 (['MSIG', 'MBIAS1', 'MBIAS2']) -- partB가 자동으로 합쳐졌어야 함
+  cross-file matching 후보(MSIG는 partA, MBIAS1/2는 partB): ['MSIG', 'MBIAS1', 'MBIAS2']
+  PASS: 파일을 쪼개도 사고8(cross-block 매칭 관계 누락)이 재발하지 않는다
+
+=== Test 22: audit_row_split() — Euler/box-shape만으론 못 잡는 matching 회귀 실측 ===
+  사용자 지적: "matching pattern은 왜 적용이 안 됐지?" -- folded_cascode_example()의
+  top/bot을 2행으로 나눌 때 M3는 row0 통째로, M4는 row1 통째로 배치했다. Euler 조건과
+  box-shape는 둘 다 PASS였지만 전류거울 쌍(M3/M4, source=vdd 공유)이 완전히 분리돼
+  interdigitation/common-centroid가 전혀 없었다 -- 이후 사용자가 한 번 더 지적:
+  "interdigitation과 common-centroid 둘 다 살펴보는 과정을 추가하라 했는데 하나만
+  하면 어떡하냐" -- 3b(행 내부 인접성)와 3c(전체 무게중심 일치)를 별개 체크로 분리.
+  [회귀 재현] M3 row0 통째로/M4 row1 통째로: overall=OK(FAIL, 의도대로 검출됨)
+    [PASS] 3a. row-presence[M3/M4] (kind=sensitivity=ratio,shares_node=True): 두 소자 모두 있는 행: []; M3/M4 중 한쪽만 있는 행: ['old_row0', 'old_row1'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)
+    [FAIL] 3b. interdigitation[M3/M4]: old_row0: NOT 인접; old_row1: NOT 인접
+    [FAIL] 3c. common-centroid[M3/M4] [참고용 -- 이 kind는 필수 아님]: M3 centroid=(5.67,0.00), M4 centroid=(5.67,1.00), |dx|=0.00 |dy|=1.00 (허용오차 0.5)
+  [common_centroid_layout로 재구성] overall=OK
+    [PASS] 3a. row-presence[M3/M4] (kind=sensitivity=ratio,shares_node=True): 두 소자 모두 있는 행: ['fix_row0', 'fix_row1']; M3/M4 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)
+    [PASS] 3b. interdigitation[M3/M4]: fix_row0: 인접; fix_row1: 인접
+    [PASS] 3c. common-centroid[M3/M4] [참고용 -- 이 kind는 필수 아님]: M3 centroid=(3.00,0.33), M4 centroid=(3.00,0.67), |dx|=0.00 |dy|=0.33 (허용오차 0.5)
+
+  [kind-aware 재판정 -- two_stage_ota_example() top(M3/M4=2f+2f) + M6(8f)] 사용자의
+  세 번째 지적("mirror는 interdigitation이 적합, 차동쌍은 common-centroid가 필요 --
+  기존 §2.7 기준을 왜 안 쓰나")을 반영하기 전에는, M3/M4의 common-centroid dx=1.0을
+  '해결 안 된 한계'로 오판했었다 -- 하지만 M3/M4는 gate=D3를 공유하는 전류거울이지
+  차동쌍이 아니다. §2.7 기준대로 kind=current_mirror면 interdigitation만 필수이고
+  common-centroid는 참고용이므로, dx=1.0은 애초에 실패가 아니라 잘못된 기준을 적용해
+  생긴 오탐이었다 -- kind-aware 판정으로 바로잡는다.
+  overall=OK(sensitivity=ratio+shares_node -> interdigitation만 필수, 정확히 통과)
+    [PASS] 3a. row-presence[M3/M4] (kind=sensitivity=ratio,shares_node=True): 두 소자 모두 있는 행: ['small_row0']; M3/M4 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)
+    [PASS] 3b. interdigitation[M3/M4]: small_row0: 인접
+    [FAIL] 3c. common-centroid[M3/M4] [참고용 -- 이 kind는 필수 아님]: M3 centroid=(1.50,0.00), M4 centroid=(3.50,0.00), |dx|=2.00 |dy|=0.00 (허용오차 0.5)
+
+  [대조군 -- 진짜 차동쌍이 common-centroid를 실패하면 이번엔 진짜로 FAIL해야 한다]
+  overall=FAIL(sensitivity=offset -> common-centroid 필수, 의도대로 검출됨)
+    [PASS] 3a. row-presence[MX/MY] (kind=sensitivity=offset,shares_node=True): 두 소자 모두 있는 행: ['dp_row0', 'dp_row1']; MX/MY 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)
+    [PASS] 3b. interdigitation[MX/MY] [참고용 -- 이 kind는 필수 아님]: dp_row0: 인접; dp_row1: 인접
+    [FAIL] 3c. common-centroid[MX/MY]: MX centroid=(0.75,0.75), MY centroid=(2.25,0.25), |dx|=1.50 |dy|=0.50 (허용오차 0.5)
+
+=== Test 23: branch_symmetric kind — M5/M6, M7/M8 (공유 노드 없는 캐스코드 대칭쌍) ===
+  사용자 지적: "bot_row0/row1에서 M7과 M8은 왜 한군데 몰아두었지?" -- 확인해보니 M7/M8을
+  matching_pairs에 넣어본 적이 없었다(M9/M10만 확인). §2.6 재확인: M5/M6, M7/M8은 gate만
+  공유하고 source/drain은 서로 완전히 다르다(공유 노드 0개) -- M3/M4(source=vdd 공유)와
+  다른 하위 종류다.
+  [1차: M5/M6 통째로 한 컬럼씩(solo)] -- 전수 탐색으로 interdigitation(3b)이 그래프상
+  0건임을 먼저 확인했지만, solo 배치 자체의 common-centroid(3c)를 계산해보니 FAIL이었다:
+  overall=FAIL(solo 배치의 common-centroid 미달, 의도대로 검출됨)
+    [PASS] 3a. row-presence[M5/M6] (kind=sensitivity=ratio,shares_node=False): 두 소자 모두 있는 행: []; M5/M6 중 한쪽만 있는 행: ['solo_row0', 'solo_row1'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)
+    [FAIL] 3b. interdigitation[M5/M6] [참고용 -- 이 kind는 필수 아님]: solo_row0: NOT 인접; solo_row1: NOT 인접
+    [FAIL] 3c. common-centroid[M5/M6]: M5 centroid=(4.50,0.00), M6 centroid=(4.50,1.00), |dx|=0.00 |dy|=1.00 (허용오차 0.5)
+
+  [사용자 재지적: "differential pair처럼 stack 분리+finger 조절로 common-centroid를
+  만들 수 있잖아" -- M5/M6도 양쪽 행에 swap-대칭으로 나눠 분배해 재시도(M5=2/4, M6=4/2,
+  swap). interdigitation(그래프상 인접)은 여전히 불가능하지만 common-centroid(전체
+  무게중심)는 이 분배로 실제 달성됨을 확인:
+  overall=OK(swap-분배로 common-centroid 실제 달성)
+    [PASS] 3a. row-presence[M3/M4] (kind=sensitivity=ratio,shares_node=True): 두 소자 모두 있는 행: ['dist_row0', 'dist_row1']; M3/M4 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)
+    [PASS] 3b. interdigitation[M3/M4]: dist_row0: 인접; dist_row1: 인접
+    [PASS] 3c. common-centroid[M3/M4] [참고용 -- 이 kind는 필수 아님]: M3 centroid=(5.67,0.33), M4 centroid=(5.67,0.67), |dx|=0.00 |dy|=0.33 (허용오차 0.5)
+    [PASS] 3a. row-presence[M5/M6] (kind=sensitivity=ratio,shares_node=False): 두 소자 모두 있는 행: ['dist_row0', 'dist_row1']; M5/M6 중 한쪽만 있는 행: 없음 (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)
+    [FAIL] 3b. interdigitation[M5/M6] [참고용 -- 이 kind는 필수 아님]: dist_row0: NOT 인접; dist_row1: NOT 인접
+    [PASS] 3c. common-centroid[M5/M6]: M5 centroid=(3.17,0.67), M6 centroid=(3.17,0.33), |dx|=0.00 |dy|=0.33 (허용오차 0.5)
+
+  [대조군 -- 진짜 finger 수가 안 맞는 branch_symmetric 쌍은 여전히 FAIL해야 한다]
+  overall=FAIL(finger 수 4 != 6 -- 진짜 mirror 짝이 아님, 의도대로 검출됨)
+    [PASS] 3a. row-presence[MA/MB] (kind=sensitivity=ratio,shares_node=False): 두 소자 모두 있는 행: []; MA/MB 중 한쪽만 있는 행: ['bad_row0', 'bad_row1'] (정보성 — solo 자체는 실패가 아님, 3c가 실제 품질을 판정)
+    [FAIL] 3b. interdigitation[MA/MB] [참고용 -- 이 kind는 필수 아님]: bad_row0: NOT 인접; bad_row1: NOT 인접
+    [FAIL] 3c. common-centroid[MA/MB]: MA centroid=(1.50,0.00), MB centroid=(2.50,1.00), |dx|=1.00 |dy|=1.00 (허용오차 0.5)
+
+=== Test 24: check_walk_sequence() — 제안된 순서가 실제로 이어지는지 독립 검산 ===
+  사용자 제안: "top_row0를 M3,M4,M6,M6,M5,MP,M5,M6,M6,M4처럼 섞을 수는 없나?" --
+  finger 개수는 실제 채택안(dist_top_row0)과 정확히 같지만, 직접 그래프를 추적해보니
+  M6,M6로 Y에 돌아온 뒤 M5(X/outA에만 닿음)로 못 넘어가 4번째 단계에서 끊긴다 --
+  X/Y는 vdd를 거쳐야만 이어지는데 이 순서는 중간에 vdd를 거치지 않았기 때문이다.
+  proposed row0 ok=False, break_index=4 reason=4번째 단계(M5): 현재 위치=Y인데 M5은 (X,outA)에만 닿아 있음 -- 연결 안 됨
+  대조: 실제 채택된 순서(dist_top_row0의 실제 build_stick_diagram() 결과)는 당연히 이어진다:
+  real sequence ['M6', 'M6', 'M6', 'M6', 'M4', 'M3', 'M5', 'M5', 'M3', 'MP']: ok=True, node_path=['Y', 'outB', 'Y', 'outB', 'Y', 'vdd', 'X', 'outA', 'X', 'vdd', 'tail']
+
+  [finger 개수 자체가 안 맞는 경우도 잡아내는지 확인]
+  개수 불일치 시퀀스: ok=False, finger_count_mismatch={'M3': {'expected': 2, 'actual': 1}, 'M5': {'expected': 2, 'actual': 1}, 'M6': {'expected': 4, 'actual': 1}}
+
+=== Test 25: check_stick_diagram_coverage() — sizing은 됐는데 layout이 통째로 빠짐 방지 ===
+  실제 사고(2026-07-28, 힌트 없는 fresh agent 재현 테스트): current-reuse telescopic
+  OTA 리포트에서 21개 소자 전부 gm/ID sizing은 됐는데, CMFB/bias-gen/Class-AB 9개
+  소자는 stick diagram(물리 행)이 아예 없이 '완료'로 게시됐다 -- run_full_circuit_audit를
+  import만 하고 실제로 호출하지 않아서 이 gap을 그 게이트조차 못 잡았다.
+  overall=FAIL(정확히 그 사고를 재현 -- Class-AB/bias-gen/CMFB 22개 소자 누락 검출됨)
+  missing count=22: ['M11a', 'M11b', 'M13', 'M14a', 'M14b', 'M27', 'M28', 'M29', 'M30', 'M31', 'M32', 'M33', 'M34', 'M35', 'M36a', 'M36b', 'M37a', 'M37b', 'M38', 'M39', 'M40', 'M8']
+
+  [대조: 전부 커버되면 OK로 통과하는지 확인]
+  overall=OK, missing=set()
+
+=== Test 26: topology library JSON 오케스트레이션 레이어 (load_topology/run_topology_pipeline/save_instance_json) ===
+  2026-07-28 신설 -- library/*.topology.json이 folded_cascode_example()/
+  two_stage_ota_example()과 connectivity 단위로 diff=0인지, 파이프라인이
+  실제로 끝까지 도는지 회귀 확인. topology JSON은 connectivity+symmetry+
+  compensation만 담는다 -- n_fingers/finger_w/w/stack_id(사이징 산출물)는
+  sizing_overrides로만 채워진다(사용자 지적으로 3차 재설계된 최종 스키마).
+
+  [folded_cascode: n_fingers/finger_w/w/stack_id 산출물만 folded_cascode_example()에서
+  빌려 파이프라인 기계적 동작을 확인 -- 2026-08-05(세션9) folded_cascode.topology.json이
+  다이오드 레퍼런스 구조(MP/MN, Vg7/Vg9/Vg10 등) 반영으로 Maloberti 교과서 예제와 다른
+  실제 회로로 전면 재구성돼, connectivity diff=0 비교는 더 이상 유효한 회귀 기준이
+  아니다(의도적 차이, 세션9 사용자 승인) -- 소자 이름 집합만 일치 확인하고 connectivity
+  diff는 참고 정보로만 출력한다.
+  connectivity diff=0: False (13개 소자, 참고 정보 -- 세션9 재구성으로 항상 False가 정상)
+  compensation=None (단일 스테이지라 null이 정상)
+  run_topology_pipeline(): box_shape.ok=True, audit_row_split.ok=False (단일 행 후보라 branch_symmetric 쌍 FAIL 예상 -- row 분할 미탐색은 알려진 한계), coverage.ok=True
+
+  [two_stage_ota: 동일 회귀 + compensation 함수 실제 연결 확인]
+  connectivity diff=0: True (7개 소자)
+  compensation=miller_ota_topology (구조가 2단 Miller OTA와 일치해 참조 연결됨)
+  run_topology_pipeline(): box_shape.ok=True, audit_row_split.ok=False, coverage.ok=True
+
+  [save_instance_json(): pipeline_result를 손대지 않고 그대로 파일에 옮기는지]
+  기록된 최상위 키: ['audit_row_split', 'box_shape', 'coverage', 'floorplan', 'netlist', 'schema_version', 'sizing', 'topology_ref']
+  netlist 소자 수=13, floorplan.packing_density=0.800
+
+  Test 26 PASS: two_stage_ota connectivity diff=0, folded_cascode는 이름 집합만 일치 확인(세션9 재구성으로 diff 비교 자체는 더 이상 유효한 기준이 아님), 파이프라인 정상 실행, save_instance_json 정상 기록
+
+=== Test 26.5: run_topology_pipeline() -- sizing_overrides에서 소자 하나를
+    빠뜨리면 즉시 에러가 나는지(PRE-FLIGHT 사고27 재발 방지) ===
+  2026-07-28 실측 발견: split_into_stacks()가 stack_id=None인 소자를
+  (kind,'unspecified') 폴백 그룹으로 자동 흡수해버려서, check_stick_diagram_
+  coverage()는 '이름이 어딘가 있다'고 통과시킨다 -- 즉 사실상 사이징 안 된
+  소자가 coverage.ok=True인 채로 조용히 넘어갈 뻔했다(M11로 실제 재현됨).
+  PASS: ValueError로 즉시 거부됨 -- sizing_overrides가 다음 소자를 빠뜨렸다: ['M11'] -- 모든 소자는 sizing_overrides에 반드시 있어야 한다. 빠...
+
+=== Test 26.55: run_topology_pipeline() -- check_finger_width_compatibility()가
+    §3.5 선행 게이트로 실제 배선됐는지(세션18) -- W가 finger_w의 정수배가 아니면
+    euler 분석 이전에 즉시 ValueError로 막는지, 정상 케이스는 그대로 통과하는지 ===
+  PASS(비정상 W): ValueError로 즉시 거부됨 -- sizing_overrides의 W가 finger_w의 정수배가 아닌 소자가 있다(§3.5 divisibility 게이트, 물리적으로 존재할 수 없는 finger 개수를 요구하는 ...
+  PASS(정상 W): 기존 정상 케이스는 게이트에서 안 걸리고 그대로 통과 -- box_shape.ok=True
+
+=== Test 26.6: run_topology_pipeline() -- cell_groups 인자 (배치 7-2/2026-07-31) ===
+  fixture: folded_cascode(stack_id=top/mid/bot 3개) -- 물리적으로 독립된 cell이
+  없는 회로지만, cell_groups 메커니즘 자체(파티션별 box_shape/audit_row_split)를
+  검증하는 데는 임의의 2-cell 분할로 충분하다.
+
+  [(a) cell_groups/spine_groups 둘 다 None -- 기존 단일-Verdict 동작 그대로]
+  PASS: box_shape=BoxShapeVerdict, audit_row_split=AuditResult (dict 아님)
+
+  [(b) cell_groups 생략, floorplan_hints.spine_groups만 제공 -- fallback으로 그대로 재사용]
+  PASS: box_shape 키=['cellA', 'cellB'], audit_row_split 키=['cellA', 'cellB']
+
+  [(c) cell_groups를 명시하면 spine_groups와 달라도 cell_groups가 우선(오버라이드)]
+  PASS: box_shape 키=['signal'] (spine_groups=['cellA', 'cellB']와 다름 -- 오버라이드 확인), row_widths 일치(단일 cell=combined)
+
+=== Test 27: propagate_topology_forced_currents() / find_diode_stacks() (A/C엔진, §7.3.2, 배치 7-3/2026-07-31) ===
+
+  [A엔진 (a) 직렬 스택 전파 -- folded_cascode 'bot' 스택 한 소자만 seed]
+  PASS: 'bot' 스택 ['M10', 'M11', 'M7', 'M8', 'M9', 'MN'] 전부 24uA로 전파, 'top'/'mid'는 안 건드림
+
+  [A엔진 (b) 미러비 전파 -- ref(M9)->mirror(MN) 1:1 미러 가정]
+  PASS: M9=24uA -> 미러비 1.0으로 MN=24.0uA 전파
+
+  [A엔진 (c) 같은 직렬 스택에 서로 다른 seed 전류가 섞이면 즉시 ValueError]
+  PASS: ValueError로 즉시 거부됨 -- 직렬 스택 ['M9', 'M10', 'M7', 'M8', 'M11', 'MN']에 서로 다른 seed 전류가 섞여 있다: [2...
+
+  [C엔진 find_diode_stacks() (a) folded_cascode -- M11/MN이 실제로 self-diode임을 검출]
+  fixture 재확인: M11(gate=drain=vb1)/MN(gate=drain=vb2)은 folded_cascode_example()
+  원본부터 diode-connected 바이어스 생성 소자로 정의돼 있다(bias1~5는 외부 net이라
+  아님) -- find_diode_stacks()가 이걸 실제로 찾아내는지가 맞는 검증이다.
+  PASS: {'M11': 'M11', 'MN': 'MN'} -- 둘 다 self-diode(gate==자기 drain)로 정확히 검출
+
+  [C엔진 find_diode_stacks() (b) 실제 회로(current_reuse_telescopic_ota.topology.json)의
+  M61/M58/M57 stacked-diode를 파일에서 직접 읽어 검증 -- 손타이핑 아님(2026-07-31,
+  사용자 지적으로 합성 넷리스트를 실제 topology.json 로드로 교체)]
+  실제 구조(2026-07-30 사용자와 함께 확인, topology.json _correction_log_2 참고):
+  M61(전류원, gate=Vbias1)->M58(gate=M57의 drain)->M57(gate=자기 drain=Vbias_p)
+  -- 자기참조만 보는 구식 체크는 M58을 놓친다.
+  PASS: {'M58': 'M57', 'M57': 'M57'} -- M57=self-diode, M58=M57 참조(이웃), M61(전류원)은 제외됨 (전부 topology.json에서 실제로 읽은 connectivity)
+
+=== Test 28: select_layout_tool()/repair_matching_safety() (배치 7-4/7-4b, 2026-07-31) ===
+
+  [select_layout_tool() -- 2026-08-05(세션10) L1 하드컷: 축B/축C 조합별 도구 선택
+  + area_budget 격상. 구 kind 문자열 대신 (matching_sensitivity, shares_node)를 받는다.]
+    PASS: 축B/축C 조합 매핑 확인(ratio+shares_node->interdigitate, 나머지->common_centroid) + 미등록 matching_sensitivity ValueError -- 알 수 없는 matching_sensitivity: 'not_a_real_sensitivi...
+
+  [repair_matching_safety() -- known-incidents.md 사고3 재현: folded_cascode.topology.json의
+  current_matched 쌍(어느 이름인지는 topology.json의 symmetry.matching_pairs에서
+  직접 찾는다 -- 특정 소자명을 테스트가 가정하지 않음, 2026-07-31 사용자 지적으로 교체.
+  2026-08 세션6에서 kind 이름이 'current_mirror'->'current_matched'로 바뀌어 픽스처도
+  같이 옮김 -- folded_cascode.topology.json엔 이제 진짜 전류강제 미러가 전부
+  current_matched로 선언돼 있다, sizing_recipe.py 세션6 주석 참고)
+  이 쌍이 서로 다른 행에 통째로 분리 배치된 걸 자동으로 interdigitate 재배치하는지]
+    (JSON에서 발견한 current_forced=True,ratio 쌍(구 current_matched): M3/M4)
+    수리 전: ok=False (예상대로 FAIL -- 분리배치로 3b 인접성 실패, 사고3 재현)
+    수리 후: ok=True, 최종 행=['row0_repair0'] (PASS로 전환)
+
+  [repair_matching_safety() -- 공유 hub가 없는 pair(같은 파일에서 발견한 진짜
+  branch_symmetric 쌍)는 건드리지 않고 정직하게 실패 유지(정직한 한계)]
+    (JSON에서 발견한 current_forced=False,ratio 쌍(구 branch_symmetric): M5/M6)
+    PASS: ok=False(여전히 FAIL, 의도대로), 행 구조 불변=['rowA', 'rowB'] (M5/M6은 source가 달라 도구 적용 불가)
+
+  [repair_matching_safety() -- 세션16 branch 복합 매칭: current_reuse_telescopic_ota.
+  topology.json의 M6 그룹 실제 사례(M1a-M2a/M1b-M2b가 각각 kcl 직렬 branch, M2a/M2b는
+  source가 서로 달라 예전엔 조용히 스킵됐다) -- 이제 M1a/M1b와 함께 묶여 재배치되는지,
+  branch 구조가 없는 위 테스트는 여전히 완전히 그대로인지(회귀 없음) 확인]
+    PASS: M2a/M2b가 더 이상 스킵되지 않고 M1a/M1b와 같은 행(seg1_repair0_repair0_repair0)에 묶임 -- audit.ok=False(3c는 n_fingers=1 한계로 여전히 FAIL, 예상대로 -- 핑거증가는 이 함수 범위 밖, gm/ID 재검증이 필요해 sizing_recipe.py 몫)
+  [_branch_composite_pair() -- branch 구조가 없는(2단자 net으로 안 이어진) 단독 소자
+  쌍은 None을 돌려줘 기존 폴백(위 rowA/rowB 테스트)이 안 깨지는지 직접 확인]
+    PASS: branch 구조 없음 -> None(기존 폴백 경로 그대로 보존)
+
+  [세션17 _composite_collapse_for_crossover()/find_min_crossover_layout_with_
+  branch_composite() -- find_min_crossover_layout()을 부르기 전에 branch(M1a-M2a,
+  M1b-M2b)를 미리 합성 소자로 뭉쳐서, crossover 짝짓기가 애초에 branch를 갈라놓을
+  수 없게 만드는지(채점 기반 회피가 아니라 구조적 보장) M6 그룹으로 확인 -- 사용자
+  질문(세션17): 'find_min_crossover_layout() 호출 전에도 branch_composite_pair를
+  써야 하지 않나?']
+    PASS: 6소자 -> 4개(합성 2 + 미매칭 그대로), 선언 쌍 2개 -> 합성 쌍 1개(('__branch__M1a_M2a', '__branch__M1b_M2b')), 민감도=offset(hub쪽 우선, 보수적 규칙)
+    PASS: 펼친 뒤에도 M1a/M2a, M1b/M2b가 각각 정확히 같은 segment에 있음(branch가
+    애초에 그래프에서 원자 단위 edge였으므로 crossover 짝짓기가 갈라놓을 방법이
+    없음 -- 이전 raw 개별소자 버전은 이게 채점 결과였을 뿐 구조적 보장이 아니었음), crossover_count=0, branch_composites=['__branch__M1a_M2a', '__branch__M1b_M2b']
+  [회귀 -- branch 구조 없는 그룹(위 rowA/rowB 픽스처)은 _composite_collapse_for_
+  crossover()가 아무것도 안 합치고 원본 그대로 통과시키는지]
+    PASS: branch 없음 -> _composite_collapse_for_crossover()가 아무것도 안 건드림(expand_map 비어있음, matching_pairs 그대로 [('M5', 'M6')])
+
+  [repair_matching_safety() -- 세션17 relaxed_pairs: 최후수단 인접배치 완화가
+  select_layout_tool()의 common-centroid 판단을 실제로 무시하는지(위 M6 그룹 fixture
+  재사용), 그리고 공유 hub도 branch composite도 없는 쌍(위 rowA/rowB)은 relaxed_pairs에
+  있어도 여전히 손 못 대는지(완화가 없는 layout 자유도를 만들어내지 않음) 확인]
+    PASS: relaxed_pairs 적용 후에도 3c[M1a/M1b]는 필수 게이트로 정직하게 FAIL 유지(audit.ok=False)
+    PASS: 공유 hub/branch composite 없는 쌍은 relaxed_pairs에 있어도 여전히 손 못 댐(행 구조 불변=['rowA', 'rowB'], 정직한 한계 유지)
+
+=== Test 29: derive_stack_groups()/assign_finger_geometry() (배치 7-6, 2026-07-31) ===
+  folded_cascode.topology.json 전체(13개 소자, matching_pairs -- 세션34에 M11/MN
+  gap-fill 반영 후 6개)를 그대로 사용 -- 손타이핑 넷리스트 없음(topology.json
+  단일 소스 원칙).
+
+  [geometry_colocation_union() -- 2026-08-05(세션10) L1/L2 하드컷: derive_stack_groups()가
+  kcl_series_union()/geometry_colocation_union() 두 함수로 분리됐고, folded_cascode netlist도
+  세션9에 전면 재구성됐다(outA/outB -> Vg7/out) -- assign_finger_geometry()가 실제로 받는
+  것과 동일하게 current_forced=True 쌍만 필터링해 geometry_colocation_union()으로 병합]
+    PASS: 4개 그룹 -- PMOS 6개(M1..M6), NMOS 4개(M7..M10, 다이오드 레퍼런스 체인), M11/MN(diffpair tail+레퍼런스 미러쌍), MP(단독) 전부 확인
+
+  [geometry_colocation_union() -- 재현성: 같은 입력 다시 넣으면 완전히 같은 그룹]
+    PASS: 재실행 결과 완전 동일
+
+  [assign_finger_geometry() -- 위 그룹 + 합성 sizing_results(가상 gm/ID 결과, 
+  matching pair는 W 동일하게)로 sizing_overrides 자동 구성]
+    PASS: 13개 소자 전부 n_fingers*finger_w==w로 원래 W 정확히 재현, stack_id가 derive_stack_groups() 그룹 키와 일치, l이 sizing_results의 L과 일치
+    참고: stack별 total_row_fingers={'M3': 28, 'M9': 16, 'M11': 16, 'MP': 16} (box-shape 판정은 audit_row_split()/repair_matching_safety()의 몫)
+
+=== Test 30: analog-grammar 연동(Tier 1) — find_idiom_matches()/find_matching_
+    candidates(idiom_matches=)/find_stack_edges()/find_stacked_matching_candidates()
+    (2026-08-06, analog-topology-json-library 세션18 K/L절 + 사용자 설계 논의) ===
+
+  [0. analog-grammar 사용 가능 확인 -- 없으면 이 Test 전체가 무의미하니 먼저 확인]
+    PASS: analog-grammar import 성공
+
+  [1. 하위호환 -- idiom_matches=None(기본값)이면 Test 6과 완전히 동일한 net-only 동작]
+    PASS: idiom_matches 파라미터 추가 후에도 기본값 동작 무변경
+
+  [2. M57/M58 오탐 재현 -- 세션18 실사고 connectivity(2026-07-29 disposed -> 2026-08-03
+  정정)를 그대로 fixture로 구성. 양성대조(MrefA/MrefB, 진짜 diode 레퍼런스 미러)도 함께]
+    옛 동작(재현): [['M57', 'M58'], ['MrefA', 'MrefB']] -- M57/M58 오탐 포함 확인
+    새 동작: [['MrefA', 'MrefB']] -- M57/M58 제외, MrefA/MrefB는 유지
+
+  [3. M11/MN 오탐 재현 -- folded_cascode_example(), 둘 다 self-diode(role=DIODE_CONNECTED)
+  라 diff_pair의 AMPLIFYING 요구를 애초에 통과 못해야 함. inputs 선언 없으면 vin_p/vin_n도
+  이름 힌트 미매치로 BIAS 취급돼 M1/M2까지 같이 사라지므로 반드시 inputs= 선언]
+    inputs=vin_p,vin_n 선언 후: [['M1', 'M2']] -- M11/MN 제외, M1/M2는 유지
+
+  [4. 캐스코드 대칭쌍(M2a/M2b류) 복합소자 상속 -- folded_cascode의 M1/M2(확정 diff_pair)
+  위에 직접 stacked된 M5/M6를 find_stacked_matching_candidates()가 재귀적으로 찾는지.
+  M1 위엔 극성이 다른 M5(pmos)/M7(nmos)이 동시에 얹혀 있어(폴딩 노드 X 공유) 같은
+  kind로 좁히는 로직이 실제로 필요한 fixture -- 2026-08-06 실측으로 발견된 버그 재발 방지]
+    PASS: [['M5', 'M6']] -- M5/M6(같은 pmos)만 상속, 극성 다른 M7/M8은 안 섞임
+
+  [5. 어댑터 자체 폴백 -- gate가 전혀 없는(레거시) Transistor 목록을 주면
+  _to_analog_grammar_devs()가 전부 걸러내 devs=[]가 되고, find_idiom_matches()/
+  find_stack_edges()가 (analog-grammar 자체는 멀쩡해도) 자연스럽게 None을 반환하는지.
+  analog-grammar 미설치 상황(ImportError 경로)은 사용자 환경에 실제로 있을 때만
+  검증 가능하므로(설치를 일부러 지웠다 복원하는 건 self-test로 하기엔 위험한 파일시스템
+  조작이라 하지 않는다), 여기서는 두 어댑터가 실제로 소비하는 '입력이 비게 되는'
+  경로로 None-반환을 재현한다]
+    PASS: gate 없는 fixture -> 두 어댑터 전부 None, find_matching_candidates()는 빈 결과
+
+  === Test 30 전체 PASS ===
+
+=== Test 31: run_full_circuit_audit_from_topology() -- topology.json 하나만으로
+    devices/expected_counts/dispositions 자동 구성 (세션20, harness 실배선 전 단계) ===
+
+  [1. 실제 회로(51개 소자)로 자동 구성 -- ok=True, 세 체크 전부 자동 데이터로 통과하는지]
+    PASS: ok=True, [('1. device count vs manifest', True), ('2. net-name case consistency', True), ('3. every matching/hub-merge candidate has a recorded disposition', True)]
+
+  [2. dispositions 변환 -- symmetry.dispositions(list)와 개수가 일치하고, 형식이 (category,
+  reason) 튜플로 정확히 바뀌는지]
+    PASS: 20건 전부 키 충돌 없이 변환, 샘플 ('hub_merge', 'pmos', 'Vx') 일치
+
+  [3. 구조화 필드가 없는 회로(folded_cascode) -- ValueError로 명확히 실패하는지,
+  조용히 빈 expected_counts로 넘어가지 않는지]
+    PASS: ValueError 발생 -- C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets\library\folded_cascode.topology.json에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from_topology()는 expected_counts를 자동 도출할 수 없다(prose _netlist_sections를 구조화된 dict로 먼저 변환할 것, 세션20 참고).
+
+  [4. 구조화가 netlist 전수를 못 커버하면(소자 하나가 어느 블록에도 없음) ValueError --
+  임시 topology.json으로 실제 함수를 태워 확인(내부 로직 재현이 아니라 진짜 호출)]
+    PASS: ValueError 발생 -- Mb이 netlist에는 있지만 _netlist_sections_structured 어느 블록에도 없다 -- 구조화가 netlist 전수를 커버하지 못한다(불일치, 재확인 필요).
+
+  === Test 31 전체 PASS ===
+
+=== Test 32: trace_vdd_to_gnd_branches() -- 세션23 실측(4가지 vertical_stack_id
+    자동화 시도 중 유일하게 성공한 branch tracing)의 핵심 성질 3가지를 합성 fixture로
+    재확인: (1) 병렬 형제(같은 kind, 같은 타입 단자 공유)는 절대 안 이어짐,
+    (2) PMOS drain=NMOS drain 만남 지점은 정상적으로 이어짐, (3) 진짜 fan-out은
+    branch 여러 개로 정확히 갈라지고, 소비자가 없는 net은 non_transistor로 종료 ===
+    PASS: branch 7개(완주 4 + non_transistor 3), 조합 폭발 없음
+    PASS: M1a/M1b(같은 kind, 같은 Vx를 source로 공유하는 병렬 형제)는 어떤 branch에서도 안 이어짐
+    PASS: M2a/M3a drain=drain 만남 정상 연결 + Nout에서 M3a/M19로 정확히 2-way fork
+    PASS: 소비자 없는 net(Vbiasx)에서 dead-end가 non_transistor로 정직하게 보고됨
+
+  === Test 32 전체 PASS ===
+
+=== Test 33: suggest_vertical_stack_composites() -- branch tracing(Test 32) +
+    analog-grammar idiom matching(floating-battery 등)을 합쳐 세션23 5번째 실측
+    (62/63 vertical_stack_id 일치)의 핵심 성질을 합성 fixture로 재확인: 연속된
+    diode-connected 소자 쌍만 floating-battery로 병합되고, 그 아래 non-diode
+    소자는 별도 composite으로 남는지 ===
+    PASS: [Ma,Mb](floating-battery) | [Mc] -- 사람이 vertical_stack_id를 이 경계로
+    쪼갠 실제 사례(M11a+M11b vs M12 등, .ai/context.md 세션23 C절)와 같은 패턴 재현
+
+  === Test 33 전체 PASS ===
+
+=== Test 35: trace_gnd_to_vdd_branches()/find_differential_and_mirror_forks() --
+    telescopic/current-reuse 구조처럼 differential pair가 스택 안에 여러 층으로
+    있을 때, 하향(VDD->GND) 단독으로는 위쪽 pair만, 상향(GND->VDD) 단독으로는
+    아래쪽 pair만 잡고, 양방향을 합쳐야 둘 다 잡히는지(세션23 실측 -- 사용자
+    지적: "telescopic differential pair를 인식 못하는 문제") 합성 fixture로 재현 ===
+    PASS: 상향 branch가 하향 branch의 정확한 역순으로 재구성됨
+    PASS: 하향은 M1a/M1b(위쪽 diff pair)만, 상향은 M4a/M4b(아래쪽 diff pair)만
+    각자 찾고, 합쳐야 둘 다 잡힘 -- 세션23 실측(current_reuse_telescopic_ota:
+    하향 M1a/M1b ×2, 상향 M4a/M4b ×1)과 같은 패턴 재현
+
+  === Test 35 전체 PASS ===
+
+=== Test 36: find_verified_differential_and_mirror_relations() -- 진짜 branch
+    단위 비교(composite 구조가 완전히 같은 branch끼리만 묶음, C-7 원리를 양방향
+    으로 확장) + 매칭된 쌍 안의 모든 위치 스캔(첫 divergence만 보던 한계 해소).
+    Test 35의 telescopic fixture 하나로 differential/mirror 4가지 관계가 전부
+    (하향 스캔 한 번만으로도) 나오는지 재확인 ===
+    PASS: M1a/M1b(위치1)+M4a/M4b(위치4) differential, M2a/M2b(위치2)+M3a/M3b
+    (위치3) mirror -- 전부 하향 방향 한 번의 branch-쌍 스캔만으로 동시에 검출됨
+    (find_differential_and_mirror_forks()는 fork-tree라 방향마다 하나씩만 봤었음)
+
+  === Test 36 전체 PASS ===
+
+=== Test 37: find_differential_pair_candidates() -- inputs= 선언 없이 순수
+    connectivity(같은 non-rail source 공유)만으로 진짜 differential pair를
+    찾는지(사용자 통찰: "differential pair를 먼저 찾고 나서 mirror를 분석해야
+    정확해진다") Test 35의 telescopic fixture로 재확인 ===
+    PASS: inputs= 파라미터를 아예 안 넘겼는데도(Vip/Vim 선언 없음)
+    M1a/M1b(source=Vx)/M4a/M4b(source=Vy) 둘 다 순수 connectivity만으로 검출됨
+
+  === Test 37 전체 PASS ===
+
+=== Test 38: refine_differential_and_mirror_relations() -- input 승격
+    오케스트레이션(.ai/context.md D절 item 0, 세션24 신설). M37a/M37b류
+    (게이트가 inputs=에 없는 2차 differential pair)를 축소 재현한 합성
+    fixture로: (1) 승격 전에는 못 찾다가 승격 후 differential로 잡히는지,
+    (2) 그 승격의 연쇄효과로 다른 소자 role/net class가 바뀌었을 때 조용히
+    덮어쓰지 않고 명시적으로 보고하는지 검증 ===
+    PASS: 승격 전(inputs= 미선언)에는 M60a/M60b가 differential로 안 잡히지만,
+    조용히 버려지지도 않고 structurally_symmetric_no_connection으로 명시 보고됨
+    (Voc/Voc_des가 기본 BIAS로 분류되어 gate_class=='INPUT' 조건을 못 만족)
+    PASS: Voc/Voc_des가 자동 승격됨(iterations=2,
+    stop_reason=fixed_point) -- 승격 후 M60a/M60b가 no_connection에서 differential로 옮겨감
+    PASS: 승격의 연쇄효과(Voc: BIAS->INPUT, Vcmfb_a: BIAS->SIGNAL,
+    M62 role: ACTIVE_LOAD->AMPLIFYING)가 조용히 덮이지 않고 명시적으로 보고됨
+    (세션23 실측 Vcmfb: BIAS->SIGNAL, M7: CURRENT_SOURCE->AMPLIFYING과 같은 패턴)
+
+  === Test 38 전체 PASS ===
+
+=== Test 39: find_verified_differential_and_mirror_relations() -- 세 번째 버킷
+    structurally_symmetric_no_connection (세션24, 사용자 지적: "이 대칭쌍들도
+    symmetric branch로 출력되도록 해"). 구조는 완전히 대칭인데 gate로는
+    mirror/differential 어느 쪽도 확정 못 하는 쌍이 조용히 버려지지 않고
+    명시적으로 보고되는지, 실회로에서 실제로 나온 M6/M7 패턴(같은 tail net에
+    병렬로 물린 소자, 하나는 고정 bias 하나는 다른 신호)을 Test 35 fixture에
+    M7 analog(M7t)를 얹어 재현해 검증 ===
+    PASS: M6/M7t(같은 Vx를 공유하는 병렬 소자, 게이트가 다르고 둘 다 INPUT 아님)가
+    structurally_symmetric_no_connection으로 명시 보고됨(differential/mirror 아님)
+    -- 실회로 M6/M7과 정확히 같은 패턴, 기존 M1a/M1b 등 판정도 회귀 없음
+
+  === Test 39 전체 PASS ===
+
+=== Test 40: refine_differential_and_mirror_relations()의
+    vertical_stack_id_candidates -- cascode-stack composite(물리) +
+    differential-pair/mirror 관계(leg a/b)를 합쳐 최종 vertical_stack_id
+    후보를 만드는지(세션24, 사용자 지시) Test 35 fixture로 검증 ===
+    PASS: M1a/M2a, M1b/M2b, M3a/M4a, M3b/M4b가 각각 같은 그룹으로 묶이고
+    (composite 병합), leg별로 다른 그룹+접미사(_a/_b)를 받음(differential 관계)
+    -- 10개 소자 전부 후보 반환, 서로 다른 물리 stack끼리는 안 섞임
+
+  === Test 40 전체 PASS ===
+
+=== Test 41: _propose_vertical_stack_ids()의 fan-in 모호성 탐지 --
+    같은 kind의 lo 후보가 2개 이상인 CASCODE 소자는 어느 쪽에도 억지로
+    합치지 않고 ambiguous_{name}으로 격리하는지(세션24, 실회로 M9b/M10
+    사례를 축소 재현) 검증 ===
+    PASS: Mup(같은 kind lo 후보 2개, Mlo1/Mlo2)이 ambiguous_Mup으로 격리되고
+    Mlo1/Mlo2 어느 쪽과도 안 합쳐짐 -- 실회로 M9b(candidates=M3b,M10),
+    M18b(candidates=M3a,M19), M58(candidates=M6,M7)와 같은 패턴
+    PASS: ambiguous_alternatives['Mup']이 Mlo1/Mlo2 각자의 그룹 이름을
+    정확히 담고 있음 -- layout 함수가 이 중 하나를 골라 합류시킬 수 있는 근거
+
+  === Test 41 전체 PASS ===
+
+=== Test 42: fan-in 후보 중 differential-pair branch 소속 여부로 재판정 --
+    후보 2개 중 정확히 하나만 differential branch 소속이 아니면 그쪽으로
+    확정되어 ambiguous 상태를 벗어나는지(세션24, 사용자 통찰: 실회로
+    M9b->M10/M18b->M19/M58->M7이 이 규칙으로 풀림) 축소 재현으로 검증 ===
+    PASS: Mamb(fan-in 후보 M3b/Mout)가 M3b는 differential branch 소속이라
+    제외되고 Mout(비소속)과 묶임 -- 실회로 M9b->M10 패턴과 동일하게 재현됨
+
+  === Test 42 전체 PASS ===
+
+=== Test 43: refine_differential_and_mirror_relations()의
+    gm_id_role_candidates -- 2026-08-13 정정(사용자 지시, two_stage_ota L 자유도
+    확장 논의 계기) -- L_role(mirror/bias_replica) 둘 다 레이아웃 매칭이 필요하므로
+    최종 노출값은 전부 matching으로 통일됐는지(원래 tail 소자만 balanced였던 걸
+    matching으로 덮어씀), headroom_role_candidates(tail 판정)는 원본 신호를 써서
+    안 바뀌는지 Test 35 fixture로 검증 ===
+    PASS: 10개 소자 전부 gm_id_role_candidates='matching'(M5/M6 tail 소자도 포함,
+    매칭 보호가 필요하다는 사용자 판단 반영) -- 그러나 headroom_role_candidates는
+    M5/M6 둘 다 여전히 'tail'로 정확히 분류됨(내부 원본 신호는 안 바뀜)
+
+  === Test 43 전체 PASS ===
+
+=== Test 44: suggest_vertical_stack_composites()가 idioms.Match.ports를
+    조용히 버리지 않고 composite에 보존하는지(사용자 지적: M8/M9a가 물리적으론
+    캐스코드 스택이 맞지만, M8=mirror 기준/M9a=그 위 캐스코드라는 구분이
+    composite 단계에서 사라지고 있었음) Test 35 fixture로 검증 ===
+    PASS: M1a/M2a composite의 ports에 lower_role='AMPLIFYING'(M1a의 role)이
+    그대로 보존됨 -- 이전엔 {'members','idiom'}만 남기고 버려지던 정보
+
+  === Test 44 전체 PASS ===
+
+=== Test 45: refine_differential_and_mirror_relations()의
+    headroom_role_candidates -- 6가지 실패한 가설 끝에 나온 37/37 규칙
+    (role==FLOATING_CURRENT_SOURCE/DIODE_REFERENCED_CASCODE 분리 +
+    mirror_ref/그룹/대칭 판정, 세션25, 사용자와 함께 여러 라운드 검증)이
+    tail/cascode/mirror/floating_current_source 네 값 전부와 mirror_ref
+    유무에 따른 diode-cascode 분기(있음/없음)까지 실제로 가르는지 합성
+    fixture로 검증 ===
+    PASS: tail(M6/M5) / cascode(M2a/M2b/M3a/M3b) / floating_current_source
+    (M9a/M9b) / mirror(M8/M10/M50/M60) 기본 갈래 전부 정확
+    PASS: diode-cascode lo가 diode 파트너의 mirror_ref 여부를 그대로 물려받음
+    -- M51(파트너 M52가 mirror_ref)=mirror, M61(파트너 M62가 mirror_ref 아님)=cascode
+    PASS: 차동쌍 입력(M1a/M1b/M4a/M4b)은 None(compensation.stage_devices 소관,
+    이 규칙 범위 밖) -- 51개(여기선 fixture 전체) 일관 반환, 하드코딩 제외 없음
+
+  === Test 45 전체 PASS ===
+
+=== Test 46: find_verified_differential_and_mirror_relations()의
+    differential_branch_members -- '진짜 differential branch 소속'과
+    'symmetric(mirror) branch 소속'을 방향(vdd_to_gnd/gnd_to_vdd)에 안
+    흔들리고 정확히 구별하는지(세션25, 사용자 통찰: M10은 M19와의 진짜
+    mirror 관계 당사자라 differential branch가 아니다, M3a/M3b는 M4a/M4b
+    differential 발견의 상류라 mirror 관계이면서도 진짜 differential branch
+    소속이다) 합성 fixture로 검증 ===
+    PASS: M6/M7(병렬 tail, 서로 structurally_symmetric_no_connection)과
+    M3a/M3b(M4a/M4b 발견의 상류이자 서로 mirror 관계)는 전부 differential
+    branch 소속으로 정확히 포함됨
+    PASS: Mfork_a/Mfork_b(M19/M10류 별개 mirror branch, M1a/M1b 발견과
+    chain-prefix만 우연히 겹침)는 정확히 제외됨 -- 방향 인식 상류 슬라이스가
+    이 구별을 만들어냄(단순 전체 체인 누적이나 무조건 mirror 배제 둘 다 실패했던
+    반례들)
+
+  === Test 46 전체 PASS ===
+
+=== Test 47: audit_vertical_stack_id_vs_kcl() -- declared vertical_stack_id와
+  kcl_series_union()의 불일치를 internal_series/declared_matching_pair/
+  multi_terminal_hub로 자동 분류하는지(2026-08-10 세션 대화, 사용자와 함께
+  M11b/M12 진짜 직렬 체인 + M9a/M9b류 floating-current-source 3-branch 허브
+  두 반례를 실측으로 확인한 뒤 신설) current_reuse_telescopic_ota.topology.json
+  실회로(51소자)로 검증 -- 손타이핑 넷리스트 없음. ⚠️ 원래 예시였던 M11b/M12는
+  세션27이 헤드룸 버그 수정으로 M11a/M11b/M12를 같은 vertical_stack_id로
+  합쳐 이 divergence 자체가 해소됐다(의도된 결과) -- 세션28에서 같은 패턴의
+  다른 실측 사례(M60/M66, Vbias4 2단자 직렬, 세션27이 손대지 않은 그룹)로
+  교체해 감사 함수의 검증력을 유지한다 ===
+    PASS: M60(vbias4_gen)/M66(vbias4_stack) -- Vbias4 2단자 직렬(진짜 KCL 체인)이 declared vsid 기능 경계를 가로지름을 정확히 검출
+    PASS: M9a/M9b(Vg15/Vop1)·M18a/M18b(Vg25/Vom1) floating-current-source 4개
+    declared 그룹 전부 3+단자 허브(candidate_hub_nets)로 정확히 설명됨 -- 
+    kcl_series_union()의 union-find로는 못 푸는 3-branch KCL이라는 신호 그대로 반환
+    PASS: candidate_hub_nets 없는 review 대상 0건, vsid gap 0건 -- declared vertical_stack_id가 이 회로의 KCL 현실과 완전히 정합함을 재확인
+
+  === Test 47 전체 PASS ===
+
+=== Test 48: merge_layout_groups_by_matching_pairs() -- vertical_stack_id 기반
+  그룹(수직 방향만 앎)이 서로 다른 물리 branch에 있는 매칭 파트너를 잡아주지
+  못하는 문제(2026-08-10 세션26 후속 J-4/J-9, folded_cascode 5개 매칭쌍 전부
+  3b/3c 실패 실측)를, geometry_colocation_union()의 위험한 재귀 climb 없이
+  그룹 단위 union만으로 해결하는지 -- folded_cascode 실회로(candidates 경로)로
+  검증. 손타이핑 넷리스트 없음 ===
+    확인: 병합 전(candidates 그룹 11개)에는 declared 매칭쌍 5개 전부 서로 다른 그룹(문제 재현)
+    PASS: declared 매칭쌍(current_forced=True)마다 그룹이 정확히 합쳐짐 -- {M1,M2}/{M3,M4}/{M7,M8,M9,M10}(M9/M10 매칭쌍이 두 물리스택을 이어붙임)
+    PASS: M5/M6(ambiguous 격리 + current_forced=False) -- 매칭쌍 기준에 안 걸려서 우회 병합도 전혀 안 되고 격리 그대로 유지됨(geometry_colocation_union()의 실제 버그였던 M6을 통한 M1/M2<->M3/M4 우회 병합이 이 함수에선 구조적으로 불가능함을 확인)
+
+  [current_forced=False까지 전부 넘기면(세션9/10 dx 악화 반례 재현 의도)
+  M5/M6도 시도는 되는지 -- ⚠️ 2026-08-10 오일러 게이트 신설 이후 재확인:
+  M5/M6은 공유 net이 아예 없어(source=Y/drain=Vg7 vs source=X/drain=out) 어떤
+  핑거조정으로도 연결 안 됨 -- 오일러 게이트가 이 병합 자체를 막는다(필터링과
+  다른 이유). 함수가 current_forced를 몰래 걸러서가 아니라 진짜 연결 불가능
+  해서 안 합쳐진다는 걸 구분해서 확인]
+    OK: M5/M6은 여전히 안 합쳐짐 -- current_forced 필터링이 아니라 오일러 게이트가 막은 것(둘이 진짜 물리적으로 무관하므로 정당)
+
+  [current_forced=False라도 실제로 물리적으로 이어진(오일러 실현 가능한) 쌍이면
+  이 함수가 필터링 없이 그대로 병합함을 합성 fixture로 확인 -- "기본값은
+  current_forced=True만 권장"이 강제가 아니라 권고일 뿐임을 증명]
+    OK: 물리적으로 이어진 쌍은 current_forced 값과 무관하게 병합됨 -- 필터링은 함수가 강제하지 않고 호출자(resolve_stack_layout())의 책임으로 남김
+
+  === Test 48 전체 PASS ===
+
+=== Test 49: audit_vertical_stack_id_euler_feasibility() -- declared
+  vertical_stack_id 그룹이 그 자체로 오일러 실현 가능한지(merge_layout_
+  groups_by_matching_pairs()의 오일러 게이트가 손 못 대는, 병합 이전부터
+  이미 declared로 들어온 그룹의 문제) 검사. 2026-08-10 세션26 후속(2) K-3
+  cmfb_tail 추적 중 발견한 suggest_pair_finger_adjustments()의 연결성 착시
+  (resulting_odd_count는 홀짝만 보고 그래프가 끊겼는지는 안 봄)를 실제
+  적용+재검증으로 피하는지도 함께 검증. 2026-08-11(세션28) 신설 kind_mismatch
+  finding(PMOS/NMOS 혼합 declared 그룹)도 크래시 대신 구조화 보고되는지 확인 ===
+    PASS: cmfb_tail(M37a/M37b/M38) -- n_fingers=1 기준 오일러 impossible(홀수차수 4개, Ncmfb_tail이 M37a/M37b의 source이자 M38의 drain인 3단자 허브) 정확히 검출
+    PASS: resolvable_by_finger_adjustment=True -- 제안(PairAdjustmentSuggestion(names=('M37a', 'M37b'), delta_fingers=1, resulting_odd_count=2, note='차수 개선: 홀수 노드 4개 → 2개'))을 실제로 적용해 재검증(연결성 포함)까지 통과함을 확인(단순 resulting_odd_count<=2 착시가 아님)
+    PASS: cmfb_tail 외 10개 declared vsid 그룹(['biasgen_vom_battery_a', 'biasgen_vom_battery_b', 'biasgen_vop_battery_a', 'biasgen_vop_battery_b', 'diffpair_branch_a', 'diffpair_shadow_b', 'output_stage_a', 'output_stage_b', 'vbias2_stack', 'vbias3_stack'])이 전부 kind_mismatch=True로 정확히 구분 보고됨 -- PMOS/NMOS 혼합(전기적 컬럼 개념상 정상)을 크래시 없이 감사 결과로 포착
+
+  [합성 fixture -- 완전히 무관한(공유 net 없는) 두 소자를 한 declared 그룹으로
+  잘못 선언한 경우, suggest_pair_finger_adjustments()의 resulting_odd_count가
+  연결성을 안 보고 착시를 일으키는지, 이 함수가 실제 적용+재검증으로 정확히
+  잡아내는지(진짜 review 대상 = resolvable_by_finger_adjustment=False) 확인]
+    PASS: 서로 무관한 두 소자를 잘못 한 그룹으로 선언한 경우 resolvable_by_finger_adjustment=False로 정확히 구분됨(연결성 착시 회피 확인)
+
+  === Test 49 전체 PASS ===
+
+=== Test 50: find_euler_repair_options() -- unresolved_row를 resolved로
+  만들려면 어떤 row를 병합해야 하는지 찾는 탐색(2026-08-10 사용자 질문으로
+  신설). 실제 optimize_full_circuit_budget() 끝까지 태운 뒤 unresolved_row로
+  남았던 두 실사례(cmfb_tail/biasgen_ref)를 이 함수로 진단하면 놀랍게도
+  **병합이 전혀 필요 없다** -- 같은 행 안 핑거 조정 하나로 이미 풀린다(실측)
+  -- run_topology_pipeline_with_finger_fixup()이 이 해법을 못 찾고 포기했을
+  뿐. 그리고 합성 fixture로 '진짜 병합이 필요한' 경우도 검증 ===
+    PASS: cmfb_tail -- 같은 행 안 조정으로 해결됨(병합 불필요), 제안=PairAdjustmentSuggestion(names=('M37a', 'M37b'), delta_fingers=1, resulting_odd_count=2, note='차수 개선: 홀수 노드 4개 → 2개')
+    PASS: biasgen_ref(M18_bg/M60/M61) -- 같은 행 안 조정으로 해결됨(병합 불필요), 제안=PairAdjustmentSuggestion(names=('M18_bg', 'M60'), delta_fingers=1, resulting_odd_count=2, note='차수 개선: 홀수 노드 4개 → 2개') -- 즉 이 실사례들의 진짜 원인은 '병합이 필요한 구조적 문제'가 아니라 다운스트림 fixup 탐색 전략의 gap이었음
+
+  [합성 fixture -- 같은 행 안에서는 절대 안 풀리는(서로 완전히 끊긴) blocked 그룹을
+  만들고, 후보 row 2개(하나는 진짜 다리 역할, 하나는 완전히 무관) 중 실제로 연결을
+  살려주는 쪽만 merge_candidates로 정확히 찾아내는지 확인]
+    PASS: same_row_fix=None(진짜 병합 필요) -- bridge_row(b-c를 이어줌)만 merge_candidates로 정확히 찾고, unrelated_row(완전히 무관)는 제외됨
+
+  === Test 50 전체 PASS ===
+
+=== Test 51: derive_horizontal_stack_groups() -- vertical_stack_id 그룹(전기적
+  컬럼, PMOS/NMOS 혼합 가능)을 kind로 분할한 뒤 declared matching_pairs로 대칭
+  branch끼리 재병합해 물리 레이아웃 행(kind 동질, 오일러 대상) 후보를 만드는지
+  검증(2026-08-11 세션28 후반부, 사용자 설계 제안 -- vertical_stack_id는 헤드룸
+  전용, 물리 레이아웃 행은 레이아웃 전용으로 두 축을 분리) ===
+    PASS: 19개 물리 레이아웃 행으로 51/51 소자 전부 커버 (손실/중복 없음)
+    PASS: 반환된 모든 그룹이 kind 동질(PMOS/NMOS 혼합 0건)
+    PASS: output_stage_a/output_stage_b(class-AB 출력단, 전기적으론 M15=pmos+M16=nmos 한 컬럼) -- PMOS 절반(M15,M25)/NMOS 절반(M16,M26)이 각각 kind 동질 물리 행으로 올바르게 재병합됨(vsid='output_stage_a__pmos'/'output_stage_a__nmos') -- 게이트만 있고 kind-split이 없던 상태(세션28 (a) 직후)에서는 이 재병합 자체가 안 됐었음
+
+  [합성 fixture -- 매칭 파트너가 없는 순수 mixed-kind vsid 하나가 kind로만
+  정확히 쪼개지는지(병합 시도 없이) 확인]
+    PASS: totem(SP1=pmos/SN1=nmos, 매칭쌍 없음) -- totem__pmos=[SP1]/totem__nmos=[SN1]로 정확히 분할됨(재병합 시도는 없음, 매칭쌍이 없으므로 정상)
+
+=== Test 52: propose_vertical_stack_id_gap_fill() -- audit_vertical_stack_id_
+  vs_kcl()의 '한쪽만 선언됨(gap)' boundary_findings를 KCL 직렬 파트너의 값으로
+  자동 채우기 제안(2026-08-13 세션31, two_stage_ota.topology.json의 M1/M2/M6
+  gap을 손으로 추론했던 걸 재사용 가능한 함수로 코드화 -- 사용자 요청) ===
+  [합성 fixture -- internal_series gap은 채우고 declared_matching_pair gap은
+  안 채우는지(둘의 의미가 다름 -- 후자는 미러 출력이 다른 branch에 있는 게
+  원래 정상이라 audit_vertical_stack_id_vs_kcl() docstring이 명시적으로 구분함)]
+    PASS: internal_series gap(N1)만 partner(P1)의 vsid='colA'로 채워짐, declared_matching_pair gap(MIR_B)은 그대로 미선언 유지 -- 실제 제안: {'N1': 'colA'}
+
+  [합성 fixture -- 같은 소자가 서로 다른 edge에서 서로 다른 vsid를 물려받게
+  되면(충돌) proposals가 아니라 conflicts로 분리되는지]
+    PASS: B가 A/C 양쪽에서 다른 vsid를 물려받아 충돌 -- proposals에 안 들어가고 conflicts={'B': ['left', 'right']}로 분리됨(자동 확정 안 함, 사람 검토 대상)
+
+  [실제 회로 -- two_stage_ota.topology.json 원본(device_roles에 M1/M2/M6
+  미선언), propose_vertical_stack_id_gap_fill()을 직접 호출하면 손으로
+  추론했던 것과 정확히 같은 제안이 나오는지 -- load_topology()를 거치지
+  않고 원본 JSON을 직접 읽어 함수 자체의 회귀만 검증]
+    PASS: two_stage_ota 원본 -- M1이 stage1_ref(M3와 D3 직렬), M2가 stage1_out(M4와 O1 직렬), M6이 stage2(M7과 OUT 직렬)로 정확히 제안됨 -- {'M1': 'stage1_ref', 'M2': 'stage1_out', 'M6': 'stage2'}
+
+  [load_topology() 배선 -- 위 제안이 실제로 harness 최상위 진입점에서
+  자동 반영되는지(2026-08-13 세션31, 사용자 지시로 load_topology()에 배선)]
+    PASS: load_topology()가 반환하는 meta['device_roles']에 M1/M2/M6의 vertical_stack_id가 이미 채워져 있음(_vertical_stack_id_autofilled={'M1': 'stage1_ref', 'M2': 'stage1_out', 'M6': 'stage2'}) -- resolve_stack_layout()이 더 이상 이 gap으로 크래시하지 않음
+    PASS: audit_vertical_stack_id_vs_kcl()이 gap 0건 -- resolve_stack_layout()이 이 이유로는 더 이상 크래시하지 않음(sizing_recipe.py는 별개 모듈이라 여기서 직접 안 부름, 순환 import 방지)
+
+  === Test 52 전체 PASS ===
+
+=== Test 53: propose_device_roles_gap_fill() -- netlist(+load_topology())만으로
+  symmetry.matching_pairs/device_roles 재구성 -- 51소자 실회로 회귀(2026-08-14
+  신설, 사용자 요청 -- 'netlist 정보만 가지고 이 필드들을 구성해봐') ===
+    PASS: 51소자 실회로에서 18개 매칭쌍 제안, 전부 declared 21그룹의 부분집합(오탐 0건) -- branch-composite(differential/mirror) + structural_symmetry(전역 좌우대칭) 두 소스를 합친 결과, 어느 쪽도 손으로 넣은 inputs= 없이 순수 부트스트랩만으로 나옴
+    PASS: device_roles_proposals -- M8/M1a/M5의 gm_id_role/L_role/headroom_role 제안이 declared 값과 정확히 일치(51개 중 다수가 일치하는 세션 검증 재확인, 전수는 아님 -- gm_id_role 33/37, L_role 36/37, headroom_role 34/37, 다음 세션 diff 필요)
+    PASS: review_needed에 undisposed_candidates 보고됨(층위1/2가 찾았지만 이 함수가 확정 못 한 candidate -- 7-way Vbias1 문서화 그룹처럼 current_forced 세분화가 sizing_roles/theta 정보 없이는 원천적으로 불가능한 경우가 여기 담김)
+
+  [compensation_stage_devices를 넘겨도 M1a/M4a/M15/M25 등 8개 소자에 gm_id_role이
+  그대로 제안되는지(2026-08-14 사용자 지시로 방향 전환 -- 처음엔 위험을 피하려고
+  이 8개를 건너뛰게 만들었으나, '가드를 만들어야지 왜 제외해'라는 지적으로 근본원인
+  (sizing_recipe.py의 누락된 gm_id_role 가드)을 직접 고치는 쪽으로 정정. 이제 이 함수는
+  다시 compensation 소속과 무관하게 제안하고, review_needed에 참고 정보만 남긴다]
+    PASS: compensation_stage_devices=['M15', 'M16', 'M1a', 'M1b', 'M25', 'M26', 'M4a', 'M4b'] 전부에 gm_id_role이 정상 제안되고, review_needed엔 '가드로 무시되니 안전' 참고 정보만 남음
+
+  [실제로 M1(compensation.stage_devices 소속)에 gm_id_role을 채운 topology.json으로
+  optimize_full_circuit_budget()을 돌려도 sizing 결과가 안 채운 원본과 완전히 같은지
+  -- _AUTHORITATIVE_GM_ID_SOURCES 가드가 실제로 동작하는지, workspaces/run_harness.py의
+  실제 검증된 spec(_spec_two_stage_ota())을 그대로 재사용해 회귀 검증]
+    참고(정직한 한계, DC/AC 아키텍처 미분리 -- 세션41이 이미 발견해 별도 과제로 이월): 'stage1_out' 그룹의 VDS 합(2.60373V)이 vdd(1.8V)와 불일치(diff=+0.803732V) -- KVL(직렬 branch 전압강하 합=vdd)이 깨졌다. 소자별 값: M4=1.004, M2...
+    PASS(known-limitation 일관성): M1에 gm_id_role을 채워도 before와 정확히 같은 이유로 실패 -- _AUTHORITATIVE_GM_ID_SOURCES 가드 자체의 회귀는 아님(가드의 최종 sizing-불변 검증은 DC/AC 갭 해소 후 재개할 것)
+
+  === Test 53 전체 PASS ===
+
+=== Test 54: propose_device_roles_gap_fill() -- 층위1 폴백(비대칭/폴딩 구조라
+  branch-composite/structural_symmetry가 전부 0건인 회로) 안전망 검증 --
+  folded_cascode 실회로 회귀 ===
+    PASS: composite/structural_symmetry가 이 회로에서 0건인데도(폴딩 구조라 branch 전체가 안 대칭) 층위1 폴백이 diff_pair(M1/M2)와 diode-connected 미러(M9/M10,M7/M8)를 정확히 재현 -- proposed=[['M1', 'M2'], ['M10', 'M9'], ['M11', 'MN'], ['M7', 'M8']]
+    (참고: M11/MN도 같은 패턴(MN이 diode, M11이 소비자, 둘 다 headroom_role=mirror)이라 제안됨 -- 이 파일엔 declared로 없지만, folded_cascode.topology.json은 이 4개 라이브러리 회로 중 유일하게 symmetry.dispositions 배열 자체가 없어서 check_symmetry_dispositions()로 한 번도 완결성 검증을 안 받은 파일이다. 오탐인지 원래 파일의 누락인지는 이 함수가 판단할 수 없다 -- review_needed로 남을 뿐, 이 함수 자신의 결함으로 취급하지 않는다.)
+    PASS: {M3,M4,MP} 3-way 후보와 (다이오드 없는) M5/M6은 review_needed의 undisposed_candidates에만 남고 matching_pairs_proposals엔 안 실림
+
+  === Test 54 전체 PASS ===
+
+=== Test 55: apply_device_roles_gap_fill() -- 실제 파일 읽기/병합/쓰기 왕복 +
+  멱등성(같은 결과를 두 번 적용해도 중복 안 생김) ===
+    PASS: 파일에 실제로 matching_pairs 6->6(신규 []), device_roles 13개 소자로 반영됨(디스크에 다시 읽어 확인)
+    PASS: 같은 파일에 다시 적용해도 새로 추가되는 쌍/필드가 0개(멱등성 확인)
+
+  === Test 55 전체 PASS ===
+
+=== Test 56: propose_device_roles_gap_fill()/apply_device_roles_gap_fill() --
+  이미 선언된 값과 제안이 충돌하면 조용히 덮어쓰지 않고 review_needed로만
+  보고하는지(프로젝트 전역 원칙) 합성 fixture로 검증 ===
+    PASS: MA(기존 선언 gm_id_role=balanced, 제안=matching -- 충돌)는 그 필드만 device_roles_proposals에서 빠지고(L_role/headroom_role은 정상 제안) review_needed로 보고됨, 충돌 없는 MB는 완전히 정상 제안됨
+    PASS: apply_device_roles_gap_fill()도 파일에 이미 있던 MA.gm_id_role=balanced를 그대로 유지(제안값 matching으로 덮어쓰지 않음)
+
+  === Test 56 전체 PASS ===
+
+=== Test 57: find_authoritative_sizing_devices()/find_unreviewed_device_roles()/
+  require_device_roles_reviewed() -- optimize_full_circuit_budget() 실행 전 review
+  게이트(2026-08-14 사용자 지시 -- '구조적으로 명확한 기능과 필요한 기능을
+  구분해서... review 안 된 부분은 error로 띄우고... review 받았다는 표시를
+  해서 optimize함수가 실행되도록'). 실측 사고 재발 방지: current_reuse_
+  telescopic_ota의 L_cascode(metric_stage_budget) 대상 M2a/M2b/M3a/M3b에
+  자동 제안된 L_role이 실제로 적용됐다가 그 theta 탐색을 무력화해 gain_db가
+  76.48->74.8로 떨어지는 회귀를 이 세션이 직접 재현/원인규명했다 ===
+    PASS: compensation(['M15', 'M1a', 'M25', 'M4a'])/metric_stage_budget(['M2a', 'M2b', 'M3a', 'M3b'])/B타입(M37a) 전부 authoritative로 잡히고, 일반 소자(M8)는 안 잡힘
+    PASS: 실제 current_reuse_telescopic_ota.topology.json(이미 review 완료)은 find_unreviewed_device_roles()=={}이고 require_device_roles_reviewed()도 조용히 통과함
+
+  [합성 fixture -- 일반 소자(authoritative 아님)의 gm_id_role/L_role이 파일에
+  없으면(=아직 review 안 됨) require_device_roles_reviewed()가 명확한 ValueError를
+  내고, apply_device_roles_gap_fill()로 review를 완료하면 그 다음부터 통과하는지]
+    PASS: M8의 gm_id_role/L_role이 review 안 된 상태 -- require_device_roles_reviewed()가 ValueError로 명확히 막음
+    PASS: apply_device_roles_gap_fill()로 M8의 gm_id_role/L_role을 파일에 실제로 쓴 뒤로는(review 완료 표시) require_device_roles_reviewed()가 통과함
+
+  === Test 57 전체 PASS ===
+
+=== Test 58: find_unreviewed_matching_pairs() -- matching_pairs도 review 게이트
+  대상(2026-08-14, 사용자 재지적 -- '대칭적인 branch이면 branch 전류가 같아야
+  하는것 아니야?' 계기로 두 가지를 재확인: (1) mirror/structural_symmetry 출처의
+  current_forced 기본값을 False->True로 정정(4회로 declared 전수 재조사, 2-소자
+  쌍은 예외 없이 True), (2) sizing_recipe.py의 matching_pairs L 전파가 current_
+  forced 값과 무관하게 모든 선언된 쌍에 작동함을 재확인 -- 'current_forced=False는
+  sizing에 안 쓰인다'는 이전 주장이 틀렸었다). 그래서 differential(offset)만
+  load_topology()가 메모리에도 자동 병합하고, mirror류(ratio)는 review 전까지
+  병합도 안 하고 review 목록에만 남긴다 -- folded_cascode의 실제 gap(M11/MN,
+  diode-connected MN + 소비자 M11이지만 한때 이 파일이 한 번도 check_symmetry_
+  dispositions() 검증을 받은 적 없어 사람이 확정하지 않았던 사례 -- 2026-08-14
+  세션34에 사용자 승인으로 실제 declared에 반영됐으므로, 이 테스트는 이제 임시
+  사본에서 그 declared 쌍을 다시 지워 '아직 review 안 된 상태'를 재현한다(실제
+  라이브러리 파일이 나중에 더 채워져도 이 테스트가 stale해지지 않도록)) ===
+    PASS: folded_cascode의 M11/MN(ratio, 아직 declared 아님)이 find_unreviewed_matching_pairs()에 정확히 잡힘: [['M11', 'MN']]
+    PASS: require_device_roles_reviewed()가 M11/MN 때문에 ValueError로 명확히 막음
+
+  [differential(offset) 출처는 review 없이도 메모리에 자동 병합되는지 -- M1/M2
+  (folded_cascode, 이미 declared)로 회귀 없음만 재확인(새 제안은 이미 declared라
+  없어야 정상, 순수 하위호환 확인)]
+    PASS: 이미 declared된 differential 쌍(M1/M2)은 review 목록에 안 나타남
+
+  === Test 58 전체 PASS ===
+
+=== Test 60: audit_theta_root_direction() -- sizing_roles.theta의 'A'/'A_signed'
+  feed가 캐스코드 체인에서 lo(전류생성원)인 root를 그 위에 얹힌 up(캐스코드)에서
+  유도하는(방향이 거꾸로인) 경우를 idioms.m_cascode()/propagate_reference_role_
+  through_cascode()로 잡아내는지(2026-08-18, 사용자 지적 3단계 -- 'analog-grammar를
+  통해서 각 소자의 관계를 알고 있는 것 아닌가' -> 'm_cascode()가 이미 하지 않나' ->
+  실측 결과 m_cascode()가 PMOS/NMOS 경계(drain-drain)를 못 잡는 gap을 발견해 그
+  자체를 확장. 그 확장 검증 중 m_diffpair()가 CTRL_SRC(FEEDBACK게이트 CMFB 차동쌍)를
+  놓치는 별개 gap도 발견해 같이 확장) ===
+    PASS: 실제 nmcnr_amplifier.topology.json(M108/M109가 lo, M106/M107이 그 위에 얹힌 up인 현재 설계)는 findings 0건 -- M106<->M108은 PMOS/NMOS 경계(drain-drain) 캐스코드라 m_cascode()의 cross-kind 확장이 실제로 이 검증에 쓰임
+  [세션 초반 실제로 저질렀던 버그(M106을 root로 두고 M108을 그 반대로 참조) 재현 -- 잡히는지]
+    PASS: root='M108'(lo)가 reference='M106'(그 위에 얹힌 up)에서 유도되는 거꾸로 방향을 정확히 1건 잡아냄
+  [current_reuse_telescopic_ota의 kcl_tail_M38(root=M38 tail, reference=M37a/M37b CMFB 차동쌍)이 오탐 없는지 -- M37a/M37b는 게이트(Voc/Voc_des)가 FEEDBACK으로 분류돼 role=CONTROLLED_CURRENT_SOURCE가 되는데, m_diffpair()가 원래 role==AMP만 인정해 이 CMFB 차동쌍을 못 알아보고 m_cascode()가 'M38 위에 얹힌 캐스코드'로 오분류하던 걸 실측으로 발견(m_cascode() cross-kind 확장과는 별개 gap) -- m_diffpair()에 CTRL_SRC도 추가해 정정, feedbacks=('Voc','Voc_des')를 정확히 선언하면 오탐이 사라지는지 재확인(회귀 감시)]
+    PASS: feedbacks를 정확히 선언하면 kcl_tail_M38 오탐 없음
+  [나머지 실제 library 회로(folded_cascode/two_stage_ota)도 findings 0건인지 -- 이미 검증된 설계에 오탐이 없어야 함(inputs는 각 회로 실제 net 이름 그대로)]
+    PASS: folded_cascode/two_stage_ota 둘 다 findings 0건
+
+  === Test 60 전체 PASS ===
+
+=== Test 61: propose_theta_kcl_gap_fill() -- 전류(ID) KCL 구조를 connectivity +
+  analog-grammar idiom만으로 제안(2026-08-18, 사용자 승인 후 신설 -- 'propose_
+  theta_kcl_gap_fill 만들자'). 규칙 1(diffpair 50/50)/2(캐스코드 추종)/2.5(declared
+  mirror)/2.7(gate mirror)/3(KCL 합)/4(자유 root 승격, diode 우선)를 실측으로
+  검증한다 ===
+    PASS: nmcnr_amplifier 전부 resolve(자유 root=['M101', 'M108', 'M109', 'M203', 'M204', 'M301']), diffpair 50/50·캐스코드 추종 관계 정확 -- M203/M204/M301은 이 함수 범위 밖인 compensation.stage_devices(M201/M301)와 얽혀 있어 이 함수 혼자서는 온칩 레퍼런스를 못 찾음(정직한 한계, 사람이 compensation 쪽과 함께 재검토할 것)
+  [compensation_stage_devices=[M102,M103,M201,M301]을 주면 위 한계가 풀리는지 -- 2026-08-19 세션37 신설]
+    PASS: M201/M301이 theta 구조에서 빠지고, M203({'type': 'A_signed', 'root': 'M203', 'terms': [{'device': 'M201', 'sign': 1}]}) 이 M201에서 KCL로, M204가 M203의 declared mirror로 재분류됨(더 이상 독립 자유쌍 아님)
+  [folded_cascode -- 규칙 2.7(gate mirror, MP->M3/M4)가 실제로 필요한지 재확인 -- 처음엔 이 규칙이 없어서 MP가 회로 나머지와 완전히 단절된 고아 자유변수로 남았었다(실측 발견)]
+    PASS: MP->M3/M4 게이트 미러(규칙 2.7)가 정확히 잡혀서 MP가 고립되지 않음
+  [서로 다른 자유 root 그룹(MP측/M9-M10측)이 같은 KCL 노드로 수렴하면 placeholder 값 충돌(0/음수)을 review_needed로 잡아내는지 -- 실측으로 처음 발견한 현상(구조 결함이 아니라 '이 자유 root들을 서로 조율해야 한다'는 신호), 조용히 넘기지 않는지 회귀 감시]
+    PASS: ['M1', 'M11', 'M2', 'MN']에 placeholder 값 충돌 경고 정확히 1건
+
+  === Test 61 전체 PASS ===
+
+=== Test 62: apply_theta_kcl_gap_fill() -- propose_theta_kcl_gap_fill() 결과를
+  실제 topology.json에 반영(2026-08-19 세션37 신설, 사용자 지시 'propose_theta
+  적용하자'). 이미 declared된 소자를 다루는 제안은 충돌로 스킵되고(M101/M108/M109
+  등 이미 baseline 실측까지 끝난 stage1은 그대로), stage2/3(M202/M203/M204/M302,
+  세션37에 이 함수로 처음 채워진 소자)만 실제로 추가되는지 검증한다. 실제 라이브러리
+  파일은 이미 세션37에 이 4개가 적용된 상태이므로, 임시 사본에서 그 4개를 제거해
+  '적용 전' 상태를 재구성한 뒤 테스트한다(파일 현재 상태와 무관하게 항상 재현 가능
+  하도록) ===
+    PASS: 신규 적용=['kcl_M202', 'kcl_M203', 'kcl_M302', 'r_mirror_M204_M203'], 충돌로 스킵된 기존 소자=['kcl_M101', 'kcl_M104', 'kcl_M105', 'r_free_M108_M109', 'r_series_M106', 'r_series_M107'] -- 기존 7개 theta는 바이트 단위로 불변, 파일 밖(임시 디렉터리)에서만 검증해 실제 라이브러리 파일은 안 건드림
+
+  === Test 62 전체 PASS ===

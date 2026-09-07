@@ -25,7 +25,12 @@ w_max/준정적)을 만족하는 점 중 목적함수(전력 또는 면적) 최�
 실증된 사례는 ../references/sky130-worked-example.md 참조.
 
 주의: 이 스크립트는 sizing "출발점"을 계산할 뿐이다 — 최종 확인은 항상 SPICE/Spectre로 한다
-(방법론 문서 §4.5, 정직한 한계). `SemiEmpiricalGmIdLUT`는 numpy가 필요하다(다른 함수는 불필요).
+(방법론 문서 §4.5, 정직한 한계).
+
+numpy는 **모듈 레벨 필수 의존성**이다 -- LUT 로딩(`.npz`), 소신호 MNA(`_mna_solve_smallsignal()`),
+SLSQP 탐색이 전부 numpy 위에서 돌기 때문에 "선택 의존성"이라는 옛 서술은 사실이 아니었다.
+2026-09-07: 함수마다 흩어져 있던 지연 import 7곳(+ ImportError 폴백 2곳)을 이 한 줄로 통합했다 --
+같은 모듈 안에서 `np`/`_np`/`_l5c_np` 세 별칭이 공존하던 상태를 정리한 것.
 """
 from __future__ import annotations
 import itertools
@@ -36,6 +41,8 @@ import re
 from collections import defaultdict
 from dataclasses import asdict, dataclass, field, is_dataclass, replace as _dc_replace
 from typing import Callable
+
+import numpy as np
 
 
 # ---------------------------------------------------------------------------
@@ -237,7 +244,6 @@ def _multilinear_interp(grids, values, points):
             if weight != 0.0:
                 total += weight * float(values[tuple(idx)])
         result.append(total)
-    import numpy as np
     return np.asarray(result)
 
 
@@ -317,7 +323,6 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
           (빠뜨리면 W가 L/W_ref배만큼 실제보다 작게 계산되는 버그 — 2026-07 세션에서 NMCNR
           SPICE 검증 중 발견: 목표 전류를 실제로 흘릴 수 없어 DC 동작점이 발산했다).
         """
-        import numpy as np
         self.np = np
         self.L_grid = np.asarray(L_grid, dtype=float)
         self.VGS_grid = np.asarray(VGS_grid, dtype=float)
@@ -445,7 +450,6 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         cached = self._gm_id_curve_cache.get(key)
         if cached is not None:
             return cached
-        np = self.np
         n = len(self.VGS_grid)
         pts = np.column_stack([
             np.full(n, L), self.VGS_grid, np.full(n, vds), np.full(n, vs),
@@ -465,7 +469,6 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         cached = self._solve_vgs_cache.get(key)
         if cached is not None:
             return cached
-        np = self.np
         _, gm_id_vals = self._gm_id_curve(L, vds, vs)
         order = np.argsort(gm_id_vals)  # np.interp는 오름차순 x를 요구
         gm_id_sorted, vgs_sorted = gm_id_vals[order], self.VGS_grid[order]
@@ -1258,7 +1261,6 @@ def build_toy_lut(n: float = 1.3, UT: float = 0.026, VTo: float = 0.4, ISuo: flo
     설계에 쓰지 말 것. 실전에는 lut-generation-checklist.md §7.4의 SPICE 스윕으로 이 함수를
     대체한 뒤 SemiEmpiricalGmIdLUT(...)에 실측 배열을 넣는다.
     """
-    import numpy as np
     L = np.asarray(L_grid, dtype=float)
     VGS = np.arange(0.0, VGS_max + 1e-9, VGS_step)
     VDS = np.asarray(VDS_grid, dtype=float)
@@ -1395,11 +1397,10 @@ def run_regression_case(reference_json_path: str, case_key: str, rel_tol: float 
             f"engine '{case['engine']}'이 _REGRESSION_ENGINES에 없다 -- "
             f"{sorted(_REGRESSION_ENGINES)} 중 하나여야 한다"))
 
-    import numpy as _np
     import os as _os_mod
     lut_path = _os_mod.path.join(
         _os_mod.path.dirname(_os_mod.path.abspath(reference_json_path)), ref["lut_file"])
-    d = _np.load(lut_path)
+    d = np.load(lut_path)
     luts_by_kind = {
         "n": SemiEmpiricalGmIdLUT(d["L"], d["VGS"], d["VDS"], d["VS"],
                                    d["ID_n"], d["GM_n"], d["GDS_n"], d["CGG_n"], W_ref=5e-6),
@@ -2393,7 +2394,7 @@ def _cmfb_amp_gain_diode_load(metric_spec: dict, ctx: SizingContext) -> float:
 
 
 def _mna_solve_smallsignal(devices: list, unknown_nodes: list, fixed: dict) -> dict:
-    """소신호 MNA를 순수 Python Gaussian elimination(부분피벗)으로 정확히 푼다(세션21 신설).
+    """소신호 MNA를 `numpy.linalg.solve`(LAPACK)로 정확히 푼다(세션21 신설, 2026-09-07 numpy 전환).
 
     `devices`: `[(drain, source, gate, gm, gds), ...]` — `I(drain->source) = gm*(vg-vs) +
     gds*(vd-vs)`(pmos/nmos 부호는 gm/gds 자체에 이미 흡수돼 있다, 기존 sympy 유도 스크립트의
@@ -2409,9 +2410,23 @@ def _mna_solve_smallsignal(devices: list, unknown_nodes: list, fixed: dict) -> d
     확인). 그래서 이 회로 계열(`telescopic_class_ab_cmfb`)의 Adm/Acm/Ann/H는 이제 매 metric
     평가마다 실제 사이징된 gm/gds로 이 자리에서 KCL을 수치로 푼다 — 폐형식 유도/유지보수
     부담이 없고, connectivity가 바뀌어도(topology.json이 유일한 소스) 이 solver 자체는
-    안 바뀐다."""
+    안 바뀐다.
+
+    **2026-09-07 -- 순수 Python 부분피벗 가우스 소거를 `numpy.linalg.solve`로 교체**: 이 함수는
+    metric 평가마다(= theta 격자점마다) 호출되는 최내곽 루프라 O(n^3) 파이썬 삼중 루프가 전체
+    탐색 시간을 지배했다(세타평가 1점 ~0.4s 중 상당분, `workspaces/run_harness_out10.log` 실측:
+    SLSQP 1 start = 84점에 35.1s). 계획 문서 §7.6의 L_combo 전수 스캔은 이 호출을 수백~수만 배로
+    곱하므로 파이썬 소거로는 실행시간이 자릿수로 초과한다. LAPACK은 같은 부분피벗 LU를 쓰므로
+    수치적 성질도 동일 계열이고, 특이행렬은 아래 두 단계로 **더 구체적으로** 진단한다:
+      (1) 행 또는 열이 통째로 0 -> 그 노드가 어떤 소자에도 안 물린 **고립 노드**(기존 부분피벗
+          판정이 잡던 바로 그 경우). 노드 이름을 찍어준다.
+      (2) 그 외 특이/종속 -> `LinAlgError`를 같은 `ValueError` 계약으로 감싸 올린다.
+    반환 타입/키/예외 타입은 기존과 동일해 호출부는 무변경이다."""
     n = len(unknown_nodes)
     idx = {name: i for i, name in enumerate(unknown_nodes)}
+    # 조립은 파이썬 리스트로 한다 -- 이 크기(노드 18~51)에서는 numpy 배열에 스칼라를 하나씩
+    # 더하는 쪽이 오히려 느리다(실측: 노드 18에서 0.109ms vs 0.084ms, 결과는 비트 동일).
+    # 무거운 건 조립이 아니라 O(n^3) 소거라서, 소거만 LAPACK으로 넘기는 게 최적이다.
     A = [[0.0] * n for _ in range(n)]
     b = [0.0] * n
 
@@ -2432,26 +2447,25 @@ def _mna_solve_smallsignal(devices: list, unknown_nodes: list, fixed: dict) -> d
         add(s, s, gm + gds)
         add(s, d, -gds)
 
-    for col in range(n):
-        piv = max(range(col, n), key=lambda r: abs(A[r][col]))
-        if abs(A[piv][col]) < 1e-30:
-            raise ValueError(
-                f"telescopic_class_ab MNA 특이행렬(노드 {unknown_nodes[col]} 고립 또는 소자 "
-                f"연결 누락) -- battery_vop1_side/battery_vom1_side 롤 배정을 확인할 것")
-        A[col], A[piv] = A[piv], A[col]
-        b[col], b[piv] = b[piv], b[col]
-        pv = A[col][col]
-        for r in range(col + 1, n):
-            f = A[r][col] / pv
-            if f == 0.0:
-                continue
-            for c in range(col, n):
-                A[r][c] -= f * A[col][c]
-            b[r] -= f * b[col]
-    x = [0.0] * n
-    for r in range(n - 1, -1, -1):
-        x[r] = (b[r] - sum(A[r][c] * x[c] for c in range(r + 1, n))) / A[r][r]
-    return dict(zip(unknown_nodes, x))
+    if n == 0:
+        return {}
+
+    A = np.asarray(A, dtype=float)
+    b = np.asarray(b, dtype=float)
+    dead = np.flatnonzero((np.abs(A).max(axis=1) < 1e-30)
+                          | (np.abs(A).max(axis=0) < 1e-30))
+    if dead.size:
+        raise ValueError(
+            f"telescopic_class_ab MNA 특이행렬(노드 {unknown_nodes[int(dead[0])]} 고립 또는 소자 "
+            f"연결 누락) -- battery_vop1_side/battery_vom1_side 롤 배정을 확인할 것")
+    try:
+        x = np.linalg.solve(A, b)
+    except np.linalg.LinAlgError as exc:
+        raise ValueError(
+            "telescopic_class_ab MNA 특이행렬(고립 노드는 아니지만 행이 선형종속 -- 같은 두 "
+            "소자가 중복 등록됐거나 노드가 병합돼야 하는 경우) -- battery_vop1_side/"
+            "battery_vom1_side 롤 배정을 확인할 것") from exc
+    return dict(zip(unknown_nodes, x.tolist()))
 
 
 def _load_telescopic_topology_cached() -> dict:
@@ -4389,6 +4403,518 @@ def make_matching_feasibility_check(grp, metrics_specs: dict, constraints: list,
     return check
 
 
+
+# ---------------------------------------------------------------------------
+# 헤드룸(VDS) 해석기 -- 2026-09-07 모듈 레벨로 추출
+# ---------------------------------------------------------------------------
+# 원래 이 6개 함수는 `_build_theta_evaluator()`(indent 4) -> `_evaluate()`(indent 8) 안의
+# **2중 중첩 클로저**였다. 그래서 헤드룸 해석을 theta 평가와 떼어내 단독 호출하는 것이
+# 원리적으로 불가능했고, 계획 문서 §8.4가 말하는 `resolve_headroom()` 독립 harness도 이
+# 상태로는 만들 수 없었다 -- "기존 함수를 무변경 재사용한다"는 서술이 성립하지 않았다.
+#
+# 추출 방식: **본문은 한 글자도 바꾸지 않는다.** 캡처하던 자유변수만 아래 두 env 객체로
+# 명시화하고, 각 함수 첫머리에서 원래 이름 그대로 지역에 풀어놓는다(형제 함수도 같은
+# 이름의 얇은 래퍼로 다시 묶는다). 호출부와 본문 로직이 전혀 바뀌지 않으므로 self-test
+# stdout이 바이트 단위로 보존된다 -- 실제로 그것을 회귀 판정 기준으로 삼았다.
+#
+# 자유변수 분해(AST로 전수 확인):
+#   토폴로지 레벨(theta와 무관, 한 번만 만들면 됨) -> `_HeadroomTopoEnv`
+#     device_roles / by_name / transistors / _rail_nets / ideal_source_terminals / _vparent
+#   평가 레벨(theta 격자점마다 새로 만들어짐)      -> `_HeadroomEvalEnv`
+#     ctx / spec / vertical_groups / group_ref_device / same_as_of / vds_match_of /
+#     referenced_devices
+# 재바인딩 검사: 위 13개 중 어느 것도 원래 스코프에서 재대입되지 않는다(전부 in-place
+# 변형만) -- 그래서 env에 한 번 담아 넘겨도 의미가 달라지지 않는다.
+
+
+@dataclass
+class _HeadroomTopoEnv:
+    """헤드룸 해석기의 **토폴로지 레벨** 상태(theta 격자점과 무관하게 불변)."""
+    device_roles: dict
+    by_name: dict
+    transistors: list
+    rail_nets: frozenset            # frozenset({'vdd','gnd','vss'})
+    ideal_source_terminals: dict    # net -> [(이상전원 이름, kind), ...]
+    vparent: dict
+
+
+@dataclass
+class _HeadroomEvalEnv:
+    """헤드룸 해석기의 **평가 레벨** 상태(theta 격자점마다 새로 만들어진다)."""
+    topo: "_HeadroomTopoEnv"
+    ctx: object
+    spec: dict
+    vertical_groups: dict
+    group_ref_device: dict
+    same_as_of: dict
+    vds_match_of: dict
+    referenced_devices: object
+
+
+
+def _hr_vfind(topo, x):
+    _vparent = topo.vparent
+    while _vparent[x] != x:
+        _vparent[x] = _vparent[_vparent[x]]
+        x = _vparent[x]
+    return x
+
+
+def _hr_thin_singleton_ideal_source_check(topo, device_name):
+    """singleton thin-role 그룹이 `allocate_stack_headroom()`의 "합=vdd" 계약을
+    우회해도 되는지, role 라벨만 믿지 않고 실제 `ideal_sources` 선언과 대조해
+    검증한다. 반환: `(ok, detail)` -- `ok=True`면 non-rail 단자가 declared
+    current_source 종단(전압 자유, 남는 예산을 흡수)임을 확인한 것. `ok=False`면
+    `detail`에 원인(선언 없음/voltage_source 종단/등)을 담는다."""
+    device_roles = topo.device_roles
+    by_name = topo.by_name
+    _rail_nets = topo.rail_nets
+    ideal_source_terminals = topo.ideal_source_terminals
+    dev = by_name.get(device_name)
+    if dev is None:
+        return False, f"'{device_name}' 트랜지스터를 찾을 수 없음"
+    open_nets = [n for n in (dev.source, dev.drain) if n not in _rail_nets]
+    if not open_nets:
+        return False, (
+            f"'{device_name}'의 양쪽 단자가 전부 레일(vdd/gnd/vss)임 -- "
+            f"singleton thin-role 우회가 상정하는 'non-rail 열린 노드' 패턴이 아님")
+    for net in open_nets:
+        for src_name, src_kind in ideal_source_terminals.get(net, []):
+            if src_kind == "current_source":
+                return True, f"{net}가 ideal current_source '{src_name}' 종단(전압 자유)"
+            return False, (
+                f"{net}가 ideal '{src_kind}' '{src_name}' 종단인데 current_source가 "
+                f"아님 -- voltage_source 종단은 '합=그 전압'이라는 다른 계약이 필요한데 "
+                f"이 코드베이스가 아직 그 케이스를 지원하지 않음")
+    return False, (
+        f"'{device_name}'의 non-rail 단자({open_nets}) 중 어느 것도 topology.json의 "
+        f"ideal_sources 선언과 안 맞음 -- role={device_roles.get(device_name, {}).get('headroom_role')!r}"
+        f"이 thin_roles인데 이 우회를 정당화할 근거가 없음(선언 누락 또는 role 오분류 "
+        f"가능성, 재검토할 것)")
+
+
+def _hr_fold_group_check(topo, device_name):
+    """singleton `fold_group` 우회가 정당한지, 선언(`device_roles.*.fold_group`)만
+    믿지 않고 실제 netlist connectivity와 대조해 검증한다(2026-08-15 세션35, 사용자
+    지시 "새 기능을 추가해"로 신설). `folded_cascode`의 X/Y 폴딩 노드처럼 서로 다른
+    방향에서 온 두 branch가 한 노드에서 합류하는 구조는 `allocate_stack_headroom()`의
+    "한 방향 직렬 스택(또는 `budget_reference_device`로 잇는 체인)" 전제 자체를
+    벗어난다 -- `_thin_singleton_ideal_source_check()`와 같은 정신(role 라벨만 믿지
+    않고 실제 구조로 검증)이지만, 정당화 근거가 `ideal_sources`가 아니라 "같은
+    `fold_group`을 선언한 다른 소자와 실제로 같은 net을 공유하는가"다.
+
+    반환: `(ok, detail)` -- `ok=True`면 이 소자의 non-rail 단자가 같은 `fold_group`을
+    선언한 다른 소자의 단자와 실제로 겹침(같은 물리적 병합 노드)을 확인한 것."""
+    device_roles = topo.device_roles
+    by_name = topo.by_name
+    _rail_nets = topo.rail_nets
+    transistors = topo.transistors
+
+    def _thin_singleton_ideal_source_check(*a, **k):
+        return _hr_thin_singleton_ideal_source_check(topo, *a, **k)
+    dev = by_name.get(device_name)
+    if dev is None:
+        return False, f"'{device_name}' 트랜지스터를 찾을 수 없음"
+    fold_group = device_roles.get(device_name, {}).get("fold_group")
+    if fold_group is None:
+        return False, f"'{device_name}'에 fold_group 선언이 없음"
+    open_nets = {n for n in (dev.source, dev.drain) if n not in _rail_nets}
+    if not open_nets:
+        return False, (
+            f"'{device_name}'의 양쪽 단자가 전부 레일(vdd/gnd/vss)임 -- "
+            f"fold_group 우회가 상정하는 'non-rail 병합 노드' 패턴이 아님")
+    siblings = [t.name for t in transistors
+                if t.name != device_name
+                and device_roles.get(t.name, {}).get("fold_group") == fold_group]
+    if not siblings:
+        return False, (
+            f"'{device_name}'과 같은 fold_group({fold_group!r})을 선언한 다른 소자가 "
+            f"없음 -- fold_group은 최소 2개 이상의 소자가 같은 노드를 공유할 때만 "
+            f"의미가 있음")
+    for sib_name in siblings:
+        sib = by_name.get(sib_name)
+        if sib is None:
+            continue
+        sib_nets = {n for n in (sib.source, sib.drain) if n not in _rail_nets}
+        shared = open_nets & sib_nets
+        if shared:
+            return True, (
+                f"{sorted(shared)}를 '{sib_name}'과 공유(같은 fold_group={fold_group!r} "
+                f"병합 노드)")
+    return False, (
+        f"'{device_name}'의 non-rail 단자({sorted(open_nets)})가 같은 fold_group을 "
+        f"선언한 소자 {siblings} 중 누구와도 실제로 겹치지 않음 -- fold_group 선언이 "
+        f"connectivity와 안 맞음(오분류 가능성, 재검토할 것)")
+
+
+def _hr_sum_ref_vds(env, vsid, refs):
+    """`refs`(budget_reference_device 튜플) 각 소자의 vds 합을 반환한다 -- 하나라도
+    아직 미확정이면 `_HeadroomDependencyNotReady`(기존 단일-참조 경로와 동일 예외,
+    fixed-point worklist가 다음 pass로 미루는 신호로 재사용)."""
+    ctx = env.ctx
+    total = 0.0
+    for d in refs:
+        v = ctx.sized.get(d, {}).get("vds")
+        if v is None:
+            raise _HeadroomDependencyNotReady(
+                f"'{vsid}'의 budget_reference_device('{d}')가 아직 VDS "
+                f"미확정 -- 참조 소자가 속한 vertical_stack_id 그룹이 먼저 풀려야 "
+                f"한다(순환/선언 확인)")
+        total += v
+    return total
+
+
+def _hr_verify_group_kvl_sum(env, vsid, members):
+    """vsid 그룹의 최종 VDS 합이 정확히 `vdd`(`budget_reference_device`가 있으면
+    `vdd - ref_vds`)와 일치하는지 실측 검증한다(2026-08-20 세션41 연속, 사용자
+    지시 -- "branch 전압합이 vdd가 되는 것을 보장하도록 수정해"). `allocate_
+    stack_headroom()` 자신의 assert는 "새로 배정한 헤드룸의 합이 remaining_vdd와
+    같다"만 보장하고, 그 remaining_vdd 계산 자체가 옳다는 전제(known_vds_sum/
+    ref_vds가 맞다는 전제) 위에서만 유효하다 -- 그런데 `_resolve_vertical_group()`
+    은 그룹 멤버 **전부**가 이미 다른 경로(compensation/metric_stage_budget/
+    gm_target_convention)로 resolved면 이 assert를 만드는 `allocate_stack_
+    headroom()` 자체를 호출하지 않고 그냥 `return`했다 -- `output_stage_a`(M15/
+    M16이 각자 다른 `metric_stage_budget` theta로 독립적으로 resolved)가 실제
+    사례였다(세션41, `.ai/context.md` 참고 -- 이 gap 때문에 `_feed_metric_stage_
+    budget()`의 `vds=0.6` 하드코딩이 이 그룹에서만 아무 검증 없이 KVL을 깨고
+    있었다). 이 함수를 그 두 return 지점 + 일반 `allocate_stack_headroom()` 경로
+    끝, 총 3곳에서 호출해 **어느 경로로 완결됐든** 이 그룹의 KVL이 실제로 맞는지
+    매번 실측 확인한다(경로 하나만 검증되고 나머지는 "아마 맞겠지"로 남는 걸
+    방지 -- 단일 검증 함수, 3번 호출).
+
+    `_thin_singleton`/`_referenced_singleton`/`_fold_group_singleton`(headroom
+    우회 3종)은 **의도적으로** 이 계약 밖이라 호출하지 않는다 -- 그 소자의
+    "나머지 예산"은 다른 그룹의 `budget_reference_device`로 넘어가거나 ideal
+    current source가 흡수하므로 이 그룹 혼자 합=vdd일 이유가 없다(`allocate_
+    stack_headroom()` 우회와 동일 원칙, 위 그 블록의 주석 참고). `same_as_device`
+    로 선언된 멤버도 제외한다(이 그룹의 KCL/KVL 몫이 아니라 다른 소자의 값을
+    그대로 복사만 하는 대칭 선언이라 원 알고리즘도 `known_vds_sum`에서 처음부터
+    뺀다 -- 이 함수는 그 기존 계약을 바꾸지 않고 그대로 반영한다).
+
+    ⚠️ **2026-08-20(세션41 연속, 실측으로 발견) -- 그룹 멤버 전부가 same_as_
+    device면(예: `cmfb_load_b`=[M36b], M36b.same_as_device=M36a) 이 그룹
+    자체는 "합=vdd" 계약의 당사자가 아니다** -- M36b는 M36a의 값을 그대로
+    복사만 할 뿐 이 그룹이 독자적인 VDD~GND(또는 budget_reference_device
+    기준) 컬럼이 아니다(그 검증 책임은 M36a가 속한 `cmfb_load_a` 자신의 몫,
+    거기서 이미 `_referenced_singleton`/`allocate_stack_headroom()` 경로로
+    따로 검증됨). `ref_dev`도 없고 same_as_device 아닌 멤버가 하나도 안
+    남으면(`seen_vgrp`가 비어있으면) 검증할 실체가 없다는 뜻이므로 조용히
+    반환한다(0V로 오판해 거짓 양성 내지 않음).
+
+    ⚠️ **2026-08-20(세션41 연속, 실측으로 발견) -- 멤버 중 하나라도 `fold_group`
+    을 선언했으면 이 그룹은 애초에 vdd~gnd를 잇는 컬럼이 아니다.** `diffpair_
+    top_a`(M1a/M2a, source=Vx)/`diffpair_bottom_a`(M3a/M4a, source=Vy)처럼
+    서로 다른 두 컬럼이 폴딩 노드(예: Vom1)에서 합류하는 구조는 각 절반이
+    "vdd부터"나 "gnd까지"가 아니라 "Vx/Vy부터 폴딩 노드까지"만 담당한다 --
+    `allocate_stack_headroom()`의 "한 컬럼이 vdd 전체를 혼자 책임진다" 전제
+    자체가 애초에 안 맞는 구조(`_fold_group_singleton` 우회가 이미 인정하는
+    것과 같은 한계, `§HeadroomPolicy` 참고 -- 폴딩 노드의 정확한 KVL 일치는
+    이 엔진이 아직 안 푼다). singleton 경로로 자원이 배정되든(기존 `_fold_
+    group_singleton`) 다른 theta(예: `L_cascode`의 `metric_stage_budget`)가
+    먼저 vds를 확정해 이 함수가 애초에 unresolved 없이 완결로 보든, 경로와
+    무관하게 이 그룹엔 '합=vdd' 계약이 성립하지 않으므로 검증하지 않는다.
+
+    2026-08-24(세션42 정정) -- 위 diffpair_top_a/diffpair_bottom_a 예시는 더 이상
+    fold_group 예외 대상이 아니다(그 fold_group 선언 자체가 세션41의 오판이었음,
+    `.ai/context.md` 세션42 참고 -- Vom1은 진짜 폴딩 노드가 아니라 이 6소자
+    (M6+M1a+M2a+M3a+M4a+M5) 단일 branch 내부의 정상 접합점). `budget_reference_
+    device`가 여러 소자를 참조할 수 있도록 확장(`_sum_ref_vds()`)돼서 이제 이
+    branch를 반으로 나눈 두 그룹이 서로의 나머지 절반을 참조로 걸어(diffpair_
+    top_a<->diffpair_bottom_a 상호참조, Monticelli floating battery 상호참조와
+    동일한 fixed-point worklist 패턴) 실제로 검증받는다."""
+    ctx = env.ctx
+    spec = env.spec
+    device_roles = env.topo.device_roles
+    group_ref_device = env.group_ref_device
+    same_as_of = env.same_as_of
+
+    def _vfind(x):
+        return _hr_vfind(env.topo, x)
+
+    def _sum_ref_vds(*a, **k):
+        return _hr_sum_ref_vds(env, *a, **k)
+    if any(device_roles.get(m, {}).get("fold_group") is not None for m in members):
+        return
+    refs = group_ref_device.get(vsid, ())
+    ref_vds = _sum_ref_vds(vsid, refs) if refs else 0.0
+    seen_vgrp = set()
+    total = ref_vds
+    for m in members:
+        if m in same_as_of:
+            continue
+        vgrp = _vfind(m)
+        if vgrp in seen_vgrp:
+            continue
+        entry = ctx.sized.get(m, {})
+        if entry.get("vds") is None:
+            raise ValueError(
+                f"'{vsid}' KVL 검증: '{m}'의 vds가 미확정인 채로 그룹이 완결됐다고 "
+                f"판단됨(내부 불변식 위반 -- _resolve_vertical_group()의 완결 조건과 "
+                f"이 검증의 전제가 어긋났다는 뜻이라 버그로 보고할 것)")
+        total += entry["vds"]
+        seen_vgrp.add(vgrp)
+    if not seen_vgrp and not refs:
+        return
+    vdd = spec["vdd"]
+    if abs(total - vdd) > 1e-9 * max(vdd, 1.0):
+        # 2026-08-24(세션42) -- 어느 소자가 얼마씩 기여했는지 breakdown을 에러
+        # 메시지에 직접 실어서, 원인 추적에 매번 별도 디버그 스크립트를 새로
+        # 짤 필요가 없게 한다(이번 세션에 실제로 이걸 몰라서 스크립트를 임시로
+        # 넣었다 뺐다 했음 -- 다음에 같은 상황이 오면 에러 메시지만으로 충분해야
+        # 한다).
+        _member_breakdown = ", ".join(
+            f"{m}={ctx.sized.get(m, {}).get('vds'):.4g}" for m in members
+            if m not in same_as_of)
+        _ref_breakdown = (", refs(" + ", ".join(
+            f"{d}={ctx.sized.get(d, {}).get('vds'):.4g}" for d in refs) + ")") if refs else ""
+        raise ValueError(
+            f"'{vsid}' 그룹의 VDS 합({total:.6g}V)이 vdd({vdd:.6g}V)와 불일치"
+            f"(diff={total - vdd:+.6g}V) -- KVL(직렬 branch 전압강하 합=vdd)이 "
+            f"깨졌다. 소자별 값: {_member_breakdown}{_ref_breakdown}. 이 그룹의 "
+            f"소자들이 서로 다른 경로(compensation/metric_stage_budget/gm_target_"
+            f"convention/headroom_role)로 각자 독립적으로 vds를 받으면 이런 불일치가 "
+            f"생길 수 있다 -- topology.json의 device_roles/theta feeds를 확인할 것")
+
+
+def _hr_resolve_vertical_group(env, vsid):
+    ctx = env.ctx
+    spec = env.spec
+    device_roles = env.topo.device_roles
+    vertical_groups = env.vertical_groups
+    group_ref_device = env.group_ref_device
+    referenced_devices = env.referenced_devices
+    same_as_of = env.same_as_of
+    vds_match_of = env.vds_match_of
+
+    def _vfind(x):
+        return _hr_vfind(env.topo, x)
+
+    def _sum_ref_vds(*a, **k):
+        return _hr_sum_ref_vds(env, *a, **k)
+
+    def _verify_group_kvl_sum(*a, **k):
+        return _hr_verify_group_kvl_sum(env, *a, **k)
+
+    def _fold_group_check(*a, **k):
+        return _hr_fold_group_check(env.topo, *a, **k)
+
+    def _thin_singleton_ideal_source_check(*a, **k):
+        return _hr_thin_singleton_ideal_source_check(env.topo, *a, **k)
+
+    def _resolve_vertical_group(*a, **k):
+        return _hr_resolve_vertical_group(env, *a, **k)
+    members = vertical_groups[vsid]
+    # 2026-08-19(세션38 연속) -- vds_match_vgs_of 멤버는 아래 by_vgrp/known_vds_sum
+    # 계산이 시작되기 **전에** 먼저 vds를 채운다. _ref_depth() 위상정렬이 참조 대상의
+    # 그룹을 먼저 처리하도록 보장하므로 여기 도달했을 때 참조 소자는 이미 gm_id/L/vds가
+    # 확정돼 있어야 정상이다(없으면 선언/순환 문제). 이렇게 미리 채워두면 아래 기존
+    # by_vgrp 루프가 이 멤버를 "이미 풀린 소자"로 자연스럽게 인식해(line ~4374의
+    # `ctx.sized.get(gm,{}).get("vds") is not None` 체크) known_vds_sum에 정확히
+    # 반영되고, 같은 그룹의 나머지 멤버(예: M204와 짝인 M202)가 vdd에서 이 값을 뺀
+    # 진짜 나머지 예산을 받는다 -- 아래 코드는 단 한 줄도 안 건드림(재사용).
+    for m in members:
+        if m not in vds_match_of or ctx.sized.get(m, {}).get("vds") is not None:
+            continue
+        ref = vds_match_of[m]
+        ref_entry = ctx.sized.get(ref, {})
+        if "gm_id" not in ref_entry or "L" not in ref_entry or ref_entry.get("vds") is None:
+            raise _HeadroomDependencyNotReady(
+                f"'{m}'의 vds_match_vgs_of('{ref}')가 아직 gm_id/L/vds 미확정 -- 참조 "
+                f"소자가 속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인), "
+                f"또는 '{ref}'의 gm_id가 compensation/metric_stage_budget/"
+                f"gm_target_convention/gm_id_role 중 하나로 확정 가능한지 확인할 것")
+        ref_lut = spec["lut_by_kind"][ctx.kind_of[ref]]
+        target_vgs = ref_lut.vgs_for_gm_id(
+            ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vs", 0.0))
+        ctx.sized.setdefault(m, {})["vds"] = target_vgs
+    # matching_pairs로 묶인 값-동일 그룹(_vfind)당 대표 1개씩만 집계 -- diff pair/미러
+    # 쌍의 두 소자를 헤드룸 예산에 중복으로 합산하지 않기 위함(위 _vfind 주석 참고).
+    # 2026-08-10(세션27) 정정 -- 이전엔 members 리스트에서 "먼저 나온" 소자를 무조건
+    # 대표로 써서 vds 여부를 검사했다. 그런데 값-동일 그룹의 두 소자가 vds를 채우는
+    # 경로가 다를 수 있다(실제 사례: M37a/M37b -- N_cmfb_bw B타입 feed가 target
+    # M37a의 vds를 직접 채우지만, 그 짝을 잇는 N_cmfb_bw_mirror A타입 feed는 전류만
+    # 전파하고 vds는 안 건드림) -- 이 경우 마침 vds 없는 쪽(M37b)이 먼저 나오면 이미
+    # 풀린 그룹을 "미해결"로 오판했다. 그룹 멤버 전체에서 **이미 vds가 있는 소자가
+    # 하나라도 있으면** 그 값을 쓰고(대표를 미리 정하지 않음), 전부 없을 때만 미해결
+    # 대표(headroom_role이 있는 소자 우선)를 고른다.
+    by_vgrp = defaultdict(list)
+    for m in members:
+        by_vgrp[_vfind(m)].append(m)
+    known_vds_sum = 0.0
+    unresolved = []
+    for vgrp, group_members in by_vgrp.items():
+        resolved = next((gm for gm in group_members
+                          if ctx.sized.get(gm, {}).get("vds") is not None), None)
+        if resolved is not None:
+            known_vds_sum += ctx.sized[resolved]["vds"]
+            # 2026-08-10(세션27) -- 값-동일 그룹의 다른 멤버가 전류만 전파받고(예:
+            # N_cmfb_bw_mirror처럼 A타입 mirror feed로만 연결된 M37b) gm_id/L/vds/W/
+            # gds가 없을 수 있다(headroom_role/gm_id_role 둘 다 없어 아래 두 fill
+            # 루프에서도 못 채워짐 -- M37a/M37b가 실제 사례, M37a는 N_cmfb_bw B타입
+            # feed가 자기 완결적으로 다 채우지만 M37b는 전류만 받음). 대표(resolved)와
+            # 같은 (gm_id,L,vds,vs)를 물려받되 자기 자신의 ID로 W/gm/gds를 LUT에서
+            # 재계산해 채운다(매칭쌍이므로 같은 물리 사이징을 공유한다는 전제,
+            # `_feed_metric_stage_budget()`과 동일한 계산 패턴) -- 이미 W가 있는
+            # 멤버는 건드리지 않는다(하위호환).
+            ref_entry = ctx.sized[resolved]
+            for sib in group_members:
+                sib_entry = ctx.sized.get(sib, {})
+                if sib == resolved or "W" in sib_entry or "ID" not in sib_entry:
+                    continue
+                gm_id2, L2 = ref_entry["gm_id"], ref_entry["L"]
+                vds2, vs2 = ref_entry["vds"], ref_entry.get("vs", 0.0)
+                kind2 = ctx.kind_of[sib]
+                lut2 = spec["lut_by_kind"][kind2]
+                ID2 = sib_entry["ID"]
+                idu2 = lut2.gm_id_to_id_density(gm_id2, L2, vds2, vs2)
+                gm_gds2 = lut2.gm_gds_ratio(gm_id2, L2, vds2, vs2)
+                gm2 = gm_id2 * ID2
+                sib_entry.update({"gm_id": gm_id2, "L": L2, "vds": vds2, "vs": vs2,
+                                  "kind": kind2, "W": L2 * ID2 / idu2, "gm": gm2,
+                                  "gds": gm2 / gm_gds2})
+            continue
+        rep = next((gm for gm in group_members
+                    if "headroom_role" in device_roles.get(gm, {})), None)
+        if rep is None:
+            raise ValueError(
+                f"'{vsid}' 그룹의 값-동일 소자 {group_members} 전부 vds 미확정이고 "
+                f"headroom_role도 없다 -- 이 소자들의 vds를 채울 경로(compensation/"
+                f"metric_stage_budget/headroom_role 중 하나)가 topology.json에 "
+                f"선언돼 있는지 확인할 것")
+        unresolved.append(rep)
+    if not unresolved:
+        _verify_group_kvl_sum(vsid, members)
+        return
+
+    # 2026-08-11(세션28 계속) -- same_as_device로 선언된 소자는 헤드룸 예산 계산에
+    # 아예 참여하지 않고 참조 대상의 vds를 그대로 복사한다(M7=M6, M36b=M36a --
+    # budget_reference_device로는 표현 못 하는 "동일" 관계). _ref_depth 위상정렬이
+    # 이미 참조 대상 그룹을 먼저 처리하도록 보장하므로 여기서는 ctx.sized에 값이
+    # 있어야 정상이고, 없으면 선언/순환 문제이므로 명시적으로 막는다.
+    same_as_members = [m for m in unresolved if m in same_as_of]
+    for m in same_as_members:
+        src = same_as_of[m]
+        src_vds = ctx.sized.get(src, {}).get("vds")
+        if src_vds is None:
+            raise _HeadroomDependencyNotReady(
+                f"'{m}'의 same_as_device('{src}')가 아직 VDS 미확정 -- 참조 소자가 "
+                f"속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인)")
+        vgrp = _vfind(m)
+        for other in members:
+            if _vfind(other) == vgrp:
+                ctx.sized.setdefault(other, {})["vds"] = src_vds
+    unresolved = [m for m in unresolved if m not in same_as_of]
+    if not unresolved:
+        _verify_group_kvl_sum(vsid, members)
+        return
+    base_budget = spec["vdd"]
+    refs = group_ref_device.get(vsid, ())
+    ref_dev = refs[0] if refs else None  # vs 기준점 전파용(아래) -- 여러 개면 첫 소자
+    ref_vds = None
+    if refs:
+        ref_vds = _sum_ref_vds(vsid, refs)
+        base_budget = spec["vdd"] - ref_vds
+    remaining_vdd = base_budget - known_vds_sum
+    stack_entries = [{"name": m, "role": device_roles[m]["headroom_role"],
+                       "min_vds": spec.get("min_vds_by_role", {}).get(
+                           device_roles[m]["headroom_role"], _DEFAULT_MIN_VDS_FALLBACK)}
+                      for m in unresolved]
+    # 2026-08-11(세션28) -- allocate_stack_headroom()은 "주어진 그룹이
+    # remaining_vdd 전체를 혼자 책임진다"는 계약을 강제한다(합이 정확히 일치함을
+    # assert, §3 실측 이력의 3.2V 사고 재발 방지용 -- 이 계약 자체는 건드리지
+    # 않는다). 그런데 소자 1개뿐인 그룹은 이 계약의 전제("내가 이 컬럼을 혼자
+    # 책임진다")가 두 가지 이유로 깨질 수 있어 여기서 직접 우회한다:
+    # (1) 다른 그룹의 budget_reference_device로 참조되고 있으면(예: M5는 진짜
+    #     차동쌍 tail이고 vbias3_stack이 그 위에 참조로 얹혀사는 replica 체인) --
+    #     remaining_vdd(=vdd 거의 전체)를 그대로 넘기면 "혼자니까 균등분배가
+    #     100%"가 돼 물리적으로 불가능한 값이 나오고, 참조하는 그룹의
+    #     base_budget이 거의 0이 돼 음수 VDS 크래시로 이어진다(실측: M61_M64_
+    #     M63, vds=-0.4).
+    # (2) role이 `DEFAULT_POLICY.thin_roles`(cascode/diode_reference)면 애초에
+    #     "남는 예산을 나눠 가질" 대상이 아니라 "필요한 만큼만" 받아야 하는데,
+    #     혼자면 함께 나눌 other_entries가 아예 없어 allocate_stack_headroom()의
+    #     "합=vdd" assert 자체가 깨진다(thin_total(=min_vds, 예: 0.2~0.3V) !=
+    #     vdd). M18_bg(diode-connected 기준전압 생성기, 외부 전류원으로 전류가
+    #     정해지는 singleton)가 실제 사례.
+    # 두 경우 다 allocate_stack_headroom()을 아예 호출하지 않고 역할별 헤드룸
+    # (policy.cascode_fn -- gm_id 있으면 공식, 없으면 min_vds)을 직접 배정한다.
+    # "나머지"는 버려지는 게 아니라(1) 참조하는 그룹의 base_budget으로 넘어가거나,
+    # (2)애초에 이 소자가 가질 이유가 없던 예산이다.
+    _fold_group_singleton = (len(stack_entries) == 1
+                              and device_roles.get(unresolved[0], {}).get("fold_group")
+                              is not None)
+    # 2026-08-15(세션35) -- fold_group이 명시적으로 선언돼 있으면(사람/AI가 "이
+    # 소자는 병합 노드라 ideal_sources 근거가 아니라 connectivity 근거로 우회한다"고
+    # 확정한 것) thin_roles(예: "cascode")에도 걸리는 소자라도 ideal_sources 전용
+    # 경로(_thin_singleton) 대신 이 새 경로를 타야 한다 -- 안 그러면 fold_group을
+    # 선언해도 역할이 우연히 thin_roles에 속하면(예: M6="cascode") 여전히
+    # ideal_sources 요구로 막힌다(실측으로 발견).
+    _thin_singleton = (len(stack_entries) == 1
+                        and stack_entries[0]["role"] in DEFAULT_POLICY.thin_roles
+                        and not _fold_group_singleton)
+    _referenced_singleton = (len(stack_entries) == 1
+                              and unresolved[0] in referenced_devices
+                              and not _fold_group_singleton)
+    if _thin_singleton:
+        # 2026-08-11(세션28 계속) -- role 라벨("diode_reference")만 믿지 않고
+        # 실제 topology.json의 ideal_sources 선언과 대조해 이 우회가 물리적으로
+        # 정당한지 검증한다(사용자 지적: ideal current source(전류 고정, 전압
+        # 자유)만 "남는 예산"을 군말 없이 흡수한다 -- ideal voltage source는
+        # 전혀 다른 케이스). 검증 실패 시 조용히 넘어가지 않고 명시적 에러.
+        _ok, _detail = _thin_singleton_ideal_source_check(unresolved[0])
+        if not _ok:
+            raise ValueError(
+                f"'{unresolved[0]}'(role={stack_entries[0]['role']!r})가 singleton "
+                f"thin-role 그룹이라 allocate_stack_headroom()의 '합=vdd' 계약을 "
+                f"우회하려는데, ideal_sources 선언으로 정당화가 안 됨: {_detail}")
+        headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
+    elif _referenced_singleton:
+        headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
+    elif _fold_group_singleton:
+        # 2026-08-15(세션35, 사용자 지시 "새 기능을 추가해"로 신설) -- 폴디드
+        # 캐스코드의 X/Y 노드처럼 서로 다른 방향에서 온 branch가 한 노드에서
+        # 합류하는 구조. allocate_stack_headroom()의 "한 컬럼이 vdd 전체를 혼자
+        # 책임진다" 전제가 안 맞는 세 번째 패턴(위 _thin_singleton/_referenced_
+        # singleton과 나란히) -- 정당화 근거는 ideal_sources가 아니라 실제
+        # connectivity(같은 fold_group 선언 소자와 노드 공유)로 검증한다. thin_
+        # roles/referenced_singleton과 동일하게 role-기반 cascode_fn만 배정하고,
+        # 병합 노드 전압의 정확한 KVL 일치(각 branch가 실제로 같은 Vx에 도달하는지)는
+        # 이 근사가 보장하지 않는다 -- 이 프로젝트의 다른 singleton 우회들과 동일한
+        # 근사 수준(§HeadroomPolicy 참고, 엄밀한 KVL 솔버가 아니라 역할 기반 실용적
+        # 배정).
+        _ok, _detail = _fold_group_check(unresolved[0])
+        if not _ok:
+            raise ValueError(
+                f"'{unresolved[0]}'가 fold_group 선언으로 allocate_stack_headroom()의 "
+                f"'합=vdd' 계약을 우회하려는데, connectivity로 정당화가 안 됨: {_detail}")
+        headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
+    else:
+        headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
+    for m in unresolved:
+        vds_val = headroom[m]
+        vgrp = _vfind(m)
+        for other in members:  # 같은 값-그룹의 나머지 멤버(예: M4)에도 동일 VDS 전파
+            if _vfind(other) == vgrp:
+                other_entry = ctx.sized.setdefault(other, {})
+                other_entry["vds"] = vds_val
+                if ref_dev is not None:
+                    # 이 그룹의 실제 소스 기준점은 0V(vss)가 아니라 refs 전체의 드레인
+                    # 전압(=refs의 vds 합, source=vss 체인이므로) -- 폴딩 노드 위에
+                    # 앉은 소자의 body-effect/LUT 조회가 vs=0을 잘못 쓰지 않도록 전파.
+                    # (2026-08-24 세션42 -- refs가 여러 개면 ref_vds는 그 합, 단일
+                    # 참조였던 예전과 식은 같고 값의 출처만 일반화됨)
+                    other_entry.setdefault("vs", ref_vds)
+    # 2026-08-20(세션41 연속) -- 일반 allocate_stack_headroom() 경로는 그 함수
+    # 자신의 assert(합=remaining_vdd)로 이미 수학적으로 보장되지만(remaining_vdd=
+    # vdd-ref_vds-known_vds_sum이므로 등가), _verify_group_kvl_sum()을 여기서도
+    # 호출해 "경로와 무관하게 항상 같은 하나의 검증을 통과한다"는 계약을 균일하게
+    # 유지한다(단일 소스 -- 이 함수가 실제로 KVL을 지키는 유일한 증명 지점). thin/
+    # referenced/fold_group singleton 우회는 의도적으로 제외(위 _verify_group_
+    # kvl_sum() docstring 참고).
+    if not (_thin_singleton or _referenced_singleton or _fold_group_singleton):
+        _verify_group_kvl_sum(vsid, members)
+
+
 def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     """`optimize_full_circuit_budget()`의 세타-무관 setup + `_evaluate(theta_values)` 평가
     클로저를 그대로 추출한 헬퍼(2026-08-11 세션29, 순수 리팩터 -- 동작 변화 없음. warm-start
@@ -4452,79 +4978,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         for _net in _src.get("terminals", []):
             ideal_source_terminals[_net].append((_src.get("name"), _src.get("kind")))
 
-    def _thin_singleton_ideal_source_check(device_name):
-        """singleton thin-role 그룹이 `allocate_stack_headroom()`의 "합=vdd" 계약을
-        우회해도 되는지, role 라벨만 믿지 않고 실제 `ideal_sources` 선언과 대조해
-        검증한다. 반환: `(ok, detail)` -- `ok=True`면 non-rail 단자가 declared
-        current_source 종단(전압 자유, 남는 예산을 흡수)임을 확인한 것. `ok=False`면
-        `detail`에 원인(선언 없음/voltage_source 종단/등)을 담는다."""
-        dev = by_name.get(device_name)
-        if dev is None:
-            return False, f"'{device_name}' 트랜지스터를 찾을 수 없음"
-        open_nets = [n for n in (dev.source, dev.drain) if n not in _rail_nets]
-        if not open_nets:
-            return False, (
-                f"'{device_name}'의 양쪽 단자가 전부 레일(vdd/gnd/vss)임 -- "
-                f"singleton thin-role 우회가 상정하는 'non-rail 열린 노드' 패턴이 아님")
-        for net in open_nets:
-            for src_name, src_kind in ideal_source_terminals.get(net, []):
-                if src_kind == "current_source":
-                    return True, f"{net}가 ideal current_source '{src_name}' 종단(전압 자유)"
-                return False, (
-                    f"{net}가 ideal '{src_kind}' '{src_name}' 종단인데 current_source가 "
-                    f"아님 -- voltage_source 종단은 '합=그 전압'이라는 다른 계약이 필요한데 "
-                    f"이 코드베이스가 아직 그 케이스를 지원하지 않음")
-        return False, (
-            f"'{device_name}'의 non-rail 단자({open_nets}) 중 어느 것도 topology.json의 "
-            f"ideal_sources 선언과 안 맞음 -- role={device_roles.get(device_name, {}).get('headroom_role')!r}"
-            f"이 thin_roles인데 이 우회를 정당화할 근거가 없음(선언 누락 또는 role 오분류 "
-            f"가능성, 재검토할 것)")
 
-    def _fold_group_check(device_name):
-        """singleton `fold_group` 우회가 정당한지, 선언(`device_roles.*.fold_group`)만
-        믿지 않고 실제 netlist connectivity와 대조해 검증한다(2026-08-15 세션35, 사용자
-        지시 "새 기능을 추가해"로 신설). `folded_cascode`의 X/Y 폴딩 노드처럼 서로 다른
-        방향에서 온 두 branch가 한 노드에서 합류하는 구조는 `allocate_stack_headroom()`의
-        "한 방향 직렬 스택(또는 `budget_reference_device`로 잇는 체인)" 전제 자체를
-        벗어난다 -- `_thin_singleton_ideal_source_check()`와 같은 정신(role 라벨만 믿지
-        않고 실제 구조로 검증)이지만, 정당화 근거가 `ideal_sources`가 아니라 "같은
-        `fold_group`을 선언한 다른 소자와 실제로 같은 net을 공유하는가"다.
-
-        반환: `(ok, detail)` -- `ok=True`면 이 소자의 non-rail 단자가 같은 `fold_group`을
-        선언한 다른 소자의 단자와 실제로 겹침(같은 물리적 병합 노드)을 확인한 것."""
-        dev = by_name.get(device_name)
-        if dev is None:
-            return False, f"'{device_name}' 트랜지스터를 찾을 수 없음"
-        fold_group = device_roles.get(device_name, {}).get("fold_group")
-        if fold_group is None:
-            return False, f"'{device_name}'에 fold_group 선언이 없음"
-        open_nets = {n for n in (dev.source, dev.drain) if n not in _rail_nets}
-        if not open_nets:
-            return False, (
-                f"'{device_name}'의 양쪽 단자가 전부 레일(vdd/gnd/vss)임 -- "
-                f"fold_group 우회가 상정하는 'non-rail 병합 노드' 패턴이 아님")
-        siblings = [t.name for t in transistors
-                    if t.name != device_name
-                    and device_roles.get(t.name, {}).get("fold_group") == fold_group]
-        if not siblings:
-            return False, (
-                f"'{device_name}'과 같은 fold_group({fold_group!r})을 선언한 다른 소자가 "
-                f"없음 -- fold_group은 최소 2개 이상의 소자가 같은 노드를 공유할 때만 "
-                f"의미가 있음")
-        for sib_name in siblings:
-            sib = by_name.get(sib_name)
-            if sib is None:
-                continue
-            sib_nets = {n for n in (sib.source, sib.drain) if n not in _rail_nets}
-            shared = open_nets & sib_nets
-            if shared:
-                return True, (
-                    f"{sorted(shared)}를 '{sib_name}'과 공유(같은 fold_group={fold_group!r} "
-                    f"병합 노드)")
-        return False, (
-            f"'{device_name}'의 non-rail 단자({sorted(open_nets)})가 같은 fold_group을 "
-            f"선언한 소자 {siblings} 중 누구와도 실제로 겹치지 않음 -- fold_group 선언이 "
-            f"connectivity와 안 맞음(오분류 가능성, 재검토할 것)")
 
     # 2026-08-05(세션10) L1 하드컷 -- kind(diff_pair/current_mirror/branch_symmetric/
     # current_matched) 4종 문자열을 폐지하고 독립된 두 축으로 분해했다: 축A
@@ -4602,11 +5056,21 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     # 안전하다(공유 tail의 KCL이 실제로 강제하는 관계).
     _vparent = {t.name: t.name for t in transistors}
 
+    # 2026-09-07 -- 아래 3개는 모듈 레벨 `_hr_*`로 추출됐다(파일 상단 주석 참고).
+    # 여기서는 자유변수를 env에 담아 원래 이름으로 다시 묶어주기만 한다.
+    _hr_topo = _HeadroomTopoEnv(
+        device_roles=device_roles, by_name=by_name, transistors=transistors,
+        rail_nets=_rail_nets, ideal_source_terminals=ideal_source_terminals,
+        vparent=_vparent)
+
     def _vfind(x):
-        while _vparent[x] != x:
-            _vparent[x] = _vparent[_vparent[x]]
-            x = _vparent[x]
-        return x
+        return _hr_vfind(_hr_topo, x)
+
+    def _thin_singleton_ideal_source_check(*a, **k):
+        return _hr_thin_singleton_ideal_source_check(_hr_topo, *a, **k)
+
+    def _fold_group_check(*a, **k):
+        return _hr_fold_group_check(_hr_topo, *a, **k)
 
     for p in pairs_meta:
         if p.get("matching_sensitivity") != "offset":
@@ -4983,120 +5447,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # 그 위에 다른 replica 체인이 참조로 얹혀사는 쪽이다.
         referenced_devices = {d for refs in group_ref_device.values() for d in refs}
 
-        def _sum_ref_vds(vsid, refs):
-            """`refs`(budget_reference_device 튜플) 각 소자의 vds 합을 반환한다 -- 하나라도
-            아직 미확정이면 `_HeadroomDependencyNotReady`(기존 단일-참조 경로와 동일 예외,
-            fixed-point worklist가 다음 pass로 미루는 신호로 재사용)."""
-            total = 0.0
-            for d in refs:
-                v = ctx.sized.get(d, {}).get("vds")
-                if v is None:
-                    raise _HeadroomDependencyNotReady(
-                        f"'{vsid}'의 budget_reference_device('{d}')가 아직 VDS "
-                        f"미확정 -- 참조 소자가 속한 vertical_stack_id 그룹이 먼저 풀려야 "
-                        f"한다(순환/선언 확인)")
-                total += v
-            return total
 
-        def _verify_group_kvl_sum(vsid, members):
-            """vsid 그룹의 최종 VDS 합이 정확히 `vdd`(`budget_reference_device`가 있으면
-            `vdd - ref_vds`)와 일치하는지 실측 검증한다(2026-08-20 세션41 연속, 사용자
-            지시 -- "branch 전압합이 vdd가 되는 것을 보장하도록 수정해"). `allocate_
-            stack_headroom()` 자신의 assert는 "새로 배정한 헤드룸의 합이 remaining_vdd와
-            같다"만 보장하고, 그 remaining_vdd 계산 자체가 옳다는 전제(known_vds_sum/
-            ref_vds가 맞다는 전제) 위에서만 유효하다 -- 그런데 `_resolve_vertical_group()`
-            은 그룹 멤버 **전부**가 이미 다른 경로(compensation/metric_stage_budget/
-            gm_target_convention)로 resolved면 이 assert를 만드는 `allocate_stack_
-            headroom()` 자체를 호출하지 않고 그냥 `return`했다 -- `output_stage_a`(M15/
-            M16이 각자 다른 `metric_stage_budget` theta로 독립적으로 resolved)가 실제
-            사례였다(세션41, `.ai/context.md` 참고 -- 이 gap 때문에 `_feed_metric_stage_
-            budget()`의 `vds=0.6` 하드코딩이 이 그룹에서만 아무 검증 없이 KVL을 깨고
-            있었다). 이 함수를 그 두 return 지점 + 일반 `allocate_stack_headroom()` 경로
-            끝, 총 3곳에서 호출해 **어느 경로로 완결됐든** 이 그룹의 KVL이 실제로 맞는지
-            매번 실측 확인한다(경로 하나만 검증되고 나머지는 "아마 맞겠지"로 남는 걸
-            방지 -- 단일 검증 함수, 3번 호출).
-
-            `_thin_singleton`/`_referenced_singleton`/`_fold_group_singleton`(headroom
-            우회 3종)은 **의도적으로** 이 계약 밖이라 호출하지 않는다 -- 그 소자의
-            "나머지 예산"은 다른 그룹의 `budget_reference_device`로 넘어가거나 ideal
-            current source가 흡수하므로 이 그룹 혼자 합=vdd일 이유가 없다(`allocate_
-            stack_headroom()` 우회와 동일 원칙, 위 그 블록의 주석 참고). `same_as_device`
-            로 선언된 멤버도 제외한다(이 그룹의 KCL/KVL 몫이 아니라 다른 소자의 값을
-            그대로 복사만 하는 대칭 선언이라 원 알고리즘도 `known_vds_sum`에서 처음부터
-            뺀다 -- 이 함수는 그 기존 계약을 바꾸지 않고 그대로 반영한다).
-
-            ⚠️ **2026-08-20(세션41 연속, 실측으로 발견) -- 그룹 멤버 전부가 same_as_
-            device면(예: `cmfb_load_b`=[M36b], M36b.same_as_device=M36a) 이 그룹
-            자체는 "합=vdd" 계약의 당사자가 아니다** -- M36b는 M36a의 값을 그대로
-            복사만 할 뿐 이 그룹이 독자적인 VDD~GND(또는 budget_reference_device
-            기준) 컬럼이 아니다(그 검증 책임은 M36a가 속한 `cmfb_load_a` 자신의 몫,
-            거기서 이미 `_referenced_singleton`/`allocate_stack_headroom()` 경로로
-            따로 검증됨). `ref_dev`도 없고 same_as_device 아닌 멤버가 하나도 안
-            남으면(`seen_vgrp`가 비어있으면) 검증할 실체가 없다는 뜻이므로 조용히
-            반환한다(0V로 오판해 거짓 양성 내지 않음).
-
-            ⚠️ **2026-08-20(세션41 연속, 실측으로 발견) -- 멤버 중 하나라도 `fold_group`
-            을 선언했으면 이 그룹은 애초에 vdd~gnd를 잇는 컬럼이 아니다.** `diffpair_
-            top_a`(M1a/M2a, source=Vx)/`diffpair_bottom_a`(M3a/M4a, source=Vy)처럼
-            서로 다른 두 컬럼이 폴딩 노드(예: Vom1)에서 합류하는 구조는 각 절반이
-            "vdd부터"나 "gnd까지"가 아니라 "Vx/Vy부터 폴딩 노드까지"만 담당한다 --
-            `allocate_stack_headroom()`의 "한 컬럼이 vdd 전체를 혼자 책임진다" 전제
-            자체가 애초에 안 맞는 구조(`_fold_group_singleton` 우회가 이미 인정하는
-            것과 같은 한계, `§HeadroomPolicy` 참고 -- 폴딩 노드의 정확한 KVL 일치는
-            이 엔진이 아직 안 푼다). singleton 경로로 자원이 배정되든(기존 `_fold_
-            group_singleton`) 다른 theta(예: `L_cascode`의 `metric_stage_budget`)가
-            먼저 vds를 확정해 이 함수가 애초에 unresolved 없이 완결로 보든, 경로와
-            무관하게 이 그룹엔 '합=vdd' 계약이 성립하지 않으므로 검증하지 않는다.
-
-            2026-08-24(세션42 정정) -- 위 diffpair_top_a/diffpair_bottom_a 예시는 더 이상
-            fold_group 예외 대상이 아니다(그 fold_group 선언 자체가 세션41의 오판이었음,
-            `.ai/context.md` 세션42 참고 -- Vom1은 진짜 폴딩 노드가 아니라 이 6소자
-            (M6+M1a+M2a+M3a+M4a+M5) 단일 branch 내부의 정상 접합점). `budget_reference_
-            device`가 여러 소자를 참조할 수 있도록 확장(`_sum_ref_vds()`)돼서 이제 이
-            branch를 반으로 나눈 두 그룹이 서로의 나머지 절반을 참조로 걸어(diffpair_
-            top_a<->diffpair_bottom_a 상호참조, Monticelli floating battery 상호참조와
-            동일한 fixed-point worklist 패턴) 실제로 검증받는다."""
-            if any(device_roles.get(m, {}).get("fold_group") is not None for m in members):
-                return
-            refs = group_ref_device.get(vsid, ())
-            ref_vds = _sum_ref_vds(vsid, refs) if refs else 0.0
-            seen_vgrp = set()
-            total = ref_vds
-            for m in members:
-                if m in same_as_of:
-                    continue
-                vgrp = _vfind(m)
-                if vgrp in seen_vgrp:
-                    continue
-                entry = ctx.sized.get(m, {})
-                if entry.get("vds") is None:
-                    raise ValueError(
-                        f"'{vsid}' KVL 검증: '{m}'의 vds가 미확정인 채로 그룹이 완결됐다고 "
-                        f"판단됨(내부 불변식 위반 -- _resolve_vertical_group()의 완결 조건과 "
-                        f"이 검증의 전제가 어긋났다는 뜻이라 버그로 보고할 것)")
-                total += entry["vds"]
-                seen_vgrp.add(vgrp)
-            if not seen_vgrp and not refs:
-                return
-            vdd = spec["vdd"]
-            if abs(total - vdd) > 1e-9 * max(vdd, 1.0):
-                # 2026-08-24(세션42) -- 어느 소자가 얼마씩 기여했는지 breakdown을 에러
-                # 메시지에 직접 실어서, 원인 추적에 매번 별도 디버그 스크립트를 새로
-                # 짤 필요가 없게 한다(이번 세션에 실제로 이걸 몰라서 스크립트를 임시로
-                # 넣었다 뺐다 했음 -- 다음에 같은 상황이 오면 에러 메시지만으로 충분해야
-                # 한다).
-                _member_breakdown = ", ".join(
-                    f"{m}={ctx.sized.get(m, {}).get('vds'):.4g}" for m in members
-                    if m not in same_as_of)
-                _ref_breakdown = (", refs(" + ", ".join(
-                    f"{d}={ctx.sized.get(d, {}).get('vds'):.4g}" for d in refs) + ")") if refs else ""
-                raise ValueError(
-                    f"'{vsid}' 그룹의 VDS 합({total:.6g}V)이 vdd({vdd:.6g}V)와 불일치"
-                    f"(diff={total - vdd:+.6g}V) -- KVL(직렬 branch 전압강하 합=vdd)이 "
-                    f"깨졌다. 소자별 값: {_member_breakdown}{_ref_breakdown}. 이 그룹의 "
-                    f"소자들이 서로 다른 경로(compensation/metric_stage_budget/gm_target_"
-                    f"convention/headroom_role)로 각자 독립적으로 vds를 받으면 이런 불일치가 "
-                    f"생길 수 있다 -- topology.json의 device_roles/theta feeds를 확인할 것")
 
         # 2026-08-19(세션39) -- 한 vertical_stack_id 그룹을 실제로 풀어보는 로직 전체를
         # 함수로 뽑았다(로직 자체는 세션28~38의 기존 코드 그대로, 옮기기만 함). 예전엔
@@ -5111,217 +5462,20 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # 걸쳐 "지금 풀 수 있는 그룹부터" 반복 시도하며, 참조 대상이 아직 준비 안 됐을 때는
         # `_HeadroomDependencyNotReady`(진짜 에러가 아니라 "나중에 다시 시도" 신호)만
         # 던진다 -- 어떤 pass에서도 진전이 없을 때만 비로소 진짜 순환/선언 누락으로 판단한다.
-        def _resolve_vertical_group(vsid):
-            members = vertical_groups[vsid]
-            # 2026-08-19(세션38 연속) -- vds_match_vgs_of 멤버는 아래 by_vgrp/known_vds_sum
-            # 계산이 시작되기 **전에** 먼저 vds를 채운다. _ref_depth() 위상정렬이 참조 대상의
-            # 그룹을 먼저 처리하도록 보장하므로 여기 도달했을 때 참조 소자는 이미 gm_id/L/vds가
-            # 확정돼 있어야 정상이다(없으면 선언/순환 문제). 이렇게 미리 채워두면 아래 기존
-            # by_vgrp 루프가 이 멤버를 "이미 풀린 소자"로 자연스럽게 인식해(line ~4374의
-            # `ctx.sized.get(gm,{}).get("vds") is not None` 체크) known_vds_sum에 정확히
-            # 반영되고, 같은 그룹의 나머지 멤버(예: M204와 짝인 M202)가 vdd에서 이 값을 뺀
-            # 진짜 나머지 예산을 받는다 -- 아래 코드는 단 한 줄도 안 건드림(재사용).
-            for m in members:
-                if m not in vds_match_of or ctx.sized.get(m, {}).get("vds") is not None:
-                    continue
-                ref = vds_match_of[m]
-                ref_entry = ctx.sized.get(ref, {})
-                if "gm_id" not in ref_entry or "L" not in ref_entry or ref_entry.get("vds") is None:
-                    raise _HeadroomDependencyNotReady(
-                        f"'{m}'의 vds_match_vgs_of('{ref}')가 아직 gm_id/L/vds 미확정 -- 참조 "
-                        f"소자가 속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인), "
-                        f"또는 '{ref}'의 gm_id가 compensation/metric_stage_budget/"
-                        f"gm_target_convention/gm_id_role 중 하나로 확정 가능한지 확인할 것")
-                ref_lut = spec["lut_by_kind"][ctx.kind_of[ref]]
-                target_vgs = ref_lut.vgs_for_gm_id(
-                    ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vs", 0.0))
-                ctx.sized.setdefault(m, {})["vds"] = target_vgs
-            # matching_pairs로 묶인 값-동일 그룹(_vfind)당 대표 1개씩만 집계 -- diff pair/미러
-            # 쌍의 두 소자를 헤드룸 예산에 중복으로 합산하지 않기 위함(위 _vfind 주석 참고).
-            # 2026-08-10(세션27) 정정 -- 이전엔 members 리스트에서 "먼저 나온" 소자를 무조건
-            # 대표로 써서 vds 여부를 검사했다. 그런데 값-동일 그룹의 두 소자가 vds를 채우는
-            # 경로가 다를 수 있다(실제 사례: M37a/M37b -- N_cmfb_bw B타입 feed가 target
-            # M37a의 vds를 직접 채우지만, 그 짝을 잇는 N_cmfb_bw_mirror A타입 feed는 전류만
-            # 전파하고 vds는 안 건드림) -- 이 경우 마침 vds 없는 쪽(M37b)이 먼저 나오면 이미
-            # 풀린 그룹을 "미해결"로 오판했다. 그룹 멤버 전체에서 **이미 vds가 있는 소자가
-            # 하나라도 있으면** 그 값을 쓰고(대표를 미리 정하지 않음), 전부 없을 때만 미해결
-            # 대표(headroom_role이 있는 소자 우선)를 고른다.
-            by_vgrp = defaultdict(list)
-            for m in members:
-                by_vgrp[_vfind(m)].append(m)
-            known_vds_sum = 0.0
-            unresolved = []
-            for vgrp, group_members in by_vgrp.items():
-                resolved = next((gm for gm in group_members
-                                  if ctx.sized.get(gm, {}).get("vds") is not None), None)
-                if resolved is not None:
-                    known_vds_sum += ctx.sized[resolved]["vds"]
-                    # 2026-08-10(세션27) -- 값-동일 그룹의 다른 멤버가 전류만 전파받고(예:
-                    # N_cmfb_bw_mirror처럼 A타입 mirror feed로만 연결된 M37b) gm_id/L/vds/W/
-                    # gds가 없을 수 있다(headroom_role/gm_id_role 둘 다 없어 아래 두 fill
-                    # 루프에서도 못 채워짐 -- M37a/M37b가 실제 사례, M37a는 N_cmfb_bw B타입
-                    # feed가 자기 완결적으로 다 채우지만 M37b는 전류만 받음). 대표(resolved)와
-                    # 같은 (gm_id,L,vds,vs)를 물려받되 자기 자신의 ID로 W/gm/gds를 LUT에서
-                    # 재계산해 채운다(매칭쌍이므로 같은 물리 사이징을 공유한다는 전제,
-                    # `_feed_metric_stage_budget()`과 동일한 계산 패턴) -- 이미 W가 있는
-                    # 멤버는 건드리지 않는다(하위호환).
-                    ref_entry = ctx.sized[resolved]
-                    for sib in group_members:
-                        sib_entry = ctx.sized.get(sib, {})
-                        if sib == resolved or "W" in sib_entry or "ID" not in sib_entry:
-                            continue
-                        gm_id2, L2 = ref_entry["gm_id"], ref_entry["L"]
-                        vds2, vs2 = ref_entry["vds"], ref_entry.get("vs", 0.0)
-                        kind2 = ctx.kind_of[sib]
-                        lut2 = spec["lut_by_kind"][kind2]
-                        ID2 = sib_entry["ID"]
-                        idu2 = lut2.gm_id_to_id_density(gm_id2, L2, vds2, vs2)
-                        gm_gds2 = lut2.gm_gds_ratio(gm_id2, L2, vds2, vs2)
-                        gm2 = gm_id2 * ID2
-                        sib_entry.update({"gm_id": gm_id2, "L": L2, "vds": vds2, "vs": vs2,
-                                          "kind": kind2, "W": L2 * ID2 / idu2, "gm": gm2,
-                                          "gds": gm2 / gm_gds2})
-                    continue
-                rep = next((gm for gm in group_members
-                            if "headroom_role" in device_roles.get(gm, {})), None)
-                if rep is None:
-                    raise ValueError(
-                        f"'{vsid}' 그룹의 값-동일 소자 {group_members} 전부 vds 미확정이고 "
-                        f"headroom_role도 없다 -- 이 소자들의 vds를 채울 경로(compensation/"
-                        f"metric_stage_budget/headroom_role 중 하나)가 topology.json에 "
-                        f"선언돼 있는지 확인할 것")
-                unresolved.append(rep)
-            if not unresolved:
-                _verify_group_kvl_sum(vsid, members)
-                return
+        # 2026-09-07 -- 아래 3개는 모듈 레벨 `_hr_*`로 추출됐다(파일 상단 주석 참고).
+        _hr_env = _HeadroomEvalEnv(
+            topo=_hr_topo, ctx=ctx, spec=spec, vertical_groups=vertical_groups,
+            group_ref_device=group_ref_device, same_as_of=same_as_of,
+            vds_match_of=vds_match_of, referenced_devices=referenced_devices)
 
-            # 2026-08-11(세션28 계속) -- same_as_device로 선언된 소자는 헤드룸 예산 계산에
-            # 아예 참여하지 않고 참조 대상의 vds를 그대로 복사한다(M7=M6, M36b=M36a --
-            # budget_reference_device로는 표현 못 하는 "동일" 관계). _ref_depth 위상정렬이
-            # 이미 참조 대상 그룹을 먼저 처리하도록 보장하므로 여기서는 ctx.sized에 값이
-            # 있어야 정상이고, 없으면 선언/순환 문제이므로 명시적으로 막는다.
-            same_as_members = [m for m in unresolved if m in same_as_of]
-            for m in same_as_members:
-                src = same_as_of[m]
-                src_vds = ctx.sized.get(src, {}).get("vds")
-                if src_vds is None:
-                    raise _HeadroomDependencyNotReady(
-                        f"'{m}'의 same_as_device('{src}')가 아직 VDS 미확정 -- 참조 소자가 "
-                        f"속한 vertical_stack_id 그룹이 먼저 풀려야 한다(순환/선언 확인)")
-                vgrp = _vfind(m)
-                for other in members:
-                    if _vfind(other) == vgrp:
-                        ctx.sized.setdefault(other, {})["vds"] = src_vds
-            unresolved = [m for m in unresolved if m not in same_as_of]
-            if not unresolved:
-                _verify_group_kvl_sum(vsid, members)
-                return
-            base_budget = spec["vdd"]
-            refs = group_ref_device.get(vsid, ())
-            ref_dev = refs[0] if refs else None  # vs 기준점 전파용(아래) -- 여러 개면 첫 소자
-            ref_vds = None
-            if refs:
-                ref_vds = _sum_ref_vds(vsid, refs)
-                base_budget = spec["vdd"] - ref_vds
-            remaining_vdd = base_budget - known_vds_sum
-            stack_entries = [{"name": m, "role": device_roles[m]["headroom_role"],
-                               "min_vds": spec.get("min_vds_by_role", {}).get(
-                                   device_roles[m]["headroom_role"], _DEFAULT_MIN_VDS_FALLBACK)}
-                              for m in unresolved]
-            # 2026-08-11(세션28) -- allocate_stack_headroom()은 "주어진 그룹이
-            # remaining_vdd 전체를 혼자 책임진다"는 계약을 강제한다(합이 정확히 일치함을
-            # assert, §3 실측 이력의 3.2V 사고 재발 방지용 -- 이 계약 자체는 건드리지
-            # 않는다). 그런데 소자 1개뿐인 그룹은 이 계약의 전제("내가 이 컬럼을 혼자
-            # 책임진다")가 두 가지 이유로 깨질 수 있어 여기서 직접 우회한다:
-            # (1) 다른 그룹의 budget_reference_device로 참조되고 있으면(예: M5는 진짜
-            #     차동쌍 tail이고 vbias3_stack이 그 위에 참조로 얹혀사는 replica 체인) --
-            #     remaining_vdd(=vdd 거의 전체)를 그대로 넘기면 "혼자니까 균등분배가
-            #     100%"가 돼 물리적으로 불가능한 값이 나오고, 참조하는 그룹의
-            #     base_budget이 거의 0이 돼 음수 VDS 크래시로 이어진다(실측: M61_M64_
-            #     M63, vds=-0.4).
-            # (2) role이 `DEFAULT_POLICY.thin_roles`(cascode/diode_reference)면 애초에
-            #     "남는 예산을 나눠 가질" 대상이 아니라 "필요한 만큼만" 받아야 하는데,
-            #     혼자면 함께 나눌 other_entries가 아예 없어 allocate_stack_headroom()의
-            #     "합=vdd" assert 자체가 깨진다(thin_total(=min_vds, 예: 0.2~0.3V) !=
-            #     vdd). M18_bg(diode-connected 기준전압 생성기, 외부 전류원으로 전류가
-            #     정해지는 singleton)가 실제 사례.
-            # 두 경우 다 allocate_stack_headroom()을 아예 호출하지 않고 역할별 헤드룸
-            # (policy.cascode_fn -- gm_id 있으면 공식, 없으면 min_vds)을 직접 배정한다.
-            # "나머지"는 버려지는 게 아니라(1) 참조하는 그룹의 base_budget으로 넘어가거나,
-            # (2)애초에 이 소자가 가질 이유가 없던 예산이다.
-            _fold_group_singleton = (len(stack_entries) == 1
-                                      and device_roles.get(unresolved[0], {}).get("fold_group")
-                                      is not None)
-            # 2026-08-15(세션35) -- fold_group이 명시적으로 선언돼 있으면(사람/AI가 "이
-            # 소자는 병합 노드라 ideal_sources 근거가 아니라 connectivity 근거로 우회한다"고
-            # 확정한 것) thin_roles(예: "cascode")에도 걸리는 소자라도 ideal_sources 전용
-            # 경로(_thin_singleton) 대신 이 새 경로를 타야 한다 -- 안 그러면 fold_group을
-            # 선언해도 역할이 우연히 thin_roles에 속하면(예: M6="cascode") 여전히
-            # ideal_sources 요구로 막힌다(실측으로 발견).
-            _thin_singleton = (len(stack_entries) == 1
-                                and stack_entries[0]["role"] in DEFAULT_POLICY.thin_roles
-                                and not _fold_group_singleton)
-            _referenced_singleton = (len(stack_entries) == 1
-                                      and unresolved[0] in referenced_devices
-                                      and not _fold_group_singleton)
-            if _thin_singleton:
-                # 2026-08-11(세션28 계속) -- role 라벨("diode_reference")만 믿지 않고
-                # 실제 topology.json의 ideal_sources 선언과 대조해 이 우회가 물리적으로
-                # 정당한지 검증한다(사용자 지적: ideal current source(전류 고정, 전압
-                # 자유)만 "남는 예산"을 군말 없이 흡수한다 -- ideal voltage source는
-                # 전혀 다른 케이스). 검증 실패 시 조용히 넘어가지 않고 명시적 에러.
-                _ok, _detail = _thin_singleton_ideal_source_check(unresolved[0])
-                if not _ok:
-                    raise ValueError(
-                        f"'{unresolved[0]}'(role={stack_entries[0]['role']!r})가 singleton "
-                        f"thin-role 그룹이라 allocate_stack_headroom()의 '합=vdd' 계약을 "
-                        f"우회하려는데, ideal_sources 선언으로 정당화가 안 됨: {_detail}")
-                headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
-            elif _referenced_singleton:
-                headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
-            elif _fold_group_singleton:
-                # 2026-08-15(세션35, 사용자 지시 "새 기능을 추가해"로 신설) -- 폴디드
-                # 캐스코드의 X/Y 노드처럼 서로 다른 방향에서 온 branch가 한 노드에서
-                # 합류하는 구조. allocate_stack_headroom()의 "한 컬럼이 vdd 전체를 혼자
-                # 책임진다" 전제가 안 맞는 세 번째 패턴(위 _thin_singleton/_referenced_
-                # singleton과 나란히) -- 정당화 근거는 ideal_sources가 아니라 실제
-                # connectivity(같은 fold_group 선언 소자와 노드 공유)로 검증한다. thin_
-                # roles/referenced_singleton과 동일하게 role-기반 cascode_fn만 배정하고,
-                # 병합 노드 전압의 정확한 KVL 일치(각 branch가 실제로 같은 Vx에 도달하는지)는
-                # 이 근사가 보장하지 않는다 -- 이 프로젝트의 다른 singleton 우회들과 동일한
-                # 근사 수준(§HeadroomPolicy 참고, 엄밀한 KVL 솔버가 아니라 역할 기반 실용적
-                # 배정).
-                _ok, _detail = _fold_group_check(unresolved[0])
-                if not _ok:
-                    raise ValueError(
-                        f"'{unresolved[0]}'가 fold_group 선언으로 allocate_stack_headroom()의 "
-                        f"'합=vdd' 계약을 우회하려는데, connectivity로 정당화가 안 됨: {_detail}")
-                headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
-            else:
-                headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
-            for m in unresolved:
-                vds_val = headroom[m]
-                vgrp = _vfind(m)
-                for other in members:  # 같은 값-그룹의 나머지 멤버(예: M4)에도 동일 VDS 전파
-                    if _vfind(other) == vgrp:
-                        other_entry = ctx.sized.setdefault(other, {})
-                        other_entry["vds"] = vds_val
-                        if ref_dev is not None:
-                            # 이 그룹의 실제 소스 기준점은 0V(vss)가 아니라 refs 전체의 드레인
-                            # 전압(=refs의 vds 합, source=vss 체인이므로) -- 폴딩 노드 위에
-                            # 앉은 소자의 body-effect/LUT 조회가 vs=0을 잘못 쓰지 않도록 전파.
-                            # (2026-08-24 세션42 -- refs가 여러 개면 ref_vds는 그 합, 단일
-                            # 참조였던 예전과 식은 같고 값의 출처만 일반화됨)
-                            other_entry.setdefault("vs", ref_vds)
-            # 2026-08-20(세션41 연속) -- 일반 allocate_stack_headroom() 경로는 그 함수
-            # 자신의 assert(합=remaining_vdd)로 이미 수학적으로 보장되지만(remaining_vdd=
-            # vdd-ref_vds-known_vds_sum이므로 등가), _verify_group_kvl_sum()을 여기서도
-            # 호출해 "경로와 무관하게 항상 같은 하나의 검증을 통과한다"는 계약을 균일하게
-            # 유지한다(단일 소스 -- 이 함수가 실제로 KVL을 지키는 유일한 증명 지점). thin/
-            # referenced/fold_group singleton 우회는 의도적으로 제외(위 _verify_group_
-            # kvl_sum() docstring 참고).
-            if not (_thin_singleton or _referenced_singleton or _fold_group_singleton):
-                _verify_group_kvl_sum(vsid, members)
+        def _sum_ref_vds(*a, **k):
+            return _hr_sum_ref_vds(_hr_env, *a, **k)
+
+        def _verify_group_kvl_sum(*a, **k):
+            return _hr_verify_group_kvl_sum(_hr_env, *a, **k)
+
+        def _resolve_vertical_group(*a, **k):
+            return _hr_resolve_vertical_group(_hr_env, *a, **k)
 
         # 2026-08-19(세션39) -- fixed-point worklist: "지금 풀 수 있는 그룹부터" 여러 pass에
         # 걸쳐 반복 시도한다. 매 pass마다 아직 안 풀린(`pending`) 그룹을 전부 한 번씩 시도해
@@ -7047,10 +7201,6 @@ def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
     `n_scan_full_circuit`(2026-08-20 세션40, 선택): `presolve_warm_start()`에 그대로
     전달(같은 이름, 같은 계약)."""
     try:
-        import numpy as _np
-    except ImportError as e:
-        raise ImportError("search_method='slsqp'는 numpy가 필요하다 (`pip install numpy`)") from e
-    try:
         from scipy.optimize import minimize as _scipy_minimize
     except ImportError as e:
         raise ImportError(
@@ -7084,8 +7234,8 @@ def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
         return dict(fixed_theta_values), ctx.sized, metrics_result
 
     names = [t["name"] for t in free_thetas]
-    lo = _np.array([t["bounds"][0] for t in free_thetas])
-    hi = _np.array([t["bounds"][1] for t in free_thetas])
+    lo = np.array([t["bounds"][0] for t in free_thetas])
+    hi = np.array([t["bounds"][1] for t in free_thetas])
     span = hi - lo  # free_thetas만 다루므로 전부 >0 보장(bounds[0]!=bounds[1]로 이미 필터링)
 
     # 2026-08-13(세션31, 사용자 지시) -- SLSQP는 연속최적화라 L-타입 theta(metric_stage_
@@ -7110,7 +7260,7 @@ def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
                 for n, v in theta_values.items()}
 
     def _to_theta_values(x_norm):
-        vals = lo + _np.clip(x_norm, 0.0, 1.0) * span
+        vals = lo + np.clip(x_norm, 0.0, 1.0) * span
         theta_values = dict(fixed_theta_values)
         theta_values.update(zip(names, (float(v) for v in vals)))
         return theta_values
@@ -7160,7 +7310,7 @@ def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
                            "fun": _make_constraint_fn(c)} for c in constraints]
     bounds01 = [(0.0, 1.0)] * len(free_thetas)
 
-    x0_norm = _np.array([(x0_dict[n] - lo[i]) / span[i] for i, n in enumerate(names)])
+    x0_norm = np.array([(x0_dict[n] - lo[i]) / span[i] for i, n in enumerate(names)])
 
     rng = _random.Random(random_seed)
     starts = [x0_norm]
@@ -8182,13 +8332,6 @@ if __name__ == "__main__":
     vds = 0.6
     gm_id_candidates = [10, 15, 20, 25]  # V^-1, moderate~weak inversion 후보 스윕
 
-    try:
-        import numpy  # noqa: F401
-    except ImportError:
-        print("[skip] numpy가 없어 SemiEmpiricalGmIdLUT/build_toy_lut을 실행할 수 없습니다 "
-              "(`pip install numpy`). 그 외 함수(gm_from_fT, size_transistor 등)는 numpy 없이도 동작합니다.")
-        raise SystemExit(0)
-
     print("# toy LUT(E.K.V. 해석식 합성 데이터) 기반 실행 예시 — 숫자는 데모용, 실제 공정값 아님")
     lut = build_toy_lut()
 
@@ -8758,7 +8901,6 @@ if __name__ == "__main__":
     print("  M7=M6/M36b=M36a(same_as_device) 전부를 실제 optimize_full_circuit_budget()")
     print("  으로 51소자 실회로 실행해 한 번에 검증. classab_centering_dev_v(세션27이")
     print("  이미 분리해둔 별개 미해결 항목)만 임시로 제외 -- 이번 검증 범위 밖]")
-    import numpy as _l5c_np
     _l5c_lib = _rsl_os.path.join(_rsl_os.path.dirname(_rsl_os.path.abspath(__file__)), "library")
     _l5c_lutfile = _rsl_os.path.join(
         _rsl_os.path.dirname(_rsl_os.path.abspath(__file__)), "sky130_nfet_pfet_lut_sample.npz")
@@ -8790,7 +8932,7 @@ if __name__ == "__main__":
         _l5c_topo_path = _rsl_os.path.join(_l5c_tmpdir, "current_reuse_telescopic_ota.l5c.json")
         with open(_l5c_topo_path, "w", encoding="utf-8") as _l5c_f:
             json.dump(_l5c_topo, _l5c_f)
-        _l5c_d = _l5c_np.load(_l5c_lutfile)
+        _l5c_d = np.load(_l5c_lutfile)
         _l5c_nmos = SemiEmpiricalGmIdLUT(_l5c_d["L"], _l5c_d["VGS"], _l5c_d["VDS"], _l5c_d["VS"],
                                           _l5c_d["ID_n"], _l5c_d["GM_n"], _l5c_d["GDS_n"], _l5c_d["CGG_n"],
                                           W_ref=5e-6, SID_1F=_l5c_d["SID_1F_n"])
