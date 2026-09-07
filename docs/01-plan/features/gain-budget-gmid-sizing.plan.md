@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 3.0
+version: 3.1
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -142,9 +142,11 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
 
 ### 2.1 In Scope
 
-- [ ] 새 JSON 스키마 설계: `<name>.sizing_spec.json`(§7.1) — `stages[].devices.{input,cascode,load}`,
-      `stages[].gain_budget_db`, `stages[].driving_spec`(output 전용), `compensation`(방향 반전),
-      `headroom.policy`, `bias_devices`(stage 밖 diode-reference/mirror 소자)
+- [ ] 새 JSON 스키마 설계: `<name>.sizing_spec.json`(§7.1) —
+      `stages[].devices.{input,cascode,load,tail}`, `global_spec.constraints`(총 gain·cmrr·psrr·
+      mismatch 문턱), `stages[].driving_spec`(output 전용), `compensation`(방향 반전),
+      `headroom.policy`, `bias_devices`(stage 밖 diode-reference/mirror 소자).
+      **`gain_budget_db`는 입력이 아니라 출력**(v3.1) — 예외 경로로 `gain_budget_db_override`만 둠
 - [ ] `topology.json`을 순수 connectivity 전용으로 되돌림 — `device_roles`/`sizing_roles`/
       `compensation` 필드 제거(새 `sizing_spec.json`으로 이관)
 - [ ] 신규 함수 구현(`sizing_recipe.py`, §7.2/§7.3 — 2026-09-04 §1.4 자산화 반영으로 축소됨):
@@ -194,10 +196,9 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
   별도 작업
 - `optimize_full_circuit_budget()`의 신/구 경로 강제 일괄 전환 — `sizing_spec` 유무로 분기,
   점진적 이관
-- gain 배분(`gain_budget_db` 자체의 값) 자동 탐색 알고리즘 고도화 — 이번 계획은
-  `gain_allocation.method="explicit"|"search"` 스위치만 스키마에 마련하고, "search"의 실제
-  탐색 전략은 기존 theta grid-search/SLSQP 메커니즘을 그대로 재사용(신규 탐색 알고리즘 설계는
-  범위 밖)
+- ~~gain 배분 자동 탐색 알고리즘 고도화~~ → **v3.1에서 In Scope로 이동**: 배분은
+  §7.9 Phase 2의 root current 1-D 해찾기로 **유도**하는 것으로 확정됐다(별도 탐색 알고리즘이
+  아니라 단조 함수의 해찾기라 구현 비용이 작다)
 - 레이아웃/floorplan/euler 자동수정 계층 변경 — 전부 재사용, 무변경
 
 ---
@@ -215,9 +216,13 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
    우선하는 진실源으로 삼아야 한다.
 4. GBW/PM(위상보상)은 이미 정해진 stage gm들로부터 Cc/Rz 등 보상소자 값을 역산해야 한다
    (사용자 확정: "gain이 주도").
-5. gain 배분 자체(`gain_budget_db`가 어떻게 정해지는지)는 여전히 탐색 또는 사용자 명시로
-   자유도를 남겨야 한다(사고4 원칙 유지) — 다만 "배분된 gain_i → gm_id_i" 단계만은 예외 없이
-   결정론적 역산이어야 한다.
+5. **(v3.1 개정)** gain 배분은 **엔진이 유도한다** — 사용자는 총 gain 목표
+   (`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 `gain_budget_db`는 §7.9 Phase 2가
+   `A_i,max` 실측 + root current 1-D 해찾기로 결정해 **출력**한다. `stages[].gain_budget_db_override`
+   는 논문 재현 등 예외 경로로만 남긴다.
+   ⚠️ **사고4와의 관계**: 사고4는 "논문에서 배분값을 **찾으려던** 것"을 "회로에서 도출하라"로
+   정정한 것이었고, 당시 해법이 "탐색"이었다. v3.1은 그 도출을 **더 좁혀** 물리 상한(`A_i,max`)
+   실측 기반의 결정론적 해찾기로 만든다 — 값을 사람이 지어내지 않는다는 사고4의 본질은 그대로다.
 6. **★ 이번 재설계의 가장 근본적인 동기(사용자 확정, 2026-09-04) — 전체회로 물리 정합성
    검증**: 사이징된 **모든** 소자(diode-connected뿐 아니라)의 전압(VGS/VDS)·전류(ID) 관계가
    실제로 KVL/KCL을 만족하는지, 파이프라인 마지막에 **전체 netlist 단위로** 독립 검증하는
@@ -387,6 +392,7 @@ SPICE 폐루프 재검증 4단계.
     // §7.6 -- CMRR/PSRR/mismatch는 stage별 배분이 아니라 전역 declared constraint로 선언.
     // 계산 로직은 기존 metric(smallsignal_ratio_db/pelgrom_mismatch) 완전 무변경 재사용.
     "constraints": [
+      {"metric": "gain_db",           "op": ">=", "value": 54},
       {"metric": "cmrr_estimate_db",  "op": ">=", "value": 60},
       {"metric": "psrr_estimate_db",  "op": ">=", "value": 60},
       {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0}
@@ -404,15 +410,15 @@ SPICE 폐루프 재검증 4단계.
                                        // gds가 CMRR/PSRR을 좌우(role="load"로 사이징)
       },
       "ID_source": {"type": "kcl"},
-      "gain_budget_db": 30.0,
-      "gain_allocation": {"method": "explicit"}
+      // v3.1 -- gain_budget_db는 입력이 아니라 §7.9 Phase 2가 유도하는 **출력**이다.
+      // 논문 재현 등 특정 배분을 강제할 때만 아래 override를 쓴다(기본 null).
+      "gain_budget_db_override": null
     },
     {
       "id": "stage2_output",
       "devices": {"input": ["M15","M16","M25","M26"], "cascode": [], "load": [], "tail": []},
       "ID_source": {"type": "kcl"},
-      "gain_budget_db": 24.0,
-      "gain_allocation": {"method": "explicit"},
+      "gain_budget_db_override": null,
       "driving_spec": {
         "CL_farad": 1e-12,
         "slew_rate_v_per_us": null,
@@ -420,8 +426,6 @@ SPICE 폐루프 재검증 4단계.
       }
     }
   ],
-
-  "gain_allocation_check": {"total_target_db": 54.0},
 
   "compensation": {
     "function": "solve_compensation_for_gbw_pm",
@@ -446,15 +450,19 @@ SPICE 폐루프 재검증 4단계.
 ```
 
 **핵심 변경 요지**:
-- `sizing_roles.metrics.gain_stages_sum`(사후 readback, whole-circuit 단일 제약) →
-  `stages[].gain_budget_db`(사전 배분, per-stage). whole-circuit `gain_db>=54`는
-  `gain_allocation_check.total_target_db`로 격하(사이징 입력이 아니라 배선 시점 정합성 assert).
+- **(v3.1 확정)** `stages[].gain_budget_db`는 **입력이 아니라 출력**이다 — 총 gain 목표는
+  `global_spec.constraints`의 `gain_db >= X` 하나로만 주고, stage별 배분은 §7.9 Phase 2가
+  `A_i,max` 실측 + root current 1-D 해찾기로 **유도**해 `instance.json`/리포트에 기록한다.
+  특정 배분을 강제해야 하는 예외(논문 재현 등)만 `stages[].gain_budget_db_override`로 지정한다.
+  근거: 문헌 정본(`gm-id-methodology.md` §6.4)도 gain을 스펙이 아니라 **등고선(contour)**으로
+  다루며, 스펙은 GBW/PM이고 자유 축은 (gm/ID₁, gm/ID₂)다.
 - `device_roles.headroom_role` 폐기 → §7.3 헤드룸 해석기가 connectivity로 직접 판정.
 - `device_roles.gm_id_role` 폐기(gain stage 소속 소자는 §7.2로 유도) — bias-gen 소자만
   `bias_devices[].gm_id_policy`로 단순 존속(strong-inversion 최소화, 기존 role="matching"과
   동일 근거).
-- `sizing_roles.theta`의 A/B/C/D taxonomy 폐기 — 배분 자체가 자유인 것만
-  `gain_allocation.method="search"`로 남김.
+- `sizing_roles.theta`의 A/B/C/D taxonomy **전면 폐기**(v3.1) — 배분도 유도되므로 "자유 theta"로
+  남길 항목이 없다. 남는 자유도는 §7.6의 `L_combo`와 §7.9의 VDS 재배분 두 축뿐이고, 둘 다
+  선언이 아니라 엔진이 탐색·해찾기로 정한다.
 
 ### 7.2 신규 사이징 알고리즘 (stage 1개 기준) — §1.4의 §13.1/§13.2/§13.7 반영으로 개정
 
@@ -560,9 +568,11 @@ P1 확정으로 폐기(§6.1 (가) 참고).
    휴리스틱으로 따로 정하지 않는다).
 2. **Gain이 주도**한다 — 모든 stage gm_id를 gain 배분에서 먼저 정하고, GBW/PM은 보상소자 값으로
    **사후에** 맞춘다.
-3. `known-incidents.md` 사고4와의 경계: **배분 자체(어느 stage가 얼마의 gain을 가질지)는
-   여전히 탐색/사용자 지정**으로 남기고, "배분된 gain_i → gm_id_i" 이 한 단계만 결정론적
-   역산으로 바꾼다.
+3. ~~배분 자체는 탐색/사용자 지정으로 남긴다~~ → **v3.1에서 사용자 확정으로 개정**:
+   **배분도 엔진이 유도한다.** 총 gain 목표만 스펙으로 받고, stage별 배분은 §7.9 Phase 2의
+   `A_i,max` 실측 + root current 1-D 해찾기 결과로 나온다(`gain_budget_db`는 출력). 사고4의
+   본질("값을 논문에서 찾지 말고 회로에서 도출하라")은 유지되며, 도출 방식이 자유 탐색에서
+   물리 실측 기반 결정론으로 좁혀졌을 뿐이다. 특정 배분 강제는 `gain_budget_db_override`로만.
 
 ### 7.5 전체회로 물리 정합성 검증기 (★ 신설 — §3.1 요구사항 6, 이번 재설계의 핵심 동기)
 
@@ -669,11 +679,13 @@ gm_id_i` 역산은 각 L_combo 안에서 여전히 100% 결정론적이다(§3.1
 ⚠️ 단, L 오름차순 탐색은 "작은 것부터 보되 **전 구간을 실제로 스캔**"이어야 한다 — §13.7 실측
 (M107: L=375nm→4µm에서 `gm·ro` 26배 **악화**)대로 gds의 L 의존성은 단조가 아니라 지름길이 없다.
 
-**(4) Infeasible이면 gain 배분 재탐색으로 피드백**
+**(4) Infeasible이면 상위 루프로 피드백 (v3.1 개정)**
 
-`gain_allocation.method="search"`가 선언된 stage면 이 infeasibility가 "gain 배분 자체를 다시
-탐색하라"는 신호가 된다(기존 theta search 메커니즘 재사용). `method="explicit"`이면 사용자에게
-그대로 보고(조용히 타협하지 않음, §1.5).
+L_combo를 전부 소진해도 제약을 못 맞추면 §7.9의 **Phase 1(헤드룸 재배분)**으로 올라간다 —
+배분은 이제 유도값이므로 "배분을 다시 탐색"이라는 별도 경로가 없고, 진짜 자유도인 VDS 예산을
+재배분해 `A_i,max`를 키우는 것이 유일한 상위 수단이다. 헤드룸 재배분으로도 안 되면(swing 하한을
+깨야만 가능하면) 조용히 타협하지 않고 명시 실패 보고(§1.5). `gain_budget_db_override`가 선언된
+stage는 그 값이 물리 상한 `A_i,max`를 넘는지 먼저 검사해, 넘으면 즉시 그 사실을 보고한다.
 
 **(5) 물리적 대칭(레이아웃)은 이번 범위 밖 — 책임 분담 명시**
 
@@ -858,11 +870,29 @@ outer:  레이아웃 수렴 (§8.4, finger/euler 피드백)          <- 가장 �
 헤드룸 KVL만 깬 게 아니라 **그 소자들의 intrinsic gain을 2배 이상 깎고 있었다**(사고23의
 "vds 여유 0.01V면 사실상 triode"와 같은 맥락) — 이번 재설계의 동기가 하나 더 늘었다.
 
-**⚠️ 미확정(사용자 결정 필요)**: 이 구조에서 `stages[].gain_budget_db`는 Phase 2가 **유도**하는
-값이 되므로, 스키마상 **입력이 아니라 출력(리포트용)으로 격하**하는 게 논리적으로 일관된다
-(문헌 정본 §6.4도 gain을 스펙이 아니라 등고선 contour로 다룬다). 다만 이는 §7.4 원칙 3(사용자
-승인 완료 — "배분 자체는 탐색/사용자 지정으로 남긴다")을 바꾸는 것이라 **이번 개정에서는
-보류**하고, `gain_budget_db`를 입력으로 유지한 채 §7.9를 그 위에 얹는다. 다음 세션에서 결정할 것.
+**✅ 확정(v3.1, 사용자 결정)**: `stages[].gain_budget_db`를 **입력에서 출력으로 격하**한다.
+사용자는 총 gain 목표(`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 배분은 아래
+Phase 2가 유도해 `instance.json`/리포트에 기록한다. §7.4 원칙 3과 §3.1 요구사항 5도 이에 맞춰
+개정했다. 특정 배분 강제는 `stages[].gain_budget_db_override`(기본 `null`)로만 남긴다.
+
+**Phase 2의 배분 유도 절차(확정본)**:
+
+```
+주어진 L_combo와 VDS 예산에서:
+  1. gm_i        <- compensation(GBW/PM)이 이미 고정          # §7.4 원칙2
+  2. V_A_i       <- L_combo + VDS 예산이 고정                 # §7.9 ①~⑤
+  3. ID_i        =  k_i x ID_root                             # k_i는 KCL이 강제하는 비율
+  4. ID_root를 1-D 단조 해찾기:
+       Sum_i 20*log10( (gm_i/(k_i*ID_root)) x V_A_i ) = gain_target
+     (ID_root 증가 -> 모든 gm_id_i 감소 -> 모든 gain_i 감소, 단조라 해가 유일)
+  5. gm_id_i = gm_i/(k_i*ID_root),  gain_budget_i = gm_id_i x V_A_i   <- **유도된 배분(출력)**
+  6. 이 배분으로 §7.2의 stage 알고리즘 실행(cascode/load/tail은 각자 극값 최적화,
+     input은 잔여 gain에서 gm_id 확정 -- §7.2 로직 자체는 그대로)
+  해가 없으면(ID_root가 W_bounds/gm_id 물리상한을 벗어남) -> Phase 1로 헤드룸 재배분 피드백
+```
+
+즉 **`gain_budget_db`는 여전히 §7.2의 입력 인터페이스이지만, 그 값을 사람이 아니라 4~5단계가
+만든다** — §7.2의 알고리즘은 손대지 않고 그대로 재사용한다.
 
 **신규 함수**: `allocate_headroom_budget(stages, vdd, swing_spec) -> dict`(Phase 1),
 `measure_stage_gain_ceiling(stage, vds_budget, luts) -> A_max`(Phase 2 ①~⑤ 실측),
@@ -1155,3 +1185,4 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 | 2.4 | 2026-09-07 | "stage별 물리적 gain 상한이 분명히 있다"는 사용자 지적을 파고들어 **배분의 진짜 대상이 gain이 아니라 VDD 헤드룸**임을 확인하고 §7.9 신설 — A_i,max를 정하는 5요소 중 VDS 예산만이 설계 자유도이고, 이 때문에 숨은 순환(A_max←VDS예산←헤드룸배분 / gain배분→gm_id→VDS확정→달성gain)이 존재함을 도출. 사고21 Phase 분리 + 문헌 §9.4의 'VDS 2회 반복'(45nm 실측 41.4→61.4dB, 면적 페널티 0)으로 순환을 끊는 3-Phase 구조와 **비용 순 중첩 루프**(outer 레이아웃 / mid L_combo / inner VDS) 확정. 근거로 sky130 LUT 직접 실측(VDS 0.2→1.2V: gain +329%/W −15% vs L 0.15→4µm: gain +1480%/W +1770%)을 §7.7 R4b로 추가하고, §7.8 직교분해 표의 V_A 축 누락(V_A(L)→V_A(L,VDS))을 보정. 부수 발견: min_vds=0.2V 기본값이 gm/gds를 2.4배 깎는 최악 지점. equal-margin은 폐기가 아니라 Phase 1 초기 seed로 이동. gain_budget_db 입력→출력 격하는 §7.4 원칙3 변경이라 보류(미확정 표기) |
 | 2.5 | 2026-09-07 | §7.10 신설(초기 L 선택 기준) — sky130 LUT 직접 실측으로 (a) L 증가의 gain 수확체감(첫 2.3배가 3.91배를 주고 이후 11.6배 더 늘려도 4배만 추가), (b) fT의 L² 반비례 붕괴(2.3배에서 1/3.5, 6.7배에서 1/24)가 L 상한의 진짜 제약임, (c) 한계효율 knee가 kind/gm_id와 무관하게 항상 L≈2~3×L_min임을 확인 — 기존 `_L_ROLE_MULTIPLIERS`의 `mirror: 2.5×`가 '관례의 임의 중간값'이 아니라 실측 knee와 일치함이 사후 검증됨. 초기 L = knee에서 시작하되 fT 상한/mismatch 하한/LUT 격자로 clamp하고 role별로 방향 편향. 부수 반례: pmos 일부 구간에서 L↑인데 W·L↓(IDu 비단조) — '면적은 L에 단조'라는 가정이 깨지므로 knee 탐색도 전수 스캔으로 구현할 것 |
 | **3.0** | 2026-09-07 | **설계 철학 전환(사용자 확정)** — "전면 재설계도 가능하다. 무조건 버그free와 효율성이 원칙이고, 다만 이전 사고로 알려진 문제는 재발하지 않아야 한다." §3.2를 3대 원칙(P1 버그free 최우선·전면 재설계 허용 / P2 효율성 / P3 기지 사고 재발 방지)으로 재작성하고 v2.x의 "함수 시그니처 무변경" 제약을 폐기. §3.3 신설 — 사고1~24를 실패 클래스 C1~C10으로 묶고 각각에 구조적 방지 장치와 담당 절을 지정(C1 물리 미검증 상수 / C2 암묵적 순서 의존 / C3 조용한 소실 / C4 role 과신 / C5 게이트 사각 / C6 underdetermined 반복 / C7 단일회로 검증 / C8 엔진 우회 / C9 중복 복붙 / C10 재계산 비효율). 이 원칙에 따라 제약이 비틀어 놓았던 절들을 바로잡음: §6.1을 개선대상/그대로/신규 3분류로 재작성, §7.3의 "먼저 기입하면 우선순위①이 지켜준다"는 순서 의존 우회를 폐기하고 `resolve_feed_vds()`에 **티어① gate==drain → 고정점 solver**를 명시(C2 근본 제거), §7.9의 가중 헤드룸 배분을 위해 `cascode_fn(entry)`→`headroom_fn(entry, ctx)` 시그니처 확장 + 균등분배 폐기(C1/C4, v2.x에서는 무변경 선언과 모순돼 구현 불가였음), §7.10의 `_L_ROLE_MULTIPLIERS` 상수를 `measure_L_knee()` 실측 호출로 대체(공정 이식성) + `search_gm_id_and_L_for_role()`로 L축 내부화(C10). §4.1 DoD에 C1~C10 방지장치 확인과 4개 토폴로지 전수 실행(C7) 항목 추가 |
+| 3.1 | 2026-09-07 | **`gain_budget_db`를 입력에서 출력으로 격하(사용자 결정)** — 사용자는 총 gain 목표(`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 배분은 §7.9 Phase 2가 `A_i,max` 실측 + root current 1-D 단조 해찾기로 유도해 instance.json/리포트에 기록한다. §7.9에 그 유도 절차(gm_i←compensation / V_A_i←L_combo+VDS예산 / ID_i=k_i×ID_root / Σ20log10(...)=gain_target 해찾기 / 유도된 배분으로 §7.2 실행)를 확정본으로 명시. §7.1 스키마에서 `gain_budget_db`·`gain_allocation`·`gain_allocation_check` 제거하고 `gain_budget_db_override`(기본 null, 논문 재현용 예외)만 남김. §3.1 요구사항5와 §7.4 원칙3(둘 다 '배분은 탐색/사용자 지정으로 남긴다'였음)을 개정하고, 사고4와의 관계를 명시 — 사고4의 본질은 '값을 논문에서 찾지 말고 회로에서 도출하라'이고 v3.1은 그 도출을 자유 탐색에서 물리 실측 기반 결정론으로 좁힌 것이라 충돌하지 않음. 문헌 정본(§6.4)이 gain을 스펙이 아니라 등고선으로 다루는 것과도 일치. §2.2의 '배분 탐색 고도화는 범위 밖' 항목은 In Scope로 이동 |
