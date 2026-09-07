@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 2.5
+version: 3.0
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -231,14 +231,52 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
    상시 검증 게이트**로 승격하는 게 이번 재설계의 핵심 목적이다(diode-connected 헤드룸
    수정은 이 검증기가 잡아낸 여러 사례 중 하나일 뿐 전부가 아니다).
 
-### 3.2 Non-Functional Requirements
+### 3.2 Non-Functional Requirements — 3대 기본 원칙 (★ 2026-09-07 사용자 확정, v3.0)
 
-- 기존 재사용 계층(LUT 인터페이스, connectivity 파싱, 사후검증 metric, 레이아웃 파이프라인)의
-  함수 시그니처는 변경하지 않는다(`analog-topology-json-library.plan.md`가 지킨 것과 동일한
-  원칙, §6.1 Changed Resources 참고).
-- 신규 함수는 기존 self-test 관례(`python sizing_recipe.py` 인라인 self-test)에 맞춰 검증한다.
-- 재계산 효율성 원칙(사용자 피드백 메모리) 준수 — stage 알고리즘이 매 반복마다 LUT 스캔을
-  중복 실행하지 않도록, 기존 `_idu_scan()` 캐싱 패턴을 그대로 재사용한다.
+이번 재설계의 비기능 요구사항은 아래 셋뿐이며, 우선순위도 이 순서다.
+
+**P1. 버그 free가 최우선 — 전면 재설계를 허용한다.**
+v2.x까지 걸어두었던 "기존 재사용 계층의 함수 시그니처는 변경하지 않는다"는 제약은 사용자
+확정으로 **폐기**한다. 기존 함수를 개선하거나 통째로 다시 설계하는 것을 막지 않는다 — 판단
+기준은 "기존 코드를 얼마나 보존했나"가 아니라 **"물리적으로 옳은가, 조용한 실패가 구조적으로
+불가능한가"**다.
+
+> 이 제약이 실제로 설계를 비틀었던 두 사례(둘 다 이번 v3.0에서 바로잡는다):
+> - **§7.3**: diode-connected 값을 "먼저 기입하면 `resolve_feed_vds()` 우선순위①이 지켜준다"는
+>   **암묵적 순서 의존**으로 우회했다 — 그건 사고19/23이 당한 바로 그 취약성이다.
+> - **§7.9**: gain 기여도 기반 가중 헤드룸 배분이 필요한데 `allocate_stack_headroom()`의
+>   "남는 예산 균등분배"를 못 고쳐 **구현 자체가 불가능**한 모순 상태였다.
+
+**P2. 효율성 — 재계산·중복 스캔을 구조적으로 막는다.**
+같은 `(L, vds, vs, gm_id_grid)` 스캔이 호출부마다 반복되지 않도록 스캔 축을 함수 안으로
+내리고(예: L축 내부화, §7.6/§7.10), 캐시 키는 **"그 함수가 실제로 읽는 모든 가변 상태"**
+기준으로 잡는다(`lut-generation-checklist.md` §9의 CMFB MNA 캐싱 회귀가 근거 — `metric_spec`만
+키로 썼다가 `ctx.sized` 변경을 놓쳐 잘못된 값을 반환했다).
+
+**P3. 기지의 사고(사고1~24)는 구조적으로 재발 불가능해야 한다.**
+"조심하겠다"가 아니라 **설계가 그 실수를 애초에 허용하지 않아야** 한다. §3.3의 C1~C10이 그
+목록이며, 각 항목은 담당 설계 절과 방지 장치를 명시한다. 구현 완료 판정(§4.1)에 이 표의 모든
+행이 방지 장치를 갖췄는지 확인하는 항목이 포함된다.
+
+**부수 요구**: 신규/개선 함수는 §8.8 방침대로 `assets/tests/test_<module>.py`에서 검증한다.
+
+### 3.3 기지 사고 재발 방지 설계 원칙 C1~C10 (★ 신설 v3.0 — P3의 실행 목록)
+
+`known-incidents.md`의 사고1~24를 **실패 클래스**로 묶고, 각 클래스를 구조적으로 막는 장치와
+담당 절을 지정한다. "이 설계는 그 실수를 할 수 없다"가 목표이지 "주의하겠다"가 아니다.
+
+| # | 실패 클래스 | 출처 사고 | 구조적 방지 장치 | 담당 |
+|---|---|---|---|---|
+| **C1** | **물리 제약 미검증 상수** — 전압/전류 기본값이 KVL/KCL/Vgs=Vds를 만족하는지 확인 없이 쓰임 | 10, 23, 24 | 모든 전압/전류 값은 물리 solver 또는 declared 선언을 거친다. 상수 폴백은 "KVL/KCL 그룹에 속하지 않음이 확인된 소자"에만 허용하고, 그 판정을 함수가 직접 한다 | §7.3, §7.5 |
+| **C2** | **암묵적 순서 의존** — "누가 먼저 쓰느냐"로 결과가 달라짐 | 13, 19, 23 | 우선순위를 **명시적 티어**로 선언(§7.3 티어①~④). 선언 순서 정적 검사기(`validate_theta_declaration_order()` 계열)를 유지·확장 | §7.3 |
+| **C3** | **조용한 소실·덮어쓰기** — dict 키 충돌/저장 누락으로 데이터가 말없이 사라짐 | 12, 14, 16 | 이름 생성은 **호출 전역 유일성** 보장, 계산·저장 필드 목록을 한 곳에서 파생, 모든 pass 뒤 **커버리지 재검증 게이트** | §8.4, §7.5 |
+| **C4** | **role 라벨 과신** — 선언 라벨을 물리/connectivity 확인 없이 신뢰 | 9, 10, 11, 15, 18 | 물리 판정(`gate==drain`, `kind`, KCL)이 **항상 우선**, role 문자열은 최후 폴백. 대칭은 "복사"가 아니라 connectivity에서 유도 | §7.1, §7.3, §7.9 |
+| **C5** | **게이트가 무엇을 못 보는지 모름** — "통과"가 "볼 수 없어 통과"일 수 있음 | 11 | 각 게이트 docstring에 **검사하지 않는 것**을 명시. 상위 검증기(§7.5)가 하위 게이트의 사각을 덮는다 | §7.5 |
+| **C6** | **underdetermined를 반복으로 밀어붙임** — 자유도 부족을 반복으로 풀려다 착시적 수렴/데드락 | 19, 22 | **DOF 사전 진단**으로 overconstrained면 반복을 시작하지 않음. 상호참조는 독립방정식인지 먼저 검산 | §7.8 |
+| **C7** | **단일 회로로만 검증** — 다른 회로에서 원래 있던 gap이 드러남 | 17 | 파일럿 검증 후 나머지 3개 토폴로지 **실제 실행**까지 완료해야 done | §4.1, §5 |
+| **C8** | **엔진 우회·무근거 자동동작** — 손계산으로 축약하거나 근거 없이 자동 병합 | 1, 8, 20 | 모든 값은 함수 경유. 자동 병합/제안은 net-user-count 등 **connectivity 증거**를 요구하고, 증거가 없으면 `review_needed` | §7.1, §8.3 |
+| **C9** | **중복 복붙** — 같은 로직·상수가 여러 곳에 존재해 한쪽만 고쳐짐 | 24 | **단일 출처 함수**로 통합하고, 중복 상수 grep 검사를 test에 포함 | §3.2 P2, §8.8 |
+| **C10** | **재계산 비효율** — 같은 스캔을 호출부마다 반복 | (사용자 원칙, §9 캐싱) | 스캔 축을 함수 내부로 내리고 캐시 키를 "읽는 모든 가변 상태"로 | §3.2 P2, §7.6 |
 
 ---
 
@@ -258,6 +296,11 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
 - [ ] `cross_check_with_spice()`(sky130 SPICE `.op`)이 rail-lock 없이 수렴하고
       `verify_node_voltage_consistency()`의 LUT 기반 예측과 일치(원래 세션 목표였던 트랜지언트
       검증 재개 가능)
+- [ ] **★ (v3.0) §3.3 C1~C10 전 항목이 "구조적 방지 장치"를 실제로 갖췄는지 확인** — 각 행의
+      담당 절이 구현됐고, 해당 실패를 재현하는 회귀 test가 `assets/tests/`에 존재할 것
+- [ ] **★ (v3.0, C7) 파일럿 외 나머지 3개 토폴로지(folded_cascode/nmcnr_amplifier/
+      two_stage_ota)도 새 엔진으로 실제 실행** — self-test 통과만으로는 부족(사고17: 다른 회로를
+      돌려야 원래 있던 선언 gap이 드러난다)
 
 ### 4.2 Quality Criteria
 
@@ -280,24 +323,39 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
 
 ## 6. Impact Analysis
 
-### 6.1 Changed Resources
+### 6.1 Changed Resources (★ v3.0 재분류 — "무변경 보존"에서 "개선 허용"으로)
 
-- **재설계(신규 작성)**: `device_roles`, `sizing_roles`(`theta`/`metrics`/`objective`/
-  `constraints`), `compensation` — topology.json에서 제거되고 `sizing_spec.json`으로 대체
-- **재설계(신규 함수, 2026-09-04 §1.4 반영으로 축소)**: `_solve_diode_connected_vgs_fixed_point()`
-  신규 추가(그 외 `allocate_stack_headroom()`/`HeadroomPolicy`는 **무변경 재사용**으로 전환 —
-  아래 참고), `search_gm_id_for_role()`의 `role="gain"`/`role="load"` 둘 다 재사용(cascode/load
-  구분, §13.7 이미 구현됨), `optimize_multistage()`/`topology_fn`의 GBW/PM→gm 방향 반전
-- **무변경(재사용, 2026-09-04 §1.4 반영으로 확장)**: `SemiEmpiricalGmIdLUT`/`vgs_for_gm_id()`/
-  `gm_id_for_vgs()`/`gm_id_to_id_density()`/`gm_gds_ratio()`, `size_transistor()`/
-  `converge_with_parasitics()`, `load_topology()`/connectivity 파싱, `symmetry.matching_pairs`/
-  analog-grammar idiom 탐지, `assign_finger_geometry()`/euler 자동수정/matching-safety
-  자동수정/floorplan, `cmrr_estimate_db`/`psrr_estimate_db`/`pelgrom_mismatch`/
-  `nulling_resistor_ohm`/`battery_centering_deviation` 등 사후검증 metric 전부 — **여기에
-  `allocate_stack_headroom()`/`HeadroomPolicy`/`resolve_feed_vds()`/`_resolve_vertical_group()`/
-  `device_roles.vds_match_vgs_of`/`gm_id_match_vgs_of`도 추가**(§7.3 개정: 전면 교체가 아니라
-  diode-connected solver를 기존 우선순위 체인에 끼워넣는 방식으로 바뀌어 이 함수들은 그대로
-  둔다)
+P1(전면 재설계 허용)에 따라 v2.x의 **"무변경 재사용"** 분류를 폐기하고 아래 3분류로 재정리한다.
+판단 기준은 보존이 아니라 **물리적 정확성 + 조용한 실패 불가능성**이다.
+
+**(가) 개선 대상 — 기존 함수를 고친다** (v2.x에서 "무변경"으로 잘못 묶여 있던 것들):
+
+| 함수 | 현재 문제 | 개선 내용 | 방지하는 클래스 |
+|---|---|---|---|
+| `resolve_feed_vds()` | 우선순위 체인에 diode-connected 티어가 없어 "누가 먼저 쓰느냐"에 의존 | **티어① `gate==drain` → 고정점 solver**를 체인 안에 명시(§7.3) | **C2** (사고13/19/23) |
+| `allocate_stack_headroom()` / `HeadroomPolicy` | `stack_entries`에 `gm_id`가 없어 Jespers 공식이 죽은 코드, 남는 예산 **균등분배**는 물리 근거 없음 | `cascode_fn(entry)` → **`headroom_fn(entry, ctx)`**로 LUT/connectivity 접근 허용, 균등분배 → **gain 기여도(`dA/dVDS`) 가중 배분**(§7.9) | **C1, C4** (사고10) |
+| `search_gm_id_for_role()` | L을 고정 인자로 받아 호출부가 L 후보를 밖에서 반복 → 동일 `_idu_scan` 중복 실행 | **`search_gm_id_and_L_for_role()`**로 L축 내부화(스캔 재사용), knee 계산(§7.10)과 목적함수를 한 곳에 | **C10** (P2 효율) |
+| `_L_ROLE_MULTIPLIERS`(2.5×/1.2× 상수) | 공정이 바뀌면 knee도 바뀌는데 상수 고정 | **`measure_L_knee()` 실측 호출**로 대체(§7.10) | **C1, C9** |
+| `optimize_multistage()` / `topology_fn` | GBW/PM→gm 방향 | **방향 반전**(확정된 gm → Cc/Rz 역산, §7.4 원칙2) | — |
+
+**(나) 그대로 사용 — 물리·수치 계층이라 바꿀 이유가 없음**:
+`SemiEmpiricalGmIdLUT`/`vgs_for_gm_id()`/`gm_id_for_vgs()`/`gm_id_to_id_density()`/
+`gm_gds_ratio()`, `size_transistor()`/`converge_with_parasitics()`, `load_topology()`/
+connectivity 파싱, analog-grammar idiom 탐지, `assign_finger_geometry()`/euler 자동수정/
+matching-safety/floorplan, `cmrr_estimate_db`/`psrr_estimate_db`/`pelgrom_mismatch`/
+`nulling_resistor_ohm`/`battery_centering_deviation` 등 사후검증 metric,
+`_resolve_vertical_group()`의 fixed-point worklist(사고22 해법 그대로),
+`device_roles.vds_match_vgs_of`/`gm_id_match_vgs_of`(사고21 primitive).
+⚠️ "그대로 사용"은 **보존 의무가 아니라 현재 판단**이다 — 구현 중 물리적 결함이 드러나면 P1에
+따라 즉시 개선 대상으로 옮긴다.
+
+**(다) 신규 작성**: `sizing_spec.json` 스키마(§7.1), `_solve_diode_connected_vgs_fixed_point()`,
+`gm_id_for_gm_gds_ratio()`, `resolve_stage_sizing()`, `verify_node_voltage_consistency()`,
+`cross_check_with_spice()`, `diagnose_sizing_dof()`, `allocate_headroom_budget()`,
+`measure_stage_gain_ceiling()`, `redistribute_headroom_by_gain_gradient()`,
+`measure_L_knee()`, `L_bounds_from_ft_and_matching()`, `L_candidates_product()`,
+`make_cmrr_psrr_feasibility_check()`, `solve_compensation_for_gbw_pm()` +
+§8의 5개 파일/harness 구조.
 
 ### 6.2 Current Consumers
 
@@ -439,7 +497,7 @@ ID 상향 후 위 1~4를 그 ID로 실행 — 같은 gm_id에서 ID만 커지면
 같은 stage 안에 들어가면 이 예외를 적용해야 함을 `resolve_stage_sizing()` docstring에
 명시할 것.
 
-### 7.3 헤드룸(VDS) 해석기 재설계 — §1.4의 사고22/24 반영으로 "전면 교체"에서 "확장"으로 개정
+### 7.3 헤드룸(VDS) 해석기 재설계 — v2.0(기존 인프라 재사용) → **v3.0(우선순위 체인에 diode 티어 신설, C2 근본 제거)**
 
 **원안(v1.0)은 `allocate_stack_headroom()`/`HeadroomPolicy`를 통째로 새 함수로 대체하려 했다.
 그런데 자산화 과정에서 이미 이 문제의 절반(중복 하드코딩 제거, 상호참조 스케줄링)이 풀려있는
@@ -453,10 +511,25 @@ ID 상향 후 위 1~4를 그 ID로 실행 — 같은 gm_id에서 ID만 커지면
   예외로 "아직 준비 안 됨"을 표시하고 여러 pass에 걸쳐 재시도, "ctx.sized에 vds가 채워진 소자
   수가 이번 pass 동안 늘었는가"로 진전 판정).
 
-**개정된 설계**: diode-connected 소자의 Vgs=Vds 자기일관점은 §7.2 stage 사이징 알고리즘의
-**출력**으로 취급해 `ctx.sized[name]["vds"]`에 **먼저** 기입한다 — 그러면 `resolve_feed_vds()`
-의 우선순위 ①("이미 있으면 존중")이 자동으로 이 값을 지키고, role 기반 폴백(③, 오늘 버그의
-근원)은 애초에 발동하지 않는다. 새로 필요한 건 딱 하나:
+**⚠️ v3.0 재개정 — 위 v2.0안의 "순서 의존" 우회를 폐기한다**: v2.0은 "diode solver가
+`ctx.sized`에 **먼저** 기입하면 우선순위①이 지켜준다"로 설계했는데, 이는 **"누가 먼저 쓰느냐"에
+결과가 달라지는** 구조이고 그건 사고13/19/23이 반복해서 당한 바로 그 취약성(C2)이다. P1(전면
+재설계 허용)에 따라 **`resolve_feed_vds()`의 우선순위 체인 자체를 고쳐** 순서 의존을 제거한다:
+
+```
+resolve_feed_vds(name, declared_vds, ctx) -> float(vds):     # ★ v3.0 개선
+  티어① connectivity(name).gate == connectivity(name).drain  ← 신설 최우선
+         -> _solve_diode_connected_vgs_fixed_point(...)      (물리가 강제하는 값, 협상 불가)
+  티어② ctx.sized[name]["vds"]가 이미 있으면 존중            (기존 ①)
+  티어③ declared_vds(spec 명시값)                            (기존 ②)
+  티어④ _feed_vds_fallback(role 기반)                        (기존 ③ -- KVL/KCL 그룹 비소속이
+         확인된 소자에만 허용, C1)
+```
+이러면 **호출 순서와 무관하게** diode-connected 소자는 항상 물리적으로 옳은 값을 받는다.
+`_resolve_vertical_group()`의 fixed-point worklist(사고22)는 그대로 두고, 이 티어①이 그
+worklist의 pre-pass 자리를 대신한다.
+
+**신규 함수는 여전히 하나뿐이다**:
 
 ```
 _solve_diode_connected_vgs_fixed_point(gm_id, L, vs, lut) -> float(vds)
@@ -476,10 +549,10 @@ _resolve_vertical_group()의 fixed-point worklist에 이 pre-pass를 끼워넣�
 풀리는지부터 손 시뮬레이션할 것").
 ```
 
-**신규 함수 목록 재확정(§2 In Scope 갱신)**: `allocate_stack_headroom()`/`HeadroomPolicy`
-대체(`_resolve_device_headroom()`) 항목은 **취소** — 대신
-`_solve_diode_connected_vgs_fixed_point()` 하나만 신규 구현하고
-`resolve_feed_vds()`/`_resolve_vertical_group()`는 무변경 재사용.
+**정리(v3.0)**: 신규 함수는 `_solve_diode_connected_vgs_fixed_point()` 하나,
+**개선 대상**은 `resolve_feed_vds()`(티어① 추가) —
+`_resolve_vertical_group()`의 worklist는 그대로 쓴다. v2.0이 적어둔 "무변경 재사용" 표현은
+P1 확정으로 폐기(§6.1 (가) 참고).
 
 ### 7.4 확정된 설계 원칙 (사용자 승인 완료, 이번 세션 AskUserQuestion)
 
@@ -795,6 +868,21 @@ outer:  레이아웃 수렴 (§8.4, finger/euler 피드백)          <- 가장 �
 `measure_stage_gain_ceiling(stage, vds_budget, luts) -> A_max`(Phase 2 ①~⑤ 실측),
 `redistribute_headroom_by_gain_gradient(ctx) -> dict`(Phase 3, `dA/dVDS` 실측 기반).
 
+**개선 대상 함수(★ v3.0)**: 위 Phase 1/3은 `allocate_stack_headroom()`의 **"남는 예산
+균등분배"** 정책을 대체하는 것이라, 그 함수를 안 고치면 **구현 자체가 불가능**하다(v2.x의
+§6.1 "무변경" 선언과 정면 모순이었다 — P1 확정으로 해소):
+
+```
+HeadroomPolicy.cascode_fn(entry)  ->  headroom_fn(entry, ctx)     # ★ 시그니처 확장
+   - entry에 gm_id/L/kind/connectivity를 실어 보낸다(사고10: 지금은 gm_id가 없어 Jespers
+     공식이 죽은 코드이고 상수로 떨어진다 -- 이건 재사용할 게 아니라 고쳐야 할 버그다).
+   - ctx로 LUT 접근을 허용해 dA/dVDS 실측 기반 가중 배분을 가능하게 한다.
+allocate_stack_headroom(...)의 "남는 예산 균등분배"
+   -> "swing/포화/Vgs=Vds 하한을 먼저 확보한 뒤, 잔여분을 dA/dVDS 가중으로 배분"
+```
+균등분배는 물리적 근거가 없는 임의 정책이었다(C1/C4). 가중 배분으로 바꾸면 §7.9 Phase 3의
+"1V가 가장 많은 dB를 만드는 소자에게" 규칙이 그대로 이 함수 안에서 실행된다.
+
 ---
 
 ### 7.10 초기 L 선택 기준 (★ 신설, 2026-09-07 — §7.6 L_combo 탐색의 시작점)
@@ -866,6 +954,16 @@ gain이 너무 낮아(측정 1: L_min에서 gm/gds=17.75, 약 25dB) 대부분의
 **신규 함수**: `measure_L_knee(lut, kind, gm_id, vds, L_grid) -> float`(측정 2의 한계효율 스캔),
 `L_bounds_from_ft_and_matching(spec, stage) -> (L_lo, L_hi)`(fT 상한/mismatch 하한 계산) —
 둘 다 §7.6의 `L_candidates_product()`가 탐색 범위를 정할 때 호출한다.
+
+**개선 대상 함수(★ v3.0)**:
+- `_L_ROLE_MULTIPLIERS = {"mirror": 2.5, "bias_replica": 1.2}` **상수 → `measure_L_knee()`
+  실측 호출로 대체**. 이번 실측으로 2.5×가 sky130 knee와 일치함이 확인됐지만, **공정이 바뀌면
+  knee도 바뀐다** — 상수로 두면 다른 PDK로 이식할 때 조용히 틀린 값을 쓴다(C1/C9). 실측
+  호출로 바꾸면 자동 추종하고, `select_L_by_role()`이 `cascode`/`signal`을 거부하던 제약도
+  함께 해소된다(knee가 모든 role에 정의되므로).
+- `search_gm_id_for_role()` → **`search_gm_id_and_L_for_role()`**(L축 내부화, §6.1 (가)) —
+  knee 탐색·L_combo 탐색·role 목적함수가 **같은 `_idu_scan` 결과를 공유**하게 되어 P2(중복
+  스캔 금지)를 만족한다.
 
 ---
 
@@ -1056,3 +1154,4 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 | 2.3 | 2026-09-07 | "stage별 gain 배분과 compensation을 iterative하게 최적화할 필요가 있나"라는 사용자 질의에 대한 결론을 §7.8로 반영 — gm_id⊥ID 직교성(intrinsic gain=gm_id×V_A(L)은 ID에 무관, gm=gm_id×ID)으로 gain 배분과 compensation이 서로 다른 변수를 건드리므로 **전면 반복은 원리적으로 불필요**함을 파일럿 실측(stage1 4.626µA/stage2 24.702µA, 비율 5.34가 미러비로 조정 가능)으로 확인. 대신 `diagnose_sizing_dof()` 사전 진단을 신설해 목표 대비 자유도를 Stage 1 마지막에 판정하고, `overconstrained`면 반복을 아예 시작하지 않고 어느 목표끼리 충돌하는지 명시 보고(사고19의 착시적 수렴/순환 데드락 재발 방지). 제한적 반복은 `status=="ok"`인데 §7.6 L_combo가 실패할 때만 발동, 기생 커패시턴스 반복(`converge_with_parasitics()`)은 별개 축으로 무변경 유지 |
 | 2.4 | 2026-09-07 | "stage별 물리적 gain 상한이 분명히 있다"는 사용자 지적을 파고들어 **배분의 진짜 대상이 gain이 아니라 VDD 헤드룸**임을 확인하고 §7.9 신설 — A_i,max를 정하는 5요소 중 VDS 예산만이 설계 자유도이고, 이 때문에 숨은 순환(A_max←VDS예산←헤드룸배분 / gain배분→gm_id→VDS확정→달성gain)이 존재함을 도출. 사고21 Phase 분리 + 문헌 §9.4의 'VDS 2회 반복'(45nm 실측 41.4→61.4dB, 면적 페널티 0)으로 순환을 끊는 3-Phase 구조와 **비용 순 중첩 루프**(outer 레이아웃 / mid L_combo / inner VDS) 확정. 근거로 sky130 LUT 직접 실측(VDS 0.2→1.2V: gain +329%/W −15% vs L 0.15→4µm: gain +1480%/W +1770%)을 §7.7 R4b로 추가하고, §7.8 직교분해 표의 V_A 축 누락(V_A(L)→V_A(L,VDS))을 보정. 부수 발견: min_vds=0.2V 기본값이 gm/gds를 2.4배 깎는 최악 지점. equal-margin은 폐기가 아니라 Phase 1 초기 seed로 이동. gain_budget_db 입력→출력 격하는 §7.4 원칙3 변경이라 보류(미확정 표기) |
 | 2.5 | 2026-09-07 | §7.10 신설(초기 L 선택 기준) — sky130 LUT 직접 실측으로 (a) L 증가의 gain 수확체감(첫 2.3배가 3.91배를 주고 이후 11.6배 더 늘려도 4배만 추가), (b) fT의 L² 반비례 붕괴(2.3배에서 1/3.5, 6.7배에서 1/24)가 L 상한의 진짜 제약임, (c) 한계효율 knee가 kind/gm_id와 무관하게 항상 L≈2~3×L_min임을 확인 — 기존 `_L_ROLE_MULTIPLIERS`의 `mirror: 2.5×`가 '관례의 임의 중간값'이 아니라 실측 knee와 일치함이 사후 검증됨. 초기 L = knee에서 시작하되 fT 상한/mismatch 하한/LUT 격자로 clamp하고 role별로 방향 편향. 부수 반례: pmos 일부 구간에서 L↑인데 W·L↓(IDu 비단조) — '면적은 L에 단조'라는 가정이 깨지므로 knee 탐색도 전수 스캔으로 구현할 것 |
+| **3.0** | 2026-09-07 | **설계 철학 전환(사용자 확정)** — "전면 재설계도 가능하다. 무조건 버그free와 효율성이 원칙이고, 다만 이전 사고로 알려진 문제는 재발하지 않아야 한다." §3.2를 3대 원칙(P1 버그free 최우선·전면 재설계 허용 / P2 효율성 / P3 기지 사고 재발 방지)으로 재작성하고 v2.x의 "함수 시그니처 무변경" 제약을 폐기. §3.3 신설 — 사고1~24를 실패 클래스 C1~C10으로 묶고 각각에 구조적 방지 장치와 담당 절을 지정(C1 물리 미검증 상수 / C2 암묵적 순서 의존 / C3 조용한 소실 / C4 role 과신 / C5 게이트 사각 / C6 underdetermined 반복 / C7 단일회로 검증 / C8 엔진 우회 / C9 중복 복붙 / C10 재계산 비효율). 이 원칙에 따라 제약이 비틀어 놓았던 절들을 바로잡음: §6.1을 개선대상/그대로/신규 3분류로 재작성, §7.3의 "먼저 기입하면 우선순위①이 지켜준다"는 순서 의존 우회를 폐기하고 `resolve_feed_vds()`에 **티어① gate==drain → 고정점 solver**를 명시(C2 근본 제거), §7.9의 가중 헤드룸 배분을 위해 `cascode_fn(entry)`→`headroom_fn(entry, ctx)` 시그니처 확장 + 균등분배 폐기(C1/C4, v2.x에서는 무변경 선언과 모순돼 구현 불가였음), §7.10의 `_L_ROLE_MULTIPLIERS` 상수를 `measure_L_knee()` 실측 호출로 대체(공정 이식성) + `search_gm_id_and_L_for_role()`로 L축 내부화(C10). §4.1 DoD에 C1~C10 방지장치 확인과 4개 토폴로지 전수 실행(C7) 항목 추가 |
