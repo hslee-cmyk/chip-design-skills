@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 3.1
+version: 3.2
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -218,7 +218,8 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
    (사용자 확정: "gain이 주도").
 5. **(v3.1 개정)** gain 배분은 **엔진이 유도한다** — 사용자는 총 gain 목표
    (`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 `gain_budget_db`는 §7.9 Phase 2가
-   `A_i,max` 실측 + root current 1-D 해찾기로 결정해 **출력**한다. `stages[].gain_budget_db_override`
+   `A_i,max` 실측 + **`gm_id_i`를 변수로 한 해석해(KKT)+활성제약** 절차로 결정해 **출력**한다
+   (v3.2 재정식화 — v3.1의 root-current 1-D 해찾기는 그 특수 케이스). `stages[].gain_budget_db_override`
    는 논문 재현 등 예외 경로로만 남긴다.
    ⚠️ **사고4와의 관계**: 사고4는 "논문에서 배분값을 **찾으려던** 것"을 "회로에서 도출하라"로
    정정한 것이었고, 당시 해법이 "탐색"이었다. v3.1은 그 도출을 **더 좁혀** 물리 상한(`A_i,max`)
@@ -387,7 +388,11 @@ SPICE 폐루프 재검증 4단계.
 
   "global_spec": {
     "vdd": 1.8,
+    // v3.2 -- 배분(§7.9 Phase 2)의 결합 구조가 objective에 따라 달라진다:
+    //   순수 power 최소화면 gain과 power가 같은 방향이라 배분이 축퇴되고,
+    //   area가 들어가야 gain 등식이 binding해져 KKT 커플링(ID_i=const)이 나타난다.
     "objective": {"minimize": "power_uA"},
+    //   또는 {"minimize": "area_um2"} / {"weighted": {"power_uA": 1.0, "area_um2": 0.3}}
     "closed_loop_accuracy_db": null,
     // §7.6 -- CMRR/PSRR/mismatch는 stage별 배분이 아니라 전역 declared constraint로 선언.
     // 계산 로직은 기존 metric(smallsignal_ratio_db/pelgrom_mismatch) 완전 무변경 재사용.
@@ -756,9 +761,11 @@ diagnose_sizing_dof(sizing_spec, topology) -> DofReport:
   2. 자유도 수집(스키마 + connectivity만 보고, 사이징 계산 없이):
      - gm_id: stage별 input 소자 수. 단 matching_pairs/gm_id_match_vgs_of로 묶인 소자는
        1개로 축약(사고21의 primitive가 선언한 강제 동일 관계를 그대로 인정).
-     - ID 스케일: A엔진(propagate_topology_forced_currents)의 KCL 그래프에서 **실제로
-       독립적으로 정할 수 있는 root current 개수** -- 여기가 핵심 판정. 두 stage의 ID가
-       KCL로 강제 동일(또는 고정비)이면 자유도 2개가 아니라 1개로 합산한다.
+     - **(v3.2 정정)** ID/전류 축: v3.1은 "독립적으로 정할 수 있는 root current 개수"로 셌으나,
+       §7.9 재정식화로 **자유 변수는 `gm_id_i`(stage마다 1개)**이고 `ID_i`/미러비 `k_i`는
+       파생값이 됐다 -- 따라서 이 축의 자유도는 **stage 수**로 세되, `matching_pairs`/
+       `gm_id_match_vgs_of`로 묶인 stage는 1개로 축약하고, KCL로 전류가 **강제 동일**한
+       (미러비로도 못 바꾸는) stage 쌍만 합산한다.
      - L: R1(§13.3 5개 신호)로 "독립 변경 가능"으로 판정된 소자 그룹 수(§7.7).
      - Cc: compensation.solves_for 중 종속 항목(Rz=1/gm2) 제외한 개수.
   3. 목표별 담당 자유도 대조 -> 부족하면 **어느 목표끼리 같은 자유도를 놓고 다투는지**
@@ -875,28 +882,68 @@ outer:  레이아웃 수렴 (§8.4, finger/euler 피드백)          <- 가장 �
 Phase 2가 유도해 `instance.json`/리포트에 기록한다. §7.4 원칙 3과 §3.1 요구사항 5도 이에 맞춰
 개정했다. 특정 배분 강제는 `stages[].gain_budget_db_override`(기본 `null`)로만 남긴다.
 
-**Phase 2의 배분 유도 절차(확정본)**:
+**Phase 2의 배분 유도 절차 (v3.2 재정식화 — 문헌 정합성 갭 해소)**
+
+⚠️ **v3.1의 정식화는 Jespers의 sizing space를 축소하고 있었다**: v3.1은 `ID_i = k_i × ID_root`로
+놓고 `k_i`(stage 간 전류비)를 "KCL이 강제하는 고정 비율"로 취급해 **1-D 해찾기**만 했다. 그런데
+`k_i`는 바이어스 미러비로 조정 가능한 값이고(파일럿 실측 5.34, 옛 `r_tail_M6`/`K_replica`가 그
+노브였다), `k_i`를 바꾸면 stage 간 `gm_id` 비율이 바뀐다 — 즉 **`k_i`가 곧 문헌 정본
+(`gm-id-methodology.md` §6.4)의 두 번째 축**이었다. v3.1은 그 2D 공간을 `k_i` 고정 단면의 1D
+선으로 줄여 **그 단면 밖의 더 나은 전력/면적 지점을 못 찾는** 상태였다(§13.2가 겪은 "엔진
+지름길이 만든 인공적 제약"과 같은 종류).
+
+**해소 방법 — `k_i`를 탐색 축에 추가하는 게 아니라 변수 자체를 바꾼다.** 인과가 거꾸로였다:
 
 ```
-주어진 L_combo와 VDS 예산에서:
-  1. gm_i        <- compensation(GBW/PM)이 이미 고정          # §7.4 원칙2
-  2. V_A_i       <- L_combo + VDS 예산이 고정                 # §7.9 ①~⑤
-  3. ID_i        =  k_i x ID_root                             # k_i는 KCL이 강제하는 비율
-  4. ID_root를 1-D 단조 해찾기:
-       Sum_i 20*log10( (gm_i/(k_i*ID_root)) x V_A_i ) = gain_target
-     (ID_root 증가 -> 모든 gm_id_i 감소 -> 모든 gain_i 감소, 단조라 해가 유일)
-  5. gm_id_i = gm_i/(k_i*ID_root),  gain_budget_i = gm_id_i x V_A_i   <- **유도된 배분(출력)**
-  6. 이 배분으로 §7.2의 stage 알고리즘 실행(cascode/load/tail은 각자 극값 최적화,
-     input은 잔여 gain에서 gm_id 확정 -- §7.2 로직 자체는 그대로)
-  해가 없으면(ID_root가 W_bounds/gm_id 물리상한을 벗어남) -> Phase 1로 헤드룸 재배분 피드백
+gm_i    <- compensation(GBW/PM)이 고정
+gain_i  =  gm_id_i x V_A_i
+gm_i    =  gm_id_i x ID_i     =>   ID_i = gm_i / gm_id_i
+```
+즉 **`gm_id_i`를 고르면 `ID_i`가 따라오고, 미러비 `k_i`는 그 전류를 실현하려고 사이징되는
+파생값**이다(옛 엔진은 순방향—미러비→전류→gm_id—이라 `k_i`가 자유 theta였지만, gain-budget-first는
+역방향이라 그럴 이유가 없다). **진짜 자유 축은 `gm_id_i` 자신이고, 그게 정확히 Jespers의 N-D
+sizing space다.**
+
+```
+변수: gm_id_i (stage마다)                      <- Jespers N-D 공간 전체를 덮는다
+파생: ID_i = gm_i/gm_id_i,  k_i = ID_i/ID_ref  <- 미러비는 구현값(탐색 축이 아님)
+제약: gain    : Sum_i 20*log10(gm_id_i * V_A_i) >= gain_target
+      driving : ID_out >= SR*CL                (§7.2 output stage)
+      물리    : gm_id_i <= 1/(n*U_T)           (~32.7 @300K, §7.9 ①)
+      제조    : W_i = L_i*ID_i/IDu_i <= W_max  (§7.9 ②)
+      속도    : fT_i >= N*GBW                  (§7.10)
+목적: global_spec.objective (power / area / 가중합)
+
+해법 — 탐색이 아니라 해석해 + 활성제약(active set):
+ 1) min-power면 각 stage를 자기 상한까지 독립적으로 올린다:
+      gm_id_i = min( gm_id_phys, gm_id@W_max, gm_id@fT_min )
+    근거: gain과 power가 **같은 방향**이다(둘 다 gm_id 증가를 원한다) -- 서로 안 싸우므로
+    stage 간 결합이 없고 각자 독립적으로 최대화하면 그게 최적이다.
+ 2) gain 확인:
+      미달  -> V_A를 키워야 한다: Phase 1(VDS 재배분) -> 그래도 부족하면 §7.6(L_combo)
+      여유  -> objective에 area가 있으면 3)으로 그 여유를 면적/속도로 되판다
+ 3) area가 목적에 들어가면 gain 등식이 binding해지고 stage 간 결합이 생긴다.
+    KKT 정류조건이 **비활성 stage들끼리 ID_i = const**를 준다(2단 대수 검증:
+      min gm1/x1 + gm2/x2  s.t. x1*x2 = C  ->  x1 = sqrt(gm1*C/gm2)  ->  ID1 = ID2 = sqrt(gm1*gm2/C))
+    slew/driving 하한에 걸린 stage는 그 하한에 고정(active set) -> 나머지에 대해 재계산(1~2회 수렴)
+ 4) gm_id_i 확정 -> gain_budget_i = gm_id_i x V_A_i  <- **유도된 배분(출력)**
+ 5) 이 배분으로 §7.2의 stage 알고리즘 실행(§7.2 로직 자체는 무변경)
+ 6) 실현: 각 branch의 미러비 k_i = ID_i/ID_ref 를 W 비율로 sizing
 ```
 
-즉 **`gain_budget_db`는 여전히 §7.2의 입력 인터페이스이지만, 그 값을 사람이 아니라 4~5단계가
-만든다** — §7.2의 알고리즘은 손대지 않고 그대로 재사용한다.
+**v3.1이 버려지지 않는다**: v3.1의 "ID_root 1-D 해찾기"는 **모든 stage가 비활성일 때의 특수
+케이스**(3)의 `ID_i = const = I*`)로 이 일반해에 흡수된다.
 
-**신규 함수**: `allocate_headroom_budget(stages, vdd, swing_spec) -> dict`(Phase 1),
-`measure_stage_gain_ceiling(stage, vds_budget, luts) -> A_max`(Phase 2 ①~⑤ 실측),
-`redistribute_headroom_by_gain_gradient(ctx) -> dict`(Phase 3, `dA/dVDS` 실측 기반).
+**파일럿이 이 구조로 설명된다**: 출력단 `ID=24.702µA`는 class-AB 구동 요구(**활성 제약**)로
+고정되고 stage1 `ID=4.626µA`는 비활성이라 최적점에 있다 — 즉 **비율 5.34는 "자유 선택"이 아니라
+활성 제약의 결과**였다.
+
+**⚠️ 정직한 한계 — 배분 문제는 부분적으로 축퇴(degenerate)된다**: `objective`가 순수
+`minimize power_uA`면 gain과 power가 같은 방향이라 1)에서 각 stage가 자기 상한까지 가면 끝이고
+**배분에 자유도가 남지 않는다**(gain 제약은 대개 비활성). 진짜 배분 문제(KKT 커플링)는
+objective에 **area가 들어가거나** stage마다 상한이 다를 때만 나타난다 — 이는 §7.9 발견3
+("gain 제약은 최적점에서 binding하지 않는다") 및 문헌 정본이 gain을 스펙이 아니라 등고선으로
+다루는 것과 정확히 일치하는 결론이다.
 
 **개선 대상 함수(★ v3.0)**: 위 Phase 1/3은 `allocate_stack_headroom()`의 **"남는 예산
 균등분배"** 정책을 대체하는 것이라, 그 함수를 안 고치면 **구현 자체가 불가능**하다(v2.x의
@@ -1186,3 +1233,4 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 | 2.5 | 2026-09-07 | §7.10 신설(초기 L 선택 기준) — sky130 LUT 직접 실측으로 (a) L 증가의 gain 수확체감(첫 2.3배가 3.91배를 주고 이후 11.6배 더 늘려도 4배만 추가), (b) fT의 L² 반비례 붕괴(2.3배에서 1/3.5, 6.7배에서 1/24)가 L 상한의 진짜 제약임, (c) 한계효율 knee가 kind/gm_id와 무관하게 항상 L≈2~3×L_min임을 확인 — 기존 `_L_ROLE_MULTIPLIERS`의 `mirror: 2.5×`가 '관례의 임의 중간값'이 아니라 실측 knee와 일치함이 사후 검증됨. 초기 L = knee에서 시작하되 fT 상한/mismatch 하한/LUT 격자로 clamp하고 role별로 방향 편향. 부수 반례: pmos 일부 구간에서 L↑인데 W·L↓(IDu 비단조) — '면적은 L에 단조'라는 가정이 깨지므로 knee 탐색도 전수 스캔으로 구현할 것 |
 | **3.0** | 2026-09-07 | **설계 철학 전환(사용자 확정)** — "전면 재설계도 가능하다. 무조건 버그free와 효율성이 원칙이고, 다만 이전 사고로 알려진 문제는 재발하지 않아야 한다." §3.2를 3대 원칙(P1 버그free 최우선·전면 재설계 허용 / P2 효율성 / P3 기지 사고 재발 방지)으로 재작성하고 v2.x의 "함수 시그니처 무변경" 제약을 폐기. §3.3 신설 — 사고1~24를 실패 클래스 C1~C10으로 묶고 각각에 구조적 방지 장치와 담당 절을 지정(C1 물리 미검증 상수 / C2 암묵적 순서 의존 / C3 조용한 소실 / C4 role 과신 / C5 게이트 사각 / C6 underdetermined 반복 / C7 단일회로 검증 / C8 엔진 우회 / C9 중복 복붙 / C10 재계산 비효율). 이 원칙에 따라 제약이 비틀어 놓았던 절들을 바로잡음: §6.1을 개선대상/그대로/신규 3분류로 재작성, §7.3의 "먼저 기입하면 우선순위①이 지켜준다"는 순서 의존 우회를 폐기하고 `resolve_feed_vds()`에 **티어① gate==drain → 고정점 solver**를 명시(C2 근본 제거), §7.9의 가중 헤드룸 배분을 위해 `cascode_fn(entry)`→`headroom_fn(entry, ctx)` 시그니처 확장 + 균등분배 폐기(C1/C4, v2.x에서는 무변경 선언과 모순돼 구현 불가였음), §7.10의 `_L_ROLE_MULTIPLIERS` 상수를 `measure_L_knee()` 실측 호출로 대체(공정 이식성) + `search_gm_id_and_L_for_role()`로 L축 내부화(C10). §4.1 DoD에 C1~C10 방지장치 확인과 4개 토폴로지 전수 실행(C7) 항목 추가 |
 | 3.1 | 2026-09-07 | **`gain_budget_db`를 입력에서 출력으로 격하(사용자 결정)** — 사용자는 총 gain 목표(`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 배분은 §7.9 Phase 2가 `A_i,max` 실측 + root current 1-D 단조 해찾기로 유도해 instance.json/리포트에 기록한다. §7.9에 그 유도 절차(gm_i←compensation / V_A_i←L_combo+VDS예산 / ID_i=k_i×ID_root / Σ20log10(...)=gain_target 해찾기 / 유도된 배분으로 §7.2 실행)를 확정본으로 명시. §7.1 스키마에서 `gain_budget_db`·`gain_allocation`·`gain_allocation_check` 제거하고 `gain_budget_db_override`(기본 null, 논문 재현용 예외)만 남김. §3.1 요구사항5와 §7.4 원칙3(둘 다 '배분은 탐색/사용자 지정으로 남긴다'였음)을 개정하고, 사고4와의 관계를 명시 — 사고4의 본질은 '값을 논문에서 찾지 말고 회로에서 도출하라'이고 v3.1은 그 도출을 자유 탐색에서 물리 실측 기반 결정론으로 좁힌 것이라 충돌하지 않음. 문헌 정본(§6.4)이 gain을 스펙이 아니라 등고선으로 다루는 것과도 일치. §2.2의 '배분 탐색 고도화는 범위 밖' 항목은 In Scope로 이동 |
+| 3.2 | 2026-09-07 | **문헌 정합성 검증에서 발견한 갭 해소** — 웹검색(Murmann/Boser/Silveira-Flandre-Jespers 등)과 프로젝트 문헌 정본(§6.4)을 v3.1과 대조한 결과, v3.1의 `ID_i=k_i×ID_root` 1-D 해찾기가 **Jespers의 2D sizing space `(gm/ID₁, gm/ID₂)`를 `k_i` 고정 단면의 1D 선으로 축소**하고 있었음을 확인(k_i는 바이어스 미러비로 조정 가능한 값이라 곧 두 번째 축이다). 해소는 `k_i`를 탐색 축에 추가하는 게 아니라 **변수 자체를 `gm_id_i`로 바꾸는 재정식화**로 했다 — `ID_i=gm_i/gm_id_i`이고 `k_i`는 그 전류를 실현하는 파생값이므로 theta 폭발 없이 N-D 공간 전체를 덮는다. 해법은 탐색이 아니라 해석해+활성제약(active set): min-power면 각 stage가 자기 상한(gm_id_phys/W_max/fT_min)까지 독립 최대화(gain과 power가 같은 방향이라 결합 없음), area가 목적에 들어가면 gain 등식이 binding해져 KKT 정류조건이 **비활성 stage끼리 ID_i=const**를 준다(2단 대수 검증). v3.1의 1-D 해찾기는 '모든 stage 비활성' 특수 케이스로 흡수. 파일럿의 stage2/stage1 전류비 5.34가 자유 선택이 아니라 class-AB 구동 하한이라는 **활성 제약의 결과**임도 설명됨. §7.1 objective에 area/가중합 옵션을 열고, §7.8 DOF 진단의 전류 축 계수법도 gm_id_i 기준으로 정정. 정직한 한계: 순수 power 최소화에서는 배분이 축퇴(자유도 없음)되고, 진짜 배분 문제는 area가 목적에 들어갈 때만 나타남 |
