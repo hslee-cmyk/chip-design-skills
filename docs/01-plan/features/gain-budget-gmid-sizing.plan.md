@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.2
+version: 4.3
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -193,6 +193,10 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
         쓰지 않아 비볼록(A11)에 영향받지 않는다. 프로토타입·근거:
         `tests/probe_allocation_solvers.py`. Pareto front(§7.9 v3.4)도 같은 DP의 비지배
         집합에서 **한 번의 전파로** 나온다
+  - [ ] **`set_device_vds(ctx, name, value, source)`**(§7.3, v4.3) — vds 기입의 **유일한**
+        경로. diode 소자면 고정점 해와 일치하는지 검사해 어긋나면 즉시 실패, `_vds_source`
+        태그 기록(B13 추적성 동시 해결). 기존 7개 기입 지점을 전부 이 함수로 치환하고
+        원시 대입 잔존 여부를 grep 테스트로 강제
   - [ ] **`load_sizing_spec(path) -> SizingSpec`**(§7.1, v4.0) — 스키마 검증기. 미지 필드 거부,
         `topology_ref` 정합 확인, `metrics[].type`이 `_METRICS_REGISTRY`에 있는지 확인,
         `schema_version` 마이그레이션. 선언만 되고 아무도 안 읽는 필드를 **정적으로 잡는다**
@@ -683,6 +687,91 @@ _resolve_vertical_group()의 fixed-point worklist에 이 pre-pass를 끼워넣�
 **개선 대상**은 `resolve_feed_vds()`(티어① 추가) —
 `_resolve_vertical_group()`의 worklist는 그대로 쓴다. v2.0이 적어둔 "무변경 재사용" 표현은
 P1 확정으로 폐기(§6.1 (가) 참고).
+
+#### ★ B1 해소 — 티어의 자리를 실측으로 재지정 (v4.3, 2026-09-07)
+
+v3.0은 diode 티어를 `resolve_feed_vds()` **안**에 넣기로 했다. 계측해 보니 **그 자리로는
+diode 소자를 단 하나도 덮지 못한다.**
+
+**실측 1 — 소자별 vds를 실제로 정한 경로**(파일럿 51소자, SLSQP 실주행에 monkeypatch 계측;
+스크립트 `tests/probe_vds_assignment_paths.py`):
+
+| 경로 | 호출 횟수 | **vds를 정한 소자** | 그중 diode-connected |
+|---|---|---|---|
+| `allocate_stack_headroom()` | 1,876 | **28개** | 12개 |
+| (위 계측 밖 -- 아래 실측 3 참고) | — | 14개 | **4개**(M18_bg/M66/M36a/M36b) |
+| `_metric_stage_budget_vds_by_device()` | 15 | 5개 | 0개 |
+| **`resolve_feed_vds()`** | 542 | **4개** | **0개** |
+
+즉 v3.0안대로 티어를 `resolve_feed_vds()`에 넣으면 **51개 중 4개**만 지나가고, **diode
+소자는 0개**다. 최악 오차 소자(M36a/M36b, +1.020V)는 그 함수 근처에도 가지 않는다.
+
+> **이건 사고19의 재현이다.** 사고19 기록: "`resolve_feed_vds()`가 `(vds, source)`를 반환하도록
+> 확장하는 수정을 시도했으나 분기가 애초에 그 계산을 안 타서 값 자체는 안 바뀌었다 -- 전부
+> 되돌렸다." v3.0은 그 사고를 인용하면서 **같은 함수에 같은 방식으로 다시 걸었다.**
+
+**실측 2 — `headroom_role`은 diode 여부를 전혀 반영하지 않는다**: diode-connected 16개의 role이
+`cascode` 11 / `mirror` 3 / `diode_reference` 1 / `voltage_divider` 2로 흩어져 있다. 즉
+**`diode_reference` 라벨은 실제 diode 16개 중 1개에만 붙어 있다.** 그리고 `vds=0.2`는
+`min_vds_by_role["cascode"]`가 그대로 흘러나온 값이라, M2b(diode 아님, 필요 1.398V)와
+M11a(diode, 필요 0.871V)가 **똑같이 0.2**를 받는다. role로 diode를 판정하려는 접근이 성립하지
+않는다는 실물 증거이며 C4의 사례다.
+
+**실측 3 — vds를 기입하는 엔진 지점은 7곳이다**(정적 전수, self-test 제외):
+
+```
+3237  _feed_gm_target_convention()        -> resolve_feed_vds() 경유
+3304  공유전류 조인트 스캔(_scb_joint_plan)  -> 직접 기입
+4729  vds_match_vgs_of pre-pass           -> ★ 물리적으로 옳게 계산하는 유일한 곳
+4772  조인트 스캔 sibling 갱신             -> 직접 기입
+4805  same_as_device 전파                  -> 직접 기입
+4899  allocate_stack_headroom() 결과 적용   -> 직접 기입 (28개, 최대 경로)
+5258  optimize_multistage() stage 결과      -> 직접 기입
+```
+
+`resolve_feed_vds()`를 경유하는 것은 **7곳 중 2곳**뿐이다. 한 함수만 고쳐서는 구조적으로
+덮을 수 없다.
+
+**확정 설계 — diode는 `vds_match_vgs_of`의 자기참조(self-reference) 특수 케이스다**
+
+4729의 pre-pass는 이미 물리적으로 옳은 일을 한다: `target_vgs = ref_lut.vgs_for_gm_id(
+ref.gm_id, ref.L, ref.vds, ref.vs)`를 계산해 `ctx.sized[m]["vds"]`에 박고, 그 소자를
+`unresolved`에서 빼 **예산에서 차감**한다. diode-connected는 그 참조가 **자기 자신**인
+경우일 뿐이다:
+
+```
+일반:   vds[m] = Vgs(ref)          <- ref가 먼저 풀리면 1회 조회로 끝
+diode:  vds[m] = Vgs(m)            <- 자기참조라 고정점: v* = vgs_for_gm_id(gm_id, L, v*, vs)
+```
+
+따라서 §7.3은 **새 티어를 새 자리에 만드는 대신, 이미 있는 pre-pass를 자기참조까지 확장**한다:
+
+```
+_hr_resolve_vertical_group() 의 pre-pass 확장:
+ 1) diode_set = {m : connectivity(m).gate == connectivity(m).drain}     [토폴로지 레벨,
+    `_HeadroomTopoEnv`에 1회 계산해 보관 -- role 라벨을 보지 않는다]
+ 2) m in diode_set 이면 vds_match_vgs_of[m] = m 으로 간주하고
+    **고정점 solver**로 v* 를 푼다(단조 g(v)=Vgs(v)-v 의 bisection, 격자 밖이면 명시 실패)
+ 3) 나머지는 기존 pre-pass 그대로 -- 확정된 값은 unresolved에서 빠져 예산에서 차감된다
+```
+
+**바이패스를 구조적으로 불가능하게 만든다(C2 방지 장치 실물)**: v3.0은 "먼저 기입하면
+우선순위①이 지켜준다"는 **암묵적 순서 의존**을 폐기한다고 선언했으므로, 순서 운에 기대면
+안 된다. 위 7개 기입 지점을 **단일 setter**로 모은다:
+
+```
+set_device_vds(ctx, name, value, source: str) -> None      # 신규, 유일한 기입 경로
+  · name이 diode_set이면 value가 고정점 해와 일치하는지 검사하고, 어긋나면 즉시 실패
+    (조용히 덮어쓰지 않는다 -- §3.2 P1)
+  · `_vds_source` 태그를 함께 남긴다(B13 추적성 요구를 여기서 함께 해결)
+  · 7개 기입 지점을 전부 이 함수로 바꾸고, 원시 대입이 남아 있지 않은지 **grep 테스트**로
+    강제한다(C9의 "중복 상수 grep 검사"와 같은 형태)
+```
+
+**DoD 추가**: 파일럿 재사이징 후 diode-connected 16개 전부에서
+`|vgs_for_gm_id(gm_id, L, vds*, vs) - vds*| < tol`이고, `_vds_source`가 전부
+`diode_fixed_point`로 찍혀야 한다. 현재는 16개 전부 오차 0.05V 초과이며 최대 1.020V다.
+
 
 ### 7.4 확정된 설계 원칙 (사용자 승인 완료, 이번 세션 AskUserQuestion)
 
@@ -1635,7 +1724,7 @@ v4.0은 이 중 **사용자가 결정한 3건과 코드 선행조치 3건**을 �
 
 | # | 내용 | 검증 상태 | 필요한 결정 |
 |---|---|---|---|
-| B1 | **§7.3 티어①이 실제 버그 경로를 안 지난다**. `resolve_feed_vds()`의 호출자는 **단 2곳**이고, 헤드룸을 실제 배정하는 `_hr_resolve_vertical_group()`/`allocate_stack_headroom()`은 이 함수를 **호출하지 않는다**. 파일럿 51소자 중 19개가 `vds=0.2` 상수 폴백으로 떨어지는 경로가 그쪽이다. **사고19가 정확히 이 시도의 실패를 이미 기록**하고 있다 | 코드 확인(호출자 2곳) | 티어 체인을 `resolve_feed_vds()` 안이 아니라 **vds를 쓰는 4개 진입점 전부가 통과하는 단일 해석기**로 승격할 것. §7.3 재작성 필요 |
+| B1 | ~~§7.3 티어①이 실제 버그 경로를 안 지난다~~ → **2026-09-07 해소(v4.3)**. 계측 확증: `resolve_feed_vds()`는 51소자 중 **4개**만 정하고 **diode 소자는 0개**다(최대 경로는 `allocate_stack_headroom()` 28개). vds 기입 지점은 **7곳**이라 한 함수만 고쳐선 못 덮는다. diode를 `vds_match_vgs_of`의 **자기참조 특수 케이스**로 보고 기존 pre-pass를 확장 + 7개 지점을 `set_device_vds()` 단일 setter로 수렴(§7.3) | monkeypatch 실주행 계측 + 정적 전수 | **없음** — 설계 확정. 구현 시 grep 테스트로 원시 대입 잔존 금지 |
 | B2 | **CMRR/PSRR을 stage-local `extra_feasible` 콜백으로 만들 수 없다**. `_full_circuit_devices()`가 `ctx.sized`에 없는 소자를 만나면 `KeyError`를 던지는데, L_combo 루프는 stage 하나를 사이징하는 중이라 **원리적으로 불가능** | 코드 확인 | mismatch만 stage-local로 남기고 cmrr/psrr는 전역 게이트로 옮긴 뒤 L_combo를 바깥 재시도 루프로 재구조화. §7.6(3) 의사코드 재작성 |
 | B3 | **`resolve_stage_sizing()` 시그니처에 `vds`/`vs`가 없다**. 모든 LUT 호출이 필수로 요구하는데 §7.9 Phase 1의 VDS 예산이 §7.2/§7.6으로 전달되지 않는다 | 코드 확인 | `resolve_stage_sizing(stage_spec, ID, luts, vds_budget, vs_by_device, constraints)`로 확정 |
 | B4 | **실행시간 예산 항목이 계획에 없다**. L 앵커는 4개가 아니라 **7개**(§7.7 R3이 stale). 3그룹 곱이면 앵커만 343 combo, densify 41점이면 68,921 combo. MNA 전환(P-c)으로 완화됐으나 곱셈 구조 자체는 그대로 | 코드·LUT 확인 | 독립 L 그룹 수 상한·총 combo 상한을 **수치로 명시**하고 DoD에 "파일럿 1회 실행 wall-clock ≤ N분" 추가 |
@@ -1700,3 +1789,4 @@ harness 순서의 불일치(§8.4에 Phase 1이 없고 되먹임을 금지), 신
 | **4.0** | 2026-09-07 | **4개 관점 독립 검토(회로물리/구현가능성/문서정합성/토폴로지 일반성) 반영 + 코드 선행조치 3건 완료**. 사용자 결정 3건: ① `gm_i` 인과 방향을 **"compensation이 (Cc,Rz,gm_1..gm_N)을 먼저 한 번에 결정"**으로 통일하고 §3.1 req4·§7.4 원칙2를 폐기 — v3.2가 §7.9만 뒤집고 이 둘을 안 고쳐 문서가 두 갈래였다(둘은 양립 불가: `min Σ gm_i/gm_id_i`는 `gm_i`가 상수여야 well-posed). "gain-budget-first"의 의미도 "gain이 gm을 정한다"가 아니라 "단별 gain 예산을 엔진이 유도해 **산출**한다"로 확정. 기생 결합 `∂gm_i/∂gm_id_i ≠ 0`을 KKT 밖에 두던 것도 정정(v2.4의 V_A 축 누락과 같은 클래스). ② **gain 제약을 폐형식에서 `compute_metric()` 위임으로 전환** — 4개 토폴로지가 네 가지 다른 gain metric(`gain_stages_sum`/`folded_cascode_gain_db`/`nmcnr_gain_db`/`smallsignal_gain_db`)을 쓰므로 폐형식 `Σ20log10(gm_id·V_A)`으로는 §4.1 DoD의 4개 전수 실행이 **원리적으로 불가능**했고, `_METRICS_REGISTRY` 위임이라는 이 프로젝트의 circuit-agnostic 규약을 §7.9가 깨고 있었다. 부하 로딩 미반영(2단 −12dB 계통 낙관)과 `V_A`가 `gm_id`와 독립이 아니라는 문제도 함께 해소. ③ **theta 폐기를 "자유 탐색 변수"로 축소** — `A_signed`/`C`/`metric_stage_budget`/servo `B`는 값이 아니라 **구조 선언**이라 전면 폐기하면 CMFB·class-AB 배터리·bias 체인 정보가 소실된다(세션33 회귀와 같은 클래스). `structural_declarations`/`feedback_loops`/`metrics` 블록을 스키마에 신설·복원하고 noise(`flicker_plus_thermal_sum`, **엔진에 이미 등록돼 있는데 계획이 떨어뜨린 것**)를 제약으로 승격. 코드 선행조치: (a) 헤드룸 2중 중첩 클로저 6개(401줄)를 모듈 레벨 `_hr_*`로 추출해 `resolve_headroom()` harness를 비로소 가능하게 함(본문 무변경, self-test stdout 바이트 동일), (b) self-test 회귀 기준선 신설 — 기존에 지목된 로그는 stick_diagram 것이 없고 `.gitignore`로 **git 추적조차 안 됐다**; 캡처 중 stick_diagram 출력 7줄이 실행마다 달라지는 것을 발견해 결정론화, (c) 소신호 MNA를 `numpy.linalg.solve`로 전환(노드 51개 6.1x, 상대편차 1e-13) + numpy 지연 import 7곳 통합. 미반영 지적 전량을 **§10 신설**로 기록(A1~A10 물리, B1~B13 구현, G1~G8 일반성, C 잔여) — 특히 B1(티어①이 실제 버그 경로를 안 지남, 호출자 2곳뿐)과 A10(v3.3 근거 실측치가 `V_A` 58배 상승을 함의해 물리적으로 불가능)은 다음 결정 대상. 부수 정정: §1.5 끊어진 참조 4곳→§3.2 P1, `schema_version` 3.0→4.0, "무변경 재사용" 잔재 2곳 |
 | 4.1 | 2026-09-07 | **A10 조사 완료 — 우려 기각, 대신 A11 발견**. v3.3이 면적 제약형 채택 근거로 든 실측(`gm=75µS`, `L=0.35µm`, gm_id 5→26)을 sky130 LUT로 직접 재현한 결과 **"28→77.6"은 dB가 아니라 선형 `gm/gds` 비**였다(dB로는 28.98→37.80; 같은 문장의 "+0.05dB"는 37.75→37.80 증분이라 둘 다 사실이나 한 문장에 단위 없이 섞여 오독을 유발했다). `V_A` 5.62→2.98V로 정상이고, 면적 0.127→509.32µm²(4000배)도 아티팩트가 아니라 전류밀도 `IDu`가 2.03e-6→1.98e-9 A/µm로 1000배 떨어지는 deep weak inversion의 결과다 -- **v3.3 논거 그대로 유지**. §7.9 표에 단위를 명시했다. 부수로 결정2(metric 위임)의 근거를 정량화: 분리형 `gain=gm_id×V_A`는 gm_id 5→26에서 실제 37.80dB를 43.30dB로 **5.50dB 과대평가**한다(`V_A`가 1.88배 감소하기 때문). **새 발견 A11**: `gm/gds`가 `gm_id`에 단조가 아니다 -- VDS 0.6/0.9/1.2/1.5에서 감소 구간이 6/8/11/12개이고 최댓값이 gm_id≈20.5/20.0/18.0/18.0에 있다(VDS=0.4에서만 단조). 정점 위는 gain·면적 둘 다 나빠지고 전력만 좋아지는 **지배당한 영역**이라 (i) "gm_id를 올리면 gain이 오른다"는 KKT 전제가 거짓이 되고 (ii) 탐색 상한을 면적 예산에만 맡기면 안 되며 (iii) `V_A(VDS)`·`IDu(L)` 비단조와 합쳐 **(gm_id,L,VDS) 공간이 비볼록**이므로 v3.3의 "배분이 유일하게 결정된다"는 근거가 없다. §10.2에 A11로 등록 |
 | **4.2** | 2026-09-07 | **A11 해소 — §7.9 해법을 KKT 한계비 탐욕에서 분리형 DP로 교체**. 사용자 질문("해석해가 아니면 탐색을 해야 하는 문제로 바뀌는 것 아닌가")에 답하려고 세 방법을 sky130 LUT로 직접 돌려 비교했다(2-stage, gm_id 격자 0.25 간격 87점). **v3.3이 규정한 KKT 한계비 탐욕이 72 시나리오 중 27건(37.5%)에서 전수 최적과 어긋났고, 그 중 8건은 feasible 해가 존재하는데도 gain 미달 해를 반환했다** — 탐욕 규칙이 면적 예산만 보고 gain 제약을 아예 보지 않기 때문이다(단순 열등이 아니라 **스펙 위반 해를 내놓는 결함**). 대신 각 stage의 (전력·면적·gain)이 자기 `gm_id_i`에만 의존한다는 **분리성**을 이용한 자원배분 DP를 쓰면 기울기를 전혀 쓰지 않으므로 비볼록이 무관해진다 — 탐욕이 틀린 9개 케이스에서 전수와 **9/9 일치**했고 비용도 N=3에서 0.043s(전수 0.98s), **N=4에서 0.294s**(전수 5,729만 조합으로 비현실적)로 오히려 싸다. 따라서 **탐색 문제로 바뀌는 것이 아니라 '정확한 이산 최적화'가 된다**: 같은 입력→같은 답, 임의 가중치·초기값·시드 없음, 국소최적 구조적 부재, 작은 N에서 전수 대조로 최적성 확인 가능 — 사고4가 막았던 '탐색'과는 성질이 다르다. 잃은 것은 닫힌 식 하나뿐이고 남는 근사는 격자 해상도 하나인데 그건 숨은 오차가 아니라 리포트에 찍는 값이다. v3.3의 "배분이 **유일하게** 결정된다"는 표현을 철회하고 "주어진 격자 위에서 전역 최적 + 활성 제약 집합 보고"로 대체. 부수: Pareto front(v3.4)도 DP가 면적 bin별 비지배 집합을 이미 들고 있어 **한 번의 전파로** 나오므로 12점을 따로 풀 필요가 없어졌다. 프로토타입을 `tests/probe_allocation_solvers.py`로 자산화 |
+| **4.3** | 2026-09-07 | **B1 해소 — §7.3 diode 티어의 자리를 실측으로 재지정**. v3.0은 티어①을 `resolve_feed_vds()` 안에 넣기로 했는데, 파일럿 실주행(SLSQP)에 monkeypatch 계측을 붙여 세어 보니 **그 자리로는 diode 소자를 하나도 못 덮는다**: `resolve_feed_vds()`가 정하는 소자는 51개 중 **4개(diode 0개)**뿐이고, 최대 경로는 `allocate_stack_headroom()`(**28개**, diode 12개)이며 M18_bg/M66/M36a/M36b(최악 오차 +1.020V)는 그 함수 근처에도 가지 않는다. **사고19가 기록한 실패("resolve_feed_vds()를 확장했으나 분기가 애초에 그 계산을 안 타서 값이 안 바뀌어 전부 되돌렸다")의 재현**이다. 정적 전수로 vds 기입 지점이 **7곳**임도 확인했다(그중 `resolve_feed_vds()` 경유는 2곳). 부수 확인: `headroom_role`은 diode 여부를 전혀 반영하지 않는다 — diode 16개의 role이 cascode 11/mirror 3/diode_reference 1/voltage_divider 2로 흩어져 있어 **`diode_reference` 라벨은 16개 중 1개에만** 붙어 있고, `vds=0.2`는 `min_vds_by_role["cascode"]`가 흘러나온 값이라 M2b(diode 아님, 필요 1.398V)와 M11a(diode, 필요 0.871V)가 똑같이 0.2를 받는다(C4 실물). **확정 설계**: diode를 `vds_match_vgs_of`의 **자기참조 특수 케이스**로 보고 이미 물리적으로 옳게 계산하는 기존 pre-pass(4729행)를 자기참조 고정점(bisection)까지 확장한다 — 확정값은 unresolved에서 빠져 예산에서 차감되므로 자리가 정확하다. 순서 운에 기대지 않도록 7개 기입 지점을 **`set_device_vds()` 단일 setter**로 수렴시키고(diode면 고정점 해와 불일치 시 즉시 실패, `_vds_source` 태그 기록으로 B13 추적성 동시 해결), 원시 대입 잔존을 grep 테스트로 강제한다. 계측 스크립트를 `tests/probe_vds_assignment_paths.py`로 자산화 |
