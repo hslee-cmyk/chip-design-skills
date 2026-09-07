@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.3
+version: 4.4
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -176,9 +176,16 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
   - [ ] **`sweep_area_power_pareto(sizing_spec, luts) -> ParetoReport`**(§7.9, v3.4) — 면적
         예산 미선언 시 전력-면적 Pareto front를 뽑아 제시하고 정지(엔진이 예산을 지어내지
         않는다). 선택 결과는 `global_spec.constraints`의 `area_um2`로 기록
-  - [ ] `make_cmrr_psrr_feasibility_check(...)` — §13.5의 `make_matching_feasibility_check()`
-        와 동일 패턴으로 `global_spec.constraints`를 `extra_feasible` 콜백으로 변환
-        (metric 계산 자체는 기존 `smallsignal_ratio_db`/`pelgrom_mismatch` 무변경 재사용)
+  - [ ] ~~`make_cmrr_psrr_feasibility_check(...)`~~ — **삭제(v4.4)**. `make_matching_
+        feasibility_check()`와 "동일 패턴"이 **원리적으로 불가능**함이 실측으로 확인됐다:
+        `smallsignal_ratio_db`는 `_full_circuit_devices()`가 전 소자를 요구해 stage 사이징
+        도중에는 `KeyError`다(§7.6 B2 해소 참고)
+  - [ ] **`make_stage_local_check(metrics, constraints, grp, spec)`**(§7.6, v4.4) — T1/T2
+        metric만 골라 `extra_feasible` 콜백으로 변환(기존 `make_matching_feasibility_check()`
+        를 일반화). T3가 섞여 들어오면 **선언 시점에 거부**한다
+  - [ ] **`check_global_gates(ctx, metrics, constraints) -> GateReport`**(§7.6, v4.4) — T3
+        전용 전역 게이트. 전 소자 사이징 완료 후 1회 실행(측정 0.72 ms), 위반 metric과
+        여유량을 함께 반환해 §7.6(4) 승격 판단에 쓴다
   - [ ] **`diagnose_sizing_dof(sizing_spec, topology) -> DofReport`**(§7.8) — 사이징 시작
         전에 "목표 개수 대비 실제 자유도가 충분한가"를 스키마+connectivity만으로 판정
         (`ok`/`underdetermined`/`overconstrained`), `overconstrained`면 어느 목표끼리
@@ -687,6 +694,58 @@ _resolve_vertical_group()의 fixed-point worklist에 이 pre-pass를 끼워넣�
 **개선 대상**은 `resolve_feed_vds()`(티어① 추가) —
 `_resolve_vertical_group()`의 worklist는 그대로 쓴다. v2.0이 적어둔 "무변경 재사용" 표현은
 P1 확정으로 폐기(§6.1 (가) 참고).
+
+#### ★ B2 해소 — metric은 3티어이고, 게이트도 3티어여야 한다 (v4.4, 2026-09-07)
+
+§2.1은 `make_cmrr_psrr_feasibility_check()`를 `make_matching_feasibility_check()`와 **"동일
+패턴"**으로 만들자고 했다. 실측해 보니 **그 패턴은 CMRR/PSRR에 원리적으로 적용 불가**다.
+
+**왜 mismatch는 되고 cmrr은 안 되는가**: `pelgrom_mismatch`는 `estimate_mismatch_sigma(
+vth0_slope, W, L)`이라는 **닫힌 식**이라 그 stage의 (W, L)만 있으면 계산된다. 반면
+`smallsignal_ratio_db`는 `_full_circuit_devices()`를 거치는데, 그 함수는 **topology.json의
+모든 소자**가 `ctx.sized`에 있어야 하고 없으면 즉시 `KeyError`를 던진다. L_combo 루프는
+stage 하나를 사이징하는 중이므로 그 시점에 다른 stage/bias 소자는 아직 존재하지 않는다.
+
+**실측**(파일럿 13개 metric 전수, stage1 8소자만 사이징한 ctx로 호출):
+
+| 티어 | 뜻 | metric | 1회 비용 |
+|---|---|---|---|
+| **T1 stage-local** | 그 stage 소자만 있으면 계산됨 | `power_uA`, `area_um2`, `mismatch_sigma_mV`, `noise_v_rthz` | 0.002~0.006 ms |
+| **T2 stage-분해가능** | Σ(stage별 항), 각 항은 자기 stage만 필요 | `gain_stages_sum` | 0.003 ms |
+| **T3 기약 전역** | 전체 netlist MNA / stage를 가로지르는 노드 | `cmrr_estimate_db`, `psrr_estimate_db`, `gain_full_circuit_db`, `classab_centering_dev_v`, `vg15_level_v`, `vop1_level_v`, `rz1_ohm`, `rz2_ohm` | 0.15~0.29 ms |
+
+> T2는 실측으로 **정확히** 분해된다: stage별 개별 평가 합 56.9842 dB = 전체 평가 56.9842 dB
+> (차이 `0.00e+00`). 즉 `gain_stages_sum`을 쓰는 회로에서는 §7.9의 DP가 **대리 함수가 아니라
+> 진짜 metric을 분해해서** 쓸 수 있다.
+>
+> 반대로 `folded_cascode_gain_db`/`nmcnr_gain_db`/`smallsignal_gain_db`를 쓰는 나머지 3개
+> 토폴로지는 gain이 **T3**다. 그 경우 DP는 LUT의 `gm_gds_ratio`를 **대리(proxy)**로 쓰고
+> **판정 권한은 전역 게이트에** 있다 — 둘이 어긋나면 그 L_combo를 버리고 다음으로 간다(§7.6(4)).
+> 이 이원성을 숨기지 않고 리포트에 "DP 예측 vs 전역 게이트 실측"을 나란히 찍는다.
+
+**게이트 구조(§7.6(3) 재작성)**:
+
+```
+for L_combo in L_candidates_product(...):          # 면적 오름차순, 전수(§7.7 R4)
+    for stage in stages:
+        find_optimal_sizing(..., extra_feasible=make_stage_local_check(T1, T2))
+        # ^ T1/T2만 여기서 판정한다. T3를 여기 넣으면 KeyError -- 원리적으로 불가.
+    if not all_devices_sized(ctx):  continue
+    report = check_global_gates(ctx, metrics, constraints)      # 신규, T3 전용
+    if report.ok:  return ctx, report
+    record_failure(L_combo, report.violations)                  # 어느 제약이 왜 깨졌는지
+# 전부 실패 -> §7.6(4) 상위 수단(Phase 1 VDS 재배분)으로 승격
+```
+
+**비용은 문제가 아니다**(P-c의 numpy MNA 전환 덕분): T3 게이트 1회(cmrr+psrr+전체회로 gain)가
+**0.72 ms**다. L 앵커 7점·3그룹(343 combo)이면 0.25초, densify 41점 3그룹(68,921 combo)이라도
+50초다. 병목은 게이트가 아니라 **combo마다 도는 stage 사이징**이며 그건 B4에서 따로 다룬다.
+(측정 시 동일 입력 반복이 캐시에 걸리지 않도록 gm/gds를 매번 흔들어 쟀다 — 캐시 히트와의 차이는
+0.32 vs 0.34 ms로 유의하지 않았다.)
+
+**§2.1 정정**: `make_cmrr_psrr_feasibility_check()`는 **삭제한다**(구성상 불가능한 함수를
+계획에 남겨두면 구현자가 그걸 만들려다 막힌다). 대신 `check_global_gates()`를 신설한다.
+
 
 #### ★ B1 해소 — 티어의 자리를 실측으로 재지정 (v4.3, 2026-09-07)
 
@@ -1725,7 +1784,7 @@ v4.0은 이 중 **사용자가 결정한 3건과 코드 선행조치 3건**을 �
 | # | 내용 | 검증 상태 | 필요한 결정 |
 |---|---|---|---|
 | B1 | ~~§7.3 티어①이 실제 버그 경로를 안 지난다~~ → **2026-09-07 해소(v4.3)**. 계측 확증: `resolve_feed_vds()`는 51소자 중 **4개**만 정하고 **diode 소자는 0개**다(최대 경로는 `allocate_stack_headroom()` 28개). vds 기입 지점은 **7곳**이라 한 함수만 고쳐선 못 덮는다. diode를 `vds_match_vgs_of`의 **자기참조 특수 케이스**로 보고 기존 pre-pass를 확장 + 7개 지점을 `set_device_vds()` 단일 setter로 수렴(§7.3) | monkeypatch 실주행 계측 + 정적 전수 | **없음** — 설계 확정. 구현 시 grep 테스트로 원시 대입 잔존 금지 |
-| B2 | **CMRR/PSRR을 stage-local `extra_feasible` 콜백으로 만들 수 없다**. `_full_circuit_devices()`가 `ctx.sized`에 없는 소자를 만나면 `KeyError`를 던지는데, L_combo 루프는 stage 하나를 사이징하는 중이라 **원리적으로 불가능** | 코드 확인 | mismatch만 stage-local로 남기고 cmrr/psrr는 전역 게이트로 옮긴 뒤 L_combo를 바깥 재시도 루프로 재구조화. §7.6(3) 의사코드 재작성 |
+| B2 | ~~CMRR/PSRR을 stage-local 콜백으로 만들 수 없다~~ → **2026-09-07 해소(v4.4)**. 실측 확증(`KeyError: 'M6' 소자가 ctx.sized에 없다`). 13개 metric을 전수 분류해 **T1 stage-local 4개 / T2 stage-분해가능 1개 / T3 기약 전역 8개**로 나누고 게이트도 3티어로 재작성. `gain_stages_sum`이 정확히 분해됨을 확인(stage 합 = 전체, 차이 0.00e+00)해 DP가 대리가 아닌 **진짜 metric**을 쓸 수 있음도 확정. T3 게이트 1회 0.72 ms로 비용도 문제없음 | 실측 분류 + 비용 측정 | **없음** — §2.1의 `make_cmrr_psrr_feasibility_check()`는 삭제, `check_global_gates()` 신설 |
 | B3 | **`resolve_stage_sizing()` 시그니처에 `vds`/`vs`가 없다**. 모든 LUT 호출이 필수로 요구하는데 §7.9 Phase 1의 VDS 예산이 §7.2/§7.6으로 전달되지 않는다 | 코드 확인 | `resolve_stage_sizing(stage_spec, ID, luts, vds_budget, vs_by_device, constraints)`로 확정 |
 | B4 | **실행시간 예산 항목이 계획에 없다**. L 앵커는 4개가 아니라 **7개**(§7.7 R3이 stale). 3그룹 곱이면 앵커만 343 combo, densify 41점이면 68,921 combo. MNA 전환(P-c)으로 완화됐으나 곱셈 구조 자체는 그대로 | 코드·LUT 확인 | 독립 L 그룹 수 상한·총 combo 상한을 **수치로 명시**하고 DoD에 "파일럿 1회 실행 wall-clock ≤ N분" 추가 |
 | B5 | **C6이 사고19를 안 막는다**. 사고19의 underdetermined는 vertical_stack 내부 헤드룸 KVL(미지수 2/방정식 1)인데 `diagnose_sizing_dof()`는 gm_id/전류/L/Cc 넷만 세고 **VDS 미지수·KVL 방정식을 세지 않는다** | 문서 확인 | DOF 진단에 "stack별 (vds 미지수 vs KVL+참조 등식, 랭크)" 축 추가 |
@@ -1790,3 +1849,4 @@ harness 순서의 불일치(§8.4에 Phase 1이 없고 되먹임을 금지), 신
 | 4.1 | 2026-09-07 | **A10 조사 완료 — 우려 기각, 대신 A11 발견**. v3.3이 면적 제약형 채택 근거로 든 실측(`gm=75µS`, `L=0.35µm`, gm_id 5→26)을 sky130 LUT로 직접 재현한 결과 **"28→77.6"은 dB가 아니라 선형 `gm/gds` 비**였다(dB로는 28.98→37.80; 같은 문장의 "+0.05dB"는 37.75→37.80 증분이라 둘 다 사실이나 한 문장에 단위 없이 섞여 오독을 유발했다). `V_A` 5.62→2.98V로 정상이고, 면적 0.127→509.32µm²(4000배)도 아티팩트가 아니라 전류밀도 `IDu`가 2.03e-6→1.98e-9 A/µm로 1000배 떨어지는 deep weak inversion의 결과다 -- **v3.3 논거 그대로 유지**. §7.9 표에 단위를 명시했다. 부수로 결정2(metric 위임)의 근거를 정량화: 분리형 `gain=gm_id×V_A`는 gm_id 5→26에서 실제 37.80dB를 43.30dB로 **5.50dB 과대평가**한다(`V_A`가 1.88배 감소하기 때문). **새 발견 A11**: `gm/gds`가 `gm_id`에 단조가 아니다 -- VDS 0.6/0.9/1.2/1.5에서 감소 구간이 6/8/11/12개이고 최댓값이 gm_id≈20.5/20.0/18.0/18.0에 있다(VDS=0.4에서만 단조). 정점 위는 gain·면적 둘 다 나빠지고 전력만 좋아지는 **지배당한 영역**이라 (i) "gm_id를 올리면 gain이 오른다"는 KKT 전제가 거짓이 되고 (ii) 탐색 상한을 면적 예산에만 맡기면 안 되며 (iii) `V_A(VDS)`·`IDu(L)` 비단조와 합쳐 **(gm_id,L,VDS) 공간이 비볼록**이므로 v3.3의 "배분이 유일하게 결정된다"는 근거가 없다. §10.2에 A11로 등록 |
 | **4.2** | 2026-09-07 | **A11 해소 — §7.9 해법을 KKT 한계비 탐욕에서 분리형 DP로 교체**. 사용자 질문("해석해가 아니면 탐색을 해야 하는 문제로 바뀌는 것 아닌가")에 답하려고 세 방법을 sky130 LUT로 직접 돌려 비교했다(2-stage, gm_id 격자 0.25 간격 87점). **v3.3이 규정한 KKT 한계비 탐욕이 72 시나리오 중 27건(37.5%)에서 전수 최적과 어긋났고, 그 중 8건은 feasible 해가 존재하는데도 gain 미달 해를 반환했다** — 탐욕 규칙이 면적 예산만 보고 gain 제약을 아예 보지 않기 때문이다(단순 열등이 아니라 **스펙 위반 해를 내놓는 결함**). 대신 각 stage의 (전력·면적·gain)이 자기 `gm_id_i`에만 의존한다는 **분리성**을 이용한 자원배분 DP를 쓰면 기울기를 전혀 쓰지 않으므로 비볼록이 무관해진다 — 탐욕이 틀린 9개 케이스에서 전수와 **9/9 일치**했고 비용도 N=3에서 0.043s(전수 0.98s), **N=4에서 0.294s**(전수 5,729만 조합으로 비현실적)로 오히려 싸다. 따라서 **탐색 문제로 바뀌는 것이 아니라 '정확한 이산 최적화'가 된다**: 같은 입력→같은 답, 임의 가중치·초기값·시드 없음, 국소최적 구조적 부재, 작은 N에서 전수 대조로 최적성 확인 가능 — 사고4가 막았던 '탐색'과는 성질이 다르다. 잃은 것은 닫힌 식 하나뿐이고 남는 근사는 격자 해상도 하나인데 그건 숨은 오차가 아니라 리포트에 찍는 값이다. v3.3의 "배분이 **유일하게** 결정된다"는 표현을 철회하고 "주어진 격자 위에서 전역 최적 + 활성 제약 집합 보고"로 대체. 부수: Pareto front(v3.4)도 DP가 면적 bin별 비지배 집합을 이미 들고 있어 **한 번의 전파로** 나오므로 12점을 따로 풀 필요가 없어졌다. 프로토타입을 `tests/probe_allocation_solvers.py`로 자산화 |
 | **4.3** | 2026-09-07 | **B1 해소 — §7.3 diode 티어의 자리를 실측으로 재지정**. v3.0은 티어①을 `resolve_feed_vds()` 안에 넣기로 했는데, 파일럿 실주행(SLSQP)에 monkeypatch 계측을 붙여 세어 보니 **그 자리로는 diode 소자를 하나도 못 덮는다**: `resolve_feed_vds()`가 정하는 소자는 51개 중 **4개(diode 0개)**뿐이고, 최대 경로는 `allocate_stack_headroom()`(**28개**, diode 12개)이며 M18_bg/M66/M36a/M36b(최악 오차 +1.020V)는 그 함수 근처에도 가지 않는다. **사고19가 기록한 실패("resolve_feed_vds()를 확장했으나 분기가 애초에 그 계산을 안 타서 값이 안 바뀌어 전부 되돌렸다")의 재현**이다. 정적 전수로 vds 기입 지점이 **7곳**임도 확인했다(그중 `resolve_feed_vds()` 경유는 2곳). 부수 확인: `headroom_role`은 diode 여부를 전혀 반영하지 않는다 — diode 16개의 role이 cascode 11/mirror 3/diode_reference 1/voltage_divider 2로 흩어져 있어 **`diode_reference` 라벨은 16개 중 1개에만** 붙어 있고, `vds=0.2`는 `min_vds_by_role["cascode"]`가 흘러나온 값이라 M2b(diode 아님, 필요 1.398V)와 M11a(diode, 필요 0.871V)가 똑같이 0.2를 받는다(C4 실물). **확정 설계**: diode를 `vds_match_vgs_of`의 **자기참조 특수 케이스**로 보고 이미 물리적으로 옳게 계산하는 기존 pre-pass(4729행)를 자기참조 고정점(bisection)까지 확장한다 — 확정값은 unresolved에서 빠져 예산에서 차감되므로 자리가 정확하다. 순서 운에 기대지 않도록 7개 기입 지점을 **`set_device_vds()` 단일 setter**로 수렴시키고(diode면 고정점 해와 불일치 시 즉시 실패, `_vds_source` 태그 기록으로 B13 추적성 동시 해결), 원시 대입 잔존을 grep 테스트로 강제한다. 계측 스크립트를 `tests/probe_vds_assignment_paths.py`로 자산화 |
+| **4.4** | 2026-09-07 | **B2 해소 — metric 3티어 분류로 게이트 구조 재작성**. §2.1이 `make_cmrr_psrr_feasibility_check()`를 `make_matching_feasibility_check()`와 "동일 패턴"으로 만들자고 했으나 **원리적으로 불가능**함을 실측 확증했다(`KeyError: 'M6' 소자가 ctx.sized에 없다`). mismatch가 되는 이유는 닫힌 식(W,L만 필요)이고, cmrr/psrr은 `_full_circuit_devices()`가 **전 소자**를 요구하는데 L_combo 루프는 stage 하나를 사이징하는 중이기 때문이다. 파일럿 13개 metric 전수 분류: **T1 stage-local**(power/area/mismatch/noise, 0.002~0.006ms) / **T2 stage-분해가능**(`gain_stages_sum`) / **T3 기약 전역**(cmrr/psrr/전체회로 gain/classab/rail level/rz, 0.15~0.29ms). 게이트도 3티어로 재작성 — T1/T2만 `extra_feasible`로 stage 안에서, T3는 전 소자 사이징 완료 후 `check_global_gates()`로 1회, L_combo는 바깥 재시도 루프. **부수 소득**: `gain_stages_sum`이 정확히 분해됨을 실측(stage별 합 56.9842dB = 전체 56.9842dB, 차이 0.00e+00)해 §7.9 DP가 대리 함수가 아니라 **진짜 metric을 분해해서** 쓸 수 있음이 확정됐다 — 반대로 나머지 3개 토폴로지는 gain이 T3라 DP가 LUT 대리를 쓰고 판정 권한은 전역 게이트에 있다는 이원성을 명시했다. 비용은 문제가 아니다: T3 게이트 1회 **0.72ms**(P-c numpy MNA 전환 덕분), 343 combo에 0.25초 / 68,921 combo에도 50초. 캐시 히트를 피하려고 gm/gds를 매번 흔들어 쟀다(캐시와 차이 0.32 vs 0.34ms로 유의하지 않음). 부수 정정: noise metric은 처음에 실패했는데 프로브가 `SID_1F`를 안 넘긴 탓이었고, 넘기니 stage-local로 정상 동작(T1) |
