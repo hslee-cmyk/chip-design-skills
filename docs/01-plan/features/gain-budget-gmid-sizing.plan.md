@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 3.2
+version: 3.3
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -388,16 +388,18 @@ SPICE 폐루프 재검증 4단계.
 
   "global_spec": {
     "vdd": 1.8,
-    // v3.2 -- 배분(§7.9 Phase 2)의 결합 구조가 objective에 따라 달라진다:
-    //   순수 power 최소화면 gain과 power가 같은 방향이라 배분이 축퇴되고,
-    //   area가 들어가야 gain 등식이 binding해져 KKT 커플링(ID_i=const)이 나타난다.
+    // v3.3 -- **면적 제약형**이 기본(사용자 확정): 목적함수는 전력 최소화 하나이고,
+    //   면적은 아래 constraints의 area_um2 상한으로 건다. 가중합(alpha:beta) 방식은
+    //   가중치를 사람이 지어내야 해 결정론이 깨지는데, 실무에서 면적 예산은 대개 스펙으로
+    //   주어지므로 제약으로 거는 편이 자연스럽고 임의성이 없다(§7.9 해법 참고).
     "objective": {"minimize": "power_uA"},
-    //   또는 {"minimize": "area_um2"} / {"weighted": {"power_uA": 1.0, "area_um2": 0.3}}
     "closed_loop_accuracy_db": null,
     // §7.6 -- CMRR/PSRR/mismatch는 stage별 배분이 아니라 전역 declared constraint로 선언.
     // 계산 로직은 기존 metric(smallsignal_ratio_db/pelgrom_mismatch) 완전 무변경 재사용.
     "constraints": [
       {"metric": "gain_db",           "op": ">=", "value": 54},
+      {"metric": "area_um2",          "op": "<=", "value": 2000},   // v3.3 -- 면적 예산(선언 권장:
+                                                                    // 없으면 W_max만 상한이 되어 배분이 축퇴)
       {"metric": "cmrr_estimate_db",  "op": ">=", "value": 60},
       {"metric": "psrr_estimate_db",  "op": ">=", "value": 60},
       {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0}
@@ -912,23 +914,39 @@ sizing space다.**
       물리    : gm_id_i <= 1/(n*U_T)           (~32.7 @300K, §7.9 ①)
       제조    : W_i = L_i*ID_i/IDu_i <= W_max  (§7.9 ②)
       속도    : fT_i >= N*GBW                  (§7.10)
-목적: global_spec.objective (power / area / 가중합)
+목적: min Sum_i ID_i (전력)          <- v3.3: 목적함수는 전력 하나
+제약(추가): Sum_i Area_i <= area_budget  <- v3.3: **면적은 목적이 아니라 제약**
 
-해법 — 탐색이 아니라 해석해 + 활성제약(active set):
- 1) min-power면 각 stage를 자기 상한까지 독립적으로 올린다:
-      gm_id_i = min( gm_id_phys, gm_id@W_max, gm_id@fT_min )
-    근거: gain과 power가 **같은 방향**이다(둘 다 gm_id 증가를 원한다) -- 서로 안 싸우므로
-    stage 간 결합이 없고 각자 독립적으로 최대화하면 그게 최적이다.
- 2) gain 확인:
-      미달  -> V_A를 키워야 한다: Phase 1(VDS 재배분) -> 그래도 부족하면 §7.6(L_combo)
-      여유  -> objective에 area가 있으면 3)으로 그 여유를 면적/속도로 되판다
- 3) area가 목적에 들어가면 gain 등식이 binding해지고 stage 간 결합이 생긴다.
-    KKT 정류조건이 **비활성 stage들끼리 ID_i = const**를 준다(2단 대수 검증:
-      min gm1/x1 + gm2/x2  s.t. x1*x2 = C  ->  x1 = sqrt(gm1*C/gm2)  ->  ID1 = ID2 = sqrt(gm1*gm2/C))
-    slew/driving 하한에 걸린 stage는 그 하한에 고정(active set) -> 나머지에 대해 재계산(1~2회 수렴)
- 4) gm_id_i 확정 -> gain_budget_i = gm_id_i x V_A_i  <- **유도된 배분(출력)**
- 5) 이 배분으로 §7.2의 stage 알고리즘 실행(§7.2 로직 자체는 무변경)
- 6) 실현: 각 branch의 미러비 k_i = ID_i/ID_ref 를 W 비율로 sizing
+해법 — 면적 제약형(v3.3 확정, 사용자 선택): 가중치를 지어내지 않는다
+   min  Sum_i ID_i = Sum_i gm_i/gm_id_i
+   s.t. Sum_i Area_i(gm_id_i, L_i, VDS_i) <= area_budget     <- ★ gm_id 폭주를 여기서 막는다
+        Sum_i 20*log10(gm_id_i * V_A_i) >= gain_target
+        ID_out >= SR*CL,  gm_id_i <= 1/(n*U_T),  W_i <= W_max,  fT_i >= N*GBW
+
+ 1) 전력 최소화는 gm_id를 weak inversion 쪽으로 밀지만 **면적이 그 방향에서 폭발**하므로
+    면적 제약이 먼저 걸린다. 실측(gm=75uS 고정, L=0.35um): gm_id 22->26 구간은 gain을
+    +0.05dB 얻으려고 면적을 **147배** 쓴다(3.47->509um^2). 즉 **면적 예산이 gm_id의 실질
+    상한**이고, 이게 v3.2에서 지적했던 "축퇴"를 해소한다.
+ 2) KKT 정류조건(gain이 slack, mu = 면적 제약 승수):
+        gm_i/gm_id_i^2 = mu * dArea_i/dgm_id_i      (모든 비활성 stage에서 성립)
+    => **"면적 1단위를 더 쓸 때 전력을 가장 많이 아끼는 stage"에게 면적을 먼저 배분**하고,
+       그 한계비(한계 전력절감 / 한계 면적비용)가 모든 stage에서 같아지면 정지.
+       임의 가중치 없이 **면적 예산이 교환비 mu를 결정**한다.
+ 3) gain도 binding하면 승수 lambda가 붙어
+        gm_i/gm_id_i^2 = mu*dArea_i/dgm_id_i + lambda*(20/ln10)/gm_id_i
+    gain 미달 시 gm_id를 올리면 면적이 따라 늘므로, 면적 예산이 부족하면
+      -> Phase 1(VDS 재배분: 전력 불변·면적 -15%·gain +329% => **두 목적 모두 이득**) 우선
+      -> 그래도 부족하면 §7.6(L_combo: 면적 +1770% 지불) 최후
+ 4) slew/driving 하한(ID_out >= SR*CL)에 걸린 stage는 그 하한에 고정(active set) ->
+    나머지에 대해 2)를 재계산(1~2회 수렴)
+ 5) gm_id_i 확정 -> gain_budget_i = gm_id_i x V_A_i   <- **유도된 배분(출력)**
+ 6) 이 배분으로 §7.2의 stage 알고리즘 실행(§7.2 로직 자체는 무변경)
+ 7) 실현: 각 branch의 미러비 k_i = ID_i/ID_ref 를 W 비율로 sizing
+
+**면적 예산이 선언되지 않으면**: 소자별 `W_max`가 유일한 면적 상한이 되어 gm_id가 그 경계까지
+밀리고 배분이 다시 축퇴된다 -> `global_spec.constraints`에 **면적 예산 선언을 권장**(§7.1).
+가중합(alpha:beta)도 수학적으로는 동등하지만 가중치를 사람이 지어내야 해 결정론이 깨지므로
+기본으로 삼지 않는다.
 ```
 
 **v3.1이 버려지지 않는다**: v3.1의 "ID_root 1-D 해찾기"는 **모든 stage가 비활성일 때의 특수
@@ -938,12 +956,16 @@ sizing space다.**
 고정되고 stage1 `ID=4.626µA`는 비활성이라 최적점에 있다 — 즉 **비율 5.34는 "자유 선택"이 아니라
 활성 제약의 결과**였다.
 
-**⚠️ 정직한 한계 — 배분 문제는 부분적으로 축퇴(degenerate)된다**: `objective`가 순수
-`minimize power_uA`면 gain과 power가 같은 방향이라 1)에서 각 stage가 자기 상한까지 가면 끝이고
-**배분에 자유도가 남지 않는다**(gain 제약은 대개 비활성). 진짜 배분 문제(KKT 커플링)는
-objective에 **area가 들어가거나** stage마다 상한이 다를 때만 나타난다 — 이는 §7.9 발견3
-("gain 제약은 최적점에서 binding하지 않는다") 및 문헌 정본이 gain을 스펙이 아니라 등고선으로
-다루는 것과 정확히 일치하는 결론이다.
+**축퇴 문제의 해소(v3.3)**: v3.2까지 남아 있던 "순수 전력 최소화면 gain과 power가 같은 방향이라
+배분에 자유도가 없다"는 한계는 **면적 예산을 제약으로 걸면 사라진다**. 전력 최소화가 gm_id를
+weak inversion으로 밀 때 면적이 폭발적으로 늘어 제약이 먼저 걸리고, 그 지점에서 stage 간 KKT
+커플링(한계 전력절감 / 한계 면적비용 균등화)이 나타나 **배분이 유일하게 결정**된다.
+
+남는 유일한 자유 입력은 **면적 예산 자체**인데, 이건 물리가 정해줄 수 없는 값이지만 전력 목표·
+gain 목표와 같은 **정상적인 설계 스펙**이다(가중치 alpha:beta처럼 물리적 의미 없는 튜닝 노브가
+아니다). 이 구조는 문헌 정본 §6.4의 "등전력(타원)·등면적(쌍곡선)·등이득(점선) contour를 겹쳐
+절충점을 고른다"를 **자동화**한 것에 해당한다 — 사람이 눈으로 고르던 절충점을 면적 예산이라는
+명시적 제약과 KKT 정류조건으로 결정론적으로 찾는다.
 
 **개선 대상 함수(★ v3.0)**: 위 Phase 1/3은 `allocate_stack_headroom()`의 **"남는 예산
 균등분배"** 정책을 대체하는 것이라, 그 함수를 안 고치면 **구현 자체가 불가능**하다(v2.x의
@@ -1234,3 +1256,4 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 | **3.0** | 2026-09-07 | **설계 철학 전환(사용자 확정)** — "전면 재설계도 가능하다. 무조건 버그free와 효율성이 원칙이고, 다만 이전 사고로 알려진 문제는 재발하지 않아야 한다." §3.2를 3대 원칙(P1 버그free 최우선·전면 재설계 허용 / P2 효율성 / P3 기지 사고 재발 방지)으로 재작성하고 v2.x의 "함수 시그니처 무변경" 제약을 폐기. §3.3 신설 — 사고1~24를 실패 클래스 C1~C10으로 묶고 각각에 구조적 방지 장치와 담당 절을 지정(C1 물리 미검증 상수 / C2 암묵적 순서 의존 / C3 조용한 소실 / C4 role 과신 / C5 게이트 사각 / C6 underdetermined 반복 / C7 단일회로 검증 / C8 엔진 우회 / C9 중복 복붙 / C10 재계산 비효율). 이 원칙에 따라 제약이 비틀어 놓았던 절들을 바로잡음: §6.1을 개선대상/그대로/신규 3분류로 재작성, §7.3의 "먼저 기입하면 우선순위①이 지켜준다"는 순서 의존 우회를 폐기하고 `resolve_feed_vds()`에 **티어① gate==drain → 고정점 solver**를 명시(C2 근본 제거), §7.9의 가중 헤드룸 배분을 위해 `cascode_fn(entry)`→`headroom_fn(entry, ctx)` 시그니처 확장 + 균등분배 폐기(C1/C4, v2.x에서는 무변경 선언과 모순돼 구현 불가였음), §7.10의 `_L_ROLE_MULTIPLIERS` 상수를 `measure_L_knee()` 실측 호출로 대체(공정 이식성) + `search_gm_id_and_L_for_role()`로 L축 내부화(C10). §4.1 DoD에 C1~C10 방지장치 확인과 4개 토폴로지 전수 실행(C7) 항목 추가 |
 | 3.1 | 2026-09-07 | **`gain_budget_db`를 입력에서 출력으로 격하(사용자 결정)** — 사용자는 총 gain 목표(`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 배분은 §7.9 Phase 2가 `A_i,max` 실측 + root current 1-D 단조 해찾기로 유도해 instance.json/리포트에 기록한다. §7.9에 그 유도 절차(gm_i←compensation / V_A_i←L_combo+VDS예산 / ID_i=k_i×ID_root / Σ20log10(...)=gain_target 해찾기 / 유도된 배분으로 §7.2 실행)를 확정본으로 명시. §7.1 스키마에서 `gain_budget_db`·`gain_allocation`·`gain_allocation_check` 제거하고 `gain_budget_db_override`(기본 null, 논문 재현용 예외)만 남김. §3.1 요구사항5와 §7.4 원칙3(둘 다 '배분은 탐색/사용자 지정으로 남긴다'였음)을 개정하고, 사고4와의 관계를 명시 — 사고4의 본질은 '값을 논문에서 찾지 말고 회로에서 도출하라'이고 v3.1은 그 도출을 자유 탐색에서 물리 실측 기반 결정론으로 좁힌 것이라 충돌하지 않음. 문헌 정본(§6.4)이 gain을 스펙이 아니라 등고선으로 다루는 것과도 일치. §2.2의 '배분 탐색 고도화는 범위 밖' 항목은 In Scope로 이동 |
 | 3.2 | 2026-09-07 | **문헌 정합성 검증에서 발견한 갭 해소** — 웹검색(Murmann/Boser/Silveira-Flandre-Jespers 등)과 프로젝트 문헌 정본(§6.4)을 v3.1과 대조한 결과, v3.1의 `ID_i=k_i×ID_root` 1-D 해찾기가 **Jespers의 2D sizing space `(gm/ID₁, gm/ID₂)`를 `k_i` 고정 단면의 1D 선으로 축소**하고 있었음을 확인(k_i는 바이어스 미러비로 조정 가능한 값이라 곧 두 번째 축이다). 해소는 `k_i`를 탐색 축에 추가하는 게 아니라 **변수 자체를 `gm_id_i`로 바꾸는 재정식화**로 했다 — `ID_i=gm_i/gm_id_i`이고 `k_i`는 그 전류를 실현하는 파생값이므로 theta 폭발 없이 N-D 공간 전체를 덮는다. 해법은 탐색이 아니라 해석해+활성제약(active set): min-power면 각 stage가 자기 상한(gm_id_phys/W_max/fT_min)까지 독립 최대화(gain과 power가 같은 방향이라 결합 없음), area가 목적에 들어가면 gain 등식이 binding해져 KKT 정류조건이 **비활성 stage끼리 ID_i=const**를 준다(2단 대수 검증). v3.1의 1-D 해찾기는 '모든 stage 비활성' 특수 케이스로 흡수. 파일럿의 stage2/stage1 전류비 5.34가 자유 선택이 아니라 class-AB 구동 하한이라는 **활성 제약의 결과**임도 설명됨. §7.1 objective에 area/가중합 옵션을 열고, §7.8 DOF 진단의 전류 축 계수법도 gm_id_i 기준으로 정정. 정직한 한계: 순수 power 최소화에서는 배분이 축퇴(자유도 없음)되고, 진짜 배분 문제는 area가 목적에 들어갈 때만 나타남 |
+| 3.3 | 2026-09-07 | **면적 제약형 채택(사용자 선택) — v3.2가 남긴 배분 축퇴 문제 해소**. LUT 실측으로 전력(ID=gm/gm_id)과 면적(W·L)이 gm_id 축에서 **정확히 반대 방향**임을 확인(gm=75µS 고정, L=0.35µm: gm_id 5→26에서 전력 15→2.9µA로 감소하는 동안 면적은 0.13→509µm²로 **4000배 폭발**, gain은 28→77.6으로 포화 — gm_id 22→26 구간은 gain +0.05dB에 면적 147배). 따라서 목적함수는 **전력 최소화 하나**로 두고 **면적은 `global_spec.constraints`의 `area_um2` 상한**으로 건다(가중합 α:β는 가중치를 사람이 지어내야 해 결정론이 깨지므로 기본에서 제외). 이러면 전력 최소화가 gm_id를 weak inversion으로 밀 때 면적 제약이 먼저 걸리고, KKT 정류조건 `gm_i/gm_id_i² = μ·∂Area_i/∂gm_id_i`가 **"면적 1단위당 전력을 가장 많이 아끼는 stage부터 배분"**이라는 규칙을 주어 **배분이 유일하게 결정**된다 — 면적 예산이 교환비 μ를 정하므로 임의 가중치가 필요 없다. 남는 자유 입력은 면적 예산 하나인데 이는 전력·gain 목표와 같은 정상적 설계 스펙이다. 문헌 정본 §6.4의 '등전력·등면적·등이득 contour 겹쳐 절충점 선택'을 결정론적으로 자동화한 구조. 면적 예산 미선언 시 W_max만 상한이 되어 축퇴가 재발하므로 선언을 권장으로 명시 |
