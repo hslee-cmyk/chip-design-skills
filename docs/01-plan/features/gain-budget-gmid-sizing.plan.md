@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 3.4
+version: 4.0
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -183,6 +183,17 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
         전에 "목표 개수 대비 실제 자유도가 충분한가"를 스키마+connectivity만으로 판정
         (`ok`/`underdetermined`/`overconstrained`), `overconstrained`면 어느 목표끼리
         같은 자유도를 다투는지 명시 보고하고 반복을 아예 시작하지 않음(사고19 재발 방지)
+  - [x] **(2026-09-07 완료)** `_hr_vfind()`/`_hr_thin_singleton_ideal_source_check()`/
+        `_hr_fold_group_check()`/`_hr_sum_ref_vds()`/`_hr_verify_group_kvl_sum()`/
+        `_hr_resolve_vertical_group()` — 2중 중첩 클로저 6개를 모듈 레벨로 추출(§8.4)
+  - [ ] **`compute_metric(metric_spec, ctx)` 경유 gain 제약**(§7.9, v4.0) — `_METRICS_REGISTRY`
+        위임. `∂gain/∂gm_id_i`는 LUT 위 수치미분. 회로별 폐형식을 옵티마이저 본문에서 제거
+  - [ ] **`load_sizing_spec(path) -> SizingSpec`**(§7.1, v4.0) — 스키마 검증기. 미지 필드 거부,
+        `topology_ref` 정합 확인, `metrics[].type`이 `_METRICS_REGISTRY`에 있는지 확인,
+        `schema_version` 마이그레이션. 선언만 되고 아무도 안 읽는 필드를 **정적으로 잡는다**
+        (C5 재발 방지 — `settling_time_ns`가 실제로 그 상태였다)
+  - [ ] **`resolve_headroom(topology_spec, ctx)`**(§8.4) — 위 `_hr_*` 6개를 묶는 독립 harness.
+        추출이 끝났으므로 이제 구현 가능
 - [ ] 파일럿 회로 이관: `current_reuse_telescopic_ota`를 새 스키마로 재작성, 새 엔진으로
       재사이징
 - [ ] 회귀 검증: 기존 사후검증 metric(`gain_db`/`cmrr_estimate_db`/`psrr_estimate_db`/
@@ -217,7 +228,10 @@ diode-connected 헤드룸 버그가 처음이 아니라 **같은 근본 클래�
    않아야 한다.
 3. 헤드룸 해석기는 `connectivity(device).gate == connectivity(device).drain`을 role 라벨보다
    우선하는 진실源으로 삼아야 한다.
-4. GBW/PM(위상보상)은 이미 정해진 stage gm들로부터 Cc/Rz 등 보상소자 값을 역산해야 한다
+4. **(v4.0 개정 — 인과 방향 확정)** 위상보상이 **먼저** 돈다: 스펙 `(CL, GBW, PM)`에서
+   `(Cc, Rz, gm_1..gm_N)`을 **한 번에** 푼다(2단 Miller면 `gm_1 = 2π·GBW·Cc`, `gm_2 = Z·gm_1`).
+   그 다음 `gm_id_i`가 **유일한 자유 축**이 되고 `ID_i = gm_i/gm_id_i`가 파생된다.
+   ~~GBW/PM은 이미 정해진 stage gm들로부터 보상소자 값을 역산한다~~
    (사용자 확정: "gain이 주도").
 5. **(v3.1 개정)** gain 배분은 **엔진이 유도한다** — 사용자는 총 gain 목표
    (`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 `gain_budget_db`는 §7.9 Phase 2가
@@ -386,7 +400,7 @@ SPICE 폐루프 재검증 4단계.
 
 ```jsonc
 {
-  "schema_version": "3.0",
+  "schema_version": "4.0",
   "topology_ref": "current_reuse_telescopic_ota.topology.json",
 
   "global_spec": {
@@ -408,9 +422,78 @@ SPICE 폐루프 재검증 4단계.
                                                                     // 사람이 고른 값이 여기 기록된다
       {"metric": "cmrr_estimate_db",  "op": ">=", "value": 60},
       {"metric": "psrr_estimate_db",  "op": ">=", "value": 60},
-      {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0}
+      {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0},
+      {"metric": "input_noise_nv_rthz", "op": "<=", "value": 30}   // v4.0 신설, 아래 (주) 참고
     ]
   },
+
+  // ── v4.0 복원: metric **정의** 블록 ────────────────────────────────────────
+  // v3.x는 topology.json에서 `sizing_roles`를 제거하면서 회로별 metric 스펙(`sense_p`/
+  // `sense_n`/`circuit_family`/`tail_device` 등)이 **갈 곳을 잃게** 만들었다 -- 새 스키마가
+  // 현행보다 표현력이 낮아지는 상태였다. `constraints[]`가 metric을 이름 문자열로만 참조하므로
+  // 그 이름이 무엇을 계산하는지는 여기서 선언한다. `type`은 `_METRICS_REGISTRY` 키이고,
+  // 미등록 타입은 엔진이 즉시 ValueError를 낸다(조용한 폴백 없음, §3.2 P1).
+  "metrics": {
+    "gain_db": {
+      // ★ 회로마다 다르다. 파일럿은 stage 합, folded_cascode는 Rout 병렬조합,
+      //   nmcnr는 3단 폐형식, two_stage_ota는 전체회로 수치 MNA -- §7.9가 이 선언을
+      //   compute_metric()으로 호출할 뿐 식을 알지 않는다(circuit-agnostic 규약).
+      "type": "gain_stages_sum",
+      "stages": [["M1a","M4a","M2a","M3a"], ["M15","M16"]]
+    },
+    "cmrr_estimate_db":  {"type": "cmrr_estimate", "circuit_family": "telescopic_class_ab_cmfb",
+                          "tail_device": "M5"},
+    "psrr_estimate_db":  {"type": "psrr_estimate", "circuit_family": "telescopic_class_ab_cmfb"},
+    "mismatch_sigma_mV": {"type": "pelgrom_mismatch", "pairs": "symmetry.matching_pairs"},
+    "input_noise_nv_rthz": {"type": "flicker_plus_thermal_sum", "devices": ["M1a","M1b","M4a","M4b"]},
+    "area_um2":          {"type": "sum_area"},
+    "power_uA":          {"type": "sum_current"},
+    "classab_centering_dev_v": {"type": "battery_centering_deviation",
+                                "battery": ["M8","M9a","M9b","M10"]}
+  },
+  // (주) `flicker_plus_thermal_sum`은 엔진에 **이미 등록된 metric**이다. v3.x 계획서는 noise를
+  //      한 번도 언급하지 않았는데, 이는 "어려워서 범위 밖"이 아니라 **있는 기능을 떨어뜨린
+  //      것**이었다. 게다가 v3.3의 핵심 논리("면적이 실질 상한")가 곧 `W·L`을 조이는 것이고
+  //      그건 flicker noise를 직접 악화시킨다 -- 배분을 결정하는 바로 그 제약이 1급 스펙 하나를
+  //      최악 방향으로 밀고 있었다. 그래서 목적/제약 어디에도 없던 상태를 제약으로 승격한다.
+
+  // ── v4.0 신설: 구조 선언(옛 theta 중 "값이 아닌 것"들의 새 거처) ──────────
+  "structural_declarations": {
+    // 옛 A / A_signed feed -- KCL이 강제하는 전류 관계(부호 포함)
+    "kcl": [
+      {"id": "monticelli_battery", "sum": [["+","M9b"], ["-","M18b"]], "target": 0.0}
+    ],
+    // 옛 C feed -- diode 스택이 만들어야 하는 기준전압
+    "diode_stack": [
+      {"id": "cmfb_ref", "members": ["M36a","M36b"], "target_net": "Vcmfb"}
+    ],
+    // 소자 간 결합(이미 구현된 primitive, §1.4) -- v3.x는 "그대로 재사용"이라 써놓고
+    // 정작 담을 자리를 스키마에서 없앴다. 여기가 그 거처다.
+    "couplings": {
+      "vds_match_vgs_of":   {"M16": "M15"},
+      "gm_id_match_vgs_of": {"M16": "M15"}
+    },
+    // device_roles에 있던 나머지 실측 필드들의 거처(파일럿 실측: vs 44개,
+    // budget_reference_device 7개, same_as_device 4개)
+    "per_device": {
+      "vs":                      {"M2a": 0.25, "M15": 0.806},
+      "budget_reference_device": {"output_stage_a": "M15"},
+      "same_as_device":          {"M1b": "M1a"}
+    }
+  },
+
+  // ── v4.0 신설: 피드백 루프(CMFB, gain-boost 보조앰프 등) ──────────────────
+  // v3.x 스키마에는 CMFB를 담을 필드가 **하나도 없었다**. 파일럿이 CMFB 루프를 갖고 있고
+  // 그 사이징 노브가 옛 theta(N_cmfb_bw / N_cmfb_bw_mirror / r_cmfb_vocdes / kcl_tail_M38)에
+  // 있었으므로, theta를 없애면서 이 정보가 통째로 사라질 뻔했다.
+  "feedback_loops": [
+    {
+      "id": "cmfb",
+      "devices": {"sense": ["M36a","M36b"], "amp": ["M37a","M37b"], "tail": ["M38"]},
+      "targets": {"loop_gain_db": 30, "PM_deg": 60, "bandwidth_hz": 2e6},
+      "note": "자체 안정성 요구가 있는 별개 루프 -- stage도 bias_device도 아니다"
+    }
+  ],
 
   "stages": [
     {
@@ -473,7 +556,27 @@ SPICE 폐루프 재검증 4단계.
 - `device_roles.gm_id_role` 폐기(gain stage 소속 소자는 §7.2로 유도) — bias-gen 소자만
   `bias_devices[].gm_id_policy`로 단순 존속(strong-inversion 최소화, 기존 role="matching"과
   동일 근거).
-- `sizing_roles.theta`의 A/B/C/D taxonomy **전면 폐기**(v3.1) — 배분도 유도되므로 "자유 theta"로
+- ~~`sizing_roles.theta`의 A/B/C/D taxonomy **전면 폐기**(v3.1)~~ → **v4.0에서 사용자 확정으로
+  축소: 폐기 대상은 "자유 탐색 변수"뿐이고, 구조 선언은 새 스키마로 이관해 존속한다.**
+
+  > **왜 축소했나**: v3.1의 "전면 폐기"는 **자유 탐색 변수와 구조 선언을 혼동**했다. 파일럿의
+  > theta 22개 중 `A_signed`(Monticelli 부호 있는 KCL 합), `C`(diode-stack 타깃),
+  > `metric_stage_budget`(어느 소자군이 어느 metric의 어느 stage인지), servo `B`(CMFB 대역폭)는
+  > **값이 아니라 회로 구조를 서술하는 선언**이다. 폐기하면 CMFB 루프·class-AB 배터리·bias
+  > 체인 정보가 **대체 표현 없이 소실된다** — 이건 이미 겪은 회귀와 같은 클래스다
+  > (`compensation`/`replica`/`metric_stage_budget`/B타입을 확인하지 않은 자동채움이 theta
+  > 탐색을 조용히 무력화한 세션33 사례).
+
+  | theta feed 타입 | 성격 | v4.0 처분 |
+  |---|---|---|
+  | 자유 탐색 변수(`L_cascode`, `k_i` 등 bounds가 열린 것) | 값 | **폐기** — `gm_id_i`가 유일한 자유 축(§7.9) |
+  | `A` / `A_signed`(KCL 합, 부호 포함) | 구조 | **존속** — `sizing_spec.json`의 `structural_declarations.kcl[]` |
+  | `C`(diode-stack 타깃) | 구조 | **존속** — `structural_declarations.diode_stack[]` |
+  | `metric_stage_budget` | 구조 | **존속** — `metrics[].stages`로 흡수(아래 스키마) |
+  | servo `B`(CMFB 대역폭 등 피드백 루프) | 구조 | **존속** — `feedback_loops[]`(신설) |
+  | `gm_target_convention` | 구조 | **존속** — `compensation.gm_convention` |
+
+- `sizing_roles.theta`의 자유 탐색 변수 부분은 폐기 — 배분도 유도되므로 "자유 theta"로
   남길 항목이 없다. 남는 자유도는 §7.6의 `L_combo`와 §7.9의 VDS 재배분 두 축뿐이고, 둘 다
   선언이 아니라 엔진이 탐색·해찾기로 정한다.
 
@@ -562,7 +665,8 @@ _solve_diode_connected_vgs_fixed_point(gm_id, L, vs, lut) -> float(vds)
 호출 시점: §7.2가 diode-connected 소자의 gm_id를 확정한 직후(bias_devices든 stage 소속이든
 무관 — connectivity 기반 판정이라 소속과 무관하게 동작), ctx.sized[name]["vds"]에 즉시 기입.
 그 이후 헤드룸 루프(_resolve_vertical_group)는 이 값을 resolve_feed_vds() 우선순위①로 그대로
-존중하며 정상 동작 — allocate_stack_headroom()/HeadroomPolicy 자체를 교체할 필요 없음.
+존중하며 정상 동작. (v4.0 정정: 아래 §7.9가 균등분배를 대체하므로 HeadroomPolicy는
+결국 손대야 한다 — v2.0의 "교체할 필요 없음"은 사실이 아니었다.)
 만약 diode-connected 소자끼리 서로 다른 멤버를 통해 맞물리는 경우(사고22 Monticelli류 패턴이
 diode-connected 소자 간에도 나타날 가능성)가 생기면, 새 알고리즘을 발명하지 말고 기존
 _resolve_vertical_group()의 fixed-point worklist에 이 pre-pass를 끼워넣는 방식으로 확장할 것
@@ -579,8 +683,33 @@ P1 확정으로 폐기(§6.1 (가) 참고).
 
 1. Stage 안의 input+cascode는 gain 목표에서 L/gm_id를 **동시에** 결정한다(캐스코드 L을 role
    휴리스틱으로 따로 정하지 않는다).
-2. **Gain이 주도**한다 — 모든 stage gm_id를 gain 배분에서 먼저 정하고, GBW/PM은 보상소자 값으로
-   **사후에** 맞춘다.
+2. ~~**Gain이 주도**한다 — 모든 stage gm_id를 gain 배분에서 먼저 정하고, GBW/PM은 보상소자
+   값으로 사후에 맞춘다.~~ → **v4.0에서 사용자 확정으로 개정: 인과 방향은 그 반대다.**
+
+   > **왜 뒤집혔나**(4개 관점 독립 검토에서 회로물리·문서정합성 두 검토자가 각각 최우선으로
+   > 지적): v3.2가 §7.9를 `gm_i ← compensation이 고정`으로 재정식화하면서 이 원칙2와 §3.1
+   > 요구사항4를 갱신하지 않아 문서가 **두 갈래로 갈려 있었다**. 둘은 양립 불가다 — §7.9의
+   > 목적함수 `min Σ gm_i/gm_id_i`와 KKT `gm_i/gm_id_i²`는 `gm_i`가 상수여야만 성립하고,
+   > `gm_i`가 자유롭다면 `gm_i→0`에서 목적함수가 무한히 감소해 문제 자체가 well-posed가 아니다.
+   > 물리적으로도 Miller OTA에서 `(gm_1, gm_2, Cc)`는 `GBW = gm_1/Cc`와 PM(비지배극점
+   > `gm_2/(C_1+C_2)`, RHP zero `gm_2/Cc`)이 **동시에** 묶는 3-tuple이라 "gm을 먼저 고정하고
+   > Cc를 사후 역산"은 애초에 불가능하다. 문헌 정본 §6.4의 순서(`gm1=ω_T·Cm`, `gm2=Z·gm1`)도
+   > §7.9 쪽과 일치한다.
+
+   **확정 인과사슬**(문서 전체가 이 하나만 따른다):
+
+   ```
+   스펙 (CL, GBW, PM, Z, NDP)
+     -> compensation:  (Cc, Rz, gm_1..gm_N) 을 한 번에 결정        [소자 사이징 아님]
+     -> 자유 축:       gm_id_i                                      [★ 유일한 설계 자유도]
+     -> 파생:          ID_i = gm_i/gm_id_i,  W_i = L_i*ID_i/IDu_i,  k_i = ID_i/ID_ref
+     -> 기생:          C_1, C_2 (= f(W_i,L_i))  ->  Cc 재계산  ->  gm_i 갱신  [수렴 루프]
+     -> 결과:          gain 은 스펙이 아니라 이 공간 위의 **부등식 제약이자 산출물**
+   ```
+
+   **"gain-budget-first"라는 이름의 의미도 여기서 확정한다**: "gain이 gm을 정한다"가 아니라
+   **"stage별 gain 예산을 엔진이 유도해 산출한다"**(원칙3)는 뜻이다. gain은 입력이 아니라
+   총량 제약 하나로만 들어오고, 단별 배분은 출력이다.
 3. ~~배분 자체는 탐색/사용자 지정으로 남긴다~~ → **v3.1에서 사용자 확정으로 개정**:
    **배분도 엔진이 유도한다.** 총 gain 목표만 스펙으로 받고, stage별 배분은 §7.9 Phase 2의
    `A_i,max` 실측 + root current 1-D 해찾기 결과로 나온다(`gain_budget_db`는 출력). 사고4의
@@ -627,7 +756,7 @@ diode-connected라는 **부분집합**을 고쳤을 뿐, "이 파이프라인이
 ```
 
 **정직한 실패 원칙**: 두 검증 중 하나라도 Violation을 보고하면 `run_sizing_layout_convergence()`
-는 성공을 선언하지 않고 Violation 목록과 함께 명시적으로 실패한다(§1.5 원칙 — 값을 지어내거나
+는 성공을 선언하지 않고 Violation 목록과 함께 명시적으로 실패한다(§3.2 P1 — 값을 지어내거나
 조용히 넘어가지 않는다). 이 검증기는 diode-connected 사례(§7.3)를 특수 케이스로 포함하므로,
 §7.3의 고정점 solver가 이 검증기의 1단계 안에서 자연스럽게 호출된다(별도 통합 불필요).
 
@@ -697,7 +826,7 @@ gm_id_i` 역산은 각 L_combo 안에서 여전히 100% 결정론적이다(§3.1
 L_combo를 전부 소진해도 제약을 못 맞추면 §7.9의 **Phase 1(헤드룸 재배분)**으로 올라간다 —
 배분은 이제 유도값이므로 "배분을 다시 탐색"이라는 별도 경로가 없고, 진짜 자유도인 VDS 예산을
 재배분해 `A_i,max`를 키우는 것이 유일한 상위 수단이다. 헤드룸 재배분으로도 안 되면(swing 하한을
-깨야만 가능하면) 조용히 타협하지 않고 명시 실패 보고(§1.5). `gain_budget_db_override`가 선언된
+깨야만 가능하면) 조용히 타협하지 않고 명시 실패 보고(§3.2 P1). `gain_budget_db_override`가 선언된
 stage는 그 값이 물리 상한 `A_i,max`를 넘는지 먼저 검사해, 넘으면 즉시 그 사실을 보고한다.
 
 **(5) 물리적 대칭(레이아웃)은 이번 범위 밖 — 책임 분담 명시**
@@ -854,7 +983,7 @@ Phase 2 (AC 사이징):   그 VDS 예산 하에서 A_i,max를 LUT로 실측(위 
 Phase 3 (검증+피드백): §7.3 헤드룸 실제 확정 + §7.5 물리 정합성 검증
     달성 gain < 목표  ->  `dA_i/dVDS_j`를 LUT로 실측해 "1V가 가장 많은 dB를 만드는 소자"에게
     헤드룸 재배분  ->  Phase 2 재실행 (문헌 실측: 2회로 41.4dB -> 61.4dB)
-종료: 수렴, 또는 "swing 하한을 깨지 않고는 목표 불가능"으로 정직한 실패(§1.5)
+종료: 수렴, 또는 "swing 하한을 깨지 않고는 목표 불가능"으로 정직한 실패(§3.2 P1)
 ```
 
 **비용 순 중첩 루프 — 싼 노브를 안쪽에**:
@@ -903,21 +1032,33 @@ Phase 2가 유도해 `instance.json`/리포트에 기록한다. §7.4 원칙 3�
 **해소 방법 — `k_i`를 탐색 축에 추가하는 게 아니라 변수 자체를 바꾼다.** 인과가 거꾸로였다:
 
 ```
-gm_i    <- compensation(GBW/PM)이 고정
-gain_i  =  gm_id_i x V_A_i
+gm_i    <- compensation(GBW/PM)이 고정          [v4.0: §7.4 원칙2로 문서 전체 확정]
+gain_i  =  compute_metric(gain_metric_spec)     [v4.0: 폐형식 곱이 아니라 metric 위임]
 gm_i    =  gm_id_i x ID_i     =>   ID_i = gm_i / gm_id_i
 ```
+
+> **`gm_i`는 완전한 상수가 아니다 — 기생 결합을 KKT 밖에 두면 안 된다(v4.0 정정).**
+> `Cc`는 식 8.15로 노드 기생 `C_1, C_2`의 함수이고 `C_1 ≈ C_gg ∝ W·L`, `W = L·ID/IDu`이므로
+> `gm_id_i -> W_i -> C_1,C_2 -> Cc -> gm_i` 경로가 존재한다. 즉 `∂gm_i/∂gm_id_i ≠ 0`이다.
+> v3.2~v3.4의 §7.8은 이 반복을 "DOF 진단과 무관한 별개 축"으로 분리했는데, 그건 v2.4에서 이미
+> 한 번 바로잡은 실수(`V_A(L)`에 VDS 축 누락)와 **같은 클래스의 누락**이다. §7.10 실측이
+> "L 2.3배에서 fT 1/3.5"라고 보고할 만큼 `C_gg` 변화폭이 크므로 무시할 크기가 아니다.
+> **처리**: `converge_with_parasitics()`를 Phase 2의 **바깥이 아니라 안**에 두고, 기생 갱신
+> 이후 KKT 해를 다시 푼다(2~3회 수렴). 한 번만 풀고 끝내는 경로는 금지하며, 수렴 실패는
+> §3.2 P1대로 정직한 실패로 보고한다.
 즉 **`gm_id_i`를 고르면 `ID_i`가 따라오고, 미러비 `k_i`는 그 전류를 실현하려고 사이징되는
 파생값**이다(옛 엔진은 순방향—미러비→전류→gm_id—이라 `k_i`가 자유 theta였지만, gain-budget-first는
 역방향이라 그럴 이유가 없다). **진짜 자유 축은 `gm_id_i` 자신이고, 그게 정확히 Jespers의 N-D
 sizing space다.**
 
 ```
-변수: gm_id_i (stage마다)                      <- Jespers N-D 공간 전체를 덮는다
+변수: gm_id_{i,j} (stage i의 gm_id 서브그룹 j)  <- Jespers N-D 공간 전체를 덮는다
+      · v4.0: "stage당 gm_id 1개"는 파일럿에서조차 거짓이다(stage1이 22/15 두 개).
+        current-reuse/인버터형은 PMOS·NMOS gm이 합쳐지므로 서브그룹이 원리적으로 여럿이다.
 파생: ID_i = gm_i/gm_id_i,  k_i = ID_i/ID_ref  <- 미러비는 구현값(탐색 축이 아님)
-제약: gain    : Sum_i 20*log10(gm_id_i * V_A_i) >= gain_target
+제약: gain    : compute_metric(gain_metric_spec, ctx) >= gain_target   <- ★ v4.0: metric 위임
       driving : ID_out >= SR*CL                (§7.2 output stage)
-      물리    : gm_id_i <= 1/(n*U_T)           (~32.7 @300K, §7.9 ①)
+      물리    : gm_id_i <= 1/(n*U_T)           (최악 코너 값으로, §7.9 ①)
       제조    : W_i = L_i*ID_i/IDu_i <= W_max  (§7.9 ②)
       속도    : fT_i >= N*GBW                  (§7.10)
 목적: min Sum_i ID_i (전력)          <- v3.3: 목적함수는 전력 하나
@@ -926,7 +1067,7 @@ sizing space다.**
 해법 — 면적 제약형(v3.3 확정, 사용자 선택): 가중치를 지어내지 않는다
    min  Sum_i ID_i = Sum_i gm_i/gm_id_i
    s.t. Sum_i Area_i(gm_id_i, L_i, VDS_i) <= area_budget     <- ★ gm_id 폭주를 여기서 막는다
-        Sum_i 20*log10(gm_id_i * V_A_i) >= gain_target
+        compute_metric(gain_metric_spec, ctx) >= gain_target <- ★ v4.0: 회로별 gain 식에 위임
         ID_out >= SR*CL,  gm_id_i <= 1/(n*U_T),  W_i <= W_max,  fT_i >= N*GBW
 
  1) 전력 최소화는 gm_id를 weak inversion 쪽으로 밀지만 **면적이 그 방향에서 폭발**하므로
@@ -949,6 +1090,51 @@ sizing space다.**
  6) 이 배분으로 §7.2의 stage 알고리즘 실행(§7.2 로직 자체는 무변경)
  7) 실현: 각 branch의 미러비 k_i = ID_i/ID_ref 를 W 비율로 sizing
 ```
+
+#### gain 제약은 폐형식이 아니라 metric 레지스트리에 위임한다 (★ v4.0, 사용자 확정)
+
+v3.2~v3.4는 gain 제약을 `Σ 20log10(gm_id_i × V_A_i)`라는 **폐형식**으로 옵티마이저 본문에
+박아두었다. 4개 관점 검토에서 이것이 **이 계획의 최대 차단 요인**으로 드러났다:
+
+| 회로 | 등록된 gain metric | 위 폐형식과 호환 |
+|---|---|---|
+| `current_reuse_telescopic_ota`(파일럿) | `gain_stages_sum` | 형태만 유사(아래 ②) |
+| `folded_cascode` | `folded_cascode_gain_db` | **불가** — `gm1·(Rout_p‖Rout_n)`, stage 합으로 분해 안 됨 |
+| `nmcnr_amplifier` | `nmcnr_gain_db` | **불가** — 3단 전용 폐형식 |
+| `two_stage_ota` | `smallsignal_gain_db` | **불가** — 전체회로 수치 MNA |
+
+즉 §4.1 DoD의 **"4개 토폴로지 전수 실행(C7)"이 원리적으로 통과 불가능**한 상태였다. 그리고
+이건 단순 누락이 아니라 **이 프로젝트가 이미 확립한 circuit-agnostic 규약을 §7.9가 깬 것**이다
+— `optimize_full_circuit_budget()`은 선언만 읽고 회로별 식은 `_METRICS_REGISTRY`(16종 등록,
+미등록 타입은 즉시 `ValueError`)에 위임하는 회로-무관 단일 함수로 설계돼 있다.
+
+**확정 처리**:
+
+```
+gain 제약     : compute_metric(gain_metric_spec, ctx) >= gain_target
+KKT 기울기    : d(gain)/d(gm_id_i) 는 폐형식 미분이 아니라 **LUT 위 수치미분**으로 얻는다
+                (§7.10의 knee 스캔이 이미 쓰는 방식과 동일)
+gain_metric_spec: `sizing_spec.json`의 `metrics` 블록에서 온다(§7.1, v4.0 복원)
+```
+
+폐형식을 버려야 하는 이유는 이식성만이 아니다. 두 가지가 더 있다:
+
+① **부하 로딩 미반영**. `gm_id_i × V_A_i`는 구동소자 단독 intrinsic gain이라 부하·다음단 입력
+   임피던스가 병렬로 붙는 것을 세지 않는다. 문헌 정본 §6.7은 단별 이득을 "그 단의 **두 Early
+   전압 병렬조합**"으로 정의한다 — 구동/부하 `r_o`가 비슷하면 단당 −6dB, 2단이면 **−12dB의
+   계통 낙관 편향**이다(54dB 목표에서 치명적). §7.2 step 2는 이미 "부하가 만든 부스트로 나눈다"고
+   옳게 쓰고 있어, **배분을 유도하는 식(§7.9)과 소비하는 식(§7.2)이 서로 다른 gain 모델**이었다.
+② **`V_A`가 `gm_id`와 독립이 아니다**. 방법론 §2.5가 "Early 전압이 모든 VGS에서 한 점으로
+   수렴한다는 통념은 실측상 거짓"이라고 명시한다. 따라서 `gm_id × V_A` 분리형 자체가 근사이고,
+   미분 `(20/ln10)/gm_id`도 `∂lnV_A/∂gm_id` 항을 통째로 빠뜨린다. LUT의 `gm_gds_ratio(gm_id,
+   L, vds, vs)`를 **비분리 함수로 직접 조회**하면 이 문제가 사라진다.
+
+> **미결 — v3.3 근거 실측치 재검증 필요**: v3.3이 면적 제약형을 채택한 핵심 근거인
+> "gm=75µS 고정, L=0.35µm에서 gm_id 5→26일 때 gain 28→77.6dB"를 역산하면 선형 25→7600배,
+> 즉 `V_A`가 5V→291V로 **58배** 오른 셈이 된다. L=0.35µm 단일 소자에서 물리적으로 불가능한
+> 값이라, semi-empirical LUT가 저전류(weak inversion) 구간에서 `gds`를 과소평가하고 있을
+> 가능성이 높다. **§9 Next Steps에 LUT 재검증 항목으로 올린다** — 이 수치가 틀리면 v3.3의
+> "면적이 실질 상한"이라는 결론 자체를 다시 봐야 한다.
 
 **면적 예산이 선언되지 않으면 -> Pareto front fallback(v3.4, 사용자 확정)**: 예산이 없으면
 `W_max`만 상한이 되어 배분이 축퇴되는데, 그렇다고 엔진이 예산을 **지어내면 안 된다**(값을
@@ -1174,7 +1360,13 @@ topology만 다시 다듬고 싶을 때 `author_topology_spec()`만 재실행) �
 1. `gmid_sizing_engine.size_all_stages()` — §7.2 알고리즘으로 전체 gm_id/L/W 1차 확정
    (diode-connected 소자는 §7.3의 고정점 solver로 vds까지 함께 확정)
 2. `gmid_sizing_engine.resolve_headroom()` — 기존 `allocate_stack_headroom()`/
-   `resolve_feed_vds()`/`_resolve_vertical_group()`(무변경 재사용, §7.3)로 나머지 VDS 확정
+   `resolve_feed_vds()`/`_hr_resolve_vertical_group()`으로 나머지 VDS 확정.
+   **(v4.0 사실 정정)** `_resolve_vertical_group()`은 "무변경 재사용"할 수 있는 함수가
+   아니었다 — `_build_theta_evaluator()`(indent 4) → `_evaluate()`(indent 8) 안의 **2중 중첩
+   클로저**라서 theta 평가와 떼어내 부르는 것이 원리적으로 불가능했다. 2026-09-07 선행조치로
+   6개 함수(총 401줄)를 모듈 레벨 `_hr_*`로 추출했고(자유변수 13개를 `_HeadroomTopoEnv`/
+   `_HeadroomEvalEnv`로 명시화, **본문 무변경**), self-test stdout 바이트 동일 회귀를 확인했다.
+   이제 이 harness가 실제로 성립한다.
 3. `stick_diagram.assign_finger_geometry()` — finger/width 배분
 4. `stick_diagram.check_euler_condition()`/`resolve_stack_layout()` — 오일러 패스 레이아웃
    가능성 검증
@@ -1183,7 +1375,7 @@ topology만 다시 다듬고 싶을 때 `author_topology_spec()`만 재실행) �
 6. 수렴(레이아웃 목표 달성 + 사이징 constraint 유지)하면 §7.5의 검증 게이트로 진입:
    `gmid_sizing_engine.verify_node_voltage_consistency(ctx)` 실행(항상, 빠름) — Violation이
    있으면 **1번으로 돌아가지 않고 즉시 실패 보고**(어느 소자/net에서 KVL/VGS 불일치가
-   났는지 포함) — §1.5 원칙(조용히 타협하지 않음).
+   났는지 포함) — §3.2 P1(조용히 타협하지 않음).
 7. 6번을 통과하면(파일럿 회로 최초 검증 시, 또는 `verify_spice=True` 옵션 시)
    `gmid_sizing_engine.cross_check_with_spice(instance_data)` 실행(느림, sky130 SPICE `.op`
    1회) — 여기서도 Violation이 있으면 실패 보고. 둘 다 통과해야 최종 성공.
@@ -1252,7 +1444,21 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
   남기고 self-test import는 `test_stick_diagram.py` 쪽에서 `from stick_diagram import *`
   (또는 명시적 심볼 import)로 가져간다.
 - 이관 시 회귀 확인: `python tests/test_stick_diagram.py` 실행 결과가 이관 전
-  `python stick_diagram.py` 실행 결과(현재 selftest_session*.log들)와 동일한 PASS/FAIL
+  `python stick_diagram.py` 실행 결과(**`assets/tests/baseline/*.baseline.log`**, 2026-09-07
+  신설)와 동일한 PASS/FAIL
+
+  > **(v4.0 사실 정정)** v1.2가 기준선으로 지목했던 `assets/selftest_session*.log`는 쓸 수
+  > 없었다: (1) 6개 전부 `sizing_recipe.py` 출력이고 `stick_diagram.py` 기준선은 **존재하지
+  > 않았으며**, (2) `.gitignore`의 `*.log`에 걸려 **git에 추적조차 되지 않았다**(추적된 `.log`
+  > 0건). 즉 재현 가능한 대조가 불가능했다. 2026-09-07 선행조치로 두 self-test의 stdout을
+  > `tests/baseline/`에 캡처해 추적 대상에 넣고 재생성 절차를 README로 남겼다.
+  >
+  > 그 과정에서 **`stick_diagram.py`의 출력 7줄이 실행마다 달라진다**는 것을 발견했다(파이썬
+  > 문자열 해시 랜덤화 → set 원소 순서). stdout diff를 회귀 단위로 쓰려면 먼저 이걸 고쳐야 해서
+  > `_sorted_setmap()` 신설 + 정렬 출력으로 결정론화했다 — 7곳 모두 **표시 전용**이고 판정은
+  > 순서 무관(`len()==0`/`==`/`in`)이라 엔진 로직은 바뀌지 않았다. `PYTHONHASHSEED` 1~5에서
+  > 두 로그 모두 바이트 동일함을 확인했다. **새 비결정 출력이 들어오면 이 대조가 먼저 깨지므로
+  > 그 자체가 회귀 감지기 역할을 한다**(C9/C10 계열의 구조적 방지 장치).
   집합을 내는지 대조한다 — 이관 자체가 코드 로직을 바꾸지 않으므로 결과가 완전히 같아야 함.
 
 ---
@@ -1273,6 +1479,97 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 
 ---
 
+- [ ] **★ LUT 재검증(A10)** — v3.3이 면적 제약형의 근거로 든 "gm=75µS 고정, L=0.35µm에서
+      gm_id 5→26일 때 gain 28→77.6dB"를 역산하면 `V_A`가 5V→291V(58배)로 물리적으로
+      불가능하다. semi-empirical LUT가 weak inversion 저전류에서 `gds`를 과소평가하는지
+      확인할 것 — 틀리면 "면적이 gm_id의 실질 상한"이라는 v3.3 결론 자체를 다시 봐야 한다.
+- [ ] **B1 재설계** — vds를 쓰는 4개 진입점 전부가 통과하는 단일 헤드룸 해석기로 §7.3 재작성
+      (현재 티어①은 `resolve_feed_vds()` 안에 있는데 그 함수는 실제 배정 경로가 호출하지 않는다).
+
+## 10. 독립 검토에서 나온 미해결 항목 (★ 신설 v4.0, 2026-09-07)
+
+계획 v3.4를 **4개 관점의 독립 검토자**가 병렬로 심사했다 — (A) 회로 물리·방법론 타당성,
+(B) 구현 가능성·성능·코드 대조, (C) 문서 내부 정합성, (D) 임의 토폴로지 일반성. 각 검토자는
+서로의 결과를 보지 않았고, 지적은 문서 원문·실제 코드와 대조해 검증한 뒤에만 아래에 남긴다.
+
+v4.0은 이 중 **사용자가 결정한 3건과 코드 선행조치 3건**을 반영했다. 나머지는 아직 열려 있으며,
+**유실을 막기 위해** 여기 기록한다. 각 항목은 "누가 지적했는지 / 검증 상태 / 필요한 결정"을 함께
+적는다.
+
+### 10.1 반영 완료 (v4.0)
+
+| # | 내용 | 반영 위치 |
+|---|---|---|
+| D1 | `gm_i` 인과 방향을 "compensation이 먼저 고정"으로 통일, `gain-budget-first`의 의미 재정의 | §3.1 req4, §7.4 원칙2, §7.9 |
+| D2 | gain 제약을 폐형식에서 `compute_metric()` 위임으로 전환(+기생 결합을 KKT 안으로) | §7.9, §7.1 `metrics` |
+| D3 | theta 폐기를 "자유 탐색 변수만"으로 축소, 구조 선언은 `structural_declarations`/`feedback_loops`로 이관 | §7.1 |
+| P-a | 헤드룸 클로저 6개(401줄) 모듈 레벨 추출 — `resolve_headroom()` harness가 비로소 성립 | §8.4, §2.1 |
+| P-b | self-test 회귀 기준선 신설 + `stick_diagram.py` 출력 결정론화(7줄) | §8.8 |
+| P-c | 소신호 MNA를 `numpy.linalg.solve`로 전환(노드 51개 6.1x) + numpy 지연 import 7곳 통합 | §7.6 실행시간 |
+
+### 10.2 미해결 — 물리·수식 (검토자 A)
+
+| # | 내용 | 검증 상태 | 필요한 결정 |
+|---|---|---|---|
+| A1 | **KKT λ 항 부호 오류**. `L = Σgm_i/x_i + μ(ΣArea−A) + λ(G − Σgain_i)`에서 `gm_i/x_i² = μ·Area_i′ **−** λ(20/ln10)/x_i`인데 문서는 `+`로 적혀 있다 | 재미분으로 확인 | 단순 정정. 더불어 **전력·gain이 gm_id에 대해 같은 방향**이라 μ>0·λ>0 동시 성립 내부해가 일반적으로 없다는 사실(케이스 3)이 사실상 공집합)도 명시할 것 |
+| A2 | **`Area_i`의 정의가 문서 어디에도 없다**. `∂Area/∂gm_id`를 쓰면서 정의가 없고, 최적화가 쓰는 면적(W·L 추정)과 레이아웃 게이트가 판정하는 면적(`Σ n_fingers × pitch(L)`, §7.7 R5)이 **서로 다른 물리량**이다. 게다가 `Cc` 면적이 빠져 있다(정본 §6.4 예제 기준 Cm 1.41pF ≈ 1,400µm² > 트랜지스터 전체) | 문서에 없음 확인 | `Area = Σ(n_fingers×pitch(L)×W_finger) + Σ(C/C_density + R_area)`로 정의를 못박을지 결정 |
+| A3 | **`min Σ ID_i`가 회로 전력이 아니다**. 병렬 branch 수, 스택 공유 전류 중복, **bias_devices 전류 전체**가 빠져 있다(파일럿은 51소자 중 diode 16개가 바이어스 체인) | 문서에 없음 확인 | 목적함수를 `Σ(I_branch × n_parallel)`(bias 포함)로 재정의할지, 아니면 "bias는 상수 취급"을 명시할지 |
+| A4 | **VDS 재배분이 매칭 쌍을 깬다**. §7.9 표가 VDS의 "매칭 제약: 없음"이라 적었으나 미러 두 다리의 `ΔI/I ≈ ΔV_DS/V_A`는 계통 오차다(V_A=10V에서 ΔV_DS=100mV면 1%). gradient 탐욕 재배분은 그 ΔV_DS를 **의도적으로 만든다**. `pelgrom_mismatch`는 랜덤 성분만 보므로 못 잡는다 | 문서 인용 확인 | L의 R1/R2에 대응하는 **VDS 판 매칭 규칙(R2′)** 신설 + `systematic_offset_mV` metric 신설 여부 |
+| A5 | **온도·공정 코너 전무**(문서 전체 0건). 전력 최소화가 gm_id를 `1/(nU_T)` 천장으로 미는데 그 천장이 300K 값(32.7)이라, 350K(27.6)에서 도달 불가능한 해가 나온다 | grep 0건 확인 | 천장을 최악 코너(27.6)로 걸지, `temp_range_k`를 받아 코너별 재평가할지 |
+| A6 | **ICMR·출력 swing·THD가 §7.9 헤드룸 하한 목록에 없다**. `output_swing`은 하한으로 쓰인다고 서술되나 스키마에 슬롯이 없다(선언 출처 없는 제약 = 상수 폴백, C1) | 문서 확인 | 스키마 슬롯 신설 여부 |
+| A7 | **고정점 수렴이 "20회 이내"라는 요구사항으로만 존재**하고 논증이 없다. 단순 대입 반복 대신 `g(v)=f(v)−v` 단조성을 이용한 **bisection**이면 유일해·유한회 수렴이 보장되고 "격자 안에 해 없음"을 명시적 실패로 낼 수 있다 | 문서 인용 확인 | 구현 방식 확정(대입 반복 vs bisection) |
+| A8 | **스택 diode 연립**. `_solve_diode_connected_vgs_fixed_point(gm_id,L,vs,lut)`가 `vs`를 입력으로 받는데, 스택 상위 소자의 `vs`는 하위의 drain 전위라 사이징 시점에는 가정값이다(= C1이 말하는 "물리 미검증 상수"). 파일럿 최악 사례 M36a/M36b(필요 1.32V ≈ Vgs 2개 직렬)가 2단 diode 스택을 시사 | 추론(파일럿 구조 미확인) | **파일럿 16개 diode의 스택 구조를 먼저 조사**할 것. 있으면 소자 단위가 아니라 **스택 단위 연립 고정점**으로 설계해야 한다 |
+| A9 | **SPICE 교차검증의 허용오차 미정**. 방법론 §6.5가 "LUT 1차 계산은 10~20% 오차"라고 적고 있는데 §4.1 DoD는 "일치"만 요구한다 → 사후에 임의 임계값을 정하게 된다(C1 재발) | 문서 확인 | 노드전압 절대오차·전류 상대오차를 **미리** 못박을 것 |
+| A10 | **v3.3 근거 실측치가 물리적으로 불가능**(§7.9 (주) 참고, `V_A` 58배 상승 함의) | 역산으로 확인 | LUT 재검증 필요 — §9 Next Steps에 올림 |
+
+### 10.3 미해결 — 구현·성능 (검토자 B, 코드 대조 완료)
+
+| # | 내용 | 검증 상태 | 필요한 결정 |
+|---|---|---|---|
+| B1 | **§7.3 티어①이 실제 버그 경로를 안 지난다**. `resolve_feed_vds()`의 호출자는 **단 2곳**이고, 헤드룸을 실제 배정하는 `_hr_resolve_vertical_group()`/`allocate_stack_headroom()`은 이 함수를 **호출하지 않는다**. 파일럿 51소자 중 19개가 `vds=0.2` 상수 폴백으로 떨어지는 경로가 그쪽이다. **사고19가 정확히 이 시도의 실패를 이미 기록**하고 있다 | 코드 확인(호출자 2곳) | 티어 체인을 `resolve_feed_vds()` 안이 아니라 **vds를 쓰는 4개 진입점 전부가 통과하는 단일 해석기**로 승격할 것. §7.3 재작성 필요 |
+| B2 | **CMRR/PSRR을 stage-local `extra_feasible` 콜백으로 만들 수 없다**. `_full_circuit_devices()`가 `ctx.sized`에 없는 소자를 만나면 `KeyError`를 던지는데, L_combo 루프는 stage 하나를 사이징하는 중이라 **원리적으로 불가능** | 코드 확인 | mismatch만 stage-local로 남기고 cmrr/psrr는 전역 게이트로 옮긴 뒤 L_combo를 바깥 재시도 루프로 재구조화. §7.6(3) 의사코드 재작성 |
+| B3 | **`resolve_stage_sizing()` 시그니처에 `vds`/`vs`가 없다**. 모든 LUT 호출이 필수로 요구하는데 §7.9 Phase 1의 VDS 예산이 §7.2/§7.6으로 전달되지 않는다 | 코드 확인 | `resolve_stage_sizing(stage_spec, ID, luts, vds_budget, vs_by_device, constraints)`로 확정 |
+| B4 | **실행시간 예산 항목이 계획에 없다**. L 앵커는 4개가 아니라 **7개**(§7.7 R3이 stale). 3그룹 곱이면 앵커만 343 combo, densify 41점이면 68,921 combo. MNA 전환(P-c)으로 완화됐으나 곱셈 구조 자체는 그대로 | 코드·LUT 확인 | 독립 L 그룹 수 상한·총 combo 상한을 **수치로 명시**하고 DoD에 "파일럿 1회 실행 wall-clock ≤ N분" 추가 |
+| B5 | **C6이 사고19를 안 막는다**. 사고19의 underdetermined는 vertical_stack 내부 헤드룸 KVL(미지수 2/방정식 1)인데 `diagnose_sizing_dof()`는 gm_id/전류/L/Cc 넷만 세고 **VDS 미지수·KVL 방정식을 세지 않는다** | 문서 확인 | DOF 진단에 "stack별 (vds 미지수 vs KVL+참조 등식, 랭크)" 축 추가 |
+| B6 | **§7.8 DOF 진단이 부등식을 등식처럼 센다**. 부등식은 활성일 때만 자유도를 소비하는데 목표 수만 세어 `overconstrained`면 **반복을 아예 시작하지 않는다** → 오탐 하나가 곧 hard stop | 문서 확인 | 등식 제약만 대조에 쓰고 부등식은 경고로 낮출 것 |
+| B7 | **§7.5 프로토타입 "그대로 이식"은 과대평가**. `node_dc_propagate.py`(95줄)는 (i) set 순회 의존 (ii) `not progressed and not unresolved` 논리 오류로 진짜 실패를 안 보고 (iii) **핵심인 "같은 net 두 경로 일치 검사"가 미구현** (iv) VGS 검사가 3쌍 하드코딩 | 프로토타입 확인 | 공수 재추정. §7.5의 새 내용은 사실상 전부 신규 구현 |
+| B8 | **§7.5가 KCL을 검증하지 않는다**. §3.1 req6은 "KVL/KCL"을 요구하는데 설계된 3검사는 전부 전압이다. rail-lock은 본질적으로 **전류 정합성** 문제다 | 문서 확인 | 노드별 `ΣI` 잔차 검사 추가 여부 |
+| B9 | **`vs`가 39개 소자에서 0.0**. §7.5의 Vgs 검사가 그 39개에서 대량 Violation을 낼 것이고, "vs를 실제 V_SB로 재구성"하는 작업 항목이 없다 | instance.json 실측 | §7.5 앞에 vs 정합화 단계 신설 여부 |
+| B10 | **§7.10이 사고4 경계를 건드린다**. `select_L_by_role()`의 cascode/signal 거부는 사고4 정정의 결과이고 §5가 "별도 승인 필요"라 못박은 경계인데, §7.10이 이를 부수 효과처럼 없앤다 | 코드 docstring 확인 | 명시적 승인 필요 |
+| B11 | **C1~C10 중 5개가 빈 약속**. `review_needed`(C8)와 "grep 검사"(C9)는 문서 전체에서 C 표 안에 **1회씩만** 등장하고 어디에도 배선되지 않았다. C5(docstring 규약)·C4(대칭 유도)·C3(커버리지 게이트)도 담당 절에 실물이 없다 | grep 확인 | §3.3 표에 **"어떤 테스트가 이걸 실패시키는가"** 칸을 추가할 것 |
+| B12 | **결정론 규칙이 계획에 없다**. `for name in set(...)` 패턴이 엔진에 아직 남아 있다 | 코드 확인 | §3.2 P1에 "모든 반복은 정렬된 시퀀스 위에서만" 규칙 + grep 테스트 추가 |
+| B13 | **추적성**. 기존 엔진은 `_L_source` 같은 출처 태그를 남기는데, 새 파이프라인에서 vds/gm_id/L이 **어느 티어·어느 Phase에서 확정됐는지** 남기는 규정이 없다 → C2 사후 디버깅 불가 | 실측 확인 | `_vds_source`/`_gm_id_source` 태그를 DoD에 넣을지 |
+
+### 10.4 미해결 — 일반성 (검토자 D)
+
+**판정**: 이 방법론은 "임의 토폴로지"가 아니라 **"차동 입력 + 캐스코드/미러 부하 + 2단 Miller
+보상 전압증폭기"** 한 부류에 맞춰져 있고, 그마저도 파일럿 1개를 정본으로 일반화한 것이다.
+D2(gain metric 위임)로 가장 큰 차단 요인은 풀렸으나 아래가 남는다.
+
+| # | 반례 | 어디서 막히나 | 처리 방향 |
+|---|---|---|---|
+| G1 | **단일단(5T/텔레스코픽)** | `compensation: null`(folded_cascode가 실제로 그렇다)이면 `gm_i`의 출처가 사라져 §7.9 인과사슬이 끊긴다 | `compensation: null`을 1급 케이스로 명시하고 그때 gm의 출처(GBW×CL 또는 gain 제약)를 §7.9에 정의 |
+| G2 | **3단 이상 중첩보상(NMCNR — 저장소에 있음)** | `solves_for:["Cc","Rz"]`·`stage_gm_ref` 2개가 2단 하드코딩. `Rz=1/gm2`가 **범용 DOF 계수기 본문**에 상수로 박혀 있다. NMCNR의 자유도 `kg=gm2/gm3`를 선언할 자리가 없다 | `compensation`을 stage 수 종속으로 일반화, 종속관계를 `topology_fn` 메타데이터로 이동 |
+| G3 | **Gain-boosted cascode** | §7.9의 "④ VDS 예산만이 유일한 설계 자유도"라는 출발 명제를 직접 반증한다(⑤ 캐스코드 부스트를 설계 변수로 만드는 기법) | `stages[].boost_amp` 재귀 또는 명시적 범위 밖 선언 |
+| G4 | **class-AB 정지전류** | `ID_source ∈ {kcl, ideal_source_ref}`뿐인데 Monticelli 정지전류는 **VGS 합(KVL)**이 정한다. `ID_final = max(KCL, SR×CL)`은 class-A 규칙이라 class-AB 정지점을 파괴한다 | `ID_source.type`에 `kvl_battery_loop` 추가, `driving_spec.output_class ∈ {A, AB}` 신설 |
+| G5 | **폴딩 노드** | `folded_cascode`의 gain metric은 역할을 **5종**(`gm1_device`/`fold_leg_a`/`fold_leg_b`/`cascode_p`/`cascode_n`/`mirror_n`)으로 요구하는데 서브롤은 4종이다. `fold_leg_b`가 어디에도 안 들어간다 | 서브롤 확장(+`follower`/`common_gate`/`floating_current_source`/`voltage_divider`) |
+| G6 | **stage 분할 규칙이 없다** | 문서 어디에도 stage 경계 정의가 없다. §8.3은 `stages[]`가 이미 있다고 가정하고, §13.3의 5신호(원래 "미러 다리 matching vs gain-load" 판정용)를 input/cascode 분류기로 전용해 **신호2가 입력 차동쌍에 먼저 걸린다**(입력쌍이 cascode로 분류됨). `input↔load` 구분·`tail` 판정 규칙도 없다 | "stage 분할은 사람이 확정하는 입력"임을 명시하거나 진짜 판정 규칙을 세울 것. §8.3의 5신호 전용은 **철회** 권장 |
+| G7 | **비증폭 회로**(밴드갭·constant-gm bias·비교기·SC) | §2.2가 회로 부류를 하나도 배제하지 않아 암묵적 보편성을 주장한다 | §2.2에 "Out of Scope — 회로 부류" 절 신설. 이들은 배제하는 편이 옳다 |
+| G8 | **새 토폴로지 추가 비용이 문서화돼 있지 않다** | §8.3은 "JSON 두 개 쓰면 끝"처럼 읽히나 실제로는 gain metric·CMRR/PSRR estimator·`topology_fn`을 각 레지스트리에 등록하는 **엔진 작업 3~4곳**이 필요하다 | §8.3에 그 목록을 명시 |
+
+### 10.5 정합성 잔여 (검토자 C)
+
+v4.0에서 §1.5 참조 4곳·`schema_version`·"무변경 재사용" 2곳·§8.8 기준선 서술을 고쳤다.
+남은 것: 유령 함수 3개(`allocate_headroom_budget()`/`measure_stage_gain_ceiling()`/
+`redistribute_headroom_by_gain_gradient()` — §6.1에 1회씩만 등장, 본문에 정의 없음, §7.9는
+같은 기능을 다른 이름으로 서술), 삭제 선언한 `gain_allocation`/`gain_allocation_check`의 잔존
+(L794/L1150), §2.2 vs §4.1 C7의 범위 충돌(파일럿 1개 vs 4개 전수), §7.9 3-Phase 순서와 §8.4
+harness 순서의 불일치(§8.4에 Phase 1이 없고 되먹임을 금지), 신규 함수 목록 3중 관리
+(§2.1/§6.1/각 §7 절 말미), `closed_loop_accuracy_db`·`stage_gm_ref`·`vdd_kvl` 미소비 필드,
+`slew_rate_v_per_us` vs `slew_rate_target`·`battery_centering_deviation` vs
+`classab_centering_dev_v` 명칭 흔들림, §7.10 측정2 표의 빈 헤더.
+
+
 ## Version History
 
 | Version | Date | Changes |
@@ -1291,3 +1588,4 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 | 3.2 | 2026-09-07 | **문헌 정합성 검증에서 발견한 갭 해소** — 웹검색(Murmann/Boser/Silveira-Flandre-Jespers 등)과 프로젝트 문헌 정본(§6.4)을 v3.1과 대조한 결과, v3.1의 `ID_i=k_i×ID_root` 1-D 해찾기가 **Jespers의 2D sizing space `(gm/ID₁, gm/ID₂)`를 `k_i` 고정 단면의 1D 선으로 축소**하고 있었음을 확인(k_i는 바이어스 미러비로 조정 가능한 값이라 곧 두 번째 축이다). 해소는 `k_i`를 탐색 축에 추가하는 게 아니라 **변수 자체를 `gm_id_i`로 바꾸는 재정식화**로 했다 — `ID_i=gm_i/gm_id_i`이고 `k_i`는 그 전류를 실현하는 파생값이므로 theta 폭발 없이 N-D 공간 전체를 덮는다. 해법은 탐색이 아니라 해석해+활성제약(active set): min-power면 각 stage가 자기 상한(gm_id_phys/W_max/fT_min)까지 독립 최대화(gain과 power가 같은 방향이라 결합 없음), area가 목적에 들어가면 gain 등식이 binding해져 KKT 정류조건이 **비활성 stage끼리 ID_i=const**를 준다(2단 대수 검증). v3.1의 1-D 해찾기는 '모든 stage 비활성' 특수 케이스로 흡수. 파일럿의 stage2/stage1 전류비 5.34가 자유 선택이 아니라 class-AB 구동 하한이라는 **활성 제약의 결과**임도 설명됨. §7.1 objective에 area/가중합 옵션을 열고, §7.8 DOF 진단의 전류 축 계수법도 gm_id_i 기준으로 정정. 정직한 한계: 순수 power 최소화에서는 배분이 축퇴(자유도 없음)되고, 진짜 배분 문제는 area가 목적에 들어갈 때만 나타남 |
 | 3.3 | 2026-09-07 | **면적 제약형 채택(사용자 선택) — v3.2가 남긴 배분 축퇴 문제 해소**. LUT 실측으로 전력(ID=gm/gm_id)과 면적(W·L)이 gm_id 축에서 **정확히 반대 방향**임을 확인(gm=75µS 고정, L=0.35µm: gm_id 5→26에서 전력 15→2.9µA로 감소하는 동안 면적은 0.13→509µm²로 **4000배 폭발**, gain은 28→77.6으로 포화 — gm_id 22→26 구간은 gain +0.05dB에 면적 147배). 따라서 목적함수는 **전력 최소화 하나**로 두고 **면적은 `global_spec.constraints`의 `area_um2` 상한**으로 건다(가중합 α:β는 가중치를 사람이 지어내야 해 결정론이 깨지므로 기본에서 제외). 이러면 전력 최소화가 gm_id를 weak inversion으로 밀 때 면적 제약이 먼저 걸리고, KKT 정류조건 `gm_i/gm_id_i² = μ·∂Area_i/∂gm_id_i`가 **"면적 1단위당 전력을 가장 많이 아끼는 stage부터 배분"**이라는 규칙을 주어 **배분이 유일하게 결정**된다 — 면적 예산이 교환비 μ를 정하므로 임의 가중치가 필요 없다. 남는 자유 입력은 면적 예산 하나인데 이는 전력·gain 목표와 같은 정상적 설계 스펙이다. 문헌 정본 §6.4의 '등전력·등면적·등이득 contour 겹쳐 절충점 선택'을 결정론적으로 자동화한 구조. 면적 예산 미선언 시 W_max만 상한이 되어 축퇴가 재발하므로 선언을 권장으로 명시 |
 | 3.4 | 2026-09-07 | **면적 예산 미선언 시 Pareto front fallback 신설(사용자 확정)** — 예산이 없으면 배분이 축퇴되는데 엔진이 예산을 지어내서는 안 되므로, `sweep_area_power_pareto()`가 전력-면적 Pareto front를 계산해 제시하고 **정지**한다(자동 선택 금지, §3.2 P1). 스윕 구간의 양끝을 물리로 고정해 임의값을 없앰: A_min은 gain_target을 겨우 만족하는 최소 면적, A_max는 d전력/d면적이 임계 이하로 떨어지는 수확체감 지점(실측 근거: gm_id 22→26이 전력 −15%에 면적 147배로 이미 A_max 너머). 로그 등간격 12점에서 KKT+active-set 해법을 각각 1회 실행하고 Pareto 비지배 점만 남겨 (면적, 전력, gain 여유, stage별 유도 배분, 활성 제약)을 리포트한다 — 해석해라 점당 비용이 작고 LUT 스캔 캐시를 공유(P2). 사람이 고른 점이 `area_um2` 제약으로 기록되면 그 다음부터는 완전 결정론적으로 동작하므로, 이 fallback은 결정론을 포기하는 경로가 아니라 **빠진 스펙 하나를 사람에게 받아오는 경로**다. 이로써 가중합(α:β) 방식은 불필요해졌다. §8.4 harness에 0단계 분기, §2.1에 신규 함수 등록 |
+| **4.0** | 2026-09-07 | **4개 관점 독립 검토(회로물리/구현가능성/문서정합성/토폴로지 일반성) 반영 + 코드 선행조치 3건 완료**. 사용자 결정 3건: ① `gm_i` 인과 방향을 **"compensation이 (Cc,Rz,gm_1..gm_N)을 먼저 한 번에 결정"**으로 통일하고 §3.1 req4·§7.4 원칙2를 폐기 — v3.2가 §7.9만 뒤집고 이 둘을 안 고쳐 문서가 두 갈래였다(둘은 양립 불가: `min Σ gm_i/gm_id_i`는 `gm_i`가 상수여야 well-posed). "gain-budget-first"의 의미도 "gain이 gm을 정한다"가 아니라 "단별 gain 예산을 엔진이 유도해 **산출**한다"로 확정. 기생 결합 `∂gm_i/∂gm_id_i ≠ 0`을 KKT 밖에 두던 것도 정정(v2.4의 V_A 축 누락과 같은 클래스). ② **gain 제약을 폐형식에서 `compute_metric()` 위임으로 전환** — 4개 토폴로지가 네 가지 다른 gain metric(`gain_stages_sum`/`folded_cascode_gain_db`/`nmcnr_gain_db`/`smallsignal_gain_db`)을 쓰므로 폐형식 `Σ20log10(gm_id·V_A)`으로는 §4.1 DoD의 4개 전수 실행이 **원리적으로 불가능**했고, `_METRICS_REGISTRY` 위임이라는 이 프로젝트의 circuit-agnostic 규약을 §7.9가 깨고 있었다. 부하 로딩 미반영(2단 −12dB 계통 낙관)과 `V_A`가 `gm_id`와 독립이 아니라는 문제도 함께 해소. ③ **theta 폐기를 "자유 탐색 변수"로 축소** — `A_signed`/`C`/`metric_stage_budget`/servo `B`는 값이 아니라 **구조 선언**이라 전면 폐기하면 CMFB·class-AB 배터리·bias 체인 정보가 소실된다(세션33 회귀와 같은 클래스). `structural_declarations`/`feedback_loops`/`metrics` 블록을 스키마에 신설·복원하고 noise(`flicker_plus_thermal_sum`, **엔진에 이미 등록돼 있는데 계획이 떨어뜨린 것**)를 제약으로 승격. 코드 선행조치: (a) 헤드룸 2중 중첩 클로저 6개(401줄)를 모듈 레벨 `_hr_*`로 추출해 `resolve_headroom()` harness를 비로소 가능하게 함(본문 무변경, self-test stdout 바이트 동일), (b) self-test 회귀 기준선 신설 — 기존에 지목된 로그는 stick_diagram 것이 없고 `.gitignore`로 **git 추적조차 안 됐다**; 캡처 중 stick_diagram 출력 7줄이 실행마다 달라지는 것을 발견해 결정론화, (c) 소신호 MNA를 `numpy.linalg.solve`로 전환(노드 51개 6.1x, 상대편차 1e-13) + numpy 지연 import 7곳 통합. 미반영 지적 전량을 **§10 신설**로 기록(A1~A10 물리, B1~B13 구현, G1~G8 일반성, C 잔여) — 특히 B1(티어①이 실제 버그 경로를 안 지남, 호출자 2곳뿐)과 A10(v3.3 근거 실측치가 `V_A` 58배 상승을 함의해 물리적으로 불가능)은 다음 결정 대상. 부수 정정: §1.5 끊어진 참조 4곳→§3.2 P1, `schema_version` 3.0→4.0, "무변경 재사용" 잔재 2곳 |
