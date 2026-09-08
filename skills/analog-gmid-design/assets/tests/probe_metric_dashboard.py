@@ -100,8 +100,22 @@ for k in ("power_uA", "supply_current_uA", "kcl_residual_uA",
     emit("%-24s %-14.4f %-14.4f %+.4f" % (k, b, cur, cur - b))
 
 emit()
-emit("=== diode 소자의 vds/gm_id 출처 ===")
+emit("=== 면적 ===")
+# v3.3의 핵심 제약이 면적인데 계기판에 없었다(2026-09-08 추가). `area_um2` metric은
+# 파일럿 topology.json에 선언돼 있지 않으므로 sized에서 직접 합산한다.
 trs, _meta = sr.load_topology(TOPO)
+_diode = {tr.name for tr in trs if sr.is_diode_connected(tr)}
+_ar = lambda names=None: sum(
+    v["W"] * v["L"] for k, v in sized.items()
+    if v.get("W") and v.get("L") and (names is None or k in names))
+emit("  총 면적        %10.2f um^2" % (_ar() * 1e12))
+emit("  diode 16개     %10.2f um^2 (%.1f%%)" % (_ar(_diode) * 1e12,
+                                                 _ar(_diode) / _ar() * 100))
+emit("  그 외 35개     %10.2f um^2" % ((_ar() - _ar(_diode)) * 1e12))
+emit("  v3.3 예시 예산 200um^2 대비: %.1f배" % (_ar() * 1e12 / 200))
+
+emit()
+emit("=== diode 소자의 vds/gm_id 출처 ===")
 diode = sorted(n for n, tr in {tr.name: tr for tr in trs}.items()
                if sr.is_diode_connected(tr))
 emit("%-8s %-9s %-9s %-11s %s" % ("소자", "vds(V)", "gm_id", "W(um)", "_vds_source"))

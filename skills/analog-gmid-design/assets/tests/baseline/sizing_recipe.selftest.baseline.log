@@ -19,7 +19,7 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
 # 숫자를 직접 박으면 새 공정 LUT로는 이 self-test 자체가 항상 깨진다는 사용자 지적 반영).
   gms=['7.1267mS', '0.6283mS', '1.2566mS']
     stage1: L=0.150um VDS=0.188V gm/ID=19.00 W=192.644um
-    stage2: L=0.350um VDS=0.225V gm/ID=23.00 W=199.090um
+    stage2: L=0.250um VDS=0.112V gm/ID=23.00 W=168.262um
     stage3: L=0.150um VDS=0.900V gm/ID=22.00 W=199.961um
   [PASS] sky130-worked-example.md와 일치 -- optimize_multistage()가 real LUT로 처음부터 끝까지 실제 실행됨(공정-무관 러너, 이 파일에 하드코딩된 공정별 숫자 없음)
 
@@ -105,8 +105,8 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
     실제 topology.json의 ideal_sources 선언과 대조하는지 -- 선언을 지우면(같은
     M18_bg 케이스) 정확히 거부하는지 합성 fixture로 확인]
     OK: ideal_sources 선언 제거 시 정확히 거부됨 -> 'M18_bg'(role='diode_reference')가 singleton thin-role 그룹이라 allocate_stack_headroom()의 '합=vdd' 계약을 우회하려는데, ideal_sources 선언으로 정당화가 안 됨: 'M18_bg'의 non-rail 단자(['Vbias1']) 중 어느 것도 topology.json의 ideal_sources 선언과 안 맞음 -- role='diode_reference'이 thin_roles인데 이 우회를 정당화할 근거가 없음(선언 누락 또는 role 오분류 가능성, 재검토할 것)
-    PASS: M7==M6(=0.32500000000000007V), M36b==M36a(=0.9375V) -- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사
-    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=72.90, mismatch_sigma_mV=3.01, cmrr_estimate_db=76.47, psrr_estimate_db=89.29)
+    PASS: M7==M6(=0.2500000000000001V), M36b==M36a(=0.9375V) -- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사
+    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=76.38, mismatch_sigma_mV=3.01, cmrr_estimate_db=76.33, psrr_estimate_db=88.05)
 
   [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/
   run_matching_safety_with_finger_growth() -- 세션16 2번. repair_matching_safety()가
