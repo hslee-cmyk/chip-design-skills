@@ -2470,6 +2470,8 @@ def _metric_stack_headroom_slack(spec: dict, ctx: SizingContext) -> float:
             groups.setdefault(vsid, []).append(n)
 
     worst = float("inf")
+    n_eval = 0
+    skipped = []
     for vsid in sorted(groups):
         members = sorted(groups[vsid])
         reps, seen = [], set()
@@ -2485,6 +2487,7 @@ def _metric_stack_headroom_slack(spec: dict, ctx: SizingContext) -> float:
         budget = (vdd - ref_vds) if ref_vds is not None else vdd
         total = 0.0
         skip = False
+        skip_reason = None
         for m in reps:
             e = ctx.sized.get(m)
             if e is None:
@@ -2494,22 +2497,41 @@ def _metric_stack_headroom_slack(spec: dict, ctx: SizingContext) -> float:
                 gm_id, L = e.get("gm_id"), e.get("L")
                 if gm_id is None or L is None:
                     skip = True
+                    skip_reason = f"{m}: gm_id/L 미확정"
                     break
                 v = diode_vds_cached(lut_by_kind[ctx.kind_of[m]], ctx.kind_of[m],
                                       gm_id, L, e.get("vsb", 0.0))
-                if v is None:                 # 자기일관해 없음 -- 이 그룹은 건너뛴다
+                if v is None:                 # 자기일관해 없음
                     skip = True
+                    skip_reason = f"{m}: diode 자기일관해 없음"
                     break
                 total += v
             else:
                 if e.get("vds") is None:
                     skip = True
+                    skip_reason = f"{m}: vds 미확정"
                     break
                 total += e["vds"]
         if skip:
+            skipped.append((vsid, skip_reason))
             continue
+        n_eval += 1
         worst = min(worst, budget - total)
-    return 0.0 if worst == float("inf") else worst
+    # 2026-09-08(v4.17 자체 감사) -- 예전엔 `worst == inf`(=한 그룹도 못 쟀음)일 때 그냥
+    # `0.0`을 돌려줬다. 그러면 **아무것도 측정하지 않은 것이 "여유 0"으로 보이고**, 이 값을
+    # 제약으로 쓰는 순간(`stack_headroom_slack >= 0`) 검사가 통과한 것처럼 된다 -- 이 계획이
+    # 금지하는 조용한 실패(§3.2 P1)를 내가 직접 만들어 둔 셈이었다. 측정 못 했으면 그렇게 말한다.
+    if n_eval == 0:
+        raise ValueError(
+            f"stack_headroom_slack: 평가할 수 있는 vertical_stack_id 그룹이 하나도 없다"
+            f"(선언 {len(groups)}개, 전부 건너뜀). 건너뛴 이유: {skipped[:5]}. "
+            f"0을 돌려주면 '여유 0'과 구분이 안 돼 제약이 조용히 통과한다")
+    if skipped:
+        raise ValueError(
+            f"stack_headroom_slack: {len(groups)}개 그룹 중 {len(skipped)}개를 측정하지 "
+            f"못했다 -- 그 그룹들의 KVL 여유는 검사되지 않은 채로 남는다(제약이 조용히 "
+            f"통과하는 통로가 된다). 건너뛴 그룹과 이유: {skipped[:5]}")
+    return worst
 
 
 def set_device_vds(ctx, name: str, value: float, source: str,
@@ -5987,7 +6009,16 @@ def _hr_resolve_vertical_group(env, vsid):
                 f"'합=vdd' 계약을 우회하려는데, connectivity로 정당화가 안 됨: {_detail}")
         headroom = {unresolved[0]: _singleton_vds(stack_entries[0])}
     else:
-        headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
+        try:
+            headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
+        except InfeasibleSizingError as _alloc_e:
+            # `allocate_stack_headroom()`은 순수 함수라 `ctx`를 모른다 -- 여기서 그룹
+            # 이름과 `ctx.sized` 스냅샷을 실어 다시 던진다. 스냅샷이 없으면
+            # `extract_linear_feasibility_constraints()`가 이 예외를 처리하지 못하고
+            # "sized_snapshot이 없다"는 2차 에러로 원인을 가린다(2026-09-08 실측).
+            raise InfeasibleSizingError(
+                f"'{vsid}' 그룹(예산 {remaining_vdd:.6g}V, 미해결 {unresolved}): "
+                f"{_alloc_e}", sized_snapshot=dict(ctx.sized)) from _alloc_e
     for m in unresolved:
         vds_val = headroom[m]
         vgrp = _vfind(m)
