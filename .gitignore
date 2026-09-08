@@ -23,3 +23,7 @@ stdout.log*
 # Python bytecode (eval/gate 실행 부산물)
 __pycache__/
 *.pyc
+
+# 조사 스크립트가 남기는 측정 결과(재현 가능한 생성물 -- 핵심 수치는 각 스크립트
+# docstring에 기록한다). 2026-09-08: 프로브가 결과를 파일로도 쓰게 바뀌었다.
+skills/analog-gmid-design/assets/tests/*.result.txt

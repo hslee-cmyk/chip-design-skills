@@ -85,6 +85,28 @@ sys.path.insert(0, ASSETS)
 import numpy as np
 import sizing_recipe as sr
 
+
+# ---------------------------------------------------------------------------
+# 결과는 **파일에도 남긴다**(사용자 지시, 2026-09-08). stdout에만 쓰면
+# `| grep | tail` 파이프가 백그라운드 전환 때 버퍼째 날아가, 계산은 성공했는데
+# 결과만 잃는다(이 세션에서 실제로 두 번). 한 줄 쓸 때마다 append하므로 중간에
+# 죽어도 거기까지는 건진다. 파일은 이 스크립트 옆에 `<이름>.result.txt`로 남는다.
+# ---------------------------------------------------------------------------
+_RESULT_PATH = os.path.splitext(os.path.abspath(__file__))[0] + ".result.txt"
+_first_emit = [True]
+
+
+def emit(*parts):
+    """print와 같은 시그니처로 쓰되 파일에도 남긴다."""
+    line = " ".join(str(p) for p in parts)
+    print(line, flush=True)
+    mode = "w" if _first_emit[0] else "a"
+    _first_emit[0] = False
+    with open(_RESULT_PATH, mode, encoding="utf-8") as _f:
+        _f.write(line + "\n")
+
+
+
 d = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
 L_ANCH = [float(x) for x in d["L"]]
 
@@ -106,12 +128,12 @@ def curve_consistent(lut, L, vds, vsb):
 
 PHYS_MAX = 40.0        # 1/(nV_T) 이론 상한(n<=1.5, 300K)에 여유를 준 판정선
 
-print("L 앵커(um):", [round(x * 1e6, 3) for x in L_ANCH])
-print()
-print("=== gm/ID 최대값: 앵커 위 vs 앵커 사이 (vds=0.5, vsb=0) ===")
-print("%-6s %-9s %-7s | %-14s %-14s | %s"
+emit("L 앵커(um):", [round(x * 1e6, 3) for x in L_ANCH])
+emit()
+emit("=== gm/ID 최대값: 앵커 위 vs 앵커 사이 (vds=0.5, vsb=0) ===")
+emit("%-6s %-9s %-7s | %-14s %-14s | %s"
       % ("kind", "L(um)", "앵커?", "현행", "일관보간", "판정"))
-print("-" * 74)
+emit("-" * 74)
 n_bad = 0
 for kind in ("nmos", "pmos"):
     lut = mk(kind[0])
@@ -122,28 +144,28 @@ for kind in ("nmos", "pmos"):
         anch = any(abs(L - a) < 1e-12 for a in L_ANCH)
         bad = max(gi) > PHYS_MAX
         n_bad += bool(bad)
-        print("%-6s %-9.3f %-7s | %-14.1f %-14.1f | %s"
+        emit("%-6s %-9.3f %-7s | %-14.1f %-14.1f | %s"
               % (kind, Lum, "앵커" if anch else "보간", max(gi), max(gc),
                  "★비물리(>%g)" % PHYS_MAX if bad else ""))
-print("\n비물리 판정 %d개 -- 전부 앵커 사이의 PMOS여야 한다." % n_bad)
+emit("\n비물리 판정 %d개 -- 전부 앵커 사이의 PMOS여야 한다." % n_bad)
 
-print()
-print("=== 기전: ID는 로그보간(기하평균), GM은 선형보간(산술평균) ===")
+emit()
+emit("=== 기전: ID는 로그보간(기하평균), GM은 선형보간(산술평균) ===")
 iVDS = int(np.argmin(np.abs(d["VDS"] - 0.5)))
-print("PMOS L=0.15um vs 0.35um, VDS=%.3f, VS=0" % d["VDS"][iVDS])
-print("%-8s | %-12s %-12s %-10s | %-12s %-12s"
+emit("PMOS L=0.15um vs 0.35um, VDS=%.3f, VS=0" % d["VDS"][iVDS])
+emit("%-8s | %-12s %-12s %-10s | %-12s %-12s"
       % ("VGS", "ID@0.15", "ID@0.35", "ID비", "gm/ID 현행", "gm/ID 일관"))
-print("-" * 76)
+emit("-" * 76)
 for i in (0, 4, 8, 16, 24):
     i0, i1 = d["ID_p"][0, i, iVDS, 0], d["ID_p"][1, i, iVDS, 0]
     g0, g1 = d["GM_p"][0, i, iVDS, 0], d["GM_p"][1, i, iVDS, 0]
     geo = np.exp(0.5 * (np.log(max(i0, 1e-18)) + np.log(max(i1, 1e-18))))
     ari, gl = 0.5 * (i0 + i1), 0.5 * (g0 + g1)
-    print("%-8.3f | %-12.3e %-12.3e %-10.3g | %-12.2f %-12.2f"
+    emit("%-8.3f | %-12.3e %-12.3e %-10.3g | %-12.2f %-12.2f"
           % (d["VGS"][i], i0, i1, (i1 / i0 if i0 else float("nan")), gl / geo, gl / ari))
 
-print()
-print("=== 이 오염 대역을 실제로 탐색하는가 ===")
+emit()
+emit("=== 이 오염 대역을 실제로 탐색하는가 ===")
 import json
 topo = json.load(open(os.path.join(ASSETS, "library",
                                     "current_reuse_telescopic_ota.topology.json"),
@@ -152,6 +174,6 @@ for th in (topo.get("sizing_roles") or {}).get("theta", []):
     f = th.get("feeds")
     if isinstance(f, dict) and f.get("type") == "metric_stage_budget":
         lo, hi = th["bounds"]
-        print("  theta %-16s L in [%.3f, %.3f]um  devices=%s"
+        emit("  theta %-16s L in [%.3f, %.3f]um  devices=%s"
               % (th["name"], lo * 1e6, hi * 1e6, f.get("devices")))
-print("  -> 5nm 격자(spec['L_grid_step'])로 훑으므로 격자점 대부분이 앵커 밖이다.")
+emit("  -> 5nm 격자(spec['L_grid_step'])로 훑으므로 격자점 대부분이 앵커 밖이다.")

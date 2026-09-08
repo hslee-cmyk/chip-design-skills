@@ -25,6 +25,28 @@ sys.path.insert(0, ASSETS)
 import numpy as np
 import sizing_recipe as sr
 
+
+# ---------------------------------------------------------------------------
+# 결과는 **파일에도 남긴다**(사용자 지시, 2026-09-08). stdout에만 쓰면
+# `| grep | tail` 파이프가 백그라운드 전환 때 버퍼째 날아가, 계산은 성공했는데
+# 결과만 잃는다(이 세션에서 실제로 두 번). 한 줄 쓸 때마다 append하므로 중간에
+# 죽어도 거기까지는 건진다. 파일은 이 스크립트 옆에 `<이름>.result.txt`로 남는다.
+# ---------------------------------------------------------------------------
+_RESULT_PATH = os.path.splitext(os.path.abspath(__file__))[0] + ".result.txt"
+_first_emit = [True]
+
+
+def emit(*parts):
+    """print와 같은 시그니처로 쓰되 파일에도 남긴다."""
+    line = " ".join(str(p) for p in parts)
+    print(line, flush=True)
+    mode = "w" if _first_emit[0] else "a"
+    _first_emit[0] = False
+    with open(_RESULT_PATH, mode, encoding="utf-8") as _f:
+        _f.write(line + "\n")
+
+
+
 TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
 INST = (r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\workspaces"
         r"\current-reuse-telescopic-ota-report\current_reuse_telescopic_ota.instance.json")
@@ -54,12 +76,12 @@ def w_at(kind, L, ID, vsb, v):
     return L * ID / idu, g
 
 
-print("W 한계 %.3g~%.3g um 안에서 각 diode가 허용하는 vds 구간" % (W_BOUNDS[0] * 1e6, W_BOUNDS[1] * 1e6))
-print("(L/ID/vsb는 현재 파일럿 산출물 값을 그대로 사용 -- 재탐색하면 달라진다)")
-print()
-print("%-8s %-5s %-8s %-9s %-8s | %-9s %-9s | %-9s %s"
+emit("W 한계 %.3g~%.3g um 안에서 각 diode가 허용하는 vds 구간" % (W_BOUNDS[0] * 1e6, W_BOUNDS[1] * 1e6))
+emit("(L/ID/vsb는 현재 파일럿 산출물 값을 그대로 사용 -- 재탐색하면 달라진다)")
+emit()
+emit("%-8s %-5s %-8s %-9s %-8s | %-9s %-9s | %-9s %s"
       % ("소자", "kind", "L(um)", "ID(uA)", "현재vds", "vds 하한", "vds 상한", "폭(V)", "현재vds 판정"))
-print("-" * 96)
+emit("-" * 96)
 rows = []
 for n in diode:
     e = sized.get(n)
@@ -81,22 +103,22 @@ for n in diode:
     if lo is None:
         verdict = "★가능한 vds 없음"
         rows.append((n, lo, hi))
-        print("%-8s %-5s %-8.3f %-9.4f %-8.4f | %-9s %-9s | %-9s %s"
+        emit("%-8s %-5s %-8.3f %-9.4f %-8.4f | %-9s %-9s | %-9s %s"
               % (n, kind, L * 1e6, ID * 1e6, cur, "-", "-", "-", verdict))
         continue
     inside = lo <= cur <= hi
     verdict = "OK" if inside else ("★너무 낮음" if cur < lo else "★너무 높음")
     rows.append((n, lo, hi))
-    print("%-8s %-5s %-8.3f %-9.4f %-8.4f | %-9.4f %-9.4f | %-9.4f %s"
+    emit("%-8s %-5s %-8.3f %-9.4f %-8.4f | %-9.4f %-9.4f | %-9.4f %s"
           % (n, kind, L * 1e6, ID * 1e6, cur, lo, hi, hi - lo, verdict))
 
 ok = [r for r in rows if r[1] is not None]
-print()
-print("가능한 vds 구간이 존재하는 diode: %d/%d개" % (len(ok), len(rows)))
+emit()
+emit("가능한 vds 구간이 존재하는 diode: %d/%d개" % (len(ok), len(rows)))
 
 # 스택별로: diode 하한의 합만으로 예산을 넘는가
-print()
-print("=== 스택별: diode의 vds 하한 합이 예산 안에 들어가는가 ===")
+emit()
+emit("=== 스택별: diode의 vds 하한 합이 예산 안에 들어가는가 ===")
 roles = meta.get("device_roles", {})
 lo_by = {n: lo for n, lo, _ in rows if lo is not None}
 groups = {}
@@ -118,7 +140,7 @@ for vsid in sorted(groups):
     flag = "★초과 %+.3fV" % over if over > 1e-9 else ""
     if over > 1e-9:
         bad += 1
-    print("  %-28s diode하한합=%.4f (%d개) + 비diode현재합=%.4f = %.4f / %.1f %s"
+    emit("  %-28s diode하한합=%.4f (%d개) + 비diode현재합=%.4f = %.4f / %.1f %s"
           % (vsid, d_lo, len(ds), nd_cur, d_lo + nd_cur, VDD, flag))
-print()
-print("diode 하한만으로도 예산을 넘는 스택: %d개" % bad)
+emit()
+emit("diode 하한만으로도 예산을 넘는 스택: %d개" % bad)

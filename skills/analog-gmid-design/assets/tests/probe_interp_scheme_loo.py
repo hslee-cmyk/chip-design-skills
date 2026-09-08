@@ -41,14 +41,36 @@ sys.path.insert(0, ASSETS)
 import numpy as np
 import sizing_recipe as sr
 
+
+# ---------------------------------------------------------------------------
+# 결과는 **파일에도 남긴다**(사용자 지시, 2026-09-08). stdout에만 쓰면
+# `| grep | tail` 파이프가 백그라운드 전환 때 버퍼째 날아가, 계산은 성공했는데
+# 결과만 잃는다(이 세션에서 실제로 두 번). 한 줄 쓸 때마다 append하므로 중간에
+# 죽어도 거기까지는 건진다. 파일은 이 스크립트 옆에 `<이름>.result.txt`로 남는다.
+# ---------------------------------------------------------------------------
+_RESULT_PATH = os.path.splitext(os.path.abspath(__file__))[0] + ".result.txt"
+_first_emit = [True]
+
+
+def emit(*parts):
+    """print와 같은 시그니처로 쓰되 파일에도 남긴다."""
+    line = " ".join(str(p) for p in parts)
+    print(line, flush=True)
+    mode = "w" if _first_emit[0] else "a"
+    _first_emit[0] = False
+    with open(_RESULT_PATH, mode, encoding="utf-8") as _f:
+        _f.write(line + "\n")
+
+
+
 # 스윕이 이 파일을 갱신 중일 수 있으므로 인자로 다른 경로를 받을 수 있게 한다.
 NPZ = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
     ASSETS, "sky130_nfet_pfet_lut_sample.npz")
 d = np.load(NPZ)
 L_ALL = [float(x) for x in d["L"]]
-print("LUT:", os.path.basename(NPZ))
-print("L 앵커(um):", [round(x * 1e6, 4) for x in L_ALL])
-print()
+emit("LUT:", os.path.basename(NPZ))
+emit("L 앵커(um):", [round(x * 1e6, 4) for x in L_ALL])
+emit()
 
 # VGS 격자 중 소자가 실제로 켜져 있는(=사이징이 쓰는) 구간만 본다. 완전 off 영역의
 # gm/ID 비는 수치적으로 의미가 없고, 어느 방식도 거기서는 정확할 수 없다.
@@ -90,13 +112,13 @@ def truth(kind, iL, iVDS, iVS):
             / np.clip(d["ID_" + k][iL, :, iVDS, iVS], 1e-30, None))
 
 
-print("=== 1) gm/ID 곡선: 앵커 하나를 빼고 보간해 그 앵커의 실측값과 대조 ===")
-print("(상대오차 %%, 켜진 구간만: ID > %.0e A)" % ON_MIN_ID)
-print()
-print("%-6s %-9s | %-26s | %-26s" % ("kind", "held-out", "중앙값 오차(%)", "최악 오차(%)"))
-print("%-6s %-9s | %-8s %-8s %-8s | %-8s %-8s %-8s"
+emit("=== 1) gm/ID 곡선: 앵커 하나를 빼고 보간해 그 앵커의 실측값과 대조 ===")
+emit("(상대오차 %%, 켜진 구간만: ID > %.0e A)" % ON_MIN_ID)
+emit()
+emit("%-6s %-9s | %-26s | %-26s" % ("kind", "held-out", "중앙값 오차(%)", "최악 오차(%)"))
+emit("%-6s %-9s | %-8s %-8s %-8s | %-8s %-8s %-8s"
       % ("", "L(um)", "현행", "선형", "로그", "현행", "선형", "로그"))
-print("-" * 80)
+emit("-" * 80)
 agg = {kd: {m: [] for m in METHODS} for kd in ("nmos", "pmos")}
 for kind in ("nmos", "pmos"):
     for iL in range(1, len(L_ALL) - 1):        # 양끝은 보간이 아니라 외삽이라 제외
@@ -115,31 +137,31 @@ for kind in ("nmos", "pmos"):
                     e = np.abs(v[on] - ref[on]) / np.abs(ref[on]) * 100.0
                     errs[m].extend(e.tolist())
                     agg[kind][m].extend(e.tolist())
-        print("%-6s %-9.4f | %-8.2f %-8.2f %-8.2f | %-8.1f %-8.1f %-8.1f"
+        emit("%-6s %-9.4f | %-8.2f %-8.2f %-8.2f | %-8.1f %-8.1f %-8.1f"
               % (kind, L_ALL[iL] * 1e6,
                  np.median(errs["현행"]), np.median(errs["선형"]), np.median(errs["로그"]),
                  np.max(errs["현행"]), np.max(errs["선형"]), np.max(errs["로그"])))
 
-print()
-print("--- 전체 집계 ---")
-print("%-6s | %-10s %-10s %-10s | %-10s %-10s %-10s"
+emit()
+emit("--- 전체 집계 ---")
+emit("%-6s | %-10s %-10s %-10s | %-10s %-10s %-10s"
       % ("kind", "현행 중앙", "선형 중앙", "로그 중앙", "현행 최악", "선형 최악", "로그 최악"))
-print("-" * 74)
+emit("-" * 74)
 for kind in ("nmos", "pmos"):
     a = agg[kind]
-    print("%-6s | %-10.2f %-10.2f %-10.2f | %-10.1f %-10.1f %-10.1f"
+    emit("%-6s | %-10.2f %-10.2f %-10.2f | %-10.1f %-10.1f %-10.1f"
           % (kind, np.median(a["현행"]), np.median(a["선형"]), np.median(a["로그"]),
              np.max(a["현행"]), np.max(a["선형"]), np.max(a["로그"])))
-print()
-print("중앙값 기준 승자: " + " / ".join(
+emit()
+emit("중앙값 기준 승자: " + " / ".join(
     "%s=%s" % (kd, min(agg[kd], key=lambda m: np.median(agg[kd][m])))
     for kd in ("nmos", "pmos")))
 
-print()
-print("=== 2) 배열별 leave-one-out (선형 vs 로그, 상대오차 %) ===")
-print("%-6s %-7s | %-20s | %-20s" % ("kind", "배열", "중앙값 오차(%)", "최악 오차(%)"))
-print("%-6s %-7s | %-9s %-9s | %-9s %-9s" % ("", "", "선형", "로그", "선형", "로그"))
-print("-" * 62)
+emit()
+emit("=== 2) 배열별 leave-one-out (선형 vs 로그, 상대오차 %) ===")
+emit("%-6s %-7s | %-20s | %-20s" % ("kind", "배열", "중앙값 오차(%)", "최악 오차(%)"))
+emit("%-6s %-7s | %-9s %-9s | %-9s %-9s" % ("", "", "선형", "로그", "선형", "로그"))
+emit("-" * 62)
 for kind in ("nmos", "pmos"):
     k = kind[0]
     for arr_name in ("ID", "GM", "GDS", "CGG"):
@@ -168,6 +190,6 @@ for kind in ("nmos", "pmos"):
                     denom = np.abs(ref[on])
                     lin_e.extend((np.abs(lin[on] - ref[on]) / denom * 100).tolist())
                     log_e.extend((np.abs(log[on] - ref[on]) / denom * 100).tolist())
-        print("%-6s %-7s | %-9.2f %-9.2f | %-9.1f %-9.1f"
+        emit("%-6s %-7s | %-9.2f %-9.2f | %-9.1f %-9.1f"
               % (kind, arr_name, np.median(lin_e), np.median(log_e),
                  np.max(lin_e), np.max(log_e)))

@@ -32,13 +32,35 @@ sys.path.insert(0, ASSETS)
 import numpy as np
 import sizing_recipe as sr
 
+
+# ---------------------------------------------------------------------------
+# 결과는 **파일에도 남긴다**(사용자 지시, 2026-09-08). stdout에만 쓰면
+# `| grep | tail` 파이프가 백그라운드 전환 때 버퍼째 날아가, 계산은 성공했는데
+# 결과만 잃는다(이 세션에서 실제로 두 번). 한 줄 쓸 때마다 append하므로 중간에
+# 죽어도 거기까지는 건진다. 파일은 이 스크립트 옆에 `<이름>.result.txt`로 남는다.
+# ---------------------------------------------------------------------------
+_RESULT_PATH = os.path.splitext(os.path.abspath(__file__))[0] + ".result.txt"
+_first_emit = [True]
+
+
+def emit(*parts):
+    """print와 같은 시그니처로 쓰되 파일에도 남긴다."""
+    line = " ".join(str(p) for p in parts)
+    print(line, flush=True)
+    mode = "w" if _first_emit[0] else "a"
+    _first_emit[0] = False
+    with open(_RESULT_PATH, mode, encoding="utf-8") as _f:
+        _f.write(line + "\n")
+
+
+
 TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
 LUTFILE = os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz")
 
 trs, meta = sr.load_topology(TOPO)
 DIODE = sorted(n for n, t in {t.name: t for t in trs}.items() if sr.is_diode_connected(t))
-print("diode-connected %d개: %s" % (len(DIODE), DIODE))
-print()
+emit("diode-connected %d개: %s" % (len(DIODE), DIODE))
+emit()
 
 STATS = collections.Counter()
 DETAIL = {}
@@ -91,7 +113,7 @@ spec = {
     "L_grid_step": 5e-9,
 }
 
-print("파일럿 평가 1점 실행 중...")
+emit("파일럿 평가 1점 실행 중...")
 err = None
 try:
     sr.optimize_full_circuit_budget(TOPO, spec, search_method="slsqp",
@@ -99,14 +121,14 @@ try:
 except Exception as e:                       # 실패해도 계측값은 남는다
     err = "%s: %s" % (type(e).__name__, str(e)[:220])
 
-print()
-print("=== skip 분기별 집계(첫 관측 기준) ===")
+emit()
+emit("=== skip 분기별 집계(첫 관측 기준) ===")
 for k in ("처리됨", "S1_entry_없음", "S2_권위출처", "S3_근거부족"):
-    print("  %-16s %d개" % (k, STATS[k]))
-print()
-print("=== 소자별 ===")
+    emit("  %-16s %d개" % (k, STATS[k]))
+emit()
+emit("=== 소자별 ===")
 for n in DIODE:
-    print("  %-8s %s" % (n, DETAIL.get(n, "(pass가 호출되지 않음)")))
+    emit("  %-8s %s" % (n, DETAIL.get(n, "(pass가 호출되지 않음)")))
 if err:
-    print()
-    print("평가 결과: %s" % err)
+    emit()
+    emit("평가 결과: %s" % err)

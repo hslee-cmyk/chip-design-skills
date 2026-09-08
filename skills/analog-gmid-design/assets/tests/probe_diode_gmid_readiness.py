@@ -14,13 +14,35 @@ sys.path.insert(0, ASSETS)
 import numpy as np
 import sizing_recipe as sr
 
+
+# ---------------------------------------------------------------------------
+# 결과는 **파일에도 남긴다**(사용자 지시, 2026-09-08). stdout에만 쓰면
+# `| grep | tail` 파이프가 백그라운드 전환 때 버퍼째 날아가, 계산은 성공했는데
+# 결과만 잃는다(이 세션에서 실제로 두 번). 한 줄 쓸 때마다 append하므로 중간에
+# 죽어도 거기까지는 건진다. 파일은 이 스크립트 옆에 `<이름>.result.txt`로 남는다.
+# ---------------------------------------------------------------------------
+_RESULT_PATH = os.path.splitext(os.path.abspath(__file__))[0] + ".result.txt"
+_first_emit = [True]
+
+
+def emit(*parts):
+    """print와 같은 시그니처로 쓰되 파일에도 남긴다."""
+    line = " ".join(str(p) for p in parts)
+    print(line, flush=True)
+    mode = "w" if _first_emit[0] else "a"
+    _first_emit[0] = False
+    with open(_RESULT_PATH, mode, encoding="utf-8") as _f:
+        _f.write(line + "\n")
+
+
+
 LUTFILE = os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz")
 TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
 
 trs, meta = sr.load_topology(TOPO)
 BY = {t.name: t for t in trs}
 DIODE = {n for n, t in BY.items() if sr.is_diode_connected(t)}
-print("diode-connected 소자 %d개: %s" % (len(DIODE), sorted(DIODE)))
+emit("diode-connected 소자 %d개: %s" % (len(DIODE), sorted(DIODE)))
 
 # ── 계측: _hr_resolve_vertical_group 진입 시점의 diode 상태 ────────────────
 OBS = []            # (vsid, name, has_gm_id, has_L, has_vds)
@@ -60,32 +82,32 @@ spec = {
     "L_grid_step": 5e-9,
 }
 
-print("\n파일럿 단일 평가 실행 중(SLSQP 1 start)...")
+emit("\n파일럿 단일 평가 실행 중(SLSQP 1 start)...")
 try:
     res = sr.optimize_full_circuit_budget(TOPO, spec, search_method="slsqp",
                                           slsqp_kwargs={"n_starts": 1, "maxiter": 5})
     sized = res.get("sized") or res.get("devices") or {}
-    print("완료. sized %d개" % len(sized))
+    emit("완료. sized %d개" % len(sized))
 except Exception as e:
     import traceback; traceback.print_exc()
     sized = {}
 
-print("\n=== 헤드룸 그룹 해석 진입 시점의 diode 상태(첫 관측만) ===")
+emit("\n=== 헤드룸 그룹 해석 진입 시점의 diode 상태(첫 관측만) ===")
 first = {}
 for vsid, m, g, L, v in OBS:
     first.setdefault(m, (vsid, g, L, v))
-print("  %-8s %-28s %-8s %-6s %-6s" % ("소자", "vertical_stack_id", "gm_id?", "L?", "vds?"))
-print("  " + "-" * 62)
+emit("  %-8s %-28s %-8s %-6s %-6s" % ("소자", "vertical_stack_id", "gm_id?", "L?", "vds?"))
+emit("  " + "-" * 62)
 ready = 0
 for m in sorted(first):
     vsid, g, L, v = first[m]
     if g and L:
         ready += 1
-    print("  %-8s %-28s %-8s %-6s %-6s" % (m, vsid, "O" if g else "X",
+    emit("  %-8s %-28s %-8s %-6s %-6s" % (m, vsid, "O" if g else "X",
                                              "O" if L else "X", "O" if v else "X"))
 covered = set(first)
-print("\n  헤드룸 그룹에서 관측된 diode: %d/%d개" % (len(covered), len(DIODE)))
-print("  그중 gm_id+L이 이미 있는(=pre-pass 가능) diode: %d개" % ready)
+emit("\n  헤드룸 그룹에서 관측된 diode: %d/%d개" % (len(covered), len(DIODE)))
+emit("  그중 gm_id+L이 이미 있는(=pre-pass 가능) diode: %d개" % ready)
 missing = sorted(DIODE - covered)
 if missing:
-    print("  ⚠️ 헤드룸 그룹 경로에 안 나타난 diode %d개: %s" % (len(missing), missing))
+    emit("  ⚠️ 헤드룸 그룹 경로에 안 나타난 diode %d개: %s" % (len(missing), missing))
