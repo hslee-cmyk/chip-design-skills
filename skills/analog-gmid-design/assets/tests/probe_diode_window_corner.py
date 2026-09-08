@@ -12,6 +12,24 @@ B16 배선 후 `allocate_stack_headroom()`은 diode에게 구간 `[lo, hi]`의 *
 ⚠️ 이 스크립트는 `allocate_stack_headroom()`/`_singleton_vds()`가 쓰는 선택 규칙을
 monkeypatch로 바꿔 본다(엔진 기본값은 건드리지 않는다).
 
+## 측정 결과 (2026-09-08, 7앵커 LUT, 파일럿 현재 L/ID)
+
+    선택   총면적(um2)   diode(um2)   gain_db   supply_uA   판정
+    lo     1042.93       669.75       68.2039   82.7210     OK
+    mid    -             -            -         -           infeasible
+                                        ('biasgen_vom_floatsrc_sink' 예산 음수)
+    hi     -             -            -         -           infeasible
+                                        ('biasgen_vom_battery_a' 그룹)
+
+**하한이 유일하게 성립하는 코너다.** 구간의 절반만 올려도 스택 예산이 음수가 된다 --
+즉 지금 사이징에서 diode 구간의 자유도는 **쓸 수 없다**(폭 0.19~0.41V가 있지만 스택이
+그만큼 빡빡하다). 배분기가 하한을 고르는 것은 선호가 아니라 **강제**다.
+
+따라서 총 면적 1043um^2(v3.3 예시 예산 200um^2의 5.2배)를 줄이려면 구간 안에서
+미끄러지는 게 아니라 **L/ID를 바꿔야 한다** -- 정확히 §7.9 재탐색이 할 일이다.
+이전 사이징의 117um^2는 물리적으로 불가능한 상태(M11a가 vds=0.2V에서 동작한다는
+가정)의 면적이었으므로 비교 대상이 아니다.
+
 실행: assets 디렉터리에서 `python tests/probe_diode_window_corner.py`
 """
 import sys
