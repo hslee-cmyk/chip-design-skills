@@ -2195,6 +2195,71 @@ def _metric_pelgrom_mismatch(spec: dict, ctx: SizingContext) -> float:
     return math.sqrt(sum(s * s for s in sigmas)) * 1e3
 
 
+def _metric_kcl_residual(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-09-08, B8) — **내부 노드의 KCL 잔차** `|Sum I_into_node|` 중 최댓값(A).
+
+    **왜 필요한가**: §3.1 요구사항6은 "KVL/**KCL**을 만족하는지" 검증하라고 하는데, §7.5가
+    설계한 세 검사는 (레일에서 vds를 따라 노드전압 전파 / 다중경로 일치 / Vgs 일치) **전부
+    전압**이다. 그런데 rail-lock은 본질적으로 "각 소자가 설계된 ID를 흘리게 하는 노드전압
+    집합이 존재하지 않는다"는 **전류 정합성** 문제다. 전압만 전파하면 각 소자가 자기 설계
+    전류를 흘린다고 **가정**하고 도는 것이라 그 가정 자체를 검사하지 못한다.
+
+    파일럿 실측(2026-09-08): 내부 노드 30개 중 3개에서 잔차가 1nA를 넘고, `Vx`(입력쌍 소스)가
+    **-3.96µA**다. 레일은 vdd -86.27µA / gnd +88.93µA로 **2.66µA** 어긋나 있다.
+
+    부호 규약: NMOS는 drain->source, PMOS는 source->drain으로 `ID`가 흐른다고 보고 노드로
+    **들어오는** 전류를 +로 센다. `ideal_sources`의 `current_source`는 `value_amp`가
+    선언돼 있으면 `terminals[0] -> terminals[1]` 방향으로 그만큼 흘린다고 보고 함께 센다.
+
+    ⚠️ **검사하지 않는 것**(C5): (1) `value_amp`가 `null`인 이상전원 -- 값을 지어내지 않고
+    그 노드를 **건너뛴다**(`skipped_nodes`로 세어 spec에 남기지 않고 잔차에서만 뺀다).
+    (2) `passive_elements`(저항)에 흐르는 전류 -- 노드전압이 있어야 계산되는데 이 metric은
+    전압을 쓰지 않는다. R1/R2가 물린 `Vop`/`Vom`/`Voc`는 그래서 잔차가 뜰 수 있다.
+    (3) 게이트 누설/용량성 전류. (4) **잔차의 원인 구분** -- 잔차에는 사이징 자체의 KCL
+    오류와 "선언된 이상전원 값과 사이징 전류의 불일치"가 함께 들어온다. 어느 쪽인지는
+    노드별 내역을 봐야 한다(`tests/probe_kcl_residual.py`).
+
+    `exclude_nets`(선택)로 위 (2)에 해당하는 노드를 명시적으로 뺄 수 있다 -- 다만 **빼는
+    이유를 선언에 적어야** 하며, 기본값은 아무것도 빼지 않는다(조용한 면제 금지)."""
+    rails = set(spec.get("rail_nets") or ("vdd", "VDD", "gnd", "GND", "vss", "VSS"))
+    exclude = set(spec.get("exclude_nets") or ())
+    by_name, _passives = _load_full_topology_cached(ctx.topology_path)
+    inj = {}
+
+    def add(net, amp):
+        inj[net] = inj.get(net, 0.0) + amp
+
+    for name, tr in by_name.items():
+        e = ctx.sized.get(name)
+        if e is None or "ID" not in e:
+            raise KeyError(f"kcl_residual: '{name}'의 ID가 없다 -- 전 소자 사이징 후에만 "
+                            f"계산할 수 있다(T3 전역 게이트)")
+        if tr.kind == "nmos":
+            add(tr.drain, -e["ID"]); add(tr.source, +e["ID"])
+        else:
+            add(tr.source, -e["ID"]); add(tr.drain, +e["ID"])
+
+    skipped = set()
+    for src in (_ideal_sources_cached(ctx.topology_path) or []):
+        if src.get("kind") != "current_source":
+            continue
+        amp = src.get("value_amp")
+        terms = src.get("terminals") or []
+        if len(terms) < 2:
+            continue
+        if amp is None:
+            skipped.update(terms)          # 값 미정 -- 지어내지 않고 그 노드를 뺀다
+            continue
+        add(terms[0], -float(amp)); add(terms[1], +float(amp))
+
+    worst = 0.0
+    for net, val in sorted(inj.items()):
+        if net in rails or net in exclude or net in skipped:
+            continue
+        worst = max(worst, abs(val))
+    return worst
+
+
 def _metric_supply_current(spec: dict, ctx: SizingContext) -> float:
     """F엔진(2026-09-08, A3) — **VDD 레일에서 실제로 빠져나가는 전류**의 합(A). 회로의 진짜
     공급전류이자 전력 예산의 분모다.
@@ -2902,9 +2967,16 @@ def _load_full_topology_cached(topology_path: str) -> tuple:
             # 2026-09-08(A4) -- `_metric_mirror_ratio_error()`가 쓴다. 같은 캐시를 재사용해
             # topology.json을 두 번 열지 않는다(C10 재계산 금지).
             "matching_pairs": ((raw.get("symmetry") or {}).get("matching_pairs") or []),
+            "ideal_sources": (raw.get("ideal_sources") or []),   # 2026-09-08(B8)
         }
     entry = cache[topology_path]
     return entry["by_name"], entry["passive_elements"]
+
+
+def _ideal_sources_cached(topology_path: str) -> list:
+    """`ideal_sources` 선언을 `_load_full_topology_cached()`와 같은 캐시에서 준다(B8)."""
+    _load_full_topology_cached(topology_path)
+    return _load_full_topology_cached.__dict__["_cache"][topology_path]["ideal_sources"]
 
 
 def _matching_pairs_cached(topology_path: str) -> list:
@@ -3104,6 +3176,7 @@ _METRICS_REGISTRY = {
     "cmrr_estimate":            _metric_cmrr_estimate,               # 배치 7-3i
     "psrr_estimate":            _metric_psrr_estimate,               # 배치 7-3i
     "supply_current":           _metric_supply_current,            # A3, 2026-09-08
+    "kcl_residual":             _metric_kcl_residual,              # B8, 2026-09-08
     "mirror_ratio_error":       _metric_mirror_ratio_error,        # A4, 2026-09-08
     "rail_referenced_voltage":  _metric_rail_referenced_voltage,     # 세션6
     "battery_centering_deviation": _metric_battery_centering_deviation,  # 세션6
@@ -3145,6 +3218,7 @@ _METRIC_UNITS = {          # 각 계산기가 **실제로** 돌려주는 단위(
     "cmrr_estimate":               "dB",
     "psrr_estimate":               "dB",
     "supply_current":              "A",
+    "kcl_residual":                "A",
     "mirror_ratio_error":          "%",
     "rail_referenced_voltage":     "V",
     "battery_centering_deviation": "V",
@@ -6523,7 +6597,8 @@ _DEFAULT_ALL_DEVICES_METRIC_TYPES = frozenset({"sum_current", "sum_area",
                                                  "cmrr_estimate", "psrr_estimate",
                                                  # 2026-09-08(A3/A4) -- 둘 다 topology
                                                  # 전체를 훑으므로 isolated로 보면 안 된다.
-                                                 "supply_current", "mirror_ratio_error"})
+                                                 "supply_current", "mirror_ratio_error",
+                                                 "kcl_residual"})
 
 
 def _metric_device_footprint(metric_name: str, metrics_specs: dict):
