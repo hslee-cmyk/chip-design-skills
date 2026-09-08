@@ -2195,6 +2195,129 @@ def _metric_pelgrom_mismatch(spec: dict, ctx: SizingContext) -> float:
     return math.sqrt(sum(s * s for s in sigmas)) * 1e3
 
 
+# ---------------------------------------------------------------------------
+# DC 노드전압 복원 + vsb 유도 (2026-09-08, §7.5 코어 / B7·B9)
+# ---------------------------------------------------------------------------
+
+_DEFAULT_RAIL_HI = frozenset({"vdd", "VDD"})
+_DEFAULT_RAIL_LO = frozenset({"gnd", "GND", "vss", "VSS"})
+
+
+@dataclass
+class NodeVoltageReport:
+    """`propagate_node_voltages()`의 결과. 값을 조용히 버리지 않고 전부 돌려준다."""
+    nodes: dict                 # net -> DC 전압(V)
+    unresolved: list            # 전파가 닿지 못한 소자 이름(정렬)
+    conflicts: list             # (device, net, 기존값, 이 경로가 준 값, |차이|) -- 정렬
+    passes: int                 # 실제로 돈 pass 수
+
+
+def propagate_node_voltages(by_name: dict, sized: dict, vdd: float,
+                             rail_hi=_DEFAULT_RAIL_HI, rail_lo=_DEFAULT_RAIL_LO,
+                             tol: float = 1e-6, max_passes: int = 50) -> NodeVoltageReport:
+    """레일에서 시작해 각 소자의 `vds`를 따라 **모든 내부 노드의 DC 절대 전압**을 복원한다.
+
+    §7.5가 요구하는 검증기의 코어다. 스크래치패드 프로토타입(`node_dc_propagate.py`)과
+    달리 세 가지를 실제로 한다(계획 §10.3 B7):
+
+    1. **결정론**: `sorted()`로 순회한다. 프로토타입은 `for name in list(unresolved)`(set
+       순회)라 파이썬 해시 랜덤화에 노출돼 있었다(이 회로에선 값이 안 바뀌었지만 보장이 없다).
+    2. **다중도달 일치 검사**: 같은 net에 두 경로가 도달하면 값을 비교해 `conflicts`에
+       남긴다. 프로토타입은 `elif`에서 **비교 없이 discard**했다 -- 파일럿 실측에서 21건 중
+       **4건이 243.5mV 불일치**(Vop1/Vom1)인데 그걸 통째로 놓치고 있었다.
+    3. **정직한 종료**: 진전이 없으면 즉시 멈추고 `unresolved`를 그대로 돌려준다.
+       프로토타입의 `if not progressed and not unresolved: break`는 진전이 없어도
+       unresolved가 남으면 max_passes를 조용히 다 돌고 나왔다(진짜 실패를 안 보고).
+
+    부호: PMOS는 `V(drain) = V(source) - vds`, NMOS는 `V(drain) = V(source) + vds`.
+    양방향으로 전파한다(drain을 알면 source도 역산) -- 한 방향만 하면 레일이 drain 쪽에
+    있는 소자에서 막힌다.
+
+    ⚠️ **검사하지 않는 것**(C5): (1) KCL(전류) -- `_metric_kcl_residual()` 몫이다.
+    (2) 저항/커패시터가 만드는 전압 강하 -- `passive_elements`를 읽지 않는다.
+    (3) 이 전압들이 소자를 포화에 두는지 -- 별도 게이트가 볼 일이다.
+    (4) 다중 DC 동작점 -- 레일에서 도달 가능한 해 하나만 복원한다."""
+    nodes = {}
+    for n in rail_hi:
+        nodes[n] = vdd
+    for n in rail_lo:
+        nodes[n] = 0.0
+    unresolved = set(by_name)
+    conflicts = []
+    passes = 0
+    for passes in range(1, max_passes + 1):
+        progressed = False
+        for name in sorted(unresolved):
+            tr = by_name[name]
+            e = sized.get(name)
+            if e is None or e.get("vds") is None:
+                continue
+            vds = e["vds"]
+            sgn = -1.0 if tr.kind == "pmos" else +1.0      # V(drain) = V(source) + sgn*vds
+            s_known, d_known = tr.source in nodes, tr.drain in nodes
+            if s_known and not d_known:
+                nodes[tr.drain] = nodes[tr.source] + sgn * vds
+                unresolved.discard(name); progressed = True
+            elif d_known and not s_known:
+                nodes[tr.source] = nodes[tr.drain] - sgn * vds
+                unresolved.discard(name); progressed = True
+            elif s_known and d_known:
+                expected = nodes[tr.source] + sgn * vds
+                diff = abs(nodes[tr.drain] - expected)
+                if diff > tol:
+                    conflicts.append((name, tr.drain, nodes[tr.drain], expected, diff))
+                unresolved.discard(name); progressed = True
+        if not progressed:
+            break
+    conflicts.sort(key=lambda c: -c[4])
+    return NodeVoltageReport(nodes=nodes, unresolved=sorted(unresolved),
+                             conflicts=conflicts, passes=passes)
+
+
+def derive_vsb_from_nodes(kind: str, source_net: str, nodes: dict, vdd: float,
+                           rail_hi=_DEFAULT_RAIL_HI, rail_lo=_DEFAULT_RAIL_LO):
+    """소자 하나의 **소스-바디 전압 `vsb`**를 복원된 노드전압에서 유도한다(2026-09-08, B9).
+
+    LUT의 VS 축은 소스-벌크 역바이어스 크기다(생성 넷리스트 `sky130_lut_sweep.py`에서
+    소스는 노드 0 고정이고 VS가 벌크를 움직인다). 벌크가 레일에 묶이는 통상 배치에서
+        NMOS (bulk=vss) : vsb = V(source) - 0
+        PMOS (bulk=vdd) : vsb = vdd - V(source)
+    이고 둘 다 **0 이상**이다(역바이어스). 소스 노드 전압을 모르면 `None`을 돌려준다 --
+    **0.0으로 조용히 때우지 않는다**(그 폴백이 정확히 B9의 25개 불일치를 만들었다).
+
+    음수가 나오면(순바이어스) 값을 잘라내지 않고 그대로 돌려준다 -- 그 자체가 물리적으로
+    이상하다는 신호이므로 호출부가 보고해야 한다(§3.2 P1)."""
+    v = nodes.get(source_net)
+    if v is None:
+        return None
+    return (vdd - v) if kind == "pmos" else v
+
+
+def audit_vsb_consistency(by_name: dict, sized: dict, vdd: float,
+                           tol: float = 1e-6, **kw) -> list:
+    """선언된 `vsb`가 복원된 노드전압과 맞는지 소자 전수 대조해 어긋난 것만 돌려준다.
+
+    반환: `[(name, kind, source_net, V(source), 선언 vsb, 기대 vsb, 차이), ...]`(차이 내림차순).
+    파일럿 실측(2026-09-08): 51소자 중 **25개 불일치**, 최대 **-1.3000V**(M37a/M37b).
+    M9a/M9b·M18a/M18b는 값이 정확히 **서로 바뀌어** 있다 -- 원인은
+    `_hr_resolve_vertical_group()`의 `setdefault("vsb", ref_vds)`가 kind를 안 보기 때문이다."""
+    rep = propagate_node_voltages(by_name, sized, vdd, **kw)
+    out = []
+    for name in sorted(by_name):
+        tr = by_name[name]
+        e = sized.get(name)
+        if e is None or "vsb" not in e:
+            continue
+        exp = derive_vsb_from_nodes(tr.kind, tr.source, rep.nodes, vdd)
+        if exp is None:
+            continue
+        d = e["vsb"] - exp
+        if abs(d) > tol:
+            out.append((name, tr.kind, tr.source, rep.nodes[tr.source], e["vsb"], exp, d))
+    out.sort(key=lambda r: -abs(r[6]))
+    return out
+
+
 def _metric_kcl_residual(spec: dict, ctx: SizingContext) -> float:
     """F엔진(2026-09-08, B8) — **내부 노드의 KCL 잔차** `|Sum I_into_node|` 중 최댓값(A).
 
