@@ -6795,6 +6795,82 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
                                 "kind": kind_of[name], "vsb": vsb}
 
+        # 2026-09-08(사용자 지시) -- **매칭 쌍의 gm_id 전파**. 위 두 pass가 끝난 지금이
+        # 모든 소자의 gm_id가 확정된 시점이다.
+        #
+        # 왜 필요한가(실측으로 발견, `tests/probe_matching_pair_divergence.py`): 엔진은
+        # `pairs_meta` 루프에서 **L만** 전파한다 -- 한쪽만 있으면 복사하고, 둘 다 다르면
+        # `_AUTHORITATIVE_L_SOURCES`로 우선순위를 가리고, 그것도 안 되면 명시적으로
+        # 실패한다. 그런데 **gm_id에는 그 대응물이 아예 없었다**. VDS는 same_as_device/
+        # vertical stack이 따로 강제하고 W는 gm_id에서 유도되므로, 결국 gm_id 하나만
+        # 무방비였다. 그 결과 M2a/M2b는 L/ID/vds/vsb가 전부 같은데 gm_id가 15.0 vs 2.5로
+        # 갈렸다(M2a는 metric_stage_budget이 권위 있게 확정, M2b는 `..._vds_deferred`
+        # 태그라 권위 목록 밖이어서 gm_id_role 루프가 독립 탐색). W가 24.5 vs 1.1um으로
+        # 22배 벌어지고, 나중에 레이아웃의 matching-safety 복구가 둘 다 104.0um으로
+        # 맞추면서 **면적이 21% 늘고 그 시점엔 제약 재검증이 없어 area_um2 제약이 조용히
+        # 깨졌다**(867.95 -> 1050.40um^2).
+        #
+        # ⚠️ **적용 범위를 좁힌다**: `L/ID/vds/vsb`가 **전부 같은** 쌍만 대상이다. 그때는
+        # 같은 소자가 같은 동작점에 있다는 뜻이라 gm_id가 다를 수 없다(다르면 VGS가
+        # 달라지는데, 매칭 선언은 그걸 금지한다). ID나 vds가 애초에 다른 `ratio` 매칭
+        # (미러비가 의도된 경우 -- 파일럿의 M18_bg 그룹, M10/M12/M19/M21)은 W가 달라도
+        # 정당할 수 있으므로 **건드리지 않는다** -- 그건 회로 해석이 필요한 별개 판단이다.
+        _mp_tol = 1e-9
+        for _p in pairs_meta:
+            for _pa, _pb in zip(_p["names"], _p["names"][1:]):
+                _ea, _eb = ctx.sized.get(_pa), ctx.sized.get(_pb)
+                if not _ea or not _eb:
+                    continue
+                _ga, _gb = _ea.get("gm_id"), _eb.get("gm_id")
+                if _ga is None or _gb is None or abs(_ga - _gb) <= _mp_tol:
+                    continue
+                # 동작점이 정말 같은가 -- 하나라도 다르면 이 루프의 대상이 아니다.
+                _same_op = all(
+                    _ea.get(_f) is not None and _eb.get(_f) is not None
+                    and abs(_ea[_f] - _eb[_f]) <= _mp_tol * max(abs(_ea[_f]), 1.0)
+                    for _f in ("L", "ID", "vds")) and (
+                    abs(_ea.get("vsb", 0.0) - _eb.get("vsb", 0.0)) <= _mp_tol)
+                if not _same_op:
+                    continue
+                _aa = _gm_id_already_authoritative(_ea)
+                _ab = _gm_id_already_authoritative(_eb)
+                if _aa and not _ab:
+                    _src, _dst = _pa, _pb
+                elif _ab and not _aa:
+                    _src, _dst = _pb, _pa
+                else:
+                    # 둘 다 권위 있거나 둘 다 아니면 우선순위를 지어낼 근거가 없다 --
+                    # L 전파 루프와 동일하게 조용히 넘어가지 않고 명시적으로 실패한다.
+                    raise ValueError(
+                        f"matching pair ({_pa},{_pb}, current_forced={_p['current_forced']}, "
+                        f"matching_sensitivity={_p['matching_sensitivity']})의 동작점"
+                        f"(L/ID/vds/vsb)이 완전히 같은데 gm_id가 다르다"
+                        f"(gm_id_{_pa}={_ga:.6g}, gm_id_{_pb}={_gb:.6g}). 같은 동작점이면 "
+                        f"VGS도 같아야 하므로 물리적으로 불가능하다. 어느 쪽도 권위 있는 "
+                        f"출처가 아니라(_L_source={_ea.get('_L_source')!r}/"
+                        f"{_eb.get('_L_source')!r}, _gm_id_source={_ea.get('_gm_id_source')!r}/"
+                        f"{_eb.get('_gm_id_source')!r}) 자동으로 우선순위를 가릴 근거가 없다 -- "
+                        f"topology.json의 device_roles gm_id_role/gm_id_match_vgs_of 선언을 "
+                        f"확인할 것")
+                _se, _de = ctx.sized[_src], ctx.sized[_dst]
+                _gm_id = _se["gm_id"]
+                _L, _vds = _de["L"], _de["vds"]
+                _vsb = _de.get("vsb", 0.0)
+                _lut = spec["lut_by_kind"][kind_of[_dst]]
+                _idu = _lut.gm_id_to_id_density(_gm_id, _L, _vds, _vsb)
+                if _idu <= 0:
+                    raise InfeasibleSizingError(
+                        f"{_dst}: 매칭 파트너 {_src}의 gm_id={_gm_id:.4g}를 물려받으니 "
+                        f"전류밀도가 {_idu:.4g} <= 0", sized_snapshot=dict(ctx.sized))
+                _gm = _de["ID"] * _gm_id
+                # gm_id를 물려받으면 W/gm/gds를 그 값으로 **다시 계산해야** 한다 --
+                # 안 그러면 gm_id만 바뀌고 나머지가 옛 값으로 남아 더 나쁜 불일치가 된다.
+                ctx.sized[_dst] = {
+                    **_de, "gm_id": _gm_id, "gm": _gm, "W": _L * _de["ID"] / _idu,
+                    "gds": _gm / _lut.gm_gds_ratio(_gm_id, _L, _vds, _vsb),
+                    "kind": kind_of[_dst], "vsb": _vsb,
+                    "_gm_id_source": f"matching_pair:{_src}"}
+
         # 2026-09-03(세션44 계속) -- 이 회로가 전부 사이징된 지금이 처음으로 전체회로
         # constraint(cmrr/psrr 등)를 정직하게 확인할 수 있는 시점이다 -- 공유전류 조인트
         # 스캔(있는 회로만, 대부분은 빈 dict라 이 루프가 0회 실행됨)이 그 시점엔 못 보고

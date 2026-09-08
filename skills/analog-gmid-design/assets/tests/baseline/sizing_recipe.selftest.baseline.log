@@ -106,7 +106,7 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
     M18_bg 케이스) 정확히 거부하는지 합성 fixture로 확인]
     OK: ideal_sources 선언 제거 시 정확히 거부됨 -> 'M18_bg'(role='diode_reference')가 singleton thin-role 그룹이라 allocate_stack_headroom()의 '합=vdd' 계약을 우회하려는데, ideal_sources 선언으로 정당화가 안 됨: 'M18_bg'의 non-rail 단자(['Vbias1']) 중 어느 것도 topology.json의 ideal_sources 선언과 안 맞음 -- role='diode_reference'이 thin_roles인데 이 우회를 정당화할 근거가 없음(선언 누락 또는 role 오분류 가능성, 재검토할 것)
     PASS: M7==M6(=0.2500000000000001V), M36b==M36a(=0.9375V) -- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사
-    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=76.38, mismatch_sigma_mV=3.01, cmrr_estimate_db=76.33, psrr_estimate_db=88.05)
+    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=76.38, mismatch_sigma_mV=3.01, cmrr_estimate_db=80.68, psrr_estimate_db=92.58)
 
   [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/
   run_matching_safety_with_finger_growth() -- 세션16 2번. repair_matching_safety()가
