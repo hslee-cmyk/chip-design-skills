@@ -2195,6 +2195,141 @@ def _metric_pelgrom_mismatch(spec: dict, ctx: SizingContext) -> float:
     return math.sqrt(sum(s * s for s in sigmas)) * 1e3
 
 
+class DiodeSelfConsistencyError(ValueError):
+    """diode-connected 소자의 `Vgs = Vds` 자기일관해를 LUT 격자 안에서 찾지 못했다(B1).
+
+    `ValueError`의 하위라 기존 호출부의 예외 처리를 깨지 않으면서, 이 실패만 따로 잡고
+    싶은 곳(예: L_combo 루프가 그 조합을 버리고 다음으로 가는 경우)이 구분할 수 있다."""
+
+
+def is_diode_connected(transistor) -> bool:
+    """`gate == drain`이면 diode-connected다 -- **connectivity만 본다**(2026-09-08, B1).
+
+    role 라벨을 보지 않는 이유는 실측이다: 파일럿의 diode-connected 16개 소자의
+    `headroom_role`이 cascode 10 / mirror 3 / voltage_divider 2 / diode_reference 1로
+    흩어져 있어, **`diode_reference` 라벨은 16개 중 1개에만** 붙어 있다(계획 §7.3 B1 해소).
+    role로 판정했다면 15개를 놓친다."""
+    return transistor.gate == transistor.drain
+
+
+def solve_diode_connected_vds(lut, gm_id: float, L: float, vsb: float = 0.0,
+                               lo: float = None, hi: float = None,
+                               tol: float = 1e-6, max_iter: int = 60) -> float:
+    """diode-connected 소자의 `Vgs = Vds` **자기일관 vds**를 bisection으로 푼다(B1).
+
+    `gate == drain`이면 물리적으로 `Vgs = Vds`가 강제되므로, 그 소자의 vds는 자유롭게
+    배정할 수 있는 값이 아니라 **자기참조 고정점**이다:
+
+        v* 는  g(v) = vgs_for_gm_id(gm_id, L, v, vsb) - v = 0  의 해
+
+    **왜 대입 반복이 아니라 bisection인가**(계획 §10.2 A7): 단순 대입(`v <- f(v)`)은
+    수렴을 보장하지 못하고, 수렴 실패 시 "20회 돌고 마지막 값을 반환"하면 그게 정확히
+    이번 사고의 재발이다(조용히 틀린 값). `g`는 `f`가 v에 대해 완만하게 변하므로 단조
+    감소에 가깝고, 격자 양끝에서 부호가 갈리면 bisection이 **유한회 안에 유일해**를 준다.
+    부호가 안 갈리면 "이 gm_id/L에서는 자기일관해가 LUT 격자 안에 없다"는 **명시적 실패**
+    (`DiodeSelfConsistencyError`)를 낸다 -- 조용히 때우지 않는다(§3.2 P1).
+
+    `lo`/`hi`를 안 주면 LUT의 VDS 격자 범위를 그대로 쓴다(외삽 금지, §7.7 R3).
+
+    ⚠️ **검사하지 않는 것**(C5): (1) `vsb`가 맞는 값인지 -- 호출부가 준 값을 그대로 쓴다
+    (B9 참고). (2) 이 vds가 스택 KVL 예산 안에 들어가는지 -- 헤드룸 해석기 몫이다.
+    (3) 여러 diode가 직렬로 맞물린 스택의 연립해 -- 소자 하나씩만 푼다(계획 §10.2 A8).
+    (4) 해가 소자를 포화에 두는지."""
+    grid = getattr(lut, "VDS_grid", None)
+    pts = [float(v) for v in grid] if grid is not None else [i / 48.0 * 1.8 for i in range(49)]
+    if lo is not None or hi is not None:
+        a = lo if lo is not None else min(pts)
+        b = hi if hi is not None else max(pts)
+        pts = [v for v in pts if a <= v <= b]
+
+    def g(v):
+        return lut.vgs_for_gm_id(gm_id, L, v, vsb) - v
+
+    # 브래킷을 지어내지 않는다 -- **LUT 격자점 위에서** g를 재고, 부호가 갈리는 인접 구간을
+    # 찾는다. VDS=0 같은 점은 소자가 꺼져 있어 gm_id 조회 자체가 범위 밖이므로 건너뛴다
+    # (그 점을 브래킷 끝으로 쓰면 항상 실패한다 -- 실측으로 확인).
+    valid = []
+    skipped = 0
+    for v in pts:
+        try:
+            valid.append((v, g(v)))
+        except ValueError:
+            skipped += 1
+    if len(valid) < 2:
+        raise DiodeSelfConsistencyError(
+            f"diode 자기일관해 탐색 불가: LUT VDS 격자 {len(pts)}점 중 gm_id={gm_id:.4g}를 "
+            f"조회할 수 있는 점이 {len(valid)}개뿐이다(L={L:.4g}, vsb={vsb:.4g}). "
+            f"이 gm_id는 이 (L, vsb)에서 사실상 도달 불가다")
+    bracket = None
+    for (v0, g0), (v1, g1) in zip(valid, valid[1:]):
+        if g0 == 0.0:
+            return v0
+        if g0 * g1 <= 0:
+            bracket = (v0, g0, v1, g1)
+            break
+    if bracket is None:
+        raise DiodeSelfConsistencyError(
+            f"diode 자기일관해가 LUT VDS 격자 [{valid[0][0]:.4g}, {valid[-1][0]:.4g}] 안에 없다 "
+            f"(gm_id={gm_id:.4g}, L={L:.4g}, vsb={vsb:.4g}; g 양끝 {valid[0][1]:+.4g} / "
+            f"{valid[-1][1]:+.4g} -- 부호가 갈리지 않는다{'' if not skipped else f', 조회 불가 {skipped}점 제외'}). "
+            f"이 소자는 그 gm_id를 Vgs=Vds 조건에서 낼 수 없다 -- gm_id/L을 바꾸거나 이 조합을 버릴 것")
+    lo, g_lo, hi, _g_hi = bracket
+    for _ in range(max_iter):
+        mid = 0.5 * (lo + hi)
+        g_mid = g(mid)
+        if abs(g_mid) < tol or (hi - lo) < tol:
+            return mid
+        if g_lo * g_mid <= 0:
+            hi = mid
+        else:
+            lo, g_lo = mid, g_mid
+    raise DiodeSelfConsistencyError(
+        f"diode 자기일관해 bisection이 {max_iter}회 안에 tol={tol:.1g}로 수렴하지 못했다 "
+        f"(gm_id={gm_id:.4g}, L={L:.4g}, 잔여구간 {hi - lo:.4g}) -- 마지막 값을 반환하지 "
+        f"않는다(조용한 실패 금지)")
+
+
+def set_device_vds(ctx, name: str, value: float, source: str,
+                    diode_set=None, lut_by_kind=None, tol: float = 1e-3) -> None:
+    """`ctx.sized[name]["vds"]`를 기입하는 **유일한 경로**(2026-09-08, B1).
+
+    **왜 단일 setter인가**: vds를 기입하는 지점이 엔진에 7곳 있었고(계획 §7.3 B1 실측),
+    그 중 `resolve_feed_vds()`를 거치는 것은 2곳뿐이라 "그 함수에 diode 티어를 넣는다"는
+    v3.0 설계로는 **diode 소자를 하나도 덮지 못했다**(파일럿 51소자 중 4개만 통과, diode 0개).
+    사고19가 기록한 실패와 같은 구조다. 그래서 티어를 한 함수 안에 넣는 대신 **모든 기입을
+    이 함수로 모으고**, 여기서 물리 제약을 강제한다.
+
+    하는 일:
+      1. `diode_set`에 든 소자면 `solve_diode_connected_vds()`의 자기일관해와 `value`가
+         `tol` 안에서 일치하는지 검사하고, 어긋나면 **즉시 실패**한다(조용히 덮어쓰지 않음).
+      2. `_vds_source`에 누가 이 값을 정했는지 남긴다(B13 추적성). 사후에 "이 vds가 어디서
+         왔나"를 물을 수 있어야 C2 디버깅이 가능하다.
+
+    `diode_set`/`lut_by_kind`를 안 주면 1번 검사는 건너뛴다(전환기 호환) -- 다만 그 경우
+    `_vds_source`에 `+unchecked`를 붙여 **검사 안 된 기입임을 표시**한다."""
+    entry = ctx.sized.setdefault(name, {})
+    # `checked`는 "diode 검사를 **적용할 수 있었는가**"다 -- diode가 아닌 소자는 검사 대상이
+    # 아닐 뿐 미검증이 아니므로 `+unchecked`를 붙이지 않는다.
+    checked = diode_set is not None and lut_by_kind is not None
+    if checked and name in diode_set:
+        e = ctx.sized.get(name, {})
+        gm_id, L = e.get("gm_id"), e.get("L")
+        if gm_id is None or L is None:
+            checked = False            # 아직 gm_id/L이 없어 검사 불가 -- 그 사실을 남긴다
+        else:
+            lut = lut_by_kind[ctx.kind_of[name]]
+            v_star = solve_diode_connected_vds(lut, gm_id, L, e.get("vsb", 0.0))
+            if abs(value - v_star) > tol:
+                raise DiodeSelfConsistencyError(
+                    f"'{name}'은 diode-connected(gate==drain)라 Vgs=Vds가 물리적으로 "
+                    f"강제되는데, {source!r}가 vds={value:.4f}V를 배정하려 한다 -- "
+                    f"자기일관해는 {v_star:.4f}V다(차이 {abs(value - v_star) * 1e3:.1f}mV > "
+                    f"tol {tol * 1e3:.1f}mV). 이 소자의 vds는 배정 대상이 아니라 "
+                    f"gm_id/L/vsb가 정하는 종속값이다")
+    entry["vds"] = value
+    entry["_vds_source"] = source if checked else (source + "+unchecked")
+
+
 # ---------------------------------------------------------------------------
 # DC 노드전압 복원 + vsb 유도 (2026-09-08, §7.5 코어 / B7·B9)
 # ---------------------------------------------------------------------------
