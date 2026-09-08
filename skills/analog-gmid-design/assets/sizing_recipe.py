@@ -2195,6 +2195,53 @@ def _metric_pelgrom_mismatch(spec: dict, ctx: SizingContext) -> float:
     return math.sqrt(sum(s * s for s in sigmas)) * 1e3
 
 
+def _metric_mirror_ratio_error(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-09-08, A4) — **전류미러 쌍의 VDS 차이가 만드는 계통(systematic) 전류비
+    오차**를 %로 반환한다. `symmetry.matching_pairs` 중 `matching_sensitivity == "ratio"`인
+    쌍 전수를 훑어 `|VDS_b - VDS_a| / V_A`를 계산하고(1차 채널길이변조: `I ∝ 1 + VDS/V_A`,
+    `V_A = ID/gds`) `aggregate`(`"max"` 기본 | `"rss"`)로 합친다.
+
+    **왜 이 metric이 따로 필요한가**: `pelgrom_mismatch`는 `estimate_mismatch_sigma(
+    vth0_slope, W, L)` -- 즉 **랜덤** Vth 미스매치(σ ∝ 1/sqrt(WL))만 본다. VDS 차이가 만드는
+    것은 랜덤이 아니라 **계통** 오차라서 구조적으로 그 함수의 시야 밖이다. 파일럿 실측(2026-09-08):
+    `M18_bg/M60`이 ΔVDS=1.300V, V_A=2.04V -> **ΔI/I = 63.6%** -- 미러비가 설계값의 1.6배로
+    틀어져 있는데 어떤 metric도 이를 보고하지 않고 있었다(§10.2 A4).
+
+    **`ratio` 쌍만 본다**: `offset` 쌍(공유 tail KCL이 강제하는 진짜 대칭)은 헤드룸 해석기가
+    이미 `_hr_vfind()` union으로 VDS를 같게 강제하므로 정의상 오차가 0이다(파일럿 실측 확인:
+    offset 3쌍 전부 ΔVDS=0). 반대로 미러(`ratio`)는 레퍼런스(diode, Vgs로 고정)와 출력(부하
+    노드 전압)의 VDS가 **원래 다른 것이 정상**이라 "같게 만들라"는 제약을 걸면 회로가 성립하지
+    않는다 -- 그래서 제약이 아니라 **재는 값**으로 둔다.
+
+    ⚠️ **검사하지 않는 것**(C5): (1) 캐스코드 미러가 VDS 민감도를 낮추는 효과 -- 1차 CLM만
+    본다. (2) 랜덤 미스매치 -- 그건 `pelgrom_mismatch` 몫이다. (3) 3소자 이상 미러 그룹의
+    쌍 조합 -- 선언된 쌍 그대로만 본다. (4) 이 오차가 최종 스펙(gain/CMRR 등)에 얼마나
+    전파되는지 -- 그건 전체회로 MNA metric이 별도로 본다."""
+    pairs = _matching_pairs_cached(ctx.topology_path)
+    agg = spec.get("aggregate", "max")
+    if agg not in ("max", "rss"):
+        raise ValueError(f"mirror_ratio_error: aggregate는 'max'|'rss' 중 하나여야 한다(받은 값: {agg!r})")
+    errs = []
+    for p in pairs:
+        if p.get("matching_sensitivity") != "ratio":
+            continue
+        names = p.get("names") or []
+        if len(names) < 2:
+            continue
+        a, b = names[0], names[1]
+        ea, eb = ctx.sized.get(a), ctx.sized.get(b)
+        if ea is None or eb is None:
+            raise KeyError(f"mirror_ratio_error: '{a}' 또는 '{b}'가 ctx.sized에 없다 -- "
+                            f"이 metric은 전 소자 사이징 후에만 계산할 수 있다(T3 전역 게이트)")
+        if ea.get("vds") is None or eb.get("vds") is None or not ea.get("gds"):
+            raise KeyError(f"mirror_ratio_error: '{a}'/'{b}'의 vds/gds가 미확정")
+        v_a = ea["ID"] / ea["gds"]                      # Early 전압 V_A = ID/gds
+        errs.append(abs(eb["vds"] - ea["vds"]) / v_a * 100.0)
+    if not errs:
+        return 0.0
+    return max(errs) if agg == "max" else math.sqrt(sum(e * e for e in errs))
+
+
 def _metric_rail_referenced_voltage(spec: dict, ctx: SizingContext) -> float:
     """F엔진(2026-08 세션6) — `device`(이미 사이징 완료, gm_id/L/vds/vs/kind 확정)의
     게이트가 실제로 도달하는 DC 레벨을 LUT VGS 역산(`vgs_for_gm_id()`)으로 계산한다.
@@ -2791,9 +2838,18 @@ def _load_full_topology_cached(topology_path: str) -> tuple:
         cache[topology_path] = {
             "by_name": {t.name: t for t in trs},
             "passive_elements": raw.get("passive_elements") or [],
+            # 2026-09-08(A4) -- `_metric_mirror_ratio_error()`가 쓴다. 같은 캐시를 재사용해
+            # topology.json을 두 번 열지 않는다(C10 재계산 금지).
+            "matching_pairs": ((raw.get("symmetry") or {}).get("matching_pairs") or []),
         }
     entry = cache[topology_path]
     return entry["by_name"], entry["passive_elements"]
+
+
+def _matching_pairs_cached(topology_path: str) -> list:
+    """`symmetry.matching_pairs` 선언을 `_load_full_topology_cached()`와 같은 캐시에서 준다."""
+    _load_full_topology_cached(topology_path)      # 캐시 채우기(이미 있으면 no-op)
+    return _load_full_topology_cached.__dict__["_cache"][topology_path]["matching_pairs"]
 
 
 _DEFAULT_SENSE_RESISTOR_OHM = 1.0e9   # R1/R2류 "averaging만, 부하 없음" 근사(세션21, 사용자 확정)
@@ -2986,6 +3042,7 @@ _METRICS_REGISTRY = {
     "pelgrom_mismatch":         _metric_pelgrom_mismatch,            # 배치 7-3h
     "cmrr_estimate":            _metric_cmrr_estimate,               # 배치 7-3i
     "psrr_estimate":            _metric_psrr_estimate,               # 배치 7-3i
+    "mirror_ratio_error":       _metric_mirror_ratio_error,        # A4, 2026-09-08
     "rail_referenced_voltage":  _metric_rail_referenced_voltage,     # 세션6
     "battery_centering_deviation": _metric_battery_centering_deviation,  # 세션6
     "nulling_resistor_ohm":     _metric_nulling_resistor_ohm,         # 세션44 계속
@@ -3025,6 +3082,7 @@ _METRIC_UNITS = {          # 각 계산기가 **실제로** 돌려주는 단위(
     "pelgrom_mismatch":            "mV",     # 이 계산기는 이미 *1e3으로 mV를 돌려준다
     "cmrr_estimate":               "dB",
     "psrr_estimate":               "dB",
+    "mirror_ratio_error":          "%",
     "rail_referenced_voltage":     "V",
     "battery_centering_deviation": "V",
     "nulling_resistor_ohm":        "ohm",
@@ -3039,6 +3097,7 @@ _UNIT_SCALES = {           # (정규 단위, 선언 단위) -> 곱할 계수. �
     ("mV", "mV"): 1.0,      ("mV", "V"): 1e-3,
     ("dB", "dB"): 1.0,
     ("deg", "deg"): 1.0,
+    ("%", "%"): 1.0,
     ("ohm", "ohm"): 1.0,    ("ohm", "kohm"): 1e-3,
     ("V/sqrt(Hz)", "V/sqrt(Hz)"): 1.0,
     ("V/sqrt(Hz)", "nV/sqrt(Hz)"): 1e9,
@@ -3054,6 +3113,7 @@ _UNIT_NAME_SUFFIXES = (
     ("_ma",      "mA"),
     ("_mv",      "mV"),
     ("_ohm",     "ohm"),
+    ("_pct",     "%"),
     ("_deg",     "deg"),
     ("_db",      "dB"),
     ("_v",       "V"),
