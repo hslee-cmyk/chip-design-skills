@@ -99,14 +99,14 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
   으로 51소자 실회로 실행해 한 번에 검증. classab_centering_dev_v(세션27이
   이미 분리해둔 별개 미해결 항목)만 임시로 제외 -- 이번 검증 범위 밖]
     PASS: vy_tail/vbias4/cmfb 세 컬럼 전부 vdd(1.8V)와 정확히 일치 -- M5/M61/M64/M63/M60/M66/M36a/M37a/M38 KVL 정합
-    PASS: M18_bg(diode_reference)==0.2V -- thin_roles로 얇게 배정됨(더 이상 ~vdd 아님)
+    PASS: M18_bg(diode-connected)==0.75V -- W 한계가 허용하는 구간 [0.7500, 1.0125]V 안이고 ~vdd도 아님
     [사용자 지적(2026-08-11) -- ideal current source(전압 자유)/voltage source
     (전류 자유)는 헤드룸 '합=vdd' 계약에 영향이 다르다. role 라벨만 믿지 않고
     실제 topology.json의 ideal_sources 선언과 대조하는지 -- 선언을 지우면(같은
     M18_bg 케이스) 정확히 거부하는지 합성 fixture로 확인]
     OK: ideal_sources 선언 제거 시 정확히 거부됨 -> 'M18_bg'(role='diode_reference')가 singleton thin-role 그룹이라 allocate_stack_headroom()의 '합=vdd' 계약을 우회하려는데, ideal_sources 선언으로 정당화가 안 됨: 'M18_bg'의 non-rail 단자(['Vbias1']) 중 어느 것도 topology.json의 ideal_sources 선언과 안 맞음 -- role='diode_reference'이 thin_roles인데 이 우회를 정당화할 근거가 없음(선언 누락 또는 role 오분류 가능성, 재검토할 것)
-    PASS: M7==M6(=0.32500000000000007V), M36b==M36a(=0.3V) -- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사
-    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=72.95, mismatch_sigma_mV=3.01, cmrr_estimate_db=87.28, psrr_estimate_db=102.13)
+    PASS: M7==M6(=0.32500000000000007V), M36b==M36a(=0.9375V) -- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사
+    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=72.90, mismatch_sigma_mV=3.01, cmrr_estimate_db=76.47, psrr_estimate_db=89.29)
 
   [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/
   run_matching_safety_with_finger_growth() -- 세션16 2번. repair_matching_safety()가
@@ -190,7 +190,7 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
     PASS: theta*=N=1.000, power_uA=0.5418uA -- 5개 격자점 전수비교와 정확히 일치(재현성+최적성 확인)
 
   [device_roles.gm_id_match_vgs_of -- 2026-08-19 세션38 신설, gm_id_role 루프의 2차 pass가 실제로 companion의 VGS로 결합되는지 (nmcnr_amplifier M203/M204 계기)]
-    PASS: Ma(root,'matching')=gm_id 6.500@vds=0.8V, Mb(gm_id_match_vgs_of=Ma)=gm_id 6.500@vds=0.5V -- companion VGS 역산과 정확히 일치(Mb에 gm_id_role이 없으므로 이 값은 2차 pass로만 나올 수 있음)
+    PASS: Ma(root,'matching')=gm_id 8.524@vds=0.5V, Mb(gm_id_match_vgs_of=Ma)=gm_id 8.524@vds=0.4V -- companion VGS 역산과 정확히 일치(Mb에 gm_id_role이 없으므로 이 값은 2차 pass로만 나올 수 있음)
   [gm_id_match_vgs_of가 아직 sizing 안 된(존재하지 않는) 소자를 참조하면 ValueError]
     PASS: ValueError -- Mb: gm_id_match_vgs_of='Mz'가 아직 sizing 안 됐다 -- device_roles 처리는 gm_id_...
 
@@ -208,9 +208,9 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
   [1. 정상 케이스 -- known_sizing으로 전류/L/VDS가 다 채워지면 status=ok]
     PASS: {'status': 'ok', 'message': 'sizing_roles=null로도 넷리스트 전체 전류가 전부 풀림 -- 이 상태가 최종적으로 맞다.'}
   [2. ID는 있는데 L/VDS 미확정 -- kind=unresolved_vds_or_L]
-    PASS: {'status': 'gap', 'kind': 'unresolved_vds_or_L', 'device': 'Mo', 'message': 'Mo: L 또는 VDS가 미확정 -- device_roles의 L_role/vertical_stack_id 선언을 확인할 것', 'fix_hint': "'Mo'의 device_roles에 L_role/vertical_stack_id가 선언돼 있는지, 그 소자가 속한 headroom 그룹(singleton이면 budget_reference_device/thin_roles 등)이 예산을 실제로 받을 수 있는 구조인지 확인할 것 -- 이것도 값을 대신 지어내지 않는다."}
+    PASS: {'status': 'gap', 'kind': 'unresolved_vds_or_L', 'device': 'Mo', 'message': 'Mo: L 또는 VDS가 미확정 -- diode-connected(gate==drain)라 vds에서 gm_id를 유도해야 하는데 L=1.2499999999999999e-06/vds=None다. 이 pass는 L_role 루프·헤드룸이 끝난 뒤에 돌므로 둘 다 있어야 정상이고, 파일럿 실측 6,960회에서 이 분기는 0회였다 -- 지어내지 않고 보고한다', 'fix_hint': "'Mo'의 device_roles에 L_role/vertical_stack_id가 선언돼 있는지, 그 소자가 속한 headroom 그룹(singleton이면 budget_reference_device/thin_roles 등)이 예산을 실제로 받을 수 있는 구조인지 확인할 것 -- 이것도 값을 대신 지어내지 않는다."}
   [3. known_sizing 자체가 없으면 -- kind=unresolved_current]
-    PASS: {'status': 'gap', 'kind': 'unresolved_current', 'device': 'Mo', 'message': 'Mo: A엔진(propagate_topology_forced_currents)이 전류를 못 정했다 -- mirror_ratios/seed_currents(theta feeds)를 확인할 것', 'ideal_source_hint': None, 'fix_hint': "'Mo'의 ID를 spec['known_sizing']['Mo']['ID']로 직접 시드하거나, sizing_roles.theta에 이 소자(또는 그 레퍼런스 루트)를 목표로 하는 새 theta를 선언할 것 -- 어느 쪽이든 실제 전류/전력 목표값이 spec에서 와야 하며, 이 함수는 그 값을 대신 지어내지 않는다."}
+    PASS: {'status': 'gap', 'kind': 'unresolved_current', 'device': 'Mo', 'message': 'Mo: A엔진(propagate_topology_forced_currents)이 전류를 못 정했다 -- diode-connected(gate==drain)라 vds에서 gm_id를 유도한 뒤 W를 내야 하는데 ID가 없다. mirror_ratios/seed_currents(theta feeds) 선언을 확인할 것', 'ideal_source_hint': None, 'fix_hint': "'Mo'의 ID를 spec['known_sizing']['Mo']['ID']로 직접 시드하거나, sizing_roles.theta에 이 소자(또는 그 레퍼런스 루트)를 목표로 하는 새 theta를 선언할 것 -- 어느 쪽이든 실제 전류/전력 목표값이 spec에서 와야 하며, 이 함수는 그 값을 대신 지어내지 않는다."}
   [4. 실제 라이브러리 파일 folded_cascode -- 세션35 안에서 이 gap 자체를 해소했다(Ibg를 KCL 유도+자유 theta로 배선) -- 이제 has_theta로 조기 반환됨을 재확인(회귀 감시: diagnose_sizing_roles_gap()이 '더 이상 gap이 아니다'를 정확히 인식하는지)]
     PASS: {'status': 'has_theta', 'message': 'sizing_roles.theta가 이미 선언돼 있음 -- 이 진단은 theta 없는(sizing_roles=null) 회로 전용'}
   [5/6. 실제 라이브러리 파일 nmcnr_amplifier -- 원래(세션35) PM_target_deg=46 (논문 실측치)이 nmcnr_3stage_topology()의 PM>60 전제와 충돌해 kind=other로 걸렸고, PM=70으로 그 가드를 우회해도 M101(바이어스 소자, 전류가 KCL만으로 안 나옴)에서 또 다른 unresolved_current gap이 드러났었다(당시 sizing_roles=null). 2026-08-18 세션이 그 M101 tail 전류/M104,M105 폴딩비를 sympy KCL 재유도 + 7개 theta로 실제로 배선했으므로(fold_group/vertical_stack_id 15개 소자 전부 확정 위, PM_target_deg는 아직 46인 채 -- 그건 여전히 별도 gap), 이제 folded_cascode/two_stage_ota와 동일하게 has_theta로 조기 반환되는지 재확인한다(회귀 감시)]
@@ -225,7 +225,7 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
   spec만 넣고 AI 개입 없이 instance-ready 결과까지 끝까지 실행(배치 7-5 1차 실증,
   2026-07-31) -- device_roles/compensation.stage_devices는 topology.json에 이미
   선언돼 있고(이번에 추가), 이 함수는 그 선언만 읽어 조립한다]
-    참고(정직한 한계, DC/AC 아키텍처 미분리 -- 세션41이 이미 발견해 별도 과제로 이월): 'stage1_out' 그룹의 VDS 합(2.16185V)이 vdd(2V)와 불일치(diff=+0.161851V) -- KVL(직렬 branch 전압강하 합=vdd)이 깨졌다. 소자별 값: M4=0.3619, M2=...
+    참고(정직한 한계, DC/AC 아키텍처 미분리 -- 세션41이 이미 발견해 별도 과제로 이월): 'stage1_out' 그룹의 VDS 합(1.96185V)이 vdd(2V)와 불일치(diff=-0.0381495V) -- KVL(직렬 branch 전압강하 합=vdd)이 깨졌다. 소자별 값: M4=0.3619, M2...
 
   [matching_pairs L 강제 일치 -- compensation(spec 기반) vs device_roles.L_role(휴리스틱)이 독립적으로 다른 L을 정했을 때 에러로 끝내지 않고 spec 기반 쪽으로 재설계되는지 확인]
     PASS: compensation이 Ma에 고른 L=0.180um -- Mb의 L_role 휴리스틱(단독이면 0.875um)을 덮어쓰고 그 값으로 재설계됨(ValueError 없이)

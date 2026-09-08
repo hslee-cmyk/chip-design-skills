@@ -1656,10 +1656,27 @@ def allocate_stack_headroom(vdd: float, stack: list, policy: HeadroomPolicy = DE
     (`vdd - thin 합`)을 인원수로 균등 배분한다(가중치 배분이 필요해지면 `policy`를
     확장 — 지금은 이 정책 하나로 충분함이 이 회로 하나로만 확인됨).
 
+    **2026-09-08(B16, 사용자 승인) — `vds_bounds`를 가진 소자는 나눠 갖지 않는다.**
+    엔트리에 `"vds_bounds": (lo, hi)`가 있으면(호출부가 `diode_vds_window()`로 계산해
+    넣는다) 그 소자의 vds는 배분 대상이 아니라 **구간 제약 변수**다 -- diode-connected는
+    `Vgs=Vds`가 강제돼 vds를 고르는 것이 곧 W를 고르는 것이기 때문이다. 이 소자들에게는
+    먼저 `lo`를 주고(스택 예산을 가장 적게 먹는 선택), **남은 예산만** 자유 소자들이
+    균등 배분한다. 자유 소자가 없으면 남은 예산을 구간 소자들이 `hi`까지 흡수한다.
+
+    그래도 예산이 남거나 모자라면 **조용히 맞추지 않고 실패**한다 -- 그건 이 스택이 현재
+    사이징으로는 성립하지 않는다는 물리적 사실이고, 예산 assert를 통과시키려고 물리를
+    비트는 순간 이 재설계가 고치려는 바로 그 사고(role 상수를 물리인 양 쓰기)로 돌아간다.
+
+    ⚠️ `lo`를 고르는 것은 **면적을 크게 잡는 쪽**이다(W(v)가 감소함수라 lo↔W최대).
+    헤드룸이 더 희소한 자원이라는 §7.9 판단에 따른 잠정 선택이고, 구간 안에서 어디를
+    고를지는 결국 §7.9의 배분 탐색이 가져가야 할 자유도다.
+
     합이 `vdd`와 정확히 일치함을 함수 자체가 보장한다(assert) — 예전에 이 합을 안 맞춰
     3.2V(1.8V 레일 초과)로 잘못 짰던 실제 사고가 있었다(§3 실측 이력)."""
-    thin_entries = [e for e in stack if e["role"] in policy.thin_roles]
-    other_entries = [e for e in stack if e["role"] not in policy.thin_roles]
+    bounded = [e for e in stack if e.get("vds_bounds")]
+    rest = [e for e in stack if not e.get("vds_bounds")]
+    thin_entries = [e for e in rest if e["role"] in policy.thin_roles]
+    other_entries = [e for e in rest if e["role"] not in policy.thin_roles]
 
     result = {}
     thin_total = 0.0
@@ -1667,12 +1684,40 @@ def allocate_stack_headroom(vdd: float, stack: list, policy: HeadroomPolicy = DE
         v = policy.cascode_fn(e)
         result[e["name"]] = v
         thin_total += v
+    for e in bounded:                       # 구간 소자는 일단 하한
+        result[e["name"]] = e["vds_bounds"][0]
+        thin_total += e["vds_bounds"][0]
 
     remaining = vdd - thin_total
+    if remaining < -1e-12:
+        _b = ", ".join(f"{e['name']}∈[{e['vds_bounds'][0]:.4g},{e['vds_bounds'][1]:.4g}]"
+                        for e in bounded)
+        raise InfeasibleSizingError(
+            f"스택 예산 {vdd:.4g}V가 부족하다: 고정분 합이 {thin_total:.4g}V"
+            f"(초과 {-remaining:.4g}V). diode 구간 하한: [{_b}]. diode의 vds는 W가 정하는 "
+            f"종속값이라 더 낮출 수 없다 -- 같은 스택의 다른 소자 vds나 diode의 L/ID를 "
+            f"바꿔야 한다")
     if other_entries:
         share = remaining / len(other_entries)
         for e in other_entries:
             result[e["name"]] = share
+    elif bounded and remaining > 1e-12:
+        # 나눌 자유 소자가 없다 -- 구간 소자들을 hi까지 올려 남은 예산을 흡수한다.
+        for e in bounded:
+            lo, hi = e["vds_bounds"]
+            take = min(hi - lo, remaining)
+            result[e["name"]] += take
+            remaining -= take
+            if remaining <= 1e-12:
+                break
+        if remaining > 1e-12:
+            _b = ", ".join(f"{e['name']}∈[{e['vds_bounds'][0]:.4g},{e['vds_bounds'][1]:.4g}]"
+                            for e in bounded)
+            raise InfeasibleSizingError(
+                f"스택 예산 {vdd:.4g}V 중 {remaining:.4g}V를 배정할 곳이 없다 -- 이 그룹은 "
+                f"구간 제약 소자(diode)뿐인데 전부 상한까지 올려도 예산을 못 채운다. "
+                f"구간: [{_b}]. 이 컬럼에 선언되지 않은 소자/수동소자가 있거나 "
+                f"vertical_stack_id 선언이 실제 직렬 경로와 다르다는 뜻이다")
     total = sum(result.values())
     assert abs(total - vdd) < 1e-9 * max(vdd, 1.0), (
         f"헤드룸 배정 합({total})이 vdd({vdd})와 불일치 -- other_entries가 비어있는데 "
@@ -2241,6 +2286,25 @@ class DiodeSelfConsistencyError(ValueError):
     싶은 곳(예: L_combo 루프가 그 조합을 버리고 다음으로 가는 경우)이 구분할 수 있다."""
 
 
+# 2026-09-08(B16) -- 예전엔 `optimize_full_circuit_budget()` 안의 지역변수였다. diode
+# 자기일관 pass(`apply_diode_self_consistent_gm_id()`)가 같은 판정을 써야 해서 모듈 레벨로
+# 올린다 -- 두 곳이 각자 목록을 들면 언젠가 어긋난다(C9 중복 복붙 방지).
+#
+# ⚠️ 값의 출처가 두 필드로 나뉘어 있다: `_L_source`는 "L을 정한 경로"인데 역사적으로
+# gm_id 권위까지 겸했고(compensation/metric_stage_budget/gm_target_convention은 gm_id도
+# 함께 확정한다), `_gm_id_source`는 gm_id만 정하는 새 경로(diode 자기일관)를 위해 신설했다.
+# `_gm_id_already_authoritative()`가 둘 다 본다 -- 호출부가 한쪽만 보면 조용히 덮어쓴다.
+_AUTHORITATIVE_GM_ID_SOURCES = frozenset(
+    {"compensation", "metric_stage_budget", "gm_target_convention"})
+_AUTHORITATIVE_GM_ID_ONLY_SOURCES = frozenset({"diode_self_consistency"})
+
+
+def _gm_id_already_authoritative(entry: dict) -> bool:
+    """이 소자의 gm_id가 **더 권위 있는 경로**로 이미 확정됐는가(2026-09-08, B16)."""
+    return (entry.get("_L_source") in _AUTHORITATIVE_GM_ID_SOURCES
+            or entry.get("_gm_id_source") in _AUTHORITATIVE_GM_ID_ONLY_SOURCES)
+
+
 def is_diode_connected(transistor) -> bool:
     """`gate == drain`이면 diode-connected다 -- **connectivity만 본다**(2026-09-08, B1).
 
@@ -2464,17 +2528,29 @@ def set_device_vds(ctx, name: str, value: float, source: str,
       2. `_vds_source`에 누가 이 값을 정했는지 남긴다(B13 추적성). 사후에 "이 vds가 어디서
          왔나"를 물을 수 있어야 C2 디버깅이 가능하다.
 
-    `diode_set`/`lut_by_kind`를 안 주면 1번 검사는 건너뛴다(전환기 호환) -- 다만 그 경우
-    `_vds_source`에 `+unchecked`를 붙여 **검사 안 된 기입임을 표시**한다."""
+    `diode_set`/`lut_by_kind`를 **안 주면 `ctx`에서 직접 유도한다**(2026-09-08, B1 5단계
+    배선). 호출부 7곳이 매번 같은 두 줄을 반복하지 않게 하기 위한 것이고, 유도할 수 없을
+    때만(`ctx.topology_path`가 비었거나 `lut_by_kind`가 없을 때 -- 단위 self-test fixture가
+    그렇다) 검사를 건너뛰며 `_vds_source`에 `+unchecked`를 붙인다.
+
+    **diode인데 `gm_id`가 아직 없으면**(헤드룸 시점의 정상 상태 -- 파이프라인이
+    `L → VDS → gm_id` 순서라 실측 16/16이 그렇다) 검사할 대상이 없다. 이 경우는 미검증이
+    아니라 **"이 vds가 곧 gm_id를 정할 것"**이므로 `+diode_pending` 태그를 붙인다 --
+    `apply_diode_self_consistent_gm_id()`가 그 유도를 맡는다(B16)."""
     entry = ctx.sized.setdefault(name, {})
+    if diode_set is None and getattr(ctx, "topology_path", ""):
+        diode_set = _diode_set_cached(ctx.topology_path)
+    if lut_by_kind is None:
+        lut_by_kind = (ctx.spec or {}).get("lut_by_kind")
     # `checked`는 "diode 검사를 **적용할 수 있었는가**"다 -- diode가 아닌 소자는 검사 대상이
     # 아닐 뿐 미검증이 아니므로 `+unchecked`를 붙이지 않는다.
     checked = diode_set is not None and lut_by_kind is not None
+    pending = False
     if checked and name in diode_set:
         e = ctx.sized.get(name, {})
         gm_id, L = e.get("gm_id"), e.get("L")
         if gm_id is None or L is None:
-            checked = False            # 아직 gm_id/L이 없어 검사 불가 -- 그 사실을 남긴다
+            pending = True             # gm_id 미확정 -- 이 vds가 gm_id를 정한다(B16)
         else:
             lut = lut_by_kind[ctx.kind_of[name]]
             v_star = solve_diode_connected_vds(lut, gm_id, L, e.get("vsb", 0.0))
@@ -2486,7 +2562,189 @@ def set_device_vds(ctx, name: str, value: float, source: str,
                     f"tol {tol * 1e3:.1f}mV). 이 소자의 vds는 배정 대상이 아니라 "
                     f"gm_id/L/vsb가 정하는 종속값이다")
     entry["vds"] = value
-    entry["_vds_source"] = source if checked else (source + "+unchecked")
+    entry["_vds_source"] = (source + "+diode_pending") if pending else (
+        source if checked else (source + "+unchecked"))
+
+
+def diode_vds_window(lut, kind: str, L: float, ID: float, vsb: float,
+                      W_bounds: tuple) -> tuple:
+    """diode-connected 소자가 **W 한계 안에서 가질 수 있는 vds 구간** `(lo, hi)`(2026-09-08).
+
+    `gate == drain`이면 vds 하나가 gm_id를 정하고(`gm_id_for_vgs(v, L, v, vsb)`), gm_id가
+    전류밀도를 정하고, 전류밀도가 `W = L·ID/IDu`를 정한다. 즉 **diode의 vds를 고르는 것은
+    곧 W를 고르는 것**이고, 헤드룸이 임의로 나눠줄 수 있는 몫이 아니다.
+
+    W(v)는 v에 대해 감소한다(전압이 높을수록 전류밀도가 커져 같은 ID에 더 좁은 소자면
+    된다) -- 그래서 `W_bounds`가 그대로 vds 구간으로 번역된다. LUT의 VDS 격자 위에서만
+    훑는다(외삽 금지, §7.7 R3).
+
+    파일럿 실측(2026-09-08, `tests/probe_diode_vds_window.py`): diode 16개 **전부** 구간이
+    존재하고(폭 0.19~0.41V), 그중 **14개가 현재 배정(0.2~0.3V)보다 높은 vds를 요구**한다.
+    헤드룸이 role 상수를 그대로 주던 것이 물리와 어긋나 있었다는 뜻이다.
+
+    해가 없으면 `(None, None)`을 돌려준다 -- 호출부가 그 사실을 보고할 수 있게(조용히
+    기본값으로 때우지 않는다).
+
+    ⚠️ **이 구간 안 어디를 고를지는 이 함수가 정하지 않는다**. lo는 W 최대(면적 큼·헤드룸
+    적게 씀), hi는 W 최소(면적 작음·헤드룸 많이 씀)라 진짜 설계 트레이드오프이고,
+    §7.9의 배분 탐색이 가져가야 할 자유도다."""
+    cache = diode_vds_window.__dict__.setdefault("_cache", {})
+    key = (id(lut), kind, round(L, 15), round(ID, 18), round(vsb, 9), W_bounds)
+    if key in cache:
+        return cache[key]
+    lo = hi = None
+    for v in lut.VDS_grid:
+        v = float(v)
+        if v <= 0:
+            continue
+        try:
+            g = lut.gm_id_for_vgs(v, L, v, vsb)
+            idu = lut.gm_id_to_id_density(g, L, v, vsb)
+        except (ValueError, KeyError):
+            continue
+        if idu <= 0:
+            continue
+        w = L * ID / idu
+        if W_bounds[0] <= w <= W_bounds[1]:
+            lo = v if lo is None else min(lo, v)
+            hi = v if hi is None else max(hi, v)
+    cache[key] = (lo, hi)
+    return cache[key]
+
+
+def apply_diode_self_consistent_gm_id(ctx, spec: dict, kind_of: dict,
+                                       gm_id_tol: float = 1e-3) -> list:
+    """diode-connected 소자의 `gm_id`를 **자기 자신의 vds에서 유도**한다(2026-09-08, B16).
+
+    `gate == drain`이면 `Vgs = Vds`가 물리적으로 강제된다. 이 구속은 **양방향**이다:
+
+        gm_id가 먼저면:  vds   = solve_diode_connected_vds(gm_id, L, vsb)  (bisection)
+        vds가 먼저면:    gm_id = lut.gm_id_for_vgs(vds, L, vds, vsb)       (O(1) 역보간)
+
+    두 방향이 같은 곡선임은 80점 왕복 검산으로 확인했다(76점 |오차|<1mV, 어긋난 4점은
+    B15의 LUT 보간 오염 대역이었고 그건 별도로 고쳤다).
+
+    **왜 두 번째 방향인가**: 계획 §0.2는 첫 번째 방향(헤드룸 pre-pass에서 자기일관해를
+    풀어 vds를 확정)을 적었는데, 실주행 계측 결과 그 시점에 **diode 16개 전부 gm_id가
+    없었다(0/16)** -- 현재 파이프라인이 `L → VDS → gm_id` 순서라 필연적이다
+    (`tests/probe_diode_gmid_readiness.py`). 순서를 뒤집는 건 새 파이프라인(§7.2)의 몫이고,
+    지금은 **같은 구속을 반대 방향으로 강제**해 같은 물리를 얻는다. 대가는 diode의 gm_id가
+    자유 탐색 변수에서 빠지는 것이다(사용자 승인 2026-09-08).
+
+    **어디에 꽂히는가**: `device_roles`의 `gm_id_role` 루프 **바로 앞**이다. 그 시점이면
+    L(L_role 루프)·vds(헤드룸)·ID(A엔진)가 전부 확정돼 있고, 여기서 확정한 gm_id는
+    `_gm_id_source` 태그로 뒤이은 `gm_id_role`/`gm_id_match_vgs_of` 루프가 덮어쓰지 못하게
+    막는다(`_AUTHORITATIVE_GM_ID_SOURCES`와 같은 메커니즘 -- 세션33 회귀와 동일 클래스의
+    사고를 막는 자리다).
+
+    `gm_id_role` 루프와 **정확히 같은 식**으로 gm/W/gds까지 마감한다 -- gm_id만 써놓고
+    나머지를 다음 루프에 맡기면 그 루프가 이 소자를 건너뛰므로(태그 때문에) gm/W/gds가
+    빈 채로 남는다.
+
+    **이미 gm_id가 있는 diode는 조용히 덮어쓰지 않는다.** 그 값이 이 vds가 요구하는 값과
+    `gm_id_tol` 안에서 일치하면 그대로 두고, 어긋나면 **명시적으로 실패**한다(§3.2 P1).
+    `spec["known_sizing"]`으로 시드된 소자도 여기 걸린다 -- 실제로 이 검사가 L5 self-test
+    픽스처의 기존 오류를 찾아냈다(diode인 M64에 다른 소자와 똑같은 `gm_id=12 @ vds=0.6`을
+    줬는데, 그 vds가 요구하는 값은 21.275였다).
+
+    ⚠️ **건너뛰는 것**(C5): (1) 이미 권위 있는 출처(compensation/metric_stage_budget/
+    gm_target_convention)가 gm_id를 정한 diode -- 그쪽이 우선이고, 불일치는
+    `set_device_vds()`가 이미 잡는다. (2) L/vds/ID 중 하나라도 없는 소자 -- 이 pass가
+    지어내지 않는다. (3) `gm_id_for_vgs()`가 LUT 범위 밖이라고 실패하는 소자 -- 그 사실을
+    `InfeasibleSizingError`로 올린다(조용히 넘기지 않음).
+
+    반환: 이 pass가 gm_id를 확정한 소자 이름 리스트(정렬)."""
+    if not getattr(ctx, "topology_path", ""):
+        return []
+    diode_set = _diode_set_cached(ctx.topology_path)
+    lut_by_kind = spec.get("lut_by_kind")
+    if not diode_set or not lut_by_kind:
+        return []
+    W_bounds = spec.get("W_bounds", (1e-6, 200e-6))
+    applied = []
+    for name in sorted(diode_set):                      # 정렬 순회(P1 결정론)
+        entry = ctx.sized.get(name)
+        if entry is None:
+            # 조용히 넘어가지 않는다. 파일럿 실측(SLSQP 435평가 × diode 16개 = 6,960회)에서
+            # 이 분기는 **0회**였다 -- A엔진이 모든 소자에 엔트리를 만들기 때문이다. 그러니
+            # 여기 도달했다는 건 그 전제가 깨졌다는 뜻이고, 그건 보고돼야 한다
+            # (`tests/probe_diode_pass_skips.py`).
+            raise ValueError(
+                f"'{name}'은 diode-connected인데 ctx.sized에 엔트리가 없다 -- A엔진"
+                f"(propagate_topology_forced_currents)이 이 소자에 닿지 않았다는 뜻이다. "
+                f"netlist 연결/seed_currents/mirror_ratios 선언을 확인할 것")
+        if entry.get("_L_source") in _AUTHORITATIVE_GM_ID_SOURCES:
+            # 유일하게 남긴 우회. 근거: compensation/metric_stage_budget/
+            # gm_target_convention은 gm_id를 자기 목표(GBW/PM·stage 예산·N×ωc)에서
+            # 확정하고 **vds도 같은 자리에서 `set_device_vds()`로 기입**하므로, 둘이
+            # 모순이면 그 setter가 이미 잡는다(중복 검사가 아니라 검사 위치가 다를 뿐).
+            # ⚠️ 다만 파일럿에서는 이 분기도 실측 0회라 **아직 한 번도 실행된 적이 없다** --
+            # diode가 그 세 경로에 걸리는 회로가 생기면 그때 실제로 확인할 것.
+            continue
+        L, vds, ID = entry.get("L"), entry.get("vds"), entry.get("ID")
+        # 메시지 형식은 임의가 아니다 -- `diagnose_sizing_roles_gap()`이 이 두 마커
+        # ("전류를 못 정했다" / "L 또는 VDS가 미확정")로 실패를 분류해 사용자에게 맞는
+        # fix_hint를 준다. **무엇이 빠졌는지에 따라 분류가 달라야** 하므로 둘을 나눈다
+        # (합쳐서 하나로 냈더니 ID 누락까지 "VDS·L 미확정"으로 잘못 분류됐다).
+        if ID is None:
+            raise ValueError(
+                f"{name}: A엔진(propagate_topology_forced_currents)이 전류를 못 정했다 -- "
+                f"diode-connected(gate==drain)라 vds에서 gm_id를 유도한 뒤 W를 내야 하는데 "
+                f"ID가 없다. mirror_ratios/seed_currents(theta feeds) 선언을 확인할 것")
+        if L is None or vds is None:
+            raise ValueError(
+                f"{name}: L 또는 VDS가 미확정 -- diode-connected(gate==drain)라 vds에서 "
+                f"gm_id를 유도해야 하는데 L={L!r}/vds={vds!r}다. 이 pass는 L_role 루프·"
+                f"헤드룸이 끝난 뒤에 돌므로 둘 다 있어야 정상이고, 파일럿 실측 6,960회에서 "
+                f"이 분기는 0회였다 -- 지어내지 않고 보고한다")
+        if ID <= 0:
+            raise InfeasibleSizingError(
+                f"{name}: ID={ID:.6g}A <= 0 -- 이 theta 조합에서 물리적으로 불가능한 전류"
+                f"(A_signed KCL 뺄셈이 음수가 됨). diode 자기일관 gm_id를 유도할 수 없다",
+                sized_snapshot=dict(ctx.sized))
+        vsb = entry.get("vsb", 0.0)
+        lut = lut_by_kind[kind_of[name]]
+        try:
+            gm_id = lut.gm_id_for_vgs(vds, L, vds, vsb)
+        except ValueError as e:                         # (3) LUT 범위 밖 -- 명시적 실패
+            raise InfeasibleSizingError(
+                f"{name}은 diode-connected(gate==drain)라 Vgs=Vds가 강제되는데, 배정된 "
+                f"vds={vds:.4f}V(출처 {entry.get('_vds_source')!r})에 대응하는 gm_id가 "
+                f"L={L:.4g}m/vsb={vsb:.4g}V의 LUT 범위 밖이다: {e}",
+                sized_snapshot=dict(ctx.sized)) from e
+        prior = entry.get("gm_id")
+        if prior is not None and abs(prior - gm_id) > gm_id_tol:
+            raise ValueError(
+                f"'{name}'은 diode-connected(gate==drain)라 Vgs=Vds가 물리적으로 강제되는데, "
+                f"이미 배정된 gm_id={prior:.4f}가 그 vds({vds:.4f}V, 출처 "
+                f"{entry.get('_vds_source')!r})가 요구하는 값 {gm_id:.4f}와 어긋난다"
+                f"(차이 {abs(prior - gm_id):.4f} > tol {gm_id_tol:.4f}). 이 소자의 gm_id는 "
+                f"자유롭게 정할 수 있는 값이 아니라 vds/L/vsb가 정하는 종속값이다 -- "
+                f"gm_id={prior:.4f}를 지키려면 vds가 "
+                f"{solve_diode_connected_vds(lut, prior, L, vsb):.4f}V여야 한다. "
+                f"spec['known_sizing']으로 시드했다면 그 값이 물리와 모순된다는 뜻이다")
+        if prior is not None:
+            continue                     # 이미 일관 -- 다시 계산할 것이 없다(C10)
+        idu = lut.gm_id_to_id_density(gm_id, L, vds, vsb)
+        if idu <= 0:
+            raise InfeasibleSizingError(
+                f"{name}: diode 자기일관 gm_id={gm_id:.4g}에서 전류밀도가 {idu:.4g} <= 0",
+                sized_snapshot=dict(ctx.sized))
+        gm = ID * gm_id
+        w = L * ID / idu
+        gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vsb)
+        if not (W_bounds[0] <= w <= W_bounds[1]):
+            raise InfeasibleSizingError(
+                f"{name}: diode 자기일관 사이징이 W={w*1e6:.4g}um로 W_bounds"
+                f"({W_bounds[0]*1e6:.4g}~{W_bounds[1]*1e6:.4g}um) 밖이다 -- 이 소자의 vds"
+                f"({vds:.4f}V)가 스택 헤드룸에서 그렇게 배정됐기 때문이고, gm_id는 그 vds가 "
+                f"정하는 종속값이라 따로 조정할 수 없다(스택 예산을 바꿔야 한다)",
+                sized_snapshot=dict(ctx.sized))
+        ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
+                            "kind": kind_of[name], "vsb": vsb,
+                            "_gm_id_source": "diode_self_consistency"}
+        applied.append(name)
+    return applied
 
 
 # ---------------------------------------------------------------------------
@@ -3404,6 +3662,20 @@ def _ideal_sources_cached(topology_path: str) -> list:
     return _load_full_topology_cached.__dict__["_cache"][topology_path]["ideal_sources"]
 
 
+def _diode_set_cached(topology_path: str) -> frozenset:
+    """diode-connected(`gate == drain`) 소자 **이름 집합**을 topology 캐시에서 준다(B1 5단계).
+
+    `set_device_vds()`가 vds 기입마다 이걸 조회하므로(파일럿 51소자 × theta 격자점) 매번
+    connectivity를 다시 훑으면 안 된다(C10 재계산 금지) -- `_load_full_topology_cached()`의
+    같은 캐시 엔트리에 얹어 topology당 한 번만 계산한다."""
+    _load_full_topology_cached(topology_path)
+    entry = _load_full_topology_cached.__dict__["_cache"][topology_path]
+    if "diode_set" not in entry:
+        entry["diode_set"] = frozenset(
+            n for n, t in entry["by_name"].items() if is_diode_connected(t))
+    return entry["diode_set"]
+
+
 def _device_roles_cached(topology_path: str) -> dict:
     """`device_roles` 선언을 `_load_full_topology_cached()`와 같은 캐시에서 준다(A8)."""
     _load_full_topology_cached(topology_path)
@@ -4012,10 +4284,14 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     # 자체가 확정하는 값이라(theta_value가 곧 대역폭 배수), device_roles의 gm_id_role/
     # L_role이 뒤이어 덮어쓰면 이 theta의 의도가 무력화된다 -- compensation/replica/
     # metric_stage_budget과 동급의 권위 있는 출처로 등록한다.
+    # 2026-09-08(B1 5단계) -- vds는 `set_device_vds()`로만 기입한다(유일 경로). 엔트리를
+    # 먼저 만들고(gm_id/L/vsb 확정) 그 다음에 vds를 기입해야, diode-connected 소자일 때
+    # 그 setter가 Vgs=Vds 자기일관성을 **실제로 검사할 수 있다**(gm_id가 이미 있어야 한다).
     ctx.sized[target] = {"ID": result.ID, "gm": result.gm, "gm_id": result.gm_id,
-                          "W": feed_spec["W"], "L": L, "vds": vds, "vsb": vsb, "kind": kind,
+                          "W": feed_spec["W"], "L": L, "vsb": vsb, "kind": kind,
                           "gds": result.gm / lut.gm_gds_ratio(result.gm_id, L, vds, vsb),
                           "_L_source": "gm_target_convention"}
+    set_device_vds(ctx, target, vds, "gm_target_convention")
 
 
 def _feed_settling_split(feed_spec, theta_value: float, ctx: SizingContext) -> None:
@@ -4080,8 +4356,10 @@ def _metric_stage_budget_finalize(ctx: SizingContext, name: str, gm_id: float, I
     # 탐색이 무의미해지며 gain_db가 76.48->74.8로 떨어지는 실제 회귀로 발현(SLSQP 재현,
     # 이 세션에 실측). compensation/replica와 동급의 권위 있는 출처로 등록한다.
     ctx.sized[name].update({"L": mL, "W": mL * ID / idu, "gm": gm, "gds": gm / gm_gds,
-                             "gm_id": gm_id, "ID": ID, "kind": kind, "vsb": mvs, "vds": mvds,
+                             "gm_id": gm_id, "ID": ID, "kind": kind, "vsb": mvs,
                              "_L_source": "metric_stage_budget"})
+    # 2026-09-08(B1 5단계) -- gm_id/L/vsb를 먼저 확정한 뒤 vds를 단일 setter로 기입한다.
+    set_device_vds(ctx, name, mvds, "metric_stage_budget")
 
 
 def _shared_current_groups_from_compensation(comp: dict | None) -> list:
@@ -5505,7 +5783,7 @@ def _hr_resolve_vertical_group(env, vsid):
         ref_lut = spec["lut_by_kind"][ctx.kind_of[ref]]
         target_vgs = ref_lut.vgs_for_gm_id(
             ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vsb", 0.0))
-        ctx.sized.setdefault(m, {})["vds"] = target_vgs
+        set_device_vds(ctx, m, target_vgs, f"vds_match_vgs_of:{ref}")
     # matching_pairs로 묶인 값-동일 그룹(_vfind)당 대표 1개씩만 집계 -- diff pair/미러
     # 쌍의 두 소자를 헤드룸 예산에 중복으로 합산하지 않기 위함(위 _vfind 주석 참고).
     # 2026-08-10(세션27) 정정 -- 이전엔 members 리스트에서 "먼저 나온" 소자를 무조건
@@ -5548,9 +5826,11 @@ def _hr_resolve_vertical_group(env, vsid):
                 idu2 = lut2.gm_id_to_id_density(gm_id2, L2, vds2, vs2)
                 gm_gds2 = lut2.gm_gds_ratio(gm_id2, L2, vds2, vs2)
                 gm2 = gm_id2 * ID2
-                sib_entry.update({"gm_id": gm_id2, "L": L2, "vds": vds2, "vsb": vs2,
+                sib_entry.update({"gm_id": gm_id2, "L": L2, "vsb": vs2,
                                   "kind": kind2, "W": L2 * ID2 / idu2, "gm": gm2,
                                   "gds": gm2 / gm_gds2})
+                # 2026-09-08(B1 5단계) -- gm_id 확정 후 단일 setter로 vds 기입.
+                set_device_vds(ctx, sib, vds2, f"vertical_group_sibling:{resolved}")
             continue
         rep = next((gm for gm in group_members
                     if "headroom_role" in device_roles.get(gm, {})), None)
@@ -5581,7 +5861,7 @@ def _hr_resolve_vertical_group(env, vsid):
         vgrp = _vfind(m)
         for other in members:
             if _vfind(other) == vgrp:
-                ctx.sized.setdefault(other, {})["vds"] = src_vds
+                set_device_vds(ctx, other, src_vds, f"same_as_device:{src}")
     unresolved = [m for m in unresolved if m not in same_as_of]
     if not unresolved:
         _verify_group_kvl_sum(vsid, members)
@@ -5598,6 +5878,45 @@ def _hr_resolve_vertical_group(env, vsid):
                        "min_vds": spec.get("min_vds_by_role", {}).get(
                            device_roles[m]["headroom_role"], _DEFAULT_MIN_VDS_FALLBACK)}
                       for m in unresolved]
+    # 2026-09-08(B16, 사용자 승인) -- diode-connected 멤버에는 **구간 제약**을 붙인다.
+    # 그 소자의 vds는 role 상수로 나눠줄 몫이 아니라 W가 정하는 종속값이기 때문이다
+    # (실측: 파일럿 diode 16개 중 14개가 배정된 0.2~0.3V보다 높은 vds를 요구했고, M11a는
+    # 0.2V에서 W=4.03e8um를 요구해 물리적으로 불가능했다).
+    for _se in stack_entries:
+        _e = ctx.sized.get(_se["name"], {})
+        if (_se["name"] not in _diode_set_cached(ctx.topology_path)
+                or _e.get("L") is None or _e.get("ID") is None or _e.get("ID", 0) <= 0):
+            continue
+        # vsb는 **배정 직후 전파될 값**을 미리 써야 한다 -- 아래 배정 루프가
+        # `other_entry.setdefault("vsb", ref_vds)`로 폴딩 노드 기준점을 넣기 때문이다.
+        # 여기서 0.0으로 계산하면 구간과 최종 검사가 서로 다른 vsb를 보게 되고, 그러면
+        # 구간 안에 배정했는데도 W가 한계를 넘는다(실측으로 발견: M57이 구간 하한
+        # 0.75V를 받고도 W=615.6um).
+        _vsb = _e.get("vsb", ref_vds if ref_dev is not None else 0.0)
+        _lo, _hi = diode_vds_window(
+            spec["lut_by_kind"][ctx.kind_of[_se["name"]]], ctx.kind_of[_se["name"]],
+            _e["L"], _e["ID"], _vsb,
+            tuple(spec.get("W_bounds", (1e-6, 200e-6))))
+        if _lo is None:
+            raise InfeasibleSizingError(
+                f"'{_se['name']}'(diode-connected, 그룹 {vsid!r})는 W 한계 안에서 가능한 "
+                f"vds가 LUT 격자에 없다 -- L={_e['L']:.4g}m / ID={_e['ID']:.4g}A에서는 "
+                f"Vgs=Vds를 만족하면서 제작 가능한 폭이 나오지 않는다",
+                sized_snapshot=dict(ctx.sized))
+        _se["vds_bounds"] = (_lo, _hi)
+
+    def _singleton_vds(e):
+        """singleton 우회 경로가 배정할 vds(2026-09-08, B16).
+
+        기존엔 무조건 `DEFAULT_POLICY.cascode_fn()`(gm_id 있으면 `2/gm_id+margin`, 없으면
+        `min_vds`)이었는데, diode-connected 소자에는 그 식이 성립하지 않는다 -- Vgs=Vds라
+        vds가 W를 정하기 때문이다(실측: M36a는 그 식으로 0.3V를 받았지만 W 한계가 허용하는
+        구간은 [0.8625, 1.2750]V였다). 구간이 있으면 하한을 쓴다(스택 예산을 가장 적게 먹는
+        선택 -- `allocate_stack_headroom()`의 같은 규칙과 일치시킨다, C9 중복 방지).
+
+        세 곳(_thin_singleton / _referenced_singleton / _fold_group_singleton)이 같은
+        판단을 하므로 함수로 묶는다."""
+        return e["vds_bounds"][0] if e.get("vds_bounds") else DEFAULT_POLICY.cascode_fn(e)
     # 2026-08-11(세션28) -- allocate_stack_headroom()은 "주어진 그룹이
     # remaining_vdd 전체를 혼자 책임진다"는 계약을 강제한다(합이 정확히 일치함을
     # assert, §3 실측 이력의 3.2V 사고 재발 방지용 -- 이 계약 자체는 건드리지
@@ -5646,9 +5965,9 @@ def _hr_resolve_vertical_group(env, vsid):
                 f"'{unresolved[0]}'(role={stack_entries[0]['role']!r})가 singleton "
                 f"thin-role 그룹이라 allocate_stack_headroom()의 '합=vdd' 계약을 "
                 f"우회하려는데, ideal_sources 선언으로 정당화가 안 됨: {_detail}")
-        headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
+        headroom = {unresolved[0]: _singleton_vds(stack_entries[0])}
     elif _referenced_singleton:
-        headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
+        headroom = {unresolved[0]: _singleton_vds(stack_entries[0])}
     elif _fold_group_singleton:
         # 2026-08-15(세션35, 사용자 지시 "새 기능을 추가해"로 신설) -- 폴디드
         # 캐스코드의 X/Y 노드처럼 서로 다른 방향에서 온 branch가 한 노드에서
@@ -5666,7 +5985,7 @@ def _hr_resolve_vertical_group(env, vsid):
             raise ValueError(
                 f"'{unresolved[0]}'가 fold_group 선언으로 allocate_stack_headroom()의 "
                 f"'합=vdd' 계약을 우회하려는데, connectivity로 정당화가 안 됨: {_detail}")
-        headroom = {unresolved[0]: DEFAULT_POLICY.cascode_fn(stack_entries[0])}
+        headroom = {unresolved[0]: _singleton_vds(stack_entries[0])}
     else:
         headroom = allocate_stack_headroom(remaining_vdd, stack_entries)
     for m in unresolved:
@@ -5675,7 +5994,7 @@ def _hr_resolve_vertical_group(env, vsid):
         for other in members:  # 같은 값-그룹의 나머지 멤버(예: M4)에도 동일 VDS 전파
             if _vfind(other) == vgrp:
                 other_entry = ctx.sized.setdefault(other, {})
-                other_entry["vds"] = vds_val
+                set_device_vds(ctx, other, vds_val, f"allocate_stack_headroom:{vsid}")
                 if ref_dev is not None:
                     # 이 그룹의 실제 소스 기준점은 0V(vss)가 아니라 refs 전체의 드레인
                     # 전압(=refs의 vds 합, source=vss 체인이므로) -- 폴딩 노드 위에
@@ -6036,9 +6355,14 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 gds_i = gm_i / lut_i.gm_gds_ratio(st["gm_id"], st["L"], st["VDS"], 0.0)
                 for name in grp:
                     ctx.sized[name] = {"gm": gm_i, "gm_id": st["gm_id"], "L": st["L"],
-                                        "vds": st["VDS"], "vsb": 0.0, "W": st["W"],
+                                        "vsb": 0.0, "W": st["W"],
                                         "ID": gm_i / st["gm_id"], "gds": gds_i, "kind": kind_of[name],
                                         "_L_source": "compensation"}
+                    # 2026-09-08(B1 5단계) -- gm_id 확정 후 단일 setter로 vds 기입.
+                    # compensation은 gm_id와 VDS를 서로 독립적으로 정하므로, 이 stage에
+                    # diode-connected 소자가 들어 있으면 그 둘이 모순일 수 있다 --
+                    # 그 모순을 여기서 즉시 드러낸다(예전에는 조용히 통과했다).
+                    set_device_vds(ctx, name, st["VDS"], f"compensation:stage{i}")
             # 2026-08-13(세션31) -- shared_gm_id_groups 각 그룹의 gm 합(=topology_fn이 정한
             # 진짜 위상보상 목표, Eq.6류 -- 그룹 내부의 (L,VDS,gm_id) 선택과 무관하게 고정)을
             # 미리 스냅샷해둔다. `_feed_metric_stage_budget()`의 `gm_id_match_vgs_of`가 이
@@ -6319,12 +6643,17 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # 소자를 여기서 또 건드리면(실측: current_reuse_telescopic_ota의 M2a/M2b/M3a/M3b,
         # `L_cascode` theta 대상) 그 theta 탐색 자체가 무력화된다(SLSQP gain_db 76.48->74.8
         # 회귀로 재현 확인, `_AUTHORITATIVE_L_SOURCES`와 동일 근본원인·동일 수정).
-        _AUTHORITATIVE_GM_ID_SOURCES = {"compensation", "metric_stage_budget", "gm_target_convention"}
+        # 2026-09-08(B16) -- diode-connected 소자의 gm_id를 자기 vds에서 먼저 확정한다.
+        # 이 루프보다 **앞**이어야 하는 이유: L(위 L_role 루프)·vds(헤드룸)·ID(A엔진)가
+        # 이미 확정된 시점이고, 여기서 정한 gm_id를 아래 두 루프가 덮어쓰면 Vgs=Vds라는
+        # 물리 구속이 조용히 무력화된다(`_gm_id_source` 태그로 막는다).
+        apply_diode_self_consistent_gm_id(ctx, spec, kind_of)
+
         for name, dr in device_roles.items():
             if not dr.get("gm_id_role"):
                 continue
             entry = ctx.sized.get(name, {})
-            if entry.get("_L_source") in _AUTHORITATIVE_GM_ID_SOURCES:
+            if _gm_id_already_authoritative(entry):
                 continue
             if "ID" not in entry:
                 raise ValueError(f"{name}: A엔진(propagate_topology_forced_currents)이 전류를 "
@@ -6393,7 +6722,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             if not match_device:
                 continue
             entry = ctx.sized.get(name, {})
-            if entry.get("_L_source") in _AUTHORITATIVE_GM_ID_SOURCES:
+            if _gm_id_already_authoritative(entry):
                 continue
             if "ID" not in entry:
                 raise ValueError(f"{name}: A엔진(propagate_topology_forced_currents)이 전류를 "
@@ -9557,11 +9886,25 @@ if __name__ == "__main__":
     # M9b/M18b+1로 안 풀리고 5라운드 소진 후 M5가 6핑거까지 발산) -- 그래서 홀짝을 보존하는
     # 3배(여전히 홀수)로 줘서 세션12/L4c와 동일하게 M9b/M18b+1 1라운드 성공을 유지하면서
     # count(=3)>=n_rows(=2)로 common-centroid 크래시만 피한다.
+    # 2026-09-08(B16) -- M64는 이 넷리스트에서 `gate == drain == "Vbias3"`, 즉 **진짜
+    # diode-connected**다(세션12의 실제 M3a 그룹 connectivity를 그대로 복사한 결과). 그런데
+    # 이 픽스처는 11소자 전부에 같은 `gm_id=12 @ vds=0.6`을 시드하고 있었다 -- diode는
+    # Vgs=Vds가 물리적으로 강제되므로 그 조합은 **불가능한 시드**다(vds=0.6V가 요구하는
+    # gm_id는 21.3). `apply_diode_self_consistent_gm_id()`를 배선하면서 이 기존 오류가
+    # 드러났다.
+    #
+    # 고치는 방향은 **vds 쪽**이다: gm_id/W를 바꾸면 이 테스트가 실제로 검증하려는
+    # euler/finger fixup의 기하(W·L·n_fingers 의존)가 통째로 달라진다. vds만 옮기면
+    # 기하는 그대로이고 물리만 맞는다. 값을 하드코딩하지 않고 LUT에서 유도하는 이유는
+    # LUT이 바뀌면(공정 변경/앵커 추가) 이 값도 따라 움직여야 하기 때문이다.
+    _l4c_m64_vds = solve_diode_connected_vds(lut, _l4c_gm_id, _l4c_L, 0.0)
+    _l4c_m64_gds = _l4c_r.gm / lut.gm_gds_ratio(_l4c_gm_id, _l4c_L, _l4c_m64_vds, 0.0)
     _ofcb_known_sizing = {
         n: {"ID": _l4c_r.ID,
             "W": _l4c_r.W * (3 if n in ("M4a", "M4b", "M3a", "M3b") else 1), "L": _l4c_L,
-            "gm": _l4c_r.gm, "gm_id": _l4c_gm_id, "gds": _l4c_gds, "kind": "nmos",
-            "vds": _l4c_vds, "vsb": 0.0}
+            "gm": _l4c_r.gm, "gm_id": _l4c_gm_id,
+            "gds": _l4c_m64_gds if n == "M64" else _l4c_gds, "kind": "nmos",
+            "vds": _l4c_m64_vds if n == "M64" else _l4c_vds, "vsb": 0.0}
         for n in _l4c_names
     }
     _ofcb_baseline_area = sum(_ofcb_known_sizing[n]["W"] * _ofcb_known_sizing[n]["L"]
@@ -9792,10 +10135,26 @@ if __name__ == "__main__":
             assert abs(_l5c_sum - 1.8) < 1e-6, f"{_l5c_name} 합이 vdd(1.8V)와 불일치(회귀): {_l5c_sum}"
         print(f"    PASS: vy_tail/vbias4/cmfb 세 컬럼 전부 vdd(1.8V)와 정확히 일치 -- "
               f"M5/M61/M64/M63/M60/M66/M36a/M37a/M38 KVL 정합")
-        assert _l5c_sizing["M18_bg"]["vds"] < 0.5, \
-            f"M18_bg(diode_reference)가 여전히 큰 값을 받음(회귀): {_l5c_sizing['M18_bg']['vds']}"
-        print(f"    PASS: M18_bg(diode_reference)=={_l5c_sizing['M18_bg']['vds']}V -- thin_roles로 "
-              f"얇게 배정됨(더 이상 ~vdd 아님)")
+        # 2026-09-08(B16) -- 예전 단정은 `vds < 0.5`라는 **임의 상수**였다. 의도(세션28)는
+        # "M18_bg가 ~vdd를 통째로 받던 회귀가 재발하지 않는지"였지만, 0.5라는 문턱 자체는
+        # "diode_reference는 얇게 받는다"는 role 기반 믿음에서 나온 값이고 그건 이 재설계가
+        # 고치는 대상이다. M18_bg는 diode-connected라 vds가 W를 정하는 종속값이고, 실제
+        # 물리가 요구하는 값은 0.75V다(0.5보다 크다).
+        #
+        # 그래서 상수 대신 **물리 구간**으로 검사한다 -- 훨씬 강한 검사다(단순히 "작다"가
+        # 아니라 "제작 가능한 폭이 나오는 구간 안에 있다").
+        _l5c_bg = _l5c_sizing["M18_bg"]
+        _l5c_bg_lo, _l5c_bg_hi = diode_vds_window(
+            _l5c_spec["lut_by_kind"][_l5c_bg["kind"]], _l5c_bg["kind"],
+            _l5c_bg["L"], _l5c_bg["ID"], _l5c_bg.get("vsb", 0.0),
+            tuple(_l5c_spec.get("W_bounds", (1e-6, 200e-6))))
+        assert _l5c_bg_lo is not None and _l5c_bg_lo <= _l5c_bg["vds"] <= _l5c_bg_hi, \
+            (f"M18_bg(diode-connected)의 vds={_l5c_bg['vds']}가 W 한계가 허용하는 구간 "
+             f"[{_l5c_bg_lo}, {_l5c_bg_hi}] 밖이다(회귀)")
+        assert _l5c_bg["vds"] < 0.9 * 1.8, \
+            f"M18_bg가 ~vdd를 통째로 받는 세션28 회귀가 재발함: {_l5c_bg['vds']}"
+        print(f"    PASS: M18_bg(diode-connected)=={_l5c_bg['vds']}V -- W 한계가 허용하는 "
+              f"구간 [{_l5c_bg_lo:.4f}, {_l5c_bg_hi:.4f}]V 안이고 ~vdd도 아님")
 
     print("    [사용자 지적(2026-08-11) -- ideal current source(전압 자유)/voltage source")
     print("    (전류 자유)는 헤드룸 '합=vdd' 계약에 영향이 다르다. role 라벨만 믿지 않고")
@@ -10306,9 +10665,19 @@ if __name__ == "__main__":
             "Mb": {"gm_id_match_vgs_of": "Ma", "L_role": "mirror", "headroom_role": "mirror", "vsb": 0.0},
         },
     }
-    _gmv_L, _gmv_vds_a, _gmv_vds_b = 0.5e-6, 0.8, 0.5  # ⚠️ 일부러 다른 VDS
-    _gmv_known = {"Ma": {"ID": 1e-5, "L": _gmv_L, "vds": _gmv_vds_a, "vsb": 0.0},
-                  "Mb": {"ID": 1e-5, "L": _gmv_L, "vds": _gmv_vds_b, "vsb": 0.0}}
+    _gmv_L, _gmv_ID = 0.5e-6, 1e-5
+    # 2026-09-08(B16) -- Ma는 `gate == drain == NodeC`, 즉 **diode-connected**다. 그래서
+    # vds를 임의로 줄 수 없다(vds가 gm_id를, gm_id가 W를 정한다). 예전엔 0.8V를 박아뒀는데
+    # 이 LUT에서는 그 값이 W=0.28um(하한 1um 미달)를 요구했다 -- 배선하고 나서야 드러난
+    # 기존 오류다. 값을 다시 박지 않고 **구간을 런타임에 계산해 그 중앙을 쓴다**(LUT이
+    # 바뀌면 따라간다). Mb는 diode가 아니므로 자유이고, 이 테스트의 의도대로 일부러 다르게 둔다.
+    _gmv_lo, _gmv_hi = diode_vds_window(lut, "nmos", _gmv_L, _gmv_ID, 0.0, (1e-6, 200e-6))
+    assert _gmv_lo is not None, "toy LUT에서 Ma의 diode 가능 vds 구간이 비었다(fixture 재검토 필요)"
+    _gmv_vds_a = 0.5 * (_gmv_lo + _gmv_hi)
+    _gmv_vds_b = _gmv_lo                                 # ⚠️ 일부러 다른 VDS
+    assert abs(_gmv_vds_a - _gmv_vds_b) > 1e-6, "이 테스트는 두 소자의 VDS가 달라야 의미가 있다"
+    _gmv_known = {"Ma": {"ID": _gmv_ID, "L": _gmv_L, "vds": _gmv_vds_a, "vsb": 0.0},
+                  "Mb": {"ID": _gmv_ID, "L": _gmv_L, "vds": _gmv_vds_b, "vsb": 0.0}}
     with _tempfile.TemporaryDirectory() as _gmv_tmp:
         _gmv_path = _os.path.join(_gmv_tmp, "_gmv_test.topology.json")
         with open(_gmv_path, "w", encoding="utf-8") as _f:
