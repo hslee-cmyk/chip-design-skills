@@ -2239,14 +2239,14 @@ def _metric_kcl_residual(spec: dict, ctx: SizingContext) -> float:
         else:
             add(tr.source, -e["ID"]); add(tr.drain, +e["ID"])
 
-    # 2026-09-08(B14, 사용자 확정) -- `ideal_sources.value_amp`는 **참고값**이다. 실제 바이어스
-    # 전류는 theta(예: `r_biasgen`)의 자유 탐색이 전력 최적으로 정하고, 이상전원은 그 전류를
-    # 그대로 흘리는 것으로 본다. 따라서 이상전원이 물린 노드는 KCL 잔차 판정에서 **제외**한다
-    # -- 선언값(파일럿 Iref 1.2uA)과 사이징 전류(0.6484uA, 1.851배 차이)의 괴리를 KCL 위반으로
-    # 오보고하지 않기 위해서다. 그 괴리 자체는 별도로 리포트에 적는다(계획 §10.3 B14).
-    # `count_ideal_sources=True`로 선언하면 선언값을 실제 전류로 취급해 함께 센다.
+    # 2026-09-08(B14, 사용자 확정) -- `ideal_sources.value_amp`의 의미는 **선언 여부로 갈린다**:
+    #   value_amp = null  -> 그 전류는 자유 탐색(theta)이 전력 최적으로 정한다. 이상전원은 그
+    #                        결과를 그대로 흘리므로 KCL 잔차 판정에서 그 노드를 **제외**한다.
+    #   value_amp = 값     -> **그 값이 실제 전류다**. 사이징이 그 값을 못 맞추면 그건 진짜
+    #                        KCL 위반이므로 함께 세어 **드러낸다**.
+    # 파일럿 Iref는 1.2uA가 선언돼 있으므로 후자다 -- 현재 사이징(M18_bg 0.6484uA)과 1.851배
+    # 어긋나는 것이 잔차로 잡히는 게 맞다(계획 §10.3 B14).
     skipped = set()
-    count_ideal = bool(spec.get("count_ideal_sources", False))
     for src in (_ideal_sources_cached(ctx.topology_path) or []):
         if src.get("kind") != "current_source":
             continue
@@ -2254,8 +2254,8 @@ def _metric_kcl_residual(spec: dict, ctx: SizingContext) -> float:
         terms = src.get("terminals") or []
         if len(terms) < 2:
             continue
-        if amp is None or not count_ideal:
-            skipped.update(terms)          # 값 미정이거나 참고값 취급 -- 그 노드를 뺀다
+        if amp is None:
+            skipped.update(terms)          # 자유 탐색 대상 -- 값을 지어내지 않고 노드를 뺀다
             continue
         add(terms[0], -float(amp)); add(terms[1], +float(amp))
 

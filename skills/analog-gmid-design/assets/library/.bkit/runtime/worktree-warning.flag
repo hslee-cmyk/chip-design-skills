@@ -1,0 +1,8 @@
+{
+  "detectedAt": "2026-08-19T16:46:58.897Z",
+  "toplevel": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills",
+  "gitDir": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\.git",
+  "gitCommonDir": "C:\\Users\\HSLEE\\.git",
+  "issue": "https://github.com/anthropics/claude-code/issues/46808",
+  "message": "git worktree detected — Claude Code hooks may not fire (issue #46808). Run bkit from the primary repository if hook-driven automation is required."
+}
