@@ -541,13 +541,13 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "fold_group": "fold_m101",
       "vertical_stack_id": "col_m101"
     },
     "M102": {
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror",
       "fold_group": "fold_m101",
@@ -555,7 +555,7 @@
     },
     "M103": {
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror",
       "fold_group": "fold_m101",
@@ -565,7 +565,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "fold_group": "fold_m101",
       "vertical_stack_id": "col_m104"
     },
@@ -573,7 +573,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "fold_group": "fold_m101",
       "vertical_stack_id": "col_m105"
     },
@@ -581,7 +581,7 @@
       "gm_id_role": "gain",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "fold_group": "fold_m101",
       "vertical_stack_id": "col_m106"
     },
@@ -589,7 +589,7 @@
       "gm_id_role": "gain",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "fold_group": "fold_m101",
       "vertical_stack_id": "col_m107"
     },
@@ -597,7 +597,7 @@
       "gm_id_role": "load",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "fold_group": "fold_m101",
       "vertical_stack_id": "col_m108"
     },
@@ -606,27 +606,27 @@
       "vds_match_vgs_of": "M201",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "fold_group": "fold_m101",
       "vertical_stack_id": "col_m109"
     },
     "M201": {
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "stage2_diode_ref"
     },
     "M202": {
       "gm_id_role": "load",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "stage2_output"
     },
     "M203": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "stage2_diode_ref"
     },
     "M204": {
@@ -634,19 +634,19 @@
       "vds_match_vgs_of": "M301",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "stage2_output"
     },
     "M301": {
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "stage3_output"
     },
     "M302": {
       "gm_id_role": "load",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "stage3_output"
     }
   },

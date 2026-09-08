@@ -174,14 +174,14 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "diode_reference",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "biasgen_mp"
     },
     "M3": {
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m3",
       "fold_group": "g_x"
     },
@@ -189,7 +189,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m4",
       "fold_group": "g_y"
     },
@@ -197,7 +197,7 @@
       "gm_id_role": "gain",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m5",
       "fold_group": "g_y"
     },
@@ -205,7 +205,7 @@
       "gm_id_role": "gain",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m6",
       "fold_group": "g_x"
     },
@@ -213,7 +213,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m1",
       "fold_group": "g_tail"
     },
@@ -221,7 +221,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m2",
       "fold_group": "g_tail"
     },
@@ -229,7 +229,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m9",
       "fold_group": "g_y"
     },
@@ -237,7 +237,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m10",
       "fold_group": "g_vg10"
     },
@@ -245,7 +245,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m7",
       "fold_group": "g_y"
     },
@@ -253,7 +253,7 @@
       "gm_id_role": "gain",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m8",
       "fold_group": "g_vg10"
     },
@@ -261,7 +261,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "mirror",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "col_m11",
       "fold_group": "g_tail"
     },
@@ -269,7 +269,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "diode_reference",
-      "vs": 0.0,
+      "vsb": 0.0,
       "vertical_stack_id": "biasgen_mn"
     }
   },

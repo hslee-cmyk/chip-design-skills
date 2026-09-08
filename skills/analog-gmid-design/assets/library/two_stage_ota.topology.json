@@ -52,40 +52,40 @@
     "M3": {
       "headroom_role": "cascode",
       "vertical_stack_id": "stage1_ref",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M4": {
       "headroom_role": "cascode",
       "vertical_stack_id": "stage1_out",
       "budget_reference_device": "M5",
       "_budget_reference_device_comment": "2026-08-20(세션41 연속) -- output branch(M4+M2)는 M5(reference branch 소속, tail)를 공유한다 -- 이 branch 혼자만의 예산은 vdd 전체가 아니라 vdd-VDS(M5)다. M4 자신의 vds는 이미 vds_match_vgs_of=M6으로 확정되므로(theta feed 레벨, L_mirror_M3 참고) 이 참조는 배정이 아니라 검증(_verify_group_kvl_sum())에만 쓰인다 -- M4+M2+M5(참조)가 실제로 vdd와 일치하는지 실측 확인.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M5": {
       "headroom_role": "tail",
       "vertical_stack_id": "stage1_ref",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "bias_replica"
     },
     "M7": {
       "headroom_role": "tail",
       "vertical_stack_id": "stage2",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M6": {
       "headroom_role": "mirror",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M1": {
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M2": {
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     }

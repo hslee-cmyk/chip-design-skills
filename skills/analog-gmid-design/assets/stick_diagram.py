@@ -4752,7 +4752,7 @@ def apply_device_roles_gap_fill(topology_json_path: str, result: dict) -> dict:
         if skip:
             continue
         entry.update(proposal)
-        entry.setdefault("vs", 0.0)
+        entry.setdefault("vsb", 0.0)
         device_roles[name] = entry
         applied_roles[name] = dict(entry)
     data["device_roles"] = device_roles or None
@@ -12525,7 +12525,7 @@ if __name__ == "__main__":
             f"파일에 새 쌍 {len(_t55_expected_new)}개가 실제로 추가되지 않음(쓰기 실패)"
         assert _t55_written["device_roles"] is not None and "M9" in _t55_written["device_roles"], \
             "device_roles가 파일에 실제로 안 써짐"
-        assert _t55_written["device_roles"]["M9"]["vs"] == 0.0, \
+        assert _t55_written["device_roles"]["M9"]["vsb"] == 0.0, \
             "vs 기본값(템플릿 관례) 미적용"
         print(f"    PASS: 파일에 실제로 matching_pairs {_t55_before_pairs}->"
               f"{len(_t55_written['symmetry']['matching_pairs'])}(신규 {_t55_expected_new}), "
@@ -12641,7 +12641,7 @@ if __name__ == "__main__":
     print("  내고, apply_device_roles_gap_fill()로 review를 완료하면 그 다음부터 통과하는지]")
     _t57_mut = json.loads(json.dumps(_t57_raw))  # deep copy
     _t57_mut["device_roles"]["M8"] = {"headroom_role": "mirror", "vertical_stack_id": "biasgen_vom_a",
-                                        "vs": 0.0}  # gm_id_role/L_role 일부러 뺌(review 전 상태 재현)
+                                        "vsb": 0.0}  # gm_id_role/L_role 일부러 뺌(review 전 상태 재현)
     with _t55_tempfile.TemporaryDirectory() as _t57_tmpdir:
         _t57_mut_path = _t49_os.path.join(_t57_tmpdir, "crt_unreviewed.topology.json")
         with open(_t57_mut_path, "w", encoding="utf-8") as _t57_f:

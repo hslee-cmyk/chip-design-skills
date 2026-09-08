@@ -975,7 +975,7 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_a",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M13": {
       "headroom_role": "mirror",
@@ -983,21 +983,21 @@
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_battery_b",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M12와 동일 패턴(VDD-M13-M14a-M14b-GND 3소자 단순 직렬 컬럼인데 M13만 따로 'biasgen_vom_diode_src'였음) -- M14a/M14b와 같은 vsid로 합침.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M11a": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_battery_a",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M11b": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_battery_a",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M9a": {
       "headroom_role": "floating_current_source",
@@ -1006,7 +1006,7 @@
       "vertical_stack_id": "biasgen_vom_a",
       "budget_reference_device": "M10",
       "_budget_reference_device_comment": "2026-08-19(세션39) -- 'biasgen_vom_a'(M8+M9a)는 지금까지 vdd~gnd 전체 컬럼으로 잘못 취급됐다. 실제로는 M9a.drain=Vop1(=M10.drain, M10.source=gnd라 V(Vop1)=VDS(M10))이라 이 컬럼의 진짜 예산은 vdd-V(Vop1)이다 -- budget_reference_device='M10'으로 정정(기존 필드 그대로 재사용, 새 계산 로직 없음). `.ai/context.md` 세션39 Monticelli floating battery 분석 참고.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M9b": {
       "headroom_role": "floating_current_source",
@@ -1015,7 +1015,7 @@
       "vertical_stack_id": "biasgen_vom_floatsrc_sink",
       "budget_reference_device": "M8",
       "_budget_reference_device_comment": "2026-08-19(세션39) -- 'biasgen_vom_floatsrc_sink'(M9b+M10)도 대칭으로 잘못됐다: M9b.drain=Vg15(=M8.drain, M8.source=vdd라 V(Vg15)=vdd-VDS(M8))이라 이 컬럼의 진짜 예산은 V(Vg15)=vdd-VDS(M8)다 -- budget_reference_device='M8'로 정정. M9a그룹(biasgen_vom_a)이 M10을, 이 그룹(biasgen_vom_floatsrc_sink)이 M8을 서로 다른 상대 그룹의 멤버로 참조하는 상호참조라 fixed-point worklist(세션39 신설, _ref_depth() 단일재귀로는 순환으로 오판했을 케이스) 없이는 못 풀린다.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M12": {
       "headroom_role": "mirror",
@@ -1023,7 +1023,7 @@
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_battery_a",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 원래 'biasgen_vom_battery_a_sink'로 M11a/M11b('biasgen_vom_battery_a')와 다른 vsid였다. 그런데 실제 회로는 VDD-M11a-N11a11b-M11b-N11b-M12-GND(r_diode_M11a theta 주석에 이미 명시)인 단순 3소자 직렬 컬럼 하나뿐이라, M12를 따로 떼면 M11a/M11b만으로 vdd 헤드룸 배정을 시도하다 배분할 곳(cascode 아닌 role)이 없어 allocate_stack_headroom() assert가 실패했다(2026-08-10 세션에서 발견). M11a/M11b와 같은 vsid로 합쳐 하나의 물리적 컬럼으로 취급 -- audit_vertical_stack_id_vs_kcl()가 이 경계를 'kind=internal_series'(정상적으로 갈릴 수 있는 기능적 경계)로 분류했던 건 KCL 같은-전류 여부에 대한 판단일 뿐, 헤드룸(같은 물리적 컬럼) 판단과는 별개임을 이번에 확인했다.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M10": {
       "headroom_role": "mirror",
@@ -1032,21 +1032,21 @@
       "vertical_stack_id": "biasgen_vom_floatsrc_sink",
       "vds_match_vgs_of": "M16",
       "_vds_match_vgs_of_comment": "2026-08-19(세션39) -- M10.drain=Vop1=M16.gate이고 둘 다 source=gnd 공유라 VGS(M16)=VDS(M10)이 KVL로 강제된다(M203/M204와 정확히 같은 패턴). M16은 compensation.stage_devices 소속이라 gm_id가 이미 AC 스펙(GBW/PM)에서 확정되므로 M16이 권위 있는 쪽 -- M10의 vds를 M16의 VGS로 맞춘다.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M14a": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_battery_b",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M14b": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_battery_b",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M22": {
       "headroom_role": "mirror",
@@ -1054,28 +1054,28 @@
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_battery_b",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M13과 대칭인 Vop측 동일 사유(M23a/M24b와 같은 물리적 컬럼으로 합침).",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M17": {
       "headroom_role": "mirror",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_a",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M20a": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_battery_a",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M20b": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_battery_a",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M18a": {
       "headroom_role": "floating_current_source",
@@ -1084,14 +1084,14 @@
       "vertical_stack_id": "biasgen_vop_a",
       "budget_reference_device": "M19",
       "_budget_reference_device_comment": "2026-08-24(세션42 이월, 세션43 정정) -- 'biasgen_vop_a'(M17+M18a)는 M9a(biasgen_vom_a)와 대칭인데 이 참조가 빠져 있었다. 실제로는 M18a.drain=Vom1(=M19.drain, M19.source=gnd라 V(Vom1)=VDS(M19))이라 이 컬럼의 진짜 예산은 vdd-V(Vom1)=vdd-VDS(M19)다 -- budget_reference_device='M19'로 추가(M9a.budget_reference_device='M10'과 정확히 대칭). stick_diagram.py의 6번째 소스 자동추론이 이를 스스로 못 채운 이유: M18a의 열린 단자 Vom1을 drain으로 공유하는 소자가 M2a/M3a/M19 3개(4-way 공유)라 로컬 연결성만으론 유일하게 결정할 수 없어 review_needed로 보류됐다(cascoded-gain-node의 M2a/M3a는 이 KVL 관계와 무관 -- 별개의 이득노드 branch). biasgen_vop_floatsrc_sink(M18b+M19)의 M17 참조는 Vg25를 drain으로 공유하는 소자가 M17 하나뿐이라 이미 자동추론이 정확히 채우고 있었다(파일엔 미선언, 런타임 전용) -- 대칭인 이쪽만 수동 보강. `.ai/context.md` 세션42 §7-0/세션43 참고.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M18b": {
       "headroom_role": "floating_current_source",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_floatsrc_sink",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M21": {
       "headroom_role": "mirror",
@@ -1099,28 +1099,28 @@
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_battery_a",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M12와 대칭인 Vop측 동일 사유(M20a/M20b와 같은 물리적 컬럼으로 합침).",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M19": {
       "headroom_role": "mirror",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_floatsrc_sink",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M24b": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_battery_b",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M23a": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_battery_b",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M18_bg": {
       "headroom_role": "diode_reference",
@@ -1136,21 +1136,21 @@
       "vertical_stack_id": "vbias4_gen",
       "budget_reference_device": "M66",
       "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- M60(vdd-Vbias4, gate=Vbias1)과 M66(Vbias4-gnd, diode-connected)은 Test 47이 확인한 진짜 2단자 직렬(Vbias4, internal_series)인데 vsid가 따로였다(vbias4_gen/vbias4_stack). M11a/M11b/M12·M5/M61과 같은 패턴이지만 이번엔 병합 대신 budget_reference_device로 연결 -- M66이 diode-connected라 자기 완결적으로 작은 Vgs를 갖는 쪽(self-determining)이고 M60은 외부 게이트(Vbias1) 구동이라 '나머지'를 받는 쪽이 자연스럽다(M6/M58 패턴과 동일 방향). 수정 전엔 둘 다 독립적으로 '혼자니까 vdd 전부'를 받아 합이 vdd가 아니라 ~2*vdd였다(KVL 위반, 미해결 상태로 다음 세션 이월돼 있던 항목).",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M64": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias3_stack",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M63": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias3_stack",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M61": {
       "headroom_role": "mirror",
@@ -1159,28 +1159,28 @@
       "vertical_stack_id": "vbias3_stack",
       "budget_reference_device": "M5",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 VDD-M61-Vbias3-M64-M63-Vy-M5-GND라 M64/M63과 같은 물리적 컬럼인데 별도 vsid(vbias3_gen)였다 -- M64/M63과 합치고, 이 컬럼의 bottom이 gnd가 아니라 Vy(=vds(M5))이므로 budget_reference_device로 M5를 참조. suggest_headroom_stack_groups()(stick_diagram.py, 2026-08-10 신설)가 이 그룹+참조를 정확히 재현해 교차검증됨.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M58": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias2_stack",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M57": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias2_stack",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M66": {
       "headroom_role": "mirror",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias4_stack",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M68": {
       "headroom_role": "mirror",
@@ -1189,14 +1189,14 @@
       "vertical_stack_id": "vbias2_stack",
       "budget_reference_device": "M6",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 Vx-M58-M57-Vbias2-M68-GND(M6/M7 병렬 tail이 Vx를 먹임, r_bg_vbias2 theta 주석 참고)라 M58/M57과 같은 물리적 컬럼인데 별도 vsid(vbias2_gen)였다 -- M58/M57과 합치고, 이 컬럼의 top이 vdd가 아니라 Vx(=vdd-vds(M6))이므로 budget_reference_device로 M6을 참조(suggest_headroom_stack_groups()가 M7도 동등 후보로 제안하나, M6/M7 둘 다 같은 Vx를 구동하는 병렬 tail이라 어느 쪽을 참조해도 이론상 같은 값 -- M6을 대표로 채택).",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M36a": {
       "headroom_role": "mirror",
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "cmfb_load_a",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M36b": {
       "headroom_role": "mirror",
@@ -1205,7 +1205,7 @@
       "vertical_stack_id": "cmfb_load_b",
       "same_as_device": "M36a",
       "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M36b는 M36a의 대칭 매칭 파트너(CMFB load 차동쌍 반대쪽, 둘 다 diode-connected)라 이론상 VDS가 동일해야 한다. budget_reference_device 슬롯은 이미 cmfb_tail(M38)이 M36a를 참조하는 데 쓰고 있어(그룹당 1개 제약) M36b는 별도로 same_as_device(신규 필드)로 M36a를 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M36a의 vds를 그대로 복사.",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M39": {
       "headroom_role": "voltage_divider",
@@ -1234,12 +1234,12 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "headroom_role": "cascode",
-      "vs": 0.0
+      "vsb": 0.0
     },
     "M37a": {
       "vertical_stack_id": "cmfb_tail",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
@@ -1247,20 +1247,20 @@
     "_diffpair_branch_merge_comment": "2026-09-03(세션43, 근본수정) -- 옛 diffpair_top_a/b·diffpair_bottom_a/b 4개 vsid(세션24가 gap-filling으로 신설)를 없애고 물리적 단일 branch(vdd-M6-M1a-M2a-M3a-M4a-M5-gnd, M7/M2b/M3b은 아래 same_as_device로 별도 처리)의 나머지 8소자(M1a/M1b/M2a/M3a/M4a/M4b + M6 + M5)를 'diffpair_branch_a' 하나로 병합했다. 근본원인: M2a<->M3a(및 대칭 M2b<->M3b)의 budget_reference_device 상호참조가 대수적으로 미결정(M2x.vds+M3x.vds=상수 하나뿐인데 미지수가 둘, 직접 대입하면 항등식만 나옴 -- 세션42가 도입한 이 메커니즘 자체가 처음부터 안 풀리는 설계였음을 세션43이 실측+대수로 확인)이었다. symmetry.matching_pairs의 M1a=M1b/M4a=M4b는 matching_sensitivity='offset'이라 _vfind()가 대표 1개만 헤드룸 예산에 집계해주므로 그대로 병합에 포함시켰다 -- 반면 M2a=M2b/M3a=M3b는 'ratio'라 _vfind()가 안 묶는다(session41이 의도적으로 그렇게 설계, two_stage_ota M3/M4류처럼 진짜 값이 다를 수 있는 ratio 쌍과 구분하기 위함). 그래서 M2b/M3b는 이 그룹에 안 넣고 별도 'diffpair_shadow_b'에서 same_as_device로 처리한다(아래 M2b 주석 참고, M7=M6과 동일 패턴) -- 안 그러면 known_vds_sum이 이중 계산된다(실측 확인). 병합 결과 새 코드 없이 allocate_stack_headroom()의 기존 계약(cascode류 thin role은 각자 role 최소치만, tail류는 남는 예산을 인원수로 균등분배, 합=vdd는 함수 자체 assert로 보장)이 정확히 들어맞는다: M1a/M4a(compensation 기결정, known_vds_sum)+M2a/M3a(cascode, 각자 min_vds)+M6/M5(tail, 남는 예산 정확히 절반씩). branch_b(M7-M1b-M2b-M3b-M4b-M5)의 KVL은 M7=M6/M1b=M1a/M4b=M4a/M2b=M2a/M3b=M3a/M5 공유가 전부 구조적으로 강제되므로 branch_a와 대수적으로 항상 동일해 별도 검증 없이도 자동으로 성립한다. `.ai/context.md` 세션43 참고.",
     "M1a": {
       "vertical_stack_id": "diffpair_branch_a",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M2a": {
       "vertical_stack_id": "diffpair_branch_a",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M1b": {
       "vertical_stack_id": "diffpair_branch_a",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
@@ -1269,20 +1269,20 @@
       "headroom_role": "cascode",
       "same_as_device": "M2a",
       "_same_as_device_comment": "2026-09-03(세션43) -- M2a/M2b는 symmetry.matching_pairs상 matching_sensitivity='ratio'라 _vfind()가 union하지 않는다(session41의 의도적 설계 -- ratio 쌍은 진짜 VDS가 다를 수 있는 two_stage_ota M3/M4류와 구분하기 위함). 하지만 이 회로에서 M2a/M2b는 L_cascode theta feed(devices=[M2a,M2b,M3a,M3b])가 애초에 단 하나의 vds를 계산해 넷 다 동일하게 적용하므로(resolve_feed_vds(devices[0]) 기존 계약) 물리적으로 100% 동일 -- ratio 분류는 미스매치 분석 목적일 뿐 헤드룸 VDS 동일성과는 별개 축이다. M2a와 같은 'diffpair_branch_a'에 두면 _vfind가 안 묶어 known_vds_sum이 이중 계산되므로(실측 확인) 별도의 작은 vsid로 분리하고 same_as_device로 M2a 값을 그대로 복사(M7=M6과 동일 패턴) -- 이 그룹 자체는 _verify_group_kvl_sum()의 same_as_device 스킵 규칙으로 검증 대상에서 빠진다(정상, M7/vx_tail_b와 동일).",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M3a": {
       "vertical_stack_id": "diffpair_branch_a",
       "headroom_role": "cascode",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M4a": {
       "vertical_stack_id": "diffpair_branch_a",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
@@ -1290,37 +1290,37 @@
       "vertical_stack_id": "diffpair_shadow_b",
       "headroom_role": "cascode",
       "same_as_device": "M3a",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M4b": {
       "vertical_stack_id": "diffpair_branch_a",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M15": {
       "vertical_stack_id": "output_stage_a",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M16": {
       "vertical_stack_id": "output_stage_a",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M25": {
       "vertical_stack_id": "output_stage_b",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     },
     "M26": {
       "vertical_stack_id": "output_stage_b",
-      "vs": 0.0,
+      "vsb": 0.0,
       "gm_id_role": "matching",
       "L_role": "mirror"
     }

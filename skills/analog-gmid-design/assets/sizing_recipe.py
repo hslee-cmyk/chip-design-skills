@@ -58,7 +58,7 @@ class GmIdLUT:
     근사이므로 기본 구현을 제공한다 — 필요하면 오버라이드한다.
     """
 
-    def gm_id_to_id_density(self, gm_id: float, L: float, vds: float, vs: float = 0.0) -> float:
+    def gm_id_to_id_density(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """주어진 gm/ID에 대응하는 단위 전류밀도 IDu(=ID/W, 기준 소자 기준)를 반환.
 
         semi-empirical: 4D 테이블에서 (L, VGS, vds, vs) 격자를 gm/ID 축으로 재파라미터화한 뒤
@@ -69,7 +69,7 @@ class GmIdLUT:
                                    "gm-id-methodology.md §2.4/§3.4/§4.3 참조. "
                                    "4D 스윕 데이터가 있다면 SemiEmpiricalGmIdLUT를 바로 쓰세요.")
 
-    def gm_gds_ratio(self, gm_id: float, L: float, vds: float, vs: float = 0.0) -> float:
+    def gm_gds_ratio(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """intrinsic gain gm/gds = (gm/ID)*VA. LUT의 GDS 열에서 유도(방법론 §2.5)."""
         raise NotImplementedError("자신의 LUT로 구현하세요 (또는 SemiEmpiricalGmIdLUT 사용)")
 
@@ -113,10 +113,10 @@ class SizingResult:
 
 
 def size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT,
-                     vds: float, vs: float = 0.0) -> SizingResult:
+                     vds: float, vsb: float = 0.0) -> SizingResult:
     """방법론 식 1.17/1.18: ID = gm/(gm/ID),  W = L * ID / IDu."""
     ID = gm / gm_id
-    IDu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
+    IDu = lut.gm_id_to_id_density(gm_id, L, vds, vsb)
     if IDu <= 0:
         raise ValueError("IDu<=0 — LUT 보간 범위를 벗어났을 가능성 (gm_id/vds 확인)")
     W = L * ID / IDu
@@ -124,7 +124,7 @@ def size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT,
 
 
 def converge_with_parasitics(fT: float, C_external: float, gm_id: float, L: float,
-                              lut: GmIdLUT, vds: float, vs: float = 0.0,
+                              lut: GmIdLUT, vds: float, vsb: float = 0.0,
                               n_fingers: int = 1, max_iter: int = 10, tol: float = 1e-4
                               ) -> SizingResult:
     """방법론 §4.2 — 외부부하 C_external에 기생 CJD를 더해가며 수렴할 때까지 반복.
@@ -137,7 +137,7 @@ def converge_with_parasitics(fT: float, C_external: float, gm_id: float, L: floa
     result = None
     for _ in range(max_iter):
         gm = gm_from_fT(fT, C)
-        result = size_transistor(gm, gm_id, L, lut, vds, vs)
+        result = size_transistor(gm, gm_id, L, lut, vds, vsb)
         cjd = lut.junction_cap(L * 1e6, result.W * 1e6, n_fingers)  # jctCap은 um 단위 기대, F 반환
         C_new = C_external + cjd
         if C_new > 20 * C_external:
@@ -152,7 +152,7 @@ def converge_with_parasitics(fT: float, C_external: float, gm_id: float, L: floa
             C = C_new
             break
         C = C_new
-    result.gain = lut.gm_gds_ratio(gm_id, L, vds, vs)  # A = gm/gds, 방법론 식 6.1 형태
+    result.gain = lut.gm_gds_ratio(gm_id, L, vds, vsb)  # A = gm/gds, 방법론 식 6.1 형태
     return result
 
 
@@ -380,17 +380,17 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         """이 L에서 ID/CGG 배열이 측정된 실제 기준폭. W_ref=None이면 단위소자(W*=L) 관례."""
         return L if self.W_ref is None else self.W_ref
 
-    def _query(self, array, L, vgs, vds, vs):
-        return _multilinear_interp(self._grids_list, array, [[L, vgs, vds, vs]])[0]
+    def _query(self, array, L, vgs, vds, vsb):
+        return _multilinear_interp(self._grids_list, array, [[L, vgs, vds, vsb]])[0]
 
-    def _query_multi(self, arrays, L, vgs, vds, vs):
+    def _query_multi(self, arrays, L, vgs, vds, vsb):
         """`arrays`(같은 (L,vgs,vds,vs) 지점에서 함께 조회할 배열들, 예 `[self._log_ID,
         self.GM, self.GDS]`)를 한 번의 bisect 탐색으로 동시에 보간한다(F 설계, 세션31) --
         `_query()`를 배열마다 따로 부르면 같은 4축 bisect 탐색을 배열 개수만큼 반복하게 된다.
         `_multilinear_interp_point_multi()` docstring 참고."""
-        return _multilinear_interp_point_multi(self._grids_list, arrays, [L, vgs, vds, vs])
+        return _multilinear_interp_point_multi(self._grids_list, arrays, [L, vgs, vds, vsb])
 
-    def _sizing_bundle(self, gm_id: float, L: float, vds: float, vs: float = 0.0,
+    def _sizing_bundle(self, gm_id: float, L: float, vds: float, vsb: float = 0.0,
                         need_cgg: bool = False):
         """`find_optimal_sizing()`의 L×VDS×gm_id 핫루프 전용(F 설계, 세션31 -- 성능감사가
         `_solve_vgs()` 캐싱 이후 남은 최대 레버로 지목: 이 루프 한 후보당 `gm_id_to_id_
@@ -407,15 +407,15 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
 
         `gm_id_to_id_density()`/`gm_gds_ratio()`/`cgg_absolute()`를 이 값으로부터 재구성한
         것과 수치적으로 동일하다(같은 `_solve_vgs`/`_query` 계산을 배치로 묶었을 뿐)."""
-        vgs = self._solve_vgs(gm_id, L, vds, vs)
+        vgs = self._solve_vgs(gm_id, L, vds, vsb)
         arrays = [self._log_ID, self.GM, self.GDS] + ([self.CGG] if need_cgg else [])
-        vals = self._query_multi(arrays, L, vgs, vds, vs)
+        vals = self._query_multi(arrays, L, vgs, vds, vsb)
         IDu = math.exp(vals[0]) * L / self._w_ref_effective(L)
         gm_gds = vals[1] / vals[2]
         cgg_raw = vals[3] if need_cgg else None
         return IDu, gm_gds, cgg_raw
 
-    def _idu_scan(self, L: float, vds: float, vs: float, gm_id_grid: list) -> list:
+    def _idu_scan(self, L: float, vds: float, vsb: float, gm_id_grid: list) -> list:
         """`gm_id_grid` 전체에 대해 `(gm_id, IDu)` 쌍을 계산해 `(L,vds,vs,gm_id_grid)` 키로
         캐싱한다(감사 발견 'B' 구현, 세션31). `IDu=gm_id_to_id_density(gm_id,L,vds,vs)`는
         `ID_target`/`role`/`W_bounds`와 무관하게 `(gm_id,L,vds,vs)`에만 의존하는 순수 계산인데
@@ -426,14 +426,14 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         `gm_id`는 애초에 반환 리스트에서 빠진다(원래 `search_gm_id_for_role()` 루프의 필터링
         순서 그대로 -- `ID_target`에 의존하는 `W_bounds` 체크만 호출부가 스캔 결과 위에서
         따로 한다)."""
-        key = (L, vds, vs, tuple(gm_id_grid))
+        key = (L, vds, vsb, tuple(gm_id_grid))
         cached = self._idu_scan_cache.get(key)
         if cached is not None:
             return cached
         scan = []
         for gm_id in gm_id_grid:
             try:
-                idu = self.gm_id_to_id_density(gm_id, L, vds, vs)
+                idu = self.gm_id_to_id_density(gm_id, L, vds, vsb)
             except ValueError:
                 continue
             if idu <= 0:
@@ -442,17 +442,17 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         self._idu_scan_cache[key] = scan
         return scan
 
-    def _gm_id_curve(self, L, vds, vs):
+    def _gm_id_curve(self, L, vds, vsb):
         """고정 (L,vds,vs)에서 VGS 격자 전체에 대한 (ID, gm/ID) 배열을 반환 (역조회용).
         순수함수라 (L,vds,vs)별로 결과를 캐싱한다(위 `__init__`의 `_gm_id_curve_cache` 주석
         참고 -- `search_gm_id_for_role()`의 gm_id 스윕이 이 캐시의 주 수혜자)."""
-        key = (L, vds, vs)
+        key = (L, vds, vsb)
         cached = self._gm_id_curve_cache.get(key)
         if cached is not None:
             return cached
         n = len(self.VGS_grid)
         pts = np.column_stack([
-            np.full(n, L), self.VGS_grid, np.full(n, vds), np.full(n, vs),
+            np.full(n, L), self.VGS_grid, np.full(n, vds), np.full(n, vsb),
         ])
         id_vals = np.exp(_multilinear_interp(self._grids_list, self._log_ID, pts))
         gm_vals = _multilinear_interp(self._grids_list, self.GM, pts)
@@ -461,15 +461,15 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         self._gm_id_curve_cache[key] = result
         return result
 
-    def _solve_vgs(self, gm_id: float, L: float, vds: float, vs: float) -> float:
+    def _solve_vgs(self, gm_id: float, L: float, vds: float, vsb: float) -> float:
         """목표 gm/ID를 만족하는 VGS를 격자 위에서 역보간으로 찾는다 (gm/ID는 VGS에 단조감소).
         순수함수라 (gm_id,L,vds,vs)별로 결과를 캐싱한다(위 `__init__`의 `_solve_vgs_cache` 주석
         참고 -- find_optimal_sizing()이 같은 4-tuple로 이 함수를 여러 호출부에서 중복 호출한다)."""
-        key = (gm_id, L, vds, vs)
+        key = (gm_id, L, vds, vsb)
         cached = self._solve_vgs_cache.get(key)
         if cached is not None:
             return cached
-        _, gm_id_vals = self._gm_id_curve(L, vds, vs)
+        _, gm_id_vals = self._gm_id_curve(L, vds, vsb)
         order = np.argsort(gm_id_vals)  # np.interp는 오름차순 x를 요구
         gm_id_sorted, vgs_sorted = gm_id_vals[order], self.VGS_grid[order]
         if gm_id < gm_id_sorted[0] or gm_id > gm_id_sorted[-1]:
@@ -480,7 +480,7 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         self._solve_vgs_cache[key] = result
         return result
 
-    def gm_id_to_id_density(self, gm_id: float, L: float, vds: float, vs: float = 0.0) -> float:
+    def gm_id_to_id_density(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """size_transistor()의 `W=L*ID/IDu`가 기대하는 "W/L=1 기준 전류"를 반환.
 
         실측 LUT(W_ref가 고정폭)는 그 폭에서 잰 전류를 raw로 갖고 있으므로 `*L/W_ref`로
@@ -502,41 +502,41 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         # L*VDS*gm_id 3중루프 안에서 반복 호출되는 핫패스라 영향이 크다(성능 실측 계기로
         # 발견, `.ai/context.md` 세션30). 값은 완전히 동일(같은 식, self.np is np) -- 순수
         # 캐시 재사용이라 동작 변화 없음.
-        vgs = self._solve_vgs(gm_id, L, vds, vs)
-        raw = math.exp(self._query(self._log_ID, L, vgs, vds, vs))
+        vgs = self._solve_vgs(gm_id, L, vds, vsb)
+        raw = math.exp(self._query(self._log_ID, L, vgs, vds, vsb))
         return raw * L / self._w_ref_effective(L)
 
-    def cgg_absolute(self, gm_id: float, L: float, vds: float, vs: float, W_target: float) -> float:
+    def cgg_absolute(self, gm_id: float, L: float, vds: float, vsb: float, W_target: float) -> float:
         """목표 폭 W_target을 갖는 실제 소자의 절대 Cgg(패럿) — LUT는 기준폭에서 잰 값만
         갖고 있으므로 `W_target/W_ref`로 스케일링한다. 다단 회로에서 다음 단 게이트 커패시턴스를
         feedback으로 쓸 때(예 Miller OTA의 prev_cggs) 반드시 이 함수를 쓸 것 — `_query(CGG,...)`를
         직접 쓰면 기준폭(예 5um)의 Cgg를 실제 목표폭(수백 um)의 Cgg인 것처럼 잘못 쓰게 된다.
         """
-        vgs = self._solve_vgs(gm_id, L, vds, vs)
-        raw = self._query(self.CGG, L, vgs, vds, vs)
+        vgs = self._solve_vgs(gm_id, L, vds, vsb)
+        raw = self._query(self.CGG, L, vgs, vds, vsb)
         return raw * W_target / self._w_ref_effective(L)
 
-    def gm_gds_ratio(self, gm_id: float, L: float, vds: float, vs: float = 0.0) -> float:
-        vgs = self._solve_vgs(gm_id, L, vds, vs)
-        gm = self._query(self.GM, L, vgs, vds, vs)
-        gds = self._query(self.GDS, L, vgs, vds, vs)
+    def gm_gds_ratio(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
+        vgs = self._solve_vgs(gm_id, L, vds, vsb)
+        gm = self._query(self.GM, L, vgs, vds, vsb)
+        gds = self._query(self.GDS, L, vgs, vds, vsb)
         return gm / gds
 
-    def fT(self, gm_id: float, L: float, vds: float, vs: float = 0.0) -> float:
+    def fT(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """fT = gm/(2*pi*Cgg) — 방법론 §2.6, 준정적 검증에 사용."""
-        vgs = self._solve_vgs(gm_id, L, vds, vs)
-        gm = self._query(self.GM, L, vgs, vds, vs)
-        cgg = self._query(self.CGG, L, vgs, vds, vs)
+        vgs = self._solve_vgs(gm_id, L, vds, vsb)
+        gm = self._query(self.GM, L, vgs, vds, vsb)
+        cgg = self._query(self.CGG, L, vgs, vds, vsb)
         return gm / (2 * math.pi * cgg)
 
-    def vgs_for_gm_id(self, gm_id: float, L: float, vds: float, vs: float = 0.0) -> float:
+    def vgs_for_gm_id(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """목표 gm/ID를 만족하는 VGS 자체가 필요한 호출자를 위한 공개 래퍼(`_solve_vgs()`와
         동일 계산) — diode-stack KVL 역산(C엔진, `solve_diode_stack_current()`, §7.3.2,
         배치 7-3/2026-07-31)처럼 VGS 절대값이 직접 필요한 새 호출자가 생겨 공개 인터페이스로
         추가했다(이전엔 클래스 내부 전용이었다)."""
-        return self._solve_vgs(gm_id, L, vds, vs)
+        return self._solve_vgs(gm_id, L, vds, vsb)
 
-    def gm_id_for_vgs(self, target_vgs: float, L: float, vds: float, vs: float = 0.0) -> float:
+    def gm_id_for_vgs(self, target_vgs: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """`vgs_for_gm_id()`의 역함수 -- 목표 VGS를 만족하는 gm/ID를 O(1) 역보간으로 찾는다
         (탐색이 아니라 `_gm_id_curve(L,vds,vs)`가 이미 캐싱해둔 `(VGS_grid, gm_id_vals)` 곡선
         직접 조회, 2026-08-13 세션31 신설). `VGS_grid`는 LUT 축이라 항상 오름차순 -- `_solve_vgs()`
@@ -549,7 +549,7 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         (`search_gm_id_for_role()`)으로 정하고, 다른 쪽은 그 소자의 실제 VGS를 목표로 이
         함수로 **탐색 없이 직접 역산**한다 -- `_feed_metric_stage_budget()`의
         `gm_id_match_vgs_of` 옵션이 이 패턴의 실제 사용처."""
-        _, gm_id_vals = self._gm_id_curve(L, vds, vs)
+        _, gm_id_vals = self._gm_id_curve(L, vds, vsb)
         vgs_grid = self.VGS_grid
         if target_vgs < vgs_grid[0] or target_vgs > vgs_grid[-1]:
             raise ValueError(
@@ -557,7 +557,7 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
                 f"{vgs_grid[-1]:.3g}] 밖 -- VGS 스윕 범위를 넓히거나 이 소자의 (L,vds)를 재검토할 것.")
         return float(self.np.interp(target_vgs, vgs_grid, gm_id_vals))
 
-    def noise_1f_density(self, gm_id: float, L: float, vds: float, vs: float,
+    def noise_1f_density(self, gm_id: float, L: float, vds: float, vsb: float,
                           W_target: float, freq: float = 1.0) -> float:
         """배치 7-3g(2026-07-31) — 목표 폭 `W_target`에서 1/f(flicker) 게이트환산 전압잡음
         밀도(V^2/Hz)를 `freq`[Hz]에서 반환. `cgg_absolute()`와 완전히 같은 패턴(보간 재사용,
@@ -573,8 +573,8 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
                 "이 LUT엔 SID_1F(1/f 노이즈) 배열이 없다 -- sky130_lut_sweep.py를 .noise 해석 "
                 "포함해 재실행한 뒤 SemiEmpiricalGmIdLUT(..., SID_1F=...)로 다시 생성하세요 "
                 "(analog-topology-json-library.do.md 배치 7-3g 참고).")
-        vgs = self._solve_vgs(gm_id, L, vds, vs)
-        raw = self._query(self.SID_1F, L, vgs, vds, vs)
+        vgs = self._solve_vgs(gm_id, L, vds, vsb)
+        raw = self._query(self.SID_1F, L, vgs, vds, vsb)
         sid_1hz_at_target = raw * self._w_ref_effective(L) / W_target
         return sid_1hz_at_target / freq
 
@@ -724,7 +724,7 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
                          fT: float | None = None, C: float | None = None, gm: float | None = None,
                          objective: str = "power", gain_min: float | None = None,
                          w_max: float | None = None, quasi_static_margin: float = 0.1,
-                         vs: float = 0.0, extra_feasible=None,
+                         vsb: float = 0.0, extra_feasible=None,
                          power_tolerance: float | None = None):
     """(L, VDS, gm/ID) 격자를 전부 스윕해 제약조건을 만족하는 점 중 objective 최소인 것을 반환.
 
@@ -781,7 +781,7 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
                     # 탐색이 3~4번 반복된다(성능감사가 _solve_vgs 캐싱 이후 남은 최대 레버로
                     # 지목) -- _sizing_bundle()로 한 번에 묶는다. Cgg는 W가 나온 뒤(IDu 필요)
                     # 마지막에 raw*W/w_ref로 스케일링 -- cgg_absolute()와 동일한 식, 수치 동일.
-                    IDu, gain, cgg_raw = lut._sizing_bundle(gm_id, L, VDS, vs, need_cgg=(fT is not None))
+                    IDu, gain, cgg_raw = lut._sizing_bundle(gm_id, L, VDS, vsb, need_cgg=(fT is not None))
                     ID = gm / gm_id
                     W = L * ID / IDu
                     fnqs_ok = True
@@ -1442,7 +1442,7 @@ def run_regression_case(reference_json_path: str, case_key: str, rel_tol: float 
 #      C엔진의 실제 전류 역산, F엔진(metrics 계산기 레지스트리).
 # ---------------------------------------------------------------------------
 
-def solve_id_for_target_gm(lut: "GmIdLUT", L: float, vds: float, vs: float, W: float,
+def solve_id_for_target_gm(lut: "GmIdLUT", L: float, vds: float, vsb: float, W: float,
                             gm_target: float, gm_id_bounds: tuple = (2.0, 30.0),
                             tol: float = 1e-6, max_iter: int = 60) -> SizingResult:
     """B엔진(§7.3.2) — 이미 폭 W가 고정된 소자에서 gm(ID,W)=gm_target을 만족하는 ID를 LUT
@@ -1456,7 +1456,7 @@ def solve_id_for_target_gm(lut: "GmIdLUT", L: float, vds: float, vs: float, W: f
     `gm_id_bounds`는 탐색 범위(기본 2~30, 실용적 gm/ID 범위) — 이 범위에서 만드는 gm이
     `gm_target`을 못 담으면 즉시 `ValueError`(조용히 외삽하지 않음)."""
     def _gm_at(gm_id: float) -> float:
-        idu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
+        idu = lut.gm_id_to_id_density(gm_id, L, vds, vsb)
         return gm_id * idu * (W / L)
 
     lo, hi = gm_id_bounds
@@ -1480,14 +1480,14 @@ def solve_id_for_target_gm(lut: "GmIdLUT", L: float, vds: float, vs: float, W: f
     return SizingResult(gm=gm_target, gm_id=gm_id_sol, ID=ID, W=W)
 
 
-def _invert_gm_id_for_current(lut: "GmIdLUT", current: float, L: float, vds: float, vs: float,
+def _invert_gm_id_for_current(lut: "GmIdLUT", current: float, L: float, vds: float, vsb: float,
                                W: float, gm_id_bounds: tuple = (2.0, 30.0),
                                tol: float = 1e-9, max_iter: int = 60) -> float:
     """주어진 전류를 만드는 gm_id를 이분탐색으로 역산한다 — ID(gm_id) = IDu(gm_id)*(W/L)가
     gm_id에 단조감소(약반전=높은 gm_id=낮은 전류)이므로 성립. `solve_diode_stack_current()`의
     내부 헬퍼(diode-stack 각 소자의 VGS를 구하려면 먼저 그 소자의 gm_id를 알아야 한다)."""
     def _id_at(gm_id: float) -> float:
-        return lut.gm_id_to_id_density(gm_id, L, vds, vs) * (W / L)
+        return lut.gm_id_to_id_density(gm_id, L, vds, vsb) * (W / L)
 
     lo, hi = gm_id_bounds
     id_lo, id_hi = _id_at(lo), _id_at(hi)  # id_lo(강반전) > id_hi(약반전), 단조감소
@@ -1536,9 +1536,9 @@ def solve_diode_stack_current(lut: "GmIdLUT", known_stack: list, target_voltage:
             # `known_stack: [{"kind","L","W","vds","vs"}, ...]`로 필수 키라고 선언해뒀는데
             # 정작 여기선 `.get("vds", 0.0)`으로 조용히 기본값을 받고 있었다(vs=0.0은
             # 소스-접지 컨벤션이라 그대로 둠). 선언한 계약대로 명시 필드를 요구한다.
-            vds, vs = dev["vds"], dev.get("vs", 0.0)
-            gm_id = _invert_gm_id_for_current(lut, current, L, vds, vs, W, gm_id_bounds=gm_id_bounds)
-            total += lut.vgs_for_gm_id(gm_id, L, vds, vs)
+            vds, vsb = dev["vds"], dev.get("vsb", 0.0)
+            gm_id = _invert_gm_id_for_current(lut, current, L, vds, vsb, W, gm_id_bounds=gm_id_bounds)
+            total += lut.vgs_for_gm_id(gm_id, L, vds, vsb)
         return total
 
     lo, hi = i_bounds
@@ -1705,7 +1705,7 @@ def resolve_feed_vds(name: str, declared_vds, ctx: "SizingContext") -> float:
     return _feed_vds_fallback(declared_vds, role, ctx.spec.get("min_vds_by_role"))
 
 
-def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_target: float,
+def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vsb: float, ID_target: float,
                            role: str, W_bounds: tuple = (1e-6, 200e-6),
                            gm_id_grid: list | None = None, return_idu: bool = False):
     """배치 7-3e — `resize.py`의 균일한 매직넘버(`GM_ID_SIG=12`류, 역할 구분 없음)를
@@ -1782,7 +1782,7 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
         gm_id_grid = [i * 0.5 for i in range(4, 61)]  # 2.0~30.0
     feasible = []
     idu_by_gm_id = {}
-    for gm_id, idu in lut._idu_scan(L, vds, vs, gm_id_grid):
+    for gm_id, idu in lut._idu_scan(L, vds, vsb, gm_id_grid):
         W = ID_target * L / idu
         if W_bounds[0] <= W <= W_bounds[1]:
             feasible.append(gm_id)
@@ -1810,7 +1810,7 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
     elif role == "gain":
         best_gm_id, best_ratio = None, -1.0
         for gm_id in feasible:
-            ratio = lut.gm_gds_ratio(gm_id, L, vds, vs)
+            ratio = lut.gm_gds_ratio(gm_id, L, vds, vsb)
             if ratio > best_ratio:
                 best_ratio, best_gm_id = ratio, gm_id
     elif role == "load":
@@ -1820,7 +1820,7 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vs: float, ID_ta
         # 재사용 -- gm=gm_id*ID_target 정의 그대로).
         best_gm_id, best_ro = None, -1.0
         for gm_id in feasible:
-            ratio = lut.gm_gds_ratio(gm_id, L, vds, vs)
+            ratio = lut.gm_gds_ratio(gm_id, L, vds, vsb)
             gds = gm_id * ID_target / ratio
             ro = 1.0 / gds
             if ro > best_ro:
@@ -2037,7 +2037,7 @@ def _metric_folded_cascode_pm_deg(spec: dict, ctx: SizingContext) -> float:
     for name in spec["fold_cap_devices"]:
         e = ctx.sized[name]
         lut = ctx.spec["lut_by_kind"][ctx.kind_of[name]]
-        c_fold += lut.cgg_absolute(e["gm_id"], e["L"], e["vds"], e.get("vs", 0.0), e["W"])
+        c_fold += lut.cgg_absolute(e["gm_id"], e["L"], e["vds"], e.get("vsb", 0.0), e["W"])
     p2_hz = ctx.sized[spec["cascode_p"]]["gm"] / (2 * math.pi * c_fold)
     return 90.0 - math.degrees(math.atan(gbw_hz / p2_hz))
 
@@ -2169,7 +2169,7 @@ def _metric_flicker_plus_thermal_sum(spec: dict, ctx: SizingContext) -> float:
             # `e`는 이미 사이징 완료된 ctx.sized entry라 정상 경로에서 vds가 없을 일이
             # 없다 -- 없으면(선언 누락) 잡음 추정치가 조용히 틀려지는 대신 KeyError로
             # 드러나야 한다.
-            s_1f = lut.noise_1f_density(e["gm_id"], e["L"], e["vds"], e.get("vs", 0.0),
+            s_1f = lut.noise_1f_density(e["gm_id"], e["L"], e["vds"], e.get("vsb", 0.0),
                                          e["W"], freq)
             total_variance += s_thermal + s_1f
     return math.sqrt(total_variance)
@@ -2367,7 +2367,7 @@ def _metric_rail_referenced_voltage(spec: dict, ctx: SizingContext) -> float:
     위상적 관계만 재사용한다."""
     entry = ctx.sized[spec["device"]]
     lut = ctx.spec["lut_by_kind"][entry["kind"]]
-    vgs = lut.vgs_for_gm_id(entry["gm_id"], entry["L"], entry["vds"], entry.get("vs", 0.0))
+    vgs = lut.vgs_for_gm_id(entry["gm_id"], entry["L"], entry["vds"], entry.get("vsb", 0.0))
     rail_v = ctx.spec["vdd"] if spec["rail"] == "vdd" else 0.0
     return rail_v - vgs if entry["kind"] == "pmos" else rail_v + vgs
 
@@ -3293,6 +3293,29 @@ def metric_unit_scale(metric_spec: dict, metric_name: str | None = None) -> floa
     return scale
 
 
+def validate_no_legacy_vs_key(device_roles: dict) -> None:
+    """옛 이름 `vs`가 `device_roles`에 남아 있으면 즉시 `ValueError`(2026-09-08, B9 개명).
+
+    **왜 개명했나**: 이 필드는 소자의 소스 **절대 전압**이 아니라 **소스-바디(벌크) 전압**이다.
+    LUT 생성 넷리스트(`sky130_lut_sweep.py`)가 정본인데, 거기서 `xdut d g 0 b`로 소스는 항상
+    노드 0에 고정되고 VS가 움직이는 것은 벌크 전압(`vb_dc = vb_sign*VS*(-1)`)이다. 즉 축의
+    의미는 |V_SB|다. 벌크가 레일에 묶이면 NMOS는 `V_source`, PMOS는 `vdd - V_source`가 된다.
+
+    이름이 `vs`라 "소스 전압"으로 읽히는 바람에 실제로 51소자 중 **25개가 정의와 어긋난**
+    값을 갖고 있었다(계획 §10.3 B9). `power_uA`가 A를 돌려주던 A12와 **같은 실패 클래스**
+    (이름이 의미를 거짓말한다)라, 같은 방식으로 이름을 고치고 옛 이름을 **거부**한다.
+    조용히 읽어주면 두 이름이 공존해 어느 쪽이 맞는지 다시 모호해진다(§3.2 P1)."""
+    stale = sorted(n for n, r in (device_roles or {}).items()
+                   if isinstance(r, dict) and "vs" in r)
+    if stale:
+        raise ValueError(
+            f"device_roles의 옛 필드 이름 'vs'가 {len(stale)}개 소자에 남아 있다({stale[:6]}"
+            f"{' 외' if len(stale) > 6 else ''}) -- 2026-09-08에 **'vsb'(source-body voltage)**로 "
+            f"개명했다. 이 값은 소스의 절대 전압이 아니라 소스-바디 전압이며, 이름이 그 의미를 "
+            f"거짓말한 탓에 실제로 25개 소자가 정의와 어긋나 있었다(B9). topology.json에서 "
+            f"'vs'를 'vsb'로 바꿀 것 -- 조용히 읽어주면 두 이름이 공존해 다시 모호해진다.")
+
+
 def validate_metric_units(metrics_specs: dict) -> None:
     """metric 선언의 `unit`이 (1) 존재하고 (2) 정규 단위에서 환산 가능하며 (3) 이름 접미사가
     단위를 말한다면 그것과도 같은지 검사한다. 하나라도 어긋나면 즉시 `ValueError` -- 단위
@@ -3504,7 +3527,7 @@ def _feed_diode_stack_target(feed_spec: dict, theta_value: float, ctx: SizingCon
     entry = {"W": theta_value * ref["W"]}
     headroom_managed = ctx.spec.get("device_roles", {}).get(target, {}).get(
         "vertical_stack_id") is not None
-    copy_keys = ("gm_id", "L", "kind") if headroom_managed else ("gm_id", "L", "vds", "vs", "kind")
+    copy_keys = ("gm_id", "L", "kind") if headroom_managed else ("gm_id", "L", "vds", "vsb", "kind")
     for key in copy_keys:
         if key in ref:
             entry[key] = ref[key]
@@ -3546,7 +3569,7 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     lut = ctx.spec["lut_by_kind"][kind]
     L = feed_spec["L"]
     vds = resolve_feed_vds(target, feed_spec.get("vds"), ctx)
-    vs = feed_spec.get("vs", 0.0)
+    vsb = feed_spec.get("vsb", 0.0)
     omega_key = feed_spec["omega_key"]
     # 2026-08-10(세션27) -- compensation의 topology_fn이 omega_c 등을 ctx.derived에 노출하면
     # (예: current_reuse_telescopic_topology()의 Eq.2 omega_c=6.9/t_lln) spec의 손으로 채운
@@ -3556,7 +3579,7 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     omega_val = ctx.derived[omega_key] if omega_key in ctx.derived else ctx.spec[omega_key]
     gm_target = theta_value * omega_val * ctx.spec[feed_spec["cap_key"]]
     result = solve_id_for_target_gm(
-        lut, L, vds, vs, feed_spec["W"], gm_target,
+        lut, L, vds, vsb, feed_spec["W"], gm_target,
         gm_id_bounds=tuple(feed_spec.get("gm_id_bounds", (2.0, 30.0))))
     # 2026-08-14 -- _L_source 태그 추가(metric_stage_budget에서 발견한 것과 동일 유형의
     # 근본원인을 이 feed 타입에서도 선제적으로 막음): 이 소자의 L/gm_id는 N×ωc 컨벤션
@@ -3564,8 +3587,8 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     # L_role이 뒤이어 덮어쓰면 이 theta의 의도가 무력화된다 -- compensation/replica/
     # metric_stage_budget과 동급의 권위 있는 출처로 등록한다.
     ctx.sized[target] = {"ID": result.ID, "gm": result.gm, "gm_id": result.gm_id,
-                          "W": feed_spec["W"], "L": L, "vds": vds, "vs": vs, "kind": kind,
-                          "gds": result.gm / lut.gm_gds_ratio(result.gm_id, L, vds, vs),
+                          "W": feed_spec["W"], "L": L, "vds": vds, "vsb": vsb, "kind": kind,
+                          "gds": result.gm / lut.gm_gds_ratio(result.gm_id, L, vds, vsb),
                           "_L_source": "gm_target_convention"}
 
 
@@ -3631,7 +3654,7 @@ def _metric_stage_budget_finalize(ctx: SizingContext, name: str, gm_id: float, I
     # 탐색이 무의미해지며 gain_db가 76.48->74.8로 떨어지는 실제 회귀로 발현(SLSQP 재현,
     # 이 세션에 실측). compensation/replica와 동급의 권위 있는 출처로 등록한다.
     ctx.sized[name].update({"L": mL, "W": mL * ID / idu, "gm": gm, "gds": gm / gm_gds,
-                             "gm_id": gm_id, "ID": ID, "kind": kind, "vs": mvs, "vds": mvds,
+                             "gm_id": gm_id, "ID": ID, "kind": kind, "vsb": mvs, "vds": mvds,
                              "_L_source": "metric_stage_budget"})
 
 
@@ -3819,7 +3842,7 @@ def _make_shared_current_scorer(plan: dict, ctx: SizingContext):
                 # _solve_vgs()가 ValueError로 거부한다 -- search_gm_id_for_role()의
                 # _idu_scan()이 내부적으로 걸러주던 것과 동일한 상황, 여기서도 "이 후보는
                 # infeasible"로 취급하고 다음 후보로 넘어간다(크래시 아님).
-                idu = lut.gm_id_to_id_density(gm_id, dev["L"], dev["vds"], dev.get("vs", 0.0))
+                idu = lut.gm_id_to_id_density(gm_id, dev["L"], dev["vds"], dev.get("vsb", 0.0))
             except ValueError:
                 return None
             W = dev["L"] * I / idu
@@ -3832,7 +3855,7 @@ def _make_shared_current_scorer(plan: dict, ctx: SizingContext):
             for name in plan["nodes"][key]["feed"]["devices"]:
                 dev = ctx.sized[name]
                 _metric_stage_budget_finalize(ctx, name, gm_id, I, dev["L"], dev["vds"],
-                                               dev.get("vs", 0.0))
+                                               dev.get("vsb", 0.0))
         for c in other_constraints:
             cspec = metrics_specs.get(c["metric"])
             if cspec is None:
@@ -4056,7 +4079,7 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
     # 있으면 그 값 -> feed_spec 명시값 -> headroom_role 기반 -> 마지막 폴백)를 그대로
     # 따른다.
     vds = resolve_feed_vds(devices[0], feed_spec.get("vds"), ctx)
-    vs = feed_spec.get("vs", 0.0)
+    vsb = feed_spec.get("vsb", 0.0)
     # 2026-08-19(세션38 연속, two_stage_ota M4/M6 계기 -- 사용자와 함께 재정식화한 원리) --
     # M3/M4(이 feed)의 M4는 stage1의 LOAD(출력임피던스)이고 그 drain(O1)이 stage2의 gm 소자
     # M6(compensation 관리)의 게이트를 직접 구동한다 -- VSG(M6)=VSD(M4)가 KVL로 강제되는데
@@ -4083,7 +4106,7 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
                 f"sizing하는 theta를 이 theta보다 앞에 선언할 것")
         companion_lut = ctx.spec["lut_by_kind"][companion["kind"]]
         target_vgs = companion_lut.vgs_for_gm_id(
-            companion["gm_id"], companion["L"], companion["vds"], companion.get("vs", 0.0))
+            companion["gm_id"], companion["L"], companion["vds"], companion.get("vsb", 0.0))
 
     W_bounds = ctx.spec.get("W_bounds", (1e-6, 200e-6))
 
@@ -4128,7 +4151,7 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
     shared_match_gm_id = None
     if match_device is not None:
         lut0 = ctx.spec["lut_by_kind"][ctx.kind_of[devices[0]]]
-        shared_match_gm_id = lut0.gm_id_for_vgs(target_vgs, L, vds, vs)
+        shared_match_gm_id = lut0.gm_id_for_vgs(target_vgs, L, vds, vsb)
 
     gm_id_by_device = {}
     vds_by_device = {}
@@ -4146,7 +4169,7 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
                     f"없는지를 뜻한다")
             ref_lut = ctx.spec["lut_by_kind"][ref_entry["kind"]]
             vds_by_device[name] = ref_lut.vgs_for_gm_id(
-                ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vs", 0.0))
+                ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vsb", 0.0))
         else:
             vds_by_device[name] = vds
         if "ID" not in entry:
@@ -4176,7 +4199,7 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
             this_role = gm_id_role.get(name) if isinstance(gm_id_role, dict) else gm_id_role
             lut = ctx.spec["lut_by_kind"][ctx.kind_of[name]]
             gm_id_by_device[name] = search_gm_id_for_role(
-                lut, L, vds_by_device[name], vs, entry["ID"], this_role, W_bounds,
+                lut, L, vds_by_device[name], vsb, entry["ID"], this_role, W_bounds,
                 gm_id_grid=search_gm_id_grid)
         else:
             gm_id_by_device[name] = fixed_gm_id
@@ -4238,7 +4261,7 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
             entry["_L_source"] = "metric_stage_budget_vds_deferred"
             continue
         _metric_stage_budget_finalize(
-            ctx, name, gm_id_by_device[name], ctx.sized[name]["ID"], L, vds_by_device[name], vs)
+            ctx, name, gm_id_by_device[name], ctx.sized[name]["ID"], L, vds_by_device[name], vsb)
 
     # 2단계: 이 feed가 어느 공유전류 그룹의 "마지막"(선언순서) feed면 N-way 조인트
     # 스캔을 돌려 그룹 전체를 재확정한다 -- `_build_theta_evaluator()`가 정적으로
@@ -5055,7 +5078,7 @@ def _hr_resolve_vertical_group(env, vsid):
                 f"gm_target_convention/gm_id_role 중 하나로 확정 가능한지 확인할 것")
         ref_lut = spec["lut_by_kind"][ctx.kind_of[ref]]
         target_vgs = ref_lut.vgs_for_gm_id(
-            ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vs", 0.0))
+            ref_entry["gm_id"], ref_entry["L"], ref_entry["vds"], ref_entry.get("vsb", 0.0))
         ctx.sized.setdefault(m, {})["vds"] = target_vgs
     # matching_pairs로 묶인 값-동일 그룹(_vfind)당 대표 1개씩만 집계 -- diff pair/미러
     # 쌍의 두 소자를 헤드룸 예산에 중복으로 합산하지 않기 위함(위 _vfind 주석 참고).
@@ -5092,14 +5115,14 @@ def _hr_resolve_vertical_group(env, vsid):
                 if sib == resolved or "W" in sib_entry or "ID" not in sib_entry:
                     continue
                 gm_id2, L2 = ref_entry["gm_id"], ref_entry["L"]
-                vds2, vs2 = ref_entry["vds"], ref_entry.get("vs", 0.0)
+                vds2, vs2 = ref_entry["vds"], ref_entry.get("vsb", 0.0)
                 kind2 = ctx.kind_of[sib]
                 lut2 = spec["lut_by_kind"][kind2]
                 ID2 = sib_entry["ID"]
                 idu2 = lut2.gm_id_to_id_density(gm_id2, L2, vds2, vs2)
                 gm_gds2 = lut2.gm_gds_ratio(gm_id2, L2, vds2, vs2)
                 gm2 = gm_id2 * ID2
-                sib_entry.update({"gm_id": gm_id2, "L": L2, "vds": vds2, "vs": vs2,
+                sib_entry.update({"gm_id": gm_id2, "L": L2, "vds": vds2, "vsb": vs2,
                                   "kind": kind2, "W": L2 * ID2 / idu2, "gm": gm2,
                                   "gds": gm2 / gm_gds2})
             continue
@@ -5233,7 +5256,7 @@ def _hr_resolve_vertical_group(env, vsid):
                     # 앉은 소자의 body-effect/LUT 조회가 vs=0을 잘못 쓰지 않도록 전파.
                     # (2026-08-24 세션42 -- refs가 여러 개면 ref_vds는 그 합, 단일
                     # 참조였던 예전과 식은 같고 값의 출처만 일반화됨)
-                    other_entry.setdefault("vs", ref_vds)
+                    other_entry.setdefault("vsb", ref_vds)
     # 2026-08-20(세션41 연속) -- 일반 allocate_stack_headroom() 경로는 그 함수
     # 자신의 assert(합=remaining_vdd)로 이미 수학적으로 보장되지만(remaining_vdd=
     # vdd-ref_vds-known_vds_sum이므로 등가), _verify_group_kvl_sum()을 여기서도
@@ -5271,6 +5294,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     thetas = roles.get("theta") or []
     metrics_specs = roles.get("metrics") or {}
     validate_metric_units(metrics_specs)      # 2026-09-08(A12) -- 유일한 배선 지점
+    validate_no_legacy_vs_key(meta.get("device_roles") or {})   # 2026-09-08(B9 개명)
     objective = roles.get("objective") or {}
     constraints = roles.get("constraints") or []
     # "_"로 시작하는 키(예: "_comment")는 이 프로젝트 전역 관례상 문서용 주석 필드다 --
@@ -5586,7 +5610,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 gds_i = gm_i / lut_i.gm_gds_ratio(st["gm_id"], st["L"], st["VDS"], 0.0)
                 for name in grp:
                     ctx.sized[name] = {"gm": gm_i, "gm_id": st["gm_id"], "L": st["L"],
-                                        "vds": st["VDS"], "vs": 0.0, "W": st["W"],
+                                        "vds": st["VDS"], "vsb": 0.0, "W": st["W"],
                                         "ID": gm_i / st["gm_id"], "gds": gds_i, "kind": kind_of[name],
                                         "_L_source": "compensation"}
             # 2026-08-13(세션31) -- shared_gm_id_groups 각 그룹의 gm 합(=topology_fn이 정한
@@ -5895,7 +5919,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                                   f"vertical_stack_id 선언을 확인할 것")
             # ctx.sized에 이미 vs가 있으면(폴디드 노드처럼 budget_reference_device로 동적
             # 전파된 값) 그걸 우선한다 -- device_roles의 vs는 정적 기본값(보통 0.0)일 뿐.
-            vs = entry.get("vs", dr.get("vs", 0.0))
+            vsb = entry.get("vsb", dr.get("vsb", 0.0))
             lut = spec["lut_by_kind"][kind_of[name]]
             W_bounds = spec.get("W_bounds", (1e-6, 200e-6))
             try:
@@ -5904,7 +5928,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 # 인자(gm_id,L,vds,vs)로 gm_id_to_id_density()를 재조회했다(감사 발견,
                 # search_gm_id_for_role() docstring 참고). W 계산식은 size_transistor()와
                 # 완전히 동일(W=L*ID/IDu) -- 값 변화 없음, 중복 조회만 제거.
-                gm_id, idu = search_gm_id_for_role(lut, L, vds, vs, entry["ID"], dr["gm_id_role"],
+                gm_id, idu = search_gm_id_for_role(lut, L, vds, vsb, entry["ID"], dr["gm_id_role"],
                                                     W_bounds, return_idu=True)
             except InfeasibleSizingError as _sgfr_e:
                 # 2026-08-12(세션30) -- search_gm_id_for_role()의 에러 메시지엔 소자 이름이
@@ -5916,9 +5940,9 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     sized_snapshot=dict(ctx.sized)) from _sgfr_e
             gm = entry["ID"] * gm_id
             w = L * entry["ID"] / idu
-            gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vs)
+            gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vsb)
             ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
-                                "kind": kind_of[name], "vs": vs}
+                                "kind": kind_of[name], "vsb": vsb}
 
         # 2026-08-19(세션38) -- device_roles의 gm_id_match_vgs_of: 위 루프(gm_id_role)와
         # 대칭인 2차 pass. `_feed_metric_stage_budget()`의 동명 필드(3219행 docstring)를
@@ -5957,7 +5981,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             if L is None or vds is None:
                 raise ValueError(f"{name}: L 또는 VDS가 미확정 -- device_roles의 L_role/"
                                   f"vertical_stack_id 선언을 확인할 것")
-            vs = entry.get("vs", dr.get("vs", 0.0))
+            vsb = entry.get("vsb", dr.get("vsb", 0.0))
             companion = ctx.sized.get(match_device)
             if companion is None or "gm_id" not in companion:
                 raise ValueError(
@@ -5969,21 +5993,21 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     f"(gm_id_match_vgs_of 체인은 아직 미지원)")
             companion_lut = spec["lut_by_kind"][kind_of[match_device]]
             target_vgs = companion_lut.vgs_for_gm_id(
-                companion["gm_id"], companion["L"], companion["vds"], companion.get("vs", 0.0))
+                companion["gm_id"], companion["L"], companion["vds"], companion.get("vsb", 0.0))
             lut = spec["lut_by_kind"][kind_of[name]]
             try:
-                gm_id = lut.gm_id_for_vgs(target_vgs, L, vds, vs)
+                gm_id = lut.gm_id_for_vgs(target_vgs, L, vds, vsb)
             except ValueError as _gifv_e:
                 raise InfeasibleSizingError(
                     f"{name}(gm_id_match_vgs_of={match_device!r}, target_vgs={target_vgs:.4g}V, "
                     f"L={L:.4g}m, vds={vds:.4g}V): {_gifv_e}",
                     sized_snapshot=dict(ctx.sized)) from _gifv_e
-            idu = lut.gm_id_to_id_density(gm_id, L, vds, vs)
+            idu = lut.gm_id_to_id_density(gm_id, L, vds, vsb)
             gm = entry["ID"] * gm_id
             w = L * entry["ID"] / idu
-            gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vs)
+            gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vsb)
             ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
-                                "kind": kind_of[name], "vs": vs}
+                                "kind": kind_of[name], "vsb": vsb}
 
         # 2026-09-03(세션44 계속) -- 이 회로가 전부 사이징된 지금이 처음으로 전체회로
         # constraint(cmrr/psrr 등)를 정직하게 확인할 수 있는 시점이다 -- 공유전류 조인트
@@ -7115,19 +7139,19 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
         reference_theta_values = {t["name"]: (t["bounds"][0] + t["bounds"][1]) / 2.0 for t in thetas}
     reference = dict(reference_theta_values)
 
-    def _vgs(name, L, gm_id, vds, vs):
+    def _vgs(name, L, gm_id, vds, vsb):
         lut = spec["lut_by_kind"][kind_of[name]]
-        return lut.vgs_for_gm_id(gm_id, L, vds, vs)
+        return lut.vgs_for_gm_id(gm_id, L, vds, vsb)
 
-    def _centering_dev(L, high, low, gm_id, vds, vs):
-        vgs_h = _vgs(high, L, gm_id, vds, vs)
+    def _centering_dev(L, high, low, gm_id, vds, vsb):
+        vgs_h = _vgs(high, L, gm_id, vds, vsb)
         level_h = (spec["vdd"] - vgs_h) if kind_of[high] == "pmos" else (0.0 + vgs_h)
-        vgs_l = _vgs(low, L, gm_id, vds, vs)
+        vgs_l = _vgs(low, L, gm_id, vds, vsb)
         level_l = (spec["vdd"] - vgs_l) if kind_of[low] == "pmos" else (0.0 + vgs_l)
         return abs((level_h + level_l) - spec["vdd"])
 
-    def _mean_gm_gds_db(L, devices, gm_id, vds, vs):
-        ratios = [spec["lut_by_kind"][kind_of[d]].gm_gds_ratio(gm_id, L, vds, vs) for d in devices]
+    def _mean_gm_gds_db(L, devices, gm_id, vds, vsb):
+        ratios = [spec["lut_by_kind"][kind_of[d]].gm_gds_ratio(gm_id, L, vds, vsb) for d in devices]
         return 20 * math.log10(sum(ratios) / len(ratios))
 
     def _touching(devices):
@@ -7170,19 +7194,19 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
         _role = device_roles.get(devices[0], {}).get("headroom_role")
         gm_id = feed.get("gm_id", _DEFAULT_METRIC_STAGE_BUDGET_GM_ID)
         vds = _feed_vds_fallback(feed.get("vds"), _role, spec.get("min_vds_by_role"))
-        vs = feed.get("vs", 0.0)
+        vsb = feed.get("vsb", 0.0)
         if "battery_centering_deviation" in types:
             mspec = metrics_specs[next(c["metric"] for c in touching
                                         if metrics_specs[c["metric"]]["type"] == "battery_centering_deviation")]
             best_L, best_dev = None, None
             for L in _grid_points_in_range(lo, hi, _l_grid_step, n=n_scan):
-                dev = _centering_dev(L, mspec["high_device"], mspec["low_device"], gm_id, vds, vs)
+                dev = _centering_dev(L, mspec["high_device"], mspec["low_device"], gm_id, vds, vsb)
                 if best_dev is None or dev < best_dev:
                     best_L, best_dev = L, dev
             result[theta["name"]] = best_L
         elif "gain_stages_sum" in types:
-            db_lo = _mean_gm_gds_db(lo, devices, gm_id, vds, vs)
-            db_hi = _mean_gm_gds_db(hi, devices, gm_id, vds, vs)
+            db_lo = _mean_gm_gds_db(lo, devices, gm_id, vds, vsb)
+            db_hi = _mean_gm_gds_db(hi, devices, gm_id, vds, vsb)
             gain_c = next(c for c in touching
                           if metrics_specs[c["metric"]]["type"] == "gain_stages_sum")
             wants_high = gain_c["op"] in (">=", ">")
@@ -7992,10 +8016,10 @@ def revalidate_finger_override(ctx: SizingContext, lut_by_kind: dict, overrides:
         # 2026-08-20(세션41, 하드코딩 전수조사 계기) -- vds만 `.get(..., 0.0)`으로 조용히
         # 기본값을 받고 있었다(ID/L은 이미 필수 필드). entry는 이미 사이징 완료된
         # ctx.sized이므로 vds가 없을 일이 없다 -- 없으면 KeyError로 드러나야 한다.
-        ID, L, vds, vs = entry["ID"], entry["L"], entry["vds"], entry.get("vs", 0.0)
-        new_gm_id = _invert_gm_id_for_current(lut, ID, L, vds, vs, new_W, gm_id_bounds=gm_id_bounds)
+        ID, L, vds, vsb = entry["ID"], entry["L"], entry["vds"], entry.get("vsb", 0.0)
+        new_gm_id = _invert_gm_id_for_current(lut, ID, L, vds, vsb, new_W, gm_id_bounds=gm_id_bounds)
         new_gm = ID * new_gm_id
-        new_gds = new_gm / lut.gm_gds_ratio(new_gm_id, L, vds, vs)
+        new_gds = new_gm / lut.gm_gds_ratio(new_gm_id, L, vds, vsb)
         new_sized[name] = {**entry, "W": new_W, "gm_id": new_gm_id, "gm": new_gm, "gds": new_gds}
         device_updates[name] = {
             "old_W": entry["W"], "new_W": new_W,
@@ -8771,15 +8795,15 @@ if __name__ == "__main__":
     print()
     print("  [C엔진 solve_diode_stack_current() -- 순방향으로 만든 VGS합을 역산해 전류 복원]")
     _c_stack = [
-        {"kind": "nmos", "L": 0.5e-6, "W": 20e-6, "vds": 0.6, "vs": 0.0},
-        {"kind": "nmos", "L": 0.5e-6, "W": 10e-6, "vds": 0.6, "vs": 0.0},
+        {"kind": "nmos", "L": 0.5e-6, "W": 20e-6, "vds": 0.6, "vsb": 0.0},
+        {"kind": "nmos", "L": 0.5e-6, "W": 10e-6, "vds": 0.6, "vsb": 0.0},
     ]
     _c_i_known = 30e-6
     _c_vgs_target = 0.0
     for _dev in _c_stack:
-        _gm_id = _invert_gm_id_for_current(lut, _c_i_known, _dev["L"], _dev["vds"], _dev["vs"], _dev["W"],
+        _gm_id = _invert_gm_id_for_current(lut, _c_i_known, _dev["L"], _dev["vds"], _dev["vsb"], _dev["W"],
                                             gm_id_bounds=(2.0, 28.0))
-        _c_vgs_target += lut.vgs_for_gm_id(_gm_id, _dev["L"], _dev["vds"], _dev["vs"])
+        _c_vgs_target += lut.vgs_for_gm_id(_gm_id, _dev["L"], _dev["vds"], _dev["vsb"])
     _c_i_solved = solve_diode_stack_current(lut, _c_stack, _c_vgs_target,
                                              i_bounds=(1e-9, 3e-4), gm_id_bounds=(2.0, 28.0))
     print(f"    순방향: I={_c_i_known*1e6:.4f}uA -> VGS합={_c_vgs_target:.6f}V")
@@ -8818,11 +8842,11 @@ if __name__ == "__main__":
     _l4_gain_baseline = 20 * math.log10((_l4_r1.gm + _l4_r1.gm) / (_l4_gds1 + _l4_gds1))
     _l4_ctx = SizingContext(sized={
         "M1": {"ID": _l4_r1.ID, "W": _l4_r1.W, "L": _l4_L, "gm": _l4_r1.gm, "gm_id": _l4_gm_id,
-               "gds": _l4_gds1, "kind": "nmos", "vds": _l4_vds, "vs": 0.0},
+               "gds": _l4_gds1, "kind": "nmos", "vds": _l4_vds, "vsb": 0.0},
         "M2": {"ID": _l4_r1.ID, "W": _l4_r1.W, "L": _l4_L, "gm": _l4_r1.gm, "gm_id": _l4_gm_id,
-               "gds": _l4_gds1, "kind": "nmos", "vds": _l4_vds, "vs": 0.0},
+               "gds": _l4_gds1, "kind": "nmos", "vds": _l4_vds, "vsb": 0.0},
         "M3": {"ID": _l4_r3.ID, "W": _l4_r3.W, "L": _l4_L, "gm": _l4_r3.gm, "gm_id": 10.0,
-               "gds": 0.0, "kind": "nmos", "vds": _l4_vds, "vs": 0.0},
+               "gds": 0.0, "kind": "nmos", "vds": _l4_vds, "vsb": 0.0},
     })
     _l4_metrics_specs = {
         "stage_gain": {"type": "gain_stages_sum", "stages": [["M1", "M2"]]},
@@ -8901,13 +8925,13 @@ if __name__ == "__main__":
     def _l4b_ctx_for(crit, crit_gds, harm, harm_gds):
         return SizingContext(sized={
             "Ma": {"ID": crit.ID, "W": crit.W, "L": _l4b_L, "gm": crit.gm, "gm_id": 12.0,
-                   "gds": crit_gds, "kind": "nmos", "vds": _l4b_vds, "vs": 0.0},
+                   "gds": crit_gds, "kind": "nmos", "vds": _l4b_vds, "vsb": 0.0},
             "Mb": {"ID": crit.ID, "W": crit.W, "L": _l4b_L, "gm": crit.gm, "gm_id": 12.0,
-                   "gds": crit_gds, "kind": "nmos", "vds": _l4b_vds, "vs": 0.0},
+                   "gds": crit_gds, "kind": "nmos", "vds": _l4b_vds, "vsb": 0.0},
             "Xa": {"ID": harm.ID, "W": harm.W, "L": _l4b_L, "gm": harm.gm, "gm_id": 15.0,
-                   "gds": harm_gds, "kind": "nmos", "vds": _l4b_vds, "vs": 0.0},
+                   "gds": harm_gds, "kind": "nmos", "vds": _l4b_vds, "vsb": 0.0},
             "Xb": {"ID": harm.ID, "W": harm.W, "L": _l4b_L, "gm": harm.gm, "gm_id": 15.0,
-                   "gds": harm_gds, "kind": "nmos", "vds": _l4b_vds, "vs": 0.0},
+                   "gds": harm_gds, "kind": "nmos", "vds": _l4b_vds, "vsb": 0.0},
         })
 
     print("    [케이스1: 1순위(Ma,Mb)는 면적 제약 위반 -> 자동으로 건너뛰고 2순위(Xa,Xb) 채택]")
@@ -8991,7 +9015,7 @@ if __name__ == "__main__":
                        for n in _l4c_names}
     _l4c_ctx = SizingContext(sized={
         n: {"ID": _l4c_r.ID, "W": _l4c_r.W, "L": _l4c_L, "gm": _l4c_r.gm, "gm_id": _l4c_gm_id,
-            "gds": _l4c_gds, "kind": "nmos", "vds": _l4c_vds, "vs": 0.0}
+            "gds": _l4c_gds, "kind": "nmos", "vds": _l4c_vds, "vsb": 0.0}
         for n in _l4c_names
     })
     _l4c_metrics = {"group_area": {"type": "sum_area", "devices": _l4c_names}}
@@ -9111,7 +9135,7 @@ if __name__ == "__main__":
         n: {"ID": _l4c_r.ID,
             "W": _l4c_r.W * (3 if n in ("M4a", "M4b", "M3a", "M3b") else 1), "L": _l4c_L,
             "gm": _l4c_r.gm, "gm_id": _l4c_gm_id, "gds": _l4c_gds, "kind": "nmos",
-            "vds": _l4c_vds, "vs": 0.0}
+            "vds": _l4c_vds, "vsb": 0.0}
         for n in _l4c_names
     }
     _ofcb_baseline_area = sum(_ofcb_known_sizing[n]["W"] * _ofcb_known_sizing[n]["L"]
@@ -9414,9 +9438,9 @@ if __name__ == "__main__":
     ]
     _l4d_ctx = SizingContext(sized={
         "Ma": {"ID": _l4d_r.ID, "W": _l4d_r.W, "L": _l4d_L, "gm": _l4d_r.gm, "gm_id": 12.0,
-               "gds": _l4d_gds, "kind": "nmos", "vds": _l4d_vds, "vs": 0.0},
+               "gds": _l4d_gds, "kind": "nmos", "vds": _l4d_vds, "vsb": 0.0},
         "Mb": {"ID": _l4d_r.ID, "W": _l4d_r.W, "L": _l4d_L, "gm": _l4d_r.gm, "gm_id": 12.0,
-               "gds": _l4d_gds, "kind": "nmos", "vds": _l4d_vds, "vs": 0.0},
+               "gds": _l4d_gds, "kind": "nmos", "vds": _l4d_vds, "vsb": 0.0},
     })
     _l4d_baseline_area = 2 * _l4d_r.W * _l4d_L
 
@@ -9456,7 +9480,7 @@ if __name__ == "__main__":
     _l4d_m6_sensitivity = {("M1a", "M1b"): "offset", ("M2a", "M2b"): "ratio"}
     _l4d_m6_ctx = SizingContext(sized={
         n: {"ID": _l4d_r.ID, "W": _l4d_r.W, "L": _l4d_L, "gm": _l4d_r.gm, "gm_id": 12.0,
-            "gds": _l4d_gds, "kind": "pmos", "vds": _l4d_vds, "vs": 0.0}
+            "gds": _l4d_gds, "kind": "pmos", "vds": _l4d_vds, "vsb": 0.0}
         for n in _l4d_m6_names
     })
     _l4d_m6_metrics = {"group_area": {"type": "sum_area", "devices": _l4d_m6_names}}
@@ -9852,13 +9876,13 @@ if __name__ == "__main__":
             {"names": ["Ma", "Mb"], "current_forced": True, "matching_sensitivity": "ratio"}],
             "dispositions": []}, "sizing_roles": None,
         "device_roles": {
-            "Ma": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror", "vs": 0.0},
-            "Mb": {"gm_id_match_vgs_of": "Ma", "L_role": "mirror", "headroom_role": "mirror", "vs": 0.0},
+            "Ma": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror", "vsb": 0.0},
+            "Mb": {"gm_id_match_vgs_of": "Ma", "L_role": "mirror", "headroom_role": "mirror", "vsb": 0.0},
         },
     }
     _gmv_L, _gmv_vds_a, _gmv_vds_b = 0.5e-6, 0.8, 0.5  # ⚠️ 일부러 다른 VDS
-    _gmv_known = {"Ma": {"ID": 1e-5, "L": _gmv_L, "vds": _gmv_vds_a, "vs": 0.0},
-                  "Mb": {"ID": 1e-5, "L": _gmv_L, "vds": _gmv_vds_b, "vs": 0.0}}
+    _gmv_known = {"Ma": {"ID": 1e-5, "L": _gmv_L, "vds": _gmv_vds_a, "vsb": 0.0},
+                  "Mb": {"ID": 1e-5, "L": _gmv_L, "vds": _gmv_vds_b, "vsb": 0.0}}
     with _tempfile.TemporaryDirectory() as _gmv_tmp:
         _gmv_path = _os.path.join(_gmv_tmp, "_gmv_test.topology.json")
         with open(_gmv_path, "w", encoding="utf-8") as _f:
@@ -9936,16 +9960,16 @@ if __name__ == "__main__":
             # gm_id_role을 명시 선언해둔다(이 테스트가 검증하려는 vds 흐름과는 무관, review
             # 게이트 통과용).
             "Ka": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror",
-                   "vertical_stack_id": "col_a", "vs": 0.0},
-            "Ma": {"headroom_role": "mirror", "vertical_stack_id": "col_a", "vs": 0.0},
+                   "vertical_stack_id": "col_a", "vsb": 0.0},
+            "Ma": {"headroom_role": "mirror", "vertical_stack_id": "col_a", "vsb": 0.0},
             "Kb": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror",
-                   "vertical_stack_id": "col_b", "vs": 0.0},
+                   "vertical_stack_id": "col_b", "vsb": 0.0},
             "Mb": {"vds_match_vgs_of": "Ma", "gm_id_role": "matching", "L_role": "mirror",
-                   "headroom_role": "mirror", "vertical_stack_id": "col_b", "vs": 0.0},
+                   "headroom_role": "mirror", "vertical_stack_id": "col_b", "vsb": 0.0},
         },
     }
-    _vmv_known = {"Ka": {"ID": 1e-5, "vs": 0.0}, "Ma": {"ID": 1e-5, "L": 0.5e-6, "gm_id": 15.0, "vs": 0.0},
-                  "Kb": {"ID": 1e-5, "vs": 0.0}, "Mb": {"ID": 1e-5, "vs": 0.0}}
+    _vmv_known = {"Ka": {"ID": 1e-5, "vsb": 0.0}, "Ma": {"ID": 1e-5, "L": 0.5e-6, "gm_id": 15.0, "vsb": 0.0},
+                  "Kb": {"ID": 1e-5, "vsb": 0.0}, "Mb": {"ID": 1e-5, "vsb": 0.0}}
     with _tempfile.TemporaryDirectory() as _vmv_tmp:
         _vmv_path = _os.path.join(_vmv_tmp, "_vmv_test.topology.json")
         with open(_vmv_path, "w", encoding="utf-8") as _f:
@@ -10010,20 +10034,20 @@ if __name__ == "__main__":
         ],
         "symmetry": {"matching_pairs": [], "dispositions": []}, "sizing_roles": None,
         "device_roles": {
-            "N": {"gm_id_role": "matching", "L_role": "mirror", "vs": 0.0},
+            "N": {"gm_id_role": "matching", "L_role": "mirror", "vsb": 0.0},
             "S": {"vds_match_vgs_of": "N", "gm_id_role": "matching", "L_role": "mirror",
-                  "headroom_role": "mirror", "vertical_stack_id": "grpB", "vs": 0.0},
+                  "headroom_role": "mirror", "vertical_stack_id": "grpB", "vsb": 0.0},
             "F": {"budget_reference_device": "T2", "gm_id_role": "matching", "L_role": "mirror",
-                  "headroom_role": "mirror", "vertical_stack_id": "grpB", "vs": 0.0},
+                  "headroom_role": "mirror", "vertical_stack_id": "grpB", "vsb": 0.0},
             "T2": {"budget_reference_device": "S", "gm_id_role": "matching", "L_role": "mirror",
-                   "headroom_role": "mirror", "vertical_stack_id": "grpA", "vs": 0.0},
+                   "headroom_role": "mirror", "vertical_stack_id": "grpA", "vsb": 0.0},
             "T": {"gm_id_role": "matching", "L_role": "mirror", "headroom_role": "mirror",
-                  "vertical_stack_id": "grpA", "vs": 0.0},
+                  "vertical_stack_id": "grpA", "vsb": 0.0},
         },
     }
-    _fpw_known = {"N": {"ID": 1e-5, "L": 0.5e-6, "gm_id": 15.0, "vds": 0.9, "vs": 0.0},
-                  "S": {"ID": 1e-5, "vs": 0.0}, "F": {"ID": 1e-5, "vs": 0.0},
-                  "T2": {"ID": 1e-5, "vs": 0.0}, "T": {"ID": 1e-5, "vs": 0.0}}
+    _fpw_known = {"N": {"ID": 1e-5, "L": 0.5e-6, "gm_id": 15.0, "vds": 0.9, "vsb": 0.0},
+                  "S": {"ID": 1e-5, "vsb": 0.0}, "F": {"ID": 1e-5, "vsb": 0.0},
+                  "T2": {"ID": 1e-5, "vsb": 0.0}, "T": {"ID": 1e-5, "vsb": 0.0}}
     with _tempfile.TemporaryDirectory() as _fpw_tmp:
         _fpw_path = _os.path.join(_fpw_tmp, "_fpw_test.topology.json")
         with open(_fpw_path, "w", encoding="utf-8") as _f:
@@ -10071,12 +10095,12 @@ if __name__ == "__main__":
         "symmetry": {"matching_pairs": [], "dispositions": []}, "sizing_roles": None,
         "device_roles": {
             "X": {"budget_reference_device": "Y", "gm_id_role": "matching", "L_role": "mirror",
-                  "headroom_role": "mirror", "vertical_stack_id": "grpX", "vs": 0.0},
+                  "headroom_role": "mirror", "vertical_stack_id": "grpX", "vsb": 0.0},
             "Y": {"budget_reference_device": "X", "gm_id_role": "matching", "L_role": "mirror",
-                  "headroom_role": "mirror", "vertical_stack_id": "grpY", "vs": 0.0},
+                  "headroom_role": "mirror", "vertical_stack_id": "grpY", "vsb": 0.0},
         },
     }
-    _fpw_cyc2_known = {"X": {"ID": 1e-5, "vs": 0.0}, "Y": {"ID": 1e-5, "vs": 0.0}}
+    _fpw_cyc2_known = {"X": {"ID": 1e-5, "vsb": 0.0}, "Y": {"ID": 1e-5, "vsb": 0.0}}
     with _tempfile.TemporaryDirectory() as _fpw_cyc2_tmp:
         _fpw_cyc2_path = _os.path.join(_fpw_cyc2_tmp, "_fpw_cyc2.topology.json")
         with open(_fpw_cyc2_path, "w", encoding="utf-8") as _f:
@@ -10112,7 +10136,7 @@ if __name__ == "__main__":
         "netlist": [{"name": "Mo", "kind": "nmos", "source": "gnd", "drain": "out", "gate": "out"}],
         "symmetry": {"matching_pairs": [], "dispositions": []}, "sizing_roles": None,
         "device_roles": {"Mo": {"gm_id_role": "matching", "L_role": "mirror",
-                                  "headroom_role": "mirror", "vs": 0.0}},
+                                  "headroom_role": "mirror", "vsb": 0.0}},
     }
     with _tempfile.TemporaryDirectory() as _diag_tmp:
         _diag_path = _os.path.join(_diag_tmp, "_diag_ok.topology.json")
@@ -10120,7 +10144,7 @@ if __name__ == "__main__":
             json.dump(_diag_ok_topo, _f)
         _diag_spec_ok = {"lut_by_kind": {"nmos": _diag_lut}, "vdd": 1.8, "L_min": 0.5e-6,
                            "W_bounds": (1e-6, 50e-6), "min_vds_by_role": {"mirror": 0.2},
-                           "known_sizing": {"Mo": {"ID": 1e-5, "L": 0.5e-6, "vds": 0.6, "vs": 0.0}}}
+                           "known_sizing": {"Mo": {"ID": 1e-5, "L": 0.5e-6, "vds": 0.6, "vsb": 0.0}}}
         _diag_r1 = diagnose_sizing_roles_gap(_diag_path, _diag_spec_ok)
         assert _diag_r1["status"] == "ok", f"known_sizing으로 다 채웠는데 ok가 아님: {_diag_r1}"
         print(f"    PASS: {_diag_r1}")
@@ -10354,7 +10378,7 @@ if __name__ == "__main__":
         # 결정됨(해당없음)"으로 인식돼 gain 제안과 충돌 처리(자동 병합 안 됨 -> review 불필요)
         # 되면서도, falsy라 gm_id_role 루프 자체는 여전히 건너뛴다(None과 동일 동작).
         "device_roles": {"Mb": {"headroom_role": None, "gm_id_role": False,
-                                  "L_role": "mirror", "vertical_stack_id": None, "vs": 0.0}},
+                                  "L_role": "mirror", "vertical_stack_id": None, "vsb": 0.0}},
     }
     with _tempfile.TemporaryDirectory() as _lrec_tmpdir:
         _lrec_path = _os.path.join(_lrec_tmpdir, "_test_L_reconcile.topology.json")
@@ -10391,9 +10415,9 @@ if __name__ == "__main__":
     _lrec_topo2["compensation"] = None
     _lrec_topo2["device_roles"] = {
         "Md": {"headroom_role": None, "gm_id_role": None, "L_role": "mirror",
-                "vertical_stack_id": None, "vs": 0.0},
+                "vertical_stack_id": None, "vsb": 0.0},
         "Me": {"headroom_role": None, "gm_id_role": None, "L_role": "bias_replica",
-                "vertical_stack_id": None, "vs": 0.0}}
+                "vertical_stack_id": None, "vsb": 0.0}}
     with _tempfile.TemporaryDirectory() as _lrec_tmpdir2:
         _lrec_path2 = _os.path.join(_lrec_tmpdir2, "_test_L_reconcile2.topology.json")
         with open(_lrec_path2, "w", encoding="utf-8") as _f:
@@ -10459,7 +10483,7 @@ if __name__ == "__main__":
     _ctx_noise = SizingContext(
         spec={"lut_by_kind": {"nmos": _lut_with_noise}, "freq": _freq_test, "temperature_K": 300.0},
         sized={"M1": {"gm": 200e-6, "gm_id": 15.0, "L": 0.5e-6, "W": _w_target_test,
-                       "vds": 0.6, "vs": 0.0}},
+                       "vds": 0.6, "vsb": 0.0}},
         kind_of={"M1": "nmos"})
     _noise_result = compute_metric({"type": "flicker_plus_thermal_sum", "stages": [["M1"]]}, _ctx_noise)
     _kT = 1.380649e-23 * 300.0
