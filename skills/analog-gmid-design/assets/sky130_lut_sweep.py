@@ -268,7 +268,13 @@ if __name__ == "__main__":
     ID_p, GM_p, GDS_p, CGG_p, CGD_p, SID_1F_p = run_device("pfet_01v8", polarity=-1, vb_sign=-1, t0=t0)
 
     npz_path = os.path.join(OUTPUT_DIR, "sky130_nfet_pfet_lut_sample.npz")
+    # 2026-09-08(A5) -- **이 LUT이 어느 조건에서 나왔는지**를 파일 자신이 들고 있게 한다.
+    # 이전에는 배열만 저장해, 사이징 결과가 어느 코너/온도에서 유효한지 산출물로 추적할
+    # 방법이 없었다(계획 §10.2 A5). 값은 지어낸 것이 아니라 이 스크립트가 실제로 쓰는 것이다:
+    #   corner -- 위 `.include`가 `__tt.pm3.spice`(typical-typical)를 넣는다
+    #   temp_c -- `.temp`/`.options temp` 지시자를 아예 안 넣으므로 ngspice 기본값 27C
     np.savez(npz_path,
+             corner="tt", temp_c=27.0,
              L=np.array(L_GRID_UM) * 1e-6, VGS=VGS_ARR, VDS=VDS_ARR, VS=np.array(VS_GRID),
              ID_n=ID_n, GM_n=GM_n, GDS_n=GDS_n, CGG_n=CGG_n, CGD_n=CGD_n, SID_1F_n=SID_1F_n,
              ID_p=ID_p, GM_p=GM_p, GDS_p=GDS_p, CGG_p=CGG_p, CGD_p=CGD_p, SID_1F_p=SID_1F_p)

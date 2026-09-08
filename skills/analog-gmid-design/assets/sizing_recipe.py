@@ -2195,6 +2195,43 @@ def _metric_pelgrom_mismatch(spec: dict, ctx: SizingContext) -> float:
     return math.sqrt(sum(s * s for s in sigmas)) * 1e3
 
 
+def _metric_supply_current(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-09-08, A3) — **VDD 레일에서 실제로 빠져나가는 전류**의 합(A). 회로의 진짜
+    공급전류이자 전력 예산의 분모다.
+
+    **왜 `sum_current`로는 안 되는가**: `sum_current`는 `ctx.sized` **전 소자의 ID를 그냥
+    더한다**. 직렬 스택은 같은 전류를 공유하므로 그 전류가 스택 소자 수만큼 **중복 계상**된다.
+    파일럿 실측(2026-09-08): 전 소자 ID 합 **243.32µA** vs 실제 공급전류 **86.27µA** -- **2.82배**.
+    더 나쁜 것은 그 배수가 branch마다 다르다는 점이다(`diffpair_branch_a` 8소자 vs
+    `biasgen_*_battery_*` 3소자). 즉 `min sum_current`는 **"그 branch에 소자가 몇 개냐"라는
+    설계와 무관한 가중치**가 붙은 전력을 최소화하게 되어, 소자 수가 많은 branch의 전류를
+    부당하게 무겁게 취급한다.
+
+    판정은 connectivity로만 한다(role 라벨 불신, C4): PMOS의 source가 공급 레일이거나 NMOS의
+    drain이 공급 레일이면 그 소자가 레일에서 전류를 끌어온다. `supply_nets`(선택, 기본
+    `("vdd", "VDD")`)로 레일 이름을 선언할 수 있다.
+
+    ⚠️ **검사하지 않는 것**(C5): (1) `passive_elements`의 저항이 레일에 물려 흘리는 전류 --
+    이 회로군의 R1/R2는 Voc averaging용이라 레일에 안 물리지만, 물리는 회로에서는 누락된다.
+    (2) `ideal_sources`가 주입하는 전류 -- 소신호에서 개방으로 보는 관례와 같은 이유로 DC
+    공급전류에는 별도 계상이 필요할 수 있다. (3) 게이트 누설/서브스레숄드 -- LUT 범위 밖.
+    (4) 이 값이 gnd 유출과 일치하는지 -- KCL 잔차 검증은 §7.5의 별도 게이트 몫이다(파일럿
+    실측에서 vdd 86.27µA vs gnd 88.93µA로 3.1% 어긋나 있다)."""
+    rails = set(spec.get("supply_nets") or ("vdd", "VDD"))
+    by_name, _passives = _load_full_topology_cached(ctx.topology_path)
+    total = 0.0
+    for name, t in by_name.items():
+        e = ctx.sized.get(name)
+        if e is None:
+            raise KeyError(f"supply_current: '{name}'이 ctx.sized에 없다 -- 이 metric은 전 "
+                            f"소자 사이징 후에만 계산할 수 있다(T3 전역 게이트)")
+        if "ID" not in e:
+            raise KeyError(f"supply_current: '{name}'에 ID가 없다")
+        if (t.kind == "pmos" and t.source in rails) or (t.kind == "nmos" and t.drain in rails):
+            total += e["ID"]
+    return total
+
+
 def _metric_mirror_ratio_error(spec: dict, ctx: SizingContext) -> float:
     """F엔진(2026-09-08, A4) — **전류미러 쌍의 VDS 차이가 만드는 계통(systematic) 전류비
     오차**를 %로 반환한다. `symmetry.matching_pairs` 중 `matching_sensitivity == "ratio"`인
@@ -2825,6 +2862,30 @@ _PSRR_ESTIMATOR_REGISTRY = {
 }
 
 
+def lut_conditions_from_npz(npz_data) -> dict:
+    """LUT npz가 들고 있는 **측정 조건**(코너/온도)을 읽어 돌려준다(2026-09-08, A5).
+
+    사이징 결과는 LUT이 뽑힌 조건에서만 유효한데, 그 조건이 파일에 기록돼 있지 않으면
+    산출물이 "이 설계가 어디서 유효한가"를 말할 수 없다. 기록이 없으면 **조용히 기본값을
+    가정하지 않고** `recorded=False`로 그 사실 자체를 돌려준다(§3.2 P1).
+
+    `sky130_lut_sweep.py`는 2026-09-08부터 `corner`/`temp_c`를 함께 저장한다. 그 이전에
+    만들어진 npz(예: 저장소의 `sky130_nfet_pfet_lut_sample.npz`)에는 기록이 없다 -- 생성기
+    코드상 tt/27C인 것은 알지만, **파일이 스스로 말하지 않는 값을 엔진이 대신 지어내지는
+    않는다**. 재생성하면 기록된다."""
+    files = set(getattr(npz_data, "files", []) or [])
+    if "corner" in files or "temp_c" in files:
+        out = {"recorded": True}
+        if "corner" in files:
+            out["corner"] = str(npz_data["corner"])
+        if "temp_c" in files:
+            out["temp_c"] = float(npz_data["temp_c"])
+        return out
+    return {"recorded": False,
+            "note": "이 LUT 파일에 코너/온도가 기록돼 있지 않다 -- 사이징 결과가 어느 조건에서 "
+                    "유효한지 추적할 수 없다. sky130_lut_sweep.py로 재생성하면 기록된다(A5)."}
+
+
 def _load_full_topology_cached(topology_path: str) -> tuple:
     """`topology_path`의 connectivity(소자+passive_elements)를 캐시해서 돌려준다(세션21
     신설, topology-무관 일반화). 캐시 키가 경로 문자열이라 4개 회로(`current_reuse_
@@ -3042,6 +3103,7 @@ _METRICS_REGISTRY = {
     "pelgrom_mismatch":         _metric_pelgrom_mismatch,            # 배치 7-3h
     "cmrr_estimate":            _metric_cmrr_estimate,               # 배치 7-3i
     "psrr_estimate":            _metric_psrr_estimate,               # 배치 7-3i
+    "supply_current":           _metric_supply_current,            # A3, 2026-09-08
     "mirror_ratio_error":       _metric_mirror_ratio_error,        # A4, 2026-09-08
     "rail_referenced_voltage":  _metric_rail_referenced_voltage,     # 세션6
     "battery_centering_deviation": _metric_battery_centering_deviation,  # 세션6
@@ -3082,6 +3144,7 @@ _METRIC_UNITS = {          # 각 계산기가 **실제로** 돌려주는 단위(
     "pelgrom_mismatch":            "mV",     # 이 계산기는 이미 *1e3으로 mV를 돌려준다
     "cmrr_estimate":               "dB",
     "psrr_estimate":               "dB",
+    "supply_current":              "A",
     "mirror_ratio_error":          "%",
     "rail_referenced_voltage":     "V",
     "battery_centering_deviation": "V",
@@ -6457,7 +6520,10 @@ _FULL_CIRCUIT_METRIC_TYPES = frozenset({"smallsignal_ratio_db", "smallsignal_gai
 # "ALL")으로 fallback하는 _DEFAULT_ALL_DEVICES_METRIC_TYPES에 편입한다(SLSQP 웜스타트가
 # 이 metric을 isolated로 잘못 보고 커플링을 놓치는 사고를 방지 -- 위 docstring 참고).
 _DEFAULT_ALL_DEVICES_METRIC_TYPES = frozenset({"sum_current", "sum_area",
-                                                 "cmrr_estimate", "psrr_estimate"})
+                                                 "cmrr_estimate", "psrr_estimate",
+                                                 # 2026-09-08(A3/A4) -- 둘 다 topology
+                                                 # 전체를 훑으므로 isolated로 보면 안 된다.
+                                                 "supply_current", "mirror_ratio_error"})
 
 
 def _metric_device_footprint(metric_name: str, metrics_specs: dict):

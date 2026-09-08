@@ -1898,6 +1898,11 @@
         "unit": "%",
         "aggregate": "max",
         "_comment": "2026-09-08(A4) -- ratio 매칭 쌍의 VDS 차이가 만드는 계통 전류비 오차. pelgrom_mismatch는 랜덤 성분만 보므로 이 계통 오차를 구조적으로 못 본다. 제약은 아직 걸지 않는다 -- 먼저 재고 나서 상한을 정한다."
+      },
+      "supply_current_uA": {
+        "type": "supply_current",
+        "unit": "uA",
+        "_comment": "2026-09-08(A3) -- VDD 레일 유입 전류 = 진짜 공급전류. power_uA(sum_current)는 직렬 스택 공유 전류를 소자 수만큼 중복 계상해 파일럿에서 2.82배 과대(243.32 vs 86.27uA). objective 교체는 설계 결정이라 아직 안 한다 -- 먼저 나란히 재고 보고한다."
       }
     },
     "_classab_centering_comment": "2026-08(세션6) -- 사용자가 'M11a-chain과 M13-chain 전류를 같게 해야 Vom이 안 치우친다'는 가설을 제기해 검토한 결과: M9a/M9b 자신의 전류는 그 두 chain이 아니라 K_replica(M9a~M15)/kcl_battery_M9b(=ID(M11a-chain)+ID(M9a))로 이미 결정되고, M13-chain 전류는 이 KCL에 아예 안 들어간다(Fig.7b가 두 chain 전류가 다르다고 실측 확인한 것과 일치) -- 그래서 두 chain을 강제로 같게 만드는 대신, 사용자가 말한 'swing 최대화=DC bias centering' 원리 자체를 M15/M16(Vg15/Vop1, 이 둘이 진짜 Vom을 만드는 출력단 게이트)의 실제 DC 레벨로 직접 검증하는 metric을 신설했다. 근거: 논문 Section II.B \"the gate voltage of M15 is pushed to about 1.3V and ... M16 ... about 0.5V\" -- 1.3+0.5=VDD로 정확히 센터링. 절대 수치(1.3V/0.5V)는 그 논문 공정 Vth 종속이라 그대로 안 쓰고(값 인용 금지 원칙), '두 레벨의 합=VDD' 위상적 관계만 constraint로 가져왔다. tolerance(0.15V, 아래 constraints)는 이 프로젝트가 독립 도출한 게 아니라 공학적으로 타당해 보이는 근사치일 뿐 -- SPICE 검증 전까지는 정직한 한계로 남는다.",
