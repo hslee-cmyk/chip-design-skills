@@ -235,6 +235,32 @@ def _ltag(L_um: float) -> str:
     return ("L%.4f" % L_um).replace(".", "p")
 
 
+def _cleanup_temp(path, attempts=5, delay=0.4):
+    """임시 넷리스트/출력 파일을 지운다 -- 지워지지 않으면 **남기고 알린다**(2026-09-08).
+
+    왜 예외를 그냥 삼키지 않는가: 조용히 넘어가는 코드는 이 프로젝트가 금지한다. 다만
+    이건 검사가 아니라 **뒷정리**라 성격이 다르다 -- `np.savez(ckpt, ...)`가 이 삭제보다
+    **먼저** 실행되므로 파일이 남아도 LUT 데이터의 정합성에는 아무 영향이 없다. 실제로
+    2026-09-08 스윕이 여기서 `PermissionError [WinError 32]`로 죽어 33개 조합을 남기고
+    중단됐다(Windows에서 ngspice 자식 프로세스/인덱서가 잠깐 파일을 잡고 있는 경합).
+
+    그래서 원인에 맞게 **짧게 재시도**하고(잠금은 대개 순간적이다), 그래도 안 되면
+    경고를 찍고 계속한다 -- 뒷정리 실패가 3시간짜리 스윕을 죽이는 게 더 큰 손해다."""
+    for i in range(attempts):
+        try:
+            os.remove(path)
+            return True
+        except FileNotFoundError:
+            return True
+        except OSError as e:
+            if i == attempts - 1:
+                print(f"  [경고] 임시 파일 삭제 실패(계속 진행, 데이터 영향 없음): "
+                      f"{os.path.basename(path)} -- {e}", flush=True)
+                return False
+            time.sleep(delay)
+    return False
+
+
 def _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign):
     os.makedirs(CKPT_DIR, exist_ok=True)
     tag = _ltag(L_um)
@@ -258,8 +284,8 @@ def _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign):
     result = _parse_output(outfile)
     np.savez(ckpt, ID=result[0], GM=result[1], GDS=result[2], CGG=result[3], CGD=result[4],
              SID_1F=result[5])
-    os.remove(netfile)
-    os.remove(outfile)
+    _cleanup_temp(netfile)
+    _cleanup_temp(outfile)
     return result
 
 
