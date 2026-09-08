@@ -77,7 +77,8 @@
         "Vbias1",
         "gnd"
       ],
-      "_comment": "2026-08-03 -- 사용자 확인(정정): 전류원 상단=Vbias1, 하단=gnd -- 즉 vdd->M18_bg(diode-connected, drain=gate=Vbias1)로 흘러든 전류를 이 ideal current source가 Vbias1에서 gnd로 그대로 싱크한다(M18_bg가 그 전류를 지탱하는 데 필요한 Vgs를 스스로 만들어내며 Vbias1 값이 정해짐). 이 전류가 Vbias1을 gate로 공유하는 나머지 미러(M60/M61/M6/M8/M13/M22/M17)의 전류를 전부 결정한다. 값 1.2uA는 사용자가 논문 원문에서 직접 확인(2026-08-03). 실제 칩에서는 밴드갭+저항 등으로 구현되겠지만 그건 이 topology.json의 범위 밖이라 별도 회로로 다뤄야 한다."
+      "_comment": "2026-08-03 -- 사용자 확인(정정): 전류원 상단=Vbias1, 하단=gnd -- 즉 vdd->M18_bg(diode-connected, drain=gate=Vbias1)로 흘러든 전류를 이 ideal current source가 Vbias1에서 gnd로 그대로 싱크한다(M18_bg가 그 전류를 지탱하는 데 필요한 Vgs를 스스로 만들어내며 Vbias1 값이 정해짐). 이 전류가 Vbias1을 gate로 공유하는 나머지 미러(M60/M61/M6/M8/M13/M22/M17)의 전류를 전부 결정한다. 값 1.2uA는 사용자가 논문 원문에서 직접 확인(2026-08-03). 실제 칩에서는 밴드갭+저항 등으로 구현되겠지만 그건 이 topology.json의 범위 밖이라 별도 회로로 다뤄야 한다.",
+      "_value_amp_status": "참고값(2026-09-08 사용자 확정) -- 엔진은 이 값을 소비하지 않는다. 실제 바이어스 전류는 theta 'r_biasgen'(입력쌍 대비 비율, bounds [0.02,0.15]) 자유 탐색이 전력 최적으로 정한다. 현재 사이징 결과 M18_bg ID=0.6484uA로 이 선언값의 1.851배 차이가 있으며, 그 괴리는 의도된 것이다(논문값 재현이 아니라 전력 최적화가 목표). kcl_residual metric은 이상전원 노드를 제외해 이 괴리를 KCL 위반으로 오보고하지 않는다."
     }
   ],
   "_known_dangling_nets": {

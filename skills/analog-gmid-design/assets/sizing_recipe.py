@@ -2239,7 +2239,14 @@ def _metric_kcl_residual(spec: dict, ctx: SizingContext) -> float:
         else:
             add(tr.source, -e["ID"]); add(tr.drain, +e["ID"])
 
+    # 2026-09-08(B14, 사용자 확정) -- `ideal_sources.value_amp`는 **참고값**이다. 실제 바이어스
+    # 전류는 theta(예: `r_biasgen`)의 자유 탐색이 전력 최적으로 정하고, 이상전원은 그 전류를
+    # 그대로 흘리는 것으로 본다. 따라서 이상전원이 물린 노드는 KCL 잔차 판정에서 **제외**한다
+    # -- 선언값(파일럿 Iref 1.2uA)과 사이징 전류(0.6484uA, 1.851배 차이)의 괴리를 KCL 위반으로
+    # 오보고하지 않기 위해서다. 그 괴리 자체는 별도로 리포트에 적는다(계획 §10.3 B14).
+    # `count_ideal_sources=True`로 선언하면 선언값을 실제 전류로 취급해 함께 센다.
     skipped = set()
+    count_ideal = bool(spec.get("count_ideal_sources", False))
     for src in (_ideal_sources_cached(ctx.topology_path) or []):
         if src.get("kind") != "current_source":
             continue
@@ -2247,8 +2254,8 @@ def _metric_kcl_residual(spec: dict, ctx: SizingContext) -> float:
         terms = src.get("terminals") or []
         if len(terms) < 2:
             continue
-        if amp is None:
-            skipped.update(terms)          # 값 미정 -- 지어내지 않고 그 노드를 뺀다
+        if amp is None or not count_ideal:
+            skipped.update(terms)          # 값 미정이거나 참고값 취급 -- 그 노드를 뺀다
             continue
         add(terms[0], -float(amp)); add(terms[1], +float(amp))
 
