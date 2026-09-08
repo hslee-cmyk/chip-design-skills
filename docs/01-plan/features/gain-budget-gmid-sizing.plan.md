@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.14
+version: 4.15
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -39,6 +39,87 @@ version: 4.14
 | **RISK** | gm_id를 gain에서 직접 역산하는 신규 함수(§2)가 캐스코드+입력 소자의 2변수 결합을 제대로 못 풀면 회귀 위험. `known-incidents.md` "사고4"(단별 이득배분은 탐색이 맞다)와의 철학적 충돌을 잘못 봉합하면 예전에 이미 폐기된 접근을 반복하는 셈 — 이번 세션 사용자 확정으로 "배분 자체는 여전히 탐색/사용자 지정, 배분 이후 gain→gm_id 역산 한 단계만 결정론화"로 경계를 명확히 함 |
 | **SUCCESS** | (0) ★최우선: `verify_node_voltage_consistency(ctx)`가 사이징된 **전체회로**(51소자, diode-connected뿐 아니라)에서 KVL/KCL/VGS Violation 0건 — 이게 이번 재설계의 근본 동기(§3.1 요구사항 6). (1) 그 부분집합으로, `_solve_diode_connected_vgs_fixed_point()`가 16개 diode-connected 소자 전부에서 `vgs_for_gm_id(gm_id,L,vds*,vs)==vds*` 자기일관점에 수렴(현재 오차 0.05~1.02V → 0). (2) `current_reuse_telescopic_ota`를 새 엔진으로 재사이징해도 기존 constraints(gain≥54dB, cmrr/psrr/mismatch/classab)를 여전히 만족. (3) `cross_check_with_spice()`(sky130 트랜지스터 레벨 SPICE `.op`)이 rail-lock 없이 수렴하고 (0)의 LUT 기반 예측과 일치 |
 | **SCOPE** | 이번 계획: JSON 스키마 설계 + 신규 사이징 알고리즘 설계 + 헤드룸 해석기 재설계 + 파일럿 회로(`current_reuse_telescopic_ota`) 1개 이관·검증. 나머지 3개 토폴로지(folded_cascode/nmcnr_amplifier/two_stage_ota) 이관은 파일럿 검증 후 별도 작업으로 이연 |
+
+---
+
+## 0. 이어받을 지점 (★ 2026-09-08 기준, 새 세션은 여기부터 읽는다)
+
+> 이 절은 **다음 세션이 곧바로 손댈 지점**만 적는다. 배경은 §1, 설계는 §7, 미해결 목록은 §10.
+
+### 0.1 지금 어디까지 왔나
+
+계획 문서가 v3.4 → **v4.14**까지 왔다. 4개 관점 독립 검토(§10)에서 나온 지적을 실측으로
+하나씩 확인·해소했고, **엔진 코드는 "기존 결함 수정 + 계기판 신설"까지만** 손댔다 —
+**새 파이프라인(§7.2/§7.6/§7.9의 신규 harness)은 아직 한 줄도 구현하지 않았다.**
+
+**완료(코드)**
+- 선행조치 3건: self-test 회귀 기준선 신설(`assets/tests/baseline/`), 소신호 MNA numpy 전환
+  (노드 51개 6.1배), 헤드룸 클로저 6개(401줄) 모듈 레벨 추출(`_hr_*`)
+- `stick_diagram.py` 출력 결정론화(7줄) — stdout diff를 회귀 단위로 쓸 수 있게 됨
+- metric 단위 레지스트리 + 검증기(A12), `vs` → **`vsb`** 개명 + 옛 이름 거부 가드(B9)
+- 신규 계기판 5개: `mirror_ratio_error`(A4) / `supply_current`(A3) / `kcl_residual`(B8) /
+  `stack_headroom_slack`(A8) + `lut_conditions_from_npz()`(A5)
+- 노드전압 복원 `propagate_node_voltages()` + `derive_vsb_from_nodes()` (§7.5 코어)
+- diode 자기일관 `solve_diode_connected_vds()`(bisection) + `set_device_vds()` 단일 setter (B1 3~4단계)
+
+**완료(측정)** — 파일럿 한 점에서 이제 이만큼이 보인다. 세션 시작 때는 `gain_db` 하나뿐이었다.
+
+| metric | 값 | 뜻 |
+|---|---|---|
+| `power_uA` | 243.32 | 직렬 중복 포함(A3) |
+| `supply_current_uA` | **86.27** | 진짜 공급전류(2.82배 차이) |
+| `kcl_residual_uA` | **3.96** | 전류 정합성 위반(B8) |
+| `mirror_ratio_error_pct` | **63.61** | 미러비 계통 오차(A4) |
+| `stack_headroom_slack_v` | **−1.35** | 스택 KVL 위반(A8) |
+| `gain_db` | 56.98 | |
+
+### 0.2 다음 작업 — B1 5단계(배선) + 재탐색
+
+**이게 유일한 다음 작업이고, 되돌리기 어려운 단계다**(파일럿 산출물이 전부 바뀐다).
+
+```
+1) vds 기입 7곳을 set_device_vds()로 치환
+   3237 _feed_gm_target_convention / 3304 조인트스캔 / 4729 vds_match_vgs_of pre-pass /
+   4772 sibling 갱신 / 4805 same_as_device / 4899 allocate 결과 적용 / 5258 stage 결과
+   (줄번호는 2026-09-08 기준 -- 옮겨졌을 수 있으니 `grep -n '\["vds"\] *='`로 다시 확인)
+2) 헤드룸 pre-pass에 diode 자기참조 추가 -- diode는 vds_match_vgs_of가 자기 자신을
+   가리키는 특수 케이스다(§7.3). 확정값은 unresolved에서 빠져 예산에서 차감된다.
+3) `stack_headroom_slack >= 0`을 constraint로 선언(지금은 −1.35라 즉시 infeasible이므로
+   4)의 재탐색과 **동시에** 켜야 한다)
+4) 파일럿 재탐색 -- gm_id/L을 다시 찾아 7개 스택을 만족시킨다
+5) 원시 대입이 남아 있지 않은지 grep 테스트로 강제(C9)
+```
+
+### 0.3 착수 전에 알아야 할 것
+
+- **feasible 영역은 비어 있지 않다**(v4.13 사전계산). 7개 초과 스택 중 4개는 비-diode를
+  그대로 둬도 되고, 3개는 비-diode가 0.10~0.14V만 내려가면 된다.
+- **다만 대가가 크다.** 최소 Vgs는 `gm_id 25~26.5` / `L=0.15µm`에서 나오는데, A11의 gain
+  정점(18~20.5)을 지난 영역이고 §7.10 knee(0.30~0.45µm)보다 낮은 L이다. 실제 해는 그 사이
+  어딘가이고 **gain·면적 제약과 동시에 만족하는지는 아직 모른다** — 돌려봐야 안다.
+- **병목은 M36a/b가 아니다.** 가장 커 보였던 1.361V 요구는 단독 컬럼이라 여유 0.439V가
+  남는다. 실제 병목은 **diode 2개가 직렬인 컬럼**(`biasgen_vom/vop_battery_a`)이다.
+- **재사이징 후 `vsb`가 확정되어야 다음이 풀린다**: 현재 노드전압 복원에 **다중도달 불일치
+  4건(전부 243.5mV)**이 남아 있어 노드전압이 유일하게 정해지지 않는다. 그 모순이 vds 배정에서
+  오므로 B1 배선이 그것을 해소하는지 먼저 확인하고, 그 다음에 `vsb` 26개 불일치를 고친다.
+
+### 0.4 검증 방법
+
+- **회귀**: `python sizing_recipe.py` / `python stick_diagram.py`의 stdout이
+  `assets/tests/baseline/*.baseline.log`와 **바이트 동일**해야 한다. 배선은 동작을 바꾸므로
+  이 기준선도 **의도적으로 갱신**하고, 갱신 사유를 커밋 메시지에 남긴다.
+- **계기판**: 위 6개 metric을 재사이징 전/후로 나란히 적는다. 특히
+  `stack_headroom_slack_v ≥ 0`과 `kcl_residual_uA` 감소가 성공 판정이다.
+- **조사 스크립트**(`assets/tests/probe_*.py` 9개)는 전부 재실행 가능하다 — 값이 바뀌면
+  각 파일 상단 docstring의 측정치도 함께 갱신할 것.
+
+### 0.5 아직 사용자 승인이 필요한 것
+
+- **`vsb` 산출 수정**(B9) — 고치면 LUT 조회가 바뀌어 W/gm이 달라진다. B1 배선과 함께 하기로
+  했으나 실제 착수 전 재확인.
+- **`stack_headroom_slack`을 constraint로 승격**하는 시점.
+- **`ideal_sources.value_amp` 소비 배선**(B14) — 규약은 확정됐다(null이면 자유탐색, 값이
+  있으면 그 값 사용). 파일럿 Iref 1.2µA가 고정되면 `r_biasgen`의 자유도가 줄어든다.
 
 ---
 
@@ -1892,27 +1973,22 @@ self-test 블록이 함께 실행됨)에서 전환 — **`stick_diagram.py`를 �
 
 ## 9. Next Steps
 
-1. 이 계획 문서에 대한 사용자 최종 승인
-2. `<name>.sizing_spec.json` 스키마의 `_TEMPLATE.sizing_spec.json` 스캐폴드 작성
-3. §8 파일 구조대로 5개 신규 파일(+`tests/` 6개, `stick_diagram.py` self-test 이관분 포함)
-   스캐폴딩 — 빈 함수 시그니처와 docstring만 먼저 작성해 구조를 고정
-4. `stick_diagram.py`의 인라인 self-test(8980~12923줄)를 `tests/test_stick_diagram.py`로
-   이관하고 §8.8의 회귀 대조(이관 전/후 PASS/FAIL 집합 동일) 확인 — 다른 신규 함수 구현보다
-   먼저 해도 되는 독립 작업이라 가장 먼저 처리
-5. §7.2/§8.3~8.5 신규 함수 구현 + 대응 test 파일에 self-test 작성(파일럿 회로 착수 전,
-   toy LUT로 단위 검증)
-6. `current_reuse_telescopic_ota` 파일럿 이관 + §4 Success Criteria 전항목 검증
-7. 검증 통과 시 나머지 3개 토폴로지 이관 계획을 별도 문서로 후속 작성
+> 착수 지점과 전제는 **§0 이어받을 지점**에 정리돼 있다. 여기는 그 이후의 큰 흐름만 적는다.
+
+1. **B1 5단계(배선) + 파일럿 재탐색** — §0.2. 지금 유일하게 열려 있는 작업이다.
+2. 재탐색 성공 시 `vsb` 산출 수정(B9) → 노드전압 유일해 확인(다중도달 불일치 4건 = 243.5mV
+   해소) → `verify_node_voltage_consistency()` 게이트 완성(§7.5)
+3. `ideal_sources.value_amp` 소비 배선(B14) — `seed_currents` 경로
+4. §7.6(3)의 3티어 게이트 구조 구현(T1/T2는 `extra_feasible`, T3는 `check_global_gates`)
+5. §7.9 배분 DP(`solve_allocation_dp`) 구현 — `stack_headroom_slack`을 제약에 포함
+6. §8 파일 구조 재배치(5개 신규 파일 + `tests/`) — 이건 위 기능이 안정된 뒤가 안전하다
+7. 나머지 3개 토폴로지 이관(C7) + §4 Success Criteria 전항목 검증
+
+**아직 안 한 것 중 큰 것**: §10의 미해결 항목(A1/A2/A6/A7/A9, B3/B5/B6/B10/B12, G1~G8,
+C 정합성 잔여). 특히 **G6(stage 분할 규칙 부재)**와 **A2(`Area` 정의 부재)**는 새 파이프라인
+구현 전에 결정이 필요하다.
 
 ---
-
-- [x] **★ LUT 재검증(A10) — 2026-09-07 완료, 우려 기각.** 실측치는 옳았고 단위 표기(선형비 vs
-      dB)가 빠져 있었을 뿐이다. v3.3 논거 유지. 대신 **새 발견 A11**(`gm/gds`의 `gm_id` 비단조성,
-      VDS≥0.6에서 정점이 gm_id 18~20.5)이 나왔고 이게 §7.9 해법의 전제를 건드린다.
-- [ ] **A11 반영 결정** — `gm_id ≤ argmax(gm/gds)` 물리 상한 추가 여부, "해석해/유일 결정"
-      표현 하향 여부.
-- [ ] **B1 재설계** — vds를 쓰는 4개 진입점 전부가 통과하는 단일 헤드룸 해석기로 §7.3 재작성
-      (현재 티어①은 `resolve_feed_vds()` 안에 있는데 그 함수는 실제 배정 경로가 호출하지 않는다).
 
 ## 10. 독립 검토에서 나온 미해결 항목 (★ 신설 v4.0, 2026-09-07)
 
@@ -2034,3 +2110,4 @@ harness 순서의 불일치(§8.4에 Phase 1이 없고 되먹임을 금지), 신
 | **4.12** | 2026-09-08 | **`ideal_sources.value_amp` 정책 확정(사용자 지시)**: ~~참고값~~ → **null이면 자유탐색, 값이 있으면 그 값을 실제 전류로 쓴다**. 파일럿 Iref(1.2µA 선언)는 고정 대상이 되고 `r_biasgen`의 자유도가 줄어든다. `_metric_kcl_residual()`을 그 규약에 맞게 되돌렸다 — `value_amp=null`이면 그 노드를 제외(값을 지어내지 않는다), 값이 있으면 실제 전류로 세어 **괴리를 드러낸다**. topology.json의 Iref `_value_amp_status`도 새 규약으로 갱신. 엔진이 아직 `value_amp`를 소비하지 않으므로 B1+vs 구현 시 `seed_currents` 경로로 배선한다 |
 | **4.13** | 2026-09-08 | **B1 3~4단계 구현 + 배선 전 스택 feasibility 사전계산**. `is_diode_connected()`(connectivity만 본다 — 파일럿 diode 16개의 `headroom_role`이 cascode 10/mirror 3/voltage_divider 2/diode_reference 1로 흩어져 있어 role로 판정하면 **15개를 놓친다**), `solve_diode_connected_vds()`(A7 권고대로 대입 반복이 아니라 **bisection**, 브래킷도 지어내지 않고 **LUT VDS 격자에서 부호가 갈리는 구간**을 찾는다 — 처음에 `[min,max]`로 잡았더니 VDS=0에서 소자가 꺼져 gm_id 조회가 범위 밖이라 **16개 전부 실패**했다), `set_device_vds()`(vds 기입의 유일한 경로, diode면 자기일관해와 불일치 시 즉시 실패, `_vds_source` 태그로 B13 추적성 동시 해결) 신설. 실측: **16/16 해 찾음**, 검산 `g(v*)`~1e-7, 현재 배정과 **|오차| 평균 0.548V·최대 1.061V**(M36a/b 0.300→1.361V). **배선 전 사전계산**: 22개 스택 중 **7개가 예산 초과**(최대 1.346V, `biasgen_vom/vop_battery_a`). 가장 걱정했던 M36a/b는 단독 컬럼이라 **여유 0.439V로 문제 없었고**, 실제 병목은 **diode 2개 직렬 컬럼**이었다. 그러나 diode 최소 Vgs로 하한을 잡으면 **원리적으로 불가능한 스택은 하나도 없다** — 4개는 비-diode 그대로도 가능하고 3개는 비-diode가 0.10~0.14V만 내려가면 된다. 정직한 한계: 그 최소값은 `gm_id 25~26.5`/`L=0.15µm`에서 나오는데 A11의 gain 정점(18~20.5)을 지난 영역이고 §7.10 knee보다 낮은 L이라 **대가가 크다** — 표는 해의 존재를 보이는 하한 증명이지 설계안이 아니다. **A8 재해석**: diode Vgs는 gm_id가 정하는 종속값이라 스택 KVL은 연립 방정식이 아니라 **gm_id 제약**이다 → 별도 solver가 아니라 §7.9에 제약 추가로 처리 |
 | **4.14** | 2026-09-08 | **A8 재해석의 계기판 구현 — `stack_headroom_slack` metric 신설**. 스택 KVL을 연립 solver가 아니라 **gm_id 제약**으로 다루기로 한 v4.13 결론을 실물로 만들었다: 각 `vertical_stack_id`에 대해 `Σ_{diode} Vgs_k(gm_id_k,L_k,vsb_k) + Σ_{비-diode} vds_j`를 예산(`vdd` 또는 `vdd − ref_vds`)과 비교해 **최소 여유**를 V로 돌려준다. 음수면 그 스택이 성립하지 않는다. 값-동일 그룹(offset 매칭 쌍)은 대표 1개만 합산하고, diode 해가 없는 그룹은 `-inf` 대신 건너뛴다. 파일럿 실측 **−1.3456V**로 사전계산 스크립트와 정확히 일치. 부수로 `diode_vds_cached()` 신설 — 자기일관 해법은 LUT 격자 49점 스캔 + bisection 60회라 diode 하나당 100회 넘는 조회인데, 이 metric이 16개 소자에 매번 하므로 캐시가 필요했다(**353.6ms → 0.069ms, 5100배**). 캐시 키는 "이 계산이 실제로 읽는 모든 값"(kind/gm_id/L/vsb)로 잡아 CMFB MNA 캐싱 회귀(`metric_spec`만 키로 써서 `ctx.sized` 변경을 놓친 사고)를 반복하지 않게 했고, gm_id/vsb를 바꾸면 값이 실제로 달라지는지 확인했다. **아직 constraint로 걸지 않았다** — 현재 사이징에서 7개 스택이 음수라 지금 걸면 즉시 infeasible이 되므로, 먼저 재탐색으로 해를 찾은 뒤 건다. 회귀: 두 self-test 기준선과 바이트 동일 |
+| **4.15** | 2026-09-08 | **§0 "이어받을 지점" 신설 + §9 Next Steps 현재화**. 세션이 길어져 다음 세션이 어디서부터 손대야 하는지가 문서에서 바로 안 보였다. 문서 최상단(Context Anchor 다음)에 §0을 만들어 (0.1) 지금까지 완료한 코드 변경과 **파일럿 계기판 6개 실측값**, (0.2) 다음 작업인 **B1 5단계 배선+재탐색**의 구체 절차(vds 기입 7곳 줄번호 포함), (0.3) 착수 전 알아야 할 전제(feasible 영역은 있으나 대가가 크다 / 병목은 M36a/b가 아니라 diode 2개 직렬 컬럼이다 / 재사이징 후에야 vsb가 확정된다), (0.4) 검증 방법(기준선 바이트 대조 + 계기판 6개 전후 비교 + probe 9개 재실행), (0.5) 아직 사용자 승인이 필요한 것 3가지를 정리했다. §9는 그 이후의 큰 흐름만 남기고 이미 끝난 항목을 걷어냈다. **엔진 코드는 "기존 결함 수정 + 계기판 신설"까지만 손댔고 새 파이프라인은 한 줄도 구현하지 않았다**는 경계를 §0.1에 명시 |
