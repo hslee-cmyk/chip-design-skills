@@ -451,7 +451,8 @@
     ],
     "metrics": {
       "power_uA": {
-        "type": "sum_current"
+        "type": "sum_current",
+        "unit": "uA"
       },
       "gain_db": {
         "type": "nmcnr_gain_db",
@@ -471,7 +472,8 @@
           "M302"
         ],
         "CL": 1e-10,
-        "kg": 0.5
+        "kg": 0.5,
+        "unit": "dB"
       },
       "pm_deg": {
         "type": "nmcnr_pm_deg",
@@ -491,17 +493,20 @@
           "M302"
         ],
         "CL": 1e-10,
-        "kg": 0.5
+        "kg": 0.5,
+        "unit": "deg"
       },
       "cmrr_db": {
         "type": "cmrr_estimate",
         "circuit_family": "diff_pair_tail",
-        "tail_device": "M101"
+        "tail_device": "M101",
+        "unit": "dB"
       },
       "psrr_db": {
         "type": "psrr_estimate",
         "circuit_family": "diff_pair_tail",
-        "tail_device": "M101"
+        "tail_device": "M101",
+        "unit": "dB"
       }
     },
     "objective": {

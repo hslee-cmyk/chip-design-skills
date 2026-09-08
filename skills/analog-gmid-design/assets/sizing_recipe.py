@@ -2994,6 +2994,130 @@ _METRICS_REGISTRY = {
 }
 
 
+# ---------------------------------------------------------------------------
+# metric 단위 레지스트리 + 선언 검증 + 명시 변환 (2026-09-08, A12)
+# ---------------------------------------------------------------------------
+# 배경: `power_uA`가 실제로는 A를, `area_um2`가 m^2를 돌려주고 있었다(파일럿 실측:
+# 0.000243323 vs 51소자 직접 합산 243.32uA / 1.17156e-10 vs 117.16um^2 -- 정확히 10^6/10^12배).
+# 4개 토폴로지 어디에도 area 제약이 선언돼 있지 않았고 power는 objective(최소화)라 상수배가
+# 순위를 안 바꿔서 여태 드러나지 않았다. 그런데 계획 v3.3이 `area_um2 <= 2000`을 **핵심 제약**
+# 으로 도입하므로, 그대로 두면 사람이 의도한 2000um^2가 2000 m^2와 비교돼 **제약이 조용히
+# 사라진다**(v3.3의 "면적이 gm_id의 실질 상한" 논거, v4.2 DP의 면적 bin, v3.4 Pareto 구간이
+# 전부 무력화).
+#
+# 고친 방식(사용자 선택 3안): **계산기의 반환값은 건드리지 않는다**(self-test가 SI 기대값
+# `30e-6`으로 이미 고정하고 있으므로 그게 정규 단위다). 대신
+#   (1) 타입마다 계산기가 실제로 돌려주는 단위를 `_METRIC_UNITS`에 한 곳에서 선언하고(C9),
+#   (2) metric 선언은 원하는 `unit`을 명시하며,
+#   (3) `compute_metric()`이 `_UNIT_SCALES`의 **표에 있는 환산만** 적용하고,
+#   (4) 이름 접미사가 단위를 말하면 그것까지 셋이 일치하는지 로드 시점에 검사한다.
+# 어긋나면 조용히 넘어가지 않고 즉시 ValueError다(§3.2 P1). 환산 계수는 지어내지 않고 표에서만
+# 온다 -- 표에 없는 조합은 "그 환산은 정의돼 있지 않다"고 거부한다.
+_METRIC_UNITS = {          # 각 계산기가 **실제로** 돌려주는 단위(정규 단위)
+    "sum_current":                 "A",
+    "sum_area":                    "m^2",
+    "gain_stages_sum":             "dB",
+    "folded_cascode_gain_db":      "dB",
+    "folded_cascode_pm_deg":       "deg",
+    "nmcnr_gain_db":               "dB",
+    "nmcnr_pm_deg":                "deg",
+    "flicker_plus_thermal_sum":    "V/sqrt(Hz)",
+    "pelgrom_mismatch":            "mV",     # 이 계산기는 이미 *1e3으로 mV를 돌려준다
+    "cmrr_estimate":               "dB",
+    "psrr_estimate":               "dB",
+    "rail_referenced_voltage":     "V",
+    "battery_centering_deviation": "V",
+    "nulling_resistor_ohm":        "ohm",
+    "smallsignal_ratio_db":        "dB",
+    "smallsignal_gain_db":         "dB",
+}
+
+_UNIT_SCALES = {           # (정규 단위, 선언 단위) -> 곱할 계수. 표에 없으면 거부한다.
+    ("A", "A"): 1.0,        ("A", "mA"): 1e3,     ("A", "uA"): 1e6,   ("A", "nA"): 1e9,
+    ("m^2", "m^2"): 1.0,    ("m^2", "um^2"): 1e12,
+    ("V", "V"): 1.0,        ("V", "mV"): 1e3,     ("V", "uV"): 1e6,
+    ("mV", "mV"): 1.0,      ("mV", "V"): 1e-3,
+    ("dB", "dB"): 1.0,
+    ("deg", "deg"): 1.0,
+    ("ohm", "ohm"): 1.0,    ("ohm", "kohm"): 1e-3,
+    ("V/sqrt(Hz)", "V/sqrt(Hz)"): 1.0,
+    ("V/sqrt(Hz)", "nV/sqrt(Hz)"): 1e9,
+}
+
+# metric **이름**의 접미사에서 단위를 읽는 표(긴 접미사 우선). 이름이 단위를 말하고 있으면
+# 그 말이 사실인지도 검사한다 -- A12가 정확히 "이름이 거짓말한" 사고였기 때문이다.
+_UNIT_NAME_SUFFIXES = (
+    ("_nv_rthz", "nV/sqrt(Hz)"),
+    ("_v_rthz",  "V/sqrt(Hz)"),
+    ("_um2",     "um^2"),
+    ("_ua",      "uA"),
+    ("_ma",      "mA"),
+    ("_mv",      "mV"),
+    ("_ohm",     "ohm"),
+    ("_deg",     "deg"),
+    ("_db",      "dB"),
+    ("_v",       "V"),
+)
+
+
+def unit_hint_from_metric_name(name: str) -> str | None:
+    """metric 이름의 접미사가 단위를 말하고 있으면 그 단위를, 없으면 None."""
+    low = name.lower()
+    for suf, unit in _UNIT_NAME_SUFFIXES:
+        if low.endswith(suf):
+            return unit
+    return None
+
+
+def metric_unit_scale(metric_spec: dict, metric_name: str | None = None) -> float:
+    """선언 `unit`으로 환산할 계수를 돌려준다. `unit`이 없으면 정규 단위 그대로(1.0)."""
+    mtype = metric_spec["type"]
+    canonical = _METRIC_UNITS.get(mtype)
+    if canonical is None:
+        raise ValueError(
+            f"metric 타입 {mtype!r}이 _METRIC_UNITS에 없다 -- 계산기가 돌려주는 단위를 "
+            f"그 표에 등록할 것(단위를 모르면 제약을 걸 수 없다, A12)")
+    declared = metric_spec.get("unit")
+    if declared is None or declared == canonical:
+        return 1.0
+    scale = _UNIT_SCALES.get((canonical, declared))
+    if scale is None:
+        raise ValueError(
+            f"metric{'' if metric_name is None else ' ' + repr(metric_name)}의 "
+            f"{canonical!r} -> {declared!r} 환산이 _UNIT_SCALES에 없다 -- 계수를 지어내지 "
+            f"않는다. 필요하면 그 표에 근거와 함께 추가할 것(A12)")
+    return scale
+
+
+def validate_metric_units(metrics_specs: dict) -> None:
+    """metric 선언의 `unit`이 (1) 존재하고 (2) 정규 단위에서 환산 가능하며 (3) 이름 접미사가
+    단위를 말한다면 그것과도 같은지 검사한다. 하나라도 어긋나면 즉시 `ValueError` -- 단위
+    불일치는 제약을 **조용히 무력화**하므로 경고로 넘기지 않는다(A12).
+
+    `_build_theta_evaluator()`가 metrics 선언을 읽자마자 호출한다(유일한 배선 지점)."""
+    for name, spec in (metrics_specs or {}).items():
+        if spec.get("type") is None:
+            raise ValueError(f"metric '{name}'에 'type'이 없다")
+        canonical = _METRIC_UNITS.get(spec["type"])
+        if canonical is None:
+            raise ValueError(
+                f"metric '{name}'의 타입 {spec['type']!r}이 _METRIC_UNITS에 없다 -- "
+                f"계산기가 돌려주는 단위를 그 표에 등록할 것")
+        declared = spec.get("unit")
+        if declared is None:
+            hint = unit_hint_from_metric_name(name)
+            raise ValueError(
+                f"metric '{name}'에 'unit'이 없다 -- {spec['type']!r}은 {canonical!r}를 "
+                f'돌려주므로 `"unit": "{hint or canonical}"`를 선언에 추가할 것'
+                f"(A12: 단위를 적지 않으면 제약이 조용히 무력화될 수 있다)")
+        metric_unit_scale(spec, name)          # 환산 가능성 검사(불가면 여기서 ValueError)
+        hint = unit_hint_from_metric_name(name)
+        if hint is not None and hint != declared:
+            raise ValueError(
+                f"metric 이름 '{name}'은 단위 {hint!r}를 말하는데 unit={declared!r}로 "
+                f"선언됐다 -- 이름을 고치거나 단위를 맞출 것(A12가 정확히 이 불일치였다)")
+
+
 def compute_metric(metric_spec: dict, ctx: SizingContext) -> float:
     """이미 사이징 완료된 `ctx`(모든 소자의 ID/gm/gds/W/L 확정)에서 `metric_spec`이 지정한
     값 하나를 읽어 계산한다 — `theta_value` 인자가 없다(metric은 자유값을 받는 게 아니라
@@ -3004,7 +3128,9 @@ def compute_metric(metric_spec: dict, ctx: SizingContext) -> float:
     if calc is None:
         raise ValueError(f"등록되지 않은 metric 타입: {metric_type!r} -- "
                           f"_metric_*() 계산기를 새로 작성해 _METRICS_REGISTRY에 등록할 것")
-    return calc(metric_spec, ctx)
+    # 2026-09-08(A12) -- 선언 `unit`으로 환산한다. `unit`이 없으면 정규 단위 그대로(1.0)라
+    # 기존 호출부는 무변경이고, 토폴로지 경로는 validate_metric_units()가 선언을 강제한다.
+    return calc(metric_spec, ctx) * metric_unit_scale(metric_spec)
 
 
 # ---------------------------------------------------------------------------
@@ -4940,6 +5066,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     roles = meta.get("sizing_roles") or {}
     thetas = roles.get("theta") or []
     metrics_specs = roles.get("metrics") or {}
+    validate_metric_units(metrics_specs)      # 2026-09-08(A12) -- 유일한 배선 지점
     objective = roles.get("objective") or {}
     constraints = roles.get("constraints") or []
     # "_"로 시작하는 키(예: "_comment")는 이 프로젝트 전역 관례상 문서용 주석 필드다 --
@@ -8790,7 +8917,10 @@ if __name__ == "__main__":
                 "netlist": _l4c_m3a_netlist,
                 "symmetry": {"matching_pairs": _ofcb_matching_pairs_meta, "dispositions": []},
                 "sizing_roles": {
-                    "metrics": {"group_area": {"type": "sum_area", "devices": _l4c_names}},
+                    # A12(2026-09-08) -- unit 필수. 이름에 단위 접미사가 없으므로 정규
+                    # 단위 m^2를 그대로 선언한다(환산 계수 1.0이라 값은 불변).
+                    "metrics": {"group_area": {"type": "sum_area", "unit": "m^2",
+                                                "devices": _l4c_names}},
                     "constraints": [{"metric": "group_area", "op": "<=",
                                       "value": _ofcb_baseline_area * 1.5}],
                 },
@@ -9453,9 +9583,12 @@ if __name__ == "__main__":
                        "feeds": {"type": "B", "tag": "servo", "target": "Mtest",
                                  "omega_key": "omega_c", "cap_key": "cap", "L": 0.5e-6, "W": 30e-6,
                                  "vds": 0.6, "gm_id_bounds": [2.0, 28.0]}}],
-            "metrics": {"power_uA": {"type": "sum_current"}},
-            "objective": {"minimize": "power_uA"},
-            "constraints": [{"metric": "power_uA", "op": "<=", "value": 1e-3}],
+            # A12(2026-09-08) -- 이 픽스처 자신이 A12 사례였다: 이름은 `power_uA`인데
+            # constraint 임계값 1e-3은 SI(A)였다(=1mA). 이름을 정직하게 `power_A`로 바꾸고
+            # unit="A"를 선언한다 -- 환산 계수 1.0이라 값도 임계도 그대로다.
+            "metrics": {"power_A": {"type": "sum_current", "unit": "A"}},
+            "objective": {"minimize": "power_A"},
+            "constraints": [{"metric": "power_A", "op": "<=", "value": 1e-3}],
         },
     }
     with _tempfile.TemporaryDirectory() as _ofc_tmpdir:
@@ -9484,11 +9617,11 @@ if __name__ == "__main__":
             if _power <= 1e-3 and (_manual_best is None or _power < _manual_best[0]):
                 _manual_best = (_power, _N)
         assert _manual_best is not None, "전수비교 자체가 infeasible -- 테스트 설계 오류"
-        assert abs(_metrics["power_uA"] - _manual_best[0]) < 1e-12, \
-            f"함수 결과({_metrics['power_uA']})가 전수비교 최적값({_manual_best[0]})과 다름"
+        assert abs(_metrics["power_A"] - _manual_best[0]) < 1e-12, \
+            f"함수 결과({_metrics['power_A']})가 전수비교 최적값({_manual_best[0]})과 다름"
         assert abs(_theta_star["N"] - _manual_best[1]) < 1e-9, \
             f"theta*(N={_theta_star['N']})가 전수비교 최적 N({_manual_best[1]})과 다름"
-        print(f"    PASS: theta*=N={_theta_star['N']:.3f}, power_uA={_metrics['power_uA']*1e6:.4f}uA "
+        print(f"    PASS: theta*=N={_theta_star['N']:.3f}, power_uA={_metrics['power_A']*1e6:.4f}uA "
               f"-- {5}개 격자점 전수비교와 정확히 일치(재현성+최적성 확인)")
 
     print()
@@ -9837,7 +9970,7 @@ if __name__ == "__main__":
     _ofc_topo_infeasible = dict(_ofc_topo)
     _ofc_topo_infeasible["sizing_roles"] = dict(_ofc_topo["sizing_roles"])
     _ofc_topo_infeasible["sizing_roles"]["constraints"] = [
-        {"metric": "power_uA", "op": "<=", "value": 1e-15}]  # 불가능한 제약
+        {"metric": "power_A", "op": "<=", "value": 1e-15}]  # 불가능한 제약
     with _tempfile.TemporaryDirectory() as _ofc_tmpdir2:
         _ofc_topo_path2 = _os.path.join(_ofc_tmpdir2, "_test_infeasible.topology.json")
         with open(_ofc_topo_path2, "w", encoding="utf-8") as _f:

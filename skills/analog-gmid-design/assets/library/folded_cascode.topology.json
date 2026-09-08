@@ -375,7 +375,8 @@
     ],
     "metrics": {
       "power_uA": {
-        "type": "sum_current"
+        "type": "sum_current",
+        "unit": "uA"
       },
       "gain_db": {
         "type": "folded_cascode_gain_db",
@@ -384,7 +385,8 @@
         "fold_leg_b": "M3",
         "cascode_p": "M6",
         "cascode_n": "M8",
-        "mirror_n": "M10"
+        "mirror_n": "M10",
+        "unit": "dB"
       },
       "pm_deg": {
         "type": "folded_cascode_pm_deg",
@@ -399,17 +401,20 @@
           "M1",
           "M3",
           "M6"
-        ]
+        ],
+        "unit": "deg"
       },
       "cmrr_db": {
         "type": "cmrr_estimate",
         "circuit_family": "diff_pair_tail",
-        "tail_device": "M11"
+        "tail_device": "M11",
+        "unit": "dB"
       },
       "psrr_db": {
         "type": "psrr_estimate",
         "circuit_family": "diff_pair_tail",
-        "tail_device": "M11"
+        "tail_device": "M11",
+        "unit": "dB"
       }
     },
     "objective": {

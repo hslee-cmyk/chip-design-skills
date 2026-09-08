@@ -274,10 +274,12 @@
     "_target_spec_comment": "2026-08-13 -- 사용자 지시로 웹 문헌조사를 거쳐 '일반적인(typical)' 2단 Miller OTA 스펙을 채움(이 회로 고유 논문 스펙표가 없는 worked-example 골격 회로라 current_reuse_telescopic_ota류처럼 원 논문 수치를 그대로 못 가져옴 -- 그래서 이번엔 논문값 그대로 인용이 아니라 '일반적 typical target'을 명시적으로 요청받음). (1) gain_db>=60(최초 목표): 2단 Miller-compensated op-amp의 표준 typical 목표로 여러 문헌이 공통 인용(예: 'DC gain of 60dB and phase margin of 60 are typical design goals for two-stage Miller compensated op-amps' -- 웹 검색, academia.edu/scribd 소재 2단 Miller OTA 설계 자료 다수). 참고로 이 프로젝트 자체 방법론 문서(gm-id-methodology.md §6.4, Cortes&Bampi 계열)가 이미 이 회로와 정확히 같은 스펙(GBW=20MHz/CL=3pF/Z=10/NDP=4, compensation.parameters 그대로)의 worked example로 'gain 82dB, PM≈70°, IDC≈105uA, 면적 200~250um², Cm≈1.41pF'를 보고한다 -- 60dB는 그 82dB보다 충분히 보수적인(달성 가능성 높은) 문턱이라 목표로 채택. PM≈70°은 Z=10/NDP=4 자체가 이미 인코딩하는 설계의도이지만(§6.4 레시피 'Z=10,NDP=4 지정 → PM 60~70°'), 이 코드베이스에 GBW/PM 역방향 검증 함수가 없어(sizing_recipe.py 5390행대 주석, nmcnr류의 nmcnr_predict_ac_response()에 해당하는 함수가 miller_ota_topology엔 없음) constraint로 선언해도 검증 대상이 없다 -- 그래서 PM은 constraint로 넣지 않고 이 주석에 설계의도로만 남긴다. (2) mismatch_sigma_mV<=5.0: 새 문헌값이 아니라 이 프로젝트가 같은 metric type(pelgrom_mismatch)에 이미 쓰고 있는 current_reuse_telescopic_ota의 문턱(5.0mV)을 재사용 -- 입력쌍 오프셋의 '일반적' 문턱으로 프로젝트 내 일관성 유지. **(3) 2026-08-13(세션31 CA~CJ) 정정 -- GBW=20MHz/gain_db>=60 조합은 실제 sky130 LUT(L 최대 4um까지 확장, 면적예산 4배까지 확대, M5/M7 theta 분리 등 모든 레버 실측 시도 후)로 물리적으로 달성 불가능함이 확정됐다(진짜 상한 ~50~51dB, `.ai/context.md` 세션31 CF~CH 참고) -- GBW를 낮추는 게 유일하게 유효한 레버였다(`miller_ota_topology()`의 gm1=2π·GBW·Cm 관계상 GBW를 낮추면 같은 면적에서 훨씬 긴 L을 쓸 여유가 생김, 실측 확인). GBW 20MHz→1MHz 전 구간을 스윕해 'GBW를 낮출수록 달성 gain_db가 오르지만 10MHz 부근부터 수확체감(무릎)'이 확인됐다(20MHz:51.1dB/887uA → 10MHz:55.9dB/458uA → 7MHz:57.5dB/291uA → 4MHz:59.9dB/156uA → 2.5MHz:60.6dB/90uA) -- 사용자가 '무릎 지점'(GBW≈10MHz 직후, 수확체감이 본격화되기 직전)에서 타협하기로 결정, **GBW=7MHz(원 스펙 대비 약 1/3, gain_db는 오히려 +6.4dB 개선, 전력은 오히려 66% 절감)를 이 회로의 최종 target spec으로 확정**. `gain_db>=60` constraint도 이 결정에 맞춰 `>=57`로 하향(실측 57.55dB에 작은 여유를 둔 값). GBW 자체는 harness spec 값이라 이 topology.json에 저장되지 않는다 -- 재현하려면 `workspaces/two-stage-ota-report/`의 최종 harness에서 `GBW=7e6`를 확인할 것.",
     "metrics": {
       "power_uA": {
-        "type": "sum_current"
+        "type": "sum_current",
+        "unit": "uA"
       },
       "area_um2": {
-        "type": "sum_area"
+        "type": "sum_area",
+        "unit": "um^2"
       },
       "gain_db": {
         "type": "smallsignal_gain_db",
@@ -290,7 +292,8 @@
         "sense_mode": "diff",
         "sense_p": "OUT",
         "sense_n": "gnd",
-        "_comment": "topology-무관 전체회로 수치 MNA(sizing_recipe.py 세션21 신설, current_reuse_telescopic_ota/two_stage_ota 등 4개 회로 공용) 재사용 -- gain_stages_sum(단순 gm합/gds합)은 이 회로의 5T diff-pair+전류미러 구조(M1/M3가 diode 기준쪽, M2/M4가 출력쪽, 거울이득이 이미 gm1/(gds2+gds4) 폐형식에 녹아있음)에선 소자를 어떻게 나열해도 gm을 중복/누락 계산하기 쉬워(예: M2+M4를 나열하면 M4의 gm까지 더해져 과대추정) 부정확하다 -- 실제 KCL을 푸는 smallsignal_gain_db가 이 구조에 더 안전하다. OUT은 단일단(싱글엔디드) 출력이라 sense_n='gnd'(항상 0V 고정)로 사실상 v(OUT) 자체를 잰다. excite에 'bias':0.0을 명시(2026-08-13, self-test MNA 특이행렬 크래시로 발견) -- M5/M7.gate='bias'가 이 넷리스트엔 drain/source로 전혀 안 쓰이는(외부 bias-gen 서브회로가 이 골격 topology.json엔 아직 없음) 순수 게이트 전용 노드라 자유노드로 두면 KCL 행이 통째로 0이 되어 특이행렬이 된다(_full_circuit_response() docstring의 also_fix 설명과 동일 현상) -- 이상적 DC bias 소스는 소신호에서 AC 접지이므로 0V로 고정하는 게 물리적으로도 맞다. 'vdd':0.0도 명시(2026-08-13, 실측으로 발견한 훨씬 심각한 버그) -- vdd를 안 고정하면 M3/M4/M6(딱 3개)만 vdd에 물려있는 이 작은 회로에서 vdd가 사실상 무규제 자유노드가 되어(전류 균형을 잡아줄 다른 경로가 거의 없음) D3/O1이 수백V로 튀는 비물리적 해가 나왔다(gain_db가 7.6dB로 실측됨 -- 손계산 대조 결과 명백히 틀린 값). 이상적 전원은 소신호에서 AC 접지라는 표준 가정을 명시적으로 걸어야 한다(current_reuse처럼 vdd에 물린 소자가 많아 우연히 안정되는 회로와 달리, 이 작은 회로는 명시 없이는 그 우연에 기댈 수 없다) -- 고정 후 gain_db=47.85dB로 손계산(stage1 gm2/(gds2+gds4)≈26.6dB + stage2 gm6/(gds6+gds7)≈21.65dB ≈ 48.3dB)과 합리적으로 일치. PSRR류 metric은 반대로 vdd를 절대 고정하면 안 된다(그게 측정 대상 그 자체)."
+        "_comment": "topology-무관 전체회로 수치 MNA(sizing_recipe.py 세션21 신설, current_reuse_telescopic_ota/two_stage_ota 등 4개 회로 공용) 재사용 -- gain_stages_sum(단순 gm합/gds합)은 이 회로의 5T diff-pair+전류미러 구조(M1/M3가 diode 기준쪽, M2/M4가 출력쪽, 거울이득이 이미 gm1/(gds2+gds4) 폐형식에 녹아있음)에선 소자를 어떻게 나열해도 gm을 중복/누락 계산하기 쉬워(예: M2+M4를 나열하면 M4의 gm까지 더해져 과대추정) 부정확하다 -- 실제 KCL을 푸는 smallsignal_gain_db가 이 구조에 더 안전하다. OUT은 단일단(싱글엔디드) 출력이라 sense_n='gnd'(항상 0V 고정)로 사실상 v(OUT) 자체를 잰다. excite에 'bias':0.0을 명시(2026-08-13, self-test MNA 특이행렬 크래시로 발견) -- M5/M7.gate='bias'가 이 넷리스트엔 drain/source로 전혀 안 쓰이는(외부 bias-gen 서브회로가 이 골격 topology.json엔 아직 없음) 순수 게이트 전용 노드라 자유노드로 두면 KCL 행이 통째로 0이 되어 특이행렬이 된다(_full_circuit_response() docstring의 also_fix 설명과 동일 현상) -- 이상적 DC bias 소스는 소신호에서 AC 접지이므로 0V로 고정하는 게 물리적으로도 맞다. 'vdd':0.0도 명시(2026-08-13, 실측으로 발견한 훨씬 심각한 버그) -- vdd를 안 고정하면 M3/M4/M6(딱 3개)만 vdd에 물려있는 이 작은 회로에서 vdd가 사실상 무규제 자유노드가 되어(전류 균형을 잡아줄 다른 경로가 거의 없음) D3/O1이 수백V로 튀는 비물리적 해가 나왔다(gain_db가 7.6dB로 실측됨 -- 손계산 대조 결과 명백히 틀린 값). 이상적 전원은 소신호에서 AC 접지라는 표준 가정을 명시적으로 걸어야 한다(current_reuse처럼 vdd에 물린 소자가 많아 우연히 안정되는 회로와 달리, 이 작은 회로는 명시 없이는 그 우연에 기댈 수 없다) -- 고정 후 gain_db=47.85dB로 손계산(stage1 gm2/(gds2+gds4)≈26.6dB + stage2 gm6/(gds6+gds7)≈21.65dB ≈ 48.3dB)과 합리적으로 일치. PSRR류 metric은 반대로 vdd를 절대 고정하면 안 된다(그게 측정 대상 그 자체).",
+        "unit": "dB"
       },
       "mismatch_sigma_mV": {
         "type": "pelgrom_mismatch",
@@ -298,7 +301,8 @@
           "M1",
           "M2"
         ],
-        "kind": "nfet"
+        "kind": "nfet",
+        "unit": "mV"
       }
     },
     "objective": {

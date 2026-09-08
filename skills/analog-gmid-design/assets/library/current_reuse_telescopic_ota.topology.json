@@ -1781,10 +1781,12 @@
     "_cmrr_psrr_estimate_db_comment": "2026-08-07(세션21 2차, topology-무관 일반화) -- 세션21 1차(circuit_family=telescopic_class_ab_cmfb, battery_vop1_side류 이 회로 전용 폐형식/부분망 조합)를 다시 전면 교체. 이제 type=smallsignal_ratio_db(sizing_recipe.py _metric_smallsignal_ratio_db(), 회로 무관 범용 함수) -- topology.json의 소자 전부(51개, bias-gen/CMFB/battery 포함) + passive_elements(R1/R2, 값 없으면 1GΩ 근사)를 그대로 하나의 수치 MNA로 풀어 ports가 선언한 진짜 최종출력(Vop/Vom, 예전엔 1단 내부노드 Vop1/Vom1이었음)에서 직접 잰다. H/A_c/G2/T 손조합 로직이 완전히 사라졌다(CMFB 루프+bias-gen의 자체 vdd 결합이 전부 하나의 풀이에 자동 반영). ⚠️ Vop1/Vom1→Vop/Vom 전환 + bias-gen 결합 포함으로 절대 dB 값이 크게 바뀌므로, 아래 constraints의 >=60dB 임계값은 다음 세션(그리드 탐색 재설계와 함께) 재보정 필요 -- `.ai/context.md` 세션21 F절 참고. ngspice 교차검증은 stage2_battery_psrr_ngspice_crosscheck.py가 검증한 '1단+battery' 부분망까지만이고, 이번에 새로 포함된 CMFB/bias-gen 전체망 자체는 아직 독립 재검증 안 함(다음 세션 과제). (2026-08-07 세션22 정정: 이 주석 키가 원래 metrics 딕셔너리 **안**에 있었는데, 2026-08-03 세션 주석(_metrics_comment_2)이 이미 경고한 'metrics 안에 _ 주석 키 금지' 규칙을 위반해 optimize_full_circuit_budget() 실행 시 TypeError로 크래시하는 실제 버그였다 -- run_harness.py가 지금껏 완주한 적이 없어 발견되지 않고 있었다. metrics 바깥(다른 _metrics_comment*와 같은 레벨)으로 이동만 하고 내용은 그대로 보존.)",
     "metrics": {
       "power_uA": {
-        "type": "sum_current"
+        "type": "sum_current",
+        "unit": "uA"
       },
       "area_um2": {
-        "type": "sum_area"
+        "type": "sum_area",
+        "unit": "um^2"
       },
       "gain_db": {
         "type": "gain_stages_sum",
@@ -1799,7 +1801,8 @@
             "M15",
             "M16"
           ]
-        ]
+        ],
+        "unit": "dB"
       },
       "noise_v_rthz": {
         "type": "flicker_plus_thermal_sum",
@@ -1808,7 +1811,8 @@
             "M1a",
             "M4a"
           ]
-        ]
+        ],
+        "unit": "V/sqrt(Hz)"
       },
       "mismatch_sigma_mV": {
         "type": "pelgrom_mismatch",
@@ -1816,7 +1820,8 @@
           "M1a",
           "M1b"
         ],
-        "kind": "pfet"
+        "kind": "pfet",
+        "unit": "mV"
       },
       "cmrr_estimate_db": {
         "type": "smallsignal_ratio_db",
@@ -1831,7 +1836,8 @@
         },
         "sense_den": "common",
         "sense_p": "Vop",
-        "sense_n": "Vom"
+        "sense_n": "Vom",
+        "unit": "dB"
       },
       "psrr_estimate_db": {
         "type": "smallsignal_ratio_db",
@@ -1845,7 +1851,8 @@
         },
         "sense_den": "common",
         "sense_p": "Vop",
-        "sense_n": "Vom"
+        "sense_n": "Vom",
+        "unit": "dB"
       },
       "gain_full_circuit_db": {
         "type": "smallsignal_gain_db",
@@ -1855,30 +1862,36 @@
         },
         "sense_mode": "diff",
         "sense_p": "Vop",
-        "sense_n": "Vom"
+        "sense_n": "Vom",
+        "unit": "dB"
       },
       "vg15_level_v": {
         "type": "rail_referenced_voltage",
         "device": "M15",
-        "rail": "vdd"
+        "rail": "vdd",
+        "unit": "V"
       },
       "vop1_level_v": {
         "type": "rail_referenced_voltage",
         "device": "M16",
-        "rail": "gnd"
+        "rail": "gnd",
+        "unit": "V"
       },
       "rz1_ohm": {
         "type": "nulling_resistor_ohm",
-        "device": "M16"
+        "device": "M16",
+        "unit": "ohm"
       },
       "rz2_ohm": {
         "type": "nulling_resistor_ohm",
-        "device": "M26"
+        "device": "M26",
+        "unit": "ohm"
       },
       "classab_centering_dev_v": {
         "type": "battery_centering_deviation",
         "high_device": "M15",
-        "low_device": "M16"
+        "low_device": "M16",
+        "unit": "V"
       }
     },
     "_classab_centering_comment": "2026-08(세션6) -- 사용자가 'M11a-chain과 M13-chain 전류를 같게 해야 Vom이 안 치우친다'는 가설을 제기해 검토한 결과: M9a/M9b 자신의 전류는 그 두 chain이 아니라 K_replica(M9a~M15)/kcl_battery_M9b(=ID(M11a-chain)+ID(M9a))로 이미 결정되고, M13-chain 전류는 이 KCL에 아예 안 들어간다(Fig.7b가 두 chain 전류가 다르다고 실측 확인한 것과 일치) -- 그래서 두 chain을 강제로 같게 만드는 대신, 사용자가 말한 'swing 최대화=DC bias centering' 원리 자체를 M15/M16(Vg15/Vop1, 이 둘이 진짜 Vom을 만드는 출력단 게이트)의 실제 DC 레벨로 직접 검증하는 metric을 신설했다. 근거: 논문 Section II.B \"the gate voltage of M15 is pushed to about 1.3V and ... M16 ... about 0.5V\" -- 1.3+0.5=VDD로 정확히 센터링. 절대 수치(1.3V/0.5V)는 그 논문 공정 Vth 종속이라 그대로 안 쓰고(값 인용 금지 원칙), '두 레벨의 합=VDD' 위상적 관계만 constraint로 가져왔다. tolerance(0.15V, 아래 constraints)는 이 프로젝트가 독립 도출한 게 아니라 공학적으로 타당해 보이는 근사치일 뿐 -- SPICE 검증 전까지는 정직한 한계로 남는다.",
