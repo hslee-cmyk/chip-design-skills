@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.5
+version: 4.6
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -356,6 +356,9 @@ v2.x까지 걸어두었던 "기존 재사용 계층의 함수 시그니처는 �
       `test_role_label_removal_invariance`(role 라벨 전부 제거해도 결과 동일),
       `test_order_shuffle_invariance`(처리 순서 셔플해도 결과 동일),
       `test_cache_key_covers_mutable_state`(`ctx.sized`만 바꿔도 캐시가 옛 값을 안 준다)
+- [ ] **★ (v4.6, B4) 파일럿 1회 전체 실행 wall-clock ≤ 5분** — 기본 L 정책(bounds 내 LUT 앵커
+      전수, 4³=64 combo) 기준 실측 예상 2.9분. 초과하면 곱셈 구조에 예상 못 한 항이 들어온
+      것이므로 그 자리를 찾아 보고한다(예: `presolve_warm_start()` 16.5s가 루프 안으로 들어감)
 - [ ] **★ (v3.0, C7) 파일럿 외 나머지 3개 토폴로지(folded_cascode/nmcnr_amplifier/
       two_stage_ota)도 새 엔진으로 실제 실행** — self-test 통과만으로는 부족(사고17: 다른 회로를
       돌려야 원래 있던 선언 gap이 드러난다)
@@ -714,6 +717,53 @@ _resolve_vertical_group()의 fixed-point worklist에 이 pre-pass를 끼워넣�
 `_resolve_vertical_group()`의 worklist는 그대로 쓴다. v2.0이 적어둔 "무변경 재사용" 표현은
 P1 확정으로 폐기(§6.1 (가) 참고).
 
+#### ★ B4 해소 — 실행시간 예산 (v4.6, 2026-09-08 실측)
+
+v4.5까지 계획에는 **실행시간 예산 항목 자체가 없었다**. §7.6이 L_combo 전수 스캔을 요구하고
+§7.9가 그 위에 중첩 루프를 얹는데, 곱이 얼마인지 아무도 세지 않았다. 직접 쟀다.
+
+**단위 비용 실측**(파일럿 51소자, 웜스타트가 찾은 feasible 지점 근방에서 L만 흔들어 12회):
+
+| 항목 | 실측 | 비고 |
+|---|---|---|
+| `_build_theta_evaluator()` 빌드 | 69 ms | 1회성 |
+| `presolve_warm_start()` | **16.5 s** | ★ 1회성인데 크다 — L_combo 루프 **안**에 들어가면 안 된다 |
+| **전체 평가 1회**(51소자 사이징+헤드룸+전 metric) | **274.5 ms** | ← **L_combo 단위 비용의 진짜 값** |
+| `find_optimal_sizing()` 1회(stage 하나, L 고정) | 3.15 ms | 참고 — 이걸로 예산을 세면 **틀린다**(아래) |
+| 전역 게이트(cmrr+psrr) | 0.72 ms | §7.6 B2 |
+| IDu 스캔 캐시 효과 | **5.0배** | 새 LUT 첫 호출 59.3 ms → 이후 11.9 ms (C10이 실물로 작동 중) |
+
+> **단위를 잘못 잡으면 예산이 두 자릿수 틀린다**: "L_combo마다 gain stage 2개만 사이징"으로 세면
+> 6.3 ms지만, **B2에서 확인했듯 전역 게이트는 51소자 전부가 사이징돼야 돈다**. 따라서 combo 단위
+> 비용은 stage 사이징이 아니라 **전체 평가 1회(274.5 ms)**다. 약 44배 차이다.
+
+**L 자유도는 3개**(`L_cascode`/`L_stage2out_p`/`L_stage2out_n`, bounds 전부 `[0.15, 1.0] µm`).
+
+| L 후보 정책 | L_combo | 전수 스캔 | 중첩(레이아웃 5회 × VDS 2회) |
+|---|---|---|---|
+| **bounds 내 LUT 앵커 4개**(기본) | 4³ = **64** | **17.6 s** | **175.7 s (2.9분)** |
+| LUT 전체 앵커 7개 | 343 | 94 s | 15.7분 |
+| 0.05 µm 등간격 ~11점 | 1,331 | 6.1분 | 61분 |
+| densify 41점 | 68,921 | **5.3시간** | 53시간 |
+
+**확정 정책**:
+
+1. **기본은 "bounds 내 LUT 앵커 전수"**다 — 파일럿에서 전체 파이프라인 **3분 이내**. 이게 §7.7
+   R4("지름길 없이 전수 스캔")를 지키면서도 감당 가능한 유일한 지점이다.
+2. **`dense_candidates()` densify는 기본 금지**한다. 5.3시간은 설계 반복 도구로 쓸 수 없다.
+   정말 필요하면 **2단계 정밀화**(앵커 전수 → 최적 근방만 densify)를 쓰되, `IDu(L)`가 비단조라는
+   §7.10 반례 때문에 **전역 최적을 놓칠 수 있는 근사**이며 그 사실을 리포트에 찍는다(§3.2 P1).
+3. **`presolve_warm_start()`(16.5 s)는 L_combo 루프 **밖**에서 1회만** 호출한다. 루프 안에 들어가면
+   64 combo × 16.5 s = 17.6분이 여기서만 추가된다.
+4. **infeasible combo는 정상이다** — 실측에서 12개 중 2개가 `InfeasibleSizingError`였다. 루프는
+   그것을 세어 리포트하고 계속 진행하되, **전부 infeasible이면** §7.6(4) 상위 수단으로 승격한다.
+5. **v3.4 Pareto 12점 스윕은 이미 사라졌다**(v4.2) — DP가 면적 bin별 비지배 집합을 한 번의 전파로
+   주므로 12를 곱할 이유가 없다. 곱셈 구조에서 이 항이 빠진 것이 예산을 감당 가능하게 만든 큰 요인이다.
+
+**DoD 측정 항목 신설**: 파일럿 1회 전체 실행 wall-clock **≤ 5분**(기본 정책 기준). 초과하면
+곱셈 구조 어딘가에 예상 못 한 항이 들어온 것이므로 그 자리를 찾아 보고한다.
+
+
 #### ★ B2 해소 — metric은 3티어이고, 게이트도 3티어여야 한다 (v4.4, 2026-09-07)
 
 §2.1은 `make_cmrr_psrr_feasibility_check()`를 `make_matching_feasibility_check()`와 **"동일
@@ -1018,7 +1068,7 @@ constraint로 걸면 "이상적 대칭 + 현실적 미스매치"를 커버한다
 |---|---|---|
 | **R1. 누가 바꿀 수 있나** | §13.3의 **5개 구조 신호**로 먼저 판정 — 하나라도 걸리면 L은 파트너와 **강제 일치**(독립 변경 금지), 아무 신호도 안 걸리는 소자만 L 독립 탐색 대상 | `gm-id-methodology.md` §13.3(4개 회로 전수, 반례 0건) |
 | **R2. 매칭 그룹은 전원 동시에** | 매칭은 **동일 기하(unit cell)** 전제로 공정 gradient를 상쇄하는 기법이라, 그룹 중 한 소자만 L이 달라지면 전제가 깨진다 — 바꾸려면 그룹 전원을 같은 값으로 한 번에 | `stick-diagram-euler-layout.md` §2.5("W = N × unit_cell"이 조립 방식의 정의) |
-| **R3. LUT 실측 격자 밖 금지** | `SemiEmpiricalGmIdLUT`는 보간만 하고 외삽은 안 한다 — sky130 sample LUT은 L 앵커 4개(0.15/0.35/0.5/1.0µm) | `lut-generation-checklist.md` §7.7 |
+| **R3. LUT 실측 격자 밖 금지** | `SemiEmpiricalGmIdLUT`는 보간만 하고 외삽은 안 한다 — sky130 sample LUT의 L 앵커는 **전체 7개**(0.15/0.35/0.5/1.0/1.5/2.5/4.0µm)이고, 그중 파일럿 L theta의 bounds `[0.15,1.0]µm` 안에 드는 것이 **4개**(0.15/0.35/0.5/1.0µm)다 — v4.6 문맥 명시(이 둘을 구분하지 않으면 §7.6 실행시간 예산이 어긋난다) | `lut-generation-checklist.md` §7.7 |
 | **R4. L↑가 항상 이득이 아니다 — 전수 스캔** | M107 실측: L=375nm→4µm에서 `gm·ro`가 **26배 악화**(L↑ → W_bounds와 상호작용해 feasible gm_id가 더 낮게 밀림). gds의 L 의존성은 소자·VDS마다 곡선이 달라 지름길 없음 | `gm-id-methodology.md` §13.7 |
 | **R4b. 이득이 부족하면 L보다 VDS를 먼저 조정한다 ★** | 문헌 실측(45nm 2단 Miller OTA): L=100nm 고정·V_A 상수 가정으로 41.4dB 미달 → **VDS를 축으로 2회 반복**하자 같은 L에서 **61.4dB 달성**(면적 페널티 0). 우리 sky130 LUT 재측정(gm_id=15, ID=5µA): **VDS 0.2→1.2V는 gm/gds를 21.7→93.2(+329%)로 올리면서 W를 1.332→1.126µm(−15%)로 오히려 줄이는 반면, L 0.15→4µm는 gm/gds를 17.8→280.4(+1480%)로 올리는 대가로 W를 0.636→11.9µm(+1770%, 18.7배)** 쓴다 — R5/R6의 레이아웃 재검증 비용이 정확히 이 W 변화량에 비례하므로, **§7.7 자체가 "VDS를 먼저 소진하라"는 근거**다. ⚠️ VDS 조정도 IDu를 통해 W를 ~15% 바꾸므로 R8(수렴 루프 내부 + 커버리지 재확인)은 VDS에도 동일 적용한다 | `gm-id-methodology.md` §9.4/§9.5, 본 세션 LUT 실측(§7.9) |
 | **R5. 직접 영향 — 행 폭** | 행 물리 폭 = `Σ n_fingers × pitch(l)`, `pitch(l)=l+overhead`. L은 행 폭에 **선형으로 직접** 들어가므로 L 변경 시 `check_box_shape()` 재실행이 **필수 게이트**(눈대중 금지) | `stick_diagram.py:6400/6421`, 레이아웃 문서 §8/§8.2 절차 5 |
@@ -1805,7 +1855,7 @@ v4.0은 이 중 **사용자가 결정한 3건과 코드 선행조치 3건**을 �
 | B1 | ~~§7.3 티어①이 실제 버그 경로를 안 지난다~~ → **2026-09-07 해소(v4.3)**. 계측 확증: `resolve_feed_vds()`는 51소자 중 **4개**만 정하고 **diode 소자는 0개**다(최대 경로는 `allocate_stack_headroom()` 28개). vds 기입 지점은 **7곳**이라 한 함수만 고쳐선 못 덮는다. diode를 `vds_match_vgs_of`의 **자기참조 특수 케이스**로 보고 기존 pre-pass를 확장 + 7개 지점을 `set_device_vds()` 단일 setter로 수렴(§7.3) | monkeypatch 실주행 계측 + 정적 전수 | **없음** — 설계 확정. 구현 시 grep 테스트로 원시 대입 잔존 금지 |
 | B2 | ~~CMRR/PSRR을 stage-local 콜백으로 만들 수 없다~~ → **2026-09-07 해소(v4.4)**. 실측 확증(`KeyError: 'M6' 소자가 ctx.sized에 없다`). 13개 metric을 전수 분류해 **T1 stage-local 4개 / T2 stage-분해가능 1개 / T3 기약 전역 8개**로 나누고 게이트도 3티어로 재작성. `gain_stages_sum`이 정확히 분해됨을 확인(stage 합 = 전체, 차이 0.00e+00)해 DP가 대리가 아닌 **진짜 metric**을 쓸 수 있음도 확정. T3 게이트 1회 0.72 ms로 비용도 문제없음 | 실측 분류 + 비용 측정 | **없음** — §2.1의 `make_cmrr_psrr_feasibility_check()`는 삭제, `check_global_gates()` 신설 |
 | B3 | **`resolve_stage_sizing()` 시그니처에 `vds`/`vs`가 없다**. 모든 LUT 호출이 필수로 요구하는데 §7.9 Phase 1의 VDS 예산이 §7.2/§7.6으로 전달되지 않는다 | 코드 확인 | `resolve_stage_sizing(stage_spec, ID, luts, vds_budget, vs_by_device, constraints)`로 확정 |
-| B4 | **실행시간 예산 항목이 계획에 없다**. L 앵커는 4개가 아니라 **7개**(§7.7 R3이 stale). 3그룹 곱이면 앵커만 343 combo, densify 41점이면 68,921 combo. MNA 전환(P-c)으로 완화됐으나 곱셈 구조 자체는 그대로 | 코드·LUT 확인 | 독립 L 그룹 수 상한·총 combo 상한을 **수치로 명시**하고 DoD에 "파일럿 1회 실행 wall-clock ≤ N분" 추가 |
+| B4 | ~~실행시간 예산 항목이 계획에 없다~~ → **2026-09-08 해소(v4.6)**. 직접 측정: **전체 평가 1회 274.5 ms**가 L_combo 단위 비용이다(stage 사이징 3.15ms로 세면 44배 틀린다 — 전역 게이트가 51소자 전부를 요구하므로). L 자유도 3개, 기본 정책(bounds 내 앵커 4개, 64 combo)에서 전수 17.6s / 중첩 포함 **2.9분**. densify 41점은 5.3시간이라 기본 금지. `presolve_warm_start()` 16.5s는 루프 밖 1회 규약. **부수 정정: R3의 "앵커 4개"는 stale이 아니었다** — LUT 전체는 7개지만 파일럿 theta bounds `[0.15,1.0]µm` 안이 4개라 둘 다 맞고 문맥이 달랐다(검토자 지적을 그대로 받았으면 잘못 고쳤을 것) | 실측 | **없음** — DoD에 wall-clock ≤ 5분 신설 |
 | B5 | **C6이 사고19를 안 막는다**. 사고19의 underdetermined는 vertical_stack 내부 헤드룸 KVL(미지수 2/방정식 1)인데 `diagnose_sizing_dof()`는 gm_id/전류/L/Cc 넷만 세고 **VDS 미지수·KVL 방정식을 세지 않는다** | 문서 확인 | DOF 진단에 "stack별 (vds 미지수 vs KVL+참조 등식, 랭크)" 축 추가 |
 | B6 | **§7.8 DOF 진단이 부등식을 등식처럼 센다**. 부등식은 활성일 때만 자유도를 소비하는데 목표 수만 세어 `overconstrained`면 **반복을 아예 시작하지 않는다** → 오탐 하나가 곧 hard stop | 문서 확인 | 등식 제약만 대조에 쓰고 부등식은 경고로 낮출 것 |
 | B7 | **§7.5 프로토타입 "그대로 이식"은 과대평가**. `node_dc_propagate.py`(95줄)는 (i) set 순회 의존 (ii) `not progressed and not unresolved` 논리 오류로 진짜 실패를 안 보고 (iii) **핵심인 "같은 net 두 경로 일치 검사"가 미구현** (iv) VGS 검사가 3쌍 하드코딩 | 프로토타입 확인 | 공수 재추정. §7.5의 새 내용은 사실상 전부 신규 구현 |
@@ -1870,3 +1920,4 @@ harness 순서의 불일치(§8.4에 Phase 1이 없고 되먹임을 금지), 신
 | **4.3** | 2026-09-07 | **B1 해소 — §7.3 diode 티어의 자리를 실측으로 재지정**. v3.0은 티어①을 `resolve_feed_vds()` 안에 넣기로 했는데, 파일럿 실주행(SLSQP)에 monkeypatch 계측을 붙여 세어 보니 **그 자리로는 diode 소자를 하나도 못 덮는다**: `resolve_feed_vds()`가 정하는 소자는 51개 중 **4개(diode 0개)**뿐이고, 최대 경로는 `allocate_stack_headroom()`(**28개**, diode 12개)이며 M18_bg/M66/M36a/M36b(최악 오차 +1.020V)는 그 함수 근처에도 가지 않는다. **사고19가 기록한 실패("resolve_feed_vds()를 확장했으나 분기가 애초에 그 계산을 안 타서 값이 안 바뀌어 전부 되돌렸다")의 재현**이다. 정적 전수로 vds 기입 지점이 **7곳**임도 확인했다(그중 `resolve_feed_vds()` 경유는 2곳). 부수 확인: `headroom_role`은 diode 여부를 전혀 반영하지 않는다 — diode 16개의 role이 cascode 11/mirror 3/diode_reference 1/voltage_divider 2로 흩어져 있어 **`diode_reference` 라벨은 16개 중 1개에만** 붙어 있고, `vds=0.2`는 `min_vds_by_role["cascode"]`가 흘러나온 값이라 M2b(diode 아님, 필요 1.398V)와 M11a(diode, 필요 0.871V)가 똑같이 0.2를 받는다(C4 실물). **확정 설계**: diode를 `vds_match_vgs_of`의 **자기참조 특수 케이스**로 보고 이미 물리적으로 옳게 계산하는 기존 pre-pass(4729행)를 자기참조 고정점(bisection)까지 확장한다 — 확정값은 unresolved에서 빠져 예산에서 차감되므로 자리가 정확하다. 순서 운에 기대지 않도록 7개 기입 지점을 **`set_device_vds()` 단일 setter**로 수렴시키고(diode면 고정점 해와 불일치 시 즉시 실패, `_vds_source` 태그 기록으로 B13 추적성 동시 해결), 원시 대입 잔존을 grep 테스트로 강제한다. 계측 스크립트를 `tests/probe_vds_assignment_paths.py`로 자산화 |
 | **4.4** | 2026-09-07 | **B2 해소 — metric 3티어 분류로 게이트 구조 재작성**. §2.1이 `make_cmrr_psrr_feasibility_check()`를 `make_matching_feasibility_check()`와 "동일 패턴"으로 만들자고 했으나 **원리적으로 불가능**함을 실측 확증했다(`KeyError: 'M6' 소자가 ctx.sized에 없다`). mismatch가 되는 이유는 닫힌 식(W,L만 필요)이고, cmrr/psrr은 `_full_circuit_devices()`가 **전 소자**를 요구하는데 L_combo 루프는 stage 하나를 사이징하는 중이기 때문이다. 파일럿 13개 metric 전수 분류: **T1 stage-local**(power/area/mismatch/noise, 0.002~0.006ms) / **T2 stage-분해가능**(`gain_stages_sum`) / **T3 기약 전역**(cmrr/psrr/전체회로 gain/classab/rail level/rz, 0.15~0.29ms). 게이트도 3티어로 재작성 — T1/T2만 `extra_feasible`로 stage 안에서, T3는 전 소자 사이징 완료 후 `check_global_gates()`로 1회, L_combo는 바깥 재시도 루프. **부수 소득**: `gain_stages_sum`이 정확히 분해됨을 실측(stage별 합 56.9842dB = 전체 56.9842dB, 차이 0.00e+00)해 §7.9 DP가 대리 함수가 아니라 **진짜 metric을 분해해서** 쓸 수 있음이 확정됐다 — 반대로 나머지 3개 토폴로지는 gain이 T3라 DP가 LUT 대리를 쓰고 판정 권한은 전역 게이트에 있다는 이원성을 명시했다. 비용은 문제가 아니다: T3 게이트 1회 **0.72ms**(P-c numpy MNA 전환 덕분), 343 combo에 0.25초 / 68,921 combo에도 50초. 캐시 히트를 피하려고 gm/gds를 매번 흔들어 쟀다(캐시와 차이 0.32 vs 0.34ms로 유의하지 않음). 부수 정정: noise metric은 처음에 실패했는데 프로브가 `SID_1F`를 안 넘긴 탓이었고, 넘기니 stage-local로 정상 동작(T1) |
 | **4.5** | 2026-09-08 | **B11 해소 — C1~C10을 선언에서 테스트 목록으로 교체**. v3.0의 C 표는 방지 장치를 문장으로만 적어두었고, 실측해 보니 다섯 항목이 **문서 전체에서 그 표 안에만 한 번씩** 등장하는 빈 약속이었다(`review_needed` 2회 중 1회가 표 자신, "전역 유일성"/"connectivity에서 유도" 각 1회). ★절대원칙(만들면 반드시 배선)에 따라 각 행에 **"이게 없으면 방지 장치가 없는 것"이라 말할 수 있는 강제 테스트**를 지정하고, 담당 절 열은 제거했다(C7이 지목한 §5는 "파일럿 1개만"이라 **정반대** 내용이었고 C10이 지목한 §7.6엔 캐시 서술이 아예 없었다 — 어긋남이 반복되던 열이다). **지금 돌리면 실패하는 것을 실패한다고 적었다**: C1은 diode 16/16이 tol 초과(최대 1.020V), C4는 같은 소자가 role만 바꿔도 vds가 `cascode`→0.200/`mirror`→0.300/라벨없음→0.600으로 갈리며(물리 `gate==drain`은 보지 않는다), C5는 게이트류 19개 중 **4개만** "검사하지 않는 것"을 docstring에 명시한다. 가장 강한 세 테스트는 실패를 직접 재현하는 형태다 — `test_role_label_removal_invariance`(role 라벨을 전부 제거해도 결과가 같아야 한다), `test_order_shuffle_invariance`(처리 순서를 셔플해도 결과가 같아야 한다), `test_cache_key_covers_mutable_state`(`ctx.sized`만 바꿔도 캐시가 옛 값을 주면 안 된다). 부수 확인: 메모리에 "만들고 배선 안 함" 사례로 남아 있던 `check_stick_diagram_coverage()`/`find_euler_repair_options()`/`validate_theta_declaration_order()`는 **현재 전부 프로덕션 경로에 배선돼 있다**(각각 프로덕션 호출 9/2/2곳) — 그 우려는 이미 해소된 상태다. §4.1 DoD를 "10개 테스트 전원 PASS"로 교체 |
+| **4.6** | 2026-09-08 | **B4 해소 — 실행시간 예산 신설**. v4.5까지 계획에 예산 항목 자체가 없어 §7.6 L_combo 전수 스캔 × §7.9 중첩 루프의 곱을 아무도 세지 않았다. 직접 측정: `_build_theta_evaluator()` 69ms(1회성), **`presolve_warm_start()` 16.5s**(1회성이나 크다), **전체 평가 1회 274.5ms**, `find_optimal_sizing()` 1회 3.15ms, 전역 게이트 0.72ms, IDu 스캔 캐시 **5.0배**(59.3→11.9ms, C10이 실물로 작동 중). **핵심 교정: L_combo 단위 비용은 stage 사이징이 아니라 전체 평가다** — B2에서 확인했듯 전역 게이트가 51소자 전부를 요구하므로, "gain stage 2개만"으로 세면 6.3ms vs 실제 274.5ms로 **44배** 틀린다. L 자유도는 3개(`L_cascode`/`L_stage2out_p`/`L_stage2out_n`, bounds 전부 `[0.15,1.0]µm`). 기본 정책 **bounds 내 LUT 앵커 4개(4³=64 combo)**에서 전수 17.6s, 중첩(레이아웃 5회×VDS 2회) 포함 **2.9분** — 감당 가능. LUT 전체 앵커 7개면 15.7분, 0.05µm 등간격 11점이면 61분, **densify 41점이면 53시간**이라 densify는 기본 금지하고 필요 시 2단계 정밀화를 쓰되 `IDu(L)` 비단조(§7.10) 때문에 전역 최적을 놓칠 수 있는 **근사**임을 리포트에 찍는다. `presolve_warm_start()`는 L_combo 루프 **밖에서 1회** 규약(안에 들어가면 여기서만 17.6분 추가). infeasible combo는 정상이며(실측 12개 중 2개) 세어 보고하고 계속 진행한다. 예산이 감당 가능해진 큰 요인은 **v4.2의 DP가 Pareto 12점 스윕을 없앤 것**이다. **부수 정정: §7.7 R3의 "L 앵커 4개"는 stale이 아니었다** — LUT 전체는 7개이나 파일럿 theta bounds 안이 4개라 둘 다 맞고 문맥이 달랐을 뿐이라, 검토자 지적을 그대로 받았으면 잘못 고쳤을 것이다. 두 숫자의 문맥을 R3에 명시했다. DoD에 "파일럿 1회 wall-clock ≤ 5분" 신설 |
