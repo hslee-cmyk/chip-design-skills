@@ -1,13 +1,13 @@
 # toy LUT(E.K.V. 해석식 합성 데이터) 기반 실행 예시 — 숫자는 데모용, 실제 공정값 아님
-gm/ID= 10.0  ID=   64.58uA  W=   27.80um  gain=  24.8  quasi-static=OK
-gm/ID= 15.0  ID=   44.31uA  W=   57.72um  gain=  37.3  quasi-static=OK
-gm/ID= 20.0  ID=   35.35uA  W=  125.26um  gain=  49.4  quasi-static=FAIL
+gm/ID= 10.0  ID=   64.58uA  W=   27.80um  gain=  25.0  quasi-static=OK
+gm/ID= 15.0  ID=   44.31uA  W=   57.72um  gain=  37.5  quasi-static=OK
+gm/ID= 20.0  ID=   35.35uA  W=  125.26um  gain=  49.9  quasi-static=FAIL
 gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산합니다 (CJD가 외부부하 C_external의 30배로 증가) — moderate inversion 쪽으로 gm/ID를 낮추세요 (방법론 §4.2).
 
 # find_optimal_sizing() 데모 — gain 제약에서 전력/면적 각각 최소인 점 자동 탐색
 1080개 후보 평가, 75개 실행가능(gain>=30, 준정적 만족)
-  전력 최소: L=0.35um VDS=0.20V gm/ID=20.5 ID=30.65uA W=84.367um gain=35.3
-  면적 최소: L=1.00um VDS=0.20V gm/ID=6.5 ID=96.66uA W=29.866um gain=32.4
+  전력 최소: L=0.35um VDS=0.20V gm/ID=20.5 ID=30.65uA W=84.367um gain=35.8
+  면적 최소: L=1.00um VDS=0.20V gm/ID=6.5 ID=96.66uA W=29.866um gain=32.5
 
 # _COMPENSATION_REGISTRY allowlist 거부 -- 실제 harness 경로(_evaluate()) 자체를
 # 통해 확인(2026-08-12 세션30 -- run_sizing_pipeline()은 죽은 코드라 삭제됐고,
@@ -43,11 +43,11 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
 
   [L4 revalidate_finger_override() -- finger 반올림으로 W가 강제로 바뀌어도 ID는
   그대로라는 원칙(A엔진)을 재확인하고, 영향받는 metric/constraint만 재검증하는지]
-    baseline stage_gain=29.4803dB, constraint>=28.9803dB (M1/M2 diff pair, M3는 무관한 소자)
+    baseline stage_gain=29.5302dB, constraint>=29.0302dB (M1/M2 diff pair, M3는 무관한 소자)
     [M1의 W를 10% 축소(finger 반올림 시뮬레이션) -- 여전히 constraint 통과해야 함]
-    PASS: ID 보존 확인(diff=0), new_gain=29.3300dB (통과), other_current는 무관해서 재계산 스킵
+    PASS: ID 보존 확인(diff=0), new_gain=29.3620dB (통과), other_current는 무관해서 재계산 스킵
     [M1의 W를 40% 축소 -- 이번엔 constraint를 실제로 위반해야 함]
-    PASS: new_gain=28.6673dB < threshold=28.9803dB -- violated_constraints로 정확히 검출됨
+    PASS: new_gain=28.7147dB < threshold=29.0302dB -- violated_constraints로 정확히 검출됨
     [원본 ctx는 건드리지 않는 순수 함수인지]
     PASS: 원본 ctx.sized['M1']['W'] 불변
 
@@ -106,7 +106,7 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
     M18_bg 케이스) 정확히 거부하는지 합성 fixture로 확인]
     OK: ideal_sources 선언 제거 시 정확히 거부됨 -> 'M18_bg'(role='diode_reference')가 singleton thin-role 그룹이라 allocate_stack_headroom()의 '합=vdd' 계약을 우회하려는데, ideal_sources 선언으로 정당화가 안 됨: 'M18_bg'의 non-rail 단자(['Vbias1']) 중 어느 것도 topology.json의 ideal_sources 선언과 안 맞음 -- role='diode_reference'이 thin_roles인데 이 우회를 정당화할 근거가 없음(선언 누락 또는 role 오분류 가능성, 재검토할 것)
     PASS: M7==M6(=0.32500000000000007V), M36b==M36a(=0.3V) -- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사
-    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=71.24, mismatch_sigma_mV=3.01, cmrr_estimate_db=79.89, psrr_estimate_db=90.54)
+    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=72.95, mismatch_sigma_mV=3.01, cmrr_estimate_db=87.28, psrr_estimate_db=102.13)
 
   [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/
   run_matching_safety_with_finger_growth() -- 세션16 2번. repair_matching_safety()가
@@ -154,7 +154,7 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
   [2026-08-19 세션37 연속 신설 -- 'load' role: gm/gds가 아니라 ro(=1/gds) 자체를
   최대화. nmcnr_amplifier M202(vds=1.0V) 실측으로 발견 -- 이 조건에서 gm_id가
   중간(~3.5)에서 ro가 피크라 'gain'(gm/gds 최대, gm_id=16)은 오히려 손해였다]
-    PASS: load(ro 최대) gm_id=3.00, ro=6.246e+04 == feasible 전수조사 최댓값과 일치(nmcnr_amplifier M202 실측 -- .ai/context.md 세션37 참고 -- 이 role을 신설하게 된 계기이자 sky130 실제 LUT에서의 검증)
+    PASS: load(ro 최대) gm_id=8.50, ro=6.249e+04 == feasible 전수조사 최댓값과 일치(nmcnr_amplifier M202 실측 -- .ai/context.md 세션37 참고 -- 이 role을 신설하게 된 계기이자 sky130 실제 LUT에서의 검증)
   [W_bounds 안에 후보가 하나도 없으면 즉시 ValueError]
     PASS: ValueError -- W_bounds=(1e-09, 1e-09) 안에 드는 gm_id 후보가 없다(role='matching', gm_id_grid...
 
@@ -179,7 +179,7 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
   [feed 'settling_split' (_feed_settling_split) -- theta*total을 derived로]
     PASS: t_settle_total=40ns, f_slew=0.25 -> derived[t_slew]=10.00ns
   [feed 'metric_stage_budget' -- theta(L)로 지정 devices의 L/W/gm/gds 재계산]
-    PASS: L=0.5um 배정, gain_stages_sum=31.44dB 계산 가능
+    PASS: L=0.5um 배정, gain_stages_sum=31.47dB 계산 가능
   [등록 안 된 feed 타입은 즉시 ValueError]
     PASS: ValueError -- 등록되지 않은 feeds 타입: 'not_a_real_feed' -- _feed_*() 핸들러를 새로 작성해...
 

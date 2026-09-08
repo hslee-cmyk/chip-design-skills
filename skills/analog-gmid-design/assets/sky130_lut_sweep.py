@@ -79,13 +79,29 @@ CKPT_DIR = os.path.join(OUTPUT_DIR, "ac_sweep_checkpoints")
 # ---------------------------------------------------------------------------
 # 2026-08-13(세션31 계속, BZ①/CA -- two_stage_ota gain_db>=60이 L=1.0um(기존 상한)까지의
 # LUT로는 실제 sky130 LUT로도 물리적으로 불가능함을 실측 확인(.ai/context.md 세션31 CA)한 뒤
-# 사용자 지시로 L 상한 확장. 기존 4개 앵커점([0.15,0.35,0.5,1.0])은 그대로 두고 **뒤에만
-# 추가**한다(오름차순 유지 -- ac_sweep_checkpoints/*_L{0..3}_VS*.npz 40개가 그대로 재사용되고,
-# sky130_regression_reference.json의 nmcnr_3stage 회귀 케이스는 L_candidates="lut.L"로 raw
-# LUT.L 배열을 그대로 쓰는데 objective=power 동점 tie-break가 "먼저 나온 후보 유지"라 앞쪽
-# 원소 순서/값이 안 바뀌면 골든값도 안 바뀐다 -- 새 앵커는 반드시 끝에만 추가할 것, 중간
-# 삽입은 기존 인덱스를 밀어 체크포인트 캐시와 회귀 케이스를 둘 다 깬다).
-L_GRID_UM = [0.15, 0.35, 0.5, 1.0, 1.5, 2.5, 4.0]
+# 사용자 지시로 L 상한 확장. 기존 4개 앵커점([0.15,0.35,0.5,1.0])은 그대로 두고 뒤에만 추가.
+#
+# 2026-09-08(B15, 사용자 승인) -- **중간 삽입 5개 추가**(0.20/0.25/0.30/0.425/0.70).
+# 옛 주석은 "새 앵커는 반드시 끝에만 추가할 것"이라고 못박았는데, 그 제약의 원인은 물리가
+# 아니라 **체크포인트 이름이 인덱스 기반**(`_L{iL}_`)이라 인덱스가 밀리면 다른 L의 결과가
+# 조용히 재사용된다는 것 하나였다. 그래서 이름을 **L 값 기반**(`_L0p1500_`, `_ltag()`)으로
+# 바꾸고 기존 70개를 마이그레이션했다 -- 이제 중간 삽입이 안전하다.
+#
+# 왜 삽입해야 했나: 앵커가 [0.15, 0.35]로 벌어져 있는 구간에서 **PMOS의 L 보간이 gm/ID를
+# 물리 상한(~30-38) 너머로 부순다**(L=0.30um에서 56,646). PMOS는 이 구간에서 같은 VGS의 ID가
+# 6자릿수 변하는데(짧은 채널 DIBL -- 물성 자체는 정상) `_gm_id_curve()`가 ID는 로그공간,
+# GM은 선형공간에서 보간해 두 보간이 불일치하기 때문이다. 보간식을 일관되게 고쳐도
+# (sizing_recipe.py 동반 수정) 그 구간의 **정확도**는 앵커를 넣는 것 말고 복원할 방법이 없다.
+# 근거: skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py
+#
+# 삽입 위치의 근거: 실제 탐색 범위가 L in [0.15, 1.0]um이고(topology.json의 L_cascode/
+# L_stage2out_* theta bounds), ID 변화가 가장 급한 짧은 채널 쪽을 촘촘하게 둔다.
+# 결과적으로 그 범위 안 최대 앵커 간격이 0.30um(0.70->1.00)로 줄었다.
+#
+# ⚠️ 이 격자를 바꾸면 sky130_regression_reference.json의 nmcnr_3stage 골든값이 바뀐다
+# (L_candidates="lut.L"로 raw LUT.L을 그대로 쓰고, objective=power 동점 tie-break가 "먼저
+# 나온 후보 유지"라 후보 순서/구성에 의존한다) -- 골든 갱신 사유를 커밋에 남길 것.
+L_GRID_UM = [0.15, 0.20, 0.25, 0.30, 0.35, 0.425, 0.5, 0.70, 1.0, 1.5, 2.5, 4.0]
 N_VGS, N_VDS = 49, 49
 VGS_START, VGS_STOP = 0.0, 1.8   # sky130 nfet_01v8/pfet_01v8은 1.8V 소자
 VDS_START, VDS_STOP = 0.0, 1.8
@@ -209,9 +225,20 @@ def _parse_output(path):
     return ID, GM, GDS, CGG, CGD, SID_1F
 
 
+def _ltag(L_um: float) -> str:
+    """체크포인트 이름에 쓰는 **L 값 기반** 태그(2026-09-08, B15).
+
+    예전에는 `L_GRID_UM`의 **인덱스**(`_L0_`)를 썼는데, 그러면 격자 중간에 새 앵커를
+    넣는 순간 인덱스가 밀려 **이미 계산된 다른 L의 결과가 조용히 재사용된다**. 값 자체를
+    이름에 넣으면 그 위험이 원천적으로 없어지고 중간 삽입이 안전해진다(옛 주석의 "새 앵커는
+    끝에만 추가" 제약은 이것 하나 때문이었다). 소수점은 파일명에서 `p`로 바꾼다."""
+    return ("L%.4f" % L_um).replace(".", "p")
+
+
 def _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign):
     os.makedirs(CKPT_DIR, exist_ok=True)
-    ckpt = os.path.join(CKPT_DIR, f"{devcell}_L{iL}_VS{iVS}.npz")
+    tag = _ltag(L_um)
+    ckpt = os.path.join(CKPT_DIR, f"{devcell}_{tag}_VS{iVS}.npz")
     if os.path.exists(ckpt):
         d = np.load(ckpt)
         if "SID_1F" in d:
@@ -219,8 +246,8 @@ def _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign):
         # 배치 7-5b 이전(노이즈 없이) 생성된 체크포인트 -- 그대로 못 쓴다. 재실행해서 채운다.
 
     vb_dc = vb_sign * VS * -1
-    netfile = os.path.join(OUTPUT_DIR, f"_ac_{devcell}_L{iL}_VS{iVS}.cir")
-    outfile = os.path.join(OUTPUT_DIR, f"_ac_{devcell}_L{iL}_VS{iVS}_out.txt")
+    netfile = os.path.join(OUTPUT_DIR, f"_ac_{devcell}_{tag}_VS{iVS}.cir")
+    outfile = os.path.join(OUTPUT_DIR, f"_ac_{devcell}_{tag}_VS{iVS}_out.txt")
     net = _gen_netlist(devcell, L_um, VS, vb_dc, polarity,
                         LOD_SPICE if devcell.startswith("pfet") else "")
     with open(netfile, "w") as f:

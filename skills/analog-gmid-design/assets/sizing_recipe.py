@@ -348,6 +348,34 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         # 생성자 이후 불변이므로 여기서 한 번만 계산해 캐싱한다(프로파일링으로 발견한 중복,
         # _multilinear_interp() 자체 최적화와 별개).
         self._log_ID = np.log(np.clip(self.ID, 1e-18, None))
+        # 2026-09-08(B15) -- GM/GDS도 **로그공간에서 보간**하기 위한 캐시(_log_ID와 같은 패턴).
+        #
+        # 왜: 이전에는 ID만 로그보간하고 GM/GDS는 선형보간한 뒤 그 둘을 나눠 gm/ID·gm/gds를
+        # 만들었다 -- 한 비(ratio)를 만드는 두 값이 서로 다른 공간에서 보간되니 비 자체가
+        # 의미를 잃는다. 실제로 PMOS는 L 앵커 사이에서 gm/ID가 **56,646**까지 나왔다
+        # (물리 상한 ~30-38). 원인은 PMOS가 L=0.15<->0.35um에서 같은 VGS의 ID가 6자릿수
+        # 변하기 때문(짧은 채널 DIBL -- 물성 자체는 정상)이고, 그 구간에서 ID는 기하평균·
+        # GM은 산술평균이 되어 비가 207배 부풀려졌다.
+        #
+        # 어느 공간이 맞는지는 논증이 아니라 **leave-one-out 실측**으로 정했다(L 앵커 하나를
+        # 빼고 보간해 그 앵커의 실제 SPICE 스윕값과 대조 --
+        # `tests/probe_interp_scheme_loo.py`). 배열마다 답이 달랐다:
+        #
+        #   배열   선형 중앙오차   로그 중앙오차   판정
+        #   ID     14.5 / 45.2%   8.3 / 23.0%    로그  (nmos/pmos)
+        #   GM     15.6 / 39.7%   8.5 / 19.6%    로그
+        #   GDS    27.9 / 126.2%  11.6 / 40.8%   로그
+        #   CGG     0.3 /  0.5%  10.2 /  9.2%    **선형** <- Cgg는 ~W*L*Cox라 L에 거의 선형
+        #
+        # 그래서 ID/GM/GDS만 로그로 옮기고 **CGG는 선형 그대로 둔다**(cgg_absolute()/fT()의
+        # Cgg 조회 무변경). SID_1F는 이 검사에서 재지 않았으므로 손대지 않는다.
+        #
+        # 바닥값: GM/GDS는 실측 최솟값(GM_p 4.2e-21, GDS_p 1.1e-24)보다 낮은 1e-30을 써서
+        # **실제 데이터를 자르지 않는다**. `_log_ID`의 1e-18은 이 변경 이전부터 있던 값이라
+        # 그대로 둔다(그 클리핑이 닿는 곳은 소자가 완전히 꺼진 영역뿐이고, 여기서 함께 바꾸면
+        # 이번 변경의 효과와 섞여 원인 추적이 어려워진다).
+        self._log_GM = np.log(np.clip(self.GM, 1e-30, None))
+        self._log_GDS = np.log(np.clip(self.GDS, 1e-30, None))
         # 2026-08-11(세션29) -- _gm_id_curve(L,vds,vs)는 순수함수인데 search_gm_id_for_role()
         # 이 gm_id_grid(기본 57점)를 스윕하는 동안 L/vds/vs는 그대로 두고 gm_id만 바꾼다 --
         # 즉 같은 (L,vds,vs)로 이 곡선을 57번 새로 계산하고 있었다(프로파일링으로 발견,
@@ -408,10 +436,12 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         `gm_id_to_id_density()`/`gm_gds_ratio()`/`cgg_absolute()`를 이 값으로부터 재구성한
         것과 수치적으로 동일하다(같은 `_solve_vgs`/`_query` 계산을 배치로 묶었을 뿐)."""
         vgs = self._solve_vgs(gm_id, L, vds, vsb)
-        arrays = [self._log_ID, self.GM, self.GDS] + ([self.CGG] if need_cgg else [])
+        # 2026-09-08(B15) -- GM/GDS도 로그공간 배열로 조회한다(`gm_gds_ratio()`와 동일 식).
+        # CGG는 선형 그대로 -- leave-one-out 실측에서 Cgg만 선형이 이겼다(__init__ 주석).
+        arrays = [self._log_ID, self._log_GM, self._log_GDS] + ([self.CGG] if need_cgg else [])
         vals = self._query_multi(arrays, L, vgs, vds, vsb)
         IDu = math.exp(vals[0]) * L / self._w_ref_effective(L)
-        gm_gds = vals[1] / vals[2]
+        gm_gds = math.exp(vals[1] - vals[2])
         cgg_raw = vals[3] if need_cgg else None
         return IDu, gm_gds, cgg_raw
 
@@ -454,9 +484,13 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         pts = np.column_stack([
             np.full(n, L), self.VGS_grid, np.full(n, vds), np.full(n, vsb),
         ])
-        id_vals = np.exp(_multilinear_interp(self._grids_list, self._log_ID, pts))
-        gm_vals = _multilinear_interp(self._grids_list, self.GM, pts)
-        gm_id_vals = gm_vals / np.clip(id_vals, 1e-18, None)
+        log_id = np.asarray(_multilinear_interp(self._grids_list, self._log_ID, pts))
+        # 2026-09-08(B15) -- GM도 로그공간에서 보간해 ID와 **같은 공간**에서 나눈다.
+        # 뺄셈 후 exp을 취하므로 두 지수적 양의 비가 보존된다(서브스레숄드에서 gm/ID가
+        # 거의 일정하다는 물리와 일치). 근거는 __init__의 `_log_GM` 주석 참고.
+        log_gm = np.asarray(_multilinear_interp(self._grids_list, self._log_GM, pts))
+        id_vals = np.exp(log_id)
+        gm_id_vals = np.exp(log_gm - log_id)
         result = (id_vals, gm_id_vals)
         self._gm_id_curve_cache[key] = result
         return result
@@ -517,15 +551,20 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         return raw * W_target / self._w_ref_effective(L)
 
     def gm_gds_ratio(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
+        # 2026-09-08(B15) -- GM/GDS를 **같은 로그공간**에서 보간해 나눈다. 이전에는 둘 다
+        # 선형이라 서로 일관은 했지만, leave-one-out 실측에서 GDS의 선형보간 오차가
+        # 중앙값 27.9%(nmos)/126.2%(pmos)로 컸다 -- 로그로 11.6%/40.8%가 된다(__init__ 주석).
         vgs = self._solve_vgs(gm_id, L, vds, vsb)
-        gm = self._query(self.GM, L, vgs, vds, vsb)
-        gds = self._query(self.GDS, L, vgs, vds, vsb)
-        return gm / gds
+        log_gm = self._query(self._log_GM, L, vgs, vds, vsb)
+        log_gds = self._query(self._log_GDS, L, vgs, vds, vsb)
+        return math.exp(log_gm - log_gds)
 
     def fT(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """fT = gm/(2*pi*Cgg) — 방법론 §2.6, 준정적 검증에 사용."""
         vgs = self._solve_vgs(gm_id, L, vds, vsb)
-        gm = self._query(self.GM, L, vgs, vds, vsb)
+        # 2026-09-08(B15) -- gm은 로그공간, Cgg는 선형공간. 실측으로 각 배열에 더 정확한
+        # 쪽을 따로 골랐다(__init__ 주석) -- 같은 공간으로 억지로 맞추지 않는다.
+        gm = math.exp(self._query(self._log_GM, L, vgs, vds, vsb))
         cgg = self._query(self.CGG, L, vgs, vds, vsb)
         return gm / (2 * math.pi * cgg)
 
