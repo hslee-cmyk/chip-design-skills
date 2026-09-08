@@ -2289,6 +2289,126 @@ def solve_diode_connected_vds(lut, gm_id: float, L: float, vsb: float = 0.0,
         f"않는다(조용한 실패 금지)")
 
 
+def diode_vds_cached(lut, kind: str, gm_id: float, L: float, vsb: float = 0.0):
+    """`solve_diode_connected_vds()`의 메모 캐시(2026-09-08, C10 재계산 금지).
+
+    이 해법은 LUT VDS 격자 49점 스캔 + bisection 60회라 diode 하나당 100회 넘는 LUT 조회다.
+    `stack_headroom_slack` metric은 그걸 16개 소자에 매 평가마다 하므로 캐시가 필요하다.
+    키는 **이 계산이 실제로 읽는 모든 값**(kind, gm_id, L, vsb)이다 -- `metric_spec`만 키로
+    썼다가 `ctx.sized` 변경을 놓쳤던 CMFB MNA 캐싱 회귀와 같은 실수를 하지 않기 위해서다
+    (`lut-generation-checklist.md` §9). 해가 없으면 그 사실(`None`)도 캐시한다."""
+    cache = diode_vds_cached.__dict__.setdefault("_cache", {})
+    key = (id(lut), kind, round(gm_id, 9), round(L, 15), round(vsb, 9))
+    if key not in cache:
+        try:
+            cache[key] = solve_diode_connected_vds(lut, gm_id, L, vsb)
+        except DiodeSelfConsistencyError:
+            cache[key] = None
+    return cache[key]
+
+
+def _metric_stack_headroom_slack(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-09-08, A8) — **스택 KVL 여유의 최솟값**(V). 음수면 그 스택이 성립하지 않는다.
+
+    각 `vertical_stack_id` 그룹에 대해
+
+        필요합 = Sum_{diode k} Vgs_k(gm_id_k, L_k, vsb_k) + Sum_{비-diode j} vds_j
+        여유   = 예산 - 필요합                (예산 = vdd, 또는 budget_reference_device가
+                                              선언됐으면 vdd - ref_vds)
+
+    를 계산하고 모든 그룹의 최소 여유를 돌려준다.
+
+    **왜 이게 gm_id의 제약인가**(계획 §7.3 A8 재해석): `gate == drain`이면 그 소자의 vds는
+    배정 대상이 아니라 `gm_id/L/vsb`가 정하는 **종속값**이다. 따라서 "diode가 직렬로 쌓인
+    스택을 연립으로 푼다"가 아니라, **gm_id 조합이 이 부등식을 만족해야 한다**로 봐야 한다 --
+    면적/gain 제약과 같은 자리이고, v4.2의 분리형 DP가 이미 다루는 형태다.
+
+    파일럿 실측(2026-09-08): 현재 사이징에서 22개 스택 중 **7개가 음수**이고 최악은
+    `biasgen_vom/vop_battery_a`의 **-1.346V**(diode 2개 직렬 M11a+M11b에 비-diode M12의
+    1.400V가 겹친다). 다만 gm_id를 올리면 Vgs가 내려가므로 **원리적으로 불가능한 스택은
+    없다**(`tests/probe_diode_min_vgs.py`).
+
+    값-동일 그룹(`matching_pairs`의 `offset`)은 대표 1개만 합산한다 -- 엔진의 헤드룸 해석기가
+    그 쌍의 VDS를 같게 강제하므로 예산에 두 번 들어가면 안 된다.
+
+    ⚠️ **검사하지 않는 것**(C5): (1) `vertical_stack_id`가 선언 안 된 소자 -- 그룹이 없으면
+    이 검사의 대상이 아니다. (2) 스택이 실제로 직렬인지 -- 선언을 믿는다(그 검증은
+    `audit_vertical_stack_id_vs_kcl()` 몫이다). (3) diode 해가 없는 소자 -- 그 그룹은
+    `-inf` 대신 **건너뛰고** 이름을 남기지 않는다(해가 없다는 것 자체는
+    `solve_diode_connected_vds()`가 별도로 알린다). (4) 이 여유가 양수여도 각 소자가 포화에
+    있는지는 보지 않는다."""
+    vdd = ctx.spec["vdd"]
+    by_name, _passives = _load_full_topology_cached(ctx.topology_path)
+    roles = _device_roles_cached(ctx.topology_path)
+    lut_by_kind = ctx.spec["lut_by_kind"]
+
+    # 값-동일 그룹(offset 매칭 쌍) union-find -- 대표 1개만 예산에 센다
+    parent = {n: n for n in by_name}
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    for p in (_matching_pairs_cached(ctx.topology_path) or []):
+        if p.get("matching_sensitivity") != "offset":
+            continue
+        ns = [x for x in (p.get("names") or []) if x in parent]
+        for a, b in zip(ns, ns[1:]):
+            ra, rb = find(a), find(b)
+            if ra != rb:
+                parent[rb] = ra
+
+    groups = {}
+    for n in by_name:
+        vsid = (roles.get(n) or {}).get("vertical_stack_id")
+        if vsid:
+            groups.setdefault(vsid, []).append(n)
+
+    worst = float("inf")
+    for vsid in sorted(groups):
+        members = sorted(groups[vsid])
+        reps, seen = [], set()
+        for m in members:
+            r = find(m)
+            if r in seen:
+                continue
+            seen.add(r)
+            reps.append(m)
+        ref = next(((roles.get(m) or {}).get("budget_reference_device") for m in members
+                    if (roles.get(m) or {}).get("budget_reference_device")), None)
+        ref_vds = (ctx.sized.get(ref) or {}).get("vds") if ref else None
+        budget = (vdd - ref_vds) if ref_vds is not None else vdd
+        total = 0.0
+        skip = False
+        for m in reps:
+            e = ctx.sized.get(m)
+            if e is None:
+                raise KeyError(f"stack_headroom_slack: '{m}'이 ctx.sized에 없다 -- 전 소자 "
+                                f"사이징 후에만 계산할 수 있다(T3 전역 게이트)")
+            if is_diode_connected(by_name[m]):
+                gm_id, L = e.get("gm_id"), e.get("L")
+                if gm_id is None or L is None:
+                    skip = True
+                    break
+                v = diode_vds_cached(lut_by_kind[ctx.kind_of[m]], ctx.kind_of[m],
+                                      gm_id, L, e.get("vsb", 0.0))
+                if v is None:                 # 자기일관해 없음 -- 이 그룹은 건너뛴다
+                    skip = True
+                    break
+                total += v
+            else:
+                if e.get("vds") is None:
+                    skip = True
+                    break
+                total += e["vds"]
+        if skip:
+            continue
+        worst = min(worst, budget - total)
+    return 0.0 if worst == float("inf") else worst
+
+
 def set_device_vds(ctx, name: str, value: float, source: str,
                     diode_set=None, lut_by_kind=None, tol: float = 1e-3) -> None:
     """`ctx.sized[name]["vds"]`를 기입하는 **유일한 경로**(2026-09-08, B1).
@@ -3233,6 +3353,7 @@ def _load_full_topology_cached(topology_path: str) -> tuple:
             # topology.json을 두 번 열지 않는다(C10 재계산 금지).
             "matching_pairs": ((raw.get("symmetry") or {}).get("matching_pairs") or []),
             "ideal_sources": (raw.get("ideal_sources") or []),   # 2026-09-08(B8)
+            "device_roles": (raw.get("device_roles") or {}),      # 2026-09-08(A8)
         }
     entry = cache[topology_path]
     return entry["by_name"], entry["passive_elements"]
@@ -3242,6 +3363,12 @@ def _ideal_sources_cached(topology_path: str) -> list:
     """`ideal_sources` 선언을 `_load_full_topology_cached()`와 같은 캐시에서 준다(B8)."""
     _load_full_topology_cached(topology_path)
     return _load_full_topology_cached.__dict__["_cache"][topology_path]["ideal_sources"]
+
+
+def _device_roles_cached(topology_path: str) -> dict:
+    """`device_roles` 선언을 `_load_full_topology_cached()`와 같은 캐시에서 준다(A8)."""
+    _load_full_topology_cached(topology_path)
+    return _load_full_topology_cached.__dict__["_cache"][topology_path]["device_roles"]
 
 
 def _matching_pairs_cached(topology_path: str) -> list:
@@ -3442,6 +3569,7 @@ _METRICS_REGISTRY = {
     "psrr_estimate":            _metric_psrr_estimate,               # 배치 7-3i
     "supply_current":           _metric_supply_current,            # A3, 2026-09-08
     "kcl_residual":             _metric_kcl_residual,              # B8, 2026-09-08
+    "stack_headroom_slack":     _metric_stack_headroom_slack,      # A8, 2026-09-08
     "mirror_ratio_error":       _metric_mirror_ratio_error,        # A4, 2026-09-08
     "rail_referenced_voltage":  _metric_rail_referenced_voltage,     # 세션6
     "battery_centering_deviation": _metric_battery_centering_deviation,  # 세션6
@@ -3484,6 +3612,7 @@ _METRIC_UNITS = {          # 각 계산기가 **실제로** 돌려주는 단위(
     "psrr_estimate":               "dB",
     "supply_current":              "A",
     "kcl_residual":                "A",
+    "stack_headroom_slack":        "V",
     "mirror_ratio_error":          "%",
     "rail_referenced_voltage":     "V",
     "battery_centering_deviation": "V",
@@ -6887,7 +7016,7 @@ _DEFAULT_ALL_DEVICES_METRIC_TYPES = frozenset({"sum_current", "sum_area",
                                                  # 2026-09-08(A3/A4) -- 둘 다 topology
                                                  # 전체를 훑으므로 isolated로 보면 안 된다.
                                                  "supply_current", "mirror_ratio_error",
-                                                 "kcl_residual"})
+                                                 "kcl_residual", "stack_headroom_slack"})
 
 
 def _metric_device_footprint(metric_name: str, metrics_specs: dict):
