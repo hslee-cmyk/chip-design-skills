@@ -8891,18 +8891,41 @@ def revalidate_finger_override(ctx: SizingContext, lut_by_kind: dict, overrides:
         }
     new_ctx = _dc_replace(ctx, sized=new_sized)
 
+    # 2026-09-08(사용자 지시) -- **metric을 전부 다시 계산한다.** 예전에는 "영향받는
+    # metric만" 다시 계산했다:
+    #
+    #     affected = {m for m, spec in metrics_specs.items()
+    #                 if _collect_device_refs(spec, known_names) & set(overrides)}
+    #
+    # `_collect_device_refs()`는 **spec에 이름이 적힌 소자**만 모으는데, 소자를 명시하지
+    # 않는 metric이 많다. `area_um2`의 선언은 `{"type":"sum_area","unit":"um^2"}`이고
+    # 계산기는 `spec.get("devices") or list(ctx.sized.keys())`로 **전 소자**를 쓴다 --
+    # 참조가 빈 집합이라 "무관"으로 분류돼 통째로 건너뛰었다.
+    #
+    # 실측(`tests/probe_revalidation_scope.py`, 파일럿 17개 metric):
+    #   전 소자를 쓰는데 건너뛴 것 6개 -- power_uA(목적함수!), area_um2,
+    #     mirror_ratio_error_pct, supply_current_uA, kcl_residual_uA, stack_headroom_slack_v
+    #   소자를 하나도 명시 안 해 역시 건너뛴 전체회로 metric 3개 --
+    #     cmrr_estimate_db(제약!), psrr_estimate_db(제약!), gain_full_circuit_db
+    # 선언된 제약 5개 중 gain_db 하나만 재검증되고 있었다. 그 결과 레이아웃 fixup이
+    # W를 키워도(`w = n_fingers * finger_w`) area_um2 제약 위반이 보고되지 않았다
+    # (867.95 -> 1050.40um^2).
+    #
+    # **"참조가 안 보이면 무관"은 안전한 방향이 반대다.** 독립임을 적극적으로 확인했을
+    # 때만 건너뛰어야 하고, 모르면 다시 계산해야 한다(§3.2 P1 조용한 실패 금지).
+    #
+    # 재계산 비용은 먼저 쟀다(메모리 규칙: 수정마다 재계산 비효율 점검): 이 함수는 파일럿
+    # 1회 최적화에서 **8회** 불리고, 17개 metric 전부 재계산이 캐시를 비운 최악 조건에서
+    # **1.6ms**다(전체 233s의 **0.01%**). 즉 이 최적화는 아끼는 게 없으면서 버그만 숨겼다.
+    # MNA metric이 싼 것은 소신호 MNA를 numpy로 전환(6.1배)한 덕이고, `_open_loop_gains_
+    # cache`의 키에 실제 gm/gds가 들어 있어(세션31) 사이징이 바뀌면 자동으로 무효화된다.
     known_names = set(ctx.sized)
-    affected_metrics = {mname for mname, mspec in metrics_specs.items()
-                         if _collect_device_refs(mspec, known_names) & set(overrides)}
-
-    metric_deltas = {mname: {"old": compute_metric(metrics_specs[mname], ctx),
-                              "new": compute_metric(metrics_specs[mname], new_ctx)}
-                      for mname in affected_metrics}
+    metric_deltas = {mname: {"old": compute_metric(mspec, ctx),
+                              "new": compute_metric(mspec, new_ctx)}
+                      for mname, mspec in metrics_specs.items()}
 
     violated = []
     for c in constraints:
-        if c["metric"] not in affected_metrics:
-            continue
         new_val = metric_deltas[c["metric"]]["new"]
         if not _CONSTRAINT_OPS[c["op"]](new_val, c["value"]):
             violated.append({**c, "actual": new_val})
@@ -8912,7 +8935,13 @@ def revalidate_finger_override(ctx: SizingContext, lut_by_kind: dict, overrides:
         "device_updates": device_updates,
         "metric_deltas": metric_deltas,
         "violated_constraints": violated,
-        "unaffected_metrics_skipped": sorted(set(metrics_specs) - affected_metrics),
+        # 이제 아무것도 건너뛰지 않는다(위 주석). 키는 호출부 호환을 위해 남기되 항상 빈
+        # 리스트다 -- 진단용으로 쓰이던 "바뀐 소자를 참조하지 않는 metric" 목록은 아래
+        # 새 키로 옮겼다(그 목록이 곧 "안전하다"는 뜻이 아님을 이름으로 드러낸다).
+        "unaffected_metrics_skipped": [],
+        "metrics_not_referencing_changed_devices": sorted(
+            m for m, sp in metrics_specs.items()
+            if not (_collect_device_refs(sp, known_names) & set(overrides))),
     }
 
 
@@ -9731,10 +9760,20 @@ if __name__ == "__main__":
         "ID가 보존되지 않음 -- W가 바뀌어도 ID는 topology로 고정이어야 한다"
     assert _l4_pass_result["ok"] and not _l4_pass_result["violated_constraints"], \
         "10% 축소는 여전히 constraint를 통과해야 하는데 위반으로 나옴"
-    assert _l4_pass_result["unaffected_metrics_skipped"] == ["other_current"], \
-        "M3를 안 건드렸으니 other_current는 재계산 스킵 목록에 있어야 한다"
+    # 2026-09-08 -- 예전엔 `unaffected_metrics_skipped == ["other_current"]`를 단정해
+    # "무관한 metric은 재계산을 건너뛴다"는 최적화를 검증했다. 그 최적화 자체를 폐기했으므로
+    # (metric spec이 소자를 명시하지 않으면 참조가 빈 집합이라 전 소자를 읽는 metric까지
+    # "무관"으로 분류돼 조용히 건너뛰었다 -- `revalidate_finger_override()` 주석 참고)
+    # 단정도 새 계약으로 바꾼다: **아무것도 건너뛰지 않고**, 진단 정보는 이름이 정확한
+    # 새 키로 옮겼다.
+    assert _l4_pass_result["unaffected_metrics_skipped"] == [], \
+        "이제 어떤 metric도 재계산을 건너뛰지 않는다"
+    assert set(_l4_pass_result["metric_deltas"]) == {"stage_gain", "other_current"}, \
+        "모든 metric이 재계산돼 metric_deltas에 있어야 한다"
+    assert _l4_pass_result["metrics_not_referencing_changed_devices"] == ["other_current"], \
+        "M3를 안 건드렸으니 other_current는 '바뀐 소자를 참조하지 않는' 목록에 있어야 한다"
     print(f"    PASS: ID 보존 확인(diff=0), new_gain={_l4_pass_result['metric_deltas']['stage_gain']['new']:.4f}dB "
-          f"(통과), other_current는 무관해서 재계산 스킵")
+          f"(통과), other_current는 참조 밖이지만 **재계산은 했다**(조용한 누락 방지)")
 
     print("    [M1의 W를 40% 축소 -- 이번엔 constraint를 실제로 위반해야 함]")
     _l4_fail_result = revalidate_finger_override(

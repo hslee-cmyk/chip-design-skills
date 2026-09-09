@@ -45,7 +45,7 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
   그대로라는 원칙(A엔진)을 재확인하고, 영향받는 metric/constraint만 재검증하는지]
     baseline stage_gain=29.5302dB, constraint>=29.0302dB (M1/M2 diff pair, M3는 무관한 소자)
     [M1의 W를 10% 축소(finger 반올림 시뮬레이션) -- 여전히 constraint 통과해야 함]
-    PASS: ID 보존 확인(diff=0), new_gain=29.3620dB (통과), other_current는 무관해서 재계산 스킵
+    PASS: ID 보존 확인(diff=0), new_gain=29.3620dB (통과), other_current는 참조 밖이지만 **재계산은 했다**(조용한 누락 방지)
     [M1의 W를 40% 축소 -- 이번엔 constraint를 실제로 위반해야 함]
     PASS: new_gain=28.7147dB < threshold=29.0302dB -- violated_constraints로 정확히 검출됨
     [원본 ctx는 건드리지 않는 순수 함수인지]
