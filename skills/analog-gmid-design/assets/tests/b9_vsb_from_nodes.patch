@@ -1,0 +1,166 @@
+diff --git a/skills/analog-gmid-design/assets/sizing_recipe.py b/skills/analog-gmid-design/assets/sizing_recipe.py
+index a494a13..0f6d5cc 100644
+--- a/skills/analog-gmid-design/assets/sizing_recipe.py
++++ b/skills/analog-gmid-design/assets/sizing_recipe.py
+@@ -2993,6 +2993,64 @@ def derive_vsb_from_nodes(kind: str, source_net: str, nodes: dict, vdd: float,
+     return (vdd - v) if kind == "pmos" else v
+ 
+ 
++def reconcile_vsb_from_nodes(ctx, by_name: dict, vdd: float, tol: float = 1e-6) -> dict:
++    """헤드룸이 끝나 vds가 전부 확정된 시점에 **모든 소자의 `vsb`를 노드전압에서 다시
++    유도**한다(2026-09-09, B9 해소, 사용자 승인).
++
++    ## 왜 필요한가 (실측)
++
++    지금까지 `vsb`는 두 곳에서 왔다: topology의 `device_roles[*].vsb` **선언**(대부분 0.0)과
++    `_hr_resolve_vertical_group()`의 `setdefault("vsb", ref_vds)` **전파**. 둘 다 물리를
++    안 본다 -- 전파는 kind도 레일도 안 보고, 선언은 그냥 0이다. 파일럿 51소자 전수 대조에서
++    **26개가 불일치**했고 세 부류로 갈렸다(`tests/probe_node_voltage_audit.py`):
++
++        (가) 소스가 레일인데 vsb!=0     4개  M38(+0.8625) M60(+0.3750) M61(+0.2000) M68(+0.2000)
++        (나) 소스가 비레일인데 vsb==0  15개  M40(-0.9375) M2a/M2b(-0.7997) M37a/M37b(-0.7375) ...
++        (다) 그 외 값 불일치            7개  M9a/M9b·M18a/M18b는 값이 정확히 **서로 바뀜**
++
++    이 오염은 조용히 끝나지 않는다 -- vsb는 LUT의 VS 축이라 **모든 조회를 틀리게** 한다.
++    실제로 B19'(미러 배선)을 막은 것이 이것이었다: `M38`의 가짜 `vsb=0.8625V`가 Vth를 올려
++    같은 VGS에서 전류밀도를 **55배** 낮게 보이게 했고, 그래서 W가 13,340µm로 튀어
++    `diode_vds_window()`가 빈 구간을 돌려줬다(계획 §10.3 B23).
++
++    ## 무엇을 하는가
++
++    `propagate_node_voltages()`로 노드전압을 복원하고, 소자마다
++    `derive_vsb_from_nodes(kind, source, ...)`로 vsb를 다시 구해 **덮어쓴다**. 두 함수 모두
++    세션46에 이미 만들어져 있었으나 **엔진 경로에 호출부가 하나도 없었다** -- 이 함수가
++    그 배선이다(★절대원칙).
++
++    선언보다 노드전압이 이긴다. 선언 `vsb`는 물리가 아니라 기본값이고, 위 (나) 15개가
++    바로 그 기본값이 그대로 남은 경우다. 바뀐 소자에는 `_vsb_source="node_voltage"` 태그를
++    남겨 이후 pass가 조용히 덮어쓰는지 추적할 수 있게 한다(B13).
++
++    ## 소스 전압을 못 구하면
++
++    `None`을 조용히 0으로 때우지 않는다 -- 그 소자 이름을 `undetermined`로 돌려주고
++    **호출부가 명시적으로 실패**한다(§3.2 P1). 파일럿은 노드 36개 전부 해소돼 이 목록이
++    비어 있다.
++
++    반환: `{"changed": {name: (old, new)}, "undetermined": [name...], "report": <복원 결과>}`
++    """
++    rep = propagate_node_voltages(by_name, ctx.sized, vdd)
++    changed, undetermined = {}, []
++    for name in sorted(by_name):
++        entry = ctx.sized.get(name)
++        if entry is None:
++            continue
++        tr = by_name[name]
++        exp = derive_vsb_from_nodes(tr.kind, tr.source, rep.nodes, vdd)
++        if exp is None:
++            undetermined.append(name)
++            continue
++        old = entry.get("vsb")
++        if old is None or abs(old - exp) > tol:
++            entry["vsb"] = exp
++            entry["_vsb_source"] = "node_voltage"
++            changed[name] = (old, exp)
++    return {"changed": changed, "undetermined": undetermined, "report": rep}
++
++
+ def audit_vsb_consistency(by_name: dict, sized: dict, vdd: float,
+                            tol: float = 1e-6, **kw) -> list:
+     """선언된 `vsb`가 복원된 노드전압과 맞는지 소자 전수 대조해 어긋난 것만 돌려준다.
+@@ -6030,6 +6088,18 @@ def _hr_resolve_vertical_group(env, vsid):
+     # 그 소자의 vds는 role 상수로 나눠줄 몫이 아니라 W가 정하는 종속값이기 때문이다
+     # (실측: 파일럿 diode 16개 중 14개가 배정된 0.2~0.3V보다 높은 vds를 요구했고, M11a는
+     # 0.2V에서 W=4.03e8um를 요구해 물리적으로 불가능했다).
++    # 2026-09-09(B9) -- 이 스택의 diode 구간을 계산하기 전에 **지금까지 확정된 vds로**
++    # 노드전압을 한 번 복원해 둔다(스택마다 1회 -- 소자마다 돌리면 비싸다). 아직 vds가
++    # 없는 소자는 기여하지 않으므로 부분 결과이고, 그래도 아래 체인이 이미 풀린 소자의
++    # 소스 전압은 여기서 나온다.
++    _hr_by_name = None
++    _hr_nodes = None
++    if spec.get("vdd") is not None:
++        try:
++            _hr_by_name, _ = _load_full_topology_cached(ctx.topology_path)
++            _hr_nodes = propagate_node_voltages(_hr_by_name, ctx.sized, spec["vdd"]).nodes
++        except Exception:
++            _hr_by_name, _hr_nodes = None, None
+     for _se in stack_entries:
+         _e = ctx.sized.get(_se["name"], {})
+         if (_se["name"] not in _diode_set_cached(ctx.topology_path)
+@@ -6040,7 +6110,21 @@ def _hr_resolve_vertical_group(env, vsid):
+         # 여기서 0.0으로 계산하면 구간과 최종 검사가 서로 다른 vsb를 보게 되고, 그러면
+         # 구간 안에 배정했는데도 W가 한계를 넘는다(실측으로 발견: M57이 구간 하한
+         # 0.75V를 받고도 W=615.6um).
+-        _vsb = _e.get("vsb", ref_vds if ref_dev is not None else 0.0)
++        #
++        # 2026-09-09(B9, 사용자 승인) -- 그 "배정될 값"을 **복원된 노드전압에서** 구한다.
++        # 기존 `ref_vds` 폴백은 kind도 레일도 안 봐서 PMOS와 레일 소스 소자에 틀린 값을
++        # 줬다(파일럿 51소자 중 26개 불일치). 지금 시점에는 이 스택이 참조하는 아래
++        # 체인이 이미 풀려 있으므로 **부분 노드전압만으로도 이 소자의 소스 전압을 알 수
++        # 있는 경우가 많다** -- 알 수 있으면 그것을 쓰고, 아직 모르면 기존 폴백을 쓰되
++        # 그 사실을 엔트리에 남긴다(조용히 넘어가지 않는다, §3.2 P1).
++        _vsb_node = derive_vsb_from_nodes(
++            ctx.kind_of[_se["name"]], _hr_by_name[_se["name"]].source,
++            _hr_nodes, spec["vdd"]) if _hr_nodes is not None else None
++        if _vsb_node is not None:
++            _vsb = _vsb_node
++        else:
++            _vsb = _e.get("vsb", ref_vds if ref_dev is not None else 0.0)
++            _e["_vsb_source"] = "headroom_fallback:ref_vds"
+         # 2026-09-09(B22, 사용자 승인) -- 이 diode가 미러 레퍼런스이면 VGS를 공유하는
+         # 소자들의 W도 같은 구간 안에 있어야 한다. 안 그러면 배분기가 고른 `lo`가 그
+         # 소자들에게 물리적으로 불가능한 W를 요구한다(실측: 6소자가 최대 66.7배 초과).
+@@ -6818,6 +6902,32 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
+                     f"선언 누락) -- 그룹별로 막힌 지점: "
+                     + "; ".join(f"'{v}': {last_error[v]}" for v in pending))
+ 
++        # 2026-09-09(B9 해소, 사용자 승인) -- vds가 전부 확정된 **지금이** vsb를 물리적으로
++        # 유도할 수 있는 첫 시점이다. 그 전까지 vsb는 선언 기본값(대부분 0.0)이거나
++        # `setdefault("vsb", ref_vds)`가 kind·레일을 안 보고 넣은 값이라, 파일럿 51소자 중
++        # 26개가 노드전압과 어긋나 있었다. vsb는 LUT의 VS 축이라 **모든 조회를 틀리게**
++        # 한다 -- B19'(미러 배선)을 막은 것도 이것이었다(§10.3 B23).
++        #
++        # 적용 조건: **vertical_stack이 실제로 풀린 회로**에만 적용한다. 노드전압 복원은
++        # 확정된 vds를 레일부터 누적해 얻으므로, 스택이 없는 fixture(레일에 닿는 컬럼이
++        # 아예 없는 toy 회로)에서는 성립하지 않는다. 그래서 조건을 `vertical_groups`
++        # 존재로 잡되, **스택이 있는데 vdd가 없으면 조용히 넘어가지 않고 오류**를 낸다
++        # (그건 선언 누락이지 적용 대상 아님이 아니다).
++        _vsb_vdd = spec.get("vdd")
++        _vsb_applies = bool(vertical_groups)
++        if _vsb_applies and _vsb_vdd is None:
++            raise ValueError(
++                "vertical_stack_id 그룹이 선언돼 있는데 spec['vdd']가 없다 -- "
++                "vsb를 노드전압에서 유도하려면(B9) 레일 전압이 필요하다")
++        _vsb_rec = (reconcile_vsb_from_nodes(ctx, by_name, _vsb_vdd)
++                    if _vsb_applies else None)
++        if _vsb_rec and _vsb_rec["undetermined"]:
++            raise ValueError(
++                f"vsb를 노드전압에서 유도할 수 없는 소자 {len(_vsb_rec['undetermined'])}개: "
++                f"{_vsb_rec['undetermined'][:8]} -- 소스 노드 전압이 복원되지 않았다"
++                f"(미해소 노드 {len(_vsb_rec['report'].unresolved)}개). 0.0으로 때우지 않는다 "
++                f"-- netlist 연결이나 vds 확정 여부를 확인할 것")
++
+         # 2026-08-14 -- L_role의 _AUTHORITATIVE_L_SOURCES(3905행)와 대칭되는 gm_id_role
+         # 가드가 원래 없었다(실측으로 발견 -- propose_device_roles_gap_fill()이
+         # compensation.stage_devices 소속 소자에 gm_id_role="matching"을 채우면, 여기서
+@@ -7039,6 +7149,21 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
+         for _scb_plan in (ctx.derived.get("_scb_joint_plan_by_devices") or {}).values():
+             _refine_shared_current_joint_scan_for_full_circuit_constraints(_scb_plan, ctx)
+ 
++        # 2026-09-09(B9 해소) -- 모든 pass가 끝난 지금 vsb가 여전히 노드전압과 맞는지
++        # **게이트로 확인**한다. 위 reconcile이 헤드룸 직후에 바로잡았지만, 그 뒤의
++        # gm_id/W pass들이 `{**entry, ..., "vsb": vsb}` 형태로 지역변수를 다시 써넣는
++        # 지점이 여러 곳이라(2892/6891/6956/7031행 계열) 스테일 값이 되살아날 수 있다.
++        # `audit_vsb_consistency()`는 세션46에 만들어졌는데 **호출부가 하나도 없었다** --
++        # 이 게이트가 그 배선이다(★절대원칙).
++        _vsb_bad = (audit_vsb_consistency(by_name, ctx.sized, _vsb_vdd)
++                    if _vsb_applies else [])
++        if _vsb_bad:
++            _top = ", ".join(f"{r[0]}({r[6]:+.4f}V)" for r in _vsb_bad[:6])
++            raise ValueError(
++                f"사이징이 끝난 뒤에도 vsb가 노드전압과 어긋난 소자 {len(_vsb_bad)}개: {_top}"
++                f"{' ...' if len(_vsb_bad) > 6 else ''} -- 헤드룸 직후 "
++                f"reconcile_vsb_from_nodes()가 바로잡은 값을 이후 pass가 덮어썼다는 뜻이다. "
++                f"덮어쓰는 지점이 vsb를 재계산하지 말고 ctx.sized의 값을 그대로 쓰게 할 것")
+         metrics_result = {name: compute_metric(mspec, ctx) for name, mspec in metrics_specs.items()}
+         return ctx, metrics_result
+ 

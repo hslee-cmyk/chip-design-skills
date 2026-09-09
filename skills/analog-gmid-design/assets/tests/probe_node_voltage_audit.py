@@ -1,59 +1,138 @@
 # -*- coding: utf-8 -*-
-"""propagate_node_voltages() / audit_vsb_consistency() 를 파일럿에 돌려 보는 조사 도구.
+"""`propagate_node_voltages()` / `audit_vsb_consistency()`를 파일럿에 돌려 **B9(vsb 오산출)의
+현재 상태**를 재는 조사 도구.
 
-계획 §7.5의 코어(노드전압 복원)와 §10.3 B7/B9의 근거다. 두 신규 함수가 실제로 무엇을
-잡아내는지 눈으로 보려고 만들었다.
+## 2026-09-09 개정 -- 낡은 산출물 대신 **지금 엔진으로 새로 사이징**해서 잰다
 
-측정 결과(2026-09-08, current_reuse_telescopic_ota, instance.json의 사이징 기준):
+원래 이 스크립트는 workspaces의 `*.instance.json`을 읽었다. 그 파일은 세션18 산출물이라
+옛 필드 이름(`vs`)을 쓰고 있어서 읽을 때 `vsb`로 바꿔주는 호환 코드까지 달려 있었다 --
+즉 **지금 엔진이 내는 값이 아니라 옛날 값을 재고 있었다**. B20/B22가 들어간 지금은 그
+괴리가 더 커져서, 여기서 나온 숫자로 B9를 고치면 엉뚱한 것을 고치게 된다.
 
-  propagate_node_voltages()
-    노드 36개 복원 / 미해소 소자 0개 / pass 3회
-    **다중도달 불일치 4건, 전부 정확히 243.5 mV**
-      M5 (nmos, gnd->Vy)  M64 (nmos, N64_63->Vbias3)
-      M1a/M1b (pmos, Vx->N1a2a/N1b2b)
-    -> 네 건이 같은 크기라는 것은 단일 원인이 전파된 것이다. M5/M1a/M1b는 전부
-       vertical_stack_id='diffpair_branch_a'로 같은 컬럼이다.
-    결정론: 소자 사전을 뒤집어 넣어도 노드값·conflict 건수가 동일하다.
+이제 `_build_theta_evaluator()` + 실제 최적 theta로 **그 자리에서 사이징**해 잰다.
 
-  audit_vsb_consistency()
-    선언 vsb와 복원된 노드전압이 어긋나는 소자 **26개**. 최대 -1.3000V(M37a/M37b).
+## 무엇을 보는가
 
-⚠️ 중요한 함의: 다중도달 불일치가 남아 있는 동안에는 **노드전압이 유일하게 정해지지
-않는다**. 어느 경로가 먼저 도달하느냐에 따라 값이 갈리므로, 그 위에서 유도한 "기대 vsb"도
-잠정값이다. 따라서 vsb를 고치기 전에 243.5mV 불일치(= 선언된 vds들이 서로 모순)를 먼저
-해소해야 한다.
+  1. `propagate_node_voltages()` -- 노드전압 복원. **다중도달 불일치**(같은 노드에 두 경로가
+     서로 다른 전압을 준다)를 그대로 돌려준다. §7.5가 완성돼야 할 지점.
+  2. `audit_vsb_consistency()` -- 선언된 `vsb`가 복원된 노드전압과 맞는지 전수 대조.
+     ⚠️ 이 함수는 **엔진 경로에 호출부가 없다**(2026-09-09 확인, 조사용 여기 하나뿐).
+     ★절대원칙상 B9를 고치면서 파이프라인 게이트로 배선해야 한다.
+  3. 불일치를 **원인별로 분류**한다 -- 어디를 고쳐야 하는지가 분류에서 바로 나온다:
+       (가) 소스가 레일인데 vsb!=0     -> 전파가 레일을 안 본다
+       (나) 소스가 비레일인데 vsb==0   -> 전파가 아예 안 닿았다
+       (다) 그 외 값 불일치            -> kind 혼동 등
 
 실행: assets 디렉터리에서 `python tests/probe_node_voltage_audit.py`
-(자동 테스트가 아니라 조사용. instance.json이 아직 옛 이름 `vs`를 쓰므로 읽을 때 vsb로 바꿔준다.)
+(최적 theta 캐시가 없으면 SLSQP를 한 번 돌리므로 수 분 걸린다.)
 """
-import os, sys, json
+import os
+import sys
+import json
+
 ASSETS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ASSETS)
+import numpy as np
 import sizing_recipe as sr
 
+_RESULT_PATH = os.path.splitext(os.path.abspath(__file__))[0] + ".result.txt"
+_first = [True]
+
+
+def emit(*parts):
+    line = " ".join(str(p) for p in parts)
+    print(line, flush=True)
+    mode = "w" if _first[0] else "a"
+    _first[0] = False
+    with open(_RESULT_PATH, mode, encoding="utf-8") as f:
+        f.write(line + "\n")
+
+
 TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
-INST = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\workspaces\current-reuse-telescopic-ota-report\current_reuse_telescopic_ota.instance.json"
 VDD = 1.8
+d = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
+mk = lambda k: sr.SemiEmpiricalGmIdLUT(d["L"], d["VGS"], d["VDS"], d["VS"], d["ID_" + k],
+                                       d["GM_" + k], d["GDS_" + k], d["CGG_" + k],
+                                       W_ref=5e-6, SID_1F=d["SID_1F_" + k])
+nmos, pmos = mk("n"), mk("p")
+SPEC = {
+    "lut_by_kind": {"nmos": nmos, "pmos": pmos}, "lut": nmos, "vdd": VDD,
+    "L_candidates": [float(v) for v in nmos.L_grid],
+    "VDS_candidates": [0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.2, 1.4],
+    "gm_id_grid": [float(4 + i) for i in range(21)],
+    "L_min": 0.15e-6, "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
+    "W_bounds": (1e-6, 200e-6),
+    "min_vds_by_role": {"cascode": 0.2, "tail": 0.3, "mirror": 0.3},
+    "stage_objective": "power", "stage_w_max": 200e-6,
+    "min_finger_w": 1e-6, "max_finger_w": 40e-6,
+    "vth0_slope": {"nfet": 3.356e-3, "pfet": 5.856e-3},
+    "t_lln": 30e-9, "PM_target_deg": 70.0,
+    "Cc": 500e-15, "Cf": 500e-15, "Cs": 500e-15, "C_Ltot": 1e-12,
+    "t_settle_total": 40e-9, "omega_c": 6.9 / 30e-9,
+    "L_grid_step": 5e-9,
+}
 
+THETA_CACHE = os.path.splitext(os.path.abspath(__file__))[0] + ".theta_star.json"
+if os.path.exists(THETA_CACHE):
+    THETA = json.load(open(THETA_CACHE, encoding="utf-8"))
+    emit("[캐시] theta_star 재사용:", os.path.basename(THETA_CACHE))
+else:
+    emit("[신규] SLSQP로 theta_star를 구한다(수 분)...")
+    _r = sr.optimize_full_circuit_budget(TOPO, SPEC, search_method="slsqp",
+                                         slsqp_kwargs={"n_starts": 1, "maxiter": 40})
+    THETA = {k: float(v) for k, v in (_r["theta_star"] or {}).items()}
+    json.dump(THETA, open(THETA_CACHE, "w", encoding="utf-8"), indent=1)
+    emit("[신규] 확보.")
+
+env = sr._build_theta_evaluator(TOPO, SPEC)
+ctx, metrics = env["evaluate"](dict(THETA))
+sized = ctx.sized
 trs, meta = sr.load_topology(TOPO)
-sized = json.load(open(INST, encoding="utf-8"))["sizing"]
-for v in sized.values():                      # 옛 이름 호환(조사용에 한함)
-    if "vs" in v and "vsb" not in v:
-        v["vsb"] = v.pop("vs")
 by = {t.name: t for t in trs}
+RAILS = {"vdd", "vss", "gnd", "0"}
 
+emit("")
+emit("=" * 100)
+emit("1. propagate_node_voltages -- 노드전압 복원")
+emit("=" * 100)
 rep = sr.propagate_node_voltages(by, sized, VDD)
-print("=== propagate_node_voltages ===")
-print("  노드 %d개 / 미해소 %d개 / pass %d회" % (len(rep.nodes), len(rep.unresolved), rep.passes))
-print("  다중도달 불일치 %d건:" % len(rep.conflicts))
-for nm, net, have, exp, d in rep.conflicts:
+emit(f"  노드 {len(rep.nodes)}개 / 미해소 {len(rep.unresolved)}개 / pass {rep.passes}회")
+emit(f"  다중도달 불일치 {len(rep.conflicts)}건:")
+for nm, net, have, exp, diff in rep.conflicts:
     t = by[nm]
-    print("    %-6s %-5s %-11s -> %-11s vds=%.4f | 기존 %.4f vs %.4f = %.1f mV"
-          % (nm, t.kind, t.source, t.drain, sized[nm]["vds"], have, exp, d * 1e3))
+    emit(f"    {nm:<7}{t.kind:<6}{t.source:<12} -> {t.drain:<12} vds={sized[nm]['vds']:.4f} "
+         f"| 기존 {have:.4f} vs {exp:.4f} = {diff*1e3:+.1f} mV")
 
-print()
-print("=== audit_vsb_consistency ===")
+emit("")
+emit("=" * 100)
+emit("2. audit_vsb_consistency -- 선언 vsb vs 노드전압에서 유도한 vsb")
+emit("=" * 100)
 bad = sr.audit_vsb_consistency(by, sized, VDD)
-print("  불일치 %d개:" % len(bad))
-for r in bad:
-    print("    %-8s %-5s src=%-13s V=%7.4f  선언 %7.4f  기대 %7.4f  차이 %+7.4f" % r)
+emit(f"  전체 {len(by)}소자 중 불일치 {len(bad)}개")
+emit("")
+emit(f"  {'소자':<8}{'kind':<6}{'source':<14}{'V(src)':>8}{'선언':>9}{'기대':>9}{'차이':>9}")
+emit("  " + "-" * 65)
+cat = {"가": [], "나": [], "다": []}
+for name, kind, src, vsrc, declared, expected, diff in bad:
+    emit(f"  {name:<8}{kind:<6}{src:<14}{vsrc:>8.4f}{declared:>9.4f}{expected:>9.4f}{diff:>+9.4f}")
+    if src in RAILS and abs(declared) > 1e-9:
+        cat["가"].append(name)
+    elif src not in RAILS and abs(declared) <= 1e-9:
+        cat["나"].append(name)
+    else:
+        cat["다"].append(name)
+
+emit("")
+emit("=" * 100)
+emit("3. 원인별 분류 -- 어디를 고쳐야 하나")
+emit("=" * 100)
+emit("")
+emit(f"  (가) 소스가 레일인데 vsb!=0  {len(cat['가']):>3}개 : {', '.join(cat['가']) or '-'}")
+emit("       -> vsb 전파가 레일 소스를 특별취급하지 않는다(레일이면 벌크와 같은 전위라 0)")
+emit(f"  (나) 소스가 비레일인데 vsb==0 {len(cat['나']):>3}개 : {', '.join(cat['나']) or '-'}")
+emit("       -> 전파가 이 소자에 아예 안 닿았다(선언 0.0이 그대로 남음)")
+emit(f"  (다) 그 외 값 불일치         {len(cat['다']):>3}개 : {', '.join(cat['다']) or '-'}")
+emit("       -> kind 혼동 등(PMOS는 vdd-V(src)인데 NMOS 식을 썼거나 그 반대)")
+
+emit("")
+emit("완료. 결과 파일:", _RESULT_PATH)
