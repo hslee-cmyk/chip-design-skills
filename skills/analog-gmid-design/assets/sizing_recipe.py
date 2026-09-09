@@ -582,6 +582,21 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         self._solve_vgs_cache[key] = result
         return result
 
+    def id_density_at_vgs(self, vgs: float, L: float, vds: float, vsb: float = 0.0) -> float:
+        """`gm_id_to_id_density()`와 같은 IDu(W/L=1 기준 전류)를 **VGS에서 직접** 읽는다
+        (2026-09-09, B22 신설).
+
+        `gm_id_to_id_density(gm_id, ...)`는 첫 줄에서 `_solve_vgs(gm_id, ...)`로 gm_id를
+        VGS로 되돌린다. 호출자가 **이미 VGS를 갖고 있으면** 그 왕복은 불필요할 뿐 아니라
+        **위험하다**: gm/ID가 VGS에 비단조인 구간(PMOS에서 흔하다, B20)에서는 왕복이
+        원래 VGS가 아니라 rightmost root로 돌아오므로, 왼쪽 branch의 VGS를 넣으면 다른
+        지점의 전류밀도가 나온다.
+
+        VGS를 아는 호출자(예: 미러처럼 VGS가 공유·강제되는 소자들)는 이 함수를 쓸 것.
+        """
+        raw = math.exp(self._query(self._log_ID, L, vgs, vds, vsb))
+        return raw * L / self._w_ref_effective(L)
+
     def gm_id_to_id_density(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """size_transistor()의 `W=L*ID/IDu`가 기대하는 "W/L=1 기준 전류"를 반환.
 
@@ -2657,7 +2672,7 @@ def set_device_vds(ctx, name: str, value: float, source: str,
 
 
 def diode_vds_window(lut, kind: str, L: float, ID: float, vsb: float,
-                      W_bounds: tuple) -> tuple:
+                      W_bounds: tuple, mirror_members: tuple = ()) -> tuple:
     """diode-connected 소자가 **W 한계 안에서 가질 수 있는 vds 구간** `(lo, hi)`(2026-09-08).
 
     `gate == drain`이면 vds 하나가 gm_id를 정하고(`gm_id_for_vgs(v, L, v, vsb)`), gm_id가
@@ -2677,9 +2692,35 @@ def diode_vds_window(lut, kind: str, L: float, ID: float, vsb: float,
 
     ⚠️ **이 구간 안 어디를 고를지는 이 함수가 정하지 않는다**. lo는 W 최대(면적 큼·헤드룸
     적게 씀), hi는 W 최소(면적 작음·헤드룸 많이 씀)라 진짜 설계 트레이드오프이고,
-    §7.9의 배분 탐색이 가져가야 할 자유도다."""
+    §7.9의 배분 탐색이 가져가야 할 자유도다.
+
+    ## `mirror_members` — 이 diode와 VGS를 공유하는 소자들 (2026-09-09, B22, 사용자 승인)
+
+    이 diode가 **전류미러의 레퍼런스**이면(다른 소자가 `device_roles.gm_id_match_vgs_of`로
+    이 소자를 가리키면) 그 소자들의 VGS는 KVL로 이 diode의 vds와 **같아진다**. 그러면
+    diode의 vds를 고르는 것은 diode 자신의 W뿐 아니라 **그룹 전원의 W를 고르는 것**이다.
+
+    이 인자를 안 주면 예전과 100% 동일하게 동작한다(옵트인) -- 미러를 선언하지 않은
+    회로에는 영향이 없다.
+
+    **왜 필요한가(실측)**: B19' 배선(미러 15소자에 `gm_id_match_vgs_of` 선언) 직후 SLSQP가
+    40회 전부 infeasible을 냈다. 원인은 `allocate_stack_headroom()`이 diode에 구간의 `lo`를
+    주는데(그 docstring이 이미 경고한다 -- "lo를 고르는 것은 면적을 크게 잡는 쪽"), 미러
+    강제 후에는 그 선택이 그룹 전원의 W를 정하기 때문이다. 6소자가 W 상한을 최대 66.7배
+    초과했다(M38 13339.9µm, M5 12623.3µm, M10/M19 2153.0µm, M8/M17 1427.9µm).
+
+    각 항목은 `(lut_m, L_m, ID_m, vds_m, vsb_m)` -- **호출부가 구체값으로 넘긴다**. 아직
+    vds가 안 정해진 소자는 호출부가 역할별 `min_vds`를 바닥으로 넣는다(IDu가 vds에 증가
+    함수라 낮은 vds가 W를 크게 만드는 쪽 = 안전한 방향). 그 보수성의 대가는 실측으로
+    **격자 한 칸(0.0375V)**이다(pmos:Vbias1 0.7875 -> 0.8250, nmos:Vbias4는 0).
+
+    멤버의 IDu는 `id_density_at_vgs()`로 **VGS에서 직접** 읽는다 -- `gm_id_to_id_density()`를
+    쓰면 gm_id->VGS 왕복이 비단조 구간에서 다른 branch로 튄다(B20).
+    """
     cache = diode_vds_window.__dict__.setdefault("_cache", {})
-    key = (id(lut), kind, round(L, 15), round(ID, 18), round(vsb, 9), W_bounds)
+    key = (id(lut), kind, round(L, 15), round(ID, 18), round(vsb, 9), W_bounds,
+           tuple((id(m[0]), round(m[1], 15), round(m[2], 18), round(m[3], 9),
+                  round(m[4], 9)) for m in mirror_members))
     if key in cache:
         return cache[key]
     lo = hi = None
@@ -2695,9 +2736,26 @@ def diode_vds_window(lut, kind: str, L: float, ID: float, vsb: float,
         if idu <= 0:
             continue
         w = L * ID / idu
-        if W_bounds[0] <= w <= W_bounds[1]:
-            lo = v if lo is None else min(lo, v)
-            hi = v if hi is None else max(hi, v)
+        if not (W_bounds[0] <= w <= W_bounds[1]):
+            continue
+        # VGS를 공유하는 소자들도 **같은 v에서** W 한계 안이어야 한다.
+        ok = True
+        for lut_m, L_m, ID_m, vds_m, vsb_m in mirror_members:
+            try:
+                idu_m = lut_m.id_density_at_vgs(v, L_m, vds_m, vsb_m)
+            except (ValueError, KeyError):
+                ok = False
+                break
+            if idu_m <= 0:
+                ok = False
+                break
+            if not (W_bounds[0] <= L_m * ID_m / idu_m <= W_bounds[1]):
+                ok = False
+                break
+        if not ok:
+            continue
+        lo = v if lo is None else min(lo, v)
+        hi = v if hi is None else max(hi, v)
     cache[key] = (lo, hi)
     return cache[key]
 
@@ -5983,15 +6041,49 @@ def _hr_resolve_vertical_group(env, vsid):
         # 구간 안에 배정했는데도 W가 한계를 넘는다(실측으로 발견: M57이 구간 하한
         # 0.75V를 받고도 W=615.6um).
         _vsb = _e.get("vsb", ref_vds if ref_dev is not None else 0.0)
+        # 2026-09-09(B22, 사용자 승인) -- 이 diode가 미러 레퍼런스이면 VGS를 공유하는
+        # 소자들의 W도 같은 구간 안에 있어야 한다. 안 그러면 배분기가 고른 `lo`가 그
+        # 소자들에게 물리적으로 불가능한 W를 요구한다(실측: 6소자가 최대 66.7배 초과).
+        # **선언 기반(옵트인)**이다 -- connectivity로 넓히지 않는다. 미러를 선언하지 않은
+        # 회로는 `_mirror_members`가 비어 예전과 100% 동일하게 동작한다.
+        _mirror_members = []
+        for _dep, _ddr in sorted(device_roles.items()):
+            if not isinstance(_ddr, dict):
+                continue
+            if _ddr.get("gm_id_match_vgs_of") != _se["name"]:
+                continue
+            _de = ctx.sized.get(_dep, {})
+            _dL, _dID = _de.get("L"), _de.get("ID")
+            if _dL is None or _dID is None or _dID <= 0:
+                # 조용히 건너뛰지 않는다 -- 건너뛰면 그 소자의 W 한계가 구간에
+                # 반영되지 않아 "선언은 했는데 안 지켜지는" 상태가 된다(§3.2 P1).
+                raise ValueError(
+                    f"'{_dep}'(gm_id_match_vgs_of={_se['name']!r})의 L 또는 ID가 헤드룸 "
+                    f"시점에 미확정이라 미러 구간 제약에 넣을 수 없다 -- L={_dL!r}, "
+                    f"ID={_dID!r}. device_roles의 L_role과 theta의 전류 feed를 확인할 것")
+            # vds가 아직 안 정해졌으면 역할별 하한을 바닥으로 쓴다. IDu는 vds에 증가
+            # 함수라 낮은 vds가 W를 크게 만드는 쪽이므로 **안전한 방향**이고, 보수성의
+            # 대가는 실측으로 VDS 격자 한 칸(0.0375V)이다(계획 §10.3 B22).
+            _dvds = _de.get("vds")
+            if _dvds is None:
+                _drole = (device_roles.get(_dep) or {}).get("headroom_role")
+                _dvds = spec.get("min_vds_by_role", {}).get(
+                    _drole, _DEFAULT_MIN_VDS_FALLBACK)
+            _mirror_members.append((
+                spec["lut_by_kind"][ctx.kind_of[_dep]], float(_dL), float(_dID),
+                float(_dvds), float(_de.get("vsb", 0.0))))
         _lo, _hi = diode_vds_window(
             spec["lut_by_kind"][ctx.kind_of[_se["name"]]], ctx.kind_of[_se["name"]],
             _e["L"], _e["ID"], _vsb,
-            tuple(spec.get("W_bounds", (1e-6, 200e-6))))
+            tuple(spec.get("W_bounds", (1e-6, 200e-6))),
+            mirror_members=tuple(_mirror_members))
         if _lo is None:
+            _mm = (f" (VGS를 공유하는 미러 소자 {len(_mirror_members)}개의 W 한계까지 "
+                   f"함께 만족해야 한다 -- B22)" if _mirror_members else "")
             raise InfeasibleSizingError(
                 f"'{_se['name']}'(diode-connected, 그룹 {vsid!r})는 W 한계 안에서 가능한 "
                 f"vds가 LUT 격자에 없다 -- L={_e['L']:.4g}m / ID={_e['ID']:.4g}A에서는 "
-                f"Vgs=Vds를 만족하면서 제작 가능한 폭이 나오지 않는다",
+                f"Vgs=Vds를 만족하면서 제작 가능한 폭이 나오지 않는다{_mm}",
                 sized_snapshot=dict(ctx.sized))
         _se["vds_bounds"] = (_lo, _hi)
 
