@@ -988,16 +988,18 @@
     "M11a": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
-      "L_role": "mirror",
+      "L_role": "bias_replica",
       "vertical_stack_id": "biasgen_vom_battery_a",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "_L_role_comment": "2026-09-09(사용자 확정) -- class-AB 배터리의 **전압기준**이지 신호경로 미러가 아니다. `L_role='mirror'`(L_min x2.5 = 0.375um)의 근거는 '미러는 출력임피던스를 키워야 한다'인데 이 소자에는 해당하지 않고, `'bias_replica'`(x1.2 = 0.180um)의 근거(PVT 민감도 완화가 목적이지 ro 극대화가 아님)가 맞다. 실측 근거: 이 스택은 적층 diode라 M11b.vsb = VDS(M11a)이고(B25), 0.375um에서는 함께 푼 쌍의 최소합이 1.65V로 쓸 수 있는 몫 1.5V를 넘어 어떤 배분으로도 성립하지 않는다. 0.180um면 성립 쌍이 60개이고 최소합이 1.425V로 들어온다(tests/probe_stacked_diode_options.py). NMOS 짝(M14a/M14b, M23a/M24b)은 현재 L에서도 최소합 1.237V로 성립하므로 건드리지 않는다."
     },
     "M11b": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
-      "L_role": "mirror",
+      "L_role": "bias_replica",
       "vertical_stack_id": "biasgen_vom_battery_a",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "_L_role_comment": "2026-09-09(사용자 확정) -- class-AB 배터리의 **전압기준**이지 신호경로 미러가 아니다. `L_role='mirror'`(L_min x2.5 = 0.375um)의 근거는 '미러는 출력임피던스를 키워야 한다'인데 이 소자에는 해당하지 않고, `'bias_replica'`(x1.2 = 0.180um)의 근거(PVT 민감도 완화가 목적이지 ro 극대화가 아님)가 맞다. 실측 근거: 이 스택은 적층 diode라 M11b.vsb = VDS(M11a)이고(B25), 0.375um에서는 함께 푼 쌍의 최소합이 1.65V로 쓸 수 있는 몫 1.5V를 넘어 어떤 배분으로도 성립하지 않는다. 0.180um면 성립 쌍이 60개이고 최소합이 1.425V로 들어온다(tests/probe_stacked_diode_options.py). NMOS 짝(M14a/M14b, M23a/M24b)은 현재 L에서도 최소합 1.237V로 성립하므로 건드리지 않는다."
     },
     "M9a": {
       "headroom_role": "floating_current_source",
@@ -1066,16 +1068,18 @@
     "M20a": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
-      "L_role": "mirror",
+      "L_role": "bias_replica",
       "vertical_stack_id": "biasgen_vop_battery_a",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "_L_role_comment": "2026-09-09(사용자 확정) -- class-AB 배터리의 **전압기준**이지 신호경로 미러가 아니다. `L_role='mirror'`(L_min x2.5 = 0.375um)의 근거는 '미러는 출력임피던스를 키워야 한다'인데 이 소자에는 해당하지 않고, `'bias_replica'`(x1.2 = 0.180um)의 근거(PVT 민감도 완화가 목적이지 ro 극대화가 아님)가 맞다. 실측 근거: 이 스택은 적층 diode라 M11b.vsb = VDS(M11a)이고(B25), 0.375um에서는 함께 푼 쌍의 최소합이 1.65V로 쓸 수 있는 몫 1.5V를 넘어 어떤 배분으로도 성립하지 않는다. 0.180um면 성립 쌍이 60개이고 최소합이 1.425V로 들어온다(tests/probe_stacked_diode_options.py). NMOS 짝(M14a/M14b, M23a/M24b)은 현재 L에서도 최소합 1.237V로 성립하므로 건드리지 않는다."
     },
     "M20b": {
       "headroom_role": "cascode",
       "gm_id_role": "matching",
-      "L_role": "mirror",
+      "L_role": "bias_replica",
       "vertical_stack_id": "biasgen_vop_battery_a",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "_L_role_comment": "2026-09-09(사용자 확정) -- class-AB 배터리의 **전압기준**이지 신호경로 미러가 아니다. `L_role='mirror'`(L_min x2.5 = 0.375um)의 근거는 '미러는 출력임피던스를 키워야 한다'인데 이 소자에는 해당하지 않고, `'bias_replica'`(x1.2 = 0.180um)의 근거(PVT 민감도 완화가 목적이지 ro 극대화가 아님)가 맞다. 실측 근거: 이 스택은 적층 diode라 M11b.vsb = VDS(M11a)이고(B25), 0.375um에서는 함께 푼 쌍의 최소합이 1.65V로 쓸 수 있는 몫 1.5V를 넘어 어떤 배분으로도 성립하지 않는다. 0.180um면 성립 쌍이 60개이고 최소합이 1.425V로 들어온다(tests/probe_stacked_diode_options.py). NMOS 짝(M14a/M14b, M23a/M24b)은 현재 L에서도 최소합 1.237V로 성립하므로 건드리지 않는다."
     },
     "M18a": {
       "headroom_role": "floating_current_source",

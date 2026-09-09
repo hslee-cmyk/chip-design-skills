@@ -2760,6 +2760,90 @@ def diode_vds_window(lut, kind: str, L: float, ID: float, vsb: float,
     return cache[key]
 
 
+def solve_stacked_diode_pair(lut_up, L_up: float, ID_up: float, vsb_up: float,
+                              lut_lo, L_lo: float, ID_lo: float,
+                              W_bounds: tuple, vds_grid,
+                              constrain_up: bool = True, v_up_min: float = 0.0) -> list:
+    """**적층 diode 두 개의 vds를 함께 푼다**(2026-09-09, B25, 사용자 승인).
+
+    ## 왜 독립으로 풀면 안 되는가
+
+    `diode_vds_window()`는 diode 하나씩 창을 구한다. 그런데 한 diode의 드레인이 다른
+    diode의 소스이면(적층) **아래쪽의 vsb가 위쪽의 vds와 같다**:
+
+        vdd --> M11a(diode, source=vdd)  --> N11a11b --> M11b(diode, source=N11a11b)
+        M11a.vsb = 0                         M11b.vsb = vdd - V(N11a11b) = **VDS(M11a)**
+
+    즉 위쪽이 헤드룸을 많이 가질수록 아래쪽의 바디효과가 커지고 Vth가 올라가 같은 VGS에서
+    전류밀도가 떨어진다. 파일럿 실측: M11a와 M11b는 **같은 전류·같은 L·같은 VGS**인데
+    M11b가 **61.3배** 넓어야 한다 -- 차이는 오직 바디효과다.
+
+    독립으로 풀면 창을 계산하는 시점에 아래쪽의 vsb를 모르므로 0으로 놓게 되고(실측: 계산된
+    창의 vsb가 전부 0.0/0.2였다), 배분기가 고른 값이 실제로는 실행불가능해진다
+    (M11b가 W=924~6342µm를 요구). 계획 §10.3 A8이 원래 "스택 diode 연립 solver가 필요하다"
+    였는데 v4.13이 "제약 추가로 충분"으로 재해석한 것은 **이 vsb 결합을 못 본 것**이다(B25).
+
+    ## 무엇을 하는가
+
+    `(v_up, v_lo)` 격자를 훑으며 **아래쪽의 vsb를 후보 `v_up`으로 두고** 두 소자의 W가 모두
+    `W_bounds` 안인 쌍만 모은다. 실측상 성립 조합은 넉넉하다 -- PMOS 배터리(L=0.180µm)
+    60쌍, NMOS 배터리(현재 L) 32쌍. 즉 설계를 바꿀 필요가 아니라 **함께 풀기만 하면 된다**.
+
+    `vsb_up`은 위쪽 소자 자신의 소스-벌크 역바이어스다(소스가 레일이면 0). 아래쪽의
+    vsb는 `vsb_up + v_up`으로 **누적**된다 -- 위쪽 소스가 레일이 아니면 이 항이 없으면
+    틀린다.
+
+    반환은 **합(v_up+v_lo) 오름차순**이다 -- 호출부가 앞에서부터 고르면
+    `allocate_stack_headroom()`의 기존 정책("스택 예산을 가장 적게 먹는 선택")과 일치한다.
+    비어 있으면 이 쌍은 어떤 배분으로도 성립하지 않는다는 뜻이고, 호출부가 그대로 보고해야
+    한다(조용히 폴백하지 않는다, §3.2 P1).
+
+    반환: `[(v_up, v_lo, W_up, W_lo), ...]`
+    """
+    out = []
+    for v_up in vds_grid:
+        v_up = float(v_up)
+        if v_up <= 0 or v_up < v_up_min:
+            continue
+        try:
+            idu_up = lut_up.id_density_at_vgs(v_up, L_up, v_up, vsb_up)
+        except (ValueError, KeyError):
+            idu_up = 1.0 if not constrain_up else None
+            if idu_up is None:
+                continue
+        if idu_up <= 0:
+            continue
+        w_up = L_up * ID_up / idu_up
+        # `constrain_up=False`면 위쪽은 diode가 아니다 -- vds가 W를 정하지 않으므로 W를
+        # 제약하지 않고, 역할별 최소 vds만 지킨다(2026-09-09 확장: M57<-M58, M64<-M63).
+        if constrain_up and not (W_bounds[0] <= w_up <= W_bounds[1]):
+            continue
+        for v_lo in vds_grid:
+            v_lo = float(v_lo)
+            if v_lo <= 0:
+                continue
+            try:
+                # ★ 결합은 여기 한 줄이다.
+                #
+                #   vsb_lo = vsb_up + v_up
+                #
+                # 직렬로 쌓이면 아래쪽 소스는 위쪽 소스에서 위쪽 vds만큼 더 멀어지므로
+                # 벌크 기준 역바이어스가 그만큼 **누적**된다. 위쪽 소스가 레일일 때만
+                # (vsb_up=0) 흔히 쓰는 `vsb_lo = v_up`이 되고, 아니면 틀린다 -- 실측 검산:
+                # M58(vsb 0.2, vds 0.2) 아래의 M57은 vsb 0.4이고, 노드전압 감사도 0.4다.
+                idu_lo = lut_lo.id_density_at_vgs(v_lo, L_lo, v_lo, vsb_up + v_up)
+            except (ValueError, KeyError):
+                continue
+            if idu_lo <= 0:
+                continue
+            w_lo = L_lo * ID_lo / idu_lo
+            if not (W_bounds[0] <= w_lo <= W_bounds[1]):
+                continue
+            out.append((v_up + v_lo, v_up, v_lo, w_up, w_lo))
+    out.sort()
+    return [(a, b, c, d) for _s, a, b, c, d in out]
+
+
 def apply_diode_self_consistent_gm_id(ctx, spec: dict, kind_of: dict,
                                        gm_id_tol: float = 1e-3) -> list:
     """diode-connected 소자의 `gm_id`를 **자기 자신의 vds에서 유도**한다(2026-09-08, B16).
@@ -2991,6 +3075,48 @@ def derive_vsb_from_nodes(kind: str, source_net: str, nodes: dict, vdd: float,
     if v is None:
         return None
     return (vdd - v) if kind == "pmos" else v
+
+
+def reconcile_vsb_from_nodes(ctx, by_name: dict, vdd: float, tol: float = 1e-6) -> dict:
+    """헤드룸이 끝나 vds가 전부 확정된 시점에 **모든 소자의 `vsb`를 노드전압에서 다시
+    유도**한다(2026-09-09, B9 해소, 사용자 승인).
+
+    지금까지 `vsb`는 topology의 `device_roles[*].vsb` 선언(대부분 0.0)과
+    `_hr_resolve_vertical_group()`의 `setdefault("vsb", ref_vds)` 전파에서 왔다. 둘 다
+    물리를 안 본다 -- 전파는 kind도 레일도 안 보고, 선언은 그냥 0이다. 파일럿 51소자 전수
+    대조에서 **26개가 불일치**했다(`tests/probe_node_voltage_audit.py`):
+
+        (가) 소스가 레일인데 vsb!=0     4개  M38(+0.8625) M60(+0.3750) M61/M68(+0.2000)
+        (나) 소스가 비레일인데 vsb==0  15개  M40(-0.9375) M2a/M2b(-0.7997) M37a/M37b(-0.7375)
+        (다) 그 외 값 불일치            7개  M9a/M9b·M18a/M18b는 값이 정확히 **서로 바뀜**
+
+    vsb는 LUT의 VS 축이라 **모든 조회를 틀리게** 한다. B19'(미러 배선)을 막은 것도
+    이것이었다(§10.3 B23).
+
+    `propagate_node_voltages()`+`derive_vsb_from_nodes()`로 다시 구해 덮어쓴다. 두 함수 모두
+    세션46에 이미 있었으나 **엔진 호출부가 하나도 없었다** -- 이 함수가 그 배선이다
+    (★절대원칙). 소스 전압을 못 구하면 0.0으로 때우지 않고 `undetermined`로 돌려주어
+    호출부가 명시적으로 실패하게 한다(§3.2 P1).
+
+    반환: `{"changed": {name: (old, new)}, "undetermined": [name...], "report": <복원 결과>}`
+    """
+    rep = propagate_node_voltages(by_name, ctx.sized, vdd)
+    changed, undetermined = {}, []
+    for name in sorted(by_name):
+        entry = ctx.sized.get(name)
+        if entry is None:
+            continue
+        tr = by_name[name]
+        exp = derive_vsb_from_nodes(tr.kind, tr.source, rep.nodes, vdd)
+        if exp is None:
+            undetermined.append(name)
+            continue
+        old = entry.get("vsb")
+        if old is None or abs(old - exp) > tol:
+            entry["vsb"] = exp
+            entry["_vsb_source"] = "node_voltage"
+            changed[name] = (old, exp)
+    return {"changed": changed, "undetermined": undetermined, "report": rep}
 
 
 def audit_vsb_consistency(by_name: dict, sized: dict, vdd: float,
@@ -6030,9 +6156,159 @@ def _hr_resolve_vertical_group(env, vsid):
     # 그 소자의 vds는 role 상수로 나눠줄 몫이 아니라 W가 정하는 종속값이기 때문이다
     # (실측: 파일럿 diode 16개 중 14개가 배정된 0.2~0.3V보다 높은 vds를 요구했고, M11a는
     # 0.2V에서 W=4.03e8um를 요구해 물리적으로 불가능했다).
+    # 2026-09-09(B25, 사용자 승인) -- 같은 스택 안의 **적층 diode**(한쪽 드레인이 다른 쪽
+    # 소스)는 독립이 아니다: 아래쪽의 vsb가 위쪽의 vds다. 독립으로 창을 구하면 그 시점에
+    # 아래쪽 vsb를 몰라 0으로 놓게 되고, 배분기가 고른 값이 실제로는 실행불가능해진다
+    # (실측: M11b가 W=924~6342µm 요구). 그래서 **쌍을 먼저 연립으로 풀어 고정**하고,
+    # 남은 diode만 아래의 기존 독립 창 경로를 탄다.
+    _diode_set = _diode_set_cached(ctx.topology_path)
+    _pair_fixed = {}
+    _stack_diodes = [se for se in stack_entries
+                     if se["name"] in _diode_set
+                     and (ctx.sized.get(se["name"], {}) or {}).get("L") is not None
+                     and (ctx.sized.get(se["name"], {}) or {}).get("ID", 0) > 0]
+    # diode가 하나뿐인 스택도 대상이다 -- 위쪽이 비-diode여도 그 vds가 diode의 vsb를
+    # 정하기 때문이다(M57<-M58, M64<-M63).
+    if _stack_diodes:
+        _bn_pair, _ = _load_full_topology_cached(ctx.topology_path)
+        _wb_pair = tuple(spec.get("W_bounds", (1e-6, 200e-6)))
+        _vgrid = spec["lut_by_kind"][ctx.kind_of[_stack_diodes[0]["name"]]].VDS_grid
+        for _up in stack_entries:
+            for _lo in _stack_diodes:
+                if _up["name"] == _lo["name"]:
+                    continue
+                _up_is_diode = _up["name"] in _diode_set
+                _ue0 = ctx.sized.get(_up["name"], {}) or {}
+                if _ue0.get("L") is None or not (_ue0.get("ID", 0) > 0):
+                    continue
+                if _bn_pair[_lo["name"]].source != _bn_pair[_up["name"]].drain:
+                    continue
+                if _up["name"] in _pair_fixed or _lo["name"] in _pair_fixed:
+                    continue
+                _ue, _le = ctx.sized[_up["name"]], ctx.sized[_lo["name"]]
+                _usrc = _bn_pair[_up["name"]].source
+                if _usrc in _DEFAULT_RAIL_HI or _usrc in _DEFAULT_RAIL_LO:
+                    _uvsb = 0.0
+                else:
+                    # 위쪽 소스가 레일이 아니면 그 vsb 자체가 **다른 스택이 정한 노드**에
+                    # 달렸을 수 있다(실측: M58의 소스 Vx는 diffpair_branch_a가 정한다).
+                    # 지금까지 확정된 vds로 노드전압을 복원해 구하고, 아직 모르면
+                    # ctx.sized의 값을 쓰되 그 사실을 남긴다(조용히 넘어가지 않는다).
+                    _uvsb_node = None
+                    if spec.get("vdd") is not None:
+                        try:
+                            _uvsb_node = derive_vsb_from_nodes(
+                                ctx.kind_of[_up["name"]], _usrc,
+                                propagate_node_voltages(
+                                    _bn_pair, ctx.sized, spec["vdd"]).nodes,
+                                spec["vdd"])
+                        except Exception:
+                            _uvsb_node = None
+                    if _uvsb_node is not None:
+                        _uvsb = _uvsb_node
+                    else:
+                        _uvsb = _ue.get("vsb", 0.0)
+                        _ue["_vsb_source"] = "pair_solve_fallback"
+                _sol = solve_stacked_diode_pair(
+                    spec["lut_by_kind"][ctx.kind_of[_up["name"]]], _ue["L"], _ue["ID"], _uvsb,
+                    spec["lut_by_kind"][ctx.kind_of[_lo["name"]]], _le["L"], _le["ID"],
+                    _wb_pair, _vgrid, constrain_up=_up_is_diode,
+                    v_up_min=(0.0 if _up_is_diode else _up.get("min_vds", 0.0)))
+                if not _sol:
+                    raise InfeasibleSizingError(
+                        f"적층 diode 쌍 {_up['name']}(위)/{_lo['name']}(아래, 그룹 {vsid!r})를 "
+                        f"함께 풀 수 있는 (vds, vds) 조합이 없다 -- 아래쪽의 vsb가 위쪽의 vds라 "
+                        f"둘은 독립이 아니다(B25). L={_ue['L']:.4g}/{_le['L']:.4g}m, "
+                        f"ID={_ue['ID']:.4g}/{_le['ID']:.4g}A에서는 어떤 배분으로도 두 소자가 "
+                        f"동시에 W 한계 안에 들어오지 않는다",
+                        sized_snapshot=dict(ctx.sized))
+                # 쌍이 쓸 수 있는 몫은 **스택 예산에서 나머지 소자의 최소치를 뺀 것**이다.
+                # 이 상한을 안 보면 성립하는 쌍 중 합이 가장 작은 것을 골라도 예산을 넘길 수
+                # 있다(실측: cmfb_vocdes_gen에서 M39+M40=1.837V > 1.8V).
+                _others_min = sum(
+                    _pair_fixed.get(_o["name"], _o.get("min_vds", 0.0))
+                    for _o in stack_entries
+                    if _o["name"] not in (_up["name"], _lo["name"]))
+                _cap_pair = remaining_vdd - _others_min
+                _fit = [s for s in _sol if s[0] + s[1] <= _cap_pair + 1e-9]
+                if not _fit:
+                    raise InfeasibleSizingError(
+                        f"적층 diode 쌍 {_up['name']}(위)/{_lo['name']}(아래, 그룹 {vsid!r})가 "
+                        f"쓸 수 있는 몫 {_cap_pair:.4g}V 안에 들어오는 조합이 없다 -- 함께 풀면 "
+                        f"성립하는 쌍은 {len(_sol)}개지만 가장 작은 합이 "
+                        f"{_sol[0][0] + _sol[0][1]:.4g}V다(B25). 그 쌍의 조건: "
+                        f"L={_ue['L']*1e6:.4g}/{_le['L']*1e6:.4g}um, "
+                        f"ID={_ue['ID']*1e6:.4g}/{_le['ID']*1e6:.4g}uA, vsb_up={_uvsb:.4g}V. "
+                        f"같은 스택의 다른 소자 몫이나 이 쌍의 L/ID를 바꿔야 한다",
+                        sized_snapshot=dict(ctx.sized))
+                # 어느 쌍을 고르느냐는 **남은 예산을 흡수할 자유 소자가 있느냐**에 달렸다.
+                # diode는 전부 구간 제약을 받으므로 자유 소자는 비-diode다.
+                _free_others = [
+                    _o for _o in stack_entries
+                    if _o["name"] not in (_up["name"], _lo["name"])
+                    and _o["name"] not in _diode_set]
+                if _free_others:
+                    # 예산 보장은 이미 `_cap_pair` 상한이 해준다 -- `_fit`에 남은 쌍은
+                    # 전부 나머지 소자의 최소치를 지킨다. 그래서 그 안에서의 선택은
+                    # 자유로운 tie-break이고, **W가 서로 가까운 쌍**을 고른다.
+                    #
+                    # 왜 W 균형인가: 적층 diode는 바디효과 때문에 아래쪽이 더 넓어야 하는데,
+                    # 합만 최소화하면 W가 크게 갈려 레이아웃이 공통 finger 폭을 못 찾는다
+                    # (실측: min-sum 쌍은 W 2.320/1.415um으로 비 1.64라
+                    #  assign_finger_geometry()가 'biasgen_vom_battery_a__pmos'에서 실패).
+                    # 같은 60개 쌍 중 (0.637,0.750)은 W 4.305/4.802로 비 1.12라 잘 맞고,
+                    # 배터리 기준으로서 **매칭에도 유리**하다.
+                    _v_up, _v_lo, _w_up, _w_lo = min(
+                        _fit, key=lambda s: (abs(s[2] - s[3]) / max(s[2], s[3]),
+                                             s[0] + s[1]))
+                else:
+                    # 이 쌍이 스택의 전부다 -- KVL상 합이 예산과 **정확히** 같아야 한다.
+                    # (실측: cmfb_vocdes_gen은 M39/M40뿐이라 최소합을 고르면 0.2625V가
+                    #  배정될 곳 없이 남는다.)
+                    # 격자점끼리의 합이 예산에 정확히 떨어지리라는 보장이 없다 -- 그건
+                    # LUT 격자의 양자화이지 물리가 아니다(실측: M39/M40이 L=0.375um면
+                    # 파일럿에서 맞고 L5c에서 안 맞고, L=0.180um면 정반대였다). LUT는 VDS를
+                    # 연속 보간하므로 **아래쪽을 `예산 - v_up`으로 직접 잡아** 격자를 벗어난
+                    # 지점도 평가한다. 이러면 정확 일치가 격자 운에 달리지 않는다.
+                    _exact = [s for s in _fit if abs(s[0] + s[1] - _cap_pair) <= 1e-9]
+                    if not _exact:
+                        _lut_up_x = spec["lut_by_kind"][ctx.kind_of[_up["name"]]]
+                        _lut_lo_x = spec["lut_by_kind"][ctx.kind_of[_lo["name"]]]
+                        for _vu, _vl_unused, _wu, _wl_unused in _sol:
+                            _vl = _cap_pair - _vu
+                            if _vl <= 0:
+                                continue
+                            try:
+                                _idu_l = _lut_lo_x.id_density_at_vgs(
+                                    _vl, _le["L"], _vl, _uvsb + _vu)
+                            except (ValueError, KeyError):
+                                continue
+                            if _idu_l <= 0:
+                                continue
+                            _wl = _le["L"] * _le["ID"] / _idu_l
+                            if _wb_pair[0] <= _wl <= _wb_pair[1]:
+                                _exact = [(_vu, _vl, _wu, _wl)]
+                                break
+                    if not _exact:
+                        _sums = sorted({round(s[0] + s[1], 6) for s in _fit})
+                        raise InfeasibleSizingError(
+                            f"적층 diode 쌍 {_up['name']}/{_lo['name']}(그룹 {vsid!r})이 이 "
+                            f"스택의 전부라 합이 예산 {_cap_pair:.4g}V와 정확히 같아야 하는데, "
+                            f"성립하는 합이 {_sums[:6]}{' ...' if len(_sums) > 6 else ''}로 "
+                            f"그 값이 없다(B25). VDS 격자를 촘촘히 하거나 이 쌍의 L/ID를 "
+                            f"바꿔야 한다",
+                            sized_snapshot=dict(ctx.sized))
+                    _v_up, _v_lo, _w_up, _w_lo = _exact[0]
+                _pair_fixed[_up["name"]] = _v_up
+                _pair_fixed[_lo["name"]] = _v_lo
     for _se in stack_entries:
+        if _se["name"] in _pair_fixed:
+            # 연립으로 이미 확정됐다 -- 자유도가 없는 점 구간으로 넘긴다.
+            _v = _pair_fixed[_se["name"]]
+            _se["vds_bounds"] = (_v, _v)
+            continue
         _e = ctx.sized.get(_se["name"], {})
-        if (_se["name"] not in _diode_set_cached(ctx.topology_path)
+        if (_se["name"] not in _diode_set
                 or _e.get("L") is None or _e.get("ID") is None or _e.get("ID", 0) <= 0):
             continue
         # vsb는 **배정 직후 전파될 값**을 미리 써야 한다 -- 아래 배정 루프가
@@ -6818,6 +7094,24 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     f"선언 누락) -- 그룹별로 막힌 지점: "
                     + "; ".join(f"'{v}': {last_error[v]}" for v in pending))
 
+        # 2026-09-09(B9 해소, 사용자 승인) -- vds가 전부 확정된 **지금이** vsb를 물리적으로
+        # 유도할 수 있는 첫 시점이다. 적용 조건은 vertical_stack이 실제로 풀린 회로 --
+        # 스택이 있는데 vdd가 없으면 조용히 넘어가지 않고 오류를 낸다(선언 누락이다).
+        _vsb_vdd = spec.get("vdd")
+        _vsb_applies = bool(vertical_groups)
+        if _vsb_applies and _vsb_vdd is None:
+            raise ValueError(
+                "vertical_stack_id 그룹이 선언돼 있는데 spec['vdd']가 없다 -- "
+                "vsb를 노드전압에서 유도하려면(B9) 레일 전압이 필요하다")
+        _vsb_rec = (reconcile_vsb_from_nodes(ctx, by_name, _vsb_vdd)
+                    if _vsb_applies else None)
+        if _vsb_rec and _vsb_rec["undetermined"]:
+            raise ValueError(
+                f"vsb를 노드전압에서 유도할 수 없는 소자 "
+                f"{len(_vsb_rec['undetermined'])}개: {_vsb_rec['undetermined'][:8]} -- "
+                f"소스 노드 전압이 복원되지 않았다(미해소 노드 "
+                f"{len(_vsb_rec['report'].unresolved)}개). 0.0으로 때우지 않는다")
+
         # 2026-08-14 -- L_role의 _AUTHORITATIVE_L_SOURCES(3905행)와 대칭되는 gm_id_role
         # 가드가 원래 없었다(실측으로 발견 -- propose_device_roles_gap_fill()이
         # compensation.stage_devices 소속 소자에 gm_id_role="matching"을 채우면, 여기서
@@ -7039,6 +7333,18 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         for _scb_plan in (ctx.derived.get("_scb_joint_plan_by_devices") or {}).values():
             _refine_shared_current_joint_scan_for_full_circuit_constraints(_scb_plan, ctx)
 
+        # 2026-09-09(B9) -- 모든 pass가 끝난 지금 vsb가 여전히 노드전압과 맞는지
+        # **게이트로 확인**한다. 이후 pass들이 지역변수로 vsb를 다시 써넣는 지점이 여러
+        # 곳이라 스테일 값이 되살아날 수 있다. `audit_vsb_consistency()`는 세션46에
+        # 만들어졌는데 **호출부가 하나도 없었다** -- 이 게이트가 그 배선이다.
+        _vsb_bad = (audit_vsb_consistency(by_name, ctx.sized, _vsb_vdd)
+                    if _vsb_applies else [])
+        if _vsb_bad:
+            _top = ", ".join(f"{r[0]}({r[6]:+.4f}V)" for r in _vsb_bad[:6])
+            raise ValueError(
+                f"사이징이 끝난 뒤에도 vsb가 노드전압과 어긋난 소자 {len(_vsb_bad)}개: "
+                f"{_top}{' ...' if len(_vsb_bad) > 6 else ''} -- 헤드룸 직후 "
+                f"reconcile_vsb_from_nodes()가 바로잡은 값을 이후 pass가 덮어썼다")
         metrics_result = {name: compute_metric(mspec, ctx) for name, mspec in metrics_specs.items()}
         return ctx, metrics_result
 
@@ -10349,6 +10655,18 @@ if __name__ == "__main__":
             _l5c_t["bounds"] = [0.05, 0.05]
         elif _l5c_t["name"] == "r_classab_battery":
             _l5c_t["bounds"] = [0.3, 0.3]
+        elif _l5c_t["name"] == "r_cmfb_vocdes":
+            # 2026-09-09(B25 후속, 사용자 확정) -- 중점(0.11)이 아니라 **하한(0.02)**에
+            # 고정한다. 중점은 CMFB 기준분배기 M39/M40에 8.197uA를 흘리는데, 이는 실제
+            # 최적점(0.020000, 즉 하한)의 **17배**다. 바디효과를 제대로 넣은 뒤로는 그
+            # 전류에서 M39/M40이 1.8V를 나눌 수 없다 -- 함께 푼 쌍의 최소합이 1.837V다
+            # (B25). L로는 못 고친다: 0.375um면 파일럿만, 0.180um면 이 점만 성립해 두
+            # 동작점을 동시에 만족하는 L이 없음을 실측 확인했다(계획 §10.3 B25).
+            #
+            # 즉 고정값 0.11 자체가 물리적으로 도달 불가능해진 것이라, 이 픽스처 본연의
+            # 목적(헤드룸 singleton KVL 검증)을 지키면서 실제 설계가 고르는 값으로 옮긴다.
+            # K_replica/r_classab_battery를 이미 특별 고정하고 있는 것과 같은 방식이다.
+            _l5c_t["bounds"] = [0.02, 0.02]
         else:
             _l5c_lo, _l5c_hi = _l5c_t["bounds"]
             _l5c_mid = (_l5c_lo + _l5c_hi) / 2.0
