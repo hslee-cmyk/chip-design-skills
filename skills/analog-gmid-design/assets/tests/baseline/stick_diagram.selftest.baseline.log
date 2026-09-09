@@ -1139,7 +1139,7 @@ CS  gnd  OUT  gnd  OUT  gnd  OUT  gnd  CS  gnd  OUT  gnd  CS
   optimize_full_circuit_budget()을 돌려도 sizing 결과가 안 채운 원본과 완전히 같은지
   -- _AUTHORITATIVE_GM_ID_SOURCES 가드가 실제로 동작하는지, workspaces/run_harness.py의
   실제 검증된 spec(_spec_two_stage_ota())을 그대로 재사용해 회귀 검증]
-    참고(정직한 한계, DC/AC 아키텍처 미분리 -- 세션41이 이미 발견해 별도 과제로 이월): 'stage1_out' 그룹의 VDS 합(2.15465V)이 vdd(1.8V)와 불일치(diff=+0.354654V) -- KVL(직렬 branch 전압강하 합=vdd)이 깨졌다. 소자별 값: M4=0.9172, M...
+    참고(정직한 한계, DC/AC 아키텍처 미분리 -- 세션41이 이미 발견해 별도 과제로 이월): 'stage1_out' 그룹의 VDS 합(2.37965V)이 vdd(1.8V)와 불일치(diff=+0.579654V) -- KVL(직렬 branch 전압강하 합=vdd)이 깨졌다. 소자별 값: M4=0.9172, M...
     PASS(known-limitation 일관성): M1에 gm_id_role을 채워도 before와 정확히 같은 이유로 실패 -- _AUTHORITATIVE_GM_ID_SOURCES 가드 자체의 회귀는 아님(가드의 최종 sizing-불변 검증은 DC/AC 갭 해소 후 재개할 것)
 
   === Test 53 전체 PASS ===

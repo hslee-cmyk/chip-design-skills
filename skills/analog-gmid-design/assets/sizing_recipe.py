@@ -496,21 +496,89 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         return result
 
     def _solve_vgs(self, gm_id: float, L: float, vds: float, vsb: float) -> float:
-        """목표 gm/ID를 만족하는 VGS를 격자 위에서 역보간으로 찾는다 (gm/ID는 VGS에 단조감소).
+        """목표 gm/ID를 만족하는 **가장 큰 VGS 해**(rightmost root)를 격자 위에서 찾는다.
+
         순수함수라 (gm_id,L,vds,vs)별로 결과를 캐싱한다(위 `__init__`의 `_solve_vgs_cache` 주석
-        참고 -- find_optimal_sizing()이 같은 4-tuple로 이 함수를 여러 호출부에서 중복 호출한다)."""
+        참고 -- find_optimal_sizing()이 같은 4-tuple로 이 함수를 여러 호출부에서 중복 호출한다).
+
+        ## 왜 "rightmost root"인가 (2026-09-09, B20 수정)
+
+        이 함수는 원래 `gm/ID는 VGS에 단조감소`를 **전제로 선언해놓고** 이렇게 풀었다:
+
+            order = np.argsort(gm_id_vals)          # np.interp는 오름차순 x를 요구
+            result = np.interp(gm_id, gm_id_sorted, vgs_sorted)
+
+        단조감소면 `argsort`는 배열을 뒤집는 것일 뿐이라 옳다. 그런데 **실측 LUT는
+        단조가 아니다**: PMOS는 `VDS>=0.15` 격자 2700점 중 2032점(75.3%)이 비단조이고,
+        그중 탐색범위 `gm_id_grid`(4~24)와 겹치는 것이 1446점(53.6%)이다(NMOS는 전 구간
+        단조라 무사). 비단조이면 `argsort`가 **서로 다른 branch의 VGS를 뒤섞어**, VGS 축에서
+        인접하지도 않은 두 점 사이를 보간한다 -- 물리적으로 의미 없는 VGS가 나온다.
+
+        이 함수는 `gm_id_to_id_density()`(=`W = L*ID/IDu`의 분모)·`gm_gds_ratio()`·`fT()`·
+        `cgg_absolute()`가 전부 첫 줄에서 부르므로 **모든 W 계산의 뿌리**다. 그래서 이 오류는
+        오류 없이 조용히 W를 틀리게 만들었다(파일럿 M18a/M9a에서 실측 2.36배).
+
+        **"정점 오른쪽만 쓴다"로는 부족하다**: 비단조 2032점 중 정점 오른쪽이 완전 단조인
+        것은 682점(33.6%)뿐이다. 다만 나머지의 잔여 상승은 중앙 0.606% / 최대 2.20%로
+        **LUT 수치잡음**이지 별개 branch가 아니다(약반전 쪽 주 봉우리는 8% 규모이고 VGS
+        0.50 vs 0.71로 IDu가 170배 갈린다 -- 성격이 다르다). 그래서 정점을 기준으로 자르는
+        대신 **가장 큰 VGS 해를 취한다**:
+
+          - 물리적으로 옳은 강반전 해를 항상 고른다(약반전 꼬리는 누설이 지배해 사이징
+            대상이 아니다).
+          - 2% 잡음이 만드는 미세 교차는 VGS 축에서 서로 인접해 오차가 무시할 수준이다.
+          - 목표가 곡선 전체 범위 밖이면 해가 없어 **명시적으로 실패**한다(§3.2 P1 --
+            조용한 실패 금지).
+
+        ## 단조 곡선에서는 이전과 완전히 같은 값이 나온다
+
+        단조감소 곡선에서는 목표를 품는 구간이 유일하므로 "가장 오른쪽 구간"이 곧 그
+        구간이다. 그 구간에 **이전과 같은 방향(gm_id 오름차순)으로** `np.interp`를 적용하므로
+        부동소수점 연산까지 동일하다 -- NMOS와 self-test toy LUT는 값이 한 비트도 안 바뀐다
+        (기준선 회귀로 확인).
+
+        ## 재계산 비용 (실측, 2026-09-09)
+
+        캐시(`_solve_vgs_cache`)와 `_gm_id_curve()` 캐시는 그대로라 **호출 횟수는 안 변한다**.
+        호출 1회 비용만 조금 는다 -- 실측 **4.95 → 5.85 µs (1.18배)**. `argsort`가
+        사라졌는데도 느려지는 이유는 구간 판정에 배열 연산이 몇 개 더 들어가기 때문이고,
+        스칼라 접근을 `.item()`으로 바꿔 파이썬 float 산술로 내린 뒤의 값이 이 수치다
+        (그 전엔 1.6~2.3배였다).
+
+        전체에서 차지하는 몫: 파일럿 평가 1회(465 ms)에 `_solve_vgs` 캐시미스가 13,187회라
+        이 함수가 **14.0%**를 쓰고, 이번 변경의 순증가는 **11.9 ms = 평가 1회의 2.55%**다.
+        """
         key = (gm_id, L, vds, vsb)
         cached = self._solve_vgs_cache.get(key)
         if cached is not None:
             return cached
-        _, gm_id_vals = self._gm_id_curve(L, vds, vsb)
-        order = np.argsort(gm_id_vals)  # np.interp는 오름차순 x를 요구
-        gm_id_sorted, vgs_sorted = gm_id_vals[order], self.VGS_grid[order]
-        if gm_id < gm_id_sorted[0] or gm_id > gm_id_sorted[-1]:
+        _, g = self._gm_id_curve(L, vds, vsb)
+        vgs_grid = self.VGS_grid
+        # 목표를 품는(bracket) 인접 구간 중 **가장 오른쪽**을 고른다. 두 끝점의 편차 곱이
+        # 0 이하면 그 구간이 목표를 품는다(끝점에서 정확히 일치하는 경우도 곱=0으로 포함).
+        d = g - gm_id
+        idx = np.flatnonzero(d[:-1] * d[1:] <= 0.0)
+        if idx.size == 0:
+            n_up = int(np.sum(np.diff(g) > 0))
             raise ValueError(
-                f"gm_id={gm_id:.3g}가 LUT 범위[{gm_id_sorted[0]:.3g},{gm_id_sorted[-1]:.3g}] 밖 — "
-                "VGS 스윕 범위를 넓히거나 moderate/weak inversion 쪽 gm/ID로 조정하세요.")
-        result = float(np.interp(gm_id, gm_id_sorted, vgs_sorted))
+                f"gm_id={gm_id:.3g}가 이 (L={L:.4g},vds={vds:.4g},vsb={vsb:.4g})의 gm/ID 곡선 "
+                f"범위[{float(g.min()):.3g},{float(g.max()):.3g}] 밖 — VGS 스윕 범위를 넓히거나 "
+                "moderate/weak inversion 쪽 gm/ID로 조정하세요"
+                + (f" (이 곡선은 비단조다: 상승 구간 {n_up}개)." if n_up else "."))
+        i = int(idx[-1])
+        # 이전 구현(`argsort` 후 전역 `np.interp`)과 **같은 방향·같은 연산 순서**로 2점
+        # 보간한다(`slope*(x-x0)+y0`, numpy와 동일) -- 단조 곡선에서 결과가 비트 단위로
+        # 동일하게 유지된다(위 docstring 참고).
+        ga, gb = g.item(i), g.item(i + 1)
+        va, vb = vgs_grid.item(i), vgs_grid.item(i + 1)
+        if ga <= gb:
+            x0, x1, y0, y1 = ga, gb, va, vb
+        else:
+            x0, x1, y0, y1 = gb, ga, vb, va
+        if x1 == x0:                    # 평탄 구간 -- 가장 큰 VGS 쪽 끝점을 취한다
+            result = vb
+        else:
+            result = (y1 - y0) / (x1 - x0) * (gm_id - x0) + y0
         self._solve_vgs_cache[key] = result
         return result
 

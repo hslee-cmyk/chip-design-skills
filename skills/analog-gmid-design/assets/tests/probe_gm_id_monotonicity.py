@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
-"""`_solve_vgs()`의 **단조 전제**가 실제 LUT에서 성립하는지, 안 하면 W가 얼마나
-틀리는지 재는 조사 도구(2026-09-09, B19 설계공간 스윕 중 발견).
+"""`_solve_vgs()`의 **단조 전제**가 실제 LUT에서 성립하는지 재고, 수정 후에는
+그 수정이 유지되는지 지키는 도구(2026-09-09, B19 설계공간 스윕 중 발견 -> 당일 해소).
 
-## 무엇이 문제인가
+## 상태: B20은 **해소됐다**(2026-09-09). 이 스크립트는 이제 회귀 감시가 본체다.
+
+`_solve_vgs()`는 **rightmost root**(목표를 품는 가장 오른쪽 구간에서만 보간)로 다시
+쓰였다. §4가 LUT 정의역을 훑으며 엔진과 독립 참조 구현을 대조한다 -- 마지막 실행에서
+nmos 16,186건 / pmos 16,181건 **전부 일치**(실패 조건까지 동일)했다. §1/§1b는 왜 그
+수정이 필요했는지를 남기는 측정이라 그대로 둔다.
+
+## 무엇이 문제였나
 
 `SemiEmpiricalGmIdLUT._solve_vgs()`는 docstring에 **"gm/ID는 VGS에 단조감소"**라고
-전제를 적어놓고 이렇게 역보간한다:
+전제를 적어놓고 이렇게 역보간했다:
 
     order = np.argsort(gm_id_vals)                       # 비단조면 두 branch가 뒤섞인다
     result = np.interp(gm_id, gm_id_sorted, vgs_sorted)
@@ -56,12 +63,15 @@ branch의 올바른 해는 0.4306um -- **2.36배 틀렸다**. 오류 없이 조�
 주의: B9(vsb 오산출)이 아직 안 고쳐져 있으므로 현재 vsb 값 자체가 신뢰할 수 없다.
 B9를 고치면 vsb가 커지는 소자가 늘어 이 결함에 **더 많이** 노출될 수 있다.
 
-이 스크립트는 세 가지를 잰다 -- **고치지 않고 재기만 한다**:
+이 스크립트가 재는 것:
 
-  1. LUT 정의역 전체에서 비단조인 (L,VDS,VS) 동작점이 몇 %인가, 그중 탐색범위와 겹치는 건
-     몇 %인가, 위험이 vsb/L 어디에 몰려 있는가
-  2. 파일럿 51소자 중 자기 gm_id가 그 대역 안에 있는 소자가 있는가
-  3. 있다면 W가 얼마나 틀리는가 (엔진의 `argsort` 역보간 vs 강반전 branch의 올바른 해)
+  1 / 1b  LUT 정의역 전체에서 비단조인 (L,VDS,VS) 동작점이 몇 %인가, 그중 탐색범위와
+          겹치는 건 몇 %인가, 위험이 vsb/L 어디에 몰려 있는가 (수정의 근거 -- 보존)
+  2 / 3   파일럿 소자가 그 대역에 걸리는가, 걸리면 W가 얼마나 틀리는가.
+          `probe_mirror_design_space.py`가 만든 사이징 캐시가 있어야 돈다(없으면 건너뛴다).
+          **수정 후에는 정의상 0건**이라, 남겨둔 것은 이력과 재현용이다.
+  4       ★ **회귀 감시(본체)** -- 엔진의 `_solve_vgs()`가 독립 계산한 rightmost root와
+          일치하는가. 사이징 캐시가 필요 없고, 하나라도 어긋나면 회귀다.
 
 실행: assets 디렉터리에서 `python tests/probe_gm_id_monotonicity.py`
 """
@@ -305,6 +315,79 @@ else:
         w_str = L * ID / idu_str * 1e6 if idu_str > 0 else float("nan")
         emit(f"  {name:<9}{gm_id:>8.3f}{v_eng:>11.4f}{v_str:>13.4f}"
              f"{w_eng:>12.4f}{w_str:>13.4f}{w_eng/max(w_str,1e-30):>10.2f}x")
+
+
+# ── 4. 수정 후 회귀 감시 -- 엔진이 rightmost root와 일치하는가 ────────────────
+emit("")
+emit("=" * 96)
+emit("4. 회귀 감시: `_solve_vgs()`가 독립 계산한 rightmost root와 일치하는가 (B20 수정 후)")
+emit("=" * 96)
+emit("")
+emit("  B20 수정(2026-09-09) 이후 이 절이 이 스크립트의 본체다. LUT 정의역을 훑으며")
+emit("  엔진의 `_solve_vgs()`와, 여기서 순수 파이썬으로 다시 구현한 rightmost root를")
+emit("  대조한다. 하나라도 어긋나면 회귀다.")
+
+
+def rightmost_root(lut, gm_id, L, vds, vsb):
+    """목표를 품는 가장 오른쪽 구간에서 선형 보간 -- 엔진과 독립인 참조 구현."""
+    _, g = lut._gm_id_curve(L, vds, vsb)
+    g = np.asarray(g, dtype=float)
+    vg = np.asarray(lut.VGS_grid, dtype=float)
+    hit = None
+    for i in range(len(g) - 2, -1, -1):       # 오른쪽에서 왼쪽으로
+        a, b = g[i] - gm_id, g[i + 1] - gm_id
+        if a * b <= 0.0:
+            hit = i
+            break
+    if hit is None:
+        return None
+    ga, gb, va, vb = g[hit], g[hit + 1], vg[hit], vg[hit + 1]
+    if ga == gb:
+        return float(vb)
+    x0, x1, y0, y1 = (ga, gb, va, vb) if ga <= gb else (gb, ga, vb, va)
+    return float((y1 - y0) / (x1 - x0) * (gm_id - x0) + y0)
+
+
+emit("")
+emit(f"  {'kind':<7}{'대조 건수':>10}{'일치':>9}{'불일치':>9}{'최대차(V)':>12}"
+     f"{'엔진만 실패':>12}{'참조만 실패':>12}")
+emit("  " + "-" * 71)
+_guard_bad = 0
+for kind, lut in LUT.items():
+    n = ok = bad = only_eng = only_ref = 0
+    worst = 0.0
+    for L in lut.L_grid:
+        for vds in lut.VDS_grid:
+            if vds < 0.15:
+                continue
+            for vsb in lut.VS_grid:
+                for gi in (4.0, 8.0, 12.0, 16.0, 20.0, 24.0):
+                    lut._solve_vgs_cache.pop((gi, float(L), float(vds), float(vsb)), None)
+                    try:
+                        eng = lut._solve_vgs(gi, float(L), float(vds), float(vsb))
+                    except ValueError:
+                        eng = None
+                    ref = rightmost_root(lut, gi, float(L), float(vds), float(vsb))
+                    if eng is None and ref is None:
+                        continue
+                    if eng is None:
+                        only_ref += 1
+                        continue
+                    if ref is None:
+                        only_eng += 1
+                        continue
+                    n += 1
+                    if eng == ref:
+                        ok += 1
+                    else:
+                        bad += 1
+                        worst = max(worst, abs(eng - ref))
+    _guard_bad += bad + only_eng + only_ref
+    emit(f"  {kind:<7}{n:>10d}{ok:>9d}{bad:>9d}{worst:>12.3g}{only_eng:>12d}{only_ref:>12d}")
+
+emit("")
+emit("  판정: " + ("★ 회귀 -- 위 불일치를 조사할 것" if _guard_bad
+                   else "통과 (전 건 일치, 실패 조건도 동일)"))
 
 emit("")
 emit("완료. 결과 파일:", _RESULT_PATH)
