@@ -6345,9 +6345,25 @@ def _hr_resolve_vertical_group(env, vsid):
                 _drole = (device_roles.get(_dep) or {}).get("headroom_role")
                 _dvds = spec.get("min_vds_by_role", {}).get(
                     _drole, _DEFAULT_MIN_VDS_FALLBACK)
+            # vsb도 **노드전압에서 유도**한다(2026-09-09, B9 착지 후 정합). ctx.sized의
+            # vsb는 이 시점엔 아직 헤드룸 전파가 넣은 값이라 물리와 어긋날 수 있고
+            # (파일럿 51소자 중 26개가 그랬다), 미러 멤버의 vsb가 틀리면 전류밀도가
+            # 최대 55배까지 잘못 나와 창이 통째로 비어버린다(§10.3 B23의 M38).
+            _dvsb = None
+            if spec.get("vdd") is not None:
+                try:
+                    _dvsb = derive_vsb_from_nodes(
+                        ctx.kind_of[_dep], _bn_pair[_dep].source,
+                        propagate_node_voltages(_bn_pair, ctx.sized, spec["vdd"]).nodes,
+                        spec["vdd"])
+                except Exception:
+                    _dvsb = None
+            if _dvsb is None:
+                _dvsb = float(_de.get("vsb", 0.0))
+                _de["_vsb_source"] = "mirror_window_fallback"
             _mirror_members.append((
                 spec["lut_by_kind"][ctx.kind_of[_dep]], float(_dL), float(_dID),
-                float(_dvds), float(_de.get("vsb", 0.0))))
+                float(_dvds), float(_dvsb)))
         _lo, _hi = diode_vds_window(
             spec["lut_by_kind"][ctx.kind_of[_se["name"]]], ctx.kind_of[_se["name"]],
             _e["L"], _e["ID"], _vsb,

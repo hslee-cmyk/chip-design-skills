@@ -951,39 +951,44 @@
   "device_roles": {
     "M6": {
       "headroom_role": "tail",
-      "gm_id_role": "balanced",
       "L_role": "bias_replica",
       "vertical_stack_id": "diffpair_branch_a",
-      "_vertical_stack_id_comment": "2026-09-03(세션43, diffpair 병합 근본수정) -- 기존 'vx_tail_a'(M6 단독)를 없애고 실제 물리적 단일 branch(M6-M1a/b-M2a/b-M3a/b-M4a/b-M5, vdd~gnd, M7은 same_as_device로 이미 별도 처리)를 통째로 'diffpair_branch_a' 하나로 병합했다. 근본원인: diffpair_top_a={M1a,M2a}/diffpair_bottom_a={M3a,M4a}가 서로를 budget_reference_device로 참조하는 상호순환은 대수적으로 미결정(M2a.vds+M3a.vds=상수 하나에 미지수 둘 -- 직접 대입하면 항등식만 나옴, 세션43 확인)이라 근본적으로 못 풀렸다. symmetry.matching_pairs가 이미 M1a=M1b/M2a=M2b/M3a=M3b/M4a=M4b를 선언해뒀으므로(_vfind 대표 1개만 집계), 이 10소자를 한 vsid로 합치면 allocate_stack_headroom()의 기존 계약(cascode류 thin role은 얇게, tail류는 남는 예산 균등분배)이 그대로 적용된다 -- M1a/M4a(compensation 기결정)는 known_vds_sum, M2a/M3a(cascode)는 각자 role 최소치, M6/M5(tail)가 정확히 남는 예산을 절반씩 받는다(assert로 합=vdd 보장). `.ai/context.md` 세션43 참고."
+      "_vertical_stack_id_comment": "2026-09-03(세션43, diffpair 병합 근본수정) -- 기존 'vx_tail_a'(M6 단독)를 없애고 실제 물리적 단일 branch(M6-M1a/b-M2a/b-M3a/b-M4a/b-M5, vdd~gnd, M7은 same_as_device로 이미 별도 처리)를 통째로 'diffpair_branch_a' 하나로 병합했다. 근본원인: diffpair_top_a={M1a,M2a}/diffpair_bottom_a={M3a,M4a}가 서로를 budget_reference_device로 참조하는 상호순환은 대수적으로 미결정(M2a.vds+M3a.vds=상수 하나에 미지수 둘 -- 직접 대입하면 항등식만 나옴, 세션43 확인)이라 근본적으로 못 풀렸다. symmetry.matching_pairs가 이미 M1a=M1b/M2a=M2b/M3a=M3b/M4a=M4b를 선언해뒀으므로(_vfind 대표 1개만 집계), 이 10소자를 한 vsid로 합치면 allocate_stack_headroom()의 기존 계약(cascode류 thin role은 얇게, tail류는 남는 예산 균등분배)이 그대로 적용된다 -- M1a/M4a(compensation 기결정)는 known_vds_sum, M2a/M3a(cascode)는 각자 role 최소치, M6/M5(tail)가 정확히 남는 예산을 절반씩 받는다(assert로 합=vdd 보장). `.ai/context.md` 세션43 참고.",
+      "gm_id_match_vgs_of": "M18_bg",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M18_bg와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias1, source=vdd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.4642V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='balanced'를 대체)"
     },
     "M7": {
       "headroom_role": "tail",
-      "gm_id_role": "balanced",
       "L_role": "bias_replica",
       "vertical_stack_id": "vx_tail_b",
       "same_as_device": "M6",
-      "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M7(source=vdd,drain=Vx)은 M6(source=vdd,drain=Vx)과 물리적으로 완전히 같은 두 노드를 구동하는 병렬 tail이라 VDS(M7)=VDS(M6)이 KVL상 항상 정확히 같아야 한다. budget_reference_device(vdd-ref, '나머지' 관계)로는 이 '동일' 관계를 표현할 수 없어(M7에 걸면 vdd-vds(M6)이 나와 틀림) same_as_device(신규 필드)로 M6을 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M6의 vds를 그대로 복사."
+      "_headroom_role_comment": "2026-08-11(세션28) 신규 -- M7(source=vdd,drain=Vx)은 M6(source=vdd,drain=Vx)과 물리적으로 완전히 같은 두 노드를 구동하는 병렬 tail이라 VDS(M7)=VDS(M6)이 KVL상 항상 정확히 같아야 한다. budget_reference_device(vdd-ref, '나머지' 관계)로는 이 '동일' 관계를 표현할 수 없어(M7에 걸면 vdd-vds(M6)이 나와 틀림) same_as_device(신규 필드)로 M6을 직접 참조 -- 헤드룸 예산 계산에 아예 안 참여하고 M6의 vds를 그대로 복사.",
+      "gm_id_match_vgs_of": "M36a",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M36a와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vcmfb, source=vdd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.0092V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='balanced'를 대체)"
     },
     "M5": {
       "headroom_role": "tail",
-      "gm_id_role": "balanced",
       "L_role": "bias_replica",
-      "vertical_stack_id": "diffpair_branch_a"
+      "vertical_stack_id": "diffpair_branch_a",
+      "gm_id_match_vgs_of": "M66",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M66와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias4, source=gnd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.6632V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='balanced'를 대체)"
     },
     "M8": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_a",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M18_bg",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M18_bg와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias1, source=vdd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.4642V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M13": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_battery_b",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M12와 동일 패턴(VDD-M13-M14a-M14b-GND 3소자 단순 직렬 컬럼인데 M13만 따로 'biasgen_vom_diode_src'였음) -- M14a/M14b와 같은 vsid로 합침.",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M18_bg",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M18_bg와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias1, source=vdd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.4642V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M11a": {
       "headroom_role": "cascode",
@@ -1021,20 +1026,22 @@
     },
     "M12": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_battery_a",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 원래 'biasgen_vom_battery_a_sink'로 M11a/M11b('biasgen_vom_battery_a')와 다른 vsid였다. 그런데 실제 회로는 VDD-M11a-N11a11b-M11b-N11b-M12-GND(r_diode_M11a theta 주석에 이미 명시)인 단순 3소자 직렬 컬럼 하나뿐이라, M12를 따로 떼면 M11a/M11b만으로 vdd 헤드룸 배정을 시도하다 배분할 곳(cascode 아닌 role)이 없어 allocate_stack_headroom() assert가 실패했다(2026-08-10 세션에서 발견). M11a/M11b와 같은 vsid로 합쳐 하나의 물리적 컬럼으로 취급 -- audit_vertical_stack_id_vs_kcl()가 이 경계를 'kind=internal_series'(정상적으로 갈릴 수 있는 기능적 경계)로 분류했던 건 KCL 같은-전류 여부에 대한 판단일 뿐, 헤드룸(같은 물리적 컬럼) 판단과는 별개임을 이번에 확인했다.",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M66",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M66와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias4, source=gnd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.6632V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M10": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vom_floatsrc_sink",
       "vds_match_vgs_of": "M16",
       "_vds_match_vgs_of_comment": "2026-08-19(세션39) -- M10.drain=Vop1=M16.gate이고 둘 다 source=gnd 공유라 VGS(M16)=VDS(M10)이 KVL로 강제된다(M203/M204와 정확히 같은 패턴). M16은 compensation.stage_devices 소속이라 gm_id가 이미 AC 스펙(GBW/PM)에서 확정되므로 M16이 권위 있는 쪽 -- M10의 vds를 M16의 VGS로 맞춘다.",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M66",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M66와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias4, source=gnd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.6632V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M14a": {
       "headroom_role": "cascode",
@@ -1052,18 +1059,20 @@
     },
     "M22": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_battery_b",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M13과 대칭인 Vop측 동일 사유(M23a/M24b와 같은 물리적 컬럼으로 합침).",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M18_bg",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M18_bg와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias1, source=vdd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.4642V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M17": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_a",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M18_bg",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M18_bg와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias1, source=vdd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.4642V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M20a": {
       "headroom_role": "cascode",
@@ -1099,18 +1108,20 @@
     },
     "M21": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_battery_a",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- M12와 대칭인 Vop측 동일 사유(M20a/M20b와 같은 물리적 컬럼으로 합침).",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M66",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M66와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias4, source=gnd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.6632V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M19": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_floatsrc_sink",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M66",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M66와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias4, source=gnd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.6632V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M24b": {
       "headroom_role": "cascode",
@@ -1135,12 +1146,13 @@
     },
     "M60": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias4_gen",
       "budget_reference_device": "M66",
       "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- M60(vdd-Vbias4, gate=Vbias1)과 M66(Vbias4-gnd, diode-connected)은 Test 47이 확인한 진짜 2단자 직렬(Vbias4, internal_series)인데 vsid가 따로였다(vbias4_gen/vbias4_stack). M11a/M11b/M12·M5/M61과 같은 패턴이지만 이번엔 병합 대신 budget_reference_device로 연결 -- M66이 diode-connected라 자기 완결적으로 작은 Vgs를 갖는 쪽(self-determining)이고 M60은 외부 게이트(Vbias1) 구동이라 '나머지'를 받는 쪽이 자연스럽다(M6/M58 패턴과 동일 방향). 수정 전엔 둘 다 독립적으로 '혼자니까 vdd 전부'를 받아 합이 vdd가 아니라 ~2*vdd였다(KVL 위반, 미해결 상태로 다음 세션 이월돼 있던 항목).",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M18_bg",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M18_bg와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias1, source=vdd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.4642V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M64": {
       "headroom_role": "cascode",
@@ -1158,12 +1170,13 @@
     },
     "M61": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias3_stack",
       "budget_reference_device": "M5",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 VDD-M61-Vbias3-M64-M63-Vy-M5-GND라 M64/M63과 같은 물리적 컬럼인데 별도 vsid(vbias3_gen)였다 -- M64/M63과 합치고, 이 컬럼의 bottom이 gnd가 아니라 Vy(=vds(M5))이므로 budget_reference_device로 M5를 참조. suggest_headroom_stack_groups()(stick_diagram.py, 2026-08-10 신설)가 이 그룹+참조를 정확히 재현해 교차검증됨.",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M18_bg",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M18_bg와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias1, source=vdd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.4642V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M58": {
       "headroom_role": "cascode",
@@ -1188,12 +1201,13 @@
     },
     "M68": {
       "headroom_role": "mirror",
-      "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "vbias2_stack",
       "budget_reference_device": "M6",
       "_vertical_stack_id_comment": "2026-08-10(세션27) 정정 -- 진짜 전기적 경로는 Vx-M58-M57-Vbias2-M68-GND(M6/M7 병렬 tail이 Vx를 먹임, r_bg_vbias2 theta 주석 참고)라 M58/M57과 같은 물리적 컬럼인데 별도 vsid(vbias2_gen)였다 -- M58/M57과 합치고, 이 컬럼의 top이 vdd가 아니라 Vx(=vdd-vds(M6))이므로 budget_reference_device로 M6을 참조(suggest_headroom_stack_groups()가 M7도 동등 후보로 제안하나, M6/M7 둘 다 같은 Vx를 구동하는 병렬 tail이라 어느 쪽을 참조해도 이론상 같은 값 -- M6을 대표로 채택).",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "gm_id_match_vgs_of": "M66",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M66와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias4, source=gnd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.6632V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='matching'를 대체)"
     },
     "M36a": {
       "headroom_role": "mirror",
@@ -1221,11 +1235,12 @@
     "_M38_L_role_comment": "M38(CMFB 차동쌍 tail)의 L_role은 원래 M5(stage-1 tail)를 따라 'bias_replica'(1.2*L_min=0.18um)였고, 2026-08-03 배치 7-5b에서 'mirror'(2.5*L_min=0.375um)로 바꿨다. ⚠️ **그때 적은 근거(gds38 vs 2*gm36a*(gds39+gds40)/gm39 균형이 A_c의 부호를 정한다)는 폐기됐다** -- _correction_log_5에서 CMFB 넷리스트를 정정한 결과 M39/M40은 저임피던스 PMOS diode 분압기라 A_c 식에 아예 등장하지 않고, A_c는 다이오드 부하 차동쌍이라 **항상 음수**(-gm37/(2*gm36) 근방)이며 부호가 뒤집힐 여지 자체가 없다. 즉 '양귀환이라 바꿔야 한다'는 그때의 진단은 틀린 토폴로지에서 나온 허상이었다. 그럼에도 'mirror'를 유지하는 근거는 **별개이고 더 단순하다**: (a) M38은 tail 전류원이라 짧은 채널일 이유가 없다(전류 매칭·공정변동 관점에서 긴 L이 유리 -- 논문 II.D도 CMFB에 대해 'a larger channel length is used to reduce process variation'이라고 명시), (b) 정정된 A_c 식에서 gds38은 분모의 (A1+B1+gds38)에만 들어가므로 gds38이 작을수록 |A_c|가 (약간) 커져 CM 루프이득에 유리하다. ⚠️ 이 값은 여전히 논문에서 읽은 수치가 아니라 설계 판단이다 -- 최종 확인은 SPICE 필요.",
     "M38": {
       "headroom_role": "tail",
-      "gm_id_role": "balanced",
       "L_role": "mirror",
       "vertical_stack_id": "cmfb_tail",
       "budget_reference_device": "M36a",
-      "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- 진짜 전기적 경로는 VDD-M36a-Vcmfb-M37a-Ncmfb_tail-M38-GND(M36b-N36b-M37b도 같은 M38 tail을 공유하는 병렬 branch)라 cmfb_load_a/cmfb_tail이 같은 물리적 컬럼인데 별도 vsid였다 -- M5/M61·M6/M68과 같은 패턴으로 budget_reference_device를 M36a에 연결(M37a는 compensation의 N_cmfb_bw feed로 vds가 별도 확정되므로 known_vds_sum에 자동 반영됨, M38만 이 참조가 실제로 필요). ⚠️ 정직한 한계: M36b는 대칭 매칭 파트너(M36a와 이론상 같은 값)지만 budget_reference_device는 그룹당 1개만 지원해 아직 참조가 안 걸려있다(M6/M7 사례와 같은 이월 항목, 다음 세션에서 M36b/M7도 같은 문제인지 전수조사 필요)."
+      "_vertical_stack_id_comment": "2026-08-11(세션28 다음 최우선①) 신규 -- 진짜 전기적 경로는 VDD-M36a-Vcmfb-M37a-Ncmfb_tail-M38-GND(M36b-N36b-M37b도 같은 M38 tail을 공유하는 병렬 branch)라 cmfb_load_a/cmfb_tail이 같은 물리적 컬럼인데 별도 vsid였다 -- M5/M61·M6/M68과 같은 패턴으로 budget_reference_device를 M36a에 연결(M37a는 compensation의 N_cmfb_bw feed로 vds가 별도 확정되므로 known_vds_sum에 자동 반영됨, M38만 이 참조가 실제로 필요). ⚠️ 정직한 한계: M36b는 대칭 매칭 파트너(M36a와 이론상 같은 값)지만 budget_reference_device는 그룹당 1개만 지원해 아직 참조가 안 걸려있다(M6/M7 사례와 같은 이월 항목, 다음 세션에서 M36b/M7도 같은 문제인지 전수조사 필요).",
+      "gm_id_match_vgs_of": "M66",
+      "_gm_id_match_vgs_of_comment": "2026-09-09(B19' 배선, 사용자 확정) -- 이 소자는 M66와 게이트·소스를 물리적으로 공유하는 **진짜 전류미러**라(gate=Vbias4, source=gnd, 순수 connectivity 사실) VGS가 KVL로 완전히 강제 동일해야 한다. 그런데 지금까지 이 관계를 강제하는 장치가 없어 각 소자가 gm_id_role로 **독립 탐색**했고, 그 결과 이 그룹의 VGS가 최대 0.6632V까지 벌어져 있었다(미러비 ID비==W비도 전부 깨짐, 최악 M8이 1530배). 세션38이 nmcnr M203/M204에서 발견해 만든 gm_id_match_vgs_of와 **같은 클래스**인데 이 소자들은 그 필드를 선언하지 않았다. 대상 소자를 선언된 symmetry.matching_pairs가 아니라 **넷리스트 전수**로 다시 세어 11 -> 18소자로 정정했다(M5/M6/M7/M38/M66/M68 6개가 어떤 matching_pair에도 없었다 -- 그중 M5/M6는 diffpair tail, M66은 이 그룹의 diode 레퍼런스 자신, M7/M36a는 그룹 자체가 통째로 누락). tail을 bias 미러에 묶는 것이 설계 의도임은 사용자가 확정했다: \"첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어.\" gm_id_role은 제거한다 -- 2-pass에서 이 필드가 이기므로 남겨두면 선언이 거짓말이 된다(nmcnr M204 선례 및 self-test fixture Mb와 동일 형태). 근거: 계획 §10.3 B19', tests/probe_mirror_design_space.py / probe_mirror_wiring_readiness.py (이 소자의 기존 gm_id_role='balanced'를 대체)"
     },
     "M40": {
       "headroom_role": "voltage_divider",
