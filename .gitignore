@@ -28,3 +28,4 @@ __pycache__/
 # docstring에 기록한다). 2026-09-08: 프로브가 결과를 파일로도 쓰게 바뀌었다.
 skills/analog-gmid-design/assets/tests/*.result.txt
 skills/analog-gmid-design/assets/tests/*.sizing_cache.json
+skills/analog-gmid-design/assets/tests/*.theta_star.json
