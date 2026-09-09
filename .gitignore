@@ -31,3 +31,4 @@ skills/analog-gmid-design/assets/tests/*.sizing_cache.json
 skills/analog-gmid-design/assets/tests/*.theta_star.json
 skills/analog-gmid-design/assets/tests/*.unwired_theta.json
 skills/analog-gmid-design/assets/tests/*.window_dump.txt
+skills/analog-gmid-design/assets/library/.bkit/
