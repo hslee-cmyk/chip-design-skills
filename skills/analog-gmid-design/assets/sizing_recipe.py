@@ -295,6 +295,11 @@ def _multilinear_interp_point_multi(grids, arrays, point):
     return totals
 
 
+# 2026-09-10 -- `_query()` 메모 캐시 상한. 장시간 탐색(세타 격자점 수만 개)에서 메모리가
+# 무한히 불어나지 않게 한다. 실측 `_evaluate` 1회당 서로 다른 인자가 ~5.7천 개이므로
+# 이 상한은 수십 회 평가분을 담는다(그보다 오래되면 새 항목을 안 넣을 뿐 정확도는 그대로).
+_QUERY_CACHE_MAX = 400_000
+
 class SemiEmpiricalGmIdLUT(GmIdLUT):
     """4D (L,VGS,VDS,VS) 스윕 데이터 기반 실제 LUT 구현 (numpy 필요).
 
@@ -403,13 +408,32 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         # 스캔을 반복하고 있었다(replica 있는 스테이지에서 최대 ~114배 중복, 성능감사 최대
         # 개별낭비 후보). `_idu_scan()`이 이 스캔 결과를 캐싱한다.
         self._idu_scan_cache: dict = {}
+        # 2026-09-10(중복계산 전수검사) -- `_query()` 메모이제이션. 실측: `_evaluate` 1회에
+        # `_query`가 18,636번 불리는데 **서로 다른 인자는 5,745개뿐**이라 69.2%가 중복이고
+        # (같은 인자가 최대 123회 반복), `_multilinear_interp`가 전체 시간의 44%를 쓴다.
+        # LUT 배열은 불변이라 캐시는 인스턴스 수명 내내 유효하다(theta가 바뀌어도 같은
+        # (L,vgs,vds,vsb)면 같은 값이다). 상한을 두어 장시간 탐색에서 무한히 불어나지 않게 한다.
+        self._query_cache: dict = {}
 
     def _w_ref_effective(self, L: float) -> float:
         """이 L에서 ID/CGG 배열이 측정된 실제 기준폭. W_ref=None이면 단위소자(W*=L) 관례."""
         return L if self.W_ref is None else self.W_ref
 
     def _query(self, array, L, vgs, vds, vsb):
-        return _multilinear_interp(self._grids_list, array, [[L, vgs, vds, vsb]])[0]
+        """4축 다중선형 보간 1점. **메모이제이션**한다 -- 실측 중복률 69.2%(위 `__init__`).
+
+        키에 `id(array)`를 쓰는 이유: 배열은 이 인스턴스의 속성이라 수명이 같고 내용이
+        불변이므로, 신원 비교로 충분하고 해시 비용이 없다(내용 해시는 배열 크기에 비례해
+        보간보다 비싸다)."""
+        cache = self._query_cache
+        key = (id(array), L, vgs, vds, vsb)
+        hit = cache.get(key)
+        if hit is not None:
+            return hit
+        val = _multilinear_interp(self._grids_list, array, [[L, vgs, vds, vsb]])[0]
+        if len(cache) < _QUERY_CACHE_MAX:
+            cache[key] = val
+        return val
 
     def _query_multi(self, arrays, L, vgs, vds, vsb):
         """`arrays`(같은 (L,vgs,vds,vs) 지점에서 함께 조회할 배열들, 예 `[self._log_ID,
@@ -1847,7 +1871,10 @@ def stack_kvl_vgs_limit(ctx: "SizingContext", name: str, meta: dict | None = Non
     if not ctx.topology_path:
         return None
     if meta is None:
-        _trs, meta = load_topology(ctx.topology_path)
+        # 2026-09-10 -- 캐시된 meta를 쓴다. 예전엔 여기서 `load_topology()`를 직접 불러
+        # theta 평가마다(소자마다!) role 자동제안/스택 해석을 통째로 다시 돌렸다
+        # (프로파일 실측: `_evaluate` 1회의 **99.3%**).
+        meta = _topology_meta_cached(ctx.topology_path)
     roles = meta.get("device_roles") or {}
     consumers = [d for d, r in roles.items()
                  if isinstance(r, dict) and r.get("vds_match_vgs_of") == name]
@@ -2486,7 +2513,8 @@ def l_class_owners(by_name: dict, meta: dict, matching_pairs=()) -> dict:
 
 
 def audit_l_sharing_consistency(by_name: dict, meta: dict, sized: dict,
-                                matching_pairs=(), tol: float = 1e-12) -> list:
+                                matching_pairs=(), tol: float = 1e-12,
+                                classes: dict | None = None) -> list:
     """L 동치류 안에서 **L이 갈린** 곳을 찾는다(층0 게이트, 2026-09-10).
 
     같은 동치류인데 L이 다르면 그 미러비는 `W2/W1`로 축약되지 않고 L 의존 항(이동도/Vth/
@@ -2498,7 +2526,9 @@ def audit_l_sharing_consistency(by_name: dict, meta: dict, sized: dict,
 
     반환: `[{"root","members","by_L","sources"}]` -- 갈린 류만. 빈 리스트면 정합."""
     out = []
-    for root, members in l_sharing_classes(by_name, meta, matching_pairs).items():
+    # `classes`를 주면 재계산하지 않는다(평가 루프에서 캐시를 넘긴다, 2026-09-10).
+    for root, members in (classes if classes is not None
+                          else l_sharing_classes(by_name, meta, matching_pairs)).items():
         by_L = {}
         for m in members:
             e = sized.get(m) or {}
@@ -2574,6 +2604,85 @@ def knee_L_for_kind(lut: "GmIdLUT", spec: dict) -> float:
     med = knees[n // 2] if n % 2 else 0.5 * (knees[n // 2 - 1] + knees[n // 2])
     _KNEE_L_CACHE[key] = med
     return med
+
+
+def synthesize_l_class_thetas(by_name: dict, meta: dict, spec: dict,
+                              declared_thetas: list, matching_pairs=()) -> list:
+    """**L 동치류의 공통 L을 theta로 파생**시킨다(층3, 2026-09-10). `[theta_spec, ...]`.
+
+    사용자 지시: *"L theta를 일반화해. 특정 이름으로 하지마."* -- 그래서 이 theta들은
+    topology.json에 손으로 적히지 않는다. 동치류(층1)와 주인(층2)에서 **파생**되고 이름도
+    동치류 대표 소자에서 만들어진다(`L_class__<root>`).
+
+    ## 어떤 류에 만드나
+
+      * 주인(gain stage의 tail)이 있는 류만. 주인이 없으면 그 류의 L은 설계 자유도가 아니라
+        `L_role` 폴백 몫이다(다른 회로 동작 보존).
+      * 이미 **선언된 L theta가 그 류의 멤버를 건드리고 있으면 만들지 않는다** -- 자유도가
+        둘이 되어 서로 덮어쓰기 때문이다(파일럿의 `L_stage2out_p/n`, `L_cascode`가 그 경우).
+
+    ## bounds -- 새 상수를 만들지 않는다
+
+    `spec["L_candidates"]`의 **실측 범위**를 그대로 쓴다(§7.7 R3: LUT 밖으로 외삽 금지).
+    상·하한을 따로 유도할 필요가 없다 -- **이미 선언된 두 제약이 그 일을 한다**:
+
+        상한  parasitic_pm_deg >= PM_target_deg    (§7.11: L↑ -> Cgg↑ -> 노드 pole↓ -> PM↓)
+        하한  mismatch_sigma_mV <= 선언값           (L↓ -> √(WL)↓ -> σ_VT↑)
+
+    즉 bounds는 "물리적으로 잴 수 있는 범위"이고, 그 안에서 어디가 되는지는 제약이 정한다.
+
+    ## 공동 sweep
+
+    주인이 여럿인 류(파일럿 M8류의 M6·M7)에서도 **theta는 하나**다. 자유도가 동치류당
+    하나뿐이기 때문이고, 그 하나가 관련된 모든 gain 제약을 동시에 만족해야 한다 --
+    "두 stage의 gain을 모두 만족시키는 L을 sweep"이 이 구조에서 저절로 성립한다.
+    """
+    Ls = sorted(float(v) for v in (spec.get("L_candidates") or ()))
+    if len(Ls) < 2:
+        return []
+    claimed = set()
+    declared_L_hi = []
+    for th in (declared_thetas or ()):
+        f = th.get("feeds")
+        if isinstance(f, dict) and f.get("type") in ("metric_stage_budget", "l_class"):
+            claimed |= set(f.get("devices") or ())
+            b = th.get("bounds")
+            if b and len(b) == 2:
+                declared_L_hi.append(float(b[1]))
+    # 2026-09-10 -- 상한은 **이 토폴로지가 이미 선언한 L theta들의 상한**을 따른다.
+    # 처음엔 `L_candidates`의 실측 전 범위(파일럿 0.15~4.0um)를 썼는데, SLSQP가 L=1.86um
+    # 같은 곳까지 가면 그 류의 **diode 레퍼런스**(M66/M18_bg, 전류 0.25uA)가 W 한계 안에서
+    # 사이징 자체가 불가능해져 평가가 죽는다 -- 선언된 제약이 clamp할 기회조차 없다
+    # (실측: 5 start 전부 그렇게 실패, 1465초). 그 회로가 자기 L theta에 이미 적어둔 상한이
+    # "이 설계가 실현 가능하다고 본 스케일"이므로 그것을 따른다. 선언된 L theta가 하나도
+    # 없으면 LUT 실측 범위로 남긴다(외삽 금지, §7.7 R3).
+    L_hi = min(declared_L_hi) if declared_L_hi else Ls[-1]
+    L_hi = max(L_hi, Ls[0])
+    out = []
+    for root, info in sorted(l_class_owners(by_name, meta, matching_pairs).items()):
+        if not info["owner"]:
+            continue
+        members = info["members"]
+        if claimed & set(members):
+            continue
+        out.append({
+            "name": f"L_class__{root}",
+            "bounds": [Ls[0], L_hi],
+            "feeds": {"type": "l_class", "devices": members,
+                      "root": root, "owner": info["owner"]},
+            "intended_role_type": "B",
+            "_synthesized": (
+                f"층3 -- 동치류(주인 {info['owner']}, {info['reason']})의 공통 L. "
+                f"손선언이 아니라 연결·선언에서 파생됐다. 하한은 spec['L_candidates']의 "
+                f"실측 하한, 상한은 이 토폴로지가 이미 선언한 L theta들의 상한을 따른다"
+                f"(그보다 넓히면 diode 레퍼런스가 W 한계 안에서 사이징 불가가 되어 평가가 "
+                f"죽는다 -- 실측). 그 안에서 실제 최적점은 선언된 제약"
+                f"(parasitic_pm_deg / mismatch_sigma_mV)이 정한다."
+                + (f" 주인 후보가 {info['owners_all']}로 여럿이라 이 theta 하나가 "
+                   f"두 stage의 gain을 동시에 만족시켜야 한다(공동 sweep)."
+                   if info["needs_joint_sweep"] else "")),
+        })
+    return out
 
 def select_L_by_role(role: str, L_min: float, knee: float | None = None) -> float:
     """배치 7-3f — 고정 배수 규칙류(미러/바이어스)만 다룬다. 캐스코드/신호경로의 L은
@@ -3901,21 +4010,21 @@ def _mna_stamp_capacitance(by_name: dict, passive_elements: list, ctx: "SizingCo
     return out
 
 
-def full_circuit_response_at_omega(ctx: "SizingContext", excite: dict, also_fix, omega: float):
-    """`(G + j*omega*C) v = b`를 풀어 **복소** 노드전압을 돌려준다(2026-09-10, §7.11 L2).
 
-    `_full_circuit_response()`(DC/mid-band, 실수)의 주파수 확장이다 -- 같은 `devices`
-    스탬프(`_full_circuit_devices()`, 저항 포함)를 쓰고 거기에 용량 항만 더한다.
+def build_ac_network(ctx: "SizingContext", excite: dict, also_fix) -> dict:
+    """L2 주파수응답의 **omega에 무관한 부분**을 한 번만 조립한다(2026-09-10, 중복계산 제거).
 
-    ## 왜 pole을 고유값으로 뽑지 않는가
+    `full_circuit_response_at_omega()`는 원래 호출마다 `_full_circuit_devices()`(51소자 +
+    저항 스탬프, `_resolve_nulling_resistor_ohm()` 포함)와 `_mna_stamp_capacitance()`
+    (소자마다 `cgg_absolute()` LUT 조회)를 통째로 다시 만들었다. 그런데 위상여유 metric은
+    **한 번에 25개 주파수**를 훑으므로 같은 조립이 25번 반복됐다 -- 프로파일 실측으로
+    `_evaluate` 1회의 **28%**(0.368초/1.325초)를 차지했다.
 
-    §7.11이 L2를 "MNA에서 실제 pole 추출(고유값)"으로 적어뒀는데, 구현하며 **그대로는 틀린다**는
-    것이 드러났다: `det(G + sC)=0`의 근에는 bias 노드가 만드는 모드까지 전부 들어오는데, 그
-    모드들은 excite->sense 전달함수에서 zero와 **상쇄되어 위상을 안 먹는다**(관측/제어
-    불가능 모드). 그걸 다 더하면 L1에서 전 노드를 더했을 때 -1004도가 나온 것과 **같은 종류의
-    오류**가 pole 형태로 재발한다. 잔차(residue)로 걸러낼 수도 있지만, 애초에 위상여유는
-    전달함수의 위상으로 정의되므로 **주파수에서 직접 푸는 쪽이 더 단순하고 정확하다** --
-    지배 pole을 따로 빼는 처리도 필요 없어진다(그 위상이 응답에 이미 들어 있다).
+    omega에 실제로 의존하는 것은 `jw*C` 스탬프 하나뿐이므로, 조립 결과를 이 함수가
+    돌려주고 호출자가 스윕 내내 재사용한다.
+
+    ⚠️ 반환값은 **현재 사이징(`ctx.sized`)에 묶인다** -- theta가 바뀌면 다시 만들어야 한다.
+    그래서 프로세스 전역이 아니라 호출자(metric)가 자기 스윕 동안만 들고 있는다.
     """
     if not ctx.topology_path:
         raise ValueError("ctx.topology_path가 비어있다 -- L2 주파수응답에는 connectivity가 필요하다")
@@ -3937,6 +4046,29 @@ def full_circuit_response_at_omega(ctx: "SizingContext", excite: dict, also_fix,
             if n is not None and n not in fixed and n not in seen:
                 nodes.append(n)
                 seen.add(n)
+    return {"devices": devs, "caps": caps, "nodes": nodes, "fixed": fixed}
+
+def full_circuit_response_at_omega(ctx: "SizingContext", excite: dict, also_fix,
+                                   omega: float, network: dict | None = None):
+    """`(G + j*omega*C) v = b`를 풀어 **복소** 노드전압을 돌려준다(2026-09-10, §7.11 L2).
+
+    `_full_circuit_response()`(DC/mid-band, 실수)의 주파수 확장이다 -- 같은 `devices`
+    스탬프(`_full_circuit_devices()`, 저항 포함)를 쓰고 거기에 용량 항만 더한다.
+
+    ## 왜 pole을 고유값으로 뽑지 않는가
+
+    §7.11이 L2를 "MNA에서 실제 pole 추출(고유값)"으로 적어뒀는데, 구현하며 **그대로는 틀린다**는
+    것이 드러났다: `det(G + sC)=0`의 근에는 bias 노드가 만드는 모드까지 전부 들어오는데, 그
+    모드들은 excite->sense 전달함수에서 zero와 **상쇄되어 위상을 안 먹는다**(관측/제어
+    불가능 모드). 그걸 다 더하면 L1에서 전 노드를 더했을 때 -1004도가 나온 것과 **같은 종류의
+    오류**가 pole 형태로 재발한다. 잔차(residue)로 걸러낼 수도 있지만, 애초에 위상여유는
+    전달함수의 위상으로 정의되므로 **주파수에서 직접 푸는 쪽이 더 단순하고 정확하다** --
+    지배 pole을 따로 빼는 처리도 필요 없어진다(그 위상이 응답에 이미 들어 있다).
+    """
+    if network is None:
+        network = build_ac_network(ctx, excite, also_fix)
+    devs, caps, nodes, fixed = (network["devices"], network["caps"],
+                                network["nodes"], network["fixed"])
 
     n = len(nodes)
     if n == 0:
@@ -4041,8 +4173,12 @@ def _metric_parasitic_pm_deg(spec_metric: dict, ctx: SizingContext) -> float:
             "노출하거나(권장 -- 회로가 자기 크로스오버를 안다), spec에 직접 선언해야 한다")
     also_fix = spec_metric.get("also_fix") or ()
 
+    # 2026-09-10 -- 아래 스윕은 25개 주파수를 도는데, 소자/용량 조립은 omega와 무관하다.
+    # 한 번만 만들어 재사용한다(중복계산 제거: 이 metric이 _evaluate의 28%였다).
+    _net = build_ac_network(ctx, excite, also_fix)
+
     def _h(omega):
-        sol = full_circuit_response_at_omega(ctx, excite, also_fix, omega)
+        sol = full_circuit_response_at_omega(ctx, excite, also_fix, omega, network=_net)
         v = sol[sense_p]
         if sense_n:
             v = v - sol[sense_n]
@@ -4850,6 +4986,14 @@ def _load_full_topology_cached(topology_path: str) -> tuple:
             raw = json.load(fh)
         cache[topology_path] = {
             "by_name": {t.name: t for t in trs},
+            # 2026-09-10(중복계산 전수검사) -- `load_topology()`는 여기서 이미 불리는데
+            # 그 반환 `meta`를 **버리고 있었다**. 그런데 `load_topology()`는 JSON 파싱만
+            # 하는 게 아니라 `propose_device_roles_gap_fill()`/`resolve_stack_layout()`
+            # 같은 분석을 매번 다시 돌린다(프로파일 실측: 1회 0.14초). `stack_kvl_vgs_limit()`
+            # 이 그걸 호출마다 부르고 있어서 **_evaluate 1회의 99.3%**를 잡아먹었다.
+            # 버리던 값을 보관하기만 하면 없어지는 비용이다.
+            "transistors": trs,
+            "meta": _meta,
             "passive_elements": raw.get("passive_elements") or [],
             # 2026-09-08(A4) -- `_metric_mirror_ratio_error()`가 쓴다. 같은 캐시를 재사용해
             # topology.json을 두 번 열지 않는다(C10 재계산 금지).
@@ -4859,6 +5003,39 @@ def _load_full_topology_cached(topology_path: str) -> tuple:
         }
     entry = cache[topology_path]
     return entry["by_name"], entry["passive_elements"]
+
+
+def _topology_meta_cached(topology_path: str) -> dict:
+    """`load_topology()`가 자동채움까지 끝낸 `meta`를 캐시에서 준다(2026-09-10).
+
+    `load_topology()`는 파싱뿐 아니라 role 자동제안/스택 해석을 매번 다시 돌리므로
+    (실측 1회 0.14초) 평가 루프에서 직접 부르면 안 된다. `_load_full_topology_cached()`가
+    이미 그 호출을 하고 있었고 반환 meta만 버리고 있었다 -- 이제 보관해 재사용한다."""
+    _load_full_topology_cached(topology_path)
+    return _load_full_topology_cached.__dict__["_cache"][topology_path]["meta"]
+
+
+def _l_sharing_classes_cached(topology_path: str) -> dict:
+    """L 동치류(층1)를 경로별로 캐시한다 -- **connectivity와 선언에만** 의존하므로 theta
+    평가마다 union-find를 다시 돌 이유가 없다(2026-09-10 중복계산 전수검사)."""
+    cache = _l_sharing_classes_cached.__dict__.setdefault("_cache", {})
+    if topology_path not in cache:
+        by_name, _p = _load_full_topology_cached(topology_path)
+        cache[topology_path] = l_sharing_classes(
+            by_name, _topology_meta_cached(topology_path),
+            _matching_pairs_cached(topology_path))
+    return cache[topology_path]
+
+
+def _l_class_owners_cached(topology_path: str) -> dict:
+    """L 동치류의 주인(층2)을 경로별로 캐시한다 -- 위와 같은 이유(선언·연결만 의존)."""
+    cache = _l_class_owners_cached.__dict__.setdefault("_cache", {})
+    if topology_path not in cache:
+        by_name, _p = _load_full_topology_cached(topology_path)
+        cache[topology_path] = l_class_owners(
+            by_name, _topology_meta_cached(topology_path),
+            _matching_pairs_cached(topology_path))
+    return cache[topology_path]
 
 
 def _ideal_sources_cached(topology_path: str) -> list:
@@ -6205,6 +6382,39 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
         _run_shared_current_joint_scan(plan, ctx)
 
 
+
+def _feed_l_class(feed_spec: dict, theta_value: float, ctx: SizingContext) -> None:
+    """`{"type":"l_class","devices":[...],"root":str,"owner":str}` -- theta 값 자체가 이
+    **L 동치류의 공통 채널길이 L**이다(층3, 2026-09-10).
+
+    ## 왜 theta인가
+
+    층2까지는 동치류의 공통 L이 주인의 **knee**(§7.10 초기값)로 고정돼 있었다. 그런데
+    사용자가 확정한 원칙은 그 L을 **gain을 위해 훑으라**는 것이다:
+
+    > "L값이 중요한 stage의 tail의 공통 L을 탐색하고 그 L값으로 mirror단의 L은 모두 같이
+    >  사용해야 하는 것이지." / "다른 gain stage의 tail도 함께 묶여 있으면 두 stage의
+    >  gain을 모두 만족시키는 L을 sweep해야 한다"
+
+    자유도가 **동치류당 하나**이므로, 그 하나를 theta로 노출하면 나머지는 저절로 따라온다.
+    주인이 여럿인 류(예: 파일럿 M8류의 M6·M7)에서도 **theta는 여전히 하나**이고, 그 하나가
+    관련된 **모든** gain 제약을 동시에 만족해야 한다 -- "공동 sweep"이 이 구조에서 저절로
+    성립한다(제약은 이미 선언돼 있고 옵티마이저가 전부 본다).
+
+    ## 무엇만 하는가
+
+    **L만 확정한다.** `_L_source`를 권위 있는 출처로 표시해 뒤따르는 `L_role` 루프와 층2
+    전파가 덮어쓰지 않게 하고, gm_id/vds/W는 기존 경로(헤드룸 → `gm_id_role` 루프)가 이 L로
+    자연히 다시 사이징한다 -- 별도 재계산 코드가 필요 없다(`metric_stage_budget`의
+    `metric_stage_budget_vds_deferred` 관례와 같은 정신)."""
+    devices = feed_spec.get("devices") or ()
+    if not devices:
+        raise ValueError("l_class feed에 devices가 비어 있다 -- 동치류 멤버가 필요하다")
+    for name in devices:
+        entry = ctx.sized.setdefault(name, {})
+        entry["L"] = float(theta_value)
+        entry["_L_source"] = "l_class_theta"
+
 _THETA_FEED_REGISTRY: dict = {
     "settling_split":       FeedHandler(_feed_settling_split, touches=["B"]),
     "C":                    FeedHandler(_feed_diode_stack_target, touches=["C"]),
@@ -6213,6 +6423,9 @@ _THETA_FEED_REGISTRY: dict = {
     "const":                FeedHandler(_feed_root_const, touches=["A"]),  # 세션35
     "A_signed":             FeedHandler(_feed_root_signed_sum, touches=["A"]),  # 세션6
     "metric_stage_budget":  FeedHandler(_feed_metric_stage_budget, touches=["B", "F"]),
+    # 2026-09-10(층3) -- L 동치류의 공통 L. theta는 손으로 선언하지 않고
+    # `synthesize_l_class_thetas()`가 연결·선언에서 파생시킨다.
+    "l_class":              FeedHandler(_feed_l_class, touches=["B", "F"]),
     # 새 feed 타입이 필요해지면 여기 한 줄만 등록하면 된다 -- optimize_full_circuit_budget()은
     # 수정하지 않는다(§7.3.2 확정 설계, _COMPENSATION_REGISTRY/_METRICS_REGISTRY와 동일 계약).
 }
@@ -7608,7 +7821,16 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     # 이미 보장된 소자는 require_device_roles_reviewed()가 알아서 제외한다.
     require_device_roles_reviewed(topology_path, meta)
     roles = meta.get("sizing_roles") or {}
-    thetas = roles.get("theta") or []
+    thetas = list(roles.get("theta") or [])
+    # 2026-09-10(층3) -- L 동치류의 공통 L theta를 **파생**해 붙인다(손선언 아님).
+    # 주인이 있고 선언된 L theta가 안 건드리는 류에만 생기므로, 다른 회로에서는 아무것도
+    # 안 생긴다(실측: 4개 회로 중 파일럿에서만 2개 -- M5류/M6류).
+    try:
+        _by_l3 = {tr.name: tr for tr in transistors}
+        thetas += synthesize_l_class_thetas(
+            _by_l3, meta, spec, thetas, _matching_pairs_cached(topology_path))
+    except (KeyError, ValueError):
+        pass        # 파생에 필요한 선언이 없으면 아무것도 안 붙인다(기존 동작 그대로)
     metrics_specs = roles.get("metrics") or {}
     validate_metric_units(metrics_specs)      # 2026-09-08(A12) -- 유일한 배선 지점
     validate_no_legacy_vs_key(meta.get("device_roles") or {})   # 2026-09-08(B9 개명)
@@ -8049,7 +8271,10 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # 추가(그 함수 docstring 정정 참고) -- 실측 회귀는 metric_stage_budget에서만
         # 재현됐지만, 같은 취약점 클래스라 발견 즉시 선제 수정.
         _AUTHORITATIVE_L_SOURCES = {"compensation", "replica", "metric_stage_budget",
-                                      "gm_target_convention", "metric_stage_budget_vds_deferred"}
+                                      "gm_target_convention", "metric_stage_budget_vds_deferred",
+                                      # 2026-09-10(층3) -- 동치류 공통 L theta. 이게 있으면
+                                      # 주인의 knee보다 우선한다(탐색이 정한 값이므로).
+                                      "l_class_theta"}
 
         for name, dr in device_roles.items():
             if dr.get("L_role"):
@@ -8079,7 +8304,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         # 전파가 쓰는 것과 **같은 우선순위 규약**이다(그 블록 주석 참고). 주인 자신의 L이
         # 권위 있는 출처에서 왔으면 그것이 류 전체로 퍼지고, 주인이 없는 류는 기존 L_role
         # 경로 그대로다(다른 회로 동작 보존 -- 실측: 4개 회로 중 파일럿에서만 주인이 잡힌다).
-        _lc_owners = l_class_owners(by_name, meta, _matching_pairs_cached(topology_path))
+        _lc_owners = _l_class_owners_cached(topology_path)
         for _lc_root, _lc_info in _lc_owners.items():
             _lc_owner = _lc_info["owner"]
             if not _lc_owner:
@@ -8537,6 +8762,25 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 f"사이징이 끝난 뒤에도 vsb가 노드전압과 어긋난 소자 {len(_vsb_bad)}개: "
                 f"{_top}{' ...' if len(_vsb_bad) > 6 else ''} -- 헤드룸 직후 "
                 f"reconcile_vsb_from_nodes()가 바로잡은 값을 이후 pass가 덮어썼다")
+        # 2026-09-10(층0) -- 사이징이 끝난 지금 **L 동치류 안에서 L이 갈렸는지** 확인한다.
+        # 층2 전파가 L을 맞춰놓아도 이후 pass가 다시 덮어쓸 수 있어서(vsb 게이트 바로 위와
+        # 같은 이유) 마지막에 한 번 더 본다. 갈려 있으면 그 미러비는 W 비로 축약되지 않고
+        # L 의존 항을 타고 PVT에 흔들린다 -- 조용히 넘기면 안 되는 물리 위반이다.
+        # (배선 전 실측: 파일럿의 진짜 미러 그룹 **3/3 전부** 갈려 있었다.)
+        _lsc_bad = audit_l_sharing_consistency(
+            by_name, meta, ctx.sized, _matching_pairs_cached(topology_path),
+            classes=_l_sharing_classes_cached(topology_path))
+        if _lsc_bad:
+            _lsc_top = "; ".join(
+                f"{b['root']}: " + " vs ".join(
+                    f"{x['L']*1e6:.4f}um{x['devices'][:3]}" for x in b["by_L"])
+                for b in _lsc_bad[:3])
+            raise ValueError(
+                f"L 동치류 {len(_lsc_bad)}개에서 L이 갈렸다: {_lsc_top}"
+                f"{' ...' if len(_lsc_bad) > 3 else ''} -- 같은 전류미러(게이트·소스·kind "
+                f"공유)인데 L이 다르면 미러비 ID2/ID1=(W2/L2)/(W1/L1)가 순수 W 비로 "
+                f"축약되지 않아 PVT에 흔들린다. 층2(l_class_owners) 전파가 정한 값을 "
+                f"이후 pass가 덮어쓴 것인지 확인할 것")
         metrics_result = {name: compute_metric(mspec, ctx) for name, mspec in metrics_specs.items()}
         return ctx, metrics_result
 
@@ -8806,7 +9050,8 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
             lo, hi = t["bounds"]
             if lo == hi:
                 return [lo]
-            is_l_theta = isinstance(t["feeds"], dict) and t["feeds"].get("type") == "metric_stage_budget"
+            is_l_theta = (isinstance(t["feeds"], dict)
+                          and t["feeds"].get("type") in ("metric_stage_budget", "l_class"))
             if is_l_theta:
                 l_grid_step = spec.get("L_grid_step")
                 if l_grid_step is None:
@@ -9253,6 +9498,11 @@ def _theta_feed_footprint(theta: dict) -> dict:
         return {"roots": frozenset({feed["target"]}), "derived_writes": frozenset(),
                 "reads": frozenset({feed["reference"]})}
     if ftype == "metric_stage_budget":
+        return {"roots": frozenset(feed["devices"]), "derived_writes": frozenset(),
+                "reads": frozenset()}
+    if ftype == "l_class":
+        # 2026-09-10(층3) -- 동치류 공통 L. `metric_stage_budget`과 같은 형태다: theta 값이
+        # 그 소자들의 L을 직접 정하므로 devices가 곧 root이고, ctx.derived는 안 건드린다.
         return {"roots": frozenset(feed["devices"]), "derived_writes": frozenset(),
                 "reads": frozenset()}
     raise ValueError(f"등록되지 않은 feeds 타입 {ftype!r} -- _theta_feed_footprint()에 추가할 것")
