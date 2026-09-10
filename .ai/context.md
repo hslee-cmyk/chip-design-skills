@@ -14327,3 +14327,16 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 3. LUT에 Cdb/Csb 추가(~95분 재스윕) -- `node_pole_estimate()`의 저임피던스 노드 제외를 없앰.
 4. B21(선언된 `gain_db`가 미러를 못 봄), `assign_finger_geometry`의 배터리 diode 스택 한계.
 
+## 5. (세션47 이어서) 미러 공통 L 3층 구조 -- 층1/층2/knee 착지, 층3 미완 (계획 §10.9, v4.37)
+
+* 층1 `l_sharing_classes()` / `true_current_mirror_groups()` -- 미러는 **순수 connectivity**
+  (같은 kind/gate/source). `gm_id_match_vgs_of`는 edge로 안 쓴다(cross-kind 매칭 섞여 있음).
+* 층2 `gain_stage_tails()` / `l_class_owners()` -- 주인 M5(M68류) / M6(M8류, 공동sweep M6·M7).
+* knee `measure_L_knee()` / `knee_L_for_kind()` -- **vds 무관, kind별로 다름**(nmos 1.63x /
+  pmos 2.27x). `mirror: 2.5` 상수 대체. 격자 미선언이면 계산 안 함(toy LUT 폴백 사고).
+* 층0 `audit_l_sharing_consistency()` -- **함수만 있고 파이프라인 미배선**(★절대원칙 미이행).
+* **층3 미완**: 공동 gain sweep + L theta 일반화(동치류에서 파생, 특정 이름 금지).
+  bounds는 새 함수 불필요 -- `parasitic_pm_deg >= PM_target_deg`(상한, 배선 완료) +
+  `mismatch_sigma_mV <= 선언값`(하한).
+* 재탐색: power 225.38uA / area 524.24um² / parasitic_pm_deg 70.12, 전 제약 통과.
+

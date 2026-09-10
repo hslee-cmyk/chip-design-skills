@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.36
+version: 4.37
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -2964,6 +2964,104 @@ L5c 픽스처는 `parasitic_pm_deg`를 제외한다 -- 그 제약은 **L 상한*
 71.87도로 만족하므로 제약이 과한 게 아니라 이 픽스처가 검증할 자리가 아니다 --
 `classab_centering_dev_v`/`gain_db`를 뺀 것과 같은 판단이다.
 
+### 10.9 미러 공통 L -- 3층 구조 (★ 신설 v4.37, 층1/2/0 착지 · 층3 미완)
+
+사용자 확정 원칙: *"gain stage의 tail이 L의 주인이고, 특히 최초 input 단의 tail이 실제
+주인이야. 다른 gain stage의 tail도 함께 묶여 있으면 두 stage의 gain을 모두 만족시키는 L을
+sweep해야 해. 이게 결정되면 나머지 mirror구조로 연결된 소자들은 전부 L을 공유해야 하잖아."*
+
+물리 근거: `ID2/ID1 = (W2/L2)/(W1/L1)`가 **순수 W 비**(레이아웃 비, PVT에 강함)로 축약되려면
+`L1 == L2`여야 한다. 다르면 이동도/Vth/채널길이변조의 L 의존성을 타고 공정·전압·온도에
+흔들린다.
+
+#### 층1 -- 무엇이 같은 L을 써야 하는가 (`l_sharing_classes()`)
+
+세 edge를 union-find로 묶는다. 전부 **이미 있는 선언·연결**이다:
+
+| edge | 출처 |
+|------|------|
+| 진짜 전류미러 = 같은 `(kind, gate net, source net)` | **순수 connectivity**(`true_current_mirror_groups()`) |
+| `device_roles[X].same_as_device` | 기존 선언 |
+| `symmetry.matching_pairs` | 이미 L 불일치를 하드에러로 강제 중 -- 재사용 |
+
+⚠️ `gm_id_match_vgs_of`는 edge로 **안 쓴다**. 그 필드는 진짜 미러와 cross-kind VGS 매칭
+둘 다에 쓰이는데 후자는 L을 공유하면 안 된다(세션30 M15-M16 결정). connectivity 판정이
+그 둘을 정확히 갈라준다 -- 실측으로 M15/M25와 M16/M26이 **별도 류**로 나온다.
+
+실측(파일럿): 동치류 15개. 큰 둘이 `M68류`(8소자, M5·M38 포함), `M8류`(11소자, M6·M7·M36a
+포함) -- 사용자와 추적했던 사슬 그대로다(`M7 --same_as-- M6`이 Vcmfb 그룹과 Vbias1 그룹을 잇는다).
+
+#### 층2 -- 누가 정하는가 (`gain_stage_tails()` / `l_class_owners()`)
+
+전부 선언·연결에서 유도한다(회로 이름 없음):
+
+    tail          device_roles[X].headroom_role == "tail"
+    gain stage    gain metric의 stages(gain_stages_sum)
+    stage의 tail  그 stage 소자들의 **source net을 drain으로 갖는** tail   <- 연결
+    최초 input단  gain metric의 excite net을 **gate로 갖는** 소자가 속한 stage
+
+"stage의 tail"을 연결로 찾는 이유: `stages`에는 증폭 소자만 있고 tail은 없다(파일럿 stage1 =
+M1a/M4a/M2a/M3a인데 tail M5는 목록에 없다).
+
+실측: **M68류 주인 = M5**, **M8류 주인 = M6**(공동 sweep 후보 M6/M7). 사용자가 말한
+"M5가 주인이야"가 그대로 나온다. 다른 3개 회로는 `gain_stages_sum` 선언이 없어 tail을 못 찾고
+**전부 `L_role` 폴백 = 동작 무변경**이다.
+
+주인의 L은 §7.10대로 **knee에서 출발**한다(역할 휴리스틱이 아니라). 그 값이 류 전체로 전파되며,
+권위 있는 출처(theta/compensation)는 덮지 않는다(`matching_pairs` 전파와 같은 우선순위 규약).
+
+#### knee -- 상수 제거 (`measure_L_knee()` / `knee_L_for_kind()`)
+
+§7.10이 이름까지 명세해 둔 함수를 구현했다. 한계효율 `Δ(gm/gds)/Δ(W·L)`의 최대 구간 상단이
+knee이고, `W·L ∝ ID·L²/IDu`라 **ID는 argmax에 영향이 없어** 인자로 받지 않는다. 단조성을
+가정하지 않고 격자를 전수 훑으며 `Δ(W·L) <= 0` 구간(§7.10이 찾은 pmos 반례)은 건너뛴다.
+
+**민감도 실측**(단위 x L_min):
+
+| kind | vds 0.3 | 0.6 | 0.9 | 1.2 | gm_id별 범위 | 중앙값 |
+|------|---------|-----|-----|-----|--------------|--------|
+| nmos | 1.63 | 1.63 | 1.63 | 1.63 | 1.63 ~ 17.67 | **1.63** |
+| pmos | 2.27 | 2.27 | 2.27 | 2.27 | 1.63 ~ 10.63 | **2.27** |
+
+* **vds에는 사실상 무관** -- 네 vds에서 중앙값이 완전히 같다. L은 vds가 정해지기 전에
+  배정되므로 이 성질이 결정적이다(대표 vds 하나로 찍어도 안전).
+* **gm_id에는 민감** -- 약반전 끝에서 튄다. 그래서 격자 전체의 **중앙값**을 쓴다(꼬리가
+  한쪽으로 길어 평균이 아니라 중앙값).
+* **kind마다 다르다**(1.63 vs 2.27) -- 단일 상수 `mirror: 2.5`로는 원리적으로 못 담는 차이다.
+
+⚠️ `gm_id_grid`/`L_candidates`/`VDS_candidates`가 spec에 **전부 선언돼야만** knee를 잰다.
+LUT 자신의 격자로 폴백하면 "이 설계가 실제로 탐색하는 범위"가 아닌 데서 재게 된다 --
+self-test의 toy LUT 픽스처가 그 경우로, 폴백 knee가 W를 0.824um로 끌어내려 하한을 깼다.
+근거가 없으면 계산하지 않고 호출자가 기존 배수로 폴백한다.
+
+#### 결과
+
+| | 상수 시절 | 전파만 | knee+전파 | **재탐색 후** |
+|---|---|---|---|---|
+| L 갈린 동치류 | **3/3** | 0 | 0 | **0** |
+| M68류(NMOS) / M8류(PMOS) L | 0.18~0.375 혼재 | 0.18 / 0.18 | 0.245 / 0.340 | 0.245 / 0.340 |
+| `mirror_ratio_error_pct` | 11.84 | 61.91 | 13.96 | **13.96** |
+| `power_uA` | 267.59 | -- | -- | **225.38** |
+| `area_um2` | 693.88 | -- | -- | **524.24** |
+
+재탐색(정본 spec, SLSQP 5x80, 735초) 전 제약 통과: `gain_db` 60.39(>=54),
+`cmrr` 60.00(>=60), `psrr` 63.93(>=60), `mismatch` 2.79(<=5), `centering` 0.1427(<=0.15),
+**`parasitic_pm_deg` 70.12(>=70)**. self-test 둘 다 exit 0 / diff 0줄.
+
+#### 남은 것 -- 층3과 층0 배선
+
+* **층3(공동 sweep) 미완**: `M8류`가 `needs_joint_sweep=True`(주인 후보 M6·M7)인데 아직
+  공동 sweep이 없다. 설계는 합의됐다 -- 동치류의 공통 L을 **theta 하나**로 두고(이름은
+  동치류에서 파생, `L_cascode`류 **특정 이름 금지**) 걸린 **모든** gain 제약을 동시에
+  만족시킨다(`metric_stage_budget`의 `metric`을 리스트로 확장). bounds는 새 함수가 필요
+  없다 -- **이미 선언된 두 제약**이 상·하한을 정의한다(상한 `parasitic_pm_deg >=
+  PM_target_deg`(§7.11, 배선 완료), 하한 `mismatch_sigma_mV <= 선언값`).
+* **층0 게이트 미배선**: `audit_l_sharing_consistency()`는 만들었으나 파이프라인에 안 걸려
+  있다(현재는 전파가 갈림을 없애므로 회귀 감시용). ★절대원칙상 배선하거나 승인받아야 한다.
+* `L_ROLE_MULTIPLIERS`의 `bias_replica: 1.2`는 아직 상수다(knee가 대체하는 것은 `mirror`).
+  그 role의 의도(§7.10 "PVT 민감도 완화, 미러의 출력임피던스 극대화가 아님")가 knee와
+  다르므로 별도 판단이 필요하다.
+
 ## Version History
 
 | Version | Date | Changes |
@@ -3019,3 +3117,4 @@ L5c 픽스처는 `parasitic_pm_deg`를 제외한다 -- 그 제약은 **L 상한*
 | **4.34** | 2026-09-10 | **spec 정본화 — 한 세션치 측정이 비정본 기준이었음을 확인하고 재발 방지를 배선했다**(사용자 지시 "이번 실수가 재발하지 않도록 방법을 강구해"). 조사 스크립트들이 spec을 손으로 복붙해 정본(`run_harness.SPECS`)과 갈려 있었다(`gm_id_grid` 57점 vs **21점**, `L_candidates` 41점 vs 12점, `stage_power_tolerance` 누락). 정본 주석에 이미 세션30 실측 "L을 촘촘히 하면 gm_id도 촘촘해야 한다"가 있었는데 복제본은 **둘 다 성겨** 우연히 안 터졌던 것이다. **정본으로 재탐색하면 파일럿이 수렴하지 않는다**(SLSQP 3 start 전부 실패, `biasgen_vom_floatsrc_sink` 스택 예산 **-0.024V**, M9b 미해결) — 즉 v4.28~v4.33의 수치는 정본에서 도달 불가능한 동작점이다(§10.6). **신설·배선**: `require_declared_spec_source()`(`_build_theta_evaluator()` 첫 줄), `spec_fingerprint()`, `run_harness.canonical_spec()`/`derived_spec(key, why, **overrides)`(덮어쓴 항목만 갈리고 무엇을 왜 바꿨는지 `_spec_source`에 자동 기록). 복붙 블록 **238줄을 16개 스크립트에서 제거**하고 정본 호출로 교체(복제본은 정본의 부분집합 24키⊂26키라 손실 없음). **★ 게이트를 만들자마자 그것이 죽어 있었다** — 모듈이 `os`를 최상위 import하지 않아 `NameError`가 났고 `except Exception: return`이 삼켜 항상 통과했다. 광범위 except를 제거하고 **자기시험 4건을 넣어** 게이트가 다시 조용히 죽으면 기준선 diff가 깨지게 했다. self-test 둘 다 exit 0 / diff **0줄** |
 | **4.35** | 2026-09-10 | **M9b 스택 예산 음수 해결 + 기준점 복구 일반화 -- 정본 spec으로 파일럿이 처음 수렴했다**(145초, 직전엔 625초 동안 3 start 전부 실패). ① **배터리 KVL이 아무 데서도 강제되지 않고 있었다**: `M9a`/`M9b`는 직렬이 아니라 Vg15↔Vop1를 잇는 **상보 병렬쌍**(Monticelli floating battery)이라 `V_bat = vdd - VGS(M15) - VGS(M16)`인데, 선언된 `classab_centering_dev_v`는 VGS의 **차이**만 재고 **합**은 아무도 안 봤다. 실측 0.9799+0.8441=1.824>vdd ⟹ **V_bat=-0.024V**인데 centering(0.136≤0.15)은 **통과한 채** -- 즉 그동안의 파일럿 수치는 배터리 전압이 음수인 불가능한 동작점의 값이었다. 해결(사용자 선택): `stack_kvl_vgs_limit()`이 **선언만 읽어** VGS 상한을 유도(종속항을 **계수 k로 세는** 덕에 'M15와 M16이 같다'를 알 필요가 없다, k=2 ⟹ 0.8417V로 손계산과 일치) -> `search_gm_id_for_role(vgs_max=…)`; 포화 하한은 `lut_vdsat_headroom()`이 §2.7 `2/(gm/ID)`로 유도해 **새 상수 없음**(기존 `_default_cascode_headroom()` 재사용, 배분기와 **같은 헬퍼**). ② **기준점이 중점에 묶여 탐색이 출발을 못 하고 있었다**(사용자 지적 "중점에 묶이는 것도 해결했잖아. 왜 반영이 안 되어 있어?"): v4.30이 이미 `r_cmfb_vocdes`의 설계값은 하한이라고 확정했는데 그게 **self-test 픽스처에만 적히고 엔진에는 반영되지 않았다**. presolve의 세 단계가 전부 '기준점 평가 가능'을 전제해, 크래시하면 L 스캔이 조용히 midpoint로 후퇴하고 전 theta가 ambiguous가 된다. **`repair_infeasible_baseline()` 신설** -- 실패 메시지가 지목한 소자 -> 선언에서 그 소자를 담당하는 자유 theta -> 자기 bounds 양 끝을 시도, '평가 성공 **또는 병목 이동**'이면 채택. 증거가 못 짚으면 **측정된 실현가능점**으로 후퇴하고, 그것도 없으면 포기(없는 근거로 값을 옮기지 않는다). **회로/소자/theta 이름·상수가 코드에 하나도 없다**(사용자 지시 "이 설계에만 적용되는 것은 안 돼"). 파일럿 실측: `L_stage2out_p→하한 / r_cmfb_vocdes→하한 / r_diode_M11a→측정점 복귀` 3단계로 복구 -- 두 번째가 바로 v4.30이 손으로 정한 그 값이고 **이제 엔진이 스스로 유도한다**. 4개 회로 전수: folded_cascode는 **복구 0건 무동작**, two_stage/nmcnr는 기존 이월 항목. **결과**: gain_full 65.97 / cmrr 60.42 / psrr 81.97 / mismatch 1.36 / centering 0.1481 전부 통과, **V_bat -0.024→+0.380V**, **parasitic_pm_deg -8.9°→+33.88°**. **함께 고침**: M18b `budget_reference_device="M17"` 누락(vom 쪽 대칭 짝, 사용자 승인), `_grid_points_in_range(n=1)` ZeroDivisionError(잠복), L5c를 `stop_after_sizing=True`로 사이징까지만 분리(사용자 선택). self-test 둘 다 exit 0 / diff **0줄**(L5c 기준선 1줄은 앞서 갱신) |
 | **4.36** | 2026-09-10 | **§7.11 L2 완성 -- 보상망을 실제로 세고 Cc를 유도한다**(사용자 지적 "pm보상 회로가 있는데 왜 그건 고려하지 않지?", "Cc와 Rz는 보상망이 계산해서 확정해야지"). ① **L1은 보상망을 못 봤다**: `node_pole_estimate()`가 소자 단자만 셌는데, 보상망은 `passive_elements`에 **이미 선언돼 있었고**(Cc1/Rz1/Cc2/Rz2) MNA는 그 저항을 이미 쓰고 있었다 -- 그 인자를 안 받은 것뿐이다. 하필 L1이 지목한 노드(Vop1/Vom1)가 정확히 Rz가 붙는 자리라 34.2도는 무효. ② **L2는 pole을 뽑지 않는다**: `det(G+sC)=0`의 근에는 bias 모드가 섞여 -1004도와 같은 오류가 재발하므로, `(G+jwC)v=b`를 직접 풀어 `PM = 180 - (DC->w_c 누적 지연)`으로 잰다. L1 식과 원문 `atan(w_p2/w_c)`를 **둘 다 특수케이스로 포함**하고, 지배 pole 제외 처리도 신호경로 제한도 불필요해진다. ③ **논문 확인 -- 필자의 해석이 틀렸다**: `omega_c`는 **loop gain** unity gain이고(개루프 A가 아님), 실측 `|A|(w_c)=6.52dB`가 `1/beta=6.38dB`와 일치해 선언이 옳음이 독립 확인됐다. ④ **빠진 connectivity 추가**(사용자 확정): CL1/CL2(Vop/Vom-gnd), Cf1/Cf2(**교차** Vom-Vip/Vop-Vim -- Vip와 Vop가 동상이라 비교차면 정궤환, 수치로도 |A|가 1/beta에 더 가깝다), Cs1/Cs2. PM 93.76 -> 81.13(+C_L) -> 75.35(+Cf)도. ⑤ **Cc 유도**: 원문 Eq.3/Eq.6에서 `d(gm1+gm2)/dCc=0` ⟹ `Cc = sqrt(beta*tan(PM_target)*C_Ltot*Cgg2)` -- **새 상수 0개**, 실측 374~385fF(원문 500fF는 그들의 Cgg2에 대한 값). `miller_ota_topology()`의 `Cm`과 같은 성격이고 그게 이미 선례였다. 배선 중 `cap_key`가 derived를 안 읽던 것(`KeyError: 'Cc'`로 드러남)과 `exposed_params`가 호출 후 갱신 안 되던 것을 함께 고침. ⑥ **제약 판정 수치 공차**: 활성제약 수렴으로 `cmrr=59.999999999118884`(잔차 -8.8e-10)가 5 start를 전부 버렸다 -> 상대오차 1e-9. 처음 `max(1.0,|target|)`로 뒀다가 **self-test가 잡았다**(면적 9.1e-12에서 공차가 값의 100배). **결과**: `parasitic_pm_deg >= PM_target_deg`를 `value_from_spec`으로 선언하고 재탐색 성공 -- PM **71.87**, gain_full 66.05, cmrr 60.50, psrr 81.65, mismatch **0.753**, power **233.73uA**(267.59에서 -12.6%). self-test 둘 다 exit 0 / diff 0줄 |
+| **4.37** | 2026-09-10 | **미러 공통 L 3층 구조 -- 층1/층2/knee 착지**(사용자 확정 "M5가 주인이야"). ① **층1 동치류**: 진짜 전류미러(같은 kind/gate/source, **순수 connectivity**) + `same_as_device` + `matching_pairs`. `gm_id_match_vgs_of`는 **안 쓴다** -- 그 필드는 cross-kind VGS 매칭에도 쓰여 L을 공유하면 안 되는데(세션30 M15-M16), connectivity 판정이 둘을 정확히 가른다(실측 확인). 파일럿 15개 류, 큰 둘이 M5·M38 포함 8소자 / M6·M7·M36a 포함 11소자 -- 추적했던 사슬 그대로. ② **층2 주인**: tail=`headroom_role`, gain stage=`gain_stages_sum.stages`, stage의 tail="그 stage 소자들의 source net을 drain으로 갖는 tail"(연결), 최초 input 단=gain metric `excite` net을 gate로 갖는 소자의 stage. 실측 **주인 M5 / M6** -- 지시와 일치. 다른 3개 회로는 `gain_stages_sum` 미선언이라 **전부 폴백 = 동작 무변경**. ③ **knee로 상수 제거**: §7.10이 이름까지 명세해둔 `measure_L_knee()` 구현(한계효율 `Δ(gm/gds)/Δ(W·L)`, ID는 argmax에 무관해 인자 아님, 비단조 구간 건너뜀) + `knee_L_for_kind()`(gm_id 격자 **중앙값**, 캐시). 실측: **vds에 무관**(네 vds 중앙값 동일 -- L이 vds보다 먼저 배정되므로 결정적)하고 **kind마다 다르다**(nmos 1.63x / pmos 2.27x) -- 단일 상수 2.5x로는 못 담는 차이다. 격자가 spec에 선언돼야만 계산한다(toy LUT 폴백이 W 하한을 깨는 것을 self-test가 잡았다). **결과**: L 갈린 동치류 **3/3 → 0**, `mirror_ratio_error_pct` 11.84→13.96, 재탐색 전 제약 통과 (`parasitic_pm_deg` 70.12 / cmrr 60.00 / gain_db 60.39), **power 267.59→225.38uA**, **area 693.88→524.24um²**. self-test 둘 다 exit 0 / diff 0줄. **남은 것**: 층3(공동 gain sweep + L theta 일반화), 층0 게이트 파이프라인 배선, `bias_replica: 1.2` 상수 |

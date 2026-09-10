@@ -141,3 +141,9 @@ W비가 ID비와 다른 것이 정상이다(§10.2 A4가 이미 짚은 내용: "
   원문 자신의 Eq.3/Eq.6에서 `Cc = sqrt(beta*tan(PM_target)*C_Ltot*Cgg2)`가 나오고, 파일럿에서
   374~385fF로 계산된다(원문의 500fF는 **그들의** Cgg2에 대한 값). 동작점이 옮겨가 M18_bg vds
   0.825->0.75V, M7/M36a vds도 함께 이동했다. 세 줄 모두 여전히 PASS다.
+
+- **2026-09-10 (4)** -- L5c 값 **3줄** 변경(삭제 0/추가 0). 미러 공통 L 3층 구조를 배선한
+  결과다: `_L_ROLE_MULTIPLIERS`의 `mirror: 2.5x` 상수가 **실측 knee**로 대체됐고
+  (`knee_L_for_kind()`: nmos 1.63x / pmos 2.27x -- **kind마다 다르다**, 상수로는 못 담는 차이),
+  L 동치류의 주인(gain stage tail)이 정한 L이 류 전체로 전파된다. M18_bg vds 0.75->0.7125V,
+  cmrr 63.70->68.59. 세 줄 모두 PASS.

@@ -2271,7 +2271,311 @@ _L_ROLE_MULTIPLIERS = {
 }
 
 
-def select_L_by_role(role: str, L_min: float) -> float:
+
+def measure_L_knee(lut: "GmIdLUT", gm_id: float, vds: float, L_grid, vsb: float = 0.0):
+    """**한계 gain/면적 효율이 최대인 구간의 상단** L을 LUT에서 실측한다(§7.10, 2026-09-10).
+
+    계획 §7.10이 이름까지 명세해 둔 함수다. `_L_ROLE_MULTIPLIERS = {"mirror": 2.5,
+    "bias_replica": 1.2}`(x L_min) **고정배수를 대체**한다 -- 그 배수는 sky130 실측 knee와
+    우연히 일치했지만 **공정이 바뀌면 knee도 바뀐다**(C1/C9). 상수로 두면 다른 PDK로
+    이식할 때 조용히 틀린 값을 쓴다.
+
+    ## 무엇을 재는가
+
+    §7.10 "측정 2"의 한계효율:
+
+        eff(L_i -> L_{i+1}) = Δ(gm/gds) / Δ(W·L)
+
+    `W = ID·L/IDu` 이므로 `W·L ∝ ID·L²/IDu`이고, **ID는 두 항에 같은 배율로 들어가
+    argmax에 영향을 주지 않는다** -- 그래서 이 함수는 ID를 인자로 받지 않는다(면적은
+    `L²/IDu` 대용값을 쓴다). knee는 eff가 최대인 구간의 **상단** L이다: 그 지점까지는
+    면적 한 단위당 얻는 gain이 가장 크고, 넘어가면 수확체감이 시작된다.
+
+    ## ⚠️ 닫힌 식이 아니라 격자 전수 스캔
+
+    §7.10이 실측으로 찾은 반례: **pmos 일부 구간에서 L을 늘렸는데 `W·L`이 오히려 줄었다**
+    (`IDu`가 L에 비단조라 한계효율이 `inf`로 계산됨). 그래서 단조성을 가정한 이분법/미분
+    지름길을 쓰지 않고 격자를 전부 훑으며, `ΔL·Δ(W·L) <= 0`인 구간은 한계효율이 정의되지
+    않으므로 건너뛴다(그 사실을 조용히 숨기지 않고 아래 `skipped`로 돌려준다).
+
+    반환: `{"knee": L, "efficiency": eff, "points": n, "skipped_nonmonotonic": [...]}`.
+    유효 구간이 하나도 없으면 `knee=None`(호출자가 판단 -- 값을 지어내지 않는다).
+    """
+    pts = []
+    for L in sorted(float(v) for v in L_grid):
+        try:
+            idu = lut.gm_id_to_id_density(gm_id, L, vds, vsb)
+            ratio = lut.gm_gds_ratio(gm_id, L, vds, vsb)
+        except (ValueError, KeyError):
+            continue
+        if not (idu > 0) or not (ratio > 0):
+            continue
+        pts.append((L, ratio, L * L / idu))       # (L, gm/gds, 면적 대용 W·L ∝ L²/IDu)
+    best, skipped = None, []
+    for (l0, r0, a0), (l1, r1, a1) in zip(pts, pts[1:]):
+        da = a1 - a0
+        if da <= 0:
+            skipped.append((l0, l1))              # 비단조 구간 -- 한계효율 정의 불가
+            continue
+        eff = (r1 - r0) / da
+        if best is None or eff > best[0]:
+            best = (eff, l1)
+    return {"knee": (best[1] if best else None),
+            "efficiency": (best[0] if best else None),
+            "points": len(pts), "skipped_nonmonotonic": skipped}
+
+
+def true_current_mirror_groups(by_name: dict) -> list:
+    """**진짜 전류미러** 그룹 -- 같은 `(kind, gate net, source net)`을 공유하는 소자 집합.
+
+    순수 connectivity 사실이다(role 라벨을 안 본다). 물리 근거는 미러비 식 자체다:
+
+        ID2/ID1 = (W2/L2) / (W1/L1)
+
+    이 **순수한 W 비**(=레이아웃 비, PVT에 강함)로 축약되려면 `L1 == L2`여야 한다. L이
+    다르면 비가 이동도/Vth/채널길이변조의 L 의존성을 타고 공정·전압·온도에 흔들린다
+    (사용자 지적: "tail이 bias generation하는 mirror와 L이 다르면 전류비가 실제 실리콘에서는
+    PVT때문에 정확하지 않을 수 있잖아").
+
+    이 판정은 **cross-kind 쌍을 자동으로 제외**한다 -- 세션30이 문헌+코드 대조로 확정한
+    "Pelgrom/전류미러 매칭은 same-kind에만 성립"(M15 PMOS / M16 NMOS는 미러가 아니라
+    class-AB 센터링용 VGS 매칭이라 L을 독립으로 둔다)이 규칙에서 저절로 지켜진다."""
+    groups = {}
+    rails = set(_DEFAULT_RAIL_HI) | set(_DEFAULT_RAIL_LO)
+    for name in sorted(by_name):
+        tr = by_name[name]
+        if tr.gate is None or tr.source is None:
+            continue
+        if tr.gate in rails:
+            continue        # 게이트가 레일이면 미러가 아니다(항상 on/off인 소자)
+        groups.setdefault((tr.kind, tr.gate, tr.source), []).append(name)
+    return [sorted(v) for v in groups.values() if len(v) > 1]
+
+
+def l_sharing_classes(by_name: dict, meta: dict, matching_pairs=()) -> dict:
+    """**같은 L을 써야 하는 소자들**의 동치류(층1, 2026-09-10). `{root: [members]}`.
+
+    세 종류의 edge를 union-find로 묶는다 -- 전부 **이미 있는 선언·연결**에서 나온다:
+
+      (a) 진짜 전류미러 -- `true_current_mirror_groups()`(순수 connectivity). L이 같아야
+          미러비가 W 비로 축약된다.
+      (b) `device_roles[X].same_as_device` -- 이미 "물리적으로 동일해야 하는 병렬/매칭
+          파트너"라고 선언된 관계(M7=M6, M36b=M36a).
+      (c) `symmetry.matching_pairs` -- 이 저장소가 **이미 L 불일치를 하드에러로 강제**하고
+          있는 관계(재사용, 새 규칙 아님).
+
+    ⚠️ `gm_id_match_vgs_of`는 edge로 쓰지 **않는다**. 그 필드는 두 가지 용도로 쓰이는데
+    (진짜 전류미러 / cross-kind VGS 매칭), 후자는 L을 공유하면 안 되기 때문이다(세션30
+    M15-M16 결정). (a)의 connectivity 판정이 그 둘을 정확히 갈라준다.
+
+    실측(2026-09-10 파일럿): 이 세 edge만으로 NMOS류(M5·M38 포함)와 PMOS류(M6·M7·M36a
+    포함)가 나온다 -- `M7 --same_as-- M6`이 Vcmfb 그룹과 Vbias1 그룹을 잇는다."""
+    parent = {}
+
+    def find(x):
+        parent.setdefault(x, x)
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[ra] = rb
+
+    for grp in true_current_mirror_groups(by_name):
+        for other in grp[1:]:
+            union(grp[0], other)
+    roles = meta.get("device_roles") or {}
+    for n, r in roles.items():
+        if isinstance(r, dict) and r.get("same_as_device"):
+            union(n, r["same_as_device"])
+    for p in (matching_pairs or ()):
+        names = p.get("devices") or p.get("names") or ()
+        for other in list(names)[1:]:
+            union(list(names)[0], other)
+    out = {}
+    for n in list(parent):
+        out.setdefault(find(n), []).append(n)
+    return {k: sorted(v) for k, v in out.items() if len(v) > 1}
+
+
+def gain_stage_tails(by_name: dict, meta: dict) -> dict:
+    """`{tail 소자: {"stage_index": i, "is_input_stage": bool}}` -- **gain stage의 tail**을
+    선언과 연결에서 유도한다(층2, 2026-09-10).
+
+    사용자가 확정한 원칙: *"gain stage의 tail이 L의 주인이고, 특히 최초 input 단의 tail이
+    실제 주인이야."* 이 함수는 그 "gain stage의 tail"과 "최초 input 단"을 회로 이름 없이
+    찾는다 -- 필요한 선언이 **이미 전부 있다**:
+
+      tail          `device_roles[X].headroom_role == "tail"`          (선언)
+      gain stage    gain metric의 `stages`(`gain_stages_sum`)           (선언)
+      stage의 tail  그 stage 소자들의 **source net을 drain으로 갖는** tail   (연결)
+      최초 input단  gain metric의 `excite` net을 **gate로 갖는** 소자가 속한 stage (선언+연결)
+
+    "stage의 tail"을 연결로 찾는 이유: `stages`에는 증폭 소자만 들어 있고 tail은 안 들어
+    있다(파일럿의 stage1 = M1a/M4a/M2a/M3a인데 그 tail M5는 목록에 없다). tail은 정의상
+    그 stage의 공통 소스 노드를 드레인으로 잡는 소자이므로 넷리스트가 답을 갖고 있다.
+
+    반환은 tail 소자별 dict다. `is_input_stage`가 True인 tail이 **실제 주인**이고, 그것이
+    없으면 다른 gain stage의 tail이 주인 후보다."""
+    roles = meta.get("device_roles") or {}
+    tails = {n for n, r in roles.items()
+             if isinstance(r, dict) and r.get("headroom_role") == "tail"}
+    if not tails:
+        return {}
+    metrics = (meta.get("sizing_roles") or {}).get("metrics") or {}
+    stages, excite = [], set()
+    for m in metrics.values():
+        if not isinstance(m, dict):
+            continue
+        if m.get("type") == "gain_stages_sum" and m.get("stages"):
+            stages = [list(s) for s in m["stages"]]
+        # excite는 어느 gain metric에서든(smallsignal_gain_db 포함) 신호원 net을 준다.
+        # 0으로 여기된 단자는 AC 접지라 신호원이 아니다(§7.11에서 확인한 것과 같은 규약).
+        if "gain" in str(m.get("type", "")) or m.get("type") == "smallsignal_gain_db":
+            excite |= {k for k, v in (m.get("excite") or {}).items() if v}
+    if not stages:
+        return {}
+    drain_of = {}
+    for n, tr in by_name.items():
+        if n in tails and tr.drain is not None:
+            drain_of.setdefault(tr.drain, []).append(n)
+    input_stage = None
+    if excite:
+        for i, devs in enumerate(stages):
+            if any((by_name[d].gate in excite) for d in devs if d in by_name):
+                input_stage = i
+                break
+    out = {}
+    for i, devs in enumerate(stages):
+        srcs = {by_name[d].source for d in devs if d in by_name and by_name[d].source}
+        for s in srcs:
+            for tl in drain_of.get(s, ()):
+                out[tl] = {"stage_index": i, "is_input_stage": (i == input_stage)}
+    return out
+
+
+def l_class_owners(by_name: dict, meta: dict, matching_pairs=()) -> dict:
+    """각 L 동치류의 **주인**을 정한다(층2). `{root: {...}}`.
+
+    우선순위(사용자 확정): **최초 input 단 tail > 다른 gain stage tail > 주인 없음**.
+    주인이 여럿이면(여러 gain stage의 tail이 한 동치류에 묶임) 층3 -- 그 류의 공통 L 하나가
+    **모든** 관련 gain 제약을 동시에 만족해야 한다.
+
+    주인이 없는 류는 기존 `L_role` 고정배수 경로를 그대로 탄다(다른 회로 동작 보존).
+
+    반환 항목: `{"members", "owner", "owners_all", "needs_joint_sweep", "reason"}`."""
+    classes = l_sharing_classes(by_name, meta, matching_pairs)
+    tails = gain_stage_tails(by_name, meta)
+    out = {}
+    for root, members in classes.items():
+        cand = [m for m in members if m in tails]
+        inputs = [m for m in cand if tails[m]["is_input_stage"]]
+        if inputs:
+            owner, reason = sorted(inputs)[0], "최초 input 단의 tail"
+        elif cand:
+            owner = sorted(cand, key=lambda m: (tails[m]["stage_index"], m))[0]
+            reason = f"gain stage {tails[owner]['stage_index']}의 tail(input 단 tail 없음)"
+        else:
+            owner, reason = None, "이 류에 gain stage tail이 없다 -- L_role 폴백"
+        out[root] = {"members": members, "owner": owner, "owners_all": sorted(cand),
+                     "needs_joint_sweep": len(cand) > 1, "reason": reason}
+    return out
+
+
+def audit_l_sharing_consistency(by_name: dict, meta: dict, sized: dict,
+                                matching_pairs=(), tol: float = 1e-12) -> list:
+    """L 동치류 안에서 **L이 갈린** 곳을 찾는다(층0 게이트, 2026-09-10).
+
+    같은 동치류인데 L이 다르면 그 미러비는 `W2/W1`로 축약되지 않고 L 의존 항(이동도/Vth/
+    채널길이변조)을 타고 **PVT에 흔들린다**. 선언(connectivity)은 이미 "이들은 진짜
+    전류미러"라고 말하고 있는데 L 배정만 그 선언을 안 보고 있던 상태를 잡는다.
+
+    실측(2026-09-10, 배선 전 파일럿): 진짜 미러 그룹 **3/3 전부** 갈려 있었다 -- 언제나
+    tail 하나만 `bias_replica`(0.18um)이고 나머지는 `mirror`(0.375um)로, **2.08배** 차이였다.
+
+    반환: `[{"root","members","by_L","sources"}]` -- 갈린 류만. 빈 리스트면 정합."""
+    out = []
+    for root, members in l_sharing_classes(by_name, meta, matching_pairs).items():
+        by_L = {}
+        for m in members:
+            e = sized.get(m) or {}
+            L = e.get("L")
+            if L is None:
+                continue
+            key = round(float(L) / max(tol, 1e-15))
+            by_L.setdefault(key, {"L": float(L), "devices": [], "sources": set()})
+            by_L[key]["devices"].append(m)
+            by_L[key]["sources"].add(e.get("_L_source") or "?")
+        if len(by_L) > 1:
+            out.append({"root": root, "members": members,
+                        "by_L": [{"L": v["L"], "devices": sorted(v["devices"]),
+                                  "sources": sorted(v["sources"])} for v in by_L.values()]})
+    return out
+
+
+_KNEE_L_CACHE: dict = {}
+
+
+def knee_L_for_kind(lut: "GmIdLUT", spec: dict) -> float:
+    """이 공정·이 kind의 **knee L**(m). `measure_L_knee()`를 gm_id 격자 전체에 돌린
+    **중앙값**이다(2026-09-10, §7.10 C1/C9 -- `_L_ROLE_MULTIPLIERS` 상수 대체).
+
+    ## 왜 중앙값이고, 왜 vds를 하나만 찍는가 (실측 근거)
+
+    L은 gm_id/vds가 정해지기 **전에** 배정된다(그래서 원래 코드가 role 상수를 썼다). 그래서
+    knee를 어떤 동작점에서 재느냐가 문제인데, 실측이 답을 준다(파일럿 LUT, 단위 x L_min):
+
+        kind   vds=0.3  0.6  0.9  1.2      gm_id별 범위        중앙값
+        nmos     1.63  1.63  1.63  1.63    1.63 ~ 17.67        1.63
+        pmos     2.27  2.27  2.27  2.27    1.63 ~ 10.63        2.27
+
+    * **vds에는 사실상 무관**하다 -- 네 vds에서 중앙값이 완전히 같다. 그래서 vds를 모르는
+      시점의 배정에도 안전하고, 대표 vds 하나(`VDS_candidates`의 중앙)로 찍는다.
+    * **gm_id에는 민감**하다 -- 대부분 1.63x인데 약반전 끝(gm_id>=18~22)에서 튄다. 한 점만
+      찍으면 그 튀는 값을 뽑을 수 있으므로 **격자 전체의 중앙값**을 쓴다(평균이 아니라
+      중앙값인 이유: 위 범위가 보여주듯 꼬리가 한쪽으로 길다).
+    * **kind마다 다르다**(1.63 vs 2.27) -- 단일 상수 `mirror: 2.5`로는 원리적으로 못 담는
+      차이다. 공정이 바뀌면 이 값도 따라간다(그게 상수를 없앤 이유, C1/C9).
+
+    캐시 키는 `(id(lut), gm_id 격자, L 격자, vds)` -- `_idu_scan`과 같은 관례로, 이 계산은
+    theta 격자점마다 반복되므로 캐시 없이는 비싸다(재계산 비효율 점검, 프로젝트 원칙).
+    """
+    # 2026-09-10 -- 세 격자를 **spec이 선언해야만** knee를 잰다. LUT 자신의 격자로 조용히
+    # 폴백하면 "이 설계가 실제로 탐색하는 범위"가 아닌 데서 knee를 재게 된다 -- self-test의
+    # toy LUT 픽스처(격자 선언 없음, `known_sizing.L=0.5um`, `W_bounds` 1~50um)가 바로 그
+    # 경우로, 폴백 knee가 W를 0.824um로 끌어내려 하한을 깼다. 근거가 없으면 knee를
+    # 계산하지 않고 호출자가 기존 role 배수로 폴백하게 둔다(값을 지어내지 않는다).
+    grid = tuple(float(g) for g in (spec.get("gm_id_grid") or ()))
+    Lg = tuple(float(v) for v in (spec.get("L_candidates") or ()))
+    vds_list = sorted(float(v) for v in (spec.get("VDS_candidates") or ()) if v > 0)
+    if not vds_list or not Lg or not grid:
+        raise ValueError(
+            "knee_L_for_kind: `gm_id_grid`/`L_candidates`/`VDS_candidates`가 spec에 전부 "
+            "선언돼 있어야 한다 -- knee는 **이 설계가 실제로 탐색하는 격자**에서 재야 "
+            "의미가 있고, LUT 자신의 격자로 대신 재면 다른 값이 나온다")
+    vds = vds_list[len(vds_list) // 2]
+    key = (id(lut), grid, Lg, vds)
+    if key in _KNEE_L_CACHE:
+        return _KNEE_L_CACHE[key]
+    knees = []
+    for g in grid:
+        r = measure_L_knee(lut, g, vds, Lg)
+        if r["knee"]:
+            knees.append(r["knee"])
+    if not knees:
+        raise ValueError(
+            f"knee_L_for_kind: gm_id 격자 {grid[0]}~{grid[-1]} 어디서도 knee를 못 구했다 "
+            f"(vds={vds}) -- LUT 범위/격자를 확인할 것. 값을 지어내지 않는다")
+    knees.sort()
+    n = len(knees)
+    med = knees[n // 2] if n % 2 else 0.5 * (knees[n // 2 - 1] + knees[n // 2])
+    _KNEE_L_CACHE[key] = med
+    return med
+
+def select_L_by_role(role: str, L_min: float, knee: float | None = None) -> float:
     """배치 7-3f — 고정 배수 규칙류(미러/바이어스)만 다룬다. 캐스코드/신호경로의 L은
     이 함수의 담당이 아니다 — 단별 이득배분이 필요한 값(정답이 없는 트레이드오프)이라
     배치 7-3d의 theta 탐색(`L_cascode`/`L_stage2out`, 총이득 제약을 만족하는 탐색으로
@@ -2281,6 +2585,11 @@ def select_L_by_role(role: str, L_min: float) -> float:
         raise ValueError(
             f"role={role!r}은 select_L_by_role()이 아니라 배치 7-3d의 theta 탐색"
             f"(L_cascode/L_stage2out)이 담당한다 -- 여기서 호출하면 안 됨")
+    # 2026-09-10(§7.10 C1/C9) -- `mirror`는 상수 배수가 아니라 **실측 knee**를 쓴다.
+    # 호출자가 `knee`를 주면(=`knee_L_for_kind()` 결과) 그 값이 이긴다. 안 주면 기존
+    # 배수로 폴백한다(하위호환 -- knee를 계산할 spec이 없는 호출부가 아직 있다).
+    if role == "mirror" and knee:
+        return float(knee)
     multiplier = _L_ROLE_MULTIPLIERS.get(role)
     if multiplier is None:
         raise ValueError(
@@ -7747,8 +8056,58 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 entry = ctx.sized.setdefault(name, {})
                 if entry.get("_L_source") not in _AUTHORITATIVE_L_SOURCES:
                     L_min = spec.get("L_min_by_kind", {}).get(kind_of[name], spec.get("L_min"))
-                    entry["L"] = select_L_by_role(dr["L_role"], L_min)
+                    _knee = None
+                    try:
+                        _knee = knee_L_for_kind(spec["lut_by_kind"][kind_of[name]], spec)
+                    except (KeyError, ValueError):
+                        _knee = None       # knee를 못 구하면 기존 배수 폴백(조용히 아님 --
+                                            # select_L_by_role()이 그 사실을 문서화한다)
+                    entry["L"] = select_L_by_role(dr["L_role"], L_min, knee=_knee)
                     entry["_L_source"] = "L_role"
+
+        # 2026-09-10(층2, 사용자 확정 "M5가 주인이야") -- **L 동치류의 주인이 정한 L을 류
+        # 전체에 전파**한다. 동치류는 진짜 전류미러(같은 kind/gate/source, 순수 connectivity)
+        # + `same_as_device` + `matching_pairs`로 묶이고, 주인은 **gain stage의 tail**(특히
+        # 최초 input 단)이다 -- `l_class_owners()` 참고.
+        #
+        # 왜 필요한가: 미러비 `ID2/ID1 = (W2/L2)/(W1/L1)`가 순수 W 비로 축약되려면 L이 같아야
+        # 한다. L이 다르면 그 비가 이동도/Vth/채널길이변조의 L 의존성을 타고 **PVT에 흔들린다**
+        # (사용자 지적). 실측: 배선 전 파일럿은 진짜 미러 그룹 3/3이 전부 갈려 있었다
+        # (tail만 bias_replica 0.18um, 나머지 mirror 0.375um -- 2.08배).
+        #
+        # ⚠️ 권위 있는 L 출처(theta/compensation)는 덮지 않는다 -- 바로 아래 matching_pairs
+        # 전파가 쓰는 것과 **같은 우선순위 규약**이다(그 블록 주석 참고). 주인 자신의 L이
+        # 권위 있는 출처에서 왔으면 그것이 류 전체로 퍼지고, 주인이 없는 류는 기존 L_role
+        # 경로 그대로다(다른 회로 동작 보존 -- 실측: 4개 회로 중 파일럿에서만 주인이 잡힌다).
+        _lc_owners = l_class_owners(by_name, meta, _matching_pairs_cached(topology_path))
+        for _lc_root, _lc_info in _lc_owners.items():
+            _lc_owner = _lc_info["owner"]
+            if not _lc_owner:
+                continue
+            # 2026-09-10(§7.10) -- 주인은 **gain 임계 소자**(gain stage의 tail)라 역할
+            # 휴리스틱(`bias_replica` 1.2x 등)이 아니라 **knee에서 출발**한다. §7.10:
+            # "L_init = knee(...)  # 한계 gain/면적 효율이 최대인 구간의 상단, LUT 실측".
+            # 주인의 L이 이미 권위 있는 출처(theta/compensation)에서 왔으면 그것이 이긴다.
+            _lc_e_own = ctx.sized.setdefault(_lc_owner, {})
+            if _lc_e_own.get("_L_source") not in _AUTHORITATIVE_L_SOURCES:
+                try:
+                    _lc_e_own["L"] = knee_L_for_kind(
+                        spec["lut_by_kind"][kind_of[_lc_owner]], spec)
+                    _lc_e_own["_L_source"] = "l_class_owner_knee"
+                except (KeyError, ValueError):
+                    pass
+            _lc_L = _lc_e_own.get("L")
+            if _lc_L is None:
+                continue
+            for _lc_m in _lc_info["members"]:
+                if _lc_m == _lc_owner:
+                    continue
+                _lc_e = ctx.sized.setdefault(_lc_m, {})
+                if _lc_e.get("_L_source") in _AUTHORITATIVE_L_SOURCES:
+                    continue
+                if _lc_e.get("L") != _lc_L:
+                    _lc_e["L"] = _lc_L
+                    _lc_e["_L_source"] = f"l_class_owner:{_lc_owner}"
 
         # matching_pairs로 선언된 두 소자는 반드시 같은 L을 써야 매칭이 성립한다(전류미러/
         # 차동쌍의 표준 관례 -- 실제 전류미러가 서로 다른 L을 쓰면 매칭 정확도가 무너진다).
