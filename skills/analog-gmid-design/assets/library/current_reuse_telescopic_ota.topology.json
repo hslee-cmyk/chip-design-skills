@@ -2043,7 +2043,8 @@
       {
         "metric": "mismatch_sigma_mV",
         "op": "<=",
-        "value": 5.0
+        "value": 5.0,
+        "_comment": "⚠️ 2026-09-10(사용자 질문 \"mismatch_sigma_mV가 어떻게 도출된 값이지?\") -- **이 값에는 기록된 도출 근거가 없다.** 추적 결과: 설계 초안(docs/04-report/analog-topology-json-library.do.md 1457행)은 `{\"metric\": \"mismatch_sigma_mV\", \"op\": \"<=\", \"value\": X}`로 **X를 자리표시자**로 뒀고, 최초 라이브러리 커밋(e329283, 배치 1~7)에서 5.0으로 채워지면서 근거 주석 없이 남았다. gain_db>=75.6이 세션44에서 재도출되기 전과 **정확히 같은 상태**다(그 _gain_db_target_comment가 '이 constraint만 도출 근거 주석 없이 남아있었음'이라고 적은 그 부류). two_stage_ota도 이 값을 복제했다(그쪽 _target_spec_comment: '새 문헌값이 아니라 ... current_reuse_telescopic_ota의 문턱(5.0mV)을 재사용'). 게다가 **한 번도 구속한 적이 없다** -- 실측 착지값 3.01(세션28) / 2.795(v4.38~4.39) / 1.334(v4.40~4.41) 전부 5.0 아래다. ⚠️ 2026-09-10 이후로는 mirror_ratio_error_mV가 이 값을 value_from_constraint로 **참조**하므로, 이 숫자를 고치면 그 제약도 함께 움직인다 -- 즉 근거를 세우는 일이 더 중요해졌다. 재도출 방법은 사용자 확정 전까지 정하지 않는다(값을 지어내지 않는다)."
       },
       {
         "metric": "cmrr_estimate_db",
