@@ -1938,6 +1938,17 @@
         "type": "stack_headroom_slack",
         "unit": "V",
         "_comment": "2026-09-08(A8) -- 스택 KVL 여유의 최솟값. 음수면 그 스택이 성립하지 않는다. diode의 vds는 gm_id가 정하는 종속값이므로 이건 gm_id 조합이 만족해야 하는 제약이다. 현재 사이징에서는 7개 스택이 음수(최악 -1.346V)라 제약을 걸면 즉시 infeasible이 된다 -- 그래서 아직 constraint로 걸지 않고 먼저 재탐색으로 해를 찾은 뒤 건다."
+      },
+      "parasitic_pm_deg": {
+        "type": "parasitic_pm_deg",
+        "excite": {
+          "Vip": 0.5,
+          "Vim": -0.5
+        },
+        "sense_p": "Vop",
+        "sense_n": "Vom",
+        "unit": "deg",
+        "_comment": "2026-09-10(§7.11) -- 기생 pole이 남기는 위상여유. PM = 90 - sum_nodes atan(w_c/w_pole)이고, 신호경로(excite->sense) 위의 내부 노드만 센다. 원문(Xie & Chen)의 PM = atan(w_p2/w_c)를 pole이 하나일 때의 특수케이스로 포함한다(atan(x)+atan(1/x)=90 항등식). alpha(노드 용량비)/N(fT 배수)/k(pole 개수) 같은 상수를 선언하지 않는다 -- 전부 넷리스트와 LUT에서 나온다. **아직 constraint로 걸지 않는다**: 파일럿 실측이 -8.9도로(Vg15/Vg25의 pole이 31.6MHz = 0.86 x f_c) 즉시 infeasible이라, mirror_ratio_error/kcl_residual과 같은 선례대로 먼저 재고 4개 회로에서 값을 본 뒤 상한을 정한다."
       }
     },
     "_classab_centering_comment": "2026-08(세션6) -- 사용자가 'M11a-chain과 M13-chain 전류를 같게 해야 Vom이 안 치우친다'는 가설을 제기해 검토한 결과: M9a/M9b 자신의 전류는 그 두 chain이 아니라 K_replica(M9a~M15)/kcl_battery_M9b(=ID(M11a-chain)+ID(M9a))로 이미 결정되고, M13-chain 전류는 이 KCL에 아예 안 들어간다(Fig.7b가 두 chain 전류가 다르다고 실측 확인한 것과 일치) -- 그래서 두 chain을 강제로 같게 만드는 대신, 사용자가 말한 'swing 최대화=DC bias centering' 원리 자체를 M15/M16(Vg15/Vop1, 이 둘이 진짜 Vom을 만드는 출력단 게이트)의 실제 DC 레벨로 직접 검증하는 metric을 신설했다. 근거: 논문 Section II.B \"the gate voltage of M15 is pushed to about 1.3V and ... M16 ... about 0.5V\" -- 1.3+0.5=VDD로 정확히 센터링. 절대 수치(1.3V/0.5V)는 그 논문 공정 Vth 종속이라 그대로 안 쓰고(값 인용 금지 원칙), '두 레벨의 합=VDD' 위상적 관계만 constraint로 가져왔다. tolerance(0.15V, 아래 constraints)는 이 프로젝트가 독립 도출한 게 아니라 공학적으로 타당해 보이는 근사치일 뿐 -- SPICE 검증 전까지는 정직한 한계로 남는다.",

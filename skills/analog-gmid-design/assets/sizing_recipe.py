@@ -3144,6 +3144,177 @@ def audit_vsb_consistency(by_name: dict, sized: dict, vdd: float,
     return out
 
 
+def signal_path_nodes(by_name: dict, excite: set, sense: set) -> set:
+    """`excite`에서 `sense`로 신호가 지나가는 **내부 노드**를 넷리스트에서 유도한다
+    (2026-09-10, §7.11).
+
+    소자는 게이트/소스에서 드레인으로 신호를 전달한다(`gate->drain`, `source->drain`).
+    그 방향 그래프에서 **excite에서 도달 가능하면서 sense에 도달할 수 있는** 노드가
+    신호경로다. 그 밖의 노드(순수 bias, 예: `Vbias1`)는 pole이 있어도 이 경로의 위상을
+    먹지 않는다 -- 실측으로 확인: 전 노드를 세면 bias 노드들이 각각 ~90도를 먹어
+    위상여유가 -1004도라는 무의미한 값이 나온다.
+
+    `excite`/`sense` 자신은 제외한다 -- 입력은 외부 구동이고 출력은 관측점이라 둘 다
+    이 회로 내부의 pole이 아니다.
+    """
+    fwd, rev = {}, {}
+    for name in sorted(by_name):
+        tr = by_name[name]
+        if tr.drain is None:
+            continue
+        for src in (tr.gate, tr.source):
+            if src is None:
+                continue
+            fwd.setdefault(src, set()).add(tr.drain)
+            rev.setdefault(tr.drain, set()).add(src)
+
+    def _reach(seed, adj):
+        seen, stack = set(seed), list(seed)
+        while stack:
+            x = stack.pop()
+            for y in adj.get(x, ()):
+                if y not in seen:
+                    seen.add(y)
+                    stack.append(y)
+        return seen
+
+    return (_reach(excite, fwd) & _reach(sense, rev)) - set(excite) - set(sense)
+
+
+def node_pole_estimate(by_name: dict, sized: dict, spec: dict, only: set = None) -> dict:
+    """내부 노드마다 **1차 pole** `w = G_node / C_node`를 넷리스트+LUT에서 추정한다
+    (2026-09-10, §7.11).
+
+    ## 왜 fT가 아니라 노드 pole인가
+
+    §7.10은 L 상한을 `fT >= N x GBW (N~5~10)`로 적어뒀는데, 그 `N`은 독립 상수가 아니라
+    `N = alpha x tan(PM_target)`의 결과다(alpha = C_node/Cgg, §7.11). 즉 `fT` 기준은
+    **소자 하나의 Cgg만 보는 특수 케이스**이고, 실제로 위상을 먹는 것은 그 노드에 붙은
+    **전부**다. 노드 pole을 직접 쓰면 `alpha`도 `N`도 필요 없다 -- 둘 다 측정으로 사라진다.
+
+    ## 어떻게 세는가 (1차 소신호)
+
+        드레인이 이 노드   -> G += gds          (드레인에서 본 컨덕턴스)
+        소스가 이 노드     -> G += gm + gds     (소스에서 본 컨덕턴스, 1/gm 저임피던스)
+        게이트가 이 노드   -> C += Cgg          (`cgg_absolute()`, 실제 W로 스케일)
+
+    ## ⚠️ 셀 수 없는 것과, 그것을 어떻게 다루는가
+
+    LUT에는 **CGG만 있고 접합용량(Cdb/Csb)이 없다**(`sky130_lut_sweep.py`가 저장하는 배열:
+    ID/GM/GDS/CGG/SID_1F). 그래서 게이트가 하나도 안 붙은 노드는 용량을 셀 수 없다.
+    **조용히 건너뛰지 않는다** -- 근거를 따져 둘로 가른다:
+
+      - 소스가 붙은 노드: 소스에서 본 임피던스가 `1/(gm+gds)`로 **낮고** 용량은 접합뿐이라
+        pole이 높다. 지배 pole이 될 수 없으므로 `skipped_low_impedance`로 **이유와 함께**
+        제외한다.
+      - 소스도 게이트도 없이 **드레인만** 붙은 노드: 고임피던스인데 용량을 모른다 --
+        이건 정말로 못 세는 것이라 `undetermined`로 돌려주고 **호출부가 실패**한다.
+
+    접합용량이 LUT에 들어오면 이 구분 자체가 없어진다(다음 LUT 재생성 때 CDB/CSB 추가).
+
+    반환: `{"poles": {node: w_rad_s}, "skipped_low_impedance": [...], "undetermined": [...]}`
+    """
+    rails = set(_DEFAULT_RAIL_HI) | set(_DEFAULT_RAIL_LO)
+    G = {}
+    C = {}
+    has_gate = {}
+    has_source = {}
+    for name in sorted(by_name):
+        tr = by_name[name]
+        e = sized.get(name)
+        if not e or e.get("gm") is None:
+            continue
+        gm, gds = float(e.get("gm", 0.0)), float(e.get("gds", 0.0))
+        for term, net in (("drain", tr.drain), ("source", tr.source), ("gate", tr.gate)):
+            if net is None or net in rails:
+                continue
+            if term == "drain":
+                G[net] = G.get(net, 0.0) + gds
+            elif term == "source":
+                G[net] = G.get(net, 0.0) + gm + gds
+                has_source[net] = True
+            else:
+                has_gate[net] = True
+                try:
+                    lut = spec["lut_by_kind"][e["kind"]]
+                    C[net] = C.get(net, 0.0) + lut.cgg_absolute(
+                        e["gm_id"], e["L"], e["vds"], e.get("vsb", 0.0), e["W"])
+                except (KeyError, ValueError):
+                    pass
+    poles, skipped, undet = {}, [], []
+    _nets = sorted(set(G) | set(C))
+    if only is not None:
+        _nets = [n for n in _nets if n in only]
+    for net in _nets:
+        c = C.get(net, 0.0)
+        g = G.get(net, 0.0)
+        if c > 0 and g > 0:
+            poles[net] = g / c
+        elif has_source.get(net):
+            skipped.append(net)          # 저임피던스 -- pole이 높다(근거 있는 제외)
+        else:
+            undet.append(net)            # 고임피던스인데 용량 미상 -- 못 센다
+    return {"poles": poles, "skipped_low_impedance": skipped, "undetermined": undet}
+
+
+def _metric_parasitic_pm_deg(spec_metric: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-09-10, §7.11) -- **기생 pole이 남기는 위상여유**(도).
+
+        PM_parasitic = 90 - sum_over_nodes( atan(w_c / w_pole(node)) )
+
+    ## 이 식이 원문 관계를 특수케이스로 포함한다
+
+    이 회로의 `compensation` 주석은 원문(Xie & Chen)에서 직접 확인한
+    `PM = atan(w_p2/w_c)`를 적고 있다. 비지배 pole이 하나뿐이면
+
+        90 - atan(w_c/w_p2) == atan(w_p2/w_c)        (atan(x)+atan(1/x)=90 항등식)
+
+    로 **정확히 같다**. 즉 이 metric은 원문 식의 일반화이고, pole이 여럿일 때 각각이
+    위상을 나눠 먹는 것을 자동으로 합산한다. `alpha`(노드 용량비)도 `N`(fT 배수)도
+    `k`(pole 개수)도 **선언하지 않는다** -- 전부 넷리스트와 LUT에서 나온다.
+
+    ## 제약으로 거는 법
+
+    `PM_parasitic >= PM_target_deg`. 하한이 새 상수가 아니라 **이미 선언된 PM 목표**다.
+    gain이 L을 밀어 올리면 노드 용량이 커져 이 값이 떨어지므로, **L 상한이 회로에서
+    저절로 나온다**(§7.10의 `L_max(fT)` clamp를 상수 없이 구현한 것).
+
+    ## 못 세는 노드가 있으면 실패한다
+
+    `node_pole_estimate()`가 `undetermined`(고임피던스인데 용량 미상)를 돌려주면 여기서
+    **명시적으로 실패**한다 -- 지배 pole이 될 수 있는 노드를 빼놓고 계산한 위상여유는
+    낙관적이라 clamp 구실을 못 한다(§3.2 P1).
+    """
+    by_name, _passives = _load_full_topology_cached(ctx.topology_path)
+    _ex = set((spec_metric.get("excite") or {}).keys())
+    _sn = {spec_metric.get(k) for k in ("sense_p", "sense_n") if spec_metric.get(k)}
+    if not _ex or not _sn:
+        raise ValueError(
+            "parasitic_pm_deg: `excite`와 `sense_p`/`sense_n` 선언이 필요하다 -- 어느 "
+            "경로의 위상여유인지를 알아야 그 경로의 노드만 셀 수 있다. 전 노드를 세면 "
+            "신호경로 밖의 bias 노드가 각각 ~90도를 먹어 무의미한 값이 나온다(실측 -1004도). "
+            "`smallsignal_gain_db`와 같은 형태로 선언할 것")
+    _path = signal_path_nodes(by_name, _ex, _sn)
+    rep = node_pole_estimate(by_name, ctx.sized, ctx.spec, only=_path)
+    if rep["undetermined"]:
+        raise ValueError(
+            f"기생 pole을 셀 수 없는 고임피던스 노드 {len(rep['undetermined'])}개: "
+            f"{rep['undetermined'][:6]} -- 게이트가 안 붙어 있어 LUT의 CGG만으로는 용량을 "
+            f"모른다. 접합용량(Cdb/Csb)이 LUT에 없기 때문이며, 이 노드를 빼고 센 위상여유는 "
+            f"낙관적이라 clamp가 안 된다. LUT 재생성 시 CDB/CSB를 저장할 것(§7.11)")
+    if not rep["poles"]:
+        raise ValueError(
+            f"parasitic_pm_deg: 신호경로에서 셀 수 있는 pole이 하나도 없다 "
+            f"(경로 노드 {len(_path)}개, 저임피던스 제외 "
+            f"{len(rep['skipped_low_impedance'])}개) -- excite/sense 선언을 확인할 것")
+    omega_c = ctx.spec.get("omega_c")
+    if omega_c is None or omega_c <= 0:
+        raise ValueError("parasitic_pm_deg: spec['omega_c']가 없다 -- 기생 pole이 남기는 "
+                          "위상여유는 크로스오버 주파수 기준이라 그 값이 필요하다")
+    lost = sum(math.atan(omega_c / w) for w in rep["poles"].values() if w > 0)
+    return 90.0 - math.degrees(lost)
+
+
 def _metric_kcl_residual(spec: dict, ctx: SizingContext) -> float:
     """F엔진(2026-09-08, B8) — **내부 노드의 KCL 잔차** `|Sum I_into_node|` 중 최댓값(A).
 
@@ -4154,6 +4325,7 @@ _METRICS_REGISTRY = {
     "psrr_estimate":            _metric_psrr_estimate,               # 배치 7-3i
     "supply_current":           _metric_supply_current,            # A3, 2026-09-08
     "kcl_residual":             _metric_kcl_residual,              # B8, 2026-09-08
+    "parasitic_pm_deg":         _metric_parasitic_pm_deg,          # §7.11, 2026-09-10
     "stack_headroom_slack":     _metric_stack_headroom_slack,      # A8, 2026-09-08
     "mirror_ratio_error":       _metric_mirror_ratio_error,        # A4, 2026-09-08
     "rail_referenced_voltage":  _metric_rail_referenced_voltage,     # 세션6
@@ -4191,6 +4363,7 @@ _METRIC_UNITS = {          # 각 계산기가 **실제로** 돌려주는 단위(
     "folded_cascode_pm_deg":       "deg",
     "nmcnr_gain_db":               "dB",
     "nmcnr_pm_deg":                "deg",
+    "parasitic_pm_deg":            "deg",   # §7.11, 2026-09-10
     "flicker_plus_thermal_sum":    "V/sqrt(Hz)",
     "pelgrom_mismatch":            "mV",     # 이 계산기는 이미 *1e3으로 mV를 돌려준다
     "cmrr_estimate":               "dB",
