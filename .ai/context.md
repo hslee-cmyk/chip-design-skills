@@ -14477,3 +14477,32 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   게다가 한 번도 구속한 적이 없다(착지값 3.01/2.795/1.334 전부 5.0 아래).
   ★ v4.41 이후 `mirror_ratio_error_mV`가 이 값을 참조하므로 고치면 함께 움직인다.
   재도출 방법은 사용자 확정 전까지 정하지 않는다. 선언 옆 _comment에 기록해 둠.
+
+## 10. (세션47 이어서) 입력환산 오프셋 + 달성가능 유도 시도 (계획 §10.14, §11, v4.42)
+
+* ★ 사용자 지적으로 발견: 파일럿은 current-reuse라 **M4a/M4b(NMOS)도 같은 입력**에 물려 있고
+  `matching_pairs`도 이미 `offset` 선언인데 metric이 `devices:[M1a,M1b]` 한 쌍만 셌다.
+  **사이징 쪽은 Eq.5(gm1=gmn+gmp)로 이미 반영돼 있었다** -- metric만 빠져 있었다.
+* 신설 `input_referred_offset`(사용자 확정: gm 가중, 캐스코드 제외):
+  `sigma_in = sqrt(sum (gm_i*sigma_i)^2)/sum gm_i`. 쌍은 선언에서 찾는다
+  (`input_referred_offset_pairs()`: matching_sensitivity==offset + 게이트가 ports의 input net).
+  파일럿 offset 쌍 3개 중 CMFB 오차증폭기 M37a/M37b가 ports 필터로 정확히 빠진다.
+  two_stage_ota에 `ports` 선언 추가(vin_p/vin_n). 쌍 하나면 sigma_1로 정확히 환원 = 무동작.
+* 기존 소비자 3개를 조용히 끄지 않으려고 `materialize_input_offset_pairs()`가 **빌드 시 한 번**
+  `devices`/`_pairs`를 선언에 적어둔다. 사이징 가드는 쌍별 판정 -- 그것이 전체 조건의
+  **충분조건**임을 증명해 docstring에 남김(sum w_i = 1).
+* ★★ `achievable_metric_bound()` 유도 **실패**(두 회로): sigma 최소화 -> parasitic_pm_deg와
+  충돌해 실현가능점 소멸 / 제약 제거 -> sigma가 오히려 악화(세션31 4.7배).
+  **결론: 이 임계값은 회로가 아니라 시스템 레벨 요구에서 와야 한다.** 5.0 유지 + 실패 기록.
+  미구현 후보: 제약값 bisection.
+  ⚠️ `achievable_metric_bound()`/`derive_achievable_bounds.py`는 이 metric엔 무용 --
+  gain류엔 유효하나 미배선. **유지/되돌림/bisection 확장 = 사용자 판단 대기.**
+* 재탐색: 착지 **무변경**(power 231.17 등 v4.41 동일), mismatch만 1.334 -> 1.090.
+* ★ 계획 §11 CircuitGraph baseline 신설(사용자 지시로 계획서에 보관, design 단계에서 선택):
+  넷리스트를 각자 훑는 함수 12개 전수, `propagate_node_voltages()`가 전 노드 DC를 계산해 버림,
+  노드/엣지 스키마를 소비자에서 역산, **신호 전파방향 기록 + stage 탐색은 항상 input->output**
+  (사용자 지시), **L1 정적/L2 평가별/L3 지속 3층 분리**, 탐색범위 축소, 그리고
+  **다중 diff pair 정직한 한계**(A 병렬만 맞고 B cascade 입력환산은 틀리며 C CMFB는 metric 없음).
+* ⚠️ bkit 단계 정정(사용자 지적): 나는 plan에 적으면서 동시에 do를 하고 있었다.
+  §11은 **계획서에 기록만** 하고 구현은 design 단계를 거친 뒤에 한다.
+

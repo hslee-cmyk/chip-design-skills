@@ -1907,13 +1907,9 @@
         "unit": "V/sqrt(Hz)"
       },
       "mismatch_sigma_mV": {
-        "type": "pelgrom_mismatch",
-        "devices": [
-          "M1a",
-          "M1b"
-        ],
-        "kind": "pfet",
-        "unit": "mV"
+        "type": "input_referred_offset",
+        "unit": "mV",
+        "_comment": "2026-09-10(사용자 확정 \"gm 가중이 맞고 캐스코드는 제외해\") -- **입력환산** 랜덤 오프셋. 선언된 offset 매칭 쌍 중 **게이트가 ports의 input net에 물린 것 전수**를 gm 가중 RSS로 합친다: sigma_in = sqrt(sum (gm_i*sigma_i)^2)/sum gm_i. devices를 손으로 안 받는다 -- 연결성에서 찾는다(input_referred_offset_pairs()). ⚠️ 이전에는 type=pelgrom_mismatch에 devices=['M1a', 'M1b']로 **한 쌍만** 봤다. 파일럿은 current-reuse라 M4a/M4b(NMOS)도 같은 입력에 물려 있고 matching_pairs도 이미 offset으로 선언해 뒀는데 metric이 그걸 안 셌다(사용자 지적으로 발견). 실측 2.795mV(옛) vs 1.651mV(gm 가중) -- 크기도 다르지만 더 중요한 건 M4a/M4b의 사이징이 오프셋에 아무 영향을 못 주고 있었다는 점이다. 쌍이 하나뿐인 회로에서는 sigma_1으로 정확히 환원된다."
       },
       "cmrr_estimate_db": {
         "type": "smallsignal_ratio_db",
@@ -2044,7 +2040,7 @@
         "metric": "mismatch_sigma_mV",
         "op": "<=",
         "value": 5.0,
-        "_comment": "⚠️ 2026-09-10(사용자 질문 \"mismatch_sigma_mV가 어떻게 도출된 값이지?\") -- **이 값에는 기록된 도출 근거가 없다.** 추적 결과: 설계 초안(docs/04-report/analog-topology-json-library.do.md 1457행)은 `{\"metric\": \"mismatch_sigma_mV\", \"op\": \"<=\", \"value\": X}`로 **X를 자리표시자**로 뒀고, 최초 라이브러리 커밋(e329283, 배치 1~7)에서 5.0으로 채워지면서 근거 주석 없이 남았다. gain_db>=75.6이 세션44에서 재도출되기 전과 **정확히 같은 상태**다(그 _gain_db_target_comment가 '이 constraint만 도출 근거 주석 없이 남아있었음'이라고 적은 그 부류). two_stage_ota도 이 값을 복제했다(그쪽 _target_spec_comment: '새 문헌값이 아니라 ... current_reuse_telescopic_ota의 문턱(5.0mV)을 재사용'). 게다가 **한 번도 구속한 적이 없다** -- 실측 착지값 3.01(세션28) / 2.795(v4.38~4.39) / 1.334(v4.40~4.41) 전부 5.0 아래다. ⚠️ 2026-09-10 이후로는 mirror_ratio_error_mV가 이 값을 value_from_constraint로 **참조**하므로, 이 숫자를 고치면 그 제약도 함께 움직인다 -- 즉 근거를 세우는 일이 더 중요해졌다. 재도출 방법은 사용자 확정 전까지 정하지 않는다(값을 지어내지 않는다)."
+        "_comment": "⚠️ 2026-09-10 -- 이 값은 **여전히 도출 근거가 없다**(추적: do.md 1457행의 자리표시자 \"value\": X가 최초 커밋 e329283에서 채워짐). 사용자 지시로 achievable_metric_bound()를 만들어 '나머지 제약을 만족하면서 도달하는 sigma'로 유도를 **시도했고 실패했다** -- 실패 자체가 결론을 준다(계획 §10.14): sigma를 objective로 놓고 최소화하면 W*L이 커져 parasitic_pm_deg와 정면충돌해 실현가능점이 사라지고(파일럿 3 probe 전부), 반대로 제약을 떼고 원래 objective(power 최소)로 두면 최적화기가 입력쌍을 줄여 sigma가 오히려 나빠진다(세션31 실측: 이 제약을 만족하려면 W*L이 4.7배 필요했다). 즉 **이 임계값은 회로 안에서 도출되는 값이 아니라 시스템 레벨 오프셋 요구에서 와야 하는 설계 입력**이다. 그때까지 값을 지어내지 않고 이전 값을 유지하며 이 사실을 여기 남긴다. 후보 방법(미구현): 제약값 자체를 bisection해 '탐색이 아직 실현가능한 가장 빡빡한 sigma'를 찾는 것. two_stage_ota가 이 값을 복제해 갔다."
       },
       {
         "metric": "cmrr_estimate_db",

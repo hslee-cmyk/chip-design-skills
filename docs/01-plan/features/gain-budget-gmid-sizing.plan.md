@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.41
+version: 4.42
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -3465,6 +3465,251 @@ L5c 픽스처에서는 이 제약을 뺐다 -- `classab_centering_dev_v`/`gain_d
 재도출 방법은 **사용자 확정 전까지 정하지 않는다**(값을 지어내지 않는다). 선언 옆
 (`constraints`의 `_comment`)에 이 사실을 그대로 기록해 뒀다.
 
+### 10.14 입력환산 오프셋 + 달성 가능 임계값 유도 (★ 신설 v4.42)
+
+#### (1) 오프셋을 만드는 쌍이 하나가 아니었다 (사용자 지적)
+
+사용자: *"파일럿은 PMOS/NMOS 모두야. M1a/M1b/M2a/M2b, M3a/M3b/M4a/M4b인 current reuse
+구조지. ... 모두 해야 하는 거 아닌가?"* -- 넷리스트로 확인했고 **맞다**:
+
+    게이트가 입력(Vip/Vim)에 물린 소자 = M1a/M1b(pmos, s=Vx) + M4a/M4b(nmos, s=Vy)
+    symmetry.matching_pairs도 **둘 다 이미 `offset`으로 선언**돼 있었다
+    그런데 metric은 `devices: ["M1a","M1b"]` -- **한 쌍만** 세고 있었다
+
+**사이징은 반영돼 있었다**: `topology_library.current_reuse_telescopic_topology()`가 원문
+Eq.5(`gm1 = gmn + gmp`)를 명시적으로 다루고(2026-07-31 사용자와 설계), `stage_devices` 4개 +
+`shared_gm_id_groups [[0,1],[2,3]]`로 두 쌍이 전류를 공유한다(실측 `gm(M1a)=gm(M4a)=79.7uS`).
+**반영 안 된 곳은 mismatch metric 한 곳뿐**이었다.
+
+#### (2) 새 metric -- `input_referred_offset` (사용자 확정: gm 가중, 캐스코드 제외)
+
+    sigma_in = sqrt( sum_i (gm_i * sigma_i)^2 ) / sum_i gm_i
+
+쌍 i의 Vth 미스매치는 출력에서 전류오차 `gm_i*sigma_i`를 만들고, **입력으로 되돌리려면
+전체 전달컨덕턴스로 나눈다**. current-reuse는 그 합이 `gm_p+gm_n`이다.
+
+  * 쌍은 **선언에서 찾는다**(`input_referred_offset_pairs()`): `matching_sensitivity ==
+    "offset"` **그리고** 게이트가 `ports`의 `direction=="input"` net에 물린 것.
+  * 실측으로 이 두 번째 조건이 실제로 일을 한다 -- 파일럿의 `offset` 쌍은 셋인데
+    `M37a/M37b`는 **CMFB 오차증폭기**(g=Voc/Voc_des)라 신호 입력쌍이 아니다.
+  * 캐스코드(M2a/M2b, M3a/M3b)는 게이트가 Vbias2/Vbias3이고 선언도 `ratio`라 **두 조건
+    모두에서 자동으로** 빠진다.
+  * 쌍이 하나뿐인 회로(`two_stage_ota` M1/M2)는 `sigma_1`으로 **정확히 환원** = 동작 무변경.
+    (그 회로에 `ports` 선언을 추가했다 -- net 이름이 `vin_p`/`vin_n`이고 connectivity는
+    안 건드린다.)
+  * 실측: 2.795mV(옛, PMOS쌍만) vs **1.651mV**(gm 가중, 두 쌍). 크기도 1.69배 다르지만 더
+    중요한 건 **M4a/M4b의 사이징이 오프셋에 아무 영향을 못 주고 있었다**는 점이다.
+
+**기존 소비자 셋을 조용히 끄지 않았다**: `devices`를 읽는 `_metric_device_footprint()`와
+`make_matching_feasibility_check()`(사이징 중 mismatch 선제 필터)가 있어서,
+`materialize_input_offset_pairs()`가 **빌드 시 한 번** 찾아 `devices`/`_pairs`를 선언에
+적어둔다(`value_from_spec` 치환과 같은 관례). 가드는 쌍 단위로 판정하는데, 그것이
+전체 조건의 **충분조건**임을 증명해 docstring에 적었다:
+`sum w_i = 1`이므로 모든 쌍이 `sigma_i<=B`면 `sigma_in <= sqrt(sum w_i^2)*B <= B`.
+
+#### (3) `mismatch_sigma_mV = 5.0`은 근거가 없었다 -> 유도로 대체
+
+§10.13 말미에 기록한 대로 그 값은 do.md의 자리표시자 `"value": X`가 최초 커밋에서 채워진
+것이고 **한 번도 구속한 적이 없었다**. 사용자 확정(*"1번으로 진행해"*)에 따라 세션44가
+`gain_db`에 손으로 한 절차를 **회로/metric 무관 함수**로 만들었다:
+
+```
+achievable_metric_bound(topology_path, spec, metric_name, sense, n_probes, slsqp_kwargs)
+  1. objective를 그 metric으로 교체
+  2. 그 metric의 제약 + **그 값을 참조하는 제약**을 제거(순환/참조 붕괴 방지)
+  3. 나머지 제약은 전부 유지 -- "예산 안에서 실제로 도달하는 값"이 질문이다
+  4. 서로 다른 random_seed로 그 회로의 **선언된 탐색 파라미터** 그대로 n_probes회
+```
+
+**마진 상수도 안 쓴다**: `conservative` = 수렴한 probe가 **전부** 도달한 값. 세션44가 3dB
+마진의 이유로 든 것이 "LUT 격자 해상도/SLSQP 재현성 편차 흡수"인데, 그 편차가 곧 probe
+사이의 퍼짐이므로 실측으로 흡수하면 지어낼 필요가 없다.
+
+##### 실측이 두 번 되돌렸다
+
+  1. probe를 `n_starts=1`로 깎았더니 3 probe 전부 "실현가능한 해를 못 찾음" -- 이 회로는
+     정본 3-start 중 보통 1개만 수렴한다. probe를 가르는 것은 **`random_seed`**다.
+  2. `mirror_ratio_error_mV`가 `value_from_constraint: mismatch_sigma_mV`를 쓰고 있어서,
+     그 값을 재는 동안 참조가 갈 곳을 잃었다 -> **참조하는 제약도 함께 제거**.
+
+##### 그리고 세 번째로 되돌렸다 -- 바인딩 방식 (정직한 기록)
+
+처음엔 `value_from_achievable`를 **런타임 참조**로 만들어 사이드카에서 읽게 했다. 그러자
+**self-test/진단 픽스처가 줄줄이 깨졌다** -- 그것들은 일부러 다른 격자(spec)와 임시 경로를
+쓰는데, 유도는 정본 spec 지문에 묶여 있기 때문이다. 빌드를 죽이면 회로 해석 전체가 막힌다.
+
+바꾼 방식: **유도 스크립트가 결과를 선언 자신에 적는다.**
+
+```json
+{"metric": "mismatch_sigma_mV", "op": "<=",
+ "value": <유도값>,
+ "value_from_achievable": {"sense": "min"},
+ "_derived": {"by": "achievable_metric_bound", "spec_fingerprint": "...",
+              "per_probe": [...], "constraints_dropped": [...], "derived_at": "..."}}
+```
+
+  * 숫자는 있지만 **손으로 적은 게 아니라 생성된 것**이고, 언제 어떤 조건에서 나왔는지가
+    붙어 있다 -- 사용자의 반대("유도를 주석에 적고 결과를 박으면 근거가 바뀌어도 안
+    따라간다")에 대한 답은 `_derived.spec_fingerprint`다: 지문이 어긋나면 엔진이 **안다**.
+  * 엔진은 평소처럼 `value`만 읽는다 -> 모든 픽스처가 그대로 동작.
+  * 지문 불일치는 **빌드를 죽이지 않고** `_RESOLVE_STALE_NOTES`에 기록한다(조용하지 않되
+    해석을 막지도 않는다). `value`가 아예 없으면 손으로 적지 말라며 `ValueError`.
+
+#### (4) ★ 유도는 **실패했다** -- 그리고 실패가 답을 줬다
+
+두 회로 모두 `achievable_metric_bound()`가 값을 못 냈다. 원인이 서로 다르다:
+
+| 회로 | 실패 |
+|------|------|
+| 파일럿 | sigma를 objective로 최소화 -> 3 probe 전부 "실현가능한 해 없음" |
+| `two_stage_ota` | `stage1_out` VDS 합이 vdd와 불일치 -- **세션41 이월 항목**(이번 변경 전부터 평가 불가) |
+
+파일럿의 실패가 핵심이다. **두 방향 모두 막힌다**:
+
+  * `sigma`를 최소화하면 `W*L`이 커지고 -> `Cgg` 증가 -> 노드 pole 하강 ->
+    **`parasitic_pm_deg`와 정면충돌**해 실현가능점이 사라진다.
+  * 제약을 떼고 원래 objective(power 최소)로 두면 최적화기가 입력쌍을 줄여 **sigma가 오히려
+    나빠진다** -- 세션31이 이미 실측했다: *"M1a/M1b가 power 최소화로 L=0.235um/W=2.505um를
+    골랐는데, `mismatch_sigma_mV<=5.0`을 만족하려면 W*L이 4.7배 필요"*.
+
+**결론: 이 임계값은 회로 안에서 도출되는 값이 아니라 시스템 레벨 오프셋 요구에서 와야 하는
+설계 입력이다.** 내가 제안하고 사용자가 고른 "1번(달성 가능 상한에서 역산)"이 이 metric에는
+성립하지 않는다는 것이 **측정으로** 드러났다 -- `gain_db`는 "높을수록 좋다"라 상한이 의미가
+있지만, `sigma`는 **면적/PM과의 트레이드오프 지점**이라 회로 혼자 정할 수 없다.
+
+그래서 **값을 지어내지 않고** 5.0을 유지하되, 두 회로 선언에 유도를 시도했고 왜 실패했는지를
+그대로 적었다. 미구현 후보도 남겼다 -- **제약값 자체를 bisection**해 "탐색이 아직 실현가능한
+가장 빡빡한 sigma"를 찾는 것. 그건 위 두 실패를 모두 피한다(objective를 안 바꾸고, 제약을
+떼지도 않는다).
+
+⚠️ `achievable_metric_bound()`/`tests/derive_achievable_bounds.py`는 **이 metric에 대해서는
+쓸모없는 답을 낸다**. `gain_db`류(단조 방향이 있는 metric)에는 유효하지만 아직 그 용도로
+배선되지 않았다 -- "만들면 반드시 배선하라" 원칙상 **사용자 판단 대기**(유지/되돌림/bisection
+확장).
+
+#### (5) 재탐색 실측 -- 설계는 안 바뀌었다
+
+| metric | v4.41 | **v4.42** |
+|--------|-------|-----------|
+| `mismatch_sigma_mV` | 1.334 (옛 정의, PMOS쌍만) | **1.090** (입력환산, 두 쌍) |
+| `power_uA` / `gain_db` | 231.17 / 61.56 | 231.17 / 61.56 |
+| `cmrr` / `psrr` / `gain_full` | 72.55 / 72.49 / 67.08 | 동일 |
+| `mirror_ratio_error_mV` | 3.186 | 3.186 |
+| `parasitic_pm_deg` / `area_um2` | 75.02 / 806.90 | 동일 |
+
+착지가 **완전히 같다**. metric이 더 정확해졌지만 임계값 5.0이 여전히 안 걸리기 때문이다
+(1.090 << 5.0) -- 즉 **정의를 고친 효과는 지금 설계에 안 나타나고, 임계값이 근거를 얻은 뒤에야
+나타난다**. floorplan/`run_full_circuit_audit.ok` 통과, self-test 둘 다 exit 0.
+
+## 11. CircuitGraph -- 다음 baseline (★ 신설 v4.42, 사용자 지시)
+
+사용자: *"여기까지 구현한 것을 계획에 모두 반영해놓고, 지금 새롭게 다듬어진 계획을 기본적인
+최초 baseline으로 작성하고 이것 활용하는 방향으로 엔진을 다시 개선하자."*
+
+### 11.1 왜 -- 지금 그래프는 열 번쯤 만들어졌다 버려진다
+
+같은 넷리스트를 **각자 다시 훑는** 함수들(전수):
+
+| 함수 | 하는 일 |
+|------|---------|
+| `signal_path_nodes(by_name, excite, sense)` | gate->drain / source->drain **방향 그래프**로 신호경로 노드 유도(§7.11이 이미 사용) |
+| `true_current_mirror_groups` / `l_sharing_classes` / `gain_stage_tails` / `vgs_alias_map` | 미러군·L 동치류·tail |
+| `input_referred_offset_pairs`(§10.14 신설) | 입력 offset 쌍 |
+| `find_diode_stacks` / `propagate_topology_forced_currents` / `derive_horizontal_stack_groups` | KCL·스택 |
+| `_full_circuit_devices` / `_mna_stamp_capacitance` / `node_pole_estimate` | MNA·용량·pole |
+| `propagate_node_voltages` | **모든 내부 노드의 DC 절대전압** |
+| `StackGraph`/`build_graph`(stick_diagram) | **레이아웃(Euler trail) 전용** -- 전기 해석용 아님 |
+
+★ 특히 `propagate_node_voltages()`는 **전 노드 DC 전압을 계산해 vsb 복원에만 쓰고 버린다**.
+사용자가 요구한 "노드에 DC bias 저장"은 새로 만들 게 아니라 **버려지는 것을 붙잡는 것**이다.
+
+### 11.2 노드/엣지 스키마 -- 소비자에서 역산했다(지어내지 않음)
+
+**노드(net)**
+
+| 필드 | 지금 만드는 곳 | 현재 상태 |
+|------|---------------|-----------|
+| `voltage_dc`, `unresolved`, `conflicts` | `propagate_node_voltages()` | **계산 후 버림** |
+| `terminals` (소자,단자) | 함수마다 재구성 | 매번 재계산 |
+| `degree`(2단자 vs 3+단자 허브) | `audit_vertical_stack_id_vs_kcl` | 재계산 |
+| `port_role`/`direction` | `ports` 선언 | §10.14에서 캐시 시작 |
+| `cap_total` | `_mna_stamp_capacitance()` | 평가마다 재계산 |
+| `pole_rad_s` | `node_pole_estimate()` | 재계산 |
+| `on_signal_path` | `signal_path_nodes()` | 재계산 |
+| `stack_id`/`budget`/`slack` | 선언 + 헤드룸 배분 | 부분 |
+| **`flow_dir`(신호 전파방향)** | **없음** | **아래 11.3** |
+| **`stage_index`** | **없음** | Q1 Case B가 요구 |
+
+**엣지(소자)**: 선언 쪽(`kind`, 단자, `device_roles`, `is_diode`, `mirror_group`,
+`l_class`, `matching_pair`+`sensitivity`)은 대부분 이미 캐시돼 있다. 없는 것은
+**`stage_index`와 `role_in_stage`**(input/cascode/tail/load).
+
+### 11.3 ★ 신호 전파방향을 노드에 기록하고, 탐색은 **항상 input->output**
+
+사용자 지시: *"노드에 신호의 전파방향도 기록되어 있어서 stage를 탐색할 때 역방향으로
+탐색하지 않고 언제나 input ports부터 output ports까지의 방향으로 탐색되도록 해야 해."*
+
+  * 방향의 근거는 소자 물리다 -- 신호는 `gate->drain`, `source->drain`으로 간다
+    (`signal_path_nodes()`가 이미 이 규칙으로 유도한다). 그 함수는 지금 **집합만** 돌려주고
+    방향 정보를 버린다.
+  * 노드에 `flow_dir`(이 노드가 입력에서 몇 홉인지 = 위상 순서)과 `preds`/`succs`를 남기면,
+    stage 탐색이 **위상 정렬 순서대로 한 방향으로만** 돈다.
+  * 왜 중요한가: 역방향 탐색은 (1) 피드백 경로(CMFB, Miller `Cc`)에서 **순환에 빠지고**
+    (2) "이 쌍이 몇 단째인가"를 모호하게 만든다. 방향을 고정하면 피드백 엣지를
+    **역엣지로 명시적으로 표시**해 stage 계산에서 빼고 안정성 해석에만 쓸 수 있다.
+  * 출력은 `ports`의 `direction=="output"`으로 정의된다 -- 파일럿은 Vop/Vom이 이미 선언돼
+    있고, `two_stage_ota`는 §10.14에서 입력만 적었으니 출력도 필요해지면 추가한다.
+
+### 11.4 ★ 3층 분리 -- 안 지키면 평가 간 오염이 난다
+
+| 층 | 내용 | 수명 | 무효화 |
+|----|------|------|--------|
+| **L1 정적** | 연결성·선언·유도된 구조(미러군, L동치류, 신호경로, 방향, stage, diff-pair) | topology당 1회 | 파일 변경 |
+| **L2 평가별** | 사이징, `voltage_dc`, `cap_total`, `pole`, 헤드룸 slack | 평가 1회 | 매 평가 새로 |
+| **L3 지속** | 지난 수렴점, 달성 가능 임계값, 실현가능 창 | 세션/디스크 | `spec_fingerprint` 불일치 |
+
+지금 `ctx`(평가별)와 `_load_full_topology_cached`(토폴로지별)가 분리돼 있는 이유가 이것이다.
+L3는 §10.14에서 시작했다(`<topo>.derived.json` + 선언의 `_derived`).
+
+### 11.5 탐색범위 축소 -- 조각은 이미 있는데 서로 모른다
+
+  * `search_stage_budget_L_warm_start(window_around_reference=True, window_frac=0.2)` --
+    **기준값 근방만 스캔하는 기능이 이미 구현돼 있는데** 기준을 줄 사람이 블록좌표
+    탐색뿐이다.
+  * `tests/canonical_theta_star.json` -- 지난 수렴점이 파일로 있는데 탐색이 안 읽는다.
+  * `feasible_L_window`/`diode_vds_window` -- 매번 전 격자를 훑는다.
+
+L3에 지난 수렴점을 넣으면 셋이 한 기준을 공유한다: SLSQP bounds를 "지난 해 ± 여유"로 좁히고
+창 스캔도 그 근방부터. 세션40이 기록한 *"feasible한 L은 좁고 끊긴 조각들"* 문제에 직접
+듣는다 -- 넓게 훑는 대신 **지난번에 살아남은 조각 근처**를 촘촘히 본다.
+
+### 11.6 ★ 정직한 한계 -- 다중 differential pair를 아직 정확히 못 다룬다
+
+사용자 질문: *"differential pair가 여러 개 있을 때 gain과 mismatch 모두 정확히 다룰 수
+있나?"* -- 답은 **아니오, 세 경우 중 하나만 맞다**.
+
+| 경우 | 예 | gain | mismatch |
+|------|-----|------|----------|
+| **A. 같은 입력에 병렬** | current-reuse M1a/M1b ∥ M4a/M4b | `stage_devices`+`shared_gm_id_groups` **손 선언**, topology_fn이 gm1->gmp/gmn 손 분할 -- 결과는 맞지만 유도 아님 | §10.14의 gm 가중이 **이 경우에만** 맞다 |
+| **B. 직렬(cascade) 단** | 2단/3단 amp의 2단 쌍 | `gain_stages_sum`의 `stages`도 손 선언 | **틀린다.** 2단 오프셋은 선행 이득으로 나눠 입력환산해야 하는데(`sigma_in += sigma_2/A_1`) 그 개념이 없다 |
+| **C. 다른 입력의 쌍** | CMFB 오차증폭기 M37a/M37b | -- | `ports` 필터가 빼는 건 맞지만 **무해하다는 뜻이 아니다** -- 출력 공통모드를 미는 별도 오프셋인데 재는 metric이 없다 |
+
+그리고 **"각 쌍의 오프셋을 개별로 최소화"는 단일 입력환산 제약 하나로는 불가능하다** --
+그 제약은 총합만 보므로 최적화기가 한 쌍을 줄이고 다른 쌍을 키워도 통과한다. 쌍별 요구가
+있으면 쌍별 metric+constraint를 선언해야 하고, 프레임워크는 지원하지만 자동 유도는 없다.
+
+공통 원인은 하나다 -- **"몇 개의 단이 있고 어느 쌍이 몇 단째인가"를 사람이 topology.json에
+적고 있다.** `stage_index`가 유도되면 B가 풀리고, 손 선언(`stage_devices`/`gain_stages`/
+`shared_gm_id_groups`)을 유도값과 대조해 궁극적으로 대체할 수 있다.
+
+### 11.7 단계 (승인 후 착수)
+
+1. **L1 그래프 신설 + 기존 순회 이설** -- 동작 무변경, 4개 회로 전수로 출력 동일 증명.
+2. **L2 부착** -- `propagate_node_voltages()` 결과를 버리지 않고 적재 + 용량/pole/헤드룸.
+3. **방향 + stage/diff-pair 유도**(11.3) -- 손 선언과 **대조 보고만**, 아직 대체 안 함.
+4. **L3 기준값** -- warm start·SLSQP bounds·창 스캔이 공유(11.5).
+5. 그 위에서 오프셋 **Case B/C** 확장(11.6).
+
 ## Version History
 
 | Version | Date | Changes |
@@ -3525,3 +3770,4 @@ L5c 픽스처에서는 이 제약을 뺐다 -- `classab_centering_dev_v`/`gain_d
 | **4.39** | 2026-09-10 | **`_L_ROLE_MULTIPLIERS` 완전 제거**(사용자 지시 "bias_replica 상수도 없애" -> 전 회로 적용). ① 남은 상수 `bias_replica: 1.2`가 실제로 정하던 건 **파일럿 4소자**(class-AB 배터리 diode)뿐이었고, 그 값의 근거를 mismatch 선언/knee/소자별 W 실현가능성 세 방향으로 찾았으나 **셋 다 없었다**. ② `derive_role_L()` = `clamp(목표점, feasible_L_window(선언 W_bounds + 그 소자의 실제 ID))` -- 새 상수 없음. **role은 '어떤 측정을 쓸지'만 고른다**(`_L_ROLE_TARGETS`): `mirror`는 knee(출력임피던스 극대화), `bias_replica`는 창 하한(§7.10이 선언한 목적이 PVT 완화이고 gain 요구가 없으므로 면적 최소). 등록 안 된 role은 ValueError. 판정 술어는 `lut_vdsat_headroom()` 안 인라인 코드를 `feasible_gm_ids()`로 꺼내 공유. **한 번 두 role을 합쳤다가 실측이 되돌렸다** -- 둘 다 knee로 두자 배터리 diode W가 125.4/123.4um(비 1.0157)로 나와 `assign_finger_geometry()`가 공통 finger 폭을 못 찾아 파일럿이 **레이아웃에서** 죽었다(SLSQP는 수렴했다 -- self-test만 봤으면 못 봤다). ③ **diode는 gm_id가 자유롭지 않다** -- self-test 픽스처 `Mo`가 "가능"한 L에서 W=0.824um로 하한을 깨며 잡아냈다(`knee_L_for_kind()`가 이미 기록한 반례). 새 판정을 만들지 않고 **기존 `diode_vds_window()`**로 분기(vds가 고정됐으면 그 vds가 강제하는 gm_id로 W를 직접 계산). ④ **theta로 파생하지 않았다** -- 주인 없는 동치류까지 theta로 만들면 파일럿 자유변수가 24->39(실측)로 늘어 SLSQP가 느려진다. 유도값은 결정적이라 자유도를 안 늘리고, 설계 자유도가 필요한 곳은 층3이 이미 theta로 노출했다. ⑤ **폴백 없음** -- 근거(격자 3종)가 없으면 값을 지어내지 않고 즉시 ValueError. 4개 회로 전수 **상수 폴백 0건**; self-test toy 픽스처 6개는 `_tst_grids()`로 실제 spec과 같은 모양으로 맞췄다(엔진에 새 폴백 없음). ⑥ **전수 측정**: 값이 달라진 소자는 파일럿 **5개**(bias_replica 4개 0.180->**0.245**um -- diode 인식 창이 옛 0.180um을 실현 불가능으로 걸러냈다, M37b clamp 0.245->0.350um), folded_cascode는 13개 전부 **무변경**, 나머지 2개 회로는 세션41 이월 항목에서 먼저 실패(변경 전후 동일). `derive_class_L()`은 3개 회로 15개 류에서 실제 호출되나 현재는 소자별 유도와 값이 일치(무동작) -- 갈릴 가능성에 대한 불변식 보증으로 남긴다. ⑦ self-test는 clamp가 **위/아래 양방향으로 실제 값을 바꾸는지**를 assert한다(무동작 게이트 금지). `select_L_by_role()`의 cascode/signal 가드는 `derive_role_L()`로 이관 -- 옛 함수는 self-test 에서만 불렸는데 이제 실제 사이징 경로 위에 있다. self-test 둘 다 exit 0. ⑧ **end-to-end 재탐색은 파이프라인 끝까지 가지만 착지가 v4.38보다 나쁘다**(power 231.17->238.94, cmrr 73.14->64.36, mirror_ratio 3.64->17.67). **유도가 아니라 탐색 착지 문제**다 -- v4.38의 theta_star를 새 엔진으로 평가하면 여전히 실행가능하고 더 좋다(power 231.2). 정본 `n_starts=3` 중 1개만 수렴했다. 다음 과제(`search_stage_budget_L_warm_start()`에 `l_class` 포함, §10.10에 이미 기록)가 정확히 이 x0 문제를 겨냥한다 -- 정본 탐색 파라미터를 임의로 올려 덮지 않았다 |
 | **4.40** | 2026-09-10 | **웜스타트에 `l_class` 포함**(사용자 지시). ① 타입 추가로 끝나지 않는다 -- 실측: `l_class`에 걸리는 제약은 **전부 footprint가 "ALL"**(cmrr/psrr/parasitic_pm_deg)이라 기존 LUT-only 고속경로 두 갈래의 전제가 성립하지 않는다(그냥 넣었으면 bounds-midpoint로 후퇴해 **무동작**). 실제 `evaluate()` 조인트 스캔으로 보낸다. ② 웜스타트가 정한 theta는 SLSQP 자유변수에서 빠지는데(`held_names`), `l_class`가 얼면 층3이 만든 설계 자유도가 사라진다 -- `presolve_warm_start()`에 **`l_class_L`** 신설해 x0만 주고 자유변수로 남긴다. ③ **되돌림 1**: 점수를 선언된 `objective`(power 최소)로 뒀더니 x0가 `L_class__M68` 하한(0.15um)에 붙고 착지 `mirror_ratio_error_pct`가 **43.45%**(v4.38: 3.64) -- 미러비 오차는 `V_A∝L`에 반비례라 층3의 존재 이유를 거스른다. **선언된 제약의 최소 여유 최대화**(내부점, `_group_score_interior()`)로 교체(정규화 분모가 제약값 자신이라 새 상수 없음). ④ **되돌림 2**(프로브가 잡았다): 점수를 바꿔도 `L_class__M68`이 자유변수에서 빠졌다 -- 자유변수 필터의 두 번째 조건인 `graph[...]['classification']`이 **`baseline` 주입 직후 그 점에서** `isolated`로 뒤집혔다. `baseline`에는 **고정될 theta만** 주입하도록 고쳐 2/2가 자유변수로 남는다. ⑤ **결과**(웜스타트 전 대비 전 항목 개선): power 238.94 → **231.17**, gain_db 60.42 → **61.56**, mismatch 2.795 → **1.334**, gain_full 63.26 → **67.08**, cmrr 64.36 → 72.55, mirror_ratio 17.67 → 7.13. L_class 0.511/0.474um. v4.38 대비 목적함수 동률 + gain/mismatch 개선, area 17% 증가. self-test 둘 다 exit 0, floorplan/full_circuit_audit 통과. ⑥ `mirror_ratio_error_pct`는 여전히 **제약이 아니다** -- 관측값 3.64/7.13/17.67/43.45%. 상한은 설계 결정이라 사용자 확정 전까지 안 건다 |
 | **4.41** | 2026-09-10 | **미러비 계통오차 상한 -- 숫자를 박지 않고**(사용자 지시). ① **내가 먼저 틀렸다**: `mirror_ratio_error_pct <= 8.0`을 박았다. 유도(선언된 5.0mV × 입력쌍 gm_id 16.00/V)를 주석에 적었지만 **결과를 박는 순간 유도는 문서일 뿐 코드가 아니게 된다** -- gm_id가 바뀌어도 8.0은 안 따라간다. §10.11에서 없앤 `_L_ROLE_MULTIPLIERS`와 같은 형태의 상수를 같은 세션에 다시 만든 것이고, 사용자 지적으로 원칙에 못박았다(메모리 `feedback-never-invent-constants-derive-and-cache`). ② **해법은 단위 맞추기**: 계통 오차를 **입력환산 전압**으로 재면(`dV=(dI/I)/(gm/ID)`) 랜덤 예산과 단위가 같아져 임계값을 `value_from_constraint: mismatch_sigma_mV`로 **참조**하면 끝난다 -- 제약에 숫자가 0개이고, 이 회로에 남은 선언 숫자는 `mismatch_sigma_mV = 5.0` 하나다. ③ 신설: `_mirror_ratio_error_pairs()`(쌍별 표를 `ctx.derived`에 **한 번** 계산해 pct/mV 두 metric이 공유), `_metric_mirror_ratio_error_input_referred`, `resolve_constraint_references()`(인라인 해석을 함수로 빼고 `value_from_constraint` 추가, 참조 연쇄 금지). ④ **부수 소득**: 박은 8.0%는 물리적으로도 틀렸다 -- 최댓값 쌍 M10/M12의 gm_id는 22.50/V인데 입력쌍 16.00/V를 적용했다. 제대로 환산하면 8.215% = **3.65mV**로 예산 안이다. 구속력은 유지(17.67% → 7.85mV, 43.45% → 19.3mV 전부 탈락). ⑤ self-test: 환산 동작 + 캐시 공유 + **거부 3종**(참조 없음/연쇄/value 충돌). 저장소 자체 게이트도 새 타입 미등록을 잡아 등록. ⑥ **결과**: 착지 무변경(power 231.17 등 v4.40과 동일), `mirror_ratio_error_mV = 3.186mV`로 예산 5.0mV 대비 **36% 여유** -- 설계를 바꾸는 제약이 아니라 탐색이 이 축을 희생하려 할 때 막는 가드다. self-test 둘 다 exit 0 |
+| **4.42** | 2026-09-10 | **입력환산 오프셋 + 달성 가능 임계값 유도 + CircuitGraph baseline**. ① 사용자 지적으로 발견: 파일럿은 current-reuse라 **M4a/M4b(NMOS)도 같은 입력에 물려 있고** `matching_pairs`도 이미 `offset`으로 선언돼 있는데 metric이 `devices:[M1a,M1b]` **한 쌍만** 세고 있었다(사이징 쪽은 Eq.5 `gm1=gmn+gmp`로 **이미 반영**돼 있었다 -- metric만 빠졌다). ② 새 metric `input_referred_offset`: 쌍을 **선언에서 찾고**(`matching_sensitivity==offset` + 게이트가 `ports`의 input net) **gm 가중 RSS로 입력환산**(사용자 확정). 실측 2.795 -> **1.651mV**. 파일럿 offset 쌍 3개 중 CMFB 오차증폭기가 `ports` 필터로 정확히 빠진다. 쌍 하나인 회로는 정확히 환원 = 무동작. 기존 소비자 셋(`_metric_device_footprint`/`make_matching_feasibility_check`)을 조용히 끄지 않으려고 **빌드 시 한 번** `devices`/`_pairs`를 적어 넣고, 쌍별 가드가 전체 조건의 **충분조건**임을 증명해 docstring에 남겼다. ③ `mismatch_sigma_mV=5.0`(근거 없던 값)을 `achievable_metric_bound()`로 유도 **시도했고 실패했다 -- 실패가 답을 줬다**: sigma를 최소화하면 W*L이 커져 `parasitic_pm_deg`와 정면충돌해 실현가능점이 사라지고(3 probe 전부), 제약을 떼면 최적화기가 입력쌍을 줄여 sigma가 오히려 나빠진다(세션31 실측 4.7배). **즉 이 임계값은 회로 안에서 도출되는 값이 아니라 시스템 레벨 오프셋 요구에서 와야 하는 설계 입력이다** -- 내가 제안하고 사용자가 고른 '달성 가능 상한에서 역산'이 이 metric엔 성립하지 않음이 측정으로 드러났다. 값을 지어내지 않고 5.0을 유지하되 **유도를 시도했고 왜 실패했는지**를 두 회로 선언에 적었다. 미구현 후보: 제약값 자체를 **bisection**해 '탐색이 아직 실현가능한 가장 빡빡한 sigma'를 찾기(두 실패를 모두 피한다). ④ **실측이 세 번 되돌렸다**: probe를 n_starts=1로 깎아 전부 실패 / 참조 제약 붕괴 / **런타임 참조 방식이 self-test 픽스처를 줄줄이 깨뜨림** -> 유도 스크립트가 결과를 **선언에 기록**(`value`+`_derived` 지문)하고 지문 불일치는 빌드를 죽이지 않고 기록만 남기는 방식으로 전환. **재탐색 실측: 착지 무변경**(power 231.17 등 v4.41과 동일), `mismatch_sigma_mV`만 1.334 -> **1.090**(정의가 바뀌어서) -- 임계값 5.0이 여전히 안 걸리므로 정의 수정 효과는 **임계값이 근거를 얻은 뒤에야** 나타난다. ⑤ **§11 CircuitGraph baseline 신설**(사용자 지시): 같은 넷리스트를 각자 훑는 함수 12개 전수 조사 -- 특히 `propagate_node_voltages()`가 **전 노드 DC 전압을 계산해 버린다**. 노드/엣지 스키마를 소비자에서 역산하고, **신호 전파방향을 노드에 기록해 stage 탐색이 항상 input->output**으로만 돌게 한다(사용자 지시 -- 역방향은 피드백에서 순환에 빠지고 단 판정을 모호하게 한다). **L1 정적/L2 평가별/L3 지속 3층 분리**가 핵심(안 지키면 평가 간 오염). ⑥ **정직한 한계 기록**: 다중 diff pair 세 경우 중 **A(병렬)만 맞고 B(cascade 입력환산)는 틀리며 C(CMFB 쌍)는 재는 metric이 없다** -- 공통 원인은 '몇 단째인가'를 사람이 적고 있다는 것이고 `stage_index` 유도가 그 열쇠다 |

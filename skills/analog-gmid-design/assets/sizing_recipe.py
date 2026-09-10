@@ -4640,6 +4640,135 @@ def _metric_mirror_ratio_error(spec: dict, ctx: SizingContext) -> float:
     return _mirror_ratio_aggregate(errs, spec)
 
 
+
+def input_referred_offset_pairs(topology_path: str) -> list:
+    """**입력환산 오프셋을 만드는 매칭 쌍** 전수를 선언에서 찾는다(2026-09-10).
+
+    조건 두 가지 -- 둘 다 이미 topology.json에 선언돼 있다:
+
+      1. `symmetry.matching_pairs`에서 `matching_sensitivity == "offset"`
+      2. 쌍의 **모든 소자의 게이트가 `ports`의 `direction == "input"` net에 물려 있음**
+
+    ## 왜 두 번째 조건이 필요한가 (실측)
+
+    파일럿의 `offset` 쌍은 셋이다: `M1a/M1b`(g=Vip/Vim), `M4a/M4b`(g=Vip/Vim),
+    그리고 `M37a/M37b`(g=Voc/Voc_des -- **CMFB 오차증폭기**). 셋째는 공통모드 루프의
+    쌍이지 신호 입력쌍이 아니므로 입력환산 오프셋에 이 방식으로 더하면 안 된다.
+    `ports` 선언이 정확히 그 구분을 해준다.
+
+    ## 왜 캐스코드는 안 들어오나
+
+    `M2a/M2b`, `M3a/M3b`는 게이트가 `Vbias2`/`Vbias3`(입력 아님)이고 선언도
+    `matching_sensitivity: "ratio"`다 -- 두 조건 모두에서 자동으로 빠진다(사용자 확정
+    2026-09-10: *"gm 가중이 맞고 캐스코드는 제외해"*). 입력환산 시 캐스코드의 Vth
+    미스매치는 소스단 임피던스로 억제되므로 물리적으로도 같은 결론이다.
+
+    `ports`가 선언돼 있지 않으면 **조용히 전부 통과시키지 않고** `ValueError` -- 어느 net이
+    신호 입력인지 이 함수가 추측하면 CMFB 쌍 같은 것이 섞여 들어간다.
+
+    캐시: `_load_full_topology_cached()`의 같은 엔트리에 얹는다(topology당 한 번).
+    """
+    _load_full_topology_cached(topology_path)
+    entry = _load_full_topology_cached.__dict__["_cache"][topology_path]
+    if "input_offset_pairs" not in entry:
+        ports = entry["ports"]
+        if not ports:
+            raise ValueError(
+                f"{topology_path}에 `ports` 선언이 없다 -- 입력환산 오프셋은 '게이트가 신호 "
+                f"입력에 물린 쌍'만 세야 하는데(파일럿 실측: offset 쌍 3개 중 하나는 CMFB "
+                f"오차증폭기 M37a/M37b다) 어느 net이 입력인지 알 수 없다. "
+                f"`ports: {{\"<net>\": {{\"direction\": \"input\"}}}}`를 선언할 것")
+        in_nets = {n for n, p in ports.items()
+                   if isinstance(p, dict) and p.get("direction") == "input"}
+        by_name = entry["by_name"]
+        out = []
+        for p in entry["matching_pairs"]:
+            names = p.get("names") or []
+            if p.get("matching_sensitivity") != "offset" or len(names) < 2:
+                continue
+            if all(n in by_name and by_name[n].gate in in_nets for n in names):
+                out.append(list(names))
+        entry["input_offset_pairs"] = out
+    return entry["input_offset_pairs"]
+
+
+
+def materialize_input_offset_pairs(metrics_specs: dict, topology_path: str) -> None:
+    """`input_referred_offset` metric 선언에 **찾은 쌍과 소자**를 적어 넣는다(제자리 수정).
+
+    이 타입은 `devices`를 손으로 안 받고 연결성에서 찾는다(`input_referred_offset_pairs()`).
+    그런데 이미 있는 소비자 둘은 `mspec["devices"]`를 읽는다:
+
+      * `_metric_device_footprint()` -- 이 metric이 건드리는 소자 집합(웜스타트 의존성 그래프)
+      * `make_matching_feasibility_check()` -- 사이징 중에 mismatch 제약을 미리 거르는 가드
+
+    그 둘에 `topology_path`를 새로 넘기는 대신, **빌드 시 한 번**(`_build_theta_evaluator()`)
+    찾아서 선언에 적어둔다 -- `value_from_spec` 치환과 **같은 관례**(유일한 해석 지점, 이후
+    소비자는 전과 똑같이 읽는다)다.
+
+    `_pairs`도 함께 적는다 -- 가드는 **쌍 단위**로 판정해야 하기 때문이다(합쳐진 소자 집합만
+    보면 스테이지 그룹과 안 맞아 가드가 조용히 꺼진다).
+    """
+    for name, mspec in (metrics_specs or {}).items():
+        if mspec.get("type") != "input_referred_offset":
+            continue
+        pairs = input_referred_offset_pairs(topology_path)
+        if not pairs:
+            raise ValueError(
+                f"metric '{name}'(input_referred_offset)이 선언됐는데 입력 offset 쌍이 "
+                f"하나도 없다 -- `matching_sensitivity: \"offset\"`이고 게이트가 `ports`의 "
+                f"input net에 물린 쌍이 있어야 한다")
+        mspec["_pairs"] = [list(p) for p in pairs]
+        mspec["devices"] = sorted({d for p in pairs for d in p})
+
+def _metric_input_referred_offset(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-09-10) — **입력환산 랜덤 오프셋** sigma(V). 선언된 입력 offset 쌍 전수를
+    **gm 가중 RSS**로 합친다:
+
+        sigma_in = sqrt( sum_i (gm_i * sigma_i)^2 ) / sum_i gm_i
+
+    ## 왜 gm 가중인가
+
+    쌍 i의 Vth 미스매치 `sigma_i`는 출력 노드에서 전류오차 `gm_i * sigma_i`를 만든다. 그걸
+    **입력으로 되돌리려면** 입력에서 출력으로 가는 **전체** 전달컨덕턴스로 나눠야 한다.
+    current-reuse 입력단은 PMOS쌍과 NMOS쌍이 **같은 입력 핀**에 물려 있어 그 합이
+    `gm_p + gm_n`이다(원문 Eq.5 `gm1 = gmn + gmp`, `topology_library.
+    current_reuse_telescopic_topology()`가 이미 그렇게 사이징한다 -- 실측 gm(M1a)=gm(M4a)).
+
+    쌍이 하나뿐인 회로(`two_stage_ota`의 M1/M2)에서는 `sigma_in = sigma_1`로 **정확히
+    환원**된다 -- 즉 이 일반화는 그런 회로의 동작을 바꾸지 않는다.
+
+    ## 이전 정의와의 차이 (사용자 지적으로 발견, 2026-09-10)
+
+    예전엔 `pelgrom_mismatch`가 `devices: ["M1a","M1b"]`로 **PMOS쌍 하나만** 봤다. 파일럿은
+    current-reuse라 `M4a/M4b`(NMOS)도 같은 입력에 물려 있고 `matching_pairs`도 이미
+    `offset`으로 선언해 뒀는데 metric이 그걸 안 셌다. 실측: 2.795mV(옛 정의) vs
+    **1.651mV**(gm 가중, 두 쌍) -- 크기도 1.69배 다르지만 더 중요한 건 **M4a/M4b의 사이징이
+    오프셋에 아무 영향을 못 주고 있었다**는 점이다(최적화기가 그 쌍을 자유롭게 줄일 수 있었다).
+
+    정규 단위는 V다(`_METRIC_UNITS`) -- 선언에서 `"unit": "mV"`로 환산해 쓴다.
+    """
+    pairs = input_referred_offset_pairs(ctx.topology_path)
+    if not pairs:
+        raise ValueError(
+            f"{ctx.topology_path}에 입력 offset 쌍이 하나도 없다 -- `matching_sensitivity: "
+            f"\"offset\"`이고 게이트가 `ports`의 input net에 물린 쌍이 있어야 한다")
+    num, den = 0.0, 0.0
+    for names in pairs:
+        kind = ctx.kind_of.get(names[0])
+        # 쌍 sigma는 기존 계산기를 **그대로** 쓴다(같은 Pelgrom 식을 두 벌로 만들지 않는다).
+        sigma_mV = _metric_pelgrom_mismatch(
+            {"devices": names, "kind": "pfet" if kind == "pmos" else "nfet"}, ctx)
+        gms = [ctx.sized[n].get("gm") for n in names if ctx.sized.get(n, {}).get("gm")]
+        if not gms:
+            raise KeyError(
+                f"input_referred_offset: {names}의 gm이 없다 -- 입력환산은 전체 gm으로 "
+                f"나누는 것이라 gm 없이는 계산할 수 없다")
+        gm = sum(gms) / len(gms)
+        num += (gm * sigma_mV * 1e-3) ** 2
+        den += gm
+    return math.sqrt(num) / den
+
 def _metric_rail_referenced_voltage(spec: dict, ctx: SizingContext) -> float:
     """F엔진(2026-08 세션6) — `device`(이미 사이징 완료, gm_id/L/vds/vs/kind 확정)의
     게이트가 실제로 도달하는 DC 레벨을 LUT VGS 역산(`vgs_for_gm_id()`)으로 계산한다.
@@ -5272,6 +5401,9 @@ def _load_full_topology_cached(topology_path: str) -> tuple:
             # topology.json을 두 번 열지 않는다(C10 재계산 금지).
             "matching_pairs": ((raw.get("symmetry") or {}).get("matching_pairs") or []),
             "ideal_sources": (raw.get("ideal_sources") or []),   # 2026-09-08(B8)
+            # 2026-09-10 -- `input_referred_offset_pairs()`가 "게이트가 **신호 입력**에
+            # 물렸는가"를 판정하는 데 쓴다. raw는 여기서 이미 읽고 있으므로 비용 0.
+            "ports": (raw.get("ports") or {}),
             "device_roles": (raw.get("device_roles") or {}),      # 2026-09-08(A8)
         }
     entry = cache[topology_path]
@@ -5531,6 +5663,8 @@ _METRICS_REGISTRY = {
     "nmcnr_pm_deg":             _metric_nmcnr_pm_deg,                # 세션37
     "flicker_plus_thermal_sum": _metric_flicker_plus_thermal_sum,   # 배치 7-3g
     "pelgrom_mismatch":         _metric_pelgrom_mismatch,            # 배치 7-3h
+    # 2026-09-10 -- 위 계산기를 쌍마다 쓰고 gm 가중으로 합쳐 **입력환산**한다.
+    "input_referred_offset":    _metric_input_referred_offset,
     "cmrr_estimate":            _metric_cmrr_estimate,               # 배치 7-3i
     "psrr_estimate":            _metric_psrr_estimate,               # 배치 7-3i
     "supply_current":           _metric_supply_current,            # A3, 2026-09-08
@@ -5579,6 +5713,7 @@ _METRIC_UNITS = {          # 각 계산기가 **실제로** 돌려주는 단위(
     "parasitic_pm_deg":            "deg",   # §7.11, 2026-09-10
     "flicker_plus_thermal_sum":    "V/sqrt(Hz)",
     "pelgrom_mismatch":            "mV",     # 이 계산기는 이미 *1e3으로 mV를 돌려준다
+    "input_referred_offset":       "V",
     "cmrr_estimate":               "dB",
     "psrr_estimate":               "dB",
     "supply_current":              "A",
@@ -7178,17 +7313,40 @@ def make_matching_feasibility_check(grp, metrics_specs: dict, constraints: list,
     스테이지 안의 모든 소자는 같은 (L,VDS,gm_id,ID)를 공유한다는 compensation의 기존
     불변식을 그대로 이용해, `find_optimal_sizing()`이 매 후보마다 이미 계산하는 IDu를
     재조회(`lut.gm_id_to_id_density()`, LUT 실측범위 밖이면 그 후보는 그냥 infeasible)해
-    `W=L*ID/IDu`를 얻고 `estimate_mismatch_sigma()`로 직접 판정한다."""
+    `W=L*ID/IDu`를 얻고 `estimate_mismatch_sigma()`로 직접 판정한다.
+
+    ## `input_referred_offset`(쌍이 여러 개)에서도 이 쌍별 검사가 타당한 이유 (2026-09-10)
+
+    입력환산 오프셋은 `sigma_in = sqrt(sum_i (w_i sigma_i)^2)`, `w_i = gm_i/sum gm`이고
+    `sum_i w_i = 1`이다. 따라서 모든 쌍이 `sigma_i <= B`를 만족하면
+
+        sigma_in <= sqrt(sum_i w_i^2) * B <= (sum_i w_i) * B = B
+
+    즉 **쌍별 `sigma_i <= B`는 전체 `sigma_in <= B`의 충분조건**이다. 보수적이지만(실제보다
+    빡빡하게 거른다) 위반을 통과시키지는 않는다. 여기서 전체를 못 보는 이유는 명확하다 --
+    이 가드는 스테이지 하나의 (L,VDS,gm_id)를 고르는 시점에 불리는데, 다른 쌍은 아직
+    사이징되지 않아 `sum gm`을 알 수 없다."""
     applicable = []
     grp_set = set(grp)
     for mname, mspec in metrics_specs.items():
-        if mspec.get("type") != "pelgrom_mismatch":
+        mtype = mspec.get("type")
+        if mtype not in ("pelgrom_mismatch", "input_referred_offset"):
             continue
-        devs = set(mspec.get("devices") or [])
-        if devs and devs <= grp_set:
-            for c in constraints:
-                if c["metric"] == mname and c["op"] in ("<=", "<"):
-                    applicable.append((mspec, c))
+        # `input_referred_offset`은 쌍이 여러 개일 수 있다 -- 스테이지 그룹에 해당하는
+        # **그 쌍만** 골라 본다(합집합으로 보면 grp_set에 안 들어가 가드가 조용히 꺼진다).
+        cand_pairs = ([p for p in (mspec.get("_pairs") or []) if set(p) <= grp_set]
+                      if mtype == "input_referred_offset"
+                      else ([list(mspec.get("devices") or [])]
+                            if set(mspec.get("devices") or []) <= grp_set else []))
+        cand_pairs = [p for p in cand_pairs if p]
+        if not cand_pairs:
+            continue
+        for c in constraints:
+            if c["metric"] == mname and c["op"] in ("<=", "<"):
+                for p in cand_pairs:
+                    applicable.append((dict(mspec, devices=p,
+                                            kind=mspec.get("kind") or
+                                            ("pfet" if kind_of[p[0]] == "pmos" else "nfet")), c))
     if not applicable:
         return None
     lut = spec["lut_by_kind"][kind_of[grp[0]]]
@@ -8075,7 +8233,142 @@ def require_declared_spec_source(topology_path: str, spec: dict) -> None:
 
 
 
-def resolve_constraint_references(constraints: list, spec: dict) -> list:
+
+# ---------------------------------------------------------------------------
+# 6.9f) 제약 임계값을 **달성 가능 실측**에서 유도(2026-09-10, 사용자 지시 "1번으로 진행해.
+#       ... 함수로 만들고 재활용 가능하게 만들어. ... 최초에 한번 계산해서 caching")
+#
+#       세션44가 `gain_db`에 **손으로** 한 절차("gain_db를 objective로 놓고 무제한
+#       최대화해서 실제 물리적 상한을 재고, 거기서 안전마진") -- 그걸 회로/metric에
+#       무관한 함수로 만든 것이다. 같은 함수로 `gain_db`도 다시 잴 수 있다.
+# ---------------------------------------------------------------------------
+
+_ACHIEVABLE_BOUND_CACHE: dict = {}
+
+
+def derived_bounds_path(topology_path: str) -> str:
+    """유도된 임계값 사이드카 파일 경로 -- `<topology>.derived.json`.
+
+    왜 파일인가: 유도가 **전체 SLSQP 탐색 여러 번**이라 수 분 걸린다. 그걸 매번 evaluator를
+    만들 때마다 돌리면 self-test/프로브가 못 쓴다. 그래서 한 번 계산해 파일에 남기고
+    (`tests/derive_achievable_bounds.py`), 이후로는 **읽기만** 한다. 파일에는 `spec`의
+    탐색 해상도 지문(`spec_fingerprint()`)이 함께 들어가므로, 격자/bounds가 바뀌면 그
+    유도는 **더 이상 안 맞는 것으로 취급**된다(조용히 옛 값을 쓰지 않는다).
+    """
+    return topology_path.removesuffix(".json") + ".derived.json"
+
+
+def load_derived_bounds(topology_path: str) -> dict:
+    """사이드카를 읽는다. 없으면 `{}`(호출자가 '없음'을 판단한다)."""
+    import os as _ldb_os
+    p = derived_bounds_path(topology_path)
+    if not _ldb_os.path.exists(p):
+        return {}
+    with open(p, encoding="utf-8") as fh:
+        return json.load(fh)
+
+
+def achievable_metric_bound(topology_path: str, spec: dict, metric_name: str,
+                            sense: str = "min", n_probes: int = 3,
+                            slsqp_kwargs: dict | None = None) -> dict:
+    """`metric_name`이 **나머지 선언된 제약을 전부 만족하면서** 실제로 도달하는 값을 잰다.
+
+    회로/metric에 무관하다 -- 선언(`sizing_roles`)만 읽는다.
+
+    ## 절차 (세션44가 `gain_db`에 손으로 한 것과 같다)
+
+    1. 이 토폴로지 선언을 복사해 `objective`를 **이 metric으로 교체**한다
+       (`sense="min"`이면 최소화, `"max"`면 최대화).
+    2. **이 metric에 걸린 제약**과 **그 값을 참조해 임계값을 정하는 제약들**을 제거한다.
+       앞엣것은 자기 자신을 제약한 채로 자기 한계를 재는 순환이라서고, 뒤엣것은 그
+       임계값이 **지금 재려는 값의 함수**라서다(재는 동안에는 아직 값이 없다).
+       실측으로 이 두 번째 경우가 바로 나왔다: `mirror_ratio_error_mV`가
+       `value_from_constraint: "mismatch_sigma_mV"`를 쓰고 있어서, `mismatch_sigma_mV`의
+       달성 가능값을 재려 하자 참조가 갈 곳을 잃고 3 probe 전부 실패했다.
+    3. 나머지 제약은 **전부 그대로** 둔다 -- "면적/전력 예산 안에서 실제로 도달하는 값"이
+       질문이기 때문이다. 물리적 절대한계(예: W·L을 상한까지 키운 sigma)가 아니다.
+    4. `n_probes`개의 **서로 다른 `random_seed`**로 그 회로의 **선언된 탐색 파라미터
+       그대로**(`slsqp_kwargs`) 돌린다 -- probe를 가르는 것은 시드이지 start 수가 아니다.
+
+    ## 반환값과 "보수적인 쪽"
+
+        {"per_probe": [...], "best": ..., "conservative": ..., "sense": ..., "n_ok": N}
+
+    `best`는 도달한 최선(sense대로 min/max), `conservative`는 **수렴한 probe 전부가
+    도달한 값**(`sense="min"`이면 최댓값)이다. 임계값으로는 `conservative`를 쓴다 --
+    세션44가 `gain_db`에 3dB 마진을 둔 이유("SLSQP가 경계에 딱 붙어 방황하는 것을 막고,
+    LUT 격자 해상도/SLSQP 재현성 편차를 흡수")를 **상수 대신 실측으로** 흡수한다:
+    재현성 편차가 곧 probe들 사이의 퍼짐이므로, 그 퍼짐의 보수적 끝을 쓰면 마진 상수를
+    지어낼 필요가 없다.
+
+    캐시: `(topology_path, spec_fingerprint(spec), metric_name, sense, n_probes)` --
+    한 프로세스 안에서 두 번 재지 않는다. 프로세스를 넘는 재사용은 사이드카 파일이 한다
+    (`derived_bounds_path()`).
+    """
+    if sense not in ("min", "max"):
+        raise ValueError(f"sense는 'min'|'max' 중 하나여야 한다(받은 값: {sense!r})")
+    key = (topology_path, spec_fingerprint(spec), metric_name, sense, n_probes)
+    if key in _ACHIEVABLE_BOUND_CACHE:
+        return _ACHIEVABLE_BOUND_CACHE[key]
+
+    with open(topology_path, encoding="utf-8") as fh:
+        topo = json.load(fh)
+    roles = topo.get("sizing_roles") or {}
+    if metric_name not in (roles.get("metrics") or {}):
+        raise ValueError(
+            f"'{metric_name}'이 이 토폴로지의 sizing_roles.metrics에 없다 -- 달성 가능값을 "
+            f"재려면 그 metric이 선언돼 있어야 한다")
+    roles["objective"] = {"minimize" if sense == "min" else "maximize": metric_name}
+    # 제거 대상: 이 metric 자신 + 이 metric의 값을 참조하는 제약(연쇄는 참조 해석기가
+    # 이미 금지하므로 한 겹이면 충분하다).
+    _drop = [c for c in (roles.get("constraints") or [])
+             if c.get("metric") == metric_name
+             or c.get("value_from_constraint") == metric_name]
+    roles["constraints"] = [c for c in (roles.get("constraints") or []) if c not in _drop]
+    _dropped_names = [c.get("metric") for c in _drop]
+    # 탐색 파라미터는 **그 회로가 이미 선언한 것**을 호출자가 그대로 넘긴다
+    # (`run_harness.SPECS[key]["slsqp_kwargs"]`). 여기서 n_starts를 임의로 줄이면 안 된다 --
+    # 실측: `n_starts=1`로 강제했더니 파일럿이 3 probe 전부 "실현가능한 해를 못 찾음"으로
+    # 실패했다(이 회로는 정본 3-start 중 보통 1개만 수렴한다). probe를 가르는 것은
+    # `n_starts`가 아니라 **`random_seed`**다(아래 루프).
+    kw = dict(progress=False)
+    kw.update(slsqp_kwargs or {})
+
+    vals, notes = [], []
+    import os as _amb_os
+    import tempfile as _amb_tempfile
+    with _amb_tempfile.TemporaryDirectory() as tmpdir:
+        probe_path = _amb_os.path.join(tmpdir, _amb_os.path.basename(topology_path))
+        with open(probe_path, "w", encoding="utf-8") as fh:
+            json.dump(topo, fh)
+        for seed in range(n_probes):
+            try:
+                r = optimize_full_circuit_budget(
+                    probe_path, dict(spec), search_method="slsqp",
+                    slsqp_kwargs=dict(kw, random_seed=seed), stop_after_sizing=True)
+                vals.append(float(r["metrics"][metric_name]))
+            except Exception as e:            # 이 seed는 실패 -- 조용히 넘기지 않고 기록한다
+                notes.append(f"seed={seed}: {type(e).__name__}: {str(e)[:120]}")
+    if not vals:
+        raise ValueError(
+            f"'{metric_name}'의 달성 가능값을 한 번도 못 쟀다({n_probes} probe 전부 실패) -- "
+            f"나머지 제약만으로도 실행 가능점이 없다는 뜻이다. 기록: {notes}")
+    out = {"per_probe": sorted(vals), "n_ok": len(vals), "sense": sense, "notes": notes,
+           # 어떤 제약을 끄고 잰 값인지 남긴다 -- 나중에 이 수치를 읽는 사람이 "무엇을
+           # 만족하면서 도달한 값인가"를 오해하지 않도록.
+           "constraints_dropped": _dropped_names,
+           "best": (min(vals) if sense == "min" else max(vals)),
+           "conservative": (max(vals) if sense == "min" else min(vals))}
+    _ACHIEVABLE_BOUND_CACHE[key] = out
+    return out
+
+# 유도된 임계값이 **다른 spec 지문에서 잰 값**일 때 남기는 기록(2026-09-10).
+# 빌드를 죽이지 않되 조용하지도 않다 -- `resolve_constraint_references()` 참고.
+_RESOLVE_STALE_NOTES: list = []
+
+
+def resolve_constraint_references(constraints: list, spec: dict,
+                                   topology_path: str = "") -> list:
     """constraint의 **임계값 참조**를 실제 값으로 치환한다. 소비자는 기존대로 `c["value"]`만
     읽으면 된다(`_build_theta_evaluator()`가 부르는 유일한 치환 지점).
 
@@ -8084,6 +8377,18 @@ def resolve_constraint_references(constraints: list, spec: dict) -> list:
     * `value_from_spec: "<spec 키>"` -- 목표가 **이미 spec에 있는 값**일 때.
       (§7.11의 `parasitic_pm_deg >= PM_target_deg` -- 기생 pole이 남기는 위상여유가 그
       회로의 PM 목표를 넘어야 한다는 뜻이라 새 상수가 아니라 선언된 값 그 자체다.)
+    * `value_from_achievable: {"sense": "min"|"max"}` -- 목표가 **이 회로가 나머지 제약을
+      전부 만족하면서 실제로 도달하는 값**일 때(§10.14). 이건 "임계값을 손으로 적지
+      않았다"는 **선언**이고, 실제 숫자는 `tests/derive_achievable_bounds.py`가
+      `achievable_metric_bound()`로 재서 **같은 제약의 `value`와 `_derived`**(지문/probe별
+      값/시각/끈 제약)에 적어 넣는다. 유도는 전체 SLSQP 탐색 여러 번이라 evaluator를 만들
+      때마다 돌릴 수 없기 때문이다.
+
+      - `value`가 없으면 -> `ValueError`(손으로 적지 말고 유도하라고 알려준다).
+      - `_derived.spec_fingerprint`가 지금 spec과 다르면 -> **빌드는 통과시키되**
+        `_RESOLVE_STALE_NOTES`에 기록한다. self-test/진단 픽스처는 일부러 다른 격자를
+        쓰는데, 거기서 빌드를 죽이면 회로 해석 전체가 막혀 실익보다 해가 크다.
+        (조용히 넘기는 것과 다르다 -- 기록이 남고 보고된다.)
     * `value_from_constraint: "<다른 metric 이름>"` -- 목표가 **이 회로가 다른 제약으로
       이미 선언한 예산 그 자체**일 때. (§10.13의
       `mirror_ratio_error_mV <= mismatch_sigma_mV의 값` -- 계통 미러비 오차를 입력환산
@@ -8101,6 +8406,32 @@ def resolve_constraint_references(constraints: list, spec: dict) -> list:
     즉시 `ValueError`(조용히 한쪽을 고르지 않는다).
     """
     out = list(constraints)
+    if any(isinstance(c, dict) and "value_from_achievable" in c for c in out):
+        resolved = []
+        for c in out:
+            if not (isinstance(c, dict) and "value_from_achievable" in c):
+                resolved.append(c)
+                continue
+            spec_va = c["value_from_achievable"] or {}
+            if "value" not in c:
+                raise ValueError(
+                    f"constraint '{c.get('metric')}'가 value_from_achievable를 선언했는데 "
+                    f"유도된 `value`가 아직 없다 -- 임계값을 손으로 적지 말고 유도할 것:\n"
+                    f"  python tests/derive_achievable_bounds.py <circuit_key>\n"
+                    f"(그 스크립트가 achievable_metric_bound()로 재서 topology.json의 이 "
+                    f"제약에 `value`와 `_derived`(지문/probe별 값/시각)를 적어 넣는다)")
+            fp_now, fp_at = spec_fingerprint(spec), (c.get("_derived") or {}).get("spec_fingerprint")
+            if spec.get("L_candidates") and fp_at and fp_at != fp_now:
+                # ⚠️ 조용히 넘기지 않는다 -- 다만 **빌드를 죽이지도 않는다**. 이 유도는
+                # 정본 spec에서 잰 값인데, self-test/진단 픽스처는 일부러 다른 격자를 쓴다
+                # (그 픽스처들은 이 제약을 검증할 자리가 아니다). 빌드를 죽이면 회로 해석
+                # 전체가 막혀 실익보다 해가 크다 -- 대신 기록을 남겨 사람이 보게 한다.
+                _RESOLVE_STALE_NOTES.append(
+                    f"{c.get('metric')}: 유도는 지문 '{fp_at[:40]}...'에서 잰 값인데 지금 "
+                    f"spec 지문은 '{fp_now[:40]}...'다 -- 다시 재려면 "
+                    f"`python tests/derive_achievable_bounds.py <circuit_key>`")
+            resolved.append(c)
+        out = resolved
     if any(isinstance(c, dict) and "value_from_constraint" in c for c in out):
         # 참조 대상은 **숫자 값을 직접 가진** 제약뿐이다(연쇄 금지).
         vals = {c.get("metric"): c.get("value") for c in out
@@ -8181,10 +8512,13 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         pass        # 파생에 필요한 선언이 없으면 아무것도 안 붙인다(기존 동작 그대로)
     metrics_specs = roles.get("metrics") or {}
     validate_metric_units(metrics_specs)      # 2026-09-08(A12) -- 유일한 배선 지점
+    # 2026-09-10 -- `input_referred_offset`의 `devices`/`_pairs`를 연결성에서 찾아 적어둔다
+    # (유일한 해석 지점 -- 이후 소비자는 전과 똑같이 `devices`만 읽는다).
+    materialize_input_offset_pairs(metrics_specs, topology_path)
     validate_no_legacy_vs_key(meta.get("device_roles") or {})   # 2026-09-08(B9 개명)
     objective = roles.get("objective") or {}
     constraints = roles.get("constraints") or []
-    constraints = resolve_constraint_references(constraints, spec)
+    constraints = resolve_constraint_references(constraints, spec, topology_path)
     # "_"로 시작하는 키(예: "_comment")는 이 프로젝트 전역 관례상 문서용 주석 필드다 --
     # 실제 소자 이름이 "_"로 시작할 일은 없으므로 안전하게 걸러낸다.
     device_roles = {k: v for k, v in (meta.get("device_roles") or {}).items()
@@ -9799,6 +10133,16 @@ def _metric_device_footprint(metric_name: str, metrics_specs: dict):
     if mtype in ("gain_stages_sum", "flicker_plus_thermal_sum"):
         return {d for stage in mspec["stages"] for d in stage}
     if mtype == "pelgrom_mismatch":
+        return set(mspec["devices"])
+    if mtype == "input_referred_offset":
+        # 선언에 `devices`가 없고 **연결성에서 찾는다**. 찾기는 `_build_theta_evaluator()`가
+        # 빌드 시 한 번 하고(`materialize_input_offset_pairs()`) 그 결과를 이 spec에 적어둔다
+        # -- 그래서 여기(그리고 `make_matching_feasibility_check()`)는 기존과 똑같이
+        # `devices`만 읽으면 된다(호출부에 topology_path를 늘리지 않는다).
+        if "devices" not in mspec:
+            raise KeyError(
+                f"metric '{metric_name}'(input_referred_offset)의 devices가 아직 안 채워졌다 "
+                f"-- materialize_input_offset_pairs()가 빌드 시 채운다(호출 누락)")
         return set(mspec["devices"])
     if mtype == "battery_centering_deviation":
         return {mspec["high_device"], mspec["low_device"]}
@@ -12947,8 +13291,14 @@ if __name__ == "__main__":
         # spec + SLSQP, 이 제약을 켠 상태에서 측정) -- 즉 제약이 과한 게 아니라 이 픽스처가
         # 그걸 검증할 자리가 아니다. 위 세 metric을 뺀 것과 같은 판단이고, 근거 제시 방식도
         # 같다(픽스처 값 vs 자유탐색 값을 나란히 적는다).
-        if c["metric"] not in ("classab_centering_dev_v", "gain_db",
-                               "parasitic_pm_deg", "mirror_ratio_error_mV")]
+        # 2026-09-10 -- `mismatch_sigma_mV`도 뺀다. 이유는 위 넷과 **다르다**: 이 제약은
+        # 임계값을 `value_from_achievable`로 유도하는데, 그 유도는 **정본 spec 지문**에
+        # 묶여 사이드카에 저장된다(`derived_bounds_path()`). 이 픽스처는 임시 경로 + 다른
+        # 격자(spec)를 쓰므로 그 유도가 적용될 수 없다 -- 엔진이 "옛 값을 조용히 쓰지 않고"
+        # 거부하는 게 **맞는 동작**이고, 이 픽스처가 그걸 검증할 자리가 아닐 뿐이다.
+        # (정본 spec에서는 정상 해석된다 -- run_harness 실측.)
+        if c["metric"] not in ("classab_centering_dev_v", "gain_db", "parasitic_pm_deg",
+                               "mirror_ratio_error_mV", "mismatch_sigma_mV")]
     with _tempfile.TemporaryDirectory() as _l5c_tmpdir:
         _l5c_topo_path = _rsl_os.path.join(_l5c_tmpdir, "current_reuse_telescopic_ota.l5c.json")
         with open(_l5c_topo_path, "w", encoding="utf-8") as _l5c_f:

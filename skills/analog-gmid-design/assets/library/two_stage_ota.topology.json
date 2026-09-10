@@ -296,13 +296,9 @@
         "unit": "dB"
       },
       "mismatch_sigma_mV": {
-        "type": "pelgrom_mismatch",
-        "devices": [
-          "M1",
-          "M2"
-        ],
-        "kind": "nfet",
-        "unit": "mV"
+        "type": "input_referred_offset",
+        "unit": "mV",
+        "_comment": "2026-09-10(사용자 확정 \"gm 가중이 맞고 캐스코드는 제외해\") -- **입력환산** 랜덤 오프셋. 선언된 offset 매칭 쌍 중 **게이트가 ports의 input net에 물린 것 전수**를 gm 가중 RSS로 합친다: sigma_in = sqrt(sum (gm_i*sigma_i)^2)/sum gm_i. devices를 손으로 안 받는다 -- 연결성에서 찾는다(input_referred_offset_pairs()). ⚠️ 이전에는 type=pelgrom_mismatch에 devices=['M1', 'M2']로 **한 쌍만** 봤다. 파일럿은 current-reuse라 M4a/M4b(NMOS)도 같은 입력에 물려 있고 matching_pairs도 이미 offset으로 선언해 뒀는데 metric이 그걸 안 셌다(사용자 지적으로 발견). 실측 2.795mV(옛) vs 1.651mV(gm 가중) -- 크기도 다르지만 더 중요한 건 M4a/M4b의 사이징이 오프셋에 아무 영향을 못 주고 있었다는 점이다. 쌍이 하나뿐인 회로에서는 sigma_1으로 정확히 환원된다."
       }
     },
     "objective": {
@@ -317,8 +313,20 @@
       {
         "metric": "mismatch_sigma_mV",
         "op": "<=",
-        "value": 5.0
+        "value": 5.0,
+        "_comment": "⚠️ 2026-09-10 -- 이 값은 **여전히 도출 근거가 없다**(추적: do.md 1457행의 자리표시자 \"value\": X가 최초 커밋 e329283에서 채워짐). 사용자 지시로 achievable_metric_bound()를 만들어 '나머지 제약을 만족하면서 도달하는 sigma'로 유도를 **시도했고 실패했다** -- 실패 자체가 결론을 준다(계획 §10.14): sigma를 objective로 놓고 최소화하면 W*L이 커져 parasitic_pm_deg와 정면충돌해 실현가능점이 사라지고(파일럿 3 probe 전부), 반대로 제약을 떼고 원래 objective(power 최소)로 두면 최적화기가 입력쌍을 줄여 sigma가 오히려 나빠진다(세션31 실측: 이 제약을 만족하려면 W*L이 4.7배 필요했다). 즉 **이 임계값은 회로 안에서 도출되는 값이 아니라 시스템 레벨 오프셋 요구에서 와야 하는 설계 입력**이다. 그때까지 값을 지어내지 않고 이전 값을 유지하며 이 사실을 여기 남긴다. 후보 방법(미구현): 제약값 자체를 bisection해 '탐색이 아직 실현가능한 가장 빡빡한 sigma'를 찾는 것. 이전 값 5.0은 이 회로가 도출한 게 아니라 current_reuse_telescopic_ota의 5.0을 복제한 것이었다(_target_spec_comment: \"새 문헌값이 아니라 ... 재사용\")."
       }
     ]
+  },
+  "ports": {
+    "_comment": "2026-09-10 -- 입력환산 오프셋 metric(input_referred_offset)이 '게이트가 **신호 입력**에 물린 매칭 쌍'만 세려면 어느 net이 입력인지 선언이 필요하다(파일럿 실측: offset 쌍 3개 중 하나는 CMFB 오차증폭기라 그 구분이 실제로 결과를 바꾼다). net 이름 자체가 vin_p/vin_n이고 이 회로의 유일한 differential 입력쌍 M1/M2의 게이트다 -- connectivity는 안 건드리고 역할만 적는다. current_reuse_telescopic_ota의 ports 선언과 같은 형식. ⚠️ 출력 net은 아직 안 적었다 -- 지금 쓰는 곳이 없어서다(필요해지면 추가).",
+    "vin_p": {
+      "role": "differential_input_p",
+      "direction": "input"
+    },
+    "vin_n": {
+      "role": "differential_input_n",
+      "direction": "input"
+    }
   }
 }
