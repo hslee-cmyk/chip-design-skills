@@ -14340,3 +14340,22 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   `mismatch_sigma_mV <= 선언값`(하한).
 * 재탐색: power 225.38uA / area 524.24um² / parasitic_pm_deg 70.12, 전 제약 통과.
 
+## 6. (세션47 이어서) 층3 착지 + 중복계산 전수검사 (계획 §10.10, v4.38)
+
+* `synthesize_l_class_thetas()` + feed `l_class` -- 동치류 공통 L을 theta로 **파생**(손선언 없음).
+  파일럿 2개(L_class__M68 주인 M5 / L_class__M8 주인 M6), 나머지 회로 0개 = 동작 무변경.
+* bounds: LUT 전 범위 -> 선언된 L theta 상한. 그래도 실패 -- **실현가능 L은 구멍 뚫린 집합**
+  (세션40이 이미 기록한 현상).
+* `repair_infeasible_baseline()` 수정: **(theta,값) 단위 시도 기록**(같은 theta의 다른 값을
+  재시도 못 하던 버그) + **L theta는 L_candidates 격자를 훑는다**.
+* ★ 중복계산(프로파일 실측, 전부 내가 넣은 코드가 원인):
+  - `stack_kvl_vgs_limit` -> `load_topology()` 호출마다 = 평가의 99.3%.
+    `_load_full_topology_cached`가 이미 부르며 **버리던 meta**를 보관해 해결(0.142→0.001s).
+  - L2가 omega마다 네트워크 재조립(25회) = 28%. `build_ac_network()`로 1회(0.371→0.024s).
+  - `_query` 18,636회 중 **12,891회(69.2%) 중복** -> 메모이제이션(상한 400k).
+  - **평가 1회 1,325ms → 72.9ms(18배)**, 탐색 1,465s → 134s.
+  - 이 원칙은 메모리 feedback-always-check-recompute-efficiency에 Python 코딩원칙으로 못박음.
+* 결과: mirror_ratio_error 13.96→**3.64**, cmrr 60.00→73.14, psrr 63.93→73.65,
+  parasitic_pm_deg 70.12→77.37, gain_full 59.66→67.64. 파생 L=0.445/0.573um(knee보다 위).
+* 남은 것: `bias_replica: 1.2` 상수, `search_stage_budget_L_warm_start()`에 `l_class` 포함.
+

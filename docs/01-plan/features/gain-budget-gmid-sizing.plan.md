@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.37
+version: 4.38
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -3062,6 +3062,89 @@ self-test의 toy LUT 픽스처가 그 경우로, 폴백 knee가 W를 0.824um로 
   그 role의 의도(§7.10 "PVT 민감도 완화, 미러의 출력임피던스 극대화가 아님")가 knee와
   다르므로 별도 판단이 필요하다.
 
+### 10.10 층3 착지 -- 동치류 공통 L을 theta로 파생 (★ 신설 v4.38)
+
+#### 무엇을 만들었나
+
+`synthesize_l_class_thetas()` -- **동치류의 공통 L을 theta로 파생**한다. topology.json에
+손으로 적지 않는다(사용자 지시 *"L theta를 일반화해. 특정 이름으로 하지마."*): 층1 동치류와
+층2 주인에서 파생되고 이름도 대표 소자에서 만들어진다(`L_class__<root>`).
+
+  * 주인(gain stage tail)이 있는 류에만 생긴다. 선언된 L theta가 그 류 멤버를 이미 건드리면
+    만들지 않는다(자유도 중복 방지).
+  * feed 타입 `l_class` 신설(`_feed_l_class`) -- **L만 확정**하고 gm_id/vds/W는 기존 경로가
+    그 L로 다시 사이징한다. `_THETA_FEED_REGISTRY`가 문서화한 확장 계약("한 줄만 등록")대로.
+  * 실측: 파일럿에만 2개(`L_class__M68` 주인 M5 / `L_class__M8` 주인 M6), 나머지 3개 회로는
+    **0개 = 동작 무변경**.
+
+#### 공동 sweep은 구조에서 저절로 나온다
+
+주인이 여럿인 류(파일럿 M8류의 M6·M7)에서도 **theta는 하나**다 -- 자유도가 동치류당 하나뿐
+이기 때문이다. 그 하나가 관련된 모든 gain 제약을 동시에 만족해야 하므로, 사용자가 말한
+*"두 stage의 gain을 모두 만족시키는 L을 sweep"*이 별도 장치 없이 성립한다.
+
+#### bounds -- 두 번 좁혔고 둘 다 실측이 시켰다
+
+1. 처음엔 `L_candidates` 실측 전 범위(0.15~4.0um)를 썼다. **SLSQP가 L=1.86um 같은 곳으로 가
+   diode 레퍼런스(M66/M18_bg, 0.25uA)가 W 한계 안에서 사이징 불가**가 되어 5 start 전부
+   실패했다(1465초). 선언된 제약이 clamp할 기회조차 없다.
+2. 그래서 상한을 **이 토폴로지가 이미 선언한 L theta들의 상한**(1.0um)으로 좁혔다. 그래도
+   실패했다 -- 실현가능 L이 **연속 구간이 아니라 구멍이 뚫린 집합**이기 때문이다. 이건
+   세션40이 이미 기록한 현상이다(`search_stage_budget_L_warm_start()` docstring:
+   "feasible한 L 구간이 넓지 않고 좁고 끊긴 조각들로 존재").
+
+#### 해결 -- 기준점 복구가 L 격자를 훑는다
+
+`repair_infeasible_baseline()`(§10.7)을 두 군데 고쳤다:
+
+  * **(theta, 값) 단위로 시도를 기록**한다. theta 이름만 기록하면 한 번 옮겨 병목이 옆으로
+    간 뒤 같은 theta의 다른 값을 못 써본다 -- 실측으로 정확히 그 일이 났다(`L_class__M8`을
+    하한으로 옮기자 병목이 **같은 류의 다른 멤버** M18_bg로 갔는데 거기서 멈췄다).
+  * **L theta는 bounds 양 끝이 아니라 `L_candidates` 격자를 훑는다**(9점 서브샘플). 구멍이
+    뚫린 집합이라 양 끝만 보면 못 찾는다.
+
+실측 복구 경로(4단계, x0 feasible=True):
+
+    L_stage2out_p 0.575 -> 0.15um     막힌 소자 [M15]에서 평가 성공
+    L_class__M8   0.575 -> 0.15um     [M6,M66] -> [M18_bg]로 병목 이동
+    L_class__M8   0.15  -> 0.245um    [M18_bg] -> [M6,M66]로 병목 이동   <- 재시도
+    L_class__M68  0.575 -> 0.15um     [M6,M66]에서 평가 성공
+
+#### 결과 -- 미러비 오차가 3.8배 줄었다
+
+| metric | 층2까지 | **층3** |
+|--------|---------|---------|
+| `mirror_ratio_error_pct` | 13.96 | **3.64** |
+| `cmrr_estimate_db` | 60.00 | **73.14** |
+| `psrr_estimate_db` | 63.93 | **73.65** |
+| `parasitic_pm_deg` | 70.12 | **77.37** |
+| `gain_full_circuit_db` | 59.66 | **67.64** |
+| `power_uA` / `area_um2` | 225.38 / 524.24 | 231.17 / 688.12 |
+
+파생 theta가 고른 값: `L_class__M68 = 0.445um`, `L_class__M8 = 0.573um` -- **knee(0.245/0.340)
+보다 위**다. 즉 sweep이 §7.10의 knee 시작점보다 나은 점을 실제로 찾았고, 그 대가로 면적이
+늘고 미러비/CMRR/PSRR/PM이 좋아졌다. 전 제약 통과, self-test 둘 다 exit 0 / diff 0줄.
+
+#### 중복계산 전수검사 (사용자 지시, 같은 커밋 범위)
+
+프로파일로 재서 셋을 찾았고 **셋 다 이번 세션에 내가 넣은 코드**가 원인이었다:
+
+| 원인 | 비중 | 고친 방법 | 결과 |
+|------|------|-----------|------|
+| `stack_kvl_vgs_limit()`이 `load_topology()`를 호출마다 | **99.3%** | 이미 부르며 **버리던 meta**를 캐시에 보관 | 0.142s → 0.001s |
+| L2가 ω마다 네트워크 재조립(25회) | **28%** | ω 무관 조립을 `build_ac_network()`로 1회 | 0.371s → 0.024s |
+| `_query` 18,636회 중 **12,891회(69.2%) 중복** | 44% | 메모이제이션(상한 400k) | — |
+
+**평가 1회 1,325ms → 72.9ms(18배)**, 탐색 1,465초 → 134초. 이 원칙은 메모리
+`feedback-always-check-recompute-efficiency`에 Python 코딩원칙으로 못박았다.
+
+#### 남은 것
+
+* `_L_ROLE_MULTIPLIERS`의 `bias_replica: 1.2`는 아직 상수다(knee가 대체한 것은 `mirror`).
+  그 role의 의도(§7.10 "PVT 민감도 완화, 출력임피던스 극대화가 아님")가 knee와 달라 별도 판단.
+* `search_stage_budget_L_warm_start()`는 아직 `metric_stage_budget`만 본다 -- `l_class`도
+  포함하면 복구에 기대지 않고 처음부터 좋은 L을 준다(지금은 복구가 그 일을 대신한다).
+
 ## Version History
 
 | Version | Date | Changes |
@@ -3118,3 +3201,4 @@ self-test의 toy LUT 픽스처가 그 경우로, 폴백 knee가 W를 0.824um로 
 | **4.35** | 2026-09-10 | **M9b 스택 예산 음수 해결 + 기준점 복구 일반화 -- 정본 spec으로 파일럿이 처음 수렴했다**(145초, 직전엔 625초 동안 3 start 전부 실패). ① **배터리 KVL이 아무 데서도 강제되지 않고 있었다**: `M9a`/`M9b`는 직렬이 아니라 Vg15↔Vop1를 잇는 **상보 병렬쌍**(Monticelli floating battery)이라 `V_bat = vdd - VGS(M15) - VGS(M16)`인데, 선언된 `classab_centering_dev_v`는 VGS의 **차이**만 재고 **합**은 아무도 안 봤다. 실측 0.9799+0.8441=1.824>vdd ⟹ **V_bat=-0.024V**인데 centering(0.136≤0.15)은 **통과한 채** -- 즉 그동안의 파일럿 수치는 배터리 전압이 음수인 불가능한 동작점의 값이었다. 해결(사용자 선택): `stack_kvl_vgs_limit()`이 **선언만 읽어** VGS 상한을 유도(종속항을 **계수 k로 세는** 덕에 'M15와 M16이 같다'를 알 필요가 없다, k=2 ⟹ 0.8417V로 손계산과 일치) -> `search_gm_id_for_role(vgs_max=…)`; 포화 하한은 `lut_vdsat_headroom()`이 §2.7 `2/(gm/ID)`로 유도해 **새 상수 없음**(기존 `_default_cascode_headroom()` 재사용, 배분기와 **같은 헬퍼**). ② **기준점이 중점에 묶여 탐색이 출발을 못 하고 있었다**(사용자 지적 "중점에 묶이는 것도 해결했잖아. 왜 반영이 안 되어 있어?"): v4.30이 이미 `r_cmfb_vocdes`의 설계값은 하한이라고 확정했는데 그게 **self-test 픽스처에만 적히고 엔진에는 반영되지 않았다**. presolve의 세 단계가 전부 '기준점 평가 가능'을 전제해, 크래시하면 L 스캔이 조용히 midpoint로 후퇴하고 전 theta가 ambiguous가 된다. **`repair_infeasible_baseline()` 신설** -- 실패 메시지가 지목한 소자 -> 선언에서 그 소자를 담당하는 자유 theta -> 자기 bounds 양 끝을 시도, '평가 성공 **또는 병목 이동**'이면 채택. 증거가 못 짚으면 **측정된 실현가능점**으로 후퇴하고, 그것도 없으면 포기(없는 근거로 값을 옮기지 않는다). **회로/소자/theta 이름·상수가 코드에 하나도 없다**(사용자 지시 "이 설계에만 적용되는 것은 안 돼"). 파일럿 실측: `L_stage2out_p→하한 / r_cmfb_vocdes→하한 / r_diode_M11a→측정점 복귀` 3단계로 복구 -- 두 번째가 바로 v4.30이 손으로 정한 그 값이고 **이제 엔진이 스스로 유도한다**. 4개 회로 전수: folded_cascode는 **복구 0건 무동작**, two_stage/nmcnr는 기존 이월 항목. **결과**: gain_full 65.97 / cmrr 60.42 / psrr 81.97 / mismatch 1.36 / centering 0.1481 전부 통과, **V_bat -0.024→+0.380V**, **parasitic_pm_deg -8.9°→+33.88°**. **함께 고침**: M18b `budget_reference_device="M17"` 누락(vom 쪽 대칭 짝, 사용자 승인), `_grid_points_in_range(n=1)` ZeroDivisionError(잠복), L5c를 `stop_after_sizing=True`로 사이징까지만 분리(사용자 선택). self-test 둘 다 exit 0 / diff **0줄**(L5c 기준선 1줄은 앞서 갱신) |
 | **4.36** | 2026-09-10 | **§7.11 L2 완성 -- 보상망을 실제로 세고 Cc를 유도한다**(사용자 지적 "pm보상 회로가 있는데 왜 그건 고려하지 않지?", "Cc와 Rz는 보상망이 계산해서 확정해야지"). ① **L1은 보상망을 못 봤다**: `node_pole_estimate()`가 소자 단자만 셌는데, 보상망은 `passive_elements`에 **이미 선언돼 있었고**(Cc1/Rz1/Cc2/Rz2) MNA는 그 저항을 이미 쓰고 있었다 -- 그 인자를 안 받은 것뿐이다. 하필 L1이 지목한 노드(Vop1/Vom1)가 정확히 Rz가 붙는 자리라 34.2도는 무효. ② **L2는 pole을 뽑지 않는다**: `det(G+sC)=0`의 근에는 bias 모드가 섞여 -1004도와 같은 오류가 재발하므로, `(G+jwC)v=b`를 직접 풀어 `PM = 180 - (DC->w_c 누적 지연)`으로 잰다. L1 식과 원문 `atan(w_p2/w_c)`를 **둘 다 특수케이스로 포함**하고, 지배 pole 제외 처리도 신호경로 제한도 불필요해진다. ③ **논문 확인 -- 필자의 해석이 틀렸다**: `omega_c`는 **loop gain** unity gain이고(개루프 A가 아님), 실측 `|A|(w_c)=6.52dB`가 `1/beta=6.38dB`와 일치해 선언이 옳음이 독립 확인됐다. ④ **빠진 connectivity 추가**(사용자 확정): CL1/CL2(Vop/Vom-gnd), Cf1/Cf2(**교차** Vom-Vip/Vop-Vim -- Vip와 Vop가 동상이라 비교차면 정궤환, 수치로도 |A|가 1/beta에 더 가깝다), Cs1/Cs2. PM 93.76 -> 81.13(+C_L) -> 75.35(+Cf)도. ⑤ **Cc 유도**: 원문 Eq.3/Eq.6에서 `d(gm1+gm2)/dCc=0` ⟹ `Cc = sqrt(beta*tan(PM_target)*C_Ltot*Cgg2)` -- **새 상수 0개**, 실측 374~385fF(원문 500fF는 그들의 Cgg2에 대한 값). `miller_ota_topology()`의 `Cm`과 같은 성격이고 그게 이미 선례였다. 배선 중 `cap_key`가 derived를 안 읽던 것(`KeyError: 'Cc'`로 드러남)과 `exposed_params`가 호출 후 갱신 안 되던 것을 함께 고침. ⑥ **제약 판정 수치 공차**: 활성제약 수렴으로 `cmrr=59.999999999118884`(잔차 -8.8e-10)가 5 start를 전부 버렸다 -> 상대오차 1e-9. 처음 `max(1.0,|target|)`로 뒀다가 **self-test가 잡았다**(면적 9.1e-12에서 공차가 값의 100배). **결과**: `parasitic_pm_deg >= PM_target_deg`를 `value_from_spec`으로 선언하고 재탐색 성공 -- PM **71.87**, gain_full 66.05, cmrr 60.50, psrr 81.65, mismatch **0.753**, power **233.73uA**(267.59에서 -12.6%). self-test 둘 다 exit 0 / diff 0줄 |
 | **4.37** | 2026-09-10 | **미러 공통 L 3층 구조 -- 층1/층2/knee 착지**(사용자 확정 "M5가 주인이야"). ① **층1 동치류**: 진짜 전류미러(같은 kind/gate/source, **순수 connectivity**) + `same_as_device` + `matching_pairs`. `gm_id_match_vgs_of`는 **안 쓴다** -- 그 필드는 cross-kind VGS 매칭에도 쓰여 L을 공유하면 안 되는데(세션30 M15-M16), connectivity 판정이 둘을 정확히 가른다(실측 확인). 파일럿 15개 류, 큰 둘이 M5·M38 포함 8소자 / M6·M7·M36a 포함 11소자 -- 추적했던 사슬 그대로. ② **층2 주인**: tail=`headroom_role`, gain stage=`gain_stages_sum.stages`, stage의 tail="그 stage 소자들의 source net을 drain으로 갖는 tail"(연결), 최초 input 단=gain metric `excite` net을 gate로 갖는 소자의 stage. 실측 **주인 M5 / M6** -- 지시와 일치. 다른 3개 회로는 `gain_stages_sum` 미선언이라 **전부 폴백 = 동작 무변경**. ③ **knee로 상수 제거**: §7.10이 이름까지 명세해둔 `measure_L_knee()` 구현(한계효율 `Δ(gm/gds)/Δ(W·L)`, ID는 argmax에 무관해 인자 아님, 비단조 구간 건너뜀) + `knee_L_for_kind()`(gm_id 격자 **중앙값**, 캐시). 실측: **vds에 무관**(네 vds 중앙값 동일 -- L이 vds보다 먼저 배정되므로 결정적)하고 **kind마다 다르다**(nmos 1.63x / pmos 2.27x) -- 단일 상수 2.5x로는 못 담는 차이다. 격자가 spec에 선언돼야만 계산한다(toy LUT 폴백이 W 하한을 깨는 것을 self-test가 잡았다). **결과**: L 갈린 동치류 **3/3 → 0**, `mirror_ratio_error_pct` 11.84→13.96, 재탐색 전 제약 통과 (`parasitic_pm_deg` 70.12 / cmrr 60.00 / gain_db 60.39), **power 267.59→225.38uA**, **area 693.88→524.24um²**. self-test 둘 다 exit 0 / diff 0줄. **남은 것**: 층3(공동 gain sweep + L theta 일반화), 층0 게이트 파이프라인 배선, `bias_replica: 1.2` 상수 |
+| **4.38** | 2026-09-10 | **층3 착지 + 중복계산 전수검사**. ① `synthesize_l_class_thetas()`가 동치류 공통 L을 **theta로 파생**한다(손선언 없음, 이름도 파생 -- 사용자 지시 "특정 이름으로 하지마"). feed 타입 `l_class` 신설(L만 확정, 레지스트리 확장 계약대로). 파일럿에만 2개, 나머지 3개 회로는 **0개 = 동작 무변경**. 주인이 여럿인 류도 **theta는 하나**라 "두 stage gain 동시 만족 sweep"이 구조에서 저절로 성립한다. ② **bounds를 두 번 좁혔고 둘 다 실측이 시켰다**: LUT 전 범위(4.0um)에서는 SLSQP가 L=1.86um로 가 diode 레퍼런스가 사이징 불가(5 start 전부 실패, 1465초), 선언된 L theta 상한(1.0um)으로 좁혀도 실패 -- **실현가능 L이 구멍 뚫린 집합**이기 때문(세션40이 이미 기록). ③ 그래서 `repair_infeasible_baseline()`을 고쳤다: **(theta,값) 단위 시도 기록**(같은 theta의 다른 값을 재시도 못 하던 버그 -- 병목이 같은 류의 다른 멤버로 간 뒤 멈췄다) + **L theta는 격자를 훑는다**. 4단계 복구로 x0 feasible. ④ **중복계산 전수검사**(사용자 지시, 프로파일 실측): `stack_kvl_vgs_limit`이 `load_topology()`를 호출마다(평가의 **99.3%**, 이미 부르며 **버리던 meta**를 보관해 해결), L2가 ω마다 네트워크 재조립(**28%**, `build_ac_network()`로 1회), `_query` 18,636회 중 **69.2%가 중복**(메모이제이션). **평가 1회 1,325ms → 72.9ms(18배)**, 탐색 1,465초 → 134초. **결과**: `mirror_ratio_error_pct` 13.96 → **3.64**(3.8배), cmrr 60.00 → 73.14, psrr 63.93 → 73.65, `parasitic_pm_deg` 70.12 → 77.37, gain_full 59.66 → 67.64. 파생 theta가 고른 L(0.445/0.573um)은 knee(0.245/0.340)보다 위 -- sweep이 시작점보다 나은 점을 실제로 찾았다. self-test 둘 다 exit 0 / diff 0줄 |

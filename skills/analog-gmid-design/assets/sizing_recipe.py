@@ -8790,6 +8790,11 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         "device_roles": device_roles, "comp": comp, "pairs_meta": pairs_meta,
         "kind_of": kind_of, "by_name": by_name, "stack_groups_geometry": stack_groups_geometry,
         "stack_groups_kcl": stack_groups_kcl, "evaluate": _evaluate,
+        # 2026-09-10 -- `spec`도 함께 돌려준다. `repair_infeasible_baseline()`이
+        # L theta를 복구할 때 `L_candidates`(실현가능 L이 구멍 뚫린 집합이라 양 끝만
+        # 봐선 못 찾는다)를 읽어야 하는데, 그 함수는 `ev`만 받는다. 기존 호출부는
+        # 모르는 키를 무시하므로 순수 추가다.
+        "spec": spec,
     }
 
 
@@ -10141,7 +10146,7 @@ def _theta_device_map(thetas: list) -> dict:
     return out
 
 
-def repair_infeasible_baseline(ev: dict, baseline: dict, max_rounds: int = 4,
+def repair_infeasible_baseline(ev: dict, baseline: dict, max_rounds: int = 8,
                                 fallback_point: dict | None = None) -> tuple:
     """`baseline`(theta 기준점)이 infeasible이면 **실패 증거를 따라** 자유 theta를 bounds로
     옮겨 복구한다. `(baseline, notes)`를 돌려주며, 이미 feasible이면 그대로 돌려준다
@@ -10195,6 +10200,10 @@ def repair_infeasible_baseline(ev: dict, baseline: dict, max_rounds: int = 4,
     free = {th["name"]: tuple(th["bounds"]) for th in thetas
             if th["bounds"][0] != th["bounds"][1]}
     dev_map = _theta_device_map(thetas)
+    feed_type = {th["name"]: (th.get("feeds") or {}).get("type")
+                 for th in thetas if isinstance(th.get("feeds"), dict)}
+    spec_L = ((ev.get("spec") or {}).get("L_candidates")
+              if isinstance(ev.get("spec"), dict) else None)
     all_devices = set(ev["by_name"]) if ev.get("by_name") else set()
     notes = []
 
@@ -10214,21 +10223,51 @@ def repair_infeasible_baseline(ev: dict, baseline: dict, max_rounds: int = 4,
     if ok:
         return baseline, notes
 
-    tried = set()
+    # 2026-09-10 -- theta별로 **어떤 값을 시도했는지**를 기록한다(theta 이름만 기록하면,
+    # 한 번 옮겨 병목이 옆으로 간 뒤 같은 theta의 다른 값을 못 써본다 -- 실측: L 동치류
+    # theta를 하한으로 옮기자 병목이 그 류의 **다른 멤버**(M18_bg)로 갔는데, theta가 이미
+    # "시도함"이라 거기서 멈췄다).
+    tried_vals = {}
+
+    def _candidates_for(name):
+        """이 theta에서 시도해 볼 값들. L theta는 **격자 후보**를 훑는다.
+
+        일반 theta는 bounds 양 끝이면 충분하지만, L은 실현가능 집합이 **연속 구간이 아니라
+        구멍이 뚫려 있다**(세션40이 `search_stage_budget_L_warm_start()` docstring에 기록:
+        "feasible한 L 구간이 넓지 않고 좁고 끊긴 조각들로 존재"). 실측으로도 같은 류의
+        diode 레퍼런스가 특정 L에서만 W 한계를 못 맞춘다. 그래서 양 끝만 보면 못 찾는다.
+        """
+        lo, hi = free[name]
+        ftype = feed_type.get(name)
+        if ftype in ("metric_stage_budget", "l_class"):
+            grid = [float(v) for v in (ev.get("spec", {}) or {}).get("L_candidates", ())]
+            if not grid:
+                grid = [float(v) for v in (spec_L or ())]
+            vals = [v for v in sorted(set(grid)) if lo <= v <= hi]
+            if vals:
+                # 넓게 훑되 개수를 묶는다(평가 비용 상한) -- 균등 인덱스 서브샘플.
+                k = min(9, len(vals))
+                idx = sorted({round(i * (len(vals) - 1) / (k - 1)) for i in range(k)}) if k > 1 else [0]
+                return [vals[i] for i in idx]
+        return [lo, hi]
+
     for _ in range(max_rounds):
         cands = sorted(
             ((len(dev_map.get(n, ()) & blocked), n) for n in free
-             if n not in tried and (dev_map.get(n, ()) & blocked)),
+             if (dev_map.get(n, ()) & blocked)
+             and any(v not in tried_vals.get(n, ()) for v in _candidates_for(n))),
             reverse=True)
         if not cands and fallback_point:
             # 증거가 못 짚으면 **측정된 실현가능점** 쪽으로 하나씩 물러난다.
             reverted = False
             for n in free:
-                if n in tried or n not in fallback_point:
+                if n not in fallback_point:
+                    continue
+                if fallback_point[n] in tried_vals.get(n, ()):
                     continue
                 if baseline[n] == fallback_point[n]:
                     continue
-                tried.add(n)
+                tried_vals.setdefault(n, set()).add(fallback_point[n])
                 before = baseline[n]
                 baseline[n] = fallback_point[n]
                 ok2, blocked2 = _probe(baseline)
@@ -10252,11 +10291,14 @@ def repair_infeasible_baseline(ev: dict, baseline: dict, max_rounds: int = 4,
                 f"(없는 근거로 값을 옮기지 않는다).")
             break
         _, name = cands[0]
-        tried.add(name)
         lo, hi = free[name]
         before = baseline[name]
         picked = None
-        for val in (lo, hi):
+        seen_vals = tried_vals.setdefault(name, set())
+        for val in _candidates_for(name):
+            if val in seen_vals:
+                continue
+            seen_vals.add(val)
             baseline[name] = val
             ok2, blocked2 = _probe(baseline)
             if ok2 or blocked2 != blocked:
