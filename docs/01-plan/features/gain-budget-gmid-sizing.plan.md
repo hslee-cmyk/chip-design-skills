@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.33
+version: 4.34
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -2632,6 +2632,76 @@ harness 순서의 불일치(§8.4에 Phase 1이 없고 되먹임을 금지), 신
 `classab_centering_dev_v` 명칭 흔들림, §7.10 측정2 표의 빈 헤더.
 
 
+### 10.6 spec 정본화 — 2026-09-10 사고와 재발 방지 (★ 신설 v4.34)
+
+#### 무슨 일이 있었나
+
+조사 스크립트들이 spec 딕셔너리를 **손으로 복붙**해 썼는데, 그것이 정본
+(`workspaces/run_harness.py`의 `SPECS[*]["spec_fn"]()`)과 갈려 있었다:
+
+| 항목 | 정본 | 복제본 |
+|------|------|--------|
+| `L_candidates` | `layout_grid_L_candidates(n=41)` 41점 | LUT 앵커 12점 |
+| `VDS_candidates` | `dense_candidates(n=13)` 13점 | 손으로 적은 9점 |
+| `gm_id_grid` | 2.0~30.0 / 0.5 간격 **57점** | 4~24 / 1.0 간격 **21점** |
+| `stage_power_tolerance` | 0.05 | **없음** |
+
+정본 주석에는 이미 세션30 실측으로 **"L을 촘촘히 하면 gm_id도 촘촘해야 한다"**가 적혀
+있었다(성긴 gm_id 격자가 임의 L에서 feasible W를 못 찾아 크래시). 복제본은 **둘 다 성긴**
+조합이라 우연히 안 터졌을 뿐이다. 결과적으로 v4.28~v4.33의 파일럿 수치가 전부 비정본
+기준이었고, 4개 회로 조사를 돌려서야 드러났다.
+
+#### 정본으로 돌리면 파일럿이 수렴하지 않는다 (★ 새 blocker)
+
+정본 spec으로 SLSQP 3 start × 25 iter를 돌린 결과(625초): **3회 전부 실현가능한 해를
+못 찾았다**. 사유는 매번 같다 —
+
+    'biasgen_vom_floatsrc_sink' 그룹(예산 -0.02396V, 미해결 ['M9b'])
+    스택 예산이 음수다: 고정분 합이 0V인데 초과 0.02396V. diode 구간 하한 없음.
+
+즉 v4.28~v4.33에서 보고한 수치(gain 65.55 / area 584.59µm² / `PM_parasitic` -8.9° 등)는
+**전부 비정본 해상도에서 잰 값**이며, 정본에서는 그 동작점에 도달하지 못한다. 이 스택
+예산 음수는 별도 blocker로 다뤄야 한다(§10.2/§10.3 대기열).
+
+#### 재발 방지 — 무엇을 만들고 어디에 배선했나
+
+| 장치 | 위치 | 하는 일 |
+|------|------|---------|
+| `require_declared_spec_source()` | `sizing_recipe.py` | `library/*.topology.json`을 **해상도 필드나 LUT가 실린 spec**으로 사이징하는데 `_spec_source`가 없으면 `ValueError`. `_build_theta_evaluator()` 첫 줄에 배선 → `optimize_full_circuit_budget()`도 자동 적용 |
+| `spec_fingerprint()` | `sizing_recipe.py` | 해상도 결정 7개 필드의 개수·범위를 짧은 지문으로. 거부 메시지에 찍혀 "무엇이 갈렸는지"가 바로 보인다 |
+| `canonical_spec(key)` | `run_harness.py` | 정본을 쓰는 길을 **복붙보다 짧게** 만든다 |
+| `derived_spec(key, why, **overrides)` | `run_harness.py` | 정본에서 **명시한 항목만** 갈린다. `why`가 비면 거부. `_spec_source`에 `[gm_id_grid:n57->n21] -- <이유>` 형태로 자동 기록 |
+| 자기시험 4건 | `sizing_recipe.py` self-test | 게이트가 실제로 무는지 상시 검증(아래 참고) |
+
+**배선 결과**: 복붙 spec 블록 **238줄을 16개 조사 스크립트에서 제거**하고 전부
+`H.canonical_spec("current_reuse_telescopic_ota")`로 교체했다. 복제본은 정본의 **부분집합**
+(24키 ⊂ 26키)이라 잃은 항목은 없고 `stage_power_tolerance`가 회복됐다. 같은 블록이 16개
+파일에 그대로 퍼져 있었으므로 파일마다 다른 판단을 한 것이 아니라 **복제본 하나가 번진
+것**이었다 — 그래서 일괄 교체가 각 스크립트의 의도를 훼손하지 않는다.
+
+#### ★ 게이트를 만들자마자 그 게이트가 죽어 있었다
+
+처음 구현한 `require_declared_spec_source()`는 **한 번도 거부하지 않았다**. 원인:
+
+```python
+try:
+    real = os.path.realpath(topology_path)   # 이 모듈은 os를 최상위 import하지 않는다
+except Exception:
+    return                                    # NameError를 삼키고 항상 통과
+```
+
+재발 방지 장치가 재발 방지 없이 죽은 셈이다. 조치는 두 가지다:
+
+1. **광범위 `except`를 제거**했다(모듈 관례대로 `import os as _rds_os`를 함수 안에서).
+   메모리 원칙 "우회/skip 로직은 타당성 검토 후에만"의 실례가 하나 더 생겼다 — 이번엔
+   `skip`이 아니라 **예외를 삼키는 것**이 같은 역할을 했다.
+2. **자기시험에 게이트 자체를 넣었다**. `sizing_recipe.py` self-test가 ① 출처 없는 spec
+   거부 ② 출처 선언 시 통과 ③ 빈 spec(gap 진단 전용) 통과 ④ library 밖 fixture 비대상
+   을 매번 확인한다. 게이트가 다시 조용히 죽으면 기준선 diff가 깨진다.
+
+**검증**: `sizing_recipe` exit 0 / 기준선 diff **0줄**(기준선에 13줄 추가 반영),
+`stick_diagram` exit 0 / diff **0줄**, 조사 스크립트 16개 배선 smoke 전부 통과.
+
 ## Version History
 
 | Version | Date | Changes |
@@ -2684,3 +2754,4 @@ harness 순서의 불일치(§8.4에 Phase 1이 없고 되먹임을 금지), 신
 | **4.31** | 2026-09-09 | **B19' 배선 착지 -- 미러 VGS 퍼짐이 0이 됐다**. `tests/apply_b19p_mirror_wiring.py`로 15소자를 배선하니 처음엔 M66의 창이 다시 비었는데, 원인은 B22가 **헤드룸 시점**에 미러 멤버의 vsb를 `ctx.sized`에서 읽는데 B9의 보정은 그 **뒤에** 일어난다는 것이었다. 멤버 vsb도 노드전압에서 유도하도록 맞추자 통과했다. **검증**: VGS 퍼짐이 세 그룹 모두 464.2/663.2/9.2mV -> **정확히 0.0000mV**. 미러비도 대부분 1.0배 근처(0.877~1.106)이고, 어긋나는 셋(M6/M7/M5)은 전부 tail이라 `L_role`이 달라 L·vds가 다른 정당한 경우다(§10.2 A4와 일치). `M18_bg`의 vds가 0.75→**0.825V**로 오른 것은 **B22가 미리 계산한 값과 정확히 일치**한다. self-test `sizing_recipe` exit 0 / diff 2줄(의도적), `stick_diagram` diff **0줄**. `mismatch_sigma_mV` 누적 **3.01→1.74(42% 개선)**. 파일럿 gain 65.55 / area 584.59µm² / cmrr 62.82 / **psrr 104.30** |
 | 4.32 | 2026-09-10 | **§7.11 신설 — 기생 pole clamp를 상수 없이 유도한다**(사용자 지시로 문헌 조사 후, "수치로만 적용하면 이 회로에 특화된 값이 된다"는 지적 반영). 조사: Sansen "비지배 pole ≥ 2×GBW", 표준 2-pole(p₂/UGF 3배 → PM 71.6°), 실무 경험칙(단일단 fT ≥ 10×GBW, 2단 >20×). 그런데 **이 회로엔 원문 정의식이 이미 있다** — `PM = tan⁻¹(ω_p2/ω_c)`. 여기서 `N = α × tan(PM_target)`가 유도되고, **§7.10의 "N~5~10"이 정확히 α∈[2,3.6]**임이 드러났다(임의값이 아니었다). 실측: tail 4개의 최소 `fT/f_c`가 knee(0.375µm)에서 **28배**라 N=10/20 어느 쪽도 안 걸리고, 실제로 무는 것은 **L≳0.7µm** — gain이 L을 4.0µm로 밀려 할 때의 제동이다. **코드화 원칙**: N을 상수로 박으면 회로 전용이 되므로, 두 항을 각각 회로에서 얻는다 — 필요 pole 위치는 **토폴로지의 PM 관계식**에서, 노드 용량비는 **넷리스트에서 측정**. 그러면 `fT ≥ N·GBW`는 `ω_pole(node) = G/C ≥ ω_p2_req`의 손 근사였음이 드러나고 α·N이 둘 다 사라진다. clamp는 숨은 상수가 아니라 `sizing_roles.metrics`의 metric으로 노출한다(C1) |
 | 4.33 | 2026-09-10 | **§7.11 구현 완료 — 하한까지 유도해 상수를 전부 없앴다**. `PM_parasitic = 90 - Σ atan(w_c/w_pole)`로 위상을 직접 더해 `k`(pole 개수) 배분을 없앴고, 하한은 새 상수가 아니라 **이미 선언된 `PM_target_deg`**다. 이 식은 원문의 `PM = atan(w_p2/w_c)`를 pole 하나일 때의 특수케이스로 **정확히 포함**한다(항등식). 신설: `signal_path_nodes()`(gate→drain 방향그래프 도달성으로 bias 노드 자동 배제), `node_pole_estimate()`(드레인→gds / 소스→gm+gds / 게이트→Cgg), `_metric_parasitic_pm_deg`. **실측으로 두 번 바로잡음**: ① 전 노드를 더하면 bias 노드가 각각 ~90도를 먹어 **-1004도**가 나온다 → 경로 선언 필수 ② LUT에 접합용량이 없어 못 세는 노드는 근거를 따져 갈랐다(소스 붙은 저임피던스는 이유와 함께 제외, 드레인만 붙은 고임피던스는 **명시적 실패**). **파일럿 실측 `PM_parasitic = -8.9도`** — `Vg15`/`Vg25`(class-AB 출력단 게이트)의 pole이 31.6MHz로 **크로스오버의 0.86배**라 각 49.2도씩 먹는다. 기존 metric 어느 것도 못 보던 문제다. constraint는 아직 안 건다(선례대로 4개 회로에서 먼저 잰다). self-test diff 0줄 |
+| **4.34** | 2026-09-10 | **spec 정본화 — 한 세션치 측정이 비정본 기준이었음을 확인하고 재발 방지를 배선했다**(사용자 지시 "이번 실수가 재발하지 않도록 방법을 강구해"). 조사 스크립트들이 spec을 손으로 복붙해 정본(`run_harness.SPECS`)과 갈려 있었다(`gm_id_grid` 57점 vs **21점**, `L_candidates` 41점 vs 12점, `stage_power_tolerance` 누락). 정본 주석에 이미 세션30 실측 "L을 촘촘히 하면 gm_id도 촘촘해야 한다"가 있었는데 복제본은 **둘 다 성겨** 우연히 안 터졌던 것이다. **정본으로 재탐색하면 파일럿이 수렴하지 않는다**(SLSQP 3 start 전부 실패, `biasgen_vom_floatsrc_sink` 스택 예산 **-0.024V**, M9b 미해결) — 즉 v4.28~v4.33의 수치는 정본에서 도달 불가능한 동작점이다(§10.6). **신설·배선**: `require_declared_spec_source()`(`_build_theta_evaluator()` 첫 줄), `spec_fingerprint()`, `run_harness.canonical_spec()`/`derived_spec(key, why, **overrides)`(덮어쓴 항목만 갈리고 무엇을 왜 바꿨는지 `_spec_source`에 자동 기록). 복붙 블록 **238줄을 16개 스크립트에서 제거**하고 정본 호출로 교체(복제본은 정본의 부분집합 24키⊂26키라 손실 없음). **★ 게이트를 만들자마자 그것이 죽어 있었다** — 모듈이 `os`를 최상위 import하지 않아 `NameError`가 났고 `except Exception: return`이 삼켜 항상 통과했다. 광범위 except를 제거하고 **자기시험 4건을 넣어** 게이트가 다시 조용히 죽으면 기준선 diff가 깨지게 했다. self-test 둘 다 exit 0 / diff **0줄** |

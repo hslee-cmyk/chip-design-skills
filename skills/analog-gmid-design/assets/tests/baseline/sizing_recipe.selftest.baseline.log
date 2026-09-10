@@ -215,6 +215,19 @@ gm/ID= 25.0  [불가] gm/ID=25.0에서 기생 커패시턴스 반복이 발산�
     PASS: {'status': 'has_theta', 'message': 'sizing_roles.theta가 이미 선언돼 있음 -- 이 진단은 theta 없는(sizing_roles=null) 회로 전용'}
   [5/6. 실제 라이브러리 파일 nmcnr_amplifier -- 원래(세션35) PM_target_deg=46 (논문 실측치)이 nmcnr_3stage_topology()의 PM>60 전제와 충돌해 kind=other로 걸렸고, PM=70으로 그 가드를 우회해도 M101(바이어스 소자, 전류가 KCL만으로 안 나옴)에서 또 다른 unresolved_current gap이 드러났었다(당시 sizing_roles=null). 2026-08-18 세션이 그 M101 tail 전류/M104,M105 폴딩비를 sympy KCL 재유도 + 7개 theta로 실제로 배선했으므로(fold_group/vertical_stack_id 15개 소자 전부 확정 위, PM_target_deg는 아직 46인 채 -- 그건 여전히 별도 gap), 이제 folded_cascode/two_stage_ota와 동일하게 has_theta로 조기 반환되는지 재확인한다(회귀 감시)]
     PASS: {'status': 'has_theta', 'message': 'sizing_roles.theta가 이미 선언돼 있음 -- 이 진단은 theta 없는(sizing_roles=null) 회로 전용'}
+
+  [require_declared_spec_source() -- 라이브러리 회로를 **출처 없는 spec**으로
+  사이징하려 하면 거부한다. 2026-09-10 사고 재발 방지: 조사 스크립트들이 spec을
+  손으로 복붙해 쓰다가 정본(run_harness.SPECS)과 갈렸고(gm_id_grid 21점 vs 57점,
+  L_candidates 12점 vs 41점, stage_power_tolerance 누락) 한 세션치 측정이 전부
+  비정본 기준이었다. 이 자기시험이 있는 이유는 게이트를 **처음 만들었을 때 그것이
+  조용히 죽어 있었기** 때문이다 -- 이 모듈은 os를 최상위 import하지 않는데 게이트
+  본문이 os.path를 쓰면서 NameError를 냈고, 그것을 `except Exception: return`이
+  삼켜 늘 통과했다. 재발 방지 장치가 재발 방지 없이 죽는 것을 여기서 막는다]
+    PASS: 출처 없는 spec -> ValueError
+    PASS: 출처를 선언하면 통과
+    PASS: 해상도 필드도 LUT도 없는 spec(gap 진단 전용)은 잴 것이 없어 통과
+    PASS: library 밖의 합성 fixture는 정본이 없으므로 대상 아님
   [7. sizing_roles.theta가 이미 선언된 회로는 status=has_theta로 조기 반환]
     PASS: {'status': 'has_theta', 'message': 'sizing_roles.theta가 이미 선언돼 있음 -- 이 진단은 theta 없는(sizing_roles=null) 회로 전용'}
 

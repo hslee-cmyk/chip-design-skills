@@ -3286,7 +3286,10 @@ def _metric_parasitic_pm_deg(spec_metric: dict, ctx: SizingContext) -> float:
     낙관적이라 clamp 구실을 못 한다(§3.2 P1).
     """
     by_name, _passives = _load_full_topology_cached(ctx.topology_path)
-    _ex = set((spec_metric.get("excite") or {}).keys())
+    # 0으로 여기된 단자는 **AC 접지**이지 신호원이 아니다(예: two_stage_ota의
+    # `excite={"vin_p":0.5,"vin_n":-0.5,"bias":0.0,"vdd":0.0}`). 그것까지 신호원으로 세면
+    # bias 노드가 경로에 딸려 들어와 각각 ~90도를 먹는다(실측 -1004도) -- 0이 아닌 것만 쓴다.
+    _ex = {k for k, v in (spec_metric.get("excite") or {}).items() if v}
     _sn = {spec_metric.get(k) for k in ("sense_p", "sense_n") if spec_metric.get(k)}
     if not _ex or not _sn:
         raise ValueError(
@@ -6669,6 +6672,95 @@ def _hr_resolve_vertical_group(env, vsid):
         _verify_group_kvl_sum(vsid, members)
 
 
+_SPEC_RESOLUTION_KEYS = ("L_candidates", "VDS_candidates", "gm_id_grid",
+                         "W_bounds", "min_vds_by_role", "L_grid_step",
+                         "stage_power_tolerance")
+
+
+def spec_fingerprint(spec: dict) -> str:
+    """탐색 **해상도**를 결정하는 필드만 뽑아 만든 짧은 지문(2026-09-10).
+
+    `L_candidates`/`VDS_candidates`/`gm_id_grid`의 **개수와 범위**, `W_bounds`,
+    `min_vds_by_role`, `L_grid_step`, `stage_power_tolerance` -- 이 일곱이 같으면 같은
+    탐색을 한다고 본다(LUT 객체는 `id()`가 매번 달라 지문에 넣지 않는다).
+
+    산출물마다 이 지문을 찍어두면 "어느 spec으로 잰 값인가"가 결과에 남는다.
+    """
+    parts = []
+    for k in _SPEC_RESOLUTION_KEYS:
+        v = spec.get(k)
+        if isinstance(v, (list, tuple)) and v and isinstance(v[0], (int, float)):
+            parts.append(f"{k}=n{len(v)}[{min(v):.6g},{max(v):.6g}]")
+        elif isinstance(v, dict):
+            parts.append(f"{k}={{{','.join(f'{a}:{b:g}' for a, b in sorted(v.items()))}}}")
+        else:
+            parts.append(f"{k}={v!r}")
+    return " ".join(parts)
+
+
+def require_declared_spec_source(topology_path: str, spec: dict) -> None:
+    """라이브러리 회로를 사이징할 때 spec의 **출처 선언**을 강제한다(2026-09-10).
+
+    ## 왜 생겼나 (실제 사고, 2026-09-10)
+
+    세션 내내 조사 스크립트들이 spec 딕셔너리를 **손으로 복붙**해 썼는데, 그것이 정본
+    (`workspaces/run_harness.py`의 `SPECS[*]["spec_fn"]()`)과 갈려 있었다:
+
+        항목                  정본                         복제본
+        L_candidates          레이아웃 격자 41점            LUT 앵커 12점
+        VDS_candidates        dense_candidates(...,13)     손으로 적은 9점
+        gm_id_grid            2.0~30.0 / 0.5 간격 57점      4~24 / 1.0 간격 21점
+        stage_power_tolerance 0.05                          없음
+
+    그 결과 한 세션치 측정이 전부 비정본 기준이었고, **4개 회로 조사를 돌려서야** 드러났다
+    (정본으로는 `M9a`가 W 한계 안에 드는 gm_id를 못 찾아 즉시 실패한다). 정본 주석에는
+    이미 "L을 촘촘히 하면 gm_id도 촘촘해야 한다"(세션30 실측)가 적혀 있었는데, 복제본은
+    **둘 다 성긴** 조합이라 우연히 안 터졌던 것이다.
+
+    ## 무엇을 강제하나
+
+    `library/*.topology.json`을 사이징하면서 `spec["_spec_source"]`가 없으면 거부한다.
+    값은 자유 문자열이고 **둘 중 하나를 적으라는 뜻**이다:
+
+        "run_harness.SPECS"        정본을 그대로 썼다
+        "<이유> 때문에 의도적으로 바꿨다"   의도적 일탈임을 밝힌다
+
+    즉 손으로 만든 spec 자체를 막는 게 아니라 **말없이 만드는 것**을 막는다. 조사에서
+    해상도를 일부러 낮추는 것은 정당하지만, 그러면 그 사실이 산출물에 남아야 한다.
+
+    self-test/합성 fixture는 임시 경로를 쓰므로 이 게이트에 안 걸린다 -- 정본이 존재하는
+    라이브러리 회로에만 적용된다.
+    """
+    # 2026-09-10: 처음엔 이 앞을 `try: ... except Exception: return`으로 감쌌는데, 이 모듈은
+    # `os`를 최상위에서 import하지 않아(함수마다 `import os as _xxx`) NameError가 나고 그것을
+    # except가 삼켜 **게이트가 늘 조용히 통과**했다. 재발 방지 조치를 만드는 중에 재발 방지
+    # 조치 자체가 우회 로직으로 죽은 셈이다 -- 그래서 광범위 except를 아예 없앤다.
+    import os as _rds_os
+    real = _rds_os.path.realpath(topology_path)
+    parts = _rds_os.path.normpath(real).replace(_rds_os.sep, "/").split("/")
+    if "library" not in parts or not real.endswith(".topology.json"):
+        return
+    if spec.get("_spec_source"):
+        return
+    # 2026-09-10: **실제로 사이징을 하려는 spec에만** 건다. 막으려는 사고는 "정본과 갈린
+    # 복제본으로 잰 값이 산출물에 남는 것"인데, 아래 키가 하나도 없는 spec은 애초에 잴
+    # 것이 없다 -- `diagnose_sizing_roles_gap(path, {})`처럼 gap 진단만 하는 호출이 그렇다
+    # (self-test 4/5/7번이 실제로 그렇게 부른다). 이건 우회가 아니라 술어를 정확히 한 것:
+    # LUT 없이는 사이징이 불가능하므로 `lut`/`lut_by_kind`가 없고 해상도 필드도 없으면
+    # 그 spec으로는 어떤 측정값도 나올 수 없다.
+    if not any(k in spec for k in _SPEC_RESOLUTION_KEYS + ("lut", "lut_by_kind")):
+        return
+    name = _rds_os.path.basename(real).replace(".topology.json", "")
+    raise ValueError(
+        f"'{name}'은 라이브러리 회로인데 spec에 `_spec_source` 선언이 없다 -- 이 회로의 "
+        f"정본 spec은 `workspaces/run_harness.py`의 `SPECS['{name}']['spec_fn']()`이다. "
+        f"정본을 쓰려면 `spec = run_harness.SPECS['{name}']['spec_fn']()`, 일부러 다르게 "
+        f"쓰려면 `spec['_spec_source'] = '<왜 다르게 쓰는지>'`를 적을 것. "
+        f"이 게이트는 2026-09-10 사고 재발 방지용이다: 손으로 복붙한 spec이 정본과 갈린 채 "
+        f"한 세션치 측정이 전부 비정본 기준이었다(gm_id_grid 21점 vs 57점 등). "
+        f"지금 넘긴 spec의 지문: {spec_fingerprint(spec)}")
+
+
 def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     """`optimize_full_circuit_budget()`의 세타-무관 setup + `_evaluate(theta_values)` 평가
     클로저를 그대로 추출한 헬퍼(2026-08-11 세션29, 순수 리팩터 -- 동작 변화 없음. warm-start
@@ -6682,6 +6774,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     (ctx, metrics_result)` 클로저다(theta_values에 없는 theta는 적용되지 않은 채 평가됨 --
     호출자가 필요한 theta는 전부 채워 넘길 것, 부분 평가를 원하면 나머지를 bounds-midpoint
     등으로 채워 넣을 것)."""
+    require_declared_spec_source(topology_path, spec)
     transistors, meta = load_topology(topology_path)
     # 2026-08-14(사용자 지시) -- 실제 sizing 계산(아래 device_roles.gm_id_role/L_role 루프,
     # _evaluate()가 thetas가 비어도 최소 1회 실행함)에 들어가기 전에, load_topology()가
@@ -11798,6 +11891,32 @@ if __name__ == "__main__":
         f"nmcnr_amplifier는 2026-08-18에 M101/M104/M105/M106/M107/M108 theta를 배선했으니 " \
         f"has_theta여야 하는데: {_diag_r56}"
     print(f"    PASS: {_diag_r56}")
+
+    print()
+    print("  [require_declared_spec_source() -- 라이브러리 회로를 **출처 없는 spec**으로")
+    print("  사이징하려 하면 거부한다. 2026-09-10 사고 재발 방지: 조사 스크립트들이 spec을")
+    print("  손으로 복붙해 쓰다가 정본(run_harness.SPECS)과 갈렸고(gm_id_grid 21점 vs 57점,")
+    print("  L_candidates 12점 vs 41점, stage_power_tolerance 누락) 한 세션치 측정이 전부")
+    print("  비정본 기준이었다. 이 자기시험이 있는 이유는 게이트를 **처음 만들었을 때 그것이")
+    print("  조용히 죽어 있었기** 때문이다 -- 이 모듈은 os를 최상위 import하지 않는데 게이트")
+    print("  본문이 os.path를 쓰면서 NameError를 냈고, 그것을 `except Exception: return`이")
+    print("  삼켜 늘 통과했다. 재발 방지 장치가 재발 방지 없이 죽는 것을 여기서 막는다]")
+    _rds_lib = _os.path.join(_lib_dir_recipe, "current_reuse_telescopic_ota.topology.json")
+    try:
+        require_declared_spec_source(_rds_lib, {"gm_id_grid": [4.0], "L_candidates": [1e-6]})
+        raise AssertionError("출처 없는 spec인데 게이트가 통과시켰다 -- 게이트가 죽어 있다")
+    except ValueError as _e_rds:
+        assert "_spec_source" in str(_e_rds), f"거부 사유가 출처 선언이 아님: {_e_rds}"
+        print("    PASS: 출처 없는 spec -> ValueError")
+    require_declared_spec_source(_rds_lib, {"gm_id_grid": [4.0],
+                                            "_spec_source": "run_harness.SPECS"})
+    print("    PASS: 출처를 선언하면 통과")
+    require_declared_spec_source(_rds_lib, {})
+    print("    PASS: 해상도 필드도 LUT도 없는 spec(gap 진단 전용)은 잴 것이 없어 통과")
+    with _tempfile.TemporaryDirectory() as _rds_tmp:
+        _rds_fx = _os.path.join(_rds_tmp, "_fixture.topology.json")
+        require_declared_spec_source(_rds_fx, {"gm_id_grid": [4.0]})
+    print("    PASS: library 밖의 합성 fixture는 정본이 없으므로 대상 아님")
 
     print("  [7. sizing_roles.theta가 이미 선언된 회로는 status=has_theta로 조기 반환]")
     _diag_tso_path = _os.path.join(_lib_dir_recipe, "two_stage_ota.topology.json")

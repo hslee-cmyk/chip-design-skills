@@ -33,8 +33,10 @@ import copy
 
 ASSETS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ASSETS)
+sys.path.insert(0, os.path.join(ASSETS, "..", "..", "..", "workspaces"))
 import numpy as np
 import sizing_recipe as sr
+import run_harness as H
 
 _RESULT_PATH = os.path.splitext(os.path.abspath(__file__))[0] + ".result.txt"
 _first_emit = [True]
@@ -57,23 +59,13 @@ mk = lambda k: sr.SemiEmpiricalGmIdLUT(d["L"], d["VGS"], d["VDS"], d["VS"], d["I
 
 
 def make_spec():
-    nmos, pmos = mk("n"), mk("p")
-    return {
-        "lut_by_kind": {"nmos": nmos, "pmos": pmos}, "lut": nmos, "vdd": 1.8,
-        "L_candidates": [float(v) for v in nmos.L_grid],
-        "VDS_candidates": [0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.2, 1.4],
-        "gm_id_grid": [float(4 + i) for i in range(21)],
-        "L_min": 0.15e-6, "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
-        "W_bounds": (1e-6, 200e-6),
-        "min_vds_by_role": {"cascode": 0.2, "tail": 0.3, "mirror": 0.3},
-        "stage_objective": "power", "stage_w_max": 200e-6,
-        "min_finger_w": 1e-6, "max_finger_w": 40e-6,
-        "vth0_slope": {"nfet": 3.356e-3, "pfet": 5.856e-3},
-        "t_lln": 30e-9, "PM_target_deg": 70.0,
-        "Cc": 500e-15, "Cf": 500e-15, "Cs": 500e-15, "C_Ltot": 1e-12,
-        "t_settle_total": 40e-9, "omega_c": 6.9 / 30e-9,
-        "L_grid_step": 5e-9,
-    }
+    """정본 spec을 준다(2026-09-10 -- 손으로 복붙한 블록을 폐기).
+
+    복제본은 정본과 갈려 있었다(gm_id_grid 21점 vs 57점, L_candidates 12점 vs 41점,
+    VDS_candidates 9점 vs 13점, stage_power_tolerance 누락). 이 스크립트는 헤드룸
+    귀속을 재는 것이라 해상도가 결과를 바꾼다 -- 정본을 써야 한다.
+    """
+    return H.canonical_spec("current_reuse_telescopic_ota")
 
 
 topo_wired = json.load(open(TOPO, encoding="utf-8"))

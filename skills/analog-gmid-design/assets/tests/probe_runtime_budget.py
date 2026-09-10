@@ -23,7 +23,9 @@ topology의 모든 소자를 요구하기 때문이다(§7.6 B2). 이걸 혼동�
 import os, sys, time, json, tempfile
 ASSETS = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets"
 sys.path.insert(0, ASSETS)
+sys.path.insert(0, os.path.join(ASSETS, "..", "..", "..", "workspaces"))
 import numpy as np, sizing_recipe as sr
+import run_harness as H
 
 TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
 d = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
@@ -31,21 +33,15 @@ mk = lambda k: sr.SemiEmpiricalGmIdLUT(d["L"], d["VGS"], d["VDS"], d["VS"], d["I
                                        d["GM_" + k], d["GDS_" + k], d["CGG_" + k],
                                        W_ref=5e-6, SID_1F=d["SID_1F_" + k])
 nmos, pmos = mk("n"), mk("p")
-spec = {
-    "lut_by_kind": {"nmos": nmos, "pmos": pmos}, "lut": nmos, "vdd": 1.8,
-    "L_candidates": [float(v) for v in nmos.L_grid],
-    "VDS_candidates": [0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0, 1.2, 1.4],
-    "gm_id_grid": [float(4 + i) for i in range(21)],
-    "L_min": 0.15e-6, "L_min_by_kind": {"nmos": 0.15e-6, "pmos": 0.15e-6},
-    "W_bounds": (1e-6, 200e-6),
-    "min_vds_by_role": {"cascode": 0.2, "tail": 0.3, "mirror": 0.3},
-    "stage_objective": "power", "stage_w_max": 200e-6,
-    "min_finger_w": 1e-6, "max_finger_w": 40e-6,
-    "vth0_slope": {"nfet": 3.356e-3, "pfet": 5.856e-3},
-    "t_lln": 30e-9, "PM_target_deg": 70.0,
-    "Cc": 500e-15, "Cf": 500e-15, "Cs": 500e-15, "C_Ltot": 1e-12,
-    "t_settle_total": 40e-9, "omega_c": 6.9 / 30e-9, "L_grid_step": 5e-9,
-}
+# 2026-09-10 -- 손으로 복붙한 spec 블록을 폐기하고 **정본**을 쓴다. 복제본은 정본과
+# 갈려 있었다(gm_id_grid 21점 vs 57점, L_candidates 12점 vs 41점, VDS_candidates 9점 vs
+# 13점, stage_power_tolerance 누락). 같은 블록이 여러 파일에 그대로 퍼져 있었으므로
+# 파일마다 다른 판단을 한 게 아니라 복제본 하나가 번진 것이다. 이제
+# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제하고,
+# 일부러 다르게 쓸 때는 `H.derived_spec(key, why, **overrides)`로 무엇을 왜 바꿨는지 남긴다.
+spec = H.canonical_spec("current_reuse_telescopic_ota")
+nmos = spec["lut_by_kind"]["nmos"]
+pmos = spec["lut_by_kind"]["pmos"]
 
 t0 = time.perf_counter()
 ev = sr._build_theta_evaluator(TOPO, spec)

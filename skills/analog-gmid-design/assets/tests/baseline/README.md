@@ -117,3 +117,11 @@ W비가 ID비와 다른 것이 정상이다(§10.2 A4가 이미 짚은 내용: "
 물리적으로 틀리다).
 
 파일럿: gain_db 65.5547(>=54), area_um2 584.59µm², cmrr 62.82(>=60), psrr **104.30**(>=60).
+
+- **2026-09-10** -- `sizing_recipe.selftest.baseline.log` **13줄 추가**(삭제 0줄).
+  `require_declared_spec_source()` 게이트의 자기시험 4건이 새로 들어갔다. 이 게이트는
+  라이브러리 회로를 출처 선언 없는 spec으로 사이징하는 것을 거부한다 -- 조사 스크립트들이
+  spec을 손으로 복붙해 쓰다가 정본(`workspaces/run_harness.py`의 `SPECS`)과 갈린 사고의
+  재발 방지 장치다. 자기시험을 같이 넣은 이유는 **게이트를 처음 만들었을 때 그것이 조용히
+  죽어 있었기** 때문이다(모듈이 `os`를 최상위 import하지 않아 NameError가 났고
+  `except Exception: return`이 그걸 삼켜 늘 통과했다). 그 광범위 except는 제거했다.
