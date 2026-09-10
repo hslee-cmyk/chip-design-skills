@@ -125,3 +125,13 @@ W비가 ID비와 다른 것이 정상이다(§10.2 A4가 이미 짚은 내용: "
   재발 방지 장치다. 자기시험을 같이 넣은 이유는 **게이트를 처음 만들었을 때 그것이 조용히
   죽어 있었기** 때문이다(모듈이 `os`를 최상위 import하지 않아 NameError가 났고
   `except Exception: return`이 그걸 삼켜 늘 통과했다). 그 광범위 except는 제거했다.
+
+- **2026-09-10 (2)** -- L5c 완주 줄의 수치가 바뀌었다(**1줄**, 삭제 0/추가 0):
+
+      gain_db 76.35 -> 61.30, mismatch 1.74 -> 3.01, cmrr 76.12 -> 60.04, psrr 96.03 -> 80.16
+
+  class-AB 배터리 KVL(`stack_kvl_vgs_limit()`)을 gm_id 탐색에 배선한 결과다. **옛 수치는
+  물리적으로 불가능한 동작점에서 잰 값이었다** -- 그 점(L_stage2out=0.575um)에서는
+  `V_bat = vdd - VGS(M15) - VGS(M16) = -0.024V`로 Monticelli floating battery의 전압이
+  음수였는데, 그 KVL을 아무도 안 봐서 통과했었다. 새 수치는 `V_bat > 0`인 점의 값이다.
+  픽스처는 `stop_after_sizing=True`로 사이징까지만 본다(레이아웃 핑거 배정은 별개 항목).

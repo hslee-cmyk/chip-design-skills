@@ -808,6 +808,15 @@ def _grid_points_in_range(lo: float, hi: float, grid_step: float, n: int | None 
     all_points = [start + i * grid_step for i in range(count)]
     if n is None or len(all_points) <= n:
         return all_points
+    if n <= 1:
+        # 2026-09-10 -- `n=1`이면 아래 `(n-1)` 나눗셈이 ZeroDivisionError를 낸다. 자유
+        # `metric_stage_budget`(L) theta가 하나도 없는 동안은 이 경로가 실행될 일이 없어
+        # 드러나지 않던 잠복 버그다(self-test L5c에서 L_cascode를 자유로 되돌리자 바로
+        # 터졌다 -- 그 픽스처의 음수-케이스가 `grid_points_per_theta=1`로 부른다).
+        # 점 하나만 달라면 구간의 **중앙에 가장 가까운 격자점**을 준다 -- `lo==hi`로
+        # 고정된 theta가 그 값을 그대로 받는 것과 같은 취지이고, 한쪽 끝으로 치우치지
+        # 않는다(끝단은 대개 물리적으로 극단이라 진단용 단일점으로 부적절하다).
+        return [all_points[(len(all_points) - 1) // 2]]
     idx = sorted({round(i * (len(all_points) - 1) / (n - 1)) for i in range(n)})
     return [all_points[i] for i in idx]
 
@@ -1699,6 +1708,236 @@ def _default_cascode_headroom(entry: dict) -> float:
     return entry["min_vds"]
 
 
+
+# 2026-09-10 -- 이 role의 소자는 "남는 예산을 다 가져가는" 멤버가 아니라 **그 예산 자체가
+# 회로의 설계량**이다(Monticelli class-AB floating battery의 M9a/M9b/M18a/M18b: V_bat이
+# 곧 출력단 정지전류를 정한다). 여기에 `min_vds_by_role` 폴백 상수를 쓰면 "배터리가
+# 최소 0.2V는 돼야 한다"는 근거 없는 상수가 설계에 박힌다 -- 그래서 이 role만 포화
+# 하한을 LUT에서 유도한다(사용자 선택, 2026-09-10).
+_LUT_VDSAT_ROLES = ("floating_current_source",)
+
+
+def lut_vdsat_headroom(ctx: "SizingContext", name: str, default: float) -> float:
+    """`name`이 포화를 유지할 최소 VDS를 **LUT에서 유도**한다(2026-09-10).
+
+    references/gm-id-methodology.md 2.7의 `VDsat ~ 2/(gm/ID)`를 쓴다 -- 이 저장소가 이미
+    `_default_cascode_headroom()`(Jespers `2/gm_id + margin`)으로 캐스코드에 적용 중인
+    바로 그 식이라, 새 상수도 새 근사도 도입하지 않는다.
+
+    ## gm_id를 아직 모를 때 (이 함수가 불리는 대부분의 시점)
+
+    포화 하한은 헤드룸을 **배정하기 전에** 필요한데 gm_id는 vds가 정해진 뒤에 나온다.
+    `2/gm_id`는 gm_id에 대해 단조감소하므로, **실현 가능한 최대 gm_id**를 쓰면 가장 느슨한
+    하한(=필요조건)이 된다: 이보다 작은 몫으로는 어떤 gm_id를 골라도 포화를 못 지킨다.
+
+      * `ctx.sized`에 L/ID가 있으면 `_idu_scan` + `W_bounds`로 실제 실현가능 최대 gm_id를 구한다.
+      * 없으면 `gm_id_grid`의 최댓값을 쓴다(더 느슨하지만 여전히 필요조건).
+
+    정직한 한계: 필요조건이지 충분조건이 아니다. 실제로 배정된 vds에서 고른 gm_id가
+    더 낮으면 그때의 VDsat은 이 값보다 크다 -- 그 검증은 헤드룸 배분기가 최종 vds로 다시
+    한다. 2.7도 short-channel(L<=100nm)에서 이 식이 VDsat을 **과대추정**한다고 적고 있어
+    보수적인 방향이다(과소추정이 아니다).
+
+    `default`는 LUT/kind를 못 찾을 때만 쓴다(조용한 폴백이 아니라 명시적 인자).
+    """
+    lut = (ctx.spec.get("lut_by_kind") or {}).get(ctx.kind_of.get(name))
+    if lut is None:
+        return default
+    grid = list(ctx.spec.get("gm_id_grid") or [i * 0.5 for i in range(4, 61)])
+    if not grid:
+        return default
+    e = ctx.sized.get(name) or {}
+    gm_id = e.get("gm_id")
+    if not gm_id:
+        L, ID = e.get("L"), e.get("ID")
+        gm_id = max(grid)
+        if L and ID and ID > 0:
+            wb = tuple(ctx.spec.get("W_bounds", (1e-6, 200e-6)))
+            vds_probe = e.get("vds") or default
+            try:
+                feas = [g for g, idu in lut._idu_scan(L, vds_probe, e.get("vsb", 0.0), grid)
+                        if idu > 0 and wb[0] <= ID * L / idu <= wb[1]]
+            except Exception:
+                feas = []
+            if feas:
+                gm_id = max(feas)
+    return _default_cascode_headroom({"gm_id": gm_id, "min_vds": default})
+
+
+def vgs_alias_map(meta: dict) -> dict:
+    """VGS가 **다른 소자의 VGS와 KVL로 동일하게 강제**되는 관계 `{소자: 레퍼런스}`.
+
+    두 곳에 선언될 수 있어 합쳐서 본다(둘 다 같은 의미의 `gm_id_match_vgs_of`):
+
+      * `device_roles[X].gm_id_match_vgs_of` -- 진짜 전류미러(게이트/소스 공유, 세션38/B19')
+      * `sizing_roles.theta[*].feeds.gm_id_match_vgs_of` -- feed가 devices 전체에 적용
+        (이 회로의 `L_stage2out_n`: M16/M26의 gm_id를 M15의 실제 VGS에 맞춰 역산)
+
+    `stack_kvl_vgs_limit()`이 "이 스택 항이 결국 같은 VGS인가"를 판정하는 데 쓴다."""
+    out = {}
+    for n, r in (meta.get("device_roles") or {}).items():
+        if isinstance(r, dict) and r.get("gm_id_match_vgs_of"):
+            out[n] = r["gm_id_match_vgs_of"]
+    for th in ((meta.get("sizing_roles") or {}).get("theta") or []):
+        feeds = th.get("feeds")
+        if isinstance(feeds, dict) and feeds.get("gm_id_match_vgs_of"):
+            for d in (feeds.get("devices") or []):
+                out[d] = feeds["gm_id_match_vgs_of"]
+    return out
+
+
+def _vgs_root(alias: dict, name: str) -> str:
+    """`vgs_alias_map()` 체인의 뿌리(순환이면 진입점에서 멈춘다)."""
+    seen = set()
+    while name in alias and name not in seen:
+        seen.add(name)
+        name = alias[name]
+    return name
+
+
+def stack_kvl_vgs_limit(ctx: "SizingContext", name: str, meta: dict | None = None):
+    """`name`의 VGS가 **다른 소자의 VDS로 소비될 때**(`vds_match_vgs_of`) 그 스택의 KVL이
+    허용하는 VGS 상한을 선언에서 유도한다. 해당 관계가 없으면 `None`(2026-09-10).
+
+    ## 왜 생겼나 (M9b 스택 예산 음수, 정본 spec 도입 후 드러남)
+
+    이 회로의 class-AB 출력단은
+
+        vdd -> M8 -> Vg15 -> (M9a || M9b, Monticelli floating battery) -> Vop1 -> M10 -> gnd
+
+    이고 `load_topology()`가 connectivity에서 `VDS(M8)=VGS(M15)`, `VDS(M10)=VGS(M16)`을
+    자동 유도한다(M8.drain=Vg15=M15.gate, M10.drain=Vop1=M16.gate). 따라서
+
+        V_bat = vdd - VGS(M15) - VGS(M16)
+
+    인데, `classab_centering_dev_v`(=|VGS(M16)-VGS(M15)|)는 **차이**만 재고 **합**은
+    아무도 안 봤다. 완벽히 센터링해도 `V_bat = vdd - 2*VGS`라 VGS가 크면 음수가 된다 --
+    실측(정본 spec, theta 중점): VGS 0.9799 + 0.8441 = 1.824 > vdd, `V_bat = -0.024V`.
+    centering 제약(0.136 <= 0.15)은 **통과한 채로**다.
+
+    실현가능 영역은 넓게 있었다(`tests/probe_classab_battery_headroom.py`: 44/100칸,
+    L=0.575um에서도 gm_id>=19면 성립). 실패한 M15는 gm_id=16.5 -- 탐색이 그 영역을 피할
+    이유가 없어서 벗어났을 뿐이다. 그래서 **gm_id 탐색에 이 KVL을 먹인다**(사용자 선택).
+
+    ## 유도 방식 (회로 이름을 안 쓴다 -- 선언만 읽는다)
+
+    `VGS(name)`을 VDS로 쓰는 소자 Y마다, Y가 속한 `vertical_stack_id` 그룹의 예산식
+
+        vdd - sum(vds(refs)) = sum(vds(members))
+
+    을 `VGS(name)`에 대해 정리한다. 각 항은 셋 중 하나다:
+
+      * `VGS(name)`에 종속(자기 자신 Y, 또는 `vds_match_vgs_of`가 같은 VGS 뿌리로
+        귀결되는 항) -> **계수 k에 더한다**
+      * 이미 확정된 vds -> 상수로 뺀다
+      * 아직 미확정 -> 그 소자가 최소한 필요로 하는 몫을 뺀다(`lut_vdsat_headroom()`
+        또는 `min_vds_by_role`, 배분기가 나중에 요구할 바로 그 값)
+
+    그러면 `k*VGS(name) <= 상수`이므로 상한은 `상수/k`다. 이 회로에서는 M8(자기)과
+    M10(=VGS(M16)=VGS(M15))이 둘 다 걸려 `k=2`가 되고, M9a의 포화 하한을 빼면
+
+        VGS(M15) <= (vdd - VDsat(M9a)) / 2
+
+    가 나온다. 계수 k를 세는 덕에 "M15와 M16이 같다"를 이 함수가 **알 필요가 없다** --
+    `gm_id_match_vgs_of` 선언이 그 사실을 이미 담고 있다.
+
+    여러 소비자가 있으면 가장 빡빡한 상한을 쓴다. 유도가 성립하지 않으면(그룹/참조 미선언,
+    참조 소자의 vds 미확정) `None`을 돌려 **기존 동작 그대로** 둔다 -- 없던 제약을 지어내지
+    않는다."""
+    if not ctx.topology_path:
+        return None
+    if meta is None:
+        _trs, meta = load_topology(ctx.topology_path)
+    roles = meta.get("device_roles") or {}
+    consumers = [d for d, r in roles.items()
+                 if isinstance(r, dict) and r.get("vds_match_vgs_of") == name]
+    if not consumers:
+        return None
+    vdd = ctx.spec.get("vdd")
+    if vdd is None:
+        return None
+    alias = vgs_alias_map(meta)
+    root = _vgs_root(alias, name)
+    mvbr = ctx.spec.get("min_vds_by_role") or {}
+
+    def _depends_on_name(dev: str) -> bool:
+        """`dev`의 vds가 결국 `VGS(name)`인가 -- vds_match_vgs_of + VGS 동치 체인."""
+        ref = (roles.get(dev) or {}).get("vds_match_vgs_of")
+        return bool(ref) and _vgs_root(alias, ref) == root
+
+    def _min_need(dev: str) -> float:
+        r = (roles.get(dev) or {}).get("headroom_role")
+        if r in _LUT_VDSAT_ROLES and r not in mvbr:
+            return lut_vdsat_headroom(ctx, dev, _DEFAULT_MIN_VDS_FALLBACK)
+        return mvbr.get(r, _DEFAULT_MIN_VDS_FALLBACK)
+
+    def _known_vds(dev: str):
+        """`dev`의 vds를 지금 알 수 있으면 준다 -- 없으면 None.
+
+        `ctx.sized`에 이미 있으면 그것을 쓰고, 없더라도 `vds_match_vgs_of`로 **다른 소자의
+        VGS**인 경우 그 소자가 이미 사이징돼 있으면 LUT로 VGS를 구해 쓴다(vop 쪽 M19가
+        실제 사례: `VDS(M19)=VGS(M26)`, `VGS(M26)=VGS(M15)`이고 M15는 이미 풀려 있다)."""
+        v = (ctx.sized.get(dev) or {}).get("vds")
+        if v is not None:
+            return v
+        ref = (roles.get(dev) or {}).get("vds_match_vgs_of")
+        if not ref:
+            return None
+        rt = _vgs_root(alias, ref)
+        e = ctx.sized.get(rt) or {}
+        lut = (ctx.spec.get("lut_by_kind") or {}).get(ctx.kind_of.get(rt))
+        if lut is None or not e.get("gm_id") or not e.get("L") or e.get("vds") is None:
+            return None
+        try:
+            return lut.vgs_for_gm_id(e["gm_id"], e["L"], e["vds"], e.get("vsb", 0.0))
+        except Exception:
+            return None
+
+    limits = []
+    for y in consumers:
+        vsid = (roles.get(y) or {}).get("vertical_stack_id")
+        if not vsid:
+            continue
+        members = [m for m, r in roles.items()
+                   if isinstance(r, dict) and r.get("vertical_stack_id") == vsid]
+        refs = []
+        for m in members:
+            r = (roles.get(m) or {}).get("budget_reference_device")
+            if r and r not in refs:
+                refs.append(r)
+        k = 0.0
+        const = vdd
+        ok = True
+        for r in refs:
+            if _depends_on_name(r):
+                k += 1.0
+                continue
+            v = _known_vds(r)
+            if v is None:
+                ok = False       # 참조 소자의 몫을 모른다 -- 이 소비자는 건너뛴다
+                break
+            const -= v
+        if not ok:
+            continue
+        for m in members:
+            if m == y or _depends_on_name(m):
+                k += 1.0
+                continue
+            v = _known_vds(m)
+            if v is not None:
+                const -= v
+            elif (roles.get(m) or {}).get("vds_match_vgs_of"):
+                # 이 항은 '다른 소자의 VGS'인데 그 값을 아직 못 구한다. `min_vds`로
+                # 낮춰 잡으면 상한이 실제보다 **느슨해져** 제약 구실을 못 한다 --
+                # 지어내지 말고 이 소비자를 건너뛴다(우회가 아니라 근거 부족의 표명).
+                ok = False
+                break
+            else:
+                const -= _min_need(m)
+        if ok and k > 0 and const > 0:
+            limits.append(const / k)
+    return min(limits) if limits else None
+
 @dataclass
 class HeadroomPolicy:
     """`allocate_stack_headroom()`의 배정 정책 — "얇게"(thin) 배정받는 role의 헤드룸만
@@ -1874,7 +2113,8 @@ def resolve_feed_vds(name: str, declared_vds, ctx: "SizingContext") -> float:
 
 def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vsb: float, ID_target: float,
                            role: str, W_bounds: tuple = (1e-6, 200e-6),
-                           gm_id_grid: list | None = None, return_idu: bool = False):
+                           gm_id_grid: list | None = None, return_idu: bool = False,
+                           vgs_max: float | None = None):
     """배치 7-3e — `resize.py`의 균일한 매직넘버(`GM_ID_SIG=12`류, 역할 구분 없음)를
     "이 공정에서 W가 타당범위 안에 들면서 역할이 요구하는 방향의 극단"이라는 실제 LUT
     스캔으로 대체한다(sky130 실측: gm/ID를 논문 명시값 그대로 쓰면 W가 수천~수만 um로
@@ -1949,11 +2189,29 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vsb: float, ID_t
         gm_id_grid = [i * 0.5 for i in range(4, 61)]  # 2.0~30.0
     feasible = []
     idu_by_gm_id = {}
+    n_vgs_rejected = 0
     for gm_id, idu in lut._idu_scan(L, vds, vsb, gm_id_grid):
         W = ID_target * L / idu
-        if W_bounds[0] <= W <= W_bounds[1]:
-            feasible.append(gm_id)
-            idu_by_gm_id[gm_id] = idu
+        if not (W_bounds[0] <= W <= W_bounds[1]):
+            continue
+        # 2026-09-10 -- `vgs_max`: 이 소자의 **VGS가 다른 소자의 VDS로 소비될 때**
+        # (`vds_match_vgs_of`) 그 스택 예산을 넘지 않게 하는 상한. 호출자가
+        # `stack_kvl_vgs_limit()`으로 선언에서 유도해 넘긴다. 여기서는 회로를 모르고
+        # 기계적으로 거르기만 한다 -- W_bounds 필터와 정확히 같은 성격이다.
+        # 계기(M9b 스택 예산 음수): class-AB 배터리 `V_bat = vdd - VGS(M15) - VGS(M16)`가
+        # 음수가 됐는데, gm_id 탐색이 그 KVL을 모르니 피할 이유가 없었다.
+        if vgs_max is not None:
+            try:
+                if lut.vgs_for_gm_id(gm_id, L, vds, vsb) > vgs_max:
+                    n_vgs_rejected += 1
+                    continue
+            except ValueError:
+                # 이 gm_id는 VGS 곡선 범위 밖 -- W 필터를 통과했어도 VGS를 못 구하면
+                # 상한 판정 자체가 불가능하므로 후보에서 뺀다(조용히 통과시키지 않는다).
+                n_vgs_rejected += 1
+                continue
+        feasible.append(gm_id)
+        idu_by_gm_id[gm_id] = idu
     if not feasible:
         # 2026-08-12(세션30) -- ValueError였던 걸 InfeasibleSizingError로 변경(harness
         # 연동 감사 중 발견: L_candidates densify로 compensation 단계 L이 옛 4개 앵커점을
@@ -1963,7 +2221,11 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vsb: float, ID_t
         # InfeasibleSizingError의 기존 관례(그 격자점만 건너뜀)를 그대로 적용한다.
         raise InfeasibleSizingError(
             f"W_bounds={W_bounds} 안에 드는 gm_id 후보가 없다(role={role!r}, "
-            f"gm_id_grid={gm_id_grid[0]}~{gm_id_grid[-1]}) -- 범위를 넓히세요.")
+            f"gm_id_grid={gm_id_grid[0]}~{gm_id_grid[-1]}) -- 범위를 넓히세요."
+            + (f" (W는 통과했으나 vgs_max={vgs_max:.4f}V 상한에 걸려 빠진 후보가 "
+               f"{n_vgs_rejected}개 있다 -- 이 상한은 이 소자의 VGS를 VDS로 쓰는 "
+               f"소자가 속한 스택의 KVL 예산에서 유도된다, stack_kvl_vgs_limit() 참고)"
+               if vgs_max is not None and n_vgs_rejected else ""))
     if role == "matching":
         best_gm_id = min(feasible)
     elif role == "balanced":
@@ -5352,9 +5614,26 @@ def _feed_metric_stage_budget(feed_spec: dict, theta_value: float, ctx: SizingCo
             # 직결)="gain"). 문자열이면 기존처럼 그룹 전체에 동일 적용(하위호환).
             this_role = gm_id_role.get(name) if isinstance(gm_id_role, dict) else gm_id_role
             lut = ctx.spec["lut_by_kind"][ctx.kind_of[name]]
-            gm_id_by_device[name] = search_gm_id_for_role(
-                lut, L, vds_by_device[name], vsb, entry["ID"], this_role, W_bounds,
-                gm_id_grid=search_gm_id_grid)
+            # 2026-09-10(사용자 선택 "gm_id 탐색에 KVL을 먹인다") -- 이 소자의 VGS가 다른
+            # 소자의 VDS로 소비되면(`vds_match_vgs_of`) 그 스택 예산을 넘을 수 없다.
+            # 상한은 선언에서 유도한다(회로 이름 없음) -- stack_kvl_vgs_limit() 참고.
+            # 계기: class-AB 배터리 `V_bat = vdd - VGS(M15) - VGS(M16)`가 -0.024V가 됐는데
+            # (centering 제약은 통과한 채로) 탐색이 그 KVL을 몰라 피할 이유가 없었다.
+            try:
+                gm_id_by_device[name] = search_gm_id_for_role(
+                    lut, L, vds_by_device[name], vsb, entry["ID"], this_role, W_bounds,
+                    gm_id_grid=search_gm_id_grid,
+                    vgs_max=stack_kvl_vgs_limit(ctx, name))
+            except InfeasibleSizingError as _e_gmid:
+                # 2026-09-10 -- `derive_theta_dependency_graph()`/`presolve_warm_start()`는
+                # 이 예외에 `sized_snapshot`이 실려 있어야 "이 theta 격자점만 실현불가"로
+                # 넘어간다(없으면 ValueError로 탐색 전체가 죽는다 -- vgs_max 상한이
+                # 시작점에서 물자 실제로 2.4초 만에 중단됐다). 여기까지 확정된 ctx.sized를
+                # 그대로 실어 보낸다(B25 적층 diode 실패 경로와 같은 관례).
+                raise InfeasibleSizingError(
+                    f"{name}(L={L:.4g}m, vds={vds_by_device[name]:.4g}V, "
+                    f"ID={entry['ID']:.4g}A): {_e_gmid}",
+                    sized_snapshot=dict(ctx.sized)) from _e_gmid
         else:
             gm_id_by_device[name] = fixed_gm_id
     # 2026-08-20(세션41 연속, 사용자 지시 -- "vertical_stack_id는 KCL/KVL을 위한 진짜
@@ -6324,9 +6603,22 @@ def _hr_resolve_vertical_group(env, vsid):
         ref_vds = _sum_ref_vds(vsid, refs)
         base_budget = spec["vdd"] - ref_vds
     remaining_vdd = base_budget - known_vds_sum
+    # 2026-09-10 -- `_LUT_VDSAT_ROLES`(= floating_current_source)만은 폴백 상수 대신
+    # 포화 하한을 LUT에서 유도한다. 이 role의 소자는 "남는 예산을 받는 멤버"가 아니라
+    # 그 예산 자체가 설계량(class-AB 배터리 전압)이라, 근거 없는 0.2V가 설계에 박히면
+    # 안 되기 때문이다(사용자 선택). `min_vds_by_role`에 명시 항목이 있으면 그게 이긴다 --
+    # 선언이 유도보다 우선이라는 이 저장소의 기존 순서 그대로.
+    # ★ 이 값은 stack_kvl_vgs_limit()이 gm_id 탐색 상한을 유도할 때 쓰는 것과 **같은
+    # 헬퍼**다 -- 탐색이 만족시킨 하한을 배분기가 다시 요구해 어긋나는 일이 없어야 한다.
+    def _stack_min_vds(m: str) -> float:
+        r = device_roles[m]["headroom_role"]
+        mvbr = spec.get("min_vds_by_role", {})
+        if r in _LUT_VDSAT_ROLES and r not in mvbr:
+            return lut_vdsat_headroom(ctx, m, _DEFAULT_MIN_VDS_FALLBACK)
+        return mvbr.get(r, _DEFAULT_MIN_VDS_FALLBACK)
+
     stack_entries = [{"name": m, "role": device_roles[m]["headroom_role"],
-                       "min_vds": spec.get("min_vds_by_role", {}).get(
-                           device_roles[m]["headroom_role"], _DEFAULT_MIN_VDS_FALLBACK)}
+                       "min_vds": _stack_min_vds(m)}
                       for m in unresolved]
     # 2026-09-08(B16, 사용자 승인) -- diode-connected 멤버에는 **구간 제약**을 붙인다.
     # 그 소자의 vds는 role 상수로 나눠줄 몫이 아니라 W가 정하는 종속값이기 때문이다
@@ -7781,7 +8073,8 @@ def diagnose_sizing_roles_gap(topology_path: str, spec: dict) -> dict:
 def optimize_full_circuit_budget(topology_path: str, spec: dict,
                                   grid_points_per_theta: int = 5,
                                   search_method: str = "grid",
-                                  slsqp_kwargs: dict | None = None) -> dict:
+                                  slsqp_kwargs: dict | None = None,
+                                  stop_after_sizing: bool = False) -> dict:
     """배치 7-3d/7-5 — spec(topology.json 경로 + design spec)만 받아 instance.json에 바로
     옮길 수 있는 완성된 결과를 반환하는 **단일 진입점 harness**(2026-07-31 확장,
     do.md §10 "spec→instance.json 전체 workflow"를 실제로 실행 가능한 함수 하나로 묶음).
@@ -7953,6 +8246,24 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
                           f"'slsqp'만 지원")
 
     sizing_overrides, pipeline_result, audit_ok = None, None, None
+    # 2026-09-10(사용자 선택) -- `stop_after_sizing`: 사이징까지만 하고 레이아웃
+    # (`assign_finger_geometry()` 이하 핑거/row/floorplan)은 아예 들어가지 않는다.
+    # `sizing_overrides`/`pipeline_result`/`audit_ok`는 None으로 남는다.
+    #
+    # 왜 필요한가: 사이징의 전기적 계약(헤드룸 KVL, 미러 VGS, 배터리 예산)만 검증하려는
+    # 호출자가 **레이아웃의 별개 한계**(예: 한 스택 안 소자들의 W 비율에 맞는 공통 finger
+    # 폭이 없음)에 막혀 전기 검증 자체를 못 하는 일을 막는다. self-test L5c가 실제 사례다:
+    # class-AB 배터리 KVL을 배선한 뒤 그 픽스처는 사이징을 통과하는데
+    # `biasgen_vom_battery_a__pmos`(M11a/M11b/M20a/M20b)의 finger 배정에서 멈춘다 --
+    # L_cascode 후보 6개, theta 자유화 2조합을 전수로 시험해도 같은 지점이거나 다른
+    # 스택으로 옮겨갈 뿐이었다(즉 이 픽스처가 검증하려는 것과 무관한 별개 항목).
+    #
+    # ⚠️ 이건 검사를 끄는 우회가 아니라 **범위 선언**이다: 기본값 False라 기존 호출은
+    # 100% 그대로이고, True로 부른 쪽은 레이아웃 결과를 아예 받지 못한다(None을 보고
+    # 통과했다고 오해할 수 없다). 레이아웃 자체의 한계는 지워지지 않고 별개 항목으로 남는다.
+    if stop_after_sizing:
+        return {"theta_star": theta_star, "sizing": sizing, "metrics": metrics_result,
+                "sizing_overrides": None, "pipeline_result": None, "audit_ok": None}
     if all(t.name in sizing and "W" in sizing[t.name] for t in transistors):
         _base_sizing_overrides = assign_finger_geometry(
             sizing, stack_groups_geometry, area_priors=spec.get("area_priors"),
@@ -8925,6 +9236,167 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
 #       분류를 조합해 각 theta의 시작값을 정한다.
 # ---------------------------------------------------------------------------
 
+
+def _theta_device_map(thetas: list) -> dict:
+    """`{theta_name: {이 theta가 값을 정하는 소자 이름들}}` -- feed 선언에서 긁어모은다.
+
+    feed 타입마다 소자를 담는 키가 다르므로(`devices`/`root`/`roots`/`target`/`reference`/
+    `ref_device`/`stage_devices` ...) 값이 문자열이거나 문자열 리스트면 전부 후보로 본다.
+    소자 이름인지 아닌지는 호출자가 실제 소자 집합과 교집합을 취해 거른다 -- 여기서는
+    회로를 모르는 채 선언만 훑는다."""
+    out = {}
+    for th in thetas:
+        names = set()
+        feeds = th.get("feeds")
+        if isinstance(feeds, dict):
+            stack = [feeds]
+            while stack:
+                cur = stack.pop()
+                for v in cur.values():
+                    if isinstance(v, str):
+                        names.add(v)
+                    elif isinstance(v, (list, tuple)):
+                        names.update(x for x in v if isinstance(x, str))
+                    elif isinstance(v, dict):
+                        stack.append(v)
+        out[th["name"]] = names
+    return out
+
+
+def repair_infeasible_baseline(ev: dict, baseline: dict, max_rounds: int = 4,
+                                fallback_point: dict | None = None) -> tuple:
+    """`baseline`(theta 기준점)이 infeasible이면 **실패 증거를 따라** 자유 theta를 bounds로
+    옮겨 복구한다. `(baseline, notes)`를 돌려주며, 이미 feasible이면 그대로 돌려준다
+    (2026-09-10, 사용자 지적 "중점에 묶이는 것도 해결했잖아. 왜 반영이 안 되어 있어?").
+
+    ## 왜 필요한가 -- 기준점 하나가 전체를 무너뜨린다
+
+    `presolve_warm_start()`는 bounds-midpoint에서 출발해 (1) 선형 feasibility 투표로 일부
+    theta를 극값에 놓고 (2) `search_stage_budget_L_warm_start()`로 L을 훑고 (3)
+    `derive_theta_dependency_graph()`로 나머지를 분류한다. **그런데 이 셋이 전부 "기준점이
+    평가 가능하다"를 전제로 한다.** 기준점이 크래시하면:
+
+      * L 스캔은 21점이 전부 크래시해 조용히 **bounds-midpoint로 후퇴**하고,
+      * 의존성 그래프는 전 theta를 `ambiguous`로 분류하며(notes에 "baseline_theta_values
+        자체가 infeasible"이 남는다),
+      * SLSQP는 그 midpoint에서 출발해 한 발도 못 움직인다.
+
+    실측(파일럿, 정본 spec): 중점에서 `r_cmfb_vocdes=0.11`이면 CMFB 기준분배기 M39/M40이
+    1.8V를 나눌 수 없고(적층 diode 최소합 1.837V, B25), 그 상태로는 **어떤 L도** 성립하지
+    않는다. v4.30이 이미 "이 theta의 실제 설계값은 중점이 아니라 **하한**"임을 실측으로
+    확정했는데, 그 결론이 self-test 픽스처에만 적히고 이 경로에는 반영되지 않아 자유탐색이
+    계속 도달 불가능한 점에서 출발하고 있었다.
+
+    ## 어떻게 고르나 -- 값을 지어내지 않고 증거를 따라간다
+
+    특정 theta를 코드에 박지 않는다. 매 라운드:
+
+      1. 기준점을 평가한다. 통과하면 끝.
+      2. `InfeasibleSizingError` 메시지에 **실제로 등장하는 소자 이름**을 뽑는다(엔진의
+         실패 메시지는 항상 막힌 소자/그룹을 적는다 -- 이 저장소의 오래된 규약).
+      3. `_theta_device_map()`으로 그 소자를 담당하는 자유 theta를 찾는다(교집합이 큰 순).
+      4. 그 theta를 **자기 bounds의 양 끝**에 놓아 보고, 평가가 통과하거나 **막히는 소자가
+         바뀌면**(=이 병목은 풀렸다) 채택하고 다음 라운드로 간다.
+
+    "막히는 소자가 바뀌면 진전"이라는 판정이 핵심이다 -- 이 회로처럼 병목이 둘 이상 연쇄일
+    때(먼저 L, 그 다음 `r_cmfb_vocdes`) 한 번에 feasible이 되기를 기다리면 아무것도 못
+    고친다. 실측: 2라운드에 복구된다(L_stage2out -> 하한, r_cmfb_vocdes -> 하한).
+
+    `fallback_point`(선택): **이미 평가에 성공한 것이 측정된** theta 점. 증거가 어떤 자유
+    theta도 못 짚을 때, 현재 점과 값이 다른 theta를 이 점의 값으로 하나씩 되돌려 본다.
+    값을 지어내는 게 아니라 **측정된 실현가능점 쪽으로 물러나는** 것이라 근거가 있다.
+    실측 계기: 기준점 복구가 `L_stage2out_p`를 하한으로 옮겨 실현가능해졌는데, 뒤이은
+    L 스캔이 `L_stage2out_n`을 0.66um으로 골라 조합을 다시 깨뜨렸다 -- 그때 막힌 소자
+    (M6/M66)는 그 theta의 `devices`(M16/M26)에 없어 증거만으로는 짚을 수 없었다.
+
+    ⚠️ **정직한 한계**: bounds의 양 끝(과 `fallback_point`)만 본다(중간값은 SLSQP 몫이다).
+    증거에도 걸리지 않고 되돌릴 곳도 없으면 복구를 포기하고 **원래 기준점을 그대로**
+    돌려준다 -- 없는 근거로 값을 옮기지 않는다. 라운드는 `max_rounds`로 막는다(비용 상한).
+    """
+    thetas, evaluate = ev["thetas"], ev["evaluate"]
+    free = {th["name"]: tuple(th["bounds"]) for th in thetas
+            if th["bounds"][0] != th["bounds"][1]}
+    dev_map = _theta_device_map(thetas)
+    all_devices = set(ev["by_name"]) if ev.get("by_name") else set()
+    notes = []
+
+    def _probe(point):
+        """(ok, 막힌 소자 집합) -- ok면 소자 집합은 비어 있다."""
+        try:
+            evaluate(dict(point))
+            return True, frozenset()
+        except InfeasibleSizingError as e:
+            msg = str(e)
+            return False, frozenset(d for d in all_devices if d in msg)
+        except Exception:
+            return False, frozenset()
+
+    baseline = dict(baseline)
+    ok, blocked = _probe(baseline)
+    if ok:
+        return baseline, notes
+
+    tried = set()
+    for _ in range(max_rounds):
+        cands = sorted(
+            ((len(dev_map.get(n, ()) & blocked), n) for n in free
+             if n not in tried and (dev_map.get(n, ()) & blocked)),
+            reverse=True)
+        if not cands and fallback_point:
+            # 증거가 못 짚으면 **측정된 실현가능점** 쪽으로 하나씩 물러난다.
+            reverted = False
+            for n in free:
+                if n in tried or n not in fallback_point:
+                    continue
+                if baseline[n] == fallback_point[n]:
+                    continue
+                tried.add(n)
+                before = baseline[n]
+                baseline[n] = fallback_point[n]
+                ok2, blocked2 = _probe(baseline)
+                if ok2 or blocked2 != blocked:
+                    notes.append(
+                        f"기준점 복구: {n} {before:.6g} -> {fallback_point[n]:.6g}"
+                        f"(측정된 실현가능점으로 되돌림) -- 막혔던 소자 {sorted(blocked)}"
+                        + ("에서 평가 성공" if ok2 else f" -> {sorted(blocked2)}로 병목 이동"))
+                    if ok2:
+                        return baseline, notes
+                    blocked = blocked2
+                    reverted = True
+                    break
+                baseline[n] = before
+            if reverted:
+                continue
+        if not cands:
+            notes.append(
+                f"기준점이 infeasible인데 막힌 소자 {sorted(blocked) or '(불명)'}를 담당하는 "
+                f"자유 theta를 선언에서 찾지 못했다 -- 복구를 포기하고 원래 기준점을 쓴다"
+                f"(없는 근거로 값을 옮기지 않는다).")
+            break
+        _, name = cands[0]
+        tried.add(name)
+        lo, hi = free[name]
+        before = baseline[name]
+        picked = None
+        for val in (lo, hi):
+            baseline[name] = val
+            ok2, blocked2 = _probe(baseline)
+            if ok2 or blocked2 != blocked:
+                picked = (val, ok2, blocked2)
+                break
+        if picked is None:
+            baseline[name] = before
+            continue
+        val, ok2, blocked2 = picked
+        notes.append(
+            f"기준점 복구: {name} {before:.6g} -> {val:.6g}"
+            f"({'하한' if val == lo else '상한'}) -- 막혔던 소자 {sorted(blocked)}"
+            + ("에서 평가 성공" if ok2 else f" -> {sorted(blocked2)}로 병목 이동"))
+        if ok2:
+            return baseline, notes
+        blocked = blocked2
+    return baseline, notes
+
 def presolve_warm_start(topology_path: str, spec: dict, ev: dict | None = None,
                          stage_budget_L_reference: dict | None = None,
                          n_scan_full_circuit: int = 21) -> dict:
@@ -9030,6 +9502,16 @@ def presolve_warm_start(topology_path: str, spec: dict, ev: dict | None = None,
         notes.append(f"선형 feasibility 부등식이 서로 다른 방향을 요구하는 theta: {conflicts} "
                       f"-- 자동 해결 불가, bounds-midpoint로 남김(SLSQP가 처리해야 함)")
 
+    # 2026-09-10(사용자 지적 "중점에 묶이는 것도 해결했잖아. 왜 반영이 안 되어 있어?") --
+    # 아래 L 스캔도, 그 뒤 derive_theta_dependency_graph()도 전부 **기준점이 평가 가능하다**를
+    # 전제한다. 기준점이 크래시하면 L 스캔은 21점이 전부 죽어 조용히 bounds-midpoint로
+    # 후퇴하고 의존성 그래프는 전 theta를 ambiguous로 분류한다 -- 그러면 SLSQP가 도달
+    # 불가능한 중점에서 출발해 한 발도 못 움직인다(실측). 그래서 L 스캔 **전에** 기준점을
+    # 실패 증거로 복구한다(repair_infeasible_baseline() docstring 참고).
+    baseline, _repair_notes = repair_infeasible_baseline(ev, baseline)
+    notes.extend(_repair_notes)
+    _repaired_baseline = dict(baseline)   # x0 조립 후 복구에서 '되돌릴 곳'으로 쓴다
+
     stage_budget_L = search_stage_budget_L_warm_start(
         topology_path, spec,
         reference_theta_values=(stage_budget_L_reference if stage_budget_L_reference is not None
@@ -9071,9 +9553,23 @@ def presolve_warm_start(topology_path: str, spec: dict, ev: dict | None = None,
         evaluate(x0)
         feasible, infeasible_reason = True, None
     except InfeasibleSizingError as e:
-        feasible, infeasible_reason = False, str(e)
-        notes.append("조립된 x0가 실제로는 infeasible -- 위 notes의 conflict/ambiguous 항목을 "
-                      "우선 확인할 것")
+        # 2026-09-10 -- 기준점을 복구해도 그 뒤 단계(L 스캔이 고른 값, 분류별 극값 선택)가
+        # 조합을 다시 깨뜨릴 수 있다(실측: L 스캔이 `L_stage2out_n`을 0.66um으로 골라
+        # 복구된 0.15um을 덮어썼다). 같은 증거-기반 복구를 **조립 후에 한 번 더** 돌린다 --
+        # 새 로직이 아니라 위에서 이미 쓴 repair_infeasible_baseline() 재사용이다.
+        # 여기서도 못 고치면 정직하게 infeasible로 보고한다(조용히 넘어가지 않는다).
+        x0, _x0_repair_notes = repair_infeasible_baseline(
+            ev, x0, fallback_point=_repaired_baseline)
+        notes.extend(_x0_repair_notes)
+        try:
+            evaluate(x0)
+            feasible, infeasible_reason = True, None
+            notes.append("조립된 x0가 infeasible이었으나 증거-기반 복구로 실현가능해졌다 "
+                          "-- 위 '기준점 복구' 항목 참고")
+        except InfeasibleSizingError as e2:
+            feasible, infeasible_reason = False, str(e2)
+            notes.append("조립된 x0가 실제로는 infeasible(복구 시도 후에도) -- 위 notes의 "
+                          "conflict/ambiguous 항목을 우선 확인할 것")
 
     return {"x0": x0, "feasible": feasible, "infeasible_reason": infeasible_reason,
             "linear_constraints": linear_results, "dependency_graph": graph, "notes": notes,
@@ -10937,6 +11433,40 @@ if __name__ == "__main__":
             _l5c_t["bounds"] = [0.05, 0.05]
         elif _l5c_t["name"] == "r_classab_battery":
             _l5c_t["bounds"] = [0.3, 0.3]
+        elif _l5c_t["name"] in ("L_stage2out_p", "L_stage2out_n"):
+            # 2026-09-10(class-AB 배터리 KVL 배선 후) -- 중점(0.575um)이 물리적으로
+            # 도달 불가능해졌다. 이 L에서는 출력단 VGS 합이 vdd를 넘어 배터리 몫
+            # `V_bat = vdd - VGS(M15) - VGS(M16)`가 **음수**가 된다(실측 -0.024V) --
+            # 지금까지는 그 KVL을 아무도 안 봐서 통과했을 뿐이고, `stack_kvl_vgs_limit()`
+            # 배선 후에는 gm_id 탐색이 정확히 이 지점을 거부한다.
+            #
+            # 실측한 실현가능 구간은 **L <= 0.2um**이다(W 상한 200um과 VGS 상한이
+            # 양립하는 구간). 그 안에서 이 픽스처의 선언된 제약 4개를 **전부** 만족하는
+            # 값을 실제로 훑어 골랐다(tests/probe_l5c_stage2out_L.py + L_cascode 2D 스캔):
+            #
+            #     L_s2o=0.15um : cmrr 53.0~54.1  -> 어떤 L_cascode로도 60 미만
+            #     L_s2o=0.175um: cmrr 55.6~57.0  -> 마찬가지
+            #     L_s2o=0.20um : cmrr 58.9~60.04 -> **L_cascode >= 0.717um이면 전부 만족**
+            #
+            # 그래서 0.2um으로 고정하고, 아래 optimize_full_circuit_budget() 호출의
+            # grid_points_per_theta를 1 -> 3으로 올린다(자유 theta가 L_cascode 하나뿐이라
+            # 평가 3회면 된다). 격자가 1점이면 L_cascode가 중점 0.575um에 묶여 cmrr이
+            # 59.86으로 **0.14dB 차이**로 떨어졌다 -- 제약을 지우지 않고 격자만 올려
+            # 푼다(우회 금지 원칙: "우회 없이 고칠 방법이 있는가"에 답이 있었다).
+            #
+            # r_cmfb_vocdes(바로 아래)와 같은 성격의 고정이다 -- 픽스처 본연의 목적
+            # (헤드룸 singleton KVL 검증)은 그대로 두고 고정점만 도달 가능한 값으로 옮긴다.
+            # ⚠️ 이 값이 "최적"이라는 뜻은 아니다: 자유탐색(SLSQP)이 이 구간에 **도달하지
+            # 못하는 것**은 별개 미해결 항목이다. 실측한 원인(2026-09-10):
+            # `search_stage_budget_L_warm_start()`는 `presolve_warm_start()` 안에 이미
+            # 배선돼 있고 실제로 돈다(6.1초). 그런데 그 스캔은 **다른 theta를 bounds-
+            # midpoint에 고정한 채** L만 훑는데, 이 회로는 `r_cmfb_vocdes`가 중점(0.11)
+            # 이면 **어떤 L도 성립하지 않는다**(M39/M40 적층 diode가 1.8V를 못 나눈다, B25).
+            # 그래서 스캔점이 전부 크래시하고 조용히 bounds-midpoint(0.575um)로 후퇴한다 --
+            # 실측 반환값이 정확히 그 값이고, notes에도 "baseline_theta_values 자체가
+            # infeasible"이 전 theta에 걸쳐 남는다. 즉 (L_stage2out, r_cmfb_vocdes)는
+            # **함께 움직여야 하는 쌍**이라 한 변수씩 훑는 스캔으로는 원리적으로 못 찾는다.
+            _l5c_t["bounds"] = [2.0e-07, 2.0e-07]
         elif _l5c_t["name"] == "r_cmfb_vocdes":
             # 2026-09-09(B25 후속, 사용자 확정) -- 중점(0.11)이 아니라 **하한(0.02)**에
             # 고정한다. 중점은 CMFB 기준분배기 M39/M40에 8.197uA를 흘리는데, 이는 실제
@@ -10949,6 +11479,17 @@ if __name__ == "__main__":
             # 목적(헤드룸 singleton KVL 검증)을 지키면서 실제 설계가 고르는 값으로 옮긴다.
             # K_replica/r_classab_battery를 이미 특별 고정하고 있는 것과 같은 방식이다.
             _l5c_t["bounds"] = [0.02, 0.02]
+        elif _l5c_t["name"] == "L_cascode":
+            # 2026-09-10 -- 이 픽스처 머리말(세션42)은 "L_cascode를 **제외한** 모든 theta를
+            # 중간값에 고정한다"라고 적고 있는데, 실제 코드는 아래 else가 L_cascode까지
+            # 잡아 **자유도 0**이었다(그래서 grid_points_per_theta를 올려도 평가 횟수가
+            # 그대로였다 -- 전부 lo==hi라 theta당 1점). 주석이 말하는 의도대로 되돌린다.
+            #
+            # 이게 필요한 이유: class-AB 배터리 KVL을 배선한 뒤 L_stage2out=0.2um에서
+            # cmrr_estimate_db가 L_cascode에 민감해졌다 -- 중점(0.575um)이면 59.86으로
+            # 제약(>=60)을 **0.14dB 차이**로 놓치고, 0.717um 이상이면 60.04로 통과한다
+            # (2D 스캔 실측). 제약을 지우는 대신 이 자유도를 돌려주는 게 맞다.
+            pass
         else:
             _l5c_lo, _l5c_hi = _l5c_t["bounds"]
             _l5c_mid = (_l5c_lo + _l5c_hi) / 2.0
@@ -10995,6 +11536,12 @@ if __name__ == "__main__":
             "t_lln": 30e-9, "PM_target_deg": 70.0,
             "Cc": 500e-15, "Cf": 500e-15, "Cs": 500e-15, "C_Ltot": 1e-12,
             "t_settle_total": 40e-9, "omega_c": 6.9 / 30e-9,
+            # 2026-09-10 -- L_cascode를 (주석이 말하던 의도대로) 자유로 되돌리자 이 spec에
+            # `L_grid_step`이 없다는 게 처음 드러났다: 자유 L theta가 하나도 없던 동안은
+            # `_theta_grid_points()`의 이 요구가 실행될 일이 없었다. 정본
+            # (`run_harness.L_GRID_STEP`)과 같은 값을 쓴다 -- 픽스처만 다른 레이아웃 격자를
+            # 쓸 이유가 없다.
+            "L_grid_step": 5e-9,
         }
         # 2026-08-24(세션42) -- L_cascode를 제외한 모든 theta를 자기 bounds의 "중간값"에
         # 강제 고정하는 이 L5c 시나리오는(K_replica=0.05/r_classab_battery=0.3 등도 임의
@@ -11020,7 +11567,15 @@ if __name__ == "__main__":
         # diffpair KVL 불일치와 뿌리가 같음 -- 둘 다 "L5c가 K_replica/r_classab_battery만
         # 자유고 나머지 전부 임의 고정"이라는 이 픽스처 자체의 인위성에서 나옴).
         try:
-            _l5c_result = optimize_full_circuit_budget(_l5c_topo_path, _l5c_spec, grid_points_per_theta=1)
+            # 2026-09-10 -- 1 -> 3. 자유 theta가 `L_cascode` 하나뿐이라 평가 3회다.
+            # 1점이면 L_cascode가 bounds 중점(0.575um)에 묶여 cmrr_estimate_db가 59.86으로
+            # 제약(>=60)을 0.14dB 차이로 놓친다(위 L_stage2out 주석의 2D 스캔 참고).
+            # 2026-09-10(사용자 선택 "레이아웃까지 가지 않게 분리") -- 이 픽스처가 검증하는
+            # 것은 헤드룸 singleton KVL(M5/M61, M60/M66, M36a/M38, M18_bg, same_as_device)
+            # 이고 그건 전부 **사이징 단계**에서 끝난다. 레이아웃(핑거 배정)은 별개 관심사라
+            # `stop_after_sizing=True`로 거기까지 가지 않는다.
+            _l5c_result = optimize_full_circuit_budget(
+                _l5c_topo_path, _l5c_spec, grid_points_per_theta=3, stop_after_sizing=True)
         except ValueError as _l5c_e:
             if ("diffpair_top_a" in str(_l5c_e) or "diffpair_bottom_a" in str(_l5c_e)
                     or "optimize_multistage()가 실행가능점을 못 찾음" in str(_l5c_e)):

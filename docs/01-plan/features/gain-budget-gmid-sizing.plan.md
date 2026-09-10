@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.34
+version: 4.35
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -2702,6 +2702,145 @@ except Exception:
 **검증**: `sizing_recipe` exit 0 / 기준선 diff **0줄**(기준선에 13줄 추가 반영),
 `stick_diagram` exit 0 / diff **0줄**, 조사 스크립트 16개 배선 smoke 전부 통과.
 
+### 10.7 class-AB 배터리 헤드룸 + 기준점 복구 (★ 신설 v4.35)
+
+#### A. M9b 스택 예산 음수 -- 배터리 KVL을 아무도 안 보고 있었다
+
+정본 spec(§10.6)으로 돌리자 `'biasgen_vom_floatsrc_sink' 그룹(예산 -0.0239609V)`으로 즉시
+멈췄다. 세션22 J-2가 이미 확인해둔 순수 connectivity 사실이 열쇠였다 -- `M9a`(PMOS,
+source=Vg15, drain=Vop1)와 `M9b`(NMOS, drain=Vg15, source=Vop1)는 **직렬이 아니라 같은 두
+노드를 잇는 상보 병렬쌍**(Monticelli floating current source)이다. 실제 컬럼은
+
+    vdd -> M8 -> Vg15 -> (M9a || M9b) -> Vop1 -> M10 -> gnd
+
+이고 `load_topology()`가 connectivity에서 `VDS(M8)=VGS(M15)`, `VDS(M10)=VGS(M16)`을 자동
+유도하므로(M8.drain=Vg15=M15.gate, M10.drain=Vop1=M16.gate)
+
+    V_bat = vdd - VGS(M15) - VGS(M16)
+
+이다. 그런데 선언된 `classab_centering_dev_v`(=|VGS(M16)-VGS(M15)| <= 0.15V)는 **차이**만
+잰다 -- **합을 보는 것이 아무것도 없었다**. 완벽히 센터링해도 `V_bat = vdd - 2*VGS`라 VGS가
+크면 음수가 된다. 실측(정본, theta 중점): `0.9799 + 0.8441 = 1.824 > vdd` ⟹ **V_bat =
+-0.024V**인데 centering(0.136 <= 0.15)은 **통과한 채**였다. 즉 그동안의 파일럿 수치는
+배터리 전압이 음수인, 물리적으로 불가능한 동작점의 값이었다.
+
+`tests/probe_classab_battery_headroom.py` 실측: `V_bat >= VDsat` 영역은 **44/100칸**으로 넓게
+있고 L=0.575um에서도 gm_id>=19면 성립한다. 실패한 M15는 gm_id=16.5 -- **설계 불가능이 아니라
+탐색이 그 영역을 피할 이유가 없었던 것**이다.
+
+**해결(사용자 선택 2건)**
+
+① **gm_id 탐색에 KVL을 먹인다.** `search_gm_id_for_role(..., vgs_max=...)`는 기계적 필터일
+뿐이고(W_bounds 필터와 같은 성격, 회로를 모른다), 상한은 `stack_kvl_vgs_limit()`이 **선언만
+읽어** 유도한다: `VGS(name)`을 VDS로 쓰는 소자 Y마다 Y가 속한 그룹의 예산식
+`vdd - sum(vds(refs)) = sum(vds(members))`를 `VGS(name)`에 대해 정리하고, 각 항을
+(a) `VGS(name)` 종속 -> **계수 k에 더함** (b) 확정된 vds -> 상수로 뺌 (c) 미확정 -> 최소
+필요분을 뺌으로 분류한다. 계수를 세는 덕에 **"M15와 M16이 같다"를 함수가 알 필요가 없다** --
+`gm_id_match_vgs_of` 선언이 이미 그 사실을 담고 있다. 이 회로에서는 k=2가 되어
+`VGS(M15) <= (vdd - VDsat(M9a))/2 = 0.8417V`(손계산과 일치).
+
+② **포화 하한은 LUT에서.** `lut_vdsat_headroom()`이 references/gm-id-methodology.md §2.7의
+`VDsat ~ 2/(gm/ID)`를 쓴다 -- 이 저장소가 이미 `_default_cascode_headroom()`(Jespers
+`2/gm_id + margin`)으로 캐스코드에 쓰는 **바로 그 식**이라 새 상수·새 근사가 없다. gm_id를
+모르는 시점이라 **실현 가능한 최대 gm_id**로 가장 느슨한 하한(=필요조건)을 만든다.
+`floating_current_source` role만 `min_vds_by_role` 폴백 상수(0.2V) 대신 이 값을 쓴다 -- 이
+role의 소자는 "남는 예산을 받는 멤버"가 아니라 **그 예산 자체가 설계량**(배터리 전압)이기
+때문이다. ★ 헤드룸 배분기와 gm_id 탐색이 **같은 헬퍼**를 쓰므로 둘이 어긋날 수 없다.
+
+#### B. 기준점이 중점에 묶여 탐색이 출발을 못 하고 있었다
+
+사용자 지적: *"중점에 묶이는 것도 해결했잖아. 왜 반영이 안 되어 있어?"* -- 맞다.
+v4.30이 이미 실측으로 **`r_cmfb_vocdes`의 실제 설계값은 중점(0.11)이 아니라 하한(0.02)**임을
+확정했는데(중점은 M39/M40에 17배 전류를 흘려 1.8V를 못 나눈다, B25), 그 결론이 **self-test
+픽스처에만 적히고 엔진 경로에는 반영되지 않았다**.
+
+그 결과가 컸다. `presolve_warm_start()`의 세 단계 -- 선형 feasibility 투표, `search_stage_
+budget_L_warm_start()`의 L 스캔, `derive_theta_dependency_graph()`의 분류 -- 가 **전부
+"기준점이 평가 가능하다"를 전제**한다. 기준점이 크래시하면:
+
+  * L 스캔은 21점이 전부 죽어 조용히 **bounds-midpoint로 후퇴**하고(실측 반환값이 정확히
+    0.5750um -- 이 함수는 배선돼 있고 6.1초 동안 실제로 돈다. 앞선 보고에서 "미배선"이라 한
+    것은 필자의 grep 오류였다),
+  * 의존성 그래프는 전 theta를 `ambiguous`로 분류하며(notes에 "baseline_theta_values 자체가
+    infeasible"이 전 theta에 걸쳐 남는다),
+  * SLSQP는 그 midpoint에서 출발해 한 발도 못 움직인다(3 start x 25 iter, 625초, 전부 실패).
+
+**해결: `repair_infeasible_baseline()`** -- 기준점이 infeasible이면 **실패 증거를 따라**
+자유 theta를 bounds로 옮겨 복구한다. 사용자 지시("이 설계에만 적용되는 것은 안 돼. 반드시
+일반화된 솔루션을 코드화해야 해")대로 **회로 이름·소자 이름·theta 이름·상수가 하나도 없다.**
+읽는 것은 넷뿐이다:
+
+  1. 선언(`thetas`의 feeds -- `_theta_device_map()`이 임의 깊이의 문자열/리스트를 훑는다)
+  2. 넷리스트 소자 이름(`ev["by_name"]`)
+  3. **엔진 자신의 실패 메시지가 지목한 소자**(이 저장소의 오래된 규약: 실패 메시지는 항상
+     막힌 소자/그룹을 적는다)
+  4. 각 theta 자신의 `bounds`
+
+매 라운드 (1)기준점 평가 -> (2)메시지에서 실제 소자 이름 추출 -> (3)그 소자를 담당하는 자유
+theta를 교집합 크기 순으로 -> (4)그 theta를 **자기 bounds 양 끝**에 놓아 보고 **평가가
+통과하거나 막히는 소자가 바뀌면** 채택. "병목이 바뀌면 진전"이라는 판정이 핵심이다 --
+병목이 연쇄일 때 한 번에 feasible이 되기를 기다리면 아무것도 못 고친다.
+
+증거가 어떤 theta도 못 짚으면 **이미 평가에 성공한 것이 측정된 점**(`fallback_point`)으로
+하나씩 물러난다 -- 값을 지어내는 게 아니라 측정된 실현가능점 쪽으로 후퇴하는 것이다.
+그것도 없으면 **복구를 포기하고 원래 기준점을 그대로** 돌려준다(없는 근거로 값을 옮기지
+않는다).
+
+**파일럿에서 실제로 일어난 일**(전부 유도된 것이고 코드에 박힌 값이 아니다):
+
+    L_stage2out_p 0.575um -> 0.15um(하한)   막힌 소자 [M15] -> [M39, M40]로 병목 이동
+    r_cmfb_vocdes 0.11    -> 0.02 (하한)    [M39, M40]에서 평가 성공
+    r_diode_M11a  0.02    -> 0.085          (측정된 실현가능점으로 되돌림) 평가 성공
+
+두 번째 줄이 바로 v4.30이 손으로 확정했던 그 값이다 -- 이제 **엔진이 스스로 유도한다.**
+
+**일반성 검증(4개 회로 전수)**
+
+| 회로 | 결과 |
+|------|------|
+| `folded_cascode` | 기준점이 이미 실현가능 -> 복구 **0건, 무동작** |
+| `current_reuse_telescopic_ota` | 복구 3건 -> x0 `feasible=True` |
+| `two_stage_ota` | 세션41이 이미 이월한 `stage1_out` KVL 항목에 걸림(이 변경과 무관) |
+| `nmcnr_amplifier` | 복구 대상 없음(무동작) |
+
+self-test 둘 다 **exit 0 / diff 0줄** -- 복구 장치는 필요 없는 회로의 동작을 전혀 바꾸지 않는다.
+
+#### C. 결과 -- 정본 spec으로 파일럿이 처음 수렴했다
+
+    SLSQP 3 start x 25 iter, 145초 (직전: 625초 동안 3 start 전부 실패)
+
+| metric | 값 | 제약 | |
+|--------|-----|------|---|
+| `gain_full_circuit_db` | 65.97 | >=54 | OK |
+| `cmrr_estimate_db` | 60.42 | >=60 | OK |
+| `psrr_estimate_db` | 81.97 | >=60 | OK |
+| `mismatch_sigma_mV` | 1.36 | <=5 | OK |
+| `classab_centering_dev_v` | 0.1481 | <=0.15 | OK |
+| **V_bat (vom/vop)** | **+0.380 V** | (고치기 전 -0.024) | |
+| `parasitic_pm_deg`(§7.11) | **+33.88°** | (고치기 전 -8.9) | |
+| `power_uA` / `area_um2` | 267.59 / 693.88 | | |
+
+`theta_star`가 복구 장치의 유도와 일치한다: `r_cmfb_vocdes=0.02`(하한),
+`L_stage2out_p=0.15um`. §7.11의 `parasitic_pm_deg`가 음수에서 +33.9도로 뒤집힌 것도
+같은 원인이다 -- 배터리가 음수 전압일 때의 출력단 게이트 pole이었다.
+
+#### D. 함께 고친 것
+
+* **M18b 선언 누락(사용자 승인)** -- 넷리스트는 vom/vop가 완전 대칭인데 `M9b`만
+  `budget_reference_device="M8"`을 갖고 `M18b`는 짝(`="M17"`)이 없었다(세션39가 vom 쪽만
+  정정하고 빠뜨림). 선언이 없는 동안 `biasgen_vop_floatsrc_sink`가 vdd~gnd 전체 컬럼으로
+  취급돼 M17의 몫이 0이 되는 모순이 있었다.
+* **`_grid_points_in_range(n=1)`의 ZeroDivisionError** -- 자유 `metric_stage_budget`(L)
+  theta가 없는 동안 실행될 일이 없던 잠복 버그. 구간 중앙에 가장 가까운 격자점을 준다.
+* **self-test L5c** -- 이 픽스처가 쓰던 중점이 바로 `V_bat<0`인 그 점이라 도달 불가능해졌다.
+  새 `stop_after_sizing=True`로 **사이징까지만** 보게 했다(사용자 선택): 이 픽스처가 검증하는
+  헤드룸 singleton KVL은 전부 사이징 단계에서 끝나는데, 레이아웃 핑거 배정(별개 한계)
+  때문에 전기 검증 자체를 못 하고 있었다(L_cascode 후보 6개 + theta 자유화 2조합을 전수
+  시험해도 같은 지점이거나 다른 스택으로 옮겨갈 뿐). 고정점도 실측으로 골랐고
+  (L_stage2out=0.2um), 픽스처 머리말이 원래 말하던 대로 `L_cascode`를 자유로 되돌렸다
+  (코드가 주석과 어긋나 전부 고정하고 있었다). 기준선 diff **1줄**: `gain_db 76.35->61.30,
+  cmrr 76.12->60.04` -- **옛 수치가 물리적으로 불가능한 점의 값이었다.**
+
 ## Version History
 
 | Version | Date | Changes |
@@ -2755,3 +2894,4 @@ except Exception:
 | 4.32 | 2026-09-10 | **§7.11 신설 — 기생 pole clamp를 상수 없이 유도한다**(사용자 지시로 문헌 조사 후, "수치로만 적용하면 이 회로에 특화된 값이 된다"는 지적 반영). 조사: Sansen "비지배 pole ≥ 2×GBW", 표준 2-pole(p₂/UGF 3배 → PM 71.6°), 실무 경험칙(단일단 fT ≥ 10×GBW, 2단 >20×). 그런데 **이 회로엔 원문 정의식이 이미 있다** — `PM = tan⁻¹(ω_p2/ω_c)`. 여기서 `N = α × tan(PM_target)`가 유도되고, **§7.10의 "N~5~10"이 정확히 α∈[2,3.6]**임이 드러났다(임의값이 아니었다). 실측: tail 4개의 최소 `fT/f_c`가 knee(0.375µm)에서 **28배**라 N=10/20 어느 쪽도 안 걸리고, 실제로 무는 것은 **L≳0.7µm** — gain이 L을 4.0µm로 밀려 할 때의 제동이다. **코드화 원칙**: N을 상수로 박으면 회로 전용이 되므로, 두 항을 각각 회로에서 얻는다 — 필요 pole 위치는 **토폴로지의 PM 관계식**에서, 노드 용량비는 **넷리스트에서 측정**. 그러면 `fT ≥ N·GBW`는 `ω_pole(node) = G/C ≥ ω_p2_req`의 손 근사였음이 드러나고 α·N이 둘 다 사라진다. clamp는 숨은 상수가 아니라 `sizing_roles.metrics`의 metric으로 노출한다(C1) |
 | 4.33 | 2026-09-10 | **§7.11 구현 완료 — 하한까지 유도해 상수를 전부 없앴다**. `PM_parasitic = 90 - Σ atan(w_c/w_pole)`로 위상을 직접 더해 `k`(pole 개수) 배분을 없앴고, 하한은 새 상수가 아니라 **이미 선언된 `PM_target_deg`**다. 이 식은 원문의 `PM = atan(w_p2/w_c)`를 pole 하나일 때의 특수케이스로 **정확히 포함**한다(항등식). 신설: `signal_path_nodes()`(gate→drain 방향그래프 도달성으로 bias 노드 자동 배제), `node_pole_estimate()`(드레인→gds / 소스→gm+gds / 게이트→Cgg), `_metric_parasitic_pm_deg`. **실측으로 두 번 바로잡음**: ① 전 노드를 더하면 bias 노드가 각각 ~90도를 먹어 **-1004도**가 나온다 → 경로 선언 필수 ② LUT에 접합용량이 없어 못 세는 노드는 근거를 따져 갈랐다(소스 붙은 저임피던스는 이유와 함께 제외, 드레인만 붙은 고임피던스는 **명시적 실패**). **파일럿 실측 `PM_parasitic = -8.9도`** — `Vg15`/`Vg25`(class-AB 출력단 게이트)의 pole이 31.6MHz로 **크로스오버의 0.86배**라 각 49.2도씩 먹는다. 기존 metric 어느 것도 못 보던 문제다. constraint는 아직 안 건다(선례대로 4개 회로에서 먼저 잰다). self-test diff 0줄 |
 | **4.34** | 2026-09-10 | **spec 정본화 — 한 세션치 측정이 비정본 기준이었음을 확인하고 재발 방지를 배선했다**(사용자 지시 "이번 실수가 재발하지 않도록 방법을 강구해"). 조사 스크립트들이 spec을 손으로 복붙해 정본(`run_harness.SPECS`)과 갈려 있었다(`gm_id_grid` 57점 vs **21점**, `L_candidates` 41점 vs 12점, `stage_power_tolerance` 누락). 정본 주석에 이미 세션30 실측 "L을 촘촘히 하면 gm_id도 촘촘해야 한다"가 있었는데 복제본은 **둘 다 성겨** 우연히 안 터졌던 것이다. **정본으로 재탐색하면 파일럿이 수렴하지 않는다**(SLSQP 3 start 전부 실패, `biasgen_vom_floatsrc_sink` 스택 예산 **-0.024V**, M9b 미해결) — 즉 v4.28~v4.33의 수치는 정본에서 도달 불가능한 동작점이다(§10.6). **신설·배선**: `require_declared_spec_source()`(`_build_theta_evaluator()` 첫 줄), `spec_fingerprint()`, `run_harness.canonical_spec()`/`derived_spec(key, why, **overrides)`(덮어쓴 항목만 갈리고 무엇을 왜 바꿨는지 `_spec_source`에 자동 기록). 복붙 블록 **238줄을 16개 스크립트에서 제거**하고 정본 호출로 교체(복제본은 정본의 부분집합 24키⊂26키라 손실 없음). **★ 게이트를 만들자마자 그것이 죽어 있었다** — 모듈이 `os`를 최상위 import하지 않아 `NameError`가 났고 `except Exception: return`이 삼켜 항상 통과했다. 광범위 except를 제거하고 **자기시험 4건을 넣어** 게이트가 다시 조용히 죽으면 기준선 diff가 깨지게 했다. self-test 둘 다 exit 0 / diff **0줄** |
+| **4.35** | 2026-09-10 | **M9b 스택 예산 음수 해결 + 기준점 복구 일반화 -- 정본 spec으로 파일럿이 처음 수렴했다**(145초, 직전엔 625초 동안 3 start 전부 실패). ① **배터리 KVL이 아무 데서도 강제되지 않고 있었다**: `M9a`/`M9b`는 직렬이 아니라 Vg15↔Vop1를 잇는 **상보 병렬쌍**(Monticelli floating battery)이라 `V_bat = vdd - VGS(M15) - VGS(M16)`인데, 선언된 `classab_centering_dev_v`는 VGS의 **차이**만 재고 **합**은 아무도 안 봤다. 실측 0.9799+0.8441=1.824>vdd ⟹ **V_bat=-0.024V**인데 centering(0.136≤0.15)은 **통과한 채** -- 즉 그동안의 파일럿 수치는 배터리 전압이 음수인 불가능한 동작점의 값이었다. 해결(사용자 선택): `stack_kvl_vgs_limit()`이 **선언만 읽어** VGS 상한을 유도(종속항을 **계수 k로 세는** 덕에 'M15와 M16이 같다'를 알 필요가 없다, k=2 ⟹ 0.8417V로 손계산과 일치) -> `search_gm_id_for_role(vgs_max=…)`; 포화 하한은 `lut_vdsat_headroom()`이 §2.7 `2/(gm/ID)`로 유도해 **새 상수 없음**(기존 `_default_cascode_headroom()` 재사용, 배분기와 **같은 헬퍼**). ② **기준점이 중점에 묶여 탐색이 출발을 못 하고 있었다**(사용자 지적 "중점에 묶이는 것도 해결했잖아. 왜 반영이 안 되어 있어?"): v4.30이 이미 `r_cmfb_vocdes`의 설계값은 하한이라고 확정했는데 그게 **self-test 픽스처에만 적히고 엔진에는 반영되지 않았다**. presolve의 세 단계가 전부 '기준점 평가 가능'을 전제해, 크래시하면 L 스캔이 조용히 midpoint로 후퇴하고 전 theta가 ambiguous가 된다. **`repair_infeasible_baseline()` 신설** -- 실패 메시지가 지목한 소자 -> 선언에서 그 소자를 담당하는 자유 theta -> 자기 bounds 양 끝을 시도, '평가 성공 **또는 병목 이동**'이면 채택. 증거가 못 짚으면 **측정된 실현가능점**으로 후퇴하고, 그것도 없으면 포기(없는 근거로 값을 옮기지 않는다). **회로/소자/theta 이름·상수가 코드에 하나도 없다**(사용자 지시 "이 설계에만 적용되는 것은 안 돼"). 파일럿 실측: `L_stage2out_p→하한 / r_cmfb_vocdes→하한 / r_diode_M11a→측정점 복귀` 3단계로 복구 -- 두 번째가 바로 v4.30이 손으로 정한 그 값이고 **이제 엔진이 스스로 유도한다**. 4개 회로 전수: folded_cascode는 **복구 0건 무동작**, two_stage/nmcnr는 기존 이월 항목. **결과**: gain_full 65.97 / cmrr 60.42 / psrr 81.97 / mismatch 1.36 / centering 0.1481 전부 통과, **V_bat -0.024→+0.380V**, **parasitic_pm_deg -8.9°→+33.88°**. **함께 고침**: M18b `budget_reference_device="M17"` 누락(vom 쪽 대칭 짝, 사용자 승인), `_grid_points_in_range(n=1)` ZeroDivisionError(잠복), L5c를 `stop_after_sizing=True`로 사이징까지만 분리(사용자 선택). self-test 둘 다 exit 0 / diff **0줄**(L5c 기준선 1줄은 앞서 갱신) |

@@ -1104,7 +1104,9 @@
       "gm_id_role": "matching",
       "L_role": "mirror",
       "vertical_stack_id": "biasgen_vop_floatsrc_sink",
-      "vsb": 0.0
+      "vsb": 0.0,
+      "budget_reference_device": "M17",
+      "_budget_reference_device_comment": "2026-09-10(사용자 승인) -- vom 쪽 M9b('biasgen_vom_floatsrc_sink')가 세션39에서 budget_reference_device='M8'로 정정될 때 **vop 쪽 짝이 빠졌다**. 넷리스트는 완전 대칭이다: M17.source=vdd/M17.drain=Vg25이고 M18b.drain=Vg25라(M8/M9b와 정확히 같은 구조) 이 컬럼의 진짜 예산은 V(Vg25)=vdd-VDS(M17)이지 vdd 전체가 아니다. 선언이 없는 동안 'biasgen_vop_floatsrc_sink'(M18b+M19)는 vdd~gnd 전체 컬럼으로 취급돼 VDS(M18b)+VDS(M19)=vdd로 닫혔는데, 그러면 M17의 몫이 0이 되어 Vg25 노드전압이 M17 쪽(vds_match_vgs_of=M25로 확정)과 모순된다. 2026-09-10 class-AB 배터리 KVL 조사(stack_kvl_vgs_limit) 중 vom/vop 선언 대칭성을 대조하다 발견했다. M9a그룹(biasgen_vom_a)이 M10을, 이 그룹이 M17을 서로 다른 상대 그룹의 멤버로 참조하는 상호참조라 fixed-point worklist(세션39)가 필요한 것도 vom 쪽과 동일하다."
     },
     "M21": {
       "headroom_role": "mirror",
