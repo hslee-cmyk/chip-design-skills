@@ -14359,3 +14359,52 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   parasitic_pm_deg 70.12→77.37, gain_full 59.66→67.64. 파생 L=0.445/0.573um(knee보다 위).
 * 남은 것: `bias_replica: 1.2` 상수, `search_stage_budget_L_warm_start()`에 `l_class` 포함.
 
+## 7. (세션47 이어서) `_L_ROLE_MULTIPLIERS` 완전 제거 (계획 §10.11, v4.39)
+
+* 사용자 지시 "bias_replica 상수도 없애" -> **(1) 전 회로 적용**을 선택.
+* 신설 3개(전부 `sizing_recipe.py`):
+  - `feasible_gm_ids()` -- `lut_vdsat_headroom()` 안 인라인 술어를 꺼내 **공유**.
+  - `feasible_L_window(lut, ID, vds, vsb, L_grid, gm_id_grid, W_bounds, diode_kind,
+    vds_is_fixed)` -- W 한계 안에 드는 L 구간 `(lo,hi)`. 캐시 `_FEASIBLE_L_WINDOW_CACHE`.
+  - `derive_role_L(ctx, name, spec, role)` / `derive_class_L(ctx, members, spec)`.
+* 배선: `_evaluate()`의 `L_role` 루프(`_L_source="L_role_derived"`) + 층2 `_lc_owners`
+  루프의 **주인 없는 류** 분기(`_L_source="l_class_derived:<root>"`).
+* 삭제: `_L_ROLE_MULTIPLIERS`, `select_L_by_role()`. cascode/signal 가드는 `derive_role_L()`로
+  이관(옛 함수는 self-test에서만 불렸다 -- 이제 실제 경로 위).
+* ★ diode 분기: `gate==drain`이면 gm_id가 자유롭지 않다. gm_id 격자 판정은 diode에 관대해
+  못 쓰는 L을 통과시킨다(self-test `Mo` 픽스처: W=0.824um로 하한 1um 위반). 기존
+  `diode_vds_window()`로 분기하고, vds가 고정된 경우엔 `gm_id_for_vgs(vds,L,vds,vsb)`로
+  W를 직접 본다.
+* 왜 theta가 아닌가: 주인 없는 류까지 theta면 파일럿 자유변수 24->39(실측) -> SLSQP 급격히
+  느려짐. 유도값은 결정적이라 자유도 증가 0.
+* 폴백 없음 -- 격자 3종 미선언이면 즉시 ValueError. 4개 회로 **상수 폴백 0건**.
+  self-test toy 픽스처 6개는 `_tst_grids()` 헬퍼(=__main__ 안)로 격자를 선언하게 맞춤.
+* ★ role은 **어떤 측정을 쓸지**만 고른다(`_L_ROLE_TARGETS`): mirror->knee,
+  bias_replica->창 하한(§7.10이 선언한 목적이 PVT 완화, gain 요구 없음 -> 면적 최소).
+  **한 번 둘을 합쳤다가(둘 다 knee) 실측이 되돌렸다**: 배터리 diode W가 125.4/123.4um
+  (비 1.0157)로 나와 `assign_finger_geometry()`가 공통 finger 폭을 못 찾아 파일럿이
+  **레이아웃에서** 죽었다. SLSQP는 그때도 수렴했다 -- self-test만 봤으면 못 봤다.
+  창은 "물리적으로 가능한가"만 말하고 "이 role에 맞는가"는 말하지 않는다.
+* 실측(4개 회로 전수, `tests/probe_role_L_derivation.py`): **값이 달라진 소자 5개**
+  (파일럿 M11a/M11b/M20a/M20b 0.180->**0.245**um -- diode 인식 창이 옛 0.180um을 실현
+  불가능으로 걸러냈다, M37b clamp 0.245->0.350um).
+  folded_cascode 13개 전부 무변경. two_stage/nmcnr은 세션41 이월 항목에서 먼저 실패
+  (변경 전후 **동일** -- 회귀 아님).
+* `derive_class_L()`은 3개 회로 15개 류에서 **실제 호출**되나 현재 소자별 유도와 값 일치
+  (무동작). 불변식 보증으로 남김.
+* self-test: clamp **양방향 동작**을 assert(30mA -> 아래로 0.350->0.180um, 0.01uA +
+  W_bounds 120~200um -> 위로 0.350->0.500um). 둘 다 exit 0.
+* ★ end-to-end 재탐색(정본 n_starts=3): 파이프라인 완주(floorplan OK,
+  run_full_circuit_audit.ok=True; audit_ok=False는 audit_row_split의 **기존** 레이아웃
+  항목 79->80건). 그러나 **착지가 v4.38보다 나쁘다**: power 231.17->238.94,
+  area 688->776, cmrr 73.14->64.36, psrr 73.65->69.72, gain_full 67.64->63.26,
+  mirror_ratio 3.64->17.67, parasitic_pm 77.37->73.19 (gain_db 60.42 동일).
+  **유도가 아니라 탐색 착지 문제**: v4.38 theta_star를 새 엔진으로 평가하면 여전히
+  실행가능 + 더 좋다(power 231.2, cmrr 73.14, psrr 73.65, gain_full 67.64,
+  mirror_ratio 8.215). 3 start 중 1개만 수렴(나머지는 linesearch 실패).
+  -> 다음 과제 `search_stage_budget_L_warm_start()`에 `l_class` 포함이 이 x0 문제를
+  정확히 겨냥한다. 정본 n_starts를 임의로 올려 덮지 않았다(세션31 BU 검증값).
+* ⚠️ 아직 안 한 것: `search_stage_budget_L_warm_start()`에 `l_class` 포함,
+  folded_cascode의 `omega_c` 미노출(parasitic_pm_deg 측정 불가),
+  two_stage `stage1_ref` / nmcnr `stage2_diode_ref` (세션41 이월).
+

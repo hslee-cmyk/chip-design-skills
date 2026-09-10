@@ -1741,6 +1741,20 @@ def _default_cascode_headroom(entry: dict) -> float:
 _LUT_VDSAT_ROLES = ("floating_current_source",)
 
 
+
+def feasible_gm_ids(lut: "GmIdLUT", L: float, ID: float, vds: float, vsb: float,
+                    gm_id_grid, W_bounds) -> list:
+    """이 `(L, ID, vds, vsb)`에서 **W 한계 안에 드는 gm_id들**(2026-09-10 추출).
+
+    `W = L·ID/IDu(gm_id, ...)`는 이 저장소의 사이징 공식 그대로다(예: 2221행,
+    `search_gm_id_for_role()`). 원래 `lut_vdsat_headroom()` 안에 인라인으로 있던 술어를
+    꺼낸 것 -- `feasible_L_window()`가 같은 판정을 L 격자 전체에 돌려야 해서, 두 벌로
+    갈라지지 않게 한 곳으로 모았다. `_idu_scan`이 이미 `(L,vds,vsb,격자)`로 캐싱하므로
+    이 함수 자체는 캐시가 필요 없다(같은 L을 다시 물어도 스캔은 재사용된다).
+    """
+    return [g for g, idu in lut._idu_scan(L, vds, vsb, list(gm_id_grid))
+            if idu > 0 and W_bounds[0] <= ID * L / idu <= W_bounds[1]]
+
 def lut_vdsat_headroom(ctx: "SizingContext", name: str, default: float) -> float:
     """`name`이 포화를 유지할 최소 VDS를 **LUT에서 유도**한다(2026-09-10).
 
@@ -1779,8 +1793,7 @@ def lut_vdsat_headroom(ctx: "SizingContext", name: str, default: float) -> float
             wb = tuple(ctx.spec.get("W_bounds", (1e-6, 200e-6)))
             vds_probe = e.get("vds") or default
             try:
-                feas = [g for g, idu in lut._idu_scan(L, vds_probe, e.get("vsb", 0.0), grid)
-                        if idu > 0 and wb[0] <= ID * L / idu <= wb[1]]
+                feas = feasible_gm_ids(lut, L, ID, vds_probe, e.get("vsb", 0.0), grid, wb)
             except Exception:
                 feas = []
             if feas:
@@ -2287,16 +2300,6 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vsb: float, ID_t
     return (best_gm_id, idu_by_gm_id[best_gm_id]) if return_idu else best_gm_id
 
 
-_L_ROLE_MULTIPLIERS = {
-    # edaboard 실무 토론(do.md 배치 7-3f 인용): "서브마이크론 공정에서 최소길이의 2~3배
-    # 이상" -- sky130 LUT 실측(gm/gds가 2.3배 L에서 3~5.5배 급증)으로 방향은 확인됐으나
-    # "이상"의 정확한 상한은 회로마다 다를 수 있어 범위 내 대표값(중간값)을 고정 배수로 채택.
-    "mirror": 2.5,
-    # "최소길이보다 살짝만 크게"(near-but-not-at Lmin) -- PVT 민감도 완화가 목적이지
-    # 미러의 "출력임피던스 극대화" 목적이 아니므로 훨씬 작은 배수.
-    "bias_replica": 1.2,
-}
-
 
 
 def measure_L_knee(lut: "GmIdLUT", gm_id: float, vds: float, L_grid, vsb: float = 0.0):
@@ -2684,27 +2687,240 @@ def synthesize_l_class_thetas(by_name: dict, meta: dict, spec: dict,
         })
     return out
 
-def select_L_by_role(role: str, L_min: float, knee: float | None = None) -> float:
-    """배치 7-3f — 고정 배수 규칙류(미러/바이어스)만 다룬다. 캐스코드/신호경로의 L은
-    이 함수의 담당이 아니다 — 단별 이득배분이 필요한 값(정답이 없는 트레이드오프)이라
-    배치 7-3d의 theta 탐색(`L_cascode`/`L_stage2out`, 총이득 제약을 만족하는 탐색으로
-    도출)이 대신 결정한다(do.md 배치 7-3f 정정 문단 참고) — 그래서 `role`이 `"cascode"`
-    또는 `"signal"`이면 이 함수를 잘못 호출한 것으로 보고 즉시 `ValueError`."""
+
+_FEASIBLE_L_WINDOW_CACHE: dict = {}
+
+
+def feasible_L_window(lut: "GmIdLUT", ID: float, vds: float, vsb: float,
+                      L_grid, gm_id_grid, W_bounds, diode_kind: str = "",
+                      vds_is_fixed: bool = False) -> tuple:
+    """이 소자가 **자기 전류로 W 한계 안에 들어오는 L 구간** `(lo, hi)`. 없으면 `(None, None)`
+    (2026-09-10, `_L_ROLE_MULTIPLIERS` 상수 제거용).
+
+    L마다 `feasible_gm_ids()`를 물어 후보가 하나라도 있으면 그 L은 실현 가능하다. 쓰는 값은
+    **선언된 `W_bounds`와 그 소자의 실제 ID**뿐 -- 새 상수가 없다.
+
+    ## 왜 필요한가 (실측)
+
+    `knee_L_for_kind()`(§7.10)는 "한계 gain/면적 효율이 최대인 L"이지 "실현 가능한 L"이
+    아니다. 파일럿 class-AB 배터리 diode(M11a/M11b/M20a/M20b, ID≈0.2uA)에서 PMOS knee
+    0.34um은 W 하한(1um)을 깬다 -- `probe_stacked_diode_options.py` 실측으로 그 소자들이
+    쓸 수 있는 L은 0.2um 근방뿐이었다. 그래서 knee를 이 창으로 clamp한다.
+
+    ## diode-connected 소자 (`diode_kind`를 주면)
+
+    `gate == drain`이면 gm_id가 **자유롭지 않다** -- vds 하나가 gm_id를 정하고 gm_id가 W를
+    정한다(`diode_vds_window()` 참고). 그래서 gm_id 격자를 훑는 위 판정은 diode에 대해
+    **너무 관대**하다: 실현 불가능한 L을 가능하다고 말한다(실측: self-test의 `Mo` 픽스처가
+    "가능"으로 나온 L에서 diode 자기일관 사이징이 W=0.824um로 하한 1um을 깼다). 호출자가
+    `diode_kind`(그 소자의 kind)를 주면 그 L에서 **diode가 W 한계 안에 들어올 vds가 있는지**를
+    대신 묻는다 -- 판정을 새로 만들지 않고 이미 있는 `diode_vds_window()`를 그대로 쓴다.
+
+    그 diode의 vds가 **이미 고정**돼 있으면(`known_sizing`이 박았거나 앞 단계가 확정했으면)
+    `vds_is_fixed=True`를 준다. 그러면 고를 자유가 없으므로 vds 구간을 훑지 않고 **그 vds가
+    강제하는 gm_id**(`gm_id_for_vgs(vds, L, vds, vsb)` -- gate==drain이라 VGS==VDS)로 W를
+    직접 계산해 한계 안인지만 본다. 구간을 훑으면 "다른 vds라면 가능"을 가능으로 세어
+    실제로는 못 쓰는 L을 통과시킨다(실측: self-test `Mo` 픽스처, vds=0.6V 고정에서 W=0.824um).
+
+    ⚠️ 반환 구간이 **연속이라는 보장은 없다** -- 실현가능 L은 구멍이 뚫린 집합이다(세션40이
+    `search_stage_budget_L_warm_start()` docstring에 기록, §10.10이 재확인). 여기서는
+    양 끝만 돌려주고, 그 사이 구멍은 뒤의 헤드룸/쌍 연립이 **명시적으로** 실패시킨다
+    (조용히 넘기지 않는다).
+
+    캐시: L 배정은 theta 평가마다 도는 루프라 캐시 없이는 같은 스캔을 반복한다
+    (프로젝트 Python 코딩원칙: iteration 안의 계산은 반드시 캐시).
+    """
+    Lg = tuple(sorted(float(v) for v in L_grid))
+    Gg = tuple(float(g) for g in gm_id_grid)
+    wb = (float(W_bounds[0]), float(W_bounds[1]))
+    key = (id(lut), float(ID), float(vds), float(vsb), Lg, Gg, wb, diode_kind, vds_is_fixed)
+    hit = _FEASIBLE_L_WINDOW_CACHE.get(key)
+    if hit is not None:
+        return hit
+    lo = hi = None
+    for Lc in Lg:
+        if diode_kind and vds_is_fixed:
+            try:
+                _g = lut.gm_id_for_vgs(vds, Lc, vds, vsb)      # gate==drain -> VGS==VDS
+                _idu = lut.gm_id_to_id_density(_g, Lc, vds, vsb)
+                ok = _idu > 0 and wb[0] <= ID * Lc / _idu <= wb[1]
+            except ValueError:
+                ok = False                                     # LUT 범위 밖 -- 이 L은 못 쓴다
+        elif diode_kind:
+            ok = diode_vds_window(lut, diode_kind, Lc, ID, vsb, wb)[0] is not None
+        else:
+            ok = bool(feasible_gm_ids(lut, Lc, ID, vds, vsb, Gg, wb))
+        if ok:
+            if lo is None:
+                lo = Lc
+            hi = Lc
+    out = (lo, hi)
+    if len(_FEASIBLE_L_WINDOW_CACHE) < 200_000:
+        _FEASIBLE_L_WINDOW_CACHE[key] = out
+    return out
+
+
+# `L_role` -> **목표점 종류**. 값이 아니라 "어떤 측정을 쓸지"다(2026-09-10, 옛
+# `_L_ROLE_MULTIPLIERS` 자리). "knee"는 `knee_L_for_kind()`(LUT 실측), "min_feasible"은
+# `feasible_L_window()`의 하한. 새 role은 반드시 측정으로 정의해 여기 등록한다 -- 상수 금지.
+_L_ROLE_TARGETS = {
+    "mirror": "knee",              # 출력임피던스 극대화 -- 한계 gm/gds 효율이 최대인 L(§7.10)
+    "bias_replica": "min_feasible",  # PVT 완화가 목적이고 gain 요구 없음 -> 면적 최소(§7.10)
+}
+
+
+def derive_role_L(ctx: "SizingContext", name: str, spec: dict, role: str):
+    """`L_role`만 있는 소자의 L을 **유도**한다. 근거가 없으면 `None`(2026-09-10).
+
+    `role`이 `"cascode"`/`"signal"`이면 즉시 `ValueError` -- 그 둘의 L은 단별 이득배분이
+    필요한 값(정답이 없는 트레이드오프)이라 배치 7-3d의 theta 탐색(`L_cascode`/
+    `L_stage2out`)이 정한다. 없어진 `select_L_by_role()`의 가드를 그대로 옮겨온 것인데,
+    옛 함수는 self-test에서만 불렸고 이제는 **실제 사이징 경로 위에** 있다.
+
+    사용자 지시 *"bias_replica 상수도 없애"*로 `_L_ROLE_MULTIPLIERS`(`mirror: 2.5`,
+    `bias_replica: 1.2`)를 대체한 자리다. 두 항 모두 **이미 있는 것**에서 나온다:
+
+        시작점   knee_L_for_kind()    -- LUT 실측(§7.10). kind마다 다르고 공정을 따라간다.
+        clamp    feasible_L_window() -- 선언된 W_bounds + 이 소자의 실제 ID.
+
+    ## role은 **어떤 측정을 쓸지**만 고른다 (값은 둘 다 측정에서 나온다)
+
+        L_role            목표점                근거
+        ----------------  --------------------  ----------------------------------------
+        mirror            knee_L_for_kind()     §7.10 -- 한계 gm/gds 효율이 최대인 L.
+                                                미러의 목적이 출력임피던스 극대화라서.
+        bias_replica      창의 하한 lo          §7.10이 선언한 이 role의 목적이 "PVT
+                                                민감도 완화"이고 **출력임피던스 극대화가
+                                                아니다**. gain 요구가 없으니 실현 가능한
+                                                가장 작은 L = 면적 최소가 맞다.
+
+    두 목표점 모두 창으로 clamp한다: `L = clamp(target, [lo, hi])`.
+
+    ⚠️ 처음엔 두 role을 합쳐 **둘 다 knee**로 뒀다가 되돌렸다. "전류가 작으면 창이 알아서
+    작은 L을 강제한다"는 가정이 **실측으로 틀렸다**: 파일럿 class-AB 배터리 diode
+    (M11a/M11b/M20a/M20b, ID=0.199uA)는 PMOS knee 0.34um에서 W가 **125.4um / 123.4um**로
+    나왔고(W_bounds 상한 200um 안이라 창은 "가능"이라 말한다), 그 둘의 비가 1.0157이라
+    `assign_finger_geometry()`가 공통 finger 폭을 못 찾아 **파일럿 전체가 레이아웃에서
+    실패**했다. 같은 소자가 창 하한(0.245um)에서는 문제없이 통과한다. 즉 창은 "물리적으로
+    가능한가"를 말할 뿐 "이 role에 맞는가"를 말하지 않는다.
+
+    없어진 상수와의 차이: 옛 `bias_replica: 1.2`는 `L_min`에 곱하는 **고정 배수**였고,
+    여기 `lo`는 이 소자의 실제 ID와 선언된 `W_bounds`로 매번 다시 재는 값이다(공정/전류가
+    바뀌면 따라간다). 실측으로 두 값은 다르다 -- 옛 상수 0.180um vs 유도값 **0.245um**.
+    diode를 인식하는 창(아래)이 0.180um을 **실현 불가능**으로 걸러냈다. 즉 그 상수는
+    근거가 없었을 뿐 아니라 이 회로에서 물리적으로 성립하지 않는 값이었다.
+
+    ## 왜 theta로 파생하지 않는가
+
+    주인 없는 동치류까지 전부 theta로 만들면 파일럿만 자유변수가 15개 는다(24 -> 39, 실측).
+    SLSQP는 자유변수마다 유한차분을 돌아 탐색이 크게 느려지고 수렴도 어려워진다. 여기서
+    정하는 L은 **결정적으로 유도**되므로 자유도를 안 늘린다 -- 설계 자유도가 실제로 필요한
+    곳(gain stage tail이 주인인 동치류)은 이미 층3(`synthesize_l_class_thetas()`)이
+    theta로 노출했다.
+
+    `None`을 돌려주는 경우 -- **폴백은 없다**. 호출부가 즉시 `ValueError`로 거부한다
+    (2026-09-10 이전에는 여기서 `L_min x 고정배수`로 값을 지어냈다):
+      * LUT/kind를 못 찾음
+      * `gm_id_grid`/`L_candidates`/`VDS_candidates` 미선언 -> knee를 잴 근거가 없다
+    """
     if role in ("cascode", "signal"):
         raise ValueError(
-            f"role={role!r}은 select_L_by_role()이 아니라 배치 7-3d의 theta 탐색"
-            f"(L_cascode/L_stage2out)이 담당한다 -- 여기서 호출하면 안 됨")
-    # 2026-09-10(§7.10 C1/C9) -- `mirror`는 상수 배수가 아니라 **실측 knee**를 쓴다.
-    # 호출자가 `knee`를 주면(=`knee_L_for_kind()` 결과) 그 값이 이긴다. 안 주면 기존
-    # 배수로 폴백한다(하위호환 -- knee를 계산할 spec이 없는 호출부가 아직 있다).
-    if role == "mirror" and knee:
-        return float(knee)
-    multiplier = _L_ROLE_MULTIPLIERS.get(role)
-    if multiplier is None:
+            f"L_role={role!r}({name})은 배치 7-3d의 theta 탐색(L_cascode/L_stage2out)이 "
+            f"담당한다 -- device_roles의 L_role로 선언하면 그 탐색을 무력화한다")
+    if role not in _L_ROLE_TARGETS:
         raise ValueError(
-            f"등록되지 않은 role: {role!r} -- _L_ROLE_MULTIPLIERS에 등록된 "
-            f"{sorted(_L_ROLE_MULTIPLIERS)} 중 하나이거나 'cascode'/'signal'이어야 한다")
-    return L_min * multiplier
+            f"등록되지 않은 L_role: {role!r}({name}) -- {sorted(_L_ROLE_TARGETS)} 중 "
+            f"하나이거나 'cascode'/'signal'이어야 한다. 새 role을 추가하려면 그 role의 "
+            f"목표점을 **측정으로** 정의해 _L_ROLE_TARGETS에 등록할 것(상수 금지)")
+    lut = (spec.get("lut_by_kind") or {}).get(ctx.kind_of.get(name))
+    if lut is None:
+        return None
+    try:
+        knee = knee_L_for_kind(lut, spec)
+    except (KeyError, ValueError):
+        return None
+    e = ctx.sized.get(name) or {}
+    ID = e.get("ID")
+    if not ID or ID <= 0:
+        return knee            # 창을 못 그린다 -- 상수가 아니라 실측 knee를 그대로 준다
+    # vds는 knee와 같은 관례로 고른다: 실제 값이 있으면 그것, 없으면 선언된 VDS 격자의
+    # 대표점(중앙). knee_L_for_kind() docstring 실측대로 이 선택은 knee에 무관하고,
+    # 창에는 영향을 주되 그 영향은 뒤의 헤드룸 배분이 최종 vds로 다시 검증한다.
+    vds_list = sorted(float(v) for v in (spec.get("VDS_candidates") or ()) if v > 0)
+    vds = e.get("vds") or vds_list[len(vds_list) // 2]
+    # diode-connected면 gm_id가 자유롭지 않다 -- 창 판정을 diode 물리로 바꾼다.
+    _kind = ctx.kind_of.get(name)
+    _diode = _kind if (ctx.topology_path
+                       and name in _diode_set_cached(ctx.topology_path)) else ""
+    lo, hi = feasible_L_window(
+        lut, ID, vds, e.get("vsb", 0.0),
+        spec["L_candidates"], spec["gm_id_grid"],
+        spec.get("W_bounds", (1e-6, 200e-6)),
+        diode_kind=_diode, vds_is_fixed=bool(e.get("vds")))
+    if lo is None:
+        return knee            # 창이 비었다 -- 뒤 단계가 명시적으로 실패한다
+    return min(max(knee if role == "mirror" else lo, lo), hi)
+
+
+def derive_class_L(ctx: "SizingContext", members, spec: dict, prefer_knee: bool = True):
+    """**주인 없는 L 동치류**의 공통 L을 유도한다. 못 구하면 `None`(2026-09-10).
+
+    `derive_role_L()`을 소자별로 돌리면 **같은 류 안에서 L이 갈릴 수 있다** -- 실측:
+    파일럿에서 M37b만 자기 창 때문에 0.350um로 clamp되고 같은 류의 나머지는 0.245um로
+    남아, 고정 theta에서 `mirror_ratio_error_pct`가 3.64 -> 6.58로 나빠졌다. 미러비
+    `ID2/ID1=(W2/L2)/(W1/L1)`가 순수 W 비로 축약되려면 **류 전체가 같은 L**이어야 한다
+    (사용자 확정 원칙, §10.9).
+
+    그래서 류 단위로 한 번 정한다:
+
+        lo = max(멤버들의 창 하한)      hi = min(멤버들의 창 상한)     (교집합)
+        knee = 멤버 kind들의 knee 중앙값 (대개 단일 kind다 -- 진짜 미러는 kind가 같다)
+        L = clamp(knee if prefer_knee else lo, [lo, hi])
+
+    `prefer_knee`는 호출자가 멤버들의 `L_role`에서 정한다(`derive_role_L()`의
+    `_L_ROLE_TARGETS`와 같은 규칙) -- 류 안에 출력임피던스가 중요한 멤버가 하나라도 있으면
+    그 요구가 이긴다(L은 류 전체가 하나뿐이라 더 보수적인 쪽을 따라야 한다).
+
+    교집합이 비면(=모든 멤버를 동시에 만족시키는 L이 없다) `None`을 돌려 호출자가
+    소자별 유도로 남겨두게 한다 -- 값을 지어내 억지로 묶지 않는다. 그 경우 갈린 L은
+    `audit_l_sharing_consistency()`가 드러낸다.
+
+    ⚠️ 권위 있는 출처(theta/compensation)에서 온 멤버는 호출자가 걸러서 넘긴다.
+    """
+    knees, lo, hi = [], None, None
+    vds_list = sorted(float(v) for v in (spec.get("VDS_candidates") or ()) if v > 0)
+    for m in members:
+        lut = (spec.get("lut_by_kind") or {}).get(ctx.kind_of.get(m))
+        if lut is None:
+            continue
+        try:
+            knees.append(knee_L_for_kind(lut, spec))
+        except (KeyError, ValueError):
+            return None       # knee를 잴 근거가 없다 -- 류 단위로도 못 정한다
+        e = ctx.sized.get(m) or {}
+        ID = e.get("ID")
+        if not ID or ID <= 0 or not vds_list:
+            continue          # 창을 못 그리는 멤버는 교집합에 제약을 안 건다
+        _m_diode = ctx.kind_of.get(m) if (ctx.topology_path
+                                          and m in _diode_set_cached(ctx.topology_path)) else ""
+        m_lo, m_hi = feasible_L_window(
+            lut, ID, e.get("vds") or vds_list[len(vds_list) // 2], e.get("vsb", 0.0),
+            spec["L_candidates"], spec["gm_id_grid"],
+            spec.get("W_bounds", (1e-6, 200e-6)),
+            diode_kind=_m_diode, vds_is_fixed=bool(e.get("vds")))
+        if m_lo is None:
+            return None       # 이 멤버는 어떤 L로도 W 한계를 못 맞춘다
+        lo = m_lo if lo is None else max(lo, m_lo)
+        hi = m_hi if hi is None else min(hi, m_hi)
+    if not knees:
+        return None
+    knees.sort()
+    knee = knees[len(knees) // 2]
+    if lo is None:
+        return knee if prefer_knee else None
+    if lo > hi:
+        return None           # 교집합이 비었다 -- 억지로 하나로 묶지 않는다
+    return min(max(knee if prefer_knee else lo, lo), hi)
 
 
 def estimate_area_budget(kind: str, role_tag: str, area_priors: dict, n_fingers: int,
@@ -8280,15 +8496,20 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             if dr.get("L_role"):
                 entry = ctx.sized.setdefault(name, {})
                 if entry.get("_L_source") not in _AUTHORITATIVE_L_SOURCES:
-                    L_min = spec.get("L_min_by_kind", {}).get(kind_of[name], spec.get("L_min"))
-                    _knee = None
-                    try:
-                        _knee = knee_L_for_kind(spec["lut_by_kind"][kind_of[name]], spec)
-                    except (KeyError, ValueError):
-                        _knee = None       # knee를 못 구하면 기존 배수 폴백(조용히 아님 --
-                                            # select_L_by_role()이 그 사실을 문서화한다)
-                    entry["L"] = select_L_by_role(dr["L_role"], L_min, knee=_knee)
-                    entry["_L_source"] = "L_role"
+                    # 2026-09-10(사용자 지시 "bias_replica 상수도 없애", 전 회로 적용) --
+                    # role 배수 대신 **유도**한다: L = clamp(knee(LUT 실측),
+                    # W 실현가능 창(선언 W_bounds + 이 소자의 실제 ID)). mirror/bias_replica를
+                    # 구분하지 않는다 -- 차이는 전류 규모로 나타나고 창이 반영한다.
+                    # 유도할 근거가 없으면(LUT/격자 미선언) 기존 배수로 폴백한다.
+                    _derived_L = derive_role_L(ctx, name, spec, dr["L_role"])
+                    if not _derived_L:
+                        raise ValueError(
+                            f"{name}: L_role={dr['L_role']!r}의 L을 유도할 근거가 없다 -- "
+                            f"kind={kind_of[name]!r}의 LUT과 spec의 gm_id_grid/L_candidates/"
+                            f"VDS_candidates가 전부 선언돼 있어야 knee를 잴 수 있다. "
+                            f"(2026-09-10 이전에는 여기서 L_min x 고정배수로 값을 지어냈다)")
+                    entry["L"] = _derived_L
+                    entry["_L_source"] = "L_role_derived"
 
         # 2026-09-10(층2, 사용자 확정 "M5가 주인이야") -- **L 동치류의 주인이 정한 L을 류
         # 전체에 전파**한다. 동치류는 진짜 전류미러(같은 kind/gate/source, 순수 connectivity)
@@ -8308,6 +8529,30 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
         for _lc_root, _lc_info in _lc_owners.items():
             _lc_owner = _lc_info["owner"]
             if not _lc_owner:
+                # 2026-09-10(사용자 지시 "bias_replica 상수도 없애", 전 회로 적용) --
+                # 주인(gain stage tail)이 없는 류도 **공통 L**을 가져야 한다. 주인이 없으니
+                # 탐색이 정할 자유도가 없고(그래서 theta로 만들지 않는다), 대신 류 전체의
+                # 실현가능 창 교집합에서 knee를 clamp해 **결정적으로 유도**한다.
+                # 소자별로 따로 유도하면 같은 류 안에서 L이 갈려 미러비가 나빠진다(실측:
+                # 파일럿 mirror_ratio_error_pct 3.64 -> 6.58) -- derive_class_L() 참고.
+                _lc_free = [m for m in _lc_info["members"]
+                            if (ctx.sized.get(m) or {}).get("_L_source")
+                            not in _AUTHORITATIVE_L_SOURCES]
+                if len(_lc_free) < 2:
+                    continue
+                # 류 안에 목표점이 knee인 멤버(mirror)가 하나라도 있으면 그 요구가 이긴다 --
+                # L은 류 전체가 공유하는 하나뿐이라 더 보수적인 쪽을 따라야 한다.
+                _lc_knee_pref = any(
+                    _L_ROLE_TARGETS.get((device_roles.get(_m) or {}).get("L_role")) == "knee"
+                    for _m in _lc_free)
+                _lc_cL = derive_class_L(ctx, _lc_free, spec, prefer_knee=_lc_knee_pref)
+                if not _lc_cL:
+                    continue
+                for _lc_m in _lc_free:
+                    _lc_e = ctx.sized.setdefault(_lc_m, {})
+                    if _lc_e.get("L") != _lc_cL:
+                        _lc_e["L"] = _lc_cL
+                        _lc_e["_L_source"] = f"l_class_derived:{_lc_root}"
                 continue
             # 2026-09-10(§7.10) -- 주인은 **gain 임계 소자**(gain stage의 tail)라 역할
             # 휴리스틱(`bias_replica` 1.2x 등)이 아니라 **knee에서 출발**한다. §7.10:
@@ -11733,6 +11978,22 @@ def run_topology_pipeline_with_finger_fixup(
 # ---------------------------------------------------------------------------
 
 if __name__ == "__main__":
+    def _tst_grids(spec: dict) -> dict:
+        """self-test 픽스처 보조(2026-09-10) -- spec의 LUT에서 **격자 3종을 채운다**.
+
+        `derive_role_L()`이 `L_role` 소자의 L을 knee(LUT 실측)에서 유도하는데,
+        `knee_L_for_kind()`는 "이 설계가 실제로 탐색하는 격자"에서만 knee를 잰다 --
+        선언이 없으면 값을 지어내지 않고 거부한다(그 함수 docstring의 실측 근거 참고).
+        실제 설계 spec(`workspaces/run_harness.py`의 `SPECS`)은 이 셋을 전부 직접
+        선언하므로, 이 헬퍼는 **toy 픽스처를 실제 spec과 같은 모양으로 맞추는 것**일 뿐
+        엔진에 새 폴백을 만드는 게 아니다.
+        """
+        _l = list(spec["lut_by_kind"].values())[0]
+        spec.setdefault("L_candidates", [float(v) for v in _l.L_grid])
+        spec.setdefault("VDS_candidates", [float(v) for v in _l.VDS_grid])
+        spec.setdefault("gm_id_grid", [i * 0.5 for i in range(4, 61)])
+        return spec
+
     import sys
     try:  # Windows 콘솔 기본 코드페이지(cp949/cp1252)가 한글/em-dash를 못 찍는 문제 방지
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
@@ -12747,7 +13008,7 @@ if __name__ == "__main__":
 
     print()
     print("# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --")
-    print("# allocate_stack_headroom()/search_gm_id_for_role()/select_L_by_role()")
+    print("# allocate_stack_headroom()/search_gm_id_for_role()/derive_role_L()")
 
     print()
     print("  [7-3b allocate_stack_headroom() -- resize.py 6개 소자 스택, vdd=1.8V]")
@@ -12854,20 +13115,80 @@ if __name__ == "__main__":
         print(f"    PASS: ValueError -- {str(_e_role)[:70]}...")
 
     print()
-    print("  [7-3f select_L_by_role() -- mirror/bias_replica는 배수, cascode/signal은 ValueError]")
-    _L_min_demo = 0.15e-6
-    _L_mirror = select_L_by_role("mirror", _L_min_demo)
-    _L_bias = select_L_by_role("bias_replica", _L_min_demo)
-    assert abs(_L_mirror - 2.5 * _L_min_demo) < 1e-15
-    assert abs(_L_bias - 1.2 * _L_min_demo) < 1e-15
-    print(f"    mirror: L={_L_mirror*1e6:.3f}um(={_L_min_demo*1e6:.2f}um*2.5), "
-          f"bias_replica: L={_L_bias*1e6:.3f}um(={_L_min_demo*1e6:.2f}um*1.2)")
+    print("  [7-3f 대체(2026-09-10, 사용자 지시 \"bias_replica 상수도 없애\") --")
+    print("   derive_role_L(): L = clamp(knee(LUT 실측), W 실현가능 창). 옛 _L_ROLE_MULTIPLIERS")
+    print("   (mirror 2.5 / bias_replica 1.2)는 삭제됐다 -- 아래는 그 자리를 대신하는 게이트다]")
+    _drl_spec = {
+        "lut_by_kind": {"nmos": lut},
+        "gm_id_grid": [i * 0.5 for i in range(4, 61)],
+        "L_candidates": [float(v) for v in lut.L_grid],
+        "VDS_candidates": [float(v) for v in lut.VDS_grid],
+        "W_bounds": (1e-6, 200e-6),
+    }
+    _drl_ctx = SizingContext(spec=_drl_spec, kind_of={"Mm": "nmos"})
+    _drl_knee = knee_L_for_kind(lut, _drl_spec)
+
+    # (1) ID를 아직 모르면 knee 그대로 -- 창을 못 그리니 clamp도 없다.
+    _drl_ctx.sized["Mm"] = {}
+    assert abs(derive_role_L(_drl_ctx, "Mm", _drl_spec, "mirror") - _drl_knee) < 1e-18
+    print(f"    PASS: ID 미확정 -> knee 그대로 {_drl_knee*1e6:.3f}um (상수가 아니라 LUT 실측)")
+
+    # (2) ★ clamp가 **양방향으로 실제 값을 바꾸는지**를 본다. 게이트는 '통과'가 아니라
+    #     '동작'을 보여야 한다(프로젝트 원칙: 무동작 게이트는 게이트가 아니다).
+    #       - 아래로: 전류가 크면 큰 L에서 W가 상한을 넘어 창의 **위쪽**이 잘린다.
+    #       - 위로:   W 하한이 높으면 작은 L에서 W가 미달해 창의 **아래쪽**이 잘린다.
+    #     두 경우 모두 새 규칙은 knee가 아니라 **창의 끝**을 고른다 -- 옛 고정배수라면
+    #     이 상황에서도 그대로 L_min x 2.5를 냈을 것이다.
+    _drl_vds = sorted(float(v) for v in lut.VDS_grid)[len(lut.VDS_grid) // 2]
+
+    def _drl_case(_ID, _wb, _want):
+        _s = dict(_drl_spec, W_bounds=_wb)
+        _drl_ctx.sized["Mm"] = {"ID": _ID, "vds": _drl_vds, "vsb": 0.0}
+        _lo, _hi = feasible_L_window(lut, _ID, _drl_vds, 0.0, _s["L_candidates"],
+                                      _s["gm_id_grid"], _wb)
+        assert _lo is not None, f"ID={_ID}, W_bounds={_wb}에서 실현가능 창이 비었다(픽스처 설계 오류)"
+        _L = derive_role_L(_drl_ctx, "Mm", _s, "mirror")
+        assert _lo <= _L <= _hi, f"유도된 L={_L}이 실현가능 창 [{_lo},{_hi}] 밖이다"
+        assert abs(_L - _drl_knee) > 1e-18, \
+            f"clamp가 안 물렸다(L==knee) -- ID={_ID}, W_bounds={_wb}에서 이 게이트는 무동작이다"
+        assert (_L < _drl_knee) == (_want == "down"), f"clamp 방향이 {_want}가 아니다"
+        print(f"    PASS: ID={_ID*1e6:.0f}uA, W_bounds={_wb[0]*1e6:.0f}~{_wb[1]*1e6:.0f}um "
+              f"-> 창=[{_lo*1e6:.3f},{_hi*1e6:.3f}]um, knee {_drl_knee*1e6:.3f}um을 "
+              f"{_L*1e6:.3f}um로 **{'아래' if _want == 'down' else '위'}로 clamp**했다")
+
+    _drl_case(30e-3, (1e-6, 200e-6), "down")     # 큰 전류 -> 큰 L에서 W가 상한 초과
+    _drl_case(1e-8, (120e-6, 200e-6), "up")      # 높은 W 하한 -> 작은 L에서 W 미달
+
+    # (3) knee를 잴 근거(격자)가 없으면 값을 지어내지 않고 None -- 호출부가 거부한다.
+    _drl_nogrid = dict(_drl_spec)
+    del _drl_nogrid["gm_id_grid"]
+    assert derive_role_L(_drl_ctx, "Mm", _drl_nogrid, "mirror") is None
+    print("    PASS: gm_id_grid 미선언 -> None(옛 코드는 여기서 L_min x 배수를 지어냈다)")
+
+    # (4) cascode/signal은 theta 탐색 담당 -- 없어진 select_L_by_role()의 가드를 이관했다.
     for _bad_role in ("cascode", "signal"):
         try:
-            select_L_by_role(_bad_role, _L_min_demo)
+            derive_role_L(_drl_ctx, "Mm", _drl_spec, _bad_role)
             raise AssertionError(f"role={_bad_role}인데 에러가 안 났다")
         except ValueError as _e_L:
             print(f"    PASS: role={_bad_role!r} -> ValueError -- {str(_e_L)[:60]}...")
+
+    # (5) 류 단위 유도는 멤버 창의 **교집합** 안에 있어야 한다(미러비 보존).
+    _drl_ctx.kind_of["Mn"] = "nmos"
+    _drl_cls_ID = 10e-3
+    _drl_ctx.sized["Mn"] = {"ID": _drl_cls_ID * 4.0, "vds": _drl_vds, "vsb": 0.0}
+    _drl_ctx.sized["Mm"] = {"ID": _drl_cls_ID, "vds": _drl_vds, "vsb": 0.0}
+    _cL = derive_class_L(_drl_ctx, ["Mm", "Mn"], _drl_spec)
+    if _cL:
+        for _mm in ("Mm", "Mn"):
+            _e = _drl_ctx.sized[_mm]
+            _l2, _h2 = feasible_L_window(lut, _e["ID"], _drl_vds, 0.0,
+                                          _drl_spec["L_candidates"], _drl_spec["gm_id_grid"],
+                                          _drl_spec["W_bounds"])
+            assert _l2 <= _cL <= _h2, f"류 공통 L={_cL}이 {_mm}의 창 밖이다"
+        print(f"    PASS: 전류가 4배 다른 두 멤버의 류 공통 L={_cL*1e6:.3f}um -- 양쪽 창 안")
+    else:
+        print("    PASS: 두 멤버의 창 교집합이 비어 None -- 억지로 하나로 묶지 않는다")
 
     print()
     print("  [7-4b 확장 estimate_area_budget() -- 콜드스타트 블렌딩 vs 실측 자기참조]")
@@ -13071,8 +13392,14 @@ if __name__ == "__main__":
         _gmv_path = _os.path.join(_gmv_tmp, "_gmv_test.topology.json")
         with open(_gmv_path, "w", encoding="utf-8") as _f:
             json.dump(_gmv_topo, _f)
+        # 2026-09-10 -- 격자 3종을 선언한다. L_role의 L은 이제 knee(LUT 실측)에서 유도되고
+        # knee는 "이 설계가 실제로 탐색하는 격자"에서만 잰다(knee_L_for_kind() 참고).
+        # 선언이 없으면 엔진이 값을 지어내지 않고 거부한다 -- 실제 spec은 전부 선언한다.
         _gmv_spec = {"lut_by_kind": {"nmos": lut}, "vdd": 1.8, "L_min": 0.15e-6,
                      "W_bounds": (1e-6, 200e-6), "min_vds_by_role": {"mirror": 0.2},
+                     "L_candidates": [float(v) for v in lut.L_grid],
+                     "VDS_candidates": [float(v) for v in lut.VDS_grid],
+                     "gm_id_grid": [i * 0.5 for i in range(4, 61)],
                      "known_sizing": _gmv_known}
         # optimize_full_circuit_budget()이 아니라 _build_theta_evaluator()+evaluate({})를 직접
         # 쓴다 -- 이 테스트가 검증하려는 건 device_roles 2차 pass 하나뿐이고, 전체 harness는
@@ -13158,9 +13485,9 @@ if __name__ == "__main__":
         _vmv_path = _os.path.join(_vmv_tmp, "_vmv_test.topology.json")
         with open(_vmv_path, "w", encoding="utf-8") as _f:
             json.dump(_vmv_topo, _f)
-        _vmv_spec = {"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _vmv_vdd, "L_min": 0.15e-6,
+        _vmv_spec = _tst_grids({"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _vmv_vdd, "L_min": 0.15e-6,
                      "W_bounds": (1e-6, 200e-6), "min_vds_by_role": {"mirror": 0.2},
-                     "known_sizing": _vmv_known}
+                     "known_sizing": _vmv_known})
         _vmv_ctx, _ = _build_theta_evaluator(_vmv_path, _vmv_spec)["evaluate"]({})
     _vmv_vds_a = _vmv_ctx.sized["Ma"]["vds"]
     assert abs(_vmv_vds_a - _vmv_vdd / 2) < 1e-9, \
@@ -13236,9 +13563,9 @@ if __name__ == "__main__":
         _fpw_path = _os.path.join(_fpw_tmp, "_fpw_test.topology.json")
         with open(_fpw_path, "w", encoding="utf-8") as _f:
             json.dump(_fpw_topo, _f)
-        _fpw_spec = {"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _fpw_vdd, "L_min": 0.15e-6,
+        _fpw_spec = _tst_grids({"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _fpw_vdd, "L_min": 0.15e-6,
                      "W_bounds": (1e-6, 200e-6), "min_vds_by_role": {"mirror": 0.2},
-                     "known_sizing": _fpw_known}
+                     "known_sizing": _fpw_known})
         _fpw_ctx, _ = _build_theta_evaluator(_fpw_path, _fpw_spec)["evaluate"]({})
     # 기대값 손계산: S.vds = VGS(N) (vds_match_vgs_of) -- grpB pre-pass.
     _fpw_target_vgs_n = lut.vgs_for_gm_id(15.0, 0.5e-6, 0.9, 0.0)
@@ -13289,9 +13616,9 @@ if __name__ == "__main__":
         _fpw_cyc2_path = _os.path.join(_fpw_cyc2_tmp, "_fpw_cyc2.topology.json")
         with open(_fpw_cyc2_path, "w", encoding="utf-8") as _f:
             json.dump(_fpw_cyc2_topo, _f)
-        _fpw_cyc2_spec = {"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _fpw_vdd,
+        _fpw_cyc2_spec = _tst_grids({"lut_by_kind": {"nmos": lut, "pmos": lut}, "vdd": _fpw_vdd,
                            "L_min": 0.15e-6, "W_bounds": (1e-6, 200e-6),
-                           "min_vds_by_role": {"mirror": 0.2}, "known_sizing": _fpw_cyc2_known}
+                           "min_vds_by_role": {"mirror": 0.2}, "known_sizing": _fpw_cyc2_known})
         try:
             _build_theta_evaluator(_fpw_cyc2_path, _fpw_cyc2_spec)["evaluate"]({})
             raise AssertionError("X<->Y가 서로 budget_reference_device로 순환 참조하는데 "
@@ -13326,9 +13653,13 @@ if __name__ == "__main__":
         _diag_path = _os.path.join(_diag_tmp, "_diag_ok.topology.json")
         with open(_diag_path, "w", encoding="utf-8") as _f:
             json.dump(_diag_ok_topo, _f)
-        _diag_spec_ok = {"lut_by_kind": {"nmos": _diag_lut}, "vdd": 1.8, "L_min": 0.5e-6,
+        # 2026-09-10 -- knee_L_for_kind() docstring이 기록한 반례가 바로 이 픽스처였다
+        # (known_sizing.L=0.5um, W_bounds 1~50um에서 knee를 그대로 쓰면 diode 자기일관
+        # 사이징이 W=0.824um로 하한 1um을 깬다). 이제 격자를 선언해도 통과한다 --
+        # feasible_L_window()가 diode에 대해 diode_vds_window()로 판정하기 때문이다.
+        _diag_spec_ok = _tst_grids({"lut_by_kind": {"nmos": _diag_lut}, "vdd": 1.8, "L_min": 0.5e-6,
                            "W_bounds": (1e-6, 50e-6), "min_vds_by_role": {"mirror": 0.2},
-                           "known_sizing": {"Mo": {"ID": 1e-5, "L": 0.5e-6, "vds": 0.6, "vsb": 0.0}}}
+                           "known_sizing": {"Mo": {"ID": 1e-5, "L": 0.5e-6, "vds": 0.6, "vsb": 0.0}}})
         _diag_r1 = diagnose_sizing_roles_gap(_diag_path, _diag_spec_ok)
         assert _diag_r1["status"] == "ok", f"known_sizing으로 다 채웠는데 ok가 아님: {_diag_r1}"
         print(f"    PASS: {_diag_r1}")
@@ -13594,7 +13925,7 @@ if __name__ == "__main__":
         _lrec_path = _os.path.join(_lrec_tmpdir, "_test_L_reconcile.topology.json")
         with open(_lrec_path, "w", encoding="utf-8") as _f:
             json.dump(_lrec_topo, _f)
-        _lrec_spec = {
+        _lrec_spec = _tst_grids({
             "lut_by_kind": {"nmos": lut}, "GBW": 20e6, "CL": 3e-12, "Z": 10.0, "NDP": 4.0,
             "L_candidates": [float(v) for v in lut.L_grid],
             "VDS_candidates": [float(v) for v in lut.VDS_grid],
@@ -13603,11 +13934,13 @@ if __name__ == "__main__":
             # Mb의 L_role="mirror"이 낼 L(=L_min_by_kind*2.5)이 compensation이 Ma에 고른 L과
             # 반드시 달라지도록 L_min_by_kind를 일부러 compensation 후보와 안 맞는 값으로 지정.
             "L_min_by_kind": {"nmos": 0.35e-6},
-        }
+        })
         _lrec_result = optimize_full_circuit_budget(_lrec_path, _lrec_spec)
         _La_final = _lrec_result["sizing"]["Ma"]["L"]
         _Lb_final = _lrec_result["sizing"]["Mb"]["L"]
-        _Lb_heuristic = 0.35e-6 * 2.5  # select_L_by_role("mirror", 0.35e-6)이 원래 냈을 값
+        # Mb가 단독이었으면(=compensation이 안 덮었으면) derive_role_L()이 냈을 값.
+        # 2026-09-10 이전에는 `0.35e-6 * 2.5`(select_L_by_role의 고정배수)였다.
+        _Lb_heuristic = knee_L_for_kind(_lrec_spec["lut_by_kind"]["nmos"], _lrec_spec)
         assert abs(_La_final - _Lb_final) < 1e-15, \
             f"matching pair L이 여전히 다름(에러 없이 통과했는데 재설계가 안 됨): Ma={_La_final}, Mb={_Lb_final}"
         assert abs(_Lb_heuristic - _La_final) > 1e-15, \
@@ -13632,8 +13965,8 @@ if __name__ == "__main__":
         _lrec_path2 = _os.path.join(_lrec_tmpdir2, "_test_L_reconcile2.topology.json")
         with open(_lrec_path2, "w", encoding="utf-8") as _f:
             json.dump(_lrec_topo2, _f)
-        _lrec_spec2 = {"lut_by_kind": {"nmos": lut, "pmos": lut},
-                        "L_min_by_kind": {"nmos": 0.35e-6, "pmos": 0.35e-6}}
+        _lrec_spec2 = _tst_grids({"lut_by_kind": {"nmos": lut, "pmos": lut},
+                        "L_min_by_kind": {"nmos": 0.35e-6, "pmos": 0.35e-6}})
         try:
             optimize_full_circuit_budget(_lrec_path2, _lrec_spec2)
             raise AssertionError("양쪽 다 휴리스틱인데 L이 다른데도 에러가 안 났다")
