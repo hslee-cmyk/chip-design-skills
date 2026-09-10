@@ -62,8 +62,11 @@ PATHS = {
     "nmcnr_amplifier":              ({"Vin_p", "Vin_n"}, {"Vout"},   "★제안(넷 이름)"),
 }
 # current_reuse는 SLSQP가 비싸므로 이미 구해둔 theta를 재사용한다(있으면).
+# 2026-09-10 -- 정본 spec으로 SLSQP가 처음 수렴한 뒤 그 theta_star를 쓴다(v4.35).
+# 이전 캐시(probe_node_voltage_audit.theta_star.json)는 **비정본 spec**에서 나온 값이라
+# 쓰면 안 된다(§10.6 사고).
 CACHED = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                      "probe_node_voltage_audit.theta_star.json")
+                      "canonical_theta_star.json")
 
 emit("=" * 100)
 emit("parasitic_pm_deg -- 4개 회로 전수 (2026-09-10, §7.11)")

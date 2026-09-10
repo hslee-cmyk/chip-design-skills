@@ -31,7 +31,9 @@
         "Vom",
         "N_cc_rz1"
       ],
-      "_comment": "2026-08-03 -- 사용자가 논문 원본 PDF(원본 경로: G:\\내 드라이브\\work\\Todoc\\논문모음\\A 126uW Current-Reuse Telescopic OTA with Class-AB Output Stage.pdf)를 직접 보고 확정: Vom-Cc-Rz-M16.gate 직렬 경로. Cc/Rz 사이 중간노드(N_cc_rz1)는 원문 라벨이 아니라 이 JSON이 새로 부여한 내부 노드 이름(다른 N-접두 노드와 동일 관례). compensation.parameters의 'Cc' 심볼과 이 소자는 같은 물리 커패시터를 가리키지만, 저 심볼은 사이징 공식 입력값일 뿐 이전엔 netlist/passive_elements 어디에도 connectivity로 안 들어가 있었다(2026-08-03 세션에서 발견된 gap)."
+      "_comment": "2026-08-03 -- 사용자가 논문 원본 PDF(원본 경로: G:\\내 드라이브\\work\\Todoc\\논문모음\\A 126uW Current-Reuse Telescopic OTA with Class-AB Output Stage.pdf)를 직접 보고 확정: Vom-Cc-Rz-M16.gate 직렬 경로. Cc/Rz 사이 중간노드(N_cc_rz1)는 원문 라벨이 아니라 이 JSON이 새로 부여한 내부 노드 이름(다른 N-접두 노드와 동일 관례). compensation.parameters의 'Cc' 심볼과 이 소자는 같은 물리 커패시터를 가리키지만, 저 심볼은 사이징 공식 입력값일 뿐 이전엔 netlist/passive_elements 어디에도 connectivity로 안 들어가 있었다(2026-08-03 세션에서 발견된 gap).",
+      "value_from_spec": "Cc",
+      "_value_from_spec_comment": "2026-09-10(7.11 L2) -- 이 소자의 기존 _comment가 이미 \"compensation.parameters의 'Cc' 심볼과 이 소자는 같은 물리 커패시터를 가리킨다\"고 적고 있었다. 그 사실을 기계가 읽을 수 있게 선언으로 옮긴다 -- 값을 여기 숫자로 복제하면 spec과 조용히 갈릴 수 있다(10.6 사고와 같은 형태). constraint의 value_from_spec과 같은 규약이다."
     },
     {
       "name": "Rz1",
@@ -52,7 +54,9 @@
         "Vop",
         "N_cc_rz2"
       ],
-      "_comment": "Vom측 Cc1과 대칭(사용자 확인): Vop-Cc-Rz-M26.gate."
+      "_comment": "Vom측 Cc1과 대칭(사용자 확인): Vop-Cc-Rz-M26.gate.",
+      "value_from_spec": "Cc",
+      "_value_from_spec_comment": "2026-09-10(7.11 L2) -- 이 소자의 기존 _comment가 이미 \"compensation.parameters의 'Cc' 심볼과 이 소자는 같은 물리 커패시터를 가리킨다\"고 적고 있었다. 그 사실을 기계가 읽을 수 있게 선언으로 옮긴다 -- 값을 여기 숫자로 복제하면 spec과 조용히 갈릴 수 있다(10.6 사고와 같은 형태). constraint의 value_from_spec과 같은 규약이다."
     },
     {
       "name": "Rz2",
@@ -64,6 +68,72 @@
         "Vom1"
       ],
       "_comment": "2026-09-03(세션44 계속) -- Vom측 Rz1과 대칭(Rz1 주석 참고) -- Vop측은 Cc2+Rz2가 M26.gate(Vom1)로 피드백되므로 참조 소자는 M26(M16과 declared matching_pairs로 byte-identical, 세션44에서 실측 확인)."
+    },
+    {
+      "name": "CL1",
+      "kind": "capacitor",
+      "value_farad": null,
+      "value_from_spec": "C_Ltot",
+      "terminals": [
+        "Vop",
+        "gnd"
+      ],
+      "_comment": "2026-09-10(사용자 승인, 논문 Table I/Eq.6 확인) -- 논문 Table I가 'Values for C1, C2, and C_L: 500fF, 500fF, 1pF'로 부하용량을 명시하고, Eq.(6) omega_p2 ~ gm2/(C_Ltot*Cgg2/Cc + Cgg2 + C_Ltot)가 **비지배 pole을 C_Ltot으로** 정한다. 그런데 지금까지 passive_elements에는 Cc/Rz/R만 있고 부하용량의 connectivity가 없어, L2 주파수응답이 출력 pole을 실제보다 높게 봤다(PM 93.8도, 논문 시뮬 실측은 60.557도). 완전차동이라 Vop/Vom 각각 접지로 대칭 배치한다(사용자 확정). 값은 숫자로 복제하지 않고 spec의 C_Ltot을 참조한다."
+    },
+    {
+      "name": "CL2",
+      "kind": "capacitor",
+      "value_farad": null,
+      "value_from_spec": "C_Ltot",
+      "terminals": [
+        "Vom",
+        "gnd"
+      ],
+      "_comment": "2026-09-10(사용자 승인, 논문 Table I/Eq.6 확인) -- 논문 Table I가 'Values for C1, C2, and C_L: 500fF, 500fF, 1pF'로 부하용량을 명시하고, Eq.(6) omega_p2 ~ gm2/(C_Ltot*Cgg2/Cc + Cgg2 + C_Ltot)가 **비지배 pole을 C_Ltot으로** 정한다. 그런데 지금까지 passive_elements에는 Cc/Rz/R만 있고 부하용량의 connectivity가 없어, L2 주파수응답이 출력 pole을 실제보다 높게 봤다(PM 93.8도, 논문 시뮬 실측은 60.557도). 완전차동이라 Vop/Vom 각각 접지로 대칭 배치한다(사용자 확정). 값은 숫자로 복제하지 않고 spec의 C_Ltot을 참조한다."
+    },
+    {
+      "name": "Cf1",
+      "kind": "capacitor",
+      "value_farad": null,
+      "value_from_spec": "Cf",
+      "terminals": [
+        "Vom",
+        "Vip"
+      ],
+      "_comment": "2026-09-10(사용자 승인) -- 스위치드커패시터 피드백망. 논문 Eq.(4) beta = Cf/(Cf + Cs + Cgg1)의 Cf이고, Table I의 C1(500fF)에 해당한다. **교차 연결**인 이유: 이 회로는 Vip -> M1a -> Vom1 -> M26(공통소스) -> Vop로 반전이 두 번이라 Vip와 Vop가 **동상**이다(실측 DC 위상 -5.15도). 그래서 Vop를 Vip로 되먹이면 정궤환이 되고, 부궤환이 되려면 Vop<->Vim / Vom<->Vip로 교차해야 한다. 수치로도 확인됐다: 교차면 w_c에서 |A|=6.80dB로 논문의 1/beta(~6.4dB)에 가깝고, 비교차면 5.90dB로 멀어진다(2026-09-10 실측). 개루프 AC(Vip/Vim 구동)에서는 어느 쪽이든 출력을 Cf만큼 부하하는 것은 같지만, 토폴로지 기록은 물리대로 둔다."
+    },
+    {
+      "name": "Cf2",
+      "kind": "capacitor",
+      "value_farad": null,
+      "value_from_spec": "Cf",
+      "terminals": [
+        "Vop",
+        "Vim"
+      ],
+      "_comment": "2026-09-10(사용자 승인) -- 스위치드커패시터 피드백망. 논문 Eq.(4) beta = Cf/(Cf + Cs + Cgg1)의 Cf이고, Table I의 C1(500fF)에 해당한다. **교차 연결**인 이유: 이 회로는 Vip -> M1a -> Vom1 -> M26(공통소스) -> Vop로 반전이 두 번이라 Vip와 Vop가 **동상**이다(실측 DC 위상 -5.15도). 그래서 Vop를 Vip로 되먹이면 정궤환이 되고, 부궤환이 되려면 Vop<->Vim / Vom<->Vip로 교차해야 한다. 수치로도 확인됐다: 교차면 w_c에서 |A|=6.80dB로 논문의 1/beta(~6.4dB)에 가깝고, 비교차면 5.90dB로 멀어진다(2026-09-10 실측). 개루프 AC(Vip/Vim 구동)에서는 어느 쪽이든 출력을 Cf만큼 부하하는 것은 같지만, 토폴로지 기록은 물리대로 둔다."
+    },
+    {
+      "name": "Cs1",
+      "kind": "capacitor",
+      "value_farad": null,
+      "value_from_spec": "Cs",
+      "terminals": [
+        "Vip",
+        "gnd"
+      ],
+      "_comment": "2026-09-10(사용자 승인) -- 스위치드커패시터 샘플링 커패시터. 논문 Eq.(4) beta = Cf/(Cf + Cs + Cgg1)의 Cs이고 Table I의 C2(500fF)에 해당한다. 증폭 위상에서 입력단(OTA 입력 노드)에서 본 하단이 AC 접지이므로 Vip/Vim -> gnd다. ⚠️ 개루프 AC 측정(Vip/Vim이 구동 노드)에서는 **양단이 다 고정이라 기여가 0**이다 -- 실측으로 확인했다(PM 75.348도로 Cs 유무에 변화 없음). beta의 분모로만 작용하며 그건 loop gain 크기이지 위상이 아니다. 그래도 토폴로지의 사실이므로 기록한다(선언은 계산에 쓰이는지와 무관하게 실제 connectivity를 담는다)."
+    },
+    {
+      "name": "Cs2",
+      "kind": "capacitor",
+      "value_farad": null,
+      "value_from_spec": "Cs",
+      "terminals": [
+        "Vim",
+        "gnd"
+      ],
+      "_comment": "2026-09-10(사용자 승인) -- 스위치드커패시터 샘플링 커패시터. 논문 Eq.(4) beta = Cf/(Cf + Cs + Cgg1)의 Cs이고 Table I의 C2(500fF)에 해당한다. 증폭 위상에서 입력단(OTA 입력 노드)에서 본 하단이 AC 접지이므로 Vip/Vim -> gnd다. ⚠️ 개루프 AC 측정(Vip/Vim이 구동 노드)에서는 **양단이 다 고정이라 기여가 0**이다 -- 실측으로 확인했다(PM 75.348도로 Cs 유무에 변화 없음). beta의 분모로만 작용하며 그건 loop gain 크기이지 위상이 아니다. 그래도 토폴로지의 사실이므로 기록한다(선언은 계산에 쓰이는지와 무관하게 실제 connectivity를 담는다)."
     }
   ],
   "_ideal_sources_comment": "2026-08-03(세션 4, 사용자 지적) -- `passive_elements`(R/C/Rz 등)는 값이 미상이어도 언젠가 실제 사이징·레이아웃 대상이 되는 '진짜' 물리 소자다. 반면 논문 회로도에 그려진 ideal current/voltage source(예: bias-gen 최상단 마스터 레퍼런스 전류원)는 그 자체로는 절대 실리콘으로 구현되지 않는 모델링 편의 소자(외부 핀에서 주입되는 이상적 자극, 또는 상위 레벨 시스템이 공급한다고 가정하는 값)다 -- `passive_elements`에 섞으면 나중에 사이징/레이아웃 코드가 이걸 실제 소자로 착각해 처리하려 들 위험이 있다. 그래서 별도 `ideal_sources` 배열을 신설하고, 각 항목에 `implementable: false`를 명시해 '이 소자는 최종 구현에서 반드시 제외해야 한다'는 걸 스키마 레벨에서 표시한다(사이징 엔진은 여전히 `netlist`/`passive_elements`처럼 이 배열도 안 읽으므로 기존 227곳 회귀 없음, `topology_to_markdown.py`만 이걸 읽어 별도 표로 '구현 불가' 경고와 함께 렌더링).",
@@ -119,7 +189,6 @@
     "parameters": [
       "t_lln",
       "PM_target_deg",
-      "Cc",
       "Cf",
       "Cs",
       "C_Ltot"
@@ -162,7 +231,8 @@
     "_shared_gm_id_groups_comment": "2026-08-03(배치 7-5 실행 중 발견) -- stage_devices[0](M1a/M1b, gmp)과 stage_devices[1](M4a/M4b, gmn)은 물리적으로 하나의 직렬 KCL 스택(M1a->M2a->M3a->M4a)이라 ID까지 같아야 한다(Eq.5는 gm만 같게 강제, ID는 별개). optimize_multistage()가 두 스테이지를 독립적으로 최적화하면 gm은 같아도 gm_id/ID가 달라져 A엔진에서 'KCL 위반'으로 실패했다 -- shared_gm_id_groups=[[0,1]]로 두 스테이지가 gm_id 하나를 공유하도록 지정해 해결. 2026-08-12(세션30) [2,3] 추가 -- stage_devices[2]/[3](M15/M25, M16/M26)을 분리한 직후 self-test(L5c)가 `propagate_topology_forced_currents()`에서 정확히 같은 유형의 KCL ValueError를 실측으로 재현했다: Vom 노드가 (사이징 엔진이 읽는 netlist 기준) M15.drain/M16.drain **딱 2개 단자뿐인 2단자 net**이라(R1은 별도 passive_elements 배열이라 엔진이 안 읽음), kcl_series_union()이 이미 순수 connectivity만으로 ID(M15)=ID(M16)를 강제하고 있었다 -- 이건 L 매칭과 무관한 **진짜 물리적 push-pull 출력단 정상전류 KCL**(선언이 아니라 회로 위상 자체의 귀결)이다. gm2가 gmp2=gmn2(50:50)로 이미 같아도, 두 스테이지를 독립적으로 optimize_multistage()하면(각자 다른 kind LUT에서 각자 최적 gm_id를 고름) ID=gm/gm_id가 갈라진다 -- shared_gm_id_groups=[[2,3]]으로 gm_id만 공유시켜 ID(M15)=ID(M16)를 회복한다. **L은 여전히 독립**이다 -- _size_group_at_gm_id()는 공유 그룹 안에서도 L/VDS는 스테이지별 자기 kind LUT로 각자 탐색하고 gm_id 하나만 고정하므로(코드 확인, sizing_recipe.py), 이 gm_id 공유가 L_stage2out_p/L_stage2out_n의 독립적 L 탐색을 막지 않는다.",
     "_stage_devices_comment": "2026-07-31 -- 이전 _stage_devices_pending 메모(gmp/gmn 분배가 stage_devices 계약과 안 맞을 거라는 우려)는 stale이었다: current_reuse_telescopic_topology()가 이미 [gmp,gmn,gm2] 3개를 위치별로 반환하고, optimize_full_circuit_budget()의 병합 코드(sizing_recipe.py 배치 7-3d)도 stage_devices[i]<->gms[i] 위치기반 매핑만 하므로 그룹0(M1a/M1b)은 gmp만, 그룹1(M4a/M4b)은 gmn만 정확히 받는다 -- 별도 스키마 확장 불필요. 2026-08-03(배치 7-5 실행 중 발견/보정): M25/M26(Vop측 출력 -- symmetry.matching_pairs상 M15/M25, M16/M26이 branch_symmetric)이 device_roles 어디에도 없어 optimize_full_circuit_budget()이 이 둘의 W를 못 채우고 조용히 partial 결과만 반환하는 gap이 있었다(에러 없이 sizing_overrides=None) -- stage_devices의 '그룹 전원이 같은 stage gm을 받는다' 계약이 branch_symmetric 의미와 정확히 일치하므로 새 메커니즘 대신 그룹에 편입시켜 해결.",
     "_stage_devices_comment_session30": "2026-08-12(세션30) -- 옛 stage_devices[2]=[M15,M16,M25,M26](4개, 단일 L/gm_id 강제)를 [M15,M25](PMOS)/[M16,M26](NMOS) 2그룹으로 분리. 계기: L_stage2out(옛 단일 theta)이 gain_db와 classab_centering_dev_v(M15=Vop1 레벨/M16=Vg15 레벨, 합=VDD 요구)에 동시에 걸려 실제로 상충함이 세션29 '## AN'에서 실측 확인됨 -- M15/M16을 하나의 L로 묶는 게 회로적 요구가 아니라 엔진 구현 편의였다는 게 사용자와 함께 진행한 문헌조사(gm/ID 방법론은 cross-kind 쌍을 독립 변수로 다룸, Pelgrom/전류미러 매칭은 same-kind에만 성립)+코드 대조(symmetry.matching_pairs가 이미 M15-M25/M16-M26만 선언하고 M15-M16 cross-kind 매칭은 없음)로 확인됨(`.ai/context.md` 세션30 참고). 레이아웃 안전성: build_graph()의 kind 동질성 하드 게이트(세션28)로 row는 항상 kind 동질이라 M15(PMOS)/M16(NMOS)는 애초에 같은 물리 row로 병합된 적이 없다(output_stage_a__pmos={M15,M25}/__nmos={M16,M26}, 세션28부터 이미 분리) -- 이번 분리는 레이아웃 병합 가정을 전혀 건드리지 않는다. M15-M25/M16-M26(같은 kind, declared matching_pairs)는 각자 그룹 안에서 여전히 L 공유가 강제된다(sizing_recipe.py의 matching pair L 불일치 하드에러, 2704~2742행 그대로 유효) -- '독립'은 오직 cross-kind 경계에서만 허용, same-kind 매칭 요구는 그대로 유지하는 게 이 변경의 원칙(자세한 논의는 세션30 대화 참고: L은 기본적으로 공유, declared matching_pairs가 없고 값싼 LUT 검토로 상충이 증명된 경계에서만 독립).",
-    "notes": "2026-07-31 사용자와 함께 원문(Xie & Chen) PDF p.3-4를 직접 확인해 Eq.2-6 전체를 재도출하고 topology_library.py에 구현·등록함(이전에 AI가 Eq.6의 PM->omega_p2/omega_c 관계식을 근거 없이 재구성해 등록했다가 사용자 지적으로 되돌린 뒤, 이번엔 원문 인용 'PM=tan^-1(omega_p2/omega_c) [9]'을 직접 확인). beta(Eq.4)도 원문의 고정 근사(0.48) 대신 prev_cggs[0](1단 자기 자신의 Cgg1) 고정점 반복으로 대체 -- toy LUT로 실제 수렴 확인(beta≈0.457, gm1≈252uS, 5회 반복 수렴, sizing_recipe.py self-test 참고)."
+    "notes": "2026-07-31 사용자와 함께 원문(Xie & Chen) PDF p.3-4를 직접 확인해 Eq.2-6 전체를 재도출하고 topology_library.py에 구현·등록함(이전에 AI가 Eq.6의 PM->omega_p2/omega_c 관계식을 근거 없이 재구성해 등록했다가 사용자 지적으로 되돌린 뒤, 이번엔 원문 인용 'PM=tan^-1(omega_p2/omega_c) [9]'을 직접 확인). beta(Eq.4)도 원문의 고정 근사(0.48) 대신 prev_cggs[0](1단 자기 자신의 Cgg1) 고정점 반복으로 대체 -- toy LUT로 실제 수렴 확인(beta≈0.457, gm1≈252uS, 5회 반복 수렴, sizing_recipe.py self-test 참고).",
+    "_parameters_cc_comment": "2026-09-10(사용자 지시 'Cc와 Rz는 보상망이 계산해서 확정해야지') -- Cc를 parameters에서 뺐다. 이제 current_reuse_telescopic_topology()가 원문 자신의 Eq.3/Eq.6에서 Cc = sqrt(beta*tan(PM_target)*C_Ltot*Cgg2)로 **유도**하고 exposed_params로 노출한다(Rz는 이미 nulling_reference_device로 1/gm(M16)을 동적 계산 중이었다). parameters에 남겨두면 spec의 손값 500fF가 유도값을 덮어쓴다."
   },
   "_compensation_status": "resolved",
   "_netlist_sections": "Fig.2/Fig.6 1단(M6,M7,M1a/b,M2a/b,M3a/b,M4a/b,M5 -- 11개, 확신도 HIGH) / Fig.3/Fig.7-우 2단 Class-AB Vom측(M8,M11a/b,M15,M9a/b,M12,M10,M14a/b,M16,M13 -- 12개, 확신도 MEDIUM) / Fig.1+Fig.7-좌 2단 Class-AB Vop측(M22,M20a/b,M25,M18a/b,M21,M19,M24b,M23a,M26,M17 -- 12개, 확신도 MEDIUM, 2026-07-29 신규) / Fig.8 bias-gen(M18_bg,M60,M61,M64,M63,M58,M57,M66,M68 -- 9개, 확신도 LOW, 2026-07-29 Fig.4에서 교체) / Fig.5 CMFB(M36a/b,M37a/b,M38,M39,M40 -- 7개, 확신도 MEDIUM)",
@@ -1983,6 +2053,12 @@
         "metric": "classab_centering_dev_v",
         "op": "<=",
         "value": 0.15
+      },
+      {
+        "metric": "parasitic_pm_deg",
+        "op": ">=",
+        "value_from_spec": "PM_target_deg",
+        "_comment": "2026-09-10(§7.11 L2 완성) -- 위상여유가 이 회로의 PM 목표를 넘어야 한다. 값을 숫자로 적지 않고 spec의 PM_target_deg를 참조한다(새 상수가 아니라 이미 선언된 값 자체이고, 복제하면 두 곳이 조용히 갈린다). **이 제약이 곧 L의 상한이다**: L↑ -> Cgg↑ -> 노드 pole↓ -> PM↓. metric은 L2(복소 MNA 주파수응답)로 재므로 보상망(Cc/Rz의 zero, Miller pole splitting, C_L 부하)이 전부 반영된다."
       }
     ]
   }

@@ -3519,65 +3519,251 @@ def node_pole_estimate(by_name: dict, sized: dict, spec: dict, only: set = None)
     return {"poles": poles, "skipped_low_impedance": skipped, "undetermined": undet}
 
 
+
+def _resolve_capacitor_farad(ctx: "SizingContext", p: dict) -> float:
+    """`passive_elements`의 커패시터 값을 정한다(2026-09-10, §7.11 L2).
+
+    `_resolve_nulling_resistor_ohm()`이 저항에 하는 것과 같은 역할이다:
+
+      1. `value_farad`가 있으면 그대로.
+      2. `value_from_spec: "<키>"`가 있으면 `spec[키]` -- 값을 topology.json에 복제하지
+         않기 위한 참조다(constraint의 `value_from_spec`과 같은 규약). 이 회로의 Cc1/Cc2가
+         실제 사례로, 그 소자의 기존 `_comment`가 이미 "compensation.parameters의 'Cc'
+         심볼과 같은 물리 커패시터"라고 적고 있다.
+      3. 둘 다 없으면 **에러**. 조용히 0으로 넘기면 보상망이 통째로 안 보이게 되는데,
+         그게 정확히 이 함수가 생긴 이유다(사용자 지적: "pm보상 회로가 있는데 왜 그건
+         고려하지 않지?").
+    """
+    v = p.get("value_farad")
+    if v is not None:
+        return float(v)
+    key = p.get("value_from_spec")
+    if key:
+        # 2026-09-10 -- ctx.derived가 spec보다 우선한다(omega_c와 같은 관례). 보상망이
+        # 계산해 확정한 값(예: 유도된 Cc)이 있으면 그게 진짜 회로의 값이고, spec의
+        # 손값은 폴백일 뿐이다.
+        if key in ctx.derived:
+            return float(ctx.derived[key])
+        if key not in ctx.spec:
+            raise ValueError(
+                f"커패시터 {p.get('name')!r}가 value_from_spec={key!r}를 참조하는데 spec에 "
+                f"그 키가 없다 -- compensation.parameters에 선언된 심볼 이름과 맞는지 확인할 것")
+        return float(ctx.spec[key])
+    raise ValueError(
+        f"커패시터 {p.get('name')!r}의 값을 정할 수 없다 -- `value_farad`(직접 값) 또는 "
+        f"`value_from_spec`(spec 심볼 참조) 중 하나가 선언돼야 한다. 조용히 0으로 넘기면 "
+        f"보상망이 주파수응답에서 통째로 사라진다")
+
+
+def _mna_stamp_capacitance(by_name: dict, passive_elements: list, ctx: "SizingContext",
+                           idx: dict) -> list:
+    """`(node_a, node_b, C)` 목록 -- 소자 게이트용량 + 선언된 커패시터(2026-09-10).
+
+    소자: `Cgg`를 **게이트-소스 사이**에 놓는다(`cgg_absolute()`, 실제 W로 스케일). LUT에
+    총 게이트용량(CGG)만 있고 Cgs/Cgd 분해가 없어서 이게 가능한 최선이다 -- 소스가 레일이면
+    게이트-접지와 같아진다. ⚠️ 이 근사는 **소자 자체의 Miller(Cgd)**를 못 본다. 반면
+    **선언된 보상 커패시터의 Miller는 정확히 반영된다**(Cc가 두 노드를 실제로 잇는 소자로
+    스탬프되므로 pole splitting이 행렬에서 저절로 나온다) -- 이 회로의 위상은 그쪽이 지배한다.
+
+    선언된 커패시터: `passive_elements`의 `kind=="capacitor"`, 값은
+    `_resolve_capacitor_farad()`.
+    """
+    out = []
+    sized = ctx.sized
+    for name in sorted(by_name):
+        tr = by_name[name]
+        e = sized.get(name)
+        if not e or e.get("W") is None or e.get("gm_id") is None:
+            continue
+        if tr.gate is None:
+            continue
+        try:
+            lut = ctx.spec["lut_by_kind"][e["kind"]]
+            cgg = lut.cgg_absolute(e["gm_id"], e["L"], e["vds"], e.get("vsb", 0.0), e["W"])
+        except (KeyError, ValueError):
+            continue
+        if cgg > 0:
+            out.append((tr.gate, tr.source, float(cgg)))
+    for p in passive_elements or ():
+        if p.get("kind") != "capacitor":
+            continue
+        a, b = p["terminals"]
+        out.append((a, b, _resolve_capacitor_farad(ctx, p)))
+    return out
+
+
+def full_circuit_response_at_omega(ctx: "SizingContext", excite: dict, also_fix, omega: float):
+    """`(G + j*omega*C) v = b`를 풀어 **복소** 노드전압을 돌려준다(2026-09-10, §7.11 L2).
+
+    `_full_circuit_response()`(DC/mid-band, 실수)의 주파수 확장이다 -- 같은 `devices`
+    스탬프(`_full_circuit_devices()`, 저항 포함)를 쓰고 거기에 용량 항만 더한다.
+
+    ## 왜 pole을 고유값으로 뽑지 않는가
+
+    §7.11이 L2를 "MNA에서 실제 pole 추출(고유값)"으로 적어뒀는데, 구현하며 **그대로는 틀린다**는
+    것이 드러났다: `det(G + sC)=0`의 근에는 bias 노드가 만드는 모드까지 전부 들어오는데, 그
+    모드들은 excite->sense 전달함수에서 zero와 **상쇄되어 위상을 안 먹는다**(관측/제어
+    불가능 모드). 그걸 다 더하면 L1에서 전 노드를 더했을 때 -1004도가 나온 것과 **같은 종류의
+    오류**가 pole 형태로 재발한다. 잔차(residue)로 걸러낼 수도 있지만, 애초에 위상여유는
+    전달함수의 위상으로 정의되므로 **주파수에서 직접 푸는 쪽이 더 단순하고 정확하다** --
+    지배 pole을 따로 빼는 처리도 필요 없어진다(그 위상이 응답에 이미 들어 있다).
+    """
+    if not ctx.topology_path:
+        raise ValueError("ctx.topology_path가 비어있다 -- L2 주파수응답에는 connectivity가 필요하다")
+    by_name, passive_elements = _load_full_topology_cached(ctx.topology_path)
+    devs = _full_circuit_devices(by_name, ctx, passive_elements)
+    fixed = {"gnd": 0.0}
+    fixed.update({n: 0.0 for n in (also_fix or ())})
+    fixed.update(excite)
+    nodes = []
+    seen = set(fixed)
+    for (d, s, g, _gm, _gds) in devs:
+        for n in (d, s, g):
+            if n not in fixed and n not in seen:
+                nodes.append(n)
+                seen.add(n)
+    caps = _mna_stamp_capacitance(by_name, passive_elements, ctx, None)
+    for (a, b, _c) in caps:
+        for n in (a, b):
+            if n is not None and n not in fixed and n not in seen:
+                nodes.append(n)
+                seen.add(n)
+
+    n = len(nodes)
+    if n == 0:
+        return dict(fixed)
+    idx = {name: i for i, name in enumerate(nodes)}
+    A = np.zeros((n, n), dtype=complex)
+    b = np.zeros(n, dtype=complex)
+
+    def add(node, other, coeff):
+        if node not in idx:
+            return
+        r = idx[node]
+        if other in idx:
+            A[r, idx[other]] += coeff
+        else:
+            b[r] -= coeff * complex(fixed.get(other, 0.0))
+
+    for (d, s, g, gm, gds) in devs:
+        add(d, g, gm)
+        add(d, s, -gm - gds)
+        add(d, d, gds)
+        add(s, g, -gm)
+        add(s, s, gm + gds)
+        add(s, d, -gds)
+    jw = 1j * float(omega)
+    for (ca, cb, cval) in caps:
+        y = jw * cval
+        # 2단자 어드미턴스 스탬프 -- 저항과 같은 형태(고정노드는 add()가 RHS로 옮긴다)
+        add(ca, ca, y)
+        add(ca, cb, -y)
+        add(cb, cb, y)
+        add(cb, ca, -y)
+
+    try:
+        sol = np.linalg.solve(A, b)
+    except np.linalg.LinAlgError as e:
+        raise ValueError(
+            f"L2 주파수응답 MNA가 특이행렬이다(omega={omega:.6g} rad/s) -- {e}") from None
+    return {**{k: complex(v) for k, v in fixed.items()},
+            **{nodes[i]: complex(sol[i]) for i in range(n)}}
+
 def _metric_parasitic_pm_deg(spec_metric: dict, ctx: SizingContext) -> float:
-    """F엔진(2026-09-10, §7.11) -- **기생 pole이 남기는 위상여유**(도).
+    """F엔진(2026-09-10, §7.11 **L2**) -- 이 경로의 **위상여유**(도)를 실제 주파수응답에서 잰다.
 
-        PM_parasitic = 90 - sum_over_nodes( atan(w_c / w_pole(node)) )
+        PM = 180 - (DC -> w_c 사이에 누적된 위상 지연)
 
-    ## 이 식이 원문 관계를 특수케이스로 포함한다
+    ## 왜 이 형태인가
 
-    이 회로의 `compensation` 주석은 원문(Xie & Chen)에서 직접 확인한
-    `PM = atan(w_p2/w_c)`를 적고 있다. 비지배 pole이 하나뿐이면
+    단일 지배 pole이면 `w_c >> w_p1`에서 지연이 90도로 수렴해 **PM = 90도**가 된다 -- 이전
+    L1 식(`90 - sum atan(w_c/w_pole)`)의 기준선 `90`이 바로 그 몫이었다. 기생 pole이 더
+    먹으면 지연이 90도를 넘어 그만큼 PM이 떨어진다. 즉 **L1 식을 특수케이스로 포함**하고,
+    원문(Xie & Chen) `PM = atan(w_p2/w_c)`도 pole 하나짜리 특수케이스로 재현한다.
 
-        90 - atan(w_c/w_p2) == atan(w_p2/w_c)        (atan(x)+atan(1/x)=90 항등식)
+    ## L1에서 L2로 바꾼 이유 (사용자 지적: "pm보상 회로가 있는데 왜 그건 고려하지 않지?")
 
-    로 **정확히 같다**. 즉 이 metric은 원문 식의 일반화이고, pole이 여럿일 때 각각이
-    위상을 나눠 먹는 것을 자동으로 합산한다. `alpha`(노드 용량비)도 `N`(fT 배수)도
-    `k`(pole 개수)도 **선언하지 않는다** -- 전부 넷리스트와 LUT에서 나온다.
+    L1(`node_pole_estimate()`, 노드별 `G/C`)은 **소자 단자만** 셌다. 그런데 이 회로에는
+    보상망이 `passive_elements`에 이미 선언돼 있고(Cc1: Vom-N_cc_rz1, Rz1: N_cc_rz1-Vop1,
+    그 대칭쌍), 하필 L1이 "위상을 먹는다"고 지목한 노드(`Vop1`/`Vom1`)가 **정확히 Rz가
+    붙는 노드**였다. 보상이 붙는 자리를 보상 없이 잰 셈이라 그 값(34.2도)은 무효다.
+
+    L2는 `(G + j*w*C) v = b`를 실제로 풀어 전달함수 위상을 직접 본다. 그래서:
+
+      * **Cc/Rz의 zero까지 저절로 반영**된다(nulling resistor가 RHP zero를 미는 효과가
+        행렬에 그대로 들어 있다 -- 손으로 넣은 항이 아니다).
+      * **Miller pole splitting**이 나온다(Cc가 두 노드를 잇는 소자로 스탬프되므로).
+      * **지배 pole을 따로 빼는 처리가 필요 없다** -- 그 위상이 응답에 이미 들어 있다.
+      * **신호경로 제한도 필요 없다** -- bias 노드의 모드는 전달함수에서 zero와 상쇄돼
+        위상을 안 먹으므로, 응답을 직접 재면 애초에 안 들어온다(L1에서 -1004도가 나와
+        `signal_path_nodes()`로 막아야 했던 문제가 원천적으로 사라진다).
+
+    `det(G+sC)=0`의 고유값을 뽑는 방식은 쓰지 않는다 -- 그 근에는 관측/제어 불가능한
+    bias 모드까지 전부 들어와 같은 오류가 pole 형태로 재발한다(`full_circuit_response_at_
+    omega()` docstring 참고).
+
+    ## 선언
+
+    `excite`/`sense_p`/`sense_n`을 `smallsignal_gain_db`와 **같은 형태로** 받는다.
+    `w_c`는 `ctx.derived["omega_c"]`(topology_fn이 노출한 파생값)를 spec보다 우선해 읽는다.
 
     ## 제약으로 거는 법
 
-    `PM_parasitic >= PM_target_deg`. 하한이 새 상수가 아니라 **이미 선언된 PM 목표**다.
-    gain이 L을 밀어 올리면 노드 용량이 커져 이 값이 떨어지므로, **L 상한이 회로에서
-    저절로 나온다**(§7.10의 `L_max(fT)` clamp를 상수 없이 구현한 것).
-
-    ## 못 세는 노드가 있으면 실패한다
-
-    `node_pole_estimate()`가 `undetermined`(고임피던스인데 용량 미상)를 돌려주면 여기서
-    **명시적으로 실패**한다 -- 지배 pole이 될 수 있는 노드를 빼놓고 계산한 위상여유는
-    낙관적이라 clamp 구실을 못 한다(§3.2 P1).
+    `parasitic_pm_deg >= PM_target_deg`. 하한이 새 상수가 아니라 **이미 선언된 PM 목표**다.
+    L이 커지면 노드 용량이 커져 이 값이 떨어지므로 **L 상한이 회로에서 저절로 나온다**
+    (§7.10의 `L_max(fT)` clamp를 상수 없이 구현한 것).
     """
-    by_name, _passives = _load_full_topology_cached(ctx.topology_path)
-    # 0으로 여기된 단자는 **AC 접지**이지 신호원이 아니다(예: two_stage_ota의
-    # `excite={"vin_p":0.5,"vin_n":-0.5,"bias":0.0,"vdd":0.0}`). 그것까지 신호원으로 세면
-    # bias 노드가 경로에 딸려 들어와 각각 ~90도를 먹는다(실측 -1004도) -- 0이 아닌 것만 쓴다.
-    _ex = {k for k, v in (spec_metric.get("excite") or {}).items() if v}
-    _sn = {spec_metric.get(k) for k in ("sense_p", "sense_n") if spec_metric.get(k)}
-    if not _ex or not _sn:
+    excite = spec_metric.get("excite") or {}
+    sense_p, sense_n = spec_metric.get("sense_p"), spec_metric.get("sense_n")
+    if not excite or not sense_p:
         raise ValueError(
-            "parasitic_pm_deg: `excite`와 `sense_p`/`sense_n` 선언이 필요하다 -- 어느 "
-            "경로의 위상여유인지를 알아야 그 경로의 노드만 셀 수 있다. 전 노드를 세면 "
-            "신호경로 밖의 bias 노드가 각각 ~90도를 먹어 무의미한 값이 나온다(실측 -1004도). "
+            "parasitic_pm_deg: `excite`와 `sense_p`(필요하면 `sense_n`) 선언이 필요하다 -- "
+            "어느 경로의 위상여유인지를 알아야 그 전달함수를 풀 수 있다. "
             "`smallsignal_gain_db`와 같은 형태로 선언할 것")
-    _path = signal_path_nodes(by_name, _ex, _sn)
-    rep = node_pole_estimate(by_name, ctx.sized, ctx.spec, only=_path)
-    if rep["undetermined"]:
-        raise ValueError(
-            f"기생 pole을 셀 수 없는 고임피던스 노드 {len(rep['undetermined'])}개: "
-            f"{rep['undetermined'][:6]} -- 게이트가 안 붙어 있어 LUT의 CGG만으로는 용량을 "
-            f"모른다. 접합용량(Cdb/Csb)이 LUT에 없기 때문이며, 이 노드를 빼고 센 위상여유는 "
-            f"낙관적이라 clamp가 안 된다. LUT 재생성 시 CDB/CSB를 저장할 것(§7.11)")
-    if not rep["poles"]:
-        raise ValueError(
-            f"parasitic_pm_deg: 신호경로에서 셀 수 있는 pole이 하나도 없다 "
-            f"(경로 노드 {len(_path)}개, 저임피던스 제외 "
-            f"{len(rep['skipped_low_impedance'])}개) -- excite/sense 선언을 확인할 것")
-    omega_c = ctx.spec.get("omega_c")
+    # 2026-09-10 -- 이 저장소의 기존 관례: `compensation`의 topology_fn이 `exposed_params`로
+    # `omega_c`를 `ctx.derived`에 노출하면 **spec의 손값보다 우선**한다
+    # (`_feed_gm_target_convention()`이 이미 같은 순서로 읽는다). 크로스오버는 회로가 스스로
+    # 정하는 파생값이지 사람이 spec에 적어 넣을 상수가 아니다.
+    omega_c = ctx.derived.get("omega_c") if "omega_c" in ctx.derived else ctx.spec.get("omega_c")
     if omega_c is None or omega_c <= 0:
-        raise ValueError("parasitic_pm_deg: spec['omega_c']가 없다 -- 기생 pole이 남기는 "
-                          "위상여유는 크로스오버 주파수 기준이라 그 값이 필요하다")
-    lost = sum(math.atan(omega_c / w) for w in rep["poles"].values() if w > 0)
-    return 90.0 - math.degrees(lost)
+        raise ValueError(
+            "parasitic_pm_deg: `omega_c`를 못 찾았다 -- 위상여유는 크로스오버 기준이라 그 "
+            "값이 필요하다. 이 회로의 topology_fn이 `exposed_params`로 omega_c를 "
+            "노출하거나(권장 -- 회로가 자기 크로스오버를 안다), spec에 직접 선언해야 한다")
+    also_fix = spec_metric.get("also_fix") or ()
+
+    def _h(omega):
+        sol = full_circuit_response_at_omega(ctx, excite, also_fix, omega)
+        v = sol[sense_p]
+        if sense_n:
+            v = v - sol[sense_n]
+        return v
+
+    # DC -> w_c 를 로그등간격으로 훑어 위상을 **언랩**한다. 한 점만 보면 +-360도 모호성이
+    # 생기고(지연이 180도를 넘을 수 있다), 시작점은 지배 pole보다 충분히 낮아야 "DC 위상"이
+    # 된다 -- 크로스오버의 1e-4배에서 시작한다(전형적 지배 pole은 w_c/A0 근방이라 A0가
+    # 1e4를 넘지 않는 한 안전하고, 넘으면 아래 언랩이 그만큼 더 촘촘히 따라간다).
+    n_pts = 25
+    omegas = [omega_c * (10.0 ** (-4.0 * (n_pts - 1 - i) / (n_pts - 1))) for i in range(n_pts)]
+    phases = []
+    for w in omegas:
+        h = _h(w)
+        if h == 0:
+            raise ValueError(
+                f"parasitic_pm_deg: 전달함수가 omega={w:.6g} rad/s에서 정확히 0이다 -- "
+                f"sense 노드({sense_p}/{sense_n}) 선언을 확인할 것")
+        phases.append(math.atan2(h.imag, h.real))
+    unwrapped = [phases[0]]
+    for k in range(1, len(phases)):
+        d = phases[k] - phases[k - 1]
+        while d > math.pi:
+            d -= 2 * math.pi
+        while d < -math.pi:
+            d += 2 * math.pi
+        unwrapped.append(unwrapped[-1] + d)
+    lag_deg = math.degrees(unwrapped[0] - unwrapped[-1])   # DC 대비 누적 지연(양수면 지연)
+    return 180.0 - lag_deg
+
 
 
 def _metric_kcl_residual(spec: dict, ctx: SizingContext) -> float:
@@ -4987,7 +5173,13 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     # 조건의 입력이어야 함)을 실제로 연결. ctx.derived에 없으면(compensation이 이 값을 안
     # 드러내는 다른 topology_fn) 기존처럼 spec에서 그대로 읽어 하위호환 유지.
     omega_val = ctx.derived[omega_key] if omega_key in ctx.derived else ctx.spec[omega_key]
-    gm_target = theta_value * omega_val * ctx.spec[feed_spec["cap_key"]]
+    # 2026-09-10 -- `cap_key`도 `omega_key`와 같은 우선순위로 읽는다(바로 윗줄과 대칭).
+    # 보상망이 계산해 확정한 용량(예: 유도된 Cc)이 있으면 그게 회로의 실제 값이고,
+    # spec의 손값은 폴백이다. 지금까지 이 줄만 spec을 직접 읽어, Cc를 유도로 바꾸자
+    # `KeyError: 'Cc'`로 드러났다(그 전에는 두 값이 우연히 같아 안 보였다).
+    _cap_key = feed_spec["cap_key"]
+    cap_val = ctx.derived[_cap_key] if _cap_key in ctx.derived else ctx.spec[_cap_key]
+    gm_target = theta_value * omega_val * cap_val
     result = solve_id_for_target_gm(
         lut, L, vds, vsb, feed_spec["W"], gm_target,
         gm_id_bounds=tuple(feed_spec.get("gm_id_bounds", (2.0, 30.0))))
@@ -5817,8 +6009,38 @@ def validate_theta_declaration_order(meta: dict) -> list:
     return violations
 
 
-_CONSTRAINT_OPS = {">=": operator.ge, "<=": operator.le, ">": operator.gt,
-                   "<": operator.lt, "==": operator.eq}
+# 2026-09-10 -- 제약 판정에 **수치 공차**를 준다. 설계 여유가 아니라 float64 반올림이다.
+#
+# 계기(실측): SLSQP가 활성제약에 수렴하자 `cmrr_estimate_db = 59.999999999118884`이 나왔다
+# (잔차 -8.8e-10). 나머지 제약은 전부 여유 있게 통과하는데 이 1e-9 때문에 5 start가 모두
+# "실현가능한 해 없음"으로 버려졌다. 최적화가 활성제약에 수렴하면 경계 양쪽 1e-9 안에
+# 떨어지는 것이 정상이고(SLSQP의 유한차분 eps 자체가 2e-3라 경계가 그 이하로 분해되지도
+# 않는다), 59.9999999991을 위반으로 보고 60.0000000001을 통과로 보는 것은 수치적으로
+# 무의미하다.
+#
+# 이건 "제약을 느슨하게 하는 것"이 아니다: 공차는 목표값 크기에 비례한 상대오차 1e-9
+# (목표가 0 근처면 절대 1e-9)로 어떤 설계적 의미도 가질 수 없는 크기이고, 실제 위반은
+# 이 공차를 몇 자릿수든 넘으므로 그대로 걸린다. `==`도 float 동등비교였던 것이 공차
+# 비교로 바뀌어 오히려 정확해진다.
+_CONSTRAINT_FEASIBILITY_RTOL = 1e-9
+
+
+def _constraint_tol(target: float) -> float:
+    """제약 판정 공차 -- 목표값 크기에 **순수 비례**(절대 하한 없음).
+
+    ⚠️ 처음엔 `max(1.0, abs(target))`으로 절대 하한 1.0을 뒀다가 self-test가 잡았다:
+    면적 제약(`pair_area <= 9.1e-12` m^2)처럼 **크기가 1e-11인 양**에서는 그 하한이 값보다
+    100배 큰 공차가 되어 2배 초과 위반까지 통과시킨다(L4b 픽스처가 정확히 그 케이스다).
+    상대오차만 쓰면 스케일과 무관하게 항상 "값의 1e-9"이라 안전하다. `target == 0`이면
+    공차도 0이라 예전과 똑같은 엄격 비교가 된다(예: `stack_headroom_slack_v >= 0`)."""
+    return _CONSTRAINT_FEASIBILITY_RTOL * abs(float(target))
+
+
+_CONSTRAINT_OPS = {">=": lambda v, t: v >= t - _constraint_tol(t),
+                   "<=": lambda v, t: v <= t + _constraint_tol(t),
+                   ">": lambda v, t: v > t - _constraint_tol(t),
+                   "<": lambda v, t: v < t + _constraint_tol(t),
+                   "==": lambda v, t: abs(v - t) <= _constraint_tol(t)}
 
 
 def _lerp(a: float, b: float, t: float) -> float:
@@ -7083,6 +7305,34 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     validate_no_legacy_vs_key(meta.get("device_roles") or {})   # 2026-09-08(B9 개명)
     objective = roles.get("objective") or {}
     constraints = roles.get("constraints") or []
+    # 2026-09-10 -- constraint가 `value` 대신 `value_from_spec: "<spec 키>"`를 쓸 수 있다.
+    # 여기(유일한 생성 지점)에서 실제 값으로 치환하므로 모든 소비자는 기존과 똑같이
+    # `c["value"]`만 읽으면 된다.
+    #
+    # 왜 필요한가: 어떤 제약의 목표는 **이미 spec에 있는 값**이다(예: §7.11의
+    # `parasitic_pm_deg >= PM_target_deg` -- 기생 pole이 남기는 위상여유가 그 회로의 PM
+    # 목표를 넘어야 한다는 뜻이라, 새 상수가 아니라 이미 선언된 값 그 자체다). 그걸
+    # topology.json에 숫자로 다시 적으면 **두 곳이 조용히 갈릴 수 있다** -- 정확히
+    # §10.6에서 겪은 사고(복제된 값이 정본과 갈림)와 같은 형태다.
+    if any(isinstance(c, dict) and "value_from_spec" in c for c in constraints):
+        _resolved = []
+        for c in constraints:
+            if not (isinstance(c, dict) and "value_from_spec" in c):
+                _resolved.append(c)
+                continue
+            key = c["value_from_spec"]
+            if key not in spec:
+                raise ValueError(
+                    f"constraint '{c.get('metric')}'가 value_from_spec={key!r}를 참조하는데 "
+                    f"spec에 그 키가 없다 -- 이 제약의 목표는 spec이 정하는 값이므로 "
+                    f"spec에 선언돼 있어야 한다(숫자를 topology.json에 복제하지 말 것)")
+            if "value" in c and c["value"] != spec[key]:
+                raise ValueError(
+                    f"constraint '{c.get('metric')}'에 value({c['value']})와 "
+                    f"value_from_spec({key}={spec[key]})가 **둘 다** 있고 값이 다르다 -- "
+                    f"어느 쪽이 맞는지 이 엔진이 정할 수 없다. 하나만 남길 것")
+            _resolved.append(dict(c, value=spec[key]))
+        constraints = _resolved
     # "_"로 시작하는 키(예: "_comment")는 이 프로젝트 전역 관례상 문서용 주석 필드다 --
     # 실제 소자 이름이 "_"로 시작할 일은 없으므로 안전하게 걸러낸다.
     device_roles = {k: v for k, v in (meta.get("device_roles") or {}).items()
@@ -7305,7 +7555,11 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
             luts = [spec["lut_by_kind"][kind_of[grp[0]]] for grp in stage_devices]
             _comp_cache_key = tuple(sorted(comp_params.items()))
             if _comp_cache_key in _comp_cache:
-                comp_result = _comp_cache[_comp_cache_key]
+                comp_result, _cached_exposed = _comp_cache[_comp_cache_key]
+                # 2026-09-10 -- 캐시 히트면 topology_fn이 호출되지 않으므로, 그때 계산돼
+                # 노출됐던 파생값(예: 유도된 Cc)을 캐시에서 같이 꺼내 온다. 안 그러면
+                # 캐시 경로에서만 ctx.derived에 Cc가 빠져 MNA가 다른 값을 쓴다.
+                ctx.derived.update(_cached_exposed)
             else:
                 # 2026-08-12(세션30, 근본수정) -- optimize_multistage()의 B엔진이 VDS를
                 # vertical_stack_id(같은 물리적 VDD~GND 컬럼)와 무관하게 완전 자유변수로
@@ -7385,7 +7639,12 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     stage_extra_feasible=_stage_extra_feasible,
                     vds_kvl_groups=comp.get("vds_kvl_groups"), vdd=spec.get("vdd"),
                     power_tolerance=spec.get("stage_power_tolerance"))
-                _comp_cache[_comp_cache_key] = comp_result
+                # 2026-09-10 -- topology_fn은 prev_cggs(실측 Cgg)에 의존하는 파생값을
+                # **호출 중에** 노출한다(유도된 Cc). 위 팩토리 직후의 update는 그걸 아직
+                # 못 보므로 여기서 다시 받아오고, 캐시에도 함께 넣어 값이 어긋나지 않게 한다.
+                ctx.derived.update(getattr(topology_fn, "exposed_params", {}))
+                _comp_cache[_comp_cache_key] = (
+                    comp_result, dict(getattr(topology_fn, "exposed_params", {})))
             if comp_result is None:
                 raise ValueError("optimize_multistage()가 실행가능점을 못 찾음 -- "
                                   "L_candidates/VDS_candidates/gm_id_grid를 확인하세요")
@@ -8550,7 +8809,17 @@ _DEFAULT_ALL_DEVICES_METRIC_TYPES = frozenset({"sum_current", "sum_area",
                                                  # 2026-09-08(A3/A4) -- 둘 다 topology
                                                  # 전체를 훑으므로 isolated로 보면 안 된다.
                                                  "supply_current", "mirror_ratio_error",
-                                                 "kcl_residual", "stack_headroom_slack"})
+                                                 "kcl_residual", "stack_headroom_slack",
+                                                 # 2026-09-10(§7.11) -- parasitic_pm_deg의
+                                                 # footprint는 metric 선언만으로 못 정한다:
+                                                 # 신호경로(excite->sense) 위의 **노드에 붙은
+                                                 # 소자 전부**가 그 노드 용량/컨덕턴스에
+                                                 # 기여하기 때문이다(signal_path_nodes() +
+                                                 # node_pole_estimate()가 런타임에 넷리스트로
+                                                 # 결정한다). 정적으로는 알 수 없으므로 이
+                                                 # 집합의 취지대로 "ALL"로 폴백한다 --
+                                                 # 과소평가(isolated 오판)보다 안전한 쪽.
+                                                 "parasitic_pm_deg"})
 
 
 def _metric_device_footprint(metric_name: str, metrics_specs: dict):
@@ -11505,7 +11774,15 @@ if __name__ == "__main__":
     # gain_db=84.15dB 달성)의 몫이다.
     _l5c_topo["sizing_roles"]["constraints"] = [
         c for c in _l5c_topo["sizing_roles"]["constraints"]
-        if c["metric"] not in ("classab_centering_dev_v", "gain_db")]
+        # 2026-09-10(§7.11 L2) -- `parasitic_pm_deg`도 같은 이유로 뺀다. 이 제약은
+        # **L의 상한**(L↑ -> Cgg↑ -> 노드 pole↓ -> PM↓)이라 L을 자유롭게 고를 수 있어야
+        # 만족할 수 있는데, 이 픽스처는 거의 모든 theta를 중점에 고정한 인위적 한 점이다
+        # (여기서 51.06도). 반면 **실제 자유탐색은 71.87도로 만족한다**(정본 spec + SLSQP,
+        # 보상망 전체 포함). 즉 제약이 과한 게 아니라 이 픽스처가 그걸 검증할 자리가
+        # 아니다 -- 이 픽스처가 보는 것은 헤드룸 singleton KVL이고 그건 아래 assert들이
+        # 그대로 검증한다. `classab_centering_dev_v`/`gain_db`를 뺀 것과 같은 판단이다.
+        if c["metric"] not in ("classab_centering_dev_v", "gain_db",
+                               "parasitic_pm_deg")]
     with _tempfile.TemporaryDirectory() as _l5c_tmpdir:
         _l5c_topo_path = _rsl_os.path.join(_l5c_tmpdir, "current_reuse_telescopic_ota.l5c.json")
         with open(_l5c_topo_path, "w", encoding="utf-8") as _l5c_f:

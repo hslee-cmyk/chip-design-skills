@@ -370,8 +370,9 @@ def ngcc_3stage_topology(GB: float, k: float, CL: float, alpha: float, mu_ratio:
 #    사용자 지적으로 되돌린 뒤, 이번엔 원문 p.3-4를 실제로 확인하고 다시 구현).
 # ---------------------------------------------------------------------------
 
-def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float, Cc: float,
-                                       Cf: float, Cs: float, C_Ltot: float):
+def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float,
+                                       Cf: float, Cs: float, C_Ltot: float,
+                                       Cc: float | None = None):
     """current-reuse telescopic OTA(Class-AB 2단) 위상보상 방정식 — 원문(Xie & Chen)
     Section III "Circuit Parameters Derivation" Eq.2-6 그대로:
 
@@ -465,9 +466,38 @@ def current_reuse_telescopic_topology(t_lln: float, PM_target_deg: float, Cc: fl
             cgg1_total = prev_cggs[0] + prev_cggs[1]  # M1a(PMOS)+M4a(NMOS), 같은 입력 핀 공유
             cgg2 = prev_cggs[2] + prev_cggs[3]  # M15/M25(PMOS)+M16/M26(NMOS), Cgg1과 동일 패턴
         beta = Cf / (Cf + Cs + cgg1_total)
-        gm1 = omega_c * Cc / beta
+        # 2026-09-10(사용자 지시 "Cc와 Rz는 보상망이 계산해서 확정해야지") -- Cc는 더
+        # 이상 손으로 넣는 상수가 아니다. 원문은 "By setting Cc to 500fF"로 **사람이
+        # 골랐지만**, 그 값은 원문 자신의 Eq.3/Eq.6에서 **유도된다**:
+        #
+        #     gm1 = omega_c*Cc/beta                              (Eq.3)
+        #     gm2 = omega_p2*(C_Ltot*Cgg2/Cc + Cgg2 + C_Ltot)    (Eq.6)
+        #
+        # Cc를 키우면 gm1은 선형으로 늘고 gm2는 준다(Miller 항 C_Ltot*Cgg2/Cc가 작아짐).
+        # 선언된 목적이 전력 최소화이고 전력은 sum(gm_i/gm_id_i)이므로, 두 단의 gm/ID가
+        # 같다는 1차 가정에서 d(gm1+gm2)/dCc = 0 을 풀면
+        #
+        #     Cc = sqrt( beta * tan(PM_target) * C_Ltot * Cgg2 )
+        #
+        # 가 나온다(omega_p2 = omega_c*tan(PM_target)을 대입하면 omega_c가 소거된다).
+        # **새 상수가 하나도 없다**: beta는 Cf/Cs/Cgg1(실측), tan(PM_target)/C_Ltot은
+        # 선언, Cgg2는 prev_cggs로 들어오는 실측값이다. miller_ota_topology()가 Cm을
+        # 실측 용량에서 계산하는 것과 정확히 같은 성격이다(그쪽도 pole-splitting 최적점).
+        #
+        # 검산(2026-09-10 파일럿): beta=0.4514(원문 ~0.48), Cgg2=112.8fF -> Cc=374fF이고
+        # gm 합이 917.1 -> 903.6uS로 낮아진다. 원문의 500fF는 **그들의** Cgg2에 대한
+        # 값이라, 이 식은 회로가 바뀌면 따라간다 -- 그게 상수와 다른 점이다.
+        #
+        # Cc 인자를 명시로 주면(하위호환/실험용) 그 값이 이긴다.
+        cc_used = Cc if Cc is not None else math.sqrt(
+            beta * math.tan(math.radians(PM_target_deg)) * C_Ltot * cgg2)
+        # MNA(_resolve_capacitor_farad())도 이 값을 읽어야 하므로 노출한다 -- prev_cggs에
+        # 따라 매 반복 갱신되므로 팩토리가 아니라 여기서 쓴다(팩토리는 cgg2를 모른다).
+        topology_fn.exposed_params = dict(getattr(topology_fn, "exposed_params", {}),
+                                          omega_c=omega_c, Cc=cc_used)
+        gm1 = omega_c * cc_used / beta
         gmp, gmn = gm1 / 2.0, gm1 / 2.0  # Eq.5: gmn=gmp 가정
-        gm2 = omega_p2 * (C_Ltot * cgg2 / Cc + cgg2 + C_Ltot)
+        gm2 = omega_p2 * (C_Ltot * cgg2 / cc_used + cgg2 + C_Ltot)
         gmp2, gmn2 = gm2 / 2.0, gm2 / 2.0  # 세션30: kind 경계 분리, 분할비 50:50은 기본값(위 docstring 참고)
         return [gmp, gmn, gmp2, gmn2]
 

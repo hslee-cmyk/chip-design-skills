@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.35
+version: 4.36
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -2841,6 +2841,129 @@ self-test 둘 다 **exit 0 / diff 0줄** -- 복구 장치는 필요 없는 회�
   (코드가 주석과 어긋나 전부 고정하고 있었다). 기준선 diff **1줄**: `gain_db 76.35->61.30,
   cmrr 76.12->60.04` -- **옛 수치가 물리적으로 불가능한 점의 값이었다.**
 
+### 10.8 §7.11 L2 완성 — 보상망을 실제로 세고, Cc를 유도한다 (★ 신설 v4.36)
+
+#### A. L1은 보상망을 못 보고 있었다 (사용자 지적)
+
+> "pm보상 회로가 있는데 왜 그건 고려하지 않지?"
+
+`node_pole_estimate()`(L1)는 **소자 단자만** 셌다. 그런데 이 회로의 보상망은
+`passive_elements`에 **이미 선언돼 있었고**(Cc1: Vom-N_cc_rz1, Rz1: N_cc_rz1-Vop1, 대칭쌍),
+엔진의 MNA는 그 저항을 이미 쓰고 있었다(`_full_circuit_devices()` + `_resolve_nulling_
+resistor_ohm()`으로 `Rz = 1/gm(M16)` 동적 계산). **`node_pole_estimate()`만 그 인자를 안
+받았다.** 하필 L1이 "위상을 먹는다"고 지목한 노드(`Vop1`/`Vom1`)가 정확히 Rz가 붙는
+노드였다 -- 보상이 붙는 자리를 보상 없이 잰 셈이라 그 값(34.2도)은 무효다.
+
+#### B. L2 — pole을 뽑지 않고 주파수응답을 직접 푼다
+
+§7.11은 L2를 "MNA에서 실제 pole 추출(고유값)"으로 적어뒀는데, 구현하며 **그대로는 틀린다**는
+것이 드러났다: `det(G+sC)=0`의 근에는 bias 노드 모드까지 들어오는데 그 모드들은 excite→sense
+전달함수에서 zero와 상쇄돼 위상을 안 먹는다. 그걸 다 더하면 L1에서 전 노드를 더했을 때
+-1004도가 나온 것과 **같은 종류의 오류**가 pole 형태로 재발한다.
+
+그래서 `(G + j*w*C) v = b`를 실제로 풀어 위상을 직접 본다:
+
+    PM = 180 - (DC -> w_c 사이에 누적된 위상 지연)
+
+단일 지배 pole이면 지연 90도로 수렴해 **PM=90도** -- L1 식의 기준선 `90`이 그 몫이었으므로
+**L1을 특수케이스로 포함**하고, 원문 `PM = atan(w_p2/w_c)`도 pole 하나짜리 특수케이스로
+재현한다. 부수적으로 **지배 pole을 따로 빼는 처리(사용자 확인 3번)도, 신호경로 제한도
+필요 없어진다** -- 둘 다 응답에 이미 들어 있다.
+
+신설: `full_circuit_response_at_omega()`, `_mna_stamp_capacitance()`,
+`_resolve_capacitor_farad()`.
+
+#### C. 논문으로 검증 — `omega_c`에 대한 필자의 해석이 틀렸다
+
+사용자 지시로 원문 PDF를 확인한 결과 **필자의 앞선 주장("선언된 omega_c는 실제 크로스오버가
+아니다")이 틀렸다**. 원문 Eq.(2) 아래: `omega_c`는 **loop gain unity gain bandwidth**다
+(개루프 A의 unity gain이 아니다). Eq.(4) `beta = Cf/(Cf+Cs+Cgg1)`이므로 `|beta*A|=1`인
+지점에서 `|A| = 1/beta`다.
+
+    실측: w_c(30.50MHz)에서 |A| = 6.52dB,  1/beta 기대값 = 6.38dB(beta 0.4514)
+
+거의 정확히 일치한다 -- 선언이 맞고 필자가 개루프 unity gain(66MHz)을 본 것이 틀렸다.
+그리고 beta가 주파수 무관한 용량분배라 `∠(beta*A) = ∠A`이므로, A의 위상을 w_c에서 재는
+지금 구현이 PM 정의와 정확히 맞는다.
+
+#### D. 빠져 있던 connectivity (사용자 확정)
+
+원문 Table I `C1, C2, C_L = 500fF, 500fF, 1pF`, Eq.(6) `omega_p2 ~ gm2/(C_Ltot*Cgg2/Cc +
+Cgg2 + C_Ltot)`가 **비지배 pole을 C_Ltot으로** 정하는데 `passive_elements`에 부하/피드백
+용량이 없었다. 사용자 확정으로 추가:
+
+| 소자 | 연결 | 값 |
+|------|------|-----|
+| CL1 / CL2 | Vop-gnd / Vom-gnd | `C_Ltot` |
+| Cf1 / Cf2 | **Vom-Vip / Vop-Vim (교차)** | `Cf` |
+| Cs1 / Cs2 | Vip-gnd / Vim-gnd | `Cs` |
+
+**교차인 이유**: `Vip -> M1a -> Vom1 -> M26(공통소스) -> Vop`로 반전이 두 번이라 Vip와 Vop가
+**동상**이다(실측 DC 위상 -5.15도). `Vop->Vip`로 되먹이면 정궤환이다. 수치로도 확인됐다 --
+교차면 w_c에서 `|A|=6.80dB`로 `1/beta`에 가깝고 비교차면 5.90dB로 멀어진다. (개루프 AC에서는
+어느 쪽이든 출력을 Cf만큼 부하할 뿐이라 결과는 같지만, 기록은 물리대로 둔다. `Cs`는
+양단이 다 구동 노드라 기여 0 -- 실측 확인.)
+
+측정 변화: `PM = 93.76도(부하 없음) -> 81.13도(+C_L) -> 75.35도(+Cf)`.
+
+#### E. Cc를 보상망이 유도한다 (사용자 지시)
+
+> "Cc와 Rz는 보상망이 계산해서 확정해야지."
+
+`Rz`는 이미 유도되고 있었다(`nulling_reference_device`로 `1/gm(M16)`). **`Cc`만 spec 상수
+(500fF)** 였다 -- 원문이 "By setting Cc to 500fF"로 사람이 고른 값을 그대로 복사한 것이다.
+
+그런데 그 값은 **원문 자신의 식에서 유도된다**. Cc를 키우면 Eq.3의 `gm1 = w_c*Cc/beta`는
+선형으로 늘고 Eq.6의 `gm2`는 Miller 항 `C_Ltot*Cgg2/Cc`가 작아져 준다. 선언된 목적이 전력
+최소화(`sum(gm_i/gm_id_i)`)이므로 두 단의 gm/ID가 같다는 1차 가정에서 `d(gm1+gm2)/dCc = 0`:
+
+    Cc = sqrt( beta * tan(PM_target) * C_Ltot * Cgg2 )
+
+**새 상수가 하나도 없다** -- beta는 Cf/Cs/Cgg1(실측), tan(PM_target)/C_Ltot은 선언, Cgg2는
+`prev_cggs`로 들어오는 실측값이다. `miller_ota_topology()`가 `Cm`을 실측 용량에서 계산하는
+것(그쪽도 pole-splitting 최적점)과 정확히 같은 성격이고, 그 함수가 이미 선례였다.
+
+실측: `Cc = 374~385fF`(원문의 500fF는 **그들의** Cgg2에 대한 값). `compensation.parameters`
+에서 `Cc`를 빼고 `exposed_params`로 노출한다.
+
+배선하며 드러난 것 둘:
+* `_feed_gm_target_convention()`의 `cap_key`만 `ctx.spec`을 직접 읽고 있었다(바로 윗줄
+  `omega_key`는 derived 우선). Cc를 유도로 바꾸자 `KeyError: 'Cc'`로 드러났다 -- 그 전에는
+  두 값이 우연히 같아 안 보였다.
+* `exposed_params`는 팩토리 직후에만 읽혔는데, Cc는 `prev_cggs`에 의존해 **호출 중에**
+  정해진다. 호출 후에도 받아오고 `_comp_cache`에 함께 저장하도록 고쳤다.
+
+#### F. 제약 판정의 수치 공차
+
+SLSQP가 활성제약에 수렴하자 `cmrr = 59.999999999118884`(잔차 **-8.8e-10**)로 5 start가 전부
+버려졌다. `_CONSTRAINT_OPS`에 **상대오차 1e-9** 공차를 준다(단일 지점). 설계 여유가 아니라
+float64 반올림이다 -- SLSQP의 유한차분 eps 자체가 2e-3라 경계는 그 이하로 분해되지도 않는다.
+
+⚠️ 처음엔 `max(1.0, |target|)`으로 절대 하한을 뒀다가 **self-test가 잡았다**: 면적 제약
+(`pair_area <= 9.1e-12` m^2)에서 그 하한이 값보다 100배 큰 공차가 되어 2배 초과 위반까지
+통과시켰다(L4b 픽스처). 순수 상대오차로 고쳤다 -- 스케일 무관하게 항상 "값의 1e-9"다.
+
+#### G. 결과 — `parasitic_pm_deg`를 제약으로 걸고 재탐색 성공
+
+`parasitic_pm_deg >= PM_target_deg`를 **`value_from_spec`으로** 선언했다(숫자 복제 금지,
+§10.6 사고와 같은 형태 방지). 신설 `value_from_spec`은 constraint와 passive 양쪽에 쓰인다.
+
+| metric | 값 | 제약 | |
+|--------|-----|------|---|
+| `parasitic_pm_deg` | **71.87** | >=70 | OK |
+| `gain_db` / `gain_full_circuit_db` | 63.55 / 66.05 | >=54 | OK |
+| `cmrr_estimate_db` / `psrr_estimate_db` | 60.50 / 81.65 | >=60 | OK |
+| `mismatch_sigma_mV` | **0.753** | <=5 | OK |
+| `classab_centering_dev_v` | 0.1471 | <=0.15 | OK |
+| `power_uA` | **233.73** | (v4.35에서 267.59) | -12.6% |
+| V_bat (vom/vop) | +0.2971 V | | |
+
+self-test 둘 다 exit 0 / diff **0줄**(L5c 기준선 3줄은 유도된 Cc 반영으로 갱신).
+L5c 픽스처는 `parasitic_pm_deg`를 제외한다 -- 그 제약은 **L 상한**이라 L 자유도가 있어야
+만족할 수 있는데 이 픽스처는 거의 모든 theta를 고정한 한 점이다(51.06도). 실제 자유탐색은
+71.87도로 만족하므로 제약이 과한 게 아니라 이 픽스처가 검증할 자리가 아니다 --
+`classab_centering_dev_v`/`gain_db`를 뺀 것과 같은 판단이다.
+
 ## Version History
 
 | Version | Date | Changes |
@@ -2895,3 +3018,4 @@ self-test 둘 다 **exit 0 / diff 0줄** -- 복구 장치는 필요 없는 회�
 | 4.33 | 2026-09-10 | **§7.11 구현 완료 — 하한까지 유도해 상수를 전부 없앴다**. `PM_parasitic = 90 - Σ atan(w_c/w_pole)`로 위상을 직접 더해 `k`(pole 개수) 배분을 없앴고, 하한은 새 상수가 아니라 **이미 선언된 `PM_target_deg`**다. 이 식은 원문의 `PM = atan(w_p2/w_c)`를 pole 하나일 때의 특수케이스로 **정확히 포함**한다(항등식). 신설: `signal_path_nodes()`(gate→drain 방향그래프 도달성으로 bias 노드 자동 배제), `node_pole_estimate()`(드레인→gds / 소스→gm+gds / 게이트→Cgg), `_metric_parasitic_pm_deg`. **실측으로 두 번 바로잡음**: ① 전 노드를 더하면 bias 노드가 각각 ~90도를 먹어 **-1004도**가 나온다 → 경로 선언 필수 ② LUT에 접합용량이 없어 못 세는 노드는 근거를 따져 갈랐다(소스 붙은 저임피던스는 이유와 함께 제외, 드레인만 붙은 고임피던스는 **명시적 실패**). **파일럿 실측 `PM_parasitic = -8.9도`** — `Vg15`/`Vg25`(class-AB 출력단 게이트)의 pole이 31.6MHz로 **크로스오버의 0.86배**라 각 49.2도씩 먹는다. 기존 metric 어느 것도 못 보던 문제다. constraint는 아직 안 건다(선례대로 4개 회로에서 먼저 잰다). self-test diff 0줄 |
 | **4.34** | 2026-09-10 | **spec 정본화 — 한 세션치 측정이 비정본 기준이었음을 확인하고 재발 방지를 배선했다**(사용자 지시 "이번 실수가 재발하지 않도록 방법을 강구해"). 조사 스크립트들이 spec을 손으로 복붙해 정본(`run_harness.SPECS`)과 갈려 있었다(`gm_id_grid` 57점 vs **21점**, `L_candidates` 41점 vs 12점, `stage_power_tolerance` 누락). 정본 주석에 이미 세션30 실측 "L을 촘촘히 하면 gm_id도 촘촘해야 한다"가 있었는데 복제본은 **둘 다 성겨** 우연히 안 터졌던 것이다. **정본으로 재탐색하면 파일럿이 수렴하지 않는다**(SLSQP 3 start 전부 실패, `biasgen_vom_floatsrc_sink` 스택 예산 **-0.024V**, M9b 미해결) — 즉 v4.28~v4.33의 수치는 정본에서 도달 불가능한 동작점이다(§10.6). **신설·배선**: `require_declared_spec_source()`(`_build_theta_evaluator()` 첫 줄), `spec_fingerprint()`, `run_harness.canonical_spec()`/`derived_spec(key, why, **overrides)`(덮어쓴 항목만 갈리고 무엇을 왜 바꿨는지 `_spec_source`에 자동 기록). 복붙 블록 **238줄을 16개 스크립트에서 제거**하고 정본 호출로 교체(복제본은 정본의 부분집합 24키⊂26키라 손실 없음). **★ 게이트를 만들자마자 그것이 죽어 있었다** — 모듈이 `os`를 최상위 import하지 않아 `NameError`가 났고 `except Exception: return`이 삼켜 항상 통과했다. 광범위 except를 제거하고 **자기시험 4건을 넣어** 게이트가 다시 조용히 죽으면 기준선 diff가 깨지게 했다. self-test 둘 다 exit 0 / diff **0줄** |
 | **4.35** | 2026-09-10 | **M9b 스택 예산 음수 해결 + 기준점 복구 일반화 -- 정본 spec으로 파일럿이 처음 수렴했다**(145초, 직전엔 625초 동안 3 start 전부 실패). ① **배터리 KVL이 아무 데서도 강제되지 않고 있었다**: `M9a`/`M9b`는 직렬이 아니라 Vg15↔Vop1를 잇는 **상보 병렬쌍**(Monticelli floating battery)이라 `V_bat = vdd - VGS(M15) - VGS(M16)`인데, 선언된 `classab_centering_dev_v`는 VGS의 **차이**만 재고 **합**은 아무도 안 봤다. 실측 0.9799+0.8441=1.824>vdd ⟹ **V_bat=-0.024V**인데 centering(0.136≤0.15)은 **통과한 채** -- 즉 그동안의 파일럿 수치는 배터리 전압이 음수인 불가능한 동작점의 값이었다. 해결(사용자 선택): `stack_kvl_vgs_limit()`이 **선언만 읽어** VGS 상한을 유도(종속항을 **계수 k로 세는** 덕에 'M15와 M16이 같다'를 알 필요가 없다, k=2 ⟹ 0.8417V로 손계산과 일치) -> `search_gm_id_for_role(vgs_max=…)`; 포화 하한은 `lut_vdsat_headroom()`이 §2.7 `2/(gm/ID)`로 유도해 **새 상수 없음**(기존 `_default_cascode_headroom()` 재사용, 배분기와 **같은 헬퍼**). ② **기준점이 중점에 묶여 탐색이 출발을 못 하고 있었다**(사용자 지적 "중점에 묶이는 것도 해결했잖아. 왜 반영이 안 되어 있어?"): v4.30이 이미 `r_cmfb_vocdes`의 설계값은 하한이라고 확정했는데 그게 **self-test 픽스처에만 적히고 엔진에는 반영되지 않았다**. presolve의 세 단계가 전부 '기준점 평가 가능'을 전제해, 크래시하면 L 스캔이 조용히 midpoint로 후퇴하고 전 theta가 ambiguous가 된다. **`repair_infeasible_baseline()` 신설** -- 실패 메시지가 지목한 소자 -> 선언에서 그 소자를 담당하는 자유 theta -> 자기 bounds 양 끝을 시도, '평가 성공 **또는 병목 이동**'이면 채택. 증거가 못 짚으면 **측정된 실현가능점**으로 후퇴하고, 그것도 없으면 포기(없는 근거로 값을 옮기지 않는다). **회로/소자/theta 이름·상수가 코드에 하나도 없다**(사용자 지시 "이 설계에만 적용되는 것은 안 돼"). 파일럿 실측: `L_stage2out_p→하한 / r_cmfb_vocdes→하한 / r_diode_M11a→측정점 복귀` 3단계로 복구 -- 두 번째가 바로 v4.30이 손으로 정한 그 값이고 **이제 엔진이 스스로 유도한다**. 4개 회로 전수: folded_cascode는 **복구 0건 무동작**, two_stage/nmcnr는 기존 이월 항목. **결과**: gain_full 65.97 / cmrr 60.42 / psrr 81.97 / mismatch 1.36 / centering 0.1481 전부 통과, **V_bat -0.024→+0.380V**, **parasitic_pm_deg -8.9°→+33.88°**. **함께 고침**: M18b `budget_reference_device="M17"` 누락(vom 쪽 대칭 짝, 사용자 승인), `_grid_points_in_range(n=1)` ZeroDivisionError(잠복), L5c를 `stop_after_sizing=True`로 사이징까지만 분리(사용자 선택). self-test 둘 다 exit 0 / diff **0줄**(L5c 기준선 1줄은 앞서 갱신) |
+| **4.36** | 2026-09-10 | **§7.11 L2 완성 -- 보상망을 실제로 세고 Cc를 유도한다**(사용자 지적 "pm보상 회로가 있는데 왜 그건 고려하지 않지?", "Cc와 Rz는 보상망이 계산해서 확정해야지"). ① **L1은 보상망을 못 봤다**: `node_pole_estimate()`가 소자 단자만 셌는데, 보상망은 `passive_elements`에 **이미 선언돼 있었고**(Cc1/Rz1/Cc2/Rz2) MNA는 그 저항을 이미 쓰고 있었다 -- 그 인자를 안 받은 것뿐이다. 하필 L1이 지목한 노드(Vop1/Vom1)가 정확히 Rz가 붙는 자리라 34.2도는 무효. ② **L2는 pole을 뽑지 않는다**: `det(G+sC)=0`의 근에는 bias 모드가 섞여 -1004도와 같은 오류가 재발하므로, `(G+jwC)v=b`를 직접 풀어 `PM = 180 - (DC->w_c 누적 지연)`으로 잰다. L1 식과 원문 `atan(w_p2/w_c)`를 **둘 다 특수케이스로 포함**하고, 지배 pole 제외 처리도 신호경로 제한도 불필요해진다. ③ **논문 확인 -- 필자의 해석이 틀렸다**: `omega_c`는 **loop gain** unity gain이고(개루프 A가 아님), 실측 `|A|(w_c)=6.52dB`가 `1/beta=6.38dB`와 일치해 선언이 옳음이 독립 확인됐다. ④ **빠진 connectivity 추가**(사용자 확정): CL1/CL2(Vop/Vom-gnd), Cf1/Cf2(**교차** Vom-Vip/Vop-Vim -- Vip와 Vop가 동상이라 비교차면 정궤환, 수치로도 |A|가 1/beta에 더 가깝다), Cs1/Cs2. PM 93.76 -> 81.13(+C_L) -> 75.35(+Cf)도. ⑤ **Cc 유도**: 원문 Eq.3/Eq.6에서 `d(gm1+gm2)/dCc=0` ⟹ `Cc = sqrt(beta*tan(PM_target)*C_Ltot*Cgg2)` -- **새 상수 0개**, 실측 374~385fF(원문 500fF는 그들의 Cgg2에 대한 값). `miller_ota_topology()`의 `Cm`과 같은 성격이고 그게 이미 선례였다. 배선 중 `cap_key`가 derived를 안 읽던 것(`KeyError: 'Cc'`로 드러남)과 `exposed_params`가 호출 후 갱신 안 되던 것을 함께 고침. ⑥ **제약 판정 수치 공차**: 활성제약 수렴으로 `cmrr=59.999999999118884`(잔차 -8.8e-10)가 5 start를 전부 버렸다 -> 상대오차 1e-9. 처음 `max(1.0,|target|)`로 뒀다가 **self-test가 잡았다**(면적 9.1e-12에서 공차가 값의 100배). **결과**: `parasitic_pm_deg >= PM_target_deg`를 `value_from_spec`으로 선언하고 재탐색 성공 -- PM **71.87**, gain_full 66.05, cmrr 60.50, psrr 81.65, mismatch **0.753**, power **233.73uA**(267.59에서 -12.6%). self-test 둘 다 exit 0 / diff 0줄 |

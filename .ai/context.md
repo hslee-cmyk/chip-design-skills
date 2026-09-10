@@ -14225,3 +14225,105 @@ B18의 "영향받는 metric만 재계산" 최적화를 지우기 전에 재보�
 5. 새 파이프라인 구현 전 결정 필요: **G6**(stage 분할 규칙 부재), **A2**(`Area` 정의 부재).
 6. 부수 발견(미수정): `grid_points_per_theta=1`이 `_theta_grid_points()`의 `i/(n-1)`에서
    ZeroDivisionError를 낸다(비-L theta가 하나라도 있을 때).
+
+# 세션47 -- spec 정본화 / class-AB 배터리 KVL / §7.11 L2(보상망 반영) + Cc 유도
+#          (2026-09-10, 계획 v4.33 -> v4.36)
+
+## ★ 이 세션에서 가장 비싼 실수: **이미 있는 것을 다시 만들려 함** (5건)
+
+사용자 지시로 규칙화했다(메모리 `feedback-record-before-compact-check-before-build`):
+**무엇을 만들기 전에 계획 §7/§10 + 이 파일 + `grep -n "def <이름>"` 셋 다 확인할 것.**
+
+| 이미 있던 것 | 내가 한 짓 |
+|---|---|
+| 계획 §7.10이 `measure_L_knee()`/`L_bounds_from_ft_and_matching()`를 **이름까지 명세** | "제안"이라며 재설계 |
+| `search_stage_budget_L_warm_start()`가 `presolve_warm_start()`(9344줄)에 **배선돼 있음** | grep 실수로 "미배선"이라 보고+주석까지 씀 |
+| 보상망이 `passive_elements`에 **전부 선언**돼 있고 MNA가 저항을 이미 사용 | "connectivity 없다"고 판단 |
+| 미러 공통 L 사슬(M5→M38→M36a→M7)을 사용자와 **이미 추적** | `(kind,gate,source)`로 재유도 |
+| `parasitic_pm_deg`가 **L 상한 장치**(§7.11 절 제목) | 용도를 잊고 더 약한 근사 시도 |
+
+## 1. spec 정본화 (계획 §10.6, 커밋 1b9b4ea)
+
+조사 스크립트들이 spec을 손으로 복붙해 정본(`run_harness.SPECS`)과 갈려 있었다
+(`gm_id_grid` 57점 vs **21점**, `L_candidates` 41 vs 12, `stage_power_tolerance` 누락).
+한 세션치 측정이 전부 비정본 기준이었다.
+
+신설: `require_declared_spec_source()`(`_build_theta_evaluator()` 첫 줄 배선),
+`spec_fingerprint()`, `run_harness.canonical_spec()` / `derived_spec(key, why, **overrides)`.
+복붙 블록 **238줄을 16개 스크립트에서 제거**.
+
+★ 게이트를 만들자마자 그것이 죽어 있었다 -- 이 모듈은 `os`를 최상위 import하지 않는데
+본문이 `os.path`를 써 `NameError`가 났고 `except Exception: return`이 삼켰다. 광범위
+except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다.
+
+## 2. class-AB 배터리 KVL + 기준점 복구 (계획 §10.7, 커밋 2e1944a)
+
+**M9a/M9b는 직렬이 아니라 Vg15↔Vop1를 잇는 상보 병렬쌍**(Monticelli floating battery,
+세션22 J-2가 이미 확인)이라 `V_bat = vdd - VGS(M15) - VGS(M16)`인데, 선언된
+`classab_centering_dev_v`는 VGS의 **차이**만 재고 **합**은 아무도 안 봤다.
+실측 `0.9799+0.8441=1.824 > vdd` ⟹ **V_bat = -0.024V**(centering은 통과한 채).
+
+* `stack_kvl_vgs_limit()` -- 선언만 읽어 VGS 상한 유도. 스택 예산식을 VGS로 정리하며
+  종속항을 **계수 k로 센다** ⟹ "M15와 M16이 같다"를 함수가 알 필요가 없다(k=2 ⟹ 0.8417V).
+* `lut_vdsat_headroom()` -- §2.7 `2/(gm/ID)`, 기존 `_default_cascode_headroom()` 재사용
+  (새 상수 없음). 헤드룸 배분기와 **같은 헬퍼**를 쓴다.
+* `repair_infeasible_baseline()` -- **실패 메시지가 지목한 소자 → 담당 theta → 그 theta의
+  bounds** 순으로 기준점을 복구. 회로/소자/theta 이름·상수가 코드에 하나도 없다.
+  파일럿: `L_stage2out_p→하한 / r_cmfb_vocdes→하한 / r_diode_M11a→측정점 복귀`.
+  **v4.30이 손으로 정한 r_cmfb_vocdes 하한을 이제 엔진이 스스로 유도한다.**
+  4개 회로 전수: folded_cascode는 **복구 0건 무동작**.
+* M18b `budget_reference_device="M17"` 누락 보완(vom 쪽 M9b→M8의 대칭 짝, 세션39가 빠뜨림).
+* `_grid_points_in_range(n=1)` ZeroDivisionError(잠복), L5c에 `stop_after_sizing=True` 신설.
+
+## 3. §7.11 L2 -- 보상망을 실제로 세다 + Cc 유도 (계획 §10.8)
+
+* **L1은 소자 단자만 셌다**. 보상망은 `passive_elements`에 이미 있었고(Cc1: Vom-N_cc_rz1,
+  Rz1: N_cc_rz1-Vop1, 대칭쌍) MNA는 저항을 이미 썼다 -- `node_pole_estimate()`만 인자를
+  안 받았다. 하필 L1이 지목한 노드가 정확히 Rz가 붙는 Vop1/Vom1이었다.
+* **L2는 pole을 뽑지 않는다**: `det(G+sC)=0`의 근에는 bias 모드가 섞여 -1004도와 같은
+  오류가 재발한다. `(G+jwC)v=b`를 직접 풀어 `PM = 180 - (DC→w_c 누적 지연)`.
+  L1 식과 원문 `atan(w_p2/w_c)`를 **둘 다 특수케이스로 포함**한다.
+  신설: `full_circuit_response_at_omega()`, `_mna_stamp_capacitance()`,
+  `_resolve_capacitor_farad()`.
+* **논문 확인 -- 필자의 해석이 틀렸다**: `omega_c`는 **loop gain** unity gain이다(개루프 A가
+  아님). 실측 `|A|(w_c)=6.52dB` = `1/beta(0.4514)=6.38dB` 일치로 선언이 옳음이 확인됐다.
+* **connectivity 추가(사용자 확정)**: CL1/CL2(Vop/Vom-gnd, `C_Ltot`),
+  Cf1/Cf2(**교차** Vom-Vip/Vop-Vim -- Vip와 Vop가 동상이라 비교차면 정궤환),
+  Cs1/Cs2(기여 0이지만 기록). PM 93.76 → 81.13(+C_L) → 75.35(+Cf).
+* **Cc 유도**(사용자 지시 "Cc와 Rz는 보상망이 계산해서 확정해야지"): Rz는 이미 유도 중이었고
+  Cc만 spec 상수였다. 원문 Eq.3/Eq.6에서 `d(gm1+gm2)/dCc=0` ⟹
+  **`Cc = sqrt(beta*tan(PM_target)*C_Ltot*Cgg2)`**, 새 상수 0개, 실측 374~385fF.
+  `miller_ota_topology()`의 `Cm`이 이미 같은 성격의 선례였다.
+  부수 발견: `cap_key`만 derived를 안 읽고 있었고(`KeyError: 'Cc'`로 드러남),
+  `exposed_params`가 호출 후 갱신되지 않았다(`_comp_cache`에 함께 저장하도록 수정).
+* **제약 판정 수치 공차**: 활성제약 수렴으로 `cmrr=59.999999999118884`(잔차 -8.8e-10)가
+  5 start를 전부 버렸다 → 상대오차 1e-9. 처음 `max(1.0,|target|)`로 뒀다가 **self-test가
+  잡았다**(면적 9.1e-12에서 공차가 값의 100배) → 순수 상대오차.
+* **결과**: `parasitic_pm_deg >= PM_target_deg`를 `value_from_spec`으로 선언하고 재탐색 성공 --
+  PM **71.87** / gain_full 66.05 / cmrr 60.50 / psrr 81.65 / mismatch **0.753** /
+  power **233.73uA**(267.59에서 -12.6%).
+
+## 4. 다음에 할 것 (사용자와 합의된 미완 항목)
+
+1. **미러 공통 L (M5가 주인)** -- 3층 구조로 합의됨(사용자 "3층 구조는 맞아"):
+   * 층1 동치류: 진짜 전류미러(같은 kind/gate/source, 순수 connectivity) + `same_as_device`
+     + `matching_pairs`. 실측: 파일럿 3/3 미러 그룹에서 L이 갈려 있다(tail만 `bias_replica`
+     0.18um, 나머지 `mirror` 0.375um). M15/M16(cross-kind)은 자동 제외되어 세션30 결정 유지.
+   * 층2 주인: gain stage의 tail(`headroom_role=="tail"`, stage는 `gain_stages_sum.stages`,
+     stage의 tail은 "그 stage 소자들의 source net을 drain으로 갖는 tail", 최초 input 단은
+     gain metric의 `excite` net을 gate로 갖는 소자가 속한 stage). 주인 없으면 `L_role` 폴백.
+   * 층3 주인이 여럿이면 공통 L 하나를 theta로 두고 **모든** gain 제약을 동시 만족
+     (`metric_stage_budget`의 `metric`을 리스트로 확장).
+   * 층0 게이트: 동치류 안에서 L이 갈리면 즉시 에러.
+   * ★ 상수 제거: `_L_ROLE_MULTIPLIERS`(2.5/1.2) → **`measure_L_knee()`**(계획 §7.10이
+     이름까지 명세, 한계효율 `Δ(gm/gds)/Δ(W·L)` 격자 전수 스캔, 캐시 필요).
+   * ★ L theta 일반화: `L_cascode`/`L_stage2out_*` 같은 **특정 이름 금지**, 동치류에서 파생.
+   * ★ bounds: 새 함수 불필요 -- **이미 선언된 두 제약이 상·하한을 정의**한다.
+     상한 `parasitic_pm_deg >= PM_target_deg`(§7.11, 이번에 배선 완료),
+     하한 `mismatch_sigma_mV <= 선언값`.
+2. `folded_cascode`가 `omega_c`를 노출하지 않아 `parasitic_pm_deg` 측정 불가
+   (topology_fn의 `exposed_params`에 추가 필요). two_stage/nmcnr는 기존 이월 항목
+   (`stage1_out` KVL, `stage2_diode_ref` 예산)에 막혀 있다.
+3. LUT에 Cdb/Csb 추가(~95분 재스윕) -- `node_pole_estimate()`의 저임피던스 노드 제외를 없앰.
+4. B21(선언된 `gain_db`가 미러를 못 봄), `assign_finger_geometry`의 배터리 diode 스택 한계.
+

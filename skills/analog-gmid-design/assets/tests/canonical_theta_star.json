@@ -1,7 +1,7 @@
 {
  "L_cascode": 1e-06,
  "L_stage2out_p": 1.5e-07,
- "L_stage2out_n": 6.6e-07,
+ "L_stage2out_n": 3.2e-07,
  "K_replica": 0.05,
  "N_cmfb_bw_mirror": 1.0,
  "r_cmfb_vocdes": 0.02,
@@ -15,10 +15,10 @@
  "kcl_battery_M9b": 1.0,
  "mirror_M18a": 1.0,
  "kcl_battery_M18b": 1.0,
- "f_slew": 0.10000000000009364,
+ "f_slew": 0.1,
  "N_cmfb_bw": 2.0,
  "r_biasgen": 0.02,
  "r_tail_M6": 0.5,
- "r_tail_M7": 0.16600659686158561,
+ "r_tail_M7": 0.14809285234848069,
  "r_bg_vbias2": 0.02
 }
