@@ -14496,7 +14496,15 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   **결론: 이 임계값은 회로가 아니라 시스템 레벨 요구에서 와야 한다.** 5.0 유지 + 실패 기록.
   미구현 후보: 제약값 bisection.
   ⚠️ `achievable_metric_bound()`/`derive_achievable_bounds.py`는 이 metric엔 무용 --
-  gain류엔 유효하나 미배선. **유지/되돌림/bisection 확장 = 사용자 판단 대기.**
+  gain류엔 유효하나 미배선.
+* ★ **사용자 결정: bisection 확장(선택지 3)** -> 계획 §10.15에 설계만 기록, 구현은 design 단계 뒤.
+  핵심: objective도 제약도 안 바꾸고 **임계값만** 움직여 매번 원래 탐색을 돌린다.
+  원리적 보장 -- 임계값을 조이면 실행가능 집합은 줄어들기만 하므로 '실행가능한 B'는 위로 닫힌
+  구간이고 하한이 유일하다(minimize와 근본적으로 다름). 단, 단조한 건 실행가능성이지 SLSQP
+  성공 여부가 아니라 conservative 규약(마지막 **성공** B + 여러 시드 전부 성공)이 필요하다.
+  재사용: achievable_metric_bound()에 `mode` 인자만 추가. ★ value_from_constraint로 이 값을
+  참조하는 mirror_ratio_error_mV가 같이 움직이는데 **의도된 결합**이다.
+  선행 과제: two_stage_ota의 stage1_out KVL(세션41 이월) -- 그 회로는 지금 탐색 자체가 안 된다.
 * 재탐색: 착지 **무변경**(power 231.17 등 v4.41 동일), mismatch만 1.334 -> 1.090.
 * ★ 계획 §11 CircuitGraph baseline 신설(사용자 지시로 계획서에 보관, design 단계에서 선택):
   넷리스트를 각자 훑는 함수 12개 전수, `propagate_node_voltages()`가 전 노드 DC를 계산해 버림,
