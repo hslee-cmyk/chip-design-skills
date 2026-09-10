@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.40
+version: 4.41
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -3368,6 +3368,80 @@ topology.json이 이 metric에 적어둔 그대로다: *"제약은 아직 걸지
 좋아질수록 이 값이 나빠지는 방향으로 자유도를 쓴다는 것이 드러났다(제약이 없으니 당연하다).
 상한을 얼마로 걸지는 **설계 결정**이라 사용자 확정 없이 넣지 않는다.
 
+### 10.13 미러비 계통오차에 상한 -- **숫자를 박지 않고** (★ 신설 v4.41)
+
+사용자 지시: *"mirror_ratio_error 상한 걸어. 얼마가 적당한지 근거로 제안해"* ->
+*"상수를 임의로 자꾸 만들지마. 근거가 되는 mismatch_sigma_mV만 유지하고 나머지는 계산으로
+도출해서 caching하도록 해."* -> *"그게 이번에 고친 이유잖아. 원칙에 추가해."*
+
+#### ★ 내가 먼저 틀렸다 (기록)
+
+처음엔 `mirror_ratio_error_pct <= 8.0`을 박았다. 유도는 있었다 -- 선언된
+`mismatch_sigma_mV <= 5.0mV` × 입력쌍 실측 `gm_id = 16.00/V` = 8.00%. 주석에 그 유도를
+적어두기까지 했다. **그래도 틀렸다**: 유도를 주석에 적고 **결과 숫자를 박는 순간 그 유도는
+문서일 뿐 코드가 아니게 된다** -- `gm_id`가 바뀌어도 8.0은 안 따라간다. §10.11에서 세션
+절반을 들여 없앤 `_L_ROLE_MULTIPLIERS`와 **정확히 같은 형태의 상수**를 같은 세션에 다시
+만든 것이다. 사용자가 즉시 지적했고, 원칙으로 못박았다
+(메모리 `feedback-never-invent-constants-derive-and-cache`).
+
+#### 해법 -- 단위를 맞추면 임계값이 참조로 끝난다
+
+`%`로 두면 임계값을 `sigma x gm_id`로 계산해 박아야 한다. 대신 **같은 오차를 입력환산
+전압으로** 재면 랜덤 예산과 단위가 같아진다:
+
+    dI/I = |dVDS| / V_A          계통 (1차 CLM, V_A = ID/gds)
+    dV   = (dI/I) / (gm/ID)      입력환산 -> mismatch_sigma_mV와 **같은 단위**
+
+그래서 제약에 **숫자가 없다**:
+
+```json
+{"metric": "mirror_ratio_error_mV", "op": "<=",
+ "value_from_constraint": "mismatch_sigma_mV"}
+```
+
+규칙은 *"계통 오차가 이 회로가 이미 받아들이기로 한 **랜덤** 오차 예산을 넘지 않는다"*이고,
+이 회로에 남은 선언 숫자는 여전히 `mismatch_sigma_mV = 5.0` **하나**다.
+
+#### 만든 것
+
+| 이름 | 역할 |
+|------|------|
+| `_mirror_ratio_error_pairs(ctx)` | 쌍별 `(전류비 오차, 입력환산 V)`를 **한 번** 계산해 `ctx.derived`에 캐시 -- `pct`/`mV` 두 metric이 공유(재계산 0) |
+| `_mirror_ratio_aggregate()` | 선언된 `aggregate` 적용을 두 metric이 공유 |
+| `_metric_mirror_ratio_error_input_referred` | 같은 오차의 입력환산 표현(정규 단위 V). `mirror_ratio_error_pct`는 사람이 읽는 보고용으로 유지 |
+| `resolve_constraint_references()` | 인라인이던 `value_from_spec` 해석을 **이름 있는 함수**로 빼고 `value_from_constraint` 추가. 참조 연쇄 금지(근거는 한 곳에만) |
+
+#### 부수 소득 -- 내가 박은 8.0%는 물리적으로도 틀렸다
+
+쌍마다 **자기 gm_id**로 환산하는 것이 맞다. 최댓값을 만드는 쌍은 `M10/M12`(`gm_id`=22.50/V)
+인데 나는 입력쌍의 `gm_id`=16.00/V를 거기 적용했다. 같은 동작점을 제대로 환산하면
+8.215% = **3.65mV**로 예산 5.0mV 안이다. 즉 박힌 숫자는 근거를 못 따라갈 뿐 아니라 **잘못된
+환산**이었다.
+
+구속력은 그대로다 -- 나쁜 착지들은 여전히 탈락한다: 17.67% -> 7.85mV, 43.45% -> 19.3mV.
+
+#### 게이트가 실제로 거부하는지 (self-test)
+
+  * 동작: `dVDS=0.5V / V_A=10V -> 5.00%`, `gm_id=20/V`로 나누면 `2.50mV`(같은 오차의 두 표현).
+  * 캐시: 쌍별 표가 `ctx.derived`에 남아 두 metric이 공유한다.
+  * **거부 3종**: 참조 대상 없음 / 참조 대상이 자기도 참조(연쇄) / `value`와 참조가 둘 다
+    있고 값이 다름 -- 전부 `ValueError`.
+  * 저장소 자체 게이트도 새 타입을 잡았다(`_metric_device_footprint()` 미등록 -- 이번 세션
+    `parasitic_pm_deg`/`l_class` 때와 같은 자리). 등록해서 해결.
+
+#### 결과 -- 착지 무변경, 여유 36%
+
+정본 재탐색 착지가 v4.40과 **동일**하다(power 231.17, gain_db 61.56, mismatch 1.334,
+cmrr 72.55, psrr 72.49, gain_full 67.08, parasitic_pm 75.02). 새 제약은
+`mirror_ratio_error_mV = 3.186mV`로 예산 5.0mV 대비 **36% 여유**로 통과한다. 즉 지금
+설계를 바꾸는 제약이 아니라, 탐색이 이 축을 희생하려 할 때 **막는** 가드다(§10.12에서
+실제로 43.45%까지 갔다). floorplan/`run_full_circuit_audit.ok` 통과, self-test 둘 다 exit 0.
+
+L5c 픽스처에서는 이 제약을 뺐다 -- `classab_centering_dev_v`/`gain_db`/`parasitic_pm_deg`를
+뺀 것과 **같은 판단이고 같은 근거 제시 방식**이다(픽스처는 거의 모든 theta를 중점에 고정한
+인위적 한 점이라 L 자유도가 필요한 제약을 검증할 자리가 아니다 -- 픽스처 값 vs 자유탐색 값을
+나란히 적었다).
+
 ## Version History
 
 | Version | Date | Changes |
@@ -3427,3 +3501,4 @@ topology.json이 이 metric에 적어둔 그대로다: *"제약은 아직 걸지
 | **4.38** | 2026-09-10 | **층3 착지 + 중복계산 전수검사**. ① `synthesize_l_class_thetas()`가 동치류 공통 L을 **theta로 파생**한다(손선언 없음, 이름도 파생 -- 사용자 지시 "특정 이름으로 하지마"). feed 타입 `l_class` 신설(L만 확정, 레지스트리 확장 계약대로). 파일럿에만 2개, 나머지 3개 회로는 **0개 = 동작 무변경**. 주인이 여럿인 류도 **theta는 하나**라 "두 stage gain 동시 만족 sweep"이 구조에서 저절로 성립한다. ② **bounds를 두 번 좁혔고 둘 다 실측이 시켰다**: LUT 전 범위(4.0um)에서는 SLSQP가 L=1.86um로 가 diode 레퍼런스가 사이징 불가(5 start 전부 실패, 1465초), 선언된 L theta 상한(1.0um)으로 좁혀도 실패 -- **실현가능 L이 구멍 뚫린 집합**이기 때문(세션40이 이미 기록). ③ 그래서 `repair_infeasible_baseline()`을 고쳤다: **(theta,값) 단위 시도 기록**(같은 theta의 다른 값을 재시도 못 하던 버그 -- 병목이 같은 류의 다른 멤버로 간 뒤 멈췄다) + **L theta는 격자를 훑는다**. 4단계 복구로 x0 feasible. ④ **중복계산 전수검사**(사용자 지시, 프로파일 실측): `stack_kvl_vgs_limit`이 `load_topology()`를 호출마다(평가의 **99.3%**, 이미 부르며 **버리던 meta**를 보관해 해결), L2가 ω마다 네트워크 재조립(**28%**, `build_ac_network()`로 1회), `_query` 18,636회 중 **69.2%가 중복**(메모이제이션). **평가 1회 1,325ms → 72.9ms(18배)**, 탐색 1,465초 → 134초. **결과**: `mirror_ratio_error_pct` 13.96 → **3.64**(3.8배), cmrr 60.00 → 73.14, psrr 63.93 → 73.65, `parasitic_pm_deg` 70.12 → 77.37, gain_full 59.66 → 67.64. 파생 theta가 고른 L(0.445/0.573um)은 knee(0.245/0.340)보다 위 -- sweep이 시작점보다 나은 점을 실제로 찾았다. self-test 둘 다 exit 0 / diff 0줄 |
 | **4.39** | 2026-09-10 | **`_L_ROLE_MULTIPLIERS` 완전 제거**(사용자 지시 "bias_replica 상수도 없애" -> 전 회로 적용). ① 남은 상수 `bias_replica: 1.2`가 실제로 정하던 건 **파일럿 4소자**(class-AB 배터리 diode)뿐이었고, 그 값의 근거를 mismatch 선언/knee/소자별 W 실현가능성 세 방향으로 찾았으나 **셋 다 없었다**. ② `derive_role_L()` = `clamp(목표점, feasible_L_window(선언 W_bounds + 그 소자의 실제 ID))` -- 새 상수 없음. **role은 '어떤 측정을 쓸지'만 고른다**(`_L_ROLE_TARGETS`): `mirror`는 knee(출력임피던스 극대화), `bias_replica`는 창 하한(§7.10이 선언한 목적이 PVT 완화이고 gain 요구가 없으므로 면적 최소). 등록 안 된 role은 ValueError. 판정 술어는 `lut_vdsat_headroom()` 안 인라인 코드를 `feasible_gm_ids()`로 꺼내 공유. **한 번 두 role을 합쳤다가 실측이 되돌렸다** -- 둘 다 knee로 두자 배터리 diode W가 125.4/123.4um(비 1.0157)로 나와 `assign_finger_geometry()`가 공통 finger 폭을 못 찾아 파일럿이 **레이아웃에서** 죽었다(SLSQP는 수렴했다 -- self-test만 봤으면 못 봤다). ③ **diode는 gm_id가 자유롭지 않다** -- self-test 픽스처 `Mo`가 "가능"한 L에서 W=0.824um로 하한을 깨며 잡아냈다(`knee_L_for_kind()`가 이미 기록한 반례). 새 판정을 만들지 않고 **기존 `diode_vds_window()`**로 분기(vds가 고정됐으면 그 vds가 강제하는 gm_id로 W를 직접 계산). ④ **theta로 파생하지 않았다** -- 주인 없는 동치류까지 theta로 만들면 파일럿 자유변수가 24->39(실측)로 늘어 SLSQP가 느려진다. 유도값은 결정적이라 자유도를 안 늘리고, 설계 자유도가 필요한 곳은 층3이 이미 theta로 노출했다. ⑤ **폴백 없음** -- 근거(격자 3종)가 없으면 값을 지어내지 않고 즉시 ValueError. 4개 회로 전수 **상수 폴백 0건**; self-test toy 픽스처 6개는 `_tst_grids()`로 실제 spec과 같은 모양으로 맞췄다(엔진에 새 폴백 없음). ⑥ **전수 측정**: 값이 달라진 소자는 파일럿 **5개**(bias_replica 4개 0.180->**0.245**um -- diode 인식 창이 옛 0.180um을 실현 불가능으로 걸러냈다, M37b clamp 0.245->0.350um), folded_cascode는 13개 전부 **무변경**, 나머지 2개 회로는 세션41 이월 항목에서 먼저 실패(변경 전후 동일). `derive_class_L()`은 3개 회로 15개 류에서 실제 호출되나 현재는 소자별 유도와 값이 일치(무동작) -- 갈릴 가능성에 대한 불변식 보증으로 남긴다. ⑦ self-test는 clamp가 **위/아래 양방향으로 실제 값을 바꾸는지**를 assert한다(무동작 게이트 금지). `select_L_by_role()`의 cascode/signal 가드는 `derive_role_L()`로 이관 -- 옛 함수는 self-test 에서만 불렸는데 이제 실제 사이징 경로 위에 있다. self-test 둘 다 exit 0. ⑧ **end-to-end 재탐색은 파이프라인 끝까지 가지만 착지가 v4.38보다 나쁘다**(power 231.17->238.94, cmrr 73.14->64.36, mirror_ratio 3.64->17.67). **유도가 아니라 탐색 착지 문제**다 -- v4.38의 theta_star를 새 엔진으로 평가하면 여전히 실행가능하고 더 좋다(power 231.2). 정본 `n_starts=3` 중 1개만 수렴했다. 다음 과제(`search_stage_budget_L_warm_start()`에 `l_class` 포함, §10.10에 이미 기록)가 정확히 이 x0 문제를 겨냥한다 -- 정본 탐색 파라미터를 임의로 올려 덮지 않았다 |
 | **4.40** | 2026-09-10 | **웜스타트에 `l_class` 포함**(사용자 지시). ① 타입 추가로 끝나지 않는다 -- 실측: `l_class`에 걸리는 제약은 **전부 footprint가 "ALL"**(cmrr/psrr/parasitic_pm_deg)이라 기존 LUT-only 고속경로 두 갈래의 전제가 성립하지 않는다(그냥 넣었으면 bounds-midpoint로 후퇴해 **무동작**). 실제 `evaluate()` 조인트 스캔으로 보낸다. ② 웜스타트가 정한 theta는 SLSQP 자유변수에서 빠지는데(`held_names`), `l_class`가 얼면 층3이 만든 설계 자유도가 사라진다 -- `presolve_warm_start()`에 **`l_class_L`** 신설해 x0만 주고 자유변수로 남긴다. ③ **되돌림 1**: 점수를 선언된 `objective`(power 최소)로 뒀더니 x0가 `L_class__M68` 하한(0.15um)에 붙고 착지 `mirror_ratio_error_pct`가 **43.45%**(v4.38: 3.64) -- 미러비 오차는 `V_A∝L`에 반비례라 층3의 존재 이유를 거스른다. **선언된 제약의 최소 여유 최대화**(내부점, `_group_score_interior()`)로 교체(정규화 분모가 제약값 자신이라 새 상수 없음). ④ **되돌림 2**(프로브가 잡았다): 점수를 바꿔도 `L_class__M68`이 자유변수에서 빠졌다 -- 자유변수 필터의 두 번째 조건인 `graph[...]['classification']`이 **`baseline` 주입 직후 그 점에서** `isolated`로 뒤집혔다. `baseline`에는 **고정될 theta만** 주입하도록 고쳐 2/2가 자유변수로 남는다. ⑤ **결과**(웜스타트 전 대비 전 항목 개선): power 238.94 → **231.17**, gain_db 60.42 → **61.56**, mismatch 2.795 → **1.334**, gain_full 63.26 → **67.08**, cmrr 64.36 → 72.55, mirror_ratio 17.67 → 7.13. L_class 0.511/0.474um. v4.38 대비 목적함수 동률 + gain/mismatch 개선, area 17% 증가. self-test 둘 다 exit 0, floorplan/full_circuit_audit 통과. ⑥ `mirror_ratio_error_pct`는 여전히 **제약이 아니다** -- 관측값 3.64/7.13/17.67/43.45%. 상한은 설계 결정이라 사용자 확정 전까지 안 건다 |
+| **4.41** | 2026-09-10 | **미러비 계통오차 상한 -- 숫자를 박지 않고**(사용자 지시). ① **내가 먼저 틀렸다**: `mirror_ratio_error_pct <= 8.0`을 박았다. 유도(선언된 5.0mV × 입력쌍 gm_id 16.00/V)를 주석에 적었지만 **결과를 박는 순간 유도는 문서일 뿐 코드가 아니게 된다** -- gm_id가 바뀌어도 8.0은 안 따라간다. §10.11에서 없앤 `_L_ROLE_MULTIPLIERS`와 같은 형태의 상수를 같은 세션에 다시 만든 것이고, 사용자 지적으로 원칙에 못박았다(메모리 `feedback-never-invent-constants-derive-and-cache`). ② **해법은 단위 맞추기**: 계통 오차를 **입력환산 전압**으로 재면(`dV=(dI/I)/(gm/ID)`) 랜덤 예산과 단위가 같아져 임계값을 `value_from_constraint: mismatch_sigma_mV`로 **참조**하면 끝난다 -- 제약에 숫자가 0개이고, 이 회로에 남은 선언 숫자는 `mismatch_sigma_mV = 5.0` 하나다. ③ 신설: `_mirror_ratio_error_pairs()`(쌍별 표를 `ctx.derived`에 **한 번** 계산해 pct/mV 두 metric이 공유), `_metric_mirror_ratio_error_input_referred`, `resolve_constraint_references()`(인라인 해석을 함수로 빼고 `value_from_constraint` 추가, 참조 연쇄 금지). ④ **부수 소득**: 박은 8.0%는 물리적으로도 틀렸다 -- 최댓값 쌍 M10/M12의 gm_id는 22.50/V인데 입력쌍 16.00/V를 적용했다. 제대로 환산하면 8.215% = **3.65mV**로 예산 안이다. 구속력은 유지(17.67% → 7.85mV, 43.45% → 19.3mV 전부 탈락). ⑤ self-test: 환산 동작 + 캐시 공유 + **거부 3종**(참조 없음/연쇄/value 충돌). 저장소 자체 게이트도 새 타입 미등록을 잡아 등록. ⑥ **결과**: 착지 무변경(power 231.17 등 v4.40과 동일), `mirror_ratio_error_mV = 3.186mV`로 예산 5.0mV 대비 **36% 여유** -- 설계를 바꾸는 제약이 아니라 탐색이 이 축을 희생하려 할 때 막는 가드다. self-test 둘 다 exit 0 |

@@ -4536,6 +4536,84 @@ def _metric_supply_current(spec: dict, ctx: SizingContext) -> float:
     return total
 
 
+
+def _mirror_ratio_aggregate(errs: list, spec: dict) -> float:
+    """`mirror_ratio_error*` metric의 선언된 `aggregate` 적용(2026-09-10 추출, 두 metric 공유)."""
+    agg = spec.get("aggregate", "max")
+    if agg not in ("max", "rss"):
+        raise ValueError(
+            f"mirror_ratio_error: aggregate는 'max'|'rss' 중 하나여야 한다(받은 값: {agg!r})")
+    if not errs:
+        return 0.0
+    return max(errs) if agg == "max" else math.sqrt(sum(e * e for e in errs))
+
+
+def _mirror_ratio_error_pairs(ctx: SizingContext) -> list:
+    """ratio 매칭 쌍마다 `(계통 전류비 오차[분수], 그 오차의 입력환산 전압[V])`.
+
+    ## 두 표현이 같은 것을 말한다
+
+    1차 채널길이변조에서 미러 쌍의 계통 전류비 오차는 `dI/I = |dVDS| / V_A`
+    (`V_A = ID/gds`, Early 전압)다. 같은 오차를 **게이트 입력으로 환산**하면
+    `dV = (dI/I) / (gm/ID)` -- 랜덤 Vth 미스매치(`pelgrom_mismatch`)가 쓰는 것과 **같은
+    단위**가 된다. 그래서 "계통이 이미 선언된 랜덤 예산을 넘지 않는다"를 **숫자를 새로
+    박지 않고** 표현할 수 있다(§10.13).
+
+    ## 캐시
+
+    한 번 평가할 때 `mirror_ratio_error_pct`와 `mirror_ratio_error_mV`가 **둘 다** 이 표를
+    쓴다. `ctx.derived`에 한 번 담아 나눠 쓴다(평가마다 새 ctx라 오염이 없다) --
+    프로젝트 Python 코딩원칙: 루프 안의 계산은 쓰는 그 순간에 캐시.
+    """
+    cached = ctx.derived.get("_mirror_ratio_error_pairs")
+    if cached is not None:
+        return cached
+    out = []
+    for p in _matching_pairs_cached(ctx.topology_path):
+        if p.get("matching_sensitivity") != "ratio":
+            continue
+        names = p.get("names") or []
+        if len(names) < 2:
+            continue
+        a, b = names[0], names[1]
+        ea, eb = ctx.sized.get(a), ctx.sized.get(b)
+        if ea is None or eb is None:
+            raise KeyError(f"mirror_ratio_error: '{a}' 또는 '{b}'가 ctx.sized에 없다 -- "
+                            f"이 metric은 전 소자 사이징 후에만 계산할 수 있다(T3 전역 게이트)")
+        if ea.get("vds") is None or eb.get("vds") is None or not ea.get("gds"):
+            raise KeyError(f"mirror_ratio_error: '{a}'/'{b}'의 vds/gds가 미확정")
+        v_a = ea["ID"] / ea["gds"]                      # Early 전압 V_A = ID/gds
+        frac = abs(eb["vds"] - ea["vds"]) / v_a
+        gm_id = ea.get("gm_id") or ((ea.get("gm") / ea["ID"]) if ea.get("gm") else None)
+        if not gm_id:
+            raise KeyError(
+                f"mirror_ratio_error: '{a}'의 gm_id(또는 gm)가 없다 -- 계통 오차를 입력환산 "
+                f"전압으로 바꾸려면 gm/ID가 필요하다(그게 %와 V를 잇는 유일한 환산이다)")
+        out.append((frac, frac / gm_id))
+    ctx.derived["_mirror_ratio_error_pairs"] = out
+    return out
+
+
+def _metric_mirror_ratio_error_input_referred(spec: dict, ctx: SizingContext) -> float:
+    """F엔진(2026-09-10) — 계통 미러비 오차를 **입력환산 전압(V)**으로 반환한다.
+
+    `_metric_mirror_ratio_error()`와 **같은 값을 다른 단위로** 말한다:
+    `dV = (dI/I) / (gm/ID)`. 존재 이유는 하나다 -- 이 단위여야 임계값을 **이미 선언된
+    값에서 그대로 가져올 수 있다**:
+
+        {"metric": "mirror_ratio_error_mV", "op": "<=",
+         "value_from_constraint": "mismatch_sigma_mV"}
+
+    즉 "계통 오차가 이 회로가 이미 받아들이기로 한 **랜덤** 오차 예산을 넘지 않는다"를
+    **새 숫자 0개**로 선언한다. %로 두면 임계값을 `sigma x gm_id`로 계산해 박아야 하는데,
+    그 순간 gm_id가 바뀌어도 안 따라가는 상수가 하나 생긴다(§10.13 -- 실제로 내가 8.0을
+    박았다가 되돌렸다).
+
+    ⚠️ `pelgrom_mismatch`와 **더하지 않는다**. 하나는 계통, 하나는 랜덤(sigma)이라 합성
+    규칙이 다르다 -- 여기서는 "계통이 랜덤 예산을 넘지 않는다"는 **비교**만 한다.
+    """
+    return _mirror_ratio_aggregate([v for _f, v in _mirror_ratio_error_pairs(ctx)], spec)
+
 def _metric_mirror_ratio_error(spec: dict, ctx: SizingContext) -> float:
     """F엔진(2026-09-08, A4) — **전류미러 쌍의 VDS 차이가 만드는 계통(systematic) 전류비
     오차**를 %로 반환한다. `symmetry.matching_pairs` 중 `matching_sensitivity == "ratio"`인
@@ -4558,29 +4636,8 @@ def _metric_mirror_ratio_error(spec: dict, ctx: SizingContext) -> float:
     본다. (2) 랜덤 미스매치 -- 그건 `pelgrom_mismatch` 몫이다. (3) 3소자 이상 미러 그룹의
     쌍 조합 -- 선언된 쌍 그대로만 본다. (4) 이 오차가 최종 스펙(gain/CMRR 등)에 얼마나
     전파되는지 -- 그건 전체회로 MNA metric이 별도로 본다."""
-    pairs = _matching_pairs_cached(ctx.topology_path)
-    agg = spec.get("aggregate", "max")
-    if agg not in ("max", "rss"):
-        raise ValueError(f"mirror_ratio_error: aggregate는 'max'|'rss' 중 하나여야 한다(받은 값: {agg!r})")
-    errs = []
-    for p in pairs:
-        if p.get("matching_sensitivity") != "ratio":
-            continue
-        names = p.get("names") or []
-        if len(names) < 2:
-            continue
-        a, b = names[0], names[1]
-        ea, eb = ctx.sized.get(a), ctx.sized.get(b)
-        if ea is None or eb is None:
-            raise KeyError(f"mirror_ratio_error: '{a}' 또는 '{b}'가 ctx.sized에 없다 -- "
-                            f"이 metric은 전 소자 사이징 후에만 계산할 수 있다(T3 전역 게이트)")
-        if ea.get("vds") is None or eb.get("vds") is None or not ea.get("gds"):
-            raise KeyError(f"mirror_ratio_error: '{a}'/'{b}'의 vds/gds가 미확정")
-        v_a = ea["ID"] / ea["gds"]                      # Early 전압 V_A = ID/gds
-        errs.append(abs(eb["vds"] - ea["vds"]) / v_a * 100.0)
-    if not errs:
-        return 0.0
-    return max(errs) if agg == "max" else math.sqrt(sum(e * e for e in errs))
+    errs = [f * 100.0 for f, _v in _mirror_ratio_error_pairs(ctx)]
+    return _mirror_ratio_aggregate(errs, spec)
 
 
 def _metric_rail_referenced_voltage(spec: dict, ctx: SizingContext) -> float:
@@ -5481,6 +5538,9 @@ _METRICS_REGISTRY = {
     "parasitic_pm_deg":         _metric_parasitic_pm_deg,          # §7.11, 2026-09-10
     "stack_headroom_slack":     _metric_stack_headroom_slack,      # A8, 2026-09-08
     "mirror_ratio_error":       _metric_mirror_ratio_error,        # A4, 2026-09-08
+    # 같은 오차의 입력환산 표현(2026-09-10) -- 임계값을 선언된 mismatch 예산에서 그대로
+    # 참조하기 위해 존재한다(숫자를 박지 않으려고).
+    "mirror_ratio_error_input_referred": _metric_mirror_ratio_error_input_referred,
     "rail_referenced_voltage":  _metric_rail_referenced_voltage,     # 세션6
     "battery_centering_deviation": _metric_battery_centering_deviation,  # 세션6
     "nulling_resistor_ohm":     _metric_nulling_resistor_ohm,         # 세션44 계속
@@ -5525,6 +5585,7 @@ _METRIC_UNITS = {          # 각 계산기가 **실제로** 돌려주는 단위(
     "kcl_residual":                "A",
     "stack_headroom_slack":        "V",
     "mirror_ratio_error":          "%",
+    "mirror_ratio_error_input_referred": "V",
     "rail_referenced_voltage":     "V",
     "battery_centering_deviation": "V",
     "nulling_resistor_ohm":        "ohm",
@@ -8013,6 +8074,77 @@ def require_declared_spec_source(topology_path: str, spec: dict) -> None:
         f"지금 넘긴 spec의 지문: {spec_fingerprint(spec)}")
 
 
+
+def resolve_constraint_references(constraints: list, spec: dict) -> list:
+    """constraint의 **임계값 참조**를 실제 값으로 치환한다. 소비자는 기존대로 `c["value"]`만
+    읽으면 된다(`_build_theta_evaluator()`가 부르는 유일한 치환 지점).
+
+    두 가지 참조를 푼다:
+
+    * `value_from_spec: "<spec 키>"` -- 목표가 **이미 spec에 있는 값**일 때.
+      (§7.11의 `parasitic_pm_deg >= PM_target_deg` -- 기생 pole이 남기는 위상여유가 그
+      회로의 PM 목표를 넘어야 한다는 뜻이라 새 상수가 아니라 선언된 값 그 자체다.)
+    * `value_from_constraint: "<다른 metric 이름>"` -- 목표가 **이 회로가 다른 제약으로
+      이미 선언한 예산 그 자체**일 때. (§10.13의
+      `mirror_ratio_error_mV <= mismatch_sigma_mV의 값` -- 계통 미러비 오차를 입력환산
+      전압으로 재면 랜덤 미스매치 예산과 단위가 같아지므로, "계통이 이미 받아들이기로 한
+      랜덤 예산을 넘지 않는다"를 **새 숫자 0개**로 선언할 수 있다.)
+
+    ## 왜 숫자를 복제하면 안 되나
+
+    같은 값을 두 곳에 적으면 **조용히 갈린다** -- §10.6에서 실제로 겪은 사고다. 유도식을
+    주석에 적고 결과를 박는 것도 같은 문제다: 근거가 바뀌어도 박힌 숫자는 안 따라간다
+    (사용자 지시 *"상수를 임의로 자꾸 만들지마"* -- 실제로 8.0을 박았다가 되돌렸다).
+
+    참조의 연쇄(참조 대상이 또 참조)는 **허용하지 않는다** -- 근거는 한 곳에만 둔다.
+    `value`와 참조가 둘 다 있고 값이 다르면 어느 쪽이 맞는지 엔진이 정할 수 없으므로
+    즉시 `ValueError`(조용히 한쪽을 고르지 않는다).
+    """
+    out = list(constraints)
+    if any(isinstance(c, dict) and "value_from_constraint" in c for c in out):
+        # 참조 대상은 **숫자 값을 직접 가진** 제약뿐이다(연쇄 금지).
+        vals = {c.get("metric"): c.get("value") for c in out
+                if isinstance(c, dict) and c.get("value") is not None}
+        resolved = []
+        for c in out:
+            if not (isinstance(c, dict) and "value_from_constraint" in c):
+                resolved.append(c)
+                continue
+            ref = c["value_from_constraint"]
+            if ref not in vals:
+                raise ValueError(
+                    f"constraint '{c.get('metric')}'가 value_from_constraint={ref!r}를 "
+                    f"참조하는데 그 이름으로 **숫자 값을 가진** constraint가 없다 -- "
+                    f"참조 가능한 것: {sorted(vals)}. 참조의 연쇄는 허용하지 않는다"
+                    f"(근거는 한 곳에만 둘 것)")
+            if "value" in c and c["value"] != vals[ref]:
+                raise ValueError(
+                    f"constraint '{c.get('metric')}'에 value({c['value']})와 "
+                    f"value_from_constraint({ref}={vals[ref]})가 **둘 다** 있고 값이 "
+                    f"다르다 -- 어느 쪽이 맞는지 이 엔진이 정할 수 없다. 하나만 남길 것")
+            resolved.append(dict(c, value=vals[ref]))
+        out = resolved
+    if any(isinstance(c, dict) and "value_from_spec" in c for c in out):
+        resolved = []
+        for c in out:
+            if not (isinstance(c, dict) and "value_from_spec" in c):
+                resolved.append(c)
+                continue
+            key = c["value_from_spec"]
+            if key not in spec:
+                raise ValueError(
+                    f"constraint '{c.get('metric')}'가 value_from_spec={key!r}를 참조하는데 "
+                    f"spec에 그 키가 없다 -- 이 제약의 목표는 spec이 정하는 값이므로 "
+                    f"spec에 선언돼 있어야 한다(숫자를 topology.json에 복제하지 말 것)")
+            if "value" in c and c["value"] != spec[key]:
+                raise ValueError(
+                    f"constraint '{c.get('metric')}'에 value({c['value']})와 "
+                    f"value_from_spec({key}={spec[key]})가 **둘 다** 있고 값이 다르다 -- "
+                    f"어느 쪽이 맞는지 이 엔진이 정할 수 없다. 하나만 남길 것")
+            resolved.append(dict(c, value=spec[key]))
+        out = resolved
+    return out
+
 def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     """`optimize_full_circuit_budget()`의 세타-무관 setup + `_evaluate(theta_values)` 평가
     클로저를 그대로 추출한 헬퍼(2026-08-11 세션29, 순수 리팩터 -- 동작 변화 없음. warm-start
@@ -8052,34 +8184,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
     validate_no_legacy_vs_key(meta.get("device_roles") or {})   # 2026-09-08(B9 개명)
     objective = roles.get("objective") or {}
     constraints = roles.get("constraints") or []
-    # 2026-09-10 -- constraint가 `value` 대신 `value_from_spec: "<spec 키>"`를 쓸 수 있다.
-    # 여기(유일한 생성 지점)에서 실제 값으로 치환하므로 모든 소비자는 기존과 똑같이
-    # `c["value"]`만 읽으면 된다.
-    #
-    # 왜 필요한가: 어떤 제약의 목표는 **이미 spec에 있는 값**이다(예: §7.11의
-    # `parasitic_pm_deg >= PM_target_deg` -- 기생 pole이 남기는 위상여유가 그 회로의 PM
-    # 목표를 넘어야 한다는 뜻이라, 새 상수가 아니라 이미 선언된 값 그 자체다). 그걸
-    # topology.json에 숫자로 다시 적으면 **두 곳이 조용히 갈릴 수 있다** -- 정확히
-    # §10.6에서 겪은 사고(복제된 값이 정본과 갈림)와 같은 형태다.
-    if any(isinstance(c, dict) and "value_from_spec" in c for c in constraints):
-        _resolved = []
-        for c in constraints:
-            if not (isinstance(c, dict) and "value_from_spec" in c):
-                _resolved.append(c)
-                continue
-            key = c["value_from_spec"]
-            if key not in spec:
-                raise ValueError(
-                    f"constraint '{c.get('metric')}'가 value_from_spec={key!r}를 참조하는데 "
-                    f"spec에 그 키가 없다 -- 이 제약의 목표는 spec이 정하는 값이므로 "
-                    f"spec에 선언돼 있어야 한다(숫자를 topology.json에 복제하지 말 것)")
-            if "value" in c and c["value"] != spec[key]:
-                raise ValueError(
-                    f"constraint '{c.get('metric')}'에 value({c['value']})와 "
-                    f"value_from_spec({key}={spec[key]})가 **둘 다** 있고 값이 다르다 -- "
-                    f"어느 쪽이 맞는지 이 엔진이 정할 수 없다. 하나만 남길 것")
-            _resolved.append(dict(c, value=spec[key]))
-        constraints = _resolved
+    constraints = resolve_constraint_references(constraints, spec)
     # "_"로 시작하는 키(예: "_comment")는 이 프로젝트 전역 관례상 문서용 주석 필드다 --
     # 실제 소자 이름이 "_"로 시작할 일은 없으므로 안전하게 걸러낸다.
     device_roles = {k: v for k, v in (meta.get("device_roles") or {}).items()
@@ -9663,6 +9768,9 @@ _DEFAULT_ALL_DEVICES_METRIC_TYPES = frozenset({"sum_current", "sum_area",
                                                  # 2026-09-08(A3/A4) -- 둘 다 topology
                                                  # 전체를 훑으므로 isolated로 보면 안 된다.
                                                  "supply_current", "mirror_ratio_error",
+                                                 # 2026-09-10 -- 같은 오차의 입력환산 표현.
+                                                 # 같은 쌍 표를 쓰므로 footprint도 같다.
+                                                 "mirror_ratio_error_input_referred",
                                                  "kcl_residual", "stack_headroom_slack",
                                                  # 2026-09-10(§7.11) -- parasitic_pm_deg의
                                                  # footprint는 metric 선언만으로 못 정한다:
@@ -12832,8 +12940,15 @@ if __name__ == "__main__":
         # 보상망 전체 포함). 즉 제약이 과한 게 아니라 이 픽스처가 그걸 검증할 자리가
         # 아니다 -- 이 픽스처가 보는 것은 헤드룸 singleton KVL이고 그건 아래 assert들이
         # 그대로 검증한다. `classab_centering_dev_v`/`gain_db`를 뺀 것과 같은 판단이다.
+        # 2026-09-10(사용자 지시로 상한 신설) -- `mirror_ratio_error_mV`도 같은 이유로
+        # 뺀다. 이 metric은 ratio 쌍의 **VDS 차이 / V_A / (gm/ID)**이고 `V_A = ID/gds`는 L에
+        # 비례한다 -- 즉 L을 자유롭게 고를 수 있어야 만족할 수 있는데, 이 픽스처는 거의 모든
+        # theta를 중점에 고정한 인위적 한 점이다. 반면 **실제 자유탐색은 만족한다**(정본
+        # spec + SLSQP, 이 제약을 켠 상태에서 측정) -- 즉 제약이 과한 게 아니라 이 픽스처가
+        # 그걸 검증할 자리가 아니다. 위 세 metric을 뺀 것과 같은 판단이고, 근거 제시 방식도
+        # 같다(픽스처 값 vs 자유탐색 값을 나란히 적는다).
         if c["metric"] not in ("classab_centering_dev_v", "gain_db",
-                               "parasitic_pm_deg")]
+                               "parasitic_pm_deg", "mirror_ratio_error_mV")]
     with _tempfile.TemporaryDirectory() as _l5c_tmpdir:
         _l5c_topo_path = _rsl_os.path.join(_l5c_tmpdir, "current_reuse_telescopic_ota.l5c.json")
         with open(_l5c_topo_path, "w", encoding="utf-8") as _l5c_f:
@@ -13328,6 +13443,54 @@ if __name__ == "__main__":
         print(f"    PASS: 전류가 4배 다른 두 멤버의 류 공통 L={_cL*1e6:.3f}um -- 양쪽 창 안")
     else:
         print("    PASS: 두 멤버의 창 교집합이 비어 None -- 억지로 하나로 묶지 않는다")
+
+    print()
+    print("  [계통 미러비 오차를 **선언된 랜덤 예산과 같은 단위**로 재기(2026-09-10) --")
+    print("   숫자를 박지 않으려고 만든 것이다: 임계값이 mismatch_sigma_mV 참조로 끝난다]")
+    _mre_ctx = SizingContext(topology_path="_mre_fake", kind_of={"Ma": "nmos", "Mb": "nmos"})
+    # V_A = ID/gds = 10uA/1uS = 10V, dVDS = 0.5V -> dI/I = 5%. gm/ID = 20/V -> 입력환산 2.5mV.
+    _mre_ctx.sized = {"Ma": {"ID": 10e-6, "gds": 1e-6, "vds": 0.4, "gm_id": 20.0},
+                      "Mb": {"ID": 10e-6, "gds": 1e-6, "vds": 0.9, "gm_id": 20.0}}
+    # `_matching_pairs_cached()`가 읽는 바로 그 캐시 엔트리를 채운다(파일을 만들지 않고
+    # 이 metric만 격리해서 보기 위함 -- 끝나면 되돌린다).
+    _load_full_topology_cached.__dict__.setdefault("_cache", {})["_mre_fake"] = {
+        "matching_pairs": [{"names": ["Ma", "Mb"], "matching_sensitivity": "ratio"}],
+        "by_name": {}, "passive_elements": []}
+    try:
+        _mre_pct = compute_metric({"type": "mirror_ratio_error", "unit": "%"}, _mre_ctx)
+        _mre_mv = compute_metric({"type": "mirror_ratio_error_input_referred",
+                                   "unit": "mV"}, _mre_ctx)
+    finally:
+        _load_full_topology_cached.__dict__["_cache"].pop("_mre_fake", None)
+    assert abs(_mre_pct - 5.0) < 1e-9, f"계통 전류비 오차가 5%가 아님: {_mre_pct}"
+    assert abs(_mre_mv - 2.5) < 1e-9, f"입력환산이 2.5mV가 아님: {_mre_mv}"
+    print(f"    PASS: dVDS=0.5V / V_A=10V -> {_mre_pct:.2f}%, gm_id=20/V로 나누면 "
+          f"{_mre_mv:.2f}mV (같은 오차의 두 표현)")
+    assert _mre_ctx.derived.get("_mirror_ratio_error_pairs") is not None,         "쌍별 표가 ctx.derived에 안 남았다 -- 두 metric이 같은 계산을 두 번 하게 된다"
+    print("    PASS: 쌍별 표가 ctx.derived에 캐시됨(pct/mV 두 metric이 공유)")
+
+    print("  [value_from_constraint -- 임계값을 다른 제약에서 그대로 참조(숫자 복제 금지)]")
+    _vfc_ok = resolve_constraint_references([
+        {"metric": "mismatch_sigma_mV", "op": "<=", "value": 5.0},
+        {"metric": "mirror_ratio_error_mV", "op": "<=",
+         "value_from_constraint": "mismatch_sigma_mV"}], {})
+    assert [c["value"] for c in _vfc_ok] == [5.0, 5.0], _vfc_ok
+    print(f"    PASS: 참조가 5.0으로 치환됨 -- 임계값이 선언된 곳은 한 곳뿐이다")
+    # ★ 게이트는 '통과'가 아니라 '실제로 거부한다'를 보여야 한다.
+    for _bad, _why in (
+            ([{"metric": "x", "op": "<=", "value_from_constraint": "없는제약"}],
+             "참조 대상이 없음"),
+            ([{"metric": "y", "op": "<=", "value_from_spec": "k"},
+              {"metric": "x", "op": "<=", "value_from_constraint": "y"}],
+             "참조 대상이 자기도 참조(연쇄)"),
+            ([{"metric": "y", "op": "<=", "value": 3.0},
+              {"metric": "x", "op": "<=", "value": 9.0, "value_from_constraint": "y"}],
+             "value와 참조가 둘 다 있고 다름")):
+        try:
+            resolve_constraint_references(_bad, {"k": 1.0})
+            raise AssertionError(f"{_why}인데 에러가 안 났다")
+        except ValueError as _e_vfc:
+            print(f"    PASS: {_why} -> ValueError -- {str(_e_vfc)[:52]}...")
 
     print()
     print("  [웜스타트 조인트 스캔 점수(2026-09-10, l_class 포함) -- 그룹마다 기준이 다르다]")

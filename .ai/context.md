@@ -14439,3 +14439,35 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 * ⚠️ 아직 안 한 것: folded_cascode의 `omega_c` 미노출(parasitic_pm_deg 측정 불가),
   two_stage `stage1_ref` / nmcnr `stage2_diode_ref`(세션41 이월), LUT에 Cdb/Csb 추가.
 
+## 9. (세션47 이어서) 미러비 계통오차 상한 -- 숫자 없이 (계획 §10.13, v4.41)
+
+* ★ **내가 먼저 틀렸다**: `mirror_ratio_error_pct <= 8.0`을 박았다. 유도(5.0mV × gm_id
+  16.00/V)를 주석에 적었지만, **결과를 박으면 유도는 문서일 뿐 코드가 아니다**. §10.11에서
+  없앤 `_L_ROLE_MULTIPLIERS`와 같은 형태의 상수를 같은 세션에 다시 만든 것.
+  -> 메모리 `feedback-never-invent-constants-derive-and-cache`로 원칙화(사용자 지시).
+* 해법: **단위를 맞춘다**. 계통 오차를 입력환산 전압으로 재면(dV=(dI/I)/(gm/ID)) 랜덤
+  예산과 단위가 같아지고, 임계값은 `value_from_constraint: "mismatch_sigma_mV"` 참조로
+  끝난다. 제약에 숫자 0개.
+* 신설(`sizing_recipe.py`):
+  - `_mirror_ratio_error_pairs(ctx)` -- 쌍별 (전류비 오차, 입력환산 V). `ctx.derived` 캐시로
+    `mirror_ratio_error_pct` / `mirror_ratio_error_mV` 두 metric이 공유(재계산 0).
+  - `_mirror_ratio_aggregate()` -- 선언된 aggregate 적용 공유.
+  - `_metric_mirror_ratio_error_input_referred`(정규 단위 V) + `_METRIC_UNITS` /
+    `_METRICS_REGISTRY` / `_DEFAULT_ALL_DEVICES_METRIC_TYPES` 등록.
+  - `resolve_constraint_references(constraints, spec)` -- 인라인이던 `value_from_spec`
+    해석을 함수로 빼고 **`value_from_constraint`** 추가. 참조 연쇄 금지.
+* ★ 부수 소득: 박은 8.0%는 **물리적으로도 틀렸다**. 최댓값 쌍 M10/M12의 gm_id는 22.50/V인데
+  입력쌍 16.00/V를 적용했다. 제대로 환산하면 8.215% = 3.65mV(예산 5.0mV 안).
+  구속력은 유지 -- 17.67% -> 7.85mV, 43.45% -> 19.3mV 전부 탈락.
+* self-test: 환산 동작(5.00% <-> 2.50mV) + 캐시 공유 + **거부 3종**(참조 대상 없음 / 참조
+  연쇄 / value와 참조 충돌). 저장소 자체 게이트(`_metric_device_footprint` 미등록)도
+  새 타입을 잡아 등록(이번 세션 parasitic_pm_deg/l_class 때와 같은 자리).
+* 결과: 착지 **무변경**(power 231.17, gain_db 61.56, mismatch 1.334, cmrr 72.55, psrr 72.49,
+  gain_full 67.08, parasitic_pm 75.02 -- 전부 v4.40과 동일).
+  `mirror_ratio_error_mV = 3.186mV` / 예산 5.0mV -> **36% 여유**로 통과.
+  즉 지금 설계를 바꾸는 제약이 아니라 탐색이 이 축을 희생하려 할 때 막는 가드다.
+* L5c 픽스처에서는 제외 -- classab_centering/gain_db/parasitic_pm_deg를 뺀 것과 같은 판단
+  (픽스처는 거의 모든 theta를 중점 고정한 인위적 한 점, 자유탐색은 만족).
+* 신설 프로브: `tests/probe_mirror_ratio_bound.py`(쌍별 계통 vs 랜덤 -- ratio 쌍 18개 전부에서
+  계통 < 그 쌍 자신의 랜덤 성분).
+
