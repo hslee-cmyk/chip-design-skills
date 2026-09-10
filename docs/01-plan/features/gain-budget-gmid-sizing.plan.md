@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.39
+version: 4.40
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -3292,6 +3292,82 @@ derivative for linesearch'로 실패).
 self-test에서만 불렸는데 이제 **실제 사이징 경로 위에** 있다), (4) 전류가 4배 다른 두
 멤버의 류 공통 L이 양쪽 창 안. self-test 둘 다 exit 0.
 
+### 10.12 웜스타트에 `l_class` 포함 -- 두 번의 되돌림 (★ 신설 v4.40)
+
+사용자 지시: *"warm start에 l_class 포함해서 재탐색해"*. §10.11이 남긴 과제다.
+
+#### 타입 하나 추가로 끝나는 일이 아니었다 (먼저 쟀다)
+
+`tests/probe_lclass_warm_start.py`로 두 가지를 먼저 쟀다:
+
+1. **`l_class` theta에 걸리는 제약은 전부 footprint가 "ALL"이다** -- 파일럿 실측:
+   `cmrr_estimate_db` / `psrr_estimate_db` / `parasitic_pm_deg`. 기존 고속경로 두 갈래
+   (`gain_stages_sum` 방향 판정 / `battery_centering_deviation` 최소화)는 "이 theta의
+   `devices`만 보면 방향을 안다"는 전제 위에 있어 **쓸 수 없다**. 타입만 추가했으면
+   `bounds-midpoint`로 조용히 후퇴해 **무동작**이 됐을 것이다. 그래서 실제 `evaluate()`
+   조인트 스캔(complex 분기)으로 보낸다.
+2. **웜스타트가 정한 theta는 SLSQP 자유변수에서 빠진다**
+   (`held_names = vote_determined | stage_budget_L`). `l_class`가 거기 들어가면 층3이
+   만든 설계 자유도를 격자점에 얼리는 셈이다 -- §10.10 실측에서 SLSQP는 격자 사이 값
+   (0.445/0.573um)을 찾아 knee보다 나은 점에 도달했었다. 그래서
+   `presolve_warm_start()` 반환에 **`l_class_L`**을 신설해 x0만 주고 자유변수로 남긴다.
+
+#### ★ 되돌림 1 -- 점수를 목적함수로 뒀다가 되돌렸다
+
+`l_class` 그룹엔 centering 같은 전용 metric이 없다. 처음엔 선언된 `objective`
+(`power_uA` 최소)를 점수로 썼다. **실측이 틀렸다고 했다**: 실현가능 후보 중 전력이 가장
+낮은 점은 `L_class__M68`의 **bounds 하한(0.15um)**이었고, 착지점의
+`mirror_ratio_error_pct`가 **43.45%**였다(v4.38: 3.64). 미러비 오차는 `V_A = ID/gds`에
+반비례하고 `V_A`는 L에 비례하므로, L을 하한에 붙이는 것은 **층3이 존재하는 이유를 정확히
+거스른다**.
+
+바꾼 기준: **선언된 제약의 최소 여유를 최대화**(`_group_score_interior()`). 각 제약의
+여유를 그 제약값 자신으로 정규화해 최솟값을 본다 -- 새 상수가 없다. 웜스타트의 일은
+최적점을 찾는 게 아니라 **SLSQP가 잘 출발할 실현가능점을 주는 것**이고, 제약 경계에 붙은
+점은 (1) 민감도가 죽고 (2) 한 발만 움직여도 infeasible이라 linesearch가 막힌다.
+
+#### ★ 되돌림 2 -- 진짜 원인은 `baseline` 주입이었다 (프로브가 잡았다)
+
+점수를 바꿔도 프로브는 여전히 **`L_class__M68`이 자유변수에서 빠졌다**고 경고했다.
+`held_names`에는 안 넣었는데도 그랬다 -- 자유변수 필터는 조건이 하나 더 있다:
+
+    graph[name]["classification"] in ("coupled", "ambiguous")
+
+`presolve_warm_start()`가 스캔 결과를 `baseline`에 주입한 **직후** 그 baseline으로
+`derive_theta_dependency_graph()`를 부르는데, 주입된 점에서 분류가 `isolated`로 뒤집혔다.
+같은 회로에서 복구된 기준점 기준으로는 `ambiguous`다(실측: L 값 0.15~0.575um 어디서도
+`ambiguous`였다 -- 즉 뒤집은 건 이 theta 자신의 값이 아니라 함께 주입된 다른 L들이다).
+
+고침: `baseline`에는 **고정될 theta만** 주입한다(`stage_budget_L_held`). x0에는 그대로
+반영되므로 웜스타트 효과는 유지된다. 프로브 재측정: **2/2가 자유변수로 남는다**.
+
+#### 결과
+
+| metric | v4.38 | v4.39(웜스타트 전) | **v4.40** |
+|--------|-------|------------------|-----------|
+| `power_uA`(목적함수) | 231.17 | 238.94 | **231.17** |
+| `gain_db` | 60.42 | 60.42 | **61.56** |
+| `mismatch_sigma_mV` | 2.795 | 2.795 | **1.334** |
+| `gain_full_circuit_db` | 67.64 | 63.26 | **67.08** |
+| `cmrr_estimate_db` | 73.14 | 64.36 | 72.55 |
+| `psrr_estimate_db` | 73.65 | 69.72 | 72.49 |
+| `parasitic_pm_deg` | 77.37 | 73.19 | 75.02 |
+| `mirror_ratio_error_pct` | 3.64 | 17.67 | 7.13 |
+| `area_um2` | 688.12 | 775.52 | 806.90 |
+| `L_class__M68` / `__M8` | 0.445 / 0.573um | 0.15 / 1.0um | **0.511 / 0.474um** |
+
+웜스타트 전 대비 전 항목이 개선됐고, v4.38 대비로는 목적함수 동률(231.17)에 `gain_db`
++1.14dB, `mismatch_sigma_mV` **2.1배 개선**, `gain_full` 동급이다. 대신 `area`가 17%
+크고 `mirror_ratio_error_pct`가 3.64 -> 7.13이다. floorplan/`run_full_circuit_audit.ok`
+통과, self-test 둘 다 exit 0.
+
+#### 남은 판단 -- `mirror_ratio_error_pct`는 아직 제약이 아니다
+
+topology.json이 이 metric에 적어둔 그대로다: *"제약은 아직 걸지 않는다 -- 먼저 재고 나서
+상한을 정한다."* 이제 여러 착지점에서 값을 봤다: **3.64 / 7.13 / 17.67 / 43.45%**. 탐색이
+좋아질수록 이 값이 나빠지는 방향으로 자유도를 쓴다는 것이 드러났다(제약이 없으니 당연하다).
+상한을 얼마로 걸지는 **설계 결정**이라 사용자 확정 없이 넣지 않는다.
+
 ## Version History
 
 | Version | Date | Changes |
@@ -3350,3 +3426,4 @@ self-test에서만 불렸는데 이제 **실제 사이징 경로 위에** 있다
 | **4.37** | 2026-09-10 | **미러 공통 L 3층 구조 -- 층1/층2/knee 착지**(사용자 확정 "M5가 주인이야"). ① **층1 동치류**: 진짜 전류미러(같은 kind/gate/source, **순수 connectivity**) + `same_as_device` + `matching_pairs`. `gm_id_match_vgs_of`는 **안 쓴다** -- 그 필드는 cross-kind VGS 매칭에도 쓰여 L을 공유하면 안 되는데(세션30 M15-M16), connectivity 판정이 둘을 정확히 가른다(실측 확인). 파일럿 15개 류, 큰 둘이 M5·M38 포함 8소자 / M6·M7·M36a 포함 11소자 -- 추적했던 사슬 그대로. ② **층2 주인**: tail=`headroom_role`, gain stage=`gain_stages_sum.stages`, stage의 tail="그 stage 소자들의 source net을 drain으로 갖는 tail"(연결), 최초 input 단=gain metric `excite` net을 gate로 갖는 소자의 stage. 실측 **주인 M5 / M6** -- 지시와 일치. 다른 3개 회로는 `gain_stages_sum` 미선언이라 **전부 폴백 = 동작 무변경**. ③ **knee로 상수 제거**: §7.10이 이름까지 명세해둔 `measure_L_knee()` 구현(한계효율 `Δ(gm/gds)/Δ(W·L)`, ID는 argmax에 무관해 인자 아님, 비단조 구간 건너뜀) + `knee_L_for_kind()`(gm_id 격자 **중앙값**, 캐시). 실측: **vds에 무관**(네 vds 중앙값 동일 -- L이 vds보다 먼저 배정되므로 결정적)하고 **kind마다 다르다**(nmos 1.63x / pmos 2.27x) -- 단일 상수 2.5x로는 못 담는 차이다. 격자가 spec에 선언돼야만 계산한다(toy LUT 폴백이 W 하한을 깨는 것을 self-test가 잡았다). **결과**: L 갈린 동치류 **3/3 → 0**, `mirror_ratio_error_pct` 11.84→13.96, 재탐색 전 제약 통과 (`parasitic_pm_deg` 70.12 / cmrr 60.00 / gain_db 60.39), **power 267.59→225.38uA**, **area 693.88→524.24um²**. self-test 둘 다 exit 0 / diff 0줄. **남은 것**: 층3(공동 gain sweep + L theta 일반화), 층0 게이트 파이프라인 배선, `bias_replica: 1.2` 상수 |
 | **4.38** | 2026-09-10 | **층3 착지 + 중복계산 전수검사**. ① `synthesize_l_class_thetas()`가 동치류 공통 L을 **theta로 파생**한다(손선언 없음, 이름도 파생 -- 사용자 지시 "특정 이름으로 하지마"). feed 타입 `l_class` 신설(L만 확정, 레지스트리 확장 계약대로). 파일럿에만 2개, 나머지 3개 회로는 **0개 = 동작 무변경**. 주인이 여럿인 류도 **theta는 하나**라 "두 stage gain 동시 만족 sweep"이 구조에서 저절로 성립한다. ② **bounds를 두 번 좁혔고 둘 다 실측이 시켰다**: LUT 전 범위(4.0um)에서는 SLSQP가 L=1.86um로 가 diode 레퍼런스가 사이징 불가(5 start 전부 실패, 1465초), 선언된 L theta 상한(1.0um)으로 좁혀도 실패 -- **실현가능 L이 구멍 뚫린 집합**이기 때문(세션40이 이미 기록). ③ 그래서 `repair_infeasible_baseline()`을 고쳤다: **(theta,값) 단위 시도 기록**(같은 theta의 다른 값을 재시도 못 하던 버그 -- 병목이 같은 류의 다른 멤버로 간 뒤 멈췄다) + **L theta는 격자를 훑는다**. 4단계 복구로 x0 feasible. ④ **중복계산 전수검사**(사용자 지시, 프로파일 실측): `stack_kvl_vgs_limit`이 `load_topology()`를 호출마다(평가의 **99.3%**, 이미 부르며 **버리던 meta**를 보관해 해결), L2가 ω마다 네트워크 재조립(**28%**, `build_ac_network()`로 1회), `_query` 18,636회 중 **69.2%가 중복**(메모이제이션). **평가 1회 1,325ms → 72.9ms(18배)**, 탐색 1,465초 → 134초. **결과**: `mirror_ratio_error_pct` 13.96 → **3.64**(3.8배), cmrr 60.00 → 73.14, psrr 63.93 → 73.65, `parasitic_pm_deg` 70.12 → 77.37, gain_full 59.66 → 67.64. 파생 theta가 고른 L(0.445/0.573um)은 knee(0.245/0.340)보다 위 -- sweep이 시작점보다 나은 점을 실제로 찾았다. self-test 둘 다 exit 0 / diff 0줄 |
 | **4.39** | 2026-09-10 | **`_L_ROLE_MULTIPLIERS` 완전 제거**(사용자 지시 "bias_replica 상수도 없애" -> 전 회로 적용). ① 남은 상수 `bias_replica: 1.2`가 실제로 정하던 건 **파일럿 4소자**(class-AB 배터리 diode)뿐이었고, 그 값의 근거를 mismatch 선언/knee/소자별 W 실현가능성 세 방향으로 찾았으나 **셋 다 없었다**. ② `derive_role_L()` = `clamp(목표점, feasible_L_window(선언 W_bounds + 그 소자의 실제 ID))` -- 새 상수 없음. **role은 '어떤 측정을 쓸지'만 고른다**(`_L_ROLE_TARGETS`): `mirror`는 knee(출력임피던스 극대화), `bias_replica`는 창 하한(§7.10이 선언한 목적이 PVT 완화이고 gain 요구가 없으므로 면적 최소). 등록 안 된 role은 ValueError. 판정 술어는 `lut_vdsat_headroom()` 안 인라인 코드를 `feasible_gm_ids()`로 꺼내 공유. **한 번 두 role을 합쳤다가 실측이 되돌렸다** -- 둘 다 knee로 두자 배터리 diode W가 125.4/123.4um(비 1.0157)로 나와 `assign_finger_geometry()`가 공통 finger 폭을 못 찾아 파일럿이 **레이아웃에서** 죽었다(SLSQP는 수렴했다 -- self-test만 봤으면 못 봤다). ③ **diode는 gm_id가 자유롭지 않다** -- self-test 픽스처 `Mo`가 "가능"한 L에서 W=0.824um로 하한을 깨며 잡아냈다(`knee_L_for_kind()`가 이미 기록한 반례). 새 판정을 만들지 않고 **기존 `diode_vds_window()`**로 분기(vds가 고정됐으면 그 vds가 강제하는 gm_id로 W를 직접 계산). ④ **theta로 파생하지 않았다** -- 주인 없는 동치류까지 theta로 만들면 파일럿 자유변수가 24->39(실측)로 늘어 SLSQP가 느려진다. 유도값은 결정적이라 자유도를 안 늘리고, 설계 자유도가 필요한 곳은 층3이 이미 theta로 노출했다. ⑤ **폴백 없음** -- 근거(격자 3종)가 없으면 값을 지어내지 않고 즉시 ValueError. 4개 회로 전수 **상수 폴백 0건**; self-test toy 픽스처 6개는 `_tst_grids()`로 실제 spec과 같은 모양으로 맞췄다(엔진에 새 폴백 없음). ⑥ **전수 측정**: 값이 달라진 소자는 파일럿 **5개**(bias_replica 4개 0.180->**0.245**um -- diode 인식 창이 옛 0.180um을 실현 불가능으로 걸러냈다, M37b clamp 0.245->0.350um), folded_cascode는 13개 전부 **무변경**, 나머지 2개 회로는 세션41 이월 항목에서 먼저 실패(변경 전후 동일). `derive_class_L()`은 3개 회로 15개 류에서 실제 호출되나 현재는 소자별 유도와 값이 일치(무동작) -- 갈릴 가능성에 대한 불변식 보증으로 남긴다. ⑦ self-test는 clamp가 **위/아래 양방향으로 실제 값을 바꾸는지**를 assert한다(무동작 게이트 금지). `select_L_by_role()`의 cascode/signal 가드는 `derive_role_L()`로 이관 -- 옛 함수는 self-test 에서만 불렸는데 이제 실제 사이징 경로 위에 있다. self-test 둘 다 exit 0. ⑧ **end-to-end 재탐색은 파이프라인 끝까지 가지만 착지가 v4.38보다 나쁘다**(power 231.17->238.94, cmrr 73.14->64.36, mirror_ratio 3.64->17.67). **유도가 아니라 탐색 착지 문제**다 -- v4.38의 theta_star를 새 엔진으로 평가하면 여전히 실행가능하고 더 좋다(power 231.2). 정본 `n_starts=3` 중 1개만 수렴했다. 다음 과제(`search_stage_budget_L_warm_start()`에 `l_class` 포함, §10.10에 이미 기록)가 정확히 이 x0 문제를 겨냥한다 -- 정본 탐색 파라미터를 임의로 올려 덮지 않았다 |
+| **4.40** | 2026-09-10 | **웜스타트에 `l_class` 포함**(사용자 지시). ① 타입 추가로 끝나지 않는다 -- 실측: `l_class`에 걸리는 제약은 **전부 footprint가 "ALL"**(cmrr/psrr/parasitic_pm_deg)이라 기존 LUT-only 고속경로 두 갈래의 전제가 성립하지 않는다(그냥 넣었으면 bounds-midpoint로 후퇴해 **무동작**). 실제 `evaluate()` 조인트 스캔으로 보낸다. ② 웜스타트가 정한 theta는 SLSQP 자유변수에서 빠지는데(`held_names`), `l_class`가 얼면 층3이 만든 설계 자유도가 사라진다 -- `presolve_warm_start()`에 **`l_class_L`** 신설해 x0만 주고 자유변수로 남긴다. ③ **되돌림 1**: 점수를 선언된 `objective`(power 최소)로 뒀더니 x0가 `L_class__M68` 하한(0.15um)에 붙고 착지 `mirror_ratio_error_pct`가 **43.45%**(v4.38: 3.64) -- 미러비 오차는 `V_A∝L`에 반비례라 층3의 존재 이유를 거스른다. **선언된 제약의 최소 여유 최대화**(내부점, `_group_score_interior()`)로 교체(정규화 분모가 제약값 자신이라 새 상수 없음). ④ **되돌림 2**(프로브가 잡았다): 점수를 바꿔도 `L_class__M68`이 자유변수에서 빠졌다 -- 자유변수 필터의 두 번째 조건인 `graph[...]['classification']`이 **`baseline` 주입 직후 그 점에서** `isolated`로 뒤집혔다. `baseline`에는 **고정될 theta만** 주입하도록 고쳐 2/2가 자유변수로 남는다. ⑤ **결과**(웜스타트 전 대비 전 항목 개선): power 238.94 → **231.17**, gain_db 60.42 → **61.56**, mismatch 2.795 → **1.334**, gain_full 63.26 → **67.08**, cmrr 64.36 → 72.55, mirror_ratio 17.67 → 7.13. L_class 0.511/0.474um. v4.38 대비 목적함수 동률 + gain/mismatch 개선, area 17% 증가. self-test 둘 다 exit 0, floorplan/full_circuit_audit 통과. ⑥ `mirror_ratio_error_pct`는 여전히 **제약이 아니다** -- 관측값 3.64/7.13/17.67/43.45%. 상한은 설계 결정이라 사용자 확정 전까지 안 건다 |

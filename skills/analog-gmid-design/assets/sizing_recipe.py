@@ -10125,6 +10125,63 @@ def extract_linear_feasibility_constraints(topology_path: str, spec: dict,
 #         으로 쓴다(presolve_warm_start()/_optimize_theta_slsqp() 배선).
 # ---------------------------------------------------------------------------
 
+
+def _group_score_metric(metric_name: str, metrics_specs: dict):
+    """조인트 스캔에서 **실현가능한 후보끼리 비교할 점수** -- 이 metric을 최소화한다.
+
+    `search_stage_budget_L_warm_start()`의 complex 그룹이 원래 인라인으로 하던 것
+    (`metrics[centering_metric]`)을 꺼낸 것이다(2026-09-10). 꺼낸 이유: 그룹마다 점수
+    기준이 달라졌기 때문이다 -- `battery_centering_deviation`으로 묶인 그룹은 그 편차를
+    최소화하지만, `l_class` 그룹에는 그런 전용 metric이 아예 없다
+    (`_group_score_objective()` 참고).
+    """
+    if metric_name not in metrics_specs:
+        raise KeyError(f"조인트 스캔 점수 metric '{metric_name}'이 metrics_specs에 없다")
+    return lambda metrics: metrics[metric_name]
+
+
+def _group_score_interior(constraints: list):
+    """조인트 스캔 점수 = **선언된 제약의 최소 여유를 최대화**(2026-09-10, `l_class` 그룹용).
+
+    각 제약의 여유를 그 제약 자신의 값으로 정규화해(`>=`면 `(m-v)/|v|`, `<=`면 `(v-m)/|v|`)
+    그중 **최솟값**을 본다. 반환값은 그 최솟값의 부호를 뒤집은 것 -- 호출부의 "점수가 작을수록
+    좋다" 규약에 맞춘다. 새 상수가 없다(정규화 분모가 선언된 제약값 자신이다).
+
+    ## 왜 목적함수가 아니라 여유인가 (실측이 시킨 되돌림)
+
+    처음엔 이 자리에 선언된 `objective`(파일럿: `power_uA` 최소)를 썼다. **틀렸다.**
+    실현가능 후보 중 전력이 가장 낮은 점은 이 회로에서 `L_class__M68`의 **bounds 하한
+    (0.15um)**이었고, 거기서:
+
+      * `derive_theta_dependency_graph()`가 그 theta를 `isolated`로 분류했다 -- 그 점에서는
+        theta를 흔들어도 어떤 제약/목적도 안 움직인다. `_optimize_theta_slsqp()`는 `coupled`/
+        `ambiguous`만 자유변수로 삼으므로 **SLSQP가 그 theta를 아예 안 건드리게 됐다**
+        (`tests/probe_lclass_warm_start.py`가 이 회귀를 잡아냈다).
+      * 그 결과 착지점의 `mirror_ratio_error_pct`가 **43.45%**였다(v4.38: 3.64). 미러비
+        오차는 `V_A = ID/gds`에 반비례하고 `V_A`는 L에 비례하므로, L을 하한에 붙이는 것은
+        층3이 존재하는 이유(미러 L을 PVT에 강하게)를 정확히 거스른다.
+
+    웜스타트의 일은 **최적점을 찾는 게 아니라 SLSQP가 잘 출발할 실현가능점을 주는 것**이다.
+    제약 경계에 붙은 점은 (1) 민감도가 죽고 (2) 한 발만 움직여도 infeasible이라 linesearch가
+    막힌다. 여유가 가장 큰 내부점은 그 둘을 동시에 피한다. 최적화는 SLSQP가 한다 --
+    `l_class`는 웜스타트 뒤에도 자유변수로 남는다(`presolve_warm_start()`의 `l_class_L`).
+    """
+    if not constraints:
+        raise ValueError(
+            "선언된 constraint가 하나도 없으면 l_class 웜스타트가 후보를 비교할 수 없다 -- "
+            "제약 여유가 점수인데 잴 제약이 없다")
+
+    def _score(metrics):
+        slacks = []
+        for c in constraints:
+            v = float(c["value"])
+            denom = abs(v) if v != 0.0 else 1.0
+            m = metrics[c["metric"]]
+            slacks.append(((m - v) if c["op"] in (">=", ">") else (v - m)) / denom)
+        return -min(slacks)
+
+    return _score
+
 def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
                                       reference_theta_values: dict = None,
                                       n_scan: int = 61, n_scan_full_circuit: int = 21,
@@ -10211,8 +10268,15 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
                 found.append(c)
         return found
 
+    # 2026-09-10(사용자 지시 "warm start에 l_class 포함해서 재탐색해") -- `l_class`(층3,
+    # 동치류 공통 L)도 여기서 x0를 받는다. 지금까지는 대상이 아니어서 bounds-midpoint에서
+    # 출발했고, 그 결과 정본 탐색이 3 start 중 1개만 수렴하며 v4.38보다 나쁜 곳에 착지했다
+    # (§10.11 실측). ⚠️ `metric_stage_budget`과 달리 **자유변수에서 빼지 않는다** --
+    # `presolve_warm_start()`가 feed 타입으로 갈라 `l_class_L`로 따로 보고하고,
+    # `_optimize_theta_slsqp()`의 `held_names`에는 안 넣는다(그 이유는 아래 그룹 분기 주석).
     stage_thetas = [t for t in thetas
-                     if isinstance(t["feeds"], dict) and t["feeds"].get("type") == "metric_stage_budget"
+                     if isinstance(t["feeds"], dict)
+                     and t["feeds"].get("type") in ("metric_stage_budget", "l_class")
                      and t["bounds"][0] != t["bounds"][1]]
 
     # 2026-08-13(세션31, 사용자 지시) -- 이 함수가 다루는 theta는 전부 metric_stage_budget
@@ -10226,10 +10290,20 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
             f"선언할 것")
 
     result = {}
-    complex_thetas = []
+    complex_thetas, l_class_thetas = [], []
     for theta in stage_thetas:
         feed = theta["feeds"]
         devices = feed["devices"]
+        # `l_class`는 LUT-only 고속경로를 못 쓴다 -- 실측(4개 회로 전수,
+        # `tests/probe_lclass_warm_start.py`): 이 theta에 걸리는 제약은 **전부 footprint가
+        # "ALL"**이다(파일럿: cmrr_estimate_db / psrr_estimate_db / parasitic_pm_deg).
+        # 고속경로 두 갈래(`gain_stages_sum` 방향 판정 / `battery_centering_deviation`
+        # 최소화)는 둘 다 "이 theta의 devices만 보면 방향을 안다"는 전제 위에 있는데,
+        # "ALL" 제약은 그 전제가 성립하지 않는다. 그래서 실제 evaluate() 조인트 스캔으로
+        # 보낸다(아래).
+        if feed.get("type") == "l_class":
+            l_class_thetas.append(theta)
+            continue
         touching = _touching(devices)
         types = {metrics_specs[c["metric"]]["type"] for c in touching}
         if len(types & {"gain_stages_sum", "battery_centering_deviation"}) > 1:
@@ -10286,8 +10360,49 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
             _group_idx_by_metric[centering_metric] = len(_groups)
             _groups.append([])
         _groups[_group_idx_by_metric[centering_metric]].append(theta)
+    # 각 그룹의 **점수 기준**: 기존 그룹은 그 그룹을 묶은 centering metric(동작 불변).
+    _group_scores = [_group_score_metric(m, metrics_specs) for m, _ in
+                     sorted(_group_idx_by_metric.items(), key=lambda kv: kv[1])]
 
-    for group in _groups:
+    # 2026-09-10 -- `l_class` 그룹. 서로 제약을 공유하면 한 그룹이다(union-find).
+    # 여기서는 `_touching()`(footprint=="ALL" 제외)이 아니라 **선언된 constraints 전체**를
+    # 본다 -- 이 분기는 아래서 이미 매 후보마다 evaluate()로 51소자를 돌므로 "ALL" 제약을
+    # 계산 못 할 이유가 없다(세션40이 complex 분기에 대해 내린 것과 **같은 판단**, 그
+    # 블록 주석 참고). 실측: 파일럿의 두 l_class theta는 cmrr/psrr/parasitic_pm_deg를
+    # 공유하므로 한 그룹(k=2)이 된다.
+    if l_class_thetas:
+        _lc_parent = {}
+
+        def _lc_find(x):
+            _lc_parent.setdefault(x, x)
+            while _lc_parent[x] != x:
+                _lc_parent[x] = _lc_parent[_lc_parent[x]]
+                x = _lc_parent[x]
+            return x
+
+        _lc_by_metric = {}
+        for theta in l_class_thetas:
+            _lc_find(theta["name"])
+            devs = set(theta["feeds"]["devices"])
+            for c in constraints:
+                fp = _metric_device_footprint(c["metric"], metrics_specs)
+                if fp != "ALL" and not (devs & fp):
+                    continue
+                other = _lc_by_metric.setdefault(c["metric"], theta["name"])
+                ra, rb = _lc_find(theta["name"]), _lc_find(other)
+                if ra != rb:
+                    _lc_parent[ra] = rb
+        _lc_groups = {}
+        for theta in l_class_thetas:
+            _lc_groups.setdefault(_lc_find(theta["name"]), []).append(theta)
+        for _root in sorted(_lc_groups):
+            _groups.append(_lc_groups[_root])
+            # 점수는 **제약 여유 최대(내부점)** -- 이 theta들엔 centering 같은 전용
+            # metric이 없다(위 실측). 목적함수를 써봤다가 실측으로 되돌렸다
+            # (`_group_score_interior()` docstring의 실측 근거 참고).
+            _group_scores.append(_group_score_interior(constraints))
+
+    for group, _score_of in zip(_groups, _group_scores):
         names = [t["name"] for t in group]
         # 2026-08-20(세션40) 정정(사용자 지시로 presolve_warm_start() 원인 조사 중 실측
         # 발견) -- 예전엔 여기도 위 단일-theta 고속경로와 같은 `_touching()`(footprint==
@@ -10306,8 +10421,6 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
         # evaluate()를 돌리므로 "ALL" 제약도 그대로 계산 가능)를 feasibility/점수 계산에
         # 쓴다 -- gain_db 같은 전체회로 제약이 이 자리에서도 함께 고려된다.
         touching = constraints
-        centering_metric = next(c["metric"] for c in touching
-                                 if metrics_specs[c["metric"]]["type"] == "battery_centering_deviation")
         k = len(group)
         # 2026-08-13(세션31, "재계산 비효율 보장" 지시) -- 조인트 스캔은 그룹 크기 k에 대해
         # 지수적으로 커진다(k차원 × 차원당 n점 = n^k evaluate() 호출, 각 호출이 51소자
@@ -10342,7 +10455,7 @@ def search_stage_budget_L_warm_start(topology_path: str, spec: dict,
                           else max(0.0, metrics[c["metric"]] - c["value"])
                           for c in touching]
             feasible = all(v == 0.0 for v in violations)
-            score = metrics[centering_metric] if feasible else sum(violations)
+            score = _score_of(metrics) if feasible else sum(violations)
             if best_combo is None or (feasible and not best_feasible) \
                     or (feasible == best_feasible and score < best_score):
                 best_combo, best_score, best_feasible = combo, score, feasible
@@ -10599,8 +10712,12 @@ def presolve_warm_start(topology_path: str, spec: dict, ev: dict | None = None,
     반환: `{"x0": {theta_name: value}, "feasible": bool, "infeasible_reason": str|None,
     "linear_constraints": extract_linear_feasibility_constraints()의 반환값 그대로,
     "dependency_graph": derive_theta_dependency_graph()의 반환값 그대로, "notes": [str,...],
-    "vote_determined": [theta_name,...], "stage_budget_L": [theta_name,...]}` --
+    "vote_determined": [theta_name,...], "stage_budget_L": [theta_name,...],
+    "l_class_L": [theta_name,...]}` --
     `vote_determined`는 선형 feasibility 투표로 값이 이미 정해진 theta 이름 목록,
+    `l_class_L`(2026-09-10 신설)은 같은 스캔으로 **x0만** 받은 `l_class` theta 이름 --
+    `stage_budget_L`과 달리 **자유변수로 남아야 한다**(호출자가 `held_names`에 넣으면
+    층3이 만든 설계 자유도를 격자점에 얼리는 셈이 된다, 위 갈라내기 주석 참고).
     `stage_budget_L`은 `search_stage_budget_L_warm_start()`로 값이 정해진 theta 이름
     목록(세션29 `_optimize_theta_slsqp()`가 이 둘을 합쳐 SLSQP 자유변수에서 제외하는 데
     씀 -- `InfeasibleSizingError` 경계 근처는 gradient가 평평해
@@ -10686,7 +10803,23 @@ def presolve_warm_start(topology_path: str, spec: dict, ev: dict | None = None,
         # 좋은 L 근방을 찾아뒀다"는 뜻이므로, 이번 L 재탐색은 전체 범위 대신 그 근방만
         # 좁혀서 스캔한다(search_stage_budget_L_warm_start() docstring 참고).
         window_around_reference=(stage_budget_L_reference is not None))
-    for name, val in stage_budget_L.items():
+    # 2026-09-10 -- 웜스타트가 값을 정한 theta 중 **`l_class`만 갈라낸다**.
+    # `metric_stage_budget`은 확정되면 SLSQP 자유변수에서 빠지지만(`_optimize_theta_slsqp()`의
+    # `held_names`), `l_class`는 그러면 안 된다: 그 theta는 층3이 **설계 자유도로** 만든
+    # 것이고(동치류 공통 L을 탐색이 정한다, §10.10), 실측으로 SLSQP가 격자 사이의 값
+    # (0.445/0.573um)을 찾아 knee보다 나은 점에 도달했다. 격자점에 얼려버리면 그 자유도를
+    # 되돌리는 셈이다. 그래서 x0만 주고(위 baseline 반영) 자유변수로는 남긴다.
+    _feed_type_of = {th["name"]: (th.get("feeds") or {}).get("type")
+                     for th in thetas if isinstance(th.get("feeds"), dict)}
+    l_class_L = {n: v for n, v in stage_budget_L.items()
+                 if _feed_type_of.get(n) == "l_class"}
+    stage_budget_L_held = {n: v for n, v in stage_budget_L.items() if n not in l_class_L}
+    # `baseline`에는 **고정될 theta만** 반영한다. `l_class` 값을 여기 넣으면 바로 아래
+    # `derive_theta_dependency_graph()`가 그 점에서 분류를 매기는데, 실측으로 그 분류가
+    # `isolated`로 뒤집혀 SLSQP 자유변수에서 빠졌다(`_optimize_theta_slsqp()`는 `coupled`/
+    # `ambiguous`만 자유변수로 삼는다). 같은 회로에서 복구된 기준점 기준으로는 `ambiguous`다.
+    # x0에는 아래에서 그대로 반영되므로(`if name in stage_budget_L`) 웜스타트 효과는 유지된다.
+    for name, val in stage_budget_L_held.items():
         baseline[name] = val
 
     graph = derive_theta_dependency_graph(topology_path, spec, baseline_theta_values=baseline, ev=ev)
@@ -10738,7 +10871,11 @@ def presolve_warm_start(topology_path: str, spec: dict, ev: dict | None = None,
 
     return {"x0": x0, "feasible": feasible, "infeasible_reason": infeasible_reason,
             "linear_constraints": linear_results, "dependency_graph": graph, "notes": notes,
-            "vote_determined": sorted(vote_choice), "stage_budget_L": sorted(stage_budget_L)}
+            "vote_determined": sorted(vote_choice),
+            "stage_budget_L": sorted(stage_budget_L_held),
+            # x0는 받았지만 **자유변수로 남는** theta(위 갈라내기 주석 참고).
+            # 호출자가 `held_names`에 넣으면 안 된다.
+            "l_class_L": sorted(l_class_L)}
 
 
 # ---------------------------------------------------------------------------
@@ -10851,6 +10988,8 @@ def _optimize_theta_slsqp(topology_path: str, spec: dict, ev: dict,
                                 stage_budget_L_reference=stage_budget_L_reference,
                                 n_scan_full_circuit=n_scan_full_circuit)
     x0_dict, graph = warm["x0"], warm["dependency_graph"]
+    # ⚠️ `warm["l_class_L"]`은 **일부러 안 넣는다** -- 그 theta들은 웜스타트에서 x0만 받고
+    # SLSQP 자유변수로 남는다(`presolve_warm_start()` 반환 계약 참고).
     held_names = set(warm["vote_determined"]) | set(warm["stage_budget_L"])
     free_thetas = [t for t in thetas if t["bounds"][0] != t["bounds"][1]
                    and t["name"] not in held_names
@@ -13189,6 +13328,39 @@ if __name__ == "__main__":
         print(f"    PASS: 전류가 4배 다른 두 멤버의 류 공통 L={_cL*1e6:.3f}um -- 양쪽 창 안")
     else:
         print("    PASS: 두 멤버의 창 교집합이 비어 None -- 억지로 하나로 묶지 않는다")
+
+    print()
+    print("  [웜스타트 조인트 스캔 점수(2026-09-10, l_class 포함) -- 그룹마다 기준이 다르다]")
+    _gs_ms = {"dev_v": {"type": "battery_centering_deviation"}}
+    _gs_m = _group_score_metric("dev_v", _gs_ms)
+    assert _gs_m({"dev_v": 0.31, "power_uA": 100.0}) == 0.31
+    print("    PASS: centering 그룹 -- 그 metric을 그대로 최소화")
+    # l_class 그룹: 전용 metric이 없어 **선언된 objective**를 쓴다. 부호 규약은
+    # _optimize_theta_slsqp()와 같다(minimize는 그대로, maximize는 반전).
+    # l_class 그룹: 전용 metric이 없어 **선언된 제약의 최소 여유**를 최대화한다(내부점).
+    # 점수는 "작을수록 좋다" 규약이라 최소여유의 부호를 뒤집은 값이다.
+    _gs_cons = [{"metric": "cmrr_db", "op": ">=", "value": 60.0},
+                {"metric": "pm_deg", "op": ">=", "value": 60.0},
+                {"metric": "area", "op": "<=", "value": 800.0}]
+    _gs_i = _group_score_interior(_gs_cons)
+    # 여유: cmrr (66-60)/60=0.10, pm (72-60)/60=0.20, area (800-720)/800=0.10 -> min 0.10
+    assert abs(_gs_i({"cmrr_db": 66.0, "pm_deg": 72.0, "area": 720.0}) - (-0.10)) < 1e-12
+    # 경계에 붙은 후보(여유 0)는 내부점보다 **나쁜 점수**여야 한다 -- 이게 이 기준의 요점이다.
+    _gs_edge = _gs_i({"cmrr_db": 60.0, "pm_deg": 72.0, "area": 720.0})
+    assert _gs_edge == 0.0 and _gs_edge > _gs_i({"cmrr_db": 66.0, "pm_deg": 72.0, "area": 720.0})
+    print(f"    PASS: l_class 그룹 -- 최소여유 최대화(내부점 {-_gs_i({'cmrr_db':66.0,'pm_deg':72.0,'area':720.0}):.2f} "
+          f"> 경계 {-_gs_edge:.2f}, 경계 후보가 실제로 밀린다)")
+    # ★ 게이트는 '통과'가 아니라 '실제로 거부한다'를 보여야 한다.
+    try:
+        _group_score_interior([])
+        raise AssertionError("선언된 제약이 없는데 에러가 안 났다")
+    except ValueError as _e_gs:
+        print(f"    PASS: 제약 0개 -> ValueError -- {str(_e_gs)[:56]}...")
+    try:
+        _group_score_metric("not_declared", _gs_ms)
+        raise AssertionError("선언 안 된 metric인데 에러가 안 났다")
+    except KeyError as _e_gs2:
+        print(f"    PASS: 선언 안 된 점수 metric -> KeyError -- {str(_e_gs2)[:56]}...")
 
     print()
     print("  [7-4b 확장 estimate_area_budget() -- 콜드스타트 블렌딩 vs 실측 자기참조]")

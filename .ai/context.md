@@ -14408,3 +14408,34 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   folded_cascode의 `omega_c` 미노출(parasitic_pm_deg 측정 불가),
   two_stage `stage1_ref` / nmcnr `stage2_diode_ref` (세션41 이월).
 
+## 8. (세션47 이어서) 웜스타트에 l_class 포함 (계획 §10.12, v4.40)
+
+* 사용자 지시 "warm start에 l_class 포함해서 재탐색해".
+* `search_stage_budget_L_warm_start()`가 `l_class`도 본다. 단 **LUT-only 고속경로가 아니라
+  evaluate() 조인트 스캔**으로 -- 실측: l_class에 걸리는 제약이 전부 footprint "ALL"
+  (cmrr/psrr/parasitic_pm_deg)이라 고속경로 전제("이 theta devices만 보면 방향을 안다")가
+  성립하지 않는다. 타입만 추가했으면 bounds-midpoint 후퇴 = 무동작.
+* 신설: `_group_score_metric()` / `_group_score_interior()` -- 조인트 스캔 점수를 그룹별로
+  분리. centering 그룹은 **동작 불변**, l_class 그룹은 **선언된 제약의 최소 여유 최대화**.
+* `presolve_warm_start()` 반환에 **`l_class_L`** 신설 -- x0만 주고 SLSQP 자유변수로 남긴다
+  (`_optimize_theta_slsqp()`의 `held_names`에 안 넣는다).
+* ★ 되돌림 1: 점수를 선언된 objective(power 최소)로 뒀다가 실측으로 되돌림 -- x0가
+  L_class__M68 하한(0.15um)에 붙고 mirror_ratio_error 43.45%(v4.38 3.64). 미러비는 V_A∝L에
+  반비례라 층3의 존재 이유를 거스른다. 웜스타트의 일은 최적점이 아니라 **잘 출발할
+  실현가능점**을 주는 것.
+* ★ 되돌림 2(프로브가 잡음, `tests/probe_lclass_warm_start.py`): 점수를 바꿔도 자유변수에서
+  빠졌다. 원인은 `held_names`가 아니라 자유변수 필터의 두 번째 조건 --
+  `graph[name]['classification'] in ('coupled','ambiguous')`. `presolve_warm_start()`가
+  스캔 결과를 `baseline`에 주입한 **직후** 그 baseline으로 그래프를 만드는데 거기서
+  `isolated`로 뒤집혔다(복구된 기준점 기준으로는 L 0.15~0.575um 전 구간 `ambiguous`).
+  -> `baseline`에는 **고정될 theta만** 주입(`stage_budget_L_held`). 2/2 자유변수 유지 확인.
+* 결과(웜스타트 전 대비 전 항목 개선): power 238.94→**231.17**, gain_db 60.42→**61.56**,
+  mismatch 2.795→**1.334**, gain_full 63.26→**67.08**, cmrr 64.36→72.55, psrr 69.72→72.49,
+  mirror_ratio 17.67→7.13, parasitic_pm 73.19→75.02. L_class 0.511/0.474um.
+  v4.38 대비: 목적함수 동률 + gain/mismatch 개선, area 688→807(17% 증가), mirror_ratio 3.64→7.13.
+* ⚠️ `mirror_ratio_error_pct`는 여전히 **제약이 아니다**(topology.json: "먼저 재고 나서 상한을
+  정한다"). 관측값 3.64/7.13/17.67/43.45%. 탐색이 좋아질수록 이 값을 희생하는 방향으로
+  자유도를 쓴다 -- **상한은 설계 결정이라 사용자 확정 전까지 안 건다**.
+* ⚠️ 아직 안 한 것: folded_cascode의 `omega_c` 미노출(parasitic_pm_deg 측정 불가),
+  two_stage `stage1_ref` / nmcnr `stage2_diode_ref`(세션41 이월), LUT에 Cdb/Csb 추가.
+
