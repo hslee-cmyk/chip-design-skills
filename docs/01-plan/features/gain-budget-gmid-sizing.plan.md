@@ -1,21 +1,21 @@
 ---
 template: plan
-version: 4.48
+version: 4.49
 ---
 
 # gain-budget-gmid-sizing Planning Document
 
-> **Summary**: `analog-gmid-design` skill의 gm/ID 사이징 엔진(`sizing_recipe.py`)을
-> "L → VDS(헤드룸) → gm_id" 순서의 role-라벨 기반 방식에서, "stage 분할 → stage별 gain
-> 배분 → 그 gain에서 gm_id를 직접 역산 → 그 이후에 VDS/헤드룸을 자기일관되게 해석"하는
-> gain-budget-first 방식으로 근본 재설계한다. topology.json은 순수 connectivity 전용으로
-> 되돌리고, 사이징 방법론은 새 `<name>.sizing_spec.json`으로 분리한다.
+> **Summary**: `analog-gmid-design` skill의 gm/ID 사이징 엔진을 **gain-budget-first**로 재설계한다 --
+> connectivity에서 stage를 정확히 나누고, stage 출력노드의 실제 부하까지 포함해 gain을 분해·할당하고, 그 할당에서
+> gm_id를 정하고, 노드전압을 DC 정본으로 헤드룸을 자기일관되게 푼다. 이를 위해 계산 결과를 버리지 않는
+> **Circuit State Graph**(§12)를 기반으로 삼고(§15), 코드는 책임별 파일과 명시적 test로 나누며(§13),
+> 코드 작성자와 검증자를 기계적으로 분리한다(§14).
 >
 > **Project**: chip-design-skills (analog-gmid-design skill)
 > **Author**: Claude Code
-> **Date**: 2026-09-04
-> **Status**: Draft — 사용자 승인 대기, 파일럿 회로(`current_reuse_telescopic_ota`) 1개로
-> 먼저 증명 후 나머지 3개 토폴로지 이관
+> **Date**: 2026-09-04 (재작성 2026-09-14, v4.49)
+> **Status**: Plan -- 착수 지점 Phase 0.5(역할 분리 인프라). 구현은 Phase별 design 문서를 거친다.
+> **이력**: 대체·완료·원설계 본문은 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)(절 번호 유지)
 
 ---
 
@@ -23,10 +23,10 @@ version: 4.48
 
 | Perspective | Content |
 |-------------|---------|
-| **Problem** | `current_reuse_telescopic_ota`의 SPICE 트랜지언트 폐루프 검증을 시도하다가, 헤드룸(VDS) 배정이 diode-connected 소자(gate=drain, Vgs=Vds가 물리적으로 강제)의 실제 필요 Vgs를 무시하고 role 라벨 기반 상수(기본 0.2V)를 그대로 배정한다는 걸 실측으로 확인했다(16개 diode-connected 소자 중 최대 1.02V 오차 — M36a/M36b는 실제 1.32V 필요한데 0.3V만 할당돼 물리적으로 불가능). 원인을 추적하니 국소 버그가 아니라 파이프라인 순서 자체의 문제였다: 현재 아키텍처는 `L → VDS(헤드룸) → gm_id` 순서로 사이징하는데(`optimize_full_circuit_budget()`, `sizing_recipe.py:5679-5687`), VDS가 gm_id보다 먼저, 그것도 role 라벨 기반 상수/근사식으로 확정되기 때문에 Vgs=Vds 결합 제약이 있는 소자는 애초에 자기일관된 답을 낼 수 없다. |
-| **Solution** | gm/ID sizing 방법론을 "stage를 정확히 나누고, 각 stage가 낼 gain을 먼저 배분한 뒤, 그 gain에서 유도되는 gm_id로 사이징한다 — output stage에만 driving capability(slew rate/CL)를 추가로 얹는다"는 원칙으로 baseline부터 재설계한다. VDS/헤드룸은 gm_id가 정해진 *이후*에, connectivity(gate==drain)로 diode-connected 여부를 직접 판정해 해석하므로, 이번에 발견한 버그가 재설계의 자연스러운 부산물로 해소된다. **그리고 이걸로 끝내지 않는다(2026-09-04 확정, §3.1 요구사항 6) — 사이징된 모든 소자의 전압/전류 관계가 실제로 KVL/KCL을 만족하는지 전체회로 단위로 검증하는 `verify_node_voltage_consistency()`/`cross_check_with_spice()` 게이트(§7.5)를 파이프라인에 상시 내장한다.** diode-connected 자기일관성은 이 검증기가 잡아내는 여러 위반 패턴 중 하나일 뿐이다. |
-| **Function/UX Effect** | AI/사용자가 새 회로를 사이징할 때 "이 stage가 몇 dB를 낼지"를 명시적으로 배분하는 게 1급 입력이 되고, 개별 소자의 gm_id/L을 role 휴리스틱으로 따로 추측할 필요가 없어진다. 헤드룸도 diode-connected 소자마다 실측 SPICE와 부합하는 값이 나와, 이후 SPICE 폐루프 검증(트랜지언트 포함)이 실제로 수렴할 수 있게 된다. |
-| **Core Value** | 물리적 정확성(physical correctness) — "gm/ID sizing은 회로의 물리적 topology 연결을 보지 않고는 할 수 없다"는 이번 세션 핵심 지적을 아키텍처 차원에서 반영한다. 재사용 가능한 계층(LUT 인터페이스, connectivity, post-sizing 레이아웃, 사후검증 metric)은 그대로 두고 사이징 "결정 순서"만 근본적으로 바꾸는 최소침습 재설계다. `.ai/context.md` 세션6~44 전체 자산화(v2.0, §1.4)로 확인됨: 이 방향은 새 발명이 아니라 세션38이 합의만 하고 못 끝낸 "DC bias vs AC amplification 도메인 분리" 아키텍처의 실제 완성이며, 헤드룸 재설계도 기존 `resolve_feed_vds()`/`_resolve_vertical_group()` 인프라를 재사용하는 쪽으로 한층 더 최소침습화됐다. |
+| **Problem** | ① stage gain을 "소자 이름 목록"으로 정의해 출력노드 부하를 못 본다 -- 파일럿 `gain_db` 제약이 미러 18소자 변화에 불변인데 전체회로 gain은 26dB 벌어진다(B21). ② 계산된 노드전압·신호방향·실패가 저장·재사용되지 않고 버려지고, 한 평가 안에서 서로 다른 버전의 값이 섞인다(7/51소자). ③ 같은 개념이 여러 함수로 중복 구현되고 인라인 self-test가 소스와 같은 파일에 있어 ④ 코드를 쓴 주체가 기준선·기대값까지 고쳐 결함을 숨겼다(은폐 이력 68건, 기준선 변경 14커밋 중 13커밋이 엔진과 동시). |
+| **Solution** | graph 기반 gain-budget-first(§15 G0~G9): spec(출처 필수) -> S1 구조 유도 -> S1v 차동모드 뷰 stage 분할(4회로 선언과 100% 일치 실측) -> 결합 블록 -> 달성가능성·DOF 진단 -> 보상 먼저 -> 3층 gain 할당(블록 DP / 결합변수 좌표강하 / SLSQP) -> 노드전압 정본 + 봉인 게이트 -> 전체회로 MNA gain + 감도 게이트 -> 아카이브·SPICE. 기반: 값의 상태 모델(§12), 재사용 레지스트리·10모듈 분리·pytest(§13), 역할 분리 4겹 강제(§14). |
+| **Function/UX Effect** | stage와 부하가 connectivity에서 유도되어 손 선언 오류가 사라지고, gain 제약이 실제 회로 gain을 본다. 탐색은 이전 결과(실패 포함)를 이어받아 정제하고, 결함은 작성자가 아닌 독립 판정으로 드러난다. |
+| **Core Value** | 물리적 정확성과 조용한 실패의 구조적 불가능 -- "gm/ID sizing은 회로의 물리적 topology 연결을 보지 않고는 할 수 없다"(2026-09-04 사용자 원칙). |
 
 ---
 
@@ -34,170 +34,109 @@ version: 4.48
 
 | Key | Value |
 |-----|-------|
-| **WHY** | gm/ID sizing 엔진이 VDS(헤드룸)를 gm_id보다 먼저, role 라벨 기반 상수로 확정하는 구조라 diode-connected 소자(Vgs=Vds 물리적 강제)에서 최대 1.02V 오차가 나고, 이게 SPICE 폐루프 DC 동작점을 출력단 레일 고정으로 발산시킨다(2026-09-04 세션, SPICE 트랜지언트 검증 중 발견) |
-| **WHO** | `analog-gmid-design` skill로 아날로그 IC를 sizing하는 (fresh) agent 세션들 + 사용자(hoseung.lee) |
-| **RISK** | gm_id를 gain에서 직접 역산하는 신규 함수(§2)가 캐스코드+입력 소자의 2변수 결합을 제대로 못 풀면 회귀 위험. `known-incidents.md` "사고4"(단별 이득배분은 탐색이 맞다)와의 철학적 충돌을 잘못 봉합하면 예전에 이미 폐기된 접근을 반복하는 셈 — 이번 세션 사용자 확정으로 "배분 자체는 여전히 탐색/사용자 지정, 배분 이후 gain→gm_id 역산 한 단계만 결정론화"로 경계를 명확히 함 |
-| **SUCCESS** | (0) ★최우선: `verify_node_voltage_consistency(ctx)`가 사이징된 **전체회로**(51소자, diode-connected뿐 아니라)에서 KVL/KCL/VGS Violation 0건 — 이게 이번 재설계의 근본 동기(§3.1 요구사항 6). (1) 그 부분집합으로, `_solve_diode_connected_vgs_fixed_point()`가 16개 diode-connected 소자 전부에서 `vgs_for_gm_id(gm_id,L,vds*,vs)==vds*` 자기일관점에 수렴(현재 오차 0.05~1.02V → 0). (2) `current_reuse_telescopic_ota`를 새 엔진으로 재사이징해도 기존 constraints(gain≥54dB, cmrr/psrr/mismatch/classab)를 여전히 만족. (3) `cross_check_with_spice()`(sky130 트랜지스터 레벨 SPICE `.op`)이 rail-lock 없이 수렴하고 (0)의 LUT 기반 예측과 일치 |
-| **SCOPE** | 이번 계획: JSON 스키마 설계 + 신규 사이징 알고리즘 설계 + 헤드룸 해석기 재설계 + 파일럿 회로(`current_reuse_telescopic_ota`) 1개 이관·검증. 나머지 3개 토폴로지(folded_cascode/nmcnr_amplifier/two_stage_ota) 이관은 파일럿 검증 후 별도 작업으로 이연 |
+| **WHY** | gain-budget-first(2026-09-04)를 구현하려 했으나 stage·부하를 이름 목록으로 다뤄 gain 분해가 물리를 못 봤고(사고 41건 중 미해결 23), 값의 상태 모델이 없어 계산을 버리고 섞었으며, 작성자가 검증까지 소유해 결함이 숨겨졌다 |
+| **WHO** | `analog-gmid-design` skill로 아날로그 IC를 사이징하는 agent 세션들(`gmid-code-author`/`gmid-test-author`/`gmid-verification-auditor`, 오케스트레이터) + 사용자 |
+| **RISK** | stage 분할의 회로 해석 오판(J1~J9 공동분석으로 확정), 결합 블록 간 3층 할당의 수렴, 노드전압 정본 전환(D1)의 동작 변경, 역할 분리 hook의 오탐으로 RTL agent 방해, 파일 이동 중 회귀 |
+| **SUCCESS** | Phase별 DoD(§4) -- 최종: 4개 회로에서 stage 분할이 선언과 일치, gain 제약이 전체회로 gain으로 판정되고 분해와의 괴리가 기록됨, 봉인 게이트(KVL/KCL/노드충돌/버전) 위반 0, C1~C10 강제 test PASS, SPICE 교차검증 허용오차 내, 파일럿 wall-clock ≤ 5분, 역할 분리 공격 시나리오 전부 거부 |
+| **SCOPE** | Phase 0.5~7c(§4.1 표). 4개 회로(current_reuse_telescopic_ota / folded_cascode / two_stage_ota / nmcnr_amplifier) 전부. 레이아웃 계층은 이동만(로직 변경 없음) |
 
 ---
 
-## 0. 이어받을 지점 (★ 2026-09-08 기준, 새 세션은 여기부터 읽는다) → 이력 문서
+## 0. 현행 계획 한눈에 (★ 새 세션은 여기부터 읽는다 -- v4.49)
 
-> **(v4.47) 2026-09-08 스냅샷은 이력 문서로 이동했다** -- [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md) §0.
-> **현재 착수 지점: §13.6 전체 수정 순서 + §14.8 -- Phase 0.5(역할 분리 인프라)부터.** Phase 6·7은 **§15(graph 기반 gain-budget-first)**가 대체한다 -- gain-budget-first는 폐기되지 않았고 graph가 그 기반이다. 남은 사용자 결정은 §14.9 끝(D6·D7·D8, 해당 Phase 착수 조건).
-> ⚠️ 이 절은 계획서 재작성(현행 계획을 앞으로 모으기)에서 다시 쓴다.
+### 0.1 지금 상태 (2026-09-14 전수 감사 기준)
+
+* 코드: `sizing_recipe.py` 15,270줄(인라인 self-test 2,700줄), `stick_diagram.py` 12,936줄(3,946줄). 함수 전수 판정은 레지스트리
+  `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` -- **새 함수를 쓰기 전에 반드시 본다**(§13.2).
+* 계획 대 구현: §7 gain-budget-first 함수군 def 0, `sizing_spec.json` 0, C1~C10 강제 test 0, `def test_` 0, 파일 분리 본체 0.
+* 파일럿은 기존 경로(L→VDS→gm_id)로 수렴한다. 다만 선언된 gain 제약이 실효과를 못 보고(B21), 목적함수 `power_uA`가 스택 중복계상(§13.3 #16),
+  게이트 `ValueError`가 탐색을 멈출 수 있고(§12.6 #3), `run_harness`가 실패해도 exit 0(§13.3 #18) -- **탐색 결과를 보고할 때 이 넷을 명시**한다.
+
+### 0.2 착수 지점과 순서
+
+| Phase | 내용 | 계획 절 | 동작 변경 | 착수 조건 |
+|---|---|---|---|---|
+| 0 | 재사용 레지스트리 | §13.1~13.2 | 없음 | ✅ 완료 |
+| **0.5** | **역할 분리 인프라**(agent 3, hook L1/L2, git 게이트 L3/L4, auditor 스크립트, 공격 시나리오 + 과거 사례 7건 재생) | §14 | 없음 | 없음(D15 hook 등록 확정) -- **다음 착수** |
+| 1 | test 분리 T0~T3(Test 16 FAIL 해소, 기계적 이관, pytest fixture화, print 판정 제거) | §13.5 | T0만 | 0.5 PASS |
+| 2 | 사장 코드 정리 + 동작 보존 DUP 통합 | §13.6 | 없음 | D7(삭제 목록 일괄 승인) |
+| 3 | 파일 분리 10모듈(이동 전용 커밋) | §13.4 | 없음 | 2 |
+| 4 | 결함 수정 §12.6 #1~8 + §13.3 #9~21 | §12.6, §13.3 | 있음 | 3 |
+| 5 | 빠른 효과(실패 캐시, θ* 기록·시드) | §12.5.4 | 탐색 경로 | 4 |
+| 6a | S0+S1 구조 유도 + S1v stage 분할(shadow 대조) | §15.5 G0~G2 | 없음 | J1~J9 공동분석, D5 ports |
+| 6b | 노드전압 정본 + writer 티어 + 봉인 게이트 | §15.5 G7, §12.5 | 있음 | 6a |
+| 6c | 결합 블록 + 달성가능성·DOF 진단 | §15.5 G3·G4 | 진단(정지 조건) | 6b |
+| 7a | gain metric 통일(전체회로 MNA) + 감도 게이트 + B21 | §15.5 G8, §15.6 | 있음 | 6c, D6·D8 |
+| 7b | 보상 먼저 + 3층 gain 할당 + `sizing_spec.json` 분리 | §15.5 G5·G6 | 있음 | 7a |
+| 7c | S3 아카이브·전역 샘플 + SPICE 독립 검증 | §15.5 G9 | 탐색 경로 | 7b |
+
+### 0.3 읽는 순서
+
+1. 이 절 -> §3.4 현행 결정·제약(무엇이 이미 정해졌나) -> §4 Phase별 DoD
+2. 목표 설계: **§15**(graph 기반 gain-budget-first) -> 기반 §12(값의 상태 모델) -> §13(코드 구조·test) -> §14(역할 분리)
+3. 열린 이슈: §10 -> 원설계 본문·과거 기록이 필요하면 이력 문서(같은 절 번호)
+
+---
 
 ## 1. Overview
 
 ### 1.1 Purpose
 
-gm/ID 사이징 엔진의 소자별 결정 순서를 `L → VDS(헤드룸) → gm_id`에서
-`stage 분할(connectivity) → stage별 gain 배분(spec) → gm_id 역산(LUT) → VDS/헤드룸 해석`으로
-뒤집는다. 이렇게 하면 (a) diode-connected 등 Vgs=Vds 물리 제약이 있는 소자도 자기일관된 헤드룸을
-받고, (b) 각 stage의 gm_id가 role 휴리스틱 추측이 아니라 실제 목표 gain에서 결정론적으로 유도되며,
-(c) output stage에만 driving capability(slew rate/CL) 제약을 추가로 얹는 구조가 스키마 차원에서
-명시적으로 드러난다.
+gm/ID 사이징의 결정 순서를 **stage 분할 -> gain 할당 -> gm_id -> DC 헤드룸**으로 세운다(gain-budget-first). 원설계(2026-09-04)는
+이 순서를 사람이 선언한 stage 목록과 소자별 폐형식 위에 올리려다 실패했다(§15.2). 이번 계획은 같은 목표를 다음 기반 위에서 구현한다:
+
+(a) stage·부하·결합을 **connectivity에서 유도**하고 회로 해석이 걸린 것만 사람과 확정한다(§15.3, §15.7)
+(b) stage gain을 **출력노드 임피던스**로 정의하고 판정은 전체회로 MNA로 한다(§15.5 G8)
+(c) 노드전압을 **DC 정본**으로 두어 KVL·vsb·매칭 불일치를 표현 불가능하게 한다(§12, D1)
+(d) 계산 결과(실패 포함)를 **버리지 않고** 입력 지문으로 재사용·정제한다(§12)
+(e) 결함이 작성자에게 숨겨지지 않도록 **작성과 검증을 분리**한다(§14)
 
 ### 1.2 Background
 
-2026-09-04 세션에서 `current_reuse_telescopic_ota`의 class-AB 출력단 Up/Down settling 대칭성을
-sky130 트랜지스터 레벨 SPICE 트랜지언트로 검증하려 했다. 51소자 전체 폐루프 `.op`을 시도하는
-과정에서 출력이 VDD 레일에 고정(rail-lock)되는 걸 발견했고, CMFB 루프를 열어도 동일하게
-재현돼 CMFB 부호 문제가 아니라 바이어스 체인 자체의 문제임을 확인했다. 근본원인을 추적한 결과:
-
-1. `topology.json`의 `ideal_sources.Iref.value_amp=1.2uA`는 순수 선언 메타데이터일 뿐 실제
-   사이징 엔진이 읽지 않는다(`sizing_recipe.py:2824`) — 부차적 수정.
-2. **핵심 문제**: diode-connected 기준소자(예: M18_bg, gate=drain=Vbias1)는 물리적으로
-   Vgs=Vds일 수밖에 없는데, 저장된 `vds`(헤드룸 예산, 예: 0.2V)와 실제 sky130 LUT/SPICE가
-   그 gm_id에서 요구하는 실제 Vgs(예: 0.99V)가 전혀 다르다. 16개 diode-connected 소자 전수
-   조사 결과 오차가 0.05V~1.02V였다(가장 심한 M36a/M36b: 필요 1.32V, 할당 0.3V).
-3. 근본원인은 `allocate_stack_headroom()`/`HeadroomPolicy`가 VDS를 gm_id보다 **먼저**
-   role 라벨(`cascode`/`diode_reference`/`mirror`/...) 기반 상수로 확정하는 파이프라인
-   순서 자체에 있다(`optimize_full_circuit_budget()` docstring, `sizing_recipe.py:5679-5687`).
-
-사용자가 이를 "gm/ID sizing은 물리적 topology 연결을 보지 않고는 할 수 없다"는 더 근본적인
-설계 원칙 문제로 재규정했고, "stage를 먼저 나누고 gain을 배분한 뒤 gm_id를 유도한다"는 방향으로
-baseline부터 재설계하기로 확정했다.
+* **2026-09-04 출발점**: `current_reuse_telescopic_ota`의 SPICE 폐루프 `.op`이 VDD 레일에 고정됐다. 원인은 diode-connected 소자의
+  vds를 role 라벨 상수(0.2V 등)로 배정한 것 -- 필요 Vgs와 최대 1.02V 차이(M36a/M36b 필요 1.32V, 할당 0.3V). 사용자가 이를
+  "gm/ID sizing은 물리적 topology 연결을 보지 않고는 할 수 없다"는 원칙 문제로 재규정하고 gain-budget-first 재설계를 확정했다.
+  (상세: 이력 §0, §1.4, §7)
+* **2026-09-07~10 (v4.0~4.42)**: 4관점 독립 검토와 실측으로 결함을 하나씩 고쳤다 -- diode 자기일관, LUT 보간·비단조(B15/B20),
+  vsb 노드전압 유도와 적층 diode 결합(B9/B25), 미러 18소자 강제(B19'), 미러 공통 L, 보상망 Cc 유도, spec 정본화.
+  파일럿은 기존 경로로 수렴했지만 새 파이프라인은 한 줄도 구현되지 않았다. (이력 §10.6~§10.14)
+* **2026-09-14 (v4.43~4.48)**: 전면 재검토 -- 계산 결과를 버리는 구조(§12), 함수 전수 감사·중복(§13), 결함 은폐 이력(§14),
+  원설계 재평가와 gain 분해 실패 41건(§15). 사용자 정정: gain-budget-first는 폐기가 아니라 graph 위에서 더 잘 구현한다.
 
 ### 1.3 Related Documents
 
-- `.ai/context.md` "세션44 (계속)"/"세션44 (계속 2)" — diode-connected 헤드룸 버그 발견 경위
-- `skills/analog-gmid-design/references/gm-id-methodology.md` §2.5/§4/§6.4/§6.7 — 기존
-  "GBW/PM→gm, gain은 사후 readback" 방향의 근거
-- `skills/analog-gmid-design/references/gm-id-methodology.md` §13(§13.1/§13.2/§13.3/§13.7
-  특히) — 이 프로젝트 엔진 실전 운영에서 나온 고유 발견, §7.2 알고리즘 개정의 직접 근거
-  (2026-09-04 §1.4 추가)
-- `skills/analog-gmid-design/references/known-incidents.md` "사고4" — 단별 이득배분을
-  닫힌 식으로 강제하려다 탐색+제약조건으로 정정한 전례(이번 재설계와의 경계 구분 필요)
-- `skills/analog-gmid-design/references/known-incidents.md` "사고10/16/19/21/22/23/24" —
-  오늘 발견한 헤드룸 버그와 같은 클래스의 5개 선례 + §7.3 개정이 재사용하는 기존 인프라
-  (`resolve_feed_vds()`/`_resolve_vertical_group()`)의 출처, §8.4 위험(사고16) 근거
-  (2026-09-04 §1.4 추가)
-- `skills/analog-gmid-design/references/topology-fn-derivation-guide.md` — 기존 GBW/PM→gm
-  reverse-derivation 절차(compensation 방향이 반대가 됨에 따라 참고용으로 남김)
-- `docs/01-plan/features/analog-topology-json-library.plan.md` — topology.json을
-  "사이징과 무관한 connectivity만" 담자는 원래 설계 의도(`_TEMPLATE.topology.json` §schema_note) —
-  이번 재설계가 그 원칙을 device_roles/sizing_roles/compensation까지 완성한다
-- `skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json` —
-  파일럿 회로의 현재 connectivity + (폐기 대상) device_roles/sizing_roles/compensation
+- 이력 문서 `docs/01-plan/features/gain-budget-gmid-sizing.history.md` -- 원설계(§7.1~7.9), 과거 구현 기록(§10.6~§10.14), Version History
+- 함수 재사용 레지스트리 `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` -- 개념별 정본표, R0~D 등급
+- 감사·검토 원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/` -- agent1~7(함수·계획 대조·은폐 이력), review_A/B/D(원설계 재평가·gain 분해 사고), probe_stage_partition(4회로 stage 분할 실측)
+- `.ai/context.md` 세션44~48 -- 경위
+- `skills/analog-gmid-design/references/gm-id-methodology.md` §13, `known-incidents.md` 사고1~24(특히 사고4 단별 이득배분)
+- `~/.claude/agent-kit/methodology.md` §7 -- anti-tautology·anti-circularity(§14가 이식)
+- `docs/01-plan/features/analog-topology-json-library.plan.md` -- topology.json은 connectivity 전용이라는 원래 의도
 
-### 1.4 이 재설계의 역사적 선례 (2026-09-04 `.ai/context.md` 세션6~44 전체 자산화로 발견) → 이력 문서
+### 1.4 이 재설계의 역사적 선례 → 이력 문서 §1.4
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+---
 
 ## 2. Scope
 
 ### 2.1 In Scope
 
-- [ ] 새 JSON 스키마 설계: `<name>.sizing_spec.json`(§7.1) —
-      `stages[].devices.{input,cascode,load,tail}`, `global_spec.constraints`(총 gain·cmrr·psrr·
-      mismatch 문턱), `stages[].driving_spec`(output 전용), `compensation`(방향 반전),
-      `headroom.policy`, `bias_devices`(stage 밖 diode-reference/mirror 소자).
-      **`gain_budget_db`는 입력이 아니라 출력**(v3.1) — 예외 경로로 `gain_budget_db_override`만 둠
-- [ ] `topology.json`을 순수 connectivity 전용으로 되돌림 — `device_roles`/`sizing_roles`/
-      `compensation` 필드 제거(새 `sizing_spec.json`으로 이관)
-- [ ] 신규 함수 구현(`sizing_recipe.py`, §7.2/§7.3 — 2026-09-04 §1.4 자산화 반영으로 축소됨):
-  - [ ] `_solve_diode_connected_vgs_fixed_point(gm_id, L, vs, lut)` — 이번 세션 스크래치패드
-        `node_dc_propagate.py`에서 프로토타입 검증 완료, 그대로 이식. connectivity
-        (`gate==drain`) 기반 판정, §7.2 stage 사이징 직후 `ctx.sized[name]["vds"]`에 기입해
-        기존 `resolve_feed_vds()` 우선순위①(이미 있으면 존중)로 자연스럽게 보호되게 함
-  - [ ] `gm_id_for_gm_gds_ratio(target_ratio, L, vds, vs)` — `gm_id_for_vgs()`(:536)와 동일
-        패턴의 O(1) 역보간, gm/gds 축 신규
-  - [ ] `resolve_stage_sizing(stage_spec, ID, luts)` — stage 알고리즘(§7.2, cascode=`role="gain"`
-        /load=`role="load"` 구분 포함) 구현체
-  - [ ] ~~`_resolve_device_headroom(device, ctx)`(`allocate_stack_headroom()`/`HeadroomPolicy`
-        대체)~~ — **취소(§7.3 개정)**: `resolve_feed_vds()`/`_resolve_vertical_group()`가
-        이미 구현돼 있어(사고22/24) 전면 교체 대신 위 diode-connected solver를 그 우선순위
-        체인 앞단에 끼워넣는 것으로 충분함이 드러남
-  - [ ] `solve_compensation_for_gbw_pm(stage_gms, targets)` — 기존 `topology_fn`(GBW/PM→gm)의
-        역방향(gm들→Cc/Rz). `device_roles.vds_match_vgs_of`/`gm_id_match_vgs_of`(사고21,
-        이미 구현됨)를 stage 간 결합 소자에 그대로 재사용 — 새 결합 메커니즘 발명하지 않음
-  - [ ] **★ `verify_node_voltage_consistency(ctx)`**(§7.5) — 전체 netlist 노드전압 재구성 +
-        상호모순/VGS 불일치 검사. 이번 재설계의 가장 근본적인 요구사항(§3.1 요구사항 6)의
-        직접 구현체 — diode-connected뿐 아니라 **모든** 소자의 V/I 관계를 검증
-  - [ ] **★ `cross_check_with_spice(instance_data)`**(§7.5) — sky130 SPICE `.op` 독립 교차검증,
-        스크래치패드 `build_transient_netlist.py`를 skill asset으로 정식 편입
-  - [ ] `L_candidates_product()` + `resolve_stage_sizing()`의 L outer-loop(§7.6 (3)) —
-        cascode/load/tail의 L을 면적 오름차순으로 전수 스캔하며 각 L_combo에서 §7.2를
-        결정론적으로 실행, `extra_feasible`(§13.5 기존 패턴)로 cmrr/psrr/mismatch 판정
-  - [ ] **`sweep_area_power_pareto(sizing_spec, luts) -> ParetoReport`**(§7.9, v3.4) — 면적
-        예산 미선언 시 전력-면적 Pareto front를 뽑아 제시하고 정지(엔진이 예산을 지어내지
-        않는다). 선택 결과는 `global_spec.constraints`의 `area_um2`로 기록
-  - [ ] ~~`make_cmrr_psrr_feasibility_check(...)`~~ — **삭제(v4.4)**. `make_matching_
-        feasibility_check()`와 "동일 패턴"이 **원리적으로 불가능**함이 실측으로 확인됐다:
-        `smallsignal_ratio_db`는 `_full_circuit_devices()`가 전 소자를 요구해 stage 사이징
-        도중에는 `KeyError`다(§7.6 B2 해소 참고)
-  - [ ] **`make_stage_local_check(metrics, constraints, grp, spec)`**(§7.6, v4.4) — T1/T2
-        metric만 골라 `extra_feasible` 콜백으로 변환(기존 `make_matching_feasibility_check()`
-        를 일반화). T3가 섞여 들어오면 **선언 시점에 거부**한다
-  - [ ] **`check_global_gates(ctx, metrics, constraints) -> GateReport`**(§7.6, v4.4) — T3
-        전용 전역 게이트. 전 소자 사이징 완료 후 1회 실행(측정 0.72 ms), 위반 metric과
-        여유량을 함께 반환해 §7.6(4) 승격 판단에 쓴다
-  - [ ] **`diagnose_sizing_dof(sizing_spec, topology) -> DofReport`**(§7.8) — 사이징 시작
-        전에 "목표 개수 대비 실제 자유도가 충분한가"를 스키마+connectivity만으로 판정
-        (`ok`/`underdetermined`/`overconstrained`), `overconstrained`면 어느 목표끼리
-        같은 자유도를 다투는지 명시 보고하고 반복을 아예 시작하지 않음(사고19 재발 방지)
-  - [x] **(2026-09-07 완료)** `_hr_vfind()`/`_hr_thin_singleton_ideal_source_check()`/
-        `_hr_fold_group_check()`/`_hr_sum_ref_vds()`/`_hr_verify_group_kvl_sum()`/
-        `_hr_resolve_vertical_group()` — 2중 중첩 클로저 6개를 모듈 레벨로 추출(§8.4)
-  - [ ] **`compute_metric(metric_spec, ctx)` 경유 gain 제약**(§7.9, v4.0) — `_METRICS_REGISTRY`
-        위임. `∂gain/∂gm_id_i`는 LUT 위 수치미분. 회로별 폐형식을 옵티마이저 본문에서 제거
-  - [ ] **`solve_allocation_dp(stage_tables, gain_target, area_budget) -> Allocation`**(§7.9,
-        v4.2) — stage별 gm_id 배분의 **정확 해법**. 분리성을 이용한 자원배분 DP라 기울기를
-        쓰지 않아 비볼록(A11)에 영향받지 않는다. 프로토타입·근거:
-        `tests/probe_allocation_solvers.py`. Pareto front(§7.9 v3.4)도 같은 DP의 비지배
-        집합에서 **한 번의 전파로** 나온다
-  - [ ] **`set_device_vds(ctx, name, value, source)`**(§7.3, v4.3) — vds 기입의 **유일한**
-        경로. diode 소자면 고정점 해와 일치하는지 검사해 어긋나면 즉시 실패, `_vds_source`
-        태그 기록(B13 추적성 동시 해결). 기존 7개 기입 지점을 전부 이 함수로 치환하고
-        원시 대입 잔존 여부를 grep 테스트로 강제
-  - [ ] **`load_sizing_spec(path) -> SizingSpec`**(§7.1, v4.0) — 스키마 검증기. 미지 필드 거부,
-        `topology_ref` 정합 확인, `metrics[].type`이 `_METRICS_REGISTRY`에 있는지 확인,
-        `schema_version` 마이그레이션. 선언만 되고 아무도 안 읽는 필드를 **정적으로 잡는다**
-        (C5 재발 방지 — `settling_time_ns`가 실제로 그 상태였다)
-  - [ ] **`resolve_headroom(topology_spec, ctx)`**(§8.4) — 위 `_hr_*` 6개를 묶는 독립 harness.
-        추출이 끝났으므로 이제 구현 가능
-- [ ] 파일럿 회로 이관: `current_reuse_telescopic_ota`를 새 스키마로 재작성, 새 엔진으로
-      재사이징
-- [ ] 회귀 검증: 기존 사후검증 metric(`gain_db`/`cmrr_estimate_db`/`psrr_estimate_db`/
-      `mismatch_sigma_mV`/`classab_centering_dev_v`)이 기존 constraints를 여전히 만족하는지 확인
-- [ ] **전체회로 물리 정합성 검증**(§7.5, diode-connected 16개 소자 포함하되 그것만이 아님):
-      `verify_node_voltage_consistency()`가 Violation 0건 보고 — diode-connected 자기일관성
-      (`vgs_for_gm_id(gm_id,L,vds*,vs)==vds*`)은 이 검증의 특수 케이스로 포함됨
-- [ ] SPICE 폐루프 재검증: `cross_check_with_spice()`로 새 사이징 결과의 `.op` 수렴 확인
-      (rail-lock 없음) → 원래 목표였던 class-AB Up/Down settling 트랜지언트 검증 재개
+- [ ] **Phase 0.5** 역할 분리 인프라 -- §14.7 산출물 전부, 공격 시나리오·과거 사례 7건 재생 거부 확인
+- [ ] **Phase 1** test 분리 -- `tests/{conftest.py, unit, integration, contracts, regression, probes, tools}`(§13.5)
+- [ ] **Phase 2** 레지스트리 D 목록 정리(승인분) + 동작 보존 DUP 통합(§13.6)
+- [ ] **Phase 3** 10모듈 분리 -- `gmid_lut` / `topology_authoring` / `circuit_state_graph` / `gmid_sizing_engine` / `circuit_metrics` / `theta_search` / `stick_diagram`(레이아웃만) / `sizing_layout_convergence` / `instance_report_builder` / `gmid_design_pipeline`(§13.4)
+- [ ] **Phase 4** 결함 #1~21 수정(§12.6, §13.3)
+- [ ] **Phase 5** 실패 캐시·θ* 기록(§12.5.4)
+- [ ] **Phase 6a~7c** graph 기반 gain-budget-first G0~G9(§15.5), `sizing_spec.json`(유도/선언 필드 분리, §15.4)
+- [ ] 4개 회로 전부에서 각 Phase DoD 측정(필요 없는 회로에서 무동작 증명)
 
 ### 2.2 Out of Scope
 
-- 나머지 3개 토폴로지(folded_cascode/nmcnr_amplifier/two_stage_ota) 이관 — 파일럿 검증 후
-  별도 작업
-- `optimize_full_circuit_budget()`의 신/구 경로 강제 일괄 전환 — `sizing_spec` 유무로 분기,
-  점진적 이관
-- ~~gain 배분 자동 탐색 알고리즘 고도화~~ → **v3.1에서 In Scope로 이동**: 배분은
-  §7.9 Phase 2의 root current 1-D 해찾기로 **유도**하는 것으로 확정됐다(별도 탐색 알고리즘이
-  아니라 단조 함수의 해찾기라 구현 비용이 작다)
-- 레이아웃/floorplan/euler 자동수정 계층 변경 — 전부 재사용, 무변경
+- **회로 부류**: 밴드갭·constant-gm bias·비교기·스위치드 커패시터 등 비증폭 회로(§10.4 G7). 대상은 차동 입력 전압증폭기 계열.
+  gain-boosted cascode(G3)는 스키마 확장 전까지 범위 밖으로 명시.
+- **PVT 코너 스윕**: LUT는 TT·기록된 온도 한 조건(§10.2 A5). 코너 확장은 별도 계획.
+- **레이아웃 알고리즘 변경**: common-centroid·오일러·finger·floorplan은 이동만(§13.4 #7).
+- **새 토폴로지 추가**: 4개 회로 외(추가 비용 문서화 G8은 In Scope).
 
 ---
 
@@ -205,38 +144,14 @@ baseline부터 재설계하기로 확정했다.
 
 ### 3.1 Functional Requirements
 
-1. Stage 안에 input(들) + cascode(들)이 있는 경우(텔레스코픽류), `gain_budget_db` 하나에서
-   input의 gm_id와 cascode의 (L, gm_id)를 함께 결정할 수 있어야 한다(사용자 확정: "동시 결정").
-2. Output stage는 `driving_spec`(CL/slew-rate/settling-time)이 있으면 `ID_final = max(KCL ID,
-   slew_rate_target * CL)`로 ID를 상향할 수 있어야 하고, 이 상향이 gain 배분 로직과 충돌하지
-   않아야 한다.
-3. 헤드룸 해석기는 `connectivity(device).gate == connectivity(device).drain`을 role 라벨보다
-   우선하는 진실源으로 삼아야 한다.
-4. **(v4.0 개정 — 인과 방향 확정)** 위상보상이 **먼저** 돈다: 스펙 `(CL, GBW, PM)`에서
-   `(Cc, Rz, gm_1..gm_N)`을 **한 번에** 푼다(2단 Miller면 `gm_1 = 2π·GBW·Cc`, `gm_2 = Z·gm_1`).
-   그 다음 `gm_id_i`가 **유일한 자유 축**이 되고 `ID_i = gm_i/gm_id_i`가 파생된다.
-   ~~GBW/PM은 이미 정해진 stage gm들로부터 보상소자 값을 역산한다~~
-   (사용자 확정: "gain이 주도").
-5. **(v3.1 개정)** gain 배분은 **엔진이 유도한다** — 사용자는 총 gain 목표
-   (`global_spec.constraints`의 `gain_db>=X`)만 주고, stage별 `gain_budget_db`는 §7.9 Phase 2가
-   `A_i,max` 실측 + **`gm_id_i`를 변수로 한 해석해(KKT)+활성제약** 절차로 결정해 **출력**한다
-   (v3.2 재정식화 — v3.1의 root-current 1-D 해찾기는 그 특수 케이스). `stages[].gain_budget_db_override`
-   는 논문 재현 등 예외 경로로만 남긴다.
-   ⚠️ **사고4와의 관계**: 사고4는 "논문에서 배분값을 **찾으려던** 것"을 "회로에서 도출하라"로
-   정정한 것이었고, 당시 해법이 "탐색"이었다. v3.1은 그 도출을 **더 좁혀** 물리 상한(`A_i,max`)
-   실측 기반의 결정론적 해찾기로 만든다 — 값을 사람이 지어내지 않는다는 사고4의 본질은 그대로다.
-6. **★ 이번 재설계의 가장 근본적인 동기(사용자 확정, 2026-09-04) — 전체회로 물리 정합성
-   검증**: 사이징된 **모든** 소자(diode-connected뿐 아니라)의 전압(VGS/VDS)·전류(ID) 관계가
-   실제로 KVL/KCL을 만족하는지, 파이프라인 마지막에 **전체 netlist 단위로** 독립 검증하는
-   단계가 있어야 한다 — 개별 vertical_stack_id/그룹 내부 KVL 합만 맞는지 보는 게 아니라
-   (그건 이미 `allocate_stack_headroom()`의 assert가 함), 서로 다른 경로로 같은 net에
-   도달하는 두 소자가 실제로 같은 전압을 예측하는지, 그리고 어떤 소자가 게이트로 받는
-   내부 net의 실제 전압이 그 소자가 사이징될 때 가정한 VGS와 일치하는지까지 검증해야 한다.
-   오늘 diode-connected 버그를 발견한 방식(§7.5 참고 — 레일에서부터 소자별 vds를 따라 전체
-   netlist의 노드전압을 직접 재구성하고, 독립된 두 번째 solver(SPICE)로 교차검증) 자체가
-   이 요구사항의 프로토타입이었다 — 이걸 **1회성 디버깅 스크립트가 아니라 파이프라인의
-   상시 검증 게이트**로 승격하는 게 이번 재설계의 핵심 목적이다(diode-connected 헤드룸
-   수정은 이 검증기가 잡아낸 여러 사례 중 하나일 뿐 전부가 아니다).
+1. **stage 분할은 connectivity에서 유도한다** -- 차동모드 뷰 규칙(§15.3)으로 stage별 input/cascode/load/tail·출력노드·G_out 기여 소자를 만들고, 선언과 다르면 `review_needed`로 정지한다. 회로 해석은 공동분석으로 확정한다(J1~J9).
+2. **stage gain은 출력노드 임피던스로 정의한다** -- `gm_in / G_out`, G_out은 출력노드에 붙은 소자 전부(캐스코드는 곱 부스트). 제약 판정은 전체회로 MNA gain, 분해는 그 부산물이고 괴리는 기록한다(§15.5 G8, §15.6).
+3. **인과 방향: 보상이 먼저** -- (CL, GBW, PM)에서 (Cc, Rz, gm_i)를 풀고 gm_id_i가 자유 축이 된다(v4.0 확정). 기생 pole로 L 상한(§7.11).
+4. **gain 할당은 엔진이 유도하고 출력한다** -- `gain_budget_db`는 결과다(v3.1 확정). 결합 블록 3층 할당(§15.5 G6), 공유 VGS는 gain 기준(B19' 확정), tail이 L의 주인(§10.9 확정).
+5. **노드전압이 DC 정본이다** -- 소자 vds/vgs/vsb는 차이로 유도, writer 티어 T0~T4, 순환은 명시적 고정점, metric 전에 봉인 게이트(KVL/KCL/노드충돌/버전)(§15.4, §12.5.2, D1 확정).
+6. **전체회로 물리 정합성은 상시 게이트다** -- 2026-09-04 사용자 확정 요구사항("모든 소자의 V/I 관계를 전체 netlist 단위로 독립 검증")을 봉인 게이트(내부)와 SPICE 교차검증(독립 oracle, 허용오차 사전 계산)으로 구현한다.
+7. **계산 결과를 버리지 않는다** -- 입력 지문 기반 재사용, 실패도 margin과 함께 기록, 이전 결과로 시작점 정제(§12.5).
+8. **달성 불가는 탐색 전에 말한다** -- 블록별 A_i,max 합·제약별 상한·DOF(등식 rank + 수치 rank)(§15.5 G4).
 
 ### 3.2 Non-Functional Requirements — 3대 기본 원칙 (★ 2026-09-07 사용자 확정, v3.0)
 
@@ -323,40 +238,165 @@ v2.x까지 걸어두었던 "기존 재사용 계층의 함수 시그니처는 �
 
 ---
 
+### 3.4 현행 결정·제약 목록 (★ v4.49, 2026-09-14 추출)
+
+> **무엇이 이미 정해졌는지는 이 표가 정본이다.** 줄 번호는 v4.48 작업트리 기준(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/rewrite_X_decisions.md`).
+> 표 A의 '미확인' 1건("파일럿 1개 먼저")은 사용자 원문을 찾지 못했고 4회로 측정 원칙(메모리: 해결책 일반화, §3.3 C7)과 충돌하므로 **4개 회로 전부**로 정리한다(§2.1).
+
+> 추출 범위: 계획서 `gain-budget-gmid-sizing.plan.md`(v4.48, 이하 `plan:`), 이력 `gain-budget-gmid-sizing.history.md`(이하 `history:`),
+> `.ai/context.md`(이하 `context:`), 메모리 `~/.claude/projects/.../memory/*.md`, 코드 `skills/analog-gmid-design/assets/`(이하 `SR`=`sizing_recipe.py`,
+> `topo`=`library/current_reuse_telescopic_ota.topology.json`). 줄 번호는 2026-09-14 작업트리 기준.
+> 상태 표기: **구현됨** / **부분 구현** / **유효·미구현** / **유효(원칙)**(구현 대상이 아닌 규칙) / **변경**(후속 결정으로 대체) / **착수 조건**(미결, 해당 Phase에서 결정) / **미확인**.
+> 원문 확인이 안 된 것은 "미확인"으로 적었다.
+
+#### 표 A -- 설계 결정 (회로·방법론·엔진 동작)
+
+| # | 결정(사용자 원문 요지) | 날짜 | 원문 위치 | 적용 대상 | 현재 상태 |
+|---|---|---|---|---|---|
+| A01 | 재설계 방향: "stage를 먼저 나누고 gain을 배분한 뒤 gm_id를 유도" (VDS는 그 뒤) | 2026-09-04 | plan:79-81 | 전체(G2~G7) | **변경** -- gain 인과·배분은 A03/A05로 개정, "VDS는 gm_id 뒤"는 D1 노드전압 정본 writer 티어로 재정식화(plan:1417). 코드는 아직 L→VDS→gm_id 순(plan:1417 인용 `SR:9151→9236`) |
+| A02 | stage 안 input+cascode의 L/gm_id를 gain 목표에서 **동시 결정**(캐스코드 L을 role 휴리스틱으로 따로 안 정함) | 2026-09-04 (AskUserQuestion) | plan:208-209 "사용자 확정: 동시 결정", plan:395-396 | G6 내층 | **유효·미구현** -- 형태 변형: stage gain = gm_in/G_out, 블록 DP(gm_id×L)(plan:1416, 1433). `resolve_stage_sizing` def 0(plan:1051-1052) |
+| A03 | 인과 방향: ~~gain이 주도~~ → **보상이 (Cc, Rz, gm_1..gm_N)을 먼저 한 번에 결정**, gm_id_i가 자유 축 | 2026-09-04 → 2026-09-07(v4.0) | plan:215-219, plan:397-419, history:3041, context:14050-14052 | G5 | **부분 구현** -- Cc 유도식 구현(topology_library.py:470-489). "보상 먼저 → 3층 할당" 파이프라인은 Phase 7b(plan:1474) 미구현. §15 G5 "v4.0 인과 유지"(plan:1432) |
+| A04 | "gain-budget-first"의 뜻 = "gain이 gm을 정한다"가 아니라 **단별 gain 예산을 엔진이 유도해 산출** | 2026-09-07(v4.0) | plan:421-423, context:14051-14052 | G6 | **유효·미구현** |
+| A05 | 배분도 엔진이 유도, `gain_budget_db`는 **출력**(예외는 `gain_budget_db_override`만) | 2026-09-07(v3.1) | plan:220-224, plan:424-428, history:1433-1436, history:3037 | G6 | **유효·미구현** -- 해법은 1-D 해찾기→KKT(v3.2)→DP(v4.2)→3층 할당(plan:1421, 1433)으로 교체. `library/`에 `gain_budget_db`·`sizing_spec` 0건(grep) |
+| A06 | gain 제약은 폐형식이 아니라 `compute_metric()`/`_METRICS_REGISTRY` **위임** | 2026-09-07(v4.0) | history:1506-1517, context:14053-14054 | G8 | **변경** -- G8 "gain metric은 전체회로 MNA(DM 뷰) 1종, stage gain은 분해 부산물"(plan:1435). 현 파일럿 제약 `gain_db`=`gain_stages_sum`(topo:1884, 2035-2037) → B21 결함 미해결(plan:738) |
+| A07 | theta 폐기를 "자유 탐색 변수"로 **축소** -- `A_signed`/`C`/`metric_stage_budget`/servo `B`는 구조 선언으로 존속 | 2026-09-07(v4.0) | history:440-449, context:14055-14057 | G0/G1(유도·선언 필드 분리 plan:1414) | **유효·미구현** -- `*.sizing_spec.json` 0건(plan:1054) |
+| A08 | **면적 제약형**: objective는 전력 최소 하나, 면적은 `area_um2` 상한 제약 | 2026-09-07(v3.3) | history:289-293, history:3039 | G0/G6 | **유효·미구현(조건부)** -- 전력 정의가 D6 착수 조건(plan:1196), `Area` 정의 미결 A2(plan:700). 현 파일럿 objective `power_uA`(topo:2030-2031)=`sum_current` 스택 중복계상(plan:1085), area 제약 미선언(topo:2033-2072) |
+| A09 | 면적 예산 미선언 시 **Pareto front 제시 후 정지**(엔진이 예산을 지어내지 않음) | 2026-09-07(v3.4) | history:1655-1660, history:3040 | G6/G9(S3 Pareto plan:1433) | **유효·미구현** -- `sweep_area_power_pareto` def 0(plan:1051-1052) |
+| A10 | P1 "전면 재설계도 가능하다. 무조건 버그free와 효율성이 원칙" -- 시그니처 무변경 제약 폐기 | 2026-09-07(v3.0) | plan:241-249, history:3036 | 전체 | **유효(원칙)** |
+| A11 | P1-b "타당성을 따지지 않고 skip 로직을 만드는 경향이 있어. 그건 금지야." | 2026-09-08 | plan:257-277(원문 plan:259) | 전체, §14.5 A5/A6 | **유효(원칙)** -- 기계 강제(`tools/gates/`)는 미존재(ls) |
+| A12 | P2 효율성: 재계산·중복 스캔 구조적 차단, 캐시 키 = 실제 읽는 가변 상태 | 2026-09-07(v3.0) | plan:279-283 | 전체, §12.5.2 C-d(plan:977) | **유효(원칙)** -- 현존 위반 #7·#13(plan:1003, 1082) |
+| A13 | P3 기지 사고 재발 불가 -- C1~C10 강제 테스트가 DoD | 2026-09-07(v3.0)/v4.5 | plan:285-288, plan:297-318 | Phase 1 T7(plan:1162) | **유효·미구현** -- 강제 테스트 0건(plan:1055), 저장소 `def test_` 0건(grep) |
+| A14 | 요구사항6: 사이징된 **모든** 소자의 KVL/KCL/VGS를 전체 netlist 단위로 상시 검증(최우선) | 2026-09-04 | plan:228-239, history:3031(사용자 지적) | G7 봉인 게이트 + G9 SPICE | **변경** -- 사후 검사기가 아니라 D1 불변식+봉인 게이트(plan:1418). 부분: `propagate_node_voltages`(SR:3895), vsb 게이트(SR:9441). conflicts 미검사(plan:998), `cross_check_with_spice` def 0(plan:1052) |
+| A15 | `ideal_sources.value_amp`: **null이면 자유탐색, 값이 있으면 그 값을 실제 전류로** (v4.11 "참고값"을 번복) | 2026-09-08(v4.12) | plan:729(B14), history:3052-3053, context:13964 | G0 사람 선언(plan:1414, 1427) | **부분 구현** -- `_metric_kcl_residual`만 소비(SR:4474-4485). 사이징 경로 소비 없음(plan:729 "엔진 미구현", grep상 소비처는 metric뿐) |
+| A16 | 파일럿 Iref 1.2µA는 **사용자가 논문 원문에서 직접 확인**한 값(Claude가 인용한 값과 구분) | 2026-08-03 | 메모리 feedback_no_paper_values_derive_rationally.md(Iref 사례), topo:144 | G0 | **유효(원칙)** -- A15 규약상 고정 대상이나 미배선 |
+| A17 | B19'(가) 미러 **18소자 전부 강제** -- tail M5/M6를 bias 미러에 묶는 것이 설계 의도 | 2026-09-09(v4.21) | plan:735, history:3062 | G1/G3(K2) | **구현됨** -- `gm_id_match_vgs_of` 선언(topo:1027, 1036, 1043 등), `diode_vds_window(mirror_members)`(SR:3570, 호출 SR:8018), 착지 history:3072 |
+| A18 | B19'(나) 공유 VGS는 **gain 기준**: "첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어" | 2026-09-09 | plan:735, history:3062 | G6 중층(plan:1433 "사용자 확정 B19'") | **유효·미구현** -- 좌표강하 없음. pmos:Vcmfb 그룹은 gain 폭 0dB라 기준 미정(plan:735) |
+| A19 | B20 승인: `_solve_vgs()`를 **rightmost root**로(비단조 PMOS LUT) | 2026-09-09(v4.23) | plan:736 "사용자 승인 후 수정", history:3064 | G4 LUT 곡선 검사 | **구현됨** SR:522-528. 잔여 #10 이분 역산 단조성 미검사(plan:1079) |
+| A20 | B22 승인: diode 창이 VGS 공유 미러 멤버 W까지 확인(선언 옵트인, 미정 vds는 역할별 min_vds 바닥, L/ID 미정은 명시 실패) | 2026-09-09(v4.25) | plan:739 "구현 완료(사용자 승인)" | G7 T1/T2 | **구현됨** SR:3570/8018. "선언 옵트인"은 G1 connectivity 유도(plan:1428)·writer 티어(plan:1417)로 재정식화 대상 |
+| A21 | B25 승인: 적층 diode를 **2변수 연립**(`vsb_lo = vsb_up + v_up`) + B9 vsb를 노드전압에서 유도 | 2026-09-09(v4.28) | plan:742 "승인 필요(공유 엔진)… 구현 완료", history:3069 | G7 T2(plan:1417) | **구현됨** `solve_stacked_diode_pair`(SR:3659, 호출 SR:7859), `reconcile_vsb_from_nodes`(SR:3976, 호출 SR:9207), 게이트 SR:9441. 잔여 #1 W·gds 버전 혼재(plan:997), #11 idu=1.0 대입(plan:1080) |
+| A22 | diode의 vds는 나눠줄 몫이 아니라 **구간 제약 변수**(헤드룸 배분기 변경, 사용자 승인) + diode gm_id는 종속값(B16) | 2026-09-08(v4.17) | history:913 "(사용자 승인)", history:3057-3058, plan:731 | G7 T1 | **구현됨** `diode_vds_window`(SR:3570), `apply_diode_self_consistent_gm_id`(SR:3743, 호출 SR:9236). B16 개별 승인 문구는 미확인(history:3057 "사용자 승인 후 배선"만) |
+| A23 | M11a/M11b/M20a/M20b `L_role`=`bias_replica`(class-AB 배터리 전압기준, 신호경로 미러 아님) | 2026-09-09(v4.27) | history:3068 "사용자 확정" | G1 | **구현됨** topo:1024, 1032, 1041 등 |
+| A24 | L5c 픽스처: `r_cmfb_vocdes` 하한(0.02) 고정("1번"), `stop_after_sizing=True`(사용자 선택) | 2026-09-09~10 | history:3071, history:2132-2133 | Phase 1 T0~T2 | **구현됨** -- §14.3 "픽스처 입력 이동 = 기준 약화, 사용자 승인"(plan:1272) 규칙의 적용 대상. 이관 시 재승인 필요 여부 미확인 |
+| A25 | 초기 L은 **knee에서 시작**, fT/mismatch/LUT 격자로 clamp, 부족하면 **VDS를 L보다 먼저**(R4b) -- "원칙은 지난번에 정했잖아" | 2026-09-07 | plan:510-533, plan:449, 메모리 feedback_default_from_principles_before_asking.md, history:3089(사용자 확정 원칙으로 존치) | G1/G6 | **부분 구현** -- `measure_L_knee`(SR:2305), `knee_L_for_kind`(SR:2555), `derive_role_L`(SR:2772, clamp `feasible_L_window` SR:2694). `L_bounds_from_ft_and_matching`·`search_gm_id_and_L_for_role`·`L_candidates_product` def 0(grep). fT 상한은 §7.11로 대체 |
+| A26 | §7.7 L 변경 규칙 R1~R8(R7 branch/row 구분은 사용자 질의로 명확화) | 2026-09-04 | plan:443-462, history:3032, history:3089 | G1 / 레이아웃 수렴(§13.4 #8) | **유효(원칙)** -- 문장 단위 수정 필요(과제3) |
+| A27 | "gain stage의 **tail이 L의 주인**이고, 특히 최초 input 단의 tail이 실제 주인… 두 stage의 gain을 모두 만족시키는 L을 sweep… 나머지 mirror구조로 연결된 소자들은 전부 L을 공유" / "M5가 주인이야" | 2026-09-10 | history:2266-2268, history:3078 | G1(plan:1428 "tail이 L의 주인") | **구현됨** `l_sharing_classes`(SR:2385), `gain_stage_tails`(SR:2434), `l_class_owners`(SR:2490). 한계: `gain_stage_tails`가 3회로에서 `{}`(plan:1406) → G2 유도로 교체 예정 |
+| A28 | "L theta를 일반화해. **특정 이름으로 하지마.**" | 2026-09-10 | history:2366-2368, history:3079 | G1/G6 | **구현됨** `synthesize_l_class_thetas`(SR:2612, 호출 SR:8509), `_feed_l_class`(SR:6798). 기존 선언 L theta(`L_cascode`/`L_stage2out_*`) 존폐 결정은 미확인 |
+| A29 | 미러 공통 L **3층 구조**("3층 구조는 맞아") + 층0 게이트(동치류 안 L 갈리면 에러) | 2026-09-10 | context:14308-14317 | G1/G7 | **구현됨** 층0 `audit_l_sharing_consistency`(SR:2518) 호출 SR:9454(배선됨 -- history:2356 "미배선"은 stale). 잔여 #3 게이트 `ValueError`가 탐색 크래시(plan:999) |
+| A30 | "bias_replica 상수도 없애" → **(1) 전 회로 적용** | 2026-09-10 | history:2447, history:3080, context:14364 | G1 | **구현됨** `_L_ROLE_MULTIPLIERS` 정의 0(주석만 SR:2308/2557/2780), `derive_role_L`. 잔여 #21 `tests/probe_mirror_common_L_wiring.py:66`이 삭제된 상수 참조(plan:1090) |
+| A31 | "warm start에 l_class 포함해서 재탐색해" | 2026-09-10 | history:2594, history:3081 | Phase 5 / G9 | **구현됨** `search_stage_budget_L_warm_start`(SR:10637), `_group_score_interior`(SR:10595, 호출 SR:10855), `l_class_L`(SR:11330) |
+| A32 | "mirror_ratio_error 상한 걸어" → "상수를 임의로 자꾸 만들지마. 근거가 되는 mismatch_sigma_mV만 유지" → `value_from_constraint` | 2026-09-10 | history:2670-2672, history:3082 | G0 출처 / G8 | **구현됨** topo:2056-2059, `resolve_constraint_references`(SR:8370), `_mirror_ratio_error_pairs`(SR:4551). 잔여 #5 `names[0:2]`만(plan:1001) |
+| A33 | `mismatch_sigma_mV=5.0`은 **근거 없음**을 기록, 재도출 방법은 사용자 확정 전 안 정함 → "1번으로 진행해" → 유도 실패 → 시스템 레벨 설계 입력으로 5.0 유지 | 2026-09-10 | history:2744-2763, history:2810, history:2872-2877 | G0 "제약값 출처 필수"(plan:1427) | **유효(근거 공백 지속)** topo:2040-2043. G0 착수 시 출처 결정 필요 |
+| A34 | 임계값 **bisection(선택지 3)** 채택, 구현은 design 단계 후 | 2026-09-10 | history:2886-2887, history:3088, plan:809-866 | §15에 Phase 배치 없음(S3 "유도 임계값" plan:965) | **유효·미구현** -- `achievable_metric_bound`(SR:8271)에 bisect 모드 grep 0건 |
+| A35 | `input_referred_offset`: **gm 가중 RSS, 캐스코드 제외**(쌍 = offset 선언 ∩ ports input 게이트) | 2026-09-10 | history:2781, history:3083, context:14486 | G8 | **구현됨** SR:4724/4644/4696(호출 SR:8517), topo:1909-1910. 잔여 #12(plan:1081), 다중 diff pair Case B/C 미해결(history:2976-2980) |
+| A36 | "**Cc와 Rz는 보상망이 계산해서 확정해야지.**" | 2026-09-10 | history:2208, history:2210-2224 | G5(plan:1432) | **구현됨** topology_library.py:470-489(`Cc = sqrt(beta*tan(PM)*C_Ltot*Cgg2)`) |
+| A37 | passive connectivity 추가: CL1/CL2, **Cf1/Cf2(교차)**, Cs1/Cs2 | 2026-09-10 | history:2186-2204 "사용자 확정" | G1 | **구현됨** topo:73-131. 타 회로 passive 누락은 J9(plan:1460) |
+| A38 | M18b `budget_reference_device="M17"` 누락 보완(사용자 승인) | 2026-09-10 | history:2126-2129, history:3076 | G1 | **구현됨** topo:1172-1178. §15.4에서 budget_ref 유도 필드화·J8 대상(plan:1414, 1459) |
+| A39 | 기생 pole clamp는 **N을 박지 말고 유도**(문헌 조사 사용자 지시, "수치로만 적용하면 이 회로에 특화된 값") | 2026-09-10 | plan:564, plan:606-619, history:3073 | G5 | **구현됨** `_metric_parasitic_pm_deg`(SR:4329), `full_circuit_response_at_omega`(SR:4267), 제약 `>= PM_target_deg`(topo:2067-2070) |
+| A40 | **D1 노드전압이 DC 기준값(정본)** -- "D1은 DC기준값으로 해" | 2026-09-14 | plan:1012, plan:1017 | Phase 6b / G7 | **유효·미구현** |
+| A41 | spec 정본화 -- "이번 실수가 재발하지 않도록 방법을 강구해" (`canonical_spec`/`derived_spec(why 필수)`/출처 게이트) | 2026-09-10 | history:1932-2000, history:3075 | G0 / S0 지문 | **구현됨** run_harness.py:354, 370; SR:8151, 8172(호출 SR:8492). 변경 예정: 지문 7키→S0 전체(plan:937, 960), 불일치=노트→없음 처리(plan:1004) |
+| A42 | class-AB 배터리 기준: `V_bat = vdd − VGS(M15) − VGS(M16)` KVL을 gm_id 탐색 상한으로, 포화 하한은 `2/(gm/ID)` (사용자 선택 2건) | 2026-09-10 | history:2028-2045, history:3076 | G7 | **구현됨** `stack_kvl_vgs_limit`(SR:1835, 호출 SR:6716). M9a/M9b 역할 해석은 J3 공동분석(plan:1454) |
+| A43 | 기준점 복구 -- "이 설계에만 적용되는 것은 안 돼. 반드시 일반화된 솔루션을 코드화" | 2026-09-10 | history:2065-2067 | Phase 5 / G9 | **구현됨** `repair_infeasible_baseline`(SR:10959, 호출 SR:11245/11311). 결함 #4 부분문자열 탐지(plan:1000) |
+| A44 | "stage를 탐색할 때 역방향으로 탐색하지 않고 언제나 **input ports부터 output ports까지**" | 2026-09-10 | history:2934-2936 | G2 | **변경** -- `flow_dir` 단일 노드 속성 폐기 → S1v 여기 모드별 뷰 + 피드백 극성(plan:947, 962), DM 뷰 R2 규칙(plan:1398). 미구현 |
+| A45 | CircuitGraph를 다음 baseline으로(§11) | 2026-09-10 | history:2891-2892 | -- | **변경** -- §12 CSG가 §11 대체(plan:893), §15에서 "graph는 기반"(plan:1373) |
+| A46 | 계산 결과(노드전압·신호방향)를 **버리지 않고 재사용·점진 정제·글로벌 최적화** | 2026-09-14 | plan:888-891 | Phase 6 | **유효·미구현** |
+| A47 | 파일 분리(3단계 harness) + self-test를 `tests/`로 분리("표준 pytest 관례") | 2026-09-04 | history:1731-1732, history:1745-1746 | Phase 1/3 | **변경** -- 파일표 §13.4(plan:1095-1111), test §13.5(plan:1121-1162), D9 pytest(plan:1199). 미구현: conftest 없음, 인라인 self-test SR:12571 / stick_diagram.py:8991 |
+| A48 | `stick_diagram.py` self-test 이관도 범위에 포함 | 2026-09-04(v1.2) | history:1867-1869, history:3029 | Phase 1 T1(plan:1156) | **유효·미구현** stick_diagram.py:8991. "stick_diagram 소스 무변경"(history:1877-1879)은 구조 유도 함수 이관(plan:1108)으로 변경 |
+| A49 | "모든 함수를 전수로 훑어… 재사용 함수목록… 화일분리와 self-test 분리 계획도 반드시 명시" | 2026-09-14 | plan:1025-1027 | Phase 0~3 | **부분 구현** -- 레지스트리 문서(Phase 0, plan:1040)만 |
+| A50 | "코드를 작성하는 agent와 test를 작성하는 agent를 **반드시 분리**" ("가장 중요한 것") | 2026-09-14 | plan:1204-1207 | Phase 0.5 | **유효·미구현** -- `.claude/hooks/`·`tools/gates/`·`agents/gmid-*` 없음(ls) |
+| A51 | D2 순환 블록 허용오차는 LUT 격자·보간 오차에서 **계산** | 2026-09-14(기본안) | plan:1018 | Phase 6 G7 | **유효·미구현** |
+| A52 | D3 착수 순서 §13.6+§14.8 | 2026-09-14 | plan:1019 | 전체 | **변경** -- §15.8이 Phase 6·7을 6a~7c로 대체(plan:1466-1475) |
+| A53 | D4 전역 샘플 수는 wall-clock ≤ 5분 안에서 실측으로 계산(5분=B4 DoD) | 2026-09-14 | plan:1020, plan:349-351 | G9 | **유효·미구현** |
+| A54 | D5 `ports`는 Claude가 connectivity로 **제안 → 표로 확인 → 반영** | 2026-09-14 | plan:1021 | Phase 0 / 6a 착수 조건(plan:1470) | **유효·미구현** -- 파일럿은 존재(topo:159), folded·nmcnr 없음(plan:1408) |
+| A55 | D6 목적함수 전력 정의(`sum_current` vs `supply_current`) | 2026-09-14 | plan:1196 | Phase 4 / 7a | **착수 조건** |
+| A56 | D7 사장 코드 삭제/배선 목록 일괄 승인 | 2026-09-14 | plan:1197 | Phase 2 | **착수 조건** |
+| A57 | D8 구조 개념 정본(diode·미러 키·diffpair/tail) 공동분석 → J1~J9로 확장 | 2026-09-14 | plan:1198, plan:1462 | Phase 4 / 6a | **착수 조건** |
+| A58 | D9 test 프레임워크 pytest | 2026-09-04 확정 기록 | plan:1199 | Phase 1 | **유효·미구현** |
+| A59 | D10 순서 예외 없음(#3·#18도 Phase 4), 그 전 보고에 두 결함 명시 | 2026-09-14 | plan:1200, plan:1184-1186 | Phase 4 | **유효·미구현** |
+| A60 | D11 메인 세션 엔진·tests 편집 L1 금지 / D12 interface card+결과 검사 / D13 자체 AST 변이기 / D14 기준 약화 매 건 승인 | 2026-09-14 | plan:1356-1359 | Phase 0.5 | **유효·미구현** |
+| A61 | D15 "D15는 등록해" -- 프로젝트 `.claude/settings.json`에 hook 등록(스크립트 완성·거부 확인 후, `gmid-*` 경로에만) | 2026-09-14 | plan:1012, plan:1360, plan:1336 | Phase 0.5 | **유효·미구현** |
+| A62 | "gain budget first의 원래 계획이 **폐기된 것은 아니잖아?** graph를 이용해서 훨씬 더 잘 구현할 계획안" | 2026-09-14 | plan:1367-1375, context:14584-14585 | §15 전체 | **유효·미구현** |
+| A63 | "gain분해에 관해서 기존 설계를 구현했을 때 발생했던 문제들을 조사… 보완한 계획도 추가해서 최종안" | 2026-09-14 | plan:1369-1370 | §15.2/§15.5 | **유효·미구현**(계획 반영 plan:1386-1440) |
+| A64 | `gain_db` 목표 75.6 → **54dB**(실측 달성점 57.03dB − 3dB, 사용자 승인) | 2026-09-03(세션44) | topo:2029, context:13509 | G0 | **유효(원칙)** -- "마진 상수 없이" bisection 대체 가능 기록(plan:863) → 변경 후보 |
+| A65 | bkit 단계 준수: plan에는 기록만, 구현은 design 단계를 거친 뒤(사용자 지적) | 2026-09-10 | context:14514-14515, history:3088 | 전체 | **유효(원칙)** -- plan:1167 "design 문서를 거쳐 착수" |
+| A66 | two_stage `stage1_ref`/`stage1_out` 분리는 "여기서 멈춤, 별도 세션" | 세션41 | context:12420 | §10.15 선행(plan:865), 4회로 측정 선행(history:3004) | **유효·미구현**(이월) |
+| A67 | 이력 분리(본문 무변경 이동) -- "3번을 먼저하고 다시 제안해" | 2026-09-14 | history:3089 | 문서 | **구현됨** |
+| A68 | SLSQP(scipy) + multi-start 채택(사용자 승인) | 세션31 이전 | context:4931 | G6 외층 polish(plan:1433) | **변경** -- 시작점 전략을 아카이브·준난수 전역 샘플로 확장(plan:987-991) |
+| A69 | `vs` → `vsb` 개명 | 2026-09-08 | context:14061, context:13984-13987 | G1 | **구현됨** `validate_no_legacy_vs_key`(SR:5790) |
+| A70 | L 탐색 = **knee 창 + 경계 검사**(창 가장자리면 확장) | 2026-09-08(v4.7) | context:14058-14059("사용자 결정 사항"), history:3048 | G6 | **변경** -- 실제 L은 l_class theta 연속 탐색 + warm start 격자(A28/A31)로 구현. knee 창 전수 스캔 정책의 코드 존재는 미확인 |
+| A71 | A12 metric 이름-단위 불일치 해소(공유 엔진 변경, 승인 필요로 기록) | 2026-09-08 | plan:709, context:13958 | G0/G8 | **구현됨** `validate_metric_units`(SR:5813). 승인 원문 미확인, plan:709 "승인 필요" 표기는 stale |
+| A72 | B21(선언 gain 제약이 미러 18소자를 못 봄) 처리 방식 | 2026-09-09 결정 요청 | plan:738, plan:1442-1446 | G8 / Phase 7a | **착수 조건** -- §15.6 기본안(판정=전체회로 gain, 할당=부하 포함 블록 gain), M18a/M19/M18b 포함은 J6 공동분석 |
+| A73 | 새 metric 상한은 **4개 회로에서 먼저 재고 정한다**(값을 지어내지 않는다) | 2026-09-08~10 | plan:702, plan:723, plan:671 | G8 | **유효(원칙)** -- `kcl_residual`·`stack_headroom_slack`는 아직 제약 아님(topo:2033-2072) |
+| A74 | 파일럿 1개 먼저, 나머지 3개 토폴로지는 이후(§2.2) | 2026-09-04 | plan:17-18, plan:193-194 | -- | **미확인** -- 사용자 확정 원문을 찾지 못함. §4.1 DoD C7(plan:352-354)·§15.8 DoD 4회로(plan:1477)와 범위 충돌(plan:766) |
+
+**표 A 집계(74행)**: 구현됨 24 / 부분 구현 4 / 유효·미구현 23 / 유효(원칙) 9 / 변경 9 / 착수 조건 4 / 미확인 1.
+
+#### 표 B -- 작업 방식 원칙 (메모리·CLAUDE.md)
+
+| # | 원칙 | 원문 위치 | 계획서 반영 위치(§) |
+|---|---|---|---|
+| B01 | **만들면 반드시 배선**, 대체 불가하면 승인 요구 ("만드는 것을 안 쓰는 것은 죄다") | `~/.claude/CLAUDE.md` ★절대원칙★, 메모리 feedback_build_it_wire_it_or_ask.md | §3.2 P1-b 끝(plan:276-277), §3.3 표 주석(plan:313-314), §14.5 A7 배선 검사(plan:1304) -- **반영** |
+| B02 | 우회(skip/continue/예외 목록) 전 타당성 3문항, **광범위 except도 skip**, 게이트는 "거부한다"를 먼저 확인 | 메모리 feedback_no_skip_without_justification.md | §3.2 P1-b(plan:257-277), §14.5 A5/A6(plan:1302-1303), §14.6 거부 확인(plan:1309-1329), D14(plan:1359) -- **반영** |
+| B03 | **상수를 임의로 만들지 마라** -- 근거 선언값 하나만 남기고 식을 코드로, 결과는 캐시(유도를 주석에 적고 숫자를 박는 것은 해결 아님) | 메모리 feedback_never_invent_constants_derive_and_cache.md | §7.11(5)(plan:606-619), §12.8 D2(plan:1018), §13.3 #20(plan:1089), §14.5 A6 "근거 필드 없는 새 숫자 리터럴"(plan:1303) -- **반영** |
+| B04 | 논문 값 인용 금지, 사용자가 직접 지정한 값만 확정 | 메모리 feedback_no_paper_values_derive_rationally.md | §15.5 G0 "제약값 출처 필수(논문 출처 거부)"(plan:1427) -- **반영(한 줄뿐)** |
+| B05 | 해결책은 일반화 -- 회로/소자/theta 이름·매직넘버 금지, **4개 회로 전수 측정으로 무동작 증명** | 메모리 feedback_generalize_never_circuit_specific.md | §15.8 각 Phase DoD(plan:1477), §13.5 `regression/test_four_circuits.py`(plan:1145), §3.3 C7(plan:305) -- **반영** |
+| B06 | 회로 위상 **해석**은 항상 공동분석, 공유 엔진 변경은 논의·승인 후 | 메모리 feedback_act_decisively_within_analysis_authority.md | §13.8 D8(plan:1198), §15.7 J1~J9(plan:1448-1462), §13.6 "모든 단계는 승인 후"(plan:1167) -- **반영** |
+| B07 | connectivity는 사용자 영역, topology.json이 유일 소스, 테스트에 손타이핑 lookalike 데이터 금지 | 메모리 feedback_topology_json_single_source.md, feedback_act_decisively_within_analysis_authority.md | §12.8 D5 근거(plan:1021)에 "topology.json 유일 소스"만 -- **부분 반영**(§13.5 conftest(plan:1131)에 lookalike 픽스처 금지 명시 없음) |
+| B08 | connectivity 정정은 쌓았다가 "한꺼번에 반영" 지시 때 일괄 반영 + 표 재출력 | 메모리 feedback_batch_topology_corrections.md | §12.8 D5 근거(plan:1021) -- **부분 반영** |
+| B09 | 회로도 이미지 판독은 부정확 -- net 기준 표(`topology_to_markdown.py`)로 재검증 | 메모리 feedback_schematic_image_reading_unreliable.md | **미반영**(plan grep "net 기준" 0건). §15.7 J9 ports/passive 추가 시 적용 대상 |
+| B10 | iteration 안 계산은 쓰는 순간 캐시, 루프 불변식은 밖으로, 메모이제이션 상한 필수, cProfile+중복인자 계측으로 근거 | 메모리 feedback_always_check_recompute_efficiency.md | §3.2 P2(plan:279-283), §12.5.2 C-d(plan:977), §12.5.3(plan:979-983), §14.5 A6 "상한 없는 캐시"(plan:1303), §13.3 #13(plan:1082) -- **반영**(계측 근거 요구는 §12.1 검토 방법(plan:901)에만) |
+| B11 | 조사 스크립트는 **결과를 파일에 직접 쓰고 케이스마다 append** | 메모리 feedback_scripts_write_results_to_file.md | **미반영**(plan grep "result.txt"/"파일에 쓴" 0건). §13.5 T6 probe 정리(plan:1161)에 넣을 자리 |
+| B12 | 장시간 실행은 `run_in_background:true`(수동 &/nohup 금지) | 메모리 feedback_background_process_tracking.md | **미반영**(plan grep 0건) |
+| B13 | **코드 작성자 ≠ 판정 기준·판정·보고 수치 소유자**, 같은 커밋에서 코드와 기준 동시 변경 금지 | 메모리 feedback_separate_author_and_verifier.md | §14 전체(plan:1202-1363) -- **반영** |
+| B14 | 만들기 전 **재사용 레지스트리 개념별 정본표** 확인, 호출부도 grep, 대체하면 같은 커밋에서 옛 함수 삭제 | 메모리 feedback_check_function_registry_before_build.md | §13.2 방지 규칙(plan:1067-1072) -- **반영** |
+| B15 | 만들기 전 기록 3곳(계획 §7/§10, context.md, `def` grep) 확인 + **context 70%면 무조건 기록** | 메모리 feedback_record_before_compact_check_before_build.md | §13.2 원인1(plan:1062)에 3곳만 -- **부분 반영**(70% 기록 규칙 미반영) |
+| B16 | 결정은 **기존 원칙으로 기본안 확정**, 사용자 몫(spec·회로 해석·승인 사안)만 해당 Phase 착수 조건 | 메모리 feedback_default_from_principles_before_asking.md | §12.8 서두(plan:1012-1013), §14.9 끝(plan:1362) -- **반영** |
+| B17 | 상상으로 채우지 말고 원문·함수 실제 출력 확인 후 진행 | 메모리 feedback_no_assumption_without_evidence.md | §14.3 oracle 4종(plan:1266-1271), §12.1 "근거는 파일:줄 또는 실측"(plan:897) -- **부분 반영**(일반 원칙 절 없음) |
+| B18 | L/gm_id 권위 출처 4종(compensation/replica/metric_stage_budget/gm_target_convention)을 전부 확인하고 자동채움 | 메모리 project_sizing_authoritative_sources.md | **미반영**(plan grep `_AUTHORITATIVE` 0건). §15.4 §7.1 유도/선언 분리(plan:1414)·§12.5.2 C-a writer 권한표(plan:974)가 흡수할 자리 |
+| B19 | 사용자에게 보이는 텍스트는 한글 | 메모리 feedback_korean_final_report.md | 해당 없음(계획서 규칙 아님) |
+| B20 | bkit 단계 준수: plan 기록 → design → do | context:14514-14515 | §13.6 "design 문서를 거쳐 착수"(plan:1167), §14.7 "승인 후 착수"(plan:1331) -- **반영** |
+| B21 | 패키지 최소 릴리스 나이 정책 유지(전역 설정 낮추기 금지) | `~/.claude/CLAUDE.md` | §14.9 D13 근거 "최소 릴리스 나이 정책과 무관"(plan:1358) -- **반영(간접)** |
+
+**표 B 미반영 원칙**: B09(회로도 net 표 재검증), B11(결과를 파일에), B12(run_in_background), B18(권위 출처 4종). **부분 반영**: B07, B08, B15(70% 기록), B17.
+
+#### 부록 -- 재작성 때 함께 고칠 stale 표기 (현행 코드·후속 기록과 어긋남)
+
+| 위치 | 현재 표기 | 실제 |
+|---|---|---|
+| plan:709 (A12) | "공유 엔진 동작 변경이라 사용자 승인 필요" | `validate_metric_units`(SR:5813) 구현됨(context:13958) |
+| plan:724 (B9) | "★ 수정 승인 대기" | B25와 함께 구현(`reconcile_vsb_from_nodes` SR:3976, 호출 SR:9207; history:3069) |
+| plan:671 (§7.11) | "constraint로는 아직 안 건다" | topo:2067-2070에 제약 선언 |
+| history:2356 (§10.9) | 층0 `audit_l_sharing_consistency` "파이프라인에 안 걸려 있다" | SR:9454에서 호출(배선됨) |
+| plan:730 (B15) / §7.7 R3 | 앵커 7개 | 12개(history:3059) |
+| history:3004 / plan:1004 | 지문 불일치는 노트만(의도적) | C-d 도입 시 픽스처/정본 구분 방법 결정 필요(plan:1004) -- 미결 |
+
+---
+
 ## 4. Success Criteria
 
-### 4.1 Definition of Done
+### 4.1 Phase별 Definition of Done
 
-- [ ] `<name>.sizing_spec.json` 스키마가 확정되고 `_TEMPLATE.sizing_spec.json` 스캐폴드로
-      문서화됨
-- [ ] `current_reuse_telescopic_ota`가 새 스키마 + 새 엔진으로 재사이징되어 instance.json이
-      갱신됨
-- [ ] **★ (최우선, §3.1 요구사항 6) `verify_node_voltage_consistency(ctx)`가 51소자 전체에서
-      Violation 0건** — diode-connected 16개 소자의 자기일관 헤드룸(오차→0)은 이 검증의
-      부분집합으로 포함되지만, 그 외 소자의 게이트-내부net VGS 불일치/노드 상호모순도 전부
-      확인됨
-- [ ] 기존 constraints(gain≥54dB, cmrr/psrr/mismatch/classab) 전부 재확인
-- [ ] `cross_check_with_spice()`(sky130 SPICE `.op`)이 rail-lock 없이 수렴하고
-      `verify_node_voltage_consistency()`의 LUT 기반 예측과 일치(원래 세션 목표였던 트랜지언트
-      검증 재개 가능)
-- [ ] **★ (v4.5) §3.3 C1~C10 표의 "강제 테스트" 10개가 전부 PASS** — 각 행이 지정한 테스트가
-      `assets/tests/`에 실재하고 통과해야 한다. 지금 돌리면 **C1/C4/C5는 FAIL**이고 C2/C6/C8/C10은
-      미배선인데, 그게 정상이다 — 이 표는 현재 상태를 정직하게 적고 완료 조건을 거는 장치다.
-      특히 다음 셋은 "그 실패를 직접 재현"하는 형태라 통과하면 방지가 구조적으로 증명된다:
-      `test_role_label_removal_invariance`(role 라벨 전부 제거해도 결과 동일),
-      `test_order_shuffle_invariance`(처리 순서 셔플해도 결과 동일),
-      `test_cache_key_covers_mutable_state`(`ctx.sized`만 바꿔도 캐시가 옛 값을 안 준다)
-- [ ] **★ (v4.6, B4) 파일럿 1회 전체 실행 wall-clock ≤ 5분** — 기본 L 정책(bounds 내 LUT 앵커
-      전수, 4³=64 combo) 기준 실측 예상 2.9분. 초과하면 곱셈 구조에 예상 못 한 항이 들어온
-      것이므로 그 자리를 찾아 보고한다(예: `presolve_warm_start()` 16.5s가 루프 안으로 들어감)
-- [ ] **★ (v3.0, C7) 파일럿 외 나머지 3개 토폴로지(folded_cascode/nmcnr_amplifier/
-      two_stage_ota)도 새 엔진으로 실제 실행** — self-test 통과만으로는 부족(사고17: 다른 회로를
-      돌려야 원래 있던 선언 gap이 드러난다)
+모든 Phase에 공통: **4개 회로 측정**(필요 없는 회로에서 무동작 증명), **test-author의 거부 케이스**, **auditor 판정 PASS**(§14.5 A1~A10), 역할 분리 이력(§14.4 L4 merge gate 통과), 평가 오버헤드 실측. 판정 수치는 auditor 판정 기록에서만 인용한다.
+
+| Phase | 완료 조건 |
+|---|---|
+| **0.5** | §14.6 공격 시나리오 10개 **전부 거부 로그** + RTL agent 무동작 케이스 통과 + 과거 사례 7건(면적식 α 상쇄, Test 16 박제, caa970b, 3250baa, 1b9b4ea, 2e1944a, 76.48) **전부 적발**. hook 입력 필드(`agent_type` 등) 실측 기록. `agent-quality/check_agents.py` PASS |
+| **1** | T0 Test 16 원인 기록·해소 / T1 이관본 stdout이 기준선과 바이트 동일(`PYTHONHASHSEED` 1~5) / T2 `pytest` 통과 + 무작위 순서 통과 / T3 print·PASS 문자열 판정 0 / 소스 파일에 `if __name__ == "__main__"` self-test 0 |
+| **2** | 승인된 D 목록 처리 + 동작 보존 DUP 통합 후 전 test 통과, 같은 커밋에서 레지스트리 갱신·옛 함수 삭제 |
+| **3** | 10모듈 존재, **import 순환 0**(검사 스크립트), 모듈당 이동 커밋마다 전 test 통과, `sizing_recipe.py` 삭제, 레지스트리 목적지 갱신 |
+| **4** | 결함 #1~21마다 **FAIL-first test**(base에서 red) -> 수정 후 green, 4회로 재측정 |
+| **5** | SLSQP 동일 점 재평가 0(실패 캐시), θ* 기록이 다음 실행 시작점으로 쓰임을 실측, 탐색 시간 전/후 |
+| **6a** | 4회로 stage 분할이 ratified 선언과 소자 단위 100%, 매 실행 shadow 대조, J1~J9 결론 기록 |
+| **6b** | 봉인 게이트 위반 0(4회로), **순서 섞기 불변**(C2), vsb/W 버전 혼재 0, 노드 충돌은 명시적 실패 |
+| **6c** | 결합 블록·결합변수 목록(4회로), DOF 진단이 사고19 픽스처를 잡음(C6), 달성 불가 픽스처에서 **탐색 전 정지** |
+| **7a** | gain 제약이 전체회로 MNA로 판정, B21 재현 픽스처에서 **감도 게이트 FAIL**, 분해-전체 괴리 매 평가 기록 |
+| **7b** | `gain_budget_db`가 출력, 3층 할당 결과를 **다른 모델** 전수탐색과 대조, `sizing_spec.json` 유도 필드 `status`/증거, 파일럿 wall-clock ≤ 5분(B4) |
+| **7c** | SPICE `.op`+AC gain이 **사전 계산한 허용오차**(A9) 안, S3 아카이브 재사용 실측, §3.3 **C1~C10 강제 test 전원 PASS** |
 
 ### 4.2 Quality Criteria
 
-- 새 함수 추가로 인한 기존 self-test 회귀 0건
-- diode-connected 자기일관 해석기가 20회 이내 고정점 반복으로 수렴(발산/진동 없음)
+- 모든 병합에서 auditor A1~A10 PASS, 기준 약화는 사용자 승인 기록 동반(§14.3)
+- 새 함수는 같은 커밋에 test 함수(인라인 self-test 금지), 레지스트리 갱신
+- 평가 1회 오버헤드는 Phase 전후로 실측해 보고(§12, 재계산 비효율 원칙)
 
 ---
 
@@ -364,11 +404,15 @@ v2.x까지 걸어두었던 "기존 재사용 계층의 함수 시그니처는 �
 
 | Risk | Mitigation |
 |------|------------|
-| stage 내부 input+cascode 동시결정이 수렴 안 하거나 비현실적 W를 낼 위험 | §7.2 알고리즘의 1~4단계는 각각 기존에 검증된 단일 함수 호출(`search_gm_id_for_role(role="gain")`, LUT 역보간, `size_transistor()`)의 조합이라 개별 단계는 이미 신뢰 가능 — 조합 후 W_bounds 위반 시 기존 `InfeasibleSizingError` 관례를 그대로 따른다 |
-| "gain이 주도"로 뒤집으면서 GBW/PM이 실제로 안 맞는 회로가 나올 위험 | `solve_compensation_for_gbw_pm()`은 검증(§4.1 DoD)에 GBW/PM 재확인을 포함해야 함 — 이번 계획 문서에는 명시했으나 구현 단계에서 실제 검증 스텝으로 반드시 실행 |
-| 사고4 재발(배분 자체를 결정론화하려는 유혹) | §3.1 요구사항 5번으로 명시적 경계를 문서에 고정 — 구현 시 이 경계를 벗어나는 변경은 별도 승인 필요 |
-| 4개 토폴로지 동시 이관 시 범위 폭발 | §2.2 Out of Scope로 파일럿 1개만 우선 명시 |
-| §8.4 사이징↔레이아웃 피드백 루프가 반복마다 소자를 재배치하며 조용히 소자를 삭제할 위험(2026-09-04 §1.4 추가 — `known-incidents.md` 사고16: `_layout_result_to_rows()`의 행 이름 카운터가 호출 전역에서 유일하지 않아 무관한 반복끼리 이름이 충돌 → `dict.update()`가 이전 결과를 조용히 덮어써 51소자 중 3개가 실제로 사라진 전례) | §8.4의 반복 피드백 구현 시 행/그룹 이름 생성 카운터가 **전체 파이프라인 호출에 걸쳐 유일**한지(지역 카운터가 아닌지) 명시적으로 검증할 것 — 사고16이 신설한 "repair 이후 재검증 게이트"(`check_stick_diagram_coverage()`) 패턴을 §8.4의 5~6단계(수렴/실패 판정)에도 동일하게 적용해, 반복마다 넷리스트 소자 수가 그대로인지 재확인하는 스텝을 넣는다 |
+| stage 분할의 회로 해석 오판(replica bias, class-AB, CMFB, diode 게이트 경계) | 6a는 shadow 대조만(동작 무변경), 선언과 다르면 `review_needed` 정지, J1~J9 공동분석으로 ratify(§15.7) |
+| 3층 gain 할당의 비수렴·국소해 | 수렴 판정·반복 상한·명시적 실패, S3 전역 샘플로 다른 분지 시작, 할당 결과를 다른 모델 전수탐색과 대조(§15.5 G6·G9) |
+| 노드전압 정본(D1) 전환이 착지점을 바꿈 | 6b 전 shadow 동등 단언, 4회로 재측정, 바뀐 값은 봉인 게이트 증거와 함께 기록 |
+| 역할 분리 hook 오탐이 RTL agent·일반 작업을 막음 | 판정을 `gmid-*` agent와 analog-gmid-design 경로로 한정, RTL 무동작 공격 시나리오, 등록은 거부 확인 후(§14.7) |
+| 분리로 못 막는 은폐(자기참조 oracle, 거짓 기준값, "참고" 격하, 폴백) | oracle 4종 제한, 뮤테이션·자기참조 lint, 약화 분류기, 폴백 발동 0, 물리 불변식 게이트(§14.5 A3~A9) |
+| 파일 이동 중 회귀·충돌 | test 분리 먼저(Phase 1), 이동 전용 커밋, 동작 변경과 섞지 않음(§13.6) |
+| 사고4 재발 -- 배분값·목표값을 지어냄 | `gain_budget_db`는 출력, G0 제약값 출처 필수(논문 출처 거부)(§15.5) |
+| 전체회로 MNA를 매 평가 여러 번 -- 5분 초과 | `build_ac_network` 1회 조립·S2 블록 memo, wall-clock DoD(§4.1 7b) |
+| 사고16 -- 사이징↔레이아웃 반복 중 소자 소실 | `check_stick_diagram_coverage()` 재검증 게이트를 수렴 루프 매 반복에 유지, 이름 생성 전역 유일성(C3) |
 
 ---
 
@@ -377,6 +421,69 @@ v2.x까지 걸어두었던 "기존 재사용 계층의 함수 시그니처는 �
 > (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
 
 ## 7. Architecture Considerations
+
+### 7.0 남은 원칙 절의 현행 유효성 (★ v4.49 검사)
+
+> §7.4/§7.7/§7.10/§7.11 본문은 원문 그대로 둔다. **이 표의 판정이 본문보다 우선한다** -- '대체됨'은 대체한 절을, '부분 수정 필요'는 적힌 수정 방향을 따른다. 원자료 `rewrite_X_decisions.md` 표 C.
+
+판정: **여전히 유효** / **부분 수정 필요(어떻게)** / **대체됨**.
+
+**§7.4와 v4.0 인과 전환의 관계**: §7.4 제목은 "사용자 승인 완료, 이번 세션 AskUserQuestion"(plan:393, 2026-09-04)이지만, 원래 원칙2 "gain이 주도"는 **이미 취소선 처리되고 v4.0 개정문(보상 먼저)으로 제자리 교체**돼 있다(plan:397-419). 따라서 "gain 주도 vs 보상 먼저"의 직접 충돌은 남아 있지 않다. 남은 충돌은 개정문 안의 **"gm_id가 유일한 자유도"** 표현, 폐기된 KKT 식을 논거로 쓴 부분, 원칙3의 해법 서술이다(아래).
+
+| 절:줄 | 문장 요지 | 충돌 상대(근거) | 판정 |
+|---|---|---|---|
+| §7.4:393 | 제목 "사용자 승인 완료, 이번 세션 AskUserQuestion" | 원칙2·3이 v4.0/v3.1에서 개정됨(plan:397-398, 424) -- "이번 세션"이 어느 날짜인지 불명 | **부분 수정** -- "2026-09-04 AskUserQuestion, 원칙2는 2026-09-07 v4.0·원칙3은 v3.1에서 개정"으로 날짜 명시 |
+| §7.4:395-396 | 원칙1: **stage 안** input+cascode의 L/gm_id를 gain 목표에서 동시 결정 | §15.4 §7.2 행: 캐스코드 gm/gds 최대화→이분 역산 폐기, stage gain = gm_in/G_out, G_out은 출력노드 소자 전부(plan:1416). §15.4 §7.9 행: stage 경계를 넘는 결합 K1~K6 때문에 DP 단독 불성립(plan:1421). 공통 L은 L 동치류 theta·tail이 주인(A27/A28) | **부분 수정** -- "stage 안 input+cascode" → "**결합 블록**(출력노드 부하·L 동치류·공유 VGS 포함) 안에서 gm_id×L을 함께 결정, 블록 간 결합변수 y는 중층"으로 |
+| §7.4:397-398 | 원칙2 취소선 + "v4.0에서 사용자 확정으로 개정: 인과 방향은 반대" | §15.5 G5 "v4.0 인과 유지"(plan:1432) | **여전히 유효** |
+| §7.4:400-408 | 뒤집힌 이유: `min Σ gm_i/gm_id_i`와 KKT `gm_i/gm_id_i²`는 gm_i가 상수여야 성립 | KKT 한계비 탐욕은 v4.2에서 폐기(history:3043), §15.4 "KKT 탐욕 폐기"(plan:1421) | **부분 수정** -- 논거를 "전력 최소화가 well-posed하려면 gm_i가 보상으로 고정돼야 한다"로 일반화하고 KKT 식은 이력 참조로 |
+| §7.4:406-408 | Miller OTA에서 (gm_1, gm_2, Cc)는 동시에 묶이는 3-tuple, 문헌 §6.4 순서와 일치 | Cc 유도식 구현(topology_library.py:470-489)이 같은 결론 | **여전히 유효** |
+| §7.4:414 | compensation이 (Cc, Rz, gm_1..gm_N)을 한 번에 결정 | A36 "Cc와 Rz는 보상망이 계산해서 확정" -- 일치 | **여전히 유효** |
+| §7.4:415 | "자유 축: gm_id_i **[★ 유일한 설계 자유도]**" | L도 자유 축(G6 내층 DP gm_id×L, plan:1433; l_class theta A28), 자유 노드전압 배분(G7 writer T4, plan:1417), 공유 VGS 결합변수 y(plan:1430) | **부분 수정** -- "유일한" 삭제, "보상 확정 후 자유 축 = gm_id_i, L(동치류 단위), 자유 노드전압; 결합변수 y는 블록 간"으로 |
+| §7.4:416 | 파생: ID_i = gm_i/gm_id_i, W_i = L_i·ID_i/IDu_i, k_i = ID_i/ID_ref | 파일럿 Iref 1.2µA 선언 시 `value_amp` 규약상 ID_ref 고정(A15) | **부분 수정** -- `value_amp`가 선언되면 ID_ref는 파생이 아니라 고정 입력임을 한 줄 추가 |
+| §7.4:417 | 기생 C_1, C_2 → Cc 재계산 → gm_i 갱신 [수렴 루프] | §12.5.2 C-c "순환은 SCC 블록의 명시적 고정점, 수렴 판정·반복 상한·비수렴 거부"(plan:976), §15.4 "기생 반복 별도 축 폐기"(plan:1421) | **부분 수정** -- "수렴 루프"를 "C-c 순환 블록(허용오차 D2 계산값)"으로 |
+| §7.4:418 | gain은 스펙이 아니라 부등식 제약이자 산출물 | G8 gain 제약 판정은 전체회로 MNA 1종(plan:1435) | **여전히 유효** -- 판정 metric이 전체회로 gain임을 덧붙이면 B21과 정합 |
+| §7.4:421-423 | "gain-budget-first" = 단별 gain 예산을 엔진이 유도·산출 | §15 서두 "gain-budget-first가 목표, graph는 기반"(plan:1372-1375) | **여전히 유효** |
+| §7.4:424-426 | 원칙3: 배분도 엔진이 유도, 총 gain 목표만 스펙 | G6 "`gain_budget_db`는 출력"(plan:1433) | **여전히 유효** |
+| §7.4:426-427 | "§7.9 Phase 2의 `A_i,max` 실측 + **root current 1-D 해찾기** 결과로" | v3.2 KKT 재정식화(history:3038) → v4.2 분리형 DP(history:3043) → §15 3층 할당(plan:1433) | **대체됨**(해법 서술) -- "G4 달성가능성 표 + G6 3층 할당"으로 교체 |
+| §7.4:427-428 | 사고4 본질 유지, 특정 배분 강제는 `gain_budget_db_override`로만 | §15.4 §7.1 사람 선언 필드 목록(plan:1414)에 override 없음 | **부분 수정** -- override를 사람 선언 필드로 존치할지 명시(G0 출처 필수 규칙 적용) |
+| §7.7:440 | "§7.6이 L을 새 탐색 차원으로 열었으므로" | §7.6 L_combo 전수 스캔은 미구현(plan:141 미체크), 실제 L 자유도는 l_class theta + SLSQP(A28, A31) | **부분 수정** -- 참조를 "L 동치류 theta(G1) + G6 할당"으로 |
+| §7.7:445 R1 | 누가 바꿀 수 있나 = §13.3의 **5개 구조 신호**로 판정 | 구현은 `l_sharing_classes`(진짜 미러=kind/gate/source + same_as + matching_pairs, history:2276-2282, SR:2385), §15.5 G1 "L 동치류"(plan:1428). 5신호 전용은 G6에서 철회 권장(plan:756) | **대체됨** -- "S1 L 동치류 멤버는 공통 L, 동치류 주인은 gain stage tail(A27), cross-kind VGS 매칭은 L 공유 안 함(history:2284-2286)"으로 |
+| §7.7:446 R2 | 매칭 그룹은 전원 동시에 | `matching_pairs`가 동치류 edge(history:2282) | **여전히 유효** |
+| §7.7:447 R3 | LUT 격자 밖 금지 -- "L 앵커 **전체 7개**, bounds 안 4개" | B15 ③ LUT 앵커 7→**12개**(plan:730, history:3059), 정본 spec `L_candidates` 41점(history:1941) | **부분 수정** -- 외삽 금지는 유지, 앵커 수를 12개로 갱신하고 정본 spec 격자와 LUT 앵커를 구분 |
+| §7.7:448 R4 | L↑가 항상 이득이 아니다 -- 전수 스캔 | G4 "LUT 격자 전수 -- 비단조 무관"(plan:1431) | **여전히 유효** |
+| §7.7:449 R4b | 이득 부족 시 L보다 **VDS를 먼저**, §7.9 inner 루프 | D1 노드전압 정본에서 VDS는 노드전압 차이로 유도(plan:1017), 배분 가능한 것은 T4 자유 노드뿐(plan:1417). diode·미러 공유 VGS·적층 vsb 노드는 자유롭지 않음(A20~A22). §7.9 중첩 루프는 §15.4에서 변형(plan:1421) | **부분 수정** -- "VDS 먼저"를 "G7 T4 자유 노드전압 재배분 먼저, 구조 고정 노드는 제외"로 좁히고 G6/G7 어느 층에서 쓰는지 명시 |
+| §7.7:450-451 R5/R6 | L 변경 시 행 폭·n_fingers 재판정(`stick_diagram.py:6400/6421`) | 줄 번호 현행 여부 미확인 | **여전히 유효**(줄 번호는 재확인 필요) |
+| §7.7:452 R7 | 오일러 패스는 L 무관, 같은 행 안 l 상이 허용·finger_w 동일 | 충돌 근거 없음 | **여전히 유효** |
+| §7.7:453 R8 | L 변경은 §8.4 수렴 루프 **안에서만**, 매 반복 커버리지 재확인 | §8.4는 §13.4 #8 `sizing_layout_convergence.py`로 대체(plan:1109). 현 엔진은 SLSQP 수렴 후 레이아웃이 실패를 잡음(history:2487-2496) = 루프 밖 | **부분 수정** -- 참조를 §13.4 #8로, "현 구현은 루프 밖(미충족)"을 명시 |
+| §7.7:455-462 | branch(전기)와 row(물리) 구분, M15 L=0.150µm / M16 L=0.830µm 실측 | 실측값은 2026-09-04 시점, 이후 L 유도 방식 변경(A27~A30) | **부분 수정** -- 실측값에 날짜 표기(원칙은 유효) |
+| §7.10:476-480 | 현재 엔진은 `_L_ROLE_MULTIPLIERS` 고정배수만, `select_L_by_role()`이 cascode/signal 거부 | 상수 삭제(A30, SR 정의 0), `select_L_by_role` 삭제·가드는 `derive_role_L`로 이관(history:2588) | **대체됨** -- "왜 필요한가"를 이력 서술로 격하 |
+| §7.10:482-495 | 측정1, "**fT가 L 상한을 정하는 진짜 제약**" | §7.11이 `fT ≥ N·GBW`를 노드 pole/PM 제약으로 대체(plan:618-619), 제약 `parasitic_pm_deg ≥ PM_target_deg`(topo:2067-2070) | **부분 수정** -- "L 상한 = `parasitic_pm_deg ≥ PM_target_deg`(§7.11)"로 |
+| §7.10:506-508 | "kind와 gm_id를 바꿔도 knee는 **항상** `L ≈ 2~3 × L_min`", mirror 2.5× 사후 검증, 주석을 실측으로 대체할 것 | 구현 실측: nmos 중앙 **1.63×**, pmos **2.27×**, gm_id별 1.63~17.67×로 민감(history:2318-2327). 상수는 삭제됨(A30) | **부분 수정** -- "항상 2~3×" 삭제, "kind별 중앙값(격자 전체 중앙값), vds 무관·gm_id 민감"으로. 주석 대체 지시는 대체됨 |
+| §7.10:515 | `L <= L_max(fT)`: `fT(L) >= N×GBW` (N~5~10) | §7.11(3)·(6): N은 상수가 아니라 α·tan(PM), 최종 구현은 PM 직접 계산(plan:584-595, 633-640) | **대체됨** |
+| §7.10:516 | `L >= L_min(match)`: σ_VT ≤ 목표 | bounds 하한 = `mismatch_sigma_mV ≤ 선언값`(history:2355)인데 그 값 5.0이 근거 없음(A33) | **부분 수정** -- 하한이 근거 없는 임계값에 묶여 있음을 명시(A33/A34 bisection과 연결) |
+| §7.10:518-523 | role별 방향 편향: cascode knee 이상 / mirror knee+mismatch / 속도 임계 knee 아래 / **tail·load: CMRR/PSRR 만족 최소 L** | `_L_ROLE_TARGETS` = mirror→knee, bias_replica→창 하한, cascode/signal→거부(history:2477-2482, 2588). **tail은 L의 주인이고 공유 theta가 모든 선언 제약을 동시 만족**(A27/A28, history:2379-2381) | **부분 수정** -- 편향 표를 `_L_ROLE_TARGETS` + l_class(tail 주인) 규칙으로 교체. "tail = CMRR/PSRR 최소 L"은 A27과 충돌하므로 삭제 |
+| §7.10:525-529 | 시작점: §7.6 L_combo "면적 오름차순 첫 feasible", knee에서 시작 | L_combo 미구현(plan:141), warm start는 **선언 제약 최소 여유 최대화**(내부점)로 x0 선택(history:2621) | **부분 수정** -- "knee에서 출발(derive_role_L), 탐색 x0는 내부점 점수"로 |
+| §7.10:531-533 | R4b와 결합: VDS 재배분(inner) → L(mid) | 위 §7.7 R4b와 같은 충돌 | **부분 수정**(R4b와 함께) |
+| §7.10:535-538 | 면적이 L에 비단조 → knee도 격자 전수 | `measure_L_knee`가 Δ(W·L)≤0 구간 건너뜀(history:2314) | **여전히 유효** |
+| §7.10:540-542 | 신규 `measure_L_knee`, `L_bounds_from_ft_and_matching`, `L_candidates_product()`가 호출 | `measure_L_knee` 구현(SR:2305). 나머지 두 함수 def 0(grep) -- 역할은 §7.11 제약·`feasible_L_window`(SR:2694)가 대신 | **부분 수정** -- 실제 구현 함수명으로 교체, 미구현 둘은 삭제 또는 G4에 흡수 |
+| §7.10:545-549 | 상수→`measure_L_knee()` 대체로 `select_L_by_role()`의 cascode/signal 거부 제약도 "함께 해소" | 가드는 해소가 아니라 `derive_role_L`로 **이관·유지**(history:2588). B10 "사고4 경계는 명시적 승인 필요"(plan:725) | **부분 수정** -- "해소" → "가드 유지(사고4 경계)"로 |
+| §7.10:550-552 | `search_gm_id_and_L_for_role()`로 L축 내부화, `_idu_scan` 공유 | def 0(grep). §15 G6 내층 블록 DP(gm_id×L)가 같은 목적 | **부분 수정** -- G6 블록 DP로 재명세 |
+| §7.11:558-562 | "엔진에 이 검사가 없다(`fT()` 호출부 0개)" | 구현 완료(§7.11(6), SR:4329) | **대체됨** |
+| §7.11:564-571 | 문헌 조사 표 | 충돌 없음 | **여전히 유효**(근거 기록) |
+| §7.11:575-582 | `PM = tan⁻¹(ω_p2/ω_c)`는 "이 토폴로지의 정의식", ω_c=2.3e8 rad/s, f_c=36.6MHz | L2 주파수응답 `PM = 180 − 누적 지연`이 정본이고 atan 식은 pole 하나 특수케이스(history:2163-2168). ω_c는 loop-gain UGB, 실측 w_c 30.50MHz(history:2175-2182) -- 36.6MHz와의 차이 원인 미확인 | **부분 수정** -- "정의식"을 "특수케이스"로, f_c 수치 재확인 |
+| §7.11:584-595 | N = α × tan(PM_target), §7.10의 5~10은 α∈[2,3.6] | 충돌 없음 | **여전히 유효** |
+| §7.11:599-604 | tail 최소 fT/f_c: knee **L=0.375µm**에서 ~28 | 0.375µm는 옛 `mirror 2.5×` 상수값, 실측 knee는 0.245/0.340µm(history:2339) | **부분 수정** -- 측정 시점·L 기준 표기 |
+| §7.11:606-619 | 숫자를 박지 말고 유도 경로를 배선 | 메모리 B03과 일치 | **여전히 유효** |
+| §7.11:625-626 | L2 = "기존 51노드 MNA에서 **실제 pole 추출(고유값)**" | 고유값 방식은 bias 모드가 섞여 틀림 → `(G+jωC)v=b` 직접 풀기로 구현(history:2156-2170, SR:4267) | **대체됨** |
+| §7.11:628-629 | clamp를 숨은 상수가 아니라 metric으로 노출 | 구현(SR:4329) | **여전히 유효** |
+| §7.11:633-640 | 하한: `PM_parasitic = 90 − Σ atan(w_c/w_pole)` (L1) | L2가 L1을 특수케이스로 포함, 현행 metric은 L2(history:2165-2168, 2243-2250) | **부분 수정** -- L1 식은 근사·이력, 정본은 L2 |
+| §7.11:642-648 | 신설 `signal_path_nodes`, `node_pole_estimate`(L1 구성요소) | 엔진 호출부 0개(plan:944; SR에서 정의 4043/4080 외 docstring·주석만) | **부분 수정** -- 사장 함수로 D7 삭제/배선 목록에 넣음 |
+| §7.11:652-655 | 전 노드 합산은 틀림 → **어느 경로의 PM인지 선언**에 있어야 | L2에서는 신호경로 제한 불필요(history:2167-2168). 단 excite/sense 모드 선언은 S1v에 존속(plan:962) | **부분 수정** -- "L1 한정" 명시 |
+| §7.11:656-660 | LUT에 Cdb/Csb 없음 → 고임피던스 노드 `undetermined` 명시 실패 | LUT 접합용량 추가는 여전히 미완(context:14327) | **여전히 유효**(L1 한정 표기) |
+| §7.11:662-667 | 파일럿 실측 `PM_parasitic = −8.9°` | 비정본 spec 값(history:1959), 정본에서 +33.88°(v4.35) → 71.87°(v4.36, history:2250) | **대체됨**(실측값) |
+| §7.11:669-671 | "**constraint로는 아직 안 건다** -- 4개 회로에서 먼저 재고 상한" | v4.36에서 `parasitic_pm_deg >= PM_target_deg` 제약으로 걸림(topo:2067-2070, history:2245). folded_cascode는 `omega_c` 미노출로 측정 불가(context:14324) -- 4회로 선측정(A73) 미충족 상태 | **대체됨** -- 현행 제약 상태 + 4회로 측정 미완을 함께 기록 |
+
+**과제3 충돌 요약(50행)**: 대체됨 8 / 부분 수정 필요 26 / 여전히 유효 16.
 
 ### 7.1 새 JSON 스키마 (`<name>.sizing_spec.json`) → 이력 문서
 
@@ -678,133 +785,107 @@ metric 어느 것도 이걸 못 봤다. **constraint로는 아직 안 건다** �
 
 > (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
 
-## 10. 독립 검토에서 나온 미해결 항목 (★ 신설 v4.0, 2026-09-07)
+## 10. 열린 이슈 (★ v4.49 재판정 -- 코드 대조)
 
-계획 v3.4를 **4개 관점의 독립 검토자**가 병렬로 심사했다 — (A) 회로 물리·방법론 타당성,
-(B) 구현 가능성·성능·코드 대조, (C) 문서 내부 정합성, (D) 임의 토폴로지 일반성. 각 검토자는
-서로의 결과를 보지 않았고, 지적은 문서 원문·실제 코드와 대조해 검증한 뒤에만 아래에 남긴다.
+> 2026-09-07 독립 검토(A 물리·수식 / B 구현·성능 / G 일반성 / C 정합성)에서 나온 56개 항목을 **현재 코드 기준으로 다시 판정**했다(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/rewrite_Y_open_issues.md`). **열린 32건만 여기 두고**, 닫힌 24건과 §10.2~§10.5 원문은 이력 문서로 옮겼다. 항목 ID(A1, B14, G6 ...)는 그대로라 코드 주석의 "계획 §10.3 B7" 같은 참조는 아래 표나 이력 문서 §10.2~§10.5에서 찾는다.
 
-v4.0은 이 중 **사용자가 결정한 3건과 코드 선행조치 3건**을 반영했다. 나머지는 아직 열려 있으며,
-**유실을 막기 위해** 여기 기록한다. 각 항목은 "누가 지적했는지 / 검증 상태 / 필요한 결정"을 함께
-적는다.
+판정 방법: 계획서 기록과 코드를 grep·읽기로 대조했다(코드는 실행하지 않음). 약어: SR=`skills/analog-gmid-design/assets/sizing_recipe.py`,
+SD=`.../stick_diagram.py`, TJ=`.../library/current_reuse_telescopic_ota.topology.json`, P=계획서, H=이력 문서, A6=`agent6_plan_vs_code.md`,
+RB=`review_B_design_7_5_7_9.md`, BR=`assets/tests/baseline/README.md`. 실행해야만 알 수 있는 수치(파일럿 통과 여부 등)는 "미확인"으로 적었다.
+
+상태 집계(56행): **해소 17 / 폐기·대체 7 / 부분 해소 16 / 미해결 16 / 판단 불가 0**. 열린 이슈 32행, 닫힌 이슈 24행.
+
+### 10.2 ~ 10.5 열린 이슈 (A·B·G·C, 담당 Phase 순)
+
+| ID | 한 줄 요지 | 기록된 상태 | **현재 상태** | 근거 | 담당 |
+|---|---|---|---|---|---|
+| A3 | 목적함수 `sum_current`가 직렬 스택 전류를 중복 계상(2.82배) | 부분 잔여(metric만 신설, objective 교체 안 함) | **부분 해소** -- `supply_current` metric은 있고 선언됨. objective는 여전히 `power_uA`(=`sum_current`) | SR:3016-3019, SR:4502; TJ:1990-1994(metric), TJ:2030-2032(`minimize: power_uA`); 커밋 cb7273c | Phase 4 · §13.3 #16 · D6 · G8(전력은 레일 전류) |
+| A4 | 미러 ratio 쌍의 VDS 차이가 만드는 계통 전류비 오차 | 부분 잔여(상한 제약 없음) | **부분 해소** -- 기록과 달리 제약이 걸려 있음: `mirror_ratio_error_mV <= value_from_constraint: mismatch_sigma_mV`. 남은 것: 쌍 판정이 `names[0], names[1]`만 봐서 여러 소자 그룹에서 한 쌍만 검사. 파일럿 외 3개 회로 선언은 미확인 | TJ:2021-2026, TJ:2055-2060; SR:4578; 커밋 806c906 | Phase 4 · §12.6 #5 |
+| B9 | vsb 오산출(PMOS kind 무시, 선언값과 경쟁) | ★수정 승인 대기 | **부분 해소** -- `reconcile_vsb_from_nodes()`가 헤드룸 뒤 vsb를 노드전압으로 다시 유도하고 `audit_vsb_consistency()` 게이트가 배선됨. 남은 것: 원인 코드 `other_entry.setdefault("vsb", ref_vds)`가 그대로 있어 헤드룸 중에는 틀린 vsb가 쓰이고, 그 vsb로 계산된 W/gds가 남는다(vsb/W 버전 혼재) | 정의 SR:3976, SR:4018 / 호출 SR:9207, SR:9441 / 원인 코드 잔존 SR:8134; 커밋 1285618 | Phase 4 · §12.6 #1 · Phase 6b(D1 노드전압 정본) · G7 |
+| G5 | 폴딩 노드 역할 5종인데 서브롤은 4종 | 처리방향: 서브롤 확장 | **미해결** -- metric 키 `fold_leg_b`는 코드에 있음. 서브롤 열거 확장이나 역할 유도는 없음. §15는 열거를 늘리지 않고 유도하는 방향 | SR:3044-3054, SR:10154; RB:73; 이력의 역할 체계 변경 커밋 없음 | Phase 6a · G2 · J5 |
+| G6 | stage 분할 규칙 부재, 5신호 분류기 전용 시 입력쌍이 cascode로 분류됨 | 처리방향 미결 | **부분 해소** -- 규칙은 설계로 확정(차동모드 뷰 + R2, 4회로 6개 선언과 소자 단위 100% 일치). 코드 구현은 0(`stage_index`/S1v 없음) | P:1396-1408(§15.3), P:1429(G2); `probe_stage_partition.result.md`; RB:74 | Phase 6a · G2 · J1~J9 · D5(ports) |
+| A6 | ICMR·출력 swing·THD가 헤드룸 하한 목록에 없고 스키마 슬롯도 없음 | 슬롯 신설 여부 결정 필요 | **미해결** -- `output_swing`/`icmr` assets 전체 0건 | grep(assets 전체, 대소문자 무시) 0건; RB:58(D5 ports 선행) | Phase 6a(D5 ports) → 6b(G7 DC 해석), 공식 미배정 |
+| A7 | 고정점 수렴 "20회 이내"에 논증 없음 → bisection 제안 | 구현 방식 결정 필요 | **부분 해소** -- diode 고정점은 bisection으로 구현(`solve_diode_connected_vds`). 일반 순환 블록의 수렴 판정·허용오차는 설계만 있음(C-c, D2) | A6:11; P:1018(D2); P:1434(G7) | Phase 6b · G7 · D2 |
+| B7 | §7.5 프로토타입 이식 과대평가, 다중도달 불일치 미검사 | 없음(해소로 기록) | **부분 해소** -- 기록은 해소지만 핵심 검사가 없음: `propagate_node_voltages()`가 `conflicts`를 만들기만 하고 엔진 안에서 읽는 곳이 0 | SR:3954(반환만, `.conflicts` 읽는 곳 grep 0); A6:16; §12.6 #2 | Phase 4 · §12.6 #2 · Phase 6b(G7 봉인 게이트) |
+| B8 | §7.5가 KCL을 검증하지 않음 | 없음(해소로 기록) | **부분 해소** -- `kcl_residual_uA` metric은 선언·계산됨. 상한 제약은 없고 `exclude_nets`로 저항 노드를 뺀 채임 | SR:4430; TJ:1995-2004; TJ:2033-2071(제약 목록에 없음) | Phase 6b · G7(봉인 게이트 KCL 잔차) |
+| B13 | vds/gm_id/L 확정 출처 태그 규정 없음 | DoD 포함 여부 결정 필요 | **부분 해소** -- 태그는 일부 있음: `_vds_source`(SR:3566), `_gm_id_source`(SR:3873 diode, SR:9427 matching_pair), `_vsb_source`(SR:4013, 7858, 8010), `_L_source`. `_gm_id_source` 대입은 2곳뿐이라 다른 gm_id 결정 경로는 태그가 없음. DoD(§4.1)에도 없음 | 위 줄번호; P:328-354 | Phase 6b · §12.5.2 C-a(reader 기록) |
+| B11 | C1~C10 방지 장치가 말뿐이었음 | 없음(해소로 기록) | **부분 해소** -- 강제 테스트 열로 표를 다시 쓰는 것은 끝남. 테스트 10개는 0개 구현(`def test_` 0) | P:297-308; A6:45; P:1162(T7) | §13.5 T7(Phase 6a~7c에 맞춰 진행) |
+| B5 | DOF 진단이 VDS 미지수·KVL 방정식을 세지 않음(사고19를 못 막음) | DOF 축 추가 결정 필요 | **미해결** -- `diagnose_sizing_dof` 정의 0건 | grep 0; A6:23; P:1420(§15.4 §7.8 변형) | Phase 6c · G4 |
+| B6 | DOF 진단이 부등식을 등식처럼 셈 | 등식만 대조 결정 필요 | **미해결** -- 위와 같이 함수 없음. 해소 방식은 §15.4에 설계만 있음 | grep 0; P:1420 | Phase 6c · G4 |
+| B14 | 선언된 `value_amp`를 실제 전류로 써야 함 | ★엔진 미구현 | **부분 해소**(기록과 같음) -- 읽는 곳은 `_metric_kcl_residual`뿐. 사이징 경로(`seed_currents`)는 읽지 않음. 파일럿 Iref `value_amp=1.2e-06` 선언과 theta `r_biasgen`이 함께 남아 있음 | SR:4474-4485; `seed_currents` 대입 SR:5922/5939/5975(theta feed만); TJ:144, TJ:1563 | Phase 6c(G4 등식 수 계산) → 7b(G0 사람 선언 필드, §15.4) |
+| B2 | CMRR/PSRR을 stage 국소로 못 봄 → T1/T2/T3 게이트 | 없음(해소로 기록) | **부분 해소** -- 분류 결정은 끝남. `check_global_gates()`·`make_stage_local_check()` 정의 0 | A6:21-22; P:1419(§15.4 §7.6 자동 분류) | Phase 7a · G8 |
+| B21 | 선언된 gain 제약(`gain_stages_sum`, 6소자)이 미러 18소자를 못 봄(26.15dB 괴리) | ★결정 필요 | **미해결** -- 방향은 확정(판정은 전체회로 MNA, 할당은 부하 포함 블록). 코드 제약은 여전히 `gain_db`(`gain_stages_sum`) ≥ 54 | TJ:1883-1898, TJ:2034-2038; SR:3028-3037; P:1442-1446(§15.6) | Phase 7a · G8 · J6 · D6·D8 · R1 |
+| A2 | `Area_i` 정의 없음, 최적화 면적과 레이아웃 면적이 다름, Cc 면적 누락 | 정의 결정 필요 | **미해결** -- `sum_area`는 여전히 `Σ W·L`만(수동소자 없음). 파일럿 제약에 area 없음 | SR:3022-3025; TJ:2033-2071; RB:33, RB:54 | Phase 7b · G6(면적 제약) -- 공식 미배정 |
+| B3 | `resolve_stage_sizing()` 시그니처에 vds/vs 없음 | 시그니처 결정 | **미해결**(재명세 대상) -- 함수 정의 0. D1에서는 vds/vsb가 노드전압에서 파생되는 블록 입력으로 바뀜 | A6:13; RB:65 | Phase 7b · G6 |
+| G1 | 단일단(`compensation: null`)이면 gm 출처가 사라짐 | null을 1급 케이스로 정의 필요 | **미해결** -- `folded_cascode`가 실제로 `compensation: null`. null일 때 gm 출처 규정은 계획(§15.5 G5 포함)에도 코드에도 없음 | `folded_cascode.topology.json:6`; P:1432 | Phase 7b · G5 |
+| G2 | 3단 이상(NMCNR) 보상이 2단 하드코딩 | stage 수 종속으로 일반화 필요 | **부분 해소** -- 보상 레지스트리에는 3단 함수가 있음(`nmcnr_3stage_topology`, `ngcc_3stage_topology`). 스키마 초안의 `solves_for`/`stage_gm_ref` 2단 하드코딩은 이력 문서에 그대로 남음. `Rz=1/gm2`를 넣을 DOF 계수기는 미구현. nmcnr `passive_elements` 누락 | SR:1469-1476; H:411; P:1408; P:1460(J9) | Phase 7b · G5 · J9 |
+| G4 | class-AB 정지전류가 KVL로 정해지는데 `ID_source`에 그 타입 없음 | `kvl_battery_loop`/`output_class` 신설 필요 | **부분 해소** -- 배터리 KVL 합 제약은 들어감(§10.7, `stack_kvl_vgs_limit`). `ID_source.type=kvl_battery_loop`·`output_class`·`driving_spec`은 0건 | SR:1835; H:2002-2031; grep `kvl_battery_loop`/`output_class` 0건(assets) | Phase 7b · G5/G6 · J3 |
+| §10.5-C6 | `closed_loop_accuracy_db`·`stage_gm_ref`·`vdd_kvl`이 읽히지 않는 필드 | 잔여 | **미해결** -- 코드·JSON 0건. 이력 문서의 스키마 초안에만 있음. `sizing_spec.json`이 없어 소비 여부를 판정할 대상이 아직 없음 | grep assets 0건; H:294, H:411, H:417 | Phase 7b(`sizing_spec.json` 분리 시 재명세, §15.4) |
+| §10.5-C7 | `slew_rate_v_per_us` vs `slew_rate_target` 명칭 불일치 | 잔여 | **미해결** -- 계획서 §3.1과 이력의 스키마가 여전히 다름. 코드 0건 | P:211; H:401, H:484; grep assets 0건 | Phase 7b |
+| A9 | SPICE 교차검증 허용오차 미정 | 미리 정할 것 | **미해결** -- `cross_check_with_spice` 정의 0, 허용오차 기록 없음. §15.5 G9가 사전 계산하기로만 적음 | A6:17; P:1436 | Phase 7c · G9 |
+| B12 | `for ... in set(...)` 결정론 규칙 없음 | P1에 규칙 + grep 테스트 추가 | **미해결** -- 규칙이 §3.2 P1에 없음, grep 테스트 없음. 잔존: SR:10302(1곳), SD:1580, 2638, 6665, 7790, 7826(5곳) | grep 결과; P:245-256 | Phase 7c · G9(순회 결정론) · §13.5 T7 C2(`test_order_shuffle_invariance`) |
+| A5 | 온도·코너 메타데이터가 LUT에 없음 | 부분 잔여 | **부분 해소** -- 생성기가 `corner="tt"`, `temp_c=27.0`을 기록하고 읽는 함수도 있음. 그런데 **`lut_conditions_from_npz()`를 운영 경로에서 부르는 곳이 0**. 저장소 npz 재생성 여부는 미확인. 코너 스윕을 범위 밖이라고 §2.2에 적지 않음 | `sky130_lut_sweep.py:327-330`; SR:5355(def만, 호출 grep 0); A6:51; P:191-200 | 미배정(RB:57 제안: G0 S0 지문에 LUT 메타 해시) |
+| G3 | gain-boosted cascode가 "VDS 예산이 유일한 자유도" 명제를 반증 | `boost_amp` 재귀 또는 범위 밖 선언 | **미해결** -- `boost_amp` 0건, §2.2 범위 밖 선언도 없음 | grep 0; P:191-200 | 미배정 |
+| G7 | 비증폭 회로(밴드갭·비교기 등) 범위 밖 명시 없음 | §2.2에 절 신설 | **미해결** -- §2.2에 회로 부류 절 없음 | P:191-200 | 미배정(재작성 문서 작업) |
+| G8 | 새 토폴로지 추가 비용(엔진 등록 3~4곳) 문서화 없음 | §8.3에 목록 명시 | **미해결** -- 이력 §8.3에도 목록 없음. §13.4가 §8.2를 대체했지만 이 목록은 없음 | H:1750-1776; P:1095-1119 | 미배정(§13.4 재작성) |
+| §10.5-C3 | §2.2(파일럿 1개) vs §4.1 C7(4개 전수) 범위 충돌 | 잔여 | **부분 해소** -- §15.8 각 Phase DoD가 "4개 회로 측정"으로 사실상 정리했으나 §2.2 문구가 그대로 | P:193-194 vs P:352-354; P:1477 | 재작성 문서 작업 |
+| §10.5-C5 | 신규 함수 목록을 3곳에서 관리(§2.1/§6.1/§7) | 잔여 | **부분 해소** -- 정본은 함수 레지스트리(§13.1)와 §13.2 규칙으로 정해짐. §6.1/§7은 이력으로 옮김. 그러나 §2.1 체크리스트가 계획서에 남아 낡음(예: `set_device_vds`가 `[ ]`인데 SR:3516에 구현됨) | P:120-180; P:1040, P:1067-1072; SR:3516 | 재작성 문서 작업 |
+| §10.5-C9 | §7.10 측정 2 표의 빈 헤더 | 잔여 | **미해결** -- 첫 열 헤더가 여전히 비어 있음(`\| \| 0.15→0.35 \|...`) | P:499 | 재작성 문서 작업 |
+
+### 10.5a 재판정 중 발견한 불일치
+
+1. **A6 감사가 `_gm_id_source` 규정이 없다고 적었는데**(A6:53) 코드에는 태그가 있다(SR:3274-3284 권위 출처 판정, SR:3873, SR:9427). 정확한 사실은 "대입처가 2곳뿐"이다.
+2. **커밋 82dd5f5 제목은 "B14 해소"인데**, 계획서 B14는 "엔진 미구현"이고 코드도 사이징 경로에서 `value_amp`를 읽지 않는다(SR:4485만).
+3. **A4 기록("상한 제약 안 걸었다")이 낡았다** -- 806c906에서 `mirror_ratio_error_mV` 제약이 걸렸다(TJ:2055-2060). 대신 §12.6 #5(SR:4578 `names[0], names[1]`) 때문에 이 제약이 그룹 대부분을 못 본다.
+4. **B7·B8·B2·B11은 기록상 "없음(해소)"인데** 구현 요소가 비어 있다: conflicts를 읽는 곳 0(SR:3954), KCL 제약 없음, `check_global_gates` 없음, C 테스트 0.
+5. **B9는 "해소"로 보이지만 원인 코드 SR:8134 `setdefault("vsb", ref_vds)`가 남아 있다** -- 나중에 reconcile이 덮어쓸 뿐이라 §12.6 #1(vsb/W 버전 혼재)의 발생원이다. 계획서 B9 행과 §12.6 #1이 서로를 참조하지 않는다.
+6. **`lut_conditions_from_npz()`는 운영 경로에서 부르는 곳이 0**(def SR:5355만) -- A5 기록은 이 함수를 해법처럼 서술한다(★절대원칙: 만들고 배선 안 함).
+7. **B25 행의 "잔여: L5c 픽스처"는 처리됐다**(BR:81, 하한 0.02 고정). 계획서 본문은 갱신되지 않았다.
+8. TJ:2008 `stack_headroom_slack_v` 주석("7개 스택 음수, 제약으로 걸면 즉시 infeasible")은 B25 이전 실측이다. 지금 값은 실행해야 알 수 있고(미확인), 제약으로 걸지 않은 채 남아 있다 -- A8 폐기 뒤 담당이 없다.
+9. §2.1 체크리스트(P:120-180)가 구현 여부와 맞지 않는다(`set_device_vds` `[ ]`인데 SR:3516에 구현).
+10. §10.5 본문의 줄 참조 "L794/L1150"은 이력 분리(v4.47) 뒤 무효다.
+11. §10.2 표 형식: A12가 A11보다 앞에 있고, A11 행은 셀 수가 헤더(4열)보다 적다(P:709-710).
+12. B20 수정은 `_solve_vgs`에만 들어갔다. 같은 비단조 문제를 가진 이분 역산(`solve_id_for_target_gm`, `_invert_gm_id_for_current`)은 §13.3 #10으로 따로 열려 있는데, B20 행에는 그 연결이 없다.
 
 ### 10.1 반영 완료 (v4.0) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
-
-### 10.2 미해결 — 물리·수식 (검토자 A)
-
-| # | 내용 | 검증 상태 | 필요한 결정 |
-|---|---|---|---|
-| A1 | **KKT λ 항 부호 오류**. `L = Σgm_i/x_i + μ(ΣArea−A) + λ(G − Σgain_i)`에서 `gm_i/x_i² = μ·Area_i′ **−** λ(20/ln10)/x_i`인데 문서는 `+`로 적혀 있다 | 재미분으로 확인 | 단순 정정. 더불어 **전력·gain이 gm_id에 대해 같은 방향**이라 μ>0·λ>0 동시 성립 내부해가 일반적으로 없다는 사실(케이스 3)이 사실상 공집합)도 명시할 것 |
-| A2 | **`Area_i`의 정의가 문서 어디에도 없다**. `∂Area/∂gm_id`를 쓰면서 정의가 없고, 최적화가 쓰는 면적(W·L 추정)과 레이아웃 게이트가 판정하는 면적(`Σ n_fingers × pitch(L)`, §7.7 R5)이 **서로 다른 물리량**이다. 게다가 `Cc` 면적이 빠져 있다(정본 §6.4 예제 기준 Cm 1.41pF ≈ 1,400µm² > 트랜지스터 전체) | 문서에 없음 확인 | `Area = Σ(n_fingers×pitch(L)×W_finger) + Σ(C/C_density + R_area)`로 정의를 못박을지 결정 |
-| A3 | ~~`min Σ ID_i`가 회로 전력이 아니다(bias 전류 누락)~~ → **2026-09-08 해소(v4.9)**. **bias 누락은 사실이 아니었다** — `sum_current`는 `devices` 미선언 시 `ctx.sized` 전체를 더하고, gain-stage 밖 39소자 107.50µA가 이미 포함돼 있다. 진짜 결함은 **직렬 중복 계상**이다: 전 소자 ID 합 **243.32µA** vs VDD 레일 유입 **86.27µA** = **2.82배**. 더 나쁜 건 배수가 branch마다 다르다는 것(`diffpair_branch_a` 8소자 vs battery 3소자) — 즉 `min sum_current`는 **"그 branch에 소자가 몇 개냐"는 설계 무관 가중치**가 붙은 전력을 최소화한다 | 실측 + metric 신설 | **부분 잔여** — `supply_current` metric을 신설·선언해 나란히 보고한다. **objective 교체는 탐색 결과를 바꾸는 설계 결정이라 아직 안 했다**(design/do 단계) |
-| A4 | ~~VDS 재배분이 매칭 쌍을 깬다~~ → **2026-09-08 해소(v4.8)**. 실측하니 지적의 절반은 이미 해결돼 있었다: `matching_pairs`가 `offset`/`ratio`로 갈려 있고 **offset 3쌍은 ΔVDS=0**(헤드룸 해석기가 `_hr_vfind()` union으로 이미 강제). 진짜 gap은 `ratio`(미러) 쌍이다 — 18쌍 중 3쌍이 VDS 불일치이고 **M18_bg/M60은 ΔVDS=1.300V, V_A=2.04V로 ΔI/I=63.6%**(미러비가 설계값의 1.6배). B1(diode 고정점)을 고쳐도 25.0%가 남아 **독립 문제**다. 다만 "VDS도 같게 강제하라"는 미러에 물리적으로 틀리다 — 레퍼런스(diode)와 출력(부하 노드)의 VDS가 다른 것이 정상이다. 그래서 제약이 아니라 **재는 값**으로 처리: `mirror_ratio_error` metric 신설(unit `%`, `aggregate` max/rss). 파일럿 실측 max **63.606%** / rss 71.912% | 실측 + metric 신설 | **부분 잔여** — metric은 만들어 배선했으나(선언만으로 계산·보고됨) **상한 제약은 아직 안 걸었다**. 먼저 4개 회로에서 재보고 나서 값을 정한다(값을 지어내지 않는다). §7.9 VDS 재배분이 이 비용을 보게 하는 것은 design/do 단계 몫 |
-| A5 | ~~온도·공정 코너 전무, gm_id가 300K 천장으로 밀린다~~ → **2026-09-08 부분 해소(v4.9)**. 구체 우려는 **현 파일럿에서 미발생**: gm_id 최대 24.68(M6)로 350K 천장 27.6보다 낮다(250/300/350K 어느 천장도 초과 0개). 그런데 **더 근본적인 문제**를 찾았다 — 엔진에 온도 개념이 noise metric 하나뿐(`temperature_K` 기본 300)이고 사이징 어디에도 없으며, **LUT npz에 코너/온도 메타데이터가 아예 없다**. 즉 사이징 결과가 어느 조건에서 유효한지 산출물이 말할 수 없다. 생성기 코드상으로는 `__tt.pm3.spice`(TT) + `.temp` 미지정(ngspice 기본 27°C)이다 | 실측 + 생성기 코드 확인 | **부분 잔여** — 생성기가 `corner`/`temp_c`를 기록하도록 고치고 `lut_conditions_from_npz()`가 기록 없으면 **조용히 300K를 가정하지 않고** `recorded=False`를 돌려주게 했다. 기존 8MB npz는 재저장하지 않았다(재생성 시 기록됨). **코너 스윕 자체는 여전히 범위 밖** — §2.2에 명시 필요 |
-| A6 | **ICMR·출력 swing·THD가 §7.9 헤드룸 하한 목록에 없다**. `output_swing`은 하한으로 쓰인다고 서술되나 스키마에 슬롯이 없다(선언 출처 없는 제약 = 상수 폴백, C1) | 문서 확인 | 스키마 슬롯 신설 여부 |
-| A7 | **고정점 수렴이 "20회 이내"라는 요구사항으로만 존재**하고 논증이 없다. 단순 대입 반복 대신 `g(v)=f(v)−v` 단조성을 이용한 **bisection**이면 유일해·유한회 수렴이 보장되고 "격자 안에 해 없음"을 명시적 실패로 낼 수 있다 | 문서 인용 확인 | 구현 방식 확정(대입 반복 vs bisection) |
-| A8 | ~~스택 diode 연립 solver가 필요하다~~ → **2026-09-08 재해석(v4.13)**. 실물에 **diode 2개 직렬 스택이 존재함은 확인**됐다(`biasgen_vom/vop_battery_a`의 M11a+M11b, `..._battery_b`의 M14a+M14b) — 그 때문에 22개 스택 중 **7개가 예산 초과**한다(최대 1.346V). 다만 **연립 solver는 필요 없다**: diode의 Vgs는 gm_id가 정하는 **종속값**이지 예산을 나눠 갖는 자유변수가 아니므로, 스택 KVL은 방정식이 아니라 **gm_id 조합이 만족해야 하는 제약**이다 (`Σ Vgs_k(gm_id_k,...) + Σ vds_j ≤ 예산`). v4.2의 분리형 DP가 이미 다루는 형태라 **제약 추가**로 처리한다 | 전수 사전계산 | **2026-09-08 계기판 배선 완료(v4.14)** — `stack_headroom_slack` metric 신설·선언(실측 **−1.3456V**, 사전계산과 일치). 아직 **constraint로 걸지 않았다** — 지금 걸면 즉시 infeasible이라, 먼저 재탐색으로 해를 찾은 뒤 건다. 다음: B1 5단계(배선)+재탐색 |
-| A9 | **SPICE 교차검증의 허용오차 미정**. 방법론 §6.5가 "LUT 1차 계산은 10~20% 오차"라고 적고 있는데 §4.1 DoD는 "일치"만 요구한다 → 사후에 임의 임계값을 정하게 된다(C1 재발) | 문서 확인 | 노드전압 절대오차·전류 상대오차를 **미리** 못박을 것 |
-| A10 | ~~v3.3 근거 실측치가 물리적으로 불가능~~ → **2026-09-07 조사 완료: 기각.** "28→77.6"은 dB가 아니라 **선형 `gm/gds` 비**였다(dB로는 28.98→37.80). `V_A` 5.62→2.98V로 정상이고 면적 4000배 폭발도 실재한다(`IDu`가 1000배 하락하는 deep weak inversion) | LUT 직접 재현 | **없음** — v3.3 논거 유지. 다만 §7.9 표에 단위를 명시했다(선형비/dB 혼용이 오독을 유발) |
-| **A12** | **★ metric 이름이 단위를 거짓말한다(실물 결함)**. 파일럿 실제 설계점에서 `power_uA`=0.000243323(실제 **A**, 직접 합산 243.32µA), `area_um2`=1.17156e-10(실제 **m²**, 직접 합산 117.16µm²) — 정확히 10⁶·10¹²배. 엔진은 SI로 반환하는데 이름은 µ 단위다. **지금까지 안 드러난 이유**: 4개 토폴로지 어디에도 `area_um2` 제약이 선언돼 있지 않고, `power_uA`는 objective(최소화)라 상수배가 순위를 안 바꾼다 | 실측(metric 값 vs 51소자 직접 합산) | **★ 시급**. v3.3/v3.4가 `area_um2 <= 2000`을 핵심 제약으로 도입하는데, 그대로 두면 2000µm² 의도가 **2000 m²**와 비교돼 항상 만족 = 제약이 없는 것과 동일해진다 → v3.3의 "면적 예산이 gm_id의 실질 상한" 논거, v4.2 DP의 면적 bin, v3.4 Pareto의 A_min/A_max가 **전부 무력화**. 선택지: ① metric이 이름대로(µA/µm²) 반환하도록 변환 ② 이름을 `power_A`/`area_m2`로 정정 ③ metric 선언에 `unit` 필드를 필수화하고 로드 시점에 이름-단위 불일치를 거부. **공유 엔진 동작 변경이라 사용자 승인 필요** |
-| **A11** | **★ A10 조사에서 새로 발견: `gm/gds`가 `gm_id`에 단조가 아니다.** VDS 0.6/0.9/1.2/1.5에서 각각 6/8/11/12개 구간이 감소하고, 최댓값이 `gm_id ≈ 20.5/20.0/18.0/18.0`에 있다(VDS=0.4에서만 단조). 정점 위 구간은 **gain·면적 둘 다 나빠지고 전력만 좋아지는 지배당한 영역**이다 | LUT 정밀 스윕으로 확인 **2026-09-07 해소** — §7.9 해법을 **분리형 DP**로 교체(v4.2). "해석해"·"유일 결정" 표현 철회. `argmax(gm/gds)` 상한은 DP가 격자를 전수로 훑으므로 별도 상한 없이 자동 배제된다 |
-
-### 10.3 미해결 — 구현·성능 (검토자 B, 코드 대조 완료)
-
-| # | 내용 | 검증 상태 | 필요한 결정 |
-|---|---|---|---|
-| B1 | ~~§7.3 티어①이 실제 버그 경로를 안 지난다~~ → **2026-09-07 해소(v4.3)**. 계측 확증: `resolve_feed_vds()`는 51소자 중 **4개**만 정하고 **diode 소자는 0개**다(최대 경로는 `allocate_stack_headroom()` 28개). vds 기입 지점은 **7곳**이라 한 함수만 고쳐선 못 덮는다. diode를 `vds_match_vgs_of`의 **자기참조 특수 케이스**로 보고 기존 pre-pass를 확장 + 7개 지점을 `set_device_vds()` 단일 setter로 수렴(§7.3) | monkeypatch 실주행 계측 + 정적 전수 | **없음** — 설계 확정. 구현 시 grep 테스트로 원시 대입 잔존 금지 |
-| B2 | ~~CMRR/PSRR을 stage-local 콜백으로 만들 수 없다~~ → **2026-09-07 해소(v4.4)**. 실측 확증(`KeyError: 'M6' 소자가 ctx.sized에 없다`). 13개 metric을 전수 분류해 **T1 stage-local 4개 / T2 stage-분해가능 1개 / T3 기약 전역 8개**로 나누고 게이트도 3티어로 재작성. `gain_stages_sum`이 정확히 분해됨을 확인(stage 합 = 전체, 차이 0.00e+00)해 DP가 대리가 아닌 **진짜 metric**을 쓸 수 있음도 확정. T3 게이트 1회 0.72 ms로 비용도 문제없음 | 실측 분류 + 비용 측정 | **없음** — §2.1의 `make_cmrr_psrr_feasibility_check()`는 삭제, `check_global_gates()` 신설 |
-| B3 | **`resolve_stage_sizing()` 시그니처에 `vds`/`vs`가 없다**. 모든 LUT 호출이 필수로 요구하는데 §7.9 Phase 1의 VDS 예산이 §7.2/§7.6으로 전달되지 않는다 | 코드 확인 | `resolve_stage_sizing(stage_spec, ID, luts, vds_budget, vs_by_device, constraints)`로 확정 |
-| B4 | ~~실행시간 예산 항목이 계획에 없다~~ → **2026-09-08 해소(v4.6)**. 직접 측정: **전체 평가 1회 274.5 ms**가 L_combo 단위 비용이다(stage 사이징 3.15ms로 세면 44배 틀린다 — 전역 게이트가 51소자 전부를 요구하므로). L 자유도 3개, 기본 정책(bounds 내 앵커 4개, 64 combo)에서 전수 17.6s / 중첩 포함 **2.9분**. densify 41점은 5.3시간이라 기본 금지. `presolve_warm_start()` 16.5s는 루프 밖 1회 규약. **부수 정정: R3의 "앵커 4개"는 stale이 아니었다** — LUT 전체는 7개지만 파일럿 theta bounds `[0.15,1.0]µm` 안이 4개라 둘 다 맞고 문맥이 달랐다(검토자 지적을 그대로 받았으면 잘못 고쳤을 것) | 실측 | **없음** — DoD에 wall-clock ≤ 5분 신설 |
-| B5 | **C6이 사고19를 안 막는다**. 사고19의 underdetermined는 vertical_stack 내부 헤드룸 KVL(미지수 2/방정식 1)인데 `diagnose_sizing_dof()`는 gm_id/전류/L/Cc 넷만 세고 **VDS 미지수·KVL 방정식을 세지 않는다** | 문서 확인 | DOF 진단에 "stack별 (vds 미지수 vs KVL+참조 등식, 랭크)" 축 추가 |
-| B6 | **§7.8 DOF 진단이 부등식을 등식처럼 센다**. 부등식은 활성일 때만 자유도를 소비하는데 목표 수만 세어 `overconstrained`면 **반복을 아예 시작하지 않는다** → 오탐 하나가 곧 hard stop | 문서 확인 | 등식 제약만 대조에 쓰고 부등식은 경고로 낮출 것 |
-| B7 | ~~§7.5 프로토타입 "그대로 이식"은 과대평가~~ → **2026-09-08 확인(v4.10)**. 네 지적 중 **셋은 코드로 확인**(set 순회 / `not progressed and not unresolved` 논리오류 / 다중도달 일치검사 미구현 / VGS 3쌍 하드코딩). 다만 **set 순회는 이 회로에서 실제 차이를 만들지 않았다**(순회 순서를 뒤집어도 노드값 32개 전부 동일) — 잠재 위험이지 실현된 결함은 아니다. 반대로 **다중도달 미검사는 실물에서 위반이 나온다**: 21건 중 **4건이 243.5 mV 불일치**(Vop1/Vom1에 M2a/M2b/M3a/M3b 경로가 0.6565 vs 0.9000으로 도달). 프로토타입은 이걸 `elif`에서 검사 없이 discard한다 | 코드 확인 + 실측 | **없음** — "그대로 이식" 표현을 §2.1/§7.3에서 내리고, §7.5의 다중도달 검사가 잡아야 할 실물 위반 4건을 DoD 기준값으로 삼는다 |
-| B8 | ~~§7.5가 KCL을 검증하지 않는다~~ → **2026-09-08 해소(v4.10)**. 실측: 내부 노드 30개 중 **3개**가 잔차 >1nA이고 **`Vx`(입력쌍 소스)가 −3.96µA**, 레일은 vdd −86.27 / gnd +88.93µA로 **2.66µA** 어긋난다. `_metric_kcl_residual()` 신설(부호규약 명시, `ideal_sources.value_amp` 포함, `value_amp=null`이면 지어내지 않고 그 노드 skip, `exclude_nets`는 이유를 선언에 적어야 함) | 실측 + metric 신설 | **없음** — `kcl_residual_uA`로 선언·배선(실측 **3.9601µA**). 상한 제약은 아직 안 건다(4개 회로에서 먼저 잰다) |
-| B9 | ~~`vs`가 39소자에서 0.0~~ → **2026-09-08 원인 확정(v4.11), 수정 대기**. `vs`의 정의를 LUT 생성 넷리스트(정본)에서 확인: `xdut d g 0 b`로 **source는 항상 노드 0**이고 VS가 바꾸는 것은 벌크 전압(`vb_dc = vb_sign·VS·(−1)`)이라 **VS 축은 소스-벌크 역바이어스 |V_SB|**다. 벌크가 레일에 묶이면 NMOS는 `V_source`, PMOS는 `vdd − V_source`가 된다. 이 정의로 51소자를 검산하니 **25개 불일치**(일치 26개는 전부 source가 레일인 소자). 세 부류: ① 비레일 source인데 vs=0 — 최대 **−1.3000V**(M37a/M37b) ② 레일 source인데 vs≠0 — 4개(M60/M61/M38/M68) ③ **M9a/M9b·M18a/M18b는 값이 정확히 서로 바뀜**(M9a 기대 0.8060인데 0.6565, M9b 기대 0.6565인데 0.8060). **원인**: `_hr_resolve_vertical_group()`의 `other_entry.setdefault("vs", ref_vds)`가 **kind를 보지 않는다** — `ref_vds`는 vss 기준 체인의 VDS 합이라 NMOS엔 맞지만 PMOS엔 `vdd − V_source`여야 한다. 게다가 topology의 `device_roles[*].vs`(선언 0.0)와 이 전파가 **경쟁**해 어느 쪽이 이기는지가 순서에 달렸다(C2). C1(물리 미검증)+C4(kind 무시)+C2(순서 의존)가 한 줄에 겹친 자리 | LUT 넷리스트 + 실측 51소자 | **★ 수정 승인 대기** — 고치면 LUT 조회가 달라져 W/gm이 바뀌므로 재사이징이 필요하다 |
-| B10 | **§7.10이 사고4 경계를 건드린다**. `select_L_by_role()`의 cascode/signal 거부는 사고4 정정의 결과이고 §5가 "별도 승인 필요"라 못박은 경계인데, §7.10이 이를 부수 효과처럼 없앤다 | 코드 docstring 확인 | 명시적 승인 필요 |
-| B11 | ~~C1~C10 중 5개가 빈 약속~~ → **2026-09-08 해소(v4.5)**. 실측 확증: `review_needed`·"전역 유일성"·"connectivity에서 유도"가 각각 **C 표 안에서만 1회** 등장했다. 표를 **"강제 테스트" 열이 있는 형태로 재작성**하고, 지금 돌리면 실패하는 것(C1 16/16 tol 초과, C4 role만 바꿔도 vds 0.2/0.3/0.6, C5 게이트 19개 중 4개만 blind spot 명시)을 **실패한다고 적었다**. 담당 절 열은 제거(C7의 §5가 정반대 내용, C10의 §7.6에 캐시 서술 없음 — 어긋남이 반복되던 열) | 정적 grep + 실측 | **없음** — §4.1 DoD가 10개 테스트 전원 PASS를 완료 조건으로 건다 |
-| B12 | **결정론 규칙이 계획에 없다**. `for name in set(...)` 패턴이 엔진에 아직 남아 있다 | 코드 확인 | §3.2 P1에 "모든 반복은 정렬된 시퀀스 위에서만" 규칙 + grep 테스트 추가 |
-| B13 | **추적성**. 기존 엔진은 `_L_source` 같은 출처 태그를 남기는데, 새 파이프라인에서 vds/gm_id/L이 **어느 티어·어느 Phase에서 확정됐는지** 남기는 규정이 없다 → C2 사후 디버깅 불가 | 실측 확인 | `_vds_source`/`_gm_id_source` 태그를 DoD에 넣을지 |
-| **B14** | `ideal_sources.value_amp` 정책 → **2026-09-08 사용자 확정(v4.12)**: **null이면 자유탐색, 값이 있으면 그 값을 실제 전류로 쓴다.** 파일럿 Iref는 1.2µA가 선언돼 있으므로 **고정 대상**이고, theta `r_biasgen`의 자유도는 그만큼 줄어든다. `kcl_residual`은 선언값이 있으면 그것을 실제 전류로 세므로 현재의 1.851배 괴리(선언 1.2µA vs 사이징 0.6484µA)가 **잔차로 드러난다** | 사용자 결정 | **★ 엔진 미구현** — 아직 `value_amp`를 소비하는 경로가 없다. B1+vs 구현 시 `seed_currents`로 배선한다 |
-| **B15** | ~~★신규(v4.16)~~ → **① 2026-09-08 해소(v4.17), ③ 2026-09-08 완료(v4.18)**. ① leave-one-out 실측으로 **배열별** 결정(ID/GM/GDS=로그, CGG=선형) — gm/ID 곱선 오차 중앙 13.70→2.63%(pmos), 최악 17,884.9→33.6%. ③ L 앵커 7→12개(0.20/0.25/0.30/0.425/0.70 중간 삽입, 체크포인트를 L값 기반 이름으로 마이그레이션해 중간 삽입 제약 해소) | 원문 → **★신규(v4.16, 아무도 지적 안 함) — LUT의 L 보간이 PMOS gm/ID를 비물리 값으로 만든다.** `_gm_id_curve()`가 ID는 로그·GM은 선형으로 보간해 두 보간이 불일치한다. 앵커 사이에서 PMOS gm/ID가 **403 / 5,517 / 56,646**까지 오른다(물리 상한 ≈30~38). PMOS는 L=0.15↔0.35µm에서 같은 VGS의 ID가 6자릿수 차이(DIBL, 물성은 정상)라 기하평균 vs 산술평균 괴리가 **207배**로 증폭된다. NMOS는 무사. `L_stage2out_p`/`L_cascode` theta가 이 대역을 5nm 격자로 실제 탐색한다 | 실측(`tests/probe_lut_L_interpolation.py`) | **★ B1 재탐색의 차단 사유** — §0.3이 예상한 해(`L=0.15~0.45µm`)가 정확히 오염 대역이다. 후보 ①일관보간(폭발 제거·앵커 보존, 그러나 정확도 미보장) ②앵커 고정(유효 앵커 4개뿐) ③LUT 재생성(근본 해결, 중간 삽입 제약) — **전부 승인 대상** |
-| **B16** | ~~step 2 재설계 필요~~ → **2026-09-08 해소(v4.17)** — `apply_diode_self_consistent_gm_id()` 신설·배선(gm_id_role 루프 직전), 헤드룸 배분기에 `diode_vds_window()` 구간 제약 추가. 원문 → **step 2 재설계 필요 — 헤드룸 시점에 diode의 `gm_id`가 없다(0/16 실측).** §0.2 step 2가 전제한 `solve_diode_connected_vds(gm_id, ...)` 호출이 그 시점에 불가능하다. 다만 `Vgs=Vds` 구속은 양방향이라 `gm_id = lut.gm_id_for_vgs(vds, L, vds, vsb)`(O(1), 기존 함수)로 **현재 순서를 유지한 채** 배선 가능하다 — 80점 왜복 검산에서 76점이 오차 1mV 미만으로 일치(어긋난 4점은 B15 오염 대역) | 실측(`tests/probe_diode_gmid_readiness.py`) | **diode의 gm_id를 자유 탐색 변수에서 제외**하고 종속값으로 확정하는 것이 대가 — 승인 필요 |
-| **B17** | ~~★신규(v4.19)~~ → **2026-09-08 해소**. 엔진이 `matching_pairs`에 **L만 전파하고 gm_id는 전파하지 않았다** — VDS는 `same_as_device`/vertical stack이, W는 gm_id가 결정하므로 **gm_id 하나만 무방비**였다. 매칭 쌍 21개 중 6개가 갈리고, 그중 3쌍(M2a/M2b, M3a/M3b, M37a/M37b)은 `L/ID/vds/vsb`가 전부 같은데 gm_id만 다르다(한쪽은 권위 있는 출처, 다른 쪽은 `gm_id_role` 루프의 독립 탐색). L 전파 루프와 같은 구조로 gm_id 전파를 추가하되 **동작점이 완전히 같은 쌍만** 대상으로 좁혔다 | 실측(`tests/probe_matching_pair_divergence.py`) | **없음** — 갈리는 쌍 6→3개, 면적 1050.40→936.38µm², 레이아웃 복구가 더 이상 W를 안 건드린다 |
-| **B18** | ~~★신규(v4.19)~~ → **2026-09-08 해소**. 레이아웃 재검증이 **전역 metric을 통째로 건너뛰었다** — `_collect_device_refs()`가 spec에 이름이 적힌 소자만 모으는데 `area_um2`처럼 `devices`를 안 쓰는 metric은 참조가 빈 집합이라 "무관"으로 분류됐다. 전 소자를 쓰는데 건너뛴 metric 6개(`power_uA` 목적함수 포함) + 소자 미명시로 건너뜀 전체회로 metric 3개(`cmrr`/`psrr` 제약 포함). 선언된 제약 5개 중 `gain_db` 하나만 재검증되고 있었다. **전부 재계산으로 전환**(비용 실측: 8회 호출 × 1.6ms = 전체의 0.01%) | 실측(`tests/probe_revalidation_scope.py`) | **없음** — 면적 제약이 실제로 지켜진다(cap 800에서 792.87µm²) |
-| **B19** | **★신규(v4.19) — 미러 3그룹의 VGS가 물리적으로 불가능하게 벌어져 있다.** (v4.20 정정: 11소자가 아니라 **18소자**다 — 아래 B19' 참고.) `M18_bg/M8/M13/M17/M22/M60/M61`(PMOS, gate=Vbias1, source=vdd)과 `M10/M12/M19/M21`(NMOS, gate=Vbias4, source=gnd)은 게이트·소스를 공유하는 **진짜 전류미러**라 VGS가 KVL로 강제 동일해야 하는데, 사이징은 최대 **464mV** 벌려놓았고 미러 규약(ID비==W비)도 전부 깨다(M8은 1530배). 세션38의 `gm_id_match_vgs_of`와 같은 클래스인데 이 소자들은 그 필드가 없다 | 실측(`tests/probe_ratio_pair_analysis.py` → `probe_mirror_design_space.py`) | **2026-09-09 결론 번복 — 성립한다. 회로 설계 판단이 아니라 배선 과제다.** 설계공간을 실제로 훑으니 세 그룹 모두 해가 있다(아래 B19' 참고) |
-| **B19'** | **★신규(v4.20) — B19의 대상과 결론이 둘 다 틀렸다.** ① **대상**: 앞선 조사는 `symmetry.matching_pairs`에 **선언된** 그룹만 봐서 11소자로 셌는데, VGS 동일 강제는 선언이 아니라 게이트·소스 공유라는 connectivity에서 나온다. 넷리스트를 전수로 세면 **18소자 3그룹**이고, **6소자(`M5 M6 M7 M38 M66 M68`)는 어떤 matching_pair에도 안 나온다** — 그중 **M6/M5는 diffpair tail**(회로의 주 전류), **M66은 NMOS 그룹의 diode 레퍼런스**(즉 그 그룹은 레퍼런스 없이 분석됐다), **M7/M36a 그룹은 통째로 누락**(M36a는 이 계획서 Executive Summary가 지목한 원래 버그의 대표 소자다). ② **결론**: VGS를 현재값에 고정한 채 물었고, W를 깨진 `gm_id_to_id_density()`로 구했다(B20). VGS를 자유변수로 두고 다시 재면 **세 그룹 모두 성립**한다 — PMOS Vbias1 20조합/최소 22.90µm²(L=0.20µm, VGS=0.75V, gm_id 15.42~15.70), NMOS Vbias4 9조합/50.28µm²(L=0.15µm, VGS=0.55V), PMOS Vcmfb 36조합/0.77µm². 합 **73.95µm²**인데 **지금은 M18_bg 혼자 38.6µm² + M66 혼자 61.6µm²**라 제대로 강제하면 **면적이 오히려 준다**. 부수: `k_Iref`는 지렛대가 아니다(0.25~15배에서 성립조합 20→13개, W∝ID라 비율이 안 변함) — 진짜 지렛대는 **공유 VGS**다. B9(vsb)는 NMOS 그룹을 최대 **8.07배** 부풀린다(M38의 vsb가 0이어야 하는데 0.8625) | 실측(`tests/probe_mirror_design_space.py`) | **✅ 2026-09-09 사용자 확정 — 둘 다 답을 받았다.** (가) **18소자 전부를 미러로 강제한다. tail M5/M6를 bias 미러에 묶는 것이 설계 의도다.** (나) **공유 VGS는 gain 기준으로 고른다** — 면적이 아니다. 근거(사용자 원문): "첫번째 differential input 단의 tail이기 때문에 gain에 직접적으로 영향을 미치는 id전류를 만들고 있어." 따라서 `probe_mirror_design_space.py`가 준 **면적 오름차순 랭킹은 기준이 틀린 것**이고, `probe_mirror_gain_ranking.py`가 같은 조합을 엔진의 실제 `gain_db`로 다시 줄 세운다. 남은 것은 배선뿐 — 기전은 이미 있다(nmcnr M203/M204의 `gm_id_match_vgs_of`, 세션38과 같은 클래스). **다만 B20이 미해결인 채로 배선하면 PMOS 2개 그룹의 W가 깨진 경로로 계산된다 — B20이 먼저다.** **2026-09-09 gain 랭킹 실측(6480조합)**: gain 최적은 두 신호경로 그룹 모두 **L=4.0µm**(PMOS VGS=1.10 / NMOS VGS=0.60)이고 `gain_full_circuit_db` **89.82dB**(미러면적 1775µm², 전체 2535µm²). 면적 최소 조합(73.95µm²)은 63.72dB로 **gain 순위 6423/6480 = 사실상 최악** — 기준을 바로잡지 않았으면 정확히 반대로 골랐다. 그룹별 지렛대: pmos:Vbias1 폭 20.8dB / nmos:Vbias4 폭 20.0dB / **pmos:Vcmfb 폭 0.0dB**(CMFB 경로라 gain과 무관 — 이 그룹만은 gain이 기준이 될 수 없고 다른 기준이 맞다). **그리고 gain 최적점 L=4.0µm가 정확히 B20이 가장 심하게 무는 구간**이라, B20 선행은 순서 위생이 아니라 실질이다 |
-| **B20** | **★신규(v4.20) — `_solve_vgs()`가 단조를 전제하는데 PMOS LUT는 비단조다. W가 조용히 틀린다.** `_solve_vgs()`는 docstring에 "gm/ID는 VGS에 단조감소"라 적어놓고 `np.argsort(gm_id_vals)` 후 `np.interp`로 역보간한다. 비단조이면 **서로 다른 branch의 VGS가 정렬에서 뒤섞여** VGS 축에서 인접하지도 않은 두 점 사이를 보간한다. 이 함수는 `gm_id_to_id_density()`(=`W = L*ID/IDu`의 분모)·`gm_gds_ratio()`·`fT()`·`cgg_absolute()`가 전부 첫 줄에서 부르므로 **모든 W 계산의 뿌리**다. raw LUT(보간 없음)에서 확인: PMOS L=0.15µm/VDS=0.90에서 gm/ID가 VGS 0.41→0.64 구간에 14.19→15.34로 **오르다** 꺾인다(ID 자체는 단조증가라 데이터가 깨진 건 아니다 — 저전압 쪽 누설로 보인다). **NMOS는 전 구간 단조라 무사하다.** 범위: `VDS>=0.15` 격자 2700점 중 비단조 75.3%인데, 상승 대부분이 약반전 꼬리(gm/ID 26~31)라 그것만 보면 과장이다 — **탐색범위 `gm_id_grid`(4~24)와 겹치는 것은 53.6%**이고 겹칠 때 중앙값 폭이 **20.0**(=탐색범위가 통째로 이중값). 위험은 두 축에 몰린다: **vsb**(0V 43.3% → 0.8V **95.7%**)와 **긴 L**(L=0.30~1.00µm는 완전 단조인데 L=1.5/2.5/4.0µm는 전부 탐색범위와 겹침). 파일럿은 theta bounds가 `[0.15,1.0]µm`이고 대부분 vsb=0이라 거의 안 물리지만 **실제로 2소자가 물렸다**: `M18a`/`M9a`(vsb=0.8003, vds=0.0587)의 W가 1.0177µm인데 강반전 branch의 올바른 해는 0.4306µm — **2.36배**, 오류 없이 조용히 | 실측(`tests/probe_gm_id_monotonicity.py`) | **✅ 2026-09-09 해소(사용자 승인 후 수정)** — `_solve_vgs()`를 **rightmost root**로 재작성했다(목표를 품는 가장 오른쪽 구간에서만 보간, 곡선 범위 밖이면 명시적 실패이며 비단조 사실을 오류 메시지에 적는다). 검증 4건: ① 문제 지점 VGS 1.3124→**1.5047V**로 독립 계산한 올바른 해와 일치 ② **NMOS 전 격자 16,186건 구/신 완전 동일**(같은 방향·같은 연산 순서 `slope*(x-x0)+y0`로 구현) ③ `two_stage_ota` 실주행에서 달라진 조회 **1,895건이 전부 긴 L(2.9~3.7µm)**이고 **Δ가 전부 양(+)**(강반전 해로 이동) — 최악은 `gm_id=6, L=3.71µm, vds=0.30`의 **0.719→1.333V** ④ 파일럿 재탐색 정상 완주, 제약 5개 전부 만족. 비용 실측: 호출 1회 4.95→5.85µs(1.18배)인데 이 함수가 평가 1회(465ms)의 14.0%라 **순증가는 2.55%**. 기준선 2개는 각 1줄씩 의도적 갱신(사유는 `tests/baseline/README.md` 갱신 이력) |
-| **B20 보강** | **2026-09-09 추가 실측 — 선택지 ①을 그대로 쓰면 안 된다.** "정점 오른쪽만 쓰면 단조"라고 가정했는데 실제로는 비단조 2032점 중 **682점(33.6%)만** 그렇다. 나머지 1350점은 정점 오른쪽에도 상승이 있다. 다만 그 크기를 재보니 **중앙 0.606% / 90분위 2.03% / 최대 2.20%**(상승 횟수 중앙 2회)로 **LUT 수치잡음**이지 별개 branch가 아니다 — 약반전 쪽 주 봉우리(8% 규모, VGS 0.50 vs 0.71로 IDu가 170배 갈림)와는 성격이 다르다. **따라서 올바른 정식화는 "정점 오른쪽을 자른다"가 아니라 "가장 큰 VGS 해(rightmost root)를 취한다"다** — 2% 잡음이 만드는 미세 교차는 VGS 축에서 서로 인접해 오차가 무시할 수준이고, 목표가 전역 최댓값을 넘으면 해가 없어 깨끗하게 실패한다. 선택지 ②는 단독 불가(탐색범위와 겹치는 동작점 53.6%라 파일럿이 즉시 멈춘다), ③은 데이터를 바꿔 진짜 약반전 설계를 막는다 | 실측 | **추천: ①′ rightmost root + 전역 최댓값 초과 시 명시적 실패**. 승인 필요 |
-| **B21** | **★신규(v4.22) — 선언된 gain 제약이 미러 18소자를 구조적으로 못 본다.** `gain_db`는 `{"type":"gain_stages_sum","stages":[["M1a","M4a","M2a","M3a"],["M15","M16"]]}`로 **소자 6개**만 더한다. 미러를 (L,VGS) 6480조합으로 강제해도 `gain_db`는 **65.5547dB로 완전 불변**(Δ=0.0000)인데, 같은 조합에서 전체회로 MNA `gain_full_circuit_db`는 **63.67~89.82dB로 26.15dB 벌어진다**. 그런데 `M19.drain=Vom1`, `M10.drain=Vop1` — **stage1 출력노드 그 자체**라 그 gds가 이득을 직접 깎는다. 즉 **선언된 제약 `gain_db >= 54`는 26dB짜리 실효과에 눈이 멀어 있고**, 목적함수(`power_uA` 최소화)는 그 눈먼 제약만 지키면 되므로 미러를 마음대로 나쁘게 만들 수 있다. (위생검사: 같은 스윕에서 `area_um2`는 6480개 전부 다른 값 → ctx 패치는 metric에 정상 반영됨. 즉 Δ=0은 진짜 무감도다.) B18(재검증이 전역 metric을 건너뜀)과 같은 클래스지만 이건 **metric 선언 자체의 범위** 문제다 | 실측(`tests/probe_mirror_gain_ranking.py`) | **★ 결정 필요** — ① 제약을 `gain_full_circuit_db`로 바꾼다(정확하지만 매 평가에 MNA) ② `gain_db`의 `stages`에 부하 소자를 추가한다(누가 부하인지 판정 규칙 필요 = G6와 같은 문제) ③ 둘 다 제약으로 걸고 괴리를 metric으로 감시. §10.2 A6/§10.4 G6와 얽힌다 |
-| **B22** | **★신규(v4.24) — B19' 배선이 드러낸 다음 차단막: `diode_vds_window()`가 diode 자신의 W_bounds만 본다.** 미러 15소자에 `gm_id_match_vgs_of`를 선언해 실제로 배선했더니(그 자체는 정상 동작 -- 15소자 전부 강제되고 레퍼런스 3개 자격 OK) **SLSQP 40회 전부 infeasible**이고 이어서 레이아웃이 `cmfb_tail`(M37a/M37b/M38)에서 공통 finger 폭을 못 찾는다. 원인을 소자 단위로 규명: 미러가 강제되면 그룹 VGS가 diode 레퍼런스의 VDS로 통일되는데, **헤드룸 배분기가 diode에 구간의 `lo`를 준다**(`allocate_stack_headroom()` docstring이 이미 경고하고 있었다 -- "`lo`를 고르는 것은 **면적을 크게 잡는 쪽**이다(W(v)가 감소함수라 lo↔W최대)"). 미러 강제 전에는 그게 diode 혼자의 면적 문제였지만, **이제 그룹 전원의 W를 결정한다**. 실측: 6소자가 상한을 초과하고 최악이 66.7배다 — `M8`/`M17` 1427.9µm(7.1배), `M10`/`M19` 2153.0µm(10.8배), `M5` 12623.3µm(63.1배), `M38` 13339.9µm(66.7배). 필요한 VGS는 **pmos:Vbias1 ≥ 0.80V**(현재 0.675), **nmos:Vbias4 ≥ 0.55V**(현재 0.375)이고, `pmos:Vcmfb`는 지금도 성립한다(M7이 1.2µm). 부수 확인: 그룹 안에서 **L이 갈린다** — `L_role="mirror"`는 `L_min×2.5=0.375µm`, `bias_replica`는 `×1.2=0.180µm`인 **하드코딩 상수**(`_L_ROLE_MULTIPLIERS`)라 theta가 아니다 | 실측(`tests/probe_mirror_infeasibility.py`, `probe_mirror_wiring_readiness.py`) | **✅ 2026-09-09 구현 완료(사용자 승인)** — `diode_vds_window(..., mirror_members=())`로 확장. 후보 vds마다 diode 자신뿐 아니라 **VGS를 공유하는 소자 전원**의 W가 한계 안인지 본다. 설계 결정 3건: ① **선언 기반 옵트인**(connectivity가 아니라 `gm_id_match_vgs_of` 선언을 본다 — 미배선 self-test **diff 0줄**로 무영향 확인) ② 종속의 vds가 아직 미정이면(헤드룸이 스택별로 풀리는데 diode 스택이 **가장 먼저**라 실측상 종속 7개 전부 미정) **역할별 `min_vds`를 바닥으로** 쓴다 — IDu가 vds에 증가함수라 안전한 방향이고 보수성 대가는 실측 **격자 한 칸(0.0375V)** ③ 종속의 L/ID가 미확정이면 **조용히 건너뛰지 않고 명시적 실패**(§3.2 P1). 부수로 `id_density_at_vgs()` 신설 — VGS를 아는 호출자가 `gm_id_to_id_density()`로 왕복하면 비단조 구간에서 다른 branch로 튄다(B20). **효과 실증**: 같은 theta에서 배선+B22끔은 `area_um2`가 **655,086µm²(=655mm²)**인데도 **통과한다**(파일럿 제약 목록에 area가 없다) — B22가 그 조용한 부조리를 명시적 실패로 바꾼다 |
-| **B23** | **★신규(v4.25) — B19'+B22가 성립하려면 B9(vsb 오산출)가 먼저다. 실측으로 확정.** B22를 켜니 파일럿에서 `M66`의 창이 비었다. 진짜 물리적 불가능인지 확인하려고 후보 vds마다 어느 멤버가 막는지 전수로 찍었더니, 막는 것은 **`M38`(ID=23.73µA)이고 그 멤버의 `vsb=0.8625V`** 였다. `M38`은 넷리스트상 **source=gnd**라 vsb가 0이어야 한다 — B9가 이미 지목한 그 4소자(M60/M61/M38/M68) 그대로다(이번 덤프에서 `M68`도 vsb=0.2000으로 확인). 가짜 바디바이어스가 Vth를 올려 **같은 VGS에서 전류밀도를 55배 낮게** 보이게 만들고, 그래서 W가 13,340µm로 튀어 창이 빈다. **물리 vsb=0으로 재면 이 그룹은 성립한다**(`probe_mirror_design_space.py`가 이미 그렇게 쟀다 -- nmos:Vbias4 성립조합 9개). 즉 B19'/B22가 틀린 게 아니라 **입력이 오염돼 있다** | 실측(`tests/probe_b22_headroom_attribution.py` + `.window_dump.txt`) | **없음(순서만 확정)** — 작업 순서는 **B9 -> B19' 배선(스크립트 보존됨) -> 재탐색**이다. B9는 §10.3에서 이미 "★ 수정 승인 대기"였고, 이제 그것이 미러 작업의 **선행 조건**임이 실측으로 확정됐다 |
-| **B24** | **★신규(v4.26) — B9를 실제로 고쳐봤다. 계산은 맞는데 그 뒤가 회로 판단이다.** ① **현재 상태를 처음으로 정확히 쟀다**(`tests/probe_node_voltage_audit.py`를 낡은 instance.json 대신 **지금 엔진으로 새로 사이징**해서 재도록 고침 — 그 전엔 세션18 산출물의 옛 필드 `vs`를 읽고 있었다): 51소자 중 **26개 불일치**, 세 부류로 갈린다 — **(가) 소스가 레일인데 vsb≠0 4개**(`M38` +0.8625 / `M60` +0.3750 / `M61` +0.2000 / `M68` +0.2000), **(나) 소스가 비레일인데 vsb=0 15개**(`M40` −0.9375, `M2a`/`M2b` −0.7997, `M37a`/`M37b` −0.7375 …), **(다) 그 외 7개**(`M9a`/`M9b`·`M18a`/`M18b`는 값이 정확히 **서로 바뀜**). 노드는 36개 전부 해소되고 다중도달 불일치는 4건(전부 정확히 +99.7mV). ② **수정 구현**: `reconcile_vsb_from_nodes()` 신설 — 헤드룸이 끝나 vds가 전부 확정된 시점에 `propagate_node_voltages()`+`derive_vsb_from_nodes()`로 vsb를 다시 유도해 덮어쓰고, 소스 전압을 못 구하면 0.0으로 때우지 않고 **명시적 실패**한다. 그리고 `audit_vsb_consistency()`를 파이프라인 **게이트로 배선**했다 — 이 두 함수는 세션46에 만들어졌는데 **엔진 호출부가 하나도 없었다**(★절대원칙 위반 상태였다). ③ **결과**: 올바른 물리가 적용되자 `M11b`(class-AB battery의 적층 PMOS diode, vsb 0.0→0.6750)가 **W=6342µm**를 요구해 파일럿이 성립하지 않는다. 헤드룸 시점에도 노드전압으로 vsb를 구하도록 한 곳 더 고쳐봤으나 M11b의 소스 노드는 그 시점에 아직 복원되지 않아 같은 결과다 | 실측(`tests/probe_node_voltage_audit.py`) | **★ 회로 설계 판단 필요 — 혼자 진행하지 않음.** 남은 것은 "바디효과를 제대로 넣으면 M11b가 지금 예산으로는 성립하지 않는다"이고, 선택은 그 스택의 vds 예산 / `L` / 전류 중 무엇을 바꿀지다(B19'가 `Iref` 대신 공유 VGS였던 것과 같은 성격). 엔진 변경분은 `tests/b9_vsb_from_nodes.patch`(166줄)로 보존했고 저장소는 되돌려 self-test 2개 모두 diff 0줄이다 |
-| **B25** | **★신규(v4.27) — A8의 "연립 solver는 필요 없다"는 재해석이 틀렸다. 적층 diode는 vsb로 결합돼 있다.** class-AB 배터리 4스택이 전부 **적층 diode**다(vom/vop × PMOS/NMOS 대칭): `vdd→M11a→M11b→M12→gnd`, `vdd→M13→M14a→M14b→gnd`와 그 vop 쌍(M20a/M20b/M21, M22/M23a/M24b). 적층이라 **아래쪽 diode의 vsb = 위쪽 diode의 vds**이고(M11b.vsb = VDS(M11a) = 0.675V), 그래서 M11a와 M11b는 같은 전류·같은 L·같은 VGS인데 **M11b가 61.3배 넓어야 한다** -- 차이는 오직 바디효과다. v4.13이 A8을 "diode의 Vgs는 종속값이라 연립이 아니라 제약 추가로 처리"로 재해석했는데, **그 재해석은 vsb 결합을 못 봤다**. ② **실측한 선택지**(`tests/probe_stacked_diode_options.py`): **전류는 지렛대가 아니다**(0.235~1.765배 전 구간 실패 -- W가 두 소자 모두 ID에 비례해 61배 비율이 안 변한다, B19'의 `Iref`와 같은 구조). **L은 PMOS만 고친다**(`bias_replica` 0.180µm → M11b 6342→**20.00µm**, 그러나 NMOS는 1882→1687µm로 거의 안 변한다 -- NMOS 배터리는 diode에 0.375V씩만 가고 M13이 1.05V를 가져가 깊은 약반전이라 L이 상쇄된다). ③ **결정적**: `(v_a, v_b)`를 **연립으로** 고르면 PMOS는 L=0.180µm에서 **60조합**, NMOS는 **현재 L 그대로 32조합**이 성립한다(최적 각각 (0.675/0.825/0.300) W 2.32/1.42µm, (0.562/0.675/0.562) W 1.52/1.52µm). 즉 **설계 변경이 더 필요한 게 아니라 배분을 함께 풀기만 하면 된다** | 실측(`probe_stacked_diode_options.py` + 배선 시험) | **★ 승인 필요(공유 엔진)** — `diode_vds_window()`가 diode마다 **독립적으로** 창을 계산하고 그때 vsb를 모른다(실측: 계산된 창의 vsb가 전부 0.0/0.2였고 실제값 0.675/0.375가 아니었다). 그래서 배분기가 고른 `lo`가 결합 제약을 위반한다(M11b W=924µm). 필요한 것은 **같은 스택의 적층 diode를 2변수로 함께 푸는 것**(아래쪽 vsb=위쪽 vds). **✅ 2026-09-09 구현 완료** — `solve_stacked_diode_pair()` 신설(위/아래 vds를 함께 훑고 아래쪽 vsb를 위쪽에서 유도) + 헤드룸 배분기 배선 + B9(vsb 노드전압 유도) 동시 적용 + `L_role: bias_replica`(M11a/M11b/M20a/M20b). **파일럿 평가 성공**: gain_db 65.5547(≥54), area_um2 **847.45**(925.52에서 **감소**), cmrr 66.12(≥60), psrr 81.38(≥60), power 258.82µA. vsb 감사 게이트도 통과. 구현 중 실측으로 바로잡은 것 셋: ① 결합식이 `vsb_lo = v_up`이 아니라 **`vsb_lo = vsb_up + v_up`**(직렬이면 역바이어스가 누적된다 — 위쪽 소스가 레일일 때만 둘이 같아서 배터리 쌍에서는 우연히 맞았다. 검산: M58(vsb 0.2, vds 0.2) 아래 M57은 vsb 0.4) ② 쌍의 합에 **스택 예산 상한**이 필요하다(cmfb_vocdes_gen에서 1.837V>1.8V) ③ 쌍이 스택의 전부면 합이 예산과 **정확히 같아야** 한다(≤로는 0.2625V가 남는다) ④ 위쪽이 **diode가 아닌 경우도** 대상이다(M57←M58, M64←M63 — 위쪽 W는 제약하지 않고 최소 vds만 지킨다) ⑤ 위쪽 소스가 레일이 아니면 그 vsb가 **다른 스택이 정한 노드**에 달렸다(M58의 소스 Vx는 diffpair_branch_a 소관) — 노드전압으로 유도해야 한다. **잔여**: self-test L5c 픽스처의 고정점(거의 모든 theta를 중점에 고정한 인위적 단일 점)만 막힌다 — 그 점의 M39/M40 전류에서는 최소합 1.837V로 몫 1.8V를 넘는다. 파일럿(자유 탐색)은 통과하므로 설계 문제가 아니라 **픽스처 문제**다. **2026-09-09 추가조사("2번 봐")**: L5c만 막히는 원인은 **그 점의 M39/M40 전류가 파일럿의 17배**라는 것이다(8.197µA vs 0.47µA -- 픽스처가 `r_cmfb_vocdes`를 bounds 중점 0.11에 고정하기 때문). **M39/M40의 `L_role` 변경은 해법이 아님이 실측으로 확인됐다** -- 두 동작점을 동시에 만족하는 L이 없다: `mirror`(0.375µm)면 파일럿 OK / L5c 실패(최소합 1.837>1.8), `bias_replica`(0.180µm)면 L5c OK(정확 1.8V 쌍 8개) / **파일럿 실패**(성립 합 1.05~1.24 < 1.8). 즉 문제는 L이 아니라 **픽스처의 고정 전류**다. 부수 개선: 정확 일치를 격자점 쌍에서만 찾던 것을 **`v_lo = 예산 - v_up`으로 연속 평가**하도록 보완(LUT는 VDS를 연속 보간하므로 격자 양자화는 물리가 아니다). 변경분은 `tests/b25_b9_stacked_diode.patch`(388줄)로 보존 |
-### 10.4 미해결 — 일반성 (검토자 D)
-
-**판정**: 이 방법론은 "임의 토폴로지"가 아니라 **"차동 입력 + 캐스코드/미러 부하 + 2단 Miller
-보상 전압증폭기"** 한 부류에 맞춰져 있고, 그마저도 파일럿 1개를 정본으로 일반화한 것이다.
-D2(gain metric 위임)로 가장 큰 차단 요인은 풀렸으나 아래가 남는다.
-
-| # | 반례 | 어디서 막히나 | 처리 방향 |
-|---|---|---|---|
-| G1 | **단일단(5T/텔레스코픽)** | `compensation: null`(folded_cascode가 실제로 그렇다)이면 `gm_i`의 출처가 사라져 §7.9 인과사슬이 끊긴다 | `compensation: null`을 1급 케이스로 명시하고 그때 gm의 출처(GBW×CL 또는 gain 제약)를 §7.9에 정의 |
-| G2 | **3단 이상 중첩보상(NMCNR — 저장소에 있음)** | `solves_for:["Cc","Rz"]`·`stage_gm_ref` 2개가 2단 하드코딩. `Rz=1/gm2`가 **범용 DOF 계수기 본문**에 상수로 박혀 있다. NMCNR의 자유도 `kg=gm2/gm3`를 선언할 자리가 없다 | `compensation`을 stage 수 종속으로 일반화, 종속관계를 `topology_fn` 메타데이터로 이동 |
-| G3 | **Gain-boosted cascode** | §7.9의 "④ VDS 예산만이 유일한 설계 자유도"라는 출발 명제를 직접 반증한다(⑤ 캐스코드 부스트를 설계 변수로 만드는 기법) | `stages[].boost_amp` 재귀 또는 명시적 범위 밖 선언 |
-| G4 | **class-AB 정지전류** | `ID_source ∈ {kcl, ideal_source_ref}`뿐인데 Monticelli 정지전류는 **VGS 합(KVL)**이 정한다. `ID_final = max(KCL, SR×CL)`은 class-A 규칙이라 class-AB 정지점을 파괴한다 | `ID_source.type`에 `kvl_battery_loop` 추가, `driving_spec.output_class ∈ {A, AB}` 신설 |
-| G5 | **폴딩 노드** | `folded_cascode`의 gain metric은 역할을 **5종**(`gm1_device`/`fold_leg_a`/`fold_leg_b`/`cascode_p`/`cascode_n`/`mirror_n`)으로 요구하는데 서브롤은 4종이다. `fold_leg_b`가 어디에도 안 들어간다 | 서브롤 확장(+`follower`/`common_gate`/`floating_current_source`/`voltage_divider`) |
-| G6 | **stage 분할 규칙이 없다** | 문서 어디에도 stage 경계 정의가 없다. §8.3은 `stages[]`가 이미 있다고 가정하고, §13.3의 5신호(원래 "미러 다리 matching vs gain-load" 판정용)를 input/cascode 분류기로 전용해 **신호2가 입력 차동쌍에 먼저 걸린다**(입력쌍이 cascode로 분류됨). `input↔load` 구분·`tail` 판정 규칙도 없다 | "stage 분할은 사람이 확정하는 입력"임을 명시하거나 진짜 판정 규칙을 세울 것. §8.3의 5신호 전용은 **철회** 권장 |
-| G7 | **비증폭 회로**(밴드갭·constant-gm bias·비교기·SC) | §2.2가 회로 부류를 하나도 배제하지 않아 암묵적 보편성을 주장한다 | §2.2에 "Out of Scope — 회로 부류" 절 신설. 이들은 배제하는 편이 옳다 |
-| G8 | **새 토폴로지 추가 비용이 문서화돼 있지 않다** | §8.3은 "JSON 두 개 쓰면 끝"처럼 읽히나 실제로는 gain metric·CMRR/PSRR estimator·`topology_fn`을 각 레지스트리에 등록하는 **엔진 작업 3~4곳**이 필요하다 | §8.3에 그 목록을 명시 |
-
-### 10.5 정합성 잔여 (검토자 C)
-
-v4.0에서 §1.5 참조 4곳·`schema_version`·"무변경 재사용" 2곳·§8.8 기준선 서술을 고쳤다.
-남은 것: 유령 함수 3개(`allocate_headroom_budget()`/`measure_stage_gain_ceiling()`/
-`redistribute_headroom_by_gain_gradient()` — §6.1에 1회씩만 등장, 본문에 정의 없음, §7.9는
-같은 기능을 다른 이름으로 서술), 삭제 선언한 `gain_allocation`/`gain_allocation_check`의 잔존
-(L794/L1150), §2.2 vs §4.1 C7의 범위 충돌(파일럿 1개 vs 4개 전수), §7.9 3-Phase 순서와 §8.4
-harness 순서의 불일치(§8.4에 Phase 1이 없고 되먹임을 금지), 신규 함수 목록 3중 관리
-(§2.1/§6.1/각 §7 절 말미), `closed_loop_accuracy_db`·`stage_gm_ref`·`vdd_kvl` 미소비 필드,
-`slew_rate_v_per_us` vs `slew_rate_target`·`battery_centering_deviation` vs
-`classab_centering_dev_v` 명칭 흔들림, §7.10 측정2 표의 빈 헤더.
-
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.6 spec 정본화 — 2026-09-10 사고와 재발 방지 (★ 신설 v4.34) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.7 class-AB 배터리 헤드룸 + 기준점 복구 (★ 신설 v4.35) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.8 §7.11 L2 완성 — 보상망을 실제로 세고, Cc를 유도한다 (★ 신설 v4.36) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.9 미러 공통 L -- 3층 구조 (★ 신설 v4.37, 층1/2/0 착지 · 층3 미완) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.10 층3 착지 -- 동치류 공통 L을 theta로 파생 (★ 신설 v4.38) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.11 `_L_ROLE_MULTIPLIERS` 완전 제거 -- knee를 실현가능 창으로 clamp (★ 신설 v4.39) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.12 웜스타트에 `l_class` 포함 -- 두 번의 되돌림 (★ 신설 v4.40) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.13 미러비 계통오차에 상한 -- **숫자를 박지 않고** (★ 신설 v4.41) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.14 입력환산 오프셋 + 달성 가능 임계값 유도 (★ 신설 v4.42) → 이력 문서
 
-> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다. 이 절 안의 **사용자 확정 결정은 재작성에서 현행 결정 목록으로 옮기기 전까지 그대로 유효**하다.
+> (v4.47) 본문은 이력 문서 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 같은 절 번호로 이동했다.
 
 ### 10.15 임계값 bisection -- 설계만 (★ v4.42, 구현은 design 단계 이후)
 
@@ -1478,4 +1559,4 @@ Phase 0 -> 0.5(역할 분리) -> 1(test 분리) -> 2(사장코드·동작보존 
 
 ## Version History → 이력 문서
 
-> 전체 버전 이력은 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md) 끝 `## Version History`에 있다. 최신: **v4.48**(graph 기반 gain-budget-first 최종안 §15).
+> 전체 버전 이력은 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md) 끝 `## Version History`에 있다. 최신: **v4.49**(현행 계획 중심 재작성).
