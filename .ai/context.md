@@ -14614,3 +14614,4 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
     test-only 판정 유형 신설, 추출 도구 선행 변경, 운영 도구 이동 두 커밋, `.gitignore` 사용자만, exit code 중복 수정 등 전부 반영.
     감사·검증 원자료는 docs/03-analysis/gain-budget-gmid-sizing-function-audit/rewrite2_*.md. 3회차 검증은 돌리지 않았다(패치 후 참조 자동 검사만).
 * U-15(hook 역할 필드 부재 시 판정 방식): 사용자 "실측후 정하자." -> Phase 0.5 부트스트랩 ② 실측 기록과 함께 A(worktree cwd)/B(별도 세션)/C(EL3·EL4만) 제시 후 결정. 계획 N7.2 갱신.
+* U-16 확정(사용자 "A로 해"): topology.json 메타데이터(role·ports·passive)는 오케스트레이터가 사용자 확인 후 반영. 승인 기록 + `Role: doc`, EL4가 승인 없는 topology diff 거부, 변경 시 S0 지문으로 ratified -> review_needed. 계획 N7.2·N3.12.2·EL4 반영.

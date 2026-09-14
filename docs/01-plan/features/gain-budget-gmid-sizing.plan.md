@@ -499,7 +499,7 @@ skills/analog-gmid-design/assets/tests/
 | gmid-code-author | `skills/analog-gmid-design/assets/*.py`, `skills/analog-gmid-design/assets/tests/tools/**`, `tools/migrate/**`, `workspaces/run_harness.py`, `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`, `docs/02-design/disputes/<id>.md`(자기 변경 id만). 게이트 변경 spec card와 승인 기록이 있을 때만 `tools/gates/*.py`, `hooks/role_*.py` |
 | gmid-test-author | `skills/analog-gmid-design/assets/tests/**`(`tests/tools/**` 제외). 게이트 변경 spec card와 승인 기록이 있을 때만 `tools/gates/redteam/**` |
 | gmid-verification-auditor | `.ai/verification/**` |
-| 오케스트레이터 | `docs/01-plan/**`, `docs/02-design/**`(disputes는 `_TEMPLATE.md`만), `docs/03-analysis/**`(레지스트리 제외), `.ai/context.md`, `.ai/approvals/**`, 사용자 확인을 받은 `skills/analog-gmid-design/assets/library/*.topology.json`(U-16), `skills/analog-gmid-design/assets/library/*.structure.json`(status 전이 기록만) |
+| 오케스트레이터 | `docs/01-plan/**`, `docs/02-design/**`(disputes는 `_TEMPLATE.md`만), `docs/03-analysis/**`(레지스트리 제외), `.ai/context.md`, `.ai/approvals/**`, 사용자 확인과 승인 기록이 있는 `skills/analog-gmid-design/assets/library/*.topology.json`(U-16 확정), `skills/analog-gmid-design/assets/library/*.structure.json`(status 전이 기록만) |
 | 사용자만 | `.githooks/**`, `.claude/**`, `.gitignore`, `install.py`, 부트스트랩 이후의 `agents/gmid-*.md` |
 
 hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 없고 대상 경로가 위 표의 경로와 겹치는 호출만 판정한다. 그 밖(RTL agent 등)은 즉시 통과시킨다. 경로 판정은 대상 경로를 해당 worktree 루트 기준 상대 경로로 바꾼 뒤 한다. '사용자만' 경로는 Claude 세션의 도구 호출로 쓸 수 없다(EL1 거부) -- 사용자가 세션 밖에서 편집하거나, 부트스트랩 ④ 단계(hook 설치 전)에 오케스트레이터가 승인 기록과 함께 한 번 쓴다.
@@ -531,7 +531,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | EL1 | PreToolUse hook `hooks/role_guard.py`(Edit/Write/NotebookEdit/Bash). 쓰기 경로표 밖 쓰기를 거부하고 사유를 돌려준다. Bash에서 `--no-verify`, `git commit -n`, `core.hooksPath`, `git push`, `git reset --hard`, `git checkout -- <tests 경로>`, 경로표 밖으로의 리다이렉트를 거부 | 역할 밖 편집, 게이트 무력화 |
 | EL2 | PostToolUse(Bash) + SubagentStop hook `hooks/role_diff_guard.py`. worktree `git status --porcelain`을 경로표와 대조해 위반이 있으면 exit 2로 완료를 거부. 무시 목록 = `.gitignore` 대상(`library/*.search_archive/`, 실행 산출물 `runs/`를 `.gitignore`에 등록) + `__pycache__/`, `.pytest_cache/`(무시 목록 변경은 사용자만) | 쓰는 방법과 무관한 역할 밖 변경 |
 | EL3 | `.githooks/pre-commit`에 `tools/gates/role_commit_gate.py` 추가. staged 경로가 경로표와 겹치면 `Role: code|test|audit|doc` 트레일러 필수. 소스와 `tests/**`(`tests/tools/**` 제외)를 한 커밋에서 바꾸면 차단, code 커밋이 `tests/**`(`tests/tools/**` 제외)·기준선·conftest를 바꾸면 차단. python이 없으면 기존 agent 검사와 역할 검사 모두 차단(skip 금지) | 코드와 기준 동시 변경 |
-| EL4 | `tools/gates/merge_gate.py <base>..<branch>`. 모든 커밋의 트레일러·경로·브랜치 역할 일치를 사후 재검사하고, 판정 기록 존재 + test 커밋 해시가 freeze 해시와 같음 + 판정 유형별 증거 + auditor PASS를 확인. 하나라도 없으면 거부 | 앞 겹을 모두 우회한 커밋 |
+| EL4 | `tools/gates/merge_gate.py <base>..<branch>`. 모든 커밋의 트레일러·경로·브랜치 역할 일치를 사후 재검사하고(topology.json diff는 승인 기록 필수, U-16), 판정 기록 존재 + test 커밋 해시가 freeze 해시와 같음 + 판정 유형별 증거 + auditor PASS를 확인. 하나라도 없으면 거부 | 앞 겹을 모두 우회한 커밋 |
 
 한계: 경로 기반 Read 거부는 Read 도구만 막고 Bash 읽기는 못 막는다(Windows에는 파일시스템 sandbox가 없다). test-author의 소스 열람은 V3·V4가 결과로 잡는다.
 
@@ -819,7 +819,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-13 | 면적 정의와 파일럿 면적 예산 | 예산 미선언 시 DEC-07대로 Pareto 제시 후 정지 | 7b |
 | U-14 | gain 폭이 분해능 이하인 공유 VGS 그룹(pmos:Vcmfb)의 선택 기준 | 전력 기준으로 고르고 기록 | 7b |
 | U-15 | hook 입력에 역할 필드(`agent_type`)가 없을 때의 역할 판정 방식. **실측 후 결정(2026-09-14 사용자)**: 부트스트랩 ② 실측 기록(PreToolUse·PostToolUse·SubagentStop 각각에서 `agent_type`·`agent_id`·`cwd` 존재 여부, 세 역할 + 메인 세션)을 제시하고 고른다. 필드가 있으면 이 결정은 필요 없다 | 선택지: A. 호출자 `cwd`가 속한 worktree(`../wt/<id>-<role>`)로 판정(EL1 약화분은 EL3·EL4와 Bash `git -C`·다른 worktree 경로 거부로 보완) / B. 역할마다 별도 Claude 세션·설정 / C. EL1은 메인 세션 규칙만, 역할 구분은 EL3·EL4 | 0.5(실측 직후) |
-| U-16 | topology.json 메타데이터(role·ports·passive) 반영 주체 | 오케스트레이터가 사용자 확인 후 반영(`Role: doc`). 근거: WP-07, WP-08 | 0.5 |
+| U-16 | topology.json 메타데이터(role·ports·passive) 반영 주체. **확정(2026-09-14 사용자 "A로 해")**: 오케스트레이터가 사용자 확인 후 반영 | 조건: 사용자가 확인한 표의 항목만 반영, connectivity(넷리스트·passive·이상원 넷)는 WP-08대로 모았다가 일괄 반영하고 net 표 재출력으로 대조 / 승인 기록 `.ai/approvals/<id>.md` + 커밋 `Role: doc`, EL4는 승인 기록 없는 topology diff를 거부 / topology 변경은 S0 지문을 바꿔 `ratified`를 `review_needed`로 되돌림 / topology 변경으로 바뀌는 test 기대값은 V5 승인 대상. 근거: WP-07, WP-08, DEC-35 | 확정 |
 | U-17 | `mismatch_sigma_mV = 5.0`의 출처(시스템 레벨 요구) | 사용자가 출처를 선언 | 6a |
 | U-18 | 기준 약화 개별 승인 | 매 건 승인 기록 | 상시 |
 | U-19 | `gain_db >= 54`를 전체회로 gain 기준 bisection으로 재도출해 교체할지 | 재도출값 제시 후 승인 | 7a |
