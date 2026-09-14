@@ -14613,3 +14613,4 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   - 독립 재검증 2회차: 59건 중 반영 53/부분 4/틀림 2, 새 문제 18(막음 1: J7을 7b로 두면 6c 정지로 two_stage·nmcnr DoD 불가 -> J7을 6a-2로).
     test-only 판정 유형 신설, 추출 도구 선행 변경, 운영 도구 이동 두 커밋, `.gitignore` 사용자만, exit code 중복 수정 등 전부 반영.
     감사·검증 원자료는 docs/03-analysis/gain-budget-gmid-sizing-function-audit/rewrite2_*.md. 3회차 검증은 돌리지 않았다(패치 후 참조 자동 검사만).
+* U-15(hook 역할 필드 부재 시 판정 방식): 사용자 "실측후 정하자." -> Phase 0.5 부트스트랩 ② 실측 기록과 함께 A(worktree cwd)/B(별도 세션)/C(EL3·EL4만) 제시 후 결정. 계획 N7.2 갱신.

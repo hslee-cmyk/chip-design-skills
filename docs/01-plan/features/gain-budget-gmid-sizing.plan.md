@@ -818,7 +818,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-12 | 단일단(보상 없음) 회로의 gm 출처 | `gm_1 = 2π·GBW·CL` | 7b |
 | U-13 | 면적 정의와 파일럿 면적 예산 | 예산 미선언 시 DEC-07대로 Pareto 제시 후 정지 | 7b |
 | U-14 | gain 폭이 분해능 이하인 공유 VGS 그룹(pmos:Vcmfb)의 선택 기준 | 전력 기준으로 고르고 기록 | 7b |
-| U-15 | hook 입력에 `agent_type`이 없을 때 worktree 경로(`../wt/<id>-<role>`)로 역할을 판정해도 되는지 | 허용 | 0.5 |
+| U-15 | hook 입력에 역할 필드(`agent_type`)가 없을 때의 역할 판정 방식. **실측 후 결정(2026-09-14 사용자)**: 부트스트랩 ② 실측 기록(PreToolUse·PostToolUse·SubagentStop 각각에서 `agent_type`·`agent_id`·`cwd` 존재 여부, 세 역할 + 메인 세션)을 제시하고 고른다. 필드가 있으면 이 결정은 필요 없다 | 선택지: A. 호출자 `cwd`가 속한 worktree(`../wt/<id>-<role>`)로 판정(EL1 약화분은 EL3·EL4와 Bash `git -C`·다른 worktree 경로 거부로 보완) / B. 역할마다 별도 Claude 세션·설정 / C. EL1은 메인 세션 규칙만, 역할 구분은 EL3·EL4 | 0.5(실측 직후) |
 | U-16 | topology.json 메타데이터(role·ports·passive) 반영 주체 | 오케스트레이터가 사용자 확인 후 반영(`Role: doc`). 근거: WP-07, WP-08 | 0.5 |
 | U-17 | `mismatch_sigma_mV = 5.0`의 출처(시스템 레벨 요구) | 사용자가 출처를 선언 | 6a |
 | U-18 | 기준 약화 개별 승인 | 매 건 승인 기록 | 상시 |
