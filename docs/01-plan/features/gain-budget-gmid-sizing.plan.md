@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.47
+version: 4.48
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -45,7 +45,7 @@ version: 4.47
 ## 0. 이어받을 지점 (★ 2026-09-08 기준, 새 세션은 여기부터 읽는다) → 이력 문서
 
 > **(v4.47) 2026-09-08 스냅샷은 이력 문서로 이동했다** -- [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md) §0.
-> **현재 착수 지점: §13.6 전체 수정 순서 + §14.8 -- Phase 0.5(역할 분리 인프라)부터.** 남은 사용자 결정은 §14.9 끝(D6·D7·D8, 해당 Phase 착수 조건).
+> **현재 착수 지점: §13.6 전체 수정 순서 + §14.8 -- Phase 0.5(역할 분리 인프라)부터.** Phase 6·7은 **§15(graph 기반 gain-budget-first)**가 대체한다 -- gain-budget-first는 폐기되지 않았고 graph가 그 기반이다. 남은 사용자 결정은 §14.9 끝(D6·D7·D8, 해당 Phase 착수 조건).
 > ⚠️ 이 절은 계획서 재작성(현행 계획을 앞으로 모으기)에서 다시 쓴다.
 
 ## 1. Overview
@@ -1174,8 +1174,8 @@ assets/tests/
 | **3** | 파일 분리 13.4 -- 이동 전용 커밋, 모듈당 1커밋, shim 경유 후 `sizing_recipe.py` 삭제 | 없음 | 2 |
 | **4** | 결함 수정 §12.6 #1~8 + §13.3 #9~21 (T4 test가 먼저 FAIL로 드러낸 뒤 고침) + 동작이 바뀌는 DUP 통합(★ diode·미러·diffpair 정본은 **공동분석**, metric 3쌍은 4회로 재측정) | **있음** | 3, 착수 조건 D6·D8 |
 | **5** | 빠른 효과: 실패 캐시 + start 사전선별, θ* 기록 + 아카이브 시드 (`theta_search.py`에) | 탐색 경로 | 4 |
-| **6** | §12 CSG: S0+S1(`circuit_state_graph.py`, shadow 동등 단언) -> S2(**노드전압 정본, D1 확정**)+C-a/C-b+봉인 게이트 -> 유도 DAG·블록 memo·순환 블록(C-c) -> S1v -> S3 아카이브, 각 단계에 T7 계약 test | **있음** | 5 |
-| **7** | §7 gain-budget-first 미구현 함수군 + `sizing_spec.json` 분리: §12 S1/S2 위에서 **재평가 후** 필요한 것만(구조가 바뀌어 명세 그대로는 맞지 않는 항목이 있음 -- 이관 전 재명세) | **있음** | 6 |
+| **6** | **(§15.8 6a~6c가 대체, v4.48)** §12 CSG: S0+S1(`circuit_state_graph.py`, shadow 동등 단언) -> S2(**노드전압 정본, D1 확정**)+C-a/C-b+봉인 게이트 -> 유도 DAG·블록 memo·순환 블록(C-c) -> S1v -> S3 아카이브, 각 단계에 T7 계약 test | **있음** | 5 |
+| **7** | **(§15.8 7a~7c가 대체, v4.48 -- gain-budget-first는 폐기가 아니라 graph 위에서 구현)** §7 gain-budget-first 미구현 함수군 + `sizing_spec.json` 분리: §12 S1/S2 위에서 **재평가 후** 필요한 것만(구조가 바뀌어 명세 그대로는 맞지 않는 항목이 있음 -- 이관 전 재명세) | **있음** | 6 |
 
 순서 근거: **test 먼저**(파일 이동·통합이 동작을 안 바꿨다는 것을 증명할 수단), **이동은 결함 수정 전**(동작 변경과 섞으면
 회귀 원인을 못 가림), **사장 코드는 이동 전에 정리**(옮긴 뒤 지우면 이동 비용 낭비), **§12는 파일 경계가 선 뒤**
@@ -1362,6 +1362,120 @@ Phase 0.5가 PASS하기 전에는 엔진 코드를 바꾸는 어떤 작업도 �
 **남은 사용자 결정은 착수 조건 3개뿐이다**: D7(Phase 2 시작 시 삭제 목록 일괄 승인), D6·D8(Phase 4 시작 시 수치·대조표로 결정).
 Phase 0.5 ~ Phase 3은 추가 결정 없이 착수할 수 있다(단 D5 ports 확인은 Phase 0 선행, 기준 약화 D14는 발생할 때마다).
 
+## 15. graph 기반 gain-budget-first -- 최종안 (★ 신설 v4.48, 2026-09-14, 사용자 지시)
+
+사용자: *"현재 graph가 baseline은 맞지만 그 이유는 stage를 정확히 나누고 그 stage별로 gain을 올바르게 할당하기 위해서이기
+때문에 gain budget first의 원래 계획이 폐기된 것은 아니잖아? graph를 이용해서 gain budget first를 훨씬 더 잘 구현할 수 있는
+계획안을 내놔."* / *"gain분해에 관해서 기존 설계를 구현했을 때 발생했던 문제들을 조사해서 보고하게 하고, 그걸 보완한 계획도
+추가해서 최종안을 만들어."*
+
+**정정**: v4.44~4.47은 gain-budget-first(§7 원설계)를 "Phase 7 재평가 대상"으로 뒤로 미뤘다 -- 방향이 틀렸다.
+**gain-budget-first가 목표이고, §12 Circuit State Graph는 그 목표를 위한 기반이다.** graph가 필요한 이유는
+(1) stage를 connectivity에서 정확히 나누고 (2) stage 출력노드의 실제 부하까지 포함해 gain을 분해·할당하기 위해서다.
+이 절이 §13.6의 Phase 6·7을 대체한다(15.8).
+
+### 15.1 근거 -- 네 검토 (원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/`)
+
+| 검토 | 대상 | 결과 파일 | 핵심 |
+|---|---|---|---|
+| A | 원설계 §1.4·§6·§7.1~7.3 (72요소) | `review_A_design_7_1_7_3.md` | 유지 15 / **변형 43** / 폐기 14. 대부분이 "형태를 바꿔 유지" |
+| B | 원설계 §7.5·§7.6·§7.8·§7.9 + §3.1·A·B·G (61요소) | `review_B_design_7_5_7_9.md` | 유지 36 / 변형 20 / 폐기 5. **DP 단독 불성립 -> 3층 할당** |
+| C | 4개 회로 stage 분할 실측 | `probe_stage_partition.result.md`, `probe_stage_partition.py` | **차동모드 뷰 + R2 규칙이 선언과 소자 단위 100% 일치**(4회로 6개 선언) |
+| D | gain 분해 구현 사고 41건 | `review_D_gain_decomposition_incidents.md` | **미해결 23건**, 근본 원인 R1~R5, 보완책 P1~P10 |
+
+### 15.2 과거 gain 분해가 실패한 이유 (검토 D)
+
+| 근본 원인 | 사례(번호는 원자료) | 대표 |
+|---|---|---|
+| **R1 stage gain을 "소자 이름 목록"으로 정의** -- 노드 임피던스·부하·캐스코드 곱 개념 없음, 경계를 사람이 선언 | 1, 2, 19, 20, 22, 24~26, 36 | **B21**: `gain_db`(`gain_stages_sum`, 6소자)가 미러 18소자 6480조합에서 65.5547dB 불변, 전체회로 MNA는 63.67~89.82dB(26.15dB). `_metric_gain_stages_sum`은 목록 소자의 gm·gds를 그냥 합산(`sizing_recipe.py:3028-3037`, 직접 확인) -- 캐스코드 gm까지 입력 gm에 더해진다. 전체회로 대비 2.5~11.8dB 괴리가 동작점마다 달라 보정 불가 |
+| **R2 KVL/KCL 게이트 없이 metric 계산 -> 기준선으로 고정** | 4, 5, 6, 11, 29 | **76.48dB 거짓 기준값**: M1a+M4a VDS 합 3.0V > VDD 1.8V 동작점. KVL 강제 후 약 52dB(`fe99943` 계열) |
+| **R3 목표·배분·파생값의 출처 미기록** | 3, 13, 14, 38, 40 | 논문 목표 75.6dB를 쫓아 gain +0.4dB에 cmrr −13dB·psrr −32dB를 내줌, 54dB로 재도출 |
+| **R4 독립 참조 없이 정식화 확정** | 15~18, 23, 30~32, 39 | KKT 탐욕 72시나리오 중 27건 오답(A11) -> DP(`afd9b6b`) 그러나 엔진 미구현. **"stage 합 = 전체, 차이 0"(B2)과 DP "9/9 일치"는 정의상 참인 자기참조 검증**이라 B21을 못 잡음. 트랜지스터 레벨 SPICE gain 대조 기록 없음 |
+| **R5 gain과 같은 자유도를 쓰는 것들을 국소 결정** | 7~10, 12, 27, 28, 33~35, 37, 41 | 조인트 스캔 필터가 gain 제약을 빼 76.48->57.2dB, 미러 VGS를 면적 기준으로 골라 gain 순위 6423/6480(사용자 정정: gain 기준) |
+
+### 15.3 stage 분할은 connectivity로 된다 -- 조건과 한계 (검토 C 실측)
+
+* **맞는 규칙**: 대칭 net 대응으로 만든 **차동모드(DM) 뷰**에서 R2 -- gate→drain 엣지를 지날 때 stage +1(고임피던스 드레인 노드 =
+  stage 출력), source→drain(캐스코드)은 같은 stage, **diode 노드 게이트의 gate→drain은 같은 stage(미러)**, 출력노드에 붙은
+  부하·공유 소스 노드의 tail 분류. 4회로 6개 선언과 **소자 단위 100%**. gate→source 엣지를 뺀 변형(R2ng)도 거의 같다.
+* **틀리는 규칙**: 지시한 엣지 그대로(R1/R2 full)는 대부분 **0%** -- 입력쌍의 gate→source→drain이 경유 비용 0인 우회로를 만든다.
+* **선언이 빠뜨린 부하**: current-reuse stage1 출력 Vom1에 M19·M18a(drain)·M18b(source), 사슬 아래 M17 -- B21과 같은 결과.
+  folded·nmcnr은 실제 누락 0.
+* **connectivity로 결정 가능**: 교류접지(레일, gate-only 넷), diode 노드, diffpair·공유 source tail, 미러 그룹, ports seed 대칭 대응,
+  DM stage index, 출력노드 기여 소자와 캐스코드 사슬, SCC·자기루프, DM의 Cf 궤환 극성. (기존 `gain_stage_tails`는 3개 회로에서
+  `{}`인데 규칙은 tail M11/M5/M101을 찾았다.)
+* **graph로 안 되는 것**: 어느 여기 모드가 스펙인가, class-AB gm 합산 방식, 자유 노드 배분 기준, LUT 비단조 자체, Cc–Rz 직렬 루프 극성(가운데 노드가 수동소자에만 붙음).
+* **데이터 공백**: nmcnr·two_stage는 `passive_elements` 없음(보상 루프 불가시), folded·nmcnr은 `ports` 없음.
+
+### 15.4 원설계 처리 (검토 A·B -- 요소별 표는 원자료)
+
+| 원설계 | 처리 | 무엇이 바뀌나 |
+|---|---|---|
+| §7.1 `sizing_spec.json` 분리 | **유지·변형** | 필드를 둘로 가른다: **graph 유도**(stage 경계·input/cascode/load/tail, `vertical_stack_id`, `vsb`, `vds_match_vgs_of` 3건 -- D1에서 항등식, 같은 종류 `gm_id_match_vgs_of`, `compensation.stage_devices`/`vds_kvl_groups`, metric 소자 역할 인자, 노드 공유 `budget_reference_device` 5건) vs **사람 선언**(objective·제약값(출처 필수), `ports`, `value_amp`, 보상 목표 GBW/PM/CL, `driving_spec`, 다른 종류 간 매칭, `same_as_device` M7=M6·M36b=M36a). 유도 필드는 `status{derived/ratified/review_needed}` + 증거로 저장 |
+| §7.1 예시 `load: []` | **폐기** | stage 멤버 = **출력노드에 붙은 소자 전부**(graph). B21과 같은 결함이었다 |
+| §7.2 stage 사이징(cascode gm/gds 최대화 -> input intrinsic gain 역산 -> LUT 이분 역산) | **변형** | 입력 전제 둘이 뒤집혔다(v4.0: gm은 보상이 고정, `gain_budget_db`는 출력). A11(gm/gds 비단조)로 이분 역산 폐기. **stage gain = gm_in / G_out, G_out = 출력노드 소자 gds 합(캐스코드는 곱 부스트)** -- 목표 G_out을 격자 전수로 |
+| §7.3 헤드룸 우선순위 체인·diode 티어 | **변형(재정식화)** | D1 아래 **노드전압 writer 티어**: T0 레일 / T1 구조 항등(diode, 노드 공유 병합) / T2 물리 종속 블록(노드전압↔gm_id↔W, 적층 diode `vsb_lo = vsb_up + v_up`) / T3 선언된 노드전압 목표 / T4 자유 노드(배분기). "먼저 쓴 값 존중" 폐기, 충돌은 봉인 게이트가 거부. `set_device_vds`는 읽기 전용 파생으로 격하. 코드는 지금 L→VDS→gm_id 순서(`sizing_recipe.py:9151→9236`) -- 원설계 "gm_id 확정 후 VDS"와 반대 |
+| §7.5 전체회로 물리 정합성 검증기 | **유지·승격** | 사후 검사기가 아니라 **D1 불변식 + 봉인 게이트**(metric 계산 전). 다중도달 불일치·스택 합·vsb 버전 혼재는 표현 자체가 불가능. SPICE 교차검증은 graph가 대체 못 함 -- 독립 oracle로 유지 |
+| §7.6 T1/T2/T3 게이트 | **유지·자동화** | metric이 **실제로 읽은** 소자·노드(C-a reader 기록) support set을 S1v 블록에 투영해 자동 분류. 선언 support를 믿으면 B18 재발 |
+| §7.8 DOF 사전 진단 | **변형** | S1 방정식 그래프로 셈: 스택별 자유도 = (k−1) − (diode·offset·budget_ref 등식 수)(B5 해소), 등식만 rank에 넣고 부등식은 경고(B6 해소). 사고19(대수 종속)는 구조 rank로 못 잡음 -> 여러 θ에서 Jacobian 수치 rank 추가 |
+| §7.9 헤드룸 자원배분·KKT·분리형 DP·Pareto·면적 제약형 | **변형**(KKT 탐욕·기생 반복 별도 축 폐기) | **DP 단독 불성립** -- stage 경계를 넘는 결합 K1 출력노드 부하(B21) / K2 공유 VGS(B19' 미러 18소자) / K3·K4 적층 vsb·공유 스택(B25) / K5·K6 PM·보상(§7.11). -> 15.5 G6의 3층 할당 |
+
+### 15.5 최종 흐름 G0~G9
+
+| 단계 | 내용 | 산출물(저장 위치 §12) | 막는 과거 실패(15.2) |
+|---|---|---|---|
+| **G0 spec** | 사람이 준다: objective, 제약값 + **출처 필수**(논문 출처 거부), `ports`, `value_amp`, 보상 목표(CL/GBW/PM), `driving_spec`. metric 정의 해시를 지문에 포함(metric이 바뀌면 목표 재도출) | S0 지문 | R3 |
+| **G1 구조 유도** | S1: 교류접지 집합, diode, 미러 그룹, diffpair·tail, L 동치류(tail이 L의 주인), vertical stack, 관계 엣지(equal_vgs, vds_eq_vgs, stacked_vsb, budget_ref, matching). 레지스트리 정본 함수만 사용 | S1(`circuit_state_graph.py`) | R1 |
+| **G2 stage 분할** | S1v DM 뷰 + R2 규칙 -> stage별 {input, cascode, load, tail, 출력노드, G_out 기여 소자 전부}, 피드백 엣지·극성. CM 뷰는 CMFB용. **선언과 대조표 -> 불일치는 `review_needed`로 정지 -> 공동분석 확정(15.7) -> `ratified`** | S1v | R1(사례 1, 24~26) |
+| **G3 결합 블록** | 관계 엣지의 연결성분으로 블록을 묶는다: 출력노드 부하가 다른 미러·L 동치류에 속하면 같은 블록, 공유 VGS·적층 vsb·공유 스택도. 블록 간 **결합변수 y**(공유 VGS, 공통 L, 스택 배분)를 기계적으로 추출 | S1 | R5 |
+| **G4 달성가능성·DOF 진단** | 블록별 A_i,max 표(출력노드 부하 gds 포함, LUT 격자 전수 -- 비단조 무관), Σ 대 목표, 제약별 달성 상한. 구조 DOF(등식만) + θ 표본 Jacobian 수치 rank. 불가면 **탐색 전에** 이유와 함께 정지. LUT 곡선 단조·볼록·단위는 로드 시 검사해 해법 선택에 반영 | S2 memo(블록 표) | R3·R4(사례 3, 10, 15~17, 27, 30~32, 37) |
+| **G5 보상 먼저** | v4.0 인과 유지: (CL, GBW, PM) -> (Cc, Rz, gm_i). §7.11 기생 pole clamp로 L 상한. Cc는 보상망이 유도 | S2 | R5(사례 7~9) |
+| **G6 gain 할당 3층** | **내층** 결합변수 y 고정 시 블록별 DP(gm_id × L, 블록 gain에 외부 부하 gds 포함 -- 분리성이 정확히 성립) / **중층** y 좌표강하(공유 VGS는 **gain 기준** -- 사용자 확정 B19', 바뀌지 않은 블록 표는 S2 재사용) / **외층** DP 해를 시작점으로 SLSQP 미세조정 + T3 전역 게이트. `gain_budget_db`는 **출력** | S2, S3(좌표강하 이력·실패·Pareto) | R4·R5(사례 12, 17, 28, 33, 35, 37) |
+| **G7 DC 해석** | 노드전압 정본(D1) + writer 티어 T0~T4(15.4), 순환은 SCC 블록 고정점(C-c, 허용오차는 LUT 격자·보간 오차에서 계산 D2). **봉인 게이트**(KVL 합, KCL 잔차, 노드전압 충돌, 버전 일치)를 통과해야 metric 단계로 | S2 | R2(사례 4~6, 29, 36) |
+| **G8 metric** | **gain metric은 전체회로 MNA(DM 뷰) 하나**, stage gain은 그 노드전압에서 얻는 **분해 부산물**(정의상 참인 비교 제거). **감도 게이트**: 분해 값 변화 0인데 전체회로 값이 변하면 오류, 괴리를 매 평가 기록. T1/T2/T3는 reader 기록 support set으로 자동 분류. 전력은 **레일 전류**로만(D6 착수 조건) | S2 | R1·R4(사례 1, 2, 18~20, 22, 40, 41) |
+| **G9 전역 게이트·아카이브·독립 검증** | 실패점도 margin과 함께 S3에, 전역 샘플로 끊긴 feasible 조각 탐색, 순회 결정론. **독립 oracle**: 트랜지스터 레벨 SPICE `.op`+AC gain(허용오차는 사전 계산 A9), metric 등록 시 `verified_by` 필수 | S3 | R4(사례 23, 39), R5(사례 11) |
+
+**보완책 P1~P10 대응**(검토 D): P1(분할·footprint 유도, gain metric MNA 1종) -> G2·G8 / P2(감도 게이트) -> G8 / P3(봉인 먼저) -> G7 / P4(출처 필수, metric 해시) -> G0 / P5(독립 검증만 인정, `verified_by`) -> G9 + §14 A2·A4 / P6(LUT 곡선 검사) -> G4 / P7(영향 집합 유도, `skipped_constraints` 반환) -> G3 + §12 유도 DAG / P8(달성가능성 진단) -> G4 / P9(실패 아카이브·전역 샘플·결정론) -> G9 / P10(대체 시 옛 함수 삭제, 전력은 레일 전류) -> §13.2 규칙 + G8.
+
+**검증 원칙(§14와 결합)**: G2 분할은 4회로 선언 대조(100% 재현이 회귀 기준), G6 할당은 **다른 모델**로 만든 전수탐색과 대조(같은 대리 모델끼리 비교 금지 -- 사례 18), G8 gain은 SPICE와 대조. 이 test는 test-author가 쓰고 oracle 출처를 §14.3 4종 중 하나로 명시.
+
+### 15.6 B21 처리
+
+* 제약 판정은 **전체회로 gain**(G8), 할당은 **부하 포함 블록 gain**(G6), 둘의 괴리는 블록별 metric으로 감시.
+* 결합 잔차(블록 gain 합 대 전체회로 gain)는 기존 6480조합 데이터로 먼저 잰다 -- 아직 측정하지 않았다.
+* 어느 소자가 어느 블록 부하인지는 G2가 유도하되, M18a/M19/M18b 포함 여부는 15.7 공동분석으로 확정.
+
+### 15.7 공동분석 목록 (회로 해석 -- G2 확정 전에 사용자와)
+
+| # | 항목 | 근거 |
+|---|---|---|
+| J1 | replica bias(M57/M58/M63/M64)를 교류접지로 끊을지 -- 끊으면 CMFB 루프 부호가 −1(부궤환)로 확정 | C |
+| J2 | diode 노드 게이트의 gate→drain을 같은 stage(미러)로 볼지 -- nmcnr M201→M203/M204 경계가 여기에 달림 | C |
+| J3 | class-AB M9a/M9b/M18a/M18b/M8/M17 역할, Vg15를 stage 출력으로 볼지 | C |
+| J4 | M7(gate Vcmfb)을 tail로 볼지 CMFB 구동소자로 볼지 | C |
+| J5 | 5T 미러부하(D3↔O1)·NMCNR 폴딩 미러를 DM 반회로에서 어떻게 다룰지(대칭 함수가 diode 노드와 출력노드를 합쳐 출력노드를 잃음) | C |
+| J6 | M18a/M19/M18b를 stage1 gain 부하로 넣을지(B21) | C, D |
+| J7 | Cc–Rz 직렬 루프 극성 판정 방법 | C |
+| J8 | `fold_group`, `shared_gm_id_groups`, 노드를 공유하지 않는 `budget_reference_device` 4건(M61/M68/M38, two_stage M4), `voltage_divider`/`floating_current_source`/`bias_replica` 의도 | A (B24의 vsb 오류 4소자 M38/M60/M61/M68이 모두 `budget_reference_device` 보유 -- 추적 단서) |
+| J9 | folded·nmcnr `ports`(D5), nmcnr·two_stage `passive_elements` 누락분 | C |
+
+§13.8 D8(구조 개념 정본)은 이 목록으로 확장한다.
+
+### 15.8 순서 갱신 (§13.6 Phase 6·7 대체)
+
+Phase 0 -> 0.5(역할 분리) -> 1(test 분리) -> 2(사장코드·동작보존 DUP) -> 3(파일 분리) -> 4(결함 수정) -> 5(빠른 효과)는 그대로. 그 뒤:
+
+| Phase | 내용 | 흐름 | 동작 변경 | 착수 조건 |
+|---|---|---|---|---|
+| **6a** | S0 지문 + S1 구조 유도 + **S1v stage 분할** -- shadow 모드로 기존 선언과 매 실행 대조(동작 무변경), 4회로 100% 재현 | G0~G2 | 없음 | J1~J9 공동분석, D5 ports |
+| **6b** | S2 노드전압 정본 + writer 티어 + 봉인 게이트 + 순환 블록 | G7 | 있음 | 6a |
+| **6c** | 결합 블록 + 달성가능성·DOF 진단 + LUT 곡선 검사 | G3·G4 | 진단만(정지 조건 추가) | 6b |
+| **7a** | gain metric 통일(전체회로 MNA 1종 + 분해 부산물 + 감도 게이트) + B21 처리 | G8 | 있음(제약이 실효과를 보게 됨) | 6c, D6·D8 |
+| **7b** | 보상 먼저 + 3층 gain 할당 + `sizing_spec.json` 분리(유도/선언 필드) | G5·G6 | 있음 | 7a |
+| **7c** | S3 아카이브·전역 샘플 + SPICE 독립 검증 | G9 | 탐색 경로 | 7b |
+
+각 Phase DoD: 4개 회로 측정(필요 없는 회로에서 무동작 증명), test-author의 거부 케이스, 평가 오버헤드 실측, wall-clock ≤ 5분(B4).
+
 ## Version History → 이력 문서
 
-> 전체 버전 이력은 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md) 끝 `## Version History`에 있다. 최신: **v4.47**(이력 분리).
+> 전체 버전 이력은 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md) 끝 `## Version History`에 있다. 최신: **v4.48**(graph 기반 gain-budget-first 최종안 §15).

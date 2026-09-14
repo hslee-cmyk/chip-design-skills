@@ -14579,3 +14579,15 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   - 남긴 것: 골격(Executive Summary~§5 -- 아직 옛 내용, 재작성 대상), 사용자 확정 원칙 §7.4/§7.7/§7.10/§7.11, 미해결 이슈 §10.2~§10.5,
     미구현 설계 §10.15, §12~§14. §0 stub에 현재 착수 지점(Phase 0.5) 명시.
   - 이력 문서 안의 사용자 확정 결정(spec 정본화, 미러 공통 L owner=tail, class-AB 배터리 기준 등)은 재작성에서 현행 결정 목록으로 옮기기 전까지 유효.
+
+* ★ graph 기반 gain-budget-first 최종안 -> 계획 §15(v4.48).
+  - ⚠️ 사용자 정정: "graph가 baseline인 이유는 stage를 정확히 나누고 stage별 gain을 올바르게 할당하기 위해서 -- gain budget first는
+    폐기된 게 아니잖아?" 내가 v4.44~4.47에서 gain-budget-first를 "Phase 7 재평가"로 밀었던 것이 틀렸다. **graph는 수단, gain-budget-first가 목표.**
+  - 네 검토(원자료 docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A/B/D, probe_stage_partition.*):
+    A 원설계 §7.1~7.3 72요소 유지15/변형43/폐기14, B §7.5~7.9 61요소 유지36/변형20/폐기5(DP 단독 불성립 -> 3층 할당),
+    C 4회로 stage 분할: **차동모드 뷰+R2 규칙이 선언과 100% 일치**(full 뷰는 입력쌍 gate->source 우회로로 0%),
+    D gain 분해 구현 사고 41건(미해결 23) -- 근본원인 R1 stage gain을 소자 이름 목록으로 정의, R2 KVL 게이트 없이 기준선, R3 출처 미기록,
+    R4 자기참조 검증("stage 합=전체 차이 0"은 정의상 참), R5 같은 자유도 국소 결정.
+  - 흐름 G0~G9: spec(출처 필수) -> S1 구조 -> S1v stage 분할(+공동분석 J1~J9) -> 결합 블록 -> 달성가능성·DOF -> 보상 먼저 ->
+    3층 할당(블록 DP / 결합변수 좌표강하 / SLSQP polish) -> 노드전압 정본+봉인 -> gain metric은 전체회로 MNA 1종+감도 게이트 -> 아카이브·SPICE.
+  - §13.6 Phase 6·7 -> §15.8 6a/6b/6c/7a/7b/7c. 착수 조건: 6a는 J1~J9 공동분석+D5 ports, 7a는 D6·D8. 구현 없음.
