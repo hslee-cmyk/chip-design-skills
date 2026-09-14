@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 5.0
+version: 5.1
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -67,7 +67,7 @@ version: 5.0
 | V1~V10 | auditor 검사 | N4.2 |
 | DF-nn | 현존 결함 | N5.2 |
 | I-A* / I-B* / I-G* / I-C* | 열린 이슈(옛 §10 A/B/G/C 번호 유지) | N5.3 |
-| J1~J9 | 회로 해석 공동분석 항목 | N7.1 |
+| J1~J10 | 회로 해석 공동분석 항목 | N7.1 |
 | U-nn | 사용자 결정 착수 조건 | N7.2 |
 | RC1~RC5 | gain 분해 실패의 근본 원인 | N3.1 끝 |
 
@@ -79,11 +79,12 @@ version: 5.0
 |---|---|
 | gain-budget-first | stage별 gain 예산을 **엔진이 유도해 산출**한다. 사용자는 총 gain 제약 하나만 준다. "gain이 gm을 정한다"는 뜻이 아니다 |
 | 보상 먼저 | 스펙 (CL, GBW, PM)에서 보상망이 (Cc, Rz, gm_1..gm_N)을 한 번에 정한다. 그 뒤 자유 축은 gm_id_i, L(동치류 단위), W4 자유 노드전압이다 |
-| signal stage | S1v 차동모드 뷰에서 SP1로 유도한 stage: {input, cascode, load, tail, 출력노드, G_out 기여 소자 전부} |
+| signal stage | S1v 차동모드 뷰에서 SP1로 유도한 stage: {input, cascode, follower, pass, load, tail, 출력노드, 출력노드 임피던스 등급, 블록 노드 집합} |
+| 소자 구성 | 신호가 들어오는 단자와 나가는 단자로 정한 소자 역할: CS(gate->drain), CG(source->drain), CD(gate->source, follower), pass(source↔drain, 게이트는 바이어스 -- class-AB floating battery 등) |
 | declared stage | topology.json에 사람이 적은 stage 정보(`compensation.stage_devices`, `gain_stages_sum.stages` 등). 대조 대상일 뿐 정본이 아니다 |
-| 출력노드 | signal stage의 고임피던스 드레인 노드(소스가 붙지 않은 노드) |
-| G_out | 출력노드에 붙은 소자 전부의 gds 합(캐스코드 사슬은 곱 부스트로 합성) |
-| 블록 gain | `20·log10(gm_in · R_out)`, `R_out = 1/G_out`(부하 포함) |
+| 출력노드 | stage 안에서 신호가 마지막으로 도달해 다음 stage 입력 또는 출력 포트로 넘어가는 노드. CS·CG 사슬이면 drain 노드(고임피던스), CD·pass로 끝나면 source(또는 pass의 반대쪽 단자) 노드(저임피던스일 수 있다). 임피던스 등급은 노드 속성으로 기록한다 |
+| 노드 어드미턴스 | 노드에 붙은 소자 단자별 소신호 기여의 합: drain 단자 gds, source 단자 gm+gmb+gds(게이트가 교류접지일 때), 수동소자 어드미턴스. 캐스코드·follower 효과는 아래 블록 국소 모델이 자동으로 포함한다 |
+| 블록 gain | 블록 국소 소신호 모델(N3.8)로 푼 출력노드 대 입력의 전압비(dB). CS 한 단의 특수 케이스가 `20·log10(gm_in / G_out)`, CD 한 단의 특수 케이스가 `20·log10(gm / (gm + gmb + G_node))` |
 | 결합 블록(coupling block) | signal stage 하나에 대응하는 할당 단위 |
 | 결합변수 y | 두 결합 블록 이상에 걸친 관계 엣지의 상태(K1~K4) |
 | 계산 블록(compute block) | 평가 커널을 나눈 계산 단위(입력·출력 선언, S2 memo 단위) |
@@ -139,7 +140,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | ID | 요구 | 근거 결정 |
 |---|---|---|
 | FR-1 | signal stage는 connectivity에서 SP1로 유도한다. declared stage와 다르면 `review_needed`로 기록하고, 회로 해석은 공동분석(J)으로 `ratified`한다 | DEC-43, DEC-44 |
-| FR-2 | 블록 gain은 출력노드 임피던스로 정의한다. gain 제약 판정은 전체회로 MNA gain 하나로 하고, 블록 gain 합과의 잔차를 매 평가 기록한다 | DEC-05 |
+| FR-2 | 블록 gain은 블록 국소 소신호 모델(출력노드 정의는 소자 구성에 따른다: CS·CG는 drain, CD·pass는 source 쪽)로 정의한다. gain 제약 판정은 전체회로 MNA gain 하나로 하고, 블록 gain 합과의 잔차를 매 평가 기록한다 | DEC-05 |
 | FR-3 | 보상이 먼저다: (CL, GBW, PM)에서 (Cc, Rz, gm_i)를 풀고 기생 pole로 L 상한을 정한다 | DEC-02, DEC-24, DEC-25 |
 | FR-4 | gain 할당은 엔진이 유도해 `gain_budget_db`로 **출력**한다. 결합 블록 3층 할당을 쓴다. 공유 VGS는 gain 기준으로 고르고 tail이 L 동치류의 주인이다 | DEC-03, DEC-45, DEC-10, DEC-17 |
 | FR-5 | 노드전압이 DC 정본이다. 소자 vds/vgs/vsb는 노드전압 차이로 유도하고, writer 티어 W0~W4로 쓰며, 순환은 명시적 고정점으로 푼다 | DEC-31(D1), DEC-32 |
@@ -170,7 +171,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | DEC-02 | 인과 방향은 보상 먼저: (CL, GBW, PM) -> (Cc, Rz, gm_1..gm_N), 이후 gm_id_i·L·자유 노드전압이 자유 축 | 2026-09-07 | GB5 | 부분(Cc 유도만) |
 | DEC-03 | stage별 gain 예산은 엔진이 유도해 `gain_budget_db`로 출력한다. 사람이 배분을 강제하는 유일한 경로는 `gain_budget_db_override`(출처 필수) | 2026-09-07 | GB0, GB6 | 미구현 |
 | DEC-04 | 결합 블록 안의 소자(input·cascode·load·tail)는 gm_id·L을 함께 결정한다. 캐스코드 L을 role 휴리스틱으로 따로 정하지 않는다 | 2026-09-04 | GB6 내층 | 미구현 |
-| DEC-05 | gain 제약 판정은 전체회로 MNA gain 하나로 한다. 블록 gain(부하 포함)은 할당용 분해 값이고, 두 값의 잔차를 매 평가 기록한다 | 2026-09-14 | GB8 | 미구현(현 제약은 `gain_stages_sum`, I-B21) |
+| DEC-05 | gain 제약 판정은 전체회로 MNA gain 하나로 한다. 블록 gain(블록 국소 소신호 모델, 부하·follower·pass 포함)은 할당용 분해 값이고, 두 값의 잔차를 매 평가 기록한다 | 2026-09-14 | GB8 | 미구현(현 제약은 `gain_stages_sum`, I-B21) |
 | DEC-06 | theta는 자유 탐색 변수만이다. 구조 선언은 `sizing_spec.json`의 선언/유도 필드로 옮긴다 | 2026-09-07 | GB0, MOD2 | 미구현 |
 | DEC-07 | 목적함수는 전력 최소화 하나, 면적은 `area_um2` 상한 제약. 면적 예산이 선언되지 않으면 전력-면적 Pareto를 제시하고 정지한다 | 2026-09-07 | GB6, GB9 | 미구현(전력 정의 U-10, Area 정의 U-13) |
 | DEC-08 | `ideal_sources.value_amp`가 null이면 자유 탐색, 값이 있으면 그 값을 실제 전류로 고정한다. 같은 소스를 움직이는 theta와 공존하면 로드 거부 | 2026-09-08 | GB0 | 부분(KCL 잔차 metric만 소비). 파일럿 Iref `value_amp = 1.2µA`는 사용자가 원문에서 확인한 고정 대상(사이징 경로 미배선, I-B14) |
@@ -286,10 +287,11 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 2. **여기 모드**: metrics 선언의 `(excite, sense)` 집합에서 모드를 모은다. 모드 선언이 없는 회로는 차동모드(DM)만 만든다.
 3. **DM 뷰**: `find_structural_symmetry_candidates`의 대칭 대응으로 넷을 짝짓는다. 자기대응 넷은 가상접지로 둔다. 대응이 없는 소자는 DM 뷰에서 빼고 목록으로 보고한다. 단일출력 회로는 출력-대응 쌍을 제거한다.
 4. **엣지와 비용**: gate->drain 비용 1, source->drain(캐스코드)·gate->source 비용 0, diode 노드 게이트의 gate->drain 비용 0(미러). 입력 넷에서 0-1 BFS 최소 비용이 stage 번호다. DM 뷰에서는 입력쌍 공통 소스가 자기대응 넷(가상접지)이라 gate->source 우회로가 끊긴다. 이 조합이 4개 회로에서 실측한 규칙이다(원자료 `probe_stage_partition.result.md`의 R3(DM/R2)). DM 뷰가 아닌 전체 회로에 같은 비용을 쓰면 우회로 때문에 입력단 stage 번호가 0으로 떨어지므로 SP1은 DM 뷰에서만 쓴다.
-5. **stage 구성**: 출력노드 = 해당 stage 번호의 고임피던스 드레인 노드. input = gate가 stage 입력 넷에 붙은 소자, cascode = source->drain 사슬, load = 드레인이 출력노드에 붙고 게이트가 바이어스·미러 넷인 소자, tail = 드레인이 입력쌍 공통 소스 노드에 붙은 소자. G_out 기여 소자 = 출력노드에 드레인 또는 소스가 붙은 소자 전부.
-6. **피드백**: 수동소자 엣지와 역방향 MOS 엣지를 피드백으로 분리한다. 극성 = MOS만 거치는 복귀 경로의 저주파 부호. 부호가 섞이면 `review_needed`(Cc–Rz 직렬 루프는 J7).
-7. **검증 기준**: input·cascode·tail 멤버십은 declared stage와 대조한다(4개 회로 실측 100% 일치, 원자료 `probe_stage_partition.result.md`). 출력노드와 load·G_out 기여 소자는 J5·J6 공동분석으로 `ratified`된 대조표와 대조한다. declared stage에 없는 부하(파일럿 Vom1의 M19·M18a·M18b)는 결함 선언이지 규칙의 오류가 아니다.
-8. **graph로 정하지 않는 것**: 어느 여기 모드가 스펙인가, class-AB 출력단 gm 합산 방식(J3), 자유 노드 배분 기준(GB6 목적함수가 정한다), LUT 비단조 자체(GB4가 해법을 고른다).
+5. **소자 구성 분류**: DM 뷰의 신호 경로에서 소자마다 신호 입력 단자와 출력 단자를 정한다 -- CS(gate 입력, drain 출력), CG(source 입력, drain 출력), CD(gate 입력, source 출력, follower), pass(source 또는 drain 입력, 반대쪽 단자 출력, 게이트는 교류접지 바이어스). stage 번호는 CS에서만 증가한다(규칙 4의 비용과 같다).
+6. **stage 구성**: 출력노드 = stage 안에서 신호가 마지막으로 도달해 다음 stage 입력(다음 CS의 gate) 또는 출력 포트로 넘어가는 노드. CS·CG 사슬로 끝나면 drain 노드, CD·pass로 끝나면 그 소자의 출력 단자 노드다. 임피던스 등급(높음 = drain만 붙음 / 낮음 = 출력 source가 붙음)을 노드 속성으로 기록한다. input = gate가 stage 입력 넷에 붙은 소자, cascode = CG 사슬, follower = CD, pass = pass 구성 소자, load = 드레인이 출력노드(또는 중간 고임피던스 노드)에 붙고 게이트가 바이어스·미러 넷인 소자, tail = 드레인이 입력쌍 공통 소스 노드에 붙은 소자. **블록 노드 집합** = stage 입력 넷부터 출력노드까지 신호 경로에 있는 노드 전부.
+7. **피드백**: 수동소자 엣지와 역방향 MOS 엣지를 피드백으로 분리한다. 극성 = MOS만 거치는 복귀 경로의 저주파 부호. 부호가 섞이면 `review_needed`(Cc–Rz 직렬 루프는 J7).
+8. **검증 기준**: input·cascode·tail 멤버십은 declared stage와 대조한다(4개 회로 실측 100% 일치, 원자료 `probe_stage_partition.result.md`). 출력노드와 load·G_out 기여 소자는 J5·J6 공동분석으로 `ratified`된 대조표와 대조한다. declared stage에 없는 부하(파일럿 Vom1의 M19·M18a·M18b)는 결함 선언이지 규칙의 오류가 아니다. 4개 회로에 drain이 레일에 붙은 순수 follower는 없고, source·drain 단자로 신호를 넘기는 소자는 파일럿 class-AB floating battery(M9a/M9b: Vop1↔Vg15, M18a/M18b: Vom1↔Vg25)와 folded M8(gate Vg7, source Vg10)이다(실측 원자료 `probe_common_drain.result.md`, 6a design이 DM 뷰에서 재측정). 따라서 CD 분류의 4개 회로 검증은 "분류 발동 소자 = 이 목록"까지이고, 순수 follower 회로 추가 여부는 U-22다.
+9. **graph로 정하지 않는 것**: 어느 여기 모드가 스펙인가, class-AB 출력단 gm 합산 방식과 floating battery의 stage 출력 노드(J3), follower를 독립 블록으로 둘지 앞 stage에 흡수할지(J10), 자유 노드 배분 기준(GB6 목적함수가 정한다), LUT 비단조 자체(GB4가 해법을 고른다).
 
 ### N3.3 Circuit State Graph 층
 
@@ -386,7 +388,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 * **결합 잔차 측정(6c 첫 작업)**: 기존 6480조합 데이터(`tests/probe_mirror_gain_ranking.py`)로 블록 gain 합과 전체회로 MNA gain의 차를 잰다. 0이 아닌 블록 쌍은 해당 metric을 MT3로 표시한다.
 * **LUT 곡선 검사(로드 시)**: 곡선이 단조면 역산 허용, 비단조면 격자 전수만 허용, 단위 불일치면 로드 거부.
-* **블록 gain 상한**: `A_i,max = max 20·log10(gm_i · R_out,i)` over gm_id 격자 × LUT L 앵커 × W4 창의 VDS × y 가능역. 격자 전수, S2 memo. 7b에서 GB5가 고정한 gm으로 다시 계산한다.
+* **블록 gain 상한**: `A_i,max = max(블록 i의 국소 소신호 모델 gain)` over gm_id 격자 × LUT L 앵커 × W4 창의 VDS × y 가능역. 격자 전수, S2 memo. 7b에서 GB5가 고정한 gm으로 다시 계산한다.
 * **달성가능성**: Σ A_i,max < 총 gain 제약이면 INFEASIBLE_TARGET(탐색 전). LUT·구조만으로 상한을 계산할 수 없는 제약은 "상한 미상"으로 보고한다.
 * **DOF**: 변수(스택 내부 노드전압 k−1, 소자 gm_id, L 동치류 L)와 등식(diode VGS=VDS, `equal_vgs`, `budget_ref`, `stacked_vsb`, KCL)으로 구조 rank를 센다(부등식은 경고). 수치 rank는 θ 표본에서의 Jacobian(`numpy.linalg.matrix_rank` 기본 허용오차, FD 스텝 = 해당 변수의 LUT 격자 간격, 표본 수 = DEC-34 식의 샘플 수 안). 결과 `DofReport{status: ok | underdetermined | overconstrained, 경쟁 목표 쌍}`. overconstrained는 INFEASIBLE_TARGET.
 
@@ -409,7 +411,9 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 ### N3.8 metric
 
 * **gain**: 제약 판정은 `smallsignal_gain_db`(전체회로 MNA, DM 모드) 하나. 회로별 이관: 파일럿 `gain_stages_sum` -> `smallsignal_gain_db`, folded `_metric_folded_cascode_gain_db` -> `smallsignal_gain_db`(ports U-08 선행), nmcnr `_metric_nmcnr_gain_db` -> `smallsignal_gain_db`(ports 선행), two_stage는 이미 MNA.
-* **블록 gain·잔차**: 블록 gain = `20·log10(gm_in · R_out)`(부하 포함), 잔차 = MNA gain − Σ 블록 gain. stage 전압비의 곱으로 분해하는 정의는 금지(정의상 참).
+* **블록 국소 소신호 모델**: 블록 노드 집합(N3.2-6)만 미지수로 둔 절점방정식을 푼다. 블록 입력 넷은 단위 신호로 구동하고, 블록 밖 노드는 DM 뷰의 교류접지 또는 다음 블록 입력의 부하 어드미턴스(다음 CS 게이트 용량 등)로 고정한다. 소자는 단자별로 gm·gmb·gds·cgg를 스탬프하므로 CS·CG·CD·pass를 따로 분기하지 않는다. 블록 gain = 출력노드 전압 / 입력 전압(dB, 저주파).
+* **gmb**: LUT에는 gmb 열이 없다. LUT VS 축(|VSB|)에서 `gmb = ∂ID/∂VSB`를 수치미분으로 유도하는 함수를 MOD1에 두고, 블록 국소 모델과 전체회로 MNA가 같은 값을 쓴다(현 MNA가 gmb를 넣지 않는 것은 7a에서 함께 고친다).
+* **잔차**: 잔차 = MNA gain − Σ 블록 gain. 블록 국소 모델은 블록 밖을 고정한 모델이라 전체회로 MNA와 독립이며, 전체 MNA 해를 잘라 만든 전압비의 곱으로 분해하는 정의는 금지(정의상 참).
 * **감도 게이트**: 봉인 스냅샷마다 영향 집합(SC-e)에서 분해 metric이 읽지 않는 소자를 건드리는 θ 방향으로 섭동한다. 분해 값 변화 ≤ ε 이고 MNA 값 변화 > ε 이면 오류. ε = MNA 선형해 잔차 노름에서 계산한 수치 분해능.
 * **metric 티어**: support(SC-e) ⊆ 블록 하나 -> MT1, 블록별 항의 합 -> MT2, 그 외 -> MT3. MT1·MT2는 내층·중층, MT3는 외층에서만 쓴다.
 * **전력**: 정의는 U-10(후보 `sum_current` / `_metric_supply_current`). 결정 전까지 보고에 "스택 중복계상 전력"임을 명시한다.
@@ -436,7 +440,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 | ID | 파일 | 책임 | 대표 대상 |
 |---|---|---|---|
-| MOD1 | `gmid_lut.py` | LUT 인터페이스·보간·역산·곡선 검사·보간 오차 | `GmIdLUT`, `SemiEmpiricalGmIdLUT`, `_multilinear_interp`, `_solve_vgs`, `lut_conditions_from_npz` |
+| MOD1 | `gmid_lut.py` | LUT 인터페이스·보간·역산·곡선 검사·보간 오차 | `GmIdLUT`, `SemiEmpiricalGmIdLUT`, `_multilinear_interp`, `_solve_vgs`, `lut_conditions_from_npz`, gmb 유도(`∂ID/∂VSB`) |
 | MOD2 | `topology_authoring.py` | topology·spec 로딩, 스키마·단위·참조·선언 순서 게이트, 구조 제안 | `load_topology`, `validate_metric_units`, `validate_no_legacy_vs_key`, `require_declared_spec_source`, `validate_theta_declaration_order` |
 | MOD3 | `circuit_state_graph.py` | S0 지문, S1 구조 유도(개념당 정본), S1v, 결합 블록 | `is_diode_connected`, `true_current_mirror_groups`, `l_sharing_classes`, `l_class_owners`, `vgs_alias_map`, `_kcl_and_matching_edges`, `trace_*_branches`, `propagate_topology_forced_currents`, `spec_fingerprint` |
 | MOD4 | `gmid_sizing_engine.py` | 소자 사이징, DC 해석(W 티어·순환 블록·봉인), 달성가능성·DOF, 보상 레지스트리, theta feed | `size_transistor`, `feasible_gm_ids`, `measure_L_knee`, `_hr_*`, `solve_diode_connected_vds`, `solve_stacked_diode_pair`, `apply_theta_feed`, `topology_library.py` 보상식 |
@@ -748,10 +752,10 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 3 | 10모듈 이동(N3.10), shim, 추적 파일 호출부 갱신 후 `sizing_recipe.py` 삭제 | equivalence | U-03 | `30-module-split` |
 | 4 | TS4, DF-01~15·18~20·22, Phase 2에서 배선을 고른 함수 배선, `fallback_events` 계측(V8), 4개 회로 실행 가능성(I-C11), IC7 활성 | red-green | U-04, U-05, U-09 | `40-defect-fixes` |
 | 5 | 실패 캐시, 시작점 선택(S3 레코드 v1: θ*·start별 결과·실패), margin 반환 | red-green | -- | `50-failure-cache` |
-| 6a | GB0(의미·로드 게이트), S0(LUT 메타 배선 포함), GB1, GB2 shadow. 6a-1 유도·대조표, 6a-2 공동분석·ratify, `structure.json`, 레지스트리 §2 ★ DUP(diode·미러 그룹·diffpair/tail)를 U-06 결론의 정본으로 통합하고 옛 함수 삭제 | red-green | U-08, U-17. 6a-2는 U-06(J1~J7, J9 ports, 구조 정본) | `6a-structure-stage` |
+| 6a | GB0(의미·로드 게이트), S0(LUT 메타 배선 포함), GB1, GB2 shadow(소자 구성 분류 CS/CG/CD/pass 포함). 6a-1 유도·대조표, 6a-2 공동분석·ratify, `structure.json`, 레지스트리 §2 ★ DUP(diode·미러 그룹·diffpair/tail)를 U-06 결론의 정본으로 통합하고 옛 함수 삭제 | red-green | U-08, U-17. 6a-2는 U-06(J1~J7, J9 ports, J10, 구조 정본) | `6a-structure-stage` |
 | 6b | GB7: W 티어, 순환 블록, 봉인, SC-a~SC-e, 평가 커널 계산 블록과 S2 memo, NFR-4 결정론. IC1·IC2·IC9·IC10 활성 | red-green | U-06(J8), U-20 | `6b-node-voltage-seal` |
 | 6c | 결합 잔차 측정, GB3, GB4(LUT 곡선 검사, 블록 gain 상한, DOF), `review_needed` 잔존 시 정지. IC4·IC6·IC8 활성 | red-green | -- | `6c-coupling-achievability` |
-| 7a | GB8: gain metric 통일, 블록 gain·잔차, 감도 게이트, MT 분류, 전력 정의, metric DUP 3쌍(gain/PM/CMRR) 통합, `verified_by`(U-11 결과에 따라 SPICE AC gain 대조 포함), bisection 도구와 임계값 재도출 | red-green | U-07, U-10, U-11, U-19, J6 승인 기록(6a-2 확정) | `7a-gain-metric` |
+| 7a | GB8: gain metric 통일, 블록 국소 소신호 모델과 gmb 유도(MNA에도 gmb 반영), 잔차, 감도 게이트, MT 분류, 전력 정의, metric DUP 3쌍(gain/PM/CMRR) 통합, `verified_by`(U-11 결과에 따라 SPICE AC gain 대조 포함), bisection 도구와 임계값 재도출 | red-green | U-07, U-10, U-11, U-19, J6 승인 기록(6a-2 확정) | `7a-gain-metric` |
 | 7b | GB5 보상 규칙, GB6 3층 할당, `sizing_spec.json` v5와 4회로 이관, `value_amp` 소비, 면적·Pareto, MOD8 수렴 루프(LR9) | red-green | U-12, U-13, U-14, U-21, U-06(J3 정지전류, J9 passive) | `7b-compensation-allocation` |
 | 7c | GB9: S3 전체, Sobol 전역 샘플, 분지, SPICE `.op` 전체 대조. IC 전원 PASS | red-green | -- | `7c-archive-spice` |
 
@@ -790,13 +794,14 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 |---|---|---|
 | J1 | replica bias(M57/M58/M63/M64)를 교류접지 예외로 끊을지(끊으면 CMFB 루프 부호가 부궤환으로 확정) | 6a |
 | J2 | diode 노드 게이트의 gate->drain을 같은 stage(미러)로 볼지(nmcnr M201->M203/M204 경계) | 6a |
-| J3 | class-AB M9a/M9b/M18a/M18b/M8/M17의 역할, Vg15를 stage 출력으로 볼지, 정지전류 규칙 | 6a, 7b |
+| J3 | class-AB M9a/M9b/M18a/M18b/M8/M17의 역할. floating battery(M9a/M9b: Vop1↔Vg15, M18a/M18b: Vom1↔Vg25)가 pass 구성으로 신호를 넘길 때 stage 출력노드를 Vop1(캐스코드 사슬 끝)로 볼지 Vg15(출력단 게이트)로 볼지, 정지전류 규칙 | 6a, 7b |
 | J4 | M7(gate Vcmfb)을 tail로 볼지 CMFB 구동소자로 볼지 | 6a |
 | J5 | 5T 미러부하·NMCNR 폴딩 미러를 DM 반회로에서 다루는 법(DM 뷰가 출력노드를 잃는 경우) | 6a |
 | J6 | 출력노드 부하 귀속: 파일럿 M18a/M19/M18b를 stage1 부하(G_out)로, nmcnr M104/M106을 해당 stage 부하로 넣을지 | 6a(ratify), 7a(gain metric이 소비) |
 | J7 | Cc–Rz 직렬 루프 극성 판정 | 6a(극성 ratify), 7b(보상 규칙이 소비) |
 | J8 | `fold_group`, `shared_gm_id_groups`, 노드를 공유하지 않는 `budget_reference_device` 4건(M61, M68, M38, two_stage M4), `voltage_divider`/`floating_current_source`/`bias_replica` 의도(단서: vsb 오류 소자 M38/M60/M61/M68이 모두 `budget_reference_device` 보유) | 6b |
 | J9 | folded·nmcnr `ports`, nmcnr·two_stage `passive_elements` 누락분 | 6a(ports), 7b(passive) |
+| J10 | follower(CD) 또는 pass로 끝나는 경로를 독립 블록으로 둘지 앞 stage 블록에 흡수할지(이득 1 미만이라 배분 대상은 아니지만 레벨 시프트·저임피던스 극점·헤드룸에 영향). folded M8(gate Vg7 -> source Vg10) 판정 포함 | 6a |
 
 ### N7.2 사용자 결정 U
 
@@ -809,7 +814,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-03 | 추적되지 않는 `workspaces/` 스크래치 스크립트가 `sizing_recipe.py` 삭제로 깨지는 것을 허용할지 | 허용(추적 파일만 갱신). 근거: WP-01의 배선 대상은 저장소에 추적되는 파일 | Phase 3 |
 | U-04 | 픽스처와 정본 spec의 구분 | spec에 `origin: canonical | fixture` 필수, 픽스처는 유도 임계값을 읽지 않음 | Phase 4 |
 | U-05 | 비단조 곡선에서 이분 역산의 처리 | 단조 구간별 근을 모두 돌려주고 호출자가 선택 규칙을 명시(DEC-11 확장) | Phase 4 |
-| U-06 | J1~J9 공동분석 + 구조 개념 정본(diode 이웃 포함 여부, 미러 그룹 키, diffpair/tail 유도) | 대조표로 항목별 확정 | 6a-2(J1~J7, J9 ports, 구조 정본) / 6b(J8) / 7b(J3 정지전류, J9 passive) |
+| U-06 | J1~J10 공동분석 + 구조 개념 정본(diode 이웃 포함 여부, 미러 그룹 키, diffpair/tail 유도) | 대조표로 항목별 확정 | 6a-2(J1~J7, J9 ports, J10, 구조 정본) / 6b(J8) / 7b(J3 정지전류, J9 passive) |
 | U-07 | 전력 정의 변경으로 바뀌는 기대값들을 한 승인으로 묶어도 되는지 | 변경 목록을 첨부한 한 승인 | 7a |
 | U-08 | folded·nmcnr·two_stage `ports`(two_stage 출력 포함) | connectivity 제안표 확인 | 6a |
 | U-09 | two_stage stage1_out 분리·nmcnr stage2_diode_ref 이월을 언제 풀지 | Phase 4에서 DF와 함께. 근거: 4개 회로 측정(N6.3)이 Phase 4부터 동작 변경 판정에 필요 | Phase 4 |
@@ -825,6 +830,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-19 | `gain_db >= 54`를 전체회로 gain 기준 bisection으로 재도출해 교체할지 | 재도출값 제시 후 승인 | 7a |
 | U-20 | `stack_headroom_slack_v`를 봉인 항목으로 흡수할지 metric 제약으로 남길지(I-C10) | 봉인 항목 1·5가 같은 사실을 보므로 metric 삭제 | 6b |
 | U-21 | 선언 L theta(`L_cascode`, `L_stage2out_*`)를 L 동치류 theta로 대체하고 삭제할지 | DEC-18에 따라 삭제 | 7b |
+| U-22 | 순수 follower(drain이 레일, source가 출력)가 있는 회로를 library에 추가해 CD 규칙을 실제 회로로 측정할지 | 추가하지 않고 4개 회로의 분류 발동 목록 일치만 증명(WP-07상 픽스처 손타이핑 금지) | 6a |
 
 ---
 
@@ -862,10 +868,10 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | `30-module-split` | 레지스트리 목적지 열에서 생성한 함수→모듈 이관표, 계산된 import 그래프, `import_layering.py` 규칙, AST 해시 증명 명령, shim 재수출 목록 생성법, 추적 파일 호출부 목록 |
 | `40-defect-fixes` | DF별 red 형태(행동 test / lint)와 수정 범위, N3.14 실패 클래스 도입, tol_V 함수 선도입, U-04·U-05 반영, `fallback_events` 스키마와 계측 지점 전수, exit code, I-C11 해소 설계 |
 | `50-failure-cache` | 실패 캐시 키·저장, margin 정규화식, 시작점 선택 규칙, S3 레코드 v1 스키마와 위치, 계수기 |
-| `6a-structure-stage` | S0 해시 구성, S1 스키마(N3.3), 교류접지 3분류, DM 뷰 구성과 SP1 알고리즘(0-1 BFS), 모드 수집, 피드백 극성, status 전이 구현, `structure.json` 형식, shadow 대조 보고 형식, J 대조표 양식, ports 제안표 |
+| `6a-structure-stage` | S0 해시 구성, S1 스키마(N3.3), 교류접지 3분류, DM 뷰 구성과 SP1 알고리즘(0-1 BFS), 소자 구성 분류와 출력노드·임피던스 등급 판정, 모드 수집, 피드백 극성, status 전이 구현, `structure.json` 형식, shadow 대조 보고 형식, J 대조표 양식, ports 제안표 |
 | `6b-node-voltage-seal` | S2 필드 스키마, SC-a 권한표(필드 × W0~W4), W3 소스 필드, 계산 블록 입출력 선언과 유도 DAG, tol_V·tol_I·반복 상한 구현, 봉인 항목 구현, 버전 카운터, LRU 상한 계산, IC2 섞기 대상, 동등 단언 범위, J8 결론 반영, U-20 반영, I-A6 헤드룸 하한 여부 판정 |
 | `6c-coupling-achievability` | 결합 잔차 측정 절차, 블록·y 추출 규칙(K1~K4), LUT 곡선 검사→해법 매핑, 블록 gain 상한 계산, DOF 변수·등식 표와 수치 rank, `DofReport`, 달성 불가 픽스처와 oracle |
-| `7a-gain-metric` | 회로별 gain metric 이관표, 블록 gain·잔차 계산, 감도 게이트 섭동 방향·ε 계산, MT 분류 규칙, 전력 정의(U-10) 반영, `verified_by`와 SPICE AC gain 대조(U-11), bisection 모드(N3.13)와 U-19 |
+| `7a-gain-metric` | 회로별 gain metric 이관표, 블록 국소 소신호 모델(경계 조건·스탬프)과 gmb 유도 식, 잔차 계산, 감도 게이트 섭동 방향·ε 계산, MT 분류 규칙, 전력 정의(U-10) 반영, `verified_by`와 SPICE AC gain 대조(U-11), bisection 모드(N3.13)와 U-19 |
 | `7b-compensation-allocation` | `sizing_spec.json` v5 스키마·로더·이관·topology.json 필드 제거 절차, GB5 규칙(단일단 U-12, 3단, class-AB J3), 내층 DP 상태·bin 해상도, 중층 좌표강하 종료, 외층 인자, 면적·Pareto(U-13), U-14, `value_amp` 소비, MOD8 수렴 루프, 다른 모델 대조 test, U-21 반영, 슬루율 필드 명칭(DEC-53 규약 인용) |
 | `7c-archive-spice` | S3 저장 형식·보고, DEC-34 샘플 수 구현, 분지 판정, SPICE 넷리스트 생성·실행 인터페이스와 모델 경로 확인, 비교량·허용오차 계산 |
 

@@ -14615,3 +14615,4 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
     감사·검증 원자료는 docs/03-analysis/gain-budget-gmid-sizing-function-audit/rewrite2_*.md. 3회차 검증은 돌리지 않았다(패치 후 참조 자동 검사만).
 * U-15(hook 역할 필드 부재 시 판정 방식): 사용자 "실측후 정하자." -> Phase 0.5 부트스트랩 ② 실측 기록과 함께 A(worktree cwd)/B(별도 세션)/C(EL3·EL4만) 제시 후 결정. 계획 N7.2 갱신.
 * U-16 확정(사용자 "A로 해"): topology.json 메타데이터(role·ports·passive)는 오케스트레이터가 사용자 확인 후 반영. 승인 기록 + `Role: doc`, EL4가 승인 없는 topology diff 거부, 변경 시 S0 지문으로 ratified -> review_needed. 계획 N7.2·N3.12.2·EL4 반영.
+* 계획 v5.1: 사용자 지적 "출력노드가 common source인 경우 drain단이 맞지만, common drain인 경우는 source가 될 수 있지 않나?" -> 맞음. v5.0이 출력노드를 고임피던스 drain 노드로만 정의하고 블록 gain을 gm·R_out 폐형식으로 둔 결함. 소자 구성 분류(CS/CG/CD/pass), 출력노드 재정의(임피던스 등급 속성), 블록 국소 소신호 모델, gmb를 LUT VS 축 수치미분으로 유도(LUT에 gmb 열 없음 확인), J3 floating battery 명시, J10·U-22 신설. 실측: 순수 follower 없음, pass 후보 M9a/M9b·M18a/M18b, folded M8.
