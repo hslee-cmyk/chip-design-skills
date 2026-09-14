@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 4.43
+version: 4.44
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -3917,6 +3917,189 @@ L3에 지난 수렴점을 넣으면 셋이 한 기준을 공유한다: SLSQP bou
 | D4 | 전역 샘플링 예산 | §10.3 B4의 wall-clock ≤ 5분과 충돌(샘플 1,000점 ≈ 72초 + SLSQP) | -- |
 | D5 | `ports` 선언 | folded_cascode·nmcnr·two_stage의 input/output -- 사용자 확정 필요 | 검토 C |
 
+## 13. 함수 전수 감사와 전체 수정계획 -- 파일 분리 · test 분리 포함 (★ 신설 v4.44, 2026-09-14, 사용자 지시)
+
+사용자: *"모든 함수를 전수로 훑어서 계획대로 구현된 함수와 그 함수의 호출관계를 분석하고 수정할 필요없이
+재사용할 수 있는 함수목록을 작성해서 중복해서 작성하는 실수를 막아. 그리고, 처음 계획이었던 화일분리와
+self-test를 명시적인 test화일로 분리하는것에 대한 계획도 전체 수정계획에 반드시 명시해서 다시 제안해."*
+
+**이 절이 §8(파일 구조)과 §12.7(단계)을 합친 단일 수정계획이다.** §8.2~§8.8의 파일표·test 방침은
+13.4~13.5가 대체한다(§8은 이력으로 남긴다).
+
+### 13.1 감사 방법과 결과
+
+* AST로 `assets/*.py` + `assets/tests/*.py` + `workspaces/run_harness.py`의 **전 함수·클래스**와 정적 호출그래프를
+  뽑고, 에이전트 6개가 구간을 나눠 본문을 읽고 판정했다(sizing_recipe 3구간 / stick_diagram / 작은 모듈·tests·self-test /
+  계획서↔코드 대조). 이름 기반 정적 매칭의 한계(문자열 레지스트리 `_METRICS_REGISTRY`·`_COMPENSATION_REGISTRY`,
+  topology.json `"function"`)는 grep과 4개 topology의 선언 대조로 보완했다.
+* 판정 항목: 책임 / 계획 대응(§) / **운영 경로 도달 여부**(`run_harness` -> `optimize_full_circuit_budget` -> `_evaluate`) /
+  등급 R0(그대로 재사용)·R1(국소 수정)·R2(§12로 대체)·D(운영 호출 0)·DUP(중복) / 이관 목적지 / self-test 유무.
+* 결과물: **`docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`**(재사용 레지스트리 + 개념별 정본표)와
+  원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1~6*.md`.
+
+| 파일 | 대상 | R0 | R1 | R2 | D | DUP |
+|---|---|---|---|---|---|---|
+| sizing_recipe.py (15,270줄) | 218 | 84 | 77 | 19 | 27 | 11 |
+| stick_diagram.py (12,936줄) | 158 | 101 | 16 | 12 | 20 | 7 |
+| 작은 모듈 5개 + run_harness.py | 약 45 | 21 | 16 | 1 | 2+ | 1 |
+
+**계획 대 구현**(약속 55행): 구현됨 14 / 이름 바꿔 구현 2 / 부분 5 / **미구현 25** / 폐기·대체 7.
+
+* §7의 gain-budget-first 함수군(`resolve_stage_sizing`, `gm_id_for_gm_gds_ratio`, `size_all_stages`, `resolve_headroom`,
+  `diagnose_sizing_dof`, `cross_check_with_spice`, `sweep_area_power_pareto`, `solve_allocation_dp`, `load_sizing_spec` 등) **def 0건**.
+  `verify_node_voltage_consistency`는 부분(노드전압 복원·vsb 게이트만, conflicts·VGS 검사 없음).
+* `*.sizing_spec.json` 분리 **0건** -- topology.json 5개가 `sizing_roles`/`device_roles`/`compensation`을 그대로 가짐.
+* 강제 테스트 C1~C10 **0건**, 저장소 전체 `def test_` **0건**.
+* **이미 있는데 계획이 "신규"로 적은 것**: `render_design_report_html()` = `design_report.render_html_report`(:198),
+  `_solve_diode_connected_vgs_fixed_point()` = `solve_diode_connected_vds`(:3297). **새로 만들지 않는다.**
+
+### 13.2 중복 작성이 반복된 원인과 방지 규칙
+
+원인 3가지(세션47 5건 + 이번 감사):
+1. 확인할 곳 셋(계획 §7/§10, `.ai/context.md`, `def` grep) 중 하나를 빼먹는다.
+2. **정의만 보고 호출부를 안 본다** -- 사장 함수를 소비자로 적거나(§12.4), 있는 것을 "미배선"으로 오판한다.
+3. **대체한 뒤 옛 구현을 지우지 않는다** -- 다음 grep에 후보가 둘 나와 오판이 재발한다
+   (`solve_diode_stack_current`→`solve_stacked_diode_pair`, telescopic 전용 체인 7개→`_full_circuit_response`).
+
+방지 규칙(레지스트리 §0에 강제 절차로 적었다):
+* 만들기 전 **레지스트리의 개념별 정본표**를 먼저 본다(이름이 달라도 같은 계산).
+* R0는 호출만, R1은 그 함수를 고치고, DUP는 정본만 쓴다.
+* **대체하면 같은 커밋에서 옛 함수를 삭제하고 레지스트리를 갱신한다.**
+* 새 함수는 **13.4의 목적지 파일에** 쓴다(§8.7의 "새 함수는 새 파일에"를 어기고 전부 sizing_recipe.py에 붙인 것이
+  이관 비용을 키웠다).
+
+### 13.3 이번 감사가 새로 찾은 결함 (§12.6에 추가)
+
+| # | 결함 | 근거 | 영향 |
+|---|---|---|---|
+| 9 | `estimate_area_budget` 블렌딩 식이 α를 상쇄 -- `(1-α)A + α(A/α) = (2-α)A` | `sizing_recipe.py:2955`, self-test가 같은 식으로 기대값을 만들어 못 잡음(13882) | 면적 예산 과대 |
+| 10 | 이분 역산이 단조성을 검사하지 않음 | `solve_id_for_target_gm`:1608, `_invert_gm_id_for_current`:1641 -- 같은 파일이 PMOS gm/ID 75.3% 비단조를 실측 기록(536) | 틀린 근을 조용히 반환 가능 |
+| 11 | 적층 diode 해석이 LUT 실패 시 `idu_up=1.0` 대입 | `solve_stacked_diode_pair`:3707 | 가짜 W로 균형비 계산 |
+| 12 | 입력환산 오프셋이 gm 없는 소자를 조용히 제외 | `_metric_input_referred_offset`:4762 | 오프셋 과소 |
+| 13 | `id(lut)` 키 캐시 3개 + 상한 없는 캐시 4개 | `diode_vds_cached`:3383, `diode_vds_window`:3617, `_KNEE_L_CACHE`:2593 / `_gm_id_curve_cache`·`_solve_vgs_cache`·`_idu_scan_cache`·`_KNEE_L_CACHE` | C-d 위반, 장시간 메모리 |
+| 14 | 광범위 except 5곳 추가 | `:1797`, `:1933`, `:7852`, `:8006`(`except Exception` -> 폴백), `:11028` | 실패가 조용히 폴백 |
+| 15 | Rz 캐시 키가 소자명뿐 + `_dc_replace`가 캐시 dict를 새 ctx와 공유(가능성, 실행 재현 전) | `:5499`, `:11892`, `field(default_factory=dict)` :3013 | finger 조정 후 옛 Rz |
+| 16 | **목적함수 `power_uA`=`sum_current`가 스택 중복계상** -- 엔진 docstring이 2.82배 틀린 전력이라고 규명 | `_metric_supply_current` docstring, 4개 회로 objective | **최적화 대상 자체가 틀림** (결정 D6) |
+| 17 | **self-test가 FAIL을 정상으로 고정** -- Test 16이 `FAIL(예상과 다름)`을 출력하고 그 줄이 baseline 로그에 들어 있음 | `stick_diagram.py:10164`, `tests/baseline/stick_diagram.selftest.baseline.log:453` | "로그 동일 = 통과" 기준의 구조적 허점 |
+| 18 | `run_harness.run`이 `except Exception`으로 실패해도 exit 0, θ*는 print만 | `run_harness.py:507`, `:461` | 실패 은폐, 결과 유실 |
+| 19 | 레일 넷 집합 불일치 | SD `_RAIL_NETS` 소문자만(:3147) vs SR 대소문자(:3882, :4456) | 넷 이름 대소문자에 따라 판정이 갈림 |
+| 20 | 운영 경로의 근거 없는 폴백 상수 | vds 0.6/0.2(:2104, :2116), margin 0.05(:1731), W_bounds·gm_id 격자 리터럴 5곳+ | 상수 금지 원칙 위반 |
+| 21 | 실행 불가/무의미 probe 3개 | `probe_mirror_common_L_wiring`(삭제된 `_L_ROLE_MULTIPLIERS` import), `probe_node_voltage_audit`(import 경로), `probe_vs_semantics`(전 소자 skip) | 오판 근거가 될 수 있음 |
+
+정정: 감사 중 "current_reuse spec의 `Cc`가 보상식에 전달 안 됨"이라는 보고가 있었으나, feed는 `ctx.derived`를 먼저 읽고
+없을 때 `ctx.spec`을 폴백으로 읽는다(`:6079-6080`) -- **유도된 Cc가 있으면 spec 값은 폴백**이다. 결함으로 올리지 않는다.
+
+### 13.4 파일 분리 계획 (§8.2 대체)
+
+§8의 3단계 구조를 유지하되 §12(CSG)와 감사 결과를 반영해 **모듈 경계를 책임 기준으로 다시 긋는다.**
+원칙: **import는 한 방향(아래 표의 위->아래 의존 금지, 아래->위만)**, 순환 import 0, 파일당 한 책임.
+
+| # | 파일(신규) | 책임 | 주요 이관 대상(레지스트리 이관 목적지 기준) | 의존 |
+|---|---|---|---|---|
+| 1 | `gmid_lut.py` | LUT 인터페이스·보간·역산 | `GmIdLUT`, `SemiEmpiricalGmIdLUT` 전 메서드, `_multilinear_interp`, `_solve_vgs`, `lut_conditions_from_npz`, `build_toy_lut`(-> tests fixture) | numpy만 |
+| 2 | `topology_authoring.py` | topology.json 로딩·스키마·단위·참조 게이트, 구조 **제안**(사람 확정 전) | SD `load_topology`, `propose_device_roles_gap_fill`, `_propose_*_roles`, `propose_vertical_stack_id_gap_fill`, SR `validate_metric_units`, `validate_no_legacy_vs_key`, `require_declared_spec_source`, `validate_theta_declaration_order`(**빌드 게이트로 배선**) | 1 |
+| 3 | `circuit_state_graph.py` | §12 S0 지문 + S1 구조 유도(**개념당 정본 하나**) + S1v 여기 뷰 | `is_diode_connected`, `true_current_mirror_groups`, `l_sharing_classes`, `l_class_owners`, `vgs_alias_map`, `gain_stage_tails`, `_kcl_and_matching_edges`, `trace_*_branches`, `propagate_topology_forced_currents`, `_load_full_topology_cached`(내용 해시 키로), `spec_fingerprint`(전체 지문으로) | 1, 2 |
+| 4 | `gmid_sizing_engine.py` | 소자 사이징·헤드룸·diode 해석·보상 레지스트리·theta feed | `size_transistor`, `feasible_gm_ids`, `search_gm_id_for_role`, `measure_L_knee`, `HeadroomPolicy`, `_hr_*`, `solve_diode_connected_vds`, `solve_stacked_diode_pair`, `apply_theta_feed`, `_feed_*`, `topology_library.py`의 보상식 | 1, 3 |
+| 5 | `circuit_metrics.py` | metric 레지스트리 + 소신호 MNA + 사후검증 metric | `compute_metric`, `_METRICS_REGISTRY`, `_metric_*`, `build_ac_network`, `_full_circuit_response`, `estimate_mismatch_sigma` | 1, 3, 4 |
+| 6 | `theta_search.py` | 탐색 계층(§12 S3 아카이브 자리) | `_build_theta_evaluator`, `optimize_full_circuit_budget`의 탐색부, `search_stage_budget_L_warm_start`, `presolve_warm_start`, `_optimize_theta_slsqp`, `repair_infeasible_baseline`, `derive_theta_dependency_graph`, `extract_linear_feasibility_constraints` | 1~5 |
+| 7 | `stick_diagram.py`(유지) | **레이아웃만** -- common-centroid/interdigitation/오일러/finger/floorplan | R0 101개 대부분. 구조 유도 함수(R2 12개)는 2·3으로 나간다 | 1, 3 |
+| 8 | `sizing_layout_convergence.py` | 사이징<->레이아웃 반복 수렴 오케스트레이션(얇게) + harness `run_sizing_layout_convergence()` | `run_topology_pipeline_with_finger_fixup`(정본), `revalidate_finger_override`, `apply_and_revalidate_*`, `suggest_matching_finger_growth`, `resolve_stack_layout`(**실제 위치는 sizing_recipe.py:7025** -- §8.4 정정) | 4~7 |
+| 9 | `instance_report_builder.py` | instance.json + HTML report, harness `build_instance_and_report()` | `save_instance_json` 계열, **`design_report.render_html_report` 재사용**(신규 작성 금지, 누락 섹션만 추가) | 5, 7 |
+| 10 | `gmid_design_pipeline.py` | 유일 최상위 진입점 `run_gmid_design_pipeline()` | `run_harness.run`의 흐름(실패 시 비0 종료, θ* 기록) -- `run_harness.py`는 `canonical_spec()`/`SPECS`만 남는 얇은 호출자 | 2, 8, 9 |
+
+* `sizing_recipe.py`는 이관 기간 동안 **재수출 shim**(`from gmid_sizing_engine import *` 등)으로만 남기고, 호출부
+  (`run_harness.py`, probe, workspaces)가 새 모듈을 import하도록 바뀌면 **삭제**한다.
+* §8 대비 추가된 파일 3개의 근거: `gmid_lut.py`(모든 모듈의 공통 바닥 -- 엔진에 두면 stick_diagram·metrics가 엔진 전체에 의존),
+  `circuit_state_graph.py`(§12 S1 정본 -- 지금 SR·SD에 흩어진 구조 유도의 교차 중복 6개념을 한 곳으로),
+  `circuit_metrics.py`·`theta_search.py`(엔진 15,270줄 중 metric·탐색이 독립 소비자라 분리하지 않으면 엔진 파일이 여전히 8천 줄+).
+* **이관은 이동 전용 커밋**(본문 무변경, 모듈 하나당 커밋 하나) -- 동작 변경과 섞지 않는다. 각 커밋에서 13.5의 test 전부 통과.
+* D(운영 호출 0) 함수는 **옮기지 않는다** -- 이관 전에 삭제/배선을 결정한다(D7). 옮긴 뒤 지우면 이동 비용만 낭비.
+
+### 13.5 self-test를 명시적 test 파일로 분리하는 계획 (§8.8 대체)
+
+**현재**: 인라인 self-test `sizing_recipe.py:12571~15269`(2,700줄, 섹션 약 70, assert 약 220, 거부 케이스 22),
+`stick_diagram.py:8991~12935`(3,946줄, 섹션 77, 실행 30초 -- Test 53이 23초). `assets/tests/`는 probe 보관소(py 44, assert 있는 파일 3).
+pytest 9.0.2 설치돼 있음. 회귀 기준은 stdout 바이트 동일(`tests/baseline/*.baseline.log`).
+
+**목표 구조**
+
+```
+assets/tests/
+  conftest.py              # 공용 fixture: real_lut(세션, npz), toy_lut(build_toy_lut), library_dir(경로를 __file__ 대신 fixture로),
+                           #   grids(_tst_grids), 임시 topology 팩토리(tmp_path)
+  unit/test_gmid_lut.py
+  unit/test_topology_authoring.py
+  unit/test_circuit_state_graph.py
+  unit/test_gmid_sizing_engine.py
+  unit/test_circuit_metrics.py
+  unit/test_theta_search.py
+  unit/test_stick_diagram.py
+  unit/test_instance_report_builder.py
+  integration/test_sizing_pilot.py       # L5c 파일럿 전체회로(무거움, @pytest.mark.slow)
+  integration/test_layout_pipeline.py    # SD Test 53 등 sizing_recipe를 import하는 레이아웃 test(역방향 import를 여기로 격리)
+  integration/test_gmid_design_pipeline.py  # end-to-end
+  contracts/test_state_contracts.py      # §3.3 C1~C10 + §12.5.2 C-a~C-d(순서 섞기 불변성, 봉인 게이트 거부, 지문 미적중)
+  regression/test_four_circuits.py       # 4개 회로 무동작/일반성 측정(probe_parasitic_pm_all_circuits 등 승격)
+  probes/                  # 기존 probe_*.py -- pytest 수집 제외(conftest collect_ignore), 일회성 진단 보관
+  tools/                   # derive_achievable_bounds.py 등 정본 데이터를 갱신하는 운영 도구
+  baseline/                # T5에서 퇴역
+```
+
+**단계**(각 단계 커밋 하나, 파일 분리 13.4보다 **먼저** 한다 -- test가 소스 위치와 무관해져야 이동 전용 커밋을 검증할 수 있다)
+
+| 단계 | 내용 | 완료 판정 |
+|---|---|---|
+| T0 | **숨은 FAIL 해소**: SD Test 16 `FAIL(예상과 다름)`의 원인 규명(test가 틀렸나 대상이 틀렸나) -- baseline에 FAIL을 고정한 채로 이관하지 않는다 | 원인 기록 + 수정(엔진이면 승인) + baseline 재생성 |
+| T1 | **기계적 이관**: 두 `if __name__ == "__main__":` 블록을 `tests/legacy/selftest_sizing_recipe.py`, `tests/legacy/selftest_stick_diagram.py`로 **본문 그대로** 옮김. 소스 파일에서 블록 삭제. `import *` 대신 **명시 심볼 import**(`_` 접두 심볼 16개+가 `import *`로 안 딸려옴). library 경로(`__file__` 기준, SD:10694/12030)를 인자화 | 두 스크립트 stdout이 baseline과 바이트 동일, `PYTHONHASHSEED` 1~5 |
+| T2 | **pytest 함수로 변환**(섹션 단위): 섹션 하나 = test 함수 하나. 전역 `lut`(섹션 약 30개 공유) -> `real_lut` fixture, 섹션 사슬 11개(SR)·6개(SD) -> fixture로 명시(순서 의존 제거), 거부 케이스 22 -> `pytest.raises`, `_drl_case` -> `parametrize`(케이스마다 새 ctx) | `pytest tests/unit tests/integration` 통과 + `pytest -p no:randomly`와 무작위 순서 둘 다 통과 |
+| T3 | **print-only 판정 제거**: SD Test 1a~10·15·24(출력만), 11·13·14·16~23·25(PASS 문자열만), SR 데모 2섹션, L5c의 ValueError "참고" 흡수(:13372) -> 전부 assert. 판정할 것이 없는 데모는 삭제 | `grep -n "PASS\|FAIL" tests/unit` 판정 문자열 0 |
+| T4 | **자기참조 기대값 제거**: 기대값을 피검 식과 같은 식으로 만든 test(예 `estimate_area_budget` 13882) -> 독립 oracle/손계산 | 결함 #9가 test에서 FAIL로 드러남(수정은 13.6 Phase 4) |
+| T5 | **stdout baseline 퇴역**: 모든 섹션이 assert 기반이 되면 `tests/baseline/` 삭제, README를 pytest 실행법으로 교체 | baseline 참조 0 |
+| T6 | **probe 정리**: 승격(`probe_gm_id_monotonicity`(독립 oracle), `probe_physical_consistency`(-> 순서 불변성 contract), `probe_parasitic_pm_all_circuits`·`probe_role_L_derivation`(4회로), `probe_lut_L_interpolation`, `probe_revalidation_scope`, `probe_prevention_wiring`) / 삭제(실행 불가 3개 + 일회성 8개, 목록은 레지스트리 원자료 agent5, **승인 D7**) / 나머지 `probes/`로 이동. probe 안의 엔진 로직 복제 7건(IDu 식 6곳, 미러 그룹 3곳, 노드전압 2곳 등)은 엔진 정본 호출로 교체 | probe가 엔진 식을 재구현하는 곳 0 |
+| T7 | **계약 test**: §3.3 C1~C10(미구현 10개) + §12.5.2 C-a~C-d -- **§12 구현 단계와 함께**(구현 전에는 xfail로 선언만) | 각 계약에 "통과"가 아니라 **거부 케이스**가 있음 |
+
+* 표식: `@pytest.mark.slow`(L5c, SD Test 53, grid 5 두 섹션 등 7+곳), 기본 실행은 `-m "not slow"`, 커밋 전 전체.
+* 새 함수를 쓰면 **같은 커밋에 test 함수**를 쓴다(인라인 self-test 추가 금지).
+
+### 13.6 전체 수정 순서 (§12.7 대체 -- 모든 단계는 승인 후, design 문서를 거쳐 착수)
+
+| Phase | 내용 | 동작 변경 | 선행 |
+|---|---|---|---|
+| **0** | 재사용 레지스트리 + 방지 규칙(이번 커밋) | 없음 | -- |
+| **1** | test 분리 T0~T3 (13.5) | T0만(원인에 따라) | 0 |
+| **2** | 사장 코드 정리: D 목록 삭제/배선 결정(D7) + 동작 보존 DUP 통합(W 식 인라인 4곳, KCL 엣지, theta footprint, euler fixup, 보간 복붙, union-find, 위반량 합) | 없음(보존 증명: test 전부 통과) | 1 |
+| **3** | 파일 분리 13.4 -- 이동 전용 커밋, 모듈당 1커밋, shim 경유 후 `sizing_recipe.py` 삭제 | 없음 | 2 |
+| **4** | 결함 수정 §12.6 #1~8 + §13.3 #9~21 (T4 test가 먼저 FAIL로 드러낸 뒤 고침) + 동작이 바뀌는 DUP 통합(★ diode·미러·diffpair 정본은 **공동분석**, metric 3쌍은 4회로 재측정) | **있음** | 3, D6·D8 |
+| **5** | 빠른 효과: 실패 캐시 + start 사전선별, θ* 기록 + 아카이브 시드 (`theta_search.py`에) | 탐색 경로 | 4 |
+| **6** | §12 CSG: S0+S1(`circuit_state_graph.py`, shadow 동등 단언) -> S2+C-a/C-b+봉인 게이트 -> 유도 DAG·블록 memo·순환 블록(C-c) -> S1v -> S3 아카이브, 각 단계에 T7 계약 test | **있음** | 5, D1~D5 |
+| **7** | §7 gain-budget-first 미구현 함수군 + `sizing_spec.json` 분리: §12 S1/S2 위에서 **재평가 후** 필요한 것만(구조가 바뀌어 명세 그대로는 맞지 않는 항목이 있음 -- 이관 전 재명세) | **있음** | 6 |
+
+순서 근거: **test 먼저**(파일 이동·통합이 동작을 안 바꿨다는 것을 증명할 수단), **이동은 결함 수정 전**(동작 변경과 섞으면
+회귀 원인을 못 가림), **사장 코드는 이동 전에 정리**(옮긴 뒤 지우면 이동 비용 낭비), **§12는 파일 경계가 선 뒤**
+(§8을 먼저 박고 §12에서 또 옮기는 이중 이동 방지 -- 13.4의 경계를 이미 §12 기준으로 그었다).
+
+예외: §12.6 #3(게이트 `ValueError`가 탐색 전체 크래시)과 #18(실패해도 exit 0)은 **탐색 결과의 신뢰성**에 걸려,
+사용자가 원하면 Phase 1 앞으로 당길 수 있다(D10).
+
+### 13.7 §8 정정
+
+* §8.4 "`resolve_stack_layout`은 `stick_diagram`" -> 실제 `sizing_recipe.py:7025`.
+* §8.8 self-test 범위 "8980~12923" -> 실제 `stick_diagram.py:8991~12935`. "`from stick_diagram import *`" -> `_` 접두 심볼이 안 딸려와 불가, 명시 import.
+* §8.5 `render_design_report_html()` 신규 -> `design_report.render_html_report` 재사용.
+* §8.4 `_solve_diode_connected_vgs_fixed_point()` -> `solve_diode_connected_vds`로 구현돼 있음.
+* §8.7 "새 함수는 새 파일에 바로 작성" -> 지켜지지 않음(v4.3 이후 전부 sizing_recipe.py). 13.2 규칙으로 강제.
+* "로그 동일 = 통과" 기준은 FAIL을 고정할 수 있다(§13.3 #17) -- T5에서 퇴역.
+
+### 13.8 사용자 결정 필요 (§12.8에 추가)
+
+| # | 결정 | 선택지 |
+|---|---|---|
+| D6 | 목적함수 전력 정의 | (가) `sum_current` 유지 / (나) `_metric_supply_current`(스택 중복계상 제거)로 교체 -- 착지점이 바뀜 |
+| D7 | 사장 코드 처리 | 레지스트리 §7 D 목록(SR 27행, SD 20, 기타)과 probe 삭제 11개 -- 항목별 삭제/배선. 배선 후보: `validate_theta_declaration_order`(빌드 게이트), `lut_conditions_from_npz`(S0 LUT 지문), `achievable_metric_bound` |
+| D8 | ★ 구조 개념 정본(회로 해석) | diode 판정(이웃 포함 여부), 전류미러 그룹 키(gate·source vs gate·bias·rail), diffpair/tail 유도(connectivity vs 선언) -- 공동분석 |
+| D9 | test 프레임워크 | pytest(설치됨, 권고) / 현행 스크립트 유지 |
+| D10 | 순서 예외 | 게이트 크래시(#3)·exit 0(#18) 수정을 Phase 1 앞으로 당길지 |
+
 ## Version History
 
 | Version | Date | Changes |
@@ -3979,4 +4162,5 @@ L3에 지난 수렴점을 넣으면 셋이 한 기준을 공유한다: SLSQP bou
 | **4.41** | 2026-09-10 | **미러비 계통오차 상한 -- 숫자를 박지 않고**(사용자 지시). ① **내가 먼저 틀렸다**: `mirror_ratio_error_pct <= 8.0`을 박았다. 유도(선언된 5.0mV × 입력쌍 gm_id 16.00/V)를 주석에 적었지만 **결과를 박는 순간 유도는 문서일 뿐 코드가 아니게 된다** -- gm_id가 바뀌어도 8.0은 안 따라간다. §10.11에서 없앤 `_L_ROLE_MULTIPLIERS`와 같은 형태의 상수를 같은 세션에 다시 만든 것이고, 사용자 지적으로 원칙에 못박았다(메모리 `feedback-never-invent-constants-derive-and-cache`). ② **해법은 단위 맞추기**: 계통 오차를 **입력환산 전압**으로 재면(`dV=(dI/I)/(gm/ID)`) 랜덤 예산과 단위가 같아져 임계값을 `value_from_constraint: mismatch_sigma_mV`로 **참조**하면 끝난다 -- 제약에 숫자가 0개이고, 이 회로에 남은 선언 숫자는 `mismatch_sigma_mV = 5.0` 하나다. ③ 신설: `_mirror_ratio_error_pairs()`(쌍별 표를 `ctx.derived`에 **한 번** 계산해 pct/mV 두 metric이 공유), `_metric_mirror_ratio_error_input_referred`, `resolve_constraint_references()`(인라인 해석을 함수로 빼고 `value_from_constraint` 추가, 참조 연쇄 금지). ④ **부수 소득**: 박은 8.0%는 물리적으로도 틀렸다 -- 최댓값 쌍 M10/M12의 gm_id는 22.50/V인데 입력쌍 16.00/V를 적용했다. 제대로 환산하면 8.215% = **3.65mV**로 예산 안이다. 구속력은 유지(17.67% → 7.85mV, 43.45% → 19.3mV 전부 탈락). ⑤ self-test: 환산 동작 + 캐시 공유 + **거부 3종**(참조 없음/연쇄/value 충돌). 저장소 자체 게이트도 새 타입 미등록을 잡아 등록. ⑥ **결과**: 착지 무변경(power 231.17 등 v4.40과 동일), `mirror_ratio_error_mV = 3.186mV`로 예산 5.0mV 대비 **36% 여유** -- 설계를 바꾸는 제약이 아니라 탐색이 이 축을 희생하려 할 때 막는 가드다. self-test 둘 다 exit 0 |
 | **4.42** | 2026-09-10 | **입력환산 오프셋 + 달성 가능 임계값 유도 + CircuitGraph baseline**. ① 사용자 지적으로 발견: 파일럿은 current-reuse라 **M4a/M4b(NMOS)도 같은 입력에 물려 있고** `matching_pairs`도 이미 `offset`으로 선언돼 있는데 metric이 `devices:[M1a,M1b]` **한 쌍만** 세고 있었다(사이징 쪽은 Eq.5 `gm1=gmn+gmp`로 **이미 반영**돼 있었다 -- metric만 빠졌다). ② 새 metric `input_referred_offset`: 쌍을 **선언에서 찾고**(`matching_sensitivity==offset` + 게이트가 `ports`의 input net) **gm 가중 RSS로 입력환산**(사용자 확정). 실측 2.795 -> **1.651mV**. 파일럿 offset 쌍 3개 중 CMFB 오차증폭기가 `ports` 필터로 정확히 빠진다. 쌍 하나인 회로는 정확히 환원 = 무동작. 기존 소비자 셋(`_metric_device_footprint`/`make_matching_feasibility_check`)을 조용히 끄지 않으려고 **빌드 시 한 번** `devices`/`_pairs`를 적어 넣고, 쌍별 가드가 전체 조건의 **충분조건**임을 증명해 docstring에 남겼다. ③ `mismatch_sigma_mV=5.0`(근거 없던 값)을 `achievable_metric_bound()`로 유도 **시도했고 실패했다 -- 실패가 답을 줬다**: sigma를 최소화하면 W*L이 커져 `parasitic_pm_deg`와 정면충돌해 실현가능점이 사라지고(3 probe 전부), 제약을 떼면 최적화기가 입력쌍을 줄여 sigma가 오히려 나빠진다(세션31 실측 4.7배). **즉 이 임계값은 회로 안에서 도출되는 값이 아니라 시스템 레벨 오프셋 요구에서 와야 하는 설계 입력이다** -- 내가 제안하고 사용자가 고른 '달성 가능 상한에서 역산'이 이 metric엔 성립하지 않음이 측정으로 드러났다. 값을 지어내지 않고 5.0을 유지하되 **유도를 시도했고 왜 실패했는지**를 두 회로 선언에 적었다. 미구현 후보: 제약값 자체를 **bisection**해 '탐색이 아직 실현가능한 가장 빡빡한 sigma'를 찾기(두 실패를 모두 피한다). ④ **실측이 세 번 되돌렸다**: probe를 n_starts=1로 깎아 전부 실패 / 참조 제약 붕괴 / **런타임 참조 방식이 self-test 픽스처를 줄줄이 깨뜨림** -> 유도 스크립트가 결과를 **선언에 기록**(`value`+`_derived` 지문)하고 지문 불일치는 빌드를 죽이지 않고 기록만 남기는 방식으로 전환. **재탐색 실측: 착지 무변경**(power 231.17 등 v4.41과 동일), `mismatch_sigma_mV`만 1.334 -> **1.090**(정의가 바뀌어서) -- 임계값 5.0이 여전히 안 걸리므로 정의 수정 효과는 **임계값이 근거를 얻은 뒤에야** 나타난다. ⑤ **§11 CircuitGraph baseline 신설**(사용자 지시): 같은 넷리스트를 각자 훑는 함수 12개 전수 조사 -- 특히 `propagate_node_voltages()`가 **전 노드 DC 전압을 계산해 버린다**. 노드/엣지 스키마를 소비자에서 역산하고, **신호 전파방향을 노드에 기록해 stage 탐색이 항상 input->output**으로만 돌게 한다(사용자 지시 -- 역방향은 피드백에서 순환에 빠지고 단 판정을 모호하게 한다). **L1 정적/L2 평가별/L3 지속 3층 분리**가 핵심(안 지키면 평가 간 오염). ⑥ **정직한 한계 기록**: 다중 diff pair 세 경우 중 **A(병렬)만 맞고 B(cascade 입력환산)는 틀리며 C(CMFB 쌍)는 재는 metric이 없다** -- 공통 원인은 '몇 단째인가'를 사람이 적고 있다는 것이고 `stage_index` 유도가 그 열쇠다 |
 | **4.43** | 2026-09-14 | **§12 신설 -- 계산 결과를 버리지 않는 아키텍처**(사용자 지시). 네 관점 독립 검토(코드 감사 / 사고 약 300건 이력 분석 / §11 아키텍처 비판 / 최적화 계층)를 병렬로 돌려 결론을 모았다. **근본 원인은 그래프 부재가 아니라 값의 상태 모델 부재**(정체·출처·버전·수명). 수렴한 실측: 평가 결과가 평가를 넘어 살아남지 않음, SLSQP 811회 중 784회 중복(실패 미캐시), **7/51소자 W·gds가 옛 vsb 버전**(M2a W +18.5%), 노드전압 충돌 4건×222.7mV를 엔진이 안 읽음, FD 한 스텝에 소자 6.7/51만 바뀌는데 전부 재계산, 조인트 스캔이 평가의 66%, 지문이 해상도 키 7개뿐. **§11의 오류를 정정**(엔진 미호출 함수를 소비자로 적음, L2 '매 평가 새로'·flow_dir 단일 속성·'지난 해 ± 창' 폐기). 근본안 Circuit State Graph: S0 지문/S1 구조(타입 관계 엣지, 개념당 정의 하나, status)/S1v 여기 모드별 뷰/S2 입력해시 memo(값·사전정보 분리)/S3 탐색 아카이브 + 네 계약(단일 writer, 버전 있는 유도+봉인 게이트, 순환의 명시적 고정점, 내용 지문 무효화) + 유도 DAG 평가 커널 + 실패를 결과로 쓰는 전역 시작점 전략. 아키텍처와 무관한 현존 결함 8건 분리 기록. 사용자 결정 D1~D5(특히 D1: 노드전압을 DC 정본으로). **구현 없음 -- plan 기록만** |
+| **4.44** | 2026-09-14 | **§13 신설 -- 함수 전수 감사 + 재사용 레지스트리 + 전체 수정계획**(사용자 지시). AST 전 함수 인벤토리 + 에이전트 6개 판정(sizing_recipe 218 / stick_diagram 158 / 기타 약 45): R0 그대로 재사용 SR 84·SD 101, 개념별 정본표 22개념(W 식 인라인 4곳, diode·미러·diffpair 교차 정의, 노드전압 4곳 재계산 등). 계획 대 구현: §7 함수군 def 0, sizing_spec.json 0, C1~C10·`def test_` 0, §8 분리는 선행조치만 완료. 이미 있는데 '신규'로 적힌 2건(`render_html_report`, `solve_diode_connected_vds`). 새 결함 13건(#9~21: 면적식 α 상쇄, 이분법 단조성 미검사, **목적함수 sum_current 스택 중복계상**, **self-test Test 16 FAIL이 baseline에 고정**, run_harness exit 0 등). **파일 분리(10개 모듈, 단방향 import, 이동 전용 커밋)와 self-test 분리(T0~T7: 기계적 이관 -> pytest fixture화 -> print 판정 제거 -> 자기참조 기대값 제거 -> baseline 퇴역 -> probe 정리 -> 계약 test)를 명시**하고 §8·§12.7을 Phase 0~7 단일 순서(test 먼저 -> 사장코드 -> 이동 -> 결함 -> 빠른효과 -> CSG -> §7 재평가)로 대체. 결정 D6~D10. 레지스트리 `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`. **구현 없음** |
 | **4.42a** | 2026-09-10 | **사용자 결정 -- 임계값 bisection(선택지 3)**. §10.14의 유도 실패 두 방향(objective 교체 -> 다른 제약과 충돌 / 제약 제거 -> 드리프트)은 **문제를 바꿔서** 물은 것이었다. bisection은 objective도 제약도 그대로 두고 **임계값만** 움직이며 매번 원래 탐색을 돌려 '이 값에서도 설계가 존재하는가'를 묻는다. **원리적 보장**: 임계값을 조이면 실행가능 집합은 줄어들기만 하므로 '실행가능한 B'는 위로 닫힌 구간이고 하한이 유일하게 존재한다(minimize와 근본적으로 다르다). ⚠️ 단조한 것은 실행가능성이지 SLSQP의 성공 여부가 아니라, conservative 규약(마지막으로 **성공한** B + 여러 시드 전부 성공)을 둔다. 재사용: `achievable_metric_bound()`의 뼈대에 `mode` 인자만 추가("objective 교체+제약 제거" -> "임계값 치환"). ★ `value_from_constraint`로 이 값을 참조하는 `mirror_ratio_error_mV`가 **같이 따라 움직이는데 이건 의도된 결합**이다. 비용: 스텝x시드 = 탐색 ~18회 -> 한 번 재서 선언에 기록. 같은 함수로 `gain_db`의 '실측 상한+3dB 마진'도 **마진 상수 없이** 대체 가능. 선행 과제: `two_stage_ota`의 `stage1_out` KVL(세션41 이월). **계획에 기록만 -- 구현은 design 단계를 거친 뒤**(bkit plan->design->do, 사용자 지적) |

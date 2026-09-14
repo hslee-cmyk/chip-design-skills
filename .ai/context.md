@@ -14540,3 +14540,16 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   부분문자열 소자 탐지, 미러 그룹 첫 쌍만 검사, 광범위 except, 캐시 상한=캐싱 중단, 지문 불일치 계속 사용.
 * 사용자 결정 대기 D1~D5: **D1 노드전압을 DC 정본으로**, D2 고정점 허용오차 근거, D3 착수 순서,
   D4 전역 샘플링 예산 vs 5분, D5 ports 선언. **구현 없음 -- plan 기록만.**
+
+* ★ (같은 세션 후반) **함수 전수 감사 + 재사용 레지스트리 + 전체 수정계획** -> 계획 §13(v4.44).
+  AST 인벤토리 + 에이전트 6개. 레지스트리 `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`
+  (§0 사용 규칙, §2 개념별 정본표 22개념, R0/R1/R2/DUP/D 목록), 원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/`.
+  - 계획 대 구현: §7 gain-budget-first 함수군 def 0, sizing_spec.json 0, C1~C10 및 `def test_` 0. §8 파일 분리는
+    2026-09-07 선행조치(_hr_* 추출, baseline, 결정론화)만 되고 본체 0 -- 새 함수가 전부 sizing_recipe.py에 붙어 이관 비용 증가.
+  - 이미 있는데 계획이 "신규"로 적은 것: `render_html_report`(=render_design_report_html), `solve_diode_connected_vds`.
+  - 새 결함 #9~21: 면적식 α 상쇄, 이분법 단조성 미검사, 적층 diode idu=1.0 폴백, **objective sum_current 스택 중복계상(D6)**,
+    **SD self-test Test 16의 FAIL이 baseline 로그에 고정**(로그 동일=통과 기준의 허점), run_harness exit 0, 레일 넷 대소문자 불일치 등.
+    ("Cc 미전달" 보고는 derived 우선·spec 폴백이라 정정 -- 결함 아님.)
+  - 전체 순서 Phase 0~7: 레지스트리 -> **test 분리 T0~T3**(Test16 해소, 기계적 이관, pytest fixture화, print 판정 제거)
+    -> 사장코드·동작보존 DUP -> **파일 분리 10모듈(이동 전용 커밋)** -> 결함 수정 -> 빠른 효과 -> §12 CSG -> §7 재평가.
+  - 재작성 실수 원인 3: 확인처 하나 누락 / 정의만 보고 호출부 안 봄 / 대체 후 옛 함수 미삭제. 결정 D6~D10 대기. 구현 없음.
