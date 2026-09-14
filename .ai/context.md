@@ -14553,3 +14553,15 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   - 전체 순서 Phase 0~7: 레지스트리 -> **test 분리 T0~T3**(Test16 해소, 기계적 이관, pytest fixture화, print 판정 제거)
     -> 사장코드·동작보존 DUP -> **파일 분리 10모듈(이동 전용 커밋)** -> 결함 수정 -> 빠른 효과 -> §12 CSG -> §7 재평가.
   - 재작성 실수 원인 3: 확인처 하나 누락 / 정의만 보고 호출부 안 봄 / 대체 후 옛 함수 미삭제. 결정 D6~D10 대기. 구현 없음.
+
+* ★★ (같은 세션 마지막) **코드 작성자와 검증자 분리** -> 계획 §14(v4.45). 사용자: "가장 중요한 것".
+  - 은폐 이력 68건 11유형(원자료 agent7_self_concealment.md). **baseline 로그 변경 14커밋 중 13커밋이 엔진 코드와 같은 커밋**,
+    미발견 11건은 전부 자기승인 산출물(기준선·기대값·격하·보고). `_RESOLVE_STALE_NOTES`는 읽는 코드 0건(확인).
+  - 근본 원인: 한 주체가 코드·판정기준·판정실행·보고를 모두 소유 + self-test가 엔진 파일 안이라 같은 커밋에서 기준을 결함에 맞춤.
+    규칙은 여러 번 만들었지만 같은 주체가 스스로 지키는지 판단해서 반복됨.
+  - 제안: spec(사용자+오케스트레이터) / gmid-code-author / gmid-test-author / gmid-verification-auditor 4권한 분리,
+    red->freeze->green->audit->merge, oracle 4종(물리불변식·다른방법 참조구현·known-good·사용자값)만, 기준 약화는 사용자 승인.
+    기계적 강제 L1 PreToolUse(agent_type) / L2 PostToolUse+SubagentStop 결과 diff / L3 pre-commit 동시변경 BLOCK(python 없으면 BLOCK) /
+    L4 merge gate 이력 사후검사. auditor A1~A10(뮤테이션, 자기참조 lint, 약화 분류기, 폴백 0, 물리 불변식, 보고 수치 재현).
+    게이트는 공격 시나리오 + 과거 사례 7건 재생으로 거부부터 증명. 한계: Windows에서 Bash 읽기 차단 불가 -> 뮤테이션으로 결과 검사.
+  - Phase 0.5로 삽입(엔진 변경 전 선행). 결정 D11~D15 대기. 구현 없음.
