@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 5.2
+version: 5.3
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -171,7 +171,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | DEC-01 | 목표는 gain-budget-first다. Circuit State Graph는 stage 분할과 gain 할당을 위한 기반이다 | 2026-09-04, 09-14 | 전체 | 미구현 |
 | DEC-02 | 인과 방향은 보상 먼저: (CL, GBW, PM) -> (Cc, Rz, gm_1..gm_N), 이후 gm_id_i·L·자유 노드전압이 자유 축 | 2026-09-07 | GB5 | 부분(Cc 유도만) |
 | DEC-03 | stage별 gain 예산은 엔진이 유도해 `gain_budget_db`로 출력한다. 사람이 배분을 강제하는 유일한 경로는 `gain_budget_db_override`(출처 필수) | 2026-09-07 | GB0, GB6 | 미구현 |
-| DEC-04 | 결합 블록 안의 소자(input·cascode·load·tail)는 gm_id·L을 함께 결정한다. 캐스코드 L을 role 휴리스틱으로 따로 정하지 않는다 | 2026-09-04 | GB6 내층 | 미구현 |
+| DEC-04 | **(2026-09-14 재정의, 사용자 "난 강제하고 싶지 않아")** 블록 안 소자(input·cascode·load·tail)의 gm_id·L은 소자마다 **독립 결정변수**다. 함께 정하라는 규칙을 두지 않는다. 소자 사이의 결합은 블록 gain·헤드룸·면적·PM 같은 목적함수와 제약이 만들 뿐이다. 캐스코드 L을 role 배수로 따로 정하지 않는 것은 DEC-18·LR5가 담당한다(옛 형태 "input+cascode 동시 결정"은 철회) | 2026-09-04, 09-14 | GB6 내층 | 미구현 |
 | DEC-05 | gain 제약 판정은 전체회로 MNA gain 하나로 한다. 블록 gain(블록 국소 소신호 모델, 부하·follower·pass 포함)은 할당용 분해 값이고, 두 값의 잔차를 매 평가 기록한다 | 2026-09-14 | GB8 | 미구현(현 제약은 `gain_stages_sum`, I-B21) |
 | DEC-06 | theta는 자유 탐색 변수만이다. 구조 선언은 `sizing_spec.json`의 선언/유도 필드로 옮긴다 | 2026-09-07 | GB0, MOD2 | 미구현 |
 | DEC-07 | 목적함수는 전력 최소화 하나, 면적은 `area_um2` 상한 제약. 면적 예산이 선언되지 않으면 전력-면적 Pareto를 제시하고 정지한다 | 2026-09-07 | GB6, GB9 | 미구현(전력 정의 U-10, Area 정의 U-13) |
@@ -291,9 +291,9 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 4. **엣지와 비용**: gate->drain 비용 1, source->drain(캐스코드)·gate->source 비용 0, diode 노드 게이트의 gate->drain 비용 0(미러). 예외: source 노드가 전압 구동인 CG의 source->drain은 비용 1(규칙 5). 입력 넷에서 0-1 BFS 최소 비용이 stage 번호다. DM 뷰에서는 입력쌍 공통 소스가 자기대응 넷(가상접지)이라 gate->source 우회로가 끊긴다. 이 조합이 4개 회로에서 실측한 규칙이다(원자료 `probe_stage_partition.result.md`의 R3(DM/R2)). DM 뷰가 아닌 전체 회로에 같은 비용을 쓰면 우회로 때문에 입력단 stage 번호가 0으로 떨어지므로 SP1은 DM 뷰에서만 쓴다.
 5. **셀과 stage 경계**: DM 뷰의 신호 경로에서 모든 트랜지스터를 셀(CS/CG/CD/pass)로 분류하고, 셀마다 입력 노드의 구동 종류(전압/전류)를 기록한다. stage 경계는 단자 이름이 아니라 **입력 노드 구동 종류 하나로** 정한다.
    * 전압 구동 입력을 받아 전류를 고임피던스 노드로 내보내는 셀(CS, source가 전압 구동인 CG) = **새 gain stage 시작**(번호 +1).
-   * 전류 구동 입력을 받는 CG = 캐스코드. **같은 stage를 잇는다**(앞 셀의 출력저항을 키우는 전류 버퍼이며, 입력 소자와 L·gm_id를 함께 정한다 -- DEC-04).
+   * 전류 구동 입력을 받는 CG = 캐스코드. **같은 stage를 잇는다**(앞 셀의 출력저항을 키우는 전류 버퍼다. 같은 stage는 gain을 평가하는 단위일 뿐이고, 캐스코드의 gm_id·L은 입력 소자와 독립 결정변수다 -- DEC-04).
    * 전압 구동 입력을 받아 저임피던스 노드로 내보내는 셀(CD, pass) = 전압 버퍼. gain stage 번호는 올리지 않고 버퍼 구간으로 표시한다(독립 블록 여부는 J10).
-   * 근거: 캐스코드를 별도 stage로 나누면 그 stage의 전압 이득(source 노드 -> drain)과 앞 stage의 이득(≈ −1)이 같은 전류와 같은 출력저항을 공유해 분리성이 깨지고(결합 블록 DP 성립 조건, N3.7), 입력+캐스코드 동시 결정(DEC-04)과 보상 레지스트리의 stage 수(`compensation.stage_devices`)와도 어긋난다. 4개 회로 실측: CG 셀 8개(파일럿 M9a/M9b/M18a/M18b, folded M5/M6, nmcnr M106/M107)가 **모두 전류 구동**이고 source가 전압 구동인 CG는 없다. 파일럿 선언 `gain_stages_sum`은 캐스코드 M2a/M3a를 입력 M1a/M4a와 같은 stage에 둔다(원자료 `probe_cg_cascode_stage.result.md`). 따라서 이 규칙은 4개 회로에서 실측 규칙 R3(DM/R2)과 같은 결과를 내고, CG 증폭기·follower까지 같은 기준으로 처리한다.
+   * 근거: 캐스코드를 별도 stage로 나누면 그 stage의 전압 이득(source 노드 -> drain)과 앞 stage의 이득(≈ −1)이 같은 전류와 같은 출력저항을 공유해 분리성이 깨지고(결합 블록 DP 성립 조건, N3.7), 보상 레지스트리의 stage 수(`compensation.stage_devices`)와도 어긋난다. 캐스코드를 입력과 같은 stage에 두는 이유는 결정을 묶기 위해서가 아니라, 출력노드 저항이 캐스코드로 정해져 블록 gain을 계산하는 단위가 같기 때문이다. 4개 회로 실측: CG 셀 8개(파일럿 M9a/M9b/M18a/M18b, folded M5/M6, nmcnr M106/M107)가 **모두 전류 구동**이고 source가 전압 구동인 CG는 없다. 파일럿 선언 `gain_stages_sum`은 캐스코드 M2a/M3a를 입력 M1a/M4a와 같은 stage에 둔다(원자료 `probe_cg_cascode_stage.result.md`). 따라서 이 규칙은 4개 회로에서 실측 규칙 R3(DM/R2)과 같은 결과를 내고, CG 증폭기·follower까지 같은 기준으로 처리한다.
 6. **stage 구성**: 출력노드 = stage 안에서 신호가 마지막으로 도달해 다음 stage 입력(다음 CS의 gate) 또는 출력 포트로 넘어가는 노드. CS·CG 사슬로 끝나면 drain 노드, CD·pass로 끝나면 그 소자의 출력 단자 노드다. 임피던스 등급(높음 = drain만 붙음 / 낮음 = 출력 source가 붙음)을 노드 속성으로 기록한다. input = gate가 stage 입력 넷에 붙은 소자, cascode = CG 사슬, follower = CD, pass = pass 구성 소자, load = 드레인이 출력노드(또는 중간 고임피던스 노드)에 붙고 게이트가 바이어스·미러 넷인 소자, tail = 드레인이 입력쌍 공통 소스 노드에 붙은 소자. **블록 노드 집합** = stage 입력 넷부터 출력노드까지 신호 경로에 있는 노드 전부.
 7. **피드백**: 수동소자 엣지와 역방향 MOS 엣지를 피드백으로 분리한다. 극성 = MOS만 거치는 복귀 경로의 저주파 부호. 부호가 섞이면 `review_needed`(Cc–Rz 직렬 루프는 J7).
 8. **검증 기준**(구동 종류 판정은 규칙 1의 교류접지 집합이 먼저 확정돼야 한다 -- 교류접지 없이 BFS하면 레플리카 바이어스 경로 때문에 파일럿 M2a/M3a가 CG로 잡히지 않는다, J1): input·cascode·tail 멤버십은 declared stage와 대조한다(4개 회로 실측 100% 일치, 원자료 `probe_stage_partition.result.md`). 출력노드와 load·G_out 기여 소자는 J5·J6 공동분석으로 `ratified`된 대조표와 대조한다. declared stage에 없는 부하(파일럿 Vom1의 M19·M18a·M18b)는 결함 선언이지 규칙의 오류가 아니다. 4개 회로에 drain이 레일에 붙은 순수 follower는 없고, source·drain 단자로 신호를 넘기는 소자는 파일럿 class-AB floating battery(M9a/M9b: Vop1↔Vg15, M18a/M18b: Vom1↔Vg25)와 folded M8(gate Vg7, source Vg10)이다(실측 원자료 `probe_common_drain.result.md`, 6a design이 DM 뷰에서 재측정). 따라서 CD 분류의 4개 회로 검증은 "분류 발동 소자 = 이 목록"까지이고, 순수 follower 회로 추가 여부는 U-22다.
@@ -402,7 +402,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 | 층 | 명세 |
 |---|---|
-| 내층 블록 DP | y 고정. 상태 = (블록 순서, 누적 gain bin), 결정 = (gm_id 격자점, L 동치류의 LUT 앵커), 비용 = 전력(U-10 정의), 면적 제약이 있으면 면적 bin 추가. gain bin 해상도 = 인접 격자점이 만드는 블록 gain 차의 최솟값(계산) |
+| 내층 블록 DP | y 고정. 상태 = (블록 순서, 누적 gain bin), 결정 = 블록 안 셀마다 독립인 (gm_id 격자점, L 동치류의 LUT 앵커)의 벡터(DEC-04). 블록 안 전수 크기 Π(셀별 격자 수)가 DEC-34 예산에서 계산한 평가 수 안이면 전수, 넘으면 셀 단위 좌표강하(셀 하나씩 1-D 스캔, 종료 규칙은 중층과 같다), 비용 = 전력(U-10 정의), 면적 제약이 있으면 면적 bin 추가. gain bin 해상도 = 인접 격자점이 만드는 블록 gain 차의 최솟값(계산) |
 | 중층 좌표강하 | y의 각 차원을 자기 가능역의 1-D 격자에서 순서대로 최소화. 공유 VGS는 gain 기준(DEC-10). 종료 = 한 바퀴에 y 불변, 또는 목적값 감소 ≤ DP 목적값 분해능. 상한 = y 격자 점 수의 합(유한 격자·비증가라 종료 보장) |
 | 외층 미세조정 | DP·좌표강하 해를 시작점으로 SLSQP(`SPECS[circuit]["slsqp_kwargs"]`). MT3 제약은 이 층에서만 판정 |
 
@@ -915,7 +915,7 @@ topology.json(connectivity, `ports`, `passive_elements`) -> GB1·GB2 유도와 �
 | §6 | 이력 §6 |
 | §7.0 | 판정은 N3·N2에 반영, 표 원문은 이력 |
 | §7.1 / §7.2 / §7.3 | N3.15 / N3.7 / N3.4 (원문 이력 §7.1~§7.3) |
-| §7.4 | DEC-02·DEC-03·DEC-04, N3.1 |
+| §7.4 | DEC-02·DEC-03·DEC-04(2026-09-14 재정의), N3.1 |
 | §7.5 / §7.6 / §7.8 / §7.9 | N3.6·N3.8 / N3.8 / N3.7 / N3.7 (원문 이력) |
 | §7.7 / §7.10 / §7.11 | N3.9, DEC-16, DEC-25 (원문 이력 "v5.0 교체 원문") |
 | §8, §8.4, §8.5, §8.8 | N3.10, N3.10 MOD8, N3.10 MOD9, N3.11 (원문 이력 §8) |
@@ -940,7 +940,7 @@ topology.json(connectivity, `ports`, `passive_elements`) -> GB1·GB2 유도와 �
 
 | 옛 ID | 새 ID |
 |---|---|
-| 표 A A01~A74 | A01→DEC-01, A02→DEC-04, A03→DEC-02, A04·A05→DEC-03, A06→DEC-05, A07→DEC-06, A08·A09→DEC-07, A10→NFR-1, A11→WP-02, A12→NFR-2, A13→NFR-3, A14→DEC-48, A15→DEC-08, A16→WP-04, A17→DEC-09, A18→DEC-10, A19→DEC-11, A20→DEC-12, A21→DEC-13, A22→DEC-14, A23→DEC-15, A24→DEC-56, A25→DEC-16, A26→LR1~LR9, A27·A29→DEC-17, A28·A30→DEC-18, A31→DEC-19, A32→DEC-20, A33→DEC-21, A34→DEC-22, A35→DEC-23, A36→DEC-24, A37·A38→DEC-55, A39→DEC-25, A40→DEC-31, A41→DEC-26, A42→DEC-27, A43→DEC-28, A44→DEC-29, A45·A62→DEC-01, A46→DEC-30, A47·A48→DEC-46, A49→WP-14, A50→DEC-42, A51→DEC-32, A52→N6.1, A53→DEC-34, A54→DEC-35, A55→U-10, A56→U-02, A57→U-06, A58→DEC-36, A59→DEC-37, A60→DEC-37~40, A61→DEC-41, A63→N3.1 RC, A64→DEC-50, A65→DEC-51, A66→U-09, A67→이력, A68→DEC-54, A69→DEC-52, A70→DEC-18·DEC-19(knee 출발은 LR5), A71→DEC-53, A72→DEC-05·J6, A73→DEC-49, A74→DEC-47 |
+| 표 A A01~A74 | A01→DEC-01, A02→DEC-04(2026-09-14 재정의: 동시 결정 철회), A03→DEC-02, A04·A05→DEC-03, A06→DEC-05, A07→DEC-06, A08·A09→DEC-07, A10→NFR-1, A11→WP-02, A12→NFR-2, A13→NFR-3, A14→DEC-48, A15→DEC-08, A16→WP-04, A17→DEC-09, A18→DEC-10, A19→DEC-11, A20→DEC-12, A21→DEC-13, A22→DEC-14, A23→DEC-15, A24→DEC-56, A25→DEC-16, A26→LR1~LR9, A27·A29→DEC-17, A28·A30→DEC-18, A31→DEC-19, A32→DEC-20, A33→DEC-21, A34→DEC-22, A35→DEC-23, A36→DEC-24, A37·A38→DEC-55, A39→DEC-25, A40→DEC-31, A41→DEC-26, A42→DEC-27, A43→DEC-28, A44→DEC-29, A45·A62→DEC-01, A46→DEC-30, A47·A48→DEC-46, A49→WP-14, A50→DEC-42, A51→DEC-32, A52→N6.1, A53→DEC-34, A54→DEC-35, A55→U-10, A56→U-02, A57→U-06, A58→DEC-36, A59→DEC-37, A60→DEC-37~40, A61→DEC-41, A63→N3.1 RC, A64→DEC-50, A65→DEC-51, A66→U-09, A67→이력, A68→DEC-54, A69→DEC-52, A70→DEC-18·DEC-19(knee 출발은 LR5), A71→DEC-53, A72→DEC-05·J6, A73→DEC-49, A74→DEC-47 |
 | D1~D15 | D1→DEC-31, D2→DEC-32, D3→N6.1, D4→DEC-34, D5→DEC-35, D6→U-10, D7→U-02, D8→U-06, D9→DEC-36, D10·D11→DEC-37, D12→DEC-38, D13→DEC-39, D14→DEC-40, D15→DEC-41 |
 | 표 B B01~B21 | B01~B18→WP-01~WP-18, B19→해당 없음, B20→DEC-51, B21→WP-20 |
 | 이슈 A/B/G/C (§10) | 열림은 I-A* / I-B* / I-G* / I-C*(N5.3). v5.0에서 닫음: I-G3·I-G7(N1.2), I-G8(N9.3), I-C3(DEC-47), I-C5(WP-14), I-C7(N3.15), I-C9(원표 이력), I-A9(N3.8). DF로 통합: I-A3→DF-16, I-A4→DF-05, I-B7→DF-02, I-B9→DF-01. 신설: I-A10(folded `omega_c` 선측정), I-A11(크로스오버 해석 차이), I-B22(다중 diff pair 오프셋), I-C10(옛 §10.5a-8, U-20), I-C11(옛 A66, U-09) |
