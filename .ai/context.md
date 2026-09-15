@@ -14671,3 +14671,12 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 계획 v5.10(검증 중) 반영 대기: U-30 닫힘(오류, Phase 4 정정), Phase 4 PDK 상수 항목에 규칙 출처, U-26 nmcnr ±0.9 V, U-27 VS 축 상한 1.8 V.
 - U-31 사용자 결정(2026-09-15, "CL은 load cap이잖아. 1pF이면 그냥 스펙으로 봐도 돼."): folded_cascode CL = 1 pF를 스펙으로 확정(기존 metric 인자 CL 1e-12와 같은 값). 실행 spec·CL 소자 추가는 7b(U-08 포트 선언과 함께). 계획 v5.10 반영 대기.
 - U-30 정정 시점 사용자 원문(2026-09-15): "2번은 phase4에서 해." (실행 spec min_finger_w·W_bounds 교체를 Phase 4 PDK 상수 일원화에서)
+
+### 세션48 -- plan v5.10 (DC/AC 영역·명명 통일·소스 팔로워 규칙, 2026-09-15)
+- 원자료: docs/03-analysis/gain-budget-gmid-sizing-function-audit/review5_* (DC/AC 영역 감사, 팔로워 규칙, 스키마 통일, 결정표, 독립 검증 5회). 검증 막음·높음 0에서 커밋.
+- DEC-67 영역 원칙(DC 동작점/소신호/대신호, 노드전압·전류 정본 DC, AC는 봉인 뒤, 소자 DC 역할·AC 역할 이중 기록, 구동 종류 = 신호가 들어오는 단자). 봉인 7(포화 여유)·8(kvl_branch 등식).
+- DEC-70 역방향 규칙: AC·대신호 결과는 θ 제약으로만(보상 gm_req·슬루·parasitic_pm을 봉인 후보마다 부등식). 커널 재배열은 7b, 6b~7a는 현 코드 경로 전환기. θ 전류 변수 = KCL·전류 강제 관계로 정해지지 않는 가지 전류의 독립 기저(바이어스 게이트 가지 포함). 게이트-소스 KVL 루프는 멤버 gm_id 하나 종속(VGS에 ID 없음 -- 한때 '루프 전류 종속'으로 잘못 지시했다가 검증에서 정정), 선택 우선순위 J ratified > 이름 정렬. 수동소자 DC 판정 = DC 전도 그래프 잎 가지치기(잘린 저항 = 봉인 파생값, 남은 값 미선언 저항 = θ): 파일럿 Rz1·Rz2 파생, R1/R2 θ(J), sf R1a~c θ.
+- NFR-2 합격 기준(같은 입력 해시 재계산 0), 역방향 제약은 봉인 스냅샷 S2 소신호 필드 재사용, 구체안은 6b·7b design.
+- DEC-68/69·N3.16 명명 규칙(snake_case, 풀어 쓴 단위 접미사, _dc_/ac_/_ss_ 영역 표기), topology supply_nets + spec supplies_v, _declared_target_spec, value_dc_amp, MG0~MG3 마이그레이션. U-32(접미사 적용 범위) 열림.
+- 소스 팔로워: DEC-63(CD 셀 묶음 버퍼 블록), DEC-64(KVL 루프 규칙, DEC-15·27 통합), DEC-65(방향별 최대 전류·class-A/push-pull), DEC-66(rout_ss_ohm). J12-a~h 6a-2. U-27 LUT 재생성(VS 0~1.8 V, CGS/CGB).
+- 사용자 결정 반영: U-26 nmcnr ±0.9 V, U-27 VS 상한 1.8 V, U-30 min_finger_w 오류(Phase 4 PDK 규칙 difftap.2 등), U-31 folded CL 1 pF. 선택 낮음 Z1(파일럿 종속 소자 ratify 7b vs W2 6b) 미반영.
