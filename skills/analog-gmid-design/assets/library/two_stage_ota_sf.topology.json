@@ -113,5 +113,26 @@
     "_comment": "미판정 -- find_matching_candidates() 후보를 사용자와 공동 판정해 채운다."
   },
   "sizing_roles": null,
-  "device_roles": null
+  "device_roles": null,
+  "_paper_target_spec_comment": "2026-09-15 사용자 결정(\"two_stage_ota 스펙 이어 쓰고 CL, Rout만 추가해\"). p.26-5 도면에는 수치가 없다. **문서화 전용** 필드 -- 엔진은 읽지 않는다. 실행 SPECS 항목은 이 회로를 사이징할 때(스펙 정본 run_harness.SPECS) 추가한다.",
+  "_paper_target_spec": {
+    "inherits": {
+      "spec_fn": "workspaces/run_harness.py _spec_two_stage_ota (two_stage_ota 스펙 정본)",
+      "constraints_and_objective": "library/two_stage_ota.topology.json sizing_roles의 constraints·objective",
+      "_comment": "값을 복사하지 않고 정본을 가리킨다(복붙 spec이 정본과 갈린 사고 방지 -- require_declared_spec_source). two_stage_ota와 다른 점은 아래 두 항목뿐."
+    },
+    "added": {
+      "CL_farad": {
+        "value": 3e-12,
+        "node": "vout",
+        "_comment": "two_stage_ota 정본 CL 3 pF를 그대로 쓰되 부하 위치는 도면대로 팔로워 출력 vout(two_stage_ota는 OUT)."
+      },
+      "rout_ohm": {
+        "op": "<=",
+        "value": 1000,
+        "_comment": "p.26-5 도면에 값이 없어 같은 강의 26의 버퍼 출력 저항 기준(p.26-6 'Rout ≤ 1000Ω', p.26-27 요약 '10Ω ≤ Ro ≤ 1000Ω' 상한)을 기본안으로 쓴다. 팔로워 출력 저항 ≈ 1/(gm8+gmbs8)(p.26-3)."
+      }
+    },
+    "_sense_node_comment": "상속한 gain metric의 감지 노드는 two_stage_ota의 OUT이 아니라 vout이다 -- 팔로워 감쇠 gm8/(gm8+gmbs8+gds8+gds9)(p.26-5 식)가 gain 제약에 포함된다."
+  }
 }
