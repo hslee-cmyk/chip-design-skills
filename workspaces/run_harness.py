@@ -280,7 +280,11 @@ def _spec_nmcnr_amplifier():
         "_spec_source": "run_harness.SPECS",
         "lut_by_kind": {"nmos": _NMOS, "pmos": _PMOS},
         "lut": _NMOS,
-        "vdd": 2.0,
+        # 2026-09-15 사용자 결정("1.8로 고쳐", "+-0.9로 고치고") -- 옛 2.0은 논문(AMS 0.8um)
+        # ±1V를 폭으로 옮긴 미검증 추정이었다. sky130 재설계 전원은 ±0.9V(폭 1.8V, LUT VDS/VGS
+        # 0~1.8V와 일치). 이 spec은 아직 스칼라 vdd만 받아(가장 낮은 레일 = 0V 기준) 폭 1.8을 준다
+        # -- ±0.9V 선언과 원점 이동으로 동등. 분할 레일 선언(supplies_v)은 계획 DEC-60 구현 뒤.
+        "vdd": 1.8,
         "GBW": 816000.0, "CL": 1e-10, "kg": 0.5,
         "PM_target_deg": 70.0,  # 2026-08-19(세션37) 확정 스펙 -- 위 docstring 참고
         "L_candidates": layout_grid_L_candidates(_NMOS, L_GRID_STEP, n=41),

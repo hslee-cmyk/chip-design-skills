@@ -1,7 +1,10 @@
 
-### 세션48 -- plan v5.9 (일반성 개선, 2026-09-15)
-- 독립 일반성 감사(review4_generality_audit.md, 판정 "부분 종속") -> 작성 agent 반영 -> 독립 검증 5회(review4_v59_verify ~ reverify4) -> 막음·높음 0에서 커밋. 결정표·이월 목록 review4_v59_disposition.md.
-- 핵심: DEC-59(지원 범위 = 규칙 분기 검증 발동, `기록만` 분기 항상 정지 `unsupported_rule_branch`), DEC-60(레일 넷 topology `supply_nets` / 전압 스펙 `supplies`, 미선언은 현행 이름 집합 전환기 해석), DEC-61(소자 선택 필드 `bulk`, 기본 nmos=최저·pmos=최고 레일, vsb 노드전압 유도, 봉인 항목 6 source·drain 접합 역바이어스), DEC-62(새 토폴로지는 데이터만). DF-23~26, IC11(원점 이동 불변), K7·K8(뷰 공유 소자, 측면 주입), J12, U-25(신규 3회로 스펙 확정), U-26(기존 회로 레일 선언·wall_clock_budget_s).
+### 세션48 -- nmcnr sky130 전원 ±0.9 V (2026-09-15)
+- 옛 run_harness nmcnr "vdd": 2.0은 논문(AMS 0.8um) ±1V를 폭으로 옮긴 미검증 추정(topology supply_v 주석 "실제 검증은 harness 작성 시 필요", 커밋 41f95e5)이었다. sky130 정격·LUT VDS/VGS 0~1.8V와 불일치.
+- 사용자 결정("1.8로 고쳐", "+-0.9로 고치고"): sky130 재설계 전원 ±0.9V. topology `_paper_target_spec.performance_targets_nmcnr.sky130_supplies_v`에 기록, run_harness는 스칼라 vdd만 받으므로 1.8(원점 이동 동등). 분할 레일 실행은 DEC-60 구현 뒤.
+- 영향: self-test stdout 변경 전후 동일(sizing_recipe 0줄, stick_diagram 0줄) -- self-test가 nmcnr harness spec을 쓰지 않음.
+- 계획 v5.10(검증 중)의 U-26 nmcnr 레일 "2.0/0"은 ±0.9 V로, U-27 LUT VS 축 상한은 최대 레일 전위차 1.8 V로 고칠 것.
+� 회로 레일 선언·wall_clock_budget_s).
 - 루프 분류 우선순위(N3.2-2): (0) 자기 엣지 제외 (1) 교류접지·여기 포트 경유 제외 (2) 커패시터 포함 수동 복귀 = 보상 루프, 바이어스 노드끼리의 저항 국소 되먹임 (3) 순방향 밖 능동 셀 포함 = 루프 뷰 (4) 나머지 `기록만`. 병렬 셀 한 블록 = 신호 입력 단자 기준. 블록 사이 주 신호 분기는 `기록만`, 측면 주입은 K8+MT3.
 - J3 기본안 Vop1(6a-2 ratify 대상 -- 작성 agent가 확정 문장으로 썼다가 검증에서 되돌림). 이월 중간·낮음은 disposition 이월 표.
 out ≤ 1 kΩ, R1·Cc 유도.
