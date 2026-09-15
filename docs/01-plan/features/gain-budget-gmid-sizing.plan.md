@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 5.4
+version: 5.5
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -159,6 +159,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | NFR-2 | **효율.** 같은 계산을 호출부마다 반복하지 않는다. 캐시 키는 그 계산이 실제로 읽는 모든 가변 상태의 내용 지문이다. 캐시는 상한을 두고 초과 시 LRU로 밀어낸다(캐싱 중단 금지) |
 | NFR-3 | **기지 사고 재발 불가.** IC1~IC10(N4.1)마다 거부 케이스를 가진 강제 test가 있어야 한다 |
 | NFR-4 | **결정론.** 모든 반복은 정렬된 시퀀스 위에서 한다(`set` 순회 금지). 같은 입력은 같은 산출물을 낸다 |
+| NFR-5 | **스펙에 딱 맞춘 최적화, 불필요한 계산 최소화**(2026-09-15 사용자). 성능·레이아웃을 스펙보다 과하게 만들지 않는다: 최종 해에서 활성 제약의 여유는 해당 metric의 격자 분해능 이하이고, 면적은 제약을 만족하는 최소에 가깝다. 같은 결과를 내는 탐색이면 평가 수가 적은 쪽을 택한다(선택 근거는 실측) |
 
 ---
 
@@ -173,7 +174,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | DEC-01 | 목표는 gain-budget-first다. Circuit State Graph는 stage 분할과 gain 할당을 위한 기반이다 | 2026-09-04, 09-14 | 전체 | 미구현 |
 | DEC-02 | 인과 방향은 보상 먼저: (CL, GBW, PM) -> (Cc, Rz, gm_1..gm_N), 이후 gm_id_i·L·자유 노드전압이 자유 축 | 2026-09-07 | GB5 | 부분(Cc 유도만) |
 | DEC-03 | stage별 gain 예산은 엔진이 유도해 `gain_budget_db`로 출력한다. 사람이 배분을 강제하는 유일한 경로는 `gain_budget_db_override`(출처 필수) | 2026-09-07 | GB0, GB6 | 미구현 |
-| DEC-04 | **(2026-09-14 재정의, 사용자 "난 강제하고 싶지 않아")** 블록 안 소자(input·cascode·load·tail)의 gm_id·L은 소자마다 **독립 결정변수**다. 함께 정하라는 규칙을 두지 않는다. 소자 사이의 결합은 블록 gain·헤드룸·면적·PM 같은 목적함수와 제약이 만들 뿐이다. 캐스코드 L을 role 배수로 따로 정하지 않는 것은 DEC-18·LR5가 담당한다(옛 형태 "input+cascode 동시 결정"은 철회) | 2026-09-04, 09-14 | GB6 내층 | 미구현 |
+| DEC-04 | **(2026-09-14 재정의, 사용자 "난 강제하고 싶지 않아")** 블록 안 소자(input·cascode·load·tail)의 gm_id·L은 S1 등식 관계(매칭, L 동치류, 공유 VGS)로 묶인 것을 제외하면 소자마다 **독립 결정변수**다. 함께 정하라는 규칙을 두지 않는다. 소자 사이의 결합은 블록 gain·헤드룸·면적·PM 같은 목적함수와 제약이 만들 뿐이다. 캐스코드 L을 role 배수로 따로 정하지 않는 것은 DEC-18·LR5가 담당한다(옛 형태 "input+cascode 동시 결정"은 철회). 입력-캐스코드 블록의 L을 같게 강제하는 규칙을 복원할지는 7b 실측으로 정한다(U-23) | 2026-09-04, 09-14, 09-15 | GB6 내층 | 미구현 |
 | DEC-05 | gain 제약 판정은 전체회로 MNA gain 하나로 한다. 블록 gain(블록 국소 소신호 모델, 부하·follower·pass 포함)은 할당용 분해 값이고, 두 값의 잔차를 매 평가 기록한다 | 2026-09-14 | GB8 | 미구현(현 제약은 `gain_stages_sum`, I-B21) |
 | DEC-06 | theta는 자유 탐색 변수만이다. 구조 선언은 `sizing_spec.json`의 선언/유도 필드로 옮긴다 | 2026-09-07 | GB0, MOD2 | 미구현 |
 | DEC-07 | 목적함수는 전력 최소화 하나, 면적은 `area_um2` 상한 제약. 면적 예산이 선언되지 않으면 전력-면적 Pareto를 제시하고 정지한다 | 2026-09-07 | GB6, GB9 | 미구현(전력 정의 U-10, Area 정의 U-13) |
@@ -294,7 +295,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 4. **엣지와 비용**: gate->drain 비용 1, source->drain(캐스코드)·gate->source 비용 0, diode 노드 게이트의 gate->drain 비용 0(미러). 예외: source 노드가 전압 구동인 CG의 source->drain은 비용 1(규칙 5). 입력 넷에서 0-1 BFS 최소 비용이 stage 번호다. DM 뷰에서는 입력쌍 공통 소스가 자기대응 넷(가상접지)이라 gate->source 우회로가 끊긴다. 이 조합이 4개 회로에서 실측한 규칙이다(원자료 `probe_stage_partition.result.md`의 R3(DM/R2)). DM 뷰가 아닌 전체 회로에 같은 비용을 쓰면 우회로 때문에 입력단 stage 번호가 0으로 떨어지므로 SP1은 DM 뷰에서만 쓴다.
 5. **셀과 stage 경계**: DM 뷰의 신호 경로에서 모든 트랜지스터를 셀(CS/CG/CD/pass)로 분류하고, 셀마다 입력 노드의 구동 종류(전압/전류)를 기록한다. stage 경계는 단자 이름이 아니라 **입력 노드 구동 종류 하나로** 정한다.
    * 전압 구동 입력을 받아 전류를 고임피던스 노드로 내보내는 셀(CS, source가 전압 구동인 CG) = **새 gain stage 시작**(번호 +1).
-   * 전류 구동 입력을 받는 CG = 캐스코드. **같은 stage를 잇는다**(앞 셀의 출력저항을 키우는 전류 버퍼다. 같은 stage는 gain을 평가하는 단위일 뿐이고, 캐스코드의 gm_id·L은 입력 소자와 독립 결정변수다 -- DEC-04).
+   * 전류 구동 입력을 받는 CG = 캐스코드. **같은 stage를 잇는다**(앞 셀의 출력저항을 키우는 전류 버퍼다. 같은 stage는 gain을 평가하는 단위일 뿐이고, 캐스코드의 gm_id·L은 등식 관계를 제외하면 입력 소자와 독립 결정변수다 -- DEC-04).
    * 전압 구동 입력을 받아 저임피던스 노드로 내보내는 셀(CD, pass) = 전압 버퍼. gain stage 번호는 올리지 않고 버퍼 구간으로 표시한다(독립 블록 여부는 J10).
    * 근거: 캐스코드를 별도 stage로 나누면 그 stage의 전압 이득(source 노드 -> drain)과 앞 stage의 이득(≈ −1)이 같은 전류와 같은 출력저항을 공유해 분리성이 깨지고(결합 블록 DP 성립 조건, N3.7), 보상 레지스트리의 stage 수(`compensation.stage_devices`)와도 어긋난다. 캐스코드를 입력과 같은 stage에 두는 이유는 결정을 묶기 위해서가 아니라, 출력노드 저항이 캐스코드로 정해져 블록 gain을 계산하는 단위가 같기 때문이다. 4개 회로 실측: CG 셀 8개(파일럿 M9a/M9b/M18a/M18b, folded M5/M6, nmcnr M106/M107)가 **모두 전류 구동**이고 source가 전압 구동인 CG는 없다. 파일럿 선언 `gain_stages_sum`은 캐스코드 M2a/M3a를 입력 M1a/M4a와 같은 stage에 둔다(원자료 `probe_cg_cascode_stage.result.md`). 따라서 이 규칙은 4개 회로에서 실측 규칙 R3(DM/R2)과 같은 결과를 내고, CG 증폭기·follower까지 같은 기준으로 처리한다.
 6. **stage 구성**: 출력노드 = stage 안에서 신호가 마지막으로 도달해 다음 stage 입력(다음 CS의 gate) 또는 출력 포트로 넘어가는 노드. CS·CG 사슬로 끝나면 drain 노드, CD·pass로 끝나면 그 소자의 출력 단자 노드다. 임피던스 등급(높음 = drain만 붙음 / 낮음 = 출력 source가 붙음)을 노드 속성으로 기록한다. input = gate가 stage 입력 넷에 붙은 소자, cascode = CG 사슬, follower = CD, pass = pass 구성 소자, load = 드레인이 출력노드(또는 중간 고임피던스 노드)에 붙고 게이트가 바이어스·미러 넷인 소자, tail = 드레인이 입력쌍 공통 소스 노드에 붙은 소자. **블록 노드 집합** = stage 입력 넷부터 출력노드까지 신호 경로에 있는 노드 전부.
@@ -405,7 +406,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 | 층 | 명세 |
 |---|---|
-| 내층 블록 DP | y 고정. 상태 = (블록 순서, 누적 gain bin), 결정 = 블록 안 셀마다 독립인 (gm_id 격자점, L 동치류의 LUT 앵커)의 벡터(DEC-04). 블록 안 전수 크기 Π(셀별 격자 수)가 DEC-34 예산에서 계산한 평가 수 안이면 전수, 넘으면 셀 단위 좌표강하(셀 하나씩 1-D 스캔, 종료 규칙은 중층과 같다), 비용 = 전력(U-10 정의), 면적 제약이 있으면 면적 bin 추가. gain bin 해상도 = 인접 격자점이 만드는 블록 gain 차의 최솟값(계산) |
+| 내층 블록 DP | y 고정. 상태 = (블록 순서, 누적 gain bin), 결정 = 블록 안 셀마다 독립인 (gm_id 격자점, L 동치류의 LUT 앵커)의 벡터(DEC-04). 블록 안 전수 크기 Π(셀별 격자 수)가 DEC-34 예산에서 계산한 평가 수 안이면 전수, 넘으면 강결합 셀 그룹 단위 좌표강하(같은 직렬 전류 경로를 공유하는 셀 -- 예: 입력 소자와 그 캐스코드 -- 을 S1에서 구조로 유도해 한 좌표로 함께 스캔한다. 그룹은 탐색 단위일 뿐 값을 같게 만드는 결정 제약이 아니다. 종료 규칙은 중층과 같다), 비용 = 전력(U-10 정의), 면적 제약이 있으면 면적 bin 추가. gain bin 해상도 = 인접 격자점이 만드는 블록 gain 차의 최솟값(계산) |
 | 중층 좌표강하 | y의 각 차원을 자기 가능역의 1-D 격자에서 순서대로 최소화. 공유 VGS는 gain 기준(DEC-10). 종료 = 한 바퀴에 y 불변, 또는 목적값 감소 ≤ DP 목적값 분해능. 상한 = y 격자 점 수의 합(유한 격자·비증가라 종료 보장) |
 | 외층 미세조정 | DP·좌표강하 해를 시작점으로 SLSQP(`SPECS[circuit]["slsqp_kwargs"]`). MT3 제약은 이 층에서만 판정 |
 
@@ -785,7 +786,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 6b | 봉인 위반 0(4개 회로), IC1·IC2·IC9·IC10 PASS, SC 거부 케이스 PASS, 사례 76.48 적발, 평가 오버헤드 전후 |
 | 6c | 결합 잔차 표, 블록·y 목록(4개 회로), 달성 불가 픽스처(oracle (a): 목표 gain > 블록 이론 상한 합을 test가 다른 방법으로 계산)에서 탐색 전 INFEASIBLE_TARGET, IC4·IC6·IC8 PASS |
 | 7a | gain 제약이 `smallsignal_gain_db`로 판정, B21 재현 픽스처(6480조합 중 `gain_stages_sum` 변화 0이고 MNA 변화 최대인 두 점)에서 감도 게이트 FAIL, 평가 기록에 MNA-블록 잔차 필드(4개 회로), gain metric `verified_by` 유효(U-11이 SPICE를 7c로 두면 '검증 대기' 표시 + N5.4 명시), 임계값 재도출 기록 |
-| 7b | `gain_budget_db` 출력, 3층 할당이 다른 모델 전수탐색과 격자 분해능 안 일치, `sizing_spec.json` 이관 4개 회로 equivalence, derived 필드마다 status·evidence·rule_hash, `driving_spec`이 있는 회로에서 출력 블록 바이어스 전류 ≥ max(KCL, 슬루율 × CL_total), 파일럿 wall-clock ≤ 5분(U-13에서 면적 예산을 선언하지 않으면 파일럿 판정은 Pareto 제시·정지와 사용자가 고른 점의 재실행으로) |
+| 7b | `gain_budget_db` 출력, 3층 할당이 다른 모델 전수탐색과 격자 분해능 안 일치, `sizing_spec.json` 이관 4개 회로 equivalence, derived 필드마다 status·evidence·rule_hash, `driving_spec`이 있는 회로에서 출력 블록 바이어스 전류 ≥ max(KCL, 슬루율 × CL_total), 파일럿 입력-캐스코드 블록에서 그룹 좌표강하 결과가 블록 전수 결과와 격자 분해능 안 일치, U-23 실측표 제출, 파일럿 wall-clock ≤ 5분(U-13에서 면적 예산을 선언하지 않으면 파일럿 판정은 Pareto 제시·정지와 사용자가 고른 점의 재실행으로) |
 | 7c | SPICE 비교가 N3.8 허용오차 안, 같은 지문 재실행에서 아카이브 적중 > 0이고 θ* 목적값이 첫 실행 이하, IC1~IC10 전원 PASS, 파일럿 wall-clock ≤ 5분 |
 
 ### N6.3 공통 완료 조건
@@ -843,6 +844,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-20 | `stack_headroom_slack_v`를 봉인 항목으로 흡수할지 metric 제약으로 남길지(I-C10) | 봉인 항목 1·5가 같은 사실을 보므로 metric 삭제 | 6b |
 | U-21 | 선언 L theta(`L_cascode`, `L_stage2out_*`)를 L 동치류 theta로 대체하고 삭제할지 | DEC-18에 따라 삭제 | 7b |
 | U-22 | 순수 follower(drain이 레일, source가 출력)가 있는 회로를 library에 추가해 CD 규칙을 실제 회로로 측정할지 | 추가하지 않고 4개 회로의 분류 발동 목록 일치만 증명(WP-07상 픽스처 손타이핑 금지) | 6a |
+| U-23 | 입력-캐스코드 블록의 L을 같게 맞추도록 강제하는 규칙을 복원할지(DEC-04) | 실측 후 결정. 캐스코드가 있는 회로(파일럿, folded, nmcnr)에서 (A) 독립 L과 (B) 입력-캐스코드 L 동일 강제를 같은 spec·탐색 인자로 돌려 비교: 평가 수(불필요한 반복), 목적값(전력), 활성 제약 여유(스펙 오버 여부, NFR-5), 면적과 행 폭·finger 호환(레이아웃). B가 평가 수를 줄이면서 목적값·제약 여유·면적이 A와 격자 분해능 안에서 같거나 나으면 B를 제안, 아니면 A 유지 | 7b(실측 직후) |
 
 ---
 
@@ -884,7 +886,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | `6b-node-voltage-seal` | S2 필드 스키마, SC-a 권한표(필드 × W0~W4), W3 소스 필드, 계산 블록 입출력 선언과 유도 DAG, tol_V·tol_I·반복 상한 구현, 봉인 항목 구현, 버전 카운터, LRU 상한 계산, IC2 섞기 대상, 동등 단언 범위, J8 결론 반영, U-20 반영, I-A6 헤드룸 하한 여부 판정 |
 | `6c-coupling-achievability` | 결합 잔차 측정 절차, 블록·y 추출 규칙(K1~K4), LUT 곡선 검사→해법 매핑, 블록 gain 상한 계산, DOF 변수·등식 표와 수치 rank, `DofReport`, 달성 불가 픽스처와 oracle |
 | `7a-gain-metric` | 회로별 gain metric 이관표, 블록 국소 소신호 모델(경계 조건·스탬프)과 gmb 유도 식, 블록 속성(출력 임피던스·최대 출력 전류) 계산, 잔차 계산, 감도 게이트 섭동 방향·ε 계산, MT 분류 규칙, 전력 정의(U-10) 반영, `verified_by`와 SPICE AC gain 대조(U-11), bisection 모드(N3.13)와 U-19 |
-| `7b-compensation-allocation` | `sizing_spec.json` v5 스키마·로더·이관·topology.json 필드 제거 절차, GB5 규칙(단일단 U-12, 3단, class-AB J3), 내층 DP 상태·bin 해상도, 중층 좌표강하 종료, 외층 인자, 면적·Pareto(U-13), U-14, `value_amp` 소비, MOD8 수렴 루프, 다른 모델 대조 test, U-21 반영, 슬루율 필드 명칭(DEC-53 규약 인용), 출력 구동 규칙(DEC-58)과 CL_total 계산 |
+| `7b-compensation-allocation` | `sizing_spec.json` v5 스키마·로더·이관·topology.json 필드 제거 절차, GB5 규칙(단일단 U-12, 3단, class-AB J3), 내층 DP 상태·bin 해상도, 중층 좌표강하 종료, 외층 인자, 면적·Pareto(U-13), U-14, `value_amp` 소비, MOD8 수렴 루프, 다른 모델 대조 test, U-21 반영, 슬루율 필드 명칭(DEC-53 규약 인용), 출력 구동 규칙(DEC-58)과 CL_total 계산, 강결합 셀 그룹 유도 규칙, U-23 실측 설계(비교 조건·회로·지표) |
 | `7c-archive-spice` | S3 저장 형식·보고, DEC-34 샘플 수 구현, 분지 판정, SPICE 넷리스트 생성·실행 인터페이스와 모델 경로 확인, 비교량·허용오차 계산 |
 
 ### N9.2 모든 design 문서의 필수 절
