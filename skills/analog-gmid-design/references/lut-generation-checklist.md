@@ -285,7 +285,7 @@ sizing_recipe.py`의 `SemiEmpiricalGmIdLUT`/`_solve_vgs()`를 실제로 6단계�
 |---|---|---|---|
 | `vth0_slope`(+ 있으면 `vth0_slope1`/`voff_slope`/`toxe_slope` 등 추가항) | `*__mismatch.corner.spice`의 `.param` | `estimate_mismatch_sigma()`(배치 7-3h) | ✅ 있음(vth0_slope 확인, 추가항도 존재 — §7.9 질문 10(a) 참고) |
 | `NOIA`/`EF`/`AF`(BSIM4 flicker noise 파라미터) | `*__tt.pm3.spice` 등 코너별 모델카드 | 위 §8.1의 `SID_1F` 스윕 자체가 이 파라미터에 의존(ngspice `.noise` 해석이 모델카드의 이 값을 사용) | ✅ 있음 |
-| 디자인룰 최소폭(W_min)/최소길이(L_min) | 공식 design-rule 문서(DRC 매뉴얼) — **로컬 PDK spice 파일엔 없음이 확인됨**(BSIM 모델-빈 경계와 혼동 주의) | `search_gm_id_for_role()`의 `W_bounds` 하한(배치 7-3e) | ⚠️ **미확보** — sky130 자신도 아직 1차 출처로 확정 못함(§7.9 질문 7(a), do.md 참고). 공식 문서 확보가 필요한 항목의 실제 사례 |
+| 디자인룰 최소폭(W_min)/최소길이(L_min) | 공식 design-rule 문서(DRC 매뉴얼) — **로컬 PDK spice 파일엔 없음이 확인됨**(BSIM 모델-빈 경계와 혼동 주의) | `search_gm_id_for_role()`의 `W_bounds` 하한(배치 7-3e) | ✅ **확보(2026-09-15)** — SkyWater 공식 periphery rules(`google/skywater-pdk` `docs/rules/periphery/periphery.csv`): difftap.2 최소 채널 폭 0.420 µm(표준셀 `areaid.sc` 밖), difftap.2b 0.360 µm(표준셀 안), poly.1a poly 폭 0.150 µm, poly.1b lvtn 겹친 pfet 최소 L 0.350 µm. 로컬 모델 bin(`cells/*/…bins.csv`: nfet_01v8 W 0.36~7.0 µm, pfet_01v8 W 0.42~7.0 µm, L 0.15~20 µm)은 모델 유효 범위이지 DRC가 아니다. 실행 spec의 `min_finger_w`(two_stage_ota 0.1 µm는 difftap.2 위반, 나머지 1 µm는 무근거)·`W_bounds` 하한 교체는 계획 Phase 4(PDK 상수 일원화) |
 
 ### 8.3 신규 공정 적용 전 최종 게이트
 
