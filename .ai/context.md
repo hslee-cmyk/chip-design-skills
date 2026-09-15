@@ -1,8 +1,9 @@
 
-### 세션48 -- plan v5.6 (review3 반영, 2026-09-15)
-- agent 3개 검토 원자료: `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_*` (L 동일+VDS 대안 비교, L 동일 레이아웃 효과, stage 분할 문헌).
-- 결론: 독립 L 유지(블록 단일 L은 파일럿에서 회로 단일 L로 붕괴, kind 결합은 분리성 파괴, W 한계는 VDS로 대체 불가). LR5 동치류별 격자+확장 규칙, LR7 VDS·L 동시 평가 조건, NFR-5 활성 제약 한정, LR8 행 안 L 통일은 폭 감소 없음(실측), U-23 비교군·지표 구체화.
-- stage: 캐스코드 같은 stage는 문헌 일치. 극점·보상 기준은 버퍼도 한 단 -> 극점 노드 목록 신설(GB5 소비), J10 기본안 독립 버퍼 블록, 분류 밖 사례 review_needed 3종. I-A12 pitch overhead 0, I-A13 dummy·LDE 미반영.
+### 세션48 -- plan v5.7 (CM 입력 뷰·CMFB 루프 뷰, 2026-09-15)
+- 사용자 지적: 파일럿에 CMFB 루프가 있다(v5.6 보고의 "CMFB 루프 metric 선언 회로 없음"은 오류). M1a/M1b는 DM에서 CS.
+- 결론: 셀 분류는 여기 뷰마다. DM 뷰(M1a/M1b·M4a/M4b CS), CM 입력 뷰(source 비접지 CS), CMFB 루프 뷰(M7 전류가 Vx로 -> M1a/M1b CG, nmos 반쪽은 Vom1/Vop1 부하).
+- 반영: N3.2-2/3/4/6/8, DEC-57, 용어집 여기 뷰, K7(M7 전류 분할·뷰 공유 소자), J11(CMFB 루프 공동분석), U-24(CMFB 안정도 제약 선언, 7b 착수 조건), N9 6a design 범위.
+ 문헌 일치. 극점·보상 기준은 버퍼도 한 단 -> 극점 노드 목록 신설(GB5 소비), J10 기본안 독립 버퍼 블록, 분류 밖 사례 review_needed 3종. I-A12 pitch overhead 0, I-A13 dummy·LDE 미반영.
 �� 판단이다(B19)**: 게이트·소스를 공유하는 미러
 3그룹 11소자의 VGS가 최대 464mV 벌어져 있는데, 고치면 M8/M17이 W≈1545µm(상한의 7.7배)를
 요구해 **현재 동작점에선 회로가 성립하지 않는다** — bias generator의 전류(`Iref`=1.2µA)나
