@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 5.8
+version: 5.9
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -57,17 +57,17 @@ version: 5.8
 | S0/S1/S1v/S2/S2p/S3 | Circuit State Graph 층 | N3.3 |
 | W0~W4 | 노드전압 writer 티어 | N3.4 |
 | SC-a~SC-e | 상태 계약 | N3.5 |
-| K1~K6 | stage 경계를 넘는 결합 종류 | N3.7 |
+| K1~K8 | stage 경계를 넘는 결합 종류 | N3.7 |
 | MT1~MT3 | metric 티어(블록 국소 / 블록 분해 가능 / 전역) | N3.8 |
 | LR1~LR9 | L 결정 규칙 | N3.9 |
 | MOD1~MOD10 | 모듈(트랜지스터 이름 M1a 등과 구분) | N3.10 |
 | TS0~TS7 | test 분리 단계 | N3.11 |
 | EL1~EL4 | 역할 분리 강제 겹 | N3.12.4 |
-| IC1~IC10 | 기지 사고 클래스와 강제 test | N4.1 |
+| IC1~IC11 | 기지 사고 클래스와 강제 test | N4.1 |
 | V1~V10 | auditor 검사 | N4.2 |
 | DF-nn | 현존 결함 | N5.2 |
 | I-A* / I-B* / I-G* / I-C* | 열린 이슈(옛 §10 A/B/G/C 번호 유지) | N5.3 |
-| J1~J11 | 회로 해석 공동분석 항목 | N7.1 |
+| J1~J12 | 회로 해석 공동분석 항목 | N7.1 |
 | U-nn | 사용자 결정 착수 조건 | N7.2 |
 | RC1~RC5 | gain 분해 실패의 근본 원인 | N3.1 끝 |
 
@@ -78,7 +78,7 @@ version: 5.8
 | 용어 | 정의 |
 |---|---|
 | gain-budget-first | stage별 gain 예산을 **엔진이 유도해 산출**한다. 사용자는 총 gain 제약 하나만 준다. "gain이 gm을 정한다"는 뜻이 아니다 |
-| 보상 먼저 | 스펙 (CL, GBW, PM)에서 보상망이 (Cc, Rz, gm_1..gm_N)을 한 번에 정한다. 그 뒤 자유 축은 gm_id_i, L(동치류 단위), W4 자유 노드전압이다 |
+| 보상 먼저 | 스펙 (CL, GBW, PM)에서 보상망이 보상 수동소자 값(극점 노드 사이에 걸린 Cc·Rz 등, 개수는 회로마다 다르다)과 gm_1..gm_N을 한 번에 정한다. 그 뒤 자유 축은 gm_id_i, L(동치류 단위), W4 자유 노드전압이다 |
 | 여기 뷰 | S1v에서 만드는 신호 그래프. 두 종류뿐이다: **전달 뷰**(metric 선언 `(excite, sense)` 하나에 하나, 선언된 여기원 밖은 교류접지)와 **루프 뷰**(S1에서 찾은 되먹임 루프 중 N3.2-2 조건을 만족하는 루프 하나에 하나, 외부 여기원 전부 교류접지, 루프 끊는 점이 입력). 셀 분류·구동 종류·stage·극점 노드 목록·블록 속성은 뷰마다 따로 기록한다(N3.2-3) |
 | signal stage | S1v 여기 뷰에서 SP1로 유도한 stage(gain 할당은 gain 제약 metric이 선언한 전달 뷰의 것을 쓴다): {input, cascode, follower, pass, load, tail, 출력노드, 출력노드 임피던스 등급, 블록 노드 집합} |
 | 셀 | 트랜지스터 하나의 소신호 역할. 신호 입력 단자와 출력 단자로 정한다: CS(gate->drain), CG(source->drain), CD(gate->source, follower), pass(source↔drain, 게이트는 바이어스 -- class-AB floating battery 등). 모든 트랜지스터에 같은 규칙으로 붙인다 |
@@ -87,14 +87,14 @@ version: 5.8
 | 출력노드 | stage 안에서 신호가 마지막으로 도달해 다음 stage 입력 또는 출력 포트로 넘어가는 노드. CS·CG 사슬이면 drain 노드(고임피던스), CD·pass로 끝나면 source(또는 pass의 반대쪽 단자) 노드(저임피던스일 수 있다). 임피던스 등급은 노드 속성으로 기록한다 |
 | 노드 어드미턴스 | 노드에 붙은 소자 단자별 소신호 기여의 합: drain 단자 gds, source 단자 gm+gmb+gds(게이트가 교류접지일 때), 수동소자 어드미턴스. 캐스코드·follower 효과는 아래 블록 국소 모델이 자동으로 포함한다 |
 | 블록 gain | 블록 국소 소신호 모델(N3.8)로 푼 출력노드 대 입력의 전압비(dB). CS 한 단의 특수 케이스가 `20·log10(gm_in / G_out)`, CD 한 단의 특수 케이스가 `20·log10(gm / (gm + gmb + G_node))` |
-| 블록 종류 | **이득 블록**(CS로 시작하는 전압 이득 stage, gain 할당 대상) / **버퍼 블록**(CD·pass로 끝나는 구간, 할당 대상 아님 -- 출력 임피던스와 구동 전류로 평가). 버퍼를 독립 블록으로 둘지는 J10 |
-| 극점 노드 목록 | 보상(GB5)이 소비하는 노드 목록: 각 gain stage 출력노드, 버퍼 블록 출력노드, stage 내부의 캐스코드 source 노드·접는 노드·diode 미러 노드. 노드마다 소속 블록과 임피던스 등급을 기록한다. gain 할당 단위(gain stage)와 따로 둔다(N3.2-6) |
-| 블록 속성 | 블록마다 계산해 기록하는 값: 전압 이득(블록 국소 모델), 출력 임피던스(같은 모델에서 출력노드 테브난 임피던스), 최대 출력 전류(출력노드로 흘릴 수 있는 바이어스 전류) |
+| 블록 종류 | **이득 블록**(N3.2-5 구동 종류 규칙으로 새 gain stage를 시작한 셀 -- CS 또는 source가 전압 구동인 CG -- 부터 출력노드까지, gain 할당 대상) / **버퍼 블록**(CD·pass로 끝나는 구간, 할당 대상 아님 -- 출력 임피던스와 구동 전류로 평가. 한 입력 넷에서 갈라져 같은 출력노드로 합류하는 follower 사슬 묶음은 버퍼 블록 하나이며 중간 노드를 블록 노드 집합에 넣는다, `계산 규칙 있음`). 버퍼를 독립 블록으로 둘지는 J10 |
+| 극점 노드 목록 | 보상(GB5)·슬루 규칙이 소비하는 노드 목록: 해당 여기 뷰에서 교류접지 집합이 아닌 모든 노드(수동소자 사이 내부 노드 포함). 노드마다 소속 블록, 임피던스 등급, 종류(gain stage 출력노드 / 버퍼 블록 출력노드 / 캐스코드 source / diode 노드 / 수동소자 내부 노드 등)를 속성으로 기록하고, 보상에서 뺄 노드는 `parasitic_pm_deg` 기여 계산 결과로만 뺀다. gain 할당 단위(gain stage)와 따로 둔다(N3.2-6) |
+| 블록 속성 | 블록마다 계산해 기록하는 값: 전압 이득(블록 국소 모델), 출력 임피던스(같은 모델에서 출력노드 테브난 임피던스), 방향별 최대 출력 전류(N3.8) |
 | 결합 블록(coupling block) | signal stage 하나에 대응하는 할당 단위 |
 | 결합변수 y | 두 결합 블록 이상에 걸친 관계 엣지의 상태(K1~K4) |
 | 계산 블록(compute block) | 평가 커널을 나눈 계산 단위(입력·출력 선언, S2 memo 단위) |
 | 순환 블록(cycle block) | 유도 DAG의 SCC. 명시적 고정점으로 푼다 |
-| 교류접지 집합 | 레일 / gate에만 붙고 구동되지 않는 넷(입력·수동소자·이상원 단자 제외) / 이상 전압원 단자 |
+| 교류접지 집합 | 레일(`supply_nets` 선언, DEC-60) / gate에만 붙고 구동되지 않는 넷(입력·수동소자·이상원 단자 제외) / 이상 전압원 단자 |
 | 대칭 축약 | 대칭 회로의 전달 뷰를 반회로로 줄이는 계산 수단. 여기가 순수 기모드(대응 포트가 반대 부호)면 자기대응 넷을 가상접지로 두고(**기모드 축약**, 옛 이름 DM 뷰), 순수 우모드(같은 부호, 레일 여기 포함)면 대응 넷을 합친다(**우모드 축약**). 여기가 섞이거나 대칭이 불완전하면 축약하지 않는다. 축약 결과는 비축약 전체 뷰와 같아야 한다 |
 | 봉인(seal) | metric 계산 전 S2 스냅샷이 N3.6 봉인 항목을 모두 통과한 상태 |
 | shadow 모드 | 새 유도 결과를 기존 경로와 대조해 보고만 하고 동작은 바꾸지 않는 실행 모드 |
@@ -108,7 +108,11 @@ version: 5.8
 | oracle 4종 | (a) 물리 불변식·손계산 (b) 다른 방법의 참조구현 (c) known-good 기준(SPICE, 결함 도입 전 커밋) (d) spec card에 사용자가 적은 값 |
 | 기준 약화 | assert 삭제, 비교 완화, 허용오차 확대, skip/xfail 추가, 기대값 리터럴 변경, 픽스처 입력 리터럴 변경, 격자 확대, assert를 조건문·try 아래로 이동 |
 | 운영 경로 | Phase 3 전: `workspaces/run_harness.py` -> `optimize_full_circuit_budget` -> `_evaluate`. Phase 3 후: `run_gmid_design_pipeline` 이하. 문자열 레지스트리(`_METRICS_REGISTRY`, `_COMPENSATION_REGISTRY`, topology.json `"function"`)로 도달하는 것 포함 |
-| 4개 회로 | `current_reuse_telescopic_ota`(파일럿) / `folded_cascode` / `two_stage_ota` / `nmcnr_amplifier` |
+| library 회로 | `library/*.topology.json`의 회로 전부(`_TEMPLATE` 제외, 현재 7개) = 기존 4개 회로 + `two_stage_ota_sf` / `pushpull_follower_buffer` / `sf_pushpull_output_opamp`. 구조 유도와 규칙 분기 발동표의 대상(DEC-47) |
+| 기존 4개 회로 | `current_reuse_telescopic_ota`(파일럿) / `folded_cascode` / `two_stage_ota` / `nmcnr_amplifier`. declared stage·기존 기준선·equivalence 대조가 있는 회로 |
+| 사이징 대상 회로 | library 회로 중 사이징 스펙이 선언된 회로. 현재 기존 4개 회로. 스펙 확정(U-25)·실행 이관 대기: `sf_pushpull_output_opamp`·`pushpull_follower_buffer`(agnd 레일, 실행 `SPECS` 이관은 DEC-60 구현 뒤), `two_stage_ota_sf`(실행 `SPECS` 이관은 사이징 착수 시). 실행 선언되면 들어온다. 사이징·metric·탐색 완료 조건의 대상 |
+| 규칙 분기 | SP1·루프·보상·출력 구동·L 규칙·metric 정의에서 결과를 가르는 경우 하나(예: tail 없는 L 동치류 주인, 전압 구동 CG stage 시작, 순수 follower, 단일 입력 여기, 주 신호 분기·합류가 있는 이득 블록 DAG). 목록 정본은 6a design이 두고 규칙을 추가할 때 함께 늘린다. 분기마다 `계산 규칙 있음 / 기록만` 속성을 둔다 |
+| 검증 발동 회로 | 그 규칙 분기가 발동하고, 발동 결과가 ratified 대조표(J)와 일치하며, 그 분기가 `계산 규칙 있음` 속성인 library 회로. `기록만` 분기에는 검증 발동 회로가 없다(DEC-59) |
 
 ---
 
@@ -128,17 +132,16 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 
 ### N1.2 범위
 
-**In scope**: N6.1의 Phase 0.5~7c 전부, 4개 회로 전부.
+**In scope**: N6.1의 Phase 0.5~7c 전부, library 회로 전부(측정 대상 구분은 DEC-47). 지원 범위는 회로 부류가 아니라 규칙 분기의 검증 발동으로 정한다(DEC-59).
 
 **Out of scope**
 
 | 항목 | 이유 |
 |---|---|
-| 비증폭 회로(밴드갭, constant-gm bias, 비교기, 스위치드 커패시터) | 대상은 차동 입력 전압증폭기 계열(I-G7 해소) |
-| gain-boosted cascode | 부스트 증폭기 재귀 스키마가 없다(I-G3 해소) |
+| 현재 검증 발동 회로가 0인 부류 | 규칙 분기 기준으로 library에 검증 발동 회로가 없어 DEC-59 게이트가 탐색 전에 정지시키는 회로(I-G3·I-G7 해소). 현재 예: 비증폭 회로(밴드갭, constant-gm bias, 비교기, 스위치드 커패시터), gain boosting·regulated cascode(게이트가 전류 구동 노드인 CS, N3.2-9), 전류 입력 포트·트랜스임피던스 전달 뷰, 수동소자 전역 되먹임 루프(저항 되먹임, 분압 되먹임), 주 신호 분기·합류가 있는 이득 블록 DAG(feedforward), nmos·pmos 밖 kind. 분기의 계산 규칙을 정의하고 발동 회로를 library에 넣어 ratify하면 범위에 들어온다(N9.3). 계산 규칙 없이 기록만 하는 분기는 ratify만으로 들어오지 않는다 |
 | PVT 코너 스윕 | LUT는 TT·기록된 온도 한 조건. 코너 메타는 기록만 한다(I-A5 범위 부분 해소) |
 | 레이아웃 알고리즘 변경 | common-centroid·오일러·finger·floorplan은 MOD7로 옮기기만 한다 |
-| 4개 회로 외 토폴로지 추가 | 추가 비용 문서화(I-G8)만 N9에 포함 |
+| 코드 추가가 필요한 토폴로지 추가 | 새 토폴로지는 데이터만으로 추가한다(DEC-62, N9.3). 코드가 필요하면 규칙 결함(DF)으로 다룬다 |
 
 ### N1.3 기능 요구
 
@@ -146,8 +149,8 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 |---|---|---|
 | FR-1 | signal stage는 connectivity에서 SP1로 유도한다. declared stage와 다르면 `review_needed`로 기록하고, 회로 해석은 공동분석(J)으로 `ratified`한다 | DEC-43, DEC-44 |
 | FR-2 | 블록 gain은 블록 국소 소신호 모델(출력노드 정의는 소자 구성에 따른다: CS·CG는 drain, CD·pass는 source 쪽)로 정의한다. gain 제약 판정은 전체회로 MNA gain 하나로 하고, 블록 gain 합과의 잔차를 매 평가 기록한다 | DEC-05 |
-| FR-3 | 보상이 먼저다: (CL, GBW, PM)에서 (Cc, Rz, gm_i)를 풀고 기생 pole로 L 상한을 정한다 | DEC-02, DEC-24, DEC-25 |
-| FR-4 | gain 할당은 엔진이 유도해 `gain_budget_db`로 **출력**한다. 결합 블록 3층 할당을 쓴다. 공유 VGS는 gain 기준으로 고르고 tail이 L 동치류의 주인이다 | DEC-03, DEC-45, DEC-10, DEC-17 |
+| FR-3 | 보상이 먼저다: (CL, GBW, PM)에서 보상 수동소자 값과 gm_i를 풀고 기생 pole로 L 상한을 정한다 | DEC-02, DEC-24, DEC-25 |
+| FR-4 | gain 할당은 엔진이 유도해 `gain_budget_db`로 **출력**한다. 결합 블록 3층 할당을 쓴다. 공유 VGS는 gain 기준으로 고르고 L 동치류의 주인은 DEC-17 규칙으로 정한다 | DEC-03, DEC-45, DEC-10, DEC-17 |
 | FR-5 | 노드전압이 DC 정본이다. 소자 vds/vgs/vsb는 노드전압 차이로 유도하고, writer 티어 W0~W4로 쓰며, 순환은 명시적 고정점으로 푼다 | DEC-31(D1), DEC-32 |
 | FR-6 | 모든 소자의 V/I 관계를 상시 검증한다: 내부는 봉인 게이트(N3.6), 독립 검증은 트랜지스터 레벨 SPICE | DEC-48 |
 | FR-7 | 계산 결과를 버리지 않는다: 입력 지문 기반 재사용, 실패도 margin과 함께 기록, 이전 결과로 시작점 정제 | DEC-30 |
@@ -159,7 +162,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 |---|---|
 | NFR-1 | **버그 free 최우선.** 기존 함수 시그니처 보존은 목표가 아니다. 판단 기준은 "물리적으로 옳은가, 조용한 실패가 구조적으로 불가능한가"다 |
 | NFR-2 | **효율.** 같은 계산을 호출부마다 반복하지 않는다. 캐시 키는 그 계산이 실제로 읽는 모든 가변 상태의 내용 지문이다. 캐시는 상한을 두고 초과 시 LRU로 밀어낸다(캐싱 중단 금지) |
-| NFR-3 | **기지 사고 재발 불가.** IC1~IC10(N4.1)마다 거부 케이스를 가진 강제 test가 있어야 한다 |
+| NFR-3 | **기지 사고 재발 불가.** IC1~IC11(N4.1)마다 거부 케이스를 가진 강제 test가 있어야 한다 |
 | NFR-4 | **결정론.** 모든 반복은 정렬된 시퀀스 위에서 한다(`set` 순회 금지). 같은 입력은 같은 산출물을 낸다 |
 | NFR-5 | **스펙에 딱 맞춘 최적화, 불필요한 계산 최소화**(2026-09-15 사용자). 성능·레이아웃을 스펙보다 과하게 만들지 않는다: 최종 해에서 활성 제약의 여유는 해당 metric의 격자 분해능 이하이고, 면적은 제약을 만족하는 최소에 가깝다. 같은 결과를 내는 탐색이면 평가 수가 적은 쪽을 택한다(선택 근거는 실측). 여유 조건은 **활성 제약에만** 적용한다: 다른 제약(전력 최소점, W 한계 등)이 해를 정해 비활성인 제약의 초과는 스펙 오버가 아니며, 보고 시 제약마다 활성/비활성을 구분한다. 레이아웃을 이유로 L을 통일하지 않는다(LR8) |
 
@@ -174,38 +177,38 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | ID (별칭) | 결정 | 날짜 | 적용 | 상태 |
 |---|---|---|---|---|
 | DEC-01 | 목표는 gain-budget-first다. Circuit State Graph는 stage 분할과 gain 할당을 위한 기반이다 | 2026-09-04, 09-14 | 전체 | 미구현 |
-| DEC-02 | 인과 방향은 보상 먼저: (CL, GBW, PM) -> (Cc, Rz, gm_1..gm_N), 이후 gm_id_i·L·자유 노드전압이 자유 축 | 2026-09-07 | GB5 | 부분(Cc 유도만) |
+| DEC-02 | 인과 방향은 보상 먼저: (CL, GBW, PM) -> (보상 수동소자 값, gm_1..gm_N), 이후 gm_id_i·L·자유 노드전압이 자유 축 | 2026-09-07 | GB5 | 부분(Cc 유도만) |
 | DEC-03 | stage별 gain 예산은 엔진이 유도해 `gain_budget_db`로 출력한다. 사람이 배분을 강제하는 유일한 경로는 `gain_budget_db_override`(출처 필수) | 2026-09-07 | GB0, GB6 | 미구현 |
 | DEC-04 | **(2026-09-14 재정의, 사용자 "난 강제하고 싶지 않아")** 블록 안 소자(input·cascode·load·tail)의 gm_id·L은 S1 등식 관계(매칭, L 동치류, 공유 VGS)로 묶인 것을 제외하면 소자마다 **독립 결정변수**다. 함께 정하라는 규칙을 두지 않는다. 소자 사이의 결합은 블록 gain·헤드룸·면적·PM 같은 목적함수와 제약이 만들 뿐이다. 캐스코드 L을 role 배수로 따로 정하지 않는 것은 DEC-18·LR5가 담당한다(옛 형태 "input+cascode 동시 결정"은 철회). 입력-캐스코드 블록의 L을 같게 강제하는 규칙을 복원할지는 7b 실측으로 정한다(U-23). 회로·kind·블록 단위 단일 L을 두고 VDS를 주 변수로 삼는 방식은 채택하지 않는다: 파일럿에서 미러 L 동치류(8소자, 11소자)가 블록 5개를 가로질러 블록 단일 L이 회로 단일 L로 붕괴하고, kind가 다른 소자를 묶으면 반회로 분리가 깨져 조합 수가 줄어도 평가가 늘며(블록 단일 L 6.5초 대 독립 L 5.4초), W 한계가 L을 요구하는 소자(파일럿 stage1 pmos 입력)는 VDS로 대신할 수 없다(knee 근방 단일 L은 면적 약 3배, 70dB 초과 불가). 선측정 원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_opt_L_vs_VDS.md`(블록 국소 모델, tt 한 코너) | 2026-09-04, 09-14, 09-15 | GB6 내층 | 미구현 |
 | DEC-05 | gain 제약 판정은 전체회로 MNA gain 하나로 한다. 블록 gain(블록 국소 소신호 모델, 부하·follower·pass 포함)은 할당용 분해 값이고, 두 값의 잔차를 매 평가 기록한다 | 2026-09-14 | GB8 | 미구현(현 제약은 `gain_stages_sum`, I-B21) |
 | DEC-06 | theta는 자유 탐색 변수만이다. 구조 선언은 `sizing_spec.json`의 선언/유도 필드로 옮긴다 | 2026-09-07 | GB0, MOD2 | 미구현 |
 | DEC-07 | 목적함수는 전력 최소화 하나, 면적은 `area_um2` 상한 제약. 면적 예산이 선언되지 않으면 전력-면적 Pareto를 제시하고 정지한다 | 2026-09-07 | GB6, GB9 | 미구현(전력 정의 U-10, Area 정의 U-13) |
 | DEC-08 | `ideal_sources.value_amp`가 null이면 자유 탐색, 값이 있으면 그 값을 실제 전류로 고정한다. 같은 소스를 움직이는 theta와 공존하면 로드 거부 | 2026-09-08 | GB0 | 부분(KCL 잔차 metric만 소비). 파일럿 Iref `value_amp = 1.2µA`는 사용자가 원문에서 확인한 고정 대상(사이징 경로 미배선, I-B14) |
-| DEC-09 | 게이트·소스를 공유하는 전류미러 18소자(파일럿)는 전부 VGS를 강제로 공유한다. tail M5/M6를 bias 미러에 묶는 것이 설계 의도다 | 2026-09-09 | GB1, K2 | 구현됨 |
+| DEC-09 | 게이트·소스를 공유하는 전류미러 멤버는 전부 VGS를 강제로 공유한다(`equal_vgs`). 파일럿 적용(ratified 대상): 18소자, tail M5/M6를 bias 미러에 묶음(설계 의도) | 2026-09-09 | GB1, K2 | 구현됨(소자 이름 리터럴 여부 DF-23) |
 | DEC-10 | 공유 VGS는 gain 기준으로 고른다(면적 기준 아님). gain 폭이 분해능 이하인 그룹의 기준은 U-14 | 2026-09-09 | GB6 중층 | 미구현 |
 | DEC-11 | LUT 역보간 `_solve_vgs`는 목표를 품는 가장 오른쪽 구간에서만 보간한다(rightmost root). 곡선 범위 밖은 명시적 실패 | 2026-09-09 | MOD1 | 구현됨(다른 이분 역산은 DF-10) |
-| DEC-12 | diode 창은 VGS를 공유하는 미러 멤버 전원의 W 한계를 함께 본다. 멤버 vds가 미정이면 역할별 `min_vds`를 바닥으로 쓰고, 멤버 L/ID 미정은 명시적 실패 | 2026-09-09 | W2 | 구현됨(선언 기반 -> S1 관계 엣지 기반으로 전환, 6b) |
-| DEC-13 | 적층 diode는 2변수로 함께 푼다. 아래쪽 vsb = 위쪽 vsb + 위쪽 vds | 2026-09-09 | W2 | 부분(DF-01) |
+| DEC-12 | diode 창은 VGS를 공유하는 미러 멤버 전원의 W 한계를 함께 본다. 멤버 vds가 미정이면 그 멤버의 포화 하한(DEC-27의 VDsat)을 바닥으로 쓰고, 멤버 L/ID 미정은 명시적 실패 | 2026-09-09 | W2 | 부분(현 코드는 선언 역할별 `min_vds` 바닥. 6b에서 S1 관계 엣지 기반·DEC-27 VDsat 바닥으로 전환, DF-25) |
+| DEC-13 | 적층 diode는 2변수로 함께 푼다. vsb는 DEC-61로 노드전압과 bulk 넷에서 유도하며, 두 소자의 bulk가 같을 때 아래쪽 vsb = 위쪽 vsb + 위쪽 vds가 그 특수형이다 | 2026-09-09 | W2 | 부분(DF-01) |
 | DEC-14 | diode vds는 나눠줄 몫이 아니라 구간 제약 변수이고, diode gm_id는 vds의 종속값이다 | 2026-09-08 | W1, W2 | 구현됨 |
-| DEC-15 | M11a/M11b/M20a/M20b는 class-AB 배터리 전압 기준 소자다(신호경로 미러 아님) | 2026-09-09 | GB1 | 구현됨 |
+| DEC-15 | gate-source 사슬로 닫힌 KVL 루프(`kvl_branch`)의 전압 기준 소자는 신호경로 미러가 아니라 배터리 전압 기준 소자로 분류한다. 파일럿 적용(ratified 대상): M11a/M11b/M20a/M20b(class-AB 배터리) | 2026-09-09 | GB1 | 구현됨(소자 이름 리터럴 여부 DF-23) |
 | DEC-16 | 초기 L은 공정 knee에서 시작하고 실현가능 창으로 clamp한다 | 2026-09-07 | LR5 | 구현됨(`measure_L_knee`, `derive_role_L`) |
-| DEC-17 | gain stage의 tail이 L 동치류의 주인이다(최초 입력단 tail 우선). 동치류 멤버는 L을 공유하고, 공통 L은 모든 선언 제약을 동시에 만족하도록 탐색한다. 동치류 안에서 L이 갈리면 에러 | 2026-09-10 | GB1, LR2 | 구현됨(층0 게이트의 `ValueError`는 DF-03) |
+| DEC-17 | L 동치류의 주인: 동치류에 tail(N3.2-6 정의)이 있으면 tail(최초 gain stage의 tail 우선), 없으면 `kcl_group`에서 다른 멤버의 전류를 정하는 전류 출처 멤버, 그것도 없으면 이름 정렬 첫 멤버. 동치류 멤버는 L을 공유하고, 공통 L은 모든 선언 제약을 동시에 만족하도록 탐색한다. 동치류 안에서 L이 갈리면 에러 | 2026-09-10, 09-15 | GB1, LR2 | 부분(tail 주인만 구현, tail 없는 동치류 규칙은 6a. 층0 게이트의 `ValueError`는 DF-03) |
 | DEC-18 | L theta는 동치류에서 일반 규칙으로 파생한다(소자·theta 이름 지정 금지). role 배수 상수(`_L_ROLE_MULTIPLIERS`)는 쓰지 않는다 | 2026-09-10 | GB1 | 구현됨 |
 | DEC-19 | warm start 격자에 L 동치류 theta를 포함한다 | 2026-09-10 | GB9 | 구현됨 |
 | DEC-20 | 제약 임계값은 근거가 되는 선언값 하나만 두고, 파생 임계값은 `value_from_constraint`로 참조한다 | 2026-09-10 | GB0 | 구현됨(`mirror_ratio_error_mV`) |
 | DEC-21 | `mismatch_sigma_mV = 5.0`은 회로 안에서 유도할 수 없는 시스템 입력이다. 출처 선언이 필요하다 | 2026-09-10 | GB0 | 착수 조건 U-17 |
 | DEC-22 | 제약 임계값 도출은 bisection(임계값만 움직이며 원래 탐색 반복, 마지막 성공값, 여러 시드 전부 성공)으로 한다 | 2026-09-10 | N3.13 | 미구현 |
-| DEC-23 | 입력환산 오프셋은 gm 가중 RSS, 캐스코드 제외. 쌍 = offset 매칭 선언 ∩ 게이트가 ports input 넷 | 2026-09-10 | GB8 | 구현됨(DF-12) |
-| DEC-24 | Cc와 Rz는 보상망이 계산해 확정한다(spec 손값은 폴백) | 2026-09-10 | GB5 | 구현됨 |
-| DEC-25 | L 상한은 상수 N 없이 기생 pole의 위상 기여를 직접 계산한 `parasitic_pm_deg >= PM_target_deg`로 건다 | 2026-09-10 | GB5, LR6 | 구현됨(정본은 전체 주파수응답. 노드별 근사 `node_pole_estimate`는 못 세는 고임피던스 노드를 `undetermined`로 실패시킨다. 4개 회로 선측정 미완 I-A10) |
+| DEC-23 | 입력환산 오프셋은 gm 가중 RSS, 캐스코드 제외. 쌍 = offset 매칭 선언 ∩ 게이트가 ports input 넷. 이 쌍 규칙은 차동 입력쌍 분기이며(DEC-59 발동표에 기록), 입력이 대칭 쌍이 아닌 회로는 I-B22 | 2026-09-10 | GB8 | 구현됨(DF-12) |
+| DEC-24 | 보상 수동소자(Cc, Rz 등) 값은 보상망이 계산해 확정한다(spec 손값은 폴백) | 2026-09-10 | GB5 | 구현됨 |
+| DEC-25 | L 상한은 상수 N 없이 기생 pole의 위상 기여를 직접 계산한 `parasitic_pm_deg >= PM_target_deg`로 건다 | 2026-09-10 | GB5, LR6 | 구현됨(정본은 전체 주파수응답. 노드별 근사 `node_pole_estimate`는 못 세는 고임피던스 노드를 `undetermined`로 실패시킨다. 사이징 대상 회로 선측정 미완 I-A10) |
 | DEC-26 | spec은 `run_harness.canonical_spec()`만 정본이다. 변형은 `derived_spec(why 필수)`로만 만든다 | 2026-09-10 | GB0, S0 | 구현됨 |
-| DEC-27 | class-AB 배터리 전압 `V_bat = vdd − VGS(M15) − VGS(M16)` KVL을 gm_id 탐색 상한으로, 포화 하한은 `2/(gm/ID)`로 둔다 | 2026-09-10 | W2 | 구현됨 |
+| DEC-27 | `kvl_branch` 루프 전압(루프 양끝 노드 전압 차 − 루프 안 다른 소자 VGS 합)을 그 루프 소자의 gm_id 탐색 상한으로, 포화 하한은 VDsat로 둔다. VDsat는 LUT 열로 읽지 않는다(LUT에 VDsat 열이 없다) -- 6b design이 LUT의 (ID, gds, VDS) 곡선에서 유도 규칙을 정한다. 파일럿 적용(ratified 대상): class-AB 배터리 `V_bat = vdd − VGS(M15) − VGS(M16)` | 2026-09-10 | W2 | 부분(파일럿 KVL 상한 구현. 포화 하한은 현 코드가 강반전 근사 `2/(gm/ID)`, DF-25, 6b) |
 | DEC-28 | 실현 불가 기준점 복구는 회로 이름 없는 일반 규칙으로만 한다 | 2026-09-10 | GB9 | 구현됨(DF-04) |
-| DEC-29 | 신호 전파는 input 포트에서 output 포트 방향으로만 해석하고, 방향은 여기 모드별 뷰(S1v)에 둔다(노드 단일 속성 금지) | 2026-09-10, 09-14 | GB2 | 미구현 |
+| DEC-29 | 신호 방향은 뷰 입력(전달 뷰 = 여기 포트, 루프 뷰 = 끊는 점)에서의 0-1 BFS 거리로 정의하고, 방향은 여기 뷰(S1v)마다 둔다(노드 단일 속성 금지) | 2026-09-10, 09-14 | GB2 | 미구현 |
 | DEC-30 | 계산 결과(노드전압·신호방향·실패 포함)를 버리지 않고 재사용·점진 정제·전역 최적화에 쓴다 | 2026-09-14 | N3.3~N3.5 | 미구현 |
 | DEC-31 (D1) | **노드전압이 DC 정본이다.** 소자 vds/vgs/vsb는 노드전압 차이로 유도한다 | 2026-09-14 | GB7, W0~W4 | 미구현 |
 | DEC-32 (D2) | 순환 블록 수렴 허용오차는 LUT 보간 오차(leave-one-out)에서, 반복 상한은 그 허용오차와 구간폭·수축비에서 계산한다. LUT 격자 간격은 FD 스텝과 bisection 구간에 쓴다(식: N3.6, N3.7) | 2026-09-14 | GB7 | 미구현 |
-| DEC-34 (D4) | 전역 샘플 수는 파일럿 wall-clock 5분 안에서 실측 시간으로 계산한다(식: N3.5) | 2026-09-14 | GB9 | 미구현 |
+| DEC-34 (D4) | 전역 샘플 수는 사람 선언 `wall_clock_budget_s`(7b 전에는 `SPECS[circuit]` 항목, 7b부터 `sizing_spec.json` human. 기본안은 파일럿 선언값 300 s(5분)를 모든 사이징 대상 회로에 같게 적용하고 사용자가 회로별로 바꿀 수 있다, 확정 U-26) 안에서 실측 시간으로 계산한다(식: N3.5) | 2026-09-14 | GB9 | 미구현 |
 | DEC-35 (D5) | `ports`는 오케스트레이터가 connectivity로 제안 -> 표로 사용자 확인 -> 반영한다 | 2026-09-14 | 6a | 착수 조건 U-08 |
 | DEC-36 (D9) | test 프레임워크는 pytest(설치된 9.0.2). 플러그인 추가 없음 | 2026-09-04 | tests | 미구현 |
 | DEC-37 (D10, D11) | 결함 수정에 순서 예외는 없다(DF-03·DF-18도 Phase 4). 메인 세션(오케스트레이터)은 엔진 소스·tests를 쓰지 못한다(EL1 강제) | 2026-09-14 | Phase 4, EL1 | 미구현 |
@@ -218,18 +221,22 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | DEC-44 | 회로 해석이 걸린 판정(교류접지 예외, 부하 귀속, 역할)은 사람과 공동분석으로 확정하고, 엔진은 증거와 함께 `review_needed`까지만 낸다 | -- | GB1, GB2 | 원칙 |
 | DEC-45 | gain 할당은 3층이다: 결합변수 y 고정 블록 DP / y 좌표강하 / DP 해에서 SLSQP 미세조정 | 2026-09-14 | GB6 | 미구현 |
 | DEC-46 | 코드는 10모듈(N3.10)로, 인라인 self-test는 `tests/` pytest(N3.11)로 분리한다. stick_diagram self-test도 포함 | 2026-09-04, 09-14 | Phase 1, 3 | 미구현 |
-| DEC-47 | 모든 동작 변경 Phase는 4개 회로 전부에서 측정한다 | -- | 전체 | 원칙 |
+| DEC-47 | 모든 동작 변경 Phase는 library 회로에서 측정한다: 구조 유도(SP1 셀·stage·극점 노드·루프 탐지·규칙 분기 발동표)는 library 회로 전부, 사이징·metric·탐색은 사이징 대상 회로 전부, 기존 기준선·declared stage·equivalence 대조는 기존 4개 회로(용어 N0.4) | -- | 전체 | 원칙 |
 | DEC-48 | 전체회로 물리 정합성(KVL/KCL/VGS)을 파이프라인 상시 게이트로 둔다 | 2026-09-04 | GB7, GB9 | 부분(노드전압 복원·vsb 게이트) |
-| DEC-49 | 새 metric의 상한 제약은 4개 회로에서 먼저 잰 뒤 정한다 | 2026-09-08 | GB8 | 원칙 |
+| DEC-49 | 새 metric의 상한 제약은 사이징 대상 회로에서 먼저 잰 뒤 정한다 | 2026-09-08 | GB8 | 원칙 |
 | DEC-50 | `gain_db >= 54`는 결함 metric(`gain_stages_sum`) 기준값이다. 7a 이후 전체회로 gain 기준으로 bisection 재도출한다 | 2026-09-03, 09-14 | 7a | 착수 조건 U-19 |
 | DEC-51 | 모든 구현은 plan -> design -> do 순서를 거친다 | 2026-09-10 | 전체 | 원칙 |
-| DEC-52 | `vs`는 `vsb`(소스-벌크 역바이어스 크기)이며 옛 키는 로드 거부 | 2026-09-08 | MOD2 | 구현됨 |
+| DEC-52 | `vs`는 `vsb`(소스-벌크 역바이어스 크기)이며 옛 키는 로드 거부. 크기는 DEC-61로 노드전압에서 유도한다 | 2026-09-08 | MOD2 | 구현됨 |
 | DEC-53 | metric 이름과 단위는 레지스트리로 검증한다 | 2026-09-08 | MOD5 | 구현됨 |
 | DEC-54 | 연속 최적화는 SLSQP를 유지한다. 시작점은 S3 아카이브와 준난수 전역 샘플에서 고른다 | 2026-09-14 | GB9 | 부분(multi-start만) |
-| DEC-55 | passive connectivity(CL1/CL2, Cf1/Cf2 교차, Cs1/Cs2)와 M18b `budget_reference_device`는 파일럿 topology에 반영돼 있다 | 2026-09-10 | GB1 | 구현됨 |
-| DEC-58 | 블록은 이득 블록과 버퍼 블록으로 나눈다. 블록마다 전압 이득·출력 임피던스·최대 출력 전류를 기록하고, `driving_spec`(슬루율·부하 용량)이 선언되면 출력 포트에 닿는 블록의 바이어스 전류 하한 = max(KCL 전류, 슬루율 × CL_total) | 2026-09-15 | GB5, GB6, GB8 | 미구현 |
-| DEC-57 | stage는 **전압 이득 stage**다. 모든 트랜지스터를 셀(CS/CG/CD/pass)로 같은 규칙으로 **여기 뷰마다** 분류하고(셀은 신호가 들어오는 단자로 정하므로 같은 트랜지스터가 뷰에 따라 달라진다. 예: 파일럿 M1a/M1b는 차동 전달 뷰에서 CS, CMFB 루프 뷰에서 CG), stage 경계는 셀 입력 노드의 구동 종류로 정한다. 캐스코드(전류 구동 CG)는 별도 stage가 아니다. gain 할당은 gain stage를, 보상(GB5)은 극점 노드 목록(버퍼 출력 포함)을 입력으로 쓴다(2026-09-15 보완: 극점·보상 문헌은 출력 버퍼를 한 단으로 센다. 4개 회로는 follower가 없어 두 수가 같다) | 2026-09-14 | GB2, N3.2-5 | 미구현 |
-| DEC-56 | L5c 픽스처는 `r_cmfb_vocdes`를 하한 0.02로 고정하고 `stop_after_sizing=True`로 돈다. 이관 뒤 이 입력을 바꾸는 것은 기준 약화(DEC-40) | 2026-09-09~10 | Phase 1 | 구현됨 |
+| DEC-55 | passive connectivity와 노드를 공유하는 `budget_reference_device`는 topology에 선언한다. 파일럿 적용(ratified 대상): CL1/CL2, Cf1/Cf2 교차, Cs1/Cs2, M18b `budget_reference_device` 반영 완료 | 2026-09-10 | GB1 | 구현됨(파일럿) |
+| DEC-58 | 블록은 이득 블록과 버퍼 블록으로 나눈다. 블록마다 전압 이득·출력 임피던스·방향별 최대 출력 전류를 기록한다. `driving_spec`(슬루율·부하 용량·부하 전류)이 선언되면 극점 노드마다 방향별 최대 충방전 전류 ≥ 슬루율 × 그 노드의 C_total이고, 부하 전류가 선언되면 출력 포트 노드의 방향별 최대 출력 전류 ≥ 부하 전류다(N3.7 출력 구동 규칙) | 2026-09-15 | GB5, GB6, GB8 | 미구현 |
+| DEC-57 | stage는 **전압 이득 stage**다. 모든 트랜지스터를 셀(CS/CG/CD/pass)로 같은 규칙으로 **여기 뷰마다** 분류하고(셀은 신호가 들어오는 단자로 정하므로 같은 트랜지스터가 뷰에 따라 달라진다. 예: 파일럿 M1a/M1b는 차동 전달 뷰에서 CS, CMFB 루프 뷰에서 CG), stage 경계는 셀 입력 노드의 구동 종류로 정한다. 캐스코드(전류 구동 CG)는 별도 stage가 아니다. gain 할당은 gain stage를, 보상(GB5)은 극점 노드 목록(버퍼 출력 포함)을 입력으로 쓴다(극점·보상 문헌은 출력 버퍼를 한 단으로 센다. 기존 4개 회로는 follower가 없어 두 수가 같고, `two_stage_ota_sf`는 M8 follower 때문에 다르다) | 2026-09-14 | GB2, N3.2-5 | 미구현 |
+| DEC-56 | L5c 픽스처는 `r_cmfb_vocdes`를 하한 0.02로 고정하고 `stop_after_sizing=True`로 돈다(픽스처 입력이지 일반 규칙이 아니다). 이관 뒤 이 입력을 바꾸는 것은 기준 약화(DEC-40) | 2026-09-09~10 | Phase 1 | 구현됨 |
+| DEC-59 | 지원 범위는 회로 부류가 아니라 **규칙 분기 발동**으로 정한다. 매 실행 규칙 분기마다 발동 회로 수와 검증 발동 회로 수를 `runs/<run_id>/rule_branch_coverage.json`에 기록한다(library 회로 전체 발동표는 regression 산출물). 검증 발동 회로가 library에 0인 분기를 타는 회로는 탐색 전에 `unsupported_rule_branch`(STRUCTURE_UNRESOLVED, 분기·소자·증거 기록)로 정지한다. 규칙 분기 목록과 발동표는 분기마다 `계산 규칙 있음 / 기록만` 속성을 둔다. `기록만` 분기(계산 규칙 없이 기록·`review_needed`만 정한 분기: 루프 분류 (4), 셀 규칙 밖 (a)(b)(c), 주 신호 분기·합류가 있는 이득 블록 DAG, 보상 규칙으로 풀리지 않는 보상 구성, 전류·트랜스임피던스 전달 뷰, nmos·pmos 밖 kind 등)는 ratify 여부와 무관하게 항상 `unsupported_rule_branch`로 정지한다. 분기를 지원하려면 그 분기의 계산 규칙을 이 계획서 또는 해당 design에 정의하고, 발동 회로를 N9.3 절차로 library에 넣어 ratify한다. 검증 발동 0인 분기가 남아 있는 동안 보고서에 그 분기의 일반성을 주장하지 않는다 | 2026-09-15 | GB0, GB2, N3.14 | 미구현(6a 기록, 6c부터 정지) |
+| DEC-60 | 레일은 두 선언으로 정한다(넷 이름 집합으로 판정하지 않는다). 레일 **넷** = topology 선택 필드 `supply_nets`(넷 이름 목록, connectivity라 사용자가 쓴다, WP-07·U-16). 레일 **전압** = 사이징 스펙의 사람 선언 `supplies{넷: 전압}`(7b 전에는 `SPECS[circuit]` 항목, 7b부터 `sizing_spec.json` human). `supply_nets`가 없는 기존 4개 회로는 전환기 해석으로 현 코드 이름 집합(sizing_recipe `_DEFAULT_RAIL_HI`/`_DEFAULT_RAIL_LO` = vdd·VDD / gnd·GND·vss·VSS, stick_diagram `_RAIL_NETS` = vdd·gnd·vss)을 쓴다(DF-26). `supplies`가 없으면 기존 경로 해석을 쓴다: 레일 둘, 가장 높은 레일 = spec `vdd`, 가장 낮은 레일 = 0 V. `supply_nets`는 기존 4개 회로 밖의 회로에서 필수이고, `supplies`는 레일 넷이 셋 이상이거나(예: agnd) 음전위 레일을 쓰는 회로(nmcnr 문헌 ±1 V 기준)에서 필수다. 없으면 GB0 로드 게이트가 거부한다. 선언 확정은 U-26. 문헌 스펙 필드(nmcnr `supply_v`, `_paper_target_spec.supplies_v` 등)는 출처일 뿐 레일 정본이 아니다 | 2026-09-15 | GB0, S1, W0 | 미구현(현 코드는 이름 집합, DF-19·DF-26) |
+| DEC-61 | netlist 소자는 선택 필드 `bulk`(넷)를 가질 수 있다(connectivity라 사용자만 쓴다, WP-07). 선택 필드이므로 기본 규칙과 다른 벌크 연결이 있는 소자만 선언하면 되고, 없으면 nmos = `supplies` 중 가장 낮은 전위 넷, pmos = 가장 높은 전위 넷이다. vsb = abs(V(source) − V(bulk))이며 노드전압(W0 레일 전압 포함)에서 유도한다(레일 0 V 가정 금지). source·drain 접합의 순바이어스는 크기로 덮지 않고 봉인이 거부한다(N3.6 항목 6). nmos·pmos 밖 kind는 `기록만` 규칙 분기로 기록한다(DEC-59) | 2026-09-15 | S1 소자 `b`, W0, W2 | 미구현(DF-24) |
+| DEC-62 | 새 토폴로지 추가는 데이터(topology.json connectivity·`ports`·`passive_elements`·`supply_nets`, `sizing_spec.json`(`supplies` 포함), `SPECS` 데이터 항목)만으로 끝나야 한다. 회로 이름으로 갈리는 코드(회로별 보상 함수, 회로별 metric, 회로 이름 분기)가 필요해지면 그 사실을 일반 규칙의 결함(DF)으로 등록하고 규칙을 고친다 | 2026-09-15 | N9.3 | 원칙 |
 
 ### N2.2 작업 방식 원칙
 
@@ -241,7 +248,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | WP-02 | skip·continue·예외 목록·광범위 except를 만들기 전에 (1) 대상이 실재하나 (2) 검사가 틀렸나 대상이 틀렸나 (3) 우회 없이 고칠 수 있나를 답한다. 게이트는 "통과"보다 "실제로 거부한다"를 먼저 확인한다 |
 | WP-03 | 상수를 임의로 만들지 않는다. 근거 선언값 하나만 두고 식을 코드로 계산해 캐시한다. 유도를 주석에 적고 결과 숫자를 박는 것은 해결이 아니다 |
 | WP-04 | 논문 값을 인용하지 않는다. 사용자가 직접 지정한 값만 확정값이다 |
-| WP-05 | 해결책은 일반화한다(회로·소자·theta 이름과 매직넘버 금지). 4개 회로에서 측정해 필요 없는 회로의 무동작을 증명한다 |
+| WP-05 | 해결책은 일반화한다(회로·소자·theta 이름과 매직넘버 금지). library 회로에서 측정해(대상 구분 DEC-47) 필요 없는 회로의 무동작을 증명한다. 무동작 증명은 발동 0인 분기의 정답을 보이지 않으므로 분기 검증은 검증 발동 회로로 한다(DEC-59) |
 | WP-06 | 회로 위상 해석은 항상 사용자와 공동분석한다. 공유 엔진의 동작 변경은 승인 후에 한다 |
 | WP-07 | topology.json이 유일한 토폴로지 소스다. connectivity는 사용자만 수정하고, role·matching 메타데이터는 분석해 갱신할 수 있다. test 픽스처는 `library/*.topology.json`에서 로드·변형만 하고 손으로 넷리스트를 새로 치지 않는다 |
 | WP-08 | connectivity 정정은 모았다가 "한꺼번에 반영" 지시 때 일괄 반영하고 net 표를 다시 출력한다 |
@@ -266,12 +273,12 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 
 | 단계 | 하는 일 | 산출물(저장 층) | 모듈 | 구현 Phase |
 |---|---|---|---|---|
-| **GB0 spec** | 사람 선언을 읽고 검증한다: objective, 제약값(출처 필수, 논문 출처 거부), `ports`, `value_amp`, 보상 목표(CL/GBW/PM), `driving_spec`, `gain_budget_db_override`, W3 노드전압 목표. 로드 게이트: 옛 키(`vs`), 단위, theta 선언 순서, `value_amp`와 같은 소스를 움직이는 theta 공존 | 검증된 spec + S0 지문 | MOD2, MOD3 | 6a(의미·게이트), 7b(`sizing_spec.json` 파일) |
-| **GB1 구조 유도** | 교류접지 집합, diode, 미러 그룹, diffpair·tail, L 동치류(주인 = tail), vertical stack, 관계 엣지를 레지스트리 정본 함수로 유도 | S1 | MOD3 | 6a |
-| **GB2 stage 분할** | SP1(N3.2)로 signal stage와 피드백 엣지·극성을 유도하고 declared stage와 대조한다. 불일치는 `review_needed` | S1v | MOD3 | 6a |
+| **GB0 spec** | 사람 선언을 읽고 검증한다: objective, 제약값(출처 필수, 논문 출처 거부), `ports`, `value_amp`, 보상 목표(CL/GBW/PM), `driving_spec`, `gain_budget_db_override`, W3 노드전압 목표, `supplies`. 로드 게이트: 옛 키(`vs`), 단위, theta 선언 순서, `value_amp`와 같은 소스를 움직이는 theta 공존, `supply_nets`·`supplies` 선언 또는 전환기·기본 해석(DEC-60: 기존 4개 회로 밖 회로는 `supply_nets` 필수, 레일 셋 이상·음전위 레일이면 `supplies` 필수), library 규칙 분기 발동표 로드(DEC-59) | 검증된 spec + S0 지문 | MOD2, MOD3 | 6a(의미·게이트), 7b(`sizing_spec.json` 파일) |
+| **GB1 구조 유도** | 레일(`supply_nets`·`supplies`)·소자 bulk(DEC-60·61), 교류접지 집합, diode, 미러 그룹, diffpair·tail, L 동치류(주인 = DEC-17), vertical stack, 관계 엣지를 레지스트리 정본 함수로 유도 | S1 | MOD3 | 6a |
+| **GB2 stage 분할** | SP1(N3.2)로 signal stage와 피드백 엣지·극성을 유도하고 declared stage와 대조한다. 불일치는 `review_needed`. 규칙 분기 발동을 기록하고 검증 발동 0 분기는 `unsupported_rule_branch`(6c부터 정지, DEC-59). 7b부터 루프 뷰가 생긴 회로에서 루프 안정도 제약이 선언되지 않으면 GB2 출구 게이트가 STRUCTURE_UNRESOLVED(`undeclared_loop_constraint`)로 탐색 전 정지(U-24) | S1v | MOD3 | 6a |
 | **GB3 결합 블록** | 블록 = signal stage. 블록 경계를 넘는 관계 엣지에서 결합변수 y(K1~K4)를 추출 | S1 | MOD3 | 6c |
 | **GB4 달성가능성·DOF** | LUT 곡선 검사, 블록별 gain 상한 표, 구조 DOF와 수치 rank. 불가하면 탐색 전에 정지 | S2 memo | MOD4 | 6c |
-| **GB5 보상** | (CL, GBW, PM) -> (Cc, Rz, gm_i). 기생 pole로 L 상한 | S2 | MOD4 | 7b |
+| **GB5 보상** | (CL, GBW, PM) -> (보상 수동소자 값, gm_i). 기생 pole로 L 상한 | S2 | MOD4 | 7b |
 | **GB6 gain 할당** | 3층: 블록 DP / y 좌표강하 / SLSQP 미세조정. `gain_budget_db` 출력 | S2, S3 | MOD6 | 7b |
 | **GB7 DC 해석** | 노드전압 정본, writer 티어 W0~W4, 순환 블록 고정점, 봉인 | S2 | MOD4 | 6b |
 | **GB8 metric** | 전체회로 MNA gain, 블록 gain과 잔차, 감도 게이트, metric 티어 분류, 전력·면적 | S2 | MOD5 | 7a |
@@ -291,32 +298,32 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 
 ### N3.2 stage 분할 규칙 SP1
 
-1. **교류접지 집합**: (1) 레일 (2) gate에만 붙고 구동되지 않는 넷 -- 입력 포트·수동소자 단자·이상원 단자는 제외 (3) 이상 전압원 단자. J1의 결론(replica bias 예외)은 이 집합의 예외 목록으로 반영한다.
+1. **교류접지 집합**: (1) 레일(`supply_nets` 선언 넷, DEC-60) (2) gate에만 붙고 구동되지 않는 넷 -- 입력 포트·수동소자 단자·이상원 단자는 제외 (3) 이상 전압원 단자. J1의 결론(replica bias 예외)은 이 집합의 예외 목록으로 반영한다.
 2. **여기 뷰 수집**:
-   * **전달 뷰**: metrics 선언의 `(excite, sense)`마다 하나(분자·분모 여기는 각각 하나). 선언된 여기원 밖의 독립원은 교류접지다. 모드 선언이 없는 회로는 입력 포트 기모드 여기 하나를 만든다. gain 할당은 gain 제약 metric이 선언한 전달 뷰의 stage를 쓴다.
-   * **루프 뷰**: S1 신호 그래프(규칙 4의 엣지 + 수동소자 엣지)의 폐경로 중 **어느 전달 뷰의 순방향 경로에도 없는 능동 셀을 하나 이상 포함하는 루프**마다 하나(예: 공통모드 되먹임, gain boosting 보조증폭기, 바이어스·레플리카 되먹임). 순방향 셀과 수동소자만으로 닫히는 루프(Miller Cc–Rz, 저항 되먹임)는 루프 뷰를 만들지 않고 전달 뷰 안에서 보상으로 다룬다. 외부 여기원은 모두 교류접지다. **끊는 점** = 루프에만 속한 CS 셀의 gate(임피던스가 무한대에 가까워 끊어도 부하가 바뀌지 않는다. 끊은 gate의 Cgg는 앞쪽 노드 부하로 남긴다). 후보가 여럿이면 복귀 경로 다음 첫 gate, 후보가 없으면 `review_needed`. 극성은 규칙 7로 확인한다. 루프 목록과 끊는 점은 회로마다 J11에서 ratify한다.
+   * **전달 뷰**: metrics 선언의 `(excite, sense)`마다 하나(분자·분모 여기는 각각 하나). 선언된 여기원 밖의 독립원은 교류접지다. **기본 전달 뷰**: metric `(excite, sense)` 선언이 없는 회로(스펙 미선언 library 회로)와 metric에 모드 선언이 없는 경우는 `ports`의 input·output 역할에서 여기를 정한다 -- 입력 포트가 둘이고 `find_structural_symmetry_candidates`가 두 포트를 대응으로 확인하면 기모드 여기 하나, 아니면 입력 포트마다 단일 여기 하나, 감지는 output 포트. metric 선언이 없는 회로의 기본 전달 뷰는 6a 구조 유도(셀·stage·극점 노드·루프 탐지·규칙 분기 발동표)에만 쓰고, 사이징 제약 판정과 gain 할당은 metric 선언(U-25) 뒤에만 한다. 전달 뷰의 여기·감지는 전압이다(전류 입력·트랜스임피던스 전달 뷰는 `기록만` 규칙 분기, DEC-59). gain 할당은 gain 제약 metric이 선언한 전달 뷰의 stage를 쓴다.
+   * **루프 뷰**: 루프 탐지는 뷰마다 교류접지 집합과 그 뷰의 이상 여기원이 구동하는 넷(여기 포트)을 제거한 신호 그래프에서 하고, 방향 엣지(gate->drain, gate->source, 그리고 source 노드가 전류 구동 노드(용어집 '입력 노드 구동 종류')인 소자의 source->drain)와 수동소자 엣지만 쓴다. source->drain 엣지는 그 뷰의 셀 분류와 무관하게 노드 구동 종류로 둔다 -- 차동 전달 뷰에서 CS인 파일럿 M1a/M1b도 전류 구동 노드 Vx에서 drain으로 가는 엣지를 가져 CMFB 루프가 빠지지 않는다. 제거한 넷은 그 뷰에서 고정이므로 그 넷을 지나는 경로는 루프로 세지 않고, 그 넷과 신호 노드 사이의 수동소자는 양 끝 부하로 블록 국소 모델·MNA에 스탬프한다(예: 파일럿 Cf1[Vom, Vip]·Cf2[Vop, Vim]는 전달 뷰에서 출력노드–여기 포트 사이 부하). 게이트가 바이어스인 pass 셀(floating battery 등)은 같은 두 노드 사이의 pass 묶음 하나로 합쳐 2단자 신호 경로로 둔다. 폐경로는 묶음을 한 방향으로 한 번 통과할 수 있고, 같은 묶음 안의 왕복(역병렬 쌍 내부 순환)만 폐경로에서 뺀다. 이 그래프의 기본 폐경로를 모두 모아 아래 순서로 분류하고, 앞 번호에 해당하면 뒤 번호는 보지 않는다((2)는 (4)보다 먼저 판정한다). (0) 한 소자 안에서 닫히는 자기 엣지(diode 연결의 gate = drain 등)는 폐경로가 아니다. (1) 교류접지·여기 포트를 지나는 경로는 위에서 제거했으므로 루프가 아니다. (2) **Miller형**: 커패시터를 포함한 수동소자만으로 이루어진 복귀 경로가 같은 뷰의 순방향 경로 위 노드(블록 출력노드 또는 내부 노드)로 돌아오는 루프 = 보상 루프로 GB5가 다룬다(`계산 규칙 있음`, 루프 뷰를 만들지 않는다. 예: 파일럿 Cc1–Rz1, `two_stage_ota_sf` Cc, nmcnr 중첩 Miller). 능동 셀 하나와 저항으로 닫히고 그 루프가 신호 경로 밖 바이어스 노드끼리만 잇는 국소 루프(자기바이어스 캐스코드, 예: `sf_pushpull_output_opamp` R1a/R1b/R1c)만 블록 국소 모델이 스탬프하는 국소 되먹임이다(`계산 규칙 있음`, 보상 변수 아님, J12 ratify). 신호 경로 노드를 잇는 저항 shunt 되먹임은 (4)다. (3) **어느 전달 뷰의 순방향 경로에도 없는 능동 셀을 하나 이상 포함하는 루프** = 루프 뷰 하나(`계산 규칙 있음`, 예: 공통모드 되먹임). (4) 나머지 -- 여기 포트가 아닌 노드로 수동소자를 거쳐 돌아오는 전역 되먹임(분압점·저항 되먹임 노드)과 순방향 능동 셀만으로 닫힌 루프(교차결합) -- 만 `기록만` 규칙 분기로 기록하고 `review_needed`(항상 DEC-59 정지). 전달 뷰 신호 경로의 노드를 하나도 지나지 않는 루프(바이어스·레플리카 되먹임)는 루프 뷰를 만들지 않고 바이어스 SCC로 기록한다(J1). 루프 뷰에서 외부 여기원은 모두 교류접지다. **끊는 점** = 루프에만 속한 CS 셀의 gate(임피던스가 무한대에 가까워 끊어도 부하가 바뀌지 않는다. 끊은 gate의 Cgg는 앞쪽 노드 부하로 남긴다). 후보가 여럿이면 복귀 경로 다음 첫 gate, 후보가 없으면 `review_needed`. 극성은 규칙 7로 확인한다. 루프 목록과 끊는 점은 회로마다 J11에서 ratify한다.
 3. **셀 분류와 뷰 구성**(뷰마다 적용한다):
    * **셀 우선순위**: gate가 신호를 받으면 CS(출력 drain) 또는 CD(출력 source)다. 이때 source 쪽 신호는 소스 저항(degeneration)이지 입력이 아니다. gate가 교류접지이고 source로 신호가 들어오면 CG, gate가 바이어스이고 source↔drain으로 신호가 지나면 pass다. 이 우선순위 때문에 입력쌍 공통 소스를 거치는 gate->source->drain 우회로(한쪽 입력 소자에서 다른 쪽 입력 소자로 CG처럼 건너가는 경로)는 상대 소자 gate도 신호를 받는 뷰에서는 생기지 않는다.
    * **대칭 축약**(용어집): 대칭 회로에서 여기가 순수 기모드 또는 우모드인 전달 뷰는 반회로로 줄여 계산할 수 있다. 대칭 대응은 `find_structural_symmetry_candidates`로 짓고, 대응이 없는 소자는 축약 뷰에서 빼고 목록으로 보고한다. 단일출력 회로는 출력-대응 쌍을 제거한다. 축약은 계산 수단이므로 비축약 전체 뷰와 stage·셀 결과가 같아야 한다(규칙 8에서 측정).
-   * 뷰마다 신호 경로 밖이지만 그 뷰의 출력노드에 붙은 소자는 load로 기록하고 블록 속성의 출력 임피던스에 넣는다.
+   * **load** = 그 뷰의 출력노드(또는 블록 노드)에 단자가 붙었으나 그 뷰의 신호 경로 셀이 아닌 소자·수동소자. 블록 속성의 출력 임피던스에 넣는다(규칙 6의 load는 이 정의다).
    * 예시(규칙이 아니라 파일럿 잠정 판독, J11에서 ratify): 차동 전달 뷰에서 M1a/M1b·M4a/M4b는 CS, M2a/M2b·M3a/M3b는 캐스코드다. CMFB 루프 뷰(끊는 점 후보 M37a gate)에서는 M37a CS -> diode 노드 `Vcmfb` -> 미러 M7 -> M7 drain 전류가 `Vx`로 흘러듦 -> M1a/M1b CG(gate 교류접지) -> M2a/M2b 캐스코드 -> `Vom1`/`Vop1` -> M16/M26 CS -> Vom/Vop -> R1/R2 -> `Voc`이고, `Vy`에는 루프 신호가 들어가지 않아 nmos 반쪽(M4a/M4b, M3a/M3b)은 `Vom1`/`Vop1`의 load다. M58 전류 분할은 J1과 함께 판정한다.
-4. **엣지와 비용**: gate->drain 비용 1, source->drain(캐스코드)·gate->source 비용 0, diode 노드 게이트의 gate->drain 비용 0(미러). 예외: source 노드가 전압 구동인 CG의 source->drain은 비용 1(규칙 5). 입력 넷에서 0-1 BFS 최소 비용이 stage 번호다. 뷰의 입력(전달 뷰는 여기 포트, 루프 뷰는 끊는 점)에서 출발한다. 4개 회로 실측 규칙은 기모드 축약 뷰에서 잰 R3(DM/R2)이다(원자료 `probe_stage_partition.result.md`): 축약 뷰에서는 입력쌍 공통 소스가 가상접지라 gate->source 우회로가 끊긴다. 축약 없이 같은 비용만 쓰면 우회로 때문에 입력단 stage 번호가 0으로 떨어졌다. 비축약 뷰에서는 규칙 3의 셀 우선순위가 이 우회로를 막는다 -- 셀 우선순위 적용 후에도 R3 결과(4개 회로 100% 일치)가 유지되는지는 아직 측정하지 않았고 규칙 8에서 측정한다.
+4. **엣지와 비용**: gate->drain 비용 1, source->drain(캐스코드)·gate->source 비용 0, diode 노드 게이트의 gate->drain 비용 0(미러). 예외: source 노드가 전압 구동인 CG의 source->drain은 비용 1(규칙 5). 입력 넷에서 0-1 BFS 최소 비용이 stage 번호다. 뷰의 입력(전달 뷰는 여기 포트, 루프 뷰는 끊는 점)에서 출발한다. 기존 4개 회로 실측 규칙은 기모드 축약 뷰에서 잰 R3(DM/R2)이다(원자료 `probe_stage_partition.result.md`): 축약 뷰에서는 입력쌍 공통 소스가 가상접지라 gate->source 우회로가 끊긴다. 축약 없이 같은 비용만 쓰면 우회로 때문에 입력단 stage 번호가 0으로 떨어졌다. 비축약 뷰에서는 규칙 3의 셀 우선순위가 이 우회로를 막는다 -- 셀 우선순위 적용 후에도 R3 결과(기존 4개 회로 100% 일치)가 유지되는지는 아직 측정하지 않았고 규칙 8에서 측정한다.
 5. **셀과 stage 경계**: 각 여기 뷰의 신호 경로에서 모든 트랜지스터를 셀(CS/CG/CD/pass)로 분류하고(규칙 3), 셀마다 입력 노드의 구동 종류(전압/전류)를 기록한다. stage 경계는 단자 이름이 아니라 **입력 노드 구동 종류 하나로** 정한다.
    * 전압 구동 입력을 받아 전류를 고임피던스 노드로 내보내는 셀(CS, source가 전압 구동인 CG) = **새 gain stage 시작**(번호 +1).
    * 전류 구동 입력을 받는 CG = 캐스코드. **같은 stage를 잇는다**(앞 셀의 출력저항을 키우는 전류 버퍼다. 같은 stage는 gain을 평가하는 단위일 뿐이고, 캐스코드의 gm_id·L은 등식 관계를 제외하면 입력 소자와 독립 결정변수다 -- DEC-04).
    * 전압 구동 입력을 받아 저임피던스 노드로 내보내는 셀(CD, pass) = 전압 버퍼. gain stage 번호는 올리지 않고 버퍼 구간으로 표시한다(독립 블록 여부는 J10). 버퍼 출력노드는 극점 노드 목록에 넣는다(규칙 6) -- gain 기준으로는 stage가 아니지만 극점·보상 기준으로는 한 단이다.
-   * 근거: 캐스코드를 별도 stage로 나누면 그 stage의 전압 이득(source 노드 -> drain)과 앞 stage의 이득(≈ −1)이 같은 전류와 같은 출력저항을 공유해 분리성이 깨지고(결합 블록 DP 성립 조건, N3.7), 보상 레지스트리의 stage 수(`compensation.stage_devices`)와도 어긋난다. 캐스코드를 입력과 같은 stage에 두는 이유는 결정을 묶기 위해서가 아니라, 출력노드 저항이 캐스코드로 정해져 블록 gain을 계산하는 단위가 같기 때문이다. 4개 회로 실측: CG 셀 8개(파일럿 M9a/M9b/M18a/M18b, folded M5/M6, nmcnr M106/M107)가 **모두 전류 구동**이고 source가 전압 구동인 CG는 없다. 파일럿 선언 `gain_stages_sum`은 캐스코드 M2a/M3a를 입력 M1a/M4a와 같은 stage에 둔다(원자료 `probe_cg_cascode_stage.result.md`). 따라서 이 규칙은 4개 회로에서 실측 규칙 R3(DM/R2)과 같은 결과를 내고, CG 증폭기·follower까지 같은 기준으로 처리한다. 외부 기준과의 대조(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_stage_partition_literature.md`): 캐스코드를 입력과 같은 단으로 두는 것(telescopic·folded를 one-stage로 분류, 기능블록 분해에서 캐스코드는 load에 흡수)과 diode 미러를 같은 단에 두는 것은 문헌과 일치한다. 입력 노드 구동 종류로 경계를 정하는 것은 기능블록 분해의 "게이트 전압을 전류로 바꾸는 소자가 단의 시작"과 같은 개념이다. 여기 뷰·엣지 비용은 이 분류의 구현이며 근거는 4개 회로 실측이다.
-6. **stage 구성**: 출력노드 = stage 안에서 신호가 마지막으로 도달해 다음 stage 입력(다음 CS의 gate) 또는 출력 포트로 넘어가는 노드. CS·CG 사슬로 끝나면 drain 노드, CD·pass로 끝나면 그 소자의 출력 단자 노드다. 임피던스 등급(높음 = drain만 붙음 / 낮음 = 출력 source가 붙음)을 노드 속성으로 기록한다. input = gate가 stage 입력 넷에 붙은 소자, cascode = CG 사슬, follower = CD, pass = pass 구성 소자, load = 드레인이 출력노드(또는 중간 고임피던스 노드)에 붙고 게이트가 바이어스·미러 넷인 소자, tail = 드레인이 입력쌍 공통 소스 노드에 붙은 소자. **블록 노드 집합** = stage 입력 넷부터 출력노드까지 신호 경로에 있는 노드 전부. **극점 노드 목록** = gain stage 출력노드 ∪ 버퍼 블록 출력노드 ∪ stage 내부의 캐스코드 source 노드·접는 노드·diode 미러 노드. GB5와 `parasitic_pm_deg`는 이 목록을 소비하고, gain 할당(GB6)은 gain 제약 metric이 선언한 전달 뷰의 gain stage를 소비한다. 극점 노드 목록은 여기 뷰마다 따로 만든다(루프 뷰의 안정도는 그 루프 뷰의 목록, U-24).
-7. **피드백**: 수동소자 엣지와 역방향 MOS 엣지를 피드백으로 분리한다. 극성 = MOS만 거치는 복귀 경로의 저주파 부호. 부호가 섞이면 `review_needed`(Cc–Rz 직렬 루프는 J7).
-8. **검증 기준**(구동 종류 판정은 규칙 1의 교류접지 집합이 먼저 확정돼야 한다 -- 교류접지 없이 BFS하면 레플리카 바이어스 경로 때문에 파일럿 M2a/M3a가 CG로 잡히지 않는다, J1): input·cascode·tail 멤버십은 declared stage와 대조한다(4개 회로 실측 100% 일치, 원자료 `probe_stage_partition.result.md`). 출력노드와 load·G_out 기여 소자는 J5·J6 공동분석으로 `ratified`된 대조표와 대조한다. declared stage에 없는 부하(파일럿 Vom1의 M19·M18a·M18b)는 결함 선언이지 규칙의 오류가 아니다. 4개 회로에 drain이 레일에 붙은 순수 follower는 없고, source·drain 단자로 신호를 넘기는 소자는 파일럿 class-AB floating battery(M9a/M9b: Vop1↔Vg15, M18a/M18b: Vom1↔Vg25)와 folded M8(gate Vg7, source Vg10)이다(실측 원자료 `probe_common_drain.result.md`, 6a design이 기모드 축약 뷰에서 재측정). 4개 회로 전부에서 추가로 측정해 보고한다: (i) 셀 우선순위를 적용한 SP1이 R3 실측(declared stage 100% 일치)을 유지하는지 (ii) 축약 뷰와 비축약 전체 뷰의 stage·셀 결과가 같은지 (iii) 루프 탐지 결과 -- 루프 뷰가 생긴 루프와 끊는 점, 루프가 없는 회로는 없음을 명시. 따라서 CD 분류의 4개 회로 검증은 "분류 발동 소자 = 이 목록"까지이고, 순수 follower 회로 추가 여부는 U-22다.
-9. **graph로 정하지 않는 것**: 어느 여기 모드가 스펙인가, class-AB 출력단 gm 합산 방식과 floating battery의 stage 출력 노드(J3), follower를 독립 블록으로 둘지 앞 stage에 흡수할지(J10), 자유 노드 배분 기준(GB6 목적함수가 정한다), LUT 비단조 자체(GB4가 해법을 고른다). 셀 규칙 밖의 사례는 분류하지 않고 `review_needed`로 보고한다: (a) 게이트가 전류 구동 노드에 붙은 CS(gain boosting 보조증폭기, regulated cascode 등) (b) 입력 포트가 전류 입력인 CG(포트의 전압/전류 구분은 `ports` 선언, 선언이 없으면 전압) (c) CS로 시작하지만 블록 속성의 전압 이득이 1 이하이거나 출력노드 임피던스 등급이 낮은 블록(CS 버퍼, diode 부하 CS).
+   * 근거: 캐스코드를 별도 stage로 나누면 그 stage의 전압 이득(source 노드 -> drain)과 앞 stage의 이득(≈ −1)이 같은 전류와 같은 출력저항을 공유해 분리성이 깨지고(결합 블록 DP 성립 조건, N3.7), 보상 레지스트리의 stage 수(`compensation.stage_devices`)와도 어긋난다. 캐스코드를 입력과 같은 stage에 두는 이유는 결정을 묶기 위해서가 아니라, 출력노드 저항이 캐스코드로 정해져 블록 gain을 계산하는 단위가 같기 때문이다. 기존 4개 회로 실측: CG 셀 8개(파일럿 M9a/M9b/M18a/M18b, folded M5/M6, nmcnr M106/M107)가 **모두 전류 구동**이고 source가 전압 구동인 CG는 없다(전압 구동 CG stage 시작 분기는 검증 발동 0, DEC-59). 파일럿 선언 `gain_stages_sum`은 캐스코드 M2a/M3a를 입력 M1a/M4a와 같은 stage에 둔다(원자료 `probe_cg_cascode_stage.result.md`). 따라서 이 규칙은 기존 4개 회로에서 실측 규칙 R3(DM/R2)과 같은 결과를 내고, CG 증폭기·follower도 같은 기준으로 분류하지만 그 분기의 검증은 검증 발동 회로로 한다. 외부 기준과의 대조(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_stage_partition_literature.md`): 캐스코드를 입력과 같은 단으로 두는 것(telescopic·folded를 one-stage로 분류, 기능블록 분해에서 캐스코드는 load에 흡수)과 diode 미러를 같은 단에 두는 것은 문헌과 일치한다. 입력 노드 구동 종류로 경계를 정하는 것은 기능블록 분해의 "게이트 전압을 전류로 바꾸는 소자가 단의 시작"과 같은 개념이다. 여기 뷰·엣지 비용은 이 분류의 구현이며 근거는 기존 4개 회로 실측이다.
+6. **stage 구성**: 출력노드 = stage 안에서 신호가 마지막으로 도달해 다음 stage 시작 셀의 입력 단자 또는 출력 포트로 넘어가는 노드. CS·CG 사슬로 끝나면 drain 노드, CD·pass로 끝나면 그 소자의 출력 단자 노드다. 임피던스 등급을 노드 속성으로 구조로 기록한다: 낮음 = gm 차수 컨덕턴스를 주는 단자(source 단자, diode 연결 소자의 drain+gate, 저항)가 붙음 / 높음 = 그 외(drain·gate·커패시터 단자만). input = stage 시작 셀의 신호 입력 단자(CS·CD는 gate, CG는 source)가 stage 입력 넷에 붙은 소자, cascode = CG 사슬, follower = CD, pass = pass 구성 소자, load = 규칙 3의 load, tail = 둘 이상 셀의 공통 source 노드에 drain이 붙고 그 뷰의 신호 경로 셀이 아닌 소자(없으면 빈 역할). **블록 노드 집합** = stage 입력 넷부터 출력노드까지 신호 경로 노드 ∪ 블록 셀 단자 노드 중 교류접지 집합이 아닌 노드(source degeneration 노드 포함). **극점 노드 목록** = 용어집 정의(그 여기 뷰의 교류접지 아닌 노드 전부, 속성 기록). GB5·출력 구동 규칙·`parasitic_pm_deg`는 이 목록을 소비하고, gain 할당(GB6)은 gain 제약 metric이 선언한 전달 뷰의 gain stage를 소비한다. 극점 노드 목록은 여기 뷰마다 따로 만든다(루프 뷰의 안정도는 그 루프 뷰의 목록, U-24).
+7. **피드백**: 뷰 입력에서의 BFS 거리(DEC-29) 기준으로 역방향 엣지(MOS·수동소자)를 피드백으로 분리한다. 극성 = 끊는 점에서 한 바퀴 도는 경로의 저주파 부호이며 셀·소자 부호의 곱으로 구조로 계산한다(CS 반전, CG·CD·pass 비반전, 저항·분압 비반전). 커패시터만 거쳐 저주파 경로가 없거나 부호가 섞이면 `review_needed`(Cc–Rz 직렬 루프는 J7).
+8. **검증 기준**(구동 종류 판정은 규칙 1의 교류접지 집합이 먼저 확정돼야 한다 -- 교류접지 없이 BFS하면 레플리카 바이어스 경로 때문에 파일럿 M2a/M3a가 CG로 잡히지 않는다, J1): 정답 기준은 J 공동분석으로 `ratified`된 대조표(stage 멤버십, 출력노드, load·G_out 기여 소자, 셀 판독)다. declared stage는 불일치 보고용 입력이다 -- 기존 4개 회로에서는 input·cascode·tail 멤버십이 declared와 일치함(실측 100%, 원자료 `probe_stage_partition.result.md`)을 회귀로 유지하고, declared가 없는 신규 회로는 ratified 대조표만 쓴다. declared stage에 없는 부하(파일럿 Vom1의 M19·M18a·M18b)는 결함 선언이지 규칙의 오류가 아니다. 기존 4개 회로에는 drain이 레일에 붙은 순수 follower가 없고, source·drain 단자로 신호를 넘기는 소자는 파일럿 class-AB floating battery(M9a/M9b: Vop1↔Vg15, M18a/M18b: Vom1↔Vg25)와 folded M8(gate Vg7, source Vg10)이다(실측 원자료 `probe_common_drain.result.md`, 6a design이 기모드 축약 뷰에서 재측정). 순수 follower는 `two_stage_ota_sf`(M8), `pushpull_follower_buffer`(M1~M4), `sf_pushpull_output_opamp` 버퍼(M18/M19/M21/M22)에 있다(U-22). library 회로 전부에서 측정해 보고한다: (i) 셀 우선순위를 적용한 SP1이 기존 4개 회로의 R3 실측(declared stage 100% 일치)을 유지하는지 (ii) 대칭 회로에서 축약 뷰와 비축약 전체 뷰의 stage·셀 결과가 같은지, 대칭 쌍이 없는 회로(`pushpull_follower_buffer`)에서 비축약 결과가 ratified 대조표와 같은지 (iii) 루프 탐지 결과 -- 루프 뷰가 생긴 루프와 끊는 점(파일럿 CMFB 루프가 규칙 2의 루프 탐지 그래프에서 탐지되는지 포함), 규칙 2의 (0)~(4)·바이어스 SCC 분류, 루프가 없는 회로는 없음을 명시 (iv) 규칙 분기 발동표(DEC-59).
+9. **graph로 정하지 않는 것**: 어느 여기 모드가 스펙인가, class-AB 출력단 정지전류 규칙과 floating battery의 stage 출력노드(J3), follower를 독립 블록으로 둘지 앞 stage에 흡수할지(J10), 자유 노드 배분 기준(GB6 목적함수가 정한다), LUT 비단조 자체(GB4가 해법을 고른다). 셀 규칙 밖의 사례는 분류하지 않고 `review_needed`로 보고한다: (a) 게이트가 전류 구동 노드에 붙은 CS(gain boosting 보조증폭기, regulated cascode 등) (b) 입력 포트가 전류 입력인 CG(포트의 전압/전류 구분은 `ports` 선언, 선언이 없으면 전압) (c) CS로 시작하지만 출력노드 임피던스 등급이 낮은 블록(CS 버퍼, diode 부하 CS). 전압 이득이 1 이하인 이득 블록은 사이징 뒤 값이라 GB2가 아니라 GB8 블록 속성 기록에서 경고한다. (a)(b)(c)는 `기록만` 규칙 분기로 기록한다(항상 DEC-59 정지).
 
 ### N3.3 Circuit State Graph 층
 
 | 층 | 내용 | 키·무효화 | 저장 |
 |---|---|---|---|
 | **S0 지문** | topology 정규화 JSON 해시 / LUT 파일 내용 해시 + 생성 메타(`lut_conditions_from_npz`: corner, temp) / spec 전체 해시(제약값 포함) / 유도 규칙 코드 해시(S1 유도 함수 호출 폐포의 `ast.dump`, docstring·모듈 경로 제외) / metric 정의 코드 해시 | -- | 메모리 |
-| **S1 구조** | 노드 {name, terminals[(device, terminal)], is_rail, ac_ground_class, port_role} / 소자 {name, kind, d, g, s, b, is_diode} / 수동소자 {name, type, nodes} / 관계 엣지 {type, members, status, evidence{rule, nets}}. type ∈ `equal_vgs`, `vds_eq_vgs`, `same_as`, `budget_ref`, `stacked_vsb`, `matching_offset`, `matching_ratio`, `l_class`, `kcl_group`, `kvl_branch`. 개념마다 정의 하나 | topology 해시 + 유도 규칙 해시 | 메모리(엔진 유도, 매 실행 재생성) + `library/<name>.structure.json`(ratified 기록만, 오케스트레이터가 씀, 6a) |
+| **S1 구조** | 노드 {name, terminals[(device, terminal)], is_rail(`supply_nets`, DEC-60), ac_ground_class, port_role} / 소자 {name, kind, d, g, s, b(선언 `bulk` 또는 DEC-61 기본 레일), is_diode} / 수동소자 {name, type, nodes} / 관계 엣지 {type, members, status, evidence{rule, nets}}. type ∈ `equal_vgs`, `vds_eq_vgs`, `same_as`, `budget_ref`, `stacked_vsb`, `matching_offset`, `matching_ratio`, `l_class`, `kcl_group`, `kvl_branch`. 개념마다 정의 하나 | topology 해시(`supply_nets` 포함) + 유도 규칙 해시 + 레일 전압 선언(`supplies`) 해시 | 메모리(엔진 유도, 매 실행 재생성) + `library/<name>.structure.json`(ratified 기록만, 오케스트레이터가 씀, 6a) |
 | **S1v 여기 뷰** | 모드별: SCC 응축 신호 DAG, 피드백 엣지·극성, signal stage 목록 | S1 키 + 모드 | 메모리 |
 | **S2 동작점** | 노드 DC 전압(경로별 값·충돌), 소자 op(ID, gm_id, L, W, gm, gds, cgg), KCL 전류와 출처, 스택 창·slack, 노드 cap/G, metric. 필드마다 {writer 티어, 버전 카운터} | memo 키 = 계산 블록 입력의 내용 해시 | LRU(상한 N3.5) |
 | **S2p 사전정보** | 직전 수렴 스냅샷. 초기값·시드로만 쓰고 결과값으로 쓰지 않는다 | 없음(힌트) | 메모리 |
@@ -330,7 +337,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | (생성) -> `derived` / `proposed` | 엔진 | 규칙과 connectivity 증거가 있으면 derived, 증거가 부족하면 proposed |
 | `derived`/`proposed` -> `review_needed` | 엔진 | declared와 불일치, 또는 규칙이 해석 불가를 보고 |
 | `review_needed` -> `ratified` | 오케스트레이터 | 공동분석 결론 + 승인 기록 id |
-| `ratified` -> `review_needed` | 엔진 | S0의 topology·유도 규칙 해시 변경 |
+| `ratified` -> `review_needed` | 엔진 | S0의 topology(`supply_nets` 포함)·유도 규칙 해시 변경, 또는 레일 전압 선언(`supplies`, spec 지문) 변경 |
 
 shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitignore` 등록)에 쓴다. 평가 경로가 읽는 상태는 `declared`, `derived`, `ratified`뿐이다. 6a(shadow)에서는 평가가 기존 declared 경로로 계속 돌고 유도 결과는 대조 보고만 한다. 유도 값을 평가가 소비하기 시작하는 6c부터 `review_needed`가 남아 있으면 GB4 전에 정지한다.
 
@@ -338,7 +345,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 | 티어 | 쓰는 대상 | 출처 |
 |---|---|---|
-| W0 | 레일 노드 | spec `vdd`, gnd |
+| W0 | 레일 노드 | `supply_nets`의 모든 넷. 전압은 사이징 스펙 `supplies{넷: 전압}`(미선언이면 DEC-60 전환기·기본 해석). vsb는 이 전압과 bulk 넷에서 유도(DEC-61) |
 | W1 | 구조 항등으로 묶인 노드 변수: diode(VGS=VDS), 노드를 공유하는 `budget_ref`, `vds_match_vgs_of`(D1에서 항등식) | S1 관계 엣지 |
 | W2 | 물리 종속 블록: 노드전압 ↔ gm_id ↔ W, 적층 diode(`stacked_vsb`), class-AB 배터리 KVL | 순환 블록 고정점 |
 | W3 | 사람이 선언한 노드전압 목표 | `sizing_spec.json` human.node_voltage_targets(`diode_stack.target_net`, `Voc_des` 계열을 이관) |
@@ -346,7 +353,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 * 노드 하나에 writer는 하나다. "먼저 쓴 값 존중"은 없다. 두 writer가 같은 노드를 쓰면 봉인 위반이다.
 * 소자 vds/vgs/vsb는 노드전압 차이의 읽기 전용 파생이다. `set_device_vds`는 W 티어 setter의 파생으로 바뀐다.
-* 노드 하나에 값 하나이므로 "스택 합 ≠ vdd"는 표현할 수 없다(검사 대상이 아니다). writer 경합과 버전 불일치는 봉인이 거부한다.
+* 노드 하나에 값 하나이므로 "스택 합 ≠ 레일 전압차"는 표현할 수 없다(검사 대상이 아니다). writer 경합과 버전 불일치는 봉인이 거부한다.
 
 ### N3.5 상태 계약·평가 커널·최적화 계층
 
@@ -368,7 +375,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 * **실패 캐시**: 키 = (θ 각 성분의 `float.hex`, S0 지문). 실패는 N3.14 구조화 실패로 저장한다. 제약 함수는 상수 페널티 대신 정규화 위반량(margin)을 돌려준다. S0가 없는 Phase 5~6a 전에는 지문 자리에 임시 지문(topology 파일 내용 해시 + spec 전체 해시 + 엔진 소스 파일 해시)을 쓰고, 6a에서 S0로 바꾼다. 임시 지문 레코드는 그 뒤 읽지 않는다(SC-d).
 * **시작점**: 지문이 일치하는 S3 feasible 점 상위 `n_starts`개(선언값) -> 부족하면 선언 x0. "지난 해 ± 창"은 추가 시작점으로만 쓴다(전역 bounds를 줄이지 않는다).
-* **전역 샘플 수(DEC-34)**: `N = floor((300 s − T_fixed) / t_eval)`. `T_fixed` = 같은 실행에서 샘플을 뺀 단계(presolve, GB0~GB5, DP, 좌표강하, SLSQP) 실측 합, `t_eval` = warm 평가 실측 중앙값. 샘플러는 `scipy.stats.qmc.Sobol`(scipy는 이미 의존). 7c 전에는 그 Phase에 존재하는 단계만으로 `T_fixed`를 실측해 같은 식으로 N을 계산하고, 판정 기록에 어느 단계를 넣었는지 적는다(6b LRU 상한, 6c DOF 표본 수가 이 N을 쓴다).
+* **전역 샘플 수(DEC-34)**: `N = floor((wall_clock_budget_s − T_fixed) / t_eval)`(`wall_clock_budget_s`는 회로별 선언값, DEC-34). `T_fixed` = 같은 실행에서 샘플을 뺀 단계(presolve, GB0~GB5, DP, 좌표강하, SLSQP) 실측 합, `t_eval` = warm 평가 실측 중앙값. 샘플러는 `scipy.stats.qmc.Sobol`(scipy는 이미 의존). 7c 전에는 그 Phase에 존재하는 단계만으로 `T_fixed`를 실측해 같은 식으로 N을 계산하고, 판정 기록에 어느 단계를 넣었는지 적는다(6b LRU 상한, 6c DOF 표본 수가 이 N을 쓴다).
 * **분지**: feasible 샘플의 θ 격자 인접 연결성분, 또는 DP 결정 벡터가 다른 해. 서로 다른 분지에서 SLSQP를 시작한다.
 * 한 기준점의 수치 섭동으로 차원을 동결하지 않는다. 무효화는 구조적 쓰기 집합(SC-e 영향 집합)으로만 한다.
 
@@ -383,12 +390,13 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 | 3 | KCL 잔차 | 내부 노드마다 |ΣI| ≤ tol_I. `exclude_nets`는 사유가 선언된 넷만 |
 | 4 | 버전 일치 | 파생 필드의 입력 카운터 = 현재 카운터(정확 일치) |
 | 5 | writer 유일 | 노드마다 writer 하나 |
+| 6 | 벌크 역바이어스 | 모든 소자에서 source-bulk·drain-bulk 접합이 역바이어스(nmos V(source), V(drain) ≥ V(bulk), pmos V(source), V(drain) ≤ V(bulk)). 위반 크기 > tol_V이면 거부(DEC-61) |
 
 **허용오차 식**
 
 * `tol_V` = (kind, L 앵커, VDS)별 LUT leave-one-out 보간 오차(VGS 기준)의 최댓값. 계산 함수는 `tests/probe_interp_scheme_loo.py`의 방법을 MOD1 함수로 승격한다.
 * `tol_I` = `tol_V` × 해당 순환 블록 소자 gm의 최댓값.
-* 반복 상한: bisection이면 `ceil(log2(구간폭 / tol_V))`. 고정점 반복이면 수축 사상의 오차 한계 `|x_k − x*| ≤ q^k·|Δ0| / (1 − q)`로 `q^k·|Δ0| / (1 − q) ≤ tol_V`가 되는 최소 k를 상한으로 한다. q = 최근 두 연속 변화비의 최댓값이며 매 반복 갱신한다. q ≥ 1인 반복에서는 상한을 갱신하지 않고 직전 상한을 유지하며, q ≥ 1이 두 번 연속 관측되면 NONCONVERGENT(한 번은 초기 과도로 본다).
+* 반복 상한: `K_max = ceil(log2(구간폭 / tol_V))`(같은 구간을 bisection으로 풀 때의 반복 수). 고정점 반복도 같은 K_max를 상한으로 한다(그보다 느린 고정점은 bisection보다 나쁘다). 고정점 반복은 매 반복 q = 직전 변화비 `|Δk| / |Δk−1|`(추정에 필요한 최소 반복 3개)를 갱신하고, q < 1이면 수축 오차 한계 `q^(K_max − k)·|Δk| / (1 − q) > tol_V`로 남은 상한 안 도달 불가가 확정될 때, q ≥ 1이면 K_max에 닿을 때 NONCONVERGENT. 창 크기·연속 횟수 상수는 두지 않는다.
 * 같은 `tol_V`를 IC1 test의 허용오차와 SPICE 비교(N3.8)의 노드전압 허용오차로 쓴다.
 
 ### N3.7 결합 블록·달성가능성·DOF·할당
@@ -404,12 +412,13 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 | K5 | 다음 stage 입력 Cgg가 노드 pole을 거쳐 PM에 영향 | GB5·GB8(`parasitic_pm_deg`) |
 | K6 | 보상이 고정한 gm | GB5 입력 |
 | K7 | 둘 이상의 여기 뷰가 같은 소자를 쓴다 -- 한 뷰에서 정한 소자 값이 다른 뷰의 제약에 들어간다(예: 파일럿 M7은 차동 전달 뷰에서 M6와 병렬 tail이고 CMFB 루프 뷰에서 구동 소자라 M6·M7 전류 분할이 두 뷰에 함께 걸린다) | y(공유 소자의 분할·값), 뷰별 제약(U-24) |
+| K8 | 측면 주입: 뒤 블록의 부하·전류원 위치 셀(drain 노드가 블록 출력노드가 아니고 순방향 신호 경로 셀이 아님)의 gate가 앞 블록 내부 노드(출력노드 아님)에 붙어 신호를 받는다(N3.7 달성가능성 (b), 예: `sf_pushpull_output_opamp` M17·M20) | 블록 DP는 사슬 유지, 해당 metric은 MT3(외층 전체회로 MNA) |
 
-* **결합 잔차 측정(6c 첫 작업)**: 기존 6480조합 데이터(`tests/probe_mirror_gain_ranking.py`)로 블록 gain 합과 전체회로 MNA gain의 차를 잰다. 0이 아닌 블록 쌍은 해당 metric을 MT3로 표시한다.
+* **결합 잔차 측정(6c 첫 작업)**: 사이징 대상 회로마다 LUT 격자에서 DEC-34 식의 샘플 수만큼 준난수 표본을 뽑아 블록 gain 합과 전체회로 MNA gain의 차를 잰다(파일럿은 기존 6480조합 데이터 `tests/probe_mirror_gain_ranking.py`를 표본에 더할 수 있다). 0이 아닌 블록 쌍은 해당 metric을 MT3로 표시하고, MT 분류는 회로별로 저장한다.
 * **LUT 곡선 검사(로드 시)**: 곡선이 단조면 역산 허용, 비단조면 격자 전수만 허용, 단위 불일치면 로드 거부.
 * **블록 gain 상한**: `A_i,max = max(블록 i의 국소 소신호 모델 gain)` over gm_id 격자 × LUT L 앵커 × W4 창의 VDS × y 가능역. 격자 전수, S2 memo. 7b에서 GB5가 고정한 gm으로 다시 계산한다.
-* **달성가능성**: Σ A_i,max < 총 gain 제약이면 INFEASIBLE_TARGET(탐색 전). LUT·구조만으로 상한을 계산할 수 없는 제약은 "상한 미상"으로 보고한다.
-* **DOF**: 변수(스택 내부 노드전압 k−1, 소자 gm_id, L 동치류 L)와 등식(diode VGS=VDS, `equal_vgs`, `budget_ref`, `stacked_vsb`, KCL)으로 구조 rank를 센다(부등식은 경고). 수치 rank는 θ 표본에서의 Jacobian(`numpy.linalg.matrix_rank` 기본 허용오차, FD 스텝 = 해당 변수의 LUT 격자 간격, 표본 수 = DEC-34 식의 샘플 수 안). 결과 `DofReport{status: ok | underdetermined | overconstrained, 경쟁 목표 쌍}`. overconstrained는 INFEASIBLE_TARGET.
+* **달성가능성**: 이득 블록 DAG(S1v)가 직렬 사슬이면 Σ A_i,max < 총 gain 제약일 때 INFEASIBLE_TARGET(탐색 전). 블록 사이 분기는 둘로 나누고 (a)를 먼저 판정한다(두 조건에 모두 해당하면 (a)). (a) **주 신호 분기**(두 경로 모두 출력노드까지 신호 셀 사슬로 이어져 합류: feedforward 보상, 병렬 이득 경로)는 Σ dB 분해·내층 DP·잔차 정의를 쓰지 않고 `기록만` 규칙 분기로 기록한다(항상 DEC-59 정지). (b) **측면 주입**(뒤 블록의 셀이 앞 블록의 출력노드가 아닌 내부 노드에서 gate로 신호를 받고, connectivity 기준으로 그 셀의 drain 노드가 그 블록의 출력노드가 아니며 그 셀이 뷰 순방향 신호 경로의 셀이 아닌 경우 -- 부하·전류원 위치)는 `계산 규칙 있음`이다: 블록 DP는 사슬로 두고 그 주입을 결합 K8로 기록하며, 해당 metric은 MT3(외층 전체회로 MNA로 판정)다. 예: `sf_pushpull_output_opamp`의 M17(gate N5)·M20(gate N13). 판정은 J12에서 ratify한다. 같은 출력노드로 합류하는 병렬 셀(push-pull 두 CS 등)은 입력 기준으로 판정한다: 셀들의 신호 입력 단자(CS·CD는 gate, CG는 source, pass는 신호가 들어오는 쪽 단자. 교류접지에 붙은 gate는 입력으로 세지 않는다)가 블록 입력 넷이거나, 블록 입력 넷에서 pass 셀·블록 내부 노드를 거쳐 닿는 넷이면 한 블록이다(입력 하나, 그 경로 노드는 블록 노드 집합에 넣어 국소 모델이 함께 스탬프, `계산 규칙 있음`, 비사슬 DAG 아님). 신호 입력 단자가 서로 독립인 입력(블록 내부로 이어지지 않는 서로 다른 외부 넷)을 받는 병렬 셀은 다입력 블록으로 `기록만` 규칙 분기다(항상 DEC-59 정지). 예: 파일럿 M16(gate Vop1)과 M15(gate Vg15)는 Vg15가 floating battery(M9a/M9b pass)로 Vop1과 이어진 블록 내부 노드라 한 블록이다. 캐스코드 합류도 같다: 파일럿 Vom1의 M2a/M3a, folded out의 M6, nmcnr NodeM2의 M107은 CG라 신호 입력 단자가 source(블록 내부 노드)이므로 한 블록(`계산 규칙 있음`)이다. LUT·구조만으로 상한을 계산할 수 없는 제약은 "상한 미상"으로 보고한다.
+* **DOF**: 변수(W0·W1·W3이 쓰지 않는 모든 노드전압, 소자 gm_id, L 동치류 L)와 등식(diode VGS=VDS, `equal_vgs`, `budget_ref`, `stacked_vsb`, KCL)으로 구조 rank를 센다(부등식은 경고). 수치 rank는 θ 표본에서의 Jacobian(`numpy.linalg.matrix_rank` 기본 허용오차, FD 스텝 = 해당 변수의 LUT 격자 간격, 표본 수 = DEC-34 식의 샘플 수 안). 결과 `DofReport{status: ok | underdetermined | overconstrained, 경쟁 목표 쌍}`. overconstrained는 INFEASIBLE_TARGET.
 
 **3층 할당(DEC-45)**
 
@@ -419,22 +428,22 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 | 중층 좌표강하 | y의 각 차원을 자기 가능역의 1-D 격자에서 순서대로 최소화. 공유 VGS는 gain 기준(DEC-10). 종료 = 한 바퀴에 y 불변, 또는 목적값 감소 ≤ DP 목적값 분해능. 상한 = y 격자 점 수의 합(유한 격자·비증가라 종료 보장) |
 | 외층 미세조정 | DP·좌표강하 해를 시작점으로 SLSQP(`SPECS[circuit]["slsqp_kwargs"]`). MT3 제약은 이 층에서만 판정 |
 
-검증: 파일럿과 한 개 회로에서 **전체회로 MNA를 목적·제약으로 쓰는 축소 격자 전수탐색**(다른 모델)과 대조, 최적 목적값 차 ≤ 격자 분해능.
+검증: 사이징 대상 회로 전부에서 **전체회로 MNA를 목적·제약으로 쓰는 축소 격자 전수탐색**(다른 모델)과 대조, 최적 목적값 차 ≤ 격자 분해능.
 
 **보상 규칙(GB5)**
 
-* 보상 레지스트리 함수가 stage 수에서 `solves_for`·gm 참조를 유도한다(2단 하드코딩 금지).
-* `ID_source` 타입: `kcl` / `ideal_source_ref` / `kvl_battery_loop`(class-AB 정지전류).
-* `compensation: null`(단일단): 기본안 `gm_1 = 2π·GBW·CL`(U-12 확정 전까지 기본안으로 구현하지 않는다).
+* 보상 변수 = 극점 노드 목록의 두 노드 사이에 걸린 보상 수동소자 전부(개수 가변)와 gm_i. 보상 해법은 극점·영점 식을 극점 노드 목록과 MNA에서 조립하는 규칙 하나이며 stage 수에서 `solves_for`·gm 참조를 유도한다(2단 하드코딩 금지, 회로별 보상 함수 금지, DEC-62). 이 규칙으로 풀리지 않는 보상 구성은 `기록만` 규칙 분기로 기록한다(항상 DEC-59 정지).
+* `ID_source` 타입: `kcl` / `ideal_source_ref` / `kvl_loop`(`kvl_branch` 루프로 정해지는 정지전류, class-AB 등).
+* `compensation: null`(단일단): 기본안 `gm_1 = 2π·GBW·C_out,total`(C_out,total = 선언 부하 용량 + S2 출력노드 용량, U-12 확정 전까지 기본안으로 구현하지 않는다).
 
-**출력 구동 규칙(GB5·GB6, DEC-58)**: `driving_spec`에 슬루율과 부하 용량이 선언되면, 출력 포트에 닿는 블록(출력 이득 블록 또는 버퍼 블록)의 출력 소자 바이어스 전류 하한 = max(KCL로 정해진 전류, 슬루율 × CL_total). CL_total = 선언된 부하 용량 + S2의 출력노드 용량. 이 하한은 GB6 할당의 제약으로 들어간다(전류가 올라가면 같은 gm_id에서 gm도 올라 gain 여유가 늘어나는 방향). 슬루율이 선언되지 않으면 KCL 전류만 쓴다. class-AB 출력단의 최대 출력 전류와 슬루 규칙은 J3 결론을 따른다.
+**출력 구동 규칙(GB5·GB6, DEC-58)**: `driving_spec`에 슬루율이 선언되면 극점 노드 목록의 노드 k마다 방향별(충전/방전) 최대 전류 ≥ 슬루율 × C_k,total을 GB6 할당의 제약으로 건다. C_k,total = S2 노드 용량 + 그 노드에 걸린 보상 커패시터(반대 노드가 따라 움직이는 Miller 커패시터는 전체 값) + 출력 포트 노드이면 선언 부하 용량. 최대 전류 = 그 노드로 조향 가능한 바이어스 전류원의 KCL 합(N3.8 블록 속성). 따라서 Miller 보상 회로의 내부 노드 슬루와 출력노드 슬루가 함께 걸린다. `driving_spec`에 부하 전류가 선언되면 출력 포트 노드의 방향별 최대 출력 전류 ≥ 부하 전류. 전류가 올라가면 같은 gm_id에서 gm도 올라 gain 여유가 늘어나는 방향이다. 슬루율이 선언되지 않으면 KCL 전류만 쓴다. 조향 전류가 바이어스로 제한되지 않는 출력단(class-AB, `kvl_loop` 정지전류)의 최대 출력 전류와 슬루 규칙은 J3(파일럿)·J12(`pushpull_follower_buffer`) 결론을 따른다.
 
 ### N3.8 metric
 
-* **gain**: 제약 판정은 `smallsignal_gain_db`(전체회로 MNA, DM 모드) 하나. 회로별 이관: 파일럿 `gain_stages_sum` -> `smallsignal_gain_db`, folded `_metric_folded_cascode_gain_db` -> `smallsignal_gain_db`(ports U-08 선행), nmcnr `_metric_nmcnr_gain_db` -> `smallsignal_gain_db`(ports 선행), two_stage는 이미 MNA.
-* **블록 국소 소신호 모델**: 블록 노드 집합(N3.2-6)만 미지수로 둔 절점방정식을 푼다. 블록 입력 넷은 단위 신호로 구동하고, 블록 밖 노드는 해당 여기 뷰의 교류접지 또는 다음 블록 입력의 부하 어드미턴스(다음 CS 게이트 용량 등)로 고정한다. 소자는 단자별로 gm·gmb·gds·cgg를 스탬프하므로 CS·CG·CD·pass를 따로 분기하지 않는다. 블록 gain = 출력노드 전압 / 입력 전압(dB, 저주파).
+* **gain**: 제약 판정은 gain 제약 metric이 선언한 전달 뷰 `(excite, sense)`의 전체회로 MNA 전압 전달함수 하나(`smallsignal_gain_db`). 기모드 여기는 그 한 경우이고 단일 입력 여기도 같다(N3.2-2). 전류·트랜스임피던스 단위는 `기록만` 규칙 분기다(DEC-59). 회로별 이관: 파일럿 `gain_stages_sum` -> `smallsignal_gain_db`, folded `_metric_folded_cascode_gain_db` -> `smallsignal_gain_db`(ports U-08 선행), nmcnr `_metric_nmcnr_gain_db` -> `smallsignal_gain_db`(ports 선행), two_stage는 이미 MNA.
+* **블록 국소 소신호 모델**: 블록 노드 집합(N3.2-6. 병렬 셀 입력을 잇는 pass 경로 노드를 포함한다, N3.7 달성가능성)만 미지수로 둔 절점방정식을 푼다. 블록 입력 넷은 단위 신호로 구동하고, 블록 밖 노드는 해당 여기 뷰의 교류접지 또는 다음 블록 입력의 부하 어드미턴스(다음 CS 게이트 용량 등)로 고정한다. 소자는 단자별로 gm·gmb·gds·cgg를 스탬프하므로 CS·CG·CD·pass를 따로 분기하지 않는다. 블록 gain = 출력노드 전압 / 입력 전압(dB, 저주파). 블록 경계를 가로지르는 되먹임 수동소자가 있으면 한쪽을 교류접지로 두는 근사가 되므로 그 블록 gain metric을 MT3로 분류한다.
 * **gmb**: LUT에는 gmb 열이 없다. LUT VS 축(|VSB|)에서 `gmb = ∂ID/∂VSB`를 수치미분으로 유도하는 함수를 MOD1에 두고, 블록 국소 모델과 전체회로 MNA가 같은 값을 쓴다(현 MNA가 gmb를 넣지 않는 것은 7a에서 함께 고친다).
-* **블록 속성**: 블록 국소 모델에서 전압 이득과 함께 출력노드 테브난 임피던스를 계산하고, 최대 출력 전류(class-A는 출력 소자 바이어스 전류, class-AB는 J3 결론의 규칙)를 기록한다(S2). 이득 블록만 GB6 할당의 결정 대상이고, 버퍼 블록은 전압 이득(1 미만)이 전체 gain 계산에 들어갈 뿐 할당하지 않는다. 출력 임피던스에는 별도 임계값을 두지 않는다 -- `driving_spec`에 부하가 선언되면 전체회로 MNA gain이 그 부하를 포함해 계산되므로 부하 효과는 gain 제약(DEC-05)이 판정한다.
+* **블록 속성**: 블록 국소 모델에서 전압 이득과 함께 출력노드 테브난 임피던스를 계산하고, 방향별(공급/흡수) 최대 출력 전류(KCL 그래프에서 출력노드로 조향 가능한 바이어스 전류원의 합. 바이어스로 제한되지 않는 출력단은 J3·J12 결론의 규칙)를 기록한다(S2). 이득 블록만 GB6 할당의 결정 대상이고, 버퍼 블록은 전압 이득(1 미만)이 전체 gain 계산에 들어갈 뿐 할당하지 않는다. 출력 임피던스에는 별도 임계값을 두지 않는다 -- `driving_spec`에 부하가 선언되면 전체회로 MNA gain이 그 부하를 포함해 계산되므로 부하 효과는 gain 제약(DEC-05)이 판정한다.
 * **잔차**: 잔차 = MNA gain − Σ 블록 gain. 블록 국소 모델은 블록 밖을 고정한 모델이라 전체회로 MNA와 독립이며, 전체 MNA 해를 잘라 만든 전압비의 곱으로 분해하는 정의는 금지(정의상 참).
 * **감도 게이트**: 봉인 스냅샷마다 영향 집합(SC-e)에서 분해 metric이 읽지 않는 소자를 건드리는 θ 방향으로 섭동한다. 분해 값 변화 ≤ ε 이고 MNA 값 변화 > ε 이면 오류. ε = MNA 선형해 잔차 노름에서 계산한 수치 분해능.
 * **metric 티어**: support(SC-e) ⊆ 블록 하나 -> MT1, 블록별 항의 합 -> MT2, 그 외 -> MT3. MT1·MT2는 내층·중층, MT3는 외층에서만 쓴다.
@@ -446,14 +455,14 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 | ID | 규칙 |
 |---|---|
-| LR1 | S1 L 동치류 멤버는 L을 공유한다. 주인은 gain stage tail(DEC-17). 종류가 다른 소자 간 VGS 매칭은 L을 공유하지 않는다 |
+| LR1 | S1 L 동치류 멤버는 L을 공유한다. 주인은 DEC-17 규칙. 종류가 다른 소자 간 VGS 매칭은 L을 공유하지 않는다 |
 | LR2 | 매칭 그룹의 L은 전원 동시에 바꾼다 |
-| LR3 | LUT 실측 L 앵커(12개) 밖으로 외삽하지 않는다. spec `L_candidates`는 탐색 격자이며 앵커 범위 안이어야 한다 |
+| LR3 | LUT 파일이 kind별로 가진 L 앵커 집합 밖으로 외삽하지 않는다. spec `L_candidates`는 탐색 격자이며 앵커 범위 안이어야 한다 |
 | LR4 | L 증가가 항상 gain 이득은 아니다 -- 격자 전수로 판단한다 |
-| LR5 | 초기 L 목표: mirror = kind별 knee(`measure_L_knee`, 격자 전체 중앙값), bias_replica = `feasible_L_window` 하한, cascode·signal = knee 목표를 거부하고 theta 탐색이 정한다(`derive_role_L` 가드 유지). 모두 `feasible_L_window`로 clamp한다. **탐색 격자**: 동치류마다 초기 격자 = {knee 앵커와 인접 앵커} ∪ {`feasible_L_window` 하한 앵커}. 블록이 실현 불가(W 한계, 블록 gain 상한 < 목표)이거나 한 칸 넓힌 격자에서 목적값(면적 제약·목적이 있으면 면적 포함)이 격자 분해능 이상 개선되면 그 동치류 격자를 인접 앵커 한 칸씩 넓히고, 개선이 없거나 LR3·LR6 경계에 닿으면 멈춘다. 근거: knee 근방만 쓰면 파일럿 stage1에서 pmos 입력이 W 한계로 L 0.5µm를 요구해 50dB에서 면적 약 3배(실현은 됨), 70dB 초과 불가(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_lut_L_vs_VDS.results.md`) |
+| LR5 | 초기 L 목표(역할은 라벨이 아니라 S1 유도 사실이다, IC4): 미러(`equal_vgs` 멤버) = kind별 knee(`measure_L_knee`, 동치류 멤버의 탐색 gm_id 가능역으로 한정한 곡선에서 계산. 현 구현은 I-A15), 바이어스 레플리카(J1 교류접지 예외 목록 소자) = `feasible_L_window` 하한, 캐스코드(전류 구동 CG 셀)·그 밖 신호 경로 셀 = knee 목표를 거부하고 theta 탐색이 정한다(`derive_role_L` 가드 유지). 모두 `feasible_L_window`로 clamp한다. **탐색 격자**: 동치류마다 초기 격자 = {knee 앵커와 인접 앵커} ∪ {`feasible_L_window` 하한 앵커}. 블록이 실현 불가(W 한계, 블록 gain 상한 < 목표)이거나 한 칸 넓힌 격자에서 목적값(면적 제약·목적이 있으면 면적 포함)이 격자 분해능 이상 개선되면 그 동치류 격자를 인접 앵커 한 칸씩 넓히고, 개선이 없거나 LR3·LR6 경계에 닿으면 멈춘다. 근거: knee 근방만 쓰면 파일럿 stage1에서 pmos 입력이 W 한계로 L 0.5µm를 요구해 50dB에서 면적 약 3배(실현은 됨), 70dB 초과 불가(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_lut_L_vs_VDS.results.md`) |
 | LR6 | L 상한은 `parasitic_pm_deg >= PM_target_deg`, 하한은 mismatch 임계값(출처 U-17)이다 |
 | LR7 | gain이 부족할 때 W4 자유 노드전압 창에 여유가 있는 스택은 창 안에서 먼저 재배분한다(W1/W2 노드 제외). 창이 소진됐거나 창 폭이 같은 블록 소자의 VGS(gm_id·L)에 묶인 스택(예: 파일럿 stage1은 입력 게이트 공유로 창 폭이 입력 소자 VGS 합에 묶인다)은 VDS와 L을 같은 단계에서 평가해 블록 DP 목적값으로 고른다. VDS 재배분의 주 효과는 면적(파일럿 stage1 1~3%)보다 활성 제약 여유를 격자 분해능까지 줄이는 것이다(VDS 균등 고정 대비 목표 초과 1.7dB -> 0.1dB, NFR-5). GB6 중층에서 적용 |
-| LR8 | L을 바꾸면 행 폭·n_fingers(`check_box_shape`, finger 폭 호환)를 재판정한다. 오일러 패스는 L과 무관하다. 같은 물리 행 안에서 L은 달라도 되지만 finger 폭은 같아야 하고, 매칭 그룹이면 LR2가 우선한다. branch(`vertical_stack_id`, 전기)와 row(물리 행)는 다르다: PMOS/NMOS는 kind별 행으로 먼저 나뉘므로 같은 branch 안에서 L이 달라도 된다. 행 안 L 통일은 행 폭을 줄이지 않는다(행 폭 = Σ n_fingers × (L + overhead), overhead는 L과 무관). sky130은 간격 규칙이 L과 무관하고 고정 poly pitch가 없어 행 안 L 혼재는 DRC 제약이 아니다. 실측(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_layout_equal_L.md`): 행 안 L 혼재는 파일럿 24행 중 5행뿐이고 나머지 3개 회로는 0, 파일럿에서 W를 두고 행마다 L을 최댓값으로 통일하면 행 폭 +7~11%·box 비율 악화, W를 L 비례로 재산정하면 finger 배정 실패 또는 finger 폭 < sky130 최소폭. 레이아웃 판정 지표 = 공통 finger 폭 존재, finger 합, box 비율. 레이아웃을 이유로 L을 통일하는 경우는 매칭 그룹(LR2)과 허용 L 목록을 강제하는 공정(PDK 선언)뿐이다 |
+| LR8 | L을 바꾸면 행 폭·n_fingers(`check_box_shape`, finger 폭 호환)를 재판정한다. 오일러 패스는 L과 무관하다. 같은 물리 행 안에서 L은 달라도 되지만 finger 폭은 같아야 하고, 매칭 그룹이면 LR2가 우선한다. branch(`vertical_stack_id`, 전기)와 row(물리 행)는 다르다: 물리 행은 (kind, body 넷)으로 먼저 나뉘므로 같은 branch 안에서 L이 달라도 된다. 행 안 L 통일은 행 폭을 줄이지 않는다(행 폭 = Σ n_fingers × (L + overhead), overhead는 L과 무관). 간격·허용 L 규칙은 PDK 선언에서 읽는다(sky130 선언: 간격 규칙이 L과 무관하고 고정 poly pitch가 없어 행 안 L 혼재는 DRC 제약이 아니다). 실측(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_layout_equal_L.md`): 행 안 L 혼재는 파일럿 24행 중 5행뿐이고 기존 4개 회로 중 나머지 3개는 0, 파일럿에서 W를 두고 행마다 L을 최댓값으로 통일하면 행 폭 +7~11%·box 비율 악화, W를 L 비례로 재산정하면 finger 배정 실패 또는 finger 폭 < sky130 최소폭. 레이아웃 판정 지표 = 공통 finger 폭 존재, finger 합, box 비율. 레이아웃을 이유로 L을 통일하는 경우는 매칭 그룹(LR2)과 허용 L 목록을 강제하는 공정(PDK 선언)뿐이다 |
 | LR9 | L 변경은 사이징↔레이아웃 수렴 루프(MOD8) 안에서만 하고 매 반복 `check_stick_diagram_coverage`를 다시 돈다. 현 엔진에는 루프가 없다(루프는 7b에서 MOD8에 구현) |
 
 ### N3.10 모듈 구조
@@ -486,8 +495,8 @@ skills/analog-gmid-design/assets/tests/
                    (library/*.topology.json 로드·변형만), grids, --shuffle-seed 옵션(pytest_collection_modifyitems 자체 구현)
   unit/test_mod1_gmid_lut.py ... unit/test_mod9_instance_report_builder.py
   integration/     파일럿 전체회로(L5c), 레이아웃 파이프라인(엔진 import하는 레이아웃 test), end-to-end
-  contracts/       IC1~IC10, SC-a~SC-e 계약 test
-  regression/      4개 회로 측정
+  contracts/       IC1~IC11, SC-a~SC-e 계약 test
+  regression/      library 회로 측정(대상 구분 DEC-47), 규칙 분기 발동표(DEC-59)
   oracles/         test-author 소유 독립 참조구현
   legacy/          TS1 이관본(TS2 완료 시 삭제)
   tools/           정본 데이터를 갱신하는 운영 도구(code-author 소유, pytest 수집 제외)
@@ -532,7 +541,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 #### N3.12.3 변경 한 건의 흐름
 
-**spec card** `docs/02-design/specs/<id>.spec.md`, `<id>` = `YYYYMMDD-<slug>`. 필드: 의도 / 관찰 가능한 계약 / interface card / 판정 유형(`red-green` 또는 `equivalence`) / oracle 종류와 출처 / 거부해야 할 입력 / 4개 회로 적용 여부 / 재현할 수치 / 결정 필요 항목 / 승인 기록 링크.
+**spec card** `docs/02-design/specs/<id>.spec.md`, `<id>` = `YYYYMMDD-<slug>`. 필드: 의도 / 관찰 가능한 계약 / interface card / 판정 유형(`red-green` 또는 `equivalence`) / oracle 종류와 출처 / 거부해야 할 입력 / library 회로 적용 여부(DEC-47 대상 구분) / 재현할 수치 / 결정 필요 항목 / 승인 기록 링크.
 
 | 순서 | 주체 | 동작 |
 |---|---|---|
@@ -583,10 +592,10 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 ### N3.13 임계값 도출(bisection, DEC-22)
 
-1. 대상 제약의 선언값을 `B_hi`로 둔다. `B_lo`는 절반씩 내리며 탐색이 실패할 때까지 확장한다(확장 횟수 상한 = 반복 상한 식과 같은 방식으로 계산).
-2. 각 스텝은 `B = (B_lo + B_hi)/2`로 두고 그 회로의 선언 탐색 인자(`SPECS[circuit]["slsqp_kwargs"]`) 그대로 원래 탐색을 돌린다. 성공 -> `B_hi = B`, 실패 -> `B_lo = B`.
-3. 종료: `(B_hi − B_lo) / B_hi` ≤ 그 metric의 격자 분해능(spec 격자가 만드는 최소 metric 차, 계산).
-4. 답은 마지막으로 성공한 `B_hi`이고, 선언 `n_starts`개의 서로 다른 시드에서 **전부 성공**해야 채택한다.
+1. 대상 제약의 선언값을 `B_ok`로 둔다. `B_fail`은 제약을 조이는 방향(op가 `>=`면 큰 쪽, `<=`면 작은 쪽)으로 `B_ok`에서 격자 분해능 × 2^j(j = 0, 1, …)만큼 떨어진 값을 차례로 시험해 처음 실패한 값이다(확장 횟수 상한 = 반복 상한 식과 같은 방식으로 계산).
+2. 각 스텝은 `B = (B_ok + B_fail)/2`로 두고 그 회로의 선언 탐색 인자(`SPECS[circuit]["slsqp_kwargs"]`) 그대로 원래 탐색을 돌린다. 성공 -> `B_ok = B`, 실패 -> `B_fail = B`.
+3. 종료: `abs(B_ok − B_fail)` ≤ 그 metric의 격자 분해능(spec 격자가 만드는 최소 metric 차, 계산). 부호·0 근방 값(dB, 위상)에도 같은 식이다.
+4. 답은 마지막으로 성공한 `B_ok`이고, 선언 `n_starts`개의 서로 다른 시드에서 **전부 성공**해야 채택한다.
 5. 선언에 `value`와 `_derived{지문, 스텝 이력, 시각}`을 기록한다. `value_from_constraint`로 이 값을 참조하는 제약은 함께 움직인다(의도된 결합).
 6. 구현: `achievable_metric_bound(mode="bisect")`. 한 스텝이 전체 탐색 1회라 한 번 재서 기록하고 이후 읽기만 한다. 호출 도구는 기존 `derive_achievable_bounds.py`(TS6에서 `tests/tools/`로 이동)를 재사용한다.
 
@@ -594,7 +603,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 | 분류 | 발생 | 예외(모두 `InfeasibleSizingError` 하위) | 탐색 중 처리 | 파이프라인 exit code(서로 다른 비0 규약값, 분류 순서대로 배정) |
 |---|---|---|---|---|
-| STRUCTURE_UNRESOLVED | `review_needed` 잔존(6c 이후), `undetermined` 노드 | `StructureUnresolvedError` | 탐색 시작 전 정지 | 2 |
+| STRUCTURE_UNRESOLVED | `review_needed` 잔존(6c 이후), `undetermined` 노드, `unsupported_rule_branch`(검증 발동 0 분기, 6c 이후, DEC-59), `undeclared_loop_constraint`(7b 이후, U-24) | `StructureUnresolvedError` | 탐색 시작 전 정지 | 2 |
 | INFEASIBLE_TARGET | GB4 달성 불가, DOF overconstrained | `InfeasibleTargetError` | 탐색 시작 전 정지 | 3 |
 | NONCONVERGENT | 순환 블록 반복 상한 도달 | `NonconvergentError`(잔차 포함) | 실패 기록(margin = 잔차) | 4 |
 | SEAL_VIOLATION | 봉인 항목 위반 | `SealViolationError`(항목·소자·크기) | 실패 기록(margin = 위반 크기) | 5 |
@@ -608,18 +617,18 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 섹션 | 필드 |
 |---|---|
 | `meta` | `schema_version`(5), `topology_hash`, `origin`(`canonical` / `fixture`) |
-| `human` | `objective`, `constraints[]{metric, op, value, source}`, `ports`, `value_amp`, `compensation_targets{CL, GBW, PM}`, `driving_spec`, `node_voltage_targets`, `gain_budget_db_override`(source 필수), `cross_kind_matching`, `same_as`(M7=M6, M36b=M36a처럼 connectivity로 유도되지 않는 것만) |
+| `human` | `objective`, `constraints[]{metric, op, value, source}`, `ports`, `value_amp`, `compensation_targets{CL, GBW, PM}`, `driving_spec`(슬루율·부하 용량·부하 전류), `wall_clock_budget_s`(DEC-34), `supplies`(DEC-60), `node_voltage_targets`, `gain_budget_db_override`(source 필수), `cross_kind_matching`, `same_as`(M7=M6, M36b=M36a처럼 connectivity로 유도되지 않는 것만) |
 | `derived` | S1·S1v에서 유도한 필드: {필드, status, evidence, rule_hash} -- stage 구성, `vertical_stack_id`, `vsb`, `vds_match_vgs_of`, 같은 종류 `gm_id_match_vgs_of`, `compensation.stage_devices`, `vds_kvl_groups`, metric 소자 역할 인자, 노드 공유 `budget_reference_device` |
 
 * 로더 `load_sizing_spec(path)`는 미지 필드를 거부하고, `topology_hash` 불일치를 거부하고, `constraints[].source`가 없거나 논문이면 거부한다.
 * 명칭: 슬루율 필드 이름은 metric 단위 레지스트리(DEC-53)의 이름-단위 규약을 따라 하나로 정한다(I-C7 해소). 실제 이름은 `7b-compensation-allocation` design이 레지스트리 단위표를 인용해 적는다.
-* 이관: 4개 회로마다 topology.json의 `device_roles`/`sizing_roles`/`compensation`에서 `sizing_spec.json`을 생성하고, 생성본으로 같은 결과가 나오는지(equivalence) 확인한 뒤 topology.json에서 해당 필드를 제거한다. 제거는 topology.json 변경이라 사용자 확인 후 오케스트레이터가 반영한다.
+* 이관: 기존 4개 회로마다 topology.json의 `device_roles`/`sizing_roles`/`compensation`에서 `sizing_spec.json`을 생성하고, 생성본으로 같은 결과가 나오는지(equivalence) 확인한 뒤 topology.json에서 해당 필드를 제거한다. 제거는 topology.json 변경이라 사용자 확인 후 오케스트레이터가 반영한다. 옛 필드가 없는 신규 회로는 U-25 스펙 선언 뒤 `sizing_spec.json`을 새로 작성한다.
 
 ---
 
 ## N4. 원칙과 강제 검사
 
-### N4.1 기지 사고 클래스 IC1~IC10
+### N4.1 기지 사고 클래스 IC1~IC11
 
 사고1~24(`known-incidents.md`)를 클래스로 묶고, 클래스마다 **거부 케이스를 가진 강제 test**를 둔다. 담당 Phase까지는 xfail(TS7)이다.
 
@@ -631,10 +640,11 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | IC4 | role 라벨 과신 | 물리·connectivity 판정이 항상 우선 | `test_role_label_removal_invariance`: `headroom_role`/`gm_id_role`/`L_role` 전부 제거해도 결과 동일 | 6c |
 | IC5 | 게이트 사각 | 게이트 docstring에 "검사하지 않는 것" 절 필수 | `test_gate_docstring_declares_blind_spots`: `check_*`/`verify_*`/`validate_*`/`audit_*` 전수 정적 검사 | 1 |
 | IC6 | underdetermined를 반복으로 밀어붙임 | GB4 DOF 진단 | `test_dof_catches_incident19_fixture`: 사고19 픽스처(스택 vds 미지수 2 / 등식 1)를 overconstrained·underdetermined로 판정 | 6c |
-| IC7 | 단일 회로로만 검증 | 동작 변경 Phase는 4개 회로 측정 | `test_all_four_topologies_run`(regression): 4개 회로 실행 + 필요 없는 기능 발동 계수 0 | 4 이후 매 Phase |
+| IC7 | 단일 회로·단일 부류로만 검증 | 동작 변경 Phase는 library 회로 측정(DEC-47), 규칙 분기 발동표(DEC-59) | `test_all_library_topologies_run`(regression): library 회로 실행(대상 구분 DEC-47) + 필요 없는 기능 발동 계수 0 + 규칙 분기 발동표 생성 + 검증 발동 0 분기를 타는 픽스처(library topology 로드·변형)에서 `unsupported_rule_branch` 정지 | 6a 이후 매 Phase(정지 케이스는 6c) |
 | IC8 | 증거 없는 자동 병합 | 증거 없는 유도는 `proposed`/`review_needed` | `test_unevidenced_derivation_stops_before_search`: 증거 없는 픽스처에서 STRUCTURE_UNRESOLVED | 6c |
 | IC9 | 중복 복붙 | 레지스트리 정본 하나, 타입 setter만 | `test_no_raw_duplicated_writes`: 원시 대입·중복 상수 grep 0 | 6b |
 | IC10 | 캐시 키가 가변 상태를 놓침 | SC-d 내용 지문, SC-e reader 기록 | `test_cache_key_covers_mutable_state`: `ctx.sized`만 바꾸고 같은 metric 호출 시 옛 값 미반환 | 6b |
+| IC11 | 레일 기준 전위 가정(레일 0 V, 레일 이름 집합) | 전압 차는 노드전압과 레일 선언(DEC-60)에서만 유도 | `test_rail_origin_shift_invariance`: 같은 회로를 원점만 옮긴 두 레일 선언으로 돌려 소자 VGS·VDS·VSB·gm_id·W·metric이 허용오차(전압 tol_V, 그 밖은 tol_V 섭동의 감도 전파값) 안에서 같음(DF-24·DF-26 검출). Phase 4 대상은 레일 둘인 기존 회로(예: `two_stage_ota` (vdd 1.8, gnd 0 V) 대 (vdd 0.9, gnd −0.9 V)). agnd 3레일 신규 회로((vdd 1.8 / vss 0 / agnd 0.9 V) 대 (+0.9 / −0.9 / 0 V))는 `supply_nets`가 생긴 뒤(6a, U-26 (b)) 대상에 추가 | 4(DEC-60 구현, 2레일), 6a(3레일 추가) |
 
 ### N4.2 auditor 검사 V1~V10
 
@@ -650,7 +660,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | V6 | 소스 lint | 새 광범위 except, 새 skip/continue 분기, 허용 집합 {0, 1, −1, 산술식의 2, 인덱스} 밖 숫자 리터럴 중 `# derive: <함수명>` 태그(그 함수 존재 검사)가 없는 것, 읽는 코드 없는 경고 리스트, `id(...)` 캐시 키, 상한 없는 캐시 | `tools/gates/source_lint.py` | 1 |
 | V7 | 배선 | 새 def가 운영 경로에서 도달하는지(루트 목록은 설정 파일, Phase 3 전·후 두 벌). 도달 못 하면 레지스트리 등급 D 기록 + 승인 기록 | `tools/gates/reachability.py` | 2 |
 | V8 | 폴백 발동 0 | 정본 spec 실행 결과의 `fallback_events`{site, kind, device, detail}가 비어 있음 | 엔진 계측 | 4 |
-| V9 | 물리 불변식 | 4개 회로 결과가 봉인 항목(N3.6), IC1, `matching_offset`/`matching_ratio` 관계 엣지 멤버의 (W/L, gm_id) 일치(gm_id 허용오차 = LUT gm_id 격자 간격, W/L 허용오차 = 같은 ID에서 그 gm_id 허용오차가 만드는 IDu의 상대 차)를 통과 | contracts test | 6b |
+| V9 | 물리 불변식 | 사이징 대상 회로 결과가 봉인 항목(N3.6), IC1, `matching_offset` 멤버의 (W/L, gm_id) 일치와 `matching_ratio` 멤버의 (W/L 비 = 선언 비율, gm_id 일치)(gm_id 허용오차 = LUT gm_id 격자 간격, W/L 허용오차 = 같은 ID에서 그 gm_id 허용오차가 만드는 IDu의 상대 차)를 통과 | contracts test | 6b |
 | V10 | 보고 수치 재현 | spec card "재현할 수치"를 명령과 함께 재실행해 판정 기록에 적음 | auditor | 0.5 |
 
 ### N4.3 게이트 거부 증명(Phase 0.5)
@@ -714,13 +724,17 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | DF-13 | `id(lut)` 키 캐시와 상한 없는 캐시 | `diode_vds_cached`, `diode_vds_window`, `_KNEE_L_CACHE`, `_gm_id_curve_cache`, `_solve_vgs_cache`, `_idu_scan_cache` | 4 | SC-d |
 | DF-14 | `except Exception`이 호출 실패를 폴백으로 바꾼다 | `lut_vdsat_headroom`, `stack_kvl_vgs_limit._known_vds`, `_hr_resolve_vertical_group`(2곳), `repair_infeasible_baseline._probe` | 4 | V8 계측 대상 |
 | DF-15 | Rz 캐시 키가 소자명뿐이고 `_dc_replace`가 캐시 dict를 새 ctx와 공유할 수 있다(실행 재현 전) | `_resolve_nulling_resistor_ohm`, `revalidate_finger_override` | 4(재현 test 먼저) | |
-| DF-16 | 목적함수 `power_uA`(`sum_current`)가 직렬 스택 전류를 중복 계상한다 | 4개 회로 objective | 7a | I-A3, U-10, 보고 시 명시. 목적함수 전력 정의가 GB8 전력 정의와 같은 결정이라 7a로 옮긴다 |
+| DF-16 | 목적함수 `power_uA`(`sum_current`)가 직렬 스택 전류를 중복 계상한다 | 기존 4개 회로 objective | 7a | I-A3, U-10, 보고 시 명시. 목적함수 전력 정의가 GB8 전력 정의와 같은 결정이라 7a로 옮긴다 |
 | DF-17 | stick_diagram self-test Test 16의 FAIL 출력이 기준선에 박제돼 있다 | stick_diagram self-test | 1(TS0) | U-01 |
 | DF-18 | `run_harness.run`이 실패해도 exit 0이고 θ*를 출력만 한다 | `workspaces/run_harness.py` | 4(N3.14 exit code, θ* 기록) | 보고 시 명시 |
-| DF-19 | 레일 넷 집합이 모듈마다 다르다(대소문자) | stick_diagram `_RAIL_NETS`, sizing_recipe 레일 판정 | 4 | |
+| DF-19 | 레일 넷 집합이 모듈마다 다르다(대소문자) | stick_diagram `_RAIL_NETS`, sizing_recipe `_DEFAULT_RAIL_HI`/`_DEFAULT_RAIL_LO` 레일 판정 | 4(DEC-60 `supply_nets`·`supplies` 선언으로 교체, DF-26과 같은 변경 단위, U-26) | |
 | DF-20 | 운영 경로의 근거 없는 폴백 상수(vds 0.6/0.2, margin 0.05, W_bounds·gm_id 격자 리터럴) | `resolve_feed_vds` 계열 | 4 | WP-03 |
 | DF-21 | 실행 불가·무의미 probe 3개 | `probe_mirror_common_L_wiring`, `probe_node_voltage_audit`, `probe_vs_semantics` | 2(TS6) | U-02 |
 | DF-22 | 지문 불일치 노트 리스트 `_RESOLVE_STALE_NOTES`를 읽는 코드가 없다 | `resolve_constraint_references` | 4 | DF-08과 함께 |
+| DF-23 | 결정 레지스터의 파일럿 적용 사실(DEC-09·15·27·55의 소자 이름)이 엔진 코드에 소자 이름 리터럴로 박혀 동작을 정하는지 확인되지 않았다(확인 필요). 박혀 있으면 일반 규칙 대신 이름이 동작을 정한다 | 엔진 소스 전수(topology.json에서 읽은 값이 아닌 소자 이름 문자열 리터럴) | 2(전수 목록·레지스트리 기록), 4(일반 규칙으로 교체) | WP-05, DEC-62 |
+| DF-24 | vsb 유도가 bulk를 nmos = 0 V, pmos = `vdd` 인자로 가정한다(nmos는 소스 전압 `v`를 그대로, pmos는 `vdd − v`). 현 하네스는 가장 낮은 레일을 0 V로 둔 단일 기준이라(nmcnr spec `vdd: 2.0`, `run_harness.py` `_spec_nmcnr_amplifier`) 현재 경로에서는 맞지만, `supplies`에 음전위 레일을 선언하면 레일 기준 없이 `v`를 돌려주는 nmos 분기가 틀어진다 | `derive_vsb_from_nodes`(sizing_recipe.py 3973행 참고)와 호출부 `reconcile_vsb_from_nodes` 등 | 4(red: 음전위 레일을 `supplies`에 둔 픽스처) | DEC-61, DF-01, U-26 |
+| DF-25 | 포화 하한이 강반전 근사 `2/(gm/ID)`다(약반전 VDsat와 다르다). LUT npz에는 VDsat 열이 없어(ID·GM·GDS·CGG·CGD·SID_1F, 축 L·VGS·VDS·VS) 교체 식은 6b design이 LUT의 (ID, gds, VDS) 곡선에서 정한다 | `lut_vdsat_headroom`, `_default_cascode_headroom`(`2/gm_id + margin`), DEC-27 구현부 | 6b(유도 규칙 정의와 교체) | DEC-12, DEC-27, WP-03 |
+| DF-26 | 레일 판정이 넷 이름 집합 하드코딩이다(sizing_recipe `_DEFAULT_RAIL_HI`/`_DEFAULT_RAIL_LO`, stick_diagram `_RAIL_NETS`). 신규 회로 `sf_pushpull_output_opamp`·`pushpull_follower_buffer`의 교류 기준 레일 `agnd`를 레일로 읽지 못한다 | sizing_recipe.py 3882~3883, stick_diagram.py 3147 참고 | 4(DEC-60 구현, DF-19와 같은 변경 단위) | DEC-60, DF-19, IC11, U-26 |
 
 ### N5.3 열린 이슈
 
@@ -732,9 +746,10 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | I-A5 | LUT 생성 메타를 읽는 `lut_conditions_from_npz`가 운영 경로에서 불리지 않는다 | 6a(S0에 배선) |
 | I-A6 | ICMR·출력 swing 제약 슬롯이 없다 | 7b(슬롯은 `human.constraints`의 metric). 헤드룸 하한으로도 쓰는지는 6b design이 W4 창과 함께 판정 |
 | I-A7 | 일반 순환 블록 수렴 판정 | 6b(N3.6) |
-| I-A10 | `parasitic_pm_deg >= PM_target_deg` 제약이 4개 회로 선측정 없이 걸려 있다(folded는 `omega_c`를 노출하지 않아 측정 불가) | 7a(gain metric 이관 때 `omega_c` 노출), DEC-49 |
+| I-A10 | `parasitic_pm_deg >= PM_target_deg` 제약이 사이징 대상 회로 선측정 없이 걸려 있다(folded는 `omega_c`를 노출하지 않아 측정 불가) | 7a(gain metric 이관 때 `omega_c` 노출), DEC-49 |
 | I-A12 | `stick_diagram.PROCESS_GEOMETRY["finger_pitch_overhead_m"]`가 0.0이다(sky130 poly pitch 규칙 미확보) -- 행 폭을 과소평가한다. PDK 선언값에서 유도하도록 바꾸는 것은 공유 엔진 변경이라 승인 대상 | 7b(MOD8) |
 | I-A13 | 레이아웃 엔진에 dummy·LDE(LOD/WPE/PSE) 반영이 없다. 매칭 interdigitation 행에 L이 섞일 때의 좌우 대칭 검사도 없다 | 7b(MOD8), 승인 대상 |
+| I-A15 | `measure_L_knee`가 knee를 gm_id 격자 전체 중앙값에서 잰다(선택 근거 없음). LR5는 동치류 멤버의 탐색 gm_id 가능역으로 한정한 곡선을 쓴다 | 7b(LR5 구현) |
 | I-A11 | 크로스오버 주파수 해석 차이(선언식 36.6MHz 대 전체 응답 실측 30.50MHz)의 원인 미확인 | 7a |
 | I-B2 | stage-local/전역 게이트 구현 없음 | 7a(MT 분류) |
 | I-B3 | 블록 사이징 함수 시그니처 | 7b(N3.7 내층 DP 입력 = 블록, W4 창, y) |
@@ -745,7 +760,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | I-B13 | gm_id·vds 확정 출처 태그가 일부 경로에만 있다 | 6b(SC-a) |
 | I-B14 | 사이징 경로가 `value_amp`를 읽지 않는다 | 7b(DEC-08) |
 | I-B21 | 선언된 gain 제약이 미러 부하를 못 본다 | 7a(DEC-05, J6), 보고 시 명시 |
-| I-B22 | 입력환산 오프셋의 다중 diff pair(cascade 입력환산, CMFB 오차증폭기) 처리 | 7a(DEC-23) |
+| I-B22 | 입력환산 오프셋의 다중 diff pair(cascade 입력환산, CMFB 오차증폭기)와 입력이 대칭 쌍이 아닌 회로(단일 입력, 비대칭 오차증폭기) 처리. 후보: 선언 매칭 그룹마다 ΔVth를 전달 뷰 입력으로 환산한 MNA 감도의 RSS | 7a(DEC-23) |
 | I-G1 | 단일단 회로의 gm 출처 | 7b, U-12 |
 | I-G2 | 3단 보상의 stage 수 종속 일반화, nmcnr passive 누락 | 7b, J9 |
 | I-G4 | class-AB 정지전류 `ID_source` 타입 | 7b(N3.7), J3 |
@@ -757,7 +772,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 ### N5.4 탐색 결과를 보고할 때 반드시 명시할 것
 
-수정 전까지: I-B21(gain 제약이 미러 부하를 못 봄), DF-16(전력 중복 계상), DF-03(게이트 예외로 탐색 중단 가능), DF-18(실패해도 exit 0). U-11이 SPICE 대조를 7c로 두면 7a~7c 사이 gain metric의 `verified_by` 검증 대기도 명시한다.
+수정 전까지: I-B21(gain 제약이 미러 부하를 못 봄), DF-16(전력 중복 계상), DF-03(게이트 예외로 탐색 중단 가능), DF-18(실패해도 exit 0). U-11이 SPICE 대조를 7c로 두면 7a~7c 사이 gain metric의 `verified_by` 검증 대기도 명시한다. 규칙 분기 발동표에서 검증 발동 0인 분기(그 분기의 일반성을 주장하지 않는다, DEC-59).
 
 ---
 
@@ -772,15 +787,15 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 0 | 함수 재사용 레지스트리 | -- | -- | ✅ 완료 |
 | **0.5** | 역할 분리 인프라(N3.12.6), 공격 시나리오·과거 사례 재생 5건(N4.3) | 부트스트랩 | U-15(hook 필드가 없을 때), U-16 | `05-role-separation` |
 | 1 | TS0, TS1, TS2, TS3, TS5, TS7 선언. IC3(필드 완전성·이름 충돌 검사 신설)·IC5(게이트 docstring '검사하지 않는 것' 절 추가) 활성 | TS0·IC3·IC5 red-green, TS1 equivalence, TS2·TS3·TS5 test-only | U-01 | `10-test-separation` |
-| 2 | TS6, 레지스트리 등급 D 삭제(배선을 고른 항목은 Phase 4로), 레지스트리 §2에서 "행동 보존 통합 가능"인 DUP 통합 | equivalence(TS6은 test-only, 운영 도구 이동은 code·test 두 커밋) | U-02 | `20-dead-code-dup` |
+| 2 | TS6, 레지스트리 등급 D 삭제(배선을 고른 항목은 Phase 4로), 레지스트리 §2에서 "행동 보존 통합 가능"인 DUP 통합, DF-23 전수 목록 | equivalence(TS6은 test-only, 운영 도구 이동은 code·test 두 커밋) | U-02 | `20-dead-code-dup` |
 | 3 | 10모듈 이동(N3.10), shim, 추적 파일 호출부 갱신 후 `sizing_recipe.py` 삭제 | equivalence | U-03 | `30-module-split` |
-| 4 | TS4, DF-01~15·18~20·22, Phase 2에서 배선을 고른 함수 배선, `fallback_events` 계측(V8), 4개 회로 실행 가능성(I-C11), IC7 활성 | red-green | U-04, U-05, U-09 | `40-defect-fixes` |
+| 4 | TS4, DF-01~15·18~20·22~24·26, Phase 2에서 배선을 고른 함수 배선, `fallback_events` 계측(V8), 기존 4개 회로 실행 가능성(I-C11), IC11 활성 | red-green | U-04, U-05, U-09, U-26 | `40-defect-fixes` |
 | 5 | 실패 캐시, 시작점 선택(S3 레코드 v1: θ*·start별 결과·실패), margin 반환 | red-green | -- | `50-failure-cache` |
-| 6a | GB0(의미·로드 게이트), S0(LUT 메타 배선 포함), GB1, GB2 shadow(소자 구성 분류 CS/CG/CD/pass 포함). 6a-1 유도·대조표, 6a-2 공동분석·ratify, `structure.json`, 레지스트리 §2 ★ DUP(diode·미러 그룹·diffpair/tail)를 U-06 결론의 정본으로 통합하고 옛 함수 삭제 | red-green | U-08, U-17. 6a-2는 U-06(J1~J7, J9 ports, J10, J11, 구조 정본) | `6a-structure-stage` |
-| 6b | GB7: W 티어, 순환 블록, 봉인, SC-a~SC-e, 평가 커널 계산 블록과 S2 memo, NFR-4 결정론. IC1·IC2·IC9·IC10 활성 | red-green | U-06(J8), U-20 | `6b-node-voltage-seal` |
-| 6c | 결합 잔차 측정, GB3, GB4(LUT 곡선 검사, 블록 gain 상한, DOF), `review_needed` 잔존 시 정지. IC4·IC6·IC8 활성 | red-green | -- | `6c-coupling-achievability` |
+| 6a | GB0(의미·로드 게이트), S0(LUT 메타 배선 포함), GB1, GB2 shadow(소자 구성 분류 CS/CG/CD/pass 포함, library 회로 전부), 규칙 분기 발동표(DEC-59, 기록만). IC7 활성, IC11 3레일 케이스 추가. 6a-1 유도·대조표, 6a-2 공동분석·ratify, `structure.json`, 레지스트리 §2 ★ DUP(diode·미러 그룹·diffpair/tail)를 U-06 결론의 정본으로 통합하고 옛 함수 삭제 | red-green | U-08, U-17, U-26(신규 회로 `supply_nets`). 6a-2는 U-06(J1~J7, J9 ports, J10, J11, J12, 구조 정본) | `6a-structure-stage` |
+| 6b | GB7: W 티어, 순환 블록, 봉인, SC-a~SC-e, 평가 커널 계산 블록과 S2 memo, NFR-4 결정론, DF-25(VDsat 유도 규칙과 포화 하한 교체). IC1·IC2·IC9·IC10 활성 | red-green | U-06(J8), U-20, U-26(`wall_clock_budget_s`) | `6b-node-voltage-seal` |
+| 6c | 결합 잔차 측정, GB3, GB4(LUT 곡선 검사, 블록 gain 상한, DOF), `review_needed` 잔존·`unsupported_rule_branch` 시 정지. IC4·IC6·IC8 활성 | red-green | -- | `6c-coupling-achievability` |
 | 7a | GB8: gain metric 통일, 블록 국소 소신호 모델과 gmb 유도(MNA에도 gmb 반영), 잔차, 감도 게이트, MT 분류, 전력 정의, metric DUP 3쌍(gain/PM/CMRR) 통합, `verified_by`(U-11 결과에 따라 SPICE AC gain 대조 포함), bisection 도구와 임계값 재도출 | red-green | U-07, U-10, U-11, U-19, J6 승인 기록(6a-2 확정) | `7a-gain-metric` |
-| 7b | GB5 보상 규칙, GB6 3층 할당, `sizing_spec.json` v5와 4회로 이관, `value_amp` 소비, 면적·Pareto, MOD8 수렴 루프(LR9) | red-green | U-12, U-13, U-14, U-21, U-24, U-06(J3 정지전류, J9 passive) | `7b-compensation-allocation` |
+| 7b | GB5 보상 규칙, GB6 3층 할당, `sizing_spec.json` v5(기존 4개 회로 이관, 신규 회로는 U-25 뒤 작성), 루프 안정도 제약 게이트(U-24), `value_amp` 소비, 면적·Pareto, MOD8 수렴 루프(LR9) | red-green | U-12, U-13, U-14, U-21, U-24, U-06(J3 정지전류, J9 passive) | `7b-compensation-allocation` |
 | 7c | GB9: S3 전체, Sobol 전역 샘플, 분지, SPICE `.op` 전체 대조. IC 전원 PASS | red-green | -- | `7c-archive-spice` |
 
 ### N6.2 Phase별 완료 조건
@@ -789,22 +804,22 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 |---|---|
 | 0.5 | N4.3 공격 11건 거부 로그 + 사례 5건 적발, hook 입력 필드 실측 기록, 에이전트 정의 `check_agents.py` PASS, 설치 후 RTL agent 무동작 |
 | 1 | TS0 판정 기록 / TS1 seed 1~5 stdout 전후 동일 / TS2 기본·셔플 순서 PASS / TS3 판정 문자열 0 / TS5 기준선 참조 0 / 소스에 인라인 self-test 0 / IC3·IC5 PASS, 나머지 IC xfail 선언(담당 Phase 명시) / 사례 caa970b 적발 |
-| 2 | 승인된 D 목록 처리, DUP마다 옛 함수 대 정본 차등 test(4개 회로 입력 전수 출력 동일) PASS 후 옛 함수 삭제, 레지스트리 갱신, probe 엔진 식 재구현 0 |
+| 2 | 승인된 D 목록 처리, DUP마다 옛 함수 대 정본 차등 test(실행 가능한 library 회로 입력 전수 출력 동일) PASS 후 옛 함수 삭제, 레지스트리 갱신, probe 엔진 식 재구현 0, DF-23 소자 이름 리터럴 전수 목록 |
 | 3 | MOD1~MOD10 존재, import 계층 위반 0(`import_layering.py`), 이동 커밋마다 AST 해시 동일, `sizing_recipe.py` 삭제, 레지스트리 이관 목적지 열 = 실제 위치 |
-| 4 | DF마다 red-green, V8 도입(정본 실행 `fallback_events` 0), 4개 회로 실행과 전후 비교표 |
-| 5 | 평가 입구 계수기로 동일 θ 재평가 0, θ* 기록이 다음 실행 시작점에 쓰임, 4개 회로 착지 전후표 |
-| 6a | 4개 회로 input·cascode·tail 멤버십이 declared와 일치, 출력노드·load·G_out 기여 소자가 ratified 대조표와 일치, shadow 대조 보고가 매 실행 생성, J 결론의 승인 기록 |
-| 6b | 봉인 위반 0(4개 회로), IC1·IC2·IC9·IC10 PASS, SC 거부 케이스 PASS, 사례 76.48 적발, 평가 오버헤드 전후 |
-| 6c | 결합 잔차 표, 블록·y 목록(4개 회로), 달성 불가 픽스처(oracle (a): 목표 gain > 블록 이론 상한 합을 test가 다른 방법으로 계산)에서 탐색 전 INFEASIBLE_TARGET, IC4·IC6·IC8 PASS |
-| 7a | gain 제약이 `smallsignal_gain_db`로 판정, B21 재현 픽스처(6480조합 중 `gain_stages_sum` 변화 0이고 MNA 변화 최대인 두 점)에서 감도 게이트 FAIL, 평가 기록에 MNA-블록 잔차 필드(4개 회로), gain metric `verified_by` 유효(U-11이 SPICE를 7c로 두면 '검증 대기' 표시 + N5.4 명시), 임계값 재도출 기록 |
-| 7b | `gain_budget_db` 출력, 3층 할당이 다른 모델 전수탐색과 격자 분해능 안 일치, `sizing_spec.json` 이관 4개 회로 equivalence, derived 필드마다 status·evidence·rule_hash, `driving_spec`이 있는 회로에서 출력 블록 바이어스 전류 ≥ max(KCL, 슬루율 × CL_total), 파일럿 입력-캐스코드 블록에서 그룹 좌표강하 결과가 블록 전수 결과와 격자 분해능 안 일치, U-23 실측표 제출, 파일럿 wall-clock ≤ 5분(U-13에서 면적 예산을 선언하지 않으면 파일럿 판정은 Pareto 제시·정지와 사용자가 고른 점의 재실행으로) |
-| 7c | SPICE 비교가 N3.8 허용오차 안, 같은 지문 재실행에서 아카이브 적중 > 0이고 θ* 목적값이 첫 실행 이하, IC1~IC10 전원 PASS, 파일럿 wall-clock ≤ 5분 |
+| 4 | DF마다 red-green, V8 도입(정본 실행 `fallback_events` 0), 사이징 대상 회로 실행과 전후 비교표, IC11 2레일 케이스 PASS |
+| 5 | 평가 입구 계수기로 동일 θ 재평가 0, θ* 기록이 다음 실행 시작점에 쓰임, 사이징 대상 회로 착지 전후표 |
+| 6a | 기존 4개 회로 input·cascode·tail 멤버십이 declared와 일치, library 회로 전부(신규 세 회로 포함, 스펙 미선언 회로는 N3.2-2 기본 전달 뷰)의 출력노드·load·G_out 기여 소자·셀 판독·극점 노드·루프 탐지 결과가 ratified 대조표와 일치(대칭 쌍 없는 `pushpull_follower_buffer`의 비축약 결과 포함), 규칙 분기 발동표(분기별 발동·검증 발동 회로 수)와 shadow 대조 보고가 매 실행 생성, J 결론의 승인 기록, IC7 PASS(정지 케이스는 6c), IC11 3레일 케이스 PASS |
+| 6b | 봉인 위반 0(사이징 대상 회로), IC1·IC2·IC9·IC10 PASS, SC 거부 케이스 PASS, 사례 76.48 적발, 평가 오버헤드 전후 |
+| 6c | 결합 잔차 표(사이징 대상 회로), 블록·y 목록(library 회로, 스펙 미선언 회로는 기본 전달 뷰의 stage 목록), 검증 발동 0 분기 픽스처에서 탐색 전 `unsupported_rule_branch`, 달성 불가 픽스처(oracle (a): 목표 gain > 블록 이론 상한 합을 test가 다른 방법으로 계산)에서 탐색 전 INFEASIBLE_TARGET, IC4·IC6·IC8 PASS |
+| 7a | gain 제약이 `smallsignal_gain_db`로 판정, B21 재현 픽스처(6480조합 중 `gain_stages_sum` 변화 0이고 MNA 변화 최대인 두 점)에서 감도 게이트 FAIL, 평가 기록에 MNA-블록 잔차 필드(사이징 대상 회로), gain metric `verified_by` 유효(U-11이 SPICE를 7c로 두면 '검증 대기' 표시 + N5.4 명시), 임계값 재도출 기록 |
+| 7b | `gain_budget_db` 출력, 3층 할당이 다른 모델 전수탐색과 격자 분해능 안 일치, `sizing_spec.json` 이관 기존 4개 회로 equivalence, derived 필드마다 status·evidence·rule_hash, `driving_spec`이 있는 회로에서 극점 노드별 방향별 최대 전류 ≥ 슬루율 × C_k,total(부하 전류 선언 시 출력 포트 조건 포함), 입력-캐스코드 블록이 있는 사이징 대상 회로에서 그룹 좌표강하 결과가 블록 전수 결과와 격자 분해능 안 일치, 루프 뷰가 있는 회로의 루프 안정도 제약 미선언 픽스처에서 GB2 출구 게이트가 탐색 전 정지, 버퍼 대조 test 두 가지 -- (i) `sf_pushpull_output_opamp` 안 버퍼(M17~M22)를 버퍼 입력 Y 외 모든 외부 넷(전류원 게이트 N5·N13 포함)을 교류접지·DC 고정으로 둔 경계 조건에서, 같은 버퍼 스펙의 단독 `pushpull_follower_buffer`와 사이징 결과·극점·출력 구동 규칙 판정이 같음(블록 국소 모델 검증) (ii) 전체 회로 사이징(M17·M20 측면 주입은 K8·MT3로 계산 규칙이 있어 정지하지 않는다, N3.7)에서의 차이는 동일성 판정 없이 보고(N5·N13 바이어스 넷 신호 결합 크기), U-23 실측표 제출, wall-clock ≤ 선언 `wall_clock_budget_s`(파일럿 300 s. U-13에서 면적 예산을 선언하지 않으면 파일럿 판정은 Pareto 제시·정지와 사용자가 고른 점의 재실행으로) |
+| 7c | SPICE 비교가 N3.8 허용오차 안, 같은 지문 재실행에서 아카이브 적중 > 0이고 θ* 목적값이 첫 실행 이하, IC1~IC11 전원 PASS, wall-clock ≤ 선언 `wall_clock_budget_s`(파일럿 300 s) |
 
 ### N6.3 공통 완료 조건
 
 * auditor 판정 기록 PASS(N4.2 도입 표 기준), merge gate(EL4) 통과, 동작 변경 spec card마다 거부해야 할 입력의 test 존재.
-* 4개 회로: 동작 변경 Phase(4 이후)는 4개 회로 측정과 무동작 증명. 동작 보존 Phase(1~3)는 실행 가능한 회로 전부에서 equivalence(I-C11 해소 전 two_stage·nmcnr은 로드·구조 단계까지).
-* 성능: Phase 4부터 매 Phase 보고 -- 조건 = 정본 spec, `SPECS[circuit]["slsqp_kwargs"]`, 파일럿 탐색 1회의 전체 wall-clock과 평가 시간 중앙값, 기계 정보. 5분 게이트는 7b·7c.
+* library 회로: 동작 변경 Phase(4 이후)는 DEC-47 대상 구분대로 측정하고 필요 없는 회로의 무동작을 증명한다. 동작 보존 Phase(1~3)는 실행 가능한 회로 전부에서 equivalence(I-C11 해소 전 two_stage·nmcnr, 스펙 미선언 신규 회로는 로드·구조 단계까지).
+* 성능: Phase 4부터 매 Phase 보고 -- 조건 = 정본 spec, `SPECS[circuit]["slsqp_kwargs"]`, 파일럿 탐색 1회의 전체 wall-clock과 평가 시간 중앙값, 기계 정보. wall-clock 예산 게이트(DEC-34)는 7b·7c.
 
 ---
 
@@ -818,15 +833,16 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 |---|---|---|
 | J1 | replica bias(M57/M58/M63/M64)를 교류접지 예외로 끊을지(끊으면 CMFB 루프 부호가 부궤환으로 확정) | 6a |
 | J2 | diode 노드 게이트의 gate->drain을 같은 stage(미러)로 볼지(nmcnr M201->M203/M204 경계) | 6a |
-| J3 | class-AB M9a/M9b/M18a/M18b/M8/M17의 역할. floating battery(M9a/M9b: Vop1↔Vg15, M18a/M18b: Vom1↔Vg25)가 pass 구성으로 신호를 넘길 때 stage 출력노드를 Vop1(캐스코드 사슬 끝)로 볼지 Vg15(출력단 게이트)로 볼지, 정지전류 규칙 | 6a, 7b |
+| J3 | class-AB M9a/M9b/M18a/M18b/M8/M17의 역할. floating battery(M9a/M9b: Vop1↔Vg15, M18a/M18b: Vom1↔Vg25)가 pass 구성으로 신호를 넘길 때 stage1 출력노드: 기본안은 Vop1(캐스코드 사슬 끝)이다(근거: N3.7 입력 기준 규칙과 J10 기본안 예외로 pass 구간 Vop1→Vg15가 뒤 블록 노드 집합에 들어가므로, Vg15로 두면 두 블록의 노드 집합이 겹친다). 출력노드와 정지전류 규칙은 6a-2 공동분석 ratify 대상이다: pass 묶음 내부 왕복은 루프로 세지 않고(N3.2-2), 같은 출력노드로 합류하는 병렬 CS(M15/M16)는 M15 gate Vg15가 pass(M9a/M9b)로 Vop1과 이어진 블록 내부 노드라 한 블록 안의 병렬 셀이다(N3.7 입력 기준 규칙) | 6a, 7b |
 | J4 | M7(gate Vcmfb)을 tail로 볼지 CMFB 구동소자로 볼지 | 6a |
 | J5 | 5T 미러부하·NMCNR 폴딩 미러를 기모드 축약에서 다루는 법(축약 뷰가 출력노드를 잃는 경우 -- 비축약 전달 뷰를 쓸지 포함) | 6a |
 | J6 | 출력노드 부하 귀속: 파일럿 M18a/M19/M18b를 stage1 부하(G_out)로, nmcnr M104/M106을 해당 stage 부하로 넣을지 | 6a(ratify), 7a(gain metric이 소비) |
 | J7 | Cc–Rz 직렬 루프 극성 판정 | 6a(극성 ratify), 7b(보상 규칙이 소비) |
 | J8 | `fold_group`, `shared_gm_id_groups`, 노드를 공유하지 않는 `budget_reference_device` 4건(M61, M68, M38, two_stage M4), `voltage_divider`/`floating_current_source`/`bias_replica` 의도(단서: vsb 오류 소자 M38/M60/M61/M68이 모두 `budget_reference_device` 보유) | 6b |
 | J9 | folded·nmcnr `ports`, nmcnr·two_stage `passive_elements` 누락분 | 6a(ports), 7b(passive) |
-| J10 | follower(CD) 또는 pass로 끝나는 경로를 독립 블록으로 둘지 앞 stage 블록에 흡수할지(이득 1 미만이라 배분 대상은 아니지만 레벨 시프트·저임피던스 극점·헤드룸에 영향). folded M8(gate Vg7 -> source Vg10) 판정 포함. 기본안: 독립 버퍼 블록(극점·보상 문헌이 출력 버퍼를 한 단으로 센다, DEC-57). 6a-2에서 ratify | 6a |
+| J10 | follower(CD) 또는 pass로 끝나는 경로를 독립 블록으로 둘지 앞 stage 블록에 흡수할지(이득 1 미만이라 배분 대상은 아니지만 레벨 시프트·저임피던스 극점·헤드룸에 영향). folded M8(gate Vg7 -> source Vg10) 판정 포함. 기본안: 독립 버퍼 블록(극점·보상 문헌이 출력 버퍼를 한 단으로 센다, DEC-57). 단 병렬 셀 입력을 잇는 pass 구간은 뒤 블록에 흡수한다(N3.7 입력 기준 규칙, 이 예외도 기본안이며 6a-2에서 ratify). 6a-2에서 ratify | 6a |
 | J11 | 루프 뷰: 회로마다 루프 탐지 결과(루프 목록, 루프에만 속한 셀), 끊는 점, 루프 뷰의 셀 판독표·stage 경계·극점 노드를 대조표로 ratify. 파일럿 대조 내용: CMFB 루프(N3.2-3 예시 판독), M58 전류 분할(J1과 함께), M7 이중 역할(J4와 함께) | 6a |
+| J12 | 신규 library 회로의 ratified 대조표와 symmetry 판정: `sf_pushpull_output_opamp`(입력 차동쌍 M1/M2, 저항 자기바이어스 캐스코드 미러 3조 R1a/R1b/R1c, 고임피던스 노드 Y의 Cc–agnd(Miller 아님, 보상 분류), 출력 캐스코드 M9/M10·M15/M16, 버퍼 M17~M22가 `pushpull_follower_buffer`와 같은 구조인지, IBias 이상 전류원, 레일 vdd/vss/agnd), `two_stage_ota_sf`(M1~M7 대칭 후보, M8 follower 버퍼 블록, Cc Miller 루프의 보상 분류, M1/M2 body effect), `pushpull_follower_buffer`(대칭 쌍 없음, 단일 입력 전달 뷰, 팔로워 2단 연쇄 셀·버퍼 블록, 두 경로가 합류하는 vout, 정지전류 `kvl_branch` 루프 VGS4 + VSG3 = VGS1 + VSG2, 부하 CL vout–agnd) | 6a(구조), 7b(정지전류) |
 
 ### N7.2 사용자 결정 U
 
@@ -839,13 +855,13 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-03 | 추적되지 않는 `workspaces/` 스크래치 스크립트가 `sizing_recipe.py` 삭제로 깨지는 것을 허용할지 | 허용(추적 파일만 갱신). 근거: WP-01의 배선 대상은 저장소에 추적되는 파일 | Phase 3 |
 | U-04 | 픽스처와 정본 spec의 구분 | spec에 `origin: canonical | fixture` 필수, 픽스처는 유도 임계값을 읽지 않음 | Phase 4 |
 | U-05 | 비단조 곡선에서 이분 역산의 처리 | 단조 구간별 근을 모두 돌려주고 호출자가 선택 규칙을 명시(DEC-11 확장) | Phase 4 |
-| U-06 | J1~J11 공동분석 + 구조 개념 정본(diode 이웃 포함 여부, 미러 그룹 키, diffpair/tail 유도) | 대조표로 항목별 확정 | 6a-2(J1~J7, J9 ports, J10, J11, 구조 정본) / 6b(J8) / 7b(J3 정지전류, J9 passive) |
+| U-06 | J1~J12 공동분석 + 구조 개념 정본(diode 이웃 포함 여부, 미러 그룹 키, diffpair/tail 유도) | 대조표로 항목별 확정 | 6a-2(J1~J7, J9 ports, J10, J11, J12, 구조 정본) / 6b(J8) / 7b(J3·J12 정지전류, J9 passive) |
 | U-07 | 전력 정의 변경으로 바뀌는 기대값들을 한 승인으로 묶어도 되는지 | 변경 목록을 첨부한 한 승인 | 7a |
 | U-08 | folded·nmcnr·two_stage `ports`(two_stage 출력 포함) | connectivity 제안표 확인 | 6a |
-| U-09 | two_stage stage1_out 분리·nmcnr stage2_diode_ref 이월을 언제 풀지 | Phase 4에서 DF와 함께. 근거: 4개 회로 측정(N6.3)이 Phase 4부터 동작 변경 판정에 필요 | Phase 4 |
-| U-10 | 목적함수 전력 정의(`sum_current` / `_metric_supply_current`) | 4개 회로 비교표 제시 | 7a |
+| U-09 | two_stage stage1_out 분리·nmcnr stage2_diode_ref 이월을 언제 풀지 | Phase 4에서 DF와 함께. 근거: 기존 4개 회로 측정(N6.3)이 Phase 4부터 동작 변경 판정에 필요 | Phase 4 |
+| U-10 | 목적함수 전력 정의(`sum_current` / `_metric_supply_current`) | 사이징 대상 회로 비교표 제시 | 7a |
 | U-11 | `verified_by` 적용 순서 | SPICE AC gain 대조를 7a로 당겨 gain 제약에 적용 | 7a |
-| U-12 | 단일단(보상 없음) 회로의 gm 출처 | `gm_1 = 2π·GBW·CL` | 7b |
+| U-12 | 단일단(보상 없음) 회로의 gm 출처 | `gm_1 = 2π·GBW·C_out,total`(C_out,total = 선언 부하 용량 + S2 출력노드 용량. GBW는 개루프 양이라 되먹임 인자와 무관) | 7b |
 | U-13 | 면적 정의와 파일럿 면적 예산 | 예산 미선언 시 DEC-07대로 Pareto 제시 후 정지 | 7b |
 | U-14 | gain 폭이 분해능 이하인 공유 VGS 그룹(pmos:Vcmfb)의 선택 기준 | 전력 기준으로 고르고 기록 | 7b |
 | U-15 | hook 입력에 역할 필드(`agent_type`)가 없을 때의 역할 판정 방식. **실측 후 결정(2026-09-14 사용자)**: 부트스트랩 ② 실측 기록(PreToolUse·PostToolUse·SubagentStop 각각에서 `agent_type`·`agent_id`·`cwd` 존재 여부, 세 역할 + 메인 세션)을 제시하고 고른다. 필드가 있으면 이 결정은 필요 없다 | 선택지: A. 호출자 `cwd`가 속한 worktree(`../wt/<id>-<role>`)로 판정(EL1 약화분은 EL3·EL4와 Bash `git -C`·다른 worktree 경로 거부로 보완) / B. 역할마다 별도 Claude 세션·설정 / C. EL1은 메인 세션 규칙만, 역할 구분은 EL3·EL4 | 0.5(실측 직후) |
@@ -855,9 +871,11 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-19 | `gain_db >= 54`를 전체회로 gain 기준 bisection으로 재도출해 교체할지 | 재도출값 제시 후 승인 | 7a |
 | U-20 | `stack_headroom_slack_v`를 봉인 항목으로 흡수할지 metric 제약으로 남길지(I-C10) | 봉인 항목 1·5가 같은 사실을 보므로 metric 삭제 | 6b |
 | U-21 | 선언 L theta(`L_cascode`, `L_stage2out_*`)를 L 동치류 theta로 대체하고 삭제할지 | DEC-18에 따라 삭제 | 7b |
-| U-22 | 순수 follower(drain이 레일, source가 출력)가 있는 회로를 library에 추가해 CD 규칙을 실제 회로로 측정할지 | 추가하지 않고 4개 회로의 분류 발동 목록 일치만 증명(WP-07상 픽스처 손타이핑 금지) | 6a |
+| U-22 | 순수 follower(drain이 레일, source가 출력)가 있는 회로를 library에 추가해 CD 규칙을 실제 회로로 측정할지 | **확정(2026-09-15, 사용자 확정 넷 표로 추가)**: `two_stage_ota_sf`(M8), `pushpull_follower_buffer`(M1~M4). 6a에서 CD 분류·버퍼 블록·J10을 이 회로로 측정한다 | 확정 |
 | U-23 | 입력-캐스코드 블록의 L을 같게 맞추도록 강제하는 규칙을 복원할지(DEC-04) | 실측 후 결정. 캐스코드가 있는 회로(파일럿, folded, nmcnr)에서 (A) 독립 L과 (B) 입력-캐스코드 L 동일 강제를 같은 spec·탐색 인자로 돌려 비교: 평가 수(불필요한 반복), 목적값(전력), 활성 제약 여유(스펙 오버 여부, NFR-5), 면적, 레이아웃(행 안 L 종류 수, finger 배정 성공 여부, finger 합·box 비율 -- 입력과 캐스코드가 같은 물리 행인 회로는 파일럿뿐이므로 레이아웃 비교는 파일럿에서만 판정하고 나머지 회로는 평가 수·목적값·제약 여유만 비교). 비교군에 (C) LR5 격자 확장 규칙을 쓴 A와 (D) VDS 균등 고정 A를 함께 둔다. 조건: 목표 gain은 블록 gain 상한 이하에서 4점 이상, W 한계 경계 gm_id와 한 칸 아래를 포함, 제약마다 활성/비활성 구분, 지표에 tail 포화 여유·`parasitic_pm_deg`·미러 전류비 오차 포함. B가 finger 배정에 실패하면 기각. B가 평가 수를 줄이면서 목적값·제약 여유·면적이 A와 격자 분해능 안에서 같거나 나으면 B를 제안, 아니면 A 유지. 선측정(블록 국소 모델, tt 한 코너, tail 포화·gmb 미포함): 파일럿 stage1에서 B는 A 대비 면적 +2.8~5.9% | 7b(실측 직후) |
-| U-24 | 루프 뷰의 안정도·대역폭을 제약으로 선언할지와 그 값(예: 루프 PM 하한, 주 전달 경로 대비 대역폭). 파일럿 옛 `N_cmfb_bw` 휴리스틱 같은 근거 없는 배수는 쓰지 않는다 | 선언 전에는 루프 뷰의 루프 이득·극점을 metric으로 보고만 하고 제약으로 걸지 않는다(보고 시 명시) | 7b 착수 전 |
+| U-24 | 루프 뷰의 안정도·대역폭을 제약으로 선언할지와 그 값(예: 루프 PM 하한, 주 전달 경로 대비 대역폭). 파일럿 옛 `N_cmfb_bw` 휴리스틱 같은 근거 없는 배수는 쓰지 않는다 | 6a~7a: 루프 뷰의 루프 이득·극점을 metric으로 보고만 하고 제약으로 걸지 않는다(보고 시 명시). 7b부터: 루프 뷰가 있는 회로에서 루프 안정도 제약이 선언되지 않으면 GB2 출구 게이트가 탐색 전에 정지한다 | 7b 착수 전 |
+| U-25 | 신규 library 회로의 사이징 스펙 | **확정(2026-09-15 사용자, topology `_paper_target_spec`에 기록 -- 문서 전용)**: `sf_pushpull_output_opamp` = `supplies` vdd 1.8 / vss 0 / agnd 0.9 V, IBias 50 µA, CL 1 pF, Av ≥ 65 dB, GB ≥ 60 MHz, Rout ≤ 1 kΩ, R1·Cc는 유도. `pushpull_follower_buffer` = 같은 레일, vin DC = agnd, CL 1 pF(vout–agnd), Rout ≤ 1 kΩ, 목적 최소 전력, 버퍼 대역폭은 보고만(사이징 대상에서 빼지 않는다). `two_stage_ota_sf` = two_stage_ota 스펙 정본(`run_harness._spec_two_stage_ota`)과 `two_stage_ota.topology.json` sizing_roles의 제약·목적을 참조로 상속하고, 추가는 CL 3 pF(정본 값)를 팔로워 출력 vout에, Rout ≤ 1 kΩ(Allen L26 버퍼 기준, 도면 p.26-5에는 값 없음) 두 가지. 상속한 gain metric의 감지 노드는 vout(팔로워 감쇠 포함). 잔여 결정 없음. `sf_pushpull_output_opamp` 전체 회로 사이징의 M17·M20 측면 주입은 K8(N3.7)로 계산하며 J12에서 ratify한다 | 실행 `SPECS` 이관: agnd 레일 두 회로는 DEC-60 구현 뒤, `two_stage_ota_sf`는 사이징 착수 시. 이관 전에는 구조 유도(6a)에만 넣는다 |
+| U-26 | 레일·예산 선언 확정: (a) 기존 4개 회로의 `supply_nets`·`supplies{넷: 전압}`(nmcnr은 문헌 ±1 V와 현 하네스 `vdd: 2.0` 단일 기준 중 선택 포함) (b) 신규 회로의 `supply_nets`(connectivity, 사용자 작성) (c) 사이징 대상 회로의 `wall_clock_budget_s` | (a) connectivity의 레일 넷과 `SPECS[circuit]["vdd"]`로 제안표를 만들어 사용자 확인, 확정 전에는 DEC-60 전환기·기본 해석 (b) 신규 회로 넷 표에서 제안(`sf_pushpull_output_opamp`·`pushpull_follower_buffer` = vdd·vss·agnd, `two_stage_ota_sf` = vdd·gnd) (c) 파일럿 선언값 300 s(5분)를 모든 사이징 대상 회로에 같게 적용하고 사용자가 회로별로 바꿀 수 있다 | (a) Phase 4 (b) 6a(IC11 3레일 케이스 입력) (c) 6b |
 
 ---
 
@@ -867,13 +885,13 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 |---|---|
 | stage 분할의 회로 해석 오판 | 6a는 shadow로 대조만, `review_needed` 잔존 시 6c에서 정지, J 공동분석으로 ratify |
 | 3층 할당 비수렴·국소해 | 종료 규칙과 유한 격자 상한(N3.7), 분지별 시작, 다른 모델 전수탐색 대조 |
-| 노드전압 정본 전환(6b)이 착지를 바꿈 | 봉인 위반이 없던 소자의 값만 옛 경로와 동등 단언하고, 달라진 소자는 writer 티어와 함께 기록, 4개 회로 전후표 |
+| 노드전압 정본 전환(6b)이 착지를 바꿈 | 봉인 위반이 없던 소자의 값만 옛 경로와 동등 단언하고, 달라진 소자는 writer 티어와 함께 기록, 사이징 대상 회로 전후표 |
 | hook 입력에 역할 필드가 없음 | 0.5 첫 단계에서 실측, 대체 판정 U-15 |
 | hook 오탐이 RTL agent·일반 작업을 막음 | 판정 범위를 gmid 역할과 경로표로 한정, 공격 시나리오 11 |
 | 분리로 못 막는 은폐(자기참조 oracle, 거짓 기준값, 폴백) | V3·V4·V5·V6·V8·V9 |
 | 파일 이동 중 회귀 | test 분리 먼저, 이동 전용 커밋, AST 해시 동일 증명 |
 | 배분값·목표값을 지어냄(사고4) | `gain_budget_db`는 출력, 제약값 출처 필수 |
-| 전체회로 MNA 반복으로 5분 초과 | `build_ac_network` 1회 조립, 봉인 스냅샷당 전역 metric 1회, S2 memo |
+| 전체회로 MNA 반복으로 wall-clock 예산 초과 | `build_ac_network` 1회 조립, 봉인 스냅샷당 전역 metric 1회, S2 memo |
 | SPICE 모델·ngspice 환경 부재 | SPICE를 처음 쓰는 Phase(U-11에 따라 7a 또는 7c)의 design 첫 단계에서 모델 경로(LUT 생성 메타)와 실행을 확인 |
 | S3 아카이브 디스크 증가 | append-only, 크기를 매 실행 보고 |
 | 사이징↔레이아웃 반복 중 소자 소실(사고16) | MOD8 루프 매 반복 커버리지 재검증(LR9), 이름 전역 유일(IC3) |
@@ -893,13 +911,13 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | `10-test-separation` | TS0 원인 대조, TS1 추출 스크립트와 두 커밋 순서, seed별 stdout 비교 명령, TS2 섹션→test 매핑표와 fixture 목록, 셔플 옵션 구현, TS3 AST 검사, TS5 퇴역 절차, TS7 xfail 선언 목록(IC별 담당 Phase) |
 | `20-dead-code-dup` | U-02 제안표(항목, 호출부 0 증거, 삭제 영향, 배선 시 소비자), DUP별 차등 test 설계, TS6 승격·삭제·이동 목록 |
 | `30-module-split` | 레지스트리 목적지 열에서 생성한 함수→모듈 이관표, 계산된 import 그래프, `import_layering.py` 규칙, AST 해시 증명 명령, shim 재수출 목록 생성법, 추적 파일 호출부 목록 |
-| `40-defect-fixes` | DF별 red 형태(행동 test / lint)와 수정 범위, N3.14 실패 클래스 도입, tol_V 함수 선도입, U-04·U-05 반영, `fallback_events` 스키마와 계측 지점 전수, exit code, I-C11 해소 설계 |
+| `40-defect-fixes` | DF별 red 형태(행동 test / lint)와 수정 범위, N3.14 실패 클래스 도입, tol_V 함수 선도입, U-04·U-05 반영, `fallback_events` 스키마와 계측 지점 전수, exit code, I-C11 해소 설계, `supply_nets`·`supplies` 기반 레일 판정(DF-19·DF-26)·vsb(DF-24)·IC11 |
 | `50-failure-cache` | 실패 캐시 키·저장, margin 정규화식, 시작점 선택 규칙, S3 레코드 v1 스키마와 위치, 계수기 |
-| `6a-structure-stage` | S0 해시 구성, S1 스키마(N3.3), 교류접지 3분류, 여기 뷰 2종(전달·루프) 수집, 셀 우선순위, 대칭 축약과 비축약 대조, SP1 알고리즘(0-1 BFS), 루프 탐지·끊는 점 규칙, J11 대조표, 소자 구성 분류와 출력노드·임피던스 등급 판정, 모드 수집, 피드백 극성, status 전이 구현, `structure.json` 형식, shadow 대조 보고 형식, J 대조표 양식, ports 제안표 |
-| `6b-node-voltage-seal` | S2 필드 스키마, SC-a 권한표(필드 × W0~W4), W3 소스 필드, 계산 블록 입출력 선언과 유도 DAG, tol_V·tol_I·반복 상한 구현, 봉인 항목 구현, 버전 카운터, LRU 상한 계산, IC2 섞기 대상, 동등 단언 범위, J8 결론 반영, U-20 반영, I-A6 헤드룸 하한 여부 판정 |
+| `6a-structure-stage` | S0 해시 구성, S1 스키마(N3.3), 교류접지 3분류, 여기 뷰 2종(전달·루프) 수집, 셀 우선순위, 대칭 축약과 비축약 대조, SP1 알고리즘(0-1 BFS), 루프 탐지·끊는 점 규칙, J11 대조표, 소자 구성 분류와 출력노드·임피던스 등급 판정, 모드 수집, 피드백 극성, status 전이 구현, `structure.json` 형식, shadow 대조 보고 형식, J 대조표 양식, ports 제안표, 규칙 분기 목록(정본)과 발동표 형식·`unsupported_rule_branch` 판정, `supply_nets`·`supplies`·`bulk` 로드(DEC-60·61), 루프 분류 (0)~(4)·바이어스 SCC, J12 대조표 |
+| `6b-node-voltage-seal` | S2 필드 스키마, SC-a 권한표(필드 × W0~W4), W3 소스 필드, 계산 블록 입출력 선언과 유도 DAG, tol_V·tol_I·반복 상한 구현, 봉인 항목 구현, 버전 카운터, LRU 상한 계산, IC2 섞기 대상, 동등 단언 범위, J8 결론 반영, U-20 반영, I-A6 헤드룸 하한 여부 판정, VDsat 유도 규칙(DF-25, LUT (ID, gds, VDS) 곡선) |
 | `6c-coupling-achievability` | 결합 잔차 측정 절차, 블록·y 추출 규칙(K1~K4), LUT 곡선 검사→해법 매핑, 블록 gain 상한 계산, DOF 변수·등식 표와 수치 rank, `DofReport`, 달성 불가 픽스처와 oracle |
 | `7a-gain-metric` | 회로별 gain metric 이관표, 블록 국소 소신호 모델(경계 조건·스탬프)과 gmb 유도 식, 블록 속성(출력 임피던스·최대 출력 전류) 계산, 잔차 계산, 감도 게이트 섭동 방향·ε 계산, MT 분류 규칙, 전력 정의(U-10) 반영, `verified_by`와 SPICE AC gain 대조(U-11), bisection 모드(N3.13)와 U-19 |
-| `7b-compensation-allocation` | `sizing_spec.json` v5 스키마·로더·이관·topology.json 필드 제거 절차, GB5 규칙(단일단 U-12, 3단, class-AB J3), 내층 DP 상태·bin 해상도, 중층 좌표강하 종료, 외층 인자, 면적·Pareto(U-13), U-14, `value_amp` 소비, MOD8 수렴 루프, 다른 모델 대조 test, U-21 반영, 슬루율 필드 명칭(DEC-53 규약 인용), 출력 구동 규칙(DEC-58)과 CL_total 계산, 강결합 셀 그룹 유도 규칙, U-23 실측 설계(비교 조건·회로·지표) |
+| `7b-compensation-allocation` | `sizing_spec.json` v5 스키마·로더·이관·topology.json 필드 제거 절차, GB5 규칙(단일단 U-12, 3단, class-AB J3), 내층 DP 상태·bin 해상도, 중층 좌표강하 종료, 외층 인자, 면적·Pareto(U-13), U-14, `value_amp` 소비, MOD8 수렴 루프, 다른 모델 대조 test, U-21 반영, 슬루율 필드 명칭(DEC-53 규약 인용), 출력 구동 규칙(DEC-58)과 극점 노드별 C_k,total·방향별 최대 전류 계산, 루프 안정도 제약 게이트(U-24), `wall_clock_budget_s`, 강결합 셀 그룹 유도 규칙, U-23 실측 설계(비교 조건·회로·지표), 단독 버퍼 대 opamp 내장 버퍼(M17~M22) 대조 test 설계(경계 조건 동일성 (i), 전체 회로 차이 보고 (ii)) |
 | `7c-archive-spice` | S3 저장 형식·보고, DEC-34 샘플 수 구현, 분지 판정, SPICE 넷리스트 생성·실행 인터페이스와 모델 경로 확인, 비교량·허용오차 계산 |
 
 ### N9.2 모든 design 문서의 필수 절
@@ -915,7 +933,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 ### N9.3 새 토폴로지 추가 절차(I-G8)
 
-topology.json(connectivity, `ports`, `passive_elements`) -> GB1·GB2 유도와 공동분석 -> `sizing_spec.json` human 섹션 -> 보상 레지스트리 함수(stage 수 일반 규칙으로 부족할 때만) -> `SPECS` 항목 -> regression에 회로 추가 후 기존 회로 무동작 증명.
+topology.json(connectivity, `ports`, `passive_elements`, `supply_nets`, 필요 시 소자 `bulk` -- 사용자 확인, WP-07·WP-08·U-16) -> GB1·GB2 유도, 규칙 분기 발동표, 공동분석(ratified 대조표) -> `sizing_spec.json` human 섹션(`supplies` 포함, 선언되면 사이징 대상 회로) -> `SPECS` 데이터 항목 -> regression에 회로 추가 후 기존 회로 무동작 증명. 코드 추가가 필요하면 멈추고 DF로 등록한다(DEC-62).
 
 ---
 
@@ -964,7 +982,7 @@ topology.json(connectivity, `ports`, `passive_elements`) -> GB1·GB2 유도와 �
 | 표 A A01~A74 | A01→DEC-01, A02→DEC-04(2026-09-14 재정의: 동시 결정 철회), A03→DEC-02, A04·A05→DEC-03, A06→DEC-05, A07→DEC-06, A08·A09→DEC-07, A10→NFR-1, A11→WP-02, A12→NFR-2, A13→NFR-3, A14→DEC-48, A15→DEC-08, A16→WP-04, A17→DEC-09, A18→DEC-10, A19→DEC-11, A20→DEC-12, A21→DEC-13, A22→DEC-14, A23→DEC-15, A24→DEC-56, A25→DEC-16, A26→LR1~LR9, A27·A29→DEC-17, A28·A30→DEC-18, A31→DEC-19, A32→DEC-20, A33→DEC-21, A34→DEC-22, A35→DEC-23, A36→DEC-24, A37·A38→DEC-55, A39→DEC-25, A40→DEC-31, A41→DEC-26, A42→DEC-27, A43→DEC-28, A44→DEC-29, A45·A62→DEC-01, A46→DEC-30, A47·A48→DEC-46, A49→WP-14, A50→DEC-42, A51→DEC-32, A52→N6.1, A53→DEC-34, A54→DEC-35, A55→U-10, A56→U-02, A57→U-06, A58→DEC-36, A59→DEC-37, A60→DEC-37~40, A61→DEC-41, A63→N3.1 RC, A64→DEC-50, A65→DEC-51, A66→U-09, A67→이력, A68→DEC-54, A69→DEC-52, A70→DEC-18·DEC-19(knee 출발은 LR5), A71→DEC-53, A72→DEC-05·J6, A73→DEC-49, A74→DEC-47 |
 | D1~D15 | D1→DEC-31, D2→DEC-32, D3→N6.1, D4→DEC-34, D5→DEC-35, D6→U-10, D7→U-02, D8→U-06, D9→DEC-36, D10·D11→DEC-37, D12→DEC-38, D13→DEC-39, D14→DEC-40, D15→DEC-41 |
 | 표 B B01~B21 | B01~B18→WP-01~WP-18, B19→해당 없음, B20→DEC-51, B21→WP-20 |
-| 이슈 A/B/G/C (§10) | 열림은 I-A* / I-B* / I-G* / I-C*(N5.3). v5.0에서 닫음: I-G3·I-G7(N1.2), I-G8(N9.3), I-C3(DEC-47), I-C5(WP-14), I-C7(N3.15), I-C9(원표 이력), I-A9(N3.8). DF로 통합: I-A3→DF-16, I-A4→DF-05, I-B7→DF-02, I-B9→DF-01. 신설: I-A10(folded `omega_c` 선측정), I-A11(크로스오버 해석 차이), I-A12(pitch overhead 0), I-A13(dummy·LDE 미반영), I-B22(다중 diff pair 오프셋), I-C10(옛 §10.5a-8, U-20), I-C11(옛 A66, U-09) |
+| 이슈 A/B/G/C (§10) | 열림은 I-A* / I-B* / I-G* / I-C*(N5.3). v5.0에서 닫음: I-G3·I-G7(N1.2), I-G8(N9.3), I-C3(DEC-47), I-C5(WP-14), I-C7(N3.15), I-C9(원표 이력), I-A9(N3.8). DF로 통합: I-A3→DF-16, I-A4→DF-05, I-B7→DF-02, I-B9→DF-01. 신설: I-A10(folded `omega_c` 선측정), I-A11(크로스오버 해석 차이), I-A12(pitch overhead 0), I-A13(dummy·LDE 미반영), I-B22(다중 diff pair 오프셋), I-C10(옛 §10.5a-8, U-20), I-C11(옛 A66, U-09), I-A14(two_stage_ota 입력 극성, v5.9 안에서 닫힘 -- 이력 5.9), I-A15(knee gm_id 구간) |
 | 사고 클래스 C1~C10 | IC1~IC10 |
 | 상태 계약 C-a~C-d | SC-a~SC-d(SC-e 신설) |
 | auditor 검사 A1~A10(§14.5) | V1~V10 |
@@ -977,7 +995,8 @@ topology.json(connectivity, `ports`, `passive_elements`) -> GB1·GB2 유도와 �
 | metric 티어 T1~T3(§7.6) | MT1~MT3 |
 | 은폐 유형 T1~T11(§14.1) | 원자료 `agent7_self_concealment.md` |
 | 강제 겹 L1~L4(§14.4) | EL1~EL4 |
-| 결함 #1~#21 | DF-01~DF-21(DF-22 신설) |
+| 결함 #1~#21 | DF-01~DF-21(DF-22~DF-26 신설) |
+| (옛 번호 없음) | 신설: DEC-59~DEC-62, IC11, K7, K8, J12, U-25, U-26 |
 | Phase 6·7(§13.6) | 6a~7c(N6.1) |
 | D8(구조 정본) | U-06 |
 

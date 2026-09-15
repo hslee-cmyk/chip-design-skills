@@ -1,11 +1,10 @@
 
-### 세션48 -- two_stage_ota 입력 극성 정정 완료 (2026-09-15)
-- 확인: 넷리스트만으로 푼 독립 소신호 MNA(scratchpad sf/probe_input_polarity.py, gm·gds 균일, 부호만) -- 정정 전 vin_p 단독 +1 V -> OUT −2487(반전). 이름이 반대로 붙어 있었다. two_stage_ota_sf, sf_pushpull_output_opamp는 정상(비반전).
-- 정정: two_stage_ota.topology.json과 stick_diagram.py two_stage_ota_example()에서 M1.gate vin_p -> vin_n, M2.gate vin_n -> vin_p(self-test 26이 두 곳 connectivity를 대조하므로 함께). 정정 후 vin_p -> OUT +2488(비반전).
-- 영향: 수정 전 커밋(HEAD worktree)과 수정 후의 self-test stdout 대조 -- sizing_recipe 0줄, stick_diagram 0줄(worktree 경로 문자열 1줄만 다름). stick_diagram은 tests/baseline과도 0줄. gain_db는 크기만, 입력환산 오프셋은 ports direction만 써서 부호 무관.
-- 참고: tests/baseline/sizing_recipe.selftest.baseline.log는 현 HEAD와 55줄 다르다(2026-09-10 이후 derive_role_L 교체 등 커밋이 기준선을 갱신하지 않음) -- 이번 변경과 무관, 기준선 갱신 여부는 별도 판단.
-8/0/0.9 V, vin DC = agnd, CL 1 pF, Rout ≤ 1 kΩ, 최소 전력, 대역폭은 보고만.
-- `sf_pushpull_output_opamp` (p.26-6 Fig. 7.1-1): MOS 22, R1a/b/c 자기바이어스 캐스코드, Cc Y–agnd(Miller 아님), IBias vdd->NB. 스펙: 레일 1.8/0/0.9 V(도면 ±0.9/0 V와 원점 이동 동등), IBias 50 µA, CL 1 pF, Av ≥ 65 dB, GB ≥ 60 MHz, Rout ≤ 1 kΩ, R1·Cc 유도.
+### 세션48 -- plan v5.9 (일반성 개선, 2026-09-15)
+- 독립 일반성 감사(review4_generality_audit.md, 판정 "부분 종속") -> 작성 agent 반영 -> 독립 검증 5회(review4_v59_verify ~ reverify4) -> 막음·높음 0에서 커밋. 결정표·이월 목록 review4_v59_disposition.md.
+- 핵심: DEC-59(지원 범위 = 규칙 분기 검증 발동, `기록만` 분기 항상 정지 `unsupported_rule_branch`), DEC-60(레일 넷 topology `supply_nets` / 전압 스펙 `supplies`, 미선언은 현행 이름 집합 전환기 해석), DEC-61(소자 선택 필드 `bulk`, 기본 nmos=최저·pmos=최고 레일, vsb 노드전압 유도, 봉인 항목 6 source·drain 접합 역바이어스), DEC-62(새 토폴로지는 데이터만). DF-23~26, IC11(원점 이동 불변), K7·K8(뷰 공유 소자, 측면 주입), J12, U-25(신규 3회로 스펙 확정), U-26(기존 회로 레일 선언·wall_clock_budget_s).
+- 루프 분류 우선순위(N3.2-2): (0) 자기 엣지 제외 (1) 교류접지·여기 포트 경유 제외 (2) 커패시터 포함 수동 복귀 = 보상 루프, 바이어스 노드끼리의 저항 국소 되먹임 (3) 순방향 밖 능동 셀 포함 = 루프 뷰 (4) 나머지 `기록만`. 병렬 셀 한 블록 = 신호 입력 단자 기준. 블록 사이 주 신호 분기는 `기록만`, 측면 주입은 K8+MT3.
+- J3 기본안 Vop1(6a-2 ratify 대상 -- 작성 agent가 확정 문장으로 썼다가 검증에서 되돌림). 이월 중간·낮음은 disposition 이월 표.
+out ≤ 1 kΩ, R1·Cc 유도.
 - 스펙은 각 topology `_paper_target_spec`(문서 전용, 엔진 미사용). ★엔진은 레일을 이름 집합(sizing_recipe.py:3882-3883, stick_diagram.py:3147)으로만 판정해 `agnd`를 못 읽는다 -> run_harness SPECS 이관은 계획 DEC-60(supply_nets/supplies) 구현 뒤.
 - 대기 정정(미반영): two_stage_ota.topology.json 입력 이름 극성 반대(M1.gate vin_p -> vin_n, M2 반대), 사용자 확정, 일괄 반영 지시 대기, 영향 조사 필요(계획 I-A14).
 - symmetry(matching_pairs)는 세 회로 모두 미판정(공동 판정 대기).
