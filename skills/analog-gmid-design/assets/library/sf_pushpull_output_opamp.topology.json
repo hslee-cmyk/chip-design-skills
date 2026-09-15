@@ -1,0 +1,290 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "sf_pushpull_output_opamp",
+  "source": "P.E. Allen, CMOS Analog Circuit Design, Lecture 26 - Buffered Op Amps (6/25/14), Page 26-6 'Source-Follower, Push-Pull Output Op Amp' (Fig. 7.1-1), aicdesign.org/wp-content/uploads/2018/08/lecture26-140625.pdf",
+  "_note": "2026-09-15 사용자 확정 넷 표로 작성(오케스트레이터가 확대 도면을 판독해 표로 제시, 사용자가 항목 1~7 확정). 입력 극성: M1 gate '+', M2 gate '-' -- M1 전류 증가 -> M5/M6 가지 -> M9/M10이 Y로 공급 증가, M2 전류 감소 -> M7/M8 -> M11/M12 -> M13/M14 -> M15/M16 흡수 감소 -> Y 상승 -> 팔로워 2단 -> vout 상승. 세 R1은 캐스코드 쌍의 두 게이트 사이에 걸린 자기바이어스(R1a: N5–N1, R1b: N7–N2, R1c: N12–N13). Y = M10 drain = M15 drain = 버퍼 입력(M18/M19 gate) = Cc. gray box 버퍼(M17~M22)는 pushpull_follower_buffer와 같은 구조. 레일: 도면 VDD/VSS와 접지 기호. 접지 기호는 VSS와 별개인 교류 기준이라 agnd로 적는다(Cc, CL). 레일 전압은 사이징 스펙 선언(사용자 결정: vdd 1.8, vss 0, agnd 0.9 V -- 도면 ±0.9/0 V와 원점 이동으로 동등). 벌크: 도면 명시 M18·M21 = vdd, M19·M22 = vss, 나머지는 기본 규칙(nmos = vss, pmos = vdd)이라 bulk 필드를 두지 않는다. R1 값은 도면에 없고 사이징에서 유도(사용자 결정). 스펙(사용자 결정, 도면 값): Av(0) 65 dB, GB 60 MHz, CL 1 pF, Rout <= 1 kOhm, IBias 50 uA. symmetry 판정·sizing 필드는 미정.",
+  "linked_topology_files": [],
+  "compensation": null,
+  "_compensation_status": "pending_topology_fn",
+  "_compensation_status_comment": "Cc가 Miller가 아니라 고임피던스 노드 Y와 agnd 사이에 걸린 보상. 기존 보상 함수 중 맞는 것이 없다 -- 계획 GB5(극점 노드 목록 일반 해법)로 정한다.",
+  "netlist": [
+    {
+      "name": "M1",
+      "kind": "nmos",
+      "source": "TAIL",
+      "drain": "N1",
+      "gate": "vin_p"
+    },
+    {
+      "name": "M2",
+      "kind": "nmos",
+      "source": "TAIL",
+      "drain": "N2",
+      "gate": "vin_n"
+    },
+    {
+      "name": "M3",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "TAIL",
+      "gate": "NB"
+    },
+    {
+      "name": "M4",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "NB",
+      "gate": "NB"
+    },
+    {
+      "name": "M6",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N56",
+      "gate": "N5"
+    },
+    {
+      "name": "M5",
+      "kind": "pmos",
+      "source": "N56",
+      "drain": "N5",
+      "gate": "N1"
+    },
+    {
+      "name": "M8",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N78",
+      "gate": "N7"
+    },
+    {
+      "name": "M7",
+      "kind": "pmos",
+      "source": "N78",
+      "drain": "N7",
+      "gate": "N2"
+    },
+    {
+      "name": "M11",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N1112",
+      "gate": "N7"
+    },
+    {
+      "name": "M12",
+      "kind": "pmos",
+      "source": "N1112",
+      "drain": "N12",
+      "gate": "N2"
+    },
+    {
+      "name": "M14",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "N1314",
+      "gate": "N13"
+    },
+    {
+      "name": "M13",
+      "kind": "nmos",
+      "source": "N1314",
+      "drain": "N13",
+      "gate": "N12"
+    },
+    {
+      "name": "M9",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N910",
+      "gate": "N5"
+    },
+    {
+      "name": "M10",
+      "kind": "pmos",
+      "source": "N910",
+      "drain": "Y",
+      "gate": "N1"
+    },
+    {
+      "name": "M16",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "N1516",
+      "gate": "N13"
+    },
+    {
+      "name": "M15",
+      "kind": "nmos",
+      "source": "N1516",
+      "drain": "Y",
+      "gate": "N12"
+    },
+    {
+      "name": "M17",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "N17",
+      "gate": "N5"
+    },
+    {
+      "name": "M18",
+      "kind": "pmos",
+      "source": "N17",
+      "drain": "vss",
+      "gate": "Y"
+    },
+    {
+      "name": "M19",
+      "kind": "nmos",
+      "source": "N20",
+      "drain": "vdd",
+      "gate": "Y"
+    },
+    {
+      "name": "M20",
+      "kind": "nmos",
+      "source": "vss",
+      "drain": "N20",
+      "gate": "N13"
+    },
+    {
+      "name": "M22",
+      "kind": "nmos",
+      "source": "vout",
+      "drain": "vdd",
+      "gate": "N17"
+    },
+    {
+      "name": "M21",
+      "kind": "pmos",
+      "source": "vout",
+      "drain": "vss",
+      "gate": "N20"
+    }
+  ],
+  "passive_elements": [
+    {
+      "name": "R1a",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "N5",
+        "N1"
+      ],
+      "_comment": "M5 drain·M6 gate(N5)와 M1 drain·M5 gate(N1) 사이. 값 미표기 -- 사이징에서 유도."
+    },
+    {
+      "name": "R1b",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "N7",
+        "N2"
+      ],
+      "_comment": "M7 drain·M8/M11 gate(N7)와 M2 drain·M7/M12 gate(N2) 사이. 값 미표기 -- 사이징에서 유도."
+    },
+    {
+      "name": "R1c",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "N12",
+        "N13"
+      ],
+      "_comment": "M12 drain·M13/M15 gate(N12)와 M13 drain·M14/M16/M20 gate(N13) 사이. 값 미표기 -- 사이징에서 유도."
+    },
+    {
+      "name": "Cc",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "Y",
+        "agnd"
+      ],
+      "_comment": "도면: Y와 접지 기호 사이(Miller 아님). 값은 보상망이 계산."
+    },
+    {
+      "name": "CL",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "vout",
+        "agnd"
+      ],
+      "_comment": "도면 CL = 1 pF(스펙 선언으로 둔다)."
+    }
+  ],
+  "ideal_sources": [
+    {
+      "name": "IBias",
+      "kind": "current_source",
+      "value_amp": null,
+      "implementable": false,
+      "terminals": [
+        "vdd",
+        "NB"
+      ],
+      "_comment": "도면: VDD에서 M4 drain(NB)으로 흐르는 이상 전류원. 도면 값 50 uA는 스펙 선언으로 둔다(사용자 결정)."
+    }
+  ],
+  "ports": {
+    "vin_p": {
+      "role": "differential_input_p",
+      "direction": "input"
+    },
+    "vin_n": {
+      "role": "differential_input_n",
+      "direction": "input"
+    },
+    "vout": {
+      "role": "single_ended_output",
+      "direction": "output"
+    }
+  },
+  "symmetry": {
+    "matching_pairs": [],
+    "_comment": "미판정 -- find_matching_candidates() 후보를 사용자와 공동 판정해 채운다."
+  },
+  "sizing_roles": null,
+  "device_roles": null,
+  "_paper_target_spec_comment": "2026-09-15 사용자 결정(\"모두 제안대로 진행해\", \"스펙도 파일에 넣어야 하지 않나?\"). 값은 Allen p.26-6 Fig. 7.1-1 도면 문구 그대로이고 레일 전압만 사용자 결정. nmcnr_amplifier의 _paper_target_spec과 같은 **문서화 전용** 필드다 -- 엔진은 아직 이 필드를 읽지 않는다. 실행 정본은 workspaces/run_harness.py SPECS이며, 엔진이 레일을 이름 집합(sizing_recipe.py:3882-3883 vdd/gnd/vss, stick_diagram.py:3147)으로만 판정해 agnd를 레일로 못 읽으므로 계획 DEC-60(supplies 선언) 구현 때 SPECS로 옮긴다. 도면 값은 Allen 강의의 예시 공정 결과라 sky130 재설계와 공정이 다르다 -- topology 수준 목표(gain·GB·출력 저항)로만 쓴다.",
+  "_paper_target_spec": {
+    "supplies_v": {
+      "vdd": 1.8,
+      "vss": 0.0,
+      "agnd": 0.9,
+      "_comment": "사용자 결정. 도면은 VDD/VSS 분할 공급과 접지(값 미표기) -- ±0.9 V/0 V 선언과 원점 이동으로 동등(모든 소자 VGS·VDS·VSB 불변). Cc·CL·입력 공통모드 기준은 agnd."
+    },
+    "input_common_mode": "agnd",
+    "ideal_source_values": {
+      "IBias_amp": 5e-05,
+      "_comment": "도면 'IBias=50µA'."
+    },
+    "loading": {
+      "CL_farad": 1e-12,
+      "_comment": "도면 'CL = 1pF'."
+    },
+    "performance_targets": {
+      "dc_gain_db": {
+        "op": ">=",
+        "value": 65,
+        "_comment": "도면 'Av(0)=65dB (IBias=50µA)'."
+      },
+      "gbw_hz": {
+        "op": ">=",
+        "value": 60000000.0,
+        "_comment": "도면 'GB = 60MHz for CL = 1pF'."
+      },
+      "rout_ohm": {
+        "op": "<=",
+        "value": 1000,
+        "_comment": "도면 'Rout ≈ 1/(gm21+gm22) ≤ 1000Ω'."
+      }
+    },
+    "derived_not_declared": {
+      "R1_ohm": "사이징에서 유도(사용자 결정, 도면 값 없음)",
+      "Cc_farad": "보상망이 계산"
+    }
+  }
+}
