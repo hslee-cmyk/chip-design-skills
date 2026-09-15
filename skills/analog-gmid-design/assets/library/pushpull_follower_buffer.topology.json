@@ -1,0 +1,71 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "pushpull_follower_buffer",
+  "source": "P.E. Allen, CMOS Analog Circuit Design, Lecture 26 - Buffered Op Amps (6/25/14), aicdesign.org/wp-content/uploads/2018/08/lecture26-140625.pdf -- Page 26-4 'The Push-Pull Follower as a Buffer' (fig. 060706-02)",
+  "_note": "2026-09-15 사용자 확정 넷 표로 작성(오케스트레이터가 원문 도면을 판독해 표로 제시하고 사용자가 항목별 확정). 벌크는 도면대로 nmos=gnd, pmos=vdd이며 계획 v5.9 벌크 기본 규칙(nmos=가장 낮은 레일, pmos=가장 높은 레일)과 같아 bulk 필드를 두지 않는다. 스펙·보상·symmetry 판정·sizing 필드는 미정(사용자 결정 대기) -- connectivity만 담는다. 팔로워 2단 연쇄(vin -> M3(PMOS 팔로워) -> A -> M1(NMOS 팔로워) -> vout, vin -> M4(NMOS 팔로워) -> B -> M2(PMOS 팔로워) -> vout)의 class-AB push-pull 버퍼. M1·M2 정지전류는 원문 KVL VGS4 + VSG3 = VGS1 + VSG2와 W/L 비로 정해진다. 도면에 부하 소자는 없다(원문 식의 G_L만, 사용자 확정). 넷 이름 A, B, VPB1, VNB1, vin, vout은 오케스트레이터가 붙였다(원문은 이름 없음, 바이어스는 VPBias1/VNBias1).",
+  "linked_topology_files": [],
+  "compensation": null,
+  "_compensation_status": "not_applicable",
+  "_compensation_status_comment": "gain stage가 없는 단일 버퍼(이득 < 1).",
+  "netlist": [
+    {
+      "name": "M5",
+      "kind": "pmos",
+      "source": "vdd",
+      "drain": "A",
+      "gate": "VPB1"
+    },
+    {
+      "name": "M3",
+      "kind": "pmos",
+      "source": "A",
+      "drain": "gnd",
+      "gate": "vin"
+    },
+    {
+      "name": "M4",
+      "kind": "nmos",
+      "source": "B",
+      "drain": "vdd",
+      "gate": "vin"
+    },
+    {
+      "name": "M6",
+      "kind": "nmos",
+      "source": "gnd",
+      "drain": "B",
+      "gate": "VNB1"
+    },
+    {
+      "name": "M1",
+      "kind": "nmos",
+      "source": "vout",
+      "drain": "vdd",
+      "gate": "A"
+    },
+    {
+      "name": "M2",
+      "kind": "pmos",
+      "source": "vout",
+      "drain": "gnd",
+      "gate": "B"
+    }
+  ],
+  "passive_elements": [],
+  "ports": {
+    "vin": {
+      "role": "single_ended_input",
+      "direction": "input"
+    },
+    "vout": {
+      "role": "single_ended_output",
+      "direction": "output"
+    }
+  },
+  "symmetry": {
+    "matching_pairs": [],
+    "_comment": "미판정 -- find_matching_candidates() 후보를 사용자와 공동 판정해 채운다."
+  },
+  "sizing_roles": null,
+  "device_roles": null
+}
