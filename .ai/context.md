@@ -1,16 +1,30 @@
-- U-31 사용자 결정(2026-09-15, "CL은 load cap이잖아. 1pF이면 그냥 스펙으로 봐도 돼."): folded_cascode CL = 1 pF를 스펙으로 확정(기존 metric 인자 CL 1e-12와 같은 값). 실행 spec·CL 소자 추가는 7b(U-08 포트 선언과 함께). 계획 v5.10 반영 대기.
-��0.42)일 뿐 DRC 아님.
-- run_harness min_finger_w: two_stage_ota 0.1 µm = difftap.2 위반(U-30 답: 의도 아닌 오류), 나머지 1 µm·W_bounds 하한 1 µm = 무근거. 사용자 결정: 실행 spec 교체는 Phase 4(PDK 상수 한 곳 선언, 출처 명시, W_bounds 하한은 min_finger_w에서 유도, 전후 self-test·사이징 비교). lut-generation-checklist.md:288 갱신.
-- 계획 v5.10(검증 중) 반영 대기: U-30 닫힘(오류, Phase 4 정정), Phase 4 PDK 상수 항목에 규칙 출처, U-26 nmcnr ±0.9 V, U-27 VS 축 상한 1.8 V.
-로 고칠 것.
-� 회로 레일 선언·wall_clock_budget_s).
-- 루프 분류 우선순위(N3.2-2): (0) 자기 엣지 제외 (1) 교류접지·여기 포트 경유 제외 (2) 커패시터 포함 수동 복귀 = 보상 루프, 바이어스 노드끼리의 저항 국소 되먹임 (3) 순방향 밖 능동 셀 포함 = 루프 뷰 (4) 나머지 `기록만`. 병렬 셀 한 블록 = 신호 입력 단자 기준. 블록 사이 주 신호 분기는 `기록만`, 측면 주입은 K8+MT3.
-- J3 기본안 Vop1(6a-2 ratify 대상 -- 작성 agent가 확정 문장으로 썼다가 검증에서 되돌림). 이월 중간·낮음은 disposition 이월 표.
-out ≤ 1 kΩ, R1·Cc 유도.
-- 스펙은 각 topology `_paper_target_spec`(문서 전용, 엔진 미사용). ★엔진은 레일을 이름 집합(sizing_recipe.py:3882-3883, stick_diagram.py:3147)으로만 판정해 `agnd`를 못 읽는다 -> run_harness SPECS 이관은 계획 DEC-60(supply_nets/supplies) 구현 뒤.
-- 대기 정정(미반영): two_stage_ota.topology.json 입력 이름 극성 반대(M1.gate vin_p -> vin_n, M2 반대), 사용자 확정, 일괄 반영 지시 대기, 영향 조사 필요(계획 I-A14).
-- symmetry(matching_pairs)는 세 회로 모두 미판정(공동 판정 대기).
-� 5단계로 진행. **1단계**: 세션27이
+# 세션 컨텍스트
+
+**⚠️⚠️ 다음 세션은 여기서 시작하지 말고 (1) 계획 문서
+`docs/01-plan/features/gain-budget-gmid-sizing.plan.md`의 **§0. 이어받을 지점**을 먼저 읽고,
+(2) 이 파일 맨 끝 "# 세션46 -- 계획을 말이 아니라 코드로 옮기다: 배선 후에야 드러난
+결함 5개(B15~B19)"를 읽을 것.** 세션46에서 계획이 **v4.19**까지 왔고, 세션45가 만들어만
+두고 배선하지 않은 함수들을 실제 경로에 넣었다. 그 결과 **물리적으로 불가능하던 사이징이
+가능한 사이징이 됐고**(`stack_headroom_slack` −1.35 → 0, 면적이 처음으로 측정됨:
+936µm², 제약 걸면 792까지), 그 과정에서 아무도 지적하지 않은 결함 5개를 찾아 4개를 고쳤다.
+
+**다음 장애물은 코드가 아니라 회로 설계 판단이다(B19)**: 게이트·소스를 공유하는 미러
+3그룹 11소자의 VGS가 최대 464mV 벌어져 있는데, 고치면 M8/M17이 W≈1545µm(상한의 7.7배)를
+요구해 **현재 동작점에선 회로가 성립하지 않는다** — bias generator의 전류(`Iref`=1.2µA)나
+L을 다시 잡는 사용자 결정이 먼저다. 면적 예산을 고르는 것도 사용자 몫이다(계획 v3.4).
+
+그 이전 이력: 세션45("# 세션45 -- 4개 관점 독립 검토...")는 계획을 v3.4→v4.15로 끌어올리고
+계기판 5개를 신설했다(검토자 지적을 실측으로 확인, 6건은 검토자가 틀렸음을 확인). 세션44는
+3부로 진행됐다: 1부 "# 세션44 결론"(gain_db 재도출/재현성 버그 수정, 커밋
+`c67cf75`), 2부 "# 세션44 (계속)"(class-AB Up/Down 대칭성 조사 + Rz 배선, 커밋
+`c8dd526`), 3부 "# 세션44 (계속 2)"(사이징 엔진의 실제 맹점 발견 + 범용 2단계
+엔진 신설, 커밋 `94b1f36`). "# 세션42 최종 완료"~"# 세션31 결론"은 더 이전 이력이다.
+아래는 세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가
+궁금할 때만 찾아보면 된다.
+
+---
+
+(최종 갱신: 2026-08-11, 세션28 완료 — 5단계로 진행. **1단계**: 세션27이
 남긴 최우선 항목①(헤드룸용 `vertical_stack_id` 병합이 레이아웃 오일러 검증에 미친 영향)을
 Test 47 교체+self-test 재실행+`resolve_stack_layout()` 직접 실행으로 검증하고 "재설계
 불필요"로 결론냈으나, **2단계**에서 사용자 질문("resolve_stack_layout에서 왜 pmos/nmos가
@@ -14606,3 +14620,54 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 * 계획 v5.3: 사용자 "DEC-04 사용자 결정은 다시 검토해. 난 강제하고 싶지 않아." -> DEC-04(input+cascode 동시 결정) 철회, 소자마다 gm_id·L 독립 결정변수(결합은 목적·제약이 만든다). v5.2 근거에서 DEC-04 제거(캐스코드 같은 stage는 gain 평가 단위 때문). 내층 DP는 셀별 독립 벡터, 전수가 예산 초과면 셀 좌표강하. ⚠️ 교훈: 내가 방금 v5.2 근거로 DEC-04를 끌어다 썼다 -- 옛 결정을 근거로 쓸 때 현재도 사용자 의도인지 확인할 것.
 * 계획 v5.4(2026-09-15): 사용자 "1을 넣자." -> 블록 속성(이득 블록/버퍼 블록, 전압 이득·출력 임피던스·최대 출력 전류)과 출력 구동 규칙(driving_spec 있으면 출력 블록 바이어스 전류 ≥ max(KCL, SR×CL_total)) 반영, DEC-58.
 * 계획 v5.5: DEC-04 보완(등식 관계 제외한 독립, 강결합 셀 그룹 좌표강하), U-23 신설(입력-캐스코드 L 동일 강제 복원 여부는 7b 실측: 평가 수·전력·제약 여유·면적/레이아웃), NFR-5 신설(사용자 목표: 불필요한 iteration 줄이고 성능·레이아웃을 스펙오버 없이 딱 맞게).
+
+### 세션48 -- plan v5.6 (review3 반영, 2026-09-15)
+- agent 3개 검토 원자료: `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_*` (L 동일+VDS 대안 비교, L 동일 레이아웃 효과, stage 분할 문헌).
+- 결론: 독립 L 유지(블록 단일 L은 파일럿에서 회로 단일 L로 붕괴, kind 결합은 분리성 파괴, W 한계는 VDS로 대체 불가). LR5 동치류별 격자+확장 규칙, LR7 VDS·L 동시 평가 조건, NFR-5 활성 제약 한정, LR8 행 안 L 통일은 폭 감소 없음(실측), U-23 비교군·지표 구체화.
+- stage: 캐스코드 같은 stage는 문헌 일치. 극점·보상 기준은 버퍼도 한 단 -> 극점 노드 목록 신설(GB5 소비), J10 기본안 독립 버퍼 블록, 분류 밖 사례 review_needed 3종. I-A12 pitch overhead 0, I-A13 dummy·LDE 미반영.
+
+### 세션48 -- plan v5.7 (CM 입력 뷰·CMFB 루프 뷰, 2026-09-15)
+- 사용자 지적: 파일럿에 CMFB 루프가 있다(v5.6 보고의 "CMFB 루프 metric 선언 회로 없음"은 오류). M1a/M1b는 DM에서 CS.
+- 결론: 셀 분류는 여기 뷰마다. DM 뷰(M1a/M1b·M4a/M4b CS), CM 입력 뷰(source 비접지 CS), CMFB 루프 뷰(M7 전류가 Vx로 -> M1a/M1b CG, nmos 반쪽은 Vom1/Vop1 부하).
+- 반영: N3.2-2/3/4/6/8, DEC-57, 용어집 여기 뷰, K7(M7 전류 분할·뷰 공유 소자), J11(CMFB 루프 공동분석), U-24(CMFB 안정도 제약 선언, 7b 착수 조건), N9 6a design 범위.
+
+### 세션48 -- plan v5.8 (여기 뷰 일반화, 2026-09-15)
+- 사용자: v5.7 뷰 3종(DM·CM 입력·CMFB 루프)이 current reuse 특화.
+- 대체: 전달 뷰(metric (excite, sense)마다) + 루프 뷰(전달 순방향 경로 밖 능동 셀을 포함한 되먹임 루프마다, 끊는 점 = 루프 전용 CS gate). 셀 우선순위(gate 신호 > source 신호 > pass)로 gate->source 우회로 차단. DM 뷰는 대칭 축약(기모드/우모드) 계산 수단, 비축약과 대조. gain 할당은 gain 제약 metric의 전달 뷰.
+- 미측정: 셀 우선순위 적용 후 R3 100% 유지 여부, 축약/비축약 일치, 4회로 루프 탐지 결과 -> 6a 검증(N3.2-8).
+
+### 세션48 -- library 신규 topology 3종과 스펙 (2026-09-15, 사용자 확정)
+- 출처: P.E. Allen, CMOS Analog Circuit Design, Lecture 26 Buffered Op Amps (aicdesign.org lecture26-140625.pdf). 넷 표는 오케스트레이터 판독 -> 사용자 항목별 확정.
+- `two_stage_ota_sf` (p.26-5): two_stage_ota(M1~M7) + NMOS 소스 팔로워 M8(sink M9), Cc O1–OUT, CL vout–gnd. 입력 극성은 도면(M1 "−", M2 "+"). M1/M2·M8 body effect 있음.
+  - 스펙: two_stage_ota 정본(run_harness._spec_two_stage_ota + two_stage_ota.topology.json sizing_roles)을 참조 상속, 추가는 CL 3 pF@vout, Rout ≤ 1 kΩ(도면 값 없음, L26 버퍼 기준).
+  - ★알아둘 점: 상속한 gain metric 감지 노드는 OUT이 아니라 vout -- 팔로워 감쇠 gm8/(gm8+gmbs8+gds8+gds9)만큼 깎인 상태로 같은 gain 제약을 맞춰야 한다. SPECS 등록 시 metric sense_p를 vout으로.
+- `pushpull_follower_buffer` (p.26-4 = p.26-6 gray box 버퍼): 팔로워 2단 연쇄 class-AB, 대칭 입력쌍 없음(구조 대조 사례), 레일 vdd/vss + CL vout–agnd. 사이징 대상에 포함(사용자 결정). 스펙: 레일 1.8/0/0.9 V, vin DC = agnd, CL 1 pF, Rout ≤ 1 kΩ, 최소 전력, 대역폭은 보고만.
+- `sf_pushpull_output_opamp` (p.26-6 Fig. 7.1-1): MOS 22, R1a/b/c 자기바이어스 캐스코드, Cc Y–agnd(Miller 아님), IBias vdd->NB. 스펙: 레일 1.8/0/0.9 V(도면 ±0.9/0 V와 원점 이동 동등), IBias 50 µA, CL 1 pF, Av ≥ 65 dB, GB ≥ 60 MHz, Rout ≤ 1 kΩ, R1·Cc 유도.
+- 스펙은 각 topology `_paper_target_spec`(문서 전용, 엔진 미사용). ★엔진은 레일을 이름 집합(sizing_recipe.py:3882-3883, stick_diagram.py:3147)으로만 판정해 `agnd`를 못 읽는다 -> run_harness SPECS 이관은 계획 DEC-60(supply_nets/supplies) 구현 뒤.
+- 대기 정정(미반영): two_stage_ota.topology.json 입력 이름 극성 반대(M1.gate vin_p -> vin_n, M2 반대), 사용자 확정, 일괄 반영 지시 대기, 영향 조사 필요(계획 I-A14).
+- symmetry(matching_pairs)는 세 회로 모두 미판정(공동 판정 대기).
+
+### 세션48 -- two_stage_ota 입력 극성 정정 완료 (2026-09-15)
+- 확인: 넷리스트만으로 푼 독립 소신호 MNA(scratchpad sf/probe_input_polarity.py, gm·gds 균일, 부호만) -- 정정 전 vin_p 단독 +1 V -> OUT −2487(반전). 이름이 반대로 붙어 있었다. two_stage_ota_sf, sf_pushpull_output_opamp는 정상(비반전).
+- 정정: two_stage_ota.topology.json과 stick_diagram.py two_stage_ota_example()에서 M1.gate vin_p -> vin_n, M2.gate vin_n -> vin_p(self-test 26이 두 곳 connectivity를 대조하므로 함께). 정정 후 vin_p -> OUT +2488(비반전).
+- 영향: 수정 전 커밋(HEAD worktree)과 수정 후의 self-test stdout 대조 -- sizing_recipe 0줄, stick_diagram 0줄(worktree 경로 문자열 1줄만 다름). stick_diagram은 tests/baseline과도 0줄. gain_db는 크기만, 입력환산 오프셋은 ports direction만 써서 부호 무관.
+- 참고: tests/baseline/sizing_recipe.selftest.baseline.log는 현 HEAD와 55줄 다르다(2026-09-10 이후 derive_role_L 교체 등 커밋이 기준선을 갱신하지 않음) -- 이번 변경과 무관, 기준선 갱신 여부는 별도 판단.
+
+### 세션48 -- plan v5.9 (일반성 개선, 2026-09-15)
+- 독립 일반성 감사(review4_generality_audit.md, 판정 "부분 종속") -> 작성 agent 반영 -> 독립 검증 5회(review4_v59_verify ~ reverify4) -> 막음·높음 0에서 커밋. 결정표·이월 목록 review4_v59_disposition.md.
+- 핵심: DEC-59(지원 범위 = 규칙 분기 검증 발동, `기록만` 분기 항상 정지 `unsupported_rule_branch`), DEC-60(레일 넷 topology `supply_nets` / 전압 스펙 `supplies`, 미선언은 현행 이름 집합 전환기 해석), DEC-61(소자 선택 필드 `bulk`, 기본 nmos=최저·pmos=최고 레일, vsb 노드전압 유도, 봉인 항목 6 source·drain 접합 역바이어스), DEC-62(새 토폴로지는 데이터만). DF-23~26, IC11(원점 이동 불변), K7·K8(뷰 공유 소자, 측면 주입), J12, U-25(신규 3회로 스펙 확정), U-26(기존 회로 레일 선언·wall_clock_budget_s).
+- 루프 분류 우선순위(N3.2-2): (0) 자기 엣지 제외 (1) 교류접지·여기 포트 경유 제외 (2) 커패시터 포함 수동 복귀 = 보상 루프, 바이어스 노드끼리의 저항 국소 되먹임 (3) 순방향 밖 능동 셀 포함 = 루프 뷰 (4) 나머지 `기록만`. 병렬 셀 한 블록 = 신호 입력 단자 기준. 블록 사이 주 신호 분기는 `기록만`, 측면 주입은 K8+MT3.
+- J3 기본안 Vop1(6a-2 ratify 대상 -- 작성 agent가 확정 문장으로 썼다가 검증에서 되돌림). 이월 중간·낮음은 disposition 이월 표.
+
+### 세션48 -- nmcnr sky130 전원 ±0.9 V (2026-09-15)
+- 옛 run_harness nmcnr "vdd": 2.0은 논문(AMS 0.8um) ±1V를 폭으로 옮긴 미검증 추정(topology supply_v 주석 "실제 검증은 harness 작성 시 필요", 커밋 41f95e5)이었다. sky130 정격·LUT VDS/VGS 0~1.8V와 불일치.
+- 사용자 결정("1.8로 고쳐", "+-0.9로 고치고"): sky130 재설계 전원 ±0.9V. topology `_paper_target_spec.performance_targets_nmcnr.sky130_supplies_v`에 기록, run_harness는 스칼라 vdd만 받으므로 1.8(원점 이동 동등). 분할 레일 실행은 DEC-60 구현 뒤.
+- 영향: self-test stdout 변경 전후 동일(sizing_recipe 0줄, stick_diagram 0줄) -- self-test가 nmcnr harness spec을 쓰지 않음.
+- 계획 v5.10(검증 중)의 U-26 nmcnr 레일 "2.0/0"은 ±0.9 V로, U-27 LUT VS 축 상한은 최대 레일 전위차 1.8 V로 고칠 것.
+
+### 세션48 -- sky130 최소 채널 폭 1차 출처 확보 (2026-09-15)
+- 공식 periphery rules: difftap.2 = 0.420 µm(표준셀 밖), difftap.2b = 0.360 µm(표준셀 안), poly.1a = 0.150 µm, poly.1b(lvtn pfet) L ≥ 0.350 µm. 로컬 bins.csv는 모델 유효 범위(nfet W≥0.36, pfet W≥0.42)일 뿐 DRC 아님.
+- run_harness min_finger_w: two_stage_ota 0.1 µm = difftap.2 위반(U-30 답: 의도 아닌 오류), 나머지 1 µm·W_bounds 하한 1 µm = 무근거. 사용자 결정: 실행 spec 교체는 Phase 4(PDK 상수 한 곳 선언, 출처 명시, W_bounds 하한은 min_finger_w에서 유도, 전후 self-test·사이징 비교). lut-generation-checklist.md:288 갱신.
+- 계획 v5.10(검증 중) 반영 대기: U-30 닫힘(오류, Phase 4 정정), Phase 4 PDK 상수 항목에 규칙 출처, U-26 nmcnr ±0.9 V, U-27 VS 축 상한 1.8 V.
+- U-31 사용자 결정(2026-09-15, "CL은 load cap이잖아. 1pF이면 그냥 스펙으로 봐도 돼."): folded_cascode CL = 1 pF를 스펙으로 확정(기존 metric 인자 CL 1e-12와 같은 값). 실행 spec·CL 소자 추가는 7b(U-08 포트 선언과 함께). 계획 v5.10 반영 대기.
+- U-30 정정 시점 사용자 원문(2026-09-15): "2번은 phase4에서 해." (실행 spec min_finger_w·W_bounds 교체를 Phase 4 PDK 상수 일원화에서)
