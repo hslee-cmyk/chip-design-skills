@@ -1,26 +1,15 @@
 
-### 세션48 -- plan v5.8 (여기 뷰 일반화, 2026-09-15)
-- 사용자: v5.7 뷰 3종(DM·CM 입력·CMFB 루프)이 current reuse 특화.
-- 대체: 전달 뷰(metric (excite, sense)마다) + 루프 뷰(전달 순방향 경로 밖 능동 셀을 포함한 되먹임 루프마다, 끊는 점 = 루프 전용 CS gate). 셀 우선순위(gate 신호 > source 신호 > pass)로 gate->source 우회로 차단. DM 뷰는 대칭 축약(기모드/우모드) 계산 수단, 비축약과 대조. gain 할당은 gain 제약 metric의 전달 뷰.
-- 미측정: 셀 우선순위 적용 후 R3 100% 유지 여부, 축약/비축약 일치, 4회로 루프 탐지 결과 -> 6a 검증(N3.2-8).
-극점 노드 목록 신설(GB5 소비), J10 기본안 독립 버퍼 블록, 분류 밖 사례 review_needed 3종. I-A12 pitch overhead 0, I-A13 dummy·LDE 미반영.
-�� 판단이다(B19)**: 게이트·소스를 공유하는 미러
-3그룹 11소자의 VGS가 최대 464mV 벌어져 있는데, 고치면 M8/M17이 W≈1545µm(상한의 7.7배)를
-요구해 **현재 동작점에선 회로가 성립하지 않는다** — bias generator의 전류(`Iref`=1.2µA)나
-L을 다시 잡는 사용자 결정이 먼저다. 면적 예산을 고르는 것도 사용자 몫이다(계획 v3.4).
-
-그 이전 이력: 세션45("# 세션45 -- 4개 관점 독립 검토...")는 계획을 v3.4→v4.15로 끌어올리고
-계기판 5개를 신설했다(검토자 지적을 실측으로 확인, 6건은 검토자가 틀렸음을 확인). 세션44는
-3부로 진행됐다: 1부 "# 세션44 결론"(gain_db 재도출/재현성 버그 수정, 커밋
-`c67cf75`), 2부 "# 세션44 (계속)"(class-AB Up/Down 대칭성 조사 + Rz 배선, 커밋
-`c8dd526`), 3부 "# 세션44 (계속 2)"(사이징 엔진의 실제 맹점 발견 + 범용 2단계
-엔진 신설, 커밋 `94b1f36`). "# 세션42 최종 완료"~"# 세션31 결론"은 더 이전 이력이다.
-아래는 세션 진행 중 실시간으로 쌓인 상세 이력이라 양이 많다 -- 특정 결정의 "왜"가
-궁금할 때만 찾아보면 된다.
-
----
-
-(최종 갱신: 2026-08-11, 세션28 완료 — 5단계로 진행. **1단계**: 세션27이
+### 세션48 -- library 신규 topology 3종과 스펙 (2026-09-15, 사용자 확정)
+- 출처: P.E. Allen, CMOS Analog Circuit Design, Lecture 26 Buffered Op Amps (aicdesign.org lecture26-140625.pdf). 넷 표는 오케스트레이터 판독 -> 사용자 항목별 확정.
+- `two_stage_ota_sf` (p.26-5): two_stage_ota(M1~M7) + NMOS 소스 팔로워 M8(sink M9), Cc O1–OUT, CL vout–gnd. 입력 극성은 도면(M1 "−", M2 "+"). M1/M2·M8 body effect 있음.
+  - 스펙: two_stage_ota 정본(run_harness._spec_two_stage_ota + two_stage_ota.topology.json sizing_roles)을 참조 상속, 추가는 CL 3 pF@vout, Rout ≤ 1 kΩ(도면 값 없음, L26 버퍼 기준).
+  - ★알아둘 점: 상속한 gain metric 감지 노드는 OUT이 아니라 vout -- 팔로워 감쇠 gm8/(gm8+gmbs8+gds8+gds9)만큼 깎인 상태로 같은 gain 제약을 맞춰야 한다. SPECS 등록 시 metric sense_p를 vout으로.
+- `pushpull_follower_buffer` (p.26-4 = p.26-6 gray box 버퍼): 팔로워 2단 연쇄 class-AB, 대칭 입력쌍 없음(구조 대조 사례), 레일 vdd/vss + CL vout–agnd. 사이징 대상에 포함(사용자 결정). 스펙: 레일 1.8/0/0.9 V, vin DC = agnd, CL 1 pF, Rout ≤ 1 kΩ, 최소 전력, 대역폭은 보고만.
+- `sf_pushpull_output_opamp` (p.26-6 Fig. 7.1-1): MOS 22, R1a/b/c 자기바이어스 캐스코드, Cc Y–agnd(Miller 아님), IBias vdd->NB. 스펙: 레일 1.8/0/0.9 V(도면 ±0.9/0 V와 원점 이동 동등), IBias 50 µA, CL 1 pF, Av ≥ 65 dB, GB ≥ 60 MHz, Rout ≤ 1 kΩ, R1·Cc 유도.
+- 스펙은 각 topology `_paper_target_spec`(문서 전용, 엔진 미사용). ★엔진은 레일을 이름 집합(sizing_recipe.py:3882-3883, stick_diagram.py:3147)으로만 판정해 `agnd`를 못 읽는다 -> run_harness SPECS 이관은 계획 DEC-60(supply_nets/supplies) 구현 뒤.
+- 대기 정정(미반영): two_stage_ota.topology.json 입력 이름 극성 반대(M1.gate vin_p -> vin_n, M2 반대), 사용자 확정, 일괄 반영 지시 대기, 영향 조사 필요(계획 I-A14).
+- symmetry(matching_pairs)는 세 회로 모두 미판정(공동 판정 대기).
+� 5단계로 진행. **1단계**: 세션27이
 남긴 최우선 항목①(헤드룸용 `vertical_stack_id` 병합이 레이아웃 오일러 검증에 미친 영향)을
 Test 47 교체+self-test 재실행+`resolve_stack_layout()` 직접 실행으로 검증하고 "재설계
 불필요"로 결론냈으나, **2단계**에서 사용자 질문("resolve_stack_layout에서 왜 pmos/nmos가
