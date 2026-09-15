@@ -1,6 +1,5 @@
-
-### 세션48 -- sky130 최소 채널 폭 1차 출처 확보 (2026-09-15)
-- 공식 periphery rules: difftap.2 = 0.420 µm(표준셀 밖), difftap.2b = 0.360 µm(표준셀 안), poly.1a = 0.150 µm, poly.1b(lvtn pfet) L ≥ 0.350 µm. 로컬 bins.csv는 모델 유효 범위(nfet W≥0.36, pfet W≥0.42)일 뿐 DRC 아님.
+- U-31 사용자 결정(2026-09-15, "CL은 load cap이잖아. 1pF이면 그냥 스펙으로 봐도 돼."): folded_cascode CL = 1 pF를 스펙으로 확정(기존 metric 인자 CL 1e-12와 같은 값). 실행 spec·CL 소자 추가는 7b(U-08 포트 선언과 함께). 계획 v5.10 반영 대기.
+��0.42)일 뿐 DRC 아님.
 - run_harness min_finger_w: two_stage_ota 0.1 µm = difftap.2 위반(U-30 답: 의도 아닌 오류), 나머지 1 µm·W_bounds 하한 1 µm = 무근거. 사용자 결정: 실행 spec 교체는 Phase 4(PDK 상수 한 곳 선언, 출처 명시, W_bounds 하한은 min_finger_w에서 유도, 전후 self-test·사이징 비교). lut-generation-checklist.md:288 갱신.
 - 계획 v5.10(검증 중) 반영 대기: U-30 닫힘(오류, Phase 4 정정), Phase 4 PDK 상수 항목에 규칙 출처, U-26 nmcnr ±0.9 V, U-27 VS 축 상한 1.8 V.
 로 고칠 것.
