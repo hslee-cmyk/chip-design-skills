@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 5.3
+version: 5.4
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -86,6 +86,8 @@ version: 5.3
 | 출력노드 | stage 안에서 신호가 마지막으로 도달해 다음 stage 입력 또는 출력 포트로 넘어가는 노드. CS·CG 사슬이면 drain 노드(고임피던스), CD·pass로 끝나면 source(또는 pass의 반대쪽 단자) 노드(저임피던스일 수 있다). 임피던스 등급은 노드 속성으로 기록한다 |
 | 노드 어드미턴스 | 노드에 붙은 소자 단자별 소신호 기여의 합: drain 단자 gds, source 단자 gm+gmb+gds(게이트가 교류접지일 때), 수동소자 어드미턴스. 캐스코드·follower 효과는 아래 블록 국소 모델이 자동으로 포함한다 |
 | 블록 gain | 블록 국소 소신호 모델(N3.8)로 푼 출력노드 대 입력의 전압비(dB). CS 한 단의 특수 케이스가 `20·log10(gm_in / G_out)`, CD 한 단의 특수 케이스가 `20·log10(gm / (gm + gmb + G_node))` |
+| 블록 종류 | **이득 블록**(CS로 시작하는 전압 이득 stage, gain 할당 대상) / **버퍼 블록**(CD·pass로 끝나는 구간, 할당 대상 아님 -- 출력 임피던스와 구동 전류로 평가). 버퍼를 독립 블록으로 둘지는 J10 |
+| 블록 속성 | 블록마다 계산해 기록하는 값: 전압 이득(블록 국소 모델), 출력 임피던스(같은 모델에서 출력노드 테브난 임피던스), 최대 출력 전류(출력노드로 흘릴 수 있는 바이어스 전류) |
 | 결합 블록(coupling block) | signal stage 하나에 대응하는 할당 단위 |
 | 결합변수 y | 두 결합 블록 이상에 걸친 관계 엣지의 상태(K1~K4) |
 | 계산 블록(compute block) | 평가 커널을 나눈 계산 단위(입력·출력 선언, S2 memo 단위) |
@@ -222,6 +224,7 @@ gm/ID 사이징의 결정 순서를 **signal stage 유도 -> 보상 -> gain 할�
 | DEC-53 | metric 이름과 단위는 레지스트리로 검증한다 | 2026-09-08 | MOD5 | 구현됨 |
 | DEC-54 | 연속 최적화는 SLSQP를 유지한다. 시작점은 S3 아카이브와 준난수 전역 샘플에서 고른다 | 2026-09-14 | GB9 | 부분(multi-start만) |
 | DEC-55 | passive connectivity(CL1/CL2, Cf1/Cf2 교차, Cs1/Cs2)와 M18b `budget_reference_device`는 파일럿 topology에 반영돼 있다 | 2026-09-10 | GB1 | 구현됨 |
+| DEC-58 | 블록은 이득 블록과 버퍼 블록으로 나눈다. 블록마다 전압 이득·출력 임피던스·최대 출력 전류를 기록하고, `driving_spec`(슬루율·부하 용량)이 선언되면 출력 포트에 닿는 블록의 바이어스 전류 하한 = max(KCL 전류, 슬루율 × CL_total) | 2026-09-15 | GB5, GB6, GB8 | 미구현 |
 | DEC-57 | stage는 **전압 이득 stage**다. 모든 트랜지스터를 셀(CS/CG/CD/pass)로 같은 규칙으로 분류하고, stage 경계는 셀 입력 노드의 구동 종류로 정한다. 캐스코드(전류 구동 CG)는 별도 stage가 아니다 | 2026-09-14 | GB2, N3.2-5 | 미구현 |
 | DEC-56 | L5c 픽스처는 `r_cmfb_vocdes`를 하한 0.02로 고정하고 `stop_after_sizing=True`로 돈다. 이관 뒤 이 입력을 바꾸는 것은 기준 약화(DEC-40) | 2026-09-09~10 | Phase 1 | 구현됨 |
 
@@ -414,11 +417,14 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 * `ID_source` 타입: `kcl` / `ideal_source_ref` / `kvl_battery_loop`(class-AB 정지전류).
 * `compensation: null`(단일단): 기본안 `gm_1 = 2π·GBW·CL`(U-12 확정 전까지 기본안으로 구현하지 않는다).
 
+**출력 구동 규칙(GB5·GB6, DEC-58)**: `driving_spec`에 슬루율과 부하 용량이 선언되면, 출력 포트에 닿는 블록(출력 이득 블록 또는 버퍼 블록)의 출력 소자 바이어스 전류 하한 = max(KCL로 정해진 전류, 슬루율 × CL_total). CL_total = 선언된 부하 용량 + S2의 출력노드 용량. 이 하한은 GB6 할당의 제약으로 들어간다(전류가 올라가면 같은 gm_id에서 gm도 올라 gain 여유가 늘어나는 방향). 슬루율이 선언되지 않으면 KCL 전류만 쓴다. class-AB 출력단의 최대 출력 전류와 슬루 규칙은 J3 결론을 따른다.
+
 ### N3.8 metric
 
 * **gain**: 제약 판정은 `smallsignal_gain_db`(전체회로 MNA, DM 모드) 하나. 회로별 이관: 파일럿 `gain_stages_sum` -> `smallsignal_gain_db`, folded `_metric_folded_cascode_gain_db` -> `smallsignal_gain_db`(ports U-08 선행), nmcnr `_metric_nmcnr_gain_db` -> `smallsignal_gain_db`(ports 선행), two_stage는 이미 MNA.
 * **블록 국소 소신호 모델**: 블록 노드 집합(N3.2-6)만 미지수로 둔 절점방정식을 푼다. 블록 입력 넷은 단위 신호로 구동하고, 블록 밖 노드는 DM 뷰의 교류접지 또는 다음 블록 입력의 부하 어드미턴스(다음 CS 게이트 용량 등)로 고정한다. 소자는 단자별로 gm·gmb·gds·cgg를 스탬프하므로 CS·CG·CD·pass를 따로 분기하지 않는다. 블록 gain = 출력노드 전압 / 입력 전압(dB, 저주파).
 * **gmb**: LUT에는 gmb 열이 없다. LUT VS 축(|VSB|)에서 `gmb = ∂ID/∂VSB`를 수치미분으로 유도하는 함수를 MOD1에 두고, 블록 국소 모델과 전체회로 MNA가 같은 값을 쓴다(현 MNA가 gmb를 넣지 않는 것은 7a에서 함께 고친다).
+* **블록 속성**: 블록 국소 모델에서 전압 이득과 함께 출력노드 테브난 임피던스를 계산하고, 최대 출력 전류(class-A는 출력 소자 바이어스 전류, class-AB는 J3 결론의 규칙)를 기록한다(S2). 이득 블록만 GB6 할당의 결정 대상이고, 버퍼 블록은 전압 이득(1 미만)이 전체 gain 계산에 들어갈 뿐 할당하지 않는다. 출력 임피던스에는 별도 임계값을 두지 않는다 -- `driving_spec`에 부하가 선언되면 전체회로 MNA gain이 그 부하를 포함해 계산되므로 부하 효과는 gain 제약(DEC-05)이 판정한다.
 * **잔차**: 잔차 = MNA gain − Σ 블록 gain. 블록 국소 모델은 블록 밖을 고정한 모델이라 전체회로 MNA와 독립이며, 전체 MNA 해를 잘라 만든 전압비의 곱으로 분해하는 정의는 금지(정의상 참).
 * **감도 게이트**: 봉인 스냅샷마다 영향 집합(SC-e)에서 분해 metric이 읽지 않는 소자를 건드리는 θ 방향으로 섭동한다. 분해 값 변화 ≤ ε 이고 MNA 값 변화 > ε 이면 오류. ε = MNA 선형해 잔차 노름에서 계산한 수치 분해능.
 * **metric 티어**: support(SC-e) ⊆ 블록 하나 -> MT1, 블록별 항의 합 -> MT2, 그 외 -> MT3. MT1·MT2는 내층·중층, MT3는 외층에서만 쓴다.
@@ -779,7 +785,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 6b | 봉인 위반 0(4개 회로), IC1·IC2·IC9·IC10 PASS, SC 거부 케이스 PASS, 사례 76.48 적발, 평가 오버헤드 전후 |
 | 6c | 결합 잔차 표, 블록·y 목록(4개 회로), 달성 불가 픽스처(oracle (a): 목표 gain > 블록 이론 상한 합을 test가 다른 방법으로 계산)에서 탐색 전 INFEASIBLE_TARGET, IC4·IC6·IC8 PASS |
 | 7a | gain 제약이 `smallsignal_gain_db`로 판정, B21 재현 픽스처(6480조합 중 `gain_stages_sum` 변화 0이고 MNA 변화 최대인 두 점)에서 감도 게이트 FAIL, 평가 기록에 MNA-블록 잔차 필드(4개 회로), gain metric `verified_by` 유효(U-11이 SPICE를 7c로 두면 '검증 대기' 표시 + N5.4 명시), 임계값 재도출 기록 |
-| 7b | `gain_budget_db` 출력, 3층 할당이 다른 모델 전수탐색과 격자 분해능 안 일치, `sizing_spec.json` 이관 4개 회로 equivalence, derived 필드마다 status·evidence·rule_hash, 파일럿 wall-clock ≤ 5분(U-13에서 면적 예산을 선언하지 않으면 파일럿 판정은 Pareto 제시·정지와 사용자가 고른 점의 재실행으로) |
+| 7b | `gain_budget_db` 출력, 3층 할당이 다른 모델 전수탐색과 격자 분해능 안 일치, `sizing_spec.json` 이관 4개 회로 equivalence, derived 필드마다 status·evidence·rule_hash, `driving_spec`이 있는 회로에서 출력 블록 바이어스 전류 ≥ max(KCL, 슬루율 × CL_total), 파일럿 wall-clock ≤ 5분(U-13에서 면적 예산을 선언하지 않으면 파일럿 판정은 Pareto 제시·정지와 사용자가 고른 점의 재실행으로) |
 | 7c | SPICE 비교가 N3.8 허용오차 안, 같은 지문 재실행에서 아카이브 적중 > 0이고 θ* 목적값이 첫 실행 이하, IC1~IC10 전원 PASS, 파일럿 wall-clock ≤ 5분 |
 
 ### N6.3 공통 완료 조건
@@ -877,8 +883,8 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | `6a-structure-stage` | S0 해시 구성, S1 스키마(N3.3), 교류접지 3분류, DM 뷰 구성과 SP1 알고리즘(0-1 BFS), 소자 구성 분류와 출력노드·임피던스 등급 판정, 모드 수집, 피드백 극성, status 전이 구현, `structure.json` 형식, shadow 대조 보고 형식, J 대조표 양식, ports 제안표 |
 | `6b-node-voltage-seal` | S2 필드 스키마, SC-a 권한표(필드 × W0~W4), W3 소스 필드, 계산 블록 입출력 선언과 유도 DAG, tol_V·tol_I·반복 상한 구현, 봉인 항목 구현, 버전 카운터, LRU 상한 계산, IC2 섞기 대상, 동등 단언 범위, J8 결론 반영, U-20 반영, I-A6 헤드룸 하한 여부 판정 |
 | `6c-coupling-achievability` | 결합 잔차 측정 절차, 블록·y 추출 규칙(K1~K4), LUT 곡선 검사→해법 매핑, 블록 gain 상한 계산, DOF 변수·등식 표와 수치 rank, `DofReport`, 달성 불가 픽스처와 oracle |
-| `7a-gain-metric` | 회로별 gain metric 이관표, 블록 국소 소신호 모델(경계 조건·스탬프)과 gmb 유도 식, 잔차 계산, 감도 게이트 섭동 방향·ε 계산, MT 분류 규칙, 전력 정의(U-10) 반영, `verified_by`와 SPICE AC gain 대조(U-11), bisection 모드(N3.13)와 U-19 |
-| `7b-compensation-allocation` | `sizing_spec.json` v5 스키마·로더·이관·topology.json 필드 제거 절차, GB5 규칙(단일단 U-12, 3단, class-AB J3), 내층 DP 상태·bin 해상도, 중층 좌표강하 종료, 외층 인자, 면적·Pareto(U-13), U-14, `value_amp` 소비, MOD8 수렴 루프, 다른 모델 대조 test, U-21 반영, 슬루율 필드 명칭(DEC-53 규약 인용) |
+| `7a-gain-metric` | 회로별 gain metric 이관표, 블록 국소 소신호 모델(경계 조건·스탬프)과 gmb 유도 식, 블록 속성(출력 임피던스·최대 출력 전류) 계산, 잔차 계산, 감도 게이트 섭동 방향·ε 계산, MT 분류 규칙, 전력 정의(U-10) 반영, `verified_by`와 SPICE AC gain 대조(U-11), bisection 모드(N3.13)와 U-19 |
+| `7b-compensation-allocation` | `sizing_spec.json` v5 스키마·로더·이관·topology.json 필드 제거 절차, GB5 규칙(단일단 U-12, 3단, class-AB J3), 내층 DP 상태·bin 해상도, 중층 좌표강하 종료, 외층 인자, 면적·Pareto(U-13), U-14, `value_amp` 소비, MOD8 수렴 루프, 다른 모델 대조 test, U-21 반영, 슬루율 필드 명칭(DEC-53 규약 인용), 출력 구동 규칙(DEC-58)과 CL_total 계산 |
 | `7c-archive-spice` | S3 저장 형식·보고, DEC-34 샘플 수 구현, 분지 판정, SPICE 넷리스트 생성·실행 인터페이스와 모델 경로 확인, 비교량·허용오차 계산 |
 
 ### N9.2 모든 design 문서의 필수 절
