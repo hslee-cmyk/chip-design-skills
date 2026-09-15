@@ -6923,8 +6923,8 @@ def two_stage_ota_example() -> list:
         Transistor("M6", "pmos", source="vdd", drain="OUT", gate="O1", w=120, finger_w=15, n_fingers=8, stack_id="top"),
     ]
     mid = [
-        Transistor("M1", "nmos", source="CS", drain="D3", gate="vin_p", w=60, finger_w=10, n_fingers=6, stack_id="mid"),
-        Transistor("M2", "nmos", source="CS", drain="O1", gate="vin_n", w=60, finger_w=10, n_fingers=6, stack_id="mid"),
+        Transistor("M1", "nmos", source="CS", drain="D3", gate="vin_n", w=60, finger_w=10, n_fingers=6, stack_id="mid"),
+        Transistor("M2", "nmos", source="CS", drain="O1", gate="vin_p", w=60, finger_w=10, n_fingers=6, stack_id="mid"),
     ]
     bot = [
         Transistor("M5", "nmos", source="gnd", drain="CS",  gate="bias", w=40, finger_w=10, n_fingers=4, stack_id="bot"),

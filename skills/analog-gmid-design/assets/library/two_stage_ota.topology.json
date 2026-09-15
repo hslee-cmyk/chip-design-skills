@@ -117,14 +117,14 @@
       "kind": "nmos",
       "source": "CS",
       "drain": "D3",
-      "gate": "vin_p"
+      "gate": "vin_n"
     },
     {
       "name": "M2",
       "kind": "nmos",
       "source": "CS",
       "drain": "O1",
-      "gate": "vin_n"
+      "gate": "vin_p"
     },
     {
       "name": "M5",
