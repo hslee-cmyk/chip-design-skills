@@ -1,0 +1,311 @@
+# review7 규칙 분기 발동 측정 (plan v5.12 / 69b151f)
+# library 회로: 7
+
+==============================================================================
+CIRCUIT current_reuse_telescopic_ota | file current_reuse_telescopic_ota.topology.json | MOS 51 | passive 12 | ideal_src 1
+[A 레일] supply_nets 선언: None | 이름집합 판정: ['gnd', 'vdd'] | agnd류 넷: [] | 이름집합이 놓치는 레일: []
+[A2] 이후 계산에 쓴 레일 집합: ['gnd', 'vdd']
+[B 기본 전달 뷰] input ports: ['Vim', 'Vip'] | output ports: ['Vom', 'Vop'] | 가능: True
+[C 교류접지] (1)레일 ['gnd', 'vdd'] | (2)gate전용 미구동 [] | (3)이상전압원 []
+[C2] 신호 도달 넷 수: 24 / 37
+[D 셀 분류] {'CG': 4, 'CS': 19, 'CS_CD_dual_review': 1, 'load_or_bias': 9, 'offpath': 17, 'pass': 1}
+     CG = ['M18a', 'M18b', 'M9a', 'M9b']
+     CS = ['M15', 'M16', 'M1a', 'M1b', 'M25', 'M26', 'M2a', 'M2b', 'M36a', 'M36b', 'M3a', 'M3b', 'M4a', 'M4b', 'M57', 'M58', 'M63', 'M64', 'M7']
+     CS_CD_dual_review = ['M37a']
+     load_or_bias = ['M10', 'M17', 'M19', 'M38', 'M5', 'M6', 'M61', 'M68', 'M8']
+     offpath = ['M11a', 'M11b', 'M12', 'M13', 'M14a', 'M14b', 'M18_bg', 'M20a', 'M20b', 'M21', 'M22', 'M23a', 'M24b', 'M39', 'M40', 'M60', 'M66']
+     pass = ['M37b']
+[E 구동 종류] 전압: ['Vim', 'Vip'] | 전류: ['N1a2a', 'N1b2b', 'N36b', 'N3a4a', 'N3b4b', 'N58_57', 'N64_63', 'Vbias2', 'Vbias3', 'Vcmfb', 'Vg15', 'Vg25', 'Vom', 'Vom1', 'Vop', 'Vop1', 'Vx'] | 값의존(저항 접속): ['N_cc_rz1', 'N_cc_rz2', 'Voc', 'Vom', 'Vom1', 'Vop', 'Vop1'] | 혼재(전압&전류): []
+[F DEC-63 follower 묶음] 개수: 0
+[H K8 측면 주입 후보] 개수: 0 []
+[I 병렬 셀 합류 노드] 개수: 4
+     Vom <- [('M15', 'CS', 'Vg15'), ('M16', 'CS', 'Vop1')]
+     Vom1 <- [('M2a', 'CS', 'Vbias2'), ('M3a', 'CS', 'Vbias3')]
+     Vop <- [('M25', 'CS', 'Vg25'), ('M26', 'CS', 'Vom1')]
+     Vop1 <- [('M2b', 'CS', 'Vbias2'), ('M3b', 'CS', 'Vbias3')]
+[K DEC-65 출력 방향 분류]
+     Vom {'sigma': ['M15:CS', 'M16:CS'], 'beta': [], 'other': [], 'class': 'push-pull(두 방향 sigma)'}
+     Vop {'sigma': ['M25:CS', 'M26:CS'], 'beta': [], 'other': [], 'class': 'push-pull(두 방향 sigma)'}
+[L 신호 루프(근사)] 무향 사이클 차원: 35 | 비자명 SCC 수: 6 | 그래프 내 수동 엣지: 6
+     SCC: ['N1a2a', 'N1b2b', 'N58_57', 'N_cc_rz1', 'N_cc_rz2', 'Ncmfb_tail', 'Vbias2', 'Vcmfb', 'Vg15', 'Vg25', 'Voc', 'Vom', 'Vom1', 'Vop', 'Vop1', 'Vx']
+     SCC: ['N11a11b', 'N11b']
+     SCC: ['N14a14b', 'N14a_14b']
+     SCC: ['N20a20b', 'N20b']
+     SCC: ['N23a24b', 'N24b23a']
+     SCC: ['N64_63', 'Vbias3', 'Vy']
+[L2 루프 분류 (0)~(4)] 총 기본폐경로: 36 | (2)Miller형: 1 | (3)루프뷰: 19 | (4)기록만->DEC-59 정지: 16
+       (2)Miller형_수동복귀 ['M18a', 'M25']
+       (3)루프뷰_순방향밖능동 ['M6', 'M8']
+       (3)루프뷰_순방향밖능동 ['M6', 'M8']
+       (3)루프뷰_순방향밖능동 ['M6', 'M8']
+       (3)루프뷰_순방향밖능동 ['M6', 'M8']
+       (3)루프뷰_순방향밖능동 ['M10', 'M12']
+       (3)루프뷰_순방향밖능동 ['M6', 'M8']
+       (3)루프뷰_순방향밖능동 ['M13', 'M8']
+       (3)루프뷰_순방향밖능동 ['M22', 'M6']
+       (3)루프뷰_순방향밖능동 ['M22', 'M6']
+       (3)루프뷰_순방향밖능동 ['M12', 'M21']
+       (3)루프뷰_순방향밖능동 ['M12', 'M19']
+       (3)루프뷰_순방향밖능동 ['M17', 'M6']
+       (4)기록만_정지 ['M2a']
+       (4)기록만_정지 ['M1a', 'M1b', 'M2a', 'M2b']
+       (4)기록만_정지 ['M1a', 'M1b', 'M2a', 'M2b']
+       (4)기록만_정지 ['M3a']
+       (4)기록만_정지 ['M2a', 'M2b', 'M3a', 'M3b']
+       (4)기록만_정지 ['M2a', 'M2b', 'M3a', 'M3b']
+       (4)기록만_정지 ['M18a']
+       (4)기록만_정지 ['M18a', 'M18b']
+       (4)기록만_정지 ['M18a', 'M25', 'M26']
+       (4)기록만_정지 ['M64']
+       (4)기록만_정지 ['M63', 'M64']
+       (4)기록만_정지 ['M1a', 'M2a', 'M58']
+[G DEC-64 G_vgs 사이클] v0(equal_vgs): 16 | v1(포트 차): 1 | v2(kvl_branch): 4 | self: 0
+     v1: ['M1a', 'M1b', 'M4a', 'M4b']
+     v2: {'members': ['M11a', 'M11b', 'M15', 'M9a'], 'via_rail': True}
+     v2: {'members': ['M14a', 'M14b', 'M16', 'M9b'], 'via_rail': True}
+     v2: {'members': ['M18a', 'M20a', 'M20b', 'M25'], 'via_rail': True}
+     v2: {'members': ['M18b', 'M23a', 'M24b', 'M26'], 'via_rail': True}
+[G2 VDS-1 후보] {'cyc_dim_vgs_only': 21, 'cyc_dim_vgs_plus_vds': 69, 'vds_bearing_independent_cycles': 48}
+[J1 DEC-70 저항 판정] 전체 저항: ['R1', 'R2', 'Rz1', 'Rz2'] | 잎 가지치기로 잘림(파생값): ['Rz1', 'Rz2'] | 남음(theta): ['R1', 'R2']
+[J2 DEC-71 가지·기둥] 분기/레일 노드: 11 ['Ncmfb_tail', 'Vg15', 'Vg25', 'Vom', 'Vom1', 'Vop', 'Vop1', 'Vx', 'Vy', 'gnd', 'vdd']
+     가지 수: 32
+         Ncmfb_tail -- vdd ['M37a', 'M36a']
+         Ncmfb_tail -- vdd ['M37b', 'M36b']
+         Ncmfb_tail -- gnd ['M38']
+         Vg15 -- vdd ['M8']
+         Vg15 -- Vop1 ['M9a']
+         Vg15 -- Vop1 ['M9b']
+         Vg25 -- Vom1 ['M18a']
+         Vg25 -- Vom1 ['M18b']
+         Vg25 -- vdd ['M17']
+         Vom -- vdd ['M15']
+         Vom -- gnd ['M16']
+         Vom -- Vop ['R1', 'R2']
+         Vom1 -- Vx ['M2a', 'M1a']
+         Vom1 -- Vy ['M3a', 'M4a']
+         Vom1 -- gnd ['M19']
+         Vop -- vdd ['M25']
+         Vop -- gnd ['M26']
+         Vop1 -- Vx ['M2b', 'M1b']
+         Vop1 -- Vy ['M3b', 'M4b']
+         Vop1 -- gnd ['M10']
+         Vx -- vdd ['M6']
+         Vx -- vdd ['M7']
+         Vx -- gnd ['M58', 'M57', 'M68']
+         Vy -- gnd ['M5']
+         Vy -- vdd ['M63', 'M64', 'M61']
+         gnd -- vdd ['M12', 'M11b', 'M11a']
+         gnd -- vdd ['M14b', 'M14a', 'M13']
+         gnd -- vdd ['M21', 'M20b', 'M20a']
+         gnd -- vdd ['M24b', 'M23a', 'M22']
+         gnd -- vdd ['M66', 'M60']
+         gnd -- vdd ['M40', 'M39']
+         gnd -- vdd ['Iref', 'M18_bg']
+     기둥(하단레일->상단레일 단순경로) 수: 62 | 열거 상한 초과: False
+     손선언 vertical_stack_id 개수: 51 | 서로 다른 값: 22
+
+==============================================================================
+CIRCUIT folded_cascode | file folded_cascode.topology.json | MOS 13 | passive 0 | ideal_src 1
+[A 레일] supply_nets 선언: None | 이름집합 판정: ['gnd', 'vdd'] | agnd류 넷: [] | 이름집합이 놓치는 레일: []
+[A2] 이후 계산에 쓴 레일 집합: ['gnd', 'vdd']
+[B 기본 전달 뷰] input ports: [] | output ports: [] | 가능: False
+[B!] ports 선언 없음 -> N3.2-2 기본 전달 뷰 구성 불가 -> SP1·셀·구동종류·루프·K8·DEC-63·DEC-65 전부 발동 0(측정 불가). U-08 대기
+[G DEC-64 G_vgs 사이클] v0(equal_vgs): 4 | v1(포트 차): 0 | v2(kvl_branch): 0 | self: 0
+[G2 VDS-1 후보] {'cyc_dim_vgs_only': 4, 'cyc_dim_vgs_plus_vds': 14, 'vds_bearing_independent_cycles': 10}
+[J1 DEC-70 저항 판정] 전체 저항: [] | 잎 가지치기로 잘림(파생값): [] | 남음(theta): []
+[J2 DEC-71 가지·기둥] 분기/레일 노드: 5 ['X', 'Y', 'gnd', 'tail', 'vdd']
+     가지 수: 8
+         X -- vdd ['M3']
+         X -- gnd ['M6', 'M8', 'M10']
+         X -- tail ['M1']
+         Y -- vdd ['M4']
+         Y -- gnd ['M5', 'M7', 'M9']
+         Y -- tail ['M2']
+         gnd -- tail ['M11']
+         gnd -- vdd ['MN', 'Ibg', 'MP']
+     기둥(하단레일->상단레일 단순경로) 수: 7 | 열거 상한 초과: False
+     손선언 vertical_stack_id 개수: 13 | 서로 다른 값: 13
+
+==============================================================================
+CIRCUIT nmcnr_amplifier | file nmcnr_amplifier.topology.json | MOS 15 | passive 0 | ideal_src 0
+[A 레일] supply_nets 선언: None | 이름집합 판정: ['vdd', 'vss'] | agnd류 넷: [] | 이름집합이 놓치는 레일: []
+[A2] 이후 계산에 쓴 레일 집합: ['vdd', 'vss']
+[B 기본 전달 뷰] input ports: [] | output ports: [] | 가능: False
+[B!] ports 선언 없음 -> N3.2-2 기본 전달 뷰 구성 불가 -> SP1·셀·구동종류·루프·K8·DEC-63·DEC-65 전부 발동 0(측정 불가). U-08 대기
+[G DEC-64 G_vgs 사이클] v0(equal_vgs): 3 | v1(포트 차): 0 | v2(kvl_branch): 0 | self: 0
+[G2 VDS-1 후보] {'cyc_dim_vgs_only': 3, 'cyc_dim_vgs_plus_vds': 15, 'vds_bearing_independent_cycles': 12}
+[J1 DEC-70 저항 판정] 전체 저항: [] | 잎 가지치기로 잘림(파생값): [] | 남음(theta): []
+[J2 DEC-71 가지·기둥] 분기/레일 노드: 5 ['NodeF1', 'NodeF2', 'NodeTail', 'vdd', 'vss']
+     가지 수: 10
+         NodeF1 -- NodeTail ['M102']
+         NodeF1 -- vss ['M104']
+         NodeF1 -- vdd ['M106', 'M108']
+         NodeF2 -- NodeTail ['M103']
+         NodeF2 -- vss ['M105']
+         NodeF2 -- vdd ['M107', 'M109']
+         NodeTail -- vdd ['M101']
+         vdd -- vss ['M201', 'M203']
+         vdd -- vss ['M202', 'M204']
+         vdd -- vss ['M302', 'M301']
+     기둥(하단레일->상단레일 단순경로) 수: 9 | 열거 상한 초과: False
+     손선언 vertical_stack_id 개수: 15 | 서로 다른 값: 12
+
+==============================================================================
+CIRCUIT pushpull_follower_buffer | file pushpull_follower_buffer.topology.json | MOS 6 | passive 1 | ideal_src 0
+[A 레일] supply_nets 선언: None | 이름집합 판정: ['vdd', 'vss'] | agnd류 넷: ['agnd'] | 이름집합이 놓치는 레일: ['agnd']
+[A2] 이후 계산에 쓴 레일 집합: ['agnd', 'vdd', 'vss']
+[B 기본 전달 뷰] input ports: ['vin'] | output ports: ['vout'] | 가능: True
+[C 교류접지] (1)레일 ['agnd', 'vdd', 'vss'] | (2)gate전용 미구동 ['VNB1', 'VPB1'] | (3)이상전압원 []
+[C2] 신호 도달 넷 수: 4 / 9
+[D 셀 분류] {'CD': 4, 'load_or_bias': 2}
+     CD = ['M1', 'M2', 'M3', 'M4']
+     load_or_bias = ['M5', 'M6']
+[E 구동 종류] 전압: ['A', 'B', 'vin', 'vout'] | 전류: [] | 값의존(저항 접속): [] | 혼재(전압&전류): []
+[F DEC-63 follower 묶음] 개수: 1
+     {'u': 'vin', 'R': ['A', 'B', 'vout'], 'devices': ['M1', 'M2', 'M3', 'M4'], 'sinks': ['vout'], 'class': '계산규칙있음'}
+[H K8 측면 주입 후보] 개수: 0 []
+[I 병렬 셀 합류 노드] 개수: 1
+     vout <- [('M1', 'CD', 'A'), ('M2', 'CD', 'B')]
+[K DEC-65 출력 방향 분류]
+     vout {'sigma': ['M1:CD', 'M2:CD'], 'beta': [], 'other': [], 'class': 'push-pull(두 방향 sigma)'}
+[L 신호 루프(근사)] 무향 사이클 차원: 0 | 비자명 SCC 수: 0 | 그래프 내 수동 엣지: 0
+[L2 루프 분류 (0)~(4)] 총 기본폐경로: 0 | (2)Miller형: 0 | (3)루프뷰: 0 | (4)기록만->DEC-59 정지: 0
+[G DEC-64 G_vgs 사이클] v0(equal_vgs): 0 | v1(포트 차): 0 | v2(kvl_branch): 1 | self: 0
+     v2: {'members': ['M1', 'M2', 'M3', 'M4'], 'via_rail': False}
+[G2 VDS-1 후보] {'cyc_dim_vgs_only': 1, 'cyc_dim_vgs_plus_vds': 6, 'vds_bearing_independent_cycles': 5}
+[J1 DEC-70 저항 판정] 전체 저항: [] | 잎 가지치기로 잘림(파생값): [] | 남음(theta): []
+[J2 DEC-71 가지·기둥] 분기/레일 노드: 2 ['vdd', 'vss']
+     가지 수: 3
+         vdd -- vss ['M5', 'M3']
+         vdd -- vss ['M4', 'M6']
+         vdd -- vss ['M1', 'M2']
+     기둥(하단레일->상단레일 단순경로) 수: 3 | 열거 상한 초과: False
+     손선언 vertical_stack_id 개수: 0 | 서로 다른 값: 0
+
+==============================================================================
+CIRCUIT sf_pushpull_output_opamp | file sf_pushpull_output_opamp.topology.json | MOS 22 | passive 5 | ideal_src 1
+[A 레일] supply_nets 선언: None | 이름집합 판정: ['vdd', 'vss'] | agnd류 넷: ['agnd'] | 이름집합이 놓치는 레일: ['agnd']
+[A2] 이후 계산에 쓴 레일 집합: ['agnd', 'vdd', 'vss']
+[B 기본 전달 뷰] input ports: ['vin_n', 'vin_p'] | output ports: ['vout'] | 가능: True
+[C 교류접지] (1)레일 ['agnd', 'vdd', 'vss'] | (2)gate전용 미구동 [] | (3)이상전압원 []
+[C2] 신호 도달 넷 수: 19 / 23
+[D 셀 분류] {'CD': 4, 'CS': 16, 'load_or_bias': 1, 'offpath': 1}
+     CD = ['M18', 'M19', 'M21', 'M22']
+     CS = ['M1', 'M10', 'M11', 'M12', 'M13', 'M14', 'M15', 'M16', 'M17', 'M2', 'M20', 'M5', 'M6', 'M7', 'M8', 'M9']
+     load_or_bias = ['M3']
+     offpath = ['M4']
+[E 구동 종류] 전압: ['N17', 'N20', 'vin_n', 'vin_p', 'vout'] | 전류: ['N1', 'N1112', 'N12', 'N13', 'N1314', 'N1516', 'N17', 'N2', 'N20', 'N5', 'N56', 'N7', 'N78', 'N910', 'Y'] | 값의존(저항 접속): ['N1', 'N12', 'N13', 'N2', 'N5', 'N7'] | 혼재(전압&전류): ['N17', 'N20']
+[F DEC-63 follower 묶음] 개수: 1
+     {'u': 'Y', 'R': ['N17', 'N20', 'vout'], 'devices': ['M18', 'M19', 'M21', 'M22'], 'sinks': ['vout'], 'class': '계산규칙있음'}
+[H K8 측면 주입 후보] 개수: 2 [{'cell': 'M17', 'gate': 'N5', 'k': 'N17'}, {'cell': 'M20', 'gate': 'N13', 'k': 'N20'}]
+[I 병렬 셀 합류 노드] 개수: 4
+     N17 <- [('M17', 'CS', 'N5'), ('M18', 'CD', 'Y')]
+     N20 <- [('M19', 'CD', 'Y'), ('M20', 'CS', 'N13')]
+     Y <- [('M10', 'CS', 'N1'), ('M15', 'CS', 'N12')]
+     vout <- [('M22', 'CD', 'N17'), ('M21', 'CD', 'N20')]
+[K DEC-65 출력 방향 분류]
+     vout {'sigma': ['M22:CD', 'M21:CD'], 'beta': [], 'other': [], 'class': 'push-pull(두 방향 sigma)'}
+[L 신호 루프(근사)] 무향 사이클 차원: 13 | 비자명 SCC 수: 3 | 그래프 내 수동 엣지: 3
+     SCC: ['N1', 'N5', 'N56']
+     SCC: ['N12', 'N13', 'N1314']
+     SCC: ['N2', 'N7', 'N78']
+[L2 루프 분류 (0)~(4)] 총 기본폐경로: 18 | (2)Miller형: 0 | (3)루프뷰: 0 | (4)기록만->DEC-59 정지: 18
+       (4)기록만_정지 ['M5', 'M6']
+       (4)기록만_정지 ['M5', 'M6']
+       (4)기록만_정지 ['M7', 'M8']
+       (4)기록만_정지 ['M7', 'M8']
+       (4)기록만_정지 ['M11', 'M12', 'M7']
+       (4)기록만_정지 ['M11', 'M12', 'M7']
+       (4)기록만_정지 ['M13', 'M14']
+       (4)기록만_정지 ['M13', 'M14']
+       (4)기록만_정지 ['M10', 'M5', 'M9']
+       (4)기록만_정지 ['M10', 'M5', 'M9']
+       (4)기록만_정지 ['M13', 'M15', 'M16']
+       (4)기록만_정지 ['M13', 'M15', 'M16']
+[G DEC-64 G_vgs 사이클] v0(equal_vgs): 6 | v1(포트 차): 0 | v2(kvl_branch): 1 | self: 0
+     v2: {'members': ['M18', 'M19', 'M21', 'M22'], 'via_rail': False}
+[G2 VDS-1 후보] {'cyc_dim_vgs_only': 7, 'cyc_dim_vgs_plus_vds': 24, 'vds_bearing_independent_cycles': 17}
+[J1 DEC-70 저항 판정] 전체 저항: ['R1a', 'R1b', 'R1c'] | 잎 가지치기로 잘림(파생값): [] | 남음(theta): ['R1a', 'R1b', 'R1c']
+[J2 DEC-71 가지·기둥] 분기/레일 노드: 3 ['TAIL', 'vdd', 'vss']
+     가지 수: 9
+         TAIL -- vdd ['M1', 'R1a', 'M5', 'M6']
+         TAIL -- vdd ['M2', 'R1b', 'M7', 'M8']
+         TAIL -- vss ['M3']
+         vdd -- vss ['M11', 'M12', 'R1c', 'M13', 'M14']
+         vdd -- vss ['M9', 'M10', 'M15', 'M16']
+         vdd -- vss ['M17', 'M18']
+         vdd -- vss ['M19', 'M20']
+         vdd -- vss ['M22', 'M21']
+         vdd -- vss ['IBias', 'M4']
+     기둥(하단레일->상단레일 단순경로) 수: 8 | 열거 상한 초과: False
+     손선언 vertical_stack_id 개수: 0 | 서로 다른 값: 0
+
+==============================================================================
+CIRCUIT two_stage_ota | file two_stage_ota.topology.json | MOS 7 | passive 0 | ideal_src 0
+[A 레일] supply_nets 선언: None | 이름집합 판정: ['gnd', 'vdd'] | agnd류 넷: [] | 이름집합이 놓치는 레일: []
+[A2] 이후 계산에 쓴 레일 집합: ['gnd', 'vdd']
+[B 기본 전달 뷰] input ports: ['vin_n', 'vin_p'] | output ports: [] | 가능: False
+[C 교류접지] (1)레일 ['gnd', 'vdd'] | (2)gate전용 미구동 ['bias'] | (3)이상전압원 []
+[C2] 신호 도달 넷 수: 6 / 9
+[D 셀 분류] {'CS': 5, 'load_or_bias': 2}
+     CS = ['M1', 'M2', 'M3', 'M4', 'M6']
+     load_or_bias = ['M5', 'M7']
+[E 구동 종류] 전압: ['vin_n', 'vin_p'] | 전류: ['D3', 'O1', 'OUT'] | 값의존(저항 접속): [] | 혼재(전압&전류): []
+[F DEC-63 follower 묶음] 개수: 0
+[H K8 측면 주입 후보] 개수: 0 []
+[I 병렬 셀 합류 노드] 개수: 2
+     D3 <- [('M3', 'CS', 'D3'), ('M1', 'CS', 'vin_n')]
+     O1 <- [('M4', 'CS', 'D3'), ('M2', 'CS', 'vin_p')]
+[K DEC-65 출력 방향 분류]
+[L 신호 루프(근사)] 무향 사이클 차원: 1 | 비자명 SCC 수: 0 | 그래프 내 수동 엣지: 0
+[L2 루프 분류 (0)~(4)] 총 기본폐경로: 0 | (2)Miller형: 0 | (3)루프뷰: 0 | (4)기록만->DEC-59 정지: 0
+[G DEC-64 G_vgs 사이클] v0(equal_vgs): 2 | v1(포트 차): 0 | v2(kvl_branch): 0 | self: 0
+[G2 VDS-1 후보] {'cyc_dim_vgs_only': 2, 'cyc_dim_vgs_plus_vds': 7, 'vds_bearing_independent_cycles': 5}
+[J1 DEC-70 저항 판정] 전체 저항: [] | 잎 가지치기로 잘림(파생값): [] | 남음(theta): []
+[J2 DEC-71 가지·기둥] 분기/레일 노드: 3 ['CS', 'gnd', 'vdd']
+     가지 수: 4
+         CS -- vdd ['M1', 'M3']
+         CS -- vdd ['M2', 'M4']
+         CS -- gnd ['M5']
+         gnd -- vdd ['M7', 'M6']
+     기둥(하단레일->상단레일 단순경로) 수: 3 | 열거 상한 초과: False
+     손선언 vertical_stack_id 개수: 4 | 서로 다른 값: 3
+
+==============================================================================
+CIRCUIT two_stage_ota_sf | file two_stage_ota_sf.topology.json | MOS 9 | passive 2 | ideal_src 0
+[A 레일] supply_nets 선언: None | 이름집합 판정: ['gnd', 'vdd'] | agnd류 넷: [] | 이름집합이 놓치는 레일: []
+[A2] 이후 계산에 쓴 레일 집합: ['gnd', 'vdd']
+[B 기본 전달 뷰] input ports: ['vin_n', 'vin_p'] | output ports: ['vout'] | 가능: True
+[C 교류접지] (1)레일 ['gnd', 'vdd'] | (2)gate전용 미구동 ['bias'] | (3)이상전압원 []
+[C2] 신호 도달 넷 수: 7 / 10
+[D 셀 분류] {'CD': 1, 'CS': 5, 'load_or_bias': 3}
+     CD = ['M8']
+     CS = ['M1', 'M2', 'M3', 'M4', 'M6']
+     load_or_bias = ['M5', 'M7', 'M9']
+[E 구동 종류] 전압: ['vin_n', 'vin_p', 'vout'] | 전류: ['D3', 'O1', 'OUT'] | 값의존(저항 접속): [] | 혼재(전압&전류): []
+[F DEC-63 follower 묶음] 개수: 1
+     {'u': 'OUT', 'R': ['vout'], 'devices': ['M8'], 'sinks': ['vout'], 'class': '계산규칙있음'}
+[H K8 측면 주입 후보] 개수: 0 []
+[I 병렬 셀 합류 노드] 개수: 2
+     D3 <- [('M1', 'CS', 'vin_n'), ('M3', 'CS', 'D3')]
+     O1 <- [('M2', 'CS', 'vin_p'), ('M4', 'CS', 'D3')]
+[K DEC-65 출력 방향 분류]
+     vout {'sigma': ['M8:CD'], 'beta': ['M9'], 'other': [], 'class': 'class-A(한 방향만 sigma)'}
+[L 신호 루프(근사)] 무향 사이클 차원: 1 | 비자명 SCC 수: 1 | 그래프 내 수동 엣지: 1
+     SCC: ['O1', 'OUT']
+[L2 루프 분류 (0)~(4)] 총 기본폐경로: 1 | (2)Miller형: 1 | (3)루프뷰: 0 | (4)기록만->DEC-59 정지: 0
+       (2)Miller형_수동복귀 ['M6']
+[G DEC-64 G_vgs 사이클] v0(equal_vgs): 3 | v1(포트 차): 0 | v2(kvl_branch): 0 | self: 0
+[G2 VDS-1 후보] {'cyc_dim_vgs_only': 3, 'cyc_dim_vgs_plus_vds': 10, 'vds_bearing_independent_cycles': 7}
+[J1 DEC-70 저항 판정] 전체 저항: [] | 잎 가지치기로 잘림(파생값): [] | 남음(theta): []
+[J2 DEC-71 가지·기둥] 분기/레일 노드: 3 ['CS', 'gnd', 'vdd']
+     가지 수: 5
+         CS -- vdd ['M1', 'M3']
+         CS -- vdd ['M2', 'M4']
+         CS -- gnd ['M5']
+         gnd -- vdd ['M7', 'M6']
+         gnd -- vdd ['M9', 'M8']
+     기둥(하단레일->상단레일 단순경로) 수: 4 | 열거 상한 초과: False
+     손선언 vertical_stack_id 개수: 0 | 서로 다른 값: 0
+
+# end
