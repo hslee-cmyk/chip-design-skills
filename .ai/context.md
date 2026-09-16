@@ -14680,3 +14680,11 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - DEC-68/69·N3.16 명명 규칙(snake_case, 풀어 쓴 단위 접미사, _dc_/ac_/_ss_ 영역 표기), topology supply_nets + spec supplies_v, _declared_target_spec, value_dc_amp, MG0~MG3 마이그레이션. U-32(접미사 적용 범위) 열림.
 - 소스 팔로워: DEC-63(CD 셀 묶음 버퍼 블록), DEC-64(KVL 루프 규칙, DEC-15·27 통합), DEC-65(방향별 최대 전류·class-A/push-pull), DEC-66(rout_ss_ohm). J12-a~h 6a-2. U-27 LUT 재생성(VS 0~1.8 V, CGS/CGB).
 - 사용자 결정 반영: U-26 nmcnr ±0.9 V, U-27 VS 상한 1.8 V, U-30 min_finger_w 오류(Phase 4 PDK 규칙 difftap.2 등), U-31 folded CL 1 pF. 선택 낮음 Z1(파일럿 종속 소자 ratify 7b vs W2 6b) 미반영.
+
+### 세션48 -- plan v5.11 (기둥 조립 presolve, 2026-09-16)
+- 사용자 아이디어: stage 구분 뒤 gnd~vdd로 소자를 쌓아 DC 동작점을 맞추고, 단계별로 DC·AC 대충 사이징 후 조립해 근방에서 최적화. 블록마다 여러 점(비지배 집합) 유지 확정.
+- DEC-71 층 0: 가지(레일·분기 노드 사이 직렬 사슬) -> 기둥(하단~상단 레일 단순 경로) 유도(6a), 블록별 국소 DC(덮는 기둥 KVL + 분기 노드 KCL)·AC 역산(gm->gm_id, 목표 이득->gm/gds->L 역보간, 남은 헤드룸은 d(gm/gds)/dVDS 큰 소자부터) -> 국소 봉인 -> (전력, 이득) 비지배 점(상한 = 블록 gain bin 수) -> 조립(y 초기값) -> 전역 봉인 -> 근방 탐색(7b).
+- 국소 확정 금지: K1·K3·K8, 블록 가로지르는 L 동치류(파일럿 8·11소자) -- 고정 입력으로만 사용(첫 회차 knee 앵커, 이후 직전 조립점).
+- 초판 결함: 기둥을 레일~레일 직렬 사슬로 정의하면 분기 노드 때문에 신호단이 빠진다(two_stage_ota 1개, folded 신호 경로 0). 가지·경로 정의로 교체 후 7회로 전부 미포함 MOS 0(기둥 수 3/7/9/4/3/8/244).
+- 신설: J13(기둥·매핑표 ratify), U-33(층 0 효과 측정), local_infeasible. DF-16·U-10에 기둥마다 전류 한 번 후보.
+- gm-id-methodology.md 분석 결과 반영: 문서는 구조를 사람이 주고 1차원 역산+닫힌 식으로 푼다(2단은 2D 공간, 3단은 닫힌 해, 오차 10~20%). 우리는 구조 유도·전회로 봉인 때문에 무겁고, 역산은 후보 생성에만 쓴다.
