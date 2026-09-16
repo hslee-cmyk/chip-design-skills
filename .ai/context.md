@@ -14711,3 +14711,12 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 기둥 수 62(가지 32, 분기 9) 기준 통일(244는 다른 열거 정의, J13 확정). 루프 규모 측정 기대 36/18/1/0 추가.
 - 코드 종속: DF-23 범위를 소자·넷·회로 이름 + 경로로 확대, DF-29~34 신설(운영 metric의 파일럿 경로·넷 이름 3곳, _METRICS_REGISTRY·_COMPENSATION_REGISTRY 회로 이름 키, 역할 라벨 분기, row_split override, 회로별 _spec_*()).
 - 남은 질문: DEC-60 로드 게이트 강화, 기둥 정의 레일 쌍 일반형, feedforward 검증 회로, DEC-27 일반형 식 병기. 낮음 2: CMFB M37b 제외 근거 한 줄, 3소자 이상 pass 묶음(발동 0).
+
+### 세션48 -- plan v5.15 (Q1~Q4 반영, 2026-09-16)
+- 사용자 결정: Q3는 (b), 나머지는 오케스트레이터 권고.
+- Q1 DEC-60 강화: supply_nets는 library 전부 필수, 레일 3개 이상·음전위 레일은 선언 없이 GB0 로드 게이트 거부, 이름집합 해석은 레일 정확히 둘인 회로에 MG1까지 한시 허용. 거부 증명 = N4.3 공격 13 + IC11 거부 케이스.
+- Q2 기둥 = 서로 다른 두 레일 넷을 잇는 단순 경로(레일 쌍마다 열거, 미포함 가지 review_needed, 쌍 선택 J13). 현 library는 agnd에 DC 엣지가 없어 (최저, 최고) 쌍만 발동(파일럿 62).
+- Q3 DEC-81 신설: 같은 합류 노드를 공유하는 병렬 경로 블록을 복합 블록으로 묶어 국소 모델에서 함께 스탬프, 경로별 기여 부호까지 기록, 묶음 초과 시 unsupported_rule_branch. 옛 "주 신호 분기 = 기록만 정지" 전수 대체. U-34 = 검증 회로 추가 결정(기본안 feedforward 3단 NGCC 계열, 추가 안 해도 7b 착수 가능).
+- Q4 DEC-27에 일반형(루프가 잇는 두 레일 전압차 − 루프 멤버 VGS 합) 병기, 파일럿 식은 예시 표기.
+- 검증 낮음 3건 이월: J12-d가 sf M17/M20을 (a)로 ratify하면 U-34 불필요해지는 갈래 미기재, DEC-60 거부 판정 입력(레일 수·음전위 인지) 미정, DEC-81 묶음 판정 나머지 규칙의 design 소재 표시.
+- NGCC 회로(U-34 후보) 판독 진행: 논문 Lee et al. JSTS 2007 Fig.3. 확정분 -- 1단 PMOS 차동쌍(VBP 꼬리)+NMOS 미러 부하 -> V1, 2단 gm2(gate V1)+PMOS 미러 -> V2, 3단 gm3 nmos(gate V2, drain Vout)+VBP PMOS 전류원, gmf1(gate 미러선 1:2, drain Vout), gmf2(gate V1, drain Vout), Cm1 V1-Vout, Cm2 V2-Vout, CL 10 pF. 미확정: 십자 소자 M6 gate(ND 대 자기 drain), NX 노드 용도, VBN NMOS drain=V2 여부, M3 diode 여부.
