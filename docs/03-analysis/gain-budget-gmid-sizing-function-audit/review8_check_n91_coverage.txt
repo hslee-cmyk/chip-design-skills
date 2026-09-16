@@ -1,0 +1,54 @@
+
+==============================================================================
+N9.1 '읽을 plan 절' 커버리지 대조  2026-09-16 17:03:16
+==============================================================================
+[ OK ] 00-common                   
+[ OK ] 05-role-separation          
+[ OK ] 10-test-separation          
+[ OK ] 20-dead-code-dup            
+[ OK ] 30-module-split             
+[MISS] 40-defect-fixes              ID I-C11 | 절 -
+[ OK ] 50-failure-cache            
+[ OK ] 6a-structure-stage          
+[MISS] 6b-node-voltage-seal         ID I-A6,J8 | 절 -
+[ OK ] 6c-coupling-achievability   
+[MISS] 7a-gain-metric               ID DEC-63 | 절 -
+[MISS] 7b-compensation-allocation   ID DEC-53,GB4,GB5,J3,MG3,MOD8 | 절 -
+[ OK ] 7c-archive-spice            
+누락 합계 10건 / 13행
+
+==============================================================================
+N9.1 '읽을 plan 절' 커버리지 대조  2026-09-16 17:03:33
+==============================================================================
+[ OK ] 00-common                   
+[ OK ] 05-role-separation          
+[ OK ] 10-test-separation          
+[ OK ] 20-dead-code-dup            
+[ OK ] 30-module-split             
+[MISS] 40-defect-fixes              ID I-C11 | 절 -
+[ OK ] 50-failure-cache            
+[ OK ] 6a-structure-stage          
+[MISS] 6b-node-voltage-seal         ID I-A6 | 절 -
+[ OK ] 6c-coupling-achievability   
+[MISS] 7a-gain-metric               ID DEC-63 | 절 -
+[MISS] 7b-compensation-allocation   ID DEC-53,GB4,GB5,MG3,MOD8 | 절 -
+[ OK ] 7c-archive-spice            
+누락 합계 8건 / 13행
+
+==============================================================================
+N9.1 '읽을 plan 절' 커버리지 대조  2026-09-16 17:04:24
+==============================================================================
+[ OK ] 00-common                   
+[ OK ] 05-role-separation          
+[ OK ] 10-test-separation          
+[ OK ] 20-dead-code-dup            
+[ OK ] 30-module-split             
+[ OK ] 40-defect-fixes             
+[ OK ] 50-failure-cache            
+[ OK ] 6a-structure-stage          
+[ OK ] 6b-node-voltage-seal        
+[ OK ] 6c-coupling-achievability   
+[ OK ] 7a-gain-metric              
+[ OK ] 7b-compensation-allocation  
+[ OK ] 7c-archive-spice            
+누락 합계 0건 / 13행
