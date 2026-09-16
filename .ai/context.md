@@ -14720,3 +14720,11 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - Q4 DEC-27에 일반형(루프가 잇는 두 레일 전압차 − 루프 멤버 VGS 합) 병기, 파일럿 식은 예시 표기.
 - 검증 낮음 3건 이월: J12-d가 sf M17/M20을 (a)로 ratify하면 U-34 불필요해지는 갈래 미기재, DEC-60 거부 판정 입력(레일 수·음전위 인지) 미정, DEC-81 묶음 판정 나머지 규칙의 design 소재 표시.
 - NGCC 회로(U-34 후보) 판독 진행: 논문 Lee et al. JSTS 2007 Fig.3. 확정분 -- 1단 PMOS 차동쌍(VBP 꼬리)+NMOS 미러 부하 -> V1, 2단 gm2(gate V1)+PMOS 미러 -> V2, 3단 gm3 nmos(gate V2, drain Vout)+VBP PMOS 전류원, gmf1(gate 미러선 1:2, drain Vout), gmf2(gate V1, drain Vout), Cm1 V1-Vout, Cm2 V2-Vout, CL 10 pF. 미확정: 십자 소자 M6 gate(ND 대 자기 drain), NX 노드 용도, VBN NMOS drain=V2 여부, M3 diode 여부.
+
+### 세션48 -- ngcc_3stage_ff 추가와 plan v5.16 (2026-09-16)
+- 회로: Lee et al., JSTS 2007 Vol.7 No.1 Fig.3 "3-stage NGCC amplifier". 사용자가 논문 PDF 경로를 주고 판독 항목을 하나씩 확정. 소자 16 + Cm1(V1-Vout)·Cm2(V2-Vout)·CL, supply_nets [vdd, gnd], ports 3.
+- 구조: 1단 PMOS 차동쌍(M1/M2, 꼬리 M0 VBP) + NMOS 미러(M3 diode, M4) -> V1 / feedforward1 가지 = M5(VBP 전류원)가 NX에 바이어스, M6B(gate ND)가 1단 신호 전류 복사해 NX에서 뺌, M6A(diode)가 전압으로 바꿔 M7(gmf1, gate NX, drain Vout) 구동(M6A:M7 = 1:2) / 2단 M8(gate V1) + PMOS 미러(M9 diode, M10) + M11(VBN) -> V2 / 3단 M13(gm3, gate V2) + M12(VBP 전류원), M14(gmf2, gate V1) -> Vout.
+- ★Vout에 M7·M13·M14 세 신호 경로가 합류 -- DEC-81(복합 블록)이 발동하는 첫 회로. U-34 닫힘, library 8회로.
+- 스펙: `_paper_target_spec.supplies_v` 1.2 V(논문) / `sky130_supplies_v` 1.8 V(사용자 결정 "2는 1.8에 맞춰") / CL 10 pF / GB 10 MHz / PM 63.4 deg / ICMR >= 0.6 V(1.8 기준). 사이징 스펙은 미선언.
+- plan v5.16: U-34 닫힘, DEC-81 상태 "발동 1회로(6c·7b 구현 대상)", 발동 회로 != 검증 발동 회로(J12 ratify 전에는 DEC-59 정지) 명시, 회로 수 7->8·기본 전달 뷰 5/8, J12에 ngcc 항목(gmf1 가지 셀 분류, Vout 묶음 경계, Cm DC 고립, 미러 후보 6건), 공격 시나리오 13건으로 계수 통일(1~12는 0.5, 13은 6a), MG0 rename 대상 5회로.
+- 검증 사고: 검증 agent가 JSON 덤프를 잘라 읽고 "sky130 1.8 V 미반영"이라고 높음 판정 -> 오케스트레이터가 실제 파일로 반박, 검증자가 철회. 교훈: 필드 이름을 plan에 병기(L2 반영).
