@@ -1,0 +1,87 @@
+
+#### (1) 분기 발동에 순방향 제한(DEC-59 신문장)을 걸면 -- 전압 구동 CG 분기
+  common_gate_amplifier          전체=1 ['M2'] | 순방향 셀만=1 ['M2']
+  current_reuse_telescopic_ota   전체=2 ['M37b', 'M63'] | 순방향 셀만=0 []
+  folded_cascode                 전체=0 | 순방향 셀만=0
+  ngcc_3stage_ff                 전체=0 | 순방향 셀만=0
+  nmcnr_amplifier                전체=0 | 순방향 셀만=0
+  pushpull_follower_buffer       전체=0 | 순방향 셀만=0
+  sf_pushpull_output_opamp       전체=0 | 순방향 셀만=0
+  two_stage_ota                  전체=0 | 순방향 셀만=0
+  two_stage_ota_sf               전체=0 | 순방향 셀만=0
+
+#### (2) diode 자기 셀 제외 전수 영향 (끔 vs 켬)
+  circuit                        셀 변화 / CG(순방향) / pass묶음 / 폐경로 / 극점노드 / 블록수
+  common_gate_amplifier          셀변화=0 {}
+                                 CG(순방향) ['M2'] -> ['M2']  동일
+                                 pass묶음 [] -> []  동일
+                                 폐경로 0{} -> 0{}  동일
+                                 극점노드 1 -> 1  동일
+                                 블록시작 ['M2'] -> ['M2']  동일
+  current_reuse_telescopic_ota   셀변화=4 {'M64': ('CG', 'offpath'), 'M57': ('CG', 'offpath'), 'M36a': ('CS', 'load(diode)'), 'M36b': ('CS', 'load(diode)')}
+                                 CG(순방향) ['M2a', 'M2b', 'M3a', 'M3b'] -> ['M2a', 'M2b', 'M3a', 'M3b']  동일
+                                 pass묶음 [('Vg15', 'Vop1'), ('Vg25', 'Vom1')] -> [('Vg15', 'Vop1'), ('Vg25', 'Vom1')]  동일
+                                 폐경로 23{'1.5_bias_scc': 11, '3a': 1, '3b': 11} -> 23{'1.5_bias_scc': 11, '3b': 12}  **분류 바뀜**
+                                 극점노드 31 -> 31  동일
+                                 블록시작 ['M15', 'M16', 'M1a', 'M1b', 'M25', 'M26', 'M36a', 'M36b', 'M37a', 'M37b', 'M4a', 'M4b', 'M63', 'M7'] -> ['M15', 'M16', 'M1a', 'M1b', 'M25', 'M26', 'M37a', 'M37b', 'M4a', 'M4b', 'M63', 'M7']  **바뀜**
+  folded_cascode                 셀변화=2 {'M9': ('CS', 'load(diode)'), 'M7': ('REVIEW_CS_CD', 'load(diode)')}
+                                 CG(순방향) ['M5', 'M6'] -> ['M5', 'M6']  동일
+                                 pass묶음 [] -> []  동일
+                                 폐경로 4{'1.5_bias_scc': 2, '3a': 1, '3b': 1} -> 4{'1.5_bias_scc': 2, '3b': 2}  **분류 바뀜**
+                                 극점노드 9 -> 9  동일
+                                 블록시작 ['M1', 'M10', 'M2', 'M8', 'M9'] -> ['M1', 'M10', 'M2', 'M8']  **바뀜**
+  ngcc_3stage_ff                 셀변화=3 {'M3': ('CS', 'load(diode)'), 'M6A': ('CS', 'load(diode)'), 'M9': ('CS', 'load(diode)')}
+                                 CG(순방향) [] -> []  동일
+                                 pass묶음 [] -> []  동일
+                                 폐경로 7{'3b': 7} -> 7{'3b': 7}  동일
+                                 극점노드 7 -> 7  동일
+                                 블록시작 ['M1', 'M10', 'M13', 'M14', 'M2', 'M3', 'M4', 'M6A', 'M6B', 'M7', 'M8', 'M9'] -> ['M1', 'M10', 'M13', 'M14', 'M2', 'M4', 'M6B', 'M7', 'M8']  **바뀜**
+  nmcnr_amplifier                셀변화=2 {'M108': ('CS', 'load(diode)'), 'M203': ('CS', 'load(diode)')}
+                                 CG(순방향) ['M106', 'M107'] -> ['M106', 'M107']  동일
+                                 pass묶음 [] -> []  동일
+                                 폐경로 2{'3b': 2} -> 2{'3b': 2}  동일
+                                 극점노드 8 -> 8  동일
+                                 블록시작 ['M102', 'M103', 'M108', 'M109', 'M201', 'M203', 'M204', 'M301'] -> ['M102', 'M103', 'M109', 'M201', 'M204', 'M301']  **바뀜**
+  pushpull_follower_buffer       셀변화=0 {}
+                                 CG(순방향) [] -> []  동일
+                                 pass묶음 [] -> []  동일
+                                 폐경로 0{} -> 0{}  동일
+                                 극점노드 3 -> 3  동일
+                                 블록시작 [] -> []  동일
+  sf_pushpull_output_opamp       셀변화=0 {}
+                                 CG(순방향) [] -> []  동일
+                                 pass묶음 [] -> []  동일
+                                 폐경로 7{'1.5_bias_scc': 1, '3b': 3, '4': 3} -> 7{'1.5_bias_scc': 1, '3b': 3, '4': 3}  동일
+                                 극점노드 18 -> 18  동일
+                                 블록시작 ['M1', 'M10', 'M11', 'M12', 'M13', 'M14', 'M15', 'M16', 'M17', 'M2', 'M20', 'M5', 'M6', 'M7', 'M8', 'M9'] -> ['M1', 'M10', 'M11', 'M12', 'M13', 'M14', 'M15', 'M16', 'M17', 'M2', 'M20', 'M5', 'M6', 'M7', 'M8', 'M9']  동일
+  two_stage_ota                  셀변화=1 {'M3': ('CS', 'load(diode)')}
+                                 CG(순방향) [] -> []  동일
+                                 pass묶음 [] -> []  동일
+                                 폐경로 1{'3b': 1} -> 1{'3b': 1}  동일
+                                 극점노드 4 -> 4  동일
+                                 블록시작 ['M1', 'M2', 'M3', 'M4', 'M6'] -> ['M1', 'M2', 'M4', 'M6']  **바뀜**
+  two_stage_ota_sf               셀변화=1 {'M3': ('CS', 'load(diode)')}
+                                 CG(순방향) [] -> []  동일
+                                 pass묶음 [] -> []  동일
+                                 폐경로 2{'2_miller': 1, '3b': 1} -> 2{'2_miller': 1, '3b': 1}  동일
+                                 극점노드 5 -> 5  동일
+                                 블록시작 ['M1', 'M2', 'M3', 'M4', 'M6'] -> ['M1', 'M2', 'M4', 'M6']  **바뀜**
+
+#### (3) pass 묶음 출력 단자 규정 -- SYM 대 CHAN
+  common_gate_amplifier          T0 tap=0[] UNDEF=0 | CHAN tap=0[] UNDEF=0 | SYM tap=0[] UNDEF=0
+  current_reuse_telescopic_ota   T0 tap=4['Vg15', 'Vg25', 'Vom1', 'Vop1'] UNDEF=0 | CHAN tap=4['Vg15', 'Vg25', 'Vom1', 'Vop1'] UNDEF=0 | SYM tap=0[] UNDEF=0
+  folded_cascode                 T0 tap=0[] UNDEF=0 | CHAN tap=0[] UNDEF=0 | SYM tap=0[] UNDEF=0
+  ngcc_3stage_ff                 T0 tap=0[] UNDEF=0 | CHAN tap=0[] UNDEF=0 | SYM tap=0[] UNDEF=0
+  nmcnr_amplifier                T0 tap=0[] UNDEF=0 | CHAN tap=0[] UNDEF=0 | SYM tap=0[] UNDEF=0
+  pushpull_follower_buffer       T0 tap=0[] UNDEF=0 | CHAN tap=0[] UNDEF=0 | SYM tap=0[] UNDEF=0
+  sf_pushpull_output_opamp       T0 tap=0[] UNDEF=0 | CHAN tap=0[] UNDEF=0 | SYM tap=0[] UNDEF=0
+  two_stage_ota                  T0 tap=0[] UNDEF=0 | CHAN tap=0[] UNDEF=0 | SYM tap=0[] UNDEF=0
+  two_stage_ota_sf               T0 tap=0[] UNDEF=0 | CHAN tap=0[] UNDEF=0 | SYM tap=0[] UNDEF=0
+
+#### (5) diode 제외 x 9 (c) 미러 갈래 -- 같은 소자를 두 규칙이 어떻게 다루는가
+  current_reuse_telescopic_ota   M36a@Vcmfb: 셀분류=load(diode) / 9(c)갈래=미러입력->M7 ; M36b@N36b: 셀분류=load(diode) / 9(c)갈래=진짜 diode 부하
+  folded_cascode                 M9@Vg9: 셀분류=load(diode) / 9(c)갈래=미러입력->M10 ; M7@Vg7: 셀분류=load(diode) / 9(c)갈래=미러입력->M8
+  ngcc_3stage_ff                 M3@ND: 셀분류=load(diode) / 9(c)갈래=미러입력->M4 ; M6A@NX: 셀분류=load(diode) / 9(c)갈래=미러입력->M7 ; M9@NP: 셀분류=load(diode) / 9(c)갈래=미러입력->M10
+  nmcnr_amplifier                M108@NodeM1: 셀분류=load(diode) / 9(c)갈래=미러입력->M109 ; M203@NodeC: 셀분류=load(diode) / 9(c)갈래=미러입력->M204
+  two_stage_ota                  M3@D3: 셀분류=load(diode) / 9(c)갈래=미러입력->M4
+  two_stage_ota_sf               M3@D3: 셀분류=load(diode) / 9(c)갈래=미러입력->M4
