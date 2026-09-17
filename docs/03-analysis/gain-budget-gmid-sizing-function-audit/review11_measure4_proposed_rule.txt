@@ -1,0 +1,11 @@
+proposed rule: CG = gate off signal path AND source in signal nets AND not member of an antiparallel bundle between the same two nodes
+common_gate_amplifier          CG_fwd=1 ['M2']  pass_bundles=0
+current_reuse_telescopic_ota   CG_fwd=4 ['M2a', 'M2b', 'M3a', 'M3b']  pass_bundles=2
+folded_cascode                 CG_fwd=2 ['M5', 'M6']  pass_bundles=0
+ngcc_3stage_ff                 CG_fwd=0 []  pass_bundles=0
+nmcnr_amplifier                CG_fwd=2 ['M106', 'M107']  pass_bundles=0
+pushpull_follower_buffer       CG_fwd=0 []  pass_bundles=0
+sf_pushpull_output_opamp       CG_fwd=0 []  pass_bundles=0
+two_stage_ota                  CG_fwd=0 []  pass_bundles=0
+two_stage_ota_sf               CG_fwd=0 []  pass_bundles=0
+기존 4개 회로 forward CG total = 8 (plan expects 8)

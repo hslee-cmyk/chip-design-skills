@@ -1,0 +1,78 @@
+### 블록(규칙 5·6) 구성과 규칙 9 (c) -- 블록 출력노드 기준
+
+common_gate_amplifier
+   blocks=1  9(c) 발동=0 []   [R5-literal]
+   blocks=1  9(c) 발동=0 []   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=0 []  TAP노드=[]
+   CS/CD 이중출력 review_needed=0 []
+   구동 종류 미정의 신호넷=[]
+
+current_reuse_telescopic_ota
+   blocks=7  9(c) 발동=3 ['M7->Vbias2', 'M36a->Vcmfb', 'M36b->N36b']   [R5-literal]
+   blocks=7  9(c) 발동=0 []   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=4 ['M15', 'M16', 'M25', 'M26']  TAP노드=['Vg25', 'Vg15', 'Vom1', 'Vop1']
+   CS/CD 이중출력 review_needed=5 ['M1a', 'M1b', 'M37a', 'M4a', 'M4b']
+   구동 종류 미정의 신호넷=['Vy', 'Ncmfb_tail']
+
+folded_cascode
+   blocks=5  9(c) 발동=3 ['M1->X', 'M2->Vg7', 'M9->Vg9']   [R5-literal]
+   blocks=5  9(c) 발동=1 ['M1->X']   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=0 []  TAP노드=[]
+   CS/CD 이중출력 review_needed=1 ['M7']
+   구동 종류 미정의 신호넷=['tail']
+
+ngcc_3stage_ff
+   blocks=12  9(c) 발동=6 ['M1->ND', 'M3->ND', 'M6A->NX', 'M6B->NX', 'M8->NP', 'M9->NP']   [R5-literal]
+   blocks=12  9(c) 발동=0 []   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=0 []  TAP노드=[]
+   CS/CD 이중출력 review_needed=0 []
+   구동 종류 미정의 신호넷=['TAIL']
+
+nmcnr_amplifier
+   blocks=8  9(c) 발동=5 ['M102->NodeM1', 'M103->NodeF2', 'M108->NodeM1', 'M201->NodeC', 'M203->NodeC']   [R5-literal]
+   blocks=8  9(c) 발동=1 ['M103->NodeF2']   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=0 []  TAP노드=[]
+   CS/CD 이중출력 review_needed=0 []
+   구동 종류 미정의 신호넷=['NodeTail']
+
+pushpull_follower_buffer
+   blocks=0  9(c) 발동=0 []   [R5-literal]
+   blocks=0  9(c) 발동=0 []   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=0 []  TAP노드=[]
+   CS/CD 이중출력 review_needed=0 []
+   구동 종류 미정의 신호넷=[]
+
+sf_pushpull_output_opamp
+   blocks=16  9(c) 발동=0 []   [R5-literal]
+   blocks=16  9(c) 발동=0 []   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=0 []  TAP노드=[]
+   CS/CD 이중출력 review_needed=0 []
+   구동 종류 미정의 신호넷=['TAIL']
+
+two_stage_ota
+   blocks=5  9(c) 발동=2 ['M3->D3', 'M1->D3']   [R5-literal]
+   blocks=5  9(c) 발동=0 []   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=0 []  TAP노드=[]
+   CS/CD 이중출력 review_needed=0 []
+   구동 종류 미정의 신호넷=['CS']
+
+two_stage_ota_sf
+   blocks=5  9(c) 발동=2 ['M1->D3', 'M3->D3']   [R5-literal]
+   blocks=5  9(c) 발동=0 []   [R4-mirror-folded]
+   9(a) 발동(TAP gate CS)=0 []  TAP노드=[]
+   CS/CD 이중출력 review_needed=0 []
+   구동 종류 미정의 신호넷=['CS']
+
+### GB2 정지 요약 (기록만 분기 하나라도 있으면 DEC-59 탐색 전 정지)
+circuit                         9(a) 9c-R5 9c-R4  dual  undef | 정지?(R5 / R4)
+common_gate_amplifier              0     0     0     0      0 | pass / pass
+current_reuse_telescopic_ota       4     3     0     5      2 | STOP / STOP
+folded_cascode                     0     3     1     1      1 | STOP / STOP
+ngcc_3stage_ff                     0     6     0     0      1 | STOP / pass
+nmcnr_amplifier                    0     5     1     0      1 | STOP / STOP
+pushpull_follower_buffer           0     0     0     0      0 | pass / pass
+sf_pushpull_output_opamp           0     0     0     0      1 | pass / pass
+two_stage_ota                      0     2     0     0      1 | STOP / pass
+two_stage_ota_sf                   0     2     0     0      1 | STOP / pass
+
+사이징 스펙 4회로 GB2 무정지 통과 수: R5-literal=0 / R4-mirror=1

@@ -1,0 +1,24 @@
+=== CG/pass 판별: 폐기한 읽기(A) 대 현행 규칙(B+순방향) ===
+J1 확정 산출을 끊은 차동 뷰. 기대 = 계획 N3.2-7/N6.2 6a.
+
+  common_gate_amplifier          A= 1 ['M2']
+                                 B= 1 ['M2']  묶음=0  기대=1 OK
+  current_reuse_telescopic_ota   A= 5 ['M18b', 'M37b', 'M58', 'M63', 'M9b']
+                                 B= 4 ['M2a', 'M2b', 'M3a', 'M3b']  묶음=2  기대=4 OK
+  folded_cascode                 A= 1 ['M5']
+                                 B= 2 ['M5', 'M6']  묶음=0  기대=2 OK
+  ngcc_3stage_ff                 A= 0 []
+                                 B= 0 []  묶음=0  기대=None OK
+  nmcnr_amplifier                A= 1 ['M106']
+                                 B= 2 ['M106', 'M107']  묶음=0  기대=2 OK
+  pushpull_follower_buffer       A= 0 []
+                                 B= 0 []  묶음=0  기대=None OK
+  sf_pushpull_output_opamp       A= 0 []
+                                 B= 0 []  묶음=0  기대=None OK
+  two_stage_ota                  A= 0 []
+                                 B= 0 []  묶음=0  기대=None OK
+  two_stage_ota_sf               A= 0 []
+                                 B= 0 []  묶음=0  기대=None OK
+
+기존 4개 회로 CG 합계: A=7 / B=8  (계획 기대 8)
+판정: A는 상보 쌍이 같은 출력노드를 독립 구동하는 구조(파일럿·folded·nmcnr 전부)에서 캐스코드를 pass로 떨어뜨려 기대를 재현하지 못한다. B가 기대를 전부 재현한다.

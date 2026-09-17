@@ -1,0 +1,262 @@
+======================================================================
+FILE sizing_recipe.py  (operational lines 1..12570)
+  circuit      occ=1    distinct=1   ['current_reuse_telescopic_ota.topology.json']
+         5055  current_reuse_telescopic_ota.topology.json
+  device       occ=2    distinct=1   ['CL']
+         3097  CL
+         3182  CL
+  net          occ=12   distinct=9   ['Vbias1', 'Vbias2', 'Vbias3', 'Vbias4', 'Vcmfb', 'Vim', 'Vip', 'Vom1', 'Vop1']
+         5061  Vbias1
+         5061  Vbias2
+         5061  Vbias3
+         5061  Vbias4
+         5099  Vip
+         5099  Vim
+         5099  Vcmfb
+         5101  Vop1
+         5101  Vom1
+         5093  Vip
+         5093  Vim
+         5093  Vcmfb
+  net_generic  occ=65   distinct=6   ['A', 'B', 'gnd', 'tail', 'vdd', 'vss']
+         5061  gnd
+         5706  A
+         5719  A
+         5720  A
+         6833  B
+         6834  A
+         1896  vdd
+         3422  vdd
+         3882  vdd
+         3883  gnd
+         3883  vss
+         4249  gnd
+         5564  gnd
+         5732  A
+         5732  A
+         5732  A
+         5732  A
+         5732  A
+         7623  vdd
+         7777  vdd
+        10196  B
+         4789  vdd
+         4789  vdd
+         4813  vdd
+         4815  gnd
+         5099  vdd
+         8552  vdd
+         8552  gnd
+         8552  vss
+         9201  vdd
+        10188  A
+        10497  A
+         2676  B
+         4456  vdd
+         4456  gnd
+         4456  vss
+         4524  vdd
+         4816  vdd
+         6831  B
+         6833  B
+         6834  A
+         6835  A
+         6836  A
+         6837  B
+         6840  B
+         7783  vdd
+        10190  A
+        10285  B
+        10520  A
+         2455  tail
+         6939  B
+         8000  vdd
+        10516  A
+        10706  vdd
+        10708  vdd
+        10709  vdd
+         5093  vdd
+         7845  vdd
+         8005  vdd
+         8826  vdd
+         8782  vdd
+         7851  vdd
+         8004  vdd
+         8791  vdd
+         7850  vdd
+  topopath     occ=2    distinct=1   ['.topology.json']
+         8224  .topology.json
+         8212  .topology.json
+======================================================================
+FILE stick_diagram.py  (operational lines 1..8991)
+  circuit      occ=0    distinct=0   []
+  device       occ=20   distinct=13  ['M1', 'M10', 'M11', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'MN', 'MP']
+         6883  MP
+         6884  M3
+         6885  M4
+         6886  M5
+         6887  M6
+         6890  M1
+         6891  M2
+         6894  M9
+         6895  M10
+         6896  M7
+         6897  M8
+         6898  M11
+         6899  MN
+         6922  M3
+         6923  M4
+         6924  M6
+         6927  M1
+         6928  M2
+         6931  M5
+         6932  M7
+  net          occ=10   distinct=5   ['bias3', 'vb1', 'vb2', 'vin_n', 'vin_p']
+         6886  bias3
+         6887  bias3
+         6890  vin_n
+         6891  vin_p
+         6898  vb1
+         6898  vb1
+         6899  vb2
+         6899  vb2
+         6927  vin_n
+         6928  vin_p
+  net_generic  occ=92   distinct=13  ['A', 'B', 'CS', 'D3', 'O1', 'OUT', 'X', 'Y', 'bias', 'gnd', 'tail', 'vdd', 'vss']
+           94  A
+           94  A
+          350  A
+          350  B
+         2273  vdd
+         2273  gnd
+         2273  vdd
+         2273  gnd
+         2349  vdd
+         2349  gnd
+         2349  vdd
+         2349  gnd
+         3147  vdd
+         3147  gnd
+         3147  vss
+          332  A
+          332  B
+         1734  gnd
+         1735  vdd
+         1914  gnd
+         1914  vdd
+         3549  A
+          341  A
+          341  A
+          342  B
+          342  B
+          393  A
+          393  B
+         1260  vdd
+         1261  gnd
+         1308  gnd
+         1309  vdd
+         1382  gnd
+         1384  vdd
+         2469  tail
+         3546  A
+         3696  tail
+         3919  A
+         6883  vdd
+         6883  tail
+         6884  vdd
+         6884  X
+         6885  vdd
+         6885  Y
+         6886  X
+         6887  Y
+         6890  tail
+         6890  X
+         6891  tail
+         6891  Y
+         6894  gnd
+         6894  X
+         6895  gnd
+         6895  Y
+         6896  X
+         6897  Y
+         6898  gnd
+         6899  gnd
+         6922  vdd
+         6922  D3
+         6922  D3
+         6923  vdd
+         6923  O1
+         6923  D3
+         6924  vdd
+         6924  OUT
+         6924  O1
+         6927  CS
+         6927  D3
+         6928  CS
+         6928  O1
+         6931  gnd
+         6931  CS
+         6931  bias
+         6932  gnd
+         6932  OUT
+         6932  bias
+         1261  gnd
+         1309  vdd
+         1642  gnd
+         4804  B
+         3761  A
+         3774  A
+         3798  A
+         3849  A
+         1019  bias
+         3760  A
+         3773  A
+         3797  A
+         3821  A
+         1021  tail
+         3820  A
+  topopath     occ=0    distinct=0   []
+======================================================================
+FILE run_harness.py  (operational lines 1..530)
+  circuit      occ=8    distinct=8   ['current_reuse_telescopic_ota', 'current_reuse_telescopic_ota.topology.json', 'folded_cascode', 'folded_cascode.topology.json', 'nmcnr_amplifier', 'nmcnr_amplifier.topology.json', 'two_stage_ota', 'two_stage_ota.topology.json']
+          309  two_stage_ota
+          315  current_reuse_telescopic_ota
+          332  folded_cascode
+          343  nmcnr_amplifier
+          310  two_stage_ota.topology.json
+          316  current_reuse_telescopic_ota.topology.json
+          333  folded_cascode.topology.json
+          344  nmcnr_amplifier.topology.json
+  device       occ=15   distinct=9   ['CL', 'Cc', 'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7']
+          112  CL
+          191  Cc
+          288  CL
+          123  M1
+          123  M3
+          124  M5
+          124  M6
+          127  M6
+          123  M1
+          123  M2
+          123  M3
+          123  M4
+          124  M5
+          124  M7
+          124  M6
+  net          occ=0    distinct=0   []
+  net_generic  occ=6    distinct=2   ['tail', 'vdd']
+          104  vdd
+          141  vdd
+          233  vdd
+          287  vdd
+          117  tail
+          172  tail
+  topopath     occ=1    distinct=1   ['.topology.json']
+          428  .topology.json
+======================================================================
+FILE topology_library.py  (operational lines 1..527)
+  circuit      occ=0    distinct=0   []
+  device       occ=0    distinct=0   []
+  net          occ=0    distinct=0   []
+  net_generic  occ=0    distinct=0   []
+  topopath     occ=0    distinct=0   []
