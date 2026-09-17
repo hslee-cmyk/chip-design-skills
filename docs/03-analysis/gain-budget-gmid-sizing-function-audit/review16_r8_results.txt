@@ -1,0 +1,211 @@
+==========================================================================================
+CIRCUIT common_gate_amplifier  devs=3 pas=0 isrc=0 rails=['gnd', 'vdd'] in=['vin'] out=['vout'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=1  non-rail branch-nodes=0  columns(node-simple)=1
+  VIEW single excit=['vin']
+    acground(|5|)=['VNBias1', 'VNBias2', 'VPBias1', 'gnd', 'vdd']
+    rule1(4) bias-dependent nets = none
+    signal nets(2)=['vin', 'vout']
+    forward nets(2)=['vin', 'vout']
+    cells CG             ( 1) ['M2']
+    cells load           ( 2) ['M1', 'M3']
+    FORWARD-restricted: CG=1['M2']
+    pass bundles = none
+    stage-start cells (rule5) = ['M2']
+    voltage-driven CG (branch) = ['M2']
+    RECORD-ONLY branch hits = none
+    LOOPS (pas_cost=0) total simple cycles=0 -> {}
+    LOOPS (pas_cost=1) total simple cycles=0 -> {}
+    driving types (signal nets): vin=voltage; vout=current
+    TAP nodes (rule9a trigger) = []
+==========================================================================================
+CIRCUIT current_reuse_telescopic_ota  devs=51 pas=12 isrc=1 rails=['gnd', 'vdd'] in=['Vim', 'Vip'] out=['Vom', 'Vop'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=32  non-rail branch-nodes=9  columns(node-simple)=62
+  VIEW diff(nonreduced) excit=['Vim', 'Vip']
+    acground(|4|)=['Vbias2', 'Vbias3', 'gnd', 'vdd']
+    rule1(4) bias-dependent nets = ['Vbias2', 'Vbias3']
+       evid Vbias2 driven_by=['M57', 'M68'] chain_dev=M57 start_signal_nodes=['N58_57', 'Vx']
+       evid Vbias3 driven_by=['M61', 'M64'] chain_dev=M64 start_signal_nodes=['N64_63', 'Vy']
+    signal nets(22)=['N1a2a', 'N1b2b', 'N36b', 'N3a4a', 'N3b4b', 'N58_57', 'N64_63', 'N_cc_rz1', 'N_cc_rz2', 'Ncmfb_tail', 'Vcmfb', 'Vg15', 'Vg25', 'Vim', 'Vip', 'Voc', 'Vom', 'Vom1', 'Vop', 'Vop1', 'Vx', 'Vy']
+    forward nets(19)=['N1a2a', 'N1b2b', 'N3a4a', 'N3b4b', 'N_cc_rz1', 'N_cc_rz2', 'Ncmfb_tail', 'Vcmfb', 'Vg15', 'Vg25', 'Vim', 'Vip', 'Voc', 'Vom', 'Vom1', 'Vop', 'Vop1', 'Vx', 'Vy']
+    cells CG             ( 7) ['M2a', 'M2b', 'M37b', 'M3a', 'M3b', 'M58', 'M63']
+    cells CS             ( 5) ['M15', 'M16', 'M25', 'M26', 'M7']
+    cells CS(degen)      ( 5) ['M1a', 'M1b', 'M37a', 'M4a', 'M4b']
+    cells load           ( 7) ['M10', 'M17', 'M19', 'M38', 'M5', 'M6', 'M8']
+    cells load(diode)    ( 2) ['M36a', 'M36b']
+    cells offpath        (21) ['M11a', 'M11b', 'M12', 'M13', 'M14a', 'M14b', 'M18_bg', 'M20a', 'M20b', 'M21', 'M22', 'M23a', 'M24b', 'M39', 'M40', 'M57', 'M60', 'M61', 'M64', 'M66', 'M68']
+    cells pass(bundle)   ( 4) ['M18a', 'M18b', 'M9a', 'M9b']
+    FORWARD-restricted: CG=4['M2a', 'M2b', 'M3a', 'M3b']  CS=5['M15', 'M16', 'M25', 'M26', 'M7']  CS(degen)=5['M1a', 'M1b', 'M37a', 'M4a', 'M4b']  pass(bundle)=4['M18a', 'M18b', 'M9a', 'M9b']
+    pass bundles = [('M9a', 'M9b', ('Vg15', 'Vop1')), ('M18a', 'M18b', ('Vg25', 'Vom1'))]
+    stage-start cells (rule5) = ['M15', 'M16', 'M1a', 'M1b', 'M25', 'M26', 'M37a', 'M37b', 'M4a', 'M4b', 'M63', 'M7']
+    voltage-driven CG (branch) = ['M37b', 'M63']
+    RECORD-ONLY branch hits = {'9c_CS_low_Z_out': ['M7@Vx', 'M1a@N1a2a', 'M1b@N1b2b', 'M4a@N3a4a', 'M4b@N3b4b', 'M37a@Vcmfb']}
+    LOOPS (pas_cost=0) total simple cycles=10 -> {'2_miller': 6, '3b': 4}
+    LOOPS (pas_cost=1) total simple cycles=10 -> {'2_miller': 6, '3b': 4}
+    driving types (signal nets): N1a2a=current(priority:chan-only); N1b2b=current(priority:chan-only); N36b=current; N3a4a=current(priority:chan-only); N3b4b=current(priority:chan-only); N58_57=current; N64_63=current; N_cc_rz1=value-dep(inherit); N_cc_rz2=value-dep(inherit); Ncmfb_tail=voltage; Vcmfb=voltage(priority:gate-only); Vg15=voltage(SYM:gate측도 순방향); Vg25=voltage(SYM:gate측도 순방향); Vim=voltage; Vip=voltage; Voc=value-dep(inherit); Vom=current; Vom1=voltage(SYM:gate측도 순방향); Vop=current; Vop1=voltage(SYM:gate측도 순방향); Vx=current(priority:chan-only); Vy=voltage
+    TAP nodes (rule9a trigger) = []
+==========================================================================================
+CIRCUIT folded_cascode  devs=13 pas=0 isrc=1 rails=['gnd', 'vdd'] in=['vin_n', 'vin_p'] out=['out'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=8  non-rail branch-nodes=3  columns(node-simple)=7
+  VIEW diff(nonreduced) excit=['vin_n', 'vin_p']
+    acground(|3|)=['bias3', 'gnd', 'vdd']
+    rule1(4) bias-dependent nets = none
+    signal nets(9)=['Vg10', 'Vg7', 'Vg9', 'X', 'Y', 'out', 'tail', 'vin_n', 'vin_p']
+    forward nets(9)=['Vg10', 'Vg7', 'Vg9', 'X', 'Y', 'out', 'tail', 'vin_n', 'vin_p']
+    cells CG             ( 2) ['M5', 'M6']
+    cells CS             ( 1) ['M10']
+    cells CS(degen)      ( 3) ['M1', 'M2', 'M8']
+    cells load           ( 3) ['M11', 'M3', 'M4']
+    cells load(diode)    ( 2) ['M7', 'M9']
+    cells offpath        ( 2) ['MN', 'MP']
+    FORWARD-restricted: CG=2['M5', 'M6']  CS=1['M10']  CS(degen)=3['M1', 'M2', 'M8']
+    pass bundles = none
+    stage-start cells (rule5) = ['M1', 'M10', 'M2', 'M8']
+    voltage-driven CG (branch) = []
+    RECORD-ONLY branch hits = {'9c_CS_low_Z_out': ['M1@X', 'M2@Y']}
+    LOOPS (pas_cost=0) total simple cycles=0 -> {}
+    LOOPS (pas_cost=1) total simple cycles=0 -> {}
+    driving types (signal nets): Vg10=current; Vg7=voltage(priority:gate-only); Vg9=undetermined; X=current(priority:chan-only); Y=current(priority:chan-only); out=current; tail=voltage; vin_n=voltage; vin_p=voltage
+    TAP nodes (rule9a trigger) = []
+==========================================================================================
+CIRCUIT ngcc_3stage_ff  devs=16 pas=3 isrc=0 rails=['gnd', 'vdd'] in=['Vinn', 'Vinp'] out=['Vout'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=12  non-rail branch-nodes=3  columns(node-simple)=9
+  VIEW diff(nonreduced) excit=['Vinn', 'Vinp']
+    acground(|4|)=['VBN', 'VBP', 'gnd', 'vdd']
+    rule1(4) bias-dependent nets = none
+    signal nets(9)=['ND', 'NP', 'NX', 'TAIL', 'V1', 'V2', 'Vinn', 'Vinp', 'Vout']
+    forward nets(9)=['ND', 'NP', 'NX', 'TAIL', 'V1', 'V2', 'Vinn', 'Vinp', 'Vout']
+    cells CS             ( 7) ['M10', 'M13', 'M14', 'M4', 'M6B', 'M7', 'M8']
+    cells CS(degen)      ( 2) ['M1', 'M2']
+    cells load           ( 4) ['M0', 'M11', 'M12', 'M5']
+    cells load(diode)    ( 3) ['M3', 'M6A', 'M9']
+    FORWARD-restricted: CS=7['M10', 'M13', 'M14', 'M4', 'M6B', 'M7', 'M8']  CS(degen)=2['M1', 'M2']
+    pass bundles = none
+    stage-start cells (rule5) = ['M1', 'M10', 'M13', 'M14', 'M2', 'M4', 'M6B', 'M7', 'M8']
+    voltage-driven CG (branch) = []
+    RECORD-ONLY branch hits = {'9c_CS_low_Z_out': ['M1@ND', 'M6B@NX', 'M8@NP']}
+    LOOPS (pas_cost=0) total simple cycles=4 -> {'2_miller': 4}
+    LOOPS (pas_cost=1) total simple cycles=4 -> {'2_miller': 4}
+    driving types (signal nets): ND=voltage(priority:gate-only); NP=voltage(priority:gate-only); NX=voltage(priority:gate-only); TAIL=voltage; V1=voltage(priority:gate-only); V2=voltage(priority:gate-only); Vinn=voltage; Vinp=voltage; Vout=current
+    TAP nodes (rule9a trigger) = []
+==========================================================================================
+CIRCUIT nmcnr_amplifier  devs=15 pas=0 isrc=0 rails=['vdd', 'vss'] in=['Vin_n', 'Vin_p'] out=['Vout'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=10  non-rail branch-nodes=3  columns(node-simple)=9
+  VIEW diff(nonreduced) excit=['Vin_n', 'Vin_p']
+    acground(|7|)=['VB1', 'VB2', 'VB3', 'VB4', 'VB5', 'vdd', 'vss']
+    rule1(4) bias-dependent nets = none
+    signal nets(10)=['NodeC', 'NodeF1', 'NodeF2', 'NodeM1', 'NodeM2', 'NodeS2', 'NodeTail', 'Vin_n', 'Vin_p', 'Vout']
+    forward nets(10)=['NodeC', 'NodeF1', 'NodeF2', 'NodeM1', 'NodeM2', 'NodeS2', 'NodeTail', 'Vin_n', 'Vin_p', 'Vout']
+    cells CG             ( 2) ['M106', 'M107']
+    cells CS             ( 4) ['M109', 'M201', 'M204', 'M301']
+    cells CS(degen)      ( 2) ['M102', 'M103']
+    cells load           ( 5) ['M101', 'M104', 'M105', 'M202', 'M302']
+    cells load(diode)    ( 2) ['M108', 'M203']
+    FORWARD-restricted: CG=2['M106', 'M107']  CS=4['M109', 'M201', 'M204', 'M301']  CS(degen)=2['M102', 'M103']
+    pass bundles = none
+    stage-start cells (rule5) = ['M102', 'M103', 'M109', 'M201', 'M204', 'M301']
+    voltage-driven CG (branch) = []
+    RECORD-ONLY branch hits = {'9c_CS_low_Z_out': ['M102@NodeF1', 'M103@NodeF2', 'M201@NodeC']}
+    LOOPS (pas_cost=0) total simple cycles=0 -> {}
+    LOOPS (pas_cost=1) total simple cycles=0 -> {}
+    driving types (signal nets): NodeC=voltage(priority:gate-only); NodeF1=current(priority:chan-only); NodeF2=current(priority:chan-only); NodeM1=voltage(priority:gate-only); NodeM2=voltage(priority:gate-only); NodeS2=voltage(priority:gate-only); NodeTail=voltage; Vin_n=voltage; Vin_p=voltage; Vout=current
+    TAP nodes (rule9a trigger) = []
+==========================================================================================
+CIRCUIT pushpull_follower_buffer  devs=6 pas=1 isrc=0 rails=['agnd', 'vdd', 'vss'] in=['vin'] out=['vout'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=3  non-rail branch-nodes=0  columns(node-simple)=3
+  VIEW single excit=['vin']
+    acground(|5|)=['VNB1', 'VPB1', 'agnd', 'vdd', 'vss']
+    rule1(4) bias-dependent nets = none
+    signal nets(4)=['A', 'B', 'vin', 'vout']
+    forward nets(4)=['A', 'B', 'vin', 'vout']
+    cells CD             ( 4) ['M1', 'M2', 'M3', 'M4']
+    cells load           ( 2) ['M5', 'M6']
+    FORWARD-restricted: CD=4['M1', 'M2', 'M3', 'M4']
+    pass bundles = none
+    stage-start cells (rule5) = []
+    voltage-driven CG (branch) = []
+    RECORD-ONLY branch hits = none
+    LOOPS (pas_cost=0) total simple cycles=0 -> {}
+    LOOPS (pas_cost=1) total simple cycles=0 -> {}
+    driving types (signal nets): A=voltage; B=voltage; vin=voltage; vout=voltage
+    TAP nodes (rule9a trigger) = []
+==========================================================================================
+CIRCUIT sf_pushpull_output_opamp  devs=22 pas=5 isrc=1 rails=['agnd', 'vdd', 'vss'] in=['vin_n', 'vin_p'] out=['vout'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=9  non-rail branch-nodes=1  columns(node-simple)=8
+  VIEW diff(nonreduced) excit=['vin_n', 'vin_p']
+    acground(|3|)=['agnd', 'vdd', 'vss']
+    rule1(4) bias-dependent nets = none
+    signal nets(19)=['N1', 'N1112', 'N12', 'N13', 'N1314', 'N1516', 'N17', 'N2', 'N20', 'N5', 'N56', 'N7', 'N78', 'N910', 'TAIL', 'Y', 'vin_n', 'vin_p', 'vout']
+    forward nets(19)=['N1', 'N1112', 'N12', 'N13', 'N1314', 'N1516', 'N17', 'N2', 'N20', 'N5', 'N56', 'N7', 'N78', 'N910', 'TAIL', 'Y', 'vin_n', 'vin_p', 'vout']
+    cells CD             ( 4) ['M18', 'M19', 'M21', 'M22']
+    cells CS             ( 8) ['M11', 'M14', 'M16', 'M17', 'M20', 'M6', 'M8', 'M9']
+    cells CS(degen)      ( 8) ['M1', 'M10', 'M12', 'M13', 'M15', 'M2', 'M5', 'M7']
+    cells load           ( 1) ['M3']
+    cells offpath        ( 1) ['M4']
+    FORWARD-restricted: CD=4['M18', 'M19', 'M21', 'M22']  CS=8['M11', 'M14', 'M16', 'M17', 'M20', 'M6', 'M8', 'M9']  CS(degen)=8['M1', 'M10', 'M12', 'M13', 'M15', 'M2', 'M5', 'M7']
+    pass bundles = none
+    stage-start cells (rule5) = ['M1', 'M10', 'M11', 'M12', 'M13', 'M14', 'M15', 'M16', 'M17', 'M2', 'M20', 'M5', 'M6', 'M7', 'M8', 'M9']
+    voltage-driven CG (branch) = []
+    RECORD-ONLY branch hits = none
+    LOOPS (pas_cost=0) total simple cycles=6 -> {'3b': 3, 'record_2active_no_passive': 3}
+       rec2act: ['N13', 'N1314'] | ['act:M14', 'act:M13']
+       rec2act: ['N5', 'N56'] | ['act:M6', 'act:M5']
+       rec2act: ['N7', 'N78'] | ['act:M8', 'act:M7']
+    LOOPS (pas_cost=1) total simple cycles=6 -> {'3b': 3, '4': 3}
+       (4): ['N1', 'N5'] | ['act:M5', 'pas:R1a']
+       (4): ['N12', 'N13'] | ['act:M13', 'pas:R1c']
+       (4): ['N2', 'N7'] | ['act:M7', 'pas:R1b']
+    driving types (signal nets): N1=voltage(priority:gate-only); N1112=current; N12=voltage(priority:gate-only); N13=voltage(priority:gate-only); N1314=current; N1516=current; N17=voltage(priority:gate-only); N2=voltage(priority:gate-only); N20=voltage(priority:gate-only); N5=voltage(priority:gate-only); N56=current; N7=voltage(priority:gate-only); N78=current; N910=current; TAIL=voltage; Y=voltage(priority:gate-only); vin_n=voltage; vin_p=voltage; vout=voltage
+    TAP nodes (rule9a trigger) = []
+==========================================================================================
+CIRCUIT two_stage_ota  devs=7 pas=0 isrc=0 rails=['gnd', 'vdd'] in=['vin_n', 'vin_p'] out=['OUT'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=4  non-rail branch-nodes=1  columns(node-simple)=3
+  VIEW diff(nonreduced) excit=['vin_n', 'vin_p']
+    acground(|3|)=['bias', 'gnd', 'vdd']
+    rule1(4) bias-dependent nets = none
+    signal nets(6)=['CS', 'D3', 'O1', 'OUT', 'vin_n', 'vin_p']
+    forward nets(6)=['CS', 'D3', 'O1', 'OUT', 'vin_n', 'vin_p']
+    cells CS             ( 2) ['M4', 'M6']
+    cells CS(degen)      ( 2) ['M1', 'M2']
+    cells load           ( 2) ['M5', 'M7']
+    cells load(diode)    ( 1) ['M3']
+    FORWARD-restricted: CS=2['M4', 'M6']  CS(degen)=2['M1', 'M2']
+    pass bundles = none
+    stage-start cells (rule5) = ['M1', 'M2', 'M4', 'M6']
+    voltage-driven CG (branch) = []
+    RECORD-ONLY branch hits = {'9c_CS_low_Z_out': ['M1@D3']}
+    LOOPS (pas_cost=0) total simple cycles=0 -> {}
+    LOOPS (pas_cost=1) total simple cycles=0 -> {}
+    driving types (signal nets): CS=voltage; D3=voltage(priority:gate-only); O1=voltage(priority:gate-only); OUT=current; vin_n=voltage; vin_p=voltage
+    TAP nodes (rule9a trigger) = []
+==========================================================================================
+CIRCUIT two_stage_ota_sf  devs=9 pas=2 isrc=0 rails=['gnd', 'vdd'] in=['vin_n', 'vin_p'] out=['vout'] kinds=['nmos', 'pmos']
+  DEC-60(iii) hidden-rail candidates=[]  not-in-supply_nets(=REJECT)=[]
+  DEC-71: branches=5  non-rail branch-nodes=1  columns(node-simple)=4
+  VIEW diff(nonreduced) excit=['vin_n', 'vin_p']
+    acground(|3|)=['bias', 'gnd', 'vdd']
+    rule1(4) bias-dependent nets = none
+    signal nets(7)=['CS', 'D3', 'O1', 'OUT', 'vin_n', 'vin_p', 'vout']
+    forward nets(7)=['CS', 'D3', 'O1', 'OUT', 'vin_n', 'vin_p', 'vout']
+    cells CD             ( 1) ['M8']
+    cells CS             ( 2) ['M4', 'M6']
+    cells CS(degen)      ( 2) ['M1', 'M2']
+    cells load           ( 3) ['M5', 'M7', 'M9']
+    cells load(diode)    ( 1) ['M3']
+    FORWARD-restricted: CD=1['M8']  CS=2['M4', 'M6']  CS(degen)=2['M1', 'M2']
+    pass bundles = none
+    stage-start cells (rule5) = ['M1', 'M2', 'M4', 'M6']
+    voltage-driven CG (branch) = []
+    RECORD-ONLY branch hits = {'9c_CS_low_Z_out': ['M1@D3']}
+    LOOPS (pas_cost=0) total simple cycles=1 -> {'2_miller': 1}
+    LOOPS (pas_cost=1) total simple cycles=1 -> {'2_miller': 1}
+    driving types (signal nets): CS=voltage; D3=voltage(priority:gate-only); O1=voltage(priority:gate-only); OUT=voltage(priority:gate-only); vin_n=voltage; vin_p=voltage; vout=voltage
+    TAP nodes (rule9a trigger) = []
+DONE
