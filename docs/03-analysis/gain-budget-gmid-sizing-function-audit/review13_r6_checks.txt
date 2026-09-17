@@ -1,0 +1,49 @@
+
+#### (1) tap — 세 읽기가 같은 답을 내는가
+   SYM = 50713d6 대칭 문장 / CHAN = '채널 쪽이 순방향을 이으면 tap'(감사자 읽기) / T0 = 좁히기 전
+  common_gate_amplifier          T0: tap=0[] 9a=0 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+  current_reuse_telescopic_ota   T0: tap=4['Vg15', 'Vg25', 'Vom1', 'Vop1'] 9a=4 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+  folded_cascode                 T0: tap=0[] 9a=0 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+  ngcc_3stage_ff                 T0: tap=0[] 9a=0 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+  nmcnr_amplifier                T0: tap=0[] 9a=0 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+  pushpull_follower_buffer       T0: tap=0[] 9a=0 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+  sf_pushpull_output_opamp       T0: tap=0[] 9a=0 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+  two_stage_ota                  T0: tap=0[] 9a=0 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+  two_stage_ota_sf               T0: tap=0[] 9a=0 UNDEF=0 | CHAN: tap=0[] 9a=0 UNDEF=0 | SYM: tap=0[] 9a=0 UNDEF=0
+
+#### (2) 규칙 9 (c) — 순방향 제한 없음(문면) vs 블록 출력노드가 순방향일 때만
+  common_gate_amplifier          제한없음=0 [] | 순방향블록만=0 []
+  current_reuse_telescopic_ota   제한없음=1 ['M36b->N36b'] | 순방향블록만=0 []
+  folded_cascode                 제한없음=0 [] | 순방향블록만=0 []
+  ngcc_3stage_ff                 제한없음=0 [] | 순방향블록만=0 []
+  nmcnr_amplifier                제한없음=0 [] | 순방향블록만=0 []
+  pushpull_follower_buffer       제한없음=0 [] | 순방향블록만=0 []
+  sf_pushpull_output_opamp       제한없음=0 [] | 순방향블록만=0 []
+  two_stage_ota                  제한없음=0 [] | 순방향블록만=0 []
+  two_stage_ota_sf               제한없음=0 [] | 순방향블록만=0 []
+
+#### (3) 공통 소스 구동 종류 규정의 하류 영향 (켬 vs 끔)
+  common_gate_amplifier          stage-start 동일=True (추가=[])  전압구동CG 끔=['M2'] 켬=['M2']  폐경로 동일=True (0/0)  미정의 끔=0 켬=0
+  current_reuse_telescopic_ota   stage-start 동일=False (추가=['M37b', 'M63'])  전압구동CG 끔=[] 켬=['M37b', 'M63']  폐경로 동일=True (23/23)  미정의 끔=2 켬=0
+  folded_cascode                 stage-start 동일=True (추가=[])  전압구동CG 끔=[] 켬=[]  폐경로 동일=True (4/4)  미정의 끔=1 켬=0
+  ngcc_3stage_ff                 stage-start 동일=True (추가=[])  전압구동CG 끔=[] 켬=[]  폐경로 동일=True (7/7)  미정의 끔=1 켬=0
+  nmcnr_amplifier                stage-start 동일=True (추가=[])  전압구동CG 끔=[] 켬=[]  폐경로 동일=True (2/2)  미정의 끔=1 켬=0
+  pushpull_follower_buffer       stage-start 동일=True (추가=[])  전압구동CG 끔=[] 켬=[]  폐경로 동일=True (0/0)  미정의 끔=0 켬=0
+  sf_pushpull_output_opamp       stage-start 동일=True (추가=[])  전압구동CG 끔=[] 켬=[]  폐경로 동일=True (7/7)  미정의 끔=1 켬=0
+  two_stage_ota                  stage-start 동일=True (추가=[])  전압구동CG 끔=[] 켬=[]  폐경로 동일=True (1/1)  미정의 끔=1 켬=0
+  two_stage_ota_sf               stage-start 동일=True (추가=[])  전압구동CG 끔=[] 켬=[]  폐경로 동일=True (2/2)  미정의 끔=1 켬=0
+
+#### (4) 진짜 diode 부하를 놓치는가 — diode 노드별 미러 갈래 판정
+  common_gate_amplifier          diode 없음
+  current_reuse_telescopic_ota   M11a@N11a11b:신호경로밖 ; M11b@N11b:신호경로밖 ; M14a@N14a14b:신호경로밖 ; M14b@N14a_14b:신호경로밖 ; M20a@N20a20b:신호경로밖 ; M20b@N20b:신호경로밖 ; M23a@N24b23a:신호경로밖 ; M24b@N23a24b:신호경로밖 ; M18_bg@Vbias1:신호경로밖 ; M64@Vbias3:신호경로밖 ; M57@Vbias2:신호경로밖 ; M66@Vbias4:신호경로밖 ; M36a@Vcmfb: 읽는소자=['M7'] 순방향출력=M7 -> 미러입력(블록 이어짐) ; M36b@N36b: 읽는소자=없음 순방향출력=없음 -> **진짜 diode 부하 -> 9(c)** ; M39@Voc_des:신호경로밖 ; M40@gnd:신호경로밖
+  folded_cascode                 MP@vb1:신호경로밖 ; M9@Vg9: 읽는소자=['M10'] 순방향출력=M10 -> 미러입력(블록 이어짐) ; M7@Vg7: 읽는소자=['M8'] 순방향출력=M8 -> 미러입력(블록 이어짐) ; MN@vb2:신호경로밖
+  ngcc_3stage_ff                 M3@ND: 읽는소자=['M4', 'M6B'] 순방향출력=M4 -> 미러입력(블록 이어짐) ; M6A@NX: 읽는소자=['M7'] 순방향출력=M7 -> 미러입력(블록 이어짐) ; M9@NP: 읽는소자=['M10'] 순방향출력=M10 -> 미러입력(블록 이어짐)
+  nmcnr_amplifier                M108@NodeM1: 읽는소자=['M109'] 순방향출력=M109 -> 미러입력(블록 이어짐) ; M203@NodeC: 읽는소자=['M204'] 순방향출력=M204 -> 미러입력(블록 이어짐)
+  pushpull_follower_buffer       diode 없음
+  sf_pushpull_output_opamp       M4@NB:신호경로밖
+  two_stage_ota                  M3@D3: 읽는소자=['M4'] 순방향출력=M4 -> 미러입력(블록 이어짐)
+  two_stage_ota_sf               M3@D3: 읽는소자=['M4'] 순방향출력=M4 -> 미러입력(블록 이어짐)
+
+#### (5) 순방향 경로 — 네 소비처가 같은 집합을 쓰는가
+  CG 집계 / CS·CD 타이브레이크 / tap : 같은 fwd 객체를 넘겨 계산했다(구현상 동일 집합).
+  9 (c) : 계획 문면이 '순방향 경로 위에 있으면 미러 입력'에만 쓰고, **블록 출력노드 자체에는 걸지 않는다** -> (2) 참조.

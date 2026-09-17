@@ -1,0 +1,64 @@
+=== F: D-1 교체 문장(대칭) 재검증 ===
+[F] common_gate_amplifier          tap=0 [] | 전압구동=0 [] | 전류구동=0 []
+[F] current_reuse_telescopic_ota   tap=0 [] | 전압구동=4 ['Vg15', 'Vg25', 'Vom1', 'Vop1'] | 전류구동=0 []
+[F] current_reuse_telescopic_ota     watch Vop1   -> 전압구동
+[F] current_reuse_telescopic_ota     watch Vom1   -> 전압구동
+[F] current_reuse_telescopic_ota     watch Vg15   -> 전압구동
+[F] current_reuse_telescopic_ota     watch Vg25   -> 전압구동
+[F] folded_cascode                 tap=0 [] | 전압구동=1 ['Vg9'] | 전류구동=0 []
+[F] ngcc_3stage_ff                 tap=0 [] | 전압구동=0 [] | 전류구동=0 []
+[F] nmcnr_amplifier                tap=0 [] | 전압구동=0 [] | 전류구동=0 []
+[F] pushpull_follower_buffer       tap=0 [] | 전압구동=2 ['A', 'B'] | 전류구동=0 []
+[F] pushpull_follower_buffer         watch A      -> 전압구동
+[F] pushpull_follower_buffer         watch B      -> 전압구동
+[F] sf_pushpull_output_opamp       tap=0 [] | 전압구동=2 ['N17', 'N20'] | 전류구동=0 []
+[F] sf_pushpull_output_opamp         watch N17    -> 전압구동
+[F] sf_pushpull_output_opamp         watch N20    -> 전압구동
+[F] two_stage_ota                  tap=0 [] | 전압구동=0 [] | 전류구동=0 []
+[F] two_stage_ota_sf               tap=0 [] | 전압구동=0 [] | 전류구동=0 []
+[F] TOTAL tap = 0  (계획서 주장: 9회로 전부 0)
+
+=== G: 새 규정('gate로 받는 셀의 source 단자로 신호가 나오는 노드 = 전압 구동') ===
+[G] common_gate_amplifier          규정이 살리는 노드=0 [] | 규정 뒤에도 미정=0 []
+[G] current_reuse_telescopic_ota   규정이 살리는 노드=2 ['Ncmfb_tail', 'Vy'] | 규정 뒤에도 미정=0 []
+[G] folded_cascode                 규정이 살리는 노드=1 ['tail'] | 규정 뒤에도 미정=0 []
+[G] ngcc_3stage_ff                 규정이 살리는 노드=1 ['TAIL'] | 규정 뒤에도 미정=0 []
+[G] nmcnr_amplifier                규정이 살리는 노드=1 ['NodeTail'] | 규정 뒤에도 미정=0 []
+[G] pushpull_follower_buffer       규정이 살리는 노드=0 [] | 규정 뒤에도 미정=0 []
+[G] sf_pushpull_output_opamp       규정이 살리는 노드=1 ['TAIL'] | 규정 뒤에도 미정=0 []
+[G] two_stage_ota                  규정이 살리는 노드=1 ['CS'] | 규정 뒤에도 미정=0 []
+[G] two_stage_ota_sf               규정이 살리는 노드=1 ['CS'] | 규정 뒤에도 미정=0 []
+[G] 규정이 실제로 발동한 회로 수 = 7 / 9  (계획서 주장: 9회로 중 7회로)
+
+=== H: 규칙 9 (c) diode 미러 갈래 ===
+[H] common_gate_amplifier          미러입력(갈래 발동)=0 [] | 진짜 diode 부하=0 []
+[H] current_reuse_telescopic_ota   미러입력(갈래 발동)=1 [('M36a', 'Vcmfb', ['M7'])] | 진짜 diode 부하=1 [('M36b', 'N36b', [])]
+[H] folded_cascode                 미러입력(갈래 발동)=2 [('M9', 'Vg9', ['M10']), ('M7', 'Vg7', ['M8'])] | 진짜 diode 부하=0 []
+[H] ngcc_3stage_ff                 미러입력(갈래 발동)=3 [('M3', 'ND', ['M4', 'M6B']), ('M6A', 'NX', ['M7']), ('M9', 'NP', ['M10'])] | 진짜 diode 부하=0 []
+[H] nmcnr_amplifier                미러입력(갈래 발동)=2 [('M108', 'NodeM1', ['M109']), ('M203', 'NodeC', ['M204'])] | 진짜 diode 부하=0 []
+[H] pushpull_follower_buffer       미러입력(갈래 발동)=0 [] | 진짜 diode 부하=0 []
+[H] sf_pushpull_output_opamp       미러입력(갈래 발동)=0 [] | 진짜 diode 부하=0 []
+[H] two_stage_ota                  미러입력(갈래 발동)=1 [('M3', 'D3', ['M4'])] | 진짜 diode 부하=0 []
+[H] two_stage_ota_sf               미러입력(갈래 발동)=1 [('M3', 'D3', ['M4'])] | 진짜 diode 부하=0 []
+
+=== I: 순방향 경로는 셀 분류·블록 없이 계산된다(재확인) ===
+[I] common_gate_amplifier          sig=2 fwd=2  (입력: 교류접지 + 여기/감지 포트만)
+[I] current_reuse_telescopic_ota   sig=22 fwd=19  (입력: 교류접지 + 여기/감지 포트만)
+[I] folded_cascode                 sig=9 fwd=9  (입력: 교류접지 + 여기/감지 포트만)
+[I] ngcc_3stage_ff                 sig=9 fwd=9  (입력: 교류접지 + 여기/감지 포트만)
+[I] nmcnr_amplifier                sig=10 fwd=10  (입력: 교류접지 + 여기/감지 포트만)
+[I] pushpull_follower_buffer       sig=4 fwd=4  (입력: 교류접지 + 여기/감지 포트만)
+[I] sf_pushpull_output_opamp       sig=19 fwd=19  (입력: 교류접지 + 여기/감지 포트만)
+[I] two_stage_ota                  sig=6 fwd=6  (입력: 교류접지 + 여기/감지 포트만)
+[I] two_stage_ota_sf               sig=7 fwd=7  (입력: 교류접지 + 여기/감지 포트만)
+
+=== H2: '진짜 diode 부하' 노드의 순방향 여부 ===
+[H2] common_gate_amplifier          '진짜 diode 부하' 후보 없음
+[H2] current_reuse_telescopic_ota   diode=M36b   net=N36b       순방향위=False  gate소비자=[]
+[H2] folded_cascode                 '진짜 diode 부하' 후보 없음
+[H2] ngcc_3stage_ff                 '진짜 diode 부하' 후보 없음
+[H2] nmcnr_amplifier                '진짜 diode 부하' 후보 없음
+[H2] pushpull_follower_buffer       '진짜 diode 부하' 후보 없음
+[H2] sf_pushpull_output_opamp       '진짜 diode 부하' 후보 없음
+[H2] two_stage_ota                  '진짜 diode 부하' 후보 없음
+[H2] two_stage_ota_sf               '진짜 diode 부하' 후보 없음

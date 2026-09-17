@@ -1,0 +1,204 @@
+
+#### 라운드 6 (commit 50713d6) — 블록 + 규칙 9 (c) diode 미러 갈래
+
+common_gate_amplifier
+   9(c) 미러갈래 OFF=0 []
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = 없음
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = ['M2']
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {} tot=0 / 비용1 {} tot=0  | `기록만` 루프 0/0
+
+current_reuse_telescopic_ota
+   9(c) 미러갈래 OFF=4 ['M7->Vbias2', 'M36a->Vcmfb', 'M36b->N36b', 'M37a->Vcmfb']
+   9(c) 미러갈래 ON =1 ["M36b->N36b['M36b']"]
+   미러로 이어진 블록 = ["M7:mirror(['M57']@Vbias2)->M2a", "M63:mirror(['M64']@Vbias3)->M3a", "M36a:mirror(['M36a']@Vcmfb)->M7;mirror(['M57']@Vbias2)->M2a", "M37a:mirror(['M36a']@Vcmfb)->M7;mirror(['M57']@Vbias2)->M2a"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = ['M37b', 'M63']
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'1.5_bias_scc': 11, '3a': 1, '3b': 11} tot=23 / 비용1 {'1.5_bias_scc': 11, '3a': 1, '3b': 11} tot=23  | `기록만` 루프 0/0
+
+folded_cascode
+   9(c) 미러갈래 OFF=2 ['M2->Vg7', 'M9->Vg9']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M2:mirror(['M7']@Vg7)->M8", "M9:mirror(['M9']@Vg9)->M10"]
+   9(a)=0 []  tap=[]  셀 review_needed=1 ['M7']
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'1.5_bias_scc': 2, '3a': 1, '3b': 1} tot=4 / 비용1 {'1.5_bias_scc': 2, '3a': 1, '3b': 1} tot=4  | `기록만` 루프 0/0
+
+ngcc_3stage_ff
+   9(c) 미러갈래 OFF=6 ['M1->ND', 'M3->ND', 'M6A->NX', 'M6B->NX', 'M8->NP', 'M9->NP']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M1:mirror(['M3']@ND)->M4", "M3:mirror(['M3']@ND)->M4", "M6A:mirror(['M6A']@NX)->M7", "M6B:mirror(['M6A']@NX)->M7", "M8:mirror(['M9']@NP)->M10", "M9:mirror(['M9']@NP)->M10"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'3b': 7} tot=7 / 비용1 {'3b': 7} tot=7  | `기록만` 루프 0/0
+
+nmcnr_amplifier
+   9(c) 미러갈래 OFF=4 ['M102->NodeM1', 'M108->NodeM1', 'M201->NodeC', 'M203->NodeC']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M102:mirror(['M108']@NodeM1)->M109", "M108:mirror(['M108']@NodeM1)->M109", "M201:mirror(['M203']@NodeC)->M204", "M203:mirror(['M203']@NodeC)->M204"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'3b': 2} tot=2 / 비용1 {'3b': 2} tot=2  | `기록만` 루프 0/0
+
+pushpull_follower_buffer
+   9(c) 미러갈래 OFF=0 []
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = 없음
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {} tot=0 / 비용1 {} tot=0  | `기록만` 루프 0/0
+
+sf_pushpull_output_opamp
+   9(c) 미러갈래 OFF=0 []
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = 없음
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'1.5_bias_scc': 1, '3b': 3, 'record_2active_no_passive': 3} tot=7 / 비용1 {'1.5_bias_scc': 1, '3b': 3, '4': 3} tot=7  | `기록만` 루프 3/3
+
+two_stage_ota
+   9(c) 미러갈래 OFF=2 ['M3->D3', 'M1->D3']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M3:mirror(['M3']@D3)->M4", "M1:mirror(['M3']@D3)->M4"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'3b': 1} tot=1 / 비용1 {'3b': 1} tot=1  | `기록만` 루프 0/0
+
+two_stage_ota_sf
+   9(c) 미러갈래 OFF=2 ['M1->D3', 'M3->D3']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M1:mirror(['M3']@D3)->M4", "M3:mirror(['M3']@D3)->M4"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'3b': 2} tot=2 / 비용1 {'2_miller': 1, '3b': 1} tot=2  | `기록만` 루프 0/0
+
+#### GB2 정지표 (기록만 분기 발동 총합 0 + 셀 review_needed 0)
+circuit                          9a   9c  dual   rec0   rec1   vCG | 정지?
+common_gate_amplifier             0    0     0      0      0     1 | pass / pass
+current_reuse_telescopic_ota      0    1     0      0      0     2 | STOP / STOP
+folded_cascode                    0    0     1      0      0     0 | STOP / STOP
+ngcc_3stage_ff                    0    0     0      0      0     0 | pass / pass
+nmcnr_amplifier                   0    0     0      0      0     0 | pass / pass
+pushpull_follower_buffer          0    0     0      0      0     0 | pass / pass
+sf_pushpull_output_opamp          0    0     0      3      3     0 | STOP / STOP
+two_stage_ota                     0    0     0      0      0     0 | pass / pass
+two_stage_ota_sf                  0    0     0      0      0     0 | pass / pass
+
+사이징 4회로 GB2 무정지 통과(비용0) = 2 ['two_stage_ota', 'nmcnr_amplifier']
+사이징 4회로 GB2 무정지 통과(비용1) = 2 ['two_stage_ota', 'nmcnr_amplifier']
+
+참고: '검증 발동 0 분기'(DEC-59)를 함께 세면 -- 전압구동 CG 분기는 J12-i ratify 전까지 검증 발동 0이다.
+   common_gate_amplifier 가 그 분기를 발동한다 (vCG=1)
+   current_reuse_telescopic_ota 가 그 분기를 발동한다 (vCG=2)
+
+#### 라운드 6 (commit 50713d6) — 블록 + 규칙 9 (c) diode 미러 갈래
+
+common_gate_amplifier
+   9(c) 미러갈래 OFF=0 []
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = 없음
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = ['M2']
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {} tot=0 / 비용1 {} tot=0  | `기록만` 루프 0/0
+
+current_reuse_telescopic_ota
+   9(c) 미러갈래 OFF=4 ['M7->Vbias2', 'M36a->Vcmfb', 'M36b->N36b', 'M37a->Vcmfb']
+   9(c) 미러갈래 ON =1 ["M36b->N36b['M36b']"]
+   미러로 이어진 블록 = ["M7:mirror(['M57']@Vbias2)->M2a", "M63:mirror(['M64']@Vbias3)->M3a", "M36a:mirror(['M36a']@Vcmfb)->M7;mirror(['M57']@Vbias2)->M2a", "M37a:mirror(['M36a']@Vcmfb)->M7;mirror(['M57']@Vbias2)->M2a"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = ['M37b', 'M63']
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'1.5_bias_scc': 11, '3a': 1, '3b': 11} tot=23 / 비용1 {'1.5_bias_scc': 11, '3a': 1, '3b': 11} tot=23  | `기록만` 루프 0/0
+
+folded_cascode
+   9(c) 미러갈래 OFF=2 ['M2->Vg7', 'M9->Vg9']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M2:mirror(['M7']@Vg7)->M8", "M9:mirror(['M9']@Vg9)->M10"]
+   9(a)=0 []  tap=[]  셀 review_needed=1 ['M7']
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'1.5_bias_scc': 2, '3a': 1, '3b': 1} tot=4 / 비용1 {'1.5_bias_scc': 2, '3a': 1, '3b': 1} tot=4  | `기록만` 루프 0/0
+
+ngcc_3stage_ff
+   9(c) 미러갈래 OFF=6 ['M1->ND', 'M3->ND', 'M6A->NX', 'M6B->NX', 'M8->NP', 'M9->NP']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M1:mirror(['M3']@ND)->M4", "M3:mirror(['M3']@ND)->M4", "M6A:mirror(['M6A']@NX)->M7", "M6B:mirror(['M6A']@NX)->M7", "M8:mirror(['M9']@NP)->M10", "M9:mirror(['M9']@NP)->M10"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'3b': 7} tot=7 / 비용1 {'3b': 7} tot=7  | `기록만` 루프 0/0
+
+nmcnr_amplifier
+   9(c) 미러갈래 OFF=4 ['M102->NodeM1', 'M108->NodeM1', 'M201->NodeC', 'M203->NodeC']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M102:mirror(['M108']@NodeM1)->M109", "M108:mirror(['M108']@NodeM1)->M109", "M201:mirror(['M203']@NodeC)->M204", "M203:mirror(['M203']@NodeC)->M204"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'3b': 2} tot=2 / 비용1 {'3b': 2} tot=2  | `기록만` 루프 0/0
+
+pushpull_follower_buffer
+   9(c) 미러갈래 OFF=0 []
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = 없음
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {} tot=0 / 비용1 {} tot=0  | `기록만` 루프 0/0
+
+sf_pushpull_output_opamp
+   9(c) 미러갈래 OFF=0 []
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = 없음
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'1.5_bias_scc': 1, '3b': 3, 'record_2active_no_passive': 3} tot=7 / 비용1 {'1.5_bias_scc': 1, '3b': 3, '4': 3} tot=7  | `기록만` 루프 3/3
+
+two_stage_ota
+   9(c) 미러갈래 OFF=2 ['M3->D3', 'M1->D3']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M3:mirror(['M3']@D3)->M4", "M1:mirror(['M3']@D3)->M4"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'3b': 1} tot=1 / 비용1 {'3b': 1} tot=1  | `기록만` 루프 0/0
+
+two_stage_ota_sf
+   9(c) 미러갈래 OFF=2 ['M1->D3', 'M3->D3']
+   9(c) 미러갈래 ON =0 []
+   미러로 이어진 블록 = ["M1:mirror(['M3']@D3)->M4", "M3:mirror(['M3']@D3)->M4"]
+   9(a)=0 []  tap=[]  셀 review_needed=0 []
+   전압구동 CG(분기) = 없음
+   구동 종류 미정의/UNDEF = 없음
+   루프 비용0 {'3b': 2} tot=2 / 비용1 {'2_miller': 1, '3b': 1} tot=2  | `기록만` 루프 0/0
+
+#### GB2 정지표 (기록만 분기 발동 총합 0 + 셀 review_needed 0)
+circuit                          9a   9c  dual   rec0   rec1   vCG | 정지?
+common_gate_amplifier             0    0     0      0      0     1 | pass / pass
+current_reuse_telescopic_ota      0    1     0      0      0     2 | STOP / STOP
+folded_cascode                    0    0     1      0      0     0 | STOP / STOP
+ngcc_3stage_ff                    0    0     0      0      0     0 | pass / pass
+nmcnr_amplifier                   0    0     0      0      0     0 | pass / pass
+pushpull_follower_buffer          0    0     0      0      0     0 | pass / pass
+sf_pushpull_output_opamp          0    0     0      3      3     0 | STOP / STOP
+two_stage_ota                     0    0     0      0      0     0 | pass / pass
+two_stage_ota_sf                  0    0     0      0      0     0 | pass / pass
+
+사이징 4회로 GB2 무정지 통과(비용0) = 2 ['two_stage_ota', 'nmcnr_amplifier']
+사이징 4회로 GB2 무정지 통과(비용1) = 2 ['two_stage_ota', 'nmcnr_amplifier']
+
+참고: '검증 발동 0 분기'(DEC-59)를 함께 세면 -- 전압구동 CG 분기는 J12-i ratify 전까지 검증 발동 0이다.
+   common_gate_amplifier 가 그 분기를 발동한다 (vCG=1)
+   current_reuse_telescopic_ota 가 그 분기를 발동한다 (vCG=2)
