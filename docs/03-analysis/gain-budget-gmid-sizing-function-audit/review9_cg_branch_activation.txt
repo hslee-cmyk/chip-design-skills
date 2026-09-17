@@ -1,0 +1,31 @@
+=== '전압 구동 CG' 분기 발동 측정 (library 전수) ===
+CG 판별: 그 소자의 채널 엣지를 뺀 그래프에서 drain이 여기로부터 도달하지 못하면 CG.
+
+  common_gate_amplifier          CG 1개
+      M2     source=vin        drain=vout       구동=전압(입력 포트)
+  current_reuse_telescopic_ota   CG 3개
+      M9b    source=Vop1       drain=Vg15       구동=전류(신호 셀 drain)
+      M18b   source=Vom1       drain=Vg25       구동=전류(신호 셀 drain)
+      M37b   source=Ncmfb_tail drain=N36b       구동=전압(CD 출력)
+  folded_cascode                 CG 1개
+      M5     source=Y          drain=Vg7        구동=전류(신호 셀 drain)
+  ngcc_3stage_ff                 CG 0개
+  nmcnr_amplifier                CG 1개
+      M106   source=NodeF1     drain=NodeM1     구동=전류(신호 셀 drain)
+  pushpull_follower_buffer       CG 0개
+  sf_pushpull_output_opamp       CG 0개
+  two_stage_ota                  CG 0개
+  two_stage_ota_sf               CG 0개
+
+전압 구동 CG: ['common_gate_amplifier.M2', 'current_reuse_telescopic_ota.M37b']
+전류 구동 CG: ['current_reuse_telescopic_ota.M9b', 'current_reuse_telescopic_ota.M18b', 'folded_cascode.M5', 'nmcnr_amplifier.M106']
+판정: 전압 구동 CG가 하나라도 있으면 '전압 구동 CG stage 시작' 분기의 발동 회로가 생긴 것이고, DEC-59의 '검증 발동 0 -> 탐색 전 정지'가 그 분기에서 풀린다.
+[이 측정의 한계 -- 위 CG 개수는 ratified 판독이 아니다]
+  이 스크립트는 (a) J1 교류접지 예외를 적용하지 않고 (b) 역병렬 pass 묶음 조건과
+  (c) 셀 수의 순방향 경로 제한을 구현하지 않았다. 그래서 기존 회로의 CG 목록은
+  계획서 6a 대조표의 기대(파일럿 캐스코드 4개 등)와 다르다 -- 그 판독은 6a 소관이다.
+  **이 측정이 말하는 것은 하나다**: `common_gate_amplifier.M2`가 source를 입력 포트에서
+  직접 받는 CG이고, 따라서 '전압 구동 CG stage 시작' 분기의 발동 회로가 생겼다는 것.
+  파일럿 M37b가 전압 구동으로 잡히는 것은 CMFB 경로이고, 계획서가 이미 '축약 뷰에서
+  빠지는 셀'로 적어 둔 부류다(N3.2-7 근거 문단).
+

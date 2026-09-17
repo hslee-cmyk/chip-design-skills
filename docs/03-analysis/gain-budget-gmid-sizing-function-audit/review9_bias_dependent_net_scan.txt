@@ -83,3 +83,20 @@
 
 요약: 발동 1회로 / 무동작 7회로 / 측정 불가 0회로
 무동작이 다수인 것이 일반성의 증거다 -- 술어가 필요 없는 회로에서는 아무 것도 바꾸지 않는다.
+=== 규칙 1 (4) 바이어스 종속 넷 술어 -- library 8회로 전수 측정 ===
+기본 전달 뷰(입력 포트 여기) 기준. ports 미선언 회로는 여기를 만들 수 없어 '측정 불가'.
+
+  common_gate_amplifier          무동작 0건
+  current_reuse_telescopic_ota   **발동 2건**
+      넷 Vbias2: 자기게이트 구동 M57, 사슬 출발 신호 노드 N58_57, 구동 소자 ['M57', 'M68']
+      넷 Vbias3: 자기게이트 구동 M64, 사슬 출발 신호 노드 N64_63, 구동 소자 ['M61', 'M64']
+  folded_cascode                 무동작 0건
+  ngcc_3stage_ff                 무동작 0건
+  nmcnr_amplifier                무동작 0건
+  pushpull_follower_buffer       무동작 0건
+  sf_pushpull_output_opamp       무동작 0건
+  two_stage_ota                  무동작 0건
+  two_stage_ota_sf               무동작 0건
+
+요약: 발동 1회로 / 무동작 8회로 / 측정 불가 0회로
+무동작이 다수인 것이 일반성의 증거다 -- 술어가 필요 없는 회로에서는 아무 것도 바꾸지 않는다.

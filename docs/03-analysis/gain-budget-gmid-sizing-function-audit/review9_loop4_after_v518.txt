@@ -20,3 +20,27 @@
 
 사이징 대상 중 (4)가 남은 회로: 없음
 (4)가 남으면 그 회로는 6c부터 DEC-59로 정지한다 -- 흡수 규칙을 정의하거나 사이징 대상에서 빼야 한다(계획 N6.2 6a).
+=== v5.18 확정 규칙에서 (4) `기록만` 잔여 (차동 전달 뷰, J1 적용) ===
+6a 완료 조건 '사이징 대상에 (4) 없음'의 현재 입력. ★ = 사이징 대상 회로.
+
+    common_gate_amplifier          끊은 넷 없음
+      
+  ★ current_reuse_telescopic_ota   끊은 넷 ['Vbias2', 'Vbias3']
+      (2) Miller 2 / (3-b) 루프 뷰 8 / (나) 2능동셀 루프(보류) 2 / 왕복(제외) 6
+  ★ folded_cascode                 끊은 넷 없음
+      (3-b) 루프 뷰 1
+    ngcc_3stage_ff                 끊은 넷 없음
+      (2) Miller 1 / (3-b) 루프 뷰 2
+  ★ nmcnr_amplifier                끊은 넷 없음
+      
+    pushpull_follower_buffer       끊은 넷 없음
+      
+    sf_pushpull_output_opamp       끊은 넷 없음
+      (3-b) 루프 뷰 6 / (나) 2능동셀 루프(보류) 3
+  ★ two_stage_ota                  끊은 넷 없음
+      
+    two_stage_ota_sf               끊은 넷 없음
+      (2) Miller 1
+
+사이징 대상 중 (4)가 남은 회로: 없음
+(4)가 남으면 그 회로는 6c부터 DEC-59로 정지한다 -- 흡수 규칙을 정의하거나 사이징 대상에서 빼야 한다(계획 N6.2 6a).
