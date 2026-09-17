@@ -1,0 +1,32 @@
+=== DEC-60 (iii) 숨은 레일 후보 거부 게이트 측정 ===
+[공격 14 (a)] supply_nets 현 선언 그대로:
+  current_reuse_telescopic_ota   숨은넷=['N_cc_rz1', 'N_cc_rz2'] DC고립=[] 거부=no []
+  folded_cascode                 숨은넷=[] DC고립=[] 거부=no []
+  ngcc_3stage_ff                 숨은넷=[] DC고립=[] 거부=no []
+  nmcnr_amplifier                숨은넷=[] DC고립=[] 거부=no []
+  pushpull_follower_buffer       숨은넷=['agnd'] DC고립=['agnd'] 거부=YES ['agnd']
+  sf_pushpull_output_opamp       숨은넷=['agnd'] DC고립=['agnd'] 거부=YES ['agnd']
+  two_stage_ota                  숨은넷=[] DC고립=[] 거부=no []
+  two_stage_ota_sf               숨은넷=[] DC고립=[] 거부=no []
+  거부 2회로: ['pushpull_follower_buffer', 'sf_pushpull_output_opamp']
+  통과 6회로: ['current_reuse_telescopic_ota', 'folded_cascode', 'ngcc_3stage_ff', 'nmcnr_amplifier', 'two_stage_ota', 'two_stage_ota_sf']
+[공격 14 (b)] 선언은 있으나 숨은 넷을 뺀 경우:
+  pushpull_follower_buffer       supply_nets=['vdd','vss'](agnd 누락) -> 거부=YES ['agnd']
+  sf_pushpull_output_opamp       supply_nets=['vdd','vss'](agnd 누락) -> 거부=YES ['agnd']
+판정: 거부는 agnd 두 회로에서만 발동하고, DC로 연결된 보상망 내부 노드(파일럿 N_cc_rz1/N_cc_rz2)를 가진 회로는 오거부되지 않는다.
+=== DEC-60 (iii) 숨은 레일 후보 거부 게이트 측정 ===
+[공격 14 (a)] supply_nets 현 선언 그대로:
+  current_reuse_telescopic_ota   숨은넷=['N_cc_rz1', 'N_cc_rz2'] DC고립=[] 거부=no []
+  folded_cascode                 숨은넷=[] DC고립=[] 거부=no []
+  ngcc_3stage_ff                 숨은넷=[] DC고립=[] 거부=no []
+  nmcnr_amplifier                숨은넷=[] DC고립=[] 거부=no []
+  pushpull_follower_buffer       숨은넷=['agnd'] DC고립=['agnd'] 거부=no []
+  sf_pushpull_output_opamp       숨은넷=['agnd'] DC고립=['agnd'] 거부=no []
+  two_stage_ota                  숨은넷=[] DC고립=[] 거부=no []
+  two_stage_ota_sf               숨은넷=[] DC고립=[] 거부=no []
+  거부 0회로: []
+  통과 8회로: ['current_reuse_telescopic_ota', 'folded_cascode', 'ngcc_3stage_ff', 'nmcnr_amplifier', 'pushpull_follower_buffer', 'sf_pushpull_output_opamp', 'two_stage_ota', 'two_stage_ota_sf']
+[공격 14 (b)] 선언은 있으나 숨은 넷을 뺀 경우:
+  pushpull_follower_buffer       supply_nets=['vdd','vss'](agnd 누락) -> 거부=YES ['agnd']
+  sf_pushpull_output_opamp       supply_nets=['vdd','vss'](agnd 누락) -> 거부=YES ['agnd']
+판정: 거부는 agnd 두 회로에서만 발동하고, DC로 연결된 보상망 내부 노드(파일럿 N_cc_rz1/N_cc_rz2)를 가진 회로는 오거부되지 않는다.

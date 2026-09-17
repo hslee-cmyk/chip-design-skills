@@ -1,0 +1,34 @@
+=== ports 기입 전 입력 극성 독립 확인(부호만) ===
+단위 소신호 파라미터로 노달 해석. 한 입력만 1 V 여기, 나머지 입력·바이어스는 교류접지.
+
+--- folded_cascode  (교류접지: 레일 ['gnd', 'vdd'] + 바이어스 ['bias3'])
+    vin_p    -> v(out) = -3355   역상(-, inverting)
+    vin_n    -> v(out) = +3355   동상(+, non-inverting)
+
+--- nmcnr_amplifier  (교류접지: 레일 ['vdd', 'vss'] + 바이어스 ['VB1', 'VB2', 'VB3', 'VB4', 'VB5'])
+    Vin_n    -> v(Vout) = -2.346e+05   역상(-, inverting)
+    Vin_p    -> v(Vout) = +2.346e+05   동상(+, non-inverting)
+
+--- two_stage_ota  (교류접지: 레일 ['gnd', 'vdd'] + 바이어스 ['bias'])
+    vin_p    -> v(OUT) = +2488   동상(+, non-inverting)
+    vin_n    -> v(OUT) = -2487   역상(-, inverting)
+
+판정 규칙: 출력과 **동상**인 입력이 `differential_input_p`, 역상인 입력이 `_n`이다
+(단일 출력 회로 기준. 넷 이름과 어긋나면 이름이 아니라 이 결과가 정본이다).
+=== ports 기입 전 입력 극성 독립 확인(부호만) ===
+단위 소신호 파라미터로 노달 해석. 한 입력만 1 V 여기, 나머지 입력·바이어스는 교류접지.
+
+--- folded_cascode  (교류접지: 레일 ['gnd', 'vdd'] + 바이어스 ['bias3'])
+    vin_p    -> v(out) = +3355   동상(+, non-inverting)
+    vin_n    -> v(out) = -3355   역상(-, inverting)
+
+--- nmcnr_amplifier  (교류접지: 레일 ['vdd', 'vss'] + 바이어스 ['VB1', 'VB2', 'VB3', 'VB4', 'VB5'])
+    Vin_n    -> v(Vout) = -2.346e+05   역상(-, inverting)
+    Vin_p    -> v(Vout) = +2.346e+05   동상(+, non-inverting)
+
+--- two_stage_ota  (교류접지: 레일 ['gnd', 'vdd'] + 바이어스 ['bias'])
+    vin_p    -> v(OUT) = +2488   동상(+, non-inverting)
+    vin_n    -> v(OUT) = -2487   역상(-, inverting)
+
+판정 규칙: 출력과 **동상**인 입력이 `differential_input_p`, 역상인 입력이 `_n`이다
+(단일 출력 회로 기준. 넷 이름과 어긋나면 이름이 아니라 이 결과가 정본이다).

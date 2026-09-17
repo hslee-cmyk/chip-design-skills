@@ -7,6 +7,8 @@
   "compensation": null,
   "_compensation_status": "not_applicable",
   "_compensation_status_comment": "gain stage가 없는 단일 버퍼(이득 < 1).",
+  "supply_nets": ["vdd", "vss", "agnd"],
+  "_supply_nets_comment": "2026-09-17 선언(U-26 (b), 사용자 승인). 계획 DEC-60: 레일 넷은 이 필드로만 정한다(넷 이름 집합으로 판정하지 않는다). **`agnd`는 트랜지스터 단자에 나타나지 않고 수동소자 단자로만 나오며 DC로 어느 레일과도 연결되지 않는 중간 전위 레일**이라, 선언하지 않으면 GB0 로드 게이트가 거부한다(DEC-60 (iii), N4.3 공격 14). 레일이 셋이라 IC11 3레일 케이스의 입력 회로이기도 하다. 레일 전압 `supplies_v`는 사이징 스펙 쪽 선언이고 여기에 두지 않는다(U-26 (a)).",
   "netlist": [
     {
       "name": "M5",

@@ -5,6 +5,8 @@
   "_schema_note": "2026-07-28 재설계(사용자 지적) — n_fingers/finger_w/w/stack_id와 layout(groups/row_splits/adjacency_guide)를 여기서 전부 제거했다. 이유: matching 배치(interdigitation/common-centroid), Euler trail, row 분할은 전부 finger 개수·finger_w가 정해져야만 계산 가능한데, 그건 사이징 결과값이다 — topology 단계엔 존재하지 않는다. 실제로 이전 버전에서 row_splits에 특정 사이징에서만 유효한 고정 시퀀스를 저장하려다, 재사이징하면 그 시퀀스 자체가 무의미해진다는 게 드러났다(Batch 2 구현 중 실측). topology.json은 이제 사이징과 무관한 것만 담는다: connectivity(name/kind/source/drain/gate)와 그 connectivity만으로 결정되는 matching kind(find_matching_candidates()도 W/finger 없이 이 정보만 본다). 실제 layout(n_fingers/finger_w/w/stack_id/row 분할/floorplan)은 사이징 이후 instance-output JSON 단계에서 기존 탐색 함수(search_stack_finger_w()/audit_row_split()/common_centroid_layout()/pack_floorplan_grouped())를 실제로 실행해서 얻는다 — 미리 박아두지 않는다.",
   "compensation": null,
   "_compensation_status": "not_applicable",
+  "supply_nets": ["vdd", "gnd"],
+  "_supply_nets_comment": "2026-09-17 선언(U-26 (b), 사용자 승인). 계획 DEC-60: 레일 넷은 이 필드로만 정한다(넷 이름 집합으로 판정하지 않는다. 전환기 이름집합 해석은 MG1까지 한시 허용이었고 이 선언이 그것을 대체한다). 레일 전압 `supplies_v`는 사이징 스펙 쪽 선언이고 여기에 두지 않는다(U-26 (a)).",
   "netlist": [
     {
       "name": "MP",
@@ -46,14 +48,14 @@
       "kind": "pmos",
       "source": "tail",
       "drain": "X",
-      "gate": "vin_p"
+      "gate": "vin_n"
     },
     {
       "name": "M2",
       "kind": "pmos",
       "source": "tail",
       "drain": "Y",
-      "gate": "vin_n"
+      "gate": "vin_p"
     },
     {
       "name": "M9",
@@ -112,6 +114,22 @@
     }
   ],
   "_netlist_correction_2026-08-05": "세션9, 사용자 정정지시로 원래 bias1~bias5(외부 바이어스로 단순화된 버전)를 실제 다이오드+미러 레퍼런스 구조로 전면 재구성(여러 차례 정정 끝에 최종 확정, 세부 경위는 .ai/context.md 세션9 절 참고). 최종 구조: (1) MP(gate=drain=vb1, PMOS 다이오드) -> M3/M4가 미러(X/Y 폴딩 전류원). (2) M9(gate=drain=Vg9, NMOS 다이오드) -> M10이 미러(gate=Vg9, drain=Vg10) -- X/Y 폴딩 노드와는 분리된 별개 캐스코드 스택 노드. (3) M7(gate=drain=Vg7, NMOS 다이오드, source=Vg9) -> M8이 미러(source=Vg10, gate=Vg7, drain=out) -- X-branch(M5) 신호전류를 다이오드+미러로 반전해 Y-branch(M6) 출력과 'out'에서 상쇄하는 differential-to-single-ended 구조. (4) M5(source=Y)/M6(source=X)는 교차(cross-coupled) -- 다이오드 아님, 외부 bias3만 공유. (5) MN(gate=drain=vb2, 독립 다이오드) -> M11이 미러(gate=vb2, drain=tail)해서 diff pair(M1/M2)의 실제 tail 전류원 역할. (6) vb1(MP측)과 vb2(MN측) 두 독립 레퍼런스 사이의 전류 관계는 ideal_sources의 Ibg(current_source, vb1-vb2)로 모델링(트랜지스터 아님, 값 미상 TBD). X/Y는 diff pair 드레인+PMOS 전류원 드레인+캐스코드 소스만 남는 순수 폴딩 노드(3단자씩). 사용자 최종 확인 완료.",
+  "_input_polarity_correction_2026-09-17": "M1.gate와 M2.gate의 넷 이름을 맞바꿨다(M1: vin_p -> vin_n, M2: vin_n -> vin_p). 사용자 승인 후 실행(connectivity 변경). 근거: 넷 이름을 믿지 않고 단위 소신호 파라미터로 노달 해석한 결과 바꾸기 전에는 vin_p(M1.gate) -> v(out)이 **역상**, vin_n(M2.gate)이 동상이라 이름이 실제 극성과 어긋나 있었다(원자료 `docs/03-analysis/gain-budget-gmid-sizing-function-audit/review9_input_polarity_probe.py`/`.txt`, 같은 측정에서 two_stage_ota·nmcnr_amplifier는 이름과 일치해 대조군이 된다). two_stage_ota에서 2026-09-16에 고친 것과 같은 종류의 어긋남이다. 소자 연결 자체는 그대로이고 두 입력 넷 이름의 배정만 바뀐다.",
+  "ports": {
+    "_comment": "2026-09-17 신설(사용자 확정: input = M1.gate / M2.gate, output = M6.drain = M8.drain). N3.2-2 기본 전달 뷰를 만들려면 필요하다(U-08, 6a 착수 조건). 극성 정정 뒤 기준이라 이름과 역할이 일치한다(vin_p -> v(out) 동상). bias3은 gate에만 붙고 구동되지 않는 넷이라 포트가 아니라 교류접지다(N3.2-1 (2)).",
+    "vin_p": {
+      "role": "differential_input_p",
+      "direction": "input"
+    },
+    "vin_n": {
+      "role": "differential_input_n",
+      "direction": "input"
+    },
+    "out": {
+      "role": "single_ended_output",
+      "direction": "output"
+    }
+  },
   "symmetry": {
     "_matching_pairs_comment": "2026-08-05(세션9, 사용자 정정지시로 netlist를 다이오드+미러 구조로 확정한 뒤 재검토) -- M3/M4는 MP(gate=drain=tail) 다이오드의 미러, M9/M10은 M9(gate=drain=X) 다이오드+M10 미러, M7/M8은 M7(gate=drain=Vg7) 다이오드+M8 미러 -- 셋 다 같은 패턴(다이오드 레퍼런스+미러 출력)이라 current_matched(축A=강제)가 타당하다. M5/M6은 다이오드 없이 외부 bias3만 공유(구조적 유사성뿐, KCL/미러 근거 없음)라 branch_symmetric 유지.",
     "matching_pairs": [
@@ -420,28 +438,8 @@
     "objective": {
       "minimize": "power_uA"
     },
-    "constraints": [
-      {
-        "metric": "gain_db",
-        "op": ">=",
-        "value": 26.362895926174772
-      },
-      {
-        "metric": "pm_deg",
-        "op": ">=",
-        "value": 88.71745471633821
-      },
-      {
-        "metric": "cmrr_db",
-        "op": ">=",
-        "value": 15.22017857621175
-      },
-      {
-        "metric": "psrr_db",
-        "op": ">=",
-        "value": 19.586929919807382
-      }
-    ]
+    "constraints": [],
+    "_constraints_status": "2026-09-17 U-35 확정(사용자 결정: 삭제). 이 회로의 제약 4건(`gain_db`·`pm_deg`·`cmrr_db`·`psrr_db`)은 **자기 실행 결과에서 역산한 값**(소수점 15자리)이라 정의상 항상 만족해 제약 노릇을 못 했다(계획 RC4). 삭제하고 **7a SPICE 대조에서 기준값을 다시 읽는다**(U-19·U-17과 같은 처리). ⚠️ 그때까지 이 회로는 `objective: minimize power_uA`만 남아 **제약 없는 최소화**가 되므로 **사이징 판정 보류**다 -- 탐색 결과를 성능 판정에 쓰지 않는다(조용히 자명해를 내지 않는다, WP-01). 삭제된 값과 경위는 history H1·H2."
   },
   "_sizing_roles_comment": "2026-08-15(세션35, 사용자 지시 -- '이 값으로 gain/PM/CMRR/PSRR 설정, sizing 제약을 없애고 스펙 맞출 때 sizing이 어떻게 되는지 역으로 보고 싶다, power 최소화가 목표') -- Ibg=10uA(임의 선택, KCL 유도만 검증하던 세션35 1단계 결과)로 계산한 gain_db/pm_deg/cmrr_db/psrr_db를 그대로 '만족해야 할 스펙'으로 삼고, Ibg를 자유변수로 풀어 그 스펙을 만족하는 최소 전력점을 찾았다(python run_harness.py folded_cascode 실측: Ibg~2.1uA, power_uA~40(190uA 대비 4.7배 절감), gain_db~39.7, pm_deg~88.8, cmrr_db~24.0, psrr_db~29.5 -- 전부 여유 있게 만족). ⚠️ 이 gain_db/pm_deg 폐형식은 사이징 자체와 달리 sympy 전수 유도·ngspice 교차검증을 아직 거치지 않았다(sizing_recipe.py의 _metric_folded_cascode_gain_db()/_metric_folded_cascode_pm_deg() docstring 참고) -- 최종 확인은 SPICE 필요. CL=1pF은 세션35가 고른 대표값(스펙 없음)."
 }

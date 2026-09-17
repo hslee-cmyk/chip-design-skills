@@ -1,0 +1,7 @@
+=== DEC-71 (3) 기둥 열거 정의 독립 재현 (오케스트레이터) ===
+topology            : current_reuse_telescopic_ota.topology.json
+잎 가지치기 후 엣지 : 54   노드: 33
+비레일 분기 노드    : 9  ['Ncmfb_tail', 'Vg15', 'Vg25', 'Vom', 'Vom1', 'Vop', 'Vop1', 'Vx', 'Vy']
+노드-단순 gnd->vdd  : 62   (계획서 정본 62)
+엣지-단순 gnd->vdd  : 244   (계획서가 '방향 중복'이라 적었던 244)
+판정: 한 방향만 세어도 244가 나오므로 244는 방향 중복이 아니라 노드 재방문(trail) 열거다.

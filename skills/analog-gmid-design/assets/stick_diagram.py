@@ -6877,7 +6877,8 @@ def folded_cascode_example() -> list:
     """
     # gate net은 Euler 분석엔 안 쓰이지만 find_matching_candidates()로 matching 그룹을
     # 재현하려고 채웠다 — M3/M4, M5/M6, M7/M8, M9/M10은 각각 gate를 공유하는 전류거울/캐스코드
-    # 쌍이고, M1/M2는 source(tail) 공유+gate(vin_p/vin_n) 상이라 차동쌍으로 잡힌다.
+    # 쌍이고, M1/M2는 source(tail) 공유+gate(vin_n/vin_p) 상이라 차동쌍으로 잡힌다.
+    # 2026-09-17: topology.json의 입력 극성 정정(M1.gate=vin_n, M2.gate=vin_p)에 맞췄다.
     top = [
         Transistor("MP", "pmos", source="vdd", drain="tail", gate="bias1", w=20, finger_w=10, n_fingers=2, stack_id="top"),
         Transistor("M3", "pmos", source="vdd", drain="X",    gate="bias2", w=30, finger_w=10, n_fingers=3, stack_id="top"),
@@ -6886,8 +6887,8 @@ def folded_cascode_example() -> list:
         Transistor("M6", "pmos", source="Y",   drain="outB", gate="bias3", w=60, finger_w=10, n_fingers=6, stack_id="top"),
     ]
     mid = [
-        Transistor("M1", "pmos", source="tail", drain="X", gate="vin_p", w=80, finger_w=8, n_fingers=10, stack_id="mid"),
-        Transistor("M2", "pmos", source="tail", drain="Y", gate="vin_n", w=80, finger_w=8, n_fingers=10, stack_id="mid"),
+        Transistor("M1", "pmos", source="tail", drain="X", gate="vin_n", w=80, finger_w=8, n_fingers=10, stack_id="mid"),
+        Transistor("M2", "pmos", source="tail", drain="Y", gate="vin_p", w=80, finger_w=8, n_fingers=10, stack_id="mid"),
     ]
     bot = [
         Transistor("M9",  "nmos", source="gnd", drain="X",   gate="bias5", w=24, finger_w=8, n_fingers=3, stack_id="bot"),

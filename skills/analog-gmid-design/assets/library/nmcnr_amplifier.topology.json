@@ -72,6 +72,8 @@
       "process": "AMS(Austria Micro Systeme Group) 0.8um double-metal double-poly CMOS"
     }
   },
+  "supply_nets": ["vdd", "vss"],
+  "_supply_nets_comment": "2026-09-17 선언(U-26 (b), 사용자 승인). 계획 DEC-60: 레일 넷은 이 필드로만 정한다(넷 이름 집합으로 판정하지 않는다. 전환기 이름집합 해석은 MG1까지 한시 허용이었고 이 선언이 그것을 대체한다). 레일 전압 `supplies_v`는 사이징 스펙 쪽 선언이고 여기에 두지 않는다(U-26 (a)).",
   "netlist": [
     {
       "name": "M101",
@@ -180,6 +182,21 @@
     }
   ],
   "_compensation_network_comment": "netlist 스키마엔 수동소자가 없어(connectivity 전용) 여기 별도 기록: Cm1(NodeM2 -> NodeCM), Cm2(NodeS2 -> NodeCM) -- 원문 abstract가 명시한 대로 'only ONE null resistor'라 Cm1/Cm2가 같은 노드(NodeCM)에서 만나 그 뒤에 Rm 하나를 공유한다(2026-07-31 사용자 정정 -- 처음엔 Cm1/Rm이 직렬, Cm2는 별도 무저항 경로로 잘못 읽었었다). Rm(NodeCM -> Vout), CL(Vout -> vss). Rm=1/gm3(원문 Eq 6, structure 4 조건) -- 실값은 nmcnr_compensation_elements()로 계산.",
+  "ports": {
+    "_comment": "2026-09-17 신설(사용자 확정: input = M102.gate / M103.gate, output = M301.drain = M302.drain). N3.2-2 기본 전달 뷰를 만들려면 필요하다(U-08, 6a 착수 조건). connectivity는 건드리지 않고 역할만 적는다. 극성은 넷 이름을 믿지 않고 독립 소신호 해석으로 확인했다(2026-09-17 `review9_input_polarity_probe`): Vin_p -> v(Vout) 동상, Vin_n -> 역상이라 이름과 역할이 일치한다. VB1~VB5는 gate에만 붙고 구동되지 않는 넷이라 포트가 아니라 교류접지다(N3.2-1 (2)).",
+    "Vin_p": {
+      "role": "differential_input_p",
+      "direction": "input"
+    },
+    "Vin_n": {
+      "role": "differential_input_n",
+      "direction": "input"
+    },
+    "Vout": {
+      "role": "single_ended_output",
+      "direction": "output"
+    }
+  },
   "symmetry": {
     "_comment": "find_matching_candidates()를 실제로 호출해 나온 5개 후보(current_mirror 4개 + diff_pair 1개) 전부를 검토했다. M108/M109(다이오드 M108이 NodeM1로 M109 게이트를 직접 구동)와 M203/M204(다이오드 M203이 NodeC로 M204 게이트를 직접 구동)는 이 회로 안에 실제 레퍼런스 소자가 있어 전류가 강제되는 진짜 current_matched. M104/M105와 M106/M107은 2026-07-31 최초 작성 시엔 둘 다 '자동탐지가 current_mirror 후보로 잡았지만(같은 kind+같은 gate) VB2/VB3가 이 넷리스트 밖 외부 바이어스라 진짜 미러가 아니다'라는 이유로 branch_symmetric 하나로 뭉뚱그렸다 -- 이건 당시 '(구)current_mirror = 전류가 같다고 KCL로 강제'였던 구 의미 기준으로는 맞는 판단이었다(둘 다 KCL로 전류를 강제할 근거가 없으니까). 2026-08 세션6에서 kind 의미가 갈렸다(sizing_recipe.py 참고): current_mirror(신 의미)=같은 gate+같은 source/drain 노드를 공유하는 구조적 사실만(전류 강제 안 함), branch_symmetric=공유 노드가 하나도 없는 캐스코드 대칭쌍(stick_diagram.py의 _kind_of()가 실제로 이 shares_a_node 기준으로 두 kind를 나눈다). 이 기준으로 둘을 재감사: M104(source=vss,gate=VB2)/M105(source=vss,gate=VB2)는 gate와 source를 둘 다 공유 -> current_mirror로 재분류(레이아웃도 select_layout_tool()이 interdigitate_layout을 선택하게 됨 -- M108/M109와 물리적으로 같은 '병렬 전류원 쌍' 배치 문제라 타당). M106(source=NodeF1,gate=VB3)/M107(source=NodeF2,gate=VB3)는 gate만 같고 source/drain 전부 다름(공유 노드 없음) -> branch_symmetric 유지가 맞다(공유 노드가 없는 진짜 캐스코드 대칭쌍, common_centroid_layout 대상). 전류가 실제로 같은지(KCL 강제)는 이 회로 device_roles가 아직 null이라 여전히 확인 불가 -- 이번 재분류는 순수 구조/레이아웃 분류 정정이며 전류 관계에 대한 새 주장이 아니다. check_symmetry_dispositions()로 재확인.",
     "matching_pairs": [
@@ -517,28 +534,8 @@
     "objective": {
       "minimize": "power_uA"
     },
-    "constraints": [
-      {
-        "metric": "gain_db",
-        "op": ">=",
-        "value": 113.25322263878985
-      },
-      {
-        "metric": "pm_deg",
-        "op": ">=",
-        "value": 71.94138457532958
-      },
-      {
-        "metric": "cmrr_db",
-        "op": ">=",
-        "value": 4.476344188206636
-      },
-      {
-        "metric": "psrr_db",
-        "op": ">=",
-        "value": 2.596865150438907
-      }
-    ]
+    "constraints": [],
+    "_constraints_status": "2026-09-17 U-35 확정(사용자 결정: 삭제). 이 회로의 제약 4건(`gain_db`·`pm_deg`·`cmrr_db`·`psrr_db`)은 **자기 실행 결과에서 역산한 값**(소수점 15자리)이라 정의상 항상 만족해 제약 노릇을 못 했다(계획 RC4). 삭제하고 **7a SPICE 대조에서 기준값을 다시 읽는다**(U-19·U-17과 같은 처리). ⚠️ 그때까지 이 회로는 `objective: minimize power_uA`만 남아 **제약 없는 최소화**가 되므로 **사이징 판정 보류**다 -- 탐색 결과를 성능 판정에 쓰지 않는다(조용히 자명해를 내지 않는다, WP-01). 삭제된 값과 경위는 history H1·H2."
   },
   "_sizing_roles_comment": "2026-08-19 갱신(세션37, .ai/context.md 세션36 §4-① 이어감) -- metrics 신설: gain_db/pm_deg는 sizing_recipe.py의 새 F엔진(_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg, 세션37)이 topology_library.nmcnr_predict_ac_response()(2026-08-19 세션37 연속 작업으로 nmcnr_predict_notch()에서 개명 -- 4-노드 KCL 정확해, sympy 유도+ngspice/실트랜지스터 교차검증까지 이미 완료된 함수, 개명과 함께 독립 sympy 재유도로 대수 오류 없음도 재확인됨. 지금까지 스모크테스트 용도로만 쓰이다 이번에 처음 실제 배선됨, ★절대원칙★ 참고)를 실사이징값(ctx.sized)으로 호출해 계산한다(folded_cascode의 gain/PM 폐형식보다 신뢰도가 높음 -- 근사가 아니라 정확해). cmrr_db/psrr_db는 folded_cascode와 동일하게 diff_pair_tail 근사(tail_device=M101, 이 회로의 진짜 tail). PM_target_deg=70.0(run_harness.py, nmcnr_3stage_topology()의 PM_target_deg>60 구조적 전제 대비 10도 여유 -- current_reuse_telescopic_ota와 동일 값으로 확정, 논문 46도는 이 구조적 전제 자체를 위반해 채택 불가, 사용자 확인 완료)도 이 세션에서 최종 확정됐다. constraints는 2026-08-19 `python run_harness.py nmcnr_amplifier` 실측 baseline(theta_star가 전부 고정값이라 이 값 자체가 유일한 후보점, 'null 유지' 대신 folded_cascode의 'baseline 실측을 그대로 스펙으로 채택' 선례 그대로 따름)을 그대로 채웠다 -- gain_db=100.105dB(논문 NMCNR 목표 '>100dB'와 우연히 거의 정확히 일치, 참고용일 뿐 이 스펙을 그대로 인용한 게 아니라 sky130 재설계 실측치임), pm_deg=48.320deg(PM_target_deg=70도로 gm 목표를 정했지만 3-스테이지 실제 폴 배치+M109 비캐스코드 branch 때문에 정확한 4-노드 해는 그보다 낮게 나옴 -- Eq10/11이 '우세극이 나머지와 충분히 떨어져 있다'는 근사 위에서 유도된 식이라는 nmcnr_3stage_topology() 자체의 경고와 일치하는 정직한 결과, SPICE 최종 확인 전까지는 이 값이 잠정 스펙), cmrr_db/psrr_db는 diff_pair_tail 근사(order-of-magnitude, folded_cascode와 동일 한계). `python run_harness.py nmcnr_amplifier`가 이제 KeyError 없이 끝까지 완주함(audit_ok/floorplan_ok는 여전히 False -- 레이아웃/row_split 튜닝은 이 항목과 무관한 별개 gap, 다음 세션 이월). theta는 세션37에 `propose_theta_kcl_gap_fill()`(compensation_stage_devices=[M102,M103,M201,M301] 지정)+`apply_theta_kcl_gap_fill()`(신설)로 4개(kcl_M203/kcl_M302/r_mirror_M204_M203/kcl_M202) 추가 -- 지금까지 stage2/3(M202/M203/M204/M302)는 sizing_roles.theta가 아예 없었는데(엔진이 다른 경로로 암묵적으로 사이징하고 있었음), 이 4개가 그 gap을 명시적 KCL 구조로 채운다. 기존 stage1 7개(Ibg_tail 등)는 이미 이 세션 baseline 실측까지 끝난 확정 설계라 `apply_theta_kcl_gap_fill()`의 '충돌 시 스킵' 계약대로 안 건드림(제안 자체도 다름 -- 예: M108/M109를 M101의 ratio 0.5 대신 독립 자유 root로 봄, compensation_stage_devices가 M102/M103까지만 알고 M108/M109의 '스테이지1 전류생성원' 설계 의도는 모르기 때문 -- 의도적으로 재검토 대상에서 제외). 4개 신규 theta 적용 후 harness 재실행 -- metrics 전부 소수점까지 완전히 동일(power_uA=0.0018984.../gain_db=100.10522.../pm_deg=48.32012.../cmrr_db=4.47634.../psrr_db=2.59687...) -- 엔진이 이미 이 KCL 구조와 물리적으로 일치하게 M202/M203/M204/M302를 사이징하고 있었다는 뜻이라 constraints 재측정 불필요. 2026-08-19 세션37 연속(사용자 지시 'R1/R3를 늘리는 실제 사이징 변경 시도') -- pm_deg=48.32도가 목표(70도) 대비 낮은 원인을 device_roles.gm_id_role='matching'(M106/M107/M108/M109/M302)으로 좁혀 해결: 'matching'은 gm_id를 최소화하는 선택이라 R1/R3(stage1/3 출력저항)를 오히려 갉아먹고 있었다(search_gm_id_for_role() 실측 확인 -- 'gain'(gm/gds 직접 최대화) 역할로 바꾸면 같은 L(375nm)에서도 R1 기여 소자(M107) gm*ro가 18.98→45.78(2.4배), R3 기여 소자(M302) ro가 6876Ω→36834Ω(5.4배)로 즉시 개선됨). device_roles의 gm_id_role만 5곳 'matching'->'gain'으로 변경(새 theta 없음, L도 안 건드림) -- pm_deg=48.32도->76.74deg(목표 70도에 근접), gain_db=100.11dB->114.23dB, power_uA는 완전히 불변(ID가 안 바뀌므로 당연), floorplan_ok도 False->True로 개선(부수 효과, W 재분배로 aspect_ratio 1.612->1.383). constraints를 이 새 baseline으로 갱신. 2026-08-19 세션37 추가 연속(사용자 질문 'M202/M203/M204도 gain 아닌가' -> M202 gain 실측 시도 시 오히려 pm_deg 76.74->66.61도로 악화 발견 -> 원인 규명 -> 사용자와 함께 새 gm_id_role 'load' 설계) -- 'gain'(gm/gds 최대화)은 M107처럼 gm이 ro에 곱해져 기여하는 캐스코드에만 논리적으로 맞는 기준이고, M109/M302/M202처럼 ro 자체로만 기여하는 비캐스코드 단순 전류원엔 다른 물리량(gds 최소화=ro 최대화)이 필요함을 실측으로 확인(gds vs gm_id 곡선 모양이 소자·VDS마다 달라 '지름길'이 없음 -- M202는 VDS=1.0V에서 gm_id≈3.5가 피크인데 'gain'이 고른 gm_id=16은 피크를 훌쩍 지나쳐 절반 수준). sizing_recipe.py의 search_gm_id_for_role()에 다섯 번째 role 'load' 신설(feasible 전체를 스캔해 실제 ro 최댓값을 찾음, 'gain'과 동일한 전수조사 방식이지만 대상 물리량이 다름) -- M108/M109/M202/M302를 'gain'/'matching'에서 'load'로 재분류(M106/M107은 캐스코드라 'gain' 그대로 유지, M108은 M109와 declared pair라 일관성 위해 함께 변경하되 VDS가 같아 어차피 값은 안 바뀜). 실측: M109는 'gain'과 'load'가 우연히 동일(gm_id=17.5, 변화 없음), M302는 'load'가 'gain'보다 실제로 더 나음(gm_id=11.0/ro=40199Ω, 'gain'의 gm_id=16.0/ro=36834Ω 대비 +9.1%), M202는 'load'(gm_id=3.5/ro=250266Ω)가 원래 'matching'(gm_id=3.0/ro=245505Ω)보다도 소폭 더 낫고 'gain'(gm_id=16.0/ro=129938Ω)보다는 훨씬 나음. 최종: pm_deg=76.74->77.89deg, gain_db=114.23->114.44dB(둘 다 소폭 추가 개선), power_uA 완전히 불변. constraints를 이 최종 baseline으로 재갱신. 2026-08-19 갱신(세션38) -- M204를 gm_id_role='matching'(독립 탐색)에서 gm_id_match_vgs_of='M203'(companion의 실제 VGS로 역산)으로 바꾸면서 gain_db=114.44->114.43dB, pm_deg=77.89->77.80deg로 미세하게(소수점 이하) 변함 -- M203/M204가 게이트·소스를 공유하는 진짜 미러쌍이라 VGS가 물리적으로 강제 동일해야 하는데, 이전엔 이 관계를 모른 채 두 소자가 각자 role 기준으로 독립적으로 gm_id를 골라 우연히 비슷한 값이 나왔을 뿐이었다(근거는 .ai/context.md 세션37 §1-⑪/§4④ 및 sizing_recipe.py의 device_roles gm_id_match_vgs_of 2차 pass 참고). power_uA/cmrr_db/psrr_db는 완전히 불변(ID/M101 tail 무관). constraints를 이 새 baseline으로 재갱신 -- 이전 값과의 차이는 근사 오차가 아니라 더 물리적으로 정확해진 결과. 2026-08-19 갱신(세션38 연속, 사용자 발견+지시 '지금 바로 고치자') -- M204에 device_roles.vds_match_vgs_of='M301' 추가로 gain_db=114.43->113.12dB, pm_deg=77.80->71.37deg(목표 70도에 더 근접) 재조정. 근거: M301.gate=NodeS2=M204.drain(둘 다 source=vss 기준)이라 VGS(M301)=VDS(M204)가 KVL로 강제되는데, M301의 gm_id(compensation의 PM_target 기반 gm3)와 M204의 vds(headroom, M202과 균등분배)가 지금까지 완전히 독립적으로 정해져 이 관계가 전혀 검증·강제되지 않고 있었다(사용자가 대화 중 직접 발견 -- 실측: 기존 M204.vds=1.0V인데 M301의 gm_id=24.0/자기 vds=1.65V로 역산한 VGS는 0.536V로 서로 어긋남). M301의 gm을 바꾸면 Rm=1/gm3(RHP-zero 완전제거 조건) 설계 근거가 깨지므로, 대신 M204의 vds(M202과 나누는 헤드룸 배분)를 M301의 실제 VGS에 맞춘다 -- sizing_recipe.py의 헤드룸 루프에 vds_match_vgs_of 신설(same_as_device와 동일한 _ref_depth() 위상정렬 인프라 재사용, 값을 그대로 복사하는 대신 vgs_for_gm_id()로 역산). 실측: M204.vds=1.0V->0.536V(M301의 VGS와 정확히 일치), M202.vds=1.0V->1.464V(나머지 예산을 정확히 흡수, vdd=2.0V 기준). power_uA/cmrr_db/psrr_db 완전히 불변. constraints를 이 최종 baseline으로 재갱신. 2026-08-19 추가 갱신(세션38 연속, 사용자와 함께 원리를 일반화한 뒤 동일 클래스로 확인) -- M109에도 vds_match_vgs_of='M201' 추가로 gain_db=113.1195->113.2532dB, pm_deg=71.3718->71.9414deg로 추가 개선. 근거: M109.drain=NodeM2=M201.gate(둘 다 stage1 출력->stage2 입력 경로)라 VSG(M201)=VDS(M109)가 KVL로 강제되는데, M109의 기존 vds=0.2V는 fold_group_singleton 우회 경로의 min_vds 플레이스홀더일 뿐 아무 근거가 없었다(실측: M201의 실제 gm_id=30.0로 역산한 VSG=0.8766V, 0.68V 어긋남 -- M204/M301 사례보다도 더 컸음). M107(같은 NodeM2를 공유하는 반대편 폴딩 다리)은 이번에 안 건드림 -- M107 자신의 NodeM2 함의 전압이 M109/M201로 확정된 값과 실제로 일치하는지는 fold_group 병합 노드의 기존 근사 한계(세션28부터 문서화됨, '병합 노드 전압의 정확한 KVL 일치를 이 근사가 보장하지 않는다')로 남겨둔다. constraints를 이 최종 baseline으로 재갱신.",
   "device_roles": {

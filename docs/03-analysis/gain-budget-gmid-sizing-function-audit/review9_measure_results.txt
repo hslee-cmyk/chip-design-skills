@@ -1,0 +1,296 @@
+======================================================================
+[current_reuse_telescopic_ota]
+  circuit: "current_reuse_telescopic_ota"
+  n_devices: 51
+  kinds: ["nmos", "pmos"]
+  n_passive: 12
+  n_ideal_sources: 1
+  n_nets: 37
+  supply_nets_declared: false
+  rails: ["gnd", "vdd"]
+  rail_source: "nameset"
+  n_rails: 2
+  ports_declared: true
+  in_ports: ["Vip", "Vim"]
+  out_ports: ["Vop", "Vom"]
+  default_transfer_view_possible: true
+  sizing_spec_declared: true
+  compensation: "set"
+  compensation_status: "resolved"
+  passive_area_declared: false
+  objective_declared: true
+  gb0_gate: "pass(nameset, MG1까지 한시)"
+  ac_ground: ["gnd", "vdd"]
+  cell_tally: {"CG_or_pass": 5, "CS": 7, "CS_or_CD_review": 13, "load/bias": 9, "off_path": 17}
+  cells_undefined: ["M11a", "M11b", "M12", "M13", "M14a", "M14b", "M18_bg", "M18a", "M18b", "M1a", "M1b", "M20a", "M20b", "M21", "M22", "M23a", "M24b", "M2a", "M2b", "M37a", "M37b", "M39", "M3a", "M3b", "M40", "M4a", "M4b", "M57", "M58", "M60", "M63", "M64", "M66", "M9a", "M9b"]
+  loops: {"n_simple_cycles": 56, "truncated": false, "sample": [["N11a11b", "N11b"], ["N14a14b", "N14a_14b"], ["N1a2a", "Vom1", "N_cc_rz2", "Vop", "Voc", "Ncmfb_tail", "Vcmfb", "Vx"], ["N1a2a", "Vom1", "N_cc_rz2", "Vop", "Voc", "Ncmfb_tail", "Vcmfb", "Vx", "N58_57", "Vbias2"], ["N1a2a", "Vom1", "N_cc_rz2", "Vop", "Voc", "Vcmfb", "Vx"], ["N1a2a", "Vom1", "N_cc_rz2", "Vop", "Voc", "Vcmfb", "Vx", "N58_57", "Vbias2"], ["N1a2a", "Vom1", "Vg25", "Vop", "Voc", "Ncmfb_tail", "Vcmfb", "Vx"], ["N1a2a", "Vom1", "Vg25", "Vop", "Voc", "Ncmfb_tail", "Vcmfb", "Vx", "N58_57", "Vbias2"]], "n_nodes": 33}
+  gvgs: {"v0_equal_vgs": 16, "v1_port_diff": 1, "v2_kvl_branch": 4, "unresolved": 0}
+  gvgs_n_fundamental: 21
+  vds1_count: 38
+  vds1_devices: ["M1a", "M1b", "M4a", "M4b", "M8", "M11a", "M11b", "M9a", "M9b", "M12", "M10", "M14a", "M14b", "M13", "M22", "M20a", "M20b", "M18a", "M18b", "M21", "M19", "M23a", "M24b", "M17", "M18_bg", "M60", "M64", "M63", "M58", "M57", "M66", "M36a", "M36b", "M37a", "M37b", "M38", "M39", "M40"]
+  columns.n_branches=32 n_branch_nodes=11 n_columns=244 dc_edges=54
+  columns.branch_nodes=['Ncmfb_tail', 'Vg15', 'Vg25', 'Vom', 'Vom1', 'Vop', 'Vop1', 'Vx', 'Vy', 'gnd', 'vdd']
+  columns.uncovered_branches=[]
+  columns.mos_not_in_any_column=[]
+  columns.leftover_cycle_edges=[]
+  cells: {"M6": "load/bias", "M7": "CS", "M1a": "CS_or_CD_review", "M1b": "CS_or_CD_review", "M2a": "CS_or_CD_review", "M2b": "CS_or_CD_review", "M3a": "CS_or_CD_review", "M3b": "CS_or_CD_review", "M4a": "CS_or_CD_review", "M4b": "CS_or_CD_review", "M5": "load/bias", "M8": "load/bias", "M11a": "off_path", "M11b": "off_path", "M15": "CS", "M9a": "CG_or_pass", "M9b": "CG_or_pass", "M12": "off_path", "M10": "load/bias", "M14a": "off_path", "M14b": "off_path", "M16": "CS", "M13": "off_path", "M22": "off_path", "M20a": "off_path", "M20b": "off_path", "M25": "CS", "M18a": "CG_or_pass", "M18b": "CG_or_pass", "M21": "off_path", "M19": "load/bias", "M23a": "off_path", "M24b": "off_path", "M26": "CS", "M17": "load/bias", "M18_bg": "off_path", "M60": "off_path", "M61": "load/bias", "M64": "CS_or_CD_review", "M63": "CS_or_CD_review", "M58": "CS_or_CD_review", "M57": "CS_or_CD_review", "M66": "off_path", "M68": "load/bias", "M36a": "CS", "M36b": "CS", "M37a": "CS_or_CD_review", "M37b": "CG_or_pass", "M38": "load/bias", "M39": "off_path", "M40": "off_path"}
+  gvgs_detail: {"v0_equal_vgs": [["M8", "M6"], ["M12", "M5"], ["M10", "M5"], ["M13", "M6"], ["M22", "M6"], ["M21", "M5"], ["M19", "M5"], ["M17", "M6"], ["M18_bg", "M6"], ["M60", "M6"], ["M61", "M6"], ["M66", "M5"], ["M68", "M5"], ["M36a", "M7"], ["M38", "M5"], ["M40", "M39"]], "v1_port_diff": [["M4b", "M4a", "M1a", "M1b"]], "v2_kvl_branch": [["M9a", "M15", "M11a", "M11b"], ["M16", "M14b", "M14a", "M9b"], ["M18a", "M25", "M20a", "M20b"], ["M26", "M24b", "M23a", "M18b"]], "unresolved": []}
+======================================================================
+[folded_cascode]
+  circuit: "folded_cascode"
+  n_devices: 13
+  kinds: ["nmos", "pmos"]
+  n_passive: 0
+  n_ideal_sources: 1
+  n_nets: 14
+  supply_nets_declared: false
+  rails: ["gnd", "vdd"]
+  rail_source: "nameset"
+  n_rails: 2
+  ports_declared: false
+  in_ports: []
+  out_ports: []
+  default_transfer_view_possible: false
+  sizing_spec_declared: true
+  compensation: "null"
+  compensation_status: "not_applicable"
+  passive_area_declared: false
+  objective_declared: true
+  gb0_gate: "pass(nameset, MG1까지 한시)"
+  ac_ground: ["bias3", "gnd", "vdd", "vin_n", "vin_p"]
+  cell_tally: null
+  cells_undefined: null
+  loops: null
+  ac_blocked_reason: "ports 미선언 또는 출력 포트 미선언 -> 기본 전달 뷰 불가(U-08)"
+  gvgs: {"v0_equal_vgs": 4, "v1_port_diff": 0, "v2_kvl_branch": 0, "unresolved": 0}
+  gvgs_n_fundamental: 4
+  vds1_count: 5
+  vds1_devices: ["MP", "M9", "M10", "M7", "MN"]
+  columns.n_branches=8 n_branch_nodes=5 n_columns=7 dc_edges=14
+  columns.branch_nodes=['X', 'Y', 'gnd', 'tail', 'vdd']
+  columns.uncovered_branches=[]
+  columns.mos_not_in_any_column=[]
+  columns.leftover_cycle_edges=[]
+  gvgs_detail: {"v0_equal_vgs": [["M3", "MP"], ["M4", "MP"], ["M10", "M9"], ["MN", "M11"]], "v1_port_diff": [], "v2_kvl_branch": [], "unresolved": []}
+======================================================================
+[nmcnr_amplifier]
+  circuit: "nmcnr_amplifier"
+  n_devices: 15
+  kinds: ["nmos", "pmos"]
+  n_passive: 0
+  n_ideal_sources: 0
+  n_nets: 17
+  supply_nets_declared: false
+  rails: ["vdd", "vss"]
+  rail_source: "nameset"
+  n_rails: 2
+  ports_declared: false
+  in_ports: []
+  out_ports: []
+  default_transfer_view_possible: false
+  sizing_spec_declared: true
+  compensation: "set"
+  compensation_status: null
+  passive_area_declared: false
+  objective_declared: true
+  gb0_gate: "pass(nameset, MG1까지 한시)"
+  ac_ground: ["VB1", "VB2", "VB3", "VB4", "VB5", "Vin_n", "Vin_p", "vdd", "vss"]
+  cell_tally: null
+  cells_undefined: null
+  loops: null
+  ac_blocked_reason: "ports 미선언 또는 출력 포트 미선언 -> 기본 전달 뷰 불가(U-08)"
+  gvgs: {"v0_equal_vgs": 3, "v1_port_diff": 0, "v2_kvl_branch": 0, "unresolved": 0}
+  gvgs_n_fundamental: 3
+  vds1_count: 6
+  vds1_devices: ["M108", "M109", "M201", "M202", "M203", "M204"]
+  columns.n_branches=10 n_branch_nodes=5 n_columns=9 dc_edges=15
+  columns.branch_nodes=['NodeF1', 'NodeF2', 'NodeTail', 'vdd', 'vss']
+  columns.uncovered_branches=[]
+  columns.mos_not_in_any_column=[]
+  columns.leftover_cycle_edges=[]
+  gvgs_detail: {"v0_equal_vgs": [["M105", "M104"], ["M109", "M108"], ["M204", "M203"]], "v1_port_diff": [], "v2_kvl_branch": [], "unresolved": []}
+======================================================================
+[two_stage_ota]
+  circuit: "two_stage_ota"
+  n_devices: 7
+  kinds: ["nmos", "pmos"]
+  n_passive: 0
+  n_ideal_sources: 0
+  n_nets: 9
+  supply_nets_declared: false
+  rails: ["gnd", "vdd"]
+  rail_source: "nameset"
+  n_rails: 2
+  ports_declared: true
+  in_ports: ["vin_p", "vin_n"]
+  out_ports: []
+  default_transfer_view_possible: false
+  sizing_spec_declared: true
+  compensation: "set"
+  compensation_status: "resolved"
+  passive_area_declared: false
+  objective_declared: true
+  gb0_gate: "pass(nameset, MG1까지 한시)"
+  ac_ground: ["bias", "gnd", "vdd"]
+  cell_tally: null
+  cells_undefined: null
+  loops: null
+  ac_blocked_reason: "ports 미선언 또는 출력 포트 미선언 -> 기본 전달 뷰 불가(U-08)"
+  gvgs: {"v0_equal_vgs": 2, "v1_port_diff": 0, "v2_kvl_branch": 0, "unresolved": 0}
+  gvgs_n_fundamental: 2
+  vds1_count: 2
+  vds1_devices: ["M3", "M4"]
+  columns.n_branches=4 n_branch_nodes=2 n_columns=3 dc_edges=7
+  columns.branch_nodes=['CS', 'vdd']
+  columns.uncovered_branches=[]
+  columns.mos_not_in_any_column=[]
+  columns.leftover_cycle_edges=[]
+  gvgs_detail: {"v0_equal_vgs": [["M4", "M3"], ["M7", "M5"]], "v1_port_diff": [], "v2_kvl_branch": [], "unresolved": []}
+======================================================================
+[two_stage_ota_sf]
+  circuit: "two_stage_ota_sf"
+  n_devices: 9
+  kinds: ["nmos", "pmos"]
+  n_passive: 2
+  n_ideal_sources: 0
+  n_nets: 10
+  supply_nets_declared: false
+  rails: ["gnd", "vdd"]
+  rail_source: "nameset"
+  n_rails: 2
+  ports_declared: true
+  in_ports: ["vin_p", "vin_n"]
+  out_ports: ["vout"]
+  default_transfer_view_possible: true
+  sizing_spec_declared: false
+  compensation: "null"
+  compensation_status: "pending_topology_fn"
+  passive_area_declared: false
+  objective_declared: false
+  gb0_gate: "pass(nameset, MG1까지 한시)"
+  ac_ground: ["bias", "gnd", "vdd"]
+  cell_tally: {"CD": 1, "CS": 3, "CS_or_CD_review": 2, "load/bias": 3}
+  cells_undefined: ["M1", "M2"]
+  loops: {"n_simple_cycles": 1, "truncated": false, "sample": [["O1", "OUT"]], "n_nodes": 5}
+  gvgs: {"v0_equal_vgs": 3, "v1_port_diff": 0, "v2_kvl_branch": 0, "unresolved": 0}
+  gvgs_n_fundamental: 3
+  vds1_count: 2
+  vds1_devices: ["M3", "M4"]
+  columns.n_branches=5 n_branch_nodes=3 n_columns=4 dc_edges=9
+  columns.branch_nodes=['CS', 'gnd', 'vdd']
+  columns.uncovered_branches=[]
+  columns.mos_not_in_any_column=[]
+  columns.leftover_cycle_edges=[]
+  cells: {"M1": "CS_or_CD_review", "M2": "CS_or_CD_review", "M3": "CS", "M4": "CS", "M5": "load/bias", "M6": "CS", "M7": "load/bias", "M8": "CD", "M9": "load/bias"}
+  gvgs_detail: {"v0_equal_vgs": [["M4", "M3"], ["M7", "M5"], ["M9", "M5"]], "v1_port_diff": [], "v2_kvl_branch": [], "unresolved": []}
+======================================================================
+[pushpull_follower_buffer]
+  circuit: "pushpull_follower_buffer"
+  n_devices: 6
+  kinds: ["nmos", "pmos"]
+  n_passive: 1
+  n_ideal_sources: 0
+  n_nets: 9
+  supply_nets_declared: false
+  rails: ["vdd", "vss"]
+  rail_source: "nameset"
+  n_rails: 2
+  ports_declared: true
+  in_ports: ["vin"]
+  out_ports: ["vout"]
+  default_transfer_view_possible: true
+  sizing_spec_declared: false
+  compensation: "null"
+  compensation_status: "not_applicable"
+  passive_area_declared: false
+  objective_declared: false
+  gb0_gate: "pass(nameset, MG1까지 한시)"
+  ac_ground: ["VNB1", "VPB1", "vdd", "vss"]
+  cell_tally: {"CD": 4, "load/bias": 2}
+  cells_undefined: []
+  loops: {"n_simple_cycles": 1, "truncated": false, "sample": [["agnd", "vout"]], "n_nodes": 4}
+  gvgs: {"v0_equal_vgs": 0, "v1_port_diff": 0, "v2_kvl_branch": 1, "unresolved": 0}
+  gvgs_n_fundamental: 1
+  vds1_count: 0
+  vds1_devices: []
+  columns.n_branches=3 n_branch_nodes=2 n_columns=3 dc_edges=6
+  columns.branch_nodes=['vdd', 'vss']
+  columns.uncovered_branches=[]
+  columns.mos_not_in_any_column=[]
+  columns.leftover_cycle_edges=[]
+  cells: {"M5": "load/bias", "M3": "CD", "M4": "CD", "M6": "load/bias", "M1": "CD", "M2": "CD"}
+  gvgs_detail: {"v0_equal_vgs": [], "v1_port_diff": [], "v2_kvl_branch": [["M2", "M1", "M3", "M4"]], "unresolved": []}
+======================================================================
+[sf_pushpull_output_opamp]
+  circuit: "sf_pushpull_output_opamp"
+  n_devices: 22
+  kinds: ["nmos", "pmos"]
+  n_passive: 5
+  n_ideal_sources: 1
+  n_nets: 23
+  supply_nets_declared: false
+  rails: ["vdd", "vss"]
+  rail_source: "nameset"
+  n_rails: 2
+  ports_declared: true
+  in_ports: ["vin_p", "vin_n"]
+  out_ports: ["vout"]
+  default_transfer_view_possible: true
+  sizing_spec_declared: false
+  compensation: "null"
+  compensation_status: "pending_topology_fn"
+  passive_area_declared: false
+  objective_declared: false
+  gb0_gate: "pass(nameset, MG1까지 한시)"
+  ac_ground: ["vdd", "vss"]
+  cell_tally: {"CD": 4, "CS": 8, "CS_or_CD_review": 8, "load/bias": 1, "off_path": 1}
+  cells_undefined: ["M1", "M10", "M12", "M13", "M15", "M2", "M4", "M5", "M7"]
+  loops: {"n_simple_cycles": 13, "truncated": false, "sample": [["N1", "N5"], ["N1", "N56", "N5"], ["N12", "N13"], ["N12", "N1314", "N13"], ["N13", "N1314"], ["N17", "vout", "agnd", "Y"], ["N2", "N7"], ["N2", "N78", "N7"]], "n_nodes": 19}
+  gvgs: {"v0_equal_vgs": 6, "v1_port_diff": 0, "v2_kvl_branch": 1, "unresolved": 0}
+  gvgs_n_fundamental: 7
+  vds1_count: 1
+  vds1_devices: ["M4"]
+  columns.n_branches=9 n_branch_nodes=3 n_columns=8 dc_edges=26
+  columns.branch_nodes=['TAIL', 'vdd', 'vss']
+  columns.uncovered_branches=[]
+  columns.mos_not_in_any_column=[]
+  columns.leftover_cycle_edges=[]
+  cells: {"M1": "CS_or_CD_review", "M2": "CS_or_CD_review", "M3": "load/bias", "M4": "off_path", "M6": "CS", "M5": "CS_or_CD_review", "M8": "CS", "M7": "CS_or_CD_review", "M11": "CS", "M12": "CS_or_CD_review", "M14": "CS", "M13": "CS_or_CD_review", "M9": "CS", "M10": "CS_or_CD_review", "M16": "CS", "M15": "CS_or_CD_review", "M17": "CS", "M18": "CD", "M19": "CD", "M20": "CS", "M22": "CD", "M21": "CD"}
+  gvgs_detail: {"v0_equal_vgs": [["M4", "M3"], ["M11", "M8"], ["M9", "M6"], ["M16", "M14"], ["M17", "M6"], ["M20", "M14"]], "v1_port_diff": [], "v2_kvl_branch": [["M21", "M22", "M18", "M19"]], "unresolved": []}
+======================================================================
+[ngcc_3stage_ff]
+  circuit: "ngcc_3stage_ff"
+  n_devices: 16
+  kinds: ["nmos", "pmos"]
+  n_passive: 3
+  n_ideal_sources: 0
+  n_nets: 13
+  supply_nets_declared: true
+  rails: ["gnd", "vdd"]
+  rail_source: "declared"
+  n_rails: 2
+  ports_declared: true
+  in_ports: ["Vinn", "Vinp"]
+  out_ports: ["Vout"]
+  default_transfer_view_possible: true
+  sizing_spec_declared: false
+  compensation: "null"
+  compensation_status: "pending_topology_fn"
+  passive_area_declared: false
+  objective_declared: false
+  gb0_gate: "pass(declared)"
+  ac_ground: ["VBN", "VBP", "gnd", "vdd"]
+  cell_tally: {"CS": 10, "CS_or_CD_review": 2, "load/bias": 4}
+  cells_undefined: ["M1", "M2"]
+  loops: {"n_simple_cycles": 3, "truncated": false, "sample": [["NP", "V2", "Vout", "V1"], ["V1", "Vout"], ["V2", "Vout"]], "n_nodes": 7}
+  gvgs: {"v0_equal_vgs": 7, "v1_port_diff": 0, "v2_kvl_branch": 0, "unresolved": 0}
+  gvgs_n_fundamental: 7
+  vds1_count: 9
+  vds1_devices: ["M3", "M4", "M5", "M6A", "M6B", "M8", "M9", "M10", "M11"]
+  columns.n_branches=12 n_branch_nodes=5 n_columns=9 dc_edges=16
+  columns.branch_nodes=['NX', 'TAIL', 'Vout', 'gnd', 'vdd']
+  columns.uncovered_branches=[]
+  columns.mos_not_in_any_column=[]
+  columns.leftover_cycle_edges=[]
+  cells: {"M0": "load/bias", "M1": "CS_or_CD_review", "M2": "CS_or_CD_review", "M3": "CS", "M4": "CS", "M5": "load/bias", "M6A": "CS", "M6B": "CS", "M7": "CS", "M8": "CS", "M9": "CS", "M10": "CS", "M11": "load/bias", "M12": "load/bias", "M13": "CS", "M14": "CS"}
+  gvgs_detail: {"v0_equal_vgs": [["M4", "M3"], ["M5", "M0"], ["M6B", "M3"], ["M7", "M6A"], ["M10", "M9"], ["M12", "M0"], ["M14", "M8"]], "v1_port_diff": [], "v2_kvl_branch": [], "unresolved": []}

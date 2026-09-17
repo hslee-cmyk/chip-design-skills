@@ -320,6 +320,8 @@
       ]
     }
   },
+  "supply_nets": ["vdd", "gnd"],
+  "_supply_nets_comment": "2026-09-17 선언(U-26 (b), 사용자 승인). 계획 DEC-60: 레일 넷은 이 필드로만 정한다(넷 이름 집합으로 판정하지 않는다. 전환기 이름집합 해석은 MG1까지 한시 허용이었고 이 선언이 그것을 대체한다). 레일 전압 `supplies_v`는 사이징 스펙 쪽 선언이고 여기에 두지 않는다(U-26 (a)).",
   "netlist": [
     {
       "name": "M6",
@@ -2033,38 +2035,45 @@
     "constraints": [
       {
         "metric": "gain_db",
+      "source": "user_spec",
         "op": ">=",
         "value": 54
       },
       {
         "metric": "mismatch_sigma_mV",
+      "source": "pending_7a",
         "op": "<=",
         "value": 5.0,
         "_comment": "⚠️ 2026-09-10 -- 이 값은 **여전히 도출 근거가 없다**(추적: do.md 1457행의 자리표시자 \"value\": X가 최초 커밋 e329283에서 채워짐). 사용자 지시로 achievable_metric_bound()를 만들어 '나머지 제약을 만족하면서 도달하는 sigma'로 유도를 **시도했고 실패했다** -- 실패 자체가 결론을 준다(계획 §10.14): sigma를 objective로 놓고 최소화하면 W*L이 커져 parasitic_pm_deg와 정면충돌해 실현가능점이 사라지고(파일럿 3 probe 전부), 반대로 제약을 떼고 원래 objective(power 최소)로 두면 최적화기가 입력쌍을 줄여 sigma가 오히려 나빠진다(세션31 실측: 이 제약을 만족하려면 W*L이 4.7배 필요했다). 즉 **이 임계값은 회로 안에서 도출되는 값이 아니라 시스템 레벨 오프셋 요구에서 와야 하는 설계 입력**이다. 그때까지 값을 지어내지 않고 이전 값을 유지하며 이 사실을 여기 남긴다. 후보 방법(미구현): 제약값 자체를 bisection해 '탐색이 아직 실현가능한 가장 빡빡한 sigma'를 찾는 것. two_stage_ota가 이 값을 복제해 갔다."
       },
       {
         "metric": "cmrr_estimate_db",
+      "source": "user_spec",
         "op": ">=",
         "value": 60
       },
       {
         "metric": "psrr_estimate_db",
+      "source": "user_spec",
         "op": ">=",
         "value": 60
       },
       {
         "metric": "mirror_ratio_error_mV",
+      "source": "reference",
         "op": "<=",
         "value_from_constraint": "mismatch_sigma_mV",
         "_comment": "2026-09-10(사용자 지시 \"상수를 임의로 자꾸 만들지마. 근거가 되는 mismatch_sigma_mV만 유지하고 나머지는 계산으로 도출\") -- **이 제약에는 숫자가 없다**. mirror_ratio_error_mV는 계통 미러비 오차(ratio 쌍의 VDS 차이가 만드는 1차 CLM 오차 dI/I=|dVDS|/V_A)를 **입력환산 전압**으로 잰 것이고(dV=(dI/I)/(gm/ID)), 그러면 랜덤 미스매치 예산 mismatch_sigma_mV와 **단위가 같아진다**. 따라서 임계값은 이미 선언된 그 예산을 그대로 참조하면 된다 -- 규칙은 \"계통 오차가 이 회로가 이미 받아들이기로 한 랜덤 오차 예산을 넘지 않는다\"이다. %로 두면 sigma x gm_id를 계산해 박아야 하는데, 그 순간 gm_id가 바뀌어도 안 따라가는 상수가 하나 생긴다(실제로 8.0을 박았다가 되돌렸다, 계획 §10.13). 유도와 쌍별 실측은 tests/probe_mirror_ratio_bound.py 참고."
       },
       {
         "metric": "classab_centering_dev_v",
+      "source": "user_spec",
         "op": "<=",
         "value": 0.15
       },
       {
         "metric": "parasitic_pm_deg",
+      "source": "reference",
         "op": ">=",
         "value_from_spec": "PM_target_deg",
         "_comment": "2026-09-10(§7.11 L2 완성) -- 위상여유가 이 회로의 PM 목표를 넘어야 한다. 값을 숫자로 적지 않고 spec의 PM_target_deg를 참조한다(새 상수가 아니라 이미 선언된 값 자체이고, 복제하면 두 곳이 조용히 갈린다). **이 제약이 곧 L의 상한이다**: L↑ -> Cgg↑ -> 노드 pole↓ -> PM↓. metric은 L2(복소 MNA 주파수응답)로 재므로 보상망(Cc/Rz의 zero, Miller pole splitting, C_L 부하)이 전부 반영된다."
