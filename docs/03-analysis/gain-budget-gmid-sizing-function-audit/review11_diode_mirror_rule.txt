@@ -1,0 +1,51 @@
+=== 규칙 9 (c) diode 미러 갈래 측정 ===
+diode 노드마다: 그 노드를 gate로 읽는 다른 소자가 있고 그 소자의 출력 단자가 순방향 경로 위인가 → 미러 입력(블록이 이어짐, (c) 아님) / 아니면 진짜 diode 부하((c)).
+
+    common_gate_amplifier          diode 소자 0개
+  ★ current_reuse_telescopic_ota   diode 16개
+      M11a   node=N11a11b      읽는 소자=없음                     순방향=없음               -> diode 부하((c))
+      M11b   node=N11b         읽는 소자=M9a                    순방향=M9a              -> 미러 입력((c) 아님)
+      M14a   node=N14a14b      읽는 소자=M9b                    순방향=M9b              -> 미러 입력((c) 아님)
+      M14b   node=N14a_14b     읽는 소자=없음                     순방향=없음               -> diode 부하((c))
+      M20a   node=N20a20b      읽는 소자=없음                     순방향=없음               -> diode 부하((c))
+      M20b   node=N20b         읽는 소자=M18a                   순방향=M18a             -> 미러 입력((c) 아님)
+      M23a   node=N24b23a      읽는 소자=M18b                   순방향=M18b             -> 미러 입력((c) 아님)
+      M24b   node=N23a24b      읽는 소자=없음                     순방향=없음               -> diode 부하((c))
+      M18_bg node=Vbias1       읽는 소자=M6,M8,M13,M22,M17,M60,M61 순방향=M6,M8,M17        -> 미러 입력((c) 아님)
+      M64    node=Vbias3       읽는 소자=M3a,M3b,M63            순방향=M3a,M3b          -> 미러 입력((c) 아님)
+      M57    node=Vbias2       읽는 소자=M2a,M2b,M58            순방향=M2a,M2b          -> 미러 입력((c) 아님)
+      M66    node=Vbias4       읽는 소자=M5,M12,M10,M21,M19,M68,M38 순방향=M5,M10,M19,M38   -> 미러 입력((c) 아님)
+      M36a   node=Vcmfb        읽는 소자=M7                     순방향=M7               -> 미러 입력((c) 아님)
+      M36b   node=N36b         읽는 소자=없음                     순방향=없음               -> diode 부하((c))
+      M39    node=Voc_des      읽는 소자=M37b                   순방향=없음               -> diode 부하((c))
+      M40    node=gnd          읽는 소자=없음                     순방향=없음               -> diode 부하((c))
+  ★ folded_cascode                 diode 4개
+      MP     node=vb1          읽는 소자=M3,M4                  순방향=M3,M4            -> 미러 입력((c) 아님)
+      M9     node=Vg9          읽는 소자=M10                    순방향=M10              -> 미러 입력((c) 아님)
+      M7     node=Vg7          읽는 소자=M8                     순방향=M8               -> 미러 입력((c) 아님)
+      MN     node=vb2          읽는 소자=M11                    순방향=M11              -> 미러 입력((c) 아님)
+    ngcc_3stage_ff                 diode 3개
+      M3     node=ND           읽는 소자=M4,M6B                 순방향=M4,M6B           -> 미러 입력((c) 아님)
+      M6A    node=NX           읽는 소자=M7                     순방향=M7               -> 미러 입력((c) 아님)
+      M9     node=NP           읽는 소자=M10                    순방향=M10              -> 미러 입력((c) 아님)
+  ★ nmcnr_amplifier                diode 2개
+      M108   node=NodeM1       읽는 소자=M109                   순방향=M109             -> 미러 입력((c) 아님)
+      M203   node=NodeC        읽는 소자=M204                   순방향=M204             -> 미러 입력((c) 아님)
+    pushpull_follower_buffer       diode 소자 0개
+    sf_pushpull_output_opamp       diode 1개
+      M4     node=NB           읽는 소자=M3                     순방향=M3               -> 미러 입력((c) 아님)
+  ★ two_stage_ota                  diode 1개
+      M3     node=D3           읽는 소자=M4                     순방향=M4               -> 미러 입력((c) 아님)
+    two_stage_ota_sf               diode 1개
+      M3     node=D3           읽는 소자=M4                     순방향=M4               -> 미러 입력((c) 아님)
+
+사이징 대상 4회로 합계: 미러 입력 16건 / 진짜 diode 부하 7건
+미러 입력으로 빠진 건수만큼 규칙 9 (c) 정지가 풀린다. 남은 '진짜 diode 부하'는 여전히 (c)이고 그 판정이 옳은지는 J2 ratify 대상이다.
+[이 측정의 한계]
+  * diode 노드가 **그 뷰의 신호 넷인지**로 거르지 않았다. 규칙은 '블록 출력노드 후보'에만 적용되므로
+    신호 넷이 아닌 diode 노드(예: 파일럿 M40의 node=gnd, 바이어스 사슬 내부 노드)는 애초에 (c) 판정
+    대상이 아니다 -- 위 '진짜 diode 부하' 7건에는 그런 노드가 섞여 있어 과다 계상이다.
+  * 라운드 5가 지목한 9 (c) 발동 소자만 보면: folded M7·M9, two_stage M3, nmcnr M108·M203,
+    파일럿 M57·M36a가 전부 '미러 입력'으로 빠지고 파일럿 M36b(CMFB diode)만 남는다.
+  * 남은 건이 정말 diode 부하인지는 J2 ratify 대상이다.
+

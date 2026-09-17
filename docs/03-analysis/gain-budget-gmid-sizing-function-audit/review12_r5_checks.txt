@@ -1,0 +1,45 @@
+
+#### (i) 규칙 9 (c) — 순방향 제한을 걸었을 때 / 걸지 않았을 때
+  common_gate_amplifier          9(c) 전체=0 [] | 순방향만=0 []
+  current_reuse_telescopic_ota   9(c) 전체=4 ['M7->Vbias2', 'M36a->Vcmfb', 'M36b->N36b', 'M37a->Vcmfb'] | 순방향만=2 ['M36a->Vcmfb', 'M37a->Vcmfb']
+  folded_cascode                 9(c) 전체=2 ['M2->Vg7', 'M9->Vg9'] | 순방향만=2 ['M2->Vg7', 'M9->Vg9']
+  ngcc_3stage_ff                 9(c) 전체=6 ['M1->ND', 'M3->ND', 'M6A->NX', 'M6B->NX', 'M8->NP', 'M9->NP'] | 순방향만=6 ['M1->ND', 'M3->ND', 'M6A->NX', 'M6B->NX', 'M8->NP', 'M9->NP']
+  nmcnr_amplifier                9(c) 전체=4 ['M102->NodeM1', 'M108->NodeM1', 'M201->NodeC', 'M203->NodeC'] | 순방향만=4 ['M102->NodeM1', 'M108->NodeM1', 'M201->NodeC', 'M203->NodeC']
+  pushpull_follower_buffer       9(c) 전체=0 [] | 순방향만=0 []
+  sf_pushpull_output_opamp       9(c) 전체=0 [] | 순방향만=0 []
+  two_stage_ota                  9(c) 전체=2 ['M3->D3', 'M1->D3'] | 순방향만=2 ['M3->D3', 'M1->D3']
+  two_stage_ota_sf               9(c) 전체=2 ['M1->D3', 'M3->D3'] | 순방향만=2 ['M1->D3', 'M3->D3']
+
+#### (ii) 순방향 경로 정의 두 읽기 (순환 점검)
+  읽기 P = 규칙 3 최소 고정점 그래프(셀 분류 불필요)  /  읽기 Q = 규칙 2 방향 신호 그래프(구동 종류 필요)
+  common_gate_amplifier          |P|= 2 |Q|= 1  동일=False  P-Q=['vin']  Q-P=[]
+  current_reuse_telescopic_ota   |P|=19 |Q|=17  동일=False  P-Q=['Ncmfb_tail', 'Vy']  Q-P=[]
+  folded_cascode                 |P|= 9 |Q|= 8  동일=False  P-Q=['tail']  Q-P=[]
+  ngcc_3stage_ff                 |P|= 9 |Q|= 8  동일=False  P-Q=['TAIL']  Q-P=[]
+  nmcnr_amplifier                |P|=10 |Q|= 9  동일=False  P-Q=['NodeTail']  Q-P=[]
+  pushpull_follower_buffer       |P|= 4 |Q|= 4  동일=True  P-Q=[]  Q-P=[]
+  sf_pushpull_output_opamp       |P|=19 |Q|=18  동일=False  P-Q=['TAIL']  Q-P=[]
+  two_stage_ota                  |P|= 6 |Q|= 5  동일=False  P-Q=['CS']  Q-P=[]
+  two_stage_ota_sf               |P|= 7 |Q|= 6  동일=False  P-Q=['CS']  Q-P=[]
+
+#### (iii) 새 CG 규칙이 pass·load·offpath 판정을 바꾸는가 (옛 '도달' 판별식 대비)
+  common_gate_amplifier          바뀐 셀=0 {} | CG/pass 밖으로 번진 변화=없음
+  current_reuse_telescopic_ota   바뀐 셀=4 {'M2a': ('pass', 'CG'), 'M2b': ('pass', 'CG'), 'M3a': ('pass', 'CG'), 'M3b': ('pass', 'CG')} | CG/pass 밖으로 번진 변화=없음
+  folded_cascode                 바뀐 셀=1 {'M6': ('pass', 'CG')} | CG/pass 밖으로 번진 변화=없음
+  ngcc_3stage_ff                 바뀐 셀=0 {} | CG/pass 밖으로 번진 변화=없음
+  nmcnr_amplifier                바뀐 셀=1 {'M107': ('pass', 'CG')} | CG/pass 밖으로 번진 변화=없음
+  pushpull_follower_buffer       바뀐 셀=0 {} | CG/pass 밖으로 번진 변화=없음
+  sf_pushpull_output_opamp       바뀐 셀=0 {} | CG/pass 밖으로 번진 변화=없음
+  two_stage_ota                  바뀐 셀=0 {} | CG/pass 밖으로 번진 변화=없음
+  two_stage_ota_sf               바뀐 셀=0 {} | CG/pass 밖으로 번진 변화=없음
+
+#### (iv) tap 읽기 T0(좁히기 전) vs T1(R4-02 단서 적용) — 규칙 9 (a) 발동
+  common_gate_amplifier          T0: 9(a)=0 [] tap=[] || T1: 9(a)=0 [] tap=[]
+  current_reuse_telescopic_ota   T0: 9(a)=4 ['M15', 'M16', 'M25', 'M26'] tap=['Vg15', 'Vg25', 'Vom1', 'Vop1'] || T1: 9(a)=0 [] tap=[]
+  folded_cascode                 T0: 9(a)=0 [] tap=[] || T1: 9(a)=0 [] tap=[]
+  ngcc_3stage_ff                 T0: 9(a)=0 [] tap=[] || T1: 9(a)=0 [] tap=[]
+  nmcnr_amplifier                T0: 9(a)=0 [] tap=[] || T1: 9(a)=0 [] tap=[]
+  pushpull_follower_buffer       T0: 9(a)=0 [] tap=[] || T1: 9(a)=0 [] tap=[]
+  sf_pushpull_output_opamp       T0: 9(a)=0 [] tap=[] || T1: 9(a)=0 [] tap=[]
+  two_stage_ota                  T0: 9(a)=0 [] tap=[] || T1: 9(a)=0 [] tap=[]
+  two_stage_ota_sf               T0: 9(a)=0 [] tap=[] || T1: 9(a)=0 [] tap=[]

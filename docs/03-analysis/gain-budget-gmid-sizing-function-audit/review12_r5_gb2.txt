@@ -1,0 +1,158 @@
+
+#### 라운드 5 (commit 59351b6) — 블록 기준 규칙 9 (c) + GB2 정지표
+
+common_gate_amplifier
+   blocks=1  9(c) 발동=0 []
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=[]
+   루프 pas_cost=0 {} (total 0) / pas_cost=1 {} (total 0)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+current_reuse_telescopic_ota
+   blocks=12  9(c) 발동=4 ["M7->Vbias2['M57']", "M36a->Vcmfb['M36a']", "M36b->N36b['M36b']", "M37a->Vcmfb['M36a']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['Ncmfb_tail', 'Vy']
+   루프 pas_cost=0 {'1.5_bias_scc': 11, '3a': 1, '3b': 11} (total 23) / pas_cost=1 {'1.5_bias_scc': 11, '3a': 1, '3b': 11} (total 23)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+folded_cascode
+   blocks=5  9(c) 발동=2 ["M2->Vg7['M7']", "M9->Vg9['M9']"]
+   9(a)=0 []   CS/CD 이중출력=1 ['M7']   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['tail']
+   루프 pas_cost=0 {'1.5_bias_scc': 2, '3a': 1, '3b': 1} (total 4) / pas_cost=1 {'1.5_bias_scc': 2, '3a': 1, '3b': 1} (total 4)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+ngcc_3stage_ff
+   blocks=12  9(c) 발동=6 ["M1->ND['M3']", "M3->ND['M3']", "M6A->NX['M6A']", "M6B->NX['M6A']", "M8->NP['M9']", "M9->NP['M9']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['TAIL']
+   루프 pas_cost=0 {'3b': 7} (total 7) / pas_cost=1 {'3b': 7} (total 7)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+nmcnr_amplifier
+   blocks=8  9(c) 발동=4 ["M102->NodeM1['M108']", "M108->NodeM1['M108']", "M201->NodeC['M203']", "M203->NodeC['M203']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['NodeTail']
+   루프 pas_cost=0 {'3b': 2} (total 2) / pas_cost=1 {'3b': 2} (total 2)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+pushpull_follower_buffer
+   blocks=0  9(c) 발동=0 []
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=[]
+   루프 pas_cost=0 {} (total 0) / pas_cost=1 {} (total 0)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+sf_pushpull_output_opamp
+   blocks=16  9(c) 발동=0 []
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['TAIL']
+   루프 pas_cost=0 {'1.5_bias_scc': 1, '3b': 3, 'record_2active_no_passive': 3} (total 7) / pas_cost=1 {'1.5_bias_scc': 1, '3b': 3, '4': 3} (total 7)
+   `기록만` 루프(=(4)+(나)) 비용0=3 비용1=3
+
+two_stage_ota
+   blocks=5  9(c) 발동=2 ["M3->D3['M3']", "M1->D3['M3']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['CS']
+   루프 pas_cost=0 {'3b': 1} (total 1) / pas_cost=1 {'3b': 1} (total 1)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+two_stage_ota_sf
+   blocks=5  9(c) 발동=2 ["M1->D3['M3']", "M3->D3['M3']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['CS']
+   루프 pas_cost=0 {'3b': 2} (total 2) / pas_cost=1 {'2_miller': 1, '3b': 1} (total 2)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+#### GB2 정지표 (완료조건 신판: 그 회로의 `기록만` 분기 발동 총합 0)
+circuit                          9a   9c  dual  ge3   rec0   rec1 | 정지?
+common_gate_amplifier             0    0     0    0      0      0 | pass / pass
+current_reuse_telescopic_ota      0    4     0    0      0      0 | STOP / STOP
+folded_cascode                    0    2     1    0      0      0 | STOP / STOP
+ngcc_3stage_ff                    0    6     0    0      0      0 | STOP / STOP
+nmcnr_amplifier                   0    4     0    0      0      0 | STOP / STOP
+pushpull_follower_buffer          0    0     0    0      0      0 | pass / pass
+sf_pushpull_output_opamp          0    0     0    0      3      3 | STOP / STOP
+two_stage_ota                     0    2     0    0      0      0 | STOP / STOP
+two_stage_ota_sf                  0    2     0    0      0      0 | STOP / STOP
+
+사이징 스펙 4회로 GB2 무정지 통과: 수동엣지비용0 = 0 / 비용1 = 0
+
+#### 라운드 5 (commit 59351b6) — 블록 기준 규칙 9 (c) + GB2 정지표
+
+common_gate_amplifier
+   blocks=1  9(c) 발동=0 []
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=[]
+   루프 pas_cost=0 {} (total 0) / pas_cost=1 {} (total 0)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+current_reuse_telescopic_ota
+   blocks=12  9(c) 발동=4 ["M7->Vbias2['M57']", "M36a->Vcmfb['M36a']", "M36b->N36b['M36b']", "M37a->Vcmfb['M36a']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['Ncmfb_tail', 'Vy']
+   루프 pas_cost=0 {'1.5_bias_scc': 11, '3a': 1, '3b': 11} (total 23) / pas_cost=1 {'1.5_bias_scc': 11, '3a': 1, '3b': 11} (total 23)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+folded_cascode
+   blocks=5  9(c) 발동=2 ["M2->Vg7['M7']", "M9->Vg9['M9']"]
+   9(a)=0 []   CS/CD 이중출력=1 ['M7']   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['tail']
+   루프 pas_cost=0 {'1.5_bias_scc': 2, '3a': 1, '3b': 1} (total 4) / pas_cost=1 {'1.5_bias_scc': 2, '3a': 1, '3b': 1} (total 4)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+ngcc_3stage_ff
+   blocks=12  9(c) 발동=6 ["M1->ND['M3']", "M3->ND['M3']", "M6A->NX['M6A']", "M6B->NX['M6A']", "M8->NP['M9']", "M9->NP['M9']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['TAIL']
+   루프 pas_cost=0 {'3b': 7} (total 7) / pas_cost=1 {'3b': 7} (total 7)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+nmcnr_amplifier
+   blocks=8  9(c) 발동=4 ["M102->NodeM1['M108']", "M108->NodeM1['M108']", "M201->NodeC['M203']", "M203->NodeC['M203']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['NodeTail']
+   루프 pas_cost=0 {'3b': 2} (total 2) / pas_cost=1 {'3b': 2} (total 2)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+pushpull_follower_buffer
+   blocks=0  9(c) 발동=0 []
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=[]
+   루프 pas_cost=0 {} (total 0) / pas_cost=1 {} (total 0)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+sf_pushpull_output_opamp
+   blocks=16  9(c) 발동=0 []
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['TAIL']
+   루프 pas_cost=0 {'1.5_bias_scc': 1, '3b': 3, 'record_2active_no_passive': 3} (total 7) / pas_cost=1 {'1.5_bias_scc': 1, '3b': 3, '4': 3} (total 7)
+   `기록만` 루프(=(4)+(나)) 비용0=3 비용1=3
+
+two_stage_ota
+   blocks=5  9(c) 발동=2 ["M3->D3['M3']", "M1->D3['M3']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['CS']
+   루프 pas_cost=0 {'3b': 1} (total 1) / pas_cost=1 {'3b': 1} (total 1)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+two_stage_ota_sf
+   blocks=5  9(c) 발동=2 ["M1->D3['M3']", "M3->D3['M3']"]
+   9(a)=0 []   CS/CD 이중출력=0 []   3소자 이상 동일 노드쌍=0
+   구동 종류 미정의 신호넷=['CS']
+   루프 pas_cost=0 {'3b': 2} (total 2) / pas_cost=1 {'2_miller': 1, '3b': 1} (total 2)
+   `기록만` 루프(=(4)+(나)) 비용0=0 비용1=0
+
+#### GB2 정지표 (완료조건 신판: 그 회로의 `기록만` 분기 발동 총합 0)
+circuit                          9a   9c  dual  ge3   rec0   rec1 | 정지?
+common_gate_amplifier             0    0     0    0      0      0 | pass / pass
+current_reuse_telescopic_ota      0    4     0    0      0      0 | STOP / STOP
+folded_cascode                    0    2     1    0      0      0 | STOP / STOP
+ngcc_3stage_ff                    0    6     0    0      0      0 | STOP / STOP
+nmcnr_amplifier                   0    4     0    0      0      0 | STOP / STOP
+pushpull_follower_buffer          0    0     0    0      0      0 | pass / pass
+sf_pushpull_output_opamp          0    0     0    0      3      3 | STOP / STOP
+two_stage_ota                     0    2     0    0      0      0 | STOP / STOP
+two_stage_ota_sf                  0    2     0    0      0      0 | STOP / STOP
+
+사이징 스펙 4회로 GB2 무정지 통과: 수동엣지비용0 = 0 / 비용1 = 0

@@ -1,0 +1,108 @@
+[D] common_gate_amplifier          sig=2 fwd=2 (셀 분류 미사용)
+[A] common_gate_amplifier          CG_fwd=1 ['M2']  pass=0 []  bundles=0 
+[B] common_gate_amplifier          ambiguous_cells=0 []  ambiguous->ambiguous deps=0 [] 
+[C] common_gate_amplifier          (ii)=drain만 -> 0 [] 
+[C] common_gate_amplifier          (ii)=drain|source -> 0 [] 
+[D] current_reuse_telescopic_ota   sig=22 fwd=19 (셀 분류 미사용)
+[A] current_reuse_telescopic_ota   CG_fwd=4 ['M2a', 'M2b', 'M3a', 'M3b']  pass=4 ['M18a', 'M18b', 'M9a', 'M9b']  bundles=2 
+[B] current_reuse_telescopic_ota   ambiguous_cells=5 ['M1a', 'M1b', 'M37a', 'M4a', 'M4b']  ambiguous->ambiguous deps=0 [] 
+[C] current_reuse_telescopic_ota   (ii)=drain만 -> 0 [] 
+[C] current_reuse_telescopic_ota   (ii)=drain|source -> 0 [] 
+[D] folded_cascode                 sig=9 fwd=9 (셀 분류 미사용)
+[A] folded_cascode                 CG_fwd=2 ['M5', 'M6']  pass=0 []  bundles=0 
+[B] folded_cascode                 ambiguous_cells=4 ['M1', 'M2', 'M7', 'M8']  ambiguous->ambiguous deps=0 [] 
+[C] folded_cascode                 (ii)=drain만 -> 0 [] 
+[C] folded_cascode                 (ii)=drain|source -> 0 [] 
+[D] ngcc_3stage_ff                 sig=9 fwd=9 (셀 분류 미사용)
+[A] ngcc_3stage_ff                 CG_fwd=0 []  pass=0 []  bundles=0 
+[B] ngcc_3stage_ff                 ambiguous_cells=2 ['M1', 'M2']  ambiguous->ambiguous deps=0 [] 
+[C] ngcc_3stage_ff                 (ii)=drain만 -> 0 [] 
+[C] ngcc_3stage_ff                 (ii)=drain|source -> 0 [] 
+[D] nmcnr_amplifier                sig=10 fwd=10 (셀 분류 미사용)
+[A] nmcnr_amplifier                CG_fwd=2 ['M106', 'M107']  pass=0 []  bundles=0 
+[B] nmcnr_amplifier                ambiguous_cells=2 ['M102', 'M103']  ambiguous->ambiguous deps=0 [] 
+[C] nmcnr_amplifier                (ii)=drain만 -> 0 [] 
+[C] nmcnr_amplifier                (ii)=drain|source -> 0 [] 
+[D] pushpull_follower_buffer       sig=4 fwd=4 (셀 분류 미사용)
+[A] pushpull_follower_buffer       CG_fwd=0 []  pass=0 []  bundles=0 
+[B] pushpull_follower_buffer       ambiguous_cells=0 []  ambiguous->ambiguous deps=0 [] 
+[C] pushpull_follower_buffer       (ii)=drain만 -> 0 [] 
+[C] pushpull_follower_buffer       (ii)=drain|source -> 0 [] 
+[D] sf_pushpull_output_opamp       sig=19 fwd=19 (셀 분류 미사용)
+[A] sf_pushpull_output_opamp       CG_fwd=0 []  pass=0 []  bundles=0 
+[B] sf_pushpull_output_opamp       ambiguous_cells=8 ['M1', 'M10', 'M12', 'M13', 'M15', 'M2', 'M5', 'M7']  ambiguous->ambiguous deps=0 [] 
+[C] sf_pushpull_output_opamp       (ii)=drain만 -> 0 [] 
+[C] sf_pushpull_output_opamp       (ii)=drain|source -> 0 [] 
+[D] two_stage_ota                  sig=6 fwd=6 (셀 분류 미사용)
+[A] two_stage_ota                  CG_fwd=0 []  pass=0 []  bundles=0 
+[B] two_stage_ota                  ambiguous_cells=2 ['M1', 'M2']  ambiguous->ambiguous deps=0 [] 
+[C] two_stage_ota                  (ii)=drain만 -> 0 [] 
+[C] two_stage_ota                  (ii)=drain|source -> 0 [] 
+[D] two_stage_ota_sf               sig=7 fwd=7 (셀 분류 미사용)
+[A] two_stage_ota_sf               CG_fwd=0 []  pass=0 []  bundles=0 
+[B] two_stage_ota_sf               ambiguous_cells=2 ['M1', 'M2']  ambiguous->ambiguous deps=0 [] 
+[C] two_stage_ota_sf               (ii)=drain만 -> 0 [] 
+[C] two_stage_ota_sf               (ii)=drain|source -> 0 [] 
+[A] TOTAL(기존 4개 회로)                CG_fwd=8 (계획서 기대 8)
+
+--- C2 재실행: J1 미적용(술어가 J1을 정하는 입력이므로 기본 교류접지로 돈다) ---
+[C2] common_gate_amplifier          (ii)=drain만        -> 0 []
+[C2] common_gate_amplifier          (ii)=drain|source  -> 0 []
+[C2] current_reuse_telescopic_ota   (ii)=drain만        -> 2 ['Vbias2', 'Vbias3']
+[C2] current_reuse_telescopic_ota   (ii)=drain|source  -> 2 ['Vbias2', 'Vbias3']
+[C2] folded_cascode                 (ii)=drain만        -> 0 []
+[C2] folded_cascode                 (ii)=drain|source  -> 0 []
+[C2] ngcc_3stage_ff                 (ii)=drain만        -> 0 []
+[C2] ngcc_3stage_ff                 (ii)=drain|source  -> 0 []
+[C2] nmcnr_amplifier                (ii)=drain만        -> 0 []
+[C2] nmcnr_amplifier                (ii)=drain|source  -> 0 []
+[C2] pushpull_follower_buffer       (ii)=drain만        -> 0 []
+[C2] pushpull_follower_buffer       (ii)=drain|source  -> 0 []
+[C2] sf_pushpull_output_opamp       (ii)=drain만        -> 0 []
+[C2] sf_pushpull_output_opamp       (ii)=drain|source  -> 0 []
+[C2] two_stage_ota                  (ii)=drain만        -> 0 []
+[C2] two_stage_ota                  (ii)=drain|source  -> 0 []
+[C2] two_stage_ota_sf               (ii)=drain만        -> 0 []
+[C2] two_stage_ota_sf               (ii)=drain|source  -> 0 []
+
+--- B2: 새 순방향 제한이 CS/CD 이중출력 판정에 미치는 효과 ---
+[B2] common_gate_amplifier          순방향제한 dual=0 [] | 제한없음 dual=0 []
+[B2] current_reuse_telescopic_ota   순방향제한 dual=0 [] | 제한없음 dual=5 ['M1a', 'M1b', 'M37a', 'M4a', 'M4b']
+[B2] folded_cascode                 순방향제한 dual=1 ['M7'] | 제한없음 dual=1 ['M7']
+[B2] ngcc_3stage_ff                 순방향제한 dual=0 [] | 제한없음 dual=0 []
+[B2] nmcnr_amplifier                순방향제한 dual=0 [] | 제한없음 dual=0 []
+[B2] pushpull_follower_buffer       순방향제한 dual=0 [] | 제한없음 dual=0 []
+[B2] sf_pushpull_output_opamp       순방향제한 dual=0 [] | 제한없음 dual=0 []
+[B2] two_stage_ota                  순방향제한 dual=0 [] | 제한없음 dual=0 []
+[B2] two_stage_ota_sf               순방향제한 dual=0 [] | 제한없음 dual=0 []
+
+--- E: tap 판정 두 읽기 (gate와 채널로 동시에 나가는 노드) ---
+[E] common_gate_amplifier          gate·채널 동시 진출 노드=0 [] | 그중 채널쪽이 순방향 지속(=tap)=0 []
+[E] current_reuse_telescopic_ota   gate·채널 동시 진출 노드=4 ['Vg15', 'Vg25', 'Vom1', 'Vop1'] | 그중 채널쪽이 순방향 지속(=tap)=4 ['Vg15', 'Vg25', 'Vom1', 'Vop1']
+[E] folded_cascode                 gate·채널 동시 진출 노드=1 ['Vg9'] | 그중 채널쪽이 순방향 지속(=tap)=1 ['Vg9']
+[E] ngcc_3stage_ff                 gate·채널 동시 진출 노드=0 [] | 그중 채널쪽이 순방향 지속(=tap)=0 []
+[E] nmcnr_amplifier                gate·채널 동시 진출 노드=0 [] | 그중 채널쪽이 순방향 지속(=tap)=0 []
+[E] pushpull_follower_buffer       gate·채널 동시 진출 노드=2 ['A', 'B'] | 그중 채널쪽이 순방향 지속(=tap)=0 []
+[E] sf_pushpull_output_opamp       gate·채널 동시 진출 노드=2 ['N17', 'N20'] | 그중 채널쪽이 순방향 지속(=tap)=0 []
+[E] two_stage_ota                  gate·채널 동시 진출 노드=0 [] | 그중 채널쪽이 순방향 지속(=tap)=0 []
+[E] two_stage_ota_sf               gate·채널 동시 진출 노드=0 [] | 그중 채널쪽이 순방향 지속(=tap)=0 []
+
+--- E2: tap 판정 세 읽기 (R1=채널쪽 순방향 / R3=gate쪽 순방향까지 본다) ---
+[E2] common_gate_amplifier          해당 노드 없음
+[E2] current_reuse_telescopic_ota   net=Vg15       gate쪽순방향=True  채널쪽순방향=True  | R1=tap      R3=전압구동(경계)
+[E2] current_reuse_telescopic_ota   net=Vg25       gate쪽순방향=True  채널쪽순방향=True  | R1=tap      R3=전압구동(경계)
+[E2] current_reuse_telescopic_ota   net=Vom1       gate쪽순방향=True  채널쪽순방향=True  | R1=tap      R3=전압구동(경계)
+[E2] current_reuse_telescopic_ota   net=Vop1       gate쪽순방향=True  채널쪽순방향=True  | R1=tap      R3=전압구동(경계)
+[E2] current_reuse_telescopic_ota   요약: R1 tap=4 / R3 tap=0
+[E2] folded_cascode                 net=Vg9        gate쪽순방향=True  채널쪽순방향=True  | R1=tap      R3=전압구동(경계)
+[E2] folded_cascode                 요약: R1 tap=1 / R3 tap=0
+[E2] ngcc_3stage_ff                 해당 노드 없음
+[E2] nmcnr_amplifier                해당 노드 없음
+[E2] pushpull_follower_buffer       net=A          gate쪽순방향=True  채널쪽순방향=False | R1=전류구동     R3=전압구동(경계)
+[E2] pushpull_follower_buffer       net=B          gate쪽순방향=True  채널쪽순방향=False | R1=전류구동     R3=전압구동(경계)
+[E2] pushpull_follower_buffer       요약: R1 tap=0 / R3 tap=0
+[E2] sf_pushpull_output_opamp       net=N17        gate쪽순방향=True  채널쪽순방향=False | R1=전류구동     R3=전압구동(경계)
+[E2] sf_pushpull_output_opamp       net=N20        gate쪽순방향=True  채널쪽순방향=False | R1=전류구동     R3=전압구동(경계)
+[E2] sf_pushpull_output_opamp       요약: R1 tap=0 / R3 tap=0
+[E2] two_stage_ota                  해당 노드 없음
+[E2] two_stage_ota_sf               해당 노드 없음
