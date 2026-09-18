@@ -1,11 +1,12 @@
-"""V4 (2) '확실한 복사' 검출기 실측 probe (05 design v3.1 §10, review30 R-05·R-06, 사용자 결정 (c)).
+"""V4 (2) '확실한 복사' 검출기 실측 probe (05 design §10, review30 R-05·R-06, 사용자 결정 (c)).
 
-규칙: test의 assert 비교에서 피검 함수 호출이 든 쪽(실제값)과 다른 쪽(기대식 X)을 가른다.
-양쪽 모두 test 함수 지역 대입을 끝까지 인라인한다. 피검 함수는 return마다 지역 대입을 인라인하고
-호출 인자를 매개변수에 결합(기본값 포함)해 E_i를 만든다. 같은 모듈 함수 호출은 재귀 인라인한다.
-정규화(덧셈·곱셈 평탄화와 정렬, 정수 거듭제곱 -> 곱, 항등원 0·1 제거, 숫자는 float) 뒤 X와 어떤 E_i가
-같으면 FAIL. 상수 접기는 하지 않는다(접으면 올바른 리터럴 기대값이 전부 FAIL이 된다).
-FAIL은 확실한 복사이고 PASS는 독립의 증거가 아니다(알려진 놓침은 case의 known_limit).
+규칙의 정본은 05 design §10 V4 행이다. 요약: test의 판정 문장에서 피검 함수 호출이 든 쪽(실제값)과
+다른 쪽(기대식 X)을 가르고, 양쪽의 지역 대입을 판정 시점 값으로 인라인한다. 피검 함수는 return마다
+지역 대입을 인라인하고 호출 인자를 매개변수에 결합(기본값 포함)해 E_i를 만든다. 같은 모듈 함수 호출은
+재귀 인라인한다. 정규화(평탄화와 정렬, 정수 거듭제곱 -> 곱, 항등원 제거, 부호를 밖으로, 숫자는 정확한
+유리수이고 곱의 숫자 인자는 곱하지 않은 다중집합 + 나눗셈만 역수) 뒤 X와 입력 통과 경로가 아닌 E_i가
+같으면 FAIL. 숫자끼리 접지 않는다. FAIL은 확실한 복사이고 PASS는 독립의 증거가 아니다.
+자체 대조는 케이스마다 첫 판정 문장의 출력과 기대를 비교한다.
 
 부트스트랩 ①에서 이 파일의 규칙 함수를 tools/gates/test_lint.py V4 (2) 구현으로 옮기고 이 probe는 지운다.
 """
@@ -37,13 +38,32 @@ def _opaque(name):
     return ast.Name(id=f"<opaque:{name}>", ctx=ast.Load())
 
 
+_SCOPES = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda,
+           ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
+
+
 def _assigned_names(stmts):
-    names = set()
-    for s in stmts:
-        for n in ast.walk(s):
-            if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store):
-                names.add(n.id)
+    """이 범위에서 대입되는 이름. 중첩 함수·클래스·lambda·comprehension의 지역 이름은 넣지 않는다
+    (review34 M3-05: 바깥 이름을 가려 불투명으로 만들던 결함). 중첩 def·class의 이름 자체는 넣는다."""
+    names, stack = set(), list(stmts)
+    while stack:
+        n = stack.pop()
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            names.add(n.name)
+            continue
+        if isinstance(n, _SCOPES):
+            continue
+        if isinstance(n, ast.Name) and isinstance(n.ctx, ast.Store):
+            names.add(n.id)
+        stack.extend(ast.iter_child_nodes(n))
     return names
+
+
+def _base_name(t):
+    """첨자·속성 대입 대상의 밑 이름(`out[g]`, `res.v`, `a.b[c]` -> 밑 이름), 없으면 None."""
+    while isinstance(t, (ast.Subscript, ast.Attribute)):
+        t = t.value
+    return t.id if isinstance(t, ast.Name) else None
 
 
 _NESTED_DEF = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
@@ -380,7 +400,24 @@ def _assert_pairs(stmts, subjects, env=None, out=None):
                 subj = any(_has_subject(b[n], subjects) for b in branches if n in b) \
                     or (n in inner and _has_subject(inner[n], subjects))
                 env[n] = ast.Name(id=f"<opaque-subject:{n}>", ctx=ast.Load()) if subj else _opaque(n)
+            # 블록 안에서 첨자·속성·메서드로 피검 불투명이 된 밑 이름도 블록 밖으로 올린다(review34 M3-04)
+            for b in branches:
+                for n, v in b.items():
+                    if isinstance(v, ast.Name) and v.id.startswith("<opaque-subject:"):
+                        env[n] = v
         else:
+            # 피검 결과를 첨자·속성·메서드 호출로 받으면 그 밑 이름을 피검 불투명으로(review34 M3-04):
+            # `out[g] = f(g)`, `res.v = f(…)`, `rs.append(f(…))`
+            if isinstance(s, ast.Assign) and _has_subject(_inline(s.value, env), subjects):
+                for tg in s.targets:
+                    b = _base_name(tg)
+                    if b:
+                        env[b] = ast.Name(id=f"<opaque-subject:{b}>", ctx=ast.Load())
+            if isinstance(s, ast.Expr) and isinstance(s.value, ast.Call) and isinstance(s.value.func, ast.Attribute):
+                b = _base_name(s.value.func.value)
+                args = s.value.args + [k.value for k in s.value.keywords]
+                if b and any(_has_subject(_inline(x, env), subjects) for x in args):
+                    env[b] = ast.Name(id=f"<opaque-subject:{b}>", ctx=ast.Load())
             # 중첩 def·class, 다루지 않는 문장: 안의 판정 문장은 UNJUDGED, 대입된 이름은 값에 피검이 있으면 피검 불투명
             for sub in ast.walk(s):
                 if sub is not s and _is_judgement(sub):
@@ -533,6 +570,13 @@ def main():
         ("inf 리터럴(예외 없음)", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    assert gain(1e400, 2.0) == pytest.approx(1e400 * 2.0)\n", {"gain"}, "FAIL", None),
         ("async test", "def gain(gm, ro, note=None):\n    return gm * ro\n", "async def test_gain():\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "FAIL", None),
         ("쓰지 않는 인자로 통과 경로 흉내", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    assert gain(2e-3, 50e3, note=2e-3 * 50e3) == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "FAIL", None),
+        # review34 M3-04·M3-05
+        ("첨자로 받은 결과 out[g] = f(g)", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    out = {}\n    for g in gms:\n        out[g] = gain(g, 50e3)\n    for g, r in out.items():\n        assert r == pytest.approx(g * 50e3)\n", {"gain"}, "UNJUDGED", None),
+        ("속성으로 받은 결과", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    res = Box()\n    res.v = gain(2e-3, 50e3)\n    assert res.v == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "UNJUDGED", None),
+        ("append로 받은 결과", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    rs = []\n    rs.append(gain(2e-3, 50e3))\n    assert rs[0] == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "UNJUDGED", None),
+        ("comprehension 지역 이름이 기대 이름을 가리지 않음", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    e = 2e-3 * 50e3\n    xs = [e for e in range(3)]\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n", {"gain"}, "FAIL", None),
+        ("중첩 def 지역 이름이 기대 이름을 가리지 않음", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    e = 2e-3 * 50e3\n    def h():\n        e = 1.0\n        return e\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n", {"gain"}, "FAIL", None),
+        ("블록 안에서 만든 기대식", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    if flag:\n        e = 2e-3 * 50e3\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n", {"gain"}, "PASS", "F6 블록 안에서 만든 기대식"),
         ("피검 안 중첩 함수 return", "def f(x, k):\n    def inner(y):\n        return y * k\n    return x + 1.0\n", "def test_f():\n    assert f(y0, 2.0) == pytest.approx(y0 * 2.0)\n", {"f"}, "PASS", None),
     ]
     mismatch = 0

@@ -56,8 +56,14 @@ except* 안의 재서술: [(5, 'FAIL')] | 기대 FAIL
 inf 리터럴(예외 없음): [(2, 'FAIL')] | 기대 FAIL
 async test: [(2, 'FAIL')] | 기대 FAIL
 쓰지 않는 인자로 통과 경로 흉내: [(2, 'FAIL')] | 기대 FAIL
+첨자로 받은 결과 out[g] = f(g): [(6, 'UNJUDGED')] | 기대 UNJUDGED
+속성으로 받은 결과: [(4, 'UNJUDGED')] | 기대 UNJUDGED
+append로 받은 결과: [(4, 'UNJUDGED')] | 기대 UNJUDGED
+comprehension 지역 이름이 기대 이름을 가리지 않음: [(4, 'FAIL')] | 기대 FAIL
+중첩 def 지역 이름이 기대 이름을 가리지 않음: [(6, 'FAIL')] | 기대 FAIL
+블록 안에서 만든 기대식: [(4, 'PASS')] | 기대 PASS | known_limit F6 블록 안에서 만든 기대식
 피검 안 중첩 함수 return: [(2, 'PASS')] | 기대 PASS
-케이스 59개, 기대 불일치 0개
+케이스 65개, 기대 불일치 0개
 e329283 조합 test 인라인=False 피검 인라인=False: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=False 피검 인라인=True: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=True 피검 인라인=False: [(7, 'PASS'), (15, 'PASS')]

@@ -19,6 +19,15 @@ date: 2026-09-14
 |---|---|
 | 결정 경위(결정일·사용자 원문 인용·대체와 통합), 사용자 결정 U의 확정 경위 | `## H1. 결정 경위` |
 
+### 05 v3.5 -- review34 반영, 판정 트리 기본 거부 (2026-09-18)
+
+05 v3.4 독립 검증(`review34_05_v3_4.md`, 작업 저장소 변화 없음 확인)은 **수정 후 승인**(S1 2·S2 2·S3 5). S1 둘은 review31(설정 파일 이름)·review33(`-m`의 현재 디렉터리, 대소문자)과 같은 부류 -- **역할 밖 경로의 파일이 트레일러 없이 판정 실행을 바꾼다** -- 의 네 번째 출현이었다: `-P` 뒤에도 `assets/numpy/__init__.py`·`assets/eng/__init__.py`·커밋된 `.pyc`가 import를 바꾸고(실측 종료 1 → 0), 복제본 부모 `%TEMP%`의 `pytest.ini`가 설정이 됐다. 이름을 하나씩 막는 방식이 원인이라 구조를 바꾸자고 제안했고 사용자가 결정했다("기본안대로 전부 반영해").
+
+* **판정 트리 기본 거부**: 계획 N3.12.2에 조건 `판정 트리`와 행 `사용자 | skills/analog-gmid-design/** | -- | 판정 트리`. 트리 안에서 다른 행에 맞지 않는 경로는 사용자만 쓴다(트리 안에 '역할 밖'이 없다). 트리 안의 기존 추적 파일에 행을 줬다: 엔진 입력 데이터(`*.npz`, `ac_sweep_checkpoints/**`, `_sweep.cir`, `report_template.html`)는 code-author, 기준값 `sky130_regression_reference.json`은 test-author, 문서(`SKILL.md`, `skill-validation-prompt.md`, `references/**`, `library/*.topology.md`, `library/raw_check.txt`)와 bkit 상태(`**/.bkit/runtime/**`)는 오케스트레이터. 트리 밖에서 import될 수 있는 것(`workspaces/*.py`·`*/__init__.py`, 어디서든 컴파일 산출물)은 `판정 환경`.
+* **판정 실행 가두기**: pytest는 `-c <캐시>/pytest_gate.ini --rootdir --confcutdir`(복제본 안), `PYTHONPYCACHEPREFIX`로 커밋된 `__pycache__` 무시. `-P`는 `-m`·`-c` 실행에만(스크립트 실행에 강제하면 같은 디렉터리 import가 깨졌다 -- M3-03 실측).
+* V4 (2): 첨자·속성·`append`로 받은 피검 결과의 밑 이름을 피검 불투명으로, 중첩 범위 이름이 바깥 이름을 가리지 않게, 블록 안 기대식은 F6. probe 65케이스 불일치 0.
+* S3: V1 명령 형식 규칙(`$PY`/`python_path`, 환경 대입 앞붙임, 형식 검사임을 명시), MSYS `:` 목록 설명, 계획 N4.2 통과 경로 문구, probe 머리말·자체 대조 범위.
+
 ### 05 v3.4 -- review33 반영 (2026-09-18)
 
 05 v3.3 독립 검증(`review33_05_v3_3.md`, 작업 저장소 변화 없음 확인)은 **수정 후 승인**(S1 2·S2 1·S3 7). review32의 역할 밖 병합 우회(M-01)는 실측으로 닫혔다. 사용자 결정 "기본안대로 전부 반영해".
