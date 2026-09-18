@@ -1,0 +1,85 @@
+====================================================================================================
+DELTA D-18 / D-01
+
+## common_gate_amplifier
+  [D-01 GB0] pass: ['(iii) pass (후보 [])', '(i)(ii) 미적용: 스펙 미선언 회로 (D-01)']
+  [회귀] stage 시작 1; K8 후보 []
+  [회귀] 합류(R1): 
+  [회귀] 루프 {}
+
+## current_reuse_telescopic_ota
+  [D-01 GB0] pass: ['(iii) pass (후보 [])', '(i)(ii) pass (레일 2, supplies_v=None, 스칼라 vdd=1.8)']
+  [D-18] Ncmfb_tail src=['M37a'](['CS']) drain=M38[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [D-18] Vx       src=['M1a', 'M1b'](['CS']) drain=M6[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [D-18] Vx       src=['M1a', 'M1b'](['CS']) drain=M7[CS, DC=bias_current_source, gate신호=True] fwd=True -> 전압 구동
+  [D-18] Vy       src=['M4a', 'M4b'](['CS']) drain=M5[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [회귀] stage 시작 9; K8 후보 []
+  [회귀] 합류(R1): Vom:한 블록; Vom1:한 블록; Vop:한 블록; Vop1:한 블록
+  [회귀] 루프 {'(3-b)': 4, '(2)Miller': 6}
+
+## folded_cascode
+  [D-01 GB0] pass: ['(iii) pass (후보 [])', '(i)(ii) pass (레일 2, supplies_v=None, 스칼라 vdd=1.8)']
+  [D-18] Vg10     src=['M8'](['CS']) drain=M10[CS, DC=bias_current_source, gate신호=True] fwd=True -> 전압 구동
+  [D-18] tail     src=['M1', 'M2'](['CS']) drain=M11[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [회귀] stage 시작 3; K8 후보 []
+  [회귀] 합류(R1): out:한 블록
+  [회귀] 루프 {}
+
+## ngcc_3stage_ff
+  [D-01 GB0] pass: ['(iii) pass (후보 [])', '(i)(ii) 미적용: 스펙 미선언 회로 (D-01)']
+  [D-18] TAIL     src=['M1', 'M2'](['CS']) drain=M0[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [회귀] stage 시작 5; K8 후보 []
+  [회귀] 합류(R1): V1:한 블록; Vout:(a) 복합 블록
+  [회귀] 루프 {'(2)Miller': 3}
+
+## nmcnr_amplifier
+  [D-01 GB0] pass: ['(iii) pass (후보 [])', '(i)(ii) pass (레일 2, supplies_v=None, 스칼라 vdd=1.8)']
+  [D-18] NodeTail src=['M102', 'M103'](['CS']) drain=M101[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [회귀] stage 시작 4; K8 후보 []
+  [회귀] 합류(R1): NodeM2:한 블록
+  [회귀] 루프 {}
+
+## pushpull_follower_buffer
+  [D-01 GB0] pass: ["(iii) pass (후보 ['agnd'])", '(i)(ii) 미적용: 스펙 미선언 회로 (D-01)']
+  [공격14(b) agnd 제거] reject: ["(iii) REJECT 숨은 레일 ['agnd']", '(i)(ii) 미적용: 스펙 미선언 회로 (D-01)']
+  [공격: 3레일 회로에 스펙을 스칼라 vdd로 선언] reject: ["(iii) pass (후보 ['agnd'])", '(i) REJECT 레일 3개인데 supplies_v 없음']
+  [D-18] A        src=['M3'](['CD']) drain=M5[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [D-18] B        src=['M4'](['CD']) drain=M6[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [회귀] stage 시작 0; K8 후보 []
+  [회귀] 합류(R1): vout:다입력(기록만)
+  [회귀] 루프 {}
+
+## sf_pushpull_output_opamp
+  [D-01 GB0] pass: ["(iii) pass (후보 ['agnd'])", '(i)(ii) 미적용: 스펙 미선언 회로 (D-01)']
+  [공격14(b) agnd 제거] reject: ["(iii) REJECT 숨은 레일 ['agnd']", '(i)(ii) 미적용: 스펙 미선언 회로 (D-01)']
+  [공격: 3레일 회로에 스펙을 스칼라 vdd로 선언] reject: ["(iii) pass (후보 ['agnd'])", '(i) REJECT 레일 3개인데 supplies_v 없음']
+  [D-18] N1112    src=['M12'](['CS']) drain=M11[CS, DC=review_needed, gate신호=True] fwd=True -> review_needed(못 가름, J 대기)
+  [D-18] N1314    src=['M13'](['CS']) drain=M14[CS, DC=review_needed, gate신호=True] fwd=True -> review_needed(못 가름, J 대기)
+  [D-18] N1516    src=['M15'](['CS']) drain=M16[CS, DC=review_needed, gate신호=True] fwd=True -> review_needed(못 가름, J 대기)
+  [D-18] N17      src=['M18'](['CD']) drain=M17[CS, DC=review_needed, gate신호=True] fwd=True -> review_needed(못 가름, J 대기)
+  [D-18] N20      src=['M19'](['CD']) drain=M20[CS, DC=review_needed, gate신호=True] fwd=True -> review_needed(못 가름, J 대기)
+  [D-18] N56      src=['M5'](['CS']) drain=M6[CS, DC=review_needed, gate신호=True] fwd=True -> review_needed(못 가름, J 대기)
+  [D-18] N78      src=['M7'](['CS']) drain=M8[CS, DC=review_needed, gate신호=True] fwd=True -> review_needed(못 가름, J 대기)
+  [D-18] N910     src=['M10'](['CS']) drain=M9[CS, DC=review_needed, gate신호=True] fwd=True -> review_needed(못 가름, J 대기)
+  [D-18] TAIL     src=['M1', 'M2'](['CS']) drain=M3[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [회귀] stage 시작 16; K8 후보 [{'cell': 'M17', 'k': 'N17', 'cd': ['M18'], 'dc': 'review_needed', 'k_is_blockout': True, 'K8': False}, {'cell': 'M20', 'k': 'N20', 'cd': ['M19'], 'dc': 'review_needed', 'k_is_blockout': True, 'K8': False}]
+  [회귀] 합류(R1): N17:(a) 복합 블록; N20:(a) 복합 블록; Y:(a) 복합 블록; vout:다입력(기록만)
+  [회귀] 루프 {'기록만(수동소자 없는 2능동셀 루프)': 3, '(3-b)': 6}
+
+## two_stage_ota
+  [D-01 GB0] pass: ['(iii) pass (후보 [])', '(i)(ii) pass (레일 2, supplies_v=None, 스칼라 vdd=1.8)']
+  [D-18] CS       src=['M1', 'M2'](['CS']) drain=M5[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [회귀] stage 시작 3; K8 후보 []
+  [회귀] 합류(R1): O1:한 블록
+  [회귀] 루프 {}
+
+## two_stage_ota_sf
+  [D-01 GB0] pass: ['(iii) pass (후보 [])', '(i)(ii) 미적용: 스펙 미선언 회로 (D-01)']
+  [D-18] CS       src=['M1', 'M2'](['CS']) drain=M5[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [D-18] vout     src=['M8'](['CD']) drain=M9[off_path, DC=bias_current_source, gate신호=False] fwd=True -> 전압 구동
+  [회귀] stage 시작 3; K8 후보 []
+  [회귀] 합류(R1): O1:한 블록
+  [회귀] 루프 {'(2)Miller': 1}
+
+=== D-18 혼재 노드 전수 요약 ===
+{"bias_current_source|전압 구동": 14, "review_needed|review_needed(못 가름, J 대기)": 8}
