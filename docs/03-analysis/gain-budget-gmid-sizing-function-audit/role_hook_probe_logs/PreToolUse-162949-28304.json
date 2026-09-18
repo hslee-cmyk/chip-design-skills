@@ -1,0 +1,20 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "agent_id": "<redacted>",
+ "agent_type": "general-purpose",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PreToolUse",
+ "tool_name": "PowerShell",
+ "tool_input": {
+  "command": "Get-Location",
+  "description": "Show current PowerShell location"
+ },
+ "tool_use_id": "<redacted>"
+}

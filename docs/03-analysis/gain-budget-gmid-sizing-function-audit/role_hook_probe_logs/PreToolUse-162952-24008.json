@@ -1,0 +1,20 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "agent_id": "<redacted>",
+ "agent_type": "general-purpose",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PreToolUse",
+ "tool_name": "Write",
+ "tool_input": {
+  "file_path": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills\\.git\\gmid-hook-probe\\write_subagent.txt",
+  "content": "probe write from subagent"
+ },
+ "tool_use_id": "<redacted>"
+}

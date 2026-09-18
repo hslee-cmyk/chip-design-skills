@@ -14777,3 +14777,10 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - review26(T-01~T-11)·review27(N-01~N-03, X-01) 반영: 엄격 판정을 케이스 단위·Phase 누적으로, spec card '활성화 IC 케이스' 기계 필드, EL3 pre-commit이 계획서 판정 표 변경 검사(`target_kind: plan_tables`), 병합마다 상태 기반 판정 표 검사, 허용 예외 이름 `builtins.Failed` 정정.
 - 검증 반복 종료(사용자 "진행해"): 지적이 게이트 구현 세부로 내려와 산문으로는 보장 못 함 -> `00-common` §17 경유 `05-role-separation`으로 넘기고 0.5 공격 재생으로 고정. 라운드 S1/S2: 3/15, 0/9, 0/11, 1/4, 2/3, 0/3, 0/3.
 - 다음: 사용자 승인 -> 승인 기록(blob 해시, 커밋 뒤) -> `05-role-separation` design.
+
+### 세션49 -- 00-common 승인, 05-role-separation v2와 강제 방식 변경 (2026-09-18)
+- 00-common 승인 기록(e2a8f03). 05 착수: 쓰기 경로표 N3.12.2를 기계 판독 표로(사용자 선택 B, 사본 없음).
+- 05 v1.0 독립 검증 review28 = 재작성 필요(S1 11). 원인: git·Claude Code 동작을 재지 않고 설계(WP-17 위반) -- cherry-pick/revert/commit-tree/am은 pre-commit을 안 돌림, update-ref는 index를 남김, base 직접 커밋이 EL4를 건너뜀, hook 예외는 exit 1이라 통과, subagent cwd로 역할을 worktree에 못 묶음.
+- 사용자 결정: (1) hook 입력 실측(더미 hook 등록·해제) -> `role_hook_input_probe.md`: subagent만 agent_type 있음, exit 2만 차단, hook cwd 고정, PowerShell도 쓰기 도구. U-15 닫힘. (2) EL4를 로컬 bare 저장소(gate)의 pre-receive로 -- 실측: 격리 상태에서 git archive <new>/<old> 동작, --no-verify push도 거부.
+- 05 v2.0 작성(gate 구조, 역할-worktree는 대상 경로의 worktree 브랜치로 결합, fail-closed hook, Change-Id 트레일러로 변경 한 건 구조 검사). U-39(MG0 _paper_target_spec 해석) 신설.
+- 다음: 05 v2 독립 검증 -> 반영 -> 사용자 승인.

@@ -1,0 +1,25 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PostToolUse",
+ "tool_name": "PowerShell",
+ "tool_input": {
+  "command": "Write-Output \"probe powershell main\"",
+  "description": "Probe: PowerShell tool call from main session"
+ },
+ "tool_response": {
+  "stdout": "probe powershell main",
+  "stderr": "",
+  "interrupted": false,
+  "isImage": false
+ },
+ "tool_use_id": "<redacted>",
+ "duration_ms": 521
+}

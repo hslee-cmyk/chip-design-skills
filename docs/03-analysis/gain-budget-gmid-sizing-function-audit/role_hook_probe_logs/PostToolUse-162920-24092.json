@@ -1,0 +1,26 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PostToolUse",
+ "tool_name": "Bash",
+ "tool_input": {
+  "command": "echo GMIDPROBE_EXCEPT main-session",
+  "description": "Probe: hook raises exception on this Bash call"
+ },
+ "tool_response": {
+  "stdout": "GMIDPROBE_EXCEPT main-session",
+  "stderr": "",
+  "interrupted": false,
+  "isImage": false,
+  "noOutputExpected": false
+ },
+ "tool_use_id": "<redacted>",
+ "duration_ms": 111
+}

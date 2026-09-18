@@ -1,0 +1,27 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "agent_id": "<redacted>",
+ "agent_type": "general-purpose",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PostToolUse",
+ "tool_name": "PowerShell",
+ "tool_input": {
+  "command": "Get-Location",
+  "description": "Show current PowerShell location"
+ },
+ "tool_response": {
+  "stdout": "Path                                                  \r\n----                                                  \r\n<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+  "stderr": "",
+  "interrupted": false,
+  "isImage": false
+ },
+ "tool_use_id": "<redacted>",
+ "duration_ms": 450
+}

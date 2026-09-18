@@ -1,0 +1,19 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "agent_id": "<redacted>",
+ "agent_type": "",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "SubagentStop",
+ "stop_hook_active": false,
+ "agent_transcript_path": "<redacted>",
+ "last_assistant_message": "<redacted: assistant text>",
+ "background_tasks": "<redacted>",
+ "session_crons": "<redacted>"
+}

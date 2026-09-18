@@ -1,0 +1,18 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PreToolUse",
+ "tool_name": "Bash",
+ "tool_input": {
+  "command": "cd <HOME>/Documents/Todoc/fpga/chip-design-skills; cp .git/gmid-hook-probe/settings.local.json.bak .claude/settings.local.json && /c/Python314/python.exe -c \"import json;d=json.load(open('.claude/settings.local.json',encoding='utf-8'));print('hooks' in d)\"; git status --short .claude; ls .git/gmid-hook-probe/",
+  "description": "Restore settings.local.json and verify probe removed"
+ },
+ "tool_use_id": "<redacted>"
+}

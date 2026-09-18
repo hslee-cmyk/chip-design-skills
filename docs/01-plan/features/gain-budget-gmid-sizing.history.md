@@ -19,6 +19,21 @@ date: 2026-09-14
 |---|---|
 | 결정 경위(결정일·사용자 원문 인용·대체와 통합), 사용자 결정 U의 확정 경위 | `## H1. 결정 경위` |
 
+### EL4를 gate 저장소 `pre-receive`로 -- hook 입력 실측과 강제 방식 변경 (2026-09-18)
+
+05 설계 v1.0의 독립 검증(`review28_05_role_separation.md`)은 **재작성 필요**(S1 11·S2 17·S3 8)였다. 설계가 기댄 전제가 실제 환경과 달랐다: `cherry-pick`·`revert`·`commit-tree`·`am`은 pre-commit·commit-msg를 돌리지 않고, `update-ref`로 base를 옮기면 메인 index가 옛 트리로 남으며, base에 직접 커밋하면 EL4를 건너뛰고, hook의 예외는 exit 1이라 통과되며, subagent의 `cwd`로 역할을 worktree에 묶을 수 없다. 설계를 쓸 때 이 동작들을 재지 않았다(WP-17 위반).
+
+사용자 결정 두 가지("(1) 등록해. (2) 강제방식을 바꾸자."):
+
+* **(1) hook 입력 실측을 부트스트랩 ②에서 앞당겨 했다**(`role_hook_input_probe.md`, 원자료 `role_hook_probe_logs/`). subagent는 `agent_type`·`agent_id`를 주고 메인 세션은 주지 않는다 → **U-15 닫힘(필요 없음)**. hook은 exit 2로만 막고 exit 1·예외는 통과시킨다. hook 입력 `cwd`는 세션 시작 디렉터리로 고정이다. PowerShell도 쓰기 도구다. 실측 중 probe 결함: 표지 문자열을 `tool_input` 밖(종료 이벤트, `tool_response`)에서도 찾아 subagent의 최종 보고와 요약 명령 한 번을 막았다.
+* **(2) EL4를 로컬 bare 저장소(gate)의 `pre-receive`로 옮겼다**. base = gate의 `master`. 서버 쪽 hook은 클라이언트 쪽 우회로 건너뛸 수 없고, `pre-receive`는 gate의 현재 master 판 게이트 코드를 돌리므로 push되는 커밋이 자기 검사 코드를 바꾸지 못한다. EL1~EL3는 조기 경보층이 된다. 계획 N3.12.4 EL1·EL4, N3.12.3 7 반영.
+
+
+### `05-role-separation` 착수 -- 쓰기 경로표를 기계 판독 표로 (2026-09-18)
+
+사용자 선택: **B -- 계획서 표 직접 읽기**. 쓰기 경로표(N3.12.2)는 EL1~EL4가 모두 판정 입력으로 읽는 표라, 00-common §2 정정의 원칙(검증 도구는 사본을 두지 않는다)을 그대로 적용했다. 계획서 표를 한 행에 glob 하나인 `주체 | 경로 glob | 제외 glob | 조건` 표로 다시 쓰고(내용은 옛 표와 같다. 옛 표의 괄호 조건을 조건 열의 값 여섯 가지로 옮겼다), 이 표의 파싱 값 변경도 판정 표처럼 EL3·EL4 승인 대상에 넣었다. 대안 A(design glob 표 + 일치 test)는 00-common에서 지적받은 사본 구조라 버렸다. 함께 발견: 기존 `.githooks/pre-commit`은 python이 없으면 검사를 건너뛰고 통과시킨다 -- N3.12.4 EL3(skip 금지)와 어긋나 05가 고친다.
+
+
 ### `00-common` 구성안 C와 v5.19 계획 보완 (2026-09-18)
 
 사용자 선택: **C -- 판정 입력만 기계 판독**(세 안 비교는 `00-common` design §2). 근거는 WP-21(산문을 AI가 옮겨 적은 사본은 코드를 대신하지 못한다 -- A가 이를 어긴다)과 WP-01(소비 코드가 없는 표를 먼저 만들지 않는다 -- B가 이를 어긴다).

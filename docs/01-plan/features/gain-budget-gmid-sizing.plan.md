@@ -575,15 +575,47 @@ skills/analog-gmid-design/assets/tests/
 
 #### N3.12.2 쓰기 경로표
 
-| 주체 | 쓸 수 있는 경로 |
-|---|---|
-| gmid-code-author | `skills/analog-gmid-design/assets/*.py`, `skills/analog-gmid-design/assets/tests/tools/**`, `tools/migrate/**`, `workspaces/run_harness.py`, `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`, `docs/02-design/disputes/<id>.md`(자기 변경 id만). 게이트 변경 spec card와 승인 기록이 있을 때만 `tools/gates/*.py`, `hooks/role_*.py`, `.ai/verification/_schema.json`(부트스트랩 ① 초안 이후의 변경) |
-| gmid-test-author | `skills/analog-gmid-design/assets/tests/**`(`tests/tools/**` 제외). 게이트 변경 spec card와 승인 기록이 있을 때만 `tools/gates/redteam/**` |
-| gmid-verification-auditor | `.ai/verification/<id>.json`, `.ai/verification/<id>/**`(`_schema.json` 제외 -- 판정 대상이 자기 판정 스키마를 고치지 못하게) |
-| 오케스트레이터 | `docs/01-plan/**`, `docs/02-design/**`(disputes는 `_TEMPLATE.md`만), `docs/03-analysis/**`(레지스트리 제외), `.ai/context.md`, `.ai/approvals/**`, `.ai/verification/_schema.json`(부트스트랩 ① 초안 한정), 사용자 확인과 승인 기록이 있는 `skills/analog-gmid-design/assets/library/*.topology.json`(U-16 확정), `skills/analog-gmid-design/assets/library/*.structure.json`(status 전이 기록만) |
-| 사용자만 | `.githooks/**`, `.claude/**`, `.gitignore`, `install.py`, 부트스트랩 이후의 `agents/gmid-*.md` |
+이 표가 쓰기 권한의 정본이고, hook과 게이트(EL1~EL4)는 이 표를 **직접 파싱**한다(사본을 두지 않는다 -- 파싱 규칙은 `05-role-separation` design). 한 행에 glob 하나다. glob은 저장소(worktree) 루트 기준 상대 경로이고 `*`는 한 경로 조각, `**`는 여러 조각, `<id>`는 그 worktree의 변경 id(브랜치 `role/<역할>/<id>`의 `<id>`)다. 한 경로가 쓰기 가능하려면 그 주체의 행 중 하나에 '경로 glob'으로 맞고 '제외 glob'에 맞지 않으며 '조건'을 만족해야 한다. 이 표의 파싱 값이 바뀌는 계획 개정은 판정 표 변경과 같이 승인 기록이 필요하다(N3.12.4 EL3·EL4).
 
-hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 없고 대상 경로가 위 표의 경로와 겹치는 호출만 판정한다. 그 밖(RTL agent 등)은 즉시 통과시킨다. 경로 판정은 대상 경로를 해당 worktree 루트 기준 상대 경로로 바꾼 뒤 한다. '사용자만' 경로는 Claude 세션의 도구 호출로 쓸 수 없다(EL1 거부) -- 사용자가 세션 밖에서 편집하거나, 부트스트랩 ④ 단계(hook 설치 전)에 오케스트레이터가 승인 기록과 함께 한 번 쓴다.
+조건 값: `없음` / `자기 변경 id`(`<id>`가 그 worktree의 변경 id와 같다) / `게이트 변경`(그 변경의 spec card가 게이트 변경이고 승인 기록이 있다) / `부트스트랩`(N3.12.6 ①~④ 한정 -- gate 저장소와 hook 설치가 끝나면 이 행이 없는 것과 같다) / `승인 기록`(사용자 확인과 승인 기록, U-16) / `status 전이만`(바뀐 필드가 status 전이 기록뿐이다).
+
+| 주체 | 경로 glob | 제외 glob | 조건 |
+|---|---|---|---|
+| gmid-code-author | `skills/analog-gmid-design/assets/*.py` | -- | 없음 |
+| gmid-code-author | `skills/analog-gmid-design/assets/tests/tools/**` | -- | 없음 |
+| gmid-code-author | `tools/migrate/**` | -- | 없음 |
+| gmid-code-author | `workspaces/run_harness.py` | -- | 없음 |
+| gmid-code-author | `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` | -- | 없음 |
+| gmid-code-author | `docs/02-design/disputes/<id>.md` | -- | 자기 변경 id |
+| gmid-code-author | `tools/gates/*.py` | -- | 게이트 변경 |
+| gmid-code-author | `hooks/role_*.py` | -- | 게이트 변경 |
+| gmid-code-author | `hooks/role_*.json` | -- | 게이트 변경 |
+| gmid-code-author | `tools/gates/*.json` | -- | 게이트 변경 |
+| gmid-code-author | `tools/gates/requirements.txt` | -- | 게이트 변경 |
+| gmid-code-author | `.ai/verification/_schema.json` | -- | 게이트 변경 |
+| gmid-test-author | `skills/analog-gmid-design/assets/tests/**` | `skills/analog-gmid-design/assets/tests/tools/**` | 없음 |
+| gmid-test-author | `tools/gates/redteam/**` | -- | 게이트 변경 |
+| gmid-verification-auditor | `.ai/verification/<id>.json` | -- | 자기 변경 id |
+| gmid-verification-auditor | `.ai/verification/<id>/**` | -- | 자기 변경 id |
+| 오케스트레이터 | `docs/01-plan/**` | -- | 없음 |
+| 오케스트레이터 | `docs/02-design/**` | `docs/02-design/disputes/**` | 없음 |
+| 오케스트레이터 | `docs/02-design/disputes/_TEMPLATE.md` | -- | 없음 |
+| 오케스트레이터 | `docs/03-analysis/**` | `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` | 없음 |
+| 오케스트레이터 | `.ai/context.md` | -- | 없음 |
+| 오케스트레이터 | `.ai/approvals/**` | -- | 없음 |
+| 오케스트레이터 | `.ai/verification/_schema.json` | -- | 부트스트랩 |
+| 오케스트레이터 | `agents/gmid-*.md` | -- | 부트스트랩 |
+| 오케스트레이터 | `hooks/role_*.py` | -- | 부트스트랩 |
+| 오케스트레이터 | `tools/gates/**` | -- | 부트스트랩 |
+| 오케스트레이터 | `skills/analog-gmid-design/assets/library/*.topology.json` | -- | 승인 기록 |
+| 오케스트레이터 | `skills/analog-gmid-design/assets/library/*.structure.json` | -- | status 전이만 |
+| 사용자 | `.githooks/**` | -- | 없음 |
+| 사용자 | `.claude/**` | -- | 없음 |
+| 사용자 | `.gitignore` | -- | 없음 |
+| 사용자 | `install.py` | -- | 없음 |
+| 사용자 | `agents/gmid-*.md` | -- | 없음 |
+
+hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정한다. 그 밖(메인 세션 -- `agent_type` 없음, `gmid-*`가 아닌 subagent, `agent_type`이 빈 내부 subagent)은 **오케스트레이터 규칙**으로 판정하되 대상 경로가 위 표의 어떤 행(주체 무관)의 경로 glob과 겹칠 때만 판정하고, 겹치지 않으면 즉시 통과시킨다(RTL agent의 RTL 파일 쓰기, `$TEMP`, 다른 skill 작업 등). 경로 판정은 대상 경로를 해당 worktree 루트 기준 상대 경로로 바꾼 뒤 한다. '사용자만' 경로는 Claude 세션의 도구 호출로 쓸 수 없다(EL1 거부) -- 사용자가 세션 밖에서 편집하거나, 부트스트랩 ④ 단계(hook 설치 전)에 오케스트레이터가 승인 기록과 함께 한 번 쓴다.
 
 #### N3.12.3 변경 한 건의 흐름
 
@@ -599,7 +631,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 4 | 오케스트레이터 | `git worktree add ../wt/<id>-code -b role/code/<id> <test 커밋>` |
 | 5 | code-author | 구현, 커밋(`Role: code`). test가 틀렸다고 보면 고치지 않고 `docs/02-design/disputes/<id>.md`에 근거를 쓰고 멈춘다 -> 1로 |
 | 6 | 오케스트레이터 -> auditor | 오케스트레이터가 `git worktree add ../wt/<id>-audit <test 커밋>` 후 code 브랜치를 `--no-ff`로 병합한 상태를 만든다. auditor가 그곳에서 병합본을 검증(N4.2)하고 판정 기록을 쓴다 |
-| 7 | 오케스트레이터 | merge gate(EL4) 통과 시에만 audit worktree의 병합 커밋을 base 브랜치로 fast-forward한다. 병합 커밋 트레일러는 `Role: doc`이고, EL4는 병합 커밋 대신 두 부모 쪽 커밋들의 트레일러·경로를 검사한다 |
+| 7 | 오케스트레이터 | audit worktree의 병합 커밋을 gate 저장소 `master`로 push한다(`pre-receive`의 EL4가 통과시킬 때만 반영된다). 로컬 master는 그 뒤 gate에서 fast-forward로 받는다. 병합 커밋 트레일러는 `Role: doc`이고, EL4는 병합 커밋 대신 두 부모 쪽 커밋들의 트레일러·경로를 검사한다 |
 
 * 판정 유형: 동작을 바꾸는 변경은 `red-green`(새·바뀐 test가 base에서 FAIL, 병합본에서 PASS). 동작을 보존하는 변경(TS1, Phase 2 통합, Phase 3 이동)은 `equivalence`(test 커밋이 그대로이고 base와 병합본 모두 통과, 추가로 TS1은 stdout 동일, Phase 3은 AST 해시 동일).
 * test 전용 변경(판정 유형 `test-only`: TS2·TS3·TS5, TS6의 probe 승격·삭제): 순서 4·5를 생략한다. 증거 = 변경 전 test 집합이 base에서 통과시킨 섹션을 변경 후 test가 모두 PASS함(섹션->test 매핑표는 `10-test-separation` design).
@@ -611,10 +643,10 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 | ID | 장치 | 막는 것 |
 |---|---|---|
-| EL1 | PreToolUse hook `hooks/role_guard.py`(Edit/Write/NotebookEdit/Bash). 쓰기 경로표 밖 쓰기를 거부하고 사유를 돌려준다. Bash에서 `--no-verify`, `git commit -n`, `core.hooksPath`, `git push`, `git reset --hard`, `git checkout -- <tests 경로>`, 경로표 밖으로의 리다이렉트를 거부 | 역할 밖 편집, 게이트 무력화 |
-| EL2 | PostToolUse(Bash) + SubagentStop hook `hooks/role_diff_guard.py`. worktree `git status --porcelain`을 경로표와 대조해 위반이 있으면 exit 2로 완료를 거부. 무시 목록 = `.gitignore` 대상(`library/*.search_archive/`, 실행 산출물 `runs/`를 `.gitignore`에 등록) + `__pycache__/`, `.pytest_cache/`(무시 목록 변경은 사용자만) | 쓰는 방법과 무관한 역할 밖 변경 |
-| EL3 | `.githooks/pre-commit`에 `tools/gates/role_commit_gate.py` 추가. staged 경로가 경로표와 겹치면 `Role: code\|test\|audit\|doc` 트레일러 필수. 소스와 `tests/**`(`tests/tools/**` 제외)를 한 커밋에서 바꾸면 차단, code 커밋이 `tests/**`(`tests/tools/**` 제외)·기준선·conftest를 바꾸면 차단. python이 없으면 기존 agent 검사와 역할 검사 모두 차단(skip 금지). **계획서 판정 표 검사**: staged 경로에 계획서가 있으면 HEAD 판과 staged 판의 판정 표(N4.1 `담당 Phase`·`강제 test`, N4.2 `도입`, N6.1 `Phase` 열)를 `00-common` §9.1 규칙으로 파싱해, 값이 다르면 그 값에 대응하는 승인 기록(`target_kind: plan_tables`, `00-common` §8.2)이 같은 커밋이나 그 전에 있어야 한다. staged 판을 못 읽으면 차단. 오케스트레이터의 직접 커밋이 계획서 개정의 정상 경로라서 병합 시점(EL4)만으로는 막지 못한다(부트스트랩 설치 전의 개정은 사용자 승인 커밋으로 한다). **경로 분류는 5종**이고 한 경로는 한 분류에만 든다(파일을 명시한 규칙이 glob 규칙보다 우선한다): 소스(`skills/analog-gmid-design/assets/*.py`, 그리고 판정 입력이 되는 `workspaces/run_harness.py`·`.ai/verification/_schema.json`) / test(`assets/tests/**` 중 `tests/tools/**` 제외) / 도구(`assets/tests/tools/**`, `tools/**`) / 데이터(`assets/library/**`) / 문서(`docs/**`, `.ai/**`). 트레일러 `Role:`과 이 5분류의 허용 조합표는 N3.12.2 쓰기 경로표에서 생성하고 정본은 `05-role-separation` design이 둔다 | 코드와 기준 동시 변경 |
-| EL4 | `tools/gates/merge_gate.py <base>..<branch>`. 모든 커밋의 트레일러·경로·브랜치 역할 일치를 사후 재검사하고(topology.json diff와 판정에 쓰는 계획서 표 -- N4.1 `담당 Phase`·`강제 test`, N4.2 `도입`, N6.1 `Phase` 열 -- 의 diff(base와 head 계획서를 같은 규칙으로 파싱한 값의 차이. head는 병합할 브랜치 끝 커밋이다. head 계획서의 표를 못 읽으면 거부. 승인 기록은 `target_kind: plan_tables`이고 `target`이 head 판정 표 파싱 값의 해시와 같아야 한다, `00-common` §8.2·§9.1)는 승인 기록 필수, U-16·`00-common` §9), 판정 기록 존재 + test 커밋 해시가 freeze 해시와 같음 + 판정 유형별 증거 + auditor PASS를 확인. 하나라도 없으면 거부 | 앞 겹을 모두 우회한 커밋 |
+| EL1 | PreToolUse hook `hooks/role_guard.py`(Edit/Write/NotebookEdit/Bash/PowerShell/Read/Grep). **EL4 앞의 조기 경보층이다**(최후의 방어선은 gate `pre-receive`). hook은 exit 2로만 막으므로 판정 로직의 예외는 모두 잡아 exit 2로 끝낸다(실측 `role_hook_input_probe.md`). 쓰기 경로표 밖 쓰기를 거부하고 사유를 돌려준다. Bash·PowerShell에서 `--no-verify`, `git commit -n`, `core.hooksPath`, `git push`(오케스트레이터의 `gate` push만 예외), `git reset --hard`, `git checkout -- <tests 경로>`, 경로표 밖으로의 리다이렉트를 거부 | 역할 밖 편집, 게이트 무력화 |
+| EL2 | PostToolUse(Bash) + SubagentStop hook `hooks/role_diff_guard_bash.py`·`hooks/role_diff_guard_stop.py`(`gmid-*` 역할에만 적용 -- 메인 저장소는 도구 부산물로 늘 더럽다). worktree `git status --porcelain`을 경로표와 대조해 위반이 있으면 exit 2로 완료를 거부. 무시 목록 = `.gitignore` 대상(`library/*.search_archive/`, 실행 산출물 `runs/`를 `.gitignore`에 등록) + `__pycache__/`, `.pytest_cache/`(무시 목록 변경은 사용자만) | 쓰는 방법과 무관한 역할 밖 변경 |
+| EL3 | `.githooks/pre-commit`에 `tools/gates/role_commit_gate.py` 추가. staged 경로가 경로표와 겹치면 `Role: code\|test\|audit\|doc` 트레일러 필수. 소스와 `tests/**`(`tests/tools/**` 제외)를 한 커밋에서 바꾸면 차단, code 커밋이 `tests/**`(`tests/tools/**` 제외)·기준선·conftest를 바꾸면 차단. python이 없으면 기존 agent 검사와 역할 검사 모두 차단(skip 금지). **계획서 판정 표 검사**: staged 경로에 계획서가 있으면 HEAD 판과 staged 판의 판정 표(N4.1 `담당 Phase`·`강제 test`, N4.2 `도입`, N6.1 `Phase` 열, N3.12.2 쓰기 경로표)를 `00-common` §9.1 규칙으로 파싱해, 값이 다르면 그 값에 대응하는 승인 기록(`target_kind: plan_tables`, `00-common` §8.2)이 같은 커밋이나 그 전에 있어야 한다. staged 판을 못 읽으면 차단. 오케스트레이터의 직접 커밋이 계획서 개정의 정상 경로라서 병합 시점(EL4)만으로는 막지 못한다(부트스트랩 설치 전의 개정은 사용자 승인 커밋으로 한다). **경로 분류는 5종**이고 한 경로는 한 분류에만 든다(파일을 명시한 규칙이 glob 규칙보다 우선한다): 소스(`skills/analog-gmid-design/assets/*.py`, 그리고 판정 입력이 되는 `workspaces/run_harness.py`·`.ai/verification/_schema.json`) / test(`assets/tests/**` 중 `tests/tools/**` 제외) / 도구(`assets/tests/tools/**`, `tools/**`, `hooks/role_*.py`, `hooks/role_*.json`) / 데이터(`assets/library/**`) / 문서(`docs/**`, `.ai/**`, `agents/gmid-*.md`). 트레일러 `Role:`과 이 5분류의 허용 조합표는 N3.12.2 쓰기 경로표에서 생성하고 정본은 `05-role-separation` design이 둔다 | 코드와 기준 동시 변경 |
+| EL4 | **base는 로컬 bare 저장소(gate 저장소, 원격 이름 `gate`)의 `master`이고, 그 저장소의 `pre-receive` hook이 `tools/gates/merge_gate.py`를 돌린다** -- base를 바꾸는 유일한 길은 gate로의 push이고, 서버 쪽 hook은 `--no-verify`·`cherry-pick`·`update-ref`·base 직접 커밋 같은 클라이언트 쪽 우회로 건너뛸 수 없다. `pre-receive`가 실행하는 게이트 코드는 **gate 저장소의 현재 master 판**이다(push되는 커밋이 자기를 검사할 코드를 바꾸지 못한다). 들어오는 모든 커밋에 대해: 모든 커밋의 트레일러·경로·브랜치 역할 일치를 사후 재검사하고(topology.json diff와 판정에 쓰는 계획서 표 -- N4.1 `담당 Phase`·`강제 test`, N4.2 `도입`, N6.1 `Phase` 열, N3.12.2 쓰기 경로표 -- 의 diff(base와 head 계획서를 같은 규칙으로 파싱한 값의 차이. head는 병합할 브랜치 끝 커밋이다. head 계획서의 표를 못 읽으면 거부. 승인 기록은 `target_kind: plan_tables`이고 `target`이 head 판정 표 파싱 값의 해시와 같아야 한다, `00-common` §8.2·§9.1)는 승인 기록 필수, U-16·`00-common` §9), 판정 기록 존재 + test 커밋 해시가 freeze 해시와 같음 + 판정 유형별 증거 + auditor PASS를 확인. 하나라도 없으면 거부 역할 경로를 건드리지 않는 커밋(`05-role-separation` §3.2 '역할 밖')은 통과시킨다 | 앞 겹을 모두 우회한 커밋, 클라이언트 쪽 우회 전부 |
 
 한계: 경로 기반 Read 거부는 Read 도구만 막고 Bash 읽기는 못 막는다(Windows에는 파일시스템 sandbox가 없다). test-author의 소스 열람은 V3·V4가 결과로 잡는다.
 
@@ -628,13 +660,13 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 #### N3.12.6 부트스트랩과 산출물
 
-부트스트랩 순서(Phase 0.5): ① 오케스트레이터가 agent 정의 3개, hook·게이트 스크립트(merge gate의 판정 기록 로더·계획서 판정 표 읽기·승인 기록 머리 파서 포함, `00-common` §8·§9), 양식 초안을 작성하고 `.gitignore`에 `library/*.search_archive/`, `runs/`를 등록(이 단계에 한한 예외, 사용자 승인) ② 더미 hook이 stdin을 파일에 기록하게 해 세 역할과 메인 세션에서 hook 입력 필드를 실측 ③ 공격 시나리오·과거 사례 재생(N4.3)을 실행해 로그를 사용자에게 제시하고 승인 기록 ④ `python install.py --only agents --project .`, `python install.py --only hooks --project .`로 설치(DEC-41), `.githooks/pre-commit` 갱신 ⑤ 이후 게이트 변경을 포함한 모든 변경은 N3.12.3 흐름으로.
+부트스트랩 순서(Phase 0.5): ① 오케스트레이터가 agent 정의 3개, hook·게이트 스크립트(merge gate의 판정 기록 로더·계획서 판정 표 읽기·승인 기록 머리 파서 포함, `00-common` §8·§9), 양식 초안을 작성하고 `.gitignore`에 `library/*.search_archive/`, `runs/`를 등록(이 단계에 한한 예외, 사용자 승인) ② 더미 hook이 stdin을 파일에 기록하게 해 세 역할과 메인 세션에서 hook 입력 필드를 실측 ③ 공격 시나리오·과거 사례 재생(N4.3)을 실행해 로그를 사용자에게 제시하고 승인 기록 ④ gate 저장소(로컬 bare 저장소, 위치는 `05-role-separation`)를 만들고 `pre-receive`를 설치하고 원격 `gate`로 등록해 현재 master를 push, `python install.py --only agents --project .`, `python install.py --only hooks --project .`로 설치(DEC-41), `.githooks/pre-commit` 갱신 ⑤ 이후 게이트 변경을 포함한 모든 변경은 N3.12.3 흐름으로.
 
 | 산출물 | 경로 |
 |---|---|
 | agent 정의 | `agents/gmid-code-author.md`, `agents/gmid-test-author.md`, `agents/gmid-verification-auditor.md`(`agent-quality/check_agents.py` 통과, frontmatter `isolation`은 쓰지 않는다 -- worktree는 N3.12.3에서 오케스트레이터가 만든다) |
-| hook | `hooks/role_guard.py`, `hooks/role_diff_guard.py` |
-| 게이트·검사 도구 | `tools/gates/{role_commit_gate, merge_gate, mutate_changed, test_lint, weakening_diff, source_lint, reachability, interface_card, import_layering}.py` |
+| hook | `hooks/role_guard.py`, `hooks/role_diff_guard_bash.py`, `hooks/role_diff_guard_stop.py`(얇은 실행기 -- `install.py`가 스크립트 하나에 이벤트 하나를 등록한다), `.githooks/commit-msg`(트레일러 검사) |
+| 게이트·검사 도구 | `tools/gates/{role_paths, role_hooks, role_commit_gate, merge_gate, mutate_changed, test_lint, weakening_diff, source_lint, reachability, interface_card, import_layering}.py`, `tools/gates/gate_config.json`, `tools/gates/requirements.txt`(U-38) |
 | 공격 시나리오·재생 | `tools/gates/redteam/` |
 | 양식 | `docs/02-design/specs/_TEMPLATE.spec.md`, `docs/02-design/disputes/_TEMPLATE.md`, `.ai/verification/_schema.json`, `.ai/approvals/_TEMPLATE.md` |
 
@@ -755,7 +787,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | V1 | 전체 test 실행 | 병합본 깨끗한 worktree에서 slow 포함 전체. `-k`·`--deselect`·`-x` 금지 | pytest | 1(0.5는 redteam 스크립트) |
 | V2 | 판정 유형별 증거 | red-green: 새·바뀐 test(그리고 이 변경의 '활성화 IC 케이스'로 엄격 대상이 된 기존 계약 test 케이스)가 base에서 assertion FAIL, 병합본 PASS. equivalence: test 커밋 불변 + base·병합본 모두 PASS + 유형별 동등 증명(TS1 stdout, Phase 3 AST 해시). test-only: 섹션->test 매핑표의 모든 섹션이 변경 후 test에서 PASS | base/병합본 실행 비교 | 1 |
 | V3 | 뮤테이션 | 대상 = diff가 닿은 def 중 AST 해시가 바뀐 것. 연산자 = 비교 뒤집기 / 산술 교체 / 상수 변경(정수는 ±1, 실수는 표기된 마지막 자릿수 한 단위 ±) / 문장 삭제 / 조기 return / except 본문 삭제. 변이마다 그 함수를 호출하는 test만 실행(인벤토리). 살아남은 변이가 있으면 FAIL. 등가 변이 면제는 승인 기록으로만. 변이는 worktree 밖 임시 복사본에서 수행하고 worktree는 바꾸지 않는다 | `tools/gates/mutate_changed.py` | 1 |
-| V4 | 자기참조 lint | (1) 기대값 변수가 피검 함수(interface card 심볼) 호출로 만들어짐 (2) 피검 함수 본문 식과 AST 동형(이름을 위치 인덱스로 치환한 `ast.dump`의 BinOp/Call 부분트리 해시 일치) (3) assert가 if·try 안에만 있음 (4) assert 0개 (5) print·logging으로만 판정 | `tools/gates/test_lint.py` | 1 |
+| V4 | 자기참조 lint | (1) 기대값 변수가 피검 함수(interface card 심볼) 호출로 만들어짐 (2) 피검 함수 본문 식과 AST 동형(피검 함수의 지역 대입을 반환식에 인라인 전개한 뒤, 이름과 상수를 모두 같은 자리표시자로 바꾼 `ast.dump`의 BinOp/Call 부분트리 해시 일치 -- 리터럴을 쓴 기대식도 잡는다) (3) assert가 if·try 안에만 있음 (4) assert 0개 (5) print·logging으로만 판정 | `tools/gates/test_lint.py` | 1 |
 | V5 | 기준 약화 | test diff에서 N0.4 "기준 약화" 8패턴 중 하나라도 있으면 해당 diff 해시의 승인 기록 필수 | `tools/gates/weakening_diff.py` | 1 |
 | V6 | 소스 lint | 새 광범위 except, 새 skip/continue 분기(예외: `optional_stages` 화이트리스트 4개를 가르는 선언 분기 1곳 -- 사유 주석 필수, DEC-75), 허용 집합 {0, 1, −1, 산술식의 2, 인덱스} 밖 숫자 리터럴 중 `# derive: <함수명>` 태그(그 함수 존재 검사)가 없는 것, 읽는 코드 없는 경고 리스트, `id(...)` 캐시 키, 상한 없는 캐시 | `tools/gates/source_lint.py` | 1 |
 | V7 | 배선 | 새 def가 운영 경로에서 도달하는지(루트 목록은 설정 파일, Phase 3 전·후 두 벌). 도달 못 하면 레지스트리 등급 D 기록 + 승인 기록 | `tools/gates/reachability.py` | 2 |
@@ -765,7 +797,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 ### N4.3 게이트 거부 증명(Phase 0.5)
 
-**공격 시나리오 16건**(전부 거부 로그가 나와야 완료). **실행 Phase**: 1~12·15·16은 Phase 0.5, **13·14는 6a**다 -- 공격 13이 겨누는 GB0 로드 게이트(DEC-60)가 6a 구현이라 0.5에서는 실행할 수 없다.
+**공격 시나리오 16건**(전부 거부 로그가 나와야 완료). **실행 Phase**: 1~11·15·16은 Phase 0.5, **12·13·14는 6a**다(공격 12도 GB0 로드 게이트를 겨눈다) -- 공격 13이 겨누는 GB0 로드 게이트(DEC-60)가 6a 구현이라 0.5에서는 실행할 수 없다.
 
 | # | 공격 | 기대 |
 |---|---|---|
@@ -780,11 +812,11 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 9 | `except Exception: return` 추가 | V6 FAIL |
 | 10 | 메인 세션이 엔진 소스 Edit | EL1 거부 |
 | 11 | RTL agent가 임의 파일 Edit | hook 출력 없음 + exit 0(무동작) |
-| 12 | `optional_stages`(또는 다른 spec 필드)에 봉인 항목·게이트·정지 규칙 이름을 넣어 끄기 | GB0 로드 게이트 거부(화이트리스트 4개 밖, DEC-75). 거부를 test로 증명한다 |
+| 12 | `optional_stages`(또는 다른 spec 필드)에 봉인 항목·게이트·정지 규칙 이름을 넣어 끄기 | GB0 로드 게이트 거부(화이트리스트 4개 밖, DEC-75). 거부를 test로 증명한다 **실행 Phase = 6a** |
 | 14 | **숨은 레일 후보**(트랜지스터 단자에 없고 DC 전도 그래프에서 레일과 연결되지 않는 넷)를 가진 topology를 그 넷 없이 로드한다 -- (a) `supply_nets` 미선언 (b) `supply_nets`를 적되 그 넷을 빼고 선언 | 두 경우 모두 GB0 로드 게이트 거부(DEC-60 (iii)). (b)가 핵심이다: 선언이 존재하기만 하면 통과하는 게이트는 같은 고장을 되돌린다. 함께 **오거부 0**을 증명한다 -- DC로 연결된 보상망 내부 노드(파일럿 `N_cc_rz1`·`N_cc_rz2`)를 가진 회로는 통과해야 한다. **실행 Phase = 6a** |
 | 13 | 레일이 셋 이상이거나 음전위 레일이 있는 회로 topology를 `supply_nets` 없이 로드 | GB0 로드 게이트 거부(DEC-60). 전환기 이름집합 해석으로 조용히 넘어가지 않음을 **거부 로그로** 증명하고, 이것이 IC11 3레일 케이스의 선행 조건이다. **실행 Phase = 6a**(GB0 로드 게이트 구현 뒤) |
 | 15 | 판정 기록이 `_schema.json` 밖이거나(스키마 밖 필드, 형식 위반, 끝 개행 붙은 값, 중복 원소) `00-common` §8.1 로더 규칙(번호와 무관하게 전부)에 걸리는 상태로, 또는 승인 기록 머리가 양식(`00-common` §8.2) 밖인 상태로 병합을 시도 | EL4 거부. 케이스는 `tools/gates/redteam/`에 데이터로 두고 케이스마다 기대(거부/통과)를 적는다(`00-common` §14 CC-1). 함께 **오거부 0**: 올바른 기록 3종(red-green·equivalence·test-only)은 통과해야 한다. **실행 Phase = 0.5** |
-| 16 | (i) 판정에 쓰는 계획서 표(N4.1 `담당 Phase`·`강제 test`, N4.2 `도입`, N6.1 `Phase` 열)를 승인 기록 없이 바꾼 계획 개정을 (a) 직접 커밋 (b) 병합으로 시도 (ii) 그 표가 깨진 계획서를 (a) 직접 커밋 (b) 병합 head로 시도 (iii) 흐름 밖에서 깨진 base 위에서 병합을 시도 | (i)(a)·(ii)(a) EL3 차단, (i)(b)·(ii)(b) EL4 거부, (iii) merge gate가 판정하지 않고 거부(`00-common` §9.1). 오거부 0: 파싱 값에 대응하는 승인 기록이 있는 표 개정, 판정 표 값이 바뀌지 않는 문장 수정은 통과. **실행 Phase = 0.5** |
+| 16 | (i) 판정에 쓰는 계획서 표(N4.1 `담당 Phase`·`강제 test`, N4.2 `도입`, N6.1 `Phase` 열, N3.12.2 쓰기 경로표)를 승인 기록 없이 바꾼 계획 개정을 (a) 직접 커밋 (b) 병합으로 시도 (ii) 그 표가 깨진 계획서를 (a) 직접 커밋 (b) 병합 head로 시도 (iii) 흐름 밖에서 깨진 base 위에서 병합을 시도 | (i)(a)·(ii)(a) EL3 차단, (i)(b)·(ii)(b) EL4 거부, (iii) merge gate가 판정하지 않고 거부(`00-common` §9.1). 오거부 0: 파싱 값에 대응하는 승인 기록이 있는 표 개정, 판정 표 값이 바뀌지 않는 문장 수정은 통과. **실행 Phase = 0.5** |
 
 **과거 사례 재생**: 해당 diff만 담은 합성 커밋을 현재 base에 적용해 기대 검사가 거부하는지 확인한다(원자료 `agent7_self_concealment.md`).
 
@@ -918,7 +950,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | Phase | 완료 조건(측정 명령은 design 문서에 고정) |
 |---|---|
 | 0(문서) | `00-common`에 구현 주체 분류 양식, 용어→코드 이름 대응(용어집 최종본 = N0.4 + 이 대응표), 영역 표기 규약, 옛 키 거부 게이트 공통 형식, 실패 규약 코드 형식(클래스·필드·margin 정규화·exit code), 판정 기록과 승인 기록 스키마, V 도입 표·IC 담당 표·Phase 순서를 **검증 도구가 계획서에서 직접 읽는 규칙**(사본 없음, 표 내용의 정본은 N4.1·N4.2·N6.1), 성능 측정 명령, 무동작 판정 방법이 모임. `.ai/verification/_schema.json`(N3.12.5)과 `.ai/approvals/_TEMPLATE.md`가 있고 스키마 밖 필드를 거부함(측정은 독립 검증 agent). 성능 측정 명령이 실행 가능한 형태로 한 곳에 고정됨(N6.3). 이후 design 문서가 이 정의를 재서술하지 않고 절 번호로 인용하는지는 **각 design 문서의 독립 검증 항목**이다(N9.4) |
-| 0.5 | N4.3 공격 16건 중 **0.5 대상 14건**(1~12·15·16)의 거부 로그 + 사례 5건 적발(공격 13·14는 GB0 로드 게이트 구현 뒤라 6a에서 실행), hook 입력 필드 실측 기록, 에이전트 정의 `check_agents.py` PASS, 설치 후 RTL agent 무동작, MG0: `_TEMPLATE` 옛 `vs` 안내 0·문서 전용 스펙 필드를 가진 5회로(`nmcnr_amplifier`·`two_stage_ota_sf`·`pushpull_follower_buffer`·`sf_pushpull_output_opamp`·`ngcc_3stage_ff`)의 `_paper_target_spec` 컨테이너명 0 |
+| 0.5 | N4.3 공격 16건 중 **0.5 대상 13건**(1~11·15·16)의 거부 로그 + 사례 5건 적발(공격 13·14는 GB0 로드 게이트 구현 뒤라 6a에서 실행), hook 입력 필드 실측 기록, 에이전트 정의 `check_agents.py` PASS, 설치 후 RTL agent 무동작, MG0: `_TEMPLATE` 옛 `vs` 안내 0·문서 전용 스펙 필드를 가진 5회로(`nmcnr_amplifier`·`two_stage_ota_sf`·`pushpull_follower_buffer`·`sf_pushpull_output_opamp`·`ngcc_3stage_ff`)의 `_paper_target_spec` 컨테이너명 0 |
 | 1 | TS0 판정 기록 / TS1 seed 1~5 stdout 전후 동일 / TS2 기본·셔플 순서 PASS / TS3 판정 문자열 0 / TS5 기준선 참조 0 / 소스에 인라인 self-test 0 / IC3·IC5 PASS, 나머지 IC xfail 선언(담당 Phase 명시) / 사례 caa970b 적발 |
 | 2 | 승인된 D 목록 처리, DUP마다 옛 함수 대 정본 차등 test(실행 가능한 library 회로 입력 전수 출력 동일) PASS 후 옛 함수 삭제, 레지스트리 갱신, probe 엔진 식 재구현 0, DF-23 전수 목록(소자·넷·회로 이름 리터럴과 topology 파일 경로. DF-29~DF-34의 위치가 목록에 들어 있고 항목마다 담당 Phase가 적혀 있음) |
 | 3 | MOD1~MOD10 존재, import 계층 위반 0(`import_layering.py`), 이동 커밋마다 AST 해시 동일, `sizing_recipe.py` 삭제, 레지스트리 이관 목적지 열 = 실제 위치 |
@@ -993,7 +1025,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-12 | 단일단(보상 없음) 회로의 gm 출처 | `gm_1 ≥ 2π·gbw_target_hz·C_out,total`(봉인 후보마다 θ 제약, DEC-70, N3.7. C_out,total = 봉인점 출력노드 용량 + 부하 요소 값. GBW는 개루프 양이라 되먹임 인자와 무관) | 7b |
 | U-13 | 파일럿 **면적 예산을 선언할지**와 그 값(면적 *정의*는 DEC-79) | 예산 미선언 시 DEC-77대로 (전력, 면적) 비지배 front를 제시하고 정지한다(자동 선택 금지). 선언하면 그 예산을 ε으로 고정해 전력을 최소화한 점 하나를 front와 함께 낸다 | **7b 착수 조건** |
 | U-14 | gain 폭이 분해능 이하인 공유 VGS 그룹(pmos:Vcmfb)의 선택 기준 | 전력 기준으로 고르고 기록 | 7b |
-| U-15 | hook 입력에 역할 필드(`agent_type`)가 없을 때의 역할 판정 방식. 실측 후 결정: 부트스트랩 ② 실측 기록(PreToolUse·PostToolUse·SubagentStop 각각에서 `agent_type`·`agent_id`·`cwd` 존재 여부, 세 역할 + 메인 세션)을 제시하고 고른다. 필드가 있으면 이 결정은 필요 없다 | 선택지: A. 호출자 `cwd`가 속한 worktree(`../wt/<id>-<role>`)로 판정(EL1 약화분은 EL3·EL4와 Bash `git -C`·다른 worktree 경로 거부로 보완) / B. 역할마다 별도 Claude 세션·설정 / C. EL1은 메인 세션 규칙만, 역할 구분은 EL3·EL4 | 0.5(실측 직후) |
+| U-15 | hook 입력에 역할 필드(`agent_type`)가 없을 때의 역할 판정 방식. 실측 후 결정: 부트스트랩 ② 실측 기록(PreToolUse·PostToolUse·SubagentStop 각각에서 `agent_type`·`agent_id`·`cwd` 존재 여부, 세 역할 + 메인 세션)을 제시하고 고른다. 필드가 있으면 이 결정은 필요 없다 | 선택지: A. 호출자 `cwd`가 속한 worktree(`../wt/<id>-<role>`)로 판정(EL1 약화분은 EL3·EL4와 Bash `git -C`·다른 worktree 경로 거부로 보완) / B. 역할마다 별도 Claude 세션·설정 / C. EL1은 메인 세션 규칙만, 역할 구분은 EL3·EL4 | **닫힘(2026-09-18): 필요 없음** -- 실측(`role_hook_input_probe.md`)에서 subagent는 모든 관련 이벤트에 `agent_type`·`agent_id`를 주고 메인 세션은 주지 않는다. 다만 hook 입력 `cwd`는 세션 시작 디렉터리로 고정이고 subagent의 `cd`는 호출 사이에 유지되지 않아 역할을 worktree에 `cwd`로 묶을 수 없다(`05-role-separation`) |
 | U-16 | topology.json 메타데이터(role·ports·passive) 반영 주체. **확정**: 오케스트레이터가 사용자 확인 후 반영 | 조건: 사용자가 확인한 표의 항목만 반영, connectivity(넷리스트·passive·이상원 넷)는 WP-08대로 모았다가 일괄 반영하고 net 표 재출력으로 대조 / 승인 기록 `.ai/approvals/<id>.md` + 커밋 `Role: doc`, EL4는 승인 기록 없는 topology diff를 거부 / topology 변경은 S0 지문을 바꿔 `ratified`를 `review_needed`로 되돌림 / topology 변경으로 바뀌는 test 기대값은 V5 승인 대상. 근거: WP-07, WP-08, DEC-35 | 확정 |
 | U-17 | `mismatch_sigma_mV = 5.0`의 출처 | **확정: 7a 재도출 대상**(사용자 결정). 지금 값을 지어내지 않고 `5.0`을 유지하되 `source`는 **`7a 재도출 대상`**으로 적고, 기준값은 7a SPICE 대조 결과에서 읽는다(U-19 `gain_db`와 같은 처리). 이 값은 회로 안에서 도출되지 않는다 -- σ를 줄이면 W·L이 커져 기생 극점이 내려가 `parasitic_pm_deg`와 충돌하고, 제약을 떼면 탐색이 입력쌍을 줄여 σ가 되레 나빠진다(두 방향 모두 실측으로 막혔다, history H1). 그래서 달성 가능 상한 역산이 이 metric에는 성립하지 않는다. 7a 전까지 `5.0`은 구속하지 않는 상한으로 두고 판정에 쓰지 않는다 | **7a**(6a 착수 조건 아님) |
 | U-18 | 기준 약화 개별 승인 | 매 건 승인 기록 | 상시 |
@@ -1017,6 +1049,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-36 | 수동소자 면적 모델(단위 면적/F·단위 면적/Ω)의 PDK 출처 | 기본안: U-30(PDK 상수 한 곳 선언)에 커패시터·저항 단위 면적을 함께 선언하고 DEC-79 탐색 축이 그 값으로 수동소자 면적을 계산한다. 선언 전까지 보상·부하 수동소자가 있는 회로의 front는 `review_needed`다(DEC-79) | 7b 착수 전 |
 | U-37 | library에 회로를 더 추가할지와 그 순서 | **확정(2026-09-17): 원칙은 6a 이후로 미룬다. 단 첫 후보는 같은 날 추가했다**(`common_gate_amplifier` -- Allen Lecture 20 Page 20-2의 전압 구동 공통게이트 증폭기 3소자. 사이징 스펙 미선언, 검증 발동용. 절차 N9.3. **검증 발동은 J12-i ratify로 완성된다** -- 회로만 넣으면 발동 1·검증 발동 0이라 그 분기가 여전히 정지한다). 지금 있는 9회로의 구조 판정(J11·J12 ratify, 루프 (3-b) 귀속)이 끝나지 않은 상태에서 회로를 늘리면 정지·보류 사례만 는다. 재개할 때의 **첫 후보는 전압 구동 CG 입력 단일단**이다 -- 새 규칙 없이 데이터만으로 들어오고(DEC-62), 계획서가 스스로 검증 발동 0이라 적은 분기(N3.2-7 '전압 구동 CG stage 시작')를 그 회로 하나로 해소한다. 다음 후보는 중간 레일에 DC 전류가 흐르는 회로(레일 쌍 기둥·3레일 전력 정의), 능동 소자가 복귀 경로에 있는 보상(보상 루프 정의 확장), FVF 계열 버퍼(셀 규칙 (c), `rout_ss_ohm` 첫 실사용), gain boosting(셀 규칙 (a) + 보조 증폭기 블록 계층) 순이다. 추가 절차는 N9.3 | 6a 이후 |
 | U-38 | 판정 기록 로더(merge gate)와 로드 게이트가 JSON Schema 검증에 `jsonschema` 패키지를 쓸지(의존성 추가, WP-20) | **확정(2026-09-18): 쓴다** -- 스키마(`.ai/verification/_schema.json`)를 손으로 옮긴 검증기를 따로 두면 스키마와 검증기가 두 정본이 된다. 단 `format: date-time`은 형식 검사기가 없으면 강제되지 않으므로 로더가 따로 검사한다(`00-common` §8.1. 근거는 독립 검증 review21·review22) | Phase 0.5 |
+| U-39 | MG0의 `_paper_target_spec` 처리 -- N3.16 MG0 행은 5회로의 `_paper_target_spec`을 `_declared_target_spec`로 바꾸라 하면서 문헌 `supply_v`는 `_paper_target_spec.supplies_v`로 두라 하고, N6.2 0.5는 `_paper_target_spec` 컨테이너명 0을 요구해 서로 어긋난다 | 기본안: 지금의 `_paper_target_spec` 컨테이너(사용자가 확정한 스펙 -- U-25·U-34)를 `_declared_target_spec`로 옮기고, 문헌 값만 새 `_paper_target_spec`에 둔다. N6.2 0.5 DoD는 'JSON 파싱 기준: 5회로에 `_declared_target_spec` 있음, `sky130_supplies_v`·`input_dc_v` 키 0, `_paper_target_spec`에는 문헌 출처 필드만'으로 고친다. 회로별로 어느 값이 사용자 확정인지는 사용자가 확인한다 | 0.5(MG0 착수 전) |
 
 ---
 
@@ -1052,7 +1085,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 문서 | 반드시 담을 것 | 읽을 plan 절 |
 |---|---|---|
 | `00-common` | **구현 주체 분류 표 양식(WP-21: 코드 / AI 제안→사람 확정 / AI 직접 -- 각 design 문서가 자기 항목을 이 양식으로 분류한다)**, 용어→코드 이름 대응(N0.4와 합쳐 용어집 최종본), 영역 표기 규약(DEC-67), 명명 규칙과 옛 키 거부 게이트 공통 형식(DEC-68·69), 실패 규약 코드 형식(N3.14), 판정 기록·승인 기록 JSON/MD 스키마(N3.12.5), V 도입 표(N4.2)·IC 담당 표(N4.1)·Phase 순서(N6.1)를 검증 도구가 직접 읽는 규칙, 성능 측정 명령(N6.3), 무동작 판정 방법 | N0.1 / N0.4 / N1.4 / N2.1(DEC-34·47·51) / N2.2 / N3.10 / N3.11 / N3.12 전체 / N3.14 / N3.16 / N4.1 / N4.2 / N4.3 / N5.2(DF-35~37) / N6.1 / N6.2 / N6.3 / N7.2(U-38) / DEC-67·68·69 |
-| `05-role-separation` | 쓰기 경로표를 glob 목록으로(N3.12.2), hook 입력 실측 절차와 U-15 분기, 설치 명령과 순서(N3.12.6), 트레일러·경로 분류 규칙(소스/test/도구/데이터/문서), V3·V4·V5·V6·V7 알고리즘, interface card 생성기, spec card·dispute 양식, worktree 명령 시퀀스(N3.12.3), EL2 무시 목록, 공격 16건(0.5 실행 14건 = 공격 1~12·15·16 + 6a 실행 2건 = 공격 13·14), `00-common` §17의 게이트 구현 세부(hook 우회 git 명령과 상태 기반 판정 표 검사, `PlanTables` 해시 형식, 승인 기록 탐색 위치 등 -- 0.5 공격 재생 케이스로 고정), `00-common` CC-1(merge gate 판정 기록 로더·승인 기록 머리 파서, U-38 `jsonschema` 의존성 선언 파일과 버전 고정 -- WP-20 최소 릴리스 나이를 지키는 판)·CC-2(계획서 판정 표 읽기와 표 파손 거부) + 사례 5 재생 절차와 기대 메시지, agent 정의 3개 | N2.2 / N3.12 전체 / N4.2 / N4.3 / N6.1 전체(Phase 순서) / N6.2 Phase 0.5 / DEC-37~42 / U-15·U-16·U-38 / `00-common` §8·§9 |
+| `05-role-separation` | 쓰기 경로표를 glob 목록으로(N3.12.2), hook 입력 실측 절차와 U-15 분기, 설치 명령과 순서(N3.12.6), 트레일러·경로 분류 규칙(소스/test/도구/데이터/문서), V3·V4·V5·V6·V7 알고리즘, interface card 생성기, spec card·dispute 양식, worktree 명령 시퀀스(N3.12.3), EL2 무시 목록, 공격 16건(0.5 실행 13건 = 공격 1~11·15·16 + 6a 실행 3건 = 공격 12·13·14), `00-common` §17의 게이트 구현 세부(hook 우회 git 명령과 상태 기반 판정 표 검사, `PlanTables` 해시 형식, 승인 기록 탐색 위치 등 -- 0.5 공격 재생 케이스로 고정), `00-common` CC-1(merge gate 판정 기록 로더·승인 기록 머리 파서, U-38 `jsonschema` 의존성 선언 파일과 버전 고정 -- WP-20 최소 릴리스 나이를 지키는 판)·CC-2(계획서 판정 표 읽기와 표 파손 거부) + 사례 5 재생 절차와 기대 메시지, agent 정의 3개 | N2.2 / N3.12 전체 / N4.2 / N4.3 / N6.1 전체(Phase 순서) / N6.2 Phase 0.5 / DEC-37~42 / U-15·U-16·U-38 / `00-common` §8·§9 |
 | `10-test-separation` | TS0 원인 대조, TS1 추출 스크립트와 두 커밋 순서, seed별 stdout 비교 명령, TS2 섹션→test 매핑표와 fixture 목록, 셔플 옵션 구현, TS3 AST 검사, TS5 퇴역 절차, TS7 xfail 선언 목록(IC별 담당 Phase), `00-common` CC-3(계획서 N4.1에서 xfail 생성, test 케이스의 Phase 표식과 계획서 대조), IC5 `영역:` 줄 검사 | N3.11 / N3.12.3 / N4.1(IC3·IC5) / N6.1·N6.2 Phase 1 / DEC-36·40·46 / DF-17 / U-01 |
 | `20-dead-code-dup` | U-02 제안표(항목, 호출부 0 증거, 삭제 영향, 배선 시 소비자), DUP별 차등 test 설계, TS6 승격·삭제·이동 목록 | N3.10 / N3.11 TS6 / N6.1·N6.2 Phase 2 / WP-14 / DF-21·DF-23 / U-02 |
 | `30-module-split` | 레지스트리 목적지 열에서 생성한 함수→모듈 이관표, 계산된 import 그래프, `import_layering.py` 규칙, AST 해시 증명 명령, shim 재수출 목록 생성법, 추적 파일 호출부 목록 | N3.10 / N6.1·N6.2 Phase 3 / U-03 |

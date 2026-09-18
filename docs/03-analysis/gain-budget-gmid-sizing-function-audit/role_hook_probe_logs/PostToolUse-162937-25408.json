@@ -1,0 +1,26 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills\\.git\\gmid-hook-probe\\log",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PostToolUse",
+ "tool_name": "Bash",
+ "tool_input": {
+  "command": "cd <HOME>/Documents/Todoc/fpga/chip-design-skills/.git/gmid-hook-probe/log; ls | head -40; for f in $(ls | head -3); do echo \"== $f\"; /c/Python314/python.exe -c \"import json,sys;d=json.load(open('$f',encoding='utf-8'));print({k:(v if k!='tool_input' else '...') for k,v in d.items() if k not in ('transcript_path',)})\"; done",
+  "description": "Inspect probe logs from main session"
+ },
+ "tool_response": {
+  "stdout": "PostToolUse-162912-33504.json\nPostToolUse-162919-27008.json\nPostToolUse-162920-24092.json\nPostToolUse-162922-21204.json\nPostToolUse-162933-24112.json\nPreToolUse-162912-716.json\nPreToolUse-162918-19184.json\nPreToolUse-162919-24416.json\nPreToolUse-162920-19504.json\nPreToolUse-162920-20952.json\nPreToolUse-162922-31172.json\nPreToolUse-162932-27728.json\nPreToolUse-162936-22532.json\n== PostToolUse-162912-33504.json\n{'session_id': '<redacted-uuid>', 'cwd': 'C:\\\\Users\\\\<USER>\\\\Documents\\\\Todoc\\\\fpga\\\\chip-design-skills', 'scratchpad_dir': 'C:\\\\Users\\\\<USER>\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-<USER>-Documents-Todoc-fpga-chip-design-skills\\\\<redacted-uuid>\\\\scratchpad', 'prompt_id': '<redacted-uuid>', 'permission_mode': '<redacted>', 'effort': {'level': 'high'}, 'hook_event_name': 'PostToolUse', 'tool_name': 'Bash', 'tool_input': '...', 'tool_response': {'stdout': '<HOME>/Documents/Todoc/fpga/chip-design-skills\\nPreToolUse-162912-716.json', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}, 'tool_use_id': 'toolu_018okfoNUQLLH6qcpqJyZpP3', 'duration_ms': 195}\r\n== PostToolUse-162919-27008.json\n{'session_id': '<redacted-uuid>', 'cwd': 'C:\\\\Users\\\\<USER>\\\\Documents\\\\Todoc\\\\fpga\\\\chip-design-skills', 'scratchpad_dir': 'C:\\\\Users\\\\<USER>\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-<USER>-Documents-Todoc-fpga-chip-design-skills\\\\<redacted-uuid>\\\\scratchpad', 'prompt_id': '<redacted-uuid>', 'permission_mode': '<redacted>', 'effort': {'level': 'high'}, 'hook_event_name': 'PostToolUse', 'tool_name': 'Bash', 'tool_input': '...', 'tool_response': {'stdout': 'GMIDPROBE_EXIT1 main-session', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}, 'tool_use_id': 'toolu_01SkWZgAuXNNku1RSYW3FKvG', 'duration_ms': 126}\r\n== PostToolUse-162920-24092.json\n{'session_id': '<redacted-uuid>', 'cwd': 'C:\\\\Users\\\\<USER>\\\\Documents\\\\Todoc\\\\fpga\\\\chip-design-skills', 'scratchpad_dir': 'C:\\\\Users\\\\<USER>\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\C--Users-<USER>-Documents-Todoc-fpga-chip-design-skills\\\\<redacted-uuid>\\\\scratchpad', 'prompt_id': '<redacted-uuid>', 'permission_mode': '<redacted>', 'effort': {'level': 'high'}, 'hook_event_name': 'PostToolUse', 'tool_name': 'Bash', 'tool_input': '...', 'tool_response': {'stdout': 'GMIDPROBE_EXCEPT main-session', 'stderr': '', 'interrupted': False, 'isImage': False, 'noOutputExpected': False}, 'tool_use_id': 'toolu_01J9ftiqcBdzBcdG4VGR7CRk', 'duration_ms': 111}",
+  "stderr": "",
+  "interrupted": false,
+  "isImage": false,
+  "noOutputExpected": false
+ },
+ "tool_use_id": "<redacted>",
+ "duration_ms": 1177
+}

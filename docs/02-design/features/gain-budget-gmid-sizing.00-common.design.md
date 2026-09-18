@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.7
+version: 1.8
 plan_version: 5.19
 ---
 
@@ -9,7 +9,7 @@ plan_version: 5.19
 > **Summary**: 13개 design 문서가 공유하는 정의를 한 곳에 모은다. 구현 주체 분류 양식(WP-21), 용어→코드 이름 대응, 영역 표기 규약(DEC-67), 옛 키 거부 게이트 공통 형식(DEC-68·69), 실패 규약의 코드 형식(N3.14), 판정 기록·승인 기록 스키마(N3.12.5), 판정에 쓰는 계획서 표(V 도입·IC 담당·Phase 순서)를 검증 도구가 직접 읽는 규칙(N4.1·N4.2·N6.1), 성능 측정 명령(N6.3), 무동작 판정 방법.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (오케스트레이터)
-> **Date**: 2026-09-18 · **Status**: Draft v1.7 -- 독립 검증 review21~27 반영, 판정 표 사본 제거(§2 정정), 사용자 승인 대기(DEC-51)
+> **Date**: 2026-09-18 · **Status**: v1.8 -- 승인(`20260918-00-common-design`, v1.7) 뒤 `05-role-separation`에 따른 §8.2 한 줄 개정(그 문서의 승인이 덮는다). 독립 검증 review21~27 반영, 판정 표 사본 제거(§2 정정), 사용자 승인 대기(DEC-51)
 > **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v5.19 · N6.1 `0(문서)` 행
 
 Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는다(계획서 N1이 목적·범위의 정본이다).
@@ -296,7 +296,7 @@ def exit_code_for(exc: BaseException) -> int: ...
 **해시의 정의와 소비자**:
 
 * `failure_hashes[i]` = `red_failure_hash(test_ids[i], exc_type)` = `sha256(UTF-8(f"{test_id}\n{exc_type.__module__}.{exc_type.__qualname__}"))`. 함수는 `tools/gates/merge_gate.py` 하나에 두고, auditor가 기록할 때와 merge gate가 재계산할 때 모두 이 함수를 쓴다. 메시지·경로는 넣지 않는다(worktree 경로와 실수 repr 때문에 재현되지 않는다). **소비자**: merge gate가 freeze 커밋 worktree에서 `red.test_ids`를 base에 대해 다시 실행해 같은 해시가 나오는지 대조한다(V2 red 재현).
-* **red 수집**(merge gate 모듈이 pytest 플러그인이다): 실행은 worktree 루트에서 `$PY -m pytest --rootdir=<worktree 루트> -p tools.gates.merge_gate --continue-on-collection-errors --gmid-phase <spec card Phase> --gmid-strict <§9.3 엄격 집합> …`이고(CC-3 전에는 두 `--gmid-*` 옵션이 없다), 병합본에서 엄격 대상 케이스는 PASS여야 하며 XPASS는 엄격 대상이 아닌 케이스에서만 나온다, 플러그인은 환경 변수 `GMID_RED_CAPTURE`가 가리키는 파일에 (test id, 예외 타입)을 JSON으로 쓴다. test id는 rootdir 기준 pytest node id다.
+* **red 수집**(merge gate 모듈이 pytest 플러그인이다): 실행은 worktree 루트에서 `$PY -m pytest --rootdir=<worktree 루트> -p tools.gates.merge_gate --continue-on-collection-errors --gmid-phase=<spec card Phase> --gmid-strict=<§9.3 엄격 집합, 정렬·쉼표 구분, 비면 값 없음> …`(두 옵션은 항상 `=` 한 토큰 형식이다)이고(CC-3 전에는 두 `--gmid-*` 옵션이 없다), 병합본에서 엄격 대상 케이스는 PASS여야 하며 XPASS는 엄격 대상이 아닌 케이스에서만 나온다, 플러그인은 환경 변수 `GMID_RED_CAPTURE`가 가리키는 파일에 (test id, 예외 타입)을 JSON으로 쓴다. test id는 rootdir 기준 pytest node id다.
   * 실행 단계 실패: `pytest_runtest_makereport`에서 `call.when ∈ {"setup", "call"}`이고 `call.excinfo`가 있을 때 `call.excinfo.type`(fixture 실패도 red로 잡는다).
   * 수집 단계 실패(신규 모듈을 test 파일 머리에서 import하는 경우): `pytest_exception_interact(node, call, report)`에서 `report`가 `CollectReport`일 때, test id = 그 모듈의 node id, 예외 타입 = `call.excinfo.value.__cause__`의 타입(pytest는 import 오류를 `Collector.CollectError`로 감싸고 원인을 `__cause__`에 둔다 -- review24 R-02 실측, pytest 9.0.2). `__cause__`가 없으면 `call.excinfo.type`. 이 훅이 수집 오류에서 불리는지는 0.5 공격 15의 '수집 단계 ImportError red' 케이스로 실측해 고정한다.
   * **허용 예외 타입**(merge gate가 강제, N3.12.3 순서 3): `builtins.AssertionError`, `builtins.Failed`(pytest `Failed`의 `__module__`은 `"builtins"`다 -- review27 X-01 실측, pytest 9.0.2), 그리고 **신규 심볼**을 import하는 경우에 한해 `builtins.ImportError`·`builtins.ModuleNotFoundError`·`builtins.AttributeError`. 그 밖의 타입으로 된 red는 red로 인정하지 않는다.
@@ -340,7 +340,7 @@ scope: <한 줄>
 * 파서 대상: `.ai/approvals/`에서 이름이 `_`로 시작하지 않는 `.md`(양식 `_TEMPLATE.md`는 제외). 줄 끝은 `\r?\n`이다(autocrlf worktree의 CRLF 체크아웃).
 * 머리 규칙: 한 줄에 `key: value` 하나. 값은 `: ` 뒤 전부이고 앞뒤 공백을 뗀다. 주석 줄 금지. 허용 키는 `id`, `date`, `target_kind`, `target`, `diff_base`, `diff_head`, `diff_path`(반복 가능, 한 줄에 경로 하나), `scope`이고 **모르는 키는 거부**한다. 파일은 UTF-8, BOM 없음.
 * 값 형식: `id`는 §8.1 `id` 형식이고 파일 이름 `<id>.md`와 같다 / `date`는 `YYYY-MM-DD` 실제 날짜 / `target_kind` ∈ {`diff`, `decision`, `plan_tables`} / `scope`는 비지 않음.
-* `target_kind: plan_tables`(계획서 판정 표 변경의 승인, §9.1): `target` = 변경 뒤 계획서를 `read_plan_tables`로 파싱한 값을 키 정렬 JSON으로 직렬화한 바이트의 `sha256`(64자리 소문자 16진). `diff_*` 키는 금지다. EL3·EL4가 같은 식으로 다시 계산해 대조한다.
+* `target_kind: plan_tables`(계획서 판정 표 변경의 승인, §9.1): `target` = 변경 뒤 계획서를 `read_plan_tables`와 쓰기 경로표 파서(`05-role-separation` §3·§14.2 -- 쓰기 경로표도 v5.19에서 판정 표 보호 목록에 들었다)로 파싱한 값을 키 정렬 JSON으로 직렬화한 바이트의 `sha256`(64자리 소문자 16진). `diff_*` 키는 금지다. EL3·EL4가 같은 식으로 다시 계산해 대조한다.
 * `target_kind: decision`이면 `target`은 결정 ID 목록이고 `,`로 나눈 뒤 각 원소의 공백을 뗀다(예: `U-26, J1`). `diff_*` 키는 금지다.
 * `target_kind: diff`이면 `diff_base`·`diff_head`(40자리 소문자 16진)와 `diff_path`(1개 이상, 탭·개행 없음)가 필수이고 `target`은 64자리 소문자 16진이다. **diff 해시**는 diff 출력이 아니라 **blob id**로 만든다 -- diff 출력은 저장소 로컬 설정(`diff.suppressBlankEmpty` 등)에 흔들리고 로컬 설정은 환경 변수로 끌 수 없다(review23·24 실측). 경로를 정렬해 경로마다 `git rev-parse --verify --quiet <commit>:<path>`(없으면 `-`)로 base·head blob id를 얻고, `sha256(UTF-8("".join(f"{path}\t{base_blob}\t{head_blob}\n" for path in sorted(diff_paths))))`이다. blob id는 파일 내용의 해시이므로 같은 내용 변경에는 같은 값이 나온다. 거부: 경로가 정규화되지 않음(`./`, `..`, 역슬래시, 끝 `/`), 양쪽 모두 없음, base·head blob이 같음(바뀌지 않은 경로), `git cat-file -t`가 `blob`이 아님(디렉터리). V5는 같은 식으로 다시 계산해 `target`과 비교한다.
 * design 문서의 승인은 `target_kind: diff`이고 `diff_path`는 그 design 문서와 그 문서가 기댄 개정 파일 전부다(§16).
@@ -374,7 +374,7 @@ def read_plan_tables(plan_path: str) -> PlanTables: ...               # 표를 �
 
 * **어느 판을 읽나**: merge gate는 **base 판** 계획서를 읽는다. 병합하려는 쪽 계획서를 읽으면 그 병합이 자기 판정 규칙을 바꿀 수 있기 때문이다. 계획 개정은 병합된 다음 병합부터 적용된다. test(§9.3)는 자기가 도는 worktree의 계획서를 읽는다 -- 그 계획서의 판정 표가 base와 다르면 이미 EL4가 승인 기록을 요구한다.
 * 거부: 표를 못 읽으면 merge gate는 아무것도 판정하지 않고 거부한다(WP-02). N4.3 공격 16 (ii)가 이것을 증명한다.
-* **판정 표 변경 검사**(N3.12.4): 앞 판과 뒤 판 계획서를 같은 `read_plan_tables`로 파싱해 **파싱 값**(`v_intro`, `ic_parts`, `ic_test`, `phase_order`)이 다르면 변경이다(원문 문장 수정은 변경이 아니다). 두 곳에서 같은 함수로 한다.
+* **판정 표 변경 검사**(N3.12.4): 앞 판과 뒤 판 계획서를 같은 `read_plan_tables`로 파싱해 **파싱 값**(`v_intro`, `ic_parts`, `ic_test`, `phase_order`와 쓰기 경로표 파싱 값 `write_paths` -- 비교 대상은 `plan_tables` 해시 입력 객체 전체, `05-role-separation` §14.2)이 다르면 변경이다(원문 문장 수정은 변경이 아니다). 두 곳에서 같은 함수로 한다.
   * **EL3(커밋 시점)**: 앞 판 = HEAD, 뒤 판 = staged 계획서. 오케스트레이터의 직접 커밋(계획서 개정의 정상 경로)이 여기서 걸린다. 뒤 판을 못 읽으면 차단.
   * **EL4(병합 시점)**: 앞 판 = base, 뒤 판 = head(병합할 브랜치 끝 커밋). 뒤 판을 못 읽으면 거부.
   * 변경이 있으면 승인 기록(`target_kind: plan_tables`, `target` = 뒤 판 파싱 값의 해시, §8.2)이 필요하다.

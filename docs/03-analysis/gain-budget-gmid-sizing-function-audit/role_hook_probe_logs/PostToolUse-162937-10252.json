@@ -1,0 +1,28 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "agent_id": "<redacted>",
+ "agent_type": "general-purpose",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PostToolUse",
+ "tool_name": "Bash",
+ "tool_input": {
+  "command": "cd .. && pwd",
+  "description": "Change to parent directory and print it"
+ },
+ "tool_response": {
+  "stdout": "<HOME>/Documents/Todoc/fpga",
+  "stderr": "",
+  "interrupted": false,
+  "isImage": false,
+  "noOutputExpected": false
+ },
+ "tool_use_id": "<redacted>",
+ "duration_ms": 99
+}

@@ -1,0 +1,18 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PreToolUse",
+ "tool_name": "Bash",
+ "tool_input": {
+  "command": "cd <HOME>/Documents/Todoc/fpga/chip-design-skills; /c/Python314/python.exe -X utf8 - <<'EOF'\nimport json,glob,os\nfs=sorted(glob.glob('.git/gmid-hook-probe/log/*.json'),key=os.path.getmtime)\nfor f in fs:\n    try: d=json.load(open(f,encoding='utf-8'))\n    except Exception as e: print(f,'unparsed'); continue\n    ti=d.get('tool_input') or {}\n    cmd=ti.get('command') or ti.get('file_path') or ''\n    keys=[k for k in d if k not in ('session_id','transcript_path','scratchpad_dir','prompt_id','permission_mode','effort','tool_input','tool_response','tool_use_id','duration_ms','hook_event_name','tool_name','cwd','last_assistant_message')]\n    out=''\n    tr=d.get('tool_response')\n    if isinstance(tr,dict): out=(tr.get('stdout') or '')[:60].replace('\\n','|')\n    print(os.path.basename(f)[:28], d.get('hook_event_name'), d.get('tool_name'), 'agent_type=',d.get('agent_type'),'agent_id=',(d.get('agent_id') or '')[:12], 'cwd=',d.get('cwd','')[-30:], 'extra=',keys, '|', str(cmd)[:50], '->', out)\nEOF",
+  "description": "Summarize all probe log entries"
+ },
+ "tool_use_id": "<redacted>"
+}

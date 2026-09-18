@@ -1,0 +1,26 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PostToolUse",
+ "tool_name": "Bash",
+ "tool_input": {
+  "command": "cd <HOME>/Documents/Todoc/fpga/chip-design-skills; pwd; ls .git/gmid-hook-probe/log 2>&1 | head",
+  "description": "Trigger hook and check probe log"
+ },
+ "tool_response": {
+  "stdout": "<HOME>/Documents/Todoc/fpga/chip-design-skills\nPreToolUse-162912-716.json",
+  "stderr": "",
+  "interrupted": false,
+  "isImage": false,
+  "noOutputExpected": false
+ },
+ "tool_use_id": "<redacted>",
+ "duration_ms": 195
+}

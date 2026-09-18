@@ -1,0 +1,18 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PreToolUse",
+ "tool_name": "Write",
+ "tool_input": {
+  "file_path": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills\\.git\\gmid-hook-probe\\write_main.txt",
+  "content": "probe write from main session\n"
+ },
+ "tool_use_id": "<redacted>"
+}

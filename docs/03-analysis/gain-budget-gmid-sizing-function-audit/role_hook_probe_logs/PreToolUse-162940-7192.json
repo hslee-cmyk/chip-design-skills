@@ -1,0 +1,18 @@
+{
+ "session_id": "<redacted>",
+ "transcript_path": "<redacted>",
+ "cwd": "<HOME>\\Documents\\Todoc\\fpga\\chip-design-skills\\.git\\gmid-hook-probe\\log",
+ "scratchpad_dir": "<redacted>",
+ "prompt_id": "<redacted>",
+ "permission_mode": "<redacted>",
+ "effort": {
+  "level": "high"
+ },
+ "hook_event_name": "PreToolUse",
+ "tool_name": "Bash",
+ "tool_input": {
+  "command": "cd <HOME>/Documents/Todoc/fpga/chip-design-skills && pwd",
+  "description": "Return to repository root"
+ },
+ "tool_use_id": "<redacted>"
+}
