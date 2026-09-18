@@ -62,8 +62,10 @@ append로 받은 결과: [(4, 'UNJUDGED')] | 기대 UNJUDGED
 comprehension 지역 이름이 기대 이름을 가리지 않음: [(4, 'FAIL')] | 기대 FAIL
 중첩 def 지역 이름이 기대 이름을 가리지 않음: [(6, 'FAIL')] | 기대 FAIL
 블록 안에서 만든 기대식: [(4, 'PASS')] | 기대 PASS | known_limit F6 블록 안에서 만든 기대식
+return inner(x) 중첩 함수 호출: [(2, 'PASS')] | 기대 PASS | known_limit F3 중첩 함수 경유
+return R() 중첩 클래스 호출: [(2, 'PASS')] | 기대 PASS
 피검 안 중첩 함수 return: [(2, 'PASS')] | 기대 PASS
-케이스 65개, 기대 불일치 0개
+케이스 67개, 기대 불일치 0개
 e329283 조합 test 인라인=False 피검 인라인=False: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=False 피검 인라인=True: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=True 피검 인라인=False: [(7, 'PASS'), (15, 'PASS')]

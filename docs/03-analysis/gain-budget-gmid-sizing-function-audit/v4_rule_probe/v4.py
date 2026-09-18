@@ -11,6 +11,8 @@
 부트스트랩 ①에서 이 파일의 규칙 함수를 tools/gates/test_lint.py V4 (2) 구현으로 옮기고 이 probe는 지운다.
 """
 import ast
+import copy
+import functools
 import subprocess
 from fractions import Fraction
 import sys
@@ -26,12 +28,14 @@ class _Sub(ast.NodeTransformer):
 
     def visit_Name(self, node):
         if isinstance(node.ctx, ast.Load) and node.id in self.env:
-            return self.env[node.id]
+            return copy.deepcopy(self.env[node.id])
         return node
 
 
 def _inline(expr, env):
-    return _Sub(env).visit(ast.parse(ast.unparse(expr), mode="eval").body)
+    # 소스로 되돌려 다시 파싱하지 않고 AST를 복사한다 -- 불투명 이름(`<opaque:…>`)은 소스로 쓸 수 없어
+    # 다시 파싱하면 SyntaxError가 났다(review35 M4-03: `return inner(x)` 같은 중첩 def·class 호출)
+    return _Sub(env).visit(copy.deepcopy(expr))
 
 
 def _opaque(name):
@@ -98,9 +102,13 @@ def _walk_body(stmts, env, returns):
 
 
 def return_variants(fdef):
-    returns = []
-    _walk_body(fdef.body, {}, returns)
-    return returns
+    # AST 노드에 결과를 붙여 둔다(함수마다 한 번 -- 상한 = 모듈의 함수 수)
+    cached = getattr(fdef, "_v4_returns", None)
+    if cached is None:
+        cached = []
+        _walk_body(fdef.body, {}, cached)
+        fdef._v4_returns = cached
+    return cached
 
 
 # ---------- 인자 결합과 같은 모듈 인라인 ----------
@@ -139,30 +147,22 @@ def _callee(call):
 
 
 def expand(expr, module_funcs, stack=()):
-    """expr 안의 같은 모듈 함수 호출을 return 변형으로 펼친 식들의 목록."""
-    variants = [expr]
-    for node in ast.walk(expr):
-        if isinstance(node, ast.Call):
+    """expr 안의 같은 모듈 함수 호출을 인라인한 식(목록 하나). return이 **하나인** 함수만 인라인하고,
+    return이 여럿인 함수의 호출은 불투명 호출로 둔다 -- 여럿을 조합으로 펼치면 변형 수가 곱으로 늘어
+    실제 엔진 함수(`stick_diagram.propose_device_roles_gap_fill`)에서 끝나지 않았다(review35 뒤 전수 실측)."""
+    class _T(ast.NodeTransformer):
+        def visit_Call(self, node):
+            self.generic_visit(node)
             name = _callee(node)
             if name in module_funcs and name not in stack:
                 fdef = module_funcs[name]
-                bound = _bind(fdef, node)
-                if bound is None:
-                    continue
-                out = []
-                for r in return_variants(fdef):
-                    body = _inline(r, bound)
-                    for b in expand(body, module_funcs, stack + (name,)):
-                        for v in variants:
-                            out.append(_replace(v, node, b))
-                variants = out or variants
-                break
-    if variants != [expr] and any(v is not expr for v in variants):
-        more = []
-        for v in variants:
-            more.extend(expand(v, module_funcs, stack) if v is not expr else [v])
-        return more
-    return variants
+                rs = return_variants(fdef)
+                if len(rs) == 1:
+                    bound = _bind(fdef, node)
+                    if bound is not None:
+                        return expand(_inline(rs[0], bound), module_funcs, stack + (name,))[0]
+            return node
+    return [_T().visit(copy.deepcopy(expr))]
 
 
 def _replace(tree, target, repl):
@@ -177,7 +177,7 @@ def _replace(tree, target, repl):
                 return repl
             self.generic_visit(node)
             return node
-    return R().visit(ast.parse(ast.unparse(tree), mode="eval").body)
+    return R().visit(copy.deepcopy(tree))
 
 
 # ---------- 정규화 ----------
@@ -430,11 +430,16 @@ def _is_leaf(c):
     return c[0] in ("num", "name", "const")
 
 
+@functools.lru_cache(maxsize=8)  # 같은 모듈을 test마다 다시 파싱하지 않는다(상한 = 한 판정에 드는 모듈 수 정도)
+def _module_funcs(module_src):
+    mod = ast.parse(module_src)
+    return {f.name: f for f in mod.body if isinstance(f, ast.FunctionDef)}
+
+
 def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True):
     """assert마다 (줄, 판정). 판정: FAIL(확실한 복사) / PASS / UNJUDGED(피검이 걸렸는데 판정 못 함 --
     auditor 대조 대상) / NO-SUBJECT(피검 호출이 없는 assert -- V4 (2) 대상 아님)."""
-    mod = ast.parse(module_src)
-    funcs = {f.name: f for f in mod.body if isinstance(f, ast.FunctionDef)}
+    funcs = _module_funcs(module_src)
     test = next(f for f in ast.parse(test_src).body if isinstance(f, (ast.FunctionDef, ast.AsyncFunctionDef)))
     body = test.body if inline_test else [s for s in test.body if isinstance(s, ast.Assert)]
     results = []
@@ -467,7 +472,19 @@ def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True)
         # 입력을 그대로 돌려주는 경로는 비교하지 않는다(review31 N-03, review32 M-02): 정규형이 잎 하나이거나
         # **그 return 식에 나오는 매개변수**에 결합된 인자 식 하나의 정규형과 같은 E_i(review33 M2-06: 쓰이지
         # 않는 인자로 제외를 맞추지 못하게) -- 그 값과 같은 명세 리터럴·무발동 값을 복사로 볼 수 없다.
-        hit = []
+        try:
+            hit = _hits(rs, bound, funcs, fdef, cx)
+        except (RecursionError, MemoryError):
+            # 식이 너무 깊거나 커서 펼치지 못함 -> 판정하지 못함(UNJUDGED, auditor 대조 대상)
+            results.append((lineno, "UNJUDGED"))
+            continue
+        results.append((lineno, "FAIL" if hit else "PASS"))
+    return results
+
+
+def _hits(rs, bound, funcs, fdef, cx):
+    hit = []
+    if True:
         for r in rs:
             used = {n.id for n in ast.walk(r) if isinstance(n, ast.Name)} & set(bound)
             passthrough = {canon(bound[p]) for p in used}
@@ -475,8 +492,7 @@ def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True)
                 c = canon(e)
                 if not _is_leaf(c) and c not in passthrough and c in cx:
                     hit.append(c)
-        results.append((lineno, "FAIL" if hit else "PASS"))
-    return results
+    return hit
 
 
 # ---------- 사례 ----------
@@ -577,6 +593,9 @@ def main():
         ("comprehension 지역 이름이 기대 이름을 가리지 않음", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    e = 2e-3 * 50e3\n    xs = [e for e in range(3)]\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n", {"gain"}, "FAIL", None),
         ("중첩 def 지역 이름이 기대 이름을 가리지 않음", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    e = 2e-3 * 50e3\n    def h():\n        e = 1.0\n        return e\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n", {"gain"}, "FAIL", None),
         ("블록 안에서 만든 기대식", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    if flag:\n        e = 2e-3 * 50e3\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n", {"gain"}, "PASS", "F6 블록 안에서 만든 기대식"),
+        # review35 M4-03: 피검이 중첩 def·class를 호출해 돌려준다(예외 없이 판정)
+        ("return inner(x) 중첩 함수 호출", "def f(x, k):\n    def inner(y):\n        return y * k\n    return inner(x)\n", "def test_f():\n    assert f(y0, 2.0) == pytest.approx(y0 * 2.0)\n", {"f"}, "PASS", "F3 중첩 함수 경유"),
+        ("return R() 중첩 클래스 호출", "def f(x):\n    class R:\n        pass\n    return R()\n", "def test_f():\n    assert f(1.0) == expected_r\n", {"f"}, "PASS", None),
         ("피검 안 중첩 함수 return", "def f(x, k):\n    def inner(y):\n        return y * k\n    return x + 1.0\n", "def test_f():\n    assert f(y0, 2.0) == pytest.approx(y0 * 2.0)\n", {"f"}, "PASS", None),
     ]
     mismatch = 0
