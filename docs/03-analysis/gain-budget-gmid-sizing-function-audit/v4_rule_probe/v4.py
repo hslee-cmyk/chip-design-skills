@@ -11,6 +11,7 @@ FAIL은 확실한 복사이고 PASS는 독립의 증거가 아니다(알려진 �
 """
 import ast
 import subprocess
+from fractions import Fraction
 import sys
 from pathlib import Path
 
@@ -156,10 +157,17 @@ def _replace(tree, target, repl):
 
 
 # ---------- 정규화 ----------
+# 숫자는 `Fraction(repr(float))`로 정확히 둔다. 곱의 숫자 인자는 곱하지 않고 정렬한 다중집합으로 두며
+# 나눗셈의 숫자 인자만 역수로 바꾼다(`x/2` = `x*0.5`) -- 계수를 부동소수로 곱하면 판정이 곱하는 순서와
+# 반올림에 따라 갈린다(review32 M-03). 숫자만의 식도 접지 않는다(재서술 `2e-3*50e3`가 리터럴과 구별된다).
+def _num(v):
+    return ("num", Fraction(repr(float(v))))
+
+
 def canon(n):
     if isinstance(n, ast.Constant):
         if isinstance(n.value, (int, float)) and not isinstance(n.value, bool):
-            return ("num", float(n.value))
+            return _num(n.value)
         return ("const", repr(n.value))
     if isinstance(n, ast.Name):
         return ("name", n.id)
@@ -197,23 +205,21 @@ def canon(n):
 def _terms(n, s):
     if isinstance(n, ast.BinOp) and isinstance(n.op, (ast.Add, ast.Sub)):
         return _terms(n.left, s) + _terms(n.right, s if isinstance(n.op, ast.Add) else -s)
-    c = canon(n)
-    if c[0] == "sum":
-        return [(s * ss, t) for ss, t in c[1]]
-    return [(s, c)]
+    return [(s, canon(n))]
 
 
 def _sum(terms):
     norm = []
     for s, t in terms:
-        if t[0] == "num":
-            if t[1] == 0.0:
-                continue
-            norm.append((1, ("num", s * t[1])))
+        if t[0] == "sum":  # 합 안의 합은 부호를 나눠 펼친다(`-(b + c)` = `-b - c`, review32 FN3)
+            norm.extend((s * ss, tt) for ss, tt in t[1])
+        elif t[0] == "num":
+            if t[1] != 0:
+                norm.append((1, ("num", s * t[1])))
         else:
             norm.append((s, t))
     if not norm:
-        return ("num", 0.0)
+        return ("num", Fraction(0))
     if len(norm) == 1 and norm[0][0] == 1:
         return norm[0][1]
     return ("sum", tuple(sorted(norm, key=repr)))
@@ -230,9 +236,7 @@ def _factors(n, e):
 
 def _prod(factors):
     # 부호를 밖으로: 음수 숫자 인자와 단항 마이너스 한 항짜리 합을 양수로 바꾸고 전체 부호로 모은다.
-    # 숫자 인자는 곱에 이름·식 인자가 하나라도 있을 때만 계수 하나로 모은다(`x/2` -> `x*0.5`, 나눗셈 정규화).
-    # 숫자만의 곱은 모으지 않는다 -- 모으면 상수 접기가 되어 재서술(`2e-3*50e3`)이 리터럴과 구별되지 않는다.
-    sign, nums, norm = 1, [], []
+    sign, norm = 1, []
     for e, f in factors:
         if f[0] == "sum" and len(f[1]) == 1 and f[1][0][0] == -1:
             sign, f = -sign, f[1][0][1]
@@ -240,28 +244,21 @@ def _prod(factors):
             v = f[1]
             if v < 0:
                 sign, v = -sign, -v
-            if v != 1.0:
-                nums.append((e, v))
+            if v == 1:
+                continue
+            if e < 0 and v != 0:
+                e, v = 1, 1 / v
+            norm.append((e, ("num", v)))
             continue
         norm.append((e, f))
-    if norm:
-        coef = 1.0
-        for e, v in nums:
-            coef = coef * v if e > 0 else coef / v
-        if coef != 1.0:
-            norm.append((1, ("num", coef)))
-    else:
-        norm = [(e, ("num", v)) for e, v in nums]
     if not norm:
-        return ("num", float(sign))
-    if len(norm) == 1 and norm[0][0] == 1 and norm[0][1][0] == "num":
-        return ("num", sign * norm[0][1][1])
+        return ("num", Fraction(sign))
     if len(norm) == 1 and norm[0][0] == 1:
         body = norm[0][1]
     else:
         body = ("prod", tuple(sorted(norm, key=repr)))
     if sign < 0:
-        return ("sum", ((-1, body),))
+        return ("num", -body[1]) if body[0] == "num" else ("sum", ((-1, body),))
     return body
 
 
@@ -289,20 +286,54 @@ def _pair_of(t):
     return None
 
 
-def _assert_pairs(test):
-    """test 본문을 순서대로 걸으며 그 시점의 지역 대입 환경으로 assert마다 (줄, a, b) -- 쌍을 못 만들면 (줄, None, None)."""
-    env, out = {}, []
-    for s in test.body:
+def _is_assert_call(s):
+    """판정 함수 호출문: 호출 이름이 `assert`로 시작(`np.testing.assert_allclose`, `self.assertAlmostEqual` 등)."""
+    return isinstance(s, ast.Expr) and isinstance(s.value, ast.Call) and (_callee(s.value) or "").startswith("assert")
+
+
+def _has_subject(expr, subjects):
+    for n in ast.walk(expr):
+        if isinstance(n, ast.Call) and _callee(n) in subjects:
+            return True
+        if isinstance(n, ast.Name) and n.id.startswith("<opaque-subject:"):
+            return True
+    return False
+
+
+def _assert_pairs(stmts, subjects, env=None, out=None):
+    """본문을 순서대로, 제어 흐름 안까지 재귀로 걸으며 그 시점의 지역 대입 환경으로 판정 문장마다
+    (줄, a, b) -- 쌍을 못 만들면 (줄, None, None). 루프 변수·블록 안에서 바뀐 이름은 불투명 이름,
+    피검 호출을 담은 튜플 풀기 등은 '피검 불투명' 이름(`<opaque-subject:…>`)이 된다(review32 M-04)."""
+    env = {} if env is None else env
+    out = [] if out is None else out
+    for s in stmts:
         if isinstance(s, ast.Assign) and len(s.targets) == 1 and isinstance(s.targets[0], ast.Name):
             env[s.targets[0].id] = _inline(s.value, env)
         elif isinstance(s, ast.AnnAssign) and isinstance(s.target, ast.Name) and s.value is not None:
             env[s.target.id] = _inline(s.value, env)
-        elif isinstance(s, ast.Assert):
-            p = _pair_of(s.test)
+        elif isinstance(s, ast.AugAssign) and isinstance(s.target, ast.Name):
+            cur = env.get(s.target.id, ast.Name(id=s.target.id, ctx=ast.Load()))
+            env[s.target.id] = ast.BinOp(left=cur, op=s.op, right=_inline(s.value, env))
+        elif isinstance(s, ast.Assert) or _is_assert_call(s):
+            if isinstance(s, ast.Assert):
+                p = _pair_of(s.test)
+            else:
+                p = (s.value.args[0], s.value.args[1]) if len(s.value.args) >= 2 else None
             out.append((s.lineno, None, None) if p is None else (s.lineno, _inline(p[0], env), _inline(p[1], env)))
-        else:
+        elif isinstance(s, (ast.For, ast.AsyncFor, ast.While, ast.With, ast.AsyncWith, ast.If, ast.Try)):
+            inner = dict(env)
+            for n in _assigned_names([s.target] if isinstance(s, (ast.For, ast.AsyncFor)) else []):
+                inner[n] = _opaque(n)
+            for block in ("body", "orelse", "finalbody"):
+                _assert_pairs(getattr(s, block, []) or [], subjects, dict(inner), out)
+            for h in getattr(s, "handlers", []) or []:
+                _assert_pairs(h.body, subjects, dict(inner), out)
             for n in _assigned_names([s]):
                 env[n] = _opaque(n)
+        else:
+            subj = isinstance(s, ast.Assign) and _has_subject(s.value, subjects)
+            for n in _assigned_names([s]):
+                env[n] = ast.Name(id=f"<opaque-subject:{n}>", ctx=ast.Load()) if subj else _opaque(n)
     return out
 
 
@@ -311,13 +342,14 @@ def _is_leaf(c):
 
 
 def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True):
+    """assert마다 (줄, 판정). 판정: FAIL(확실한 복사) / PASS / UNJUDGED(피검이 걸렸는데 판정 못 함 --
+    auditor 대조 대상) / NO-SUBJECT(피검 호출이 없는 assert -- V4 (2) 대상 아님)."""
     mod = ast.parse(module_src)
     funcs = {f.name: f for f in mod.body if isinstance(f, ast.FunctionDef)}
     test = next(f for f in ast.parse(test_src).body if isinstance(f, ast.FunctionDef))
-    if not inline_test:
-        test.body = [s for s in test.body if isinstance(s, ast.Assert)]
+    body = test.body if inline_test else [s for s in test.body if isinstance(s, ast.Assert)]
     results = []
-    for lineno, a, b in _assert_pairs(test):
+    for lineno, a, b in _assert_pairs(body, subjects):
         if a is None:
             results.append((lineno, "UNJUDGED"))
             continue
@@ -328,7 +360,8 @@ def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True)
             return None
         call, x = (subj_call(a), b) if subj_call(a) else (subj_call(b), a)
         if call is None:
-            results.append((lineno, "no-subject-call"))
+            has = _has_subject(a, subjects) or _has_subject(b, subjects)
+            results.append((lineno, "UNJUDGED" if has else "NO-SUBJECT"))
             continue
         fdef = funcs.get(_callee(call))
         bound = _bind(fdef, call) if fdef else None
@@ -342,8 +375,11 @@ def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True)
         e_all = [v for e in es for v in expand(e, funcs, (fdef.name,))]
         x_all = expand(x, {k: v for k, v in funcs.items() if k not in subjects}, ())
         cx = {canon(v) for v in x_all}
-        # 잎 하나(매개변수·상수)로 끝나는 return 경로는 비교하지 않는다(review31 N-03: 명세 리터럴 거짓 양성)
-        hit = [i for i, e in enumerate(e_all) if not _is_leaf(canon(e)) and canon(e) in cx]
+        # 입력을 그대로 돌려주는 경로는 비교하지 않는다(review31 N-03, review32 M-02): 정규형이 잎 하나이거나
+        # 결합된 인자 식 하나의 정규형과 같은 E_i -- 그 값과 같은 명세 리터럴·무발동 값을 복사로 볼 수 없다.
+        passthrough = {canon(v) for v in bound.values()}
+        hit = [i for i, e in enumerate(e_all)
+               if not _is_leaf(canon(e)) and canon(e) not in passthrough and canon(e) in cx]
         results.append((lineno, "FAIL" if hit else "PASS"))
     return results
 
@@ -401,12 +437,29 @@ def main():
         ("키워드 전용 기본값", "def f(a, *, k=2.0):\n    return a * k\n", "def test_f():\n    assert f(y) == pytest.approx(y * 2.0)\n", {"f"}, "FAIL", None),
         ("**kw 호출(판정 없음, 예외 없음)", "def gain(gm, ro):\n    return gm * ro\n", "def test_gain():\n    kw = {'gm': 2e-3, 'ro': 50e3}\n    assert gain(**kw) == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "UNJUDGED", None),
         ("assert 뒤 재대입(데이터 흐름)", "def gain(gm, ro):\n    return gm * ro\n", "def test_gain():\n    e = gm0 * ro0\n    assert gain(gm0, ro0) == pytest.approx(e)\n    e = 100.0\n", {"gain"}, "FAIL", None),
-        ("튜플 반환", "def gp(a, b):\n    return a * b, a + b\n", "def test_gp():\n    p, s = gp(2.0, 3.0)\n    assert p == pytest.approx(2.0 * 3.0)\n", {"gp"}, "no-subject-call", "F3 튜플 풀기"),
+        ("튜플 반환", "def gp(a, b):\n    return a * b, a + b\n", "def test_gp():\n    p, s = gp(2.0, 3.0)\n    assert p == pytest.approx(2.0 * 3.0)\n", {"gp"}, "UNJUDGED", "F3 튜플 풀기"),
         # review31 N-03: 잎 하나 return 경로의 명세 리터럴
         ("clamp 통과 경로 리터럴", "def clamp(x, lo, hi):\n    if x < lo:\n        return lo\n    if x > hi:\n        return hi\n    return x\n", "def test_clamp():\n    assert clamp(5, 0, 10) == 5\n", {"clamp"}, "PASS", None),
         ("clamp 하한 리터럴", "def clamp(x, lo, hi):\n    if x < lo:\n        return lo\n    if x > hi:\n        return hi\n    return x\n", "def test_clamp():\n    assert clamp(-3, 0, 10) == 0\n", {"clamp"}, "PASS", None),
         ("area(0) 상수 return", "def area(n):\n    if n == 0:\n        return 0.0\n    return n * 1.5\n", "def test_area():\n    assert area(0) == 0.0\n", {"area"}, "PASS", None),
         ("단위 이득(항등원 뒤 잎 하나)", "def vout(vin, gain=1.0):\n    return vin * gain\n", "def test_vout():\n    assert vout(0.9) == pytest.approx(0.9)\n", {"vout"}, "PASS", None),
+        # review32 M-02: 인자가 식인 통과 경로
+        ("clamp 통과 경로, 인자가 식(무발동 값)", "def clamp(x, lo, hi):\n    if x < lo:\n        return lo\n    if x > hi:\n        return hi\n    return x\n", "def test_clamp():\n    vdd = 1.8\n    vin = 0.5 * vdd\n    assert clamp(vin, 0.0, vdd) == pytest.approx(vin)\n", {"clamp"}, "PASS", None),
+        ("단위 이득, 인자가 식", "def vout(vin, gain=1.0):\n    return vin * gain\n", "def test_vout():\n    vin = 0.5 * 1.8\n    assert vout(vin) == pytest.approx(vin)\n", {"vout"}, "PASS", None),
+        ("항등 함수, 인자가 식", "def buf(x):\n    return x\n", "def test_buf():\n    assert buf(2.0 * 3.0) == pytest.approx(2.0 * 3.0)\n", {"buf"}, "PASS", None),
+        # review32 M-03: 숫자 인자 다중집합
+        ("교환 재배열 a*b*c*x 대 x*c*b*a", "def f(x, a, b, c):\n    return a * b * c * x\n", "def test_f():\n    assert f(y, 0.1, 0.2, 0.3) == pytest.approx(y * 0.3 * 0.2 * 0.1)\n", {"f"}, "FAIL", None),
+        ("숫자만의 3.0/2 대 3.0*0.5", "def half(x):\n    return x / 2\n", "def test_half():\n    assert half(3.0) == pytest.approx(3.0 * 0.5)\n", {"half"}, "FAIL", None),
+        ("손으로 접은 계수 6.0*y", "def f(x, k1=2.0, k2=3.0):\n    return x * k1 * k2\n", "def test_f():\n    assert f(y) == pytest.approx(6.0 * y)\n", {"f"}, "PASS", "F1 손 계산 계수"),
+        ("손으로 접은 계수 4e-6*W/L", "def ids(kp, w, l, vov):\n    return 0.5 * kp * (w / l) * vov ** 2\n", "def test_ids():\n    assert ids(200e-6, W, L, 0.2) == pytest.approx(4e-6 * W / L)\n", {"ids"}, "PASS", "F1 손 계산 계수"),
+        # review32 M-04와 FN3·FN7·FN8
+        ("합 위 단항 마이너스 -(b+c) 대 -p-q", "def n(b, c):\n    return -(b + c)\n", "def test_n():\n    assert n(p, q) == pytest.approx(-p - q)\n", {"n"}, "FAIL", None),
+        ("for 안의 재서술", "def gain(gm, ro):\n    return gm * ro\n", "def test_gain():\n    for gm in (1e-3, 2e-3):\n        assert gain(gm, 50e3) == pytest.approx(gm * 50e3)\n", {"gain"}, "FAIL", None),
+        ("with 안의 재서술", "def gain(gm, ro):\n    return gm * ro\n", "def test_gain():\n    with ctx():\n        assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "FAIL", None),
+        ("np.testing.assert_allclose 재서술", "def gain(gm, ro):\n    return gm * ro\n", "def test_gain():\n    np.testing.assert_allclose(gain(2e-3, 50e3), 2e-3 * 50e3)\n", {"gain"}, "FAIL", None),
+        ("test 쪽 누적 대입 e *= 50e3", "def gain(gm, ro):\n    return gm * ro\n", "def test_gain():\n    e = 2e-3\n    e *= 50e3\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n", {"gain"}, "FAIL", None),
+        ("식 안의 피검 호출", "def gp(a, b):\n    return a * b\n", "def test_gp():\n    assert gp(2.0, 3.0) * 1 == pytest.approx(2.0 * 3.0)\n", {"gp"}, "UNJUDGED", None),
+        ("피검 없는 assert", "def gp(a, b):\n    return a * b\n", "def test_gp():\n    assert len([1, 2]) == 2\n", {"gp"}, "NO-SUBJECT", None),
     ]
     for name, m, t, s, expect, limit in cases + syn:
         r = judge(m, t, s)

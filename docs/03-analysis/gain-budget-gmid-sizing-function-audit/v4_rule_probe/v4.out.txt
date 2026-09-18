@@ -24,12 +24,26 @@ x/2 대 x*0.5: [(2, 'FAIL')] | 기대 FAIL
 키워드 전용 기본값: [(2, 'FAIL')] | 기대 FAIL
 **kw 호출(판정 없음, 예외 없음): [(3, 'UNJUDGED')] | 기대 UNJUDGED
 assert 뒤 재대입(데이터 흐름): [(3, 'FAIL')] | 기대 FAIL
-튜플 반환: [(3, 'no-subject-call')] | 기대 no-subject-call | known_limit F3 튜플 풀기
+튜플 반환: [(3, 'UNJUDGED')] | 기대 UNJUDGED | known_limit F3 튜플 풀기
 clamp 통과 경로 리터럴: [(2, 'PASS')] | 기대 PASS
 clamp 하한 리터럴: [(2, 'PASS')] | 기대 PASS
 area(0) 상수 return: [(2, 'PASS')] | 기대 PASS
 단위 이득(항등원 뒤 잎 하나): [(2, 'PASS')] | 기대 PASS
-e329283 조합 test 인라인=False 피검 인라인=False: [(7, 'no-subject-call'), (15, 'no-subject-call')]
-e329283 조합 test 인라인=False 피검 인라인=True: [(7, 'no-subject-call'), (15, 'no-subject-call')]
+clamp 통과 경로, 인자가 식(무발동 값): [(4, 'PASS')] | 기대 PASS
+단위 이득, 인자가 식: [(3, 'PASS')] | 기대 PASS
+항등 함수, 인자가 식: [(2, 'PASS')] | 기대 PASS
+교환 재배열 a*b*c*x 대 x*c*b*a: [(2, 'FAIL')] | 기대 FAIL
+숫자만의 3.0/2 대 3.0*0.5: [(2, 'FAIL')] | 기대 FAIL
+손으로 접은 계수 6.0*y: [(2, 'PASS')] | 기대 PASS | known_limit F1 손 계산 계수
+손으로 접은 계수 4e-6*W/L: [(2, 'PASS')] | 기대 PASS | known_limit F1 손 계산 계수
+합 위 단항 마이너스 -(b+c) 대 -p-q: [(2, 'FAIL')] | 기대 FAIL
+for 안의 재서술: [(3, 'FAIL')] | 기대 FAIL
+with 안의 재서술: [(3, 'FAIL')] | 기대 FAIL
+np.testing.assert_allclose 재서술: [(2, 'FAIL')] | 기대 FAIL
+test 쪽 누적 대입 e *= 50e3: [(4, 'FAIL')] | 기대 FAIL
+식 안의 피검 호출: [(2, 'UNJUDGED')] | 기대 UNJUDGED
+피검 없는 assert: [(2, 'NO-SUBJECT')] | 기대 NO-SUBJECT
+e329283 조합 test 인라인=False 피검 인라인=False: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
+e329283 조합 test 인라인=False 피검 인라인=True: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=True 피검 인라인=False: [(7, 'PASS'), (15, 'PASS')]
 e329283 조합 test 인라인=True 피검 인라인=True: [(7, 'FAIL'), (15, 'PASS')]
