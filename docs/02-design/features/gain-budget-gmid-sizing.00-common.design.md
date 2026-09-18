@@ -1,6 +1,6 @@
 ---
 template: design
-version: 1.5
+version: 1.7
 plan_version: 5.19
 ---
 
@@ -9,7 +9,7 @@ plan_version: 5.19
 > **Summary**: 13개 design 문서가 공유하는 정의를 한 곳에 모은다. 구현 주체 분류 양식(WP-21), 용어→코드 이름 대응, 영역 표기 규약(DEC-67), 옛 키 거부 게이트 공통 형식(DEC-68·69), 실패 규약의 코드 형식(N3.14), 판정 기록·승인 기록 스키마(N3.12.5), 판정에 쓰는 계획서 표(V 도입·IC 담당·Phase 순서)를 검증 도구가 직접 읽는 규칙(N4.1·N4.2·N6.1), 성능 측정 명령(N6.3), 무동작 판정 방법.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (오케스트레이터)
-> **Date**: 2026-09-18 · **Status**: Draft v1.5 -- 독립 검증 review21~25 반영, 판정 표 사본 제거(§2 정정), 사용자 승인 대기(DEC-51)
+> **Date**: 2026-09-18 · **Status**: Draft v1.7 -- 독립 검증 review21~27 반영, 판정 표 사본 제거(§2 정정), 사용자 승인 대기(DEC-51)
 > **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v5.19 · N6.1 `0(문서)` 행
 
 Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는다(계획서 N1이 목적·범위의 정본이다).
@@ -58,7 +58,7 @@ Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는�
 
 **선택: C**(2026-09-18 사용자 선택). 근거는 위 두 원칙 행이다.
 
-**정정(2026-09-18, 사용자 "대안으로 고치고")**: 위 세 안은 모두 '표를 어딘가에 옮겨 둔다'는 전제였고 **'소비자가 원본을 직접 읽는다'는 선택지가 빠져 있었다**. 그래서 v1.0~v1.3은 V 도입·Phase 순서·IC 담당 표를 merge gate·test 쪽 코드 상수로 옮기고, 사본과 원본을 맞추는 자기검사와 '어느 판을 읽나' 규칙을 덧댔다 -- 그 규칙은 상수가 gate 코드와 같은 파일에 있어 구현할 수 없었다(review24 R-04). 정정 규칙: **사본은 소비자가 원본을 읽으면 안 될 때만 둔다.** 엔진은 실행 중에 문서를 읽으면 안 되므로 실패 클래스 표(§7)와 옛 이름 표(§6)만 사본(코드 상수 + 일치 test)이고, 검증 도구가 쓰는 표(§9)는 계획서를 직접 읽는다. 사본이 막던 경로(계획서 표 한 칸 수정으로 검사를 끄기)는 EL4의 '판정 표 diff 승인 기록 필수'가 막는다.
+**정정(2026-09-18, 사용자 "대안으로 고치고")**: 위 세 안은 모두 '표를 어딘가에 옮겨 둔다'는 전제였고 **'소비자가 원본을 직접 읽는다'는 선택지가 빠져 있었다**. 그래서 v1.0~v1.3은 V 도입·Phase 순서·IC 담당 표를 merge gate·test 쪽 코드 상수로 옮기고, 사본과 원본을 맞추는 자기검사와 '어느 판을 읽나' 규칙을 덧댔다 -- 그 규칙은 상수가 gate 코드와 같은 파일에 있어 구현할 수 없었다(review24 R-04). 정정 규칙: **사본은 소비자가 원본을 읽으면 안 될 때만 둔다.** 엔진은 실행 중에 문서를 읽으면 안 되므로 실패 클래스 표(§7)와 옛 이름 표(§6)만 사본(코드 상수 + 일치 test)이고, 검증 도구가 쓰는 표(§9)는 계획서를 직접 읽는다. 사본이 막던 경로(계획서 표 한 칸 수정으로 검사를 끄기)는 **EL3(커밋 시점)과 EL4(병합 시점)의 '판정 표 변경은 승인 기록 필수'**가 막는다 -- 계획서 개정은 오케스트레이터의 직접 커밋이 정상 경로라 EL4만으로는 발동하지 않는다(review26 T-03).
 
 ---
 
@@ -101,7 +101,7 @@ Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는�
 | merge gate 로더·승인 기록 파서·red 해시 | 판정 기록 로더, `parse_approval_header`, `red_failure_hash`, red 수집 플러그인 | `코드` | 2 -- 병합 판정 | 0.5 공격 15 | `오케스트레이터` | `사용자` | CC-1 |
 | 계획서 판정 표 읽기 | `read_plan_tables`·`plan_phase_tokens` | `코드` | 2 -- N/A 판정 입력 | 0.5 공격 16(표 파손 거부, 승인 없는 표 개정 거부) | `오케스트레이터` | `사용자` | CC-2 |
 | 계측 인터페이스 | MOD10 `search`·`output_dir`·`instrument`·`activations_out` 인자, 평가 커널 빌더의 감싸기 | `코드` | 2 -- 보고 수치·판정 입력 | red-green | `gmid-code-author` | `gmid-test-author` | CC-7, CC-8 |
-| xfail 생성과 표식 대조 | conftest `--gmid-phase`, `gmid_ic` 표식, 표식-계획서 대조 test | `코드` | 2 -- xfail 만료 판정 | 계획서 N4.1 직접 대조(§9.3) | `gmid-test-author` | `사용자`(계획서 N4.1 승인) | CC-3 |
+| xfail 생성과 표식 대조 | conftest `--gmid-phase`·`--gmid-strict`·`--gmid-dod`, `gmid_ic` 표식(케이스 키), 표식-계획서 대조 test | `코드` | 2 -- xfail 만료 판정 | 계획서 N4.1 직접 대조(§9.3) | `gmid-test-author` | `사용자`(계획서 N4.1 승인) | CC-3 |
 | 실패 규약 코드 | §7 | `코드` | 2 -- exit code·실패 레코드 | red-green | `gmid-code-author` | `gmid-test-author` | CC-4 |
 | 옛 키 게이트 | §6 | `코드` | 2 -- 로드 거부 | red-green | `gmid-code-author` | `gmid-test-author` | CC-5 |
 | 영역 토큰 | `DOMAINS` | `코드` | 2 -- 로드 거부 | red-green | `gmid-code-author` | `gmid-test-author` | CC-6 |
@@ -296,12 +296,12 @@ def exit_code_for(exc: BaseException) -> int: ...
 **해시의 정의와 소비자**:
 
 * `failure_hashes[i]` = `red_failure_hash(test_ids[i], exc_type)` = `sha256(UTF-8(f"{test_id}\n{exc_type.__module__}.{exc_type.__qualname__}"))`. 함수는 `tools/gates/merge_gate.py` 하나에 두고, auditor가 기록할 때와 merge gate가 재계산할 때 모두 이 함수를 쓴다. 메시지·경로는 넣지 않는다(worktree 경로와 실수 repr 때문에 재현되지 않는다). **소비자**: merge gate가 freeze 커밋 worktree에서 `red.test_ids`를 base에 대해 다시 실행해 같은 해시가 나오는지 대조한다(V2 red 재현).
-* **red 수집**(merge gate 모듈이 pytest 플러그인이다): 실행은 worktree 루트에서 `$PY -m pytest --rootdir=<worktree 루트> -p tools.gates.merge_gate …`이고, 플러그인은 환경 변수 `GMID_RED_CAPTURE`가 가리키는 파일에 (test id, 예외 타입)을 JSON으로 쓴다. test id는 rootdir 기준 pytest node id다.
+* **red 수집**(merge gate 모듈이 pytest 플러그인이다): 실행은 worktree 루트에서 `$PY -m pytest --rootdir=<worktree 루트> -p tools.gates.merge_gate --continue-on-collection-errors --gmid-phase <spec card Phase> --gmid-strict <§9.3 엄격 집합> …`이고(CC-3 전에는 두 `--gmid-*` 옵션이 없다), 병합본에서 엄격 대상 케이스는 PASS여야 하며 XPASS는 엄격 대상이 아닌 케이스에서만 나온다, 플러그인은 환경 변수 `GMID_RED_CAPTURE`가 가리키는 파일에 (test id, 예외 타입)을 JSON으로 쓴다. test id는 rootdir 기준 pytest node id다.
   * 실행 단계 실패: `pytest_runtest_makereport`에서 `call.when ∈ {"setup", "call"}`이고 `call.excinfo`가 있을 때 `call.excinfo.type`(fixture 실패도 red로 잡는다).
   * 수집 단계 실패(신규 모듈을 test 파일 머리에서 import하는 경우): `pytest_exception_interact(node, call, report)`에서 `report`가 `CollectReport`일 때, test id = 그 모듈의 node id, 예외 타입 = `call.excinfo.value.__cause__`의 타입(pytest는 import 오류를 `Collector.CollectError`로 감싸고 원인을 `__cause__`에 둔다 -- review24 R-02 실측, pytest 9.0.2). `__cause__`가 없으면 `call.excinfo.type`. 이 훅이 수집 오류에서 불리는지는 0.5 공격 15의 '수집 단계 ImportError red' 케이스로 실측해 고정한다.
-  * **허용 예외 타입**(merge gate가 강제, N3.12.3 순서 3): `builtins.AssertionError`, `_pytest.outcomes.Failed`, 그리고 **신규 심볼**을 import하는 경우에 한해 `builtins.ImportError`·`builtins.ModuleNotFoundError`·`builtins.AttributeError`. 그 밖의 타입으로 된 red는 red로 인정하지 않는다.
-  * **신규 심볼 판정**: 입력은 interface card의 '신규 시그니처' 절(N3.12.5)의 모듈 경로와 심볼 이름 목록이다. 예외의 `name`(ImportError·ModuleNotFoundError는 모듈 이름, AttributeError는 속성 이름)이나 `name_from`(ImportError의 `from … import X`의 X)이 그 목록에 있으면 신규 심볼 import다(pytest 9.0.2 실측: 모듈 머리 AttributeError는 `CollectError`로 감싸지지 않고 그대로 온다).
-  * 실행 명령에 `--continue-on-collection-errors`를 붙인다 -- 수집 오류 하나가 세션을 멈추면 같은 실행의 실행 단계 red가 기록되지 않는다(review25 Q-03).
+  * **허용 예외 타입**(merge gate가 강제, N3.12.3 순서 3): `builtins.AssertionError`, `builtins.Failed`(pytest `Failed`의 `__module__`은 `"builtins"`다 -- review27 X-01 실측, pytest 9.0.2), 그리고 **신규 심볼**을 import하는 경우에 한해 `builtins.ImportError`·`builtins.ModuleNotFoundError`·`builtins.AttributeError`. 그 밖의 타입으로 된 red는 red로 인정하지 않는다.
+  * **신규 심볼 판정**: 입력은 interface card의 '신규 시그니처' 절(N3.12.5)을 **(모듈, 심볼) 쌍** 목록으로 읽은 것이다. 모듈은 점 표기(`topology_authoring`, 패키지면 `a.b`), 신규 모듈 전체면 심볼 `*`. 예외에서 쌍을 만든다: `ModuleNotFoundError` → (`name`, `*`) / `from M import X`의 `ImportError` → (`name`, `name_from`) / `AttributeError` → (`obj.__name__`, `name`)(pytest 9.0.2 실측: 모듈 머리 AttributeError는 `CollectError`로 감싸지지 않고 그대로 온다). 그 쌍이 목록에 있을 때만 신규 심볼 import다 -- 모듈만 대조하면 그 모듈의 오타·삭제된 기존 심볼 ImportError까지 red로 인정된다(review26 T-09, Python 3.14 실측: `from json import NEW_SYMBOL`의 `name`은 `'json'`).
+  * `--continue-on-collection-errors`가 필요한 이유: 수집 오류 하나가 세션을 멈추면 같은 실행의 실행 단계 red가 기록되지 않는다(review25 Q-03).
 * `outputs_hash` = `commands`를 순서대로 실행한 표준출력 바이트를 이어 붙인 것의 `sha256`. **소비자**: merge gate가 base·병합본에서 같은 명령을 다시 실행해 대조한다(V2 equivalence).
 * `test-only`의 증거는 `checks.V2.basis`에 적는다(N4.2 V2).
 
@@ -339,7 +339,8 @@ scope: <한 줄>
 
 * 파서 대상: `.ai/approvals/`에서 이름이 `_`로 시작하지 않는 `.md`(양식 `_TEMPLATE.md`는 제외). 줄 끝은 `\r?\n`이다(autocrlf worktree의 CRLF 체크아웃).
 * 머리 규칙: 한 줄에 `key: value` 하나. 값은 `: ` 뒤 전부이고 앞뒤 공백을 뗀다. 주석 줄 금지. 허용 키는 `id`, `date`, `target_kind`, `target`, `diff_base`, `diff_head`, `diff_path`(반복 가능, 한 줄에 경로 하나), `scope`이고 **모르는 키는 거부**한다. 파일은 UTF-8, BOM 없음.
-* 값 형식: `id`는 §8.1 `id` 형식이고 파일 이름 `<id>.md`와 같다 / `date`는 `YYYY-MM-DD` 실제 날짜 / `target_kind` ∈ {`diff`, `decision`} / `scope`는 비지 않음.
+* 값 형식: `id`는 §8.1 `id` 형식이고 파일 이름 `<id>.md`와 같다 / `date`는 `YYYY-MM-DD` 실제 날짜 / `target_kind` ∈ {`diff`, `decision`, `plan_tables`} / `scope`는 비지 않음.
+* `target_kind: plan_tables`(계획서 판정 표 변경의 승인, §9.1): `target` = 변경 뒤 계획서를 `read_plan_tables`로 파싱한 값을 키 정렬 JSON으로 직렬화한 바이트의 `sha256`(64자리 소문자 16진). `diff_*` 키는 금지다. EL3·EL4가 같은 식으로 다시 계산해 대조한다.
 * `target_kind: decision`이면 `target`은 결정 ID 목록이고 `,`로 나눈 뒤 각 원소의 공백을 뗀다(예: `U-26, J1`). `diff_*` 키는 금지다.
 * `target_kind: diff`이면 `diff_base`·`diff_head`(40자리 소문자 16진)와 `diff_path`(1개 이상, 탭·개행 없음)가 필수이고 `target`은 64자리 소문자 16진이다. **diff 해시**는 diff 출력이 아니라 **blob id**로 만든다 -- diff 출력은 저장소 로컬 설정(`diff.suppressBlankEmpty` 등)에 흔들리고 로컬 설정은 환경 변수로 끌 수 없다(review23·24 실측). 경로를 정렬해 경로마다 `git rev-parse --verify --quiet <commit>:<path>`(없으면 `-`)로 base·head blob id를 얻고, `sha256(UTF-8("".join(f"{path}\t{base_blob}\t{head_blob}\n" for path in sorted(diff_paths))))`이다. blob id는 파일 내용의 해시이므로 같은 내용 변경에는 같은 값이 나온다. 거부: 경로가 정규화되지 않음(`./`, `..`, 역슬래시, 끝 `/`), 양쪽 모두 없음, base·head blob이 같음(바뀌지 않은 경로), `git cat-file -t`가 `blob`이 아님(디렉터리). V5는 같은 식으로 다시 계산해 `target`과 비교한다.
 * design 문서의 승인은 `target_kind: diff`이고 `diff_path`는 그 design 문서와 그 문서가 기댄 개정 파일 전부다(§16).
@@ -350,7 +351,7 @@ scope: <한 줄>
 
 ## 9. 판정에 쓰는 계획서 표 -- V 도입·IC 담당·Phase 순서
 
-내용은 계획서 N4.1·N4.2·N6.1이 정본이고 **사본을 두지 않는다**. 이 표들의 소비자는 검증 도구(merge gate, test)뿐이라 계획서를 직접 읽으면 된다(§2 정정). 사본이 막던 경로 -- 계획서 표 한 칸을 고쳐 검사를 끄는 것 -- 는 EL4가 막는다: 이 세 표의 diff는 승인 기록 필수다(N3.12.4 EL4 v5.19).
+내용은 계획서 N4.1·N4.2·N6.1이 정본이고 **사본을 두지 않는다**. 이 표들의 소비자는 검증 도구(merge gate, test)뿐이라 계획서를 직접 읽으면 된다(§2 정정). 사본이 막던 경로 -- 계획서 표 한 칸을 고쳐 검사를 끄는 것 -- 는 EL3와 EL4가 막는다: 이 표들의 **파싱 값이 바뀌면** 승인 기록 필수다(N3.12.4 EL3는 커밋 시점, EL4는 병합 시점).
 
 ### 9.1 읽기 함수 (`tools/gates/merge_gate.py`, 부트스트랩 ①)
 
@@ -373,7 +374,13 @@ def read_plan_tables(plan_path: str) -> PlanTables: ...               # 표를 �
 
 * **어느 판을 읽나**: merge gate는 **base 판** 계획서를 읽는다. 병합하려는 쪽 계획서를 읽으면 그 병합이 자기 판정 규칙을 바꿀 수 있기 때문이다. 계획 개정은 병합된 다음 병합부터 적용된다. test(§9.3)는 자기가 도는 worktree의 계획서를 읽는다 -- 그 계획서의 판정 표가 base와 다르면 이미 EL4가 승인 기록을 요구한다.
 * 거부: 표를 못 읽으면 merge gate는 아무것도 판정하지 않고 거부한다(WP-02). N4.3 공격 16 (ii)가 이것을 증명한다.
-* **EL4의 판정 표 diff**(N3.12.4): base와 head 계획서를 같은 `read_plan_tables`로 파싱해 **파싱 값**(`v_intro`, `ic_parts`, `ic_test`, `phase_order`)이 다르면 diff다(원문 문장 수정은 diff가 아니다). **head 계획서의 표를 못 읽으면 그 병합을 거부**한다 -- 그래서 흐름 안에서는 base 계획서가 깨진 채 병합되지 않는다. 흐름 밖(사용자 직접 커밋)에서 base가 깨지면 복구도 사용자가 흐름 밖에서 한다(N3.12.2 '사용자만' 경로와 같은 취급).
+* **판정 표 변경 검사**(N3.12.4): 앞 판과 뒤 판 계획서를 같은 `read_plan_tables`로 파싱해 **파싱 값**(`v_intro`, `ic_parts`, `ic_test`, `phase_order`)이 다르면 변경이다(원문 문장 수정은 변경이 아니다). 두 곳에서 같은 함수로 한다.
+  * **EL3(커밋 시점)**: 앞 판 = HEAD, 뒤 판 = staged 계획서. 오케스트레이터의 직접 커밋(계획서 개정의 정상 경로)이 여기서 걸린다. 뒤 판을 못 읽으면 차단.
+  * **EL4(병합 시점)**: 앞 판 = base, 뒤 판 = head(병합할 브랜치 끝 커밋). 뒤 판을 못 읽으면 거부.
+  * 변경이 있으면 승인 기록(`target_kind: plan_tables`, `target` = 뒤 판 파싱 값의 해시, §8.2)이 필요하다.
+  * 두 검사가 뒤 판을 못 읽으면 막으므로 흐름 안에서는 깨진 계획서가 base에 들어가지 않는다. hook을 우회한 커밋 등 흐름 밖에서 base가 깨지면 merge gate는 판정하지 않고 거부하고(공격 16 (iii)), 복구는 사용자가 한다.
+  * 부트스트랩 설치(N3.12.6 ④) 전의 계획서 개정에는 hook이 없다 -- 사용자 승인 커밋으로 한다.
+  * **상태 기반 검사**(review27 N-03): `git revert`·`cherry-pick`·`merge`·`commit-tree`는 pre-commit hook을 돌리지 않으므로(git 2.52 실측) 변경 시점 검사만으로는 빠지는 경로가 있다. 그래서 merge gate는 병합마다 **현재 base 계획서의 판정 표 파싱 값 해시에 대응하는 `plan_tables` 승인 기록이 있는지**도 확인한다. 어떤 경로로 들어왔든 승인되지 않은 판정 표 상태에서는 병합이 진행되지 않는다. 우회 명령 전수, 해시 직렬화 형식, 승인 기록을 index와 작업 트리 중 어디서 찾는지 등 구현 세부는 `05-role-separation`이 정하고 0.5 공격 재생 케이스로 고정한다(§17).
 
 ### 9.2 토큰화와 표 읽기 규칙
 
@@ -390,7 +397,12 @@ def read_plan_tables(plan_path: str) -> PlanTables: ...               # 표를 �
 ### 9.3 소비자
 
 * **merge gate**: 로더 규칙 10(§8.1)의 `N/A` 판정이 `v_intro`와 `phase_order`를 쓴다.
-* **TS7 xfail**(test-author, CC-3): test 케이스는 자기 담당 Phase를 표식 `@pytest.mark.gmid_ic("<IC>", phase="<Phase>")`로 단다(parametrize 케이스마다 달 수 있다 -- IC11의 2레일 케이스는 `"4"`, 3레일 케이스는 `"6a"`). conftest가 `--gmid-phase <Phase>` 옵션(기본값 없음 -- 없거나 `phase_order` 밖이면 수집 오류, V1 실행에서 auditor가 spec card `Phase`를 넘긴다)과 비교한다. **xfail 조건**: 표식 Phase가 현재 Phase보다 뒤이거나, 같고 엄격 대상이 아닐 때(reason = `"<IC> -- 담당 Phase <phase> -- 만료: <phase> DoD"`, N3.12.3 '만료 = 그 Phase DoD'). **엄격 대상**: `--gmid-dod`(그 Phase DoD 판정 실행 -- 담당 Phase가 현재 Phase인 IC 전부)와 `--gmid-strict <IC,...>`(그 IC를 활성화하는 spec card의 V1·V2 실행 -- spec card '관찰 가능한 계약'이 그 IC를 적는다). 엄격 대상의 test는 xfail 없이 PASS여야 한다. 그래서 담당 Phase의 앞쪽 card는 그 IC 때문에 막히지 않고, IC를 활성화하는 card와 Phase DoD에서는 반드시 PASS가 확인된다. IC11의 선행 거부 케이스(N4.1)는 N4.3 공격 13의 실행 Phase인 `6a` 표식을 단다.
+* **TS7 xfail**(test-author, CC-3): test 케이스는 자기 담당 Phase와 케이스 키를 표식 `@pytest.mark.gmid_ic("<IC>", phase="<Phase>", case="<case>")`로 단다(parametrize 케이스마다 달 수 있다 -- IC11의 2레일 케이스는 `phase="4", case="rail2"`, 3레일 케이스는 `phase="6a", case="rail3"`, 선행 거부 케이스는 `phase="6a", case="reject"`). 케이스가 하나뿐인 IC는 `case=""`다. 케이스 키 = `"<IC>:<case>"`. conftest가 `--gmid-phase <Phase>` 옵션(기본값 없음 -- 없거나 `phase_order` 밖이면 수집 오류, V1 실행에서 auditor가 spec card `Phase`를 넘긴다)과 비교한다. **xfail 조건**: 표식 Phase가 현재 Phase보다 뒤이거나, **같고 그 케이스 키가 엄격 대상이 아닐 때**다(reason = `"<IC> -- 담당 Phase <phase> -- 만료: <phase> DoD"`, N3.12.3 '만료 = 그 Phase DoD'). 표식 Phase가 현재보다 앞이면 언제나 활성이다. **엄격 대상**(표식 Phase = 현재 Phase인 케이스에만 뜻이 있다):
+  * `--gmid-dod`: 그 Phase DoD 판정 실행 -- 표식 Phase가 현재 Phase인 케이스 전부.
+  * `--gmid-strict <IC:case,...>`: **이번 spec card의 '활성화 IC 케이스' 필드(N3.12.3) ∪ 같은 Phase에서 이미 병합된 card들의 그 필드**. 누적이므로 활성화된 케이스를 뒤 card가 다시 깨면 그 card의 V1에서 FAIL한다(review26 T-02).
+  * **merge gate가 이 집합을 계산한다**: base의 판정 기록 중 spec card `Phase`가 같은 것들의 spec card 필드와 이번 spec card 필드의 합집합. 그리고 판정 기록 `auditor_run.commands`의 V1 명령에 `--gmid-phase <Phase>`와 정확히 그 집합(정렬, 쉼표 구분)의 `--gmid-strict`가 있는지 대조한다. 다르면 거부(auditor가 빠뜨려도 조용히 통과하지 않는다). **CC-3 병합 전**(conftest에 `--gmid-*` 옵션이 아직 없을 때)에는 이 대조를 하지 않는다 -- 옵션을 주면 pytest가 모르는 옵션으로 끝나고 빼면 거부되어 Phase 1 앞쪽 card가 모두 막히기 때문이다(review27 N-02). 그때는 엄격 대상도 없다(xfail 선언 자체가 CC-3에서 생긴다).
+  * **모르는 케이스 키 거부**: conftest는 `--gmid-strict`에 들어온 키마다 수집된 test 중 그 `gmid_ic` 표식(IC·case)이 있고 그 표식 Phase가 현재 Phase인지 확인하고, 아니면 수집 오류로 끝낸다(오타 키·표식 없는 키·Phase가 맞지 않는 키가 조용히 통과하지 않게 -- review27 N-01. 모의 실측에서 동작 확인). 케이스 키 이름을 바꾸는 test 변경은 그 Phase에서 이미 병합된 spec card 필드의 옛 키를 무효로 만들므로, 그 변경의 spec card가 옛 키 → 새 키 대응을 '활성화 IC 케이스' 필드에 함께 적는다.
+  엄격 대상 케이스는 xfail 없이 PASS여야 한다. 그래서 담당 Phase의 앞쪽 card는 막히지 않고, 케이스를 활성화하는 card부터 그 Phase의 모든 뒤 card와 DoD에서 PASS가 확인된다. 같은 Phase에 표식이 같은 케이스 둘(IC11 `reject`·`rail3`)은 각자 활성화 card에서 따로 엄격해진다(review26 T-01). IC11의 선행 거부 케이스(N4.1)는 N4.3 공격 13의 실행 Phase인 `6a` 표식을 단다.
 * **표식과 계획서 대조**(test-author, CC-3의 test): IC마다 `ic_test[IC]` 함수에 달린 표식 Phase 집합 = `{p.phase for p in ic_parts[IC]}`. 표식이 계획서에 없는 Phase를 달거나 계획서 Phase에 표식이 없으면 FAIL. 이 test가 읽는 것은 계획서 원본과 test 파일 자신의 표식뿐이라 사본이 없다.
 * **N3.14 표**(CC-4): 실패 클래스 표는 **엔진이 실행 중에 쓰므로**(exit code) 엔진이 문서를 읽을 수 없어 코드 상수 `FAILURE_CLASSES`(§7.1)로 둔다. 같은 파일의 test가 `read_plan_tables`와 같은 표 읽기 규칙으로 N3.14 표를 읽어 §7.1 키 규칙으로 만든 {키: (예외 클래스 이름, exit code, parent)}가 `FAILURE_CLASSES`와 같은지 단언한다(사본이 정당한 유일한 경우라 일치 test를 붙인다).
 * oracle (d): spec card '오라클 출처'에 사용자가 승인한 계획서 절과 그 판의 커밋 해시를 적는다.
@@ -451,7 +463,7 @@ $PY skills/analog-gmid-design/assets/tests/tools/measure_search_perf.py \
 ### 11.1 대상과 입력
 
 * 대상: spec card 'library 회로 적용 여부'(N3.12.3)에서 **기능이 필요 없다고 적은 회로** 전부.
-* **적용 시작**: CC-8이 병합된 다음 동작 변경 spec card부터 card마다 적용한다. 그 전에 병합되는 Phase 4 card가 비지 않도록 Phase 4 순서를 **TS4 → DF-35 → DF-36 → CC-4 앞부분(실패 클래스·`FailureRecord`·`exit_code_for`, DF-37의 하네스 `run()` 몫) → CC-7·CC-8 → 나머지**로 둔다(N6.1 Phase 4 행 v5.19). 두 도구의 실패 처리와 oracle이 CC-4 앞부분에 기댄다. 그 앞 card의 무동작은 이렇게 다룬다: TS4는 test만 바꾸므로 엔진 산출물이 바뀌지 않는다. DF-35·DF-36은 library 회로 전부에 필요한 수정이다(경로·산출물 형식, 무동작 대상 회로가 없다). CC-7·CC-8의 엔진 쪽 변경(계측 인자, θ 탐색부 추출)은 인자 기본값에서 동작 불변이고 그 증거는 각 spec card의 `equivalence`다. 옛 커밋에 도구를 소급 적용하지 않는다(review24 R-01: 옛 커밋에는 인자·경로 수정이 없어 실행되지 않는다).
+* **적용 시작**: CC-8이 병합된 다음 동작 변경 spec card부터 card마다 적용한다. 그 전에 병합되는 Phase 4 card가 비지 않도록 Phase 4 순서를 **TS4 → DF-35 → DF-36 → CC-4 앞부분(실패 클래스·`FailureRecord`·`exit_code_for`, DF-37의 하네스 `run()` 몫) → CC-7·CC-8 → 나머지**로 둔다(N6.1 Phase 4 행 v5.19). 두 도구의 실패 처리와 oracle이 CC-4 앞부분에 기댄다. 그 앞 card의 무동작은 이렇게 다룬다: TS4는 test만 바꾸므로 엔진 산출물이 바뀌지 않는다. DF-35·DF-36은 library 회로 전부에 필요한 수정이다(경로·산출물 형식, 무동작 대상 회로가 없다). CC-4 앞부분은 실패 경로(예외 클래스·exit code)만 바꾸므로 성공한 실행의 산출물은 그대로이고, 그 증거는 성공 경로의 `equivalence`(그 spec card)다. CC-7·CC-8의 엔진 쪽 변경(계측 인자, θ 탐색부 추출)은 인자 기본값에서 동작 불변이고 그 증거는 각 spec card의 `equivalence`다. 옛 커밋에 도구를 소급 적용하지 않는다(review24 R-01: 옛 커밋에는 인자·경로 수정이 없어 실행되지 않는다).
 * spec card 필드 '무동작 판정 입력'(N3.12.3): 볼 **발동 계수 ID 목록**(1개 이상 -- 비어 있으면 FAIL. 조건이 공허하게 참이 되지 않게)과, 병합본이 더하는 **새 산출물 필드마다의 무발동 값**.
 
 ### 11.2 산출물을 만드는 진입점
@@ -537,12 +549,12 @@ auditor는 결과를 `.ai/verification/<spec card id>/noop-<circuit>.json`에 �
 |---|---|---|---|---|---|
 | CC-1 | merge gate 로더(§8.1 로더 규칙 전부 + 해시 재계산), red 수집 플러그인, `parse_approval_header`, `red_failure_hash`, diff 해시 재계산(V5), U-38 의존성 선언 | 부트스트랩 | `오케스트레이터` / `사용자`(N4.3 공격 15 거부 로그) | 공격 15 케이스는 `tools/gates/redteam/`에 데이터로 두고 케이스마다 기대(거부/통과)를 적는다: 로더 규칙마다 거부 케이스 1개 이상 + review21·22·23 독립 검증 케이스(보고서 표에서 옮긴다) + 오거부 0 = 올바른 기록 3종 | `05-role-separation` |
 | CC-2 | `read_plan_tables`·`plan_phase_tokens`(§9.1·§9.2), 표 파손 거부, EL4의 판정 표 diff 승인 검사 | 부트스트랩 | `오케스트레이터` / `사용자`(N4.3 공격 16) | (d) 계획서 N4.1·N4.2·N6.1 | `05-role-separation` |
-| CC-3 | conftest `--gmid-phase` 옵션, `gmid_ic` 표식과 xfail 생성, 표식-계획서 N4.1 대조 test(§9.3) | test-only가 아니라 TS7 선언의 일부(N3.11 TS7, Phase 1) -- 대조 test의 red는 표식이 계획서와 다른 합성 test 파일에서 FAIL | `gmid-test-author` / `사용자`(계획서 N4.1 승인) | (d) 계획서 N4.1(승인 판 커밋 해시) | `10-test-separation` |
-| CC-4 | §7.1(MOD2·MOD4 형식), §9.3 N3.14 부분, DF-37 광범위 except 재raise, 진입점 exit code | red-green | `gmid-code-author` / `gmid-test-author` | (a) 예외 계층·exit code 불변식, (d) 계획서 N3.14 | `40-defect-fixes` |
+| CC-3 | conftest `--gmid-phase`·`--gmid-strict`·`--gmid-dod` 옵션, `gmid_ic` 표식(케이스 키)과 xfail 생성, 표식-계획서 N4.1 대조 test(§9.3) | test-only가 아니라 TS7 선언의 일부(N3.11 TS7, Phase 1) -- 대조 test의 red는 표식이 계획서와 다른 합성 test 파일에서 FAIL | `gmid-test-author` / `사용자`(계획서 N4.1 승인) | (d) 계획서 N4.1(승인 판 커밋 해시) | `10-test-separation` |
+| CC-4 | **앞부분**(Phase 4에서 CC-7·CC-8보다 먼저): §7.1(MOD2·MOD4 형식), 진입점 exit code(DF-37의 하네스 `run()` 몫), §9.3 N3.14 부분. **나머지**: DF-37 광범위 except 재raise | red-green | `gmid-code-author` / `gmid-test-author` | (a) 예외 계층·exit code 불변식, (d) 계획서 N3.14 | `40-defect-fixes` |
 | CC-5 | `LEGACY_NAMES`·`JSON_KINDS`·`load_json_checked`·`reject_legacy_names`로 `validate_no_legacy_vs_key`와 파일 읽기 `json.load` 전부 대체, 깊은 복사 관용구를 `copy.deepcopy`로(TS1 뒤 AST 계수가 0이면 해당 없음)(MG1 단위) | red-green | `gmid-code-author` / `gmid-test-author` | (d) 계획서 N3.16에서 test-author가 옮긴 기대 목록 | `40-defect-fixes` |
 | CC-6 | `DOMAINS`와 S1 엣지·metric 선언 `domain` 로드 검사, IC5 허용 영역 문자열 = `DOMAINS` 대조 test | red-green | `gmid-code-author` / `gmid-test-author` | (a) 값 집합 밖·누락 거부 | `6a-structure-stage` |
-| CC-7 | θ 탐색부 함수 추출(`equivalence` card) + 계측 인터페이스(§10.1) + 성능 측정 도구(§10.2·§10.3). DF-35 뒤 | red-green | `gmid-code-author` / `gmid-test-author` | (a) 구성으로 정답이 정해진 합성 입력(N0.4 (a)): worktree 밖 경로 설정 → exit 8, 탐색이 예외를 내게 한 입력 → `status=failed`·파일 존재·그 예외의 exit code | `40-defect-fixes` |
-| CC-8 | `activations_out` 인자 + 무동작 판정 도구(§11). DF-35·36 뒤 | red-green | `gmid-code-author` / `gmid-test-author` | (a) 구성으로 정답이 정해진 합성 입력: 발동 1건 → exit 9, 무발동 값 선언 없는 새 필드 → exit 9, 시드에 따라 달라지는 필드 → exit 10, 빈 ID 목록 → exit 9 | `40-defect-fixes` |
+| CC-7 | θ 탐색부 함수 추출(`equivalence` card) + 계측 인터페이스(§10.1) + 성능 측정 도구(§10.2·§10.3). DF-35·CC-4 앞부분 뒤 | red-green | `gmid-code-author` / `gmid-test-author` | (a) 구성으로 정답이 정해진 합성 입력(N0.4 (a)): worktree 밖 경로 설정 → exit 8, 탐색이 예외를 내게 한 입력 → `status=failed`·파일 존재·그 예외의 exit code | `40-defect-fixes` |
+| CC-8 | `activations_out` 인자 + 무동작 판정 도구(§11). DF-35·36·CC-4 앞부분 뒤 | red-green | `gmid-code-author` / `gmid-test-author` | (a) 구성으로 정답이 정해진 합성 입력: 발동 1건 → exit 9, 무발동 값 선언 없는 새 필드 → exit 9, 시드에 따라 달라지는 필드 → exit 10, 빈 ID 목록 → exit 9 | `40-defect-fixes` |
 | CC-9 | `normalized_margin`(§7.2) | red-green | `gmid-code-author` / `gmid-test-author` | (a) 손계산(분모 0·`None` → `None`) | `50-failure-cache` |
 
 ---
@@ -580,6 +592,7 @@ auditor는 결과를 `.ai/verification/<spec card id>/noop-<circuit>.json`에 �
 | 기존 `InfeasibleSizingError` raise 지점의 분류 | `40-defect-fixes` |
 | 레지스트리·N3.10의 `optimize_full_circuit_budget` 목적지 불일치(MOD6 대 MOD8) | `30-module-split` |
 | EL1 glob('자기 변경 id만'), EL3 허용 조합표, U-38 의존성 선언 파일·버전 | `05-role-separation` |
+| **게이트 구현 세부**: hook을 거치지 않는 git 명령 전수와 그 차단·상태 검사 방법, `PlanTables` 해시의 직렬화 형식과 계산 CLI, 승인 기록을 index·작업 트리 중 어디서 찾는지, 옛 승인 표로 되돌리는 변경의 처리, V1 명령 식별 방법과 빈 엄격 집합 표기, 신규 하위 모듈·클래스 속성·인스턴스 속성 import의 신규 심볼 판정, EL3 판정 표 검사의 구현 주체(review27 N-04~N-10). 이 문서는 원칙(무엇을 막는가)만 정하고, 동작은 0.5 공격 재생의 실행 증거로 고정한다(WP-21 -- 산문 규정은 게이트가 실제로 거부한다는 증거를 대신하지 못한다) | `05-role-separation` |
 | 각 CC의 spec card 분할 | 발행 문서(§14) |
 
 이 문서를 쓰며 드러난 계획서 빈칸은 v5.19에서 닫았다(history '`00-common` 구성안 C와 v5.19 계획 보완').
