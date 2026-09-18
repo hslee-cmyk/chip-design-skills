@@ -1,0 +1,189 @@
+====================================================================================================
+DELTA: f5ea9fe(D-08,D-09) + working tree(D-05,D-12,D-13)
+
+## common_gate_amplifier  DC역할 {'bias_current_source': 2, 'signal': 1}  구조로 못 가르는 그룹 []
+  [D-12] pass 묶음에 붙은 넷: ['vout']
+         상속 전 미정의(순방향) [] -> 상속 후 {}
+         stage 시작(1): ['M2']
+           block M2 in=vin out=vout members=['M2']
+  [회귀 D-12 vs 규칙2] 상속전 {} 원시0 / 상속후 {} 원시0 / 전류진입 집합 동일=True
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] []
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] []
+  [D-13 R1] 
+  [D-13 R2] 
+
+## current_reuse_telescopic_ota  DC역할 {'diode_ref': 16, 'bias_current_source': 15, 'signal': 20}  구조로 못 가르는 그룹 []
+  [D-12] pass 묶음에 붙은 넷: ['N1a2a', 'N1b2b', 'N36b', 'N3a4a', 'N3b4b', 'N58_57', 'N64_63', 'Vcmfb', 'Vg15', 'Vg25', 'Voc', 'Vom', 'Vom1', 'Vop', 'Vop1']
+         상속 전 미정의(순방향) ['Vg15', 'Vg25'] -> 상속 후 {'Vg15': ('voltage', 'pass 묶음 M9b 반대편 Vop1에서 전파'), 'Vg25': ('voltage', 'pass 묶음 M18b 반대편 Vom1에서 전파')}
+         stage 시작(9): ['M1a', 'M1b', 'M4a', 'M4b', 'M15', 'M16', 'M25', 'M26', 'M37a']
+           note M7: 규칙5 예외: DC 역할 바이어스 전류원
+           block M1a in=Vip out=Vg25 members=['M1a', 'M2a', 'M18a']
+           block M1b in=Vim out=Vg15 members=['M1b', 'M2b', 'M9a']
+           block M4a in=Vip out=Vg25 members=['M4a', 'M3a', 'M18a']
+           block M4b in=Vim out=Vg15 members=['M4b', 'M3b', 'M9a']
+           block M15 in=Vg15 out=Vom members=['M15']
+           block M16 in=Vop1 out=Vom members=['M16']
+           block M25 in=Vg25 out=Vop members=['M25']
+           block M26 in=Vom1 out=Vop members=['M26']
+           block M37a in=Voc out=Vcmfb members=['M37a']
+  [회귀 D-12 vs 규칙2] 상속전 {'(3-b)': 4, '(2)Miller': 6} 원시18 / 상속후 {'(3-b)': 4, '(2)Miller': 6} 원시18 / 전류진입 집합 동일=True
+  [D-05] (3-b)                          전 4 [('M15', 'Vg15'), ('M1b', 'Vim'), ('M37a', 'Voc'), ('M7', 'Vcmfb')] -> 후 3 [('M15', 'Vg15'), ('M37a', 'Voc'), ('M7', 'Vcmfb')]
+  [D-05] (2)Miller                      전 1 [('M15', 'Vg15')] -> 후 1 [('M15', 'Vg15')]
+  [D-05] (3-b)                          전 4 [('M16', 'Vop1'), ('M1b', 'Vim'), ('M37a', 'Voc'), ('M7', 'Vcmfb')] -> 후 3 [('M16', 'Vop1'), ('M37a', 'Voc'), ('M7', 'Vcmfb')]
+  [D-05] (2)Miller                      전 1 [('M16', 'Vop1')] -> 후 1 [('M16', 'Vop1')]
+  [D-05] (2)Miller                      전 3 [('M1b', 'Vim'), ('M37a', 'Voc'), ('M7', 'Vcmfb')] -> 후 2 [('M37a', 'Voc'), ('M7', 'Vcmfb')]
+  [D-05] (3-b)                          전 4 [('M1a', 'Vip'), ('M25', 'Vg25'), ('M37a', 'Voc'), ('M7', 'Vcmfb')] -> 후 3 [('M25', 'Vg25'), ('M37a', 'Voc'), ('M7', 'Vcmfb')]
+  [D-05] (2)Miller                      전 1 [('M25', 'Vg25')] -> 후 1 [('M25', 'Vg25')]
+  [D-05] (2)Miller                      전 3 [('M1a', 'Vip'), ('M37a', 'Voc'), ('M7', 'Vcmfb')] -> 후 2 [('M37a', 'Voc'), ('M7', 'Vcmfb')]
+  [D-05] (2)Miller                      전 1 [('M26', 'Vom1')] -> 후 1 [('M26', 'Vom1')]
+  [D-05] (3-b)                          전 4 [('M1a', 'Vip'), ('M26', 'Vom1'), ('M37a', 'Voc'), ('M7', 'Vcmfb')] -> 후 3 [('M26', 'Vom1'), ('M37a', 'Voc'), ('M7', 'Vcmfb')]
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] ['Vx']
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] []
+  [D-13 R1] Vom:한 블록(cells=['M15', 'M16'],미러제외후=['M15', 'M16'],drv=current,blkout=True) ; Vom1:한 블록(cells=['M2a', 'M3a'],미러제외후=['M2a', 'M3a'],drv=voltage,blkout=False) ; Vop:한 블록(cells=['M25', 'M26'],미러제외후=['M25', 'M26'],drv=current,blkout=True) ; Vop1:한 블록(cells=['M2b', 'M3b'],미러제외후=['M2b', 'M3b'],drv=voltage,blkout=False)
+  [D-13 R2] Vom:(a) 복합 블록(cells=['M15', 'M16'],미러제외후=['M15', 'M16'],drv=current,blkout=True) ; Vom1:한 블록(cells=['M2a', 'M3a'],미러제외후=['M2a', 'M3a'],drv=voltage,blkout=False) ; Vop:(a) 복합 블록(cells=['M25', 'M26'],미러제외후=['M25', 'M26'],drv=current,blkout=True) ; Vop1:한 블록(cells=['M2b', 'M3b'],미러제외후=['M2b', 'M3b'],drv=voltage,blkout=False)
+
+## folded_cascode  DC역할 {'diode_ref': 4, 'bias_current_source': 4, 'signal': 5}  구조로 못 가르는 그룹 []
+  [D-12] pass 묶음에 붙은 넷: ['Vg7', 'Vg9', 'X', 'Y', 'out']
+         상속 전 미정의(순방향) ['Vg9'] -> 상속 후 {'Vg9': ('undefined', '신호 진입 단자 없음')}
+         stage 시작(3): ['M1', 'M2', 'M8']
+           note M10: 규칙5 예외: DC 역할 바이어스 전류원
+           block M1 in=vin_n out=out members=['M1', 'M6']
+           block M2 in=vin_p out=Vg7 members=['M2', 'M5']
+           block M8 in=Vg7 out=out members=['M8']
+  [회귀 D-12 vs 규칙2] 상속전 {} 원시0 / 상속후 {} 원시0 / 전류진입 집합 동일=True
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] ['Vg10']
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] []
+  [D-13 R1] out:한 블록(cells=['M6', 'M8'],미러제외후=['M6'],drv=current,blkout=True)
+  [D-13 R2] out:(a) 복합 블록(cells=['M6', 'M8'],미러제외후=['M6'],drv=current,blkout=True)
+
+## ngcc_3stage_ff  DC역할 {'diode_ref': 3, 'bias_current_source': 8, 'review_needed': 2, 'signal': 3}  구조로 못 가르는 그룹 [['M14', 'M8']]
+  [D-12] pass 묶음에 붙은 넷: ['ND', 'NP', 'NX', 'V1', 'V2', 'Vout']
+         상속 전 미정의(순방향) [] -> 상속 후 {}
+         stage 시작(5): ['M1', 'M2', 'M8', 'M13', 'M14']
+           note M4: 규칙5 예외: DC 역할 바이어스 전류원
+           note M6B: 규칙5 예외: DC 역할 바이어스 전류원
+           note M7: 규칙5 예외: DC 역할 바이어스 전류원
+           note M10: 규칙5 예외: DC 역할 바이어스 전류원
+           block M1 in=Vinn out=ND members=['M1']
+           block M2 in=Vinp out=V1 members=['M2']
+           block M8 in=V1 out=NP members=['M8']
+           block M13 in=V2 out=Vout members=['M13']
+           block M14 in=V1 out=Vout members=['M14']
+  [회귀 D-12 vs 규칙2] 상속전 {'(2)Miller': 3} 원시3 / 상속후 {'(2)Miller': 3} 원시3 / 전류진입 집합 동일=True
+  [D-05] (2)Miller                      전 3 [('M10', 'NP'), ('M13', 'V2'), ('M8', 'V1')] -> 후 3 [('M10', 'NP'), ('M13', 'V2'), ('M8', 'V1')]
+  [D-05] (2)Miller                      전 1 [('M14', 'V1')] -> 후 1 [('M14', 'V1')]
+  [D-05] (2)Miller                      전 1 [('M13', 'V2')] -> 후 1 [('M13', 'V2')]
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] []
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] []
+  [D-13 R1] V1:한 블록(cells=['M2', 'M4'],미러제외후=['M2'],drv=voltage,blkout=True) ; Vout:(a) 복합 블록(cells=['M13', 'M14', 'M7'],미러제외후=['M13', 'M14'],drv=current,blkout=True)
+  [D-13 R2] V1:(a) 복합 블록(cells=['M2', 'M4'],미러제외후=['M2'],drv=voltage,blkout=True) ; Vout:(a) 복합 블록(cells=['M13', 'M14', 'M7'],미러제외후=['M13', 'M14'],drv=current,blkout=True)
+
+## nmcnr_amplifier  DC역할 {'diode_ref': 2, 'bias_current_source': 7, 'signal': 6}  구조로 못 가르는 그룹 []
+  [D-12] pass 묶음에 붙은 넷: ['NodeC', 'NodeF1', 'NodeF2', 'NodeM1', 'NodeM2', 'NodeS2', 'Vout']
+         상속 전 미정의(순방향) [] -> 상속 후 {}
+         stage 시작(4): ['M102', 'M103', 'M201', 'M301']
+           note M109: 규칙5 예외: DC 역할 바이어스 전류원
+           note M204: 규칙5 예외: DC 역할 바이어스 전류원
+           block M102 in=Vin_n out=NodeM1 members=['M102', 'M106']
+           block M103 in=Vin_p out=NodeM2 members=['M103', 'M107']
+           block M201 in=NodeM2 out=NodeC members=['M201']
+           block M301 in=NodeS2 out=Vout members=['M301']
+  [회귀 D-12 vs 규칙2] 상속전 {} 원시0 / 상속후 {} 원시0 / 전류진입 집합 동일=True
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] []
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] []
+  [D-13 R1] NodeM2:한 블록(cells=['M107', 'M109'],미러제외후=['M107'],drv=voltage,blkout=True)
+  [D-13 R2] NodeM2:(a) 복합 블록(cells=['M107', 'M109'],미러제외후=['M107'],drv=voltage,blkout=True)
+
+## pushpull_follower_buffer  DC역할 {'bias_current_source': 2, 'signal': 4}  구조로 못 가르는 그룹 []
+  [D-12] pass 묶음에 붙은 넷: []
+         상속 전 미정의(순방향) [] -> 상속 후 {}
+         stage 시작(0): []
+  [회귀 D-12 vs 규칙2] 상속전 {} 원시0 / 상속후 {} 원시0 / 전류진입 집합 동일=True
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] []
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] []
+  [D-13 R1] vout:다입력(기록만)(cells=['M1', 'M2'],미러제외후=['M1', 'M2'],drv=voltage,blkout=False)
+  [D-13 R2] vout:다입력(기록만)(cells=['M1', 'M2'],미러제외후=['M1', 'M2'],drv=voltage,blkout=False)
+
+## sf_pushpull_output_opamp  DC역할 {'diode_ref': 1, 'bias_current_source': 1, 'review_needed': 8, 'signal': 12}  구조로 못 가르는 그룹 [['M17', 'M6', 'M9'], ['M11', 'M8'], ['M14', 'M16', 'M20']]
+  [D-12] pass 묶음에 붙은 넷: ['N1', 'N12', 'N13', 'N2', 'N5', 'N7', 'Y']
+         상속 전 미정의(순방향) [] -> 상속 후 {}
+         stage 시작(16): ['M1', 'M2', 'M6', 'M5', 'M8', 'M7', 'M11', 'M12', 'M14', 'M13', 'M9', 'M10', 'M16', 'M15', 'M17', 'M20']
+           block M1 in=vin_p out=N1 members=['M1']
+           block M2 in=vin_n out=N2 members=['M2']
+           block M6 in=N5 out=N56 members=['M6']
+           block M5 in=N1 out=N5 members=['M5']
+           block M8 in=N7 out=N78 members=['M8']
+           block M7 in=N2 out=N7 members=['M7']
+           block M11 in=N7 out=N1112 members=['M11']
+           block M12 in=N2 out=N12 members=['M12']
+           block M14 in=N13 out=N1314 members=['M14']
+           block M13 in=N12 out=N13 members=['M13']
+           block M9 in=N5 out=N910 members=['M9']
+           block M10 in=N1 out=Y members=['M10']
+           block M16 in=N13 out=N1516 members=['M16']
+           block M15 in=N12 out=Y members=['M15']
+           block M17 in=N5 out=N17 members=['M17']
+           block M20 in=N13 out=N20 members=['M20']
+  [회귀 D-12 vs 규칙2] 상속전 {'기록만(수동소자 없는 2능동셀 루프)': 3, '(3-b)': 6} 원시9 / 상속후 {'기록만(수동소자 없는 2능동셀 루프)': 3, '(3-b)': 6} 원시9 / 전류진입 집합 동일=True
+  [D-05] 기록만(수동소자 없는 2능동셀 루프)           전 2 [('M5', 'N1'), ('M6', 'N5')] -> 후 1 [('M6', 'N5')]
+  [D-05] (3-b)                          전 1 [('M5', 'N1')] -> 후 1 [('M5', 'N1')]
+  [D-05] (3-b)                          전 1 [('M5', 'N1')] -> 후 1 [('M5', 'N1')]
+  [D-05] (3-b)                          전 1 [('M7', 'N2')] -> 후 1 [('M7', 'N2')]
+  [D-05] (3-b)                          전 1 [('M7', 'N2')] -> 후 1 [('M7', 'N2')]
+  [D-05] 기록만(수동소자 없는 2능동셀 루프)           전 2 [('M7', 'N2'), ('M8', 'N7')] -> 후 1 [('M8', 'N7')]
+  [D-05] (3-b)                          전 1 [('M13', 'N12')] -> 후 1 [('M13', 'N12')]
+  [D-05] (3-b)                          전 1 [('M13', 'N12')] -> 후 1 [('M13', 'N12')]
+  [D-05] 기록만(수동소자 없는 2능동셀 루프)           전 2 [('M13', 'N12'), ('M14', 'N13')] -> 후 1 [('M14', 'N13')]
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] ['N1112', 'N1314', 'N1516', 'N56', 'N78', 'N910']
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] [('M17', 'N17', 'review_needed', True), ('M20', 'N20', 'review_needed', True)]
+  [D-13 R1] N17:(a) 복합 블록(cells=['M17', 'M18'],미러제외후=['M17', 'M18'],drv=voltage,blkout=True) ; N20:(a) 복합 블록(cells=['M19', 'M20'],미러제외후=['M19', 'M20'],drv=voltage,blkout=True) ; Y:(a) 복합 블록(cells=['M10', 'M15'],미러제외후=['M10', 'M15'],drv=voltage,blkout=True) ; vout:다입력(기록만)(cells=['M21', 'M22'],미러제외후=['M21', 'M22'],drv=voltage,blkout=False)
+  [D-13 R2] N17:(a) 복합 블록(cells=['M17', 'M18'],미러제외후=['M17', 'M18'],drv=voltage,blkout=True) ; N20:(a) 복합 블록(cells=['M19', 'M20'],미러제외후=['M19', 'M20'],drv=voltage,blkout=True) ; Y:(a) 복합 블록(cells=['M10', 'M15'],미러제외후=['M10', 'M15'],drv=voltage,blkout=True) ; vout:다입력(기록만)(cells=['M21', 'M22'],미러제외후=['M21', 'M22'],drv=voltage,blkout=False)
+
+## two_stage_ota  DC역할 {'diode_ref': 1, 'bias_current_source': 3, 'signal': 3}  구조로 못 가르는 그룹 []
+  [D-12] pass 묶음에 붙은 넷: ['D3', 'O1', 'OUT']
+         상속 전 미정의(순방향) [] -> 상속 후 {}
+         stage 시작(3): ['M6', 'M1', 'M2']
+           note M4: 규칙5 예외: DC 역할 바이어스 전류원
+           block M6 in=O1 out=OUT members=['M6']
+           block M1 in=vin_n out=D3 members=['M1']
+           block M2 in=vin_p out=O1 members=['M2']
+  [회귀 D-12 vs 규칙2] 상속전 {} 원시0 / 상속후 {} 원시0 / 전류진입 집합 동일=True
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] []
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] []
+  [D-13 R1] O1:한 블록(cells=['M2', 'M4'],미러제외후=['M2'],drv=voltage,blkout=True)
+  [D-13 R2] O1:(a) 복합 블록(cells=['M2', 'M4'],미러제외후=['M2'],drv=voltage,blkout=True)
+
+## two_stage_ota_sf  DC역할 {'diode_ref': 1, 'bias_current_source': 4, 'signal': 4}  구조로 못 가르는 그룹 []
+  [D-12] pass 묶음에 붙은 넷: ['D3', 'O1', 'OUT']
+         상속 전 미정의(순방향) [] -> 상속 후 {}
+         stage 시작(3): ['M1', 'M2', 'M6']
+           note M4: 규칙5 예외: DC 역할 바이어스 전류원
+           block M1 in=vin_n out=D3 members=['M1']
+           block M2 in=vin_p out=O1 members=['M2']
+           block M6 in=O1 out=OUT members=['M6']
+  [회귀 D-12 vs 규칙2] 상속전 {'(2)Miller': 1} 원시1 / 상속후 {'(2)Miller': 1} 원시1 / 전류진입 집합 동일=True
+  [D-05] (2)Miller                      전 1 [('M6', 'O1')] -> 후 1 [('M6', 'O1')]
+  [D-05] 한정 후 후보 0인 루프: 0 []
+  [D-09] 9(c)(블록 뒤) []   9(a) []
+  [혼재 review] []
+  [K8 후보 (셀,k,DC역할,k가 블록출력?)] []
+  [D-13 R1] O1:한 블록(cells=['M2', 'M4'],미러제외후=['M2'],drv=voltage,blkout=True)
+  [D-13 R2] O1:(a) 복합 블록(cells=['M2', 'M4'],미러제외후=['M2'],drv=voltage,blkout=True)
+
+TOTAL {"bias_current_source": 46, "signal": 58, "review_groups": 4, "loops": 23, "loops_zero_after": 0, "cand_before": 44, "cand_after": 35, "R1_multi": 2, "R1_a": 4, "R1_a_circuits": 2, "R1_multi_circuits": 2, "R2_multi": 2, "R2_a": 11, "R2_a_circuits": 7, "R2_multi_circuits": 2, "diode_ref": 28, "review_needed": 10}
