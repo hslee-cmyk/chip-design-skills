@@ -1,0 +1,1584 @@
+[
+ {
+  "source": "review32",
+  "name": "FP1 clamp 통과, 입력이 test 지역 식(vin = 0.5*vdd)",
+  "module": "def clamp(x, lo, hi):\n    if x < lo:\n        return lo\n    if x > hi:\n        return hi\n    return x\n",
+  "test": "def test_c():\n    vdd = 1.8\n    vin = 0.5 * vdd\n    assert clamp(vin, 0.0, vdd) == pytest.approx(vin)\n",
+  "subjects": [
+   "clamp"
+  ],
+  "expect_note": "PASS",
+  "output": [
+   [
+    4,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FP2 단위 이득, 입력이 test 지역 식",
+  "module": "def vout(vin, gain=1.0):\n    return vin * gain\n",
+  "test": "def test_v():\n    vin = 0.5 * 1.8\n    assert vout(vin) == pytest.approx(vin)\n",
+  "subjects": [
+   "vout"
+  ],
+  "expect_note": "PASS",
+  "output": [
+   [
+    3,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FP3 항등(pass-through) 함수, 인자가 식",
+  "module": "def buf(x):\n    return x\n",
+  "test": "def test_b():\n    assert buf(2.0 * 3.0) == pytest.approx(2.0 * 3.0)\n",
+  "subjects": [
+   "buf"
+  ],
+  "expect_note": "PASS",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FP4 이름 있는 곱에 손으로 접은 계수(k1*k2 = 6 명세값)",
+  "module": "def f(x, k1=2.0, k2=3.0):\n    return x * k1 * k2\n",
+  "test": "def test_f(y):\n    assert f(y) == pytest.approx(6.0 * y)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "PASS(F1 성격: 손으로 접은 리터럴)",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FP5 제곱 법칙, 명세 계수 4e-6(=0.5*200e-6*0.2**2)",
+  "module": "def ib(w, l, kp=200e-6, vov=0.2):\n    return 0.5 * kp * (w / l) * vov ** 2\n",
+  "test": "def test_ib(W, L):\n    assert ib(W, L) == pytest.approx(4e-6 * W / L)\n",
+  "subjects": [
+   "ib"
+  ],
+  "expect_note": "PASS(F1 성격)",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FP5b 같은 식, 명세 계수 8e-6 · 0.5 표기(=kp*vov**2)",
+  "module": "def ib(w, l, kp=200e-6, vov=0.2):\n    return 0.5 * kp * (w / l) * vov ** 2\n",
+  "test": "def test_ib(W, L):\n    assert ib(W, L) == pytest.approx(0.5 * 8e-6 * W / L)\n",
+  "subjects": [
+   "ib"
+  ],
+  "expect_note": "PASS(F1 성격)",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN1 교환 재배열, 숫자 계수 셋(a*b*c*x 대 x*c*b*a)",
+  "module": "def f(x, a, b, c):\n    return a * b * c * x\n",
+  "test": "def test_f(y):\n    assert f(y, 0.1, 0.2, 0.3) == pytest.approx(y * 0.3 * 0.2 * 0.1)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN2 x*0.1*3 대 x*3*0.1 (재배열)",
+  "module": "def f(x):\n    return x * 0.1 * 3\n",
+  "test": "def test_f(y):\n    assert f(y) == pytest.approx(y * 3 * 0.1)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN3 -(b+c) 대 -b-c",
+  "module": "def f(b, c):\n    return -(b + c)\n",
+  "test": "def test_f(p, q):\n    assert f(p, q) == pytest.approx(-p - q)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN3b a - (b+c) 대 a - b - c (대조)",
+  "module": "def f(a, b, c):\n    return a - (b + c)\n",
+  "test": "def test_f(p, q, r):\n    assert f(p, q, r) == pytest.approx(p - q - r)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN4 for 루프 안 assert(재서술)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    for gm in (1e-3, 2e-3):\n        assert gain(gm, 50e3) == pytest.approx(gm * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    3,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN5 with 블록 안 assert(재서술)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    with ctx():\n        assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    3,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN6 np.testing.assert_allclose(재서술)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    np.testing.assert_allclose(gain(2e-3, 50e3), 2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN7 test 쪽 AugAssign(e = gm; e *= ro)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3\n    e *= 50e3\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    4,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN8 결과 첨자 gp(...)[0]",
+  "module": "def gp(a, b):\n    return a * b\n",
+  "test": "def test_g():\n    assert gp(2.0, 3.0) * 1 == pytest.approx(2.0 * 3.0)\n",
+  "subjects": [
+   "gp"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN9 연쇄 비교 -tol < a-b < tol",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert -1e-9 < gain(2e-3, 50e3) - 2e-3 * 50e3 < 1e-9\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "UNJUDGED",
+  "output": [
+   [
+    2,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN10 abs(b - a) 순서 뒤집음",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert abs(2e-3 * 50e3 - gain(2e-3, 50e3)) < 1e-9\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review32",
+  "name": "FN11 approx(rel=) 키워드",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3, rel=1e-9)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N1 for 대상에 피검 결과(zip 표 구동)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    gms = (1e-3, 2e-3)\n    rs = [gain(g, 50e3) for g in gms]\n    for r, g in zip(rs, gms):\n        assert r == pytest.approx(g * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    5,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N2 for r in [gain(...)]",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    for r in [gain(2e-3, 50e3)]:\n        assert r == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    3,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N3 if 블록 안에서 받은 피검 결과, assert는 밖",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    if True:\n        r = gain(2e-3, 50e3)\n    assert r == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    4,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N4 with 블록 안에서 받은 피검 결과(warnings), assert는 밖",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    with warnings.catch_warnings():\n        r = gain(2e-3, 50e3)\n    assert r == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    4,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N5 try 안에서 받은 피검 결과",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    try:\n        r = gain(2e-3, 50e3)\n    except ValueError:\n        r = 0.0\n    assert r == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    6,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N6 match 문 안의 assert",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    match mode:\n        case 'a':\n            assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    4,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N7 test 안 중첩 함수의 assert",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    def check(g):\n        assert gain(g, 50e3) == pytest.approx(g * 50e3)\n    check(1e-3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    3,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N8 try/except* 안의 assert",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    try:\n        assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n    except* ValueError:\n        pass\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    3,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N9 옆 인자로 통과 제외를 맞춤(쓰지 않는 선택 인자)",
+  "module": "def gain(gm, ro, note=None):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert gain(2e-3, 50e3, note=2e-3 * 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL(재서술)",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N10 튜플 대입 e = (gm*ro, 0)[0]",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert gain(2e-3, 50e3) == pytest.approx((2e-3 * 50e3, 0)[0])\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL(F3 부류)",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N11 assert 문 비교 > (피검 없음)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert len([1]) > 0\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "NO-SUBJECT",
+  "output": [
+   [
+    2,
+    "NO-SUBJECT"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N12 self.assertTrue(x) (피검 없음, 인자 1)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    self.assertTrue(ok)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "NO-SUBJECT",
+  "output": [
+   [
+    2,
+    "NO-SUBJECT"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N13 walrus",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert (r := gain(2e-3, 50e3)) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "UNJUDGED 이상",
+  "output": [
+   [
+    2,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "N14 전역 import 된 이름 경유 결과(r = results['a'])",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    results = {'a': gain(2e-3, 50e3)}\n    r = results['a']\n    assert r == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "UNJUDGED 이상",
+  "output": [
+   [
+    4,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "P1 clamp 상한, 인자 식(hi = 0.5*vdd) 명세 리터럴",
+  "module": "def clamp(x, lo, hi):\n    if x < lo:\n        return lo\n    if x > hi:\n        return hi\n    return x\n",
+  "test": "def test_c():\n    vdd = 1.8\n    assert clamp(5.0, 0.0, 0.5 * vdd) == pytest.approx(0.5 * vdd)\n",
+  "subjects": [
+   "clamp"
+  ],
+  "expect_note": "PASS",
+  "output": [
+   [
+    3,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "P2 루프 안 누적 기대값(첫 반복만 봄)",
+  "module": "def cascade(a, n):\n    return a * a\n",
+  "test": "def test_c():\n    v = 1.0\n    for i in range(2):\n        v = v * 3.0\n        assert cascade(3.0, i) == pytest.approx(v * 3.0)\n",
+  "subjects": [
+   "cascade"
+  ],
+  "expect_note": "(참고: 둘째 반복 기대값 27 ≠ 9)",
+  "output": [
+   [
+    5,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "P3 중첩 함수 return이 바깥 return 변형으로 섞임",
+  "module": "def f(x, k):\n    def inner(y):\n        return y * k\n    return x + 1.0\n",
+  "test": "def test_f():\n    assert f(2.0, 3.0) == pytest.approx(y * 3.0)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "PASS(inner는 f의 return 경로가 아님)",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "P4 인자 기본값이 식, 무발동(통과) 경로",
+  "module": "def lim(x, hi=0.5 * 1.8):\n    if x > hi:\n        return hi\n    return x\n",
+  "test": "def test_l():\n    assert lim(2.0) == pytest.approx(0.5 * 1.8)\n",
+  "subjects": [
+   "lim"
+  ],
+  "expect_note": "PASS(명세 리터럴이 기본값과 같은 표기)",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "P5 단위 이득을 식으로 쓴 기대(vin*1.0)",
+  "module": "def vout(vin, gain=1.0):\n    return vin * gain\n",
+  "test": "def test_v():\n    vin = 0.9\n    assert vout(vin) == pytest.approx(vin * 1.0)\n",
+  "subjects": [
+   "vout"
+  ],
+  "expect_note": "PASS",
+  "output": [
+   [
+    3,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C1 inf 리터럴 1e400",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert gain(1e400, 1.0) == pytest.approx(1e400 * 1.0)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "예외 없이 판정",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C2 복소 리터럴",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert gain(1j, 2.0) == pytest.approx(1j * 2.0)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "예외 없이 판정",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C3 starred 인자",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    a = (2e-3, 50e3)\n    assert gain(*a) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "UNJUDGED",
+  "output": [
+   [
+    3,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C4 lambda 피검(모듈에 def 없음)",
+  "module": "gain = lambda gm, ro: gm * ro\n",
+  "test": "def test_g():\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "UNJUDGED",
+  "output": [
+   [
+    2,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C5 comprehension assert all(...)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert all(gain(g, 50e3) == pytest.approx(g * 50e3) for g in (1e-3,))\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "UNJUDGED",
+  "output": [
+   [
+    2,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C6 피검 안 match 문",
+  "module": "def f(x, m):\n    match m:\n        case 1:\n            return x * 2.0\n    return x\n",
+  "test": "def test_f():\n    assert f(3.0, 1) == pytest.approx(3.0 * 2.0)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C7 피검 재귀",
+  "module": "def f(n, x):\n    if n == 0:\n        return x\n    return f(n - 1, x) * 2.0\n",
+  "test": "def test_f():\n    assert f(1, 3.0) == pytest.approx(3.0 * 2.0)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "예외 없이 판정",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C8 async test",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "async def test_g():\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "gain"
+  ],
+  "expect_note": "FAIL(async test 함수)",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C9 x**0.5 대 sqrt",
+  "module": "def f(x):\n    return x ** 0.5\n",
+  "test": "def test_f():\n    assert f(4.0) == pytest.approx(4.0 ** 0.5)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review33",
+  "name": "C10 큰 정수 지수 x**200000",
+  "module": "def f(x):\n    return x ** 200000\n",
+  "test": "def test_f():\n    assert f(y) == pytest.approx(y ** 200000)\n",
+  "subjects": [
+   "f"
+  ],
+  "expect_note": "FAIL(시간 확인)",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D1 list.append로 받은 피검 결과",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    rs = []\n    rs.append(gain(2e-3, 50e3))\n    assert rs[0] == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    4,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D2 dict 첨자 대입으로 받은 피검 결과",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    d = {}\n    d['a'] = gain(2e-3, 50e3)\n    assert d['a'] == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    4,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D3 속성 대입으로 받은 피검 결과",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    ns = types.SimpleNamespace()\n    ns.r = gain(2e-3, 50e3)\n    assert ns.r == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    4,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D4 루프에서 dict에 채운 결과(표 구동)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    out = {}\n    for g in (1e-3, 2e-3):\n        out[g] = gain(g, 50e3)\n    for g, r in out.items():\n        assert r == pytest.approx(g * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    6,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D5 list comprehension 결과를 zip 없이 인덱스",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    rs = [gain(g, 50e3) for g in (2e-3,)]\n    assert rs[0] == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    3,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D6 중첩 def 안 지역 이름이 바깥 기대식을 가림",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3 * 50e3\n    def helper(x):\n        e = x\n        return e\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    6,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D7 comprehension 변수가 바깥 기대식을 가림",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3 * 50e3\n    print([e for e in (1,)])\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    4,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D8 lambda 대입(이름 대입 아님) 뒤",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3 * 50e3\n    f = lambda e: e\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    4,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D9 with ... as e 가 아닌 다른 이름",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3 * 50e3\n    with open('x') as fh:\n        pass\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    5,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D10 for 안의 기대식 재대입 후 루프 밖 assert",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    for _ in range(1):\n        e = 2e-3 * 50e3\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    4,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D11 try 안 기대식, 밖 assert",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    try:\n        e = 2e-3 * 50e3\n    finally:\n        pass\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED",
+  "output": [
+   [
+    6,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D12 global 선언 test",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    global K\n    e = 2e-3 * 50e3\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    4,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D13 async test with await",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "async def test_g():\n    await asyncio.sleep(0)\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    3,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D14 async with / async for",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "async def test_g():\n    async with ctx() as c:\n        async for i in c:\n            assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    4,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D15 yield 있는 test(제너레이터)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    x = yield 1\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    3,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D16 match guard + 캡처 이름",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    match (1, 2):\n        case (a, b) if a < b:\n            e = 2e-3 * 50e3\n            assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    5,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D17 while/else 안 assert",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    while cond:\n        break\n    else:\n        assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    5,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D18 중첩 class 안 assert",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    class T:\n        assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED",
+  "output": [
+   [
+    3,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D19 -inf 리터럴",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert gain(-1e400, 2.0) == pytest.approx(-1e400 * 2.0)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D20 nan 식 float('nan')",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert gain(float('nan'), 2.0) == pytest.approx(float('nan') * 2.0)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D21 inf*0 계수",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert gain(1e400, 0.0) == pytest.approx(1e400 * 0.0)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D22 매개변수 재대입 뒤 return(쓰인 매개변수 판정)",
+  "module": "def f(x, k=2.0):\n    x = x * k\n    return x\n",
+  "test": "def test_f():\n    assert f(y) == pytest.approx(y * 2.0)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D23 통과 경로가 매개변수 식을 돌려줌(clamp hi 식 인자, 무발동 값)",
+  "module": "def clamp(x, lo, hi):\n    if x > hi:\n        return hi\n    return x\n",
+  "test": "def test_c():\n    assert clamp(0.5 * 1.8, 0.0, 1.8) == pytest.approx(0.5 * 1.8)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D24 쓰이는 인자 중 다른 인자로 제외 맞추기(x+off, off=기대식-? )",
+  "module": "def f(x, off=0.0):\n    return x + off\n",
+  "test": "def test_f():\n    assert f(2e-3 * 50e3, 0.0) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS(항등 경로)",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D25 피검 return이 중첩 함수 호출 결과",
+  "module": "def f(x, k):\n    def inner(y):\n        return y * k\n    return inner(x)\n",
+  "test": "def test_f():\n    assert f(3.0, 2.0) == pytest.approx(3.0 * 2.0)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL 또는 UNJUDGED(PASS면 놓침)",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D26 피검 안 lambda return 섞임 없음",
+  "module": "def f(x, k):\n    g = lambda y: y * k\n    return x + 1.0\n",
+  "test": "def test_f():\n    assert f(y0, 2.0) == pytest.approx(y0 * 2.0)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review34",
+  "name": "D27 피검 안 중첩 def의 return을 밖에서 곧장 씀(클로저 반환)",
+  "module": "def f(k):\n    def inner(y):\n        return y * k\n    return inner\n",
+  "test": "def test_f():\n    assert f(2.0)(3.0) == pytest.approx(3.0 * 2.0)\n",
+  "subjects": [
+   "clamp",
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED",
+  "output": [
+   [
+    2,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E1 피검 return이 중첩 def 이름(클로저 반환)",
+  "module": "def f(k):\n    def inner(y):\n        return y * k\n    return inner\n",
+  "test": "def test_f():\n    assert f(2.0)(3.0) == pytest.approx(6.0)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED",
+  "output": [
+   [
+    2,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E2 피검 return이 중첩 def 호출 + 리터럴 기대",
+  "module": "def f(x, k):\n    def inner(y):\n        return y * k\n    return inner(x)\n",
+  "test": "def test_f():\n    assert f(3.0, 2.0) == pytest.approx(6.0)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS/UNJUDGED",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E3 피검 return이 중첩 class 인스턴스",
+  "module": "def f(x):\n    class R:\n        v = 1\n    return R()\n",
+  "test": "def test_f():\n    assert f(3.0) == 3.0\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS/UNJUDGED",
+  "output": [
+   [
+    2,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E4 test 안 중첩 helper를 피검 인자에서 호출",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    def h(v):\n        return v\n    assert gain(h(2e-3), 50e3) == pytest.approx(100.0)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS/UNJUDGED",
+  "output": [
+   [
+    4,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E5 test 안 중첩 helper를 기대식에서 호출",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    def h(a, b):\n        return a * b\n    assert gain(2e-3, 50e3) == pytest.approx(h(2e-3, 50e3))\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED/FAIL",
+  "output": [
+   [
+    4,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E6 첨자 누적 out[k] += f",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    out = {'a': 0.0}\n    out['a'] += gain(2e-3, 50e3)\n    assert out['a'] == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED/FAIL",
+  "output": [
+   [
+    4,
+    "NO-SUBJECT"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E7 속성 주석 대입 res.v: float = f",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    res = Box()\n    res.v: float = gain(2e-3, 50e3)\n    assert res.v == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED/FAIL",
+  "output": [
+   [
+    4,
+    "NO-SUBJECT"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E8 튜플 대상 안의 첨자",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    out = {}\n    out['a'], k = gain(2e-3, 50e3), 1\n    assert out['a'] == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED/FAIL",
+  "output": [
+   [
+    4,
+    "NO-SUBJECT"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E9 setattr로 받은 결과",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    ns = Box()\n    setattr(ns, 'r', gain(2e-3, 50e3))\n    assert ns.r == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED/FAIL",
+  "output": [
+   [
+    4,
+    "NO-SUBJECT"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E10 dict.update로 받은 결과",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    d = {}\n    d.update(a=gain(2e-3, 50e3))\n    assert d['a'] == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED/FAIL",
+  "output": [
+   [
+    4,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E11 리스트 += [f]",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    rs = []\n    rs += [gain(2e-3, 50e3)]\n    assert rs[0] == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED/FAIL",
+  "output": [
+   [
+    4,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E12 walrus",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    assert (r := gain(2e-3, 50e3)) == pytest.approx(2e-3 * 50e3)\n    assert r == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    2,
+    "UNJUDGED"
+   ],
+   [
+    3,
+    "NO-SUBJECT"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E13 결정성 test: 첨자 기준값과 같은 호출 비교",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    base = {}\n    base['x'] = gain(2e-3, 50e3)\n    assert gain(2e-3, 50e3) == base['x']\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS/UNJUDGED",
+  "output": [
+   [
+    4,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E14 모듈 메서드에 피검 결과 넘긴 뒤 같은 모듈로 기대식",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    pytest.skip_if_nan(gain(2e-3, 50e3))\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    3,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E15 로거 메서드에 피검 결과 뒤 재서술",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    log.info(gain(2e-3, 50e3))\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    3,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E16 if 블록 안 첨자 대입 → 밖 assert",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    out = {}\n    if flag:\n        out['a'] = gain(2e-3, 50e3)\n    assert out['a'] == pytest.approx(2e-3 * 50e3)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "UNJUDGED/FAIL",
+  "output": [
+   [
+    5,
+    "UNJUDGED"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E17 comprehension 안 walrus가 바깥 이름에 새어 나감(가리기)",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3 * 50e3\n    xs = [(e := v) for v in (1.0,)]\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS/UNJUDGED (e=1.0이 맞음)",
+  "output": [
+   [
+    4,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E18 중첩 def 안 nonlocal 재대입",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3 * 50e3\n    def h():\n        nonlocal e\n        e = 1.0\n    h()\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS/UNJUDGED (e=1.0이 맞음)",
+  "output": [
+   [
+    7,
+    "FAIL"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E19 중첩 def 이름이 바깥 기대 이름과 같음",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3 * 50e3\n    def e():\n        return 1.0\n    assert gain(2e-3, 50e3) == pytest.approx(e())\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "PASS/UNJUDGED",
+  "output": [
+   [
+    5,
+    "PASS"
+   ]
+  ]
+ },
+ {
+  "source": "review35",
+  "name": "E20 lambda 기본값에 바깥 이름",
+  "module": "def gain(gm, ro):\n    return gm * ro\n",
+  "test": "def test_g():\n    e = 2e-3 * 50e3\n    k = lambda e=e: e\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n",
+  "subjects": [
+   "f",
+   "gain"
+  ],
+  "expect_note": "FAIL",
+  "output": [
+   [
+    4,
+    "FAIL"
+   ]
+  ]
+ }
+]

@@ -66,6 +66,7 @@ return inner(x) 중첩 함수 호출: [(2, 'PASS')] | 기대 PASS | known_limit 
 return R() 중첩 클래스 호출: [(2, 'PASS')] | 기대 PASS
 피검 안 중첩 함수 return: [(2, 'PASS')] | 기대 PASS
 케이스 67개, 기대 불일치 0개
+회귀 코퍼스 94개, 출력 변화 0개
 e329283 조합 test 인라인=False 피검 인라인=False: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=False 피검 인라인=True: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=True 피검 인라인=False: [(7, 'PASS'), (15, 'PASS')]

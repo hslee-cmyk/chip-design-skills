@@ -13,6 +13,7 @@
 import ast
 import copy
 import functools
+import json
 import subprocess
 from fractions import Fraction
 import sys
@@ -437,6 +438,15 @@ def _module_funcs(module_src):
 
 
 def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True):
+    """_judge를 감싼다: 식이 너무 깊어 어디서든(test 쪽 인라인 포함) 펼치지 못하면 판정하지 못함(review36 S3 --
+    `_hits` 밖의 깊은 식은 예외로 끝났다). 판정 문장 단위를 잃으므로 줄 번호 0의 UNJUDGED 하나로 낸다."""
+    try:
+        return _judge(module_src, test_src, subjects, inline_test, inline_subject)
+    except (RecursionError, MemoryError):
+        return [(0, "UNJUDGED")]
+
+
+def _judge(module_src, test_src, subjects, inline_test=True, inline_subject=True):
     """assert마다 (줄, 판정). 판정: FAIL(확실한 복사) / PASS / UNJUDGED(피검이 걸렸는데 판정 못 함 --
     auditor 대조 대상) / NO-SUBJECT(피검 호출이 없는 assert -- V4 (2) 대상 아님)."""
     funcs = _module_funcs(module_src)
@@ -609,6 +619,18 @@ def main():
         print(line)
     with OUT.open("a", encoding="utf-8") as f:
         f.write(f"케이스 {len(cases) + len(syn)}개, 기대 불일치 {mismatch}개\n")
+    # 누적 회귀 코퍼스: 검증자들(review32~35)이 만든 케이스 전부. 출력은 3bf0100 판(review36 독립 검증에서
+    # 회귀 0 확인)으로 고정했다 -- 출력이 바뀌면 그 변경이 의도인지 기록(history)과 함께 다시 고정한다.
+    corpus = json.loads(OUT.with_name("regression_cases.json").read_text(encoding="utf-8"))
+    changed = 0
+    for c in corpus:
+        now = [list(x) for x in judge(c["module"], c["test"], set(c["subjects"]))]
+        if now != c["output"]:
+            changed += 1
+            with OUT.open("a", encoding="utf-8") as f:
+                f.write(f"REGRESSION {c['source']} {c['name']}: 고정 {c['output']} -> 지금 {now}\n")
+    with OUT.open("a", encoding="utf-8") as f:
+        f.write(f"회귀 코퍼스 {len(corpus)}개, 출력 변화 {changed}개\n")
     # R-05 네 조합(인라인 여부) -- 실제 e329283
     for it in (False, True):
         for isub in (False, True):
