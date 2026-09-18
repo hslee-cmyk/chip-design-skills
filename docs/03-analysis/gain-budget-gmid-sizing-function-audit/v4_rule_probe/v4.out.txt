@@ -1,5 +1,18 @@
-e329283 (참 양성 기대): FAIL=True (동형=True, 반복 잎=True)
-gm*ro 독립 oracle (통과 기대): FAIL=False (동형=True, 반복 잎=False)
-KCL 합 (통과 기대): FAIL=False (동형=True, 반복 잎=False)
-다른 구조 (통과 기대): FAIL=False (동형=False, 반복 잎=False)
-잎 대응 불일치 (통과 기대): FAIL=False (동형=False, 반복 잎=True)
+e329283 실제(§13.3 변환 test): [(7, 'FAIL'), (15, 'PASS')] | 기대 첫 assert FAIL
+e329283 교환 재배열: [(7, 'FAIL'), (15, 'PASS')] | 기대 첫 assert FAIL
+e329283 1.0* 감싸기: [(7, 'FAIL'), (15, 'PASS')] | 기대 첫 assert FAIL
+e329283 손으로 접은 리터럴: [(7, 'PASS'), (15, 'PASS')] | 기대 첫 assert PASS | known_limit F1 상수 접기
+e329283 대수 정리(α 상쇄를 풀어 씀): [(7, 'PASS'), (15, 'PASS')] | 기대 첫 assert PASS | known_limit F2 분배·약분
+e329283 합을 sum()으로: [(7, 'PASS'), (15, 'PASS')] | 기대 첫 assert PASS | known_limit F3 모듈 밖 호출·자료구조
+제곱 vov*vov 대 0.2**2: [(2, 'FAIL')] | 기대 FAIL
+제곱 vov**2 대 0.2*0.2: [(2, 'FAIL')] | 기대 FAIL
+gm*ro 대 2e-3*50e3(재서술): [(2, 'FAIL')] | 기대 FAIL
+gm*ro 대 리터럴 100.0: [(2, 'PASS')] | 기대 PASS
+병렬 r1*r2/(r1+r2) 대 같은 식: [(2, 'FAIL')] | 기대 FAIL
+병렬 대 컨덕턴스 합(다른 폐형식): [(2, 'PASS')] | 기대 PASS
+같은 모듈 보조 함수 인라인: [(2, 'FAIL')] | 기대 FAIL
+KCL 합 i1+i2 대 10e-6+20e-6: [(2, 'FAIL')] | 기대 FAIL
+e329283 조합 test 인라인=False 피검 인라인=False: [(7, 'no-subject-call'), (15, 'no-subject-call')]
+e329283 조합 test 인라인=False 피검 인라인=True: [(7, 'no-subject-call'), (15, 'no-subject-call')]
+e329283 조합 test 인라인=True 피검 인라인=False: [(7, 'PASS'), (15, 'PASS')]
+e329283 조합 test 인라인=True 피검 인라인=True: [(7, 'FAIL'), (15, 'PASS')]
