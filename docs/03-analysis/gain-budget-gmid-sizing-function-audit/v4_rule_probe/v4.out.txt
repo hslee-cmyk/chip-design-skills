@@ -43,6 +43,21 @@ np.testing.assert_allclose 재서술: [(2, 'FAIL')] | 기대 FAIL
 test 쪽 누적 대입 e *= 50e3: [(4, 'FAIL')] | 기대 FAIL
 식 안의 피검 호출: [(2, 'UNJUDGED')] | 기대 UNJUDGED
 피검 없는 assert: [(2, 'NO-SUBJECT')] | 기대 NO-SUBJECT
+표 구동 zip 루프: [(4, 'UNJUDGED')] | 기대 UNJUDGED
+피검 결과 리스트를 도는 루프: [(3, 'UNJUDGED')] | 기대 UNJUDGED
+if 블록 안에서 받은 결과: [(4, 'UNJUDGED')] | 기대 UNJUDGED
+with 블록 안에서 받은 결과: [(4, 'UNJUDGED')] | 기대 UNJUDGED
+try 블록 안에서 받은 결과: [(6, 'UNJUDGED')] | 기대 UNJUDGED
+match 안의 재서술: [(4, 'FAIL')] | 기대 FAIL
+test 안 중첩 함수: [(3, 'UNJUDGED')] | 기대 UNJUDGED
+except* 안의 재서술: [(5, 'FAIL')] | 기대 FAIL
+쌍 없는 피검 없는 assert: [(2, 'NO-SUBJECT')] | 기대 NO-SUBJECT
+쌍 없는 피검 assert: [(2, 'UNJUDGED')] | 기대 UNJUDGED
+inf 리터럴(예외 없음): [(2, 'FAIL')] | 기대 FAIL
+async test: [(2, 'FAIL')] | 기대 FAIL
+쓰지 않는 인자로 통과 경로 흉내: [(2, 'FAIL')] | 기대 FAIL
+피검 안 중첩 함수 return: [(2, 'PASS')] | 기대 PASS
+케이스 59개, 기대 불일치 0개
 e329283 조합 test 인라인=False 피검 인라인=False: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=False 피검 인라인=True: [(7, 'NO-SUBJECT'), (15, 'NO-SUBJECT')]
 e329283 조합 test 인라인=True 피검 인라인=False: [(7, 'PASS'), (15, 'PASS')]

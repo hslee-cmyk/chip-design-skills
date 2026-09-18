@@ -46,6 +46,9 @@ def _assigned_names(stmts):
     return names
 
 
+_NESTED_DEF = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)
+
+
 def _walk_body(stmts, env, returns):
     """문장을 차례로 걸으며 env를 갱신하고 Return마다 (인라인된 식)을 returns에 넣는다."""
     env = dict(env)
@@ -67,9 +70,10 @@ def _walk_body(stmts, env, returns):
         else:
             for n in _assigned_names([s]):
                 env[n] = _opaque(n)
-            for sub in ast.walk(s):
-                if isinstance(sub, ast.Return) and sub.value is not None and sub is not s:
-                    returns.append(_inline(sub.value, env))
+            if not isinstance(s, _NESTED_DEF):
+                for sub in _walk_no_nested(s):
+                    if isinstance(sub, ast.Return) and sub.value is not None and sub is not s:
+                        returns.append(_inline(sub.value, env))
     return env
 
 
@@ -161,7 +165,10 @@ def _replace(tree, target, repl):
 # 나눗셈의 숫자 인자만 역수로 바꾼다(`x/2` = `x*0.5`) -- 계수를 부동소수로 곱하면 판정이 곱하는 순서와
 # 반올림에 따라 갈린다(review32 M-03). 숫자만의 식도 접지 않는다(재서술 `2e-3*50e3`가 리터럴과 구별된다).
 def _num(v):
-    return ("num", Fraction(repr(float(v))))
+    f = float(v)
+    if f != f or f in (float("inf"), float("-inf")):
+        return ("const", repr(f))  # inf·nan은 유리수로 못 둔다(review33 M2-05)
+    return ("num", Fraction(repr(f)))
 
 
 def canon(n):
@@ -300,12 +307,42 @@ def _has_subject(expr, subjects):
     return False
 
 
+_NESTED = (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef, ast.Lambda)
+
+
+def _walk_no_nested(node):
+    """ast.walk와 같되 중첩 함수·클래스·lambda 안으로 들어가지 않는다(review33 M2-06)."""
+    stack = [node]
+    while stack:
+        n = stack.pop()
+        yield n
+        for c in ast.iter_child_nodes(n):
+            if not isinstance(c, _NESTED):
+                stack.append(c)
+
+
+def _is_judgement(s):
+    return isinstance(s, ast.Assert) or _is_assert_call(s)
+
+
 def _assert_pairs(stmts, subjects, env=None, out=None):
     """본문을 순서대로, 제어 흐름 안까지 재귀로 걸으며 그 시점의 지역 대입 환경으로 판정 문장마다
-    (줄, a, b) -- 쌍을 못 만들면 (줄, None, None). 루프 변수·블록 안에서 바뀐 이름은 불투명 이름,
-    피검 호출을 담은 튜플 풀기 등은 '피검 불투명' 이름(`<opaque-subject:…>`)이 된다(review32 M-04)."""
+    (줄, a, b, 피검 걸림) -- 쌍을 못 만들면 a·b는 None. 이름 규칙(review32 M-04, review33 M2-03):
+    피검 호출(또는 피검 불투명 이름)을 담은 값·반복 대상에서 나온 이름은 어디서 대입되든 피검 불투명
+    (`<opaque-subject:…>`), 그 밖에 루프 변수·블록 안에서 바뀐 이름은 불투명 이름. 중첩 함수·클래스 안의
+    판정 문장과 이 함수가 다루지 않는 복합 문장 안의 판정 문장은 쌍 없이 피검 걸림으로 낸다(→ UNJUDGED)."""
     env = {} if env is None else env
     out = [] if out is None else out
+
+    def mark(names, value):
+        subj = value is not None and _has_subject(_inline(value, env), subjects)
+        for n in names:
+            env[n] = ast.Name(id=f"<opaque-subject:{n}>", ctx=ast.Load()) if subj else _opaque(n)
+
+    def block(stmts_, inner):
+        _assert_pairs(stmts_, subjects, inner, out)
+        return inner
+
     for s in stmts:
         if isinstance(s, ast.Assign) and len(s.targets) == 1 and isinstance(s.targets[0], ast.Name):
             env[s.targets[0].id] = _inline(s.value, env)
@@ -314,26 +351,41 @@ def _assert_pairs(stmts, subjects, env=None, out=None):
         elif isinstance(s, ast.AugAssign) and isinstance(s.target, ast.Name):
             cur = env.get(s.target.id, ast.Name(id=s.target.id, ctx=ast.Load()))
             env[s.target.id] = ast.BinOp(left=cur, op=s.op, right=_inline(s.value, env))
-        elif isinstance(s, ast.Assert) or _is_assert_call(s):
+        elif _is_judgement(s):
             if isinstance(s, ast.Assert):
-                p = _pair_of(s.test)
+                p, whole = _pair_of(s.test), s.test
             else:
                 p = (s.value.args[0], s.value.args[1]) if len(s.value.args) >= 2 else None
-            out.append((s.lineno, None, None) if p is None else (s.lineno, _inline(p[0], env), _inline(p[1], env)))
-        elif isinstance(s, (ast.For, ast.AsyncFor, ast.While, ast.With, ast.AsyncWith, ast.If, ast.Try)):
+                whole = s.value
+            if p is None:
+                out.append((s.lineno, None, None, _has_subject(_inline(whole, env), subjects)))
+            else:
+                out.append((s.lineno, _inline(p[0], env), _inline(p[1], env), True))
+        elif isinstance(s, (ast.For, ast.AsyncFor, ast.While, ast.With, ast.AsyncWith, ast.If,
+                            ast.Try, ast.TryStar, ast.Match)):
             inner = dict(env)
-            for n in _assigned_names([s.target] if isinstance(s, (ast.For, ast.AsyncFor)) else []):
-                inner[n] = _opaque(n)
-            for block in ("body", "orelse", "finalbody"):
-                _assert_pairs(getattr(s, block, []) or [], subjects, dict(inner), out)
+            if isinstance(s, (ast.For, ast.AsyncFor)):
+                subj = _has_subject(_inline(s.iter, env), subjects)
+                for n in _assigned_names([s.target]):
+                    inner[n] = ast.Name(id=f"<opaque-subject:{n}>", ctx=ast.Load()) if subj else _opaque(n)
+            branches = []
+            for attr in ("body", "orelse", "finalbody"):
+                if getattr(s, attr, None):
+                    branches.append(block(getattr(s, attr), dict(inner)))
             for h in getattr(s, "handlers", []) or []:
-                _assert_pairs(h.body, subjects, dict(inner), out)
+                branches.append(block(h.body, dict(inner)))
+            for c in getattr(s, "cases", []) or []:
+                branches.append(block(c.body, dict(inner)))
             for n in _assigned_names([s]):
-                env[n] = _opaque(n)
-        else:
-            subj = isinstance(s, ast.Assign) and _has_subject(s.value, subjects)
-            for n in _assigned_names([s]):
+                subj = any(_has_subject(b[n], subjects) for b in branches if n in b) \
+                    or (n in inner and _has_subject(inner[n], subjects))
                 env[n] = ast.Name(id=f"<opaque-subject:{n}>", ctx=ast.Load()) if subj else _opaque(n)
+        else:
+            # 중첩 def·class, 다루지 않는 문장: 안의 판정 문장은 UNJUDGED, 대입된 이름은 값에 피검이 있으면 피검 불투명
+            for sub in ast.walk(s):
+                if sub is not s and _is_judgement(sub):
+                    out.append((sub.lineno, None, None, True))
+            mark(_assigned_names([s]), getattr(s, "value", None))
     return out
 
 
@@ -346,12 +398,13 @@ def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True)
     auditor 대조 대상) / NO-SUBJECT(피검 호출이 없는 assert -- V4 (2) 대상 아님)."""
     mod = ast.parse(module_src)
     funcs = {f.name: f for f in mod.body if isinstance(f, ast.FunctionDef)}
-    test = next(f for f in ast.parse(test_src).body if isinstance(f, ast.FunctionDef))
+    test = next(f for f in ast.parse(test_src).body if isinstance(f, (ast.FunctionDef, ast.AsyncFunctionDef)))
     body = test.body if inline_test else [s for s in test.body if isinstance(s, ast.Assert)]
     results = []
-    for lineno, a, b in _assert_pairs(body, subjects):
+    for lineno, a, b, hooked in _assert_pairs(body, subjects):
         if a is None:
-            results.append((lineno, "UNJUDGED"))
+            # 쌍을 못 만든 판정: 피검이 걸렸으면 UNJUDGED, 아니면 NO-SUBJECT(review33 M2-04)
+            results.append((lineno, "UNJUDGED" if hooked else "NO-SUBJECT"))
             continue
 
         def subj_call(x):
@@ -369,17 +422,22 @@ def judge(module_src, test_src, subjects, inline_test=True, inline_subject=True)
             results.append((lineno, "UNJUDGED"))
             continue
         if inline_subject:
-            es = [_inline(r, bound) for r in return_variants(fdef)]
+            rs = return_variants(fdef)
         else:
-            es = [_inline(s.value, bound) for s in ast.walk(fdef) if isinstance(s, ast.Return) and s.value is not None]
-        e_all = [v for e in es for v in expand(e, funcs, (fdef.name,))]
+            rs = [s.value for s in ast.walk(fdef) if isinstance(s, ast.Return) and s.value is not None]
         x_all = expand(x, {k: v for k, v in funcs.items() if k not in subjects}, ())
         cx = {canon(v) for v in x_all}
         # 입력을 그대로 돌려주는 경로는 비교하지 않는다(review31 N-03, review32 M-02): 정규형이 잎 하나이거나
-        # 결합된 인자 식 하나의 정규형과 같은 E_i -- 그 값과 같은 명세 리터럴·무발동 값을 복사로 볼 수 없다.
-        passthrough = {canon(v) for v in bound.values()}
-        hit = [i for i, e in enumerate(e_all)
-               if not _is_leaf(canon(e)) and canon(e) not in passthrough and canon(e) in cx]
+        # **그 return 식에 나오는 매개변수**에 결합된 인자 식 하나의 정규형과 같은 E_i(review33 M2-06: 쓰이지
+        # 않는 인자로 제외를 맞추지 못하게) -- 그 값과 같은 명세 리터럴·무발동 값을 복사로 볼 수 없다.
+        hit = []
+        for r in rs:
+            used = {n.id for n in ast.walk(r) if isinstance(n, ast.Name)} & set(bound)
+            passthrough = {canon(bound[p]) for p in used}
+            for e in expand(_inline(r, bound), funcs, (fdef.name,)):
+                c = canon(e)
+                if not _is_leaf(c) and c not in passthrough and c in cx:
+                    hit.append(c)
         results.append((lineno, "FAIL" if hit else "PASS"))
     return results
 
@@ -460,13 +518,34 @@ def main():
         ("test 쪽 누적 대입 e *= 50e3", "def gain(gm, ro):\n    return gm * ro\n", "def test_gain():\n    e = 2e-3\n    e *= 50e3\n    assert gain(2e-3, 50e3) == pytest.approx(e)\n", {"gain"}, "FAIL", None),
         ("식 안의 피검 호출", "def gp(a, b):\n    return a * b\n", "def test_gp():\n    assert gp(2.0, 3.0) * 1 == pytest.approx(2.0 * 3.0)\n", {"gp"}, "UNJUDGED", None),
         ("피검 없는 assert", "def gp(a, b):\n    return a * b\n", "def test_gp():\n    assert len([1, 2]) == 2\n", {"gp"}, "NO-SUBJECT", None),
+        # review33 M2-03: 블록·루프 대상으로 받은 피검 결과, match·중첩 함수·except*
+        ("표 구동 zip 루프", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    rs = [gain(g, 50e3) for g in gms]\n    for r, g in zip(rs, gms):\n        assert r == pytest.approx(g * 50e3)\n", {"gain"}, "UNJUDGED", None),
+        ("피검 결과 리스트를 도는 루프", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    for r in [gain(2e-3, 50e3)]:\n        assert r == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "UNJUDGED", None),
+        ("if 블록 안에서 받은 결과", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    if flag:\n        r = gain(2e-3, 50e3)\n    assert r == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "UNJUDGED", None),
+        ("with 블록 안에서 받은 결과", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    with warnings.catch_warnings():\n        r = gain(2e-3, 50e3)\n    assert r == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "UNJUDGED", None),
+        ("try 블록 안에서 받은 결과", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    try:\n        r = gain(2e-3, 50e3)\n    except ValueError:\n        r = 0.0\n    assert r == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "UNJUDGED", None),
+        ("match 안의 재서술", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    match mode:\n        case 1:\n            assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "FAIL", None),
+        ("test 안 중첩 함수", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    def check(g):\n        assert gain(g, 50e3) == pytest.approx(g * 50e3)\n    check(2e-3)\n", {"gain"}, "UNJUDGED", None),
+        ("except* 안의 재서술", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    try:\n        pass\n    except* ValueError:\n        assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "FAIL", None),
+        # review33 M2-04~M2-06
+        ("쌍 없는 피검 없는 assert", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    assert len(xs) > 0\n", {"gain"}, "NO-SUBJECT", None),
+        ("쌍 없는 피검 assert", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    assert gain(2e-3, 50e3) > 0\n", {"gain"}, "UNJUDGED", None),
+        ("inf 리터럴(예외 없음)", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    assert gain(1e400, 2.0) == pytest.approx(1e400 * 2.0)\n", {"gain"}, "FAIL", None),
+        ("async test", "def gain(gm, ro, note=None):\n    return gm * ro\n", "async def test_gain():\n    assert gain(2e-3, 50e3) == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "FAIL", None),
+        ("쓰지 않는 인자로 통과 경로 흉내", "def gain(gm, ro, note=None):\n    return gm * ro\n", "def test_gain():\n    assert gain(2e-3, 50e3, note=2e-3 * 50e3) == pytest.approx(2e-3 * 50e3)\n", {"gain"}, "FAIL", None),
+        ("피검 안 중첩 함수 return", "def f(x, k):\n    def inner(y):\n        return y * k\n    return x + 1.0\n", "def test_f():\n    assert f(y0, 2.0) == pytest.approx(y0 * 2.0)\n", {"f"}, "PASS", None),
     ]
+    mismatch = 0
     for name, m, t, s, expect, limit in cases + syn:
         r = judge(m, t, s)
-        line = f"{name}: {r} | 기대 {expect}" + (f" | known_limit {limit}" if limit else "")
+        ok = r[0][1] == expect.split()[-1]  # 첫 판정 문장의 출력과 기대(마지막 단어)를 대조
+        mismatch += not ok
+        line = ("" if ok else "MISMATCH ") + f"{name}: {r} | 기대 {expect}" + (f" | known_limit {limit}" if limit else "")
         with OUT.open("a", encoding="utf-8") as f:
             f.write(line + "\n")
         print(line)
+    with OUT.open("a", encoding="utf-8") as f:
+        f.write(f"케이스 {len(cases) + len(syn)}개, 기대 불일치 {mismatch}개\n")
     # R-05 네 조합(인라인 여부) -- 실제 e329283
     for it in (False, True):
         for isub in (False, True):
