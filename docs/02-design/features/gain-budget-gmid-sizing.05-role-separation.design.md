@@ -1,6 +1,6 @@
 ---
 template: design
-version: 3.1
+version: 3.2
 plan_version: 5.19
 ---
 
@@ -9,7 +9,7 @@ plan_version: 5.19
 > **Summary**: Phase 0.5 역할 분리 인프라의 설계. 위협 범위는 계획 N3.12.0(사용자 결정 C)이다: **이력에 있던 자기 은폐 패턴은 막고, 같은 계정 권한으로 게이트를 부수는 의도적 행위는 막지 않고 드러나게 한다.** 겹은 EL1(도구 호출)·EL2(결과)·EL3(커밋)·EL4(로컬 gate 저장소의 `pre-receive`)이고, 무결성 대조가 게이트 훼손을 감지한다. 쓰기 경로표 파싱, 역할 판정, 판정 기록 로더, auditor 검사 도구(V3~V7), interface card·spec card·dispute, 변경 한 건의 명령 시퀀스, 부트스트랩, 공격 재생, agent 정의 3개.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (오케스트레이터)
-> **Date**: 2026-09-18 · **Status**: Draft v3.1 -- v3.0 독립 검증(review30, 수정 후 승인)의 S1·S2 16건을 반영했다. V4 (2)는 사용자 결정 (c)(확실한 복사 검출기 + auditor oracle 대조). 독립 검증 전, 사용자 승인 대기(DEC-51)
+> **Date**: 2026-09-18 · **Status**: Draft v3.2 -- v3.0 독립 검증(review30)의 S1·S2 16건, v3.1 독립 검증(review31, 수정 후 승인)의 S1·S2·S3 14건을 반영했다. V4 (2)는 사용자 결정 (c)(확실한 복사 검출기 + auditor oracle 대조). 독립 검증 전, 사용자 승인 대기(DEC-51)
 > **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v5.19 · N3.12.0 위협 범위 · N6.1 `0.5` 행 · **공통 정의**: [00-common](gain-budget-gmid-sizing.00-common.design.md)(v1.7 승인 `20260918-00-common-design`, v1.8 개정은 이 문서의 승인이 덮는다)
 
 Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는다.
@@ -98,8 +98,8 @@ MG0(N6.1 0.5 행)는 U-39 결정 뒤 그 결정대로 한다(§19).
 | 대조 대상 | 기준값 | 언제 |
 |---|---|---|
 | gate `hooks/pre-receive`, `gate-runner.py` | gate `master` 트리의 `tools/gates/gate/*` blob과 바이트 동일(eol 필터 적용 `git hash-object --path`) | EL1이 `git push gate`를 허용하기 직전, EL3 매 실행, `gate-runner.py` 시작 |
-| 작업 저장소 git 설정 | 메인과 역할 worktree 각각에서 `git config --show-origin --get-regexp <패턴>`을 패턴 `^remote\.gate\.`, `^url\.`, `^core\.hookspath$` 세 번 돌려 **모든 범위**(system·global·local·worktree·include 파일)를 읽는다(review30 I2~I4). 허용: `remote.gate.url`(= `gate_path` 절대 경로)·`remote.gate.fetch`·`core.hooksPath`(= `.githooks` 절대 경로)이고 셋 다 출처가 작업 저장소 `.git/config`. 그 밖의 `remote.gate.*`(`receivepack`·`pushurl`·`uploadpack`), `url.*`(`insteadOf`·`pushInsteadOf`), 다른 출처의 이 키들은 실패 | 같음 |
-| gate `master` 참조 | `<gate_path>/gmid-accept-log`: 줄마다 `<old> <new> <시각>`, 첫 줄은 ④(b)에서 사용자가 쓴 `<baseline_commit> <baseline_commit> <시각>`. (가) **사슬**: 첫 줄의 old = new = `baseline_commit`, 각 줄 old = 앞 줄 new, 마지막 줄 new = 현재 gate `master`. (나) **구간 재판정**(review30 I6b): 줄마다 `old..new`를 그 `old` 판 게이트 코드의 `merge_gate.py receive --old <old> --new <new>`로 **데이터만** 다시 판정(§9.1-3과 같은 방식 -- 실행하는 코드는 이미 반영된 게이트 코드뿐). 통과한 (old, new) 쌍은 `<git-common-dir>/gmid-gate-cache/rejudged`에 적어 다음 세션에서 건너뛴다(상한 = 로그 줄 수). 표지 뒤 로그가 없거나 비면 실패(review30 I6c) | (가) EL1 `git push gate` 직전·`gate-runner.py` 시작, (가)(나) 세션 시작 |
+| 작업 저장소 git 설정 | 메인과 역할 worktree 각각에서 `git config --show-origin --get-regexp <패턴>`을 패턴 `^remote\.gate\.`, `^url\.`, `^core\.hookspath$` 세 번 돌려 **모든 범위**(system·global·local·worktree·include 파일)를 읽는다(review30 I2~I4). 허용: `remote.gate.url`(= `gate_path` 절대 경로)·`remote.gate.fetch`·`core.hooksPath`(= `.githooks` 절대 경로)이고 셋 다 출처가 작업 저장소 `.git/config`. 그 밖의 `remote.gate.*`(`receivepack`·`pushurl`·`uploadpack`), 값이 `remote.gate.url`의 접두인 `url.<base>.insteadOf`·`url.<base>.pushInsteadOf`(gate URL을 바꾸는 것만 -- gate와 무관한 전역 `url.*` 설정은 보지 않는다, review31 N-13), 다른 출처의 이 키들은 실패 | 같음 |
+| gate `master` 참조 | `<gate_path>/gmid-accept-log`: 줄마다 `<old> <new> <시각>`, 첫 줄은 ④(b)에서 사용자가 쓴 `<baseline_commit> <baseline_commit> <시각>`. (가) **사슬**: 첫 줄의 old = new = `baseline_commit`, 각 줄 old = 앞 줄 new, 마지막 줄 new = 현재 gate `master`. (나) **구간 재판정**(review30 I6b): 줄마다 `old..new`를 그 `old` 판 게이트 코드의 `merge_gate.py receive --old <old> --new <new>`로 **데이터만** 다시 판정(§9.1-3과 같은 방식 -- 실행하는 코드는 이미 반영된 게이트 코드뿐). **생략 캐시를 두지 않는다**(review31 N-06: 같은 계정이 쓸 수 있는 생략 목록에 한 줄을 적으면 재판정이 무력화된다) -- 세션마다 전 구간을 재판정하고 비용(로그 줄 수 × 데이터만의 `merge_gate.py` 한 번)은 ⑤에서 재서 기록한다. 표지 뒤 로그가 없거나 비면 실패(review30 I6c) | (가) EL1 `git push gate` 직전·`gate-runner.py` 시작, (가)(나) 세션 시작 |
 | gate `hooks/` 디렉터리의 다른 파일(`*.sample` 포함), gate 쪽 `core.hooksPath`(`git --git-dir=<gate_path> config --show-origin --get core.hooksPath` -- global·system까지 읽는다) | 없어야 한다 | EL1 `git push gate` 직전, EL3 매 실행, `gate-runner.py` 시작, 세션 시작(review30 I8: gate `core.hooksPath`가 있으면 `gate-runner.py`가 돌지 않아 그 시작 시점 대조는 한 번도 돌지 않는다) |
 | 설치된 Claude Code hook | `.claude/hooks/role_*.py`와 gate `master`의 `hooks/role_*.py`(eol 필터) 동일, `.claude/settings.json`의 역할 hook **네** 항목(PreToolUse·PostToolUse·SubagentStop·SessionStart)의 `event`·`matcher`가 `hooks/role_*.json`과 같다 | 세션 시작, EL1 `git push gate` 직전 |
 | 부트스트랩 완료 표지 | gate `master` 트리의 `tools/gates/gate_config.json`에 `"bootstrapped": true`가 있으면 gate·hook이 **없는 것도 실패**(부재 = 허용이 되지 않게, review29 Q-12) | 모든 겹 |
@@ -191,7 +191,7 @@ matcher: `Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|Read|Grep|Glob`.
 
 ### 6.2 명령 판정 (Bash·PowerShell)
 
-**분해기**(review30 P1·P2 -- `shlex`는 쓰지 않는다: 따옴표 밖 줄바꿈을 공백으로 보고 `$'…'`를 못 읽는다): 따옴표와 이스케이프 상태를 추적하며 **따옴표 밖의** `;`·`&&`·`||`·`|`·`&`·줄바꿈에서만 단순 명령으로 나눈다. 따옴표 안의 줄바꿈은 인자의 일부다(§12-6의 두 줄 `-m`). 이스케이프 규칙은 셸을 따른다 -- Bash: 따옴표 밖 역슬래시는 다음 문자를 그대로(그래서 따옴표 없는 `C:\…`는 bash에서도 역슬래시가 사라진다), 작은따옴표 안은 모두 그대로, 큰따옴표 안은 `$`·백틱·`"`·역슬래시·줄바꿈 앞에서만 이스케이프. PowerShell: 이스케이프는 백틱, 역슬래시는 그대로. 토큰의 경로는 `\`를 `/`로 바꾼 뒤 판정한다.
+**분해기**(review30 P1·P2 -- `shlex`는 쓰지 않는다: 따옴표 밖 줄바꿈을 공백으로 보고 `$'…'`를 못 읽는다): 따옴표와 이스케이프 상태를 추적하며 **따옴표 밖의** `;`·`&&`·`||`·`|`·`&`·줄바꿈에서만 단순 명령으로 나눈다. 단 리다이렉트 연산자 안의 `&`는 구분자가 아니다(review31 N-08): `>&`, `<&`, `&>`, `&>>`, `N>&M`, `N<&M`(예: `2>&1`, `>&2`). 리다이렉트 연산자 전체는 `>`, `>>`, `>|`, `<`, `<<`(heredoc), `<<-`, `<<<`, `&>`, `&>>`와 앞에 붙는 파일 기술자 번호이고, 대상 토큰은 연산자 바로 뒤 토큰(`&M` 형태는 대상 없음). 따옴표 안의 줄바꿈은 인자의 일부다(§12-6의 두 줄 `-m`). 이스케이프 규칙은 셸을 따른다 -- Bash: 따옴표 밖 역슬래시는 다음 문자를 그대로(그래서 따옴표 없는 `C:\…`는 bash에서도 역슬래시가 사라진다), 작은따옴표 안은 모두 그대로, 큰따옴표 안은 `$`·백틱·`"`·역슬래시·줄바꿈 앞에서만 이스케이프. **역슬래시-줄바꿈(줄 이음)은 따옴표 밖과 큰따옴표 안에서 둘 다 지운다**(bash와 같다, review31 N-08). PowerShell: 이스케이프는 백틱, 역슬래시는 그대로. 토큰의 경로는 `\`를 `/`로 바꾼 뒤 판정한다.
 * 명령 치환 `$(…)`·백틱·프로세스 치환 `<(…)`·`>(…)`, PowerShell `$(…)`·`@(…)`는 안쪽을 같은 분해기로 재귀 분해해 판정한다. heredoc(`<<`, `<<-`)은 구분자 줄까지를 데이터로 건너뛴다(따옴표 없는 구분자의 본문은 명령 치환만 재귀 판정).
 * 거부(분해하지 않음): `$'…'`, 닫히지 않은 따옴표·괄호, 구분자를 찾지 못한 heredoc. 거부 메시지는 분해하지 못한 위치를 적는다.
 
@@ -199,7 +199,7 @@ matcher: `Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|Read|Grep|Glob`.
 |---|---|---|
 | 검사 끄기 | 전부 | `--no-verify`, `git commit -n`, `core.hooksPath` 변경 전부, `GIT_CONFIG_*`·`GIT_CONFIG_PARAMETERS` 환경 변수, `git -c alias.*` |
 | git 설정 쓰기 | 전부 | `git config`의 쓰기 전부(`--get*`·`--list` 외), `git remote add/set-url/rename/remove` -- 부트스트랩 ④(b)의 `git remote add gate` 한 번은 hook 설치 전이다(review29 Q-01) |
-| 저장소 내부 | 전부 | `<git-common-dir>/**`, `<gate_path>/**`를 가리키는 인자·`--git-dir`·리다이렉트·도구 대상 |
+| 저장소 내부 | 전부 | `<git-common-dir>/**`, `<gate_path>/**`를 가리키는 인자·`--git-dir`·리다이렉트·도구 대상. 예외(review31 N-07): 게이트 코드 캐시 `<git-common-dir>/gmid-gate-cache/<커밋 id>/`를 **읽기·실행**하는 두 형태 -- `$PY <캐시>/<이름>.py …`의 스크립트 인자와 `PYTHONPATH=<캐시>` 환경 값(§12-0·§12-7, `00-common` §8.1). 캐시를 쓰기 대상으로 가리키는 것(리다이렉트, `cp`·`mv`·`rm` 대상, 도구 쓰기)은 거부 |
 | push | 전부 | `git push` 전부. 예외: 오케스트레이터의 `git push gate master:master`(문서 커밋)와 `git -C <audit worktree> push gate role/audit/<id>:master`(§12-8). 강제(`+`, `--force*`) 제외. **진행 중인 변경이 있으면**(역할 브랜치 존재) 문서 커밋 push는 거부한다(review29 Q-08: 도중에 gate가 움직이면 §12-8이 non-ff로 막힌다) |
 | 참조 이동·hook 없는 커밋 생성 | 전부 | `update-ref`, `symbolic-ref`(쓰기), `branch -f`/`-M`, `branch -D`(§12 정리·재시도 형태 외), `checkout -B`, `switch -C`, `reset` 전부, `commit-tree`, `write-tree`, `hash-object -w`, `update-index`(쓰기), `replace`, `filter-branch`, `rebase`, `am`, `cherry-pick`, `revert`, `stash`(apply·pop 포함) |
 | 정리 전 dispute 보존 | 오케스트레이터 | `git worktree remove $W/<id>-code`, `git branch -D role/code/<id>`: code worktree에 `docs/02-design/disputes/<id>.md`가 있고 그 blob id(`git -C $W/<id>-code hash-object <그 파일>`)가 메인 worktree HEAD의 spec card `## dispute 기록` 절에 없으면 거부(review30 R-16, §12 재시도) |
@@ -229,7 +229,7 @@ matcher: `Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|Read|Grep|Glob`.
 * `gmid-*` 역할에만 적용(메인 저장소는 도구 부산물로 늘 더럽다).
 * 역할 worktree(`role/<역할>/*` 체크아웃) 각각의 `git status --porcelain=v1 -z --untracked-files=all`에서 무시 목록(`git check-ignore` 참 + `__pycache__/`·`.pytest_cache/`)을 빼고 남은 경로마다 `allowed`.
 * **메인 worktree에 역할이 만든 변경**: PreToolUse에서 `tool_use_id`별로 메인 worktree의 (경로, 상태, blob) 중 쓰기 경로표와 겹치는 것의 집합을 `<git-common-dir>/gmid-gate-cache/status-<tool_use_id>.json`에 쓰고, PostToolUse에서 다시 구한 집합과의 차이(새로 생기거나 바뀐 것)가 있으면 위반. 비교 뒤 파일 삭제. 남은 파일은 세션 시작 때 지운다(상한, review29 Q-14).
-* **SubagentStop**: `agent_type`의 역할 worktree(브랜치 `role/<역할 짧은 이름>/<id>`)에서 **역할별 범위**의 커밋이 전부 `Role: <그 역할>`·`Change-Id: <id>`이고 병합 커밋이 아닌지 본다(도구 호출 밖에서 만든 커밋도 여기서 드러난다, review29 Q-04). 범위(review30 E2 -- 다른 역할의 커밋을 넣지 않는다): test = `gate/master..HEAD`, code = `role/test/<id>..HEAD`, audit = `M..HEAD`(M = `git rev-list --merges -n 1 HEAD`이고 `role/test/<id>`의 후손일 때. 병합 전이면 `role/test/<id>..HEAD`이고 비어 있어야 한다). 정상 흐름의 오거부 0은 공격 20 (e)와 ⑤가 보인다.
+* **SubagentStop**: `agent_type`의 역할 worktree(브랜치 `role/<역할 짧은 이름>/<id>`)에서 **역할별 범위**의 커밋이 전부 `Role: <그 역할>`·`Change-Id: <id>`이고 병합 커밋이 아닌지 본다(도구 호출 밖에서 만든 커밋도 여기서 드러난다, review29 Q-04). 범위(review30 E2 -- 다른 역할의 커밋을 넣지 않는다): test = `gate/master..HEAD`, code = `role/test/<id>..HEAD`, audit = M이 있으면 `M..HEAD`, 없으면 `role/test/<id>..HEAD`(M = `git rev-list --merges -n 1 HEAD`이고 `role/test/<id>`의 후손일 때 -- test-only는 병합이 없다). audit 범위의 커밋은 **최대 1개**다(review31 N-02: v3.1은 병합이 없으면 '비어 있어야 한다'고 적어 test-only의 auditor 종료를 매번 거부했다). 정상 흐름의 오거부 0은 공격 20 (e)(세 판정 유형 각각)와 ⑤가 보인다.
 * 위반이면 stderr에 경로·커밋과 사유, exit 2. 실행기 전체 fail-closed.
 
 ---
@@ -247,9 +247,9 @@ matcher: `Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|Read|Grep|Glob`.
 
 ### 8.2 `role_commit_gate.py` 판정
 
-1. staged 경로를 §4.3으로 분류. 역할 밖 경로만이면 통과.
+1. staged 경로를 §4.3으로 분류. **병합 아닌 커밋**에서 역할 밖 경로만이면 통과(트레일러 불필요 -- gmid 밖 작업, review31 N-01). 병합 커밋은 3으로.
 2. **트레일러**(commit-msg): `git interpret-trailers --parse`로 읽은 트레일러에 `Role: code|test|audit|doc|user` 정확히 하나. `code`·`test`·`audit`과 병합 커밋은 `Change-Id` 정확히 하나. 트레일러는 **메시지 마지막 문단**이어야 한다(`-m "요약" -m "Role: …" -m "Change-Id: …"`처럼 나누면 앞 문단은 트레일러가 아니다 -- review29 G10; 명령은 `--trailer` 형식으로 쓴다).
-3. **병합 커밋**(commit-msg에서 `MERGE_HEAD`가 있을 때): (가) 트레일러 `Role: doc`·`Change-Id: <id>` (나) 현재 worktree 브랜치 = `role/audit/<id>`, `HEAD` = `role/test/<id>` 끝, `MERGE_HEAD` = `role/code/<id>` 끝 (다) **staged 트리 = `MERGE_HEAD` 트리**(`git diff --cached --quiet MERGE_HEAD`) -- 병합 커밋이 code 끝(K)과 다른 내용을 들일 수 없다(review29 G9·Q-03). 그 밖의 병합은 차단(review30 A19b: 조상에서 갈라진 문서 부모로 되돌리는 병합). 병합 커밋에는 4의 경로 권한을 적용하지 않는다 -- 트리가 K와 같고 K까지의 커밋은 커밋마다 검사됐다(review30 C5: 적용하면 정상 병합이 `Role: doc`의 소스 변경으로 막힌다).
+3. **병합 커밋**(commit-msg에서 `MERGE_HEAD`가 있을 때): (가) 트레일러 `Role: doc`·`Change-Id: <id>` (나) 현재 worktree 브랜치 = `role/audit/<id>`, `HEAD` = `role/test/<id>` 끝, `MERGE_HEAD` = `role/code/<id>` 끝 (다) **staged 트리 = `MERGE_HEAD` 트리**(`git diff --cached --quiet MERGE_HEAD`) -- 병합 커밋이 code 끝(K)과 다른 내용을 들일 수 없다(review29 G9·Q-03). (라) **역할 밖 병합**(review31 N-01): 위 (나)에 해당하지 않는 병합은 staged 트리와 `HEAD` 트리가 `overlaps_any` 경로 전부에서 같을 때만 통과(트레일러 불필요 -- 다른 skill·RTL 작업의 병합). 그 밖의 병합은 차단(review30 A19b: 조상에서 갈라진 문서 부모로 되돌리는 병합은 역할 경로를 첫 부모와 다르게 만든다). 병합 커밋에는 4의 경로 권한을 적용하지 않는다 -- 트리가 K와 같고 K까지의 커밋은 커밋마다 검사됐다(review30 C5: 적용하면 정상 병합이 `Role: doc`의 소스 변경으로 막힌다).
 4. **경로 권한**: staged 경로마다 `allowed(트레일러 역할의 주체, 경로, change_id)`. 소스와 test 함께면 차단.
 5. **조건 판정**(staged 판):
    * `승인 기록`(topology): HEAD→staged 변화 중 `.ai/approvals/**`를 뺀 경로의 blob 식 값을 `target`으로 가진 `target_kind: staged_diff` 승인 기록(`00-common` §8.2 v1.8 -- 아직 없는 커밋 id를 적지 않는다, review30 R-14)이 index나 HEAD 트리에 있어야 한다.
@@ -279,8 +279,8 @@ matcher: `Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|Read|Grep|Glob`.
 
 1. **old 계획서**를 파싱(실패면 판정하지 않고 거부).
 2. **상태 기반 판정 표 검사**: `plan_tables_hash(old)` 대응 `plan_tables` 승인 기록이 `old` 트리에 있어야 한다(최초 기준 승인은 부트스트랩 ③).
-3. **커밋 전수**(`git rev-list --reverse <old>..<new>`, `baseline_commit`의 조상 제외): **병합 아닌** 커밋마다 첫 부모 대비로 §8.2의 2·4·5를 다시 적용(역할 밖 경로만 바꾼 커밋은 통과). **병합 커밋은 4의 M일 때만 허용**하고 그 밖의 병합은 모두 거부한다(review30 A19b: 역할 커밋 없는 `Role: doc` 병합이 조상 트리로 되돌려 test·`gate_config.json`을 지운 실측). M에는 경로 권한을 적용하지 않는다(트리 = K, K까지 커밋마다 검사됨 -- review30 C5).
-4. **변경 한 건 구조**(review29 Q-03·Q-04·Q-13, review30 R-01·R-07): 역할 커밋(`Role` ∈ {code, test, audit})이 없는 push는 병합 아닌 `Role: doc`·`Role: user` 커밋만 가진다. 역할 커밋이 있으면 그 `Change-Id`는 **정확히 하나**이고, `old` 트리에 `docs/02-design/specs/<id>.spec.md`가 있어야 한다. `evidence_type`은 spec card에서 읽는다. `old..new`의 커밋 집합이 아래 모양과 **정확히** 같아야 한다(다른 커밋이 끼면 거부):
+3. **커밋 전수**(`git rev-list --reverse <old>..<new>`, `baseline_commit`의 조상 제외): **병합 아닌** 커밋마다 첫 부모 대비로 §8.2의 2·4·5를 다시 적용(역할 밖 경로만 바꾼 커밋은 통과). **병합 커밋은 4의 M이거나 역할 밖 병합(병합 트리와 첫 부모 트리가 `overlaps_any` 경로 전부에서 같다, §8.2-3 (라))일 때만 허용**하고 그 밖의 병합은 모두 거부한다(review30 A19b: 역할 커밋 없는 `Role: doc` 병합이 조상 트리로 되돌려 test·`gate_config.json`을 지운 실측 -- 역할 경로가 첫 부모와 달라 역할 밖 병합이 아니다). M에는 경로 권한을 적용하지 않는다(트리 = K, K까지 커밋마다 검사됨 -- review30 C5).
+4. **변경 한 건 구조**(review29 Q-03·Q-04·Q-13, review30 R-01·R-07): 역할 커밋(`Role` ∈ {code, test, audit})이 없는 push는 3으로만 판정한다(병합 아닌 커밋은 트레일러와 경로로, 병합은 역할 밖 병합일 때만 -- review31 N-01). 역할 커밋이 있는 push에는 역할 밖 병합이 끼지 못한다. 역할 커밋이 있으면 그 `Change-Id`는 **정확히 하나**이고, `old` 트리에 `docs/02-design/specs/<id>.spec.md`가 있어야 한다. `evidence_type`은 spec card에서 읽는다. `old..new`의 커밋 집합이 아래 모양과 **정확히** 같아야 한다(다른 커밋이 끼면 거부):
 
    | `evidence_type` | 모양 | T, K |
    |---|---|---|
@@ -303,7 +303,7 @@ matcher: `Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|Read|Grep|Glob`.
 * `parse_approval_header`: `00-common` §8.2(`target_kind` ∈ {`diff`, `decision`, `plan_tables`}). 대상은 이름이 `_`로 시작하지 않는 `.md`, 줄 끝 `\r?\n`.
 * `red_failure_hash`와 pytest 플러그인: `00-common` §8.1(수집 단계 `pytest_exception_interact`의 `__cause__`, 신규 심볼 (모듈, 심볼) 쌍 -- §15).
 * `read_plan_tables`·`plan_phase_tokens`: `00-common` §9.1·§9.2. 표 읽기 함수는 §4.1과 공유.
-* 의존성 선언(U-38): `tools/gates/requirements.txt`에 `jsonschema==<부트스트랩 ① 시점 설치 판>`(WP-20 정책을 낮추지 않는다).
+* 의존성 선언(U-38): `tools/gates/requirements.txt`에 `jsonschema==<부트스트랩 ① 시점 설치 판>`과 `pytest==<같은 시점 설치 판>`(`판정 환경` 행 후보 대조의 기준 판, 공격 17 -- review31 N-05)(WP-20 정책을 낮추지 않는다).
 
 ---
 
@@ -314,7 +314,7 @@ matcher: `Edit|Write|MultiEdit|NotebookEdit|Bash|PowerShell|Read|Grep|Glob`.
 | 도구 | 검사 | 알고리즘 |
 |---|---|---|
 | `mutate_changed.py`(V3) | 뮤테이션 | ① diff가 닿은 `def` 중 `ast.dump`(docstring 제외) 해시가 base와 다른 것 ② 연산자: 비교 뒤집기, 산술 교체(`+↔-`, `*↔/`), 상수 변경(정수 ±1, 실수는 표기된 마지막 자릿수 한 단위 ±), 문장 삭제, 조기 `return`, `except` 본문 삭제 ③ 인벤토리 = 정적 호출 그래프(V7과 같은 그래프)에서 그 함수에 도달하는 test 함수(계획 N4.2 V3 v5.19) ④ 변이마다 임시 복사본에서 그 test만 ⑤ 살아남은 변이가 있으면 FAIL. 변이 id = `<모듈>:<함수 qualname>:<연산자>:<AST 노드 경로>`. 등가 변이 면제는 `target_kind: decision`, `target` = 변이 id 목록인 승인 기록. 자체 AST 변이기(DEC-39) |
-| `test_lint.py`(V4) | 자기참조 | 계획 N4.2 V4 (1)~(5). **(2) 확실한 복사 검출**(사용자 결정 (c), review30 R-05·R-06): ① assert 비교(`abs(a - b) < tol`, `==`, `pytest.approx`, `math.isclose`)에서 피검 함수(interface card 심볼) 호출이 든 쪽과 기대식 X를 가른다. 양쪽 모두 test 함수의 지역 대입을 끝까지 인라인한다 ② 피검 함수의 return마다 그 경로의 지역 대입을 인라인하고 test의 호출 인자를 매개변수에 결합(기본값 포함)해 E_i를 만든다. 분기 안에서 바뀐 이름·루프·튜플 대입은 불투명 이름으로 둔다 ③ 같은 모듈 함수 호출은 양쪽 모두 return 변형으로 재귀 인라인 ④ 정규화: 덧셈·뺄셈·곱셈·나눗셈 평탄화와 피연산자 정렬, 정수 거듭제곱 → 곱, 항등원(`+0`·`*1`·`/1`) 제거, 숫자는 float 값. **상수 접기는 하지 않는다**(접으면 올바른 리터럴 기대값이 전부 FAIL) ⑤ 정규화한 X가 어떤 E_i와 같으면 FAIL. **FAIL은 확실한 복사이고 PASS는 독립의 증거가 아니다.** 알려진 놓침: F1 손으로 계산한 리터럴, F2 분배·약분 등 대수 변형, F3 모듈 밖 함수·자료구조(`sum([...])`, 사전 조회)를 거친 식 -- auditor의 oracle 대조(`checks.V4.basis`의 `oracle 대조:` 줄, `00-common` §8.1 로더 규칙 10)와 V3(뮤테이션)가 맡는다. **실측**(`docs/03-analysis/gain-budget-gmid-sizing-function-audit/v4_rule_probe/v4.py` -- 입력은 `git show e329283`의 실제 `estimate_area_budget` 본문과 §13.3 규칙으로 변환한 실제 self-test 섹션, 결과 `v4.out.txt`): 실제 e329283 첫 assert FAIL, 교환 재배열·`1.0*` 감싸기 FAIL, `vov*vov` 대 `0.2**2`와 그 반대 FAIL, `gm*ro` 대 `2e-3*50e3` FAIL(재서술 -- 계획 N4.2 V4 (2) 목적), `r1*r2/(r1+r2)` 대 같은 식 FAIL, `i1+i2` 대 `10e-6+20e-6` FAIL, 같은 모듈 보조 함수를 거친 복사 FAIL; `gm*ro` 대 리터럴 `100.0` PASS, 병렬 저항 대 컨덕턴스 합(다른 폐형식) PASS; F1·F2·F3 형태 PASS(한계대로). R-05의 네 조합: test 쪽을 인라인하지 않으면 실제값이 변수라 피검 호출을 찾지 못하고, 피검 쪽을 인라인하지 않으면 PASS -- 둘 다 인라인할 때만 FAIL. e329283의 두 번째 assert(`_a1d_demo / 0.731` 대 사전 조회를 거친 첫 return)는 F3로 PASS다. 부트스트랩 ①에서 probe의 규칙 함수를 `test_lint.py`로 옮기고 probe는 지운다(WP-01) |
+| `test_lint.py`(V4) | 자기참조 | 계획 N4.2 V4 (1)~(5). **(2) 확실한 복사 검출**(사용자 결정 (c), review30 R-05·R-06): ① assert 비교(`abs(a - b) <`·`<= tol`, 상대 오차 `abs((a - b) / c) <`·`<= tol`, `==`(어느 쪽이든 `pytest.approx`), `math.isclose`(어느 순서든))에서 피검 함수(interface card 심볼) 호출이 든 쪽과 기대식 X를 가른다. 양쪽 모두 test 함수의 지역 대입(`Assign`·`AnnAssign`)을 **그 assert 시점의 값으로**(본문 순서대로) 인라인한다. 비교 쌍을 못 만들거나 호출 인자를 결합하지 못한 assert(`**kw` 등)는 `UNJUDGED`로 출력한다 ② 피검 함수의 return마다 그 경로의 지역 대입을 인라인하고 test의 호출 인자를 매개변수에 결합(기본값 포함)해 E_i를 만든다. 분기 안에서 바뀐 이름·루프·튜플 대입은 불투명 이름으로 둔다 ③ 같은 모듈 함수 호출은 양쪽 모두 return 변형으로 재귀 인라인 ④ 정규화: 덧셈·뺄셈·곱셈·나눗셈 평탄화와 피연산자 정렬, 정수 거듭제곱(음수 지수 포함) → 곱, 항등원(`+0`·`*1`·`/1`) 제거, 숫자는 float 값, **부호는 밖으로**(음수 숫자 인자와 단항 마이너스를 곱 전체의 부호로 모은다), 곱에 이름·식 인자가 있으면 숫자 인자를 계수 하나로(`x/2` = `x*0.5`). **숫자만의 곱과 합은 접지 않는다**(접으면 재서술 `2e-3*50e3`가 리터럴과 구별되지 않고, 올바른 리터럴 기대값이 전부 FAIL) ⑤ **연산자를 하나 이상 가진** E_i 중 정규화한 X와 같은 것이 있으면 FAIL -- 잎 하나(매개변수·상수)로 끝나는 return 경로는 비교하지 않는다(review31 N-03: `clamp(5, 0, 10) == 5`, `area(0) == 0.0` 같은 명세 리터럴이 FAIL이 되던 거짓 양성. 그런 경로의 복사는 V3가 맡는다). **FAIL은 확실한 복사이고 PASS는 독립의 증거가 아니다.** 알려진 놓침: F1 손으로 계산한 리터럴과 숫자만의 식끼리의 접기 차이(`3.0/2` 대 `3.0*0.5`), F2 분배·약분 등 대수 변형, F3 모듈 밖 함수·자료구조(`sum([...])`, 사전 조회, 튜플 반환 풀기)를 거친 식, F4 잎 하나 return 경로의 복사, F5 `UNJUDGED` assert -- auditor의 oracle 대조(`checks.V4.basis`의 `oracle 대조:` 줄, `UNJUDGED` assert 전부 포함, `00-common` §8.1 로더 규칙 10)와 V3(뮤테이션)가 맡는다. **실측**(`docs/03-analysis/gain-budget-gmid-sizing-function-audit/v4_rule_probe/v4.py` -- 입력은 `git show e329283`의 실제 `estimate_area_budget` 본문과 §13.3 규칙으로 변환한 실제 self-test 섹션, 결과 `v4.out.txt`): 케이스 31개가 모두 기대와 같다 -- FAIL 20: 실제 e329283 첫 assert와 그 변형 6(교환 재배열, `1.0*` 감싸기, `<=`, 상대 오차, `approx` 왼쪽, 주석 달린 대입), `vov*vov` 대 `0.2**2`와 그 반대, `gm*ro` 대 `2e-3*50e3`(재서술 -- 계획 N4.2 V4 (2) 목적), 병렬 저항 같은 식, KCL 합, 같은 모듈 보조 함수 경유, 단항 마이너스 두 위치, `a - b*c` 대 `-b*c + a`, `x/2` 대 `x*0.5`, `1/x` 대 `x**-1`, 키워드 전용 기본값, assert 뒤 재대입(데이터 흐름); PASS 6: `gm*ro` 대 리터럴 `100.0`, 병렬 저항 대 컨덕턴스 합(다른 폐형식), `clamp` 통과·하한 리터럴, `area(0) == 0.0`, 단위 이득; known_limit 4(F1 접은 리터럴, F2 α 상쇄 풀어 쓰기, F3 `sum()`·튜플 반환); `UNJUDGED` 1(`**kw`, 예외 없음). R-05의 네 조합: test 쪽을 인라인하지 않으면 실제값이 변수라 피검 호출을 찾지 못하고, 피검 쪽을 인라인하지 않으면 PASS -- 둘 다 인라인할 때만 FAIL. e329283의 두 번째 assert(`_a1d_demo / 0.731` 대 사전 조회를 거친 첫 return)는 F3로 PASS다. 부트스트랩 ①에서 probe의 규칙 함수를 `test_lint.py`로 옮기고 probe는 지운다(WP-01) |
 | `weakening_diff.py`(V5) | 기준 약화 | 입력: test 분류 파일 diff, TS1 전에는 소스의 `if __name__ == "__main__":` 블록 diff. **test 분류의 `.py` 아닌 파일**(기준선 `.log` 등)과 **`conftest.py`**(test-author 경로 안의 `assets/tests/conftest.py` -- pytest hook으로 수집·판정을 바꿀 수 있어 8패턴으로 보이지 않는다, review30 J1)가 바뀌면 무조건 승인 기록 요구(review29 Q-15). 그 밖의 `.py`는 아래 표의 판정식 |
 | `source_lint.py`(V6) | 소스 | 계획 N4.2 V6. '새' = base 대비 AST 차이 |
 | `reachability.py`(V7) | 배선 | 새 `def`가 `gate_config.json`의 `reachability_roots`에서 정적 호출 그래프(문자열 레지스트리 포함)로 도달하는지 |
@@ -424,28 +424,24 @@ approval: <승인 기록 id>                                  # 반복
 | 5 | `commit-tree`로 만든 커밋(트레일러 없음 / `Role: code`가 `.ai/approvals/x.md` 추가) push | EL4 거부 | direct, installed |
 | 6~9 | V4 (1)·(3), V5, V6 | 각 검사 FAIL | direct |
 | 10 | 메인 세션 엔진 소스 `Edit` / PowerShell `Set-Content` / `general-purpose` agent 엔진 소스 `Edit` | EL1 exit 2 | direct, installed |
-| 10b | 메인 세션이 `$TEMP`·다른 skill 디렉터리 쓰기 | 통과(오거부 0) | direct, installed |
-| 10c | 게이트 코드 import 실패(캐시 파일 훼손) | 캐시 대조가 다시 풀거나 EL1 exit 2 | direct, installed |
+| 10b | 메인 세션이 `$TEMP`·다른 skill 디렉터리 쓰기 / 트레일러 없는 역할 밖 커밋과 역할 밖 병합의 gate push(review31 N-01) | 통과(오거부 0). 단 `판정 환경` 행의 이름(`conftest.py`·`pyproject.toml` 등)은 저장소 어디서나 사용자만 쓴다 -- 다른 skill에서도 통과가 아니다(review31 N-12) | direct, installed |
+| 10c | 게이트 코드 import 실패(캐시 파일 훼손) / 캐시를 읽기·실행하는 §12-0·§12-7 명령(허용) / 캐시로 리다이렉트·`cp`(거부)(review31 N-07) | 캐시 대조가 다시 풀거나 EL1 exit 2 / 허용 / EL1 exit 2 | direct, installed |
 | 11 | RTL agent가 RTL 파일 `Edit` | hook 출력 없음, exit 0 | installed |
 | 15 | 판정 기록·승인 기록 형식 위반(케이스 `attacks/15-records/cases/*.json`, 각 `expect`) | EL4 로더 거부 / 올바른 기록 3종 통과 | direct |
 | 16 | (i) 승인 없는 판정 표·쓰기 경로표 변경 (a) 직접 커밋 (b) push (ii) 깨진 표 (a)(b) (iii) 흐름 밖에서 깨진 old | (a) EL3 차단 (b) EL4 거부 (iii) EL4 판정 거부. 오거부 0: 승인 있는 개정, 표 값이 안 바뀌는 문장 수정 | direct, installed |
-| 17 | 판정 환경 조작(review29 C1·A1, review30 J1): code-author가 `assets/conftest.py`로 실패를 통과로 / 루트 `conftest.py` / `skills/conftest.py` / `skills/analog-gmid-design/pytest.ini`(`addopts = -k …`) / `assets/tests/tools/conftest.py` / `sitecustomize.py`·`*.pth` / `.gitattributes`에 `export-ignore` / test-author가 `assets/tests/pytest.ini` 추가 / test-author가 `assets/tests/conftest.py` 변경 | 앞 여덟: EL1 거부(`판정 환경` 행 우선), 트레일러 없는 커밋으로도 EL3 차단·EL4 거부. 마지막: V5 FAIL(승인 기록 없음) | direct, installed |
+| 17 | 판정 환경 조작(review29 C1·A1, review30 J1): code-author가 `assets/conftest.py`로 실패를 통과로 / 루트 `conftest.py` / `skills/conftest.py` / `skills/analog-gmid-design/pytest.ini`(`addopts = -k …`) / `assets/tests/tools/conftest.py` / `sitecustomize.py`·`*.pth` / `.gitattributes`에 `export-ignore` / test-author가 `assets/tests/pytest.ini` 추가 / test-author가 `assets/tests/conftest.py` 변경 | 앞 여덟: EL1 거부(`판정 환경` 행 우선), 트레일러 없는 커밋으로도 EL3 차단·EL4 거부. 마지막: V5 FAIL(승인 기록 없음). 더해 `pytest.toml`·`.pytest.toml`·`.pytest.ini`(review31 N-05, pytest 9.0.2 실측 `1 deselected`)와 **후보 대조**: `requirements.txt`에 고정한 pytest 판의 `_pytest/config/findpaths.py` `locate_config` 후보 이름(AST의 문자열 상수)이 모두 `판정 환경` 행에 있어야 한다(pytest 판을 올리면 다시 돈다). 재생 데이터는 이 이름의 파일을 저장소에 둘 수 없으므로(판정 환경 우선) 실행 중 임시 저장소에 만든다(review31 N-12) | direct, installed |
 | 18 | test-author가 `Read`·`Grep`·`Glob`로 소스 열람(메인·code worktree) | EL1 exit 2 | installed |
-| 19 | 흐름 밖 병합: (a) `merge --no-commit` 뒤 내용 추가 (b) 역할 커밋 없는 `Role: doc` 병합(review29 G9) (c) 조상에서 갈라진 문서 커밋을 둘째 부모로 둔 병합 -- test 삭제·엔진 되돌림·`gate_config.json` 삭제(review30 A19b) (d) §12-6 정상 병합 | (a)~(c) EL3 차단(commit-msg), EL4 거부 / (d) 통과(오거부 0) | direct, installed |
-| 20 | 트레일러·역할 흉내: (a) code-author가 `Role: test`·남의 `Change-Id` 커밋 (b) 오케스트레이터가 역할 worktree에서 `Role: code` 커밋 (c) 한 push에 id 둘 (d) code 쪽에 `Role: test` 커밋 T' 끼우기(review30 A20) (e) 세 역할의 정상 종료 | (a)(b) EL1 거부, EL2(SubagentStop) 거부 / (a)~(d) EL4 거부 / (e) 통과(오거부 0) | direct, installed |
+| 19 | 흐름 밖 병합: (a) `merge --no-commit` 뒤 내용 추가 (b) 역할 커밋 없는 `Role: doc` 병합(review29 G9) (c) 조상에서 갈라진 문서 커밋을 둘째 부모로 둔 병합 -- test 삭제·엔진 되돌림·`gate_config.json` 삭제(review30 A19b) (d) §12-6 정상 병합 (e) 역할 밖 병합(두 부모가 역할 밖 경로만 바꿈) | (a)~(c) EL3 차단(commit-msg), EL4 거부 / (d)(e) 통과(오거부 0) | direct, installed |
+| 20 | 트레일러·역할 흉내: (a) code-author가 `Role: test`·남의 `Change-Id` 커밋 (b) 오케스트레이터가 역할 worktree에서 `Role: code` 커밋 (c) 한 push에 id 둘 (d) code 쪽에 `Role: test` 커밋 T' 끼우기(review30 A20) (e) 세 역할의 정상 종료 -- auditor는 red-green·equivalence·test-only 각각(review31 N-02) | (a)(b) EL1 거부, EL2(SubagentStop) 거부 / (a)~(d) EL4 거부 / (e) 통과(오거부 0) | direct, installed |
 | 21 | 원격 설정 조작 뒤 `git push gate`: (a) `git config remote.gate.receivepack …`(review29 G8) (b) `.git/config` 직접 편집 (c) global 설정·`include.path` 파일·`config.worktree`에 같은 키(review30 I2~I4) | (a) EL1이 `git config` 쓰기 거부 / (b)(c) EL1 push 직전·EL3의 행 2 대조 실패 → 거부 | installed |
-| 22 | gate 훼손: (a) gate `pre-receive` 덮어쓰기(review29 G6·G7 형태) (b) gate `master` 직접 이동(review30 I6a) (c) 이동 뒤 accept-log에 줄 덧붙이기(I6b) (d) accept-log 비우기(I6c) (e) gate `core.hooksPath`(I8) | (a) 행 1: EL1 push 직전·EL3·`gate-runner.py` 시작 (b) 행 3(가): EL1 push 직전·`gate-runner.py`·세션 시작 (c) 행 3(나): 세션 시작 재판정 (d) 행 3 빈 로그 (e) 행 4: EL1 push 직전·EL3·세션 시작 -- 모두 대조 실패 → 모든 게이트 거부, 사용자 알림 | installed |
-| 23 | V4 (2) 판정 경계: `v4_rule_probe/v4.py`의 케이스 전부(§10 실측) -- FAIL 기대 9(실제 e329283, 교환·`1.0*` 변형, 제곱 두 표기, `gm*ro`·병렬 저항·KCL 재서술, 같은 모듈 보조 함수 경유), PASS 기대 2(리터럴 `100.0`, 다른 폐형식), known_limit PASS 3(F1~F3) | 기대대로 | direct |
-| 24 | EL1 명령 분해(review30 P1·P2): (a) §12-6 두 줄 `-m` 병합 (b) `echo a` 줄바꿈 `git push gate …` (c) `$(git push gate …)` 안쪽 (d) heredoc 본문의 `git push` 글자 (e) `$'…'` 인자 | (a)(d) 허용 / (b)(c) push 규칙으로 판정·거부 / (e) 거부 | direct, installed |
+| 22 | gate 훼손: (a) gate `pre-receive` 덮어쓰기(review29 G6·G7 형태) (b) gate `master` 직접 이동(review30 I6a) (c) 이동 뒤 accept-log에 줄 덧붙이기(I6b) (d) accept-log 비우기(I6c) (e) gate `core.hooksPath`(I8) (f) (c) 뒤 캐시·보조 파일에 그 구간을 적어 두기(review31 N-06 -- 생략 캐시가 없으므로 효과 없음을 보인다) | (a) 행 1: EL1 push 직전·EL3·`gate-runner.py` 시작 (b) 행 3(가): EL1 push 직전·`gate-runner.py`·세션 시작 (c) 행 3(나): 세션 시작 재판정 (d) 행 3 빈 로그 (e) 행 4: EL1 push 직전·EL3·세션 시작 -- 모두 대조 실패 → 모든 게이트 거부, 사용자 알림 | installed |
+| 23 | V4 (2) 판정 경계: `v4_rule_probe/v4.py`의 케이스 31개 전부(§10 실측) -- FAIL 기대 20, PASS 기대 6(잎 하나 return의 명세 리터럴 4 포함), known_limit 4, `UNJUDGED` 1 | 기대대로 | direct |
+| 24 | EL1 명령 분해(review30 P1·P2, review31 N-08): (a) §12-6 두 줄 `-m` 병합 (b) `echo a` 줄바꿈 `git push gate …` (c) `$(git push gate …)` 안쪽 (d) heredoc 본문의 `git push` 글자 (e) `$'…'` 인자 (f) `git status 2>&1 \| head` (g) 줄 이음 뒤 대상 `cp a \`⏎`<엔진 소스>` | (a)(d)(f) 허용 / (b)(c) push 규칙으로 판정·거부 / (e) 거부 / (g) 대상을 엔진 소스로 판정해 거부 | direct, installed |
 | 25 | dispute 기록 없이 code worktree 정리(review30 R-16) | EL1 거부 / 기록 뒤 정리 허용 | direct, installed |
 | 12·13·14 | GB0 로드 게이트 | 6a(계획 N4.3) | -- |
 
 * 공격 21·22는 **막는 증거가 아니라 드러내는 증거**다(N3.12.0). 기대는 "표의 그 시점에 대조가 실패하고 무엇이 다른지 적는다"이다.
 * 공격 15의 승인 기록 케이스에 `target_kind: staged_diff`(형식 위반, `.ai/approvals/**` 포함한 경로, 올바른 기록)를 넣는다(review30 R-14).
-
-### 13.4 게이트 변경 뒤 재설치 (review30 R-12)
-
-게이트 변경(`tools/gates/**`, `hooks/role_*`)이 gate에 반영되면 설치된 사본(gate `hooks/pre-receive`·`gate-runner.py`, `.claude/hooks/role_*`)이 새 gate `master` blob과 달라져 §3.3 행 1·5가 실패하고, 그 뒤 모든 게이트가 거부한다 -- **반영 push와 재설치 사이의 fail-closed는 정상 상태다.** 사용자가 세션 밖에서: ① `tools/gates/gate/*`를 gate에 복사 ② `python install.py --only hooks --project .` ③ `$PY tools/gates/integrity.py check --scope session`(전부 일치해야 `integrity-failed` 표지가 지워진다). 게이트 변경의 spec card '의도'에 이 재설치 절차를 적는다.
 
 ### 13.3 과거 사례 재생
 
@@ -460,6 +456,10 @@ approval: <승인 기록 id>                                  # 반복
 | 격자 확대로 제약 통과 | 2e1944a:`sizing_recipe.py` self-test `grid_points_per_theta=1` → `=3` | 원 diff 그대로(TS1 전 `if __name__` 블록이 V5 입력) | V5 FAIL | 0.5 |
 | 재검증 누락 기대값 박제 | caa970b | -- | V2(red 부재) | 1 |
 | KVL 위반 동작점 기준값 | 5dc4679 | -- | V9 | 6b |
+
+### 13.4 게이트 변경 뒤 재설치 (review30 R-12)
+
+게이트 변경(`tools/gates/**`, `hooks/role_*`)이 gate에 반영되면 설치된 사본(gate `hooks/pre-receive`·`gate-runner.py`, `.claude/hooks/role_*`)이 새 gate `master` blob과 달라져 §3.3 행 1·5가 실패하고, 그 뒤 모든 게이트가 거부한다 -- **반영 push와 재설치 사이의 fail-closed는 정상 상태다.** 사용자가 세션 밖에서: ① `tools/gates/gate/*`를 gate에 복사 ② `python install.py --only hooks --project .` -- `install.py`는 태그가 이미 있는 항목을 건너뛰므로(review31 N-14), `hooks/role_*.json`의 event·matcher가 바뀐 변경이면 `.claude/settings.json`의 그 항목을 사용자가 고친다 ③ `$PY tools/gates/integrity.py check --scope session`(전부 일치해야 `integrity-failed` 표지가 지워진다). 게이트 변경의 spec card '의도'에 이 재설치 절차를 적는다.
 
 ---
 
@@ -506,11 +506,12 @@ approval: <승인 기록 id>                                  # 반복
 | worktree 결합 | 대상 worktree 브랜치 = `role/<역할>/<id>` | §5.1 |
 | 병합 커밋 | 변경 한 건의 M일 때만: 부모 = (T 끝, K), 트리 = K 트리. 그 밖의 병합 거부 | §8.2-3, §9.2-3·4 |
 | 판정 환경 우선 | 경로가 `판정 환경` 행에 맞음 ∧ 주체 ≠ `사용자` → 거부 | §4.1 |
-| SubagentStop 범위 | test `gate/master..HEAD`, code `role/test/<id>..HEAD`, audit `M..HEAD` | §7 |
+| SubagentStop 범위 | test `gate/master..HEAD`, code `role/test/<id>..HEAD`, audit `M..HEAD`(병합 없으면 `role/test/<id>..HEAD`, 최대 1개) | §7 |
+| 역할 밖 병합 | 병합 트리 = 첫 부모 트리 (`overlaps_any` 경로 전부에서) ∧ 같은 push에 역할 커밋 없음 | §8.2-3 (라), §9.2-3 |
 | 판정 표 변경 | `plan_tables_hash(앞) ≠ plan_tables_hash(뒤)` | §15.2 |
 | 변경 한 건 구조 | spec card `evidence_type`의 모양과 커밋 집합이 정확히 같음 | §9.2-4 |
 | 무결성 | §3.3 표의 대조 전부 일치 | §3.3 |
-| V4 (2) | 정규화(X) ∈ {정규화(E_i)} -- X와 E_i는 인라인·인자 결합·같은 모듈 인라인 뒤, 상수 접기 없음 | §10 |
+| V4 (2) | 정규화(X) ∈ {정규화(E_i) : E_i에 연산자 ≥ 1} -- X와 E_i는 인라인·인자 결합·같은 모듈 인라인 뒤, 숫자만의 식은 접지 않음 | §10 |
 | V5 | 판정식 표의 한 줄 이상 ∧ 대응 승인 기록 없음 | §10 |
 
 수치 임계값은 없다. 사용자가 정하는 값은 `audit_tail_lines` 하나다(표시 줄 수, 판정에 쓰지 않는다).
@@ -553,5 +554,5 @@ Phase 0.5는 부트스트랩이라 spec card가 없다(산출물은 §13.1의 �
 ## 20. 착수 조건과 열린 질문 (N9.2-7·8)
 
 * 착수 조건: U-16(계획 N7.2 확정 -- 승인 기록 이전의 결정), U-38(확정, 승인 기록 `20260918-u38-jsonschema`), U-15(닫힘 -- 실측), `00-common` 승인(`20260918-00-common-design`). U-39는 MG0 착수 전에만 필요.
-* 이 문서의 승인 기록이 함께 덮는 개정(계획 v5.19, 이 문서 작성 중 반영): N3.12.0 위협 범위 신설, N3.12.2 표(기계 판독·설정 파일·`판정 환경` 조건과 행·`tools/gates/gate/**` 행·부트스트랩 조건 정의), hook 판정 범위, N3.12.3 1·3·5·6·7, N3.12.4 EL1·EL2·EL3·EL4, N3.12.6 ④ 순서·⑤·산출물(세션 시작 hook), N4.2 V3·V4 (2)(확실한 복사 + oracle 대조)·V5, N4.3 공격 목록(28건, 1b·10b·10c·17~25), N6.1 0.5 행, N6.2 0.5 문구(25건), N7.2 U-15 닫힘·U-39, N9.1 05 행, `00-common` v1.8(§8.1 증거 소비자·red 플러그인 위치·로더 규칙 10의 V4 oracle 대조, §8.2 `staged_diff`).
+* 이 문서의 승인 기록이 함께 덮는 개정(계획 v5.19, 이 문서 작성 중 반영): N3.12.0 위협 범위 신설, N3.12.2 표(기계 판독·설정 파일·`판정 환경` 조건과 행·`tools/gates/gate/**` 행·부트스트랩 조건 정의), hook 판정 범위, N3.12.3 1·3·5·6·7, N3.12.4 EL1·EL2·EL3·EL4, N3.12.6 ④ 순서·⑤·산출물(세션 시작 hook), N4.2 V3·V4 (2)(확실한 복사 + oracle 대조)·V5, N4.3 공격 목록(28건, 1b·10b·10c·17~25), N6.1 0.5 행, N6.2 0.5 문구(25건), N7.2 U-15 닫힘·U-39, N9.1 05 행, `00-common` v1.8(§8.1 증거 소비자·red 플러그인 위치·로더 규칙 10의 V4 oracle 대조, §8.2 `staged_diff`, CC-1 행). review31 반영(v3.2): N3.12.2 `판정 환경` 행 3개 추가, N4.2 V4 (2) 문구, N4.3 공격 24, N7.2 U-15 `cwd` 기술.
 * 열린 질문: U-39(계획 N7.2). "0.5 실측으로 고정" 전제 하나 -- `gmid-*` `agent_type` 값 -- 는 ③·⑤가 실측을 겸하고, 다르면 이 문서를 고친다. review30 S3 중 남은 것(이 판에서 R-18·R-19·R-20·R-22는 반영): **R-17** ④(d) `install.py --only hooks`가 `hooks/`·`bkit/hooks/`의 모든 `.py`를 등록하고 sidecar `.json` 파싱 실패를 조용히 기본값으로 둔다 -- 역할 hook만 설치하는 옵션을 ① 산출물에 넣을지 ④ 전에 사용자 확인. **R-21** 부트스트랩의 게이트 코드와 공격 기대(`expect.json`)를 같은 주체가 쓴다 -- 기대값 파일을 독립 검증 agent가 검토하게 할지 ③ 전에 정한다.

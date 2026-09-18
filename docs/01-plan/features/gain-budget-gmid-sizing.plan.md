@@ -630,6 +630,9 @@ skills/analog-gmid-design/assets/tests/
 | 사용자 | `install.py` | -- | 없음 |
 | 사용자 | `**/conftest.py` | `skills/analog-gmid-design/assets/tests/conftest.py` | 판정 환경 |
 | 사용자 | `**/pytest.ini` | -- | 판정 환경 |
+| 사용자 | `**/.pytest.ini` | -- | 판정 환경 |
+| 사용자 | `**/pytest.toml` | -- | 판정 환경 |
+| 사용자 | `**/.pytest.toml` | -- | 판정 환경 |
 | 사용자 | `**/pyproject.toml` | -- | 판정 환경 |
 | 사용자 | `**/setup.cfg` | -- | 판정 환경 |
 | 사용자 | `**/tox.ini` | -- | 판정 환경 |
@@ -811,7 +814,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정�
 | V1 | 전체 test 실행 | 병합본 깨끗한 worktree에서 slow 포함 전체. `-k`·`--deselect`·`-x` 금지 | pytest | 1(0.5는 redteam 스크립트) |
 | V2 | 판정 유형별 증거 | red-green: 새·바뀐 test(그리고 이 변경의 '활성화 IC 케이스'로 엄격 대상이 된 기존 계약 test 케이스)가 base에서 assertion FAIL, 병합본 PASS. equivalence: test 커밋 불변 + base·병합본 모두 PASS + 유형별 동등 증명(TS1 stdout, Phase 3 AST 해시). test-only: 섹션->test 매핑표의 모든 섹션이 변경 후 test에서 PASS | base/병합본 실행 비교 | 1 |
 | V3 | 뮤테이션 | 대상 = diff가 닿은 def 중 AST 해시가 바뀐 것. 연산자 = 비교 뒤집기 / 산술 교체 / 상수 변경(정수는 ±1, 실수는 표기된 마지막 자릿수 한 단위 ±) / 문장 삭제 / 조기 return / except 본문 삭제. 변이마다 정적 호출 그래프에서 그 함수에 도달하는 test만 실행(인벤토리). 살아남은 변이가 있으면 FAIL. 등가 변이 면제는 승인 기록으로만. 변이는 worktree 밖 임시 복사본에서 수행하고 worktree는 바꾸지 않는다 | `tools/gates/mutate_changed.py` | 1 |
-| V4 | 자기참조 lint | (1) 기대값 변수가 피검 함수(interface card 심볼) 호출로 만들어짐 (2) 피검 식 복사(**확실한 복사** 검출): assert 비교의 기대식과, 피검 함수의 return마다 지역 대입을 인라인하고 test의 호출 인자를 매개변수에 결합한 식을, 양쪽 모두 test 지역 대입·같은 모듈 함수까지 인라인하고 가벼운 정규화(덧셈·곱셈 평탄화와 정렬, 정수 거듭제곱→곱, 항등원 제거, 상수 접기 없음) 뒤 비교해 같으면 FAIL. **목적**: 피검 식의 재서술(같은 식을 숫자로 다시 쓴 것 포함)은 전부 자기참조다 -- oracle (b)는 '다른 방법의' 폐형식이어야 하므로(N3.12.3) `gm * ro`의 기대값을 `2e-3 * 50e3`로 쓰는 것도 FAIL이고, 독립 기대값은 출처가 있는 리터럴이나 다른 방법의 식이다(병렬 저항을 컨덕턴스 합으로). FAIL은 확실하지만 PASS는 독립의 증거가 아니다: 손으로 계산한 리터럴·대수 변형·모듈 밖 경로를 거친 복사는 놓친다(`05-role-separation` §10) -- 그래서 auditor가 기대값마다 spec card 'oracle 종류와 출처'와 대조해 `checks.V4.basis`에 `oracle 대조:` 줄로 적는다(`00-common` §8.1 로더 규칙 10) (3) assert가 if·try 안에만 있음 (4) assert 0개 (5) print·logging으로만 판정 | `tools/gates/test_lint.py` | 1 |
+| V4 | 자기참조 lint | (1) 기대값 변수가 피검 함수(interface card 심볼) 호출로 만들어짐 (2) 피검 식 복사(**확실한 복사** 검출): assert 비교의 기대식과, 피검 함수의 return마다 지역 대입을 인라인하고 test의 호출 인자를 매개변수에 결합한 식을, 양쪽 모두 test 지역 대입·같은 모듈 함수까지 인라인하고 가벼운 정규화(덧셈·곱셈 평탄화와 정렬, 정수 거듭제곱→곱, 항등원 제거, 숫자만의 식은 접지 않음) 뒤 비교해 같으면 FAIL. 잎 하나(매개변수·상수)로 끝나는 return 경로는 비교하지 않는다(그 값과 같은 명세 리터럴을 복사로 볼 수 없다). **목적**: 피검 식의 재서술(같은 식을 숫자로 다시 쓴 것 포함)은 전부 자기참조다 -- oracle (b)는 '다른 방법의' 폐형식이어야 하므로(N3.12.3) `gm * ro`의 기대값을 `2e-3 * 50e3`로 쓰는 것도 FAIL이고, 독립 기대값은 출처가 있는 리터럴이나 다른 방법의 식이다(병렬 저항을 컨덕턴스 합으로). FAIL은 확실하지만 PASS는 독립의 증거가 아니다: 손으로 계산한 리터럴·대수 변형·모듈 밖 경로를 거친 복사, 잎 하나 return 경로의 복사, 검출기가 판정하지 못한(`UNJUDGED`) assert는 놓친다(`05-role-separation` §10) -- 그래서 auditor가 기대값마다 spec card 'oracle 종류와 출처'와 대조해 `checks.V4.basis`에 `oracle 대조:` 줄로 적는다(`00-common` §8.1 로더 규칙 10) (3) assert가 if·try 안에만 있음 (4) assert 0개 (5) print·logging으로만 판정 | `tools/gates/test_lint.py` | 1 |
 | V5 | 기준 약화 | test diff(TS1 전에는 소스의 `if __name__` 블록 diff 포함)에서 N0.4 "기준 약화" 8패턴 중 하나라도 있으면, 그리고 test 분류의 `.py` 아닌 파일(기준선 등)이 바뀌면 해당 diff 해시의 승인 기록 필수 | `tools/gates/weakening_diff.py` | 1 |
 | V6 | 소스 lint | 새 광범위 except, 새 skip/continue 분기(예외: `optional_stages` 화이트리스트 4개를 가르는 선언 분기 1곳 -- 사유 주석 필수, DEC-75), 허용 집합 {0, 1, −1, 산술식의 2, 인덱스} 밖 숫자 리터럴 중 `# derive: <함수명>` 태그(그 함수 존재 검사)가 없는 것, 읽는 코드 없는 경고 리스트, `id(...)` 캐시 키, 상한 없는 캐시 | `tools/gates/source_lint.py` | 1 |
 | V7 | 배선 | 새 def가 운영 경로에서 도달하는지(루트 목록은 설정 파일, Phase 3 전·후 두 벌). 도달 못 하면 레지스트리 등급 D 기록 + 승인 기록 | `tools/gates/reachability.py` | 2 |
@@ -851,7 +854,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정�
 | 21 | 원격 설정 조작(`receivepack` 등, 어느 설정 범위든) | EL1 거부 또는 무결성 대조 실패(드러냄) |
 | 22 | gate hook 덮어쓰기, gate `master` 직접 이동(감사 로그 덧붙이기·비우기 포함), gate `core.hooksPath` | 무결성 대조 실패 → 모든 게이트 거부, 사용자 알림(드러냄) |
 | 23 | V4 (2) 판정 경계: 피검 식 재서술·표기 변형, 독립 기대값, 알려진 놓침 | 재서술·변형 FAIL, 독립 PASS, 알려진 놓침은 PASS로 고정(한계 기록) |
-| 24 | EL1 명령 분해: 따옴표 안 줄바꿈 인자, 따옴표 밖 줄바꿈 뒤 명령, 명령 치환 안의 명령, 읽을 수 없는 인용 | 앞은 허용, 뒤 셋은 판정해 거부 |
+| 24 | EL1 명령 분해: 따옴표 안 줄바꿈 인자, heredoc 본문, 리다이렉트 안의 `&`(`2>&1`) / 따옴표 밖 줄바꿈 뒤 명령, 명령 치환 안의 명령, 줄 이음 뒤 대상, 읽을 수 없는 인용 | 앞 셋은 허용, 뒤 넷은 판정해 거부 |
 | 25 | dispute 기록 없이 code worktree 정리 | EL1 거부 |
 
 **과거 사례 재생**: 해당 diff만 담은 합성 커밋을 현재 base에 적용해 기대 검사가 거부하는지 확인한다(원자료 `agent7_self_concealment.md`).
@@ -1061,7 +1064,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정�
 | U-12 | 단일단(보상 없음) 회로의 gm 출처 | `gm_1 ≥ 2π·gbw_target_hz·C_out,total`(봉인 후보마다 θ 제약, DEC-70, N3.7. C_out,total = 봉인점 출력노드 용량 + 부하 요소 값. GBW는 개루프 양이라 되먹임 인자와 무관) | 7b |
 | U-13 | 파일럿 **면적 예산을 선언할지**와 그 값(면적 *정의*는 DEC-79) | 예산 미선언 시 DEC-77대로 (전력, 면적) 비지배 front를 제시하고 정지한다(자동 선택 금지). 선언하면 그 예산을 ε으로 고정해 전력을 최소화한 점 하나를 front와 함께 낸다 | **7b 착수 조건** |
 | U-14 | gain 폭이 분해능 이하인 공유 VGS 그룹(pmos:Vcmfb)의 선택 기준 | 전력 기준으로 고르고 기록 | 7b |
-| U-15 | hook 입력에 역할 필드(`agent_type`)가 없을 때의 역할 판정 방식. 실측 후 결정: 부트스트랩 ② 실측 기록(PreToolUse·PostToolUse·SubagentStop 각각에서 `agent_type`·`agent_id`·`cwd` 존재 여부, 세 역할 + 메인 세션)을 제시하고 고른다. 필드가 있으면 이 결정은 필요 없다 | 선택지: A. 호출자 `cwd`가 속한 worktree(`../wt/<id>-<role>`)로 판정(EL1 약화분은 EL3·EL4와 Bash `git -C`·다른 worktree 경로 거부로 보완) / B. 역할마다 별도 Claude 세션·설정 / C. EL1은 메인 세션 규칙만, 역할 구분은 EL3·EL4 | **닫힘(2026-09-18): 필요 없음** -- 실측(`role_hook_input_probe.md`)에서 subagent는 모든 관련 이벤트에 `agent_type`·`agent_id`를 주고 메인 세션은 주지 않는다. 다만 hook 입력 `cwd`는 세션 시작 디렉터리로 고정이고 subagent의 `cd`는 호출 사이에 유지되지 않아 역할을 worktree에 `cwd`로 묶을 수 없다(`05-role-separation`) |
+| U-15 | hook 입력에 역할 필드(`agent_type`)가 없을 때의 역할 판정 방식. 실측 후 결정: 부트스트랩 ② 실측 기록(PreToolUse·PostToolUse·SubagentStop 각각에서 `agent_type`·`agent_id`·`cwd` 존재 여부, 세 역할 + 메인 세션)을 제시하고 고른다. 필드가 있으면 이 결정은 필요 없다 | 선택지: A. 호출자 `cwd`가 속한 worktree(`../wt/<id>-<role>`)로 판정(EL1 약화분은 EL3·EL4와 Bash `git -C`·다른 worktree 경로 거부로 보완) / B. 역할마다 별도 Claude 세션·설정 / C. EL1은 메인 세션 규칙만, 역할 구분은 EL3·EL4 | **닫힘(2026-09-18): 필요 없음** -- 실측(`role_hook_input_probe.md`)에서 subagent는 모든 관련 이벤트에 `agent_type`·`agent_id`를 주고 메인 세션은 주지 않는다. 다만 subagent의 hook 입력 `cwd`는 세션 시작 디렉터리이고 subagent의 `cd`는 호출 사이에 유지되지 않아 역할을 worktree에 `cwd`로 묶을 수 없다(메인 세션은 `cd`가 유지되고 `cwd`도 따라 바뀐다 -- `05-role-separation` §5) |
 | U-16 | topology.json 메타데이터(role·ports·passive) 반영 주체. **확정**: 오케스트레이터가 사용자 확인 후 반영 | 조건: 사용자가 확인한 표의 항목만 반영, connectivity(넷리스트·passive·이상원 넷)는 WP-08대로 모았다가 일괄 반영하고 net 표 재출력으로 대조 / 승인 기록 `.ai/approvals/<id>.md` + 커밋 `Role: doc`, EL4는 승인 기록 없는 topology diff를 거부 / topology 변경은 S0 지문을 바꿔 `ratified`를 `review_needed`로 되돌림 / topology 변경으로 바뀌는 test 기대값은 V5 승인 대상. 근거: WP-07, WP-08, DEC-35 | 확정 |
 | U-17 | `mismatch_sigma_mV = 5.0`의 출처 | **확정: 7a 재도출 대상**(사용자 결정). 지금 값을 지어내지 않고 `5.0`을 유지하되 `source`는 **`7a 재도출 대상`**으로 적고, 기준값은 7a SPICE 대조 결과에서 읽는다(U-19 `gain_db`와 같은 처리). 이 값은 회로 안에서 도출되지 않는다 -- σ를 줄이면 W·L이 커져 기생 극점이 내려가 `parasitic_pm_deg`와 충돌하고, 제약을 떼면 탐색이 입력쌍을 줄여 σ가 되레 나빠진다(두 방향 모두 실측으로 막혔다, history H1). 그래서 달성 가능 상한 역산이 이 metric에는 성립하지 않는다. 7a 전까지 `5.0`은 구속하지 않는 상한으로 두고 판정에 쓰지 않는다 | **7a**(6a 착수 조건 아님) |
 | U-18 | 기준 약화 개별 승인 | 매 건 승인 기록 | 상시 |

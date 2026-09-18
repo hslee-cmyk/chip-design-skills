@@ -316,7 +316,7 @@ def exit_code_for(exc: BaseException) -> int: ...
 7. `red.test_ids`와 `red.failure_hashes` 길이 같음.
 8. `auditor_run.time`이 RFC 3339의 **부분집합** 정규식 `^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})(?![\s\S])`(대문자 `T`·`Z`, 윤초 불허)에 맞고 `datetime.fromisoformat`으로 읽힌다(`format: date-time`은 형식 검사기 설치 여부에 따라 강제 여부가 달라지므로 로더가 한다).
 9. **보이는 문자 규칙**: `checks.Vn.basis`, `red.test_ids` 원소, `equivalence.commands` 원소, `reproduced_numbers[].name`·`command`, `auditor_run.worktree`·`commands` 원소는 유니코드 범주 `Z*`·`Cc`·`Cf`가 아니고 U+3164·U+115F·U+1160·U+FFA0(한글 채움 문자)도 아닌 문자를 하나 이상 가진다.
-10. spec card `Phase`가 base 판 계획서의 `phase_order`(§9.2)에 없으면 거부한다. `checks.Vn.verdict == "N/A"`이면 그 Phase가 `v_intro[Vn]`보다 `phase_order`에서 앞이고, `basis`가 `도입 <Phase>: <사유>` 형식으로 시작하며 그 `<Phase>`가 `v_intro[Vn]`과 같다(N4.2 v5.19 형식). `checks.V4.verdict == "PASS"`이면 `basis`가 `oracle 대조: `로 시작하는 줄을 하나 이상 가진다 -- auditor가 기대값마다 spec card 'oracle 종류와 출처'와 대조한 결과다(V4 (2) 검출기는 확실한 복사만 잡으므로, 계획 N4.2 V4 (2)).
+10. spec card `Phase`가 base 판 계획서의 `phase_order`(§9.2)에 없으면 거부한다. `checks.Vn.verdict == "N/A"`이면 그 Phase가 `v_intro[Vn]`보다 `phase_order`에서 앞이고, `basis`가 `도입 <Phase>: <사유>` 형식으로 시작하며 그 `<Phase>`가 `v_intro[Vn]`과 같다(N4.2 v5.19 형식). `checks.V4.verdict == "PASS"`이면 `basis`가 `oracle 대조: `로 시작하는 줄을 하나 이상 가진다 -- auditor가 기대값마다(V4 도구가 `UNJUDGED`로 낸 assert 포함) spec card 'oracle 종류와 출처'와 대조한 결과다(V4 (2) 검출기는 확실한 복사만 잡으므로, 계획 N4.2 V4 (2)).
 
 **변경 주체**: 부트스트랩 ①의 초안은 오케스트레이터가 쓰고, 이후 변경은 게이트 변경 spec card와 승인 기록이 있을 때 `gmid-code-author`만 한다(N3.12.2). auditor 경로에서 빠져 있고, auditor의 `.ai/verification/<id>.json`·`<id>/**` 쓰기는 **자기 판정 중인 변경의 id만**이다(`05-role-separation`의 EL1 glob이 disputes의 '자기 변경 id만' 규칙과 같은 방식으로 강제한다). 스키마를 바꾸는 변경의 판정 기록은 **base의 스키마**로 검증한다(바꾼 스키마로 자기 판정을 검증하지 않는다).
 
@@ -548,7 +548,7 @@ auditor는 결과를 `.ai/verification/<spec card id>/noop-<circuit>.json`에 �
 
 | ID | 내용 | 판정 유형 | 구현 소유 / 판정 기준 소유 | oracle | 발행 문서 |
 |---|---|---|---|---|---|
-| CC-1 | merge gate 로더(§8.1 로더 규칙 전부 + 해시 재계산), red 수집 플러그인, `parse_approval_header`, `red_failure_hash`, diff 해시 재계산(V5), U-38 의존성 선언 | 부트스트랩 | `오케스트레이터` / `사용자`(N4.3 공격 15 거부 로그) | 공격 15 케이스는 `tools/gates/redteam/`에 데이터로 두고 케이스마다 기대(거부/통과)를 적는다: 로더 규칙마다 거부 케이스 1개 이상 + review21·22·23 독립 검증 케이스(보고서 표에서 옮긴다) + 오거부 0 = 올바른 기록 3종 | `05-role-separation` |
+| CC-1 | merge gate 로더(§8.1 로더 규칙 전부 + diff·`staged_diff`·`plan_tables` 해시 재계산 -- red·outputs 해시는 auditor가 재고 gate는 형식만), red 수집 플러그인, `parse_approval_header`, `red_failure_hash`, diff 해시 재계산(V5), U-38 의존성 선언 | 부트스트랩 | `오케스트레이터` / `사용자`(N4.3 공격 15 거부 로그) | 공격 15 케이스는 `tools/gates/redteam/`에 데이터로 두고 케이스마다 기대(거부/통과)를 적는다: 로더 규칙마다 거부 케이스 1개 이상 + review21·22·23 독립 검증 케이스(보고서 표에서 옮긴다) + 오거부 0 = 올바른 기록 3종 | `05-role-separation` |
 | CC-2 | `read_plan_tables`·`plan_phase_tokens`(§9.1·§9.2), 표 파손 거부, EL4의 판정 표 diff 승인 검사 | 부트스트랩 | `오케스트레이터` / `사용자`(N4.3 공격 16) | (d) 계획서 N4.1·N4.2·N6.1 | `05-role-separation` |
 | CC-3 | conftest `--gmid-phase`·`--gmid-strict`·`--gmid-dod` 옵션, `gmid_ic` 표식(케이스 키)과 xfail 생성, 표식-계획서 N4.1 대조 test(§9.3) | test-only가 아니라 TS7 선언의 일부(N3.11 TS7, Phase 1) -- 대조 test의 red는 표식이 계획서와 다른 합성 test 파일에서 FAIL | `gmid-test-author` / `사용자`(계획서 N4.1 승인) | (d) 계획서 N4.1(승인 판 커밋 해시) | `10-test-separation` |
 | CC-4 | **앞부분**(Phase 4에서 CC-7·CC-8보다 먼저): §7.1(MOD2·MOD4 형식), 진입점 exit code(DF-37의 하네스 `run()` 몫), §9.3 N3.14 부분. **나머지**: DF-37 광범위 except 재raise | red-green | `gmid-code-author` / `gmid-test-author` | (a) 예외 계층·exit code 불변식, (d) 계획서 N3.14 | `40-defect-fixes` |
