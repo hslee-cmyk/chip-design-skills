@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "gain-budget-gmid-sizing/verification-record",
+  "title": "판정 기록(auditor 전용) -- 필드 목록 정본은 계획서 N3.12.5, 형식은 00-common design §8.1. 정규식 끝은 (?![\\s\\S])(파이썬 re의 $는 끝 개행 앞에서도 맞는다)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "spec_card",
+    "evidence_type",
+    "base_commit",
+    "test_commit",
+    "code_commit",
+    "checks",
+    "reproduced_numbers",
+    "approvals",
+    "auditor_run"
+  ],
+  "$defs": {
+    "record_id": {
+      "type": "string",
+      "pattern": "^[0-9]{8}-[a-z0-9][a-z0-9-]*(?![\\s\\S])"
+    },
+    "sha1": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}(?![\\s\\S])"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
+    },
+    "nonempty": {
+      "type": "string",
+      "pattern": "\\S"
+    },
+    "check": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "verdict",
+        "basis"
+      ],
+      "properties": {
+        "verdict": {
+          "enum": [
+            "PASS",
+            "FAIL",
+            "N/A"
+          ]
+        },
+        "basis": {
+          "$ref": "#/$defs/nonempty"
+        }
+      }
+    }
+  },
+  "properties": {
+    "id": {
+      "$ref": "#/$defs/record_id"
+    },
+    "spec_card": {
+      "type": "string",
+      "pattern": "^docs/02-design/specs/[0-9]{8}-[a-z0-9][a-z0-9-]*[.]spec[.]md(?![\\s\\S])"
+    },
+    "evidence_type": {
+      "enum": [
+        "red-green",
+        "equivalence",
+        "test-only"
+      ]
+    },
+    "base_commit": {
+      "$ref": "#/$defs/sha1"
+    },
+    "test_commit": {
+      "$ref": "#/$defs/sha1"
+    },
+    "code_commit": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/sha1"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "red": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "test_ids",
+        "failure_hashes"
+      ],
+      "properties": {
+        "test_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+(?![\\s\\S])"
+          },
+          "uniqueItems": true
+        },
+        "failure_hashes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/sha256"
+          }
+        }
+      }
+    },
+    "equivalence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "commands",
+        "outputs_hash"
+      ],
+      "properties": {
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        },
+        "outputs_hash": {
+          "$ref": "#/$defs/sha256"
+        }
+      }
+    },
+    "checks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "V1",
+        "V2",
+        "V3",
+        "V4",
+        "V5",
+        "V6",
+        "V7",
+        "V8",
+        "V9",
+        "V10"
+      ],
+      "properties": {
+        "V1": {
+          "$ref": "#/$defs/check"
+        },
+        "V2": {
+          "$ref": "#/$defs/check"
+        },
+        "V3": {
+          "$ref": "#/$defs/check"
+        },
+        "V4": {
+          "$ref": "#/$defs/check"
+        },
+        "V5": {
+          "$ref": "#/$defs/check"
+        },
+        "V6": {
+          "$ref": "#/$defs/check"
+        },
+        "V7": {
+          "$ref": "#/$defs/check"
+        },
+        "V8": {
+          "$ref": "#/$defs/check"
+        },
+        "V9": {
+          "$ref": "#/$defs/check"
+        },
+        "V10": {
+          "$ref": "#/$defs/check"
+        }
+      }
+    },
+    "reproduced_numbers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "value",
+          "command"
+        ],
+        "properties": {
+          "name": {
+            "$ref": "#/$defs/nonempty"
+          },
+          "value": {
+            "type": "number"
+          },
+          "command": {
+            "$ref": "#/$defs/nonempty"
+          }
+        }
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/record_id"
+      },
+      "uniqueItems": true
+    },
+    "auditor_run": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "time",
+        "worktree",
+        "commands"
+      ],
+      "properties": {
+        "time": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "worktree": {
+          "$ref": "#/$defs/nonempty"
+        },
+        "commands": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/nonempty"
+          }
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "evidence_type": {
+            "const": "red-green"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "red"
+        ],
+        "not": {
+          "required": [
+            "equivalence"
+          ]
+        },
+        "properties": {
+          "code_commit": {
+            "$ref": "#/$defs/sha1"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_type": {
+            "const": "equivalence"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "equivalence"
+        ],
+        "not": {
+          "required": [
+            "red"
+          ]
+        },
+        "properties": {
+          "code_commit": {
+            "$ref": "#/$defs/sha1"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "evidence_type": {
+            "const": "test-only"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "code_commit": {
+            "type": "null"
+          }
+        },
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "red"
+              ]
+            },
+            {
+              "required": [
+                "equivalence"
+              ]
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

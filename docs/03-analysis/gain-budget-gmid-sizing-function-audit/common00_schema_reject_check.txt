@@ -1,0 +1,114 @@
+=== 00-common §14: _schema.json 통과·거부 측정 ===
+jsonschema 4.26.0
+  통과 기대  red-green                          -> 통과
+  통과 기대  equivalence                        -> 통과
+  통과 기대  test-only                          -> 통과
+  거부 기대  최상위 스키마 밖 필드                       -> 거부
+  거부 기대  checks.V1 안 스키마 밖 필드               -> 거부
+  거부 기대  checks에 V11                        -> 거부
+  거부 기대  checks V10 누락                      -> 거부
+  거부 기대  verdict 값 SKIP                     -> 거부
+  거부 기대  basis 빈 문자열                        -> 거부
+  거부 기대  red-green인데 red 없음                 -> 거부
+  거부 기대  red-green에 equivalence 동반          -> 거부
+  거부 기대  red-green인데 code_commit null       -> 거부
+  거부 기대  equivalence인데 equivalence 없음       -> 거부
+  거부 기대  test-only인데 code_commit 있음         -> 거부
+  거부 기대  test-only에 red 동반                  -> 거부
+  거부 기대  red 안 스키마 밖 필드                     -> 거부
+  거부 기대  red.test_ids 빈 배열                  -> 거부
+  거부 기대  failure_hash 대문자                   -> 거부
+  거부 기대  base_commit 짧은 해시                  -> 거부
+  거부 기대  evidence_type 미지 값                 -> 거부
+  거부 기대  id 형식 위반                           -> 거부
+  거부 기대  spec_card 경로 위반                    -> 거부
+  거부 기대  reproduced_numbers 원소 밖 필드         -> 거부
+  거부 기대  reproduced_numbers value 문자열       -> 거부
+  거부 기대  approvals 원소 형식 위반                 -> 거부
+  거부 기대  auditor_run 밖 필드                   -> 거부
+  거부 기대  필수 auditor_run 누락                  -> 거부
+  형식 검사  auditor_run.time 형식 위반             -> 통과 -- date-time 형식 검사기가 이 환경에 없다. 로더가 따로 검사해야 한다
+결과: 통과 기대 3/3, 거부 기대 24/24, date-time 형식 미강제
+
+=== 00-common §14: _schema.json 통과·거부 측정 ===
+jsonschema 4.26.0
+  통과 기대  red-green                          -> 통과
+  통과 기대  equivalence                        -> 통과
+  통과 기대  test-only                          -> 통과
+  거부 기대  최상위 스키마 밖 필드                       -> 거부
+  거부 기대  checks.V1 안 스키마 밖 필드               -> 거부
+  거부 기대  checks에 V11                        -> 거부
+  거부 기대  checks V10 누락                      -> 거부
+  거부 기대  verdict 값 SKIP                     -> 거부
+  거부 기대  basis 빈 문자열                        -> 거부
+  거부 기대  red-green인데 red 없음                 -> 거부
+  거부 기대  red-green에 equivalence 동반          -> 거부
+  거부 기대  red-green인데 code_commit null       -> 거부
+  거부 기대  equivalence인데 equivalence 없음       -> 거부
+  거부 기대  test-only인데 code_commit 있음         -> 거부
+  거부 기대  test-only에 red 동반                  -> 거부
+  거부 기대  red 안 스키마 밖 필드                     -> 거부
+  거부 기대  red.test_ids 빈 배열                  -> 거부
+  거부 기대  failure_hash 대문자                   -> 거부
+  거부 기대  base_commit 짧은 해시                  -> 거부
+  거부 기대  evidence_type 미지 값                 -> 거부
+  거부 기대  id 형식 위반                           -> 거부
+  거부 기대  spec_card 경로 위반                    -> 거부
+  거부 기대  reproduced_numbers 원소 밖 필드         -> 거부
+  거부 기대  reproduced_numbers value 문자열       -> 거부
+  거부 기대  approvals 원소 형식 위반                 -> 거부
+  거부 기대  auditor_run 밖 필드                   -> 거부
+  거부 기대  필수 auditor_run 누락                  -> 거부
+  거부 기대  id 끝 개행                            -> 거부
+  거부 기대  base_commit 끝 개행                   -> 거부
+  거부 기대  spec_card 끝 개행                     -> 거부
+  거부 기대  basis 공백뿐                          -> 거부
+  거부 기대  approvals 중복                       -> 거부
+  거부 기대  red.test_ids 중복                    -> 거부
+  로더 담당  value NaN(로더 3)                    -> 스키마 통과(설계대로, 로더가 거부)
+  로더 담당  없는 날짜 id(로더 2)                     -> 스키마 통과(설계대로, 로더가 거부)
+  로더 담당  test_ids·hashes 길이 불일치(로더 4)       -> 스키마 통과(설계대로, 로더가 거부)
+  형식 검사  auditor_run.time 형식 위반             -> 통과 -- date-time 형식 검사기가 이 환경에 없다. 로더가 따로 검사해야 한다
+결과: 통과 기대 3/3, 거부 기대 30/30, date-time 형식 미강제
+
+=== 00-common §14: _schema.json 통과·거부 측정 ===
+jsonschema 4.26.0
+  통과 기대  red-green                          -> 통과
+  통과 기대  equivalence                        -> 통과
+  통과 기대  test-only                          -> 통과
+  거부 기대  최상위 스키마 밖 필드                       -> 거부
+  거부 기대  checks.V1 안 스키마 밖 필드               -> 거부
+  거부 기대  checks에 V11                        -> 거부
+  거부 기대  checks V10 누락                      -> 거부
+  거부 기대  verdict 값 SKIP                     -> 거부
+  거부 기대  basis 빈 문자열                        -> 거부
+  거부 기대  red-green인데 red 없음                 -> 거부
+  거부 기대  red-green에 equivalence 동반          -> 거부
+  거부 기대  red-green인데 code_commit null       -> 거부
+  거부 기대  equivalence인데 equivalence 없음       -> 거부
+  거부 기대  test-only인데 code_commit 있음         -> 거부
+  거부 기대  test-only에 red 동반                  -> 거부
+  거부 기대  red 안 스키마 밖 필드                     -> 거부
+  거부 기대  red.test_ids 빈 배열                  -> 거부
+  거부 기대  failure_hash 대문자                   -> 거부
+  거부 기대  base_commit 짧은 해시                  -> 거부
+  거부 기대  evidence_type 미지 값                 -> 거부
+  거부 기대  id 형식 위반                           -> 거부
+  거부 기대  spec_card 경로 위반                    -> 거부
+  거부 기대  reproduced_numbers 원소 밖 필드         -> 거부
+  거부 기대  reproduced_numbers value 문자열       -> 거부
+  거부 기대  approvals 원소 형식 위반                 -> 거부
+  거부 기대  auditor_run 밖 필드                   -> 거부
+  거부 기대  필수 auditor_run 누락                  -> 거부
+  거부 기대  id 끝 개행                            -> 거부
+  거부 기대  base_commit 끝 개행                   -> 거부
+  거부 기대  spec_card 끝 개행                     -> 거부
+  거부 기대  basis 공백뿐                          -> 거부
+  거부 기대  approvals 중복                       -> 거부
+  거부 기대  red.test_ids 중복                    -> 거부
+  로더 담당  value NaN(로더 3)                    -> 스키마 통과(설계대로, 로더가 거부)
+  로더 담당  없는 날짜 id(로더 2)                     -> 스키마 통과(설계대로, 로더가 거부)
+  로더 담당  test_ids·hashes 길이 불일치(로더 4)       -> 스키마 통과(설계대로, 로더가 거부)
+  형식 검사  auditor_run.time 형식 위반             -> 통과 -- date-time 형식 검사기가 이 환경에 없다. 로더가 따로 검사해야 한다
+결과: 통과 기대 3/3, 거부 기대 30/30, date-time 형식 미강제
+

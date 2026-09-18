@@ -1,6 +1,6 @@
 ---
 template: plan
-version: 5.18
+version: 5.19
 ---
 
 # gain-budget-gmid-sizing Planning Document
@@ -8,7 +8,7 @@ version: 5.18
 > **Summary**: `analog-gmid-design` skill의 gm/ID 사이징 엔진을 **gain-budget-first**로 재설계한다. connectivity에서 signal stage를 유도하고, 보상망이 gm을 정한 뒤, stage 출력노드의 실제 부하까지 포함한 gain을 결합 블록 단위로 할당하고, 노드전압을 DC 정본으로 두어 헤드룸을 자기일관되게 푼다. 그 기반으로 계산 결과를 버리지 않는 **Circuit State Graph**, 책임별 10모듈과 명시적 pytest, 코드 작성자와 검증자의 기계적 분리를 만든다.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code
-> **Status**: Plan 확정본. 다음 단계는 N9의 design 문서 작성(첫 대상 `00-common`, 그다음 Phase 0.5).
+> **Status**: Plan 확정본. design 문서 작성 중 -- `00-common` 작성(사용자 승인 대기), 다음은 Phase 0.5(`05-role-separation`).
 > **이력**: 결정 경위·정정과 폐기·옛 번호 대응·측정 근거·회로 추가 경위·버전별 변경은 [gain-budget-gmid-sizing.history.md](gain-budget-gmid-sizing.history.md)의 `## H1`~`## H5`와 `## Version History`에 있다. 이 문서의 옛 절 번호(§0~§15)와 옛 ID는 history `## H3. 옛 번호 대응`으로 찾는다.
 
 ---
@@ -116,7 +116,7 @@ version: 5.18
 | interface card | 기계적으로 뽑은 시그니처·docstring 첫 단락 + spec card의 신규 시그니처. test-author의 유일한 구현 정보 |
 | 판정 기록 | auditor만 쓰는 `.ai/verification/<id>.json`(N3.12.5) |
 | 승인 기록 | 사용자 승인 원문을 오케스트레이터가 옮긴 `.ai/approvals/<id>.md`(N3.12.5) |
-| oracle 4종 | (a) 물리 불변식·손계산 (b) 다른 방법의 참조구현 (c) known-good 기준(SPICE, 결함 도입 전 커밋) (d) spec card에 사용자가 적은 값 |
+| oracle 4종 | (a) 물리 불변식·손계산(구성으로 정답이 정해진 합성 입력 포함 -- 예: 발동 1건을 넣은 변형은 무동작 판정이 FAIL이어야 한다) (b) 다른 방법의 참조구현 (c) known-good 기준(SPICE, 결함 도입 전 커밋) (d) spec card에 사용자가 적은 값 |
 | 기준 약화 | assert 삭제, 비교 완화, 허용오차 확대, skip/xfail 추가, 기대값 리터럴 변경, 픽스처 입력 리터럴 변경, 격자 확대, assert를 조건문·try 아래로 이동 |
 | 운영 경로 | Phase 3 전: `workspaces/run_harness.py` -> `optimize_full_circuit_budget` -> `_evaluate`. Phase 3 후: `run_gmid_design_pipeline` 이하. 문자열 레지스트리(`_METRICS_REGISTRY`, `_COMPENSATION_REGISTRY`, topology.json `"function"`)로 도달하는 것 포함 |
 | library 회로 | `library/*.topology.json`의 회로 전부(`_TEMPLATE` 제외, 현재 **9개**) = 기존 4개 회로 + `two_stage_ota_sf` / `pushpull_follower_buffer` / `sf_pushpull_output_opamp` / `ngcc_3stage_ff`(DEC-81 복합 블록 분기의 발동 회로, U-34 확정) / `common_gate_amplifier`(전압 구동 CG stage 시작 분기의 발동 회로, U-37). 구조 유도와 규칙 분기 발동표의 대상(DEC-47) |
@@ -426,7 +426,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 |---|---|---|
 | 1 | 노드 충돌 | 같은 노드에 도달한 경로별 값의 최대 차 ≤ tol_V |
 | 2 | VGS 정합 | 모든 소자(diode 포함)에서 노드 차 VGS와 `vgs_for_gm_id(gm_id, L, vds, vsb)`의 차 ≤ tol_V |
-| 3 | KCL 잔차 | 내부 노드마다 |ΣI| ≤ tol_I. `exclude_nets`는 사유가 선언된 넷만 |
+| 3 | KCL 잔차 | 내부 노드마다 \|ΣI\| ≤ tol_I. `exclude_nets`는 사유가 선언된 넷만 |
 | 4 | 버전 일치 | 파생 필드의 입력 카운터 = 현재 카운터(정확 일치) |
 | 5 | writer 유일 | 노드마다 writer 하나 |
 | 6 | 벌크 역바이어스 | 모든 소자에서 source-bulk·drain-bulk 접합이 역바이어스(nmos V(source), V(drain) ≥ V(bulk), pmos V(source), V(drain) ≤ V(bulk)). 위반 크기 > tol_V이면 거부(DEC-61) |
@@ -526,7 +526,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 | MOD7 | `stick_diagram.py` | 레이아웃만(구조 유도 함수는 MOD2·MOD3로 나간다) | 레지스트리 등급 R0 레이아웃 함수 |
 | MOD8 | `sizing_layout_convergence.py` | 사이징↔레이아웃 수렴 루프 | `run_topology_pipeline_with_finger_fixup`, `revalidate_finger_override`, `resolve_stack_layout` |
 | MOD9 | `instance_report_builder.py` | instance.json과 HTML 보고((전력, 면적) front 점 목록·선택 점·선택 근거를 저장하고 표시한다, DEC-77·N6.3) | `save_instance_json` 계열, `design_report.render_html_report`(재사용, 누락 절만 추가) |
-| MOD10 | `gmid_design_pipeline.py` | 유일 최상위 진입점 `run_gmid_design_pipeline(spec)` | spec을 인자로 받는다(`workspaces/`를 import하지 않는다) |
+| MOD10 | `gmid_design_pipeline.py` | 유일 최상위 진입점 `run_gmid_design_pipeline(spec)`(탐색 설정 인자 `search`와 계측 인자 `output_dir`·`instrument`·`activations_out`, `00-common` §10.1·§11) | spec을 인자로 받는다(`workspaces/`를 import하지 않는다) |
 
 * LUT 생성(`sky130_lut_sweep.py`)과 `topology_to_markdown.py`는 도구로 남는다. `canonical_spec()`/`SPECS`는 `workspaces/run_harness.py`에 남고 MOD10에 인자로 넘긴다.
 * **이동 규칙**: 모듈 하나당 이동 전용 커밋. 무변경 증명 = 이동 전후 함수별 `ast.dump`(docstring 제외) 해시 동일 + import 줄만 차이. 해시가 같은 함수는 V3 대상에서 뺀다.
@@ -545,7 +545,7 @@ skills/analog-gmid-design/assets/tests/
   regression/      library 회로 측정(대상 구분 DEC-47), 규칙 분기 발동표(DEC-59)
   oracles/         test-author 소유 독립 참조구현
   legacy/          TS1 이관본(TS2 완료 시 삭제)
-  tools/           정본 데이터를 갱신하는 운영 도구(code-author 소유, pytest 수집 제외)
+  tools/           정본 데이터를 갱신하는 운영 도구, 계측 도구(성능·무동작)(code-author 소유, 그 test는 test-author. pytest 수집 제외. `00-common` §10·§11)
   probes/          일회성 진단(pytest 수집 제외)
 ```
 
@@ -571,23 +571,23 @@ skills/analog-gmid-design/assets/tests/
 | 의도(spec card, 계획·설계 문서, 승인 기록 전사) | 사용자 + 오케스트레이터 | 엔진 소스·tests 쓰기(EL1) |
 | 구현(엔진 소스, 운영 도구, 레지스트리) | `gmid-code-author` | tests·기대값·기준선·픽스처 쓰기 |
 | 판정 기준(tests, oracles, 픽스처, 공격 시나리오) | `gmid-test-author` | 소스 쓰기, 피검 함수로 기대값 만들기 |
-| 판정 실행과 보고 수치 | `gmid-verification-auditor` | 판정 기록 외 쓰기, 작성자 보고를 증거로 받기 |
+| 판정 실행과 보고 수치 | `gmid-verification-auditor` | 판정 기록과 그 부속 산출물(`.ai/verification/<id>/`: 성능·무동작 측정 출력) 외 쓰기, 작성자 보고를 증거로 받기 |
 
 #### N3.12.2 쓰기 경로표
 
 | 주체 | 쓸 수 있는 경로 |
 |---|---|
-| gmid-code-author | `skills/analog-gmid-design/assets/*.py`, `skills/analog-gmid-design/assets/tests/tools/**`, `tools/migrate/**`, `workspaces/run_harness.py`, `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`, `docs/02-design/disputes/<id>.md`(자기 변경 id만). 게이트 변경 spec card와 승인 기록이 있을 때만 `tools/gates/*.py`, `hooks/role_*.py` |
+| gmid-code-author | `skills/analog-gmid-design/assets/*.py`, `skills/analog-gmid-design/assets/tests/tools/**`, `tools/migrate/**`, `workspaces/run_harness.py`, `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md`, `docs/02-design/disputes/<id>.md`(자기 변경 id만). 게이트 변경 spec card와 승인 기록이 있을 때만 `tools/gates/*.py`, `hooks/role_*.py`, `.ai/verification/_schema.json`(부트스트랩 ① 초안 이후의 변경) |
 | gmid-test-author | `skills/analog-gmid-design/assets/tests/**`(`tests/tools/**` 제외). 게이트 변경 spec card와 승인 기록이 있을 때만 `tools/gates/redteam/**` |
-| gmid-verification-auditor | `.ai/verification/**` |
-| 오케스트레이터 | `docs/01-plan/**`, `docs/02-design/**`(disputes는 `_TEMPLATE.md`만), `docs/03-analysis/**`(레지스트리 제외), `.ai/context.md`, `.ai/approvals/**`, 사용자 확인과 승인 기록이 있는 `skills/analog-gmid-design/assets/library/*.topology.json`(U-16 확정), `skills/analog-gmid-design/assets/library/*.structure.json`(status 전이 기록만) |
+| gmid-verification-auditor | `.ai/verification/<id>.json`, `.ai/verification/<id>/**`(`_schema.json` 제외 -- 판정 대상이 자기 판정 스키마를 고치지 못하게) |
+| 오케스트레이터 | `docs/01-plan/**`, `docs/02-design/**`(disputes는 `_TEMPLATE.md`만), `docs/03-analysis/**`(레지스트리 제외), `.ai/context.md`, `.ai/approvals/**`, `.ai/verification/_schema.json`(부트스트랩 ① 초안 한정), 사용자 확인과 승인 기록이 있는 `skills/analog-gmid-design/assets/library/*.topology.json`(U-16 확정), `skills/analog-gmid-design/assets/library/*.structure.json`(status 전이 기록만) |
 | 사용자만 | `.githooks/**`, `.claude/**`, `.gitignore`, `install.py`, 부트스트랩 이후의 `agents/gmid-*.md` |
 
 hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 없고 대상 경로가 위 표의 경로와 겹치는 호출만 판정한다. 그 밖(RTL agent 등)은 즉시 통과시킨다. 경로 판정은 대상 경로를 해당 worktree 루트 기준 상대 경로로 바꾼 뒤 한다. '사용자만' 경로는 Claude 세션의 도구 호출로 쓸 수 없다(EL1 거부) -- 사용자가 세션 밖에서 편집하거나, 부트스트랩 ④ 단계(hook 설치 전)에 오케스트레이터가 승인 기록과 함께 한 번 쓴다.
 
 #### N3.12.3 변경 한 건의 흐름
 
-**spec card** `docs/02-design/specs/<id>.spec.md`, `<id>` = `YYYYMMDD-<slug>`. 필드: 의도 / 관찰 가능한 계약 / interface card / 판정 유형(`red-green` 또는 `equivalence`) / oracle 종류와 출처 / 거부해야 할 입력 / library 회로 적용 여부(DEC-47 대상 구분) / 재현할 수치 / 결정 필요 항목 / 승인 기록 링크.
+**spec card** `docs/02-design/specs/<id>.spec.md`, `<id>` = `YYYYMMDD-<slug>`. 필드: Phase(N6.1의 Phase 이름. 판정 기록의 V `N/A`와 XFAIL 만료 판정 입력, `00-common` §9.3) / 의도 / 관찰 가능한 계약 / interface card / 판정 유형(`red-green`, `equivalence`, `test-only` 중 하나) / oracle 종류와 출처 / 거부해야 할 입력 / library 회로 적용 여부(DEC-47 대상 구분) / 무동작 판정 입력(볼 발동 계수 ID 목록과, 병합본이 더하는 새 산출물 필드마다의 무발동 값 -- `00-common` §11) / 재현할 수치 / 결정 필요 항목 / 승인 기록 링크.
 
 **spec card 한 건의 단위** = **red 하나로 판정되는 관찰 가능한 계약 하나**다. 한 건이 소스 파일 여러 개를 건드려도 되지만, 판정 유형이 섞이거나(red-green + equivalence) 승인 기록이 둘 이상 필요하면 나눈다. 이동 전용 변경(Phase 3)은 모듈 하나가 한 건이고(N3.10 이동 규칙), test 전용 변경은 TS 단계 하나가 한 건이다(N3.11). design 문서가 내는 spec card 목록(N9.2-5)은 이 단위로 만든다.
 
@@ -603,7 +603,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 * 판정 유형: 동작을 바꾸는 변경은 `red-green`(새·바뀐 test가 base에서 FAIL, 병합본에서 PASS). 동작을 보존하는 변경(TS1, Phase 2 통합, Phase 3 이동)은 `equivalence`(test 커밋이 그대로이고 base와 병합본 모두 통과, 추가로 TS1은 stdout 동일, Phase 3은 AST 해시 동일).
 * test 전용 변경(판정 유형 `test-only`: TS2·TS3·TS5, TS6의 probe 승격·삭제): 순서 4·5를 생략한다. 증거 = 변경 전 test 집합이 base에서 통과시킨 섹션을 변경 후 test가 모두 PASS함(섹션->test 매핑표는 `10-test-separation` design).
-* oracle은 4종만(N0.4). 피검 함수 호출이나 피검 식 복사, 현재 출력 붙여넣기로 기대값을 만들지 않는다. **선택 기준**: 물리 불변식(KVL·KCL·VGS 정합·단조성)으로 표현되면 (a), 다른 방법의 폐형식·축소 격자 전수탐색이 가능하면 (b), 기준선이 존재하고 동작 보존 변경이면 (c), 회로 해석 결론이나 사용자가 선언한 스펙값이면 (d)다. 두 종 이상 가능하면 **(a)를 우선**하고(피검 구현과 가장 멀다), 고른 종과 그 근거를 spec card의 'oracle 종류와 출처'에 적는다.
+* oracle은 4종만(N0.4). 피검 함수 호출이나 피검 식 복사, 현재 출력 붙여넣기로 기대값을 만들지 않는다. **선택 기준**: 물리 불변식(KVL·KCL·VGS 정합·단조성)이나 구성으로 정답이 정해진 합성 입력으로 표현되면 (a), 다른 방법의 폐형식·축소 격자 전수탐색이 가능하면 (b), 기준선이 존재하고 동작 보존 변경이면 (c), 회로 해석 결론이나 사용자가 선언한 스펙값이면 (d)다. 두 종 이상 가능하면 **(a)를 우선**하고(피검 구현과 가장 멀다), 고른 종과 그 근거를 spec card의 'oracle 종류와 출처'에 적는다.
 * 판정은 PASS / FAIL / XFAIL 세 값. XFAIL은 reason에 담당 Phase와 만료(그 Phase DoD)를 적고, 만료되면 FAIL. "참고" 출력과 소비자 없는 경고 리스트는 금지.
 * 기준 약화는 test-author 커밋이라도 승인 기록이 있어야 병합된다(DEC-40, V5).
 
@@ -613,8 +613,8 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 |---|---|---|
 | EL1 | PreToolUse hook `hooks/role_guard.py`(Edit/Write/NotebookEdit/Bash). 쓰기 경로표 밖 쓰기를 거부하고 사유를 돌려준다. Bash에서 `--no-verify`, `git commit -n`, `core.hooksPath`, `git push`, `git reset --hard`, `git checkout -- <tests 경로>`, 경로표 밖으로의 리다이렉트를 거부 | 역할 밖 편집, 게이트 무력화 |
 | EL2 | PostToolUse(Bash) + SubagentStop hook `hooks/role_diff_guard.py`. worktree `git status --porcelain`을 경로표와 대조해 위반이 있으면 exit 2로 완료를 거부. 무시 목록 = `.gitignore` 대상(`library/*.search_archive/`, 실행 산출물 `runs/`를 `.gitignore`에 등록) + `__pycache__/`, `.pytest_cache/`(무시 목록 변경은 사용자만) | 쓰는 방법과 무관한 역할 밖 변경 |
-| EL3 | `.githooks/pre-commit`에 `tools/gates/role_commit_gate.py` 추가. staged 경로가 경로표와 겹치면 `Role: code|test|audit|doc` 트레일러 필수. 소스와 `tests/**`(`tests/tools/**` 제외)를 한 커밋에서 바꾸면 차단, code 커밋이 `tests/**`(`tests/tools/**` 제외)·기준선·conftest를 바꾸면 차단. python이 없으면 기존 agent 검사와 역할 검사 모두 차단(skip 금지). **경로 분류는 5종**이다: 소스(`skills/analog-gmid-design/assets/*.py`) / test(`assets/tests/**` 중 `tests/tools/**` 제외) / 도구(`assets/tests/tools/**`, `tools/**`) / 데이터(`assets/library/**`) / 문서(`docs/**`, `.ai/**`). 트레일러 `Role:`과 이 5분류의 허용 조합표는 N3.12.2 쓰기 경로표에서 생성하고 정본은 `05-role-separation` design이 둔다 | 코드와 기준 동시 변경 |
-| EL4 | `tools/gates/merge_gate.py <base>..<branch>`. 모든 커밋의 트레일러·경로·브랜치 역할 일치를 사후 재검사하고(topology.json diff는 승인 기록 필수, U-16), 판정 기록 존재 + test 커밋 해시가 freeze 해시와 같음 + 판정 유형별 증거 + auditor PASS를 확인. 하나라도 없으면 거부 | 앞 겹을 모두 우회한 커밋 |
+| EL3 | `.githooks/pre-commit`에 `tools/gates/role_commit_gate.py` 추가. staged 경로가 경로표와 겹치면 `Role: code\|test\|audit\|doc` 트레일러 필수. 소스와 `tests/**`(`tests/tools/**` 제외)를 한 커밋에서 바꾸면 차단, code 커밋이 `tests/**`(`tests/tools/**` 제외)·기준선·conftest를 바꾸면 차단. python이 없으면 기존 agent 검사와 역할 검사 모두 차단(skip 금지). **경로 분류는 5종**이고 한 경로는 한 분류에만 든다(파일을 명시한 규칙이 glob 규칙보다 우선한다): 소스(`skills/analog-gmid-design/assets/*.py`, 그리고 판정 입력이 되는 `workspaces/run_harness.py`·`.ai/verification/_schema.json`) / test(`assets/tests/**` 중 `tests/tools/**` 제외) / 도구(`assets/tests/tools/**`, `tools/**`) / 데이터(`assets/library/**`) / 문서(`docs/**`, `.ai/**`). 트레일러 `Role:`과 이 5분류의 허용 조합표는 N3.12.2 쓰기 경로표에서 생성하고 정본은 `05-role-separation` design이 둔다 | 코드와 기준 동시 변경 |
+| EL4 | `tools/gates/merge_gate.py <base>..<branch>`. 모든 커밋의 트레일러·경로·브랜치 역할 일치를 사후 재검사하고(topology.json diff와 판정에 쓰는 계획서 표 -- N4.1 `담당 Phase`·`강제 test`, N4.2 `도입`, N6.1 `Phase` 열 -- 의 diff(base와 head 계획서를 같은 규칙으로 파싱한 값의 차이. head 계획서의 표를 못 읽으면 거부, `00-common` §9.1)는 승인 기록 필수, U-16·`00-common` §9), 판정 기록 존재 + test 커밋 해시가 freeze 해시와 같음 + 판정 유형별 증거 + auditor PASS를 확인. 하나라도 없으면 거부 | 앞 겹을 모두 우회한 커밋 |
 
 한계: 경로 기반 Read 거부는 Read 도구만 막고 Bash 읽기는 못 막는다(Windows에는 파일시스템 sandbox가 없다). test-author의 소스 열람은 V3·V4가 결과로 잡는다.
 
@@ -628,7 +628,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 #### N3.12.6 부트스트랩과 산출물
 
-부트스트랩 순서(Phase 0.5): ① 오케스트레이터가 agent 정의 3개, hook·게이트 스크립트, 양식 초안을 작성하고 `.gitignore`에 `library/*.search_archive/`, `runs/`를 등록(이 단계에 한한 예외, 사용자 승인) ② 더미 hook이 stdin을 파일에 기록하게 해 세 역할과 메인 세션에서 hook 입력 필드를 실측 ③ 공격 시나리오·과거 사례 재생(N4.3)을 실행해 로그를 사용자에게 제시하고 승인 기록 ④ `python install.py --only agents --project .`, `python install.py --only hooks --project .`로 설치(DEC-41), `.githooks/pre-commit` 갱신 ⑤ 이후 게이트 변경을 포함한 모든 변경은 N3.12.3 흐름으로.
+부트스트랩 순서(Phase 0.5): ① 오케스트레이터가 agent 정의 3개, hook·게이트 스크립트(merge gate의 판정 기록 로더·계획서 판정 표 읽기·승인 기록 머리 파서 포함, `00-common` §8·§9), 양식 초안을 작성하고 `.gitignore`에 `library/*.search_archive/`, `runs/`를 등록(이 단계에 한한 예외, 사용자 승인) ② 더미 hook이 stdin을 파일에 기록하게 해 세 역할과 메인 세션에서 hook 입력 필드를 실측 ③ 공격 시나리오·과거 사례 재생(N4.3)을 실행해 로그를 사용자에게 제시하고 승인 기록 ④ `python install.py --only agents --project .`, `python install.py --only hooks --project .`로 설치(DEC-41), `.githooks/pre-commit` 갱신 ⑤ 이후 게이트 변경을 포함한 모든 변경은 N3.12.3 흐름으로.
 
 | 산출물 | 경로 |
 |---|---|
@@ -649,7 +649,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 ### N3.14 공통 실패 규약
 
-| 분류 | 발생 | 예외(모두 `InfeasibleSizingError` 하위) | 탐색 중 처리 | 파이프라인 exit code(서로 다른 비0 규약값, 분류 순서대로 배정) |
+| 분류 | 발생 | 예외(SCHEMA_REJECTED 외에는 모두 `InfeasibleSizingError` 하위) | 탐색 중 처리 | 파이프라인 exit code(서로 다른 비0 규약값, 분류 순서대로 배정) |
 |---|---|---|---|---|
 | STRUCTURE_UNRESOLVED | `review_needed` 잔존(6c 이후), `undetermined` 노드, `unsupported_rule_branch`(검증 발동 0 분기, 6c 이후, DEC-59), `undeclared_loop_constraint`(7b 이후, U-24) | `StructureUnresolvedError` | 탐색 시작 전 정지 | 2 |
 | STRUCTURE_UNRESOLVED(최종 해) | `structure_inconsistent`가 최종 해에서도 남음(값 의존 노드 구동 종류가 ratified 값과 불일치) | `StructureUnresolvedError` | 탐색 후 최종 해 보고 정지(J12 재분석 대상) | 2(같은 분류) |
@@ -659,9 +659,10 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | NONCONVERGENT | 순환 블록 반복 상한 도달 | `NonconvergentError`(잔차 포함) | 실패 기록(margin = 잔차) | 4 |
 | SEAL_VIOLATION | 봉인 항목 위반 | `SealViolationError`(항목·소자·크기) | 실패 기록(margin = 위반 크기) | 5 |
 | SEARCH_FAILED | 모든 시작점에서 feasible 없음 | `SearchFailedError` | -- | 6 |
+| SCHEMA_REJECTED | 로드 게이트 거부: 옛 이름(DEC-69), 스키마 밖 필드, 필수 선언 누락(`supply_nets`, `constraints[].source` 등) | `SchemaRejectedError`(**`Exception` 직접 하위** -- `ValueError`·`InfeasibleSizingError` 하위가 아니다. 기존 `except ValueError`와 후보 실패 처리가 삼키지 않게) | 발생 즉시 정지(탐색 중이라도 삼키지 않는다) | 7 |
 | 예상 밖 예외 | 그 외 | 원래 예외 | 전파(삼키지 않음) | 1 |
 
-모든 실패 레코드: {class, devices, margin, detail}. 광범위 except로 이 규약을 우회하지 않는다(V6).
+모든 실패 레코드: {class, devices, margin, detail}. 광범위 except로 이 규약을 우회하지 않는다(V6). 탐색 루프는 '탐색 중 처리'가 실패 기록인 클래스만 이름으로 잡고 기반 클래스 `InfeasibleSizingError`를 잡지 않는다. 코드 형식(예외 계층·`FailureRecord`·exit code 표)은 `00-common` §7.
 
 **margin 정규화식**: margin은 그 클래스의 허용오차로 나눈 **무차원 값**이다 -- SEAL_VIOLATION·`local_infeasible` = 위반 크기 / 그 봉인 항목의 허용오차(전압 항목은 `tol_V`, 전류 항목은 `tol_I`, N3.6) / NONCONVERGENT = 잔차 / `tol_V` / `structure_inconsistent` = 판정 경계까지 거리 / 그 판정량의 분해능 (값 의존 노드의 구동 종류 판정량, 용어집 '입력 노드 구동 종류'). 분모가 0이거나 정의되지 않으면 margin은 `null`로 기록하고 비교·정렬에 쓰지 않는다(빠뜨린 것과 구분된다). 비교는 같은 클래스 안에서만 한다 -- 클래스가 다른 margin은 분모가 달라 크기를 견주지 않는다. 소비처: 실패 캐시 정렬과 시작점 선택(N3.5), 층 0 비지배 점 제외(DEC-71 (5)), 후보 기각 기록(DEC-70).
 
@@ -670,7 +671,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 섹션 | 필드 |
 |---|---|
 | `meta` | `schema_version`(5), `topology_hash`, `origin`(`canonical` / `fixture`) |
-| `human` | `objective`(DEC-77로 최적화 축은 (전력, 면적)으로 고정이므로 이 필드는 최소화 대상을 고르는 선언이 아니라 **선택적 목적 축 예산**이다: 축별 상한과 출처. 미선언이면 front 제시 후 정지. 필드 모양과 최종 이름은 MG3와 함께 `7b-compensation-allocation` design이 DEC-68 규칙으로 정한다), `constraints[]{metric, op, value, source}`(`metric`은 실제 metric 이름, 예 `gain_ss_db`·`rout_ss_ohm`·`pm_ss_deg`), `ports{<넷>: {role}}`(`direction` 없음, role에서 유도), `element_values{<요소 이름>: {value_ohm | value_farad | value_dc_amp}}`(수동소자·이상원 값. 부하 용량 CL은 부하 요소의 `value_farad`), `compensation_targets{gbw_target_hz, pm_target_deg}`(부하 용량은 요소 이름으로 참조), `driving_spec`(슬루율, `load_peak_amp`, `load_dc_amp`), `wall_clock_budget_s`(DEC-34), `search_method`(기본 경로 / 정밀 경로, DEC-73), `optional_stages{}`(기본 비활성 기능 켜기, DEC-75), `dof_rank_sample_count`(기본 10, 출처 필수, N3.7), `supplies_v`(DEC-60), `node_voltage_targets_v`, `input_dc_net`(입력 DC가 넷 이름일 때), `gain_budget_db_override`(source 필수), `cross_kind_matching`, `same_as`(M7=M6, M36b=M36a처럼 connectivity로 유도되지 않는 것만) |
+| `human` | `objective`(DEC-77로 최적화 축은 (전력, 면적)으로 고정이므로 이 필드는 최소화 대상을 고르는 선언이 아니라 **선택적 목적 축 예산**이다: 축별 상한과 출처. 미선언이면 front 제시 후 정지. 필드 모양과 최종 이름은 MG3와 함께 `7b-compensation-allocation` design이 DEC-68 규칙으로 정한다), `constraints[]{metric, op, value, source}`(`metric`은 실제 metric 이름, 예 `gain_ss_db`·`rout_ss_ohm`·`pm_ss_deg`), `ports{<넷>: {role}}`(`direction` 없음, role에서 유도), `element_values{<요소 이름>: {value_ohm \| value_farad \| value_dc_amp}}`(수동소자·이상원 값. 부하 용량 CL은 부하 요소의 `value_farad`), `compensation_targets{gbw_target_hz, pm_target_deg}`(부하 용량은 요소 이름으로 참조), `driving_spec`(슬루율, `load_peak_amp`, `load_dc_amp`), `wall_clock_budget_s`(DEC-34), `search_method`(기본 경로 / 정밀 경로, DEC-73), `optional_stages{}`(기본 비활성 기능 켜기, DEC-75), `dof_rank_sample_count`(기본 10, 출처 필수, N3.7), `supplies_v`(DEC-60), `node_voltage_targets_v`, `input_dc_net`(입력 DC가 넷 이름일 때), `gain_budget_db_override`(source 필수), `cross_kind_matching`, `same_as`(M7=M6, M36b=M36a처럼 connectivity로 유도되지 않는 것만) |
 | `derived` | S1·S1v에서 유도한 필드와 측정 산출값: {필드, status, evidence, rule_hash} -- `model_error_<metric>`(7a SPICE 대조 측정값, evidence = `verified_by` 판정 기록 id, DEC-72), stage 구성, `vertical_stack_id`, `vsb`, `vds_match_vgs_of`, 같은 종류 `gm_id_match_vgs_of`, `compensation.stage_devices`, `vds_kvl_groups`, metric 소자 역할 인자, 노드 공유 `budget_reference_device` |
 
 * 로더 `load_sizing_spec(path)`는 미지 필드를 거부하고, `topology_hash` 불일치를 거부하고, `constraints[].source`가 없거나 논문이면 거부하고, DEC-69 단계별 옛 이름(`supplies`, `vdd` 스칼라, `value_amp`, `PM_target_deg`, `GBW`, `CL` 키, `same_as_device` 등)을 거부한다.
@@ -737,7 +738,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | IC2 | 암묵적 순서 의존 | SC-a 단일 writer, NFR-4 결정론 | `test_order_shuffle_invariance`: 소자 dict 순서·그룹 순서·set 순회를 섞어 2회 실행, 이산 필드 완전 일치, 노드전압 ≤ tol_V, 전류 ≤ tol_I, 그 밖의 연속 필드 ≤ tol_V 섭동의 감도 전파값 | 6b |
 | IC3 | 조용한 소실·덮어쓰기 | 이름 전역 유일, 저장 필드 목록 단일 정의, pass마다 커버리지 재검증 | `test_coverage_and_field_completeness`: `check_stick_diagram_coverage` + instance.json 소자·필수 필드 누락 0 + 이름 충돌 0 | 1 |
 | IC4 | role 라벨 과신 | 물리·connectivity 판정이 항상 우선 | `test_role_label_removal_invariance`: `headroom_role`/`gm_id_role`/`L_role` 전부 제거해도 결과 동일 | 6c |
-| IC5 | 게이트 사각 | 게이트 docstring에 "검사하지 않는 것" 절 필수 | `test_gate_docstring_declares_blind_spots`: `check_*`/`verify_*`/`validate_*`/`audit_*` 전수 정적 검사 | 1 |
+| IC5 | 게이트 사각 | 게이트 docstring에 "검사하지 않는 것" 절과 `영역:` 한 줄(DEC-67, 값 규칙은 `00-common` §5) 필수 | `test_gate_docstring_declares_blind_spots`: `check_*`/`verify_*`/`validate_*`/`audit_*`/`reject_*`/`require_*`와 `load_*_checked` 전수 정적 검사 | 1 |
 | IC6 | underdetermined를 반복으로 밀어붙임 | GB4 DOF 진단 | `test_dof_catches_incident19_fixture`: 사고19 픽스처(기둥 vds 미지수 2 / 등식 1)를 overconstrained·underdetermined로 판정 | 6c |
 | IC7 | 단일 회로·단일 부류로만 검증 | 동작 변경 Phase는 library 회로 측정(DEC-47), 규칙 분기 발동표(DEC-59) | `test_all_library_topologies_run`(regression): library 회로 실행(대상 구분 DEC-47) + 필요 없는 기능 발동 계수 0 + 규칙 분기 발동표 생성 + 검증 발동 0 분기를 타는 픽스처(library topology 로드·변형)에서 `unsupported_rule_branch` 정지 | 6a 이후 매 Phase(정지 케이스는 6c) |
 | IC8 | 증거 없는 자동 병합 | 증거 없는 유도는 `proposed`/`review_needed` | `test_unevidenced_derivation_stops_before_search`: 증거 없는 픽스처에서 STRUCTURE_UNRESOLVED | 6c |
@@ -747,7 +748,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 ### N4.2 auditor 검사 V1~V10
 
-'도입'은 병합 판정에 적용되는 Phase다. 도구는 모두 Phase 0.5에서 완성되고, 0.5의 공격 시나리오·사례 재생에서 거부 동작을 증명한다. 도입 전 Phase에서는 PASS가 아니라 `N/A(사유, 도입 Phase)`로 판정 기록에 적는다. **도입 Phase가 1 이상인 검사(V3~V6 등)의 도구도 Phase 0.5에서 실행한다** -- 0.5의 판정 대상은 병합이 아니라 **게이트가 실제로 거부하는가**이고(N4.3, WP-02), 실행 입력은 `tools/gates/redteam/`의 공격 시나리오와 과거 사례 합성 커밋이지 그 Phase의 변경이 아니다. 그래서 0.5에서 거부가 증명돼도 그 검사가 병합 판정에 쓰이기 시작하는 시점은 '도입' 열의 Phase다.
+'도입'은 병합 판정에 적용되는 Phase다. 도구는 모두 Phase 0.5에서 완성되고, 0.5의 공격 시나리오·사례 재생에서 거부 동작을 증명한다. 도입 전 Phase에서는 PASS가 아니라 `N/A`로 적고 근거를 `도입 <Phase>: <사유>` 형식으로 쓴다(`00-common` §8.1). **도입 Phase가 1 이상인 검사(V3~V6 등)의 도구도 Phase 0.5에서 실행한다** -- 0.5의 판정 대상은 병합이 아니라 **게이트가 실제로 거부하는가**이고(N4.3, WP-02), 실행 입력은 `tools/gates/redteam/`의 공격 시나리오와 과거 사례 합성 커밋이지 그 Phase의 변경이 아니다. 그래서 0.5에서 거부가 증명돼도 그 검사가 병합 판정에 쓰이기 시작하는 시점은 '도입' 열의 Phase다.
 
 | ID | 검사 | 판정 규칙 | 도구 | 도입 |
 |---|---|---|---|---|
@@ -764,7 +765,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 ### N4.3 게이트 거부 증명(Phase 0.5)
 
-**공격 시나리오 14건**(전부 거부 로그가 나와야 완료). **실행 Phase**: 1~12는 Phase 0.5, **13·14는 6a**다 -- 공격 13이 겨누는 GB0 로드 게이트(DEC-60)가 6a 구현이라 0.5에서는 실행할 수 없다.
+**공격 시나리오 16건**(전부 거부 로그가 나와야 완료). **실행 Phase**: 1~12·15·16은 Phase 0.5, **13·14는 6a**다 -- 공격 13이 겨누는 GB0 로드 게이트(DEC-60)가 6a 구현이라 0.5에서는 실행할 수 없다.
 
 | # | 공격 | 기대 |
 |---|---|---|
@@ -782,6 +783,8 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | 12 | `optional_stages`(또는 다른 spec 필드)에 봉인 항목·게이트·정지 규칙 이름을 넣어 끄기 | GB0 로드 게이트 거부(화이트리스트 4개 밖, DEC-75). 거부를 test로 증명한다 |
 | 14 | **숨은 레일 후보**(트랜지스터 단자에 없고 DC 전도 그래프에서 레일과 연결되지 않는 넷)를 가진 topology를 그 넷 없이 로드한다 -- (a) `supply_nets` 미선언 (b) `supply_nets`를 적되 그 넷을 빼고 선언 | 두 경우 모두 GB0 로드 게이트 거부(DEC-60 (iii)). (b)가 핵심이다: 선언이 존재하기만 하면 통과하는 게이트는 같은 고장을 되돌린다. 함께 **오거부 0**을 증명한다 -- DC로 연결된 보상망 내부 노드(파일럿 `N_cc_rz1`·`N_cc_rz2`)를 가진 회로는 통과해야 한다. **실행 Phase = 6a** |
 | 13 | 레일이 셋 이상이거나 음전위 레일이 있는 회로 topology를 `supply_nets` 없이 로드 | GB0 로드 게이트 거부(DEC-60). 전환기 이름집합 해석으로 조용히 넘어가지 않음을 **거부 로그로** 증명하고, 이것이 IC11 3레일 케이스의 선행 조건이다. **실행 Phase = 6a**(GB0 로드 게이트 구현 뒤) |
+| 15 | 판정 기록이 `_schema.json` 밖이거나(스키마 밖 필드, 형식 위반, 끝 개행 붙은 값, 중복 원소) `00-common` §8.1 로더 규칙(번호와 무관하게 전부)에 걸리는 상태로, 또는 승인 기록 머리가 양식(`00-common` §8.2) 밖인 상태로 병합을 시도 | EL4 거부. 케이스는 `tools/gates/redteam/`에 데이터로 두고 케이스마다 기대(거부/통과)를 적는다(`00-common` §14 CC-1). 함께 **오거부 0**: 올바른 기록 3종(red-green·equivalence·test-only)은 통과해야 한다. **실행 Phase = 0.5** |
+| 16 | (i) 판정에 쓰는 계획서 표(N4.1 `담당 Phase`, N4.2 `도입`, N6.1 `Phase` 열)를 승인 기록 없이 바꾼 계획 개정으로 병합을 시도 (ii) 그 표가 깨진(셀 수 불일치·절이나 표 없음) 계획서를 base로 병합을 시도 | (i) EL4 거부 (ii) merge gate가 판정하지 않고 거부(`00-common` §9). 오거부 0: 승인 기록이 있는 표 개정은 통과. **실행 Phase = 0.5** |
 
 **과거 사례 재생**: 해당 diff만 담은 합성 커밋을 현재 base에 적용해 기대 검사가 거부하는지 확인한다(원자료 `agent7_self_concealment.md`).
 
@@ -845,6 +848,9 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | DF-32 | 헤드룸 계산이 선언 역할 라벨로 갈린다(`device_roles[X].headroom_role == "tail"`). 역할은 라벨이 아니라 S1 유도 사실이어야 한다(IC4) | sizing_recipe.py 2442·2455행 참고 | 6b(DEC-12·DF-25와 같은 변경 단위에서 S1 관계 엣지·VDsat 바닥으로 교체), 6c(IC4 PASS로 확인) | DEC-12, IC4, DF-20, DF-25 |
 | DF-33 | 실행 spec에 소자 이름 리터럴이 박혀 있다(`stack_groups_override {"M1": ["M1", "M2"], ...}`, `row_split {"M6": 2}`). 주석이 "과거 세션이 손으로 찾은 값"이라고 적고 있다 | `workspaces/run_harness.py` 123~127행 참고 | 7b(`sizing_spec.json` 이관에서 `derived` 유도 결과로 바꾸고 손선언은 출처 필수 `_override`로만 남긴다, N3.15·MG3) | DEC-62, DF-23, DF-20 |
 | DF-34 | 회로마다 실행 spec 파이썬 함수가 따로 있고(`_spec_two_stage_ota`·`_spec_current_reuse_telescopic_ota`·`_spec_folded_cascode`·`_spec_nmcnr_amplifier`) 각 함수가 PDK 상수를 따로 복사한다(U-30이 `min_finger_w` 불일치를 적발). 새 토폴로지가 코드 추가를 요구한다(DEC-62 위반) | `workspaces/run_harness.py`의 `SPECS`(305~350행 참고)와 회로별 `_spec_*()` 정의(71·131·211·248행 참고) | 4(PDK 상수 한 곳 선언 U-30으로 복사 제거), 7b(`sizing_spec.json` v5 이관에서 데이터 항목으로 교체하고 함수 삭제) | DEC-62, U-30, DF-23 |
+| DF-35 | 하네스가 저장소 경로를 **메인 체크아웃 절대 경로**로 박아 둔다(`sys.path.insert`, `ASSETS_DIR`, `WORKSPACES_DIR`). LUT는 import 시점에 읽는다. 그래서 다른 worktree(audit·base)에서 실행해도 메인 체크아웃의 코드·LUT·library를 재고, 보고서는 메인 체크아웃에 쓴다 -- 성능 측정과 무동작 판정이 병합본을 재지 못한다(review21 C-01) | `workspaces/run_harness.py` 모듈 머리 | 4(`00-common` CC-7·CC-8보다 먼저) | 경로는 `__file__`에서 유도 |
+| DF-36 | instance.json이 `topology_ref`에 topology의 **절대 경로**를 쓴다. worktree마다 산출물이 달라져 무동작 판정의 비트 동일 비교가 가짜 FAIL을 낸다 | `stick_diagram.py:save_instance_json` | 4(CC-8보다 먼저) | 저장소 루트 기준 상대 경로 |
+| DF-37 | 광범위 except가 N3.14 클래스를 삼킨다. 2026-09-18 AST 실측(핸들러 수): `except …ValueError…` = `sizing_recipe.py` 52 · `stick_diagram.py` 23 · 하네스 1, `except Exception` = `sizing_recipe.py` 7 · `stick_diagram.py` 1 · `topology_library.py` 1 · `audit_current_forced.py` 1 · `topology_to_markdown.py` 1 · 하네스 2. 기반 클래스를 잡는 `except InfeasibleSizingError` 핸들러 18곳(`sizing_recipe.py`, 탐색 루프 포함)은 N3.14 탐색 루프 규칙(기반 클래스를 잡지 않는다)과 어긋난다 -- `CANDIDATE_FAILURE_CLASSES`로 바꾼다. 하네스 `run()`은 모든 예외를 잡고 exit 0으로 끝난다 | `skills/analog-gmid-design/assets/*.py` 전부와 하네스(줄 번호는 CC-4 spec card가 TS1 뒤 AST로 다시 센다) | 4(`00-common` CC-4) | N3.14 클래스와 `SchemaRejectedError`는 다시 raise, 진입점은 `exit_code_for`로 종료 |
 
 ### N5.3 열린 이슈
 
@@ -888,17 +894,17 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 ### N6.1 순서표(유일한 순서 정본)
 
-모든 Phase의 공통 착수 조건: **해당 design 문서의 사용자 승인**(DEC-51). 이전 Phase DoD PASS.
+모든 Phase의 공통 착수 조건: **해당 design 문서의 사용자 승인**(DEC-51). 이전 Phase DoD PASS. `0`·`0(문서)` 행은 변경 흐름(N3.12.3)을 타지 않으므로 spec card `Phase` 값이 될 수 없다(`00-common` §9.2 Phase 순서 읽기).
 
 | Phase | 범위 | 판정 유형 | 추가 착수 조건 | design 문서 |
 |---|---|---|---|---|
 | 0 | 함수 재사용 레지스트리 | -- | -- | ✅ 완료 |
 | **0(문서)** | 13개 design 문서가 공유하는 정의를 한 곳에 모으는 `00-common` 작성(Phase가 아니라 문서 단계다) | -- | **다른 design 문서보다 먼저**. 이 계획서의 N0.4·DEC-67·DEC-68·69·N3.12.5·N3.14·N4.1·N4.2·N6.3이 확정돼 있을 것 | `00-common` |
-| **0.5** | 역할 분리 인프라(N3.12.6), 공격 시나리오·과거 사례 재생 5건(N4.3) | 부트스트랩 | U-15(hook 필드가 없을 때), U-16. MG0(`_TEMPLATE`·topology 문서 필드는 U-16 확인 후 오케스트레이터, 계획 명칭은 v5.10) | `05-role-separation` |
+| **0.5** | 역할 분리 인프라(N3.12.6), 공격 시나리오·과거 사례 재생 5건(N4.3) | 부트스트랩 | U-15(hook 필드가 없을 때), U-16, U-38(확정). MG0(`_TEMPLATE`·topology 문서 필드는 U-16 확인 후 오케스트레이터, 계획 명칭은 v5.10) | `05-role-separation` |
 | 1 | TS0, TS1, TS2, TS3, TS5, TS7 선언. IC3(필드 완전성·이름 충돌 검사 신설)·IC5(게이트 docstring '검사하지 않는 것' 절 추가) 활성 | TS0·IC3·IC5 red-green, TS1 equivalence, TS2·TS3·TS5 test-only | U-01 | `10-test-separation` |
 | 2 | TS6, 레지스트리 등급 D 삭제(배선을 고른 항목은 Phase 4로), 레지스트리 §2에서 "행동 보존 통합 가능"인 DUP 통합, DF-23 전수 목록(소자·넷·회로 이름 리터럴과 topology 파일 경로. DF-29~DF-34 포함) | equivalence(TS6은 test-only, 운영 도구 이동은 code·test 두 커밋) | U-02 | `20-dead-code-dup` |
 | 3 | 10모듈 이동(N3.10), shim, 추적 파일 호출부 갱신 후 `sizing_recipe.py` 삭제 | equivalence | U-03 | `30-module-split` |
-| 4 | TS4, DF-01~15·18~20·22~24·26·27, **DF-34의 Phase 4 몫**(회로별 `_spec_*()`이 따로 복사한 PDK 상수 제거 -- 함수 자체를 데이터 항목으로 바꾸고 삭제하는 것은 7b다), MG1 레일 이름 변경(DEC-69), U-27 LUT 재생성, PDK 상수 한 곳 선언(U-30), Phase 2에서 배선을 고른 함수 배선, `fallback_events` 계측(V8), 기존 4개 회로 실행 가능성(I-C11), IC11 활성 | red-green | U-04, U-05, U-09, U-26, U-27 | `40-defect-fixes` |
+| 4 | TS4 → DF-35 → DF-36 → `00-common` CC-4의 앞부분(실패 클래스·`FailureRecord`·`exit_code_for`와 DF-37의 하네스 `run()` 몫) → CC-7·CC-8(측정·무동작 도구가 이후 card에 쓰이도록 Phase 4 앞쪽에 둔다) → 나머지: TS4, DF-01~15·18~20·22~24·26·27·35~37, **DF-34의 Phase 4 몫**(회로별 `_spec_*()`이 따로 복사한 PDK 상수 제거 -- 함수 자체를 데이터 항목으로 바꾸고 삭제하는 것은 7b다), MG1 레일 이름 변경(DEC-69), U-27 LUT 재생성, PDK 상수 한 곳 선언(U-30), Phase 2에서 배선을 고른 함수 배선, `fallback_events` 계측(V8), 기존 4개 회로 실행 가능성(I-C11), IC11 활성 | red-green | U-04, U-05, U-09, U-26, U-27 | `40-defect-fixes` |
 | 5 | 실패 캐시, 시작점 선택(S3 레코드 v1: θ*·start별 결과·실패), margin 반환 | red-green | -- | `50-failure-cache` |
 | 6a | 착수 전 MG2(DEC-69, 옛 키 거부 게이트 포함). GB0(의미·로드 게이트, 영역 표기), S0(LUT 메타 배선 포함), GB1(소자 DC 역할, G_vgs 사이클 DEC-64, 기둥 유도·기둥↔블록 매핑표 DEC-71, 엣지 `domain`), GB2 shadow(소자 구성 분류 CS/CG/CD/pass/`diode(load)`와 **CG/pass 판별 근거 기록**, 구동 종류, 버퍼 묶음 DEC-63, 출력 방향 구조 분류 DEC-65 포함, library 회로 전부), 규칙 분기 발동표(DEC-59, 기록만), N3.2-8 (iii)(vi) 측정 목록(회로별 기본 폐경로 전수와 (0)~(4) 분류, CG/pass 판별과 역병렬 pass 묶음 판정, 루프 (3)/(4) 분류, VDS-1 사이클 계수, 복합 블록 묶음 판정과 경로별 기여(DEC-81), 축약·비축약에서 수가 달라지는 셀 목록). 착수 조건(U-08·U-26 (b))이 미충족인 채로 6a를 시작하는 것은 **오케스트레이터가 사용자 확인과 승인 기록을 받은 경우에만** 하고, 미충족 항목과 그로 인해 빠지거나 무효가 되는 판정 목록을 승인 기록에 남긴다(축소 범위는 N6.2 6a). IC7 활성, IC11 3레일 케이스 추가. 6a-1 유도·대조표, 6a-2 공동분석·ratify, `structure.json`, 레지스트리 §2 ★ DUP(diode·미러 그룹·diffpair/tail)를 U-06 결론의 정본으로 통합하고 옛 함수 삭제 | red-green | **U-08(folded·nmcnr `ports`, two_stage 출력 포트 -- 2026-09-17 선언 완료)**, **U-26 (b) `supply_nets`(2026-09-17 8/8 선언 완료)**, **U-35(제약값 출처, 2026-09-17 확정)**, **J1(교류접지 예외 -- 6a-1 유도의 입력이라 6a-2가 아니다, N7.1 판정 순서. 2026-09-17 확정)** -- 전부 6a 착수 전에 확정돼 있어야 하고, **2026-09-17 기준 다섯 항목이 모두 확정됐다**(미충족 시 빠지거나 무효가 되는 판정은 N6.2 6a). 6a-2는 U-06(J1·J2·J3-ac·J4~J7, J9 ports, J10, J11, J12·J12-a~h, J13, 구조 정본) | `6a-structure-stage` |
 | 6b | **첫 작업: `_evaluate` cProfile 계측**(WP-10, R-B. 평가 1회 비용의 함수 단위 귀속). GB7: W 티어, 순환 블록, 봉인, SC-a~SC-e, 평가 커널 계산 블록과 S2 memo, NFR-4 결정론, DF-25(VDsat 유도 규칙과 포화 하한 교체), 봉인 항목 7(포화 여유)·8(`kvl_branch` 등식), S2 `dc`/`ss`/`ls` 분리, CD source 노드 W2, 평가 커널 계산 블록 분할(보상 블록은 현 순서를 유지하고 출력을 봉인 전 추정으로 표시, 재배열은 7b), 중복 계산 계측(NFR-2). IC1·IC2·IC9·IC10 활성 | red-green | U-06(J8), U-20, U-26(`wall_clock_budget_s`) | `6b-node-voltage-seal` |
@@ -911,8 +917,8 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 | Phase | 완료 조건(측정 명령은 design 문서에 고정) |
 |---|---|
-| 0(문서) | 13개 design 문서가 인용할 용어·영역 표기·명명 규칙과 옛 키 거부 게이트 공통 형식·실패 규약(클래스·필드·margin 정규화)·판정 기록과 승인 기록 스키마·V 도입 표·IC 담당 표·성능 측정 명령·무동작 판정 방법이 `00-common` 한 곳에 모임. `.ai/verification/_schema.json`(판정 기록 JSON Schema, N3.12.5)과 `.ai/approvals/_TEMPLATE.md`가 있고 스키마 밖 필드를 거부함. 성능 측정 명령이 실행 가능한 형태로 한 곳에 고정됨(N6.3). 이후 design 문서가 이 정의를 재서술하지 않고 절 번호로 인용함(N9.4) |
-| 0.5 | N4.3 공격 14건 중 **0.5 대상 12건**(1~12)의 거부 로그 + 사례 5건 적발(공격 13·14는 GB0 로드 게이트 구현 뒤라 6a에서 실행), hook 입력 필드 실측 기록, 에이전트 정의 `check_agents.py` PASS, 설치 후 RTL agent 무동작, MG0: `_TEMPLATE` 옛 `vs` 안내 0·문서 전용 스펙 필드를 가진 5회로(`nmcnr_amplifier`·`two_stage_ota_sf`·`pushpull_follower_buffer`·`sf_pushpull_output_opamp`·`ngcc_3stage_ff`)의 `_paper_target_spec` 컨테이너명 0 |
+| 0(문서) | `00-common`에 구현 주체 분류 양식, 용어→코드 이름 대응(용어집 최종본 = N0.4 + 이 대응표), 영역 표기 규약, 옛 키 거부 게이트 공통 형식, 실패 규약 코드 형식(클래스·필드·margin 정규화·exit code), 판정 기록과 승인 기록 스키마, V 도입 표·IC 담당 표·Phase 순서를 **검증 도구가 계획서에서 직접 읽는 규칙**(사본 없음, 표 내용의 정본은 N4.1·N4.2·N6.1), 성능 측정 명령, 무동작 판정 방법이 모임. `.ai/verification/_schema.json`(N3.12.5)과 `.ai/approvals/_TEMPLATE.md`가 있고 스키마 밖 필드를 거부함(측정은 독립 검증 agent). 성능 측정 명령이 실행 가능한 형태로 한 곳에 고정됨(N6.3). 이후 design 문서가 이 정의를 재서술하지 않고 절 번호로 인용하는지는 **각 design 문서의 독립 검증 항목**이다(N9.4) |
+| 0.5 | N4.3 공격 16건 중 **0.5 대상 14건**(1~12·15·16)의 거부 로그 + 사례 5건 적발(공격 13·14는 GB0 로드 게이트 구현 뒤라 6a에서 실행), hook 입력 필드 실측 기록, 에이전트 정의 `check_agents.py` PASS, 설치 후 RTL agent 무동작, MG0: `_TEMPLATE` 옛 `vs` 안내 0·문서 전용 스펙 필드를 가진 5회로(`nmcnr_amplifier`·`two_stage_ota_sf`·`pushpull_follower_buffer`·`sf_pushpull_output_opamp`·`ngcc_3stage_ff`)의 `_paper_target_spec` 컨테이너명 0 |
 | 1 | TS0 판정 기록 / TS1 seed 1~5 stdout 전후 동일 / TS2 기본·셔플 순서 PASS / TS3 판정 문자열 0 / TS5 기준선 참조 0 / 소스에 인라인 self-test 0 / IC3·IC5 PASS, 나머지 IC xfail 선언(담당 Phase 명시) / 사례 caa970b 적발 |
 | 2 | 승인된 D 목록 처리, DUP마다 옛 함수 대 정본 차등 test(실행 가능한 library 회로 입력 전수 출력 동일) PASS 후 옛 함수 삭제, 레지스트리 갱신, probe 엔진 식 재구현 0, DF-23 전수 목록(소자·넷·회로 이름 리터럴과 topology 파일 경로. DF-29~DF-34의 위치가 목록에 들어 있고 항목마다 담당 Phase가 적혀 있음) |
 | 3 | MOD1~MOD10 존재, import 계층 위반 0(`import_layering.py`), 이동 커밋마다 AST 해시 동일, `sizing_recipe.py` 삭제, 레지스트리 이관 목적지 열 = 실제 위치 |
@@ -929,7 +935,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 * auditor 판정 기록 PASS(N4.2 도입 표 기준), merge gate(EL4) 통과, 동작 변경 spec card마다 거부해야 할 입력의 test 존재.
 * library 회로: 동작 변경 Phase(4 이후)는 DEC-47 대상 구분대로 측정하고 필요 없는 회로의 무동작을 증명한다. 동작 보존 Phase(1~3)는 실행 가능한 회로 전부에서 equivalence(I-C11 해소 전 two_stage·nmcnr, 스펙 미선언 신규 회로는 로드·구조 단계까지).
-* 성능: Phase 4부터 매 Phase 보고 -- 조건 = 정본 spec, `SPECS[circuit]["slsqp_kwargs"]`, 파일럿 탐색 1회의 전체 wall-clock과 평가 시간 중앙값, 기계 정보. wall-clock 예산 게이트(DEC-34)는 7b·7c. **측정 명령 자체는 `00-common` design이 실행 가능한 형태로 한 곳에 고정**하고 다른 design 문서와 판정 기록은 그 명령을 인용한다(Phase마다 다시 쓰지 않는다). 계측 도구는 test-author 소유, 실행과 보고 수치는 auditor 소유다(WP-13, NFR-2).
+* 성능: Phase 4부터 매 Phase 보고 -- 조건 = 정본 spec, `SPECS[circuit]["slsqp_kwargs"]`, 파일럿 탐색 1회의 전체 wall-clock과 평가 시간 중앙값, 기계 정보. wall-clock 예산 게이트(DEC-34)는 7b·7c. **측정 명령 자체는 `00-common` design이 실행 가능한 형태로 한 곳에 고정**하고 다른 design 문서와 판정 기록은 그 명령을 인용한다(Phase마다 다시 쓰지 않는다). 계측 도구는 code-author 소유(`tests/tools/`)이고 그 도구의 test는 test-author, 실행과 보고 수치는 auditor 소유다(WP-13, NFR-2).
 * 최적화 산출(7b부터): 보고에 **(전력, 면적) 비지배 front 표**(점마다 θ*, 전력, 면적의 탐색 축·판정 축과 그 차, gain 예산, 활성 제약과 여유, 선택 여부)와 **선택 점·선택 근거**, front 점 수와 두 축의 분해능(DEC-72·DEC-80)을 넣는다. 예산 게이트로 bin 폭이 확대돼 분해능이 NFR-5 여유 바닥(max(격자 분해능, 모델 오차))을 넘으면 front 표에 '해상도 굵음(배수 n)'을 표시하고 활성 제약 여유 판정이 그 해상도 기준임을 적는다(DEC-80). 예산이 선언되지 않으면 front를 제시하고 정지한다(DEC-77). 성능 스펙은 제약이므로 front 표에는 통과/실패가 아니라 제약마다 활성/비활성과 여유를 적는다(NFR-5).
 
 ---
@@ -976,7 +982,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-01 | stick_diagram Test 16의 의도(test가 틀렸나 대상이 틀렸나) | 오케스트레이터가 원인 대조표 제시 | Phase 1 |
 | U-02 | 레지스트리 등급 D 목록과 probe 삭제 11개의 항목별 삭제/배선 | 제안표 일괄 승인 | Phase 2 |
 | U-03 | 추적되지 않는 `workspaces/` 스크래치 스크립트가 `sizing_recipe.py` 삭제로 깨지는 것을 허용할지 | 허용(추적 파일만 갱신). 근거: WP-01의 배선 대상은 저장소에 추적되는 파일 | Phase 3 |
-| U-04 | 픽스처와 정본 spec의 구분 | spec에 `origin: canonical | fixture` 필수, 픽스처는 유도 임계값을 읽지 않음 | Phase 4 |
+| U-04 | 픽스처와 정본 spec의 구분 | spec에 `origin: canonical \| fixture` 필수, 픽스처는 유도 임계값을 읽지 않음 | Phase 4 |
 | U-05 | 비단조 곡선에서 이분 역산의 처리 | 단조 구간별 근을 모두 돌려주고 호출자가 선택 규칙을 명시(DEC-11 확장) | Phase 4 |
 | U-06 | J1~J13 공동분석 + 구조 개념 정본(diode 이웃 포함 여부, 미러 그룹 키, diffpair/tail 유도) | 대조표로 항목별 확정 | 6a-2(J1·J2·J3-ac·J4~J7, J9 ports, J10, J11, J12·J12-a~h, J13, 구조 정본) / 6b(J8) / 7b(J3-dc 정지전류, J9 passive) |
 | U-07 | 전력 정의 변경으로 바뀌는 기대값들을 한 승인으로 묶어도 되는지 | 변경 목록을 첨부한 한 승인 | 7a |
@@ -1010,6 +1016,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 | U-35 | 사이징 대상 회로 × 제약 metric의 `constraints[].source`(제약값 출처) 선언 | **확정(2026-09-17)**. `source` 값은 셋이다: **`user_spec`**(사용자 선언 시스템 스펙) / **`pending_7a`**(7a SPICE 대조에서 기준값을 읽는다. 그 전까지 판정에 쓰지 않는다) / **`reference`**(다른 선언을 참조 -- `value_from_constraint`·`value_from_spec`). 기입 결과: `user_spec` 5건(파일럿 `gain_db`·`cmrr_estimate_db`·`psrr_estimate_db`·`classab_centering_dev_v`, `two_stage_ota` `gain_db`) / `pending_7a` 2건(`mismatch_sigma_mV`, U-17) / `reference` 2건. **자기 실행 역산 8건은 삭제했다**(`folded_cascode`·`nmcnr_amplifier`의 `gain_db`·`pm_deg`·`cmrr_db`·`psrr_db`. 소수점 15자리 값이라 정의상 항상 만족해 제약 노릇을 못 했다, RC4). ⚠️ 그 결과 두 회로는 제약이 0건이라 `objective`만 남는다 -- **7a 재도출 전까지 사이징 판정 보류**이고 탐색 결과를 성능 판정에 쓰지 않는다(WP-01, 각 topology의 `_constraints_status`). GB0 제약 출처 게이트는 `source` 없는 제약을 거부한다 | **닫힘**(구현 6a) |
 | U-36 | 수동소자 면적 모델(단위 면적/F·단위 면적/Ω)의 PDK 출처 | 기본안: U-30(PDK 상수 한 곳 선언)에 커패시터·저항 단위 면적을 함께 선언하고 DEC-79 탐색 축이 그 값으로 수동소자 면적을 계산한다. 선언 전까지 보상·부하 수동소자가 있는 회로의 front는 `review_needed`다(DEC-79) | 7b 착수 전 |
 | U-37 | library에 회로를 더 추가할지와 그 순서 | **확정(2026-09-17): 원칙은 6a 이후로 미룬다. 단 첫 후보는 같은 날 추가했다**(`common_gate_amplifier` -- Allen Lecture 20 Page 20-2의 전압 구동 공통게이트 증폭기 3소자. 사이징 스펙 미선언, 검증 발동용. 절차 N9.3. **검증 발동은 J12-i ratify로 완성된다** -- 회로만 넣으면 발동 1·검증 발동 0이라 그 분기가 여전히 정지한다). 지금 있는 9회로의 구조 판정(J11·J12 ratify, 루프 (3-b) 귀속)이 끝나지 않은 상태에서 회로를 늘리면 정지·보류 사례만 는다. 재개할 때의 **첫 후보는 전압 구동 CG 입력 단일단**이다 -- 새 규칙 없이 데이터만으로 들어오고(DEC-62), 계획서가 스스로 검증 발동 0이라 적은 분기(N3.2-7 '전압 구동 CG stage 시작')를 그 회로 하나로 해소한다. 다음 후보는 중간 레일에 DC 전류가 흐르는 회로(레일 쌍 기둥·3레일 전력 정의), 능동 소자가 복귀 경로에 있는 보상(보상 루프 정의 확장), FVF 계열 버퍼(셀 규칙 (c), `rout_ss_ohm` 첫 실사용), gain boosting(셀 규칙 (a) + 보조 증폭기 블록 계층) 순이다. 추가 절차는 N9.3 | 6a 이후 |
+| U-38 | 판정 기록 로더(merge gate)와 로드 게이트가 JSON Schema 검증에 `jsonschema` 패키지를 쓸지(의존성 추가, WP-20) | **확정(2026-09-18): 쓴다** -- 스키마(`.ai/verification/_schema.json`)를 손으로 옮긴 검증기를 따로 두면 스키마와 검증기가 두 정본이 된다. 단 `format: date-time`은 형식 검사기가 없으면 강제되지 않으므로 로더가 따로 검사한다(`00-common` §8.1. 근거는 독립 검증 review21·review22) | Phase 0.5 |
 
 ---
 
@@ -1044,14 +1051,14 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출, 또는 `agent_type`이 �
 
 | 문서 | 반드시 담을 것 | 읽을 plan 절 |
 |---|---|---|
-| `00-common` | **구현 주체 분류 표 양식(WP-21: 코드 / AI 제안→사람 확정 / AI 직접 -- 각 design 문서가 자기 항목을 이 양식으로 분류한다)**, 용어집 최종본(N0.4), 영역 표기 규약(DEC-67), 명명 규칙과 옛 키 거부 게이트 공통 형식(DEC-68·69), 실패 규약 클래스·필드(N3.14), 판정 기록·승인 기록 JSON/MD 스키마(N3.12.5), V 도입 표(N4.2), IC 담당 표(N4.1), 성능 측정 명령(N6.3), 무동작 판정 방법 | N0.4 / N2.2 / N3.12.5 / N3.12.6 / N3.14 / N4.1 / N4.2 / N6.3 / DEC-67·68·69 |
-| `05-role-separation` | 쓰기 경로표를 glob 목록으로(N3.12.2), hook 입력 실측 절차와 U-15 분기, 설치 명령과 순서(N3.12.6), 트레일러·경로 분류 규칙(소스/test/도구/데이터/문서), V3·V4·V5·V6·V7 알고리즘, interface card 생성기, spec card·dispute 양식, worktree 명령 시퀀스(N3.12.3), EL2 무시 목록, 공격 14건(0.5 실행 12건 + 6a 실행 2건 = 공격 13·14) + 사례 5 재생 절차와 기대 메시지, agent 정의 3개 | N2.2 / N3.12 전체 / N4.2 / N4.3 / N6.1·N6.2 Phase 0.5 / DEC-37~42 / U-15·U-16 |
-| `10-test-separation` | TS0 원인 대조, TS1 추출 스크립트와 두 커밋 순서, seed별 stdout 비교 명령, TS2 섹션→test 매핑표와 fixture 목록, 셔플 옵션 구현, TS3 AST 검사, TS5 퇴역 절차, TS7 xfail 선언 목록(IC별 담당 Phase) | N3.11 / N3.12.3 / N4.1(IC3·IC5) / N6.1·N6.2 Phase 1 / DEC-36·40·46 / DF-17 / U-01 |
+| `00-common` | **구현 주체 분류 표 양식(WP-21: 코드 / AI 제안→사람 확정 / AI 직접 -- 각 design 문서가 자기 항목을 이 양식으로 분류한다)**, 용어→코드 이름 대응(N0.4와 합쳐 용어집 최종본), 영역 표기 규약(DEC-67), 명명 규칙과 옛 키 거부 게이트 공통 형식(DEC-68·69), 실패 규약 코드 형식(N3.14), 판정 기록·승인 기록 JSON/MD 스키마(N3.12.5), V 도입 표(N4.2)·IC 담당 표(N4.1)·Phase 순서(N6.1)를 검증 도구가 직접 읽는 규칙, 성능 측정 명령(N6.3), 무동작 판정 방법 | N0.1 / N0.4 / N1.4 / N2.1(DEC-34·47·51) / N2.2 / N3.10 / N3.11 / N3.12 전체 / N3.14 / N3.16 / N4.1 / N4.2 / N4.3 / N5.2(DF-35~37) / N6.1 / N6.2 / N6.3 / N7.2(U-38) / DEC-67·68·69 |
+| `05-role-separation` | 쓰기 경로표를 glob 목록으로(N3.12.2), hook 입력 실측 절차와 U-15 분기, 설치 명령과 순서(N3.12.6), 트레일러·경로 분류 규칙(소스/test/도구/데이터/문서), V3·V4·V5·V6·V7 알고리즘, interface card 생성기, spec card·dispute 양식, worktree 명령 시퀀스(N3.12.3), EL2 무시 목록, 공격 16건(0.5 실행 14건 = 공격 1~12·15·16 + 6a 실행 2건 = 공격 13·14), `00-common` CC-1(merge gate 판정 기록 로더·승인 기록 머리 파서, U-38 `jsonschema` 의존성 선언 파일과 버전 고정 -- WP-20 최소 릴리스 나이를 지키는 판)·CC-2(계획서 판정 표 읽기와 표 파손 거부) + 사례 5 재생 절차와 기대 메시지, agent 정의 3개 | N2.2 / N3.12 전체 / N4.2 / N4.3 / N6.1 전체(Phase 순서) / N6.2 Phase 0.5 / DEC-37~42 / U-15·U-16·U-38 / `00-common` §8·§9 |
+| `10-test-separation` | TS0 원인 대조, TS1 추출 스크립트와 두 커밋 순서, seed별 stdout 비교 명령, TS2 섹션→test 매핑표와 fixture 목록, 셔플 옵션 구현, TS3 AST 검사, TS5 퇴역 절차, TS7 xfail 선언 목록(IC별 담당 Phase), `00-common` CC-3(계획서 N4.1에서 xfail 생성, test 케이스의 Phase 표식과 계획서 대조), IC5 `영역:` 줄 검사 | N3.11 / N3.12.3 / N4.1(IC3·IC5) / N6.1·N6.2 Phase 1 / DEC-36·40·46 / DF-17 / U-01 |
 | `20-dead-code-dup` | U-02 제안표(항목, 호출부 0 증거, 삭제 영향, 배선 시 소비자), DUP별 차등 test 설계, TS6 승격·삭제·이동 목록 | N3.10 / N3.11 TS6 / N6.1·N6.2 Phase 2 / WP-14 / DF-21·DF-23 / U-02 |
 | `30-module-split` | 레지스트리 목적지 열에서 생성한 함수→모듈 이관표, 계산된 import 그래프, `import_layering.py` 규칙, AST 해시 증명 명령, shim 재수출 목록 생성법, 추적 파일 호출부 목록 | N3.10 / N6.1·N6.2 Phase 3 / U-03 |
-| `40-defect-fixes` | DF별 red 형태(행동 test / lint)와 수정 범위, N3.14 실패 클래스 도입, tol_V 함수 선도입, U-04·U-05 반영, `fallback_events` 스키마와 계측 지점 전수, exit code, I-C11 해소 설계, `supply_nets`·`supplies_v` 기반 레일 판정(DF-19·DF-26)·vsb(DF-24)·IC11, MG1(`vdd` 유도 함수, metric 인자 `supply_nets` 정리, 옛 키 거부), DF-27 축 커버리지 게이트, U-27 LUT 재생성 절차·대조, U-30 PDK 상수 한 곳 선언(규칙 번호 출처·`W_bounds` 하한 유도)과 교체 전후 비교 | N5.2 전체 / N3.6 / N3.14 / N3.16(MG1) / N4.1 IC11 / N6.1·N6.2 Phase 4 / DEC-60·61·69 / I-C11 / U-04·05·09·26·27·30 |
-| `50-failure-cache` | 실패 캐시 키·저장, margin 정규화식, 시작점 선택 규칙, S3 레코드 v1 스키마와 위치, 계수기 | N3.3 S3 / N3.5 최적화 계층 / N3.14 / N6.1·N6.2 Phase 5 / DEC-30·34 |
-| `6a-structure-stage` | S0 해시 구성, S1 스키마(N3.3), 교류접지 3분류, 여기 뷰 2종(전달·루프) 수집, 셀 우선순위, 대칭 축약과 비축약 대조, SP1 알고리즘(0-1 BFS), 루프 탐지·끊는 점 규칙, J11 대조표, 소자 구성 분류와 출력노드·임피던스 등급 판정, 모드 수집, 피드백 극성, status 전이 구현, `structure.json` 형식, shadow 대조 보고 형식, J 대조표 양식, ports 제안표, 규칙 분기 목록(정본)과 발동표 형식·`unsupported_rule_branch` 판정, `supply_nets`·`supplies_v`·`bulk` 로드(DEC-60·61), 루프 분류 (0)~(4)·바이어스 SCC, J12(J12-a~h) 대조표, MG2 이름 변경과 옛 키 거부, 소자 DC 역할 유도, 구동 종류(혼재 우선 규칙·값 의존 속성), S1 엣지 `domain`, G_vgs 사이클 탐지·분류(DEC-64), 버퍼 묶음 R(u)(DEC-63), 출력 방향 구조 분류(DEC-65), 수동소자 엣지 비용, 가지·기둥 유도(DC 전도 그래프 구성, 레일·분기 노드 판정, 가지 열거, 레일 쌍마다의 단순 경로 열거와 열거 수 상한, 어느 쌍에도 들지 않는 가지의 `review_needed` 보고, 이상원 가지 표시)와 기둥↔블록 매핑표·공유 소자 표시(DEC-71 (1)(2)), `vertical_stack_id` 대조와 J13 대조표 양식, '블록마다 덮는 기둥 ≥ 1' 측정 절차, 기둥 열거 절차(열거 정의는 노드-단순으로 확정됐다(DEC-71 (3)) -- 남은 것은 잎 가지치기 순서 기록과 회로별 수치 대조다, J13), CG/pass 판별 결과 기록 형식과 N3.2-8 (iii)(vi) 측정 목록(기본 폐경로 전수·(0)~(4) 분류, CG/pass 판별, 루프 (3)/(4) 분류, VDS-1 사이클 계수, 복합 블록 묶음 판정·경로별 기여(DEC-81), 축약·비축약 셀 수 차 목록) | N0.4 / N3.1~N3.3 / N3.14 / N3.16(MG2) / N4.1 IC7·IC11 / N4.3 공격 13·14 / N6.1·N6.2 6a / N7.1 전체 / DEC-09·17·29·35·43·44·47·57·59~65·70·71·76·81 / U-06·08·17·26 **착수 시 열린 항목(6a 완료를 막는다 -- design 문서가 처음부터 다룬다)**: ① G_vgs 정의에서 VDS-1 사이클 계수를 낼 수 없는 문제(현 정의는 gate–source 엣지만이라 d–s 엣지를 포함하는 사이클이 없다. 포함하면 v2 기대값이 깨진다) ② CD 셀 병렬 합류를 다입력 블록과 버퍼 묶음(DEC-63)이 다르게 판정하는 문제(합류 판정 순서 ①~③으로도 닫히지 않는다) ③ DC 역할을 구조로 못 가르는 그룹이 규칙 5 stage 시작 예외에서 어떻게 취급되는지 ④ diode 소자의 source로 들어오는 신호의 구동 종류 ⑤ 되먹임 경로의 수동소자가 GB5 보상 후보에 섞이는 문제(DEC-70, 7b와 공동) ⑥ 대조표 수치 갱신(셀 집계·블록 시작 셀·루프 귀속·폐경로 기대값) ⑦ 기둥 병렬 엣지를 열거에서 어떻게 세는지(따로 세면 62, 합치면 41) ⑧ 규칙 5의 stage 시작과 규칙 9 (c) 미러 연장의 **적용 순서**(두 규칙이 같은 소자를 다르게 판정한다) ⑨ DEC-59 정지를 **비축약 뷰와 기모드 축약 뷰 중 어디서 세는지**, 미러 연장 끝이 다른 블록의 내부 노드일 때 출력노드가 무엇인지 ⑩ 블록 노드 배타성(규칙 6)이 대칭 반쪽이 공유하는 넷과 형제 블록을 어떻게 보는지 ⑪ 3방향 이상 합류에서 미러 합류 문장의 두 읽기 ⑫ G_vgs의 레일 병합 여부(읽기에 따라 파일럿 v2가 4 또는 5) ⑬ 0-1 BFS 그래프의 엣지 집합과 (3-b)의 '앞/뒤 블록' 정의(읽기에 따라 sf 루프 (4)가 0/3/6) ⑭ DEC-81 묶음 규칙은 6c 소관인데 6a 완료 조건이 묶음 판정 결과 제출을 요구하는 Phase 불일치 ⑮ J 항목이 없는 DC 역할 그룹 둘(3단 회로의 2단·feedforward 쌍, sf의 한 그룹)과 J12-b 목록에 없는 sf 대기 노드. **부류(WP-21)**: ①②③④⑤⑦⑧⑨⑩⑪⑫⑬은 **코드** -- 6a design이 알고리즘으로 정하고 정본 구현과 test로 고정한다(산문을 고쳐 막지 않는다). ⑮는 **AI 제안→사람 확정**(J 신설). ⑥은 코드가 낸 수치로 갱신하고 ⑭는 한 줄 결정이다. **결정 전까지 대조표는 갈리는 읽기의 수치를 함께 적는다.** 원자료는 history H4의 라운드 9~13 행 |
+| `40-defect-fixes` | DF별 red 형태(행동 test / lint)와 수정 범위, N3.14 실패 클래스 도입, tol_V 함수 선도입, U-04·U-05 반영, `fallback_events` 스키마와 계측 지점 전수, exit code, I-C11 해소 설계, `supply_nets`·`supplies_v` 기반 레일 판정(DF-19·DF-26)·vsb(DF-24)·IC11, MG1(`vdd` 유도 함수, metric 인자 `supply_nets` 정리, 옛 키 거부), DF-27 축 커버리지 게이트, U-27 LUT 재생성 절차·대조, U-30 PDK 상수 한 곳 선언(규칙 번호 출처·`W_bounds` 하한 유도)과 교체 전후 비교, `00-common` CC-4(실패 규약 코드 형식, DF-37)·CC-5(옛 키 게이트, 직접 `json.load` 전수 대체)·CC-7(θ 탐색부 함수 추출·계측 인터페이스·성능 측정 도구)·CC-8(무동작 판정 도구, 진입점 `activations_out`), DF-35·DF-36 | N5.2 전체 / N3.6 / N3.10(MOD10 계측 인자) / N3.14 / N3.16(MG1) / N4.1 IC11 / N6.1·N6.2 Phase 4 / N6.3(성능) / `00-common` §6·§7·§10·§11 / DEC-60·61·69 / I-C11 / U-04·05·09·26·27·30 |
+| `50-failure-cache` | `00-common` CC-9(`normalized_margin`), 실패 캐시 키·저장, margin 정규화식, 시작점 선택 규칙, S3 레코드 v1 스키마와 위치, 계수기 | N3.3 S3 / N3.5 최적화 계층 / N3.14 / N6.1·N6.2 Phase 5 / DEC-30·34 |
+| `6a-structure-stage` | `00-common` CC-6(`DOMAINS`와 S1 엣지·metric 선언 `domain` 로드 검사), S0 해시 구성, S1 스키마(N3.3), 교류접지 3분류, 여기 뷰 2종(전달·루프) 수집, 셀 우선순위, 대칭 축약과 비축약 대조, SP1 알고리즘(0-1 BFS), 루프 탐지·끊는 점 규칙, J11 대조표, 소자 구성 분류와 출력노드·임피던스 등급 판정, 모드 수집, 피드백 극성, status 전이 구현, `structure.json` 형식, shadow 대조 보고 형식, J 대조표 양식, ports 제안표, 규칙 분기 목록(정본)과 발동표 형식·`unsupported_rule_branch` 판정, `supply_nets`·`supplies_v`·`bulk` 로드(DEC-60·61), 루프 분류 (0)~(4)·바이어스 SCC, J12(J12-a~h) 대조표, MG2 이름 변경과 옛 키 거부, 소자 DC 역할 유도, 구동 종류(혼재 우선 규칙·값 의존 속성), S1 엣지 `domain`, G_vgs 사이클 탐지·분류(DEC-64), 버퍼 묶음 R(u)(DEC-63), 출력 방향 구조 분류(DEC-65), 수동소자 엣지 비용, 가지·기둥 유도(DC 전도 그래프 구성, 레일·분기 노드 판정, 가지 열거, 레일 쌍마다의 단순 경로 열거와 열거 수 상한, 어느 쌍에도 들지 않는 가지의 `review_needed` 보고, 이상원 가지 표시)와 기둥↔블록 매핑표·공유 소자 표시(DEC-71 (1)(2)), `vertical_stack_id` 대조와 J13 대조표 양식, '블록마다 덮는 기둥 ≥ 1' 측정 절차, 기둥 열거 절차(열거 정의는 노드-단순으로 확정됐다(DEC-71 (3)) -- 남은 것은 잎 가지치기 순서 기록과 회로별 수치 대조다, J13), CG/pass 판별 결과 기록 형식과 N3.2-8 (iii)(vi) 측정 목록(기본 폐경로 전수·(0)~(4) 분류, CG/pass 판별, 루프 (3)/(4) 분류, VDS-1 사이클 계수, 복합 블록 묶음 판정·경로별 기여(DEC-81), 축약·비축약 셀 수 차 목록) | N0.4 / N3.1~N3.3 / N3.14 / N3.16(MG2) / N4.1 IC7·IC11 / N4.3 공격 13·14 / N6.1·N6.2 6a / N7.1 전체 / DEC-09·17·29·35·43·44·47·57·59~65·70·71·76·81 / U-06·08·17·26 **착수 시 열린 항목(6a 완료를 막는다 -- design 문서가 처음부터 다룬다)**: ① G_vgs 정의에서 VDS-1 사이클 계수를 낼 수 없는 문제(현 정의는 gate–source 엣지만이라 d–s 엣지를 포함하는 사이클이 없다. 포함하면 v2 기대값이 깨진다) ② CD 셀 병렬 합류를 다입력 블록과 버퍼 묶음(DEC-63)이 다르게 판정하는 문제(합류 판정 순서 ①~③으로도 닫히지 않는다) ③ DC 역할을 구조로 못 가르는 그룹이 규칙 5 stage 시작 예외에서 어떻게 취급되는지 ④ diode 소자의 source로 들어오는 신호의 구동 종류 ⑤ 되먹임 경로의 수동소자가 GB5 보상 후보에 섞이는 문제(DEC-70, 7b와 공동) ⑥ 대조표 수치 갱신(셀 집계·블록 시작 셀·루프 귀속·폐경로 기대값) ⑦ 기둥 병렬 엣지를 열거에서 어떻게 세는지(따로 세면 62, 합치면 41) ⑧ 규칙 5의 stage 시작과 규칙 9 (c) 미러 연장의 **적용 순서**(두 규칙이 같은 소자를 다르게 판정한다) ⑨ DEC-59 정지를 **비축약 뷰와 기모드 축약 뷰 중 어디서 세는지**, 미러 연장 끝이 다른 블록의 내부 노드일 때 출력노드가 무엇인지 ⑩ 블록 노드 배타성(규칙 6)이 대칭 반쪽이 공유하는 넷과 형제 블록을 어떻게 보는지 ⑪ 3방향 이상 합류에서 미러 합류 문장의 두 읽기 ⑫ G_vgs의 레일 병합 여부(읽기에 따라 파일럿 v2가 4 또는 5) ⑬ 0-1 BFS 그래프의 엣지 집합과 (3-b)의 '앞/뒤 블록' 정의(읽기에 따라 sf 루프 (4)가 0/3/6) ⑭ DEC-81 묶음 규칙은 6c 소관인데 6a 완료 조건이 묶음 판정 결과 제출을 요구하는 Phase 불일치 ⑮ J 항목이 없는 DC 역할 그룹 둘(3단 회로의 2단·feedforward 쌍, sf의 한 그룹)과 J12-b 목록에 없는 sf 대기 노드. **부류(WP-21)**: ①②③④⑤⑦⑧⑨⑩⑪⑫⑬은 **코드** -- 6a design이 알고리즘으로 정하고 정본 구현과 test로 고정한다(산문을 고쳐 막지 않는다). ⑮는 **AI 제안→사람 확정**(J 신설). ⑥은 코드가 낸 수치로 갱신하고 ⑭는 한 줄 결정이다. **결정 전까지 대조표는 갈리는 읽기의 수치를 함께 적는다.** 원자료는 history H4의 라운드 9~13 행 |
 | `6b-node-voltage-seal` | S2 필드 스키마, SC-a 권한표(필드 × W0~W4), W3 소스 필드, 계산 블록 입출력 선언과 유도 DAG, tol_V·tol_I·반복 상한 구현, 봉인 항목 구현, 버전 카운터, LRU 상한 계산, IC2 섞기 대상, 동등 단언 범위, J8 결론 반영, U-20 반영, I-A6 헤드룸 하한 여부 판정, VDsat 유도 규칙(DF-25, LUT (ID, gds, VDS) 곡선), 봉인 항목 7·8, S2 `dc`/`ss`/`ls` 스키마, CD source W2 블록, 평가 커널 계산 블록 분할(보상 블록 순서 유지는 7b 재배열 전까지), 중복 계산 방지 구체안(캐시 키 구성, 계산 블록 분할 단위, 무효화 조건, 계측 형식) | N3.3 S2 / N3.4 / N3.5 / N3.6 / N3.14 / N4.1 IC1·IC2·IC9·IC10 / N6.1·N6.2 6b / DEC-12·13·31·32·61·67 / DF-25·DF-32 / I-A6 / J8 / U-20·26(c) |
 | `6c-coupling-achievability` | 결합 잔차 측정 절차(회로당 1회·기본 활성, 표본 수 = `dof_rank_sample_count`), 블록·y 추출 규칙(K1~K4), LUT 곡선 검사→해법 매핑, 블록 gain 상한 계산(범위를 'LUT·구조만으로 계산 가능한 상한'으로 제한), 복합 블록 묶음 절차(DEC-81: 합류 노드 판정, 묶을 블록 집합 유도, 경로별 기여 기록 형식, 묶음 크기 상한과 `unsupported_rule_branch`), DOF 변수·등식 표와 수치 rank(`dof_rank_sample_count` 기본 10의 근거 기록), `DofReport`, 달성 불가 픽스처와 oracle | N3.7 / N3.2(블록 노드 집합) / N4.1 IC4·IC6·IC8 / N6.1·N6.2 6c / DEC-58·59·74·81 |
 | `7a-gain-metric` | 회로별 gain metric 이관표, 블록 국소 소신호 모델(경계 조건·스탬프)과 gmb 유도 식, 블록 속성(`rout_ss_ohm` DEC-66, 경계 부하 = 다음 블록 입력 넷 어드미턴스 DEC-63) 계산, 스윙·입력 범위 metric, DF-28 CGS·CGB 스탬프와 근사 표시, 잔차 계산, 감도 게이트 섭동 방향·ε 계산과 발동 빈도(S0 지문 변경 시 + 최종 해, DEC-74), 전력 정의(DEC-78) 반영과 `sum_current` 대비 비교표, 면적 탐색 축·판정 축 계산과 차 기록(DEC-79), 면적 축 두 눈금 식(레이아웃 격자 분해능은 PDK 선언값에서 유도, 면적 축 모델 오차는 탐색 축 대 판정 축 실측 차, bin 폭 = 둘의 max, 예산 게이트 포함 -- DEC-80), `verified_by`와 트랜지스터 레벨 SPICE 대조 절차(넷리스트 생성·모델 경로·기존 스크립트 재사용 판정·대조점 선택), **모델 오차 선언값의 산출·저장·참조 형식**(DEC-72: `derived.model_error_<metric>`, `value_from_model_error`, 미측정 시 '여유 판정 보류' 보고), bisection 모드(N3.13)와 켜는 선언·U-19 | N3.8 / N3.13 / N3.16 / N6.1·N6.2 7a / DEC-05·23·49·50·53·63·66·72·74·77~80 / DF-16·28·29·30 / J6 / U-07·10·11·19 |
