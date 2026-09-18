@@ -11,7 +11,7 @@
 |---|---|---|
 | 설정 반영 시점 | `settings.local.json`에 등록한 **직후의 도구 호출부터** hook이 돈다(세션 재시작 불필요) | `PreToolUse-162912-716.json` |
 | 메인 세션의 역할 필드 | `agent_type`·`agent_id` **없음**. 있는 키: `session_id`, `transcript_path`, `cwd`, `scratchpad_dir`, `prompt_id`, `permission_mode`, `effort`, `hook_event_name`, `tool_name`, `tool_input`(Post는 `tool_response`, `tool_use_id`, `duration_ms`) | `PreToolUse-162918-19184.json` 등 |
-| subagent의 역할 필드 | PreToolUse·PostToolUse(Bash, PowerShell, Write)와 SubagentStop 모두 `agent_type`(= Agent 도구에 준 `subagent_type`, 예 `general-purpose`)과 `agent_id`가 **있음** | `PreToolUse-162932-27728.json`, `SubagentStop-162958-9772.json` |
+| subagent의 역할 필드 | PreToolUse(Bash, PowerShell, Write)·PostToolUse(Bash, PowerShell -- PostToolUse는 이 둘만 등록했다)와 SubagentStop 모두 `agent_type`(= Agent 도구에 준 `subagent_type`, 예 `general-purpose`)과 `agent_id`가 **있음** | `PreToolUse-162932-27728.json`, `SubagentStop-162958-9772.json` |
 | 이름 없는 subagent | `agent_type`이 빈 문자열인 SubagentStop이 두 번 기록됐다(`agent_id` 있음). 사용자가 띄우지 않은 내부 subagent로 보인다 | `SubagentStop-162946-27940.json`, `SubagentStop-163001-13492.json` |
 | hook 입력의 `cwd` | 메인 세션·subagent 모두 **세션 시작 디렉터리**(저장소 루트)다. subagent가 `cd ..`한 호출에서도 hook 입력 `cwd`는 저장소 루트였다 | `PreToolUse-162937-7116.json` |
 | subagent Bash의 작업 디렉터리 | `cd .. && pwd`는 상위를 출력했지만 **다음 Bash 호출의 `pwd`는 다시 저장소 루트**였다(호출 사이에 유지되지 않는다) | `PostToolUse-162937-10252.json`, `PostToolUse-162939-22356.json` |

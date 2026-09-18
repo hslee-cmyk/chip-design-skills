@@ -9,7 +9,7 @@ plan_version: 5.19
 > **Summary**: 13개 design 문서가 공유하는 정의를 한 곳에 모은다. 구현 주체 분류 양식(WP-21), 용어→코드 이름 대응, 영역 표기 규약(DEC-67), 옛 키 거부 게이트 공통 형식(DEC-68·69), 실패 규약의 코드 형식(N3.14), 판정 기록·승인 기록 스키마(N3.12.5), 판정에 쓰는 계획서 표(V 도입·IC 담당·Phase 순서)를 검증 도구가 직접 읽는 규칙(N4.1·N4.2·N6.1), 성능 측정 명령(N6.3), 무동작 판정 방법.
 >
 > **Project**: chip-design-skills (analog-gmid-design skill) · **Author**: Claude Code (오케스트레이터)
-> **Date**: 2026-09-18 · **Status**: v1.8 -- 승인(`20260918-00-common-design`, v1.7) 뒤 `05-role-separation`에 따른 §8.2 한 줄 개정(그 문서의 승인이 덮는다). 독립 검증 review21~27 반영, 판정 표 사본 제거(§2 정정), 사용자 승인 대기(DEC-51)
+> **Date**: 2026-09-18 · **Status**: v1.8 -- v1.7은 승인됨(`20260918-00-common-design`). v1.8은 `05-role-separation`에 따른 개정(§8.1 옵션 표기, §8.2 해시 입력, §9.1 변경 정의, 교차 참조)이고 05의 승인이 덮는다. 독립 검증 review21~27 반영, 판정 표 사본 제거(§2 정정).
 > **Planning Doc**: [gain-budget-gmid-sizing.plan.md](../../01-plan/features/gain-budget-gmid-sizing.plan.md) v5.19 · N6.1 `0(문서)` 행
 
 Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는다(계획서 N1이 목적·범위의 정본이다).
@@ -340,7 +340,7 @@ scope: <한 줄>
 * 파서 대상: `.ai/approvals/`에서 이름이 `_`로 시작하지 않는 `.md`(양식 `_TEMPLATE.md`는 제외). 줄 끝은 `\r?\n`이다(autocrlf worktree의 CRLF 체크아웃).
 * 머리 규칙: 한 줄에 `key: value` 하나. 값은 `: ` 뒤 전부이고 앞뒤 공백을 뗀다. 주석 줄 금지. 허용 키는 `id`, `date`, `target_kind`, `target`, `diff_base`, `diff_head`, `diff_path`(반복 가능, 한 줄에 경로 하나), `scope`이고 **모르는 키는 거부**한다. 파일은 UTF-8, BOM 없음.
 * 값 형식: `id`는 §8.1 `id` 형식이고 파일 이름 `<id>.md`와 같다 / `date`는 `YYYY-MM-DD` 실제 날짜 / `target_kind` ∈ {`diff`, `decision`, `plan_tables`} / `scope`는 비지 않음.
-* `target_kind: plan_tables`(계획서 판정 표 변경의 승인, §9.1): `target` = 변경 뒤 계획서를 `read_plan_tables`와 쓰기 경로표 파서(`05-role-separation` §3·§14.2 -- 쓰기 경로표도 v5.19에서 판정 표 보호 목록에 들었다)로 파싱한 값을 키 정렬 JSON으로 직렬화한 바이트의 `sha256`(64자리 소문자 16진). `diff_*` 키는 금지다. EL3·EL4가 같은 식으로 다시 계산해 대조한다.
+* `target_kind: plan_tables`(계획서 판정 표 변경의 승인, §9.1): `target` = 변경 뒤 계획서를 `read_plan_tables`와 쓰기 경로표 파서(`05-role-separation` §4·§15.2 -- 쓰기 경로표도 v5.19에서 판정 표 보호 목록에 들었다)로 파싱한 값을 키 정렬 JSON으로 직렬화한 바이트의 `sha256`(64자리 소문자 16진). `diff_*` 키는 금지다. EL3·EL4가 같은 식으로 다시 계산해 대조한다.
 * `target_kind: decision`이면 `target`은 결정 ID 목록이고 `,`로 나눈 뒤 각 원소의 공백을 뗀다(예: `U-26, J1`). `diff_*` 키는 금지다.
 * `target_kind: diff`이면 `diff_base`·`diff_head`(40자리 소문자 16진)와 `diff_path`(1개 이상, 탭·개행 없음)가 필수이고 `target`은 64자리 소문자 16진이다. **diff 해시**는 diff 출력이 아니라 **blob id**로 만든다 -- diff 출력은 저장소 로컬 설정(`diff.suppressBlankEmpty` 등)에 흔들리고 로컬 설정은 환경 변수로 끌 수 없다(review23·24 실측). 경로를 정렬해 경로마다 `git rev-parse --verify --quiet <commit>:<path>`(없으면 `-`)로 base·head blob id를 얻고, `sha256(UTF-8("".join(f"{path}\t{base_blob}\t{head_blob}\n" for path in sorted(diff_paths))))`이다. blob id는 파일 내용의 해시이므로 같은 내용 변경에는 같은 값이 나온다. 거부: 경로가 정규화되지 않음(`./`, `..`, 역슬래시, 끝 `/`), 양쪽 모두 없음, base·head blob이 같음(바뀌지 않은 경로), `git cat-file -t`가 `blob`이 아님(디렉터리). V5는 같은 식으로 다시 계산해 `target`과 비교한다.
 * design 문서의 승인은 `target_kind: diff`이고 `diff_path`는 그 design 문서와 그 문서가 기댄 개정 파일 전부다(§16).
@@ -374,7 +374,7 @@ def read_plan_tables(plan_path: str) -> PlanTables: ...               # 표를 �
 
 * **어느 판을 읽나**: merge gate는 **base 판** 계획서를 읽는다. 병합하려는 쪽 계획서를 읽으면 그 병합이 자기 판정 규칙을 바꿀 수 있기 때문이다. 계획 개정은 병합된 다음 병합부터 적용된다. test(§9.3)는 자기가 도는 worktree의 계획서를 읽는다 -- 그 계획서의 판정 표가 base와 다르면 이미 EL4가 승인 기록을 요구한다.
 * 거부: 표를 못 읽으면 merge gate는 아무것도 판정하지 않고 거부한다(WP-02). N4.3 공격 16 (ii)가 이것을 증명한다.
-* **판정 표 변경 검사**(N3.12.4): 앞 판과 뒤 판 계획서를 같은 `read_plan_tables`로 파싱해 **파싱 값**(`v_intro`, `ic_parts`, `ic_test`, `phase_order`와 쓰기 경로표 파싱 값 `write_paths` -- 비교 대상은 `plan_tables` 해시 입력 객체 전체, `05-role-separation` §14.2)이 다르면 변경이다(원문 문장 수정은 변경이 아니다). 두 곳에서 같은 함수로 한다.
+* **판정 표 변경 검사**(N3.12.4): 앞 판과 뒤 판 계획서를 같은 `read_plan_tables`로 파싱해 **파싱 값**(`v_intro`, `ic_parts`, `ic_test`, `phase_order`와 쓰기 경로표 파싱 값 `write_paths` -- 비교 대상은 `plan_tables` 해시 입력 객체 전체, `05-role-separation` §15.2)이 다르면 변경이다(원문 문장 수정은 변경이 아니다). 두 곳에서 같은 함수로 한다.
   * **EL3(커밋 시점)**: 앞 판 = HEAD, 뒤 판 = staged 계획서. 오케스트레이터의 직접 커밋(계획서 개정의 정상 경로)이 여기서 걸린다. 뒤 판을 못 읽으면 차단.
   * **EL4(병합 시점)**: 앞 판 = base, 뒤 판 = head(병합할 브랜치 끝 커밋). 뒤 판을 못 읽으면 거부.
   * 변경이 있으면 승인 기록(`target_kind: plan_tables`, `target` = 뒤 판 파싱 값의 해시, §8.2)이 필요하다.
@@ -397,10 +397,10 @@ def read_plan_tables(plan_path: str) -> PlanTables: ...               # 표를 �
 ### 9.3 소비자
 
 * **merge gate**: 로더 규칙 10(§8.1)의 `N/A` 판정이 `v_intro`와 `phase_order`를 쓴다.
-* **TS7 xfail**(test-author, CC-3): test 케이스는 자기 담당 Phase와 케이스 키를 표식 `@pytest.mark.gmid_ic("<IC>", phase="<Phase>", case="<case>")`로 단다(parametrize 케이스마다 달 수 있다 -- IC11의 2레일 케이스는 `phase="4", case="rail2"`, 3레일 케이스는 `phase="6a", case="rail3"`, 선행 거부 케이스는 `phase="6a", case="reject"`). 케이스가 하나뿐인 IC는 `case=""`다. 케이스 키 = `"<IC>:<case>"`. conftest가 `--gmid-phase <Phase>` 옵션(기본값 없음 -- 없거나 `phase_order` 밖이면 수집 오류, V1 실행에서 auditor가 spec card `Phase`를 넘긴다)과 비교한다. **xfail 조건**: 표식 Phase가 현재 Phase보다 뒤이거나, **같고 그 케이스 키가 엄격 대상이 아닐 때**다(reason = `"<IC> -- 담당 Phase <phase> -- 만료: <phase> DoD"`, N3.12.3 '만료 = 그 Phase DoD'). 표식 Phase가 현재보다 앞이면 언제나 활성이다. **엄격 대상**(표식 Phase = 현재 Phase인 케이스에만 뜻이 있다):
+* **TS7 xfail**(test-author, CC-3): test 케이스는 자기 담당 Phase와 케이스 키를 표식 `@pytest.mark.gmid_ic("<IC>", phase="<Phase>", case="<case>")`로 단다(parametrize 케이스마다 달 수 있다 -- IC11의 2레일 케이스는 `phase="4", case="rail2"`, 3레일 케이스는 `phase="6a", case="rail3"`, 선행 거부 케이스는 `phase="6a", case="reject"`). 케이스가 하나뿐인 IC는 `case=""`다. 케이스 키 = `"<IC>:<case>"`. conftest가 `--gmid-phase=<Phase>` 옵션(기본값 없음 -- 없거나 `phase_order` 밖이면 수집 오류, V1 실행에서 auditor가 spec card `Phase`를 넘긴다)과 비교한다. **xfail 조건**: 표식 Phase가 현재 Phase보다 뒤이거나, **같고 그 케이스 키가 엄격 대상이 아닐 때**다(reason = `"<IC> -- 담당 Phase <phase> -- 만료: <phase> DoD"`, N3.12.3 '만료 = 그 Phase DoD'). 표식 Phase가 현재보다 앞이면 언제나 활성이다. **엄격 대상**(표식 Phase = 현재 Phase인 케이스에만 뜻이 있다):
   * `--gmid-dod`: 그 Phase DoD 판정 실행 -- 표식 Phase가 현재 Phase인 케이스 전부.
-  * `--gmid-strict <IC:case,...>`: **이번 spec card의 '활성화 IC 케이스' 필드(N3.12.3) ∪ 같은 Phase에서 이미 병합된 card들의 그 필드**. 누적이므로 활성화된 케이스를 뒤 card가 다시 깨면 그 card의 V1에서 FAIL한다(review26 T-02).
-  * **merge gate가 이 집합을 계산한다**: base의 판정 기록 중 spec card `Phase`가 같은 것들의 spec card 필드와 이번 spec card 필드의 합집합. 그리고 판정 기록 `auditor_run.commands`의 V1 명령에 `--gmid-phase <Phase>`와 정확히 그 집합(정렬, 쉼표 구분)의 `--gmid-strict`가 있는지 대조한다. 다르면 거부(auditor가 빠뜨려도 조용히 통과하지 않는다). **CC-3 병합 전**(conftest에 `--gmid-*` 옵션이 아직 없을 때)에는 이 대조를 하지 않는다 -- 옵션을 주면 pytest가 모르는 옵션으로 끝나고 빼면 거부되어 Phase 1 앞쪽 card가 모두 막히기 때문이다(review27 N-02). 그때는 엄격 대상도 없다(xfail 선언 자체가 CC-3에서 생긴다).
+  * `--gmid-strict=<IC:case,...>`: **이번 spec card의 '활성화 IC 케이스' 필드(N3.12.3) ∪ 같은 Phase에서 이미 병합된 card들의 그 필드**. 누적이므로 활성화된 케이스를 뒤 card가 다시 깨면 그 card의 V1에서 FAIL한다(review26 T-02).
+  * **merge gate가 이 집합을 계산한다**: base의 판정 기록 중 spec card `Phase`가 같은 것들의 spec card 필드와 이번 spec card 필드의 합집합. 그리고 판정 기록 `auditor_run.commands`의 V1 명령에 `--gmid-phase=<Phase>`와 정확히 그 집합(정렬, 쉼표 구분)의 `--gmid-strict`가 있는지 대조한다. 다르면 거부(auditor가 빠뜨려도 조용히 통과하지 않는다). **CC-3 병합 전**(conftest에 `--gmid-*` 옵션이 아직 없을 때)에는 이 대조를 하지 않는다 -- 옵션을 주면 pytest가 모르는 옵션으로 끝나고 빼면 거부되어 Phase 1 앞쪽 card가 모두 막히기 때문이다(review27 N-02). 그때는 엄격 대상도 없다(xfail 선언 자체가 CC-3에서 생긴다).
   * **모르는 케이스 키 거부**: conftest는 `--gmid-strict`에 들어온 키마다 수집된 test 중 그 `gmid_ic` 표식(IC·case)이 있고 그 표식 Phase가 현재 Phase인지 확인하고, 아니면 수집 오류로 끝낸다(오타 키·표식 없는 키·Phase가 맞지 않는 키가 조용히 통과하지 않게 -- review27 N-01. 모의 실측에서 동작 확인). 케이스 키 이름을 바꾸는 test 변경은 그 Phase에서 이미 병합된 spec card 필드의 옛 키를 무효로 만들므로, 그 변경의 spec card가 옛 키 → 새 키 대응을 '활성화 IC 케이스' 필드에 함께 적는다.
   엄격 대상 케이스는 xfail 없이 PASS여야 한다. 그래서 담당 Phase의 앞쪽 card는 막히지 않고, 케이스를 활성화하는 card부터 그 Phase의 모든 뒤 card와 DoD에서 PASS가 확인된다. 같은 Phase에 표식이 같은 케이스 둘(IC11 `reject`·`rail3`)은 각자 활성화 card에서 따로 엄격해진다(review26 T-01). IC11의 선행 거부 케이스(N4.1)는 N4.3 공격 13의 실행 Phase인 `6a` 표식을 단다.
 * **표식과 계획서 대조**(test-author, CC-3의 test): IC마다 `ic_test[IC]` 함수에 달린 표식 Phase 집합 = `{p.phase for p in ic_parts[IC]}`. 표식이 계획서에 없는 Phase를 달거나 계획서 Phase에 표식이 없으면 FAIL. 이 test가 읽는 것은 계획서 원본과 test 파일 자신의 표식뿐이라 사본이 없다.

@@ -1,0 +1,5 @@
+e329283 (참 양성 기대): FAIL=True (동형=True, 반복 잎=True)
+gm*ro 독립 oracle (통과 기대): FAIL=False (동형=True, 반복 잎=False)
+KCL 합 (통과 기대): FAIL=False (동형=True, 반복 잎=False)
+다른 구조 (통과 기대): FAIL=False (동형=False, 반복 잎=False)
+잎 대응 불일치 (통과 기대): FAIL=False (동형=False, 반복 잎=True)
