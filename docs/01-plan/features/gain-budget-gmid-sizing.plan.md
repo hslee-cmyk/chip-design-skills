@@ -1072,7 +1072,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정�
 
 | ID | 결정 | 기본안 | 필요 시점 |
 |---|---|---|---|
-| U-01 | stick_diagram Test 16의 의도(test가 틀렸나 대상이 틀렸나) | 오케스트레이터가 원인 대조표 제시 | Phase 1 |
+| U-01 | stick_diagram Test 16의 의도(test가 틀렸나 대상이 틀렸나) | **확정(2026-09-21, 승인 기록 `20260921-u01-test16-intent`)**: test가 틀렸다 -- (b) dispositions에 M4/M5 `diff_pair` 후보 키 누락(Test 16 신설 판부터 FAIL). TS0은 test fixture를 고치고 대상 코드는 그대로 | Phase 1 |
 | U-02 | 레지스트리 등급 D 목록과 probe 삭제 11개의 항목별 삭제/배선 | 제안표 일괄 승인 | Phase 2 |
 | U-03 | 추적되지 않는 `workspaces/` 스크래치 스크립트가 `sizing_recipe.py` 삭제로 깨지는 것을 허용할지 | 허용(추적 파일만 갱신). 근거: WP-01의 배선 대상은 저장소에 추적되는 파일 | Phase 3 |
 | U-04 | 픽스처와 정본 spec의 구분 | spec에 `origin: canonical \| fixture` 필수, 픽스처는 유도 임계값을 읽지 않음 | Phase 4 |
