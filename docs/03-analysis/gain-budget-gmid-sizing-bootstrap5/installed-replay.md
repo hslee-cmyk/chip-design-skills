@@ -126,6 +126,26 @@ client hook을, 실제 `git push`가 복제 gate의 `pre-receive`를 돌렸다(R
 | 4 | 오케스트레이터 | code worktree | -- |
 | 5 | gmid-code-author | 진입점 15개 UTF-8(40c214c), `gmid_gate.py`는 EL1 거부 → dispute(c6ffe1e)로 멈춤. 공격 26: 40 PASS / 2 FAIL | **9회 거부(D-7)** |
 
+## 5. §12 3차 시도 -- 전 과정 완료 (2026-09-21)
+
+계획 N3.12.2 개정(49e5f65, `tools/gates/githooks/**` 행, 승인 기록 `20260921-plan-githooks-row`) 뒤 같은 id로 1부터 다시 했다.
+
+| 순서 | 주체 | 결과 | SubagentStop |
+|---|---|---|---|
+| 2 | gmid-test-author | d9ea35f(1fdc17e와 blob 동일), base 42 FAIL | 통과 |
+| 3 | gmid-verification-auditor | 격리 복제본 T=d9ea35f, red 42 FAIL·exit 불일치 0, 대조 PASS | 통과 |
+| 5 | gmid-code-author | 61c7997 진입점 16개, 공격 26 42 PASS, 전체 재생 PASS 42·SKIPPED 7, 사례 PASS 5·SKIPPED 2 | **D-7로 막힘 → 커밋 확인 뒤 오케스트레이터 TaskStop** |
+| 6 | 오케스트레이터 | §12-6 두 줄 `-m` 병합 468e0ba, EL1·EL3 통과 | -- |
+| 7 | gmid-verification-auditor | 병합본 격리 복제본, V1 PASS(redteam 0.5 판정 불변, 공격 26만 FAIL→PASS), V2~V9 N/A(도입 Phase), V10 PASS, 판정 기록 1724d42(로더·스키마 통과) | 통과 |
+| 8 | 오케스트레이터 | `git -C <audit> push gate role/audit/<id>:master` → **pre-receive 통과** 37bba56..1724d42 | -- |
+| 정리 | 오케스트레이터 | worktree 3개·브랜치 3개 삭제 허용 | -- |
+| 재설치 | 사용자 | §13.4: gate `gate-runner.py`, `.claude/hooks/role_*.py`, `.githooks/gmid_gate.py` 복사 → `integrity.py check --scope session` 전부 ok | -- |
+
+반영 뒤 재설치 전에는 행 1(gate-runner)·행 5(hook 4개)가 실패해 fail-closed였다(§13.4 설계대로). 재설치 뒤 EL1 거부 메시지가
+`[EL1 거부] 주체 오케스트레이터, 대상 …`로 읽힌다 -- **D-1 해결 확인**. §12 전 과정 1회는 완료, 단 순서 5에서 D-7 오거부 1건(다음 게이트
+변경 `20260921-gate-flow-liveness`로 고친다). auditor 관찰: 16곳의 `try: reconfigure … except Exception: pass`는 광범위 except(V6 도입
+Phase 1 뒤면 대상) -- 다음 변경에서 정리 후보.
+
 ## 관찰된 결함 (범위 안)
 
 * **D-1 게이트 출력 인코딩**: 위 모든 거부 메시지의 한글이 Claude Code·subagent 도구 결과에서 깨져 보인다(`[EL1 �ź�] ��ü ���ɽ�Ʈ������`).
