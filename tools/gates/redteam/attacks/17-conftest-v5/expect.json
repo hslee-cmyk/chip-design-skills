@@ -1,0 +1,13 @@
+{
+ "layer": "V5",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #17 마지막, §10 V5 'conftest.py는 무조건 승인 기록 요구'(review30 J1)",
+ "title": "공격 17: test-author가 assets/tests/conftest.py 변경 -> V5 FAIL(승인 기록 없음)",
+ "steps_from_records": true
+}

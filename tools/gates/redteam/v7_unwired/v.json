@@ -1,0 +1,23 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V7",
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_orphan(x):\n    return x\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V7",
+    "basis": "§10 V7: 새 def가 reachability_roots에서 도달하지 않음(호출 0건이면 어떤 루트에서도 도달 불가)"
+   }
+  }
+ ]
+}

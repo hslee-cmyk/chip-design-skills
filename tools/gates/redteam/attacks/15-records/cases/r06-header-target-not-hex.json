@@ -1,0 +1,55 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6 + §8.2",
+ "expect": "reject",
+ "basis": "00-common §8.2 머리 규칙 -- diff면 target 64자리 소문자 16진",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-h12"
+   ]
+  }
+ ],
+ "old_files": {
+  ".ai/approvals/20260921-rt-h12.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-h12"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "diff"
+    ],
+    [
+     "target",
+     "xyz"
+    ],
+    [
+     "diff_base",
+     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ],
+    [
+     "diff_head",
+     "cccccccccccccccccccccccccccccccccccccccc"
+    ],
+    [
+     "diff_path",
+     "x"
+    ],
+    [
+     "scope",
+     "x"
+    ]
+   ]
+  }
+ },
+ "contested": false
+}

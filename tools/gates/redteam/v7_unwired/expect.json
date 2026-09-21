@@ -1,0 +1,12 @@
+{
+ "layer": "V7",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §10 '거부 증명: V7 -> redteam/v7_unwired', 계획 N4.2 V7",
+ "title": "V7 거부 증명: 어디서도 부르지 않는 새 def",
+ "steps_from_records": true
+}

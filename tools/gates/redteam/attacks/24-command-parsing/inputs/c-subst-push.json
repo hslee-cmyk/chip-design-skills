@@ -1,0 +1,4 @@
+{
+ "command": "echo $(git push origin master)",
+ "description": "c-subst-push"
+}

@@ -1,0 +1,22 @@
+{
+ "rule": "00-common §8.1 로더 규칙 3",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 3 짝 없는 서로게이트(review23 C2 -- 해시에서 UnicodeEncodeError로 죽지 않고 거부)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "red",
+    "test_ids"
+   ],
+   "value": [
+    "RTSURROGATE"
+   ]
+  },
+  {
+   "op": "text_replace",
+   "old": "RTSURROGATE",
+   "new": "test_\\ud800a"
+  }
+ ]
+}

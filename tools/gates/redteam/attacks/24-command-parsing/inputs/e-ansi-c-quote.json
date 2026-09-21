@@ -1,0 +1,4 @@
+{
+ "command": "echo $'a\\nb'",
+ "description": "e-ansi-c-quote"
+}

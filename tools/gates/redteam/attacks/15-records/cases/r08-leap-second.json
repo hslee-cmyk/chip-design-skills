@@ -1,0 +1,15 @@
+{
+ "rule": "00-common §8.1 로더 규칙 8",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 8 -- 부분집합: 윤초 불허(review23 C7)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "time"
+   ],
+   "value": "2026-09-21T23:59:60Z"
+  }
+ ]
+}

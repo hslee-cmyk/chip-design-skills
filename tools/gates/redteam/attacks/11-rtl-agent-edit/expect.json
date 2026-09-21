@@ -1,0 +1,20 @@
+{
+ "layer": "EL1",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #11(installed 전용), N4.3 #11",
+ "title": "공격 11: RTL agent가 RTL 파일 Edit -- hook 출력 없음, exit 0",
+ "steps": {
+  "attack": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "stdout_empty": true,
+   "stderr_empty": true
+  }
+ }
+}

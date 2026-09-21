@@ -1,0 +1,7 @@
+{
+ "rule": "00-common §8.1 로더 규칙 10",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 10: phase_order 밖",
+ "id": "20260921-rt-phase9",
+ "spec_phase": "9"
+}

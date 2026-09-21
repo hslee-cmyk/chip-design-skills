@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 10",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 10 -- review23 C10 -- v1.8 형식은 `도입 <Phase>: <사유>`로 시작",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "checks",
+    "V9",
+    "basis"
+   ],
+   "value": "N/A(Phase 4 변경, 도입 6b)"
+  }
+ ]
+}

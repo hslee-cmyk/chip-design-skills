@@ -1,0 +1,6 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 6: id 앞 8자리가 실제 날짜(review21 C-08 20261399)",
+ "id": "20261399-rt-baddate"
+}

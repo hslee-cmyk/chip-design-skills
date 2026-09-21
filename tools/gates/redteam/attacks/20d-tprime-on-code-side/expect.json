@@ -1,0 +1,20 @@
+{
+ "layer": "EL4",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #20 (d), §9.2-4 ②",
+ "title": "공격 20 (d): code 쪽에 Role: test 커밋 T' 끼우기(review30 A20)",
+ "steps": {
+  "attack": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  }
+ }
+}

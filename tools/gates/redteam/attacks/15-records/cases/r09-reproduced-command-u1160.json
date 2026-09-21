@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 9",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 9 -- U+1160",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "reproduced_numbers",
+    0,
+    "command"
+   ],
+   "value": "ᅠ"
+  }
+ ]
+}

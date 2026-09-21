@@ -1,0 +1,32 @@
+{
+ "rule": "05 §9.2-5",
+ "expect": "reject",
+ "basis": "05 §9.2-5 evidence_type = spec card 값",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "evidence_type"
+   ],
+   "value": "equivalence"
+  },
+  {
+   "op": "del",
+   "path": [
+    "red"
+   ]
+  },
+  {
+   "op": "set",
+   "path": [
+    "equivalence"
+   ],
+   "value": {
+    "commands": [
+     "x"
+    ],
+    "outputs_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+   }
+  }
+ ]
+}

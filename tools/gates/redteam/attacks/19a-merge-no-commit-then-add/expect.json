@@ -1,0 +1,33 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #19, §8.2-3 (다) staged 트리 = MERGE_HEAD 트리, §9.2-4 ③ 트리 = M^2 트리",
+ "title": "공격 19 (a): merge --no-commit 뒤 내용 추가",
+ "steps": {
+  "control-clean-merge-state": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§12-6 정상 병합 상태 -- 오거부 0"
+  },
+  "attack-el3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-el4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  }
+ }
+}

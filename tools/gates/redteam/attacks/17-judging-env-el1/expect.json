@@ -1,0 +1,161 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #17, §4.1 '판정 환경 행 우선'·'판정 트리 기본 거부'·casefold, 계획 N3.12.2",
+ "title": "공격 17 (EL1): 판정 환경 파일·판정 트리 기본 거부 대상의 도구 쓰기",
+ "steps": {
+  "attack-code-assets-conftest": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-root-conftest": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-skills-conftest": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-skill-pytest-ini": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-tests-tools-conftest": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-sitecustomize": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-pth": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-gitattributes": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-numpy-shadow-pkg": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-eng-shadow-pkg": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-pyc": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-code-workspaces-py": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-test-tests-pytest-ini": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§4.1 판정 환경 행 우선 + casefold 대조(review33 M2-02)"
+  },
+  "attack-test-tests-pytest-toml": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§4.1 판정 환경 행 우선 + casefold 대조(review33 M2-02)"
+  },
+  "attack-test-tests-dot-pytest-toml": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§4.1 판정 환경 행 우선 + casefold 대조(review33 M2-02)"
+  },
+  "attack-test-tests-dot-pytest-ini": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§4.1 판정 환경 행 우선 + casefold 대조(review33 M2-02)"
+  },
+  "attack-test-tests-Pytest-ini-case": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§4.1 판정 환경 행 우선 + casefold 대조(review33 M2-02)"
+  },
+  "attack-test-tests-PYTEST-INI-case": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§4.1 판정 환경 행 우선 + casefold 대조(review33 M2-02)"
+  },
+  "attack-test-tests-Setup-cfg-case": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§4.1 판정 환경 행 우선 + casefold 대조(review33 M2-02)"
+  },
+  "control-code-engine": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "control-code-tests-tools": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "N3.12.2 code-author `assets/tests/tools/**`"
+  },
+  "control-test-new-test": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "record-code-workspaces-pyw": {
+   "layer": "EL1",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": [],
+   "basis": "§13.5 review35 M4-02 알려진 한계 -- '기록' 케이스"
+  }
+ }
+}

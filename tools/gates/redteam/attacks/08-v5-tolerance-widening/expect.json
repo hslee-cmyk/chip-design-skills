@@ -1,0 +1,12 @@
+{
+ "layer": "V5",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "계획 N4.2 V5, N0.4 기준 약화 '허용오차 확대'·'비교 완화', 05 §10 V5 판정식",
+ "title": "공격 8: 허용오차 확대 (V5, 승인 기록 없음)",
+ "steps_from_records": true
+}

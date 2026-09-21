@@ -1,0 +1,29 @@
+{
+ "rule": "올바른 기록",
+ "expect": "accept",
+ "basis": "review22 §5: failure_hashes 두 원소가 같음(test_id 다름) -- 로더 규칙 없음, V2 재실행이 잡는다(설계대로)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "red",
+    "test_ids"
+   ],
+   "value": [
+    "skills/analog-gmid-design/assets/tests/test_a.py::test_a",
+    "skills/analog-gmid-design/assets/tests/test_b.py::test_b"
+   ]
+  },
+  {
+   "op": "set",
+   "path": [
+    "red",
+    "failure_hashes"
+   ],
+   "value": [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+   ]
+  }
+ ]
+}

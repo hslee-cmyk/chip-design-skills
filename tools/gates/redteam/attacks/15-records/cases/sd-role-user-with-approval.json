@@ -1,0 +1,53 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "accept",
+ "basis": "05 §8.2-5 Role: user + 같은 커밋의 staged_diff(diff_base = HEAD) -- 오거부 0. 단 N3.12.2에 사용자 행 `.ai/approvals/**`가 없어 §8.2-4 경로 권한과 충돌할 수 있다(설계 모순 후보)",
+ "files": {
+  ".gitignore": "__pycache__/\n.pytest_cache/\nruns/\nlibrary/*.search_archive/\n"
+ },
+ "trailers": [
+  "Role: user"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": true,
+ "approval": {
+  "id": "20260921-rt-sd7",
+  "header": [
+   [
+    "id",
+    "20260921-rt-sd7"
+   ],
+   [
+    "date",
+    "2026-09-21"
+   ],
+   [
+    "target_kind",
+    "staged_diff"
+   ],
+   [
+    "target",
+    "@auto_target"
+   ],
+   [
+    "diff_base",
+    "@base"
+   ],
+   [
+    "diff_path",
+    ".gitignore"
+   ],
+   [
+    "scope",
+    "redteam staged_diff"
+   ]
+  ],
+  "paths_for_hash": [
+   ".gitignore"
+  ]
+ }
+}

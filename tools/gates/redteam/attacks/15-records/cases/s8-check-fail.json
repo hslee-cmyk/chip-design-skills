@@ -1,0 +1,16 @@
+{
+ "rule": "05 §9.2-8",
+ "expect": "reject",
+ "basis": "05 §9.2-8 checks에 FAIL 없음",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "checks",
+    "V3",
+    "verdict"
+   ],
+   "value": "FAIL"
+  }
+ ]
+}

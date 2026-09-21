@@ -1,0 +1,15 @@
+{
+ "rule": "05 §9.2-5",
+ "expect": "accept",
+ "basis": "05 §9.2-5 old의 조상 허용 -- 오거부 0",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "base_commit"
+   ],
+   "value": "@{B0}"
+  }
+ ],
+ "fresh": true
+}

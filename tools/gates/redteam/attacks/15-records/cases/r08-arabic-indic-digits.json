@@ -1,0 +1,15 @@
+{
+ "rule": "00-common §8.1 로더 규칙 8",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 8 -- review23 C8",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "time"
+   ],
+   "value": "٢٠٢٦-09-21T10:00:00Z"
+  }
+ ]
+}

@@ -1,0 +1,23 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V5",
+   "base": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": {
+     "git": "2e1944a^:skills/analog-gmid-design/assets/sizing_recipe.py"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": {
+     "git": "2e1944a:skills/analog-gmid-design/assets/sizing_recipe.py"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V5",
+    "basis": "N0.4 격자 확대 = 리터럴 변경(§10 V5 판정식), 승인 기록 없음"
+   }
+  }
+ ]
+}

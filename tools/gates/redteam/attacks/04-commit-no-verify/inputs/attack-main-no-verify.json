@@ -1,0 +1,4 @@
+{
+ "command": "git -C @{WORK} commit --no-verify --trailer \"Role: doc\" -m \"doc\"",
+ "description": "commit"
+}

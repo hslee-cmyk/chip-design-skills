@@ -1,0 +1,4 @@
+{
+ "command": "git -C @{W}/20260921-rt-rg-audit merge --no-ff role/code/20260921-rt-rg -m \"merge 20260921-rt-rg\" -m \"Role: doc\nChange-Id: 20260921-rt-rg\"",
+ "description": "a-two-line-m-merge"
+}

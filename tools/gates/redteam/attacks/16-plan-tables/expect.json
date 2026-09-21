@@ -1,0 +1,86 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #16, §8.2-5, §9.2-1·2, §15.2, 00-common §9.1(판정 표 변경 검사·깨진 표 거부)",
+ "title": "공격 16: 승인 없는 판정 표·쓰기 경로표 변경 / 깨진 표 / 흐름 밖에서 깨진 old; 오거부 0",
+ "steps": {
+  "attack-i-table-value-a": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§8.2-5 판정 표 해시 변화 ∧ plan_tables 승인 없음"
+  },
+  "attack-i-table-value-b": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-i-write-paths-a": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§8.2-5 판정 표 해시 변화 ∧ plan_tables 승인 없음"
+  },
+  "attack-i-write-paths-b": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-ii-broken-a": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§8.2-5 staged 판을 못 읽으면 차단"
+  },
+  "attack-ii-broken-b": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-iii-broken-old": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "00-common §9.1: 흐름 밖에서 base가 깨지면 판정하지 않고 거부"
+  },
+  "control-approved-change-a": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§8.2-5: staged 판 해시의 plan_tables 승인 기록이 index에 있으면 통과"
+  },
+  "control-approved-change-b": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "control-prose-only-a": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "00-common §9.1: 원문 문장 수정은 변경이 아니다"
+  },
+  "control-prose-only-b": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  }
+ }
+}

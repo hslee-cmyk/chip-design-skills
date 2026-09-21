@@ -1,0 +1,26 @@
+{
+ "layer": "EL3",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #19 (e), §8.2-3 (라), §9.2-3",
+ "title": "공격 19 (e): 역할 밖 병합(오래된 조상에서 갈라진 RTL 브랜치 포함) -- 통과",
+ "steps": {
+  "control-el3": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "control-el4": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  }
+ }
+}

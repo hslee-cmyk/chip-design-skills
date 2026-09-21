@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 9",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 9 -- 범주 Zl",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "commands",
+    1
+   ],
+   "value": " "
+  }
+ ]
+}

@@ -1,0 +1,47 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6 + §8.2",
+ "expect": "reject",
+ "basis": "00-common §8.2 머리 규칙 -- decision이면 diff_* 금지",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-h7"
+   ]
+  }
+ ],
+ "old_files": {
+  ".ai/approvals/20260921-rt-h7.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-h7"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "decision"
+    ],
+    [
+     "target",
+     "U-26"
+    ],
+    [
+     "scope",
+     "x"
+    ],
+    [
+     "diff_base",
+     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ]
+   ]
+  }
+ },
+ "contested": false
+}

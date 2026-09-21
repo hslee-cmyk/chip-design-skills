@@ -1,0 +1,44 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V6",
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_safe(gm):\n    try:\n        return rt_gain(gm, 1)\n    except Exception:\n        return\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V6",
+    "basis": "N4.2 V6 새 광범위 except"
+   }
+  },
+  {
+   "step": "control",
+   "tool": "V6",
+   "kind": "control",
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_twice(gm):\n    return rt_gain(gm, 1) + rt_gain(gm, 1)\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V6",
+    "kind": "control",
+    "basis": "허용 리터럴(1)만 쓴 새 함수 -- 오거부 0"
+   }
+  }
+ ]
+}

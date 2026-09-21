@@ -1,0 +1,39 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [
+  "test_rt_engine.py"
+ ],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #3(EL3 차단, EL4 거부), §8.2-4 '소스와 test 함께면 차단', 계획 N3.12.4 EL3",
+ "title": "공격 3: 한 커밋에 소스+tests",
+ "steps": {
+  "control-source-only": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "소스만 바꾼 Role: code 커밋 -- 오거부 0"
+  },
+  "attack-el3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [
+    "test_rt_engine.py"
+   ],
+   "basis": "§8.2-6 차단 메시지에 위반 경로"
+  },
+  "attack-el4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§9.2-3 커밋 전수에 §8.2-4 재적용"
+  }
+ }
+}

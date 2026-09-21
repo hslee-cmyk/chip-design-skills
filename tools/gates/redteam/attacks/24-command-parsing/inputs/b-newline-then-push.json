@@ -1,0 +1,4 @@
+{
+ "command": "echo a\ngit push origin master",
+ "description": "b-newline-then-push"
+}

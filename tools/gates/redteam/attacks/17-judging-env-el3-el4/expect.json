@@ -1,0 +1,270 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #17 '트레일러 없는 커밋으로도 EL3 차단·EL4 거부', §4.1, 계획 N3.12.2",
+ "title": "공격 17 (EL3·EL4): 트레일러 없는 커밋으로 넣은 판정 환경 파일·판정 트리 새 파일",
+ "steps": {
+  "assets-conftest::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "assets-conftest::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "root-conftest::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "root-conftest::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "skills-conftest::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "skills-conftest::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "skill-pytest-ini-k::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "skill-pytest-ini-k::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "tests-tools-conftest::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "tests-tools-conftest::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "sitecustomize::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "sitecustomize::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "pth::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "pth::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "gitattributes-export-ignore::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "gitattributes-export-ignore::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "tests-pytest-ini::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "tests-pytest-ini::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "pytest-toml::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "pytest-toml::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "dot-pytest-toml::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "dot-pytest-toml::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "dot-pytest-ini::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "dot-pytest-ini::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "Pytest-ini-deselect::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "Pytest-ini-deselect::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "PYTEST-INI::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "PYTEST-INI::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "Setup-cfg::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "Setup-cfg::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "numpy-shadow-pkg::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "numpy-shadow-pkg::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "eng-shadow-pkg::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "eng-shadow-pkg::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "pyc-add-f::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "pyc-add-f::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "workspaces-py::EL3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "workspaces-py::EL4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "record-workspaces-pyw::EL3": {
+   "layer": "EL3",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": [],
+   "basis": "§13.5 review35 M4-02 알려진 한계 -- 동작을 로그로"
+  },
+  "record-workspaces-pyw::EL4": {
+   "layer": "EL4",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": [],
+   "basis": "§13.5 review35 M4-02 알려진 한계 -- 동작을 로그로"
+  },
+  "control-rtl::EL3": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "역할 밖 -- 오거부 0"
+  },
+  "control-rtl::EL4": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "역할 밖 -- 오거부 0"
+  }
+ }
+}

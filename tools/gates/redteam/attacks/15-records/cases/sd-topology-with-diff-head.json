@@ -1,0 +1,57 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "reject",
+ "basis": "00-common §8.2 staged_diff: diff_head 금지(review30 R-14)",
+ "files": {
+  "skills/analog-gmid-design/assets/library/rt_demo.topology.json": "{\"devices\": [3]}\n"
+ },
+ "trailers": [
+  "Role: doc"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": false,
+ "approval": {
+  "id": "20260921-rt-sd3",
+  "header": [
+   [
+    "id",
+    "20260921-rt-sd3"
+   ],
+   [
+    "date",
+    "2026-09-21"
+   ],
+   [
+    "target_kind",
+    "staged_diff"
+   ],
+   [
+    "target",
+    "@auto_target"
+   ],
+   [
+    "diff_base",
+    "@base"
+   ],
+   [
+    "diff_path",
+    "skills/analog-gmid-design/assets/library/rt_demo.topology.json"
+   ],
+   [
+    "diff_head",
+    "cccccccccccccccccccccccccccccccccccccccc"
+   ],
+   [
+    "scope",
+    "redteam staged_diff"
+   ]
+  ],
+  "paths_for_hash": [
+   "skills/analog-gmid-design/assets/library/rt_demo.topology.json"
+  ]
+ }
+}

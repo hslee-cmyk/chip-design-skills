@@ -1,0 +1,12 @@
+{
+ "layer": "V4",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.3 e5fbf92 (V4 FAIL 규칙 (5), V5 기준선 변경)",
+ "title": "사례: stick_diagram Test 16 FAIL 박제 -- print 판정 + 기준선 .log 변경",
+ "steps_from_records": true
+}

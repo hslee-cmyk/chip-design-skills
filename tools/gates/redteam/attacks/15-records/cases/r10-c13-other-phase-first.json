@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 10",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 10 -- review23 C13",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "checks",
+    "V9",
+    "basis"
+   ],
+   "value": "도입 6c 전이다. 6b"
+  }
+ ]
+}

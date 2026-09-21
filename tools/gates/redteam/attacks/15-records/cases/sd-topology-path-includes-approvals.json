@@ -1,0 +1,58 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "reject",
+ "basis": "00-common §8.2: diff_path는 .ai/approvals/**를 뺀 경로",
+ "files": {
+  "skills/analog-gmid-design/assets/library/rt_demo.topology.json": "{\"devices\": [4]}\n"
+ },
+ "trailers": [
+  "Role: doc"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": false,
+ "approval": {
+  "id": "20260921-rt-sd4",
+  "header": [
+   [
+    "id",
+    "20260921-rt-sd4"
+   ],
+   [
+    "date",
+    "2026-09-21"
+   ],
+   [
+    "target_kind",
+    "staged_diff"
+   ],
+   [
+    "target",
+    "@auto_target"
+   ],
+   [
+    "diff_base",
+    "@base"
+   ],
+   [
+    "diff_path",
+    "skills/analog-gmid-design/assets/library/rt_demo.topology.json"
+   ],
+   [
+    "diff_path",
+    ".ai/approvals/20260921-rt-sd4.md"
+   ],
+   [
+    "scope",
+    "redteam staged_diff"
+   ]
+  ],
+  "paths_for_hash": [
+   "skills/analog-gmid-design/assets/library/rt_demo.topology.json",
+   ".ai/approvals/20260921-rt-sd4.md"
+  ]
+ }
+}

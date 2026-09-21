@@ -1,0 +1,12 @@
+{
+ "rule": "§9.2-7 -P",
+ "expect": "reject",
+ "basis": "§9.2-7: 첫 토큰 $PY 뒤 -P, -m, pytest",
+ "ops": [
+  {
+   "op": "text_replace",
+   "old": "$PY -P -m pytest",
+   "new": "$PY -m pytest"
+  }
+ ]
+}

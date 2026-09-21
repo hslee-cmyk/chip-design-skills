@@ -1,0 +1,43 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6 + §8.2",
+ "expect": "reject",
+ "basis": "00-common §8.2 머리 규칙 -- id = 파일 이름",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-h5"
+   ]
+  }
+ ],
+ "old_files": {
+  ".ai/approvals/20260921-rt-h5.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-h5x"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "decision"
+    ],
+    [
+     "target",
+     "U-26"
+    ],
+    [
+     "scope",
+     "x"
+    ]
+   ]
+  }
+ },
+ "contested": false
+}

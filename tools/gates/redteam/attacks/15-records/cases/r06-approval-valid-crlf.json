@@ -1,0 +1,43 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6",
+ "expect": "accept",
+ "basis": "00-common §8.2 줄 끝 \\r?\\n(autocrlf 체크아웃) -- 오거부 0",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-dec"
+   ]
+  }
+ ],
+ "old_files": {
+  ".ai/approvals/20260921-rt-dec.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-dec"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "decision"
+    ],
+    [
+     "target",
+     "U-26, J1"
+    ],
+    [
+     "scope",
+     "redteam 결정"
+    ]
+   ],
+   "eol": "\r\n"
+  }
+ }
+}

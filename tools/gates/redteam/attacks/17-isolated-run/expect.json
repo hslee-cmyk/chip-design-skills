@@ -1,0 +1,20 @@
+{
+ "layer": "pytest",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §12-7, 00-common §8.1 red 수집 명령, §13.2 #17 '로그로'",
+ "title": "공격 17 (review33·34 로그 항목): 격리 실행이 복제본 부모의 pytest.ini·conftest.py, 루트의 merge_gate.py·pytest.py, 커밋된 .pyc를 읽지 않음",
+ "steps_from_records": true,
+ "steps": {
+  "isolated-record-no-P": {
+   "kind": "record"
+  },
+  "isolated-record-unconfined": {
+   "kind": "record"
+  }
+ }
+}

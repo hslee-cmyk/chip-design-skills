@@ -1,0 +1,12 @@
+{
+ "rule": "00-common §8.1 로더 규칙 1",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 1: UTF-8 디코드 실패 거부",
+ "ops": [
+  {
+   "op": "replace_bytes",
+   "old_hex": "72745f6761696e5f64656d6f",
+   "new_hex": "72745f6761696e5f64656dff"
+  }
+ ]
+}
