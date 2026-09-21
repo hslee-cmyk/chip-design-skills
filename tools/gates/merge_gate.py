@@ -825,6 +825,32 @@ def judge_commit_change(*, parent_view: TreeView, child_view: TreeView, changes,
                 h, " -- topology 변경" if "승인 기록" in pending else " -- `Role: user` 커밋", actor,
                 "조건 `승인 기록`" if "승인 기록" in pending else "§8.2-5 `Role: user`",
                 ", ".join(pending.get("승인 기록", non_approval))))
+    own = pending.get(rp.USER_STAGED_APPROVAL, [])
+    if own:
+        # 계획 N3.12.2 `그 커밋의 staged_diff 승인`(F4): `Role: user` 커밋이 새로 더하는 승인 기록 파일 하나, 머리
+        # `target_kind: staged_diff`, 해시(00-common §8.2)가 그 커밋의 나머지 변경과 맞음. 기존 기록의 수정·삭제와
+        # 두 번째 파일은 이 행에 맞지 않는다.
+        status = {p: s for s, p in changes}
+        why = None
+        if role != "user":
+            why = "`Role: user` 커밋이 아니다"
+        elif len(own) != 1:
+            why = "승인 기록 파일이 하나가 아니다(%d개)" % len(own)
+        elif not status.get(own[0], "").startswith("A"):
+            why = "새로 더한 파일이 아니다(상태 %s)" % status.get(own[0])
+        else:
+            try:
+                hdr = parse_approval_header(child_view.read(own[0]) or b"", own[0])
+                h = compute_diff_hash(parent_view, child_view, non_approval)
+            except GateError as e:
+                hdr, h, why = None, None, str(e)
+            if why is None and hdr["target_kind"] != "staged_diff":
+                why = "머리가 `target_kind: staged_diff`가 아니다(%s)" % hdr["target_kind"]
+            elif why is None and hdr["target"] != h:
+                why = "target %s != 그 커밋의 나머지 변경 해시 %s" % (hdr["target"], h)
+        if why:
+            fails.append("경로 권한 거부: 주체 %s, %s -- 조건 `%s` 거짓: %s (판정 행 사용자 | .ai/approvals/<id>.md)"
+                         % (actor, ", ".join(own), rp.USER_STAGED_APPROVAL, why))
     for p in pending.get("status 전이만", []):
         if not status_only_change(parent_view.read(p), child_view.read(p)):
             fails.append("`status 전이만` 위반: %s -- 주체 %s, 판정 행 조건 `status 전이만`" % (p, actor))

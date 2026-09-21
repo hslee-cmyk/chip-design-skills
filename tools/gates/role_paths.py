@@ -27,11 +27,13 @@ CACHE_DIRNAME = "gmid-gate-cache"
 INTEGRITY_MARKER = "integrity-failed"
 
 ACTORS = ("gmid-code-author", "gmid-test-author", "gmid-verification-auditor", "오케스트레이터", "사용자")
-CONDITIONS = ("없음", "자기 변경 id", "게이트 변경", "부트스트랩", "승인 기록", "status 전이만", "판정 환경", "판정 트리")
+USER_STAGED_APPROVAL = "그 커밋의 staged_diff 승인"   # 계획 N3.12.2(F4, 승인 20260921-f4-user-approval-row)
+CONDITIONS = ("없음", "자기 변경 id", "게이트 변경", "부트스트랩", "승인 기록", "status 전이만", "판정 환경", "판정 트리",
+              USER_STAGED_APPROVAL)
 # 주체 `사용자` 행에만 쓰는 조건(N3.12.2 조건 값 정의)
-USER_ONLY_CONDITIONS = ("판정 환경", "판정 트리")
+USER_ONLY_CONDITIONS = ("판정 환경", "판정 트리", USER_STAGED_APPROVAL)
 # EL1은 허용하고 EL3·EL4가 내용으로 판정하는 조건(§4.1)
-CONTENT_CONDITIONS = ("승인 기록", "status 전이만")
+CONTENT_CONDITIONS = ("승인 기록", "status 전이만", USER_STAGED_APPROVAL)
 
 # §4.2 역할 ↔ 주체 ↔ 트레일러
 ROLE_OF_AGENT = {
@@ -375,7 +377,17 @@ def allowed(actor: str, rel_path: str, ctx: WriteContext) -> Verdict:
         return Verdict(False, "`판정 환경` 행 우선: 사용자만 쓴다", env_rows[0])
     matched_false = None
     for r in rules:
-        if r.actor != actor or not _row_matches(r, rel_path, ctx.change_id):
+        if r.actor != actor:
+            continue
+        if r.condition == USER_STAGED_APPROVAL:
+            # DESIGN-GAP: 계획 N3.12.2 F4 행 `.ai/approvals/<id>.md`의 `<id>`는 변경 id가 아니라 그 커밋이 더하는 승인
+            # 기록의 id다(`Role: user` 커밋에는 변경 id가 없다). 파일 이름 id 형식만 보고 맞추고, 내용 조건(새로 더한 파일
+            # 하나, staged_diff 머리, 해시 일치)은 EL3·EL4가 판정한다.
+            stem = rel_path.replace("\\", "/").rsplit("/", 1)[-1]
+            if _match_any_id(r.glob, rel_path) and stem.endswith(".md") and ID_RE.match(stem[:-3]):
+                return Verdict(True, "허용(내용 조건 %s는 EL3·EL4가 판정)" % r.condition, r, pending=r.condition)
+            continue
+        if not _row_matches(r, rel_path, ctx.change_id):
             continue
         c = r.condition
         if c in ("없음", "자기 변경 id", "판정 환경", "판정 트리"):
