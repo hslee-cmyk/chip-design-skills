@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{WORK}/skills/analog-gmid-design/assets/rt_engine.py)",
+ "content": "def rt_gain(gm, ro):\n    return gm * ro * 2\n"
+}

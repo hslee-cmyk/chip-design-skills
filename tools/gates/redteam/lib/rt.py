@@ -840,6 +840,94 @@ def _env_keep_pyc(extra, drop_prefix=False):
     return env
 
 
+# ----------------------------------------------------------------------------------------------------------
+# 공격 26: 게이트 진입점 출력 인코딩(spec card 20260921-gate-output-utf8)
+# ----------------------------------------------------------------------------------------------------------
+HANGUL = re.compile(r"[가-힣]")
+ENC_OBSERVE_DEFAULT = ["stdout_utf8", "stderr_utf8"]
+
+
+def _enc_env(mode: str, extra: dict) -> dict:
+    """run_all.py·clean_env가 넣는 PYTHONIOENCODING=utf-8을 덮어쓰거나 지운다(이 케이스의 전제).
+    cp949: PYTHONIOENCODING=cp949(PYTHONUTF8 없음) / unset: PYTHONIOENCODING·PYTHONUTF8 둘 다 없음(로캘 기본)."""
+    env = sb.clean_env(extra)
+    env.pop("PYTHONUTF8", None)
+    if mode == "cp949":
+        env["PYTHONIOENCODING"] = "cp949"
+    elif mode == "unset":
+        env.pop("PYTHONIOENCODING", None)
+    else:
+        raise RuntimeError(f"env 모드 모름: {mode}")
+    return env
+
+
+def _strict(b: bytes):
+    try:
+        return b.decode("utf-8", "strict"), None
+    except UnicodeDecodeError as e:
+        return None, f"byte {e.start}: {b[max(0, e.start - 8):e.start + 8].hex()}"
+
+
+def a_enc(ns):
+    """진입점 하나를 인코딩 환경(--env)으로 파이프 실행하고, 바이트를 strict UTF-8로 디코드한 결과를 관찰값으로 남긴다.
+    관찰 키는 expect.json 단계의 `observe`(기본 stdout_utf8·stderr_utf8):
+      stdout_utf8/stderr_utf8 -- strict UTF-8 디코드 성공 여부(계약 1)
+      hangul                  -- strict 디코드한 stdout+stderr에 한글 음절이 있는가(계약 2: 한글이 한글로 나온다)
+      json_lines              -- strict 디코드한 stdout의 빈 줄 아닌 줄이 하나 이상이고 모두 json.loads로 읽힌다(계약 4)
+    stdout·stderr 기록은 UTF-8 replace 디코드(message_contains 대조용 -- cp949 바이트면 한글 부분 문자열이 없다)."""
+    import locale
+    S = st()
+    exp_all = json.loads((CASE_DIR / "expect.json").read_text(encoding="utf-8")).get("steps", {})
+    observe = (exp_all.get(ns.step) or {}).get("observe", ENC_OBSERVE_DEFAULT)
+    script = Path(S["WORK"]) / subst_str(ns.script, S)
+    if not script.is_file():
+        record(ns.step, kind=ns.kind, layer=ns.layer, status="missing", missing=[subst_str(ns.script, S)],
+               note="게이트 코드 없음")
+        return
+    extra = {"CLAUDE_PROJECT_DIR": win(S["WORK"])}
+    stdin = None
+    hook_input = None
+    if ns.event:
+        raw = (CASE_DIR / ns.input_file).read_text(encoding="utf-8") if ns.input_file else None
+        tool_input = subst(json.loads(raw), S) if raw else None
+        agent = None if ns.agent in (None, "none") else ("" if ns.agent == "empty" else ns.agent)
+        hook_input = iface.hook_payload(ns.event, win(S["WORK"]), tool=ns.tool, tool_input=tool_input,
+                                        agent_type=agent)
+        stdin = json.dumps(hook_input, ensure_ascii=False).encode("utf-8")
+    elif ns.stdin_text is not None:
+        stdin = subst_str(json.loads(ns.stdin_text), S).encode("utf-8")
+    else:
+        stdin = b""
+    cmd = [iface.PY, str(script)] + [subst_str(a, S) for a in (ns.arg or [])]
+    cwd = subst_str(ns.cwd, S)
+    try:
+        r = subprocess.run(cmd, cwd=cwd, capture_output=True, env=_enc_env(ns.env, extra), input=stdin, timeout=600)
+    except subprocess.TimeoutExpired as e:
+        record(ns.step, kind=ns.kind, layer=ns.layer, status="ran", exit_code="timeout", cmd=_cmdstr(cmd),
+               note=f"timeout {e}")
+        return
+    out, out_err = _strict(r.stdout)
+    err, err_err = _strict(r.stderr)
+    facts = {"stdout_utf8": out is not None, "stderr_utf8": err is not None,
+             "hangul": bool(HANGUL.search((out or "") + "\n" + (err or ""))) if out is not None and err is not None
+             else False}
+    lines = [ln for ln in (out or "").splitlines() if ln.strip()]
+    ok_json = out is not None and bool(lines)
+    for ln in lines:
+        try:
+            json.loads(ln)
+        except ValueError:
+            ok_json = False
+            break
+    facts["json_lines"] = ok_json
+    observed = {k: facts[k] for k in observe}
+    note = (f"env={ns.env} locale={locale.getencoding()} stdout_bytes={len(r.stdout)} stderr_bytes={len(r.stderr)}"
+            + (f" | stdout 비UTF-8 {out_err}" if out_err else "") + (f" | stderr 비UTF-8 {err_err}" if err_err else ""))
+    extra_rec = {"hook_input": hook_input} if hook_input is not None else None
+    record(ns.step, kind=ns.kind, layer=ns.layer, status="ran", exit_code=r.returncode, stdout=dec(r.stdout),
+           stderr=dec(r.stderr), cmd=_cmdstr(cmd) + f" (cwd={cwd})", note=note, observed=observed, extra=extra_rec)
+
+
 def a_not_implemented(ns):
     record(ns.step, kind="attack", layer=ns.layer, status="not-implemented",
            note="installed 모드 재생은 부트스트랩 ④ 설치 상태(실제 도구 호출·실제 git hook)가 필요하다 -- 이 단계에서는 선언만 한다")
@@ -982,6 +1070,21 @@ def main(argv=None):
     s = sp.add_parser("isolated-run")
     s.add_argument("step")
     s.set_defaults(fn=a_isolated_run)
+
+    s = sp.add_parser("enc")
+    s.add_argument("step")
+    s.add_argument("--kind", default="attack", choices=["attack", "control", "record"])
+    s.add_argument("--layer", default="ENC")
+    s.add_argument("--env", required=True, choices=["cp949", "unset"])
+    s.add_argument("--script", required=True, help="sandbox 작업 저장소 기준 진입점 경로")
+    s.add_argument("--arg", action="append", help="진입점 인자(치환함). '-'로 시작하면 --arg=<값>")
+    s.add_argument("--cwd", default="@{WORK}")
+    s.add_argument("--stdin-text", help="JSON 문자열(치환함)")
+    s.add_argument("--event", help="hook 이벤트 -- 주면 hook 페이로드를 stdin으로")
+    s.add_argument("--agent")
+    s.add_argument("--tool")
+    s.add_argument("--input-file", help="CASE_DIR 기준 JSON 파일(tool_input)")
+    s.set_defaults(fn=a_enc)
 
     s = sp.add_parser("not-implemented")
     s.add_argument("step")

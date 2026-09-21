@@ -1,0 +1,778 @@
+{
+ "layer": "ENC",
+ "exit": 2,
+ "message_contains": [
+  "[EL1 거부]",
+  "주체 오케스트레이터"
+ ],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260921-gate-output-utf8 관찰 가능한 계약 1~4, 거부해야 할 입력, oracle (a)(구성으로 정한 합성 입력; 기대는 'strict UTF-8 디코드'와 spec card 한글 문구, design 05 §5·§9.1·§10·§17의 exit 코드 -- 피검 출력에서 만들지 않았다)",
+ "title": "공격 26: 게이트 진입점 16개를 PYTHONIOENCODING=cp949 / 인코딩 변수 없는 환경에서 파이프 실행 -- 출력 전체 UTF-8, 한글 유지, exit 불변",
+ "steps": {
+  "el1-main-write-engine-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "[EL1 거부]",
+    "주체 오케스트레이터",
+    "rt_engine.py"
+   ],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_guard.py(EL1): 메인 세션(agent_type 없음) PreToolUse Write, 대상 엔진 소스 skills/analog-gmid-design/assets/rt_engine.py | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 2 예시와 '거부해야 할 입력'(메인 세션 엔진 소스 Write -> EL1 exit 2), 05 §13.2 #10 | message_contains 출처: spec card 계약 2 문구와 입력 경로"
+  },
+  "el1-main-write-engine-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "[EL1 거부]",
+    "주체 오케스트레이터",
+    "rt_engine.py"
+   ],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_guard.py(EL1): 메인 세션(agent_type 없음) PreToolUse Write, 대상 엔진 소스 skills/analog-gmid-design/assets/rt_engine.py | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 2 예시와 '거부해야 할 입력'(메인 세션 엔진 소스 Write -> EL1 exit 2), 05 §13.2 #10 | message_contains 출처: spec card 계약 2 문구와 입력 경로"
+  },
+  "el1-unknown-gmid-agent-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_guard.py(EL1): agent_type='gmid-rt-unknown'(gmid- 접두, 세 역할 아님) PreToolUse Write docs/02-design/rt-notes.md | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 '거부해야 할 입력'(알 수 없는 gmid- agent_type -> EL1 exit 2), 05 §5 표 3행, §17"
+  },
+  "el1-unknown-gmid-agent-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_guard.py(EL1): agent_type='gmid-rt-unknown'(gmid- 접두, 세 역할 아님) PreToolUse Write docs/02-design/rt-notes.md | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 '거부해야 할 입력'(알 수 없는 gmid- agent_type -> EL1 exit 2), 05 §5 표 3행, §17"
+  },
+  "el1-fail-closed-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_guard.py(EL1): stdin이 JSON이 아님(예외 경로) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 3(hook fail-closed 경로: 예외 -> exit 2, 메시지도 UTF-8), 05 §17(예외도 2)"
+  },
+  "el1-fail-closed-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_guard.py(EL1): stdin이 JSON이 아님(예외 경로) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 3(hook fail-closed 경로: 예외 -> exit 2, 메시지도 UTF-8), 05 §17(예외도 2)"
+  },
+  "el2bash-unknown-gmid-agent-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_diff_guard_bash.py(EL2): agent_type='gmid-rt-unknown' PostToolUse Bash(echo) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §5 표 3행(gmid- 접두 알 수 없는 역할 -> 거부), §17(hook 거부 2)"
+  },
+  "el2bash-unknown-gmid-agent-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_diff_guard_bash.py(EL2): agent_type='gmid-rt-unknown' PostToolUse Bash(echo) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §5 표 3행(gmid- 접두 알 수 없는 역할 -> 거부), §17(hook 거부 2)"
+  },
+  "el2bash-fail-closed-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_diff_guard_bash.py(EL2): stdin이 JSON이 아님(예외 경로) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 3, 05 §7(실행기 전체 fail-closed)·§17(예외도 2)"
+  },
+  "el2bash-fail-closed-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_diff_guard_bash.py(EL2): stdin이 JSON이 아님(예외 경로) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 3, 05 §7(실행기 전체 fail-closed)·§17(예외도 2)"
+  },
+  "el2stop-unknown-gmid-agent-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_diff_guard_stop.py(EL2): agent_type='gmid-rt-unknown' SubagentStop | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §5 표 3행, §17"
+  },
+  "el2stop-unknown-gmid-agent-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_diff_guard_stop.py(EL2): agent_type='gmid-rt-unknown' SubagentStop | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §5 표 3행, §17"
+  },
+  "el2stop-fail-closed-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_diff_guard_stop.py(EL2): stdin이 JSON이 아님(예외 경로) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 3, 05 §7·§17"
+  },
+  "el2stop-fail-closed-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_diff_guard_stop.py(EL2): stdin이 JSON이 아님(예외 경로) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 3, 05 §7·§17"
+  },
+  "session-startup-cp949": {
+   "layer": "ENC",
+   "exit": "any",
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_session_start.py: SessionStart(source=startup) 페이로드, sandbox(부트스트랩 완료 표지 없음) -- 무결성 대조 결과와 감사 로그 끝 줄 출력 | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: exit는 판정하지 않는다(판정 불변은 거부 입력 단계가 본다); 05 §3.3(세션 시작 때 감사 로그 마지막 N줄 출력)"
+  },
+  "session-startup-unset": {
+   "layer": "ENC",
+   "exit": "any",
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_session_start.py: SessionStart(source=startup) 페이로드, sandbox(부트스트랩 완료 표지 없음) -- 무결성 대조 결과와 감사 로그 끝 줄 출력 | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: exit는 판정하지 않는다(판정 불변은 거부 입력 단계가 본다); 05 §3.3(세션 시작 때 감사 로그 마지막 N줄 출력)"
+  },
+  "session-fail-closed-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_session_start.py: stdin이 JSON이 아님(예외 경로) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 3(hook fail-closed: 예외 -> exit 2)"
+  },
+  "session-fail-closed-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: hooks/role_session_start.py: stdin이 JSON이 아님(예외 경로) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: spec card 20260921-gate-output-utf8 계약 3(hook fail-closed: 예외 -> exit 2)"
+  },
+  "gmid-gate-unknown-hook-cp949": {
+   "layer": "ENC",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/githooks/gmid_gate.py: 알 수 없는 hook 이름 인자 'rt-unknown-hook' | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §17(git client hook EL3: 0 통과 / 1 차단)"
+  },
+  "gmid-gate-unknown-hook-unset": {
+   "layer": "ENC",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/githooks/gmid_gate.py: 알 수 없는 hook 이름 인자 'rt-unknown-hook' | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §17(git client hook EL3: 0 통과 / 1 차단)"
+  },
+  "gate-runner-direct-cp949": {
+   "layer": "ENC",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/gate/gate-runner.py: sandbox gate 저장소에서 pre-receive 밖 직접 실행, stdin에 ref 갱신 한 줄 | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §9.1(try/except -> exit 1 fail-closed)·§17(EL4 0 반영 / 1 거부)"
+  },
+  "gate-runner-direct-unset": {
+   "layer": "ENC",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/gate/gate-runner.py: sandbox gate 저장소에서 pre-receive 밖 직접 실행, stdin에 ref 갱신 한 줄 | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §9.1(try/except -> exit 1 fail-closed)·§17(EL4 0 반영 / 1 거부)"
+  },
+  "integrity-check-session-cp949": {
+   "layer": "ENC",
+   "exit": [
+    0,
+    1
+   ],
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/integrity.py check --scope session (sandbox 작업 저장소) -- 행마다 JSON 한 줄 | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §3.3(check: 전부 일치 0 / 불일치 1 / 입력 오류 2 -- 올바른 입력이라 2 아님), §17"
+  },
+  "integrity-check-session-unset": {
+   "layer": "ENC",
+   "exit": [
+    0,
+    1
+   ],
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/integrity.py check --scope session (sandbox 작업 저장소) -- 행마다 JSON 한 줄 | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §3.3(check: 전부 일치 0 / 불일치 1 / 입력 오류 2 -- 올바른 입력이라 2 아님), §17"
+  },
+  "merge-gate-bad-old-cp949": {
+   "layer": "ENC",
+   "exit": [
+    1,
+    2
+   ],
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/merge_gate.py receive --old rtbad1 --new rtbad2 (없는 리비전, sandbox gate 저장소) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §17(merge_gate 하위 명령: 1 거부 / 2 입력 오류 -- 통과 0이 아니다)"
+  },
+  "merge-gate-bad-old-unset": {
+   "layer": "ENC",
+   "exit": [
+    1,
+    2
+   ],
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/merge_gate.py receive --old rtbad1 --new rtbad2 (없는 리비전, sandbox gate 저장소) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §17(merge_gate 하위 명령: 1 거부 / 2 입력 오류 -- 통과 0이 아니다)"
+  },
+  "role-commit-gate-usage-cp949": {
+   "layer": "ENC",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/role_commit_gate.py 인자 없음(사용법 안내) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §17(EL3: 0 통과 / 1 차단)"
+  },
+  "role-commit-gate-usage-unset": {
+   "layer": "ENC",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/role_commit_gate.py 인자 없음(사용법 안내) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §17(EL3: 0 통과 / 1 차단)"
+  },
+  "interface-card-missing-spec-cp949": {
+   "layer": "ENC",
+   "exit": "nonzero",
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/interface_card.py 없는 spec card 경로 | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §11.1(interface_card.py <spec card>) -- 없는 입력은 성공이 아니다(§17에 코드 행 없음)"
+  },
+  "interface-card-missing-spec-unset": {
+   "layer": "ENC",
+   "exit": "nonzero",
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true
+   },
+   "basis": "입력: tools/gates/interface_card.py 없는 spec card 경로 | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다) | exit: 05 §11.1(interface_card.py <spec card>) -- 없는 입력은 성공이 아니다(§17에 코드 행 없음)"
+  },
+  "v5-bad-revisions-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/weakening_diff.py(V5) --root sandbox --base rtbad1 --head rtbad2 (없는 리비전) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리(JSON 한 줄, 2 실행 오류)·§17"
+  },
+  "v5-bad-revisions-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/weakening_diff.py(V5) --root sandbox --base rtbad1 --head rtbad2 (없는 리비전) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리(JSON 한 줄, 2 실행 오류)·§17"
+  },
+  "v4-bad-revisions-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/test_lint.py(V4) --root sandbox --base rtbad1 --head rtbad2, 피검 심볼 없음 | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리·§17(2 실행 오류)"
+  },
+  "v4-bad-revisions-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/test_lint.py(V4) --root sandbox --base rtbad1 --head rtbad2, 피검 심볼 없음 | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리·§17(2 실행 오류)"
+  },
+  "v6-bad-revisions-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/source_lint.py(V6) --root sandbox --base rtbad1 --head rtbad2 | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리·§17"
+  },
+  "v6-bad-revisions-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/source_lint.py(V6) --root sandbox --base rtbad1 --head rtbad2 | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리·§17"
+  },
+  "v7-bad-revisions-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/reachability.py(V7) --root sandbox --base rtbad1 --head rtbad2(--config 없음 -- head 트리에서 읽다 실패) | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리·§17"
+  },
+  "v7-bad-revisions-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/reachability.py(V7) --root sandbox --base rtbad1 --head rtbad2(--config 없음 -- head 트리에서 읽다 실패) | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리·§17"
+  },
+  "v3-bad-revisions-cp949": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/mutate_changed.py(V3) --root sandbox --base rtbad1 --head rtbad2 --pytest-ini sandbox pytest_gate.ini | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리·§17"
+  },
+  "v3-bad-revisions-unset": {
+   "layer": "ENC",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/mutate_changed.py(V3) --root sandbox --base rtbad1 --head rtbad2 --pytest-ini sandbox pytest_gate.ini | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 05 §10 머리·§17"
+  },
+  "import-layering-plan-without-section-cp949": {
+   "layer": "ENC",
+   "exit": "nonzero",
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/import_layering.py --root sandbox --plan <계획서 절이 없는 문서 docs/02-design/rt-notes.md> | 환경: PYTHONIOENCODING=cp949(PYTHONUTF8 제거), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 계획 표를 읽지 못한 입력은 통과가 아니다(§17에 코드 행 없음 -- nonzero)"
+  },
+  "import-layering-plan-without-section-unset": {
+   "layer": "ENC",
+   "exit": "nonzero",
+   "kind": "attack",
+   "message_contains": [],
+   "observe": [
+    "stdout_utf8",
+    "stderr_utf8",
+    "hangul",
+    "json_lines"
+   ],
+   "observed_equals": {
+    "stdout_utf8": true,
+    "stderr_utf8": true,
+    "hangul": true,
+    "json_lines": true
+   },
+   "basis": "입력: tools/gates/import_layering.py --root sandbox --plan <계획서 절이 없는 문서 docs/02-design/rt-notes.md> | 환경: PYTHONIOENCODING·PYTHONUTF8 제거(로캘 기본, 한국어 Windows는 cp949), 파이프 | 관찰: spec card 20260921-gate-output-utf8 계약 1(stdout·stderr 바이트 전체가 strict UTF-8); spec card 20260921-gate-output-utf8 계약 2(한글 메시지는 원래 한글 그대로 -- 디코드한 텍스트에 한글 음절이 있다); spec card 20260921-gate-output-utf8 계약 4(stdout 한 줄에 JSON 하나, json.loads로 읽힌다) | exit: 계획 표를 읽지 못한 입력은 통과가 아니다(§17에 코드 행 없음 -- nonzero)"
+  }
+ }
+}
