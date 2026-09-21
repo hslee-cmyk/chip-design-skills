@@ -14809,3 +14809,9 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 운영 규칙(기록만): 역할 agent는 한 번에 하나, 도는 동안 오케스트레이터는 메인 worktree 쓰기 금지(D-2). 역할 보고(SubagentHandback)는 SubagentStop 전에 온다 -- 완료 알림으로 판단(D-4). W = 저장소 부모/wt.
 - 사용자 지적: "gmid 설계를 위한 harness인데 관계없는 작업만" -- 게이트 작업은 엔진 작업을 막을 때만.
 - 다음: MG0(U-39 회로별 _declared_target_spec / _paper_target_spec 분류, 사용자 확인) -> Phase 1. 열린 것: D-5, redteam red 증거 정의(00-common §8.1 DESIGN-GAP), U-40.
+
+### 세션51 계속 -- MG0 완료, Phase 0.5 닫힘 (2026-09-21)
+- MG0(계획 N3.16, U-39 기본안, 사용자 "기본안대로 확정"): 5회로 _paper_target_spec 블록을 _declared_target_spec(사용자 확정·사이징용) / _paper_target_spec(문헌 원값+출처)로 분리, sky130_supplies_v -> _declared.supplies_v, 문헌 supply_v -> _paper.supplies_v, input_dc_v·input_common_mode -> input_dc_net. nmcnr declared = ±0.9 V·GBW 816 kHz·CL 100 pF·PM 70도(세션37), DC gain 100 dB·kg 0.5는 declared 제외. _TEMPLATE vs->vsb 안내, matching_pairs 예시를 current_forced·matching_sensitivity 두 축으로. 스펙 블록 밖 키·값·순서 HEAD와 동일(connectivity 불변). 1bcddbb(staged_diff 승인 20260921-mg0-target-spec-split), gate 통과. 계획 N6.2 0.5 DoD 문구를 U-39 JSON 기준으로.
+- Phase 0.5 DoD: 공격·사례 재생, hook 입력 실측, agent 정의, 설치·무결성, MG0 -- 전부 충족.
+- 미커밋 사용자 경로: .githooks/gmid_gate.py(§13.4 재설치 사본, 사용자 커밋 대상).
+- 다음: Phase 1(계획 N6.1 순서의 다음 design/Phase).
