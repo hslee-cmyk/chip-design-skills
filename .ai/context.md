@@ -14796,3 +14796,9 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 사용자: design 단계에서 코드 작성으로 넘어간 것을 지적 -> Phase 단위 PDCA(A) 확정(ccffad4). 교훈: design -> Do 전환을 명시하고 Do 착수 승인을 따로 받는다.
 - ③ 승인("네 가지 다 승인할게"): 20260921-bootstrap-outputs(diff 835938b->89e4feb, 399경로), 20260921-bootstrap-plan-tables(plan_tables cec77b63...). gate_config 기본값·1b9b4ea 재현 인정 포함.
 - 다음: ④ 설치(사용자: .gitignore 두 줄, .githooks 갱신, kb eval 캐시, gate 저장소) -> ⑤ installed 재생.
+
+### 세션50 끝 -- 부트스트랩 ④ 완료, 다음 세션에서 ⑤ (2026-09-21)
+- ④ 완료: (a) ece1bf3 .githooks·.gitignore(Role: user + staged_diff 승인) -> (b) 사용자 스크립트로 gate 생성(C:/Users/HSLEE/Documents/Todoc/fpga/gmid-gate.git, baseline ece1bf3) -> (d) 역할 hook 4개·gmid agent 3개 설치, 프로젝트 .claude/settings.json 등록(install.py 미사용, R-17) -> (c) ddc9fcd bootstrapped 표지 push 통과. 실행 순서는 (d)->(c)(05 §13.1 반영, 06eb19b).
+- 이제 역할 hook이 이 저장소의 모든 도구 호출을 판정한다(호출당 약 1 s, U-40). 문서 커밋은 Role: doc -> git push gate master:master -> git fetch gate -> git merge --ff-only gate/master(05 §12-0). 오케스트레이터는 gate 저장소를 직접 읽지 않는다(EL1이 --git-dir=<gate> 거부).
+- 다음(새 세션): ⑤ 설치 후 재생 -- (1) 새 세션의 SessionStart hook 동작 확인 (2) 검증 agent가 run_all.py --mode installed(11·18·21·22 포함, 21·22는 gate 임시 복제본에서만) (3) gmid agent 세 개로 §12 변경 한 건 전 과정 1회(SubagentStop·agent_type 실측). 재생 데이터·로그: tools/gates/redteam/.
+- 열린 것: U-39(MG0 때 회로별 분류), U-40(게이트 해제 시점, 7c 전). 사용자 결정: gmid-code-author 모델 sonnet 그대로.
