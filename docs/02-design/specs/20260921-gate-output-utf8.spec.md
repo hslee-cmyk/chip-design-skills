@@ -15,7 +15,8 @@ direct 재생은 `run_all.py`가 `PYTHONIOENCODING=utf-8`을 넣고 돌려 이 �
 
 이 변경은 게이트 진입점 전부가 로캘과 무관하게 UTF-8로 출력하게 한다. 판정(허용·거부, exit code, 메시지 문구)은 바꾸지 않는다.
 게이트 변경이라 반영 뒤 §13.4 재설치(사용자: gate에 `tools/gates/gate/*` 복사, `.claude/hooks/role_*` 갱신,
-`integrity.py check --scope session`)가 필요하다. 반영 push와 재설치 사이의 fail-closed는 정상이다.
+`integrity.py check --scope session`)가 필요하다. `tools/gates/githooks/gmid_gate.py`를 바꾸므로 그 설치 사본
+`.githooks/gmid_gate.py`도 사용자가 복사한다(`.githooks/**`는 사용자 경로 -- 계획 N3.12.2, 2026-09-21 개정 뒤). 반영 push와 재설치 사이의 fail-closed는 정상이다.
 
 ## 관찰 가능한 계약
 

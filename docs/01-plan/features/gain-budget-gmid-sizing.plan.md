@@ -603,6 +603,7 @@ skills/analog-gmid-design/assets/tests/
 | gmid-code-author | `docs/02-design/disputes/<id>.md` | -- | 자기 변경 id |
 | gmid-code-author | `tools/gates/*.py` | -- | 게이트 변경 |
 | gmid-code-author | `tools/gates/gate/**` | -- | 게이트 변경 |
+| gmid-code-author | `tools/gates/githooks/**` | -- | 게이트 변경 |
 | gmid-code-author | `tools/gates/pytest_gate.ini` | -- | 게이트 변경 |
 | gmid-code-author | `skills/analog-gmid-design/assets/*.npz` | -- | 없음 |
 | gmid-code-author | `skills/analog-gmid-design/assets/ac_sweep_checkpoints/**` | -- | 없음 |
@@ -714,7 +715,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정�
 |---|---|
 | agent 정의 | `agents/gmid-code-author.md`, `agents/gmid-test-author.md`, `agents/gmid-verification-auditor.md`(`agent-quality/check_agents.py` 통과, frontmatter `isolation`은 쓰지 않는다 -- worktree는 N3.12.3에서 오케스트레이터가 만든다) |
 | hook | `hooks/role_guard.py`, `hooks/role_diff_guard_bash.py`, `hooks/role_diff_guard_stop.py`, `hooks/role_session_start.py`(세션 시작 무결성 대조)와 각 `.json`(얇은 실행기 -- `install.py`가 스크립트 하나에 이벤트 하나를 등록한다), `.githooks/commit-msg`(트레일러 검사) |
-| 게이트·검사 도구 | `tools/gates/{role_paths, role_hooks, role_commit_gate, merge_gate, integrity, mutate_changed, test_lint, weakening_diff, source_lint, reachability, interface_card, import_layering}.py`, `tools/gates/gate_config.json`, `tools/gates/requirements.txt`(U-38), `tools/gates/pytest_gate.ini`(판정 실행의 pytest 설정), gate 원본 `tools/gates/gate/{pre-receive,gate-runner.py}` |
+| 게이트·검사 도구 | `tools/gates/{role_paths, role_hooks, role_commit_gate, merge_gate, integrity, mutate_changed, test_lint, weakening_diff, source_lint, reachability, interface_card, import_layering}.py`, `tools/gates/gate_config.json`, `tools/gates/requirements.txt`(U-38), `tools/gates/pytest_gate.ini`(판정 실행의 pytest 설정), gate 원본 `tools/gates/gate/{pre-receive,gate-runner.py}`, EL3 client hook 원본 `tools/gates/githooks/{pre-commit,commit-msg,pre-merge-commit,gmid_gate.py}`(`.githooks/`는 그 설치 사본) |
 | 공격 시나리오·재생 | `tools/gates/redteam/` |
 | 양식 | `docs/02-design/specs/_TEMPLATE.spec.md`, `docs/02-design/disputes/_TEMPLATE.md`, `.ai/verification/_schema.json`, `.ai/approvals/_TEMPLATE.md` |
 
