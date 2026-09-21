@@ -260,7 +260,8 @@ def a_sh(ns):
     S = st()
     cwd = subst_str(ns.cwd, S)
     sb._assert_temp(cwd)
-    cmd = subst_str((CASE_DIR / ns.command_file).read_text(encoding="utf-8") if ns.command_file else ns.command, S)
+    raw = (CASE_DIR / ns.command_file).read_text(encoding="utf-8") if ns.command_file else ns.command
+    cmd = subst_str(raw.replace("\r\n", "\n").rstrip("\n"), S)
     bash = os.environ.get("RT_BASH") or "bash"
     r = subprocess.run([bash, "-c", cmd], cwd=cwd, capture_output=True, env=sb.clean_env())
     if r.returncode != 0 and not ns.allow_fail:

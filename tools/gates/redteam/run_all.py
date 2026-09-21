@@ -135,7 +135,9 @@ def run_case(case_dir: Path, mode: str, repo: Path, runroot: Path, bash: str, ke
         f = case_dir / script
         if not f.is_file():
             continue
-        r = subprocess.run([bash, str(f)], cwd=str(work), env=env, capture_output=True, timeout=3600)
+        # core.autocrlf 체크아웃의 CRLF를 bash가 읽지 못하므로 LF로 바꿔 stdin으로 넘긴다(.gitattributes는 판정 환경 파일이라 두지 않는다)
+        script_bytes = f.read_bytes().replace(b"\r\n", b"\n")
+        r = subprocess.run([bash, "-s"], input=script_bytes, cwd=str(work), env=env, capture_output=True, timeout=3600)
         phases.append({"script": script, "exit": r.returncode,
                        "stderr": r.stderr.decode("utf-8", "replace")[-3000:],
                        "stdout": r.stdout.decode("utf-8", "replace")[-1500:]})
