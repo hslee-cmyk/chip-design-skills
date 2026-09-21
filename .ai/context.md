@@ -14789,3 +14789,10 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 사용자: "U-39는 기본안대로 하고 05 승인할게". 승인 기록 `20260921-05-role-separation-design`(diff, e2a8f03 -> 5458011, 계획·history·00-common·05 네 파일, blob 해시)과 `20260921-u39-paper-target-spec`(decision).
 - U-39: MG0에서 `_paper_target_spec`(사용자 확정 스펙) -> `_declared_target_spec`, 문헌 값만 새 `_paper_target_spec`. 회로별 분류는 MG0 때 사용자 확인(topology 변경이라 U-16 승인도 그때).
 - 다음: Phase 0.5 부트스트랩 ① -- 오케스트레이터가 05 §3~§11 코드·gate_config.json·requirements.txt·pytest_gate.ini 작성 -> ③ 공격 재생 28건 + 사례 5건 로그 제시.
+
+### 세션50 계속 -- 부트스트랩 ① 작성·재생 완료, ③ 승인 (2026-09-21)
+- 작성 agent(게이트 코드, DESIGN-GAP 21) / 검증 agent(설계만 보고 redteam 먼저, 348파일) / 오케스트레이터 감사로 분리(사용자 결정). 재생 1차 FAIL 3 -> F1 EL3 메시지, F2 PowerShell 캐시 오거부(작성본), F3 코퍼스 경로(하네스), F4 Role: user 승인 기록 행(설계 모순, 사용자 결정), F5~F7 문구.
+- 재생 2차(75f2dd2): 공격 PASS 41·SKIPPED 7, 사례 5 PASS, FAIL·ERROR·MISSING 0, 예외 거부 0, 회귀 0. master 병합 89e4feb.
+- 사용자: design 단계에서 코드 작성으로 넘어간 것을 지적 -> Phase 단위 PDCA(A) 확정(ccffad4). 교훈: design -> Do 전환을 명시하고 Do 착수 승인을 따로 받는다.
+- ③ 승인("네 가지 다 승인할게"): 20260921-bootstrap-outputs(diff 835938b->89e4feb, 399경로), 20260921-bootstrap-plan-tables(plan_tables cec77b63...). gate_config 기본값·1b9b4ea 재현 인정 포함.
+- 다음: ④ 설치(사용자: .gitignore 두 줄, .githooks 갱신, kb eval 캐시, gate 저장소) -> ⑤ installed 재생.
