@@ -673,7 +673,8 @@ def a_v4probe(ns):
         name = f"23-corpus-{i:03d}"
         exp = {"observed_equals": [list(x) for x in c["output"]], "exit": [0, 1],
                "basis": "§10 누적 회귀 코퍼스(출력 변화 0) · §13.2 23"}
-        _run_v4_case(S, name, c["module"], c["test"], c["subjects"], exp, mode="all", note=f"{c['source']} {c['name']}")
+        _run_v4_case(S, name, c["module"], c["test"], c["subjects"], exp, mode="all", note=f"{c['source']} {c['name']}",
+                     explicit_subject=True)
     # 실제 엔진 최상위 함수 전수: 검출기 예외 0(= exit 2 없음)
     for mod in sorted((sb.REPO / "skills/analog-gmid-design/assets").glob("*.py")):
         src = mod.read_text(encoding="utf-8")
@@ -692,13 +693,20 @@ def a_v4probe(ns):
                      modname=mod.stem, note=f"{len(subjects)} functions")
 
 
-def _run_v4_case(S, name, module, test, subjects, exp, *, mode, note="", modname="rtmod"):
+def _run_v4_case(S, name, module, test, subjects, exp, *, mode, note="", modname="rtmod", explicit_subject=False):
+    """explicit_subject: 누적 회귀 코퍼스는 v4.py처럼 피검을 명시해 넘긴다(고정 출력이 그렇게 만들어졌다 --
+    interface card는 def만 싣는다, §11.1). probe·엔진 전수는 interface card 경로 그대로."""
     try:
-        root, base, head, card = build_vrepo(S, name, _v4_repo(name, module, test, subjects, modname))
+        spec = _v4_repo(name, module, test, subjects, modname)
+        if explicit_subject:
+            spec.pop("subjects")
+        root, base, head, card = build_vrepo(S, name, spec)
     except Exception as e:
         record(name, kind="attack", layer="V4", status="error", note=f"{type(e).__name__}: {e}", expect=exp)
         return
     cmd = iface.vtool_command(iface.PY, str(sb.gate_path("V4")), posix(root), base, head, card)
+    if explicit_subject:
+        cmd += [a for s in subjects for a in ("--subject", f"{modname}:{s}")]
     r = sb.run_py(cmd, root)
     obj = iface.first_json_line(dec(r.stdout))
     stm = iface.v4_statements(obj)
