@@ -1,0 +1,106 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "reject",
+ "basis": "계획 N3.12.2 사용자 행 `.ai/approvals/<id>.md` 조건 '그 커밋의 staged_diff 승인'(8e74bb6 F4) -- (b) 기존 승인 기록 수정('기존 승인 기록의 수정·삭제는 이 행에 맞지 않는다') -- 새 staged_diff 하나는 올바르게 함께 넣음",
+ "files": {
+  ".gitignore": "__pycache__/\n.pytest_cache/\nruns/\nlibrary/*.search_archive/\n"
+ },
+ "trailers": [
+  "Role: user"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": false,
+ "approval": {
+  "id": "20260921-rt-sd9",
+  "header": [
+   [
+    "id",
+    "20260921-rt-sd9"
+   ],
+   [
+    "date",
+    "2026-09-21"
+   ],
+   [
+    "target_kind",
+    "staged_diff"
+   ],
+   [
+    "target",
+    "@auto_target"
+   ],
+   [
+    "diff_base",
+    "@base"
+   ],
+   [
+    "diff_path",
+    ".gitignore"
+   ],
+   [
+    "scope",
+    "redteam staged_diff"
+   ]
+  ],
+  "paths_for_hash": [
+   ".gitignore"
+  ]
+ },
+ "more_approvals": [
+  {
+   "id": "20260921-rt-sd9old",
+   "header": [
+    [
+     "id",
+     "20260921-rt-sd9old"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "decision"
+    ],
+    [
+     "target",
+     "U-26"
+    ],
+    [
+     "scope",
+     "수정된 범위"
+    ]
+   ]
+  }
+ ],
+ "base_files": {
+  ".ai/approvals/20260921-rt-sd9old.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-sd9old"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "decision"
+    ],
+    [
+     "target",
+     "U-26"
+    ],
+    [
+     "scope",
+     "원래 범위"
+    ]
+   ]
+  }
+ }
+}

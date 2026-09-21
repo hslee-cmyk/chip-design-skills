@@ -443,13 +443,20 @@ def _commit_case(S: State, name: str, c: dict, exp: dict, layers: list[str]):
     d = Path(S["SB"]) / f"c{n}"
     base = gout(work, "rev-parse", "gate/master")
     git(work, "worktree", "add", "-q", posix(d), "-b", f"rt15/c{n}", base)
+    if c.get("base_files"):
+        # 준비(판정 대상 아님): 이 가지의 앞 커밋에 파일(기존 승인 기록 등)을 둔다. old = 그 커밋
+        for p, spec in c["base_files"].items():
+            data = _approval_from_case(S, spec) if isinstance(spec, dict) else subst_str(spec, S).encode("utf-8")
+            write(d / p, data, binary=True)
+        git(d, "add", "-A")
+        sb.commit(d, f"base for {name}", "doc")
+        base = gout(d, "rev-parse", "HEAD")
     head_blobs = {}
     for p, content in c["files"].items():
         data = subst_str(content, S).encode("utf-8")
         write(d / p, data, binary=True)
         head_blobs[p] = sb.blob_of(d, data)
-    if c.get("approval"):
-        ap = c["approval"]
+    for ap in ([c["approval"]] if c.get("approval") else []) + c.get("more_approvals", []):
         write(d / f".ai/approvals/{ap['id']}.md", _approval_from_case(S, ap, head_blobs=head_blobs, base_rev=base),
               binary=True)
     git(d, "add", "-A")

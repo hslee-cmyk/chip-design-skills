@@ -1,7 +1,7 @@
 {
  "rule": "00-common §8.1 로더 규칙 6 + §8.2",
  "expect": "reject",
- "basis": "00-common §8.2 머리 규칙 -- 경로 정규화 거부(./) -- 설계는 이 거부를 'diff 해시' 문단에 둔다: 머리 파싱(규칙 6)에서 하는지 해시 재계산(V5)에서 하는지 갈린다",
+ "basis": "00-common §8.2 머리 규칙 -- diff_path 정규화 거부(./)는 머리 파싱 단계(00-common §8.2 값 형식, 8e74bb6 F5)",
  "ops": [
   {
    "op": "set",
@@ -51,5 +51,5 @@
    ]
   }
  },
- "contested": true
+ "contested": false
 }

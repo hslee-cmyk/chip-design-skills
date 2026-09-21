@@ -2,7 +2,7 @@
  "type": "commit",
  "rule": "§8.2-5 staged_diff",
  "expect": "accept",
- "basis": "05 §8.2-5 Role: user + 같은 커밋의 staged_diff(diff_base = HEAD) -- 오거부 0. 단 N3.12.2에 사용자 행 `.ai/approvals/**`가 없어 §8.2-4 경로 권한과 충돌할 수 있다(설계 모순 후보)",
+ "basis": "05 §8.2-5 Role: user + 같은 커밋의 staged_diff(diff_base = HEAD) + 계획 N3.12.2 사용자 행 `.ai/approvals/<id>.md` 조건 '그 커밋의 staged_diff 승인'(8e74bb6 F4) -- 새 파일 하나, staged_diff 머리, 해시 일치 -> 통과(오거부 0)",
  "files": {
   ".gitignore": "__pycache__/\n.pytest_cache/\nruns/\nlibrary/*.search_archive/\n"
  },
@@ -13,7 +13,7 @@
   "EL3",
   "EL4"
  ],
- "contested": true,
+ "contested": false,
  "approval": {
   "id": "20260921-rt-sd7",
   "header": [
