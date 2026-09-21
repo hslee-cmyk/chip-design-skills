@@ -55,13 +55,15 @@ def pre_commit(env, root):
     if added:
         coll = mg.casefold_collisions(added, mg.TreeView(["-C", root], ":").list())
         if coll:
-            fails.append("casefold 충돌 경로 추가: %s" % ", ".join(coll))
+            fails.append("casefold 충돌 경로 추가: %s -- 주체 %s, 판정 행 §4.1 casefold 충돌" % (", ".join(coll), _PRE_ACTOR))
     paths = [p for _, p in changes]
     if any(rp.overlaps_any(p, env.rules) for p in paths):
-        classes = {rp.classify(p) for p in paths}
-        if "source" in classes and "test" in classes:
-            fails.append("소스와 test를 한 커밋에서 바꿈")
+        fails += mg.source_test_violation(paths, _PRE_ACTOR)
     return fails
+
+
+# pre-commit 시점에는 커밋 메시지(트레일러)가 없어 주체를 모른다(모듈 머리 DESIGN-GAP)
+_PRE_ACTOR = "미정(pre-commit: 트레일러는 commit-msg에서 읽는다)"
 
 
 def _rev(root, r):
@@ -70,6 +72,18 @@ def _rev(root, r):
 
 
 def judge_merge(env, root, trailers, heads):
+    fails = _judge_merge(env, root, trailers, heads)
+    if not fails:
+        return fails
+    # §8.2-6 차단 메시지: 위반 경로·주체·판정 행
+    roles = mg.trailer_values(trailers, "Role")
+    actor = rp.ACTOR_OF_TRAILER.get(roles[0], "?") if len(roles) == 1 else "미정(Role 트레일러 %r)" % roles
+    staged = [p for _, p in _staged_changes(root)]
+    ctx = " -- 주체 %s, 판정 행 §8.2-3, 병합이 들이는 경로: %s" % (actor, ", ".join(staged[:20]) or "(없음)")
+    return [f + ctx for f in fails]
+
+
+def _judge_merge(env, root, trailers, heads):
     fails = []
     br = rp.git_try(["-C", root, "symbolic-ref", "--short", "-q", "HEAD"])
     branch = br[1].decode().strip() if br[0] == 0 else None

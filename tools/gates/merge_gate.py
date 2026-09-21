@@ -786,11 +786,11 @@ def judge_commit_change(*, parent_view: TreeView, child_view: TreeView, changes,
         return fails   # 역할 밖 경로만: 트레일러 불필요(§8.2-1, review31 N-01)
     role, cid, tf = judge_trailers(trailers)
     if tf:
-        return fails + tf
-    classes = {rp.classify(p) for p in paths}
-    if "source" in classes and "test" in classes:
-        fails.append("소스와 test를 한 커밋에서 바꿈")
+        # §8.2-6 차단 메시지: 위반 경로·주체·판정 행
+        return fails + ["%s -- 주체 미정(트레일러 없음), 판정 행 §8.2-2, 위반 경로(표와 겹침): %s"
+                        % (x, ", ".join(scoped)) for x in tf]
     actor = rp.ACTOR_OF_TRAILER[role]
+    fails += source_test_violation(paths, actor)
     ctx = rp.WriteContext(rules=rules, change_id=cid, bootstrapped=bootstrapped,
                           gate_change_ok=gate_change_ok(base_view, cid))
     # DESIGN-GAP: §8.2-4 "staged 경로마다" — 역할 트레일러는 모든 경로, doc·user는 표와 겹치는 경로만 판정한다
@@ -821,24 +821,38 @@ def judge_commit_change(*, parent_view: TreeView, child_view: TreeView, changes,
     if "승인 기록" in pending or role == "user":
         ok, h = staged_diff_ok()
         if not ok:
-            fails.append("`target_kind: staged_diff` 승인 기록 필요(target = %s)%s" % (
-                h, " -- topology 변경" if "승인 기록" in pending else " -- `Role: user` 커밋"))
+            fails.append("`target_kind: staged_diff` 승인 기록 필요(target = %s)%s -- 주체 %s, 판정 행 %s, 경로 %s" % (
+                h, " -- topology 변경" if "승인 기록" in pending else " -- `Role: user` 커밋", actor,
+                "조건 `승인 기록`" if "승인 기록" in pending else "§8.2-5 `Role: user`",
+                ", ".join(pending.get("승인 기록", non_approval))))
     for p in pending.get("status 전이만", []):
         if not status_only_change(parent_view.read(p), child_view.read(p)):
-            fails.append("`status 전이만` 위반: %s" % p)
+            fails.append("`status 전이만` 위반: %s -- 주체 %s, 판정 행 조건 `status 전이만`" % (p, actor))
     if PLAN_PATH in paths:
         after = child_view.read(PLAN_PATH)
         h_after = _plan_hash_or_none(after)
         if h_after is None:
-            fails.append("바뀐 계획서의 판정 표를 읽지 못함(표 파손)")
+            fails.append("바뀐 계획서의 판정 표를 읽지 못함(표 파손): %s -- 주체 %s, 판정 행 §8.2-5 계획서 판정 표"
+                         % (PLAN_PATH, actor))
         else:
             h_before = _plan_hash_or_none(parent_view.read(PLAN_PATH))
             if h_before != h_after:
                 if approvals is None:
                     approvals = load_approvals(child_view, parent_view)
                 if not any(a["target_kind"] == "plan_tables" and a["target"] == h_after for a in approvals):
-                    fails.append("판정 표 변경: `target_kind: plan_tables` 승인 기록 필요(target = %s)" % h_after)
+                    fails.append("판정 표 변경: `target_kind: plan_tables` 승인 기록 필요(target = %s) -- %s, 주체 %s, "
+                                 "판정 행 §8.2-5 계획서 판정 표" % (h_after, PLAN_PATH, actor))
     return fails
+
+
+def source_test_violation(paths, actor):
+    """§8.2-4 소스와 test 동시 변경 -- §8.2-6 차단 메시지 필드(위반 경로·주체·판정 행) 포함."""
+    src = [p for p in paths if rp.classify(p) == "source"]
+    tst = [p for p in paths if rp.classify(p) == "test"]
+    if src and tst:
+        return ["소스와 test를 한 커밋에서 바꿈 -- 주체 %s, 판정 행 §8.2-4(5분류), 소스: %s, test: %s"
+                % (actor, ", ".join(src), ", ".join(tst))]
+    return []
 
 
 # ================================================================ EL4 receive (§9.2)
