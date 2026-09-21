@@ -1,0 +1,138 @@
+{
+  "id": "20260921-gate-flow-liveness",
+  "spec_card": "docs/02-design/specs/20260921-gate-flow-liveness.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "f4b5213e5ff63cf23f730f07852b52f7bd38d214",
+  "test_commit": "5d845847e1800195727efa2503cfb591f1ab90e5",
+  "code_commit": "ee5aeb531faffa82435bb41c425123140fc56121",
+  "red": {
+    "test_ids": [
+      "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted::control-code-post-foreign-base-check",
+      "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted::control-code-stop-foreign-base-check",
+      "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted::control-test-post-foreign-base-check",
+      "tools/gates/redteam/attacks/27a-el2-foreign-uncommitted::control-test-stop-foreign-base-check",
+      "tools/gates/redteam/attacks/27b-orchestrator-cleanup::control-main-merge-abort-audit",
+      "tools/gates/redteam/attacks/27b-orchestrator-cleanup::control-main-remove-force-audit",
+      "tools/gates/redteam/attacks/27b-orchestrator-cleanup::control-main-remove-force-test",
+      "tools/gates/redteam/attacks/27b-orchestrator-cleanup::control-main-remove-force-code-after-record",
+      "tools/gates/redteam/attacks/27c-el3-integrity-marker::attack-pre-commit-marker",
+      "tools/gates/redteam/attacks/27c-el3-integrity-marker::attack-commit-msg-marker",
+      "tools/gates/redteam/attacks/27c-el3-integrity-marker::attack-pre-merge-commit-marker",
+      "tools/gates/redteam/attacks/27d-assign-subst::control-assign-subst-cache-script",
+      "tools/gates/redteam/attacks/27d-assign-subst::control-assign-subst-temp-script",
+      "tools/gates/redteam/attacks/27e-worktree-add-q::control-main-worktree-add-q",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-guard",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-diff-guard-bash",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-diff-guard-stop",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-session-start",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-gmid-gate",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-gate-runner",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-integrity",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-merge-gate",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-role-commit-gate",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-interface-card",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-weakening-diff",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-test-lint",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-source-lint",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-reachability",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-mutate-changed",
+      "tools/gates/redteam/attacks/27f-v6-reconfigure-except::v6obs-import-layering"
+    ],
+    "failure_hashes": [
+      "566757aa452656ed78585b96ad050e7cf116d1668b3fe4daf76709a689a8b931",
+      "e306ad51ee920ff4875bd026744561947912f038b4dc1d81b815f5325eb90d1d",
+      "cdf603201de8728077bcb4a97ce7445a3007ee9fa1a48a827d6ee224201bce6c",
+      "6d80c4df3055dfe0a582ac5b00843e3f3e760f5d9a6942817eadbfd7c6ac4425",
+      "7cbfd68c707857b32851854e2c44501c5bd209bd7e45475b51f1313c85815167",
+      "7a80dd330eafba3c7019e376b4171b77619e9ecf6243460c32ca7c766fbdf66a",
+      "e55c2f0285fe1099a8c1e9acecb4fe7dd86bdfb08d8e76b4c12a165b246587fb",
+      "b2e41c931ee3b171799103db41e1989502036158e3e52c192f56b9b41216c183",
+      "06d8cbc13713e2288d8f0c705c14e3d2a18f00c829d18c49faaadc40d3ad80f7",
+      "d45a6e6d103e888ebffa159d77b5545cb5ef3ed0b894c465df477c7f6c2a0d6b",
+      "df680b215714947f2dd98b609779e16aff01d912961a716acbe6effec565a18b",
+      "743fea289dcea2100bafd56b5a66ffdc0dcaf5a6a5df5d069f99b205144bfc4e",
+      "55a2acd1f972810cb7597aec955bcd5b6d2c3f5efb9365a4e8a7f3df7c80e525",
+      "80820bab89f7fca9b8d51171ae30fda2b6202dc379f384dfae65bf35a7fa420b",
+      "e45973f737985e95402b4b940f669332c3647507b75645e9ee7c05507b9ea15e",
+      "28f4b403234781ec033917cebd181c55f3f80e8de938ea56a8905c0e0acb6d2c",
+      "ff7b34a835763bdcea03a994b634f1d3d8abc9b07b364c139dcd9624273c307f",
+      "2d60996c3fa8c34fd216ae5ec24bb64eb5c6994c7c1ddd20f2824cc4df40ade5",
+      "49b79f6239e6d3a68090b051689a1f437d7b8edd2eac00c66c0f53ef2b5106eb",
+      "29eabd3185dc757e2ef1150153b52374927873ae6a96313696285e6e32031c4f",
+      "1318aa235cce0190dc90ae5ef29fb682b9bde18d8a2be8cf1719c5624152e1f1",
+      "c0f34c61d5361a6babf887bb7e67f4cec6c64702e194f59fa5f8ffbff4194e3e",
+      "42f6f8b9fbdc618cf0f8bd5f1d0824214999fad010392bc7ae759ab81766cb12",
+      "5527ee501c3e14a3ccd98ad88fe4f90a2945c5fff7a5f507e2f76ffb61e6d60b",
+      "8af4bd1cd1ab6c4eacc56381dc25f372823dc9620637816a57ba6be168d7b6f1",
+      "62ca6e03142e22c4ed618117cc23c98dd561cd21d4f5ba5e7e651f56c03780e8",
+      "b41a4f92f0766f9d1dd6fedcc97a16af5288efd0cb59096053738989a0253ec1",
+      "9cc7558db9a48e3d6c4b265f808f8c690312355a525bd9d765ce62c28c06546d",
+      "e5029c3fbbb5923993e34cc84512aa2dfeed88fce873bb7470aab82c25f8bcd9",
+      "7e9b6c55638045ee189d8ffbdae3cca27e0a1345c49b8aa72debdad4d634823a"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "Phase 0.5의 V1은 redteam 스크립트(N4.2 도입 칸 괄호). 병합본 2f5c890 격리 복제본에서 run_all.py --phase 0.5 --mode direct 전체: 케이스 PASS 48·SKIPPED 7, 단계 PASS 578·RECORD 12, FAIL·ERROR·MISSING 0, exit 0 (log 20260921-192339-direct.jsonl), 공격 27a~27f 6 케이스 전부 PASS; --cases 0.5: 케이스 PASS 5·SKIPPED 2, 단계 PASS 6, exit 0 (log 20260921-194511-direct-cases.jsonl). 판정 대조: T(5d84584, 게이트 코드 = base f4b5213) 복제본의 같은 두 실행(전체 exit 1: 케이스 PASS 42·SKIPPED 7·FAIL 6, 단계 PASS 548·RECORD 12·FAIL 30 -- log 20260921-194526-direct.jsonl; --cases exit 0, log 20260921-200705-direct-cases.jsonl)과 케이스·단계(verdict, exit) 단위로 대조해 다른 것은 공격 27의 red 30 단계(FAIL -> PASS)와 그 6 케이스 판정뿐이다. 나머지(공격 1~26 포함, 27에서 base PASS였던 21 단계·RECORD 4 단계)는 verdict·exit 모두 같고 --cases 0.5는 차이 0. exit가 바뀐 단계는 red 단계뿐(27a 4·27b 4·27d 2·27e 1: 2 -> 0, 27c 3: 0 -> 1; 27f 16은 관찰 단계라 exit 0 그대로, 관찰값만 1 -> 0). V1 pytest 형태도 실행: tests/에 test 모듈 0개라 collected 0 (exit 5 no tests ran) -- 0.5에는 pytest 대상이 없다"
+    },
+    "V2": {
+      "verdict": "N/A",
+      "basis": "도입 1: 병합 판정의 V2 적용은 Phase 1부터(N4.2). 측정은 했다 -- base(T 5d84584) 공격 27 30 단계 FAIL, 병합본 30 단계 PASS, red.test_ids 30개 전부 green, base에서 FAIL인 단계 집합 = red 집합(30). failure_hashes는 merge_gate.red_failure_hash(test_id, \"redteam.FAIL\")로 다시 계산해 순서 3 base_check.json 30개와 전부 같고 집계 sha256(정렬 해시 개행 결합) = ee0ab3f976df065ab064b33cf7ca9de26b4cc74a03adee34b041da2cb9d0ed63(base_check aggregate_hash와 같다). test 커밋 불변: 병합본 tools/gates/redteam/**가 T와 같다(git diff 5d84584 2f5c890 -- tools/gates/redteam 차이 0). DESIGN-GAP: redteam 케이스는 pytest red 수집(-p merge_gate) 대상이 아니므로 test_id = tools/gates/redteam/attacks/<케이스>::<단계>, exc_type 이름 = redteam.FAIL로 정의해 썼다(00-common §8.1은 pytest 예외 타입만 정의)"
+    },
+    "V3": {
+      "verdict": "N/A",
+      "basis": "도입 1: 뮤테이션은 Phase 1 병합부터 적용(N4.2). 이 변경은 Phase 0.5 게이트 변경"
+    },
+    "V4": {
+      "verdict": "N/A",
+      "basis": "도입 1: 자기참조 lint 병합 적용은 Phase 1부터(N4.2). 참고 oracle 대조: 공격 27 기대(exit 0/1/2, 표지 경로·'--scope session' 문구, Traceback·'판정 실패(fail-closed)' 부재, 광범위 except 관찰값 0)는 spec card 계약 1~6과 design 05 §3.3·§7·§12 문구에서 왔고 피검 출력에서 만들지 않았다"
+    },
+    "V5": {
+      "verdict": "N/A",
+      "basis": "도입 1: 기준 약화 검사 병합 적용은 Phase 1부터(N4.2). test 커밋은 redteam 공격 27a~27f 추가와 lib/rt.py 변경뿐이고 base..T 변경이 tools/gates/redteam/** 밖 0, code 커밋(ee5aeb5)은 tools/gates/redteam/**를 건드리지 않았다(기존 expect 변경 없음)"
+    },
+    "V6": {
+      "verdict": "N/A",
+      "basis": "도입 1: 소스 lint 병합 적용은 Phase 1부터(N4.2). 관찰: code 커밋 diff에 추가된 except Exception 0줄, 공격 27f 16 관찰 단계(진입점별 광범위 except+pass 개수 0)가 병합본에서 PASS -- 앞 변경의 16곳이 제거됐다"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). code 커밋 diff에 추가·삭제된 def 없음(17 파일 +110/-100)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 무관 게이트 변경"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260921-gate-flow-liveness"
+  ],
+  "auditor_run": {
+    "time": "2026-09-21T20:08:08+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260921-gate-flow-liveness-audit",
+    "commands": [
+      "격리(병합본): git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260921-gate-flow-liveness-audit C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom",
+      "격리(병합본): git -C C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom remote remove origin",
+      "격리(base 판 T): git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260921-gate-flow-liveness-audit C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isob",
+      "격리(base 판 T): git -C C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isob remote remove origin",
+      "격리(base 판 T): git -C C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isob checkout -q 5d845847e1800195727efa2503cfb591f1ab90e5",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/aud2/pyc PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/f4b5213e5ff63cf23f730f07852b52f7bd38d214 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/f4b5213e5ff63cf23f730f07852b52f7bd38d214/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom/skills/analog-gmid-design/assets/tests",
+      "PY = C:/Python314/python.exe",
+      "redteam 병합본 전체(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom",
+      "redteam 병합본 사례(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom): $PY tools/gates/redteam/run_all.py --cases 0.5 --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isom",
+      "redteam base 판 전체(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isob): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isob",
+      "redteam base 판 사례(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isob): $PY tools/gates/redteam/run_all.py --cases 0.5 --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isob",
+      "red 해시: merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") -- base 판 로그 C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-flow-liveness-isob/tools/gates/redteam/logs/20260921-194526-direct.jsonl의 FAIL 단계마다 다시 계산, base_check.json과 대조"
+    ]
+  }
+}
