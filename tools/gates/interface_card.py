@@ -7,7 +7,11 @@ docstring 첫 단락, '신규 시그니처' 절(spec card 표 그대로 -- 신�
 test-author의 유일한 입력이다(§6.4 소스 열람 거부). red 수집 플러그인이 '신규 시그니처' 표를 읽는다(00-common §8.1).
 기존 함수 찾기: '관찰 가능한 계약' 절의 백틱 토큰(`name`, `module.name`, `name(…)`)을 엔진 모듈
 (`skills/analog-gmid-design/assets/*.py`, `workspaces/run_harness.py`)의 최상위 def·클래스 메서드와 대조한다.
-exit 0 생성 / 1 실패(절 없음·찾은 함수 0개) / 2 입력 오류.
+exit 0 생성 / 2 입력 오류.
+
+DESIGN-GAP: §11.1·N3.12.5는 '신규 시그니처' 절의 (모듈, 심볼) 쌍 표 형식을 정하지 않았다. spec card 양식(`_TEMPLATE.spec.md`)에
+`| 모듈 | 심볼 | 시그니처 |` 표를 두고(신규 모듈 전체는 심볼 `*`) 그 표를 그대로 옮긴다. red 수집 플러그인
+(`merge_gate.read_new_symbols`)과 V4(`test_lint.read_card_symbols`)가 이 표 머리로 읽는다.
 """
 from __future__ import annotations
 

@@ -253,6 +253,8 @@ def main(argv):
                 b, h = _src(root, ns.base, p), _src(root, ns.head, p)
                 fs = compare_units(p, b, h)
                 findings += [f for f in fs if f["unit"] == "__main__"]
+        # DESIGN-GAP: 계획 N4.2 V5 "해당 diff 해시" -- diff 해시의 경로 집합을 정하지 않았다. 발견이 있는 경로만(정렬)으로
+        # 00-common §8.2 blob 식을 쓴다. 승인 기록은 이 도구가 낸 diff_paths·diff_hash로 만든다.
         paths = sorted({f["path"] for f in findings})
         h = diff_hash(root, ns.base, ns.head, paths) if paths else None
         ok_by_approval = h is not None and h in approved_hashes(root, ns.head)

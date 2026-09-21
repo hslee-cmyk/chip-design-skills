@@ -93,6 +93,7 @@ def judge_merge(env, root, trailers, heads):
         fails.append("(라) 부모가 정확히 둘이 아닌 병합(부모 %d)" % (len(heads) + 1))
     gm = _rev(root, "refs/remotes/gate/master")
     if gm is None:
+        # DESIGN-GAP: §8.2-3 (라)는 gate/master가 없는 상태(부트스트랩 ④(b) 전)를 정하지 않았다. 판정할 수 없으므로 차단한다.
         fails.append("(라) gate/master가 없어 첫 부모 조건을 판정하지 못함")
     elif rp.git_try(["-C", root, "merge-base", "--is-ancestor", gm, "HEAD"])[0] != 0:
         fails.append("(라) HEAD가 gate/master와 같거나 그 후손이 아니다(review32 M-01)")

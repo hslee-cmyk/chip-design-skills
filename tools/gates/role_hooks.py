@@ -693,7 +693,10 @@ def judge_git(hc: HC, st: CmdState, argv):
     else:
         is_ws = wt is not None and rp.ncase(wt[1]) == rp.ncase(hc.env.common_dir)
     if not is_ws:
-        return   # 작업 저장소 밖 저장소(격리 복제본 등): git 규칙 대상 아님(경로 규칙은 적용됨)
+        # DESIGN-GAP: §6.2 규칙 표는 대상 저장소를 정하지 않았다. 작업 저장소(git-common-dir이 같은 저장소) 밖의 git 명령
+        # (§12-7 격리 복제본의 `git -C <TEMP>/<id>-iso remote remove origin`, 다른 프로젝트 저장소)은 git 규칙을 적용하지
+        # 않는다(경로·저장소 내부 규칙은 적용). gate·작업 저장소 내부를 가리키면 '저장소 내부' 규칙이 이미 거부했다.
+        return
     subl0 = sub.lower()
     if not (subl0 in READ_SUBS or (subl0 == "config" and not args) or (subl0 == "branch" and _branch_is_read(args))):
         hc.scope()   # 읽기 명령은 무결성 표지가 있어도 막지 않는다(판정 범위 = 쓰기)
@@ -734,6 +737,7 @@ def judge_git(hc: HC, st: CmdState, argv):
         if any(a in ("-B", "-C", "--force-create") for a in args):
             _deny(hc, "참조 이동: git %s -B/-C" % sub)
     if subl in ("merge", "pull"):
+        # DESIGN-GAP: §6.2 '병합' 행은 `git merge`만 적었다. `git pull`은 병합(또는 rebase)을 만들므로 같은 규칙으로 판정한다.
         _judge_merge(hc, root, rinfo, is_main, args, subl)
         return
     if subl == "worktree":
@@ -1000,6 +1004,8 @@ def role_worktree_violations(env, actor):
         if not dirty:
             continue
         if ri[0] != short:
+            # DESIGN-GAP: §7은 역할 worktree의 남은 경로마다 allowed라고만 적었다. 다른 역할 worktree의 미커밋 변경은
+            # 호출 역할이 쓸 수 없는 곳이라(§5.1) 위반으로 본다(한 번에 변경 하나라 정상 흐름에서는 역할이 커밋 뒤 끝난다).
             fails.append("%s: 다른 역할(%s)의 worktree에 미커밋 변경 %s" % (path, ri[0], ", ".join(p for _, p in dirty[:5])))
             continue
         ctx = rp.WriteContext(rules=env.rules, change_id=ri[1], bootstrapped=env.bootstrapped,

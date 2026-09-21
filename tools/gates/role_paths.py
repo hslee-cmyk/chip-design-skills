@@ -549,6 +549,8 @@ def load_env(start_dir: str) -> Env:
         plan = show_blob(["--git-dir", gate_path], "%s:%s" % (gate_master, PLAN_PATH))
         source = "gate"
     else:
+        # DESIGN-GAP: §8.1은 '표지 전에는 작업 저장소 판 게이트 코드로 돌고 경고'를 EL3에 대해서만 적었다. gate가 없을 때
+        # EL1·EL2·세션 시작도 같은 규칙(메인 worktree HEAD 판, 경고)으로 돈다. 표지가 있는데 gate가 없으면 실패(§3.3 행 6).
         cfg = head_cfg
         if cfg.get("bootstrapped") is True:
             # §3.3 행 6: 표지 뒤에는 gate가 없는 것도 실패
@@ -596,6 +598,8 @@ def extract_blobs(repo_args, mapping, dest):
 
 
 def dir_matches(dest, mapping):
+    # 캐시 파일은 `git cat-file blob` 원시 바이트로 쓰므로 blob id는 필터 없는 해시(`git hash-object --no-filters`와 같다,
+    # §4.4의 `git hash-object` 대조)로 계산한다 -- 파일마다 git을 띄우지 않는다(WP-10).
     """디렉터리의 파일 집합과 blob id가 mapping과 같은가(캐시 훼손 감지, review29 Q-11).
     `__pycache__`도 대조에 넣는다(남는 파일 = 불일치) -- .pyc는 소스 mtime·크기만으로 유효성을 판단하므로 심은
     .pyc가 소스 대신 실행될 수 있다. 게이트 실행기는 `sys.dont_write_bytecode = True`로 캐시에 .pyc를 만들지 않는다."""

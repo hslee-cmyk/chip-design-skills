@@ -1,0 +1,42 @@
+부트스트랩 ① 작성 agent 실측 기록(2026-09-21). 작성자 자기 확인이다 -- 게이트가 실제로 거부한다는 수용 증거는
+검증 agent의 공격 재생 로그다(WP-13·WP-21). 모든 git 실험은 %TEMP% 아래 새 저장소에서 git -C <절대 경로>로 했다.
+
+[M1] git 2.52 hook 시점(임시 저장소 gmid-author-exp1)
+  - `git commit -m sum --trailer "Role: test" --trailer "Change-Id: 20260921-x"`: commit-msg hook의 메시지 파일에 두 트레일러가
+    이미 들어 있고 `git interpret-trailers --parse`가 둘 다 읽는다 -> EL3 트레일러·경로 판정을 commit-msg에서 한다.
+  - `git merge --no-ff side -m "merge x" -m "Role: doc⏎Change-Id: …"`: commit-msg 시점에 MERGE_HEAD 있음, 트레일러 둘 파싱됨.
+  - pre-receive: cwd = gate 디렉터리, GIT_DIR=".", GIT_QUARANTINE_PATH 설정, push된 새 객체를 cat-file로 읽을 수 있음.
+
+[M2] CRLF 셸 스크립트(gmid-author-exp2): Git for Windows sh는 줄 끝 CR을 무시한다(exec 인자에 CR이 붙지 않음).
+  core.autocrlf=true(시스템 설정)라 tools/gates/gate/pre-receive·githooks/*의 작업 트리 사본은 CRLF다 -> 실행에 문제 없음,
+  §3.3 행 1·5의 `git hash-object --path` 대조는 eol 필터로 LF blob과 같아진다(작성자 smoke 행 1·5 ok=true).
+
+[M3] pytest 9.0.2 `_pytest/config/findpaths.py` locate_config의 config_names =
+  ['pytest.toml', '.pytest.toml', 'pytest.ini', '.pytest.ini', 'pyproject.toml', 'tox.ini', 'setup.cfg'] -- 전부 계획 N3.12.2
+  `판정 환경` 행 파일 이름에 있다(공격 17 후보 대조의 입력, 판정은 검증 agent 몫).
+
+[M4] V4 규칙 이관(probe v4.py -> tools/gates/test_lint.py, 규칙 함수 글자 그대로)
+  - probe를 test_lint.judge로 다시 돌림: "케이스 67개, 기대 불일치 0개", "회귀 코퍼스 94개, 출력 변화 0개",
+    v4.out.txt 이관 전과 바이트 동일.
+  - sweep_engine.py 재실행: functions 344, exceptions 0, outputs {'PASS': 344}.
+
+[M5] gate pre-receive 안의 Python user site(gmid-author-exp3·exp4, PowerShell에서 실행): ENABLE_USER_SITE True,
+  jsonschema(%APPDATA%\Python\Python314\site-packages) import 성공. 같은 smoke를 이 세션의 Bash 도구(샌드박스)에서 돌리면
+  pre-receive 안에서 jsonschema import가 실패해 EL4가 로더 규칙 4로 거부했다(fail-closed 쪽). 실행 환경에 따라 user site가
+  안 보일 수 있다 -- 사용자 세션(④ 이후)에서는 M5 PowerShell 결과가 기준이다.
+
+[M6] 기존 .githooks/pre-push(kb 색인 eval 게이트)가 최초 gate push(전체 이력, kb-global 포함)를 막는다:
+  "[eval-gate] 캐시 없음/만료 … BLOCK". §8.1 주("그것이 막으면 사용자에게 보고하고 기존 절차를 따른다")에 해당 -- ④(b)의
+  `git push gate master:master` 전에 kb eval 캐시를 준비해야 한다(작성자 smoke는 임시 복제본에서만 pre-push를 뺐다).
+
+[M7] 작성자 smoke(임시 복제본 + 임시 bare gate, ④(b)(c)(d) 흉내 뒤 §12 변경 한 건 red-green 전 과정):
+  기대 69건 전부 기대대로(UNEXPECTED 0). 포함: 부트스트랩 표지 커밋·push, 공격 1·1b·2·3·4·5·10·10b·18·21(a)·24(a~g) 형태,
+  §12-6 병합 명령, 세 역할 SubagentStop 정상 종료, §12-8 push(EL1 + integrity push) 통과, EL4 변경 한 건 통과,
+  integrity --scope session(3b 구간 재판정 포함) 전부 일치, commit-tree로 만든 트레일러 없는 엔진 변경 push EL4 거부.
+  도구: V3(인벤토리 기준 실행 실패 -> 모든 변이 생존 FAIL, 수정 뒤), V4 PASS(리터럴 기대값), V5·V6·V7 PASS,
+  interface_card 생성, import_layering PASS. red 수집 플러그인: AssertionError·신규 모듈 ModuleNotFoundError만 기록,
+  ValueError·기존 모듈의 없는 심볼 ImportError는 기록하지 않음.
+
+[M8] EL1 hook 1회 지연(임시 복제본, 5회): 메인 세션 Bash `ls` 약 1.0~1.15 s(첫 호출 캐시 풀기 2.6 s),
+  Edit docs 약 1.0 s, 역할 아닌 Read 조기 종료 약 70 ms. cProfile: 한 번에 git 19회 1.48 s 중 subprocess 1.31 s ->
+  실행기가 읽은 판정 환경을 넘겨 load_env 중복(git 7회)을 없앤 뒤 1.5 s -> 1.0 s. 남은 비용은 git 호출 12회(각 약 70 ms).

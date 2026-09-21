@@ -210,6 +210,8 @@ def known_defs(root, rev):
 
 
 def compare(path, base_src, head_src, kd):
+    # DESIGN-GAP: §10 V6 "'새' = base 대비 AST 차이" -- 단위(함수 qualname, 모듈 최상위)마다 항목 수가 base보다 늘면 '새'로
+    # 읽는다(같은 단위 안의 위치 이동은 새 항목이 아니다). 새 함수는 모든 항목이 새것이다.
     out = []
     ht = ast.parse(head_src)
     hf = unit_features(ht, head_src, kd)

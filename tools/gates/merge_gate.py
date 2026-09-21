@@ -777,6 +777,10 @@ def judge_commit_change(*, parent_view: TreeView, child_view: TreeView, changes,
         coll = casefold_collisions(added, child_view.list())
         if coll:
             fails.append("casefold 충돌 경로 추가: %s" % ", ".join(coll))
+    # DESIGN-GAP: §4.3은 '역할 밖' = 5분류 어디에도 들지 않는 경로, §8.2-1은 역할 밖이면 트레일러 불필요라고 적었다.
+    # 5분류 밖이어도 표와 겹치는 경로(판정 트리의 `assets/numpy/__init__.py`, `.githooks/**` 등)가 있어 그대로 읽으면
+    # 트레일러 없는 커밋이 공격 17(review34)을 통과한다. 계획 N3.12.4 EL3("staged 경로가 경로표와 겹치면 트레일러 필수")
+    # 대로 '역할 밖' = overlaps_any 거짓으로 읽는다.
     scoped = [p for p in paths if rp.overlaps_any(p, rules)]
     if not scoped:
         return fails   # 역할 밖 경로만: 트레일러 불필요(§8.2-1, review31 N-01)

@@ -150,6 +150,8 @@ def row2(c: Ctx):
                         bad.append("%s %s=%s" % (o, k, v))
                         break
         if seen_hooks is None:
+            # DESIGN-GAP: §3.3 행 2는 허용 값만 적었고 core.hooksPath가 없는 경우를 정하지 않았다. 없으면 EL3가 돌지
+            # 않으므로(§8.1) 불일치로 본다.
             bad.append("core.hooksPath 없음")
         if seen_url is None and c.bootstrapped:
             bad.append("remote.gate.url 없음(부트스트랩 뒤)")
