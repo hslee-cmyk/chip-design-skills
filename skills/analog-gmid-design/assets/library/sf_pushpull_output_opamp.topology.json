@@ -251,14 +251,15 @@
   "sizing_roles": null,
   "device_roles": null,
   "_paper_target_spec_comment": "2026-09-15 사용자 결정(\"모두 제안대로 진행해\", \"스펙도 파일에 넣어야 하지 않나?\"). 값은 Allen p.26-6 Fig. 7.1-1 도면 문구 그대로이고 레일 전압만 사용자 결정. nmcnr_amplifier의 _paper_target_spec과 같은 **문서화 전용** 필드다 -- 엔진은 아직 이 필드를 읽지 않는다. 실행 정본은 workspaces/run_harness.py SPECS이며, 엔진이 레일을 이름 집합(sizing_recipe.py:3882-3883 vdd/gnd/vss, stick_diagram.py:3147)으로만 판정해 agnd를 레일로 못 읽으므로 계획 DEC-60(supplies 선언) 구현 때 SPECS로 옮긴다. 도면 값은 Allen 강의의 예시 공정 결과라 sky130 재설계와 공정이 다르다 -- topology 수준 목표(gain·GB·출력 저항)로만 쓴다.",
-  "_paper_target_spec": {
+  "_declared_target_spec": {
+    "_comment": "U-39 기본안(2026-09-21 사용자 확정 \"기본안대로 확정\"): 사용자가 확정해 사이징에 쓰는 값. 7b에서 sizing_spec human으로 이관. 근거: U-25 확정.",
     "supplies_v": {
       "vdd": 1.8,
       "vss": 0.0,
       "agnd": 0.9,
       "_comment": "사용자 결정. 도면은 VDD/VSS 분할 공급과 접지(값 미표기) -- ±0.9 V/0 V 선언과 원점 이동으로 동등(모든 소자 VGS·VDS·VSB 불변). Cc·CL·입력 공통모드 기준은 agnd."
     },
-    "input_common_mode": "agnd",
+    "input_dc_net": "agnd",
     "ideal_source_values": {
       "IBias_amp": 5e-05,
       "_comment": "도면 'IBias=50µA'."
@@ -287,6 +288,34 @@
     "derived_not_declared": {
       "R1_ohm": "사이징에서 유도(사용자 결정, 도면 값 없음)",
       "Cc_farad": "보상망이 계산"
+    }
+  },
+  "_paper_target_spec": {
+    "_comment": "U-39: 문헌(논문·도면·강의) 원값과 출처만. 사이징 목표로 직접 쓰지 않는다(WP-04). 출처: 강의 도면(SF 푸시풀 출력 op amp).",
+    "ideal_source_values": {
+      "IBias_amp": 5e-05,
+      "_comment": "도면 'IBias=50µA'."
+    },
+    "loading": {
+      "CL_farad": 1e-12,
+      "_comment": "도면 'CL = 1pF'."
+    },
+    "performance_targets": {
+      "dc_gain_db": {
+        "op": ">=",
+        "value": 65,
+        "_comment": "도면 'Av(0)=65dB (IBias=50µA)'."
+      },
+      "gbw_hz": {
+        "op": ">=",
+        "value": 60000000.0,
+        "_comment": "도면 'GB = 60MHz for CL = 1pF'."
+      },
+      "rout_ohm": {
+        "op": "<=",
+        "value": 1000,
+        "_comment": "도면 'Rout ≈ 1/(gm21+gm22) ≤ 1000Ω'."
+      }
     }
   }
 }

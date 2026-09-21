@@ -30,9 +30,9 @@
   ],
 
   "symmetry": {
-    "_comment": "손으로 판단하지 않는다 — netlist를 load_topology()로 읽은 뒤 find_matching_candidates()를 실제 호출해 나온 후보를 design-report-spec.md §1.5의 5가지 패턴((a)우연한 net 공유 (b)diode→mirror 체인 (c)바이어스 소비 (d)피드백 공유 (e)진짜 매칭쌍)으로 걸러 (e)만 matching_pairs에 채운다. 이 판정은 connectivity(gate/source 공유)만으로 결정되므로 사이징과 무관하다 — n_fingers/W가 없어도 kind는 확정 가능하다(2026-07-28: find_matching_candidates()의 diff_pair 경로도 W 없이 동작하도록 수정됨). kind는 audit_row_split()이 쓰는 값 그대로: current_mirror(게이트+소스/드레인 공유) / diff_pair(소스 공유, 게이트 다름) / branch_symmetric(게이트만 공유, 소스/드레인 공유 없음). 3개 이상 소자를 묶는 후보는 matching_pairs 항목 하나로 전부 기록할 것(pairwise로 쪼개지 말 것).",
+    "_comment": "손으로 판단하지 않는다 — netlist를 load_topology()로 읽은 뒤 find_matching_candidates()를 실제 호출해 나온 후보를 design-report-spec.md §1.5의 5가지 패턴((a)우연한 net 공유 (b)diode→mirror 체인 (c)바이어스 소비 (d)피드백 공유 (e)진짜 매칭쌍)으로 걸러 (e)만 matching_pairs에 채운다. 이 판정은 connectivity(gate/source 공유)만으로 결정되므로 사이징과 무관하다 — n_fingers/W가 없어도 두 축은 확정 가능하다(2026-07-28: find_matching_candidates()의 diff_pair 경로도 W 없이 동작하도록 수정됨). 옛 kind 4종 문자열(diff_pair/current_mirror/branch_symmetric/current_matched)은 2026-08-05 세션10에 폐지됐다 -- 항목은 두 축으로 적는다: current_forced(축A, KCL·미러로 전류가 같게 강제되면 true) / matching_sensitivity(축B, \"offset\" | \"ratio\")(sizing_recipe.py 매칭 시드 주석). 3개 이상 소자를 묶는 후보는 matching_pairs 항목 하나로 전부 기록할 것(pairwise로 쪼개지 말 것).",
     "matching_pairs": [
-      "REPLACE — 예: {\"names\": [\"M1\", \"M2\"], \"kind\": \"diff_pair\"}"
+      "REPLACE — 예: {\"names\": [\"M1\", \"M2\"], \"current_forced\": false, \"matching_sensitivity\": \"offset\"}"
     ],
     "_dispositions_comment": "⚠️⚠️ 필수, 생략 금지 — matching_pairs를 다 채운 뒤 check_symmetry_dispositions(transistors, matching_pairs, dispositions)를 실제로 호출해 find_matching_candidates()가 찾은 후보 중 조용히 빠뜨린 게 없는지 확인하고 ok=True를 받은 뒤에만 이 파일을 저장한다. matching_pairs에 채택하지 않은 후보는 전부 여기 dispositions에 (a)~(d) 패턴 중 하나의 category와 reason으로 기각 사유를 남긴다 — 그냥 빠뜨리면 안 된다.",
     "dispositions": [
@@ -81,9 +81,9 @@
     "\"balanced\"), \"L_role\": select_L_by_role()의 role(\"mirror\"|\"bias_replica\") 또는 null",
     "(theta의 L_cascode/L_stage2out이 대신 결정), \"vertical_stack_id\": 같은 vdd->gnd 물리",
     "경로를 공유하는 소자들을 묶는 이름(allocate_stack_headroom() 호출 단위 -- stage_devices로",
-    "이미 VDS가 정해진 소자가 같은 경로에 있으면 그만큼을 뺀 나머지 예산만 배분), \"vs\": 소스",
+    "이미 VDS가 정해진 소자가 같은 경로에 있으면 그만큼을 뺀 나머지 예산만 배분), \"vsb\": 소스-바디",
     "전압(보통 0.0)}.",
     "예: {\"M3\": {\"headroom_role\": \"cascode\", \"gm_id_role\": \"matching\", \"L_role\": \"mirror\",",
-    " \"vertical_stack_id\": \"stage1\", \"vs\": 0.0}}"
+    " \"vertical_stack_id\": \"stage1\", \"vsb\": 0.0}}"
   ]
 }

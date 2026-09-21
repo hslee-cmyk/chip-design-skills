@@ -27,7 +27,30 @@
     "notes": "gm1(stage_devices[0])=입력 차동쌍 M102/M103(둘 다 같은 gm1을 받음, diff_pair). gm2(stage_devices[1])=M201 하나뿐 -- M202/M203/M204는 전류미러+바이어스 소자일 뿐 신호를 나르는 gm2 소자가 아니다(2026-07-31 확인: 처음엔 M202를 gm2로 오인했다가 사용자가 실제 이미지로 정정 -- M201의 gate가 스테이지1 출력(M109 drain)을 직접 받고, M201의 drain이 M203(다이오드 연결)/M204 전류미러를 거쳐 스테이지2 출력(M202/M204 drain 공유 노드)으로 신호전류를 흘리는 구조). gm3(stage_devices[2])=M301(gate=스테이지2 출력)."
   },
   "_paper_target_spec_comment": "2026-08-13 -- 사용자가 논문 원문 PDF(경로: G:\\내 드라이브\\work\\Todoc\\기술문서\\Gm_over_Id\\(Bible-concept) RIGHT-HALF-PLANE_ZERO_REMOVAL_TECHNIQUE.pdf)를 직접 보여줘 Table 1(p.602, 'Measured results of the NMC and NMCNR amplifier with loading condition 100pF/25kΩ')의 NMCNR 열을 그대로 옮김 -- 이 회로(topology_name=nmcnr_amplifier)가 바로 이 논문의 NMCNR(structure 4) 구현이므로 원문 인용이 곧 이 회로의 목표 스펙이다(current_reuse_telescopic_ota의 gain_db>=75.6과 같은 선례). AMS 0.8um 공정 실측치라 이 프로젝트의 sky130 재설계와 공정이 다르지만, GBW/PM/PSRR 등 topology-level 목표(폐형식 gm 방정식이나 소신호 회로해석으로 재현 가능한 값)는 그대로 목표로 채택 가능 -- 반면 Area(0.18mm²)는 공정 종속(레이아웃 밀도)이라 목표로 쓰지 않는다(참고용으로만 기록). ⚠️ 이 필드는 문서화 전용이다 -- sizing_roles/device_roles가 여전히 null(아래 TODO 그대로)이라 엔진이 이 값을 아직 읽지 않는다. 실제 harness spec dict(run_harness.py류)를 작성할 때 GBW/CL/PM_target_deg를 여기서 그대로 가져다 쓸 것.",
+  "_declared_target_spec": {
+    "_comment": "U-39 기본안(2026-09-21 사용자 확정 \"기본안대로 확정\"): 사용자가 확정해 사이징에 쓰는 값. 7b에서 sizing_spec human으로 이관. 근거: workspaces/run_harness.py _spec_nmcnr_amplifier(정본) -- GBW·CL은 논문 값 채택, PM 70도는 세션37 확정(논문 46도는 nmcnr_3stage_topology()의 PM>60 전제와 충돌). kg(harness 0.5)은 임의 기본값이라 넣지 않았다. 논문 DC gain > 100 dB는 제약 미선언(7b에서 정한다).",
+    "supplies_v": {
+      "vdd": 0.9,
+      "vss": -0.9,
+      "_comment": "2026-09-15 사용자 결정(\"1.8로 고쳐\", \"+-0.9로 고치고\"). 위 supply_v(±1V)는 논문 공정(AMS 0.8um) 값이라 면적처럼 공정 종속이다. 옛 harness vdd=2.0은 supply_v 주석의 미검증 추정(±1V를 폭 2.0V로)에서 들어왔고 sky130 정격·LUT VDS/VGS 범위(0~1.8V)와 맞지 않아 폐기. sky130 재설계 전원은 ±0.9V(폭 1.8V). 실행 spec(workspaces/run_harness.py _spec_nmcnr_amplifier)은 스칼라 vdd만 받아 폭 1.8V로 준다(원점 이동 동등). 분할 레일 실행은 계획 DEC-60(supply_nets/supplies_v) 구현 뒤."
+    },
+    "loading": {
+      "CL_farad": 1e-10
+    },
+    "performance_targets": {
+      "gbw_hz": {
+        "op": ">=",
+        "value": 816000
+      },
+      "pm_deg": {
+        "op": ">=",
+        "value": 70.0,
+        "_comment": "세션37(2026-08-19) 확정 스펙"
+      }
+    }
+  },
   "_paper_target_spec": {
+    "_comment": "U-39: 문헌(논문·도면·강의) 원값과 출처만. 사이징 목표로 직접 쓰지 않는다(WP-04). 출처: NMCNR 논문(AMS 0.8 um) Table 1.",
     "loading_condition": "100pF ∥ 25kΩ (Table 1 캡션, GBW/PM/SR/Ts/PSRR 측정 조건)",
     "compensation_parameters": {
       "GBW_hz": 816000,
@@ -55,21 +78,16 @@
       "psrr_neg_10khz_db": 84.62,
       "power_consumption_w": 0.0004,
       "_power_comment": "NMC/NMCNR 공통(400uW, 표에서 두 열이 합쳐진 셀)",
-      "supply_v": {
-        "vdd": 1.0,
-        "vss": -1.0,
-        "_comment": "±1V 분할 공급 -- 이 프로젝트 엔진(headroom budget)은 net 이름을 임의 문자열로만 다루므로 rail-to-rail 총 스윙(2.0V)을 harness spec의 vdd 필드로 주면 될 것으로 보이나, 실제 검증은 harness 작성 시 필요."
-      },
-      "sky130_supplies_v": {
-        "vdd": 0.9,
-        "vss": -0.9,
-        "_comment": "2026-09-15 사용자 결정(\"1.8로 고쳐\", \"+-0.9로 고치고\"). 위 supply_v(±1V)는 논문 공정(AMS 0.8um) 값이라 면적처럼 공정 종속이다. 옛 harness vdd=2.0은 supply_v 주석의 미검증 추정(±1V를 폭 2.0V로)에서 들어왔고 sky130 정격·LUT VDS/VGS 범위(0~1.8V)와 맞지 않아 폐기. sky130 재설계 전원은 ±0.9V(폭 1.8V). 실행 spec(workspaces/run_harness.py _spec_nmcnr_amplifier)은 스칼라 vdd만 받아 폭 1.8V로 준다(원점 이동 동등). 분할 레일 실행은 계획 DEC-60(supply_nets/supplies_v) 구현 뒤."
-      },
       "area_mm2": {
         "value": 0.18,
         "_comment": "공정 종속(AMS 0.8um) -- sky130 재설계 목표로 채택하지 않음, 참고용."
       },
       "process": "AMS(Austria Micro Systeme Group) 0.8um double-metal double-poly CMOS"
+    },
+    "supplies_v": {
+      "vdd": 1.0,
+      "vss": -1.0,
+      "_comment": "±1V 분할 공급 -- 이 프로젝트 엔진(headroom budget)은 net 이름을 임의 문자열로만 다루므로 rail-to-rail 총 스윙(2.0V)을 harness spec의 vdd 필드로 주면 될 것으로 보이나, 실제 검증은 harness 작성 시 필요."
     }
   },
   "supply_nets": ["vdd", "vss"],

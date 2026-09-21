@@ -82,15 +82,14 @@
   "sizing_roles": null,
   "device_roles": null,
   "_paper_target_spec_comment": "2026-09-15 사용자 결정(\"모두 제안대로 진행해\", \"스펙도 파일에 넣어야 하지 않나?\"). 값은 Allen p.26-6 Fig. 7.1-1 gray box(Buffer) 도면 문구 그대로이고 레일 전압만 사용자 결정. nmcnr_amplifier의 _paper_target_spec과 같은 **문서화 전용** 필드다 -- 엔진은 아직 이 필드를 읽지 않는다. 실행 정본은 workspaces/run_harness.py SPECS이며, 엔진이 레일을 이름 집합(sizing_recipe.py:3882-3883 vdd/gnd/vss, stick_diagram.py:3147)으로만 판정해 agnd를 레일로 못 읽으므로 계획 DEC-60(supplies 선언) 구현 때 SPECS로 옮긴다. 도면 값은 Allen 강의의 예시 공정 결과라 sky130 재설계와 공정이 다르다 -- topology 수준 목표(gain·GB·출력 저항)로만 쓴다. 버퍼 단독에 해당하는 값(출력 저항·부하)만 옮겼고 op amp 전체 값(Av, GB, IBias)은 옮기지 않았다.",
-  "_paper_target_spec": {
+  "_declared_target_spec": {
+    "_comment": "U-39 기본안(2026-09-21 사용자 확정 \"기본안대로 확정\"): 사용자가 확정해 사이징에 쓰는 값. 7b에서 sizing_spec human으로 이관.",
     "supplies_v": {
       "vdd": 1.8,
       "vss": 0.0,
       "agnd": 0.9,
       "_comment": "sf_pushpull_output_opamp와 같은 레일 선언(사용자 결정)."
     },
-    "input_dc_v": "agnd",
-    "_input_dc_comment": "원 회로에서 버퍼 입력은 Y 노드(동작점 기준 agnd). 단독 회로에서는 vin DC를 agnd로 둔다(사용자 결정).",
     "loading": {
       "CL_farad": 1e-12,
       "_comment": "도면 'CL = 1pF'."
@@ -106,6 +105,22 @@
     "report_only": [
       "buffer_bandwidth_hz"
     ],
-    "_report_only_comment": "op amp GB 60 MHz를 버퍼 제약으로 옮기는 여유 배수가 도면에 없어 제약으로 걸지 않고 보고만 한다(사용자 결정)."
+    "_report_only_comment": "op amp GB 60 MHz를 버퍼 제약으로 옮기는 여유 배수가 도면에 없어 제약으로 걸지 않고 보고만 한다(사용자 결정).",
+    "input_dc_net": "agnd",
+    "_input_dc_net_comment": "원 회로에서 버퍼 입력은 Y 노드(동작점 기준 agnd). 단독 회로에서는 vin DC를 agnd로 둔다(사용자 결정)."
+  },
+  "_paper_target_spec": {
+    "_comment": "U-39: 문헌(논문·도면·강의) 원값과 출처만. 사이징 목표로 직접 쓰지 않는다(WP-04). 출처: 강의 도면(sf_pushpull_output_opamp의 출력 버퍼 부분).",
+    "loading": {
+      "CL_farad": 1e-12,
+      "_comment": "도면 'CL = 1pF'."
+    },
+    "performance_targets": {
+      "rout_ohm": {
+        "op": "<=",
+        "value": 1000,
+        "_comment": "도면 'Rout ≈ 1/(gm21+gm22) ≤ 1000Ω'."
+      }
+    }
   }
 }
