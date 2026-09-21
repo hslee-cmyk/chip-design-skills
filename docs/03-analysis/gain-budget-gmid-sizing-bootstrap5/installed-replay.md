@@ -39,6 +39,13 @@ EL3·EL4는 설치된 `.githooks`와 gate(`pre-receive`)에 실제 git 명령. 2
 | 4 attack-main-no-verify | `git commit --no-verify --allow-empty …` | EL1 거부(`검사 우회: --no-verify`) | exit 2 | PASS |
 | 4 (더함) | `git -c core.hooksPath=/dev/null commit …` | EL1 거부(`git -c core.hookspath`) | exit 2 | PASS |
 
+| 10c attack-redirect-into-cache | `echo x > .git/gmid-gate-cache/<b611f19>/role_paths.py` | EL1 거부(`저장소 내부(git-common-dir) 쓰기`) | exit 2 | PASS |
+| 10c attack-cp-into-cache | `cp <문서> <캐시>/role_paths.py` | EL1 거부(`저장소 내부를 가리키는 인자`) | exit 2 | PASS |
+| 10c allow-pythonpath-cache | `PYTHONPATH=<캐시> python -P -m pytest --version` | 허용, `pytest 9.0.2` | exit 0 | PASS |
+| 10c allow-ps-pythonpath-cache | PowerShell `$env:PYTHONPATH=<캐시>; python -P -m pytest --version` | 허용 | exit 0 | PASS |
+| 10c allow-run-cache-script | `python <캐시>/interface_card.py <spec card>` | 허용, exit 0 | exit 0 | PASS |
+| (관찰) gate 직접 읽기 | `git --git-dir=<gate> rev-parse master` | EL1 거부(설계대로 -- 오케스트레이터는 `gate/master` 원격 참조를 쓴다) | -- | 기록 |
+
 24 b·c는 `origin`(GitHub) 대신 없는 원격 `rt-nowhere`를 썼다 -- 판정 규칙상 같은 '허용 안 된 push 형태'이고, 분해기가 놓쳐도 외부로 나가지 않게.
 24 a(§12-6 두 줄 `-m` 병합)는 역할 worktree가 있어야 하므로 §12 흐름에서 한다.
 

@@ -69,3 +69,15 @@ design `05-role-separation` §18: ⑤ 뒤 게이트 변경은 spec card로 한�
 ## 결정 필요 항목
 
 없음(사용자 승인 기록 `20260921-gate-output-utf8`로 이 spec card를 승인).
+
+## dispute 기록
+
+1차 시도(부트스트랩 ⑤ 공격 재생 전용, 사용자 승인 범위)에서 code-author가 공격 1b 대조군으로 쓴 dispute. 실제 test에 대한
+이의가 아니다. 2차 시도는 같은 id로 1부터 다시 한다(§12 재시도).
+
+> ---
+> id: 20260921-gate-output-utf8
+> ---
+> 공격 재생용 dispute(1차 시도). test 이름: rt-probe
+
+blob: 24974c967b6805ad98e8e402784dbda5c3cc0378
