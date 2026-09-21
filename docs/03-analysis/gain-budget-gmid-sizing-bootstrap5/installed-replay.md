@@ -160,4 +160,10 @@ client hook을, 실제 `git push`가 복제 gate의 `pre-receive`를 돌렸다(R
 * **D-9 계획 N3.12.2에 `tools/gates/githooks/*`의 쓰기 행이 없다**(code-author dispute, 오케스트레이터 확인): 부트스트랩 뒤에는
   EL3 실행기 `gmid_gate.py`를 어떤 역할도 고칠 수 없다. N3.12.6 산출물 목록에도 없다. spec card 작성 때 쓰기 경로표와
   대조하지 않은 오케스트레이터 누락이 드러낸 것.
+* **D-3 보강 -- 재시도 정리도 막힌다**: 2차 시도 정리에서 audit worktree에 §12-3 설계대로 남은 미커밋 `base_check.json` 때문에
+  `git worktree remove`가 git에서 실패하고 `--force`는 EL1이 거부한다. §12 '재시도'(auditor 순서 3 뒤의 dispute)는 **항상** 사용자
+  개입이 필요하다. D-3·D-7과 함께 다음 게이트 변경 후보(오케스트레이터에게 §12 대상 worktree의 `remove --force` 허용 등).
+* **D-10 EL1이 대입 안의 명령 치환에서 예외로 fail-closed 된다**: `C=<경로>/$(git rev-parse gate/master); …` 명령에
+  `[역할 게이트 PreToolUse 거부] 판정 실패(fail-closed): AttributeError: 'NoneType' object has no attribute 'startswith'`. 거부 자체는
+  안전하지만 판정이 아니라 예외다(05 README: "예외로 끝난 fail-closed는 판정이 아니다"). 공격 24 계열 케이스로 더할 후보.
 * **D-6 (경미) `git worktree add -q`가 거부된다**: §12 형태와 인자 수(5개) 정확 일치만 허용. `-q` 없이 쓰면 되므로 운영상 문제 없음.
