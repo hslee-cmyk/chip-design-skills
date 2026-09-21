@@ -1,0 +1,13 @@
+{
+ "layer": "V6",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.3 1b9b4ea (V6 FAIL). 원 커밋에 결함 코드 없음 -- 1b9b4ea 판 계획서 §'게이트를 만들자마자…'의 코드 블록대로 재구성",
+ "title": "사례: NameError를 광범위 except로 삼킨 게이트(재구성 패치 -- ③ 사용자 확인 항목)",
+ "user_confirmation": "재구성 패치(05 §13.3 '주석 설명대로 재구성한 패치 -- ③에서 사용자 확인 항목')",
+ "steps_from_records": true
+}

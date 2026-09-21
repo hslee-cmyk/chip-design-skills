@@ -1,0 +1,4 @@
+{
+ "command": "cp @{WORK}/rtl/core.v @{CACHE}/role_paths.py",
+ "description": "cp"
+}

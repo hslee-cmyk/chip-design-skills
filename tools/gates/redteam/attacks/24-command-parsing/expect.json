@@ -1,0 +1,68 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #24, §6.2 분해기(review30 P1·P2, review31 N-08)",
+ "title": "공격 24: EL1 명령 분해",
+ "steps": {
+  "a-two-line-m-merge": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "b-newline-then-push": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "b-control-echo": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "c-subst-push": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "d-heredoc-body": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "e-ansi-c-quote": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "f-redirect-amp": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "g-line-continuation-target": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "g-control-continuation-temp": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  }
+ }
+}

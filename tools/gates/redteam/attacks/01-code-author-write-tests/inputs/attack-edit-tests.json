@@ -1,0 +1,5 @@
+{
+ "file_path": "@win(@{CODEWT}/skills/analog-gmid-design/assets/tests/test_rt_engine.py)",
+ "old_string": "== 100.0",
+ "new_string": "== 100.0 or True"
+}

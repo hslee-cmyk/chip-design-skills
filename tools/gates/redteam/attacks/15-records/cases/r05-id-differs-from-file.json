@@ -1,0 +1,14 @@
+{
+ "rule": "00-common §8.1 로더 규칙 5",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 5: 파일 이름의 id = id = spec_card id",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "id"
+   ],
+   "value": "20260921-rt-other"
+  }
+ ]
+}

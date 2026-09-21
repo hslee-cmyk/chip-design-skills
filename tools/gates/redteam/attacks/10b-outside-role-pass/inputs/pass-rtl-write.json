@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{WORK}/rtl/core2.v)",
+ "content": "module core2;\nendmodule\n"
+}

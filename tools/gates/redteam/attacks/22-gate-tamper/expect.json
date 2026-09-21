@@ -1,0 +1,43 @@
+{
+ "layer": "INTEGRITY",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #22, §3.3 무결성 대조 행 1~4, N3.12.0 '드러나게 한다'",
+ "title": "공격 22: gate 훼손(pre-receive 덮어쓰기·master 직접 이동·accept-log 덧붙이기·비우기·core.hooksPath·생략 캐시) (드러내는 증거, installed 전용)",
+ "steps": {
+  "a-overwrite-pre-receive": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack"
+  },
+  "b-move-master": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack"
+  },
+  "c-append-accept-log": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack"
+  },
+  "d-empty-accept-log": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack"
+  },
+  "e-gate-hookspath": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack"
+  },
+  "f-skip-cache-file": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack"
+  }
+ }
+}

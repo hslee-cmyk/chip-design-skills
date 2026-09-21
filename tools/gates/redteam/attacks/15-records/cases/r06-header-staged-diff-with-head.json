@@ -1,0 +1,55 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6 + §8.2",
+ "expect": "reject",
+ "basis": "00-common §8.2 머리 규칙 -- staged_diff면 diff_head 금지(review30 R-14)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-h10"
+   ]
+  }
+ ],
+ "old_files": {
+  ".ai/approvals/20260921-rt-h10.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-h10"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "staged_diff"
+    ],
+    [
+     "target",
+     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    [
+     "diff_base",
+     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ],
+    [
+     "diff_head",
+     "cccccccccccccccccccccccccccccccccccccccc"
+    ],
+    [
+     "diff_path",
+     "x"
+    ],
+    [
+     "scope",
+     "x"
+    ]
+   ]
+  }
+ },
+ "contested": false
+}

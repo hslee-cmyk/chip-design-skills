@@ -1,0 +1,50 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V4",
+   "subjects": [
+    "rt_engine.rt_gain"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_rt_v4a.py": {
+     "text": "from rt_engine import rt_gain\n\n\ndef test_rt_gain_self():\n    expected = rt_gain(2e-3, 50e3)\n    assert rt_gain(2e-3, 50e3) == expected\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V4",
+    "basis": "N4.2 V4 (1)"
+   }
+  },
+  {
+   "step": "control",
+   "tool": "V4",
+   "kind": "control",
+   "subjects": [
+    "rt_engine.rt_gain"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_rt_v4a.py": {
+     "text": "from rt_engine import rt_gain\n\n\ndef test_rt_gain():\n    assert rt_gain(2e-3, 50e3) == 100.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V4",
+    "kind": "control",
+    "basis": "출처 있는 리터럴 기대값 -- 오거부 0(§10 V4 PASS 11 중 'gm*ro 대 리터럴 100.0')"
+   }
+  }
+ ]
+}

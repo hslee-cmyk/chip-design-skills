@@ -1,0 +1,17 @@
+{
+ "rule": "00-common §8.1 로더 규칙 3",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 3 C1(review23 C1)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "red",
+    "test_ids"
+   ],
+   "value": [
+    "skills/analog-gmid-design/assets/tests/test_a.py::test_a"
+   ]
+  }
+ ]
+}

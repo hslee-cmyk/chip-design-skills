@@ -1,0 +1,4 @@
+{
+ "command": "cat <<'EOF'\ngit push origin master\nEOF",
+ "description": "d-heredoc-body"
+}

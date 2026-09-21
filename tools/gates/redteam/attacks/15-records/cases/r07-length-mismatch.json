@@ -1,0 +1,18 @@
+{
+ "rule": "00-common §8.1 로더 규칙 7",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 7 (review21 C-08)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "red",
+    "failure_hashes"
+   ],
+   "value": [
+    "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+   ]
+  }
+ ]
+}

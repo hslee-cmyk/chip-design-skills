@@ -1,0 +1,14 @@
+{
+ "rule": "00-common §8.1 로더 규칙 1",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 1: BOM을 명시해 거부",
+ "ops": [
+  {
+   "op": "prefix_hex",
+   "hex": "efbbbf"
+  }
+ ],
+ "message_contains": [
+  "BOM"
+ ]
+}

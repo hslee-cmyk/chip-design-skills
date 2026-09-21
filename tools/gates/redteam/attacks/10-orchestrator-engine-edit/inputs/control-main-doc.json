@@ -1,0 +1,5 @@
+{
+ "file_path": "@win(@{WORK}/docs/02-design/rt-notes.md)",
+ "old_string": "notes",
+ "new_string": "notes2"
+}

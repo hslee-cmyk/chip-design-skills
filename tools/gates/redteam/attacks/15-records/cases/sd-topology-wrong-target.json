@@ -1,0 +1,53 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "reject",
+ "basis": "05 §8.2-5 EL3 (HEAD, index)·EL4 (첫 부모, 커밋) 재계산 불일치",
+ "files": {
+  "skills/analog-gmid-design/assets/library/rt_demo.topology.json": "{\"devices\": [5]}\n"
+ },
+ "trailers": [
+  "Role: doc"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": false,
+ "approval": {
+  "id": "20260921-rt-sd5",
+  "header": [
+   [
+    "id",
+    "20260921-rt-sd5"
+   ],
+   [
+    "date",
+    "2026-09-21"
+   ],
+   [
+    "target_kind",
+    "staged_diff"
+   ],
+   [
+    "target",
+    "0000000000000000000000000000000000000000000000000000000000000000"
+   ],
+   [
+    "diff_base",
+    "@base"
+   ],
+   [
+    "diff_path",
+    "skills/analog-gmid-design/assets/library/rt_demo.topology.json"
+   ],
+   [
+    "scope",
+    "redteam staged_diff"
+   ]
+  ],
+  "paths_for_hash": [
+   "skills/analog-gmid-design/assets/library/rt_demo.topology.json"
+  ]
+ }
+}

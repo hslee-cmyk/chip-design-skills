@@ -1,0 +1,26 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #19, §8.2-3 (나)(라), §9.2-3·4",
+ "title": "공격 19 (b): 역할 커밋 없는 Role: doc 병합(review29 G9)",
+ "steps": {
+  "attack-el3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-el4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  }
+ }
+}

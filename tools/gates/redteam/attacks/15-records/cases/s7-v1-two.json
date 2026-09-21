@@ -1,0 +1,18 @@
+{
+ "rule": "05 §9.2-7",
+ "expect": "reject",
+ "basis": "05 §15: 정확히 하나",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "commands"
+   ],
+   "value": [
+    "V1: PYTHONPATH=@{GITDIR}/gmid-gate-cache/@{F.OLD} PYTHONPYCACHEPREFIX=@{TEMPDIR}/pyc $PY -P -m pytest -c @{GITDIR}/gmid-gate-cache/@{F.OLD}/pytest_gate.ini --rootdir=@{TEMPDIR}/@{F.ID}-iso --confcutdir=@{TEMPDIR}/@{F.ID}-iso @{TEMPDIR}/@{F.ID}-iso/skills/analog-gmid-design/assets/tests",
+    "V1: PYTHONPATH=@{GITDIR}/gmid-gate-cache/@{F.OLD} PYTHONPYCACHEPREFIX=@{TEMPDIR}/pyc $PY -P -m pytest -c @{GITDIR}/gmid-gate-cache/@{F.OLD}/pytest_gate.ini --rootdir=@{TEMPDIR}/@{F.ID}-iso --confcutdir=@{TEMPDIR}/@{F.ID}-iso @{TEMPDIR}/@{F.ID}-iso/skills/analog-gmid-design/assets/tests"
+   ]
+  }
+ ]
+}

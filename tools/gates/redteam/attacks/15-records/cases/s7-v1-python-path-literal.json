@@ -1,0 +1,16 @@
+{
+ "rule": "05 §9.2-7",
+ "expect": "accept",
+ "basis": "05 §9.2-7 첫 토큰이 gate_config.json python_path와 같음 -- 오거부 0",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "commands",
+    0
+   ],
+   "value": "V1: PYTHONPATH=@{GITDIR}/gmid-gate-cache/@{F.OLD} PYTHONPYCACHEPREFIX=@{TEMPDIR}/pyc @{PY} -P -m pytest -c @{GITDIR}/gmid-gate-cache/@{F.OLD}/pytest_gate.ini --rootdir=@{TEMPDIR}/@{F.ID}-iso --confcutdir=@{TEMPDIR}/@{F.ID}-iso @{TEMPDIR}/@{F.ID}-iso/skills/analog-gmid-design/assets/tests"
+  }
+ ]
+}

@@ -1,0 +1,12 @@
+{
+ "rule": "00-common §8.1 로더 규칙 2",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 2 parse_constant 거부(review21 C-08 NaN)",
+ "ops": [
+  {
+   "op": "text_replace",
+   "old": "\"value\": 1.5",
+   "new": "\"value\": Infinity"
+  }
+ ]
+}

@@ -1,0 +1,49 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V5",
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    },
+    "skills/analog-gmid-design/assets/tests/conftest.py": {
+     "text": "import pytest\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/conftest.py": {
+     "text": "import pytest\n\n\ndef pytest_collection_modifyitems(items):\n    items[:] = []\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V5"
+   }
+  },
+  {
+   "step": "control",
+   "tool": "V5",
+   "kind": "control",
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    },
+    "skills/analog-gmid-design/assets/tests/conftest.py": {
+     "text": "import pytest\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_rt_more.py": {
+     "text": "from rt_engine import rt_gain\n\n\ndef test_rt_gain_more():\n    assert rt_gain(2e-3, 50e3) == 100.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V5",
+    "kind": "control",
+    "basis": "새 test 추가만 -- 기준 약화 아님, 오거부 0"
+   }
+  }
+ ]
+}

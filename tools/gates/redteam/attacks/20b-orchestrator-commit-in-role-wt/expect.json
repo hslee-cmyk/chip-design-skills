@@ -1,0 +1,39 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #20 (b), §6.2 '역할 worktree 커밋'(오케스트레이터), §5.1, §7, §9.2-4",
+ "title": "공격 20 (b): 오케스트레이터가 역할 worktree에서 커밋",
+ "steps": {
+  "attack-el1-main-commit-role-code": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-el1-main-commit-role-doc": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-el2-stop": {
+   "layer": "EL2",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§7 code 범위에 Role: code가 아닌 커밋"
+  },
+  "attack-el4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  }
+ }
+}

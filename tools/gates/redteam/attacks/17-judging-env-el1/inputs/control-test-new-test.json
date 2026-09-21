@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{TESTWT}/skills/analog-gmid-design/assets/tests/test_rt_ok.py)",
+ "content": "def test_ok():\n    assert 1 == 1\n"
+}

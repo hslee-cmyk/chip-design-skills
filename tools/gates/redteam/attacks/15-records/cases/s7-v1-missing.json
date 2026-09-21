@@ -1,0 +1,17 @@
+{
+ "rule": "05 §9.2-7",
+ "expect": "reject",
+ "basis": "05 §15 V1 명령 식별: `V1: ` 원소 정확히 하나",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "commands"
+   ],
+   "value": [
+    "iso: git clone x y"
+   ]
+  }
+ ]
+}

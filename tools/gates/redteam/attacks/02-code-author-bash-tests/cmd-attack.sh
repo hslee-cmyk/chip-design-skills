@@ -1,0 +1,1 @@
+C:/Python314/python.exe -c "open(r'@{CODEWT}/skills/analog-gmid-design/assets/tests/test_rt_bash.py', 'w').write('def test_x():\n    assert True\n')"

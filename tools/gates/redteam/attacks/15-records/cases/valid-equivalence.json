@@ -1,0 +1,6 @@
+{
+ "rule": "올바른 기록",
+ "expect": "accept",
+ "basis": "계획 N4.3 #15 오거부 0",
+ "flow": "eq"
+}

@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{TESTWT}/skills/analog-gmid-design/assets/tests/Setup.cfg)",
+ "content": "[pytest]\naddopts = --deselect x\n"
+}

@@ -1,0 +1,14 @@
+{
+ "rule": "00-common §8.1 로더 규칙 4",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 4 스키마 -- 필수 필드",
+ "ops": [
+  {
+   "op": "del",
+   "path": [
+    "auditor_run",
+    "time"
+   ]
+  }
+ ]
+}

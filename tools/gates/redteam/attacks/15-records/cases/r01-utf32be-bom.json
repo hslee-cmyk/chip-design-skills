@@ -1,0 +1,15 @@
+{
+ "rule": "00-common §8.1 로더 규칙 1",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 1 (review23 C16: PowerShell 5.1 Out-File 기본 UTF-16LE)",
+ "ops": [
+  {
+   "op": "encoding",
+   "name": "utf-32-be",
+   "bom_hex": "0000feff"
+  }
+ ],
+ "message_contains": [
+  "BOM"
+ ]
+}

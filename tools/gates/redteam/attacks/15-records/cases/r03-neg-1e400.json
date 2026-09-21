@@ -1,0 +1,12 @@
+{
+ "rule": "00-common §8.1 로더 규칙 3",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 3 (review22 N-02)",
+ "ops": [
+  {
+   "op": "text_replace",
+   "old": "\"value\": 1.5",
+   "new": "\"value\": -1e400"
+  }
+ ]
+}

@@ -1,0 +1,4 @@
+{
+ "command": "cp @{WORK}/rtl/core.v \\\n@{WORK}/skills/analog-gmid-design/assets/rt_engine.py",
+ "description": "g-line-continuation-target"
+}

@@ -1,0 +1,4 @@
+{
+ "command": "echo x > @{CACHE}/role_paths.py",
+ "description": "w"
+}

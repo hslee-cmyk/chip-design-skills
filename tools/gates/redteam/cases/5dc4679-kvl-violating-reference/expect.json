@@ -1,0 +1,12 @@
+{
+ "layer": "V9",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "6b",
+ "basis": "05 §13.3 재생 Phase 6b",
+ "title": "사례: 5dc4679 (V9)",
+ "skip_reason": "재생 Phase 6b(05 §13.3) -- 0.5 대상 아님"
+}

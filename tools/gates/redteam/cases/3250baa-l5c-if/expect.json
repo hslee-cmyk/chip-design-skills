@@ -1,0 +1,12 @@
+{
+ "layer": "V4",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.3 3250baa (V4 FAIL 규칙 (3))",
+ "title": "사례: L5c assert를 `if _l5c_result is not None:` 아래로",
+ "steps_from_records": true
+}

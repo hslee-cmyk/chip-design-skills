@@ -1,0 +1,5 @@
+{
+ "file_path": "@win(@{WORK}/skills/analog-gmid-design/assets/rt_engine.py)",
+ "old_string": "gm * ro",
+ "new_string": "gm * ro * 2"
+}

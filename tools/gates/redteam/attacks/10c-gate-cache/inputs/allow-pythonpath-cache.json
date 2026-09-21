@@ -1,0 +1,4 @@
+{
+ "command": "PYTHONPATH=@{CACHE} C:/Python314/python.exe -P -m pytest --version",
+ "description": "pytest"
+}

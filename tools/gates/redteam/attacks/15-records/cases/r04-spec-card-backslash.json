@@ -1,0 +1,14 @@
+{
+ "rule": "00-common §8.1 로더 규칙 4",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 4 스키마 -- review22 §5",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "spec_card"
+   ],
+   "value": "docs\\02-design\\specs\\@{F.ID}.spec.md"
+  }
+ ]
+}

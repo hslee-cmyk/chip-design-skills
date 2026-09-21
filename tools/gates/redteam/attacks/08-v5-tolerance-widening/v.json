@@ -1,0 +1,58 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V5",
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_engine.py": {
+     "text": "import pytest\nfrom rt_engine import rt_gain\n\n\ndef test_rt_gain():\n    assert rt_gain(2e-3, 50e3) == pytest.approx(100.0, rel=1e-6)\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_rt_engine.py": {
+     "text": "import pytest\nfrom rt_engine import rt_gain\n\n\ndef test_rt_gain():\n    assert rt_gain(2e-3, 50e3) == pytest.approx(100.0, rel=1e-1)\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V5",
+    "basis": "§10 V5: approx rel 인자 변경·리터럴 변경 ∧ 승인 기록 없음"
+   }
+  },
+  {
+   "step": "control-approved",
+   "tool": "V5",
+   "kind": "control",
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_engine.py": {
+     "text": "import pytest\nfrom rt_engine import rt_gain\n\n\ndef test_rt_gain():\n    assert rt_gain(2e-3, 50e3) == pytest.approx(100.0, rel=1e-6)\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_rt_engine.py": {
+     "text": "import pytest\nfrom rt_engine import rt_gain\n\n\ndef test_rt_gain():\n    assert rt_gain(2e-3, 50e3) == pytest.approx(100.0, rel=1e-1)\n"
+    }
+   },
+   "approve_after_head": [
+    {
+     "id": "20260921-rt-v5ok",
+     "paths": [
+      "skills/analog-gmid-design/assets/tests/test_rt_engine.py"
+     ]
+    }
+   ],
+   "expect": {
+    "exit": 0,
+    "layer": "V5",
+    "kind": "control",
+    "basis": "§10 V5: 대응 승인 기록(00-common §8.2 diff, blob 해시)이 있으면 PASS -- 오거부 0. A-10(승인 기록은 head 트리에서 찾는다)"
+   }
+  }
+ ]
+}

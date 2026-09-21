@@ -1,0 +1,51 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6 + §8.2",
+ "expect": "reject",
+ "basis": "00-common §8.2 머리 규칙 -- diff면 diff_base 필수",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-h9"
+   ]
+  }
+ ],
+ "old_files": {
+  ".ai/approvals/20260921-rt-h9.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-h9"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "diff"
+    ],
+    [
+     "target",
+     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    [
+     "diff_head",
+     "cccccccccccccccccccccccccccccccccccccccc"
+    ],
+    [
+     "diff_path",
+     "x"
+    ],
+    [
+     "scope",
+     "x"
+    ]
+   ]
+  }
+ },
+ "contested": false
+}

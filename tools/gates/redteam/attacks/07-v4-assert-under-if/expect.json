@@ -1,0 +1,12 @@
+{
+ "layer": "V4",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "계획 N4.2 V4 (3), N4.3 #7",
+ "title": "공격 7: assert를 `if result is not None:` 아래로 (V4 (3))",
+ "steps_from_records": true
+}

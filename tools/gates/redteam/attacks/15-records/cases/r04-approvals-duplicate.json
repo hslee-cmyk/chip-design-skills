@@ -1,0 +1,17 @@
+{
+ "rule": "00-common §8.1 로더 규칙 4",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 4 스키마 -- review21 C-08 uniqueItems",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-dup",
+    "20260921-rt-dup"
+   ]
+  }
+ ]
+}

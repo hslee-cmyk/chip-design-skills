@@ -1,0 +1,4 @@
+{
+ "command": "git branch -D role/code/20260921-rt-rg",
+ "description": "rm"
+}

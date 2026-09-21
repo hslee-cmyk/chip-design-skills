@@ -1,0 +1,12 @@
+{
+ "layer": "V6",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "계획 N4.2 V6, N4.3 #9",
+ "title": "공격 9: `except Exception: return` 추가 (V6)",
+ "steps_from_records": true
+}

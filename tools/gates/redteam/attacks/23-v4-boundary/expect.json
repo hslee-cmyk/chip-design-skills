@@ -1,0 +1,12 @@
+{
+ "layer": "V4",
+ "exit": "per-case",
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #23, §10 V4 실측(v4_rule_probe, 고정 커밋 4fd0fd8의 blob을 읽는다 -- 복사하지 않는다)",
+ "title": "공격 23: V4 (2) 판정 경계 -- probe 67 케이스·누적 회귀 코퍼스 94·실제 엔진 전수",
+ "steps_from_records": true
+}

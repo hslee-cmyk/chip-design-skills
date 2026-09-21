@@ -1,0 +1,11 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #18(installed 전용), §6.4 DEC-38",
+ "title": "공격 18: test-author가 Read·Grep·Glob로 소스 열람(메인·code worktree)"
+}

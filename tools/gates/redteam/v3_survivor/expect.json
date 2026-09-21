@@ -1,0 +1,12 @@
+{
+ "layer": "V3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §10 '거부 증명: V3 -> redteam/v3_survivor', 계획 N4.2 V3",
+ "title": "V3 거부 증명: 살아남는 변이(0 입력만 보는 test)",
+ "steps_from_records": true
+}

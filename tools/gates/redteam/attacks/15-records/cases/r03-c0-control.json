@@ -1,0 +1,15 @@
+{
+ "rule": "00-common §8.1 로더 규칙 3",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 3 범주 Cc",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "worktree"
+   ],
+   "value": "C:/rt\u0001wt"
+  }
+ ]
+}

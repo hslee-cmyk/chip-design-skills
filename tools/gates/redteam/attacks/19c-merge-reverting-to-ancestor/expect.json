@@ -1,0 +1,26 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #19, review30 A19b, §8.2-3 (라)(3), §9.2-3",
+ "title": "공격 19 (c): 조상에서 갈라진 문서 커밋을 둘째 부모로 둔 병합 -- test 삭제·엔진 되돌림·gate_config.json 삭제",
+ "steps": {
+  "attack-el3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-el4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  }
+ }
+}

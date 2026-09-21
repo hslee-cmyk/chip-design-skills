@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 6 (review22 §5)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20261340-rt-x"
+   ]
+  }
+ ]
+}

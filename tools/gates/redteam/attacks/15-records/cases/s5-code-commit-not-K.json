@@ -1,0 +1,14 @@
+{
+ "rule": "05 §9.2-5",
+ "expect": "reject",
+ "basis": "05 §9.2-5 code_commit = K",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "code_commit"
+   ],
+   "value": "@{F.T}"
+  }
+ ]
+}

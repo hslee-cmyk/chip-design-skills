@@ -1,0 +1,4 @@
+{
+ "command": "C:/Python314/python.exe @{CACHE}/interface_card.py docs/02-design/specs/20260921-rt-rg.spec.md",
+ "description": "card"
+}

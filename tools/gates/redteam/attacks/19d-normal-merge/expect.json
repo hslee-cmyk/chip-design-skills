@@ -1,0 +1,26 @@
+{
+ "layer": "EL3",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #19 (d), §8.2-3 (가)~(다), §9.2-4",
+ "title": "공격 19 (d): §12-6 정상 병합 -- 통과(오거부 0)",
+ "steps": {
+  "control-el3": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "control-el4": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  }
+ }
+}
