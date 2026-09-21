@@ -316,6 +316,7 @@ U-38(`jsonschema` 의존성)을 Phase 0.5 착수 조건으로 올렸다.
 | U-38 | 2026-09-18 확정 | "U-38은 기본안대로 해" -- merge gate·로드 게이트의 JSON Schema 검증에 `jsonschema` 패키지 사용(의존성 추가 승인, WP-20). `format: date-time`은 로더가 따로 검사(`00-common` §8.1). 승인 기록 `.ai/approvals/20260918-u38-jsonschema.md` |
 | U-39 | 2026-09-21 확정 | "U-39는 기본안대로 하고 05 승인할게" -- MG0에서 지금의 `_paper_target_spec`(사용자 확정 스펙)을 `_declared_target_spec`로 옮기고 문헌 값만 새 `_paper_target_spec`에 둔다. 회로별 분류는 MG0 때 사용자 확인. 같은 말로 `05-role-separation` v3.6 승인(승인 기록 `20260921-05-role-separation-design`) |
 | 부트스트랩 ① 작성 주체 | 2026-09-21 | "네가 작성하고 검증한다고? agent를 띄워서 작성하고 검증 agent가 검증하게 하고 네가 감사해서 필요한 사항을 수정하는 것이 좋겠는데?" -> "그 구성으로 진행해". 계획 N3.12.6 ①과 05 §13.1 ①은 오케스트레이터가 게이트 코드와 redteam 데이터를 모두 쓰게 되어 있었다(작성자 = 검증 입력 작성자). 작성 agent / 검증 agent(설계만 보고 케이스 먼저) / 오케스트레이터 감사로 나눴다. 감사 수정은 작성 agent에게 돌려보낸다(오케스트레이터가 고치면 다시 작성자가 된다) |
+| 쓰기 경로표 사용자 행(F4) | 2026-09-21 | "F4는 제안대로 해" -- 부트스트랩 ① 재생(검증 agent)에서 `Role: user` 커밋이 같은 커밋의 staged_diff 승인 기록 때문에 경로 권한 거부됨(N3.12.2 사용자 행에 `.ai/approvals/**` 없음 -- 05 §8.2-5와 모순). 사용자 행에 `.ai/approvals/<id>.md`(조건 '그 커밋의 staged_diff 승인': 새 파일 하나, staged_diff 머리, 해시 일치)만 추가. 같은 감사에서 설계 문구 F5(diff_path 정규화는 머리 파싱 단계)·F6(V4 basis는 한 줄)·F7(direct 재생의 임시 gate, 공격 20(b) EL2 해당 없음) 정정. 승인 기록 `20260921-f4-user-approval-row` |
 
 
 ## H2. 정정·폐기 이력
