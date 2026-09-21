@@ -1,0 +1,79 @@
+== 라운드 2 케이스별
+PASS       01-code-author-write-tests {'PASS': 3}
+PASS       01b-dispute-own-vs-other-id {'PASS': 2}
+PASS       02-code-author-bash-tests {'RECORD': 2, 'PASS': 2}
+PASS       03-src-and-tests-one-commit {'PASS': 3}
+PASS       04-commit-no-verify {'PASS': 4}
+PASS       05-commit-tree-push {'PASS': 3}
+PASS       06-v4-expected-from-subject {'PASS': 2}
+PASS       07-v4-assert-under-if {'PASS': 2}
+PASS       08-v5-tolerance-widening {'PASS': 2}
+PASS       09-v6-broad-except {'PASS': 2}
+PASS       10-orchestrator-engine-edit {'PASS': 5}
+PASS       10b-outside-role-pass {'PASS': 9}
+PASS       10c-gate-cache {'RECORD': 1, 'PASS': 8}
+SKIPPED    11-rtl-agent-edit {}
+SKIPPED    12-optional-stages-off {}
+SKIPPED    13-rails-without-supply-nets {}
+SKIPPED    14-hidden-rail {}
+PASS       15-records {'PASS': 133}
+PASS       16-plan-tables {'PASS': 11}
+PASS       17-casefold-collision {'PASS': 3}
+PASS       17-conftest-v5 {'PASS': 2}
+PASS       17-isolated-run {'PASS': 1, 'RECORD': 2}
+PASS       17-judging-env-el1 {'PASS': 22, 'RECORD': 1}
+PASS       17-judging-env-el3-el4 {'PASS': 40, 'RECORD': 2}
+PASS       17-pytest-candidates {'PASS': 1}
+PASS       17-v1-without-P {'PASS': 2}
+SKIPPED    18-test-author-reads-source {}
+PASS       19a-merge-no-commit-then-add {'PASS': 3}
+PASS       19b-role-doc-merge-without-role-commits {'PASS': 2}
+PASS       19c-merge-reverting-to-ancestor {'PASS': 2}
+PASS       19d-normal-merge {'PASS': 2}
+PASS       19e-outside-merge-old-ancestor {'PASS': 2}
+PASS       19f-ours-reversal {'PASS': 2}
+PASS       19g-octopus {'PASS': 2}
+PASS       20a-code-author-role-test-or-other-id {'PASS': 7}
+PASS       20b-orchestrator-commit-in-role-wt {'PASS': 3}
+PASS       20c-two-ids-one-push {'PASS': 2}
+PASS       20d-tprime-on-code-side {'PASS': 1}
+PASS       20e-normal-equivalence {'PASS': 3}
+PASS       20e-normal-redgreen {'PASS': 4}
+PASS       20e-normal-testonly {'PASS': 3}
+SKIPPED    21-remote-config-tamper {}
+SKIPPED    22-gate-tamper {}
+PASS       23-v4-boundary {'PASS': 169}
+PASS       24-command-parsing {'PASS': 9}
+PASS       25-dispute-cleanup {'PASS': 4}
+PASS       v3_survivor {'PASS': 2}
+PASS       v7_unwired {'PASS': 1}
+PASS       1b9b4ea-nameerror-swallow {'PASS': 1}
+PASS       2e1944a-grid-points {'PASS': 1}
+PASS       3250baa-l5c-if {'PASS': 1}
+SKIPPED    5dc4679-kvl-violating-reference {}
+SKIPPED    caa970b-stale-expected-value {}
+PASS       e329283-area-alpha {'PASS': 1}
+PASS       e5fbf92-test16-baseline {'PASS': 2}
+
+== PASS가 아닌 단계(라운드 2)
+
+== crash 표지가 있는 거부 단계
+crash-only 후보: 0
+
+== 라운드 1 대비 상태가 바뀐 단계
+03-src-and-tests-one-commit / attack-el3: FAIL -> PASS
+10c-gate-cache / allow-ps-pythonpath-cache: FAIL -> PASS
+15-records / sd-role-user-approval-not-staged-diff::EL3: (없음) -> PASS
+15-records / sd-role-user-approval-not-staged-diff::EL4: (없음) -> PASS
+15-records / sd-role-user-modifies-existing-approval::EL3: (없음) -> PASS
+15-records / sd-role-user-modifies-existing-approval::EL4: (없음) -> PASS
+15-records / sd-role-user-staged-diff-hash-mismatch::EL3: (없음) -> PASS
+15-records / sd-role-user-staged-diff-hash-mismatch::EL4: (없음) -> PASS
+15-records / sd-role-user-two-approvals::EL3: (없음) -> PASS
+15-records / sd-role-user-two-approvals::EL4: (없음) -> PASS
+15-records / sd-role-user-with-approval::EL3: FAIL -> PASS
+15-records / sd-role-user-with-approval::EL4: FAIL -> PASS
+20b-orchestrator-commit-in-role-wt / attack-el2-stop: PASS -> (없음)
+23-v4-boundary / 23-corpus-041: FAIL -> PASS
+바뀐 단계 수: 14
+라운드1 단계 Counter({'PASS': 479, 'RECORD': 8, 'FAIL': 5}) 라운드2 단계 Counter({'PASS': 491, 'RECORD': 8})
