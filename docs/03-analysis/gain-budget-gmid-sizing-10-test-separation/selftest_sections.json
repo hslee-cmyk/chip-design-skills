@@ -1,0 +1,7030 @@
+{
+ "commit": "89d257c3c332158697389c9b10195b210f2ae03b",
+ "files": [
+  {
+   "file": "sizing_recipe.py",
+   "lines_total": 15269,
+   "main_block": {
+    "start": 12571,
+    "end": 15269,
+    "lines": 2699,
+    "uses_sys_argv": false
+   },
+   "sections": [
+    {
+     "kind": "prelude",
+     "title": "(머리)",
+     "start": 12572,
+     "end": 12599,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "P",
+     "judged": false,
+     "provides_to": [
+      1,
+      2,
+      11,
+      40,
+      42,
+      43,
+      45,
+      52,
+      53
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "# toy LUT(E.K.V. 해석식 합성 데이터) 기반 실행 예시 — 숫자는 데모용, 실제 공정값 아님",
+     "start": 12601,
+     "end": 12613,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "C_load<-S0",
+      "L<-S0",
+      "fT_target<-S0",
+      "gm_id_candidates<-S0",
+      "vds<-S0"
+     ],
+     "dep_sections": [
+      0
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      2,
+      6,
+      7,
+      9,
+      10,
+      11,
+      12,
+      15,
+      16,
+      21,
+      22,
+      23,
+      24,
+      32,
+      34,
+      36,
+      37,
+      38,
+      40,
+      42,
+      43,
+      51,
+      52,
+      53,
+      56,
+      57,
+      71
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "# find_optimal_sizing() 데모 — gain 제약에서 전력/면적 각각 최소인 점 자동 탐색",
+     "start": 12614,
+     "end": 12634,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "C_load<-S0",
+      "fT_target<-S0",
+      "i<-S0",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      0,
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      11,
+      21
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "# _COMPENSATION_REGISTRY allowlist 거부 -- 실제 harness 경로(_evaluate()) 자체",
+     "start": 12635,
+     "end": 12659,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      4,
+      11,
+      12,
+      14,
+      15,
+      36,
+      37,
+      38,
+      39,
+      40,
+      41,
+      42,
+      43,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      62,
+      65,
+      76
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "# 배치 7-1(analog-topology-json-library.do.md) — optimize_multistage() 실",
+     "start": 12660,
+     "end": 12681,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3"
+     ],
+     "dep_sections": [
+      3
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# 배치 7-3 B/C/F 엔진(analog-topology-json-library.do.md §7.3.2, 2026-07-3",
+     "start": 12682,
+     "end": 12686,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[B엔진 solve_id_for_target_gm() -- 순방향으로 만든 gm_target을 역산해 gm_id 복원]",
+     "start": 12687,
+     "end": 12702,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[C엔진 solve_diode_stack_current() -- 순방향으로 만든 VGS합을 역산해 전류 복원]",
+     "start": 12703,
+     "end": 12721,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[F엔진 compute_metric()/_METRICS_REGISTRY -- sum_current/sum_area/gain_s",
+     "start": 12722,
+     "end": 12742,
+     "asserts": 3,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[L4 revalidate_finger_override() -- finger 반올림으로 W가 강제로 바뀌어도 ID는",
+     "start": 12743,
+     "end": 12809,
+     "asserts": 8,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[L4b apply_and_revalidate_pair_adjustment() -- suggest_pair_finger_adj",
+     "start": 12810,
+     "end": 12900,
+     "asserts": 9,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      11
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[L4c run_topology_pipeline_with_finger_fixup() -- 세션12 M3a 그룹(11소자) 실제",
+     "start": 12901,
+     "end": 13031,
+     "asserts": 17,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_os<-S3",
+      "_tempfile<-S3",
+      "c<-S2",
+      "lut<-S1",
+      "t<-S10",
+      "v<-S0"
+     ],
+     "dep_sections": [
+      0,
+      1,
+      2,
+      3,
+      10
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      12,
+      13,
+      14,
+      65
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[L5 optimize_full_circuit_budget() 실배선 -- run_topology_pipeline_with_f",
+     "start": 13032,
+     "end": 13134,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_l4c_L<-S11",
+      "_l4c_gds<-S11",
+      "_l4c_gm_id<-S11",
+      "_l4c_m3a_netlist<-S11",
+      "_l4c_matching_pairs_meta<-S11",
+      "_l4c_names<-S11",
+      "_l4c_r<-S11",
+      "_l4c_vds<-S11",
+      "_os<-S3",
+      "_tempfile<-S3",
+      "lut<-S1",
+      "n<-S11"
+     ],
+     "dep_sections": [
+      1,
+      3,
+      11
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      13,
+      14
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[L5b resolve_stack_layout() -- declared vertical_stack_id를 audit_verti",
+     "start": 13135,
+     "end": 13191,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "k<-S11",
+      "p<-S12",
+      "t<-S11",
+      "v<-S11"
+     ],
+     "dep_sections": [
+      11,
+      12
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      14,
+      15,
+      19,
+      45
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[L5c 헤드룸 singleton 정책(다음 세션 최우선①, 2026-08-11 세션28) -- M5/M61,",
+     "start": 13192,
+     "end": 13447,
+     "asserts": 7,
+     "reject_try": 0,
+     "verdict_prints": 5,
+     "deps": [
+      "_rsl_os<-S13",
+      "_tempfile<-S3",
+      "c<-S11",
+      "n<-S12",
+      "v<-S13"
+     ],
+     "dep_sections": [
+      3,
+      11,
+      12,
+      13
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      15,
+      24
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_fi",
+     "start": 13448,
+     "end": 13561,
+     "asserts": 11,
+     "reject_try": 0,
+     "verdict_prints": 5,
+     "deps": [
+      "_os<-S3",
+      "c<-S14",
+      "lut<-S1",
+      "n<-S14",
+      "t<-S13"
+     ],
+     "dep_sections": [
+      1,
+      3,
+      13,
+      14
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      16,
+      51,
+      62
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[L4e run_matching_safety_with_finger_growth() -- 세션17 설계안 3번. gm/ID 예산",
+     "start": 13562,
+     "end": 13613,
+     "asserts": 7,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [
+      "_l4d_ctx<-S15",
+      "_l4d_metrics<-S15",
+      "_l4d_r<-S15",
+      "_l4d_tight<-S15",
+      "c<-S15",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1,
+      15
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      26
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --",
+     "start": 13614,
+     "end": 13617,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[7-3b allocate_stack_headroom() -- resize.py 6개 소자 스택, vdd=1.8V]",
+     "start": 13618,
+     "end": 13632,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      19
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[gm_id가 있으면 2/gm_id+margin으로 캐스코드 헤드룸이 자동 연동되는지(§7-3e (b))]",
+     "start": 13634,
+     "end": 13645,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_hr_stack<-S18",
+      "e<-S13"
+     ],
+     "dep_sections": [
+      13,
+      18
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[2026-08-11(세션28) HeadroomPolicy.thin_roles -- 'diode_reference'도 casc",
+     "start": 13646,
+     "end": 13673,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[7-3e search_gm_id_for_role() -- role별 선택 방향(matching=최소, gain=gm/gds ",
+     "start": 13674,
+     "end": 13697,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "i<-S2",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1,
+      2
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      22,
+      23,
+      24
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[2026-08-19 세션37 연속 신설 -- 'load' role: gm/gds가 아니라 ro(=1/gds) 자체를",
+     "start": 13699,
+     "end": 13711,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_feasible_check<-S21",
+      "_role_L<-S21",
+      "_role_id_target<-S21",
+      "_role_vds<-S21",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1,
+      21
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[W_bounds 안에 후보가 하나도 없으면 즉시 ValueError]",
+     "start": 13713,
+     "end": 13721,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_role_L<-S21",
+      "_role_id_target<-S21",
+      "_role_vds<-S21",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1,
+      21
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[7-3f 대체(2026-09-10, 사용자 지시 \"bias_replica 상수도 없애\") --",
+     "start": 13722,
+     "end": 13797,
+     "asserts": 7,
+     "reject_try": 1,
+     "verdict_prints": 6,
+     "deps": [
+      "i<-S21",
+      "lut<-S1",
+      "v<-S14"
+     ],
+     "dep_sections": [
+      1,
+      14,
+      21
+     ],
+     "reads_lut": true,
+     "uses_drl_case": true,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      38
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[계통 미러비 오차를 **선언된 랜덤 예산과 같은 단위**로 재기(2026-09-10) --",
+     "start": 13798,
+     "end": 13820,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[value_from_constraint -- 임계값을 다른 제약에서 그대로 참조(숫자 복제 금지)]",
+     "start": 13822,
+     "end": 13845,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 2,
+     "deps": [
+      "c<-S16"
+     ],
+     "dep_sections": [
+      16
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[웜스타트 조인트 스캔 점수(2026-09-10, l_class 포함) -- 그룹마다 기준이 다르다]",
+     "start": 13846,
+     "end": 13878,
+     "asserts": 3,
+     "reject_try": 2,
+     "verdict_prints": 4,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 2,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[7-4b 확장 estimate_area_budget() -- 콜드스타트 블렌딩 vs 실측 자기참조]",
+     "start": 13879,
+     "end": 13897,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# 배치 7-3d(analog-topology-json-library.do.md §7.3.2 D, 2026-07-31) --",
+     "start": 13898,
+     "end": 13901,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[feed 'A' (_feed_root_ratio) -- theta*reference 전류합을 root의 seed로]",
+     "start": 13902,
+     "end": 13907,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[feed 'C' (_feed_diode_stack_target) -- theta*reference W를 target W로]",
+     "start": 13909,
+     "end": 13913,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[feed 'B' (_feed_gm_target_convention) -- N*omega_c*C_cmfb를 gm_target으",
+     "start": 13915,
+     "end": 13924,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[feed 'settling_split' (_feed_settling_split) -- theta*total을 derived로",
+     "start": 13926,
+     "end": 13930,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[feed 'metric_stage_budget' -- theta(L)로 지정 devices의 L/W/gm/gds 재계산]",
+     "start": 13932,
+     "end": 13939,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[등록 안 된 feed 타입은 즉시 ValueError]",
+     "start": 13941,
+     "end": 13948,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[optimize_full_circuit_budget() -- sizing_roles/device_roles 둘 다 없는 회로",
+     "start": 13949,
+     "end": 13985,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3",
+      "_tempfile<-S3",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1,
+      3
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      46,
+      47,
+      48,
+      49,
+      51,
+      62,
+      65
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[optimize_full_circuit_budget() -- 합성 sizing_roles로 그리드서치가 실제 최적값을 찾는지",
+     "start": 13986,
+     "end": 14039,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3",
+      "_tempfile<-S3",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1,
+      3
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      50
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[device_roles.gm_id_match_vgs_of -- 2026-08-19 세션38 신설, gm_id_role 루프의",
+     "start": 14040,
+     "end": 14112,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3",
+      "_tempfile<-S3",
+      "i<-S24",
+      "lut<-S1",
+      "v<-S24"
+     ],
+     "dep_sections": [
+      1,
+      3,
+      24
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      39,
+      45,
+      51
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[gm_id_match_vgs_of가 아직 sizing 안 된(존재하지 않는) 소자를 참조하면 ValueError]",
+     "start": 14114,
+     "end": 14129,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_gmv_spec<-S38",
+      "_gmv_topo<-S38",
+      "_os<-S3",
+      "_tempfile<-S3"
+     ],
+     "dep_sections": [
+      3,
+      38
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[device_roles.vds_match_vgs_of -- 2026-08-19 세션38 연속 신설, 헤드룸 루프가 다른 컬럼",
+     "start": 14130,
+     "end": 14189,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3",
+      "_tempfile<-S3",
+      "_tst_grids<-S0",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      0,
+      1,
+      3
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      41
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[vds_match_vgs_of가 순환 참조하면 ValueError]",
+     "start": 14191,
+     "end": 14205,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3",
+      "_tempfile<-S3",
+      "_vmv_spec<-S40",
+      "_vmv_topo<-S40"
+     ],
+     "dep_sections": [
+      3,
+      40
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[fixed-point worklist -- 2026-08-19 세션39 신설, _ref_depth() 단일재귀 정렬을 대체.",
+     "start": 14206,
+     "end": 14276,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3",
+      "_tempfile<-S3",
+      "_tst_grids<-S0",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      0,
+      1,
+      3
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      43
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[두 그룹의 budget_reference_device가 서로를 직접 가리키면(pre-pass로도 못 뚫리는 진짜 순환) 여전",
+     "start": 14278,
+     "end": 14316,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_fpw_vdd<-S42",
+      "_os<-S3",
+      "_tempfile<-S3",
+      "_tst_grids<-S0",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      0,
+      1,
+      3,
+      42
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[diagnose_sizing_roles_gap() -- device_role/symmetry의 propose_device_r",
+     "start": 14317,
+     "end": 14326,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      45
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[1. 정상 케이스 -- known_sizing으로 전류/L/VDS가 다 채워지면 status=ok]",
+     "start": 14328,
+     "end": 14367,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_diag_lut<-S44",
+      "_os<-S3",
+      "_tempfile<-S3",
+      "_tst_grids<-S0",
+      "k<-S13",
+      "v<-S38"
+     ],
+     "dep_sections": [
+      0,
+      3,
+      13,
+      38,
+      44
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      51
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[4. 실제 라이브러리 파일 folded_cascode -- 세션35 안에서 이 gap 자체를 해소했다(Ibg를 KCL 유도+",
+     "start": 14369,
+     "end": 14377,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir_recipe<-S36",
+      "_os<-S3"
+     ],
+     "dep_sections": [
+      3,
+      36
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[5/6. 실제 라이브러리 파일 nmcnr_amplifier -- 원래(세션35) PM_target_deg=46 (논문 실측치",
+     "start": 14379,
+     "end": 14394,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir_recipe<-S36",
+      "_os<-S3"
+     ],
+     "dep_sections": [
+      3,
+      36
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[require_declared_spec_source() -- 라이브러리 회로를 **출처 없는 spec**으로",
+     "start": 14395,
+     "end": 14418,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 4,
+     "deps": [
+      "_lib_dir_recipe<-S36",
+      "_os<-S3",
+      "_tempfile<-S3"
+     ],
+     "dep_sections": [
+      3,
+      36
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[7. sizing_roles.theta가 이미 선언된 회로는 status=has_theta로 조기 반환]",
+     "start": 14420,
+     "end": 14426,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir_recipe<-S36",
+      "_os<-S3"
+     ],
+     "dep_sections": [
+      3,
+      36
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[제약을 만족하는 격자점이 하나도 없으면 즉시 ValueError]",
+     "start": 14427,
+     "end": 14442,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_ofc_spec<-S37",
+      "_ofc_topo<-S37",
+      "_os<-S3",
+      "_tempfile<-S3"
+     ],
+     "dep_sections": [
+      3,
+      37
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[optimize_full_circuit_budget() -- 실제 회로(two_stage_ota, 7개 소자) 전체를",
+     "start": 14443,
+     "end": 14582,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir_recipe<-S36",
+      "_os<-S3",
+      "_tempfile<-S3",
+      "i<-S38",
+      "lut<-S1",
+      "n<-S15",
+      "v<-S45"
+     ],
+     "dep_sections": [
+      1,
+      3,
+      15,
+      36,
+      38,
+      45
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      52,
+      54
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[matching_pairs L 강제 일치 -- compensation(spec 기반) vs device_roles.L_rol",
+     "start": 14583,
+     "end": 14634,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3",
+      "_tempfile<-S3",
+      "_tst_grids<-S0",
+      "i<-S51",
+      "lut<-S1",
+      "v<-S51"
+     ],
+     "dep_sections": [
+      0,
+      1,
+      3,
+      51
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      53,
+      71
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[matching_pairs L 강제 일치 -- 양쪽 다 L_role(휴리스틱)인데 값이 다르면(스펙 근거로 우선순위를 가릴 ",
+     "start": 14636,
+     "end": 14661,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_lrec_topo<-S52",
+      "_os<-S3",
+      "_tempfile<-S3",
+      "_tst_grids<-S0",
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      0,
+      1,
+      3,
+      52
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[재현성: 같은 spec으로 다시 호출하면 완전히 같은 sizing]",
+     "start": 14662,
+     "end": 14682,
+     "asserts": 2,
+     "reject_try": 1,
+     "verdict_prints": 2,
+     "deps": [
+      "_tso_all_names<-S51",
+      "_tso_path<-S51",
+      "_tso_result<-S51",
+      "_tso_spec<-S51"
+     ],
+     "dep_sections": [
+      51
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# 배치 7-3g/h/i(analog-topology-json-library.do.md, 2026-07-31) --",
+     "start": 14683,
+     "end": 14686,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[7-3g noise_1f_density() -- SID_1F 없는 LUT는 즉시 ValueError(데이터 없음을 숨기지 않",
+     "start": 14687,
+     "end": 14692,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[SID_1F 있는 합성 LUT -- W_ref/W_target 스케일링 + 1/freq 반영 확인]",
+     "start": 14694,
+     "end": 14708,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "lut<-S1"
+     ],
+     "dep_sections": [
+      1
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      58
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[_metric_flicker_plus_thermal_sum() -- 열+1/f 합산이 손계산과 일치]",
+     "start": 14710,
+     "end": 14723,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_freq_test<-S57",
+      "_lut_with_noise<-S57",
+      "_sid1f_expected<-S57",
+      "_w_target_test<-S57"
+     ],
+     "dep_sections": [
+      57
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[7-3h estimate_mismatch_sigma()/pelgrom_mismatch metric -- sky130 실측 v",
+     "start": 14724,
+     "end": 14738,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[7-3i cmrr_estimate/psrr_estimate metric -- diff_pair_tail family 계산 확",
+     "start": 14739,
+     "end": 14749,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      61
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[등록 안 된 circuit_family는 즉시 ValueError]",
+     "start": 14751,
+     "end": 14759,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_ctx_cmrr<-S60"
+     ],
+     "dep_sections": [
+      60
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[세션37: nmcnr_gain_db/nmcnr_pm_deg -- nmcnr_amplifier.topology.json 실제",
+     "start": 14760,
+     "end": 14781,
+     "asserts": 7,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir_recipe<-S36",
+      "_os<-S3",
+      "t<-S15"
+     ],
+     "dep_sections": [
+      3,
+      15,
+      36
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      65
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[_nmcnr_stage1_rout()/_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg -- 손계",
+     "start": 14783,
+     "end": 14817,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      64
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[_metric_nmcnr_pm_deg -- 0dB 교차가 아예 없으면(gm1이 극단적으로 작아 DC이득이 이미 0dB 미만)",
+     "start": 14819,
+     "end": 14830,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_nmcnr_sized<-S63",
+      "_nmcnr_spec<-S63"
+     ],
+     "dep_sections": [
+      63
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[cmrr_estimate -- telescopic_class_ab family: metric_spec의 소자 역할 배정이",
+     "start": 14831,
+     "end": 14889,
+     "asserts": 16,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir_recipe<-S36",
+      "_os<-S3",
+      "d<-S11",
+      "t<-S62"
+     ],
+     "dep_sections": [
+      3,
+      11,
+      36,
+      62
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      67
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[cmrr_estimate -- telescopic_class_ab family(2026-08-03 확정 topology.js",
+     "start": 14890,
+     "end": 14938,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[cmrr_estimate -- telescopic_class_ab_cmfb family(2026-08-03 신규 유도, CM",
+     "start": 14939,
+     "end": 14991,
+     "asserts": 12,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_crt_by_name<-S65",
+      "_crt_transistors<-S65",
+      "d<-S65",
+      "t<-S65"
+     ],
+     "dep_sections": [
+      65
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      68
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[cmrr/psrr_estimate -- telescopic_class_ab_cmfb family(2026-08-07 세션21",
+     "start": 14992,
+     "end": 15071,
+     "asserts": 6,
+     "reject_try": 1,
+     "verdict_prints": 4,
+     "deps": [
+      "_cmfb_roles<-S67",
+      "d<-S67"
+     ],
+     "dep_sections": [
+      67
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      69
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[psrr_estimate -- telescopic_class_ab_cmfb family, 같은 31소자망 -- Ann_ope",
+     "start": 15072,
+     "end": 15092,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 3,
+     "deps": [
+      "_adm_o<-S68",
+      "_ann_o<-S68",
+      "_cmfb_ctx<-S68",
+      "_cmfb_spec<-S68",
+      "_t<-S68"
+     ],
+     "dep_sections": [
+      68
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[smallsignal_ratio_db/smallsignal_gain_db -- topology-무관 일반화(세션21 2차)]",
+     "start": 15093,
+     "end": 15165,
+     "asserts": 7,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# current_reuse_telescopic_topology() 등록 재확인(2026-07-31, 원문 Eq.2-6 재도출",
+     "start": 15166,
+     "end": 15213,
+     "asserts": 9,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "i<-S52",
+      "lut<-S1",
+      "v<-S52"
+     ],
+     "dep_sections": [
+      1,
+      52
+     ],
+     "reads_lut": true,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      73
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "# validate_theta_declaration_order() -- theta 배열 '선언 순서=실행 순서' 계약",
+     "start": 15214,
+     "end": 15216,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[합성 fixture -- gm_id_match_vgs_of/C타입 reference가 선언 순서를 위반하면 잡아내는지]",
+     "start": 15218,
+     "end": 15240,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "v<-S71"
+     ],
+     "dep_sections": [
+      71
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[올바른 순서(reference가 앞에 옴)면 위반 0건인지]",
+     "start": 15242,
+     "end": 15248,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[compensation.stage_devices는 처음부터 생산됨으로 취급되는지]",
+     "start": 15250,
+     "end": 15256,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[실제 library topology.json 4개 전부 위반 0건인지(reorder 이후 회귀 확인)]",
+     "start": 15258,
+     "end": 15269,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os<-S3"
+     ],
+     "dep_sections": [
+      3
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    }
+   ],
+   "module_names_read": [
+    "SemiEmpiricalGmIdLUT",
+    "SizingContext",
+    "Transistor",
+    "_COMPENSATION_REGISTRY",
+    "_blocked_euler_rows",
+    "_build_theta_evaluator",
+    "_cmfb_amp_gain_diode_load",
+    "_dc_replace",
+    "_full_circuit_response",
+    "_group_score_interior",
+    "_group_score_metric",
+    "_invert_gm_id_for_current",
+    "_lerp",
+    "_load_full_topology_cached",
+    "_nmcnr_stage1_rout",
+    "_telescopic_class_ab_open_loop_gains",
+    "allocate_stack_headroom",
+    "apply_and_revalidate_matching_finger_growth",
+    "apply_and_revalidate_pair_adjustment",
+    "apply_theta_feed",
+    "build_toy_lut",
+    "check_quasi_static",
+    "compute_metric",
+    "converge_with_parasitics",
+    "derive_class_L",
+    "derive_role_L",
+    "diagnose_sizing_roles_gap",
+    "diode_vds_window",
+    "estimate_area_budget",
+    "estimate_mismatch_sigma",
+    "feasible_L_window",
+    "find_optimal_sizing",
+    "json",
+    "knee_L_for_kind",
+    "load_topology",
+    "math",
+    "nmcnr_predict_ac_response",
+    "np",
+    "optimize_full_circuit_budget",
+    "optimize_multistage",
+    "propagate_topology_forced_currents",
+    "require_declared_spec_source",
+    "resolve_constraint_references",
+    "resolve_stack_layout",
+    "revalidate_finger_override",
+    "run_matching_safety_with_finger_growth",
+    "run_regression_case",
+    "run_topology_pipeline_with_finger_fixup",
+    "search_gm_id_for_role",
+    "size_transistor",
+    "solve_diode_connected_vds",
+    "solve_diode_stack_current",
+    "solve_id_for_target_gm",
+    "suggest_matching_finger_growth",
+    "suggest_pair_finger_adjustments",
+    "validate_theta_declaration_order"
+   ],
+   "unresolved_names_read": []
+  },
+  {
+   "file": "stick_diagram.py",
+   "lines_total": 12936,
+   "main_block": {
+    "start": 8992,
+    "end": 12936,
+    "lines": 3945,
+    "uses_sys_argv": false
+   },
+   "sections": [
+    {
+     "kind": "prelude",
+     "title": "(머리)",
+     "start": 8993,
+     "end": 8995,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "P",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 1a: pptx slide 2의 원본 연결 그래프 (finger 1개씩, node 1-2-3-4 체인) ===",
+     "start": 8997,
+     "end": 9007,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 1b: 실제 finger 수(M1=4, M2=2, M3=4)를 반영하면 모든 노드가 짝수차수 → 닫힌 회로 =",
+     "start": 9008,
+     "end": 9018,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 2: 홀수차수 노드 4개인 예(한붓그리기 불가능 + 조정 후보 확인) ===",
+     "start": 9019,
+     "end": 9033,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 3: 극성이 다르면 자동으로 별도 stack으로 분리되는지 확인 ===",
+     "start": 9034,
+     "end": 9046,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 4: Folded Cascode(PDF p.34~p.38) 실제 넷리스트 — pptx 원본 정답과 대조 ===",
+     "start": 9047,
+     "end": 9060,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 5: PDF p.14 'Axis of Symmetries' — folded cascode top 행의 실제 대",
+     "start": 9061,
+     "end": 9071,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 5.5: mirror_symmetric_trail() — 세션11 L3(D), 실제 회로 2개로 교차검증 ==",
+     "start": 9072,
+     "end": 9072,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[사례1: folded_cascode top row — MP(self-pair,2f)/M3-M4(3f)/M5-M6(6f)]",
+     "start": 9073,
+     "end": 9084,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      10,
+      13
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[사례2: current_reuse_telescopic_ota 그룹 M8 — M8/M17, M9a/M18a(둘 다 1:1, s",
+     "start": 9086,
+     "end": 9102,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[사례3(음성 대조): build_stick_diagram()에 matching_pairs를 안 주면 기존 동작과 완전히 동일",
+     "start": 9104,
+     "end": 9111,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "top_group<-S8"
+     ],
+     "dep_sections": [
+      8
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 5.6: suggest_pair_finger_adjustments() + mirror_symmetric_tra",
+     "start": 9112,
+     "end": 9130,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      12,
+      13,
+      14,
+      15
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[1. 조정 전: build_graph()+check_euler_condition() 그대로면 홀수차수 6개(다중 trail ",
+     "start": 9132,
+     "end": 9134,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "m3a_group<-S11"
+     ],
+     "dep_sections": [
+      11
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[2. suggest_pair_finger_adjustments() — 매칭쌍 단위 제안 1순위가 M9b/M18b 동시 +1인",
+     "start": 9136,
+     "end": 9144,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "m3a_group<-S11",
+      "m3a_pairs<-S11",
+      "t<-S8"
+     ],
+     "dep_sections": [
+      8,
+      11
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      14
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[3. 조정 후: mirror_symmetric_trail()이 대표 조합 탐색 + 홀수 self-pair 다리로 11소자 전",
+     "start": 9146,
+     "end": 9154,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "m3a_adjusted<-S13",
+      "m3a_pairs<-S11",
+      "t<-S13"
+     ],
+     "dep_sections": [
+      11,
+      13
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      16
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[4(회귀 대조). 조정 없이 원본 그대로면 여전히 None(폴백)이어야 함 -- 다리만으로는 안 풀림]",
+     "start": 9156,
+     "end": 9160,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "m3a_group<-S11",
+      "m3a_pairs<-S11"
+     ],
+     "dep_sections": [
+      11
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 6: matching 그룹 자동 탐지 — folded cascode 넷리스트에서 전류거울/차동쌍 추출 ===",
+     "start": 9161,
+     "end": 9176,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "t<-S14"
+     ],
+     "dep_sections": [
+      14
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      51,
+      116
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 7: unit cell 사이징 후보 탐색 — nominal W 근방에서 정수배 후보 생성 ===",
+     "start": 9177,
+     "end": 9183,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      25
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 8: 2-Stage OTA(PDF p.28~p.33) 실제 넷리스트 — 3개 stack 전부 닫힌 회로 확인 ",
+     "start": 9184,
+     "end": 9190,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 9: 홀수 개수 매칭쌍의 교차 대칭 배치 — folded cascode M9/M10(각 3개) 실제 사례 ==",
+     "start": 9191,
+     "end": 9202,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 10: §8 box-shape 탐색 — Intrinsic Gain Stage 예제(N=15um 1소자 vs P",
+     "start": 9203,
+     "end": 9215,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 11: §2.7 2D common-centroid 표 기반 경로 — M2/M2b(전류거울, 4:4) ===",
+     "start": 9216,
+     "end": 9252,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12: common_centroid_layout() 회전 경로 — 홀수 개수(M1/M2 차동쌍 9:9)도",
+     "start": 9253,
+     "end": 9273,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      23,
+      24
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.5: common_centroid_layout() — 대칭(1:1)에서 표/회전 두 경로가",
+     "start": 9274,
+     "end": 9306,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "row<-S22"
+     ],
+     "dep_sections": [
+      22
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      24,
+      25
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.6: interdigitate_layout() — common_centroid_layout()와 동급으로",
+     "start": 9307,
+     "end": 9392,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "cc2<-S22",
+      "row<-S23"
+     ],
+     "dep_sections": [
+      22,
+      23
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.7: common_centroid_layout() — N=3 이상 hub-leaf common-centr",
+     "start": 9393,
+     "end": 9489,
+     "asserts": 9,
+     "reject_try": 0,
+     "verdict_prints": 5,
+     "deps": [
+      "c<-S17",
+      "r<-S23"
+     ],
+     "dep_sections": [
+      17,
+      23
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      27,
+      32,
+      42,
+      59
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.8: common_centroid_layout() 일반화 — 소자 개수가 다르거나 n_rows를",
+     "start": 9490,
+     "end": 9496,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      27,
+      28,
+      29
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[개수가 다름(A=6,B=4,C=2), n_rows 미지정 -> 기본 n_rows=N=3, 탐색 경로로 감]",
+     "start": 9497,
+     "end": 9506,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "row<-S25",
+      "trs_uneven<-S26"
+     ],
+     "dep_sections": [
+      25,
+      26
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      28
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[n_rows=4 (N=3보다 많음, 더 잘게 쪼갬) -- 슬라이싱만으론 모든 phase가 오일러 조건을",
+     "start": 9508,
+     "end": 9519,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "row<-S27",
+      "trs_uneven<-S26"
+     ],
+     "dep_sections": [
+      26,
+      27
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      29
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[n_rows=2 (N=3보다 적음, 회전을 다 못 채움) -- 잔차가 0이 아닐 수 있음을 확인]",
+     "start": 9521,
+     "end": 9525,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "row<-S28",
+      "trs_uneven<-S26"
+     ],
+     "dep_sections": [
+      26,
+      28
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      33
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[균등 개수(N=3, 전부 8) + n_rows=3(=N) 명시 -- target_rows==N+개수 균등이면",
+     "start": 9527,
+     "end": 9537,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[버그 재현+수정 확인: N=2, n_rows=2(=N) 명시 -- 사용자 지적으로 발견됨]",
+     "start": 9539,
+     "end": 9556,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.9: n_rows==N 전수 스윕(N=2~6, count 다양) — dispatch 버그 수정 후",
+     "start": 9557,
+     "end": 9585,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "i<-S25"
+     ],
+     "dep_sections": [
+      25
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      36
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[발견된 2차 버그: N=4,count=20처럼 '최대한 균등'([5,5,5,5], 전부 홀수)이 오일러",
+     "start": 9586,
+     "end": 9598,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "row<-S29"
+     ],
+     "dep_sections": [
+      29
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      34
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[소자별 개수(count)가 소자 수(N)보다 작으면(예: N=4, 각 2개씩) 명확한 ValueError인지",
+     "start": 9600,
+     "end": 9611,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "n<-S33"
+     ],
+     "dep_sections": [
+      33
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      45
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.9b: 회전 경로에 crossover 폴백 통합 (사용자 요청, 2026-07-28 3차) ===",
+     "start": 9612,
+     "end": 9615,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[Test 12.9에서 '진짜 불가능'으로 확인됐던 10개 조합 전부 재확인 -- 이제는",
+     "start": 9616,
+     "end": 9643,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "i<-S32"
+     ],
+     "dep_sections": [
+      32
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      37,
+      38,
+      44
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[이미 0-crossover로 성공하던 케이스(N=2,count=4)는 전혀 안 바뀌었는지 회귀 확인]",
+     "start": 9645,
+     "end": 9655,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "row<-S36"
+     ],
+     "dep_sections": [
+      36
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.10: n_rows != N(N보다 크거나 작은 경우) 전수 스윕 — 사용자 요구 ===",
+     "start": 9656,
+     "end": 9710,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "i<-S36"
+     ],
+     "dep_sections": [
+      36
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      40,
+      51
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[발견된 잔차 지표 결함: 길이 1인 행을 건너뛰면 그 행에만 있는 소자가 완전히",
+     "start": 9712,
+     "end": 9722,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[발견된 더 근본적 한계: 소자 하나가 통째로 자기 행에만 격리되면(다른 소자와 단",
+     "start": 9724,
+     "end": 9738,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "row<-S38"
+     ],
+     "dep_sections": [
+      38
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      41
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[증명된 최적 경로(rotation_exact)는 항상 isolated_pairs=0인지 확인]",
+     "start": 9739,
+     "end": 9745,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "row<-S40",
+      "trs_isolate<-S40"
+     ],
+     "dep_sections": [
+      40
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.11: INTERDIGITATION_PATTERNS 표 전체 — interdigitate_layout()",
+     "start": 9746,
+     "end": 9779,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "ch<-S25"
+     ],
+     "dep_sections": [
+      25
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.12: find_min_crossover_layout() — 최소 crossover 배치 신설 ===",
+     "start": 9780,
+     "end": 9782,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[이미 가능한 경우(0 crossover) — 우선순위대로 단일 연속 diffusion부터 확인]",
+     "start": 9783,
+     "end": 9790,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "s<-S36"
+     ],
+     "dep_sections": [
+      36
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      45
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[ABC 3소자 1개씩(4개 홀수차수 노드, m=2) -> crossover=1이어야 함]",
+     "start": 9792,
+     "end": 9800,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "n<-S34",
+      "s<-S44"
+     ],
+     "dep_sections": [
+      34,
+      44
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      46,
+      54
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[6소자 1개씩(6개 홀수차수 노드, m=3) -> crossover=2, 소자 6개 보존]",
+     "start": 9802,
+     "end": 9808,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "n<-S45",
+      "s<-S45"
+     ],
+     "dep_sections": [
+      45
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      47,
+      48,
+      54
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[각 segment 내부가 실제로 유효한 hub-leaf walk인지 1차 원리로 재확인]",
+     "start": 9810,
+     "end": 9815,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "n<-S46",
+      "r_6<-S46"
+     ],
+     "dep_sections": [
+      46
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      48
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[ABCD 표 패턴(4소자 1개씩)이 실제로 crossover=1로 해결되는지 -- 사용자가",
+     "start": 9817,
+     "end": 9823,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "n<-S47",
+      "s<-S46"
+     ],
+     "dep_sections": [
+      46,
+      47
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      51
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[대조군 -- 입력 검증]",
+     "start": 9825,
+     "end": 9840,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 12.13: find_min_crossover_layout() matching_pairs 확장(세션15) —",
+     "start": 9841,
+     "end": 9843,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[실전: current_reuse_telescopic_ota.topology.json M6 그룹(8소자) — 핑거조정",
+     "start": 9844,
+     "end": 9908,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "i<-S38",
+      "n<-S48",
+      "s<-S48",
+      "t<-S16"
+     ],
+     "dep_sections": [
+      16,
+      38,
+      48
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      52,
+      53,
+      56,
+      58,
+      65,
+      107
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[node_map 역산 단위 확인 -- M2a/M2b가 서로 공유 끝이 없어도 Vom1<->Vop1이",
+     "start": 9910,
+     "end": 9918,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_m6_group_trs<-S51",
+      "_m6_inside_pairs<-S51"
+     ],
+     "dep_sections": [
+      51
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[폴백 발동 확인 -- matching_pairs가 텅 비어 전부 orphan이면(자기대응 노드가",
+     "start": 9920,
+     "end": 9930,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "n<-S51"
+     ],
+     "dep_sections": [
+      51
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[회귀 -- matching_pairs=None(기존 호출부 경로, 하위호환)이면 hub-leaf 사전조건과",
+     "start": 9932,
+     "end": 9937,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "r_6<-S46",
+      "r_abc<-S45"
+     ],
+     "dep_sections": [
+      45,
+      46
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[세션17 offset 우선순위 가중치 -- _count_matching_pair_splits()의",
+     "start": 9939,
+     "end": 9981,
+     "asserts": 7,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[M6 실제 회로 회귀 -- pair_sensitivity를 줘도 이미 달성한 (0,0)이 안 깨지는지]",
+     "start": 9983,
+     "end": 9995,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_m6_group_trs<-S51",
+      "_m6_inside_pairs<-S51"
+     ],
+     "dep_sections": [
+      51
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 13: check_box_shape() 게이트 — SPICE 전에 반드시 통과해야 하는 §8 체크포인트 ===",
+     "start": 9996,
+     "end": 10054,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 10,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      61
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 14: stage 경계를 넘는 stack 병합 — Maloberti p.29 'Layout Oriented D",
+     "start": 10055,
+     "end": 10106,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "i<-S51",
+      "t<-S51"
+     ],
+     "dep_sections": [
+      51
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      61,
+      71,
+      117,
+      155
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 15: search_shared_finger_w() — 가로 배치(Case B) 탐색, Example 3로 정",
+     "start": 10107,
+     "end": 10134,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "c<-S25"
+     ],
+     "dep_sections": [
+      25
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 16: run_full_circuit_audit() — 4단계 harness가 실제로 잡아내는지 확인 ===",
+     "start": 10135,
+     "end": 10168,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 13,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      129
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 17: pack_floorplan() — 실제 Xie&Chen 51-소자 회로 전체 블록으로 검증 ===",
+     "start": 10169,
+     "end": 10231,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "i<-S58",
+      "n<-S57"
+     ],
+     "dep_sections": [
+      57,
+      58
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      62,
+      63,
+      64,
+      65,
+      105
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 18: find_diffusion_safe_split_points() — 실제 S1_TAILP 시퀀스로 검증 ",
+     "start": 10232,
+     "end": 10267,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 5,
+     "deps": [
+      "b<-S61",
+      "j<-S61",
+      "overlap<-S61",
+      "spine<-S61"
+     ],
+     "dep_sections": [
+      61
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      63
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 19: pack_floorplan_grouped() — 기능 그룹이 실제로 흩어지지 않는지 확인 ===",
+     "start": 10268,
+     "end": 10299,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "b<-S62",
+      "i<-S62",
+      "mirror_pairs<-S61",
+      "n<-S61",
+      "overlap<-S61",
+      "spine<-S61"
+     ],
+     "dep_sections": [
+      61,
+      62
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      64,
+      65,
+      105
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 20: net_weights — 신호선 근접 배치, 실제 vbias1 연결로 검증 ===",
+     "start": 10300,
+     "end": 10330,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "b<-S63",
+      "j<-S63",
+      "k<-S63",
+      "mirror_pairs<-S61",
+      "n<-S63",
+      "overlap<-S61",
+      "spine_groups<-S63"
+     ],
+     "dep_sections": [
+      61,
+      63
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      65,
+      96,
+      111,
+      140
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 21: sub_kind — 같은 diffusion(폴러리티)별로 나눠 배치하면 더 compact한지 실측 ==",
+     "start": 10331,
+     "end": 10362,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "b<-S64",
+      "j<-S64",
+      "mirror_pairs<-S61",
+      "net_weights<-S64",
+      "overlap<-S61",
+      "p<-S51",
+      "spine<-S61",
+      "spine_groups<-S63"
+     ],
+     "dep_sections": [
+      51,
+      61,
+      63,
+      64
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      126
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 21.5: check_symmetry_dispositions() — 매칭 후보를 조용히 빼먹는 것 차단 ===",
+     "start": 10363,
+     "end": 10372,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      67,
+      68
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[MA/MB(진짜 diff_pair)를 matching_pairs에 빼먹은 상황]",
+     "start": 10376,
+     "end": 10381,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "vsd_trs<-S66"
+     ],
+     "dep_sections": [
+      66
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      158
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[MA/MB를 matching_pairs에 정상 기록하면 PASS]",
+     "start": 10383,
+     "end": 10386,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "vsd_trs<-S66"
+     ],
+     "dep_sections": [
+      66
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[net 이름 대소문자 불일치(사고9와 동일 패턴)를 잡아내는지 -- Vbias1 vs vbias1]",
+     "start": 10388,
+     "end": 10397,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[실전: current_reuse_telescopic_ota.topology.json 전체 재검증]",
+     "start": 10399,
+     "end": 10413,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      71,
+      123
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[linked_topology_files -- 회로가 여러 파일로 쪼개져도 항상 전체를 합쳐서 보는지]",
+     "start": 10414,
+     "end": 10456,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_os21<-S70",
+      "t<-S58"
+     ],
+     "dep_sections": [
+      58,
+      70
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      86,
+      128
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 22: audit_row_split() — Euler/box-shape만으론 못 잡는 matching 회귀 실",
+     "start": 10457,
+     "end": 10476,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      73
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[회귀 재현] M3 row0 통째로/M4 row1 통째로: overall={}",
+     "start": 10477,
+     "end": 10504,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [
+      "old_audit<-S72"
+     ],
+     "dep_sections": [
+      72
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      74
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[common_centroid_layout로 재구성] overall={}",
+     "start": 10505,
+     "end": 10510,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "fixed_audit<-S73"
+     ],
+     "dep_sections": [
+      73
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[kind-aware 재판정 -- two_stage_ota_example() top(M3/M4=2f+2f) + M6(8f)] ",
+     "start": 10511,
+     "end": 10534,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[대조군 -- 진짜 차동쌍이 common-centroid를 실패하면 이번엔 진짜로 FAIL해야 한다]",
+     "start": 10535,
+     "end": 10552,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 23: branch_symmetric kind — M5/M6, M7/M8 (공유 노드 없는 캐스코드 대칭쌍) ",
+     "start": 10553,
+     "end": 10565,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      78,
+      79
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[1차: M5/M6 통째로 한 컬럼씩(solo)] -- 전수 탐색으로 interdigitation(3b)이 그래프상",
+     "start": 10567,
+     "end": 10589,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [
+      "a34_r0b<-S77",
+      "a34_r1b<-S77",
+      "b34_r0b<-S77",
+      "b34_r1b<-S77"
+     ],
+     "dep_sections": [
+      77
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[사용자 재지적: \"differential pair처럼 stack 분리+finger 조절로 common-centroid를",
+     "start": 10590,
+     "end": 10616,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "a34_r0b<-S77",
+      "a34_r1b<-S77",
+      "b34_r0b<-S77",
+      "b34_r1b<-S77"
+     ],
+     "dep_sections": [
+      77
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      81,
+      82
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[대조군 -- 진짜 finger 수가 안 맞는 branch_symmetric 쌍은 여전히 FAIL해야 한다]",
+     "start": 10617,
+     "end": 10632,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      103
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 24: check_walk_sequence() — 제안된 순서가 실제로 이어지는지 독립 검산 ===",
+     "start": 10633,
+     "end": 10648,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "dist_top_row0<-S79"
+     ],
+     "dep_sections": [
+      79
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      122
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[finger 개수 자체가 안 맞는 경우도 잡아내는지 확인]",
+     "start": 10649,
+     "end": 10653,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "dist_top_row0<-S79"
+     ],
+     "dep_sections": [
+      79
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 25: check_stick_diagram_coverage() — sizing은 됐는데 layout이 통째로 ",
+     "start": 10654,
+     "end": 10676,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": [
+      84
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[대조: 전부 커버되면 OK로 통과하는지 확인]",
+     "start": 10677,
+     "end": 10685,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "sized<-S83",
+      "stick_rows_actual<-S83"
+     ],
+     "dep_sections": [
+      83
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "B",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 26: topology library JSON 오케스트레이션 레이어 (load_topology/run_topo",
+     "start": 10686,
+     "end": 10697,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      86,
+      87,
+      88,
+      89,
+      90,
+      93,
+      94,
+      100
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[folded_cascode: n_fingers/finger_w/w/stack_id 산출물만 folded_cascode_exa",
+     "start": 10698,
+     "end": 10724,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir<-S85",
+      "_os<-S85",
+      "t<-S71"
+     ],
+     "dep_sections": [
+      71,
+      85
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      87,
+      88,
+      89,
+      90,
+      92,
+      93,
+      94,
+      96,
+      97,
+      98,
+      99,
+      103,
+      111,
+      112
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[two_stage_ota: 동일 회귀 + compensation 함수 실제 연결 확인]",
+     "start": 10725,
+     "end": 10743,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "_lib_dir<-S85",
+      "_os<-S85",
+      "t<-S86"
+     ],
+     "dep_sections": [
+      85,
+      86
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      88,
+      89
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[save_instance_json(): pipeline_result를 손대지 않고 그대로 파일에 옮기는지]",
+     "start": 10744,
+     "end": 10763,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_result<-S86",
+      "_lib_dir<-S85",
+      "_os<-S85",
+      "_ts_diff_ok<-S87"
+     ],
+     "dep_sections": [
+      85,
+      86,
+      87
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 26.5: run_topology_pipeline() -- sizing_overrides에서 소자 하나를",
+     "start": 10764,
+     "end": 10780,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_original<-S86",
+      "_lib_dir<-S85",
+      "_os<-S85",
+      "t<-S87"
+     ],
+     "dep_sections": [
+      85,
+      86,
+      87
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      96
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 26.55: run_topology_pipeline() -- check_finger_width_compatib",
+     "start": 10781,
+     "end": 10804,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 2,
+     "deps": [
+      "_fc_overrides<-S86",
+      "_lib_dir<-S85",
+      "_os<-S85"
+     ],
+     "dep_sections": [
+      85,
+      86
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 26.6: run_topology_pipeline() -- cell_groups 인자 (배치 7-2/2026-",
+     "start": 10805,
+     "end": 10810,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[(a) cell_groups/spine_groups 둘 다 None -- 기존 단일-Verdict 동작 그대로]",
+     "start": 10811,
+     "end": 10817,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_result<-S86"
+     ],
+     "dep_sections": [
+      86
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[(b) cell_groups 생략, floorplan_hints.spine_groups만 제공 -- fallback으로 그대",
+     "start": 10818,
+     "end": 10829,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_overrides<-S86",
+      "_lib_dir<-S85",
+      "_os<-S85"
+     ],
+     "dep_sections": [
+      85,
+      86
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      94
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[(c) cell_groups를 명시하면 spine_groups와 달라도 cell_groups가 우선(오버라이드)]",
+     "start": 10830,
+     "end": 10845,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_overrides<-S86",
+      "_fc_result<-S86",
+      "_lib_dir<-S85",
+      "_os<-S85",
+      "_spine_only_hints<-S93"
+     ],
+     "dep_sections": [
+      85,
+      86,
+      93
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 27: propagate_topology_forced_currents() / find_diode_stacks(",
+     "start": 10846,
+     "end": 10849,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[A엔진 (a) 직렬 스택 전파 -- folded_cascode 'bot' 스택 한 소자만 seed]",
+     "start": 10850,
+     "end": 10858,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_original<-S86",
+      "n<-S64",
+      "t<-S89"
+     ],
+     "dep_sections": [
+      64,
+      86,
+      89
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      100
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[A엔진 (b) 미러비 전파 -- ref(M9)->mirror(MN) 1:1 미러 가정]",
+     "start": 10859,
+     "end": 10864,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_original<-S86"
+     ],
+     "dep_sections": [
+      86
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[A엔진 (c) 같은 직렬 스택에 서로 다른 seed 전류가 섞이면 즉시 ValueError]",
+     "start": 10865,
+     "end": 10872,
+     "asserts": 0,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_original<-S86"
+     ],
+     "dep_sections": [
+      86
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[C엔진 find_diode_stacks() (a) folded_cascode -- M11/MN이 실제로 self-diode임",
+     "start": 10873,
+     "end": 10884,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_original<-S86"
+     ],
+     "dep_sections": [
+      86
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      100
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[C엔진 find_diode_stacks() (b) 실제 회로(current_reuse_telescopic_ota.topolo",
+     "start": 10885,
+     "end": 10907,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir<-S85",
+      "_os<-S85",
+      "m<-S99",
+      "n<-S96",
+      "t<-S96"
+     ],
+     "dep_sections": [
+      85,
+      96,
+      99
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      103,
+      105,
+      141
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 28: select_layout_tool()/repair_matching_safety() (배치 7-4/7-4",
+     "start": 10908,
+     "end": 10910,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[select_layout_tool() -- 2026-08-05(세션10) L1 하드컷: 축B/축C 조합별 도구 선택",
+     "start": 10911,
+     "end": 10924,
+     "asserts": 4,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[repair_matching_safety() -- known-incidents.md 사고3 재현: folded_cascode",
+     "start": 10925,
+     "end": 10965,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_fc_loaded<-S86",
+      "_fc_meta<-S86",
+      "c<-S80",
+      "t<-S100"
+     ],
+     "dep_sections": [
+      80,
+      86,
+      100
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      104,
+      105,
+      109,
+      111
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[repair_matching_safety() -- 공유 hub가 없는 pair(같은 파일에서 발견한 진짜",
+     "start": 10966,
+     "end": 10984,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_fc_by_name<-S103",
+      "_fc_pairs_meta<-S103",
+      "_first_pair_matching<-S103"
+     ],
+     "dep_sections": [
+      103
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      106,
+      108,
+      109
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[repair_matching_safety() -- 세션16 branch 복합 매칭: current_reuse_telescop",
+     "start": 10985,
+     "end": 11017,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "n<-S100",
+      "names<-S63",
+      "rn<-S61",
+      "t<-S103"
+     ],
+     "dep_sections": [
+      61,
+      63,
+      100,
+      103
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      107,
+      109,
+      111
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[_branch_composite_pair() -- branch 구조가 없는(2단자 net으로 안 이어진) 단독 소자",
+     "start": 11019,
+     "end": 11026,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_branch_a<-S104",
+      "_branch_b<-S104",
+      "_norepair_pairs<-S104",
+      "_t_branch_a<-S104",
+      "_t_branch_b<-S104"
+     ],
+     "dep_sections": [
+      104
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[세션17 _composite_collapse_for_crossover()/find_min_crossover_layout_wi",
+     "start": 11027,
+     "end": 11068,
+     "asserts": 8,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_m6b_pairs<-S105",
+      "_m6b_row<-S105",
+      "s<-S51",
+      "t<-S105"
+     ],
+     "dep_sections": [
+      51,
+      105
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      108,
+      117
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[회귀 -- branch 구조 없는 그룹(위 rowA/rowB 픽스처)은 _composite_collapse_for_",
+     "start": 11070,
+     "end": 11081,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_branch_a<-S104",
+      "_branch_b<-S104",
+      "_norepair_pairs<-S104",
+      "_norepair_sensitivity<-S104",
+      "_t_branch_a<-S104",
+      "_t_branch_b<-S104",
+      "t<-S107"
+     ],
+     "dep_sections": [
+      104,
+      107
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      111
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[repair_matching_safety() -- 세션17 relaxed_pairs: 최후수단 인접배치 완화가",
+     "start": 11082,
+     "end": 11109,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_branch_a<-S104",
+      "_branch_b<-S104",
+      "_m6b_pairs<-S105",
+      "_m6b_row<-S105",
+      "_m6b_sensitivity<-S105",
+      "_norepair_pairs<-S104",
+      "_norepair_rows<-S104",
+      "_norepair_sensitivity<-S104",
+      "c<-S103"
+     ],
+     "dep_sections": [
+      103,
+      104,
+      105
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      122
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 29: derive_stack_groups()/assign_finger_geometry() (배치 7-6, 2",
+     "start": 11110,
+     "end": 11115,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[geometry_colocation_union() -- 2026-08-05(세션10) L1/L2 하드컷: derive_sta",
+     "start": 11116,
+     "end": 11155,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_loaded<-S86",
+      "_fc_pairs_meta<-S103",
+      "members<-S64",
+      "n<-S105",
+      "p<-S103",
+      "t<-S108"
+     ],
+     "dep_sections": [
+      64,
+      86,
+      103,
+      105,
+      108
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      112,
+      113,
+      117,
+      136,
+      140
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[geometry_colocation_union() -- 재현성: 같은 입력 다시 넣으면 완전히 같은 그룹]",
+     "start": 11156,
+     "end": 11161,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_forced_pairs<-S111",
+      "_fc_groups<-S111",
+      "_fc_loaded<-S86"
+     ],
+     "dep_sections": [
+      86,
+      111
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[assign_finger_geometry() -- 위 그룹 + 합성 sizing_results(가상 gm/ID 결과,",
+     "start": 11162,
+     "end": 11201,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_groups<-S111",
+      "members<-S111"
+     ],
+     "dep_sections": [
+      111
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      141
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 30: analog-grammar 연동(Tier 1) — find_idiom_matches()/find_mat",
+     "start": 11202,
+     "end": 11206,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[0. analog-grammar 사용 가능 확인 -- 없으면 이 Test 전체가 무의미하니 먼저 확인]",
+     "start": 11207,
+     "end": 11213,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[1. 하위호환 -- idiom_matches=None(기본값)이면 Test 6과 완전히 동일한 net-only 동작]",
+     "start": 11214,
+     "end": 11220,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "found<-S16"
+     ],
+     "dep_sections": [
+      16
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[2. M57/M58 오탐 재현 -- 세션18 실사고 connectivity(2026-07-29 disposed -> 2026",
+     "start": 11221,
+     "end": 11244,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "g<-S58",
+      "s<-S107",
+      "t<-S111"
+     ],
+     "dep_sections": [
+      58,
+      107,
+      111
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      118
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[3. M11/MN 오탐 재현 -- folded_cascode_example(), 둘 다 self-diode(role=DIOD",
+     "start": 11245,
+     "end": 11263,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "g<-S117",
+      "s<-S117",
+      "t<-S117"
+     ],
+     "dep_sections": [
+      117
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      119
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[4. 캐스코드 대칭쌍(M2a/M2b류) 복합소자 상속 -- folded_cascode의 M1/M2(확정 diff_pair)",
+     "start": 11264,
+     "end": 11281,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_fc_new<-S118",
+      "g<-S118",
+      "s<-S118",
+      "t<-S118"
+     ],
+     "dep_sections": [
+      118
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      133,
+      173
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[5. 어댑터 자체 폴백 -- gate가 전혀 없는(레거시) Transistor 목록을 주면",
+     "start": 11282,
+     "end": 11303,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 31: run_full_circuit_audit_from_topology() -- topology.json 하",
+     "start": 11304,
+     "end": 11311,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      122,
+      124,
+      125
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[1. 실제 회로(51개 소자)로 자동 구성 -- ok=True, 세 체크 전부 자동 데이터로 통과하는지]",
+     "start": 11312,
+     "end": 11328,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_crt_path<-S121",
+      "c<-S109",
+      "v<-S81"
+     ],
+     "dep_sections": [
+      81,
+      109,
+      121
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      123,
+      130,
+      140
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[2. dispositions 변환 -- symmetry.dispositions(list)와 개수가 일치하고, 형식이 (cat",
+     "start": 11329,
+     "end": 11344,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_crt_meta<-S122",
+      "d<-S70"
+     ],
+     "dep_sections": [
+      70,
+      122
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      153
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[3. 구조화 필드가 없는 회로(folded_cascode) -- ValueError로 명확히 실패하는지,",
+     "start": 11345,
+     "end": 11354,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 1,
+     "deps": [
+      "_lib_dir31<-S121",
+      "_os31<-S121"
+     ],
+     "dep_sections": [
+      121
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[4. 구조화가 netlist 전수를 못 커버하면(소자 하나가 어느 블록에도 없음) ValueError --",
+     "start": 11355,
+     "end": 11388,
+     "asserts": 1,
+     "reject_try": 1,
+     "verdict_prints": 2,
+     "deps": [
+      "_os31<-S121"
+     ],
+     "dep_sections": [
+      121
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 32: trace_vdd_to_gnd_branches() -- 세션23 실측(4가지 vertical_stack",
+     "start": 11389,
+     "end": 11433,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 5,
+     "deps": [
+      "b<-S65"
+     ],
+     "dep_sections": [
+      65
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      128
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 33: suggest_vertical_stack_composites() -- branch tracing(Tes",
+     "start": 11434,
+     "end": 11465,
+     "asserts": 8,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 35: trace_gnd_to_vdd_branches()/find_differential_and_mirror_",
+     "start": 11466,
+     "end": 11515,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "b<-S126",
+      "f<-S71"
+     ],
+     "dep_sections": [
+      71,
+      126
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      129,
+      130,
+      132,
+      133,
+      135,
+      136,
+      137,
+      138,
+      139,
+      140
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 36: find_verified_differential_and_mirror_relations() -- 진짜 b",
+     "start": 11516,
+     "end": 11541,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t35_fixture<-S128",
+      "r<-S60"
+     ],
+     "dep_sections": [
+      60,
+      128
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      131
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 37: find_differential_pair_candidates() -- inputs= 선언 없이 순수",
+     "start": 11542,
+     "end": 11562,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t35_fixture<-S128",
+      "c<-S122"
+     ],
+     "dep_sections": [
+      122,
+      128
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      131
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 38: refine_differential_and_mirror_relations() -- input 승격",
+     "start": 11563,
+     "end": 11619,
+     "asserts": 11,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [
+      "c<-S130",
+      "r<-S129"
+     ],
+     "dep_sections": [
+      129,
+      130
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      132
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 39: find_verified_differential_and_mirror_relations() -- 세 번째",
+     "start": 11620,
+     "end": 11652,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t35_fixture<-S128",
+      "r<-S131"
+     ],
+     "dep_sections": [
+      128,
+      131
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      156
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 40: refine_differential_and_mirror_relations()의",
+     "start": 11653,
+     "end": 11683,
+     "asserts": 9,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t35_fixture<-S128",
+      "t<-S119"
+     ],
+     "dep_sections": [
+      119,
+      128
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      136
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 41: _propose_vertical_stack_ids()의 fan-in 모호성 탐지 --",
+     "start": 11684,
+     "end": 11715,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 42: fan-in 후보 중 differential-pair branch 소속 여부로 재판정 --",
+     "start": 11716,
+     "end": 11739,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t35_fixture<-S128"
+     ],
+     "dep_sections": [
+      128
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 43: refine_differential_and_mirror_relations()의",
+     "start": 11740,
+     "end": 11766,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t35_fixture<-S128",
+      "n<-S111",
+      "t<-S133"
+     ],
+     "dep_sections": [
+      111,
+      128,
+      133
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      138,
+      156
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 44: suggest_vertical_stack_composites()가 idioms.Match.ports를",
+     "start": 11767,
+     "end": 11787,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t35_fixture<-S128"
+     ],
+     "dep_sections": [
+      128
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      147
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 45: refine_differential_and_mirror_relations()의",
+     "start": 11788,
+     "end": 11847,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [
+      "_t35_fixture<-S128",
+      "t<-S136"
+     ],
+     "dep_sections": [
+      128,
+      136
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      141
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 46: find_verified_differential_and_mirror_relations()의",
+     "start": 11848,
+     "end": 11883,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_t35_fixture<-S128"
+     ],
+     "dep_sections": [
+      128
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 47: audit_vertical_stack_id_vs_kcl() -- declared vertical_sta",
+     "start": 11884,
+     "end": 11936,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 4,
+     "deps": [
+      "f<-S128",
+      "k<-S64",
+      "p<-S111",
+      "v<-S122"
+     ],
+     "dep_sections": [
+      64,
+      111,
+      122,
+      128
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      141,
+      143,
+      144
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 48: merge_layout_groups_by_matching_pairs() -- vertical_stack",
+     "start": 11937,
+     "end": 11987,
+     "asserts": 7,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "m<-S100",
+      "members<-S113",
+      "p<-S140",
+      "t<-S138"
+     ],
+     "dep_sections": [
+      100,
+      113,
+      138,
+      140
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      142,
+      146,
+      148
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[current_forced=False까지 전부 넘기면(세션9/10 dx 악화 반례 재현 의도)",
+     "start": 11988,
+     "end": 12002,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "_t48_candidates<-S141",
+      "_t48_pairs_meta<-S141",
+      "_t48_trs<-S141",
+      "members<-S141",
+      "p<-S141"
+     ],
+     "dep_sections": [
+      141
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      144,
+      148
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[current_forced=False라도 실제로 물리적으로 이어진(오일러 실현 가능한) 쌍이면",
+     "start": 12003,
+     "end": 12021,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "v<-S140"
+     ],
+     "dep_sections": [
+      140
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      144
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 49: audit_vertical_stack_id_euler_feasibility() -- declared",
+     "start": 12022,
+     "end": 12090,
+     "asserts": 10,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "f<-S140",
+      "k<-S140",
+      "p<-S142",
+      "v<-S143"
+     ],
+     "dep_sections": [
+      140,
+      142,
+      143
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      146,
+      148,
+      153,
+      154,
+      155,
+      157,
+      158,
+      159,
+      160,
+      161,
+      162,
+      163,
+      165,
+      167,
+      168,
+      169,
+      171,
+      173
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[합성 fixture -- 완전히 무관한(공유 net 없는) 두 소자를 한 declared 그룹으로",
+     "start": 12091,
+     "end": 12114,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 50: find_euler_repair_options() -- unresolved_row를 resolved로",
+     "start": 12115,
+     "end": 12140,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t49_forced<-S144",
+      "_t49_trs<-S144",
+      "t<-S141"
+     ],
+     "dep_sections": [
+      141,
+      144
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      148
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[합성 fixture -- 같은 행 안에서는 절대 안 풀리는(서로 완전히 끊긴) blocked 그룹을",
+     "start": 12141,
+     "end": 12163,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "c<-S137"
+     ],
+     "dep_sections": [
+      137
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 51: derive_horizontal_stack_groups() -- vertical_stack_id 그룹(",
+     "start": 12164,
+     "end": 12204,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_t49_device_roles<-S144",
+      "_t49_forced<-S144",
+      "_t49_trs<-S144",
+      "k<-S144",
+      "m<-S141",
+      "members<-S142",
+      "t<-S146",
+      "v<-S144"
+     ],
+     "dep_sections": [
+      141,
+      142,
+      144,
+      146
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      153,
+      160
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[합성 fixture -- 매칭 파트너가 없는 순수 mixed-kind vsid 하나가 kind로만",
+     "start": 12205,
+     "end": 12220,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 52: propose_vertical_stack_id_gap_fill() -- audit_vertical_st",
+     "start": 12221,
+     "end": 12224,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "D",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[합성 fixture -- internal_series gap은 채우고 declared_matching_pair gap은",
+     "start": 12225,
+     "end": 12246,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[합성 fixture -- 같은 소자가 서로 다른 edge에서 서로 다른 vsid를 물려받게",
+     "start": 12247,
+     "end": 12263,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[실제 회로 -- two_stage_ota.topology.json 원본(device_roles에 M1/M2/M6",
+     "start": 12264,
+     "end": 12295,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "d<-S123",
+      "k<-S148",
+      "p<-S144",
+      "v<-S148"
+     ],
+     "dep_sections": [
+      123,
+      144,
+      148
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      154
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[load_topology() 배선 -- 위 제안이 실제로 harness 최상위 진입점에서",
+     "start": 12296,
+     "end": 12326,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "f<-S144",
+      "k<-S153",
+      "p<-S153",
+      "v<-S153"
+     ],
+     "dep_sections": [
+      144,
+      153
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      155
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 53: propose_device_roles_gap_fill() -- netlist(+load_topology",
+     "start": 12327,
+     "end": 12368,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "itertools<-S58",
+      "k<-S154",
+      "p<-S154"
+     ],
+     "dep_sections": [
+      58,
+      144,
+      154
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      156,
+      158
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[compensation_stage_devices를 넘겨도 M1a/M4a/M15/M25 등 8개 소자에 gm_id_role이",
+     "start": 12369,
+     "end": 12389,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_t53_meta<-S155",
+      "_t53_trs<-S155",
+      "n<-S136",
+      "r<-S132"
+     ],
+     "dep_sections": [
+      132,
+      136,
+      155
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      169,
+      170
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[실제로 M1(compensation.stage_devices 소속)에 gm_id_role을 채운 topology.json으로",
+     "start": 12390,
+     "end": 12467,
+     "asserts": 3,
+     "reject_try": 1,
+     "verdict_prints": 3,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144"
+     ],
+     "dep_sections": [
+      144
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 54: propose_device_roles_gap_fill() -- 층위1 폴백(비대칭/폴딩 구조라",
+     "start": 12468,
+     "end": 12498,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "k<-S155",
+      "p<-S155",
+      "u<-S67"
+     ],
+     "dep_sections": [
+      67,
+      144,
+      155
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      159,
+      160
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 55: apply_device_roles_gap_fill() -- 실제 파일 읽기/병합/쓰기 왕복 +",
+     "start": 12499,
+     "end": 12547,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "p<-S158"
+     ],
+     "dep_sections": [
+      144,
+      158
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      160,
+      162,
+      163
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 56: propose_device_roles_gap_fill()/apply_device_roles_gap_fi",
+     "start": 12548,
+     "end": 12606,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 3,
+     "deps": [
+      "_t49_os<-S144",
+      "_t55_tempfile<-S159",
+      "r<-S158",
+      "t<-S148"
+     ],
+     "dep_sections": [
+      144,
+      148,
+      158,
+      159
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      166,
+      172
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 57: find_authoritative_sizing_devices()/find_unreviewed_devic",
+     "start": 12607,
+     "end": 12639,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144"
+     ],
+     "dep_sections": [
+      144
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      162
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[합성 fixture -- 일반 소자(authoritative 아님)의 gm_id_role/L_role이 파일에",
+     "start": 12640,
+     "end": 12677,
+     "asserts": 3,
+     "reject_try": 1,
+     "verdict_prints": 3,
+     "deps": [
+      "_t49_os<-S144",
+      "_t55_tempfile<-S159",
+      "_t57_raw<-S161"
+     ],
+     "dep_sections": [
+      144,
+      159,
+      161
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 58: find_unreviewed_matching_pairs() -- matching_pairs도 revie",
+     "start": 12678,
+     "end": 12724,
+     "asserts": 4,
+     "reject_try": 1,
+     "verdict_prints": 2,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "p<-S159"
+     ],
+     "dep_sections": [
+      144,
+      159
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 1,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      164
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[differential(offset) 출처는 review 없이도 메모리에 자동 병합되는지 -- M1/M2",
+     "start": 12725,
+     "end": 12736,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t58_meta<-S163",
+      "p<-S163"
+     ],
+     "dep_sections": [
+      163
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 60: audit_theta_root_direction() -- sizing_roles.theta의 'A'/'",
+     "start": 12737,
+     "end": 12751,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144"
+     ],
+     "dep_sections": [
+      144
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      166
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[세션 초반 실제로 저질렀던 버그(M106을 root로 두고 M108을 그 반대로 참조) 재현 -- 잡히는지]",
+     "start": 12753,
+     "end": 12771,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_t60_meta<-S165",
+      "_t60_trs<-S165",
+      "t<-S160"
+     ],
+     "dep_sections": [
+      160,
+      165
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      169
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[current_reuse_telescopic_ota의 kcl_tail_M38(root=M38 tail, reference=M",
+     "start": 12773,
+     "end": 12787,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144"
+     ],
+     "dep_sections": [
+      144
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[나머지 실제 library 회로(folded_cascode/two_stage_ota)도 findings 0건인지 -- 이미 ",
+     "start": 12789,
+     "end": 12804,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144"
+     ],
+     "dep_sections": [
+      144
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 61: propose_theta_kcl_gap_fill() -- 전류(ID) KCL 구조를 connectivi",
+     "start": 12805,
+     "end": 12829,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "n<-S156",
+      "t<-S166"
+     ],
+     "dep_sections": [
+      144,
+      156,
+      166
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      170
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[compensation_stage_devices=[M102,M103,M201,M301]을 주면 위 한계가 풀리는지 -- 20",
+     "start": 12831,
+     "end": 12856,
+     "asserts": 6,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_t61_meta<-S169",
+      "_t61_trs<-S169",
+      "grp<-S156",
+      "n<-S169",
+      "t<-S169"
+     ],
+     "dep_sections": [
+      156,
+      169
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      171,
+      173
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[folded_cascode -- 규칙 2.7(gate mirror, MP->M3/M4)가 실제로 필요한지 재확인 -- 처음엔",
+     "start": 12858,
+     "end": 12870,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "t<-S170"
+     ],
+     "dep_sections": [
+      144,
+      170
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      172,
+      173
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[서로 다른 자유 root 그룹(MP측/M9-M10측)이 같은 KCL 노드로 수렴하면 placeholder 값 충돌(0/음수)",
+     "start": 12872,
+     "end": 12888,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t61_fc_result<-S171",
+      "r<-S160"
+     ],
+     "dep_sections": [
+      160,
+      171
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 62: apply_theta_kcl_gap_fill() -- propose_theta_kcl_gap_fill(",
+     "start": 12889,
+     "end": 12936,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [
+      "_t49_lib<-S144",
+      "_t49_os<-S144",
+      "_t61c_result<-S170",
+      "s<-S119",
+      "t<-S171"
+     ],
+     "dep_sections": [
+      119,
+      144,
+      170,
+      171
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    }
+   ],
+   "module_names_read": [
+    "COMMON_CENTROID_PATTERNS",
+    "Counter",
+    "FloorplanBlock",
+    "INTERDIGITATION_PATTERNS",
+    "Transistor",
+    "_branch_composite_pair",
+    "_build_crossover_segments",
+    "_common_centroid_from_pattern_table",
+    "_common_centroid_residual",
+    "_composite_collapse_for_crossover",
+    "_count_matching_pair_splits",
+    "_dc_asdict",
+    "_dc_replace",
+    "_hubleaf_sequence_node_path",
+    "_is_perfect_crossover_score",
+    "_mirror_node_map_from_pairs",
+    "_pack_by_subkind",
+    "_pair_odd_nodes_by_mirror",
+    "_sorted_setmap",
+    "apply_device_roles_gap_fill",
+    "apply_theta_kcl_gap_fill",
+    "assign_finger_geometry",
+    "audit_row_split",
+    "audit_theta_root_direction",
+    "audit_vertical_stack_id_euler_feasibility",
+    "audit_vertical_stack_id_vs_kcl",
+    "block_from_rows",
+    "build_graph",
+    "build_mirror_symmetric_pattern",
+    "build_stick_diagram",
+    "check_box_shape",
+    "check_euler_condition",
+    "check_mirror_symmetry",
+    "check_multi_leaf_hub_parity",
+    "check_stick_diagram_coverage",
+    "check_symmetry_dispositions",
+    "check_walk_sequence",
+    "common_centroid_layout",
+    "defaultdict",
+    "derive_horizontal_stack_groups",
+    "evaluate_row_split_candidates",
+    "find_authoritative_sizing_devices",
+    "find_differential_and_mirror_forks",
+    "find_differential_pair_candidates",
+    "find_diffusion_safe_split_points",
+    "find_diode_stacks",
+    "find_euler_repair_options",
+    "find_hub_merge_candidates",
+    "find_idiom_matches",
+    "find_interleaved_symmetric_splits",
+    "find_matching_candidates",
+    "find_min_crossover_layout",
+    "find_min_crossover_layout_with_branch_composite",
+    "find_stack_edges",
+    "find_stacked_matching_candidates",
+    "find_unreviewed_device_roles",
+    "find_unreviewed_matching_pairs",
+    "find_verified_differential_and_mirror_relations",
+    "folded_cascode_example",
+    "geometry_colocation_union",
+    "interdigitate_layout",
+    "json",
+    "load_topology",
+    "merge_layout_groups_by_matching_pairs",
+    "mirror_symmetric_trail",
+    "os",
+    "pack_floorplan",
+    "pack_floorplan_grouped",
+    "pack_group_as_unit",
+    "propagate_topology_forced_currents",
+    "propose_device_roles_gap_fill",
+    "propose_theta_kcl_gap_fill",
+    "propose_vertical_stack_id_gap_fill",
+    "refine_differential_and_mirror_relations",
+    "render_stick_diagram",
+    "repair_matching_safety",
+    "require_device_roles_reviewed",
+    "run_full_circuit_audit",
+    "run_full_circuit_audit_from_topology",
+    "run_topology_pipeline",
+    "save_instance_json",
+    "search_shared_finger_w",
+    "search_stack_finger_w",
+    "search_unit_cell_sizing",
+    "select_layout_tool",
+    "skyline_pack_best_width",
+    "split_into_stacks",
+    "suggest_pair_finger_adjustments",
+    "suggest_vertical_stack_composites",
+    "trace_gnd_to_vdd_branches",
+    "trace_vdd_to_gnd_branches",
+    "two_stage_ota_example"
+   ],
+   "unresolved_names_read": []
+  },
+  {
+   "file": "design_report.py",
+   "lines_total": 382,
+   "main_block": {
+    "start": 319,
+    "end": 382,
+    "lines": 64,
+    "uses_sys_argv": false
+   },
+   "sections": [
+    {
+     "kind": "prelude",
+     "title": "(머리)",
+     "start": 320,
+     "end": 331,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "P",
+     "judged": false,
+     "provides_to": [
+      1,
+      2,
+      3
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 1: build_topology_device_table() -- 51개 소자가 matching_pairs로 그",
+     "start": 333,
+     "end": 344,
+     "asserts": 3,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_crt_topo<-S0"
+     ],
+     "dep_sections": [
+      0
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      2
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 2: assemble_report_data() -- instance.json 없이도(사이징 전) 안 죽는지 =",
+     "start": 345,
+     "end": 354,
+     "asserts": 4,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_crt_topo<-S0",
+      "_rows<-S1"
+     ],
+     "dep_sections": [
+      0,
+      1
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 3: assemble_report_data() -- 실제(과거, partial scope) instance.j",
+     "start": 355,
+     "end": 375,
+     "asserts": 5,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_crt_instance<-S0",
+      "_crt_topo<-S0",
+      "run_full_circuit_audit_from_topology<-S0"
+     ],
+     "dep_sections": [
+      0
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "=== Test 4: 빈 report({}) -- 아무 섹션도 없어도 크래시 없이 최소 HTML만 생성 ===",
+     "start": 376,
+     "end": 382,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 2,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    }
+   ],
+   "module_names_read": [
+    "assemble_report_data",
+    "build_topology_device_table",
+    "os",
+    "render_html_report"
+   ],
+   "unresolved_names_read": []
+  },
+  {
+   "file": "topology_library.py",
+   "lines_total": 694,
+   "main_block": {
+    "start": 528,
+    "end": 694,
+    "lines": 167,
+    "uses_sys_argv": false
+   },
+   "sections": [
+    {
+     "kind": "prelude",
+     "title": "(머리)",
+     "start": 529,
+     "end": 533,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "P",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# Miller 2단 OTA (GBW=20MHz, CL=3pF, Z=10, NDP=4) — prev_cggs=None(초기 반",
+     "start": 535,
+     "end": 538,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# NMCNR 3단 (GBW=5MHz, CL=10pF, PM_target=70deg, kg=0.5)",
+     "start": 540,
+     "end": 550,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      3
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "# nmcnr_predict_ac_response() 스모크 테스트 — sky130-worked-example.md §12.3",
+     "start": 552,
+     "end": 561,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "gm1n<-S2",
+      "gm2n<-S2",
+      "gm3n<-S2"
+     ],
+     "dep_sections": [
+      2
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# nmcnr_predict_ac_response() 독립 재유도 회귀 검증(2026-08-19 세션37 연속) —",
+     "start": 563,
+     "end": 602,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# nmcnr_check_dominant_pole_approximation() -- Eq10/11의 '우세극' 전제 자체를",
+     "start": 604,
+     "end": 606,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      6,
+      7
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[nmcnr_amplifier 실제 스펙: GBW=816kHz/CL=1e-10F/PM_target=70도/kg=0.5]",
+     "start": 607,
+     "end": 615,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_diag_bad<-S5"
+     ],
+     "dep_sections": [
+      5
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[GBW/CL/kg 불변성 -- gbw_ratio/pm_diff가 PM_target_deg에만 의존하고 GBW/CL/kg와는",
+     "start": 617,
+     "end": 629,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [
+      "_diag_bad<-S5"
+     ],
+     "dep_sections": [
+      5
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[PM_target_deg만 바꿔가며 valid=True가 되는 지점 탐색 -- 물리적으로 타당한 60~90도",
+     "start": 631,
+     "end": 642,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 1,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# NGCC 3단 (Lee et al. Table 4 예제: k=4, GB=10MHz, CL=10pF, alpha=0.3) —",
+     "start": 644,
+     "end": 650,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    },
+    {
+     "kind": "major",
+     "title": "# current-reuse telescopic OTA(Xie & Chen 원문 Eq.2-6, 2026-07-31 -- 원문 ",
+     "start": 651,
+     "end": 654,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      12,
+      13
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[Eq.6 ratio=tan(PM_target) -- 원문 수치 예제(PM=70도->2.8)와 검산]",
+     "start": 656,
+     "end": 659,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[Eq.4/5 cold-start(prev_cggs=None) -- Cgg1=0 가정, beta=0.5 정확히, gmp=gmn",
+     "start": 661,
+     "end": 668,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "tf4<-S10"
+     ],
+     "dep_sections": [
+      10
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      13,
+      14,
+      15
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[Eq.4 -- Cgg1_total(M1a+M4a 합)을 명시적으로 주면 beta/gmp/gmn이 그만큼 변함]",
+     "start": 670,
+     "end": 678,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "gmp_cold<-S12",
+      "tf4<-S10"
+     ],
+     "dep_sections": [
+      10,
+      12
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": [
+      14,
+      15
+     ]
+    },
+    {
+     "kind": "sub",
+     "title": "[세션30 -- gm2가 gmp2/gmn2로 분리되고 항상 gmp2=gmn2=gm2/2(50:50 기본값)임을 확인]",
+     "start": 680,
+     "end": 685,
+     "asserts": 2,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "gmn2_cold<-S12",
+      "gmn2_fed<-S13",
+      "gmp2_cold<-S12",
+      "gmp2_fed<-S13"
+     ],
+     "dep_sections": [
+      12,
+      13
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    },
+    {
+     "kind": "sub",
+     "title": "[Eq.6 -- Cgg2(prev_cggs[2]+prev_cggs[3])를 키우면 gm2(=gmp2+gmn2)도 커짐(단조성)",
+     "start": 687,
+     "end": 694,
+     "asserts": 1,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "gmn2_cold<-S12",
+      "gmn2_fed<-S13",
+      "gmp2_cold<-S12",
+      "gmp2_fed<-S13"
+     ],
+     "dep_sections": [
+      12,
+      13
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "A",
+     "judged": true,
+     "provides_to": []
+    }
+   ],
+   "module_names_read": [
+    "current_reuse_telescopic_topology",
+    "math",
+    "miller_ota_topology",
+    "ngcc_3stage_topology",
+    "nmcnr_3stage_topology",
+    "nmcnr_check_dominant_pole_approximation",
+    "nmcnr_compensation_elements",
+    "nmcnr_predict_ac_response"
+   ],
+   "unresolved_names_read": []
+  },
+  {
+   "file": "audit_current_forced.py",
+   "lines_total": 180,
+   "main_block": {
+    "start": 153,
+    "end": 180,
+    "lines": 28,
+    "uses_sys_argv": true
+   },
+   "sections": [
+    {
+     "kind": "prelude",
+     "title": "(머리)",
+     "start": 154,
+     "end": 166,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": true,
+     "raise_assertion": 0,
+     "category": "P",
+     "judged": false,
+     "provides_to": [
+      1
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "# current_forced audit -- matching_pairs 축A 선언과 sizing_roles.theta 양방향",
+     "start": 168,
+     "end": 180,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "paths<-S0"
+     ],
+     "dep_sections": [
+      0
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    }
+   ],
+   "module_names_read": [
+    "glob",
+    "os",
+    "render_report",
+    "sys"
+   ],
+   "unresolved_names_read": []
+  },
+  {
+   "file": "sky130_lut_sweep.py",
+   "lines_total": 337,
+   "main_block": {
+    "start": 313,
+    "end": 337,
+    "lines": 25,
+    "uses_sys_argv": false
+   },
+   "sections": [
+    {
+     "kind": "prelude",
+     "title": "(머리)",
+     "start": 314,
+     "end": 315,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "P",
+     "judged": false,
+     "provides_to": [
+      1,
+      2
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== NMOS (nfet_01v8) ===",
+     "start": 317,
+     "end": 318,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "t0<-S0"
+     ],
+     "dep_sections": [
+      0
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": [
+      2
+     ]
+    },
+    {
+     "kind": "major",
+     "title": "=== PMOS (pfet_01v8) ===",
+     "start": 320,
+     "end": 337,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [
+      "CGD_n<-S1",
+      "CGG_n<-S1",
+      "GDS_n<-S1",
+      "GM_n<-S1",
+      "ID_n<-S1",
+      "SID_1F_n<-S1",
+      "t0<-S0"
+     ],
+     "dep_sections": [
+      0,
+      1
+     ],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "C",
+     "judged": false,
+     "provides_to": []
+    }
+   ],
+   "module_names_read": [
+    "L_GRID_UM",
+    "OUTPUT_DIR",
+    "VDS_ARR",
+    "VGS_ARR",
+    "VS_GRID",
+    "np",
+    "os",
+    "run_device",
+    "sys",
+    "time"
+   ],
+   "unresolved_names_read": []
+  },
+  {
+   "file": "topology_to_markdown.py",
+   "lines_total": 205,
+   "main_block": {
+    "start": 187,
+    "end": 205,
+    "lines": 19,
+    "uses_sys_argv": true
+   },
+   "sections": [
+    {
+     "kind": "prelude",
+     "title": "(머리)",
+     "start": 188,
+     "end": 205,
+     "asserts": 0,
+     "reject_try": 0,
+     "verdict_prints": 0,
+     "deps": [],
+     "dep_sections": [],
+     "reads_lut": false,
+     "uses_drl_case": false,
+     "uses_file": false,
+     "raise_assertion": 0,
+     "category": "P",
+     "judged": false,
+     "provides_to": []
+    }
+   ],
+   "module_names_read": [
+    "json",
+    "os",
+    "render_markdown",
+    "sys"
+   ],
+   "unresolved_names_read": []
+  }
+ ]
+}

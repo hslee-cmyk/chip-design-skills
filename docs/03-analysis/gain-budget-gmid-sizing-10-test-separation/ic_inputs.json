@@ -1,0 +1,253 @@
+{
+ "commit": "89d257c3c332158697389c9b10195b210f2ae03b",
+ "ic5_gates": [
+  {
+   "file": "audit_current_forced.py",
+   "name": "audit_topology",
+   "line": 79,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "sizing_recipe.py",
+   "name": "check_quasi_static",
+   "line": 168,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "sizing_recipe.py",
+   "name": "audit_l_sharing_consistency",
+   "line": 2518,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "sizing_recipe.py",
+   "name": "audit_vsb_consistency",
+   "line": 4018,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "sizing_recipe.py",
+   "name": "validate_no_legacy_vs_key",
+   "line": 5790,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "sizing_recipe.py",
+   "name": "validate_metric_units",
+   "line": 5813,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "sizing_recipe.py",
+   "name": "validate_theta_declaration_order",
+   "line": 6858,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "sizing_recipe.py",
+   "name": "require_declared_spec_source",
+   "line": 8172,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "check_mirror_symmetry",
+   "line": 237,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "check_symmetry_dispositions",
+   "line": 2723,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "check_multi_leaf_hub_parity",
+   "line": 2976,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "audit_vertical_stack_id_vs_kcl",
+   "line": 3322,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "audit_theta_root_direction",
+   "line": 3498,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "require_device_roles_reviewed",
+   "line": 4882,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "audit_vertical_stack_id_euler_feasibility",
+   "line": 4976,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "check_finger_width_compatibility",
+   "line": 5320,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "check_euler_condition",
+   "line": 5448,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "check_box_shape",
+   "line": 6486,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "check_walk_sequence",
+   "line": 6607,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "check_stick_diagram_coverage",
+   "line": 7085,
+   "blind_spot_clause": false,
+   "domain_line": false
+  },
+  {
+   "file": "stick_diagram.py",
+   "name": "audit_row_split",
+   "line": 7164,
+   "blind_spot_clause": false,
+   "domain_line": false
+  }
+ ],
+ "ic3_library_names": {
+  "common_gate_amplifier.topology.json": {
+   "devices": 3,
+   "passives": 0,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  },
+  "current_reuse_telescopic_ota.topology.json": {
+   "devices": 51,
+   "passives": 12,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  },
+  "folded_cascode.topology.json": {
+   "devices": 13,
+   "passives": 0,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  },
+  "ngcc_3stage_ff.topology.json": {
+   "devices": 16,
+   "passives": 3,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  },
+  "nmcnr_amplifier.topology.json": {
+   "devices": 15,
+   "passives": 0,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  },
+  "pushpull_follower_buffer.topology.json": {
+   "devices": 6,
+   "passives": 1,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  },
+  "sf_pushpull_output_opamp.topology.json": {
+   "devices": 22,
+   "passives": 5,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  },
+  "two_stage_ota.topology.json": {
+   "devices": 7,
+   "passives": 0,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  },
+  "two_stage_ota_sf.topology.json": {
+   "devices": 9,
+   "passives": 2,
+   "duplicate_devices": [],
+   "device_passive_overlap": [],
+   "case_only_collisions": []
+  }
+ },
+ "ic3_tracked_instances": {
+  "workspaces/current-reuse-telescopic-ota-report/current_reuse_telescopic_ota.instance.json": {
+   "missing_top": [],
+   "missing_sizing": [],
+   "missing_fields": {},
+   "missing_netlist": [],
+   "coverage_missing": []
+  },
+  "workspaces/folded-cascode-report/folded_cascode.instance.json": {
+   "missing_top": [],
+   "missing_sizing": [],
+   "missing_fields": {},
+   "missing_netlist": [],
+   "coverage_missing": []
+  },
+  "workspaces/nmcnr-amplifier-report/nmcnr_amplifier.instance.json": {
+   "missing_top": [],
+   "missing_sizing": [],
+   "missing_fields": {},
+   "missing_netlist": [],
+   "coverage_missing": []
+  },
+  "workspaces/two-stage-ota-report/two_stage_ota.PROVISIONAL_gain51.instance.json": {
+   "skipped": "topology_ref가 library 파일이 아니다: two_stage_ota_boxshape_check.topology.json"
+  },
+  "workspaces/two-stage-ota-report/two_stage_ota.PROVISIONAL_gain51_M5M7split.instance.json": {
+   "skipped": "topology_ref가 library 파일이 아니다: two_stage_ota_boxshape_M5M7split.topology.json"
+  },
+  "workspaces/two-stage-ota-report/two_stage_ota.instance.json": {
+   "missing_top": [],
+   "missing_sizing": [],
+   "missing_fields": {},
+   "missing_netlist": [],
+   "coverage_missing": []
+  }
+ }
+}

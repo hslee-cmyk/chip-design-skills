@@ -1,0 +1,66 @@
+# HEAD 89d257c 격리 복제본 실행(PYTHONHASHSEED=1) stdout 대 커밋된 기준선 (CR 제거 뒤 diff)
+## sizing_recipe
+108,109c108,109
+<     PASS: M7==M6(=0.4V), M36b==M36a(=0.6V) -- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사
+<     PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=59.06, mismatch_sigma_mV=4.97, cmrr_estimate_db=60.94, psrr_estimate_db=65.59)
+---
+>     PASS: M7==M6(=0.2500000000000001V), M36b==M36a(=0.6V) -- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사
+>     PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db=60.39, mismatch_sigma_mV=9.58, cmrr_estimate_db=60.02, psrr_estimate_db=66.43)
+136c136
+< # allocate_stack_headroom()/search_gm_id_for_role()/select_L_by_role()
+---
+> # allocate_stack_headroom()/search_gm_id_for_role()/derive_role_L()
+161,164c161,186
+<   [7-3f select_L_by_role() -- mirror/bias_replica는 배수, cascode/signal은 ValueError]
+<     mirror: L=0.375um(=0.15um*2.5), bias_replica: L=0.180um(=0.15um*1.2)
+<     PASS: role='cascode' -> ValueError -- role='cascode'은 select_L_by_role()이 아니라 배치 7-3d의 theta 탐색(L_...
+<     PASS: role='signal' -> ValueError -- role='signal'은 select_L_by_role()이 아니라 배치 7-3d의 theta 탐색(L_c...
+---
+>   [7-3f 대체(2026-09-10, 사용자 지시 "bias_replica 상수도 없애") --
+>    derive_role_L(): L = clamp(knee(LUT 실측), W 실현가능 창). 옛 _L_ROLE_MULTIPLIERS
+>    (mirror 2.5 / bias_replica 1.2)는 삭제됐다 -- 아래는 그 자리를 대신하는 게이트다]
+>     PASS: ID 미확정 -> knee 그대로 0.350um (상수가 아니라 LUT 실측)
+>     PASS: ID=30000uA, W_bounds=1~200um -> 창=[0.180,0.180]um, knee 0.350um을 0.180um로 **아래로 clamp**했다
+>     PASS: ID=0uA, W_bounds=120~200um -> 창=[0.500,1.000]um, knee 0.350um을 0.500um로 **위로 clamp**했다
+>     PASS: gm_id_grid 미선언 -> None(옛 코드는 여기서 L_min x 배수를 지어냈다)
+>     PASS: role='cascode' -> ValueError -- L_role='cascode'(Mm)은 배치 7-3d의 theta 탐색(L_cascode/L_stage2ou...
+>     PASS: role='signal' -> ValueError -- L_role='signal'(Mm)은 배치 7-3d의 theta 탐색(L_cascode/L_stage2out...
+>     PASS: 전류가 4배 다른 두 멤버의 류 공통 L=0.180um -- 양쪽 창 안
+> 
+>   [계통 미러비 오차를 **선언된 랜덤 예산과 같은 단위**로 재기(2026-09-10) --
+>    숫자를 박지 않으려고 만든 것이다: 임계값이 mismatch_sigma_mV 참조로 끝난다]
+>     PASS: dVDS=0.5V / V_A=10V -> 5.00%, gm_id=20/V로 나누면 2.50mV (같은 오차의 두 표현)
+>     PASS: 쌍별 표가 ctx.derived에 캐시됨(pct/mV 두 metric이 공유)
+>   [value_from_constraint -- 임계값을 다른 제약에서 그대로 참조(숫자 복제 금지)]
+>     PASS: 참조가 5.0으로 치환됨 -- 임계값이 선언된 곳은 한 곳뿐이다
+>     PASS: 참조 대상이 없음 -> ValueError -- constraint 'x'가 value_from_constraint='없는제약'를 참조하는데 ...
+>     PASS: 참조 대상이 자기도 참조(연쇄) -> ValueError -- constraint 'x'가 value_from_constraint='y'를 참조하는데 그 이...
+>     PASS: value와 참조가 둘 다 있고 다름 -> ValueError -- constraint 'x'에 value(9.0)와 value_from_constraint(y=...
+> 
+>   [웜스타트 조인트 스캔 점수(2026-09-10, l_class 포함) -- 그룹마다 기준이 다르다]
+>     PASS: centering 그룹 -- 그 metric을 그대로 최소화
+>     PASS: l_class 그룹 -- 최소여유 최대화(내부점 0.10 > 경계 0.00, 경계 후보가 실제로 밀린다)
+>     PASS: 제약 0개 -> ValueError -- 선언된 constraint가 하나도 없으면 l_class 웜스타트가 후보를 비교할 수 없다 -- 제약...
+>     PASS: 선언 안 된 점수 metric -> KeyError -- "조인트 스캔 점수 metric 'not_declared'이 metrics_specs에 없다"...
+211c233
+<     PASS: {'status': 'gap', 'kind': 'unresolved_vds_or_L', 'device': 'Mo', 'message': 'Mo: L 또는 VDS가 미확정 -- diode-connected(gate==drain)라 vds에서 gm_id를 유도해야 하는데 L=1.2499999999999999e-06/vds=None다. 이 pass는 L_role 루프·헤드룸이 끝난 뒤에 돌므로 둘 다 있어야 정상이고, 파일럿 실측 6,960회에서 이 분기는 0회였다 -- 지어내지 않고 보고한다', 'fix_hint': "'Mo'의 device_roles에 L_role/vertical_stack_id가 선언돼 있는지, 그 소자가 속한 headroom 그룹(singleton이면 budget_reference_device/thin_roles 등)이 예산을 실제로 받을 수 있는 구조인지 확인할 것 -- 이것도 값을 대신 지어내지 않는다."}
+---
+>     PASS: {'status': 'gap', 'kind': 'unresolved_vds_or_L', 'device': 'Mo', 'message': 'Mo: L 또는 VDS가 미확정 -- diode-connected(gate==drain)라 vds에서 gm_id를 유도해야 하는데 L=3.5e-07/vds=None다. 이 pass는 L_role 루프·헤드룸이 끝난 뒤에 돌므로 둘 다 있어야 정상이고, 파일럿 실측 6,960회에서 이 분기는 0회였다 -- 지어내지 않고 보고한다', 'fix_hint': "'Mo'의 device_roles에 L_role/vertical_stack_id가 선언돼 있는지, 그 소자가 속한 headroom 그룹(singleton이면 budget_reference_device/thin_roles 등)이 예산을 실제로 받을 수 있는 구조인지 확인할 것 -- 이것도 값을 대신 지어내지 않는다."}
+244c266
+<     PASS: compensation이 Ma에 고른 L=0.180um -- Mb의 L_role 휴리스틱(단독이면 0.875um)을 덮어쓰고 그 값으로 재설계됨(ValueError 없이)
+---
+>     PASS: compensation이 Ma에 고른 L=0.180um -- Mb의 L_role 휴리스틱(단독이면 0.350um)을 덮어쓰고 그 값으로 재설계됨(ValueError 없이)
+357a380
+>     PASS: common_gate_amplifier.topology.json -- 위반 0건
+359a383
+>     PASS: ngcc_3stage_ff.topology.json -- 위반 0건
+360a385,386
+>     PASS: pushpull_follower_buffer.topology.json -- 위반 0건
+>     PASS: sf_pushpull_output_opamp.topology.json -- 위반 0건
+361a388
+>     PASS: two_stage_ota_sf.topology.json -- 위반 0건
+## stick_diagram
+828c828
+<     PASS: ValueError 발생 -- C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets\library\folded_cascode.topology.json에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from_topology()는 expected_counts를 자동 도출할 수 없다(prose _netlist_sections를 구조화된 dict로 먼저 변환할 것, 세션20 참고).
+---
+>     PASS: ValueError 발생 -- C:\Users\HSLEE\AppData\Local\Temp\claude\C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills\1c3a2c65-595e-46c2-84d5-f1753fc3c9a3\scratchpad\iso\skills\analog-gmid-design\assets\library\folded_cascode.topology.json에 _netlist_sections_structured가 없다 -- run_full_circuit_audit_from_topology()는 expected_counts를 자동 도출할 수 없다(prose _netlist_sections를 구조화된 dict로 먼저 변환할 것, 세션20 참고).
