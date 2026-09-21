@@ -50,7 +50,7 @@ def _load_gate_code(cwd):
     env = boot.load_env(cwd)
     cache = boot.ensure_cache(env)
     del sys.modules["role_paths"]
-    return cache, env.main_root
+    return cache, env.main_root, env.common_dir
 
 
 def _main(argv):
@@ -60,10 +60,16 @@ def _main(argv):
     if mode not in ("pre-commit", "commit-msg", "pre-merge-commit"):
         print("[EL3] 모르는 모드: %r" % mode, file=sys.stderr)
         return 1
-    cache, main_root = _load_gate_code(os.getcwd())
+    cache, main_root, common_dir = _load_gate_code(os.getcwd())
     sys.path.insert(0, cache)
     import integrity
     import role_commit_gate
+    # D-8: 판정 범위와 무관하게 무결성 표지가 있으면 세 모드 전부 거부(§3.3, spec card 20260921-gate-flow-liveness 계약 3).
+    marker = integrity.marker_path(common_dir).replace("\\", "/")
+    if os.path.isfile(marker):
+        print("[EL3 차단] 무결성 대조 실패 표지 있음: %s" % marker, file=sys.stderr)
+        print(integrity.RECOVERY, file=sys.stderr)
+        return 1
     if mode in ("pre-commit", "pre-merge-commit"):
         results, ok = integrity.check("commit", main_root)
         if not ok:
@@ -80,11 +86,10 @@ def _main(argv):
 
 
 if __name__ == "__main__":
-    try:   # 로캘·PYTHONIOENCODING과 무관하게 출력을 UTF-8로(spec card 20260921-gate-output-utf8)
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
+    # 로캘·PYTHONIOENCODING과 무관하게 출력을 UTF-8로(spec card 20260921-gate-output-utf8).
+    # Python 3.14는 항상 reconfigure를 제공한다(V6, spec card 20260921-gate-flow-liveness 계약 6).
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     try:
         rc = _main(sys.argv[1:])
     except BaseException as e:   # fail-closed

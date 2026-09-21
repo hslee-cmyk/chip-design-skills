@@ -304,11 +304,11 @@ def _python_exempt(hc, argv, pythonpath_first_cache):
         if a in ("-W", "-X", "--check-hash-based-pycs"):
             i += 2
             continue
-        if a.startswith("-") and a != "-":
+        if a is not None and a.startswith("-") and a != "-":
             opts.append(a)
             i += 1
             continue
-        # 스크립트 인자
+        # 스크립트 인자 -- 해석 못 하는 값(모르는 변수 등, D-10)은 예외로 끝내지 않는다: 예외 없이 못 받은 값으로 판정(비예외)
         if a is not None and a.lower().endswith(".py"):
             ex.add(i)
         break
@@ -885,6 +885,9 @@ def _judge_merge(hc, root, rinfo, is_main, args, subl):
         if len(args) == 6 and args[0] == "--no-ff" and args[1] == "role/code/%s" % cid and args[2] == "-m" \
                 and args[3] and args[4] == "-m" and args[5] == "Role: doc\nChange-Id: %s" % cid:
             return
+        # D-3: 오케스트레이터의 §12 재시도 정리 -- 남은 병합 상태를 되돌린다(audit worktree만, 다른 병합 형태는 여전히 거부).
+        if args == ["--abort"]:
+            return
     if subl == "merge" and is_main and args == ["--ff-only", "gate/master"]:
         return
     _deny(hc, "허용된 병합 형태가 아니다: §12-6 `git -C <audit worktree> merge --no-ff role/code/<id> -m \"merge <id>\" "
@@ -900,20 +903,26 @@ def _judge_worktree(hc, args):
 
     def same(p, q):
         return p is not None and rp.ncase(rp.norm_abs(p, hc.cwd)) == rp.ncase(q)
-    if len(args) == 5 and args[0] == "add" and args[2] == "-b":
-        m = rp.role_of_branch(args[3])
-        if m:
-            short, cid = m
-            want_base = "gate/master" if short == "test" else "role/test/%s" % cid
-            if same(args[1], "%s/%s-%s" % (W, cid, short)) and args[4] == want_base:
+    if args and args[0] == "add":
+        # D-6: `-q`/`--quiet`만 걸러내면 §12-1 형태와 같은 판정.
+        add_rest = [a for a in args[1:] if a not in ("-q", "--quiet")]
+        if len(add_rest) == 4 and add_rest[1] == "-b":
+            m = rp.role_of_branch(add_rest[2])
+            if m:
+                short, cid = m
+                want_base = "gate/master" if short == "test" else "role/test/%s" % cid
+                if same(add_rest[0], "%s/%s-%s" % (W, cid, short)) and add_rest[3] == want_base:
+                    return
+    if args and args[0] == "remove":
+        # D-3: `--force`/`-f`가 앞이든 뒤든(순서 무관) 걸러내면 같은 경로 판정. §12 세 경로(<id>-{test,code,audit})만.
+        rm_rest = [a for a in args[1:] if a not in ("--force", "-f")]
+        if len(rm_rest) == 1:
+            p = rp.norm_abs(rm_rest[0], hc.cwd) if rm_rest[0] else None
+            m = re.match(r"^([0-9]{8}-[a-z0-9][a-z0-9-]*)-(test|code|audit)$", os.path.basename(p or ""))
+            if m and same(rm_rest[0], "%s/%s-%s" % (W, m.group(1), m.group(2))):
+                if m.group(2) == "code":
+                    _dispute_guard(hc, m.group(1), wt_path=p)
                 return
-    if len(args) == 2 and args[0] == "remove":
-        p = rp.norm_abs(args[1], hc.cwd) if args[1] else None
-        m = re.match(r"^([0-9]{8}-[a-z0-9][a-z0-9-]*)-(test|code|audit)$", os.path.basename(p or ""))
-        if m and same(args[1], "%s/%s-%s" % (W, m.group(1), m.group(2))):
-            if m.group(2) == "code":
-                _dispute_guard(hc, m.group(1), wt_path=p)
-            return
     _deny(hc, "git worktree는 §12의 add·remove 형태만: %s" % " ".join(x or "?" for x in args))
 
 
@@ -1010,9 +1019,20 @@ def role_worktree_violations(env, actor):
         if not dirty:
             continue
         if ri[0] != short:
-            # DESIGN-GAP: §7은 역할 worktree의 남은 경로마다 allowed라고만 적었다. 다른 역할 worktree의 미커밋 변경은
-            # 호출 역할이 쓸 수 없는 곳이라(§5.1) 위반으로 본다(한 번에 변경 하나라 정상 흐름에서는 역할이 커밋 뒤 끝난다).
-            fails.append("%s: 다른 역할(%s)의 worktree에 미커밋 변경 %s" % (path, ri[0], ", ".join(p for _, p in dirty[:5])))
+            # D-7: 다른 역할 worktree의 미커밋 경로는, 그 worktree 주인 역할에게 허용된 경로(쓰기 경로표,
+            # 그 worktree의 변경 id)이면 호출 역할의 위반으로 세지 않는다. 주인에게도 허용되지 않으면 위반이다.
+            owner_agent = rp.AGENT_OF_ROLE.get(ri[0])
+            owner_ctx = rp.WriteContext(rules=env.rules, change_id=ri[1], bootstrapped=env.bootstrapped,
+                                  gate_change_ok=mg.gate_change_ok(
+                                      mg.TreeView(env.gate_args(), env.gate_master) if env.source == "gate"
+                                      else mg.TreeView(["-C", env.main_root], "HEAD"), ri[1]))
+            owner_denied = []
+            for xy, p in dirty:
+                v = rp.allowed(owner_agent, p, owner_ctx) if owner_agent else None
+                if v is None or not v.ok:
+                    owner_denied.append((xy, p))
+            if owner_denied:
+                fails.append("%s: 다른 역할(%s)의 worktree에 미커밋 변경 %s" % (path, ri[0], ", ".join(p for _, p in owner_denied[:5])))
             continue
         ctx = rp.WriteContext(rules=env.rules, change_id=ri[1], bootstrapped=env.bootstrapped,
                               gate_change_ok=mg.gate_change_ok(

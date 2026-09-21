@@ -74,11 +74,10 @@ def _main():
 
 
 if __name__ == "__main__":
-    try:   # 로캘·PYTHONIOENCODING과 무관하게 출력을 UTF-8로(spec card 20260921-gate-output-utf8). 판정 전이라 캐시 밖에서, 자기 안에서 한다(§4.4)
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-        sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-    except Exception:
-        pass
+    # 로캘·PYTHONIOENCODING과 무관하게 출력을 UTF-8로(spec card 20260921-gate-output-utf8). 판정 전이라 캐시 밖에서, 자기 안에서 한다(§4.4)
+    # Python 3.14는 항상 reconfigure를 제공한다(V6, spec card 20260921-gate-flow-liveness 계약 6).
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
     try:
         rc = _main()
     except BaseException as e:   # fail-closed: 게이트 코드 import 실패·git 실패·무결성 실패 모두 거부
