@@ -14802,3 +14802,10 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 이제 역할 hook이 이 저장소의 모든 도구 호출을 판정한다(호출당 약 1 s, U-40). 문서 커밋은 Role: doc -> git push gate master:master -> git fetch gate -> git merge --ff-only gate/master(05 §12-0). 오케스트레이터는 gate 저장소를 직접 읽지 않는다(EL1이 --git-dir=<gate> 거부).
 - 다음(새 세션): ⑤ 설치 후 재생 -- (1) 새 세션의 SessionStart hook 동작 확인 (2) 검증 agent가 run_all.py --mode installed(11·18·21·22 포함, 21·22는 gate 임시 복제본에서만) (3) gmid agent 세 개로 §12 변경 한 건 전 과정 1회(SubagentStop·agent_type 실측). 재생 데이터·로그: tools/gates/redteam/.
 - 열린 것: U-39(MG0 때 회로별 분류), U-40(게이트 해제 시점, 7c 전). 사용자 결정: gmid-code-author 모델 sonnet 그대로.
+
+### 세션51 -- 부트스트랩 ⑤ 완료, Phase 0.5 끝 (2026-09-21)
+- ⑤ 설치 상태 재생: EL1·EL2는 실제 도구 호출(메인 세션, gmid 3역할·general-purpose·RTL agent), EL3·EL4·21·22는 격리 복제본 실제 git -- 판정 오류 0. 기록 docs/03-analysis/gain-budget-gmid-sizing-bootstrap5/installed-replay.md.
+- §12 전 과정 2회: 게이트 변경 20260921-gate-output-utf8(D-1 한글 깨짐; 1차 공격재생·2차 dispute D-9 -> 계획 N3.12.2 `tools/gates/githooks/**` 행 추가 49e5f65 -> 3차 1724d42), 20260921-gate-flow-liveness(D-3·D-6·D-7·D-8·D-10·V6, 2fa4886). 각각 §13.4 재설치 완료, integrity 전부 일치.
+- 운영 규칙(기록만): 역할 agent는 한 번에 하나, 도는 동안 오케스트레이터는 메인 worktree 쓰기 금지(D-2). 역할 보고(SubagentHandback)는 SubagentStop 전에 온다 -- 완료 알림으로 판단(D-4). W = 저장소 부모/wt.
+- 사용자 지적: "gmid 설계를 위한 harness인데 관계없는 작업만" -- 게이트 작업은 엔진 작업을 막을 때만.
+- 다음: MG0(U-39 회로별 _declared_target_spec / _paper_target_spec 분류, 사용자 확인) -> Phase 1. 열린 것: D-5, redteam red 증거 정의(00-common §8.1 DESIGN-GAP), U-40.

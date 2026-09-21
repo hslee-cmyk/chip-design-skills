@@ -146,6 +146,32 @@ client hook을, 실제 `git push`가 복제 gate의 `pre-receive`를 돌렸다(R
 변경 `20260921-gate-flow-liveness`로 고친다). auditor 관찰: 16곳의 `try: reconfigure … except Exception: pass`는 광범위 except(V6 도입
 Phase 1 뒤면 대상) -- 다음 변경에서 정리 후보.
 
+## 6. 두 번째 게이트 변경 `20260921-gate-flow-liveness` -- D-3·D-6·D-7·D-8·D-10·V6 (2026-09-21)
+
+| 순서 | 주체 | 결과 |
+|---|---|---|
+| 0 | 오케스트레이터 | spec card·design 05 §7·§12 개정 3149c33, 승인 기록 46075d4(diff), interface card f4b5213 → gate |
+| 2 | gmid-test-author | 공격 27a~27f 5d84584, base에서 red 30단계(ERROR 0), 대조 24·25·26 PASS |
+| 3 | gmid-verification-auditor | 격리 복제본 red 30 확인, `base_check.json` 미커밋 |
+| 5 | gmid-code-author | ee5aeb5(17파일), 공격 27 6/6 PASS, 전체 PASS 48·SKIPPED 7, 사례 PASS 5·SKIPPED 2 -- D-7(설치 전)로 SubagentStop 막힘 → 커밋 확인 뒤 TaskStop |
+| 6 | 오케스트레이터 | 병합 2f5c890 |
+| 7 | gmid-verification-auditor | V1 PASS(base 대비 달라진 단계 = red 30뿐), V2~V9 N/A(도입 Phase), V10 PASS, 판정 기록 2fa4886 |
+| 8 | 오케스트레이터 | gate `pre-receive` 통과 f4b5213..2fa4886, 정리 허용 |
+| 재설치 | 사용자 | §13.4 복사 3종 → `integrity.py check --scope session` 전부 ok(행 3b 사슬 11줄) |
+
+설치 상태 확인: D-10 명령(`C=<캐시>/$(git rev-parse gate/master); python $C/interface_card.py …`)이 예외 없이 허용·실행(exit 0).
+
+## 7. ⑤ 결론
+
+* **설치 상태 공격 재생**: EL1·EL2(실제 도구 호출·실제 subagent) 1·2절, EL3·EL4·21·22(격리 복제본 실제 git) 3절 -- 판정 오류 0.
+  N/A-installed는 실제 호출로 만들 수 없는 입력(`agent_type: ""`, test-author Grep)뿐.
+* **§12 전 과정**: 두 게이트 변경이 test → audit → code → 병합 → 판정 → gate push → 재설치까지 설치 상태에서 끝났다.
+  두 번 모두 순서 5에서 D-7 오거부가 있었고, 그 D-7은 두 번째 변경으로 고쳐 설치됐다.
+* **`agent_type`**: `gmid-code-author`·`gmid-test-author`·`gmid-verification-auditor`(정의 이름 그대로, transcript 실측).
+* **해결**: D-1(첫 변경), D-3·D-6·D-7·D-8·D-9(계획 개정)·D-10·V6(두 번째 변경).
+* **남은 것(운영·기록)**: D-2(역할은 한 번에 하나), D-4(보고 전달이 SubagentStop보다 먼저 -- 오케스트레이터는 완료 알림으로 판단),
+  D-5(게이트 변경의 test-author가 게이트 코드를 읽을 수 있음), redteam red 증거 정의(DESIGN-GAP, 00-common §8.1에 정본 필요).
+
 ## 관찰된 결함 (범위 안)
 
 * **D-1 게이트 출력 인코딩**: 위 모든 거부 메시지의 한글이 Claude Code·subagent 도구 결과에서 깨져 보인다(`[EL1 �ź�] ��ü ���ɽ�Ʈ������`).
