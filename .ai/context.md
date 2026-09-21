@@ -14784,3 +14784,8 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 사용자 결정: (1) hook 입력 실측(더미 hook 등록·해제) -> `role_hook_input_probe.md`: subagent만 agent_type 있음, exit 2만 차단, hook cwd 고정, PowerShell도 쓰기 도구. U-15 닫힘. (2) EL4를 로컬 bare 저장소(gate)의 pre-receive로 -- 실측: 격리 상태에서 git archive <new>/<old> 동작, --no-verify push도 거부.
 - 05 v2.0 작성(gate 구조, 역할-worktree는 대상 경로의 worktree 브랜치로 결합, fail-closed hook, Change-Id 트레일러로 변경 한 건 구조 검사). U-39(MG0 _paper_target_spec 해석) 신설.
 - 다음: 05 v2 독립 검증 -> 반영 -> 사용자 승인.
+
+### 세션50 -- 05-role-separation 승인, U-39 확정 (2026-09-21)
+- 사용자: "U-39는 기본안대로 하고 05 승인할게". 승인 기록 `20260921-05-role-separation-design`(diff, e2a8f03 -> 5458011, 계획·history·00-common·05 네 파일, blob 해시)과 `20260921-u39-paper-target-spec`(decision).
+- U-39: MG0에서 `_paper_target_spec`(사용자 확정 스펙) -> `_declared_target_spec`, 문헌 값만 새 `_paper_target_spec`. 회로별 분류는 MG0 때 사용자 확인(topology 변경이라 U-16 승인도 그때).
+- 다음: Phase 0.5 부트스트랩 ① -- 오케스트레이터가 05 §3~§11 코드·gate_config.json·requirements.txt·pytest_gate.ini 작성 -> ③ 공격 재생 28건 + 사례 5건 로그 제시.

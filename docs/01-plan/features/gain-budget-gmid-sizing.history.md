@@ -314,6 +314,7 @@ U-38(`jsonschema` 의존성)을 Phase 0.5 착수 조건으로 올렸다.
 | U-31 | 2026-09-15 닫힘 | `folded_cascode` CL 1 pF: "CL은 load cap이잖아. 1pF이면 그냥 스펙으로 봐도 돼." |
 | U-34 | 2026-09-16 닫힘 | "1은 그대로 하고, 2는 1.8에 맞춰" -- `ngcc_3stage_ff` 추가와 sky130 재설계 전원(H5) |
 | U-38 | 2026-09-18 확정 | "U-38은 기본안대로 해" -- merge gate·로드 게이트의 JSON Schema 검증에 `jsonschema` 패키지 사용(의존성 추가 승인, WP-20). `format: date-time`은 로더가 따로 검사(`00-common` §8.1). 승인 기록 `.ai/approvals/20260918-u38-jsonschema.md` |
+| U-39 | 2026-09-21 확정 | "U-39는 기본안대로 하고 05 승인할게" -- MG0에서 지금의 `_paper_target_spec`(사용자 확정 스펙)을 `_declared_target_spec`로 옮기고 문헌 값만 새 `_paper_target_spec`에 둔다. 회로별 분류는 MG0 때 사용자 확인. 같은 말로 `05-role-separation` v3.6 승인(승인 기록 `20260921-05-role-separation-design`) |
 
 
 ## H2. 정정·폐기 이력
