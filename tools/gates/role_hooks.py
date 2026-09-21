@@ -384,9 +384,15 @@ def judge_simple(hc: HC, st: CmdState, sc: cmdsplit.Simple, depth):
         hc.scope()
         raise Deny("[EL1 거부] 검사 끄기: --no-verify")
     # PowerShell 대입 `$env:NAME = 값`
-    if sc.shell == "powershell" and len(raw_argv) >= 3 and raw_argv[1] == "=" and raw_argv[0] and raw_argv[0].lower().startswith("$env:"):
-        name = raw_argv[0][5:]
-        val = raw_argv[2]
+    # 이름은 확장 전 원문으로 본다: 확장하면 `$env:PYTHONPATH`가 현재 값(또는 None)이 되어 대입으로 인식되지 않았다
+    # (공격 10c allow-ps-pythonpath-cache 오거부, §6.2 review32 M-09).
+    if sc.shell == "powershell" and len(sc.words) >= 3 and sc.words[1].text == "=" \
+            and re.fullmatch(r"\$env:[A-Za-z_][A-Za-z0-9_]*", sc.words[0].text, re.I):
+        name = sc.words[0].text[5:]
+        val = expand(sc.words[2], st.vars)
+        if name.upper().startswith("GIT_CONFIG"):
+            hc.scope()
+            raise Deny("[EL1 거부] 검사 끄기: 환경 변수 %s" % name)
         fake = cmdsplit.Simple(assigns=[(name, cmdsplit.Word(val or cmdsplit.SUB))], shell="powershell")
         _check_pointing(hc, st, fake, [], set())
         if val is not None:
