@@ -1,0 +1,4 @@
+{
+ "command": "C=@{GITDIR}/gmid-gate-cache/$(git rev-parse gate/master); C:/Python314/python.exe $C/interface_card.py docs/02-design/specs/20260921-rt-rg.spec.md",
+ "description": "card"
+}

@@ -1,0 +1,4 @@
+{
+ "command": "git -C @{CODEWT} status --short",
+ "description": "status"
+}

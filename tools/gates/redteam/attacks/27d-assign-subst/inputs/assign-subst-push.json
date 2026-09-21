@@ -1,0 +1,4 @@
+{
+ "command": "X=a/$(git push rt-nowhere master)b; echo $X",
+ "description": "assign"
+}

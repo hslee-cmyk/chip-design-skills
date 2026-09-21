@@ -1,0 +1,4 @@
+{
+ "command": "echo $(git push rt-nowhere master)",
+ "description": "subst"
+}

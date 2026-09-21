@@ -1,0 +1,4 @@
+{
+ "command": "git worktree remove --force @{SB}/rt-elsewhere",
+ "description": "rm"
+}

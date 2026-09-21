@@ -928,6 +928,96 @@ def a_enc(ns):
            stderr=dec(r.stderr), cmd=_cmdstr(cmd) + f" (cwd={cwd})", note=note, observed=observed, extra=extra_rec)
 
 
+# ----------------------------------------------------------------------------------------------------------
+# 공격 27: 정상 흐름 오거부·복구 경로(spec card 20260921-gate-flow-liveness)
+# ----------------------------------------------------------------------------------------------------------
+GITHOOK_SCRIPT = "tools/gates/githooks/gmid_gate.py"   # EL3 설치 원본(.githooks/gmid_gate.py로 복사된다, design §8.1)
+
+
+def a_githook(ns):
+    """EL3 client hook 실행기를 git이 부르는 것과 같은 인자로 부른다(design §8.1):
+    `gmid_gate.py pre-commit` / `gmid_gate.py commit-msg <메시지 파일>` / `gmid_gate.py pre-merge-commit`.
+    sandbox 작업 저장소 사본(시험 대상의 tools/gates/githooks/ 복사본)을 쓴다."""
+    S = st()
+    script = Path(S["WORK"]) / GITHOOK_SCRIPT
+    if not script.is_file():
+        record(ns.step, kind=ns.kind, layer=ns.layer, status="missing", missing=[GITHOOK_SCRIPT], note="게이트 코드 없음")
+        return
+    cwd = subst_str(ns.cwd, S)
+    cmd = [iface.PY, str(script), ns.hook]
+    if ns.hook == "commit-msg":
+        msg = subst_str(ns.msg or "rt commit", S).replace("\\n", "\n")
+        mf = WORK / ("msg-" + re.sub(r"[^A-Za-z0-9_.-]", "_", ns.step) + ".txt")
+        mf.write_text(msg if msg.endswith("\n") else msg + "\n", encoding="utf-8")
+        cmd.append(str(mf))
+    run_gate(ns.step, ns.kind, ns.layer, cmd, cwd, note=f"hook={ns.hook} cwd={cwd}")
+
+
+_BROAD = {"Exception", "BaseException"}
+
+
+def _broad_type(t) -> bool:
+    if t is None:
+        return True
+    if isinstance(t, ast.Name):
+        return t.id in _BROAD
+    if isinstance(t, ast.Attribute):
+        return t.attr in _BROAD
+    if isinstance(t, ast.Tuple):
+        return any(_broad_type(e) for e in t.elts)
+    return False
+
+
+def _only_pass(body) -> bool:
+    return all(isinstance(s, ast.Pass) or (isinstance(s, ast.Expr) and isinstance(s.value, ast.Constant)
+                                            and s.value.value is Ellipsis) for s in body)
+
+
+def _mentions_reconfigure(stmts) -> bool:
+    for stmt in stmts:
+        for n in ast.walk(stmt):
+            if isinstance(n, ast.Attribute) and n.attr == "reconfigure":
+                return True
+            if isinstance(n, ast.Constant) and n.value == "reconfigure":
+                return True
+    return False
+
+
+def broad_pass_wrappers(tree) -> list[int]:
+    """`reconfigure`를 감싸는 광범위 처리기 중 본문이 pass뿐인 것의 줄 번호.
+    광범위 = bare `except:`·`except Exception`·`except BaseException`(튜플 원소 포함), 또는 `contextlib.suppress(Exception|BaseException)`."""
+    lines = []
+    try_types = tuple(t for t in (getattr(ast, "Try", None), getattr(ast, "TryStar", None)) if t)
+    for node in ast.walk(tree):
+        if isinstance(node, try_types) and _mentions_reconfigure(node.body):
+            for h in node.handlers:
+                if _broad_type(h.type) and _only_pass(h.body):
+                    lines.append(h.lineno)
+        elif isinstance(node, (ast.With, ast.AsyncWith)) and _mentions_reconfigure(node.body):
+            for it in node.items:
+                c = it.context_expr
+                if isinstance(c, ast.Call):
+                    fn = c.func.attr if isinstance(c.func, ast.Attribute) else getattr(c.func, "id", "")
+                    if fn == "suppress" and any(_broad_type(a) for a in c.args):
+                        lines.append(node.lineno)
+    return sorted(lines)
+
+
+def a_ast_broad_except(ns):
+    """V6 관찰(spec card 20260921-gate-flow-liveness 계약 6): 진입점 파일을 ast로 읽어 `reconfigure`를 감싸는
+    광범위 except + pass 처리기 수를 관찰값 `broad_pass_wrappers`로 남긴다(실행하지 않는다)."""
+    S = st()
+    rel = subst_str(ns.script, S)
+    path = Path(S["WORK"]) / rel
+    if not path.is_file():
+        record(ns.step, kind=ns.kind, layer=ns.layer, status="missing", missing=[rel], note="게이트 코드 없음")
+        return
+    tree = ast.parse(path.read_bytes().decode("utf-8"), filename=rel)
+    found = broad_pass_wrappers(tree)
+    record(ns.step, kind=ns.kind, layer=ns.layer, status="ran", exit_code=0, cmd=f"ast {rel}",
+           note=f"광범위 except+pass가 reconfigure를 감싼 줄: {found}", observed={"broad_pass_wrappers": len(found)})
+
+
 def a_not_implemented(ns):
     record(ns.step, kind="attack", layer=ns.layer, status="not-implemented",
            note="installed 모드 재생은 부트스트랩 ④ 설치 상태(실제 도구 호출·실제 git hook)가 필요하다 -- 이 단계에서는 선언만 한다")
@@ -1085,6 +1175,22 @@ def main(argv=None):
     s.add_argument("--tool")
     s.add_argument("--input-file", help="CASE_DIR 기준 JSON 파일(tool_input)")
     s.set_defaults(fn=a_enc)
+
+    s = sp.add_parser("githook")
+    s.add_argument("step")
+    s.add_argument("--kind", default="attack", choices=["attack", "control", "record"])
+    s.add_argument("--layer", default="EL3")
+    s.add_argument("--hook", required=True, choices=["pre-commit", "commit-msg", "pre-merge-commit"])
+    s.add_argument("--cwd", default="@{WORK}")
+    s.add_argument("--msg", help="commit-msg 메시지(치환함, \\n은 줄바꿈)")
+    s.set_defaults(fn=a_githook)
+
+    s = sp.add_parser("ast-broad-except")
+    s.add_argument("step")
+    s.add_argument("--kind", default="attack", choices=["attack", "control", "record"])
+    s.add_argument("--layer", default="V6OBS")
+    s.add_argument("--script", required=True, help="sandbox 작업 저장소 기준 진입점 경로")
+    s.set_defaults(fn=a_ast_broad_except)
 
     s = sp.add_parser("not-implemented")
     s.add_argument("step")

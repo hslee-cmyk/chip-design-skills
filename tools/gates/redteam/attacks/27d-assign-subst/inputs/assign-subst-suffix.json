@@ -1,0 +1,4 @@
+{
+ "command": "C=rt-$(git rev-parse HEAD).txt; echo \"$C\"",
+ "description": "assign"
+}

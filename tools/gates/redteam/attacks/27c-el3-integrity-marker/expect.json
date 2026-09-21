@@ -1,0 +1,88 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260921-gate-flow-liveness 계약 3(D-8), design 05 §3.3('대조 실패는 `<git-common-dir>/gmid-gate-cache/integrity-failed` 표지 … EL1·EL3는 이 파일이 있으면 … 거부', '무결성 실패 메시지는 … 복구 절차(… `integrity.py check --scope session`)를 적는다'), §8.1(EL3 = pre-commit·commit-msg·pre-merge-commit), §17(EL3 0 통과 / 1 차단), oracle (a)",
+ "title": "공격 27c: integrity-failed 표지가 있으면 EL3(pre-commit·commit-msg·pre-merge-commit)가 exit 1 + 표지 경로·복구 절차(D-8)",
+ "steps": {
+  "control-pre-commit-no-marker": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 표지 없음, 메인 worktree에 역할 밖 경로(rtl/core.v)만 staged, `gmid_gate.py pre-commit` | 기대: spec card 20260921-gate-flow-liveness '거부해야 할 입력'('표지가 없는 상태의 EL3 판정 변화 없음') -- 05 §8.2-1(역할 밖 경로만이면 통과, 트레일러 불필요), §8.1(pre-merge-commit은 무결성 대조만)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-commit-msg-no-marker": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 표지 없음, 메인 worktree에 역할 밖 경로(rtl/core.v)만 staged, `gmid_gate.py commit-msg` | 기대: spec card 20260921-gate-flow-liveness '거부해야 할 입력'('표지가 없는 상태의 EL3 판정 변화 없음') -- 05 §8.2-1(역할 밖 경로만이면 통과, 트레일러 불필요), §8.1(pre-merge-commit은 무결성 대조만)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-pre-merge-commit-no-marker": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 표지 없음, 메인 worktree에 역할 밖 경로(rtl/core.v)만 staged, `gmid_gate.py pre-merge-commit` | 기대: spec card 20260921-gate-flow-liveness '거부해야 할 입력'('표지가 없는 상태의 EL3 판정 변화 없음') -- 05 §8.2-1(역할 밖 경로만이면 통과, 트레일러 불필요), §8.1(pre-merge-commit은 무결성 대조만)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-pre-commit-marker": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [
+    "gmid-gate-cache/integrity-failed",
+    "--scope session"
+   ],
+   "basis": "입력: `<git-common-dir>/gmid-gate-cache/integrity-failed` 있음, 같은 staged(역할 밖 경로), `gmid_gate.py pre-commit` | 기대: spec card 20260921-gate-flow-liveness 계약 3('판정 범위와 무관하게 커밋·병합을 거부(exit 1)하고 표지 경로와 복구 절차를 출력') -- 문구 출처: 표지 경로 = 05 §3.3, 복구 절차 = 05 §3.3·§13.4 `integrity.py check --scope session`",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-commit-msg-marker": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [
+    "gmid-gate-cache/integrity-failed",
+    "--scope session"
+   ],
+   "basis": "입력: `<git-common-dir>/gmid-gate-cache/integrity-failed` 있음, 같은 staged(역할 밖 경로), `gmid_gate.py commit-msg` | 기대: spec card 20260921-gate-flow-liveness 계약 3('판정 범위와 무관하게 커밋·병합을 거부(exit 1)하고 표지 경로와 복구 절차를 출력') -- 문구 출처: 표지 경로 = 05 §3.3, 복구 절차 = 05 §3.3·§13.4 `integrity.py check --scope session`",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-pre-merge-commit-marker": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [
+    "gmid-gate-cache/integrity-failed",
+    "--scope session"
+   ],
+   "basis": "입력: `<git-common-dir>/gmid-gate-cache/integrity-failed` 있음, 같은 staged(역할 밖 경로), `gmid_gate.py pre-merge-commit` | 기대: spec card 20260921-gate-flow-liveness 계약 3('판정 범위와 무관하게 커밋·병합을 거부(exit 1)하고 표지 경로와 복구 절차를 출력') -- 문구 출처: 표지 경로 = 05 §3.3, 복구 절차 = 05 §3.3·§13.4 `integrity.py check --scope session`",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  }
+ }
+}

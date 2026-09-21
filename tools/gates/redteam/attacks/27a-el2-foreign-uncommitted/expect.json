@@ -1,0 +1,137 @@
+{
+ "layer": "EL2",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260921-gate-flow-liveness 계약 1(D-7), design 05 §7 '다른 역할의 worktree' 문장, §12-3(base_check.json 미커밋), oracle (a)",
+ "title": "공격 27a: 다른 역할 worktree의 미커밋 경로 -- 주인에게 허용된 base_check.json은 통과, 주인에게도 안 되는 엔진 소스는 거부(D-7)",
+ "steps": {
+  "record-code-pre": {
+   "layer": "EL1",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": [],
+   "basis": "PostToolUse 대조 전 스냅숏(공격 2와 같은 순서)"
+  },
+  "control-code-post-foreign-base-check": {
+   "layer": "EL2",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: audit worktree에 `.ai/verification/20260921-rt-rg/base_check.json` 미커밋(주인 auditor에게 허용된 경로), gmid-code-author PostToolUse Bash(읽기 명령) | 기대: spec card 20260921-gate-flow-liveness 계약 1 예시('code-author·test-author의 PostToolUse·SubagentStop 통과'), 05 §7",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-code-stop-foreign-base-check": {
+   "layer": "EL2",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 같은 상태, gmid-code-author SubagentStop | 기대: spec card 20260921-gate-flow-liveness 계약 1 예시(SubagentStop 통과), 05 §7, §17(hook 통과 0)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "record-test-pre": {
+   "layer": "EL1",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": [],
+   "basis": "PostToolUse 대조 전 스냅숏(공격 2와 같은 순서)"
+  },
+  "control-test-post-foreign-base-check": {
+   "layer": "EL2",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: audit worktree에 `.ai/verification/20260921-rt-rg/base_check.json` 미커밋(주인 auditor에게 허용된 경로), gmid-test-author PostToolUse Bash(읽기 명령) | 기대: spec card 20260921-gate-flow-liveness 계약 1 예시('code-author·test-author의 PostToolUse·SubagentStop 통과'), 05 §7",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-test-stop-foreign-base-check": {
+   "layer": "EL2",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 같은 상태, gmid-test-author SubagentStop | 기대: spec card 20260921-gate-flow-liveness 계약 1 예시(SubagentStop 통과), 05 §7, §17(hook 통과 0)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "record-code-pre2": {
+   "layer": "EL1",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": [],
+   "basis": "PostToolUse 대조 전 스냅숏"
+  },
+  "attack-code-post-foreign-engine-src": {
+   "layer": "EL2",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "x.py"
+   ],
+   "basis": "입력: audit worktree에 `skills/analog-gmid-design/assets/x.py` 미커밋(auditor에게도 허용 안 됨), gmid-code-author PostToolUse Bash | 기대: spec card 20260921-gate-flow-liveness 계약 1 둘째 예('여전히 거부'), '거부해야 할 입력' 첫 항목, 05 §7 '위반이면 stderr에 경로 … exit 2'",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-code-stop-foreign-engine-src": {
+   "layer": "EL2",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "x.py"
+   ],
+   "basis": "입력: 같은 상태, gmid-code-author SubagentStop | 기대: spec card 20260921-gate-flow-liveness 계약 1 둘째 예, 05 §7",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "record-test-pre2": {
+   "layer": "EL1",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": [],
+   "basis": "PostToolUse 대조 전 스냅숏"
+  },
+  "attack-test-post-foreign-engine-src": {
+   "layer": "EL2",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "x.py"
+   ],
+   "basis": "입력: audit worktree에 `skills/analog-gmid-design/assets/x.py` 미커밋(auditor에게도 허용 안 됨), gmid-test-author PostToolUse Bash | 기대: spec card 20260921-gate-flow-liveness 계약 1 둘째 예('여전히 거부'), '거부해야 할 입력' 첫 항목, 05 §7 '위반이면 stderr에 경로 … exit 2'",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-test-stop-foreign-engine-src": {
+   "layer": "EL2",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "x.py"
+   ],
+   "basis": "입력: 같은 상태, gmid-test-author SubagentStop | 기대: spec card 20260921-gate-flow-liveness 계약 1 둘째 예, 05 §7",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  }
+ }
+}

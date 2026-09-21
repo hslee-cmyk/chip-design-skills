@@ -1,0 +1,4 @@
+{
+ "command": "C=@{TEMPDIR}/rt-27d/$(git rev-parse HEAD); echo $C",
+ "description": "assign"
+}

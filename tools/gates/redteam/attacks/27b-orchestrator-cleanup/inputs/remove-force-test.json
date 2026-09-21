@@ -1,0 +1,4 @@
+{
+ "command": "git worktree remove --force @{W}/20260921-rt-rg-test",
+ "description": "rm"
+}

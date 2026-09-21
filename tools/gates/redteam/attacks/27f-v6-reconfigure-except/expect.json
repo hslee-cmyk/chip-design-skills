@@ -1,0 +1,173 @@
+{
+ "layer": "V6OBS",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260921-gate-flow-liveness 계약 6(V6 관찰: `try: …reconfigure… except Exception: pass`를 광범위 except 없이), 진입점 16개 목록 = spec card 20260921-gate-output-utf8 '관찰 가능한 계약', 출력 계약은 공격 26이 계속 본다, oracle (a)(ast 구조 검사 -- 실행 출력에서 기대를 만들지 않는다)",
+ "title": "공격 27f: 진입점 16개에 reconfigure를 감싼 `except Exception: pass`가 없다(V6 관찰)",
+ "steps": {
+  "v6obs-role-guard": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: hooks/role_guard.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-role-diff-guard-bash": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: hooks/role_diff_guard_bash.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-role-diff-guard-stop": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: hooks/role_diff_guard_stop.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-role-session-start": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: hooks/role_session_start.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-gmid-gate": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/githooks/gmid_gate.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-gate-runner": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/gate/gate-runner.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-integrity": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/integrity.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-merge-gate": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/merge_gate.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-role-commit-gate": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/role_commit_gate.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-interface-card": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/interface_card.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-weakening-diff": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/weakening_diff.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-test-lint": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/test_lint.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-source-lint": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/source_lint.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-reachability": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/reachability.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-mutate-changed": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/mutate_changed.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  },
+  "v6obs-import-layering": {
+   "layer": "V6OBS",
+   "exit": 0,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: tools/gates/import_layering.py(sandbox 사본)을 ast.parse | 관찰: `reconfigure`를 감싸는 try의 처리기 중 광범위(bare·Exception·BaseException, suppress(Exception)) + 본문 pass뿐인 것의 수 | 기대 0: spec card 20260921-gate-flow-liveness 계약 6",
+   "observed_equals": {
+    "broad_pass_wrappers": 0
+   }
+  }
+ }
+}

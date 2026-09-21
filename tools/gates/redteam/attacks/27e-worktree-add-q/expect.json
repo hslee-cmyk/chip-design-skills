@@ -1,0 +1,57 @@
+{
+ "layer": "EL1",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260921-gate-flow-liveness 계약 5(D-6), design 05 §12-1(`git worktree add $W/<id>-test -b role/test/<id> gate/master`), §6.2 'worktree 관리'(역할 전부 거부, 오케스트레이터는 §12 형태만), oracle (a)",
+ "title": "공격 27e: §12-1 `git worktree add`에 `-q`를 더해도 같은 판정(D-6)",
+ "steps": {
+  "control-main-worktree-add": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 §12-1 형태 그대로 | 기대: 05 §12-1(오케스트레이터 명령), §6.2 'worktree 관리 -- 오케스트레이터는 §12 add 형태' → exit 0. 계약 5의 비교 기준",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-main-worktree-add-q": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 §12-1 형태에 `-q`만 더함 | 기대: spec card 20260921-gate-flow-liveness 계약 5('`-q` 없는 형태와 같은 판정') → 위 단계와 같은 exit 0",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-main-worktree-add-q-outside": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `-q` + §12 밖 경로(<W> 밖) | 기대: spec card 20260921-gate-flow-liveness 계약 5(`-q`는 판정을 바꾸지 않는다 -- §12 경로가 아니면 `-q` 없는 형태처럼 거부), 05 §6.2 'worktree 관리'",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-code-author-worktree-add-q": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: gmid-code-author의 `-q` 형태 | 기대: 05 §6.2 'worktree 관리 -- 역할: `git worktree` 전부 거부', spec card 20260921-gate-flow-liveness 계약 5(판정 불변)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  }
+ }
+}

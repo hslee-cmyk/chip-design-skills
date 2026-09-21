@@ -1,0 +1,4 @@
+{
+ "command": "C=@{TEMPDIR}/$(git rev-parse HEAD); C:/Python314/python.exe $C/rt_x.py",
+ "description": "run"
+}

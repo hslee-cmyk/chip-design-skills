@@ -1,0 +1,85 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260921-gate-flow-liveness 계약 4(D-10), design 05 §6.2 분해기('명령 치환 `$(…)` … 안쪽을 같은 분해기로 재귀 분해해 판정'), 05 README('예외로 끝난 fail-closed는 판정이 아니다'), oracle (a)",
+ "title": "공격 27d: 대입 안 명령 치환(`NAME=…$(cmd)…`)을 예외 없이 판정(D-10)",
+ "steps": {
+  "control-assign-subst-path": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `C=<TEMP>/rt-27d/$(git rev-parse HEAD); echo $C`(대입+치환, 뒤 명령은 인자 없는 echo) | 기대: spec card 20260921-gate-flow-liveness 계약 4('예외 없이 판정', Traceback·`판정 실패(fail-closed)` 없음), 치환 안 `git rev-parse`는 읽기 -- 05 §6.2 표의 거부 대상 어디에도 없음 → exit 0(§17)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-assign-subst-suffix": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `C=rt-$(git rev-parse HEAD).txt; echo \"$C\"`(`NAME=<문자열>$(<명령>)<문자열>` 꼴) | 기대: spec card 20260921-gate-flow-liveness 계약 4, 05 §6.2 → exit 0",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-assign-subst-push": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `X=a/$(git push rt-nowhere master)b; echo $X` | 기대: spec card 20260921-gate-flow-liveness 계약 4('치환 안 명령은 지금 `$(…)` 규칙대로 판정' -- push 거부, 05 §6.2 push 행) → exit 2, 단 예외가 아니라 판정(Traceback·fail-closed 문구 없음)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-echo-subst-push": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `echo $(git push rt-nowhere master)`(공격 24 c 꼴, ⑤ 재생 원격 rt-nowhere) | 기대: spec card 20260921-gate-flow-liveness '거부해야 할 입력'('공격 24 c 거부 유지'), 05 §6.2 push 행",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-assign-subst-cache-script": {
+   "layer": "EL1",
+   "exit": [
+    0,
+    2
+   ],
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `C=<git-common-dir>/gmid-gate-cache/$(git rev-parse gate/master); $PY $C/interface_card.py <spec card>`(⑤ 재생 D-10 꼴 -- §12-0 캐시 스크립트 실행을 변수로 쓴 것) | 기대: spec card 20260921-gate-flow-liveness 계약 4('예외 없이 판정', Traceback·`판정 실패(fail-closed)` 메시지 없음). exit는 0·2 둘 다 판정으로 받는다 -- 스크립트 인자가 변수(`$C/…`)라 §6.2 캐시 예외 형태(`$PY <캐시>/<이름>.py`)에 드는지는 design이 고정하지 않았다(§17: 판정이면 0 또는 2)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-assign-subst-temp-script": {
+   "layer": "EL1",
+   "exit": [
+    0,
+    2
+   ],
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `C=<TEMP>/$(git rev-parse HEAD); $PY $C/rt_x.py` | 기대: spec card 20260921-gate-flow-liveness 계약 4(예외 없이 판정). exit 0·2 모두 판정(스크립트 인자가 해석 못 하는 변수 -- design 미고정)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  }
+ }
+}

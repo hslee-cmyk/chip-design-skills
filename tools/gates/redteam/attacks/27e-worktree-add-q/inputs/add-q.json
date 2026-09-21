@@ -1,0 +1,4 @@
+{
+ "command": "git worktree add -q @{W}/20260921-rt-rg-test -b role/test/20260921-rt-rg gate/master",
+ "description": "add"
+}

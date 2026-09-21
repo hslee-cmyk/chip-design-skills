@@ -1,0 +1,134 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260921-gate-flow-liveness 계약 2(D-3), design 05 §12 '정리' 행(`git worktree remove [--force] $W/<id>-{test,code,audit}`, `git -C $W/<id>-audit merge --abort`, `--force`는 이 세 경로에만), §6.2 '정리 전 dispute 보존'·'worktree 관리'(역할은 전부 거부), oracle (a)",
+ "title": "공격 27b: 오케스트레이터의 §12 정리(merge --abort, remove --force) 허용 / 역할·다른 경로·dispute 미기록은 거부(D-3)",
+ "steps": {
+  "control-main-merge-abort-audit": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `git -C <W>/<id>-audit merge --abort` | 기대: spec card 20260921-gate-flow-liveness 계약 2('오케스트레이터에게 허용'), 05 §12 정리 행",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-main-remove-force-audit": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `git worktree remove --force <W>/<id>-audit` | 기대: spec card 20260921-gate-flow-liveness 계약 2, 05 §12 정리 행",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-main-remove-force-test": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `git worktree remove --force <W>/<id>-test` | 기대: spec card 20260921-gate-flow-liveness 계약 2(`<W>/<id>-{test,code,audit}`)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-code-author-merge-abort": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: gmid-code-author의 같은 `merge --abort` | 기대: spec card 20260921-gate-flow-liveness 계약 2 '역할에게는 여전히 거부', '거부해야 할 입력', 05 §6.2 '병합' 행",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-code-author-remove-force-audit": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: gmid-code-author의 같은 `worktree remove --force` | 기대: spec card 20260921-gate-flow-liveness 계약 2, 05 §6.2 'worktree 관리 -- 역할: 전부'",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-test-author-remove-force-test": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: gmid-test-author의 `worktree remove --force <W>/<id>-test` | 기대: spec card 20260921-gate-flow-liveness 계약 2, 05 §6.2 'worktree 관리 -- 역할: 전부'",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-main-merge-abort-code": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `git -C <W>/<id>-code merge --abort`(audit 아님) | 기대: spec card 20260921-gate-flow-liveness 계약 2(허용은 `<W>/<id>-audit`만), 05 §6.2 '병합' 행(§12-6·§12-8·정리 형태 외 거부)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-main-remove-force-outside-name": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `git worktree remove --force <W>/<id>-scratch`(§12 세 경로 밖) | 기대: spec card 20260921-gate-flow-liveness 계약 2 '다른 경로 … `--force`는 여전히 거부', '거부해야 할 입력'",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-main-remove-force-outside-dir": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: 메인 세션 `git worktree remove --force <W 밖>/rt-elsewhere` | 기대: spec card 20260921-gate-flow-liveness 계약 2, 05 §6.2 'worktree 관리 -- 오케스트레이터는 §12 형태만'",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "attack-main-remove-force-code-no-record": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "입력: code worktree에 dispute가 있고 spec card `## dispute 기록` 없음, 메인 세션 `worktree remove --force <W>/<id>-code` | 기대: spec card 20260921-gate-flow-liveness 계약 2 'code worktree는 지금과 같은 dispute 기록 검사', 05 §6.2 '정리 전 dispute 보존'(공격 25와 같은 규칙)",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  },
+  "control-main-remove-force-code-after-record": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "입력: dispute blob id가 메인 HEAD spec card `## dispute 기록`에 있음, 메인 세션 `worktree remove --force <W>/<id>-code` | 기대: spec card 20260921-gate-flow-liveness 계약 2(code는 dispute 기록 검사만 추가), 05 §6.2(기록이 있으면 허용), §12 정리 행",
+   "message_not_contains": [
+    "Traceback (most recent call last)",
+    "판정 실패(fail-closed)"
+   ]
+  }
+ }
+}

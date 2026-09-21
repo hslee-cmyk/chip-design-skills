@@ -1,0 +1,4 @@
+{
+ "command": "git -C @{W}/20260921-rt-rg-audit merge --abort",
+ "description": "abort"
+}
