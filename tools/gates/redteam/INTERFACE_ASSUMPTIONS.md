@@ -30,3 +30,12 @@
 | A-21 | 모든 거부 기대에 `Traceback (most recent call last)`가 출력에 없을 것을 더한다(fail-closed 예외는 거부처럼 보이지만 판정이 아니다) | §6.1-1, §17 |
 | A-22 | 역할 브랜치 이름의 짧은 이름은 `test`·`code`·`audit` | §4.2, §5.1, §12 |
 | A-23 | 커밋형 staged_diff 케이스는 gate master에서 가지를 낸 worktree에서 파일과 승인 기록을 한 커밋에 staged한다(`diff_base` = 그 HEAD) | §8.2-5, 00-common §8.2 staged_diff |
+
+## 재생 단계(작성본 bootstrap/replay 70a384b) 실측으로 고친 것
+
+| ID | 가정 | 작성본 실제 | 조치 |
+|---|---|---|---|
+| A-08 | `--repo` | V3~V7 모두 `--root`. V3(`mutate_changed.py`)는 `--pytest-ini` 필수, V7(`reachability.py`)은 `--config`(기본 head 트리의 gate_config.json) | `lib/iface.py` `vtool_command` |
+| A-09 | 판정 문장별 객체에 판정 값 하나 | `findings` 원소 `{"rule": "(1)".."(5)", "line", "output"}` -- (2)만 V4 (2) | `lib/iface.py` `v4_statements`가 `rule == "(2)"`만 모은다 |
+| A-11 | 관찰 가능한 계약의 백틱 `module.func` | 같음. 단 `def`가 아닌 이름(`gain = lambda …`)은 카드에 안 들어가 V4가 "피검 심볼이 없다"(exit 2) | 고치지 않음 -- 보고(공격 23 corpus-041) |
+| (템플릿) | 올바른 기록의 V4 basis를 두 줄로 | 로더 규칙 3이 개행(Cc)을 거부 -- 00-common §8.1 문언대로 | `lib/sb.py` 올바른 기록 템플릿을 한 줄(`oracle 대조: …`로 시작)로. 기대는 바꾸지 않음 |

@@ -86,10 +86,19 @@ def plan_tables_hash_command(py: str, gate_script: str, plan_path: str) -> list[
 
 
 def vtool_command(py: str, tool_script: str, repo: str, base: str, head: str, card: str | None) -> list[str]:
-    """§10은 출력(JSON 한 줄, exit 0/1/2)만 고정한다. 입력 인자는 A-08."""
-    cmd = [py, tool_script, "--repo", repo, "--base", base, "--head", head]
-    if card:
+    """§10은 출력(JSON 한 줄, exit 0/1/2)만 고정한다. 입력 인자는 A-08.
+    재생 단계(작성본 70a384b) 실측: 저장소 인자 이름은 `--root`; V3는 `--pytest-ini` 필수; V7은 `--config`(기본은 head
+    트리의 tools/gates/gate_config.json -- 합성 저장소에는 없으므로 시험 대상의 gate_config.json을 준다)."""
+    import os
+    gates = os.path.dirname(os.path.abspath(tool_script))
+    name = os.path.basename(tool_script)
+    cmd = [py, tool_script, "--root", repo, "--base", base, "--head", head]
+    if card and name == "test_lint.py":
         cmd += ["--interface-card", card]
+    if name == "mutate_changed.py":
+        cmd += ["--pytest-ini", os.path.join(gates, "pytest_gate.ini")]
+    if name == "reachability.py":
+        cmd += ["--config", os.path.join(gates, "gate_config.json")]
     return cmd
 
 
@@ -121,6 +130,9 @@ def v4_statements(obj) -> list[tuple[int, str]] | None:
 
     def walk(o):
         if isinstance(o, dict):
+            # 재생 단계 실측: test_lint.py의 findings 원소는 {"rule": "(1)"~"(5)", "line", "output"} -- V4 (2)만 모은다
+            if "rule" in o and o.get("rule") != "(2)":
+                return
             ln = o.get("line", o.get("lineno"))
             vals = [v for v in o.values() if isinstance(v, str) and v in JUDGEMENTS]
             if isinstance(ln, int) and len(vals) == 1:

@@ -410,7 +410,8 @@ def valid_record(st: State, cid: str, evidence_type: str) -> dict:
         if n in na:
             checks[n] = {"verdict": "N/A", "basis": na[n]}
         elif n == "V4":
-            checks[n] = {"verdict": "PASS", "basis": "test_lint.py exit 0\noracle 대조: test_rt_scale 기대값 6.0 -- spec card (a) 구성으로 정한 합성 입력(3배)"}
+            checks[n] = {"verdict": "PASS", "basis": "oracle 대조: test_rt_scale 기대값 6.0 -- spec card (a) 구성으로 정한 합성 입력(3배), test_lint.py exit 0"}
+            # 재생 단계: 00-common §8.1 규칙 3이 모든 문자열의 Cc(개행 포함)를 금지하므로 한 줄로 쓴다(규칙 10의 '줄'과 긴장 -- 보고서 B)
         else:
             checks[n] = {"verdict": "PASS", "basis": f"{n} 격리 복제본 실행 결과 PASS"}
     rec = {
