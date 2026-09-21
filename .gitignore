@@ -32,3 +32,7 @@ skills/analog-gmid-design/assets/tests/*.theta_star.json
 skills/analog-gmid-design/assets/tests/*.unwired_theta.json
 skills/analog-gmid-design/assets/tests/*.window_dump.txt
 skills/analog-gmid-design/assets/library/.bkit/
+
+# 역할 분리 부트스트랩 ①·④(계획 N3.12.6): 탐색 아카이브와 실행 산출물은 추적하지 않는다(EL2 무시 목록)
+skills/analog-gmid-design/assets/library/*.search_archive/
+runs/

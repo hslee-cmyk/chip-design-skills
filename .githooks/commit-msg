@@ -1,0 +1,14 @@
+#!/bin/sh
+# chip-design-skills commit-msg gate (05-role-separation design §8.1·§8.2). 원본: tools/gates/githooks/commit-msg.
+# 트레일러·경로 권한·조건·병합 판정. 모든 병합 경로(merge --no-ff, merge --no-commit 뒤 commit)에서 이 시점에는
+# MERGE_HEAD가 있다(review30 H1 실측).
+PY=""
+for c in "C:/Python314/python.exe" python python3 py; do
+  if command -v "$c" >/dev/null 2>&1; then PY="$c"; break; fi
+done
+if [ -z "$PY" ]; then
+  echo "[commit-msg] python을 찾지 못해 차단한다(skip 금지)"
+  exit 1
+fi
+HOOKDIR=$(cd "$(dirname "$0")" && pwd)
+exec "$PY" "$HOOKDIR/gmid_gate.py" commit-msg "$1"

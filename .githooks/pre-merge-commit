@@ -1,0 +1,14 @@
+#!/bin/sh
+# chip-design-skills pre-merge-commit gate (05-role-separation design §8.1). 원본: tools/gates/githooks/pre-merge-commit.
+# `merge --no-ff`는 pre-commit 대신 이것과 commit-msg를 돌린다(review28 E1). 무결성 대조만 한다 -- 이 시점에는
+# MERGE_HEAD가 없어 병합 판정은 commit-msg에서 한다(review30 H1).
+PY=""
+for c in "C:/Python314/python.exe" python python3 py; do
+  if command -v "$c" >/dev/null 2>&1; then PY="$c"; break; fi
+done
+if [ -z "$PY" ]; then
+  echo "[pre-merge-commit] python을 찾지 못해 차단한다(skip 금지)"
+  exit 1
+fi
+HOOKDIR=$(cd "$(dirname "$0")" && pwd)
+exec "$PY" "$HOOKDIR/gmid_gate.py" pre-merge-commit

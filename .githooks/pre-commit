@@ -1,29 +1,32 @@
 #!/bin/sh
-# chip-design-skills pre-commit gate.
-# If any staged agents/*.md changes, run the agent best-practices check and block
-# the commit on a FAIL. (WARNs print but do not block.)
-#
-# Enable once per clone:   git config core.hooksPath .githooks
-# Bypass a single commit:  git commit --no-verify
+# chip-design-skills pre-commit gate (05-role-separation design §8.1).
+# 부트스트랩 ④(a)에서 사용자가 .githooks/pre-commit으로 복사한다(원본: tools/gates/githooks/pre-commit).
+#  ① 파이썬 찾기, 없으면 차단(skip 금지, 계획 N3.12.4 EL3)
+#  ② 무결성 대조(--scope commit)  ③ gate master 판 role_commit_gate.py pre-commit  (gmid_gate.py)
+#  ④ staged agents/*.md가 있을 때만 check_agents.py(FAIL이면 차단, WARN은 출력만)
 # Rubric: agent-quality/AGENT_BEST_PRACTICES.md
 
-changed=$(git diff --cached --name-only --diff-filter=ACM | grep -Ei '^agents/.*\.md$' | grep -vi 'readme\.md')
-[ -z "$changed" ] && exit 0
-
 PY=""
-for c in python python3 py; do
+for c in "C:/Python314/python.exe" python python3 py; do
   if command -v "$c" >/dev/null 2>&1; then PY="$c"; break; fi
 done
 if [ -z "$PY" ]; then
-  echo "[pre-commit] python not found - skipping agent best-practices check (install python to enforce)"
-  exit 0
+  echo "[pre-commit] python을 찾지 못해 차단한다(agent 검사·역할 검사 모두, skip 금지)"
+  exit 1
 fi
 
-echo "[pre-commit] agent best-practices check on:"
-echo "$changed" | sed 's/^/  /'
-$PY agent-quality/check_agents.py $changed
-rc=$?
-if [ "$rc" -ne 0 ]; then
-  echo "[pre-commit] BLOCKED - fix the FAILs above, or bypass with: git commit --no-verify"
+HOOKDIR=$(cd "$(dirname "$0")" && pwd)
+"$PY" "$HOOKDIR/gmid_gate.py" pre-commit || exit 1
+
+changed=$(git diff --cached --name-only --diff-filter=ACM | grep -Ei '^agents/.*\.md$' | grep -vi 'readme\.md')
+if [ -n "$changed" ]; then
+  echo "[pre-commit] agent best-practices check on:"
+  echo "$changed" | sed 's/^/  /'
+  "$PY" agent-quality/check_agents.py $changed
+  rc=$?
+  if [ "$rc" -ne 0 ]; then
+    echo "[pre-commit] BLOCKED - fix the FAILs above"
+    exit $rc
+  fi
 fi
-exit $rc
+exit 0
