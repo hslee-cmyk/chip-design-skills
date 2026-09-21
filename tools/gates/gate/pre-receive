@@ -1,0 +1,4 @@
+#!/bin/sh
+# gmid gate pre-receive (05-role-separation design §9.1). 원본: 작업 저장소 tools/gates/gate/pre-receive.
+# 부트스트랩 ④(b)에서 사용자가 <gate_path>/hooks/pre-receive로 복사한다(§3.3 행 1이 매번 바이트 동일을 대조).
+exec "C:/Python314/python.exe" "C:/Users/HSLEE/Documents/Todoc/fpga/gmid-gate.git/gate-runner.py"
