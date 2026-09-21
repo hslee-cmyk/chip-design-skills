@@ -1,0 +1,164 @@
+{
+  "id": "20260921-gate-output-utf8",
+  "spec_card": "docs/02-design/specs/20260921-gate-output-utf8.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "37bba565b1d8594315c223a684dace9199d2ebf8",
+  "test_commit": "d9ea35f7a180c8b74f43c9a5c87a66448fa9aed3",
+  "code_commit": "61c7997404d05466ff52f5a0011cff78b18d1524",
+  "red": {
+    "test_ids": [
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el1-main-write-engine-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el1-main-write-engine-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el1-unknown-gmid-agent-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el1-unknown-gmid-agent-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el1-fail-closed-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el1-fail-closed-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el2bash-unknown-gmid-agent-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el2bash-unknown-gmid-agent-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el2bash-fail-closed-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el2bash-fail-closed-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el2stop-unknown-gmid-agent-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el2stop-unknown-gmid-agent-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el2stop-fail-closed-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::el2stop-fail-closed-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::session-startup-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::session-startup-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::session-fail-closed-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::session-fail-closed-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::gmid-gate-unknown-hook-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::gmid-gate-unknown-hook-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::gate-runner-direct-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::gate-runner-direct-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::integrity-check-session-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::integrity-check-session-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::merge-gate-bad-old-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::merge-gate-bad-old-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::role-commit-gate-usage-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::role-commit-gate-usage-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::interface-card-missing-spec-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::interface-card-missing-spec-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v5-bad-revisions-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v5-bad-revisions-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v4-bad-revisions-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v4-bad-revisions-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v6-bad-revisions-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v6-bad-revisions-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v7-bad-revisions-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v7-bad-revisions-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v3-bad-revisions-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::v3-bad-revisions-unset",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::import-layering-plan-without-section-cp949",
+      "tools/gates/redteam/attacks/26-gate-output-utf8::import-layering-plan-without-section-unset"
+    ],
+    "failure_hashes": [
+      "15efe1b7179e41afef95d657daf7c9143d99a7fa0b862027f8c6da601049338f",
+      "b3c1f9759a7d45b9854683a67ab65575b16dbbd4ef937c659bad0111570c5321",
+      "5a3723592eec4a8a102345cf05a921022bbe590ceb076a8ac84743050fb5de01",
+      "6c850c833238877a03ae94c1f2a5d09b0c1f0f716f495d57fcdf25927d228a31",
+      "f458596673c9107c6a0aa8b0d1820599f52b98fa1c3cf7dbcf181249993763cf",
+      "95a3f79f0fc9c43a1747e9861985356e32ede5b8abf019a37f09ca2ea3e2498b",
+      "865f7082e69fd3330326b4b22ebd57f3ab25a3af4b19bdad24a73f9fa0731476",
+      "69a85fca103b423ef3585f22d4180bdb47d75f57f0cdcd9442296d8f2d4852c4",
+      "2b56e4c2f9f315ea1591d19ac53aa8de3164e4b557a29343ef1e0d407a9d6ff2",
+      "3ea73f6bde89e4d628951d8c97fd0f26b6ead50345a0ae4fec35873c3a720472",
+      "8e02e2539b6c34515f8b05e68cd74583da0b34afbe0c38341d4374a51e951e04",
+      "3ab1f4b0e25e27789d22b7730990bcd167727f4643e9547e5af4e5f8377eda8f",
+      "89abffbfa20cd395200ae9f8d7b04c157cb75adf25dff9ef498512fe456c7700",
+      "7746c4319e567a6c066f57352af78934ca456f97eb3b914be1f5f2e1389f9718",
+      "9dc86ec8a2447e0344aa41ec9a4a707ceef72707b205e16536c81bf22191b582",
+      "2a917579117b4e9fbdae5a29523d21e28d296595d6523513a2733fbab4c42ae5",
+      "d95bfdb2317b84fee18a66029b07531c88a34ff2a74d0f8c215145eeb82e65a3",
+      "fd3ed0be8a14b184132b811accb7f62f4893beb1c0743e04047bb5c6cabb269a",
+      "2b958e0985af510bfde4bdd9c7e980ca9b75d19de3cb67a3be6f3d3d2bb2cdf5",
+      "0591e00ba19cecb4804c8b1d8a787200efbdce35ea34ceb72943177cb157a2d4",
+      "71070eb58beec6fbef77f4f7786ce08c6cda5193c2d57dce2fb900d02fac755f",
+      "b8ed80cee34bfb027386b9a9d1c43178e282227b0b6e26c1202f31dc3d35dde2",
+      "b92c8b1054f987a6886d8b239917a7487c1cb52a748831fef7f6b0ded575df63",
+      "2eb7fda0ed947863a039cf2444b9d5424f83390a7d93fef80f60216e2e056980",
+      "41310d7f4748d3fd95c7df4773b9deb68d405d25048041372aa02ec2e418d2ac",
+      "b90bc5a63e59cfef7222709b8a934bf6f2c69bd6e4bd93a2f23cee6571afa991",
+      "766e02c108ea49dcee05352624e11a551eabe3bbe4256b36c37298770f50b8c3",
+      "7b99f8a4699e30abe41b3c0b5c386c88080e7e81e064bdfd7a0d4ed88a8c9230",
+      "39ed651908cc2732917c18c1083f51eb8646aade2282cd505bf7a77bb57c7ea6",
+      "f1d8795f4ae294ae9def72cf5e93b5313ebed3b2e7a68552cc47108c83fa4bc1",
+      "c341dc5b4c741e6704d0d5b303ce3b68ca24a662b48d7c409854842ca6d5cc89",
+      "eaa2bd4492f136bc8621f26940e119a6e27c75ce8ae17f5cc52408fdaadd6752",
+      "9a803ebf4ac12fdcef232ef010129e1bd019d5a501f66bf281d97f50e2e16c76",
+      "5bbc22d68441c2c1e356f2ae666cf33a50801b3fc6da012ba3b9ab8f2b559b59",
+      "a5fb56ce79d02e77f9a2ad17253f2acc97b20e8bd9ce96eafb8783b2ec5e1b3d",
+      "85035ca191fe19beacf39f88cf3c2dd3b5587f196ca6a9a55f784715639d4fdf",
+      "8edd8b728e6ac84f4b8541e95d1099763cc9e79b6d98452b3f0428139b9aa9e7",
+      "78934ae1d6223dbc56f71e064403e10a4e102a109797c6f1e212d698055631b8",
+      "45f943b6d874ed2496cb3433d518cc371ecf950db9ebddae68943bc719a4d499",
+      "165f15658ef8ff8859a742aef66ef9d9edaaaa49c9307316e5d34bd0f74a8965",
+      "b5655298b15d08c106e2dec1f37240f1be833ce7b413e35fdeeafc70003401f2",
+      "1601e7fe28d9a6ed83546eb6d6fd3581122bf57aff575c5d4d6f8c096325d421"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "Phase 0.5의 V1은 redteam 스크립트(N4.2 도입 칸 괄호). 병합본 468e0ba 격리 복제본에서 run_all.py --phase 0.5 --mode direct 전체: 케이스 PASS 42·SKIPPED 7, 단계 PASS 527·RECORD 8, FAIL·ERROR·MISSING 0, exit 0 (log 20260921-172928-direct.jsonl); --cases 0.5: 케이스 PASS 5·SKIPPED 2, 단계 PASS 6, exit 0 (log 20260921-175026-direct-cases.jsonl); 공격 26 단독: PASS, 42 단계 전부 PASS. 판정 불변: T(d9ea35f, 게이트 코드 = base) 복제본의 같은 두 실행과 케이스·단계(verdict, exit) 단위로 대조해 다른 것은 공격 26의 42 단계(FAIL -> PASS)뿐이고 exit code는 42 단계 모두 base와 같다(계약 3), --cases 0.5는 차이 0. V1 pytest 형태도 실행: tests/에 test 모듈 0개라 collected 0 (exit 5 no tests ran) -- 0.5에는 pytest 대상이 없다"
+    },
+    "V2": {
+      "verdict": "N/A",
+      "basis": "도입 1: 병합 판정의 V2 적용은 Phase 1부터(N4.2). 측정은 했다 -- base(T d9ea35f) 공격 26 42 단계 FAIL(원인 전부 인코딩 관찰: stderr_utf8·hangul 26, stdout_utf8·hangul·json_lines 14, stdout_utf8·hangul 2), 병합본 42 단계 PASS, red.test_ids 42개 전부 green. failure_hashes는 순서 3 base_check.json 42개와 전부 같고 집계 sha256(정렬 해시 개행 결합) = 5ff9541d822ac905cc1cb4c6c7c6e31ec74277b9fabe544fdf2014e4a6c1e1a7. DESIGN-GAP: redteam 케이스는 pytest red 수집(-p merge_gate) 대상이 아니므로 test_id = tools/gates/redteam/attacks/26-gate-output-utf8::<단계>, exc_type 이름 = redteam.FAIL, failure_hash = merge_gate.red_failure_hash(test_id, \"redteam.FAIL\")로 정의해 썼다(00-common §8.1은 pytest 예외 타입만 정의)"
+    },
+    "V3": {
+      "verdict": "N/A",
+      "basis": "도입 1: 뮤테이션은 Phase 1 병합부터 적용(N4.2). 이 변경은 Phase 0.5 게이트 변경"
+    },
+    "V4": {
+      "verdict": "N/A",
+      "basis": "도입 1: 자기참조 lint 병합 적용은 Phase 1부터(N4.2). 참고 oracle 대조: 공격 26 기대(strict UTF-8 디코드, 한글 존재, message_contains '[EL1 거부]'·'주체 오케스트레이터', exit 코드 집합)는 spec card 'oracle (a)' 구성 입력과 spec card·design 05 문구에서 왔고 피검 출력에서 만들지 않았다"
+    },
+    "V5": {
+      "verdict": "N/A",
+      "basis": "도입 1: 기준 약화 검사 병합 적용은 Phase 1부터(N4.2). test 커밋은 redteam 공격 26 추가와 lib/rt.py 추가뿐이고 기존 expect 파일 변경 없음(base..T 변경이 tools/gates/redteam/** 밖 0)"
+    },
+    "V6": {
+      "verdict": "N/A",
+      "basis": "도입 1: 소스 lint 병합 적용은 Phase 1부터(N4.2). 관찰: 16개 진입점 모두 reconfigure를 try/except Exception: pass로 감쌌다(광범위 except 신규 16곳) -- Phase 1 이후라면 V6 대상"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 새 def 없음(각 진입점 __main__ 블록에 5줄 추가뿐)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 무관 게이트 변경"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260921-gate-output-utf8"
+  ],
+  "auditor_run": {
+    "time": "2026-09-21T18:15:54+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260921-gate-output-utf8-audit",
+    "commands": [
+      "격리(병합본): git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260921-gate-output-utf8-audit C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m",
+      "격리(병합본): git -C C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m remote remove origin",
+      "격리(base 판 T): git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260921-gate-output-utf8-audit C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b",
+      "격리(base 판 T): git -C C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b remote remove origin",
+      "격리(base 판 T): git -C C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b checkout -q d9ea35f7a180c8b74f43c9a5c87a66448fa9aed3",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/aud/pycache_m PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/37bba565b1d8594315c223a684dace9199d2ebf8 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/37bba565b1d8594315c223a684dace9199d2ebf8/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m/skills/analog-gmid-design/assets/tests",
+      "PY = C:/Python314/python.exe",
+      "redteam 병합본 전체(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m",
+      "redteam 병합본 사례(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m): $PY tools/gates/redteam/run_all.py --cases 0.5 --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m",
+      "redteam 병합본 공격 26(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 26 --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3m",
+      "redteam base 판 전체(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b",
+      "redteam base 판 사례(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b): $PY tools/gates/redteam/run_all.py --cases 0.5 --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b",
+      "redteam base 판 공격 26 red(cwd C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 26 --repo C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b",
+      "red 해시: merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") -- base 판 로그 C:/Users/HSLEE/AppData/Local/Temp/20260921-gate-output-utf8-iso3b/tools/gates/redteam/logs/20260921-172903-direct.jsonl의 FAIL 단계마다"
+    ]
+  }
+}
