@@ -1056,8 +1056,8 @@ def subagent_commit_violations(env, actor):
 
 
 # ================================================================ 진입점
-def run(event: str, payload: dict, cache_dir: str):
-    """(exit code, 메시지)."""
+def run(event: str, payload: dict, cache_dir: str, env=None):
+    """(exit code, 메시지). env: 실행기가 이미 읽은 판정 환경(없으면 여기서 읽는다)."""
     try:
         actor = actor_of(payload.get("agent_type"))
     except Deny as e:
@@ -1071,7 +1071,8 @@ def run(event: str, payload: dict, cache_dir: str):
         return 0, ""   # EL2는 gmid-* 역할에만(§7)
     if event == "PreToolUse" and tool in READ_TOOLS and actor != "gmid-test-author":
         return 0, ""   # Read·Grep·Glob은 §6.4(test-author)에만
-    env = rp.load_env(cwd)
+    if env is None:
+        env = rp.load_env(cwd)
     hc = HC(env, actor, payload, cache_dir)
     warn = ("[역할 게이트 경고] " + " / ".join(env.warnings) + "\n") if env.warnings else ""
     try:

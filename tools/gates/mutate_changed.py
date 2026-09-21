@@ -209,6 +209,18 @@ def main(argv):
         pyc = os.path.join(tmp, "pycache")
         os.makedirs(pyc)
         survivors, killed, results = [], 0, []
+        baseline_ok = {}
+
+        def run_tests(inv):
+            env = dict(os.environ, PYTHONPYCACHEPREFIX=pyc, PYTHONDONTWRITEBYTECODE="1")
+            cmd = [ns.python, "-P", "-m", "pytest", "-c", ns.pytest_ini, "--rootdir=" + work,
+                   "--confcutdir=" + work, "-x", "-q", "-p", "no:cacheprovider"] + \
+                  [os.path.join(work, *test_nodeid(t).split("::")[0].split("/")) + "::" +
+                   test_nodeid(t).split("::", 1)[1] for t in inv]
+            try:
+                return subprocess.run(cmd, cwd=work, capture_output=True, env=env, timeout=ns.timeout).returncode
+            except subprocess.TimeoutExpired:
+                return "timeout"
         for path in targets:
             head_src = head_files[path]
             rc = subprocess.run(["git", "-C", root, "cat-file", "-e", "%s:%s" % (ns.base, path)], capture_output=True,
@@ -218,6 +230,10 @@ def main(argv):
             fpath = os.path.join(work, *path.split("/"))
             for q, fn in changed_defs(base_src, head_src):
                 inv = inventory(edges, "%s::%s" % (path, q), test_nodes)
+                if inv and tuple(inv) not in baseline_ok:
+                    # 변이 전 기준 실행: 인벤토리 test가 변이 없는 코드에서 통과해야 '죽인 변이'가 뜻이 있다
+                    # (기준에서 이미 실패하면 모든 변이가 죽은 것으로 보여 거짓 PASS가 된다 -- WP-02)
+                    baseline_ok[tuple(inv)] = run_tests(inv) == 0
                 for opname, npath, mfn in mutants(fn, head_src):
                     mid = "%s:%s:%s:%s" % (modname, q, opname, npath)
                     if mid in approved:
@@ -226,19 +242,13 @@ def main(argv):
                     if not inv:
                         survivors.append(mid)
                         rec = {"id": mid, "result": "survived", "reason": "인벤토리 없음(도달하는 test 없음)"}
+                    elif not baseline_ok[tuple(inv)]:
+                        survivors.append(mid)
+                        rec = {"id": mid, "result": "survived", "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"}
                     else:
                         with open(fpath, "w", encoding="utf-8", newline="\n") as fh:
                             fh.write(_replace_def(head_src, fn, mfn))
-                        env = dict(os.environ, PYTHONPYCACHEPREFIX=pyc, PYTHONDONTWRITEBYTECODE="1")
-                        cmd = [ns.python, "-P", "-m", "pytest", "-c", ns.pytest_ini, "--rootdir=" + work,
-                               "--confcutdir=" + work, "-x", "-q", "-p", "no:cacheprovider"] + \
-                              [os.path.join(work, *test_nodeid(t).split("::")[0].split("/")) + "::" +
-                               test_nodeid(t).split("::", 1)[1] for t in inv]
-                        try:
-                            p = subprocess.run(cmd, cwd=work, capture_output=True, env=env, timeout=ns.timeout)
-                            code = p.returncode
-                        except subprocess.TimeoutExpired:
-                            code = "timeout"
+                        code = run_tests(inv)
                         with open(fpath, "w", encoding="utf-8", newline="\n") as fh:
                             fh.write(head_src)
                         if code == 0:

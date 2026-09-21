@@ -24,7 +24,7 @@ def _git(args):
 
 
 def _load_gate_code(cwd):
-    """gate master 판 role_paths.py를 모듈로 올려 캐시를 검증·풀고 캐시 경로를 돌려준다."""
+    """gate master 판 role_paths.py를 모듈로 올려 캐시를 검증·풀고 (캐시 경로, 판정 환경)을 돌려준다."""
     import json
     import types
     rc, out = _git(["-C", cwd, "worktree", "list", "--porcelain"])
@@ -46,9 +46,10 @@ def _load_gate_code(cwd):
     boot.__file__ = "<gate role_paths>"
     sys.modules["role_paths"] = boot
     exec(compile(src.decode("utf-8"), "<gate role_paths>", "exec"), boot.__dict__)
-    cache = boot.ensure_cache(boot.load_env(cwd))
+    env = boot.load_env(cwd)
+    cache = boot.ensure_cache(env)
     del sys.modules["role_paths"]
-    return cache
+    return cache, env
 
 
 def _main():
@@ -63,10 +64,10 @@ def _main():
     if EVENT in ("PostToolUse", "SubagentStop") and not agent.startswith("gmid-"):
         return 0   # §7: EL2는 gmid-* 역할에만
     cwd = payload.get("cwd") or os.getcwd()
-    cache = _load_gate_code(cwd)
+    cache, env = _load_gate_code(cwd)
     sys.path.insert(0, cache)
     import role_hooks
-    code, msg = role_hooks.run(EVENT, payload, cache)
+    code, msg = role_hooks.run(EVENT, payload, cache, env)   # 판정 환경을 다시 읽지 않는다(WP-10: git 호출 7회 절약)
     if msg:
         (sys.stderr if code else sys.stdout).write(msg + "\n")
     return code
