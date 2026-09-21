@@ -1,0 +1,12 @@
+{
+ "layer": "data",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #17 '후보 대조'(review31 N-05, review32 M-08), §9.2-10",
+ "title": "공격 17: 후보 대조 -- 고정 pytest 판 locate_config의 config_names가 모두 판정 환경 파일 이름",
+ "steps_from_records": true
+}

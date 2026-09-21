@@ -1,0 +1,14 @@
+{
+ "rule": "00-common §8.1 로더 규칙 5",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 5 (review22 §5)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "spec_card"
+   ],
+   "value": "docs/02-design/specs/20260921-rt-other.spec.md"
+  }
+ ]
+}

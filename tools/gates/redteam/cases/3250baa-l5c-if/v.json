@@ -1,0 +1,30 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V4",
+   "subjects": [
+    "sizing_recipe.optimize_full_circuit_budget"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": {
+     "git": "3250baa:skills/analog-gmid-design/assets/sizing_recipe.py"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_l5c.py": {
+     "section": {
+      "git": "3250baa:skills/analog-gmid-design/assets/sizing_recipe.py",
+      "marker": "[L5c 헤드룸 singleton 정책",
+      "def": "test_l5c"
+     }
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V4",
+    "basis": "N4.2 V4 (3) assert가 if·try 안에만 있음"
+   }
+  }
+ ]
+}

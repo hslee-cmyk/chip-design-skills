@@ -1,0 +1,26 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #19 (g), review32 M-07, §8.2-3 (라)(1), §9.2-3",
+ "title": "공격 19 (g): 부모 셋 이상인 역할 밖 병합",
+ "steps": {
+  "attack-el3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-el4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  }
+ }
+}

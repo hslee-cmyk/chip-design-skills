@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 9",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 9 -- review23 C5 U+3164",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "checks",
+    "V1",
+    "basis"
+   ],
+   "value": "ㅤ"
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+ "rule": "00-common §8.1 로더 규칙 8",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 8 -- 부분집합: 대문자 T·Z(review23 C6)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "time"
+   ],
+   "value": "2026-09-21t10:00:00z"
+  }
+ ]
+}

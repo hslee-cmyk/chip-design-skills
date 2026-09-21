@@ -1,0 +1,55 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6 + §8.2",
+ "expect": "reject",
+ "basis": "00-common §8.2 머리 규칙 -- diff_path 정규화 거부(./)는 머리 파싱 단계(00-common §8.2 값 형식, 8e74bb6 F5)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-h13"
+   ]
+  }
+ ],
+ "old_files": {
+  ".ai/approvals/20260921-rt-h13.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-h13"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "diff"
+    ],
+    [
+     "target",
+     "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    ],
+    [
+     "diff_base",
+     "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+    ],
+    [
+     "diff_head",
+     "cccccccccccccccccccccccccccccccccccccccc"
+    ],
+    [
+     "diff_path",
+     "./x"
+    ],
+    [
+     "scope",
+     "x"
+    ]
+   ]
+  }
+ },
+ "contested": false
+}

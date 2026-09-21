@@ -1,0 +1,56 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V3",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale.py": {
+     "text": "import sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_zero():\n    assert rt_scale(0.0) == 0.0\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "basis": "N4.2 V3: 산술 교체·상수 변경 변이가 0 입력 test에서 살아남는다"
+   }
+  },
+  {
+   "step": "control",
+   "tool": "V3",
+   "kind": "control",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale.py": {
+     "text": "import sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_two():\n    assert rt_scale(2.0) == 6.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "kind": "control",
+    "basis": "모든 연산자 변이가 죽는 test -- 오거부 0"
+   }
+  }
+ ]
+}

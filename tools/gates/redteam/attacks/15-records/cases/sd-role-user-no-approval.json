@@ -1,0 +1,17 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "reject",
+ "basis": "05 §8.2-5 Role: user는 staged_diff 승인 기록 필요(review29 Q-07)",
+ "files": {
+  ".gitignore": "__pycache__/\n.pytest_cache/\nruns/\nlibrary/*.search_archive/\n"
+ },
+ "trailers": [
+  "Role: user"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": false
+}

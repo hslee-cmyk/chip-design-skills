@@ -1,0 +1,27 @@
+{
+ "layer": "EL4",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #20 (c), §9.2-4 'Change-Id는 정확히 하나'",
+ "title": "공격 20 (c): 한 push에 Change-Id 둘",
+ "steps": {
+  "control-first-only": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "첫 변경 한 건만이면 통과 -- 오거부 0"
+  },
+  "attack": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  }
+ }
+}

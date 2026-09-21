@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{CODEWT}/workspaces/numpy.pyw)",
+ "content": "x = 1\n"
+}

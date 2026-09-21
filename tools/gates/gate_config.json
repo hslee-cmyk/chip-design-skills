@@ -1,0 +1,24 @@
+{
+  "gate_path": "C:/Users/HSLEE/Documents/Todoc/fpga/gmid-gate.git",
+  "workspace_path": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills",
+  "python_path": "C:/Python314/python.exe",
+  "reachability_roots": {
+    "before_phase3": [
+      "workspaces/run_harness.py::run",
+      "workspaces/run_harness.py::__main__",
+      "skills/analog-gmid-design/assets/sky130_lut_sweep.py::__main__",
+      "skills/analog-gmid-design/assets/topology_to_markdown.py::__main__"
+    ],
+    "after_phase3": [
+      "skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline",
+      "workspaces/run_harness.py::run",
+      "skills/analog-gmid-design/assets/sky130_lut_sweep.py::__main__",
+      "skills/analog-gmid-design/assets/topology_to_markdown.py::__main__"
+    ]
+  },
+  "audit_tail_lines": 20,
+  "_proposed": {
+    "reachability_roots": "PROPOSED DEFAULT -- 사용자가 정한다. 근거: 계획 N3.10의 운영 진입점(Phase 3 전 run_harness.run, 뒤 MOD10 run_gmid_design_pipeline)과 도구로 남는 두 스크립트(N3.10 주)의 __main__을 루트로 둔다. reachability.py는 파일이 있는 루트만 쓴다.",
+    "audit_tail_lines": "PROPOSED DEFAULT -- 사용자가 정한다. 근거: 세션 시작 표시 줄 수일 뿐 판정에 쓰지 않는다(§16). 한 화면에 들어오는 최근 반영 20건."
+  }
+}

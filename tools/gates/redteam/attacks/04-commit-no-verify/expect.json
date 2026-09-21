@@ -1,0 +1,40 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #4, §6.2 '검사 끄기' 규칙",
+ "title": "공격 4: git commit --no-verify / -n",
+ "steps": {
+  "control-proper-commit": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§6.2 커밋 트레일러 규칙의 정확한 형태 -- 오거부 0"
+  },
+  "attack-no-verify": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-dash-n": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-main-no-verify": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§6.2 검사 끄기는 주체 '전부'"
+  }
+ }
+}

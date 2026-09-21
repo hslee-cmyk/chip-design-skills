@@ -1,0 +1,33 @@
+{
+ "layer": "EL4",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #5(EL4 거부), §9.2-3",
+ "title": "공격 5: commit-tree로 만든 커밋 push(트레일러 없음 / Role: code가 .ai/approvals 추가)",
+ "steps": {
+  "attack-no-trailer": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-role-code-approvals": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "control-role-outside-commit-tree": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§9.2-3 역할 밖 경로만 바꾼 커밋은 통과(10b와 같은 식) -- EL4가 commit-tree 커밋을 모두 거부하는 것이 아님을 보인다"
+  }
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 10",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 10 -- review23 C12",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "checks",
+    "V9",
+    "basis"
+   ],
+   "value": "도입 Phase는 6b부터"
+  }
+ ]
+}

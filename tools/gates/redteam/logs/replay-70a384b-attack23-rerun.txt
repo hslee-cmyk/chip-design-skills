@@ -1,0 +1,7 @@
+repo=C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\.claude\worktrees\bootstrap-replay
+log=C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\.claude\worktrees\agent-a350887d4fa415ec3\tools\gates\redteam\logs\20260921-130422-direct.jsonl
+
+PASS             23-v4-boundary                               
+
+케이스: {"PASS": 1}
+단계: {"PASS": 169}

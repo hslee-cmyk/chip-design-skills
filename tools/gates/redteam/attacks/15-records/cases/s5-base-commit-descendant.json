@@ -1,0 +1,14 @@
+{
+ "rule": "05 §9.2-5",
+ "expect": "reject",
+ "basis": "05 §9.2-5 base_commit이 old이거나 그 조상",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "base_commit"
+   ],
+   "value": "@{F.T}"
+  }
+ ]
+}

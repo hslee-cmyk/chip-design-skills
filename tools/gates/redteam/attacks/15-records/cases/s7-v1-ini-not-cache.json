@@ -1,0 +1,16 @@
+{
+ "rule": "05 §9.2-7",
+ "expect": "reject",
+ "basis": "05 §9.2-7 -c 값의 디렉터리가 gmid-gate-cache/<old>/",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "commands",
+    0
+   ],
+   "value": "V1: PYTHONPATH=@{GITDIR}/gmid-gate-cache/@{F.OLD} PYTHONPYCACHEPREFIX=@{TEMPDIR}/pyc $PY -P -m pytest -c @{TEMPDIR}/@{F.ID}-iso/pytest_gate.ini --rootdir=@{TEMPDIR}/@{F.ID}-iso --confcutdir=@{TEMPDIR}/@{F.ID}-iso @{TEMPDIR}/@{F.ID}-iso/skills/analog-gmid-design/assets/tests"
+  }
+ ]
+}

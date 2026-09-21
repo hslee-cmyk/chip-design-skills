@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{WORK}/skills/verilog-rtl/pyproject.toml)",
+ "content": "[tool.pytest.ini_options]\n"
+}

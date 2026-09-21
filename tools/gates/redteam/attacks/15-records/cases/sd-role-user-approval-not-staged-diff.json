@@ -1,0 +1,42 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "reject",
+ "basis": "계획 N3.12.2 사용자 행 `.ai/approvals/<id>.md` 조건 '그 커밋의 staged_diff 승인'(8e74bb6 F4) -- (c) 새 승인 기록 하나의 target_kind가 staged_diff가 아님(decision)",
+ "files": {
+  ".gitignore": "__pycache__/\n.pytest_cache/\nruns/\nlibrary/*.search_archive/\n"
+ },
+ "trailers": [
+  "Role: user"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": false,
+ "approval": {
+  "id": "20260921-rt-sd10",
+  "header": [
+   [
+    "id",
+    "20260921-rt-sd10"
+   ],
+   [
+    "date",
+    "2026-09-21"
+   ],
+   [
+    "target_kind",
+    "decision"
+   ],
+   [
+    "target",
+    "U-26"
+   ],
+   [
+    "scope",
+    "x"
+   ]
+  ]
+ }
+}

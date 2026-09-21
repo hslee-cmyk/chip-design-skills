@@ -1,0 +1,53 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "accept",
+ "basis": "05 §8.2-5 Role: user + 같은 커밋의 staged_diff(diff_base = HEAD) + 계획 N3.12.2 사용자 행 `.ai/approvals/<id>.md` 조건 '그 커밋의 staged_diff 승인'(8e74bb6 F4) -- 새 파일 하나, staged_diff 머리, 해시 일치 -> 통과(오거부 0)",
+ "files": {
+  ".gitignore": "__pycache__/\n.pytest_cache/\nruns/\nlibrary/*.search_archive/\n"
+ },
+ "trailers": [
+  "Role: user"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": false,
+ "approval": {
+  "id": "20260921-rt-sd7",
+  "header": [
+   [
+    "id",
+    "20260921-rt-sd7"
+   ],
+   [
+    "date",
+    "2026-09-21"
+   ],
+   [
+    "target_kind",
+    "staged_diff"
+   ],
+   [
+    "target",
+    "@auto_target"
+   ],
+   [
+    "diff_base",
+    "@base"
+   ],
+   [
+    "diff_path",
+    ".gitignore"
+   ],
+   [
+    "scope",
+    "redteam staged_diff"
+   ]
+  ],
+  "paths_for_hash": [
+   ".gitignore"
+  ]
+ }
+}

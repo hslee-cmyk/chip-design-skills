@@ -1,0 +1,10 @@
+{
+ "layer": "GB0",
+ "exit": "reject",
+ "message_contains": [],
+ "modes": [],
+ "phase": "6a",
+ "basis": "계획 N4.3 #12·13·14 실행 Phase 6a",
+ "title": "공격 14: 숨은 레일 후보 topology -- GB0 로드 게이트",
+ "skip_reason": "GB0 로드 게이트(DEC-60·DEC-75)는 Phase 6a 구현 -- 0.5 실행 대상 아님(계획 N4.3, 05 §13.2 마지막 행)"
+}

@@ -1,0 +1,49 @@
+{
+ "cases": [
+  {
+   "step": "attack-v4",
+   "tool": "V4",
+   "subjects": [
+    "stick_diagram.run_full_circuit_audit"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/stick_diagram.py": {
+     "git": "e5fbf92:skills/analog-gmid-design/assets/stick_diagram.py"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_stick_test16.py": {
+     "section": {
+      "git": "e5fbf92:skills/analog-gmid-design/assets/stick_diagram.py",
+      "marker": "=== Test 16: run_full_circuit_audit()",
+      "def": "test_stick_test16"
+     }
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V4",
+    "basis": "N4.2 V4 (5) print로만 판정(그리고 (4) assert 0개)"
+   }
+  },
+  {
+   "step": "attack-v5",
+   "tool": "V5",
+   "base": {
+    "skills/analog-gmid-design/assets/stick_diagram.py": {
+     "git": "e5fbf92:skills/analog-gmid-design/assets/stick_diagram.py"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/baseline/stick_diagram.selftest.baseline.log": {
+     "git": "e5fbf92:skills/analog-gmid-design/assets/tests/baseline/stick_diagram.selftest.baseline.log"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V5",
+    "basis": "§10 V5: test 분류의 .py 아닌 파일(기준선 .log) 변경은 무조건 승인 기록 요구"
+   }
+  }
+ ]
+}

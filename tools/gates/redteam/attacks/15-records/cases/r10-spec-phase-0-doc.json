@@ -1,0 +1,7 @@
+{
+ "rule": "00-common §8.1 로더 규칙 10",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 10: spec card Phase가 phase_order에 없음(review23 C17 `0(문서)`)",
+ "id": "20260921-rt-phase0doc",
+ "spec_phase": "0(문서)"
+}

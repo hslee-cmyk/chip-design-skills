@@ -1,0 +1,4 @@
+{
+ "command": "git -C @{CODEWT} commit --trailer \"Role: code\" --trailer \"Change-Id: 20260920-rt-other\" -m \"code\"",
+ "description": "c"
+}

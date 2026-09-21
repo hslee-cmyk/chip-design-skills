@@ -1,0 +1,12 @@
+{
+ "layer": "V5",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.3 2e1944a (V5 FAIL, 원 diff 그대로 -- TS1 전 if __name__ 블록이 V5 입력)",
+ "title": "사례: 격자 확대로 제약 통과(grid_points_per_theta 1 -> 3)",
+ "steps_from_records": true
+}

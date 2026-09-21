@@ -1,0 +1,44 @@
+{
+ "rule": "00-common §8.1 로더 규칙 6 + §8.2",
+ "expect": "reject",
+ "basis": "00-common §8.2 머리 규칙 -- UTF-8, BOM 없음",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "approvals"
+   ],
+   "value": [
+    "20260921-rt-h3"
+   ]
+  }
+ ],
+ "old_files": {
+  ".ai/approvals/20260921-rt-h3.md": {
+   "header": [
+    [
+     "id",
+     "20260921-rt-h3"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "decision"
+    ],
+    [
+     "target",
+     "U-26"
+    ],
+    [
+     "scope",
+     "x"
+    ]
+   ],
+   "prefix_hex": "efbbbf"
+  }
+ },
+ "contested": false
+}

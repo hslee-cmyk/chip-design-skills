@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{CODEWT}/conftest.py)",
+ "content": "x = 1\n"
+}

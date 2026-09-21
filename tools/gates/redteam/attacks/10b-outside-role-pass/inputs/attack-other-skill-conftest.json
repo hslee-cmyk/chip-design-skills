@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{WORK}/skills/verilog-rtl/conftest.py)",
+ "content": "x = 1\n"
+}

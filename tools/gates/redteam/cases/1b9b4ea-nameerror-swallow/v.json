@@ -1,0 +1,33 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V6",
+   "base": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": {
+     "git": "1b9b4ea:skills/analog-gmid-design/assets/sizing_recipe.py"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": {
+     "git": "1b9b4ea:skills/analog-gmid-design/assets/sizing_recipe.py",
+     "replace": [
+      [
+       "    import os as _rds_os\n    real = _rds_os.path.realpath(topology_path)\n",
+       "    try:\n        real = os.path.realpath(topology_path)   # 이 모듈은 os를 최상위 import하지 않는다\n    except Exception:\n        return                                    # NameError를 삼키고 항상 통과\n"
+      ],
+      [
+       "_rds_os.",
+       "os."
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V6",
+    "basis": "N4.2 V6 새 광범위 except"
+   }
+  }
+ ]
+}

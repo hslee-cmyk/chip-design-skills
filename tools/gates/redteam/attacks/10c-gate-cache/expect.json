@@ -1,0 +1,77 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #10c, §4.4 캐시 대조, §6.2 저장소 내부 규칙 예외(review31 N-07·review32 M-09)",
+ "title": "공격 10c: 캐시 훼손 / 캐시 읽기·실행(허용) / 캐시로 리다이렉트·cp(거부)",
+ "steps": {
+  "warm-cache": {
+   "layer": "EL1",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": []
+  },
+  "allow-run-cache-script": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§6.2: `$PY <캐시>/<이름>.py …` 스크립트 인자 허용(§12-0)"
+  },
+  "allow-pythonpath-cache": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§6.2: PYTHONPATH 첫 원소가 캐시, -m이면 -P"
+  },
+  "allow-ps-pythonpath-cache": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§6.2 PowerShell `$env:PYTHONPATH = '<캐시>'`(review32 M-09)"
+  },
+  "attack-redirect-into-cache": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-cp-into-cache": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "tamper": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "precondition",
+   "message_contains": [],
+   "basis": "§4.4 캐시 디렉터리가 있어야 훼손을 재현할 수 있다"
+  },
+  "attack-after-tamper": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§4.4: 훼손된 캐시는 다시 풀거나(그러면 거부 판정) import 실패 -> exit 2. 훼손 코드가 실행되면 exit 0"
+  },
+  "control-after-tamper": {
+   "layer": "EL1",
+   "exit": [
+    0,
+    2
+   ],
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§13.2 #10c '캐시 대조가 다시 풀거나(0) EL1 exit 2'"
+  }
+ }
+}

@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 10",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 10: '로 시작하는 줄'",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "checks",
+    "V4",
+    "basis"
+   ],
+   "value": "test_lint.py exit 0, oracle 대조: 합성 입력"
+  }
+ ]
+}

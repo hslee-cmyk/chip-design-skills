@@ -1,0 +1,91 @@
+{
+ "type": "commit",
+ "rule": "§8.2-5 staged_diff",
+ "expect": "reject",
+ "basis": "계획 N3.12.2 사용자 행 `.ai/approvals/<id>.md` 조건 '그 커밋의 staged_diff 승인'(8e74bb6 F4) -- (a) 새 승인 기록 파일 둘('두 번째 파일은 이 행에 맞지 않는다')",
+ "files": {
+  ".gitignore": "__pycache__/\n.pytest_cache/\nruns/\nlibrary/*.search_archive/\n"
+ },
+ "trailers": [
+  "Role: user"
+ ],
+ "layers": [
+  "EL3",
+  "EL4"
+ ],
+ "contested": false,
+ "approval": {
+  "id": "20260921-rt-sd8a",
+  "header": [
+   [
+    "id",
+    "20260921-rt-sd8a"
+   ],
+   [
+    "date",
+    "2026-09-21"
+   ],
+   [
+    "target_kind",
+    "staged_diff"
+   ],
+   [
+    "target",
+    "@auto_target"
+   ],
+   [
+    "diff_base",
+    "@base"
+   ],
+   [
+    "diff_path",
+    ".gitignore"
+   ],
+   [
+    "scope",
+    "redteam staged_diff"
+   ]
+  ],
+  "paths_for_hash": [
+   ".gitignore"
+  ]
+ },
+ "more_approvals": [
+  {
+   "id": "20260921-rt-sd8b",
+   "header": [
+    [
+     "id",
+     "20260921-rt-sd8b"
+    ],
+    [
+     "date",
+     "2026-09-21"
+    ],
+    [
+     "target_kind",
+     "staged_diff"
+    ],
+    [
+     "target",
+     "@auto_target"
+    ],
+    [
+     "diff_base",
+     "@base"
+    ],
+    [
+     "diff_path",
+     ".gitignore"
+    ],
+    [
+     "scope",
+     "redteam staged_diff"
+    ]
+   ],
+   "paths_for_hash": [
+    ".gitignore"
+   ]
+  }
+ ]
+}

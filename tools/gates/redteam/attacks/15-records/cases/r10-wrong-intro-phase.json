@@ -1,0 +1,16 @@
+{
+ "rule": "00-common §8.1 로더 규칙 10",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 10 -- <Phase>가 v_intro[V9]=6b와 같아야",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "checks",
+    "V9",
+    "basis"
+   ],
+   "value": "도입 4: x"
+  }
+ ]
+}

@@ -1,0 +1,28 @@
+{
+ "layer": "INTEGRITY",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #21, §3.3 무결성 대조 행 1~4, N3.12.0 '드러나게 한다'",
+ "title": "공격 21: 원격 설정 조작 뒤 git push gate (드러내는 증거, installed 전용)",
+ "steps": {
+  "a-config-receivepack": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack"
+  },
+  "b-edit-git-config": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack"
+  },
+  "c-global-include-worktree": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack"
+  }
+ }
+}

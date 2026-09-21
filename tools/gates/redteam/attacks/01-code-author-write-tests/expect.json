@@ -1,0 +1,41 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [
+  "test_rt_evil.py"
+ ],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #1(EL1 exit 2), §4.1 allowed, 계획 N3.12.2(tests/**는 test-author)",
+ "title": "공격 1: code-author가 tests 경로를 Write/Edit",
+ "steps": {
+  "control-write-engine": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "N3.12.2 gmid-code-author `skills/analog-gmid-design/assets/*.py` 없음 -- 오거부 0"
+  },
+  "attack-write-tests": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "test_rt_evil.py"
+   ],
+   "basis": "§6.1-5 거부 메시지에 대상"
+  },
+  "attack-edit-tests": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "test_rt_engine.py"
+   ],
+   "basis": "계획 N4.3 #1(Edit)"
+  }
+ }
+}

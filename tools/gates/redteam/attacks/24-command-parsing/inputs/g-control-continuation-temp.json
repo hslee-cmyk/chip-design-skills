@@ -1,0 +1,4 @@
+{
+ "command": "cp @{WORK}/rtl/core.v \\\n@{TEMPDIR}/gmid-rt-24g.v",
+ "description": "g-control-continuation-temp"
+}

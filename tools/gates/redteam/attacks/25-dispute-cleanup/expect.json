@@ -1,0 +1,39 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #25, §6.2 '정리 전 dispute 보존'(review30 R-16), §12 재시도",
+ "title": "공격 25: dispute 기록 없이 code worktree 정리 / 기록 뒤 정리 허용",
+ "steps": {
+  "attack-remove-worktree": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-delete-branch": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "control-remove-worktree-after-record": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§6.2: blob id가 메인 worktree HEAD spec card `## dispute 기록` 절에 있으면 허용"
+  },
+  "control-delete-branch-after-record": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  }
+ }
+}

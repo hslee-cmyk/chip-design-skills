@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{CODEWT}/skills/analog-gmid-design/assets/tests/tools/conftest.py)",
+ "content": "x = 1\n"
+}

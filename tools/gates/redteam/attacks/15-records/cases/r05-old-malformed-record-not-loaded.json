@@ -1,0 +1,9 @@
+{
+ "rule": "00-common §8.1 로더 규칙 5",
+ "expect": "accept",
+ "basis": "00-common §8.1 로더 규칙 5: 로드 대상은 이번 병합의 판정 기록 하나(과거 기록을 훑지 않는다, review23 M-14) -- 오거부 0",
+ "fresh": true,
+ "old_files": {
+  ".ai/verification/20260101-rt-old.json": "{not json\n"
+ }
+}

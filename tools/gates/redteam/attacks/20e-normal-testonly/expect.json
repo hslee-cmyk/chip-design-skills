@@ -1,0 +1,33 @@
+{
+ "layer": "EL2",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #20 (e), §7 SubagentStop 범위(review30 E2, review31 N-02, review33 M2-08), §9.2-4 표",
+ "title": "공격 20 (e): 세 역할 정상 종료 -- test-only (오거부 0)",
+ "steps": {
+  "control-test-author-stop": {
+   "layer": "EL2",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "control-auditor-stop": {
+   "layer": "EL2",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§7 audit 범위 커밋 최대 1개(review31 N-02)"
+  },
+  "control-el4": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  }
+ }
+}

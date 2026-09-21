@@ -1,0 +1,32 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V4",
+   "subjects": [
+    "sizing_recipe.estimate_area_budget"
+   ],
+   "observe": "v4_first",
+   "base": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": {
+     "git": "e329283:skills/analog-gmid-design/assets/sizing_recipe.py"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_area_budget.py": {
+     "section": {
+      "git": "e329283:skills/analog-gmid-design/assets/sizing_recipe.py",
+      "marker": "[7-4b 확장 estimate_area_budget()",
+      "def": "test_area_budget"
+     }
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V4",
+    "observed_equals": "FAIL",
+    "basis": "§13.3: 표지 줄 섹션 하나 -> test 함수 하나, 첫 판정 문장 V4 (2) FAIL(§10 실측: e329283 첫 assert FAIL)"
+   }
+  }
+ ]
+}

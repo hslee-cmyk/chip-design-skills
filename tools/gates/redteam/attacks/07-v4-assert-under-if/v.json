@@ -1,0 +1,50 @@
+{
+ "cases": [
+  {
+   "step": "attack",
+   "tool": "V4",
+   "subjects": [
+    "rt_engine.rt_gain"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_rt_v4b.py": {
+     "text": "from rt_engine import rt_gain\n\n\ndef test_rt_gain_cond():\n    result = rt_gain(2e-3, 50e3)\n    if result is not None:\n        assert result == 100.0\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V4",
+    "basis": "N4.2 V4 (3) assert가 if·try 안에만 있음"
+   }
+  },
+  {
+   "step": "control",
+   "tool": "V4",
+   "kind": "control",
+   "subjects": [
+    "rt_engine.rt_gain"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_rt_v4b.py": {
+     "text": "from rt_engine import rt_gain\n\n\ndef test_rt_gain():\n    assert rt_gain(2e-3, 50e3) == 100.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V4",
+    "kind": "control",
+    "basis": "오거부 0"
+   }
+  }
+ ]
+}

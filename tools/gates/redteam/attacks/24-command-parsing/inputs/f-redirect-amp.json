@@ -1,0 +1,4 @@
+{
+ "command": "git status 2>&1 | head",
+ "description": "f-redirect-amp"
+}

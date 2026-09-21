@@ -1,0 +1,32 @@
+{
+ "layer": "EL3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §4.1 'EL3·EL4는 casefold 충돌 경로를 더하는 커밋을 거부', §13.2 #17",
+ "title": "공격 17 (review33): casefold하면 기존 경로와 같아지는 `Skills/…` 경로를 더하는 커밋",
+ "steps": {
+  "control-code-commit": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "attack-el3": {
+   "layer": "EL3",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "attack-el4": {
+   "layer": "EL4",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": []
+  }
+ }
+}

@@ -1,0 +1,4 @@
+{
+ "command": "Set-Content -Path '@win(@{WORK}/skills/analog-gmid-design/assets/rt_engine.py)' -Value 'x = 1'",
+ "description": "set"
+}

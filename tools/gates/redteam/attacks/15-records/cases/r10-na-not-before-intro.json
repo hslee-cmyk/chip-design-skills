@@ -1,0 +1,18 @@
+{
+ "rule": "00-common §8.1 로더 규칙 10",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 10: N/A는 spec Phase가 v_intro보다 앞일 때만(V1 도입 1, Phase 1)",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "checks",
+    "V1"
+   ],
+   "value": {
+    "verdict": "N/A",
+    "basis": "도입 1: x"
+   }
+  }
+ ]
+}

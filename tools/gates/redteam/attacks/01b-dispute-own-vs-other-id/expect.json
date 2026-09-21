@@ -1,0 +1,29 @@
+{
+ "layer": "EL1",
+ "exit": 2,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #1b(허용 / EL1 거부), N3.12.2 `docs/02-design/disputes/<id>.md` 자기 변경 id",
+ "title": "공격 1b: code-author의 자기 id / 남의 id dispute",
+ "steps": {
+  "control-own-id": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§13.2 #1b 자기 id 허용(§5.1 change_id = 브랜치 role/code/<id>의 <id>)"
+  },
+  "attack-other-id": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [
+    "20260920-rt-other.md"
+   ]
+  }
+ }
+}

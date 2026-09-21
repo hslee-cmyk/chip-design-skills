@@ -1,0 +1,12 @@
+{
+ "layer": "V4",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #6~9, 계획 N4.2 V4 (1), N4.3 #6",
+ "title": "공격 6: 기대값을 피검 함수로 만든 test (V4 (1))",
+ "steps_from_records": true
+}

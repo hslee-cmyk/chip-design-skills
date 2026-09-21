@@ -1,0 +1,16 @@
+{
+ "rule": "05 §9.2-7",
+ "expect": "reject",
+ "basis": "05 §9.2-7 --rootdir와 --confcutdir 값이 같다",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "auditor_run",
+    "commands",
+    0
+   ],
+   "value": "V1: PYTHONPATH=@{GITDIR}/gmid-gate-cache/@{F.OLD} PYTHONPYCACHEPREFIX=@{TEMPDIR}/pyc $PY -P -m pytest -c @{GITDIR}/gmid-gate-cache/@{F.OLD}/pytest_gate.ini --rootdir=@{TEMPDIR}/@{F.ID}-iso --confcutdir=@{TEMPDIR} @{TEMPDIR}/@{F.ID}-iso/skills/analog-gmid-design/assets/tests"
+  }
+ ]
+}

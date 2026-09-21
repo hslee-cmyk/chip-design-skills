@@ -1,0 +1,17 @@
+{
+ "rule": "00-common §8.1 로더 규칙 9",
+ "expect": "reject",
+ "basis": "00-common §8.1 로더 규칙 9 -- review23 C15",
+ "ops": [
+  {
+   "op": "set",
+   "path": [
+    "red",
+    "test_ids"
+   ],
+   "value": [
+    " "
+   ]
+  }
+ ]
+}

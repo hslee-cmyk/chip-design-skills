@@ -1,0 +1,73 @@
+{
+ "layer": "EL1",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct",
+  "installed"
+ ],
+ "phase": "0.5",
+ "basis": "05 §13.2 #10b, §5 판정 범위, §8.2-1·(라), §9.2-3, review31 N-01·N-12",
+ "title": "공격 10b: 역할 밖 쓰기·트레일러 없는 역할 밖 커밋·역할 밖 병합은 통과(오거부 0), 판정 환경 이름은 예외",
+ "steps": {
+  "pass-temp-write": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "pass-other-skill-write": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "pass-rtl-write": {
+   "layer": "EL1",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": []
+  },
+  "attack-other-skill-conftest": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": [],
+   "basis": "§13.2 #10b 단서: 판정 환경 이름은 저장소 어디서나 사용자만(review31 N-12)"
+  },
+  "attack-other-skill-pyproject": {
+   "layer": "EL1",
+   "exit": 2,
+   "kind": "attack",
+   "message_contains": []
+  },
+  "pass-trailerless-rtl-commit::EL3": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§8.2-1 역할 밖 경로만이면 트레일러 불필요, §9.2-3"
+  },
+  "pass-trailerless-rtl-commit::EL4": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§8.2-1 역할 밖 경로만이면 트레일러 불필요, §9.2-3"
+  },
+  "pass-outside-merge-el3": {
+   "layer": "EL3",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§8.2-3 (라): 부모 둘, HEAD가 gate/master의 후손, overlaps_any 경로 트리 같음 -> 트레일러 없이 통과"
+  },
+  "pass-outside-merge-el4": {
+   "layer": "EL4",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "basis": "§9.2-3 역할 밖 병합 허용"
+  }
+ }
+}
