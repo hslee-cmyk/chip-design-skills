@@ -103,6 +103,29 @@ worktree W = `C:/Users/HSLEE/Documents/Todoc/fpga/wt`(게이트 구현 `Env.wt_d
 | 정리 test worktree·브랜치 | `git worktree remove` / `git branch -D` | 허용 | 0 | PASS |
 | 정리 audit worktree | `git worktree remove <audit wt>` | git 자체 실패(멈춘 병합의 변경), `--force`·`merge --abort`는 EL1 거부 | -- | D-3 |
 
+## 3. git 겹(EL3·EL4)과 공격 21·22 -- 격리 복제본(독립 검증 agent)
+
+상세: `installed-git-replay.md`(요약·준비·N/A 사유), `installed-git-replay.jsonl`(단계 289줄). 실제 `git commit`/`merge`가 설치된
+client hook을, 실제 `git push`가 복제 gate의 `pre-receive`를 돌렸다(REPO·GATE는 읽기만, 안전 가드 결과 무변경).
+
+| 구분 | 단계 | PASS | FAIL | ERROR | N/A-installed | RECORD |
+|---|---|---|---|---|---|---|
+| EL3·EL4 20개 케이스 | 109 | 88 | 0 | 0 | 19(EL1·EL2 단계 -- 1·2절에서 실제 호출로 대신) | 2 |
+| 공격 21·22와 대조군 | 71 | 59 | 0 | 0 | -- | 12 |
+
+정상 흐름 오거부 0(§12 test·code 커밋, §12-6 실제 병합, audit 커밋, red-green·equivalence·test-only 모두 통과). 21·22는 설계 표의
+모든 시점에서 대조 실패와 차이(행·expected·actual)를 적었다.
+
+## 4. §12 2차 시도 -- 실제 게이트 변경 `20260921-gate-output-utf8`
+
+| 순서 | 주체 | 결과 | SubagentStop |
+|---|---|---|---|
+| 1 | 오케스트레이터 | test worktree(gate/master 5da44a4) | -- |
+| 2 | gmid-test-author | 공격 26 red 케이스(42단계) 1fdc17e, base에서 42 FAIL(exit 불일치 0) | 통과 |
+| 3 | gmid-verification-auditor | 격리 복제본에서 freeze T=1fdc17e, red 42 FAIL 확인, 대조 10·24 PASS, `base_check.json` 미커밋(설계대로) | 통과 |
+| 4 | 오케스트레이터 | code worktree | -- |
+| 5 | gmid-code-author | 진입점 15개 UTF-8(40c214c), `gmid_gate.py`는 EL1 거부 → dispute(c6ffe1e)로 멈춤. 공격 26: 40 PASS / 2 FAIL | **9회 거부(D-7)** |
+
 ## 관찰된 결함 (범위 안)
 
 * **D-1 게이트 출력 인코딩**: 위 모든 거부 메시지의 한글이 Claude Code·subagent 도구 결과에서 깨져 보인다(`[EL1 �ź�] ��ü ���ɽ�Ʈ������`).
@@ -126,4 +149,15 @@ worktree W = `C:/Users/HSLEE/Documents/Todoc/fpga/wt`(게이트 구현 `Env.wt_d
 * **D-5 게이트 변경에서 test-author가 게이트 코드를 읽을 수 있다(기록)**: DEC-38 소스 열람 거부는 엔진 소스 경로 기준이라
   `tools/gates/**`·`hooks/role_*`는 막지 않는다. 게이트 변경의 판정 기준 작성자는 피검 코드를 볼 수 있다. N3.12.4 Bash 한계와
   같은 성격이라 결함인지는 사용자 판단.
+* **D-7 §12-3 미커밋 `base_check.json`이 다음 역할을 오거부한다(정상 흐름)**: §12-3은 auditor가 `base_check.json`을 audit
+  worktree에 커밋 없이 두게 하고(커밋은 §12-7), EL2 `role_worktree_violations`는 다른 역할 worktree의 미커밋 변경을 호출 역할의
+  위반으로 본다(`role_hooks.py` 1013행 DESIGN-GAP 주석의 해석). 실측: code-author의 Bash 호출마다 EL2 거부가 붙고 SubagentStop이
+  9회 막았다(자기 worktree 위반 0). 설계 두 절의 모순 -- ⑤ DoD '오거부 0'을 깨는 범위 안 결함. 게이트 변경 후보: 다른 역할 검사에서
+  audit worktree의 `.ai/verification/<id>/**`(자기 변경 id)를 뺀다.
+* **D-8 EL3가 `integrity-failed` 표지를 보지 않는다**(격리 복제본 관찰): §3.3은 "EL1·EL3는 표지가 있으면 모든 호출·커밋을 거부"인데
+  표지를 읽는 곳은 `role_hooks.py`뿐이고 `gmid_gate.py`·`role_commit_gate.py`는 매 커밋 `integrity.check("commit")`만 다시 돈다.
+  표지를 남긴 채 원인을 원복하면 EL1은 거부, EL3 커밋은 통과. 잰 커밋은 역할 밖 경로(판정 범위 커밋은 추정). 위협 범위 분류 필요.
+* **D-9 계획 N3.12.2에 `tools/gates/githooks/*`의 쓰기 행이 없다**(code-author dispute, 오케스트레이터 확인): 부트스트랩 뒤에는
+  EL3 실행기 `gmid_gate.py`를 어떤 역할도 고칠 수 없다. N3.12.6 산출물 목록에도 없다. spec card 작성 때 쓰기 경로표와
+  대조하지 않은 오케스트레이터 누락이 드러낸 것.
 * **D-6 (경미) `git worktree add -q`가 거부된다**: §12 형태와 인자 수(5개) 정확 일치만 허용. `-q` 없이 쓰면 되므로 운영상 문제 없음.

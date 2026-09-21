@@ -81,3 +81,14 @@ design `05-role-separation` §18: ⑤ 뒤 게이트 변경은 spec card로 한�
 > 공격 재생용 dispute(1차 시도). test 이름: rt-probe
 
 blob: 24974c967b6805ad98e8e402784dbda5c3cc0378
+
+2차 시도(실제 변경)에서 code-author가 쓴 dispute(c6ffe1e). 요지: 계약 대상 `tools/gates/githooks/gmid_gate.py`는 계획
+N3.12.2 쓰기 경로표 어느 행에도 맞지 않아(`tools/gates/*.py`는 하위 디렉터리를 포함하지 않는다) code-author가 쓸 수 없다.
+N3.12.6 산출물 목록에도 빠져 있다. 나머지 15개는 구현했고(40c214c) 공격 26은 42단계 중 40 PASS, 이 파일의 2단계만 FAIL.
+오케스트레이터 확인: 계획서 `githooks` 검색 결과 `.githooks/**`(사용자) 행뿐 -- dispute 주장이 맞다.
+
+> 요청: 계획 N3.12.2 쓰기 경로표에 `gmid-code-author | tools/gates/githooks/*.py | -- | 게이트 변경` 행(또는 동등하게
+> `tools/gates/githooks/**`)을 추가하고 N3.12.6 산출물 목록의 "게이트·검사 도구" 행에 `tools/gates/githooks/gmid_gate.py`를
+> 넣는 계획 개정을 승인해 달라.
+
+blob: 51c743d95a17f8a0a92f651b830f51d3b77955f8
