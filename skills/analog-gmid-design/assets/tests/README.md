@@ -34,4 +34,5 @@ skills/analog-gmid-design/assets/tests/
 | `legacy/` | 있음 |
 | `contracts/` | 있음 |
 | `tooling/` | 있음 |
-| `conftest.py`, `unit/`, `integration/`, `regression/`, `oracles/`, `tools/`, `probes/` | 아직 없음 |
+| `conftest.py` | 있음(C6: `--gmid-*` 옵션·`gmid_ic` 표식·xfail) |
+| `unit/`, `integration/`, `regression/`, `oracles/`, `tools/`, `probes/` | 아직 없음 |
