@@ -14841,3 +14841,5 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 
 - C6 20260922-ts7-ic-xfail 완료(gate bd92428): conftest(--gmid-phase·--gmid-strict·--gmid-dod, gmid_ic, 계획서 N4.1 xfail) + contracts IC1~IC11 뼈대(pytest.fail(), 14항목) + 표식-계획 대조 test. DEC-40 20260922-ts7-conftest(추가 거부 2·--help 예외 포함). R1 4회째. 이제 V1은 `--gmid-phase=1 --gmid-strict=<활성 키>`.
 - 다음: C7 ic5-gate-docstrings(red-green, 21 게이트 docstring '검사하지 않는 것'·`영역:`, activated_ic_case IC5:).
+
+- 백로그 B7: design 10 §6.5의 가정('pytest.fail() 뼈대면 활성화 card에 V5 승인 불필요')이 틀렸다 -- 뼈대를 실제 검사로 바꾸면 weakening_diff가 '비교 완화'·'리터럴 변경'으로 잡는다(C7 실측). IC 활성화 card마다 R1 필요(C8 IC3 포함). 개선하려면 게이트 변경(뼈대 pytest.fail() 교체 예외) -- 인프라라 엔진 작업이 막힐 때만.
