@@ -241,7 +241,13 @@ def check_mirror_symmetry(sequence: list, pair_map: dict) -> MirrorSymmetryVerdi
 
     실사용 예: `check_mirror_symmetry(list("555555344PP334666666"),
     {"5":"6","6":"5","3":"4","4":"3","P":"P"}).ok` → `True` — folded cascode top 행의 실제
-    finger 순서가 이 축대칭을 정확히 만족함을 이 함수로 재확인할 수 있다."""
+    finger 순서가 이 축대칭을 정확히 만족함을 이 함수로 재확인할 수 있다.
+
+    검사하지 않는 것: `pair_map`이 자기 일관적인 대응(`pair_map[pair_map[x]] == x`)인지는
+    검사하지 않는다. `sequence`에 `pair_map`에 없는 원소가 있으면 `ok=False`로 보고하지
+    않고 `KeyError`로 죽는다.
+    영역: 없음(배치)
+    """
     n = len(sequence)
     half = n // 2
     left, right = sequence[:half], sequence[n - half:]
@@ -2771,7 +2777,14 @@ def check_symmetry_dispositions(transistors: list, matching_pairs: list,
 
     반환: `SymmetryDispositionsVerdict(ok, case_collisions, undisposed)` —
     `case_collisions`는 `{net_lower: {실제 표기, ...}, ...}`,
-    `undisposed`는 `[(tag, kind, key, [names...]), ...]`."""
+    `undisposed`는 `[(tag, kind, key, [names...]), ...]`.
+
+    검사하지 않는 것: `dispositions`의 `category`/`reason` 문자열 내용은 검사하지 않는다 --
+    키 `(tag, kind, key)`가 존재하는지만 본다. `find_matching_candidates()`/
+    `find_hub_merge_candidates()`가 애초에 찾지 못하는 다른 종류의 매칭 후보는 이 함수의
+    범위 밖이다.
+    영역: 없음(배치)
+    """
     dispositions = dispositions or {}
 
     all_nets = (net for t in transistors for net in (t.source, t.drain, t.gate) if net is not None)
@@ -2999,6 +3012,12 @@ def check_multi_leaf_hub_parity(n_fingers_by_leaf: dict) -> MultiLeafHubParityVe
 
     반환: `MultiLeafHubParityVerdict(ok, kind, m_odd_leaves)` — `kind`는
     `"circuit"|"path"|"impossible"`.
+
+    검사하지 않는 것: leaf 개수(N>=2)나 finger 개수가 양의 정수인지는 검사하지 않고 입력을
+    그대로 신뢰한다. 실제 그래프를 만들지 않으므로 hub-leaf 외의 다른 connectivity(공식이
+    가정하는 구조와 실제가 다른 경우)는 이 함수가 못 잡는다 -- 최종 채택 전 `build_graph()`+
+    `check_euler_condition()` 재확인이 그래서 필요하다(위 참고).
+    영역: 없음(배치)
     """
     m = sum(1 for k in n_fingers_by_leaf.values() if k % 2 == 1)
     if m == 0:
@@ -3355,7 +3374,14 @@ def audit_vertical_stack_id_vs_kcl(transistors: list, matching_pairs: list,
       뜻일 수 있다.
 
     ⚠️ 이 함수는 아무것도 자동으로 고치거나 topology.json에 쓰지 않는다 -- 대조표만
-    낸다(이 프로젝트 전역 원칙: 제안만, 최종 판단은 사람)."""
+    낸다(이 프로젝트 전역 원칙: 제안만, 최종 판단은 사람).
+
+    검사하지 않는 것: `device_roles`에 `vertical_stack_id`가 아예 선언되지 않은 소자는
+    `vsid_of`에서 빠져 대조 대상이 되지 않는다(선언 자체의 존재 여부는
+    `require_device_roles_reviewed()`의 몫). `candidate_hub_nets`가 실제로 KCL을
+    만족하는지의 수치 검증(MNA)은 하지 않고 후보 net 목록만 낸다.
+    영역: dc
+    """
     net_uses: dict = defaultdict(list)
     for t in transistors:
         net_uses[t.source].append(t.name)
@@ -3526,7 +3552,14 @@ def audit_theta_root_direction(transistors: list, sizing_roles: dict | None,
     ⚠️ `m_cascode()`가 찾는 lo/up 관계에 안 걸리는 방향 오류(예: 둘 다 CASCODE도 DIODE도
     아닌 CURRENT_SOURCE류 두 소자 중 어느 쪽이 진짜 자유도인가, nmcnr_amplifier가 처음에
     `M104`를 자유변수로 잘못 뒀던 것과 같은 유형)는 KCL 자유도 개수를 세는 별도 분석이
-    필요해 이 함수 범위 밖이다."""
+    필요해 이 함수 범위 밖이다.
+
+    검사하지 않는 것: `analog-grammar`를 못 불러오면 조용히 빈 리스트를 반환한다(실제로
+    검사해서 문제가 없는 것과 애초에 검사를 못한 것이 반환값만으로는 구분되지 않는다).
+    `m_cascode()`가 찾는 lo/up 관계에 안 걸리는 방향 오류(위 CURRENT_SOURCE류 자유도 선택
+    문제)는 이 함수의 검사 범위 밖이다.
+    영역: dc, ac_struct
+    """
     netclass_mod, idioms_mod = _import_analog_grammar("netclass", "idioms")
     if netclass_mod is None or idioms_mod is None:
         return []
@@ -4909,7 +4942,13 @@ def require_device_roles_reviewed(topology_json_path: str, meta: dict) -> None:
 
     아무것도 unreviewed면 조용히 반환한다(에러 없음). 하나라도 있으면 정확히 무엇이
     unreviewed인지, 그리고 어떻게 review를 완료하는지(파일에 직접 쓰거나 `apply_device_
-    roles_gap_fill()`을 호출)를 담은 `ValueError`를 낸다."""
+    roles_gap_fill()`을 호출)를 담은 `ValueError`를 낸다.
+
+    검사하지 않는 것: 선언된 값이 실제로 맞는지는 검사하지 않는다 -- 제안과 다른 값이어도
+    파일에 쓰여있기만 하면 review완료로 통과시킨다. compensation/metric_stage_budget 보호
+    소자와 differential 매칭쌍은 애초에 검사 대상에서 제외한다(위 참고).
+    영역: 없음(스키마)
+    """
     unreviewed_roles = find_unreviewed_device_roles(meta)
     unreviewed_pairs = find_unreviewed_matching_pairs(meta)
     if not unreviewed_roles and not unreviewed_pairs:
@@ -5032,7 +5071,13 @@ def audit_vertical_stack_id_euler_feasibility(transistors: list, device_roles: d
     =True`와 `kinds`(그룹의 실제 kind 구성)만 채운다. 기존 홀짝-차수 findings는
     `kind_mismatch=False`로 채워 두 원인을 명확히 구분한다 -- 이 회로 실측: 26개
     declared vsid 그룹 중 8개(`biasgen_vom_battery_a`/`_b`, `biasgen_vop_battery_a`/
-    `_b`, `vbias2_stack`, `vbias3_stack`, `output_stage_a`/`_b`)가 kind_mismatch다."""
+    `_b`, `vbias2_stack`, `vbias3_stack`, `output_stage_a`/`_b`)가 kind_mismatch다.
+
+    검사하지 않는 것: `n_fingers=1`(topology 원본) baseline에서만 판정한다 -- 위에서
+    이미 밝혔듯 필요조건일 뿐 충분조건은 아니라 실제 sizing 이후 finger 수 기준으로는
+    다시 안 풀릴 수 있다(`resolvable=True`가 최종 보장이 아님).
+    영역: 없음(배치)
+    """
     by_name = {t.name: t for t in transistors}
     vsid_groups: dict = defaultdict(list)
     for name, entry in device_roles.items():
@@ -5331,6 +5376,10 @@ def check_finger_width_compatibility(transistors: list[Transistor], tol: float =
     따라서 이 함수는 반올림하지 않고 **정확한 나머지**를 검사한다 — `Transistor.w`와
     `Transistor.finger_w`를 둘 다 지정한 소자만 대상이며, `stick-diagram-euler-layout.md` §5
     피드백 루프에서 오일러 조건 분석보다 먼저 통과해야 하는 선행 게이트다.
+
+    검사하지 않는 것: `t.w` 또는 `t.finger_w`가 `None`인 소자는 대상에서 조용히 제외한다.
+    `finger_w` 값 자체가 공정 격자에 맞는 물리적으로 유효한 값인지는 검사하지 않는다.
+    영역: 없음(배치)
     """
     issues = []
     for t in transistors:
@@ -5448,7 +5497,13 @@ class EulerVerdict:
 def check_euler_condition(g: StackGraph) -> EulerVerdict:
     """PDF/pptx가 명시한 3가지 오일러 조건을 그대로 판정한다:
     0개 홀수차수 → circuit(닫힌 한붓그리기), 2개 → path(열린 한붓그리기), 4개 이상 → impossible.
-    연결성도 함께 확인한다(차수 조건을 만족해도 그래프가 끊겨 있으면 한 줄 diffusion으로 불가능)."""
+    연결성도 함께 확인한다(차수 조건을 만족해도 그래프가 끊겨 있으면 한 줄 diffusion으로 불가능).
+
+    검사하지 않는 것: 입력 `g`가 실제 회로 connectivity를 정확히 반영하는지는 검사하지
+    않는다 -- PMOS/NMOS kind 동질성 같은 입력 유효성은 `build_graph()`가 이미 보장했다고
+    가정하고, 이 함수는 주어진 그래프의 차수/연결성만 판정한다.
+    영역: 없음(배치)
+    """
     degrees = _degrees(g)
     odd_nodes = sorted(n for n, d in degrees.items() if d % 2 == 1)
     connected = _is_connected_ignoring_isolated(g)
@@ -6520,6 +6575,11 @@ def check_box_shape(rows: dict, row_width_tol: float = 1.5,
 
     ⚠️ FAIL이면 §5 sizing↔layout 피드백 루프로 돌아가 §8(`search_stack_finger_w`)이나
     §2.7(`common_centroid_layout`)로 finger_w·행 구성을 다시 정해야 한다.
+
+    검사하지 않는 것: `max_elongation=None`(기본값)이면 길이(elongation) 축은 검사하지
+    않는다. `l`/`finger_w`가 없는 행은 finger-count 근사(`approx=True`)로 대체해 계산을
+    계속할 뿐, 실제 물리 폭과의 오차는 검사하지 않는다.
+    영역: 없음(배치)
     """
     if not rows:
         return BoxShapeVerdict(ok=True, rectangular=True, elongation_ok=True, row_widths={},
@@ -6632,7 +6692,12 @@ def check_walk_sequence(transistor_sequence: list, transistors: list) -> WalkVer
        소자가 "현재 위치한 노드"에 실제로 닿아 있는지 확인하며 반대쪽 단자로 이동한다 —
        중간에 현재 노드와 안 닿는 소자가 나오면 그 지점에서 끊긴 것으로 판정하고
        `break_index`/`break_reason`에 정확한 위치와 이유를 남긴다. 양쪽 시작점을 다 시도해
-       하나라도 끝까지 이어지면 그 경로(`node_path`)를 채택한다."""
+       하나라도 끝까지 이어지면 그 경로(`node_path`)를 채택한다.
+
+    검사하지 않는 것: source/drain 연결만 보므로 PMOS/NMOS가 섞인 시퀀스도 연결만 맞으면
+    통과시킨다 -- kind 동질성 검사는 `build_graph()`의 몫이라 이 함수는 하지 않는다.
+    영역: 없음(배치)
+    """
     by_name: dict = {}
     for t in transistors:
         if t.name not in by_name:
@@ -7107,7 +7172,13 @@ def check_stick_diagram_coverage(sized_device_names, stick_diagram_devices: dict
     `check_stick_diagram_coverage`(이 함수) 같은 게이트를 코드 상단에 import해뒀다는
     사실은 "확인했다"는 증거가 되지 않는다. 리포트를 완료로 선언하기 전, 실제 소스에
     `run_full_circuit_audit(`/`check_stick_diagram_coverage(` **호출문**이 있고 그 반환값의
-    `.ok`를 실제로 확인(assert 등)했는지 grep으로 직접 재확인할 것."""
+    `.ok`를 실제로 확인(assert 등)했는지 grep으로 직접 재확인할 것.
+
+    검사하지 않는 것: 배치된 소자가 실제로 Euler/box-shape 조건을 만족하는지는 검사하지
+    않고 이름의 집합 포함 여부만 본다. 같은 소자가 여러 행에 중복 배치돼도 합집합으로만
+    계산해 잡히지 않는다.
+    영역: 없음(배치)
+    """
     covered = set()
     for names in stick_diagram_devices.values():
         covered.update(names)
@@ -7223,7 +7294,14 @@ def audit_row_split(rows: dict, matching_pairs: list | None = None,
            같은 수준의 민감도임을 명시. `branch_symmetric` 쪽의 3b는 공유 노드가 없어 그래프상
            사실상 항상 실패한다(전수 탐색 확인) — 그래도 3c는 위 실측처럼 swap 분배로 달성
            가능하므로 별개로 요구한다.
-         - `ra`/`rb` 조회 실패(구 `"unknown"` 폴백): 보수적으로 **3b와 3c 둘 다 필수**."""
+         - `ra`/`rb` 조회 실패(구 `"unknown"` 폴백): 보수적으로 **3b와 3c 둘 다 필수**.
+
+    검사하지 않는 것: 선언된 `matching_pairs` 밖에 있는, 실제로 매칭이 필요한 소자쌍은
+    검사하지 않는다(선언 누락 자체를 잡는 건 `check_symmetry_dispositions()`의 몫).
+    `pair_sensitivity`의 축B/축C 분류가 회로적으로 맞는지는 선언을 그대로 신뢰하고
+    검사하지 않는다.
+    영역: 없음(배치)
+    """
     result = AuditResult()
     sequences: dict = {}
     reps: dict = {}  # name -> 대표 Transistor(gate/source 조회용, 행 무관하게 아무거나 하나)

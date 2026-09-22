@@ -80,7 +80,14 @@ def audit_topology(topology_path: str) -> dict:
     """한 topology.json을 감사해 {"forward_ok": [...], "forward_flagged": [...],
     "reverse_violations": [...], "no_theta": bool} 반환. names가 3개 이상인 그룹은
     모든 쌍별 조합으로 펼쳐서 검사한다(matching_pairs의 N-소자 그룹 관례, audit_row_split()
-    과 동일 계약)."""
+    과 동일 계약).
+
+    검사하지 않는 것: theta 근거가 간접/연쇄(구성요소가 이미 다른 theta로 강제돼 결과적으로
+    같은 값이 되는 경우)이면 추적하지 않고 "근거 없음"으로 보수적으로 flag만 한다.
+    sizing_roles.theta가 아예 없는 회로(폐형식 사이징)는 대조 대상이 없어 전부 정보성
+    표시만 하고 근거를 검증하지 않는다.
+    영역: 없음(스키마)
+    """
     import itertools
     _, meta = load_topology(topology_path)
     pairs_meta = meta["symmetry"]["matching_pairs"]
