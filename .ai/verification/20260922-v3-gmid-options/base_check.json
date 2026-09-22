@@ -1,0 +1,122 @@
+{
+  "id": "20260922-v3-gmid-options",
+  "attempt": 1,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "edc28a1a0801180717456d154717218c5c1baaf7",
+    "T_trailers": {
+      "Role": "test",
+      "Change-Id": "20260922-v3-gmid-options"
+    },
+    "base": "6d0e8ed89a4f3dfaa3c2245bb1978d391ff73473",
+    "T_tree": "297ff8b27c97df2023c81a6c822a3f9cca023d77",
+    "test_paths": {
+      "tools/gates/redteam/attacks/28-v3-gmid-options": "1d8f8d73ac5be9d7acea21580e2bc7d6ae8c66eb",
+      "tools/gates/redteam/lib/rt.py": "284ad98e55f921a0f57ee3e9e63faf694bdcd944"
+    },
+    "base_to_T_changes_outside_redteam": 0,
+    "base_to_T_numstat": "4 파일 +163/-0 (28-v3-gmid-options/expect.json 12, run.sh 8, v.json 141, lib/rt.py 2)"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso",
+    "commands": [
+      "git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-v3-gmid-options-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso config core.longpaths true",
+      "export APPDATA=C:/Users/HSLEE/AppData/Roaming"
+    ],
+    "note": "T의 게이트 코드는 base(6d0e8ed)와 같다(T는 tools/gates/redteam/** 만 더한다) -- 복제본에서 실행한 게이트(tools/gates/mutate_changed.py) = base 판"
+  },
+  "red_check": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 28 --repo C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso",
+    "exit": 1,
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso/tools/gates/redteam/logs/20260922-171228-direct.jsonl",
+    "cases": {
+      "FAIL": 1
+    },
+    "steps": {
+      "FAIL": 3,
+      "PASS": 1
+    },
+    "per_case": {
+      "28-v3-gmid-options": {
+        "FAIL": 3,
+        "PASS": 1
+      }
+    },
+    "harness_status": "케이스 status=ok, run.sh exit 0(stderr 빈 값) -- 러너 ERROR 0. 4 단계 모두 mutate_changed.py가 실제로 실행됐다(missing 없음)",
+    "fail_causes": {
+      "opts-kill": "exit 2(기대 0), stdout에 V3 JSON 없음: base mutate_changed.py argparse가 'unrecognized arguments: --gmid-phase=1 --gmid-strict=IC3:'로 거부 -- 계약 1(옵션 수용) 위반",
+      "pre-c6-with-opts": "exit 2(기대 0): 같은 argparse 거부('unrecognized arguments: --gmid-phase=1 --gmid-strict=IC3:') -- 계약 1·3 위반(conftest 없는 저장소에서 옵션을 받아도 기존 판정과 같은 PASS여야 한다)",
+      "strict-outside-inventory": "exit 2(기대 0): 같은 argparse 거부('unrecognized arguments: --gmid-phase=1 --gmid-strict=IC3:,IC5:') -- 계약 1 위반"
+    },
+    "red_discrimination_note": "세 red 모두 base에서 같은 원인(인자 미수용, argparse exit 2)으로 FAIL한다. 따라서 base red는 계약 1(옵션 수용)만 구별하고, 계약 2(conftest에 옵션 전달)·계약 4(인벤토리 표식 키만 --gmid-strict로)의 구별은 병합본 green(opts-kill: UsageError 없이 변이 죽음, strict-outside-inventory: IC5: 제외로 모르는 키 거부 없음)과 V3 뮤테이션 판정에서 확인해야 한다",
+    "base_pass_steps": {
+      "28-v3-gmid-options": [
+        "pre-c6-no-opts"
+      ]
+    },
+    "base_pass_detail": {
+      "pre-c6-no-opts": "exit 0, stdout {\"tool\": \"V3\", \"verdict\": \"PASS\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 5, \"killed\": 5, \"survivors\": []} -- 계약 3 대조(옵션 없는 기존 명령은 그대로 PASS), 병합본에서 계속 PASS여야 하는 회귀 대조"
+    },
+    "expected_red_match": "test-author가 red로 기대한 opts-kill·pre-c6-with-opts·strict-outside-inventory 3개가 정확히 base FAIL, 대조 pre-c6-no-opts는 base PASS",
+    "result": "red 확인: base에서 FAIL인 3 단계만 red 목록에 넣었다. 전부 계약 위반(기대 exit·메시지 불일치)이고 하네스 ERROR는 없다. base에서 PASS인 1 단계(pre-c6-no-opts)는 red에서 뺐다",
+    "failure_hash_method": "DESIGN-GAP: redteam 케이스는 pytest red 수집(-p merge_gate) 대상이 아니다. test_id = tools/gates/redteam/attacks/<케이스>::<단계>, failure_hash = merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") (복제본 tools/gates/merge_gate.py = base 판)",
+    "aggregate_hash": "38b8a3f58c10c596d61d09fd7dc8a0d73e0649227a240efb0365e4fb7470a048",
+    "aggregate_hash_method": "sha256(정렬한 failure_hash를 \n으로 이은 UTF-8)",
+    "red": [
+      {
+        "test_id": "tools/gates/redteam/attacks/28-v3-gmid-options::opts-kill",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "c38c4d2fbff81277a02e826cbfe56add43449a3e90c15f3cce27d3a421285510"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/28-v3-gmid-options::pre-c6-with-opts",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "7f630d3a791d7efb42ef48dacf5a946cc82d5009f7a3bd2708b6f80460f16718"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/28-v3-gmid-options::strict-outside-inventory",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "a1017bfbf7e9e7c4f1fc2716148f558d862f1d8f6634f98ce8c95a9cbc706361"
+      }
+    ]
+  },
+  "control_check": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 26 --only 27 --repo C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso",
+    "exit": 0,
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso/tools/gates/redteam/logs/20260922-171313-direct.jsonl",
+    "cases": {
+      "PASS": 7
+    },
+    "steps": {
+      "PASS": 93,
+      "RECORD": 4
+    },
+    "detail": {
+      "26-gate-output-utf8": "PASS",
+      "27a-el2-foreign-uncommitted": "PASS",
+      "27b-orchestrator-cleanup": "PASS",
+      "27c-el3-integrity-marker": "PASS",
+      "27d-assign-subst": "PASS",
+      "27e-worktree-add-q": "PASS",
+      "27f-v6-reconfigure-except": "PASS"
+    },
+    "result": "같은 복제본·같은 러너(rt.py T 판)에서 기존 케이스 26·27a~f는 PASS -- red가 러너·환경 결함이 아니라 base 게이트 동작에서 온다"
+  },
+  "control_check_vcase": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 06 --only 07 --only 08 --only 09 --only 17 --repo C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso",
+    "exit": 0,
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260922-v3-gmid-options-iso/tools/gates/redteam/logs/20260922-171456-direct.jsonl",
+    "cases": {
+      "PASS": 11
+    },
+    "steps": {
+      "PASS": 79,
+      "RECORD": 5
+    },
+    "result": "26·27은 rt.py vcase를 거치지 않으므로, vcase를 쓰는 기존 케이스(06·07·08·09·17-conftest-v5 등 17 계열)를 추가 대조로 돌려 PASS -- rt.py의 args 추가(case에 args 없으면 명령 불변)가 기존 vcase 동작을 바꾸지 않았다"
+  },
+  "measured_at": "2026-09-22T17:12:28+09:00",
+  "measured_by": "gmid-verification-auditor (격리 복제본, 작성자 보고 미사용)"
+}
