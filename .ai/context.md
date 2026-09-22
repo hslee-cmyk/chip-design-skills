@@ -14836,3 +14836,5 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - C5 20260922-ts5-baseline-retire 완료(gate ad1bcc1): tests/baseline/ 3파일 삭제(sizing 기준선 45줄 드리프트 포함, 사용자 "DF 안 함"), tests/README.md(pytest 실행법·판정 규칙·N3.11 트리). DEC-40 20260922-ts5-baseline-retire, R1 3회째. references 실행 안내 2곳 tests/README.md 인용(f48f5f6). U-43: 사용자 `!`로 .gitignore 3줄 삭제 + .githooks/gmid_gate.py 재설치 사본, Role: user + staged_diff 승인 20260922-u43-gitignore-githooks(d72475a). D5 0줄.
 - 오케스트레이터의 사용자 전용 경로 쓰기는 사용자 허락이 있어도 EL1이 거부 -- 우회(python 쓰기)하지 않고 `!` 명령으로 사용자가 실행.
 - 다음: C6 ts7-ic-xfail(conftest --gmid-*, contracts/test_ic1..11 뼈대, 표식-계획 대조). C9 전 B6(C1 sections 섹션 병합 결함) 결정 필요.
+
+- B6 결정(사용자 "C9 전에 도구 수정"): C8 뒤·C9 앞에 C12(extract_selftest sections 비연속 대 표지 병합 수정, red-green) -- B5(절대 경로 머리글)는 그때 함께 정한다.
