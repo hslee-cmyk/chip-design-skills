@@ -14846,3 +14846,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 
 - C7 20260922-ic5-gate-docstrings 완료(gate 10accd0): IC5 활성, 게이트 21개 docstring에 '검사하지 않는 것'·`영역:`(본문 AST 불변), test_ic5 실제 검사(뼈대 교체). DEC-40 20260922-ic5-test-activation(B7 첫 사례). 2차 시도에서 auditor 순서 3과 code-author를 병렬로 돌렸고 EL2 오거부 없음(D-7 수정 효과). V3: docstring만 바뀐 def는 변이 대상 0.
 - 다음: C11 v3-gmid-options(게이트 변경, red-green) -> C8 ic3-completeness.
+
+- C11 20260922-v3-gmid-options 완료(gate a07b0cf): 게이트 변경, mutate_changed.py가 conftest에 --gmid-phase가 있으면 V1 값과 인벤토리 표식 키만의 --gmid-strict를 넘김(merge_gate.conftest_has_gmid_phase 재사용). 계약 2·4는 auditor가 pytest argv 캡처로 직접 확인. 재설치 불필요(설치 사본 없음). 참고: Phase 안 엄격 집합은 이미 병합된 activated_ic_case가 누적된다(C11 V1 = --gmid-strict=IC5:).
+- 관찰: `integrity.py check --scope session`이 120 s를 넘김 -- 행 3b가 accept-log 구간마다 판정을 다시 돈다(구간 수에 비례). 세션 시작 hook 비용과 함께 U-40(게이트 해제 시점)에서 볼 것.
+- 다음: C8 ic3-completeness(red-green, IC3:, 이관본 Test 26 정정 -> R1).
