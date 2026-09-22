@@ -14850,3 +14850,8 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - C11 20260922-v3-gmid-options 완료(gate a07b0cf): 게이트 변경, mutate_changed.py가 conftest에 --gmid-phase가 있으면 V1 값과 인벤토리 표식 키만의 --gmid-strict를 넘김(merge_gate.conftest_has_gmid_phase 재사용). 계약 2·4는 auditor가 pytest argv 캡처로 직접 확인. 재설치 불필요(설치 사본 없음). 참고: Phase 안 엄격 집합은 이미 병합된 activated_ic_case가 누적된다(C11 V1 = --gmid-strict=IC5:).
 - 관찰: `integrity.py check --scope session`이 120 s를 넘김 -- 행 3b가 accept-log 구간마다 판정을 다시 돈다(구간 수에 비례). 세션 시작 hook 비용과 함께 U-40(게이트 해제 시점)에서 볼 것.
 - 다음: C8 ic3-completeness(red-green, IC3:, 이관본 Test 26 정정 -> R1).
+
+- C8 20260922-ic3-completeness 완료(gate 0127bf5, 3차 시도): IC3 활성. stick_diagram에 INSTANCE_TOP_FIELDS/INSTANCE_SIZING_FIELDS, check_instance_completeness(save_instance_json 저장 전 배선), check_topology_name_uniqueness(load_topology 배선), common_gate_amplifier `_comment` 키 로드 결함 수정. 계약 5: library 9/9 로드(base 8/9), 파일럿·folded_cascode instance.json 해시 base와 같음. 2차 FAIL(V6 새 continue, V3 생존 16) -> 3차에서 code가 continue를 걸러진 목록 순회로, `list(device_names)`를 새 이름 `names`로 바꿔 삭제 변이가 죽게 함. V3: 120개 중 106 죽음, 14 면제(decision 20260922-ic3-v3-exempt), 생존 0.
+- 백로그 B8: 바뀐 def 전체를 변이하는 V3 규칙 때문에 C8에서 드러난 기존 test 공백 -- load_topology 연결 파일 meta 합치기(5), device_roles 자동 쌍 중복 제거(5), save_instance_json scope_note 복사(2). 면제로 넘겼으니 이 줄들을 바꾸는 변경이 오면 test부터 보강. 면제 id는 AST 경로라 두 함수 구조가 바뀌면 다시 V3에 걸린다.
+- 관찰: 역할 커밋은 EL1이 트레일러를 Role/Change-Id 둘로 고정해 Co-Authored-By를 못 붙인다(게이트 형식 우선). 참고(auditor): load_topology 이름 검사는 진입 파일 passive_elements만 봄(연결 파일 passive는 원래 합치지 않음).
+- 다음: C12(extract_selftest sections B6) -> C9 ts2-pytest-split -> C10 caa970b-replay -> Phase 1 DoD.
