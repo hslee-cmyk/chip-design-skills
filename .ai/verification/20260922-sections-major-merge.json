@@ -1,0 +1,127 @@
+{
+  "id": "20260922-sections-major-merge",
+  "spec_card": "docs/02-design/specs/20260922-sections-major-merge.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "1ee5b396109cc7478938273b56f0dc755cf257f7",
+  "test_commit": "cbc23682b6304e9c676a09ab0edbcdbdcb8e82af",
+  "code_commit": "975c148a1787a1b4d5c09d7e71b2c0bcc96f1809",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_plain_statement_starts_new_section"
+    ],
+    "failure_hashes": [
+      "8c82a645a84eb006bc93e9d88a0c427b89faf151f6497ec8c447d712f4b73222"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "2차 시도 병합본 d75a749666782a1fb739970e82d1265d5f158af0(부모 T cbc2368 + code 975c148, 병합 트리 a4d478c7 = code 커밋 트리) 격리 복제본 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7(origin 제거, 작업 트리 변경 0)에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 1ee5b39 판 pytest_gate.ini, --gmid-phase=1 --gmid-strict=IC3:,IC5:): collected 81, 69 passed, 12 xfailed(비엄격 IC 뼈대 12개), 실패·오류·skip·xpass 0, 수집 오류 0, exit 0, 49.32s, 출력 sha256 앞 16자리 9584870c0f31c98c. 새 test 4개(test_sections_consecutive_majors_merge_into_one, test_sections_consecutive_majors_merged_section_ends_at_second_major, test_sections_major_after_plain_statement_starts_new_section, test_sections_major_after_sub_marker_starts_new_section) 모두 PASSED. base 판 T에서는 68 passed(순서 3 기록과 같음) -- base PASSED 65개는 병합본에서도 PASSED"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. 커밋 사슬: base 1ee5b39 -> T cbc2368(Role: test, 부모 base, 변경 = tests/tooling/test_extract_selftest.py 1개, numstat 122 추가 0 삭제) -> code 975c148(Role: code, 부모 T, 변경 = tools/migrate/extract_selftest.py 1개 +3 -1, tests/ 변경 0) -> 병합 d75a749(Role: doc, 트리 = code 트리). test 커밋 불변: 병합본 test 파일 blob 3105741610fcba792deefde4bbde4a25b74a49eb = T blob, T..병합본 diff는 tools/migrate/extract_selftest.py 1개뿐. spec card·interface card blob도 순서 3 기록과 같다(551866e6·e81aa054). red 재측정(새 격리 복제본 a2iso7r을 T에 checkout, base 판 캐시, -p merge_gate --continue-on-collection-errors --gmid-phase=1 --gmid-strict=IC3:,IC5:, GMID_RED_CAPTURE·GMID_INTERFACE_CARD): 1 failed, 68 passed, 12 xfailed, exit 1. FAILED 1개 = test_sections_major_after_plain_statement_starts_new_section, builtins.AssertionError(test_extract_selftest.py:563 assert 2 == 3 -- base 도구가 경우 (ii)의 두 번째 대 표지를 앞 대 표지 섹션에 합쳐 섹션 2개), capture 13행 = 이 1행 + XFAIL 12행(builtins.Failed, 비엄격 IC 뼈대라 red에서 뺐다), 캐시 merge_gate.red_failure_hash로 13행 모두 재계산 일치, capture 파일 sha256 be3c5052625b29ac2fa15635148f0eb216ffa9d1924607229fb95b8bd7959d4e = 순서 3 red.jsonl과 바이트 같음, red 행 test_id·exc_type·failure_hash가 base_check.json red와 같다. green: 병합본 a2iso7에서 같은 red 수집 명령: 69 passed, 12 xfailed, exit 0, capture 12행 전부 builtins.Failed이고 test id 집합이 T capture의 XFAIL 12행과 같다(red 0) -- red.test_ids 1개 PASSED. 계약 직접 확인(auditor 스크립트 c3.py, base 도구와 병합본 도구를 같은 입력에): 계약 1 -- 6abe0fc 이관본 4개와 병합본 이관본 4개 모두 병합본 도구의 섹션 시작 줄 = §5.1을 AST로 도구와 독립 적용한 기대(대 표지는 바로 앞 최상위 문장도 대 표지일 때만 합침)와 같고, base 도구 시작 줄 = 옛 규칙(현재 섹션이 대 표지면 합침) 독립 적용과 같다, 새 경계는 모두 '바로 앞 최상위 문장이 대 표지 아닌 대 표지'(6abe0fc 기준 5·46·3·5개); 계약 2 -- base 섹션 시작 줄은 모두 병합본에 있고 쪼갠 조각이 base 섹션 범위를 정확히 덮으며, (start,end)가 같은 섹션(70·121·1·9개 등)은 index를 start 줄로 바꿔 비교한 모든 필드(kind·category·title·asserts·raise_assertion·reject_try·verdict_tokens·defs·deps·provides_to)가 같다, 인라인 self-test(A·B 존재) 여부 같음, scan(병합본 assets 디렉터리) exit 0·stdout·--out JSON 바이트 같음, extract(병합본 이관본 4개) exit code(4·4·4·0)·stdout·stderr·출력 바이트 같음; 계약 3 -- 6abe0fc 이관본 섹션 수 base 도구 72·128·2·11, 병합본 도구 77·174·5·16(reproduced_numbers). 결과 c3_results.jsonl sha256 8732b92fbba405eb621c192cd0876649d63554a7948fdd2cbeb846c7d9ed6d29"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "게이트 규칙상 대상 0개. base 판 mutate_changed.py(base 1ee5b39, head d75a749, --gmid-phase=1 --gmid-strict=IC3:,IC5:, --pytest-ini 복제본 tools/gates/pytest_gate.ini -- blob 5d89b982 = 1ee5b39 판, base..head tools/gates·.githooks 변경 0): targets 빈 목록, mutants 0, survivors 0, verdict PASS, exit 0 -- reachability._is_source는 assets 바로 아래 .py와 workspaces/run_harness.py만 참이라 tools/migrate/extract_selftest.py는 V3 대상이 아니다(C1 기록과 같은 DESIGN-GAP: 계획 N4.2 V3 문언에는 소스 범위 한정이 없다). 보조 측정(판정 입력 아님, 오케스트레이터 요청): 캐시 mutate_changed.changed_defs·mutants·_replace_def로 base..head 변경 def = _group_block_sections 1개, 변이 28개를 작업 복사본에서 병합본 test 파일 전체(38개)로 판정 -- 기준 실행 38 passed, killed 27, survived 1. 생존 1 = stmt_delete body[3](prev_top_kind = None 초기화 삭제): 등가 변이 -- prev_top_kind를 읽는 식은 cur is not None 뒤에 있고(단락 평가) cur가 None이 아니게 되려면 앞선 반복이 이미 끝줄 prev_top_kind = mk를 실행했으므로 NameError 경로가 없다(코드 읽기로 확인). 1차 시도의 판별력 공백이던 병합 분기 cur['stmts'].append(stmt)(stmt_delete body[4].body[1].orelse[0].body[0])는 이번에 killed -- 실패 test는 test_sections_consecutive_majors_merged_section_ends_at_second_major 하나(경우 (i-b) 끝 줄 단언, 변이가 합친 섹션 end를 첫 대 표지 줄에 머물게 한다). 새 조건의 세 비교(cmp_flip body[4].body[1].orelse[0].test.values[0..2])와 prev_top_kind = mk 삭제(body[4].body[2])도 모두 killed. 결과 jsonl sha256 da877ce9ec80b6b31ca3e22414d17659422e230d93bfab3c122a36cf53ef0ce6"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: test_lint(base 판 캐시) --interface-card만으로는 ERROR(피검 심볼 없음 -- interface card 두 표가 비어 있다, C1과 같은 DESIGN-GAP)라 --subject tools.migrate.extract_selftest:main, --subject tools.migrate.extract_selftest:cmd_sections, --module-dir . 로 실행(C1 선례): verdict PASS, exit 0, findings 75개 전부 (2) NO-SUBJECT(도구를 하위 프로세스로만 부르므로 피검 호출 식이 test에 없다), UNJUDGED 0, (3)(4)(5) 발견 0 -- 1차 FAIL 사유였던 규칙 (4)는 새 test 4개 모두 본문에 직접 assert len(secs) == N과 판정 함수 assert_sections_match 호출을 가져 해소; 기대값마다 spec card 'oracle (a) 구성으로 정답이 정해진 합성 입력'·design 10 v1.2 §5.1과 대조(auditor가 합성 블록에 §5.1을 손으로 다시 적용) -- (i) _MERGE_CONSECUTIVE: 섹션 2개, [prelude P end 2(v = 1), major A start 3 end 5] = 대 표지 둘 연속이라 합침, 합친 섹션 문장 = 표지 print 둘 + assert라 D 아님 A, 일치; (i-b) _MERGE_CONSECUTIVE_TAIL: 섹션 2개, [P end 2, major D start 3 end 4] = 두 번째 대 표지도 합친 섹션의 문장이라 end = 그 줄(§5.1 섹션 = 표지부터 다음 표지 앞까지의 최상위 문장), 문장이 정적 문자열 print뿐이라 D, 일치, secs[1].end 단언도 같은 값; (ii) _SPLIT_BY_STATEMENT: 섹션 3개, [P end 2, major A 3~4, major D 5~6] = 두 번째 대 표지 바로 앞 문장이 assert라 연속 아님 -> 새 섹션, print('static text S')는 '# '·'=== '·'  ['로 시작하지 않아 표지 아님이고 정적 문자열 print라 D, 일치; (iii) _SPLIT_BY_SUB: 섹션 4개, [P end 2, major A 3~4, sub D 5~5, major D 6~6] = '  [sub] mid U'는 '  ['로 시작하고 ^  \\[\\s*(PASS|FAIL|OK|SKIP|불가)에 맞지 않아 소 표지, 그 뒤 대 표지는 바로 앞이 소 표지라 새 섹션, 일치; index 0..n-1 순서 = §5.1 번호 S<i>; start·end 기대는 _line_of(합성 텍스트에서 유일한 줄 번호, 구성으로 정해짐)로 계산 -- 피검 출력에서 온 기대값 없음; 기존 test 34개(38 중)의 기대값은 base..head 삭제 0줄이라 C1 판정 기록의 oracle 대조 그대로이고 병합본에서 전부 PASS. 판정 공백(판별력 한계, V4 위반 아님): 새 test는 title·asserts·deps 등 다른 필드를 단언하지 않는다 -- 계약 2는 V2의 auditor 직접 비교로 확인"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base 1ee5b39, head d75a749): verdict PASS, findings 0, diff_paths 빈 목록, diff_hash null, approved false, exit 0. test 분류 변경은 tests/tooling/test_extract_selftest.py 추가 122줄뿐(삭제 0줄, 기존 test·기준선·conftest 변경 0), assets 최상위 소스 __main__ 블록 변경 0. 순서 3 사전 확인(base..T)과 같은 결과"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "게이트 규칙상 대상 0개. base 판 source_lint.py(base 1ee5b39, head d75a749): targets 빈 목록, findings 0, verdict PASS, exit 0 -- is_source는 assets 바로 아래 .py와 workspaces/run_harness.py만 참이라 tools/migrate/extract_selftest.py는 V6 대상이 아니다. 보조 관찰(코드 읽기): 이번 diff(+3 -1)는 지역 변수 prev_top_kind 초기화·조건 교체·반복 끝 대입뿐이라 새 except·continue·숫자 리터럴·id() 사용이 없다"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, exit 0, new_defs 빈 목록, unreached 빈 목록(변경 def _group_block_sections는 기존 def이고 도구는 그래프 범위 밖, 호출부 build_sections -> cmd_sections는 그대로)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 무관 명령행 도구"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음'. 다만 계약 3의 섹션 수(spec card에 오케스트레이터 사전 측정으로 적힌 72->77, 128->174, 2->5, 11->16)를 auditor가 격리 복제본에서 직접 재어 reproduced_numbers 8개로 기록했다 -- 8개 모두 spec card 값과 같다"
+    }
+  },
+  "reproduced_numbers": [
+    {
+      "name": "계약 3: 6abe0fc 이관본 selftest_sizing_recipe.py sections 섹션 수(base 1ee5b39 도구)",
+      "value": 72,
+      "command": "$PY <out>/c3/tool_base/tools/migrate/extract_selftest.py sections --source <git show 6abe0fc:skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py 사본> --out <json>; 값 = len(sections) (스크립트 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py, out = C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7)"
+    },
+    {
+      "name": "계약 3: 6abe0fc 이관본 selftest_sizing_recipe.py sections 섹션 수(병합본 d75a749 도구)",
+      "value": 77,
+      "command": "$PY <out>/c3/tool_head/tools/migrate/extract_selftest.py sections --source <git show 6abe0fc:skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py 사본> --out <json>; 값 = len(sections) (스크립트 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py)"
+    },
+    {
+      "name": "계약 3: 6abe0fc 이관본 selftest_stick_diagram.py sections 섹션 수(base 1ee5b39 도구)",
+      "value": 128,
+      "command": "$PY <out>/c3/tool_base/tools/migrate/extract_selftest.py sections --source <git show 6abe0fc:skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py 사본> --out <json>; 값 = len(sections) (스크립트 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py)"
+    },
+    {
+      "name": "계약 3: 6abe0fc 이관본 selftest_stick_diagram.py sections 섹션 수(병합본 d75a749 도구)",
+      "value": 174,
+      "command": "$PY <out>/c3/tool_head/tools/migrate/extract_selftest.py sections --source <git show 6abe0fc:skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py 사본> --out <json>; 값 = len(sections) (스크립트 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py)"
+    },
+    {
+      "name": "계약 3: 6abe0fc 이관본 selftest_design_report.py sections 섹션 수(base 1ee5b39 도구)",
+      "value": 2,
+      "command": "$PY <out>/c3/tool_base/tools/migrate/extract_selftest.py sections --source <git show 6abe0fc:skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py 사본> --out <json>; 값 = len(sections) (스크립트 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py)"
+    },
+    {
+      "name": "계약 3: 6abe0fc 이관본 selftest_design_report.py sections 섹션 수(병합본 d75a749 도구)",
+      "value": 5,
+      "command": "$PY <out>/c3/tool_head/tools/migrate/extract_selftest.py sections --source <git show 6abe0fc:skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py 사본> --out <json>; 값 = len(sections) (스크립트 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py)"
+    },
+    {
+      "name": "계약 3: 6abe0fc 이관본 selftest_topology_library.py sections 섹션 수(base 1ee5b39 도구)",
+      "value": 11,
+      "command": "$PY <out>/c3/tool_base/tools/migrate/extract_selftest.py sections --source <git show 6abe0fc:skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py 사본> --out <json>; 값 = len(sections) (스크립트 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py)"
+    },
+    {
+      "name": "계약 3: 6abe0fc 이관본 selftest_topology_library.py sections 섹션 수(병합본 d75a749 도구)",
+      "value": 16,
+      "command": "$PY <out>/c3/tool_head/tools/migrate/extract_selftest.py sections --source <git show 6abe0fc:skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py 사본> --out <json>; 값 = len(sections) (스크립트 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py)"
+    }
+  ],
+  "approvals": [
+    "20260922-10-test-separation-design"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T20:55:22+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-sections-major-merge-audit",
+    "commands": [
+      "격리: git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-sections-major-merge-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 remote remove origin",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 config core.longpaths true",
+      "격리(red 재측정용 두 번째 복제본, 같은 세 명령): C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7r + git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7r checkout -q --detach cbc23682b6304e9c676a09ab0edbcdbdcb8e82af",
+      "PY = C:/Python314/python.exe(3.14.2, pytest 9.0.2), 환경 APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming·PYTHONIOENCODING=utf-8, 출력 디렉터리 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/pyc_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict=IC3:,IC5: -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 (HEAD d75a749666782a1fb739970e82d1265d5f158af0)",
+      "V2 red 재측정(cwd a2iso7r, HEAD cbc2368): GMID_RED_CAPTURE=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/red_T.jsonl GMID_INTERFACE_CARD=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7r/docs/02-design/specs/20260922-sections-major-merge.interface.md PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/pyc_red + V1 명령(복제본 루트 a2iso7r)에 -p merge_gate --continue-on-collection-errors",
+      "V2 green(cwd a2iso7): GMID_RED_CAPTURE=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/red_M.jsonl GMID_INTERFACE_CARD=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7/docs/02-design/specs/20260922-sections-major-merge.interface.md PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/pyc_green + V1 명령에 -p merge_gate --continue-on-collection-errors",
+      "V2 red 해시 재계산: PYTHONPATH=<캐시> $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/redhash.py C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/red_T.jsonl <audit worktree>/.ai/verification/20260922-sections-major-merge/base_check.json",
+      "V2 계약 1~3(cwd a2iso7): $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3.py C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 1ee5b396109cc7478938273b56f0dc755cf257f7 d75a749666782a1fb739970e82d1265d5f158af0 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/c3",
+      "V3(cwd a2iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 --base 1ee5b396109cc7478938273b56f0dc755cf257f7 --head d75a749666782a1fb739970e82d1265d5f158af0 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=1 --gmid-strict=IC3:,IC5: --out C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/v3.jsonl",
+      "V3 보조(판정 입력 아님, cwd a2iso7): PYTHONPATH=<캐시> $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/v3sup.py C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 1ee5b396109cc7478938273b56f0dc755cf257f7 d75a749666782a1fb739970e82d1265d5f158af0 C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/v3sup",
+      "V4(cwd a2iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 --interface-card C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7/docs/02-design/specs/20260922-sections-major-merge.interface.md --subject tools.migrate.extract_selftest:main --subject tools.migrate.extract_selftest:cmd_sections --module-dir . --base 1ee5b396109cc7478938273b56f0dc755cf257f7 --head d75a749666782a1fb739970e82d1265d5f158af0",
+      "V5(cwd a2iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 --base 1ee5b396109cc7478938273b56f0dc755cf257f7 --head d75a749666782a1fb739970e82d1265d5f158af0",
+      "V6(cwd a2iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 --base 1ee5b396109cc7478938273b56f0dc755cf257f7 --head d75a749666782a1fb739970e82d1265d5f158af0",
+      "V7 참고(cwd a2iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/1ee5b396109cc7478938273b56f0dc755cf257f7/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2iso7 --base 1ee5b396109cc7478938273b56f0dc755cf257f7 --head d75a749666782a1fb739970e82d1265d5f158af0",
+      "기록 확인: PYTHONPATH=<캐시> $PY -B C:/Users/HSLEE/AppData/Local/Temp/20260922-sections-major-merge-a2out7/record_check.py <이 기록> <a2iso7> (base 판 로더 규칙 1~10, v1_command_check, V5 64자리 해시 없음)"
+    ]
+  }
+}
