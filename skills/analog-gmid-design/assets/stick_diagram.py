@@ -37,6 +37,7 @@ import math
 import os
 from collections import Counter, defaultdict
 from dataclasses import asdict as _dc_asdict, dataclass, field, replace as _dc_replace
+from typing import Iterable, Mapping, Sequence
 
 
 # ---------------------------------------------------------------------------
@@ -8617,6 +8618,137 @@ def pack_floorplan_grouped(spine_groups: dict, mirror_pairs: list, gap: float = 
 
 
 # ---------------------------------------------------------------------------
+# 6.85) 저장 필드 완전성 + 이름 전역 유일성 게이트 (IC3, 2026-09-22 신설, design
+#       `10-test-separation.design.md` §5.5·§6.7) — "조용한 소실·덮어쓰기" 방지: instance.json
+#       저장 필드 목록을 한 곳(아래 두 상수)에만 정의하고, 저장 직전 완전성을 재검증하며
+#       (`save_instance_json` 배선), topology 로드 시 소자/수동소자 이름이 전역에서 유일한지
+#       재검증한다(`load_topology` 배선).
+# ---------------------------------------------------------------------------
+
+# `save_instance_json`이 지금 쓰는 최상위 키 전부(선택 키 `scope_note` 제외) — 목록은 여기
+# 한 곳에만 있다(IC3 "저장 필드 목록 단일 정의"), `save_instance_json`은 이 순서로 `data`를 만든다.
+INSTANCE_TOP_FIELDS: tuple[str, ...] = ("schema_version", "topology_ref", "sizing", "netlist",
+                                        "floorplan", "box_shape", "audit_row_split", "coverage")
+# `save_instance_json` docstring의 입력 계약 그대로(`sizing_recipe.py`의 `SizingResult` 필드명).
+INSTANCE_SIZING_FIELDS: tuple[str, ...] = ("W", "L", "ID", "gm", "gm_id")
+
+
+@dataclass(frozen=True)
+class CompletenessVerdict:
+    ok: bool
+    missing_top: tuple[str, ...]                    # INSTANCE_TOP_FIELDS 중 없는 키
+    missing_sizing: tuple[str, ...]                 # device_names 중 sizing에 없는 이름
+    missing_fields: Mapping[str, tuple[str, ...]]    # 소자 -> INSTANCE_SIZING_FIELDS 중 없는 키
+    missing_netlist: tuple[str, ...]                # device_names 중 netlist 원소 이름에 없는 것
+    coverage_missing: tuple[str, ...]                # instance["coverage"]["missing"]
+
+
+def check_instance_completeness(instance: Mapping, device_names: Iterable[str]) -> CompletenessVerdict:
+    """instance-output dict 하나가 `INSTANCE_TOP_FIELDS`/`INSTANCE_SIZING_FIELDS`(단일 정의,
+    이 모듈 상단)를 빠짐없이 채웠는지 재검증한다 — `save_instance_json`이 파일을 쓰기 **전에**
+    호출해 조용한 소실(소자 하나가 sizing/netlist에서 빠진 채 저장)을 막는다(IC3).
+
+    **입력**: `instance` — `save_instance_json`이 만드는 것과 같은 스키마의 dict(또는 그
+    파일을 다시 읽은 것). `device_names` — 이 instance가 담아야 할 소자 이름 전체(보통
+    `load_topology(topology_ref)`가 돌려준 netlist 이름).
+
+    **반환**: `CompletenessVerdict` — 다섯 결핍 목록이 전부 비어야 `ok=True`.
+    - `missing_top`: `INSTANCE_TOP_FIELDS` 중 `instance`에 없는 키(선언 순서 보존).
+    - `missing_sizing`: `device_names` 중 `instance["sizing"]`에 없는 이름(입력 순서 보존).
+    - `missing_fields`: `instance["sizing"]`에 있는 소자 중 `INSTANCE_SIZING_FIELDS` 일부가
+      빠진 것 — `{소자명: (빠진 필드, ...)}`(빠진 게 없는 소자는 키 자체가 없다).
+    - `missing_netlist`: `device_names` 중 `instance["netlist"]` 원소 이름에 한 번도 없는 것.
+    - `coverage_missing`: `instance["coverage"]["missing"]`을 그대로 튜플로(비어야 통과).
+
+    검사하지 않는 것: 값의 타입·단위·물리적 타당성은 보지 않는다(키 존재 여부만). netlist
+    원소의 connectivity(source/drain/gate)가 옳은지도 이 함수의 책임이 아니다(load_topology의
+    `Transistor(**...)` 구성이 이미 그 형태를 강제한다).
+    영역: 없음(스키마)
+    """
+    names = tuple(device_names)
+    missing_top = tuple(k for k in INSTANCE_TOP_FIELDS if k not in instance)
+
+    sizing = instance.get("sizing") or {}
+    missing_sizing = tuple(n for n in names if n not in sizing)
+
+    # sizing에 값이 있는 이름만 순회 대상으로 먼저 거른다(값이 없는 이름은 missing_sizing이 이미
+    # 잡으므로 여기서는 볼 필요가 없다) -- 조건부로 건너뛰는 `continue` 없이 순회 대상 자체를 좁힌다.
+    present_names = [n for n in names if sizing.get(n) is not None]
+    missing_fields = {}
+    for name in present_names:
+        entry = sizing[name]
+        missing = tuple(f for f in INSTANCE_SIZING_FIELDS if f not in entry)
+        if missing:
+            missing_fields[name] = missing
+
+    netlist_names = {e["name"] for e in (instance.get("netlist") or [])}
+    missing_netlist = tuple(n for n in names if n not in netlist_names)
+
+    coverage_missing = tuple((instance.get("coverage") or {}).get("missing") or ())
+
+    ok = not (missing_top or missing_sizing or missing_fields or missing_netlist or coverage_missing)
+    return CompletenessVerdict(ok=ok, missing_top=missing_top, missing_sizing=missing_sizing,
+                                missing_fields=missing_fields, missing_netlist=missing_netlist,
+                                coverage_missing=coverage_missing)
+
+
+@dataclass(frozen=True)
+class NameCollisionVerdict:
+    ok: bool
+    duplicate_devices: tuple[str, ...]
+    device_passive_overlap: tuple[str, ...]
+    case_only_collisions: tuple[tuple[str, ...], ...]   # 소자·수동소자 이름 중 casefold가 같은
+                                                          # 서로 다른 이름을 묶은 그룹들
+
+
+def check_topology_name_uniqueness(device_names: Sequence[str],
+                                    passive_names: Sequence[str]) -> NameCollisionVerdict:
+    """소자 이름이 전역에서(소자끼리, 소자-수동소자 사이, 대소문자만 다른 경우까지) 유일한지
+    재검증한다 — `load_topology`가 연결 파일까지 합친 뒤 호출해, 조용한 이름 겹침(서로 다른
+    소자가 같은 이름을 쓰거나 대소문자만 달라 리포트/사이징 딕셔너리에서 서로를 덮어쓰는 사고)을
+    막는다(IC3).
+
+    **반환**: `NameCollisionVerdict` — 세 목록이 전부 비어야 `ok=True`.
+    - `duplicate_devices`: `device_names` 안에서 문자 그대로 두 번 이상 나온 이름(중복 제거,
+      첫 등장 순서).
+    - `device_passive_overlap`: `device_names`와 `passive_names`에 문자 그대로 동시에 있는
+      이름(`device_names` 순서).
+    - `case_only_collisions`: `device_names ∪ passive_names`를 `casefold()`로 묶었을 때, 글자
+      그대로는 서로 다른 이름이 둘 이상 모인 그룹마다 그 이름들의 튜플(그룹 안 정렬) — 문자
+      그대로 같은 이름(위 두 목록이 이미 잡는다)은 한 값으로 뭉쳐 여기서 다시 세지 않는다.
+
+    검사하지 않는 것: 이름의 의미(어떤 소자가 실제로 매칭 쌍인지)는 보지 않는다 — 문자열
+    자체의 유일성만 본다. `passive_names` 안에서의 중복은 이 IC의 대상이 아니다(design §6.7).
+    영역: 없음(스키마)
+    """
+    names = tuple(device_names)
+    passive_set = set(passive_names)
+
+    seen = set()
+    duplicate_devices = []
+    for n in names:
+        if n in seen and n not in duplicate_devices:
+            duplicate_devices.append(n)
+        seen.add(n)
+
+    device_passive_overlap = []
+    for n in names:
+        if n in passive_set and n not in device_passive_overlap:
+            device_passive_overlap.append(n)
+
+    by_fold = defaultdict(set)
+    for n in itertools.chain(names, passive_names):
+        by_fold[n.casefold()].add(n)
+    case_only_collisions = tuple(tuple(sorted(names)) for _fold, names in sorted(by_fold.items())
+                                  if len(names) > 1)
+
+    ok = not (duplicate_devices or device_passive_overlap or case_only_collisions)
+    return NameCollisionVerdict(ok=ok, duplicate_devices=tuple(duplicate_devices),
+                                 device_passive_overlap=tuple(device_passive_overlap),
+                                 case_only_collisions=case_only_collisions)
+
+
+# ---------------------------------------------------------------------------
 # 6.9) topology library JSON 오케스트레이션 레이어 (2026-07-28 신설) — 이 레이어는 I/O만
 #      담당한다. 계산 로직은 한 줄도 새로 만들지 않는다 — 기존 함수를 그대로 호출한다.
 #      정본: docs/02-design/features/analog-topology-json-library.design.md
@@ -8686,7 +8818,22 @@ def load_topology(json_path: str) -> tuple[list[Transistor], dict]:
         all_netlist_sections_structured.update(linked_data.get("_netlist_sections_structured") or {})
         all_ideal_sources.extend(linked_data.get("ideal_sources") or [])
 
-    transistors = [Transistor(**d) for d in all_netlist]
+    # `_` 접두 키는 topology JSON의 주석 규약(예: `_comment`, common_gate_amplifier.topology.json)
+    # -- `Transistor`에는 그런 필드가 없으니 여기서 제외한다(다른 키는 그대로 넘긴다).
+    transistors = [Transistor(**{k: v for k, v in d.items() if not k.startswith("_")})
+                   for d in all_netlist]
+
+    # IC3(design §5.5·§6.7) 배선: 연결 파일까지 합친 netlist 소자 이름과(진입 파일의)
+    # passive_elements 이름으로 전역 이름 유일성을 재검증 -- 조용한 이름 겹침을 로드 시점에 막는다.
+    _name_verdict = check_topology_name_uniqueness(
+        [t.name for t in transistors],
+        [e["name"] for e in (data.get("passive_elements") or [])])
+    if not _name_verdict.ok:
+        raise ValueError(
+            f"{json_path}: 소자 이름 겹침(load_topology, IC3) -- "
+            f"duplicate_devices={_name_verdict.duplicate_devices} "
+            f"device_passive_overlap={_name_verdict.device_passive_overlap} "
+            f"case_only_collisions={_name_verdict.case_only_collisions}")
 
     # 2026-08-13(세션31, 사용자 지시) -- vertical_stack_id gap(예: two_stage_ota의
     # M1/M2/M6, resolve_stack_layout()이 audit_vertical_stack_id_vs_kcl()로 실제
@@ -9059,5 +9206,20 @@ def save_instance_json(path: str, topology_json_path: str, sizing_results: dict,
     }
     if pipeline_result.get("scope_note"):
         data["scope_note"] = pipeline_result["scope_note"]
+
+    # IC3(design §5.5·§6.7) 배선: 파일을 열기 **전에** 완전성을 재검증 -- 조용한 소실(소자
+    # 하나가 sizing/netlist에서 빠진 채 저장)을 막는다. 실패면 모든 누락을 담아 ValueError를
+    # 내고 파일을 쓰지 않는다(운영 경로: `workspaces/run_harness.py`가 이 함수를 호출한다).
+    _device_names = [t.name for t in load_topology(topology_json_path)[0]]
+    _completeness = check_instance_completeness(data, _device_names)
+    if not _completeness.ok:
+        raise ValueError(
+            f"{path}: instance 저장 거부(완전성 실패, IC3) -- "
+            f"missing_top={_completeness.missing_top} "
+            f"missing_sizing={_completeness.missing_sizing} "
+            f"missing_fields={_completeness.missing_fields} "
+            f"missing_netlist={_completeness.missing_netlist} "
+            f"coverage_missing={_completeness.coverage_missing}")
+
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)

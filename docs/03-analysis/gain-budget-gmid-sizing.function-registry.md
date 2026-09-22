@@ -213,6 +213,9 @@
 | `build_stick_diagram` | stack별 오일러 결과 생성 진입점 | stick_diagram |  |
 | `AuditCheck` | 감사 결과 레코드 | stick_diagram(직렬화는 instance_report_build… | `design_report.py:32`가 `_audit_result_json` 사용 |
 | `CoverageVerdict` | 사이징 소자 전부 행에 배치됐는지 | stick_diagram |  |
+| `INSTANCE_TOP_FIELDS`/`INSTANCE_SIZING_FIELDS` | instance.json 저장 필드 목록 단일 정의(IC3) | stick_diagram |  |
+| `CompletenessVerdict`/`check_instance_completeness` | instance.json 저장 완전성 재검증(IC3, `save_instance_json` 배선) | stick_diagram |  |
+| `NameCollisionVerdict`/`check_topology_name_uniqueness` | 소자/수동소자 이름 전역 유일성 재검증(IC3, `load_topology` 배선) | stick_diagram |  |
 | `select_layout_tool` | 민감도/공유노드로 도구 선택 | stick_diagram |  |
 | `audit_row_split` | 행 분할 후 euler/box/matching 고정 순서 감사 | stick_diagram |  |
 | `_layout_result_to_rows` | 도구 반환값을 rows로 | stick_diagram |  |
