@@ -21,7 +21,8 @@ test 변경(뼈대 교체·이관본 Test 26)은 V5 발견이라 DEC-40 승인�
 3. `check_topology_name_uniqueness(device_names, passive_names)`가 `NameCollisionVerdict`(`ok`, `duplicate_devices`, `device_passive_overlap`, `case_only_collisions`)를 돌려준다.
 4. 배선: `save_instance_json`은 파일을 열기 전에 (2)를 `load_topology(topology_json_path)`의 소자 이름으로 부르고 `ok`가 거짓이면 모든 누락을 담은 `ValueError`를 내며 파일을 쓰지 않는다. `load_topology`는 연결 파일까지 합친 netlist 소자 이름과 `passive_elements` 이름으로 (3)을 부르고 `ok`가 거짓이면 `ValueError`.
 5. 오거부 0: 변형하지 않은 library 9회로 전부 `load_topology` 통과, 사이징 스펙이 선언되고 지금 실행되는 회로(파일럿·`folded_cascode`)의 하네스 `instance.json` 키 정렬 직렬화 sha256이 base와 같다.
-6. 새 두 함수의 docstring은 IC5 형식(`검사하지 않는 것:`, `영역: 없음(스키마)`)이고, 레지스트리에 등록된다.
+6. test가 입력을 만들 때 쓰는 기존 함수(계약 대상 아님, interface card용): `stick_diagram.check_stick_diagram_coverage`, `stick_diagram.run_topology_pipeline`.
+7. 새 두 함수의 docstring은 IC5 형식(`검사하지 않는 것:`, `영역: 없음(스키마)`)이고, 레지스트리에 등록된다.
 
 ## 신규 시그니처
 
