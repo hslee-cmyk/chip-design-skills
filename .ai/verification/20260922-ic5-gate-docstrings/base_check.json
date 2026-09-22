@@ -1,0 +1,65 @@
+{
+  "id": "20260922-ic5-gate-docstrings",
+  "attempt": 2,
+  "evidence_type": "red-green",
+  "phase": "1",
+  "activated_ic_case": "IC5:",
+  "freeze": {
+    "T": "5dda0839cfb879ba870024ccb5896627c2fdd2ef",
+    "T_parent": "4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41",
+    "T_trailers": "Role: test, Change-Id: 20260922-ic5-gate-docstrings",
+    "code_commit": null,
+    "base": "4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41",
+    "base_to_T_commits": 1,
+    "base_to_T_numstat": [
+      "246\t5\tskills/analog-gmid-design/assets/tests/contracts/test_ic5.py"
+    ],
+    "name_status": "M 1 (contracts/test_ic5.py)",
+    "base_to_T_paths_outside_tests": 0,
+    "base_to_T_source_changes": 0,
+    "base_to_T_tools_githooks_changes": 0,
+    "blobs": {
+      "contracts/test_ic5.py": {"base": "517bb8c26e35b8e1f677681e3850e94a4c235c5f", "T": "371a03ff0bd0a5d3eaa6eb6403b31abfc6ade874"}
+    },
+    "v5_carry_check": "base 트리 docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/v5-carry/20260922-ic5-gate-docstrings/paths.tsv 1행 = `skills/analog-gmid-design/assets/tests/contracts/test_ic5.py\\t371a03ff0bd0a5d3eaa6eb6403b31abfc6ade874` = base..T 변경 경로 1개. 운반 blob 파일 371a03ff0bd0a5d3eaa6eb6403b31abfc6ade874.blob의 base 트리 객체 id = 371a03ff... = 파일 이름 = T 트리 blob(git ls-tree 대조, 객체 id 같음 = 바이트 동일)"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/ic5-iso2",
+    "commands": [
+      "git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ic5-gate-docstrings-audit C:/Users/HSLEE/AppData/Local/Temp/ic5-iso2",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/ic5-iso2 remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/ic5-iso2 config core.longpaths true",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/ic5-iso2 checkout -q --detach 5dda0839cfb879ba870024ccb5896627c2fdd2ef"
+    ],
+    "env": "APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming, PY=C:/Python314/python.exe",
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41",
+    "outputs_dir": "C:/Users/HSLEE/AppData/Local/Temp/ic5-out2",
+    "remotes_after_clone": 0,
+    "tracked_changes_after_runs": 0
+  },
+  "red": {
+    "rev": "5dda0839cfb879ba870024ccb5896627c2fdd2ef (T = base 코드 + 활성화 test)",
+    "command": "APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming GMID_RED_CAPTURE=<out>/red.jsonl GMID_INTERFACE_CARD=<iso>/docs/02-design/specs/20260922-ic5-gate-docstrings.interface.md PYTHONPYCACHEPREFIX=<out>/pyc_red PYTHONPATH=<cache> C:/Python314/python.exe -P -m pytest -c <cache>/pytest_gate.ini --rootdir=<iso> --confcutdir=<iso> -p merge_gate --continue-on-collection-errors --gmid-phase=1 --gmid-strict=IC5: <iso>/skills/analog-gmid-design/assets/tests -rA",
+    "result": "1 failed, 62 passed, 13 xfailed, exit 1, 46.67s. 수집 오류·skip·xpass 0",
+    "failed": "contracts/test_ic5.py::test_gate_docstring_declares_blind_spots -- AssertionError '§5.6 docstring 형식 위반 21개 / 대상 21개' (21개 모두 '검사하지 않는 것:' 줄 없음, '영역:' 줄 0개)",
+    "output_sha256": "72617ca4a69d925d6b6efb0815f4ae9082f3f03a94da4a1172a553f5717486fc",
+    "red_capture": {
+      "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_gate_docstring_declares_blind_spots",
+      "exc_type": "builtins.AssertionError",
+      "failure_hash": "bb48b0e5581ae3f0a642d71b530893e70f7d8c09b9202ae5d640a9d3a2a3127e"
+    },
+    "red_jsonl_rows": 14,
+    "red_jsonl_note": "red.jsonl 14행 = FAILED 1(위, builtins.AssertionError) + 비엄격 xfail 13(IC1·IC2·IC3·IC4·IC6·IC8·IC9·IC10 각 1, IC7[run]·[stop], IC11[rail2]·[rail3]·[reject], 모두 builtins.Failed = 뼈대 pytest.fail()). 판정 red는 FAILED 1개만 -- xfailed의 builtins.Failed는 red가 아니다"
+  },
+  "v5_precheck": {
+    "command": "cd <iso> && APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming C:/Python314/python.exe <cache>/weakening_diff.py --root <iso> --base 4ea430d70f49ab20456ef8d6b83e4e1fa4e84c41 --head 5dda0839cfb879ba870024ccb5896627c2fdd2ef",
+    "exit": 0,
+    "verdict": "PASS",
+    "approved": true,
+    "diff_paths": ["skills/analog-gmid-design/assets/tests/contracts/test_ic5.py"],
+    "diff_hash": "1acb495d2a3917314a46fb0c8ea8616809ed020f3acf492fe1d63a555afd697f",
+    "findings": "2건: test_gate_docstring_declares_blind_spots '비교 완화', <module> '리터럴 변경(허용오차·기대값·픽스처 입력·격자)'",
+    "approval": "base 트리 .ai/approvals/20260922-ic5-test-activation.md(blob cf72870b129803520fdbf73be121d99d50d162e9): id 20260922-ic5-test-activation, target_kind diff, target 1acb495d2a3917314a46fb0c8ea8616809ed020f3acf492fe1d63a555afd697f = 측정 diff_hash, diff_path = diff_paths 1개",
+    "output_sha256": "e925e6c69d0ac4fe5b1fc4f3956392065629e3bf8bd25d18ddaab86f54b92472"
+  }
+}
