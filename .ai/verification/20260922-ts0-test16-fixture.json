@@ -1,0 +1,77 @@
+{
+  "id": "20260922-ts0-test16-fixture",
+  "spec_card": "docs/02-design/specs/20260922-ts0-test16-fixture.spec.md",
+  "evidence_type": "test-only",
+  "base_commit": "77186a8cebcf78b05588daf2035bd1c0d88af8f6",
+  "test_commit": "6ed1265d01746fa8a5df2d286cc2395a1c2992d1",
+  "code_commit": null,
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "T 6ed1265d01746fa8a5df2d286cc2395a1c2992d1(test-only라 병합본 = T) 격리 복제본 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2(origin 없음)에서 V1 명령(-k/--deselect/-x/-m 없음, slow 포함 전체, base 판 캐시 77186a8 판 pytest_gate.ini -- 복제본 tools/gates/pytest_gate.ini와 내용 같음, blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5): 38 passed(tests/tooling 34 + tests/legacy/test_legacy_selftests.py 4), 실패·오류·skip·xfail·xpass 0, exit 0, 46.16s, 출력 sha256 1e8fa147a0714786dd5a302163362ea0aacb96c0b313f453f93d59a16a46f314. tests 아래 conftest.py 없음(CC-3 미병합이라 --gmid-phase·--gmid-strict 없음). base 77186a8에서 같은 형태도 38 passed(46.86s). 실행 부산물은 무시 대상 .pytest_cache/뿐(추적 파일 변경 0)"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "test-only(계획 N3.12.3, design 10 6.2 증거). code 커밋 없음: T의 부모 = base 77186a8cebcf78b05588daf2035bd1c0d88af8f6, base..T 커밋 1개(Role: test, Change-Id 일치), 변경 경로 2개 모두 A/tests 아래(numstat 기준선 .log 2/2, 이관본 selftest_stick_diagram.py 1/0), 대상 코드 변경 0. (1) 변경 전 test 집합 = 변경 뒤 test 집합(38개, 추가·삭제 test 0)이 base와 T 모두 38 passed -- base가 통과시킨 섹션을 T도 통과. (2) 이관본 stick 직접 실행(PYTHONHASHSEED=1, 같은 복제본 경로): base exit 0·stderr 0·stdout 109909B sha256 4bf06191cc2a8e9e97fba3ec8e973184c6b3031d34fc1757dcc72a273a00885a, 'FAIL(예상과 다름' 1줄(453행); T exit 0·stderr 0·stdout 109821B sha256 0c31229cbb30765e689a4f9be93862bf486c63fb219dbe35fd14d34dd1537f20, 그 줄 0. 두 stdout의 차이는 452·453행 2줄뿐. T의 Test 16 (b) 블록(450~453행) 판정 줄 3개 모두 [PASS]('3. ... 4 candidate groups, all disposed'), 전체 결과 'PASS -> OK'. (a) 블록(445~448행)은 base·T 같고 'FAIL -> OK(의도대로 FAIL)' 유지(대소문자 충돌·미판정 후보 4개를 계속 잡음). (3) test_legacy_selftests.py 4케이스(sizing_recipe·stick_diagram·design_report·topology_library)가 base·T 모두 PASSED. (4) 기준선 diff: 1257줄 -> 1257줄, 바뀐 줄은 452·453 두 줄뿐이고 둘 다 (b) 블록 범위(머리 449행 다음 450행 ~ 전체 결과 453행) 안이다. 바뀐 두 줄은 base의 FAIL 두 줄('[FAIL] 3. ... UNDISPOSED: [(('diff_pair', 'pmos', 'tail'), ['M4', 'M5'])]', 'FAIL -> FAIL(예상과 다름 ...)')이 T 실행의 같은 두 줄로 바뀐 것이고, T 기준선 (b) 블록 4줄 = T 실행 (b) 블록 4줄(일치). T 기준선과 T 실행의 나머지 차이는 828행 경로 줄 1줄뿐(기준선은 원래 저장소 경로 -- spec card 계약 3의 '경로 줄 그대로'). 기준선 blob base 70e4e8a2d8fc34480f9f754aaaf4707faf804987 -> T b6fc650b55fd4672cf2c0937f438f48c19c7ae20 = v5-carry 운반 blob(paths.tsv 대응, hash-object 일치). (5) 이관본 .py diff는 (b) dispositions dict에 ('diff_pair','pmos','tail'): ('real_match', ...) 한 항목 추가뿐(spec card 계약 1). 상세: .ai/verification/20260922-ts0-test16-fixture/base_check.json"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "변이 대상 def 0개(대상 코드 불변). base 판 mutate_changed.py: targets 빈 목록, mutants 0, killed 0, survivors 빈 목록, exit 0. 근거: base..T diff는 test 분류 파일 2개(기준선 .log, 이관본 selftest_stick_diagram.py)뿐이고 V3 대상은 test 분류 밖 소스 def인데 소스 변경 0. --pytest-ini는 복제본 tools/gates/pytest_gate.ini(blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5, base·T 같음, base..T에서 tools/·.githooks/ 변경 0)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: base 판 test_lint.py를 interface card만으로 돌리면 ERROR(피검 심볼 없음 -- card 신규 시그니처 표가 비어 있다, 대상 코드 불변)라 T의 stick_diagram.py 최상위 def·class 158개(run_full_circuit_audit 포함)를 --subject로 주고 --module-dir skills/analog-gmid-design/assets로 실행: PASS, 대상 파일 1개(tests/legacy/selftest_stick_diagram.py), findings 0, unjudged 0, exit 0, 출력 sha256 a247ea87a413a3a19ca5b19f949eb131e9bc2a4aa8cb26a7ede27fd33777fd29; 기대값 대조 -- 이번 변경이 바꾼 기대는 Test 16 (b) '전부 PASS 기대'(섹션 문장)이고 spec card oracle (d) U-01 사용자 확정(20260921-u01-test16-intent: M4/M5는 소스 tail 공유·게이트 vip/vim 차동쌍이라 후보 탐색기의 diff_pair 후보는 설계대로, test가 판정을 빠뜨림)과 일치 -- 더한 항목은 기대값이 아니라 픽스처 입력(dispositions)이고 그 값 ('real_match', 사유)은 U-01의 판정 그 자체이며 피검 함수 출력에서 만들지 않았다; (b) 판정은 print 조건식으로만 내고 assert가 없어(모듈 수준 스크립트, test 함수 아님) lint 판정 문장으로 잡히지 않는다 -- 판정 공백은 C4 TS3 소관이고 이 기록에서는 auditor가 stdout (b) 블록을 직접 읽어 판정했다(V2); (a) '여러 항목 FAIL 기대'는 변경 없고 base·T 모두 FAIL -> OK(의도대로 FAIL)로 spec card '거부해야 할 입력'과 일치; 기준선 .log (b) 줄의 기대는 T 실행 출력(auditor 측정)과 같고 그 변경은 사용자 DEC-40 승인 20260922-ts0-baseline-test16(V5); test_legacy_selftest_exits_zero의 returncode == 0은 변경 없음(oracle (c), base·T 4/4 PASS)"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base 77186a8cebcf78b05588daf2035bd1c0d88af8f6, head 6ed1265d01746fa8a5df2d286cc2395a1c2992d1): verdict PASS, exit 0, findings 1(skills/analog-gmid-design/assets/tests/baseline/stick_diagram.selftest.baseline.log, unit (파일), pattern 무조건 승인 필요 -- test 분류 비-.py 파일 변경), diff_paths = 그 경로 하나, diff_hash 89894f9cabe78d4b79bd17f81493faa159b15406fdc4663dcf2d5fe8c7e75ce8, approved true -- head 트리 .ai/approvals/20260922-ts0-baseline-test16.md(target_kind diff, target 같은 해시, 1차 시도 기준 diff_base 9e6360e·diff_head 9eddc25)가 덮는다. 해시가 같은 이유: 경로의 base blob 70e4e8a·head blob b6fc650b가 1차 시도와 같다(R1). 이관본 .py 변경은 dict 항목 추가(상수 삽입, replace·delete 아님)라 발견 없음"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py: targets 빈 목록, findings 0, verdict PASS, exit 0. 소스 변경 0"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 reachability.py PASS, new_defs 빈 목록, unreached 빈 목록(대상 코드 불변)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 코드 불변(test fixture 한 항목)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 합성 회로 test 판정만 바뀜, 회로 결과 무관"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260921-u01-test16-intent",
+    "20260922-ts0-baseline-test16"
+  ],
+  "auditor_run": {
+    "time": "2026-09-22T14:05:00+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts0-test16-fixture-audit",
+    "commands": [
+      "격리: git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts0-test16-fixture-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2",
+      "격리: git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 remote remove origin",
+      "격리(base 측정): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 checkout -q --detach 77186a8cebcf78b05588daf2035bd1c0d88af8f6",
+      "격리(T 측정): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 checkout -q --detach 6ed1265d01746fa8a5df2d286cc2395a1c2992d1",
+      "PY = C:/Python314/python.exe",
+      "V2 stick(base·T 각각, cwd <iso>/skills/analog-gmid-design/assets): PYTHONHASHSEED=1 C:/Python314/python.exe -B C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2/skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2/skills/analog-gmid-design/assets",
+      "V2 비교: diff <base stdout> <T stdout>; git -C <iso> show <rev>:skills/analog-gmid-design/assets/tests/baseline/stick_diagram.selftest.baseline.log 줄 비교(rev = 77186a8, 6ed1265), Test 16 (a)·(b) 블록 추출",
+      "V2 base test 집합: V1과 같은 명령을 base 77186a8 checkout에서(PYTHONPYCACHEPREFIX만 다른 빈 디렉터리)",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-out/pyc_t_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/77186a8cebcf78b05588daf2035bd1c0d88af8f6 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/77186a8cebcf78b05588daf2035bd1c0d88af8f6/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2/skills/analog-gmid-design/assets/tests -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2",
+      "V3(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/77186a8cebcf78b05588daf2035bd1c0d88af8f6/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 --base 77186a8cebcf78b05588daf2035bd1c0d88af8f6 --head 6ed1265d01746fa8a5df2d286cc2395a1c2992d1 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --out C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-out/v3.jsonl",
+      "V4(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/77186a8cebcf78b05588daf2035bd1c0d88af8f6/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 --interface-card C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2/docs/02-design/specs/20260922-ts0-test16-fixture.interface.md --base 77186a8cebcf78b05588daf2035bd1c0d88af8f6 --head 6ed1265d01746fa8a5df2d286cc2395a1c2992d1 (ERROR: 피검 심볼 없음)",
+      "V4(cwd iso): 같은 명령에 --module-dir skills/analog-gmid-design/assets --subject stick_diagram:<이름> 158개(T stick_diagram.py 최상위 FunctionDef·AsyncFunctionDef·ClassDef, ast로 추출) 추가",
+      "V5(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/77186a8cebcf78b05588daf2035bd1c0d88af8f6/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 --base 77186a8cebcf78b05588daf2035bd1c0d88af8f6 --head 6ed1265d01746fa8a5df2d286cc2395a1c2992d1",
+      "V6(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/77186a8cebcf78b05588daf2035bd1c0d88af8f6/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 --base 77186a8cebcf78b05588daf2035bd1c0d88af8f6 --head 6ed1265d01746fa8a5df2d286cc2395a1c2992d1",
+      "V7 참고(cwd iso): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/77186a8cebcf78b05588daf2035bd1c0d88af8f6/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 --base 77186a8cebcf78b05588daf2035bd1c0d88af8f6 --head 6ed1265d01746fa8a5df2d286cc2395a1c2992d1"
+    ]
+  }
+}

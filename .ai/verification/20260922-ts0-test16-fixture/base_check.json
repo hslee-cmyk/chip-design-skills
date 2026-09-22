@@ -1,0 +1,58 @@
+{
+  "id": "20260922-ts0-test16-fixture",
+  "attempt": 2,
+  "evidence_type": "test-only",
+  "freeze": {
+    "T": "6ed1265d01746fa8a5df2d286cc2395a1c2992d1",
+    "T_parent": "77186a8cebcf78b05588daf2035bd1c0d88af8f6",
+    "T_trailers": "Role: test, Change-Id: 20260922-ts0-test16-fixture",
+    "code_commit": null,
+    "base_to_T_numstat": [
+      "2\t2\tskills/analog-gmid-design/assets/tests/baseline/stick_diagram.selftest.baseline.log",
+      "1\t0\tskills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py"
+    ],
+    "base_to_T_paths_outside_tests": 0,
+    "blobs": {
+      "baseline_log": {"base": "70e4e8a2d8fc34480f9f754aaaf4707faf804987", "T": "b6fc650b55fd4672cf2c0937f438f48c19c7ae20", "v5_carry_blob": "b6fc650b55fd4672cf2c0937f438f48c19c7ae20"},
+      "selftest_stick_diagram_py": {"base": "6a81120ee521fbcff3924faf76bc4479286a86f1", "T": "483c139e24785ef51eea020516494342dd7dafaf"}
+    }
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2",
+    "commands": [
+      "git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts0-test16-fixture-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts0-test16-fixture-iso2 checkout -q --detach 77186a8cebcf78b05588daf2035bd1c0d88af8f6"
+    ],
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/77186a8cebcf78b05588daf2035bd1c0d88af8f6"
+  },
+  "base_stick_run": {
+    "rev": "77186a8cebcf78b05588daf2035bd1c0d88af8f6",
+    "command": "PYTHONHASHSEED=1 C:/Python314/python.exe -B <iso>/skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py <iso>/skills/analog-gmid-design/assets (cwd <iso>/skills/analog-gmid-design/assets)",
+    "exit": 0,
+    "stderr_bytes": 0,
+    "stdout_bytes": 109909,
+    "stdout_sha256": "4bf06191cc2a8e9e97fba3ec8e973184c6b3031d34fc1757dcc72a273a00885a",
+    "count_FAIL_unexpected": 1,
+    "test16_a_block_lines_445_448": [
+      "      [PASS] 1. device count vs manifest: total 5 == expected 5",
+      "      [FAIL] 2. net-name case consistency: case collisions: {'bias': ['Bias', 'bias']}",
+      "      [FAIL] 3. every matching/hub-merge candidate has a recorded disposition: UNDISPOSED: [(('hub_merge', 'nmos', 'gnd'), ['M1', 'M2', 'M3']), (('hub_merge', 'pmos', 'tail'), ['M4', 'M5']), (('current_mirror', 'nmos', 'bias'), ['M1', 'M2']), (('diff_pair', 'pmos', 'tail'), ['M4', 'M5'])]",
+      "      전체 결과: FAIL -> OK(의도대로 FAIL)"
+    ],
+    "test16_b_block_lines_450_453": [
+      "      [PASS] 1. device count vs manifest: total 5 == expected 5",
+      "      [PASS] 2. net-name case consistency: all net names already single-case",
+      "      [FAIL] 3. every matching/hub-merge candidate has a recorded disposition: UNDISPOSED: [(('diff_pair', 'pmos', 'tail'), ['M4', 'M5'])]",
+      "      전체 결과: FAIL -> FAIL(예상과 다름 — dispositions 키를 재확인할 것)"
+    ]
+  },
+  "base_test_set": {
+    "rev": "77186a8cebcf78b05588daf2035bd1c0d88af8f6",
+    "command": "V1 형태(-c <캐시>/pytest_gate.ini, -P, PYTHONPATH 맨 앞 캐시, -k/--deselect/-x 없음) 전체 tests",
+    "result": "38 passed, 실패·오류·skip·xfail 0, exit 0, 46.86s",
+    "legacy_4_cases": "test_legacy_selftests.py::test_legacy_selftest_exits_zero[sizing_recipe|stick_diagram|design_report|topology_library] 4/4 PASSED (별도 단독 실행도 4 passed, 41.93s)",
+    "note": "base 이관본 stick은 Test 16 (b)가 기대와 반대여도 print로만 판정하므로 exit 0이다(판정 공백, C4 TS3 소관)"
+  },
+  "base_v5_preview": "base..T에서 base 판 weakening_diff.py: findings 1(기준선 .log, 무조건 승인 필요), diff_hash 89894f9cabe78d4b79bd17f81493faa159b15406fdc4663dcf2d5fe8c7e75ce8, approved true(head 트리 .ai/approvals/20260922-ts0-baseline-test16.md target 일치)"
+}
