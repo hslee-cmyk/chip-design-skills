@@ -1534,9 +1534,22 @@ if __name__ == "__main__":
     import tempfile as _tempfile
     with _tempfile.TemporaryDirectory() as _tmpdir:
         _inst_path = _os.path.join(_tmpdir, "folded_cascode.instance.json")
+        # (가) oracle (a) 구성 입력 + IC3 계약(design 10-test-separation §5.5·§6.7): 빈 sizing은 저장 전
+        # 완전성 검사가 거부한다(소자 전부가 sizing 누락).
+        try:
+            save_instance_json(_inst_path,
+                                _os.path.join(_lib_dir, "folded_cascode.topology.json"),
+                                {}, _fc_result)
+            raise AssertionError("빈 sizing인데 save_instance_json()이 ValueError를 내지 않았다 -- IC3 완전성 배선 없음")
+        except ValueError:
+            pass
+        # (나) oracle (a) 구성 입력: _fc_result의 소자마다 INSTANCE_SIZING_FIELDS 다섯 키를 가진 합성 sizing
+        # (값은 판정 대상이 아니다 -- 이 섹션의 판정은 'pipeline_result를 그대로 옮기는가').
+        from stick_diagram import INSTANCE_SIZING_FIELDS as _INSTANCE_SIZING_FIELDS
+        _fc_sizing = {_t.name: {_k: 1.0 for _k in _INSTANCE_SIZING_FIELDS} for _t in _fc_result["transistors"]}
         save_instance_json(_inst_path,
                             _os.path.join(_lib_dir, "folded_cascode.topology.json"),
-                            {}, _fc_result)
+                            _fc_sizing, _fc_result)
         with open(_inst_path, "r", encoding="utf-8") as _f:
             _inst_data = json.load(_f)
         print(f"  기록된 최상위 키: {sorted(_inst_data.keys())}")
