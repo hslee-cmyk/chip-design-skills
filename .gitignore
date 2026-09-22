@@ -14,9 +14,6 @@ workspaces/*/fig*_zoom*.png
 
 # Logs
 *.log
-# 예외: self-test 회귀 기준선은 추적한다(계획 §8.8의 stdout diff 대조 기준,
-#       이게 없으면 self-test 분리 작업의 회귀를 판정할 수 없다)
-!skills/analog-gmid-design/assets/tests/baseline/*.log
 *.log.bak
 stdout.log*
 
