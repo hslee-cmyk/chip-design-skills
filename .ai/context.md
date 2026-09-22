@@ -14843,3 +14843,6 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 다음: C7 ic5-gate-docstrings(red-green, 21 게이트 docstring '검사하지 않는 것'·`영역:`, activated_ic_case IC5:).
 
 - 백로그 B7: design 10 §6.5의 가정('pytest.fail() 뼈대면 활성화 card에 V5 승인 불필요')이 틀렸다 -- 뼈대를 실제 검사로 바꾸면 weakening_diff가 '비교 완화'·'리터럴 변경'으로 잡는다(C7 실측). IC 활성화 card마다 R1 필요(C8 IC3 포함). 개선하려면 게이트 변경(뼈대 pytest.fail() 교체 예외) -- 인프라라 엔진 작업이 막힐 때만.
+
+- C7 20260922-ic5-gate-docstrings 완료(gate 10accd0): IC5 활성, 게이트 21개 docstring에 '검사하지 않는 것'·`영역:`(본문 AST 불변), test_ic5 실제 검사(뼈대 교체). DEC-40 20260922-ic5-test-activation(B7 첫 사례). 2차 시도에서 auditor 순서 3과 code-author를 병렬로 돌렸고 EL2 오거부 없음(D-7 수정 효과). V3: docstring만 바뀐 def는 변이 대상 0.
+- 다음: C11 v3-gmid-options(게이트 변경, red-green) -> C8 ic3-completeness.
