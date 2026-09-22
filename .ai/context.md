@@ -14832,3 +14832,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - C4 20260922-ts3-assert-verdicts 완료(gate a590fc1): TS3 test-only, print 판정 354 -> 0(assert 43 = 조건식 34 + try 본문 assert False 9), 데모 18섹션 삭제(U-41), contract test_ts3_no_print_verdicts. DEC-40 20260922-ts3-verdict-conversion(V5 발견 7건, 오케스트레이터가 '비교 완화' 9개 = 삭제 데모·중복 print임을 대조). R1 2회째 성공.
 - ★사고와 규칙: (1) push와 정리를 병렬 호출해 push 실패(EL4) 전에 브랜치를 지웠다 -> 사용자가 `git branch role/test/<id> <T>`로 복구. push는 단독 실행·전체 출력 확인 뒤 정리. (2) EL4 §9.2-9는 checks.V5.basis의 64자리 16진을 **전부** 승인 target으로 대조 -- auditor가 V5 basis에 출력 sha256을 넣어 거부. auditor 브리핑에 "V5 basis에는 승인 target 외 64hex 금지"를 넣을 것.
 - 백로그 B6: C1 `sections`가 비연속 대 표지 섹션을 합침(§5.1 위반: stick 128 vs 174) -- C9(M1·M2 매핑이 sections 입력) 전에 결정 필요.
+
+- C5 20260922-ts5-baseline-retire 완료(gate ad1bcc1): tests/baseline/ 3파일 삭제(sizing 기준선 45줄 드리프트 포함, 사용자 "DF 안 함"), tests/README.md(pytest 실행법·판정 규칙·N3.11 트리). DEC-40 20260922-ts5-baseline-retire, R1 3회째. references 실행 안내 2곳 tests/README.md 인용(f48f5f6). U-43: 사용자 `!`로 .gitignore 3줄 삭제 + .githooks/gmid_gate.py 재설치 사본, Role: user + staged_diff 승인 20260922-u43-gitignore-githooks(d72475a). D5 0줄.
+- 오케스트레이터의 사용자 전용 경로 쓰기는 사용자 허락이 있어도 EL1이 거부 -- 우회(python 쓰기)하지 않고 `!` 명령으로 사용자가 실행.
+- 다음: C6 ts7-ic-xfail(conftest --gmid-*, contracts/test_ic1..11 뼈대, 표식-계획 대조). C9 전 B6(C1 sections 섹션 병합 결함) 결정 필요.
