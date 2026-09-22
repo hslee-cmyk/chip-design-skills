@@ -312,7 +312,7 @@ gm1=0.3047mS gm2=3.0471mS
 > inversion 쪽으로(19.5→17.0, 24.0→20.5) 이동했다 — `w_max` 제약이 실제로 바인딩되는 상황에서는
 > §9의 면적-최소 케이스처럼 **버그가 있으면 최적점 자체가 달라질 수 있다**는 걸 다시 한번 보여준다.
 
-**새로 추가한 두 토폴로지의 스모크 테스트** (`python topology_library.py`):
+**새로 추가한 두 토폴로지의 스모크 테스트** (당시 `python topology_library.py`, 2026-09-22 TS1 뒤로는 `tests/legacy/selftest_topology_library.py` -- 실행법은 `assets/tests/README.md`):
 
 ```
 # Miller 2단 OTA (GBW=20MHz, CL=3pF, Z=10, NDP=4) — prev_cggs=None(초기 반복) 기준

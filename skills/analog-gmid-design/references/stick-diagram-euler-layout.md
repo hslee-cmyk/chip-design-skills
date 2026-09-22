@@ -1114,7 +1114,7 @@ for stack_id, result in build_stick_diagram(circuit).items():
 — §6.1에서 실제 PDF 예제(M7/M8, M9/M10)로 검증됨. `find_matching_candidates()`는 §2.6
 카탈로그 중 구조적으로 탐지 가능한 전류거울/차동쌍 후보를 찾는다(오탐 가능성 있음 — §2.6
 참고). `search_unit_cell_sizing()`은 §5.5의 unit cell 정수배 후보 생성기다.
-`python stick_diagram.py`로 self-test 15종(Test 1a/1b: 직렬 체인의 open path/closed circuit
+self-test(2026-09-22 TS1 뒤로는 `assets/tests/legacy/selftest_stick_diagram.py` -- 실행법은 `assets/tests/README.md`) 15종(Test 1a/1b: 직렬 체인의 open path/closed circuit
 차이, Test 2: 홀수 노드 4개 detection+조정 제안, Test 3: 극성별 자동 stack 분리, Test 4:
 folded cascode 실제 넷리스트 검증(§6.1), Test 5: 축대칭 검증(§2.5.3), Test 6: matching 그룹
 탐지(§2.6), Test 7: unit cell 후보 탐색(§5.5), Test 8: 2-stage OTA 실제 넷리스트 검증(§7),
