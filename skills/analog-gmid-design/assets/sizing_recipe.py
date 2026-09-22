@@ -166,7 +166,12 @@ class QuasiStaticVerdict:
 
 
 def check_quasi_static(fT: float, gm: float, Cgg: float, margin: float = 0.1) -> QuasiStaticVerdict:
-    """f_nqs = gm/(2*pi*Cgg); fT <= margin * f_nqs 이어야 준정적 가정이 성립."""
+    """f_nqs = gm/(2*pi*Cgg); fT <= margin * f_nqs 이어야 준정적 가정이 성립.
+
+    검사하지 않는 것: margin이 양수인지, gm·Cgg·fT 값 자체가 이 소자의 실제 동작점을
+    정확히 반영하는지는 검사하지 않는다(호출자가 넘긴 값을 그대로 신뢰).
+    영역: ss
+    """
     f_nqs = gm / (2 * math.pi * Cgg)
     return QuasiStaticVerdict(ok=fT <= margin * f_nqs)
 
@@ -2527,7 +2532,13 @@ def audit_l_sharing_consistency(by_name: dict, meta: dict, sized: dict,
     실측(2026-09-10, 배선 전 파일럿): 진짜 미러 그룹 **3/3 전부** 갈려 있었다 -- 언제나
     tail 하나만 `bias_replica`(0.18um)이고 나머지는 `mirror`(0.375um)로, **2.08배** 차이였다.
 
-    반환: `[{"root","members","by_L","sources"}]` -- 갈린 류만. 빈 리스트면 정합."""
+    반환: `[{"root","members","by_L","sources"}]` -- 갈린 류만. 빈 리스트면 정합.
+
+    검사하지 않는 것: `sized`에 그 소자의 L 항목이 아예 없으면(`e.get("L")`이 None) 조용히
+    건너뛰고 그 소자는 대조에서 빠진다. 동치류(`l_sharing_classes()`) 자체가 올바르게
+    계산됐는지는 이 함수가 검사하지 않고 입력으로 받아들인다.
+    영역: dc
+    """
     out = []
     # `classes`를 주면 재계산하지 않는다(평가 루프에서 캐시를 넘긴다, 2026-09-10).
     for root, members in (classes if classes is not None
@@ -4022,7 +4033,12 @@ def audit_vsb_consistency(by_name: dict, sized: dict, vdd: float,
     반환: `[(name, kind, source_net, V(source), 선언 vsb, 기대 vsb, 차이), ...]`(차이 내림차순).
     파일럿 실측(2026-09-08): 51소자 중 **25개 불일치**, 최대 **-1.3000V**(M37a/M37b).
     M9a/M9b·M18a/M18b는 값이 정확히 **서로 바뀌어** 있다 -- 원인은
-    `_hr_resolve_vertical_group()`의 `setdefault("vsb", ref_vds)`가 kind를 안 보기 때문이다."""
+    `_hr_resolve_vertical_group()`의 `setdefault("vsb", ref_vds)`가 kind를 안 보기 때문이다.
+
+    검사하지 않는 것: `sized` 항목에 `vsb` 키가 아예 없는 소자, 또는
+    `derive_vsb_from_nodes()`가 기대값을 못 구해(`None`) 대조 기준이 없는 소자는 건너뛴다.
+    영역: dc
+    """
     rep = propagate_node_voltages(by_name, sized, vdd, **kw)
     out = []
     for name in sorted(by_name):
@@ -5798,7 +5814,12 @@ def validate_no_legacy_vs_key(device_roles: dict) -> None:
     이름이 `vs`라 "소스 전압"으로 읽히는 바람에 실제로 51소자 중 **25개가 정의와 어긋난**
     값을 갖고 있었다(계획 §10.3 B9). `power_uA`가 A를 돌려주던 A12와 **같은 실패 클래스**
     (이름이 의미를 거짓말한다)라, 같은 방식으로 이름을 고치고 옛 이름을 **거부**한다.
-    조용히 읽어주면 두 이름이 공존해 어느 쪽이 맞는지 다시 모호해진다(§3.2 P1)."""
+    조용히 읽어주면 두 이름이 공존해 어느 쪽이 맞는지 다시 모호해진다(§3.2 P1).
+
+    검사하지 않는 것: `device_roles`의 소자별 role dict 한 단계 깊이만 본다 -- `sized`/
+    `metrics` 등 다른 구조에 옛 이름 `vs`가 남아 있어도 이 함수는 검사하지 않는다.
+    영역: 없음(스키마)
+    """
     stale = sorted(n for n, r in (device_roles or {}).items()
                    if isinstance(r, dict) and "vs" in r)
     if stale:
@@ -5815,7 +5836,13 @@ def validate_metric_units(metrics_specs: dict) -> None:
     단위를 말한다면 그것과도 같은지 검사한다. 하나라도 어긋나면 즉시 `ValueError` -- 단위
     불일치는 제약을 **조용히 무력화**하므로 경고로 넘기지 않는다(A12).
 
-    `_build_theta_evaluator()`가 metrics 선언을 읽자마자 호출한다(유일한 배선 지점)."""
+    `_build_theta_evaluator()`가 metrics 선언을 읽자마자 호출한다(유일한 배선 지점).
+
+    검사하지 않는 것: 이름에서 단위 힌트를 못 뽑는(`unit_hint_from_metric_name()`이
+    `None`) metric은 이름-단위 일치 검사를 건너뛴다. `compute_metric()`이 런타임에 실제로
+    돌려주는 값의 단위가 선언과 맞는지는 이 함수의 검사 대상이 아니다(선언 시점 검사만).
+    영역: 없음(스키마)
+    """
     for name, spec in (metrics_specs or {}).items():
         if spec.get("type") is None:
             raise ValueError(f"metric '{name}'에 'type'이 없다")
@@ -6892,7 +6919,14 @@ def validate_theta_declaration_order(meta: dict) -> list:
     plan()`을 그대로 재사용해 어느 feed가 실제 트리거인지 판정하므로(런타임 엔진과
     **같은 정의**, 별도 근사 아님) 오탐/누락이 없다.
 
-    반환: 위반 목록 `[{"theta": name, "problem": str}, ...]` -- 비어 있으면 전부 정상."""
+    반환: 위반 목록 `[{"theta": name, "problem": str}, ...]` -- 비어 있으면 전부 정상.
+
+    검사하지 않는 것: `A`/`A_signed`타입의 `reference`/`terms[].device` 순서는 검사 대상이
+    아니다(`ctx.seed_currents` fallback이 있어 seed 단계여도 통과 가능한 더 관대한 별개
+    계약, 위 참고). `settling_split`처럼 `feeds`가 문자열인 theta도 의존/생산 둘 다 없어
+    검사하지 않는다.
+    영역: 없음(스키마)
+    """
     thetas = ((meta.get("sizing_roles") or {}).get("theta")) or []
     metrics_specs = ((meta.get("sizing_roles") or {}).get("metrics")) or {}
     produced = set()
@@ -8201,6 +8235,12 @@ def require_declared_spec_source(topology_path: str, spec: dict) -> None:
 
     self-test/합성 fixture는 임시 경로를 쓰므로 이 게이트에 안 걸린다 -- 정본이 존재하는
     라이브러리 회로에만 적용된다.
+
+    검사하지 않는 것: `_spec_source`는 자유 문자열이라 값이 truthy이기만 하면 통과한다 --
+    선언된 내용이 실제 정본과 일치하는지, 정말로 의도적 일탈인지는 검사하지 않는다.
+    라이브러리 경로가 아니거나 해상도 키가 하나도 없는 spec은 애초에 검사 대상에서
+    제외한다.
+    영역: 없음(스키마)
     """
     # 2026-09-10: 처음엔 이 앞을 `try: ... except Exception: return`으로 감쌌는데, 이 모듈은
     # `os`를 최상위에서 import하지 않아(함수마다 `import os as _xxx`) NameError가 나고 그것을
