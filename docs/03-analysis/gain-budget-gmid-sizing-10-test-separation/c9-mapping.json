@@ -1,0 +1,6981 @@
+{
+ "c2_merge": "6abe0fc",
+ "head": "2dd98f23e6f820fc466650edb4fde5c1a52a740b",
+ "tool": "tools/migrate/extract_selftest.py",
+ "modules": {
+  "sizing_recipe": {
+   "c2_sections": 77,
+   "head_sections": 75,
+   "c2_numbers_removed_by_c4": [
+    2,
+    44
+   ],
+   "sections": [
+    {
+     "head_index": 0,
+     "number": 0,
+     "kind": "prelude",
+     "category": "P",
+     "start": 11,
+     "end": 38,
+     "title": null,
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 1,
+     "deps": [],
+     "target": "header"
+    },
+    {
+     "head_index": 1,
+     "number": 1,
+     "kind": "major",
+     "category": "C",
+     "start": 40,
+     "end": 61,
+     "title": "print(\"# toy LUT(E.K.V. 해석식 합성 데이터) 기반 실행 예시 — 숫자는 데모용, 실제 공정값 아님\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "C_load",
+       "number": 0
+      },
+      {
+       "name": "L",
+       "number": 0
+      },
+      {
+       "name": "fT_target",
+       "number": 0
+      },
+      {
+       "name": "gm_id_candidates",
+       "number": 0
+      },
+      {
+       "name": "i",
+       "number": 0
+      },
+      {
+       "name": "vds",
+       "number": 0
+      }
+     ],
+     "target": "fixture"
+    },
+    {
+     "head_index": 2,
+     "number": 3,
+     "kind": "major",
+     "category": "A",
+     "start": 63,
+     "end": 87,
+     "title": "print(\"# _COMPENSATION_REGISTRY allowlist 거부 -- 실제 harness 경로(_evaluate()) 자체를\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s003__evaluate"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 3,
+     "number": 4,
+     "kind": "major",
+     "category": "A",
+     "start": 88,
+     "end": 107,
+     "title": "print(\"# 배치 7-1(analog-topology-json-library.do.md) — optimize_multistage() 실제 실행 \"\n          \"확보 (2026-07-31)\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s004_optimize_multistage"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 4,
+     "number": 5,
+     "kind": "major",
+     "category": "D",
+     "start": 108,
+     "end": 112,
+     "title": "print(\"# 배치 7-3 B/C/F 엔진(analog-topology-json-library.do.md §7.3.2, 2026-07-31) --\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 6
+    },
+    {
+     "head_index": 5,
+     "number": 6,
+     "kind": "sub",
+     "category": "A",
+     "start": 113,
+     "end": 127,
+     "title": "print(\"  [B엔진 solve_id_for_target_gm() -- 순방향으로 만든 gm_target을 역산해 gm_id 복원]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s006_solve_id_for_target_gm"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 6,
+     "number": 7,
+     "kind": "sub",
+     "category": "A",
+     "start": 128,
+     "end": 145,
+     "title": "print(\"  [C엔진 solve_diode_stack_current() -- 순방향으로 만든 VGS합을 역산해 전류 복원]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s007_solve_diode_stack_current"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 7,
+     "number": 8,
+     "kind": "sub",
+     "category": "A",
+     "start": 146,
+     "end": 166,
+     "title": "print(\"  [F엔진 compute_metric()/_METRICS_REGISTRY -- sum_current/sum_area/gain_stages_sum]\")",
+     "asserts": 3,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s008_compute_metric"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 1,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 8,
+     "number": 9,
+     "kind": "sub",
+     "category": "A",
+     "start": 167,
+     "end": 228,
+     "title": "print(\"  [L4 revalidate_finger_override() -- finger 반올림으로 W가 강제로 바뀌어도 ID는\")",
+     "asserts": 8,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s009_revalidate_finger_override"
+     ],
+     "judgements_outside_reject_try": 8,
+     "reject_try_ast": 0,
+     "m2_min": 8,
+     "guarded_only": false
+    },
+    {
+     "head_index": 9,
+     "number": 10,
+     "kind": "sub",
+     "category": "A",
+     "start": 229,
+     "end": 313,
+     "title": "print(\"  [L4b apply_and_revalidate_pair_adjustment() -- suggest_pair_finger_adjustments()(L3)의\")",
+     "asserts": 9,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s010_apply_and_revalidate_pair_adjustment"
+     ],
+     "judgements_outside_reject_try": 9,
+     "reject_try_ast": 0,
+     "m2_min": 9,
+     "guarded_only": false
+    },
+    {
+     "head_index": 10,
+     "number": 11,
+     "kind": "sub",
+     "category": "A",
+     "start": 314,
+     "end": 435,
+     "title": "print(\"  [L4c run_topology_pipeline_with_finger_fixup() -- 세션12 M3a 그룹(11소자) 실제\")",
+     "asserts": 17,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "c",
+       "number": 1
+      },
+      {
+       "name": "lut",
+       "number": 1
+      },
+      {
+       "name": "t",
+       "number": 10
+      },
+      {
+       "name": "v",
+       "number": 0
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s011_run_topology_pipeline_with_finger_fixup"
+     ],
+     "judgements_outside_reject_try": 17,
+     "reject_try_ast": 0,
+     "m2_min": 17,
+     "guarded_only": false
+    },
+    {
+     "head_index": 11,
+     "number": 12,
+     "kind": "sub",
+     "category": "A",
+     "start": 436,
+     "end": 532,
+     "title": "print(\"  [L5 optimize_full_circuit_budget() 실배선 -- run_topology_pipeline_with_finger_\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_l4c_L",
+       "number": 11
+      },
+      {
+       "name": "_l4c_gds",
+       "number": 11
+      },
+      {
+       "name": "_l4c_gm_id",
+       "number": 11
+      },
+      {
+       "name": "_l4c_m3a_netlist",
+       "number": 11
+      },
+      {
+       "name": "_l4c_matching_pairs_meta",
+       "number": 11
+      },
+      {
+       "name": "_l4c_names",
+       "number": 11
+      },
+      {
+       "name": "_l4c_r",
+       "number": 11
+      },
+      {
+       "name": "_l4c_vds",
+       "number": 11
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "lut",
+       "number": 1
+      },
+      {
+       "name": "n",
+       "number": 11
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s012_optimize_full_circuit_budget"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 12,
+     "number": 13,
+     "kind": "sub",
+     "category": "A",
+     "start": 533,
+     "end": 586,
+     "title": "print(\"  [L5b resolve_stack_layout() -- declared vertical_stack_id를 audit_vertical_\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "k",
+       "number": 11
+      },
+      {
+       "name": "p",
+       "number": 12
+      },
+      {
+       "name": "t",
+       "number": 11
+      },
+      {
+       "name": "v",
+       "number": 11
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s013_resolve_stack_layout"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 1,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 13,
+     "number": 14,
+     "kind": "sub",
+     "category": "A",
+     "start": 587,
+     "end": 830,
+     "title": "print(\"  [L5c 헤드룸 singleton 정책(다음 세션 최우선①, 2026-08-11 세션28) -- M5/M61,\")",
+     "asserts": 7,
+     "raise_assertion": false,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_rsl_os",
+       "number": 13
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "c",
+       "number": 11
+      },
+      {
+       "name": "n",
+       "number": 12
+      },
+      {
+       "name": "v",
+       "number": 13
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s014_section"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 1,
+     "m2_min": 6,
+     "guarded_only": true
+    },
+    {
+     "head_index": 14,
+     "number": 15,
+     "kind": "sub",
+     "category": "A",
+     "start": 831,
+     "end": 936,
+     "title": "print(\"  [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/\")",
+     "asserts": 11,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "c",
+       "number": 14
+      },
+      {
+       "name": "lut",
+       "number": 1
+      },
+      {
+       "name": "n",
+       "number": 14
+      },
+      {
+       "name": "t",
+       "number": 13
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s015_suggest_matching_finger_growth"
+     ],
+     "judgements_outside_reject_try": 11,
+     "reject_try_ast": 0,
+     "m2_min": 11,
+     "guarded_only": false
+    },
+    {
+     "head_index": 15,
+     "number": 16,
+     "kind": "sub",
+     "category": "A",
+     "start": 937,
+     "end": 982,
+     "title": "print(\"  [L4e run_matching_safety_with_finger_growth() -- 세션17 설계안 3번. gm/ID 예산이\")",
+     "asserts": 7,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_l4d_ctx",
+       "number": 15
+      },
+      {
+       "name": "_l4d_metrics",
+       "number": 15
+      },
+      {
+       "name": "_l4d_r",
+       "number": 15
+      },
+      {
+       "name": "_l4d_tight",
+       "number": 15
+      },
+      {
+       "name": "c",
+       "number": 15
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s016_run_matching_safety_with_finger_growth"
+     ],
+     "judgements_outside_reject_try": 7,
+     "reject_try_ast": 0,
+     "m2_min": 7,
+     "guarded_only": false
+    },
+    {
+     "head_index": 16,
+     "number": 17,
+     "kind": "major",
+     "category": "D",
+     "start": 983,
+     "end": 986,
+     "title": "print(\"# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 18
+    },
+    {
+     "head_index": 17,
+     "number": 18,
+     "kind": "sub",
+     "category": "A",
+     "start": 987,
+     "end": 1000,
+     "title": "print(\"  [7-3b allocate_stack_headroom() -- resize.py 6개 소자 스택, vdd=1.8V]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s018_allocate_stack_headroom"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 18,
+     "number": 19,
+     "kind": "sub",
+     "category": "A",
+     "start": 1002,
+     "end": 1012,
+     "title": "print(\"  [gm_id가 있으면 2/gm_id+margin으로 캐스코드 헤드룸이 자동 연동되는지(§7-3e (b))]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_hr_stack",
+       "number": 18
+      },
+      {
+       "name": "e",
+       "number": 13
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s019_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 19,
+     "number": 20,
+     "kind": "sub",
+     "category": "A",
+     "start": 1013,
+     "end": 1035,
+     "title": "print(\"  [2026-08-11(세션28) HeadroomPolicy.thin_roles -- 'diode_reference'도 cascode와\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s020_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 20,
+     "number": 21,
+     "kind": "sub",
+     "category": "A",
+     "start": 1036,
+     "end": 1058,
+     "title": "print(\"  [7-3e search_gm_id_for_role() -- role별 선택 방향(matching=최소, gain=gm/gds 최대, \"\n          \"balanced=첫 feasible)]\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "i",
+       "number": 1
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s021_search_gm_id_for_role"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 21,
+     "number": 22,
+     "kind": "sub",
+     "category": "A",
+     "start": 1060,
+     "end": 1069,
+     "title": "print(\"  [2026-08-19 세션37 연속 신설 -- 'load' role: gm/gds가 아니라 ro(=1/gds) 자체를\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_feasible_check",
+       "number": 21
+      },
+      {
+       "name": "_role_L",
+       "number": 21
+      },
+      {
+       "name": "_role_id_target",
+       "number": 21
+      },
+      {
+       "name": "_role_vds",
+       "number": 21
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s022_ro"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 22,
+     "number": 23,
+     "kind": "sub",
+     "category": "A",
+     "start": 1071,
+     "end": 1079,
+     "title": "print(\"  [W_bounds 안에 후보가 하나도 없으면 즉시 ValueError]\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_role_L",
+       "number": 21
+      },
+      {
+       "name": "_role_id_target",
+       "number": 21
+      },
+      {
+       "name": "_role_vds",
+       "number": 21
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s023_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 23,
+     "number": 24,
+     "kind": "sub",
+     "category": "A",
+     "start": 1080,
+     "end": 1149,
+     "title": "print(\"  [7-3f 대체(2026-09-10, 사용자 지시 \\\"bias_replica 상수도 없애\\\") --\")",
+     "asserts": 7,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "i",
+       "number": 21
+      },
+      {
+       "name": "lut",
+       "number": 1
+      },
+      {
+       "name": "v",
+       "number": 14
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s024_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 1,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 24,
+     "number": 25,
+     "kind": "sub",
+     "category": "A",
+     "start": 1150,
+     "end": 1169,
+     "title": "print(\"  [계통 미러비 오차를 **선언된 랜덤 예산과 같은 단위**로 재기(2026-09-10) --\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s025_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 25,
+     "number": 26,
+     "kind": "sub",
+     "category": "A",
+     "start": 1171,
+     "end": 1193,
+     "title": "print(\"  [value_from_constraint -- 임계값을 다른 제약에서 그대로 참조(숫자 복제 금지)]\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "c",
+       "number": 16
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s026_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 1,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 26,
+     "number": 27,
+     "kind": "sub",
+     "category": "A",
+     "start": 1194,
+     "end": 1223,
+     "title": "print(\"  [웜스타트 조인트 스캔 점수(2026-09-10, l_class 포함) -- 그룹마다 기준이 다르다]\")",
+     "asserts": 3,
+     "raise_assertion": true,
+     "reject_try": 2,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s027_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 2,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 27,
+     "number": 28,
+     "kind": "sub",
+     "category": "A",
+     "start": 1224,
+     "end": 1242,
+     "title": "print(\"  [7-4b 확장 estimate_area_budget() -- 콜드스타트 블렌딩 vs 실측 자기참조]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s028_estimate_area_budget"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 28,
+     "number": 29,
+     "kind": "major",
+     "category": "D",
+     "start": 1243,
+     "end": 1246,
+     "title": "print(\"# 배치 7-3d(analog-topology-json-library.do.md §7.3.2 D, 2026-07-31) --\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 30
+    },
+    {
+     "head_index": 29,
+     "number": 30,
+     "kind": "sub",
+     "category": "A",
+     "start": 1247,
+     "end": 1251,
+     "title": "print(\"  [feed 'A' (_feed_root_ratio) -- theta*reference 전류합을 root의 seed로]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s030_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 30,
+     "number": 31,
+     "kind": "sub",
+     "category": "A",
+     "start": 1253,
+     "end": 1256,
+     "title": "print(\"  [feed 'C' (_feed_diode_stack_target) -- theta*reference W를 target W로]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s031_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 31,
+     "number": 32,
+     "kind": "sub",
+     "category": "A",
+     "start": 1258,
+     "end": 1265,
+     "title": "print(\"  [feed 'B' (_feed_gm_target_convention) -- N*omega_c*C_cmfb를 gm_target으로 사이징]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s032_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 32,
+     "number": 33,
+     "kind": "sub",
+     "category": "A",
+     "start": 1267,
+     "end": 1270,
+     "title": "print(\"  [feed 'settling_split' (_feed_settling_split) -- theta*total을 derived로]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s033_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 33,
+     "number": 34,
+     "kind": "sub",
+     "category": "A",
+     "start": 1272,
+     "end": 1278,
+     "title": "print(\"  [feed 'metric_stage_budget' -- theta(L)로 지정 devices의 L/W/gm/gds 재계산]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s034_theta"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 34,
+     "number": 35,
+     "kind": "sub",
+     "category": "A",
+     "start": 1280,
+     "end": 1287,
+     "title": "print(\"  [등록 안 된 feed 타입은 즉시 ValueError]\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s035_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 35,
+     "number": 36,
+     "kind": "sub",
+     "category": "A",
+     "start": 1288,
+     "end": 1322,
+     "title": "print(\"  [optimize_full_circuit_budget() -- sizing_roles/device_roles 둘 다 없는 회로는 \"\n          \"즉시 빈 결과로 통과]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s036_optimize_full_circuit_budget"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 36,
+     "number": 37,
+     "kind": "sub",
+     "category": "A",
+     "start": 1323,
+     "end": 1374,
+     "title": "print(\"  [optimize_full_circuit_budget() -- 합성 sizing_roles로 그리드서치가 실제 최적값을 \"\n          \"찾는지 전수비교]\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s037_optimize_full_circuit_budget"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 37,
+     "number": 38,
+     "kind": "sub",
+     "category": "A",
+     "start": 1375,
+     "end": 1436,
+     "title": "print(\"  [device_roles.gm_id_match_vgs_of -- 2026-08-19 세션38 신설, gm_id_role 루프의 2차 \"\n          \"pass가 실제로 companion의 VGS로 결합되는지 (nmcnr_amplifier M203/M204 계기)]\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "i",
+       "number": 24
+      },
+      {
+       "name": "lut",
+       "number": 1
+      },
+      {
+       "name": "v",
+       "number": 24
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s038_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 38,
+     "number": 39,
+     "kind": "sub",
+     "category": "A",
+     "start": 1445,
+     "end": 1459,
+     "title": "print(\"  [gm_id_match_vgs_of가 아직 sizing 안 된(존재하지 않는) 소자를 참조하면 ValueError]\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_gmv_spec",
+       "number": 38
+      },
+      {
+       "name": "_gmv_topo",
+       "number": 38
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s039_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 39,
+     "number": 40,
+     "kind": "sub",
+     "category": "A",
+     "start": 1460,
+     "end": 1516,
+     "title": "print(\"  [device_roles.vds_match_vgs_of -- 2026-08-19 세션38 연속 신설, 헤드룸 루프가 다른 \"\n          \"컬럼(다른 vertical_stack_id 그룹) 소자의 VGS를 이 소자의 VDS로 강제하는지, 그리고 \"\n          \"같은 컬럼의 나머지 소자가 남는 예산을 정확히 흡수하는지 (nmcnr_amplifier M204/M301 \"\n          \"계기 -- M301.gate=M204.drain이라 VGS(M301)=VDS(M204)가 KVL로 강제됨)]\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "_tst_grids",
+       "number": 0
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s040_VGS"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 40,
+     "number": 41,
+     "kind": "sub",
+     "category": "A",
+     "start": 1518,
+     "end": 1531,
+     "title": "print(\"  [vds_match_vgs_of가 순환 참조하면 ValueError]\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "_vmv_spec",
+       "number": 40
+      },
+      {
+       "name": "_vmv_topo",
+       "number": 40
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s041_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 41,
+     "number": 42,
+     "kind": "sub",
+     "category": "A",
+     "start": 1532,
+     "end": 1598,
+     "title": "print(\"  [fixed-point worklist -- 2026-08-19 세션39 신설, _ref_depth() 단일재귀 정렬을 \"\n          \"대체. 두 vertical_stack_id 그룹이 서로 다른 멤버를 통해 맞물릴 때(Monticelli \"\n          \"floating battery -- nmcnr M9a/M9b/M11a/M11b/M12 계기, `.ai/context.md` 세션38→39 \"\n          \"참고) 예전엔 순환 참조로 오판했다. 실제로는 grpB의 pre-pass(vds_match_vgs_of, \"\n          \"N만 있으면 즉시 가능) -> grpA 완결(budget_reference_device로 grpB의 pre-pass \"\n          \"결과 참조) -> grpB의 나머지 멤버 완결(budget_reference_device로 grpA 결과 참조) \"\n          \"순으로 풀리는 선형 순서가 있다]\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "_tst_grids",
+       "number": 0
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s042__ref_depth"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 42,
+     "number": 43,
+     "kind": "sub",
+     "category": "A",
+     "start": 1600,
+     "end": 1645,
+     "title": "print(\"  [두 그룹의 budget_reference_device가 서로를 직접 가리키면(pre-pass로도 못 \"\n          \"뚫리는 진짜 순환) 여전히 ValueError -- 어느 pass에서도 vds가 하나도 안 늘어나야 함]\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_fpw_vdd",
+       "number": 42
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "_tst_grids",
+       "number": 0
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s043_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 43,
+     "number": 45,
+     "kind": "sub",
+     "category": "A",
+     "start": 1647,
+     "end": 1683,
+     "title": "print(\"  [1. 정상 케이스 -- known_sizing으로 전류/L/VDS가 다 채워지면 status=ok]\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_diag_lut",
+       "number": 43
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "_tst_grids",
+       "number": 0
+      },
+      {
+       "name": "k",
+       "number": 13
+      },
+      {
+       "name": "v",
+       "number": 38
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s045_section"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 44,
+     "number": 46,
+     "kind": "sub",
+     "category": "A",
+     "start": 1685,
+     "end": 1692,
+     "title": "print(\"  [4. 실제 라이브러리 파일 folded_cascode -- 세션35 안에서 이 gap 자체를 \"\n          \"해소했다(Ibg를 KCL 유도+자유 theta로 배선) -- 이제 has_theta로 조기 반환됨을 \"\n          \"재확인(회귀 감시: diagnose_sizing_roles_gap()이 '더 이상 gap이 아니다'를 \"\n          \"정확히 인식하는지)]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_lib_dir_recipe",
+       "number": 36
+      },
+      {
+       "name": "_os",
+       "number": 3
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s046_diagnose_sizing_roles_gap"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 45,
+     "number": 47,
+     "kind": "sub",
+     "category": "A",
+     "start": 1694,
+     "end": 1708,
+     "title": "print(\"  [5/6. 실제 라이브러리 파일 nmcnr_amplifier -- 원래(세션35) PM_target_deg=46 \"\n          \"(논문 실측치)이 nmcnr_3stage_topology()의 PM>60 전제와 충돌해 kind=other로 걸렸고, \"\n          \"PM=70으로 그 가드를 우회해도 M101(바이어스 소자, 전류가 KCL만으로 안 나옴)에서 \"\n          \"또 다른 unresolved_current gap이 드러났었다(당시 sizing_roles=null). 2026-08-18 \"\n          \"세션이 그 M101 tail 전류/M104,M105 폴딩비를 sympy KCL 재유도 + 7개 theta로 실제로 \"\n          \"배선했으므로(fold_group/vertical_stack_id 15개 소자 전부 확정 위, PM_target_deg는 \"\n          \"아직 46인 채 -- 그건 여전히 별도 gap), 이제 folded_cascode/two_stage_ota와 동일하게 \"\n          \"has_theta로 조기 반환되는지 재확인한다(회귀 감시)]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_lib_dir_recipe",
+       "number": 36
+      },
+      {
+       "name": "_os",
+       "number": 3
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s047_nmcnr_3stage_topology"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 46,
+     "number": 48,
+     "kind": "sub",
+     "category": "A",
+     "start": 1709,
+     "end": 1728,
+     "title": "print(\"  [require_declared_spec_source() -- 라이브러리 회로를 **출처 없는 spec**으로\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_lib_dir_recipe",
+       "number": 36
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s048_require_declared_spec_source"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 47,
+     "number": 49,
+     "kind": "sub",
+     "category": "A",
+     "start": 1730,
+     "end": 1735,
+     "title": "print(\"  [7. sizing_roles.theta가 이미 선언된 회로는 status=has_theta로 조기 반환]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_lib_dir_recipe",
+       "number": 36
+      },
+      {
+       "name": "_os",
+       "number": 3
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s049_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 48,
+     "number": 50,
+     "kind": "sub",
+     "category": "A",
+     "start": 1736,
+     "end": 1751,
+     "title": "print(\"  [제약을 만족하는 격자점이 하나도 없으면 즉시 ValueError]\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_ofc_spec",
+       "number": 37
+      },
+      {
+       "name": "_ofc_topo",
+       "number": 37
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s050_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 49,
+     "number": 51,
+     "kind": "sub",
+     "category": "A",
+     "start": 1752,
+     "end": 1887,
+     "title": "print(\"  [optimize_full_circuit_budget() -- 실제 회로(two_stage_ota, 7개 소자) 전체를\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_lib_dir_recipe",
+       "number": 36
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "i",
+       "number": 38
+      },
+      {
+       "name": "lut",
+       "number": 1
+      },
+      {
+       "name": "n",
+       "number": 15
+      },
+      {
+       "name": "v",
+       "number": 45
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s051_optimize_full_circuit_budget",
+      "test_s051_optimize_full_circuit_budget_known_limitation"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": true,
+     "known_limitation": "I-C11"
+    },
+    {
+     "head_index": 50,
+     "number": 52,
+     "kind": "sub",
+     "category": "A",
+     "start": 1888,
+     "end": 1937,
+     "title": "print(\"  [matching_pairs L 강제 일치 -- compensation(spec 기반) vs device_roles.L_role\"\n          \"(휴리스틱)이 독립적으로 다른 L을 정했을 때 에러로 끝내지 않고 spec 기반 쪽으로\"\n          \" 재설계되는지 확인]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "_tst_grids",
+       "number": 0
+      },
+      {
+       "name": "i",
+       "number": 51
+      },
+      {
+       "name": "lut",
+       "number": 1
+      },
+      {
+       "name": "v",
+       "number": 51
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s052_compensation"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 51,
+     "number": 53,
+     "kind": "sub",
+     "category": "A",
+     "start": 1939,
+     "end": 1964,
+     "title": "print(\"  [matching_pairs L 강제 일치 -- 양쪽 다 L_role(휴리스틱)인데 값이 다르면(스펙 근거로\"\n          \" 우선순위를 가릴 수 없음) 즉시 ValueError]\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_lrec_topo",
+       "number": 52
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "_tempfile",
+       "number": 3
+      },
+      {
+       "name": "_tst_grids",
+       "number": 0
+      },
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s053_L_role"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 52,
+     "number": 54,
+     "kind": "sub",
+     "category": "A",
+     "start": 1965,
+     "end": 1983,
+     "title": "print(\"  [재현성: 같은 spec으로 다시 호출하면 완전히 같은 sizing]\")",
+     "asserts": 2,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_tso_all_names",
+       "number": 51
+      },
+      {
+       "name": "_tso_path",
+       "number": 51
+      },
+      {
+       "name": "_tso_result",
+       "number": 51
+      },
+      {
+       "name": "_tso_spec",
+       "number": 51
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s054_section",
+      "test_s054_section_known_limitation"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 1,
+     "m2_min": 2,
+     "guarded_only": true,
+     "known_limitation": "I-C11"
+    },
+    {
+     "head_index": 53,
+     "number": 55,
+     "kind": "major",
+     "category": "D",
+     "start": 1984,
+     "end": 1987,
+     "title": "print(\"# 배치 7-3g/h/i(analog-topology-json-library.do.md, 2026-07-31) --\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 56
+    },
+    {
+     "head_index": 54,
+     "number": 56,
+     "kind": "sub",
+     "category": "A",
+     "start": 1988,
+     "end": 1993,
+     "title": "print(\"  [7-3g noise_1f_density() -- SID_1F 없는 LUT는 즉시 ValueError(데이터 없음을 숨기지 않음)]\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s056_noise_1f_density"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 55,
+     "number": 57,
+     "kind": "sub",
+     "category": "A",
+     "start": 1995,
+     "end": 2007,
+     "title": "print(\"  [SID_1F 있는 합성 LUT -- W_ref/W_target 스케일링 + 1/freq 반영 확인]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "lut",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s057_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 56,
+     "number": 58,
+     "kind": "sub",
+     "category": "A",
+     "start": 2009,
+     "end": 2021,
+     "title": "print(\"  [_metric_flicker_plus_thermal_sum() -- 열+1/f 합산이 손계산과 일치]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_freq_test",
+       "number": 57
+      },
+      {
+       "name": "_lut_with_noise",
+       "number": 57
+      },
+      {
+       "name": "_sid1f_expected",
+       "number": 57
+      },
+      {
+       "name": "_w_target_test",
+       "number": 57
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s058__metric_flicker_plus_thermal_sum"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 57,
+     "number": 59,
+     "kind": "sub",
+     "category": "A",
+     "start": 2022,
+     "end": 2035,
+     "title": "print(\"  [7-3h estimate_mismatch_sigma()/pelgrom_mismatch metric -- sky130 실측 vth0_slope로 확인]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s059_estimate_mismatch_sigma"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 58,
+     "number": 60,
+     "kind": "sub",
+     "category": "A",
+     "start": 2036,
+     "end": 2045,
+     "title": "print(\"  [7-3i cmrr_estimate/psrr_estimate metric -- diff_pair_tail family 계산 확인]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s060_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 59,
+     "number": 61,
+     "kind": "sub",
+     "category": "A",
+     "start": 2047,
+     "end": 2055,
+     "title": "print(\"  [등록 안 된 circuit_family는 즉시 ValueError]\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_ctx_cmrr",
+       "number": 60
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s061_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 60,
+     "number": 62,
+     "kind": "sub",
+     "category": "A",
+     "start": 2056,
+     "end": 2075,
+     "title": "print(\"  [세션37: nmcnr_gain_db/nmcnr_pm_deg -- nmcnr_amplifier.topology.json 실제\")",
+     "asserts": 7,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_lib_dir_recipe",
+       "number": 36
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "t",
+       "number": 15
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s062_section"
+     ],
+     "judgements_outside_reject_try": 7,
+     "reject_try_ast": 0,
+     "m2_min": 7,
+     "guarded_only": false
+    },
+    {
+     "head_index": 61,
+     "number": 63,
+     "kind": "sub",
+     "category": "A",
+     "start": 2077,
+     "end": 2109,
+     "title": "print(\"  [_nmcnr_stage1_rout()/_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg -- 손계산과 대조]\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s063__nmcnr_stage1_rout"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 62,
+     "number": 64,
+     "kind": "sub",
+     "category": "A",
+     "start": 2111,
+     "end": 2122,
+     "title": "print(\"  [_metric_nmcnr_pm_deg -- 0dB 교차가 아예 없으면(gm1이 극단적으로 작아 DC이득이 \"\n          \"이미 0dB 미만) ValueError]\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_nmcnr_sized",
+       "number": 63
+      },
+      {
+       "name": "_nmcnr_spec",
+       "number": 63
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s064_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 63,
+     "number": 65,
+     "kind": "sub",
+     "category": "A",
+     "start": 2123,
+     "end": 2175,
+     "title": "print(\"  [cmrr_estimate -- telescopic_class_ab family: metric_spec의 소자 역할 배정이\")",
+     "asserts": 16,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_lib_dir_recipe",
+       "number": 36
+      },
+      {
+       "name": "_os",
+       "number": 3
+      },
+      {
+       "name": "d",
+       "number": 11
+      },
+      {
+       "name": "t",
+       "number": 62
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s065_section"
+     ],
+     "judgements_outside_reject_try": 16,
+     "reject_try_ast": 0,
+     "m2_min": 16,
+     "guarded_only": false
+    },
+    {
+     "head_index": 64,
+     "number": 66,
+     "kind": "sub",
+     "category": "A",
+     "start": 2176,
+     "end": 2220,
+     "title": "print(\"  [cmrr_estimate -- telescopic_class_ab family(2026-08-03 확정 topology.json으로\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s066_family"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 65,
+     "number": 67,
+     "kind": "sub",
+     "category": "A",
+     "start": 2221,
+     "end": 2269,
+     "title": "print(\"  [cmrr_estimate -- telescopic_class_ab_cmfb family(2026-08-03 신규 유도, CMFB 루프\")",
+     "asserts": 12,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_crt_by_name",
+       "number": 65
+      },
+      {
+       "name": "_crt_transistors",
+       "number": 65
+      },
+      {
+       "name": "d",
+       "number": 65
+      },
+      {
+       "name": "t",
+       "number": 65
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s067_family"
+     ],
+     "judgements_outside_reject_try": 12,
+     "reject_try_ast": 0,
+     "m2_min": 12,
+     "guarded_only": false
+    },
+    {
+     "head_index": 66,
+     "number": 68,
+     "kind": "sub",
+     "category": "A",
+     "start": 2270,
+     "end": 2344,
+     "title": "print(\"  [cmrr/psrr_estimate -- telescopic_class_ab_cmfb family(2026-08-07 세션21 전면\")",
+     "asserts": 6,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_cmfb_roles",
+       "number": 67
+      },
+      {
+       "name": "d",
+       "number": 67
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s068_family"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 1,
+     "m2_min": 7,
+     "guarded_only": false
+    },
+    {
+     "head_index": 67,
+     "number": 69,
+     "kind": "sub",
+     "category": "A",
+     "start": 2345,
+     "end": 2360,
+     "title": "print(\"  [psrr_estimate -- telescopic_class_ab_cmfb family, 같은 31소자망 -- Ann_open이\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_adm_o",
+       "number": 68
+      },
+      {
+       "name": "_ann_o",
+       "number": 68
+      },
+      {
+       "name": "_cmfb_ctx",
+       "number": 68
+      },
+      {
+       "name": "_cmfb_spec",
+       "number": 68
+      },
+      {
+       "name": "_t",
+       "number": 68
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s069_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 1,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 68,
+     "number": 70,
+     "kind": "sub",
+     "category": "A",
+     "start": 2361,
+     "end": 2428,
+     "title": "print(\"  [smallsignal_ratio_db/smallsignal_gain_db -- topology-무관 일반화(세션21 2차)]\")",
+     "asserts": 7,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s070_section"
+     ],
+     "judgements_outside_reject_try": 7,
+     "reject_try_ast": 0,
+     "m2_min": 7,
+     "guarded_only": false
+    },
+    {
+     "head_index": 69,
+     "number": 71,
+     "kind": "major",
+     "category": "A",
+     "start": 2429,
+     "end": 2476,
+     "title": "print(\"# current_reuse_telescopic_topology() 등록 재확인(2026-07-31, 원문 Eq.2-6 재도출 후,\")",
+     "asserts": 9,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "i",
+       "number": 52
+      },
+      {
+       "name": "lut",
+       "number": 1
+      },
+      {
+       "name": "v",
+       "number": 52
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s071_current_reuse_telescopic_topology"
+     ],
+     "judgements_outside_reject_try": 9,
+     "reject_try_ast": 0,
+     "m2_min": 9,
+     "guarded_only": false
+    },
+    {
+     "head_index": 70,
+     "number": 72,
+     "kind": "major",
+     "category": "D",
+     "start": 2477,
+     "end": 2479,
+     "title": "print(\"# validate_theta_declaration_order() -- theta 배열 '선언 순서=실행 순서' 계약\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 73
+    },
+    {
+     "head_index": 71,
+     "number": 73,
+     "kind": "sub",
+     "category": "A",
+     "start": 2481,
+     "end": 2501,
+     "title": "print(\"  [합성 fixture -- gm_id_match_vgs_of/C타입 reference가 선언 순서를 위반하면 잡아내는지]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "v",
+       "number": 71
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s073_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 72,
+     "number": 74,
+     "kind": "sub",
+     "category": "A",
+     "start": 2503,
+     "end": 2508,
+     "title": "print(\"  [올바른 순서(reference가 앞에 옴)면 위반 0건인지]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s074_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 73,
+     "number": 75,
+     "kind": "sub",
+     "category": "A",
+     "start": 2510,
+     "end": 2515,
+     "title": "print(\"  [compensation.stage_devices는 처음부터 생산됨으로 취급되는지]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s075_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 74,
+     "number": 76,
+     "kind": "sub",
+     "category": "A",
+     "start": 2517,
+     "end": 2527,
+     "title": "print(\"  [실제 library topology.json 4개 전부 위반 0건인지(reorder 이후 회귀 확인)]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os",
+       "number": 3
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s076_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    }
+   ]
+  },
+  "stick_diagram": {
+   "c2_sections": 174,
+   "head_sections": 141,
+   "c2_numbers_removed_by_c4": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    26,
+    59,
+    66,
+    68,
+    73,
+    74,
+    76,
+    77,
+    80,
+    81,
+    82,
+    85,
+    87,
+    121
+   ],
+   "sections": [
+    {
+     "head_index": 0,
+     "number": 0,
+     "kind": "prelude",
+     "category": "P",
+     "start": 11,
+     "end": 13,
+     "title": null,
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "header"
+    },
+    {
+     "head_index": 1,
+     "number": 7,
+     "kind": "major",
+     "category": "C",
+     "start": 25,
+     "end": 80,
+     "title": "print(\"=== Test 5.5: mirror_symmetric_trail() — 세션11 L3(D), 실제 회로 2개로 교차검증 ===\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "fixture"
+    },
+    {
+     "head_index": 2,
+     "number": 21,
+     "kind": "major",
+     "category": "A",
+     "start": 85,
+     "end": 124,
+     "title": "print(\"=== Test 11: §2.7 2D common-centroid 표 기반 경로 — M2/M2b(전류거울, 4:4) ===\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 2,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s021_M2b"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 2,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 3,
+     "number": 22,
+     "kind": "major",
+     "category": "A",
+     "start": 125,
+     "end": 145,
+     "title": "print(\"=== Test 12: common_centroid_layout() 회전 경로 — 홀수 개수(M1/M2 차동쌍 9:9)도\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s022_common_centroid_layout"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 4,
+     "number": 23,
+     "kind": "major",
+     "category": "A",
+     "start": 146,
+     "end": 177,
+     "title": "print(\"=== Test 12.5: common_centroid_layout() — 대칭(1:1)에서 표/회전 두 경로가\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "row",
+       "number": 22
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s023_common_centroid_layout"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 5,
+     "number": 24,
+     "kind": "major",
+     "category": "A",
+     "start": 178,
+     "end": 263,
+     "title": "print(\"=== Test 12.6: interdigitate_layout() — common_centroid_layout()와 동급으로 재설계\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "cc2",
+       "number": 22
+      },
+      {
+       "name": "row",
+       "number": 23
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s024_interdigitate_layout"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 6,
+     "number": 25,
+     "kind": "major",
+     "category": "A",
+     "start": 264,
+     "end": 366,
+     "title": "print(\"=== Test 12.7: common_centroid_layout() — N=3 이상 hub-leaf common-centroid ===\")",
+     "asserts": 12,
+     "raise_assertion": false,
+     "reject_try": 3,
+     "deps": [
+      {
+       "name": "r",
+       "number": 23
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s025_common_centroid_layout"
+     ],
+     "judgements_outside_reject_try": 9,
+     "reject_try_ast": 3,
+     "m2_min": 12,
+     "guarded_only": false
+    },
+    {
+     "head_index": 7,
+     "number": 27,
+     "kind": "sub",
+     "category": "A",
+     "start": 367,
+     "end": 376,
+     "title": "print(\"  [개수가 다름(A=6,B=4,C=2), n_rows 미지정 -> 기본 n_rows=N=3, 탐색 경로로 감]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "row",
+       "number": 25
+      },
+      {
+       "name": "trs_uneven",
+       "number": 25
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s027_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 8,
+     "number": 28,
+     "kind": "sub",
+     "category": "A",
+     "start": 378,
+     "end": 389,
+     "title": "print(\"  [n_rows=4 (N=3보다 많음, 더 잘게 쪼갬) -- 슬라이싱만으론 모든 phase가 오일러 조건을\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "row",
+       "number": 27
+      },
+      {
+       "name": "trs_uneven",
+       "number": 25
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s028_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 9,
+     "number": 29,
+     "kind": "sub",
+     "category": "A",
+     "start": 391,
+     "end": 395,
+     "title": "print(\"  [n_rows=2 (N=3보다 적음, 회전을 다 못 채움) -- 잔차가 0이 아닐 수 있음을 확인]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "row",
+       "number": 28
+      },
+      {
+       "name": "trs_uneven",
+       "number": 25
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s029_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 10,
+     "number": 30,
+     "kind": "sub",
+     "category": "A",
+     "start": 397,
+     "end": 407,
+     "title": "print(\"  [균등 개수(N=3, 전부 8) + n_rows=3(=N) 명시 -- target_rows==N+개수 균등이면\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s030_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 11,
+     "number": 31,
+     "kind": "sub",
+     "category": "A",
+     "start": 409,
+     "end": 426,
+     "title": "print(\"  [버그 재현+수정 확인: N=2, n_rows=2(=N) 명시 -- 사용자 지적으로 발견됨]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s031_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 12,
+     "number": 32,
+     "kind": "major",
+     "category": "A",
+     "start": 427,
+     "end": 455,
+     "title": "print(\"=== Test 12.9: n_rows==N 전수 스윕(N=2~6, count 다양) — dispatch 버그 수정 후\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "i",
+       "number": 25
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s032_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 13,
+     "number": 33,
+     "kind": "sub",
+     "category": "A",
+     "start": 456,
+     "end": 468,
+     "title": "print(\"  [발견된 2차 버그: N=4,count=20처럼 '최대한 균등'([5,5,5,5], 전부 홀수)이 오일러\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "row",
+       "number": 29
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s033_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 14,
+     "number": 34,
+     "kind": "sub",
+     "category": "A",
+     "start": 470,
+     "end": 482,
+     "title": "print(\"  [소자별 개수(count)가 소자 수(N)보다 작으면(예: N=4, 각 2개씩) 명확한 ValueError인지\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "n",
+       "number": 33
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s034_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 15,
+     "number": 35,
+     "kind": "major",
+     "category": "D",
+     "start": 483,
+     "end": 486,
+     "title": "print(\"=== Test 12.9b: 회전 경로에 crossover 폴백 통합 (사용자 요청, 2026-07-28 3차) ===\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 36
+    },
+    {
+     "head_index": 16,
+     "number": 36,
+     "kind": "sub",
+     "category": "A",
+     "start": 487,
+     "end": 514,
+     "title": "print(\"  [Test 12.9에서 '진짜 불가능'으로 확인됐던 10개 조합 전부 재확인 -- 이제는\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "i",
+       "number": 32
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s036_section"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 17,
+     "number": 37,
+     "kind": "sub",
+     "category": "A",
+     "start": 516,
+     "end": 526,
+     "title": "print(\"  [이미 0-crossover로 성공하던 케이스(N=2,count=4)는 전혀 안 바뀌었는지 회귀 확인]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "row",
+       "number": 36
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s037_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 18,
+     "number": 38,
+     "kind": "major",
+     "category": "A",
+     "start": 527,
+     "end": 581,
+     "title": "print(\"=== Test 12.10: n_rows != N(N보다 크거나 작은 경우) 전수 스윕 — 사용자 요구 ===\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 2,
+     "deps": [
+      {
+       "name": "i",
+       "number": 36
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s038_N"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 19,
+     "number": 39,
+     "kind": "sub",
+     "category": "A",
+     "start": 583,
+     "end": 593,
+     "title": "print(\"  [발견된 잔차 지표 결함: 길이 1인 행을 건너뛰면 그 행에만 있는 소자가 완전히\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s039_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 20,
+     "number": 40,
+     "kind": "sub",
+     "category": "A",
+     "start": 595,
+     "end": 609,
+     "title": "print(\"  [발견된 더 근본적 한계: 소자 하나가 통째로 자기 행에만 격리되면(다른 소자와 단\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "row",
+       "number": 38
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s040_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 21,
+     "number": 41,
+     "kind": "sub",
+     "category": "A",
+     "start": 610,
+     "end": 616,
+     "title": "print(\"  [증명된 최적 경로(rotation_exact)는 항상 isolated_pairs=0인지 확인]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "row",
+       "number": 40
+      },
+      {
+       "name": "trs_isolate",
+       "number": 40
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s041_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 22,
+     "number": 42,
+     "kind": "major",
+     "category": "A",
+     "start": 617,
+     "end": 650,
+     "title": "print(\"=== Test 12.11: INTERDIGITATION_PATTERNS 표 전체 — interdigitate_layout()가 표/탐색+\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "ch",
+       "number": 25
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s042_interdigitate_layout"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 23,
+     "number": 43,
+     "kind": "major",
+     "category": "D",
+     "start": 651,
+     "end": 653,
+     "title": "print(\"=== Test 12.12: find_min_crossover_layout() — 최소 crossover 배치 신설 ===\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 44
+    },
+    {
+     "head_index": 24,
+     "number": 44,
+     "kind": "sub",
+     "category": "A",
+     "start": 654,
+     "end": 661,
+     "title": "print(\"  [이미 가능한 경우(0 crossover) — 우선순위대로 단일 연속 diffusion부터 확인]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "s",
+       "number": 36
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s044_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 25,
+     "number": 45,
+     "kind": "sub",
+     "category": "A",
+     "start": 663,
+     "end": 671,
+     "title": "print(\"  [ABC 3소자 1개씩(4개 홀수차수 노드, m=2) -> crossover=1이어야 함]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "n",
+       "number": 34
+      },
+      {
+       "name": "s",
+       "number": 44
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s045_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 26,
+     "number": 46,
+     "kind": "sub",
+     "category": "A",
+     "start": 673,
+     "end": 679,
+     "title": "print(\"  [6소자 1개씩(6개 홀수차수 노드, m=3) -> crossover=2, 소자 6개 보존]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "n",
+       "number": 45
+      },
+      {
+       "name": "s",
+       "number": 45
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s046_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 27,
+     "number": 47,
+     "kind": "sub",
+     "category": "A",
+     "start": 681,
+     "end": 686,
+     "title": "print(\"  [각 segment 내부가 실제로 유효한 hub-leaf walk인지 1차 원리로 재확인]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "n",
+       "number": 46
+      },
+      {
+       "name": "r_6",
+       "number": 46
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s047_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 28,
+     "number": 48,
+     "kind": "sub",
+     "category": "A",
+     "start": 688,
+     "end": 694,
+     "title": "print(\"  [ABCD 표 패턴(4소자 1개씩)이 실제로 crossover=1로 해결되는지 -- 사용자가\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "n",
+       "number": 47
+      },
+      {
+       "name": "s",
+       "number": 46
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s048_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 29,
+     "number": 49,
+     "kind": "sub",
+     "category": "A",
+     "start": 696,
+     "end": 713,
+     "title": "print(\"  [대조군 -- 입력 검증]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 2,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s049_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 2,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 30,
+     "number": 50,
+     "kind": "major",
+     "category": "D",
+     "start": 714,
+     "end": 716,
+     "title": "print(\"=== Test 12.13: find_min_crossover_layout() matching_pairs 확장(세션15) —\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 51
+    },
+    {
+     "head_index": 31,
+     "number": 51,
+     "kind": "sub",
+     "category": "A",
+     "start": 717,
+     "end": 777,
+     "title": "print(\"  [실전: current_reuse_telescopic_ota.topology.json M6 그룹(8소자) — 핑거조정\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "i",
+       "number": 38
+      },
+      {
+       "name": "n",
+       "number": 48
+      },
+      {
+       "name": "s",
+       "number": 48
+      },
+      {
+       "name": "t",
+       "number": 7
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s051_section"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 32,
+     "number": 52,
+     "kind": "sub",
+     "category": "A",
+     "start": 779,
+     "end": 786,
+     "title": "print(\"  [node_map 역산 단위 확인 -- M2a/M2b가 서로 공유 끝이 없어도 Vom1<->Vop1이\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_m6_group_trs",
+       "number": 51
+      },
+      {
+       "name": "_m6_inside_pairs",
+       "number": 51
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s052_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 33,
+     "number": 53,
+     "kind": "sub",
+     "category": "A",
+     "start": 788,
+     "end": 797,
+     "title": "print(\"  [폴백 발동 확인 -- matching_pairs가 텅 비어 전부 orphan이면(자기대응 노드가\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "n",
+       "number": 51
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s053_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 34,
+     "number": 54,
+     "kind": "sub",
+     "category": "A",
+     "start": 799,
+     "end": 803,
+     "title": "print(\"  [회귀 -- matching_pairs=None(기존 호출부 경로, 하위호환)이면 hub-leaf 사전조건과\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "r_6",
+       "number": 46
+      },
+      {
+       "name": "r_abc",
+       "number": 45
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s054_None"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 35,
+     "number": 55,
+     "kind": "sub",
+     "category": "A",
+     "start": 805,
+     "end": 842,
+     "title": "print(\"  [세션17 offset 우선순위 가중치 -- _count_matching_pair_splits()의\")",
+     "asserts": 7,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s055__count_matching_pair_splits"
+     ],
+     "judgements_outside_reject_try": 7,
+     "reject_try_ast": 0,
+     "m2_min": 7,
+     "guarded_only": false
+    },
+    {
+     "head_index": 36,
+     "number": 56,
+     "kind": "sub",
+     "category": "A",
+     "start": 844,
+     "end": 854,
+     "title": "print(\"  [M6 실제 회로 회귀 -- pair_sensitivity를 줘도 이미 달성한 (0,0)이 안 깨지는지]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_m6_group_trs",
+       "number": 51
+      },
+      {
+       "name": "_m6_inside_pairs",
+       "number": 51
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s056_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 37,
+     "number": 57,
+     "kind": "major",
+     "category": "A",
+     "start": 855,
+     "end": 918,
+     "title": "print(\"=== Test 13: check_box_shape() 게이트 — SPICE 전에 반드시 통과해야 하는 §8 체크포인트 ===\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s057_check_box_shape"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 38,
+     "number": 58,
+     "kind": "major",
+     "category": "A",
+     "start": 919,
+     "end": 973,
+     "title": "print(\"=== Test 14: stage 경계를 넘는 stack 병합 — Maloberti p.29 'Layout Oriented Design' 재현 ===\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "i",
+       "number": 51
+      },
+      {
+       "name": "t",
+       "number": 51
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s058_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 39,
+     "number": 60,
+     "kind": "major",
+     "category": "A",
+     "start": 975,
+     "end": 1008,
+     "title": "print(\"=== Test 16: run_full_circuit_audit() — 4단계 harness가 실제로 잡아내는지 확인 ===\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s060_run_full_circuit_audit"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 40,
+     "number": 61,
+     "kind": "major",
+     "category": "A",
+     "start": 1009,
+     "end": 1073,
+     "title": "print(\"=== Test 17: pack_floorplan() — 실제 Xie&Chen 51-소자 회로 전체 블록으로 검증 ===\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "i",
+       "number": 58
+      },
+      {
+       "name": "n",
+       "number": 57
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s061_pack_floorplan"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 41,
+     "number": 62,
+     "kind": "major",
+     "category": "A",
+     "start": 1074,
+     "end": 1114,
+     "title": "print(\"=== Test 18: find_diffusion_safe_split_points() — 실제 S1_TAILP 시퀀스로 검증 ===\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "b",
+       "number": 61
+      },
+      {
+       "name": "j",
+       "number": 61
+      },
+      {
+       "name": "overlap",
+       "number": 61
+      },
+      {
+       "name": "spine",
+       "number": 61
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s062_find_diffusion_safe_split_points"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 42,
+     "number": 63,
+     "kind": "major",
+     "category": "A",
+     "start": 1115,
+     "end": 1148,
+     "title": "print(\"=== Test 19: pack_floorplan_grouped() — 기능 그룹이 실제로 흩어지지 않는지 확인 ===\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "b",
+       "number": 62
+      },
+      {
+       "name": "i",
+       "number": 62
+      },
+      {
+       "name": "mirror_pairs",
+       "number": 61
+      },
+      {
+       "name": "n",
+       "number": 61
+      },
+      {
+       "name": "overlap",
+       "number": 61
+      },
+      {
+       "name": "spine",
+       "number": 61
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s063_pack_floorplan_grouped"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 43,
+     "number": 64,
+     "kind": "major",
+     "category": "A",
+     "start": 1149,
+     "end": 1182,
+     "title": "print(\"=== Test 20: net_weights — 신호선 근접 배치, 실제 vbias1 연결로 검증 ===\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "b",
+       "number": 63
+      },
+      {
+       "name": "j",
+       "number": 63
+      },
+      {
+       "name": "k",
+       "number": 63
+      },
+      {
+       "name": "mirror_pairs",
+       "number": 61
+      },
+      {
+       "name": "n",
+       "number": 63
+      },
+      {
+       "name": "overlap",
+       "number": 61
+      },
+      {
+       "name": "spine_groups",
+       "number": 63
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s064_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 44,
+     "number": 65,
+     "kind": "major",
+     "category": "A",
+     "start": 1183,
+     "end": 1220,
+     "title": "print(\"=== Test 21: sub_kind — 같은 diffusion(폴러리티)별로 나눠 배치하면 더 compact한지 실측 ===\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "b",
+       "number": 64
+      },
+      {
+       "name": "j",
+       "number": 64
+      },
+      {
+       "name": "mirror_pairs",
+       "number": 61
+      },
+      {
+       "name": "net_weights",
+       "number": 64
+      },
+      {
+       "name": "overlap",
+       "number": 61
+      },
+      {
+       "name": "p",
+       "number": 51
+      },
+      {
+       "name": "spine",
+       "number": 61
+      },
+      {
+       "name": "spine_groups",
+       "number": 63
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s065_diffusion"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 45,
+     "number": 67,
+     "kind": "sub",
+     "category": "A",
+     "start": 1224,
+     "end": 1232,
+     "title": "print(\"  [MA/MB(진짜 diff_pair)를 matching_pairs에 빼먹은 상황]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "vsd_trs",
+       "number": 65
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s067_MB"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 46,
+     "number": 69,
+     "kind": "sub",
+     "category": "A",
+     "start": 1234,
+     "end": 1242,
+     "title": "print(\"  [net 이름 대소문자 불일치(사고9와 동일 패턴)를 잡아내는지 -- Vbias1 vs vbias1]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s069_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 47,
+     "number": 70,
+     "kind": "sub",
+     "category": "A",
+     "start": 1244,
+     "end": 1258,
+     "title": "print(\"  [실전: current_reuse_telescopic_ota.topology.json 전체 재검증]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s070_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 48,
+     "number": 71,
+     "kind": "sub",
+     "category": "A",
+     "start": 1259,
+     "end": 1300,
+     "title": "print(\"  [linked_topology_files -- 회로가 여러 파일로 쪼개져도 항상 전체를 합쳐서 보는지]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_os21",
+       "number": 70
+      },
+      {
+       "name": "t",
+       "number": 58
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s071_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 49,
+     "number": 72,
+     "kind": "major",
+     "category": "A",
+     "start": 1301,
+     "end": 1349,
+     "title": "print(\"=== Test 22: audit_row_split() — Euler/box-shape만으론 못 잡는 matching 회귀 실측 ===\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s072_audit_row_split"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 50,
+     "number": 75,
+     "kind": "sub",
+     "category": "A",
+     "start": 1350,
+     "end": 1394,
+     "title": "print(\"  [kind-aware 재판정 -- two_stage_ota_example() top(M3/M4=2f+2f) + M6(8f)] 사용자의\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s075_two_stage_ota_example"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 51,
+     "number": 78,
+     "kind": "sub",
+     "category": "A",
+     "start": 1396,
+     "end": 1415,
+     "title": "print(\"  [1차: M5/M6 통째로 한 컬럼씩(solo)] -- 전수 탐색으로 interdigitation(3b)이 그래프상\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "a34_r0b",
+       "number": 75
+      },
+      {
+       "name": "a34_r1b",
+       "number": 75
+      },
+      {
+       "name": "b34_r0b",
+       "number": 75
+      },
+      {
+       "name": "b34_r1b",
+       "number": 75
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s078_interdigitation"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 52,
+     "number": 79,
+     "kind": "sub",
+     "category": "A",
+     "start": 1416,
+     "end": 1458,
+     "title": "print(\"  [사용자 재지적: \\\"differential pair처럼 stack 분리+finger 조절로 common-centroid를\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "a34_r0b",
+       "number": 75
+      },
+      {
+       "name": "a34_r1b",
+       "number": 75
+      },
+      {
+       "name": "b34_r0b",
+       "number": 75
+      },
+      {
+       "name": "b34_r1b",
+       "number": 75
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s079_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 53,
+     "number": 83,
+     "kind": "major",
+     "category": "A",
+     "start": 1461,
+     "end": 1484,
+     "title": "print(\"=== Test 25: check_stick_diagram_coverage() — sizing은 됐는데 layout이 통째로 빠짐 방지 ===\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s083_check_stick_diagram_coverage"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 54,
+     "number": 84,
+     "kind": "sub",
+     "category": "A",
+     "start": 1485,
+     "end": 1497,
+     "title": "print(\"  [대조: 전부 커버되면 OK로 통과하는지 확인]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "sized",
+       "number": 83
+      },
+      {
+       "name": "stick_rows_actual",
+       "number": 83
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s084_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 55,
+     "number": 86,
+     "kind": "sub",
+     "category": "A",
+     "start": 1499,
+     "end": 1531,
+     "title": "print(\"  [folded_cascode: n_fingers/finger_w/w/stack_id 산출물만 folded_cascode_example()에서\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_lib_dir",
+       "number": 84
+      },
+      {
+       "name": "_os",
+       "number": 84
+      },
+      {
+       "name": "t",
+       "number": 71
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s086_folded_cascode_example"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 56,
+     "number": 88,
+     "kind": "sub",
+     "category": "A",
+     "start": 1533,
+     "end": 1562,
+     "title": "print(\"  [save_instance_json(): pipeline_result를 손대지 않고 그대로 파일에 옮기는지]\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_fc_result",
+       "number": 86
+      },
+      {
+       "name": "_lib_dir",
+       "number": 84
+      },
+      {
+       "name": "_os",
+       "number": 84
+      },
+      {
+       "name": "_ts_diff_ok",
+       "number": 86
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s088_save_instance_json"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 1,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 57,
+     "number": 89,
+     "kind": "major",
+     "category": "A",
+     "start": 1563,
+     "end": 1579,
+     "title": "print(\"=== Test 26.5: run_topology_pipeline() -- sizing_overrides에서 소자 하나를\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_fc_original",
+       "number": 86
+      },
+      {
+       "name": "_lib_dir",
+       "number": 84
+      },
+      {
+       "name": "_os",
+       "number": 84
+      },
+      {
+       "name": "t",
+       "number": 86
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s089_run_topology_pipeline"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 58,
+     "number": 90,
+     "kind": "major",
+     "category": "A",
+     "start": 1580,
+     "end": 1600,
+     "title": "print(\"=== Test 26.55: run_topology_pipeline() -- check_finger_width_compatibility()가\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_fc_overrides",
+       "number": 86
+      },
+      {
+       "name": "_lib_dir",
+       "number": 84
+      },
+      {
+       "name": "_os",
+       "number": 84
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s090_run_topology_pipeline"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 59,
+     "number": 91,
+     "kind": "major",
+     "category": "D",
+     "start": 1601,
+     "end": 1606,
+     "title": "print(\"=== Test 26.6: run_topology_pipeline() -- cell_groups 인자 (배치 7-2/2026-07-31) ===\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 92
+    },
+    {
+     "head_index": 60,
+     "number": 92,
+     "kind": "sub",
+     "category": "A",
+     "start": 1607,
+     "end": 1611,
+     "title": "print(\"  [(a) cell_groups/spine_groups 둘 다 None -- 기존 단일-Verdict 동작 그대로]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_result",
+       "number": 86
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s092_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 61,
+     "number": 93,
+     "kind": "sub",
+     "category": "A",
+     "start": 1612,
+     "end": 1621,
+     "title": "print(\"  [(b) cell_groups 생략, floorplan_hints.spine_groups만 제공 -- fallback으로 그대로 재사용]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_overrides",
+       "number": 86
+      },
+      {
+       "name": "_lib_dir",
+       "number": 84
+      },
+      {
+       "name": "_os",
+       "number": 84
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s093_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 62,
+     "number": 94,
+     "kind": "sub",
+     "category": "A",
+     "start": 1622,
+     "end": 1634,
+     "title": "print(\"  [(c) cell_groups를 명시하면 spine_groups와 달라도 cell_groups가 우선(오버라이드)]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_overrides",
+       "number": 86
+      },
+      {
+       "name": "_fc_result",
+       "number": 86
+      },
+      {
+       "name": "_lib_dir",
+       "number": 84
+      },
+      {
+       "name": "_os",
+       "number": 84
+      },
+      {
+       "name": "_spine_only_hints",
+       "number": 93
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s094_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 63,
+     "number": 95,
+     "kind": "major",
+     "category": "D",
+     "start": 1635,
+     "end": 1638,
+     "title": "print(\"=== Test 27: propagate_topology_forced_currents() / find_diode_stacks() \"\n          \"(A/C엔진, §7.3.2, 배치 7-3/2026-07-31) ===\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 96
+    },
+    {
+     "head_index": 64,
+     "number": 96,
+     "kind": "sub",
+     "category": "A",
+     "start": 1639,
+     "end": 1646,
+     "title": "print(\"  [A엔진 (a) 직렬 스택 전파 -- folded_cascode 'bot' 스택 한 소자만 seed]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_original",
+       "number": 86
+      },
+      {
+       "name": "n",
+       "number": 64
+      },
+      {
+       "name": "t",
+       "number": 89
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s096_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 65,
+     "number": 97,
+     "kind": "sub",
+     "category": "A",
+     "start": 1647,
+     "end": 1651,
+     "title": "print(\"  [A엔진 (b) 미러비 전파 -- ref(M9)->mirror(MN) 1:1 미러 가정]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_original",
+       "number": 86
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s097_ref"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 66,
+     "number": 98,
+     "kind": "sub",
+     "category": "A",
+     "start": 1652,
+     "end": 1659,
+     "title": "print(\"  [A엔진 (c) 같은 직렬 스택에 서로 다른 seed 전류가 섞이면 즉시 ValueError]\")",
+     "asserts": 0,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_fc_original",
+       "number": 86
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s098_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 67,
+     "number": 99,
+     "kind": "sub",
+     "category": "A",
+     "start": 1660,
+     "end": 1670,
+     "title": "print(\"  [C엔진 find_diode_stacks() (a) folded_cascode -- M11/MN이 실제로 self-diode임을 검출]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_original",
+       "number": 86
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s099_find_diode_stacks"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 68,
+     "number": 100,
+     "kind": "sub",
+     "category": "A",
+     "start": 1671,
+     "end": 1691,
+     "title": "print(\"  [C엔진 find_diode_stacks() (b) 실제 회로(current_reuse_telescopic_ota.topology.json)의\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_lib_dir",
+       "number": 84
+      },
+      {
+       "name": "_os",
+       "number": 84
+      },
+      {
+       "name": "m",
+       "number": 99
+      },
+      {
+       "name": "n",
+       "number": 96
+      },
+      {
+       "name": "t",
+       "number": 96
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s100_find_diode_stacks"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 69,
+     "number": 101,
+     "kind": "major",
+     "category": "D",
+     "start": 1692,
+     "end": 1694,
+     "title": "print(\"=== Test 28: select_layout_tool()/repair_matching_safety() (배치 7-4/7-4b, 2026-07-31) ===\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 102
+    },
+    {
+     "head_index": 70,
+     "number": 102,
+     "kind": "sub",
+     "category": "A",
+     "start": 1695,
+     "end": 1707,
+     "title": "print(\"  [select_layout_tool() -- 2026-08-05(세션10) L1 하드컷: 축B/축C 조합별 도구 선택\")",
+     "asserts": 4,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s102_select_layout_tool"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 1,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 71,
+     "number": 103,
+     "kind": "sub",
+     "category": "A",
+     "start": 1708,
+     "end": 1746,
+     "title": "print(\"  [repair_matching_safety() -- known-incidents.md 사고3 재현: folded_cascode.topology.json의\")",
+     "asserts": 2,
+     "raise_assertion": true,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_loaded",
+       "number": 86
+      },
+      {
+       "name": "_fc_meta",
+       "number": 86
+      },
+      {
+       "name": "c",
+       "number": 61
+      },
+      {
+       "name": "t",
+       "number": 100
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s103_repair_matching_safety"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 72,
+     "number": 104,
+     "kind": "sub",
+     "category": "A",
+     "start": 1747,
+     "end": 1762,
+     "title": "print(\"  [repair_matching_safety() -- 공유 hub가 없는 pair(같은 파일에서 발견한 진짜\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_by_name",
+       "number": 103
+      },
+      {
+       "name": "_fc_pairs_meta",
+       "number": 103
+      },
+      {
+       "name": "_first_pair_matching",
+       "number": 103
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s104_repair_matching_safety"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 73,
+     "number": 105,
+     "kind": "sub",
+     "category": "A",
+     "start": 1763,
+     "end": 1792,
+     "title": "print(\"  [repair_matching_safety() -- 세션16 branch 복합 매칭: current_reuse_telescopic_ota.\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "n",
+       "number": 100
+      },
+      {
+       "name": "names",
+       "number": 63
+      },
+      {
+       "name": "rn",
+       "number": 61
+      },
+      {
+       "name": "t",
+       "number": 103
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s105_repair_matching_safety"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 74,
+     "number": 106,
+     "kind": "sub",
+     "category": "A",
+     "start": 1794,
+     "end": 1800,
+     "title": "print(\"  [_branch_composite_pair() -- branch 구조가 없는(2단자 net으로 안 이어진) 단독 소자\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_branch_a",
+       "number": 104
+      },
+      {
+       "name": "_branch_b",
+       "number": 104
+      },
+      {
+       "name": "_norepair_pairs",
+       "number": 104
+      },
+      {
+       "name": "_t_branch_a",
+       "number": 104
+      },
+      {
+       "name": "_t_branch_b",
+       "number": 104
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s106__branch_composite_pair"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 75,
+     "number": 107,
+     "kind": "sub",
+     "category": "A",
+     "start": 1801,
+     "end": 1835,
+     "title": "print(\"  [세션17 _composite_collapse_for_crossover()/find_min_crossover_layout_with_\")",
+     "asserts": 8,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_m6b_pairs",
+       "number": 105
+      },
+      {
+       "name": "_m6b_row",
+       "number": 105
+      },
+      {
+       "name": "s",
+       "number": 51
+      },
+      {
+       "name": "t",
+       "number": 105
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s107__composite_collapse_for_crossover"
+     ],
+     "judgements_outside_reject_try": 8,
+     "reject_try_ast": 0,
+     "m2_min": 8,
+     "guarded_only": false
+    },
+    {
+     "head_index": 76,
+     "number": 108,
+     "kind": "sub",
+     "category": "A",
+     "start": 1837,
+     "end": 1846,
+     "title": "print(\"  [회귀 -- branch 구조 없는 그룹(위 rowA/rowB 픽스처)은 _composite_collapse_for_\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_branch_a",
+       "number": 104
+      },
+      {
+       "name": "_branch_b",
+       "number": 104
+      },
+      {
+       "name": "_norepair_pairs",
+       "number": 104
+      },
+      {
+       "name": "_norepair_sensitivity",
+       "number": 104
+      },
+      {
+       "name": "_t_branch_a",
+       "number": 104
+      },
+      {
+       "name": "_t_branch_b",
+       "number": 104
+      },
+      {
+       "name": "t",
+       "number": 107
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s108_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 77,
+     "number": 109,
+     "kind": "sub",
+     "category": "A",
+     "start": 1847,
+     "end": 1870,
+     "title": "print(\"  [repair_matching_safety() -- 세션17 relaxed_pairs: 최후수단 인접배치 완화가\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_branch_a",
+       "number": 104
+      },
+      {
+       "name": "_branch_b",
+       "number": 104
+      },
+      {
+       "name": "_m6b_pairs",
+       "number": 105
+      },
+      {
+       "name": "_m6b_row",
+       "number": 105
+      },
+      {
+       "name": "_m6b_sensitivity",
+       "number": 105
+      },
+      {
+       "name": "_norepair_pairs",
+       "number": 104
+      },
+      {
+       "name": "_norepair_rows",
+       "number": 104
+      },
+      {
+       "name": "_norepair_sensitivity",
+       "number": 104
+      },
+      {
+       "name": "c",
+       "number": 103
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s109_repair_matching_safety"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 78,
+     "number": 110,
+     "kind": "major",
+     "category": "D",
+     "start": 1871,
+     "end": 1876,
+     "title": "print(\"=== Test 29: derive_stack_groups()/assign_finger_geometry() (배치 7-6, 2026-07-31) ===\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 111
+    },
+    {
+     "head_index": 79,
+     "number": 111,
+     "kind": "sub",
+     "category": "A",
+     "start": 1877,
+     "end": 1914,
+     "title": "print(\"  [geometry_colocation_union() -- 2026-08-05(세션10) L1/L2 하드컷: derive_stack_groups()가\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_loaded",
+       "number": 86
+      },
+      {
+       "name": "_fc_pairs_meta",
+       "number": 103
+      },
+      {
+       "name": "members",
+       "number": 64
+      },
+      {
+       "name": "n",
+       "number": 105
+      },
+      {
+       "name": "p",
+       "number": 103
+      },
+      {
+       "name": "t",
+       "number": 108
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s111_geometry_colocation_union"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 80,
+     "number": 112,
+     "kind": "sub",
+     "category": "A",
+     "start": 1915,
+     "end": 1919,
+     "title": "print(\"  [geometry_colocation_union() -- 재현성: 같은 입력 다시 넣으면 완전히 같은 그룹]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_forced_pairs",
+       "number": 111
+      },
+      {
+       "name": "_fc_groups",
+       "number": 111
+      },
+      {
+       "name": "_fc_loaded",
+       "number": 86
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s112_geometry_colocation_union"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 81,
+     "number": 113,
+     "kind": "sub",
+     "category": "A",
+     "start": 1920,
+     "end": 1957,
+     "title": "print(\"  [assign_finger_geometry() -- 위 그룹 + 합성 sizing_results(가상 gm/ID 결과, \")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_groups",
+       "number": 111
+      },
+      {
+       "name": "members",
+       "number": 111
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s113_assign_finger_geometry"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 82,
+     "number": 114,
+     "kind": "major",
+     "category": "D",
+     "start": 1958,
+     "end": 1962,
+     "title": "print(\"=== Test 30: analog-grammar 연동(Tier 1) — find_idiom_matches()/find_matching_\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 115
+    },
+    {
+     "head_index": 83,
+     "number": 115,
+     "kind": "sub",
+     "category": "A",
+     "start": 1963,
+     "end": 1968,
+     "title": "print(\"  [0. analog-grammar 사용 가능 확인 -- 없으면 이 Test 전체가 무의미하니 먼저 확인]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s115_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 84,
+     "number": 116,
+     "kind": "sub",
+     "category": "A",
+     "start": 1969,
+     "end": 1974,
+     "title": "print(\"  [1. 하위호환 -- idiom_matches=None(기본값)이면 Test 6과 완전히 동일한 net-only 동작]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "found",
+       "number": 7
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s116_None"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 85,
+     "number": 117,
+     "kind": "sub",
+     "category": "A",
+     "start": 1975,
+     "end": 1998,
+     "title": "print(\"  [2. M57/M58 오탐 재현 -- 세션18 실사고 connectivity(2026-07-29 disposed -> 2026-08-03\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "g",
+       "number": 58
+      },
+      {
+       "name": "s",
+       "number": 107
+      },
+      {
+       "name": "t",
+       "number": 111
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s117_connectivity"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 86,
+     "number": 118,
+     "kind": "sub",
+     "category": "A",
+     "start": 1999,
+     "end": 2017,
+     "title": "print(\"  [3. M11/MN 오탐 재현 -- folded_cascode_example(), 둘 다 self-diode(role=DIODE_CONNECTED)\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "g",
+       "number": 117
+      },
+      {
+       "name": "s",
+       "number": 117
+      },
+      {
+       "name": "t",
+       "number": 117
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s118_folded_cascode_example"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 87,
+     "number": 119,
+     "kind": "sub",
+     "category": "A",
+     "start": 2018,
+     "end": 2033,
+     "title": "print(\"  [4. 캐스코드 대칭쌍(M2a/M2b류) 복합소자 상속 -- folded_cascode의 M1/M2(확정 diff_pair)\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_fc_new",
+       "number": 118
+      },
+      {
+       "name": "g",
+       "number": 118
+      },
+      {
+       "name": "t",
+       "number": 118
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s119_M2"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 88,
+     "number": 120,
+     "kind": "sub",
+     "category": "A",
+     "start": 2034,
+     "end": 2057,
+     "title": "print(\"  [5. 어댑터 자체 폴백 -- gate가 전혀 없는(레거시) Transistor 목록을 주면\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s120_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 89,
+     "number": 122,
+     "kind": "sub",
+     "category": "A",
+     "start": 2059,
+     "end": 2074,
+     "title": "print(\"  [1. 실제 회로(51개 소자)로 자동 구성 -- ok=True, 세 체크 전부 자동 데이터로 통과하는지]\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_crt_path",
+       "number": 120
+      },
+      {
+       "name": "c",
+       "number": 109
+      },
+      {
+       "name": "v",
+       "number": 79
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s122_section"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 90,
+     "number": 123,
+     "kind": "sub",
+     "category": "A",
+     "start": 2075,
+     "end": 2089,
+     "title": "print(\"  [2. dispositions 변환 -- symmetry.dispositions(list)와 개수가 일치하고, 형식이 (category,\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_crt_meta",
+       "number": 122
+      },
+      {
+       "name": "d",
+       "number": 70
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s123_dispositions"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 91,
+     "number": 124,
+     "kind": "sub",
+     "category": "A",
+     "start": 2090,
+     "end": 2098,
+     "title": "print(\"  [3. 구조화 필드가 없는 회로(folded_cascode) -- ValueError로 명확히 실패하는지,\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_lib_dir31",
+       "number": 120
+      },
+      {
+       "name": "_os31",
+       "number": 120
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s124_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 92,
+     "number": 125,
+     "kind": "sub",
+     "category": "A",
+     "start": 2099,
+     "end": 2130,
+     "title": "print(\"  [4. 구조화가 netlist 전수를 못 커버하면(소자 하나가 어느 블록에도 없음) ValueError --\")",
+     "asserts": 1,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_os31",
+       "number": 120
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s125_section"
+     ],
+     "judgements_outside_reject_try": 0,
+     "reject_try_ast": 1,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 93,
+     "number": 126,
+     "kind": "major",
+     "category": "A",
+     "start": 2131,
+     "end": 2170,
+     "title": "print(\"=== Test 32: trace_vdd_to_gnd_branches() -- 세션23 실측(4가지 vertical_stack_id\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "b",
+       "number": 65
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s126_trace_vdd_to_gnd_branches"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 94,
+     "number": 127,
+     "kind": "major",
+     "category": "A",
+     "start": 2171,
+     "end": 2199,
+     "title": "print(\"=== Test 33: suggest_vertical_stack_composites() -- branch tracing(Test 32) +\")",
+     "asserts": 8,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s127_suggest_vertical_stack_composites"
+     ],
+     "judgements_outside_reject_try": 8,
+     "reject_try_ast": 0,
+     "m2_min": 8,
+     "guarded_only": false
+    },
+    {
+     "head_index": 95,
+     "number": 128,
+     "kind": "major",
+     "category": "A",
+     "start": 2200,
+     "end": 2244,
+     "title": "print(\"=== Test 35: trace_gnd_to_vdd_branches()/find_differential_and_mirror_forks() --\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "b",
+       "number": 126
+      },
+      {
+       "name": "f",
+       "number": 71
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s128_trace_gnd_to_vdd_branches"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 96,
+     "number": 129,
+     "kind": "major",
+     "category": "A",
+     "start": 2245,
+     "end": 2266,
+     "title": "print(\"=== Test 36: find_verified_differential_and_mirror_relations() -- 진짜 branch\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      },
+      {
+       "name": "r",
+       "number": 60
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s129_find_verified_differential_and_mirror_relations"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 97,
+     "number": 130,
+     "kind": "major",
+     "category": "A",
+     "start": 2267,
+     "end": 2284,
+     "title": "print(\"=== Test 37: find_differential_pair_candidates() -- inputs= 선언 없이 순수\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      },
+      {
+       "name": "c",
+       "number": 122
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s130_find_differential_pair_candidates"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 98,
+     "number": 131,
+     "kind": "major",
+     "category": "A",
+     "start": 2285,
+     "end": 2332,
+     "title": "print(\"=== Test 38: refine_differential_and_mirror_relations() -- input 승격\")",
+     "asserts": 11,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "c",
+       "number": 130
+      },
+      {
+       "name": "r",
+       "number": 129
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s131_refine_differential_and_mirror_relations"
+     ],
+     "judgements_outside_reject_try": 11,
+     "reject_try_ast": 0,
+     "m2_min": 11,
+     "guarded_only": false
+    },
+    {
+     "head_index": 99,
+     "number": 132,
+     "kind": "major",
+     "category": "A",
+     "start": 2333,
+     "end": 2361,
+     "title": "print(\"=== Test 39: find_verified_differential_and_mirror_relations() -- 세 번째 버킷\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      },
+      {
+       "name": "r",
+       "number": 131
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s132_find_verified_differential_and_mirror_relations"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 100,
+     "number": 133,
+     "kind": "major",
+     "category": "A",
+     "start": 2362,
+     "end": 2388,
+     "title": "print(\"=== Test 40: refine_differential_and_mirror_relations()의\")",
+     "asserts": 9,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      },
+      {
+       "name": "t",
+       "number": 119
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s133_refine_differential_and_mirror_relations"
+     ],
+     "judgements_outside_reject_try": 9,
+     "reject_try_ast": 0,
+     "m2_min": 9,
+     "guarded_only": false
+    },
+    {
+     "head_index": 101,
+     "number": 134,
+     "kind": "major",
+     "category": "A",
+     "start": 2389,
+     "end": 2414,
+     "title": "print(\"=== Test 41: _propose_vertical_stack_ids()의 fan-in 모호성 탐지 --\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s134__propose_vertical_stack_ids"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 102,
+     "number": 135,
+     "kind": "major",
+     "category": "A",
+     "start": 2415,
+     "end": 2435,
+     "title": "print(\"=== Test 42: fan-in 후보 중 differential-pair branch 소속 여부로 재판정 --\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s135_section"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 103,
+     "number": 136,
+     "kind": "major",
+     "category": "A",
+     "start": 2436,
+     "end": 2458,
+     "title": "print(\"=== Test 43: refine_differential_and_mirror_relations()의\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      },
+      {
+       "name": "n",
+       "number": 111
+      },
+      {
+       "name": "t",
+       "number": 133
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s136_refine_differential_and_mirror_relations"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 104,
+     "number": 137,
+     "kind": "major",
+     "category": "A",
+     "start": 2459,
+     "end": 2476,
+     "title": "print(\"=== Test 44: suggest_vertical_stack_composites()가 idioms.Match.ports를\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s137_suggest_vertical_stack_composites"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 105,
+     "number": 138,
+     "kind": "major",
+     "category": "A",
+     "start": 2477,
+     "end": 2529,
+     "title": "print(\"=== Test 45: refine_differential_and_mirror_relations()의\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      },
+      {
+       "name": "t",
+       "number": 136
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s138_refine_differential_and_mirror_relations"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 106,
+     "number": 139,
+     "kind": "major",
+     "category": "A",
+     "start": 2530,
+     "end": 2557,
+     "title": "print(\"=== Test 46: find_verified_differential_and_mirror_relations()의\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t35_fixture",
+       "number": 128
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s139_find_verified_differential_and_mirror_relations"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 107,
+     "number": 140,
+     "kind": "major",
+     "category": "A",
+     "start": 2558,
+     "end": 2602,
+     "title": "print(\"=== Test 47: audit_vertical_stack_id_vs_kcl() -- declared vertical_stack_id와\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "f",
+       "number": 128
+      },
+      {
+       "name": "k",
+       "number": 64
+      },
+      {
+       "name": "p",
+       "number": 111
+      },
+      {
+       "name": "v",
+       "number": 122
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s140_audit_vertical_stack_id_vs_kcl"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 108,
+     "number": 141,
+     "kind": "major",
+     "category": "A",
+     "start": 2603,
+     "end": 2648,
+     "title": "print(\"=== Test 48: merge_layout_groups_by_matching_pairs() -- vertical_stack_id 기반\")",
+     "asserts": 7,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "m",
+       "number": 100
+      },
+      {
+       "name": "members",
+       "number": 113
+      },
+      {
+       "name": "p",
+       "number": 140
+      },
+      {
+       "name": "t",
+       "number": 138
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s141_merge_layout_groups_by_matching_pairs"
+     ],
+     "judgements_outside_reject_try": 7,
+     "reject_try_ast": 0,
+     "m2_min": 7,
+     "guarded_only": false
+    },
+    {
+     "head_index": 109,
+     "number": 142,
+     "kind": "sub",
+     "category": "A",
+     "start": 2649,
+     "end": 2663,
+     "title": "print(\"  [current_forced=False까지 전부 넘기면(세션9/10 dx 악화 반례 재현 의도)\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t48_candidates",
+       "number": 141
+      },
+      {
+       "name": "_t48_pairs_meta",
+       "number": 141
+      },
+      {
+       "name": "_t48_trs",
+       "number": 141
+      },
+      {
+       "name": "members",
+       "number": 141
+      },
+      {
+       "name": "p",
+       "number": 141
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s142_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 110,
+     "number": 143,
+     "kind": "sub",
+     "category": "A",
+     "start": 2664,
+     "end": 2681,
+     "title": "print(\"  [current_forced=False라도 실제로 물리적으로 이어진(오일러 실현 가능한) 쌍이면\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "v",
+       "number": 140
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s143_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 111,
+     "number": 144,
+     "kind": "major",
+     "category": "A",
+     "start": 2682,
+     "end": 2743,
+     "title": "print(\"=== Test 49: audit_vertical_stack_id_euler_feasibility() -- declared\")",
+     "asserts": 10,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "f",
+       "number": 140
+      },
+      {
+       "name": "k",
+       "number": 140
+      },
+      {
+       "name": "p",
+       "number": 142
+      },
+      {
+       "name": "v",
+       "number": 143
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s144_audit_vertical_stack_id_euler_feasibility"
+     ],
+     "judgements_outside_reject_try": 10,
+     "reject_try_ast": 0,
+     "m2_min": 10,
+     "guarded_only": false
+    },
+    {
+     "head_index": 112,
+     "number": 145,
+     "kind": "sub",
+     "category": "A",
+     "start": 2744,
+     "end": 2764,
+     "title": "print(\"  [합성 fixture -- 완전히 무관한(공유 net 없는) 두 소자를 한 declared 그룹으로\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s145_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 113,
+     "number": 146,
+     "kind": "major",
+     "category": "A",
+     "start": 2765,
+     "end": 2785,
+     "title": "print(\"=== Test 50: find_euler_repair_options() -- unresolved_row를 resolved로\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_forced",
+       "number": 144
+      },
+      {
+       "name": "_t49_trs",
+       "number": 144
+      },
+      {
+       "name": "t",
+       "number": 141
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s146_find_euler_repair_options"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 114,
+     "number": 147,
+     "kind": "sub",
+     "category": "A",
+     "start": 2786,
+     "end": 2805,
+     "title": "print(\"  [합성 fixture -- 같은 행 안에서는 절대 안 풀리는(서로 완전히 끊긴) blocked 그룹을\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "c",
+       "number": 137
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s147_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 115,
+     "number": 148,
+     "kind": "major",
+     "category": "A",
+     "start": 2806,
+     "end": 2839,
+     "title": "print(\"=== Test 51: derive_horizontal_stack_groups() -- vertical_stack_id 그룹(전기적\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_device_roles",
+       "number": 144
+      },
+      {
+       "name": "_t49_forced",
+       "number": 144
+      },
+      {
+       "name": "_t49_trs",
+       "number": 144
+      },
+      {
+       "name": "k",
+       "number": 144
+      },
+      {
+       "name": "m",
+       "number": 141
+      },
+      {
+       "name": "members",
+       "number": 142
+      },
+      {
+       "name": "t",
+       "number": 146
+      },
+      {
+       "name": "v",
+       "number": 144
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s148_derive_horizontal_stack_groups"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 116,
+     "number": 149,
+     "kind": "sub",
+     "category": "A",
+     "start": 2840,
+     "end": 2853,
+     "title": "print(\"  [합성 fixture -- 매칭 파트너가 없는 순수 mixed-kind vsid 하나가 kind로만\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s149_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 117,
+     "number": 150,
+     "kind": "major",
+     "category": "D",
+     "start": 2854,
+     "end": 2857,
+     "title": "print(\"=== Test 52: propose_vertical_stack_id_gap_fill() -- audit_vertical_stack_id_\")",
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "docstring_of",
+     "docstring_of": 151
+    },
+    {
+     "head_index": 118,
+     "number": 151,
+     "kind": "sub",
+     "category": "A",
+     "start": 2858,
+     "end": 2876,
+     "title": "print(\"  [합성 fixture -- internal_series gap은 채우고 declared_matching_pair gap은\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s151_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 119,
+     "number": 152,
+     "kind": "sub",
+     "category": "A",
+     "start": 2877,
+     "end": 2891,
+     "title": "print(\"  [합성 fixture -- 같은 소자가 서로 다른 edge에서 서로 다른 vsid를 물려받게\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s152_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 120,
+     "number": 153,
+     "kind": "sub",
+     "category": "A",
+     "start": 2892,
+     "end": 2921,
+     "title": "print(\"  [실제 회로 -- two_stage_ota.topology.json 원본(device_roles에 M1/M2/M6\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "d",
+       "number": 123
+      },
+      {
+       "name": "k",
+       "number": 148
+      },
+      {
+       "name": "p",
+       "number": 144
+      },
+      {
+       "name": "v",
+       "number": 148
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s153_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 121,
+     "number": 154,
+     "kind": "sub",
+     "category": "A",
+     "start": 2922,
+     "end": 2944,
+     "title": "print(\"  [load_topology() 배선 -- 위 제안이 실제로 harness 최상위 진입점에서\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "f",
+       "number": 144
+      },
+      {
+       "name": "k",
+       "number": 153
+      },
+      {
+       "name": "p",
+       "number": 153
+      },
+      {
+       "name": "v",
+       "number": 153
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s154_load_topology"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 122,
+     "number": 155,
+     "kind": "major",
+     "category": "A",
+     "start": 2945,
+     "end": 2976,
+     "title": "print(\"=== Test 53: propose_device_roles_gap_fill() -- netlist(+load_topology())만으로\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "itertools",
+       "number": 58
+      },
+      {
+       "name": "k",
+       "number": 154
+      },
+      {
+       "name": "p",
+       "number": 154
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s155_propose_device_roles_gap_fill"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 123,
+     "number": 156,
+     "kind": "sub",
+     "category": "A",
+     "start": 2977,
+     "end": 2995,
+     "title": "print(\"  [compensation_stage_devices를 넘겨도 M1a/M4a/M15/M25 등 8개 소자에 gm_id_role이\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t53_meta",
+       "number": 155
+      },
+      {
+       "name": "_t53_trs",
+       "number": 155
+      },
+      {
+       "name": "n",
+       "number": 136
+      },
+      {
+       "name": "r",
+       "number": 132
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s156_section"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 124,
+     "number": 157,
+     "kind": "sub",
+     "category": "A",
+     "start": 2996,
+     "end": 3065,
+     "title": "print(\"  [실제로 M1(compensation.stage_devices 소속)에 gm_id_role을 채운 topology.json으로\")",
+     "asserts": 3,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s157_M1",
+      "test_s157_M1_known_limitation"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 1,
+     "m2_min": 3,
+     "guarded_only": true,
+     "known_limitation": "I-C11"
+    },
+    {
+     "head_index": 125,
+     "number": 158,
+     "kind": "major",
+     "category": "A",
+     "start": 3066,
+     "end": 3090,
+     "title": "print(\"=== Test 54: propose_device_roles_gap_fill() -- 층위1 폴백(비대칭/폴딩 구조라\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "p",
+       "number": 155
+      },
+      {
+       "name": "u",
+       "number": 67
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s158_propose_device_roles_gap_fill"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 126,
+     "number": 159,
+     "kind": "major",
+     "category": "A",
+     "start": 3091,
+     "end": 3133,
+     "title": "print(\"=== Test 55: apply_device_roles_gap_fill() -- 실제 파일 읽기/병합/쓰기 왕복 +\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "p",
+       "number": 158
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s159_apply_device_roles_gap_fill"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 127,
+     "number": 160,
+     "kind": "major",
+     "category": "A",
+     "start": 3134,
+     "end": 3186,
+     "title": "print(\"=== Test 56: propose_device_roles_gap_fill()/apply_device_roles_gap_fill() --\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "_t55_tempfile",
+       "number": 159
+      },
+      {
+       "name": "r",
+       "number": 158
+      },
+      {
+       "name": "t",
+       "number": 148
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s160_propose_device_roles_gap_fill"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 128,
+     "number": 161,
+     "kind": "major",
+     "category": "A",
+     "start": 3187,
+     "end": 3213,
+     "title": "print(\"=== Test 57: find_authoritative_sizing_devices()/find_unreviewed_device_roles()/\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s161_find_authoritative_sizing_devices"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    },
+    {
+     "head_index": 129,
+     "number": 162,
+     "kind": "sub",
+     "category": "A",
+     "start": 3214,
+     "end": 3246,
+     "title": "print(\"  [합성 fixture -- 일반 소자(authoritative 아님)의 gm_id_role/L_role이 파일에\")",
+     "asserts": 3,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "_t55_tempfile",
+       "number": 159
+      },
+      {
+       "name": "_t57_raw",
+       "number": 161
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s162_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 1,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 130,
+     "number": 163,
+     "kind": "major",
+     "category": "A",
+     "start": 3247,
+     "end": 3290,
+     "title": "print(\"=== Test 58: find_unreviewed_matching_pairs() -- matching_pairs도 review 게이트\")",
+     "asserts": 4,
+     "raise_assertion": true,
+     "reject_try": 1,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "p",
+       "number": 159
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s163_find_unreviewed_matching_pairs"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 1,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 131,
+     "number": 164,
+     "kind": "sub",
+     "category": "A",
+     "start": 3291,
+     "end": 3300,
+     "title": "print(\"  [differential(offset) 출처는 review 없이도 메모리에 자동 병합되는지 -- M1/M2\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t58_meta",
+       "number": 163
+      },
+      {
+       "name": "p",
+       "number": 163
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s164_differential"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 132,
+     "number": 165,
+     "kind": "major",
+     "category": "A",
+     "start": 3301,
+     "end": 3312,
+     "title": "print(\"=== Test 60: audit_theta_root_direction() -- sizing_roles.theta의 'A'/'A_signed'\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s165_audit_theta_root_direction"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 133,
+     "number": 166,
+     "kind": "sub",
+     "category": "A",
+     "start": 3314,
+     "end": 3330,
+     "title": "print(\"  [세션 초반 실제로 저질렀던 버그(M106을 root로 두고 M108을 그 반대로 참조) 재현 -- \"\n          \"잡히는지]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t60_meta",
+       "number": 165
+      },
+      {
+       "name": "_t60_trs",
+       "number": 165
+      },
+      {
+       "name": "t",
+       "number": 160
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s166_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 134,
+     "number": 167,
+     "kind": "sub",
+     "category": "A",
+     "start": 3332,
+     "end": 3345,
+     "title": "print(\"  [current_reuse_telescopic_ota의 kcl_tail_M38(root=M38 tail, reference=M37a/M37b \"\n          \"CMFB 차동쌍)이 오탐 없는지 -- M37a/M37b는 게이트(Voc/Voc_des)가 FEEDBACK으로 \"\n          \"분류돼 role=CONTROLLED_CURRENT_SOURCE가 되는데, m_diffpair()가 원래 role==AMP만 \"\n          \"인정해 이 CMFB 차동쌍을 못 알아보고 m_cascode()가 'M38 위에 얹힌 캐스코드'로 \"\n          \"오분류하던 걸 실측으로 발견(m_cascode() cross-kind 확장과는 별개 gap) -- \"\n          \"m_diffpair()에 CTRL_SRC도 추가해 정정, feedbacks=('Voc','Voc_des')를 정확히 \"\n          \"선언하면 오탐이 사라지는지 재확인(회귀 감시)]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s167_kcl_tail_M38"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 135,
+     "number": 168,
+     "kind": "sub",
+     "category": "A",
+     "start": 3347,
+     "end": 3360,
+     "title": "print(\"  [나머지 실제 library 회로(folded_cascode/two_stage_ota)도 findings 0건인지 -- \"\n          \"이미 검증된 설계에 오탐이 없어야 함(inputs는 각 회로 실제 net 이름 그대로)]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s168_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 136,
+     "number": 169,
+     "kind": "major",
+     "category": "A",
+     "start": 3361,
+     "end": 3381,
+     "title": "print(\"=== Test 61: propose_theta_kcl_gap_fill() -- 전류(ID) KCL 구조를 connectivity +\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "n",
+       "number": 156
+      },
+      {
+       "name": "t",
+       "number": 166
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s169_propose_theta_kcl_gap_fill"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 137,
+     "number": 170,
+     "kind": "sub",
+     "category": "A",
+     "start": 3383,
+     "end": 3406,
+     "title": "print(\"  [compensation_stage_devices=[M102,M103,M201,M301]을 주면 위 한계가 풀리는지 -- \"\n          \"2026-08-19 세션37 신설]\")",
+     "asserts": 6,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t61_meta",
+       "number": 169
+      },
+      {
+       "name": "_t61_trs",
+       "number": 169
+      },
+      {
+       "name": "grp",
+       "number": 156
+      },
+      {
+       "name": "n",
+       "number": 169
+      },
+      {
+       "name": "t",
+       "number": 169
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s170_section"
+     ],
+     "judgements_outside_reject_try": 6,
+     "reject_try_ast": 0,
+     "m2_min": 6,
+     "guarded_only": false
+    },
+    {
+     "head_index": 138,
+     "number": 171,
+     "kind": "sub",
+     "category": "A",
+     "start": 3408,
+     "end": 3419,
+     "title": "print(\"  [folded_cascode -- 규칙 2.7(gate mirror, MP->M3/M4)가 실제로 필요한지 재확인 \"\n          \"-- 처음엔 이 규칙이 없어서 MP가 회로 나머지와 완전히 단절된 고아 자유변수로 \"\n          \"남았었다(실측 발견)]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "t",
+       "number": 170
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s171_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 139,
+     "number": 172,
+     "kind": "sub",
+     "category": "A",
+     "start": 3421,
+     "end": 3434,
+     "title": "print(\"  [서로 다른 자유 root 그룹(MP측/M9-M10측)이 같은 KCL 노드로 수렴하면 placeholder \"\n          \"값 충돌(0/음수)을 review_needed로 잡아내는지 -- 실측으로 처음 발견한 현상(구조 \"\n          \"결함이 아니라 '이 자유 root들을 서로 조율해야 한다'는 신호), 조용히 넘기지 \"\n          \"않는지 회귀 감시]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t61_fc_result",
+       "number": 171
+      },
+      {
+       "name": "r",
+       "number": 160
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s172_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 140,
+     "number": 173,
+     "kind": "major",
+     "category": "A",
+     "start": 3435,
+     "end": 3478,
+     "title": "print(\"=== Test 62: apply_theta_kcl_gap_fill() -- propose_theta_kcl_gap_fill() 결과를\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_t49_lib",
+       "number": 144
+      },
+      {
+       "name": "_t49_os",
+       "number": 144
+      },
+      {
+       "name": "_t61c_result",
+       "number": 170
+      },
+      {
+       "name": "s",
+       "number": 118
+      },
+      {
+       "name": "t",
+       "number": 171
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s173_apply_theta_kcl_gap_fill"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": false
+    }
+   ]
+  },
+  "design_report": {
+   "c2_sections": 5,
+   "head_sections": 5,
+   "c2_numbers_removed_by_c4": [],
+   "sections": [
+    {
+     "head_index": 0,
+     "number": 0,
+     "kind": "prelude",
+     "category": "P",
+     "start": 11,
+     "end": 22,
+     "title": null,
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "header"
+    },
+    {
+     "head_index": 1,
+     "number": 1,
+     "kind": "major",
+     "category": "A",
+     "start": 24,
+     "end": 34,
+     "title": "print(\"=== Test 1: build_topology_device_table() -- 51개 소자가 matching_pairs로 그룹핑돼\")",
+     "asserts": 3,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_crt_topo",
+       "number": 0
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s001_build_topology_device_table"
+     ],
+     "judgements_outside_reject_try": 3,
+     "reject_try_ast": 0,
+     "m2_min": 3,
+     "guarded_only": false
+    },
+    {
+     "head_index": 2,
+     "number": 2,
+     "kind": "major",
+     "category": "A",
+     "start": 35,
+     "end": 43,
+     "title": "print(\"=== Test 2: assemble_report_data() -- instance.json 없이도(사이징 전) 안 죽는지 ===\")",
+     "asserts": 4,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_crt_topo",
+       "number": 0
+      },
+      {
+       "name": "_rows",
+       "number": 1
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s002_assemble_report_data"
+     ],
+     "judgements_outside_reject_try": 4,
+     "reject_try_ast": 0,
+     "m2_min": 4,
+     "guarded_only": false
+    },
+    {
+     "head_index": 3,
+     "number": 3,
+     "kind": "major",
+     "category": "A",
+     "start": 44,
+     "end": 62,
+     "title": "print(\"=== Test 3: assemble_report_data() -- 실제(과거, partial scope) instance.json +\")",
+     "asserts": 5,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_crt_instance",
+       "number": 0
+      },
+      {
+       "name": "_crt_topo",
+       "number": 0
+      },
+      {
+       "name": "run_full_circuit_audit_from_topology",
+       "number": 0
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s003_assemble_report_data"
+     ],
+     "judgements_outside_reject_try": 5,
+     "reject_try_ast": 0,
+     "m2_min": 5,
+     "guarded_only": true
+    },
+    {
+     "head_index": 4,
+     "number": 4,
+     "kind": "major",
+     "category": "A",
+     "start": 63,
+     "end": 65,
+     "title": "print(\"=== Test 4: 빈 report({}) -- 아무 섹션도 없어도 크래시 없이 최소 HTML만 생성 ===\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s004_report"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    }
+   ]
+  },
+  "topology_library": {
+   "c2_sections": 16,
+   "head_sections": 11,
+   "c2_numbers_removed_by_c4": [
+    1,
+    3,
+    5,
+    9,
+    10
+   ],
+   "sections": [
+    {
+     "head_index": 0,
+     "number": 0,
+     "kind": "prelude",
+     "category": "P",
+     "start": 11,
+     "end": 15,
+     "title": null,
+     "asserts": 0,
+     "raise_assertion": false,
+     "reject_try": 1,
+     "deps": [],
+     "target": "header"
+    },
+    {
+     "head_index": 1,
+     "number": 2,
+     "kind": "major",
+     "category": "A",
+     "start": 18,
+     "end": 28,
+     "title": "print(\"# NMCNR 3단 (GBW=5MHz, CL=10pF, PM_target=70deg, kg=0.5)\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s002_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 2,
+     "number": 4,
+     "kind": "major",
+     "category": "A",
+     "start": 31,
+     "end": 71,
+     "title": "print(\"# nmcnr_predict_ac_response() 독립 재유도 회귀 검증(2026-08-19 세션37 연속) —\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s004_nmcnr_predict_ac_response"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 3,
+     "number": 6,
+     "kind": "sub",
+     "category": "A",
+     "start": 72,
+     "end": 78,
+     "title": "print(f\"  [nmcnr_amplifier 실제 스펙: GBW=816kHz/CL=1e-10F/PM_target=70도/kg=0.5]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_diag_bad",
+       "number": 4
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s006_section"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 4,
+     "number": 7,
+     "kind": "sub",
+     "category": "A",
+     "start": 80,
+     "end": 90,
+     "title": "print(\"  [GBW/CL/kg 불변성 -- gbw_ratio/pm_diff가 PM_target_deg에만 의존하고 GBW/CL/kg와는\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "_diag_bad",
+       "number": 4
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s007_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 5,
+     "number": 8,
+     "kind": "sub",
+     "category": "A",
+     "start": 92,
+     "end": 102,
+     "title": "print(\"  [PM_target_deg만 바꿔가며 valid=True가 되는 지점 탐색 -- 물리적으로 타당한 60~90도\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s008_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 6,
+     "number": 11,
+     "kind": "sub",
+     "category": "A",
+     "start": 104,
+     "end": 107,
+     "title": "print(\"  [Eq.6 ratio=tan(PM_target) -- 원문 수치 예제(PM=70도->2.8)와 검산]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [],
+     "target": "test",
+     "test_ids": [
+      "test_s011_tan"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    },
+    {
+     "head_index": 7,
+     "number": 12,
+     "kind": "sub",
+     "category": "A",
+     "start": 109,
+     "end": 116,
+     "title": "print(\"  [Eq.4/5 cold-start(prev_cggs=None) -- Cgg1=0 가정, beta=0.5 정확히, gmp=gmn=gm1/2]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "tf4",
+       "number": 8
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s012_start"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 8,
+     "number": 13,
+     "kind": "sub",
+     "category": "A",
+     "start": 118,
+     "end": 126,
+     "title": "print(\"  [Eq.4 -- Cgg1_total(M1a+M4a 합)을 명시적으로 주면 beta/gmp/gmn이 그만큼 변함]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "gmp_cold",
+       "number": 12
+      },
+      {
+       "name": "tf4",
+       "number": 8
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s013_Cgg1_total"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 9,
+     "number": 14,
+     "kind": "sub",
+     "category": "A",
+     "start": 128,
+     "end": 133,
+     "title": "print(\"  [세션30 -- gm2가 gmp2/gmn2로 분리되고 항상 gmp2=gmn2=gm2/2(50:50 기본값)임을 확인]\")",
+     "asserts": 2,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "gmn2_cold",
+       "number": 12
+      },
+      {
+       "name": "gmn2_fed",
+       "number": 13
+      },
+      {
+       "name": "gmp2_cold",
+       "number": 12
+      },
+      {
+       "name": "gmp2_fed",
+       "number": 13
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s014_section"
+     ],
+     "judgements_outside_reject_try": 2,
+     "reject_try_ast": 0,
+     "m2_min": 2,
+     "guarded_only": false
+    },
+    {
+     "head_index": 10,
+     "number": 15,
+     "kind": "sub",
+     "category": "A",
+     "start": 135,
+     "end": 142,
+     "title": "print(\"  [Eq.6 -- Cgg2(prev_cggs[2]+prev_cggs[3])를 키우면 gm2(=gmp2+gmn2)도 커짐(단조성)]\")",
+     "asserts": 1,
+     "raise_assertion": false,
+     "reject_try": 0,
+     "deps": [
+      {
+       "name": "gmn2_cold",
+       "number": 12
+      },
+      {
+       "name": "gmn2_fed",
+       "number": 13
+      },
+      {
+       "name": "gmp2_cold",
+       "number": 12
+      },
+      {
+       "name": "gmp2_fed",
+       "number": 13
+      }
+     ],
+     "target": "test",
+     "test_ids": [
+      "test_s015_Cgg2"
+     ],
+     "judgements_outside_reject_try": 1,
+     "reject_try_ast": 0,
+     "m2_min": 1,
+     "guarded_only": false
+    }
+   ]
+  }
+ }
+}
