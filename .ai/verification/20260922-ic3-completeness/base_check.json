@@ -1,0 +1,97 @@
+{
+  "id": "20260922-ic3-completeness",
+  "attempt": 3,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "360c434d05e672a2adbce8c124acca6cbe08ffa3",
+    "T_parent": "58e954c14bce4260125a564c1c210af8c7fca897",
+    "T_tree": "89a87bb49e2d325e7f06ab9eeccdb2b8b02fdd61",
+    "T_trailers": "Role: test, Change-Id: 20260922-ic3-completeness",
+    "base": "58e954c14bce4260125a564c1c210af8c7fca897",
+    "code_commit": null,
+    "base_to_T_commits": 1,
+    "base_to_T_numstat": [
+      "314\t6\tskills/analog-gmid-design/assets/tests/contracts/test_ic3.py",
+      "14\t1\tskills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py"
+    ],
+    "name_status": "M 2",
+    "base_to_T_paths_outside_tests": 0,
+    "blobs_T": {
+      "tests/contracts/test_ic3.py": "94b0525a4481ac84b37b3dee3155fee29c8805b3 (base fcd70e9f091a12e0dc6347bb4da85036c1b3fb6e)",
+      "tests/legacy/selftest_stick_diagram.py": "562cb34b6035d8e52826d0e02ecb6f03ff607044 (base 241f85a03a6f1f0615b33f6ea33585fafea24156)"
+    },
+    "v5_carry_check": "T 트리 docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/v5-carry/20260922-ic3-completeness/paths.tsv 2행 = base..T 변경 경로 2개 전부. 행마다 운반 blob 파일(git 객체, `git cat-file blob 360c434:<경로>`)의 sha1('blob <len>\\0'+내용) = 파일 이름 = T 트리 blob, 바이트 동일(auditor Python 재계산). 작업 트리 사본은 core.autocrlf=true로 CRLF가 되어 바이트가 다르므로 대조는 git 객체로 했다",
+    "approvals_in_T": {
+      ".ai/approvals/20260922-ic3-test-activation.md": "70d1b403a625f5722ddc96b4caee9cd03001a2c8 (target_kind diff, V5 -- 순서 7에서 사용)",
+      ".ai/approvals/20260922-ic3-v3-exempt.md": "413e2a56d53c2d0ef41e2d7c4e353f12491c95be (target_kind decision, V3 -- 순서 7에서 사용)"
+    },
+    "spec_blobs_T": {
+      "docs/02-design/specs/20260922-ic3-completeness.spec.md": "a05ef063932fd56b2202aa52626f63a5b6f6d279",
+      "docs/02-design/specs/20260922-ic3-completeness.interface.md": "dd9799a28144317d207006a27e6d154a128de122"
+    }
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3",
+    "commands": [
+      "git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ic3-completeness-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3 remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3 config core.longpaths true",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3 checkout -q --detach 58e954c14bce4260125a564c1c210af8c7fca897",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3 checkout -q --detach 360c434d05e672a2adbce8c124acca6cbe08ffa3"
+    ],
+    "env": "APPDATA=C:\\Users\\HSLEE\\AppData\\Roaming, PY=C:/Python314/python.exe(3.14.2, pytest 9.0.2)",
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897",
+    "outputs_dir": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out3",
+    "tracked_changes_after_runs": 0
+  },
+  "test_sets": {
+    "base": {
+      "rev": "58e954c14bce4260125a564c1c210af8c7fca897",
+      "command": "V1 명령(아래 red_check.command에서 `-p merge_gate --continue-on-collection-errors -rA`와 GMID_* 환경 변수를 뺀 형태 + -rA), PYTHONPYCACHEPREFIX=outputs_dir/pyc_base",
+      "result": "1 failed(contracts/test_ic3.py::test_coverage_and_field_completeness -- 뼈대 pytest.fail(), IC3: 엄격), 63 passed, 12 xfailed, 수집 오류 0, exit 1, 49.77s",
+      "output": "outputs_dir/base_v1.txt",
+      "output_sha256": "663c646b4cb3e21b8b10f317e0f57ff0dbaf489e1650cf1adc38b0b92ca028af"
+    },
+    "T": {
+      "rev": "360c434d05e672a2adbce8c124acca6cbe08ffa3",
+      "command": "red_check.command",
+      "result": "3 failed, 62 passed, 12 xfailed, 수집 오류 0, exit 1, 28.23s",
+      "output": "outputs_dir/red_run.txt",
+      "output_sha256": "cea9b1f29884b7d8ebe80d4325f9e51da806913fc5ae3951a4ff038ba56c9771"
+    },
+    "pass_set_compare": "base PASSED 63 - T PASSED 62 = {legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero[stick_diagram]}(T에서 red). T PASSED - base PASSED = 0. IC5 엄격 test 9개는 base·T 모두 PASSED. 계산 outputs_dir/red_cmp.py -> red_cmp.json"
+  },
+  "red_check": {
+    "command": "PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out3/pyc_red PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897 GMID_RED_CAPTURE=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-out3/red.jsonl GMID_INTERFACE_CARD=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3/docs/02-design/specs/20260922-ic3-completeness.interface.md C:/Python314/python.exe -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/58e954c14bce4260125a564c1c210af8c7fca897/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3 C:/Users/HSLEE/AppData/Local/Temp/20260922-ic3-completeness-iso3/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict=IC3:,IC5: -p merge_gate --continue-on-collection-errors -rA",
+    "rev": "360c434d05e672a2adbce8c124acca6cbe08ffa3 (T = base 코드 + test)",
+    "exit": 1,
+    "capture": "outputs_dir/red.jsonl, 15행(sha256 755dfc6177951a85d57bbaa851e4babd07dcac1982ed7d8696218510974be135). 3행 = T FAILED 3개, 12행 = 비엄격 xfail 뼈대(IC1·IC2·IC4·IC6·IC8·IC9·IC10 각 1, IC7 2, IC11 3)의 pytest.fail() -- 결과가 XFAIL이라 red에서 뺐다",
+    "fail_causes": {
+      "contracts/test_ic3.py::test_coverage_and_field_completeness": "builtins.ImportError: cannot import name 'INSTANCE_SIZING_FIELDS' from 'stick_diagram' (test_ic3.py:107) -- (stick_diagram, INSTANCE_SIZING_FIELDS)는 interface card 신규 시그니처 표에 있다(신규 심볼 red)",
+      "contracts/test_ic3.py::test_linked_topology_files_merge_and_collision": "Failed: DID NOT RAISE <class 'ValueError'> -- (5-b) 나뉜 연결 파일 두 곳에 같은 소자 이름인데 base load_topology가 거부하지 않는다(이름 충돌 배선 없음, 계약 4)",
+      "legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero[stick_diagram]": "AssertionError: selftest_stick_diagram returncode=1 -- selftest_stick_diagram.py:1543 '빈 sizing인데 save_instance_json()이 ValueError를 내지 않았다 -- IC3 완전성 배선 없음'(저장 전 완전성 배선 없음, 계약 4). base에서는 PASSED"
+    },
+    "harness_errors": 0,
+    "failure_hash_method": "merge_gate.red_failure_hash(test_id, exc_type) = sha256(test_id + \"\\n\" + exc_type), 캐시 판 merge_gate로 15행 모두 재계산 일치",
+    "aggregate_hash": "0259476ad5b28cdd48ae7e1359a779ac9436b581bbfb859a7cc3689b059365be",
+    "aggregate_hash_method": "sha256(정렬한 failure_hash를 \n으로 이은 UTF-8)",
+    "red": [
+      {
+        "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_coverage_and_field_completeness",
+        "exc_type": "builtins.ImportError",
+        "failure_hash": "aa4cd64f3c66c3676276adb9abfec73a3a4f9e565f515369e6154979a379804c"
+      },
+      {
+        "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_linked_topology_files_merge_and_collision",
+        "exc_type": "builtins.Failed",
+        "failure_hash": "60a025ef6c18bfbc0058e0629e8a797f79ef023ab62c79965733728f1444d364"
+      },
+      {
+        "test_id": "skills/analog-gmid-design/assets/tests/legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero[stick_diagram]",
+        "exc_type": "builtins.AssertionError",
+        "failure_hash": "1fa25bebf2a279fe7d495f6fda86ab73cad956b15b483427fff87f988ef32de3"
+      }
+    ],
+    "result": "red 확인: T(base 코드)에서 FAIL 3개 모두 판정 유형 red(신규 심볼 ImportError 1, pytest.raises 미발생 Failed 1, AssertionError 1), 수집 오류·하네스 오류 0. 병합본에서 이 3개가 PASS여야 한다(V2)"
+  }
+}
