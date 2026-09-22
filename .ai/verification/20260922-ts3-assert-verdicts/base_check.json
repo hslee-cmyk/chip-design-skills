@@ -1,0 +1,97 @@
+{
+  "id": "20260922-ts3-assert-verdicts",
+  "attempt": 2,
+  "evidence_type": "test-only",
+  "freeze": {
+    "T": "e4a68eccea6ac5e92d9b82d22300048a13cc8273",
+    "T_parent": "eca77ac859123d6294e167cff5ebbe8b086d9adb",
+    "T_trailers": "Role: test, Change-Id: 20260922-ts3-assert-verdicts",
+    "code_commit": null,
+    "base_to_T_commits": 1,
+    "base_to_T_numstat": [
+      "103\t0\tskills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py",
+      "0\t7\tskills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py",
+      "17\t198\tskills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py",
+      "93\t583\tskills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py",
+      "0\t34\tskills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py"
+    ],
+    "base_to_T_paths_outside_tests": 0,
+    "base_to_T_tools_githooks_changes": 0,
+    "blobs": {
+      "contracts/test_ts3_no_print_verdicts.py": {"base": "-", "T": "0c1b8d38555529d25ffe4c7df067cdc7075881c0"},
+      "legacy/selftest_design_report.py": {"base": "d424763cd24b0ff7c3e6b1c8b45056c2d37392d0", "T": "6e989bb5cce0b694b8c2b5c1616fb97addf721c0"},
+      "legacy/selftest_sizing_recipe.py": {"base": "b50d248a71ed6693d36005c0e7951084327a216b", "T": "823626ce42654615132cb6127ee8f2b9b5bbe0fb"},
+      "legacy/selftest_stick_diagram.py": {"base": "483c139e24785ef51eea020516494342dd7dafaf", "T": "241f85a03a6f1f0615b33f6ea33585fafea24156"},
+      "legacy/selftest_topology_library.py": {"base": "2678fe89840041abd71d638d885948ca9a42dca0", "T": "d2e22552be42c647af2aa2498b6b9f250744630b"}
+    },
+    "v5_carry_check": "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/v5-carry/20260922-ts3-assert-verdicts/paths.tsv 5행: 운반 blob 5개 각각 sha1('blob <len>\\0'+내용) = 파일 이름 = T 트리 blob (5/5 일치, auditor Python 재계산)"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2",
+    "commands": [
+      "git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts3-assert-verdicts-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 checkout -q --detach eca77ac859123d6294e167cff5ebbe8b086d9adb",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-iso2 checkout -q --detach e4a68eccea6ac5e92d9b82d22300048a13cc8273"
+    ],
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/eca77ac859123d6294e167cff5ebbe8b086d9adb",
+    "outputs_dir": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts3-assert-verdicts-out2"
+  },
+  "legacy_runs": {
+    "command": "PYTHONHASHSEED=1 C:/Python314/python.exe -B <iso>/skills/analog-gmid-design/assets/tests/legacy/selftest_<m>.py <iso>/skills/analog-gmid-design/assets (cwd <iso>/skills/analog-gmid-design/assets)",
+    "base": {
+      "sizing_recipe": {"exit": 0, "stderr_bytes": 0, "stdout_bytes": 40026, "stdout_sha256": "21e0687b4fc5610bcd7625c8e409c85bca6fe485536aae02ddec45d4ab655db3"},
+      "stick_diagram": {"exit": 0, "stderr_bytes": 0, "stdout_bytes": 109822, "stdout_sha256": "30e132c169aabdae0461f5c963356da0dc6843549ac2695e7a3f6d5f1343d9c5"},
+      "design_report": {"exit": 0, "stderr_bytes": 0, "stdout_bytes": 985, "stdout_sha256": "af14d7b85e37486638a259aaff2fcf8b3d9107dac0780cfab45e48cef6e99522"},
+      "topology_library": {"exit": 0, "stderr_bytes": 0, "stdout_bytes": 4577, "stdout_sha256": "26f48d08985d1981501b9231e1b5befc2c6635c4e9d3571dabbbd8db994ae7db"}
+    },
+    "T": {
+      "sizing_recipe": {"exit": 0, "stderr_bytes": 0, "stdout_bytes": 23778, "stdout_sha256": "1000883cce1072cc573b3573766d36228cc2e939820db90956672de7575341c6"},
+      "stick_diagram": {"exit": 0, "stderr_bytes": 0, "stdout_bytes": 66057, "stdout_sha256": "b850c51ddbc3200dd223d95d1e0809f12c44fe106e5218bd56b6a658b40887ac"},
+      "design_report": {"exit": 0, "stderr_bytes": 0, "stdout_bytes": 544, "stdout_sha256": "c068488d716f9d1be3855dcf94ab65543348dac0e02a4ff31a694263cacdc3ed"},
+      "topology_library": {"exit": 0, "stderr_bytes": 0, "stdout_bytes": 2778, "stdout_sha256": "4bd584ed624f685f91ca04249fb66dc16419ed0e0e8e76252a1ec20b7fbe50b5"}
+    },
+    "base_instrumented_contract5": {
+      "what": "base 이관본에서 경우 (i)로 대응한 print 바로 뒤에 T의 새 assert(43개: sizing 1, stick 42)를 같은 들여쓰기로 끼운 계측본(auditor 생성, 복제본 밖 outputs_dir/instr)을 base 체크아웃에서 같은 명령으로 실행",
+      "result": "4개 모두 exit 0, stderr 0, stdout이 위 base stdout과 바이트 동일(sha256 같음) -- 변환된 판정 43개가 base 문맥에서 모두 기대 쪽이다(spec card 계약 5, design §8 F4 해당 없음)"
+    }
+  },
+  "contract_test_on_base": {
+    "what": "base 체크아웃에 T의 contracts/test_ts3_no_print_verdicts.py(blob 0c1b8d38)만 넣고 red 수집 플러그인으로 실행, 실행 뒤 그 파일 삭제(복제본 status 0줄 확인)",
+    "command": "GMID_RED_CAPTURE=<out>/red_capture_base.json GMID_INTERFACE_CARD=<iso>/docs/02-design/specs/20260922-ts3-assert-verdicts.interface.md PYTHONPYCACHEPREFIX=<out>/pyc_base_contract PYTHONPATH=<cache> C:/Python314/python.exe -P -m pytest -c <cache>/pytest_gate.ini --rootdir=<iso> --confcutdir=<iso> -p merge_gate --continue-on-collection-errors <iso>/skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py -rA",
+    "result": "1 failed, 9 passed, exit 1. FAILED test_tree_has_no_print_verdicts: AssertionError 'T=354' (legacy 4파일 offenders). 나머지 9개(test_target_set_includes_legacy_scripts, test_verdict_counter_rejects_single_token, rule_cases 7) PASS",
+    "red_capture": {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_tree_has_no_print_verdicts", "exc_type": "builtins.AssertionError", "failure_hash": "e1b0ef0b144a4e520ccb948eb8f605676af23da4c42465fba5793c1e340d871f", "hash_recomputed": "e1b0ef0b144a4e520ccb948eb8f605676af23da4c42465fba5793c1e340d871f"},
+    "output_sha256": "7d68fa25362e6dec778ac356119cd1b960e89d3bee9c981660b8b6e4a0030f41",
+    "note": "test-only라 판정 기록에 red 필드는 없다(스키마 금지). 이 red는 V2 basis 증거로만 적는다"
+  },
+  "verdict_formula_T_auditor": {
+    "impl": "auditor 독립 구현(outputs_dir/analyze.py): git ls-tree로 A/tests/**/*.py - tests/probes/** - tests/tools/**, 호출 c = print 또는 <logging|logger|log|LOGGER|LOG>.<debug|info|warning|warn|error|critical|exception|log>, 위치·키워드 인자 안 str Constant마다 findall((?<![A-Za-z])(PASS|FAIL)(?![A-Za-z]))",
+    "base": {"total": 354, "files": 50, "nonzero": {"legacy/selftest_design_report.py": 5, "legacy/selftest_sizing_recipe.py": 113, "legacy/selftest_stick_diagram.py": 232, "legacy/selftest_topology_library.py": 4}},
+    "T": {"total": 0, "files": 51, "nonzero": {}}
+  },
+  "conversion_count_ast": {
+    "method": "새 assert = T assert 다중집합(ast.dump) - base assert 다중집합. 경우 (i) 변환 print = base의 토큰 보유 print 중 첫 인자 AST가 새 assert 메시지 AST와 같고 T에서 사라진 것(같은 문자열이 여럿이면 difflib 줄 대응으로 가장 가까운 것, 최대 거리 sizing 1줄·stick 3줄)",
+    "sizing_recipe": {"base_asserts": 220, "T_asserts": 221, "new_asserts": 1, "removed_base_asserts": 0, "case_i_prints": 1, "case_i_conditional": 0, "case_i_assert_false": 1, "case_ii_prints": 1, "case_iii_prints": 109, "tokens_by_case": {"i": 1, "ii": 1, "iii": 111}},
+    "stick_diagram": {"base_asserts": 346, "T_asserts": 388, "new_asserts": 42, "removed_base_asserts": 0, "case_i_prints": 42, "case_i_conditional": 34, "case_i_assert_false": 8, "case_ii_prints": 11, "case_iii_prints": 156, "tokens_by_case": {"i": 54, "ii": 19, "iii": 159}},
+    "design_report": {"base_asserts": 13, "T_asserts": 13, "new_asserts": 0, "removed_base_asserts": 0, "case_i_prints": 0, "case_ii_prints": 0, "case_iii_prints": 5, "tokens_by_case": {"iii": 5}},
+    "topology_library": {"base_asserts": 17, "T_asserts": 17, "new_asserts": 0, "removed_base_asserts": 0, "case_i_prints": 0, "case_ii_prints": 0, "case_iii_prints": 4, "tokens_by_case": {"iii": 4}},
+    "unmatched_new_asserts": 0,
+    "equal_per_file": true,
+    "case_ii_list": "sizing S1 47행(quasi-static OK/FAIL, 기대 미기재 데이터 표시); stick 306·442·451행(같은 조건 assert가 바로 아래), 1167행(Test 16 (a) check별 목록 -- 섹션은 '여러 항목 FAIL'만 적음, 전체는 assert not r.ok), 1499·1527·1551·1569·1606·1633·1649행(check별 목록, 기대 미기재)",
+    "assert_condition_vs_original": "조건식 34개 모두 assert 조건 = 원래 print IfExp의 test(또는 그 not)와 AST 동일. assert False 9개(sizing 1, stick 8) = try 본문에서 예외가 안 나면 닿는 print(\"FAIL: ...\"), 승인 20260922-ts3-verdict-conversion ①"
+  },
+  "sections_auditor": {
+    "impl": "auditor §5.1 독립 구현(연속한 대 표지 print만 병합, 의존 = 앞 섹션의 마지막 저장)",
+    "delete_candidates_recomputed": "범주 C이고 provides_to 없음 = stick S1·S2·S3·S4·S5·S6·S9·S10·S12·S15·S18·S19·S20·S59·S82(15), topology S1·S3·S9(3), sizing·design_report 0 -- 합 18, design §6.3 표와 같다",
+    "deleted_in_T": "위 18개 모두 T에 남은 비어 있지 않은 줄 0(difflib base->T). 통째로 지워진 섹션은 이 18개뿐",
+    "c_sections_providing_names": "17개(sizing S2·S44, stick S8·S11·S13·S14·S16·S17·S26·S66·S77·S81·S85·S87·S121, topology S5·S10) -- design 17과 같다. 모두 남은 print 0. stick S16·S17에서 지워진 문장이 저장하던 t·c는 뒤 섹션의 같은 줄 컴프리헨션 변수(거짓 의존, §5.1 '후보' 과대 계수)이고 T 실행 exit 0",
+    "C1_tool_note": "범위 밖 관찰: C1 tools/migrate/extract_selftest.py sections는 사이에 다른 문장이 있어도 대 표지끼리 합친다(_group_block_sections). 섹션 수 base sizing 72/77, stick 128/174, design_report 2/5, topology 11/16(C1/§5.1) -- 이 card의 삭제 목록 대조는 §5.1 구현으로 했다"
+  },
+  "v5_output_sha256": "c32dc947ad7fbacc3a9f70f78731af88e47f751646a20129e13b843794c67780",
+  "base_test_set": {
+    "rev": "eca77ac859123d6294e167cff5ebbe8b086d9adb",
+    "command": "V1과 같은 형태(PYTHONPYCACHEPREFIX만 다른 빈 디렉터리 pyc_base_v1)",
+    "result": "38 passed, 실패·오류·skip·xfail 0, exit 0, 45.20s, 출력 sha256 39b67b94a6e0a2c6bfcc87b8651fa47bf24208a6e2b6deacfe6c24024409a73b",
+    "subset": "base PASSED 38개 id 전부 T PASSED 48개 안, 새 10개는 모두 contracts/test_ts3_no_print_verdicts.py"
+  }
+}
