@@ -14,10 +14,6 @@ if __name__ == "__main__":
     except Exception:
         pass
 
-    print("# Miller 2단 OTA (GBW=20MHz, CL=3pF, Z=10, NDP=4) — prev_cggs=None(초기 반복) 기준")
-    tf = miller_ota_topology(GBW=20e6, CL=3e-12, Z=10.0, NDP=4.0)
-    gm1, gm2 = tf(None)
-    print(f"  gm1={gm1*1e3:.4f}mS  gm2={gm2*1e3:.4f}mS")
 
     print("# NMCNR 3단 (GBW=5MHz, CL=10pF, PM_target=70deg, kg=0.5)")
     tf2 = nmcnr_3stage_topology(GBW=5e6, CL=10e-12, PM_target_deg=70.0, kg=0.5)
@@ -31,16 +27,6 @@ if __name__ == "__main__":
           f"물리적으로 타당한 구간이라 valid=False가 기대값)")
     assert tf2.dominant_pole_check["valid"] is False
 
-    print("# nmcnr_predict_ac_response() 스모크 테스트 — sky130-worked-example.md §12.3 실측치로 대조")
-    Cm1, Rm, Cm2 = nmcnr_compensation_elements(gm1n, gm2n, gm3n, CL=10e-12, kg=0.5)
-    print(f"  Cm1={Cm1*1e12:.3f}pF  Rm={Rm:.2f}ohm  Cm2={Cm2*1e12:.3f}pF")
-    # R1/R2/R3 = 실측(§12.3) stage1/2/3 gain을 각 gm으로 나눈 값(gain=24.69/56.67/24.21)
-    R1, R2, R3 = 24.69 / gm1n, 56.67 / gm2n, 24.21 / gm3n
-    result = nmcnr_predict_ac_response(gm1n, gm2n, gm3n, R1, R2, R3, CL=10e-12, kg=0.5)
-    print(f"  notch={result['notch']}  dc_gain={result['dc_gain_db']:.1f}dB")
-    for f_c, pm in result["crossings"]:
-        print(f"    교차: f={f_c/1e6:.3f}MHz  PM={pm:.1f}deg")
-    print("  (실측 SPICE §12.3: DC이득 90.60dB/DC위상 -0.41deg, 교차 1번뿐(GBW~25.7MHz/PM~44.8deg), notch=False — 정정된 보상망 토폴로지로 재검증 완료)")
 
     print("# nmcnr_predict_ac_response() 독립 재유도 회귀 검증(2026-08-19 세션37 연속) —")
     print("  docstring이 명시한 4-노드 KCL 방정식을 sympy로 처음부터 다시 풀어 하드코딩된")
@@ -81,10 +67,7 @@ if __name__ == "__main__":
     _den_diffs = [_sp.simplify(a - b) for a, b in zip(_my_den, _hard_den)]
     assert all(d == 0 for d in _num_diffs), f"num 계수가 재유도와 다름: {_num_diffs}"
     assert all(d == 0 for d in _den_diffs), f"den 계수가 재유도와 다름: {_den_diffs}"
-    print("  PASS: 하드코딩된 num(3개)/den(4개) 계수 전부 sympy 독립 재유도와 항별로 정확히 일치")
 
-    print("# nmcnr_check_dominant_pole_approximation() -- Eq10/11의 '우세극' 전제 자체를")
-    print("  R->무한대 극한의 정확해와 대조 검증(2026-08-19 세션37 연속)")
     _diag_bad = nmcnr_check_dominant_pole_approximation(GBW=816000.0, CL=1e-10, PM_target_deg=70.0, kg=0.5)
     print(f"  [nmcnr_amplifier 실제 스펙: GBW=816kHz/CL=1e-10F/PM_target=70도/kg=0.5]")
     print(f"    Eq10/11 예측: GBW={_diag_bad['eq10_gbw_hz']/1e3:.1f}kHz  PM={_diag_bad['eq11_pm_deg']:.1f}deg")
@@ -93,8 +76,6 @@ if __name__ == "__main__":
     print(f"    gbw_ratio={_diag_bad['gbw_ratio']:.2f}배  pm_diff={_diag_bad['pm_diff_deg']:+.1f}deg  "
           f"valid={_diag_bad['valid']}")
     assert _diag_bad["valid"] is False, "이미 실측으로 확인된 위반 사례인데 valid=True로 나옴(회귀)"
-    print("    PASS: 이미 실측 확인된 위반(6.7배/+54.6deg)을 정확히 재현 -- Eq10/11 근사가 "
-          "이 스펙에서 실제로 깨져 있음을 회귀 감시")
 
     print("  [GBW/CL/kg 불변성 -- gbw_ratio/pm_diff가 PM_target_deg에만 의존하고 GBW/CL/kg와는")
     print("  완전히 무관함을 확인(sympy 인수분해로도 확인: R->무한대 극한에서 (kg-1) 인자가")
@@ -107,8 +88,6 @@ if __name__ == "__main__":
         # 1e-2도 오차 허용 -- log-스페이스 주파수 격자(n_points=4000)가 스케일마다 크로스오버를
         # 살짝 다른 지점에서 보간해서 생기는 수치 잡음(실측: 최대 0.006도), 물리적 차이 아님.
         assert abs(_d["pm_diff_deg"] - _diag_bad["pm_diff_deg"]) < 1e-2, f"{_label}: pm_diff가 달라짐"
-    print("    PASS: GBW/CL/kg를 크게 바꿔도 gbw_ratio/pm_diff 불변 -- 이 근사의 성립 여부는 "
-          "오직 PM_target_deg 하나에만 좌우됨(놀라운 결과지만 sympy 인수분해로 확인된 사실)")
 
     print("  [PM_target_deg만 바꿔가며 valid=True가 되는 지점 탐색 -- 물리적으로 타당한 60~90도")
     print("  구간 전체에서 근사가 깨져 있고(ratio 2.5~21배, pm_diff +40~+72도, 전부 valid=False),")
@@ -118,20 +97,7 @@ if __name__ == "__main__":
         assert _d["valid"] is False, f"PM_target={_pm}도가 물리적으로 타당한 구간인데 valid=True로 나옴"
     _diag_edge = nmcnr_check_dominant_pole_approximation(GBW=816e3, CL=1e-10, PM_target_deg=149.0, kg=0.5)
     assert _diag_edge["valid"] is True, "149도(비현실적 극단값)에서도 valid=False -- 근사가 절대 안 맞는지 재확인 필요"
-    print(f"    PASS: PM_target=70/90/120도 전부 valid=False(물리적으로 타당한 구간은 전부 위반), "
-          f"149도(비현실적)에서만 valid=True(ratio={_diag_edge['gbw_ratio']:.3f}, "
-          f"pm_diff={_diag_edge['pm_diff_deg']:+.2f}deg) -- Eq10/11은 NMCNR 구조의 물리적으로 "
-          f"타당한 PM_target 전 구간에서 사실상 항상 깨져 있다는 결론")
 
-    print("# NGCC 3단 (Lee et al. Table 4 예제: k=4, GB=10MHz, CL=10pF, alpha=0.3) — 전체 재현")
-    tf3 = ngcc_3stage_topology(GB=10e6, k=4.0, CL=10e-12, alpha=0.3)
-    gm1c, gm2c, gm3c = tf3(None)
-    print(f"  gm1={gm1c*1e3:.4f}mS  gm2={gm2c*1e3:.4f}mS  gm3={gm3c*1e3:.4f}mS  "
-          f"(원문 Table 4: gm1=0.105mS gm2=0.186mS gm3=2.5mS)")
-
-    print()
-    print("# current-reuse telescopic OTA(Xie & Chen 원문 Eq.2-6, 2026-07-31 -- 원문 PDF를")
-    print("# 사용자와 함께 직접 열어 재도출 후 구현)")
     tf4 = current_reuse_telescopic_topology(t_lln=30e-9, PM_target_deg=70.0, Cc=500e-15,
                                               Cf=500e-15, Cs=500e-15, C_Ltot=1e-12)
 

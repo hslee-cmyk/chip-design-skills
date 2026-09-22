@@ -30,7 +30,6 @@ if __name__ == "__main__":
     _total_devices_in_rows = sum(len(r["name"].split("/")) for r in _rows)
     assert _total_devices_in_rows == 51, \
         f"행에 포함된 소자 총합({_total_devices_in_rows})이 51과 다름 -- 소자 누락/중복"
-    print(f"    PASS: 51개 소자 -> {len(_rows)}행으로 그룹핑, M1a/M1b 포함, 총 소자 수 보존")
 
     print()
     print("=== Test 2: assemble_report_data() -- instance.json 없이도(사이징 전) 안 죽는지 ===")
@@ -40,7 +39,6 @@ if __name__ == "__main__":
     _html_no_instance = render_html_report(_r_no_instance)
     assert "<html" not in _html_no_instance.lower() or True  # 최소 파싱 실패 없이 문자열 생성 확인
     assert "Topology" in _html_no_instance
-    print("    PASS: instance.json 없어도 topology 섹션만으로 렌더링 성공, 크래시 없음")
 
     print()
     print("=== Test 3: assemble_report_data() -- 실제(과거, partial scope) instance.json +")
@@ -58,8 +56,6 @@ if __name__ == "__main__":
         assert "current_reuse_telescopic_ota" in _html_full
         assert "run_full_circuit_audit" in _html_full
         assert "M1a/M1b" in _html_full
-        print(f"    PASS: instance.json+narrative+audit 전부 합쳐 렌더링 성공 "
-              f"({len(_html_full)} bytes), run_full_circuit_audit.ok={_audit.ok}")
     else:
         print(f"    SKIP: {_crt_instance} 없음(과거 세션 산출물, 워크스페이스 정리 시 삭제될 수 있음)")
 
@@ -67,7 +63,4 @@ if __name__ == "__main__":
     print("=== Test 4: 빈 report({}) -- 아무 섹션도 없어도 크래시 없이 최소 HTML만 생성 ===")
     _html_empty = render_html_report({})
     assert "<style>" in _html_empty
-    print("    PASS: 빈 report도 안 죽음(가짜 섹션을 지어내지 않고 전부 생략)")
 
-    print()
-    print("  === design_report.py self-test 전체 PASS ===")

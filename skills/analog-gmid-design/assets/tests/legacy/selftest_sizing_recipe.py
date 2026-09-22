@@ -44,13 +44,10 @@ if __name__ == "__main__":
         try:
             r = converge_with_parasitics(fT_target, C_load, gm_id, L, lut, vds)
             fnqs_ok = check_quasi_static(fT_target, r.gm, lut.cgg_absolute(gm_id, L, vds, 0.0, r.W)).ok
-            print(f"gm/ID={gm_id:5.1f}  ID={r.ID*1e6:8.2f}uA  W={r.W*1e6:8.2f}um  "
-                  f"gain={r.gain:6.1f}  quasi-static={'OK' if fnqs_ok else 'FAIL'}")
         except ValueError as e:
             print(f"gm/ID={gm_id:5.1f}  [불가] {e}")
 
     print()
-    print("# find_optimal_sizing() 데모 — gain 제약에서 전력/면적 각각 최소인 점 자동 탐색")
     gm_id_grid = [i * 0.5 for i in range(4, 58)]  # 2.0 ~ 28.5 S/A
     L_candidates = lut.L_grid
     VDS_candidates = lut.VDS_grid
@@ -62,15 +59,7 @@ if __name__ == "__main__":
         lut, L_candidates, VDS_candidates, gm_id_grid, fT=fT_target, C=C_load,
         objective="area", gain_min=gain_min_demo, quasi_static_margin=0.1)
     n_feasible = sum(1 for c in cands if c["feasible"])
-    print(f"{len(cands)}개 후보 평가, {n_feasible}개 실행가능(gain>={gain_min_demo}, 준정적 만족)")
-    for label, best in [("전력 최소", best_power), ("면적 최소", best_area)]:
-        if best:
-            print(f"  {label}: L={best['L']*1e6:.2f}um VDS={best['VDS']:.2f}V gm/ID={best['gm_id']:.1f} "
-                  f"ID={best['ID']*1e6:.2f}uA W={best['W']*1e6:.3f}um gain={best['gain']:.1f}")
-        else:
-            print(f"  {label}: 실행가능점 없음")
 
-    print()
     print("# _COMPENSATION_REGISTRY allowlist 거부 -- 실제 harness 경로(_evaluate()) 자체를")
     print("# 통해 확인(2026-08-12 세션30 -- run_sizing_pipeline()은 죽은 코드라 삭제됐고,")
     print("# 그 함수에만 있던 이 가드를 _evaluate()에 새로 추가했다, harness 연동 감사 중 발견)")
@@ -114,8 +103,6 @@ if __name__ == "__main__":
             print(f"    stage{_i}: L={_st['L']*1e6:.3f}um VDS={_st['VDS']:.3f}V "
                   f"gm/ID={_st['gm_id']:.2f} W={_st['W']*1e6:.3f}um")
     assert _verdict.ok, _verdict.detail
-    print(f"  [PASS] {_verdict.detail} -- optimize_multistage()가 real LUT로 처음부터 끝까지 "
-          f"실제 실행됨(공정-무관 러너, 이 파일에 하드코딩된 공정별 숫자 없음)")
 
     print()
     print("# 배치 7-3 B/C/F 엔진(analog-topology-json-library.do.md §7.3.2, 2026-07-31) --")
@@ -136,7 +123,6 @@ if __name__ == "__main__":
     print(f"    역산:   gm_id={_b_result.gm_id:.4f}, ID={_b_result.ID*1e6:.4f}uA")
     assert abs(_b_result.gm_id - _b_gm_id_known) < 1e-3, "B엔진 gm_id 역산 오차 과다"
     assert abs(_b_result.ID - _b_id_known) / _b_id_known < 1e-3, "B엔진 ID 역산 오차 과다"
-    print("    PASS: 순방향 gm_id를 오차 1e-3 이내로 복원")
 
     print()
     print("  [C엔진 solve_diode_stack_current() -- 순방향으로 만든 VGS합을 역산해 전류 복원]")
@@ -155,7 +141,6 @@ if __name__ == "__main__":
     print(f"    순방향: I={_c_i_known*1e6:.4f}uA -> VGS합={_c_vgs_target:.6f}V")
     print(f"    역산:   VGS합={_c_vgs_target:.6f}V -> I={_c_i_solved*1e6:.4f}uA")
     assert abs(_c_i_solved - _c_i_known) / _c_i_known < 1e-3, "C엔진 전류 역산 오차 과다"
-    print("    PASS: 순방향 전류를 오차 1e-3 이내로 복원")
 
     print()
     print("  [F엔진 compute_metric()/_METRICS_REGISTRY -- sum_current/sum_area/gain_stages_sum]")
@@ -176,7 +161,7 @@ if __name__ == "__main__":
         compute_metric({"type": "not_a_real_metric"}, _f_ctx)
         raise AssertionError("등록 안 된 metric 타입인데 에러가 안 났다")
     except ValueError as _e_metric:
-        print(f"    PASS: 등록 안 된 metric 타입은 ValueError로 즉시 거부 -- {str(_e_metric)[:60]}...")
+        pass
 
     print()
     print("  [L4 revalidate_finger_override() -- finger 반올림으로 W가 강제로 바뀌어도 ID는")
@@ -227,8 +212,6 @@ if __name__ == "__main__":
         "모든 metric이 재계산돼 metric_deltas에 있어야 한다"
     assert _l4_pass_result["metrics_not_referencing_changed_devices"] == ["other_current"], \
         "M3를 안 건드렸으니 other_current는 '바뀐 소자를 참조하지 않는' 목록에 있어야 한다"
-    print(f"    PASS: ID 보존 확인(diff=0), new_gain={_l4_pass_result['metric_deltas']['stage_gain']['new']:.4f}dB "
-          f"(통과), other_current는 참조 밖이지만 **재계산은 했다**(조용한 누락 방지)")
 
     print("    [M1의 W를 40% 축소 -- 이번엔 constraint를 실제로 위반해야 함]")
     _l4_fail_result = revalidate_finger_override(
@@ -238,12 +221,9 @@ if __name__ == "__main__":
     assert len(_l4_fail_result["violated_constraints"]) == 1 and \
         _l4_fail_result["violated_constraints"][0]["metric"] == "stage_gain", \
         "위반된 constraint가 정확히 stage_gain 하나여야 한다"
-    print(f"    PASS: new_gain={_l4_fail_result['metric_deltas']['stage_gain']['new']:.4f}dB < "
-          f"threshold={_l4_threshold:.4f}dB -- violated_constraints로 정확히 검출됨")
 
     print("    [원본 ctx는 건드리지 않는 순수 함수인지]")
     assert _l4_ctx.sized["M1"]["W"] == _l4_r1.W, "revalidate_finger_override()가 원본 ctx를 변형했다"
-    print("    PASS: 원본 ctx.sized['M1']['W'] 불변")
 
     print()
     print("  [L4b apply_and_revalidate_pair_adjustment() -- suggest_pair_finger_adjustments()(L3)의")
@@ -308,8 +288,6 @@ if __name__ == "__main__":
     _l4b_updated = {t.name: t.n_fingers for t in _l4b_result1["transistors"]}
     assert _l4b_updated == {"Ma": 1, "Mb": 1, "Xa": 2, "Xb": 2}, \
         "채택된 (Xa,Xb)만 n_fingers가 반영되고 나머지는 원본 그대로여야 함"
-    print(f"    PASS: 채택={_l4b_result1['chosen'].names}, 거부 1건(Ma,Mb/pair_area), "
-          f"결과 n_fingers={_l4b_updated}")
 
     print("    [케이스2: 면적 제약이 (Ma,Mb)/(Xa,Xb) 둘 다에 걸리면 -- 전부 위반, applied=False]")
     _l4b_metrics_strict = {"pair_area": {"type": "sum_area", "devices": ["Ma", "Mb", "Xa", "Xb"]}}
@@ -324,8 +302,6 @@ if __name__ == "__main__":
     assert len(_l4b_result2["rejected"]) == 2, "두 후보 모두 시도(및 거부) 기록이 남아야 함"
     assert [t.n_fingers for t in _l4b_result2["transistors"]] == [1, 1, 1, 1], \
         "전부 거부됐으면 transistors가 원본과 동일해야 함"
-    print(f"    PASS: applied=False, chosen=None, 거부 {len(_l4b_result2['rejected'])}건, "
-          f"transistors 원본 유지")
 
     print("    [케이스3: max_candidates=1 -- 1순위만 시도하고 그 이상 폴백하지 않음]")
     _l4b_result3 = apply_and_revalidate_pair_adjustment(
@@ -333,8 +309,6 @@ if __name__ == "__main__":
         gm_id_bounds=(2.0, 28.0), max_candidates=1)
     assert not _l4b_result3["applied"] and len(_l4b_result3["rejected"]) == 1, \
         "max_candidates=1인데 2순위까지 시도됨"
-    print(f"    PASS: max_candidates=1 -> 1순위만 시도, applied=False(2순위는 원래 통과했을 것이지만 "
-          f"상한 때문에 시도 자체를 안 함)")
 
     print()
     print("  [L4c run_topology_pipeline_with_finger_fixup() -- 세션12 M3a 그룹(11소자) 실제")
@@ -402,9 +376,6 @@ if __name__ == "__main__":
             f"채택된 조정이 M9b/M18b +1이 아님(세션12 손검증과 다름): {_l4c_chosen_a}"
         _l4c_final_n = {t.name: t.n_fingers for t in _l4c_result_a["transistors"]}
         assert _l4c_final_n["M9b"] == 2 and _l4c_final_n["M18b"] == 2, "M9b/M18b n_fingers가 2로 안 바뀜"
-        print(f"    PASS: 1라운드 해결, 채택={_l4c_chosen_a.names}, "
-              f"최종 n_fingers M9b={_l4c_final_n['M9b']} M18b={_l4c_final_n['M18b']} "
-              f"(세션12 손검증 6개->2개 홀수차수와 일치, mirror_symmetric으로 성공)")
 
         print("    [케이스B: 면적 예산이 극도로 타이트하면 -- 핑거조정 후보 전부 위반. **세션18부터**")
         print("    바로 unresolved로 포기하지 않고 그룹분할(crossover routing)로 자동 폴백해 euler를")
@@ -443,10 +414,6 @@ if __name__ == "__main__":
         assert not _l4c_result_b["audit_row_split"].ok, \
             "이 함수는 euler(체크1)만 고친다 -- 3b/3c 잔여 실패는 그대로 audit.ok=False에 반영돼야 " \
             "함(정직하게 남기기, 세션17 원칙과 동일 -- group_splits가 있다고 몰래 True로 안 둔갑)"
-        print(f"    PASS: unresolved_row=None(그룹분할로 euler 완전 해결), "
-              f"group_splits={_l4c_split_b['n_segments']}세그먼트/crossover={_l4c_split_b['crossover_count']}, "
-              f"branch_composites={_l4c_split_b['branch_composites']}, "
-              f"audit.ok={_l4c_result_b['audit_row_split'].ok}(3b/3c 잔여 실패는 이 함수 책임 밖, 정직 유지)")
 
         print("    [케이스C: cell_groups를 명시하면 -- 세션18 C-3, 그룹분할로 생긴 새 _seg* row가")
         print("    원래 row가 속했던 cell_groups 항목에 자동으로 추가되는지(원본 dict는 불변)]")
@@ -464,8 +431,6 @@ if __name__ == "__main__":
                                  if c.name.startswith("1. euler[") and c.ok}
         assert _l4c_seg_euler_names == {"m3a_row_seg0", "m3a_row_seg1", "m3a_row_seg2"}, \
             f"cell_groups 자동확장이 안 돼 새 seg row가 cellA 감사에서 누락됨: {_l4c_seg_euler_names}"
-        print(f"    PASS: cellA 감사에 seg row 3개 전부 포함됨({sorted(_l4c_seg_euler_names)}), "
-              f"호출자 원본 cell_groups는 그대로({_l4c_cell_groups})")
 
     print()
     print("  [L5 optimize_full_circuit_budget() 실배선 -- run_topology_pipeline_with_finger_")
@@ -563,12 +528,6 @@ if __name__ == "__main__":
             len(_ofcb_result["pipeline_result"]["growth_rounds"]) >= 1, \
             f"run_matching_safety_with_finger_growth()가 개입한 흔적(growth_rounds)이 없음: " \
             f"{_ofcb_result['pipeline_result'].get('growth_rounds')}"
-        print(f"    PASS: optimize_full_circuit_budget()이 euler-blocked를 자동 해결(M9b/M18b "
-              f"n_fingers=2), sizing_overrides/sizing 둘 다 최종 상태로 갱신됨 -- matching "
-              f"quality(3b/3c)는 run_matching_safety_with_finger_growth()가 이어받아 처리 "
-              f"(growth_rounds={len(_ofcb_result['pipeline_result']['growth_rounds'])}건, "
-              f"unresolved_reason={_ofcb_result['pipeline_result'].get('unresolved_reason')}, "
-              f"audit_ok={_ofcb_result['audit_ok']})")
 
     print()
     print("  [L5b resolve_stack_layout() -- declared vertical_stack_id를 audit_vertical_")
@@ -590,8 +549,6 @@ if __name__ == "__main__":
     _rsl_all_members = sorted(m for members in _rsl_groups.values() for m in members)
     assert _rsl_all_members == sorted(t.name for t in _rsl_trs), \
         "감사 게이트 통과 후에도 소자 누락/중복 없어야 함"
-    print(f"    PASS: current_reuse_telescopic_ota(51소자, declared 전수 정합) -- 감사 게이트 "
-          f"통과, {len(_rsl_groups)}개 그룹 정상 반환")
 
     # 2026-08-11(세션28 후반부) -- resolve_stack_layout()이 이제 derive_horizontal_stack_
     # groups()를 거치므로(vertical_stack_id는 PMOS/NMOS를 섞을 수 있지만 물리 레이아웃 행은
@@ -604,8 +561,6 @@ if __name__ == "__main__":
         assert len(_rsl_kinds) <= 1, \
             f"resolve_stack_layout() 반환 그룹이 kind 동질이 아님(회귀 -- derive_horizontal_" \
             f"stack_groups() 배선 확인할 것): {_rsl_sid} -> {_rsl_members} -> {_rsl_kinds}"
-    print(f"    PASS: {len(_rsl_groups)}개 그룹 전부 kind 동질(PMOS/NMOS 혼합 0건) -- "
-          f"derive_horizontal_stack_groups() 배선 확인")
 
     _rsl_bad_trs = [
         Transistor("T1", "pmos", source="vdd", drain="Na", gate="g1"),
@@ -622,7 +577,8 @@ if __name__ == "__main__":
     }
     try:
         resolve_stack_layout(_rsl_bad_trs, [], _rsl_bad_roles)
-        print("    FAIL: 원인 불명 vertical_stack_id 불일치인데 에러가 안 남")
+        # oracle (d): 섹션 문장이 적은 기대 '원인 불명 vertical_stack_id 불일치인데 에러가 안 남' (기대 = ValueError) -- TS3 경우 (i), 메시지 = 원래 출력 문자열
+        assert False, "    FAIL: 원인 불명 vertical_stack_id 불일치인데 에러가 안 남"
     except ValueError as e:
         assert "vertical_stack_id" in str(e), f"에러 메시지가 원인을 안 가리킴: {e}"
         print(f"    OK: 예상대로 ValueError -> {e}")
@@ -826,8 +782,6 @@ if __name__ == "__main__":
                                      ("vbias4(M60+M66)", _l5c_vbias4),
                                      ("cmfb(M36a+M37a+M38)", _l5c_cmfb)):
             assert abs(_l5c_sum - 1.8) < 1e-6, f"{_l5c_name} 합이 vdd(1.8V)와 불일치(회귀): {_l5c_sum}"
-        print(f"    PASS: vy_tail/vbias4/cmfb 세 컬럼 전부 vdd(1.8V)와 정확히 일치 -- "
-              f"M5/M61/M64/M63/M60/M66/M36a/M37a/M38 KVL 정합")
         # 2026-09-08(B16) -- 예전 단정은 `vds < 0.5`라는 **임의 상수**였다. 의도(세션28)는
         # "M18_bg가 ~vdd를 통째로 받던 회귀가 재발하지 않는지"였지만, 0.5라는 문턱 자체는
         # "diode_reference는 얇게 받는다"는 role 기반 믿음에서 나온 값이고 그건 이 재설계가
@@ -846,8 +800,6 @@ if __name__ == "__main__":
              f"[{_l5c_bg_lo}, {_l5c_bg_hi}] 밖이다(회귀)")
         assert _l5c_bg["vds"] < 0.9 * 1.8, \
             f"M18_bg가 ~vdd를 통째로 받는 세션28 회귀가 재발함: {_l5c_bg['vds']}"
-        print(f"    PASS: M18_bg(diode-connected)=={_l5c_bg['vds']}V -- W 한계가 허용하는 "
-              f"구간 [{_l5c_bg_lo:.4f}, {_l5c_bg_hi:.4f}]V 안이고 ~vdd도 아님")
 
     print("    [사용자 지적(2026-08-11) -- ideal current source(전압 자유)/voltage source")
     print("    (전류 자유)는 헤드룸 '합=vdd' 계약에 영향이 다르다. role 라벨만 믿지 않고")
@@ -861,7 +813,6 @@ if __name__ == "__main__":
             json.dump(_l5c_neg_topo, _l5c_neg_f)
         try:
             optimize_full_circuit_budget(_l5c_neg_path, _l5c_spec, grid_points_per_theta=1)
-            print("    FAIL: ideal_sources 선언이 없는데 우회가 조용히 성공함")
             assert False, "ideal_sources 검증이 실제로 걸리지 않음(회귀)"
         except ValueError as _l5c_neg_e:
             assert "M18_bg" in str(_l5c_neg_e) and "ideal_sources" in str(_l5c_neg_e), \
@@ -875,13 +826,6 @@ if __name__ == "__main__":
         assert abs(_l5c_sizing["M36b"]["vds"] - _l5c_sizing["M36a"]["vds"]) < 1e-9, \
             f"M36b(same_as_device=M36a)가 M36a와 다른 값을 받음(회귀): M36a={_l5c_sizing['M36a']['vds']}, " \
             f"M36b={_l5c_sizing['M36b']['vds']}"
-        print(f"    PASS: M7==M6(={_l5c_sizing['M6']['vds']}V), M36b==M36a(={_l5c_sizing['M36a']['vds']}V) "
-              f"-- same_as_device가 물리적으로 동일해야 하는 병렬/매칭 파트너의 VDS를 정확히 복사")
-        print(f"    PASS: 51소자 전체 sizing_roles 우회 없이 완주(gain_db="
-              f"{_l5c_result['metrics']['gain_db']:.2f}, mismatch_sigma_mV="
-              f"{_l5c_result['metrics']['mismatch_sigma_mV']:.2f}, cmrr_estimate_db="
-              f"{_l5c_result['metrics']['cmrr_estimate_db']:.2f}, psrr_estimate_db="
-              f"{_l5c_result['metrics']['psrr_estimate_db']:.2f})")
 
     print()
     print("  [L4d suggest_matching_finger_growth()/apply_and_revalidate_matching_finger_growth()/")
@@ -906,7 +850,6 @@ if __name__ == "__main__":
                Transistor("Mf", "nmos", source="s", drain="d2", n_fingers=3, finger_w=_l4d_r.W)]
     assert suggest_matching_finger_growth(("Me", "Mf"), _g3_trs, min_fingers=2) is None, \
         "names 내부 n_fingers가 서로 다른데(1,3) growth를 제안함 -- 호출자 책임 밖 케이스"
-    print("    PASS: delta=1(부족), None(이미 충분), None(내부 불일치) 전부 정확")
 
     _l4d_transistors = [
         Transistor("Ma", "nmos", source="Na1", drain="Nb1", gate="ga",
@@ -931,7 +874,6 @@ if __name__ == "__main__":
     assert _l4d_r1["applied"] and _l4d_r1["growth"]["delta_fingers"] == 1
     assert {t.name: t.n_fingers for t in _l4d_r1["transistors"]} == {"Ma": 2, "Mb": 2}
     assert _l4d_r1["revalidation"]["ok"]
-    print(f"    PASS: applied=True, n_fingers 1->2, gm/ID 재검증 통과")
 
     print("    [케이스2: 빡빡한 면적 제약 -- growth가 gm/ID를 깨서(면적 초과) 거부됨]")
     _l4d_tight = [{"metric": "pair_area", "op": "<=", "value": _l4d_baseline_area * 1.05}]
@@ -942,7 +884,6 @@ if __name__ == "__main__":
         not _l4d_r2["revalidation"]["ok"]
     assert [t.n_fingers for t in _l4d_r2["transistors"]] == [1, 1], \
         "거부됐는데 transistors가 원본과 다름"
-    print(f"    PASS: applied=False(면적 제약 위반, 정직하게 거부), transistors 원본 유지")
 
     print("    [run_matching_safety_with_finger_growth() -- current_reuse_telescopic_ota의 M6")
     print("    그룹 실제 사례(세션16 1번 branch 복합 매칭 셀프테스트와 동일 소자) -- branch 복합")
@@ -991,16 +932,10 @@ if __name__ == "__main__":
     assert _l4d_total_n["M1a"] == _l4d_total_n["M1b"] == \
         _l4d_total_n["M2a"] == _l4d_total_n["M2b"] == 2, \
         f"M1a/M1b/M2a/M2b 총 n_fingers가 전부 2로 안 자람: {_l4d_total_n}"
-    print(f"    PASS: 3b/3c 필수 게이트 전부 통과(M1a/M1b/M2a/M2b 총 n_fingers 전부 2로 성장, "
-          f"2개 행에 1개씩 진짜 common-centroid 분배 -- "
-          f"세션16 1번 branch 복합 매칭 + 2번 핑거증가가 함께 M6 그룹의 매칭 문제를 끝까지 "
-          f"풀어냄), growth_rounds={len(_l4d_final['growth_rounds'])}회. "
-          f"audit.ok={_l4d_final['audit'].ok}(box-shape는 이 함수 책임 밖이라 별개로 FAIL 가능)")
 
     print()
     print("  [L4e run_matching_safety_with_finger_growth() -- 세션17 설계안 3번. gm/ID 예산이")
     print("  타이트해서 핑거증가 자체가 거부되면(gm_id_violation), 인접배치(3b)로 최후수단")
-    print("  완화하고 3c FAIL은 정직하게 그대로 남기는지]")
     _l4e_devices = [
         Transistor("Ma", "nmos", source="Vtail", drain="Nd_a", gate="ga",
                    n_fingers=1, finger_w=_l4d_r.W),
@@ -1032,9 +967,6 @@ if __name__ == "__main__":
         f"3c[Ma/Mb]가 여전히 필수 게이트로 FAIL이어야 하는데: {_l4e_3c_check}"
     assert len(_l4e_r1["growth_rounds"]) == 1 and not _l4e_r1["growth_rounds"][0]["result"]["applied"], \
         "growth 시도가 정확히 1번, 실패로 기록돼야 함"
-    print(f"    PASS: unresolved_reason='relaxed_to_layout', relaxed_pairs=1건"
-          f"(interdig_ok={_l4e_r1['relaxed_pairs'][0]['interdig_ok']}), "
-          f"audit.ok=False(3c FAIL 정직하게 유지), growth 시도 1회만 기록")
 
     print("    [케이스2: 같은 예산, allow_layout_relaxation=False -- 세션16 기존 동작 그대로")
     print("    보존되는지(회귀 대조, 완화 기능 자체를 꺼도 예전처럼 즉시 unresolved)]")
@@ -1046,8 +978,6 @@ if __name__ == "__main__":
         _l4e_r2["unresolved_reason"] == "gm_id_violation" and \
         _l4e_r2["relaxed_pairs"] == [], \
         f"allow_layout_relaxation=False인데 완화가 적용됨(회귀): {_l4e_r2}"
-    print(f"    PASS: allow_layout_relaxation=False면 완화 없이 즉시 unresolved_reason="
-          f"'gm_id_violation'(세션16 동작 그대로 보존)")
 
     print()
     print("# 배치 7-3b/e/f(analog-topology-json-library.do.md, 2026-07-31) --")
@@ -1068,7 +998,6 @@ if __name__ == "__main__":
     assert abs(_hr_result["M2"] - 0.20) < 1e-12 and abs(_hr_result["M3"] - 0.20) < 1e-12, \
         "cascode에 min_vds가 그대로 안 쓰임"
     assert abs(sum(_hr_result.values()) - 1.8) < 1e-9, "배정 합이 vdd(1.8V)와 불일치"
-    print(f"    PASS: 합={sum(_hr_result.values()):.4f}V == vdd, cascode(M2/M3)는 min_vds 그대로")
 
     print("  [gm_id가 있으면 2/gm_id+margin으로 캐스코드 헤드룸이 자동 연동되는지(§7-3e (b))]")
     _hr_stack2 = [dict(e) for e in _hr_stack]
@@ -1079,7 +1008,6 @@ if __name__ == "__main__":
     _expected_cascode_v = 2.0 / 17.0 + 0.05
     assert abs(_hr_result2["M2"] - _expected_cascode_v) < 1e-9, "gm_id 연동 헤드룸 계산 오류"
     assert abs(sum(_hr_result2.values()) - 1.8) < 1e-9, "gm_id 연동 시에도 합이 vdd와 불일치"
-    print(f"    PASS: gm_id=17 -> cascode VDS={_expected_cascode_v:.4f}V(=2/17+0.05), 합 여전히 vdd와 일치")
 
     print()
     print("  [2026-08-11(세션28) HeadroomPolicy.thin_roles -- 'diode_reference'도 cascode와")
@@ -1095,8 +1023,6 @@ if __name__ == "__main__":
     assert abs(_hr_result3["Mref"] - 0.20) < 1e-12, \
         f"diode_reference에 min_vds가 그대로 안 쓰임(thin_roles 배선 확인): {_hr_result3}"
     assert abs(sum(_hr_result3.values()) - 1.8) < 1e-9, "diode_reference 포함 시에도 합이 vdd와 불일치"
-    print(f"    PASS: diode_reference(Mref)=min_vds 그대로, tail/input이 나머지(1.6V)를 균등분배"
-          f"({_hr_result3}), 합={sum(_hr_result3.values()):.4f}V == vdd")
 
     _hr_divider = [
         {"name": "Da", "role": "voltage_divider", "min_vds": 0.20},
@@ -1105,9 +1031,6 @@ if __name__ == "__main__":
     _hr_result_div = allocate_stack_headroom(1.8, _hr_divider)
     assert abs(_hr_result_div["Da"] - 0.9) < 1e-9 and abs(_hr_result_div["Db"] - 0.9) < 1e-9, \
         f"voltage_divider(M39/M40류)는 여전히 vdd/2씩 균등분배여야 하는데(회귀): {_hr_result_div}"
-    print(f"    PASS: voltage_divider(Da/Db, diode-connected이지만 thin_roles에 없음) -- "
-          f"여전히 vdd/2씩 균등분배됨(M39/M40 설계의도 그대로 보존, thin_roles 일반화가 이 "
-          f"role을 건드리지 않음을 확인)")
 
     print()
     print("  [7-3e search_gm_id_for_role() -- role별 선택 방향(matching=최소, gain=gm/gds 최대, "
@@ -1133,7 +1056,6 @@ if __name__ == "__main__":
     _best_ratio_direct = max(lut.gm_gds_ratio(g, _role_L, _role_vds, 0.0) for g in _feasible_check)
     assert abs(lut.gm_gds_ratio(_gm_id_gain, _role_L, _role_vds, 0.0) - _best_ratio_direct) < 1e-9, \
         "gain role이 실제 gm/gds 최댓값을 못 고름"
-    print("    PASS: matching=최소gm_id, gain=gm/gds 실측 최댓값과 일치, balanced=오름차순 첫 feasible")
 
     print("  [2026-08-19 세션37 연속 신설 -- 'load' role: gm/gds가 아니라 ro(=1/gds) 자체를")
     print("  최대화. nmcnr_amplifier M202(vds=1.0V) 실측으로 발견 -- 이 조건에서 gm_id가")
@@ -1145,9 +1067,6 @@ if __name__ == "__main__":
     _best_ro_direct = max(_ro_direct(g) for g in _feasible_check)
     assert abs(_ro_direct(_gm_id_load) - _best_ro_direct) < 1e-6, \
         "load role이 실제 ro 최댓값을 못 고름"
-    print(f"    PASS: load(ro 최대) gm_id={_gm_id_load:.2f}, ro={_ro_direct(_gm_id_load):.3e} == "
-          f"feasible 전수조사 최댓값과 일치(nmcnr_amplifier M202 실측 -- .ai/context.md 세션37 "
-          f"참고 -- 이 role을 신설하게 된 계기이자 sky130 실제 LUT에서의 검증)")
 
     print("  [W_bounds 안에 후보가 하나도 없으면 즉시 ValueError]")
     try:
@@ -1155,7 +1074,7 @@ if __name__ == "__main__":
                                role="matching", W_bounds=(1e-9, 1e-9))
         raise AssertionError("불가능한 W_bounds인데 에러가 안 났다")
     except ValueError as _e_role:
-        print(f"    PASS: ValueError -- {str(_e_role)[:70]}...")
+        pass
 
     print()
     print("  [7-3f 대체(2026-09-10, 사용자 지시 \"bias_replica 상수도 없애\") --")
@@ -1174,7 +1093,6 @@ if __name__ == "__main__":
     # (1) ID를 아직 모르면 knee 그대로 -- 창을 못 그리니 clamp도 없다.
     _drl_ctx.sized["Mm"] = {}
     assert abs(derive_role_L(_drl_ctx, "Mm", _drl_spec, "mirror") - _drl_knee) < 1e-18
-    print(f"    PASS: ID 미확정 -> knee 그대로 {_drl_knee*1e6:.3f}um (상수가 아니라 LUT 실측)")
 
     # (2) ★ clamp가 **양방향으로 실제 값을 바꾸는지**를 본다. 게이트는 '통과'가 아니라
     #     '동작'을 보여야 한다(프로젝트 원칙: 무동작 게이트는 게이트가 아니다).
@@ -1195,9 +1113,6 @@ if __name__ == "__main__":
         assert abs(_L - _drl_knee) > 1e-18, \
             f"clamp가 안 물렸다(L==knee) -- ID={_ID}, W_bounds={_wb}에서 이 게이트는 무동작이다"
         assert (_L < _drl_knee) == (_want == "down"), f"clamp 방향이 {_want}가 아니다"
-        print(f"    PASS: ID={_ID*1e6:.0f}uA, W_bounds={_wb[0]*1e6:.0f}~{_wb[1]*1e6:.0f}um "
-              f"-> 창=[{_lo*1e6:.3f},{_hi*1e6:.3f}]um, knee {_drl_knee*1e6:.3f}um을 "
-              f"{_L*1e6:.3f}um로 **{'아래' if _want == 'down' else '위'}로 clamp**했다")
 
     _drl_case(30e-3, (1e-6, 200e-6), "down")     # 큰 전류 -> 큰 L에서 W가 상한 초과
     _drl_case(1e-8, (120e-6, 200e-6), "up")      # 높은 W 하한 -> 작은 L에서 W 미달
@@ -1206,7 +1121,6 @@ if __name__ == "__main__":
     _drl_nogrid = dict(_drl_spec)
     del _drl_nogrid["gm_id_grid"]
     assert derive_role_L(_drl_ctx, "Mm", _drl_nogrid, "mirror") is None
-    print("    PASS: gm_id_grid 미선언 -> None(옛 코드는 여기서 L_min x 배수를 지어냈다)")
 
     # (4) cascode/signal은 theta 탐색 담당 -- 없어진 select_L_by_role()의 가드를 이관했다.
     for _bad_role in ("cascode", "signal"):
@@ -1214,7 +1128,7 @@ if __name__ == "__main__":
             derive_role_L(_drl_ctx, "Mm", _drl_spec, _bad_role)
             raise AssertionError(f"role={_bad_role}인데 에러가 안 났다")
         except ValueError as _e_L:
-            print(f"    PASS: role={_bad_role!r} -> ValueError -- {str(_e_L)[:60]}...")
+            pass
 
     # (5) 류 단위 유도는 멤버 창의 **교집합** 안에 있어야 한다(미러비 보존).
     _drl_ctx.kind_of["Mn"] = "nmos"
@@ -1229,9 +1143,8 @@ if __name__ == "__main__":
                                           _drl_spec["L_candidates"], _drl_spec["gm_id_grid"],
                                           _drl_spec["W_bounds"])
             assert _l2 <= _cL <= _h2, f"류 공통 L={_cL}이 {_mm}의 창 밖이다"
-        print(f"    PASS: 전류가 4배 다른 두 멤버의 류 공통 L={_cL*1e6:.3f}um -- 양쪽 창 안")
     else:
-        print("    PASS: 두 멤버의 창 교집합이 비어 None -- 억지로 하나로 묶지 않는다")
+        pass
 
     print()
     print("  [계통 미러비 오차를 **선언된 랜덤 예산과 같은 단위**로 재기(2026-09-10) --")
@@ -1253,10 +1166,7 @@ if __name__ == "__main__":
         _load_full_topology_cached.__dict__["_cache"].pop("_mre_fake", None)
     assert abs(_mre_pct - 5.0) < 1e-9, f"계통 전류비 오차가 5%가 아님: {_mre_pct}"
     assert abs(_mre_mv - 2.5) < 1e-9, f"입력환산이 2.5mV가 아님: {_mre_mv}"
-    print(f"    PASS: dVDS=0.5V / V_A=10V -> {_mre_pct:.2f}%, gm_id=20/V로 나누면 "
-          f"{_mre_mv:.2f}mV (같은 오차의 두 표현)")
     assert _mre_ctx.derived.get("_mirror_ratio_error_pairs") is not None,         "쌍별 표가 ctx.derived에 안 남았다 -- 두 metric이 같은 계산을 두 번 하게 된다"
-    print("    PASS: 쌍별 표가 ctx.derived에 캐시됨(pct/mV 두 metric이 공유)")
 
     print("  [value_from_constraint -- 임계값을 다른 제약에서 그대로 참조(숫자 복제 금지)]")
     _vfc_ok = resolve_constraint_references([
@@ -1264,7 +1174,6 @@ if __name__ == "__main__":
         {"metric": "mirror_ratio_error_mV", "op": "<=",
          "value_from_constraint": "mismatch_sigma_mV"}], {})
     assert [c["value"] for c in _vfc_ok] == [5.0, 5.0], _vfc_ok
-    print(f"    PASS: 참조가 5.0으로 치환됨 -- 임계값이 선언된 곳은 한 곳뿐이다")
     # ★ 게이트는 '통과'가 아니라 '실제로 거부한다'를 보여야 한다.
     for _bad, _why in (
             ([{"metric": "x", "op": "<=", "value_from_constraint": "없는제약"}],
@@ -1279,14 +1188,13 @@ if __name__ == "__main__":
             resolve_constraint_references(_bad, {"k": 1.0})
             raise AssertionError(f"{_why}인데 에러가 안 났다")
         except ValueError as _e_vfc:
-            print(f"    PASS: {_why} -> ValueError -- {str(_e_vfc)[:52]}...")
+            pass
 
     print()
     print("  [웜스타트 조인트 스캔 점수(2026-09-10, l_class 포함) -- 그룹마다 기준이 다르다]")
     _gs_ms = {"dev_v": {"type": "battery_centering_deviation"}}
     _gs_m = _group_score_metric("dev_v", _gs_ms)
     assert _gs_m({"dev_v": 0.31, "power_uA": 100.0}) == 0.31
-    print("    PASS: centering 그룹 -- 그 metric을 그대로 최소화")
     # l_class 그룹: 전용 metric이 없어 **선언된 objective**를 쓴다. 부호 규약은
     # _optimize_theta_slsqp()와 같다(minimize는 그대로, maximize는 반전).
     # l_class 그룹: 전용 metric이 없어 **선언된 제약의 최소 여유**를 최대화한다(내부점).
@@ -1300,19 +1208,17 @@ if __name__ == "__main__":
     # 경계에 붙은 후보(여유 0)는 내부점보다 **나쁜 점수**여야 한다 -- 이게 이 기준의 요점이다.
     _gs_edge = _gs_i({"cmrr_db": 60.0, "pm_deg": 72.0, "area": 720.0})
     assert _gs_edge == 0.0 and _gs_edge > _gs_i({"cmrr_db": 66.0, "pm_deg": 72.0, "area": 720.0})
-    print(f"    PASS: l_class 그룹 -- 최소여유 최대화(내부점 {-_gs_i({'cmrr_db':66.0,'pm_deg':72.0,'area':720.0}):.2f} "
-          f"> 경계 {-_gs_edge:.2f}, 경계 후보가 실제로 밀린다)")
     # ★ 게이트는 '통과'가 아니라 '실제로 거부한다'를 보여야 한다.
     try:
         _group_score_interior([])
         raise AssertionError("선언된 제약이 없는데 에러가 안 났다")
     except ValueError as _e_gs:
-        print(f"    PASS: 제약 0개 -> ValueError -- {str(_e_gs)[:56]}...")
+        pass
     try:
         _group_score_metric("not_declared", _gs_ms)
         raise AssertionError("선언 안 된 metric인데 에러가 안 났다")
     except KeyError as _e_gs2:
-        print(f"    PASS: 선언 안 된 점수 metric -> KeyError -- {str(_e_gs2)[:56]}...")
+        pass
 
     print()
     print("  [7-4b 확장 estimate_area_budget() -- 콜드스타트 블렌딩 vs 실측 자기참조]")
@@ -1343,13 +1249,11 @@ if __name__ == "__main__":
     apply_theta_feed({"type": "A", "tag": "biasgen_root", "root": "Mtarget", "reference": ["Mref"]},
                       0.5, _ctx_a)
     assert abs(_ctx_a.seed_currents["Mtarget"] - 5e-6) < 1e-15
-    print(f"    PASS: Mref=10uA, theta=0.5 -> seed_currents[Mtarget]={_ctx_a.seed_currents['Mtarget']*1e6:.2f}uA")
 
     print("  [feed 'C' (_feed_diode_stack_target) -- theta*reference W를 target W로]")
     _ctx_c = SizingContext(sized={"Mref": {"W": 40e-6}})
     apply_theta_feed({"type": "C", "target": "Mrepl", "reference": "Mref"}, 0.1, _ctx_c)
     assert abs(_ctx_c.sized["Mrepl"]["W"] - 4e-6) < 1e-15
-    print(f"    PASS: Mref W=40um, K=0.1 -> Mrepl W={_ctx_c.sized['Mrepl']['W']*1e6:.2f}um")
 
     print("  [feed 'B' (_feed_gm_target_convention) -- N*omega_c*C_cmfb를 gm_target으로 사이징]")
     _ctx_b = SizingContext(spec={"lut_by_kind": {"nmos": lut}, "omega_c": 2 * math.pi * 1e6, "C_cmfb": 2e-12},
@@ -1359,14 +1263,11 @@ if __name__ == "__main__":
                        "gm_id_bounds": [2.0, 28.0]}, 3.0, _ctx_b)
     _gm_target_expected = 3.0 * 2 * math.pi * 1e6 * 2e-12
     assert abs(_ctx_b.sized["Mcmfb"]["gm"] - _gm_target_expected) / _gm_target_expected < 1e-3
-    print(f"    PASS: N=3 -> gm_target={_gm_target_expected*1e6:.4f}uS, "
-          f"사이징 결과 gm={_ctx_b.sized['Mcmfb']['gm']*1e6:.4f}uS (오차 1e-3 이내 일치)")
 
     print("  [feed 'settling_split' (_feed_settling_split) -- theta*total을 derived로]")
     _ctx_s = SizingContext(spec={"t_settle_total": 40e-9})
     apply_theta_feed("settling_split", 0.25, _ctx_s)
     assert abs(_ctx_s.derived["t_slew"] - 10e-9) < 1e-18
-    print(f"    PASS: t_settle_total=40ns, f_slew=0.25 -> derived[t_slew]={_ctx_s.derived['t_slew']*1e9:.2f}ns")
 
     print("  [feed 'metric_stage_budget' -- theta(L)로 지정 devices의 L/W/gm/gds 재계산]")
     _ctx_m = SizingContext(spec={"lut_by_kind": {"nmos": lut}}, sized={"M1": {"ID": 10e-6}, "M2": {"ID": 20e-6}},
@@ -1375,14 +1276,13 @@ if __name__ == "__main__":
                        "gm_id": 15.0, "vds": 0.6}, 0.5e-6, _ctx_m)
     assert _ctx_m.sized["M1"]["L"] == 0.5e-6 and _ctx_m.sized["M2"]["L"] == 0.5e-6
     _gain_check = compute_metric({"type": "gain_stages_sum", "stages": [["M1", "M2"]]}, _ctx_m)
-    print(f"    PASS: L={_ctx_m.sized['M1']['L']*1e6}um 배정, gain_stages_sum={_gain_check:.2f}dB 계산 가능")
 
     print("  [등록 안 된 feed 타입은 즉시 ValueError]")
     try:
         apply_theta_feed({"type": "not_a_real_feed"}, 1.0, SizingContext())
         raise AssertionError("등록 안 된 feed 타입인데 에러가 안 났다")
     except ValueError as _e_feed:
-        print(f"    PASS: ValueError -- {str(_e_feed)[:60]}...")
+        pass
 
     print()
     print("  [optimize_full_circuit_budget() -- sizing_roles/device_roles 둘 다 없는 회로는 "
@@ -1418,8 +1318,6 @@ if __name__ == "__main__":
         "sizing_roles 없는데 빈 결과가 아님"
     assert _ofc_result["sizing_overrides"] is None and _ofc_result["pipeline_result"] is None, \
         "device_roles/compensation 없이 넷리스트 전체가 사이징될 리 없는데 전체 파이프라인이 실행됨"
-    print(f"    PASS: theta*={_ofc_result['theta_star']}, metrics={_ofc_result['metrics']} "
-          f"(즉시 1회 평가, 넷리스트 미완성이라 전체 파이프라인은 건너뜀 -- 하위호환)")
 
     print()
     print("  [optimize_full_circuit_budget() -- 합성 sizing_roles로 그리드서치가 실제 최적값을 "
@@ -1472,8 +1370,6 @@ if __name__ == "__main__":
             f"함수 결과({_metrics['power_A']})가 전수비교 최적값({_manual_best[0]})과 다름"
         assert abs(_theta_star["N"] - _manual_best[1]) < 1e-9, \
             f"theta*(N={_theta_star['N']})가 전수비교 최적 N({_manual_best[1]})과 다름"
-        print(f"    PASS: theta*=N={_theta_star['N']:.3f}, power_uA={_metrics['power_A']*1e6:.4f}uA "
-              f"-- {5}개 격자점 전수비교와 정확히 일치(재현성+최적성 확인)")
 
     print()
     print("  [device_roles.gm_id_match_vgs_of -- 2026-08-19 세션38 신설, gm_id_role 루프의 2차 "
@@ -1545,10 +1441,6 @@ if __name__ == "__main__":
     # 것 자체다 -- Mb는 device_roles에 gm_id_role이 아예 없으므로(gm_id_match_vgs_of만 있음),
     # 이 2차 pass가 없으면 Mb는 애초에 sizing되지 않아 아래 딕셔너리 접근이 KeyError로 죽는다
     # (즉 이 테스트가 통과한다는 사실 자체가 이미 2차 pass가 실제로 실행됐다는 증거).
-    print(f"    PASS: Ma(root,'matching')=gm_id {_gmv_gm_id_a:.3f}@vds={_gmv_vds_a}V, "
-          f"Mb(gm_id_match_vgs_of=Ma)=gm_id {_gmv_gm_id_b:.3f}@vds={_gmv_vds_b}V -- "
-          f"companion VGS 역산과 정확히 일치(Mb에 gm_id_role이 없으므로 이 값은 2차 pass로만 "
-          f"나올 수 있음)")
 
     print("  [gm_id_match_vgs_of가 아직 sizing 안 된(존재하지 않는) 소자를 참조하면 ValueError]")
     _gmv_bad_topo = json.loads(json.dumps(_gmv_topo))
@@ -1563,7 +1455,6 @@ if __name__ == "__main__":
         except ValueError as _gmv_e:
             assert "gm_id_match_vgs_of" in str(_gmv_e) and "Mz" in str(_gmv_e), \
                 f"에러 메시지에 gm_id_match_vgs_of/Mz가 없음: {_gmv_e}"
-            print(f"    PASS: ValueError -- {str(_gmv_e)[:70]}...")
 
     print()
     print("  [device_roles.vds_match_vgs_of -- 2026-08-19 세션38 연속 신설, 헤드룸 루프가 다른 "
@@ -1623,9 +1514,6 @@ if __name__ == "__main__":
         f"Mb.vds({_vmv_vds_b})가 Ma의 VGS 역산값({_vmv_target_vgs})과 다름"
     assert abs(_vmv_vds_kb - (_vmv_vdd - _vmv_target_vgs)) < 1e-9, \
         f"Kb.vds({_vmv_vds_kb})가 vdd에서 Mb의 강제값을 뺀 나머지({_vmv_vdd - _vmv_target_vgs})와 다름"
-    print(f"    PASS: Ma.vds={_vmv_vds_a:.4f}V(col_a 균등분배, Mb와 무관하게 독립적으로 먼저 확정) "
-          f"-- Mb.vds={_vmv_vds_b:.4f}V(=Ma의 VGS 역산과 정확히 일치) -- "
-          f"Kb.vds={_vmv_vds_kb:.4f}V(=vdd-Mb, 나머지 예산 정확히 흡수)")
 
     print("  [vds_match_vgs_of가 순환 참조하면 ValueError]")
     _vmv_cyc_topo = json.loads(json.dumps(_vmv_topo))
@@ -1639,7 +1527,6 @@ if __name__ == "__main__":
             raise AssertionError("Ma<->Mb 순환 참조인데 에러가 안 났다")
         except ValueError as _vmv_cyc_e:
             assert "순환 참조" in str(_vmv_cyc_e), f"순환 참조 에러가 아님: {_vmv_cyc_e}"
-            print(f"    PASS: ValueError -- {str(_vmv_cyc_e)[:70]}...")
 
     print()
     print("  [fixed-point worklist -- 2026-08-19 세션39 신설, _ref_depth() 단일재귀 정렬을 "
@@ -1709,10 +1596,6 @@ if __name__ == "__main__":
     _fpw_base_b = _fpw_vdd - _fpw_vds_t2
     assert abs((_fpw_vds_f + _fpw_vds_s) - _fpw_base_b) < 1e-9, \
         f"F.vds+S.vds({_fpw_vds_f + _fpw_vds_s})가 grpB base_budget({_fpw_base_b})과 다름"
-    print(f"    PASS: S.vds={_fpw_vds_s:.4f}V(=N의 VGS, grpB pre-pass -- grpA보다 먼저 준비됨) -- "
-          f"T.vds={_fpw_vds_t:.4f}V/T2.vds={_fpw_vds_t2:.4f}V(grpA, base=vdd-S.vds로 균등분배) -- "
-          f"F.vds={_fpw_vds_f:.4f}V(grpB 나머지, base=vdd-T2.vds -- grpA 완결 **후**에야 계산 가능, "
-          f"_ref_depth() 단일재귀였다면 순환으로 막혔을 상호참조가 fixed-point로 정상 수렴)")
 
     print("  [두 그룹의 budget_reference_device가 서로를 직접 가리키면(pre-pass로도 못 "
           "뚫리는 진짜 순환) 여전히 ValueError -- 어느 pass에서도 vds가 하나도 안 늘어나야 함]")
@@ -1750,11 +1633,8 @@ if __name__ == "__main__":
         except ValueError as _fpw_cyc2_e:
             assert "grpX" in str(_fpw_cyc2_e) and "grpY" in str(_fpw_cyc2_e), \
                 f"막힌 그룹(grpX/grpY)이 에러 메시지에 없음: {_fpw_cyc2_e}"
-            print(f"    PASS: ValueError -- {str(_fpw_cyc2_e)[:90]}...")
 
     print()
-    print("  [diagnose_sizing_roles_gap() -- device_role/symmetry의 propose_device_roles_"
-          "gap_fill()과 대응하는 sizing_roles 쪽 진단 도구, 2026-08-15 세션35 신설]")
     # 2026-08-15 -- 사용자 지시("sizing role을 자동으로 넣는 것도 설계하고 통합하자")로
     # 신설. device_roles와 달리 sizing_roles의 theta bounds/constraints 목표값은 spec(설계
     # 목표)에서 오는 숫자라 connectivity만으로 지어낼 수 없다 -- 그래서 이 함수는 숫자를
@@ -1786,7 +1666,6 @@ if __name__ == "__main__":
                            "known_sizing": {"Mo": {"ID": 1e-5, "L": 0.5e-6, "vds": 0.6, "vsb": 0.0}}})
         _diag_r1 = diagnose_sizing_roles_gap(_diag_path, _diag_spec_ok)
         assert _diag_r1["status"] == "ok", f"known_sizing으로 다 채웠는데 ok가 아님: {_diag_r1}"
-        print(f"    PASS: {_diag_r1}")
 
         print("  [2. ID는 있는데 L/VDS 미확정 -- kind=unresolved_vds_or_L]")
         _diag_spec_novds = dict(_diag_spec_ok, known_sizing={"Mo": {"ID": 1e-5}})
@@ -1794,7 +1673,6 @@ if __name__ == "__main__":
         assert _diag_r2["status"] == "gap" and _diag_r2["kind"] == "unresolved_vds_or_L", \
             f"L/VDS 미확정 케이스인데 kind가 다름: {_diag_r2}"
         assert _diag_r2["device"] == "Mo"
-        print(f"    PASS: {_diag_r2}")
 
         print("  [3. known_sizing 자체가 없으면 -- kind=unresolved_current]")
         _diag_r3 = diagnose_sizing_roles_gap(_diag_path,
@@ -1803,7 +1681,6 @@ if __name__ == "__main__":
             f"seed 자체가 없는 케이스인데 kind가 다름: {_diag_r3}"
         assert _diag_r3["device"] == "Mo" and _diag_r3["ideal_source_hint"] is None, \
             "ideal_sources 선언이 아예 없는 회로인데 hint가 채워짐"
-        print(f"    PASS: {_diag_r3}")
 
     print("  [4. 실제 라이브러리 파일 folded_cascode -- 세션35 안에서 이 gap 자체를 "
           "해소했다(Ibg를 KCL 유도+자유 theta로 배선) -- 이제 has_theta로 조기 반환됨을 "
@@ -1813,7 +1690,6 @@ if __name__ == "__main__":
     _diag_r4 = diagnose_sizing_roles_gap(_diag_fc_path, {})
     assert _diag_r4["status"] == "has_theta", \
         f"folded_cascode는 세션35에서 Ibg를 free theta로 배선했으니 has_theta여야 하는데: {_diag_r4}"
-    print(f"    PASS: {_diag_r4}")
 
     print("  [5/6. 실제 라이브러리 파일 nmcnr_amplifier -- 원래(세션35) PM_target_deg=46 "
           "(논문 실측치)이 nmcnr_3stage_topology()의 PM>60 전제와 충돌해 kind=other로 걸렸고, "
@@ -1828,7 +1704,6 @@ if __name__ == "__main__":
     assert _diag_r56["status"] == "has_theta", \
         f"nmcnr_amplifier는 2026-08-18에 M101/M104/M105/M106/M107/M108 theta를 배선했으니 " \
         f"has_theta여야 하는데: {_diag_r56}"
-    print(f"    PASS: {_diag_r56}")
 
     print()
     print("  [require_declared_spec_source() -- 라이브러리 회로를 **출처 없는 spec**으로")
@@ -1845,22 +1720,17 @@ if __name__ == "__main__":
         raise AssertionError("출처 없는 spec인데 게이트가 통과시켰다 -- 게이트가 죽어 있다")
     except ValueError as _e_rds:
         assert "_spec_source" in str(_e_rds), f"거부 사유가 출처 선언이 아님: {_e_rds}"
-        print("    PASS: 출처 없는 spec -> ValueError")
     require_declared_spec_source(_rds_lib, {"gm_id_grid": [4.0],
                                             "_spec_source": "run_harness.SPECS"})
-    print("    PASS: 출처를 선언하면 통과")
     require_declared_spec_source(_rds_lib, {})
-    print("    PASS: 해상도 필드도 LUT도 없는 spec(gap 진단 전용)은 잴 것이 없어 통과")
     with _tempfile.TemporaryDirectory() as _rds_tmp:
         _rds_fx = _os.path.join(_rds_tmp, "_fixture.topology.json")
         require_declared_spec_source(_rds_fx, {"gm_id_grid": [4.0]})
-    print("    PASS: library 밖의 합성 fixture는 정본이 없으므로 대상 아님")
 
     print("  [7. sizing_roles.theta가 이미 선언된 회로는 status=has_theta로 조기 반환]")
     _diag_tso_path = _os.path.join(_lib_dir_recipe, "two_stage_ota.topology.json")
     _diag_r7 = diagnose_sizing_roles_gap(_diag_tso_path, {})
     assert _diag_r7["status"] == "has_theta", f"two_stage_ota는 theta가 있는데: {_diag_r7}"
-    print(f"    PASS: {_diag_r7}")
 
     print()
     print("  [제약을 만족하는 격자점이 하나도 없으면 즉시 ValueError]")
@@ -1876,7 +1746,7 @@ if __name__ == "__main__":
             optimize_full_circuit_budget(_ofc_topo_path2, _ofc_spec, grid_points_per_theta=5)
             raise AssertionError("불가능한 제약인데 에러가 안 났다")
         except ValueError as _e_ofc:
-            print(f"    PASS: ValueError -- {str(_e_ofc)[:60]}...")
+            pass
 
     print()
     print("  [optimize_full_circuit_budget() -- 실제 회로(two_stage_ota, 7개 소자) 전체를")
@@ -2013,10 +1883,6 @@ if __name__ == "__main__":
               f"M6(2단, W={_tso_result['sizing']['M6']['W']*1e6:.1f}um)과 M3/M5(tail/cascode, "
               f"W~{_tso_result['sizing']['M5']['W']*1e6:.1f}um)의 W 격차가 box-shape 비율(<=1.5)을 "
               f"넘어 repair로도 못 고침 -- L4(사이징->레이아웃 연결) 설계 시 재검토할 것")
-        print("    PASS: spec -> load_topology -> derive_stack_groups -> A엔진 -> compensation "
-              "-> device_roles(L/헤드룸/gm_id) -> assign_finger_geometry -> run_topology_pipeline "
-              "까지 AI 개입 없이 단일 함수 호출로 완주(matching-safety audit 자체는 L4 미해결로 "
-              "정보성 출력에 그침)")
 
     print()
     print("  [matching_pairs L 강제 일치 -- compensation(spec 기반) vs device_roles.L_role"
@@ -2069,8 +1935,6 @@ if __name__ == "__main__":
             f"matching pair L이 여전히 다름(에러 없이 통과했는데 재설계가 안 됨): Ma={_La_final}, Mb={_Lb_final}"
         assert abs(_Lb_heuristic - _La_final) > 1e-15, \
             "테스트 설계 오류 -- L_role 휴리스틱값과 compensation값이 우연히 같아서 재설계 여부를 구분 못 함"
-        print(f"    PASS: compensation이 Ma에 고른 L={_La_final*1e6:.3f}um -- Mb의 L_role 휴리스틱"
-              f"(단독이면 {_Lb_heuristic*1e6:.3f}um)을 덮어쓰고 그 값으로 재설계됨(ValueError 없이)")
 
     print("  [matching_pairs L 강제 일치 -- 양쪽 다 L_role(휴리스틱)인데 값이 다르면(스펙 근거로"
           " 우선순위를 가릴 수 없음) 즉시 ValueError]")
@@ -2095,7 +1959,7 @@ if __name__ == "__main__":
             optimize_full_circuit_budget(_lrec_path2, _lrec_spec2)
             raise AssertionError("양쪽 다 휴리스틱인데 L이 다른데도 에러가 안 났다")
         except ValueError as _e_lrec:
-            print(f"    PASS: ValueError -- {str(_e_lrec)[:70]}...")
+            pass
 
     print()
     print("  [재현성: 같은 spec으로 다시 호출하면 완전히 같은 sizing]")
@@ -2110,13 +1974,11 @@ if __name__ == "__main__":
         except ValueError as _tso_e2:
             assert "stage1_out" in str(_tso_e2) and "KVL" in str(_tso_e2), \
                 f"재호출이 다른 이유로 실패함(회귀 의심): {_tso_e2}"
-            print("    PASS(known-limitation 일관성): 재호출도 정확히 같은 이유로 실패 -- 비결정적 회귀 아님")
     else:
         _tso_result2 = optimize_full_circuit_budget(_tso_path, _tso_spec)
         for _n in _tso_all_names:
             assert _tso_result["sizing"][_n]["W"] == _tso_result2["sizing"][_n]["W"], \
                 f"{_n}: 재실행 결과가 다름 -- 재현성 위반"
-        print("    PASS: 재실행 결과 완전 동일(W 전부 bit-identical)")
 
     print()
     print("# 배치 7-3g/h/i(analog-topology-json-library.do.md, 2026-07-31) --")
@@ -2128,7 +1990,7 @@ if __name__ == "__main__":
         lut.noise_1f_density(15.0, 0.5e-6, 0.6, 0.0, 30e-6)
         raise AssertionError("SID_1F 없는데 에러가 안 났다")
     except ValueError as _e_1f:
-        print(f"    PASS: ValueError -- {str(_e_1f)[:70]}...")
+        pass
 
     print("  [SID_1F 있는 합성 LUT -- W_ref/W_target 스케일링 + 1/freq 반영 확인]")
     _lut_np = lut.np
@@ -2143,8 +2005,6 @@ if __name__ == "__main__":
     _sid1f_result = _lut_with_noise.noise_1f_density(15.0, 0.5e-6, 0.6, 0.0, _w_target_test, _freq_test)
     _sid1f_expected = _sid1f_at_wref * _w_ref_eff / _w_target_test / _freq_test
     assert abs(_sid1f_result - _sid1f_expected) / _sid1f_expected < 1e-9
-    print(f"    PASS: SID_1F(1Hz,W_ref)={_sid1f_at_wref:.2e} -> W_target={_w_target_test*1e6}um, "
-          f"freq={_freq_test}Hz에서 {_sid1f_result:.3e}V^2/Hz(손계산과 일치)")
 
     print("  [_metric_flicker_plus_thermal_sum() -- 열+1/f 합산이 손계산과 일치]")
     _ctx_noise = SizingContext(
@@ -2157,7 +2017,6 @@ if __name__ == "__main__":
     _s_th_expected = 4 * _kT * (2.0 / 3.0) / 200e-6
     _noise_expected = math.sqrt(_s_th_expected + _sid1f_expected)
     assert abs(_noise_result - _noise_expected) / _noise_expected < 1e-9
-    print(f"    PASS: sqrt(S_thermal+S_1f)={_noise_result:.3e}V/rtHz (손계산과 일치)")
 
     print()
     print("  [7-3h estimate_mismatch_sigma()/pelgrom_mismatch metric -- sky130 실측 vth0_slope로 확인]")
@@ -2172,7 +2031,6 @@ if __name__ == "__main__":
         {"type": "pelgrom_mismatch", "devices": ["M1a", "M1b"], "kind": "nfet"}, _ctx_mismatch)
     _pair_sigma_expected = math.sqrt(2) * _sigma_single * 1e3
     assert abs(_pair_sigma - _pair_sigma_expected) < 1e-9
-    print(f"    PASS: pair sigma(M1a/M1b, 동일 W/L)={_pair_sigma:.4f}mV == sqrt(2)*단일소자 (RSS 합산 확인)")
 
     print()
     print("  [7-3i cmrr_estimate/psrr_estimate metric -- diff_pair_tail family 계산 확인]")
@@ -2185,7 +2043,6 @@ if __name__ == "__main__":
     _psrr_db = compute_metric(
         {"type": "psrr_estimate", "tail_device": "M5", "circuit_family": "diff_pair_tail"}, _ctx_cmrr)
     assert abs(_psrr_db - 20 * math.log10(500e-6 / 5e-6)) < 1e-9
-    print(f"    PASS: CMRR={_cmrr_db:.2f}dB, PSRR={_psrr_db:.2f}dB(order-of-magnitude 근사, 손계산과 일치)")
 
     print("  [등록 안 된 circuit_family는 즉시 ValueError]")
     try:
@@ -2193,7 +2050,7 @@ if __name__ == "__main__":
                          "circuit_family": "_not_registered_family"}, _ctx_cmrr)
         raise AssertionError("미등록 circuit_family인데 에러가 안 났다")
     except ValueError as _e_fam:
-        print(f"    PASS: ValueError -- {str(_e_fam)[:70]}...")
+        pass
 
     print()
     print("  [세션37: nmcnr_gain_db/nmcnr_pm_deg -- nmcnr_amplifier.topology.json 실제")
@@ -2216,8 +2073,6 @@ if __name__ == "__main__":
     # stage3 출력(Vout)에 M301/M302 둘 다 물려 있는지
     assert _nmcnr_by_name["M301"].drain == _nmcnr_by_name["M302"].drain == "Vout", \
         "M301/M302가 실제로 Vout에서 만나지 않음 -- stage3 R3 유도의 합류 전제가 깨짐"
-    print("    PASS: M107/M109->NodeM2->M201.gate, M202/M204->NodeS2->M301.gate, "
-          "M301/M302->Vout 전부 실제 connectivity와 일치")
 
     print("  [_nmcnr_stage1_rout()/_metric_nmcnr_gain_db/_metric_nmcnr_pm_deg -- 손계산과 대조]")
     _nmcnr_spec = {
@@ -2250,8 +2105,6 @@ if __name__ == "__main__":
     _nmcnr_pm_actual = compute_metric({"type": "nmcnr_pm_deg", **_nmcnr_spec}, _nmcnr_ctx)
     assert abs(_nmcnr_gain_actual - _nmcnr_expected["dc_gain_db"]) < 1e-9
     assert abs(_nmcnr_pm_actual - _nmcnr_expected["crossings"][0][1]) < 1e-9
-    print(f"    PASS: R1={_R1_actual:.3e}ohm(손계산과 일치), gain_db={_nmcnr_gain_actual:.2f}dB, "
-          f"pm_deg={_nmcnr_pm_actual:.2f}deg -- 전부 nmcnr_predict_ac_response() 직접호출과 일치")
     print("    (같은 spec/ctx로 gain_db/pm_deg 재호출 시 _nmcnr_predict_cache 재사용됨 -- "
           "_open_loop_gains_cache와 동일 관례)")
 
@@ -2264,7 +2117,7 @@ if __name__ == "__main__":
         compute_metric({"type": "nmcnr_pm_deg", **_nmcnr_spec}, _nmcnr_ctx_low)
         raise AssertionError("0dB 교차가 없어야 하는데 에러가 안 났다")
     except ValueError as _e_nocross:
-        print(f"    PASS: ValueError -- {str(_e_nocross)[:70]}...")
+        pass
 
     print()
     print("  [cmrr_estimate -- telescopic_class_ab family: metric_spec의 소자 역할 배정이")
@@ -2318,12 +2171,6 @@ if __name__ == "__main__":
         "M1a/M4a가 같은 입력(Vip)을 공유하지 않음 -- (gmp+gmn) 합산 전제가 깨짐"
     assert _crt_by_name["M1b"].gate == _crt_by_name["M4b"].gate != _crt_by_name["M1a"].gate, \
         "M1b/M4b가 같은 반대편 입력(Vim)을 공유하지 않음"
-    print(f"    PASS: kind 일치(M1a/M2a/M6/M7=pmos, M3a/M4a/M5=nmos). 위상: PMOS 가지"
-          f"(M1a.drain={_crt_by_name['M1a'].drain!r}=M2a.source) + NMOS 가지"
-          f"(M4a.drain={_crt_by_name['M4a'].drain!r}=M3a.source)가 출력노드 {_crt_vom1!r}에서"
-          f" **드레인끼리** 합류(직렬 기둥 아님), tail 분리(Vx={_crt_by_name['M1a'].source!r},"
-          f" Vy={_crt_by_name['M4a'].source!r}), 입력 공유({_crt_by_name['M1a'].gate!r})"
-          f" -- 실제 JSON connectivity로 검증됨")
 
     print()
     print("  [cmrr_estimate -- telescopic_class_ab family(2026-08-03 확정 topology.json으로")
@@ -2347,13 +2194,11 @@ if __name__ == "__main__":
     _crt_cmrr_db = compute_metric(_crt_cmrr_spec, _crt_cmrr_ctx)
     # SPICE(ngspice AC, sky130 무관 -- 이상화 gm/ro만 쓴 소신호 netlist) 실측 대조값(Rx=Ry=1e6): -0.00dB.
     assert abs(_crt_cmrr_db - 0.0) < 0.1, f"Rx=Ry=1e6 기준값(SPICE -0.00dB)과 어긋남: {_crt_cmrr_db}"
-    print(f"    PASS(Rx=Ry=1e6): CMRR={_crt_cmrr_db:.3f}dB (SPICE 대조값 -0.00dB, 오차<0.1dB)")
     # 비대칭 Rx(=1e8)로 두 번째 대조점 확인(SPICE 실측 4.59dB, 근사식 4.56dB -- 0.2dB 이내 확인됨).
     _crt_cmrr_ctx.sized["M6"]["gds"] = 0.5e-8
     _crt_cmrr_ctx.sized["M7"]["gds"] = 0.5e-8
     _crt_cmrr_db2 = compute_metric(_crt_cmrr_spec, _crt_cmrr_ctx)
     assert abs(_crt_cmrr_db2 - 4.59) < 0.2, f"Rx=1e8 기준값(SPICE 4.59dB)과 어긋남: {_crt_cmrr_db2}"
-    print(f"    PASS(Rx=1e8,Ry=1e6): CMRR={_crt_cmrr_db2:.3f}dB (SPICE 대조값 4.59dB, 오차<0.2dB)")
     # 앵커3(2026-08-03 신설): 위 두 앵커는 모든 gm을 119uS로 같게 놓아서 "Kp'에 캐스코드 gm을
     # 쓰느냐 입력쌍 gm을 쓰느냐"의 차이가 **원리적으로 드러나지 않는다**(정확히 그래서 옛 식의
     # 오류가 오래 숨어 있었다). 캐스코드 gm과 입력쌍 gm의 비를 크게 어긋나게 잡은 점을 추가해
@@ -2371,8 +2216,6 @@ if __name__ == "__main__":
     assert abs(_crt_cmrr_db3 - 0.0635) < 0.2, \
         f"앵커3(SPICE 0.0635dB)과 어긋남: {_crt_cmrr_db3} -- Kp'/Kn'에 캐스코드 gm 대신 " \
         f"입력쌍 gm을 쓰면 여기서 7.04dB가 나온다(2026-08-03 정정된 옛 버그의 회귀)"
-    print(f"    PASS(앵커3, 캐스코드 gm != 입력쌍 gm): CMRR={_crt_cmrr_db3:.4f}dB "
-          f"(SPICE 실측 0.0635dB / 옛 입력쌍-gm 식이면 7.044dB -- 두 식이 갈리는 점)")
 
     print()
     print("  [cmrr_estimate -- telescopic_class_ab_cmfb family(2026-08-03 신규 유도, CMFB 루프")
@@ -2422,10 +2265,6 @@ if __name__ == "__main__":
     assert all(_crt_by_name[d].drain == _crt_by_name["M15"].drain
                for d in _cmfb_roles["cmfb_stage2_devices"]), \
         "cmfb_stage2_devices가 같은 2단 출력노드(Vom)를 구동하지 않음"
-    print(f"    PASS: CMFB 연결 확인(Vcmfb={_vcmfb_net!r} = M36a 자기 diode = M37a.drain, "
-          f"M36b는 독립 diode({_crt_by_name['M36b'].drain!r}), Voc_des={_vocdes_net!r} = "
-          f"M39/M40 PMOS diode 분압기, tail={_crt_by_name['M38'].drain!r}), "
-          f"Voc={_voc_net!r}는 R1/R2(트랜지스터 아님)가 구동")
 
     print()
     print("  [cmrr/psrr_estimate -- telescopic_class_ab_cmfb family(2026-08-07 세션21 전면")
@@ -2477,7 +2316,6 @@ if __name__ == "__main__":
     _cmfb_ac = _cmfb_amp_gain_diode_load(_cmfb_spec, _cmfb_ctx)
     assert -1.0 < _cmfb_ac < 0.0, f"A_c가 O(1) 음수가 아님: {_cmfb_ac}"
     assert abs(_cmfb_ac - (-0.62960331)) < 1e-6, f"A_c 회귀(sympy 정확해 대조): {_cmfb_ac}"
-    print(f"    PASS: A_c={_cmfb_ac:.6f} (M10/M19와 무관, 세션20 sympy 정확해 그대로)")
 
     _cmfb_db1 = compute_metric(_cmfb_spec, _cmfb_ctx)
     # 자기회귀 -- _telescopic_class_ab_open_loop_gains()를 직접 호출해 조합한 값과 일치하는지.
@@ -2488,22 +2326,18 @@ if __name__ == "__main__":
     _cmrr_direct = 20 * math.log10(abs(_adm_o / _acm_o) * (1.0 + _t))
     assert abs(_cmfb_db1 - _cmrr_direct) < 1e-9, "compute_metric() 경유값과 직접조합값이 어긋남"
     assert abs(_cmfb_db1 - 128.7182) < 0.01, f"CMRR 회귀(세션21 신규 앵커)와 어긋남: {_cmfb_db1}"
-    print(f"    PASS(자기회귀): CMRR={_cmfb_db1:.4f}dB (Adm_open={_adm_o:.4g}, "
-          f"Acm_open={_acm_o:.4g}, H={_h_o:.4g}, T={_t:.4g} -- ngspice 독립검증은 다음 세션)")
     # 앵커2: Ry를 20배(gds5 x0.05), gm7을 4배 -- CMFB 루프이득이 더 커지는 방향인지(부호 확인).
     _cmfb_ctx.sized["M5"]["gds"] = 1.0e-6 * 0.05
     _cmfb_ctx.sized["M7"]["gm"] = 90e-6 * 4
     _cmfb_db2 = compute_metric(_cmfb_spec, _cmfb_ctx)
     assert abs(_cmfb_db2 - 146.7202) < 0.01, f"CMRR 앵커2(세션21 신규) 회귀와 어긋남: {_cmfb_db2}"
     assert _cmfb_db2 > _cmfb_db1, "Ry x20/gm7 x4가 CMRR을 개선하는 방향이어야 하는데 안 됨(회귀)"
-    print(f"    PASS(앵커2, Ry x20/gm7 x4): CMRR={_cmfb_db2:.4f}dB "
-          f"({_cmfb_db2 - _cmfb_db1:+.2f}dB, 개선 방향 확인)")
     # T<=0(CM 양귀환)이면 계산을 거부하는지 -- 2단 부호를 뒤집어(cm_sense_gain<0) 확인한다.
     try:
         compute_metric({**_cmfb_spec, "cm_sense_gain": -1.0}, _cmfb_ctx)
         raise AssertionError("T<=0(CM 양귀환)인데 에러가 안 났다")
     except ValueError as _e_ac:
-        print(f"    PASS: T<=0 거부 -- {str(_e_ac)[:60]}...")
+        pass
     _cmfb_ctx.sized["M5"]["gds"] = 1.0e-6
     _cmfb_ctx.sized["M7"]["gm"] = 90e-6
 
@@ -2514,19 +2348,14 @@ if __name__ == "__main__":
     _psrr_cmfb_db1 = compute_metric(_psrr_cmfb_spec, _cmfb_ctx)
     _psrr_direct = 20 * math.log10(abs(_adm_o / _ann_o)) + 20 * math.log10(abs(1.0 + _t))
     assert abs(_psrr_cmfb_db1 - 89.3832) < 0.01, f"PSRR 회귀(세션21 신규 앵커)와 어긋남: {_psrr_cmfb_db1}"
-    print(f"    PASS(자기회귀): PSRR={_psrr_cmfb_db1:.4f}dB (Ann_open={_ann_o:.4g}, "
-          f"ngspice 독립검증은 다음 세션)")
     # CMFB 루프 보정(+20log10(1+T))이 CMRR/PSRR 둘 다 같은 T를 쓰는지 -- 값 자체가 같은
     # 31소자망/같은 H/A_c/G2에서 나오므로 이제 항등이 아니라 "둘 다 같은 T 사용"만 확인하면 됨.
     _psrr_cmfb_open_db1 = _psrr_cmfb_db1 - 20 * math.log10(abs(1.0 + _t))
-    print(f"    PASS: PSRR_open(추정)={_psrr_cmfb_open_db1:.3f}dB -> "
-          f"PSRR_closed={_psrr_cmfb_db1:.3f}dB (CMFB 보정 +{20*math.log10(abs(1.0+_t)):.3f}dB, "
-          f"CMRR과 동일 T={_t:.4g} 재사용 확인)")
     try:
         compute_metric({**_psrr_cmfb_spec, "cm_sense_gain": -1.0}, _cmfb_ctx)
         raise AssertionError("PSRR family에서 T<=0(CM 양귀환)인데 에러가 안 났다")
     except ValueError as _e_psrr_t:
-        print(f"    PASS: PSRR family도 T<=0 거부 -- {str(_e_psrr_t)[:50]}...")
+        pass
 
     print()
     print("  [smallsignal_ratio_db/smallsignal_gain_db -- topology-무관 일반화(세션21 2차)]")
@@ -2591,15 +2420,10 @@ if __name__ == "__main__":
     assert abs(_ss_psrr - 105.5051) < 0.01, f"psrr ngspice 대조(105.5051dB)와 어긋남: {_ss_psrr}"
     assert abs(_ss_cmrr - 125.76715845307814) < 1e-6, f"cmrr(신규) 자기회귀: {_ss_cmrr}"
     assert abs(_ss_cmrr - 125.1843) < 1.0, f"cmrr ngspice 대조(125.1843dB)와 어긋남(오차<1dB 기대): {_ss_cmrr}"
-    print(f"    PASS: gain_full_circuit_db={_ss_gain:.4f}dB (ngspice 99.0154dB, 오차<0.001dB)")
-    print(f"    PASS: psrr_estimate_db(신규)={_ss_psrr:.4f}dB (ngspice 105.5051dB, 오차<0.001dB)")
-    print(f"    PASS: cmrr_estimate_db(신규)={_ss_cmrr:.4f}dB (ngspice 125.1843dB, 오차 0.58dB)")
     # bias-gen이 vdd 리플을 그대로 따라간다는 것도 회귀로 고정(세션21 2차의 핵심 발견 --
     # 이상적 전류원 Iref를 개방회로로 다루면 diode-connected M18_bg가 Vbias1=vdd를 강제).
     _sol_vdd = _full_circuit_response(_full_ctx, {"vdd": 1.0}, also_fix=frozenset({"Vip", "Vim"}))
     assert abs(_sol_vdd["Vbias1"] - 1.0) < 1e-9, f"Vbias1이 vdd를 그대로 안 따라감: {_sol_vdd['Vbias1']}"
-    print(f"    PASS: Vbias1(vdd=1V 리플) = {_sol_vdd['Vbias1']:.6f} (bias-gen이 vdd를 그대로 "
-          f"따라감 -- Iref를 이상적 전류원=개방회로로 다룬 결과, 정직한 최악 가정)")
 
     print()
     print("# current_reuse_telescopic_topology() 등록 재확인(2026-07-31, 원문 Eq.2-6 재도출 후,")
@@ -2667,7 +2491,6 @@ if __name__ == "__main__":
     _vtdo_v1 = validate_theta_declaration_order(_vtdo_bad1)
     assert len(_vtdo_v1) == 1 and _vtdo_v1[0]["theta"] == "theta_n", \
         f"gm_id_match_vgs_of 순서위반을 못 잡음: {_vtdo_v1}"
-    print(f"    PASS: gm_id_match_vgs_of 순서위반 감지 -- {_vtdo_v1[0]['problem']}")
 
     _vtdo_bad2 = {"compensation": None, "sizing_roles": {"theta": [
         {"name": "c_theta", "bounds": [0, 1], "feeds": {"type": "C", "target": "X", "reference": "Y"}},
@@ -2676,7 +2499,6 @@ if __name__ == "__main__":
     _vtdo_v2 = validate_theta_declaration_order(_vtdo_bad2)
     assert {v["theta"] for v in _vtdo_v2} == {"c_theta", "y_theta"}, \
         f"C타입 reference 연쇄 순서위반을 못 잡음: {_vtdo_v2}"
-    print(f"    PASS: C타입 reference 순서위반(연쇄 2건) 감지 -- {[v['theta'] for v in _vtdo_v2]}")
 
     print("  [올바른 순서(reference가 앞에 옴)면 위반 0건인지]")
     _vtdo_good = {"compensation": {"stage_devices": [["W"]]}, "sizing_roles": {"theta": [
@@ -2684,7 +2506,6 @@ if __name__ == "__main__":
         {"name": "y_theta", "bounds": [0, 1], "feeds": {"type": "C", "target": "Y", "reference": "Z"}},
     ]}}
     assert validate_theta_declaration_order(_vtdo_good) == [], "올바른 순서인데 위반으로 오탐"
-    print("    PASS: 올바른 순서는 위반 0건")
 
     print("  [compensation.stage_devices는 처음부터 생산됨으로 취급되는지]")
     _vtdo_comp = {"compensation": {"stage_devices": [["M1a", "M1b"]]}, "sizing_roles": {"theta": [
@@ -2692,7 +2513,6 @@ if __name__ == "__main__":
     ]}}
     assert validate_theta_declaration_order(_vtdo_comp) == [], \
         "compensation이 이미 sizing한 소자를 참조했는데 오탐 발생"
-    print("    PASS: compensation 관리 소자는 위반 없이 참조 가능")
 
     print("  [실제 library topology.json 4개 전부 위반 0건인지(reorder 이후 회귀 확인)]")
     import glob as _vtdo_glob
@@ -2705,4 +2525,3 @@ if __name__ == "__main__":
         _vtdo_v = validate_theta_declaration_order(_vtdo_meta)
         _vtdo_name = _os.path.basename(_vtdo_path)
         assert _vtdo_v == [], f"{_vtdo_name}에 선언 순서 위반: {_vtdo_v}"
-        print(f"    PASS: {_vtdo_name} -- 위반 0건")
