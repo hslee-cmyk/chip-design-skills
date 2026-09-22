@@ -480,6 +480,7 @@ def _group_block_sections(block: ast.If):
     groups = []
     prelude_stmts = []
     cur = None
+    prev_top_kind = None  # 바로 앞 최상위 문장의 표지 종류(classify_marker 결과, 표지가 아니면 None)
     for stmt in block.body:
         mk = classify_marker(stmt)
         if mk is None:
@@ -488,12 +489,13 @@ def _group_block_sections(block: ast.If):
             else:
                 cur["stmts"].append(stmt)
         else:
-            if cur is not None and cur["kind"] == "major" and mk == "major":
+            if cur is not None and mk == "major" and prev_top_kind == "major":
                 cur["stmts"].append(stmt)
             else:
                 if cur is not None:
                     groups.append(cur)
                 cur = {"kind": mk, "stmts": [stmt]}
+        prev_top_kind = mk
     if cur is not None:
         groups.append(cur)
     return [{"kind": "prelude", "stmts": prelude_stmts}] + groups
