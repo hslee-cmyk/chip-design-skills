@@ -14828,3 +14828,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 
 - C3 20260922-ts0-test16-fixture 완료(gate 1928ece): TS0, test-only. R1 첫 실사용 -- 1차 시도 V5 FAIL(기준선 .log 발견, diff_hash 89894f9c…) -> blob 운반 + 사용자 DEC-40 승인 20260922-ts0-baseline-test16 -> 정리(D-3 수정으로 audit remove --force 무개입) -> 2차 시도 cp 복원(blob b6fc650b 일치) -> V5 approved:true. DF-17 해소. 운반 디렉터리 삭제(R1 4단계).
 - 다음: C4 ts3-assert-verdicts(TS3, test-only, print 판정 354 -> assert, 데모 18 삭제 U-41, R1 필요).
+
+- C4 20260922-ts3-assert-verdicts 완료(gate a590fc1): TS3 test-only, print 판정 354 -> 0(assert 43 = 조건식 34 + try 본문 assert False 9), 데모 18섹션 삭제(U-41), contract test_ts3_no_print_verdicts. DEC-40 20260922-ts3-verdict-conversion(V5 발견 7건, 오케스트레이터가 '비교 완화' 9개 = 삭제 데모·중복 print임을 대조). R1 2회째 성공.
+- ★사고와 규칙: (1) push와 정리를 병렬 호출해 push 실패(EL4) 전에 브랜치를 지웠다 -> 사용자가 `git branch role/test/<id> <T>`로 복구. push는 단독 실행·전체 출력 확인 뒤 정리. (2) EL4 §9.2-9는 checks.V5.basis의 64자리 16진을 **전부** 승인 target으로 대조 -- auditor가 V5 basis에 출력 sha256을 넣어 거부. auditor 브리핑에 "V5 basis에는 승인 target 외 64hex 금지"를 넣을 것.
+- 백로그 B6: C1 `sections`가 비연속 대 표지 섹션을 합침(§5.1 위반: stick 128 vs 174) -- C9(M1·M2 매핑이 sections 입력) 전에 결정 필요.
