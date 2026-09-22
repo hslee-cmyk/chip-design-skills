@@ -396,6 +396,7 @@ approval: <승인 기록 id>                                  # 반복
 | 8 | 오케스트레이터 | `git -C $W/<id>-audit push gate role/audit/<id>:master`(gate `pre-receive`가 §9.2로 판정) → `git fetch gate` → 메인 worktree에서 `git merge --ff-only gate/master` |
 | 정리 | 오케스트레이터 | `git worktree remove [--force] $W/<id>-{test,code,audit}`, `git branch -D role/{test,code,audit}/<id>`. EL3에 막혀 병합 상태가 남으면 `git -C $W/<id>-audit merge --abort`. `--force`는 이 세 경로에만(§12-3 미커밋 기록·중단된 병합이 남은 재시도 정리, ⑤ 재생 D-3) |
 | 재시도 | 오케스트레이터 | auditor FAIL·dispute·push 거부 뒤에는 정리 형태로 세 worktree·브랜치를 지우고 같은 id로 1부터 다시 한다(거부된 push는 gate에 흔적이 없다). 부분 되돌리기(`reset`·`rebase`)는 쓰지 않는다. **dispute가 있으면 정리 전에**(review30 R-16: dispute는 code worktree에만 있어 정리가 지운다) 오케스트레이터가 그 파일을 읽어 메인 worktree의 spec card 개정에 `## dispute 기록` 절(원문 인용 + blob id)로 남겨 커밋하고, 사용자 결정은 `target_kind: decision` 승인 기록으로 받는다. 이 커밋 전에는 EL1이 code worktree 정리를 거부한다(§6.2). spec card 개정의 gate push는 정리 뒤에 한다(진행 중 push 거부) |
+| V5 승인 운반 | 오케스트레이터 | test 내용이 정해진 뒤 받는 V5(기준 약화) 승인은 병합 판정이 head 트리에서 찾으므로 1차 시도에서 2차 시도로 운반한다(2026-09-22 `10-test-separation` R1, U-42): (1) 1차 시도 순서 1~3, auditor가 `weakening_diff.py` 출력을 `base_check.json`에 남기고 V5 FAIL로 멈춘다 (2) 정리 **전에** 발견 경로마다 `git -C $W/<id>-test cat-file blob <T>:<path> > docs/03-analysis/<feature>-<design>/v5-carry/<id>/<blob id>.blob`(파일 이름은 blob id -- 판정 환경 이름 회피)와 대응표 `v5-carry/<id>/paths.tsv`(`<path>` 탭 `<blob id>`), 사용자 승인 뒤 승인 기록(`diff`, `diff_base` = base, `diff_head` = T, `diff_path` = 발견 경로, `target` = diff 해시) -- 정리 뒤 `Role: doc` 커밋·gate push (3) 2차 시도에서 test-author가 `paths.tsv`대로 `.blob`을 `cp`로 원래 경로에 두어 같은 blob을 만든다(diff 해시는 blob id라 같다, `00-common` §8.2) (4) 그 card 병합 뒤 운반 디렉터리 삭제(`Role: doc`) |
 
 ---
 
@@ -552,7 +553,7 @@ review30~35 여섯 회차 동안 독립 검증의 S1을 위협 범위(계획 N3.
 
 ## 18. 역할별 산출물 (N9.2-5)
 
-Phase 0.5는 부트스트랩이라 spec card가 없다(산출물은 §13.1의 커밋과 승인 기록). ⑤ 뒤 게이트 변경은 spec card로 한다(red-green, oracle (a) -- 공격 케이스는 구성으로 정답이 정해진 합성 입력).
+Phase 0.5는 부트스트랩이라 spec card가 없다(산출물은 §13.1의 커밋과 승인 기록). ⑤ 뒤 게이트 변경은 spec card로 한다(red-green, oracle (a) -- 공격 케이스는 구성으로 정답이 정해진 합성 입력. 판정 기준 데이터만 바꾸는 게이트 변경 -- `tools/gates/redteam/**`만 바꾸고 code 커밋이 없는 것 -- 은 test-only, 2026-09-22 `10-test-separation` R2 개정).
 
 ---
 

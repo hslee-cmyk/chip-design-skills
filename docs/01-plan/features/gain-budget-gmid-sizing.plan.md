@@ -546,17 +546,18 @@ skills/analog-gmid-design/assets/tests/
   regression/      library 회로 측정(대상 구분 DEC-47), 규칙 분기 발동표(DEC-59)
   oracles/         test-author 소유 독립 참조구현
   legacy/          TS1 이관본(TS2 완료 시 삭제)
+  tooling/         code-author 도구(tests/tools/, tools/migrate/)의 test(test-author)
   tools/           정본 데이터를 갱신하는 운영 도구, 계측 도구(성능·무동작)(code-author 소유, 그 test는 test-author. pytest 수집 제외. `00-common` §10·§11)
   probes/          일회성 진단(pytest 수집 제외)
 ```
 
 | 단계 | 내용 | 완료 판정 | Phase |
 |---|---|---|---|
-| TS0 | stick_diagram Test 16 `FAIL(예상과 다름)`의 의도 판정(U-01) -> test 또는 대상 수정 | 판정 기록 + 기준선 재생성(DEC-40 승인) | 1 |
-| TS1 | 두 `if __name__ == "__main__"` 블록을 추출 스크립트(`tools/migrate/extract_selftest.py`)로 `tests/legacy/`에 본문 그대로 이관. test 커밋(legacy 추가) -> auditor 동등성 -> code 커밋(소스 블록 삭제) -> auditor 재확인. `import *` 대신 명시 import, library 경로 인자화. 추출 스크립트는 code-author가 작성하고 test-author가 Bash로 실행해 출력을 커밋한다(스크립트 실행은 Read 도구 거부 대상이 아니며, 산출물이 본문 그대로임은 auditor의 stdout 동등성으로 판정). 추출 스크립트는 선행 변경 `<id>-extract-tool`(code-author 작성, red-green: test-author가 합성 입력 파일의 추출 결과를 단정하는 test)로 먼저 병합하고, TS1 변경의 base는 그 병합 커밋이다 | `PYTHONHASHSEED` 1~5 각각에서 이관 전·후 stdout 바이트 동일 | 1 |
+| TS0 | stick_diagram Test 16 `FAIL(예상과 다름)`의 의도 판정(U-01) -> test 또는 대상 수정(U-01 확정: test 수정, 판정 유형 test-only) | 판정 기록 + 기준선 재생성(DEC-40 승인) | 1 |
+| TS1 | 판정이 있는 인라인 self-test 블록 전부(`10-test-separation` §5.1 규칙, 2026-09-21 실측 4개: `sizing_recipe`·`stick_diagram`·`design_report`·`topology_library`)를 추출 스크립트(`tools/migrate/extract_selftest.py`)로 `tests/legacy/`에 본문 그대로 이관. test 커밋(legacy 추가) -> auditor 동등성 -> code 커밋(소스 블록 삭제) -> auditor 재확인. `import *` 대신 명시 import, library 경로 인자화. 추출 스크립트는 code-author가 작성하고 test-author가 Bash로 실행해 출력을 커밋한다(스크립트 실행은 Read 도구 거부 대상이 아니며, 산출물이 본문 그대로임은 auditor의 stdout 동등성으로 판정). 추출 스크립트는 선행 변경 `<id>-extract-tool`(code-author 작성, red-green: test-author가 합성 입력 파일의 추출 결과를 단정하는 test)로 먼저 병합하고, TS1 변경의 base는 그 병합 커밋이다 | `PYTHONHASHSEED` 1~5 각각에서 이관 전·후 stdout 바이트 동일 | 1 |
 | TS2 | 섹션 하나 = test 함수 하나. 전역 `lut` -> fixture, 섹션 사슬 -> 명시 fixture, 거부 케이스 -> `pytest.raises`, `_drl_case` -> parametrize | 기본 순서와 `--shuffle-seed` 1~5 모두 통과 | 1 |
 | TS3 | print·PASS 문자열 판정을 assert로 바꾸고 판정 없는 데모는 삭제 | `tests/**`(probes·tools 제외)에서 print·logging 인자 안의 PASS/FAIL 토큰 0(AST 검사) | 1 |
-| TS5 | stdout 기준선 퇴역: `tests/baseline/` 삭제, README를 pytest 실행법으로 교체 | 기준선 참조 0 | 1(TS3 직후) |
+| TS5 | stdout 기준선 퇴역: `tests/baseline/` 삭제, README를 pytest 실행법으로 교체 | 기준선 참조 0 | 1(TS3 직후. 순서: 이관본에서 TS3가 TS2보다 먼저 -- `10-test-separation` §4) |
 | TS4 | 자기참조 기대값 제거(피검 식으로 기대값을 만든 test를 oracle 4종으로 교체) | 해당 결함 test가 base에서 FAIL(DF-09 등) | 4(첫 작업) |
 | TS6 | probe 정리: 승격(후보 `probe_gm_id_monotonicity`, `probe_physical_consistency`, `probe_parasitic_pm_all_circuits`, `probe_role_L_derivation`, `probe_lut_L_interpolation`, `probe_revalidation_scope`, `probe_prevention_wiring`) / 삭제(U-02) / probes 이동 / 운영 도구 `derive_achievable_bounds.py`는 `tests/tools/`로 이동. probe 안의 엔진 로직 복제(IDu 식, 미러 그룹, 노드전압 전파 등)는 엔진 정본 호출로 교체. 운영 도구 이동은 code 커밋(`tests/tools/`에 추가) 뒤 test 커밋(원본 삭제)의 두 커밋으로 하고, 이 부분은 순서 4·5를 생략하지 않는다 | probe의 엔진 식 재구현 0 | 2 |
 | TS7 | 계약 test: Phase 1에서 xfail(reason에 담당 Phase·만료 = 그 Phase DoD)로 선언, 담당 Phase에서 활성화(N4.1 표) | 담당 Phase DoD에서 PASS | 1~7c |
@@ -683,7 +684,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정�
 | 7 | 오케스트레이터 | audit 브랜치 끝(판정 기록 커밋)을 gate 저장소 `master`로 push한다(`pre-receive`의 EL4가 통과시킬 때만 반영된다). 로컬 master는 그 뒤 gate에서 fast-forward로 받는다. EL4는 병합 아닌 커밋마다 트레일러·경로를 검사하고, 병합 커밋은 변경 한 건 구조의 병합(첫 부모 = test 끝, 둘째 부모 = code 끝, 트리 = code 끝 트리, `Role: doc`)이거나 **역할 밖 병합**(부모 둘, 첫 부모가 base와 같거나 그 후손, 역할 경로에서 트리가 첫 부모와 같다 -- 다른 skill·RTL 작업, `05-role-separation` §8.2-3 (라))일 때만 받는다 |
 
 * 판정 유형: 동작을 바꾸는 변경은 `red-green`(새·바뀐 test가 base에서 FAIL, 병합본에서 PASS). 동작을 보존하는 변경(TS1, Phase 2 통합, Phase 3 이동)은 `equivalence`(test 커밋이 그대로이고 base와 병합본 모두 통과, 추가로 TS1은 stdout 동일, Phase 3은 AST 해시 동일).
-* test 전용 변경(판정 유형 `test-only`: TS2·TS3·TS5, TS6의 probe 승격·삭제): 순서 4·5를 생략한다. 증거 = 변경 전 test 집합이 base에서 통과시킨 섹션을 변경 후 test가 모두 PASS함(섹션->test 매핑표는 `10-test-separation` design).
+* test 전용 변경(판정 유형 `test-only`: TS0·TS2·TS3·TS5·TS7, TS6의 probe 승격·삭제, redteam 데이터만 바꾸는 게이트 변경): 순서 4·5를 생략한다. 증거 = 변경 전 test 집합이 base에서 통과시킨 섹션을 변경 후 test가 모두 PASS함(섹션->test 매핑표는 `10-test-separation` design).
 * oracle은 4종만(N0.4). 피검 함수 호출이나 피검 식 복사, 현재 출력 붙여넣기로 기대값을 만들지 않는다. **선택 기준**: 물리 불변식(KVL·KCL·VGS 정합·단조성)이나 구성으로 정답이 정해진 합성 입력으로 표현되면 (a), 다른 방법의 폐형식·축소 격자 전수탐색이 가능하면 (b), 기준선이 존재하고 동작 보존 변경이면 (c), 회로 해석 결론이나 사용자가 선언한 스펙값이면 (d)다. 두 종 이상 가능하면 **(a)를 우선**하고(피검 구현과 가장 멀다), 고른 종과 그 근거를 spec card의 'oracle 종류와 출처'에 적는다.
 * 판정은 PASS / FAIL / XFAIL 세 값. XFAIL은 reason에 담당 Phase와 만료(그 Phase DoD)를 적고, 만료되면 FAIL. "참고" 출력과 소비자 없는 경고 리스트는 금지.
 * 기준 약화는 test-author 커밋이라도 승인 기록이 있어야 병합된다(DEC-40, V5).
@@ -994,7 +995,7 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정�
 | 0 | 함수 재사용 레지스트리 | -- | -- | ✅ 완료 |
 | **0(문서)** | 13개 design 문서가 공유하는 정의를 한 곳에 모으는 `00-common` 작성(Phase가 아니라 문서 단계다) | -- | **다른 design 문서보다 먼저**. 이 계획서의 N0.4·DEC-67·DEC-68·69·N3.12.5·N3.14·N4.1·N4.2·N6.3이 확정돼 있을 것 | `00-common` |
 | **0.5** | 역할 분리 인프라(N3.12.6), 공격 시나리오·과거 사례 재생 5건(N4.3) | 부트스트랩 | U-15(닫힘), U-16, U-38(확정), U-39(MG0 착수 전). MG0(`_TEMPLATE`·topology 문서 필드는 U-16 확인 후 오케스트레이터, 계획 명칭은 v5.10) | `05-role-separation` |
-| 1 | TS0, TS1, TS2, TS3, TS5, TS7 선언. IC3(필드 완전성·이름 충돌 검사 신설)·IC5(게이트 docstring '검사하지 않는 것' 절 추가) 활성 | TS0·IC3·IC5 red-green, TS1 equivalence, TS2·TS3·TS5 test-only | U-01 | `10-test-separation` |
+| 1 | TS0, TS1, TS2, TS3, TS5, TS7 선언. IC3(필드 완전성·이름 충돌 검사 신설)·IC5(게이트 docstring '검사하지 않는 것' 절 추가) 활성 | C1(추출 도구)·IC3·IC5 red-green, TS1 equivalence, TS0·TS2·TS3·TS5·TS7 test-only | U-01 | `10-test-separation` |
 | 2 | TS6, 레지스트리 등급 D 삭제(배선을 고른 항목은 Phase 4로), 레지스트리 §2에서 "행동 보존 통합 가능"인 DUP 통합, DF-23 전수 목록(소자·넷·회로 이름 리터럴과 topology 파일 경로. DF-29~DF-34 포함) | equivalence(TS6은 test-only, 운영 도구 이동은 code·test 두 커밋) | U-02 | `20-dead-code-dup` |
 | 3 | 10모듈 이동(N3.10), shim, 추적 파일 호출부 갱신 후 `sizing_recipe.py` 삭제 | equivalence | U-03 | `30-module-split` |
 | 4 | TS4 → DF-35 → DF-36 → `00-common` CC-4의 앞부분(실패 클래스·`FailureRecord`·`exit_code_for`와 DF-37의 하네스 `run()` 몫) → CC-7·CC-8(측정·무동작 도구가 이후 card에 쓰이도록 Phase 4 앞쪽에 둔다) → 나머지. Phase 4 전체 범위: TS4, DF-01~15·18~20·22~24·26·27·35~37, **DF-34의 Phase 4 몫**(회로별 `_spec_*()`이 따로 복사한 PDK 상수 제거 -- 함수 자체를 데이터 항목으로 바꾸고 삭제하는 것은 7b다), MG1 레일 이름 변경(DEC-69), U-27 LUT 재생성, PDK 상수 한 곳 선언(U-30), Phase 2에서 배선을 고른 함수 배선, `fallback_events` 계측(V8), 기존 4개 회로 실행 가능성(I-C11), IC11 활성 | red-green | U-04, U-05, U-09, U-26, U-27 | `40-defect-fixes` |
@@ -1112,6 +1113,9 @@ hook 판정 범위: `agent_type`이 `gmid-*`인 호출은 그 역할로 판정�
 | U-38 | 판정 기록 로더(merge gate)와 로드 게이트가 JSON Schema 검증에 `jsonschema` 패키지를 쓸지(의존성 추가, WP-20) | **확정(2026-09-18): 쓴다** -- 스키마(`.ai/verification/_schema.json`)를 손으로 옮긴 검증기를 따로 두면 스키마와 검증기가 두 정본이 된다. 단 `format: date-time`은 형식 검사기가 없으면 강제되지 않으므로 로더가 따로 검사한다(`00-common` §8.1. 근거는 독립 검증 review21·review22). `tools/gates/requirements.txt`에 `pytest`도 같은 방식으로 고정한다(`판정 환경` 행 후보 대조의 기준 판, `05-role-separation` §9.2-10) | Phase 0.5 |
 | U-39 | MG0의 `_paper_target_spec` 처리 -- N3.16 MG0 행은 5회로의 `_paper_target_spec`을 `_declared_target_spec`로 바꾸라 하면서 문헌 `supply_v`는 `_paper_target_spec.supplies_v`로 두라 하고, N6.2 0.5는 `_paper_target_spec` 컨테이너명 0을 요구해 서로 어긋난다 | **확정(2026-09-21, 기본안, 승인 기록 `20260921-u39-paper-target-spec`)**: 지금의 `_paper_target_spec` 컨테이너(사용자가 확정한 스펙 -- U-25·U-34)를 `_declared_target_spec`로 옮기고, 문헌 값만 새 `_paper_target_spec`에 둔다. N6.2 0.5 DoD는 'JSON 파싱 기준: 5회로에 `_declared_target_spec` 있음, `sky130_supplies_v`·`input_dc_v` 키 0, `_paper_target_spec`에는 문헌 출처 필드만'으로 고친다. 회로별로 어느 값이 사용자 확정인지는 사용자가 확인한다 | 0.5(MG0 착수 전) |
 | U-40 | 역할 분리 게이트(역할 hook·git hook·gate)의 해제 시점과 절차 -- 역할 hook은 이 저장소 프로젝트 설정에 걸려 이 저장소의 모든 도구 호출에 판정 전 비용(실측: 호출당 약 1.0~1.15 s)을 더한다 | 기본안: `analog-gmid-design` 엔진을 고치는 동안 유지하고, 7c가 끝나면 그때의 엔진 변경 계획으로 유지·해제를 정한다. 해제는 부트스트랩 ④의 역순(프로젝트 설정의 역할 hook 항목 제거, `.githooks` 되돌림, gate 원격 제거)이며 승인 기록이 필요하다. 무관한 호출의 비용은 설치 후 첫 게이트 변경으로 '빠른 통과'(판정 대상 경로가 없는 호출은 git 없이 통과)를 넣어 줄일 수 있다(⑤ 실측 뒤 판단) | 7c 착수 전 |
+| U-41 | TS3에서 판정 없는 데모 섹션 18개(`10-test-separation` §6.3 표)를 지울지 | **확정(2026-09-22, 기본안, 승인 기록 `20260922-10-test-separation-design`)**: 모두 삭제(N3.11 TS3 문언) | Phase 1(C4) |
+| U-42 | V5 승인 운반 절차(`05` §12 'V5 승인 운반' 행)를 채택할지 | **확정(2026-09-22, 기본안, 같은 승인 기록)**: 채택 | Phase 1(C3·C4·C5·C6·C8·C9) |
+| U-43 | `.gitignore`의 기준선 예외 3줄을 지울지 | **확정(2026-09-22, 기본안, 같은 승인 기록)**: C5 병합 뒤 사용자가 삭제(`Role: user`) | Phase 1(D5) |
 
 ---
 

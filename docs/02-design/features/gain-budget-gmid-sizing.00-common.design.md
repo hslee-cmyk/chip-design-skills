@@ -140,7 +140,7 @@ Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는�
 | S1 관계 엣지 | 필드 `domain` | §4 값 집합 | 6a 로드 게이트(엣지마다 필수, 값 집합 밖 거부) |
 | metric 선언 | 필드 `domain` | `"dc"` / `"ss"` / `"ls"`(`ac_struct`는 수치가 아니라 metric에 쓰지 않는다) | 6a GB0 로드 게이트(N6.1 6a '영역 표기') |
 | S2 필드 | 영역별 하위 묶음 `dc` / `ss` / `ls` | 필드 이름은 6b design | 6b |
-| 게이트 함수(N4.1 IC5 이름 집합) | docstring의 `영역:` 한 줄. 값은 §4 영역 값 하나 이상(쉼표 구분), 또는 영역 판정이 없는 스키마·경로 게이트는 `영역: 없음(스키마)` | IC5 '검사하지 않는 것' 절과 같은 docstring | IC5 test(N4.1 IC5, Phase 1 `10-test-separation`) |
+| 게이트 함수(N4.1 IC5 이름 집합) | docstring의 `영역:` 한 줄. 값은 §4 영역 값 하나 이상(쉼표 구분), 또는 영역 판정이 없는 스키마·경로 게이트는 `영역: 없음(스키마)`, 레이아웃(배치) 게이트는 `영역: 없음(배치)`(2026-09-22 `10-test-separation` C1 개정) | IC5 '검사하지 않는 것' 절과 같은 docstring | IC5 test(N4.1 IC5, Phase 1 `10-test-separation`) |
 
 * 상수 `DOMAINS = ("dc", "ac_struct", "ss", "ls")`는 MOD2 `topology_authoring.py`에 두고, 첫 소비자인 6a S1 엣지 `domain` 로드 검사와 같은 변경 단위(CC-6)에서 만든다. IC5 docstring 검사는 `DOMAINS`가 생기기 전(Phase 1)에도 돌아야 하므로 허용 문자열을 test-author가 §4 표에서 옮겨 둔다(oracle (d)). 두 곳에 같은 값 집합이 생기므로 CC-6이 "IC5 허용 영역 문자열 = `DOMAINS`" 대조 test를 함께 넣는다.
 * `ac_struct`는 **값**이다. DEC-68의 `ac_` 접두사 규칙은 **키 이름**(`ac_excite`)에 대한 것이라 충돌하지 않는다.
@@ -550,7 +550,7 @@ auditor는 결과를 `.ai/verification/<spec card id>/noop-<circuit>.json`에 �
 |---|---|---|---|---|---|
 | CC-1 | merge gate 로더(§8.1 로더 규칙 전부 + diff·`staged_diff`·`plan_tables` 해시 재계산 -- red·outputs 해시는 auditor가 재고 gate는 형식만), red 수집 플러그인, `parse_approval_header`, `red_failure_hash`, diff 해시 재계산(V5), U-38 의존성 선언 | 부트스트랩 | `오케스트레이터` / `사용자`(N4.3 공격 15 거부 로그) | 공격 15 케이스는 `tools/gates/redteam/`에 데이터로 두고 케이스마다 기대(거부/통과)를 적는다: 로더 규칙마다 거부 케이스 1개 이상 + review21·22·23 독립 검증 케이스(보고서 표에서 옮긴다) + 오거부 0 = 올바른 기록 3종 | `05-role-separation` |
 | CC-2 | `read_plan_tables`·`plan_phase_tokens`(§9.1·§9.2), 표 파손 거부, EL4의 판정 표 diff 승인 검사 | 부트스트랩 | `오케스트레이터` / `사용자`(N4.3 공격 16) | (d) 계획서 N4.1·N4.2·N6.1 | `05-role-separation` |
-| CC-3 | conftest `--gmid-phase`·`--gmid-strict`·`--gmid-dod` 옵션, `gmid_ic` 표식(케이스 키)과 xfail 생성, 표식-계획서 N4.1 대조 test(§9.3) | test-only가 아니라 TS7 선언의 일부(N3.11 TS7, Phase 1) -- 대조 test의 red는 표식이 계획서와 다른 합성 test 파일에서 FAIL | `gmid-test-author` / `사용자`(계획서 N4.1 승인) | (d) 계획서 N4.1(승인 판 커밋 해시) | `10-test-separation` |
+| CC-3 | conftest `--gmid-phase`·`--gmid-strict`·`--gmid-dod` 옵션, `gmid_ic` 표식(케이스 키)과 xfail 생성, 표식-계획서 N4.1 대조 test(§9.3) | test-only(TS7 card, N3.11 TS7, Phase 1 -- 2026-09-22 `10-test-separation` C2 개정) -- 대조 test의 red는 표식이 계획서와 다른 합성 test 파일에서 FAIL | `gmid-test-author` / `사용자`(계획서 N4.1 승인) | (d) 계획서 N4.1(승인 판 커밋 해시) | `10-test-separation` |
 | CC-4 | **앞부분**(Phase 4에서 CC-7·CC-8보다 먼저): §7.1(MOD2·MOD4 형식), 진입점 exit code(DF-37의 하네스 `run()` 몫), §9.3 N3.14 부분. **나머지**: DF-37 광범위 except 재raise | red-green | `gmid-code-author` / `gmid-test-author` | (a) 예외 계층·exit code 불변식, (d) 계획서 N3.14 | `40-defect-fixes` |
 | CC-5 | `LEGACY_NAMES`·`JSON_KINDS`·`load_json_checked`·`reject_legacy_names`로 `validate_no_legacy_vs_key`와 파일 읽기 `json.load` 전부 대체, 깊은 복사 관용구를 `copy.deepcopy`로(TS1 뒤 AST 계수가 0이면 해당 없음)(MG1 단위) | red-green | `gmid-code-author` / `gmid-test-author` | (d) 계획서 N3.16에서 test-author가 옮긴 기대 목록 | `40-defect-fixes` |
 | CC-6 | `DOMAINS`와 S1 엣지·metric 선언 `domain` 로드 검사, IC5 허용 영역 문자열 = `DOMAINS` 대조 test | red-green | `gmid-code-author` / `gmid-test-author` | (a) 값 집합 밖·누락 거부 | `6a-structure-stage` |
