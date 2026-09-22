@@ -14815,3 +14815,10 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - Phase 0.5 DoD: 공격·사례 재생, hook 입력 실측, agent 정의, 설치·무결성, MG0 -- 전부 충족.
 - 미커밋 사용자 경로: .githooks/gmid_gate.py(§13.4 재설치 사본, 사용자 커밋 대상).
 - 다음: Phase 1(계획 N6.1 순서의 다음 design/Phase).
+
+### 세션51 계속 -- Phase 1 착수, C1 완료 (2026-09-22)
+- U-01 확정(Test 16 = test fixture 누락, 8판 재현, 승인 20260921-u01-test16-intent). design 10-test-separation v1.2 승인(20260922-10-test-separation-design) -- review1(S1 4·S2 6) -> review2(N1) 반영, 개정 P1~P5·C1·C2·R1·R2, U-41~43 기본안.
+- C1 20260922-ts1-extract-tool: test 0e41417(34, base 전부 AssertionError) -> code f93ed4f(tools/migrate/extract_selftest.py) -> 판정 b846609(V1~V6 PASS, V7~V9 N/A) -> gate. 엔진 4모듈 extract exit 0.
+- 백로그(사용자 "백로그로 두고 C2 진행"): (B1) V3·V6 대상이 엔진 소스(_is_source)뿐이라 tools/migrate는 미검사 -- 보조 측정 변이 684 중 생존 196(28.7%); 산출물은 C2 equivalence가 직접 검증. (B2) EL1이 `mutate_changed.py --pytest-ini <캐시>/pytest_gate.ini`를 저장소 내부 인자로 거부 -- 같은 blob의 복제본 판으로 우회. (B3) V4 도구가 interface card 심볼 `*`(신규 모듈)에서 ERROR -- `--subject`로 호출. (B4) 앞 ⑤ 잔여: D-2·D-4·D-5, redteam red 증거 정의.
+- 운영: 서브agent API 연결 오류(ENOTFOUND)로 중단 시 worktree 상태 확인 뒤 SendMessage로 재개.
+- 다음: C2 ts1-legacy-move(equivalence).
