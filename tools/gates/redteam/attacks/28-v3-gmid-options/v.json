@@ -1,0 +1,141 @@
+{
+ "cases": [
+  {
+   "step": "opts-kill",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    },
+    "skills/analog-gmid-design/assets/tests/conftest.py": {
+     "text": "\"\"\"redteam 합성 conftest(공격 28): C6 conftest 계약(00-common §9.3)만 옮긴 것. phase_order는 구성으로 고정.\"\"\"\nimport pytest\n\n_PHASE_ORDER = (\"0.5\", \"1\", \"2\")\n\n\ndef pytest_addoption(parser):\n    parser.addoption(\"--gmid-phase\", action=\"store\", default=None, dest=\"gmid_phase\")\n    parser.addoption(\"--gmid-strict\", action=\"store\", default=None, dest=\"gmid_strict\")\n\n\ndef pytest_configure(config):\n    config.addinivalue_line(\"markers\", \"gmid_ic(ic, *, phase, case): redteam 합성 표식\")\n    phase = config.getoption(\"gmid_phase\")\n    if phase is None:\n        raise pytest.UsageError(\"--gmid-phase=<Phase> 가 필요하다\")\n    if phase not in _PHASE_ORDER:\n        raise pytest.UsageError(\"--gmid-phase=%s 는 phase_order 밖이다\" % phase)\n\n\ndef pytest_collection_modifyitems(session, config, items):\n    cur = _PHASE_ORDER.index(config.getoption(\"gmid_phase\"))\n    raw = config.getoption(\"gmid_strict\")\n    strict = set() if raw is None or raw == \"\" else set(raw.split(\",\"))\n    seen = set()\n    for item in items:\n        ms = list(item.iter_markers(\"gmid_ic\"))\n        if not ms:\n            continue\n        m = ms[0]\n        key = \"%s:%s\" % (m.args[0], m.kwargs[\"case\"])\n        idx = _PHASE_ORDER.index(m.kwargs[\"phase\"])\n        if idx < cur:\n            continue\n        if idx == cur:\n            seen.add(key)\n            if key in strict:\n                continue\n        item.add_marker(pytest.mark.xfail(reason=\"%s -- 담당 Phase %s\" % (m.args[0], m.kwargs[\"phase\"]), strict=False))\n    unknown = sorted(strict - seen)\n    if unknown:\n        raise pytest.UsageError(\"--gmid-strict 의 모르는 케이스 키 %s\" % unknown)\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nimport pytest\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\n@pytest.mark.gmid_ic(\"IC3\", phase=\"1\", case=\"\")\ndef test_rt_scale_two():\n    # oracle (a): rt_scale은 구성으로 '3배' -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"PASS\""
+    ],
+    "basis": "spec card 20260922-v3-gmid-options 계약 1·2, design 10 §6.10 test (1): conftest가 --gmid-phase를 요구하고 test가 IC3(Phase 1) 표식 -- 두 옵션을 주면 기준 실행 통과, 변이가 test를 깨 죽고 V3 PASS(exit 0, 05 §10). oracle (a) 구성: rt_scale=3배, 2.0->6.0. red: base 도구는 인자를 모르거나(exit 2) 옵션을 안 넘겨 UsageError로 '살아남음'(exit 1)"
+   },
+   "args": [
+    "--gmid-phase=1",
+    "--gmid-strict=IC3:"
+   ]
+  },
+  {
+   "step": "pre-c6-no-opts",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nimport pytest\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_two():\n    # oracle (a): rt_scale은 구성으로 '3배' -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"PASS\""
+    ],
+    "basis": "spec card 계약 3, design 10 §6.10 test (2): conftest 없는 C6 전 모양, 옵션 없이 -- 기존 판정(v3_survivor control과 같은 모양: 모든 변이가 죽는 test) 그대로 PASS(오거부 0)"
+   }
+  },
+  {
+   "step": "pre-c6-with-opts",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nimport pytest\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_two():\n    # oracle (a): rt_scale은 구성으로 '3배' -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"PASS\""
+    ],
+    "basis": "spec card 계약 1·3, design 10 §6.10 test (2): conftest가 옵션을 모르는 저장소에서는 옵션을 받아도 pytest에 넘기지 않아 기존 판정과 같은 PASS(오거부 0)"
+   },
+   "args": [
+    "--gmid-phase=1",
+    "--gmid-strict=IC3:"
+   ]
+  },
+  {
+   "step": "strict-outside-inventory",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    },
+    "skills/analog-gmid-design/assets/tests/conftest.py": {
+     "text": "\"\"\"redteam 합성 conftest(공격 28): C6 conftest 계약(00-common §9.3)만 옮긴 것. phase_order는 구성으로 고정.\"\"\"\nimport pytest\n\n_PHASE_ORDER = (\"0.5\", \"1\", \"2\")\n\n\ndef pytest_addoption(parser):\n    parser.addoption(\"--gmid-phase\", action=\"store\", default=None, dest=\"gmid_phase\")\n    parser.addoption(\"--gmid-strict\", action=\"store\", default=None, dest=\"gmid_strict\")\n\n\ndef pytest_configure(config):\n    config.addinivalue_line(\"markers\", \"gmid_ic(ic, *, phase, case): redteam 합성 표식\")\n    phase = config.getoption(\"gmid_phase\")\n    if phase is None:\n        raise pytest.UsageError(\"--gmid-phase=<Phase> 가 필요하다\")\n    if phase not in _PHASE_ORDER:\n        raise pytest.UsageError(\"--gmid-phase=%s 는 phase_order 밖이다\" % phase)\n\n\ndef pytest_collection_modifyitems(session, config, items):\n    cur = _PHASE_ORDER.index(config.getoption(\"gmid_phase\"))\n    raw = config.getoption(\"gmid_strict\")\n    strict = set() if raw is None or raw == \"\" else set(raw.split(\",\"))\n    seen = set()\n    for item in items:\n        ms = list(item.iter_markers(\"gmid_ic\"))\n        if not ms:\n            continue\n        m = ms[0]\n        key = \"%s:%s\" % (m.args[0], m.kwargs[\"case\"])\n        idx = _PHASE_ORDER.index(m.kwargs[\"phase\"])\n        if idx < cur:\n            continue\n        if idx == cur:\n            seen.add(key)\n            if key in strict:\n                continue\n        item.add_marker(pytest.mark.xfail(reason=\"%s -- 담당 Phase %s\" % (m.args[0], m.kwargs[\"phase\"]), strict=False))\n    unknown = sorted(strict - seen)\n    if unknown:\n        raise pytest.UsageError(\"--gmid-strict 의 모르는 케이스 키 %s\" % unknown)\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nimport pytest\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\n@pytest.mark.gmid_ic(\"IC3\", phase=\"1\", case=\"\")\ndef test_rt_scale_two():\n    # oracle (a): rt_scale은 구성으로 '3배' -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_gain_ic5.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nimport pytest\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_gain\n\n\n@pytest.mark.gmid_ic(\"IC5\", phase=\"1\", case=\"\")\ndef test_rt_gain_ic5():\n    # oracle (a): rt_gain은 구성으로 gm*ro -- 2.0*3.0 -> 6.0\n    assert rt_gain(2.0, 3.0) == 6.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"PASS\""
+    ],
+    "basis": "spec card 계약 2·4, design 10 §6.10 test (3): 엄격 집합 IC3:,IC5: 중 인벤토리(rt_scale에 닿는 test = IC3 표식 test만)에 표식이 있는 IC3:만 넘겨 conftest의 모르는 키 거부에 걸리지 않고 기준 실행 정상, 변이 죽음, V3 PASS(오거부 0). IC5 표식 test는 저장소에 있으나 인벤토리 밖"
+   },
+   "args": [
+    "--gmid-phase=1",
+    "--gmid-strict=IC3:,IC5:"
+   ]
+  }
+ ]
+}

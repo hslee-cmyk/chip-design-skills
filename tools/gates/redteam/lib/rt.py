@@ -587,6 +587,8 @@ def a_vcase(ns):
             record(name, kind=case.get("kind", "attack"), layer=tool, status="missing", missing=e.paths, expect=exp)
             continue
         cmd = iface.vtool_command(iface.PY, str(sb.gate_path(tool)), posix(root), base, head, card)
+        # 도구 추가 인자(공격 28: V3 `--gmid-phase=`·`--gmid-strict=`). 없으면 기존 명령 그대로.
+        cmd += [subst_str(a, S) for a in case.get("args", [])]
         r = sb.run_py(cmd, root)
         obj = iface.first_json_line(dec(r.stdout))
         observed = None

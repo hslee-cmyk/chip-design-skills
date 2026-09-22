@@ -1,0 +1,12 @@
+{
+ "layer": "V3",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260922-v3-gmid-options 계약 1~4, design 10-test-separation §6.10 test (1)~(3), oracle (a)(구성으로 정답이 정해진 합성 저장소 -- 합성 conftest는 실행 중 합성 저장소에 쓴다, 커밋하지 않는다)",
+ "title": "공격 28: V3 도구가 conftest의 --gmid-phase·--gmid-strict(인벤토리 표식 키만)를 넘긴다(C11)",
+ "steps_from_records": true
+}
