@@ -25,10 +25,12 @@ import subprocess
 import sys
 import tempfile
 
+import merge_gate as mg
 import reachability as rch
 
 TESTS_PREFIX = "skills/analog-gmid-design/assets/tests/"
 TESTS_TOOLS = "skills/analog-gmid-design/assets/tests/tools/"
+CONFTEST_REL = TESTS_PREFIX + "conftest.py"
 
 
 def _strip_doc(fn):
@@ -179,6 +181,77 @@ def _approved(root, rev):
     return rch._approved_ids(root, rev)
 
 
+def _dotted(node):
+    """`pytest.mark.gmid_ic` 같은 점 이어진 이름(`test_ic_markers_match_plan.py`와 같은 읽기 방식)."""
+    parts = []
+    while isinstance(node, ast.Attribute):
+        parts.append(node.attr)
+        node = node.value
+    if isinstance(node, ast.Name):
+        parts.append(node.id)
+        return ".".join(reversed(parts))
+    return None
+
+
+def _gmid_ic_calls(func_def):
+    """함수 데코레이터 식 안의 모든 `pytest.mark.gmid_ic(...)` 호출(parametrize의 pytest.param marks 포함)."""
+    out = []
+    for deco in func_def.decorator_list:
+        for node in ast.walk(deco):
+            if isinstance(node, ast.Call) and _dotted(node.func) == "pytest.mark.gmid_ic":
+                out.append(node)
+    return out
+
+
+def _marker_ic_case(call, phase):
+    """(ic, case) -- 표식 phase가 주어진 phase와 같을 때만(문자열 상수가 아니면 None)."""
+    ic = call.args[0].value if (len(call.args) == 1 and isinstance(call.args[0], ast.Constant)
+                                and isinstance(call.args[0].value, str)) else None
+    mphase = case = None
+    for kw in call.keywords:
+        if kw.arg == "phase" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+            mphase = kw.value.value
+        if kw.arg == "case" and isinstance(kw.value, ast.Constant) and isinstance(kw.value.value, str):
+            case = kw.value.value
+    if ic is None or case is None or mphase != phase:
+        return None
+    return ic, case
+
+
+def _strict_keys(raw):
+    """`00-common` §8.1: 값 없는 `--gmid-strict=`는 키가 없는 것이다."""
+    if not raw:
+        return set()
+    return set(raw.split(","))
+
+
+def inventory_gmid_keys(work, inv, phase):
+    """인벤토리 test 함수의 `gmid_ic` 표식(데코레이터·`pytest.param(..., marks=...)`) 중 표식 phase가
+    이번 Phase와 같은 것의 `<IC>:<case>` 키 집합(design `10-test-separation` §6.10, C6 대조 test와 같은 AST 읽기)."""
+    by_file = {}
+    for t in inv:
+        path, qual = t.split("::", 1)
+        by_file.setdefault(path, set()).add(qual)
+    keys = set()
+    for path, quals in by_file.items():
+        fpath = os.path.join(work, *path.split("/"))
+        try:
+            with open(fpath, "r", encoding="utf-8") as fh:
+                tree = ast.parse(fh.read())
+        except (OSError, SyntaxError, UnicodeDecodeError):
+            continue
+        defmap = dict(rch.iter_defs(tree))
+        for q in quals:
+            fn = defmap.get(q)
+            if fn is None:
+                continue
+            for call in _gmid_ic_calls(fn):
+                pair = _marker_ic_case(call, phase)
+                if pair is not None:
+                    keys.add("%s:%s" % pair)
+    return keys
+
+
 def main(argv):
     import argparse
     ap = argparse.ArgumentParser(prog="mutate_changed.py")
@@ -189,6 +262,10 @@ def main(argv):
     ap.add_argument("--python", default=sys.executable)
     ap.add_argument("--timeout", type=float, default=600.0, help="변이 하나의 test 실행 상한(초) -- 넘으면 죽인 변이")
     ap.add_argument("--out", default=None)
+    ap.add_argument("--gmid-phase", default=None, dest="gmid_phase",
+                    help="V1과 같은 값(`00-common` §9.3). conftest가 옵션을 모르면 전달하지 않는다.")
+    ap.add_argument("--gmid-strict", default=None, dest="gmid_strict",
+                    help="V1 엄격 집합(`<IC>:<case>,...`). 인벤토리 test에 표식이 있는 키만 pytest에 넘긴다.")
     try:
         ns = ap.parse_args(argv)
     except SystemExit:
@@ -210,11 +287,29 @@ def main(argv):
         os.makedirs(pyc)
         survivors, killed, results = [], 0, []
         baseline_ok = {}
+        strict_for_inv = {}
+        # C11(design §6.10): conftest가 --gmid-phase를 모르면(C6 전 모양) 옵션을 넘기지 않는다 -- merge gate
+        # 'CC-3 병합 전 판정식'과 같은 판정(conftest_has_gmid_phase, §9.2-7).
+        try:
+            with open(os.path.join(work, *CONFTEST_REL.split("/")), "rb") as fh:
+                conftest_bytes = fh.read()
+        except OSError:
+            conftest_bytes = None
+        gmid_supported = ns.gmid_phase is not None and mg.conftest_has_gmid_phase(conftest_bytes)
+        gmid_strict_v1 = _strict_keys(ns.gmid_strict)
+
+        def gmid_extra_args(inv):
+            if not gmid_supported:
+                return []
+            key = tuple(inv)
+            if key not in strict_for_inv:
+                strict_for_inv[key] = sorted(gmid_strict_v1 & inventory_gmid_keys(work, inv, ns.gmid_phase))
+            return ["--gmid-phase=%s" % ns.gmid_phase, "--gmid-strict=%s" % ",".join(strict_for_inv[key])]
 
         def run_tests(inv):
             env = dict(os.environ, PYTHONPYCACHEPREFIX=pyc, PYTHONDONTWRITEBYTECODE="1")
             cmd = [ns.python, "-P", "-m", "pytest", "-c", ns.pytest_ini, "--rootdir=" + work,
-                   "--confcutdir=" + work, "-x", "-q", "-p", "no:cacheprovider"] + \
+                   "--confcutdir=" + work, "-x", "-q", "-p", "no:cacheprovider"] + gmid_extra_args(inv) + \
                   [os.path.join(work, *test_nodeid(t).split("::")[0].split("/")) + "::" +
                    test_nodeid(t).split("::", 1)[1] for t in inv]
             try:
