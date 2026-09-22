@@ -450,6 +450,128 @@ def test_sections_deps_and_provides(tmp_path: Path) -> None:
     assert {s["index"]: set(s["provides_to"]) for s in secs} == _EXPECTED_PROVIDES
 
 
+# ---------------------------------------------------------------------------
+# sections 대 표지 병합 조건 (변경 20260922-sections-major-merge, Phase 1 C12, red-green)
+# design §5.1 "연속한 대 표지 `print`는 하나로 합친다": 대 표지는 바로 앞 최상위 문장도 대 표지일 때만 앞 섹션에
+# 합쳐진다. 세 합성 블록 모두 첫 표지 앞에 문장 하나(`v = 1`)를 두어 머리(P) 섹션이 반드시 있게 했다.
+# oracle: 전부 (a) 구성으로 정답이 정해진 합성 입력 -- 기대(섹션 수·kind·category·start 줄·end 줄)는 §5.1 문장을
+# 아래 줄별 주석대로 손으로 적용한 것이고, 피검 도구 출력에서 가져온 것은 없다.
+# end 줄: §5.1 "섹션 = 표지부터 다음 표지 앞까지의 최상위 문장"이라 섹션 end = 그 섹션 마지막 문장의 줄(합성 입력의
+# 문장은 모두 한 줄이라 줄 번호가 구성으로 정해진다). 기대 튜플의 넷째 칸이 그 마지막 문장의 텍스트다.
+# ---------------------------------------------------------------------------
+# (i) 연속한 대 표지 둘 -> 한 섹션(기존 규칙 유지, 무발동 입력).
+_MERGE_CONSECUTIVE = (
+    'if __name__ == "__main__":\n'
+    '    v = 1\n'                                    # S0 머리(P)
+    '    print("# Part M")\n'                        # 대 표지 -> S1 시작
+    '    print("=== Test M ===")\n'                  # 바로 앞 문장이 대 표지 -> S1에 합침
+    '    assert v == 1\n'                            # S1: Assert -> A
+)
+_EXPECTED_MERGE_CONSECUTIVE = [
+    # (kind, category, 시작 줄의 표지 텍스트 또는 None, 끝 줄의 문장 텍스트)
+    ("prelude", "P", None, "v = 1"),
+    ("major", "A", 'print("# Part M")', "assert v == 1"),
+]
+
+# (i-b) 연속한 대 표지 둘이 블록 끝 -> 한 섹션이고, 두 번째 대 표지가 합친 섹션의 마지막 문장이다.
+# 합친 섹션이 두 번째 대 표지 문장까지 포함해야 end가 그 줄이 된다(병합 분기에서 문장을 빠뜨리면 end가 첫 대 표지
+# 줄에 머문다). 문장이 표지 print뿐이라 범주 D.
+_MERGE_CONSECUTIVE_TAIL = (
+    'if __name__ == "__main__":\n'
+    '    v = 1\n'                                    # S0 머리(P)
+    '    print("# Part T")\n'                        # 대 표지 -> S1 시작
+    '    print("=== Test T ===")\n'                  # 바로 앞 문장이 대 표지 -> S1에 합침, S1의 마지막 문장
+)
+_EXPECTED_MERGE_CONSECUTIVE_TAIL = [
+    ("prelude", "P", None, "v = 1"),
+    ("major", "D", 'print("# Part T")', 'print("=== Test T ===")'),
+]
+
+# (ii) 대 표지·표지 아닌 문장·대 표지 -> 대 표지 섹션 둘(앞 섹션에만 assert -> A와 D로 갈린다).
+_SPLIT_BY_STATEMENT = (
+    'if __name__ == "__main__":\n'
+    '    v = 1\n'                                    # S0 머리(P)
+    '    print("=== First S ===")\n'                 # 대 표지 -> S1 시작
+    '    assert v == 1\n'                            # S1: Assert -> A (표지 아닌 문장)
+    '    print("=== Second S ===")\n'                # 바로 앞 문장이 표지 아님 -> 새 섹션 S2
+    '    print("static text S")\n'                   # S2: 정적 문자열 print뿐 -> D
+)
+_EXPECTED_SPLIT_BY_STATEMENT = [
+    ("prelude", "P", None, "v = 1"),
+    ("major", "A", 'print("=== First S ===")', "assert v == 1"),
+    ("major", "D", 'print("=== Second S ===")', 'print("static text S")'),
+]
+
+# (iii) 대 표지·소 표지·대 표지 -> 표지 섹션 셋.
+_SPLIT_BY_SUB = (
+    'if __name__ == "__main__":\n'
+    '    v = 1\n'                                    # S0 머리(P)
+    '    print("=== First U ===")\n'                 # 대 표지 -> S1 시작
+    '    assert v == 1\n'                            # S1: Assert -> A
+    '    print("  [sub] mid U")\n'                   # 소 표지 -> S2 시작, 문장은 표지뿐 -> D
+    '    print("=== Second U ===")\n'                # 바로 앞 문장이 소 표지 -> 새 섹션 S3, 표지뿐 -> D
+)
+_EXPECTED_SPLIT_BY_SUB = [
+    ("prelude", "P", None, "v = 1"),
+    ("major", "A", 'print("=== First U ===")', "assert v == 1"),
+    ("sub", "D", 'print("  [sub] mid U")', 'print("  [sub] mid U")'),
+    ("major", "D", 'print("=== Second U ===")', 'print("=== Second U ===")'),
+]
+
+
+def _sections_of(tmp_path: Path, source: str) -> list:
+    # 호출 방식은 위 `_do_sections`와 같다(하위 프로세스 `sections --source --out`).
+    src = _write(tmp_path / "mergemod.py", source)
+    out = tmp_path / "sections.json"
+    proc = _run("sections", "--source", str(src), "--out", str(out))
+    assert proc.returncode == 0, proc.stderr.decode("utf-8", "replace")
+    return _sections_list(json.loads(out.read_bytes().decode("utf-8")))
+
+
+def assert_sections_match(secs: list, source: str, expected: list) -> None:
+    # 섹션 수·index 순서·kind·category·표지 섹션의 start 줄(합성 입력에서 표지 문장의 줄 번호, 구성으로 정해짐)·
+    # 모든 섹션의 end 줄(그 섹션 마지막 문장의 줄 번호, 구성으로 정해짐).
+    assert [s["index"] for s in secs] == list(range(len(expected)))
+    assert [s["kind"] for s in secs] == [e[0] for e in expected]
+    assert [s["category"] for s in secs] == [e[1] for e in expected]
+    for (_kind, _cat, marker, _last), sec in zip(expected[1:], secs[1:]):
+        assert sec["start"] == _line_of(source, marker), sec
+    assert [s["end"] for s in secs] == [_line_of(source, e[3]) for e in expected]
+
+
+def test_sections_consecutive_majors_merge_into_one(tmp_path: Path) -> None:
+    # oracle (a): 경우 (i) -- 대 표지 둘이 연달아 있으면 §5.1대로 한 섹션(머리 + 대 표지 1 = 2개),
+    # 합친 섹션은 첫 대 표지 줄에서 시작한다.
+    secs = _sections_of(tmp_path, _MERGE_CONSECUTIVE)
+    assert len(secs) == 2
+    assert_sections_match(secs, _MERGE_CONSECUTIVE, _EXPECTED_MERGE_CONSECUTIVE)
+
+
+def test_sections_consecutive_majors_merged_section_ends_at_second_major(tmp_path: Path) -> None:
+    # oracle (a): 경우 (i-b) -- 연속한 대 표지 둘이 블록 끝이면 §5.1대로 한 섹션(머리 + 대 표지 1 = 2개)이고,
+    # 합친 섹션은 첫 대 표지 줄에서 시작해 두 번째 대 표지 줄에서 끝난다(두 번째 대 표지 문장도 그 섹션의 문장).
+    secs = _sections_of(tmp_path, _MERGE_CONSECUTIVE_TAIL)
+    assert len(secs) == 2
+    assert secs[1]["end"] == _line_of(_MERGE_CONSECUTIVE_TAIL, 'print("=== Test T ===")')
+    assert_sections_match(secs, _MERGE_CONSECUTIVE_TAIL, _EXPECTED_MERGE_CONSECUTIVE_TAIL)
+
+
+def test_sections_major_after_plain_statement_starts_new_section(tmp_path: Path) -> None:
+    # oracle (a): 경우 (ii) -- 두 번째 대 표지의 바로 앞 문장이 `assert`(표지 아님)라 연속이 아니다 -> 새 섹션.
+    # 섹션 3개(P, A, D). 앞 섹션만 assert가 있어 범주가 A와 D로 갈린다.
+    secs = _sections_of(tmp_path, _SPLIT_BY_STATEMENT)
+    assert len(secs) == 3
+    assert_sections_match(secs, _SPLIT_BY_STATEMENT, _EXPECTED_SPLIT_BY_STATEMENT)
+
+
+def test_sections_major_after_sub_marker_starts_new_section(tmp_path: Path) -> None:
+    # oracle (a): 경우 (iii) -- 두 번째 대 표지의 바로 앞 문장이 소 표지라 연속한 대 표지가 아니다 -> 새 섹션.
+    # 섹션 4개(P, major A, sub D, major D).
+    secs = _sections_of(tmp_path, _SPLIT_BY_SUB)
+    assert len(secs) == 4
+    assert_sections_match(secs, _SPLIT_BY_SUB, _EXPECTED_SPLIT_BY_SUB)
+
+
 def test_sections_rejects_missing_source_exit2(tmp_path: Path) -> None:
     # oracle (a): 없는 파일 -> design exit code '2 입력 오류(파일 없음)'.
     proc = _run("sections", "--source", str(tmp_path / "nope.py"), "--out", str(tmp_path / "s.json"))
