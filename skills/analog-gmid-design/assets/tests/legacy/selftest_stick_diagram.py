@@ -1176,6 +1176,7 @@ if __name__ == "__main__":
         ("hub_merge", "nmos", "gnd"): ("real_match", "공유 rail, 병합 불필요"),
         ("hub_merge", "pmos", "tail"): ("real_match", "M4/M5 diff pair tail, 이미 매칭 처리"),
         ("hub_merge", "pmos", "out"): ("false_positive_coincidental", "합성 예제용 — 실제 회로 아님"),
+        ("diff_pair", "pmos", "tail"): ("real_match", "M4/M5 차동쌍(소스 tail 공유, 게이트 vip/vim) -- U-01"),
     }
     r2 = run_full_circuit_audit(fixed_devices, expected, dispositions)
     for c in r2.checks:

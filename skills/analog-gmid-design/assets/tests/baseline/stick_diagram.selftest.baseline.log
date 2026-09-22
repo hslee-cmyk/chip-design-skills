@@ -449,8 +449,8 @@ CS  gnd  OUT  gnd  OUT  gnd  OUT  gnd  CS  gnd  OUT  gnd  CS
   (b) net 이름을 정규화하고 모든 후보에 판정을 채운 뒤 -> 전부 PASS 기대:
       [PASS] 1. device count vs manifest: total 5 == expected 5
       [PASS] 2. net-name case consistency: all net names already single-case
-      [FAIL] 3. every matching/hub-merge candidate has a recorded disposition: UNDISPOSED: [(('diff_pair', 'pmos', 'tail'), ['M4', 'M5'])]
-      전체 결과: FAIL -> FAIL(예상과 다름 — dispositions 키를 재확인할 것)
+      [PASS] 3. every matching/hub-merge candidate has a recorded disposition: 4 candidate groups, all disposed
+      전체 결과: PASS -> OK
 
 === Test 17: pack_floorplan() — 실제 Xie&Chen 51-소자 회로 전체 블록으로 검증 ===
   (첫 버전은 spine을 세로 한 줄로 쌓기만 해 빈 공간이 많았다 -- 사용자가 직접 지적한
