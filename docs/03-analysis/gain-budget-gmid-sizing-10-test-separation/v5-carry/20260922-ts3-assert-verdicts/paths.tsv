@@ -1,0 +1,5 @@
+skills/analog-gmid-design/assets/tests/legacy/selftest_design_report.py	6e989bb5cce0b694b8c2b5c1616fb97addf721c0
+skills/analog-gmid-design/assets/tests/legacy/selftest_sizing_recipe.py	823626ce42654615132cb6127ee8f2b9b5bbe0fb
+skills/analog-gmid-design/assets/tests/legacy/selftest_stick_diagram.py	241f85a03a6f1f0615b33f6ea33585fafea24156
+skills/analog-gmid-design/assets/tests/legacy/selftest_topology_library.py	d2e22552be42c647af2aa2498b6b9f250744630b
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py	0c1b8d38555529d25ffe4c7df067cdc7075881c0
