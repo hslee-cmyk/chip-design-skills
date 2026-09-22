@@ -14855,3 +14855,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 백로그 B8: 바뀐 def 전체를 변이하는 V3 규칙 때문에 C8에서 드러난 기존 test 공백 -- load_topology 연결 파일 meta 합치기(5), device_roles 자동 쌍 중복 제거(5), save_instance_json scope_note 복사(2). 면제로 넘겼으니 이 줄들을 바꾸는 변경이 오면 test부터 보강. 면제 id는 AST 경로라 두 함수 구조가 바뀌면 다시 V3에 걸린다.
 - 관찰: 역할 커밋은 EL1이 트레일러를 Role/Change-Id 둘로 고정해 Co-Authored-By를 못 붙인다(게이트 형식 우선). 참고(auditor): load_topology 이름 검사는 진입 파일 passive_elements만 봄(연결 파일 passive는 원래 합치지 않음).
 - 다음: C12(extract_selftest sections B6) -> C9 ts2-pytest-split -> C10 caa970b-replay -> Phase 1 DoD.
+
+- C12 20260922-sections-major-merge 완료(gate 4ad0a04, 2차 시도): B6 해소. extract_selftest `_group_block_sections` 대 표지 병합 조건을 '바로 앞 최상위 문장도 대 표지'로 제한(design 10 §5.1). 6abe0fc 이관본 섹션 수 sizing 72->77, stick 128->174, design_report 2->5, topology_library 11->16(C9 매핑 입력). 1차 FAIL = V4 규칙 (4): 판정 보조 함수 이름이 `_assert...`라 판정 문장으로 안 셈(계획 N4.2 V4는 `assert`로 시작하는 호출만) -> 2차에서 `assert_sections_match`로, 끝 줄 단언 추가로 병합 분기 append 삭제 변이도 죽음(보조 V3 27/28, 남은 1개는 초기화 등가).
+- 관찰: test-author 브리핑에 '판정 보조 함수는 assert로 시작하는 이름' 규칙을 적을 것. V3·V6이 tools/를 대상으로 하지 않는 것, interface card가 빈 card의 V4 --subject 필요는 C1 이래 DESIGN-GAP 그대로. B5(추출 머리글 절대 경로)는 C9 뒤 추출 재사용이 없어 백로그 유지.
+- 다음: C9 ts2-pytest-split(매핑 = 병합본 도구 sections를 6abe0fc 이관본에) -> C10 caa970b-replay -> Phase 1 DoD.
