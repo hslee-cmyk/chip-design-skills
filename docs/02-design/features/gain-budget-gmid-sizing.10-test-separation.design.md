@@ -291,7 +291,7 @@ C8이 더하는 두 게이트는 `없음(스키마)`다(표 밖 게이트는 형
   1. `git -C <iso> checkout --detach <base>` 뒤 모듈 m ∈ (sizing_recipe, stick_diagram, design_report, topology_library) 순, 시드 s = 1..5 순으로 `PYTHONHASHSEED=s $PY <iso>/A/<m>.py`(cwd `<iso>/A`)의 stdout을 모은다.
   2. `git -C <iso> checkout --detach <병합본>` 뒤 같은 순서로 `PYTHONHASHSEED=s $PY <iso>/A/tests/legacy/selftest_<m>.py <iso>/A`(cwd `<iso>/A`).
   3. 20쌍 각각 바이트 동일(§7 E1). 판정 기록 `equivalence.commands` = 2의 20개 명령, `outputs_hash` = 2의 stdout을 순서대로 이은 바이트의 sha256(`00-common` §8.1), `checks.V2.basis`에 1의 해시가 같음을 적는다.
-  4. 추출 재현: T(test 커밋)에서 C1 도구 `extract`를 base 소스에 다시 돌린 출력이 커밋된 이관본과 바이트 동일(손 편집 없음 -- '본문 그대로'의 기계 증거).
+  4. 추출 재현: T(test 커밋)에서 C1 도구 `extract`를 base 소스에 다시 돌린 출력이 커밋된 이관본과 바이트 동일(손 편집 없음 -- '본문 그대로'의 기계 증거). 단 머리글 둘째 줄 `# 원본 경로:` 주석은 도구가 받은 `--source` 절대 경로를 그대로 적어 실행 위치마다 다르므로, 그 한 줄은 빼고 비교하고 그 줄의 끝 파일 이름(`<m>.py`)이 같음만 본다(2026-09-22 사용자 승인 `20260922-c2-extract-repro-path-line`, 도구 쪽 수정은 백로그 B5). 실행 동등성(1~3)은 그대로 바이트 동일.
   5. 소스 동작 보존: 4개 소스 각각 base와 병합본의 모듈 AST(`ast.dump`, 블록 제외)가 같다.
 * V5: base→병합본 diff에서 소스의 `__main__` 단위는 통째로 사라지고 test 함수 단위가 아니다 -- `weakening_diff.py` 판정식상 발견이 없다(구현 판독). 발견이 나오면 §8 F5.
 
