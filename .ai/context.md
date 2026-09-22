@@ -14822,3 +14822,6 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 백로그(사용자 "백로그로 두고 C2 진행"): (B1) V3·V6 대상이 엔진 소스(_is_source)뿐이라 tools/migrate는 미검사 -- 보조 측정 변이 684 중 생존 196(28.7%); 산출물은 C2 equivalence가 직접 검증. (B2) EL1이 `mutate_changed.py --pytest-ini <캐시>/pytest_gate.ini`를 저장소 내부 인자로 거부 -- 같은 blob의 복제본 판으로 우회. (B3) V4 도구가 interface card 심볼 `*`(신규 모듈)에서 ERROR -- `--subject`로 호출. (B4) 앞 ⑤ 잔여: D-2·D-4·D-5, redteam red 증거 정의.
 - 운영: 서브agent API 연결 오류(ENOTFOUND)로 중단 시 worktree 상태 확인 뒤 SendMessage로 재개.
 - 다음: C2 ts1-legacy-move(equivalence).
+
+- C2 20260922-ts1-legacy-move 완료(gate 6abe0fc): 이관본 4개(tests/legacy/), 소스 4개 __main__ 블록 삭제 6896줄, equivalence 20/20 바이트 동일, AST 동일, V1~V6 PASS. 결정 20260922-c2-extract-repro-path-line(증거 4에서 `# 원본 경로:` 주석 줄 제외). 백로그 B5: 추출 도구가 --source 절대 경로를 머리글에 기록. 문구: spec card 계약 2 배너 문언 모호(판정 무관).
+- ★운영 규칙: 역할 브랜치가 있는 동안 master에 문서를 로컬 커밋하지 말 것 -- push가 막혀 gate master와 갈라지고, 메인 병합은 --ff-only만 허용되며 rebase는 EL1이 거부해 사용자 개입(`git rebase --autostash gate/master`)이 필요했다(b3cc911 -> 9ca97b1). 진행 중 생긴 문서 변경은 작업 트리에 두었다가 정리 뒤 커밋.
