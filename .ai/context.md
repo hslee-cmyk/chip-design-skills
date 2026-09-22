@@ -14825,3 +14825,6 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 
 - C2 20260922-ts1-legacy-move 완료(gate 6abe0fc): 이관본 4개(tests/legacy/), 소스 4개 __main__ 블록 삭제 6896줄, equivalence 20/20 바이트 동일, AST 동일, V1~V6 PASS. 결정 20260922-c2-extract-repro-path-line(증거 4에서 `# 원본 경로:` 주석 줄 제외). 백로그 B5: 추출 도구가 --source 절대 경로를 머리글에 기록. 문구: spec card 계약 2 배너 문언 모호(판정 무관).
 - ★운영 규칙: 역할 브랜치가 있는 동안 master에 문서를 로컬 커밋하지 말 것 -- push가 막혀 gate master와 갈라지고, 메인 병합은 --ff-only만 허용되며 rebase는 EL1이 거부해 사용자 개입(`git rebase --autostash gate/master`)이 필요했다(b3cc911 -> 9ca97b1). 진행 중 생긴 문서 변경은 작업 트리에 두었다가 정리 뒤 커밋.
+
+- C3 20260922-ts0-test16-fixture 완료(gate 1928ece): TS0, test-only. R1 첫 실사용 -- 1차 시도 V5 FAIL(기준선 .log 발견, diff_hash 89894f9c…) -> blob 운반 + 사용자 DEC-40 승인 20260922-ts0-baseline-test16 -> 정리(D-3 수정으로 audit remove --force 무개입) -> 2차 시도 cp 복원(blob b6fc650b 일치) -> V5 approved:true. DF-17 해소. 운반 디렉터리 삭제(R1 4단계).
+- 다음: C4 ts3-assert-verdicts(TS3, test-only, print 판정 354 -> assert, 데모 18 삭제 U-41, R1 필요).
