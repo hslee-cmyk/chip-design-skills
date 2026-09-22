@@ -1,0 +1,81 @@
+{
+  "id": "20260922-ts5-baseline-retire",
+  "attempt": 2,
+  "evidence_type": "test-only",
+  "freeze": {
+    "T": "b50cdaa421c68fa4069a4232a551096160d240e1",
+    "T_parent": "db3b7b9b2ca4310c2d52dc9f43f50701a761946e",
+    "T_trailers": "Role: test, Change-Id: 20260922-ts5-baseline-retire",
+    "code_commit": null,
+    "base_to_T_commits": 1,
+    "base_to_T_numstat": [
+      "37\t0\tskills/analog-gmid-design/assets/tests/README.md",
+      "0\t160\tskills/analog-gmid-design/assets/tests/baseline/README.md",
+      "0\t361\tskills/analog-gmid-design/assets/tests/baseline/sizing_recipe.selftest.baseline.log",
+      "0\t1257\tskills/analog-gmid-design/assets/tests/baseline/stick_diagram.selftest.baseline.log"
+    ],
+    "base_to_T_paths_outside_tests": 0,
+    "base_to_T_py_changes": 0,
+    "base_to_T_tools_githooks_changes": 0,
+    "blobs": {
+      "tests/README.md": {"base": "-", "T": "6af3d27c4b4975f9d144e359952fbac259ee5455"},
+      "tests/baseline/README.md": {"base": "a3c48de4f57711605e2f7be46d6570042c32cad3", "T": "-"},
+      "tests/baseline/sizing_recipe.selftest.baseline.log": {"base": "352dce4a4f6c2c18116dffb2ce75d6fa4bd1633c", "T": "-"},
+      "tests/baseline/stick_diagram.selftest.baseline.log": {"base": "b6fc650b55fd4672cf2c0937f438f48c19c7ae20", "T": "-"}
+    },
+    "deleted_blobs_equal_approval_diff_base_7781bde": true,
+    "v5_carry_check": "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/v5-carry/20260922-ts5-baseline-retire/paths.tsv 1행(tests/README.md 6af3d27c4b4975f9d144e359952fbac259ee5455): 운반 blob git 객체의 sha1('blob <len>\\0'+내용) = 파일 이름 = T 트리 blob, 바이트 동일(auditor Python 재계산). 작업 트리 사본은 core.autocrlf=true로 CRLF라 git 객체로 대조했다"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2",
+    "commands": [
+      "git clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts5-baseline-retire-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 checkout -q --detach db3b7b9b2ca4310c2d52dc9f43f50701a761946e",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-iso2 checkout -q --detach b50cdaa421c68fa4069a4232a551096160d240e1"
+    ],
+    "gate_cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/db3b7b9b2ca4310c2d52dc9f43f50701a761946e",
+    "outputs_dir": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts5-baseline-retire-out2"
+  },
+  "test_sets": {
+    "command": "V1 명령(판정 기록 auditor_run.commands `V1: `) -- base는 같은 형태를 db3b7b9 checkout에서, PYTHONPYCACHEPREFIX만 다른 빈 디렉터리(pyc_base_v1)",
+    "base": {"rev": "db3b7b9b2ca4310c2d52dc9f43f50701a761946e", "result": "48 passed, 실패·오류·skip·xfail·xpass 0, exit 0, 46.50s", "output_sha256": "49326011fa417cd61f56d187c063afb45f5b8e6eb19f40b0390ace22367a1276"},
+    "T": {"rev": "b50cdaa421c68fa4069a4232a551096160d240e1", "result": "48 passed, 실패·오류·skip·xfail·xpass 0, exit 0, 46.34s", "output_sha256": "da9b20ba70f18d4419f56273337b5192cdf7e15193030aa76f27beb6432bbfbc"},
+    "id_sets_equal": "-rA 요약의 (결과, test id) 48쌍이 base와 T에서 같다(sort 뒤 diff 0) -- tooling 34, contracts/test_ts3_no_print_verdicts.py 10, legacy/test_legacy_selftests.py 4",
+    "baseline_readers": "base 트리 A/tests 아래(baseline/ 제외)에서 'tests/baseline'·'selftest.baseline' 문자열 0(D5 base 출력의 4줄은 .gitignore 1과 baseline/README.md 3뿐) -- 어떤 test도 기준선 파일을 읽지 않는다(계약 4)"
+  },
+  "contract_1_baseline_absent": {
+    "T_tree_entries_under_tests_baseline": 0,
+    "files": {"README.md": "absent", "sizing_recipe.selftest.baseline.log": "absent", "stick_diagram.selftest.baseline.log": "absent"},
+    "worktree_dir": "복제본 T checkout에 tests/baseline 디렉터리 없음"
+  },
+  "contract_2_readme": {
+    "impl": "outputs_dir/readme_check.py(T git 객체만 읽음), 결과 outputs_dir/readme_check.json",
+    "run_cmd_pre_c6": "design §6.4 명령에서 ` --gmid-phase=<Phase>`만 뺀 `$PY -P -m pytest -c tools/gates/pytest_gate.ini --rootdir=. --confcutdir=. skills/analog-gmid-design/assets/tests`가 그대로 있다",
+    "run_cmd_c6_note": "`C6 뒤: 위 명령 끝에 --gmid-phase=<Phase>를 붙인다` 줄 있음",
+    "rules": {"assert_only": true, "no_print_logging_verdict": true, "xfail_by_conftest_from_plan_N4_1": true},
+    "tree": "README '디렉터리' 코드 블록 12줄이 계획서 N3.11 코드 블록과 문자 단위로 같다",
+    "presence_table_vs_T": "현황 표(있음: legacy·contracts·tooling / 아직 없음: conftest.py·unit·integration·regression·oracles·tools·probes)가 T 트리 A/tests 최상위 항목과 일치",
+    "encoding": "BOM 없음, LF, 37줄",
+    "d5_strings_in_readme": false
+  },
+  "contract_3_d5": {
+    "command": "git -C <iso> grep -n -I -e \"tests/baseline\" -e \"selftest.baseline\" -- skills workspaces tools .gitignore \":(exclude)tools/gates/redteam\"",
+    "T_output": [".gitignore:19:!skills/analog-gmid-design/assets/tests/baseline/*.log"],
+    "T_lines": 1,
+    "base_lines": 4,
+    "base_output": [
+      ".gitignore:19:!skills/analog-gmid-design/assets/tests/baseline/*.log",
+      "skills/analog-gmid-design/assets/tests/baseline/README.md:18",
+      "skills/analog-gmid-design/assets/tests/baseline/README.md:19",
+      "skills/analog-gmid-design/assets/tests/baseline/README.md:121"
+    ],
+    "judgement": "남은 한 줄은 .gitignore:19 기준선 예외뿐 -- design §6.4의 사용자 몫(U-43, 병합 뒤 `Role: user` + staged_diff로 3줄 삭제)이고 test-author 쓰기 범위 밖(design §9 C5 행). 오케스트레이터 지시대로 '그 한 줄뿐'으로 판정: 충족. 사용자 커밋 뒤 0줄이 되는지는 이 기록 범위 밖"
+  },
+  "v5": {
+    "output_sha256": "0949bee028f36acbf18debb05826bb998f41b977e7533b90e48294f586cb5d0a",
+    "recompute": "outputs_dir/v5_check.py, 결과 outputs_dir/v5_check.json: 00-common §8.2 식으로 (db3b7b9, b50cdaa)에서 다시 계산한 diff 해시 = 승인 target, 승인 diff_path 4개 = 도구 diff_paths, 승인 diff_base 7781bde의 삭제 3파일 blob = db3b7b9의 blob. 승인 diff_head 7a4bab94는 복제본에 없어(1차 시도 브랜치) 그 쌍으로는 재계산하지 않았다 -- 해시가 blob id로만 정해지므로 같은 blob이면 같은 값",
+    "approval_record_blob_T": "f2b7e4c0e2156ae6dd7552a0eb627548bb821441"
+  },
+  "v4_output_sha256": "c5b9ec127d17d768cc621769559b8ca105e559adb68b4ca174dc37333f866c83"
+}
