@@ -14908,3 +14908,13 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 기록: 승인 기록의 diff_head가 1차 커밋(586f93d)을 가리키지만 해시가 blob 기반이라 판정 무관(도구도 approved=true). P2의 _BASE_COMMIT과 같은 성격.
 - 잔여 약점(판정 기록 V4 basis): PM 하한 90-90n의 n을 엔진 pole 계수가 정해, 과다 계수면 하한이 느슨해진다. 같은 파일의 분할 판정(경로 노드 정확히 한 번 분류, undetermined 0)이 그 계수를 따로 묶어 FAIL로 보지 않음. omega_c 선언이 늘면 재검토.
 - 환경(반복 발생): 자식 셸에 APPDATA export 필수(빠지면 No module named pytest), 격리 복제본은 짧은 경로(C:/g2 등 -- 긴 경로에서 260자 MAX_PATH로 수집 ERROR), clone은 --no-checkout -> core.longpaths -> checkout 순서, 게이트 코드는 git cat-file blob으로 재추출(archive/checkout은 줄끝 변경), V1의 -c는 gmid-gate-cache/<old>/ 형식이어야 v1_command_check 통과.
+
+- 다음 세션 착수점(2026-09-23 세션 종료 시점): gate master = c2eb09d. 역할 worktree·브랜치 0(정리 완료), 메인 저장소 = gate master와 동일.
+- Phase 2 card 진행: P1(1cdebc9)·P2(af3416a)·P3a(db25f7b) 완료. **다음은 P3b**다.
+- spec card 4장을 미리 커밋해 두었다(순서 0 완료 상태). 각 card는 worktree 만들고 test-author 브리핑부터 시작하면 된다:
+  * `20260923-probe-promote-differential` (P3b) -- 대조형 2개 승격. V4 규칙 (1) 면제가 필요하면 C13 경로로 사용자 승인.
+  * `20260923-probe-promote-consistency` (P3c) -- physical_consistency. B7-(i)·B8만 승격, B9는 제외(사유 기록). 레일 집합·VDD 상수 재선언을 선언 읽기로 교체.
+  * `20260923-d-delete-dead` (P5) -- 참조 0인 7개 + junction_cap 삭제. G-1 실측 완료(어떤 레지스트리에도 미등록).
+  * `20260923-d-delete-telescopic` (P5b) -- telescopic 사슬 9개 + 레지스트리 키 4개 삭제. 선언 도달 가능하므로 G-3(b)+G-4+NEW-TOPO 증거 필수.
+- 아직 spec card가 없는 것: P4(probe 엔진 복제 제거 + tests/tools/probe_dup_scan.py 신설), P6(test 전용 함수 이관), P7(레지스트리 등급 정정 9개), P8(W 계산 인라인 6곳 -- **통합 방향은 `size_transistor` 호출이 아니라 식 함수 추출**. 핫루프가 `_sizing_bundle` 배치 조회를 쓰므로 호출로 바꾸면 LUT 재조회가 생긴다), P9(KCL 엣지), P10(DF-23 전수 목록 문서화).
+- 대기 중인 사용자 결정: (1) `.gitignore`에 tests/probes/·tests/tools/ 산출물 패턴 5줄 추가(사용자가 직접 반영하기로 함, 아직 미반영) (2) folded_cascode·nmcnr_amplifier 신호 경로 선언 -- 6a 공동분석에서 함께 보기로 함.
