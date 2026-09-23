@@ -1,0 +1,3242 @@
+{
+ "dups": [
+  {
+   "name": "size_transistor",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "size_transistor",
+     "kind": "func",
+     "lineno": 115,
+     "end_lineno": 123,
+     "lines": 9,
+     "signature": "size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT, vds: float, vsb: float=0.0) -> SizingResult",
+     "docstring_head": "방법론 식 1.17/1.18: ID = gm/(gm/ID),  W = L * ID / IDu.",
+     "returns": [
+      "123: SizingResult(gm=gm, gm_id=gm_id, ID=ID, W=W)"
+     ],
+     "engine_callees": {
+      "SizingResult": [
+       123
+      ],
+      "gm_id_to_id_density": [
+       119
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:140",
+      "kind": "name",
+      "text": "result = size_transistor(gm, gm_id, L, lut, vds, vsb)",
+      "enclosing": "converge_with_parasitics",
+      "tag": "engine_caller_is_D"
+     }
+    ],
+    "test": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:74",
+      "kind": "name",
+      "text": "_l4c_r = size_transistor(gm=50e-6, gm_id=_l4c_gm_id, L=_l4c_L, lut=lut, vds=_l4c_vds)",
+      "enclosing": "s011_state",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:88",
+      "kind": "name",
+      "text": "_l4d_r = size_transistor(gm=200e-6, gm_id=12.0, L=_l4d_L, lut=lut, vds=_l4d_vds)",
+      "enclosing": "s015_state",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:748",
+      "kind": "name",
+      "text": "_l4_r1 = size_transistor(gm=200e-6, gm_id=_l4_gm_id, L=_l4_L, lut=lut, vds=_l4_vds)",
+      "enclosing": "test_s009_revalidate_finger_override",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:750",
+      "kind": "name",
+      "text": "_l4_r3 = size_transistor(gm=80e-6, gm_id=10.0, L=_l4_L, lut=lut, vds=_l4_vds)",
+      "enclosing": "test_s009_revalidate_finger_override",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:812",
+      "kind": "name",
+      "text": "_l4b_crit = size_transistor(gm=200e-6, gm_id=12.0, L=_l4b_L, lut=lut, vds=_l4b_vds)",
+      "enclosing": "test_s010_apply_and_revalidate_pair_adjustment",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:814",
+      "kind": "name",
+      "text": "_l4b_harm = size_transistor(gm=50e-6, gm_id=15.0, L=_l4b_L, lut=lut, vds=_l4b_vds)",
+      "enclosing": "test_s010_apply_and_revalidate_pair_adjustment",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:920",
+      "kind": "name",
+      "text": "_l4c_r = size_transistor(gm=50e-6, gm_id=_l4c_gm_id, L=_l4c_L, lut=lut, vds=_l4c_vds)",
+      "enclosing": "test_s011_run_topology_pipeline_with_finger_fixup",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:1415",
+      "kind": "name",
+      "text": "_l4d_r = size_transistor(gm=200e-6, gm_id=12.0, L=_l4d_L, lut=lut, vds=_l4d_vds)",
+      "enclosing": "test_s015_suggest_matching_finger_growth",
+      "tag": "test"
+     }
+    ],
+    "probe": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_allocation_solvers.py:41",
+      "kind": "attr",
+      "text": "r = sr.size_transistor(gm, g, L, LUT, vds, VS)",
+      "enclosing": "table",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_gmid_gain_landscape.py:90",
+      "kind": "attr",
+      "text": "r = sr.size_transistor(75e-6, g, L, lut[\"n\"], VDS, VS)",
+      "enclosing": "<module>",
+      "tag": "probe"
+     }
+    ],
+    "workspaces": [
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py:32",
+      "kind": "name",
+      "text": "_l4c_r = size_transistor(gm=50e-6, gm_id=_l4c_gm_id, L=_l4c_L, lut=lut, vds=_l4c_vds)",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     },
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/resize.py:38",
+      "kind": "name",
+      "text": "r = size_transistor(gm, gm_id, L, lut, vds, vs)",
+      "enclosing": "size",
+      "tag": "workspaces_script"
+     },
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/resize.py:116",
+      "kind": "name",
+      "text": "fwd15 = size_transistor(gm2, GM_ID_S2_NOMINAL, L2, pmos, 0.9)",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     },
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/resize.py:117",
+      "kind": "name",
+      "text": "fwd16 = size_transistor(gm2, GM_ID_S2_NOMINAL, L2, nmos, 0.9)",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1,
+    "test": 8,
+    "probe": 2,
+    "workspaces": 4
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/analog-topology-json-library.plan.md:117",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:785",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:1018",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:1790",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2318",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2391",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:3844",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5202",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:524",
+    "docs/02-design/features/analog-topology-json-library.design.md:203",
+    "docs/02-design/features/analog-topology-json-library.design.md:208",
+    "docs/02-design/features/analog-topology-json-library.design.md:209",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.json:1986",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:15",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:100",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:111",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:123",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:192",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:59",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:106",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:14",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:38",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:448",
+    "docs/04-report/analog-topology-json-library.do.md:176",
+    "docs/04-report/analog-topology-json-library.do.md:258",
+    "docs/04-report/analog-topology-json-library.do.md:275",
+    "docs/04-report/analog-topology-json-library.do.md:616",
+    "docs/04-report/analog-topology-json-library.do.md:1285",
+    "docs/04-report/analog-topology-json-library.do.md:2006",
+    "docs/04-report/analog-topology-json-library.do.md:2568",
+    "docs/04-report/analog-topology-json-library.do.md:2638"
+   ],
+   "total_refs": 15,
+   "registry_name": "size_transistor",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "ID=gm/gm_id, W=L·ID/IDu",
+   "registry_destination": "gmid_sizing_engine.py",
+   "registry_note": "같은 식 `W=L·ID/IDu`를 엔진이 인라인으로 다시 씀: `find_optimal_sizing:941`, `feasible_gm_ids:1756`, `search_gm_id_for_role:2234`, `feasible_L_window:2746`. 계획은 \"재사용\"이라 했지만 엔진은 이 함수를 안 …",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "W 계산 `W=L*ID/IDu`",
+     "canonical_cell": "`size_transistor` / LUT `_sizing_bundle`",
+     "dup_cell": "`find_optimal_sizing`, `feasible_gm_ids`, `search_gm_id_for_role`, `feasible_L_window`에 인라인 4곳",
+     "status_cell": "식 동일 -- 행동 보존 통합 가능"
+    }
+   ],
+   "ref_tags": {
+    "engine_caller_is_D": 1,
+    "test": 8,
+    "probe": 2,
+    "workspaces_script": 4
+   },
+   "ref_tag_detail": {
+    "engine_caller_is_D": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:140 [converge_with_parasitics]"
+    ],
+    "test": [
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:74 [s011_state]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:88 [s015_state]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:748 [test_s009_revalidate_finger_override]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:750 [test_s009_revalidate_finger_override]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:812 [test_s010_apply_and_revalidate_pair_adjustment]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:814 [test_s010_apply_and_revalidate_pair_adjustment]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:920 [test_s011_run_topology_pipeline_with_finger_fixup]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:1415 [test_s015_suggest_matching_finger_growth]"
+    ],
+    "probe": [
+     "skills/analog-gmid-design/assets/tests/probe_allocation_solvers.py:41 [table]",
+     "skills/analog-gmid-design/assets/tests/probe_gmid_gain_landscape.py:90 [<module>]"
+    ],
+    "workspaces_script": [
+     "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py:32 [<module>]",
+     "workspaces/current-reuse-telescopic-ota-report/resize.py:38 [size]",
+     "workspaces/current-reuse-telescopic-ota-report/resize.py:116 [<module>]",
+     "workspaces/current-reuse-telescopic-ota-report/resize.py:117 [<module>]"
+    ]
+   },
+   "reachable_from_harness": false,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 0
+  },
+  {
+   "name": "_multilinear_interp_point_multi",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_multilinear_interp_point_multi",
+     "kind": "func",
+     "lineno": 255,
+     "end_lineno": 300,
+     "lines": 46,
+     "signature": "_multilinear_interp_point_multi(grids, arrays, point)",
+     "docstring_head": "`_multilinear_interp()`와 동일한 다중선형보간을, **단일 좌표**에서 **여러 배열을\n한 번에** 계산한다(F 설계, 세션31 -- `find_optimal_sizing()`의 L×VDS×gm_id 핫루프에서\n`gm_id_to_id_density()`/`gm_gds_ratio()`/`cgg_absolute()`가 같은 (L,vgs,vds,vs) 지점에서\n각자 `_query()`를 불러 bisect 탐색(4축)을 3~4번 반복하던 것을 남은 최대 레버로 지목한\n성능감사 후속). 축별 `idx_lo`/`frac`(bisect 탐색, 원래 비용의 핵심)을 **한 번만** 계산해\n`arrays`의 배열 개수만큼 재사용한다 -- 각 배열에 대해 개별 `_multilinear_interp()`를\n호출한 것과 수치적으로 동일한 결과를 낸다(같은 가중치/인덱스로 배열만 바꿔 합산하므로).\n\n`grids`는 이미 plain list여야 한다(numpy 변환은 호출부 책임, `_m",
+     "returns": [
+      "300: totals"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:448",
+      "kind": "name",
+      "text": "return _multilinear_interp_point_multi(self._grids_list, arrays, [L, vgs, vds, vsb])",
+      "enclosing": "SemiEmpiricalGmIdLUT._query_multi",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:21",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:101",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:51",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:449"
+   ],
+   "total_refs": 1,
+   "registry_name": "_multilinear_interp_point_multi",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "단일 좌표에서 여러 배열을 한 번에 보간",
+   "registry_destination": "gmid_sizing_engine.py",
+   "registry_note": "축별 bisect/frac/corner-weight 코드가 `_multilinear_interp`(217-246)와 복붙. 공통 `(idx_lo, frac)` 헬퍼 하나로 합칠 것",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "다선형 보간",
+     "canonical_cell": "`_multilinear_interp`",
+     "dup_cell": "`_multilinear_interp_point_multi` 복붙",
+     "status_cell": ""
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:448 [SemiEmpiricalGmIdLUT._query_multi]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "true_current_mirror_groups",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "true_current_mirror_groups",
+     "kind": "func",
+     "lineno": 2363,
+     "end_lineno": 2387,
+     "lines": 25,
+     "signature": "true_current_mirror_groups(by_name: dict) -> list",
+     "docstring_head": "**진짜 전류미러** 그룹 -- 같은 `(kind, gate net, source net)`을 공유하는 소자 집합.\n\n순수 connectivity 사실이다(role 라벨을 안 본다). 물리 근거는 미러비 식 자체다:\n\n    ID2/ID1 = (W2/L2) / (W1/L1)\n\n이 **순수한 W 비**(=레이아웃 비, PVT에 강함)로 축약되려면 `L1 == L2`여야 한다. L이\n다르면 비가 이동도/Vth/채널길이변조의 L 의존성을 타고 공정·전압·온도에 흔들린다\n(사용자 지적: \"tail이 bias generation하는 mirror와 L이 다르면 전류비가 실제 실리콘에서는\nPVT때문에 정확하지 않을 수 있잖아\").\n\n이 판정은 **cross-kind 쌍을 자동으로 제외**한다 -- 세션30이 문헌+코드 대조로 확정한\n\"Pelgrom/전류미러 매칭은 same-kind에만 성립\"(M15 PMOS / M16 NMOS는 미러가 아니라\nclass-AB 센터링용 VGS 매칭이라 L을 독립으",
+     "returns": [
+      "2387: [sorted(v) for v in groups.values() if len(v) > 1]"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:2422",
+      "kind": "name",
+      "text": "for grp in true_current_mirror_groups(by_name):",
+      "enclosing": "l_sharing_classes",
+      "tag": "engine_live"
+     }
+    ],
+    "docs_py": [
+     {
+      "loc": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:640",
+      "kind": "attr",
+      "text": "L.append(f\"- true_current_mirror_groups: {sr.true_current_mirror_groups(by_name)}\")",
+      "enclosing": "run_circuit",
+      "tag": "docs_py"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1,
+    "docs_py": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2816",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:3437",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5201",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:523",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:67",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:102",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:260",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:57",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:128",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:188",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:299",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:427",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:588",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_opt_L_vs_VDS.md:8",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_opt_L_vs_VDS.md:56",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_opt_L_vs_VDS.md:77",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_pilot_dof_count.results.md:4",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:49",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:80",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:40",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:450",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:464"
+   ],
+   "total_refs": 2,
+   "registry_name": "true_current_mirror_groups",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "같은 (kind, gate net, source net) 소자 그룹(게이트가 레일이면 제외)",
+   "registry_destination": "circuit_state_graph.py(S1 \"개념당 정의 하나\"의 미…",
+   "registry_note": "같은 개념이 다른 정의로 또 있다: `stick_diagram.find_matching_candidates`(972, 1005-1006 `(kind, gate, source)` current_mirror 그룹핑), `_mirror_ratio_error_pairs`(4551, connectivity가 아니…",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "전류미러 그룹",
+     "canonical_cell": "`true_current_mirror_groups`(connectivity, 키 kind·gate·source)",
+     "dup_cell": "`stick_diagram.find_matching_candidates`(키 kind·gate 또는 kind·bias·rail), `_mirror_ratio_error_pairs`(선언 기반, 첫 쌍만), probe 3곳 복제",
+     "status_cell": "★ B19'에서 11 vs 18소자로 결론이 뒤집힌 원인"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1,
+    "docs_py": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:2422 [l_sharing_classes]"
+    ],
+    "docs_py": [
+     "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:640 [run_circuit]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "_folded_cascode_rout",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_folded_cascode_rout",
+     "kind": "func",
+     "lineno": 3051,
+     "end_lineno": 3069,
+     "lines": 19,
+     "signature": "_folded_cascode_rout(spec: dict, ctx: SizingContext) -> tuple",
+     "docstring_head": "`folded_cascode` 계열 단일 스테이지의 출력저항(표준 캐스코드 폐형식, 2026-08-15\n세션35 신설) -- `_metric_folded_cascode_gain_db`/`_metric_folded_cascode_pm_deg`가\n공유하는 헬퍼(중복 방지). Rout_p(PMOS 캐스코드 branch) = gm(cascode_p)·ro(cascode_p)·\n(ro(fold_leg_a)‖ro(fold_leg_b)) -- 폴딩 노드(예: X)에 diffpair 다리와 PMOS 전류원이\n같이 물려 그 둘의 ro가 병렬로 캐스코드 소스단 임피던스를 이룬다. Rout_n(NMOS 캐스코드\nbranch, 미러를 거쳐 출력에 실림) = gm(cascode_n)·ro(cascode_n)·ro(mirror_n) -- 이쪽은\ndiode+미러 체인이라 병렬 항 없이 단일 ro. 반환: `(Rout_p, Rout_n, Rout_p‖Rout_n)`.\n\nmetric_spec 키: `{\"casco",
+     "returns": [
+      "3069: (rout_p, rout_n, rout)",
+      "3064: 1.0 / ctx.sized[name]['gds']"
+     ],
+     "engine_callees": {
+      "ro": [
+       3065,
+       3066,
+       3067
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:3084",
+      "kind": "name",
+      "text": "_, _, rout = _folded_cascode_rout(spec, ctx)",
+      "enclosing": "_metric_folded_cascode_gain_db",
+      "tag": "engine_caller_is_DUP"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:3107",
+      "kind": "name",
+      "text": "_, _, rout = _folded_cascode_rout(spec, ctx)",
+      "enclosing": "_metric_folded_cascode_pm_deg",
+      "tag": "engine_caller_is_DUP"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:940",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:12",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:82",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review7_generality_recheck.md:256",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_B_design_7_5_7_9.md:225",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:451"
+   ],
+   "total_refs": 2,
+   "registry_name": "_folded_cascode_rout",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "folded-cascode Rout_p/Rout_n/병렬 폐형식",
+   "registry_destination": "gmid_sizing_engine.py",
+   "registry_note": "소비자 둘이 DUP라 종속. ro_fold 계산(3054)이 `_nmcnr_stage1_rout`(3126)와 같은 식 복제",
+   "df_refs": [
+    "DF-30"
+   ],
+   "concept_rows": [],
+   "ref_tags": {
+    "engine_caller_is_DUP": 2
+   },
+   "ref_tag_detail": {
+    "engine_caller_is_DUP": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:3084 [_metric_folded_cascode_gain_db]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:3107 [_metric_folded_cascode_pm_deg]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 0
+  },
+  {
+   "name": "_metric_folded_cascode_gain_db",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_metric_folded_cascode_gain_db",
+     "kind": "func",
+     "lineno": 3072,
+     "end_lineno": 3085,
+     "lines": 14,
+     "signature": "_metric_folded_cascode_gain_db(spec: dict, ctx: SizingContext) -> float",
+     "docstring_head": "F엔진(2026-08-15 세션35 신설) -- 단일 스테이지 folded-cascode의 DC 이득 표준 폐형식\n(문헌 표준: Razavi *Design of Analog CMOS Integrated Circuits* 등이 공통으로 주는\n`Adm = gm1·(Rout_p‖Rout_n)` 형태 -- diffpair 한쪽 다리의 gm과 병렬 출력저항의 곱).\n이 프로젝트의 다른 CMRR/PSRR 폐형식(예: `_cmrr_telescopic_class_ab`)과 달리 sympy\n전수 유도·ngspice 교차검증은 아직 안 했다(2026-08-15 세션35, 사용자 승인 범위 --\n\"gain은 잘 알려진 표준식이라 유도 리스크가 낮다\"는 전제로 우선 등록, 최종 확인은\nSPICE가 필요하다는 이 프로젝트의 일반 원칙 그대로 적용).\n\nmetric_spec 키: `_folded_cascode_rout()`와 동일 + `\"gm1_device\"`(예: M1 -- diffpair\n한쪽 다리, m",
+     "returns": [
+      "3085: 20 * math.log10(abs(gm1 * rout))"
+     ],
+     "engine_callees": {
+      "_folded_cascode_rout": [
+       3084
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:5676",
+      "kind": "name",
+      "text": "\"folded_cascode_gain_db\":   _metric_folded_cascode_gain_db,      # 세션35",
+      "enclosing": "<module>",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:488",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:940",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:12",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:13",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:80",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review7_generality_recheck.md:256",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_D_gain_decomposition_incidents.md:63",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:53",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:452"
+   ],
+   "total_refs": 1,
+   "registry_name": "_metric_folded_cascode_gain_db",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "gm1·(Rout_p‖Rout_n) dB",
+   "registry_destination": "gmid_sizing_engine.py",
+   "registry_note": "같은 개념을 회로무관 MNA `_metric_smallsignal_gain_db`(5615)가 계산(파일럿·two_stage는 이미 그쪽). docstring 3066-3068: sympy/SPICE 검증 안 됨. 운영 중이므로 삭제 전 JSON 타입 이전+4회로 측정 필요",
+   "df_refs": [
+    "DF-30"
+   ],
+   "concept_rows": [
+    {
+     "concept": "gain metric",
+     "canonical_cell": "`_metric_smallsignal_gain_db`",
+     "dup_cell": "`_metric_folded_cascode_gain_db`",
+     "status_cell": "folded_cascode가 사용 중 -- 4회로 재측정 후"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:5676 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "_metric_folded_cascode_pm_deg",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_metric_folded_cascode_pm_deg",
+     "kind": "func",
+     "lineno": 3088,
+     "end_lineno": 3116,
+     "lines": 29,
+     "signature": "_metric_folded_cascode_pm_deg(spec: dict, ctx: SizingContext) -> float",
+     "docstring_head": "F엔진(2026-08-15 세션35 신설) -- 단일 스테이지 folded-cascode의 위상여유, 2-pole\n근사(`PM = 90도 - atan(GBW/p2)`, 표준 형태). 지배극은 출력(`p1 = 1/(2π·Rout·CL)`),\nGBW = gm1/(2π·CL) = Adm·p1. 2차극은 폴딩 노드(예: X)의 국소 임피던스(≈1/gm(cascode_p),\n캐스코드 소스단이 낮은 임피던스를 만드는 표준 근사)와 그 노드의 기생 커패시턴스로\n추정: `p2 = gm(cascode_p) / (2π·C_fold)`.\n\n⚠️ **정직한 한계**(`_psrr_telescopic_class_ab`류와 같은 투명성 원칙): (1) `C_fold`는\n폴딩 노드에 물린 소자들의 `cgg_absolute()`(게이트 커패시턴스) 합으로 근사한다 -- 이\n프로젝트 LUT가 drain/source 접합 커패시턴스(Cdb/Csb) 모델을 갖고 있지 않아서 쓰는\n대체 근사이지 그 노드의 진짜 지배 성",
+     "returns": [
+      "3116: 90.0 - math.degrees(math.atan(gbw_hz / p2_hz))"
+     ],
+     "engine_callees": {
+      "_folded_cascode_rout": [
+       3107
+      ],
+      "cgg_absolute": [
+       3114
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:5677",
+      "kind": "name",
+      "text": "\"folded_cascode_pm_deg\":    _metric_folded_cascode_pm_deg,       # 세션35",
+      "enclosing": "<module>",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:940",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:32",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:14",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:81",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review7_generality_recheck.md:256",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:54",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:453"
+   ],
+   "total_refs": 1,
+   "registry_name": "_metric_folded_cascode_pm_deg",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "2-pole 근사 PM, C_fold=Cgg 합",
+   "registry_destination": "gmid_sizing_engine.py",
+   "registry_note": "`_metric_parasitic_pm_deg`(4329, L2 실제 주파수응답)와 같은 개념. 접합용량·Y-branch 극 무시(3084-3091)",
+   "df_refs": [
+    "DF-30"
+   ],
+   "concept_rows": [
+    {
+     "concept": "PM metric",
+     "canonical_cell": "`_metric_parasitic_pm_deg`",
+     "dup_cell": "`_metric_folded_cascode_pm_deg`",
+     "status_cell": "〃"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:5677 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "full_circuit_response_at_omega",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "full_circuit_response_at_omega",
+     "kind": "func",
+     "lineno": 4283,
+     "end_lineno": 4343,
+     "lines": 61,
+     "signature": "full_circuit_response_at_omega(ctx: 'SizingContext', excite: dict, also_fix, omega: float, network: dict | None=None)",
+     "docstring_head": "`(G + j*omega*C) v = b`를 풀어 **복소** 노드전압을 돌려준다(2026-09-10, §7.11 L2).\n\n`_full_circuit_response()`(DC/mid-band, 실수)의 주파수 확장이다 -- 같은 `devices`\n스탬프(`_full_circuit_devices()`, 저항 포함)를 쓰고 거기에 용량 항만 더한다.\n\n## 왜 pole을 고유값으로 뽑지 않는가\n\n§7.11이 L2를 \"MNA에서 실제 pole 추출(고유값)\"으로 적어뒀는데, 구현하며 **그대로는 틀린다**는\n것이 드러났다: `det(G + sC)=0`의 근에는 bias 노드가 만드는 모드까지 전부 들어오는데, 그\n모드들은 excite->sense 전달함수에서 zero와 **상쇄되어 위상을 안 먹는다**(관측/제어\n불가능 모드). 그걸 다 더하면 L1에서 전 노드를 더했을 때 -1004도가 나온 것과 **같은 종류의\n오류**가 pole 형태로 재발한다. 잔차(residue)로 걸러낼 수",
+     "returns": [
+      "4342: {**{k: complex(v) for k, v in fixed.items()}, **{nodes[i]: complex(sol[i]) for i in range(n)}}",
+      "4307: dict(fixed)"
+     ],
+     "engine_callees": {
+      "add": [
+       4322,
+       4323,
+       4324,
+       4325,
+       4326,
+       4327,
+       4332,
+       4333,
+       4334,
+       4335
+      ],
+      "build_ac_network": [
+       4301
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:4413",
+      "kind": "name",
+      "text": "sol = full_circuit_response_at_omega(ctx, excite, also_fix, omega, network=_net)",
+      "enclosing": "_metric_parasitic_pm_deg._h",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2706",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:4310",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:42",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:83",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:56",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:136",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review6_results.md:472",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/rewrite_X_decisions.md:51",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:56",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:454"
+   ],
+   "total_refs": 1,
+   "registry_name": "full_circuit_response_at_omega",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "(G+jωC)v=b 복소 MNA 풀이",
+   "registry_destination": "gmid_sizing_engine.py",
+   "registry_note": "트랜지스터 스탬프 6줄(4305-4311)이 `_mna_solve_smallsignal`(4970) 5016-5022와 **동일**. ω=0이면 DC 해와 같음 -> 복소 solver 하나로 합칠 것. 이쪽엔 고립노드 진단(5029-5034)이 없음",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "MNA 소자 스탬프",
+     "canonical_cell": "`build_ac_network`",
+     "dup_cell": "`full_circuit_response_at_omega`, `_mna_solve_smallsignal`",
+     "status_cell": ""
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:4413 [_metric_parasitic_pm_deg._h]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "_cmrr_diff_pair_tail",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_cmrr_diff_pair_tail",
+     "kind": "func",
+     "lineno": 4844,
+     "end_lineno": 4850,
+     "lines": 7,
+     "signature": "_cmrr_diff_pair_tail(metric_spec: dict, ctx: SizingContext) -> float",
+     "docstring_head": "`circuit_family=\"diff_pair_tail\"` — CMRR ≈ [(ro_tail/2) + (1/gm_tail)]·gm_tail\n(문헌 표준 1차 근사, do.md 배치 7-3i). `tail_device`의 이미 사이징된 gm/gds만 쓴다.",
+     "returns": [
+      "4850: 20 * math.log10(cmrr_linear)"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:5254",
+      "kind": "name",
+      "text": "\"diff_pair_tail\": _cmrr_diff_pair_tail,",
+      "enclosing": "<module>",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:56",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:84",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:55",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:455"
+   ],
+   "total_refs": 1,
+   "registry_name": "_cmrr_diff_pair_tail",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "CMRR ≈ (ro_tail/2+1/gm)·gm 1차 근사",
+   "registry_destination": "gmid_sizing_engine.py",
+   "registry_note": "같은 개념을 회로무관 전체회로 MNA `_metric_smallsignal_ratio_db`(5586)가 계산(파일럿은 이미 전환, JSON 주석 1873). 운영 중이라 삭제 전 JSON 이전+측정 필요",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "CMRR",
+     "canonical_cell": "`_metric_smallsignal_ratio_db`",
+     "dup_cell": "`_cmrr_diff_pair_tail`",
+     "status_cell": "〃"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:5254 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "_theta_device_map",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_theta_device_map",
+     "kind": "func",
+     "lineno": 10973,
+     "end_lineno": 10996,
+     "lines": 24,
+     "signature": "_theta_device_map(thetas: list) -> dict",
+     "docstring_head": "`{theta_name: {이 theta가 값을 정하는 소자 이름들}}` -- feed 선언에서 긁어모은다.\n\nfeed 타입마다 소자를 담는 키가 다르므로(`devices`/`root`/`roots`/`target`/`reference`/\n`ref_device`/`stage_devices` ...) 값이 문자열이거나 문자열 리스트면 전부 후보로 본다.\n소자 이름인지 아닌지는 호출자가 실제 소자 집합과 교집합을 취해 거른다 -- 여기서는\n회로를 모르는 채 선언만 훑는다.",
+     "returns": [
+      "10996: out"
+     ],
+     "engine_callees": {
+      "add": [
+       10990
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:11052",
+      "kind": "name",
+      "text": "dev_map = _theta_device_map(thetas)",
+      "enclosing": "repair_infeasible_baseline",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2606",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:93",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:99",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:104",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:152",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:47",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:143",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:456",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:457"
+   ],
+   "total_refs": 1,
+   "registry_name": "_theta_device_map",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "feed dict 전체를 훑어 문자열 leaf 수집",
+   "registry_destination": "(정본 `_theta_feed_footprint` 10174 / walk…",
+   "registry_note": "소자명 아닌 문자열(type, metric 이름)도 수집 후 교집합으로 거름. 두 함수와 개념 중복",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "theta가 건드리는 소자",
+     "canonical_cell": "`_theta_feed_footprint`",
+     "dup_cell": "`_theta_device_map`, `_collect_device_refs`",
+     "status_cell": ""
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:11052 [repair_infeasible_baseline]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "_collect_device_refs",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_collect_device_refs",
+     "kind": "func",
+     "lineno": 11866,
+     "end_lineno": 11885,
+     "lines": 20,
+     "signature": "_collect_device_refs(spec, known_names: set) -> set",
+     "docstring_head": "`spec`(metric_spec처럼 임의로 중첩된 dict/list) 안의 문자열 leaf 중 `known_names`에\n속하는 것만 재귀로 모은다 -- metric마다 소자를 가리키는 키 이름이 제각각이라\n(`devices`/`stages`/`device`/`tail_device`/`high_device`/... , _METRICS_REGISTRY 9종\n확인) 특정 키에 의존하지 않고 구조 전체를 훑는다.",
+     "returns": [
+      "11885: found"
+     ],
+     "engine_callees": {
+      "add": [
+       11876
+      ],
+      "walk": [
+       11879,
+       11882,
+       11884
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:11984",
+      "kind": "name",
+      "text": "if not (_collect_device_refs(sp, known_names) & set(overrides))),",
+      "enclosing": "revalidate_finger_override",
+      "tag": "engine_live"
+     }
+    ],
+    "probe": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_revalidation_scope.py:78",
+      "kind": "attr",
+      "text": "refs = sr._collect_device_refs(spec, known)",
+      "enclosing": "<module>",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_revalidation_scope.py:93",
+      "kind": "attr",
+      "text": "and not (sr._collect_device_refs(s,known) & overrides)]",
+      "enclosing": "<module>",
+      "tag": "probe"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1,
+    "probe": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:1294",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:1297",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:3906",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5618",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:92",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:99",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:104",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:152",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:144",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_D_gain_decomposition_incidents.md:69",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:47",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:344",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:457"
+   ],
+   "total_refs": 3,
+   "registry_name": "_collect_device_refs",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "중첩 spec에서 알려진 소자명 수집",
+   "registry_destination": "(`_theta_device_map` 10933)",
+   "registry_note": "판정 로직에선 더 이상 안 씀(`:11894-11921` 사유) — 진단 필드 전용",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "theta가 건드리는 소자",
+     "canonical_cell": "`_theta_feed_footprint`",
+     "dup_cell": "`_theta_device_map`, `_collect_device_refs`",
+     "status_cell": ""
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1,
+    "probe": 2
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:11984 [revalidate_finger_override]"
+    ],
+    "probe": [
+     "skills/analog-gmid-design/assets/tests/probe_revalidation_scope.py:78 [<module>]",
+     "skills/analog-gmid-design/assets/tests/probe_revalidation_scope.py:93 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "_fixup_euler_blocked_rows",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_fixup_euler_blocked_rows",
+     "kind": "func",
+     "lineno": 12171,
+     "end_lineno": 12298,
+     "lines": 128,
+     "signature": "_fixup_euler_blocked_rows(rows: dict, matching_pairs: list, pair_sensitivity: dict, ctx: SizingContext, lut_by_kind: dict, metrics_specs: dict, constraints: list, gm_id_bounds: tuple=(2.0, 30.0), max_rounds: int=5) -> tuple",
+     "docstring_head": "`repair_matching_safety()`(3c 수리 -- 일부 소자를 `common_centroid_layout()`으로\n새 행에 빼냄)가 원래 행에 **남은 나머지 소자들**의 euler 조건(짝수차수 -- 한붓그리기\n가능 여부)까지 보존한다는 보장은 없다 -- 2026-08-13(세션31 이어) 실측 발견: `two_stage_\nota` box-shape 진단 중 `save_instance_json()`이 repair *이전* 스냅샷을 저장하던 버그를\n고치자(그 자체는 별개 수정), self-test(11소자 M3a 그룹, M4a/M4b+M10/M19를 3c 수리로\n빼낸 뒤) 남은 행 `m3a_row`가 `status=blocked, odd_nodes=['Vbias3','gnd']`로 방치되는\n게 처음으로 드러났다(지금까지는 이 저장 버그가 이 사실을 가려왔을 뿐, `repair_matching_\nsafety()`가 새로 만든 버그가 아니다). `run_topology_p",
+     "returns": [
+      "12298: (current_rows, cur_ctx)",
+      "12225: components",
+      "12237: (current_rows, cur_ctx)"
+     ],
+     "engine_callees": {
+      "_connected_components": [
+       12240
+      ],
+      "add": [
+       12221,
+       12294
+      ],
+      "apply_and_revalidate_pair_adjustment": [
+       12252
+      ],
+      "build_stick_diagram": [
+       12232,
+       12266
+      ],
+      "find_min_crossover_layout_with_branch_composite": [
+       12285
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:12377",
+      "kind": "name",
+      "text": "fixed_rows, fixed_ctx = _fixup_euler_blocked_rows(",
+      "enclosing": "run_matching_safety_with_finger_growth._finalize",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:111",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:153",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:48",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:458"
+   ],
+   "total_refs": 1,
+   "registry_name": "_fixup_euler_blocked_rows",
+   "registry_group": "sizing_recipe.py (11)",
+   "registry_responsibility": "repair 후 잔여 euler-blocked row 수리(성장→분할/컴포넌트 분리)",
+   "registry_destination": "(`run_topology_pipeline_with_finger_fixu…",
+   "registry_note": "docstring 스스로 \"정확히 같은 전략\"(`:12143-12146`). rows 표현용·topology_path용 두 벌",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "euler 행 수정 전략",
+     "canonical_cell": "`run_topology_pipeline_with_finger_fixup`",
+     "dup_cell": "`_fixup_euler_blocked_rows`(docstring이 \"정확히 같은 전략\")",
+     "status_cell": ""
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:12377 [run_matching_safety_with_finger_growth._finalize]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  {
+   "name": "find_matching_candidates",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/stick_diagram.py",
+     "qualname": "find_matching_candidates",
+     "kind": "func",
+     "lineno": 979,
+     "end_lineno": 1055,
+     "lines": 77,
+     "signature": "find_matching_candidates(transistors: list, idiom_matches: list | None=None) -> dict",
+     "docstring_head": "구조적 신호만으로 matching **후보**(확정 아님)를 찾는다 — AI/설계자가 소자쌍을\n일일이 수동으로 훑지 않도록 후보를 미리 좁혀주는 게 이 함수의 존재 이유다(토큰 절약).\n자동 탐지 가능한 두 유형:\n\n- `current_mirror`: 같은 극성(kind) + 같은 gate net을 공유하는 2개 이상의 소자.\n  (`gate`를 지정하지 않은 소자는 대상에서 제외된다.)\n- `diff_pair`: 같은 극성 + 같은 source net을 공유하지만 서로 다른 gate net을 가진\n  정확히 2개의 소자(차동 입력쌍의 구조적 정의 그 자체 — W는 요구하지 않는다).\n  **W가 둘 다 채워져 있으면**(사이징 이후) 추가로 W까지 일치해야 후보로 잡는다 —\n  대형 회로에서 우연히 같은 source에 물린 무관한 소자를 걸러내는 오탐 방지 필터다.\n  **W가 없으면**(사이징 이전, topology 저작 단계) 이 필터를 건너뛰고 구조적 신호만으로\n  후보를 낸",
+     "returns": [
+      "1055: {'current_mirror': current_mirror, 'diff_pair': diff_pair}",
+      "1029: {'current_mirror': current_mirror, 'diff_pair': diff_pair}"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:2794",
+      "kind": "name",
+      "text": "matching_candidates = find_matching_candidates(transistors)",
+      "enclosing": "check_symmetry_dispositions",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:4308",
+      "kind": "name",
+      "text": "matching_candidates = find_matching_candidates(transistors)",
+      "enclosing": "propose_device_roles_gap_fill",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:7104",
+      "kind": "name",
+      "text": "mc = find_matching_candidates(trs)",
+      "enclosing": "run_full_circuit_audit",
+      "tag": "engine_live"
+     }
+    ],
+    "test": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:67",
+      "kind": "name",
+      "text": "found = find_matching_candidates(folded_cascode_example())",
+      "enclosing": "s007_state",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:378",
+      "kind": "name",
+      "text": "_fc_new = find_matching_candidates(folded_cascode_example(), idiom_matches=_fc_matches)",
+      "enclosing": "s118_state",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:1801",
+      "kind": "name",
+      "text": "_linked_candidates = find_matching_candidates(_linked_trs)",
+      "enclosing": "test_s071_section",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2630",
+      "kind": "name",
+      "text": "_t30_old_again = find_matching_candidates(folded_cascode_example())",
+      "enclosing": "test_s116_None",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2647",
+      "kind": "name",
+      "text": "_old_mirror = find_matching_candidates(_mirror_fixture)",
+      "enclosing": "test_s117_connectivity",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2653",
+      "kind": "name",
+      "text": "_new_mirror = find_matching_candidates(_mirror_fixture, idiom_matches=_mirror_matches)",
+      "enclosing": "test_s117_connectivity",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2669",
+      "kind": "name",
+      "text": "_fc_new_bare = find_matching_candidates(folded_cascode_example(), idiom_matches=_fc_matches_bare)",
+      "enclosing": "test_s118_folded_cascode_example",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2674",
+      "kind": "name",
+      "text": "_fc_new = find_matching_candidates(folded_cascode_example(), idiom_matches=_fc_matches)",
+      "enclosing": "test_s118_folded_cascode_example",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2721",
+      "kind": "name",
+      "text": "_fallback_result = find_matching_candidates(_no_gate_fixture,",
+      "enclosing": "test_s120_section",
+      "tag": "test"
+     }
+    ],
+    "workspaces": [
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py:29",
+      "kind": "name",
+      "text": "mc = find_matching_candidates(transistors)",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     },
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/stick.py:144",
+      "kind": "name",
+      "text": "matches = find_matching_candidates(all_trs)",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 3,
+    "test": 9,
+    "workspaces": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/analog-topology-json-library.plan.md:174",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2298",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:1058",
+    "docs/02-design/features/analog-topology-json-library.design.md:126",
+    "docs/02-design/features/analog-topology-json-library.design.md:225",
+    "docs/02-design/features/analog-topology-json-library.design.md:263",
+    "docs/02-design/features/analog-topology-json-library.design.md:269",
+    "docs/02-design/features/analog-topology-json-library.design.md:283",
+    "docs/02-design/features/analog-topology-json-library.design.md:285",
+    "docs/02-design/features/analog-topology-json-library.design.md:338",
+    "docs/02-design/features/analog-topology-json-library.design.md:351",
+    "docs/02-design/specs/20260922-ic5-gate-docstrings.interface.md:79",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:19",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:48",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:50",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:58",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:75",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:80",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:155",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:156",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:161",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:171",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:193",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:201",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:814",
+    "docs/03-analysis/analog-topology-json-library.gap-findings.md:877",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.json:6290",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:67",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:102",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:52",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:53",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:176",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:260",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:261",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:40",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:450",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:464",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:465",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:466",
+    "docs/04-report/analog-topology-json-library.do.md:145",
+    "docs/04-report/analog-topology-json-library.do.md:322",
+    "docs/04-report/analog-topology-json-library.do.md:806",
+    "docs/04-report/analog-topology-json-library.do.md:820",
+    "docs/04-report/analog-topology-json-library.do.md:822",
+    "docs/04-report/analog-topology-json-library.do.md:850",
+    "docs/04-report/analog-topology-json-library.do.md:857",
+    "docs/04-report/analog-topology-json-library.do.md:865",
+    "docs/04-report/analog-topology-json-library.do.md:2007",
+    "docs/04-report/analog-topology-json-library.do.md:2323",
+    "docs/04-report/analog-topology-json-library.do.md:2327",
+    "docs/04-report/analog-topology-json-library.do.md:2406",
+    "docs/04-report/analog-topology-json-library.do.md:2407"
+   ],
+   "total_refs": 14,
+   "registry_name": "find_matching_candidates",
+   "registry_group": "stick_diagram.py (7)",
+   "registry_responsibility": "mirror/diff_pair 후보 탐지(net-only 또는 idiom 경로)",
+   "registry_destination": "circuit_state_graph(S1 matching 엣지 정의 1개…",
+   "registry_note": "mirror 정의 3개: net-only (kind,gate) SD:1024-1031 / idiom (kind,bias,rail) SD:1041 / SR `true_current_mirror_groups` (kind,gate,source)+레일게이트 제외 SR:2358-2382. diff_pair는 `_…",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "전류미러 그룹",
+     "canonical_cell": "`true_current_mirror_groups`(connectivity, 키 kind·gate·source)",
+     "dup_cell": "`stick_diagram.find_matching_candidates`(키 kind·gate 또는 kind·bias·rail), `_mirror_ratio_error_pairs`(선언 기반, 첫 쌍만), probe 3곳 복제",
+     "status_cell": "★ B19'에서 11 vs 18소자로 결론이 뒤집힌 원인"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 3,
+    "test": 9,
+    "workspaces_script": 2
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/stick_diagram.py:2794 [check_symmetry_dispositions]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:4308 [propose_device_roles_gap_fill]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:7104 [run_full_circuit_audit]"
+    ],
+    "test": [
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:67 [s007_state]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:378 [s118_state]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:1801 [test_s071_section]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2630 [test_s116_None]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2647 [test_s117_connectivity]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2653 [test_s117_connectivity]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2669 [test_s118_folded_cascode_example]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2674 [test_s118_folded_cascode_example]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2721 [test_s120_section]"
+    ],
+    "workspaces_script": [
+     "workspaces/current-reuse-telescopic-ota-report/rerun_symmetry.py:29 [<module>]",
+     "workspaces/current-reuse-telescopic-ota-report/stick.py:144 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 3
+  },
+  {
+   "name": "find_differential_pair_candidates",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/stick_diagram.py",
+     "qualname": "find_differential_pair_candidates",
+     "kind": "func",
+     "lineno": 1688,
+     "end_lineno": 1791,
+     "lines": 104,
+     "signature": "find_differential_pair_candidates(transistors: list, inputs=(), outputs=(), feedbacks=(), biases=(), clocks=()) -> dict | None",
+     "docstring_head": "구조적으로 매칭된 branch 쌍(`suggest_vertical_stack_composites()`의 composite\n시퀀스가 완전히 같은 branch끼리 묶음, C-10과 동일 원리) 안에서, 서로 다른 위치의\n소자쌍이 (1) 같은 kind, (2) 다른 gate(=mirror 아님), (3) **같은 non-rail source(진짜\ntail net)를 공유**하면 differential pair 후보로 판정한다.\n\n⚠️ **왜 이게 중요한가(사용자 통찰, 2026-08-07)**: \"differential pair를 먼저 찾고\n나서 mirror 관계를 분석해야 정확해진다\" -- `Voc`를 `inputs=`로 미리 선언해야만\n`M37a`/`M37b`를 찾을 수 있었던 `find_verified_differential_and_mirror_relations()`\n와 정반대로, 이 함수는 **INPUT/BIAS net 분류를 전혀 안 쓴다**(net 분류 자체가\n`Voc`처럼 이",
+     "returns": [
+      "1791: {'candidates': out}",
+      "1728: None",
+      "1735: tuple(((len(c['members']), c['idiom'], tuple((by_name[m].kind for m in c['members']))) for c in b['composites']))"
+     ],
+     "engine_callees": {
+      "_diff_pair_layer1_groups": [
+       1781
+      ],
+      "add": [
+       1764,
+       1788
+      ],
+      "signature": [
+       1746
+      ],
+      "suggest_vertical_stack_composites": [
+       1725,
+       1729
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:2274",
+      "kind": "name",
+      "text": "candidates = find_differential_pair_candidates(",
+      "enclosing": "_propose_gm_id_roles",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:2351",
+      "kind": "name",
+      "text": "candidates = find_differential_pair_candidates(",
+      "enclosing": "_propose_L_roles",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:2602",
+      "kind": "name",
+      "text": "candidates = find_differential_pair_candidates(",
+      "enclosing": "refine_differential_and_mirror_relations",
+      "tag": "engine_live"
+     }
+    ],
+    "test": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2974",
+      "kind": "name",
+      "text": "_t37_result = find_differential_pair_candidates(_t35_fixture)  # inputs= 아예 안 넘김",
+      "enclosing": "test_s130_find_differential_pair_candidates",
+      "tag": "test"
+     }
+    ],
+    "docs_py": [
+     {
+      "loc": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:633",
+      "kind": "attr",
+      "text": "dp = sd.find_differential_pair_candidates(list(by_name.values()))",
+      "enclosing": "run_circuit",
+      "tag": "docs_py"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 3,
+    "test": 1,
+    "docs_py": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:5128",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:5144",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.json:5083",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.json:6283",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.md:225",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:52",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:212",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:261",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:186",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:297",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:425",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:586",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_generality_audit_v518.md:363",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:465"
+   ],
+   "total_refs": 5,
+   "registry_name": "find_differential_pair_candidates",
+   "registry_group": "stick_diagram.py (7)",
+   "registry_responsibility": "inputs 선언 없이 diffpair 후보(shared_source)",
+   "registry_destination": "circuit_state_graph",
+   "registry_note": "diffpair/tail 정의 다중: 여기 / `find_matching_candidates` diff_pair SD:1033-1046 / SR `gain_stage_tails`(stage source net을 drain으로 갖는 tail) SR:2434-2470 / SR `input_referred_o…",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "diffpair / tail",
+     "canonical_cell": "(미정)",
+     "dup_cell": "`find_differential_pair_candidates`, `_diff_pair_layer1_groups`, `_propose_gm_id_roles`(SD, connectivity) vs `gain_stage_tails`, `input_referred_offset_pairs`(SR, 선언)",
+     "status_cell": "★ S1 유도 정본을 정해야 함"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 3,
+    "test": 1,
+    "docs_py": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/stick_diagram.py:2274 [_propose_gm_id_roles]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:2351 [_propose_L_roles]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:2602 [refine_differential_and_mirror_relations]"
+    ],
+    "test": [
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py:2974 [test_s130_find_differential_pair_candidates]"
+    ],
+    "docs_py": [
+     "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:633 [run_circuit]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 3
+  },
+  {
+   "name": "_diff_pair_layer1_groups",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/stick_diagram.py",
+     "qualname": "_diff_pair_layer1_groups",
+     "kind": "func",
+     "lineno": 1794,
+     "end_lineno": 1806,
+     "lines": 13,
+     "signature": "_diff_pair_layer1_groups(transistors: list) -> dict",
+     "docstring_head": "`find_matching_candidates()`의 `diff_pair` net-only 판정(같은 kind + 같은\nnon-rail source + 다른 gate, role/idiom 분류 불필요)만 떼어낸 헬퍼 -- `find_\ndifferential_pair_candidates()`의 층위1 폴백 전용(중복 구현 방지, `find_matching_\ncandidates()`의 W-일치 필터는 topology 저작 단계엔 아직 W가 없어 항상 통과한다).",
+     "returns": [
+      "1804: {k: v for k, v in by_source.items() if len(v) == 2 and v[0].gate is not None and (v[1].gate is not None) and (v[0].gate != v[1].gate)}"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:1781",
+      "kind": "name",
+      "text": "for (kind, source, _w), group in _diff_pair_layer1_groups(transistors).items():",
+      "enclosing": "find_differential_pair_candidates",
+      "tag": "engine_caller_is_DUP"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:53",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:261",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:466"
+   ],
+   "total_refs": 1,
+   "registry_name": "_diff_pair_layer1_groups",
+   "registry_group": "stick_diagram.py (7)",
+   "registry_responsibility": "net-only diff_pair 판정 재사용",
+   "registry_destination": "circuit_state_graph",
+   "registry_note": "docstring SD:1787-1789가 `find_matching_candidates` diff_pair와 같은 판정이라 명시",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "diffpair / tail",
+     "canonical_cell": "(미정)",
+     "dup_cell": "`find_differential_pair_candidates`, `_diff_pair_layer1_groups`, `_propose_gm_id_roles`(SD, connectivity) vs `gain_stage_tails`, `input_referred_offset_pairs`(SR, 선언)",
+     "status_cell": "★ S1 유도 정본을 정해야 함"
+    }
+   ],
+   "ref_tags": {
+    "engine_caller_is_DUP": 1
+   },
+   "ref_tag_detail": {
+    "engine_caller_is_DUP": [
+     "skills/analog-gmid-design/assets/stick_diagram.py:1781 [find_differential_pair_candidates]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 0
+  },
+  {
+   "name": "kcl_series_union",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/stick_diagram.py",
+     "qualname": "kcl_series_union",
+     "kind": "func",
+     "lineno": 3187,
+     "end_lineno": 3243,
+     "lines": 57,
+     "signature": "kcl_series_union(netlist: list, matching_pairs: list) -> dict",
+     "docstring_head": "L2 축A(2026-08-05, 세션10 L1/L2 구현) — `derive_stack_groups()`를 KCL용/geometry용\n두 함수로 분리한 것 중 KCL(축A, `sizing_recipe.py`의 `stack_groups_kcl`) 쪽. 두 규칙으로\nunion-find 병합한다:\n\n1. **내부 노드(2단자 net, 레일 제외)**: 어떤 net이 **레일(vdd/gnd/vss)이 아니고**\n   정확히 2개의 소자 단자에만 연결되면, 전하보존으로 그 두 소자 전류가 반드시 같다 —\n   극성과 무관한 물리 법칙(예: `folded_cascode`의 `M106`(nmos)/`M108`(pmos)이\n   `NodeM1`을 공유하면 극성이 달라도 KCL로 전류가 같다). **레일 제외는 세션9에서\n   추가됨**: `two_stage_ota`처럼 소자 수가 적은 회로에서는 `gnd`/`vdd`가 우연히 정확히\n   2번만 쓰일 수 있는데(실제 사례: `M5/M7`이 둘 다 ",
+     "returns": [
+      "3243: result",
+      "3218: x"
+     ],
+     "engine_callees": {
+      "find": [
+       3221,
+       3237
+      ],
+      "union": [
+       3229,
+       3232
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:8644",
+      "kind": "name",
+      "text": "stack_groups_kcl = kcl_series_union(transistors, _forced_pairs)",
+      "enclosing": "_build_theta_evaluator",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:7517",
+      "kind": "name",
+      "text": "groups = kcl_series_union(devices, [])",
+      "enclosing": "_kcl_branch_map",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/02-design/specs/20260922-ic5-gate-docstrings.interface.md:98",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:9",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:73",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:75",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:133",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:262",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:134",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:152",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:55",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:96",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:150",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:43",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:369",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:467",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:468",
+    "docs/04-report/analog-topology-json-library.do.md:2032",
+    "docs/04-report/analog-topology-json-library.do.md:2040",
+    "docs/04-report/analog-topology-json-library.do.md:2043",
+    "docs/04-report/analog-topology-json-library.do.md:2056"
+   ],
+   "total_refs": 2,
+   "registry_name": "kcl_series_union",
+   "registry_group": "stick_diagram.py (7)",
+   "registry_responsibility": "2단자 내부넷+matching_pairs union-find KCL 그룹",
+   "registry_destination": "circuit_state_graph",
+   "registry_note": "같은 edge를 `_kcl_and_matching_edges`(SD:3298, docstring \"단일 정의로 분리\")가 재구성하지만 이 함수 본문 SD:3188-3212는 그것을 쓰지 않고 독자 구현",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "KCL 엣지",
+     "canonical_cell": "`stick_diagram._kcl_and_matching_edges`",
+     "dup_cell": "`kcl_series_union`이 같은 엣지를 따로 구현, `_metric_kcl_residual`",
+     "status_cell": "행동 보존 통합 가능"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 2
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:8644 [_build_theta_evaluator]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:7517 [_kcl_branch_map]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 2
+  },
+  {
+   "name": "_kcl_and_matching_edges",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/stick_diagram.py",
+     "qualname": "_kcl_and_matching_edges",
+     "kind": "func",
+     "lineno": 3318,
+     "end_lineno": 3339,
+     "lines": 22,
+     "signature": "_kcl_and_matching_edges(transistors: list, matching_pairs: list) -> list",
+     "docstring_head": "`kcl_series_union()`이 union할 때 실제로 쓰는 것과 똑같은 두 종류의 edge(내부\n2단자 net + declared `current_forced` matching_pairs)를 `(a, b, kind, detail)`\n리스트로 재구성한다 -- `audit_vertical_stack_id_vs_kcl()`과\n`propose_vertical_stack_id_gap_fill()` 둘 다 같은 edge 정의를 써야 서로 어긋나지\n않으므로(2026-08-13 세션31, N-way 조인트 스캔 때 만든 `_shared_current_groups_\nfrom_compensation()`와 같은 이유로 단일 정의로 분리) 원래 `audit_vertical_stack_id_\nvs_kcl()` 안에 있던 로직을 그대로 추출.",
+     "returns": [
+      "3339: edges"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:3390",
+      "kind": "name",
+      "text": "edges = _kcl_and_matching_edges(transistors, matching_pairs)",
+      "enclosing": "audit_vertical_stack_id_vs_kcl",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:3475",
+      "kind": "name",
+      "text": "edges = [(a, b) for a, b, kind, _detail in _kcl_and_matching_edges(transistors, matching_pairs)",
+      "enclosing": "propose_vertical_stack_id_gap_fill",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5201",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:523",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:73",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:75",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:262",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:134",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:43",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:467",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:468"
+   ],
+   "total_refs": 2,
+   "registry_name": "_kcl_and_matching_edges",
+   "registry_group": "stick_diagram.py (7)",
+   "registry_responsibility": "KCL/matching edge 목록(원인 보존)",
+   "registry_destination": "circuit_state_graph",
+   "registry_note": "상대: `kcl_series_union`",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "KCL 엣지",
+     "canonical_cell": "`stick_diagram._kcl_and_matching_edges`",
+     "dup_cell": "`kcl_series_union`이 같은 엣지를 따로 구현, `_metric_kcl_residual`",
+     "status_cell": "행동 보존 통합 가능"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 2
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/stick_diagram.py:3390 [audit_vertical_stack_id_vs_kcl]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:3475 [propose_vertical_stack_id_gap_fill]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 2
+  },
+  {
+   "name": "_kcl_terminal_sign",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/stick_diagram.py",
+     "qualname": "_kcl_terminal_sign",
+     "kind": "func",
+     "lineno": 3614,
+     "end_lineno": 3623,
+     "lines": 10,
+     "signature": "_kcl_terminal_sign(kind: str, terminal: str) -> int",
+     "docstring_head": "PMOS/NMOS의 관례적 전류 방향(2026-08-18 세션, 사용자 지적 \"PMOS/NMOS 경계는 항상\ndrain-drain\" 이후 sympy로 재확인한 부호 규칙)을 net 기준 부호로 변환한다 -- PMOS는\nsource->drain(그 net에 전류를 **공급**하는 쪽이 drain, +1 / **흡수**하는 쪽이 source,\n-1), NMOS는 drain->source(그 반대, drain=-1/source=+1)다. 어떤 net에 모인 모든\n소자의 이 부호*ID 합은 KCL로 항상 0이다(nmcnr_amplifier의 NodeF1/NodeM1/NodeM2를\n이 부호로 sympy 재유도해 검증 완료, 세션 앞부분 참고).",
+     "returns": [
+      "3623: -1 if terminal == 'drain' else 1",
+      "3622: 1 if terminal == 'drain' else -1"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:3873",
+      "kind": "name",
+      "text": "root_sign = _kcl_terminal_sign(by_name[root_name].kind, root_term)",
+      "enclosing": "propose_theta_kcl_gap_fill._run_rules_1_to_3",
+      "tag": "engine_caller_is_D"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:3878",
+      "kind": "name",
+      "text": "other_sign = _kcl_terminal_sign(by_name[n].kind, term)",
+      "enclosing": "propose_theta_kcl_gap_fill._run_rules_1_to_3",
+      "tag": "engine_caller_is_D"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:47",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:79",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:263",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:269",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:423",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:469"
+   ],
+   "total_refs": 2,
+   "registry_name": "_kcl_terminal_sign",
+   "registry_group": "stick_diagram.py (7)",
+   "registry_responsibility": "PMOS/NMOS 단자 KCL 부호",
+   "registry_destination": "circuit_state_graph",
+   "registry_note": "운영 0(D). SR `_metric_kcl_residual` SR:4469-4472이 같은 규약 독자 구현",
+   "df_refs": [],
+   "concept_rows": [],
+   "ref_tags": {
+    "engine_caller_is_D": 2
+   },
+   "ref_tag_detail": {
+    "engine_caller_is_D": [
+     "skills/analog-gmid-design/assets/stick_diagram.py:3873 [propose_theta_kcl_gap_fill._run_rules_1_to_3]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:3878 [propose_theta_kcl_gap_fill._run_rules_1_to_3]"
+    ]
+   },
+   "reachable_from_harness": false,
+   "reachable_from_any_ops_script": false,
+   "live_ops_refs": 0
+  },
+  {
+   "name": "_quantize_to_grid",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/stick_diagram.py",
+     "qualname": "_quantize_to_grid",
+     "kind": "func",
+     "lineno": 6114,
+     "end_lineno": 6125,
+     "lines": 12,
+     "signature": "_quantize_to_grid(x: float, grid_step: float, mode: str='nearest') -> float",
+     "docstring_head": "`sizing_recipe.quantize_L()`과 정확히 같은 공식(길이 치수를 `grid_step`의 배수로\n스냅)의 로컬 사본 — `sizing_recipe.py`가 이 파일(`stick_diagram.py`)을 import하므로\n반대 방향 import는 순환참조가 된다(2026-08-13 세션31 이어, box-shape finger_w에도\n공정 manufacturing grid를 적용하기 위해 신설 — `.ai/context.md` 세션31 CD 참고).\n구현이 3줄짜리 순수 함수라 사본 유지 비용이 낮다.",
+     "returns": [
+      "6125: fn(x / grid_step) * grid_step"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:6191",
+      "kind": "name",
+      "text": "fw = _quantize_to_grid(fw, grid_step, mode=\"nearest\")",
+      "enclosing": "search_stack_finger_w",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:6425",
+      "kind": "name",
+      "text": "fw = _quantize_to_grid(fw, grid_step, mode=\"nearest\")",
+      "enclosing": "search_shared_finger_w",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:111",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:265",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:59",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:470"
+   ],
+   "total_refs": 2,
+   "registry_name": "_quantize_to_grid",
+   "registry_group": "stick_diagram.py (7)",
+   "registry_responsibility": "길이 grid 스냅",
+   "registry_destination": "stick_diagram(공용 유틸로 추출 가능)",
+   "registry_note": "SR `quantize_L` SR:799-815와 동일 공식; docstring SD:6059-6063이 순환 import 회피용 의도적 사본이라 명시",
+   "df_refs": [],
+   "concept_rows": [
+    {
+     "concept": "L grid 스냅",
+     "canonical_cell": "`quantize_L`",
+     "dup_cell": "SD `_quantize_to_grid`(의도적 사본)",
+     "status_cell": "모듈 경계 결정 후"
+    }
+   ],
+   "ref_tags": {
+    "engine_live": 2
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/stick_diagram.py:6191 [search_stack_finger_w]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:6425 [search_shared_finger_w]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 2
+  },
+  {
+   "name": "_find",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/design_report.py",
+     "qualname": "build_topology_device_table._find",
+     "kind": "func",
+     "lineno": 54,
+     "end_lineno": 57,
+     "lines": 4,
+     "signature": "_find(x)",
+     "docstring_head": "",
+     "returns": [
+      "57: x"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/design_report.py:60",
+      "kind": "name",
+      "text": "ra, rb = _find(a), _find(b)",
+      "enclosing": "build_topology_device_table._union",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/design_report.py:71",
+      "kind": "name",
+      "text": "groups_by_root.setdefault(_find(t.name), []).append(t.name)",
+      "enclosing": "build_topology_device_table",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/design_report.py:76",
+      "kind": "name",
+      "text": "root = _find(t.name)",
+      "enclosing": "build_topology_device_table",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 3
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:3396",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:4201",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:4243",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:5114",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:5144",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:5204",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:5397",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:5634",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:6136",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:6204",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:74",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:98",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:155",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:36",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:136",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:476",
+    "docs/04-report/analog-topology-json-library.do.md:2056",
+    "docs/04-report/analog-topology-json-library.do.md:2057"
+   ],
+   "total_refs": 3,
+   "registry_name": "_find",
+   "registry_group": "기타 모듈 (1)",
+   "registry_responsibility": "union-find",
+   "registry_destination": "공통 유틸",
+   "registry_note": "DUP 성격 -- union-find가 `sizing_recipe.py:3427`, `:10819`, `stick_diagram.py:3170`, `:5092`에도 각자 구현",
+   "df_refs": [],
+   "concept_rows": [],
+   "ref_tags": {
+    "engine_live": 3
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/design_report.py:60 [build_topology_device_table._union]",
+     "skills/analog-gmid-design/assets/design_report.py:71 [build_topology_device_table]",
+     "skills/analog-gmid-design/assets/design_report.py:76 [build_topology_device_table]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 3
+  }
+ ],
+ "canonical": {
+  "_kcl_and_matching_edges": {
+   "name": "_kcl_and_matching_edges",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/stick_diagram.py",
+     "qualname": "_kcl_and_matching_edges",
+     "kind": "func",
+     "lineno": 3318,
+     "end_lineno": 3339,
+     "lines": 22,
+     "signature": "_kcl_and_matching_edges(transistors: list, matching_pairs: list) -> list",
+     "docstring_head": "`kcl_series_union()`이 union할 때 실제로 쓰는 것과 똑같은 두 종류의 edge(내부\n2단자 net + declared `current_forced` matching_pairs)를 `(a, b, kind, detail)`\n리스트로 재구성한다 -- `audit_vertical_stack_id_vs_kcl()`과\n`propose_vertical_stack_id_gap_fill()` 둘 다 같은 edge 정의를 써야 서로 어긋나지\n않으므로(2026-08-13 세션31, N-way 조인트 스캔 때 만든 `_shared_current_groups_\nfrom_compensation()`와 같은 이유로 단일 정의로 분리) 원래 `audit_vertical_stack_id_\nvs_kcl()` 안에 있던 로직을 그대로 추출.",
+     "returns": [
+      "3339: edges"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:3390",
+      "kind": "name",
+      "text": "edges = _kcl_and_matching_edges(transistors, matching_pairs)",
+      "enclosing": "audit_vertical_stack_id_vs_kcl",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/stick_diagram.py:3475",
+      "kind": "name",
+      "text": "edges = [(a, b) for a, b, kind, _detail in _kcl_and_matching_edges(transistors, matching_pairs)",
+      "enclosing": "propose_vertical_stack_id_gap_fill",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5201",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:523",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:73",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:75",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:262",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:134",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:43",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:467",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:468"
+   ],
+   "total_refs": 2,
+   "ref_tags": {
+    "engine_live": 2
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/stick_diagram.py:3390 [audit_vertical_stack_id_vs_kcl]",
+     "skills/analog-gmid-design/assets/stick_diagram.py:3475 [propose_vertical_stack_id_gap_fill]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 2
+  },
+  "_metric_parasitic_pm_deg": {
+   "name": "_metric_parasitic_pm_deg",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_metric_parasitic_pm_deg",
+     "kind": "func",
+     "lineno": 4345,
+     "end_lineno": 4442,
+     "lines": 98,
+     "signature": "_metric_parasitic_pm_deg(spec_metric: dict, ctx: SizingContext) -> float",
+     "docstring_head": "F엔진(2026-09-10, §7.11 **L2**) -- 이 경로의 **위상여유**(도)를 실제 주파수응답에서 잰다.\n\n    PM = 180 - (DC -> w_c 사이에 누적된 위상 지연)\n\n## 왜 이 형태인가\n\n단일 지배 pole이면 `w_c >> w_p1`에서 지연이 90도로 수렴해 **PM = 90도**가 된다 -- 이전\nL1 식(`90 - sum atan(w_c/w_pole)`)의 기준선 `90`이 바로 그 몫이었다. 기생 pole이 더\n먹으면 지연이 90도를 넘어 그만큼 PM이 떨어진다. 즉 **L1 식을 특수케이스로 포함**하고,\n원문(Xie & Chen) `PM = atan(w_p2/w_c)`도 pole 하나짜리 특수케이스로 재현한다.\n\n## L1에서 L2로 바꾼 이유 (사용자 지적: \"pm보상 회로가 있는데 왜 그건 고려하지 않지?\")\n\nL1(`node_pole_estimate()`, 노드별 `G/C`)은 **소자 단자만** 셌다. 그런데 이 회로에는\n보상망이 ",
+     "returns": [
+      "4442: 180.0 - lag_deg",
+      "4417: v"
+     ],
+     "engine_callees": {
+      "_h": [
+       4427
+      ],
+      "build_ac_network": [
+       4410
+      ],
+      "full_circuit_response_at_omega": [
+       4413
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:5688",
+      "kind": "name",
+      "text": "\"parasitic_pm_deg\":         _metric_parasitic_pm_deg,          # §7.11, 2026-09-10",
+      "enclosing": "<module>",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:4310",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:4771",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5632",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:14",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:42",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:43",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:81",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/rewrite_X_decisions.md:51",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:54",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:303",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:453"
+   ],
+   "total_refs": 1,
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:5688 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  "_metric_smallsignal_gain_db": {
+   "name": "_metric_smallsignal_gain_db",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_metric_smallsignal_gain_db",
+     "kind": "func",
+     "lineno": 5631,
+     "end_lineno": 5645,
+     "lines": 15,
+     "signature": "_metric_smallsignal_gain_db(metric_spec: dict, ctx: SizingContext) -> float",
+     "docstring_head": "F엔진, topology-무관(세션21 신설) — 회로 전체(로딩까지 포함)를 실제로 풀어 DM 이득을\n구한다. `_metric_gain_stages_sum`(스테이지별 gm/gds 곱을 서로 독립이라 가정, 스테이지\n간 로딩을 모른다 — M10/M19가 Vop1/Vom1을 지배한 것과 같은 종류의 한계)의 대체 후보다.\n⚠️ `_metric_gain_stages_sum`은 다른 회로도 같이 쓰는 범용 타입이라 이번 세션엔 자동\n교체하지 않고 `gain_db`에 옵트인으로만 추가했다(`.ai/context.md` 세션21 F절 참고 —\n더 넓은 blast radius라 별도 판단 필요).\n\nmetric_spec 키: `excite`(`{node:value}`), `sense_mode`(기본 `\"diff\"`), `sense_p`/\n`sense_n`.",
+     "returns": [
+      "5645: 20 * math.log10(abs(val))"
+     ],
+     "engine_callees": {
+      "_full_circuit_response": [
+       5641
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:5698",
+      "kind": "name",
+      "text": "\"smallsignal_gain_db\":      _metric_smallsignal_gain_db,         # 세션21, topology-무관",
+      "enclosing": "<module>",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:13",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:80",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:36",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:146",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:53",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:119",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:452"
+   ],
+   "total_refs": 1,
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:5698 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  "_metric_smallsignal_ratio_db": {
+   "name": "_metric_smallsignal_ratio_db",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_metric_smallsignal_ratio_db",
+     "kind": "func",
+     "lineno": 5602,
+     "end_lineno": 5628,
+     "lines": 27,
+     "signature": "_metric_smallsignal_ratio_db(metric_spec: dict, ctx: SizingContext) -> float",
+     "docstring_head": "F엔진, topology-무관(세션21 신설) — CMRR/PSRR류 \"두 여기의 응답비를 dB로\" 패턴을\n일반화한다. `_cmrr_telescopic_class_ab_cmfb`/`_psrr_telescopic_class_ab_cmfb`(회로\n전용 폐형식 + 부분망 조합)를 대체 — 회로별 Python 함수 없이 topology.json의\nmetric_spec 선언만으로 4개 회로(`current_reuse_telescopic_ota`/`folded_cascode`/\n`nmcnr_amplifier`/`two_stage_ota`) 전부에 그대로 쓸 수 있다.\n\nmetric_spec 키: `excite_num`/`excite_den`(각각 `{node: value}` 독립원 여기),\n`sense_num`/`sense_den`(`\"diff\"`=`v(sense_p)-v(sense_n)`, `\"common\"`=\n`(v(sense_p)+v(sense_n))/2` — 기본값 각각 `\"diff\"`",
+     "returns": [
+      "5628: 20 * math.log10(abs(num / den))",
+      "5621: p - n if mode == 'diff' else (p + n) / 2.0"
+     ],
+     "engine_callees": {
+      "_full_circuit_response": [
+       5624,
+       5626
+      ],
+      "sense": [
+       5625,
+       5627
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:5697",
+      "kind": "name",
+      "text": "\"smallsignal_ratio_db\":     _metric_smallsignal_ratio_db,        # 세션21, topology-무관",
+      "enclosing": "<module>",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:56",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:84",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:19",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:35",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:146",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:154",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:74",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:55",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:118",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:455",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:504"
+   ],
+   "total_refs": 1,
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:5697 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  "_multilinear_interp": {
+   "name": "_multilinear_interp",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_multilinear_interp",
+     "kind": "func",
+     "lineno": 190,
+     "end_lineno": 252,
+     "lines": 63,
+     "signature": "_multilinear_interp(grids, values, points)",
+     "docstring_head": "N차원 격자 다중선형보간(순수 numpy, scipy 불필요, 불균등 monotonic 격자 지원).\n\ngrids: 각 축의 1D 오름차순 배열 튜플(길이 N). values: grids로 색인되는 N차원 배열.\npoints: (M, N) 조회 좌표 배열. 반환: (M,) 보간값.\n\n2026-08-11(세션29) -- 순수 스칼라(bisect + 파이썬 float) 구현으로 교체. 프로파일링\n실측(51소자 실회로 evaluate() 1회 ~7~8초 중 대부분)으로 병목이 이 함수였음을 확인했는데,\n호출 패턴이 거의 항상 M=1(`_query()`, 단일 좌표 조회) 또는 M~수십(`_gm_id_curve()`의 VGS\n격자 스윕)로 작아서, 이런 크기에서는 매 호출마다 새로 만드는 numpy 배열(`np.clip`/\n`np.searchsorted`/`np.where`/`np.zeros`/`np.ones`/`np.full` 등)의 **고정 오버헤드**가\n실제 보간 연산량보다 훨씬 크다",
+     "returns": [
+      "252: np.asarray(result)"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:438",
+      "kind": "name",
+      "text": "val = _multilinear_interp(self._grids_list, array, [[L, vgs, vds, vsb]])[0]",
+      "enclosing": "SemiEmpiricalGmIdLUT._query",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:516",
+      "kind": "name",
+      "text": "log_id = np.asarray(_multilinear_interp(self._grids_list, self._log_ID, pts))",
+      "enclosing": "SemiEmpiricalGmIdLUT._gm_id_curve",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:520",
+      "kind": "name",
+      "text": "log_gm = np.asarray(_multilinear_interp(self._grids_list, self._log_GM, pts))",
+      "enclosing": "SemiEmpiricalGmIdLUT._gm_id_curve",
+      "tag": "engine_live"
+     }
+    ],
+    "probe": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:97",
+      "kind": "attr",
+      "text": "lin_id = np.asarray(sr._multilinear_interp(lut._grids_list, lut.ID, pts))",
+      "enclosing": "curves",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:98",
+      "kind": "attr",
+      "text": "lin_gm = np.asarray(sr._multilinear_interp(lut._grids_list, lut.GM, pts))",
+      "enclosing": "curves",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:99",
+      "kind": "attr",
+      "text": "log_id = np.asarray(sr._multilinear_interp(lut._grids_list, lut._log_ID, pts))",
+      "enclosing": "curves",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:100",
+      "kind": "attr",
+      "text": "log_gm = np.asarray(sr._multilinear_interp(",
+      "enclosing": "curves",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:188",
+      "kind": "attr",
+      "text": "lin = np.asarray(sr._multilinear_interp(grids, sub, pts))",
+      "enclosing": "<module>",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:189",
+      "kind": "attr",
+      "text": "log = np.exp(np.asarray(sr._multilinear_interp(grids, logsub, pts)))",
+      "enclosing": "<module>",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py:123",
+      "kind": "attr",
+      "text": "log_id = np.asarray(sr._multilinear_interp(lut._grids_list, lut._log_ID, pts))",
+      "enclosing": "curve_consistent",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py:124",
+      "kind": "attr",
+      "text": "log_gm = np.asarray(sr._multilinear_interp(",
+      "enclosing": "curve_consistent",
+      "tag": "probe"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 3,
+    "probe": 8
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5199",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:521",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:20",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:21",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:94",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:101",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:124",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:127",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:51",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:71",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:449"
+   ],
+   "total_refs": 11,
+   "ref_tags": {
+    "engine_live": 3,
+    "probe": 8
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:438 [SemiEmpiricalGmIdLUT._query]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:516 [SemiEmpiricalGmIdLUT._gm_id_curve]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:520 [SemiEmpiricalGmIdLUT._gm_id_curve]"
+    ],
+    "probe": [
+     "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:97 [curves]",
+     "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:98 [curves]",
+     "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:99 [curves]",
+     "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:100 [curves]",
+     "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:188 [<module>]",
+     "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py:189 [<module>]",
+     "skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py:123 [curve_consistent]",
+     "skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py:124 [curve_consistent]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 3
+  },
+  "_sizing_bundle": {
+   "name": "_sizing_bundle",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "SemiEmpiricalGmIdLUT._sizing_bundle",
+     "kind": "func",
+     "lineno": 450,
+     "end_lineno": 475,
+     "lines": 26,
+     "signature": "_sizing_bundle(self, gm_id: float, L: float, vds: float, vsb: float=0.0, need_cgg: bool=False)",
+     "docstring_head": "`find_optimal_sizing()`의 L×VDS×gm_id 핫루프 전용(F 설계, 세션31 -- 성능감사가\n`_solve_vgs()` 캐싱 이후 남은 최대 레버로 지목: 이 루프 한 후보당 `gm_id_to_id_\ndensity()`/`gm_gds_ratio()`/(조건부)`cgg_absolute()`가 각자 `_query()`를 따로 불러\n같은 (L,vgs,vds,vs) 지점에서 bisect 탐색을 3~4번 반복했다). `_solve_vgs()` 1회(이미\n캐시됨) + `_query_multi()` 1회로 ID/GM/GDS/(CGG)를 한 번에 얻는다.\n\n반환: `(IDu, gm_gds_ratio, cgg_raw)` -- `cgg_raw`는 `need_cgg=False`면 `None`,\n아니면 **아직 W_target으로 스케일링 안 된 값**(`cgg_absolute()`의 raw 그대로)이다.\n`find_optimal_sizing()` 루프에서 W는 IDu를 먼저 알아야",
+     "returns": [
+      "475: (IDu, gm_gds, cgg_raw)"
+     ],
+     "engine_callees": {
+      "_query_multi": [
+       471
+      ],
+      "_solve_vgs": [
+       467
+      ],
+      "_w_ref_effective": [
+       472
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:944",
+      "kind": "attr",
+      "text": "IDu, gain, cgg_raw = lut._sizing_bundle(gm_id, L, VDS, vsb, need_cgg=(fT is not None))",
+      "enclosing": "find_optimal_sizing",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:21",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:23",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:25",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:26",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:29",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:94",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review6_results.md:22",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review6_results.md:38",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:38",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:74"
+   ],
+   "total_refs": 1,
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:944 [find_optimal_sizing]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  "_theta_feed_footprint": {
+   "name": "_theta_feed_footprint",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "_theta_feed_footprint",
+     "kind": "func",
+     "lineno": 10214,
+     "end_lineno": 10250,
+     "lines": 37,
+     "signature": "_theta_feed_footprint(theta: dict) -> dict",
+     "docstring_head": "theta 하나의 feed 선언만으로 \"직접 쓰는 소자\"(`roots`)와 \"직접 쓰는 ctx.derived\n키\"(`derived_writes`, settling_split 전용)를 정적으로 추출한다. A/A_signed는 seed\n전류만 채우고 실제 사이징(L/gm_id/vds)은 그 소자가 속한 KCL 직렬 그룹 전체에 전파되므로\n(`propagate_topology_forced_currents()`), 호출자가 `stack_groups_kcl`로 root(s)를\n그룹 전체로 확장한다(이 함수는 root만 반환 -- 확장은 그래프 조립 단계 책임).",
+     "returns": [
+      "10227: {'roots': frozenset(), 'derived_writes': frozenset(writes), 'reads': frozenset()}",
+      "10232: {'roots': frozenset(roots), 'derived_writes': frozenset(), 'reads': frozenset(reads)}",
+      "10235: {'roots': frozenset(roots), 'derived_writes': frozenset(), 'reads': frozenset()}",
+      "10237: {'roots': frozenset({feed['target']}), 'derived_writes': frozenset(), 'reads': frozenset({feed['omega_key']})}",
+      "10240: {'roots': frozenset({feed['target']}), 'derived_writes': frozenset(), 'reads': frozenset({feed['reference']})}",
+      "10243: {'roots': frozenset(feed['devices']), 'derived_writes': frozenset(), 'reads': frozenset()}",
+      "10248: {'roots': frozenset(feed['devices']), 'derived_writes': frozenset(), 'reads': frozenset()}"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:10356",
+      "kind": "name",
+      "text": "ff = _theta_feed_footprint(theta)",
+      "enclosing": "derive_theta_dependency_graph",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:93",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:99",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:146",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:152",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:47",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:143",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:456"
+   ],
+   "total_refs": 1,
+   "ref_tags": {
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:10356 [derive_theta_dependency_graph]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  "build_ac_network": {
+   "name": "build_ac_network",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "build_ac_network",
+     "kind": "func",
+     "lineno": 4246,
+     "end_lineno": 4281,
+     "lines": 36,
+     "signature": "build_ac_network(ctx: 'SizingContext', excite: dict, also_fix) -> dict",
+     "docstring_head": "L2 주파수응답의 **omega에 무관한 부분**을 한 번만 조립한다(2026-09-10, 중복계산 제거).\n\n`full_circuit_response_at_omega()`는 원래 호출마다 `_full_circuit_devices()`(51소자 +\n저항 스탬프, `_resolve_nulling_resistor_ohm()` 포함)와 `_mna_stamp_capacitance()`\n(소자마다 `cgg_absolute()` LUT 조회)를 통째로 다시 만들었다. 그런데 위상여유 metric은\n**한 번에 25개 주파수**를 훑으므로 같은 조립이 25번 반복됐다 -- 프로파일 실측으로\n`_evaluate` 1회의 **28%**(0.368초/1.325초)를 차지했다.\n\nomega에 실제로 의존하는 것은 `jw*C` 스탬프 하나뿐이므로, 조립 결과를 이 함수가\n돌려주고 호출자가 스윕 내내 재사용한다.\n\n⚠️ 반환값은 **현재 사이징(`ctx.sized`)에 묶인다** -- theta가 바뀌면 ",
+     "returns": [
+      "4281: {'devices': devs, 'caps': caps, 'nodes': nodes, 'fixed': fixed}"
+     ],
+     "engine_callees": {
+      "_full_circuit_devices": [
+       4264
+      ],
+      "_load_full_topology_cached": [
+       4263
+      ],
+      "_mna_stamp_capacitance": [
+       4275
+      ],
+      "add": [
+       4274,
+       4280
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:4301",
+      "kind": "name",
+      "text": "network = build_ac_network(ctx, excite, also_fix)",
+      "enclosing": "full_circuit_response_at_omega",
+      "tag": "engine_caller_is_DUP"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:4410",
+      "kind": "name",
+      "text": "_net = build_ac_network(ctx, excite, also_fix)",
+      "enclosing": "_metric_parasitic_pm_deg",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2968",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:4430",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5203",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5637",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:525",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:1136",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:40",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:83",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent2_sizing_3022_5044.md:102",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:56",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_generality_audit_v518.md:356",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review11_generality_audit_v518.md:421",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review6_results.md:380",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review6_results.md:399",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review6_results.md:472",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:208",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_D_gain_decomposition_incidents.md:73",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:56",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:302"
+   ],
+   "total_refs": 2,
+   "ref_tags": {
+    "engine_caller_is_DUP": 1,
+    "engine_live": 1
+   },
+   "ref_tag_detail": {
+    "engine_caller_is_DUP": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:4301 [full_circuit_response_at_omega]"
+    ],
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:4410 [_metric_parasitic_pm_deg]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  "quantize_L": {
+   "name": "quantize_L",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "quantize_L",
+     "kind": "func",
+     "lineno": 804,
+     "end_lineno": 820,
+     "lines": 17,
+     "signature": "quantize_L(L: float, grid_step: float, mode: str='nearest') -> float",
+     "docstring_head": "L을 `grid_step`(공정 레이아웃 그리드 해상도, m 단위 -- 예: sky130 poly 그리드)의\n배수로 스냅한다(2026-08-13 세션31, 사용자 지시 -- 실제 레이아웃에서 임의 소수점 L을\n구현할 수 없다는 제약을 반영). `grid_step` 값 자체는 이 함수가 정하지 않는다 -- 실제\nPDK 문서에서 가져올 것(feedback_no_paper_values_derive_rationally 원칙과 동일하게,\n값을 추측하지 않는다).\n\n`mode`: `\"nearest\"`(반올림 -- 후보 리스트 생성용, `layout_grid_L_candidates()`가\n내부적으로 씀) / `\"floor\"`/`\"ceil\"`(한쪽으로 치우쳐 스냅해야 할 때 -- 예: 선언된\nbounds `[lo,hi]` 안에 반드시 남아야 하는 SLSQP 사후처리, `lo`는 ceil로 올림해야\nbounds 하한을 안 벗어나고 `hi`는 floor로 내려야 상한을 안 벗어난다).",
+     "returns": [
+      "820: fn(L / grid_step) * grid_step"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:830",
+      "kind": "name",
+      "text": "start = quantize_L(lo, grid_step, mode=\"ceil\")",
+      "enclosing": "_grid_points_in_range",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:831",
+      "kind": "name",
+      "text": "end = quantize_L(hi, grid_step, mode=\"floor\")",
+      "enclosing": "_grid_points_in_range",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:10830",
+      "kind": "name",
+      "text": "result[theta[\"name\"]] = (quantize_L(hi, _l_grid_step, \"floor\")",
+      "enclosing": "search_stage_budget_L_warm_start",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:10832",
+      "kind": "name",
+      "text": "else quantize_L(lo, _l_grid_step, \"ceil\"))",
+      "enclosing": "search_stage_budget_L_warm_start",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:10834",
+      "kind": "name",
+      "text": "result[theta[\"name\"]] = quantize_L((lo + hi) / 2.0, _l_grid_step)",
+      "enclosing": "search_stage_budget_L_warm_start",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:10955",
+      "kind": "name",
+      "text": "best_combo = tuple(quantize_L((t[\"bounds\"][0] + t[\"bounds\"][1]) / 2.0, _l_grid_step)",
+      "enclosing": "search_stage_budget_L_warm_start",
+      "tag": "engine_live"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:11520",
+      "kind": "name",
+      "text": "return {n: (quantize_L(v, step) if n in _l_theta_names else v)",
+      "enclosing": "_optimize_theta_slsqp._snap_l_thetas",
+      "tag": "engine_live"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 7
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:39",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:94",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:111",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:265",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:59",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:83",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:470"
+   ],
+   "total_refs": 7,
+   "ref_tags": {
+    "engine_live": 7
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:830 [_grid_points_in_range]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:831 [_grid_points_in_range]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:10830 [search_stage_budget_L_warm_start]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:10832 [search_stage_budget_L_warm_start]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:10834 [search_stage_budget_L_warm_start]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:10955 [search_stage_budget_L_warm_start]",
+     "skills/analog-gmid-design/assets/sizing_recipe.py:11520 [_optimize_theta_slsqp._snap_l_thetas]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 7
+  },
+  "run_topology_pipeline_with_finger_fixup": {
+   "name": "run_topology_pipeline_with_finger_fixup",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "run_topology_pipeline_with_finger_fixup",
+     "kind": "func",
+     "lineno": 12476,
+     "end_lineno": 12604,
+     "lines": 129,
+     "signature": "run_topology_pipeline_with_finger_fixup(topology_json_path: str, sizing_overrides: dict, ctx: SizingContext, lut_by_kind: dict, metrics_specs: dict, constraints: list, floorplan_hints: dict | None=None, cell_groups: dict | None=None, gm_id_bounds: tuple=(2.0, 30.0), max_fixup_rounds: int=5) -> dict",
+     "docstring_head": "`run_topology_pipeline()`(stick_diagram.py, L1~L3)이 euler-blocked row를 그냥 실패로만\n보고하는 지점에 L3(`suggest_pair_finger_adjustments()`)+L4(`apply_and_revalidate_pair_\nadjustment()`) 자동 수정 루프를 감싸 붙인다 -- `.ai/context.md` 세션13 D절이 남긴 \"다음\n확장 지점\", 세션14에서 실배선.\n\n**왜 `stick_diagram.py` 안에 넣지 않았는가**: `stick_diagram.py`는 gm/ID를 전혀 모르는\n순수 그래프/기하 모듈이고, `sizing_recipe.py`가 `stick_diagram.py`를 단방향으로만 import한다\n(반대 방향 없음, `sizing_recipe.py` 앞부분의 `from stick_diagram import (...)` 참고).\nfixup 로직은 gm/ID 재검증에 `SizingContext",
+     "returns": [
+      "12601: {**result, 'fixup_rounds': fixup_rounds, 'group_splits': group_splits, 'sizing_overrides': overrides, 'ctx': cur_ctx, 'unresolved_row': blocked[0] if ",
+      "12555: {**result, 'fixup_rounds': fixup_rounds, 'group_splits': group_splits, 'sizing_overrides': overrides, 'ctx': cur_ctx, 'unresolved_row': None, 'unresol"
+     ],
+     "engine_callees": {
+      "_blocked_euler_rows": [
+       12553,
+       12600
+      ],
+      "_sync_finger_fixup": [
+       12570
+      ],
+      "apply_and_revalidate_pair_adjustment": [
+       12564
+      ],
+      "find_min_crossover_layout_with_branch_composite": [
+       12576
+      ],
+      "load_topology": [
+       12542
+      ],
+      "run_topology_pipeline": [
+       12550,
+       12598
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:9883",
+      "kind": "name",
+      "text": "_base_pipeline_result = run_topology_pipeline_with_finger_fixup(",
+      "enclosing": "optimize_full_circuit_budget",
+      "tag": "engine_live"
+     }
+    ],
+    "test": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:946",
+      "kind": "name",
+      "text": "_l4c_result_a = run_topology_pipeline_with_finger_fixup(",
+      "enclosing": "test_s011_run_topology_pipeline_with_finger_fixup",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:961",
+      "kind": "name",
+      "text": "_l4c_result_b = run_topology_pipeline_with_finger_fixup(",
+      "enclosing": "test_s011_run_topology_pipeline_with_finger_fixup",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:995",
+      "kind": "name",
+      "text": "_l4c_result_c = run_topology_pipeline_with_finger_fixup(",
+      "enclosing": "test_s011_run_topology_pipeline_with_finger_fixup",
+      "tag": "test"
+     }
+    ],
+    "workspaces": [
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py:58",
+      "kind": "name",
+      "text": "result_b = run_topology_pipeline_with_finger_fixup(",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     },
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py:76",
+      "kind": "name",
+      "text": "result_c = run_topology_pipeline_with_finger_fixup(",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1,
+    "test": 3,
+    "workspaces": 2
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:806",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2358",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5206",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:528",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:261",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json:293",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.json:319",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.json:1984",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.md:21",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:111",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:113",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent3_sizing_5045_12570.md:153",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:194",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:47",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:48",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:349",
+    "docs/04-report/analog-topology-json-library.do.md:2032",
+    "docs/04-report/analog-topology-json-library.do.md:2034",
+    "docs/04-report/analog-topology-json-library.do.md:2097",
+    "docs/04-report/analog-topology-json-library.do.md:2098"
+   ],
+   "total_refs": 6,
+   "ref_tags": {
+    "engine_live": 1,
+    "test": 3,
+    "workspaces_script": 2
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:9883 [optimize_full_circuit_budget]"
+    ],
+    "test": [
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:946 [test_s011_run_topology_pipeline_with_finger_fixup]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:961 [test_s011_run_topology_pipeline_with_finger_fixup]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:995 [test_s011_run_topology_pipeline_with_finger_fixup]"
+    ],
+    "workspaces_script": [
+     "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py:58 [<module>]",
+     "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py:76 [<module>]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  },
+  "size_transistor": {
+   "name": "size_transistor",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "size_transistor",
+     "kind": "func",
+     "lineno": 115,
+     "end_lineno": 123,
+     "lines": 9,
+     "signature": "size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT, vds: float, vsb: float=0.0) -> SizingResult",
+     "docstring_head": "방법론 식 1.17/1.18: ID = gm/(gm/ID),  W = L * ID / IDu.",
+     "returns": [
+      "123: SizingResult(gm=gm, gm_id=gm_id, ID=ID, W=W)"
+     ],
+     "engine_callees": {
+      "SizingResult": [
+       123
+      ],
+      "gm_id_to_id_density": [
+       119
+      ]
+     }
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:140",
+      "kind": "name",
+      "text": "result = size_transistor(gm, gm_id, L, lut, vds, vsb)",
+      "enclosing": "converge_with_parasitics",
+      "tag": "engine_caller_is_D"
+     }
+    ],
+    "test": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:74",
+      "kind": "name",
+      "text": "_l4c_r = size_transistor(gm=50e-6, gm_id=_l4c_gm_id, L=_l4c_L, lut=lut, vds=_l4c_vds)",
+      "enclosing": "s011_state",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:88",
+      "kind": "name",
+      "text": "_l4d_r = size_transistor(gm=200e-6, gm_id=12.0, L=_l4d_L, lut=lut, vds=_l4d_vds)",
+      "enclosing": "s015_state",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:748",
+      "kind": "name",
+      "text": "_l4_r1 = size_transistor(gm=200e-6, gm_id=_l4_gm_id, L=_l4_L, lut=lut, vds=_l4_vds)",
+      "enclosing": "test_s009_revalidate_finger_override",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:750",
+      "kind": "name",
+      "text": "_l4_r3 = size_transistor(gm=80e-6, gm_id=10.0, L=_l4_L, lut=lut, vds=_l4_vds)",
+      "enclosing": "test_s009_revalidate_finger_override",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:812",
+      "kind": "name",
+      "text": "_l4b_crit = size_transistor(gm=200e-6, gm_id=12.0, L=_l4b_L, lut=lut, vds=_l4b_vds)",
+      "enclosing": "test_s010_apply_and_revalidate_pair_adjustment",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:814",
+      "kind": "name",
+      "text": "_l4b_harm = size_transistor(gm=50e-6, gm_id=15.0, L=_l4b_L, lut=lut, vds=_l4b_vds)",
+      "enclosing": "test_s010_apply_and_revalidate_pair_adjustment",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:920",
+      "kind": "name",
+      "text": "_l4c_r = size_transistor(gm=50e-6, gm_id=_l4c_gm_id, L=_l4c_L, lut=lut, vds=_l4c_vds)",
+      "enclosing": "test_s011_run_topology_pipeline_with_finger_fixup",
+      "tag": "test"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:1415",
+      "kind": "name",
+      "text": "_l4d_r = size_transistor(gm=200e-6, gm_id=12.0, L=_l4d_L, lut=lut, vds=_l4d_vds)",
+      "enclosing": "test_s015_suggest_matching_finger_growth",
+      "tag": "test"
+     }
+    ],
+    "probe": [
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_allocation_solvers.py:41",
+      "kind": "attr",
+      "text": "r = sr.size_transistor(gm, g, L, LUT, vds, VS)",
+      "enclosing": "table",
+      "tag": "probe"
+     },
+     {
+      "loc": "skills/analog-gmid-design/assets/tests/probe_gmid_gain_landscape.py:90",
+      "kind": "attr",
+      "text": "r = sr.size_transistor(75e-6, g, L, lut[\"n\"], VDS, VS)",
+      "enclosing": "<module>",
+      "tag": "probe"
+     }
+    ],
+    "workspaces": [
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py:32",
+      "kind": "name",
+      "text": "_l4c_r = size_transistor(gm=50e-6, gm_id=_l4c_gm_id, L=_l4c_L, lut=lut, vds=_l4c_vds)",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     },
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/resize.py:38",
+      "kind": "name",
+      "text": "r = size_transistor(gm, gm_id, L, lut, vds, vs)",
+      "enclosing": "size",
+      "tag": "workspaces_script"
+     },
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/resize.py:116",
+      "kind": "name",
+      "text": "fwd15 = size_transistor(gm2, GM_ID_S2_NOMINAL, L2, pmos, 0.9)",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     },
+     {
+      "loc": "workspaces/current-reuse-telescopic-ota-report/resize.py:117",
+      "kind": "name",
+      "text": "fwd16 = size_transistor(gm2, GM_ID_S2_NOMINAL, L2, nmos, 0.9)",
+      "enclosing": "<module>",
+      "tag": "workspaces_script"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1,
+    "test": 8,
+    "probe": 2,
+    "workspaces": 4
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/analog-topology-json-library.plan.md:117",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:785",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:1018",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:1790",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2318",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2391",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:3844",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5202",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:524",
+    "docs/02-design/features/analog-topology-json-library.design.md:203",
+    "docs/02-design/features/analog-topology-json-library.design.md:208",
+    "docs/02-design/features/analog-topology-json-library.design.md:209",
+    "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/selftest_sections.json:1986",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:15",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:100",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:111",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:123",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent5_small_tests_selftest.md:192",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:59",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:106",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:14",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:38",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:448",
+    "docs/04-report/analog-topology-json-library.do.md:176",
+    "docs/04-report/analog-topology-json-library.do.md:258",
+    "docs/04-report/analog-topology-json-library.do.md:275",
+    "docs/04-report/analog-topology-json-library.do.md:616",
+    "docs/04-report/analog-topology-json-library.do.md:1285",
+    "docs/04-report/analog-topology-json-library.do.md:2006",
+    "docs/04-report/analog-topology-json-library.do.md:2568",
+    "docs/04-report/analog-topology-json-library.do.md:2638"
+   ],
+   "total_refs": 15,
+   "ref_tags": {
+    "engine_caller_is_D": 1,
+    "test": 8,
+    "probe": 2,
+    "workspaces_script": 4
+   },
+   "ref_tag_detail": {
+    "engine_caller_is_D": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:140 [converge_with_parasitics]"
+    ],
+    "test": [
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:74 [s011_state]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:88 [s015_state]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:748 [test_s009_revalidate_finger_override]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:750 [test_s009_revalidate_finger_override]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:812 [test_s010_apply_and_revalidate_pair_adjustment]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:814 [test_s010_apply_and_revalidate_pair_adjustment]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:920 [test_s011_run_topology_pipeline_with_finger_fixup]",
+     "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py:1415 [test_s015_suggest_matching_finger_growth]"
+    ],
+    "probe": [
+     "skills/analog-gmid-design/assets/tests/probe_allocation_solvers.py:41 [table]",
+     "skills/analog-gmid-design/assets/tests/probe_gmid_gain_landscape.py:90 [<module>]"
+    ],
+    "workspaces_script": [
+     "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py:32 [<module>]",
+     "workspaces/current-reuse-telescopic-ota-report/resize.py:38 [size]",
+     "workspaces/current-reuse-telescopic-ota-report/resize.py:116 [<module>]",
+     "workspaces/current-reuse-telescopic-ota-report/resize.py:117 [<module>]"
+    ]
+   },
+   "reachable_from_harness": false,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 0
+  },
+  "true_current_mirror_groups": {
+   "name": "true_current_mirror_groups",
+   "definitions": [
+    {
+     "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+     "qualname": "true_current_mirror_groups",
+     "kind": "func",
+     "lineno": 2363,
+     "end_lineno": 2387,
+     "lines": 25,
+     "signature": "true_current_mirror_groups(by_name: dict) -> list",
+     "docstring_head": "**진짜 전류미러** 그룹 -- 같은 `(kind, gate net, source net)`을 공유하는 소자 집합.\n\n순수 connectivity 사실이다(role 라벨을 안 본다). 물리 근거는 미러비 식 자체다:\n\n    ID2/ID1 = (W2/L2) / (W1/L1)\n\n이 **순수한 W 비**(=레이아웃 비, PVT에 강함)로 축약되려면 `L1 == L2`여야 한다. L이\n다르면 비가 이동도/Vth/채널길이변조의 L 의존성을 타고 공정·전압·온도에 흔들린다\n(사용자 지적: \"tail이 bias generation하는 mirror와 L이 다르면 전류비가 실제 실리콘에서는\nPVT때문에 정확하지 않을 수 있잖아\").\n\n이 판정은 **cross-kind 쌍을 자동으로 제외**한다 -- 세션30이 문헌+코드 대조로 확정한\n\"Pelgrom/전류미러 매칭은 same-kind에만 성립\"(M15 PMOS / M16 NMOS는 미러가 아니라\nclass-AB 센터링용 VGS 매칭이라 L을 독립으",
+     "returns": [
+      "2387: [sorted(v) for v in groups.values() if len(v) > 1]"
+     ],
+     "engine_callees": {}
+    }
+   ],
+   "other_definitions": [],
+   "refs_excluding_own_body": {
+    "engine": [
+     {
+      "loc": "skills/analog-gmid-design/assets/sizing_recipe.py:2422",
+      "kind": "name",
+      "text": "for grp in true_current_mirror_groups(by_name):",
+      "enclosing": "l_sharing_classes",
+      "tag": "engine_live"
+     }
+    ],
+    "docs_py": [
+     {
+      "loc": "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:640",
+      "kind": "attr",
+      "text": "L.append(f\"- true_current_mirror_groups: {sr.true_current_mirror_groups(by_name)}\")",
+      "enclosing": "run_circuit",
+      "tag": "docs_py"
+     }
+    ]
+   },
+   "ref_counts": {
+    "engine": 1,
+    "docs_py": 1
+   },
+   "string_literal_refs": [],
+   "doc_mentions": [
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:2816",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:3437",
+    "docs/01-plan/features/gain-budget-gmid-sizing.history.md:5201",
+    "docs/01-plan/features/gain-budget-gmid-sizing.plan.md:523",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:67",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent1_sizing_1_3021.md:102",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:41",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent4_stick_diagram.md:260",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:57",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/agent6_plan_vs_code.md:128",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:188",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:299",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:427",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.result.md:588",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_opt_L_vs_VDS.md:8",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_opt_L_vs_VDS.md:56",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_opt_L_vs_VDS.md:77",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review3_pilot_dof_count.results.md:4",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:49",
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/review_A_design_7_1_7_3.md:80",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:40",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:450",
+    "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md:464"
+   ],
+   "total_refs": 2,
+   "ref_tags": {
+    "engine_live": 1,
+    "docs_py": 1
+   },
+   "ref_tag_detail": {
+    "engine_live": [
+     "skills/analog-gmid-design/assets/sizing_recipe.py:2422 [l_sharing_classes]"
+    ],
+    "docs_py": [
+     "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py:640 [run_circuit]"
+    ]
+   },
+   "reachable_from_harness": true,
+   "reachable_from_any_ops_script": true,
+   "live_ops_refs": 1
+  }
+ },
+ "concept_table_section2": [
+  [
+   "W 계산 `W=L*ID/IDu`",
+   "`size_transistor` / LUT `_sizing_bundle`",
+   "`find_optimal_sizing`, `feasible_gm_ids`, `search_gm_id_for_role`, `feasible_L_window`에 인라인 4곳",
+   "식 동일 -- 행동 보존 통합 가능"
+  ],
+  [
+   "diode 판정",
+   "`is_diode_connected`",
+   "`stick_diagram.find_diode_stacks`(운영 0), SD 인라인 `gate==drain` 3곳, netclass role 기반",
+   "★ `find_diode_stacks`는 이웃 diode까지 포함(16/1/20 불일치의 원인)"
+  ],
+  [
+   "전류미러 그룹",
+   "`true_current_mirror_groups`(connectivity, 키 kind·gate·source)",
+   "`stick_diagram.find_matching_candidates`(키 kind·gate 또는 kind·bias·rail), `_mirror_ratio_error_pairs`(선언 기반, 첫 쌍만), probe 3곳 복제",
+   "★ B19'에서 11 vs 18소자로 결론이 뒤집힌 원인"
+  ],
+  [
+   "diffpair / tail",
+   "(미정)",
+   "`find_differential_pair_candidates`, `_diff_pair_layer1_groups`, `_propose_gm_id_roles`(SD, connectivity) vs `gain_stage_tails`, `input_referred_offset_pairs`(SR, 선언)",
+   "★ S1 유도 정본을 정해야 함"
+  ],
+  [
+   "노드 DC 전압",
+   "`propagate_node_voltages`(평가당 1회로)",
+   "한 평가 안 4곳 재호출, `_hr_sum_ref_vds`·헤드룸 vsb 전파가 다른 순회로 같은 값, probe 2곳",
+   "§12 D1 결정에 종속"
+  ],
+  [
+   "KCL 엣지",
+   "`stick_diagram._kcl_and_matching_edges`",
+   "`kcl_series_union`이 같은 엣지를 따로 구현, `_metric_kcl_residual`",
+   "행동 보존 통합 가능"
+  ],
+  [
+   "스택 KVL 합",
+   "`_hr_verify_group_kvl_sum`",
+   "`solve_diode_stack_current`(운영 0), 3곳 재계산",
+   ""
+  ],
+  [
+   "레일 넷 집합",
+   "(상수 하나로)",
+   "SD `_RAIL_NETS` 소문자만 vs SR 대소문자 2곳",
+   "불일치 -- 결함 후보"
+  ],
+  [
+   "topology 로딩",
+   "`_load_full_topology_cached`",
+   "`load_topology` 직접 호출(SR 4845/5056/8493, SD `run_topology_pipeline`, fixup), `json.load`(SR 8315)",
+   "캐시 키를 내용 해시로(C-d)"
+  ],
+  [
+   "theta가 건드리는 소자",
+   "`_theta_feed_footprint`",
+   "`_theta_device_map`, `_collect_device_refs`",
+   ""
+  ],
+  [
+   "euler 행 수정 전략",
+   "`run_topology_pipeline_with_finger_fixup`",
+   "`_fixup_euler_blocked_rows`(docstring이 \"정확히 같은 전략\")",
+   ""
+  ],
+  [
+   "union-find",
+   "(유틸 하나로)",
+   "`design_report` + SR 2곳 + SD 2곳",
+   ""
+  ],
+  [
+   "다선형 보간",
+   "`_multilinear_interp`",
+   "`_multilinear_interp_point_multi` 복붙",
+   ""
+  ],
+  [
+   "이분 역산 뼈대",
+   "(하나로, **단조성 검사 포함**)",
+   "`_invert_gm_id_for_current`, `solve_id_for_target_gm`",
+   "단조성 미검사 결함 동반"
+  ],
+  [
+   "gain metric",
+   "`_metric_smallsignal_gain_db`",
+   "`_metric_folded_cascode_gain_db`",
+   "folded_cascode가 사용 중 -- 4회로 재측정 후"
+  ],
+  [
+   "PM metric",
+   "`_metric_parasitic_pm_deg`",
+   "`_metric_folded_cascode_pm_deg`",
+   "〃"
+  ],
+  [
+   "CMRR",
+   "`_metric_smallsignal_ratio_db`",
+   "`_cmrr_diff_pair_tail`",
+   "〃"
+  ],
+  [
+   "MNA 소자 스탬프",
+   "`build_ac_network`",
+   "`full_circuit_response_at_omega`, `_mna_solve_smallsignal`",
+   ""
+  ],
+  [
+   "HTML 리포트",
+   "`design_report.render_html_report`",
+   "계획 §8.5 \"신규\" `render_design_report_html()`",
+   "**새로 만들지 않는다**"
+  ],
+  [
+   "diode 고정점",
+   "`solve_diode_connected_vds`",
+   "계획 §7.3/§8.4의 `_solve_diode_connected_vgs_fixed_point`",
+   "이름만 다름 -- **새로 만들지 않는다**"
+  ],
+  [
+   "L grid 스냅",
+   "`quantize_L`",
+   "SD `_quantize_to_grid`(의도적 사본)",
+   "모듈 경계 결정 후"
+  ]
+ ]
+}

@@ -1,0 +1,2796 @@
+{
+ "generated": "phase2b scan_probes.py",
+ "n_probes": 42,
+ "plan_ts6_promote_expected": [
+  "probe_gm_id_monotonicity",
+  "probe_physical_consistency",
+  "probe_parasitic_pm_all_circuits",
+  "probe_role_L_derivation",
+  "probe_lut_L_interpolation",
+  "probe_revalidation_scope",
+  "probe_prevention_wiring"
+ ],
+ "plan_ts6_promote_found": [
+  "probe_gm_id_monotonicity",
+  "probe_physical_consistency",
+  "probe_parasitic_pm_all_circuits",
+  "probe_role_L_derivation",
+  "probe_lut_L_interpolation",
+  "probe_revalidation_scope",
+  "probe_prevention_wiring"
+ ],
+ "plan_ts6_promote_missing": [],
+ "plan_df21_delete_expected": [
+  "probe_mirror_common_L_wiring",
+  "probe_node_voltage_audit",
+  "probe_vs_semantics"
+ ],
+ "plan_df21_delete_found": [
+  "probe_mirror_common_L_wiring",
+  "probe_node_voltage_audit",
+  "probe_vs_semantics"
+ ],
+ "plan_df21_delete_missing": [],
+ "probes": [
+  {
+   "name": "probe_L_search_window",
+   "file": "skills/analog-gmid-design/assets/tests/probe_L_search_window.py",
+   "lines": 124,
+   "bytes": 6646,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 37,
+   "style": "script(top-level)",
+   "defs": [],
+   "imports": [
+    "itertools",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys",
+    "tempfile",
+    "time"
+   ],
+   "from_imports": [
+    "from collections import Counter"
+   ],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     56
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     46
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     60
+    ],
+    "sizing_recipe.presolve_warm_start": [
+     61
+    ]
+   },
+   "n_engine_calls": 4,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 30,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_allocation_solvers",
+   "file": "skills/analog-gmid-design/assets/tests/probe_allocation_solvers.py",
+   "lines": 143,
+   "bytes": 6703,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 17,
+   "style": "script(top-level)",
+   "defs": [
+    "table",
+    "exhaustive",
+    "kkt_greedy",
+    "dp"
+   ],
+   "imports": [
+    "itertools",
+    "math",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys",
+    "time"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     30
+    ],
+    "sizing_recipe.size_transistor": [
+     41
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 24,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_area_pareto",
+   "file": "skills/analog-gmid-design/assets/tests/probe_area_pareto.py",
+   "lines": 121,
+   "bytes": 6074,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 25,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys",
+    "tempfile",
+    "time"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     70
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     60
+    ],
+    "sizing_recipe.is_diode_connected": [
+     86
+    ],
+    "sizing_recipe.load_topology": [
+     85
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     100
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_area_pareto.result.txt",
+     "bytes": 2060
+    }
+   ]
+  },
+  {
+   "name": "probe_b22_headroom_attribution",
+   "file": "skills/analog-gmid-design/assets/tests/probe_b22_headroom_attribution.py",
+   "lines": 165,
+   "bytes": 7781,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 42,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "make_spec",
+    "_window_no_mirror",
+    "run_case"
+   ],
+   "imports": [
+    "copy",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "subprocess",
+    "sys",
+    "tempfile"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     68
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     56
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     107
+    ],
+    "sizing_recipe.diode_vds_window": [
+     95,
+     104,
+     116
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     130
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_b22_headroom_attribution.result.txt",
+     "bytes": 1479
+    },
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_b22_headroom_attribution.window_dump.txt",
+     "bytes": 3914
+    },
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_b22_headroom_attribution.unwired_theta.json",
+     "bytes": 617
+    }
+   ]
+  },
+  {
+   "name": "probe_classab_battery_headroom",
+   "file": "skills/analog-gmid-design/assets/tests/probe_classab_battery_headroom.py",
+   "lines": 174,
+   "bytes": 6847,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 56,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     64
+    ],
+    "sizing_recipe.InfeasibleSizingError": [
+     87
+    ],
+    "sizing_recipe._DEFAULT_MIN_VDS_FALLBACK": [
+     67
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     80
+    ]
+   },
+   "n_engine_calls": 4,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_classab_battery_headroom.result.txt",
+     "bytes": 4721
+    }
+   ]
+  },
+  {
+   "name": "probe_diode_gmid_readiness",
+   "file": "skills/analog-gmid-design/assets/tests/probe_diode_gmid_readiness.py",
+   "lines": 108,
+   "bytes": 5265,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 35,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "traced"
+   ],
+   "imports": [
+    "collections",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys",
+    "traceback"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     76
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     66
+    ],
+    "sizing_recipe._hr_resolve_vertical_group": [
+     52,
+     63
+    ],
+    "sizing_recipe.is_diode_connected": [
+     46
+    ],
+    "sizing_recipe.load_topology": [
+     44
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     82
+    ]
+   },
+   "n_engine_calls": 6,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_diode_gmid_readiness.result.txt",
+     "bytes": 157
+    }
+   ]
+  },
+  {
+   "name": "probe_diode_min_vgs",
+   "file": "skills/analog-gmid-design/assets/tests/probe_diode_min_vgs.py",
+   "lines": 136,
+   "bytes": 6517,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 30,
+   "style": "script(top-level)",
+   "defs": [
+    "min_vgs",
+    "find"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [
+    "from collections import defaultdict"
+   ],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.DiodeSelfConsistencyError": [
+     58,
+     75
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     40
+    ],
+    "sizing_recipe.is_diode_connected": [
+     46
+    ],
+    "sizing_recipe.load_topology": [
+     34
+    ],
+    "sizing_recipe.solve_diode_connected_vds": [
+     57,
+     74
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 26,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    },
+    {
+     "line": 31,
+     "text": "INST = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "93-104",
+     "concept": "union-find 동치류",
+     "canonical": "sizing_recipe.l_sharing_classes",
+     "registry": "§2 'union-find'"
+    }
+   ],
+   "n_confirmed_engine_dup": 1,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_diode_pass_skips",
+   "file": "skills/analog-gmid-design/assets/tests/probe_diode_pass_skips.py",
+   "lines": 129,
+   "bytes": 6157,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 31,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "traced"
+   ],
+   "imports": [
+    "collections",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     107
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     97
+    ],
+    "sizing_recipe._AUTHORITATIVE_GM_ID_SOURCES": [
+     78
+    ],
+    "sizing_recipe.apply_diode_self_consistent_gm_id": [
+     69,
+     94
+    ],
+    "sizing_recipe.is_diode_connected": [
+     63
+    ],
+    "sizing_recipe.load_topology": [
+     62
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     114
+    ]
+   },
+   "n_engine_calls": 7,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_diode_pass_skips.result.txt",
+     "bytes": 152
+    }
+   ]
+  },
+  {
+   "name": "probe_diode_self_consistency",
+   "file": "skills/analog-gmid-design/assets/tests/probe_diode_self_consistency.py",
+   "lines": 79,
+   "bytes": 4132,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 21,
+   "style": "script(top-level)",
+   "defs": [],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [
+    "from collections import Counter"
+   ],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.DiodeSelfConsistencyError": [
+     74
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     50
+    ],
+    "sizing_recipe.is_diode_connected": [
+     57
+    ],
+    "sizing_recipe.load_topology": [
+     44
+    ],
+    "sizing_recipe.solve_diode_connected_vds": [
+     69
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 42,
+     "text": "INST = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_diode_vds_window",
+   "file": "skills/analog-gmid-design/assets/tests/probe_diode_vds_window.py",
+   "lines": 146,
+   "bytes": 6164,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 37,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "w_at"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     64
+    ],
+    "sizing_recipe.is_diode_connected": [
+     57
+    ],
+    "sizing_recipe.load_topology": [
+     55
+    ]
+   },
+   "n_engine_calls": 3,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 51,
+     "text": "INST = (r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "72-76",
+     "concept": "W = L*ID/IDu 인라인(공개 API로 IDu는 얻음)",
+     "canonical": "sizing_recipe.size_transistor",
+     "registry": "§2 'W 계산'"
+    }
+   ],
+   "n_confirmed_engine_dup": 1,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_diode_window_corner",
+   "file": "skills/analog-gmid-design/assets/tests/probe_diode_window_corner.py",
+   "lines": 131,
+   "bytes": 6708,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 21,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "run",
+    "area"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     80
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     70
+    ],
+    "sizing_recipe.allocate_stack_headroom": [
+     87
+    ],
+    "sizing_recipe.diode_vds_window": [
+     88,
+     101,
+     109
+    ],
+    "sizing_recipe.is_diode_connected": [
+     85
+    ],
+    "sizing_recipe.load_topology": [
+     84
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     103
+    ]
+   },
+   "n_engine_calls": 7,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_diode_window_corner.result.txt",
+     "bytes": 890
+    }
+   ]
+  },
+  {
+   "name": "probe_full_research",
+   "file": "skills/analog-gmid-design/assets/tests/probe_full_research.py",
+   "lines": 160,
+   "bytes": 6266,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 66,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "collections",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys",
+    "time"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     62
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     52
+    ],
+    "sizing_recipe.audit_vsb_consistency": [
+     143
+    ],
+    "sizing_recipe.load_topology": [
+     141
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     72
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_full_research.result.txt",
+     "bytes": 1380
+    }
+   ]
+  },
+  {
+   "name": "probe_gm_id_monotonicity",
+   "file": "skills/analog-gmid-design/assets/tests/probe_gm_id_monotonicity.py",
+   "lines": 393,
+   "bytes": 17470,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 76,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "curve_stats",
+    "strong_branch_vgs",
+    "idu_at_vgs",
+    "rightmost_root"
+   ],
+   "imports": [
+    "json",
+    "math",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     102
+    ],
+    "sizing_recipe.load_topology": [
+     239
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": true,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "246-251",
+     "concept": "gm_id->VGS 역보간(np.interp, 피크 이후 구간)",
+     "canonical": "SemiEmpiricalGmIdLUT.gm_id_for_vgs / _solve_vgs",
+     "registry": "§3 R0 gm_id_for_vgs",
+     "note": "이 probe의 목적이 '엔진 역보간이 비단조에서 틀리는가'라 대조군 성격"
+    },
+    {
+     "lines": "254-256",
+     "concept": "IDu 재구현(LUT private 직접 호출)",
+     "canonical": "SemiEmpiricalGmIdLUT.id_density_at_vgs",
+     "registry": "§3 R0"
+    },
+    {
+     "lines": "308-315",
+     "concept": "W = L*ID/IDu 인라인",
+     "canonical": "sizing_recipe.size_transistor",
+     "registry": "§2 'W 계산'"
+    }
+   ],
+   "n_confirmed_engine_dup": 3,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_gm_id_monotonicity.result.txt",
+     "bytes": 5040
+    }
+   ]
+  },
+  {
+   "name": "probe_gmid_gain_landscape",
+   "file": "skills/analog-gmid-design/assets/tests/probe_gmid_gain_landscape.py",
+   "lines": 93,
+   "bytes": 4462,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 33,
+   "style": "script(top-level)",
+   "defs": [],
+   "imports": [
+    "math",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     25
+    ],
+    "sizing_recipe.size_transistor": [
+     90
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 19,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "91",
+     "concept": "size_transistor 결과에서 IDu 역산(표시용)",
+     "canonical": "sizing_recipe.size_transistor(정본 호출 후 역산 -- 복제 아님)",
+     "registry": "-",
+     "note": "복제로 세지 않는다"
+    }
+   ],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_interp_scheme_loo",
+   "file": "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.py",
+   "lines": 195,
+   "bytes": 9479,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 35,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "build",
+    "curves",
+    "truth"
+   ],
+   "imports": [
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     87
+    ],
+    "sizing_recipe._multilinear_interp": [
+     97,
+     98,
+     99,
+     100,
+     188,
+     189
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "97-100, 188-189",
+     "concept": "_multilinear_interp 직접 호출로 보간 비교",
+     "canonical": "sizing_recipe._multilinear_interp(정본을 호출함 -- 복제 아님)",
+     "registry": "§2 '다선형 보간'",
+     "note": "정본 호출. 복제로 세지 않는다"
+    }
+   ],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_interp_scheme_loo.result.txt",
+     "bytes": 3277
+    }
+   ]
+  },
+  {
+   "name": "probe_l5c_stage2out_L",
+   "file": "skills/analog-gmid-design/assets/tests/probe_l5c_stage2out_L.py",
+   "lines": 157,
+   "bytes": 6930,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 26,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys",
+    "tempfile"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     72
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     103
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_l5c_stage2out_L.result.txt",
+     "bytes": 2054
+    }
+   ]
+  },
+  {
+   "name": "probe_lclass_warm_start",
+   "file": "skills/analog-gmid-design/assets/tests/probe_lclass_warm_start.py",
+   "lines": 106,
+   "bytes": 4556,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 11,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys",
+    "time"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.SPECS": [
+     48
+    ],
+    "run_harness.canonical_spec": [
+     50
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     54
+    ],
+    "sizing_recipe._metric_device_footprint": [
+     65
+    ],
+    "sizing_recipe.presolve_warm_start": [
+     83
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_lclass_warm_start.result.txt",
+     "bytes": 3083
+    }
+   ]
+  },
+  {
+   "name": "probe_lut_L_interpolation",
+   "file": "skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py",
+   "lines": 179,
+   "bytes": 8655,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 27,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "mk",
+    "curve_consistent"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     115
+    ],
+    "sizing_recipe._multilinear_interp": [
+     123,
+     124
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": true,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "123-124",
+     "concept": "_multilinear_interp 직접 호출(정본 호출 -- 복제 아님)",
+     "canonical": "sizing_recipe._multilinear_interp",
+     "registry": "§2 '다선형 보간'",
+     "note": "복제로 세지 않는다"
+    }
+   ],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.result.txt",
+     "bytes": 2745
+    }
+   ]
+  },
+  {
+   "name": "probe_matching_pair_divergence",
+   "file": "skills/analog-gmid-design/assets/tests/probe_matching_pair_divergence.py",
+   "lines": 186,
+   "bytes": 8688,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 31,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "traced"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     109
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     99
+    ],
+    "sizing_recipe._optimize_theta_slsqp": [
+     115,
+     125
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     127
+    ]
+   },
+   "n_engine_calls": 4,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_matching_pair_divergence.result.txt",
+     "bytes": 4792
+    }
+   ]
+  },
+  {
+   "name": "probe_metric_dashboard",
+   "file": "skills/analog-gmid-design/assets/tests/probe_metric_dashboard.py",
+   "lines": 125,
+   "bytes": 5913,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 39,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     69
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     59
+    ],
+    "sizing_recipe.is_diode_connected": [
+     102,
+     115
+    ],
+    "sizing_recipe.load_topology": [
+     101
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     75
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_metric_dashboard.result.txt",
+     "bytes": 2579
+    }
+   ]
+  },
+  {
+   "name": "probe_metric_tiers",
+   "file": "skills/analog-gmid-design/assets/tests/probe_metric_tiers.py",
+   "lines": 66,
+   "bytes": 3891,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 21,
+   "style": "script(top-level)",
+   "defs": [
+    "ctx_of"
+   ],
+   "imports": [
+    "dataclasses",
+    "json",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys",
+    "time"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     34
+    ],
+    "sizing_recipe.SizingContext": [
+     37,
+     43
+    ],
+    "sizing_recipe.compute_metric": [
+     52,
+     56,
+     60
+    ],
+    "sizing_recipe.load_topology": [
+     30
+    ]
+   },
+   "n_engine_calls": 4,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 25,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    },
+    {
+     "line": 29,
+     "text": "INST = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_mirror_common_L",
+   "file": "skills/analog-gmid-design/assets/tests/probe_mirror_common_L.py",
+   "lines": 182,
+   "bytes": 7450,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 43,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "idu"
+   ],
+   "imports": [
+    "collections",
+    "json",
+    "math",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     62
+    ]
+   },
+   "n_engine_calls": 1,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "97-99",
+     "concept": "IDu 재구현 -- LUT private(_query/_log_ID/_w_ref_effective) 직접 호출",
+     "canonical": "SemiEmpiricalGmIdLUT.id_density_at_vgs",
+     "registry": "§3 R0"
+    },
+    {
+     "lines": "93",
+     "concept": "(참고) 소자·넷 이름 리터럴 REF={'nmos:Vbias4':'M66', 'pmos:Vbias1':'M18_bg', 'pmos:Vcmfb':'M36a'}",
+     "canonical": "-",
+     "registry": "DF-23 유형(probe 쪽)"
+    }
+   ],
+   "n_confirmed_engine_dup": 2,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_mirror_common_L.result.txt",
+     "bytes": 2702
+    }
+   ]
+  },
+  {
+   "name": "probe_mirror_common_L_wiring",
+   "file": "skills/analog-gmid-design/assets/tests/probe_mirror_common_L_wiring.py",
+   "lines": 180,
+   "bytes": 7665,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 25,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "collections",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.SPECS": [
+     72
+    ],
+    "sizing_recipe._L_ROLE_MULTIPLIERS": [
+     66,
+     142
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     114
+    ],
+    "sizing_recipe.load_topology": [
+     79
+    ],
+    "sizing_recipe.vgs_alias_map": [
+     97
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": true,
+   "confirmed_engine_dup": [
+    {
+     "lines": "83-99",
+     "concept": "union-find로 VGS/L 동치류 묶기",
+     "canonical": "sizing_recipe.l_sharing_classes (+ vgs_alias_map)",
+     "registry": "§2 '전류미러 그룹' / §2 'union-find' / §3 R0 l_sharing_classes"
+    },
+    {
+     "lines": "112-121",
+     "concept": "theta feeds(metric_stage_budget)에서 소자->theta 역맵",
+     "canonical": "sizing_recipe._theta_feed_footprint / _theta_device_map",
+     "registry": "§2 'theta가 건드리는 소자'"
+    }
+   ],
+   "n_confirmed_engine_dup": 2,
+   "missing_engine_symbols": [
+    {
+     "line": 66,
+     "symbol": "sizing_recipe._L_ROLE_MULTIPLIERS"
+    },
+    {
+     "line": 142,
+     "symbol": "sizing_recipe._L_ROLE_MULTIPLIERS"
+    }
+   ],
+   "static_symbol_check": "FAIL(참조 심볼 부재)",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_mirror_common_L_wiring.result.txt",
+     "bytes": 4011
+    }
+   ]
+  },
+  {
+   "name": "probe_mirror_design_space",
+   "file": "skills/analog-gmid-design/assets/tests/probe_mirror_design_space.py",
+   "lines": 409,
+   "bytes": 20078,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 58,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "_mirror_groups_from_netlist",
+    "dev_info",
+    "_idu_at_vgs",
+    "widths_at",
+    "verdict"
+   ],
+   "imports": [
+    "collections",
+    "json",
+    "math",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     129
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     117
+    ],
+    "sizing_recipe.load_topology": [
+     145
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     138
+    ]
+   },
+   "n_engine_calls": 4,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "164",
+     "concept": "(gate, source, kind) 키로 미러군 묶기",
+     "canonical": "sizing_recipe.true_current_mirror_groups",
+     "registry": "§2 '전류미러 그룹'"
+    },
+    {
+     "lines": "170",
+     "concept": "diode 판정 gate==drain",
+     "canonical": "sizing_recipe.is_diode_connected",
+     "registry": "§2 'diode 판정'"
+    },
+    {
+     "lines": "220-253",
+     "concept": "W_i = L*ID_i/IDu 인라인",
+     "canonical": "sizing_recipe.size_transistor",
+     "registry": "§2 'W 계산'"
+    }
+   ],
+   "n_confirmed_engine_dup": 3,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_mirror_design_space.result.txt",
+     "bytes": 20039
+    }
+   ]
+  },
+  {
+   "name": "probe_mirror_gain_ranking",
+   "file": "skills/analog-gmid-design/assets/tests/probe_mirror_gain_ranking.py",
+   "lines": 338,
+   "bytes": 15767,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 69,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "_mirror_groups",
+    "_q",
+    "forced"
+   ],
+   "imports": [
+    "collections",
+    "copy",
+    "json",
+    "math",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     124
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     112
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     139
+    ],
+    "sizing_recipe.compute_metric": [
+     260,
+     323
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     133
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "158",
+     "concept": "(gate, source, kind) 키로 미러군 묶기",
+     "canonical": "sizing_recipe.true_current_mirror_groups",
+     "registry": "§2 '전류미러 그룹'"
+    },
+    {
+     "lines": "164",
+     "concept": "diode 판정 gate==drain",
+     "canonical": "sizing_recipe.is_diode_connected",
+     "registry": "§2 'diode 판정'"
+    },
+    {
+     "lines": "194-201",
+     "concept": "W_i = L*ID_i/IDu 인라인",
+     "canonical": "sizing_recipe.size_transistor",
+     "registry": "§2 'W 계산'"
+    }
+   ],
+   "n_confirmed_engine_dup": 3,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_mirror_gain_ranking.result.txt",
+     "bytes": 6924
+    }
+   ]
+  },
+  {
+   "name": "probe_mirror_infeasibility",
+   "file": "skills/analog-gmid-design/assets/tests/probe_mirror_infeasibility.py",
+   "lines": 184,
+   "bytes": 7673,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 36,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "idu_at_vgs"
+   ],
+   "imports": [
+    "collections",
+    "json",
+    "math",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     52
+    ]
+   },
+   "n_engine_calls": 1,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "87-89",
+     "concept": "IDu 재구현(LUT private 직접 호출)",
+     "canonical": "SemiEmpiricalGmIdLUT.id_density_at_vgs",
+     "registry": "§3 R0"
+    },
+    {
+     "lines": "115-116, 163-164",
+     "concept": "W = L*ID/IDu 인라인",
+     "canonical": "sizing_recipe.size_transistor",
+     "registry": "§2 'W 계산'"
+    }
+   ],
+   "n_confirmed_engine_dup": 2,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_mirror_infeasibility.result.txt",
+     "bytes": 4685
+    }
+   ]
+  },
+  {
+   "name": "probe_mirror_ratio_bound",
+   "file": "skills/analog-gmid-design/assets/tests/probe_mirror_ratio_bound.py",
+   "lines": 133,
+   "bytes": 6264,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 11,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "json",
+    "math",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.SPECS": [
+     55
+    ],
+    "run_harness.canonical_spec": [
+     57
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     61
+    ],
+    "sizing_recipe._matching_pairs_cached": [
+     70
+    ],
+    "sizing_recipe.estimate_mismatch_sigma": [
+     118
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_mirror_ratio_bound.result.txt",
+     "bytes": 3466
+    }
+   ]
+  },
+  {
+   "name": "probe_mirror_ratio_error",
+   "file": "skills/analog-gmid-design/assets/tests/probe_mirror_ratio_error.py",
+   "lines": 89,
+   "bytes": 4919,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 25,
+   "style": "script(top-level)",
+   "defs": [],
+   "imports": [
+    "inspect",
+    "json",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe._METRIC_UNITS": [
+     89
+    ],
+    "sizing_recipe.estimate_mismatch_sigma": [
+     84,
+     85
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 32,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    },
+    {
+     "line": 37,
+     "text": "INST = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_mirror_wiring_readiness",
+   "file": "skills/analog-gmid-design/assets/tests/probe_mirror_wiring_readiness.py",
+   "lines": 177,
+   "bytes": 7908,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 36,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "mirror_groups"
+   ],
+   "imports": [
+    "collections",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     68
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     58
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     85
+    ],
+    "sizing_recipe._gm_id_already_authoritative": [
+     123
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     79
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "96",
+     "concept": "(gate, source, kind) 키로 미러군 묶기",
+     "canonical": "sizing_recipe.true_current_mirror_groups",
+     "registry": "§2 '전류미러 그룹'"
+    },
+    {
+     "lines": "102",
+     "concept": "diode 판정 gate==drain",
+     "canonical": "sizing_recipe.is_diode_connected",
+     "registry": "§2 'diode 판정'"
+    }
+   ],
+   "n_confirmed_engine_dup": 2,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_mirror_wiring_readiness.result.txt",
+     "bytes": 3441
+    }
+   ]
+  },
+  {
+   "name": "probe_node_voltage_audit",
+   "file": "skills/analog-gmid-design/assets/tests/probe_node_voltage_audit.py",
+   "lines": 132,
+   "bytes": 6570,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 52,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     65
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     55
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     81
+    ],
+    "sizing_recipe.audit_vsb_consistency": [
+     104
+    ],
+    "sizing_recipe.load_topology": [
+     84
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     75
+    ],
+    "sizing_recipe.propagate_node_voltages": [
+     92
+    ]
+   },
+   "n_engine_calls": 7,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": true,
+   "confirmed_engine_dup": [
+    {
+     "lines": "86",
+     "concept": "레일 넷 집합 재선언 RAILS={'vdd','vss','gnd','0'}",
+     "canonical": "sizing_recipe._DEFAULT_RAIL_HI/_DEFAULT_RAIL_LO",
+     "registry": "§2 '레일 넷 집합'"
+    }
+   ],
+   "n_confirmed_engine_dup": 1,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_node_voltage_audit.result.txt",
+     "bytes": 3990
+    },
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_node_voltage_audit.theta_star.json",
+     "bytes": 617
+    }
+   ]
+  },
+  {
+   "name": "probe_parasitic_pm_all_circuits",
+   "file": "skills/analog-gmid-design/assets/tests/probe_parasitic_pm_all_circuits.py",
+   "lines": 151,
+   "bytes": 6828,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 22,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "json",
+    "math",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys",
+    "time"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.SPECS": [
+     78
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     89,
+     99
+    ],
+    "sizing_recipe._load_full_topology_cached": [
+     107
+    ],
+    "sizing_recipe.node_pole_estimate": [
+     114
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     98
+    ],
+    "sizing_recipe.signal_path_nodes": [
+     113
+    ]
+   },
+   "n_engine_calls": 6,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": true,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_parasitic_pm_all_circuits.result.txt",
+     "bytes": 3702
+    }
+   ]
+  },
+  {
+   "name": "probe_physical_consistency",
+   "file": "skills/analog-gmid-design/assets/tests/probe_physical_consistency.py",
+   "lines": 137,
+   "bytes": 7422,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 53,
+   "style": "script(top-level)",
+   "defs": [
+    "propagate"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [
+    "from collections import defaultdict"
+   ],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.load_topology": [
+     42
+    ]
+   },
+   "n_engine_calls": 1,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 33,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    },
+    {
+     "line": 38,
+     "text": "INST = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json\""
+    }
+   ],
+   "plan_ts6_promote": true,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "48-70",
+     "concept": "DC 노드전압 전파(순회 순서 2종 + 다중도달 불일치 수집)",
+     "canonical": "sizing_recipe.propagate_node_voltages(NodeVoltageReport.conflicts)",
+     "registry": "§2 '노드 DC 전압'",
+     "note": "의도적 재현(옛 프로토타입 결함 시연)이라 판정은 design에서"
+    },
+    {
+     "lines": "93-105",
+     "concept": "노드별 KCL 잔차(ID 부호 주입 합)",
+     "canonical": "sizing_recipe._metric_kcl_residual",
+     "registry": "§2 'KCL 엣지'"
+    },
+    {
+     "lines": "126",
+     "concept": "source가 레일인지로 vsb=0 판정",
+     "canonical": "sizing_recipe.derive_vsb_from_nodes",
+     "registry": "§3 R0"
+    },
+    {
+     "lines": "40",
+     "concept": "레일 넷 집합 재선언",
+     "canonical": "sizing_recipe._DEFAULT_RAIL_HI/_DEFAULT_RAIL_LO",
+     "registry": "§2 '레일 넷 집합'"
+    }
+   ],
+   "n_confirmed_engine_dup": 4,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": "sized[*].get('vs', 0.0) -- 'vs' 부재로 전 소자가 vs=0으로 집계(B9 절이 무의미해짐)",
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_prevention_wiring",
+   "file": "skills/analog-gmid-design/assets/tests/probe_prevention_wiring.py",
+   "lines": 94,
+   "bytes": 5172,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 44,
+   "style": "script(top-level)",
+   "defs": [],
+   "imports": [
+    "inspect",
+    "io",
+    "json",
+    "numpy as np",
+    "os",
+    "re",
+    "sizing_recipe as sr",
+    "stick_diagram as sd",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe",
+    "stick_diagram"
+   ],
+   "engine_calls": {
+    "sizing_recipe._feed_vds_fallback": [
+     40
+    ],
+    "sizing_recipe.load_topology": [
+     44
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 29,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    }
+   ],
+   "plan_ts6_promote": true,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "46",
+     "concept": "diode 판정 gate==drain",
+     "canonical": "sizing_recipe.is_diode_connected",
+     "registry": "§2 'diode 판정'"
+    }
+   ],
+   "n_confirmed_engine_dup": 1,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_ratio_pair_analysis",
+   "file": "skills/analog-gmid-design/assets/tests/probe_ratio_pair_analysis.py",
+   "lines": 195,
+   "bytes": 9199,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 21,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     104
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     94
+    ],
+    "sizing_recipe.is_diode_connected": [
+     144
+    ],
+    "sizing_recipe.load_topology": [
+     111
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     108
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "145-148",
+     "concept": "게이트·소스 공유 여부 인라인 판정(미러 성립 조건)",
+     "canonical": "sizing_recipe.true_current_mirror_groups",
+     "registry": "§2 '전류미러 그룹'"
+    }
+   ],
+   "n_confirmed_engine_dup": 1,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_ratio_pair_analysis.result.txt",
+     "bytes": 7999
+    }
+   ]
+  },
+  {
+   "name": "probe_revalidation_scope",
+   "file": "skills/analog-gmid-design/assets/tests/probe_revalidation_scope.py",
+   "lines": 95,
+   "bytes": 5220,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 22,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "json",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe._collect_device_refs": [
+     78,
+     93
+    ],
+    "sizing_recipe.load_topology": [
+     65
+    ]
+   },
+   "n_engine_calls": 2,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": true,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_revalidation_scope.result.txt",
+     "bytes": 2595
+    }
+   ]
+  },
+  {
+   "name": "probe_role_L_derivation",
+   "file": "skills/analog-gmid-design/assets/tests/probe_role_L_derivation.py",
+   "lines": 133,
+   "bytes": 6051,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 18,
+   "style": "script(top-level)",
+   "defs": [
+    "emit"
+   ],
+   "imports": [
+    "json",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.SPECS": [
+     51
+    ],
+    "run_harness.canonical_spec": [
+     53
+    ],
+    "sizing_recipe._L_ROLE_TARGETS": [
+     113
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     66
+    ],
+    "sizing_recipe._diode_set_cached": [
+     103
+    ],
+    "sizing_recipe.feasible_L_window": [
+     104
+    ],
+    "sizing_recipe.knee_L_for_kind": [
+     95
+    ],
+    "sizing_recipe.load_topology": [
+     57
+    ]
+   },
+   "n_engine_calls": 8,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": true,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_role_L_derivation.result.txt",
+     "bytes": 5782
+    }
+   ]
+  },
+  {
+   "name": "probe_runtime_budget",
+   "file": "skills/analog-gmid-design/assets/tests/probe_runtime_budget.py",
+   "lines": 102,
+   "bytes": 4977,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 41,
+   "style": "script(top-level)",
+   "defs": [],
+   "imports": [
+    "itertools",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys",
+    "tempfile",
+    "time"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     42
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     32
+    ],
+    "sizing_recipe._build_theta_evaluator": [
+     47
+    ],
+    "sizing_recipe.presolve_warm_start": [
+     55
+    ]
+   },
+   "n_engine_calls": 4,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 24,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [],
+   "n_confirmed_engine_dup": 0,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_stack_headroom_feasibility",
+   "file": "skills/analog-gmid-design/assets/tests/probe_stack_headroom_feasibility.py",
+   "lines": 128,
+   "bytes": 5414,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 29,
+   "style": "script(top-level)",
+   "defs": [
+    "find"
+   ],
+   "imports": [
+    "json",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [
+    "from collections import defaultdict"
+   ],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.DiodeSelfConsistencyError": [
+     50
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     36
+    ],
+    "sizing_recipe.is_diode_connected": [
+     42
+    ],
+    "sizing_recipe.load_topology": [
+     30
+    ],
+    "sizing_recipe.solve_diode_connected_vds": [
+     49
+    ]
+   },
+   "n_engine_calls": 5,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 22,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    },
+    {
+     "line": 27,
+     "text": "INST = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "63-74",
+     "concept": "union-find 동치류(스택 그룹)",
+     "canonical": "sizing_recipe.l_sharing_classes / _hr_resolve_vertical_group",
+     "registry": "§2 'union-find' / §2 '스택 KVL 합'"
+    }
+   ],
+   "n_confirmed_engine_dup": 1,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_stacked_diode_options",
+   "file": "skills/analog-gmid-design/assets/tests/probe_stacked_diode_options.py",
+   "lines": 222,
+   "bytes": 9434,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 66,
+   "style": "script(top-level)",
+   "defs": [
+    "emit",
+    "idu",
+    "widths"
+   ],
+   "imports": [
+    "json",
+    "math",
+    "numpy as np",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     66
+    ]
+   },
+   "n_engine_calls": 1,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "79-80",
+     "concept": "IDu 재구현(LUT private 직접 호출)",
+     "canonical": "SemiEmpiricalGmIdLUT.id_density_at_vgs",
+     "registry": "§3 R0"
+    },
+    {
+     "lines": "89-90",
+     "concept": "W = L*ID/IDu 인라인",
+     "canonical": "sizing_recipe.size_transistor",
+     "registry": "§2 'W 계산'"
+    }
+   ],
+   "n_confirmed_engine_dup": 2,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": [
+    {
+     "file": "skills/analog-gmid-design/assets/tests/probe_stacked_diode_options.result.txt",
+     "bytes": 7851
+    }
+   ]
+  },
+  {
+   "name": "probe_supply_current",
+   "file": "skills/analog-gmid-design/assets/tests/probe_supply_current.py",
+   "lines": 100,
+   "bytes": 5103,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 37,
+   "style": "script(top-level)",
+   "defs": [],
+   "imports": [
+    "json",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [
+    "from collections import defaultdict"
+   ],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.load_topology": [
+     39
+    ]
+   },
+   "n_engine_calls": 1,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 33,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    },
+    {
+     "line": 38,
+     "text": "INST = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "55-66, 92-96",
+     "concept": "레일 직결 소자의 공급전류 합(+RAILS_HI/LO 재선언)",
+     "canonical": "sizing_recipe._metric_supply_current(4540) / _DEFAULT_RAIL_*",
+     "registry": "§3 R0 _metric_sum_current / §2 '레일 넷 집합'"
+    }
+   ],
+   "n_confirmed_engine_dup": 1,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_vds_assignment_paths",
+   "file": "skills/analog-gmid-design/assets/tests/probe_vds_assignment_paths.py",
+   "lines": 143,
+   "bytes": 6707,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 47,
+   "style": "script(top-level)",
+   "defs": [
+    "traced_resolve_feed_vds",
+    "traced_fb",
+    "traced_alloc",
+    "traced_rvg"
+   ],
+   "imports": [
+    "collections",
+    "copy",
+    "json",
+    "numpy as np",
+    "os",
+    "run_harness as H",
+    "sizing_recipe as sr",
+    "sys",
+    "tempfile",
+    "traceback"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "run_harness",
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "run_harness.canonical_spec": [
+     97
+    ],
+    "sizing_recipe.DEFAULT_POLICY": [
+     56
+    ],
+    "sizing_recipe.SemiEmpiricalGmIdLUT": [
+     87
+    ],
+    "sizing_recipe._feed_vds_fallback": [
+     49,
+     53
+    ],
+    "sizing_recipe._hr_resolve_vertical_group": [
+     75,
+     79
+    ],
+    "sizing_recipe._metric_stage_budget_vds_by_device": [
+     73
+    ],
+    "sizing_recipe.allocate_stack_headroom": [
+     55,
+     62
+    ],
+    "sizing_recipe.load_topology": [
+     118
+    ],
+    "sizing_recipe.optimize_full_circuit_budget": [
+     103
+    ],
+    "sizing_recipe.resolve_feed_vds": [
+     36,
+     47
+    ]
+   },
+   "n_engine_calls": 10,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 22,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": false,
+   "confirmed_engine_dup": [
+    {
+     "lines": "129",
+     "concept": "diode 판정 gate==drain",
+     "canonical": "sizing_recipe.is_diode_connected",
+     "registry": "§2 'diode 판정'"
+    }
+   ],
+   "n_confirmed_engine_dup": 1,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": null,
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  },
+  {
+   "name": "probe_vs_semantics",
+   "file": "skills/analog-gmid-design/assets/tests/probe_vs_semantics.py",
+   "lines": 88,
+   "bytes": 3976,
+   "parse_error": null,
+   "has_main_guard": false,
+   "toplevel_statements": 27,
+   "style": "script(top-level)",
+   "defs": [],
+   "imports": [
+    "json",
+    "os",
+    "sizing_recipe as sr",
+    "sys"
+   ],
+   "from_imports": [],
+   "engine_modules": [
+    "sizing_recipe"
+   ],
+   "engine_calls": {
+    "sizing_recipe.load_topology": [
+     26
+    ]
+   },
+   "n_engine_calls": 1,
+   "pytest_style": false,
+   "hardcoded_abs_paths": [
+    {
+     "line": 17,
+     "text": "ASSETS = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets\""
+    },
+    {
+     "line": 22,
+     "text": "INST = r\"C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json\""
+    }
+   ],
+   "plan_ts6_promote": false,
+   "plan_df21_delete": true,
+   "confirmed_engine_dup": [
+    {
+     "lines": "32-45",
+     "concept": "DC 노드전압 전파(이름 정렬 순회 + vds 누적)",
+     "canonical": "sizing_recipe.propagate_node_voltages",
+     "registry": "§2 '노드 DC 전압'"
+    },
+    {
+     "lines": "59",
+     "concept": "vsb 유도(NMOS=V_s, PMOS=vdd-V_s)",
+     "canonical": "sizing_recipe.derive_vsb_from_nodes",
+     "registry": "§3 R0"
+    },
+    {
+     "lines": "24",
+     "concept": "레일 넷 집합 재선언 RAIL_HI/RAIL_LO",
+     "canonical": "sizing_recipe._DEFAULT_RAIL_HI/_DEFAULT_RAIL_LO(3893-3894)",
+     "registry": "§2 '레일 넷 집합'"
+    }
+   ],
+   "n_confirmed_engine_dup": 3,
+   "missing_engine_symbols": [],
+   "static_symbol_check": "OK",
+   "stale_artifact_field": "sized[*]['vs'] -- instance.json은 지금 'vsb'만 갖는다(51소자 전부 skip -> 출력 무의미)",
+   "artifacts_committed": false,
+   "artifacts_on_disk": []
+  }
+ ],
+ "artifact_gitignore_rules": [
+  "skills/analog-gmid-design/assets/tests/*.result.txt",
+  "skills/analog-gmid-design/assets/tests/*.sizing_cache.json",
+  "skills/analog-gmid-design/assets/tests/*.theta_star.json",
+  "skills/analog-gmid-design/assets/tests/*.unwired_theta.json",
+  "skills/analog-gmid-design/assets/tests/*.window_dump.txt"
+ ],
+ "artifacts_committed_any": false,
+ "tracked_non_py_in_tests": [
+  "README.md",
+  "canonical_theta_star.json (픽스처, 산출물 아님)"
+ ],
+ "note": "정규식 1차 후보 전체는 code_hits.json, 심볼 검사 원자료는 _probe_symbols.json. confirmed_engine_dup은 코드 줄을 직접 읽어 확인한 것만."
+}
