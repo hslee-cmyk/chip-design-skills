@@ -6,8 +6,12 @@ spec card `docs/02-design/specs/20260923-probe-relocate.spec.md` 계약 1·2·3�
 
 판정 여섯 가지:
 
-* (a) `A/tests/` 직속에 남은 `probe_*.py`는 승격 후보 7개뿐이다(계획 N3.11 TS6 승격 목록 =
-  실측 `plan_ts6_promote_expected`). 이 7개는 P3 이후가 다루고 이 card는 건드리지 않는다.
+* (a) `A/tests/` 직속에 남은 `probe_*.py`는 승격 후보(계획 N3.11 TS6 승격 목록 = 실측
+  `plan_ts6_promote_expected`) 중 **아직 승격되지 않은 것**뿐이다. 승격 여부는 spec card
+  `20260923-probe-promote-clean` 계약 1의 이름 규칙(`A/tests/unit/test_<probe 이름>.py`가 있다)이 정한다 --
+  P2는 이 7개를 건드리지 않았고, P3부터 하나씩 승격본으로 바뀐다. 승격한 수·이름을 이 파일에 박지 않으므로
+  남은 승격이 진행돼도 판정은 그대로다. 규칙만 보면 '원본도 승격본도 없음'이나 '둘 다 있음'을 통과시킬 수
+  있어 **양방향**(후보마다 정확히 하나만 존재)과 '후보 밖 이름의 승격본 없음'을 함께 건다.
 * (b) `A/tests/probes/`에 32개가 있다. 기대 집합은 실측 42개에서 DF-21 삭제 3개(P1)와 승격 후보 7개를
   뺀 나머지로 **구성**한다 -- 디렉터리를 읽어 자기 자신을 기대값으로 삼지 않는다.
 * (c) `A/tests/probes/**`의 어떤 파일에도 Windows 절대 경로 리터럴이 없다(계약 4). 판정식은 spec card의
@@ -29,7 +33,10 @@ oracle 대조(계획 N3.12.3):
 
 * test_only_promotion_candidates_remain_in_tests_root,
   test_relocated_probes_are_in_probes_dir -- (a) 구성으로 정답이 정해진 입력: 기대 이름 집합을 실측
-  `probe_inventory.json`의 전수 목록에서 공표된 두 목록(삭제 3·승격 7)을 빼서 만든다. 피검 출력 없음.
+  `probe_inventory.json`의 전수 목록에서 공표된 두 목록(삭제 3·승격 7)을 빼서 만들고, 승격분은 계약 1의
+  이름 규칙으로 더 뺀다(규칙에서 유도 -- 디렉터리를 읽어 자기 자신을 기대값으로 삼지 않는다). 피검 출력 없음.
+* test_promotion_judgment_rejects_half_moved_and_stray_promotions -- (a) 합성 디렉터리: 원본·승격본을 손으로
+  만들었으므로 정답이 구성으로 정해진다. 세 결함(둘 다 있음·둘 다 없음·후보 밖 승격본)을 실제로 거부하는지 본다.
 * test_inventory_lists_are_the_published_ones -- (a) 실측 파일이 그 두 목록을 실제로 담고 있고 수가
   42 = 3 + 7 + 32로 맞는지(위 두 판정이 공허해지지 않게 하는 전제).
 * test_probes_dir_has_no_windows_abs_path_literal -- (a) 저장소의 현재 리터럴 유무가 곧 기대값이다
@@ -78,6 +85,10 @@ _ASSETS_DIR = _TESTS_DIR.parent
 _REPO_ROOT = _ASSETS_DIR.parents[2]
 _PROBES_DIR = _TESTS_DIR / "probes"
 _TOOLS_DIR = _TESTS_DIR / "tools"
+_UNIT_DIR = _TESTS_DIR / "unit"
+# 승격본 자리의 이름 규칙(spec card `20260923-probe-promote-clean` 계약 1): probe `<이름>`의 승격본은
+# `A/tests/unit/test_<이름>.py`다(계약 1의 `<주제>`는 이름에서 `probe_` 접두사를 뺀 것이므로 `test_` + 이름).
+_PROMOTED_PREFIX = "test_"
 _TESTS_REL = _TESTS_DIR.relative_to(_REPO_ROOT).as_posix()
 
 # 계약 5의 운영 도구(spec card가 이름을 댄 것).
@@ -310,6 +321,33 @@ def _py_names(directory: pathlib.Path, pattern: str) -> set:
     return {p.name for p in directory.glob(pattern)}
 
 
+def promoted_probe_names(unit_dir: pathlib.Path) -> set:
+    """이름 규칙으로 읽은 **승격 완료** probe 이름(`unit/test_<이름>.py` -> `<이름>`)."""
+    return {p.stem[len(_PROMOTED_PREFIX):] for p in unit_dir.glob(f"{_PROMOTED_PREFIX}probe_*.py")}
+
+
+def assert_promotion_is_all_or_nothing(candidates, tests_root: pathlib.Path,
+                                       unit_dir: pathlib.Path) -> None:
+    """판정: 승격 후보마다 원본(`tests/<이름>.py`)과 승격본(`unit/test_<이름>.py`) 중 **정확히 하나**만 있다.
+
+    둘 다 있으면 원본을 안 지운 것이고, 둘 다 없으면 판정 없이 사라진 것이다 -- 둘 다 '옮기다 만 상태'라
+    통과시키지 않는다(이 판정의 값은 한쪽만 하고 멈춘 것을 잡는 데 있다).
+    """
+    state = {name: ((tests_root / f"{name}.py").exists(),
+                    (unit_dir / f"{_PROMOTED_PREFIX}{name}.py").exists())
+             for name in candidates}
+    both = sorted(n for n, (orig, prom) in state.items() if orig and prom)
+    neither = sorted(n for n, (orig, prom) in state.items() if not orig and not prom)
+    assert both == [], f"원본과 승격본이 둘 다 있는 probe {both} -- 승격은 '원본 삭제'까지가 한 단위다"
+    assert neither == [], f"원본도 승격본도 없는 probe {neither} -- 판정으로 옮기지 않고 사라졌다"
+
+
+def assert_unit_promotions_are_candidates(unit_dir: pathlib.Path, candidates) -> None:
+    """판정: `unit/`의 승격본은 전부 **공표된 승격 후보**의 것이다(후보 밖 이름이 끼어들지 않는다)."""
+    stray = sorted(promoted_probe_names(unit_dir) - set(candidates))
+    assert stray == [], f"승격 후보가 아닌 이름의 승격본 {stray} -- 승격 목록은 계획 N3.11 TS6이 정한다"
+
+
 def _probe_sources():
     """옮긴 32개의 (이름, 새 경로, 소스) -- 기대 이름 집합으로 훑는다(디렉터리를 베끼지 않는다)."""
     for name in _relocated_names():
@@ -331,13 +369,47 @@ def test_inventory_lists_are_the_published_ones():
 
 
 # --------------------------------------------------------------------------------------
-# (a) tests/ 직속에는 승격 후보 7개만 남는다
+# (a) tests/ 직속에는 승격 후보 중 **아직 승격 안 된 것**만 남는다
 # --------------------------------------------------------------------------------------
 def test_only_promotion_candidates_remain_in_tests_root():
-    # oracle (a): 기대 집합 = 실측 승격 목록 7개(이 card가 건드리지 않는 것) 그대로.
+    # oracle (a): 기대 집합 = 공표된 승격 후보 7개 - **승격이 끝난 것**. 끝났는지는 spec card
+    # `20260923-probe-promote-clean` 계약 1의 이름 규칙(`unit/test_<이름>.py`)이 정한다 -- 승격한 수나
+    # 이름을 이 파일에 박지 않으므로 P3b 이후 승격이 더 일어나도 그대로 성립한다. 규칙만으로는 한쪽만
+    # 한 상태를 통과시킬 수 있으므로 양방향 판정을 같이 건다(정확히 하나만 존재 + 후보 밖 승격본 없음).
     _, _, _, promoted = _published_lists()
-    expected = {f"{name}.py" for name in promoted}
+    expected = {f"{name}.py" for name in promoted - promoted_probe_names(_UNIT_DIR)}
     assert _py_names(_TESTS_DIR, "probe_*.py") == expected
+    assert_promotion_is_all_or_nothing(promoted, _TESTS_DIR, _UNIT_DIR)
+    assert_unit_promotions_are_candidates(_UNIT_DIR, promoted)
+
+
+def test_promotion_judgment_rejects_half_moved_and_stray_promotions(tmp_path):
+    # oracle (a): 합성 디렉터리 -- 어떤 파일을 만들었는지가 곧 정답이다. 승격 후보 두 개를 가정하고
+    # (a) 둘 다 있음 (b) 둘 다 없음 (c) 후보가 아닌 이름의 승격본 세 경우를 만들어 거부를 본다.
+    candidates = {"probe_alpha", "probe_beta"}
+    tests_root, unit_dir = tmp_path / "tests", tmp_path / "tests" / "unit"
+    unit_dir.mkdir(parents=True)
+    # 정상: alpha는 승격본만, beta는 원본만.
+    (unit_dir / "test_probe_alpha.py").write_text("# 합성 승격본\n", encoding="utf-8")
+    (tests_root / "probe_beta.py").write_text("# 합성 원본\n", encoding="utf-8")
+    assert_promotion_is_all_or_nothing(candidates, tests_root, unit_dir)
+    assert_unit_promotions_are_candidates(unit_dir, candidates)
+    assert promoted_probe_names(unit_dir) == {"probe_alpha"}
+    # (a) 둘 다 있음 -- 승격본을 만들고 원본을 안 지운 상태.
+    (tests_root / "probe_alpha.py").write_text("# 합성 원본(안 지움)\n", encoding="utf-8")
+    with pytest.raises(AssertionError):
+        assert_promotion_is_all_or_nothing(candidates, tests_root, unit_dir)
+    (tests_root / "probe_alpha.py").unlink()
+    # (b) 둘 다 없음 -- 승격본 없이 원본만 사라진 상태.
+    (tests_root / "probe_beta.py").unlink()
+    with pytest.raises(AssertionError):
+        assert_promotion_is_all_or_nothing(candidates, tests_root, unit_dir)
+    (tests_root / "probe_beta.py").write_text("# 합성 원본\n", encoding="utf-8")
+    # (c) 후보가 아닌 이름의 승격본.
+    (unit_dir / "test_probe_gamma.py").write_text("# 합성 승격본(후보 아님)\n", encoding="utf-8")
+    with pytest.raises(AssertionError):
+        assert_unit_promotions_are_candidates(unit_dir, candidates)
+    assert_promotion_is_all_or_nothing(candidates, tests_root, unit_dir)
 
 
 # --------------------------------------------------------------------------------------

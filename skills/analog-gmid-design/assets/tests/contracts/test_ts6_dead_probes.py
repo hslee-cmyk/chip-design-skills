@@ -20,7 +20,10 @@ spec card `docs/02-design/specs/20260923-probe-dead-delete.spec.md` 계약 3의 
 oracle 대조(계획 N3.12.3):
 
 * test_dead_probe_files_are_absent -- (a) 구성으로 정답이 정해진 입력: 삭제 목록은 spec card 계약 1의 세 경로 그대로,
-  남는 수 39는 실측 probe_inventory.json의 42에서 DF-21 3을 뺀 값(계약 4). 피검 출력 없음.
+  남는 수는 실측 probe_inventory.json의 42에서 DF-21 3과 **승격 완료분**을 뺀 값(계약 4). 승격 완료는 spec card
+  `20260923-probe-promote-clean` 계약 1의 **이름 규칙**(`A/tests/unit/test_<probe 이름>.py`)으로 센다 -- 승격한 수를
+  이 파일에 박지 않으므로 P3b 이후 승격이 더 일어나도 이 판정은 그대로 성립한다. 같이 보는 것: 같은 probe의 원본과
+  승격본이 **동시에 있지 않다**(옮기다 만 상태를 잡는 판정 -- 한쪽만 하고 멈춘 것을 통과시키지 않는다). 피검 출력 없음.
 * test_sizing_recipe_source_has_no_l_role_multipliers,
   test_sizing_recipe_module_has_no_l_role_multipliers_attribute -- (a) 저장소의 현재 심볼 유무가 곧 기대값이다.
 * test_audit_vsb_consistency_has_operational_caller -- (a) 저장소의 현재 호출 관계가 곧 기대값이다(spec card 계약 2의
@@ -47,9 +50,12 @@ _DELETED_PROBES = (
     "skills/analog-gmid-design/assets/tests/probe_node_voltage_audit.py",
     "skills/analog-gmid-design/assets/tests/probe_vs_semantics.py",
 )
-# 실측 probe_inventory.json: n_probes = 42, plan_df21_delete_expected = 위 3개 -> 남는 수(계약 4).
+# 실측 probe_inventory.json: n_probes = 42, plan_df21_delete_expected = 위 3개.
 _PROBE_TOTAL_BEFORE = 42
-_REMAINING_PROBES = _PROBE_TOTAL_BEFORE - len(_DELETED_PROBES)
+# 승격본 자리(spec card `20260923-probe-promote-clean` 계약 1): probe `<이름>`의 승격본은
+# `A/tests/unit/test_<이름>.py`다(계약 1의 `<주제>`는 이름에서 `probe_` 접두사를 뺀 것이므로 `test_` + 이름).
+_UNIT_DIR = _TESTS_DIR / "unit"
+_PROMOTED_PREFIX = "test_"
 
 _SIZING_RECIPE = _ASSETS_DIR / "sizing_recipe.py"
 _PILOT_INSTANCE = (_REPO_ROOT / "workspaces" / "current-reuse-telescopic-ota-report"
@@ -67,6 +73,22 @@ def assert_paths_absent(root: pathlib.Path, rel_paths) -> None:
     """`root` 아래에 `rel_paths` 중 어느 것도 남아 있지 않다."""
     present = [rel for rel in rel_paths if (root / rel).exists()]
     assert present == [], f"지워져야 할 파일이 남아 있다: {present}"
+
+
+def probe_names_under(tests_dir: pathlib.Path) -> set:
+    """`tests` 트리에 **원본으로** 남아 있는 probe 이름."""
+    return {p.stem for p in tests_dir.rglob("probe_*.py")}
+
+
+def promoted_probe_names(unit_dir: pathlib.Path) -> set:
+    """이름 규칙으로 읽은 **승격 완료** probe 이름(`unit/test_<이름>.py` -> `<이름>`)."""
+    return {p.stem[len(_PROMOTED_PREFIX):] for p in unit_dir.glob(f"{_PROMOTED_PREFIX}probe_*.py")}
+
+
+def assert_promotion_is_exclusive(originals: set, promoted: set) -> None:
+    """판정: 같은 probe의 원본과 승격본이 동시에 있지 않다(옮기다 만 상태 금지)."""
+    both = sorted(originals & promoted)
+    assert both == [], f"원본과 승격본이 둘 다 있는 probe {both} -- 승격은 '원본 삭제'까지가 한 단위다"
 
 
 def _bound_names(source: str) -> set:
@@ -161,9 +183,16 @@ def _load_pilot_sizing() -> dict:
 def test_dead_probe_files_are_absent():
     # oracle (a): 삭제 목록은 spec card 계약 1이 이름을 댄 세 경로 그대로다.
     assert_paths_absent(_REPO_ROOT, _DELETED_PROBES)
-    # 공허한 판정 방지(계약 4): 지운 셋 말고 39개는 그대로 있다 -- 실측 42 - 3.
-    remaining = sorted(p.name for p in _TESTS_DIR.rglob("probe_*.py"))
-    assert len(remaining) == _REMAINING_PROBES, f"남은 probe 수 {len(remaining)}: {remaining}"
+    # 공허한 판정 방지(계약 4): 지운 셋과 승격분 말고는 그대로 있다.
+    #   남는 수 = 실측 42 - DF-21 삭제 3 - 승격 완료분. 승격 완료분은 이름 규칙으로 세고(승격한 수를
+    #   여기 박지 않는다), 승격본이 있으면 원본은 트리 어디에도 없어야 한다(아래 배타 판정).
+    originals = probe_names_under(_TESTS_DIR)
+    promoted = promoted_probe_names(_UNIT_DIR)
+    expected = _PROBE_TOTAL_BEFORE - len(_DELETED_PROBES) - len(promoted)
+    assert len(originals) == expected, (
+        f"남은 probe 수 {len(originals)} != 42 - {len(_DELETED_PROBES)} - 승격 {len(promoted)} = {expected}: "
+        f"{sorted(originals)}")
+    assert_promotion_is_exclusive(originals, promoted)
 
 
 def test_path_absence_check_rejects_surviving_file(tmp_path):
@@ -174,6 +203,14 @@ def test_path_absence_check_rejects_surviving_file(tmp_path):
     with pytest.raises(AssertionError):
         assert_paths_absent(tmp_path, _DELETED_PROBES)
     assert (tmp_path / victim).exists()
+
+
+def test_exclusive_promotion_check_rejects_original_left_behind():
+    # oracle (a): 합성 입력 -- 같은 이름을 원본 집합과 승격본 집합에 **둘 다** 넣으면 거부해야 한다
+    # (승격본만 만들고 원본을 안 지운 상태). 겹치지 않는 경우는 통과한다.
+    assert_promotion_is_exclusive({"probe_a", "probe_b"}, {"probe_c"})
+    with pytest.raises(AssertionError):
+        assert_promotion_is_exclusive({"probe_a", "probe_b"}, {"probe_b"})
 
 
 # --------------------------------------------------------------------------------------
