@@ -14890,3 +14890,12 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 백로그 B14(Phase 4): instance.json 산출물 스키마가 회로마다 다르다 -- 파일럿만 vsb, folded_cascode·nmcnr_amplifier·two_stage_ota 3판은 추적된 산출물이 옛 vs 스키마. 현 엔진은 vsb만 쓰므로 낡은 산출물 문제. 재생성은 기준선 변경이라 DEC-40 승인 필요, IC3의 INSTANCE_SIZING_FIELDS를 정본으로.
 - 백로그 B15(문서): design 20 §3 'NEW-TOPO는 삭제를 포함하는 card 전부'가 P1처럼 선언 도달 불가한 최상위 스크립트 삭제에는 무해당이다(auditor는 G-1~G-4 재측정으로 대신함). 다음 design 개정 때 '엔진 함수·선언 키를 지우는 card'로 좁힌다.
 - 환경 메모: 격리 복제본 경로가 길면 게이트 도구가 `git show` 단계에서 Filename too long으로 죽는다 -- clone 직후 `git -C <iso> config core.longpaths true` 필수(auditor 보고).
+
+- P2 20260923-probe-relocate 완료(gate af3416a, 3차 시도, equivalence): probe 32개를 tests/probes/로, 운영 도구 derive_achievable_bounds.py를 tests/tools/로(code 커밋). 이동 깊이 보정 22개(dirname 2->3), 절대 경로 리터럴 17->0(12파일). contracts/test_ts6_probe_relocate.py 33건 신설.
+- **1차 FAIL(내 spec card 결함 2건)**: (a) 계약 2를 '경로 리터럴만'으로 적어 이동 깊이 보정을 금지 -> test-author가 멈추고 보고(옳은 처리). probe를 한 단계 내리면 ASSETS=dirname(dirname())가 tests를 가리켜 import·library·LUT 경로가 전부 빗나간다 = 이동이 만드는 회귀. 계약 2를 '경로 줄'(리터럴+유도식)로 넓히고 계약 3(이동 깊이 보정) 신설. (b) 2차 FAIL: evidence_type을 test-only로 선언했는데 도구 이동에 code 커밋·병합이 생겨 게이트 모양 판정에 걸림("test-only에 병합이 있다"). auditor가 모의 커밋+base 판 merge_gate.receive로 실측. equivalence로 개정 -> 3차 PASS. **교훈: 판정 유형은 커밋 모양으로 정해진다(code 커밋이 하나라도 생기면 test-only가 아니다). 3차에서는 병합 전에 모양을 실측하게 했다.**
+- 증거: V1 336 passed/15 xfailed(base 303), E-LIB 9/9 해시 a3cfe21f(P1 기록과 바이트 동일), E-INST 파일럿·folded 해시 base 동일, 계약 2의 바뀐 81줄 전수 확인(전부 ASSETS/INST 대입, 계산·판정 줄 0), 계약 5는 옛 자리·새 자리 실행 stdout 바이트 동일로 확인. V7 PASS(new_defs 0).
+- V5 맹점 3가지(auditor가 코드로 확인): --no-renames라 rename을 맞대지 않음, 삭제 단위는 이름이 test로 시작할 때만 발견, tests/tools/**는 아예 검사 대상 밖. 그래서 이 card의 V5 PASS는 독립 증거가 아니고 auditor의 81줄 전수 확인이 그 자리를 대신한다.
+- 결정(오케스트레이터): V2 '양쪽 PASS'는 **기존 test 집합이 양쪽에서 PASS**로 읽는다(새 test 3건이 T에서 FAIL인 것은 N3.11 TS6이 정한 커밋 순서 때문). 계약 6은 '이동이 수집을 바꾸지 않는다'(base ⊂ T).
+- design v1.2: §5.1 신설 -- P4(복제 제거)는 tests/probes/에 남는 진단만, P3(승격)은 재구현을 oracle로 유지(엔진 복제면 다른 근거로 다시 세움, 대조형이 V4 (1)에 걸리면 C13 면제). 사용자 결정 "승격은 oracle 유지". §8 P2 행 판정 유형·oracle 표기 정정(E-AST 불가 이유 명시).
+- 백로그 B16: 계획 N3.11 TS6 'code 커밋으로 추가한 뒤 test 커밋으로 원본 삭제'가 N3.12.3 흐름(test 먼저)과 어긋난다 -- 실제로는 test가 지우고 code가 더한다. B17: sizing_recipe.py 8460·8472가 사용자에게 옛 도구 경로(tests/derive_achievable_bounds.py) 실행을 안내하는데 그 경로가 없어졌다(엔진 텍스트, 별도 card). B18: 계획 N4.2 V2 equivalence 문언 '양쪽 PASS' 정정(plan_tables 승인 필요).
+- 환경: 자식 bash에 APPDATA가 전달되지 않아 site-packages를 잃고 numpy/pytest import가 조용히 실패한다 -- 스크립트 안에서 export 필요(auditor 실측).

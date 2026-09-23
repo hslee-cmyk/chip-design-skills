@@ -1,6 +1,6 @@
 # gain-budget-gmid-sizing -- Phase 2 `20-dead-code-dup` design
 
-버전 v1.1 (2026-09-23, 승인 대기. v1.1에서 §3 NEW-TOPO·§6.4 일반성 기준 추가 -- 사용자 지시 "현재에 있는 회로만으로 삭제여부를 결정하지 말고, 향후 추가되는 모든 topology를 커버할 수 있도록 설계되어야 해"). 정본 인용 규칙은 계획 N9.4 -- 이 문서는 계획서와 `00-common`의 정의를 재서술하지 않고 절 번호로 인용한다.
+버전 v1.2 (2026-09-23. v1.2에서 §5.1 복제 제거·승격 경계(사용자 결정)와 §8 P2 행 판정 유형·oracle 정정 -- P2 실측 반영. v1.1은 승인됨(`20260923-20-dead-code-dup-design`). v1.1에서 §3 NEW-TOPO·§6.4 일반성 기준 추가 -- 사용자 지시 "현재에 있는 회로만으로 삭제여부를 결정하지 말고, 향후 추가되는 모든 topology를 커버할 수 있도록 설계되어야 해"). 정본 인용 규칙은 계획 N9.4 -- 이 문서는 계획서와 `00-common`의 정의를 재서술하지 않고 절 번호로 인용한다.
 읽은 계획 절(N9.1 표): N3.10, N3.11 TS6, N6.1·N6.2 Phase 2, N6.3, WP-14, DF-21·DF-23(DF-29~DF-34), U-02, N9.2·N9.4.
 
 실측 원자료(이 문서의 모든 수치의 출처, 같은 폴더 `docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/`):
@@ -91,6 +91,30 @@ Phase 4 전이라 N3.14 실패 클래스가 없다(`10-test-separation` §8과 �
 
 U-02의 '삭제 11개'는 계획서에 3개만 이름이 있다(DF-21). 나머지 8개의 정본 목록은 계획서 어디에도 없다 -- **이 design이 실측으로 대신 정한다**: 삭제는 DF-21 3개로 하고, 나머지는 이동으로 보존한다(삭제하지 않는 쪽이 되돌리기 쉽고, 이동 뒤 복제 제거로 '엔진 식 재구현 0'이라는 DoD는 그대로 달성된다). 이 해석은 U-02 승인의 일부다(§9).
 
+### 5.1 복제 제거(P4)와 승격(P3)의 경계 (사용자 결정 2026-09-23)
+
+계획 N3.11 TS6은 "probe 안의 엔진 로직 복제를 엔진 정본 호출로 교체"라고 적는다. 그대로 두면 **승격한 test에서도** 재구현을
+정본 호출로 바꾸게 되는데, 그러면 기대값을 피검 함수로 만드는 것이라 V4 규칙 (1)에 걸린다(계획 N4.2 V4). 실측: 승격 후보 7개 중
+3개가 재구현을 가진다. 그래서 대상을 나눈다.
+
+| 대상 | 규칙 | 근거 |
+|---|---|---|
+| `A/tests/probes/`에 남는 진단 스크립트(P4) | 엔진 식 재구현을 **정본 호출로 교체**한다 | 진단은 판정이 아니므로 자기참조 문제가 없고, 정의가 하나여야 엔진이 바뀔 때 같이 따라간다(WP-14) |
+| 승격해 test가 되는 것(P3) | 재구현을 **oracle로 유지**한다. 다만 그것이 엔진 코드를 옮겨 적은 것이면(V4 규칙 (2) '피검 식 재서술') 문헌 식이나 다른 계산 경로로 **다시 세운다** | test의 기대값은 피검 구현과 달라야 한다(계획 N3.12.3 oracle 종류 (b)) |
+
+승격 test가 엔진과 독립 재구현을 **나란히 비교**하는 형태(대조형)라면 V4 규칙 (1)이 걸릴 수 있다 -- 그때는 C13
+(`20260923-v4-decision-exempt`)이 연 `target_kind: decision` 면제를 쓰고, 승인 기록에 "재구현이 독립 방법이고 엔진 출력을
+기대값으로 쓰지 않는다"를 근거로 적는다(C9 선례 `20260923-c9-v4-exempt`).
+
+승격 후보별 실측 분류(원자료 `probe_inventory.json`, 소스 확인 2026-09-23):
+
+| probe | 재구현의 성격 | 처리 |
+|---|---|---|
+| `probe_gm_id_monotonicity` | 엔진의 VGS 선택(`_solve_vgs`)과 별개로 강반전 가지 해를 세워 **나란히 비교**(대조형) | 승격, oracle 유지. V4 (1)이 걸리면 면제 승인 |
+| `probe_prevention_wiring` | `gate == drain`이라는 **물리 정의**를 직접 쓴다(엔진 복제가 아니다) | 승격, oracle 유지 |
+| `probe_physical_consistency` | 프로토타입 알고리즘 재현 + 레일 집합·VDD 상수 재선언. 게다가 낡은 `vs` 필드를 읽어 한 절이 무동작 | 무동작 절의 판정을 세울 수 있으면 승격, 아니면 **승격에서 빼고 진단으로 남긴다**(무동작 test 금지) |
+| 나머지 4개 | 재구현 없음(엔진 정본 호출) | 승격 |
+
 ---
 
 ## 6. DUP 통합
@@ -157,7 +181,7 @@ G-3 (b)가 telescopic 계열에 해당한다. `_load_telescopic_topology_cached`
 | # | id(초안) | 대상 | 판정 유형 | oracle | 산출물 |
 |---|---|---|---|---|---|
 | P1 | `probe-dead-delete` | DF-21 probe 3개 삭제 | test-only | (a) 구성 -- 삭제 전 실행 결과(import 실패·무동작)를 기록 | probe 3개 삭제 |
-| P2 | `probe-relocate` | probe 32개 → `tests/probes/`, `derive_achievable_bounds.py` → `tests/tools/`(code+test 2커밋), 절대 경로 15건 상대화 | test-only(도구 이동은 code·test 두 커밋) | (c) 이동 전후 동일성(E-AST) | 이동 |
+| P2 | `probe-relocate` | probe 32개 → `tests/probes/`(이동 깊이 보정 22), `derive_achievable_bounds.py` → `tests/tools/`, 절대 경로 12파일 상대화 | **equivalence** -- 도구 이동에 code 커밋과 병합이 생겨 test-only 모양(병합 0·`code_commit: null`)이 성립하지 않는다(1차 시도 auditor가 base 판 merge gate로 실측) | (c) 이동 전후 동일성. **E-AST는 쓰지 않는다** -- 경로 줄을 바꾸는 것이 목적이라 32개 전부 `ast.dump`가 달라진다. spec card 계약 2(경로 줄 말고는 base blob과 동일)·계약 3(유도 경로가 이동 전과 같은 실제 경로)이 그 자리를 대신한다 | 이동 |
 | P3 | `probe-promote` | 승격 7개(또는 `probe_physical_consistency` 제외 6개) → `unit/test_probe_*.py` | test-only | (c) probe가 이미 보던 판정을 assert로 | pytest test |
 | P4 | `probe-engine-dup` | probe 안 엔진 식 재구현 34곳 → 정본 호출, 스캐너 `tests/tools/probe_dup_scan.py` 신설 | test-only + 도구(code) | (a) 스캐너의 합성 입력, (c) 교체 전후 probe 출력 동일 | PROBE-DUP 0 |
 | P5 | `d-delete-dead` | R-0 7 + `junction_cap` 삭제(§6.4 G-1~G-4 확인) | equivalence | (c) E-LIB·E-INST + (a) NEW-TOPO 합성 topology | 엔진 소스 축소, 레지스트리 갱신 |
