@@ -14878,3 +14878,6 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 합성 head는 caa970b 원문 밖 바이트 148개뿐(머리 142 = sys.path 삽입 + `from sizing_recipe import *`, 조각 사이 개행 6). 세 조각(prelude 2409-2427, lut 섹션 2429-2441, L4 섹션)은 들여쓰기만 벗긴 원문.
 - 문서 백로그 B10: (a) design 10 §6.9 문구 'setup.sh·run.sh 추가' -> 실제는 run.sh만(a_redrun이 합성 트리를 전부 만든다). (b) 05 §13.3 표 caa970b 행 '변환 규칙' 칸이 `--`라 줄 범위 지정(lines_block)과 실행 머리가 규칙 밖 -- 다음 재생 케이스가 사례별 규칙을 새로 만들지 않도록 정본화 필요. (c) weakening_diff(V5)는 redteam 케이스의 기대 완화를 보지 못한다(test 분류가 assets/tests/** 뿐) -- 이번에는 auditor가 직접 대조.
 - Phase 1 card 전부(C1~C13) 완료. 다음: Phase 1 DoD D0~D7 측정.
+
+- Phase 1 DoD 전 항목 PASS(gate da03c0e 기준, auditor 독립 측정 2026-09-23). 기록: docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/phase1-dod.md. D0~D7+D3b 8행 모두 PASS, N6.2 Phase 1 조건 8개와 1:1. 전체 test 293 수집/278 passed/15 xfailed, --gmid-dod 6회(기본+seed 1~5) 실패 0. D2 소스 인라인 self-test 0(판별력 대조 7792f9c^에서 4/4 검출), D5 기준선 참조 0(대조 7781bde 4줄), D6 IC xfail 12케이스 reason 형식 12/12, D7 attack red 0·control red 1. D1은 auditor가 C2 기록을 받지 않고 20쌍을 재측정해 20/20 바이트 동일.
+- 백로그 B11(Phase 3): extract_selftest scan이 비재귀(root.glob) -- 모듈이 하위 디렉터리로 내려가면 D2가 조용히 통과. B12(Phase 4): unit/의 I-C11 xfail 3건 reason에 `만료: <p> DoD` 절이 없어 Phase 4 DoD에서 해소를 세야 한다(B9와 같은 자리). B13(문서): §10 PT가 이미 tests를 인자로 가져 D4·D6에서 경로를 더해도 안 좁혀짐, D1 outputs_hash는 복제본 절대 경로 의존(stick 출력에 경로 1회).
