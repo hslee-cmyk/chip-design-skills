@@ -1,7 +1,7 @@
 ---
 id: 20260923-probe-relocate
 phase: 2
-evidence_type: test-only
+evidence_type: equivalence
 gate_change: no
 approval: 20260923-20-dead-code-dup-design
 ---
@@ -30,11 +30,13 @@ test 커밋으로 원본을 지운다). 옮기는 김에 probe 안의 Windows �
 
 ## 판정 유형 근거
 
-test-only(계획 N3.12.3 개정 P5). 도구 이동분은 code 커밋 + test 커밋 두 개다(N3.11 TS6). 증거는 이동 동일성(계약 2·3·5)과 수집 불변(계약 6), 동작 보존(E-LIB·E-INST).
+**equivalence**(계획 N6.1 Phase 2 행의 판정 유형, N3.11 TS6 '운영 도구 이동은 code 커밋과 test 커밋 두 개'). 이 변경은 운영 도구를 `tests/tools/`로 옮기므로 **code 커밋과 병합이 생긴다** -- test-only의 커밋 모양(병합 0·code 커밋 없음, `00-common` §8.1 `code_commit: null`)과 맞지 않는다(1차 시도 auditor가 base 판 merge gate로 실측해 확인: "test-only에 병합이 있다").
+동작 보존 변경이라 red가 없고, 증거는 이동 동일성(계약 2·3·5), 수집 불변(계약 6), 회로 동작 보존(design §3 E-LIB·E-INST)이다. `equivalence.commands`에는 E-LIB·E-INST 명령과 계약 2·3·5 대조 명령을 적고 `outputs_hash`에는 그 출력 해시를 적는다.
 
 ## oracle 종류와 출처
 
-(c) 이동 전후 동일성: 기대값은 base 트리의 파일 바이트와 `--collect-only` 출력이다. 새 기대값을 만들지 않는다.
+(c) 이동 전후 동일성이 주다: 기대값은 base 트리의 파일 바이트와 `--collect-only` 출력, library·하네스 실행 결과다. 새 기대값을 만들지 않는다.
+(a) 구성으로 정답이 정해진 입력도 함께 쓴다: 실측 `probe_inventory.json`의 목록(42 = 삭제 3 + 승격 7 + 이동 32), 경로 성분 수로 정하는 `dirname` 중첩 기대값, 절대 경로 판정기의 합성 소스.
 
 ## 거부해야 할 입력
 
