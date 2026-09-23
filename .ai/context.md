@@ -14871,3 +14871,10 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 승인 3건: 20260922-c9-ic11-split(I-C11 섹션 3개를 xfail strict + known_limitation 2분할), 20260923-c9-v4-exempt(V4 규칙 (1) 면제 2건 -- S052 불변식·S054 재현성), 20260923-ts2-pytest-split(DEC-40 V5, diff_hash 38ecdc81…). 뒤 둘에 **Phase 4 I-C11 해소 시 재검토**를 명시(백로그 B9).
 - 관찰: weakening_diff는 --no-renames라 rename된 새 파일의 xfail을 발견하지 못한다(승인 본문에 따로 적어 덮었다). test-author에게 주는 pytest 명령은 cd 없이 rootdir를 인자로 주는 형태로 적을 것.
 - 다음: C10 caa970b-replay(test-only 게이트 변경) -> Phase 1 DoD(D0~D7).
+
+- C10 20260923-caa970b-replay 완료(gate 0939174, 게이트 변경·test-only): 사례 재생. redteam cases/caa970b-stale-expected-value에 run.sh·red.json 신설, expect.json skip_reason 제거(phase "1" 유지), rt.py에 `redrun`(a_redrun) 추가 -- a_isolated_run의 05 §12-7 명령 구성을 공용 함수로 뽑아 재사용(공격 17 base↔head 명령 문자열 동일 확인, 회귀 0).
+- 실측: attack(caa970b 판 단언 `== ["other_current"]`) = base에서 pytest exit 0, red 0건 -> 단계 exit 1 = V2 'red 부재' 적발. control(d32811b 판 `== []`) = red 1건 builtins.AssertionError(failure_hash 6668ac52…) -> exit 0(오거부 0). run_all --cases 1 PASS, --phase 0.5 전체 케이스 50 PASS/단계 586 PASS, FAIL 0. auditor가 rt.py 없이 독립 구성으로 같은 값을 재측정.
+- 새 판정식: V2는 게이트 도구가 없어 a_redrun이 'red 0건 -> exit 1(거부), 1건 이상 -> 0'으로 계산. N4.2 V2 앞 절반 + 00-common §8.1 red 수집과 일치(auditor 문장 대조). 범위: 뒷 절반 '병합본 PASS'와 equivalence·test-only 갈래는 재생 대상 아님(design §6.9).
+- 합성 head는 caa970b 원문 밖 바이트 148개뿐(머리 142 = sys.path 삽입 + `from sizing_recipe import *`, 조각 사이 개행 6). 세 조각(prelude 2409-2427, lut 섹션 2429-2441, L4 섹션)은 들여쓰기만 벗긴 원문.
+- 문서 백로그 B10: (a) design 10 §6.9 문구 'setup.sh·run.sh 추가' -> 실제는 run.sh만(a_redrun이 합성 트리를 전부 만든다). (b) 05 §13.3 표 caa970b 행 '변환 규칙' 칸이 `--`라 줄 범위 지정(lines_block)과 실행 머리가 규칙 밖 -- 다음 재생 케이스가 사례별 규칙을 새로 만들지 않도록 정본화 필요. (c) weakening_diff(V5)는 redteam 케이스의 기대 완화를 보지 못한다(test 분류가 assets/tests/** 뿐) -- 이번에는 auditor가 직접 대조.
+- Phase 1 card 전부(C1~C13) 완료. 다음: Phase 1 DoD D0~D7 측정.
