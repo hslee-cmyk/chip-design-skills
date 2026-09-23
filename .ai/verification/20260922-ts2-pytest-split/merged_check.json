@@ -1,0 +1,108 @@
+{
+  "id": "20260922-ts2-pytest-split",
+  "attempt": 2,
+  "head": "caac9101b2fb4c36c8bc0e049a661a1731f36ecf",
+  "base": "ab05c8cf429723e9497a762c0f25f81d947b09be",
+  "iso": "C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso",
+  "cache": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/ab05c8cf429723e9497a762c0f25f81d947b09be",
+  "V1_runs": {
+    "options": "--gmid-phase=1 --gmid-strict=IC3:,IC5: -rA (기본 순서는 --durations=0 추가)",
+    "runs": [
+      {"name": "default", "shuffle_seed": null, "exit": 0, "collected": 293, "passed": 278, "xfailed": 15, "xpassed": 0, "failed": 0, "errors": 0, "wall_s": 75.17, "output_sha256": "8b61fd83501c360de08fc7f4b36c724c74176ad63e19eea8b4c30fc3e4c4a1bd"},
+      {"name": "seed1", "shuffle_seed": 1, "exit": 0, "collected": 293, "passed": 278, "xfailed": 15, "xpassed": 0, "failed": 0, "errors": 0, "wall_s": 65.52, "output_sha256": "c3c721f97ff1ffcdacfe2aa83dd6d33d82304e24d2c708d5fde66a446424d601"},
+      {"name": "seed2", "shuffle_seed": 2, "exit": 0, "collected": 293, "passed": 278, "xfailed": 15, "xpassed": 0, "failed": 0, "errors": 0, "wall_s": 67.10, "output_sha256": "69434fe676a104e910966402e0f056c0ed0b8a48f7e95dd064fb702f35a37756"},
+      {"name": "seed3", "shuffle_seed": 3, "exit": 0, "collected": 293, "passed": 278, "xfailed": 15, "xpassed": 0, "failed": 0, "errors": 0, "wall_s": 68.86, "output_sha256": "1e5241c77078c68407c0c9992c6ff97d9bbe7d427d9b9feffd1111ea050f53a2"},
+      {"name": "seed4", "shuffle_seed": 4, "exit": 0, "collected": 293, "passed": 278, "xfailed": 15, "xpassed": 0, "failed": 0, "errors": 0, "wall_s": 68.44, "output_sha256": "8034afc629f43b199beac0ab87d8500ef3c45285a18a5d3f0d2e88ab82cd00c2"},
+      {"name": "seed5", "shuffle_seed": 5, "exit": 0, "collected": 293, "passed": 278, "xfailed": 15, "xpassed": 0, "failed": 0, "errors": 0, "wall_s": 68.07, "output_sha256": "872cfeaf51a5cd37f26e6d19f49660ed84878bf35db56a540832f67a29d63afe"}
+    ],
+    "xfail_set_identical_across_6_runs": true,
+    "xfail_15": "계약 test 12개(IC1·IC2·IC4·IC6·IC7 2·IC8·IC9·IC10·IC11 3) + I-C11 strict xfail 3개(unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget, ::test_s054_section, unit/test_selftest_stick_diagram.py::test_s157_M1)",
+    "report_header": "shuffle-seed: <값|none> / real_lut: skills/analog-gmid-design/assets/sky130_nfet_pfet_lut_sample.npz sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f"
+  },
+  "Q_shuffle": {
+    "rule": "design 10 §7 Q, §10 D3b -- ∀k∈{1..5}: 순서(k) ≠ 순서(기본) ∧ 순서(k) 두 번 같음",
+    "command": "위 V1 명령에서 -rA 대신 --collect-only -q, seed마다 두 번",
+    "default_order_sha256_16": "d3753c28cae7cd60",
+    "seeds": [
+      {"seed": 1, "n": 293, "set_equals_default": true, "order_differs_from_default": true, "two_runs_identical": true, "first_diff_index": 0, "order_sha256_16": "075551f08d4565a1"},
+      {"seed": 2, "n": 293, "set_equals_default": true, "order_differs_from_default": true, "two_runs_identical": true, "first_diff_index": 0, "order_sha256_16": "890519c6a053fc83"},
+      {"seed": 3, "n": 293, "set_equals_default": true, "order_differs_from_default": true, "two_runs_identical": true, "first_diff_index": 0, "order_sha256_16": "7e516cd4ec8a4163"},
+      {"seed": 4, "n": 293, "set_equals_default": true, "order_differs_from_default": true, "two_runs_identical": true, "first_diff_index": 0, "order_sha256_16": "b950eead10804bef"},
+      {"seed": 5, "n": 293, "set_equals_default": true, "order_differs_from_default": true, "two_runs_identical": true, "first_diff_index": 0, "order_sha256_16": "bd366cc8d032ae10"}
+    ],
+    "note": "순서 비교는 `-q` 출력의 node id 줄만 뽑아 비교했다. 파일 전체 sha256은 꼬리의 '293 tests collected in <초>' 줄 때문에 실행마다 다르다(판정과 무관).",
+    "verdict": "PASS"
+  },
+  "M1": {
+    "rule": "매핑표 test_ids 215개가 모두 수집되고 매핑표에 없는 새 test가 없다",
+    "mapping": "docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json",
+    "mapped_test_ids": 215,
+    "collected_unit_nodeids": 216,
+    "collected_unit_functions": 215,
+    "per_module": {
+      "sizing_recipe": {"mapped": 70, "functions": 70, "nodeids": 71},
+      "stick_diagram": {"mapped": 131, "functions": 131, "nodeids": 131},
+      "design_report": {"mapped": 4, "functions": 4, "nodeids": 4},
+      "topology_library": {"mapped": 10, "functions": 10, "nodeids": 10}
+    },
+    "missing": [],
+    "extra": [],
+    "parametrized_nodeids": ["unit/test_selftest_sizing_recipe.py::test_s024_section[down]", "unit/test_selftest_sizing_recipe.py::test_s024_section[up]"],
+    "note": "node id 216 = 함수 215 + `_drl_case` parametrize 2케이스(spec card 계약 2)가 만든 여분 node id 1개. 전체 수집 293 = unit 216 + contracts·tooling 77(base 81에서 legacy wrapper 4 제외).",
+    "verdict": "PASS"
+  },
+  "M2": {
+    "rule": "섹션마다 (test의 assert + pytest.raises 수) ≥ 매핑표 m2_min",
+    "sections_with_tests": 212,
+    "shortfalls": 0,
+    "sum_m2_min": 651,
+    "sum_measured": 677,
+    "per_section": "m2_report.json",
+    "method": "병합본 unit/test_selftest_<모듈>.py를 ast.parse 해 매핑표 test_ids의 함수마다 ast.Assert 수 + pytest.raises(...) 호출 수를 세고 섹션별로 합산",
+    "verdict": "PASS"
+  },
+  "contract4_guarded": {
+    "rule": "spec card 계약 4 -- guarded_only 5개 섹션의 처리",
+    "sections": [
+      {"section": "sizing S014", "test": "test_s014_section", "checked": "try/except ValueError 분기가 없고 `assert _l5c_result is not None`가 조건 밖에서 실행된 뒤 원래 assert 6개가 이어진다(assert 7 + pytest.raises 1 = 8 ≥ m2_min 6)", "ok": true},
+      {"section": "design_report S003", "test": "test_s003_assemble_report_data", "checked": "`assert os.path.exists(_crt_instance)` 뒤 원래 assert 5개(6 ≥ m2_min 5)", "ok": true},
+      {"section": "sizing S051", "tests": ["test_s051_optimize_full_circuit_budget", "test_s051_optimize_full_circuit_budget_known_limitation"], "checked": "xfail(raises=ValueError, strict=True, reason='I-C11 two_stage_ota stage1_out KVL -- 담당 Phase 4'), ValueError를 내는 optimize_full_circuit_budget() 호출이 두 test 본문에 있다(fixture s051_state는 topology 경로·spec만 만든다)", "ok": true},
+      {"section": "sizing S054", "tests": ["test_s054_section", "test_s054_section_known_limitation"], "checked": "같은 xfail 표식, 호출 test 본문", "ok": true},
+      {"section": "stick S157", "tests": ["test_s157_M1", "test_s157_M1_known_limitation"], "checked": "같은 xfail 표식, 호출 test 본문(fixture s157_state는 경로·spec만 만든다)", "ok": true}
+    ],
+    "xfail_markers_in_unit": 3,
+    "skip_markers_in_unit": 0,
+    "verdict": "PASS"
+  },
+  "V2_test_only": {
+    "rule": "N4.2 V2 test-only -- 섹션→test 매핑표의 모든 섹션이 변경 후 test에서 PASS",
+    "base_evidence": "base_check.json (legacy wrapper 4케이스 PASS, base 전체 69 passed/12 xfailed, exit 0)",
+    "merged_tree_has_legacy": false,
+    "section_status": {"all_PASSED": 209, "PASSED_and_approved_XFAIL": 3, "other": 0},
+    "verdict": "PASS"
+  },
+  "oracle_provenance": {
+    "rule": "spec card 'oracle 종류와 출처' (c) 이관본 판정(동작 보존) -- 기대값은 head 이관본의 assert·거부 try 그대로",
+    "method": "base 트리의 tests/legacy/selftest_<m>.py 4개와 병합본 tests/unit/test_selftest_<m>.py 4개를 ast.parse 해 assert 식을 ast.unparse 로 정규화해 대조",
+    "new_asserts_total": 642,
+    "identical_to_legacy_assert_expr": 636,
+    "identical_to_legacy_if_except_condition": 4,
+    "novel": 2,
+    "novel_detail": [
+      "stick unit L481(fixture s157_state) `_t49_os.path.exists(_t53g_harness_path)` = 이관본 3002행 `if not _t49_os.path.exists(_t53g_harness_path):`(SKIP print 분기)의 부정을 뗀 형태 -- design §6.8-6 조건 승격, 판정 없는 skip 문구는 버렸다(계약 5)",
+      "stick unit L3851 `'stage1_out' in str(_t53g_e) and 'KVL' in str(_t53g_e)` = 이관본 3028행 `if not (\"stage1_out\" in str(_t53g_e) and \"KVL\" in str(_t53g_e)):`(다른 이유면 재-raise)의 부정을 뗀 형태"
+    ],
+    "invented_expected_values": 0
+  },
+  "tool_outputs": {
+    "V3": {"file_sha256": "a678a1348ab2b4e75dde94078bb8bbe598dfdf466edbbaa265eba1583b93bc27", "json": {"tool": "V3", "verdict": "PASS", "targets": [], "mutants": 0, "killed": 0, "survivors": []}},
+    "V4": {"file_sha256": "7294efe2ca86222af28075d93e784596f97ec0ea9c832dd1e3eae516e60c7bc7", "verdict": "PASS", "files": 5, "findings": 640, "by_rule_output": {"(1)/exempt": 2, "(2)/NO-SUBJECT": 612, "(2)/UNJUDGED": 26}, "fail": 0, "exempt_test_ids": ["skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s052_compensation", "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section"], "approved_decision_ids_in_head": ["C2-E4", "C9-IC11-SPLIT", "F4", "U-01", "U-38", "U-39", "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s052_compensation", "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section", "stick_diagram:load_topology:...(V3 변이 id 12개)", "stick_diagram:save_instance_json:...(V3 변이 id 4개)"]},
+    "V5": {"file_sha256": "297b93df43cb0b11b68a853103c955cfd77034f6eb01e05ac515fcab59e40613", "verdict": "PASS", "approved": true, "diff_hash": "38ecdc81cfc03bd8243b7d7115034ce4a365ee895a2339a97c93710e7592983a", "findings": 5, "diff_paths": ["skills/analog-gmid-design/assets/tests/README.md", "skills/analog-gmid-design/assets/tests/conftest.py", "skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py", "skills/analog-gmid-design/assets/tests/legacy/test_legacy_selftests.py"]},
+    "V6": {"file_sha256": "7f2ae095c885df0dcc28fb90da3d6838e150e11c81a2b5f2a2cf6ecaa0010c7f", "json": {"tool": "V6", "verdict": "PASS", "targets": [], "findings": []}},
+    "V7": {"file_sha256": "6f6013d7558a2e8dcd3fa997cde7a5202470a1614f5026b80d5e0b292c9efa95", "verdict": "PASS", "new_defs": [], "unreached": [], "note": "Phase 1은 판정 기록에서 N/A(도입 2) -- 참고 실행"}
+  },
+  "artifacts": {
+    "durations_v1_default.txt": {"sha256": "414f450b12e074a51d262a8479d8188d8d5e9486ee315320b3fbf57962ef770a", "source": "기본 순서 V1 실행의 --durations=0 표(design §6.8 부속 산출물)"},
+    "m2_report.json": {"sha256": "afe395390285f2ed09329e8249a487e48181bc812f4aee08afe7abf5be960bbc"}
+  }
+}

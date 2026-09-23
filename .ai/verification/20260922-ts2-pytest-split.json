@@ -1,0 +1,80 @@
+{
+  "id": "20260922-ts2-pytest-split",
+  "spec_card": "docs/02-design/specs/20260922-ts2-pytest-split.spec.md",
+  "evidence_type": "test-only",
+  "base_commit": "ab05c8cf429723e9497a762c0f25f81d947b09be",
+  "test_commit": "caac9101b2fb4c36c8bc0e049a661a1731f36ecf",
+  "code_commit": null,
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 = T caac9101b2fb4c36c8bc0e049a661a1731f36ecf(test-only이라 N3.12.3 순서 4·5가 없어 audit worktree HEAD = T)의 격리 복제본에서 V1 명령(-k·--deselect·-x 없음, slow 포함 전체, base 판 캐시 ab05c8c 판 pytest_gate.ini): collected 293, 278 passed, 15 xfailed, XPASS·FAILED·ERROR·skip 0, exit 0, 70.45s, 출력 sha256 a1f83491f226e9177a7070097c32a9acf8b5d9612900ce71fca5ba33eea612eb. 같은 명령에 --shuffle-seed=1·2·3·4·5를 더한 다섯 번도 전부 collected 293 / 278 passed / 15 xfailed / XPASS 0 / 실패·오류 0 / exit 0이고, XFAIL 15개의 node id 집합이 여섯 번 모두 같다(계약 8, design 10 §10 D3). XFAIL 15 = 계약 test 12개 + I-C11 strict xfail 3개(unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget·::test_s054_section, unit/test_selftest_stick_diagram.py::test_s157_M1) -- 셋 다 XFAIL이고 XPASS는 0이다. 보고 머리에 shuffle-seed 값과 real_lut sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f가 나오고 PASS/FAIL 토큰은 없다. Q(design 10 §7, §10 D3b): 같은 명령의 --collect-only -q를 seed마다 두 번 돌려, 다섯 seed 모두 수집 집합은 기본과 같고(293) 순서는 기본과 첫 원소부터 다르며 두 번의 순서가 서로 같다. --durations=0 표는 부속 산출물 .ai/verification/20260922-ts2-pytest-split/durations_v1_default.txt(sha256 414f450b12e074a51d262a8479d8188d8d5e9486ee315320b3fbf57962ef770a, 가장 느린 것 stick test_s157_M1_known_limitation 20.20s·test_s157_M1 10.87s·sizing test_s014_section 6.43s). 실행 뒤 복제본 git status --porcelain 0줄. 실행별 수치는 .ai/verification/20260922-ts2-pytest-split/merged_check.json"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "test-only(N4.2 V2: 섹션->test 매핑표의 모든 섹션이 변경 후 test에서 PASS). code 커밋 없음(code_commit null). 증거 1(base, 순서 3 base_check.json): base ab05c8c 격리 복제본에서 같은 V1 형태 명령으로 tests 전체를 돌려 tests/legacy/test_legacy_selftests.py::test_legacy_selftest_exits_zero의 4케이스(sizing_recipe·stick_diagram·design_report·topology_library)가 모두 PASSED, 전체 collected 81 / 69 passed / 12 xfailed / exit 0, 출력 sha256 3257d99ed7af26a216d76c138a701790a516a30ae72e099cf3f4bed07a18500f -- 이관본은 첫 실패에서 멈추므로 이것이 '모든 섹션이 base에서 통과'의 증거다. 증거 2(T 트리): git ls-tree에 tests/legacy/ 경로가 하나도 없다(이관본 4개와 wrapper 삭제, 계약 7). 증거 3(M1): 매핑표 c9-mapping.json의 test_ids 215개(sizing 70·stick 131·design_report 4·topology_library 10)가 모두 그 이름 그대로 수집되고(unit node id 216 = 함수 215 + test_s024_section parametrize 2케이스가 만든 여분 1), 매핑표에 없는 test 함수는 0개다(missing 0, extra 0). 증거 4(섹션별 판정): 기본 순서 -rA 결과를 매핑표 섹션에 되돌려 붙이면 test를 가진 섹션 212개 중 209개가 전부 PASSED, 3개(sizing S051·S054, stick S157)만 PASSED + 승인된 I-C11 strict XFAIL 조합이고 그 밖의 상태는 0개다. 증거 5(M2, 판정 수 보존): 섹션마다 (test의 assert + pytest.raises) >= 매핑표 m2_min -- 미충족 0개, 합계 m2_min 651 대비 실측 677(섹션별 표는 m2_report.json). 증거 6(계약 4): guarded_only 5개 섹션이 spec card대로다 -- sizing S014는 except ValueError 분기 없이 assert _l5c_result is not None을 조건 밖에서 실행, design_report S003은 assert os.path.exists(_crt_instance)를 먼저, sizing S051·S054·stick S157은 승인 20260922-c9-ic11-split대로 test 2개(xfail(raises=ValueError, strict=True, reason에 I-C11과 담당 Phase 4) + _known_limitation의 pytest.raises)이고 ValueError를 내는 optimize_full_circuit_budget() 호출이 모두 test 본문에 있다(fixture s051_state·s157_state는 경로·spec만 만든다 -- fixture 예외였다면 XFAIL이 아니라 ERROR가 됐을 것이다). 증거 7(계약 5): unit/ 4개 파일의 xfail 표식은 그 3개뿐이고 pytest.skip·skipif·importorskip은 0개다. 상세는 .ai/verification/20260922-ts2-pytest-split/base_check.json과 merged_check.json"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "base 판 mutate_changed.py(--gmid-phase=1 --gmid-strict=IC3:,IC5: 전달, C11 계약): targets 빈 목록, mutants 0, killed 0, survivors 빈 목록, verdict PASS, exit 0, 출력 sha256 a678a1348ab2b4e75dde94078bb8bbe598dfdf466edbbaa265eba1583b93bc27. 근거: base..head diff가 닿은 경로는 tests/** 뿐이고(numstat 10개 경로 전부 skills/analog-gmid-design/assets/tests/ 아래) 소스 .py 변경이 0이라 AST 해시가 바뀐 def가 없다. --pytest-ini는 복제본 tools/gates/pytest_gate.ini(blob 5d89b982178b2e0e8d15aefd290cc5e17ab1e9c5 = base 같은 경로, base..head에서 tools/·.githooks/ 변경 0줄)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: spec card 'oracle 종류와 출처'는 (c) 이관본 판정(동작 보존) -- 기대값은 head 이관본의 assert·거부 try를 그대로 옮기고 새 기대값을 만들지 않는다. 기대값마다 대조: 병합본 unit test 4개의 assert 642개를 base 트리 tests/legacy/selftest_<모듈>.py 4개와 ast.unparse 정규형으로 전수 대조해 636개가 이관본 assert 식과 문자 단위로 같고, 4개는 이관본의 if·except 조건과 같으며(design 10 §6.8-6 조건 승격: sizing S014 `_l5c_result is not None`, design_report S003 `os.path.exists(_crt_instance)`, sizing S051·S054의 `'stage1_out' in str(_tso_e) and 'KVL' in str(_tso_e)`), 남은 2개는 이관본 조건의 부정만 뗀 형태다(stick 이관본 3002행 `if not _t49_os.path.exists(_t53g_harness_path)`의 SKIP 분기, 3028행 `if not ('stage1_out' in str(_t53g_e) and 'KVL' in str(_t53g_e))`의 재-raise 분기) -- 즉 이 변경이 새로 만든 기대값과 피검 출력을 붙여넣은 리터럴은 0개다. base 판 test_lint.py(interface card의 피검 심볼 sizing_recipe.optimize_full_circuit_budget): verdict PASS, 대상 파일 5개, 발견 640개 = 규칙 (1) exempt 2 + 규칙 (2) NO-SUBJECT 612 + 규칙 (2) UNJUDGED 26, FAIL 0, 규칙 (3)(4)(5) 발견 0, 출력 sha256 7294efe2ca86222af28075d93e784596f97ec0ea9c832dd1e3eae516e60c7bc7. 검출기가 판정하지 못한 UNJUDGED 26개(sizing test_s012·s014·s036·s037·s051·s052·s054, stick test_s157_M1)는 위 전수 대조에서 25개가 이관본 assert 식과 같고 1개(sizing 1356행 `_l5c_result is not None`)가 위 조건 승격이라 독립성의 근거가 검출기가 아니라 oracle (c)의 출처에 선다. 면제 2건은 승인 20260923-c9-v4-exempt가 지정한 바로 그 두 test id(unit/test_selftest_sizing_recipe.py::test_s052_compensation 2562행, ::test_s054_section 2615행)의 규칙 (1)뿐이고 둘 다 이관본 assert 식과 같다. 다른 발견이 면제되지 않았음을 직접 확인했다: 규칙 (1) 발견은 이 2개가 전부이고(다른 규칙은 면제 경로가 없다 -- base 판 test_lint.py는 rule == '(1)' and output == 'FAIL'일 때만 exempt로 바꾼다), head 트리의 target_kind: decision 승인 target 집합 23개 중 `<파일>::<test>` 형태는 이 두 개뿐이다(나머지는 C2-E4·C9-IC11-SPLIT·F4·U-01·U-38·U-39와 stick_diagram V3 변이 id 16개)"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 weakening_diff.py(base ab05c8c, head caac910): verdict PASS, approved true, 발견 5건, diff_paths 4개(tests/README.md, tests/conftest.py, tests/contracts/test_ts3_no_print_verdicts.py, tests/legacy/test_legacy_selftests.py), diff 해시 38ecdc81cfc03bd8243b7d7115034ce4a365ee895a2339a97c93710e7592983a -- 승인 기록 20260923-ts2-pytest-split(target_kind: diff)의 target과 같다. 그 승인의 diff_base·diff_head(f45f9aa·bdf9ca6, 1차 시도)와 이번 판정의 base·head는 다르지만 해시가 blob id로 만들어져 네 경로의 내용이 같으면 같은 값이 나오고 실제로 같았다. 발견 5건 = README.md·conftest.py의 무조건 승인 필요 2건, test_ts3_no_print_verdicts.py의 리터럴 변경 2건(판정 대상 목록을 legacy/selftest_*.py에서 unit/test_selftest_*.py로, assert 수 불변), test_legacy_selftests.py의 test 함수 삭제 1건. 도구가 이름 바뀜을 따라가지 않아(--no-renames diff) unit/ 새 파일의 I-C11 strict xfail 3개는 이 발견 목록에 나오지 않는다 -- 그 셋은 같은 승인 기록 본문 5항과 승인 20260922-c9-ic11-split이 덮는다(auditor 실측: unit/ 4개 파일의 xfail 표식은 정확히 그 3개, pytest.skip·skipif는 0개). 판정 약화는 없다: M2가 섹션 212개 전부에서 성립하고(미충족 0) 새 skip·다른 xfail·-k 우회가 없다"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 source_lint.py: targets 빈 목록, findings 빈 목록, verdict PASS, exit 0, 출력 sha256 7f2ae095c885df0dcc28fb90da3d6838e150e11c81a2b5f2a2cf6ecaa0010c7f. 근거: 이 변경은 tests/** 만 바꾸고 소스 .py 변경이 0이라 V6 대상 파일이 없다"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터 병합 판정에 쓴다(N4.2 도입 열). 이 card는 Phase 1이다. 참고로 base 판 reachability.py를 돌리면 verdict PASS, new_defs 빈 목록, unreached 빈 목록이다(소스 변경 0)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터 병합 판정에 쓴다(N4.2 도입 열). 이 card는 Phase 1이고 test 재배치라 엔진 실행 경로와 산출물이 바뀌지 않는다"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터 병합 판정에 쓴다(N4.2 도입 열). 이 card는 Phase 1이고 사이징 결과를 만들지 않는다"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치'가 '없음'이라 재현할 보고 수치가 없다 -- reproduced_numbers는 빈 배열이다. 이 판정 기록의 모든 수치(collected 293, 278 passed, 15 xfailed, 매핑 215, 섹션 212, m2_min 합 651 대비 677, V4 발견 640, V5 발견 5)는 auditor가 격리 복제본에서 직접 잰 값이고 작성자 보고를 받지 않았다"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260922-10-test-separation-design",
+    "20260922-c9-ic11-split",
+    "20260923-c9-v4-exempt",
+    "20260923-ts2-pytest-split"
+  ],
+  "auditor_run": {
+    "time": "2026-09-23T12:45:01+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts2-pytest-split-audit",
+    "commands": [
+      "격리(순서 3): git -c core.longpaths=true clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260922-ts2-pytest-split-audit C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso",
+      "격리(순서 3): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso remote remove origin",
+      "격리(순서 3): git -C C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso checkout -q --detach ab05c8cf429723e9497a762c0f25f81d947b09be (base 확인 뒤 순서 7에서 같은 복제본을 caac9101b2fb4c36c8bc0e049a661a1731f36ecf로 되돌림)",
+      "PY = C:/Python314/python.exe (3.14.2, pytest 9.0.2), 모든 실행의 cwd = C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/ts2pyc PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/ab05c8cf429723e9497a762c0f25f81d947b09be $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/ab05c8cf429723e9497a762c0f25f81d947b09be/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict=IC3:,IC5: -rA",
+      "V1 부속(순서 의존, design 10 §10 D3): 위 V1 명령 끝에 --shuffle-seed=1 / =2 / =3 / =4 / =5 를 더해 다섯 번",
+      "V1 부속(durations, design 10 §6.8): 위 V1 명령 끝에 --durations=0",
+      "Q(design 10 §10 D3b): 위 V1 명령의 -rA 를 --collect-only -q 로 바꾸고 기본 1회, --shuffle-seed=k(k=1..5)마다 2회",
+      "순서 3 base 확인: 위 V1 명령과 같은 형태를 base 체크아웃 상태에서 1회(tests/legacy/test_legacy_selftests.py 4케이스 PASS 확인)",
+      "V3: $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/ab05c8cf429723e9497a762c0f25f81d947b09be/mutate_changed.py --root <iso> --base ab05c8cf429723e9497a762c0f25f81d947b09be --head caac9101b2fb4c36c8bc0e049a661a1731f36ecf --pytest-ini <iso>/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=1 --gmid-strict=IC3:,IC5: --out C:/Users/HSLEE/AppData/Local/Temp/ts2out/v3.jsonl",
+      "V4: $PY <cache>/test_lint.py --root <iso> --interface-card <iso>/docs/02-design/specs/20260922-ts2-pytest-split.interface.md --base ab05c8cf429723e9497a762c0f25f81d947b09be --head caac9101b2fb4c36c8bc0e049a661a1731f36ecf",
+      "V4 oracle 대조: git -C <iso> show <base>:skills/analog-gmid-design/assets/tests/legacy/selftest_<m>.py 와 <head>:.../unit/test_selftest_<m>.py 를 ast.parse 해 assert 식을 ast.unparse 로 정규화해 전수 대조(모듈 4개)",
+      "V4 면제 확인: $PY -P -c 로 캐시 판 reachability._approved_ids(<iso>, <head>) 를 불러 target_kind: decision 승인 target 집합(23개)을 출력해 test id 형태가 승인된 2개뿐임을 확인",
+      "V5: $PY <cache>/weakening_diff.py --root <iso> --base ab05c8cf429723e9497a762c0f25f81d947b09be --head caac9101b2fb4c36c8bc0e049a661a1731f36ecf",
+      "V6: $PY <cache>/source_lint.py --root <iso> --base ab05c8cf429723e9497a762c0f25f81d947b09be --head caac9101b2fb4c36c8bc0e049a661a1731f36ecf",
+      "V7 참고: $PY <cache>/reachability.py --root <iso> --base ab05c8cf429723e9497a762c0f25f81d947b09be --head caac9101b2fb4c36c8bc0e049a661a1731f36ecf",
+      "M1·M2·섹션별 판정: docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/c9-mapping.json 과 병합본 unit/test_selftest_<m>.py 4개의 AST, 그리고 -rA 출력으로 직접 계산(<cache> = C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/ab05c8cf429723e9497a762c0f25f81d947b09be, <iso> = C:/Users/HSLEE/AppData/Local/Temp/20260922-ts2-pytest-split-iso)"
+    ]
+  }
+}
