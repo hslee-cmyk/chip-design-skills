@@ -1,6 +1,6 @@
 # gain-budget-gmid-sizing -- Phase 2 `20-dead-code-dup` design
 
-버전 v1.0 (2026-09-23, 승인 대기). 정본 인용 규칙은 계획 N9.4 -- 이 문서는 계획서와 `00-common`의 정의를 재서술하지 않고 절 번호로 인용한다.
+버전 v1.1 (2026-09-23, 승인 대기. v1.1에서 §3 NEW-TOPO·§6.4 일반성 기준 추가 -- 사용자 지시 "현재에 있는 회로만으로 삭제여부를 결정하지 말고, 향후 추가되는 모든 topology를 커버할 수 있도록 설계되어야 해"). 정본 인용 규칙은 계획 N9.4 -- 이 문서는 계획서와 `00-common`의 정의를 재서술하지 않고 절 번호로 인용한다.
 읽은 계획 절(N9.1 표): N3.10, N3.11 TS6, N6.1·N6.2 Phase 2, N6.3, WP-14, DF-21·DF-23(DF-29~DF-34), U-02, N9.2·N9.4.
 
 실측 원자료(이 문서의 모든 수치의 출처, 같은 폴더 `docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/`):
@@ -60,8 +60,9 @@ A = `skills/analog-gmid-design/assets`. 새 디렉터리는 `probes/`와(이미 
 | GONE | 삭제 확인 | 삭제한 이름이 `A/*.py`·`workspaces/run_harness.py`·`A/tests/**`에서 AST 참조 0 | 병합본 |
 | PROBE-DUP | probe 복제 0 | `tests/tools/probe_dup_scan.py`(P4가 만든다)가 `A/tests/probes/**`에서 엔진 정본과 같은 식의 재구현을 0건으로 보고 | 병합본 |
 | REG | 레지스트리 정합 | 레지스트리 §7 D 목록의 남은 항목 집합 = U-02 승인표의 '보류' 집합, 삭제·이관 항목이 §7에 없다 | 레지스트리 |
+| NEW-TOPO | **미래 topology 커버** | 라이브러리에 없는 합성 topology(새 회로 이름·새 넷 이름·소자 수가 다른 넷리스트)로 (i) `load_topology`·`run_topology_pipeline`이 base와 병합본에서 같은 결과를 내고 (ii) 삭제한 선언 키를 쓰면 **명시적 `ValueError`**가 나며(조용한 무동작·기본값 대입이 아니다) (iii) 그 키가 하던 판정을 일반 경로 선언으로 쓰면 값이 나온다 | 합성 topology(test-author 구성) |
 
-E-LIB·E-INST는 이 Phase의 모든 card가 공통으로 낸다(계획 N6.3 '동작 보존 Phase는 실행 가능한 회로 전부에서 equivalence').
+E-LIB·E-INST는 이 Phase의 모든 card가 공통으로 낸다(계획 N6.3 '동작 보존 Phase는 실행 가능한 회로 전부에서 equivalence'). **NEW-TOPO는 삭제를 포함하는 card 전부가 낸다**(§6.4).
 
 ---
 
@@ -112,7 +113,22 @@ U-02의 '삭제 11개'는 계획서에 3개만 이름이 있다(DF-21). 나머�
 
 ### 6.3 이 Phase가 통합하지 않는 것
 
-`_metric_folded_cascode_gain_db`·`_metric_folded_cascode_pm_deg`·`_cmrr_diff_pair_tail`은 **데이터가 실제로 고르는** metric이다(topology 선언에서 `circuit_family` 실측: `diff_pair_tail` 4건). 삭제·통합은 7a(gain metric 통일)의 몫이다. 반대로 `telescopic_class_ab*` 계열은 **어떤 회로도 고르지 않는다**(선언 0건) -- 그래서 §7의 삭제 대상이다.
+`_metric_folded_cascode_gain_db`·`_metric_folded_cascode_pm_deg`·`_cmrr_diff_pair_tail`은 선언으로 고르는 metric이고 **일반 대체가 아직 준비되지 않았다**(레지스트리 §2 상태 '4회로 재측정 후'). 통합은 7a(gain metric 통일)의 몫이다. 이 Phase는 건드리지 않는다.
+
+### 6.4 삭제 판정의 일반성 기준 (사용자 지시 2026-09-23)
+
+**"지금 library 9회로가 고르지 않는다"는 삭제 근거가 아니다.** 앞으로 추가될 topology가 그 경로를 고를 수 있기 때문이다(계획 N9.3 새 토폴로지 추가 절차). 삭제는 아래 넷을 모두 만족할 때만 한다.
+
+| 기준 | 내용 | 확인 방법 |
+|---|---|---|
+| G-1 | **데이터 도달 경로가 없다** -- 그 함수가 선언(`circuit_family`·metric type·보상 함수 키 등)이나 파일 이름 규약으로 선택되지 않는다 | 레지스트리 등록 딕셔너리 전수와 선언 스키마를 AST로 훑어 그 이름이 값으로 등록돼 있는지 |
+| G-2 | **코드 참조가 없다** -- 엔진·하네스에서 호출되지 않는다(호출자가 자기도 삭제 대상이면 사슬로 함께 본다) | `d_inventory.json`의 경로군별 참조 전수 |
+| G-3 | **일반 대체가 있거나, 애초에 일반화가 불가능하다** -- (a) 회로 무관 정본이 선언만으로 같은 판정을 내거나 (b) 그 함수가 특정 회로의 파일 경로·넷 이름을 코드에 박아 두어 **다른 topology에 적용하면 틀린 값을 준다** | 대체 함수의 입력이 선언에서 오는지 확인, 또는 박힌 리터럴 위치(`df23_inventory.json`) |
+| G-4 | **삭제 뒤 그 선택지를 쓰면 명시적으로 거부된다** -- 조용한 무동작·기본값 대입이 없다 | NEW-TOPO (ii). 현 엔진은 모르는 `circuit_family`·metric type에 즉시 `ValueError`를 낸다(`sizing_recipe.py:5652`·`:5875`) |
+
+G-3 (b)가 telescopic 계열에 해당한다. `_load_telescopic_topology_cached`는 **파일럿 topology 경로를 코드에 박아** 열고(`sizing_recipe.py:5071`), 그 체인은 파일럿 넷 이름(`Vbias1`~`Vbias4`·`Vip`·`Vim`·`Vcmfb`·`Vop1`·`Vom1`)으로 31소자 부분망을 세운다(DF-29). **어떤 새 회로가 이 family를 선언하더라도 그 회로가 아니라 파일럿 값을 계산한다** -- 남겨 두는 것이 미래 topology에 대해 더 위험하다. 대체는 회로 무관 MNA `_metric_smallsignal_ratio_db`이고 입력을 선언(여기·감지 넷)에서 받는다. 삭제 뒤 그 family를 선언하면 G-4대로 등록 목록을 알려주는 `ValueError`가 난다.
+
+반대로 G-1이 걸리는 항목(선언으로 도달 가능한데 일반 대체가 아직 없는 것)은 **현재 회로가 안 쓰더라도 삭제하지 않고 보류**한다.
 
 ---
 
@@ -122,11 +138,13 @@ U-02의 '삭제 11개'는 계획서에 3개만 이름이 있다(DF-21). 나머�
 
 | 규칙 | 조건 | 기본 제안 |
 |---|---|---|
-| R-0 | 저장소 전체 참조 0 | 삭제 |
+| R-0 | 저장소 전체 참조 0 | 삭제(§6.4 G-1~G-4 확인 뒤) |
 | R-1 | 참조가 test·probe(+문서)뿐 | `tests` 이관 또는 보류 |
 | R-2 | 엔진 참조가 있으나 호출자가 D·self-test | 소유자를 따라간다(삭제 사슬이면 삭제, 이관 대상이면 함께 이관) |
 | R-3 | 참조가 `workspaces` 진단 스크립트뿐 | 사용자 확인 |
 | R-4 | 운영 경로 참조 있음 | 유지 + 레지스트리 등급 정정 |
+
+**R-0~R-4는 코드 참조만 센다.** 선언으로 고르는 경로(레지스트리 등록 값, 파일 이름 규약)는 이 계수에 잡히지 않으므로, 삭제 제안은 전부 §6.4의 G-1(데이터 도달 경로 없음)을 따로 확인한 뒤에만 유효하다. card마다 auditor가 G-1~G-4와 NEW-TOPO를 재측정한다.
 
 실측 결과: R-0 7, R-1 18, R-2 13, R-3 1, R-4 9 (합 48). 항목별 표는 `u02_tables.md`, 근거(경로:줄)는 `d_inventory.json`.
 
@@ -142,7 +160,8 @@ U-02의 '삭제 11개'는 계획서에 3개만 이름이 있다(DF-21). 나머�
 | P2 | `probe-relocate` | probe 32개 → `tests/probes/`, `derive_achievable_bounds.py` → `tests/tools/`(code+test 2커밋), 절대 경로 15건 상대화 | test-only(도구 이동은 code·test 두 커밋) | (c) 이동 전후 동일성(E-AST) | 이동 |
 | P3 | `probe-promote` | 승격 7개(또는 `probe_physical_consistency` 제외 6개) → `unit/test_probe_*.py` | test-only | (c) probe가 이미 보던 판정을 assert로 | pytest test |
 | P4 | `probe-engine-dup` | probe 안 엔진 식 재구현 34곳 → 정본 호출, 스캐너 `tests/tools/probe_dup_scan.py` 신설 | test-only + 도구(code) | (a) 스캐너의 합성 입력, (c) 교체 전후 probe 출력 동일 | PROBE-DUP 0 |
-| P5 | `d-delete-dead` | R-0 7 + telescopic 사슬(5) + `_cmfb_amp_gain_diode_load` + `junction_cap` 삭제 | equivalence | (c) E-LIB·E-INST | 엔진 소스 축소, 레지스트리 갱신 |
+| P5 | `d-delete-dead` | R-0 7 + `junction_cap` 삭제(§6.4 G-1~G-4 확인) | equivalence | (c) E-LIB·E-INST + (a) NEW-TOPO 합성 topology | 엔진 소스 축소, 레지스트리 갱신 |
+| P5b | `d-delete-telescopic` | telescopic 사슬 5 + `_cmfb_amp_gain_diode_load` 삭제와 `_CMRR_/_PSRR_REGISTRY` 키 제거 | equivalence | (c) E-LIB·E-INST + (a) NEW-TOPO: 삭제한 family 선언 시 `ValueError`, 같은 판정을 일반 경로(`_metric_smallsignal_ratio_db`) 선언으로 하면 값이 나옴 | 회로 전용 경로 제거 |
 | P6 | `d-move-tests` | R-1 중 test 전용 + 동반 레코드를 `tests`로 이관 | equivalence | (c) E-AST·E-LIB·E-INST | 이관 |
 | P7 | `registry-grade-fix` | R-4 9개 등급 정정, §2 중복 셀 실측 반영, D 목록 갱신 | test-only(문서) | (d) 레지스트리·실측 원자료 | 레지스트리 |
 | P8 | `dup-w-calc` | 인라인 6곳 → `size_transistor` | equivalence | (c) DIFF-DUP + E-LIB·E-INST | 중복 제거 |
@@ -157,7 +176,7 @@ card 하나의 단위는 계획 N3.12.3(관찰 가능한 계약 하나)이다. P
 
 * 공통(N6.1): 이 문서의 사용자 승인(DEC-51). 이전 Phase(1) DoD PASS -- 기록 `docs/03-analysis/gain-budget-gmid-sizing-10-test-separation/phase1-dod.md`(전 항목 PASS, 2026-09-23).
 * **U-02**(계획 N7): 아래 세 가지를 묶어 일괄 승인받는다.
-  1. **D 48개의 항목별 처리** -- §7 분류 규칙의 기본 제안대로(삭제 R-0 7 + 사슬 7, `tests` 이관 R-1 중 test 전용, 보류(Phase 3 이동·Phase 4 배선), 유지·등급 정정 R-4 9). 항목별 표는 `u02_tables.md`.
+  1. **D 48개의 항목별 처리** -- §6.4 일반성 기준(G-1~G-4)을 통과한 것만 삭제하고, 나머지는 §7 분류 규칙의 기본 제안대로(삭제 R-0 7 + 사슬 7, `tests` 이관 R-1 중 test 전용, 보류(Phase 3 이동·Phase 4 배선), 유지·등급 정정 R-4 9). 항목별 표는 `u02_tables.md`.
   2. **probe 삭제 목록을 DF-21 3개로 한정**(§5). 계획서의 '11개'는 이름이 3개만 있어 나머지는 이동으로 보존한다.
   3. **`workspaces` 진단 스크립트 영향**: `check_mirror_symmetry`·`_cmfb_amp_gain_diode_load`·`SharedFingerWCandidate`는 `workspaces/**`의 진단 스크립트에서만 쓰인다. 삭제하면 그 스크립트가 깨진다. 기본안은 **삭제하고 스크립트는 그대로 둔다**(판정 경로 밖, 필요하면 그때 되살린다).
 * J: 없음.
@@ -174,6 +193,7 @@ auditor가 Phase 2 마지막 card 병합본의 격리 복제본 `<iso>`에서 �
 | E1 | DUP 차등 test PASS 후 옛 함수 삭제 | `PT <iso>/…/tests/unit -k "dup_"` 그리고 `git -C <iso> grep -n "kcl_series_union\|_multilinear_interp_point_multi"` | 차등 test PASS, 삭제한 이름의 참조 0 |
 | E2 | probe 엔진 식 재구현 0 | `$PY <iso>/skills/analog-gmid-design/assets/tests/tools/probe_dup_scan.py --root <iso>` | exit 0, 발견 0 |
 | E3 | DF-23 전수 목록 | `git -C <iso> cat-file -e HEAD:docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/df23_inventory.json` 와 목록 항목 수 대조 | 목록이 있고 항목마다 담당 Phase가 적혀 있다 |
+| E5 | 미래 topology 커버 | 합성 topology(라이브러리 밖 이름·넷)로 `PT <iso>/…/tests/unit -k new_topology` | PASS -- 로드·파이프라인 동일, 삭제한 선언 키는 `ValueError`, 일반 경로 선언은 값 산출 |
 | E4 | 동작 보존 | `PT` 전체(실패 0)와 E-LIB·E-INST 재측정 | Phase 1 DoD와 같은 값(회로 9/9 로드, instance.json 해시 동일) |
 
 ---
