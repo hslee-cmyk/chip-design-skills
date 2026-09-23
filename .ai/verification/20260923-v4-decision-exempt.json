@@ -1,0 +1,89 @@
+{
+  "id": "20260923-v4-decision-exempt",
+  "spec_card": "docs/02-design/specs/20260923-v4-decision-exempt.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "10f035db9068a79f2e3acdd920d363aaba5607ff",
+  "test_commit": "640881163153e06409dd1e77f0a945757deaa99e",
+  "code_commit": "23fc2c90a0aba8e4fd5d9f8e41e807df8d58072b",
+  "red": {
+    "test_ids": [
+      "tools/gates/redteam/attacks/29-v4-decision-exempt::rule1-approved"
+    ],
+    "failure_hashes": [
+      "6fd60fb934d4992a7fad67ec9b73e198acf9009677023d80f7f807d73ca5b07c"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "게이트 변경의 V1은 pytest 전체 + redteam 재생 둘 다(선례 20260921-gate-flow-liveness·20260922-v3-gmid-options). (1) pytest 형태 V1(auditor_run의 `V1: ` 명령, base 판 캐시 10f035d pytest_gate.ini, -k·--deselect·-x·-m 없음, slow 포함 전체, --gmid-phase=1 --gmid-strict=IC3:,IC5:): 69 passed, 12 xfailed, 실패·오류·skip·xpass 0, exit 0, 61.77s, 출력 sha256 f64006f9641ce76a66183096872986324eaff216f8cba6b188bc09133afe6046. 엄격 집합은 base 판 캐시 merge_gate.strict_set(old 10f035d 트리, 이 spec card)로 직접 재어 {IC3:, IC5:}(이 card의 activated_ic_case는 빈 목록, 같은 Phase 1의 병합된 card들에서 옴). base..병합본 변경 4경로가 전부 tools/gates/** 라 pytest 대상 트리(skills/analog-gmid-design/assets/tests/**)는 base와 같다. (2) redteam 전체 재생(새 격리 복제본 -iso7rt, origin 없음, 병합본 e5fa76b): run_all.py --phase 0.5 --mode direct 전체 exit 0, 케이스 PASS 50·SKIPPED 7·FAIL 0·ERROR 0, 단계 PASS 586·RECORD 12·FAIL 0(log 20260923-113509-direct.jsonl, 약 25분 -- 15-records 13.6s·23-v4-boundary 244.7s·17-judging-env-el3-el4 64.4s가 큰 몫). 공격 29 네 단계 전부 PASS, 기존 V4 케이스 06·07·23도 PASS. 두 복제본 모두 실행 뒤 git status --porcelain 빈 값"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. 커밋 사슬: base 10f035d -> T 6408811(Role: test, Change-Id 일치, tools/gates/redteam/attacks/29-v4-decision-exempt/{expect.json,run.sh,v.json} 3경로 신규 추가만) -> code 23fc2c9(Role: code, 부모 T, tools/gates/test_lint.py 1경로) -> 병합 e5fa76b(부모 6408811·23fc2c9, 트리 = code 트리 69fd7cd). test 커밋 불변: git diff 6408811 e5fa76b -- tools/gates/redteam 차이 0. red 재측정(순서 7, 격리 복제본): red 1건 = 공격 29 rule1-approved, failure_hash = base 판 캐시 merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") = 6fd60fb934d4992a7fad67ec9b73e198acf9009677023d80f7f807d73ca5b07c, 집계 sha256 8ff68eff497874128f67fc303adc76c4d7e586c2012ad3cf4212546d6daa0e88 -- 순서 3 base_check.json과 같다. green: 병합본에서 그 단계 PASS exit 0. ★red 구별력 한계(순서 3에 적은 것을 순서 7에서 확인): base red가 rule1-approved 1 단계뿐이라 계약 1(승인 기록 읽기)과 계약 2(output exempt + 판정 제외)를 묶어서만 구별하고, 계약 3·4는 base에서도 PASS라 red가 아니라 회귀 대조다. 그래서 병합본에서 (a) rule1-approved 출력의 `\"output\": \"exempt\"`가 정확히 1건(stdout 전체에서 'exempt' 부분문자열도 1회) (b) rule1-no-approval·rule1-other-id-approved·rule3-approved 세 단계 출력에 'exempt' 0회임을 직접 셌다 -- 둘 다 성립(redteam 로그 20260923-113922-direct.jsonl 단계별 stdout). 여기에 더해 auditor 독립 합성 저장소 6개(rt.py를 쓰지 않고 auditor가 git init부터 새로 만든 것, synth29.py)로 base 판 test_lint.py(blob db8723b = 10f035d:tools/gates/test_lint.py)와 병합본 test_lint.py(blob 519d573)를 같은 입력에 돌려 대조했다: c1(규칙 (1) + 그 test id의 decision 승인) base FAIL exit 1 -> 병합본 PASS exit 0, `\"output\": \"exempt\"` 정확히 1건; c2(승인 없음)·c3(같은 파일 다른 함수 이름 승인)·c4(규칙 (3) + 그 test id 승인)·c5(같은 target이지만 target_kind: diff)·c6(승인 있고 --head 없는 실행)는 base와 병합본의 stdout이 **바이트 단위로 동일**하고 exit도 같으며 'exempt' 0회 -- 면제가 아닌 경로의 출력 표기가 base와 같다(오거부·오통과 0, 계약 3의 무발동 값 포함). 결과 synth29_result.json sha256 3baa8ec31b6b905efa12e47dbaf51b0b98a913044f3b05926d2f26ea79373f16. 계약 4(공격 06 적발 유지)는 병합본 redteam 전체에서 06-v4-expected-from-subject PASS(07·23도 PASS)로 확인했다. DESIGN-GAP(C11·C12 선례와 같음): redteam 케이스는 pytest red 수집(-p merge_gate) 대상이 아니라 test_id = tools/gates/redteam/attacks/<케이스>::<단계>, exc_type = redteam.FAIL"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "변이 대상 0개(도구 규칙). base 판 캐시 mutate_changed.py(root=복제본, base 10f035d, head e5fa76b, --pytest-ini 복제본 tools/gates/pytest_gate.ini): targets 빈 목록, mutants 0, killed 0, survivors 빈 목록, exit 0. 근거: 대상 파일 = base..head diff(AM)의 .py 중 reachability._is_source(p)가 참인 것이고 그 술어는 skills/analog-gmid-design/assets/ 바로 아래 .py와 workspaces/run_harness.py만 참 -- 이번 변경의 .py는 tools/gates/test_lint.py 하나이고 게이트 도구라 대상이 아니다(C1·C11 선례와 같은 판정). 바뀐 def(main 한 개, 새 def 0)의 동작은 V2의 공격 29 네 단계와 auditor 독립 합성 저장소 6개가 직접 판정했다"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: base 판 캐시 test_lint.py 실행(--module-dir tools/gates --subject test_lint:main -- interface card 두 표가 모두 비어 있어 card만으로는 '피검 심볼이 없다' ERROR): verdict PASS, exit 0, files 빈 목록(base..head 변경이 tools/gates/** 뿐이라 분류 test 파일 0), findings 0, UNJUDGED 0 -- 도구가 낸 기대값·UNJUDGED가 없다. 이번 변경이 들여온 기대값은 test 커밋의 redteam 공격 29 기대뿐이고 spec card 'oracle 종류와 출처' (a)(구성으로 정답이 정해진 합성 저장소)와 하나씩 대조했다; rule1-approved의 exit 0·`\"verdict\": \"PASS\"`는 계약 2(면제된 발견은 판정에 들어가지 않는다) + 05-role-separation §10 V4 exit 규약(PASS 0/FAIL 1/ERROR 2)에서 왔고 피검 출력에서 만들지 않았다; 같은 단계의 `\"rule\": \"(1)\"`·`\"output\": \"exempt\"`는 계약 2 마지막 문장(발견은 출력 JSON에 남는다)과 oracle (a) 케이스 (1) 'output: exempt 1건'; rule1-no-approval·rule1-other-id-approved의 exit 1·`\"verdict\": \"FAIL\"`·`\"rule\": \"(1)\", \"line\": 6, \"output\": \"FAIL\"`는 계약 3(오통과 0)과 oracle (a) 케이스 (2)·(3)이고 line 6은 합성 test 소스 구성으로 정해진다(1 import, 2·3 빈 줄, 4 def, 5 expected 대입, 6 assert -- auditor가 같은 소스를 새로 만들어 줄 번호를 다시 셌다); rule3-approved의 `\"rule\": \"(3)\", \"line\": 7, \"output\": \"FAIL\"`는 계약 3('면제는 (1)에만')과 oracle (a) 케이스 (4)이고 line 7도 합성 소스 구성(6 if, 7 assert)에서 나온다; 네 단계의 message_not_contains 'exempt'·'Traceback (most recent call last)'는 각각 계약 3과 ERROR 규약(도구가 죽으면 안 된다)에서 왔다; 합성 승인 기록의 머리(target_kind: decision, target `<파일>::<test 이름>`)는 00-common §8.2와 계약 1의 형식 그 자체다. 이 기대들을 auditor가 rt.py 밖에서 따로 만든 합성 저장소 6개로 독립 재현했다(V2 참조)"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 weakening_diff.py(root=복제본, base 10f035d, head e5fa76b): verdict PASS, findings 0, diff_paths 빈 목록, diff_hash null, approved false, exit 0. ★범위 한계: weakening_diff는 skills/analog-gmid-design/assets/tests/** 와 skills/analog-gmid-design/assets/*.py(깊이 3)의 __main__ 블록만 본다(weakening_diff.py main()) -- tools/gates/** 는 아예 보지 않으므로 이번 변경에 대한 V5 PASS는 '기준을 약화하지 않았다'의 증거가 아니다(발견 0은 범위 밖이라서 나온 값이다). C13은 실제로 V4 규칙 (1) 판정을 좁히는 게이트 변경이고, 그 실제 통제는 (i) spec card의 gate_change: yes (ii) 승인 기록 20260923-v4-decision-exempt(target_kind: diff, diff_base 523d0ce, diff_head 8699d8a, diff_path = 이 spec card)에 담긴 사용자 원문 'V4 면제 게이트 변경' (iii) 공격 재생 06·07·23·29(병합본 전체 실행에서 넷 다 PASS)이다. V5 승인 대상 해시는 없다(diff_paths 빈 목록이라 적을 diff 해시 자체가 없다)"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 source_lint.py(root=복제본, base 10f035d, head e5fa76b): targets 빈 목록, findings 0, verdict PASS, exit 0 -- 소스 lint 대상(assets 최상위 소스·workspaces/run_harness.py) 변경 0. 관찰: code 커밋 diff 10줄에 except 추가 0(새로 넣은 것은 import reachability as rch 한 줄과 ns.head 아래 면제 루프뿐이고, 기존 except (OSError, ValueError, RuntimeError, SyntaxError, UnicodeDecodeError) 블록이 그대로 그 코드를 감싼다 -- 광범위 except 없음)"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2 v_intro V7 = 2, 이 변경은 Phase 1). 참고 실행: base 판 캐시 reachability.py PASS exit 0, new_defs 빈 목록, unreached 빈 목록(새 def 0, 게이트 도구는 소스 그래프 밖). 배선 관찰: 면제 경로는 test_lint.main의 ns.head 분기에서 실제로 호출되고 공격 29 rule1-approved의 병합본 PASS가 그 경로를 지난다"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2 v_intro V8 = 4, 이 변경은 Phase 1). 엔진 무관 게이트 변경이라 폴백 경로 자체가 없다"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2 v_intro V9 = 6b, 이 변경은 Phase 1). 회로 결과 무관(spec card 'library 회로 적용 여부: 해당 없음')"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치: 없음' -- 재현할 보고 수치가 없어 reproduced_numbers는 빈 배열이다. 보고에 쓴 수치(pytest 69 passed·12 xfailed, redteam 케이스 50 PASS·7 SKIPPED, 단계 586 PASS·12 RECORD, 면제 1건·비면제 0건)는 전부 이 기록의 격리 복제본 실측이고 작성자 보고를 받지 않았다"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260923-v4-decision-exempt"
+  ],
+  "auditor_run": {
+    "time": "2026-09-23T11:59:16+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-v4-decision-exempt-audit",
+    "commands": [
+      "격리(병합본, 게이트·V1용): git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-v4-decision-exempt-audit C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7",
+      "격리(병합본, 게이트·V1용): git -C C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 remote remove origin",
+      "격리(병합본, 게이트·V1용): git -C C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 config core.longpaths true",
+      "격리(병합본, redteam 전체용): git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-v4-decision-exempt-audit C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7rt",
+      "격리(병합본, redteam 전체용): git -C C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7rt remote remove origin",
+      "격리(병합본, redteam 전체용): git -C C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7rt config core.longpaths true",
+      "PY = C:/Python314/python.exe, APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 디렉터리 C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-out",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-out/pyc_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/10f035db9068a79f2e3acdd920d363aaba5607ff $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/10f035db9068a79f2e3acdd920d363aaba5607ff/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7/skills/analog-gmid-design/assets/tests --gmid-phase=1 --gmid-strict=IC3:,IC5: -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 (HEAD e5fa76be7c1cf38d3c3ed9da0de5815cbaee71d2)",
+      "엄격 집합 실측: PYTHONPATH=<base 판 캐시 10f035d> $PY -P <out>/strict.py <복제본> 10f035db9068a79f2e3acdd920d363aaba5607ff 20260923-v4-decision-exempt e5fa76be7c1cf38d3c3ed9da0de5815cbaee71d2 -> merge_gate.strict_set = {IC3:, IC5:}, card phase 1",
+      "redteam 전체(cwd -iso7rt): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7rt",
+      "redteam 공격 29(cwd -iso7): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 29 --repo C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7",
+      "V3(cwd -iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/10f035db9068a79f2e3acdd920d363aaba5607ff/mutate_changed.py --root C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 --base 10f035db9068a79f2e3acdd920d363aaba5607ff --head e5fa76be7c1cf38d3c3ed9da0de5815cbaee71d2 --pytest-ini C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7/tools/gates/pytest_gate.ini --python C:/Python314/python.exe --out C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-out/v3.jsonl",
+      "V4(cwd -iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/10f035db9068a79f2e3acdd920d363aaba5607ff/test_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 --base 10f035db9068a79f2e3acdd920d363aaba5607ff --head e5fa76be7c1cf38d3c3ed9da0de5815cbaee71d2 --module-dir tools/gates --subject test_lint:main",
+      "V5(cwd -iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/10f035db9068a79f2e3acdd920d363aaba5607ff/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 --base 10f035db9068a79f2e3acdd920d363aaba5607ff --head e5fa76be7c1cf38d3c3ed9da0de5815cbaee71d2",
+      "V6(cwd -iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/10f035db9068a79f2e3acdd920d363aaba5607ff/source_lint.py --root C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 --base 10f035db9068a79f2e3acdd920d363aaba5607ff --head e5fa76be7c1cf38d3c3ed9da0de5815cbaee71d2",
+      "V7 참고(cwd -iso7): $PY C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/10f035db9068a79f2e3acdd920d363aaba5607ff/reachability.py --root C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso7 --base 10f035db9068a79f2e3acdd920d363aaba5607ff --head e5fa76be7c1cf38d3c3ed9da0de5815cbaee71d2",
+      "도구 판 대조본 추출: git -C <복제본> show 10f035db9068a79f2e3acdd920d363aaba5607ff:tools/gates/test_lint.py > <out>/base_test_lint.py (blob db8723b841c19e47831c2b1e7bdd3c30a889e085 확인), git -C <복제본> show e5fa76be7c1cf38d3c3ed9da0de5815cbaee71d2:tools/gates/test_lint.py > <out>/merged_test_lint.py (519d5731ef9267fe7912055bdbc33cc110eaef29), reachability.py (81d15f0edb46e2bf7b30336642cac13c1f6ad445)",
+      "계약 1~3 독립 확인: $PY -P <out>/synth29.py (auditor가 git init부터 만든 합성 저장소 6개, base 판·병합본 test_lint.py를 같은 입력에 돌려 stdout·exit 바이트 대조, 결과 <out>/synth29_result.json)",
+      "red 해시 재계산: PYTHONPATH=<base 판 캐시 10f035d> $PY -P <out>/hash.py -> merge_gate.red_failure_hash(test_id, \"redteam.FAIL\")",
+      "기록 확인: PYTHONPATH=<base 판 캐시 10f035d> $PY -P <out>/record_check.py (base 스키마·로더 규칙 1~10, §9.2-7 v1_command_check, §9.2-9 V5 basis 64자리 16진 0건)"
+    ]
+  }
+}

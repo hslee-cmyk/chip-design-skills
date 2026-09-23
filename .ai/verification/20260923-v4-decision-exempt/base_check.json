@@ -1,0 +1,110 @@
+{
+  "id": "20260923-v4-decision-exempt",
+  "attempt": 1,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "640881163153e06409dd1e77f0a945757deaa99e",
+    "T_subject": "test(redteam): 공격 29 V4 (1) decision 면제 합성 케이스 4가지(C13)",
+    "T_trailers": {
+      "Role": "test",
+      "Change-Id": "20260923-v4-decision-exempt"
+    },
+    "base": "10f035db9068a79f2e3acdd920d363aaba5607ff",
+    "T_tree": "2db43b07a13d52e1a15c2353c7defb53c25f0cf1",
+    "test_paths": {
+      "tools/gates/redteam/attacks/29-v4-decision-exempt": "8852c26109457961369bbcd99a80d081ee873ed4"
+    },
+    "base_to_T_changes_outside_redteam": 0,
+    "base_to_T_numstat": "3 파일 +155/-0 (29-v4-decision-exempt/expect.json 12, run.sh 8, v.json 135) -- 전부 신규 추가(A), 수정·삭제 0",
+    "worktree_clean": "git status --porcelain 빈 값(audit worktree, 브랜치 role/audit/20260923-v4-decision-exempt)"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso",
+    "commands": [
+      "git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-v4-decision-exempt-audit C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso config core.longpaths true",
+      "export APPDATA=C:/Users/HSLEE/AppData/Roaming"
+    ],
+    "note": "T의 게이트 코드는 base(10f035d)와 같다(T는 tools/gates/redteam/attacks/29-** 만 더한다) -- 복제본에서 실행한 게이트(tools/gates/test_lint.py)는 base 판",
+    "gate_blob_identity": {
+      "method": "git rev-parse HEAD:<경로> 와 10f035d:<경로> 대조 -- 5개 모두 동일",
+      "tools/gates/test_lint.py": "db8723b841c19e47831c2b1e7bdd3c30a889e085",
+      "tools/gates/reachability.py": "81d15f0edb46e2bf7b30336642cac13c1f6ad445",
+      "tools/gates/merge_gate.py": "e12b007ed1fd2239467674424032f5f2d4ac6dcf",
+      "tools/gates/redteam/lib/rt.py": "284ad98e55f921a0f57ee3e9e63faf694bdcd944",
+      "tools/gates/redteam/run_all.py": "cb3875135e000d6d36eae8d6374da57430a95c50"
+    }
+  },
+  "red_check": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 29 --repo C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso",
+    "exit": 1,
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso/tools/gates/redteam/logs/20260923-111624-direct.jsonl",
+    "cases": {
+      "FAIL": 1
+    },
+    "steps": {
+      "FAIL": 1,
+      "PASS": 3
+    },
+    "per_case": {
+      "29-v4-decision-exempt": {
+        "FAIL": 1,
+        "PASS": 3
+      }
+    },
+    "harness_status": "케이스 status=ok, run.sh exit 0(stderr 빈 값) -- 러너 ERROR 0. 4 단계 모두 test_lint.py가 실제로 실행됐다(각 단계 로그에 --root/--base/--head/--interface-card 명령과 stdout_tail이 있다, missing 없음)",
+    "fail_causes": {
+      "rule1-approved": "exit 1(기대 0): base test_lint.py는 `.ai/approvals/**`의 `target_kind: decision` 목록을 읽지 않아 규칙 (1) 발견을 그대로 FAIL로 판정한다. stdout은 {\"verdict\": \"FAIL\", \"findings\": [{\"rule\": \"(1)\", \"line\": 6, \"output\": \"FAIL\", ...}, {\"rule\": \"(2)\", \"line\": 6, \"output\": \"PASS\", ...}], \"unjudged\": []} -- 기대한 '\"verdict\": \"PASS\"'와 '\"output\": \"exempt\"'가 없다(계약 1·2 위반). 기대 문자열 '\"rule\": \"(1)\"'은 base에서도 있다(발견 자체는 base도 낸다)"
+    },
+    "red_discrimination_note": "red는 1 단계뿐이고 계약 1(승인 기록 읽기)·계약 2(output exempt + 판정 제외)를 묶어서만 구별한다. 계약 3(면제 범위 밖 불변)·계약 4(공격 06 적발 유지)는 base에서 이미 PASS라 red가 아니라 회귀 대조다 -- 병합본에서 이 3 단계가 계속 PASS인지가 오통과 0의 증거이고, base red만으로는 '면제를 규칙 (1)에만 한정했는가'를 구별할 수 없다. 병합본 green에서 rule1-approved의 output이 정확히 exempt 1건이고 rule1-no-approval·rule1-other-id-approved·rule3-approved의 출력에 'exempt'가 없음(message_not_contains)을 확인해야 한다",
+    "base_pass_steps": {
+      "29-v4-decision-exempt": [
+        "rule1-no-approval",
+        "rule1-other-id-approved",
+        "rule3-approved"
+      ]
+    },
+    "base_pass_detail": {
+      "rule1-no-approval": "exit 1, {\"verdict\": \"FAIL\", ... {\"rule\": \"(1)\", \"line\": 6, \"output\": \"FAIL\"} ...} -- 승인 기록 없는 트리, 계약 3의 무동작 대조. 병합본에서 계속 PASS여야 한다",
+      "rule1-other-id-approved": "exit 1, 같은 출력 -- 같은 파일의 다른 함수 이름(test_rt_gain_other)을 적은 decision 승인 기록이 있어도 적발 유지, 계약 3·4 대조",
+      "rule3-approved": "exit 1, {\"verdict\": \"FAIL\", ... {\"rule\": \"(3)\", \"line\": 7, \"output\": \"FAIL\"} ...} -- 그 test id를 적은 승인 기록이 있어도 규칙 (3)은 면제 아님, 계약 3 대조"
+    },
+    "expected_red_match": "test-author가 red로 기대한 rule1-approved 1개가 정확히 base FAIL, 대조 3개(rule1-no-approval·rule1-other-id-approved·rule3-approved)는 base PASS -- 작성자 보고와 일치하나 본 판정은 격리 복제본 실측에서만 얻었다",
+    "failure_hash_method": "DESIGN-GAP: redteam 케이스는 pytest red 수집(-p merge_gate) 대상이 아니다. test_id = tools/gates/redteam/attacks/<케이스>::<단계>, failure_hash = merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") (복제본 tools/gates/merge_gate.py = base 판 e12b007). C11(20260922-v3-gmid-options) 선례와 같다",
+    "aggregate_hash": "8ff68eff497874128f67fc303adc76c4d7e586c2012ad3cf4212546d6daa0e88",
+    "aggregate_hash_method": "sha256(정렬한 failure_hash를 \n으로 이은 UTF-8)",
+    "red": [
+      {
+        "test_id": "tools/gates/redteam/attacks/29-v4-decision-exempt::rule1-approved",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "6fd60fb934d4992a7fad67ec9b73e198acf9009677023d80f7f807d73ca5b07c"
+      }
+    ]
+  },
+  "control_check": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 06 --only 07 --only 23 --repo C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso",
+    "exit": 0,
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso/tools/gates/redteam/logs/20260923-111659-direct.jsonl",
+    "cases": {
+      "PASS": 3
+    },
+    "steps": {
+      "PASS": 173
+    },
+    "detail": {
+      "06-v4-expected-from-subject": "PASS",
+      "07-v4-assert-under-if": "PASS",
+      "23-v4-boundary": "PASS"
+    },
+    "result": "같은 복제본·같은 러너(rt.py, base와 동일 blob)에서 기존 V4 케이스 06·07·23은 PASS -- red가 러너·환경 결함이 아니라 base test_lint.py 동작에서 온다. 이 3 케이스는 계약 4(공격 06 적발 유지)의 병합본 회귀 기준선이다"
+  },
+  "v5_pre_check": {
+    "command": "C:/Python314/python.exe tools/gates/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260923-v4-decision-exempt-iso --base 10f035db9068a79f2e3acdd920d363aaba5607ff --head 640881163153e06409dd1e77f0a945757deaa99e",
+    "exit": 0,
+    "stdout": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+    "scope_note": "V5는 skills/analog-gmid-design/assets/tests/** 와 skills/analog-gmid-design/assets/*.py(깊이 3)의 __main__ 블록만 본다(weakening_diff.py main()). C13이 건드리는 tools/gates/** 는 V5 범위 밖이므로 base→T도, 뒤에 붙을 code 커밋(test_lint.py 면제)도 V5는 발견 0으로 PASS한다 -- V5 PASS가 '기준을 약화하지 않았다'의 증거가 아니다. C13은 실제로 V4 규칙 (1) 판정을 좁히는 게이트 변경이고, 그 통제는 spec card gate_change: yes + 승인 기록 20260923-v4-decision-exempt(target_kind: diff, target 3d5e7fe2...07) + 공격 재생(06·07·23·29)이 맡는다. 순서 7에서 V5 basis에 이 범위 한계를 명시할 것"
+  },
+  "measured_at": "2026-09-23T11:16:24+09:00",
+  "measured_by": "gmid-verification-auditor (격리 복제본, 작성자 보고 미사용)"
+}
