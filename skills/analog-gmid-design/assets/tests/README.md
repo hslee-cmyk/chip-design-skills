@@ -6,6 +6,7 @@
 
 * C6 전: `$PY -P -m pytest -c tools/gates/pytest_gate.ini --rootdir=. --confcutdir=. skills/analog-gmid-design/assets/tests`
 * C6 뒤: 위 명령 끝에 `--gmid-phase=<Phase>`를 붙인다.
+* 순서 의존 확인(C9): `--shuffle-seed=<int>`를 더하면 수집 순서를 `random.Random(<int>)`로 섞는다.
 
 ## 판정 규칙
 
@@ -31,8 +32,9 @@ skills/analog-gmid-design/assets/tests/
 
 | 항목 | 지금 있음 |
 |---|---|
-| `legacy/` | 있음 |
+| `legacy/` | 없음(C9에서 `unit/test_selftest_<모듈>.py`로 나누고 삭제) |
+| `unit/` | 있음(C9: 이관본 섹션별 test `test_selftest_<모듈>.py` 4개, 매핑표 c9-mapping.json) |
 | `contracts/` | 있음 |
 | `tooling/` | 있음 |
-| `conftest.py` | 있음(C6: `--gmid-*` 옵션·`gmid_ic` 표식·xfail) |
-| `unit/`, `integration/`, `regression/`, `oracles/`, `tools/`, `probes/` | 아직 없음 |
+| `conftest.py` | 있음(C6: `--gmid-*` 옵션·`gmid_ic` 표식·xfail / C9: `--shuffle-seed`·보고 머리·세션 fixture `assets_dir`·`library_dir`·`toy_lut`·`real_lut`) |
+| `integration/`, `regression/`, `oracles/`, `tools/`, `probes/` | 아직 없음 |

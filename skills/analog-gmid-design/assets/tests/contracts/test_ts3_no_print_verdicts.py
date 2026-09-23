@@ -24,8 +24,10 @@ _EXCLUDED_TOP_DIRS = ("probes", "tools")
 _TOKEN_RE = re.compile(r"(?<![A-Za-z])(PASS|FAIL)(?![A-Za-z])")
 _LOG_OBJECTS = frozenset({"logging", "logger", "log", "LOGGER", "LOG"})
 _LOG_METHODS = frozenset({"debug", "info", "warning", "warn", "error", "critical", "exception", "log"})
-_LEGACY_SCRIPTS = ("selftest_sizing_recipe.py", "selftest_stick_diagram.py",
-                   "selftest_design_report.py", "selftest_topology_library.py")
+# C9(20260922-ts2-pytest-split): 이관본 4개(`legacy/selftest_<m>.py`)의 섹션이 `unit/test_selftest_<m>.py`로 옮겨지고
+# 이관본은 지워졌다 -- TS3 변환을 받은 판정 문장은 이제 이 4개 파일에 있다.
+_LEGACY_SCRIPTS = ("unit/test_selftest_sizing_recipe.py", "unit/test_selftest_stick_diagram.py",
+                   "unit/test_selftest_design_report.py", "unit/test_selftest_topology_library.py")
 
 
 def _is_verdict_call(node: ast.Call) -> bool:
@@ -63,10 +65,11 @@ def _target_files() -> list[pathlib.Path]:
 
 
 def test_target_set_includes_legacy_scripts():
-    # oracle (d): design §6.3 -- TS3 변환 대상 이관본 4개가 판정 대상에 들어 있어야 T = 0 단언이 공허하지 않다.
+    # oracle (d): design §6.3 -- TS3 변환 대상 이관본 4개(C9 뒤에는 그 섹션을 옮긴 unit/test_selftest_<m>.py 4개,
+    # design §6.8)가 판정 대상에 들어 있어야 T = 0 단언이 공허하지 않다.
     rels = {p.relative_to(_TESTS_DIR).as_posix() for p in _target_files()}
     for name in _LEGACY_SCRIPTS:
-        assert f"legacy/{name}" in rels, f"판정 대상에 legacy/{name}이 없다: {sorted(rels)[:20]}"
+        assert name in rels, f"판정 대상에 {name}이 없다: {sorted(rels)[:20]}"
 
 
 def test_tree_has_no_print_verdicts():

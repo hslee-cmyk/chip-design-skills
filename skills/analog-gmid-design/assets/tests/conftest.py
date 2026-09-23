@@ -14,8 +14,19 @@
 * 계획서 표는 게이트 코드 `tools/gates/merge_gate.py`의 `read_plan_tables`로 읽는다(표 읽기 규칙의 정본 하나 --
   WP-14). `<저장소 루트>/tools/gates`는 `sys.path` **끝**에 더한다: V1은 게이트 코드 캐시를 `PYTHONPATH` 맨 앞에
   두므로 base 판 게이트 코드가 먼저 잡힌다(`05` §12-7).
+
+C9(20260922-ts2-pytest-split, design §5.4 'C9에서 더하는 것')에서 더한 것:
+
+* `--shuffle-seed=<int>`(기본 없음): `pytest_collection_modifyitems` 끝(xfail 표시 뒤)에서 값이 있으면
+  `random.Random(seed).shuffle(items)`. 플러그인을 더하지 않는다(DEC-36).
+* `pytest_report_header`: `shuffle-seed: <값 또는 none>`, `real_lut: <npz 상대 경로> sha256=<파일 바이트 해시>`.
+  판정 문자열이 아니다.
+* 세션 fixture(불변 자원만): `assets_dir`(= A, 이 파일 위치에서 계산), `library_dir`(= `assets_dir/library`),
+  `toy_lut`(= `build_toy_lut()`, 이관본의 전역 `lut`), `real_lut`(`A/sky130_nfet_pfet_lut_sample.npz` 고정 경로).
 """
+import hashlib
 import os
+import random
 import sys
 
 import pytest
@@ -24,6 +35,9 @@ _TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 # tests -> assets -> analog-gmid-design -> skills -> 저장소 루트
 _REPO_ROOT = os.path.abspath(os.path.join(_TESTS_DIR, "..", "..", "..", ".."))
 _GATES_DIR = os.path.join(_REPO_ROOT, "tools", "gates")
+# tests -> assets(A)
+_ASSETS_DIR = os.path.dirname(_TESTS_DIR)
+_REAL_LUT_PATH = os.path.join(_ASSETS_DIR, "sky130_nfet_pfet_lut_sample.npz")
 if _GATES_DIR not in sys.path:
     sys.path.append(_GATES_DIR)
 
@@ -41,6 +55,8 @@ def pytest_addoption(parser):
                     help="엄격 대상 케이스 키 목록 '<IC>:<case>,...'. 값 없는 --gmid-strict= 는 키 없음.")
     group.addoption("--gmid-dod", action="store_true", default=False, dest="gmid_dod",
                     help="Phase DoD 판정 실행: 표식 Phase가 현재 Phase인 케이스 전부를 엄격 대상으로.")
+    group.addoption("--shuffle-seed", action="store", type=int, default=None, dest="shuffle_seed",
+                    help="수집된 test 순서를 random.Random(<int>)로 섞는다(기본 없음 = 섞지 않음). --shuffle-seed=<int>")
 
 
 def pytest_configure(config):
@@ -113,3 +129,38 @@ def pytest_collection_modifyitems(session, config, items):
         raise pytest.UsageError(
             f"--gmid-strict 의 모르는 케이스 키 {unknown}: 수집된 test 중 그 gmid_ic 표식(IC·case)이 있고 "
             f"표식 Phase가 현재 Phase {current} 인 것이 없다(00-common §9.3)")
+    seed = config.getoption("shuffle_seed")
+    if seed is not None:
+        # xfail 표시 뒤에 섞는다(design §5.4 C9) -- 숨은 순서 의존을 드러내는 용도.
+        random.Random(seed).shuffle(items)
+
+
+def pytest_report_header(config):
+    seed = config.getoption("shuffle_seed")
+    rel = os.path.relpath(_REAL_LUT_PATH, _REPO_ROOT).replace(os.sep, "/")
+    with open(_REAL_LUT_PATH, "rb") as fh:
+        digest = hashlib.sha256(fh.read()).hexdigest()
+    return [f"shuffle-seed: {'none' if seed is None else seed}", f"real_lut: {rel} sha256={digest}"]
+
+
+@pytest.fixture(scope="session")
+def assets_dir():
+    return _ASSETS_DIR
+
+
+@pytest.fixture(scope="session")
+def library_dir(assets_dir):
+    return os.path.join(assets_dir, "library")
+
+
+@pytest.fixture(scope="session")
+def toy_lut(assets_dir):
+    if assets_dir not in sys.path:
+        sys.path.insert(0, assets_dir)
+    from sizing_recipe import build_toy_lut
+    return build_toy_lut()
+
+
+@pytest.fixture(scope="session")
+def real_lut():
+    return _REAL_LUT_PATH
