@@ -14899,3 +14899,12 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - design v1.2: §5.1 신설 -- P4(복제 제거)는 tests/probes/에 남는 진단만, P3(승격)은 재구현을 oracle로 유지(엔진 복제면 다른 근거로 다시 세움, 대조형이 V4 (1)에 걸리면 C13 면제). 사용자 결정 "승격은 oracle 유지". §8 P2 행 판정 유형·oracle 표기 정정(E-AST 불가 이유 명시).
 - 백로그 B16: 계획 N3.11 TS6 'code 커밋으로 추가한 뒤 test 커밋으로 원본 삭제'가 N3.12.3 흐름(test 먼저)과 어긋난다 -- 실제로는 test가 지우고 code가 더한다. B17: sizing_recipe.py 8460·8472가 사용자에게 옛 도구 경로(tests/derive_achievable_bounds.py) 실행을 안내하는데 그 경로가 없어졌다(엔진 텍스트, 별도 card). B18: 계획 N4.2 V2 equivalence 문언 '양쪽 PASS' 정정(plan_tables 승인 필요).
 - 환경: 자식 bash에 APPDATA가 전달되지 않아 site-packages를 잃고 numpy/pytest import가 조용히 실패한다 -- 스크립트 안에서 export 필요(auditor 실측).
+
+- P3a 20260923-probe-promote-clean 완료(gate db25f7b, 2차 시도, test-only): probe 4개(lut_L_interpolation·parasitic_pm_all_circuits·revalidation_scope·role_L_derivation)를 unit/test_probe_*.py로 승격, 원본 삭제. 공용 입력 구성기 unit/_library_sized_contexts.py(판정 0·기대값 0, `_` 시작이라 미수집). 새 test 21(승격 19 + 계약 test 합성 반례 2), V1 357 passed/15 xfailed, 셔플 5판 포함 6순서 전부 동일.
+- **승격 원칙 실측**: 기대값을 엔진 출력이 아니라 성질로 씀 -- gm/ID 상한은 LUT npz `temp_c` 선언에서 q/kT를 유도(38.662), PM은 값 대신 pole 개수가 주는 구간(90-90n, 90), 경로는 선언(excite/sense_p/sense_n + supply_nets)에서만 읽음. 옮기지 않은 절 10개(폐기된 식 재구현·진단 수치·선언 없는 회로)는 사유를 파일 docstring과 판정 기록에 남김 = 무동작 test 금지.
+- **계약 test 기대값을 규칙 유도로 전환**(사용자 결정 "규칙에서 유도하게", 승인 20260923-p3a-contract-tests, diff_hash 26a7059d…): P1·P2가 굳혀 둔 '잔존 probe 39'·'tests 직속 후보 7'을 `42-3-승격완료분`과 `후보-승격완료분`으로. 승격 완료는 이름 규칙 unit/test_<probe 이름>.py로 센다(수를 박지 않음) + **양방향 배타 판정**(승격본이 있으면 원본이 없어야 하고 그 반대도). auditor가 도구 밖에서 강화를 직접 측정: 승격 0인 트리에서도 60 passed(규칙 유도가 진짜), '옮기다 만' 합성 트리에서 2 failed(배타 판정이 실제로 거부).
+- spec card 개정 2건: 계약 1에 입력 구성기 허용(판정·기대값 0, `_` 시작), **계약 7-a 신설**(앞선 card가 굳혀 둔 파일 집합 사실을 이 card가 고치는 예외 -- 내가 "다른 test도 바뀌지 않는다"고 적은 것이 승격과 모순이었다).
+- E-LIB f97860a6(library 10 중 9 로드, _TEMPLATE 제외), E-INST folded e02559c3·pilot 013b1253 base=T 동일. V5 approved=true(승인 반영 확인).
+- 기록: 승인 기록의 diff_head가 1차 커밋(586f93d)을 가리키지만 해시가 blob 기반이라 판정 무관(도구도 approved=true). P2의 _BASE_COMMIT과 같은 성격.
+- 잔여 약점(판정 기록 V4 basis): PM 하한 90-90n의 n을 엔진 pole 계수가 정해, 과다 계수면 하한이 느슨해진다. 같은 파일의 분할 판정(경로 노드 정확히 한 번 분류, undetermined 0)이 그 계수를 따로 묶어 FAIL로 보지 않음. omega_c 선언이 늘면 재검토.
+- 환경(반복 발생): 자식 셸에 APPDATA export 필수(빠지면 No module named pytest), 격리 복제본은 짧은 경로(C:/g2 등 -- 긴 경로에서 260자 MAX_PATH로 수집 ERROR), clone은 --no-checkout -> core.longpaths -> checkout 순서, 게이트 코드는 git cat-file blob으로 재추출(archive/checkout은 줄끝 변경), V1의 -c는 gmid-gate-cache/<old>/ 형식이어야 v1_command_check 통과.
