@@ -1,6 +1,6 @@
 """TS6 P2 계약: 승격하지 않는 probe 32개가 `A/tests/probes/`에 있고, 이동 깊이 보정 뒤 경로가 이동 전과 같은 곳을 가리킨다.
 
-spec card `docs/02-design/specs/20260923-probe-relocate.spec.md` 계약 1·3·4·6을 판정한다.
+spec card `docs/02-design/specs/20260923-probe-relocate.spec.md` 계약 1·2·3·4·5·6을 판정한다.
 정본 명세는 design `gain-budget-gmid-sizing.20-dead-code-dup` v1.1 §5·§8 P2, 실측 원자료는
 `docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/probe_inventory.json`(probe 42개 전수).
 
@@ -21,6 +21,9 @@ spec card `docs/02-design/specs/20260923-probe-relocate.spec.md` 계약 1·3·4�
   옮긴 파일의 식을 베끼지 않는다.
 * (f) 계약 6(수집 불변)의 전제: `probes/` 아래에 pytest가 수집하는 이름(`test_*.py`·`*_test.py`)이 0개다.
   수집 집합 자체가 base와 같은지는 `--collect-only` 대조로 본다(이 파일 밖).
+* (g) 계약 2(경로 줄을 뺀 나머지가 그대로)와 계약 5(운영 도구 이동): base 커밋의 blob을 기준선으로 읽어
+  **바뀐 줄이 전부 경로 줄인지** 본다. 경로 줄의 정의는 spec card 계약 2에서 옮겨 적었다 --
+  `os.path.*`·`sys.path.insert`를 담은 문장과 절대 경로 리터럴을 담은 문장(여러 줄에 걸치면 그 줄 전부).
 
 oracle 대조(계획 N3.12.3):
 
@@ -49,12 +52,23 @@ oracle 대조(계획 N3.12.3):
 * test_instance_paths_equal_pre_move_literal -- (c) 이동 전 리터럴이 가리키던 곳이 기대값이다
   (`<저장소 루트>/workspaces/current-reuse-telescopic-ota-report/current_reuse_telescopic_ota.instance.json`).
   그 리터럴은 base 트리의 probe에 있던 것을 옮겨 적었다.
+* test_path_statement_marker_*, test_only_path_lines_judge_rejects_* -- (a) 합성 소스에서 어느 줄이
+  경로 줄인지 손으로 정했고, 경로 줄이 아닌 변경을 넣어 판정이 **실제로 거부**하는지 본다.
+* test_base_blob_reader_reads_the_base_tree -- (a) base 커밋에 그 경로가 있다는 사실이 기대값이다
+  (아래 기준선 대조가 빈 문자열로 공허하게 통과하지 않게 하는 전제).
+* test_relocated_probes_match_base_except_path_lines,
+  test_moved_tool_matches_base_except_path_lines -- (c) 기준선 = base 커밋의 blob 그 자체(계약 2·5의
+  '경로 줄을 뺀 나머지가 바이트 그대로'). 새 기대값을 만들지 않는다.
+* test_moved_tool_is_in_tools_dir, test_moved_tool_paths_equal_pre_move_targets -- (a)/(c) 계약 5의
+  새 자리와, 이동 전 형태를 옛 자리에 적용한 경로가 기대값이다(계약 3과 같은 방식).
 """
 import ast
+import difflib
 import json
 import os
 import pathlib
 import re
+import subprocess
 
 import pytest
 
@@ -63,6 +77,13 @@ _TESTS_DIR = pathlib.Path(__file__).resolve().parents[1]
 _ASSETS_DIR = _TESTS_DIR.parent
 _REPO_ROOT = _ASSETS_DIR.parents[2]
 _PROBES_DIR = _TESTS_DIR / "probes"
+_TOOLS_DIR = _TESTS_DIR / "tools"
+_TESTS_REL = _TESTS_DIR.relative_to(_REPO_ROOT).as_posix()
+
+# 계약 5의 운영 도구(spec card가 이름을 댄 것).
+_TOOL_NAME = "derive_achievable_bounds.py"
+# 이 change id의 base -- gate/master HEAD이자 spec card 개정 커밋(계약 2·5의 '원본 바이트'가 여기 있다).
+_BASE_COMMIT = "939f926fe97ba27f9c8d5110a089253c5a4501e3"
 
 _INVENTORY = (_REPO_ROOT / "docs" / "03-analysis" / "gain-budget-gmid-sizing-20-dead-code-dup"
               / "probe_inventory.json")
@@ -198,6 +219,71 @@ def dirname_depth(source: str, name: str) -> int:
 
 def _same_path(a, b) -> bool:
     return os.path.normcase(os.path.realpath(a)) == os.path.normcase(os.path.realpath(b))
+
+
+# --------------------------------------------------------------------------------------
+# 판정 보조 3: base 기준선 대조(계약 2·5) -- 기대값은 base 커밋의 blob 그 자체다
+# --------------------------------------------------------------------------------------
+def base_blob_text(rel_path: str) -> str:
+    """base 커밋에 있던 `rel_path`의 내용(개행은 정규화해서 줄 목록 비교에 쓴다)."""
+    proc = subprocess.run(["git", "-C", str(_REPO_ROOT), "show", f"{_BASE_COMMIT}:{rel_path}"],
+                          capture_output=True)
+    assert proc.returncode == 0, (
+        f"base {_BASE_COMMIT[:7]}의 {rel_path}를 읽지 못했다: {proc.stderr.decode('utf-8', 'replace')}")
+    text = proc.stdout.decode("utf-8")
+    assert text.strip(), f"{rel_path}: base 내용이 비었다"
+    return text
+
+
+def path_statement_lines(source: str) -> set:
+    """`source`에서 **경로 줄**의 줄 번호(spec card 계약 2의 정의를 옮긴 것).
+
+    경로 줄 = `os.path.*`나 `sys.path.insert`를 담은 문장의 줄과, 절대 경로 리터럴을 담은 문장의 줄.
+    문장이 여러 줄에 걸치면(암묵 연결 등) 그 문장이 차지한 줄을 모두 센다.
+    """
+    def _is_path_stmt(stmt) -> bool:
+        for sub in ast.walk(stmt):
+            if isinstance(sub, ast.Call):
+                try:
+                    dotted = _dotted(sub.func)
+                except _Unresolvable:
+                    continue
+                if dotted[:2] == ("os", "path") or dotted == ("sys", "path", "insert"):
+                    return True
+            if (isinstance(sub, ast.Constant) and isinstance(sub.value, str)
+                    and _ABS_PATH_RE.match(sub.value)):
+                return True
+        return False
+
+    marked = set()
+    for stmt in ast.walk(ast.parse(source)):
+        if isinstance(stmt, (ast.Assign, ast.AnnAssign, ast.AugAssign, ast.Expr)) and _is_path_stmt(stmt):
+            marked.update(range(stmt.lineno, (stmt.end_lineno or stmt.lineno) + 1))
+    return marked
+
+
+def non_path_line_changes(base_source: str, new_source: str):
+    """base -> new 에서 바뀐 줄 중 **경로 줄이 아닌** 것: (쪽, 줄 번호, 내용) 목록."""
+    base_lines, new_lines = base_source.splitlines(), new_source.splitlines()
+    base_ok, new_ok = path_statement_lines(base_source), path_statement_lines(new_source)
+    offenders = []
+    matcher = difflib.SequenceMatcher(None, base_lines, new_lines, autojunk=False)
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == "equal":
+            continue
+        for i in range(i1, i2):
+            if (i + 1) not in base_ok:
+                offenders.append(("base", i + 1, base_lines[i]))
+        for j in range(j1, j2):
+            if (j + 1) not in new_ok:
+                offenders.append(("new", j + 1, new_lines[j]))
+    return offenders
+
+
+def assert_only_path_lines_changed(base_source: str, new_source: str, where: str) -> None:
+    """계약 2·5: 바뀐 줄이 전부 경로 줄이고 그 밖의 줄은 모두 같다."""
+    offenders = non_path_line_changes(base_source, new_source)
+    assert offenders == [], f"{where}: 경로 줄이 아닌 변경 {offenders}"
 
 
 def _inventory() -> dict:
@@ -451,3 +537,97 @@ def test_instance_paths_equal_pre_move_literal():
     assert found, "INST를 쓰는 probe를 하나도 해석하지 못했다"
     wrong = {n: v for n, v in found.items() if not _same_path(v, expected)}
     assert wrong == {}, (wrong, expected)
+
+
+# --------------------------------------------------------------------------------------
+# (g) 경로 줄 표시와 기준선 대조 판정이 실제로 거부하는가
+# --------------------------------------------------------------------------------------
+def test_path_statement_marker_marks_path_lines_only():
+    # oracle (a): 합성 소스에서 어느 줄이 경로 줄인지 손으로 정했다.
+    src = ('import os, sys\n'                                            # 1 (경로 줄 아님)
+           'ASSETS = os.path.dirname(os.path.abspath(__file__))\n'       # 2 경로 줄
+           'sys.path.insert(0, ASSETS)\n'                                # 3 경로 줄
+           'INST = (r"C:\\a\\b"\n'                                       # 4 경로 줄(절대 경로 리터럴)
+           '        r"\\c.json")\n'                                      # 5 같은 문장의 이어지는 줄
+           'GAIN_DB = 20.0 * 3\n')                                       # 6 계산 줄
+    assert path_statement_lines(src) == {2, 3, 4, 5}
+
+
+def test_only_path_lines_judge_rejects_a_calculation_change():
+    # oracle (a): 계산 줄을 손으로 바꾼 합성 쌍 -> 판정이 거부해야 한다(경로 줄만 허용).
+    base = 'import os\nASSETS = os.path.dirname(os.path.abspath(__file__))\nGAIN_DB = 20.0\n'
+    new = 'import os\nASSETS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\nGAIN_DB = 30.0\n'
+    offenders = non_path_line_changes(base, new)
+    assert [o[0] for o in offenders] == ["base", "new"], offenders
+    with pytest.raises(AssertionError):
+        assert_only_path_lines_changed(base, new, "합성 쌍")
+
+
+def test_only_path_lines_judge_accepts_a_path_only_change():
+    # oracle (a): 경로 줄만 바꾼 합성 쌍(줄 수가 바뀌는 암묵 연결 -> 한 줄 포함) -> 통과해야 한다.
+    base = ('import os\n'
+            'ASSETS = os.path.dirname(os.path.abspath(__file__))\n'
+            'INST = (r"C:\\w\\x"\n'
+            '        r"\\y.json")\n'
+            'GAIN_DB = 20.0\n')
+    new = ('import os\n'
+           'ASSETS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))\n'
+           'INST = os.path.join(ASSETS, "..", "y.json")\n'
+           'GAIN_DB = 20.0\n')
+    assert non_path_line_changes(base, new) == []
+    assert_only_path_lines_changed(base, new, "합성 쌍")
+
+
+def test_base_blob_reader_reads_the_base_tree():
+    # oracle (a): base 커밋에 옛 자리가 있다는 사실이 기대값이다 -- 아래 기준선 대조가 공허해지지 않게.
+    for name in _relocated_names():
+        assert base_blob_text(f"{_TESTS_REL}/{name}.py").strip()
+    assert base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}").strip()
+
+
+# --------------------------------------------------------------------------------------
+# (g) 계약 2: 옮긴 probe 32개는 경로 줄 말고는 base와 같다
+# --------------------------------------------------------------------------------------
+def test_relocated_probes_match_base_except_path_lines():
+    # oracle (c): 기준선 = base 커밋 blob 그 자체. 새 기대값을 만들지 않는다.
+    for name, path, src in _probe_sources():
+        assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL}/{name}.py"), src, name)
+
+
+# --------------------------------------------------------------------------------------
+# 계약 5: 운영 도구가 `A/tests/tools/`로 옮겨졌다
+# --------------------------------------------------------------------------------------
+def test_moved_tool_is_in_tools_dir():
+    # oracle (a): spec card 계약 5가 적은 새 자리와 옛 자리가 곧 기대값이다.
+    assert (_TOOLS_DIR / _TOOL_NAME).is_file(), f"{_TOOLS_DIR / _TOOL_NAME} 가 없다"
+    assert not (_TESTS_DIR / _TOOL_NAME).exists(), f"{_TESTS_DIR / _TOOL_NAME} 가 아직 있다"
+
+
+def test_moved_tool_matches_base_except_path_lines():
+    # oracle (c): 기준선 = base 커밋 blob 그 자체(계약 5의 '경로 계산 줄을 뺀 나머지가 원본과 같다').
+    new_path = _TOOLS_DIR / _TOOL_NAME
+    assert new_path.is_file(), f"{new_path} 가 없다"
+    assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}"),
+                                   new_path.read_text(encoding="utf-8"), _TOOL_NAME)
+
+
+def test_moved_tool_paths_equal_pre_move_targets():
+    # oracle (c)/(a): 계약 3과 같은 방식 -- 이동 전 형태를 옛 자리 `A/tests/<도구>`에 적용한 값이 기대값이고,
+    # dirname 중첩 기대값은 `A`에서 새 자리까지의 경로 성분 수(tests/tools/<도구> = 3)로 구성한다.
+    new_path = _TOOLS_DIR / _TOOL_NAME
+    assert new_path.is_file(), f"{new_path} 가 없다"
+    src = new_path.read_text(encoding="utf-8")
+    names, inserts = resolve_path_names(src, str(new_path))
+    assert "ASSETS" in names, "도구가 ASSETS를 경로식으로 유도하지 않는다"
+    assert dirname_depth(src, "ASSETS") == len(pathlib.PurePath("tests", "tools", "x.py").parts)
+
+    pre_src = f"import os\nASSETS = {_PRE_MOVE_ASSETS_FORM}\n"
+    pre_names, _ = resolve_path_names(pre_src, str(_TESTS_DIR / _TOOL_NAME))
+    assert _same_path(names["ASSETS"], pre_names["ASSETS"]), (
+        f"이동 전 {pre_names['ASSETS']} != 이동 후 {names['ASSETS']}")
+    assert _same_path(names["ASSETS"], _ASSETS_DIR)
+
+    assert inserts, "도구의 sys.path 삽입을 해석하지 못했다"
+    assert _same_path(inserts[0], _ASSETS_DIR), inserts[0]
+    for entry in inserts:
+        assert os.path.isdir(entry), f"sys.path 삽입 대상이 없다 {entry}"
