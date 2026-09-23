@@ -27,6 +27,8 @@ import subprocess
 import sys
 from fractions import Fraction
 
+import reachability as rch
+
 
 # ---------- 지역 대입 인라인 ----------
 class _Sub(ast.NodeTransformer):
@@ -722,6 +724,14 @@ def main(argv):
             rel = f.replace("\\", "/")
             findings += lint_file(rel, read(rel) if (ns.head or not os.path.isabs(rel)) else open(rel, encoding="utf-8").read(),
                                   module_srcs, subjects)
+        if ns.head:
+            # 규칙 (1)만 면제(spec card 20260923-v4-decision-exempt 계약 1~2): head 트리의 target_kind: decision
+            # 승인 기록(V3 `reachability._approved_ids`와 같은 읽기, 한 번만 읽는다) target 목록에 그 test id
+            # (`<파일>::<test 이름>`)가 있으면 그 발견의 output을 FAIL 대신 exempt로.
+            approved = rch._approved_ids(root, ns.head)
+            for x in findings:
+                if x["rule"] == "(1)" and x["output"] == "FAIL" and "%s::%s" % (x["file"], x["test"]) in approved:
+                    x["output"] = "exempt"
     except (OSError, ValueError, RuntimeError, SyntaxError, UnicodeDecodeError) as e:
         print(json.dumps({"tool": "V4", "verdict": "ERROR", "error": "%s: %s" % (type(e).__name__, e)}, ensure_ascii=False))
         return 2
