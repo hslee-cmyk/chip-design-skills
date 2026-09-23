@@ -14864,3 +14864,10 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 근거: redteam 공격 29(면제 승인 / 승인 없음 / 다른 id / 규칙 (3)에 승인) + auditor 독립 합성 6개(target_kind: diff, --head 없음 포함)에서 면제 아닌 경로 stdout 바이트 동일. redteam 전체 재생 FAIL 0(약 25분). 한계 기록: weakening_diff(V5)는 tools/gates/**를 아예 보지 않아 게이트 변경의 통제는 spec card gate_change·승인 기록·공격 재생이다.
 - C9 1차 시도(bdf9ca6)는 test 215개 작성 완료·기본/셔플 5회 실패 0·M1·M2 충족이었고 V4 (1) 2건만 막혔다. 12경로(수정 3·삭제 5·신설 4)를 v5-carry/20260922-ts2-pytest-split에 blob으로 운반(523d0ce)하고 정리. V5 발견 5건, diff_hash 38ecdc81cfc03bd8243b7d7115034ce4a365ee895a2339a97c93710e7592983a(README·conftest·ts3·test_legacy_selftests). 도구가 rename을 안 따라가 unit/의 xfail 3개는 발견 목록 밖 -- 승인 질문 본문에 따로 적을 것.
 - 다음: C9 재시도(V4 면제 decision 승인 + DEC-40 승인 필요) -> C10 caa970b-replay -> Phase 1 DoD.
+
+- C9 20260922-ts2-pytest-split 완료(gate fad03c2, 2차 시도): TS2. 이관본 4개 섹션을 unit/test_selftest_*.py의 test 215개로 분리하고 이관본 4개·test_legacy_selftests.py 삭제(tests/legacy/ 소멸), conftest C9 부분(--shuffle-seed, pytest_report_header, 세션 fixture 4개), README·TS3 대조 test 리터럴 갱신. V1 여섯 번(기본+seed 1~5) 전부 293 collected/278 passed/15 xfailed/XPASS 0. M1 215개 일치(수집 216 = S024 parametrize 2), M2 미충족 0(m2_min 651 대비 677), Q 성립.
+- 매핑표 정본 docs/03-analysis/.../c9-mapping.json(생성기 build_c9_mapping.py): 번호=C2 병합본(6abe0fc) 섹션, 범주=C4 뒤 HEAD, target/test_ids/m2_min/guarded_only/deps. design §7 M2 식 대신 '거부 try 밖 판정 + 거부 try 수'를 쓴다(C4가 raise AssertionError를 assert False로 바꿔 원식이 이중계수, 도구 reject_try 필드는 루프 내 데이터 수집 try까지 셈 -- sizing S021, stick S032·S038).
+- V4 oracle 전수 대조(auditor): unit assert 642개 중 636 이관본과 문자 동일, 4 조건 승격(§6.8-6), 2 조건 부정 제거. 새 기대값 0, 피검 출력 붙여넣기 0.
+- 승인 3건: 20260922-c9-ic11-split(I-C11 섹션 3개를 xfail strict + known_limitation 2분할), 20260923-c9-v4-exempt(V4 규칙 (1) 면제 2건 -- S052 불변식·S054 재현성), 20260923-ts2-pytest-split(DEC-40 V5, diff_hash 38ecdc81…). 뒤 둘에 **Phase 4 I-C11 해소 시 재검토**를 명시(백로그 B9).
+- 관찰: weakening_diff는 --no-renames라 rename된 새 파일의 xfail을 발견하지 못한다(승인 본문에 따로 적어 덮었다). test-author에게 주는 pytest 명령은 cd 없이 rootdir를 인자로 주는 형태로 적을 것.
+- 다음: C10 caa970b-replay(test-only 게이트 변경) -> Phase 1 DoD(D0~D7).
