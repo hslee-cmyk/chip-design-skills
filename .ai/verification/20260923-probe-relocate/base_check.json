@@ -1,0 +1,232 @@
+{
+ "note": "05-role-separation §12 순서 3 -- freeze(T)와 base 대비 확인. 3차 시도. 모든 수치는 auditor가 격리 복제본에서 직접 다시 쟀다(작성자 보고 미사용, 2차 측정값 재활용 없음). 2차 값은 대조용으로만 인용한다.",
+ "id": "20260923-probe-relocate",
+ "attempt": 3,
+ "evidence_type": "equivalence",
+ "phase": "2",
+ "measured_at": "2026-09-23T18:20:00+09:00",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "pytest": "9.0.2, pluggy 1.6.0",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming",
+  "note": "모든 복제본에 clone 직후 git config core.longpaths true. 실행은 cd 없이 절대 경로."
+ },
+
+ "freeze": {
+  "base_commit": "869dbb8ef9c0068ad45e809a172d7a993e1403b0",
+  "base_subject": "docs: spec card 20260923-probe-relocate 개정 -- 판정 유형을 equivalence로(도구 이동에 code 커밋·병합이 생긴다)",
+  "test_commit_T": "a574f977dd45b1939dd530e94a20b29db550a3f3",
+  "audit_branch_head": "a574f977dd45b1939dd530e94a20b29db550a3f3",
+  "merge_base_base_T": "869dbb8ef9c0068ad45e809a172d7a993e1403b0",
+  "test_chain_first_parent": [
+   {"commit": "e1159370b267704a0b1b0649635d25cfa2d31a5a", "parent": "869dbb8ef9c0068ad45e809a172d7a993e1403b0", "trailers": ["Role: test", "Change-Id: 20260923-probe-relocate"], "subject": "test: TS6 P2 -- probe 32개를 tests/probes/로 이동(이동 깊이 보정 22, 절대 경로 치환 12)"},
+   {"commit": "e7b6326c562ffa5f3cf8c8607984562ae5bdb614", "parent": "e1159370b267704a0b1b0649635d25cfa2d31a5a", "trailers": ["Role: test", "Change-Id: 20260923-probe-relocate"], "subject": "test: TS6 P2 -- probe 이동 자리·이동 깊이 보정·절대 경로 0 계약 test"},
+   {"commit": "a574f977dd45b1939dd530e94a20b29db550a3f3", "parent": "e7b6326c562ffa5f3cf8c8607984562ae5bdb614", "trailers": ["Role: test", "Change-Id: 20260923-probe-relocate"], "subject": "test: TS6 P2 -- 운영 도구 원본 삭제와 계약 5·2 기준선 대조 test(red)"}
+  ],
+  "changed_paths_base_to_T": {
+   "n_entries": 34,
+   "added": ["skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py"],
+   "deleted": ["skills/analog-gmid-design/assets/tests/derive_achievable_bounds.py"],
+   "renamed_n": 32,
+   "rename_note": "tests/probe_<이름>.py -> tests/probes/probe_<이름>.py 32건(git 유사도 R093~R099). 계약 1의 32개와 일치",
+   "shortstat": "34 files changed, 672 insertions(+), 158 deletions(-)"
+  },
+  "outside_tests_diff": "git diff --name-only 869dbb8 a574f97 에서 skills/analog-gmid-design/assets/tests/ 밖 경로 0줄 -- 엔진 소스(A/*.py)와 workspaces/run_harness.py 는 한 바이트도 바뀌지 않았다(계약 7)",
+  "code_commit_K": null,
+  "code_commit_note": "순서 4·5(code 커밋)는 아직 없다. 계약 5의 새 자리 A/tests/tools/derive_achievable_bounds.py 는 code 커밋이 추가한다(계획 N3.11 TS6). 그래서 T 시점에는 그 파일이 없고 계약 5 test 3개가 FAIL한다(아래 base_run)."
+ },
+
+ "second_attempt_cross_check": {
+  "claim_source": "오케스트레이터가 전한 작성자 보고 -- auditor가 직접 확인했다",
+  "tree_identity": {
+   "verdict": "확인됨",
+   "method": "git diff --name-status <2차 커밋> <3차 커밋>",
+   "e115937_vs_64bda26": ["M docs/02-design/specs/20260923-probe-relocate.spec.md"],
+   "e7b6326_vs_aedb218": ["M docs/02-design/specs/20260923-probe-relocate.spec.md"],
+   "a574f97_vs_5b50ddf": ["M docs/02-design/specs/20260923-probe-relocate.spec.md"],
+   "note": "세 쌍 모두 spec card 한 경로만 다르고 그 밖 전 경로가 같다(트리 해시는 다르다 -- 3차 e7986c2e/166c4876/7cb7021c, 2차 e9f8c24f/e60b1a40/139e9978)."
+  },
+  "base_identity": {
+   "verdict": "확인됨",
+   "diff_939f926_to_869dbb8": ["M docs/02-design/specs/20260923-probe-relocate.spec.md (5 +, 3 -)"],
+   "assets_diff_lines": 0
+  },
+  "base_commit_literal_in_test": {
+   "file": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py",
+   "line": 86,
+   "value": "_BASE_COMMIT = \"939f926fe97ba27f9c8d5110a089253c5a4501e3\"",
+   "used_for": "base_blob_text(rel_path) = git -C <repo root> show 939f926:<rel_path> -- 계약 2·5의 기준선 blob",
+   "auditor_verdict": "판정에 영향 없음. 근거 셋을 직접 쟀다: (1) 939f926 은 a574f97 의 조상이다(git merge-base --is-ancestor 참). (2) 939f926 과 base 869dbb8 의 차이는 spec card 한 파일뿐이고 skills/analog-gmid-design/assets/ 아래 차이는 0경로다. (3) 이 test 가 읽는 rel_path 는 전부 skills/analog-gmid-design/assets/tests/ 아래라 두 커밋에서 blob 이 같다. (4) 격리 복제본(--no-hardlinks --no-local)에서도 939f926 이 도달 가능함을 git cat-file -t 와 실제 git show 로 확인했다.",
+   "residual_risk": "다만 base 가 다시 바뀌면(4차) 이 리터럴이 base 와 어긋난다. 리터럴을 base 로 맞추는 것이 안전하지만 지금 판정을 막지는 않는다 -- 오케스트레이터 판단 사항."
+  }
+ },
+
+ "isolation": {
+  "commands": [
+   "git clone --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-probe-relocate-audit C:/Users/HSLEE/AppData/Local/Temp/claude/C--Users-HSLEE-Documents-Todoc-fpga-chip-design-skills/1c3a2c65-595e-46c2-84d5-f1753fc3c9a3/scratchpad/i3",
+   "git -C <iso> config core.longpaths true",
+   "git -C <iso> remote remove origin"
+  ],
+  "clones": {
+   "i3": "T(=a574f97) 작업 트리. V1·red 수집·계약 2/3/5 대조용",
+   "isoc3": "같은 경로에서 base -> T 로 checkout 하며 재는 동등성 비교용(E-LIB·E-INST·수집 집합)",
+   "m3": "모의 커밋(equivalence 모양) 전용 -- i3 를 다시 복제",
+   "m3c": "모의 커밋(test-only 모양 대조군) 전용"
+  },
+  "gate_code": {
+   "how": "git show 869dbb8:tools/gates/<파일> 로 434개 전부 재추출 -> scratchpad/gatecache3",
+   "v1_cache_dir": "scratchpad/gmid-gate-cache/869dbb8ef9c0068ad45e809a172d7a993e1403b0 (최상위 16개 파일 사본 -- V1 `-c` 의 `gmid-gate-cache/<old>/` 형식 요구를 만족시키려고 이 이름으로 둔다. redteam/ 하위는 경로 길이 제한으로 넣지 않았고 V1 에 쓰이지 않는다)"
+  }
+ },
+
+ "strict_set": {
+  "phase": "2",
+  "card_activated_ic_case": [],
+  "strict_needed": [],
+  "v1_option": "--gmid-strict=",
+  "conftest_has_gmid_phase": true,
+  "checked_with": "base 판 merge_gate.strict_set(TreeView(869dbb8), parse_spec_card) -- 공집합. base 트리의 Phase 2 판정 기록 20260923-probe-dead-delete 의 activated_ic_case 도 비어 있다"
+ },
+
+ "v1_command": {
+  "command": "PYTHONPYCACHEPREFIX=<scratch>/pyc_v1 PYTHONPATH=<scratch>/gmid-gate-cache/869dbb8ef9c0068ad45e809a172d7a993e1403b0 $PY -P -m pytest -c <scratch>/gmid-gate-cache/869dbb8ef9c0068ad45e809a172d7a993e1403b0/pytest_gate.ini --rootdir=<iso> --confcutdir=<iso> --gmid-phase=2 --gmid-strict= <iso>/skills/analog-gmid-design/assets/tests",
+  "self_check": "base 판 merge_gate.v1_command_check(python_path=C:/Python314/python.exe, old=869dbb8, strict_needed=[], phase=2) -> 실패 0건",
+  "note": "순서 7 의 auditor_run.commands 에는 `V1: ` 접두사와 함께 <scratch>·<iso> 를 실제 절대 경로로 펴서 적는다. 병합본에서는 --rootdir/--confcutdir/test 경로를 병합본 복제본으로 바꾼다."
+ },
+
+ "base_run": {
+  "what": "T(= base + test 커밋 3개, code 커밋 없음)에서 base 판 게이트 코드로 slow 포함 전체 실행 + red 수집",
+  "command": "PYTHONPYCACHEPREFIX=<scratch>/pyc3 PYTHONPATH=<scratch>/gatecache3 GMID_RED_CAPTURE=<scratch>/out3/red_T.jsonl GMID_INTERFACE_CARD=<scratch>/out3/iface.md C:/Python314/python.exe -P -m pytest -c <scratch>/gatecache3/pytest_gate.ini --rootdir=<iso> --confcutdir=<iso> -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= <iso>/skills/analog-gmid-design/assets/tests",
+  "collected": 351,
+  "result": "3 failed, 333 passed, 15 xfailed in 80.40s, exit 1, 수집 오류 0",
+  "lut_fingerprint": "real_lut sky130_nfet_pfet_lut_sample.npz sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f",
+  "failures": [
+   {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_is_in_tools_dir", "exc_type": "builtins.AssertionError", "failure_hash": "e315aa99889235c2cc8c41cdeec3f9408306e5bda57ef552f747e51feb42c764"},
+   {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines", "exc_type": "builtins.AssertionError", "failure_hash": "499541a17d46464433373970a4aa4ec145bb47ee97b9759510747eb7076da4d3"},
+   {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_paths_equal_pre_move_targets", "exc_type": "builtins.AssertionError", "failure_hash": "81556b2f5e17a85d831c1f63ec6962d981da6fe22fe0bcbca45b6695cac167c3"}
+  ],
+  "failure_cause": "세 test 모두 A/tests/tools/derive_achievable_bounds.py 부재. 그 파일은 code 커밋이 추가한다(계획 N3.11 TS6: 도구 이동은 code 커밋 뒤 test 커밋). 병합 뒤에는 PASS 가 기대값이다.",
+  "red_capture_file": {"path": "<scratch>/out3/red_T.jsonl", "sha256": "d9fcc92f961447c67408e32bf7e6ef04df2487bd78286538cb2361ce484aa4ae", "n_lines": 15},
+  "red_capture_caveat": "수집 파일 15줄 중 12줄은 builtins.Failed 이고 전부 XFAIL 경로다(pytest 요약의 15 xfailed 중 12건). 플러그인이 setup/call 예외를 xfail 여부와 무관하게 기록하기 때문이다. 실제 FAIL 은 위 3건뿐이다(pytest 요약 `3 failed`와 일치).",
+  "schema_note": "evidence_type 이 equivalence 이면 판정 기록의 `red` 필드는 스키마상 금지다(00-common §8.1). 이 측정은 판정 기록에 싣지 않고 여기와 checks.V2.basis 에만 쓴다."
+ },
+
+ "shape_check": {
+  "why": "2차 FAIL 사유가 '판정 유형 모양 불일치'였으므로 병합 전에 먼저 실측한다(같은 실수를 병합 뒤에 발견하지 않으려고).",
+  "method": "i3 를 다시 복제한 m3 에 모의 커밋을 만들고 base 판 merge_gate.receive(--old 869dbb8 --new <모의 audit>) 를 돌린다. 모의 커밋은 격리 복제본 안에서만 만들고 audit worktree·저장소는 건드리지 않는다.",
+  "equivalence": {
+   "mock_shape": "T a574f97 -> code 커밋 a6a705e(Role: code, A/tests/tools/derive_achievable_bounds.py 추가) -> 병합 M cd3d6e3(부모 = [a574f97, a6a705e], 트리 = code 끝 트리, Role: doc) -> audit 커밋 25f204a(Role: audit, .ai/verification/<id>.json)",
+   "M_tree_equals_code_tree": true,
+   "receive_returncode": 0,
+   "receive_fails": [],
+   "verdict": "PASS -- `equivalence` 모양은 base 판 merge gate 를 통과한다. merge_gate.receive 의 판정 분기는 ev in (red-green, equivalence) 하나이고, 이 분기는 (a) 병합 M 이 정확히 하나 (b) M 트리 = M^2 트리 (c) old..M^1 이 Role: test 첫 부모 사슬 (d) M^1..M^2 가 단일 부모 Role: code 커밋 1개 이상 (e) 커밋 집합이 정확히 그 합을 요구한다. 이번 변경은 전부 만족한다(code 커밋이 1개 이상이어야 한다는 (d) 를 도구 이동이 채운다)."
+  },
+  "control_test_only_shape": {
+   "mock_shape": "T a574f97 -> audit 커밋 3720239(병합 0, code 커밋 0, code_commit: null)",
+   "receive_returncode": 1,
+   "receive_stderr": "[EL4 거부] new의 부모가 이번 push의 병합 커밋 M(부모 둘)이 아니다",
+   "verdict": "거부 -- 모양 판정에 힘이 있음을 보인다(통과만 보이는 확인이 아니다). 1차 시도의 '[EL4 거부] test-only에 병합이 있다' 와 방향이 반대인 같은 판정이다: spec card 가 equivalence 인 지금은 병합·code 커밋이 **필수**다."
+  },
+  "consequence": "오케스트레이터에게: 순서 4·5(code 커밋)와 순서 6(--no-ff 병합, 트레일러 Role: doc·Change-Id, 병합 커밋 트리 = code 끝 트리)를 반드시 만들어야 한다. code 커밋이 0이면 merge gate 가 '코드 커밋이 없다'로 거부한다."
+ },
+
+ "equivalence_plan": {
+  "rule": "N4.2 V2 equivalence = test 커밋 불변 + base·병합본 모두 PASS + 유형별 동등 증명. spec card '판정 유형 근거'가 정한 증거 = E-LIB·E-INST(design 20-dead-code-dup §3) + 계약 2·3·5 대조. 선례 = .ai/verification/20260922-ts1-legacy-move.json.",
+  "commands_for_record": [
+   "E-LIB: $PY <scratch>/e_lib3.py <isoc> <out>/elib_<rev>.json  -- library 회로 전부(9개)의 load_topology 결과를 repr 정규화(역슬래시->슬래시, 복제본 루트->'<ROOT>')해 회로별 sha256 과 payload sha256 을 stdout 한 줄 JSON 으로 낸다(경로 비의존)",
+   "E-INST(파일럿): $PY <scratch>/e_inst3.py <isoc> current_reuse_telescopic_ota <ws> <out>/einst_<rev>_pilot.json -- run_harness.py 의 저장소 절대 경로 리터럴만 복제본·스크래치로 치환한 사본을 실행하고 instance.json 의 키 정렬 compact JSON sha256 을 낸다",
+   "E-INST(folded_cascode): 같은 형태",
+   "계약 2·3·5: $PY <scratch>/c235_3.py <clone> <rev> <out>/c235_<rev>.json -- 32 probe + 도구 1 에 대해 base 옛 자리 blob 과 새 자리 파일의 **바뀐 줄 전부**를 뽑고(작성자 판정기를 쓰지 않는 독립 구현), ASSETS 해석값·dirname 중첩 수·sys.path 삽입·절대 경로 리터럴 수를 낸다. stdout 은 경로 비의존 요약 한 줄 JSON",
+   "계약 6(수집 불변): $PY -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=<isoc> --confcutdir=<isoc> --gmid-phase=2 --gmid-strict= --collect-only -q <isoc>/skills/analog-gmid-design/assets/tests"
+  ],
+  "outputs_hash_definition": "위 5종 명령을 **이 순서대로** base(869dbb8)와 병합본에서 각각 실행한 표준출력 바이트를 이어 붙인 sha256(00-common §8.1). 기록하는 값은 병합본 쪽 이어붙인 바이트의 sha256이고, base 쪽 값과 E-INST 두 줄 말고는 같아야 한다.",
+  "outputs_hash_caveat": "E-INST 의 stdout 에는 복제본 경로가 들어간 instance.json 내용의 해시가 들어간다 -- 복제본 경로가 바뀌면 값이 바뀐다(20260922-ts1-legacy-move 와 같은 성질). 그래서 base·병합본을 **같은 경로 복제본(isoc3)** 에서 차례로 재고, 판정 기록에는 그 사실을 적는다.",
+  "measured_now_base_vs_T": {
+   "note": "T 는 base + test 커밋뿐이고 code 커밋은 tests/tools/ 아래 파일 하나를 더할 뿐이라(엔진이 import 하지 않는다) 여기서 잰 base vs T 결과가 base vs 병합본의 기대값이다. 순서 7 에서 병합본으로 다시 잰다.",
+   "E-LIB": {
+    "n_circuits": 9, "loaded_ok": 9,
+    "base_hash": "a3cfe21f292ad4ec16625527565bd731659e9623907aace524a9aa08824e9ce8",
+    "T_hash": "a3cfe21f292ad4ec16625527565bd731659e9623907aace524a9aa08824e9ce8",
+    "equal": true,
+    "cross_card_check": "같은 값이 P1 판정 기록(.ai/verification/20260923-probe-dead-delete/base_check.json)의 E-LIB 해시와 바이트 동일하다 -- base 8dfa539 -> 869dbb8 사이에도 library 로드 결과가 안 바뀌었다는 뜻"
+   },
+   "E-INST": {
+    "current_reuse_telescopic_ota": {"base": "d9afd9d67abea2f1139a63d00faf2a81ffea62e41f09eec3bac625b1fec754f4", "T": "d9afd9d67abea2f1139a63d00faf2a81ffea62e41f09eec3bac625b1fec754f4", "equal": true, "exit": 0, "n_sizing": 51},
+    "folded_cascode": {"base": "c22391e3d30710ee37cf1eeed43debbca950693c6fdac491790b3e334ad5394b", "T": "c22391e3d30710ee37cf1eeed43debbca950693c6fdac491790b3e334ad5394b", "equal": true, "exit": 0, "n_sizing": 13}
+   },
+   "collect_contract_6": {
+    "base_n": 318, "T_n": 351, "base_only": [], "base_subset_of_T": true,
+    "T_only_n": 33, "T_only_files": ["skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py"],
+    "base_set_sha256": "72edac9482812475f8d9b08013b6f6ec03cadd6d913e3184f275de9fe373d860",
+    "common_set_sha256": "72edac9482812475f8d9b08013b6f6ec03cadd6d913e3184f275de9fe373d860",
+    "probes_or_tools_collected": 0,
+    "wording_gap": "spec card 계약 6 은 '수집 test id 집합이 base 와 같다'고 적었지만 실측은 base ⊂ T 이고 T\\base = 새 계약 test 파일의 33건뿐이다. 옮긴 probe 는 수집에 0 영향(probes/ 에 test_*.py·*_test.py 0개, tools/ 는 pytest_gate.ini 의 norecursedirs=tools 로 제외). 계약 문언이 '이동이 수집을 바꾸지 않는다(base ⊆ 병합본, 추가분은 이 card 의 새 test 뿐)'를 뜻하는 것으로 읽고 그대로 판정했다 -- 오케스트레이터에게 문언 확인을 넘긴다."
+   },
+   "contract_2_3_4_5": {
+    "tool": "<scratch>/c235_3.py (auditor 독립 구현 -- 작성자 test 의 path_statement_lines/non_path_line_changes 를 import 하지 않는다)",
+    "n_probes_at_T": 32,
+    "total_changed_lines_base_to_T": 79,
+    "changed_lines_sha256": "4333acbfbf6cac40ad62a3032db850e22d9383f9aa98db370be82b114f91f7df",
+    "per_file_changed_line_counts": {"2줄": 25, "4줄": 6, "5줄": 1},
+    "auditor_line_by_line_verdict": "79줄 전부를 눈으로 훑었다. 바뀐 줄은 예외 없이 `ASSETS = ...` 대입과 `INST = ...` 대입 두 가지뿐이다. 계산·판정·assert·데이터 줄은 하나도 바뀌지 않았다(계약 2 성립).",
+    "contract_3_depth": {"pairs_base_to_new": [[0, 3], [2, 3]], "n_depth_2_to_3": 22, "spec_card_expected": 22, "match": true},
+    "contract_4_abs_literals": {"files_with_abs_literal_at_base": 12, "literals_at_base": 17, "literals_at_T": 0, "file_set_equals_spec_card_list": true},
+    "assets_resolves_to_A_at_T": "32/32 참(복제본의 skills/analog-gmid-design/assets 로 해석)",
+    "syspath_inserts_equal_to_base": "22/32 참. 나머지 10 은 base 의 ASSETS 가 **저장소 절대 경로 리터럴**(dirname 중첩 0)이어서 복제본에서는 base 쪽이 애초에 복제본 밖(실 저장소)을 가리킨다 -- 어긋남이 아니라 이 card 가 고치려는 결함 그 자체다(spec card 의도: '다른 기계·격리 복제본에서 실행조차 되지 않던 것'). 실 저장소에서는 그 리터럴이 A 와 같은 곳이므로 '이동 전과 같은 실제 경로' 는 유지된다.",
+    "tool_at_T": "A/tests/tools/derive_achievable_bounds.py 없음(code 커밋 대상). 계약 5 대조는 순서 7 에서 병합본으로 잰다."
+   }
+  }
+ },
+
+ "second_attempt_value_diff": {
+  "note": "2차 측정값을 재사용하지 않고 전부 다시 쟀다. 아래는 다시 잰 값과 2차 값의 대조다(2차 원자료는 scratchpad/p2b/* 에 남아 있다).",
+  "same": [
+   "수집: base 318 / T(2차 표기 head) 351 / base_only 0 / 새 id 33건이 모두 test_ts6_probe_relocate.py",
+   "probes/ 와 tools/ 에서 수집된 test 0건",
+   "E-INST n_sizing: 파일럿 51, folded_cascode 13, exit 0",
+   "E-LIB: 9회로 전부 로드 성공, base == 병합 대상",
+   "base FAIL 3건이 계약 5(도구 이동) test 3개라는 사실"
+  ],
+  "different": [
+   {"item": "수집 집합 sha256", "second": "9e0f905c6eb781f5a75c337d142f17005ac4d7c29b87d0353ff30484d21eb5f6", "third": "72edac9482812475f8d9b08013b6f6ec03cadd6d913e3184f275de9fe373d860", "why": "id 정규화 방식이 다르다(둘 다 자작). 집합의 크기(318/351)와 차집합(base_only 0, 새 파일 1개)은 같다. 내용 차이가 아니다."},
+   {"item": "E-INST 파일럿 sha256", "second": "13a239dd300283a64de6881594176c50ecafc4b6913240d6f6ff2339fad083a1", "third": "d9afd9d67abea2f1139a63d00faf2a81ffea62e41f09eec3bac625b1fec754f4", "why": "instance.json 안에 복제본 절대 경로가 들어가고 2차·3차의 복제본 디렉터리가 다르다. 같은 경로에서 잰 base==병합대상 동일성은 두 시도 모두 참. 경로 비의존 값이 아니라는 사실을 판정 기록에 적어야 한다."},
+   {"item": "E-INST folded_cascode sha256", "second": "6300101d1ed0beddcb25b507ac83409a6505ce0b14cfca89503148b71c0455d0", "third": "c22391e3d30710ee37cf1eeed43debbca950693c6fdac491790b3e334ad5394b", "why": "위와 같다"},
+   {"item": "판정 유형", "second": "test-only(spec card 939f926 판) -> 모양 거부", "third": "equivalence(spec card 869dbb8 판) -> 모양 통과", "why": "spec card 개정. 이번에는 병합 전에 모의 커밋으로 통과를 실측했다."},
+   {"item": "base 실행 요약", "second": "(2차는 test-only 전제라 base 대비 red 를 같은 뜻으로 재지 않았다)", "third": "3 failed / 333 passed / 15 xfailed, exit 1", "why": "3차에서 base 판 게이트로 T 전체를 새로 실행했다"}
+  ]
+ },
+
+ "open_issues_for_orchestrator": [
+  {
+   "id": "OI-1",
+   "what": "판정 유형이 문서 세 곳과 어긋난다",
+   "detail": "spec card(869dbb8 판)는 evidence_type: equivalence 다. 그런데 (a) 계획 N6.1 Phase 2 행의 판정 유형 칸은 `equivalence(TS6은 test-only, 운영 도구 이동은 code·test 두 커밋)` 이고 (b) 계획 N3.12.3 의 test 전용 목록(계획서 686~687행)은 'TS6의 probe 승격·삭제'만 test-only 로 든다(probe 이동은 목록에 없다) (c) design 20-dead-code-dup §8 P2 행의 '판정 유형' 칸은 `test-only(도구 이동은 code·test 두 커밋)` 이고 oracle 칸은 `(c) 이동 전후 동일성(E-AST)` 이다. 실측으로는 equivalence 만이 merge gate 를 통과하는 유일한 모양이다(test-only 는 병합·code 커밋을 금지하고, 도구 이동에는 code 커밋이 필요하다). 즉 spec card 가 맞고 N6.1·design §8 P2 표기가 낡았다.",
+   "needed": "N6.1 `Phase` 열은 EL3 의 계획서 판정 표 검사 대상이다 -- 값을 고치려면 target_kind: plan_tables 승인 기록이 필요하다. design §8 P2 행은 표 검사 대상이 아니므로 design 개정으로 맞출 수 있다. auditor 는 둘 다 고치지 않는다(쓰기 권한 밖)."
+  },
+  {
+   "id": "OI-2",
+   "what": "V2 equivalence 문언 '양쪽 PASS' 가 이 변경에서는 문자 그대로 성립하지 않는다",
+   "detail": "N4.2 V2 는 equivalence 를 'test 커밋 불변 + base·병합본 모두 PASS' 로 적는다. 이 변경은 test 커밋이 새 계약 test 33건을 더하고, 그중 계약 5 의 3건은 T(= base + test 커밋)에서 FAIL 한다 -- 계획 N3.11 TS6 이 도구 추가를 code 커밋으로 미뤘기 때문이다. 선례 20260922-ts1-legacy-move 의 V2 basis 는 '병합본 첫 부모 = T, code 커밋이 test 를 바꾸지 않았다' 를 '테스트 커밋 불변' 으로 읽었다(그 card 도 test 커밋이 파일을 옮겼다). 이 card 는 거기에 더해 base(=T) 에서 3건이 FAIL 하는 점이 다르다.",
+   "auditor_position": "순서 7 에서 V2 basis 에 (i) 기존 318 test 가 base·T·병합본에서 모두 PASS(회귀 0) (ii) 새 33건 중 30건은 T 에서 이미 PASS(이동은 test 커밋이 끝냈다) (iii) 남은 3건은 code 커밋이 만드는 A/tests/tools/ 파일에만 걸리고 병합본에서 PASS (iv) 동등 증명은 E-LIB·E-INST·계약 2/3/4/6 을 적어 판정할 계획이다. '양쪽 PASS' 를 '기존 test 집합이 양쪽에서 PASS' 로 읽는 것이 맞는지 오케스트레이터 확인이 필요하다.",
+   "needed": "오케스트레이터 확인. 계획서 N4.2 V2 문언 자체를 고치려면 승인 기록이 필요하다(N4.2 는 판정 표)."
+  },
+  {
+   "id": "OI-3",
+   "what": "design §8 P2 의 oracle 은 E-AST 인데 spec card 는 '경로 줄을 뺀 바이트 동일' 이다",
+   "detail": "E-AST(이관 동일성)는 'docstring 포함 ast.dump 가 base 와 병합본에서 같다' 인데, 이 card 는 경로 줄을 **바꾸는** 것이 목적이라 32개 중 32개의 ast.dump 가 달라진다. spec card 계약 2·3 이 그 자리를 대신한다(합리적). design 문서 표기를 맞추는 것이 좋다.",
+   "needed": "design 20-dead-code-dup §8 P2 oracle 칸 정정(auditor 권한 밖)."
+  },
+  {
+   "id": "OI-4",
+   "what": "test 파일의 _BASE_COMMIT 이 939f926(옛 base)이다",
+   "detail": "지금 base 869dbb8 과 assets/ 가 동일하고 939f926 이 조상이라 판정에 영향이 없음을 직접 확인했다(위 second_attempt_cross_check). 다만 base 가 다시 바뀌면 어긋난다.",
+   "needed": "선택. 고치면 test 커밋이 다시 만들어지고 이 base_check 의 freeze 가 무효가 된다 -- 3차에서는 고치지 말 것을 권한다."
+  }
+ ],
+
+ "next_steps": [
+  "순서 4·5: code-author 가 A/tests/tools/derive_achievable_bounds.py 를 추가한다(내용은 base 의 A/tests/derive_achievable_bounds.py 에서 경로 계산 줄만 tests/tools/ 깊이로 보정). Role: code 트레일러 필수.",
+  "순서 6: 오케스트레이터가 audit worktree 에서 code 브랜치를 --no-ff 로 병합(Role: doc, Change-Id, 병합 트리 = code 끝 트리).",
+  "순서 7: auditor 가 병합본 격리 복제본에서 V1~V10 을 재고 .ai/verification/20260923-probe-relocate.json 을 쓴다. equivalence.commands 는 위 equivalence_plan.commands_for_record 5종, outputs_hash 는 그 정의대로."
+ ]
+}
