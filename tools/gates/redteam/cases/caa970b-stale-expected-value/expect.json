@@ -8,5 +8,5 @@
  "phase": "1",
  "basis": "05 §13.3 재생 Phase 1",
  "title": "사례: caa970b (V2(red 부재))",
- "skip_reason": "재생 Phase 1(05 §13.3) -- 0.5 대상 아님"
+ "steps_from_records": true
 }

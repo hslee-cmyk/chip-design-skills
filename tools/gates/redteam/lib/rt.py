@@ -771,6 +771,28 @@ def a_pytest_candidates(ns):
 RED_TEST = "def test_rt_red():\n    assert 1 + 1 == 3\n"
 
 
+def gate_cache_copy(dst: Path) -> Path:
+    """§4.4 게이트 코드 캐시 판(시험 대상의 `tools/gates/**` -- redteam 제외)."""
+    shutil.copytree(sb.REPO / "tools/gates", dst, ignore=shutil.ignore_patterns("redteam", "__pycache__", "*.pyc"))
+    return dst
+
+
+def iso_common(cache: Path, root: Path) -> list[str]:
+    """§12-7·00-common §8.1: 캐시 판 `pytest_gate.ini`와 복제본 루트로 설정·conftest 탐색을 가둔 pytest 인자."""
+    return ["-m", "pytest", "-c", posix(cache / "pytest_gate.ini"), f"--rootdir={posix(root)}",
+            f"--confcutdir={posix(root)}"]
+
+
+def iso_cmd(cache: Path, root: Path, tests: str) -> list[str]:
+    """§12-7 격리 실행 명령 그대로: `$PY -P` + `iso_common` + red 수집 플러그인(`-p merge_gate`)."""
+    return [iface.PY, "-P"] + iso_common(cache, root) + ["-p", "merge_gate", "--continue-on-collection-errors", tests]
+
+
+def iso_env(cache: Path, pyc_empty: Path, capture: Path) -> dict:
+    """§12-7: 캐시 판을 `PYTHONPATH` 맨 앞, 커밋된 `__pycache__`를 읽지 않는 빈 prefix, red 수집 파일."""
+    return {"PYTHONPATH": str(cache), "PYTHONPYCACHEPREFIX": str(pyc_empty), "GMID_RED_CAPTURE": str(capture)}
+
+
 def a_isolated_run(ns):
     """§12-7·00-common §8.1 격리 실행 명령이 복제본 밖·복제본 루트에 심은 파일을 읽지 않는지 로그로 보인다
     (공격 17의 review33·review34 '로그로' 항목)."""
@@ -785,7 +807,7 @@ def a_isolated_run(ns):
     cache = base / "cache"
     shutil.rmtree(base, ignore_errors=True)
     # 캐시 판 게이트 코드
-    shutil.copytree(sb.REPO / "tools/gates", cache, ignore=shutil.ignore_patterns("redteam", "__pycache__", "*.pyc"))
+    gate_cache_copy(cache)
     # 복제본 부모에 심은 설정(review34 M3-02)
     write(parent / "pytest.ini", "[pytest]\naddopts = -k nothing_matches_PLANTED\n")
     write(parent / "conftest.py", "import sys\nprint('PLANTED parent conftest')\nsys.exit(0)\n")
@@ -809,12 +831,10 @@ def a_isolated_run(ns):
     empty.mkdir()
     cap = base / "red_capture.json"
     tests = posix(clone / "skills/analog-gmid-design/assets/tests")
-    ini = posix(cache / "pytest_gate.ini")
-    common = ["-m", "pytest", "-c", ini, f"--rootdir={posix(clone)}", f"--confcutdir={posix(clone)}"]
-    env_ok = {"PYTHONPATH": str(cache), "PYTHONPYCACHEPREFIX": str(empty), "GMID_RED_CAPTURE": str(cap)}
-    env_ok.pop("PYTHONDONTWRITEBYTECODE", None)
+    common = iso_common(cache, clone)
+    env_ok = iso_env(cache, empty, cap)
     # (1) 설계 명령: $PY -P + 캐시 PYTHONPATH + -c/--rootdir/--confcutdir + PYTHONPYCACHEPREFIX + -p merge_gate
-    cmd = [iface.PY, "-P"] + common + ["-p", "merge_gate", "--continue-on-collection-errors", tests]
+    cmd = iso_cmd(cache, clone, tests)
     r = subprocess.run(cmd, cwd=str(clone), capture_output=True, env=_env_keep_pyc(env_ok))
     record(ns.step, kind="attack", layer="pytest", status="ran", exit_code=r.returncode, stdout=dec(r.stdout),
            stderr=dec(r.stderr), cmd=_cmdstr(cmd), expect=exp_attack,
@@ -840,6 +860,81 @@ def _env_keep_pyc(extra, drop_prefix=False):
     if drop_prefix:
         env.pop("PYTHONPYCACHEPREFIX", None)
     return env
+
+
+# ----------------------------------------------------------------------------------------------------------
+# 사례 caa970b 재생(`10-test-separation` §6.9 C10): 합성 저장소에서 §12-7 격리 실행으로 red를 수집한다
+# ----------------------------------------------------------------------------------------------------------
+def lines_block(spec: dict) -> str:
+    """고정 커밋 blob의 줄 범위(1-based, 양끝 포함)를 §13.3 '원형 그대로'로 낸다(들여쓰기만 한 단계 벗긴다).
+    범위는 C1 `sections`(`tools/migrate/extract_selftest.py sections`) 출력의 섹션 `start`·`end`다 --
+    어느 섹션인지는 케이스 파일의 `note`에 적는다."""
+    src = sb.repo_read("show", spec["git"]).decode("utf-8").splitlines()
+    body = src[spec["start"] - 1:spec["end"]]
+    if not [ln for ln in body if ln.strip()]:
+        raise RuntimeError(f"빈 줄 범위: {spec}")
+    indent = min(len(ln) - len(ln.lstrip()) for ln in body if ln.strip())
+    return "\n".join(ln[indent:] if ln.strip() else "" for ln in body) + "\n"
+
+
+def compose_file(spec, S):
+    """`parts`(앞 섹션 줄 범위 `lines` · 섹션 변환 `section` · 글자 그대로)를 이어 붙여 파일 하나로.
+    `parts`가 없으면 그대로 둔다(기존 케이스의 파일 명세는 바뀌지 않는다)."""
+    if not (isinstance(spec, dict) and "parts" in spec):
+        return spec
+    out = [lines_block(p["lines"]) if isinstance(p, dict) and "lines" in p else _file_content(p, S).decode("utf-8")
+           for p in spec["parts"]]
+    rest = {k: v for k, v in spec.items() if k != "parts"}
+    rest["text"] = "".join(out)
+    return rest
+
+
+def a_redrun(ns):
+    """합성 저장소(`build_vrepo`)의 head 트리에서 §12-7 격리 실행 명령 그대로(`iso_cmd`·`iso_env`) 돌려
+    red 수집 결과(건수·test id·예외 타입)를 단계 기록에 남긴다.
+    단계의 `exit`은 계획 N4.2 V2 판정이다: red-green의 red는 base에서 실패해야 하므로 **수집 0건이면 거부(1)**,
+    1건 이상이면 통과(0). pytest 자체의 종료 코드는 관찰값 `pytest_exit`로 따로 남긴다."""
+    S = st()
+    spec = json.loads((CASE_DIR / ns.file).read_text(encoding="utf-8"))
+    for case in spec["cases"]:
+        name = case["step"]
+        kind = case.get("kind", "attack")
+        layer = case.get("layer", "V2")
+        exp = case.get("expect")
+        # red 수집 플러그인은 merge gate 모듈(00-common §8.1), 설정 파일은 pytest_gate.ini(§13.1 ①)
+        if not need(name, kind, layer, "PYTEST_INI", "EL4", expect=exp):
+            continue
+        try:
+            head = {p: compose_file(s, S) for p, s in case.get("head", {}).items()}
+            root, _, _, _ = build_vrepo(S, name, dict(case, head=head))
+        except Missing as e:
+            record(name, kind=kind, layer=layer, status="missing", missing=e.paths, expect=exp)
+            continue
+        d = WORK / "red" / name
+        shutil.rmtree(d, ignore_errors=True)
+        cache = gate_cache_copy(d / "cache")
+        empty = d / "pyc-empty"
+        empty.mkdir(parents=True)
+        cap = d / "red_capture.json"
+        tests = posix(root / case.get("tests_dir", "skills/analog-gmid-design/assets/tests"))
+        cmd = iso_cmd(cache, root, tests)
+        try:
+            r = subprocess.run(cmd, cwd=str(root), capture_output=True,
+                               env=_env_keep_pyc(iso_env(cache, empty, cap)), timeout=1800)
+        except subprocess.TimeoutExpired as e:
+            record(name, kind=kind, layer=layer, status="ran", exit_code="timeout", cmd=_cmdstr(cmd),
+                   note=f"timeout {e}", expect=exp)
+            continue
+        reds = []
+        if cap.exists():
+            reds = [json.loads(ln) for ln in cap.read_text(encoding="utf-8").splitlines() if ln.strip()]
+        observed = {"pytest_exit": r.returncode, "red_count": len(reds),
+                    "red_test_ids": [x.get("test_id") for x in reds],
+                    "red_exc_types": [x.get("exc_type") for x in reds]}
+        record(name, kind=kind, layer=layer, status="ran", exit_code=(1 if not reds else 0), stdout=dec(r.stdout),
+               stderr=dec(r.stderr), cmd=_cmdstr(cmd), expect=exp, observed=observed,
+               note=(case.get("note", "") + f" | exit = V2 판정(red 수집 {len(reds)}건 -> "
+                     f"{'red 부재로 거부' if not reds else '통과'}), pytest exit {r.returncode}"))
 
 
 # ----------------------------------------------------------------------------------------------------------
@@ -1162,6 +1257,10 @@ def main(argv=None):
     s = sp.add_parser("isolated-run")
     s.add_argument("step")
     s.set_defaults(fn=a_isolated_run)
+
+    s = sp.add_parser("redrun")
+    s.add_argument("file", help="CASE_DIR 기준 케이스 파일(단계마다 base·head·expect)")
+    s.set_defaults(fn=a_redrun)
 
     s = sp.add_parser("enc")
     s.add_argument("step")

@@ -1,0 +1,142 @@
+{
+ "note": [
+  "사례 caa970b(05 §13.3 재생 Phase 1, 10-test-separation §6.9 C10): L4 self-test가 결함 동작(전역 metric 재검증 건너뛰기)을",
+  "기대값으로 박제해, 결함이 있는 base에서 그대로 PASS한다 -- red-green의 red가 되지 못한다(V2 'red 부재').",
+  "base 트리 = caa970b의 sizing_recipe.py와 그것이 import하는 같은 커밋의 assets/*.py(stick_diagram·topology_library.",
+  "caa970b:sizing_recipe.py의 import는 __future__·collections·dataclasses·itertools·json·math·numpy·operator·os·",
+  "stick_diagram·sys·tempfile·topology_library·typing이고 이 중 assets/*.py는 두 개다).",
+  "head = 그 커밋 L4 섹션(표지 '  [L4 revalidate_finger_override()')의 §13.3 변환 + 그 섹션이 읽는 앞 섹션.",
+  "앞 섹션은 C1 sections(tools/migrate/extract_selftest.py sections) 출력에서 찾았다: L4는 섹션 13(범주 A)이고",
+  "deps = [{name: lut, section: 1}], 섹션 1(줄 2429-2441)의 deps = 섹션 0(prelude P, 줄 2409-2427)의 이름들이다.",
+  "머리의 sys.path 삽입과 wildcard import는 섹션이 sizing_recipe 모듈 전역(if __name__ 블록 안)에서 돌던 이름을",
+  "test 파일에서 같은 이름으로 보이게 하는 것뿐이고, 섹션 본문·리터럴·판정은 원형 그대로다."
+ ],
+ "cases": [
+  {
+   "step": "attack",
+   "kind": "attack",
+   "layer": "V2(red 부재)",
+   "note": "caa970b 판 단언(unaffected_metrics_skipped == [\"other_current\"])을 base(caa970b)에서 실행",
+   "base": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": {
+     "git": "caa970b:skills/analog-gmid-design/assets/sizing_recipe.py"
+    },
+    "skills/analog-gmid-design/assets/stick_diagram.py": {
+     "git": "caa970b:skills/analog-gmid-design/assets/stick_diagram.py"
+    },
+    "skills/analog-gmid-design/assets/topology_library.py": {
+     "git": "caa970b:skills/analog-gmid-design/assets/topology_library.py"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_caa970b_l4.py": {
+     "parts": [
+      "import pathlib\nimport sys\n\nsys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))\n\nfrom sizing_recipe import *  # noqa: F401,F403\n\n",
+      {
+       "lines": {
+        "git": "caa970b:skills/analog-gmid-design/assets/sizing_recipe.py",
+        "start": 2409,
+        "end": 2427
+       }
+      },
+      "\n",
+      {
+       "lines": {
+        "git": "caa970b:skills/analog-gmid-design/assets/sizing_recipe.py",
+        "start": 2429,
+        "end": 2441
+       }
+      },
+      "\n\n",
+      {
+       "section": {
+        "git": "caa970b:skills/analog-gmid-design/assets/sizing_recipe.py",
+        "marker": "  [L4 revalidate_finger_override()",
+        "def": "test_caa970b_l4"
+       }
+      }
+     ]
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V2(red 부재)",
+    "observed_equals": {
+     "pytest_exit": 0,
+     "red_count": 0,
+     "red_test_ids": [],
+     "red_exc_types": []
+    },
+    "basis": "계획 N4.2 V2(red-green: 새·바뀐 test가 base에서 assertion FAIL): 박제된 기대값은 결함이 있는 base에서 PASS라 red 수집이 0건 -- 'red 부재'로 거부(exit 1)"
+   }
+  },
+  {
+   "step": "control",
+   "kind": "control",
+   "layer": "V2(red 부재)",
+   "note": "같은 base에 단언만 d32811b 판(== [])으로 바꾼 test -- 오거부 0",
+   "base": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": {
+     "git": "caa970b:skills/analog-gmid-design/assets/sizing_recipe.py"
+    },
+    "skills/analog-gmid-design/assets/stick_diagram.py": {
+     "git": "caa970b:skills/analog-gmid-design/assets/stick_diagram.py"
+    },
+    "skills/analog-gmid-design/assets/topology_library.py": {
+     "git": "caa970b:skills/analog-gmid-design/assets/topology_library.py"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/tests/test_caa970b_l4.py": {
+     "parts": [
+      "import pathlib\nimport sys\n\nsys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))\n\nfrom sizing_recipe import *  # noqa: F401,F403\n\n",
+      {
+       "lines": {
+        "git": "caa970b:skills/analog-gmid-design/assets/sizing_recipe.py",
+        "start": 2409,
+        "end": 2427
+       }
+      },
+      "\n",
+      {
+       "lines": {
+        "git": "caa970b:skills/analog-gmid-design/assets/sizing_recipe.py",
+        "start": 2429,
+        "end": 2441
+       }
+      },
+      "\n\n",
+      {
+       "section": {
+        "git": "caa970b:skills/analog-gmid-design/assets/sizing_recipe.py",
+        "marker": "  [L4 revalidate_finger_override()",
+        "def": "test_caa970b_l4"
+       }
+      }
+     ],
+     "replace": [
+      [
+       "unaffected_metrics_skipped\"] == [\"other_current\"]",
+       "unaffected_metrics_skipped\"] == []"
+      ]
+     ]
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V2(red 부재)",
+    "observed_equals": {
+     "pytest_exit": 1,
+     "red_count": 1,
+     "red_test_ids": [
+      "skills/analog-gmid-design/assets/tests/test_caa970b_l4.py::test_caa970b_l4"
+     ],
+     "red_exc_types": [
+      "builtins.AssertionError"
+     ]
+    },
+    "basis": "d32811b가 그 최적화를 폐기해 고친 뒤의 단언(== [])은 base에서 AssertionError로 실패한다 = red 1건(00-common §8.1 red 수집) -- 거부되지 않아야 한다"
+   }
+  }
+ ]
+}
