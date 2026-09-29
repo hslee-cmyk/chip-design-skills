@@ -14918,3 +14918,8 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   * `20260923-d-delete-telescopic` (P5b) -- telescopic 사슬 9개 + 레지스트리 키 4개 삭제. 선언 도달 가능하므로 G-3(b)+G-4+NEW-TOPO 증거 필수.
 - 아직 spec card가 없는 것: P4(probe 엔진 복제 제거 + tests/tools/probe_dup_scan.py 신설), P6(test 전용 함수 이관), P7(레지스트리 등급 정정 9개), P8(W 계산 인라인 6곳 -- **통합 방향은 `size_transistor` 호출이 아니라 식 함수 추출**. 핫루프가 `_sizing_bundle` 배치 조회를 쓰므로 호출로 바꾸면 LUT 재조회가 생긴다), P9(KCL 엣지), P10(DF-23 전수 목록 문서화).
 - 대기 중인 사용자 결정: (1) `.gitignore`에 tests/probes/·tests/tools/ 산출물 패턴 5줄 추가(사용자가 직접 반영하기로 함, 아직 미반영) (2) folded_cascode·nmcnr_amplifier 신호 경로 선언 -- 6a 공동분석에서 함께 보기로 함.
+
+
+- 세션 2026-09-29: 세션 시작 hook 348초(86구간 row3b 전 구간 재판정, cProfile) -> 게이트 변경 `20260929-rejudge-cache` 착수.
+  사용자 결정: N-06은 위협 범위 N3.12.0상 의도적 공격 -> §13.5 알려진 한계로 재분류, 재판정 통과 캐시(마지막 줄 항상 재판정).
+  f8509d3(05 §3.3·§13.2 22f·§13.5 + spec card) 승인 `20260929-rejudge-cache`. 다음: §12 순서 0 push -> 1~8. 반영 뒤 사용자 §13.4 재설치 필요.
