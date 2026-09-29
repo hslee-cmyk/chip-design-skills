@@ -15,7 +15,8 @@ code 커밋이 없다(test-only).
 
 ## 관찰 가능한 계약
 
-1. `A/tests/unit/test_physical_consistency.py`가 생기고 `A/tests/probe_physical_consistency.py`가 없어진다.
+1. `A/tests/unit/test_probe_physical_consistency.py`가 생기고 `A/tests/probe_physical_consistency.py`가 없어진다. 이름은 P3a 승격 규칙
+   `unit/test_<probe 파일 이름>`을 따른다 -- P1·P3a 계약 test가 이 규칙으로 승격본을 센다(2026-09-29 착수 전 개정, P3b 1차 시도 실패와 같은 결함).
 2. **B7-(i) 승격**: 노드전압 전파가 **순회 순서에 의존하지 않는다**를 판정한다. 원본처럼 순서를 바꿔 두 번 돌리고 결과 노드전압이 같아야 한다. 다중 도달 불일치가 있으면 그 목록이 판정에 나온다(조용히 넘어가지 않는다).
 3. **B8 승격**: 노드별 KCL 잔차가 **선언된 허용 범위 안**이어야 한다. 임계값을 새로 지어내지 않는다 -- 엔진이 이미 쓰는 판정(`_metric_kcl_residual`의 기준)이나 spec 선언에서 읽고, 읽을 곳이 없으면 그 사실을 보고하고 멈춘다(WP-03 숫자 금지).
 4. **B9는 옮기지 않는다**. 판정 기록과 test 파일 docstring에 사유를 적는다(읽는 필드가 바뀌어 무동작, 정의는 회로 해석 대상).
