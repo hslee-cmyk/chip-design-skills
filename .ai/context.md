@@ -14945,3 +14945,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   다음: P5b(20260923-d-delete-telescopic) -- G-3(b)+G-4+NEW-TOPO 증거 필수.
 
 - P5b 20260923-d-delete-telescopic 1차 시도(test 3adc173): V5 FAIL(unit test s066·s068·s069 삭제) -> R1 운반 + 사용자 승인 20260929-p5b-chain-tests(diff fe5a50f5). auditor가 고아 상수 _TELESCOPIC_FIXED_BASE·필드 SizingContext._open_loop_gains_cache와 옛 줄 번호를 찾아 spec card 계약 1·7 개정(승인 질문에 포함). base 기준값(C:/g8/eq, 스크립트 C:/g8/scripts): E-LIB fc5aaca5, NEW-TOPO 2d31e4e2, E-INST 파일럿 a36b6e16·folded 24cbd7f5. 1차 base_check는 세션 scratchpad p5b_base_check_1st.json. 다음: 2차 시도(test-author가 paths.tsv대로 blob cp + 계약 test에 이름 2개 추가).
+
+- P5b 20260923-d-delete-telescopic 완료(gate d7bce7a, 2차 시도, equivalence): 파일럿 전용 telescopic CMRR·PSRR 폐형식 사슬 삭제 -- 정의 9·상수 _TELESCOPIC_FIXED_BASE·필드 _open_loop_gains_cache·레지스트리 키 4(test bd66072, code 6612902 +15/-441, M d473f65). V1 470 passed/15 xfailed, red 8 -> green, V5 approved(20260929-p5b-chain-tests), E-LIB fc5aaca5·NEW-TOPO 2d31e4e2·E-INST 파일럿 a36b6e16·folded 24cbd7f5 base와 동일, 순수 삭제 AST 확인(남은 def 본문 base와 같음). R1 운반 디렉터리 삭제. _CMRR/_PSRR_ESTIMATOR_REGISTRY는 diff_pair_tail 하나만 남음.
+  관찰: code-author가 큰 범위 삭제를 줄 번호 스크립트로 함(지침은 Edit) -- auditor AST 대조로 범위 정확 확인. 남긴 test_s065_section·s067_family의 docstring·주석이 삭제된 폐형식을 동기로 적음(AST 참조 아님) -> B22에 합류.
+  Phase 2 남은 card: P3c(보류, B21), P4·P6·P7·P8·P9·P10(spec card 아직 없음).
