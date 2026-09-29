@@ -2935,23 +2935,16 @@ class SizingContext:
     mirror_ratios: dict = field(default_factory=dict)
     topology_path: str = ""
     kind_of: dict = field(default_factory=dict)
-    # 2026-08-13(세션31 감사 발견) -- `_telescopic_class_ab_open_loop_gains()`가 매번 31노드
-    # MNA 4개(Adm/Acm/Ann/H)를 새로 푸는데, `_cmrr_telescopic_class_ab_cmfb()`와 `_psrr_
-    # telescopic_class_ab_cmfb()`가 (완전히 동일한 metric_spec으로) 각자 독립 호출해 한
-    # 세타평가당 8개를 풀고 있었다(각자 절반은 `del`로 바로 버림). 이 ctx는 한 세타평가
-    # 동안만 살아있는 일회용 객체라 여기 캐시해도 이전 세타점 결과가 새는 위험이 없다.
-    _open_loop_gains_cache: dict = field(default_factory=dict)
     # 2026-08-19(세션37) -- `_nmcnr_predict()`(nmcnr_amplifier의 gain_db/pm_deg가 공유)가
-    # `nmcnr_predict_ac_response()`(4-노드 KCL, 2000점 주파수 스윕) 결과를 캐싱 -- 위 `_open_loop_
-    # gains_cache`와 동일한 이유(gain_db/pm_deg 두 metric이 같은 세타평가에서 완전히 동일한
-    # 입력으로 각자 호출하므로 캐시 없인 스윕을 2번 돈다), 다만 반환 dict 구조가 달라 별도 필드로 분리.
+    # `nmcnr_predict_ac_response()`(4-노드 KCL, 2000점 주파수 스윕) 결과를 캐싱 -- gain_db/pm_deg 두 metric이
+    # 같은 세타평가에서 완전히 동일한 입력으로 각자 호출하므로 캐시 없인 스윕을 2번 돈다.
     _nmcnr_predict_cache: dict = field(default_factory=dict)
     # 2026-09-03(세션44 계속) -- `_resolve_nulling_resistor_ohm()`(Rz=1/gm(ref_device),
     # Miller Cc+Rz 널링저항의 RHP-zero 상쇄 공식)가 참조하는 소자의 gm은 이 회로에서
     # SLSQP 자유변수 5개 어디에도 안 걸려(L_stage2out_p/n이 presolve에서 미리 확정)
     # 한 SLSQP 탐색 전체 동안 사실상 상수인데, `_full_circuit_devices()`가 cmrr/psrr/
     # gain_full_circuit_db 계산마다(한 세타평가당 여러 번) 새로 MNA를 조립하면서 매번
-    # `1/gm`을 다시 계산하면 낭비다(사용자 지적) -- `_open_loop_gains_cache`와 동일한
+    # `1/gm`을 다시 계산하면 낭비다(사용자 지적) -- `_nmcnr_predict_cache`와 동일한
     # 이유로 ctx(한 세타평가 동안만 사는 일회용 객체)에 캐시한다.
     _nulling_resistor_cache: dict = field(default_factory=dict)
 
@@ -3005,7 +2998,7 @@ def _metric_folded_cascode_gain_db(spec: dict, ctx: SizingContext) -> float:
     """F엔진(2026-08-15 세션35 신설) -- 단일 스테이지 folded-cascode의 DC 이득 표준 폐형식
     (문헌 표준: Razavi *Design of Analog CMOS Integrated Circuits* 등이 공통으로 주는
     `Adm = gm1·(Rout_p‖Rout_n)` 형태 -- diffpair 한쪽 다리의 gm과 병렬 출력저항의 곱).
-    이 프로젝트의 다른 CMRR/PSRR 폐형식(예: `_cmrr_telescopic_class_ab`)과 달리 sympy
+    이 프로젝트의 다른 CMRR/PSRR 폐형식과 달리 sympy
     전수 유도·ngspice 교차검증은 아직 안 했다(2026-08-15 세션35, 사용자 승인 범위 --
     "gain은 잘 알려진 표준식이라 유도 리스크가 낮다"는 전제로 우선 등록, 최종 확인은
     SPICE가 필요하다는 이 프로젝트의 일반 원칙 그대로 적용).
@@ -3024,7 +3017,7 @@ def _metric_folded_cascode_pm_deg(spec: dict, ctx: SizingContext) -> float:
     캐스코드 소스단이 낮은 임피던스를 만드는 표준 근사)와 그 노드의 기생 커패시턴스로
     추정: `p2 = gm(cascode_p) / (2π·C_fold)`.
 
-    ⚠️ **정직한 한계**(`_psrr_telescopic_class_ab`류와 같은 투명성 원칙): (1) `C_fold`는
+    ⚠️ **정직한 한계**(이 프로젝트의 다른 폐형식 추정과 같은 투명성 원칙): (1) `C_fold`는
     폴딩 노드에 물린 소자들의 `cgg_absolute()`(게이트 커패시턴스) 합으로 근사한다 -- 이
     프로젝트 LUT가 drain/source 접합 커패시턴스(Cdb/Csb) 모델을 갖고 있지 않아서 쓰는
     대체 근사이지 그 노드의 진짜 지배 성분(주로 Cdb/Csb)을 직접 모델링한 것이 아니다.
@@ -3079,7 +3072,7 @@ def _nmcnr_predict(spec: dict, ctx: SizingContext) -> dict:
     교차검증까지 이미 완료된 함수, `.ai/context.md` 세션 2026-07-31 참고)를 이 회로의
     **실사이징값**으로 호출하는 공유 헬퍼 — `_metric_nmcnr_gain_db`/`_metric_nmcnr_pm_deg`가
     같은 세타평가에서 동일 입력으로 각자 호출하므로 `ctx._nmcnr_predict_cache`로 캐싱한다
-    (`_telescopic_class_ab_open_loop_gains()`와 동일 이유·동일 캐시 키 관례).
+    (같은 세타평가에서 동일 입력으로 반복 호출되는 결과를 ctx에 캐시하는 관례).
 
     ⚠️ 이 함수가 나오기 전까지 `nmcnr_predict_ac_response()`는 `topology_library.py` `__main__`의
     스모크테스트(손으로 옮긴 논문 실측 gain/gm 조합)로만 쓰였고 실제 사이징 파이프라인에
@@ -4782,139 +4775,6 @@ def _cmrr_diff_pair_tail(metric_spec: dict, ctx: SizingContext) -> float:
     return 20 * math.log10(cmrr_linear)
 
 
-def _cmrr_telescopic_class_ab(metric_spec: dict, ctx: SizingContext) -> float:
-    """`circuit_family="telescopic_class_ab"` — current-reuse telescopic 1단(Xie&Chen
-    논문 Fig.2, current_reuse_telescopic_ota)의 **open-loop**(CMFB 루프 제외) CMRR.
-    논문 자체엔 CMRR 폐형식이 없어서(시뮬레이션 수치 94.4dB만 보고) 2026-07-31에 처음
-    유도했고, **2026-08-03에 확정된 topology.json으로 처음부터 재유도**했다
-    (`workspaces/current-reuse-telescopic-ota-report/spice/stage1_cmrr_sympy_derivation.py`
-    = sympy 정확해, `.../stage1_cmrr_ngspice_crosscheck.py` = ngspice AC 교차검증).
-
-    **위상(topology.json이 유일한 소스, load_topology()로 확인 -- self-test가 강제)**::
-
-        vdd ─ M6∥M7(tail, Rx) ─ Vx ─ M1a(입력,gate=Vip) ─ N1a2a ─ M2a(캐스코드) ─┐
-                                                                                Vom1
-        gnd ─ M5(tail, Ry) ───── Vy ─ M4a(입력,gate=Vip) ─ N3a4a ─ M3a(캐스코드) ─┘
-
-    즉 PMOS 경로(M1a→M2a)와 NMOS 경로(M4a→M3a)는 **각각 독립된 tail(Vx/Vy)에서 출발한
-    별개의 캐스코드 가지**이고, 출력노드 Vom1에서 **드레인끼리 만난다**(current-reuse).
-    ⚠️ `M2a.drain == M3a.source`인 **직렬 텔레스코픽 기둥이 아니다** -- 2026-08-03 이전
-    self-test의 assert가 바로 그 옛 가정을 검사하고 있었고(그래서 확정 JSON에서 실패했다),
-    지금은 `M1a.drain == M2a.source`(PMOS 직렬 캐스코드), `M4a.drain == M3a.source`
-    (NMOS 직렬 캐스코드), `M2a.drain == M3a.drain == Vom1`(드레인 합류)을 검사한다.
-
-    **유도**(sympy, 위 위상으로 자동 조립한 MNA 정확해의 gm·ro≫1 leading order --
-    아래 두 식은 정확해의 leading order와 **기호적으로 동일**함을 확인했다)::
-
-        Kp' = gm(M2a)·ro(M1a)·ro(M2a)      # PMOS 가지가 Vom1에서 보이는 캐스코드 임피던스
-        Kn' = gm(M3a)·ro(M4a)·ro(M3a)      # NMOS 가지 쪽
-        Kp  = gm(M1a)·Kp' ,  Kn = gm(M4a)·Kn'
-        Rx  = 1/Σgds(tail_p_devices) ,  Ry = 1/gds(tail_n_device)
-
-        Adm = (gm(M1a)+gm(M4a)) · (Kp' ∥ Kn')
-        Acm = (Rx+Ry)·Kp·Kn / (Kn·Ry + Kp·Rx)          (부호는 음수, 크기만 씀)
-        CMRR = 20·log10(Adm/Acm)
-
-    Acm 식의 의미: CM에서 두 가지는 각각 tail로 소스축퇴돼 CM 전달컨덕턴스가 1/(2Rx),
-    1/(2Ry)로 **바닥이 정해지고**, 출력임피던스는 2Kp·Rx, 2Kn·Ry로 부스팅된다. 두 가지가
-    Vom1에서 병렬로 만나므로 **한쪽 tail 임피던스만 키워도 CMRR이 무한정 좋아지지 않고
-    다른 쪽 가지가 만드는 바닥(floor)에 수렴**한다(단순 `diff_pair_tail`의 "gm·R_tail"
-    직관과 다름). 실제로 이 open-loop CMRR은 물리적 범위에서 수 dB를 넘지 못한다 --
-    논문의 94.4dB를 설명하는 건 CMFB 루프이고, 그건 `telescopic_class_ab_cmfb` family다.
-
-    ⚠️ **2026-08-03 정정 2건**:
-    (1) 위상 assert(위 참조).
-    (2) 캐스코드 부스팅 계수에 옛 식은 **입력쌍의 gm**(gm(M1a)/gm(M4a))을 썼으나, 정확한
-        노드해석 결과 들어가야 하는 것은 **캐스코드 소자의 gm**(gm(M2a)/gm(M3a))이다
-        (`Kp' = gm(M2a)/(gds(M1a)·gds(M2a))`). 옛 SPICE 대조가 모든 gm을 119µS로 같게
-        놓고 이뤄져서 이 차이가 드러나지 않았다. `telescopic_class_ab_cmfb`(2026-08-03)는
-        이미 캐스코드 gm을 쓰고 있었으므로 이 함수만 어긋나 있었다 -- 이제 두 family가
-        같은 Kp'/Kn' 정의를 쓴다. ngspice 실측 대조(파라미터 ±4배 랜덤 20점):
-        새 식 최대오차 **0.80dB**, 옛(입력 gm) 식 최대오차 **11.95dB**.
-
-    정확도: 위 leading order는 SPICE 정확해 대비 ±4배 랜덤 스윕 전 구간에서 최대 0.8dB
-    (전형 0.1dB) -- 탐색용으로는 충분하나 최종 확인은 SPICE AC 시뮬레이션 권장.
-
-    metric_spec 키: `input_p`/`cascode_p`(PMOS 입력쌍 M1a·PMOS 캐스코드 M2a),
-    `input_n`/`cascode_n`(NMOS 입력쌍 M4a·NMOS 캐스코드 M3a), `tail_p_devices`
-    (PMOS tail 전류원 목록, 예 [M6,M7] -- gds 병렬합), `tail_n_device`(NMOS tail, 예 M5).
-    ⚠️ `cascode_p`/`cascode_n`은 이제 `gds`뿐 아니라 **`gm`도** 필요하다(정정 2)."""
-    gmp = ctx.sized[metric_spec["input_p"]]["gm"]
-    rop1 = 1.0 / ctx.sized[metric_spec["input_p"]]["gds"]
-    gmcp = ctx.sized[metric_spec["cascode_p"]]["gm"]
-    rop2 = 1.0 / ctx.sized[metric_spec["cascode_p"]]["gds"]
-    gmn = ctx.sized[metric_spec["input_n"]]["gm"]
-    ron1 = 1.0 / ctx.sized[metric_spec["input_n"]]["gds"]
-    gmcn = ctx.sized[metric_spec["cascode_n"]]["gm"]
-    ron2 = 1.0 / ctx.sized[metric_spec["cascode_n"]]["gds"]
-    gds_tail_p = sum(ctx.sized[d]["gds"] for d in metric_spec["tail_p_devices"])
-    Rx = 1.0 / gds_tail_p
-    Ry = 1.0 / ctx.sized[metric_spec["tail_n_device"]]["gds"]
-
-    # 캐스코드 부스팅 계수 = **캐스코드 소자**의 gm x 두 ro의 곱(입력쌍 gm이 아니다).
-    Kp_prime = gmcp * rop1 * rop2   # PMOS 가지(M1a-M2a)가 Vom1에서 보이는 출력임피던스
-    Kn_prime = gmcn * ron1 * ron2   # NMOS 가지(M4a-M3a) 쪽
-    R_out = Kp_prime * Kn_prime / (Kp_prime + Kn_prime)   # 드레인끼리 만나므로 '병렬'
-    Adm = (gmp + gmn) * R_out
-
-    Kp = gmp * Kp_prime
-    Kn = gmn * Kn_prime
-    Acm = Kn * Kp * (Rx + Ry) / (Kn * Ry + Kp * Rx)
-
-    return 20 * math.log10(Adm / Acm)
-
-
-def _cmfb_amp_gain_diode_load(metric_spec: dict, ctx: SizingContext) -> float:
-    """`telescopic_class_ab_cmfb`의 부품: CMFB 에러앰프(Xie&Chen Fig.5)의 소신호 이득
-    `A_c = v(Vcmfb)/v(Voc)`. **근사 없는 정확해**(sympy 정확해와 기호적으로 동일함을 확인,
-    2026-08-03 배치 7-5c).
-
-    **회로**(topology.json `_correction_log_5`, PDF 벡터 좌표로 확정): M37a(gate=Voc)/
-    M37b(gate=Voc_des)가 M38 tail을 공유하는 NMOS 차동쌍이고, **양쪽 부하가 서로 무관한
-    독립 PMOS diode**다(M36a는 M37a 쪽, M36b는 M37b 쪽 -- 두 게이트는 연결돼 있지 않다).
-    출력 `Vcmfb`는 M36a의 diode 노드 그 자체(=M37a.drain)에서 single-ended로 뽑는다.
-
-    ⚠️ **이전 버전(`_cmfb_amp_gain_5t_replica`, 커밋 b63e394)은 폐기됐다**: 그 함수는
-    M36a/M36b를 current mirror로, M39/M40이 만드는 Voc_des를 고임피던스 replica 노드로
-    가정했으나 둘 다 오독이었다. 실제로는 M39/M40이 **PMOS diode 2개짜리 저임피던스
-    분압기**(VDD-M39-Voc_des-M40-GND)라 소신호로 `v(Voc_des) = 0`이다(sympy 정확해로 확인:
-    노드 Voc_des의 자기 컨덕턴스가 gm39+gds39+gm40+gds40이고 구동원이 없다). 즉 **M39/M40은
-    이 이득식에 아예 등장하지 않는다** -- 이전 유도의 'Voc_des가 Voc를 따라가 gm37이 소거된다'
-    는 서술도 함께 폐기.
-
-    **유도**: 노드 3개(Vcmfb=vc, N36b=vb, Ncmfb_tail=vt) KCL. `a=gm36a+gds36a`,
-    `b=gm36b+gds36b`로 두면 diode 부하가 각각 `a`, `b`의 컨덕턴스로 접지에 매달리고
-    ```
-      vc·(a+gds37a) = (gm37a+gds37a)·vt − gm37a·voc          (Vcmfb KCL)
-      vb·(b+gds37b) = (gm37b+gds37b)·vt                      (N36b KCL)
-      a·vc + b·vb + gds38·vt = 0                             (세 식의 합 = tail KCL)
-    ```
-    를 vt에 대해 풀면 아래 폐형식이 된다. leading order(모든 gds→0):
-    `A_c → −gm37a·gm37b / (gm36a·(gm37a+gm37b))`, 즉 gm37a≈gm37b면 **−gm37/(2·gm36)**
-    (다이오드 부하 차동쌍의 교과서 결과 그대로). 이전 식과 달리 두 O(gds) 항의 차가
-    아니라서 수치적으로 안정하다(정확해 대비 leading order 오차 ~2%, 실측).
-
-    ⚠️ **부호**: 정상 동작에서 `A_c < 0`이다(Voc가 오르면 M37a가 더 흘려 diode 노드 Vcmfb가
-    내려간다). 이건 고장이 아니라 이 회로의 정상 부호다 -- CM 루프의 음귀환 여부는 A_c
-    혼자가 아니라 `A_c · H · G2`(2단 CM 이득 포함) 전체 부호가 정한다(호출자가 판단)."""
-    def g(role, key):
-        return ctx.sized[metric_spec[role]][key]
-
-    gm36a, gds36a = g("cmfb_load_sense", "gm"), g("cmfb_load_sense", "gds")
-    gm36b, gds36b = g("cmfb_load_ref", "gm"), g("cmfb_load_ref", "gds")
-    gm37a, gds37a = g("cmfb_amp_sense", "gm"), g("cmfb_amp_sense", "gds")
-    gm37b, gds37b = g("cmfb_amp_ref", "gm"), g("cmfb_amp_ref", "gds")
-    gds38 = g("cmfb_tail_device", "gds")
-
-    a = gm36a + gds36a      # Vcmfb 노드에 매달린 M36a diode 컨덕턴스
-    b = gm36b + gds36b      # N36b 노드에 매달린 M36b diode 컨덕턴스
-    A1 = a * (gm37a + gds37a) / (a + gds37a)
-    A0 = a * gm37a / (a + gds37a)
-    B1 = b * (gm37b + gds37b) / (b + gds37b)
-    vt = A0 / (A1 + B1 + gds38)                      # v(Voc)=1 기준 tail 전위
-    return ((gm37a + gds37a) * vt - gm37a) / (a + gds37a)
-
-
 def _mna_solve_smallsignal(devices: list, unknown_nodes: list, fixed: dict) -> dict:
     """소신호 MNA를 `numpy.linalg.solve`(LAPACK)로 정확히 푼다(세션21 신설, 2026-09-07 numpy 전환).
 
@@ -4929,7 +4789,7 @@ def _mna_solve_smallsignal(devices: list, unknown_nodes: list, fixed: dict) -> d
     불어나(`stage2_dump_exact_forms.py` 실측) 손도 못 대고, leading-order 근사(최대 12dB
     오차)와 병렬컨덕턴스 가설(Acm/Ann에서 부호까지 틀림) 둘 다 실패했다 — 반면 **수치**로는
     노드가 18개든 31소자든 그냥 선형대수라 순식간이다(`stage2_numeric_mna_validate.py`로
-    확인). 그래서 이 회로 계열(`telescopic_class_ab_cmfb`)의 Adm/Acm/Ann/H는 이제 매 metric
+    확인). 그래서 current-reuse telescopic 회로 계열(전용 estimator는 삭제됨)의 Adm/Acm/Ann/H는 이제 매 metric
     평가마다 실제 사이징된 gm/gds로 이 자리에서 KCL을 수치로 푼다 — 폐형식 유도/유지보수
     부담이 없고, connectivity가 바뀌어도(topology.json이 유일한 소스) 이 solver 자체는
     안 바뀐다.
@@ -4990,68 +4850,9 @@ def _mna_solve_smallsignal(devices: list, unknown_nodes: list, fixed: dict) -> d
     return dict(zip(unknown_nodes, x.tolist()))
 
 
-def _load_telescopic_topology_cached() -> dict:
-    """`current_reuse_telescopic_ota.topology.json`의 connectivity를 캐시해서 돌려준다
-    (grid search 중 반복 호출 대비 -- 파일은 이 프로세스 안에서 안 바뀐다는 전제, 세션21).
-    connectivity는 오직 이 JSON에서만 읽는다(하드타이핑 없음, topology.json이 유일한
-    토폴로지 소스라는 프로젝트 원칙 그대로 -- `stage1_cmrr_sympy_derivation.py` 등 모든
-    유도 스크립트와 동일한 소스)."""
-    cache = _load_telescopic_topology_cached.__dict__
-    if "by_name" not in cache:
-        import os as _os
-        topo_path = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)),
-                                   "library", "current_reuse_telescopic_ota.topology.json")
-        trs, _meta = load_topology(topo_path)
-        cache["by_name"] = {t.name: t for t in trs}
-    return cache["by_name"]
-
-
-_TELESCOPIC_FIXED_BASE = {"gnd": 0.0, "Vbias1": 0.0, "Vbias2": 0.0, "Vbias3": 0.0, "Vbias4": 0.0}
-
-
-def _telescopic_class_ab_open_loop_response(metric_spec: dict, ctx: SizingContext,
-                                              vip: float, vim: float, vdd: float,
-                                              vcmfb: float) -> tuple:
-    """1단(11소자) + 양쪽 Monticelli class-AB battery(각 10소자, M8~M14b류/M17~M24b류) =
-    31소자 소신호망을 `metric_spec`의 롤 배정으로 조립해 (Vop1, Vom1)을 수치로 푼다(세션21).
-
-    metric_spec 키(기존 6개에 신규 7개 추가):
-      기존: `input_p`/`cascode_p`/`input_n`/`cascode_n`(a쪽), `tail_p_devices`/`tail_n_device`.
-      신규 `_b`(거울대칭 b쪽, 이제 완전대칭 가정 없이 실제 ctx.sized 값을 그대로 씀):
-        `input_p_b`/`cascode_p_b`/`input_n_b`/`cascode_n_b`.
-      신규 `battery_vop1_side`/`battery_vom1_side`(각각 10개 서브롤 dict, Vop1/Vom1측
-        Monticelli battery+bias체인 -- topology.json 실측 connectivity 그대로):
-        `vdd_src`(M8/M17, S=vdd 직접주입), `batt_hi`(M9a/M18a), `batt_lo`(M9b/M18b),
-        `gate_diode1`/`gate_diode2`(M11a-M11b/M20a-M20b, replica bias 다이오드 체인),
-        `gate_sink`(M12/M21), `output_sink`(M10/M19, Vop1/Vom1 직접 부하 -- **세션21에
-        새로 반영된 것이 바로 이 소자의 로딩**), `gate2_src`(M13/M22), `gate2_diode1`/
-        `gate2_diode2`(M14a-M14b/M23a-M24b).
-      `cmfb_ctrl_device`(M7)는 이미 존재 -- topology.json에서 M7.gate가 실제로 "Vcmfb"이므로
-      `vcmfb` 인자가 자동으로 M7에만 걸린다(별도 분기 불필요, connectivity가 그대로 결정)."""
-    by_name = _load_telescopic_topology_cached()
-    device_names = _telescopic_open_loop_device_names(metric_spec)
-
-    devs, nodes = [], []
-    seen_nodes = set()
-    for name in device_names:
-        t = by_name[name]
-        gm, gds = ctx.sized[name]["gm"], ctx.sized[name]["gds"]
-        devs.append((t.drain, t.source, t.gate, gm, gds))
-        for n in (t.source, t.drain, t.gate):
-            if n not in _TELESCOPIC_FIXED_BASE and n not in ("Vip", "Vim", "vdd", "Vcmfb") \
-                    and n not in seen_nodes:
-                nodes.append(n)
-                seen_nodes.add(n)
-
-    fixed = dict(_TELESCOPIC_FIXED_BASE)
-    fixed.update({"Vip": vip, "Vim": vim, "vdd": vdd, "Vcmfb": vcmfb})
-    sol = _mna_solve_smallsignal(devs, nodes, fixed)
-    return sol["Vop1"], sol["Vom1"]
-
-
 def _hashable_key(value):
     """dict/list를 재귀적으로 해시 가능한 tuple로 변환(딕셔너리 키로 쓰기 위한 정규화).
-    `_telescopic_class_ab_open_loop_gains()`의 캐시 키용(2026-08-13 세션31) -- metric_spec이
+    `_nmcnr_predict()`의 캐시 키용 -- metric_spec이
     `battery_vop1_side`처럼 중첩 dict 값을 가질 수 있어 단순 list->tuple 변환만으론 부족하다."""
     if isinstance(value, dict):
         return tuple(sorted((k, _hashable_key(v)) for k, v in value.items()))
@@ -5060,132 +4861,8 @@ def _hashable_key(value):
     return value
 
 
-def _telescopic_open_loop_device_names(metric_spec: dict) -> list:
-    """`_telescopic_class_ab_open_loop_response()`가 조립하는 31소자망의 소자 이름 목록.
-    소자 열거(원래 그 함수 안에 있던 로직, 2026-08-13 세션31 리팩터로 공용 추출)와 캐시 키
-    구성(`_telescopic_class_ab_open_loop_gains()`) 둘 다 이 목록을 쓴다."""
-    names = []
-    for role in ("input_p", "input_p_b", "cascode_p", "cascode_p_b",
-                 "input_n", "input_n_b", "cascode_n", "cascode_n_b"):
-        names.append(metric_spec[role])
-    names += list(metric_spec["tail_p_devices"])
-    names.append(metric_spec["tail_n_device"])
-    names += list(metric_spec["battery_vop1_side"].values())
-    names += list(metric_spec["battery_vom1_side"].values())
-    return names
-
-
-def _telescopic_class_ab_open_loop_gains(metric_spec: dict, ctx: SizingContext) -> tuple:
-    """Adm_open/Acm_open/Ann_open/H를 **전부 같은 31소자망**에서 각기 다른 여기(excitation)로
-    구한다(세션21) -- Adm(vip=+0.5/vim=-0.5), Acm(vip=vim=1), Ann(vdd=1, PSRR용 VDD 리플),
-    H(vcmfb=1, `v(stage-1 CM out)/v(Vcmfb)` -- CMFB 루프이득 T=-H*A_c*G2의 그 H). 넷 다
-    battery의 M10/M19 부하 + M8/M17의 자체 VDD 주입 경로를 동일하게 반영한다(세션20까지는
-    H/Acm_open/Ann_open이 Kp'/Kn'/Rx/Ry 폐형식만 썼고 M10/M19를 몰랐다 -- 세션21에 이
-    수치망으로 교체).
-
-    2026-08-13(세션31) -- `ctx._open_loop_gains_cache`에 캐싱한다. `_cmrr_telescopic_class_
-    ab_cmfb()`/`_psrr_telescopic_class_ab_cmfb()`가 "완전히 동일한" metric_spec으로 이 함수를
-    각자 독립 호출하고 있었다(감사 발견 -- 한 세타평가당 31노드 MNA 4개씩 총 8개를 풀고 절반을
-    바로 버림). ⚠️ **키에 metric_spec만 쓰면 틀린다**(첫 구현에서 실제로 회귀 발견,
-    self-test 앵커2가 앵커1과 같은 캐시 항목을 잘못 맞고 128.72dB를 반환 -- 기대값 146.72dB):
-    이 함수의 진짜 입력은 metric_spec이 가리키는 **소자 이름**뿐 아니라 그 소자들의 **현재
-    ctx.sized[name]["gm"]/["gds"]** 값이다(self-test가 같은 ctx/metric_spec을 재사용하면서
-    `ctx.sized["M5"]["gds"]`/`ctx.sized["M7"]["gm"]`을 직접 바꿔 두 번째 앵커를 만드는 패턴이라
-    metric_spec 내용만으로는 이 변화를 못 잡는다). 그래서 metric_spec 정규화 내용 + 실제 참조되는
-    31개 소자의 (gm,gds) 스냅샷을 함께 키로 쓴다 -- 실제 `_evaluate()` 파이프라인에서는 ctx가
-    한 세타평가 안에서만 살고 CMRR/PSRR 호출 사이에 sized 값이 안 바뀌므로 여전히 캐시가
-    맞아떨어지고, 이 self-test처럼 같은 ctx를 재사용하며 sized를 바꾸는 경우엔 올바르게
-    캐시 미스로 다시 계산한다."""
-    device_names = _telescopic_open_loop_device_names(metric_spec)
-    key = (_hashable_key(metric_spec),
-           tuple((n, ctx.sized[n]["gm"], ctx.sized[n]["gds"]) for n in device_names))
-    cached = ctx._open_loop_gains_cache.get(key)
-    if cached is not None:
-        return cached
-    vop1_dm, vom1_dm = _telescopic_class_ab_open_loop_response(metric_spec, ctx, 0.5, -0.5, 0.0, 0.0)
-    Adm_open = vop1_dm - vom1_dm
-    vop1_cm, vom1_cm = _telescopic_class_ab_open_loop_response(metric_spec, ctx, 1.0, 1.0, 0.0, 0.0)
-    Acm_open = (vop1_cm + vom1_cm) / 2.0
-    vop1_ann, vom1_ann = _telescopic_class_ab_open_loop_response(metric_spec, ctx, 0.0, 0.0, 1.0, 0.0)
-    Ann_open = (vop1_ann + vom1_ann) / 2.0
-    vop1_h, vom1_h = _telescopic_class_ab_open_loop_response(metric_spec, ctx, 0.0, 0.0, 0.0, 1.0)
-    H = (vop1_h + vom1_h) / 2.0
-    result = (Adm_open, Acm_open, Ann_open, H)
-    ctx._open_loop_gains_cache[key] = result
-    return result
-
-
-def _cmrr_telescopic_class_ab_cmfb(metric_spec: dict, ctx: SizingContext) -> float:
-    """`circuit_family="telescopic_class_ab_cmfb"` — current-reuse telescopic OTA의 CMRR,
-    stage-1(11소자) + 양쪽 Monticelli class-AB battery(각 10소자) = 31소자 소신호망을
-    `_telescopic_class_ab_open_loop_gains()`(세션21 신설)로 **수치 MNA**로 풀어 얻는다.
-
-    ⚠️ **2026-08-03~08-07 폐형식(Kp'/Kn'/Rx/Ry 기반) 전면 교체(세션21)** — M10/M19
-    (class-AB 바이어스 싱크, S=gnd/D=Vop1·Vom1/G=Vbias4)가 Vop1/Vom1에 거는 부하를 옛
-    폐형식이 전혀 몰랐다는 게 세션21에 드러났다: 캐스코드 임피던스(Kp'∥Kn', O(1/eps²))가
-    M10/M19의 비-캐스코드 임피던스(O(1/eps))에 완전히 지배당해, 실제 PSRR/CMRR이 옛 폐형식
-    대비 **최대 49dB**(!) 차이 났다(`stage2_battery_psrr_sympy_derivation.py` 실측). 이걸
-    바로잡는 폐형식(leading-order 근사, 병렬컨덕턴스 가설)을 두 번 시도했으나 둘 다 실패
-    (leading order: 최대 12dB 오차 / 병렬컨덕턴스: Acm에서 부호까지 틀림) — M10/M19를 넣는
-    순간 정확해 자체가 분자 6000~16000항으로 불어나 손 유도가 불가능함도 확인
-    (`stage2_dump_exact_forms.py`). 그래서 폐형식을 버리고 **매 평가마다 실제 사이징된
-    gm/gds로 KCL을 그 자리에서 수치로 푸는 방식**으로 교체했다 — 소자를 추가해도 재유도가
-    필요 없고, 항상 topology.json connectivity 그대로다(단일 소스 원칙 유지).
-
-    **원리는 그대로 유지**(선형 중첩, 세션20-B에서 확정된 구조 — 이 부분은 재도출 불필요):
-    ```
-      vo1   = Acm_open·vic + H·vcmfb ,  voc = G2·vo1 ,  vcmfb = A_c·voc
-      CMRR  = |Adm_open/Acm_open| · |1 + T| ,   T := −H·A_c·G2      (G2가 소거된다)
-    ```
-    차이는 **Adm_open/Acm_open/H를 구하는 방법**뿐이다 — 예전엔 Kp'/Kn'/Rx/Ry 폐형식,
-    지금은 `_telescopic_class_ab_open_loop_gains()`가 31소자망을 세 가지 여기(DM/CM/Vcmfb)로
-    수치로 풀어 셋 다 한 번에 얻는다(M10/M19 로딩 + M8/M17의 자체 VDD 주입 경로까지 자동
-    반영됨 — PSRR 쪽에서만 쓰이는 Ann도 같은 함수가 같이 계산). G2(2단 CM 전달이득)와
-    A_c(CMFB 앰프 이득)는 M10/M19와 무관한 별개 서브회로라 옛 폐형식 그대로 재사용한다.
-
-    **부호**: H<0(Vcmfb↓ → M7 전류↑ → stage-1 출력 CM↑), A_c<0(다이오드 부하 차동쌍),
-    G2<0(2단 common-source 반전) → T=−H·A_c·G2>0(정상 음귀환). 하나라도 뒤집히면 CM
-    latch-up이라 `ValueError`.
-
-    **`Voc` 센싱**: 논문 II.D 원문("R1 and R2 are used to averaging Vop/Vom to Voc")대로
-    **최종(2단) 출력**의 저항 평균(`cm_sense_gain`, 기본 1.0=R1=R2 이상적). `G2`는
-    `cmfb_stage2_devices`(예 [M15,M16])의 Σgm/Σgds에서 계산(`_metric_gain_stages_sum`과
-    동일 식).
-
-    ⚠️ **남은 정직한 한계**(세션21 종료 시점): (1) `G2`/`A_c`는 여전히 폐형식(M10/M19와
-    무관한 서브회로라 영향 없다고 판단했으나 독립 재확인은 안 함). (2) ngspice AC 교차검증은
-    새 31소자망 기준으로 아직 안 함(다음 세션 최우선, self-test는 수치 자기회귀만).
-    (3) `classab_centering_dev_v`/`gain_db`(stage-1 부분, `_metric_gain_stages_sum`)는
-    여전히 M10/M19를 모르는 옛 방식 그대로 — 이번 세션 범위 밖으로 명시적으로 남겨둠.
-
-    metric_spec 키: `_telescopic_class_ab_open_loop_response()`의 14개(`input_p`/`input_p_b`/
-    `cascode_p`/`cascode_p_b`/`input_n`/`input_n_b`/`cascode_n`/`cascode_n_b`/
-    `tail_p_devices`/`tail_n_device`/`battery_vop1_side`/`battery_vom1_side`) +
-    `cmfb_ctrl_device`/`cmfb_amp_sense`/`cmfb_amp_ref`/`cmfb_load_sense`/`cmfb_load_ref`/
-    `cmfb_tail_device`/`cmfb_stage2_devices`, 선택 `cm_sense_gain`."""
-    Adm_open, Acm_open, Ann_open, H = _telescopic_class_ab_open_loop_gains(metric_spec, ctx)
-    del Ann_open  # PSRR 전용, 여기선 안 씀(같은 함수로 4개를 한 번에 얻는 게 더 저렴해서 재사용)
-
-    s2 = [ctx.sized[d] for d in metric_spec["cmfb_stage2_devices"]]
-    G2 = -sum(d["gm"] for d in s2) / sum(d["gds"] for d in s2)
-    G2 *= metric_spec.get("cm_sense_gain", 1.0)
-
-    A_c = _cmfb_amp_gain_diode_load(metric_spec, ctx)
-    T = -H * A_c * G2
-    if T <= 0.0:
-        raise ValueError(
-            f"CM 루프가 음귀환이 아니다(T={T:.4g} <= 0; H={H:.4g}, A_c={A_c:.4g}, G2={G2:.4g}) "
-            f"-- 정상 회로에서는 셋 다 음수라 T=-H·A_c·G2 > 0 이어야 한다. 부호가 하나라도 "
-            f"뒤집히면 |T|>>1인 이 회로에서 CM 루프가 양귀환(latch-up)이 되고 소신호 CMRR "
-            f"수치는 의미가 없으므로 계산을 거부한다 -- cmfb_* 소자 배정/극성과 "
-            f"cmfb_stage2_devices를 다시 볼 것(_cmrr_telescopic_class_ab_cmfb docstring 참고)")
-    return 20 * math.log10(abs(Adm_open / Acm_open) * (1.0 + T))
-
-
 _CMRR_ESTIMATOR_REGISTRY = {
     "diff_pair_tail": _cmrr_diff_pair_tail,
-    "telescopic_class_ab": _cmrr_telescopic_class_ab,
-    "telescopic_class_ab_cmfb": _cmrr_telescopic_class_ab_cmfb,   # 배치 7-5b(2026-08-03)
 }
 
 
@@ -5201,102 +4878,8 @@ def _psrr_diff_pair_tail(metric_spec: dict, ctx: SizingContext) -> float:
     return 20 * math.log10(psrr_linear)
 
 
-def _psrr_telescopic_class_ab(metric_spec: dict, ctx: SizingContext) -> float:
-    """`circuit_family="telescopic_class_ab"` — current-reuse telescopic 1단의
-    **open-loop**(CMFB 제외) PSRR+(2026-08-07 신설, `analog-topology-json-library`
-    세션20 후속). 기존 `diff_pair_tail`(M5 하나의 gm/gds만 보는 자리표시자, 이 회로에서는
-    13개 자유 theta 중 어느 것도 M5에 안 닿아 절대 만족시킬 수 없는 상수값이었다 — 세션20
-    실측 발견)를 대체한다.
-
-    **유도**(`workspaces/current-reuse-telescopic-ota-report/spice/
-    stage1_psrr_sympy_derivation.py` = sympy 정확해 + leading order,
-    `.../stage1_psrr_ngspice_crosscheck.py` = ngspice AC 독립 교차검증):
-    `_cmrr_telescopic_class_ab`와 **정확히 같은 위상/Adm/Acm_open**을 쓰고, VDD 리플이
-    `tail_p_devices`(M6/M7, source=vdd)의 **gm**을 통해 Vx에 주입하는 전류
-    (게이트 고정, Vgs=−δ이므로 i=−gm·δ — gds 항은 leading order에서 사라진다)가 그 이후
-    똑같은 캐스코드 네트워크를 타고 출력에 실리는 경로로 얻는다:
-    ```
-      Ann_open = gm(tail_p 합) · (Rx‖Ry) · Acm_open      <- CMRR의 Acm_open을 그대로 재사용
-      PSRR_open = 20·log10(|Adm/Ann_open|)
-                = CMRR_open(dB) − 20·log10(|gm(tail_p 합)·(Rx‖Ry)|)
-    ```
-    즉 **PSRR은 CMRR에서 상수 하나만 뺀 값**이다(같은 회로의 같은 출력 임피던스 경로를
-    타므로 당연한 결과) — Adm/Acm_open 재계산은 `_cmrr_telescopic_class_ab`와 완전히
-    동일한 코드(중복이지만 이 파일의 기존 관례 그대로 — 두 CMRR family도 서로 안
-    공유한다).
-
-    ⚠️ **정직한 한계**: (1) gm(M6)/gm(M7)이 leading order에서 지배적이라고 가정했다(SPICE
-    교차검증으로 확인, ±4배 랜덤 20점 + 앵커 2점 worst 2.36dB — CMRR 자신의 worst 0.8dB보다
-    다소 크지만 탐색용으로는 충분). (2) 이건 **1단만** 본다 — 2단 Class-AB 출력전류원
-    (M8/M13/M17/M22)도 source=vdd라 **자체적으로 또 다른 VDD 주입 경로**를 만드는데, 이번
-    유도는 그걸 포함하지 않는다(다음 세션 과제, `.ai/context.md` 참고). (3) bias-gen
-    체인(Vbias1 등)이 완벽한 AC ground라고 가정했다(실제로는 bias-gen 자신도 VDD에 물려
-    있어 PSRR에 기여할 수 있음, 미포함).
-
-    metric_spec 키: `_cmrr_telescopic_class_ab`와 완전히 동일(`input_p`/`cascode_p`/
-    `input_n`/`cascode_n`/`tail_p_devices`/`tail_n_device`)."""
-    gmp = ctx.sized[metric_spec["input_p"]]["gm"]
-    gdsp1 = ctx.sized[metric_spec["input_p"]]["gds"]
-    gmcp = ctx.sized[metric_spec["cascode_p"]]["gm"]
-    gdsp2 = ctx.sized[metric_spec["cascode_p"]]["gds"]
-    gmn = ctx.sized[metric_spec["input_n"]]["gm"]
-    gdsn1 = ctx.sized[metric_spec["input_n"]]["gds"]
-    gmcn = ctx.sized[metric_spec["cascode_n"]]["gm"]
-    gdsn2 = ctx.sized[metric_spec["cascode_n"]]["gds"]
-    gds_tail_p = sum(ctx.sized[d]["gds"] for d in metric_spec["tail_p_devices"])
-    gm_tail_p = sum(ctx.sized[d]["gm"] for d in metric_spec["tail_p_devices"])
-    Rx = 1.0 / gds_tail_p
-    Ry = 1.0 / ctx.sized[metric_spec["tail_n_device"]]["gds"]
-
-    Kp_prime = gmcp / (gdsp1 * gdsp2)
-    Kn_prime = gmcn / (gdsn1 * gdsn2)
-    Adm = (gmp + gmn) * (Kp_prime * Kn_prime / (Kp_prime + Kn_prime))
-    Kp, Kn = gmp * Kp_prime, gmn * Kn_prime
-    Acm_open = (Rx + Ry) * Kn * Kp / (Kn * Ry + Kp * Rx)
-    Ann_open = gm_tail_p * (Rx * Ry / (Rx + Ry)) * Acm_open
-    return 20 * math.log10(abs(Adm / Ann_open))
-
-
-def _psrr_telescopic_class_ab_cmfb(metric_spec: dict, ctx: SizingContext) -> float:
-    """`circuit_family="telescopic_class_ab_cmfb"` — current-reuse telescopic OTA의 PSRR,
-    `_cmrr_telescopic_class_ab_cmfb`와 **완전히 같은 31소자 수치망**(세션21 신설
-    `_telescopic_class_ab_open_loop_gains()`)에서 나오는 `Adm_open`/`Ann_open`/`H`를 쓴다.
-
-    ⚠️ **세션20 폐형식(1단만, M8/M13/M17/M22의 자체 VDD 주입경로 미포함) 전면 교체(세션21)**
-    — `_cmrr_telescopic_class_ab_cmfb` docstring의 M10/M19 로딩 문제와 정확히 같은 이유로
-    폐형식을 버렸다. 이제 M8/M17(battery의 vdd 직접 주입)과 M10/M19(Vop1/Vom1 부하)가 같은
-    31소자망 안에서 vdd=1V 여기로 자동 반영된다(`Ann_open`) — 세션20이 "다음 세션 과제"로
-    남겼던 정확히 그 항목.
-
-    PSRR closed = PSRR_open + 20·log10(|1+T|) 관계 자체는 그대로 유지(선형 중첩,
-    `vo1 = Ann_open·δ + H·vcmfb`, `vcmfb=A_c·G2·vo1` → `vo1/δ = Ann_open/(1+T)`) — `T`는
-    `_cmrr_telescopic_class_ab_cmfb`와 동일 정의(vdd와 무관한 CM 루프 자신의 성질).
-
-    ⚠️ 남은 한계는 `_cmrr_telescopic_class_ab_cmfb`와 동일(G2/A_c는 여전히 폐형식,
-    ngspice 재검증 미완, gain_db/classab_centering은 범위 밖).
-
-    metric_spec 키: `_cmrr_telescopic_class_ab_cmfb`와 완전히 동일."""
-    Adm_open, Acm_open, Ann_open, H = _telescopic_class_ab_open_loop_gains(metric_spec, ctx)
-    del Acm_open  # CMRR 전용, 여기선 안 씀
-
-    s2 = [ctx.sized[d] for d in metric_spec["cmfb_stage2_devices"]]
-    G2 = -sum(d["gm"] for d in s2) / sum(d["gds"] for d in s2)
-    G2 *= metric_spec.get("cm_sense_gain", 1.0)
-
-    A_c = _cmfb_amp_gain_diode_load(metric_spec, ctx)
-    T = -H * A_c * G2
-    if T <= 0.0:
-        raise ValueError(
-            f"CM 루프가 음귀환이 아니다(T={T:.4g} <= 0; H={H:.4g}, A_c={A_c:.4g}, G2={G2:.4g}) -- "
-            f"_cmrr_telescopic_class_ab_cmfb()와 동일한 가드, docstring 참고")
-    psrr_open = 20 * math.log10(abs(Adm_open / Ann_open))
-    return psrr_open + 20 * math.log10(abs(1.0 + T))
-
-
 _PSRR_ESTIMATOR_REGISTRY = {
     "diff_pair_tail": _psrr_diff_pair_tail,
-    "telescopic_class_ab": _psrr_telescopic_class_ab,               # 세션20
-    "telescopic_class_ab_cmfb": _psrr_telescopic_class_ab_cmfb,     # 세션20
 }
 
 
@@ -5417,7 +5000,7 @@ def _resolve_nulling_resistor_ohm(ctx: SizingContext, ref_device: str) -> float:
     `ref_device`의 gm은 `L_stage2out_p`/`L_stage2out_n`(M15/M16을 정하는 theta)이
     presolve 단계에서 이미 확정되고 SLSQP 자유변수 5개 어디에도 안 걸려, 한 SLSQP
     탐색 전체 동안 사실상 상수다 -- `ctx._nulling_resistor_cache`(한 세타평가 동안만
-    사는 ctx에 캐시, `_open_loop_gains_cache`와 동일 패턴)로 `_full_circuit_devices()`가
+    사는 ctx에 캐시, `_nmcnr_predict_cache`와 동일 패턴)로 `_full_circuit_devices()`가
     cmrr/psrr/gain_full_circuit_db 계산마다(한 세타평가당 여러 번) 반복 호출해도
     `1/gm` 재계산이 한 번만 일어나게 한다(사용자 지적, 재계산 비효율 방지 원칙)."""
     cached = ctx._nulling_resistor_cache.get(ref_device)
@@ -5982,7 +5565,7 @@ def _feed_gm_target_convention(feed_spec: dict, theta_value: float, ctx: SizingC
     이 핸들러는 `gds`를 안 채우고 있었다 — A/C 타입 feed는 reference 소자의 항목을 통째로
     복사해 오고 `metric_stage_budget`은 LUT에서 gds를 직접 계산하는데, 이 B 타입만 gm/ID/W/L만
     넣어 gds가 빠져 있었다. F엔진 metric 중 gm만 읽는 것(gain/noise)만 있을 땐 안 드러났지만,
-    CMFB 소자의 gds를 읽는 `telescopic_class_ab_cmfb` CMRR이 등장하면서 발현됐다 —
+    CMFB 소자의 gds를 읽는 CMRR(당시 `telescopic_class_ab_cmfb`, 삭제됨)이 등장하면서 발현됐다 —
     `_feed_metric_stage_budget()`과 같은 방식(`lut.gm_gds_ratio()`)으로 채운다.
 
     2026-08-20(세션41, 하드코딩 전수조사 계기) -- `vds`(선언 안 하면 예전엔 무조건 0.6V
@@ -10041,7 +9624,7 @@ def optimize_full_circuit_budget(topology_path: str, spec: dict,
 
 _FULL_CIRCUIT_METRIC_TYPES = frozenset({"smallsignal_ratio_db", "smallsignal_gain_db"})
 # 2026-08-15(세션35) -- cmrr_estimate/psrr_estimate는 circuit_family별로 실제 footprint가
-# 다르다(diff_pair_tail은 tail_device 하나, telescopic_class_ab류는 여러 소자) -- family마다
+# 다르다(diff_pair_tail은 tail_device 하나, 여러 소자를 쓰는 회로 family는 별개) -- family마다
 # 별도 분기를 추가하는 대신, 이 타입들에 "devices" 키가 없으면 안전한 쪽(과소평가 대신
 # "ALL")으로 fallback하는 _DEFAULT_ALL_DEVICES_METRIC_TYPES에 편입한다(SLSQP 웜스타트가
 # 이 metric을 isolated로 잘못 보고 커플링을 놓치는 사고를 방지 -- 위 docstring 참고).
@@ -11865,8 +11448,8 @@ def revalidate_finger_override(ctx: SizingContext, lut_by_kind: dict, overrides:
     # 재계산 비용은 먼저 쟀다(메모리 규칙: 수정마다 재계산 비효율 점검): 이 함수는 파일럿
     # 1회 최적화에서 **8회** 불리고, 17개 metric 전부 재계산이 캐시를 비운 최악 조건에서
     # **1.6ms**다(전체 233s의 **0.01%**). 즉 이 최적화는 아끼는 게 없으면서 버그만 숨겼다.
-    # MNA metric이 싼 것은 소신호 MNA를 numpy로 전환(6.1배)한 덕이고, `_open_loop_gains_
-    # cache`의 키에 실제 gm/gds가 들어 있어(세션31) 사이징이 바뀌면 자동으로 무효화된다.
+    # MNA metric이 싼 것은 소신호 MNA를 numpy로 전환(6.1배)한 덕이다(세션31 당시 `_open_loop_gains_cache`는
+    # 키에 실제 gm/gds를 넣어 사이징이 바뀌면 자동 무효화됐고, 그 캐시는 삭제됨).
     known_names = set(ctx.sized)
     metric_deltas = {mname: {"old": compute_metric(mspec, ctx),
                               "new": compute_metric(mspec, new_ctx)}

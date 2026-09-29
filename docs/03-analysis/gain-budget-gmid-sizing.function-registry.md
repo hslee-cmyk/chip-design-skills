@@ -52,7 +52,7 @@
 | 이분 역산 뼈대 | (하나로, **단조성 검사 포함**) | `_invert_gm_id_for_current`, `solve_id_for_target_gm` | 단조성 미검사 결함 동반 |
 | gain metric | `_metric_smallsignal_gain_db` | `_metric_folded_cascode_gain_db` | folded_cascode가 사용 중 -- 4회로 재측정 후 |
 | PM metric | `_metric_parasitic_pm_deg` | `_metric_folded_cascode_pm_deg` | 〃 |
-| CMRR | `_metric_smallsignal_ratio_db` | `_cmrr_diff_pair_tail` | 〃 |
+| CMRR | `_metric_smallsignal_ratio_db` | `_cmrr_diff_pair_tail` (telescopic 폐형식 사슬은 P5b에서 삭제) | 〃 |
 | MNA 소자 스탬프 | `build_ac_network` | `full_circuit_response_at_omega`, `_mna_solve_smallsignal` | |
 | HTML 리포트 | `design_report.render_html_report` | 계획 §8.5 "신규" `render_design_report_html()` | **새로 만들지 않는다** |
 | diode 고정점 | `solve_diode_connected_vds` | 계획 §7.3/§8.4의 `_solve_diode_connected_vgs_fixed_point` | 이름만 다름 -- **새로 만들지 않는다** |
@@ -117,7 +117,7 @@
 | `_full_circuit_devices` | 전 MOSFET+저항을 MNA 스탬프 튜플로 변환 | gmid_sizing_engine | 순수 변환, 미사이징 소자는 KeyError(`:5527`). 캐시 없음(호출부 문제) |
 | `_metric_smallsignal_ratio_db` | 두 여기의 응답비(dB) | gmid_sizing_engine | 순수. 성능은 5543에 위임 |
 | `_metric_smallsignal_gain_db` | 전체회로 DM 이득(dB) | gmid_sizing_engine | 순수 |
-| `_metric_cmrr_estimate` | circuit_family 2단 registry 조회 | gmid_sizing_engine | 순수 디스패치. registry 3항목 중 살아있는 것은 `diff_pair_tail` 1개 |
+| `_metric_cmrr_estimate` | circuit_family 2단 registry 조회 | gmid_sizing_engine | 순수 디스패치. registry는 `diff_pair_tail` 1항목(telescopic 2키는 P5b에서 삭제) |
 | `_metric_psrr_estimate` | 동일(PSRR) | gmid_sizing_engine | 위와 동일 |
 | `unit_hint_from_metric_name` | 이름 접미사→단위 | topology_authoring | 순수 |
 | `metric_unit_scale` | 선언 unit 환산계수(표에서만) | gmid_sizing_engine | 순수, 표에 없으면 거부 |
@@ -491,15 +491,6 @@
 | `estimate_area_budget` | n_fingers × pitch로 A_1D, packing_density 표본이 있으면 A_1D/density, 없으면 콜드스타트 블렌딩 | sizing_layout_convergence.py(배선 시) | **공식 결함**: 콜드스타트 `(1-α)·A_1D + α·(A_1D/α)` = `(2-α)·A_1D`(2954-2955) -- α가 서로 상쇄돼 블렌딩이 아니다(α=0.65면 1.35·A_1D). self-test(13882-13884)가 **같은 식을 다시 써서** 비교하므로 잡지 못함(동어반복 테스… |
 | `signal_path_nodes` | gate/source->drain 방향 그래프에서 excite∩sense 도달 내부노드 | (삭제 후보) | 4354-4356 docstring이 L2에서 "원천적으로 필요 없어짐"이라 명시. §12.4가 소비자라 적은 것이 오류임을 재확인. 방향 규칙이 단일 DAG가 안 됨(§12.3-9) -> S1v 재활용 가치 낮음 |
 | `node_pole_estimate` | 노드별 G/C 1차 pole 추정 | (삭제 후보) | 4343-4346: L1 값(34.2도) 무효라고 자인. **§12.6-6 광범위 except 4138 확인**: `except (KeyError, ValueError): pass`로 Cgg 누락을 조용히 버림 -- 운영 미호출이라 영향은 probe 한정 |
-| `_cmrr_telescopic_class_ab` | current-reuse 1단 open-loop CMRR 폐형식 | (삭제 후보) | 파일럿이 `smallsignal_ratio_db`로 교체(JSON 1871,1873). 참조는 self-test와 `workspaces/.../spice/stage1_cmrr_*` 유도 스크립트뿐 |
-| `_cmfb_amp_gain_diode_load` | CMFB 에러앰프 A_c 정확 폐형식 | (삭제 후보) | self-test + `diagnose_cmrr_cmfb.py`(workspaces)에서만 참조 |
-| `_load_telescopic_topology_cached` | current_reuse topology를 **하드코딩 경로**로 로드·캐시 | 삭제 후보 | 경로 하드코딩 `:5054-5055`(일반화 원칙 위반). 기능은 `_load_full_topology_cached`(5379)와 DUP. `__dict__` 캐시 무효화 없음 `:5051` |
-| `_telescopic_class_ab_open_loop_response` | 31소자 부분망 소신호 MNA로 (Vop1,Vom1) | 삭제 후보 | `_full_circuit_response`(5543)가 전체회로로 일반화·대체(`:5588-5591` docstring 스스로 "대체"라 명시). DUP |
-| `_telescopic_open_loop_device_names` | 31소자망 소자명 열거 | 삭제 후보 | 위 체인 전용 |
-| `_telescopic_class_ab_open_loop_gains` | Adm/Acm/Ann/H 4여기 풀이 + ctx 캐시 | 삭제 후보 | 캐시 키에 gm/gds 스냅샷 포함(`:5152-5153`, 내용기반 — 설계는 모범). 그러나 소비자 없음 |
-| `_cmrr_telescopic_class_ab_cmfb` | telescopic CMFB CMRR(부분망+폐형식 G2/A_c) | 삭제 후보 | 대체재 `_metric_smallsignal_ratio_db`(5586)가 current_reuse 정본. DUP |
-| `_psrr_telescopic_class_ab` | telescopic 1단 open-loop PSRR 폐형식 | 삭제 후보 | `_cmrr_telescopic_class_ab`(4837)와 계산 복제를 docstring이 인정(`:5276-5278`). DUP |
-| `_psrr_telescopic_class_ab_cmfb` | telescopic CMFB PSRR | 삭제 후보 | G2/A_c/T 블록 `:5334-5343` = `:5221-5233` 복제(DUP `_cmrr_telescopic_class_ab_cmfb`) |
 | `validate_theta_declaration_order` | theta 선언순서=실행순서 계약 검사 | topology_authoring | D(배선 필요) |
 | `load_derived_bounds` | 사이드카 JSON 읽기 | optimizer S3(흡수) 또는 삭제 | 유도값 저장 경로가 사이드카 vs topology.json `_derived`(`resolve_constraint_references` `:8423`) 두 갈래 — 엔진은 후자만 읽음 |
 | `_optimize_theta_slsqp_block_coordinate` | L 격자 ↔ SLSQP 블록 좌표 교대 | 삭제 후보(또는 optimizer로 이관 후 실측) | `window_around_reference` 경로의 유일한 사용자 → 함께 정리 |
