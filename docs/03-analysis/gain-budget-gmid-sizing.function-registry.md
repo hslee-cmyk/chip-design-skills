@@ -481,11 +481,7 @@
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
-| `GmIdLUT.junction_cap` | Jespers jctCap 1차 근사 CJD(원문 예시 unit-cap 기본값 CJ=1e-15 등) | gmid_sizing_engine.py(배선 시) 또는 삭제 | 기본값이 원문 예시 상수(77, 80-81). 운영에 배선하려면 PDK 값에서 읽어야 함. 삭제/배선은 사용자 판단 필요 |
 | `gm_from_fT` | gm=2π·fT·C | gmid_sizing_engine.py | 1줄 순수함수, 데모·단일소자 경로용. 삭제 이득 없음 |
-| `converge_with_parasitics` | 기생 CJD 반복 수렴(발산하면 ValueError) | gmid_sizing_engine.py 또는 tests 데모 | 발산 판정 `20*C_external`(143) 매직넘버. 운영 경로에서 기생 반영은 `optimize_multistage`의 cgg 반복이 대신 함. 배선 또는 삭제는 사용자 승인 필요 |
-| `slew_rate` | ID/C | 삭제 후보 | 완전 dead. slew metric이 필요하면 `_METRICS_REGISTRY`에 metric으로 넣을 것 |
-| `SemiEmpiricalGmIdLUT.fT` | fT=gm/(2πCgg) | 삭제 후보(또는 준정적 검증에 배선) | `find_optimal_sizing`의 준정적 검증은 `check_quasi_static`+cgg로 따로 계산하므로 이 메서드는 안 쓰임 |
 | `_invq_newton` | EKV q 뉴턴 역산 | tests/ 픽스처(삭제 아님) | toy 전용 |
 | `build_toy_lut` | EKV 합성 4D LUT | tests/ 픽스처(§8.8 test 분리 시 이관) | VA=5V/um, Cox 5e-15 등 toy 상수(1428,1432) -- 픽스처로만 쓸 것 |
 | `RegressionVerdict` | 회귀 판정 dataclass | tests/(회귀 러너와 함께 이관, 삭제 아님) |  |
@@ -504,7 +500,6 @@
 | `_cmrr_telescopic_class_ab_cmfb` | telescopic CMFB CMRR(부분망+폐형식 G2/A_c) | 삭제 후보 | 대체재 `_metric_smallsignal_ratio_db`(5586)가 current_reuse 정본. DUP |
 | `_psrr_telescopic_class_ab` | telescopic 1단 open-loop PSRR 폐형식 | 삭제 후보 | `_cmrr_telescopic_class_ab`(4837)와 계산 복제를 docstring이 인정(`:5276-5278`). DUP |
 | `_psrr_telescopic_class_ab_cmfb` | telescopic CMFB PSRR | 삭제 후보 | G2/A_c/T 블록 `:5334-5343` = `:5221-5233` 복제(DUP `_cmrr_telescopic_class_ab_cmfb`) |
-| `lut_conditions_from_npz` | LUT npz의 corner/temp 기록 여부 반환 | circuit_state_graph S0(LUT 생성메타 해시) | D(배선 필요) |
 | `validate_theta_declaration_order` | theta 선언순서=실행순서 계약 검사 | topology_authoring | D(배선 필요) |
 | `load_derived_bounds` | 사이드카 JSON 읽기 | optimizer S3(흡수) 또는 삭제 | 유도값 저장 경로가 사이드카 vs topology.json `_derived`(`resolve_constraint_references` `:8423`) 두 갈래 — 엔진은 후자만 읽음 |
 | `_optimize_theta_slsqp_block_coordinate` | L 격자 ↔ SLSQP 블록 좌표 교대 | 삭제 후보(또는 optimizer로 이관 후 실측) | `window_around_reference` 경로의 유일한 사용자 → 함께 정리 |
@@ -518,7 +513,6 @@
 | `find_interleaved_symmetric_splits` | 홀수 finger 쌍 교차 대칭 분할 해 | test util | SD 밖 grep 0건 |
 | `find_idiom_matches` | analog-grammar Stage1~3 원본 Match | topology_authoring |  |
 | `find_differential_and_mirror_forks` | 양방향 fork 분류 | 삭제 후보 | `find_verified_...` docstring SD:1802-1815가 이 접근의 한계와 대체를 기술 |
-| `suggest_headroom_stack_groups` | composite를 헤드룸 그룹으로 제안 | 삭제 후보 | AST 호출자 0, 저장소 grep 0 |
 | `MultiLeafHubParityVerdict` | 결과 레코드 | test util |  |
 | `check_multi_leaf_hub_parity` | hub-leaf 오일러 가능성 공식 스크리닝 | test util |  |
 | `DiodeStackMember` | 결과 레코드 | - |  |
@@ -531,12 +525,10 @@
 | `audit_vertical_stack_id_euler_feasibility` | 선언 vsid 그룹의 오일러 실현성 | stick_diagram(배선 여부 승인 필요) |  |
 | `find_euler_repair_options` | unresolved_row 복구 선택지 진단 | stick_diagram(배선 승인 필요) | 운영 0 |
 | `SharedFingerWCandidate` | 공통 finger_w 탐색(Case B) | stick_diagram 유지 또는 삭제 |  |
-| `render_stick_diagram` | PDF 형식 텍스트 출력 | test fixture/유틸 |  |
 
 ### 기타 모듈 (2)
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
 | `render_report` | 텍스트 리포트 + has_violation | §8.3 게이트 배선 후보 | D(파이프라인 미배선) |
-| `derived_spec` | override + `_spec_source` 기록, why 필수 | 〃 | D(만들고 미배선) |
 
