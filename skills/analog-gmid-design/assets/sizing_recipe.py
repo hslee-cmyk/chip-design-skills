@@ -12,7 +12,7 @@
     2. gm/ID 선택 (moderate inversion 출발) -> 사용자가 스칼라/배열로 지정
     3. ID = gm / (gm/ID)                    -> size_transistor()
     4. W  = L * ID / IDu                    -> size_transistor()
-    5. 기생 CJD 반영 반복                    -> converge_with_parasitics()
+    5. 기생 CJD 반영 반복                    -> optimize_multistage()의 cgg 반복
     6. 검증(f_nqs, gain, slew-rate)          -> check_quasi_static()
 
 "주어진 gm/ID에서 결과가 어떻게 되는가"를 넘어 "스펙을 만족하는 최적 sizing을 찾아라"가 필요하면
@@ -54,8 +54,7 @@ class GmIdLUT:
 
     `gm_id_to_id_density`/`gm_gds_ratio`는 공정 데이터 없이는 계산할 수 없으므로 서브클래스
     책임(semi-empirical LUT는 `SemiEmpiricalGmIdLUT` 참조, model-driven이면 E.K.V. 파라미터로
-    직접 구현). `junction_cap`은 Jespers Annex 2(jctCap) 공식이 공정 독립적으로 쓸 만한 1차
-    근사이므로 기본 구현을 제공한다 — 필요하면 오버라이드한다.
+    직접 구현).
     """
 
     def gm_id_to_id_density(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
@@ -72,26 +71,6 @@ class GmIdLUT:
     def gm_gds_ratio(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """intrinsic gain gm/gds = (gm/ID)*VA. LUT의 GDS 열에서 유도(방법론 §2.5)."""
         raise NotImplementedError("자신의 LUT로 구현하세요 (또는 SemiEmpiricalGmIdLUT 사용)")
-
-    def junction_cap(self, L: float, W: float, n_fingers: int = 1, V: float = 0.0,
-                      CJ: float = 1e-15, CJsw: float = 1e-16, CJswg: float = 3e-16) -> float:
-        """드레인 접합 커패시턴스 CJD — Jespers Annex 2 jctCap() 공식 기반 근사(1차 견적).
-
-        단위: CJ[F/um^2](면적), CJsw[F/um](측면 둘레), CJswg[F/um](게이트측 둘레),
-        기본값은 원문 예시 unit-cap(1e-15/1e-16/3e-16). L,W는 um 단위로 넘긴다.
-        n_fingers>1이면 폭을 병렬 분할해 측면 둘레를 줄인다(방법론 §4.2 partitioning).
-        V(접합 역바이어스, V)가 주어지면 (1+V/0.5)^-0.5 로 감쇠 근사(원문 계수 0.5V 기준).
-
-        ⚠️ 이것은 기하학적 1차 근사다 — 실제 partitioning(최소/최대 R 기준 sub-transistor 개수
-        결정) 세부는 재현하지 않는다. 정확한 값은 공정 PDK의 junction cap 모델을 쓴다.
-        """
-        w_sub = W / n_fingers
-        area = L * W
-        perim_sw = 2 * (w_sub + L) * n_fingers
-        perim_swg = W
-        cj_total = CJ * area + CJsw * perim_sw + CJswg * perim_swg
-        derate = (1 + V / 0.5) ** (-0.5) if V > 0 else 1.0
-        return cj_total * derate
 
 
 # ---------------------------------------------------------------------------
@@ -123,39 +102,6 @@ def size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT,
     return SizingResult(gm=gm, gm_id=gm_id, ID=ID, W=W)
 
 
-def converge_with_parasitics(fT: float, C_external: float, gm_id: float, L: float,
-                              lut: GmIdLUT, vds: float, vsb: float = 0.0,
-                              n_fingers: int = 1, max_iter: int = 10, tol: float = 1e-4
-                              ) -> SizingResult:
-    """방법론 §4.2 — 외부부하 C_external에 기생 CJD를 더해가며 수렴할 때까지 반복.
-
-    ⚠️ weak inversion 쪽으로 gm/ID를 너무 크게 잡으면 W가 급증해 CJD가 C_external을
-    압도하고, ID가 다시 커지는 방향으로 반전될 수 있다(방법론 §4.2) — 그 경우 gm/ID를
-    moderate inversion 쪽으로 낮추는 것을 검토한다.
-    """
-    C = C_external
-    result = None
-    for _ in range(max_iter):
-        gm = gm_from_fT(fT, C)
-        result = size_transistor(gm, gm_id, L, lut, vds, vsb)
-        cjd = lut.junction_cap(L * 1e6, result.W * 1e6, n_fingers)  # jctCap은 um 단위 기대, F 반환
-        C_new = C_external + cjd
-        if C_new > 20 * C_external:
-            # 방법론 §4.2가 경고하는 바로 그 현상: weak inversion 쪽으로 너무 깊이 들어가면
-            # W(→CJD)가 매 반복 더 커지고 다시 gm(→ID→W)을 키우는 양의 되먹임이 발산한다.
-            # 조용히 비정상적으로 큰 숫자를 내는 대신 여기서 멈추고 원인을 알려준다.
-            raise ValueError(
-                f"gm/ID={gm_id:.1f}에서 기생 커패시턴스 반복이 발산합니다 "
-                f"(CJD가 외부부하 C_external의 {C_new / C_external:.0f}배로 증가) — "
-                "moderate inversion 쪽으로 gm/ID를 낮추세요 (방법론 §4.2).")
-        if abs(C_new - C) < tol * C_external:
-            C = C_new
-            break
-        C = C_new
-    result.gain = lut.gm_gds_ratio(gm_id, L, vds, vsb)  # A = gm/gds, 방법론 식 6.1 형태
-    return result
-
-
 # ---------------------------------------------------------------------------
 # 3) 검증 (방법론 §4.5, §5.3 — SKILL.md §5 체크리스트에 대응)
 # ---------------------------------------------------------------------------
@@ -174,11 +120,6 @@ def check_quasi_static(fT: float, gm: float, Cgg: float, margin: float = 0.1) ->
     """
     f_nqs = gm / (2 * math.pi * Cgg)
     return QuasiStaticVerdict(ok=fT <= margin * f_nqs)
-
-
-def slew_rate(ID: float, C: float) -> float:
-    """slew-rate = ID/C = omega_T/(gm/ID)  (방법론 식 6.10)."""
-    return ID / C
 
 
 # ---------------------------------------------------------------------------
@@ -670,15 +611,6 @@ class SemiEmpiricalGmIdLUT(GmIdLUT):
         log_gm = self._query(self._log_GM, L, vgs, vds, vsb)
         log_gds = self._query(self._log_GDS, L, vgs, vds, vsb)
         return math.exp(log_gm - log_gds)
-
-    def fT(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
-        """fT = gm/(2*pi*Cgg) — 방법론 §2.6, 준정적 검증에 사용."""
-        vgs = self._solve_vgs(gm_id, L, vds, vsb)
-        # 2026-09-08(B15) -- gm은 로그공간, Cgg는 선형공간. 실측으로 각 배열에 더 정확한
-        # 쪽을 따로 골랐다(__init__ 주석) -- 같은 공간으로 억지로 맞추지 않는다.
-        gm = math.exp(self._query(self._log_GM, L, vgs, vds, vsb))
-        cgg = self._query(self.CGG, L, vgs, vds, vsb)
-        return gm / (2 * math.pi * cgg)
 
     def vgs_for_gm_id(self, gm_id: float, L: float, vds: float, vsb: float = 0.0) -> float:
         """목표 gm/ID를 만족하는 VGS 자체가 필요한 호출자를 위한 공개 래퍼(`_solve_vgs()`와
@@ -5366,30 +5298,6 @@ _PSRR_ESTIMATOR_REGISTRY = {
     "telescopic_class_ab": _psrr_telescopic_class_ab,               # 세션20
     "telescopic_class_ab_cmfb": _psrr_telescopic_class_ab_cmfb,     # 세션20
 }
-
-
-def lut_conditions_from_npz(npz_data) -> dict:
-    """LUT npz가 들고 있는 **측정 조건**(코너/온도)을 읽어 돌려준다(2026-09-08, A5).
-
-    사이징 결과는 LUT이 뽑힌 조건에서만 유효한데, 그 조건이 파일에 기록돼 있지 않으면
-    산출물이 "이 설계가 어디서 유효한가"를 말할 수 없다. 기록이 없으면 **조용히 기본값을
-    가정하지 않고** `recorded=False`로 그 사실 자체를 돌려준다(§3.2 P1).
-
-    `sky130_lut_sweep.py`는 2026-09-08부터 `corner`/`temp_c`를 함께 저장한다. 그 이전에
-    만들어진 npz(예: 저장소의 `sky130_nfet_pfet_lut_sample.npz`)에는 기록이 없다 -- 생성기
-    코드상 tt/27C인 것은 알지만, **파일이 스스로 말하지 않는 값을 엔진이 대신 지어내지는
-    않는다**. 재생성하면 기록된다."""
-    files = set(getattr(npz_data, "files", []) or [])
-    if "corner" in files or "temp_c" in files:
-        out = {"recorded": True}
-        if "corner" in files:
-            out["corner"] = str(npz_data["corner"])
-        if "temp_c" in files:
-            out["temp_c"] = float(npz_data["temp_c"])
-        return out
-    return {"recorded": False,
-            "note": "이 LUT 파일에 코너/온도가 기록돼 있지 않다 -- 사이징 결과가 어느 조건에서 "
-                    "유효한지 추적할 수 없다. sky130_lut_sweep.py로 재생성하면 기록된다(A5)."}
 
 
 def _load_full_topology_cached(topology_path: str) -> tuple:
