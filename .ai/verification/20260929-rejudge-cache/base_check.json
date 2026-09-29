@@ -1,0 +1,201 @@
+{
+  "id": "20260929-rejudge-cache",
+  "attempt": 1,
+  "evidence_type": "red-green",
+  "freeze": {
+    "T": "03c326ffb7a3923b8e5baf0fe69dbb1a575a462d",
+    "T_subject": "test: 공격 30 재판정 통과 캐시(rejudged) direct 재생과 공격 22 (f) 기대 개정(마지막 줄 형태 attack, 마지막 아닌 형태 record)",
+    "T_trailers": {
+      "Role": "test",
+      "Change-Id": "20260929-rejudge-cache"
+    },
+    "T_parent": "877dbd4fc91d0881ba0ee080d1b56b98de34b724",
+    "base": "877dbd4fc91d0881ba0ee080d1b56b98de34b724",
+    "T_tree": "e3fa747de9751b58499bfaef7b9972bdc4d969ff",
+    "test_paths": {
+      "tools/gates/redteam/attacks/30-rejudge-cache": "9f09379f23fd03ac93a59b32ff46edc5b70a4225",
+      "tools/gates/redteam/attacks/22-gate-tamper": "9fdf871964e015d9d417335a04acb7a0fc0b81d0",
+      "tools/gates/redteam/lib/rt.py": "a19a9d87725ca544d96a57837057449118544a63",
+      "tools/gates/redteam/INTERFACE_ASSUMPTIONS.md": "06deb0daf575da20db64bc92eda4cc591b3d3785"
+    },
+    "base_blobs_of_changed": {
+      "tools/gates/redteam/attacks/22-gate-tamper": "6bda89a4b4c72a57ed8e7359cad55fa7fa355a41",
+      "tools/gates/redteam/lib/rt.py": "62e7a04a8a68038e8a2106ba0708b5ddcd38537c",
+      "tools/gates/redteam/INTERFACE_ASSUMPTIONS.md": "9c35b9d297ee4361e9c7afc540498816a1c162c1"
+    },
+    "base_to_T_changes_outside_redteam": 0,
+    "base_to_T_numstat": "8 파일 +407/-5: INTERFACE_ASSUMPTIONS.md +1/-0, 22-gate-tamper/expect.json +10/-3, 22-gate-tamper/run.sh +4/-2(주석 줄만, 실행 줄 `rt not-implemented attack` 불변), 30-rejudge-cache/{expect.json +217, inputs/warm-cache.json +4, run.sh +56, setup.sh +21}(신규), lib/rt.py +94/-0(rejudge-obs·rejudged-file·exists 추가만)",
+    "worktree_clean": "git status --porcelain 빈 값(audit worktree, 브랜치 role/audit/20260929-rejudge-cache, HEAD = T)"
+  },
+  "isolation": {
+    "clone": "C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso",
+    "commands": [
+      "git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260929-rejudge-cache-audit C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso remote remove origin",
+      "git -C C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso config core.longpaths true",
+      "export APPDATA=C:/Users/HSLEE/AppData/Roaming"
+    ],
+    "note": "T의 게이트 코드는 base(877dbd4)와 같다(T는 tools/gates/redteam/** 만 바꾼다). run_all.py --mode direct는 케이스마다 %TEMP%/gmid-redteam/<시각>/ 아래 sandbox(작업 저장소 + 임시 gate)를 복제본 트리로 만들고 그 안의 tools/gates/integrity.py를 실행한다 -- 실행한 게이트 = base 판. 실제 저장소·실제 gate·실제 .git/gmid-gate-cache에는 쓰지 않았다(측정 뒤 실제 저장소 HEAD 877dbd4·status 시작 스냅숏과 같음, 실제 캐시에 rejudged 파일 없음)",
+    "gate_blob_identity": {
+      "method": "복제본 HEAD:<경로> 와 877dbd4:<경로> 대조(tools/gates·hooks 중 redteam 밖 35파일 전부 동일), 그리고 게이트 코드 캐시 <git-common-dir>/gmid-gate-cache/877dbd4…/ 파일의 git blob 해시를 직접 계산해 대조",
+      "tools/gates/integrity.py": "29e43e0619cdff6f162d60ef99c212e7193b4777",
+      "tools/gates/merge_gate.py": "e12b007ed1fd2239467674424032f5f2d4ac6dcf",
+      "tools/gates/role_paths.py": "e0b62016f2e684c80891f577eb94b58a98472efb",
+      "tools/gates/weakening_diff.py": "4a718672be10aa9891c2ea873afcd10e6526d1fb",
+      "tools/gates/redteam/run_all.py": "cb3875135e000d6d36eae8d6374da57430a95c50",
+      "cache_equals_clone": "캐시 integrity.py·merge_gate.py·role_paths.py·weakening_diff.py의 blob 해시 = 위 값(4/4 일치)"
+    }
+  },
+  "red_check": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 30 --repo C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso",
+    "cwd": "C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso",
+    "exit": 1,
+    "seconds": 36.6,
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso/tools/gates/redteam/logs/20260929-163530-direct.jsonl",
+    "log_sha256": "b37a261006ad87f962929491d24f68f0dfbf2b07e51dc1d6f751d623f966b91d",
+    "cases": {
+      "FAIL": 1
+    },
+    "steps": {
+      "PASS": 6,
+      "FAIL": 9,
+      "RECORD": 1
+    },
+    "harness_status": "케이스 status=ok, setup.sh·run.sh exit 0(stderr 빈 값) -- 러너 ERROR 0. rejudge-obs 단계 5개 모두 sandbox의 integrity.py check가 실제로 돌았다(각 단계 cmd·stdout_tail에 행 1~6 JSON, 행 3b 구간 행 있음)",
+    "per_step": {
+      "scope-push-no-row3b": "control PASS -- exit 0, 3b 행 0(--scope push에는 행 3b 없음). 계약 8의 무동작 대조, base도 만족(red 아님)",
+      "scope-push-no-cache": "control PASS -- C 없음. 계약 8, base도 만족(red 아님)",
+      "first-no-cache-last-forged": "attack PASS -- exit 1, 구간 행 2·실패 1(C1 F)·요약 없음. '무동작 판정 입력'(C 없는 첫 세션 = 변경 전과 같음)과 거부해야 할 입력 1의 C 빈 형태, base도 만족(red 아님, 병합본에서 계속 PASS여야 하는 회귀 대조)",
+      "first-no-cache-cache-file": "control FAIL -- 관찰 rejudged null, 기대 ['B0 C1']. base는 C를 쓰지 않는다(계약 1 red)",
+      "cache-last-forged": "attack FAIL -- 관찰 구간 행 2·실패 1·요약 없음, 기대 구간 행 1·실패 1·요약 k=1. base는 C를 읽지 않아 B0 C1도 재판정(계약 2·6 red). exit 1과 실패 1은 base도 같다(계약 3의 '마지막 줄 재판정 실패 -> ok false'는 base에서 이미 성립 -- 이 부분은 red가 아니다)",
+      "cache-last-forged-cache-file": "control FAIL -- 관찰 ['C1 F'](rt가 적은 줄 그대로), 기대 ['B0 C1']. base는 C를 다시 쓰지 않는다(계약 1·4 뒷문장 red)",
+      "nonlast-forged-not-cached": "attack FAIL -- 관찰 구간 행 3·실패 1·요약 없음, 기대 구간 행 2·실패 1·요약 k=1(계약 2·6 red). exit 1·실패 1은 base도 같다(거부해야 할 입력 2의 거부 자체는 base에서 성립)",
+      "nonlast-forged-not-cached-cache-file": "control FAIL -- 관찰 ['C1 F'], 기대 ['B0 C1','F C3'](계약 1·4 red)",
+      "garbage-cache-nonlast-forged": "attack PASS -- exit 1, 구간 행 3·실패 1·요약 없음. base는 C를 전혀 읽지 않아 같은 관찰 -- 계약 5의 '깨진 줄·로그 밖 쌍 무시'와 거부해야 할 입력 3은 base와 구별되지 않는다(red 아님, 회귀 대조)",
+      "garbage-cache-rewritten": "control FAIL -- 관찰 = rt가 쓴 깨진 줄·로그 밖 쌍 그대로 5줄, 기대 ['B0 C1','F C3'](계약 5 '다시 쓸 때 남기지 않는다'·계약 1 red)",
+      "nonlast-forged-cached": "control FAIL -- exit 1(기대 0), 관찰 구간 행 3·실패 1·요약 없음, 기대 구간 행 1·실패 0·요약 k=2. base는 C에 적힌 마지막이 아닌 위조 구간 C1 F를 재판정해 실패로 드러낸다 -- red의 핵심(계약 2·6). 이 단계는 §13.5 review31 N-06 알려진 한계 동작(C에 적어 둔 마지막이 아닌 위조 구간을 건너뜀)을 control로 요구한다 -- spec card 계약 2와 '거부해야 할 입력'의 알려진 한계 문장이 그 동작을 명시하고, 승인 기록 20260929-rejudge-cache가 그 개정을 덮는다",
+      "nonlast-forged-cached-cache-file": "control FAIL -- 관찰 = 깨진 줄 포함 6줄, 기대 ['B0 C1','C1 F','F C3'](계약 1·5 red, 앞 단계 C 상태 이어받음)",
+      "warm-cache": "record RECORD -- EL1 role_guard.py 호출 exit 0(ensure_cache를 돌리기 위한 호출)",
+      "ensure-cache-ran-stale-dir": "precondition PASS -- 40자리 16진 디렉터리가 지워졌다 = ensure_cache가 돌았다",
+      "ensure-cache-ran-tmp": "precondition PASS -- .tmp-rt30 지워짐",
+      "ensure-cache-keeps-rejudged": "control FAIL -- 관찰 = 앞 단계와 같은 6줄(C가 지워지지 않았다), 기대 3줄. 주의: base ensure_cache는 rejudged를 이미 지우지 않는다(관찰값이 null이 아니다) -- 이 FAIL은 계약 7(ensure_cache가 C를 지우지 않음)의 red가 아니라 앞 단계에서 이어진 C 내용(base가 C를 다시 쓰지 않음, 계약 5)의 차이다. 계약 7 자체는 base에서 이미 성립하므로 이 공격은 계약 7을 base와 구별하지 못한다"
+    },
+    "red_core": "계약 1(통과 구간 기록): first-no-cache-cache-file, cache-last-forged-cache-file, nonlast-forged-not-cached-cache-file / 계약 2·6(캐시 구간 건너뜀·요약 행): cache-last-forged, nonlast-forged-not-cached, nonlast-forged-cached / 계약 4 뒷문장: cache-last-forged-cache-file / 계약 5 다시 쓰기: garbage-cache-rewritten, nonlast-forged-cached-cache-file. 모두 base에서 FAIL(관찰값 불일치, 하네스 ERROR 아님)",
+    "not_discriminated_at_base": [
+      "계약 3(마지막 줄은 C에 있어도 재판정·실패 시 ok false): base는 항상 전 구간 재판정이라 exit 1·실패 1이 이미 성립 -- red 아님, 병합본 회귀 대조(cache-last-forged의 실패 1·exit 1 부분)",
+      "계약 5 앞부분(깨진 줄·로그 밖 쌍 무시)과 거부해야 할 입력 3: garbage-cache-nonlast-forged가 base에서 PASS",
+      "계약 7 뒷문장(ensure_cache가 C를 지우지 않음): base가 이미 지우지 않는다(ensure-cache-keeps-rejudged의 FAIL은 이어받은 C 내용 차이)",
+      "계약 8·무동작 판정 입력: scope-push-no-row3b, scope-push-no-cache, first-no-cache-last-forged가 base에서 PASS(회귀 대조)"
+    ],
+    "not_covered_by_attack_30": [
+      "계약 5 끝문장 중 'C를 읽을 수 없으면 전 구간 재판정'(읽을 수 없는 C 입력 단계 없음 -- 'C가 없으면'은 first-no-cache-last-forged가 덮는다)",
+      "계약 6 끝문장 '재판정할 구간이 하나도 없는 경우는 지금과 같다'(old != new 줄이 0인 로그 단계 없음)",
+      "계약 7 앞문장 '임시 이름 + 원자적 이름 바꾸기'(중간 종료 관찰 단계 없음)"
+    ],
+    "state_chaining_note": "run.sh 단계는 순서가 곧 입력이다(각 rejudge-obs의 C = 앞 단계가 남긴 C + rt가 적은 줄). 병합본에서 앞 단계 C가 다르면 뒤 단계 관찰도 바뀐다 -- 순서 7에서 병합본 단계별 입력 C는 앞 rejudged-file 단계의 관찰값(+ run.sh가 적은 줄)으로 확인한다. 정정(순서 7): rt.py a_rejudge_obs의 note 'C 전: …'는 integrity.py 실행 뒤에 계산되므로 실제로는 실행 뒤 C다(base에서 None인 것은 base가 C를 쓰지 않기 때문) -- 입력 C 확인에 쓰지 않는다",
+    "failure_hash_method": "DESIGN-GAP: redteam 케이스는 pytest red 수집(-p merge_gate) 대상이 아니다. test_id = tools/gates/redteam/attacks/<케이스>::<단계>, failure_hash = merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") -- merge_gate는 게이트 코드 캐시 877dbd4 판을 PYTHONPATH 맨 앞 + $PY -P + PYTHONPYCACHEPREFIX=<빈 임시 디렉터리>로 import(import 경로 로그: <git-common-dir>/gmid-gate-cache/877dbd4…/merge_gate.py). 20260921-gate-flow-liveness·20260923-v4-decision-exempt 선례와 같다",
+    "aggregate_hash": "406a3d74eb8ee2eeb125e634a0ea4f6d3b69b2aa49e2cf343c77f7c2398a1120",
+    "aggregate_hash_method": "sha256(정렬한 failure_hash를 \\n으로 이은 UTF-8)",
+    "red": [
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::first-no-cache-cache-file",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "5de6687bde717ca8459d1583f5356126932e133cdd72ab64526adc45327b982d"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::cache-last-forged",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "1f4b33423e04e0e238395cd3aa8d9efba6a2f3a4caf3c1f8a64f1b9e08892222"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::cache-last-forged-cache-file",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "a6a88a9eb52676bd17706c980026907edf272a9190cd91d2c6e55fcf23997340"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::nonlast-forged-not-cached",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "23b99ec2c4dde4ba68bf3a809db24afbd95759f3838f1096b880d3f384760554"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::nonlast-forged-not-cached-cache-file",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "87deac3440cad28f26c5f05e6542318607c0375954579c374bd0b738be72cd87"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::garbage-cache-rewritten",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "ceb47ad3efd11c0eea0df23c91e557f92b25ed405d055b2d3d9acca06760807e"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::nonlast-forged-cached",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "6e1dc0a5118f122f4395530cd6f7fb87abb703b3018828be7ef5fcb0db32cd68"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::nonlast-forged-cached-cache-file",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "df442bc3a29ab4839de178f965e2d619c570906ed167a9053aa8bb58d6cfd74d"
+      },
+      {
+        "test_id": "tools/gates/redteam/attacks/30-rejudge-cache::ensure-cache-keeps-rejudged",
+        "exc_type": "redteam.FAIL",
+        "failure_hash": "39ca995508caf0bfeebc86f2857a03707aaa254a8278ace68fad432fe74c472c"
+      }
+    ],
+    "base_pass_steps": [
+      "scope-push-no-row3b",
+      "scope-push-no-cache",
+      "first-no-cache-last-forged",
+      "garbage-cache-nonlast-forged",
+      "ensure-cache-ran-stale-dir",
+      "ensure-cache-ran-tmp"
+    ],
+    "base_record_steps": [
+      "warm-cache"
+    ],
+    "result": "red 확인: base에서 FAIL인 9 단계를 red 목록에 넣었다. 전부 관찰값(행 3b 구간 행 수·요약 행·C 파일 줄) 또는 exit 불일치이고 하네스 ERROR는 없다. 핵심 단계 nonlast-forged-cached(계약 2·6, exit 1 != 0)와 cache-last-forged·nonlast-forged-not-cached(계약 2·6), *-cache-file(계약 1·4·5)이 base에서 FAIL한다. 단 ensure-cache-keeps-rejudged의 red는 계약 7이 아니라 이어받은 C 내용에서 온다(not_discriminated_at_base). base PASS 6 단계와 RECORD 1 단계는 red에서 뺐다(병합본에서 계속 PASS여야 하는 회귀 대조)",
+    "expected_red_match": "측정 PASS 6 / FAIL 9 / RECORD 1은 test-author 보고 요지와 같은 수이나, 본 판정은 격리 복제본 실측에서만 얻었다"
+  },
+  "control_check": {
+    "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso",
+    "exit": 1,
+    "started": "2026-09-29T16:36:44+09:00",
+    "finished": "2026-09-29T17:08:38+09:00",
+    "log": "C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso/tools/gates/redteam/logs/20260929-163644-direct.jsonl",
+    "log_sha256": "e92b8989de407f15aa9951eb38a0ea73446588e6a53cfeca2bd7cc469a4eb66d",
+    "cases": {
+      "PASS": 50,
+      "SKIPPED": 7,
+      "FAIL": 1
+    },
+    "steps": {
+      "PASS": 592,
+      "RECORD": 13,
+      "FAIL": 9
+    },
+    "failed_cases": [
+      "30-rejudge-cache(위 red 9 단계와 같은 단계·같은 관찰)"
+    ],
+    "skipped": "11·18·21·22(installed 전용), 12·13·14(Phase 6a)",
+    "cases_command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --cases 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso",
+    "cases_exit": 0,
+    "cases_log": "C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso/tools/gates/redteam/logs/20260929-170852-direct-cases.jsonl",
+    "cases_log_sha256": "4fc966b6edd6e8786d74b0db6e4c58d15629ab3eba36f673a7080014394daa7f",
+    "cases_result": "PASS 5 / SKIPPED 2(5dc4679 Phase 6b, caa970b Phase 1), 단계 PASS 6",
+    "result": "같은 복제본·같은 러너(rt.py T 판)에서 공격 30 밖의 direct 케이스 50개와 사례 재생 5개가 base 게이트로 전부 PASS -- rt.py 추가 동작이 기존 케이스를 바꾸지 않았고, red는 러너·환경 결함이 아니라 base 게이트 동작에서 온다. 이 결과는 spec card '무동작 판정 입력'(판정 불변: --phase 0.5 --mode direct 전체와 --cases 0.5의 케이스 판정이 변경 전과 같다)의 변경 전 기준값이다(순서 7에서 병합본과 대조, 공격 30은 FAIL -> PASS만 달라야 한다)",
+    "attack_22": "installed 전용이라 direct 재생에서 SKIPPED. run.sh 실행 줄은 base·T 모두 `rt not-implemented attack`(T 변경은 주석 4줄) -- expect.json (f) 개정(f-skip-cache-file 기대 exit 1 attack 유지 + basis 추가, f-skip-cache-file-nonlast record 신설)은 어느 모드에서도 아직 실행되지 않는다"
+  },
+  "v5": {
+    "command": "C:/Python314/python.exe <git-common-dir>/gmid-gate-cache/877dbd4fc91d0881ba0ee080d1b56b98de34b724/weakening_diff.py --root C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso --base 877dbd4fc91d0881ba0ee080d1b56b98de34b724 --head 03c326ffb7a3923b8e5baf0fe69dbb1a575a462d",
+    "cwd": "C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso",
+    "exit": 0,
+    "stdout": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+    "output_sha256": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+    "output_sha256_note": "복제본 판 tools/gates/weakening_diff.py(blob 4a71867 = 캐시 판)로 같은 인자를 돌린 stdout+stderr 파일의 sha256. 캐시 판 실행 stdout과 글자 단위로 같다",
+    "scope_note": "V5는 skills/analog-gmid-design/assets/tests/** 와 assets/*.py의 __main__ 블록만 본다(20260923-v4-decision-exempt 선례의 범위 기록과 같음). 이 변경의 test는 전부 tools/gates/redteam/** 라 V5 발견 0 -- V5 PASS가 '기준을 약화하지 않았다'의 증거가 아니다",
+    "weakening_in_scope_of_approval": "공격 22 expect.json (f) 개정: 기존 단계 f-skip-cache-file은 exit 1·kind attack 그대로(기대 약화 없음, basis가 '마지막 줄 형태'로 범위를 좁혀 적음), 새 단계 f-skip-cache-file-nonlast는 record(exit any) -- 마지막이 아닌 위조 구간을 드러내지 않는 것을 기록 케이스로 둔 것이 기준 약화다. 공격 30 nonlast-forged-cached는 같은 동작을 control(exit 0)로 요구한다. 이 약화의 근거는 design 05 §3.3 행 3(나)·§13.2 #22 (f)·§13.5 N-06 개정과 spec card이고, 승인 기록 .ai/approvals/20260929-rejudge-cache.md(blob ec6e6b604de86f8ab64e1a0895a118c90982926e, base·T 동일; target_kind diff, target 3e66546c…6d37, diff_base f16a271, diff_head f8509d3, diff_path = design 05·spec card)가 '공격 22 (f) 기대를 알려진 한계(기록 케이스)로 바꾸는 개정'을 덮는다고 범위에 적었다. 승인 기록의 diff_path에 tools/gates/redteam/attacks/22-gate-tamper/expect.json은 없다 -- V5가 이 경로를 발견하지 않으므로 V5 승인 대조 대상이 아니다. 순서 7 V5 basis에 이 범위 한계와 승인 기록을 적을 것"
+  },
+  "measured_at": "2026-09-29T16:35:30+09:00",
+  "measured_by": "gmid-verification-auditor (격리 복제본, 작성자 보고 미사용)"
+}

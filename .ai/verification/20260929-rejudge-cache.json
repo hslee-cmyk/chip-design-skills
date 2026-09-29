@@ -1,0 +1,125 @@
+{
+  "id": "20260929-rejudge-cache",
+  "spec_card": "docs/02-design/specs/20260929-rejudge-cache.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "877dbd4fc91d0881ba0ee080d1b56b98de34b724",
+  "test_commit": "03c326ffb7a3923b8e5baf0fe69dbb1a575a462d",
+  "code_commit": "cfadb761c38294a428f0a9bcbc2eeeaa8c263e65",
+  "red": {
+    "test_ids": [
+      "tools/gates/redteam/attacks/30-rejudge-cache::first-no-cache-cache-file",
+      "tools/gates/redteam/attacks/30-rejudge-cache::cache-last-forged",
+      "tools/gates/redteam/attacks/30-rejudge-cache::cache-last-forged-cache-file",
+      "tools/gates/redteam/attacks/30-rejudge-cache::nonlast-forged-not-cached",
+      "tools/gates/redteam/attacks/30-rejudge-cache::nonlast-forged-not-cached-cache-file",
+      "tools/gates/redteam/attacks/30-rejudge-cache::garbage-cache-rewritten",
+      "tools/gates/redteam/attacks/30-rejudge-cache::nonlast-forged-cached",
+      "tools/gates/redteam/attacks/30-rejudge-cache::nonlast-forged-cached-cache-file",
+      "tools/gates/redteam/attacks/30-rejudge-cache::ensure-cache-keeps-rejudged"
+    ],
+    "failure_hashes": [
+      "5de6687bde717ca8459d1583f5356126932e133cdd72ab64526adc45327b982d",
+      "1f4b33423e04e0e238395cd3aa8d9efba6a2f3a4caf3c1f8a64f1b9e08892222",
+      "a6a88a9eb52676bd17706c980026907edf272a9190cd91d2c6e55fcf23997340",
+      "23b99ec2c4dde4ba68bf3a809db24afbd95759f3838f1096b880d3f384760554",
+      "87deac3440cad28f26c5f05e6542318607c0375954579c374bd0b738be72cd87",
+      "ceb47ad3efd11c0eea0df23c91e557f92b25ed405d055b2d3d9acca06760807e",
+      "6e1dc0a5118f122f4395530cd6f7fb87abb703b3018828be7ef5fcb0db32cd68",
+      "df442bc3a29ab4839de178f965e2d619c570906ed167a9053aa8bb58d6cfd74d",
+      "39ca995508caf0bfeebc86f2857a03707aaa254a8278ace68fad432fe74c472c"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "게이트 변경(Phase 0.5)의 V1은 pytest 전체 + redteam 재생 둘 다(선례 20260921-gate-flow-liveness·20260923-v4-decision-exempt). (1) pytest(auditor_run의 `V1: ` 명령, base 판 캐시 877dbd4 pytest_gate.ini, -k·--deselect·-x·-m 없음, slow 포함 전체, --gmid-phase=0.5 --gmid-strict= -- 엄격 집합은 base 판 캐시 merge_gate.strict_set(old 877dbd4 트리, 이 spec card)로 직접 재어 빈 집합, conftest_has_gmid_phase 참): 354 passed, 15 xfailed, 3 xpassed(IC3 두 개·IC5 하나, 엄격 대상 아님), FAILED·ERROR·SKIPPED 0, exit 0, 154.44s, 출력 sha256 3758cfb18ff20002a5659b57c2e0e5e52aa6d3f9ef6a404b3525c34057cd9d0f. base..병합본 변경 9경로가 전부 tools/gates/** 라 pytest 대상 트리는 base와 같다. (2) redteam 병합본 전체(새 격리 복제본 -iso7, origin 없음, HEAD 80995db): run_all.py --phase 0.5 --mode direct 전체 exit 0, 케이스 PASS 51·SKIPPED 7·FAIL 0, 단계 PASS 601·RECORD 13·FAIL 0(log 20260929-173833-direct.jsonl sha256 ea458675bac93ea9aeef1f8f44ee8514529c0c3b265c2f5026048b450d77cebb); --cases 0.5 exit 0, PASS 5·SKIPPED 2, 단계 PASS 6(log 20260929-180648-direct-cases.jsonl). 판정 불변(spec card '무동작 판정 입력'): 순서 3의 T 복제본 전체 실행(케이스 PASS 50·SKIPPED 7·FAIL 1, 단계 PASS 592·RECORD 13·FAIL 9, log sha256 e92b8989de407f15aa9951eb38a0ea73446588e6a53cfeca2bd7cc469a4eb66d)과 케이스·단계별 판정을 기계 대조: 케이스 집합 같음, 판정이 다른 케이스는 30-rejudge-cache(FAIL -> PASS) 하나, 판정이 다른 단계는 공격 30의 9단계(전부 FAIL -> PASS)뿐, --cases 0.5 케이스 판정 동일. 공격 22는 installed 전용이라 두 실행 모두 SKIPPED. 복제본의 게이트 코드: 병합본 integrity.py blob 4f4a3ee(= code 커밋), 그 밖의 tools/gates 게이트 파일은 base와 같다"
+    },
+    "V2": {
+      "verdict": "N/A",
+      "basis": "도입 1: 병합 판정의 V2 적용은 Phase 1부터(N4.2 v_intro, 이 변경은 Phase 0.5). 측정은 했다 -- 커밋 사슬: base 877dbd4 -> T 03c326f(Role: test, Change-Id 일치, tools/gates/redteam/** 8경로) -> code cfadb76(Role: code, 부모 T, tools/gates/integrity.py 1경로 +66/-2) -> 병합 80995db(Role: doc, 부모 T·cfadb76, 트리 182d588 = code 트리). test 커밋 불변: git diff 03c326f 80995db -- tools/gates/redteam 차이 0. red: base(T 복제본) 공격 30에서 FAIL인 9단계 = red.test_ids, failure_hashes는 base 판 캐시 merge_gate.red_failure_hash(test_id, \"redteam.FAIL\"), 집계 sha256 406a3d74eb8ee2eeb125e634a0ea4f6d3b69b2aa49e2cf343c77f7c2398a1120(base_check.json). green: 병합본에서 그 9단계 전부 PASS, 공격 30 PASS 15·RECORD 1, FAIL -> PASS로 바뀐 단계 집합 = red 집합(기계 대조 참). 병합본 단계 관찰: cache-last-forged 구간 행 1·실패 1·요약 k=1 exit 1, nonlast-forged-not-cached 구간 행 2·실패 1·요약 k=1 exit 1, garbage-cache-nonlast-forged 구간 행 3·실패 1·요약 없음, nonlast-forged-cached 구간 행 1·실패 0·요약 k=2 exit 0(§13.5 N-06 알려진 한계 동작, spec card 계약 2와 승인 기록이 명시), C 줄은 기대대로. 공격 30이 base와 구별하지 못하거나 덮지 않은 계약을 auditor 독립 probe로 쟀다(probe.py, rt.py 미사용 -- 공격 30 sandbox 하나를 --keep으로 받아 git commit-tree·push -f·accept-log 덧붙이기로 역할 밖 경로만 바꾼 구간 20개를 더해 23구간, base 판 integrity.py(877dbd4 blob 추출)와 병합본을 같은 상태에 실행, 결과 probe.jsonl sha256 59035e7399a27e2f0f84220d73fc740455a430177bee5d49a2bb4b6557e0fa73): 무동작(C 없음 첫 세션) 행 3b의 (ok, expected) 목록 23행이 base와 같고 exit 둘 다 1; 계약 5 읽을 수 없는 C -- C가 디렉터리면 23구간 전부 재판정·요약 없음·예외 없음, C가 UTF-8이 아니면 23구간 전부 재판정 후 C를 통과 22쌍으로 다시 씀; 계약 6 끝문장 -- 로그가 B0 B0 한 줄이면 base·병합본 모두 행 3b 한 행(구간 재판정 / 재판정할 구간 없음, ok true), 병합본은 C를 빈 파일로 다시 씀; 계약 7 -- 모든 probe 단계 뒤 rejudged.wr-* 임시 파일 0, 코드는 mkstemp + os.replace; 계약 3 -- 매 세션 마지막 줄 재판정 행 1개 확인. ★발견(판정 영향 없음, handoff): 계약 5 괄호 'C의 줄 수 상한 = accept-log의 old != new 줄 수'가 한 경로에서 깨진다 -- C = 통과 쌍 22개 전부 + 깨진 줄 2개일 때 병합본은 읽은 쌍 집합이 남길 집합과 같아 C를 다시 쓰지 않고(integrity.py `if set(keep) != cached:`), 대조 뒤 C가 24줄(상한 23)로 남는다. 깨진 줄은 읽을 때 무시되므로 행 3b 판정은 바뀌지 않고, 집합이 바뀌는 다음 쓰기에서 지워진다. 공격 30 garbage-cache-rewritten은 집합이 바뀌는 입력이라 이 경로를 덮지 않는다"
+    },
+    "V3": {
+      "verdict": "N/A",
+      "basis": "도입 1: 뮤테이션은 Phase 1 병합부터(N4.2). 참고 실행: base 판 캐시 mutate_changed.py(root=-iso7, base 877dbd4, head 80995db): targets 빈 목록, mutants 0, exit 0 -- 대상은 assets 최상위 소스·workspaces/run_harness.py뿐이고 이번 변경의 .py는 tools/gates/integrity.py(게이트 도구). 바뀐 row3b와 새 함수 3개(_rejudged_path·_read_rejudged·_write_rejudged)의 동작은 공격 30과 auditor 독립 probe가 직접 판정했다"
+    },
+    "V4": {
+      "verdict": "N/A",
+      "basis": "도입 1: 자기참조 lint 병합 적용은 Phase 1부터(N4.2). 참고: base 판 캐시 test_lint.py(--module-dir tools/gates --subject integrity:row3b) verdict PASS, files 빈 목록, findings 0, unjudged 0. oracle 대조(참고): 공격 30 기대값은 spec card 'oracle 종류와 출처' (a)(구성으로 정답이 정해진 합성 입력)와 계약에서 왔다 -- 구간 행 수는 로그의 old != new 줄 수와 C에 있고 마지막이 아닌 쌍 수에서(계약 2·6), 실패 수 1은 트레일러 없는 엔진 소스 변경 F의 구성(§8.2-2·§9.2 EL4 거부)에서, 요약 k는 건너뛴 구간 수(계약 6), exit 0/1은 05 §3.3 check 규약, C 줄 목록은 계약 1·4·5, exists false는 계약 7의 ensure_cache 삭제 대상 정의에서 -- 피검 출력에서 만들지 않았다(expect.json basis마다 근거 문장이 있고, 순서 3의 base 관찰과 달라 red가 되었다). auditor probe가 rt.py 밖에서 같은 계약을 따로 재현했다(V2)"
+    },
+    "V5": {
+      "verdict": "N/A",
+      "basis": "도입 1: 기준 약화 검사 병합 적용은 Phase 1부터(N4.2). 참고 실행: base 판 캐시 weakening_diff.py base 877dbd4 -> T 03c326f와 base -> 병합본 80995db 둘 다 verdict PASS, findings 0, diff_paths 빈 목록, diff_hash null, approved false, exit 0. ★범위 한계: weakening_diff는 skills/analog-gmid-design/assets/tests/** 와 assets/*.py의 __main__ 블록만 보므로 tools/gates/** 변경은 발견 경로 밖이다 -- 이 PASS는 '기준을 약화하지 않았다'의 증거가 아니다. 이 변경은 실제로 기준을 약화한다: 공격 22 expect.json (f)에 record 단계 f-skip-cache-file-nonlast(exit any)를 새로 두어 마지막이 아닌 위조 구간을 드러내지 않는 것을 기록 케이스로 바꿨고(기존 f-skip-cache-file은 exit 1 attack 유지), 공격 30 nonlast-forged-cached가 같은 동작을 control(exit 0)로 요구한다. 이 약화는 V5 발견 경로 밖이라 V5 승인 대조를 거치지 않고, 승인 기록 20260929-rejudge-cache(target_kind diff, diff_base f16a271, diff_head f8509d3, diff_path = design 05·spec card, blob ec6e6b6)의 범위 설명 '§13.2 공격 22 (f) 기대를 알려진 한계(기록 케이스)로 바꾸는 개정 -- 드러나게 하는 범위를 줄이는 기준 약화'가 덮는다. 그 승인 기록의 diff_path에 tools/gates/redteam/attacks/22-gate-tamper/expect.json은 없다(한계). 공격 22는 installed 전용이고 run.sh 실행 줄이 not-implemented라 (f) 두 단계는 어느 모드에서도 아직 실행되지 않는다"
+    },
+    "V6": {
+      "verdict": "N/A",
+      "basis": "도입 1: 소스 lint 병합 적용은 Phase 1부터(N4.2). 참고: base 판 캐시 source_lint.py targets 빈 목록, findings 0, exit 0(대상 밖 경로). 관찰: code 커밋이 더한 except는 `except (OSError, UnicodeDecodeError): return set()`(_read_rejudged -- 계약 5 '읽을 수 없으면 전 구간 재판정'), `except OSError: pass`(_write_rejudged -- 캐시 쓰기 실패는 판정 무관, docstring에 명시), finally 안 os.remove의 `except OSError: pass` -- 셋 다 좁은 타입이고 광범위 except(Exception·bare) 0. 판정 경로(receive 실행·ok 계산)는 감싸지 않는다"
+    },
+    "V7": {
+      "verdict": "N/A",
+      "basis": "도입 2: 배선 검사는 Phase 2부터(N4.2). 참고 실행: base 판 캐시 reachability.py PASS, new_defs 빈 목록, unreached 빈 목록(게이트 도구는 소스 그래프 밖). 배선 관찰: 새 함수 3개는 row3b에서만 불리고 row3b는 check --scope session에서 불린다 -- 공격 30과 probe의 session 실행이 그 경로를 지나 C를 읽고 썼다"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2). 엔진 무관 게이트 변경"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2). 회로 결과 무관(spec card 'library 회로 적용 여부: 해당 없음')"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치': 변경 전 세션 시작 348초(실제 gate 86구간)는 실제 gate·실제 캐시에서만 잴 수 있어 이 판정에서 재현하지 않았다(오케스트레이터 지시: 실제 저장소·gate·.git/gmid-gate-cache에 쓰지 않음, 실제 86구간 측정은 §13.4 재설치 뒤 오케스트레이터). 대신 '두 번째 세션' 관찰값을 격리 sandbox(임시 gate, 23구간 -- 공격 30 구성 3구간 + 역할 밖 경로만 바꾼 양성 20구간)에서 integrity.py check --scope session 전체 실행 시간으로 쟀다: base 판(전 구간 재판정) 40.172초, 병합본 첫 세션(C에 새 20구간 없음, 20구간 재판정 + 캐시 통과 3) 34.137초, 두 번째 세션(C 채워짐, 마지막 줄 1구간 재판정 + 캐시 통과 22) 2.020초, 세 번째 2.101초 -- spec card 기대 '마지막 줄 하나의 재판정 + 나머지 행 수준'과 맞는다(구간당 약 1.7초, 86구간 선형 외삽은 계약이 아니어서 쓰지 않는다). 수치는 reproduced_numbers에 명령과 함께 적었고 전부 이 기록의 격리 실측이다(작성자 보고 미사용)"
+    }
+  },
+  "reproduced_numbers": [
+    {
+      "name": "sandbox 23구간 세션 시작 대조 시간(base 판 integrity.py, 전 구간 재판정), 초",
+      "value": 40.172,
+      "command": "cwd <sandbox>/work: $PY tools/gates/_audit_base_integrity.py check --scope session (877dbd4:tools/gates/integrity.py 추출본) -- probe.py 단계 time-base-all"
+    },
+    {
+      "name": "sandbox 23구간 병합본 첫 세션 시간(20구간 재판정 + 캐시 통과 3구간), 초",
+      "value": 34.137,
+      "command": "cwd <sandbox>/work: $PY tools/gates/integrity.py check --scope session (병합본 blob 4f4a3ee) -- probe.py 단계 time-new-session1"
+    },
+    {
+      "name": "sandbox 23구간 병합본 두 번째 세션 시간(C 채워짐, 마지막 줄 1구간 재판정 + 캐시 통과 22구간), 초",
+      "value": 2.02,
+      "command": "cwd <sandbox>/work: $PY tools/gates/integrity.py check --scope session -- probe.py 단계 time-new-session2"
+    },
+    {
+      "name": "sandbox 23구간 병합본 세 번째 세션 시간(반복 측정), 초",
+      "value": 2.101,
+      "command": "cwd <sandbox>/work: $PY tools/gates/integrity.py check --scope session -- probe.py 단계 time-new-session3"
+    }
+  ],
+  "approvals": [
+    "20260929-rejudge-cache"
+  ],
+  "auditor_run": {
+    "time": "2026-09-29T18:13:02+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260929-rejudge-cache-audit",
+    "commands": [
+      "격리(병합본): git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260929-rejudge-cache-audit C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7",
+      "격리(병합본): git -C C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7 remote remove origin",
+      "격리(병합본): git -C C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7 config core.longpaths true",
+      "격리(base 판 T, 순서 3): git -c core.longpaths=true clone -q --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260929-rejudge-cache-audit C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso (당시 HEAD = T 03c326f) 뒤 remote remove origin",
+      "PY = C:/Python314/python.exe, APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 디렉터리 C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-out7",
+      "V1: PYTHONPYCACHEPREFIX=C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-out7/pyc_v1 PYTHONPATH=C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/877dbd4fc91d0881ba0ee080d1b56b98de34b724 $PY -P -m pytest -c C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/.git/gmid-gate-cache/877dbd4fc91d0881ba0ee080d1b56b98de34b724/pytest_gate.ini --rootdir=C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7 --confcutdir=C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7 C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7/skills/analog-gmid-design/assets/tests --gmid-phase=0.5 --gmid-strict= -rA",
+      "V1 cwd: C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7 (HEAD 80995db7d546b2cbbaaf7e10989a0f4220929129)",
+      "엄격 집합·v_intro 실측: PYTHONPATH=<base 판 캐시 877dbd4> $PY -P <out>/strict.py <iso7> 877dbd4 20260929-rejudge-cache -> strict_set 빈 집합, card phase 0.5; <out>/vintro.py -> v_intro V1~V6 1, V7 2, V8 4, V9 6b, V10 0.5",
+      "redteam 병합본 전체(cwd -iso7): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7",
+      "redteam 병합본 사례(cwd -iso7): $PY tools/gates/redteam/run_all.py --cases 0.5 --mode direct --repo C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso7",
+      "redteam base 판 전체·사례·공격 30(순서 3, cwd -iso): $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct [--only 30] --repo C:/Users/HSLEE/AppData/Local/Temp/20260929-rejudge-cache-iso ; --cases 0.5",
+      "판정 불변 대조: $PY <out>/cmp.py <iso>/…/20260929-163644-direct.jsonl <iso7>/…/20260929-173833-direct.jsonl <TEMP>/20260929-rejudge-cache-redhash.json",
+      "probe sandbox: $PY tools/gates/redteam/run_all.py --phase 0.5 --mode direct --only 30 --keep --repo <iso7> (sandbox %TEMP%/gmid-redteam/20260929-180715-direct/30-rejudge-cache-0k170frf/sb, integrity.py = 병합본 blob 4f4a3ee의 CRLF 사본)",
+      "독립 probe: $PY <out>/probe.py <sandbox sb> <iso7> <out>/probe.jsonl 20",
+      "V3 참고(cwd -iso7): $PY <base 판 캐시 877dbd4>/mutate_changed.py --root <iso7> --base 877dbd4 --head 80995db --pytest-ini <iso7>/tools/gates/pytest_gate.ini --python $PY --out <out>/v3.jsonl",
+      "V4 참고(cwd -iso7): $PY <base 판 캐시 877dbd4>/test_lint.py --root <iso7> --base 877dbd4 --head 80995db --module-dir tools/gates --subject integrity:row3b",
+      "V5 참고(cwd -iso7): $PY <base 판 캐시 877dbd4>/weakening_diff.py --root <iso7> --base 877dbd4 --head 80995db (순서 3: --head 03c326f)",
+      "V6 참고(cwd -iso7): $PY <base 판 캐시 877dbd4>/source_lint.py --root <iso7> --base 877dbd4 --head 80995db",
+      "V7 참고(cwd -iso7): $PY <base 판 캐시 877dbd4>/reachability.py --root <iso7> --base 877dbd4 --head 80995db",
+      "red 해시(순서 3): PYTHONPYCACHEPREFIX=<빈 임시> PYTHONPATH=<base 판 캐시 877dbd4> $PY -P -c … merge_gate.red_failure_hash(test_id, \"redteam.FAIL\")"
+    ]
+  }
+}
