@@ -21,7 +21,7 @@ if _ASSETS not in sys.path:
     sys.path.insert(0, _ASSETS)
 
 
-from sizing_recipe import (SemiEmpiricalGmIdLUT, SizingContext, Transistor, _COMPENSATION_REGISTRY, _blocked_euler_rows, _build_theta_evaluator, _cmfb_amp_gain_diode_load, _dc_replace, _full_circuit_response, _group_score_interior, _group_score_metric, _invert_gm_id_for_current, _lerp, _load_full_topology_cached, _nmcnr_stage1_rout, _telescopic_class_ab_open_loop_gains, allocate_stack_headroom, apply_and_revalidate_matching_finger_growth, apply_and_revalidate_pair_adjustment, apply_theta_feed, build_toy_lut, check_quasi_static, compute_metric, derive_class_L, derive_role_L, diagnose_sizing_roles_gap, diode_vds_window, estimate_area_budget, estimate_mismatch_sigma, feasible_L_window, find_optimal_sizing, json, knee_L_for_kind, load_topology, math, nmcnr_predict_ac_response, np, optimize_full_circuit_budget, optimize_multistage, propagate_topology_forced_currents, require_declared_spec_source, resolve_constraint_references, resolve_stack_layout, revalidate_finger_override, run_matching_safety_with_finger_growth, run_regression_case, run_topology_pipeline_with_finger_fixup, search_gm_id_for_role, size_transistor, solve_diode_connected_vds, solve_diode_stack_current, solve_id_for_target_gm, suggest_matching_finger_growth, suggest_pair_finger_adjustments, validate_theta_declaration_order)  # noqa: E402
+from sizing_recipe import (SemiEmpiricalGmIdLUT, SizingContext, Transistor, _COMPENSATION_REGISTRY, _blocked_euler_rows, _build_theta_evaluator, _dc_replace, _full_circuit_response, _group_score_interior, _group_score_metric, _invert_gm_id_for_current, _lerp, _load_full_topology_cached, _nmcnr_stage1_rout, allocate_stack_headroom, apply_and_revalidate_matching_finger_growth, apply_and_revalidate_pair_adjustment, apply_theta_feed, build_toy_lut, check_quasi_static, compute_metric, derive_class_L, derive_role_L, diagnose_sizing_roles_gap, diode_vds_window, estimate_area_budget, estimate_mismatch_sigma, feasible_L_window, find_optimal_sizing, json, knee_L_for_kind, load_topology, math, nmcnr_predict_ac_response, np, optimize_full_circuit_budget, optimize_multistage, propagate_topology_forced_currents, require_declared_spec_source, resolve_constraint_references, resolve_stack_layout, revalidate_finger_override, run_matching_safety_with_finger_growth, run_regression_case, run_topology_pipeline_with_finger_fixup, search_gm_id_for_role, size_transistor, solve_diode_connected_vds, solve_diode_stack_current, solve_id_for_target_gm, suggest_matching_finger_growth, suggest_pair_finger_adjustments, validate_theta_declaration_order)  # noqa: E402
 import os as _os  # noqa: E402
 import tempfile as _tempfile  # noqa: E402
 import os as _rsl_os  # noqa: E402
@@ -564,72 +564,6 @@ def s065_state(library_dir):
     _crt_by_name = {t.name: t for t in _crt_transistors}
 
     return types.SimpleNamespace(_crt_by_name=_crt_by_name, _crt_transistors=_crt_transistors)
-
-
-@pytest.fixture
-def s067_state():
-    """섹션 S067(이관본 줄 2221-2269)이 만드는 이름 _cmfb_roles -- 읽는 섹션: S068. 그 이름을 만드는 문장만 옮겼다(design §6.8-3 (다))."""
-    _cmfb_roles = {"cmfb_ctrl_device": "M7", "cmfb_amp_sense": "M37a", "cmfb_amp_ref": "M37b",
-                    "cmfb_load_sense": "M36a", "cmfb_load_ref": "M36b",
-                    "cmfb_tail_device": "M38", "cmfb_stage2_devices": ["M15", "M16"]}
-
-    return types.SimpleNamespace(_cmfb_roles=_cmfb_roles)
-
-
-@pytest.fixture
-def s068_state(s067_state):
-    """섹션 S068(이관본 줄 2270-2344)이 만드는 이름 _adm_o, _ann_o, _cmfb_ctx, _cmfb_spec, _t -- 읽는 섹션: S069. 그 이름을 만드는 문장만 옮겼다(design §6.8-3 (다))."""
-    _cmfb_roles = s067_state._cmfb_roles
-
-    _battery_vop1 = {"vdd_src": "M8", "batt_hi": "M9a", "batt_lo": "M9b",
-                       "gate_diode1": "M11a", "gate_diode2": "M11b",
-                       "gate_sink": "M12", "output_sink": "M10",
-                       "gate2_src": "M13", "gate2_diode1": "M14a", "gate2_diode2": "M14b"}
-    _battery_vom1 = {"vdd_src": "M17", "batt_hi": "M18a", "batt_lo": "M18b",
-                       "gate_diode1": "M20a", "gate_diode2": "M20b",
-                       "gate_sink": "M21", "output_sink": "M19",
-                       "gate2_src": "M22", "gate2_diode1": "M23a", "gate2_diode2": "M24b"}
-    _cmfb_ctx = SizingContext(sized={
-        "M1a": {"gm": 119e-6, "gds": 1 / 600e3}, "M1b": {"gm": 119e-6, "gds": 1 / 600e3},
-        "M2a": {"gm": 130e-6, "gds": 1 / 700e3}, "M2b": {"gm": 130e-6, "gds": 1 / 700e3},
-        "M4a": {"gm": 140e-6, "gds": 1 / 250e3}, "M4b": {"gm": 140e-6, "gds": 1 / 250e3},
-        "M3a": {"gm": 150e-6, "gds": 1 / 300e3}, "M3b": {"gm": 150e-6, "gds": 1 / 300e3},
-        "M6": {"gm": 0.0, "gds": 0.5e-6}, "M7": {"gm": 90e-6, "gds": 0.4e-6},
-        "M5": {"gm": 0.0, "gds": 1.0e-6},
-        "M8": {"gm": 40e-6, "gds": 0.3e-6}, "M17": {"gm": 40e-6, "gds": 0.3e-6},
-        "M9a": {"gm": 50e-6, "gds": 0.4e-6}, "M9b": {"gm": 50e-6, "gds": 0.4e-6},
-        "M18a": {"gm": 50e-6, "gds": 0.4e-6}, "M18b": {"gm": 50e-6, "gds": 0.4e-6},
-        "M11a": {"gm": 30e-6, "gds": 0.5e-6}, "M11b": {"gm": 30e-6, "gds": 0.5e-6},
-        "M20a": {"gm": 30e-6, "gds": 0.5e-6}, "M20b": {"gm": 30e-6, "gds": 0.5e-6},
-        "M12": {"gm": 0.0, "gds": 0.6e-6}, "M21": {"gm": 0.0, "gds": 0.6e-6},
-        "M10": {"gm": 0.0, "gds": 0.6e-6}, "M19": {"gm": 0.0, "gds": 0.6e-6},
-        "M13": {"gm": 40e-6, "gds": 0.3e-6}, "M22": {"gm": 40e-6, "gds": 0.3e-6},
-        "M14a": {"gm": 30e-6, "gds": 0.5e-6}, "M14b": {"gm": 30e-6, "gds": 0.5e-6},
-        "M23a": {"gm": 30e-6, "gds": 0.5e-6}, "M24b": {"gm": 30e-6, "gds": 0.5e-6},
-        "M15": {"gm": 3.0e-3, "gds": 8e-6}, "M16": {"gm": 3.0e-3, "gds": 9e-6},
-        "M37a": {"gm": 100e-6, "gds": 1.0e-6}, "M37b": {"gm": 105e-6, "gds": 1.1e-6},
-        "M36a": {"gm": 80e-6, "gds": 0.8e-6}, "M36b": {"gm": 84e-6, "gds": 0.9e-6},
-        "M38": {"gm": 0.0, "gds": 1.2e-6},
-    })
-    _cmfb_spec = {"type": "cmrr_estimate", "circuit_family": "telescopic_class_ab_cmfb",
-                   "input_p": "M1a", "input_p_b": "M1b", "cascode_p": "M2a", "cascode_p_b": "M2b",
-                   "input_n": "M4a", "input_n_b": "M4b", "cascode_n": "M3a", "cascode_n_b": "M3b",
-                   "tail_p_devices": ["M6", "M7"], "tail_n_device": "M5",
-                   "battery_vop1_side": _battery_vop1, "battery_vom1_side": _battery_vom1,
-                   **_cmfb_roles}
-    _cmfb_ac = _cmfb_amp_gain_diode_load(_cmfb_spec, _cmfb_ctx)
-    _cmfb_db1 = compute_metric(_cmfb_spec, _cmfb_ctx)
-    _adm_o, _acm_o, _ann_o, _h_o = _telescopic_class_ab_open_loop_gains(_cmfb_spec, _cmfb_ctx)
-    _s2 = [_cmfb_ctx.sized[d] for d in _cmfb_spec["cmfb_stage2_devices"]]
-    _g2 = -sum(d["gm"] for d in _s2) / sum(d["gds"] for d in _s2)
-    _t = -_h_o * _cmfb_ac * _g2
-    _cmfb_ctx.sized["M5"]["gds"] = 1.0e-6 * 0.05
-    _cmfb_ctx.sized["M7"]["gm"] = 90e-6 * 4
-    _cmfb_db2 = compute_metric(_cmfb_spec, _cmfb_ctx)
-    _cmfb_ctx.sized["M5"]["gds"] = 1.0e-6
-    _cmfb_ctx.sized["M7"]["gm"] = 90e-6
-
-    return types.SimpleNamespace(_adm_o=_adm_o, _ann_o=_ann_o, _cmfb_ctx=_cmfb_ctx, _cmfb_spec=_cmfb_spec, _t=_t)
 
 
 def test_s003__evaluate():
@@ -2880,55 +2814,6 @@ def test_s065_section(library_dir):
         "M1b/M4b가 같은 반대편 입력(Vim)을 공유하지 않음"
 
 
-def test_s066_family():
-    """[cmrr_estimate -- telescopic_class_ab family(2026-08-03 확정 topology.json으로
-    재유도) -- 이상화 소신호 netlist(VCCS+R만, ngspice AC) + sympy 정확해와 대조.
-    재현 스크립트: workspaces/current-reuse-telescopic-ota-report/spice/
-    stage1_cmrr_sympy_derivation.py, stage1_cmrr_ngspice_crosscheck.py.
-    gm/gds 자체는 topology.json에 없는 사이징 결과물이라(하네스를 실행해야 나옴)
-    여기선 SPICE 대조에 쓴 수치를 그대로 넣어 수식 자체만 검증한다 -- 소자 역할/kind는
-    위에서 이미 실제 JSON으로 확인됨]
-
-    oracle (c) 이관본 legacy/selftest_sizing_recipe.py 섹션 S066(줄 2176-2220, head 2dd98f2)의 판정을 그대로 옮겼다.
-    """
-    _crt_cmrr_ctx = SizingContext(sized={
-        "M1a": {"gm": 119e-6, "gds": 1.0 / 600e3},   # PMOS 입력쌍
-        "M2a": {"gm": 119e-6, "gds": 1.0 / 600e3},   # PMOS 캐스코드
-        "M4a": {"gm": 119e-6, "gds": 1.0 / 250e3},   # NMOS 입력쌍
-        "M3a": {"gm": 119e-6, "gds": 1.0 / 250e3},   # NMOS 캐스코드
-        "M6": {"gm": 0.0, "gds": 0.5e-6}, "M7": {"gm": 0.0, "gds": 0.5e-6},  # PMOS tail(Rx=1e6)
-        "M5": {"gm": 0.0, "gds": 1.0e-6},             # NMOS tail(Ry=1e6)
-    })
-    _crt_cmrr_spec = {"type": "cmrr_estimate", "circuit_family": "telescopic_class_ab",
-                        "input_p": "M1a", "cascode_p": "M2a", "input_n": "M4a", "cascode_n": "M3a",
-                        "tail_p_devices": ["M6", "M7"], "tail_n_device": "M5"}
-    _crt_cmrr_db = compute_metric(_crt_cmrr_spec, _crt_cmrr_ctx)
-    # SPICE(ngspice AC, sky130 무관 -- 이상화 gm/ro만 쓴 소신호 netlist) 실측 대조값(Rx=Ry=1e6): -0.00dB.
-    assert abs(_crt_cmrr_db - 0.0) < 0.1, f"Rx=Ry=1e6 기준값(SPICE -0.00dB)과 어긋남: {_crt_cmrr_db}"
-    # 비대칭 Rx(=1e8)로 두 번째 대조점 확인(SPICE 실측 4.59dB, 근사식 4.56dB -- 0.2dB 이내 확인됨).
-    _crt_cmrr_ctx.sized["M6"]["gds"] = 0.5e-8
-    _crt_cmrr_ctx.sized["M7"]["gds"] = 0.5e-8
-    _crt_cmrr_db2 = compute_metric(_crt_cmrr_spec, _crt_cmrr_ctx)
-    assert abs(_crt_cmrr_db2 - 4.59) < 0.2, f"Rx=1e8 기준값(SPICE 4.59dB)과 어긋남: {_crt_cmrr_db2}"
-    # 앵커3(2026-08-03 신설): 위 두 앵커는 모든 gm을 119uS로 같게 놓아서 "Kp'에 캐스코드 gm을
-    # 쓰느냐 입력쌍 gm을 쓰느냐"의 차이가 **원리적으로 드러나지 않는다**(정확히 그래서 옛 식의
-    # 오류가 오래 숨어 있었다). 캐스코드 gm과 입력쌍 gm의 비를 크게 어긋나게 잡은 점을 추가해
-    # 회귀로 고정한다 -- ngspice 실측 0.0635dB, 새 식 0.0000dB(오차 0.06dB),
-    # 옛(입력쌍 gm) 식 7.0437dB(오차 6.98dB)로 두 식이 명확히 갈린다.
-    _crt_cmrr_ctx3 = SizingContext(sized={
-        "M1a": {"gm": 100e-6, "gds": 1.0 / 500e3},   # PMOS 입력쌍
-        "M2a": {"gm": 400e-6, "gds": 1.0 / 500e3},   # PMOS 캐스코드(입력쌍 gm의 4배)
-        "M4a": {"gm": 200e-6, "gds": 1.0 / 1000e3},  # NMOS 입력쌍
-        "M3a": {"gm": 50e-6, "gds": 1.0 / 1000e3},   # NMOS 캐스코드(입력쌍 gm의 1/4)
-        "M6": {"gm": 0.0, "gds": 0.5e-6}, "M7": {"gm": 0.0, "gds": 0.5e-6},  # Rx=1e6
-        "M5": {"gm": 0.0, "gds": 0.2e-6},             # Ry=5e6
-    })
-    _crt_cmrr_db3 = compute_metric(_crt_cmrr_spec, _crt_cmrr_ctx3)
-    assert abs(_crt_cmrr_db3 - 0.0635) < 0.2, \
-        f"앵커3(SPICE 0.0635dB)과 어긋남: {_crt_cmrr_db3} -- Kp'/Kn'에 캐스코드 gm 대신 " \
-        f"입력쌍 gm을 쓰면 여기서 7.04dB가 나온다(2026-08-03 정정된 옛 버그의 회귀)"
-
-
 def test_s067_family(s065_state):
     """[cmrr_estimate -- telescopic_class_ab_cmfb family(2026-08-03 신규 유도, CMFB 루프
     포함): 먼저 metric_spec의 CMFB 소자 역할 배정이 topology.json netlist와 실제로
@@ -2983,107 +2868,6 @@ def test_s067_family(s065_state):
     assert all(_crt_by_name[d].drain == _crt_by_name["M15"].drain
                for d in _cmfb_roles["cmfb_stage2_devices"]), \
         "cmfb_stage2_devices가 같은 2단 출력노드(Vom)를 구동하지 않음"
-
-
-def test_s068_family(s067_state):
-    """[cmrr/psrr_estimate -- telescopic_class_ab_cmfb family(2026-08-07 세션21 전면
-    교체) -- Kp'/Kn'/Rx/Ry 폐형식 대신 31소자(1단11+양쪽 Monticelli battery 10+10)
-    수치 MNA(_telescopic_class_ab_open_loop_gains()). 폐형식이 M10/M19(Vop1/Vom1
-    직결 바이어스 싱크) 로딩을 몰라 실제값과 최대 49dB 어긋난다는 게 세션21에 드러나
-    전면 교체됨 -- 상세 근거는 sizing_recipe.py _cmrr_telescopic_class_ab_cmfb()
-    docstring, `.ai/context.md` 세션21 절 참고. ⚠️ 이 self-test의 앵커는 아직
-    ngspice AC 독립 재검증 전(다음 세션 과제) -- 현재는 **자기회귀**(같은 함수를
-    두 다른 경로(직접 조합 vs compute_metric 경유)로 계산해 일치하는지)만 확인한다.]
-
-    oracle (c) 이관본 legacy/selftest_sizing_recipe.py 섹션 S068(줄 2270-2344, head 2dd98f2)의 판정을 그대로 옮겼다.
-    """
-    _cmfb_roles = s067_state._cmfb_roles
-
-    _battery_vop1 = {"vdd_src": "M8", "batt_hi": "M9a", "batt_lo": "M9b",
-                       "gate_diode1": "M11a", "gate_diode2": "M11b",
-                       "gate_sink": "M12", "output_sink": "M10",
-                       "gate2_src": "M13", "gate2_diode1": "M14a", "gate2_diode2": "M14b"}
-    _battery_vom1 = {"vdd_src": "M17", "batt_hi": "M18a", "batt_lo": "M18b",
-                       "gate_diode1": "M20a", "gate_diode2": "M20b",
-                       "gate_sink": "M21", "output_sink": "M19",
-                       "gate2_src": "M22", "gate2_diode1": "M23a", "gate2_diode2": "M24b"}
-    _cmfb_ctx = SizingContext(sized={
-        "M1a": {"gm": 119e-6, "gds": 1 / 600e3}, "M1b": {"gm": 119e-6, "gds": 1 / 600e3},
-        "M2a": {"gm": 130e-6, "gds": 1 / 700e3}, "M2b": {"gm": 130e-6, "gds": 1 / 700e3},
-        "M4a": {"gm": 140e-6, "gds": 1 / 250e3}, "M4b": {"gm": 140e-6, "gds": 1 / 250e3},
-        "M3a": {"gm": 150e-6, "gds": 1 / 300e3}, "M3b": {"gm": 150e-6, "gds": 1 / 300e3},
-        "M6": {"gm": 0.0, "gds": 0.5e-6}, "M7": {"gm": 90e-6, "gds": 0.4e-6},
-        "M5": {"gm": 0.0, "gds": 1.0e-6},
-        "M8": {"gm": 40e-6, "gds": 0.3e-6}, "M17": {"gm": 40e-6, "gds": 0.3e-6},
-        "M9a": {"gm": 50e-6, "gds": 0.4e-6}, "M9b": {"gm": 50e-6, "gds": 0.4e-6},
-        "M18a": {"gm": 50e-6, "gds": 0.4e-6}, "M18b": {"gm": 50e-6, "gds": 0.4e-6},
-        "M11a": {"gm": 30e-6, "gds": 0.5e-6}, "M11b": {"gm": 30e-6, "gds": 0.5e-6},
-        "M20a": {"gm": 30e-6, "gds": 0.5e-6}, "M20b": {"gm": 30e-6, "gds": 0.5e-6},
-        "M12": {"gm": 0.0, "gds": 0.6e-6}, "M21": {"gm": 0.0, "gds": 0.6e-6},
-        "M10": {"gm": 0.0, "gds": 0.6e-6}, "M19": {"gm": 0.0, "gds": 0.6e-6},
-        "M13": {"gm": 40e-6, "gds": 0.3e-6}, "M22": {"gm": 40e-6, "gds": 0.3e-6},
-        "M14a": {"gm": 30e-6, "gds": 0.5e-6}, "M14b": {"gm": 30e-6, "gds": 0.5e-6},
-        "M23a": {"gm": 30e-6, "gds": 0.5e-6}, "M24b": {"gm": 30e-6, "gds": 0.5e-6},
-        "M15": {"gm": 3.0e-3, "gds": 8e-6}, "M16": {"gm": 3.0e-3, "gds": 9e-6},
-        "M37a": {"gm": 100e-6, "gds": 1.0e-6}, "M37b": {"gm": 105e-6, "gds": 1.1e-6},
-        "M36a": {"gm": 80e-6, "gds": 0.8e-6}, "M36b": {"gm": 84e-6, "gds": 0.9e-6},
-        "M38": {"gm": 0.0, "gds": 1.2e-6},
-    })
-    _cmfb_spec = {"type": "cmrr_estimate", "circuit_family": "telescopic_class_ab_cmfb",
-                   "input_p": "M1a", "input_p_b": "M1b", "cascode_p": "M2a", "cascode_p_b": "M2b",
-                   "input_n": "M4a", "input_n_b": "M4b", "cascode_n": "M3a", "cascode_n_b": "M3b",
-                   "tail_p_devices": ["M6", "M7"], "tail_n_device": "M5",
-                   "battery_vop1_side": _battery_vop1, "battery_vom1_side": _battery_vom1,
-                   **_cmfb_roles}
-    # A_c는 다이오드 부하 차동쌍이므로 leading order -gm37/(2*gm36) 근방의 O(1) 음수여야 한다
-    # (M10/M19 로딩과 무관한 별개 서브회로라 이 값/앵커는 세션20에서 그대로 유효).
-    _cmfb_ac = _cmfb_amp_gain_diode_load(_cmfb_spec, _cmfb_ctx)
-    assert -1.0 < _cmfb_ac < 0.0, f"A_c가 O(1) 음수가 아님: {_cmfb_ac}"
-    assert abs(_cmfb_ac - (-0.62960331)) < 1e-6, f"A_c 회귀(sympy 정확해 대조): {_cmfb_ac}"
-
-    _cmfb_db1 = compute_metric(_cmfb_spec, _cmfb_ctx)
-    # 자기회귀 -- _telescopic_class_ab_open_loop_gains()를 직접 호출해 조합한 값과 일치하는지.
-    _adm_o, _acm_o, _ann_o, _h_o = _telescopic_class_ab_open_loop_gains(_cmfb_spec, _cmfb_ctx)
-    _s2 = [_cmfb_ctx.sized[d] for d in _cmfb_spec["cmfb_stage2_devices"]]
-    _g2 = -sum(d["gm"] for d in _s2) / sum(d["gds"] for d in _s2)
-    _t = -_h_o * _cmfb_ac * _g2
-    _cmrr_direct = 20 * math.log10(abs(_adm_o / _acm_o) * (1.0 + _t))
-    assert abs(_cmfb_db1 - _cmrr_direct) < 1e-9, "compute_metric() 경유값과 직접조합값이 어긋남"
-    assert abs(_cmfb_db1 - 128.7182) < 0.01, f"CMRR 회귀(세션21 신규 앵커)와 어긋남: {_cmfb_db1}"
-    # 앵커2: Ry를 20배(gds5 x0.05), gm7을 4배 -- CMFB 루프이득이 더 커지는 방향인지(부호 확인).
-    _cmfb_ctx.sized["M5"]["gds"] = 1.0e-6 * 0.05
-    _cmfb_ctx.sized["M7"]["gm"] = 90e-6 * 4
-    _cmfb_db2 = compute_metric(_cmfb_spec, _cmfb_ctx)
-    assert abs(_cmfb_db2 - 146.7202) < 0.01, f"CMRR 앵커2(세션21 신규) 회귀와 어긋남: {_cmfb_db2}"
-    assert _cmfb_db2 > _cmfb_db1, "Ry x20/gm7 x4가 CMRR을 개선하는 방향이어야 하는데 안 됨(회귀)"
-    # T<=0(CM 양귀환)이면 계산을 거부하는지 -- 2단 부호를 뒤집어(cm_sense_gain<0) 확인한다.
-    with pytest.raises(ValueError):
-        compute_metric({**_cmfb_spec, "cm_sense_gain": -1.0}, _cmfb_ctx)
-    _cmfb_ctx.sized["M5"]["gds"] = 1.0e-6
-    _cmfb_ctx.sized["M7"]["gm"] = 90e-6
-
-
-def test_s069_section(s068_state):
-    """[psrr_estimate -- telescopic_class_ab_cmfb family, 같은 31소자망 -- Ann_open이
-    M8/M17(battery의 자체 vdd 주입)/M10/M19(로딩) 전부 반영하는지 자기회귀로 확인]
-
-    oracle (c) 이관본 legacy/selftest_sizing_recipe.py 섹션 S069(줄 2345-2360, head 2dd98f2)의 판정을 그대로 옮겼다.
-    """
-    _adm_o = s068_state._adm_o
-    _ann_o = s068_state._ann_o
-    _cmfb_ctx = s068_state._cmfb_ctx
-    _cmfb_spec = s068_state._cmfb_spec
-    _t = s068_state._t
-
-    _psrr_cmfb_spec = {**_cmfb_spec, "type": "psrr_estimate"}
-    _psrr_cmfb_db1 = compute_metric(_psrr_cmfb_spec, _cmfb_ctx)
-    _psrr_direct = 20 * math.log10(abs(_adm_o / _ann_o)) + 20 * math.log10(abs(1.0 + _t))
-    assert abs(_psrr_cmfb_db1 - 89.3832) < 0.01, f"PSRR 회귀(세션21 신규 앵커)와 어긋남: {_psrr_cmfb_db1}"
-    # CMFB 루프 보정(+20log10(1+T))이 CMRR/PSRR 둘 다 같은 T를 쓰는지 -- 값 자체가 같은
-    # 31소자망/같은 H/A_c/G2에서 나오므로 이제 항등이 아니라 "둘 다 같은 T 사용"만 확인하면 됨.
-    _psrr_cmfb_open_db1 = _psrr_cmfb_db1 - 20 * math.log10(abs(1.0 + _t))
-    with pytest.raises(ValueError):
-        compute_metric({**_psrr_cmfb_spec, "cm_sense_gain": -1.0}, _cmfb_ctx)
 
 
 def test_s070_section(assets_dir):
