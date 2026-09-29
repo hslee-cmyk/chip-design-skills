@@ -1,20 +1,18 @@
----
-id: 20260923-probe-promote-differential
-phase: 2
-evidence_type: test-only
-gate_change: no
-approval: 20260923-20-dead-code-dup-design
----
-## 의도
 
-TS6(계획 N3.11), design `20-dead-code-dup` v1.2 §5.1: 승격 후보 중 **엔진과 독립 재구현을 나란히 비교하는 대조형** 2개를 pytest test로
-바꾼다 -- `probe_gm_id_monotonicity`(엔진의 VGS 선택 `_solve_vgs`와 별개로 강반전 가지 해를 세워 비교), `probe_prevention_wiring`
-(`gate == drain`이라는 물리 정의로 diode를 판정해, role 라벨로 갈리는 엔진 분기가 물리를 보는지 확인). 재구현은 **oracle이므로 정본 호출로
+## 재시도 기록
+
+1차 시도(2026-09-29, test 커밋 e19686f, dispute 없음): test-author가 새 test 10개(기본+seed 1~5 통과)를 썼으나 전체 스위트에서 P1·P3a 계약 test 2개가
+실패 -- 이 spec card 계약 1의 파일 이름이 P3a 승격 규칙(`unit/test_probe_*`)과 달랐다(오케스트레이터 spec card 결함). 계약 test 기대는 고치지 않고
+계약 1의 이름을 규칙에 맞춰 개정, 같은 id로 1부터 다시 한다. 1차 test의 본문은 2차 시도 입력으로 쓴다(이름만 바뀜).
+로 갈리는 엔진 분기가 물리를 보는지 확인). 재구현은 **oracle이므로 정본 호출로
 바꾸지 않는다**(design §5.1). A = `skills/analog-gmid-design/assets`. code 커밋이 없다(test-only).
 
 ## 관찰 가능한 계약
 
-1. `A/tests/unit/test_gm_id_monotonicity.py`와 `A/tests/unit/test_prevention_wiring.py`가 생기고 원본 probe 2개가 없어진다.
+1. `A/tests/unit/test_probe_gm_id_monotonicity.py`와 `A/tests/unit/test_probe_prevention_wiring.py`가 생기고 원본 probe 2개가 없어진다.
+   이름은 P3a(`20260923-probe-promote-clean` 계약 1)의 승격 규칙 `unit/test_<probe 파일 이름>`을 따른다 -- P1·P3a 계약 test
+   (`contracts/test_ts6_dead_probes.py`, `contracts/test_ts6_probe_relocate.py`)가 이 규칙으로 승격본을 센다(2026-09-29 개정, 1차 시도에서
+   `test_gm_id_monotonicity.py` 이름으로 두 계약 test가 실패).
 2. **재구현을 그대로 옮긴다**: 엔진 함수를 부르는 쪽과 독립 방법으로 세운 쪽을 각각 계산해 비교하는 구조를 유지한다. 독립 쪽을 엔진 호출로 바꾸지 않는다.
 3. 독립 쪽이 **엔진 코드를 옮겨 적은 것이 아님**을 test docstring에 근거와 함께 적는다(`probe_gm_id_monotonicity`: 엔진은 `_solve_vgs`가 고르는 해, test 쪽은 gm_id 곡선의 정점 오른쪽(강반전) 가지에서 역보간 -- 선택 규칙이 다르다. `probe_prevention_wiring`: `gate == drain`은 회로 물리의 diode 정의이고 엔진의 role 라벨 분기와 다른 근거다).
 4. 판정은 두 쪽의 **차이가 뜻하는 성질**로 쓴다(예: 엔진 해가 강반전 가지에 있어야 한다, role 문자열이 바뀌어도 물리가 같으면 판정이 같아야 한다). 두 값이 같다는 것만 단언하고 끝내지 않는다.
