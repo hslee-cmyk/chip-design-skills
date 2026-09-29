@@ -205,8 +205,56 @@ def row3a(c: Ctx):
     return [_row("3a", not bad, "사슬 baseline..gate master", "; ".join(bad) or "일치 (%d줄)" % len(lines))]
 
 
+REJUDGED_NAME = "rejudged"   # <git-common-dir>/gmid-gate-cache/rejudged: 재판정 통과 구간 캐시(§3.3 행 3(나))
+# 임시 파일 접두: ensure_cache가 지우는 `.tmp-`·40자리 16진 이름과 겹치지 않게 한다.
+_REJUDGED_TMP_PREFIX = "rejudged.wr-"
+
+
+def _rejudged_path(c: Ctx):
+    return os.path.join(c.common, rp.CACHE_DIRNAME, REJUDGED_NAME)
+
+
+def _read_rejudged(path):
+    """캐시 줄 `<old> <new>`를 읽는다. 없거나 읽을 수 없으면 빈 집합(= 전 구간 재판정). 깨진 줄은 무시."""
+    try:
+        with open(path, "rb") as fh:
+            text = fh.read().decode("utf-8")
+    except (OSError, UnicodeDecodeError):
+        return set()
+    pairs = set()
+    for l in text.splitlines():
+        parts = l.split()
+        if len(parts) == 2 and rp.HEX40.match(parts[0]) and rp.HEX40.match(parts[1]):
+            pairs.add((parts[0], parts[1]))
+    return pairs
+
+
+def _write_rejudged(path, pairs):
+    """임시 이름 + 원자적 이름 바꾸기. 쓰기 실패는 판정에 영향 없다(다음 세션이 더 재판정할 뿐)."""
+    d = os.path.dirname(path)
+    tmpname = None
+    try:
+        os.makedirs(d, exist_ok=True)
+        fd, tmpname = tempfile.mkstemp(prefix=_REJUDGED_TMP_PREFIX, dir=d)
+        with os.fdopen(fd, "wb") as fh:
+            fh.write("".join("%s %s\n" % pr for pr in pairs).encode("ascii"))
+        os.replace(tmpname, path)
+        tmpname = None
+    except OSError:
+        pass
+    finally:
+        if tmpname:
+            try:
+                os.remove(tmpname)
+            except OSError:
+                pass
+
+
 def row3b(c: Ctx):
-    """구간 재판정: 줄마다 그 old 판 게이트 코드의 merge_gate.py receive를 데이터만으로. 생략 캐시 없음(review31 N-06)."""
+    """구간 재판정: 줄마다 그 old 판 게이트 코드의 merge_gate.py receive를 데이터만으로.
+    재판정 통과 캐시(§3.3 행 3(나), 2026-09-29): 통과한 (old, new)를 `rejudged`에 남기고, 캐시에 있는 구간은
+    accept-log 마지막 줄이 아니면 건너뛴다. 마지막 줄은 항상 재판정한다. 실패 구간은 캐시에서 뺀다.
+    (캐시에 적은 마지막이 아닌 위조 구간을 건너뛰는 것은 §13.5 review31 N-06 알려진 한계.)"""
     lines = _read_log(c) if c.gate_exists else None
     if not lines:
         return [_row("3b", not c.bootstrapped or c.gate_master is None, "구간 재판정", "로그 없음")]
@@ -214,8 +262,18 @@ def row3b(c: Ctx):
         return [_row("3b", False, "구간 재판정", "형식이 깨진 줄")]
     out = []
     py = sys.executable
-    for old, new in lines:
+    cpath = _rejudged_path(c)
+    cached = _read_rejudged(cpath)
+    keep = []          # 통과 구간(캐시에 남길 것), 로그 순서
+    skipped = 0
+    last = len(lines) - 1
+    for i, (old, new) in enumerate(lines):
         if old == new:
+            continue
+        if (old, new) in cached and i != last:
+            skipped += 1
+            if (old, new) not in keep:
+                keep.append((old, new))
             continue
         tmp = tempfile.mkdtemp(prefix="gmid-rejudge-")
         try:
@@ -227,8 +285,14 @@ def row3b(c: Ctx):
             ok = p.returncode == 0
             out.append(_row("3b", ok, "%s..%s 통과" % (old[:12], new[:12]),
                             "exit %d %s" % (p.returncode, p.stderr.decode("utf-8", "replace").strip()[:300])))
+            if ok and (old, new) not in keep:
+                keep.append((old, new))
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
+    if set(keep) != cached:
+        _write_rejudged(cpath, keep)
+    if skipped:
+        out.append(_row("3b", True, "캐시 통과 구간(재판정 생략)", "캐시 통과 %d구간" % skipped))
     if not out:
         out.append(_row("3b", True, "구간 재판정", "재판정할 구간 없음"))
     return out
