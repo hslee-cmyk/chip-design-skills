@@ -1,0 +1,217 @@
+{
+ "layer": "INTEGRITY",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260929-rejudge-cache '관찰 가능한 계약' 1~8, '거부해야 할 입력', '무동작 판정 입력(무발동 값)', design 05 §3.3 행 3(나)(2026-09-29 개정: 재판정 통과 캐시, 마지막 줄 항상 재판정, 실패 쌍 미기록, 로그에 있는 쌍만), §3.3 `integrity.py check`(행마다 JSON {row, ok, expected, actual}, 전부 일치 0 / 불일치 1 / 입력 오류 2), §13.2 #22 (f)·§13.5 review31 N-06(알려진 한계), oracle (a) 구성으로 정답이 정해진 합성 입력(setup.sh 주석: C1·C3 = 역할 밖 경로만 바꾼 트레일러 없는 커밋 -> 재판정 통과(§13.2 #10b), F = 트레일러 없는 엔진 소스 변경 -> 재판정 실패(§8.2-2·§9.2))",
+ "title": "공격 30: 행 3(나) 재판정 통과 캐시 `rejudged` -- 통과 구간 기록, 마지막이 아닌 캐시 구간 건너뜀, 마지막 줄은 항상 재판정, 실패·깨진 줄·로그 밖 쌍 제외, ensure_cache가 지우지 않음",
+ "steps": {
+  "scope-push-no-row3b": {
+   "layer": "INTEGRITY",
+   "exit": [
+    0,
+    1
+   ],
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "row3b_interval_rows": 0,
+    "row3b_failed": 0,
+    "cache_summary": []
+   },
+   "basis": "입력: 로그 B0 B0 / B0 C1 / C1 F, C 없음, `integrity.py check --scope push` | 기대: spec card 계약 8('C는 --scope session의 행 3b만 읽고 쓴다(행 3b는 다른 scope에 없다)') -> 행 3b 행 0개. exit: 05 §3.3 check 0/1(올바른 입력이라 2 아님)"
+  },
+  "scope-push-no-cache": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "rejudged": null
+   },
+   "basis": "입력: 앞 단계(--scope push) 직후의 C | 기대: spec card 계약 8(C는 --scope session의 행 3b만 쓴다) -> C가 생기지 않는다"
+  },
+  "first-no-cache-last-forged": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observed_equals": {
+    "row3b_interval_rows": 2,
+    "row3b_failed": 1,
+    "cache_summary": []
+   },
+   "basis": "입력: 로그 B0 B0 / B0 C1(통과 구성) / C1 F(마지막 줄, 위조 구성), C 없음, `--scope session` | 기대: spec card '무동작 판정 입력'(C가 없는 첫 세션은 변경 전과 같은 결과 -- 행 3b 구간별 행, 통과·실패 동일)·계약 5 끝문장(C가 없으면 전 구간을 재판정)·계약 6(재판정한 구간마다 한 행, 건너뛴 구간이 없으면 요약 행 없음) -> 구간 행 2(old != new 줄 둘), 실패 1(C1 F), 요약 없음. '거부해야 할 입력' 1(마지막 줄 위조, C가 비었을 때) -> ok false, exit 1(05 §3.3 불일치 1)"
+  },
+  "first-no-cache-cache-file": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "rejudged": [
+     "B0 C1"
+    ]
+   },
+   "basis": "입력: 앞 단계 직후의 C | 기대: spec card 계약 1(재판정이 통과한 구간 (old, new)는 대조가 끝난 뒤 C에 한 줄로 있다 -> B0 C1)·계약 4(재판정이 실패한 구간은 C에 적지 않는다 -> C1 F 없음)·계약 5(줄 수 상한 = 로그의 old != new 줄 수, B0 B0 첫 줄은 구간이 아니다). 줄 형식 `<old 40자리> <new 40자리>`(계약 첫 줄)를 라벨로 바꿔 대조"
+  },
+  "cache-last-forged": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observed_equals": {
+    "row3b_interval_rows": 1,
+    "row3b_failed": 1,
+    "cache_summary": [
+     {
+      "k": 1,
+      "ok": true
+     }
+    ]
+   },
+   "basis": "입력: 같은 로그(마지막 줄 C1 F), C = 앞 단계가 남긴 줄 + `C1 F`(공격 22 (f)의 기록된 형태) | 기대: spec card 계약 2(B0 C1은 마지막 줄이 아니고 C에 있다 -> 재판정하지 않고 통과)·계약 3(마지막 줄 C1 F는 C에 있어도 재판정, 실패하면 행 3b ok false)·계약 6(재판정한 C1 F 한 행 + ok true인 요약 행 `캐시 통과 1구간`), '거부해야 할 입력' 1(C에 그 구간을 적어 둔 때), design 05 §13.2 #22 (f)('위조 구간이 로그 마지막 줄이면 (c)와 같음'). exit 1(05 §3.3 불일치 1). 변경 전 게이트는 C를 읽지 않아 두 구간을 모두 재판정한다(행 2, 요약 없음 -- red)"
+  },
+  "cache-last-forged-cache-file": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "rejudged": [
+     "B0 C1"
+    ]
+   },
+   "basis": "입력: 앞 단계 직후의 C | 기대: spec card 계약 4 뒷문장(C에 적힌 구간이더라도 마지막 줄이라 재판정해 실패하면 C에서 뺀다 -> C1 F 없음), 건너뛴 B0 C1은 로그에 있는 쌍이라 남는다(계약 5: 버리는 것은 깨진 줄과 로그에 없는 쌍뿐)"
+  },
+  "nonlast-forged-not-cached": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observed_equals": {
+    "row3b_interval_rows": 2,
+    "row3b_failed": 1,
+    "cache_summary": [
+     {
+      "k": 1,
+      "ok": true
+     }
+    ]
+   },
+   "basis": "입력: gate master = C3, 로그 B0 B0 / B0 C1 / C1 F / F C3(마지막, 통과 구성), C = 앞 단계가 남긴 줄(B0 C1) | 기대: spec card '거부해야 할 입력' 2(C에 없는, 마지막이 아닌 위조 구간 -> 재판정, ok false)·계약 2(B0 C1 건너뜀)·계약 3(마지막 줄 F C3 재판정)·계약 6(구간 행 2 = C1 F·F C3, 요약 `캐시 통과 1구간`). exit 1"
+  },
+  "nonlast-forged-not-cached-cache-file": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "rejudged": [
+     "B0 C1",
+     "F C3"
+    ]
+   },
+   "basis": "입력: 앞 단계 직후의 C | 기대: spec card 계약 1(재판정 통과 F C3가 C에 있다)·계약 4(실패한 C1 F는 적지 않는다)·계약 5(건너뛴 B0 C1은 로그에 있어 남는다)"
+  },
+  "garbage-cache-nonlast-forged": {
+   "layer": "INTEGRITY",
+   "exit": 1,
+   "kind": "attack",
+   "message_contains": [],
+   "observed_equals": {
+    "row3b_interval_rows": 3,
+    "row3b_failed": 1,
+    "cache_summary": []
+   },
+   "basis": "입력: 같은 로그, C = 형식이 깨진 줄(필드 1개 / 필드 3개 `B0 C1 extra` / 16진이 아닌 40자리 둘)·로그에 없는 쌍(B0 C3, C3 F)·빈 줄만 | 기대: spec card 계약 5(형식이 깨진 줄(필드 수·16진 40자리 위반)과 현재 로그에 없는 쌍은 무시) -> 건너뛸 구간 없음, 세 구간 모두 재판정(계약 6: 구간 행 3, 요약 행 없음), '거부해야 할 입력' 3(C에 깨진 줄·로그 밖 쌍만 있을 때의 위조 구간 -> ok false). exit 1"
+  },
+  "garbage-cache-rewritten": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "rejudged": [
+     "B0 C1",
+     "F C3"
+    ]
+   },
+   "basis": "입력: 앞 단계 직후의 C | 기대: spec card 계약 5('C를 다시 쓸 때 남기지 않는다' -> 깨진 줄·로그 밖 쌍 없음)·계약 1(재판정 통과 B0 C1·F C3)·계약 4(실패 C1 F 없음)"
+  },
+  "nonlast-forged-cached": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "row3b_interval_rows": 1,
+    "row3b_failed": 0,
+    "cache_summary": [
+     {
+      "k": 2,
+      "ok": true
+     }
+    ]
+   },
+   "basis": "입력: 같은 로그(마지막 줄 F C3), C = 앞 단계가 남긴 줄(B0 C1, F C3) + `C1 F`(review31 N-06 형태) | 기대: spec card 계약 2(C에 있고 마지막 줄이 아닌 B0 C1·C1 F는 재판정하지 않고 통과로 본다)·계약 3(마지막 줄 F C3는 C에 있어도 재판정 -> 통과)·계약 6(구간 행 1 + ok true인 요약 행 `캐시 통과 2구간`), '거부해야 할 입력'의 알려진 한계 문장(§13.5 N-06: 'C에 적어 둔, 마지막이 아닌 위조 구간은 행 3b가 건너뛴다' -- 거부 기대 아님). exit 0: 05 §3.3 전부 일치 0(sandbox는 ④(b) 뒤·(c) 전 -- 행 1·5·6은 부트스트랩 전 부재 허용(§3.3 행 6), 행 2·4는 sandbox 설정 그대로). 변경 전 게이트는 C1 F를 재판정해 실패한다(구간 행 3, 실패 1, 요약 없음, exit 1 -- red의 핵심)"
+  },
+  "nonlast-forged-cached-cache-file": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "rejudged": [
+     "B0 C1",
+     "C1 F",
+     "F C3"
+    ]
+   },
+   "basis": "입력: 앞 단계 직후의 C | 기대: spec card 계약 1(재판정 통과 F C3)·계약 5(버리는 것은 깨진 줄과 로그에 없는 쌍뿐 -- 건너뛴 B0 C1·C1 F는 로그에 있어 남는다)·계약 4(뺄 대상은 재판정해 실패한 구간뿐 -- C1 F는 재판정하지 않았다). 줄 수 3 = 로그의 old != new 줄 수(계약 5 상한)"
+  },
+  "warm-cache": {
+   "layer": "EL1",
+   "exit": "any",
+   "kind": "record",
+   "message_contains": []
+  },
+  "ensure-cache-ran-stale-dir": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "precondition",
+   "message_contains": [],
+   "observed_equals": {
+    "exists": false
+   },
+   "basis": "재현 전제: EL1 호출 전에 둔 `gmid-gate-cache/<40자리 16진>/`가 지워졌다 = ensure_cache가 돌았다. 근거: spec card 계약 7('지금 지우는 대상은 40자리 16진 디렉터리와 .tmp- 접두뿐'), 05 §4.4(캐시 상한은 커밋 id 하나)"
+  },
+  "ensure-cache-ran-tmp": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "precondition",
+   "message_contains": [],
+   "observed_equals": {
+    "exists": false
+   },
+   "basis": "재현 전제: EL1 호출 전에 둔 `gmid-gate-cache/.tmp-rt30/`가 지워졌다 = ensure_cache가 돌았다. 근거: spec card 계약 7('지금 지우는 대상은 … .tmp- 접두뿐')"
+  },
+  "ensure-cache-keeps-rejudged": {
+   "layer": "INTEGRITY",
+   "exit": 0,
+   "kind": "control",
+   "message_contains": [],
+   "observed_equals": {
+    "rejudged": [
+     "B0 C1",
+     "C1 F",
+     "F C3"
+    ]
+   },
+   "basis": "입력: ensure_cache가 돈 뒤의 C | 기대: spec card 계약 7(role_paths.ensure_cache는 C를 지우지 않는다) -> 앞 단계 nonlast-forged-cached-cache-file과 같은 줄"
+  }
+ }
+}

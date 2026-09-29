@@ -1,0 +1,4 @@
+{
+ "file_path": "@win(@{TEMPDIR}/gmid-rt-30.txt)",
+ "content": "x\n"
+}

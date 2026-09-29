@@ -1115,6 +1115,87 @@ def a_ast_broad_except(ns):
            note=f"광범위 except+pass가 reconfigure를 감싼 줄: {found}", observed={"broad_pass_wrappers": len(found)})
 
 
+# ----------------------------------------------------------------------------------------------------------
+# 공격 30: 행 3(나) 재판정 통과 캐시(spec card 20260929-rejudge-cache)
+# ----------------------------------------------------------------------------------------------------------
+REJUDGED_REL = "gmid-gate-cache/rejudged"     # spec card 계약 첫 줄: C = <git-common-dir>/gmid-gate-cache/rejudged
+CACHE_SUMMARY = re.compile(r"캐시 통과 (\d+)구간")   # 계약 6: 요약 행 actual의 `캐시 통과 <k>구간`
+
+
+def _labeler(S: State, keys: list[str]):
+    """커밋 id -> 상태 변수 이름(B0·C1 …). expect.json을 실행마다 바뀌는 id 없이 쓰기 위한 치환이다."""
+    m = {str(S[k]): k for k in keys or []}
+    return lambda tok: m.get(tok, tok)
+
+
+def _rejudged_lines(S: State, keys: list[str]):
+    """C의 줄을 라벨로 바꿔 정렬한 목록(파일이 없으면 None). 줄의 토큰마다 라벨 치환만 한다(해석하지 않는다)."""
+    path = Path(S["GITDIR"]) / REJUDGED_REL
+    if not path.is_file():
+        return None
+    lab = _labeler(S, keys)
+    text = path.read_bytes().decode("utf-8", "replace")
+    return sorted(" ".join(lab(t) for t in ln.split()) for ln in text.splitlines() if ln.strip())
+
+
+def a_rejudge_obs(ns):
+    """`integrity.py check --scope <scope>`(cwd = sandbox 작업 저장소)를 돌리고 행 3b 출력만 관찰값으로 남긴다.
+    출력 형식 `{"row", "ok", "expected", "actual"}` 한 줄 JSON은 design 05 §3.3, 행 이름 "3b"는 A-24.
+      row3b_interval_rows -- 행 3b 중 요약 행(actual에 `캐시 통과 <k>구간`)이 아닌 행 수(계약 6: 재판정한 구간마다 한 행)
+      row3b_failed        -- 행 3b 중 ok가 false인 행 수(계약 3, 거부해야 할 입력)
+      cache_summary       -- 요약 행마다 {"k": <k>, "ok": <ok>}(계약 6)"""
+    S = st()
+    if not need(ns.step, ns.kind, ns.layer, "INTEGRITY"):
+        return
+    script = Path(S["WORK"]) / iface.GATE_FILES["INTEGRITY"]
+    cmd = [iface.PY, str(script), "check", "--scope", ns.scope]
+    try:
+        r = sb.run_py(cmd, S["WORK"], env={"CLAUDE_PROJECT_DIR": win(S["WORK"])})
+    except subprocess.TimeoutExpired as e:
+        record(ns.step, kind=ns.kind, layer=ns.layer, status="ran", exit_code="timeout", cmd=_cmdstr(cmd),
+               note=f"timeout {e}")
+        return
+    rows = []
+    for ln in dec(r.stdout).splitlines():
+        ln = ln.strip()
+        if not ln.startswith("{"):
+            continue
+        try:
+            o = json.loads(ln)
+        except ValueError:
+            continue
+        if isinstance(o, dict) and str(o.get("row")) == "3b":
+            rows.append(o)
+    summary, interval = [], 0
+    for o in rows:
+        m = CACHE_SUMMARY.search(str(o.get("actual", "")))
+        if m:
+            summary.append({"k": int(m.group(1)), "ok": o.get("ok")})
+        else:
+            interval += 1
+    observed = {"row3b_interval_rows": interval, "row3b_failed": sum(1 for o in rows if o.get("ok") is not True),
+                "cache_summary": summary}
+    record(ns.step, kind=ns.kind, layer=ns.layer, status="ran", exit_code=r.returncode, stdout=dec(r.stdout),
+           stderr=dec(r.stderr), cmd=_cmdstr(cmd) + f" (cwd={S['WORK']})", observed=observed,
+           note=f"C 전: {_rejudged_lines(S, ns.label)}")
+
+
+def a_rejudged_file(ns):
+    """C(`<git-common-dir>/gmid-gate-cache/rejudged`)의 현재 줄을 라벨로 바꿔 관찰값 `rejudged`로 남긴다(없으면 null).
+    게이트를 실행하지 않는다 -- 앞 단계가 남긴 파일 상태를 본다."""
+    S = st()
+    record(ns.step, kind=ns.kind, layer=ns.layer, status="ran", exit_code=0, cmd=f"read {REJUDGED_REL}",
+           observed={"rejudged": _rejudged_lines(S, ns.label)})
+
+
+def a_exists(ns):
+    """경로(치환함)가 있는지를 관찰값 `exists`로 남긴다(게이트를 실행하지 않는다)."""
+    S = st()
+    p = Path(subst_str(ns.path, S))
+    record(ns.step, kind=ns.kind, layer=ns.layer, status="ran", exit_code=0, cmd=f"exists {posix(p)}",
+           observed={"exists": p.exists()})
+
+
 def a_not_implemented(ns):
     record(ns.step, kind="attack", layer=ns.layer, status="not-implemented",
            note="installed 모드 재생은 부트스트랩 ④ 설치 상태(실제 도구 호출·실제 git hook)가 필요하다 -- 이 단계에서는 선언만 한다")
@@ -1292,6 +1373,19 @@ def main(argv=None):
     s.add_argument("--layer", default="V6OBS")
     s.add_argument("--script", required=True, help="sandbox 작업 저장소 기준 진입점 경로")
     s.set_defaults(fn=a_ast_broad_except)
+
+    for nm, fn in (("rejudge-obs", a_rejudge_obs), ("rejudged-file", a_rejudged_file), ("exists", a_exists)):
+        s = sp.add_parser(nm)
+        s.add_argument("step")
+        s.add_argument("--kind", default="attack", choices=["attack", "control", "record", "precondition"])
+        s.add_argument("--layer", default="INTEGRITY")
+        if nm == "rejudge-obs":
+            s.add_argument("--scope", default="session", choices=["session", "push", "commit", "gate"])
+        if nm == "exists":
+            s.add_argument("--path", required=True)
+        else:
+            s.add_argument("--label", action="append", help="커밋 id를 라벨로 바꿀 상태 변수 이름")
+        s.set_defaults(fn=fn)
 
     s = sp.add_parser("not-implemented")
     s.add_argument("step")

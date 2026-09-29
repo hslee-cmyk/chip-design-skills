@@ -30,6 +30,7 @@
 | A-21 | 모든 거부 기대에 `Traceback (most recent call last)`가 출력에 없을 것을 더한다(fail-closed 예외는 거부처럼 보이지만 판정이 아니다) | §6.1-1, §17 |
 | A-22 | 역할 브랜치 이름의 짧은 이름은 `test`·`code`·`audit` | §4.2, §5.1, §12 |
 | A-23 | 커밋형 staged_diff 케이스는 gate master에서 가지를 낸 worktree에서 파일과 승인 기록을 한 커밋에 staged한다(`diff_base` = 그 HEAD) | §8.2-5, 00-common §8.2 staged_diff |
+| A-24 | 공격 30: `integrity.py check --scope <범위>`(cwd = sandbox 작업 저장소)의 행 3(나) JSON 줄은 `"row": "3b"`다(변경 전 게이트 877dbd4 출력으로 확인한 행 이름 -- 기대값이 아니라 행을 고르는 키). 요약 행은 `actual`에 `캐시 통과 <k>구간`이 든 행 3b 행 | §3.3 check 출력 `{row, ok, expected, actual}`, spec card 20260929-rejudge-cache 계약 6 |
 
 ## 재생 단계(작성본 bootstrap/replay 70a384b) 실측으로 고친 것
 
