@@ -14934,3 +14934,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   백로그 B19(회로 해석, 사용자와 공동분석): diode의 headroom_role 라벨만 바꿔도 folded_cascode(mirror/tail/삭제 -> InfeasibleSizingError biasgen_mn)·current_reuse_telescopic(mirror -> 거부, 기타 ValueError) 사이징 결과가 바뀐다 -- 원 probe C4 목표 '라벨 지워도 결과 같음'이 파이프라인에서 미성립. 의도된 스택 예산 배정인지 결정 필요.
   백로그 B20(문서): test_probe_gm_id_monotonicity docstring 'PMOS 1,350개 곡선' 재현 안 됨(선언 정의역 780, 전 격자 2,940), test_probe_prevention_wiring docstring '엔진 분기가 role 라벨을 함께 받는 경로' 부정확(is_diode_connected는 라벨 안 받음, 호출부 서술). V4 도구 한계: assert_* 보조 호출의 앞 두 인자만 비교 대상.
   다음: P3c(20260923-probe-promote-consistency).
+
+- P3c 20260923-probe-promote-consistency 보류(사용자 "보류, P5로 진행"): 착수 전 계약 1 이름 개정(a5f57d3) 뒤 test-author가 계약 3 멈춤 조건으로 멈춤(커밋 0). spec card '보류 기록' 절 참조.
+  백로그 B21(Phase 4 공동분석): (a) B8 KCL 허용 범위 선언 부재 (b) supplies_v 레일별 전압 선언 부재(DEC-60, 스칼라 vdd만) (c) 엔진 결함 후보 -- folded_cascode 노드전압 전파가 순회 순서에 의존(X 1.6 vs 0.0 V, out 1.4 vs -0.2 V), 파일럿 다중 도달 불일치 4건(Vom1/Vop1 0.677 vs 0.900 V), KCL 잔차 파일럿 Vx 4.185 uA·folded tail 50.5 uA. 측정 스크립트는 세션 scratchpad inspect1~4.py(휘발).
+  다음: P5(20260923-d-delete-dead).
