@@ -14928,3 +14928,9 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   실측(실제 저장소, 88구간): 캐시 채우는 첫 세션 368.6초, 두 번째 세션 9.3초(변경 전 348초). 둘 다 전부 일치.
   백로그(auditor 발견, 판정 영향 없음): C에 통과 쌍 전부 + 깨진 줄이면 집합이 같아 다시 쓰지 않아 계약 5 상한(줄 수 <= 로그 구간 수)을 넘는다. 깨진 줄은 읽을 때 무시, 다음 집합 변경 때 지워짐. spec card 문구 정리 또는 후속 게이트 변경(깨진 줄 있으면 다시 쓰기) 중 결정 필요.
   정리 대상: %TEMP%/gmid-redteam/ 공격 30 sandbox 잔여, %TEMP%/20260929-rejudge-cache-iso*.
+
+- P3b 20260923-probe-promote-differential 완료(gate 5e1ca79, 2차 시도, test-only): probe_gm_id_monotonicity·probe_prevention_wiring -> unit/test_probe_*.py(test 10, 옮기지 않은 절 6은 docstring 사유). V1 367 passed/15 xfailed(base 357), 6순서 동일, E-LIB·E-INST 해시 base 동일, V4 규칙 (1) 0건(면제 불필요). auditor가 엔진 변이 3종(leftmost root, nmos만 diode, 비단조 거부)을 승격본이 잡는 것 확인.
+  1차 실패 = 내 spec card 결함(계약 1 파일 이름이 P3a 승격 규칙 unit/test_probe_*와 다름) -> 계약 개정(aeba6b2). 그 개정 중 bash heredoc append가 spec card 앞 13줄을 덮어써 d0650b7이 깨진 채 push됐다 -> aeba6b2로 복구. 메모리: 모든 파일 heredoc append 금지.
+  백로그 B19(회로 해석, 사용자와 공동분석): diode의 headroom_role 라벨만 바꿔도 folded_cascode(mirror/tail/삭제 -> InfeasibleSizingError biasgen_mn)·current_reuse_telescopic(mirror -> 거부, 기타 ValueError) 사이징 결과가 바뀐다 -- 원 probe C4 목표 '라벨 지워도 결과 같음'이 파이프라인에서 미성립. 의도된 스택 예산 배정인지 결정 필요.
+  백로그 B20(문서): test_probe_gm_id_monotonicity docstring 'PMOS 1,350개 곡선' 재현 안 됨(선언 정의역 780, 전 격자 2,940), test_probe_prevention_wiring docstring '엔진 분기가 role 라벨을 함께 받는 경로' 부정확(is_diode_connected는 라벨 안 받음, 호출부 서술). V4 도구 한계: assert_* 보조 호출의 앞 두 인자만 비교 대상.
+  다음: P3c(20260923-probe-promote-consistency).
