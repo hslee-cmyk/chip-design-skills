@@ -1,0 +1,31 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "auditor_p5_synthetic_newtopo",
+  "source": "auditor 합성 (20260923-d-delete-dead NEW-TOPO) -- 라이브러리에 없는 이름·넷·소자 수(7)",
+  "linked_topology_files": [],
+  "supply_nets": ["rail_hi", "rail_lo"],
+  "compensation": null,
+  "netlist": [
+    {"name": "Qx_inA", "kind": "nmos", "drain": "nx_left", "gate": "nx_inp", "source": "nx_tailnode"},
+    {"name": "Qx_inB", "kind": "nmos", "drain": "nx_out1", "gate": "nx_inn", "source": "nx_tailnode"},
+    {"name": "Px_ldA", "kind": "pmos", "drain": "nx_left", "gate": "nx_left", "source": "rail_hi"},
+    {"name": "Px_ldB", "kind": "pmos", "drain": "nx_out1", "gate": "nx_left", "source": "rail_hi"},
+    {"name": "Qx_tail", "kind": "nmos", "drain": "nx_tailnode", "gate": "nx_bias", "source": "rail_lo"},
+    {"name": "Px_drv", "kind": "pmos", "drain": "nx_out2", "gate": "nx_out1", "source": "rail_hi"},
+    {"name": "Qx_sink", "kind": "nmos", "drain": "nx_out2", "gate": "nx_bias", "source": "rail_lo"}
+  ],
+  "passive_elements": [],
+  "ports": {
+    "nx_inp": {"role": "differential_input_p", "direction": "input"},
+    "nx_inn": {"role": "differential_input_n", "direction": "input"},
+    "nx_out2": {"role": "single_ended_output", "direction": "output"}
+  },
+  "symmetry": {
+    "matching_pairs": [
+      {"names": ["Qx_inA", "Qx_inB"], "current_forced": true, "matching_sensitivity": "offset"},
+      {"names": ["Px_ldA", "Px_ldB"], "current_forced": true, "matching_sensitivity": "ratio"}
+    ]
+  },
+  "sizing_roles": null,
+  "device_roles": null
+}

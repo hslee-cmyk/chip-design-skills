@@ -1,0 +1,86 @@
+{
+ "id": "20260923-d-delete-dead",
+ "spec_card": "docs/02-design/specs/20260923-d-delete-dead.spec.md",
+ "evidence_type": "equivalence",
+ "base_commit": "0ecb686045031df6371e8e94c03f9bbac177e620",
+ "test_commit": "e1db1a19e1e9ba1f2b3aebc5a95bf351d3f08f91",
+ "code_commit": "2a123bac587a97f341f64ee5be29bf4c2fe96f65",
+ "equivalence": {
+  "commands": [
+   "E-LIB + NEW-TOPO: PYTHONDONTWRITEBYTECODE=1 PYTHONHASHSEED=1 C:/Python314/python.exe -P C:/g7/e_lib_p5.py C:/g7/eq C:/g7/out/elib_<rev>.json C:/g7/newtopo/auditor_p5_synthetic_newtopo.topology.json -- auditor 독립 구현(sha256 6efb876a79381cdbe2ca4532a4a1f4289aa761dce4db601c3bc6e1e215382d52). library 9회로 전부와 합성 topology 1개에 대해 stick_diagram.load_topology 결과와 stick_diagram.run_topology_pipeline 결과(overrides 두 변형: V1 소자마다 자기 스택 n_fingers=2·finger_w=1.0·w=2.0, V2 극성별 공유 스택)를 정규화(dataclass·dict 키 정렬, set 원소 정렬, float repr, 경로 역슬래시->슬래시, 복제본 루트->'<ROOT>', 합성 파일 디렉터리->'<SYN>')해 sha256하고, 예외도 (타입, 메시지 해시)로 결과에 넣어 stdout 한 줄 JSON(E_LIB_HASH·NEW_TOPO_HASH·로드/파이프라인 성공 수)을 낸다",
+   "E-INST(파일럿): PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g7/e_inst3.py C:/g7/eq current_reuse_telescopic_ota C:/g7/ws_eq C:/g7/out/einst_<rev>/einst_current_reuse_telescopic_ota.json -- P2 판정 기록과 같은 auditor 스크립트(sha256 8053a611ba0217d0325a0d6b320d255a2d590f16d7c70080b0ead793499e8ce4). workspaces/run_harness.py의 저장소 절대 경로 리터럴 3곳만 복제본·스크래치로 치환한 사본(로직 불변)을 실행하고 instance.json 키 정렬 compact JSON sha256을 stdout 한 줄 JSON으로 낸다",
+   "E-INST(folded_cascode): PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g7/e_inst3.py C:/g7/eq folded_cascode C:/g7/ws_eq C:/g7/out/einst_<rev>/einst_folded_cascode.json -- 위와 같은 형태",
+   "실행 조건: 격리 복제본 C:/g7/eq 하나를 base 0ecb686 -> 병합본 2a2a7a0 으로 git checkout --detach + git clean -fdxq 하며 위 세 명령을 이 순서로 실행하고 각 표준출력을 파일로 남겼다. outputs_hash = 병합본 쪽 세 표준출력 바이트를 이어 붙인 sha256이고 base 쪽 같은 계산도 0f834dc21cd2c16e0cd35e086d1d77bb4b8678ce5bc19b188b56645c2b45bf3d로 같다(세 파일 모두 cmp 바이트 동일). E-INST 해시는 instance.json에 복제본 경로가 들어가 경로에 기대므로 같은 경로(C:/g7/eq, 작업 디렉터리 C:/g7/ws_eq)에서 차례로 쟀다. 합성 topology 사본은 .ai/verification/20260923-d-delete-dead/newtopo_synthetic.topology.json(원본과 바이트 동일)"
+  ],
+  "outputs_hash": "0f834dc21cd2c16e0cd35e086d1d77bb4b8678ce5bc19b188b56645c2b45bf3d"
+ },
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "병합본 M 2a2a7a0456afd00a179ee6604d4096e178b57956(부모 = [T e1db1a19, code 2a123bac], 트리 36ddbe527c518974f01e67dee4dc4d4a4bda5f95 = code 끝 트리, Role: doc·Change-Id)을 git clone -c core.longpaths=true --no-hardlinks --no-local 한 격리 복제본 C:/g7/m(origin 제거, clean -fdxq 뒤 git status 0줄)에서 base 판 캐시 0ecb686의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=): 418 passed, 15 xfailed, 실패·오류·skip·xpass 0, 수집 433, 수집 오류 0, exit 0, 105.15s, 출력 sha256 09eec7f5225fa38c1786646ad8f8a8896d22618b6fe0e7569deb366286220e63. 같은 명령의 base 0ecb686 복제본 실행은 367 passed, 15 xfailed, 수집 382, exit 0(순서 3). 수집 집합: 병합본 433 = T 433(집합 sha256 동일 0b7abe8626532341cb80f7efd98ea0771b53af606fd2873ab60bdfa7704e9e36), base 382는 그 부분집합(사라진 id 0, 늘어난 51이 전부 contracts/test_d_delete_dead.py). 엄격 집합은 base 판 merge_gate.strict_set(TreeView(0ecb686), parse_spec_card(이 card)) = 공집합, merge_gate.v1_command_check(auditor_run의 V1 문자열, python_path C:/Python314/python.exe, old 0ecb686, strict_needed [], phase 2) 실패 0건. 힘 확인: --gmid-strict=IC3:,IC5: 로 바꾸면 conftest UsageError로 exit 4. 게이트 코드는 작성자에게 받지 않고 git cat-file blob 0ecb686:tools/gates/<파일>로 redteam 밖 22개를 직접 뽑았다(파일 집합 sha256 ab7afccd7aa4b4ed6687b2d1acc71a07e82c5a6ceb615fd3b1eb7963a1adb828, P3b 때와 같은 값). code-author 자체 실행 결과는 증거로 쓰지 않았다"
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "equivalence. 커밋 모양: base 0ecb686 -> test T e1db1a19(Role: test, 부모 = base) -> code K 2a123bac(Role: code, 단일 부모 = T) -> 병합 M 2a2a7a04(부모 [T, K], 트리 = K 트리, Role: doc), base..M 커밋 3개. test 커밋 불변: M 첫 부모가 순서 3에서 freeze한 T와 같고, T..K 변경 4경로(sizing_recipe.py·stick_diagram.py·workspaces/run_harness.py·function-registry.md)에 test 경로가 없다. 기존 test 집합 양쪽 PASS: base 382건이 base에서 367 passed + 15 xfailed, 병합본에서 같은 382 id가 실패 0(병합본 전체 418 passed + 15 xfailed, xfail 수 15는 base와 같다). 새 test 51건은 T(엔진 = base)에서 50 PASS + GONE 1건 AssertionError(test_deleted_names_have_no_ast_references, base 판 red 플러그인 수집 failure_hash 6183e888dbe38a9cfef3291ca34abd0c6e847649bac524271f9add07746b5686 = red_failure_hash 정의로 auditor가 다시 계산해 일치)였고 병합본에서 51/51 PASS(-v 로 그 id PASSED 확인) -- equivalence라 red 필드에는 싣지 않는다. 동등 증명(design 20-dead-code-dup §3, 같은 경로 C:/g7/eq): E-LIB 9/9 로드, 파이프라인 V1 9/9·V2 9/9 성공, 해시 8cb62d21aa119cbd06c79f5ef6eb09c77a45bf0f093cf6c9ca1b82c36300e53e base = T = 병합본(출력 JSON 파일 바이트 동일, PYTHONHASHSEED 1·777 안정); E-INST 파일럿 exit 0·소자 51·785dadb12588efe70673b9548b4e66f18586da84e7c143e1a25875b38537b4ac, folded_cascode exit 0·소자 13·83956c0abefd46701e6832b78ad0a91535f944b3cac42bc9fcfbd957c318ae98, base(2회) = T = 병합본; NEW-TOPO(auditor 합성: 회로 auditor_p5_synthetic_newtopo, 넷 nx_*·rail_hi/rail_lo, 소자 7, matching pair 2) 로드·파이프라인 두 변형 성공, 해시 eaaa3ad6be2178e6f18d5017bf7062ed7bd45934f74c9623fbfe019190ec7666 base = T = 병합본; NEW-TOPO (ii)(iii)은 계약 test의 미등록 type 9종 ValueError와 sum_current 값 산출이 병합본에서 PASS. 계약 1: 8개 정의가 base에 표의 줄 그대로 있고 병합본에 없다. 계약 2(G-1): auditor 독립 AST 전수(A/*.py·run_harness.py·A/tests/** 72파일)에서 8개 이름의 def·Name·Attribute(fT·junction_cap은 어떤 Attribute든)·import가 병합본 0건 -- 딕셔너리 값 등록 경로도 없다; base에서도 참조는 정의 8개와 converge_with_parasitics 안의 junction_cap 호출 1개뿐이어서 선언으로 고를 길이 애초에 없었다; 네 레지스트리 test PASS. 계약 3(G-4): compute_metric(sizing_recipe.py:5777)이 _METRICS_REGISTRY에 없는 type에 즉시 ValueError(:5785) -- 병합본에서 관련 test 11건(미등록 9종 거부·등록 대조군 1·판정 힘 확인 1) PASS. 계약 4(GONE): 위 독립 스캔 0건 + 계약 test PASS. 계약 8: function-registry.md에서 정확히 8행(junction_cap·converge_with_parasitics·slew_rate·fT·lut_conditions_from_npz·suggest_headroom_stack_groups·render_stick_diagram·derived_spec)이 지워지고 추가 줄 0. 삭제 외 동작 변경 없음: auditor 독립 AST 대조(C:/g7/pure_delete.py, docstring 제외 ast.dump)로 세 파일 모두 추가 def 0, 제거 def = 대상 8개 + suggest_headroom_stack_groups의 중첩 def 3개, 바뀐 def는 GmIdLUT·SemiEmpiricalGmIdLUT 두 클래스뿐이고 둘 다 삭제된 메서드 때문, 삭제 정의를 뺀 나머지 모듈 AST가 base와 같다(3/3); 나머지 A/*.py 5개 blob 동일. 추가 2줄은 docstring 두 곳이다 -- 모듈 docstring 15행 '5. 기생 CJD 반영 반복 -> converge_with_parasitics()'를 '-> optimize_multistage()의 cgg 반복'으로, GmIdLUT 클래스 docstring에서 junction_cap 문장 제거. 15행 문구의 사실 확인: optimize_multistage(:931)는 실제로 기생 커패시턴스 되먹임 반복을 하고(:1300-1317 prev_cggs 루프, 자기 docstring이 '§4.2의 회로 레벨 버전'이라 적는다) 운영 경로의 기생 반영이 그것이라는 점은 맞다; 다만 되먹이는 양은 cgg_absolute의 게이트 용량 Cgg이고 드레인 접합 용량 CJD가 아니며, 삭제 뒤 엔진에는 CJD 모델이 없다(LUT에 Cdb/Csb가 없다는 :3029·:4047 docstring). 그래서 줄 왼쪽의 '기생 CJD'와 오른쪽 'cgg 반복'이 서로 다른 용량을 가리킨다 -- 동작에는 영향이 없는 설명 문구의 부정확이라 판정을 막지 않고 오케스트레이터에 넘긴다. 계약 밖 잔여 언급(판정 범위 밖, 넘김): skills/analog-gmid-design/references/function-selection-map.md 35·38·80행과 stick-diagram-euler-layout.md 1065·1102행이 지운 converge_with_parasitics·slew_rate·render_stick_diagram을 사용 안내로 적고 있고, tests/probes/ 14개 파일 주석이 H.derived_spec 사용을 권한다(AST 참조가 아니라 계약 4 GONE 범위 밖)"
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "게이트 규칙상 변이 대상 def 0개(순수 삭제, 선례 20260922-ts1-legacy-move). base 판 캐시 mutate_changed.py(--root C:/g7/m --base 0ecb686045031df6371e8e94c03f9bbac177e620 --head 2a2a7a0456afd00a179ee6604d4096e178b57956 --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=2 --gmid-strict=): verdict PASS, targets = 소스 3개(sizing_recipe.py·stick_diagram.py·workspaces/run_harness.py), mutants 0, killed 0, survivors [], exit 0, 실행 뒤 복제본 git status 0줄. 근거: 도구 규칙 ①은 head의 def 중 docstring 뺀 ast.dump가 base와 다르거나 새로 생긴 것만 고르는데, auditor 독립 AST 대조에서 세 파일의 head def은 전부 base와 같다(추가 0; 바뀐 것은 GmIdLUT·SemiEmpiricalGmIdLUT 클래스 노드뿐이고 그 차이는 삭제된 메서드 junction_cap·fT가 빠진 것 -- 남은 메서드 본문은 같다; 삭제 정의를 뺀 모듈 AST가 base와 같다). 지운 정의는 head에 없어 변이할 대상이 아니다. 등가 변이 면제 승인 기록도 필요 없다. 삭제의 안전성은 V2의 E-LIB·E-INST·NEW-TOPO 동일과 전체 스위트 실패 0이 잰다"
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: spec card 'oracle 종류와 출처'는 (c) 동작 보존(기대값 = base 실행 결과, 새 기대값을 만들지 않는다)과 G-1·G-4 판정의 (a) 저장소 현재 등록 딕셔너리·합성 선언이다 -- 이번 변경이 들여온 기대값은 test_d_delete_dead.py 51건뿐이고(unit 두 파일은 24행 import 이름 하나씩 제거, test 함수 본문 변경 0) 하나씩 대조한다; test_deleted_names_are_not_registered_as_dict_values의 '등록 0건'은 spec card 계약 2 문언 그대로 (a)(일치, auditor 독립 AST 스캔 병합본 0건); test_runtime_registries_hold_no_deleted_callable 4건의 '레지스트리 비어 있지 않음·삭제 이름 callable 0'은 계약 2가 이름을 댄 네 레지스트리 (a)(일치); test_registration_check_rejects_synthetic_registry 10건·accepts 5건의 정답은 손으로 만든 합성 소스 구성으로 정해진다 (a) -- auditor가 10개 소스를 읽어 각각 이름이 딕셔너리 값 자리에 있음, 5개는 주석·키·딕셔너리 밖·동명 지역변수·부분 문자열뿐임을 확인(일치); test_runtime_registry_check_rejects_synthetic_registry의 거부 3·통과 1은 합성 레지스트리 구성 (a)(일치); test_unregistered_metric_type_is_rejected 9건의 ValueError는 spec card 계약 3·design §6.4 G-4가 정한 행동이고 전제 '_METRICS_REGISTRY 키에 없음'을 같은 test가 확인한다 (a)(일치, auditor가 compute_metric :5783-5786의 거부 분기를 직접 읽었다); test_registered_metric_type_on_same_context_yields_value의 '유한한 float'은 design §3 NEW-TOPO (iii) 대조군이고 값의 크기를 판정하지 않아 피검 식 재서술이 아니다(일치); test_rejection_check_fails_when_type_is_registered의 두 거부는 합성 계산기 구성 (a)(일치); test_deleted_names_have_no_ast_references의 '참조 0'은 계약 4 (a)이고 base에서 red, 병합본에서 green(일치); test_reference_check_rejects 11건·accepts 7건은 합성 소스 구성 (a)이고 auditor가 읽어 확인(일치); 기대값을 interface card 심볼 호출로 만든 곳 0. 도구: base 판 캐시 test_lint.py에 --interface-card를 그대로 주면 run_harness 모듈이 --module-dir(assets) 밖이라 ERROR exit 2 -- 그래서 interface card 표 10개 심볼을 --subject로 나눠 두 번 실행했다(assets 모듈 9개: verdict PASS, exit 0, 대상 파일 3, findings 627 = (2) NO-SUBJECT 516 + UNJUDGED 111, FAIL 0, (1)(3)(4)(5) 0, 출력 sha256 341d6f686b43e22da9d38124800c1dc21e67b9fa7d08d1808aef0c32580e8555 / --module-dir workspaces --subject run_harness:derived_spec: PASS, exit 0, findings 627 전부 NO-SUBJECT, 출력 sha256 787d22649e925f3b8cc65d72700a708e9905e81a556ac5c2d24379ba9134a66c). 새 파일 test_d_delete_dead.py의 findings는 24건 전부 NO-SUBJECT이고 UNJUDGED 0이다. UNJUDGED 111건은 전부 unit 두 파일의 기존 test 함수(load_topology·run_topology_pipeline을 부르는 s013·s015·s062·s065·s051~s171 등)이고 이번 변경이 본문을 한 글자도 바꾸지 않았다 -- 그 기대값의 oracle은 이 파일들을 만든 20260922-ts2-pytest-split 판정 기록의 (c) 이관본 대조가 그대로 유효하다. 참고 측정(판정 입력 아님, 넘김): 병합본 A/*.py 최상위 def·class 383개 전체를 --subject로 주면 unit 두 파일에서 (1) FAIL 16·(2) FAIL 14·exempt 2가 나오는데, 같은 방식으로 base 트리의 두 파일(388개)을 재면 (파일, test, 규칙, 줄, 출력) 목록이 완전히 같다 -- 이번 변경이 들여온 발견이 아니라 기존 이관본의 발견이며 이 card의 판정 범위 밖이다"
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 weakening_diff.py(--root C:/g7/m --base 0ecb686 --head 2a2a7a0): verdict PASS, findings 0건, diff_paths 0개, diff 해시 null, approved false, exit 0 -- 적을 diff 해시와 승인 기록이 없다. base -> T 에서도 같은 결과였다(순서 3). unit 두 파일의 import 제거(test_selftest_sizing_recipe.py 24행 converge_with_parasitics, test_selftest_stick_diagram.py 24행 render_stick_diagram)는 발견으로 잡히지 않는다 -- 도구의 8패턴(assert·raises·approx 수 감소, Compare 연산자·approx rel/abs 변화, 숫자·문자열 Constant 변경, skip/xfail 추가, assert의 If/Try 하강, test 함수 삭제)은 모듈 최상위 ImportFrom 별칭을 특징으로 보지 않기 때문이고 도구 정의대로다. 실질 판단도 기준 약화가 아니다: 두 이름은 base에서도 그 import 줄 밖에서 파일 안에 한 번도 쓰이지 않았고(assert·호출 0), 삭제 대상이라 병합본에서 import하면 수집 오류가 된다. 기존 test 382건이 병합본에서 전부 통과하고 test 분류의 .py 아닌 파일·conftest.py 변경은 0경로다"
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 source_lint.py(--root C:/g7/m --base 0ecb686045031df6371e8e94c03f9bbac177e620 --head 2a2a7a0456afd00a179ee6604d4096e178b57956): verdict PASS, targets 3개(sizing_recipe.py·stick_diagram.py·workspaces/run_harness.py), findings [], exit 0. 소스 변경은 삭제 314줄(sizing_recipe 94·stick_diagram 173·run_harness 47)과 docstring 2줄 추가뿐이라(V2 독립 AST 대조) 새 광범위 except·skip 분기·태그 없는 숫자 리터럴·캐시가 들어올 자리가 없다"
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "도입 Phase 2라 활성. base 판 캐시 reachability.py(--root C:/g7/m --base 0ecb686 --head 2a2a7a0): verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개(workspaces/run_harness.py::run·__main__, A/sky130_lut_sweep.py::__main__, A/topology_to_markdown.py::__main__), roots_without_file 1개(A/gmid_design_pipeline.py::run_gmid_design_pipeline -- 설정의 Phase 3 이후 루트이고 base에도 파일이 없다), exit 0. 이 변경은 운영 경로에서 도달하지 않던 정의를 지우는 쪽이라(G-1~G-4, 레지스트리 등급 D) 새 def가 없고 배선 판정이 생기지 않는다"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터다(N4.2 v_intro[V8] = 4). 이 card는 Phase 2이고 삭제 대상 8개는 fallback_events를 만드는 경로가 아니다"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터다(N4.2 v_intro[V9] = 6b). 참고로 회로 결과 불변은 E-LIB·E-INST·NEW-TOPO 해시가 base와 같음으로 쟀다(V2)"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec card '재현할 수치'가 '없음(해시 동일성은 계약 6의 동작 보존 증거)'이라 reproduced_numbers는 빈 배열이다. 이 card가 기대는 수치(삭제 정의 8개, 레지스트리 8행, 수집 382 -> 433, 새 test 51, base red 1건, E-LIB 9회로·NEW-TOPO·E-INST 두 회로 해시, 병합본 418 passed)는 전부 auditor가 격리 복제본 C:/g7/*에서 직접 다시 재서 V1·V2와 .ai/verification/20260923-d-delete-dead/base_check.json에 적었다. code-author·test-author·오케스트레이터의 보고(418 passed 포함)를 증거로 받은 항목은 없다"
+  }
+ },
+ "reproduced_numbers": [],
+ "approvals": [
+  "20260923-20-dead-code-dup-design",
+  "20260923-u02-d-list"
+ ],
+ "auditor_run": {
+  "time": "2026-09-29T20:13:22+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-d-delete-dead-audit",
+  "commands": [
+   "환경: $PY = C:/Python314/python.exe(3.14.2, pytest 9.0.2), export APPDATA=C:/Users/HSLEE/AppData/Roaming, 모든 실행은 cd 없이 절대 경로",
+   "게이트 코드: C:/Python314/python.exe C:/g7/extract_gate.py C:/g7/base 0ecb686045031df6371e8e94c03f9bbac177e620 C:/g7/gmid-gate-cache/0ecb686045031df6371e8e94c03f9bbac177e620 (git ls-tree + git cat-file blob 으로 tools/gates/ 중 redteam/ 밖 22개)",
+   "격리(병합본): git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260923-d-delete-dead-audit C:/g7/m; git -C C:/g7/m remote remove origin; git -C C:/g7/m checkout -q --detach 2a2a7a0456afd00a179ee6604d4096e178b57956; git -C C:/g7/m clean -fdxq (git status 0줄, remote 0개)",
+   "격리(같은 경로 동등성): 순서 3의 C:/g7/eq(같은 방식으로 복제, origin 제거)에 git -C C:/g7/eq fetch -q --no-tags <audit worktree> role/audit/20260923-d-delete-dead 로 M을 들여오고 base 0ecb686 -> T -> 병합본 2a2a7a0 으로 checkout --detach + clean -fdxq 하며 equivalence.commands 세 명령을 실행",
+   "V1: PYTHONPYCACHEPREFIX=C:/g7/pyc_v1m PYTHONPATH=C:/g7/gmid-gate-cache/0ecb686045031df6371e8e94c03f9bbac177e620 C:/Python314/python.exe -P -m pytest -c C:/g7/gmid-gate-cache/0ecb686045031df6371e8e94c03f9bbac177e620/pytest_gate.ini --rootdir=C:/g7/m --confcutdir=C:/g7/m --gmid-phase=2 --gmid-strict= C:/g7/m/skills/analog-gmid-design/assets/tests",
+   "V1 자기 대조: C:/Python314/python.exe -P C:/g7/strict_check.py <캐시> C:/g7/m 0ecb686045031df6371e8e94c03f9bbac177e620 20260923-d-delete-dead <V1 문자열> -> strict_set [], v1_command_check 실패 0; 힘 확인은 같은 명령을 --gmid-strict=IC3:,IC5: --collect-only 로 -> exit 4",
+   "base red(순서 3): GMID_RED_CAPTURE=C:/g7/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g7/iso/docs/02-design/specs/20260923-d-delete-dead.spec.md 로 V1 형태 명령에 -p merge_gate --continue-on-collection-errors 를 더해 T 복제본 C:/g7/iso 에서 실행 -> 1 failed, 417 passed, 15 xfailed",
+   "수집 대조: 같은 V1 형태에 --collect-only -q 로 C:/g7/base·C:/g7/iso·C:/g7/m 을 수집하고 C:/Python314/python.exe C:/g7/cmp_collect.py 로 비교",
+   "GONE green: V1 형태로 C:/g7/m/skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py 만 -v 실행 -> 51 passed",
+   "순수 삭제 대조: C:/Python314/python.exe C:/g7/pure_delete.py C:/g7/m 0ecb686045031df6371e8e94c03f9bbac177e620 2a2a7a0456afd00a179ee6604d4096e178b57956 skills/analog-gmid-design/assets/sizing_recipe.py skills/analog-gmid-design/assets/stick_diagram.py workspaces/run_harness.py; git -C C:/g7/m diff --numstat 0ecb686 2a2a7a0",
+   "V3: C:/Python314/python.exe <캐시>/mutate_changed.py --root C:/g7/m --base 0ecb686045031df6371e8e94c03f9bbac177e620 --head 2a2a7a0456afd00a179ee6604d4096e178b57956 --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=2 --gmid-strict= --out C:/g7/out/v3_M.jsonl",
+   "V4: C:/Python314/python.exe <캐시>/test_lint.py --root C:/g7/m --base 0ecb686045031df6371e8e94c03f9bbac177e620 --head 2a2a7a0456afd00a179ee6604d4096e178b57956 --subject sizing_recipe:converge_with_parasitics --subject sizing_recipe:slew_rate --subject sizing_recipe:SemiEmpiricalGmIdLUT.fT --subject sizing_recipe:lut_conditions_from_npz --subject sizing_recipe:GmIdLUT.junction_cap --subject stick_diagram:suggest_headroom_stack_groups --subject stick_diagram:render_stick_diagram --subject stick_diagram:load_topology --subject stick_diagram:run_topology_pipeline; 같은 명령을 --module-dir workspaces --subject run_harness:derived_spec 로 한 번 더 (--interface-card 단독은 run_harness 모듈 경로 때문에 ERROR exit 2). 참고 측정: C:/g7/run_v4.py 로 A/*.py 최상위 def·class 전체를 subject로 base·병합본 unit 두 파일을 재고 발견 목록 동일 확인",
+   "V5: C:/Python314/python.exe <캐시>/weakening_diff.py --root C:/g7/m --base 0ecb686045031df6371e8e94c03f9bbac177e620 --head 2a2a7a0456afd00a179ee6604d4096e178b57956",
+   "V6: C:/Python314/python.exe <캐시>/source_lint.py --root C:/g7/m --base 0ecb686045031df6371e8e94c03f9bbac177e620 --head 2a2a7a0456afd00a179ee6604d4096e178b57956",
+   "V7: C:/Python314/python.exe <캐시>/reachability.py --root C:/g7/m --base 0ecb686045031df6371e8e94c03f9bbac177e620 --head 2a2a7a0456afd00a179ee6604d4096e178b57956",
+   "<캐시> = C:/g7/gmid-gate-cache/0ecb686045031df6371e8e94c03f9bbac177e620. 순서 3 기록(freeze·base red·기준값)은 .ai/verification/20260923-d-delete-dead/base_check.json"
+  ]
+ }
+}
