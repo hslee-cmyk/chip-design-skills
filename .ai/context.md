@@ -14938,3 +14938,8 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - P3c 20260923-probe-promote-consistency 보류(사용자 "보류, P5로 진행"): 착수 전 계약 1 이름 개정(a5f57d3) 뒤 test-author가 계약 3 멈춤 조건으로 멈춤(커밋 0). spec card '보류 기록' 절 참조.
   백로그 B21(Phase 4 공동분석): (a) B8 KCL 허용 범위 선언 부재 (b) supplies_v 레일별 전압 선언 부재(DEC-60, 스칼라 vdd만) (c) 엔진 결함 후보 -- folded_cascode 노드전압 전파가 순회 순서에 의존(X 1.6 vs 0.0 V, out 1.4 vs -0.2 V), 파일럿 다중 도달 불일치 4건(Vom1/Vop1 0.677 vs 0.900 V), KCL 잔차 파일럿 Vx 4.185 uA·folded tail 50.5 uA. 측정 스크립트는 세션 scratchpad inspect1~4.py(휘발).
   다음: P5(20260923-d-delete-dead).
+
+- P5 20260923-d-delete-dead 완료(gate 1258efe, equivalence, 1차 시도): 죽은 정의 8개 삭제(test e1db1a1, code 2a123ba +2/-322, M 2a2a7a0). E-LIB 9/9 해시 8cb62d21(파이프라인 두 변형 포함), E-INST 파일럿 785dadb1·folded 83956c0a, NEW-TOPO eaaa3ad6 모두 base와 동일, GONE red->green, V1 418 passed/15 xfailed. 레지스트리 8행 삭제.
+  백로그 B22(문서): (a) sizing_recipe.py 모듈 docstring 15행 '기생 CJD 반영 반복 -> optimize_multistage()의 cgg 반복' -- 되먹임은 Cgg이지 CJD 아님, 삭제 뒤 CJD 모델 없음. 제안 '기생 커패시턴스(Cgg) 반영 반복'(엔진 텍스트라 code card 필요) (b) references/function-selection-map.md 35·38·80, stick-diagram-euler-layout.md 1065·1102가 지운 converge_with_parasitics·slew_rate·render_stick_diagram 안내 (c) tests/probes/ 14개 주석의 H.derived_spec 안내 -> P4에서 정리.
+  백로그 B23: 엔진 최상위 def 383개 전체를 V4 subject로 주면 unit 이관본 두 파일에서 규칙 (1) 16건·(2) 14건(base와 동일 -- 기존). ts2-pytest-split이 interface card 심볼만으로 재서 드러나지 않았다. V4 도구가 assets 밖 모듈(run_harness)이 든 interface card에서 ERROR(--subject로 우회).
+  다음: P5b(20260923-d-delete-telescopic) -- G-3(b)+G-4+NEW-TOPO 증거 필수.
