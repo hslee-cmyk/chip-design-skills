@@ -1,0 +1,90 @@
+{
+  "id": "20260930-df35-harness-paths",
+  "spec_card": "docs/02-design/specs/20260930-df35-harness-paths.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da",
+  "test_commit": "284cb1fe962744e79fdf5dbdd6d85d652c43a3c5",
+  "code_commit": "57781a73f7efc7d1ac57e4db1fa52ce1e7c1b8be",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_source_has_no_absolute_path_constants",
+      "skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_paths_workspaces_dir",
+      "skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_paths_assets_dir",
+      "skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_sys_path_assets_entry",
+      "skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_paths_derived_under_assets[LIBRARY_DIR]",
+      "skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_paths_derived_under_assets[LUTFILE]"
+    ],
+    "failure_hashes": [
+      "5712deb5422fcacc65daf1ff975ff3450178919d58592ac989ff9b5da0b321c6",
+      "c93ff6ef59bfc4b9491de476b815f9f613840471dfbb3858b1535ef76c075c20",
+      "10e9987a04ad1aa056961caade516c1c3f3198a068b04656e2956d34ff58ddc5",
+      "d9fa0e9aedb85498f9030c823e8aca7dc4edaa667df2aef42b120ff1decf7290",
+      "979e8c6ccbce128ebf521dca3003520730dc9934e62afa3f077117ab53032b52",
+      "369b5fadf84628e76a9aecc2937937a83fdf06a37efb7b3527c1c700418e1e7d"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "병합본 M d23f4bb(부모 [T 284cb1f, K 57781a7], 트리 159817d2 = K 트리, Role: doc·Change-Id 일치)의 격리 복제본 C:/g14/m(git clone --no-hardlinks --no-local --no-checkout, origin 제거, checkout --detach, remote 0·status 0줄, 실행 뒤 status 0줄)에서 base 판 캐시 c4e5fef의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=): 759 passed, 15 xfailed, 실패·오류·skip·xpass 0, 수집 774(T 수집 id 집합과 같음), 수집 오류 0, exit 0, 87s. 759 = base 739 + 새 파일 20. 엄격 집합은 base 판 merge_gate.strict_set = 빈 집합, v1_command_check 실패 0건(순서 3). 게이트 코드는 git cat-file blob c4e5fef:tools/gates/<파일>로 auditor가 redteam 밖 22개를 직접 뽑았다(file_set_sha256 ab7afccd…). 병합본 run_harness는 이제 복제본 경로를 유도하므로 옛 격리 결함(C-01, 메인 체크아웃 엔진 import)이 이 실행에는 없다(E-INST merged 모드 engine_origin 전부 복제본, V2). code-author 보고는 증거로 쓰지 않았다"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. [사슬] base c4e5fef(gate master) -> T 284cb1f(Role: test, 부모 base, 새 contracts/test_df35_harness_paths.py 하나) -> K 57781a7(Role: code, 부모 T, workspaces/run_harness.py +4/-3) -> M d23f4bb(Role: doc, 부모 [T, K], 트리 = K 트리). test 커밋 불변: git diff T M = run_harness.py뿐. [red] 순서 3(이 폴더 base_check.json): T 복제본 C:/g14/iso(메인 체크아웃 아님)에서 base 판 red 수집 플러그인이 기록한 red 6건, 전부 builtins.AssertionError(_ALWAYS_RED): 계약 1 절대 경로 상수 줄 [35, 42, 44], 계약 2 WORKSPACES_DIR·ASSETS_DIR가 메인 체크아웃, 계약 3 메인 체크아웃 assets가 sys.path에, 계약 4 LIBRARY_DIR·LUTFILE이 메인 체크아웃 아래 -- 실패 문장이 이 card가 고치는 원인을 가리킨다; failure_hash는 sha256(test_id + 개행 + 예외 타입)으로 auditor가 따로 계산해 같다; 나머지는 base와 같다(753 passed = 739 + 새 파일 통과 14). [green] 병합본 V1 759 passed; 새 파일을 red 수집 플러그인으로 따로 돌려 20 passed, red 기록 0(캡처 파일 생기지 않음); red 6 test id 6/6 PASSED. [순수 변경 범위] scripts/scope_cmp.py: base·병합본 run_harness.py 최상위 문장에서 경로 문장(base 35 sys.path.insert·42 ASSETS_DIR·44 WORKSPACES_DIR / 병합본 35 WORKSPACES_DIR = dirname(abspath(__file__))·36 _REPO_ROOT = dirname(WORKSPACES_DIR)·37 ASSETS_DIR = join(_REPO_ROOT, skills, analog-gmid-design, assets)·38 sys.path.insert(0, ASSETS_DIR))을 빼면 나머지 ast.dump 목록이 같다; git diff base M 변경 경로 = 새 test + run_harness.py(numstat 4/3). 관찰: 경로 대입이 엔진 import 앞으로 옮겨졌고 모듈 이름 _REPO_ROOT가 새로 생겼다(엔진 import는 이 이름들을 쓰지 않는다; LIBRARY_DIR·LUTFILE 식 불변). [계약 5 동작 보존] E-INST(scripts/e_inst_df35.py·einst.sh, 같은 경로 C:/g14/eq, 순서 3 설계): base 모드(메인 리터럴을 같은 표기의 복제본 경로로 치환)와 병합본 merged 모드(치환 없음, 리터럴 0개 확인) raw 해시가 두 회로 모두 같다 -- folded_cascode 8695fb47…(병합본 2회), current_reuse_telescopic_ota 0348f4d7…(병합본 2회); 모듈이 본 ASSETS_DIR·LIBRARY_DIR·WORKSPACES_DIR·LUTFILE 원문, sys.path 추가 항목(analog-grammar/assets·analog-gmid-design/assets), 엔진 출처(sizing_recipe·stick_diagram·design_report 전부 C:/g14/eq)가 base 모드와 같다. instance.json 경로 문자열은 /topology_ref 하나(= os.path.join(ASSETS_DIR, library, 파일)). 따라서 순서 3의 두 조건 (1) 정규화 내용 동일 (2) 유도 ASSETS_DIR 문자열 = 치환 문자열이 모두 성립한다. 메인 체크아웃 문자열(scope_cmp.py, 순수 문자열 계산): __file__ = 메인 경로 역슬래시·슬래시 표기 모두 WORKSPACES_DIR·ASSETS_DIR가 옛 리터럴과 바이트 같다 -- 메인 체크아웃에서 topology_ref가 base와 같다(메인 경로 투영 해시 8cdbf35b…·aa764f66…, 후자는 base 커밋 추적 파일과 같음). 한계(관찰): __file__이 소문자 등 다른 대소문자로 들어오면 abspath가 대소문자를 바꾸지 않아 문자열이 달라진다(Python 3.14에서 스크립트·spec_from_file_location 모두 __file__은 절대 경로이고 대소문자는 호출 경로 표기를 따른다 -- scratchpad 실측). E-LIB(scripts/e_lib.py, C:/g14/eq = M) 1d2e3bf6… 출력 파일이 base와 바이트 동일. 시간(관찰, 계약 5에 시간 조항 없음): 병합본 folded 14.6·19.2s, pilot 131.2·134.9s; 같은 시간대 base pilot 재측정 178.0s(순서 3 base 100.7s) -- 기계 부하 편차이며 코드 차이가 아니다(경로 네 줄 외 AST 동일)"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 mutate_changed.py --root C:/g14/m --base c4e5fef --head d23f4bb --pytest-ini <캐시>/pytest_gate.ini --gmid-phase=2 --gmid-strict= -> verdict PASS, targets [workspaces/run_harness.py], mutants 0(도구는 바뀐 def만 변이하는데 이번 변경은 모듈 머리 문장이라 def 변경 0), exit 0. 대체 측정(scripts/mut_lines.py, 복제본 C:/g14/mut, 변이마다 되돌림): 바뀐 네 줄에 손 변이 9개 -- 옛 리터럴 복귀(WORKSPACES_DIR·ASSETS_DIR·sys.path 3), _REPO_ROOT dirname 빠짐·한 단계 더 위 2, sys.path.insert 삭제 1, getcwd 1은 새 test 파일이 죽인다(7/7). 생존 2: (M7) abspath 빠짐 -- Python 3.14에서 __file__이 이미 절대 경로라 동치 변이(scratchpad 실측: 상대 경로 실행·spec_from_file_location 모두 절대 __file__); (M8) insert(0) -> append -- 계약 3은 sys.path에 들어간 assets 경로가 ASSETS_DIR인지만 요구하고 위치를 정하지 않아 계약 밖(전체 스위트도 통과). test 강도 관찰로 handoff(위치까지 고정하려면 spec card 계약 추가가 먼저)"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: 기대값마다 spec card oracle과 대조했다(아래, 모두 일치). 도구: base 판 캐시 test_lint.py --root C:/g14/m --base c4e5fef --head d23f4bb --module-dir workspaces --subject run_harness:ASSETS_DIR --subject run_harness:WORKSPACES_DIR --subject run_harness:LIBRARY_DIR --subject run_harness:LUTFILE -> verdict PASS, exit 0, 대상 파일 1(test_df35_harness_paths.py), findings 25 전부 (2) NO-SUBJECT, UNJUDGED·FAIL 0(--interface-card는 신규 시그니처 표가 비어 '피검 심볼이 없다' ERROR exit 2 -- 이 card에 새 def가 없어 모듈 상수를 subject로 준 것). PASS는 독립의 증거가 아니다(피검을 spec_from_file_location으로 새 이름에 로드해 도구가 참조를 못 본다). 기대값별 대조(auditor가 소스를 읽음): test_harness_source_has_no_absolute_path_constants '0건' = card 계약 1 (a)(일치: auditor scope_cmp 병합본 경로 문장에 상수 경로 없음, 병합본 E-INST literal_counts [0,0]); rejects 6·accepts 6 = card '거부해야 할 입력'의 합성 소스 (a)(일치: 목록 항목과 하나씩 대응, join 인자 안·f-string 상수·함수 안 경로는 발견, 상대·join 식·주석·docstring·단위 문자열은 아님); workspaces_dir·assets_dir·sys_path_assets_entry·derived_under_assets 2 = card oracle (a) 구성 -- 기대 경로는 test 파일 __file__의 parents[5]에서 만든 <루트>/workspaces·<루트>/skills/analog-gmid-design/assets이고 피검 상수를 기대값으로 쓰지 않는다(일치; workspaces_dir의 두 번째 비교 _HARNESS_FILE.parent도 같은 test 쪽 경로); test_expected_paths_exist·test_path_checks_reject_wrong_paths는 전제·자기 점검 (a)(일치: 다른 체크아웃 모양 tmp 경로를 거부). 계약 5는 test에 박지 않고 auditor E-INST로 판정(V2)"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 weakening_diff.py --root C:/g14/m --base c4e5fef --head d23f4bb -> verdict PASS, findings 없음, diff_paths 없음, diff_hash null, approved false, exit 0. 출력이 순서 3 base -> T 출력과 바이트 동일(K는 test를 건드리지 않았다). 새 test 파일은 추가라 약화 대상이 아니다. 기록할 diff 해시 없음"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 source_lint.py --root C:/g14/m --base c4e5fef --head d23f4bb -> verdict PASS, targets [workspaces/run_harness.py], findings 0, exit 0"
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 reachability.py --root C:/g14/m --base c4e5fef --head d23f4bb -> verdict PASS, new_defs 없음, unreached 없음, unreached_without_approval 없음, exit 0. 새 def가 없고(모듈 머리 문장 변경) 바뀐 상수는 run_harness 모듈 import 시점에 실행되며 run이 LIBRARY_DIR·WORKSPACES_DIR·LUTFILE을 쓴다(E-INST가 그 경로로 산출을 썼다, V2)"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2 v_intro[V8] = 4). 이 card는 Phase 2이고 경로 세 줄만 바뀌며 E-LIB·E-INST가 base와 같다(V2)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2 v_intro[V9] = 6b). 엔진 식 변경 없음, E-LIB·E-INST가 base와 같다(V2)"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치'가 '없음'이라 reproduced_numbers는 빈 배열이다. 이 기록의 수치(수집 754 -> 774, 병합본 759 passed·15 xfailed, base red 6건과 해시, 경로 문장·AST 대조, E-LIB·E-INST 값, 변이 결과, 도구 출력)는 전부 auditor가 격리 복제본 C:/g14/*에서 직접 쟀다(순서 3은 이 폴더 base_check.json). code-author('메인 체크아웃에서 유도 문자열이 옛 리터럴과 같다')·test-author·오케스트레이터 보고는 증거로 쓰지 않았다 -- 그 문장은 auditor가 scope_cmp.py로 따로 확인했다"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260923-20-dead-code-dup-design"
+  ],
+  "auditor_run": {
+    "time": "2026-09-30T17:58:46+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-df35-harness-paths-audit",
+    "commands": [
+      "환경: $PY = C:/Python314/python.exe(3.14.2), export APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 C:/g14/out, 스크립트 C:/g14/scripts/(사본 .ai/verification/20260930-df35-harness-paths/scripts/)",
+      "게이트 코드: C:/Python314/python.exe -P C:/g14/scripts/extract_gate.py C:/g14/base c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da (git ls-tree + git cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+      "격리: git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-df35-harness-paths-audit C:/g14/<이름>; git -C C:/g14/<이름> remote remove origin; git -C C:/g14/<이름> checkout -q --detach <rev> -- iso = T 284cb1f, base = c4e5fef, m = M d23f4bb, mut = M(변이 전용), eq = 같은 경로 복제본(base로 기준값 뒤 git fetch C:/g14/m M -> checkout --detach + clean -fdxq), eq_alt_path_len = base(정규화 확인), 모두 remote 0, status 0줄",
+      "V1: PYTHONPYCACHEPREFIX=C:/g14/pyc_v1_m PYTHONPATH=C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da C:/Python314/python.exe -P -m pytest -c C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da/pytest_gate.ini --rootdir=C:/g14/m --confcutdir=C:/g14/m --gmid-phase=2 --gmid-strict= C:/g14/m/skills/analog-gmid-design/assets/tests",
+      "수집·green: bash C:/g14/scripts/run_m.sh v1|green (green = 새 파일 -p merge_gate, GMID_RED_CAPTURE=C:/g14/out/red_M.jsonl, -rA)",
+      "base red(순서 3): GMID_RED_CAPTURE=C:/g14/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g14/iso/docs/02-design/specs/20260930-df35-harness-paths.interface.md PYTHONPYCACHEPREFIX=C:/g14/pyc_full_iso PYTHONPATH=C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da C:/Python314/python.exe -P -m pytest -c C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da/pytest_gate.ini --rootdir=C:/g14/iso --confcutdir=C:/g14/iso -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g14/iso/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider (bash C:/g14/scripts/run.sh red)",
+      "변경 범위·메인 표기: C:/Python314/python.exe -P C:/g14/scripts/scope_cmp.py C:/g14/m c4e5fef d23f4bb C:/g14/out/scope_cmp.json",
+      "E-LIB: PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g14/scripts/e_lib.py C:/g14/eq C:/g14/out/elib_<base|m>.json",
+      "E-INST: bash C:/g14/scripts/einst.sh C:/g14/eq <태그> <folded_cascode|current_reuse_telescopic_ota> <base|merged> (e_inst_df35.py; 실행 전후 git checkout -- workspaces + clean -fdxq)",
+      "게이트 도구(V3·V4·V5·V6·V7): bash C:/g14/scripts/tools_m.sh fast|v3 (base 판 캐시 도구를 --root C:/g14/m --base c4e5fef --head d23f4bb 로, -P 없이); V4 subject: test_lint.py ... --module-dir workspaces --subject run_harness:ASSETS_DIR --subject run_harness:WORKSPACES_DIR --subject run_harness:LIBRARY_DIR --subject run_harness:LUTFILE",
+      "V3 대체: C:/Python314/python.exe -P C:/g14/scripts/mut_lines.py C:/g14/mut C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da C:/g14/out/mut_lines.jsonl",
+      "사전 판정: PYTHONPATH=C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da C:/Python314/python.exe -P C:/g14/scripts/precheck_receive.py <스크래치 복제본> c4e5fef <audit 커밋> 20260930-df35-harness-paths"
+    ]
+  }
+}

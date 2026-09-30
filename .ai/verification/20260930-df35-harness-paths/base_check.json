@@ -1,0 +1,149 @@
+{
+ "note": "05-role-separation §12 순서 3(freeze·base 확인) -- DF-35. 모든 수치는 auditor가 격리 복제본 C:/g14/*에서 직접 쟀다(test-author 보고 'base red 6건'은 대조용). 커밋은 순서 7.",
+ "id": "20260930-df35-harness-paths",
+ "attempt": 1,
+ "evidence_type": "red-green",
+ "phase": "2",
+ "approval": "20260923-20-dead-code-dup-design",
+ "measured_at": "2026-09-30T17:38:06+09:00",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export)",
+  "clone_steps": "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout <audit worktree> C:/g14/<이름> -> (별도 명령) git -C C:/g14/<이름> remote remove origin -> git -C C:/g14/<이름> checkout -q --detach <rev>. 복제 직후·측정 뒤 네 복제본 모두 remote 0, status 0줄."
+ },
+ "freeze": {
+  "base_commit": "c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da",
+  "base_is_gate_master": true,
+  "base_is_gate_master_how": "git -C <주 저장소> rev-parse master = c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da",
+  "base_subject": "docs: DF-35 spec card 20260930-df35-harness-paths(run_harness 절대 경로 -> __file__ 유도, Phase 4에서 앞당김)",
+  "test_commit_T": "284cb1fe962744e79fdf5dbdd6d85d652c43a3c5",
+  "T_tree": "5b79c67e5411fdf75c559b278e65ff6fe03409b5",
+  "T_parent": "c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da",
+  "T_trailers": ["Role: test", "Change-Id: 20260930-df35-harness-paths"],
+  "audit_branch": "role/audit/20260930-df35-harness-paths",
+  "audit_branch_head_at_freeze": "284cb1fe962744e79fdf5dbdd6d85d652c43a3c5",
+  "worktree_status_at_freeze": "git status --porcelain 0줄(이 기록 폴더를 쓰기 전)",
+  "changed_paths_base_to_T": {"shortstat": "1 file changed, 255 insertions(+)", "added": ["skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py"], "modified": []},
+  "test_blob": "604321563595978710263e5c910bdc599fb134a2 (git ls-tree T)",
+  "outside_tests_diff": "git diff --name-only c4e5fef T -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 0줄",
+  "trees": "base·T 공통: workspaces 2f8cd126, tools 712beefc. skills bc532c2b(base) -> 430d5686(T, 새 test 1개)",
+  "code_commit_K": null
+ },
+ "isolation": {
+  "commands": [
+   "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-df35-harness-paths-audit C:/g14/<이름>",
+   "git -C C:/g14/<이름> remote remove origin",
+   "git -C C:/g14/<이름> checkout -q --detach <rev>"
+  ],
+  "clones": {
+   "C:/g14/iso": "T 284cb1f. 수집·red 수집·V5·strict 확인",
+   "C:/g14/base": "base c4e5fef. 수집·전체 실행·게이트 코드 추출",
+   "C:/g14/eq": "base c4e5fef. E-LIB·E-INST 기준값. 순서 7에서 병합본을 이 경로로 가져와(git fetch <병합본 복제본> <M> -> checkout -q --detach + clean -fdxq) 같은 경로에서 잰다",
+   "C:/g14/eq_alt_path_len": "base c4e5fef. E-INST 정규화 타당성 확인 전용(경로 길이·문자열이 다른 복제본)"
+  },
+  "gate_code": {
+   "how": "C:/Python314/python.exe -P C:/g14/scripts/extract_gate.py C:/g14/base c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da (git cat-file blob, redteam 밖 22개)",
+   "file_set_sha256": "ab7afccd7aa4b4ed6687b2d1acc71a07e82c5a6ceb615fd3b1eb7963a1adb828 (P8·복원 card와 같다)"
+  },
+  "side_effect_check": "측정 뒤 주 저장소 git status가 시작 스냅숏과 같다(.bkit 2개 M, 기존 미추적만). audit worktree status 0줄(이 폴더 쓰기 전). base run_harness는 T red 실행에서 메인 체크아웃 엔진·LUT를 읽었다(이 card가 고치는 결함 자체) -- 읽기만, PYTHONPYCACHEPREFIX로 pycache도 메인에 쓰지 않았다."
+ },
+ "strict_set": {
+  "card_parse": "base 판 role_paths.parse_spec_card: id=20260930-df35-harness-paths, phase=2, evidence_type=red-green, gate_change=no, approval=[20260923-20-dead-code-dup-design], activated_ic_case=[]",
+  "conftest_has_gmid_phase": true,
+  "strict_needed": [],
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "new_symbols_from_interface_card": [],
+  "checked_with": "PYTHONPYCACHEPREFIX=C:/g14/pyc_sc PYTHONPATH=C:/g14/gmid-gate-cache/c4e5fef… C:/Python314/python.exe -P C:/g14/scripts/strict_check.py C:/g14/iso c4e5fef… 20260930-df35-harness-paths <V1 문자열(루트 C:/g14/m)> -> strict_set [], v1_command_check 실패 0건, new_symbols [] (C:/g14/out/strict_check.txt)"
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da C:/Python314/python.exe -P -m pytest -c C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=2 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "base_run": {
+  "script": "bash C:/g14/scripts/run.sh collect|base|red (사본 scripts/run.sh)",
+  "collection": {
+   "base_collected": 754, "base_collect_exit": 0, "T_collected": 774, "T_collect_exit": 0, "T_collection_errors": [],
+   "new_by_file": {"skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py": 20},
+   "base_minus_T": 0,
+   "merged_expectation": "병합본 수집 = 774 = T 수집 id 집합"
+  },
+  "full_run": {
+   "base": "739 passed, 15 xfailed, exit 0, 90.65s (C:/g14/base, C:/g14/out/full_base.txt) -- 복원 card 순서 7 병합본 수치(739 passed·15 xfailed)와 같다",
+   "T_on_base_engine": "6 failed, 753 passed, 15 xfailed, exit 1, 87.16s (C:/g14/iso, -p merge_gate --continue-on-collection-errors, C:/g14/out/full_T_red.txt). 753 = 739 + 새 test 14 통과(합성 소스 거부 6·수용 6, test_expected_paths_exist, test_path_checks_reject_wrong_paths)"
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g14/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g14/iso/docs/02-design/specs/20260930-df35-harness-paths.interface.md PYTHONPYCACHEPREFIX=C:/g14/pyc_full_iso PYTHONPATH=C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da C:/Python314/python.exe -P -m pytest -c C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da/pytest_gate.ini --rootdir=C:/g14/iso --confcutdir=C:/g14/iso -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g14/iso/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "5aaec04f74802409041190f532c9c2af63f90be9bb27a491c0e09fcd92a529fb",
+   "capture_lines": "18줄 = builtins.AssertionError 6 + builtins.Failed 12(IC xfail, base id -- 이 card의 red 아님)",
+   "red_count": "6건 전부 builtins.AssertionError, 전부 contracts/test_df35_harness_paths.py: 계약 1 test_harness_source_has_no_absolute_path_constants(줄 [35, 42, 44]), 계약 2 test_harness_paths_workspaces_dir·test_harness_paths_assets_dir(메인 체크아웃 경로 != C:\\g14\\iso\\...), 계약 3 test_harness_sys_path_assets_entry(메인 체크아웃 assets가 sys.path에), 계약 4 test_harness_paths_derived_under_assets[LIBRARY_DIR]·[LUTFILE](메인 체크아웃 아래). test-author 보고(6건)와 일치 -- 실패 문장이 이 card가 고치는 원인(메인 체크아웃 절대 경로)을 가리킨다(full_T_red.txt E 줄 대조)",
+   "red_short_hashes": {"no_absolute_path_constants": "5712deb5422f", "workspaces_dir": "c93ff6ef59bf", "assets_dir": "10e9987a04ad", "sys_path_assets_entry": "d9fa0e9aedb8", "derived[LIBRARY_DIR]": "979e8c6ccbce", "derived[LUTFILE]": "369b5fadf846"},
+   "hash_recomputed": "18줄 모두 sha256(UTF-8(f'{test_id}\\n{exc_type}'))로 다시 계산해 캡처 failure_hash와 같다(불일치 0)",
+   "red_hash_rule_match": "AssertionError는 base 판 merge_gate._ALWAYS_RED -- 신규 심볼 표(비어 있음) 대조 없이 기록된다",
+   "red_failure_hashes_full": "이 폴더 red_T.jsonl -- 순서 7에서 AssertionError 6건을 판정 기록 red 필드로 옮긴다",
+   "green_expectation": "병합본(메인 체크아웃이 아닌 복제본)에서 6건 모두 PASS여야 한다"
+  }
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g14/pyc_v5 C:/Python314/python.exe C:/g14/gmid-gate-cache/c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da/weakening_diff.py --root C:/g14/iso --base c4e5fef0d8ad6ba8eddbd8e2fb6c81a5ceea20da --head 284cb1fe962744e79fdf5dbdd6d85d652c43a3c5",
+  "exit": 0,
+  "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+  "auditor_judgement": "T는 새 test 파일 1개 추가뿐, 약화 대상 없음. basis에 적을 diff 해시 없음."
+ },
+ "e_lib_baseline": {
+  "script": "PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g14/scripts/e_lib.py C:/g14/eq C:/g14/out/elib_base.json (사본 scripts/e_lib.py = P8 사본 그대로)",
+  "base_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+  "base_output_file_sha256": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89",
+  "circuits": "library 9회로 load·V1·V2 모두 ok, 예외 0",
+  "same_as_previous": "P8·복원 card 기준값(1d2e3bf6…, 출력 파일 e7579d61…)과 같다",
+  "caveat": "E-LIB는 run_harness를 import하지 않는다(A/library·stick_diagram만) -- 이 card(run_harness 경로 세 줄)에서는 무동작 확인용",
+  "order7": "병합본을 C:/g14/eq에 두고 같은 명령"
+ },
+ "e_inst_baseline": {
+  "design_question": "계약 5는 '메인 체크아웃 경로에서 E-INST가 base와 같다'. 격리 규칙상 메인 체크아웃에서 실행할 수 없다. 옛 우회(리터럴을 복제본 경로로 치환)로 잰 base와 치환 없이 잰 병합본을 같은 복제본 경로에서 비교하는 것이 메인 체크아웃에서의 비교와 같은가?",
+  "facts_measured": [
+   "instance.json에서 복제본 루트·메인 체크아웃 루트(두 표기)를 담은 문자열 잎은 /topology_ref 하나뿐(두 회로, 두 복제본 경로 전수 스캔 path_string_hits)",
+   "topology_ref = os.path.join(ASSETS_DIR, 'library', topology_file) 문자열 그대로(run_harness 426행 topo -> stick_diagram 8984행; topology_ref_is_join_of_ASSETS_DIR = true 전 실행)",
+   "WORKSPACES_DIR는 산출 위치만 정하고 instance.json 내용에 들어가지 않는다: 이번 base(WORKSPACES -> <복제본>/workspaces)의 산출에서 topology_ref만 C:\\g13\\eq 표기로 바꾸면 복원 card 기준값(옛 e_inst.py, WORKSPACES -> 별도 C:/g13/ws_eq) folded_cascode 783db3fe…·current_reuse_telescopic_ota 9ca6c6ef…와 두 회로 모두 바이트 같은 해시가 된다",
+   "경로 의존은 topology_ref뿐: 서로 다른 복제본 경로(C:/g14/eq, C:/g14/eq_alt_path_len)에서 raw 해시는 다르고 norm·without_topology_ref 해시는 같다(두 회로)",
+   "메인 체크아웃 투영 검증: 이번 base 산출의 topology_ref를 메인 리터럴 + \\library\\<파일>로 바꾼 raw 해시(main_projection)가 base 커밋에 추적된 current_reuse_telescopic_ota.instance.json(메인 체크아웃에서 만들어진 파일)의 같은 규칙 해시 aa764f66…와 같다. folded_cascode 추적 파일(41f95e5 시점)은 다르다 -- 추적 파일이 옛 엔진 산출이라 판정에 쓰지 않는다"
+  ],
+  "judgement": "비교가 성립한다. 같은 복제본 경로 X에서 (base + 리터럴을 X의 같은 표기(r\"...\" 역슬래시, os.path.abspath 형태)로 치환) = 'base를 X가 메인 체크아웃 자리일 때 돌린 것'이고, 병합본은 치환 없이 __file__에서 유도한다. instance.json의 경로 의존이 topology_ref 한 필드이고 그 값이 ASSETS_DIR 문자열의 순수 함수이므로 계약 5(메인 체크아웃에서 raw 동일)는 두 조건의 곱이다: (1) X에서 topology_ref를 뺀(또는 '<ASSETS>/library/<파일>'로 정규화한) 내용이 base와 같다, (2) 병합본이 유도한 ASSETS_DIR 문자열이 X에서 치환 문자열(os.path.join(os.path.abspath(X), 'skills', 'analog-gmid-design', 'assets'))과 바이트 같다 -- 그러면 메인 체크아웃에서 같은 식이 메인 리터럴과 같은 문자열을 낸다(단 호출 시 __file__ 표기가 메인 리터럴과 같은 대소문자·역슬래시일 때 -- os.path.abspath가 슬래시는 역슬래시로 바꾸지만 대소문자는 바꾸지 않는다. 순서 7에 관찰로 적는다). (1)·(2)가 모두 성립하면 X에서 raw 해시도 base와 같아진다(raw 동일이 곧 두 조건의 동시 성립).",
+  "script": "scripts/e_inst_df35.py(auditor 작성, P8 e_inst.py에서 파생) + scripts/einst.sh <복제본> <태그> <회로> <base|merged>. base 모드: 메인 리터럴 개수 (2,1) 확인 뒤 ASSETS·WORKSPACES 둘 다 <복제본>의 같은 표기로 치환. merged 모드: 리터럴 (0,0) 요구, 치환 없음. 두 모드 모두 모듈 __file__ = os.path.abspath(<복제본>/workspaces/run_harness.py)로 exec, 산출은 모듈의 WORKSPACES_DIR/<report_dir>, 실행 전 그 instance.json을 지워 새로 쓰였는지 확인, 엔진 모듈(sizing_recipe·stick_diagram·design_report) 출처가 <복제본> 밖이면 중단. 실행 전후 git checkout -- workspaces + clean -fdxq",
+  "hash_rules": "raw_sha256 = 키 정렬 compact JSON(ensure_ascii=False) sha256(P6/P8과 같은 규칙). norm_sha256 = topology_ref를 '<ASSETS>/'+relpath(normcase(normpath(topology_ref)), normcase(normpath(<복제본 assets>)))로 바꾼 뒤 같은 규칙. main_projection_raw_sha256 = topology_ref를 메인 리터럴 기준 os.path.join으로 바꾼 뒤 같은 규칙",
+  "base_values_at_C:/g14/eq": {
+   "folded_cascode": {
+    "raw_sha256": "8695fb47f7e5892aca41326aa5236c2044bbe60026f3e0d0947f3c36cc2a083b",
+    "norm_sha256": "7cf0bc7576f0ae9ebc98488f334c45f5a94b93e83c4df4b686ebfdc135f92600",
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "main_projection_raw_sha256": "8cdbf35b255ac29d0dde101254ca5c6108afac2192d4071ff3604d65bf4d373b",
+    "topology_ref_raw": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+    "n_sizing": 13,
+    "runs": "3회(eq_base, eq_base_r2, eq_base_r3) 모두 같은 해시, elapsed 13.24·13.13·12.49s",
+    "instance_file_sha256": "122992d2759206c3af789a84bc1fd2ae0d5c9fa48842d8fce0841e0a2de54989 (C:/g14/out/einst/eq_base_r3_folded_cascode.instance.json)"
+   },
+   "current_reuse_telescopic_ota": {
+    "raw_sha256": "0348f4d7ad97fcc8e527dc52ddb0eee4a578c7e81e9b81f7aa6400d0d9956127",
+    "norm_sha256": "90f4f411d0e5f4e04437aff9fdaaa5901ea3d9c77b925d4d5dc823378abcd073",
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "main_projection_raw_sha256": "aa764f66f256092d246e918b874492786ea85a3a297002b8507cd1bf4c49da03",
+    "topology_ref_raw": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+    "n_sizing": 51,
+    "runs": "2회(eq_base, eq_base_r2) 같은 해시, elapsed 100.65·100.77s",
+    "instance_file_sha256": "d57728fde20700e398c20647b35772dc46e48b3945ee0dbb66b570858cccefb8 (C:/g14/out/einst/eq_base_r2_current_reuse_telescopic_ota.instance.json)"
+   },
+   "constants_raw_base": "ASSETS_DIR C:\\g14\\eq\\skills\\analog-gmid-design\\assets, LIBRARY_DIR <ASSETS_DIR>\\library, WORKSPACES_DIR C:\\g14\\eq\\workspaces, LUTFILE <ASSETS_DIR>\\sky130_nfet_pfet_lut_sample.npz. sys.path에 새로 들어간 항목 = C:\\g14\\eq\\skills\\analog-grammar\\assets(엔진이 넣음)·C:\\g14\\eq\\skills\\analog-gmid-design\\assets"
+  },
+  "normalization_check_at_C:/g14/eq_alt_path_len": "folded_cascode raw 0495dd03…(eq와 다름) norm 7cf0bc75…(같음); current_reuse_telescopic_ota raw 1f071650…(다름) norm 90f4f411…(같음)",
+  "files": "이 폴더 einst/*.json(실행별 결과), einst.txt(실행 줄·시간·실행 뒤 status)",
+  "order7_rule": "병합본 M을 C:/g14/eq에 두고 bash scripts/einst.sh C:/g14/eq m <회로> merged (두 회로). 판정: (a) raw_sha256 = 위 base 값(두 회로) -- 성립하면 계약 5 성립. (b) (a)가 다르면 norm·without_topology_ref와 constants_raw.ASSETS_DIR·topology_ref_raw를 나눠 본다: norm 같고 ASSETS_DIR 표기만 다르면(슬래시·'..'·대소문자) 메인 체크아웃에서도 topology_ref 문자열이 바뀐다는 뜻이라 계약 5 문장('경로 문자열이 같으므로')과 어긋남 -- FAIL로 handoff. norm이 다르면 동작 변경 FAIL. (c) merged 모드에서 엔진 출처가 복제본 안인지, sys.path 추가 항목이 base와 같은 두 경로인지 확인(계약 3 보강)."
+ },
+ "outputs_kept": {
+  "C:/g14/out/collect_base.txt": "f2060e272f44f4593120b88997a46d0324569ba3098ab4ab8fd2f37157e20b18",
+  "C:/g14/out/collect_iso.txt": "dae8442aca388dddf2da2c6f2a07e1670f5da1d34f533d28c6079978d71d134c",
+  "C:/g14/out/full_base.txt": "e7aa42bdeb52246834ff4d50c2ce5a4d3771d428bfd9dee7a030ceeefab37b01",
+  "C:/g14/out/full_T_red.txt": "df1845205472dcbf4f33abe39ca385a4f96385ca3f2c5ed3c7521f2a24e1bc18",
+  "C:/g14/out/red_T.jsonl": "5aaec04f74802409041190f532c9c2af63f90be9bb27a491c0e09fcd92a529fb",
+  "C:/g14/out/v5_base_T.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+  "C:/g14/out/strict_check.txt": "0cb01e579080596adb4468fe4294a5e73abe14654d4a36a41ddb0d373964aff8",
+  "C:/g14/out/elib_base.json": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89",
+  "C:/g14/out/einst.txt": "f7815098fee73c27d394460579d8a3c04cf6300ee44a43232d3eac9d14befd81"
+ },
+ "next": "code-author가 K(workspaces/run_harness.py 세 경로 줄 -> __file__ 유도)를 만들고 병합 뒤 순서 7: V1(수집 774, FAIL 0), V2(red 6 green + E-INST order7_rule + E-LIB 동일 + 변경 경로가 run_harness.py 세 줄뿐인지 diff 대조), V3~V10."
+}

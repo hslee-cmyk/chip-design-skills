@@ -1,0 +1,53 @@
+{
+ "circuit": "current_reuse_telescopic_ota",
+ "mode": "merged",
+ "root": "C:\\g14\\eq",
+ "harness_file": "C:\\g14\\eq\\workspaces\\run_harness.py",
+ "literal_counts_before": [
+  0,
+  0
+ ],
+ "constants_raw": {
+  "ASSETS_DIR": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets",
+  "LIBRARY_DIR": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\library",
+  "WORKSPACES_DIR": "C:\\g14\\eq\\workspaces",
+  "LUTFILE": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz"
+ },
+ "sys_path_added": [
+  "C:\\g14\\eq\\skills\\analog-grammar\\assets",
+  "C:\\g14\\eq\\skills\\analog-gmid-design\\assets"
+ ],
+ "engine_origin": {
+  "sizing_recipe": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\sizing_recipe.py",
+  "stick_diagram": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\stick_diagram.py",
+  "design_report": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\design_report.py"
+ },
+ "instance_path": "C:\\g14\\eq\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json",
+ "exists": true,
+ "fail_in_stdout": false,
+ "path_string_hits": [
+  {
+   "json_path": "/topology_ref",
+   "value": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+   "matched_root": "C:\\g14\\eq"
+  }
+ ],
+ "raw_sha256": "0348f4d7ad97fcc8e527dc52ddb0eee4a578c7e81e9b81f7aa6400d0d9956127",
+ "topology_ref_raw": "C:\\g14\\eq\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+ "topology_ref_is_join_of_ASSETS_DIR": true,
+ "topology_ref_rel_to_clone_assets": "library/current_reuse_telescopic_ota.topology.json",
+ "norm_sha256": "90f4f411d0e5f4e04437aff9fdaaa5901ea3d9c77b925d4d5dc823378abcd073",
+ "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+ "top_keys": [
+  "audit_row_split",
+  "box_shape",
+  "coverage",
+  "floorplan",
+  "netlist",
+  "schema_version",
+  "sizing",
+  "topology_ref"
+ ],
+ "n_sizing": 51,
+ "main_projection_raw_sha256": "aa764f66f256092d246e918b874492786ea85a3a297002b8507cd1bf4c49da03"
+}

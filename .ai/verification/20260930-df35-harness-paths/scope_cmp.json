@@ -1,0 +1,141 @@
+{
+ "base": {
+  "n_top": 31,
+  "n_kept": 28,
+  "path_stmts": [
+   [
+    35,
+    "sys.path.insert(0, 'C:\\\\Users\\\\HSLEE\\\\Documents\\\\Todoc\\\\fpga\\\\chip-design-skills\\\\skills\\\\analog-gmid-design\\\\assets')"
+   ],
+   [
+    42,
+    "ASSETS_DIR = 'C:\\\\Users\\\\HSLEE\\\\Documents\\\\Todoc\\\\fpga\\\\chip-design-skills\\\\skills\\\\analog-gmid-design\\\\assets'"
+   ],
+   [
+    44,
+    "WORKSPACES_DIR = 'C:\\\\Users\\\\HSLEE\\\\Documents\\\\Todoc\\\\fpga\\\\chip-design-skills\\\\workspaces'"
+   ]
+  ],
+  "kept_sha256": "0b21c69cd019213d9bdd9c67995ea9f02b5a2871f2daa5bf5df77e0b7fde2439"
+ },
+ "merged": {
+  "n_top": 32,
+  "n_kept": 28,
+  "path_stmts": [
+   [
+    35,
+    "WORKSPACES_DIR = os.path.dirname(os.path.abspath(__file__))"
+   ],
+   [
+    36,
+    "_REPO_ROOT = os.path.dirname(WORKSPACES_DIR)"
+   ],
+   [
+    37,
+    "ASSETS_DIR = os.path.join(_REPO_ROOT, 'skills', 'analog-gmid-design', 'assets')"
+   ],
+   [
+    38,
+    "sys.path.insert(0, ASSETS_DIR)"
+   ]
+  ],
+  "kept_sha256": "0b21c69cd019213d9bdd9c67995ea9f02b5a2871f2daa5bf5df77e0b7fde2439"
+ },
+ "kept_equal": true,
+ "merged_head_order": [
+  [
+   1,
+   "Expr",
+   "'\\nrun_harness.py -- 이 프로젝트의 **유일한** harness 실행 스크립트(2026-08"
+  ],
+  [
+   31,
+   "Import",
+   "import sys"
+  ],
+  [
+   32,
+   "Import",
+   "import os"
+  ],
+  [
+   33,
+   "Import",
+   "import traceback"
+  ],
+  [
+   34,
+   "Expr",
+   "sys.stdout.reconfigure(encoding='utf-8', errors='replace')"
+  ],
+  [
+   35,
+   "Assign",
+   "WORKSPACES_DIR = os.path.dirname(os.path.abspath(__file__))"
+  ],
+  [
+   36,
+   "Assign",
+   "_REPO_ROOT = os.path.dirname(WORKSPACES_DIR)"
+  ],
+  [
+   37,
+   "Assign",
+   "ASSETS_DIR = os.path.join(_REPO_ROOT, 'skills', 'analog-gmid"
+  ],
+  [
+   38,
+   "Expr",
+   "sys.path.insert(0, ASSETS_DIR)"
+  ],
+  [
+   39,
+   "Import",
+   "import numpy as np"
+  ],
+  [
+   40,
+   "ImportFrom",
+   "from sizing_recipe import SemiEmpiricalGmIdLUT, optimize_ful"
+  ],
+  [
+   42,
+   "ImportFrom",
+   "from stick_diagram import save_instance_json, run_full_circu"
+  ]
+ ],
+ "numstat": "4\t3\tworkspaces/run_harness.py",
+ "changed_paths_base_to_M": [
+  "skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py",
+  "workspaces/run_harness.py"
+ ],
+ "main_checkout_string_observation": {
+  "backslash": {
+   "__file__": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces\\run_harness.py",
+   "WORKSPACES_DIR": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces",
+   "ASSETS_DIR": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets",
+   "equals_literals": [
+    true,
+    true
+   ]
+  },
+  "forward_slash": {
+   "__file__": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills/workspaces/run_harness.py",
+   "WORKSPACES_DIR": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\workspaces",
+   "ASSETS_DIR": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets",
+   "equals_literals": [
+    true,
+    true
+   ]
+  },
+  "lowercase_drive_and_dirs": {
+   "__file__": "c:\\users\\hslee\\documents\\todoc\\fpga\\chip-design-skills\\workspaces\\run_harness.py",
+   "WORKSPACES_DIR": "c:\\users\\hslee\\documents\\todoc\\fpga\\chip-design-skills\\workspaces",
+   "ASSETS_DIR": "c:\\users\\hslee\\documents\\todoc\\fpga\\chip-design-skills\\skills\\analog-gmid-design\\assets",
+   "equals_literals": [
+    false,
+    false
+   ]
+  }
+ }
+}
