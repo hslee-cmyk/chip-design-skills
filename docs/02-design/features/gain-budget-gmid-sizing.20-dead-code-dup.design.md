@@ -187,7 +187,7 @@ G-3 (b)가 telescopic 계열에 해당한다. `_load_telescopic_topology_cached`
 | P5 | `d-delete-dead` | R-0 7 + `junction_cap` 삭제(§6.4 G-1~G-4 확인) | equivalence | (c) E-LIB·E-INST + (a) NEW-TOPO 합성 topology | 엔진 소스 축소, 레지스트리 갱신 |
 | P5b | `d-delete-telescopic` | telescopic 사슬 5 + `_cmfb_amp_gain_diode_load` 삭제와 `_CMRR_/_PSRR_REGISTRY` 키 제거 | equivalence | (c) E-LIB·E-INST + (a) NEW-TOPO: 삭제한 family 선언 시 `ValueError`, 같은 판정을 일반 경로(`_metric_smallsignal_ratio_db`) 선언으로 하면 값이 나옴 | 회로 전용 경로 제거 |
 | P6 | `d-move-tests` | R-1 중 test 전용 + 동반 레코드를 `tests`로 이관 | equivalence | (c) E-AST·E-LIB·E-INST | 이관 |
-| P7 | `registry-grade-fix` | R-4 9개 등급 정정, §2 중복 셀 실측 반영, D 목록 갱신 | test-only(문서) | (d) 레지스트리·실측 원자료 | 레지스트리 |
+| P7 | `registry-grade-fix` | R-4 9개 등급 정정, §2 중복 셀 실측 반영, D 목록 갱신, E0 도구 `A/tests/tools/reg_check.py` | red-green(도구 code 커밋 -- 2026-09-30 정정, spec card `20260930-registry-grade-fix`) | (a) 도구 합성 입력, (d) 레지스트리·실측 원자료 | 레지스트리, 도구 |
 | P8 | `dup-w-calc` | 인라인 6곳 → `size_transistor` | equivalence | (c) DIFF-DUP + E-LIB·E-INST | 중복 제거 |
 | P9 | `dup-kcl-edges` | `kcl_series_union`·`_metric_kcl_residual` 엣지 → 정본 | equivalence | (c) DIFF-DUP + E-LIB·E-INST | 중복 제거 |
 | P10 | `df23-inventory` | DF-23 전수 목록 문서화(`df23_inventory.json` 기준 266건)와 레지스트리 기록, 신규 148건의 담당 Phase 배정 | test-only(문서) | (d) 실측 원자료 | 목록 |
@@ -213,7 +213,7 @@ auditor가 Phase 2 마지막 card 병합본의 격리 복제본 `<iso>`에서 �
 
 | ID | N6.2 `2` 조건 | 명령 | 통과 기준 |
 |---|---|---|---|
-| E0 | 승인된 D 목록 처리 | `$PY <iso>/tools/gates/reg_check.py --registry <iso>/docs/03-analysis/gain-budget-gmid-sizing.function-registry.md --approval <iso>/.ai/approvals/<U-02 id>.md` (P7이 만든다) | 레지스트리 §7 남은 집합 = 승인표 '보류' 집합, 삭제·이관 항목 0 |
+| E0 | 승인된 D 목록 처리 | `$PY <iso>/skills/analog-gmid-design/assets/tests/tools/reg_check.py --registry <iso>/docs/03-analysis/gain-budget-gmid-sizing.function-registry.md --root <iso>` (P7이 만든다) | exit 0: §7 모든 행이 엔진에 실재(삭제·이관 항목 0), `처리` 열이 '보류(Phase n)' 형식, §1 집계 = §7 행 수. (2026-09-30 정정: U-02 승인 기록에 '보류' 목록이 없어 '승인표 보류 집합과 같음'을 처리 열 형식 검사로 기계화, 도구는 게이트 변경을 피해 tests/tools에 둔다 -- spec card `20260930-registry-grade-fix`) |
 | E1 | DUP 차등 test PASS 후 옛 함수 삭제 | `PT <iso>/…/tests/unit -k "dup_"` 그리고 `git -C <iso> grep -n "kcl_series_union\|_multilinear_interp_point_multi"` | 차등 test PASS, 삭제한 이름의 참조 0 |
 | E2 | probe 엔진 식 재구현 0 | `$PY <iso>/skills/analog-gmid-design/assets/tests/tools/engine_dup_scan.py --root <iso>` | exit 0, 발견 0 |
 | E3 | DF-23 전수 목록 | `git -C <iso> cat-file -e HEAD:docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/df23_inventory.json` 와 목록 항목 수 대조 | 목록이 있고 항목마다 담당 Phase가 적혀 있다 |
