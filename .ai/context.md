@@ -14991,3 +14991,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 
 - DF-35 20260930-df35-harness-paths 완료(gate 34bc75e, 1차 시도, red-green): run_harness 경로 세 줄 -> __file__ 유도(_REPO_ROOT), E-INST 치환 없이 raw 해시 base와 동일, 메인 체크아웃 유도 문자열 = 옛 리터럴. V3 손 변이 생존 2(abspath 제거 -- 3.14 __file__ 절대, sys.path insert->append -- 계약 밖).
 - 병렬 준비(사용자 지시): DF-36·B28 작성 전 실측을 읽기 전용 agent로 선행(scratchpad prep_df36.md·prep_b28.md). DF-36 저장소 밖 topology = ValueError(원칙 기본안), 설계 문서 analog-topology-json-library.design.md 143행 예시를 저장소 루트 기준으로 정정.
+
+- DF-36 20260930-df36-instance-relpath 완료(gate 148bd6d, 2차 시도, red-green): save_instance_json topology_ref -> 저장소 루트 기준 / 상대 경로(비공개 헬퍼 _topology_ref_relpath, 루트는 __file__ 유도), 저장소 밖·다른 드라이브 topology = 파일 쓰기 전 ValueError. 1차는 V3 FAIL(다른 드라이브 분기 변이 생존 -- test 공백) -> 2차 test에 다른 드라이브 2건 추가, 코드 동일. red 21(새 2건은 base FileNotFoundError라 red 미기록), V3 대체 측정 26 중 killed 22·면제 4(20260922-ic3-v3-exempt)·생존 0. E-INST·E-LIB·E-LIB-INST 판정값 base와 같음.
+- 사용자 결정 2026-09-30: P9 설계 E1 문구 정정 승인(교체문 준비됨, 승인 기록 20260930-p9-e1-correction은 정정 커밋 뒤), library topology.json 주석 정리 보류(백로그).
+- B28 게이트 변경 spec card 20260930-v3-history-clone 커밋(design 05 §10 V3 행 ④ 개정 포함) -> 사용자 승인 대기. 사전 실측: clone 6.5s·54MB(copytree 8.9s·231MB), 시제품 (a) exit 0 5/5 killed (b) exit 2.
