@@ -8964,6 +8964,23 @@ def _audit_result_json(ar):
                                      for c in ar.checks]}
 
 
+def _topology_ref_relpath(topology_json_path: str) -> str:
+    """instance.json `topology_ref`에 저장할 값 -- 저장소 루트 기준 상대 경로(`/` 구분).
+
+    저장소 루트는 이 모듈 위치(`<루트>/skills/analog-gmid-design/assets/`)에서 유도한다. 입력 표기(절대/cwd 상대/`..`
+    포함)와 무관하게 같은 실제 파일이면 같은 값이다(realpath 뒤 relpath). 저장소 밖이면 ValueError -- 절대 경로로
+    조용히 대체하지 않는다(호출자 `save_instance_json`이 파일을 쓰기 전에 부른다)."""
+    _root = os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", ".."))
+    _target = os.path.realpath(topology_json_path)
+    try:
+        _rel = os.path.relpath(_target, _root)
+    except ValueError:  # 다른 드라이브
+        _rel = None
+    if _rel is None or _rel == os.pardir or _rel.startswith(os.pardir + os.sep) or os.path.isabs(_rel):
+        raise ValueError(f"topology_ref 저장 거부: {topology_json_path!r}은 저장소 루트({_root}) 밖이다")
+    return _rel.replace(os.sep, "/")
+
+
 def save_instance_json(path: str, topology_json_path: str, sizing_results: dict,
                         pipeline_result: dict) -> None:
     """instance-output JSON 작성 — `pipeline_result`(`run_topology_pipeline()`의 반환값, 또는
@@ -8981,7 +8998,7 @@ def save_instance_json(path: str, topology_json_path: str, sizing_results: dict,
     이유로, 부분 스코프를 "완료"인 것처럼 보이게 만들지 않기 위함)."""
     data = {
         "schema_version": "2.0",
-        "topology_ref": topology_json_path,
+        "topology_ref": _topology_ref_relpath(topology_json_path),
         "sizing": sizing_results,
         "netlist": [_dc_asdict(t) for t in pipeline_result["transistors"]],
         "floorplan": {
