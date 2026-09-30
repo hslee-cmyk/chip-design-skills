@@ -14959,3 +14959,9 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - P4 20260929-probe-engine-dup 완료(gate a53b8ac, 3차 시도, red-green): probe 10개의 엔진 식 재구현 -> 정본 호출(출력 10/10 base와 동일, auditor 독립 측정), 주석만 9개(derived_spec 안내 14파일 정리), P2 영구 바이트 대조 test 폐기, 스캐너 A/tests/tools/engine_dup_scan.py(규칙 5종·면제·exit 0/1/2; 병합본 exit 0 면제 1건, base에서는 발견 18). V1 512 passed/15 xfailed, V3 대체 변이 24/24 죽음. R1 운반 디렉터리 삭제.
   백로그 B25(auditor 관찰): (a) 면제 단위가 <파일>::<규칙>이라 gain_ranking에 IDu private 조회가 다시 들어와도 못 잡음 -- 줄/개념 단위로 좁힐지 결정 필요 (b) --root 아래 probes/가 없으면 조용히 exit 0(계약 test가 probes/ 존재를 먼저 단언해 실제 경로는 막힘) (c) ratio_pair의 게이트·소스 공유 판정은 스캐너 규칙 모양이 아니라 교체는 수동으로만 확인됨.
   Phase 2 남은 card: P3c(보류 B21), P6·P7·P8·P9·P10(spec card 없음).
+
+- 2026-09-30 사용자 원칙: "항상 topology와 무관한 엔진 식이어야 해" -> 메모리 feedback-generalize 보강(정본 후보도 선언·구조 술어에서 읽는지 확인). 백로그 B26(DF): P4에서 probe 레일 집합을 _DEFAULT_RAIL_HI/LO(넷 이름 리터럴)로 배선했고 _metric_supply_current는 'vdd'만 본다 -- supply_nets 선언에서 읽도록 고칠 대상(P3c supplies_v 부재와 같은 뿌리).
+- P6 20260930-d-move-tests 완료(gate 4e0f325, 1차 시도, red-green): 회귀 러너 묶음(RegressionVerdict·_run_optimize_multistage_case·_REGRESSION_ENGINES·run_regression_case)과 find_interleaved_symmetric_splits를 엔진에서 A/tests/tools/regression_runner.py·interleave_splits.py로 이관(E-AST 5개·주석 블록 바이트 동일, E-LIB·E-INST base와 동일, 엔진 순수 삭제). V1 553 passed/15 xfailed. spec card 작성 중 교정: 이관 위치를 tests/unit(test-author 경로 -- 소스를 못 읽어 바이트 이관 불가)에서 tests/tools(code-author 경로)로, 판정 유형 red-green.
+  보류(R-1 중 test 전용 아님): build_toy_lut·_invq_newton(workspaces 사용, 엔진 docstring 인용), check_multi_leaf_hub_parity(엔진 docstring·IC5 목록).
+  백로그 B27: find_interleaved_symmetric_splits의 유일한 사용처 test_s022가 반환값을 판정하지 않음(V3 변이 생존) -- 판정 추가 또는 삭제 후보(P7). run_regression_case rel_tol 완화는 골든 1케이스로 안 잡힘. 새 모듈에 from __future__ import annotations 없음(주석 평가 차이, 읽는 코드 없음). references/function-selection-map.md 99행 등이 find_interleaved_symmetric_splits 위치 안내 낡음 -> B22 합류.
+  다음: P7(registry-grade-fix).
