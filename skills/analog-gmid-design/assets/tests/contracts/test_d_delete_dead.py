@@ -4,21 +4,25 @@ spec card `docs/02-design/specs/20260923-d-delete-dead.spec.md` 계약 2·3·4�
 `gain-budget-gmid-sizing.20-dead-code-dup` v1.1 §3(GONE·NEW-TOPO)·§6.4(G-1~G-4)·§8 P5.
 계약 5~7(E-LIB·E-INST·NEW-TOPO 전후 동일)은 auditor가 base와 병합본을 실행해 비교한다 -- 여기서 기대 해시를 박지 않는다.
 
-삭제 대상 8개(spec card 계약 1 표 그대로):
+삭제 대상 6개(spec card 계약 1 표의 8개 중 복원된 둘을 뺀 것):
 
-* 모듈 함수 -- `sizing_recipe.converge_with_parasitics`·`slew_rate`·`lut_conditions_from_npz`,
-  `stick_diagram.suggest_headroom_stack_groups`·`render_stick_diagram`, `workspaces/run_harness.derived_spec`
+* 모듈 함수 -- `sizing_recipe.converge_with_parasitics`·`slew_rate`,
+  `stick_diagram.suggest_headroom_stack_groups`·`render_stick_diagram`
 * 메서드 -- `SemiEmpiricalGmIdLUT.fT`, `GmIdLUT.junction_cap`
+
+`sizing_recipe.lut_conditions_from_npz`·`workspaces/run_harness.derived_spec`은 계획서가 소비자·경로로 지정한 함수라
+20260930-restore-plan-functions(spec card 계약 4, V5 승인 R1)가 되살렸으므로 판정 대상에서 뺐다. 두 이름을 쓰던 판정기
+자기 점검 합성 케이스는 남은 삭제 이름으로 바꿨다(판정 강도 유지).
 
 판정 셋:
 
-* 계약 2 (G-1): 8개 중 어느 것도 엔진 모듈(`A/*.py`·`workspaces/run_harness.py`)의 딕셔너리에 **값으로** 나타나지 않는다
+* 계약 2 (G-1): 6개 중 어느 것도 엔진 모듈(`A/*.py`·`workspaces/run_harness.py`)의 딕셔너리에 **값으로** 나타나지 않는다
   (AST: 딕셔너리 리터럴·dict 컴프리헨션·`dict(...)` 키워드·`d[k] = v` 대입의 값 쪽). 함수 이름을 문자열 값으로 두는 경우
   (`getattr` 분기 가능성)도 등록으로 센다. 실행 중 모듈의 네 레지스트리(`_METRICS_REGISTRY`·`_CMRR_ESTIMATOR_REGISTRY`·
   `_PSRR_ESTIMATOR_REGISTRY`·`_COMPENSATION_REGISTRY`)의 값에 그 이름의 callable이 없는지도 따로 본다.
 * 계약 3 (G-4): `_METRICS_REGISTRY`에 없는 metric type을 선언하면 `compute_metric`이 `ValueError`로 거부한다
   (조용한 무동작·기본값 대입이 아니다). 입력은 라이브러리에 없는 소자 이름의 합성 사이징 결과다.
-* 계약 4 (GONE): 8개 이름의 AST 참조(정의·Name·Attribute·import)가 `A/*.py`·`workspaces/run_harness.py`·`A/tests/**`에서 0.
+* 계약 4 (GONE): 6개 이름의 AST 참조(정의·Name·Attribute·import)가 `A/*.py`·`workspaces/run_harness.py`·`A/tests/**`에서 0.
   주석·문자열은 참조가 아니다. 메서드 이름 `fT`는 같은 이름의 지역변수·데이터 필드가 있으므로(spec card 계약 1 표 주석)
   **정의(그 클래스 안의 def)·메서드 호출(`x.fT(...)`)·클래스 한정 참조(`SemiEmpiricalGmIdLUT.fT`)**만 센다. `junction_cap`도 같은 규칙.
   이 test는 base에서 red(정의가 아직 있다)이고 삭제 뒤 green이다.
@@ -50,15 +54,16 @@ _ASSETS_DIR = _TESTS_DIR.parent
 _REPO_ROOT = _ASSETS_DIR.parents[2]
 _RUN_HARNESS = _REPO_ROOT / "workspaces" / "run_harness.py"
 
-# spec card 계약 1 표의 8개. 모듈 함수는 이름 자체가 식별자다.
+# spec card 계약 1 표의 8개 중 복원된 둘(20260930-restore-plan-functions)을 뺀 6개. 모듈 함수는 이름 자체가 식별자다.
 _DELETED_FUNCTIONS = frozenset({
     "converge_with_parasitics",
     "slew_rate",
-    "lut_conditions_from_npz",
     "suggest_headroom_stack_groups",
     "render_stick_diagram",
-    "derived_spec",
 })
+# 20260930-restore-plan-functions가 되살린 두 이름. GONE·G-1 판정 대상이 아니다. 계약 3(G-4)의 미등록 metric type
+# 입력으로만 남긴다(metric type으로 선언되면 거부돼야 하는 것은 복원과 무관하다 -- 판정 입력을 줄이지 않는다).
+_RESTORED_NAMES = ("derived_spec", "lut_conditions_from_npz")
 # 메서드는 (이름 -> 소유 클래스). 같은 이름의 지역변수·데이터 필드와 구분하려고 소유 클래스로 한정한다.
 _DELETED_METHODS = {
     "fT": "SemiEmpiricalGmIdLUT",
@@ -206,11 +211,11 @@ def test_runtime_registries_hold_no_deleted_callable(registry_name):
         ('REG = {"ft": SemiEmpiricalGmIdLUT.fT}\n', "fT"),                                   # 클래스 한정 메서드
         ('REG = {"cj": lut.junction_cap}\n', "junction_cap"),                                # 바운드 메서드
         ('REG = {"render": ("stick", render_stick_diagram)}\n', "render_stick_diagram"),     # 튜플 안
-        ('REG = {"lut": lambda d: lut_conditions_from_npz(d)}\n', "lut_conditions_from_npz"),  # 람다 감싸기
-        ('REG = dict(spec=derived_spec)\n', "derived_spec"),                                 # dict(...) 키워드
+        ('REG = {"sr": lambda i, c: slew_rate(i, c)}\n', "slew_rate"),                     # 람다 감싸기
+        ('REG = dict(stick=render_stick_diagram)\n', "render_stick_diagram"),                # dict(...) 키워드
         ('REG = {}\nREG["hs"] = suggest_headroom_stack_groups\n', "suggest_headroom_stack_groups"),  # 첨자 대입
         ('REG = {k: slew_rate for k in ("a", "b")}\n', "slew_rate"),                         # dict 컴프리헨션
-        ('REG = {"fn": "derived_spec"}\n', "derived_spec"),                                  # 문자열 값(getattr 분기)
+        ('REG = {"fn": "converge_with_parasitics"}\n', "converge_with_parasitics"),          # 문자열 값(getattr 분기)
     ],
 )
 def test_registration_check_rejects_synthetic_registry(source, expected_name):
@@ -265,7 +270,7 @@ _SYNTHETIC_SIZED = {
     "Qnew_tl": {"ID": 14e-6, "W": 9e-6, "L": 1.0e-6, "gm": 110e-6, "gds": 0.2e-6},
 }
 # 삭제 대상 이름 그대로(미래 topology가 그 이름을 metric type으로 적는 경우) + 어떤 레지스트리에도 없을 새 이름.
-_UNREGISTERED_TYPES = sorted(_ALL_DELETED) + ["new_topology_future_metric"]
+_UNREGISTERED_TYPES = sorted(_ALL_DELETED | frozenset(_RESTORED_NAMES)) + ["new_topology_future_metric"]
 
 
 def assert_metric_type_rejected(compute_metric, registry: dict, spec: dict, ctx) -> None:
@@ -310,7 +315,7 @@ def test_rejection_check_fails_when_type_is_registered():
 # 계약 4 (GONE): AST 참조 0
 # --------------------------------------------------------------------------------------
 def ast_references(source: str) -> list:
-    """삭제 대상 8개의 AST 참조(줄, 종류, 이름) -- 정렬.
+    """삭제 대상 6개의 AST 참조(줄, 종류, 이름) -- 정렬.
 
     함수 이름: 정의(def·class), Name(모든 ctx), Attribute, `from x import 이름`.
     메서드 이름: 소유 클래스 안의 def, 메서드 호출 `x.이름(...)`, 클래스 한정 `소유클래스.이름`, `from x import 이름`.
@@ -346,13 +351,13 @@ def ast_references(source: str) -> list:
 
 
 def assert_no_ast_reference(source: str, where: str) -> None:
-    """판정: `source`에 삭제 대상 8개의 AST 참조가 없다."""
+    """판정: `source`에 삭제 대상 6개의 AST 참조가 없다."""
     hits = ast_references(source)
     assert hits == [], f"{where}: 삭제 대상 참조가 남아 있다(줄, 종류, 이름) {hits}"
 
 
 def test_deleted_names_have_no_ast_references():
-    # oracle (a): 저장소 트리의 현재 AST가 입력, 기대값은 '참조 0'(spec card 계약 4). base에서는 정의 8개가 있어 red.
+    # oracle (a): 저장소 트리의 현재 AST가 입력, 기대값은 '참조 0'(spec card 계약 4). P5 base에서는 정의가 있어 red였다.
     engine = _engine_files()
     assert_engine_scope_present(engine)
     tests = _test_files()
@@ -372,13 +377,13 @@ def test_deleted_names_have_no_ast_references():
         ("class GmIdLUT:\n    def junction_cap(self, L, W):\n        return 0.0\n", "junction_cap"),  # 메서드 정의
         ("class SemiEmpiricalGmIdLUT:\n    def fT(self, g, L, v):\n        return 1.0\n", "fT"),   # 메서드 정의
         ("from sizing_recipe import converge_with_parasitics\n", "converge_with_parasitics"),       # import
-        ("import run_harness as H\nspec = H.derived_spec('k', 'why')\n", "derived_spec"),          # 모듈 한정 호출
+        ("import stick_diagram as sd\ng = sd.suggest_headroom_stack_groups({})\n", "suggest_headroom_stack_groups"),  # 모듈 한정 호출
         ("x = lut.fT(12.0, 1e-6, 0.6)\n", "fT"),                                                     # 메서드 호출
         ("f = SemiEmpiricalGmIdLUT.fT\n", "fT"),                                                     # 클래스 한정 참조
         ("cj = lut.junction_cap(1e-6, 2e-6)\n", "junction_cap"),                                     # 메서드 호출
         ("fn = render_stick_diagram\n", "render_stick_diagram"),                                     # Name 대입
         ("def f(n):\n    return suggest_headroom_stack_groups(n)\n", "suggest_headroom_stack_groups"),
-        ("import sizing_recipe as sr\nd = sr.lut_conditions_from_npz({})\n", "lut_conditions_from_npz"),
+        ("import sizing_recipe as sr\nd = sr.slew_rate(1e-6, 1e-12)\n", "slew_rate"),
     ],
 )
 def test_reference_check_rejects_synthetic_reference(source, expected_name):
@@ -392,7 +397,7 @@ def test_reference_check_rejects_synthetic_reference(source, expected_name):
     "source",
     [
         "# converge_with_parasitics(...) 는 지웠다\nx = 1\n",           # 주석
-        "doc = 'H.derived_spec(key, why) 로 바꾼다'\n",                  # 문자열
+        "doc = 'sd.render_stick_diagram(n) 로 바꾼다'\n",               # 문자열
         "fT = gm / (2 * 3.14159 * cgg)\nrow = {'fT': fT}\n",             # 메서드와 동명인 지역변수
         "def fT(gm, cgg):\n    return gm / cgg\n",                       # 소유 클래스 밖의 동명 함수
         "class Other:\n    def fT(self):\n        return 0.0\n",         # 다른 클래스의 동명 메서드
