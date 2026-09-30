@@ -13,6 +13,10 @@
 | `sizing_recipe` | `_invq_newton` | `def _invq_newton(x: float, iters: int=30) -> float` |
 | `stick_diagram` | `check_multi_leaf_hub_parity` | `def check_multi_leaf_hub_parity(n_fingers_by_leaf: dict) -> MultiLeafHubParityVerdict` |
 | `sizing_recipe` | `size_transistor` | `def size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT, vds: float, vsb: float=0.0) -> SizingResult` |
+| `sizing_recipe` | `true_current_mirror_groups` | `def true_current_mirror_groups(by_name: dict) -> list` |
+| `sizing_recipe` | `propagate_node_voltages` | `def propagate_node_voltages(by_name: dict, sized: dict, vdd: float, rail_hi=_DEFAULT_RAIL_HI, rail_lo=_DEFAULT_RAIL_LO, tol: float=1e-06, max_passes: int=50) -> NodeVoltageReport` |
+| `sizing_recipe` | `build_ac_network` | `def build_ac_network(ctx: 'SizingContext', excite: dict, also_fix) -> dict` |
+| `stick_diagram` | `find_diode_stacks` | `def find_diode_stacks(netlist: list) -> list` |
 
 ### `audit_current_forced.render_report`
 
@@ -56,6 +60,26 @@
 ### `sizing_recipe.size_transistor`
 
 > 방법론 식 1.17/1.18: ID = gm/(gm/ID),  W = L * ID / IDu.
+
+### `sizing_recipe.true_current_mirror_groups`
+
+> **진짜 전류미러** 그룹 -- 같은 `(kind, gate net, source net)`을 공유하는 소자 집합.
+
+### `sizing_recipe.propagate_node_voltages`
+
+> 레일에서 시작해 각 소자의 `vds`를 따라 **모든 내부 노드의 DC 절대 전압**을 복원한다.
+
+### `sizing_recipe.build_ac_network`
+
+> L2 주파수응답의 **omega에 무관한 부분**을 한 번만 조립한다(2026-09-10, 중복계산 제거).
+
+### `stick_diagram.find_diode_stacks`
+
+> C엔진(§7.3.2) — `find_diode_loops()`(자기 자신의 gate==drain만 보는 구식 자기참조
+> 체크)를 대체. **2026-07-30 정정 근거**: M57은 게이트가 자기 자신의 drain에 물려 self-diode로
+> 잡히지만, M58은 게이트가 **M57의** drain에 물려 있어 자기참조 체크로는 놓친다 — 그래서
+> "같은 물리적 스택(`stack_id`) 안에서, 각 소자의 gate가 그 스택 위 **어떤 소자의
+> drain과든**(자기 것이든 이웃 것이든) 같은 net인지"를 보는 그래프 워크로 재정의했다.
 
 ## 신규 시그니처
 
