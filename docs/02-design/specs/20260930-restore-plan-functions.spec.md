@@ -4,6 +4,7 @@ phase: 2
 evidence_type: red-green
 gate_change: no
 approval: 20260923-u02-d-list
+approval: 20260930-restore-p5-test-list
 ---
 ## 의도
 
@@ -71,4 +72,11 @@ library 회로 전부와 기존 test 전부 -- 판정이 base와 같다(두 함�
 
 ## 결정 필요 항목
 
-계약 4의 V5 승인(사용자, R1). 복원 결정 자체는 사용자 결정(2026-09-30).
+계약 4의 V5 승인(사용자, R1) -- 승인 기록 `20260930-restore-p5-test-list`. 복원 결정 자체는 사용자 결정(2026-09-30).
+
+## 재시도 기록
+
+1차 시도(2026-09-30, test 5db0187, code 874c95b): V5 발견(P5 계약 test 목록 조정) → 오케스트레이터가 base 판 `weakening_diff.py`로 diff 해시를 재고 1차 code로 green
+(730 passed)을 먼저 확인한 뒤 사용자 승인 `20260930-restore-p5-test-list` → R1 운반. 1차 code-author 관찰: `workspaces/run_harness.py` 35행이 메인 저장소 assets 경로를
+`sys.path` 맨 앞에 하드코딩해(기존 결함, review22 C-01·DF-35/36 Phase 4), 새 test가 `run_harness`를 먼저 import하면 worktree·격리 복제본이 아니라 메인 트리의
+`sizing_recipe`를 잡는다. 2차 시도에서 새 test 파일은 `sizing_recipe`를 `run_harness`보다 먼저 import한다(V5 diff_path 밖이라 승인 해시 불변). 같은 id로 1부터 다시 한다.

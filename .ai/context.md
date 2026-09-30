@@ -14979,3 +14979,5 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - P8 20260930-dup-w-calc 완료(gate 54dec6a, 2차 시도, red-green): W = L*ID/IDu 인라인 18곳 -> 식 함수 width_from_id_density(size_transistor 포함). 18/18 사이트 AST 대조(호출 교체 외 동일), E-INST 동일, V1 701 passed. 시간 관찰: current_reuse +3.3~3.4%(두 시간대), folded +2.6~7.3%(편차 큼) -- 호출 비용 추정(0.5~1%)보다 큼, 원인 미분리. 호출 수 pilot 2400만·folded 700만/회 = NFR-2(S2 memo, 6b) 근거.
   백로그 B28 유지(V3 도구 .git 없는 사본 결함), 기존 test 강도: W 사이트 2배 변이 10/18 생존.
   다음: 복원 card(lut_conditions_from_npz·derived_spec, P5 오삭제).
+
+- 복원 card 20260930-restore-plan-functions 1차 시도: test 5db0187, code 874c95b(두 함수 0ecb686 원본 바이트 복원, 레지스트리 §7 두 행 보류(Phase 6a)) green 730 passed 확인 후 V5 승인 20260930-restore-p5-test-list(diff 4dcd6288, P5 계약 test 목록 8->6). R1 운반. 2차: 새 test가 sizing_recipe를 run_harness보다 먼저 import(run_harness.py 35행 메인 저장소 경로 하드코딩 -- review22 C-01·DF-35/36, 격리 오염 위험).
