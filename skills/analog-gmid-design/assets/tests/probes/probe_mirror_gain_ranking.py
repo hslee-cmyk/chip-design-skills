@@ -119,8 +119,7 @@ LUT = {"nmos": nmos, "pmos": pmos}
 # 갈려 있었다(gm_id_grid 21점 vs 57점, L_candidates 12점 vs 41점, VDS_candidates 9점 vs
 # 13점, stage_power_tolerance 누락). 같은 블록이 여러 파일에 그대로 퍼져 있었으므로
 # 파일마다 다른 판단을 한 게 아니라 복제본 하나가 번진 것이다. 이제
-# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제하고,
-# 일부러 다르게 쓸 때는 `H.derived_spec(key, why, **overrides)`로 무엇을 왜 바꿨는지 남긴다.
+# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제한다.
 SPEC = H.canonical_spec("current_reuse_telescopic_ota")
 nmos = SPEC["lut_by_kind"]["nmos"]
 pmos = SPEC["lut_by_kind"]["pmos"]
@@ -151,23 +150,27 @@ for k in sorted(base_metrics):
 _topo = json.load(open(TOPO, encoding="utf-8"))
 
 
-def _mirror_groups(topo):
-    import collections
-    g = collections.defaultdict(list)
-    for dv in topo["netlist"]:
-        g[(dv.get("gate"), dv.get("source"), dv.get("kind"))].append(dv)
+def _mirror_groups(topo_path):
+    """미러군은 엔진 정본 `sr.true_current_mirror_groups()`, diode는 `sr.is_diode_connected()`로 정한다.
+
+    표시 순서: 그룹은 (소자 수 내림차순, gate 넷, source 넷), 그룹 안 소자는 넷리스트 순서.
+    """
+    trs, _meta = sr.load_topology(topo_path)
+    by = {t.name: t for t in trs}
+    order = {t.name: i for i, t in enumerate(trs)}
+    groups = [sorted(ms, key=order.get) for ms in sr.true_current_mirror_groups(by)]
+    groups.sort(key=lambda ms: by[ms[0]].source)
+    groups.sort(key=lambda ms: (-len(ms), by[ms[0]].gate))
     out = []
-    for (gate, src, kind), ds in sorted(g.items(), key=lambda kv: (-len(kv[1]), str(kv[0]))):
-        if len(ds) < 2:
-            continue
-        names = [dv["name"] for dv in ds]
-        diodes = [dv["name"] for dv in ds if dv.get("gate") == dv.get("drain")]
-        out.append({"tag": f"{kind}:{gate}", "kind": kind, "members": names,
+    for names in groups:
+        t0 = by[names[0]]
+        diodes = [n for n in names if sr.is_diode_connected(by[n])]
+        out.append({"tag": f"{t0.kind}:{t0.gate}", "kind": t0.kind, "members": names,
                     "ref": diodes[0] if diodes else None})
     return out
 
 
-GROUPS = _mirror_groups(_topo)
+GROUPS = _mirror_groups(TOPO)
 emit("")
 emit("미러 그룹(넷리스트 유도):")
 for g in GROUPS:
@@ -175,6 +178,8 @@ for g in GROUPS:
 
 
 def _q(lut, arr, L, vgs, vds, vsb):
+    # VGS 기준 gm·gds 조회 -- 공개 API가 없어 LUT private 경로를 쓴다(승인 면제 20260929-p4-scan-exempt,
+    # 공개 API는 Phase 4 백로그). IDu는 아래에서 정본 `id_density_at_vgs()`로 읽는다.
     return lut._query(arr, L, vgs, vds, vsb)
 
 
@@ -191,7 +196,7 @@ def forced(group, L, vgs, sized):
         vsb = 0.0                      # 소스가 레일이므로 물리적으로 0 (B9와 무관하게)
         try:
             gm_id = lut.gm_id_for_vgs(vgs, L, vds, vsb)
-            idu = math.exp(_q(lut, lut._log_ID, L, vgs, vds, vsb)) * L / lut._w_ref_effective(L)
+            idu = lut.id_density_at_vgs(vgs, L, vds, vsb)
             ratio = math.exp(_q(lut, lut._log_GM, L, vgs, vds, vsb)
                              - _q(lut, lut._log_GDS, L, vgs, vds, vsb))
         except Exception:

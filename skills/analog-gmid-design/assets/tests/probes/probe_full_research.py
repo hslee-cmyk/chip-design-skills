@@ -57,8 +57,7 @@ nmos, pmos = mk("n"), mk("p")
 # 갈려 있었다(gm_id_grid 21점 vs 57점, L_candidates 12점 vs 41점, VDS_candidates 9점 vs
 # 13점, stage_power_tolerance 누락). 같은 블록이 여러 파일에 그대로 퍼져 있었으므로
 # 파일마다 다른 판단을 한 게 아니라 복제본 하나가 번진 것이다. 이제
-# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제하고,
-# 일부러 다르게 쓸 때는 `H.derived_spec(key, why, **overrides)`로 무엇을 왜 바꿨는지 남긴다.
+# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제한다.
 SPEC = H.canonical_spec("current_reuse_telescopic_ota")
 nmos = SPEC["lut_by_kind"]["nmos"]
 pmos = SPEC["lut_by_kind"]["pmos"]

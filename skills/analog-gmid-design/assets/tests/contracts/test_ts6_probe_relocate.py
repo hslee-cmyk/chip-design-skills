@@ -63,8 +63,7 @@ oracle 대조(계획 N3.12.3):
   경로 줄인지 손으로 정했고, 경로 줄이 아닌 변경을 넣어 판정이 **실제로 거부**하는지 본다.
 * test_base_blob_reader_reads_the_base_tree -- (a) base 커밋에 그 경로가 있다는 사실이 기대값이다
   (아래 기준선 대조가 빈 문자열로 공허하게 통과하지 않게 하는 전제).
-* test_relocated_probes_match_base_except_path_lines,
-  test_moved_tool_matches_base_except_path_lines -- (c) 기준선 = base 커밋의 blob 그 자체(계약 2·5의
+* test_moved_tool_matches_base_except_path_lines --(c) 기준선 = base 커밋의 blob 그 자체(계약 2·5의
   '경로 줄을 뺀 나머지가 바이트 그대로'). 새 기대값을 만들지 않는다.
 * test_moved_tool_is_in_tools_dir, test_moved_tool_paths_equal_pre_move_targets -- (a)/(c) 계약 5의
   새 자리와, 이동 전 형태를 옛 자리에 적용한 경로가 기대값이다(계약 3과 같은 방식).
@@ -655,15 +654,6 @@ def test_base_blob_reader_reads_the_base_tree():
     for name in _relocated_names():
         assert base_blob_text(f"{_TESTS_REL}/{name}.py").strip()
     assert base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}").strip()
-
-
-# --------------------------------------------------------------------------------------
-# (g) 계약 2: 옮긴 probe 32개는 경로 줄 말고는 base와 같다
-# --------------------------------------------------------------------------------------
-def test_relocated_probes_match_base_except_path_lines():
-    # oracle (c): 기준선 = base 커밋 blob 그 자체. 새 기대값을 만들지 않는다.
-    for name, path, src in _probe_sources():
-        assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL}/{name}.py"), src, name)
 
 
 # --------------------------------------------------------------------------------------

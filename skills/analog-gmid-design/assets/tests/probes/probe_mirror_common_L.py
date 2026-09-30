@@ -95,8 +95,8 @@ BY = {n: (k, i, v, r) for n, k, i, v, r in OP}
 
 
 def idu(kind, vgs, L, vds, vsb=0.0):
-    lut = LUT[kind]
-    return math.exp(lut._query(lut._log_ID, L, vgs, vds, vsb)) * L / lut._w_ref_effective(L)
+    # IDu(W/L=1 기준 전류)는 VGS에서 직접 읽는 엔진 정본 `id_density_at_vgs()`로 얻는다.
+    return LUT[kind].id_density_at_vgs(vgs, L, vds, vsb)
 
 
 emit("=" * 104)

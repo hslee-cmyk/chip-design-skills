@@ -40,8 +40,9 @@ trs, meta = sr.load_topology(TOPO)
 sized = json.load(open(INST, encoding="utf-8"))["sizing"]
 by = {t.name: t for t in trs}
 
-RAILS_HI = {"vdd", "VDD"}
-RAILS_LO = {"gnd", "GND", "vss", "VSS"}
+# 레일 넷 집합은 엔진 정본 상수를 쓴다(재선언하지 않는다).
+RAILS_HI = sr._DEFAULT_RAIL_HI
+RAILS_LO = sr._DEFAULT_RAIL_LO
 
 total_all = sum(sized[n]["ID"] for n in sized if "ID" in sized[n])
 print("(1) sum_current(devices 미선언) = ctx.sized 전 소자 합")
@@ -64,7 +65,8 @@ for n, t in by.items():
         from_vdd.append((n, e["ID"], "pmos.source=vdd"))
     elif t.kind == "nmos" and t.drain in RAILS_HI:
         from_vdd.append((n, e["ID"], "nmos.drain=vdd"))
-supply = sum(i for _, i, _ in from_vdd)
+# 공급전류 값은 엔진 정본 `sr._metric_supply_current()`로 구한다(위 목록은 표시용 내역).
+supply = sr._metric_supply_current({}, sr.SizingContext(sized=sized, topology_path=TOPO))
 print("    vdd에 직접 물린 소자 %d개:" % len(from_vdd))
 for n, i, why in sorted(from_vdd, key=lambda x: -x[1]):
     print("      %-8s %8.4f uA   (%s)" % (n, i * 1e6, why))

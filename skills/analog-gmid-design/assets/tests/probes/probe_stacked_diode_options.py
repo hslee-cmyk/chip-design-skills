@@ -77,7 +77,8 @@ MIN_VDS_M12 = 0.3        # min_vds_by_role["mirror"]
 
 
 def idu(lut, vgs, L, vds, vsb):
-    return math.exp(lut._query(lut._log_ID, L, vgs, vds, vsb)) * L / lut._w_ref_effective(L)
+    # IDu(W/L=1 기준 전류)는 VGS에서 직접 읽는 엔진 정본 `id_density_at_vgs()`로 얻는다.
+    return lut.id_density_at_vgs(vgs, L, vds, vsb)
 
 
 def widths(v_a, v_b, L, ID):

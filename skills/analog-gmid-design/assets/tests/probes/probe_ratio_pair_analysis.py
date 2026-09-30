@@ -99,8 +99,7 @@ nmos, pmos = mk("n"), mk("p")
 # 갈려 있었다(gm_id_grid 21점 vs 57점, L_candidates 12점 vs 41점, VDS_candidates 9점 vs
 # 13점, stage_power_tolerance 누락). 같은 블록이 여러 파일에 그대로 퍼져 있었으므로
 # 파일마다 다른 판단을 한 게 아니라 복제본 하나가 번진 것이다. 이제
-# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제하고,
-# 일부러 다르게 쓸 때는 `H.derived_spec(key, why, **overrides)`로 무엇을 왜 바꿨는지 남긴다.
+# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제한다.
 SPEC = H.canonical_spec("current_reuse_telescopic_ota")
 nmos = SPEC["lut_by_kind"]["nmos"]
 pmos = SPEC["lut_by_kind"]["pmos"]
@@ -110,6 +109,7 @@ res = sr.optimize_full_circuit_budget(TOPO, SPEC, search_method="slsqp",
 sized = res["sizing"]
 trs, meta = sr.load_topology(TOPO)
 by = {t.name: t for t in trs}
+MIRROR_GROUPS = sr.true_current_mirror_groups(by)
 topo = json.load(open(TOPO, encoding="utf-8"))
 pairs = (topo.get("symmetry") or {}).get("matching_pairs") or []
 roles = topo.get("device_roles") or {}
@@ -139,18 +139,19 @@ for names in TARGETS:
         if not t:
             emit("  %-8s (netlist에 없음)" % n)
             continue
-        emit("  %-8s %-6s %-14s %-14s %-14s %s"
-             % (n, t.kind, t.gate, t.source, t.drain,
-                "diode" if sr.is_diode_connected(t) else ""))
+        # 표시 행(이름 붙은 필드) -- 미러군 키가 아니다.
+        emit("  %(n)-8s %(kind)-6s %(gate)-14s %(source)-14s %(drain)-14s %(diode)s"
+             % {"n": n, "kind": t.kind, "gate": t.gate, "source": t.source, "drain": t.drain,
+                "diode": "diode" if sr.is_diode_connected(t) else ""})
     gates = {by[n].gate for n in names if n in by}
     srcs = {by[n].source for n in names if n in by}
-    shared_g = len(gates) == 1
-    shared_s = len(srcs) == 1
     emit("  -> 게이트 공유: %s (%s) / 소스 공유: %s (%s)"
-         % ("예" if shared_g else "아니오", sorted(gates),
-            "예" if shared_s else "아니오", sorted(srcs)))
+         % ("예" if len(gates) == 1 else "아니오", sorted(gates),
+            "예" if len(srcs) == 1 else "아니오", sorted(srcs)))
+    # 미러 성립 판정은 엔진 정본 `sr.true_current_mirror_groups()`(같은 kind·gate·source)로 한다.
+    is_mirror = any(set(names) <= set(g) for g in MIRROR_GROUPS)
     emit("  -> 이 그룹은 %s"
-         % ("**전류미러**다(VGS 동일 강제)" if shared_g and shared_s
+         % ("**전류미러**다(VGS 동일 강제)" if is_mirror
             else "게이트/소스를 모두 공유하진 않는다 -- 단순 미러 잣대를 그대로 대면 안 된다"))
 
     emit()

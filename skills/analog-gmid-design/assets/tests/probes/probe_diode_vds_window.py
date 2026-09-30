@@ -68,11 +68,9 @@ VDS_GRID = [float(x) for x in npz["VDS"]]
 
 
 def w_at(kind, L, ID, vsb, v):
+    # W는 엔진 정본 `sr.size_transistor()`로 구한다(gm = gm_id * ID).
     g = lut[kind].gm_id_for_vgs(v, L, v, vsb)
-    idu = lut[kind].gm_id_to_id_density(g, L, v, vsb)
-    if idu <= 0:
-        raise ValueError("IDu<=0")
-    return L * ID / idu, g
+    return sr.size_transistor(g * ID, g, L, lut[kind], v, vsb).W, g
 
 
 emit("W 한계 %.3g~%.3g um 안에서 각 diode가 허용하는 vds 구간" % (W_BOUNDS[0] * 1e6, W_BOUNDS[1] * 1e6))

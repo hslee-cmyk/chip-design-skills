@@ -63,8 +63,7 @@ nmos, pmos = mk("n"), mk("p")
 # 갈려 있었다(gm_id_grid 21점 vs 57점, L_candidates 12점 vs 41점, VDS_candidates 9점 vs
 # 13점, stage_power_tolerance 누락). 같은 블록이 여러 파일에 그대로 퍼져 있었으므로
 # 파일마다 다른 판단을 한 게 아니라 복제본 하나가 번진 것이다. 이제
-# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제하고,
-# 일부러 다르게 쓸 때는 `H.derived_spec(key, why, **overrides)`로 무엇을 왜 바꿨는지 남긴다.
+# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제한다.
 SPEC = H.canonical_spec("current_reuse_telescopic_ota")
 nmos = SPEC["lut_by_kind"]["nmos"]
 pmos = SPEC["lut_by_kind"]["pmos"]
@@ -89,23 +88,27 @@ topo = json.load(open(TOPO, encoding="utf-8"))
 roles = topo.get("device_roles") or {}
 
 
-def mirror_groups(t):
-    import collections
-    g = collections.defaultdict(list)
-    for dv in t["netlist"]:
-        g[(dv.get("gate"), dv.get("source"), dv.get("kind"))].append(dv)
+def mirror_groups(topo_path):
+    """미러군은 엔진 정본 `sr.true_current_mirror_groups()`, diode는 `sr.is_diode_connected()`로 정한다.
+
+    표시 순서: 그룹은 (소자 수 내림차순, gate 넷, source 넷), 그룹 안 소자는 넷리스트 순서.
+    """
+    trs, _meta = sr.load_topology(topo_path)
+    by = {t.name: t for t in trs}
+    order = {t.name: i for i, t in enumerate(trs)}
+    groups = [sorted(ms, key=order.get) for ms in sr.true_current_mirror_groups(by)]
+    groups.sort(key=lambda ms: by[ms[0]].source)
+    groups.sort(key=lambda ms: (-len(ms), by[ms[0]].gate))
     out = []
-    for (gate, src, kind), ds in sorted(g.items(), key=lambda kv: (-len(kv[1]), str(kv[0]))):
-        if len(ds) < 2:
-            continue
-        names = [dv["name"] for dv in ds]
-        diodes = [dv["name"] for dv in ds if dv.get("gate") == dv.get("drain")]
-        out.append({"tag": f"{kind}:{gate}", "kind": kind, "members": names,
+    for names in groups:
+        t0 = by[names[0]]
+        diodes = [n for n in names if sr.is_diode_connected(by[n])]
+        out.append({"tag": f"{t0.kind}:{t0.gate}", "kind": t0.kind, "members": names,
                     "ref": diodes[0] if diodes else None})
     return out
 
 
-GROUPS = mirror_groups(topo)
+GROUPS = mirror_groups(TOPO)
 
 emit("=" * 100)
 emit("1. 미러 18소자의 gm_id가 지금 어디서 오는가  --  걸어도 무효인 소자를 찾는다")

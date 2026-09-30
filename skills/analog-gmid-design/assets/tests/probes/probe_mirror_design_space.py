@@ -124,8 +124,7 @@ LUT = {"nmos": nmos, "pmos": pmos}
 # 갈려 있었다(gm_id_grid 21점 vs 57점, L_candidates 12점 vs 41점, VDS_candidates 9점 vs
 # 13점, stage_power_tolerance 누락). 같은 블록이 여러 파일에 그대로 퍼져 있었으므로
 # 파일마다 다른 판단을 한 게 아니라 복제본 하나가 번진 것이다. 이제
-# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제하고,
-# 일부러 다르게 쓸 때는 `H.derived_spec(key, why, **overrides)`로 무엇을 왜 바꿨는지 남긴다.
+# `sizing_recipe.require_declared_spec_source()`가 라이브러리 회로에 출처 선언을 강제한다.
 SPEC = H.canonical_spec("current_reuse_telescopic_ota")
 nmos = SPEC["lut_by_kind"]["nmos"]
 pmos = SPEC["lut_by_kind"]["pmos"]
@@ -157,24 +156,25 @@ by = {t.name: t for t in trs}
 #
 # VGS 동일 강제는 게이트·소스 공유라는 **순수 connectivity 사실**에서 나오므로,
 # 선언 여부와 무관하게 이 18소자 전부에 적용된다.
-def _mirror_groups_from_netlist(topo):
-    import collections
-    g = collections.defaultdict(list)
-    for dv in topo["netlist"]:
-        g[(dv.get("gate"), dv.get("source"), dv.get("kind"))].append(dv)
+#
+# 미러군은 엔진 정본 `sr.true_current_mirror_groups()`, diode는 `sr.is_diode_connected()`로 정한다.
+# 표시 순서: 그룹은 (소자 수 내림차순, gate 넷, source 넷), 그룹 안 소자는 넷리스트 순서.
+def _mirror_groups_from_netlist(trs):
+    by_name = {t.name: t for t in trs}
+    order = {t.name: i for i, t in enumerate(trs)}
+    groups = [sorted(ms, key=order.get) for ms in sr.true_current_mirror_groups(by_name)]
+    groups.sort(key=lambda ms: by_name[ms[0]].source)
+    groups.sort(key=lambda ms: (-len(ms), by_name[ms[0]].gate))
     out = []
-    for (gate, src, kind), ds in sorted(g.items(), key=lambda kv: (-len(kv[1]), str(kv[0]))):
-        if len(ds) < 2:
-            continue
-        names = [dv["name"] for dv in ds]
-        diodes = [dv["name"] for dv in ds if dv.get("gate") == dv.get("drain")]
-        out.append((f"{kind.upper():<4}  gate={gate} source={src}", kind,
-                    names, diodes[0] if diodes else None))
+    for names in groups:
+        t0 = by_name[names[0]]
+        diodes = [n for n in names if sr.is_diode_connected(by_name[n])]
+        title = f"{t0.kind.upper():<4}  gate={t0.gate} source={t0.source}"
+        out.append((title, t0.kind, names, diodes[0] if diodes else None))
     return out
 
 
-_topo_json = json.load(open(TOPO, encoding="utf-8"))
-GROUPS = _mirror_groups_from_netlist(_topo_json)
+GROUPS = _mirror_groups_from_netlist(trs)
 
 W_MAX_UM = 200.0
 
@@ -224,10 +224,10 @@ def _idu_at_vgs(lut, vgs, L, vds, vsb):
     `_solve_vgs(gm_id,...)`로 gm_id를 다시 VGS로 되돌리는데, PMOS는 gm/ID가 VGS에
     비단조라 그 역변환이 다른 branch로 튄다(`probe_gm_id_monotonicity.py`가 실측:
     탐색범위와 겹치는 동작점 53.6%, 파일럿 2소자에서 W가 2.36배 틀림). 여기서는
-    VGS가 애초에 스윕 변수라 왕복할 이유가 없다 -- 곧바로 조회한다.
+    VGS가 애초에 스윕 변수라 왕복할 이유가 없다 -- 곧바로 조회한다. 조회는 엔진 정본
+    `SemiEmpiricalGmIdLUT.id_density_at_vgs()`다.
     """
-    raw = math.exp(lut._query(lut._log_ID, L, vgs, vds, vsb))
-    return raw * L / lut._w_ref_effective(L)
+    return lut.id_density_at_vgs(vgs, L, vds, vsb)
 
 
 W_MIN_UM = 1.0            # W_bounds 하한 -- 이것도 제약이다
