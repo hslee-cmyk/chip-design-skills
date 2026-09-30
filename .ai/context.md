@@ -14955,3 +14955,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   운영 교훈: 역할 agent가 Bash를 도는 동안 메인 worktree에 파일을 쓰면 EL2가 그 agent의 변경으로 오판한다 -- 역할 agent 실행 중에는 메인 worktree 쓰기 금지. 승인 기록의 diff_base·diff_head는 git rev-parse 출력으로만 채울 것(손으로 쓴 해시 1건 적발).
 
 - P4 2차 시도(test 131cfe2, code b414627): code-author dispute -- 스캐너 이름 probe_dup_scan.py가 P1 계약 test의 rglob('probe_*.py')에 걸림(34 != 33). 오케스트레이터 결정: 도구 이름 engine_dup_scan.py(spec card·design 20 §3·§8·§10), V5 승인 경로 불변. 3차 시도: test는 test_probe_dup_scan.py import 이름만, code는 b414627 본문을 새 이름으로. 교훈: 새 파일 이름을 정할 때 기존 계약 test의 이름 패턴(glob)과 충돌하는지 grep할 것(P3b·P3c·P4 세 번째 이름 결함).
+
+- P4 20260929-probe-engine-dup 완료(gate a53b8ac, 3차 시도, red-green): probe 10개의 엔진 식 재구현 -> 정본 호출(출력 10/10 base와 동일, auditor 독립 측정), 주석만 9개(derived_spec 안내 14파일 정리), P2 영구 바이트 대조 test 폐기, 스캐너 A/tests/tools/engine_dup_scan.py(규칙 5종·면제·exit 0/1/2; 병합본 exit 0 면제 1건, base에서는 발견 18). V1 512 passed/15 xfailed, V3 대체 변이 24/24 죽음. R1 운반 디렉터리 삭제.
+  백로그 B25(auditor 관찰): (a) 면제 단위가 <파일>::<규칙>이라 gain_ranking에 IDu private 조회가 다시 들어와도 못 잡음 -- 줄/개념 단위로 좁힐지 결정 필요 (b) --root 아래 probes/가 없으면 조용히 exit 0(계약 test가 probes/ 존재를 먼저 단언해 실제 경로는 막힘) (c) ratio_pair의 게이트·소스 공유 판정은 스캐너 규칙 모양이 아니라 교체는 수동으로만 확인됨.
+  Phase 2 남은 card: P3c(보류 B21), P6·P7·P8·P9·P10(spec card 없음).
