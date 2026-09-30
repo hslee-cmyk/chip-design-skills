@@ -1,0 +1,90 @@
+{
+ "tool": "C:/g17/isom/tools/gates/mutate_changed.py",
+ "base": "03660e9675f15179ea233c8ec1f104a2a641caf0",
+ "head": "8688681aa68156d9193ee21cbbebe8be52014b64",
+ "cmd": "C:\\Python314\\python.exe C:/g17/isom/tools/gates/mutate_changed.py --root C:/g17/probe/c3c/root --base 03660e9675f15179ea233c8ec1f104a2a641caf0 --head 8688681aa68156d9193ee21cbbebe8be52014b64 --pytest-ini C:/g17/gmid-gate-cache/cd6417026696091fd0ce02603a11a3729af3147e/pytest_gate.ini --out C:/g17/probe/c3c/out.jsonl",
+ "exit": 2,
+ "stdout": "{\"tool\": \"V3\", \"verdict\": \"ERROR\", \"error\": \"BaselineFailed: 기준 실행 실패(exit 1): skills/analog-gmid-design/assets/tests/test_rt_seven.py::test_rt_scale_seven\", \"baseline_failed\": [\"skills/analog-gmid-design/assets/tests/test_rt_seven.py::test_rt_scale_seven\"]}\r\n",
+ "stderr_tail": "",
+ "records": [
+  {
+   "id": "rt_engine:rt_orphan:stmt_delete:body[0]",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:arith:body[0].value",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:const+:body[0].value.right",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:const-:body[0].value.right",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:early_return:body[0]",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_twice:stmt_delete:body[0]",
+   "result": "killed",
+   "exit": 1
+  },
+  {
+   "id": "rt_engine:rt_twice:arith:body[0].value",
+   "result": "killed",
+   "exit": 1
+  },
+  {
+   "id": "rt_engine:rt_twice:const+:body[0].value.left",
+   "result": "survived",
+   "tests": [
+    "skills/analog-gmid-design/assets/tests/test_rt_twice.py::test_rt_twice_zero"
+   ]
+  },
+  {
+   "id": "rt_engine:rt_twice:const-:body[0].value.left",
+   "result": "survived",
+   "tests": [
+    "skills/analog-gmid-design/assets/tests/test_rt_twice.py::test_rt_twice_zero"
+   ]
+  },
+  {
+   "id": "rt_engine:rt_twice:early_return:body[0]",
+   "result": "killed",
+   "exit": 1
+  }
+ ],
+ "results_by_fn": {
+  "rt_orphan": [
+   "survived",
+   "survived",
+   "survived",
+   "survived",
+   "survived"
+  ],
+  "rt_twice": [
+   "killed",
+   "killed",
+   "survived",
+   "survived",
+   "killed"
+  ]
+ },
+ "stdout_keys": [
+  "baseline_failed",
+  "error",
+  "tool",
+  "verdict"
+ ],
+ "survivor_fns": null,
+ "failing_test_id_in_stdout": true,
+ "tmp_left": []
+}

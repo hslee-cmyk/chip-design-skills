@@ -1,0 +1,18 @@
+{
+ "copytree_no_git": {
+  "cmd": "C:\\Python314\\python.exe -P -m pytest -c C:/g17/gate/pytest_gate.ini --rootdir=C:/g17/probe/nogit_copy --confcutdir=C:/g17/probe/nogit_copy -q -p no:cacheprovider C:/g17/probe/nogit_copy/skills/analog-gmid-design/assets/tests/test_rt_scale_history.py::test_rt_scale_with_base_blob",
+  "exit": 1,
+  "tail": "it repository (or any of the parent directories): .git\\n')\r\n@py_assert1 = 128, @py_assert4 = 0\r\n\r\n    \u001b[0m\u001b[94mdef\u001b[39;49;00m\u001b[90m \u001b[39;49;00m\u001b[92m_git\u001b[39;49;00m(*args):\u001b[90m\u001b[39;49;00m\r\n        r = subprocess.run([\u001b[33m\"\u001b[39;49;00m\u001b[33mgit\u001b[39;49;00m\u001b[33m\"\u001b[39;49;00m, \u001b[33m\"\u001b[39;49;00m\u001b[33m-C\u001b[39;49;00m\u001b[33m\"\u001b[39;49;00m, \u001b[96mstr\u001b[39;49;00m(ROOT), *args], capture_output=\u001b[94mTrue\u001b[39;49;00m)\u001b[90m\u001b[39;49;00m\r\n>       \u001b[94massert\u001b[39;49;00m r.returncode == \u001b[94m0\u001b[39;49;00m, r.stderr.decode(\u001b[33m\"\u001b[39;49;00m\u001b[33mutf-8\u001b[39;49;00m\u001b[33m\"\u001b[39;49;00m, \u001b[33m\"\u001b[39;49;00m\u001b[33mreplace\u001b[39;49;00m\u001b[33m\"\u001b[39;49;00m)\u001b[90m\u001b[39;49;00m\r\n\u001b[1m\u001b[31mE       AssertionError: fatal: not a git repository (or any of the parent directories): .git\u001b[0m\r\n\u001b[1m\u001b[31mE         \u001b[0m\r\n\u001b[1m\u001b[31mE       assert 128 == 0\u001b[0m\r\n\u001b[1m\u001b[31mE        +  where 128 = CompletedProcess(args=['git', '-C', 'C:\\\\g17\\\\probe\\\\nogit_copy', 'rev-parse', '--show-toplevel'], returncode=128, stdout=b'', stderr=b'fatal: not a git repository (or any of the parent directories): .git\\n').returncode\u001b[0m\r\n\r\n\u001b[1m\u001b[31mskills\\analog-gmid-design\\assets\\tests\\test_rt_scale_history.py\u001b[0m:14: AssertionError\r\n\u001b[36m\u001b[1m=========================== short test summary info ===========================\u001b[0m\r\n\u001b[31mFAILED\u001b[0m skills/analog-gmid-design/assets/tests/test_rt_scale_history.py::\u001b[1mtest_rt_scale_with_base_blob\u001b[0m - AssertionError: fatal: not a git repository (or any of the parent directori...\r\n\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m\u001b[31m in 0.13s\u001b[0m\u001b[0m\r\n"
+ },
+ "clone_steps": [
+  0,
+  0,
+  0,
+  ""
+ ],
+ "history_clone": {
+  "cmd": "C:\\Python314\\python.exe -P -m pytest -c C:/g17/gate/pytest_gate.ini --rootdir=C:/g17/probe/hist_clone --confcutdir=C:/g17/probe/hist_clone -q -p no:cacheprovider C:/g17/probe/hist_clone/skills/analog-gmid-design/assets/tests/test_rt_scale_history.py::test_rt_scale_with_base_blob",
+  "exit": 0,
+  "tail": "\u001b[32m.\u001b[0m\u001b[32m                                                                        [100%]\u001b[0m\r\n\u001b[32m\u001b[32m\u001b[1m1 passed\u001b[0m\u001b[32m in 0.13s\u001b[0m\u001b[0m\r\n"
+ }
+}

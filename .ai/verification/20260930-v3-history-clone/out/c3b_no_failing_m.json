@@ -1,0 +1,95 @@
+{
+ "tool": "C:/g17/isom/tools/gates/mutate_changed.py",
+ "base": "8a6efb289d2f4326e590c85e639bf5a2cf7f4e23",
+ "head": "ff02f656e18df94eed37e3b1a5cbb9c52094e7c5",
+ "cmd": "C:\\Python314\\python.exe C:/g17/isom/tools/gates/mutate_changed.py --root C:/g17/probe/c3b/root --base 8a6efb289d2f4326e590c85e639bf5a2cf7f4e23 --head ff02f656e18df94eed37e3b1a5cbb9c52094e7c5 --pytest-ini C:/g17/gmid-gate-cache/cd6417026696091fd0ce02603a11a3729af3147e/pytest_gate.ini --out C:/g17/probe/c3b/out.jsonl",
+ "exit": 1,
+ "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 10, \"killed\": 3, \"survivors\": [\"rt_engine:rt_orphan:stmt_delete:body[0]\", \"rt_engine:rt_orphan:arith:body[0].value\", \"rt_engine:rt_orphan:const+:body[0].value.right\", \"rt_engine:rt_orphan:const-:body[0].value.right\", \"rt_engine:rt_orphan:early_return:body[0]\", \"rt_engine:rt_twice:const+:body[0].value.left\", \"rt_engine:rt_twice:const-:body[0].value.left\"]}\r\n",
+ "stderr_tail": "",
+ "records": [
+  {
+   "id": "rt_engine:rt_orphan:stmt_delete:body[0]",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:arith:body[0].value",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:const+:body[0].value.right",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:const-:body[0].value.right",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_orphan:early_return:body[0]",
+   "result": "survived",
+   "reason": "인벤토리 없음(도달하는 test 없음)"
+  },
+  {
+   "id": "rt_engine:rt_twice:stmt_delete:body[0]",
+   "result": "killed",
+   "exit": 1
+  },
+  {
+   "id": "rt_engine:rt_twice:arith:body[0].value",
+   "result": "killed",
+   "exit": 1
+  },
+  {
+   "id": "rt_engine:rt_twice:const+:body[0].value.left",
+   "result": "survived",
+   "tests": [
+    "skills/analog-gmid-design/assets/tests/test_rt_twice.py::test_rt_twice_zero"
+   ]
+  },
+  {
+   "id": "rt_engine:rt_twice:const-:body[0].value.left",
+   "result": "survived",
+   "tests": [
+    "skills/analog-gmid-design/assets/tests/test_rt_twice.py::test_rt_twice_zero"
+   ]
+  },
+  {
+   "id": "rt_engine:rt_twice:early_return:body[0]",
+   "result": "killed",
+   "exit": 1
+  }
+ ],
+ "results_by_fn": {
+  "rt_orphan": [
+   "survived",
+   "survived",
+   "survived",
+   "survived",
+   "survived"
+  ],
+  "rt_twice": [
+   "killed",
+   "killed",
+   "survived",
+   "survived",
+   "killed"
+  ]
+ },
+ "stdout_keys": [
+  "killed",
+  "mutants",
+  "survivors",
+  "targets",
+  "tool",
+  "verdict"
+ ],
+ "survivor_fns": [
+  "rt_orphan",
+  "rt_twice"
+ ],
+ "failing_test_id_in_stdout": false,
+ "tmp_left": []
+}

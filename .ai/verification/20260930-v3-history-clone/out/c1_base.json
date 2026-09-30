@@ -1,0 +1,40 @@
+{
+ "tool": "C:/g17/gate/mutate_changed.py",
+ "base": "1a00998591e2cfffb0f07102cd3ad6cd5943ff59",
+ "head": "5da7b402eb74242008b26c05b08cef5bc17d40aa",
+ "root_head": "bc6e0ebf9f17c372369555f63345e156b1b76cdf",
+ "cmd": "C:\\Python314\\python.exe C:/g17/gate/mutate_changed.py --root C:/g17/probe/c1/root --base 1a00998591e2cfffb0f07102cd3ad6cd5943ff59 --head 5da7b402eb74242008b26c05b08cef5bc17d40aa --pytest-ini C:/g17/gate/pytest_gate.ini --out C:/g17/probe/c1/out.jsonl",
+ "exit": 1,
+ "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 5, \"killed\": 0, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[0]\", \"rt_engine:rt_scale:arith:body[0].value\", \"rt_engine:rt_scale:const+:body[0].value.left\", \"rt_engine:rt_scale:const-:body[0].value.left\", \"rt_engine:rt_scale:early_return:body[0]\"]}\r\n",
+ "stderr_tail": "",
+ "records": [
+  {
+   "id": "rt_engine:rt_scale:stmt_delete:body[0]",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_scale:arith:body[0].value",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_scale:const+:body[0].value.left",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_scale:const-:body[0].value.left",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  },
+  {
+   "id": "rt_engine:rt_scale:early_return:body[0]",
+   "result": "survived",
+   "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"
+  }
+ ],
+ "tmp_left": [],
+ "root_unchanged": true,
+ "root_parent_new_entries": []
+}

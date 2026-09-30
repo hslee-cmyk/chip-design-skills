@@ -1,0 +1,24 @@
+{
+ "a_clone_at_head": {
+  "exit": 0,
+  "tail": [
+   "\u001b[32m\u001b[32m\u001b[1m1 passed\u001b[0m\u001b[32m in 0.20s\u001b[0m\u001b[0m"
+  ]
+ },
+ "b_clone_at_root_HEAD": {
+  "exit": 1,
+  "tail": [
+   "\u001b[1m\u001b[31mskills\\analog-gmid-design\\assets\\tests\\test_copy_head.py\u001b[0m:19: AssertionError",
+   "\u001b[31mFAILED\u001b[0m skills/analog-gmid-design/assets/tests/test_copy_head.py::\u001b[1mtest_copy_is_head_commit\u001b[0m - AssertionError: assert 'after-head' == 'head'",
+   "\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m\u001b[31m in 0.36s\u001b[0m\u001b[0m"
+  ]
+ },
+ "c_worktree_copy_with_git": {
+  "exit": 1,
+  "tail": [
+   "\u001b[1m\u001b[31mskills\\analog-gmid-design\\assets\\tests\\test_copy_head.py\u001b[0m:19: AssertionError",
+   "\u001b[31mFAILED\u001b[0m skills/analog-gmid-design/assets/tests/test_copy_head.py::\u001b[1mtest_copy_is_head_commit\u001b[0m - AssertionError: assert 'after-head' == 'head'",
+   "\u001b[31m\u001b[31m\u001b[1m1 failed\u001b[0m\u001b[31m in 0.35s\u001b[0m\u001b[0m"
+  ]
+ }
+}

@@ -1,0 +1,103 @@
+{
+ "full": {
+  "base_log_sha256": "b8632ff1ed1ddc3cf5c023ec9a6bd702a142422b66c2cbfadbf97ce476086df5",
+  "merged_log_sha256": "25a962b79f9b5cd8ad766fdfbf3f11f2bf73b175c4ac0c5c2e0631e21a0fec67",
+  "base_summary": {
+   "cases": {
+    "PASS": 51,
+    "SKIPPED": 7,
+    "FAIL": 1
+   },
+   "steps": {
+    "PASS": 602,
+    "RECORD": 13,
+    "FAIL": 2
+   }
+  },
+  "merged_summary": {
+   "cases": {
+    "PASS": 52,
+    "SKIPPED": 7
+   },
+   "steps": {
+    "PASS": 604,
+    "RECORD": 13
+   }
+  },
+  "case_set_equal": true,
+  "step_set_equal": true,
+  "case_verdict_diff": {
+   "31-v3-git-history": [
+    "FAIL",
+    "PASS"
+   ]
+  },
+  "step_verdict_diff": {
+   "31-v3-git-history::baseline-fail-error": [
+    "FAIL",
+    "PASS"
+   ],
+   "31-v3-git-history::git-history-kill": [
+    "FAIL",
+    "PASS"
+   ]
+  },
+  "merged_nonpass_steps": {},
+  "merged_31": {
+   "31-v3-git-history::git-history-kill": {
+    "verdict": "PASS",
+    "exit": 0,
+    "observed": {
+     "tmp_left": [],
+     "root_unchanged": true
+    }
+   },
+   "31-v3-git-history::baseline-fail-error": {
+    "verdict": "PASS",
+    "exit": 2,
+    "observed": {
+     "tmp_left": [],
+     "root_unchanged": true
+    }
+   },
+   "31-v3-git-history::survivor-fail-clean": {
+    "verdict": "PASS",
+    "exit": 1,
+    "observed": {
+     "tmp_left": [],
+     "root_unchanged": true
+    }
+   }
+  },
+  "merged_step_verdicts_sha256": "7148f18341a12d4c0f28e06e1d5fb78fad1e61f96ab2b4645c46e07b88439209"
+ },
+ "cases": {
+  "base_log_sha256": "0296dac7ddf4cbb35a98fa99824a897bbe9fd349f04d717de7bf19ea0508a48f",
+  "merged_log_sha256": "f1aebfaa34414a7fc4a5d4c4797551abea3fb551b7ab4bc8f8f591d0a2ba6c49",
+  "base_summary": {
+   "cases": {
+    "PASS": 5,
+    "SKIPPED": 2
+   },
+   "steps": {
+    "PASS": 6
+   }
+  },
+  "merged_summary": {
+   "cases": {
+    "PASS": 5,
+    "SKIPPED": 2
+   },
+   "steps": {
+    "PASS": 6
+   }
+  },
+  "case_set_equal": true,
+  "step_set_equal": true,
+  "case_verdict_diff": {},
+  "step_verdict_diff": {},
+  "merged_nonpass_steps": {},
+  "merged_31": {},
+  "merged_step_verdicts_sha256": "eaa0d7013c14a0893ebe28cd6b93631c0ace5ceb9b9b9b481dcb86601f249572"
+ }
+}
