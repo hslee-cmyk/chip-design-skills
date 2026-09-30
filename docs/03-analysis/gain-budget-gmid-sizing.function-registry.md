@@ -50,9 +50,9 @@
 | union-find | (유틸 하나로) | `design_report` + SR 2곳 + SD 2곳 | 묶는 개념이 다르면 같은 개념으로 세지 않는다 -- P4 실측: `l_sharing_classes`는 '같은 L' 동치류(미러·ratio 쌍 포함)이고 probe의 union-find(`probe_diode_min_vgs`, `probe_stack_headroom_feasibility`)가 묶는 것은 다른 개념이라 중복이 아니다. 왼쪽 중복 목록도 개념별로 다시 나눠 판단한다 |
 | 다선형 보간 | `_multilinear_interp` | `_multilinear_interp_point_multi` 복붙 | |
 | 이분 역산 뼈대 | (하나로, **단조성 검사 포함**) | `_invert_gm_id_for_current`, `solve_id_for_target_gm` | 단조성 미검사 결함 동반 |
-| gain metric | `_metric_smallsignal_gain_db` | `_metric_folded_cascode_gain_db` | folded_cascode가 사용 중 -- 4회로 재측정 후 |
-| PM metric | `_metric_parasitic_pm_deg` | `_metric_folded_cascode_pm_deg` | 〃 |
-| CMRR | `_metric_smallsignal_ratio_db` | `_cmrr_diff_pair_tail` | 엔진에서 telescopic 폐형식 CMRR 사슬이 삭제된 것을 확인(P5b) -- 남은 것은 이 한 쌍. 4회로 재측정 후 |
+| gain metric | 정본 후보(`_metric_smallsignal_gain_db` -- 하위 `_full_circuit_response`가 접지 넷을 `fixed = {"gnd": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4957행), B26 해소 뒤 확정) | `_metric_folded_cascode_gain_db` | folded_cascode가 사용 중 -- 4회로 재측정 후. 하위 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
+| PM metric | 정본 후보(`_metric_parasitic_pm_deg` -- 하위 `build_ac_network`가 접지 넷을 `fixed = {"gnd": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4076행), B26 해소 뒤 확정) | `_metric_folded_cascode_pm_deg` | 〃. 하위 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
+| CMRR | 정본 후보(`_metric_smallsignal_ratio_db` -- 하위 `_full_circuit_response`가 접지 넷을 `fixed = {"gnd": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4957행), B26 해소 뒤 확정) | `_cmrr_diff_pair_tail` | 엔진에서 telescopic 폐형식 CMRR 사슬이 삭제된 것을 확인(P5b) -- 남은 것은 이 한 쌍. 4회로 재측정 후. 하위 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
 | MNA 소자 스탬프 | 정본 후보(`build_ac_network` -- 접지 넷을 `fixed = {"gnd": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4076행), B26 해소 뒤 확정) | `full_circuit_response_at_omega`, `_mna_solve_smallsignal` | 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
 | HTML 리포트 | `design_report.render_html_report` | 계획 §8.5 "신규" `render_design_report_html()` | **새로 만들지 않는다** |
 | diode 고정점 | `solve_diode_connected_vds` | 계획 §7.3/§8.4의 `_solve_diode_connected_vgs_fixed_point` | 이름만 다름 -- **새로 만들지 않는다** |
