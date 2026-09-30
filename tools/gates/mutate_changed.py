@@ -7,7 +7,8 @@
 ② 연산자: 비교 뒤집기, 산술 교체(`+↔-`, `*↔/`), 상수 변경(정수 ±1, 실수는 표기된 마지막 자릿수 한 단위 ±),
    문장 삭제, 조기 `return`, `except` 본문 삭제
 ③ 인벤토리 = 정적 호출 그래프(V7 `reachability.build_graph`)에서 그 함수에 도달하는 test 함수
-④ 변이마다 worktree 밖 임시 복사본에서 그 test만(worktree는 바꾸지 않는다)
+④ 변이마다 `--head` 커밋의 격리 복제본(이력 포함, origin 없음)에서 그 test만(worktree는 바꾸지 않는다).
+   인벤토리 기준 실행 실패 = ERROR(exit 2, 변이를 생존으로 세지 않는다)
 ⑤ 살아남은 변이가 있으면 FAIL. 변이 id = `<모듈>:<함수 qualname>:<연산자>:<AST 노드 경로>`.
    등가 변이 면제는 `target_kind: decision`, `target` = 변이 id 목록인 승인 기록(head 트리).
 판정 JSON 한 줄, exit 0 PASS / 1 FAIL / 2 실행 오류. 변이마다 결과를 --out에 append(WP-11).
@@ -31,6 +32,43 @@ import reachability as rch
 TESTS_PREFIX = "skills/analog-gmid-design/assets/tests/"
 TESTS_TOOLS = "skills/analog-gmid-design/assets/tests/tools/"
 CONFTEST_REL = TESTS_PREFIX + "conftest.py"
+
+
+class BaselineFailed(RuntimeError):
+    """변이 전 기준 실행에서 인벤토리 test가 통과하지 않았다(B28: 생존이 아니라 ERROR)."""
+
+    def __init__(self, tests, code):
+        RuntimeError.__init__(self, "기준 실행 실패(exit %s): %s" % (code, ", ".join(tests)))
+        self.tests = list(tests)
+        self.code = code
+
+
+def _run_git(args):
+    r = subprocess.run(["git"] + args, capture_output=True)
+    if r.returncode != 0:
+        raise RuntimeError("git %s 실패(exit %d): %s" % (args[0] if args[0] != "-C" else args[2], r.returncode,
+                                                         r.stderr.decode("utf-8", "replace").strip()))
+
+
+def make_clone(root, work, head):
+    """`--head` 커밋의 격리 복제본(이력 포함, origin 없음). 하드링크 없음."""
+    _run_git(["clone", "--quiet", "--no-checkout", "--no-hardlinks", "--no-local", "-c", "core.longpaths=true",
+              root, work])
+    _run_git(["-C", work, "remote", "remove", "origin"])
+    _run_git(["-C", work, "checkout", "--quiet", "--detach", head])
+
+
+def _rmtree_force(path):
+    """읽기 전용 파일(git pack)까지 지운다: 실패하면 쓰기 권한을 풀고 재시도."""
+    import stat
+
+    def onexc(func, p, exc):
+        try:
+            os.chmod(p, stat.S_IWRITE | stat.S_IREAD)
+            func(p)
+        except OSError:
+            pass
+    shutil.rmtree(path, onexc=onexc)
 
 
 def _strip_doc(fn):
@@ -282,7 +320,7 @@ def main(argv):
         approved = _approved(root, ns.head)
         tmp = tempfile.mkdtemp(prefix="gmid-v3-")
         work = os.path.join(tmp, "copy")
-        shutil.copytree(root, work, ignore=shutil.ignore_patterns(".git"))
+        make_clone(root, work, ns.head)
         pyc = os.path.join(tmp, "pycache")
         os.makedirs(pyc)
         survivors, killed, results = [], 0, []
@@ -328,7 +366,10 @@ def main(argv):
                 if inv and tuple(inv) not in baseline_ok:
                     # 변이 전 기준 실행: 인벤토리 test가 변이 없는 코드에서 통과해야 '죽인 변이'가 뜻이 있다
                     # (기준에서 이미 실패하면 모든 변이가 죽은 것으로 보여 거짓 PASS가 된다 -- WP-02)
-                    baseline_ok[tuple(inv)] = run_tests(inv) == 0
+                    base_code = run_tests(inv)
+                    if base_code != 0:
+                        raise BaselineFailed(inv, base_code)
+                    baseline_ok[tuple(inv)] = True
                 for opname, npath, mfn in mutants(fn, head_src):
                     mid = "%s:%s:%s:%s" % (modname, q, opname, npath)
                     if mid in approved:
@@ -337,9 +378,6 @@ def main(argv):
                     if not inv:
                         survivors.append(mid)
                         rec = {"id": mid, "result": "survived", "reason": "인벤토리 없음(도달하는 test 없음)"}
-                    elif not baseline_ok[tuple(inv)]:
-                        survivors.append(mid)
-                        rec = {"id": mid, "result": "survived", "reason": "변이 없는 기준 실행에서 인벤토리 test가 통과하지 않음"}
                     else:
                         with open(fpath, "w", encoding="utf-8", newline="\n") as fh:
                             fh.write(_replace_def(head_src, fn, mfn))
@@ -356,12 +394,16 @@ def main(argv):
                     if ns.out:
                         with open(ns.out, "a", encoding="utf-8") as fh:
                             fh.write(json.dumps(rec, ensure_ascii=False) + "\n")
+    except BaselineFailed as e:
+        print(json.dumps({"tool": "V3", "verdict": "ERROR", "error": "%s: %s" % (type(e).__name__, e),
+                          "baseline_failed": e.tests}, ensure_ascii=False))
+        return 2
     except (OSError, RuntimeError, SyntaxError, ValueError, UnicodeDecodeError) as e:
         print(json.dumps({"tool": "V3", "verdict": "ERROR", "error": "%s: %s" % (type(e).__name__, e)}, ensure_ascii=False))
         return 2
     finally:
         if tmp:
-            shutil.rmtree(tmp, ignore_errors=True)
+            _rmtree_force(tmp)
     print(json.dumps({"tool": "V3", "verdict": "FAIL" if survivors else "PASS", "targets": targets,
                       "mutants": len(results), "killed": killed, "survivors": survivors}, ensure_ascii=False))
     return 1 if survivors else 0
