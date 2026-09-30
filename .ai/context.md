@@ -14995,3 +14995,16 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - DF-36 20260930-df36-instance-relpath 완료(gate 148bd6d, 2차 시도, red-green): save_instance_json topology_ref -> 저장소 루트 기준 / 상대 경로(비공개 헬퍼 _topology_ref_relpath, 루트는 __file__ 유도), 저장소 밖·다른 드라이브 topology = 파일 쓰기 전 ValueError. 1차는 V3 FAIL(다른 드라이브 분기 변이 생존 -- test 공백) -> 2차 test에 다른 드라이브 2건 추가, 코드 동일. red 21(새 2건은 base FileNotFoundError라 red 미기록), V3 대체 측정 26 중 killed 22·면제 4(20260922-ic3-v3-exempt)·생존 0. E-INST·E-LIB·E-LIB-INST 판정값 base와 같음.
 - 사용자 결정 2026-09-30: P9 설계 E1 문구 정정 승인(교체문 준비됨, 승인 기록 20260930-p9-e1-correction은 정정 커밋 뒤), library topology.json 주석 정리 보류(백로그).
 - B28 게이트 변경 spec card 20260930-v3-history-clone 커밋(design 05 §10 V3 행 ④ 개정 포함) -> 사용자 승인 대기. 사전 실측: clone 6.5s·54MB(copytree 8.9s·231MB), 시제품 (a) exit 0 5/5 killed (b) exit 2.
+
+- B28 20260930-v3-history-clone 완료(gate 8790b24, 게이트 변경 red-green): V3 사본 = --head 격리 복제본(이력 포함, origin 없음), 기준 실행 실패 = ERROR exit 2(baseline_failed), 복제 실패 = ERROR, 임시 복제본 강제 삭제. redteam 공격 31(3단계), rt.py 선택 키 tool_tmpdir·root_state. DF-36 범위 재실행 PASS killed 22·면제 4·생존 0(대체 측정 불필요해짐).
+- 사용자 결정 2026-09-30: Phase 2 DoD D1 = E4 기준값 정정 기본안(da03c0e 같은 경로 비교, topology_ref만 DF-36 계약값) -- 승인 20260930-phase2-e4-baseline, D2 = 남은 probe(probe_physical_consistency.py) 관찰 기록.
+- 백로그 추가(사전 조사 agent 관찰, 2026-09-30):
+  - B29 library topology.json 주석 필드의 삭제된 이름 안내 정리 -- current_reuse_telescopic_ota.topology.json 1250·1281(`suggest_headroom_stack_groups`)·1872(`_metrics_comment`), nmcnr_amplifier.topology.json 74(`slew_rate()`). 사용자 결정 2026-09-30 보류("topology.json주석은 보류해"). 고칠 때: 승인 기록(쓰기 경로표 634행·U-16), 주석 필드만·connectivity 불변, auditor가 주석 외 필드 동일·E-LIB 동일 확인. S0 지문 영향 여부 실측 먼저.
+  - B30 Phase 2 이전부터 낡은 이름 안내(references·SKILL.md) -- 예: SKILL.md:52 `run_sizing_pipeline`, consistency-map.md 약 20개. P10 사전 실측(_drafts/prep_p9_p10.md §9, b22_scan.out.txt)에 목록. 문서 card로 묶어 처리.
+  - B31 백로그 번호 겹침 -- 문서 백로그 B22(.ai/context.md 14943행)와 history 4002행 §10.3 B22(`diode_vds_window`, 2026-09-09 해소)가 같은 번호. 엔진 주석 SR 567·3425·7412·레지스트리 77행은 history 쪽 뜻. 제안: context 백로그를 이후 `BL-` 접두사로.
+  - B33 V7 호출 그래프 간선 누락 -- 클래스 → `__init__`, 레지스트리 dict → 값 함수 간선이 없어 HEAD 엔진 def 109개가 미도달로 셈(예: `SemiEmpiricalGmIdLUT.__init__`, `_feed_*`). Phase 3 이동 card의 V7 판정에 잡음이 되므로 G1 전후 검토(Phase 3 design v2 준비 agent 관찰, 2026-09-30).
+  - B34 `skills/analog-grammar` 부재 시 stick_diagram 조용한 폴백이 결과를 바꿈 -- current_reuse θ* 평가가 성공 → ValueError(vertical_stack_id 순환). 조용한 기본값/폴백 금지 원칙 위반 후보(B26 결정 자료 agent 관찰, 2026-09-30).
+  - B35 `skills/analog-grammar/assets/netclass.py` `RAILS`·`RAILS_POS`·`RAILS_NEG` 이름 집합 레일 판정 -- stick_diagram 11함수(운영 7)가 사용, code-author 쓰기 경로 밖(B26-1 초안 agent 관찰).
+  - B36 게이트 공백 -- `skills/analog-grammar`가 추적 파일인데 N3.12.2 쓰기 경로표 어느 행에도 없음: code-author는 못 쓰고 오케스트레이터·비 gmid agent 쓰기는 hook 통과, 게이트 도구(role_paths·V3·V7·source_lint·interface_card·weakening_diff) 범위 밖 -- 엔진 판정을 바꾸는 코드가 trailer·test·audit 없이 바뀔 수 있음. 결정 필요: 별도 skill로 게이트 범위 편입(기본안) 대 analog-gmid-design 흡수, 승인 2건. `install.py` SKILLS에 analog-grammar 추가는 사용자 작업(현재 설치본은 항상 B34 폴백으로 돔).
+  - B37 `load_topology`가 topology `ports` 선언을 analog-grammar에 넘기지 않아 운영 경로가 이름 정규식(`HINT_*`)으로 입력·바이어스 넷을 추정 -- topology 의존(B26과 같은 종류).
+  - B32 레지스트리 누락 -- 픽스처 함수 `folded_cascode_example`·`two_stage_ota_example` 행 없음(P10 재측정에서 발견).
