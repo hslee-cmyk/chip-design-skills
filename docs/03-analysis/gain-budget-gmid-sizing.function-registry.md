@@ -22,9 +22,9 @@
 
 | 파일 | R0 | R1 | R2 | D | DUP | 비고 |
 |---|---|---|---|---|---|---|
-| sizing_recipe.py | 84 | 77 | 19 | 27 | 11 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
-| stick_diagram.py | 81 | 16 | 12 | 19 | 7 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
-| 기타 모듈 | 21 | 16 | 1 | 2 | 1 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
+| sizing_recipe.py | 85 | 77 | 20 | 8 | 11 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
+| stick_diagram.py | 85 | 16 | 12 | 15 | 7 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
+| 기타 모듈 | 22 | 16 | 1 | 0 | 1 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
 
 감사자 요약 기준(행 묶음 전 개수): sizing_recipe.py R0 84 / R1 77 / R2 19 / D 27 / DUP 11 (218), stick_diagram.py R0 101 / R1 16 / R2 12 / D 20 / DUP 7 (158).
 
@@ -35,35 +35,36 @@
 
 | 개념 | 정본(제안) | 중복 | 상태 |
 |---|---|---|---|
-| W 계산 `W=L*ID/IDu` | `size_transistor` / LUT `_sizing_bundle` | `find_optimal_sizing`, `feasible_gm_ids`, `search_gm_id_for_role`, `feasible_L_window`에 인라인 4곳 | 식 동일 -- 행동 보존 통합 가능 |
+| W 계산 `W=L*ID/IDu` | `size_transistor` / LUT `_sizing_bundle` | `find_optimal_sizing`, `feasible_gm_ids`, `search_gm_id_for_role`, `feasible_L_window`에 인라인 4곳 | 식 동일 -- 행동 보존 통합 가능. **단 정해진 VGS의 W(`W=L·ID/IDu`, probe 계산)는 `size_transistor`(gm/ID에서 VGS를 다시 풀어 W를 냄)와 다른 질문이라 중복이 아니다**(P4 실측: 교체하면 PMOS 그룹에서만 결과가 달라짐, 예 M6 W 102.756→21.337 um). PMOS W 차이는 결함 후보 B24(P3b의 PMOS gm/ID 비단조와 같은 뿌리 추정) |
 | diode 판정 | `is_diode_connected` | `stick_diagram.find_diode_stacks`(운영 0), SD 인라인 `gate==drain` 3곳, netclass role 기반 | ★ `find_diode_stacks`는 이웃 diode까지 포함(16/1/20 불일치의 원인) |
-| 전류미러 그룹 | `true_current_mirror_groups`(connectivity, 키 kind·gate·source) | `stick_diagram.find_matching_candidates`(키 kind·gate 또는 kind·bias·rail), `_mirror_ratio_error_pairs`(선언 기반, 첫 쌍만), probe 3곳 복제 | ★ B19'에서 11 vs 18소자로 결론이 뒤집힌 원인 |
+| 전류미러 그룹 | 정본 후보(`true_current_mirror_groups`(connectivity, 키 kind·gate·source) -- 레일 판정을 `_DEFAULT_RAIL_HI/_LO` 넷 이름 리터럴로 읽음(sizing_recipe 2197행 근처), B26 해소 뒤 확정) | `stick_diagram.find_matching_candidates`(키 kind·gate 또는 kind·bias·rail), `_mirror_ratio_error_pairs`(선언 기반, 첫 쌍만), probe 3곳 복제 | ★ B19'에서 11 vs 18소자로 결론이 뒤집힌 원인. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
 | diffpair / tail | (미정) | `find_differential_pair_candidates`, `_diff_pair_layer1_groups`, `_propose_gm_id_roles`(SD, connectivity) vs `gain_stage_tails`, `input_referred_offset_pairs`(SR, 선언) | ★ S1 유도 정본을 정해야 함 |
-| 노드 DC 전압 | `propagate_node_voltages`(평가당 1회로) | 한 평가 안 4곳 재호출, `_hr_sum_ref_vds`·헤드룸 vsb 전파가 다른 순회로 같은 값, probe 2곳 | §12 D1 결정에 종속 |
-| KCL 엣지 | `stick_diagram._kcl_and_matching_edges` | `kcl_series_union`이 같은 엣지를 따로 구현, `_metric_kcl_residual` | 행동 보존 통합 가능 |
+| 노드 DC 전압 | 정본 후보(`propagate_node_voltages`(평가당 1회로) -- 기본 인자 `rail_hi/rail_lo=_DEFAULT_RAIL_*` 넷 이름 리터럴을 엔진 호출부가 그대로 씀(sizing_recipe 3717행), B26 해소 뒤 확정) | 한 평가 안 4곳 재호출, `_hr_sum_ref_vds`·헤드룸 vsb 전파가 다른 순회로 같은 값, probe 2곳 | §12 D1 결정에 종속. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
+| KCL 엣지 | 정본 후보(`stick_diagram._kcl_and_matching_edges` -- 레일 판정을 `_RAIL_NETS` 넷 이름 리터럴로 읽음(stick_diagram 3148행), B26 해소 뒤 확정) | `kcl_series_union`이 같은 엣지를 따로 구현, `_metric_kcl_residual` | 행동 보존 통합 가능. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
 | 스택 KVL 합 | `_hr_verify_group_kvl_sum` | `solve_diode_stack_current`(운영 0), 3곳 재계산 | |
-| 레일 넷 집합 | (상수 하나로) | SD `_RAIL_NETS` 소문자만 vs SR 대소문자 2곳 | 불일치 -- 결함 후보 |
+| 레일 넷 집합 | (정본 없음 -- `supply_nets` 선언에서 읽는 경로가 후보) | SD `_RAIL_NETS`(`vdd`/`gnd`/`vss` 리터럴), SR `_DEFAULT_RAIL_HI`/`_DEFAULT_RAIL_LO`(`vdd`/`VDD`·`gnd`/`GND`/`vss`/`VSS` 리터럴) | 이름 기반 상수는 정본이 아니다(엔진 식은 topology 무관) -- 상수 하나로 합치는 것은 해결이 아니다. 선언(`supply_nets`)에서 읽는 경로로 바꾸는 것이 백로그 B26. 소문자만/대소문자 불일치도 결함 후보 |
 | topology 로딩 | `_load_full_topology_cached` | `load_topology` 직접 호출(SR 4845/5056/8493, SD `run_topology_pipeline`, fixup), `json.load`(SR 8315) | 캐시 키를 내용 해시로(C-d) |
 | theta가 건드리는 소자 | `_theta_feed_footprint` | `_theta_device_map`, `_collect_device_refs` | |
 | euler 행 수정 전략 | `run_topology_pipeline_with_finger_fixup` | `_fixup_euler_blocked_rows`(docstring이 "정확히 같은 전략") | |
 | 위반량 합 | (함수 하나로) | 4곳 인라인 | |
-| union-find | (유틸 하나로) | `design_report` + SR 2곳 + SD 2곳 | |
+| union-find | (유틸 하나로) | `design_report` + SR 2곳 + SD 2곳 | 묶는 개념이 다르면 같은 개념으로 세지 않는다 -- P4 실측: `l_sharing_classes`는 '같은 L' 동치류(미러·ratio 쌍 포함)이고 probe의 union-find(`probe_diode_min_vgs`, `probe_stack_headroom_feasibility`)가 묶는 것은 다른 개념이라 중복이 아니다. 왼쪽 중복 목록도 개념별로 다시 나눠 판단한다 |
 | 다선형 보간 | `_multilinear_interp` | `_multilinear_interp_point_multi` 복붙 | |
 | 이분 역산 뼈대 | (하나로, **단조성 검사 포함**) | `_invert_gm_id_for_current`, `solve_id_for_target_gm` | 단조성 미검사 결함 동반 |
-| gain metric | `_metric_smallsignal_gain_db` | `_metric_folded_cascode_gain_db` | folded_cascode가 사용 중 -- 4회로 재측정 후 |
-| PM metric | `_metric_parasitic_pm_deg` | `_metric_folded_cascode_pm_deg` | 〃 |
-| CMRR | `_metric_smallsignal_ratio_db` | `_cmrr_diff_pair_tail` (telescopic 폐형식 사슬은 P5b에서 삭제) | 〃 |
-| MNA 소자 스탬프 | `build_ac_network` | `full_circuit_response_at_omega`, `_mna_solve_smallsignal` | |
+| gain metric | 정본 후보(`_metric_smallsignal_gain_db` -- 하위 `_full_circuit_response`가 접지 넷을 `fixed = {"gnd": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4957행), B26 해소 뒤 확정) | `_metric_folded_cascode_gain_db` | folded_cascode가 사용 중 -- 4회로 재측정 후. 하위 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
+| PM metric | 정본 후보(`_metric_parasitic_pm_deg` -- 하위 `build_ac_network`가 접지 넷을 `fixed = {"gnd": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4076행), B26 해소 뒤 확정) | `_metric_folded_cascode_pm_deg` | 〃. 하위 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
+| CMRR | 정본 후보(`_metric_smallsignal_ratio_db` -- 하위 `_full_circuit_response`가 접지 넷을 `fixed = {"gnd": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4957행), B26 해소 뒤 확정) | `_cmrr_diff_pair_tail` | 엔진에서 telescopic 폐형식 CMRR 사슬이 삭제된 것을 확인(P5b) -- 남은 것은 이 한 쌍. 4회로 재측정 후. 하위 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
+| MNA 소자 스탬프 | 정본 후보(`build_ac_network` -- 접지 넷을 `fixed = {"gnd": 0.0}` 이름 리터럴로 읽음(sizing_recipe 4076행), B26 해소 뒤 확정) | `full_circuit_response_at_omega`, `_mna_solve_smallsignal` | 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
 | HTML 리포트 | `design_report.render_html_report` | 계획 §8.5 "신규" `render_design_report_html()` | **새로 만들지 않는다** |
 | diode 고정점 | `solve_diode_connected_vds` | 계획 §7.3/§8.4의 `_solve_diode_connected_vgs_fixed_point` | 이름만 다름 -- **새로 만들지 않는다** |
 | L grid 스냅 | `quantize_L` | SD `_quantize_to_grid`(의도적 사본) | 모듈 경계 결정 후 |
 
 ## 3. R0 -- 수정 없이 그대로 재사용 (새로 만들면 중복)
 
-### sizing_recipe.py (84)
+### sizing_recipe.py (85)
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
+| `gm_from_fT` | gm=2π·fT·C | gmid_sizing_engine.py | 1줄 순수함수. 호출자: `sizing_recipe.py:find_optimal_sizing`(단일 소자 사이징 경로, `gm=None`일 때만 타는 분기). 삭제 이득 없음 |
 | `GmIdLUT` | LUT 추상 인터페이스(`gm_id_to_id_density`/`gm_gds_ratio`는 NotImplemented) | gmid_sizing_engine.py | 순수 인터페이스 |
 | `SizingResult` | 사이징 결과 dataclass(gm, gm_id, ID, W, gain) | gmid_sizing_engine.py |  |
 | `QuasiStaticVerdict` | 준정적 판정 결과 | gmid_sizing_engine.py |  |
@@ -149,10 +150,11 @@
 | `suggest_matching_finger_growth` | 3c용 min_fingers 성장 delta | sizing_layout_convergence | 순수 |
 | `apply_and_revalidate_matching_finger_growth` | 성장 후보 1개 L4 재검증 | sizing_layout_convergence | 순수 |
 
-### stick_diagram.py (81)
+### stick_diagram.py (85)
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
+| `SharedFingerWCandidate` | 공통 finger_w 탐색(Case B)의 후보 결과 레코드 | stick_diagram | 호출자(생성): `stick_diagram.py:search_shared_finger_w`. 그 함수의 사용처는 workspaces 스크립트 |
 | `_try_interdigitation_table_match` | 문헌 interdigitation 표 경로 | stick_diagram | 순수 |
 | `interdigitate_layout` | hub-leaf 1행 interdigitation 배치 | stick_diagram | 결정론 |
 | `build_mirror_symmetric_pattern` | 좌반부로 대칭 finger 패턴 생성 | stick_diagram |  |
@@ -238,10 +240,11 @@
 | `_audit_result_json` | AuditResult 직렬화 | instance_report_builder |  |
 | `save_instance_json` | instance.json 작성 | instance_report_builder |  |
 
-### 기타 모듈 (21)
+### 기타 모듈 (22)
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
+| `render_report` | 텍스트 리포트 + has_violation | audit_current_forced.py | 호출자: `audit_current_forced.py`의 `if __name__ == "__main__"` 블록(라이브러리 topology 전수 감사 실행 경로) |
 | `miller_ota_topology` | Miller 2단 보상식 -> `topology_fn(prev_cggs)->[gm1,gm2]` 팩토리 | `gmid_sizing_engine.py`(보상식 레지스트리) | `gmid_sizing_engine.py`(보상식 레지스트리) |
 | `  └ topology_fn` | prev_cggs 고정점 반복용 gm | 〃 | 〃 |
 | `  └ topology_fn` | 상수 gm 반환 | 〃 | 〃 |
@@ -392,10 +395,11 @@
 
 ## 5. R2 -- §12 구조로 대체 예정 (새 호출부를 늘리지 않는다)
 
-### sizing_recipe.py (19)
+### sizing_recipe.py (20)
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
+| `_optimize_theta_slsqp_block_coordinate` | L 격자 ↔ SLSQP 블록 좌표 교대 | optimizer | 호출자: `sizing_recipe.py:optimize_full_circuit_budget`(`search_method == "slsqp_block_coordinate"` 분기). `_optimize_theta_slsqp`와 같은 θ 탐색 구조라 §12로 함께 대체 예정. `window_around_reference` 경로의 유일한 사용자 |
 | `optimize_multistage` | topology_fn(prev_cggs)→gms 고정점 반복 + 스테이지/공유 gm_id 그룹/VDS-KVL 그룹 사이징 + 한계순환 평균 | gmid_sizing_engine.py(순환 루프는 §12.5.2 C-c… | (1) **계획과 다름**: gm 방향 반전이 미구현(1009-1012, 여전히 topology_fn→gm). (2) **C-c 위반**: cgg↔gm 순환을 암묵 반복으로 풀고, 비수렴이면 `converged=False` 결과를 **그대로 반환**(1393), 한계순환이면 주기 평균으로 대체값을 만든다… |
 | `stack_kvl_vgs_limit` | VGS(name)이 다른 소자 VDS로 소비될 때 스택 KVL로 VGS 상한 = const/k 유도 | circuit_state_graph.py(S1 엣지 `vds_eq_vgs… | (1) 결과가 **호출 시점에 `ctx.sized`에 무엇이 이미 채워졌는지에 달린다**: 참조/멤버 vds 미확정이면 그 소비자를 건너뛰고(1957-1960, 1973), 전부 건너뛰면 `None`=제약 없음 -> §12.2 "실행 순서 암묵 계약"(T2) 그 자체. (2) vds↔VGS 순환(§12.… |
 | `resolve_feed_vds` | theta feed의 소자 vds: ctx.sized 선점값 → `_feed_vds_fallback` | circuit_state_graph.py(S2 값 저장소의 출처·버전 조… | `ctx.sized[name]["vds"]`가 있으면 **누가 언제 썼는지 확인 없이** 재사용(2147-2149). 계획이 지목한 "먼저 쓴 쪽이 이김" 구조가 코드에 그대로 남음 = §12.5.2 **C-a(단일 writer·출처)** 부재. writer 티어 권한표로 대체해야 함 |
@@ -477,49 +481,40 @@
 
 ## 7. D -- 운영 경로 호출 0 (배선/삭제 결정 필요)
 
-### sizing_recipe.py (27)
+### sizing_recipe.py (8)
 
-| 함수 | 책임 | 이관 목적지 | 비고 |
-|---|---|---|---|
-| `gm_from_fT` | gm=2π·fT·C | gmid_sizing_engine.py | 1줄 순수함수, 데모·단일소자 경로용. 삭제 이득 없음 |
-| `_invq_newton` | EKV q 뉴턴 역산 | tests/ 픽스처(삭제 아님) | toy 전용 |
-| `build_toy_lut` | EKV 합성 4D LUT | tests/ 픽스처(§8.8 test 분리 시 이관) | VA=5V/um, Cox 5e-15 등 toy 상수(1428,1432) -- 픽스처로만 쓸 것 |
-| `RegressionVerdict` | 회귀 판정 dataclass | tests 이관 완료(`assets/tests/tools/regression_runner.py`, 20260930-d-move-tests) | 엔진에서 삭제됨 |
-| `_run_optimize_multistage_case` | reference JSON case로 optimize_multistage 실행 / engine 문자열 디스패치 | tests 이관 완료(`assets/tests/tools/regression_runner.py`, 20260930-d-move-tests) | 엔진에서 삭제됨. `_REGRESSION_ENGINES`(모듈 dict)도 함께 이관 |
-| `run_regression_case` | 공정별 골든 JSON 로드 → 실행 → 상대오차 대조 | tests 이관 완료(`assets/tests/tools/regression_runner.py`, 20260930-d-move-tests) | 엔진에서 삭제됨. `W_ref=5e-6` 하드코딩(1561,1563) -- LUT npz 메타에서 읽어야 함(C-d/S0 지문 대상). `except (ValueError, KeyError)`를 실패 verdict로 바꾸는 건 테스트 러너라 허용 |
-| `solve_diode_stack_current` | 직렬 diode 스택 VGS합=target이 되는 전류 로그축 이분탐색 | 삭제 후보 | 적층 diode 문제의 운영 해법은 `solve_stacked_diode_pair`(3659, B25, 호출 7859)로 대체됨. 개념 중복 -- 삭제는 사용자 승인 필요 |
-| `estimate_area_budget` | n_fingers × pitch로 A_1D, packing_density 표본이 있으면 A_1D/density, 없으면 콜드스타트 블렌딩 | sizing_layout_convergence.py(배선 시) | **공식 결함**: 콜드스타트 `(1-α)·A_1D + α·(A_1D/α)` = `(2-α)·A_1D`(2954-2955) -- α가 서로 상쇄돼 블렌딩이 아니다(α=0.65면 1.35·A_1D). self-test(13882-13884)가 **같은 식을 다시 써서** 비교하므로 잡지 못함(동어반복 테스… |
-| `signal_path_nodes` | gate/source->drain 방향 그래프에서 excite∩sense 도달 내부노드 | (삭제 후보) | 4354-4356 docstring이 L2에서 "원천적으로 필요 없어짐"이라 명시. §12.4가 소비자라 적은 것이 오류임을 재확인. 방향 규칙이 단일 DAG가 안 됨(§12.3-9) -> S1v 재활용 가치 낮음 |
-| `node_pole_estimate` | 노드별 G/C 1차 pole 추정 | (삭제 후보) | 4343-4346: L1 값(34.2도) 무효라고 자인. **§12.6-6 광범위 except 4138 확인**: `except (KeyError, ValueError): pass`로 Cgg 누락을 조용히 버림 -- 운영 미호출이라 영향은 probe 한정 |
-| `validate_theta_declaration_order` | theta 선언순서=실행순서 계약 검사 | topology_authoring | D(배선 필요) |
-| `load_derived_bounds` | 사이드카 JSON 읽기 | optimizer S3(흡수) 또는 삭제 | 유도값 저장 경로가 사이드카 vs topology.json `_derived`(`resolve_constraint_references` `:8423`) 두 갈래 — 엔진은 후자만 읽음 |
-| `_optimize_theta_slsqp_block_coordinate` | L 격자 ↔ SLSQP 블록 좌표 교대 | 삭제 후보(또는 optimizer로 이관 후 실측) | `window_around_reference` 경로의 유일한 사용자 → 함께 정리 |
+| 함수 | 책임 | 이관 목적지 | 처리 | 비고 |
+|---|---|---|---|---|
+| `_invq_newton` | EKV q 뉴턴 역산 | tests/ 픽스처(삭제 아님) | 보류(Phase 4) | P6 보류: `build_toy_lut`의 하위 함수이고 엔진 docstring이 인용한다. toy 전용 |
+| `build_toy_lut` | EKV 합성 4D LUT | tests/ 픽스처(§8.8 test 분리 시 이관) | 보류(Phase 4) | P6 보류: workspaces가 쓰고 엔진 docstring이 인용한다(이관하면 호출자가 깨짐 -- 배선 판단 후). VA=5V/um, Cox 5e-15 등 toy 상수(1428,1432) -- 픽스처로만 쓸 것 |
+| `solve_diode_stack_current` | 직렬 diode 스택 VGS합=target이 되는 전류 로그축 이분탐색 | 삭제 후보 | 보류(Phase 4) | 삭제 판단(사용자 승인). 적층 diode 문제의 운영 해법은 `solve_stacked_diode_pair`(3659, B25, 호출 7859)로 대체됨. 개념 중복 -- 삭제는 사용자 승인 필요 |
+| `estimate_area_budget` | n_fingers × pitch로 A_1D, packing_density 표본이 있으면 A_1D/density, 없으면 콜드스타트 블렌딩 | sizing_layout_convergence.py(배선 시) | 보류(Phase 4) | 배선 판단 + 공식 결함 수정 필요. **공식 결함**: 콜드스타트 `(1-α)·A_1D + α·(A_1D/α)` = `(2-α)·A_1D`(2954-2955) -- α가 서로 상쇄돼 블렌딩이 아니다(α=0.65면 1.35·A_1D). self-test(13882-13884)가 **같은 식을 다시 써서** 비교하므로 잡지 못함(동어반복 테스… |
+| `signal_path_nodes` | gate/source->drain 방향 그래프에서 excite∩sense 도달 내부노드 | (삭제 후보) | 보류(Phase 4) | 삭제 판단. 4354-4356 docstring이 L2에서 "원천적으로 필요 없어짐"이라 명시. §12.4가 소비자라 적은 것이 오류임을 재확인. 방향 규칙이 단일 DAG가 안 됨(§12.3-9) -> S1v 재활용 가치 낮음 |
+| `node_pole_estimate` | 노드별 G/C 1차 pole 추정 | (삭제 후보) | 보류(Phase 4) | 삭제 판단. 4343-4346: L1 값(34.2도) 무효라고 자인. **§12.6-6 광범위 except 4138 확인**: `except (KeyError, ValueError): pass`로 Cgg 누락을 조용히 버림 -- 운영 미호출이라 영향은 probe 한정 |
+| `validate_theta_declaration_order` | theta 선언순서=실행순서 계약 검사 | topology_authoring | 보류(Phase 3) | topology_authoring 이관 대상이며 배선 승인 필요. D(배선 필요) |
+| `load_derived_bounds` | 사이드카 JSON 읽기 | optimizer S3(흡수) 또는 삭제 | 보류(Phase 4) | 흡수·삭제 판단. 유도값 저장 경로가 사이드카 vs topology.json `_derived`(`resolve_constraint_references` `:8423`) 두 갈래 — 엔진은 후자만 읽음 |
 
-### stick_diagram.py (19)
+### stick_diagram.py (15)
 
-| 함수 | 책임 | 이관 목적지 | 비고 |
-|---|---|---|---|
-| `MirrorSymmetryVerdict` | 대칭 판정 결과 | stick_diagram(삭제 후보) | `check_mirror_symmetry` 전용 |
-| `check_mirror_symmetry` | finger 순서 좌우 대칭 판정 | stick_diagram 유지 또는 test util | 운영 호출 0 |
-| `find_interleaved_symmetric_splits` | 홀수 finger 쌍 교차 대칭 분할 해 | tests 이관 완료(`assets/tests/tools/interleave_splits.py`, 20260930-d-move-tests) | 엔진에서 삭제됨 |
-| `find_idiom_matches` | analog-grammar Stage1~3 원본 Match | topology_authoring |  |
-| `find_differential_and_mirror_forks` | 양방향 fork 분류 | 삭제 후보 | `find_verified_...` docstring SD:1802-1815가 이 접근의 한계와 대체를 기술 |
-| `MultiLeafHubParityVerdict` | 결과 레코드 | test util |  |
-| `check_multi_leaf_hub_parity` | hub-leaf 오일러 가능성 공식 스크리닝 | test util |  |
-| `DiodeStackMember` | 결과 레코드 | - |  |
-| `DiodeStack` | 결과 레코드 | - |  |
-| `find_diode_stacks` | 스택 내 gate가 (자기/이웃) drain인 소자 | circuit_state_graph(diode 정의 1개로 통합) | **DUP**: 계획 §12.3 표 5행 "diode 집합 16/1/20". 정의 4곳: 여기(이웃-diode, stack_id 필요 SD:3100-3112) / SR `is_diode_connected` SR:3294 / SR `_diode_set_cached` SR:5452 / SD 층위1 `t.ga… |
-| `audit_theta_root_direction` | theta A feed의 캐스코드 방향 역전 탐지 | topology_authoring(배선 여부 승인 필요) |  |
-| `propose_theta_kcl_gap_fill` | theta 전류 구조 제안(고정점 규칙) | topology_authoring(배선 승인 필요) | 346줄, 운영 호출 0 |
-| `apply_theta_kcl_gap_fill` | 위 제안을 topology.json에 기록 | topology_authoring | 파일 쓰기 도구 |
-| `apply_device_roles_gap_fill` | 제안을 topology.json에 영구 기록 | topology_authoring |  |
-| `audit_vertical_stack_id_euler_feasibility` | 선언 vsid 그룹의 오일러 실현성 | stick_diagram(배선 여부 승인 필요) |  |
-| `find_euler_repair_options` | unresolved_row 복구 선택지 진단 | stick_diagram(배선 승인 필요) | 운영 0 |
-| `SharedFingerWCandidate` | 공통 finger_w 탐색(Case B) | stick_diagram 유지 또는 삭제 |  |
+| 함수 | 책임 | 이관 목적지 | 처리 | 비고 |
+|---|---|---|---|---|
+| `MirrorSymmetryVerdict` | 대칭 판정 결과 | stick_diagram(삭제 후보) | 보류(Phase 4) | `check_mirror_symmetry` 전용 -- 그 판단을 따른다 |
+| `check_mirror_symmetry` | finger 순서 좌우 대칭 판정 | stick_diagram 유지 또는 test util | 보류(Phase 4) | 운영 호출 0. workspaces가 1곳 참조(U-02 R-3) -- 삭제·이관 판단 |
+| `find_idiom_matches` | analog-grammar Stage1~3 원본 Match | topology_authoring | 보류(Phase 3) | topology_authoring 이관 대상 |
+| `find_differential_and_mirror_forks` | 양방향 fork 분류 | 삭제 후보 | 보류(Phase 4) | 삭제 판단. `find_verified_...` docstring SD:1802-1815가 이 접근의 한계와 대체를 기술 |
+| `MultiLeafHubParityVerdict` | 결과 레코드 | test util | 보류(Phase 4) | `check_multi_leaf_hub_parity`의 결과 레코드 -- 그 판단을 따른다 |
+| `check_multi_leaf_hub_parity` | hub-leaf 오일러 가능성 공식 스크리닝 | test util | 보류(Phase 4) | P6 보류: 엔진 docstring이 인용하고 IC5 목록에 있다(이관하면 인용이 깨짐) |
+| `DiodeStackMember` | 결과 레코드 | - | 보류(Phase 3) | `find_diode_stacks`의 결과 레코드 -- 그 판단을 따른다 |
+| `DiodeStack` | 결과 레코드 | - | 보류(Phase 3) | `find_diode_stacks`의 결과 레코드 -- 그 판단을 따른다 |
+| `find_diode_stacks` | 스택 내 gate가 (자기/이웃) drain인 소자 | circuit_state_graph(diode 정의 1개로 통합) | 보류(Phase 3) | circuit_state_graph 이관·diode 정의 통합 대상. **DUP**: 계획 §12.3 표 5행 "diode 집합 16/1/20". 정의 4곳: 여기(이웃-diode, stack_id 필요 SD:3100-3112) / SR `is_diode_connected` SR:3294 / SR `_diode_set_cached` SR:5452 / SD 층위1 `t.ga… |
+| `audit_theta_root_direction` | theta A feed의 캐스코드 방향 역전 탐지 | topology_authoring(배선 여부 승인 필요) | 보류(Phase 3) | topology_authoring 이관 대상이며 배선 승인 필요 |
+| `propose_theta_kcl_gap_fill` | theta 전류 구조 제안(고정점 규칙) | topology_authoring(배선 승인 필요) | 보류(Phase 3) | topology_authoring 이관 대상이며 배선 승인 필요. 346줄, 운영 호출 0 |
+| `apply_theta_kcl_gap_fill` | 위 제안을 topology.json에 기록 | topology_authoring | 보류(Phase 3) | topology_authoring 이관 대상. 파일 쓰기 도구 |
+| `apply_device_roles_gap_fill` | 제안을 topology.json에 영구 기록 | topology_authoring | 보류(Phase 3) | topology_authoring 이관 대상 |
+| `audit_vertical_stack_id_euler_feasibility` | 선언 vsid 그룹의 오일러 실현성 | stick_diagram(배선 여부 승인 필요) | 보류(Phase 4) | 배선 여부 승인 필요 |
+| `find_euler_repair_options` | unresolved_row 복구 선택지 진단 | stick_diagram(배선 승인 필요) | 보류(Phase 4) | 배선 승인 필요. 운영 0 |
 
-### 기타 모듈 (2)
+### 기타 모듈 (0)
 
-| 함수 | 책임 | 이관 목적지 | 비고 |
-|---|---|---|---|
-| `render_report` | 텍스트 리포트 + has_violation | §8.3 게이트 배선 후보 | D(파이프라인 미배선) |
+(남은 행 없음)
 
