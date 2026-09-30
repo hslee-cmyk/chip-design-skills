@@ -6,21 +6,11 @@
 
 | 모듈 | 심볼 | 시그니처 |
 |---|---|---|
-| `sizing_recipe` | `l_sharing_classes` | `def l_sharing_classes(by_name: dict, meta: dict, matching_pairs=()) -> dict` |
-| `sizing_recipe` | `_hr_resolve_vertical_group` | `def _hr_resolve_vertical_group(env, vsid)` |
 | `sizing_recipe` | `size_transistor` | `def size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT, vds: float, vsb: float=0.0) -> SizingResult` |
 | `sizing_recipe` | `SemiEmpiricalGmIdLUT.id_density_at_vgs` | `def id_density_at_vgs(self, vgs: float, L: float, vds: float, vsb: float=0.0) -> float` |
 | `sizing_recipe` | `true_current_mirror_groups` | `def true_current_mirror_groups(by_name: dict) -> list` |
 | `sizing_recipe` | `is_diode_connected` | `def is_diode_connected(transistor) -> bool` |
 | `sizing_recipe` | `_metric_supply_current` | `def _metric_supply_current(spec: dict, ctx: SizingContext) -> float` |
-
-### `sizing_recipe.l_sharing_classes`
-
-> **같은 L을 써야 하는 소자들**의 동치류(층1, 2026-09-10). `{root: [members]}`.
-
-### `sizing_recipe._hr_resolve_vertical_group`
-
-(docstring 없음)
 
 ### `sizing_recipe.size_transistor`
 
