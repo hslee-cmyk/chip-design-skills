@@ -22,7 +22,7 @@
 
 | 파일 | R0 | R1 | R2 | D | DUP | 비고 |
 |---|---|---|---|---|---|---|
-| sizing_recipe.py | 85 | 77 | 20 | 8 | 11 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
+| sizing_recipe.py | 86 | 77 | 20 | 8 | 11 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
 | stick_diagram.py | 85 | 16 | 12 | 15 | 7 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
 | 기타 모듈 | 22 | 16 | 1 | 0 | 1 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
 
@@ -35,7 +35,7 @@
 
 | 개념 | 정본(제안) | 중복 | 상태 |
 |---|---|---|---|
-| W 계산 `W=L*ID/IDu` | `size_transistor` / LUT `_sizing_bundle` | `find_optimal_sizing`, `feasible_gm_ids`, `search_gm_id_for_role`, `feasible_L_window`에 인라인 4곳 | 식 동일 -- 행동 보존 통합 가능. **단 정해진 VGS의 W(`W=L·ID/IDu`, probe 계산)는 `size_transistor`(gm/ID에서 VGS를 다시 풀어 W를 냄)와 다른 질문이라 중복이 아니다**(P4 실측: 교체하면 PMOS 그룹에서만 결과가 달라짐, 예 M6 W 102.756→21.337 um). PMOS W 차이는 결함 후보 B24(P3b의 PMOS gm/ID 비단조와 같은 뿌리 추정) |
+| W 계산 `W=L*ID/IDu` | `width_from_id_density`(식) / `size_transistor`(gm·gm/ID 입력 경로) | 인라인 18곳 통합 완료 -- 옛 목록 `find_optimal_sizing`·`feasible_gm_ids`·`search_gm_id_for_role`·`feasible_L_window` 4곳은 18곳에 모두 들어 있었고 개수만 적었다(20260930-dup-w-calc) | 정해진 VGS의 W는 같은 식의 다른 입력 경로(P4), PMOS W 차이 B24는 입력 경로 문제. (P4 실측: `size_transistor`(gm/ID에서 VGS를 다시 풀어 W를 냄)로 교체하면 PMOS 그룹에서만 결과가 달라짐, 예 M6 W 102.756→21.337 um -- 결함 후보 B24, P3b의 PMOS gm/ID 비단조와 같은 뿌리 추정) |
 | diode 판정 | `is_diode_connected` | `stick_diagram.find_diode_stacks`(운영 0), SD 인라인 `gate==drain` 3곳, netclass role 기반 | ★ `find_diode_stacks`는 이웃 diode까지 포함(16/1/20 불일치의 원인) |
 | 전류미러 그룹 | 정본 후보(`true_current_mirror_groups`(connectivity, 키 kind·gate·source) -- 레일 판정을 `_DEFAULT_RAIL_HI/_LO` 넷 이름 리터럴로 읽음(sizing_recipe 2197행 근처), B26 해소 뒤 확정) | `stick_diagram.find_matching_candidates`(키 kind·gate 또는 kind·bias·rail), `_mirror_ratio_error_pairs`(선언 기반, 첫 쌍만), probe 3곳 복제 | ★ B19'에서 11 vs 18소자로 결론이 뒤집힌 원인. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
 | diffpair / tail | (미정) | `find_differential_pair_candidates`, `_diff_pair_layer1_groups`, `_propose_gm_id_roles`(SD, connectivity) vs `gain_stage_tails`, `input_referred_offset_pairs`(SR, 선언) | ★ S1 유도 정본을 정해야 함 |
@@ -60,11 +60,12 @@
 
 ## 3. R0 -- 수정 없이 그대로 재사용 (새로 만들면 중복)
 
-### sizing_recipe.py (85)
+### sizing_recipe.py (86)
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
 | `gm_from_fT` | gm=2π·fT·C | gmid_sizing_engine.py | 1줄 순수함수. 호출자: `sizing_recipe.py:find_optimal_sizing`(단일 소자 사이징 경로, `gm=None`일 때만 타는 분기). 삭제 이득 없음 |
+| `width_from_id_density` | W=L·ID/IDu(방법론 식 1.18) 식 정본 | gmid_sizing_engine.py | 1줄 순수 식, 가드 없음(IDu<=0 처리는 호출부 몫). `size_transistor`와 엔진 인라인 18곳이 부른다(20260930-dup-w-calc) |
 | `GmIdLUT` | LUT 추상 인터페이스(`gm_id_to_id_density`/`gm_gds_ratio`는 NotImplemented) | gmid_sizing_engine.py | 순수 인터페이스 |
 | `SizingResult` | 사이징 결과 dataclass(gm, gm_id, ID, W, gain) | gmid_sizing_engine.py |  |
 | `QuasiStaticVerdict` | 준정적 판정 결과 | gmid_sizing_engine.py |  |
@@ -449,7 +450,7 @@
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
-| `size_transistor` | ID=gm/gm_id, W=L·ID/IDu | gmid_sizing_engine.py | 같은 식 `W=L·ID/IDu`를 엔진이 인라인으로 다시 씀: `find_optimal_sizing:941`, `feasible_gm_ids:1756`, `search_gm_id_for_role:2234`, `feasible_L_window:2746`. 계획은 "재사용"이라 했지만 엔진은 이 함수를 안 … |
+| `size_transistor` | ID=gm/gm_id, W=L·ID/IDu | gmid_sizing_engine.py | 식 `W=L·ID/IDu`는 `width_from_id_density`가 정본이고 `size_transistor`가 그것을 부른다. 엔진 인라인 0곳(20260930-dup-w-calc로 18곳을 `width_from_id_density` 호출로 통합) |
 | `_multilinear_interp_point_multi` | 단일 좌표에서 여러 배열을 한 번에 보간 | gmid_sizing_engine.py | 축별 bisect/frac/corner-weight 코드가 `_multilinear_interp`(217-246)와 복붙. 공통 `(idx_lo, frac)` 헬퍼 하나로 합칠 것 |
 | `true_current_mirror_groups` | 같은 (kind, gate net, source net) 소자 그룹(게이트가 레일이면 제외) | circuit_state_graph.py(S1 "개념당 정의 하나"의 미… | 같은 개념이 다른 정의로 또 있다: `stick_diagram.find_matching_candidates`(972, 1005-1006 `(kind, gate, source)` current_mirror 그룹핑), `_mirror_ratio_error_pairs`(4551, connectivity가 아니… |
 | `_folded_cascode_rout` | folded-cascode Rout_p/Rout_n/병렬 폐형식 | gmid_sizing_engine.py | 소비자 둘이 DUP라 종속. ro_fold 계산(3054)이 `_nmcnr_stage1_rout`(3126)와 같은 식 복제 |

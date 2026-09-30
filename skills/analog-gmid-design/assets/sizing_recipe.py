@@ -91,6 +91,16 @@ class SizingResult:
     gain: float | None = None
 
 
+def width_from_id_density(L: float, ID: float, IDu: float) -> float:
+    """방법론 식 1.18: W = L * ID / IDu (단위 폭 전류밀도 IDu에서 소자 폭을 얻는다).
+
+    가드(IDu <= 0 처리)는 호출부 몫이다 -- 이 함수는 가드·형 변환을 더하지 않는다
+    (IDu=0이면 ZeroDivisionError, numpy 입력이면 numpy 결과 그대로). 회로·넷·소자
+    이름을 읽지 않는 topology 무관 물리 식이며, 엔진의 W 계산은 모두 이 함수를 부른다.
+    """
+    return L * ID / IDu
+
+
 def size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT,
                      vds: float, vsb: float = 0.0) -> SizingResult:
     """방법론 식 1.17/1.18: ID = gm/(gm/ID),  W = L * ID / IDu."""
@@ -98,7 +108,7 @@ def size_transistor(gm: float, gm_id: float, L: float, lut: GmIdLUT,
     IDu = lut.gm_id_to_id_density(gm_id, L, vds, vsb)
     if IDu <= 0:
         raise ValueError("IDu<=0 — LUT 보간 범위를 벗어났을 가능성 (gm_id/vds 확인)")
-    W = L * ID / IDu
+    W = width_from_id_density(L, ID, IDu)
     return SizingResult(gm=gm, gm_id=gm_id, ID=ID, W=W)
 
 
@@ -875,7 +885,7 @@ def find_optimal_sizing(lut: "SemiEmpiricalGmIdLUT", L_candidates, VDS_candidate
                     # 마지막에 raw*W/w_ref로 스케일링 -- cgg_absolute()와 동일한 식, 수치 동일.
                     IDu, gain, cgg_raw = lut._sizing_bundle(gm_id, L, VDS, vsb, need_cgg=(fT is not None))
                     ID = gm / gm_id
-                    W = L * ID / IDu
+                    W = width_from_id_density(L, ID, IDu)
                     fnqs_ok = True
                     if fT is not None:
                         Cgg = cgg_raw * W / lut._w_ref_effective(L)
@@ -1576,7 +1586,7 @@ def feasible_gm_ids(lut: "GmIdLUT", L: float, ID: float, vds: float, vsb: float,
     이 함수 자체는 캐시가 필요 없다(같은 L을 다시 물어도 스캔은 재사용된다).
     """
     return [g for g, idu in lut._idu_scan(L, vds, vsb, list(gm_id_grid))
-            if idu > 0 and W_bounds[0] <= ID * L / idu <= W_bounds[1]]
+            if idu > 0 and W_bounds[0] <= width_from_id_density(L, ID, idu) <= W_bounds[1]]
 
 def lut_vdsat_headroom(ctx: "SizingContext", name: str, default: float) -> float:
     """`name`이 포화를 유지할 최소 VDS를 **LUT에서 유도**한다(2026-09-10).
@@ -2054,7 +2064,7 @@ def search_gm_id_for_role(lut: "GmIdLUT", L: float, vds: float, vsb: float, ID_t
     idu_by_gm_id = {}
     n_vgs_rejected = 0
     for gm_id, idu in lut._idu_scan(L, vds, vsb, gm_id_grid):
-        W = ID_target * L / idu
+        W = width_from_id_density(L, ID_target, idu)
         if not (W_bounds[0] <= W <= W_bounds[1]):
             continue
         # 2026-09-10 -- `vgs_max`: 이 소자의 **VGS가 다른 소자의 VDS로 소비될 때**
@@ -2572,7 +2582,7 @@ def feasible_L_window(lut: "GmIdLUT", ID: float, vds: float, vsb: float,
             try:
                 _g = lut.gm_id_for_vgs(vds, Lc, vds, vsb)      # gate==drain -> VGS==VDS
                 _idu = lut.gm_id_to_id_density(_g, Lc, vds, vsb)
-                ok = _idu > 0 and wb[0] <= ID * Lc / _idu <= wb[1]
+                ok = _idu > 0 and wb[0] <= width_from_id_density(Lc, ID, _idu) <= wb[1]
             except ValueError:
                 ok = False                                     # LUT 범위 밖 -- 이 L은 못 쓴다
         elif diode_kind:
@@ -3453,7 +3463,7 @@ def diode_vds_window(lut, kind: str, L: float, ID: float, vsb: float,
             continue
         if idu <= 0:
             continue
-        w = L * ID / idu
+        w = width_from_id_density(L, ID, idu)
         if not (W_bounds[0] <= w <= W_bounds[1]):
             continue
         # VGS를 공유하는 소자들도 **같은 v에서** W 한계 안이어야 한다.
@@ -3467,7 +3477,7 @@ def diode_vds_window(lut, kind: str, L: float, ID: float, vsb: float,
             if idu_m <= 0:
                 ok = False
                 break
-            if not (W_bounds[0] <= L_m * ID_m / idu_m <= W_bounds[1]):
+            if not (W_bounds[0] <= width_from_id_density(L_m, ID_m, idu_m) <= W_bounds[1]):
                 ok = False
                 break
         if not ok:
@@ -3531,7 +3541,7 @@ def solve_stacked_diode_pair(lut_up, L_up: float, ID_up: float, vsb_up: float,
                 continue
         if idu_up <= 0:
             continue
-        w_up = L_up * ID_up / idu_up
+        w_up = width_from_id_density(L_up, ID_up, idu_up)
         # `constrain_up=False`면 위쪽은 diode가 아니다 -- vds가 W를 정하지 않으므로 W를
         # 제약하지 않고, 역할별 최소 vds만 지킨다(2026-09-09 확장: M57<-M58, M64<-M63).
         if constrain_up and not (W_bounds[0] <= w_up <= W_bounds[1]):
@@ -3554,7 +3564,7 @@ def solve_stacked_diode_pair(lut_up, L_up: float, ID_up: float, vsb_up: float,
                 continue
             if idu_lo <= 0:
                 continue
-            w_lo = L_lo * ID_lo / idu_lo
+            w_lo = width_from_id_density(L_lo, ID_lo, idu_lo)
             if not (W_bounds[0] <= w_lo <= W_bounds[1]):
                 continue
             out.append((v_up + v_lo, v_up, v_lo, w_up, w_lo))
@@ -3681,7 +3691,7 @@ def apply_diode_self_consistent_gm_id(ctx, spec: dict, kind_of: dict,
                 f"{name}: diode 자기일관 gm_id={gm_id:.4g}에서 전류밀도가 {idu:.4g} <= 0",
                 sized_snapshot=dict(ctx.sized))
         gm = ID * gm_id
-        w = L * ID / idu
+        w = width_from_id_density(L, ID, idu)
         gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vsb)
         if not (W_bounds[0] <= w <= W_bounds[1]):
             raise InfeasibleSizingError(
@@ -5561,7 +5571,7 @@ def _metric_stage_budget_finalize(ctx: SizingContext, name: str, gm_id: float, I
     # telescopic_ota의 M2a/M2b/M3a/M3b에 L_role="mirror"를 채웠더니 L_cascode theta
     # 탐색이 무의미해지며 gain_db가 76.48->74.8로 떨어지는 실제 회귀로 발현(SLSQP 재현,
     # 이 세션에 실측). compensation/replica와 동급의 권위 있는 출처로 등록한다.
-    ctx.sized[name].update({"L": mL, "W": mL * ID / idu, "gm": gm, "gds": gm / gm_gds,
+    ctx.sized[name].update({"L": mL, "W": width_from_id_density(mL, ID, idu), "gm": gm, "gds": gm / gm_gds,
                              "gm_id": gm_id, "ID": ID, "kind": kind, "vsb": mvs,
                              "_L_source": "metric_stage_budget"})
     # 2026-09-08(B1 5단계) -- gm_id/L/vsb를 먼저 확정한 뒤 vds를 단일 setter로 기입한다.
@@ -5755,7 +5765,7 @@ def _make_shared_current_scorer(plan: dict, ctx: SizingContext):
                 idu = lut.gm_id_to_id_density(gm_id, dev["L"], dev["vds"], dev.get("vsb", 0.0))
             except ValueError:
                 return None
-            W = dev["L"] * I / idu
+            W = width_from_id_density(dev["L"], I, idu)
             if not (W_bounds[0] <= W <= W_bounds[1]):
                 return None
         # pinned 소자도 I가 바뀌면 절대 gm/gds가 같이 바뀐다(gm_id는 고정, gm=gm_id*I) --
@@ -6767,7 +6777,7 @@ def make_matching_feasibility_check(grp, metrics_specs: dict, constraints: list,
             IDu = lut.gm_id_to_id_density(gm_id, L, VDS, 0.0)
         except ValueError:
             return False
-        W = L * ID / IDu
+        W = width_from_id_density(L, ID, IDu)
         for mspec, c in applicable:
             vth0_slope = spec["vth0_slope"][mspec["kind"]]
             sigmas = [estimate_mismatch_sigma(vth0_slope, W * 1e6, L * 1e6)
@@ -7146,7 +7156,7 @@ def _hr_resolve_vertical_group(env, vsid):
                 gm_gds2 = lut2.gm_gds_ratio(gm_id2, L2, vds2, vs2)
                 gm2 = gm_id2 * ID2
                 sib_entry.update({"gm_id": gm_id2, "L": L2, "vsb": vs2,
-                                  "kind": kind2, "W": L2 * ID2 / idu2, "gm": gm2,
+                                  "kind": kind2, "W": width_from_id_density(L2, ID2, idu2), "gm": gm2,
                                   "gds": gm2 / gm_gds2})
                 # 2026-09-08(B1 5단계) -- gm_id 확정 후 단일 setter로 vds 기입.
                 set_device_vds(ctx, sib, vds2, f"vertical_group_sibling:{resolved}")
@@ -7343,7 +7353,7 @@ def _hr_resolve_vertical_group(env, vsid):
                                 continue
                             if _idu_l <= 0:
                                 continue
-                            _wl = _le["L"] * _le["ID"] / _idu_l
+                            _wl = width_from_id_density(_le["L"], _le["ID"], _idu_l)
                             if _wb_pair[0] <= _wl <= _wb_pair[1]:
                                 _exact = [(_vu, _vl, _wu, _wl)]
                                 break
@@ -8697,7 +8707,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     f"ID_target={entry['ID']:.4g}A): {_sgfr_e}",
                     sized_snapshot=dict(ctx.sized)) from _sgfr_e
             gm = entry["ID"] * gm_id
-            w = L * entry["ID"] / idu
+            w = width_from_id_density(L, entry["ID"], idu)
             gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vsb)
             ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
                                 "kind": kind_of[name], "vsb": vsb}
@@ -8762,7 +8772,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                     sized_snapshot=dict(ctx.sized)) from _gifv_e
             idu = lut.gm_id_to_id_density(gm_id, L, vds, vsb)
             gm = entry["ID"] * gm_id
-            w = L * entry["ID"] / idu
+            w = width_from_id_density(L, entry["ID"], idu)
             gds = gm / lut.gm_gds_ratio(gm_id, L, vds, vsb)
             ctx.sized[name] = {**entry, "gm_id": gm_id, "gm": gm, "W": w, "gds": gds,
                                 "kind": kind_of[name], "vsb": vsb}
@@ -8838,7 +8848,7 @@ def _build_theta_evaluator(topology_path: str, spec: dict) -> dict:
                 # gm_id를 물려받으면 W/gm/gds를 그 값으로 **다시 계산해야** 한다 --
                 # 안 그러면 gm_id만 바뀌고 나머지가 옛 값으로 남아 더 나쁜 불일치가 된다.
                 ctx.sized[_dst] = {
-                    **_de, "gm_id": _gm_id, "gm": _gm, "W": _L * _de["ID"] / _idu,
+                    **_de, "gm_id": _gm_id, "gm": _gm, "W": width_from_id_density(_L, _de["ID"], _idu),
                     "gds": _gm / _lut.gm_gds_ratio(_gm_id, _L, _vds, _vsb),
                     "kind": kind_of[_dst], "vsb": _vsb,
                     "_gm_id_source": f"matching_pair:{_src}"}
