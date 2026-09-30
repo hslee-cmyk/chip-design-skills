@@ -32,16 +32,17 @@ import sys
 import os
 import traceback
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-sys.path.insert(0, r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets")
+WORKSPACES_DIR = os.path.dirname(os.path.abspath(__file__))
+_REPO_ROOT = os.path.dirname(WORKSPACES_DIR)
+ASSETS_DIR = os.path.join(_REPO_ROOT, "skills", "analog-gmid-design", "assets")
+sys.path.insert(0, ASSETS_DIR)
 import numpy as np
 from sizing_recipe import (SemiEmpiricalGmIdLUT, optimize_full_circuit_budget, dense_candidates,
                             layout_grid_L_candidates, diagnose_sizing_roles_gap)
 from stick_diagram import save_instance_json, run_full_circuit_audit_from_topology
 from design_report import assemble_report_data, save_html_report
 
-ASSETS_DIR = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets"
 LIBRARY_DIR = os.path.join(ASSETS_DIR, "library")
-WORKSPACES_DIR = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\workspaces"
 LUTFILE = os.path.join(ASSETS_DIR, "sky130_nfet_pfet_lut_sample.npz")
 # sky130 tech LEF(sky130hs.tlef, OpenROAD-Project 배포)의 "MANUFACTURINGGRID 0.005 ;"
 # 원문으로 확인된 실제 제조그리드(um 단위) -- 이 값 자체는 추측이 아니라 웹에서 원문
