@@ -14984,3 +14984,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 
 - 복원 card 2차 시도 판정 미커밋 FAIL(V3·V4·V7): 복원 대조 전부 PASS. V7 = 미배선 면제 승인 필요(사용자 승인 20260930-restore-unwired-until-6a, decision target 두 def id, 재검토 6a S0/첫 spec 변형 사용처), V3 = derived_spec list 서식 분기 미판정, V4 = override 없음 test 기대값이 피검과 같은 호출. spec card 계약 3 보강 후 3차 시도. 교훈: 미배선 함수를 복원·추가하는 card는 V7 면제 승인을 spec card 단계에서 먼저 받는다(만들면 배선, 안 되면 승인).
   사용자 지시(속도 개선 1~4 모두): 메모리 feedback_card_throughput 신설, 다음 순서 = 복원 card push -> spec card 양식 '작성 전 실측' 절 -> DF-35(run_harness 절대 경로) -> DF-36(instance.json topology_ref 상대 경로) -> B28(mutate_changed.py .git 결함, 게이트 변경).
+
+- 복원 card 20260930-restore-plan-functions 완료(gate 4967a82, 3차 시도, red-green): lut_conditions_from_npz·derived_spec 0ecb686 원본 바이트 복원(ast·원문·위치 동일), V7 면제 20260930-restore-unwired-until-6a, V5 20260930-restore-p5-test-list, V3 32/32. 레지스트리 §7 두 행 보류(Phase 6a).
+- spec card 양식 _TEMPLATE.spec.md에 '## 작성 전 실측' 7항목 절 추가(속도 개선 1번 배선 -- 모든 새 spec card가 이 절을 채운다).
+  다음: DF-35 -> DF-36 -> B28.

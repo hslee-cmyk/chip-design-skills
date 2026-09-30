@@ -32,6 +32,18 @@ approval: <승인 기록 id>
 
 ## 결정 필요 항목
 
+## 작성 전 실측
+
+(오케스트레이터가 커밋 전에 채운다 -- 확인마다 실행한 명령과 결과 한 줄. 2026-09-30 재시도 5/9가 전부 이 확인 누락이었다.)
+
+1. 사실 문장 재측정: 이 card의 줄 번호·개수·"X는 Y를 읽는다"·파일 내용 주장을 코드·파일로 다시 쟀다(설계서·레지스트리 문장을 옮기지 않았다).
+2. 이름 충돌: 새 파일·모듈 이름이 기존 test의 glob 패턴(`grep -rn "glob(" A/tests/`)과 겹치지 않는다.
+3. 원칙의 계약화: 의도 절에 적은 원칙(예: 정본 topology 무관)이 관찰 가능한 계약에 **전 범위로** 적혀 있다.
+4. 쓰기 경로: 각 산출물을 누가 쓰는지(test-author는 엔진 소스를 읽지 못한다) N3.12.2 쓰기 경로표와 맞다.
+5. 계획서 소비자: 지우거나 옮기는 이름을 `docs/01-plan`·`docs/02-design`에서 grep했다.
+6. 미배선: 새로 만들거나 되살리는 def가 운영 경로에서 불리지 않으면 V7 면제 승인(`target_kind: decision`)을 이 card 전에 받았다.
+7. 기존 계약 test: 바뀌는 이름·파일을 참조하는 기존 계약 test(`A/tests/contracts/`)를 grep했고, 조정이 필요하면 V5 승인 경로를 적었다.
+
 <!--
 양식의 정본은 docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md §11.2이고 필드 목록의 정본은
 계획서 N3.12.3이다. 머리 블록 규칙(게이트가 읽는다, tools/gates/role_paths.py parse_spec_card):
