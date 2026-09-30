@@ -14975,3 +14975,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - P8 20260930-dup-w-calc 1차 시도 V2 FAIL(판정 미커밋): 엔진 변경 전부 PASS(18/18, E-INST 동일, 시간 +2.6%/+3.3% 관찰 -- 호출 비용 추정 0.5~1%), 사유는 내 spec card 계약 6 괄호 문장(design §6.1 원문 인용)이 사실과 반대 -- '옛 목록 3개 함수는 현 소스와 맞지 않음'은 거짓(18곳에 포함). design·spec 정정 후 재시도. 교훈: 설계서의 사실 주장을 spec card로 옮길 때 그 자리에서 재측정할 것.
   백로그 B28: V3 게이트 도구 mutate_changed.py가 .git 없는 사본에서 test를 돌려 test_ts6_probe_relocate의 git show test가 기준 실행을 실패시킴 -> 변이 2060개 전부 '생존'(인프라 결함). 기존 test 강도: W 사이트 2배 변이 18곳 중 10곳 생존(3470·3534·5564·5758·6770·7149·7346·8700·8765·8841).
   발견(사용자 지적 계기): W 식 E-INST 호출 수 pilot 2400만·folded 700만 -- NFR-2/S2 memo(6b) 입력 근거. 계획 N3.3 S0가 쓰는 lut_conditions_from_npz와 DEC-26 derived_spec을 P5에서 잘못 삭제 -> 사용자 결정 '계획 지정 2개 복원 card'(P8 뒤). references 문서의 converge_with_parasitics·slew_rate·render_stick_diagram 안내는 B22 별도 card.
+
+- P8 20260930-dup-w-calc 완료(gate 54dec6a, 2차 시도, red-green): W = L*ID/IDu 인라인 18곳 -> 식 함수 width_from_id_density(size_transistor 포함). 18/18 사이트 AST 대조(호출 교체 외 동일), E-INST 동일, V1 701 passed. 시간 관찰: current_reuse +3.3~3.4%(두 시간대), folded +2.6~7.3%(편차 큼) -- 호출 비용 추정(0.5~1%)보다 큼, 원인 미분리. 호출 수 pilot 2400만·folded 700만/회 = NFR-2(S2 memo, 6b) 근거.
+  백로그 B28 유지(V3 도구 .git 없는 사본 결함), 기존 test 강도: W 사이트 2배 변이 10/18 생존.
+  다음: 복원 card(lut_conditions_from_npz·derived_spec, P5 오삭제).
