@@ -37,6 +37,10 @@ design `20-dead-code-dup` v1.2 §3 REG·§7·§8 P7·§10 E0: 레지스트리 `d
 5. **§2 정본 표 실측 반영**: 최소한 다음 셀을 사실에 맞춘다 -- W 계산 행(정해진 VGS의 W = L·ID/IDu는 `size_transistor`와 다른 질문이라
    중복이 아니다, P4 실측; PMOS W 차이는 결함 후보 B24), union-find 행(같은 L 동치류와 다른 묶음을 같은 개념으로 세지 않는다, P4), 레일 넷
    집합 행(이름 기반 상수는 정본이 아니다 -- `supply_nets` 선언에서 읽는 경로가 정본 후보, B26), CMRR 행(telescopic 사슬 삭제, P5b 반영 확인).
+   그리고 **§2 모든 행의 정본(제안) 칸**에 넷·소자·회로 이름 리터럴이나 이름 집합 상수를 읽는 함수를 정본으로 두지 않는다 -- 그런 함수는
+   '정본 후보(<함수> -- <무엇을 이름으로 읽는지>, B26 해소 뒤 확정)' 형태로 적는다. 1차 시도 auditor 실측으로 해당하는 행: 전류미러 그룹
+   (`true_current_mirror_groups` -- `_DEFAULT_RAIL_HI/_LO`), 노드 DC 전압(`propagate_node_voltages` -- 기본 인자 `rail_hi/rail_lo=_DEFAULT_RAIL_*`),
+   MNA 소자 스탬프(`build_ac_network` -- `{"gnd": 0.0}`). §7 `DiodeStackMember`·`DiodeStack`의 처리 값은 비고대로 `find_diode_stacks`와 같은 Phase로.
 6. **도구** `A/tests/tools/reg_check.py`(신규 시그니처 표): `check(registry_text, engine_names)`가 발견 목록을 돌려주고, `main(argv)`는
    `--registry <레지스트리 경로> --root <저장소 루트>`로 엔진 정의 이름(`A/*.py` 최상위 def·class와 클래스 메서드 `Class.method`,
    `workspaces/run_harness.py` 최상위)을 AST로 모아 판정한다. 발견을 한 줄 JSON(`{"rule", "section", "name", "detail"}`)씩 출력하고 발견 0이면
@@ -86,3 +90,12 @@ red-green: 도구가 base에 없어 계약 6의 test가 base에서 ImportError(r
 ## 결정 필요 항목
 
 없음(U-02 승인 1항 '유지·등급 정정(운영 경로에 살아 있는 9개 -- 레지스트리 §7 제목이 틀렸다)'과 '보류'). 설계와 다른 두 가지는 의도 절에 적었다.
+
+## 재시도 기록
+
+1차 시도(2026-09-30, test 351869a, code 8525f36, 판정 기록 25c53ce): V2 FAIL -- (1) 계약 5: §2 정본 칸에 이름 상수·리터럴을 읽는 함수 셋이 남음
+(전류미러 그룹 `true_current_mirror_groups`, 노드 DC 전압 `propagate_node_voltages`, MNA 소자 스탬프 `build_ac_network`) -- 계약 5가 명시한 네 행 밖이었지만
+의도 절의 원칙("정본은 topology 무관 -- 정본으로 두지 않고 상태 칸에 사실과 백로그")에 해당 (2) 계약 3: `DiodeStackMember`·`DiodeStack` 처리 Phase 4가
+비고("`find_diode_stacks`의 판단을 따른다", 그쪽은 Phase 3)와 불일치. 나머지(R-4 정정·삭제 이름 제거·§1 집계·도구·red-green)는 PASS. 계약 5를 §2 전 행으로
+명시하고 같은 id로 1부터 다시 한다. test는 1차 blob을 쓰되 1차 auditor V3 생존 변이 두 분기(§1에 §7 소절 파일 행 없음, §1 D≠0인데 §7 소절 없음)의
+합성 케이스를 더한다.

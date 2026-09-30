@@ -14965,3 +14965,5 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   보류(R-1 중 test 전용 아님): build_toy_lut·_invq_newton(workspaces 사용, 엔진 docstring 인용), check_multi_leaf_hub_parity(엔진 docstring·IC5 목록).
   백로그 B27: find_interleaved_symmetric_splits의 유일한 사용처 test_s022가 반환값을 판정하지 않음(V3 변이 생존) -- 판정 추가 또는 삭제 후보(P7). run_regression_case rel_tol 완화는 골든 1케이스로 안 잡힘. 새 모듈에 from __future__ import annotations 없음(주석 평가 차이, 읽는 코드 없음). references/function-selection-map.md 99행 등이 find_interleaved_symmetric_splits 위치 안내 낡음 -> B22 합류.
   다음: P7(registry-grade-fix).
+
+- P7 20260930-registry-grade-fix 1차 시도 V2 FAIL(판정 25c53ce): §2 정본 칸에 이름 상수를 읽는 함수 셋(true_current_mirror_groups·propagate_node_voltages -- _DEFAULT_RAIL_*, build_ac_network -- {'gnd':0.0})이 남음 + DiodeStack* Phase 불일치. spec card 계약 5를 §2 전 행으로 명시해 재시도. auditor 관찰: R-4 넷은 정적 호출자는 있으나 운영 도달 제한(render_report CLI 블록, gm_from_fT gm None 분기, block_coordinate 분기 미선택, search_shared_finger_w는 workspaces만). §1 R0/stick_diagram은 base부터 괄호 81 vs 실제 84 오류였음.
