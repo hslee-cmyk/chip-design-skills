@@ -14967,3 +14967,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   다음: P7(registry-grade-fix).
 
 - P7 20260930-registry-grade-fix 1차 시도 V2 FAIL(판정 25c53ce): §2 정본 칸에 이름 상수를 읽는 함수 셋(true_current_mirror_groups·propagate_node_voltages -- _DEFAULT_RAIL_*, build_ac_network -- {'gnd':0.0})이 남음 + DiodeStack* Phase 불일치. spec card 계약 5를 §2 전 행으로 명시해 재시도. auditor 관찰: R-4 넷은 정적 호출자는 있으나 운영 도달 제한(render_report CLI 블록, gm_from_fT gm None 분기, block_coordinate 분기 미선택, search_shared_finger_w는 workspaces만). §1 R0/stick_diagram은 base부터 괄호 81 vs 실제 84 오류였음.
+
+- P7 20260930-registry-grade-fix 완료(gate df77a5f, 2차 시도, red-green): 레지스트리 R-4 네 이름 §7->§3 R0(render_report·gm_from_fT·SharedFingerWCandidate)/§5 R2(_optimize_theta_slsqp_block_coordinate), §7에서 P6 이관 이름 제거, §7 23행 처리 열(보류(Phase 3) 9 / 보류(Phase 4) 14), §1 집계 15칸 = 실제 행 수, §2 정본 칸에서 넷 이름을 직접 또는 한 단계 하위에서 읽는 7행을 '정본 후보(..., B26 해소 뒤 확정)'로(전류미러 그룹·노드 DC 전압·KCL 엣지·MNA 스탬프 / gain·CMRR·PM metric). 도구 A/tests/tools/reg_check.py(stale·disposition·count, DoD E0). V1 595 passed, 변이 11/11.
+  계약 5 판정 기준(오케스트레이터): 정본 함수가 직접 또는 한 단계 하위에서 넷·소자·회로 이름을 읽으면 정본 아님. 두 단계 이상은 B26 사정권 관찰 -- load_topology->propose_device_roles_gap_fill(_RAIL_NETS), stick_diagram에서 _RAIL_NETS 쓰는 최상위 함수 10개. B26 해소 = supply_nets 선언 배선으로 엔진 전반 레일 이름 의존 제거(Phase 4 후보, P3c 재착수 조건 (2)와 같은 일).
+  Phase 2 남은 card: P3c(보류 B21), P8(dup-w-calc), P9(dup-kcl-edges), P10(df23-inventory).
