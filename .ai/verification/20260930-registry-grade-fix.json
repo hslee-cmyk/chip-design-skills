@@ -1,0 +1,80 @@
+{
+  "id": "20260930-registry-grade-fix",
+  "spec_card": "docs/02-design/specs/20260930-registry-grade-fix.spec.md",
+  "evidence_type": "red-green",
+  "base_commit": "9b9cbe3f60f83fe578a1db34cd502740771f13d8",
+  "test_commit": "40b83f5a2f1c2957997d72b7adb35040833082d6",
+  "code_commit": "cbddcb9ecc4302aed62539fba3f7c4957ca205aa",
+  "red": {
+    "test_ids": [
+      "skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py"
+    ],
+    "failure_hashes": [
+      "e8c86163aad0f7951f876426c8054bd5c1a0b62c160044ba904b6ba2f98c29e9"
+    ]
+  },
+  "checks": {
+    "V1": {
+      "verdict": "PASS",
+      "basis": "2차 시도. 병합본 M dd3fae429e8632fd07ed73d83d232726e6616db3(부모 [T 40b83f5, K 끝 cbddcb9], 트리 1d5954d8 = cbddcb9 트리, Role: doc·Change-Id 일치)의 격리 복제본 C:/g11/m2(git clone --no-hardlinks --no-local --no-checkout, origin 제거, checkout --detach, remote 0·status 0줄, 실행 뒤 status 0줄)에서 base 판 캐시 9b9cbe3의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=): 595 passed, 15 xfailed, 실패·오류·skip·xpass 0, 수집 610, 수집 오류 0, exit 0, 97s, 출력 sha256 68ade55c…. 수집 대조(scripts/cmp_collect.py): base 568(순서 3 id 집합 sha256 e0048795…)의 id 전부가 병합본에 있고 새 id 42개는 전부 contracts/test_reg_check.py(1차 40 + 새 parametrize 2) -- 595 = base 553 + 42, xfail 15 = base 15. 엄격 집합은 base 판 merge_gate.strict_set = 빈 집합, v1_command_check 실패 0(순서 3). 게이트 코드는 git cat-file blob 9b9cbe3:tools/gates/<파일>로 auditor가 redteam 밖 22개를 직접 뽑았다(tools 트리 712beefc, file_set_sha256 ab7afccd…). code-author 보고는 증거로 쓰지 않았다"
+    },
+    "V2": {
+      "verdict": "PASS",
+      "basis": "red-green. 커밋 사슬: base 9b9cbe3(gate master, spec card 개정) -> T 40b83f5(Role: test, 부모 base, test_reg_check.py 1파일 -- 1차 blob ad037f7d에 _registry 인자 s1_omit·s1_extra와 test_count_finds_unmatched_file 2건만 더함, 순서 3 diff 확인) -> K 79f91f2(Role: code, 부모 T, 레지스트리 + A/tests/tools/reg_check.py) -> cbddcb9(Role: code, 부모 79f91f2, 레지스트리 3행) -> M dd3fae4(Role: doc, 부모 [T, cbddcb9], 트리 = cbddcb9 트리). test 커밋 불변: git diff T M = 레지스트리와 reg_check.py 2파일뿐, test_reg_check.py blob 52d63f18 그대로. red(순서 3, base_check.json): T 복제본 C:/g11/iso2에서 base 판 red 수집 플러그인이 1건 기록 -- test_reg_check.py 수집 ModuleNotFoundError(쌍 (reg_check, *)이 신규 시그니처 표 첫 행과 같다), 해시는 auditor가 따로 계산해 같다, 나머지 553 passed·15 xfailed는 base와 같다. green: V1 전체 PASS, test_reg_check.py를 -rA와 red 수집 플러그인으로 따로 돌려 42 passed, 허용 타입 red 기록 0. 계약 6: 병합본 reg_check main(blob 74c5f919, 1차 병합본과 같은 blob)을 병합본 레지스트리·루트에 돌리면 exit 0 '발견 0'; 같은 도구를 base 복제본에 돌리면 exit 1, stale 4·disposition 3·count 6줄이고 출력 파일이 1차 base 실행과 바이트 동일(cmp) -- 순서 3 auditor 독립 측정과 일치. 계약 7: git diff --name-only base M -- ':(exclude)A/tests/**' ':(exclude)docs/**' 0줄. 계약 4(scripts/sec_counts.py): 병합본 §1 R0·R1·R2·D·DUP 15칸 = §3~§7 소절 제목 괄호 = 실제 표 행 수, 불일치 0(D 8·15·0, R0 85·85·22, R2 20·12·1; base의 R0/stick_diagram.py 괄호 81·행 84 오류가 바로잡힘). §7 남은 23행은 엔진에 전부 있고(scripts/reg_measure.py, stale 0) 엔진 안 참조는 다른 §7 행에서만, run_harness 참조 0 -- §7 제목 '운영 경로 호출 0'이 사실. 계약 1: R-4 네 이름이 §7에 없고 새 행의 호출자 근거가 auditor 측정 파일:함수와 같다 -- gm_from_fT R0 'sizing_recipe.py:find_optimal_sizing(단일 소자 사이징 경로, gm=None일 때만 타는 분기)'(실제 864행, 엔진 호출부 4곳은 모두 gm= 전달 -- 1차 관찰이 비고에 반영됨), SharedFingerWCandidate R0 'stick_diagram.py:search_shared_finger_w, 사용처는 workspaces 스크립트'(실제 workspaces/current-reuse-telescopic-ota-report/stick.py와 unit test import만), render_report R0 'audit_current_forced.py __main__ 블록'(실제 160·178행), _optimize_theta_slsqp_block_coordinate R2 'optimize_full_circuit_budget의 search_method == \"slsqp_block_coordinate\" 분기'(실제 9124·9135행, 저장소에서 이 값을 고르는 곳 없음, _optimize_theta_slsqp도 §5 R2) -- 제한적 도달 사실과 모순되는 서술 없음. 계약 3: §7 23행 처리 값 = 보류(Phase 3) 9 · 보류(Phase 4) 14, 전부 정규식 형식. Phase 3 9행은 이관 목적지가 topology_authoring 6(validate_theta_declaration_order, find_idiom_matches, audit_theta_root_direction, propose_theta_kcl_gap_fill, apply_theta_kcl_gap_fill, apply_device_roles_gap_fill)·circuit_state_graph 1(find_diode_stacks)과 그 결과 레코드 DiodeStackMember·DiodeStack 2(비고 'find_diode_stacks의 판단을 따른다' -- 1차 불일치가 Phase 3으로 고쳐짐) -- Phase 3 모듈 분할과 일관. Phase 4 14행은 삭제 판단·배선 판단·흡수 판단·test 픽스처/test util 이관 행과 그 결과 레코드(MirrorSymmetryVerdict는 check_mirror_symmetry와, MultiLeafHubParityVerdict는 check_multi_leaf_hub_parity와 같은 Phase 4) -- 계획 Phase 4 'Phase 2에서 배선을 고른 함수 배선' 범위와 일관, 비고의 workspaces 참조·엔진 docstring 인용·IC5 사유는 auditor 참조 측정과 같다. 계약 5(오케스트레이터 기준: §2 모든 행, 직접 또는 한 단계 하위 함수가 넷·소자·회로 이름 리터럴이나 이름 집합 상수를 읽으면 정본 후보로, 두 단계 이상은 관찰, 오탐 = 연산자·metric 이름 레지스트리 키·spec 스칼라 키·소자 종류): scripts/canon_depth.py로 병합본 §2 22행을 조사(정본 칸 함수의 본문·기본 인자 + 같은 모듈 한 단계 하위 함수·self 메서드; 다른 엔진 모듈에서 import한 한 단계 하위는 따로 조사 -- _load_full_topology_cached->load_topology, run_topology_pipeline_with_finger_fixup->load_topology·run_topology_pipeline·find_min_crossover_layout_with_branch_composite 모두 이름 읽기 0, out2/canon_xmod.txt). 이름을 읽는 행 7개 = 정본 칸이 '정본 후보(<함수> -- <무엇을 이름으로 읽는지>, B26 해소 뒤 확정)'로 적힌 행 7개, 정확히 일치: 직접 -- 전류미러 그룹(true_current_mirror_groups, _DEFAULT_RAIL_HI/_LO), 노드 DC 전압(propagate_node_voltages, 기본 인자 _DEFAULT_RAIL_*), KCL 엣지(stick_diagram._kcl_and_matching_edges, _RAIL_NETS), MNA 소자 스탬프(build_ac_network, {'gnd': 0.0}); 한 단계 하위 -- gain metric·CMRR(_full_circuit_response 4957행 {'gnd': 0.0}), PM metric(build_ac_network). 칸에 적은 읽는 대상·줄 번호(2197·3717·3148·4076·4957)가 소스와 같다. 표시 안 된 나머지 15행: 함수가 있는 11행(size_transistor·_sizing_bundle, is_diode_connected, _hr_verify_group_kvl_sum, _load_full_topology_cached, _theta_feed_footprint, run_topology_pipeline_with_finger_fixup, _multilinear_interp, design_report.render_html_report, solve_diode_connected_vds, quantize_L)은 한 단계까지 이름 읽기 0(스택 KVL 합의 spec[\"vdd\"]와 euler 행의 _CONSTRAINT_OPS·_METRICS_REGISTRY·_METRIC_UNITS 경유는 오탐 기준), 4행은 함수 없음(diffpair·위반량 합·union-find·이분 역산 -- '(미정)'·'(함수 하나로)' 류), 레일 넷 집합 행은 '(정본 없음 -- supply_nets 선언 경로가 후보)'. 관찰(판정 밖, B26 사정권): 두 단계 하위 이름 읽기 -- topology 로딩 행 _load_full_topology_cached -> stick_diagram.load_topology -> propose_device_roles_gap_fill(_RAIL_NETS), PM metric -> full_circuit_response_at_omega -> build_ac_network; stick_diagram에서 _RAIL_NETS를 읽는 최상위 함수 10개(out2/canon_xmod.txt). 계약 5의 나머지 셀(W·union-find·레일·CMRR)은 1차와 같은 문장이며 사실과 맞다(1차 V2 기록). E-LIB·E-INST: 엔진 7파일·run_harness.py·library 트리가 base와 같고(assets 차이는 A/tests/ 2파일 추가뿐, git diff --stat 9b9cbe3 dd3fae4 -- assets = 2 files 686 insertions) 엔진이 docs/·A/tests/tools/를 읽지 않아 실측 대신 엔진 불변으로 대체한다(순서 3 조건 충족)"
+    },
+    "V3": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 mutate_changed.py --root C:/g11/m2 --base 9b9cbe3 --head dd3fae4 --pytest-ini <캐시>/pytest_gate.ini --gmid-phase=2 --gmid-strict= -> verdict PASS, targets [], mutants 0 -- 변경이 문서와 A/tests/tools/(도구 대상 밖)뿐이다. 대신한 확인(scripts/mut_regcheck.py, 격리 복제본 C:/g11/mut2 = M, 끝나고 원본 복원, status 0줄): reg_check.py에 1차와 같은 변이 11개를 하나씩 넣고 test_reg_check.py를 V1 형태로 실행 -- 대조군 42 passed, 11개 모두 죽음(stale 규칙 끔, 처리 열 없음 검사 끔, 처리 정규식 완화, 제목 괄호 검사 끔, §1 D 비교 끔, §1에 §7 소절 파일 행 없음 검사 끔, §1 D≠0인데 §7 소절 없음 검사 끔, Class.method 수집 끔, run_harness 수집 끔, 발견 시 exit 1->0, §7 없음을 발견 0으로). 1차 생존 두 개(s1_missing_off, orphan_s1_off)는 새 test_count_finds_unmatched_file가 죽인다"
+    },
+    "V4": {
+      "verdict": "PASS",
+      "basis": "oracle 대조: spec card oracle은 (a) 규칙마다 합성 레지스트리 조각·합성 엔진 이름 집합(기대 = 계약 6 규칙 문장), (d) 실측 원자료다 -- test_clean_registry_has_no_findings(처리 열 위치 2종, 발견 0)는 계약 6 규칙 (a)(일치); test_stale_finds·test_stale_finds_each_name_in_every_subsection·test_stale_depends_on_engine_names는 stale 규칙 (a)(일치: 엔진 집합 밖 이름만 발견); test_stale_ignores는 card '발견하면 안 되는 것'(백틱 없는 설명 칸, §7 밖 표, 엔진에 있는 Class.method) (a)(일치); test_disposition_finds_missing_column·test_disposition_finds_bad_value·test_disposition_accepts는 정규식 ^보류\\(Phase [0-9]+[a-z]?\\) (a)(일치); test_count_finds(3종)·test_count_checks_every_file_row는 count 규칙 문장 (a)(일치); test_count_finds_unmatched_file(2종, 2차 추가)은 count 문장 '§1 파일별 D 값과 §7 해당 소절 행 수가 다르다'의 두 경계(§1 값 없음, 소절 없음 = 행 수 0) (a)(일치: auditor가 합성 조각을 읽어 두 경우 모두 다른 파일은 일치하게 구성됐음을 확인, V3에서 해당 변이 둘을 죽임); test_main_exit_0/1/2·test_main_json_line_has_four_keys는 계약 6 exit 코드와 JSON 키 넷 (a)(일치: auditor가 병합본 exit 0, base exit 1, 발견 줄 키 {rule, section, name, detail}를 직접 확인); test_main_on_this_repository_is_clean은 계약 6 끝 '병합본 exit 0' (d)(일치: auditor 실행 exit 0) -- 형식 규칙만 보므로 계약 5는 auditor가 canon_depth.py로 따로 판정(V2); test_repository_section7_lacks_r4_names는 계약 1 이름 목록 (a)(일치: auditor reg_measure 병합본 §7 23행에 R-4 0). 피검 출력을 기대값으로 복사한 test는 없다. 도구: base 판 캐시 test_lint.py --root C:/g11/m2 --base 9b9cbe3 --head dd3fae4 --module-dir <A>/tests/tools --subject reg_check:check --subject reg_check:main -> verdict PASS, exit 0, 대상 파일 1(test_reg_check.py), findings 36 = (2) NO-SUBJECT 34 + (2) PASS 2(test_main_exit_2_on_missing_registry, test_main_exit_2_without_section7_title), FAIL·UNJUDGED 0"
+    },
+    "V5": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 weakening_diff.py --root C:/g11/m2 --base 9b9cbe3 --head dd3fae4 -> verdict PASS, findings [], diff_paths [], diff_hash null, approved false, exit 0 -- 출력이 순서 3의 base -> T 출력과 바이트 동일. test 변경은 새 파일 추가 하나라 약화할 기존 판정이 없다. 승인 대상 diff 없음"
+    },
+    "V6": {
+      "verdict": "PASS",
+      "basis": "base 판 캐시 source_lint.py --root C:/g11/m2 --base 9b9cbe3 --head dd3fae4 -> verdict PASS, targets [], findings [], exit 0(엔진 변경 없음). 새 파일(도구 대상 밖) 직접 확인: reg_check.py(1차와 같은 blob)의 except는 main의 except (OSError, UnicodeDecodeError, SyntaxError, ValueError) 하나이고 stderr에 '입력 오류'를 쓰고 exit 2(card 계약 6 입력 오류 규약) -- 조용히 삼키지 않는다. argparse SystemExit도 exit 2. 폴백·임계 상수 없음, 표준 라이브러리만"
+    },
+    "V7": {
+      "verdict": "PASS",
+      "basis": "Phase 2부터 활성. base 판 캐시 reachability.py --root C:/g11/m2 --base 9b9cbe3 --head dd3fae4 -> verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개(A/sky130_lut_sweep.py::__main__, A/topology_to_markdown.py::__main__, workspaces/run_harness.py::__main__·run), roots_without_file 1개(A/gmid_design_pipeline.py::run_gmid_design_pipeline, base부터 같음), exit 0. 새 def는 A/tests/tools/라 도구 그래프 밖이다. 대신한 배선 확인: reg_check는 design 20 §10 DoD E0 측정 도구이고 test_main_on_this_repository_is_clean이 V1마다 실제 저장소 레지스트리에 main을 돌려 E0을 판정한다(check·collect_engine_names·_defs_of 전부 그 경로에서 호출). 엔진 운영 경로에 배선할 대상이 아니다"
+    },
+    "V8": {
+      "verdict": "N/A",
+      "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터(N4.2 v_intro[V8] = 4). 이 card는 Phase 2이고 엔진 변경이 없다(엔진 7파일·run_harness blob이 base와 같다)"
+    },
+    "V9": {
+      "verdict": "N/A",
+      "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터(N4.2 v_intro[V9] = 6b). 엔진 변경 없음"
+    },
+    "V10": {
+      "verdict": "PASS",
+      "basis": "spec card '재현할 수치'가 '없음'이라 reproduced_numbers는 빈 배열이다. 이 기록의 수치(수집 568 -> 610, 병합본 595 passed·15 xfailed, base red 1건과 해시, reg_check 병합본 exit 0·base 발견 13줄, §1·소절·행 수 15칸, V4 발견 수, 변이 11개 결과, §2 22행 정본 칸 조사)는 전부 auditor가 격리 복제본 C:/g11/*2에서 직접 쟀다(순서 3 측정은 .ai/verification/20260930-registry-grade-fix/base_check.json). code-author·test-author·오케스트레이터 보고는 증거로 쓰지 않았다(오케스트레이터의 계약 5 판정 기준만 받았다)"
+    }
+  },
+  "reproduced_numbers": [],
+  "approvals": [
+    "20260923-u02-d-list"
+  ],
+  "auditor_run": {
+    "time": "2026-09-30T13:32:32+09:00",
+    "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-registry-grade-fix-audit",
+    "commands": [
+      "환경: $PY = C:/Python314/python.exe(3.14.2), pytest 9.0.2, export APPDATA=C:/Users/HSLEE/AppData/Roaming, 출력 C:/g11/out2, 스크립트 C:/g11/scripts/(사본 .ai/verification/20260930-registry-grade-fix/scripts/)",
+      "게이트 코드: C:/Python314/python.exe -P C:/g11/scripts/extract_gate.py C:/g11/base2 9b9cbe3f60f83fe578a1db34cd502740771f13d8 C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8 (git ls-tree + git cat-file blob, tools/gates/ 중 redteam/ 밖 22개)",
+      "격리: git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-registry-grade-fix-audit C:/g11/<이름>; git -C C:/g11/<이름> remote remove origin; git -C C:/g11/<이름> checkout -q --detach <rev> -- iso2 = T, base2 = 9b9cbe3, m2·mut2 = M dd3fae4, 모두 remote 0, status 0줄",
+      "V1: PYTHONPYCACHEPREFIX=C:/g11/pyc2_v1_m PYTHONPATH=C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8 C:/Python314/python.exe -P -m pytest -c C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8/pytest_gate.ini --rootdir=C:/g11/m2 --confcutdir=C:/g11/m2 --gmid-phase=2 --gmid-strict= C:/g11/m2/skills/analog-gmid-design/assets/tests",
+      "수집 대조: V1 형태에 --collect-only -q -p no:cacheprovider 로 C:/g11/base2·iso2·m2 수집(scripts/run2.sh·run_m2.sh) 후 C:/Python314/python.exe -P C:/g11/scripts/cmp_collect.py <base> <m> <out>",
+      "base red(순서 3): GMID_RED_CAPTURE=C:/g11/out2/red_T.jsonl GMID_INTERFACE_CARD=C:/g11/iso2/docs/02-design/specs/20260930-registry-grade-fix.interface.md PYTHONPYCACHEPREFIX=C:/g11/pyc2_full_iso PYTHONPATH=<캐시> C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g11/iso2 --confcutdir=C:/g11/iso2 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g11/iso2/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+      "green·게이트 도구(V3·V4·V5·V6·V7): bash C:/g11/scripts/run_m2.sh (병합본 test_reg_check.py -rA + -p merge_gate 캡처; base 판 캐시의 mutate_changed.py·test_lint.py·weakening_diff.py·source_lint.py·reachability.py를 --root C:/g11/m2 --base 9b9cbe3 --head dd3fae4 로, -P 없이)",
+      "계약 6: bash C:/g11/scripts/regcheck_both2.sh (병합본 reg_check.py를 C:/g11/m2·C:/g11/base2 레지스트리와 루트에, C:/Python314/python.exe -P)",
+      "레지스트리 독립 측정: C:/Python314/python.exe -P C:/g11/scripts/reg_measure.py C:/g11/<base2|m2> <out>; C:/Python314/python.exe -P C:/g11/scripts/sec_counts.py <레지스트리> <out>",
+      "계약 5: C:/Python314/python.exe -P C:/g11/scripts/canon_depth.py C:/g11/m2 C:/g11/m2/docs/03-analysis/gain-budget-gmid-sizing.function-registry.md C:/g11/out2/canon_depth_m.json; 순서 3 C:/Python314/python.exe -P C:/g11/scripts/canon_names2.py C:/g11/base2 C:/g11/out2/canon_base.json; 모듈 간 한 단계 하위는 ast 인라인 조사(C:/g11/out2/canon_xmod.txt)",
+      "변이(V3 보강): C:/Python314/python.exe -P C:/g11/scripts/mut_regcheck.py C:/g11/mut2 <캐시> C:/g11/out2/mut_regcheck.jsonl",
+      "엔진 불변(E-LIB·E-INST 대체): git -C C:/g11/m2 diff --name-only 9b9cbe3 dd3fae4 -- ':(exclude)skills/analog-gmid-design/assets/tests/**' ':(exclude)docs/**' (0줄)"
+    ]
+  }
+}

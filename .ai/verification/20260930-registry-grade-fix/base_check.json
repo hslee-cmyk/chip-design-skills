@@ -1,0 +1,155 @@
+{
+ "note": "05-role-separation §12 순서 3 -- 2차 시도(1차 판정 기록 25c53ce V2 FAIL 뒤 같은 id 재시도). freeze(T), 1차 test 대비 diff, base red, V5, base 레지스트리 재측정, §2 전 행 정본 칸 이름 읽기 측정. 모든 수치는 auditor가 격리 복제본 C:/g11/iso2·base2에서 직접 쟀다(test-author·오케스트레이터 보고는 대조용). 스크립트 사본은 scripts/, 원자료는 reg_base.json·canon_base.json. 커밋은 순서 7.",
+ "id": "20260930-registry-grade-fix",
+ "attempt": 2,
+ "evidence_type": "red-green",
+ "phase": "2",
+ "approval": "20260923-u02-d-list",
+ "measured_at": "2026-09-30T13:18:24+09:00 (순서 3 측정 끝)",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2), pytest 9.0.2",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export)",
+  "note": "복제본: git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout <audit worktree> C:/g11/<iso2|base2> -> (별도 명령) git -C <복제본> remote remove origin -> checkout -q --detach <rev>. 복제 직후와 측정 뒤 모두 remote 0, status 0줄. 1차 시도 복제본(C:/g11/iso·base·m·mut)과 출력(C:/g11/out)은 그대로 두었고 2차 출력은 C:/g11/out2."
+ },
+ "freeze": {
+  "base_commit": "9b9cbe3f60f83fe578a1db34cd502740771f13d8",
+  "base_is_gate_master": true,
+  "base_is_gate_master_how": "git -C <주 저장소> rev-parse master = 9b9cbe3f60f83fe578a1db34cd502740771f13d8",
+  "base_subject": "docs: P7 interface card 재생성(계약 5 개정)",
+  "test_commit_T": "40b83f5a2f1c2957997d72b7adb35040833082d6",
+  "T_tree": "dcfc53ea1b7f1130fa3ad844bb967fd0ffedfed5",
+  "T_parent": "9b9cbe3f60f83fe578a1db34cd502740771f13d8",
+  "T_trailers": ["Role: test", "Change-Id: 20260930-registry-grade-fix"],
+  "audit_branch": "role/audit/20260930-registry-grade-fix",
+  "audit_branch_head_at_freeze": "40b83f5a2f1c2957997d72b7adb35040833082d6",
+  "worktree_status_at_freeze": "git status --porcelain 0줄",
+  "changed_paths_base_to_T": {
+   "shortstat": "1 file changed, 471 insertions(+)",
+   "added": ["skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py"],
+   "blob_T": "52d63f18560714c1be90416028579068e83bc940"
+  },
+  "outside_tests_diff": "git diff --name-only 9b9cbe3 T -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 0줄",
+  "diff_vs_attempt1_test": {
+   "command": "git diff 351869a 40b83f5 -- skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py (1차 blob ad037f7d -> 2차 blob 52d63f18)",
+   "verdict": "바뀐 줄은 보조 함수·새 케이스·그 설명뿐이다 -- 1차 내용은 그대로 남았다",
+   "hunks": [
+    "모듈 docstring oracle 대조 목록에 test_count_finds_unmatched_file 설명 3줄 추가(28행 뒤)",
+    "_registry 시그니처에 s1_omit=(), s1_extra=() 추가, docstring 2줄 추가, s1_rows 조립에 `if s['file'] not in s1_omit` 필터와 s1_extra 행 추가 -- 두 인자 기본값이 빈 튜플이라 기존 호출의 출력은 같다",
+    "test_count_finds_unmatched_file(parametrize 2: section7-file-missing-in-s1, s1-file-missing-in-section7) 신설 -- count 발견 있음, stale·disposition 없음을 판정"
+   ],
+   "removed_lines": "기존 _registry 정의 줄 2개(시그니처·docstring)와 s1_rows 한 줄뿐(위 확장으로 대체). 다른 test 함수·assert 삭제 0",
+   "why_rewritten": "test-author 보고(EL1 '[EL1 거부] test 되돌리기' 때문에 checkout 대신 Write) -- 결과 내용은 위 diff로 확인했다. 새 두 케이스는 1차 순서 7 V3 생존 변이 두 분기(s1_missing_off, orphan_s1_off)를 겨냥한다"
+  },
+  "code_commit_K": null
+ },
+ "base_tree_vs_attempt1": {
+  "diff": "git diff --stat 06b9cd2 9b9cbe3 = .ai/context.md +2, specs/20260930-registry-grade-fix.interface.md +24, specs/20260930-registry-grade-fix.spec.md +13 -- 3파일, 추가만",
+  "same_trees": "skills/analog-gmid-design/assets 트리 633b1f50, workspaces 트리 ac9615a9, docs/03-analysis 트리 a4aac53c, tools 트리 712beefc가 06b9cd2와 9b9cbe3에서 같다",
+  "reuse_judgement": "엔진·레지스트리·게이트 코드가 1차 base와 바이트 동일이라 1차 순서 3의 레지스트리 측정을 그대로 쓸 수 있다. 확인으로 base2에서 reg_measure.py를 다시 돌려 출력 파일이 1차 C:/g11/out/reg_base.json과 바이트 동일(cmp, sha256 07accc3c12c124d7dd70950210fad55a559714edb6f2869fe48a86c4d02341af)임을 봤다."
+ },
+ "isolation": {
+  "commands": [
+   "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-registry-grade-fix-audit C:/g11/<iso2|base2>",
+   "git -C C:/g11/<이름> remote remove origin",
+   "git -C C:/g11/<이름> checkout -q --detach <rev>"
+  ],
+  "clones": {"C:/g11/iso2": "T(40b83f5). 수집·red 수집·V5", "C:/g11/base2": "base(9b9cbe3). 수집·전체 실행·게이트 코드 추출·레지스트리 측정·정본 칸 측정"},
+  "remote_count_after": {"iso2": 0, "base2": 0},
+  "gate_code": {
+   "how": "C:/Python314/python.exe -P C:/g11/scripts/extract_gate.py C:/g11/base2 9b9cbe3f60f83fe578a1db34cd502740771f13d8 C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8 (redteam 밖 22개)",
+   "file_set_sha256": "ab7afccd7aa4b4ed6687b2d1acc71a07e82c5a6ceb615fd3b1eb7963a1adb828",
+   "cross_check": "9b9cbe3:tools 트리 712beefc = 1차 base·P6와 같다"
+  }
+ },
+ "strict_set": {
+  "card_parse": "base 판 parse_spec_card(9b9cbe3 트리): phase=2, evidence_type=red-green, gate_change=no, approval=[20260923-u02-d-list], activated_ic_case=[]",
+  "strict_needed": [],
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "new_symbols_from_interface_card": [["reg_check", "*"], ["reg_check", "check"], ["reg_check", "main"]],
+  "v1_command_check": "실패 0건 (C:/g11/out2/strict_check.txt, 루트 C:/g11/m2 가정)"
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8 C:/Python314/python.exe -P -m pytest -c C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=2 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "base_run": {
+  "script": "bash C:/g11/scripts/run2.sh (사본 scripts/run2.sh)",
+  "collection": {
+   "base_collected": 568, "base_collect_exit": 0,
+   "T_collected": 568, "T_collect_exit": 2,
+   "T_collection_errors": ["skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py -- ModuleNotFoundError: No module named 'reg_check'"],
+   "id_set_sha256_base_and_T": "e004879526687d734646ed0a0e626688cd949471eccd09f8d0cdc1470857d11d (1차와 같다)",
+   "merged_expectation": "병합본 수집 = 568 + test_reg_check.py id(1차 40 + 새 parametrize 2 = 42 예상)"
+  },
+  "full_run": {
+   "base": "553 passed, 15 xfailed, exit 0, 119s (C:/g11/out2/full_base.txt)",
+   "T_on_base_engine": "553 passed, 15 xfailed, 1 error(수집), exit 1, 99s (-p merge_gate --continue-on-collection-errors, C:/g11/out2/full_T_red.txt)"
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g11/out2/red_T.jsonl GMID_INTERFACE_CARD=C:/g11/iso2/docs/02-design/specs/20260930-registry-grade-fix.interface.md PYTHONPYCACHEPREFIX=C:/g11/pyc2_full_iso PYTHONPATH=C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8 C:/Python314/python.exe -P -m pytest -c C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8/pytest_gate.ini --rootdir=C:/g11/iso2 --confcutdir=C:/g11/iso2 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g11/iso2/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "1701f71e00d5e7fce90dba959cb38a719dcb795007af99ed8f586860ec9a8571",
+   "capture_same_as_attempt1": "바이트 동일(cmp)",
+   "capture_lines": 13,
+   "builtins_Failed_lines": 12,
+   "builtins_Failed_note": "IC xfail 12줄(실패 아님), 1차와 같은 구성",
+   "red": [
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py",
+     "exc_type": "builtins.ModuleNotFoundError",
+     "failure_hash": "e8c86163aad0f7951f876426c8054bd5c1a0b62c160044ba904b6ba2f98c29e9",
+     "new_symbol_pair": ["reg_check", "*"]
+    }
+   ],
+   "hash_recomputed": "13줄 모두 sha256(test_id + 개행 + exc_type)으로 따로 계산해 캡처 값과 같다",
+   "red_count": "1 -- test-author 보고(수집 ModuleNotFoundError 하나)와 같은 구성, auditor 직접 측정"
+  }
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g11/pyc2_v5 C:/Python314/python.exe C:/g11/gmid-gate-cache/9b9cbe3f60f83fe578a1db34cd502740771f13d8/weakening_diff.py --root C:/g11/iso2 --base 9b9cbe3f60f83fe578a1db34cd502740771f13d8 --head 40b83f5a2f1c2957997d72b7adb35040833082d6",
+  "exit": 0,
+  "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+  "auditor_judgement": "새 test 파일 추가 하나라 약화할 기존 판정이 없다. 발견 0, 승인 대상 없음"
+ },
+ "base_registry": {
+  "reuse": "1차 순서 3 측정과 같다(위 base_tree_vs_attempt1). 요약: 레지스트리 blob 1d80232f, §1 D 27·19·2, §7 소절 괄호 27·19·2, 행 13·17·1, 세 표 모두 처리 열 없음, 엔진에 없는 §7 이름 4개(RegressionVerdict, _run_optimize_multistage_case, run_regression_case, find_interleaved_symmetric_splits). 1차 순서 7에서 병합본 도구를 base 레지스트리에 돌린 결과(stale 4, disposition 3, count 6줄 = 소절마다 제목 괄호·§1 D 두 줄)와도 같다.",
+  "r4_callers": "1차와 같다 -- render_report: audit_current_forced.py:178 __main__ 블록 전용; gm_from_fT: sizing_recipe.py:864 find_optimal_sizing의 gm is None 분기(엔진 호출부 4곳 모두 gm= 전달); _optimize_theta_slsqp_block_coordinate: sizing_recipe.py:9135 optimize_full_circuit_budget의 search_method=='slsqp_block_coordinate' 분기(저장소 어디서도 선택 안 함, _optimize_theta_slsqp는 §5 R2); SharedFingerWCandidate: stick_diagram.py:6253 search_shared_finger_w가 생성, 그 함수는 workspaces/current-reuse-telescopic-ota-report/stick.py와 unit test import만",
+  "diode_stack_phase_rule": "개정 계약 5 끝 문장: DiodeStackMember·DiodeStack 처리 값 = find_diode_stacks와 같은 Phase. base에는 처리 열이 없어 순서 7에서 병합본 세 행 값이 같은지 본다"
+ },
+ "canon_cells_base": {
+  "what": "개정 계약 5 -- §2 모든 행의 정본(제안) 칸 함수가 넷·소자·회로 이름 리터럴이나 이름 집합 상수를 읽는지(순서 7에서 code-author 정정과 대조)",
+  "command": "PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g11/scripts/canon_names2.py C:/g11/base2 C:/g11/out2/canon_base.json (사본 scripts/canon_names2.py, 원자료 canon_base.json sha256 5302b23bee293377b129a1f335b23879e21561b5a6c8776d6b58fa4a6561a161)",
+  "method": "§2 표 22행의 정본 칸 백틱 이름 18개를 엔진에서 찾는다('mod.name' 접두는 그 모듈, 메서드 이름만 적힌 것은 클래스 메서드까지). 직접: 본문·기본 인자에서 모듈 최상위 이름 집합 상수(값이 문자열만인 set/frozenset/tuple/list/dict 키) 참조와 넷 이름 모양 문자열 상수. 전이(참고): 같은 모듈 최상위 함수 호출을 끝까지 따라가 같은 검사. 걸린 곳은 소스 줄로 확인했다.",
+  "resolved": "18개 전부 찾음(1차 canon_names.py는 'stick_diagram._kcl_and_matching_edges'·'design_report.render_html_report' 접두 이름과 메서드 '_sizing_bundle'을 찾지 못했다 -- 아래 KCL 엣지 행이 1차 판정에서 빠진 이유)",
+  "direct_readers": [
+   {"row": "전류미러 그룹", "func": "true_current_mirror_groups (sizing_recipe.py:2181)", "reads": "sizing_recipe.py:2197 rails = set(_DEFAULT_RAIL_HI) | set(_DEFAULT_RAIL_LO) -- 이름 집합 상수(3704·3705행 {'vdd','VDD'}·{'gnd','GND','vss','VSS'})"},
+   {"row": "노드 DC 전압", "func": "propagate_node_voltages (sizing_recipe.py:3717)", "reads": "3718행 기본 인자 rail_hi=_DEFAULT_RAIL_HI, rail_lo=_DEFAULT_RAIL_LO (엔진 호출부 3821·7415행이 기본값 사용)"},
+   {"row": "KCL 엣지", "func": "stick_diagram._kcl_and_matching_edges (stick_diagram.py:3134)", "reads": "stick_diagram.py:3148 if net in _RAIL_NETS: -- 이름 집합 상수(2983행 frozenset({'vdd','gnd','vss'})). **개정 spec card 계약 5의 '1차 시도 auditor 실측으로 해당하는 행' 목록에 없다(1차 auditor 측정 누락)**"},
+   {"row": "MNA 소자 스탬프", "func": "build_ac_network (sizing_recipe.py:4057)", "reads": "4076행 fixed = {\"gnd\": 0.0} -- 넷 이름 리터럴"}
+  ],
+  "borderline": [
+   {"row": "스택 KVL 합", "func": "_hr_verify_group_kvl_sum (sizing_recipe.py:6943)", "reads": "7034행 vdd = spec[\"vdd\"] -- 넷 이름이 아니라 spec 스칼라 키(공급 전압 값). 계획 Phase 4 MG1이 옛 키로 거부할 대상(spec 스칼라 vdd). auditor 판단: 넷·소자·회로 이름 읽기가 아니라 계약 5 대상 아님(순서 7에서 병합본 표기와 함께 다시 본다)"}
+  ],
+  "transitive_only": [
+   {"row": "gain metric", "func": "_metric_smallsignal_gain_db", "via": "_full_circuit_response (sizing_recipe.py:4957 fixed = {\"gnd\": 0.0})"},
+   {"row": "CMRR", "func": "_metric_smallsignal_ratio_db", "via": "_full_circuit_response (같은 줄)"},
+   {"row": "PM metric", "func": "_metric_parasitic_pm_deg", "via": "build_ac_network ('gnd')"},
+   {"row": "euler 행 수정 전략", "func": "run_topology_pipeline_with_finger_fixup", "via": "_CONSTRAINT_OPS·_METRICS_REGISTRY·_METRIC_UNITS -- 연산자·metric 이름 레지스트리 키라 넷·소자·회로 이름이 아니다(오탐)"}
+  ],
+  "transitive_note": "개정 계약 5 문장은 '이름을 읽는 함수'를 정본으로 두지 않는다이다. 호출하는 하위 함수가 읽는 경우(gain·CMRR·PM metric -> 'gnd')를 포함할지는 문장만으로 정해지지 않는다 -- 순서 7에서는 직접 읽는 네 행을 판정 대상으로 삼고, 전이 세 행은 관찰로 적을 예정(오케스트레이터 확인 필요 항목으로 보고).",
+  "clean": "size_transistor, SemiEmpiricalGmIdLUT._sizing_bundle, is_diode_connected, _load_full_topology_cached, _theta_feed_footprint, _multilinear_interp, design_report.render_html_report, solve_diode_connected_vds, quantize_L: 직접·전이 모두 걸림 없음. 레일 넷 집합 행 정본 칸의 `supply_nets`는 함수가 아니다(선언 필드)"
+ },
+ "e_lib_e_inst": {
+  "substitute_ok": "조건부 대체 가능(1차와 같다): 엔진 7파일·run_harness.py·library 트리가 base와 같고 엔진이 docs/·A/tests/tools/를 읽지 않는다. 순서 7에서 병합본의 tests·docs 밖 diff 0줄과 엔진 blob(1차 base_check 목록과 같은 값 -- assets 트리 633b1f50 동일)을 확인한다."
+ },
+ "scripts_preserved": "scripts/ -- run2.sh, reg_measure.py, extract_gate.py, cmp_collect.py, strict_check.py, canon_names2.py(이번에 확장), 그리고 1차 순서 7 스크립트(sec_counts.py, mut_regcheck.py, regcheck_both.sh, run_m.sh, precheck_record.py -- 순서 7에서 경로·rev를 바꿔 쓴다)",
+ "outputs_kept": {
+  "C:/g11/out2/full_base.txt": "9cebd8c1ad547c33580e7f931cfe58fbf4390e7dac49f0f8799d9b4f144cc425",
+  "C:/g11/out2/full_T_red.txt": "ce3ee1852e71b0c750a3f15ecc21e8c212ecd616659664bb5c26c0e7761c8cb4",
+  "C:/g11/out2/red_T.jsonl": "1701f71e00d5e7fce90dba959cb38a719dcb795007af99ed8f586860ec9a8571",
+  "C:/g11/out2/collect_base.txt": "670e892bec8d6bd089f7ceaac897b4b551881c9bcf45496bf29e9b24e25b1c9c",
+  "C:/g11/out2/collect_iso.txt": "2510ee44bbef900bccdc92797f7e01fe7c83de7b9bebd4cb6cf0b1dbe4cde52d",
+  "C:/g11/out2/cmp_collect.json": "d9cd9a65df0b6f95373f1a71f7763cea87c72fd278ab19f8ea3002fe6ea7d9a1",
+  "C:/g11/out2/strict_check.txt": "75fff21f65a957bdd41eb5122552641f1e86b53456b06ef2da31100fe893c9af",
+  "C:/g11/out2/v5_base_T.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+  "C:/g11/out2/reg_base.json": "07accc3c12c124d7dd70950210fad55a559714edb6f2869fe48a86c4d02341af",
+  "C:/g11/out2/canon_base.json": "5302b23bee293377b129a1f335b23879e21561b5a6c8776d6b58fa4a6561a161"
+ },
+ "next": "code-author가 K를 만들고 병합 뒤 순서 7: V1(수집 610 예상), V2(red 1건 green, reg_check 병합본 exit 0 / base 발견 13줄, 계약 1·3·4·6·7 1차와 같은 방법, 계약 5는 canon_names2.py를 병합본에 돌려 직접 읽는 네 행(전류미러 그룹·노드 DC 전압·KCL 엣지·MNA 소자 스탬프)의 정본 칸이 '정본 후보(<함수> -- <무엇을 이름으로 읽는지>, B26 해소 뒤 확정)' 형태인지 대조, DiodeStack* Phase = find_diode_stacks Phase), V3(생존 변이 두 분기가 새 test로 죽는지 mut_regcheck.py 재실행), V4~V10."
+}

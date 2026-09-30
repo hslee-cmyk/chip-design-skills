@@ -1,0 +1,758 @@
+{
+ "registry_path": "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md",
+ "sec1_D": {
+  "sizing_recipe.py": 27,
+  "stick_diagram.py": 19,
+  "기타 모듈": 2
+ },
+ "sec7": [
+  {
+   "title": "sizing_recipe.py",
+   "title_count": 27,
+   "heading_line": 480,
+   "table_head": [
+    "함수",
+    "책임",
+    "이관 목적지",
+    "비고"
+   ],
+   "has_disposition_col": false,
+   "n_rows": 13,
+   "names": [
+    "gm_from_fT",
+    "_invq_newton",
+    "build_toy_lut",
+    "RegressionVerdict",
+    "_run_optimize_multistage_case",
+    "run_regression_case",
+    "solve_diode_stack_current",
+    "estimate_area_budget",
+    "signal_path_nodes",
+    "node_pole_estimate",
+    "validate_theta_declaration_order",
+    "load_derived_bounds",
+    "_optimize_theta_slsqp_block_coordinate"
+   ]
+  },
+  {
+   "title": "stick_diagram.py",
+   "title_count": 19,
+   "heading_line": 498,
+   "table_head": [
+    "함수",
+    "책임",
+    "이관 목적지",
+    "비고"
+   ],
+   "has_disposition_col": false,
+   "n_rows": 17,
+   "names": [
+    "MirrorSymmetryVerdict",
+    "check_mirror_symmetry",
+    "find_interleaved_symmetric_splits",
+    "find_idiom_matches",
+    "find_differential_and_mirror_forks",
+    "MultiLeafHubParityVerdict",
+    "check_multi_leaf_hub_parity",
+    "DiodeStackMember",
+    "DiodeStack",
+    "find_diode_stacks",
+    "audit_theta_root_direction",
+    "propose_theta_kcl_gap_fill",
+    "apply_theta_kcl_gap_fill",
+    "apply_device_roles_gap_fill",
+    "audit_vertical_stack_id_euler_feasibility",
+    "find_euler_repair_options",
+    "SharedFingerWCandidate"
+   ]
+  },
+  {
+   "title": "기타 모듈",
+   "title_count": 2,
+   "heading_line": 520,
+   "table_head": [
+    "함수",
+    "책임",
+    "이관 목적지",
+    "비고"
+   ],
+   "has_disposition_col": false,
+   "n_rows": 1,
+   "names": [
+    "render_report"
+   ]
+  }
+ ],
+ "engine_files": [
+  "skills/analog-gmid-design/assets/audit_current_forced.py",
+  "skills/analog-gmid-design/assets/design_report.py",
+  "skills/analog-gmid-design/assets/sizing_recipe.py",
+  "skills/analog-gmid-design/assets/sky130_lut_sweep.py",
+  "skills/analog-gmid-design/assets/stick_diagram.py",
+  "skills/analog-gmid-design/assets/topology_library.py",
+  "skills/analog-gmid-design/assets/topology_to_markdown.py",
+  "workspaces/run_harness.py"
+ ],
+ "n_engine_names": 396,
+ "sec7_missing_from_engine": [
+  "RegressionVerdict",
+  "_run_optimize_multistage_case",
+  "run_regression_case",
+  "find_interleaved_symmetric_splits"
+ ],
+ "sec7_names_engine_defs": {
+  "gm_from_fT": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:80"
+  ],
+  "_invq_newton": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:1333"
+  ],
+  "build_toy_lut": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:1346"
+  ],
+  "RegressionVerdict": null,
+  "_run_optimize_multistage_case": null,
+  "run_regression_case": null,
+  "solve_diode_stack_current": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:1489"
+  ],
+  "estimate_area_budget": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:2755"
+  ],
+  "signal_path_nodes": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:3870"
+  ],
+  "node_pole_estimate": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:3907"
+  ],
+  "validate_theta_declaration_order": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:6262"
+  ],
+  "load_derived_bounds": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:7678"
+  ],
+  "_optimize_theta_slsqp_block_coordinate": [
+   "skills/analog-gmid-design/assets/sizing_recipe.py:11057"
+  ],
+  "MirrorSymmetryVerdict": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:234"
+  ],
+  "check_mirror_symmetry": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:238"
+  ],
+  "find_interleaved_symmetric_splits": null,
+  "find_idiom_matches": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:1061"
+  ],
+  "find_differential_and_mirror_forks": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:1287"
+  ],
+  "MultiLeafHubParityVerdict": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:2800"
+  ],
+  "check_multi_leaf_hub_parity": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:2806"
+  ],
+  "DiodeStackMember": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:2910"
+  ],
+  "DiodeStack": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:2918"
+  ],
+  "find_diode_stacks": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:2923"
+  ],
+  "audit_theta_root_direction": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:3341"
+  ],
+  "propose_theta_kcl_gap_fill": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:3442"
+  ],
+  "apply_theta_kcl_gap_fill": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:3790"
+  ],
+  "apply_device_roles_gap_fill": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:4553"
+  ],
+  "audit_vertical_stack_id_euler_feasibility": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:4832"
+  ],
+  "find_euler_repair_options": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:5096"
+  ],
+  "SharedFingerWCandidate": [
+   "skills/analog-gmid-design/assets/stick_diagram.py:6197"
+  ],
+  "render_report": [
+   "skills/analog-gmid-design/assets/audit_current_forced.py:129"
+  ]
+ },
+ "refs": {
+  "gm_from_fT": {
+   "engine": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": [
+     "864:find_optimal_sizing:ref"
+    ]
+   },
+   "harness": {},
+   "other": {
+    "workspaces/current-reuse-telescopic-ota-report/resize.py": [
+     "20:<module>:import"
+    ]
+   },
+   "tests": {}
+  },
+  "_invq_newton": {
+   "engine": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": [
+     "1372:build_toy_lut:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {}
+  },
+  "build_toy_lut": {
+   "engine": {},
+   "harness": {},
+   "other": {
+    "workspaces/current-reuse-telescopic-ota-report/probe_group_split_wiring.py": [
+     "5:<module>:import",
+     "9:<module>:ref"
+    ]
+   },
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/conftest.py": [
+     "160:toy_lut:import",
+     "161:toy_lut:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": [
+     "24:<module>:import",
+     "339:s043_state:ref",
+     "2263:test_s043_section:ref"
+    ]
+   }
+  },
+  "RegressionVerdict": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/tools/regression_runner.py": [
+     "86:run_regression_case:ref",
+     "93:run_regression_case:ref",
+     "117:run_regression_case:ref",
+     "122:run_regression_case:ref",
+     "128:run_regression_case:ref",
+     "131:run_regression_case:ref",
+     "72:run_regression_case:ref"
+    ]
+   }
+  },
+  "_run_optimize_multistage_case": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/tools/regression_runner.py": [
+     "66:<module>:ref"
+    ]
+   }
+  },
+  "run_regression_case": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": [
+     "30:<module>:import",
+     "608:test_s004_optimize_multistage:ref"
+    ]
+   }
+  },
+  "solve_diode_stack_current": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": [
+     "24:<module>:import",
+     "654:test_s007_solve_diode_stack_current:ref"
+    ]
+   }
+  },
+  "estimate_area_budget": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": [
+     "24:<module>:import",
+     "1791:test_s028_estimate_area_budget:ref",
+     "1799:test_s028_estimate_area_budget:ref"
+    ]
+   }
+  },
+  "signal_path_nodes": {
+   "engine": {},
+   "harness": {},
+   "other": {
+    "docs/03-analysis/gain-budget-gmid-sizing-function-audit/probe_stage_partition.py": [
+     "643:run_circuit:ref"
+    ]
+   },
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py": [
+     "138:test_declared_signal_path_is_interior_and_monotone_in_sink_set:ref",
+     "140:test_declared_signal_path_is_interior_and_monotone_in_sink_set:ref",
+     "159:test_signal_path_judgment_rejects_unreachable_and_endpoint_nodes:ref",
+     "184:test_node_pole_estimate_classifies_every_declared_path_node:ref",
+     "235:test_parasitic_pm_stays_within_pole_count_bound:ref"
+    ]
+   }
+  },
+  "node_pole_estimate": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py": [
+     "188:test_node_pole_estimate_classifies_every_declared_path_node:ref",
+     "236:test_parasitic_pm_stays_within_pole_count_bound:ref"
+    ]
+   }
+  },
+  "validate_theta_declaration_order": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": [
+     "24:<module>:import",
+     "3013:test_s073_section:ref",
+     "3021:test_s073_section:ref",
+     "3035:test_s074_section:ref",
+     "3046:test_s075_section:ref",
+     "3061:test_s076_section:ref"
+    ]
+   }
+  },
+  "load_derived_bounds": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/tools/derive_achievable_bounds.py": [
+     "69:<module>:ref"
+    ]
+   }
+  },
+  "_optimize_theta_slsqp_block_coordinate": {
+   "engine": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": [
+     "9135:optimize_full_circuit_budget:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {}
+  },
+  "MirrorSymmetryVerdict": {
+   "engine": {
+    "skills/analog-gmid-design/assets/stick_diagram.py": [
+     "256:check_mirror_symmetry:ref",
+     "238:check_mirror_symmetry:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {}
+  },
+  "check_mirror_symmetry": {
+   "engine": {},
+   "harness": {},
+   "other": {
+    "workspaces/current-reuse-telescopic-ota-report/stick.py": [
+     "11:<module>:import",
+     "165:<module>:ref"
+    ]
+   },
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import"
+    ]
+   }
+  },
+  "find_interleaved_symmetric_splits": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "49:<module>:import",
+     "627:test_s022_common_centroid_layout:ref"
+    ]
+   }
+  },
+  "find_idiom_matches": {
+   "engine": {
+    "skills/analog-gmid-design/assets/stick_diagram.py": [
+     "3386:audit_theta_root_direction:ref",
+     "3537:propose_theta_kcl_gap_fill:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "383:s118_state:ref",
+     "2624:test_s115_section:ref",
+     "2658:test_s117_connectivity:ref",
+     "2674:test_s118_folded_cascode_example:ref",
+     "2679:test_s118_folded_cascode_example:ref",
+     "2723:test_s120_section:ref",
+     "2728:test_s120_section:ref",
+     "2875:test_s127_suggest_vertical_stack_composites:ref"
+    ]
+   }
+  },
+  "find_differential_and_mirror_forks": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "426:s128_state:ref",
+     "2929:test_s128_trace_gnd_to_vdd_branches:ref"
+    ]
+   }
+  },
+  "MultiLeafHubParityVerdict": {
+   "engine": {
+    "skills/analog-gmid-design/assets/stick_diagram.py": [
+     "2841:check_multi_leaf_hub_parity:ref",
+     "2843:check_multi_leaf_hub_parity:ref",
+     "2844:check_multi_leaf_hub_parity:ref",
+     "2806:check_multi_leaf_hub_parity:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {}
+  },
+  "check_multi_leaf_hub_parity": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "1436:test_s058_section:ref",
+     "1466:test_s058_section:ref"
+    ]
+   }
+  },
+  "DiodeStackMember": {
+   "engine": {
+    "skills/analog-gmid-design/assets/stick_diagram.py": [
+     "2948:find_diode_stacks:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {}
+  },
+  "DiodeStack": {
+   "engine": {
+    "skills/analog-gmid-design/assets/stick_diagram.py": [
+     "2950:find_diode_stacks:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {}
+  },
+  "find_diode_stacks": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "2255:test_s099_find_diode_stacks:ref",
+     "2281:test_s100_find_diode_stacks:ref"
+    ]
+   }
+  },
+  "audit_theta_root_direction": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "542:s165_state:ref",
+     "4148:test_s165_audit_theta_root_direction:ref",
+     "4169:test_s166_section:ref",
+     "4185:test_s167_kcl_tail_M38:ref",
+     "4200:test_s168_section:ref",
+     "4204:test_s168_section:ref"
+    ]
+   }
+  },
+  "propose_theta_kcl_gap_fill": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "553:s169_state:ref",
+     "567:s170_state:ref",
+     "581:s171_state:ref",
+     "4221:test_s169_propose_theta_kcl_gap_fill:ref",
+     "4246:test_s170_section:ref",
+     "4277:test_s171_section:ref"
+    ]
+   }
+  },
+  "apply_theta_kcl_gap_fill": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "4332:test_s173_apply_theta_kcl_gap_fill:ref"
+    ]
+   }
+  },
+  "apply_device_roles_gap_fill": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "3925:test_s159_apply_device_roles_gap_fill:ref",
+     "3942:test_s159_apply_device_roles_gap_fill:ref",
+     "3995:test_s160_propose_device_roles_gap_fill:ref",
+     "4066:test_s162_section:ref"
+    ]
+   }
+  },
+  "audit_vertical_stack_id_euler_feasibility": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "462:s144_state:ref",
+     "3448:test_s144_audit_vertical_stack_id_euler_feasibility:ref",
+     "3508:test_s145_section:ref"
+    ]
+   }
+  },
+  "find_euler_repair_options": {
+   "engine": {},
+   "harness": {},
+   "other": {},
+   "tests": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import",
+     "3532:test_s146_find_euler_repair_options:ref",
+     "3539:test_s146_find_euler_repair_options:ref",
+     "3557:test_s147_section:ref"
+    ]
+   }
+  },
+  "SharedFingerWCandidate": {
+   "engine": {
+    "skills/analog-gmid-design/assets/stick_diagram.py": [
+     "6253:search_shared_finger_w:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {}
+  },
+  "render_report": {
+   "engine": {
+    "skills/analog-gmid-design/assets/audit_current_forced.py": [
+     "178:<module>:ref"
+    ]
+   },
+   "harness": {},
+   "other": {},
+   "tests": {}
+  }
+ },
+ "r4_one_level_up": {
+  "render_report": {},
+  "gm_from_fT": {
+   "find_optimal_sizing": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": [
+     "1101:optimize_multistage._size_stage:ref",
+     "1145:optimize_multistage._size_vdd_split:ref",
+     "1156:optimize_multistage._size_vdd_split:ref",
+     "1176:optimize_multistage._size_group_at_gm_id:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": [
+     "24:<module>:import"
+    ]
+   }
+  },
+  "_optimize_theta_slsqp_block_coordinate": {
+   "optimize_full_circuit_budget": {
+    "skills/analog-gmid-design/assets/sizing_recipe.py": [
+     "7763:achievable_metric_bound:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_area_pareto.py": [
+     "99:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_b22_headroom_attribution.py": [
+     "130:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_diode_gmid_readiness.py": [
+     "81:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_diode_pass_skips.py": [
+     "113:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_diode_window_corner.py": [
+     "102:run:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_full_research.py": [
+     "71:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_matching_pair_divergence.py": [
+     "126:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_metric_dashboard.py": [
+     "74:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_mirror_design_space.py": [
+     "137:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_mirror_gain_ranking.py": [
+     "132:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_mirror_wiring_readiness.py": [
+     "78:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_ratio_pair_analysis.py": [
+     "107:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/probes/probe_vds_assignment_paths.py": [
+     "102:<module>:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py": [
+     "24:<module>:import",
+     "203:s037_state:ref",
+     "494:s052_state:ref",
+     "594:test_s003__evaluate:ref",
+     "1036:test_s012_optimize_full_circuit_budget:ref",
+     "1294:test_s014_section:ref",
+     "1331:test_s014_section:ref",
+     "1910:test_s036_optimize_full_circuit_budget:ref",
+     "1947:test_s037_optimize_full_circuit_budget:ref",
+     "2392:test_s050_section:ref",
+     "2413:test_s051_optimize_full_circuit_budget:ref",
+     "2446:test_s051_optimize_full_circuit_budget_known_limitation:ref",
+     "2496:test_s052_compensation:ref",
+     "2534:test_s053_L_role:ref",
+     "2551:test_s054_section:ref",
+     "2553:test_s054_section:ref",
+     "2572:test_s054_section_known_limitation:ref",
+     "2577:test_s054_section_known_limitation:ref"
+    ],
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "43:<module>:import",
+     "3815:test_s157_M1:ref",
+     "3828:test_s157_M1:ref",
+     "3854:test_s157_M1_known_limitation:ref",
+     "3871:test_s157_M1_known_limitation:ref"
+    ],
+    "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_cmfb.py": [
+     "19:<module>:import",
+     "79:<module>:ref"
+    ],
+    "workspaces/current-reuse-telescopic-ota-report/diagnose_cmrr_psrr.py": [
+     "12:<module>:import",
+     "63:<module>:ref"
+    ],
+    "workspaces/current-reuse-telescopic-ota-report/run_harness_smoke.py": [
+     "9:<module>:import",
+     "61:<module>:ref"
+    ],
+    "workspaces/current-reuse-telescopic-ota-report/sample_metrics_session22.py": [
+     "16:<module>:import",
+     "86:<module>:ref"
+    ],
+    "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session11.py": [
+     "10:<module>:import",
+     "68:<module>:ref"
+    ],
+    "workspaces/current-reuse-telescopic-ota-report/smoke_run_harness_session20.py": [
+     "27:<module>:import",
+     "87:<module>:ref"
+    ],
+    "workspaces/current-reuse-telescopic-ota-report/theta_sensitivity_session22.py": [
+     "21:<module>:import",
+     "86:eval_point:ref"
+    ],
+    "workspaces/run_harness.py": [
+     "37:<module>:import",
+     "397:run:ref"
+    ],
+    "workspaces/two-stage-ota-report/check_box_shape.py": [
+     "18:<module>:import",
+     "72:<module>:ref"
+    ],
+    "workspaces/two-stage-ota-report/check_box_shape_M5M7split.py": [
+     "16:<module>:import",
+     "70:<module>:ref"
+    ],
+    "workspaces/two-stage-ota-report/diagnose_gain_sweep.py": [
+     "11:<module>:import",
+     "57:<module>:ref"
+    ],
+    "workspaces/two-stage-ota-report/diagnose_gain_sweep2.py": [
+     "14:<module>:import",
+     "63:<module>:ref"
+    ]
+   }
+  },
+  "SharedFingerWCandidate": {
+   "search_shared_finger_w": {
+    "skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py": [
+     "24:<module>:import"
+    ],
+    "workspaces/current-reuse-telescopic-ota-report/stick.py": [
+     "9:<module>:import",
+     "34:<module>:ref",
+     "53:<module>:ref",
+     "73:<module>:ref",
+     "112:<module>:ref"
+    ]
+   }
+  }
+ },
+ "sec2_rows": {
+  "W": [
+   "| W 계산 `W=L*ID/IDu` | `size_transistor` / LUT `_sizing_bundle` | `find_optimal_sizing`, `feasible_gm_ids`, `search_gm_id_for_role`, `feasible_L_window`에 인라인 4곳 | 식 동일 -- 행동 보존 통합 가능 |"
+  ],
+  "union-find": [
+   "| union-find | (유틸 하나로) | `design_report` + SR 2곳 + SD 2곳 | |"
+  ],
+  "rail": [
+   "| 레일 넷 집합 | (상수 하나로) | SD `_RAIL_NETS` 소문자만 vs SR 대소문자 2곳 | 불일치 -- 결함 후보 |"
+  ],
+  "CMRR": [
+   "| CMRR | `_metric_smallsignal_ratio_db` | `_cmrr_diff_pair_tail` (telescopic 폐형식 사슬은 P5b에서 삭제) | 〃 |"
+  ]
+ }
+}
