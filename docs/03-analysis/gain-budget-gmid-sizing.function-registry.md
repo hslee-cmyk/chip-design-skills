@@ -484,9 +484,9 @@
 | `gm_from_fT` | gm=2π·fT·C | gmid_sizing_engine.py | 1줄 순수함수, 데모·단일소자 경로용. 삭제 이득 없음 |
 | `_invq_newton` | EKV q 뉴턴 역산 | tests/ 픽스처(삭제 아님) | toy 전용 |
 | `build_toy_lut` | EKV 합성 4D LUT | tests/ 픽스처(§8.8 test 분리 시 이관) | VA=5V/um, Cox 5e-15 등 toy 상수(1428,1432) -- 픽스처로만 쓸 것 |
-| `RegressionVerdict` | 회귀 판정 dataclass | tests/(회귀 러너와 함께 이관, 삭제 아님) |  |
-| `_run_optimize_multistage_case` | reference JSON case로 optimize_multistage 실행 / engine 문자열 디스패치 | tests/ | 엔진 등록은 optimize_multistage 하나뿐(1524) |
-| `run_regression_case` | 공정별 골든 JSON 로드 → 실행 → 상대오차 대조 | tests/(골든 회귀는 가치 있음 -- 이관) | `W_ref=5e-6` 하드코딩(1561,1563) -- LUT npz 메타에서 읽어야 함(C-d/S0 지문 대상). `except (ValueError, KeyError)`를 실패 verdict로 바꾸는 건 테스트 러너라 허용 |
+| `RegressionVerdict` | 회귀 판정 dataclass | tests 이관 완료(`assets/tests/tools/regression_runner.py`, 20260930-d-move-tests) | 엔진에서 삭제됨 |
+| `_run_optimize_multistage_case` | reference JSON case로 optimize_multistage 실행 / engine 문자열 디스패치 | tests 이관 완료(`assets/tests/tools/regression_runner.py`, 20260930-d-move-tests) | 엔진에서 삭제됨. `_REGRESSION_ENGINES`(모듈 dict)도 함께 이관 |
+| `run_regression_case` | 공정별 골든 JSON 로드 → 실행 → 상대오차 대조 | tests 이관 완료(`assets/tests/tools/regression_runner.py`, 20260930-d-move-tests) | 엔진에서 삭제됨. `W_ref=5e-6` 하드코딩(1561,1563) -- LUT npz 메타에서 읽어야 함(C-d/S0 지문 대상). `except (ValueError, KeyError)`를 실패 verdict로 바꾸는 건 테스트 러너라 허용 |
 | `solve_diode_stack_current` | 직렬 diode 스택 VGS합=target이 되는 전류 로그축 이분탐색 | 삭제 후보 | 적층 diode 문제의 운영 해법은 `solve_stacked_diode_pair`(3659, B25, 호출 7859)로 대체됨. 개념 중복 -- 삭제는 사용자 승인 필요 |
 | `estimate_area_budget` | n_fingers × pitch로 A_1D, packing_density 표본이 있으면 A_1D/density, 없으면 콜드스타트 블렌딩 | sizing_layout_convergence.py(배선 시) | **공식 결함**: 콜드스타트 `(1-α)·A_1D + α·(A_1D/α)` = `(2-α)·A_1D`(2954-2955) -- α가 서로 상쇄돼 블렌딩이 아니다(α=0.65면 1.35·A_1D). self-test(13882-13884)가 **같은 식을 다시 써서** 비교하므로 잡지 못함(동어반복 테스… |
 | `signal_path_nodes` | gate/source->drain 방향 그래프에서 excite∩sense 도달 내부노드 | (삭제 후보) | 4354-4356 docstring이 L2에서 "원천적으로 필요 없어짐"이라 명시. §12.4가 소비자라 적은 것이 오류임을 재확인. 방향 규칙이 단일 DAG가 안 됨(§12.3-9) -> S1v 재활용 가치 낮음 |
@@ -501,7 +501,7 @@
 |---|---|---|---|
 | `MirrorSymmetryVerdict` | 대칭 판정 결과 | stick_diagram(삭제 후보) | `check_mirror_symmetry` 전용 |
 | `check_mirror_symmetry` | finger 순서 좌우 대칭 판정 | stick_diagram 유지 또는 test util | 운영 호출 0 |
-| `find_interleaved_symmetric_splits` | 홀수 finger 쌍 교차 대칭 분할 해 | test util | SD 밖 grep 0건 |
+| `find_interleaved_symmetric_splits` | 홀수 finger 쌍 교차 대칭 분할 해 | tests 이관 완료(`assets/tests/tools/interleave_splits.py`, 20260930-d-move-tests) | 엔진에서 삭제됨 |
 | `find_idiom_matches` | analog-grammar Stage1~3 원본 Match | topology_authoring |  |
 | `find_differential_and_mirror_forks` | 양방향 fork 분류 | 삭제 후보 | `find_verified_...` docstring SD:1802-1815가 이 접근의 한계와 대체를 기술 |
 | `MultiLeafHubParityVerdict` | 결과 레코드 | test util |  |
