@@ -1,0 +1,619 @@
+{
+ "rev": "6158a5f8cf3b005abd010c05e1fa09fb6e3a6c25",
+ "files": {
+  "skills/analog-gmid-design/assets/audit_current_forced.py": {
+   "blob_sha256": "4e9214066a8da8cdc78539b3f2d4087caa69c49d91f3124a62a372bd0fff4e7f",
+   "excluded_spans": []
+  },
+  "skills/analog-gmid-design/assets/design_report.py": {
+   "blob_sha256": "cc260e3627a8da93172a32aef7ec92a860d0a262c59c8c182f44981781c8672e",
+   "excluded_spans": []
+  },
+  "skills/analog-gmid-design/assets/sizing_recipe.py": {
+   "blob_sha256": "be83dffbf8becd50454e460e4d4dc99371fcf594dc37c73fd9b8dc576319db9a",
+   "excluded_spans": []
+  },
+  "skills/analog-gmid-design/assets/sky130_lut_sweep.py": {
+   "blob_sha256": "4a51aacc8ed90f1c75ea30772e77d5c63ead457c806a4fa84da4bbae4f9fb7aa",
+   "excluded_spans": []
+  },
+  "skills/analog-gmid-design/assets/stick_diagram.py": {
+   "blob_sha256": "e72caca6bbff121ccd7a0ed5462e54a32af99772f01d27316b740a15481547f1",
+   "excluded_spans": []
+  },
+  "skills/analog-gmid-design/assets/topology_library.py": {
+   "blob_sha256": "7d2c0607f4dca9fbcd2845f4764655fb6374156b78a97f7f325b9c8d852361b4",
+   "excluded_spans": []
+  },
+  "skills/analog-gmid-design/assets/topology_to_markdown.py": {
+   "blob_sha256": "1a95a087559ca7ea422c4321101982ea21c2aaf4f02e71d483e23f86f0072a3b",
+   "excluded_spans": []
+  },
+  "workspaces/run_harness.py": {
+   "blob_sha256": "15369f75304844b94bad65530c16ea0063e23c2eee7d372d5e7fbd0b8007f5f2",
+   "excluded_spans": []
+  }
+ },
+ "sites": [
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 101,
+   "col": 8,
+   "end_line": 101,
+   "function": "size_transistor",
+   "expr_src": "L * ID / IDu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Name(id='ID', ctx=Load())",
+    "Name(id='IDu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "ID",
+    "IDu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    101,
+    101
+   ],
+   "stmt_src": "    W = L * ID / IDu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='W', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "8bb1c4fbfc575f2768f64667121b11878355d642a3049a79f48f756dcca90129",
+   "function_dump_sub_sha256": "531cc5c740e6c7a70c5e7918531b6346b6da3e399451689b98daee917d8c0e76",
+   "function_lines": [
+    94,
+    102
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 878,
+   "col": 24,
+   "end_line": 878,
+   "function": "find_optimal_sizing",
+   "expr_src": "L * ID / IDu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Name(id='ID', ctx=Load())",
+    "Name(id='IDu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "ID",
+    "IDu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    878,
+    878
+   ],
+   "stmt_src": "                    W = L * ID / IDu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='W', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "8bb1c4fbfc575f2768f64667121b11878355d642a3049a79f48f756dcca90129",
+   "function_dump_sub_sha256": "da8c6012e9ef0e3b8d2d13e7a926445261ccea7ffeb9b5e57bd29a81474cf91c",
+   "function_lines": [
+    815,
+    922
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 1579,
+   "col": 42,
+   "end_line": 1579,
+   "function": "feasible_gm_ids",
+   "expr_src": "ID * L / idu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Name(id='ID', ctx=Load())",
+    "Name(id='idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "ID",
+    "idu"
+   ],
+   "stmt_type": "Return",
+   "stmt_lines": [
+    1578,
+    1579
+   ],
+   "stmt_src": "    return [g for g, idu in lut._idu_scan(L, vds, vsb, list(gm_id_grid))\n            if idu > 0 and W_bounds[0] <= ID * L / idu <= W_bounds[1]]",
+   "stmt_dump_sub": "Return(value=ListComp(elt=Name(id='g', ctx=Load()), generators=[comprehension(target=Tuple(elts=[Name(id='g', ctx=Store()), Name(id='idu', ctx=Store())], ctx=Store()), iter=Call(func=Attribute(value=Name(id='lut', ctx=Load()), attr='_idu_scan', ctx=Load()), args=[Name(id='L', ctx=Load()), Name(id='vds', ctx=Load()), Name(id='vsb', ctx=Load()), Call(func=Name(id='list', ctx=Load()), args=[Name(id='gm_id_grid', ctx=Load())])]), ifs=[BoolOp(op=And(), values=[Compare(left=Name(id='idu', ctx=Load()), ops=[Gt()], comparators=[Constant(value=0)]), Compare(left=Subscript(value=Name(id='W_bounds', ctx=Load()), slice=Constant(value=0), ctx=Load()), ops=[LtE(), LtE()], comparators=[Name(id='__W_SITE__', ctx=Load()), Subscript(value=Name(id='W_bounds', ctx=Load()), slice=Constant(value=1), ctx=Load())])])], is_async=0)]))",
+   "stmt_dump_sub_sha256": "a3214cd33ac620bc1a109afffdc6f1236b3629dc9a63fd527a827d85c005966f",
+   "function_dump_sub_sha256": "18cabf679ace5b0c9853530e69f4e7bf96e18e2cac13c6fb37202bebbd9d547c",
+   "function_lines": [
+    1568,
+    1579
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 2057,
+   "col": 12,
+   "end_line": 2057,
+   "function": "search_gm_id_for_role",
+   "expr_src": "ID_target * L / idu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Name(id='ID_target', ctx=Load())",
+    "Name(id='idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "ID_target",
+    "idu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    2057,
+    2057
+   ],
+   "stmt_src": "        W = ID_target * L / idu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='W', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "8bb1c4fbfc575f2768f64667121b11878355d642a3049a79f48f756dcca90129",
+   "function_dump_sub_sha256": "509cb250babf312bef88dc72380d31174de1e8b15750ade2b15e1f76713820c1",
+   "function_lines": [
+    1977,
+    2123
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 2575,
+   "col": 43,
+   "end_line": 2575,
+   "function": "feasible_L_window",
+   "expr_src": "ID * Lc / _idu",
+   "operands_dump": [
+    "Name(id='Lc', ctx=Load())",
+    "Name(id='ID', ctx=Load())",
+    "Name(id='_idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "Lc",
+    "ID",
+    "_idu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    2575,
+    2575
+   ],
+   "stmt_src": "                ok = _idu > 0 and wb[0] <= ID * Lc / _idu <= wb[1]",
+   "stmt_dump_sub": "Assign(targets=[Name(id='ok', ctx=Store())], value=BoolOp(op=And(), values=[Compare(left=Name(id='_idu', ctx=Load()), ops=[Gt()], comparators=[Constant(value=0)]), Compare(left=Subscript(value=Name(id='wb', ctx=Load()), slice=Constant(value=0), ctx=Load()), ops=[LtE(), LtE()], comparators=[Name(id='__W_SITE__', ctx=Load()), Subscript(value=Name(id='wb', ctx=Load()), slice=Constant(value=1), ctx=Load())])]))",
+   "stmt_dump_sub_sha256": "44974dfc732013196ac87a72cdbfcd7cb95991e7f7bd38775d990d6f2ddff9b7",
+   "function_dump_sub_sha256": "464e4bb5713cb6a9f87eae81888c48a1d2bd31bcaeab56b7d0d724f5a46296a1",
+   "function_lines": [
+    2523,
+    2589
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 3456,
+   "col": 12,
+   "end_line": 3456,
+   "function": "diode_vds_window",
+   "expr_src": "L * ID / idu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Name(id='ID', ctx=Load())",
+    "Name(id='idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "ID",
+    "idu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    3456,
+    3456
+   ],
+   "stmt_src": "        w = L * ID / idu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='w', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "3a6e9e7ef7b2cedaa79f3744acbaeed629b7910f27881b74ea9c312ec4a8c03b",
+   "function_dump_sub_sha256": "a8ed8926b2d6dd7d0790041f6dbdc993a366c2e79271d23e0fe97f7cb433167b",
+   "function_lines": [
+    3392,
+    3478
+   ],
+   "function_n_sites": 2
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 3470,
+   "col": 35,
+   "end_line": 3470,
+   "function": "diode_vds_window",
+   "expr_src": "L_m * ID_m / idu_m",
+   "operands_dump": [
+    "Name(id='L_m', ctx=Load())",
+    "Name(id='ID_m', ctx=Load())",
+    "Name(id='idu_m', ctx=Load())"
+   ],
+   "operands_src": [
+    "L_m",
+    "ID_m",
+    "idu_m"
+   ],
+   "stmt_type": "If",
+   "stmt_lines": [
+    3470,
+    3472
+   ],
+   "stmt_note": "compound -- 문장 dump는 본문 포함",
+   "stmt_src": "            if not (W_bounds[0] <= L_m * ID_m / idu_m <= W_bounds[1]):\n                ok = False\n                break",
+   "stmt_dump_sub": "If(test=UnaryOp(op=Not(), operand=Compare(left=Subscript(value=Name(id='W_bounds', ctx=Load()), slice=Constant(value=0), ctx=Load()), ops=[LtE(), LtE()], comparators=[Name(id='__W_SITE__', ctx=Load()), Subscript(value=Name(id='W_bounds', ctx=Load()), slice=Constant(value=1), ctx=Load())])), body=[Assign(targets=[Name(id='ok', ctx=Store())], value=Constant(value=False)), Break()])",
+   "stmt_dump_sub_sha256": "66d183e5c0dc4927f4c9232d81f0b320e9f0dbfe2ad278dd70028e08ea97de1c",
+   "function_dump_sub_sha256": "a8ed8926b2d6dd7d0790041f6dbdc993a366c2e79271d23e0fe97f7cb433167b",
+   "function_lines": [
+    3392,
+    3478
+   ],
+   "function_n_sites": 2
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 3534,
+   "col": 15,
+   "end_line": 3534,
+   "function": "solve_stacked_diode_pair",
+   "expr_src": "L_up * ID_up / idu_up",
+   "operands_dump": [
+    "Name(id='L_up', ctx=Load())",
+    "Name(id='ID_up', ctx=Load())",
+    "Name(id='idu_up', ctx=Load())"
+   ],
+   "operands_src": [
+    "L_up",
+    "ID_up",
+    "idu_up"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    3534,
+    3534
+   ],
+   "stmt_src": "        w_up = L_up * ID_up / idu_up",
+   "stmt_dump_sub": "Assign(targets=[Name(id='w_up', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "112e2dac4f345b89dfdd3d000138347060a0a01f36924c52765c4cc55cabf93b",
+   "function_dump_sub_sha256": "bad8d17c1968182edd21b286314483bbea9ce853104158c644efdf7f57d87a6d",
+   "function_lines": [
+    3481,
+    3562
+   ],
+   "function_n_sites": 2
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 3557,
+   "col": 19,
+   "end_line": 3557,
+   "function": "solve_stacked_diode_pair",
+   "expr_src": "L_lo * ID_lo / idu_lo",
+   "operands_dump": [
+    "Name(id='L_lo', ctx=Load())",
+    "Name(id='ID_lo', ctx=Load())",
+    "Name(id='idu_lo', ctx=Load())"
+   ],
+   "operands_src": [
+    "L_lo",
+    "ID_lo",
+    "idu_lo"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    3557,
+    3557
+   ],
+   "stmt_src": "            w_lo = L_lo * ID_lo / idu_lo",
+   "stmt_dump_sub": "Assign(targets=[Name(id='w_lo', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "910638aaf4b8876578dbc4c6b2b2ac4f6c7bac4aae5e025b359f070af10f452d",
+   "function_dump_sub_sha256": "bad8d17c1968182edd21b286314483bbea9ce853104158c644efdf7f57d87a6d",
+   "function_lines": [
+    3481,
+    3562
+   ],
+   "function_n_sites": 2
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 3684,
+   "col": 12,
+   "end_line": 3684,
+   "function": "apply_diode_self_consistent_gm_id",
+   "expr_src": "L * ID / idu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Name(id='ID', ctx=Load())",
+    "Name(id='idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "ID",
+    "idu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    3684,
+    3684
+   ],
+   "stmt_src": "        w = L * ID / idu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='w', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "3a6e9e7ef7b2cedaa79f3744acbaeed629b7910f27881b74ea9c312ec4a8c03b",
+   "function_dump_sub_sha256": "5d29f5a72ec2b9935ee22d7ce8142d77969c58b3d291e091bf36ba1c824423b8",
+   "function_lines": [
+    3565,
+    3697
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 5564,
+   "col": 42,
+   "end_line": 5564,
+   "function": "_metric_stage_budget_finalize",
+   "expr_src": "mL * ID / idu",
+   "operands_dump": [
+    "Name(id='mL', ctx=Load())",
+    "Name(id='ID', ctx=Load())",
+    "Name(id='idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "mL",
+    "ID",
+    "idu"
+   ],
+   "stmt_type": "Expr",
+   "stmt_lines": [
+    5564,
+    5566
+   ],
+   "stmt_src": "    ctx.sized[name].update({\"L\": mL, \"W\": mL * ID / idu, \"gm\": gm, \"gds\": gm / gm_gds,\n                             \"gm_id\": gm_id, \"ID\": ID, \"kind\": kind, \"vsb\": mvs,\n                             \"_L_source\": \"metric_stage_budget\"})",
+   "stmt_dump_sub": "Expr(value=Call(func=Attribute(value=Subscript(value=Attribute(value=Name(id='ctx', ctx=Load()), attr='sized', ctx=Load()), slice=Name(id='name', ctx=Load()), ctx=Load()), attr='update', ctx=Load()), args=[Dict(keys=[Constant(value='L'), Constant(value='W'), Constant(value='gm'), Constant(value='gds'), Constant(value='gm_id'), Constant(value='ID'), Constant(value='kind'), Constant(value='vsb'), Constant(value='_L_source')], values=[Name(id='mL', ctx=Load()), Name(id='__W_SITE__', ctx=Load()), Name(id='gm', ctx=Load()), BinOp(left=Name(id='gm', ctx=Load()), op=Div(), right=Name(id='gm_gds', ctx=Load())), Name(id='gm_id', ctx=Load()), Name(id='ID', ctx=Load()), Name(id='kind', ctx=Load()), Name(id='mvs', ctx=Load()), Constant(value='metric_stage_budget')])]))",
+   "stmt_dump_sub_sha256": "4b66aa707623416e5257fc1d5a1296655d604248e76c946ce98ae1b983058c32",
+   "function_dump_sub_sha256": "0f40d91e9da0b25752c739723d0e854902f64251e8da0a24352579860a832240",
+   "function_lines": [
+    5532,
+    5568
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 5758,
+   "col": 16,
+   "end_line": 5758,
+   "function": "_make_shared_current_scorer._score_and_apply",
+   "expr_src": "dev[\"L\"] * I / idu",
+   "operands_dump": [
+    "Subscript(value=Name(id='dev', ctx=Load()), slice=Constant(value='L'), ctx=Load())",
+    "Name(id='I', ctx=Load())",
+    "Name(id='idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "dev[\"L\"]",
+    "I",
+    "idu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    5758,
+    5758
+   ],
+   "stmt_src": "            W = dev[\"L\"] * I / idu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='W', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "8bb1c4fbfc575f2768f64667121b11878355d642a3049a79f48f756dcca90129",
+   "function_dump_sub_sha256": "b03b115294098130dc034345d483791cf1c1fd726de207fbe66a0b4a40e213af",
+   "function_lines": [
+    5740,
+    5780
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 6770,
+   "col": 12,
+   "end_line": 6770,
+   "function": "make_matching_feasibility_check.check",
+   "expr_src": "L * ID / IDu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Name(id='ID', ctx=Load())",
+    "Name(id='IDu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "ID",
+    "IDu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    6770,
+    6770
+   ],
+   "stmt_src": "        W = L * ID / IDu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='W', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "8bb1c4fbfc575f2768f64667121b11878355d642a3049a79f48f756dcca90129",
+   "function_dump_sub_sha256": "43565e2a37196b43b0d510bf3ce016c47dcafc6c9aa0e704e4daf6d3bed53d96",
+   "function_lines": [
+    6765,
+    6778
+   ],
+   "function_n_sites": 1
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 7149,
+   "col": 54,
+   "end_line": 7149,
+   "function": "_hr_resolve_vertical_group",
+   "expr_src": "L2 * ID2 / idu2",
+   "operands_dump": [
+    "Name(id='L2', ctx=Load())",
+    "Name(id='ID2', ctx=Load())",
+    "Name(id='idu2', ctx=Load())"
+   ],
+   "operands_src": [
+    "L2",
+    "ID2",
+    "idu2"
+   ],
+   "stmt_type": "Expr",
+   "stmt_lines": [
+    7148,
+    7150
+   ],
+   "stmt_src": "                sib_entry.update({\"gm_id\": gm_id2, \"L\": L2, \"vsb\": vs2,\n                                  \"kind\": kind2, \"W\": L2 * ID2 / idu2, \"gm\": gm2,\n                                  \"gds\": gm2 / gm_gds2})",
+   "stmt_dump_sub": "Expr(value=Call(func=Attribute(value=Name(id='sib_entry', ctx=Load()), attr='update', ctx=Load()), args=[Dict(keys=[Constant(value='gm_id'), Constant(value='L'), Constant(value='vsb'), Constant(value='kind'), Constant(value='W'), Constant(value='gm'), Constant(value='gds')], values=[Name(id='gm_id2', ctx=Load()), Name(id='L2', ctx=Load()), Name(id='vs2', ctx=Load()), Name(id='kind2', ctx=Load()), Name(id='__W_SITE__', ctx=Load()), Name(id='gm2', ctx=Load()), BinOp(left=Name(id='gm2', ctx=Load()), op=Div(), right=Name(id='gm_gds2', ctx=Load()))])]))",
+   "stmt_dump_sub_sha256": "09f4acbe9899619b149455156d4fd5b3ea0dbf50bf25f642bdaec96891c7e2ad",
+   "function_dump_sub_sha256": "07add48450e65f1f2127b894df8c5309dac3a418256cb662b221a6554484b3a4",
+   "function_lines": [
+    7055,
+    7554
+   ],
+   "function_n_sites": 2
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 7346,
+   "col": 34,
+   "end_line": 7346,
+   "function": "_hr_resolve_vertical_group",
+   "expr_src": "_le[\"L\"] * _le[\"ID\"] / _idu_l",
+   "operands_dump": [
+    "Subscript(value=Name(id='_le', ctx=Load()), slice=Constant(value='L'), ctx=Load())",
+    "Subscript(value=Name(id='_le', ctx=Load()), slice=Constant(value='ID'), ctx=Load())",
+    "Name(id='_idu_l', ctx=Load())"
+   ],
+   "operands_src": [
+    "_le[\"L\"]",
+    "_le[\"ID\"]",
+    "_idu_l"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    7346,
+    7346
+   ],
+   "stmt_src": "                            _wl = _le[\"L\"] * _le[\"ID\"] / _idu_l",
+   "stmt_dump_sub": "Assign(targets=[Name(id='_wl', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "11250f56e9ef53a031f3d5713141c0743f3a078251d6807677af87aabc50cdac",
+   "function_dump_sub_sha256": "07add48450e65f1f2127b894df8c5309dac3a418256cb662b221a6554484b3a4",
+   "function_lines": [
+    7055,
+    7554
+   ],
+   "function_n_sites": 2
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 8700,
+   "col": 16,
+   "end_line": 8700,
+   "function": "_build_theta_evaluator._evaluate",
+   "expr_src": "L * entry[\"ID\"] / idu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Subscript(value=Name(id='entry', ctx=Load()), slice=Constant(value='ID'), ctx=Load())",
+    "Name(id='idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "entry[\"ID\"]",
+    "idu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    8700,
+    8700
+   ],
+   "stmt_src": "            w = L * entry[\"ID\"] / idu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='w', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "3a6e9e7ef7b2cedaa79f3744acbaeed629b7910f27881b74ea9c312ec4a8c03b",
+   "function_dump_sub_sha256": "57f4d093984709d10fe7306bcc2dcf5d1eab720369b9f51a44ee6da8a8718419",
+   "function_lines": [
+    8090,
+    8886
+   ],
+   "function_n_sites": 3
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 8765,
+   "col": 16,
+   "end_line": 8765,
+   "function": "_build_theta_evaluator._evaluate",
+   "expr_src": "L * entry[\"ID\"] / idu",
+   "operands_dump": [
+    "Name(id='L', ctx=Load())",
+    "Subscript(value=Name(id='entry', ctx=Load()), slice=Constant(value='ID'), ctx=Load())",
+    "Name(id='idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "L",
+    "entry[\"ID\"]",
+    "idu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    8765,
+    8765
+   ],
+   "stmt_src": "            w = L * entry[\"ID\"] / idu",
+   "stmt_dump_sub": "Assign(targets=[Name(id='w', ctx=Store())], value=Name(id='__W_SITE__', ctx=Load()))",
+   "stmt_dump_sub_sha256": "3a6e9e7ef7b2cedaa79f3744acbaeed629b7910f27881b74ea9c312ec4a8c03b",
+   "function_dump_sub_sha256": "57f4d093984709d10fe7306bcc2dcf5d1eab720369b9f51a44ee6da8a8718419",
+   "function_lines": [
+    8090,
+    8886
+   ],
+   "function_n_sites": 3
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "line": 8841,
+   "col": 60,
+   "end_line": 8841,
+   "function": "_build_theta_evaluator._evaluate",
+   "expr_src": "_L * _de[\"ID\"] / _idu",
+   "operands_dump": [
+    "Name(id='_L', ctx=Load())",
+    "Subscript(value=Name(id='_de', ctx=Load()), slice=Constant(value='ID'), ctx=Load())",
+    "Name(id='_idu', ctx=Load())"
+   ],
+   "operands_src": [
+    "_L",
+    "_de[\"ID\"]",
+    "_idu"
+   ],
+   "stmt_type": "Assign",
+   "stmt_lines": [
+    8840,
+    8844
+   ],
+   "stmt_src": "                ctx.sized[_dst] = {\n                    **_de, \"gm_id\": _gm_id, \"gm\": _gm, \"W\": _L * _de[\"ID\"] / _idu,\n                    \"gds\": _gm / _lut.gm_gds_ratio(_gm_id, _L, _vds, _vsb),\n                    \"kind\": kind_of[_dst], \"vsb\": _vsb,\n                    \"_gm_id_source\": f\"matching_pair:{_src}\"}",
+   "stmt_dump_sub": "Assign(targets=[Subscript(value=Attribute(value=Name(id='ctx', ctx=Load()), attr='sized', ctx=Load()), slice=Name(id='_dst', ctx=Load()), ctx=Store())], value=Dict(keys=[None, Constant(value='gm_id'), Constant(value='gm'), Constant(value='W'), Constant(value='gds'), Constant(value='kind'), Constant(value='vsb'), Constant(value='_gm_id_source')], values=[Name(id='_de', ctx=Load()), Name(id='_gm_id', ctx=Load()), Name(id='_gm', ctx=Load()), Name(id='__W_SITE__', ctx=Load()), BinOp(left=Name(id='_gm', ctx=Load()), op=Div(), right=Call(func=Attribute(value=Name(id='_lut', ctx=Load()), attr='gm_gds_ratio', ctx=Load()), args=[Name(id='_gm_id', ctx=Load()), Name(id='_L', ctx=Load()), Name(id='_vds', ctx=Load()), Name(id='_vsb', ctx=Load())])), Subscript(value=Name(id='kind_of', ctx=Load()), slice=Name(id='_dst', ctx=Load()), ctx=Load()), Name(id='_vsb', ctx=Load()), JoinedStr(values=[Constant(value='matching_pair:'), FormattedValue(value=Name(id='_src', ctx=Load()), conversion=-1)])]))",
+   "stmt_dump_sub_sha256": "9aa94e03783c0eb3ea02a66c7bf44e38cd3cbb5c83e6819644b1d509b58d67bd",
+   "function_dump_sub_sha256": "57f4d093984709d10fe7306bcc2dcf5d1eab720369b9f51a44ee6da8a8718419",
+   "function_lines": [
+    8090,
+    8886
+   ],
+   "function_n_sites": 3
+  }
+ ],
+ "broad_extra": [],
+ "wide_rule_diff": [],
+ "n_sites": 18
+}

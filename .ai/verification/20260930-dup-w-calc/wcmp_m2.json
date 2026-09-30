@@ -1,0 +1,190 @@
+{
+ "rev": "243e6ed7580eef76155be6bb6d42cce20ea32354",
+ "n_base_sites": 18,
+ "n_merged_calls": 18,
+ "n_merged_inline": 0,
+ "inline": [],
+ "rows": [
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "_build_theta_evaluator._evaluate",
+   "base_line": 8700,
+   "merged_line": 8710,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "_build_theta_evaluator._evaluate",
+   "base_line": 8765,
+   "merged_line": 8775,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "_build_theta_evaluator._evaluate",
+   "base_line": 8841,
+   "merged_line": 8851,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "_hr_resolve_vertical_group",
+   "base_line": 7149,
+   "merged_line": 7159,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "_hr_resolve_vertical_group",
+   "base_line": 7346,
+   "merged_line": 7356,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "_make_shared_current_scorer._score_and_apply",
+   "base_line": 5758,
+   "merged_line": 5768,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "_metric_stage_budget_finalize",
+   "base_line": 5564,
+   "merged_line": 5574,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "apply_diode_self_consistent_gm_id",
+   "base_line": 3684,
+   "merged_line": 3694,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "diode_vds_window",
+   "base_line": 3456,
+   "merged_line": 3466,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "diode_vds_window",
+   "base_line": 3470,
+   "merged_line": 3480,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "feasible_L_window",
+   "base_line": 2575,
+   "merged_line": 2585,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "feasible_gm_ids",
+   "base_line": 1579,
+   "merged_line": 1589,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "find_optimal_sizing",
+   "base_line": 878,
+   "merged_line": 888,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "make_matching_feasibility_check.check",
+   "base_line": 6770,
+   "merged_line": 6780,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "search_gm_id_for_role",
+   "base_line": 2057,
+   "merged_line": 2067,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "size_transistor",
+   "base_line": 101,
+   "merged_line": 111,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "solve_stacked_diode_pair",
+   "base_line": 3534,
+   "merged_line": 3544,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  },
+  {
+   "file": "skills/analog-gmid-design/assets/sizing_recipe.py",
+   "function": "solve_stacked_diode_pair",
+   "base_line": 3557,
+   "merged_line": 3567,
+   "args_equal": true,
+   "stmt_equal": true,
+   "function_equal": true,
+   "ok": true
+  }
+ ],
+ "n_bad": 0
+}
