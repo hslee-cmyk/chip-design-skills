@@ -1,0 +1,157 @@
+{
+ "note": "05-role-separation §12 순서 3 -- 복원 card 3차 시도. 2차(base 04c7248, T 3fefdd7, K 06099fa, M 2889a45)는 순서 7에서 V3·V4·V7 FAIL로 판정 기록 미커밋. 3차 base c31e0b6은 04c7248에 문서만 더했다(spec card 계약 3 보강·approval 줄, V7 면제 승인 20260930-restore-unwired-until-6a, .ai/context.md). skills·workspaces·tools 트리 id가 04c7248과 같으므로 엔진·workspaces에만 기대는 2차 측정(0ecb686 복원 대조 기준값, E-LIB·E-INST base 기준값, base 쪽 모듈 __file__ 사전 검사)은 재사용하고, 문서·test에 기대는 것(freeze, 수집, base 전체 실행, T red 수집, strict·V1 형식, V5, 새 test 파일 __file__ 사전 검사)은 3차 base·T로 다시 쟀다. 모든 수치는 auditor가 C:/g13/*에서 직접 쟀다. 커밋은 순서 7.",
+ "id": "20260930-restore-plan-functions",
+ "attempt": 3,
+ "evidence_type": "red-green",
+ "phase": "2",
+ "approval": ["20260923-u02-d-list", "20260930-restore-p5-test-list", "20260930-restore-unwired-until-6a"],
+ "measured_at": "2026-09-30T16:56:52+09:00 (3차 순서 3 측정 끝; 재사용 측정은 2차 순서 3·7, 2026-09-30T16:20~16:38)",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export)",
+  "clone_steps": "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout <audit worktree> C:/g13/<이름> -> (별도 명령) git -C C:/g13/<이름> remote remove origin -> git -C C:/g13/<이름> checkout -q --detach <rev>. 3차 복제본 iso3(T)·base3(base)·syn3(미리보기) 측정 뒤 remote 0, status 0줄."
+ },
+ "freeze": {
+  "base_commit": "c31e0b686b360f607ebdaa47f8145f3b64657b75",
+  "base_is_gate_master": true,
+  "base_is_gate_master_how": "git -C <주 저장소> rev-parse master = c31e0b686b360f607ebdaa47f8145f3b64657b75 (읽기만)",
+  "base_subject": "docs: 복원 card 2차 시도 FAIL 기록, V7 미배선 면제 승인, 계약 3 보강(list 서식·기대값 구성)",
+  "test_commit_T": "e3f6871bd448de8dac5e61120298c4141085505a",
+  "T_tree": "04f18b8829a5e7347c84d06369c82fd68aeb63b4",
+  "T_parent": "c31e0b686b360f607ebdaa47f8145f3b64657b75",
+  "T_trailers": ["Role: test", "Change-Id: 20260930-restore-plan-functions"],
+  "audit_branch": "role/audit/20260930-restore-plan-functions",
+  "audit_branch_head_at_freeze": "e3f6871bd448de8dac5e61120298c4141085505a",
+  "worktree_status_at_freeze": "git status --porcelain 0줄(이 기록 폴더를 쓰기 전)",
+  "changed_paths_base_to_T": {
+   "shortstat": "2 files changed, 379 insertions(+), 18 deletions(-)",
+   "added": ["skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py"],
+   "modified": ["skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py"]
+  },
+  "outside_tests_diff": "git diff --name-only c31e0b6 T -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 0줄",
+  "test_blobs_at_T": {
+   "skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py": "e66e464a4bb6ad2aec53a42b3ab92da3c896405e",
+   "skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py": "9d4f168b8764498793a8cb149b2e603fed008dd8"
+  },
+  "carried_blob_check": "T의 test_d_delete_dead.py blob e66e464a…가 base 트리 운반 파일 docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/v5-carry/20260930-restore-plan-functions/e66e464a4bb6ad2aec53a42b3ab92da3c896405e.blob, 같은 폴더 paths.tsv 행, 승인 diff_head 5db0187의 같은 경로 blob(2차에 확인), 2차 T 3fefdd7의 blob과 모두 같다",
+  "new_test_vs_attempt2": "test_restore_plan_functions.py 2차(dba7644f) -> 3차(9d4f168b): override 없음 test를 test_derived_spec_without_override_keeps_registry_spec(기대값 SPECS[key]['spec_fn']()로 키별 대조 + why 미추가)로 교체, test_derived_spec_sequence_override_written_as_length(회로 4 x list·tuple = 8) 추가, 서식 판정 자기 점검 test_sequence_and_scalar_format_checks_reject_wrong_sources 추가, 기존 판정 보조의 자기 점검에 why 추가 거부 케이스 추가. 나머지 test는 같다(auditor diff)",
+  "code_commit_K": null
+ },
+ "reuse_judgement": {
+  "base_diff_2_to_3": "git diff --stat 04c7248 c31e0b6 = .ai/approvals/20260930-restore-unwired-until-6a.md(+26, 새), .ai/context.md(+3), docs/02-design/specs/20260930-restore-plan-functions.spec.md(+10: approval 줄, 계약 3 보강 4줄, 재시도 기록). 그 밖 0",
+  "trees_equal": "트리 id 04c7248 = c31e0b6: skills 22732240, workspaces ac9615a9, tools 712beefc(게이트 코드 file_set_sha256 ab7afccd… 같음)",
+  "reused_from_attempt2": {
+   "restore_reference_contract1": "0ecb686 두 원본 정의 기준값(이 폴더 orig_defs.json·orig/p5base_*, 스크립트 scripts/orig_defs.py) -- git 이력만 읽으므로 base와 무관",
+   "E-LIB_E-INST_base": "엔진·library·workspaces 트리가 같아 2차 base 04c7248 측정을 그대로 쓴다(아래 e_lib_e_inst_baseline)",
+   "module_origin_full_suite": "2차 base·T·M 전체 실행 사전 검사(probe_base_full.json·probe_T_full.json·probe_attempt2_M_full.json): sizing_recipe·run_harness·stick_diagram은 복제본, design_report만 주 저장소 파일(내용 = base blob aa271931). 3차에서 바뀐 것은 새 test 파일뿐이라 그 파일만 다시 쟀다(아래)"
+  },
+  "remeasured": "freeze, strict·V1 형식(spec card 개정), 수집, base 전체 실행(여러 test가 문서를 읽는다), T red 수집, V5, 새 test 파일 __file__ 사전 검사, 합성 병합본 미리보기"
+ },
+ "isolation": {
+  "commands": [
+   "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-restore-plan-functions-audit C:/g13/<이름>",
+   "git -C C:/g13/<이름> remote remove origin",
+   "git -C C:/g13/<이름> checkout -q --detach <rev>"
+  ],
+  "clones": {
+   "C:/g13/iso3": "T e3f6871. 수집·red 수집·V5·strict·새 test 사전 검사",
+   "C:/g13/base3": "base c31e0b6. 수집·전체 실행·게이트 코드 추출",
+   "C:/g13/syn3": "미리보기 전용(판정 아님): iso3 복제 -> origin 제거 -> T checkout -> git fetch C:/g13/m 06099fa(2차 K) -> 그 커밋의 sizing_recipe.py·run_harness.py·레지스트리 3파일을 얹어 스크래치 로컬 커밋 b557a5be(푸시 없음)",
+   "C:/g13/eq": "E-LIB·E-INST 같은 경로 복제본(지금 2차 M 2889a45). 순서 7에서 git fetch <3차 병합본 복제본> <M3> 뒤 checkout -q --detach + clean -fdxq로 같은 경로에서 잰다(2차에서 fetch 없이 checkout하면 객체가 없어 실패함을 겪었다)"
+  },
+  "gate_code": {
+   "how": "C:/Python314/python.exe -P C:/g13/scripts/extract_gate.py C:/g13/base3 c31e0b686b360f607ebdaa47f8145f3b64657b75 C:/g13/gmid-gate-cache/c31e0b686b360f607ebdaa47f8145f3b64657b75 (git cat-file blob, redteam 밖 22개)",
+   "file_set_sha256": "ab7afccd7aa4b4ed6687b2d1acc71a07e82c5a6ceb615fd3b1eb7963a1adb828 (2차 04c7248 판과 같다)"
+  },
+  "precheck_module_origin": {
+   "T3_new_test_only": "bash C:/g13/scripts/probe.sh iso3 T3_only <새 test 파일>: 34 failed, 4 passed. sizing_recipe = C:/g13/iso3/.../sizing_recipe.py, run_harness = C:/g13/iso3/workspaces/run_harness.py, stick_diagram = 복제본, design_report = 주 저장소(2차와 같은 기존 상태). AttributeError.obj: run_harness(복제본) 29, sizing_recipe(복제본) 5 (probe_T3_only.json)",
+   "judgement": "red 34건은 복제본 모듈을 잰 것이다. 순서 7에서 병합본 전체로 같은 검사를 다시 하고 design_report blob이 base와 같은지 본다"
+  }
+ },
+ "strict_set": {
+  "card_parse": "base 판 role_paths.parse_spec_card(c31e0b6 트리의 spec card): id=20260930-restore-plan-functions, phase=2, evidence_type=red-green, gate_change=no, approval=[20260923-u02-d-list, 20260930-restore-p5-test-list, 20260930-restore-unwired-until-6a], activated_ic_case=[]",
+  "conftest_has_gmid_phase": true,
+  "strict_needed": [],
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "new_symbols_from_interface_card": [["run_harness", "derived_spec"], ["sizing_recipe", "lut_conditions_from_npz"]],
+  "checked_with": "PYTHONPYCACHEPREFIX=C:/g13/pyc3_sc PYTHONPATH=C:/g13/gmid-gate-cache/c31e0b6… C:/Python314/python.exe -P C:/g13/scripts/strict_check.py C:/g13/iso3 c31e0b6… 20260930-restore-plan-functions <V1 문자열> -> strict_set [], v1_command_check 실패 0건 (C:/g13/out/strict3_check.txt)"
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g13/gmid-gate-cache/c31e0b686b360f607ebdaa47f8145f3b64657b75 C:/Python314/python.exe -P -m pytest -c C:/g13/gmid-gate-cache/c31e0b686b360f607ebdaa47f8145f3b64657b75/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=2 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "base_run": {
+  "script": "bash C:/g13/scripts/run3.sh collect|base|red (사본 scripts/run3.sh)",
+  "collection": {
+   "base_collected": 716, "base_collect_exit": 0, "T_collected": 754, "T_collect_exit": 0, "T_collection_errors": [],
+   "new_by_file": {"skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py": 38},
+   "base_same_as_attempt2": "base 수집 id 집합 = 2차 base 04c7248 수집(차이 0)",
+   "T_vs_attempt2": "3차 T = 2차 T - 4(without_override_equals_canonical x4) + 13(without_override_keeps_registry_spec x4, sequence_override_written_as_length x8, format 자기 점검 1)",
+   "renamed_ids": "base에만 있는 id 6개 = test_d_delete_dead.py 자기 점검 매개변수 이름 교체(2차와 같음, V5 승인 20260930-restore-p5-test-list 범위). T에만 있는 id 44 = 새 파일 38 + 교체 6",
+   "merged_expectation": "병합본 수집 = 754 = T 수집 id 집합과 같음"
+  },
+  "full_run": {
+   "base": "701 passed, 15 xfailed, exit 0, 97.40s (C:/g13/base3, C:/g13/out/full3_base.txt)",
+   "T_on_base_engine": "34 failed, 705 passed, 15 xfailed, exit 1, 89.42s (C:/g13/iso3, -p merge_gate --continue-on-collection-errors, C:/g13/out/full3_T_red.txt). 705 = 701 - 6 + 6(이름 바뀐 id, 통과) + 4(새 파일 전제·자기 점검: test_circuit_keys_present, test_lut_condition_checks_reject_wrong_results, test_derived_spec_checks_reject_wrong_results, test_sequence_and_scalar_format_checks_reject_wrong_sources)"
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g13/out/red3_T.jsonl GMID_INTERFACE_CARD=C:/g13/iso3/docs/02-design/specs/20260930-restore-plan-functions.interface.md PYTHONPYCACHEPREFIX=C:/g13/pyc3_full_iso PYTHONPATH=C:/g13/gmid-gate-cache/c31e0b686b360f607ebdaa47f8145f3b64657b75 C:/Python314/python.exe -P -m pytest -c C:/g13/gmid-gate-cache/c31e0b686b360f607ebdaa47f8145f3b64657b75/pytest_gate.ini --rootdir=C:/g13/iso3 --confcutdir=C:/g13/iso3 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g13/iso3/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "12ea45a2a9a48bc3185d475f1afcb14f8547e88d9e7d7c0854e0300ddf2ad077",
+   "capture_lines": "46줄 = builtins.AttributeError 34 + builtins.Failed 12(IC xfail, base id -- 이 card의 red 아님)",
+   "red_count": "34건 전부 builtins.AttributeError, 전부 contracts/test_restore_plan_functions.py: 계약 2 lut_conditions 5, 계약 3 derived_spec 29(rejects_blank_why 12, rejects_unregistered_key 1, without_override_keeps_registry_spec 4, with_override_changes_only_named_keys 4, sequence_override_written_as_length 8). test-author 보고(34)와 일치 -- 보고는 대조용",
+   "vs_attempt2": "2차 red 26 중 22는 같은 id, 4(without_override_equals_canonical)는 교체되어 없음; 새 red 12(keeps_registry_spec 4 + sequence 8)",
+   "record_rule": "AttributeError는 _NEW_SYMBOL_TYPES라 (obj.__name__, name)가 interface card 신규 시그니처 표에 있을 때만 기록 -- 34건 기록됨 = (run_harness, derived_spec) 29 + (sizing_recipe, lut_conditions_from_npz) 5. obj 모듈은 전부 복제본(위 사전 검사)",
+   "hash_recomputed": "46줄 전부 sha256(UTF-8(f'{test_id}\\n{exc_type}'))로 다시 계산해 캡처 failure_hash와 같음",
+   "red_failure_hashes_full": "이 폴더 red3_T.jsonl -- 순서 7에서 AttributeError 34줄을 판정 기록 red 필드로 옮긴다"
+  }
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g13/pyc3_v5 C:/Python314/python.exe C:/g13/gmid-gate-cache/c31e0b686b360f607ebdaa47f8145f3b64657b75/weakening_diff.py --root C:/g13/iso3 --base c31e0b686b360f607ebdaa47f8145f3b64657b75 --head e3f6871bd448de8dac5e61120298c4141085505a",
+  "exit": 0,
+  "result": "verdict PASS, findings 4(test_d_delete_dead.py 리터럴 변경), diff_paths [skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py], diff_hash = 승인 target 4dcd62889b4facd6fcee26a9a9ce9c5f6831105e5be5f5dd1cf1a940224fb0ba, approved true. 출력 파일이 2차 base->T·base->M 출력과 바이트 동일",
+  "approval_base_equivalence": "diff_path의 base blob: 승인 diff_base bf407c7 = 04c7248 = c31e0b6 = 735ecae8354e71acafc5dc69f5dea10f1c4fe685. head blob = 운반 blob e66e464a",
+  "basis_hint_order7": "V5 basis의 64자리 16진은 승인 target 하나만"
+ },
+ "restore_reference_contract1": {
+  "reused": "2차 순서 3 측정 그대로(git 이력 0ecb686만 읽음). 이 폴더 orig_defs.json(sha256 c29dde9f…), orig/p5base_*, scripts/orig_defs.py·restore_cmp.py",
+  "lut_conditions_from_npz": {"path": "skills/analog-gmid-design/assets/sizing_recipe.py", "file_blob": "ca5520303b868e09c00fc798d84ccb82a63b7d62", "lines": "5371-5392", "docstring_sha256": "848d36dcd579cc43448074a50a6cf0b7e589ef0d87cfce58b44a39c5da02fe44", "ast_dump_sha256": "af1201bb6a412081bc188263c08068e685703bc5d59e503a730f8495c90ea4bb", "source_bytes_sha256": "460d1ca1f255b68f62597cd24f5a9e4fd4cede6641131c290664d907a1c31512", "neighbours": "Assign:_PSRR_ESTIMATOR_REGISTRY 뒤, FunctionDef:_load_full_topology_cached 앞"},
+  "derived_spec": {"path": "workspaces/run_harness.py", "file_blob": "24ce2ad3d8a0d15897507f0df9a01fd13fb08656", "lines": "374-419", "docstring_sha256": "ddc16104bb67fab87b49930c642ca11ccf1401f3245a4756596f918016d8831d", "ast_dump_sha256": "4dfc7c6c81f919ec5b8dbdd52f47c33e7870622071f30b380222c6d5b62231e2", "source_bytes_sha256": "673c3bc0b3cd979c826b8ceb8eb3ba8124df6c30fd7532f150f76833fe163d7d", "neighbours": "FunctionDef:canonical_spec 뒤, FunctionDef:run 앞"},
+  "order7": "병합본에서 scripts/orig_defs.py·scripts/restore_cmp.py(0ecb686 / c31e0b6 / M3)로 해시·앞뒤 문장·복원 def 밖 변경 0을 본다"
+ },
+ "e_lib_e_inst_baseline": {
+  "reused": "2차 base 04c7248(엔진·workspaces·library 트리 = c31e0b6) 측정. 같은 경로 C:/g13/eq, 작업 디렉터리 C:/g13/ws_eq, 스크립트 scripts/e_lib.py·e_inst.py·einst_time.sh",
+  "E-LIB": {"base_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f", "base_output_file_sha256": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89"},
+  "E-INST": {
+   "folded_cascode": {"base": "783db3fe3270cd1822240eab980d6b81569d4f13361dc1d94d305dcc45ffaf92", "elapsed_s": [18.44, 18.31, 16.71]},
+   "current_reuse_telescopic_ota": {"base": "9ca6c6ef55ca095058e58e6603c871500bfb8e14c4ed8601c03a2435d1fe86b9", "elapsed_s": [135.15, 135.36]},
+   "path_dependence": "instance.json topology_ref에 복제본 경로가 들어가 해시가 경로에 기댄다('g13'->'g12' 치환 시 P8 base 값과 정확히 같음). 순서 7도 C:/g13/eq·C:/g13/ws_eq에서 잰다",
+   "raw": "이 폴더 einst_time.txt(2차 base 5줄 + 2차 M 4줄 -- 2차 M 값은 참고, 판정 밖)"
+  }
+ },
+ "preview_synthetic_merge": {
+  "status": "참고(판정 아님). 순서 7에서 실제 병합본으로 다시 잰다",
+  "how": "bash C:/g13/scripts/preview3.sh (C:/g13/syn3 = T + 2차 K 06099fa의 sizing_recipe.py 97a6c7bb·run_harness.py 24ce2ad3·레지스트리 blob, 스크래치 커밋 b557a5be; base 판 캐시 c31e0b6 도구)",
+  "green": "새 test 파일 + test_d_delete_dead.py: 89 passed",
+  "V3": "mutate_changed.py: PASS, mutants 32, killed 32, 생존 0 (2차 생존 3개 -- derived_spec list·tuple 서식 분기 -- 가 이제 죽는다)",
+  "V4": "test_lint.py --subject sizing_recipe:lut_conditions_from_npz: PASS((2) PASS 3·UNJUDGED 2); --subject run_harness:derived_spec --module-dir workspaces: PASS((2) PASS 1 = 268행 without_override_keeps_registry_spec, UNJUDGED 4, FAIL 0) -- 2차의 규칙 (2) FAIL이 더는 걸리지 않는다. --interface-card로 한 번에 돌리면 A 밖 모듈(run_harness) 때문에 ERROR(도구 한계, 2차와 같음)라 subject별로 나눠 돌린다",
+  "V4_oracle_observation": "새 기대값 SPECS[key]['spec_fn']()는 canonical_spec이 '그대로 부르는 얇은 래퍼'(run_harness.py 358-371)의 안쪽 호출이다 -- 피검 반환식과 같은 식은 아니어서 규칙 (2)는 통과하지만 기대값의 계산 출처는 피검이 쓰는 것과 같은 spec_fn이다. 계약 3이 '정본과 같음'을 요구하므로 정본을 계산하는 것 자체는 oracle 정의상 불가피하고, 판정되는 피검 행동(why 검사, override 없을 때 _spec_source 미추가, 키 집합·값 불변)은 독립적으로 본다 -- 순서 7 V4 basis에 oracle 대조로 적는다",
+  "V6": "source_lint.py PASS, findings 0",
+  "V7": "reachability.py PASS: unreached 두 def, unreached_without_approval [] (head 트리 승인 20260930-restore-unwired-until-6a target이 두 def id)",
+  "reg_check": "exit 0, 발견 0"
+ },
+ "outputs_kept": {
+  "C:/g13/out/full3_base.txt": "c67710a14968538e692547c8cd36b9bc4583cd288d40535c07602da8e777a1b1",
+  "C:/g13/out/full3_T_red.txt": "dc54fd677436d3a9b5f20f66e22d86a3197559c9ed9d8432753a11ae9bce72f6",
+  "C:/g13/out/red3_T.jsonl": "12ea45a2a9a48bc3185d475f1afcb14f8547e88d9e7d7c0854e0300ddf2ad077",
+  "C:/g13/out/v5_3_base_T.txt": "813b63e66e32c0eee1e659826cd77b070178cd8b4da3361906d95d43efc454c9",
+  "C:/g13/out/collect3_base.txt": "b67c49deeedeedab53515d3a18b2a8768b9c1d60ce61042db8d2aeb0b51a8181",
+  "C:/g13/out/collect3_iso.txt": "50a236bd0dd2bf3113bb074a2f7bc8142b68ee280ac8e6f285ade3aa7299a149",
+  "C:/g13/out/strict3_check.txt": "7906f6aa0b31d36b33a915f2a27bfd984a1f6d0e7b508892b2cc59ee1054e160",
+  "C:/g13/out/probe_T3_only.json": "a9cd1fbfd494d2c31141f045c6e72f8a4b82aaff7c62aeb8c190db326ef9531e",
+  "C:/g13/out/pv3_green.txt": "1862b13b322c073fb2f7febae0ca965fa79cfa6828208868e088474eb1543e4d",
+  "C:/g13/out/pv3_V3.txt": "63c513ba693954d11a82cd737affdc823381295b23197084326a5802a4baa423",
+  "C:/g13/out/pv3_V4a.txt": "e613e9edddae8879d250b153057502de55b396b6530ff8de419f59ae301b22c0",
+  "C:/g13/out/pv3_V4b.txt": "c2291308808584f645fa4ba9e4d4cef1a9d2f389f05b9d16e4e2cb72ca382118",
+  "C:/g13/out/pv3_V7.txt": "1c1c5ec4c09f64c75f637676ba7d01dac389fb7efdd28401e94223baca032511",
+  "C:/g13/out/orig_defs.json": "c29dde9f6d3ef1f6f14d9f6f41cdade211cc03f0b756e806571c5fa4564dba7a",
+  "C:/g13/out/elib_base.json": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89"
+ },
+ "next": "code-author가 K3(두 정의 복원 + 레지스트리 -- 2차 K 06099fa와 같은 blob 예정이면 blob 대조로 확인)를 만들고 병합 뒤 순서 7: V1(수집 754, 사전 검사 재실행), V2(red 34 green + 복원 대조 + 레지스트리 계약 5 + E-LIB·E-INST base 동일 + design_report blob), V3~V10(V4는 subject별 두 번)."
+}

@@ -1,0 +1,1 @@
+{"tool": "V4", "verdict": "ERROR", "error": "RuntimeError: git show f1c4b7dc0955a48ae3705e2f993eeaeb119d236d:skills/analog-gmid-design/assets/run_harness.py 실패: fatal: path 'skills/analog-gmid-design/assets/run_harness.py' does not exist in 'f1c4b7dc0955a48ae3705e2f993eeaeb119d236d'\n"}
