@@ -1,0 +1,190 @@
+{
+ "note": "05-role-separation §12 순서 3(freeze·base 확인) -- DF-36 2차 시도. 모든 수치는 auditor가 격리 복제본 C:/g16/*에서 직접 쟀다(test-author 보고 'base red 23건, 23 failed·775 passed·15 xfailed'는 대조용일 뿐 증거 아님). 1차 순서 3 기록은 C:/g15/prev_audit1/20260930-df36-instance-relpath/base_check.json. 커밋은 순서 7.",
+ "id": "20260930-df36-instance-relpath",
+ "attempt": 2,
+ "evidence_type": "red-green",
+ "phase": "2",
+ "approval": "20260923-20-dead-code-dup-design",
+ "measured_at": "2026-09-30T19:18:49+09:00",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export)",
+  "clone_steps": "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout <audit worktree> C:/g16/<이름> -> (별도 명령) git -C C:/g16/<이름> remote remove origin -> git -C C:/g16/<이름> checkout -q --detach <rev>. 측정 뒤 복제본 iso·base·eq·mutsmoke 모두 remote 0, status 0줄."
+ },
+ "freeze": {
+  "base_commit": "070cf6937e2841bdd3b4781eb9b8ba5bba9cc606",
+  "base_is_gate_master": true,
+  "base_is_gate_master_how": "git -C <주 저장소> rev-parse master = 070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 (1차와 같은 base)",
+  "base_subject": "docs: DF-36 spec card 20260930-df36-instance-relpath(topology_ref 저장소 루트 상대, 저장소 밖 거부), 설계 예시 정정, DF-35 완료 기록",
+  "test_commit_T": "6444a031e9c4d3e03c9c11714e6580f14b0e3e1c",
+  "T_tree": "9040de4afb6b11ff8804081b1e049e005f05d7d8",
+  "T_parent": "070cf6937e2841bdd3b4781eb9b8ba5bba9cc606",
+  "T_trailers": [
+   "Role: test",
+   "Change-Id: 20260930-df36-instance-relpath"
+  ],
+  "audit_branch": "role/audit/20260930-df36-instance-relpath",
+  "audit_branch_head_at_freeze": "6444a031e9c4d3e03c9c11714e6580f14b0e3e1c",
+  "worktree_status_at_freeze": "git status --porcelain 0줄(이 기록 폴더를 쓰기 전)",
+  "changed_paths_base_to_T": {
+   "shortstat": "1 file changed, 347 insertions(+)",
+   "added": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py"
+   ],
+   "modified": []
+  },
+  "test_blob": "0439892f094684e2057f54e3a874dadccf4dea69 (git ls-tree T)",
+  "outside_tests_diff": "git diff --name-only 070cf69 T -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 0줄",
+  "diff_vs_1st_test": "1차 T 2c61257의 같은 파일(blob 0dc3369f, C:/g15/iso에서 git show)과 diff: docstring 1줄 교체(+2) + 목록 2줄 + _other_drive_letter()·test_other_drive_topology_rejected[backslash|slash] 추가. 삭제는 docstring 1줄뿐(+33/-1과 일치). 1차 test 본문은 그대로.",
+  "trees": "base·T 공통: docs a58885e9, tools 712beefc, workspaces 1d0507d9. skills 430d5686(base, 1차 base와 같다) -> ca748aff(T). 엔진·library: base와 T 모두 library 트리 5058ea8e, stick_diagram.py blob 04110fd2, run_harness.py blob 614a933c",
+  "code_commit_K": null
+ },
+ "isolation": {
+  "commands": [
+   "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-df36-instance-relpath-audit C:/g16/<이름>",
+   "git -C C:/g16/<이름> remote remove origin",
+   "git -C C:/g16/<이름> checkout -q --detach <rev>"
+  ],
+  "clones": {
+   "C:/g16/iso": "T2 6444a03. 수집·red 수집·V5·strict 확인",
+   "C:/g16/base": "base 070cf69. 수집·전체 실행·게이트 코드 추출",
+   "C:/g16/eq": "base 070cf69. E-LIB·E-LIB-INST·E-INST 기준값 재측정. 순서 7에서 병합본을 이 경로로 가져와(git fetch <병합본 복제본> <M> -> checkout -q --detach + clean -fdxq) 같은 스크립트로 잰다",
+   "C:/g16/mutsmoke": "1차 병합본 f38abf6(C:/g15/mut에서 복제). V3 대체 스크립트 self-check·예측 probe 전용 -- 판정 증거 아님"
+  },
+  "gate_code": {
+   "how": "C:/Python314/python.exe -P C:/g16/scripts/extract_gate.py C:/g16/base 070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 C:/g16/gmid-gate-cache/070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 (git cat-file blob, redteam 밖 22개)",
+   "file_set_sha256": "ab7afccd7aa4b4ed6687b2d1acc71a07e82c5a6ceb615fd3b1eb7963a1adb828 (1차·DF-35·P8과 같다)"
+  },
+  "side_effect_check": "측정 뒤 주 저장소 git status가 시작 스냅숏과 같다(.bkit 2개 M, 기존 미추적만). audit worktree status는 이 기록 폴더 미추적뿐. role_guard 훅이 'git remote remove'를 복합 명령 안에서 거부해 단독 명령으로 실행했다(효과 같음)."
+ },
+ "strict_set": {
+  "card_parse": "base 판 role_paths.parse_spec_card: id=20260930-df36-instance-relpath, phase=2, evidence_type=red-green, gate_change=no, approval=[20260923-20-dead-code-dup-design], activated_ic_case=[]",
+  "conftest_has_gmid_phase": true,
+  "strict_needed": [],
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "new_symbols_from_interface_card": [],
+  "checked_with": "PYTHONPYCACHEPREFIX=C:/g16/pyc_sc PYTHONPATH=C:/g16/gmid-gate-cache/070cf69… C:/Python314/python.exe -P C:/g16/scripts/strict_check.py C:/g16/iso 070cf69… 20260930-df36-instance-relpath <V1 문자열(루트 C:/g16/m)> -> strict_set [], v1_command_check [], new_symbols [] (strict_check.txt, 출력 바이트가 1차와 같다)"
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g16/gmid-gate-cache/070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 C:/Python314/python.exe -P -m pytest -c C:/g16/gmid-gate-cache/070cf6937e2841bdd3b4781eb9b8ba5bba9cc606/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=2 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "base_run": {
+  "script": "bash C:/g16/scripts/run.sh collect|base|red (1차 run.sh에서 C:/g15 -> C:/g16만 바꾼 사본, scripts/run.sh)",
+  "collection": {
+   "base_collected": 774,
+   "base_collect_exit": 0,
+   "T_collected": 813,
+   "T_collect_exit": 0,
+   "T_collection_errors": [],
+   "new_by_file": {
+    "skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py": 39
+   },
+   "base_minus_T": 0,
+   "new_vs_1st": "39 = 1차 37 + test_other_drive_topology_rejected[backslash]·[slash]",
+   "merged_expectation": "병합본 수집 = 813 = T 수집 id 집합"
+  },
+  "full_run": {
+   "base": "759 passed, 15 xfailed, exit 0, 138.05s (C:/g16/base, C:/g16/out/full_base.txt) -- 1차 base 실행과 같다",
+   "T_on_base_engine": "23 failed, 775 passed, 15 xfailed, exit 1, 129.41s (C:/g16/iso, -p merge_gate --continue-on-collection-errors, C:/g16/out/full_T_red.txt). 23 = 1차 21 + 새 2건. 775 = 759 + 새 파일 base 통과 16(1차와 같다). test-author 보고 수치와 같다"
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g16/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g16/iso/docs/02-design/specs/20260930-df36-instance-relpath.interface.md PYTHONPYCACHEPREFIX=C:/g16/pyc_full_iso PYTHONPATH=C:/g16/gmid-gate-cache/070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 C:/Python314/python.exe -P -m pytest -c C:/g16/gmid-gate-cache/070cf6937e2841bdd3b4781eb9b8ba5bba9cc606/pytest_gate.ini --rootdir=C:/g16/iso --confcutdir=C:/g16/iso -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g16/iso/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "ac15e4ea2c36af898dbae0b1769f8bfb4f59a762ad39ab5d882d8855209f8da5 (1차 red_T.jsonl과 바이트 동일, 줄 집합도 같다)",
+   "capture_lines": "33줄 = builtins.AssertionError 20 + builtins.Failed 13(12는 기존 IC xfail base id -- test_ic1·2·4·6·8·9·10 각 1, test_ic7 2, test_ic11 3 -- 이 card의 red 아님, 1은 새 test)",
+   "red_count": "플러그인이 인정한 red 21건(1차와 같은 21 id·같은 해시): 계약 1 test_topology_ref_is_repo_relative_for_library[9회로] 9 AssertionError, 계약 3 test_instance_has_no_checkout_root_string[9회로] 9 AssertionError, 계약 2 test_topology_ref_same_for_path_spellings_and_cwd·test_topology_ref_same_for_output_locations 2 AssertionError, 계약 4 test_outside_repo_topology_rejected 1 builtins.Failed(DID NOT RAISE)",
+   "new_tests_base_failure_not_red": {
+    "tests": [
+     "contracts/test_df36_instance_relpath.py::test_other_drive_topology_rejected[backslash]",
+     "contracts/test_df36_instance_relpath.py::test_other_drive_topology_rejected[slash]"
+    ],
+    "base_exception": "builtins.FileNotFoundError: [Errno 2] No such file or directory: 'Z:\\\\df36_other_drive\\\\library\\\\two_stage_ota.topology.json' / 'Z:/df36_other_drive/library/two_stage_ota.topology.json' (stick_diagram.py:8592 open -- base save_instance_json이 topology 파일을 읽다가 실패, pytest.raises(ValueError)를 뚫고 나감)",
+    "rule": "00-common §8.1 허용 예외 타입(AssertionError·Failed, 신규 심볼일 때만 ImportError류) 밖 -- 'red로 인정하지 않는다'. base 판 merge_gate._RedCapture.record가 기록하지 않았다(캡처에 other_drive 줄 0). 따라서 이 2건은 판정 기록 red 필드에 들어갈 수 없다. test-author 보고의 'base red 23건'은 실패 수이지 인정 red 수가 아니다",
+    "consequence_for_order7": "red-green V2에서 red 증거는 21건. 새 2건은 V2 red 증거가 아니라 V3(1차 생존 변이 죽이기)와 병합본 PASS(V1)로만 기여한다. 이 구성이 red-green 증거로 충분한지(새 test가 base에서 assertion으로 실패하지 않는 것)는 오케스트레이터 판단 사항으로 보고한다"
+   },
+   "hash_recomputed": "33줄 모두 sha256(UTF-8(f'{test_id}\\n{exc_type}'))로 다시 계산해 캡처 failure_hash와 같다(불일치 0)",
+   "red_hash_rule_match": "AssertionError·Failed 둘 다 base 판 merge_gate._ALWAYS_RED -- 신규 심볼 표(비어 있음) 대조 없이 기록된다",
+   "red_failure_hashes_full": "이 폴더 red_T.jsonl -- 순서 7에서 contracts/test_df36_instance_relpath.py의 21줄(AssertionError 20 + Failed 1)을 판정 기록 red 필드로 옮긴다(IC xfail 12줄 제외)",
+   "green_expectation": "병합본에서 red 21건과 새 2건 모두 PASS"
+  }
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g16/pyc_v5 C:/Python314/python.exe C:/g16/gmid-gate-cache/070cf6937e2841bdd3b4781eb9b8ba5bba9cc606/weakening_diff.py --root C:/g16/iso --base 070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 --head 6444a031e9c4d3e03c9c11714e6580f14b0e3e1c",
+  "exit": 0,
+  "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+  "auditor_judgement": "T2는 새 test 파일 1개 추가뿐(기존 test 수정·삭제 0), 약화 대상 없음. basis에 적을 diff 해시 없음."
+ },
+ "equivalence_baselines_reuse": {
+  "decision": "1차 기준값을 재사용할 수 있다 -- 그리고 새 경로 C:/g16/eq에서 다시 재서 같음을 확인했다(재사용 근거 = 트리 동일 + 재측정 일치)",
+  "tree_basis": "base 커밋이 1차와 같은 070cf69(= gate master). skills 트리 430d5686, library 트리 5058ea8e, stick_diagram.py blob 04110fd2, run_harness.py blob 614a933c, workspaces 트리 1d0507d9 -- 1차 base_check의 base 트리(skills 430d5686, workspaces 1d0507d9)와 같다. T2는 tests/ 밖 diff 0이라 엔진·library도 base와 같다",
+  "remeasured_at": "C:/g16/eq(base 070cf69) -- 체크아웃 경로가 1차(C:/g15/eq)와 달라 경로 무관성도 함께 확인"
+ },
+ "e_lib_baseline": {
+  "script": "PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g16/scripts/e_lib.py C:/g16/eq C:/g16/out/elib_base.json (1차 사본 그대로)",
+  "base_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f (1차와 같다)",
+  "base_output_file_sha256": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89 (1차 파일과 바이트 동일)",
+  "caveat": "e_lib.py는 save_instance_json을 부르지 않는다 -- 나머지 엔진 무동작 확인용. 바뀌는 함수의 library 전수는 E-LIB-INST"
+ },
+ "e_lib_inst_baseline": {
+  "script": "rm -rf C:/g16/ws_lib; PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g16/scripts/e_lib_inst.py C:/g16/eq C:/g16/ws_lib C:/g16/out/elibinst_<태그>.json",
+  "combined_without_topology_ref_sha256": "e4762cfff0e0a008147075ace754412a06d25ff6c1cb26a3dc13258d83dc520d (1차와 같다)",
+  "combined_masked_sha256": "1f0956cb11976b4d2dbb5fb7444831c61b536a614e19a1a1e78903e4edbcc7ca (1차와 같다)",
+  "per_circuit": "9회로 모두 without_topology_ref·masked 해시가 1차와 같다. topology_ref_raw = C:\\g16\\eq\\...\\library\\<파일>(절대). 결과 파일 자체의 sha256(f665fed4…)은 1차(f1107b76…)와 다르다 -- 파일 안에 raw 경로 문자열이 들어 있어서(C:/g15 -> C:/g16)이고 판정값이 아니다",
+  "order7_rule": "병합본 C:/g16/eq에서 같은 명령: (a) 두 combined 해시와 회로마다 without_topology_ref·masked 해시가 base와 같다 (b) 회로마다 topology_ref_raw = topology_ref_expected_contract1 (c) root_string_hits 빈 목록"
+ },
+ "e_inst_baseline": {
+  "script": "bash C:/g16/scripts/einst.sh C:/g16/eq <태그> <회로> (e_inst_df36.py; 실행 전후 git checkout -- workspaces + clean -fdxq)",
+  "runs": "base folded_cascode exit 0 24.89s, base current_reuse_telescopic_ota exit 0 178.23s (einst.txt). 실행 뒤 되돌림 후 C:/g16/eq status 0줄",
+  "base_values": {
+   "folded_cascode": {
+    "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+    "file_bytes_masked_sha256": "a783cbe5d41e727ee494b1f3c91eb37801bd450de2ea04bd552f142922c690c8",
+    "field_sha256_non_topology_ref": "7필드(schema_version·sizing·netlist·floorplan·box_shape·audit_row_split·coverage) 모두 1차 값과 같다",
+    "topology_ref_raw": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\library\\folded_cascode.topology.json",
+    "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json",
+    "path_string_hits": "/topology_ref 하나"
+   },
+   "current_reuse_telescopic_ota": {
+    "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+    "file_bytes_masked_sha256": "f555c89ce58de5454ae8442470b0bd87c82cbf776f85d6a5c1e544396855f2f5",
+    "field_sha256_non_topology_ref": "7필드 모두 1차 값과 같다",
+    "topology_ref_raw": "C:\\g16\\eq\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+    "topology_ref_expected_contract1": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json",
+    "path_string_hits": "/topology_ref 하나"
+   },
+   "differs_from_1st_only_in": "raw_sha256·file_bytes_sha256·field_sha256.topology_ref·path_string_hits 값 -- 모두 topology_ref 절대 경로(C:\\g15 -> C:\\g16) 때문. 판정값(without_topology_ref·masked·7필드)은 1차와 같다"
+  },
+  "files": "이 폴더 einst/*.json, einst.txt",
+  "order7_rule": "병합본을 C:/g16/eq에 두고 bash scripts/einst.sh C:/g16/eq m <회로>(두 회로). 계약 5 판정: (a) without_topology_ref_sha256 = 위 base 값 (b) field_sha256의 topology_ref 외 7필드 = base (c) file_bytes_masked_sha256 = base (d) topology_ref_raw = topology_ref_expected_contract1 (e) path_string_hits 빈 목록. 하나라도 다르면 FAIL로 handoff"
+ },
+ "v3_prep": {
+  "why_substitute": "base 판 mutate_changed.py는 저장소를 .git 없이 복사해 돌린다. 인벤토리의 contracts/test_ts6_probe_relocate.py가 git으로 base blob을 읽어 기준 실행이 실패하고 모든 변이가 생존 처리된다(1차 v3_mut.json). 순서 7에서도 같은 도구 한계가 예상되므로 대체 스크립트를 준비했다(도구를 먼저 돌려 같은 한계인지 확인한 뒤 쓴다)",
+  "script": "이 폴더 scripts/mut_def.py (C:/g16/scripts/mut_def.py, sha256 c22382d348b53cdf17d3950dfa58dc25c0015a0703632bede7ddb6c14559321e)",
+  "changes_from_1st": [
+   "면제 적용: 도구 main과 같이 rch._approved_ids(root, head) -- head 트리 .ai/approvals의 target_kind: decision 승인 target 목록 -- 에 든 변이 id는 실행하지 않고 exempt. summary 모드는 저장된 기록에도 현재 head 승인으로 exempt를 다시 판정",
+   "대상: 도구와 같이 diff(--diff-filter=AM)에서 rch._is_source인 .py 전부(1차는 stick_diagram.py 고정), 모듈 이름은 rch.module_name(1차는 'stick_diagram' 리터럴)",
+   "기준 실행: 인벤토리마다 baseline 모드로 기록, 변이 실행 시 기준 실패 인벤토리는 도구와 같은 사유로 survived, 인벤토리 없음도 survived",
+   "gmid 옵션: 도구 gmid_extra_args와 같이 conftest_has_gmid_phase일 때만, strict = V1 집합 ∩ inventory_gmid_keys",
+   "모드: list(실행 없음, exempt 표시·같은 def의 안 맞은 승인 id 목록) / baseline / a:b / summary(INCOMPLETE·FAIL·PASS)",
+   "출력 UTF-8 고정, tail의 ANSI 색 코드 제거"
+  ],
+  "usage": "PYTHONDONTWRITEBYTECODE=1 PYTHONPATH=C:/g16/gmid-gate-cache/070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 C:/Python314/python.exe -P C:/g16/scripts/mut_def.py <.git 있는 병합본 복제본> 070cf6937e2841bdd3b4781eb9b8ba5bba9cc606 <M> list|baseline|<a>:<b>|summary <out.jsonl> --gmid-phase=2 --gmid-strict=",
+  "self_check": {
+   "list_on_1st_merge": "C:/g15/mut(1차 병합본 f38abf6)에서 list: n_mutants 26, n_exempt 4(save_instance_json stmt_delete:body[2]·body[2].body[0]·const+/const-:body[6].body[0].value.keywords[0].value), 같은 def의 안 맞은 승인 id 0, gmid_supported true (selftest/list_1st.jsonl)",
+   "summary_on_1st_records": "1차 mut_def.jsonl(면제 없이 센 기록)에 summary: verdict FAIL, mutants 26, killed 21, exempt 4, survivors [stick_diagram:_topology_ref_relpath:except_body_delete:body[3].handlers[0]] -- 오케스트레이터가 준 바른 집계(21·4·1)와 같고 생존을 실제로 FAIL로 잡는다 (selftest/summary_1st.txt)",
+   "run_modes_smoke": "C:/g16/mutsmoke(f38abf6)에서 baseline(인벤토리 68개, rc 0, 95 passed·3 xfailed, 111s) -> 25:26(early_return:body[1] killed) -> 7:8(stmt_delete:body[4].body[0] killed), 매 실행 뒤 status 0줄 (selftest/smoke.jsonl)"
+  },
+  "forecast_probe_not_evidence": "C:/g16/mutsmoke에 T2 test 파일을 덮고 1차 생존 변이(_topology_ref_relpath except_body_delete:body[3].handlers[0])를 넣어 test_other_drive_topology_rejected만 실행: 변이 없음 2 passed, 변이 2 failed. 끝에 두 파일을 원래 바이트로 되돌리고 status 0줄 (scripts/probe_t2_vs_1st_survivor.py, selftest/probe_t2.txt). 1차 K와 같은 구조의 코드라면 새 test가 그 변이를 죽인다는 예측일 뿐, 순서 7 V3 판정은 병합본에서 다시 잰다. 주의: 순서 7의 면제 id는 AST 경로를 담으므로 save_instance_json 본문 구조가 1차와 다르면 맞지 않을 수 있다 -- list 모드로 먼저 확인"
+ },
+ "outputs_kept": {
+  "C:/g16/out/collect_base.txt": "0c1382ec1def7e6b2ec8cc3995d4305edc7c027db23559928a3c90a9f9da1365",
+  "C:/g16/out/collect_iso.txt": "1c7b88d3be8a67824af7727ed5e22015637b400c5e44cafd2c5654ddd0762f93",
+  "C:/g16/out/full_base.txt": "c5b5286d5474eab7fac19c3d394c38a40c01ba9896e947d4127df60ce88b9e1e",
+  "C:/g16/out/full_T_red.txt": "e7c6500164c623c592d5b3b8d690efb5d56847c21651c151412d6d4733d26dc5",
+  "C:/g16/out/red_T.jsonl": "ac15e4ea2c36af898dbae0b1769f8bfb4f59a762ad39ab5d882d8855209f8da5",
+  "C:/g16/out/v5_base_T2.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+  "C:/g16/out/strict_check.txt": "34654dba9690072df5bf6b0dac3ea1e6d0c63ad61ea3c47c992d4913422845fb",
+  "C:/g16/out/elib_base.json": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89",
+  "C:/g16/out/elibinst_base.json": "f665fed46fec32fc9a21fa70214bd2b1539bba9ddf6951524d721bb82d4424f8",
+  "C:/g16/out/einst.txt": "34d264a31c88c102344d0f8f7d27bf508b3d9067ca6cf7f785a932bb289bfef7"
+ },
+ "next": "code-author가 K(save_instance_json의 topology_ref만 저장소 루트 상대, 저장소 밖·다른 드라이브 ValueError)를 만들고 병합하면 순서 7: V1(수집 813, FAIL 0), V2(red 21 green + 새 2건 PASS + E-INST·E-LIB·E-LIB-INST order7_rule + 변경 범위 AST 대조 + 계약 6 문서 대조), V3(도구 먼저, 같은 .git 한계면 scripts/mut_def.py list -> baseline -> 구간 실행 -> summary), V4~V10.",
+ "order7_note": "순서 3 보고 뒤 C:/g16 폴더가 auditor 밖에서 지워져 있었다(19:22 확인). 순서 3 증거는 이미 이 폴더에 복사돼 있었고, 순서 7은 C:/g16을 새로 만들어 게이트 캐시를 다시 뽑고(file_set 해시 ab7afccd… 같음) m·mut·eq 복제본을 새로 떴다. 순서 7 출력 사본은 order7/, 병합본 E-INST 결과는 einst/m_*.json."
+}

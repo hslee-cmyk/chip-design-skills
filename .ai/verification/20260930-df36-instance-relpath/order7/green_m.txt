@@ -1,0 +1,43 @@
+.......................................                                  [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_library_scope_present
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[common_gate_amplifier.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[current_reuse_telescopic_ota.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[folded_cascode.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[ngcc_3stage_ff.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[nmcnr_amplifier.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[pushpull_follower_buffer.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[sf_pushpull_output_opamp.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[two_stage_ota.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[two_stage_ota_sf.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_same_for_path_spellings_and_cwd
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_topology_ref_same_for_output_locations
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[common_gate_amplifier.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[current_reuse_telescopic_ota.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[folded_cascode.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[ngcc_3stage_ff.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[nmcnr_amplifier.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[pushpull_follower_buffer.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[sf_pushpull_output_opamp.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[two_stage_ota.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[two_stage_ota_sf.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_outside_repo_topology_rejected
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_other_drive_topology_rejected[backslash]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_other_drive_topology_rejected[slash]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_missing_sizing_still_rejected
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills\\analog-gmid-design\\assets\\library\\x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills/analog-gmid-design/assets\\library/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[../skills/analog-gmid-design/assets/library/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills/analog-gmid-design/assets/tests/../library/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[./skills/analog-gmid-design/assets/library/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills/./analog-gmid-design/assets/library/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[C:/repo/skills/analog-gmid-design/assets/library/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[c:skills/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[/home/u/repo/skills/analog-gmid-design/assets/library/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills//analog-gmid-design/assets/library/x.topology.json]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[None]
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_relative_ref_check_accepts_normalized_value
+PASSED ..\..\..\..\..\..\g16\m\skills\analog-gmid-design\assets\tests\contracts\test_df36_instance_relpath.py::test_leak_and_pointer_checks_reject_wrong_values
+39 passed in 1.33s
