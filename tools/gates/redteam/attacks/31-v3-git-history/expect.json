@@ -1,0 +1,12 @@
+{
+ "layer": "V3",
+ "exit": 0,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260930-v3-history-clone 계약 1·2·3·5·7, oracle (a)(구성으로 정답이 정해진 합성 저장소 -- 조상 blob을 읽는 test, 항상 실패하는 test, 0 입력만 보는 test)",
+ "title": "공격 31: V3 도구가 이력 있는 격리 복제본(origin 없음)에서 test를 돌리고 기준 실행 실패를 ERROR로 드러낸다(B28)",
+ "steps_from_records": true
+}

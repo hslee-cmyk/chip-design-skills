@@ -1,0 +1,110 @@
+{
+ "cases": [
+  {
+   "step": "git-history-kill",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "tool_tmpdir": true,
+   "root_state": true,
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale_history.py": {
+     "text": "import subprocess\nimport sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\nROOT = Path(__file__).resolve().parents[4]\nENGINE = \"skills/analog-gmid-design/assets/rt_engine.py\"\n\n\ndef _git(*args):\n    r = subprocess.run([\"git\", \"-C\", str(ROOT), *args], capture_output=True)\n    assert r.returncode == 0, r.stderr.decode(\"utf-8\", \"replace\")\n    return r.stdout.decode(\"utf-8\")\n\n\ndef test_rt_scale_with_base_blob():\n    # oracle (a) 구성: test가 도는 사본은 자기 루트가 toplevel인 git 저장소다(조상 디렉터리의 저장소가 아니다)\n    assert Path(_git(\"rev-parse\", \"--show-toplevel\").strip()).resolve() == ROOT\n    # oracle (a) 구성: HEAD~1(= --base, interface card 커밋)의 엔진 blob은 base 내용 -- rt_gain만 있고 rt_scale은 없다\n    base_src = _git(\"show\", \"HEAD~1:\" + ENGINE)\n    assert \"def rt_gain(gm, ro):\" in base_src\n    assert \"def rt_scale\" not in base_src\n    # 계약 1: 사본에 origin 원격이 없다(합성 root에는 원격이 없다 -- 복제가 만든 origin을 지웠는지)\n    assert _git(\"remote\") == \"\"\n    # oracle (a) 구성: rt_scale은 3배 -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"PASS\""
+    ],
+    "observed_equals": {
+     "tmp_left": [],
+     "root_unchanged": true
+    },
+    "basis": "spec card 20260930-v3-history-clone 계약 1·2·5·7(a): 인벤토리 test가 사본에서 git show HEAD~1:<엔진>으로 base blob(rt_gain 정의 있음, rt_scale 없음)을 읽고 git remote가 비었음을 단언 -- 이력 있는 복제본에서 기준 실행 통과, 모든 변이가 rt_scale(2.0)==6.0에서 죽어 V3 PASS(exit 0). 도구 임시 디렉터리에 남은 항목 0(계약 5), root refs·상태·worktree 불변(계약 2). oracle (a) 구성: build_vrepo 이력(HEAD~1 = base 트리), rt_scale=3배. red: base 도구는 .git 없는 사본이라 기준 실행 실패 -> 변이를 '생존'으로(exit 1)"
+   }
+  },
+  {
+   "step": "baseline-fail-error",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "tool_tmpdir": true,
+   "root_state": true,
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale_seven.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_seven():\n    # oracle (a) 구성: rt_scale은 3배라 2.0 -> 6.0 -- 기대 7.0은 구성으로 항상 틀린다(기준 실행이 반드시 실패하는 인벤토리)\n    assert rt_scale(2.0) == 7.0\n"
+    }
+   },
+   "expect": {
+    "exit": 2,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"ERROR\"",
+     "test_rt_scale_seven"
+    ],
+    "observed_equals": {
+     "tmp_left": [],
+     "root_unchanged": true
+    },
+    "basis": "spec card 20260930-v3-history-clone 계약 2·3·5·7(b): 기준 실행이 항상 실패하는 test가 인벤토리에 있으면 판정 불가 -- verdict ERROR, exit 2, 실패한 인벤토리 test id를 출력에 담는다(조용한 '생존' 아님). 도구 임시 디렉터리 남은 항목 0, root 불변. oracle (a) 구성: rt_scale=3배라 == 7.0은 항상 거짓. red: base 도구는 기준 실행 실패를 '생존'으로 세어 FAIL(exit 1)"
+   }
+  },
+  {
+   "step": "survivor-fail-clean",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "tool_tmpdir": true,
+   "root_state": true,
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"redteam 합성 엔진.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"소신호 이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배.\"\"\"\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale.py": {
+     "text": "import sys\nfrom pathlib import Path\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_zero():\n    # oracle (a) 구성: rt_scale은 3배 -- 0.0 -> 0.0(산술 교체·상수 변경 변이가 살아남는 입력)\n    assert rt_scale(0.0) == 0.0\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\""
+    ],
+    "observed_equals": {
+     "tmp_left": [],
+     "root_unchanged": true
+    },
+    "basis": "spec card 20260930-v3-history-clone 계약 2·5(FAIL 경로): v3_survivor attack과 같은 모양(0 입력만 보는 test, 기준 실행 통과, 변이 생존) -- FAIL(exit 1) 그대로이고 도구 임시 디렉터리 남은 항목 0, root 불변. base 도구에서도 같은 결과(회귀 방지 단계, red 아님)"
+   }
+  }
+ ]
+}

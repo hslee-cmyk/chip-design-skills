@@ -571,6 +571,12 @@ def build_vrepo(S: State, name: str, case: dict) -> tuple[Path, str, str, str | 
     return root, base, head, card_rel
 
 
+def _root_state(root: Path) -> tuple[str, str, str]:
+    """root 저장소의 refs(for-each-ref)·작업 트리 상태(status --porcelain, 무시 파일 포함)·worktree 목록(읽기만)."""
+    return (gout(root, "for-each-ref"), gout(root, "status", "--porcelain", "--ignored", "--untracked-files=all"),
+            gout(root, "worktree", "list", "--porcelain"))
+
+
 def a_vcase(ns):
     S = st()
     spec = json.loads((CASE_DIR / ns.file).read_text(encoding="utf-8"))
@@ -589,12 +595,30 @@ def a_vcase(ns):
         cmd = iface.vtool_command(iface.PY, str(sb.gate_path(tool)), posix(root), base, head, card)
         # 도구 추가 인자(공격 28: V3 `--gmid-phase=`·`--gmid-strict=`). 없으면 기존 명령 그대로.
         cmd += [subst_str(a, S) for a in case.get("args", [])]
-        r = sb.run_py(cmd, root)
+        # 공격 31(spec card 20260930-v3-history-clone 계약 2·5): 선택 관찰. 키가 없으면 기존 동작 그대로.
+        #  "tool_tmpdir": true -> 도구 프로세스의 TMP·TEMP·TMPDIR를 $WORK 아래 빈 디렉터리로 두고, 끝난 뒤 남은 항목 목록
+        #  "root_state": true  -> 도구 실행 전후 root 저장소의 refs·작업 트리 상태·worktree 목록이 같은가
+        env = None
+        tmpdir = None
+        if case.get("tool_tmpdir"):
+            tmpdir = WORK / "tooltmp" / name
+            if tmpdir.exists():
+                shutil.rmtree(tmpdir)
+            tmpdir.mkdir(parents=True)
+            env = {"TMP": str(tmpdir), "TEMP": str(tmpdir), "TMPDIR": str(tmpdir)}
+        state_before = _root_state(root) if case.get("root_state") else None
+        r = sb.run_py(cmd, root, env=env)
         obj = iface.first_json_line(dec(r.stdout))
         observed = None
         if case.get("observe") == "v4_first":
             stm = iface.v4_statements(obj)
             observed = stm[0][1] if stm else None
+        elif tmpdir is not None or state_before is not None:
+            observed = {}
+            if tmpdir is not None:
+                observed["tmp_left"] = sorted(p.name for p in tmpdir.iterdir())
+            if state_before is not None:
+                observed["root_unchanged"] = _root_state(root) == state_before
         record(name, kind=case.get("kind", "attack"), layer=tool, status="ran", exit_code=r.returncode,
                stdout=dec(r.stdout), stderr=dec(r.stderr), cmd=_cmdstr(cmd), expect=exp, observed=observed,
                note=case.get("note", ""))
