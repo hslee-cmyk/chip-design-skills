@@ -123,7 +123,7 @@ U-02의 '삭제 11개'는 계획서에 3개만 이름이 있다(DF-21). 나머�
 
 ### 6.1 W 계산 (P8)
 
-정본 `size_transistor`(`W=L*ID/IDu`). 실측: **정본의 엔진 호출부가 1곳뿐이고 그 1곳이 삭제 대상 D 함수**(`converge_with_parasitics`)다 -- 정본이 죽어 있고 인라인 사본이 살아 있는 상태다. 인라인은 레지스트리가 적은 4곳이 아니라 **6곳**이다(`find_optimal_sizing:946`, `diode_vds_window:3645`, `solve_stacked_diode_pair:3723`·`:3746`, `apply_diode_self_consistent_gm_id:3873`, `make_matching_feasibility_check.check:7393`). 레지스트리 §2의 중복 셀(`feasible_gm_ids`·`search_gm_id_for_role`·`feasible_L_window`)은 현 소스와 맞지 않는다(docstring에만 남았거나 인라인 대입이 없다) -- 같은 card에서 레지스트리를 실측대로 고친다.
+정본 `size_transistor`(`W=L*ID/IDu`). 실측: **정본의 엔진 호출부가 1곳뿐이고 그 1곳이 삭제 대상 D 함수**(`converge_with_parasitics`)다 -- 정본이 죽어 있고 인라인 사본이 살아 있는 상태다. 인라인은 레지스트리가 적은 4곳이 아니라 **6곳**이다(`find_optimal_sizing:946`, `diode_vds_window:3645`, `solve_stacked_diode_pair:3723`·`:3746`, `apply_diode_self_consistent_gm_id:3873`, `make_matching_feasibility_check.check:7393`). 레지스트리 §2의 중복 셀(`feasible_gm_ids`·`search_gm_id_for_role`·`feasible_L_window`)은 현 소스와 맞지 않는다(docstring에만 남았거나 인라인 대입이 없다) -- 같은 card에서 레지스트리를 실측대로 고친다. **(2026-09-30 정정: 이 문장은 틀렸다 -- 세 함수 모두 인라인 W 식을 가진다(대입문이 아닌 조건식 안 1579·2575, 대입 2057). 실측 전수는 18곳, spec card `20260930-dup-w-calc` P8 1차 auditor.)**
 
 * 통합 방향: 6곳을 `size_transistor` 호출로 바꾼다. 정본 시그니처 불변.
   **(2026-09-30 정정, spec card `20260930-dup-w-calc`)**: 실측 인라인은 18곳이고 대부분 IDu를 이미 배치 조회로 얻은 핫루프라 `size_transistor` 호출은 LUT 재조회를 만든다(정해진 VGS의 W는 다른 입력 경로 -- P4). 식 함수 `width_from_id_density(L, ID, IDu)`를 추출해 `size_transistor`와 18곳이 부른다.
