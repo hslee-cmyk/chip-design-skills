@@ -58,7 +58,7 @@ A = `skills/analog-gmid-design/assets`. 새 디렉터리는 `probes/`와(이미 
 | E-AST | 이관 동일성 | 이관한 정의의 docstring 포함 `ast.dump`가 base와 병합본에서 같다 | 이관 대상 |
 | DIFF-DUP | DUP 차등 | 중복 함수와 정본 함수를 **같은 입력 전수**에 돌려 출력이 같다. 입력 전수 = 그 개념이 실제로 쓰이는 library 회로의 소자·노드 전부(합성 입력이 아니라 실행 가능한 회로에서 뽑는다) | 회로 로드 결과 |
 | GONE | 삭제 확인 | 삭제한 이름이 `A/*.py`·`workspaces/run_harness.py`·`A/tests/**`에서 AST 참조 0 | 병합본 |
-| PROBE-DUP | probe 복제 0 | `tests/tools/probe_dup_scan.py`(P4가 만든다)가 `A/tests/probes/**`에서 엔진 정본과 같은 식의 재구현을 0건으로 보고 | 병합본 |
+| PROBE-DUP | probe 복제 0 | `tests/tools/engine_dup_scan.py`(P4가 만든다)가 `A/tests/probes/**`에서 엔진 정본과 같은 식의 재구현을 0건으로 보고 | 병합본 |
 | REG | 레지스트리 정합 | 레지스트리 §7 D 목록의 남은 항목 집합 = U-02 승인표의 '보류' 집합, 삭제·이관 항목이 §7에 없다 | 레지스트리 |
 | NEW-TOPO | **미래 topology 커버** | 라이브러리에 없는 합성 topology(새 회로 이름·새 넷 이름·소자 수가 다른 넷리스트)로 (i) `load_topology`·`run_topology_pipeline`이 base와 병합본에서 같은 결과를 내고 (ii) 삭제한 선언 키를 쓰면 **명시적 `ValueError`**가 나며(조용한 무동작·기본값 대입이 아니다) (iii) 그 키가 하던 판정을 일반 경로 선언으로 쓰면 값이 나온다 | 합성 topology(test-author 구성) |
 
@@ -183,7 +183,7 @@ G-3 (b)가 telescopic 계열에 해당한다. `_load_telescopic_topology_cached`
 | P1 | `probe-dead-delete` | DF-21 probe 3개 삭제 | test-only | (a) 구성 -- 삭제 전 실행 결과(import 실패·무동작)를 기록 | probe 3개 삭제 |
 | P2 | `probe-relocate` | probe 32개 → `tests/probes/`(이동 깊이 보정 22), `derive_achievable_bounds.py` → `tests/tools/`, 절대 경로 12파일 상대화 | **equivalence** -- 도구 이동에 code 커밋과 병합이 생겨 test-only 모양(병합 0·`code_commit: null`)이 성립하지 않는다(1차 시도 auditor가 base 판 merge gate로 실측) | (c) 이동 전후 동일성. **E-AST는 쓰지 않는다** -- 경로 줄을 바꾸는 것이 목적이라 32개 전부 `ast.dump`가 달라진다. spec card 계약 2(경로 줄 말고는 base blob과 동일)·계약 3(유도 경로가 이동 전과 같은 실제 경로)이 그 자리를 대신한다 | 이동 |
 | P3 | `probe-promote` | 승격 7개(또는 `probe_physical_consistency` 제외 6개) → `unit/test_probe_*.py` | test-only | (c) probe가 이미 보던 판정을 assert로 | pytest test |
-| P4 | `probe-engine-dup` | probe 안 엔진 식 재구현 34곳 → 정본 호출, 스캐너 `tests/tools/probe_dup_scan.py` 신설 | test-only + 도구(code) | (a) 스캐너의 합성 입력, (c) 교체 전후 probe 출력 동일 | PROBE-DUP 0 |
+| P4 | `probe-engine-dup` | probe 안 엔진 식 재구현 34곳 → 정본 호출, 스캐너 `tests/tools/engine_dup_scan.py` 신설 | test-only + 도구(code) | (a) 스캐너의 합성 입력, (c) 교체 전후 probe 출력 동일 | PROBE-DUP 0 |
 | P5 | `d-delete-dead` | R-0 7 + `junction_cap` 삭제(§6.4 G-1~G-4 확인) | equivalence | (c) E-LIB·E-INST + (a) NEW-TOPO 합성 topology | 엔진 소스 축소, 레지스트리 갱신 |
 | P5b | `d-delete-telescopic` | telescopic 사슬 5 + `_cmfb_amp_gain_diode_load` 삭제와 `_CMRR_/_PSRR_REGISTRY` 키 제거 | equivalence | (c) E-LIB·E-INST + (a) NEW-TOPO: 삭제한 family 선언 시 `ValueError`, 같은 판정을 일반 경로(`_metric_smallsignal_ratio_db`) 선언으로 하면 값이 나옴 | 회로 전용 경로 제거 |
 | P6 | `d-move-tests` | R-1 중 test 전용 + 동반 레코드를 `tests`로 이관 | equivalence | (c) E-AST·E-LIB·E-INST | 이관 |
@@ -215,7 +215,7 @@ auditor가 Phase 2 마지막 card 병합본의 격리 복제본 `<iso>`에서 �
 |---|---|---|---|
 | E0 | 승인된 D 목록 처리 | `$PY <iso>/tools/gates/reg_check.py --registry <iso>/docs/03-analysis/gain-budget-gmid-sizing.function-registry.md --approval <iso>/.ai/approvals/<U-02 id>.md` (P7이 만든다) | 레지스트리 §7 남은 집합 = 승인표 '보류' 집합, 삭제·이관 항목 0 |
 | E1 | DUP 차등 test PASS 후 옛 함수 삭제 | `PT <iso>/…/tests/unit -k "dup_"` 그리고 `git -C <iso> grep -n "kcl_series_union\|_multilinear_interp_point_multi"` | 차등 test PASS, 삭제한 이름의 참조 0 |
-| E2 | probe 엔진 식 재구현 0 | `$PY <iso>/skills/analog-gmid-design/assets/tests/tools/probe_dup_scan.py --root <iso>` | exit 0, 발견 0 |
+| E2 | probe 엔진 식 재구현 0 | `$PY <iso>/skills/analog-gmid-design/assets/tests/tools/engine_dup_scan.py --root <iso>` | exit 0, 발견 0 |
 | E3 | DF-23 전수 목록 | `git -C <iso> cat-file -e HEAD:docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/df23_inventory.json` 와 목록 항목 수 대조 | 목록이 있고 항목마다 담당 Phase가 적혀 있다 |
 | E5 | 미래 topology 커버 | 합성 topology(라이브러리 밖 이름·넷)로 `PT <iso>/…/tests/unit -k new_topology` | PASS -- 로드·파이프라인 동일, 삭제한 선언 키는 `ValueError`, 일반 경로 선언은 값 산출 |
 | E4 | 동작 보존 | `PT` 전체(실패 0)와 E-LIB·E-INST 재측정 | Phase 1 DoD와 같은 값(회로 9/9 로드, instance.json 해시 동일) |

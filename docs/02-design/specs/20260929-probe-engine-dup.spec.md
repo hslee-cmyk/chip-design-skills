@@ -10,7 +10,7 @@ approval: 20260930-p4-relocate-test-retire
 ## 의도
 
 design `20-dead-code-dup` v1.2 §2.2-4·§3 PROBE-DUP·§5·§5.1·§8 P4: `A/tests/probes/`에 남는 **진단 스크립트** 안의 엔진 식 재구현을 엔진 정본
-호출로 바꾸고(정의가 하나여야 엔진이 바뀔 때 같이 따라간다, WP-14), 재구현이 다시 들어오지 않게 스캐너 `A/tests/tools/probe_dup_scan.py`를
+호출로 바꾸고(정의가 하나여야 엔진이 바뀔 때 같이 따라간다, WP-14), 재구현이 다시 들어오지 않게 스캐너 `A/tests/tools/engine_dup_scan.py`를
 만든다. 진단은 판정이 아니므로 자기참조 문제가 없다(§5.1 -- 승격한 test의 재구현은 oracle이라 이 card 대상이 아니다).
 A = `skills/analog-gmid-design/assets`.
 
@@ -44,7 +44,7 @@ A = `skills/analog-gmid-design/assets`.
 
 ## 관찰 가능한 계약
 
-1. **스캐너** `A/tests/tools/probe_dup_scan.py`가 생긴다(신규 시그니처 표). `scan_source(source, path)`는 아래 규칙마다 발견을 돌려주고,
+1. **스캐너** `A/tests/tools/engine_dup_scan.py`가 생긴다(신규 시그니처 표). `scan_source(source, path)`는 아래 규칙마다 발견을 돌려주고,
    `main(argv)`는 `--root <저장소 루트>`로 `A/tests/probes/**/*.py`를 훑어 발견을 한 줄 JSON씩 출력한다. 발견 한 건 =
    `{"path", "line", "rule", "concept", "exempt"}`, `path`는 루트 기준 상대 경로(`/` 구분). 면제되지 않은 발견이 0이면 exit 0, 1개 이상이면 1,
    입력 오류(없는 루트·구문 오류 파일)는 2다.
@@ -76,9 +76,9 @@ A = `skills/analog-gmid-design/assets`.
 
 | 모듈 | 심볼 | 시그니처 |
 |---|---|---|
-| `probe_dup_scan` | `*` | 신규 모듈 `A/tests/tools/probe_dup_scan.py` |
-| `probe_dup_scan` | `scan_source` | `def scan_source(source: str, path: str) -> list` |
-| `probe_dup_scan` | `main` | `def main(argv: list) -> int` |
+| `engine_dup_scan` | `*` | 신규 모듈 `A/tests/tools/engine_dup_scan.py` |
+| `engine_dup_scan` | `scan_source` | `def scan_source(source: str, path: str) -> list` |
+| `engine_dup_scan` | `main` | `def main(argv: list) -> int` |
 
 ## 판정 유형 근거
 
@@ -119,3 +119,21 @@ gm·gds 공개 조회 API(Phase 4), 정해진 VGS의 W와 `size_transistor` W의
 `test_relocated_probes_match_base_except_path_lines`가 교체·주석 정리와 충돌해 멈췄다. 원인은 이 card(오케스트레이터)가 원자료 분류를 그대로 믿은
 것 -- W 인라인 4곳과 union-find 2곳은 엔진 정본과 다른 개념이었다. 사용자 결정으로 규칙 `w-inline`·`union-find`를 빼고 교체 대상을 다시 가르고,
 면제와 계약 5를 더했다. 같은 id로 1부터 다시 한다(R1: 계약 5의 test blob 운반).
+
+2차 시도(2026-09-30, test 131cfe2 = 운반 blob 21개, code b414627): code-author가 스캐너를 구현해 `contracts/test_probe_dup_scan.py`는 전부
+green(실제 저장소 exit 0, 면제 1건)이었으나 P1 계약 test `test_ts6_dead_probes.py::test_dead_probe_files_are_absent`가 `A/tests` 전체의
+`probe_*.py`를 세어 스캐너(당시 이름 `probe_dup_scan.py`)를 probe로 셌다(34 != 33). 오케스트레이터 결정: 도구 이름을 `engine_dup_scan.py`로
+바꾼다(이 card·design 20 §3·§8·§10 문구) -- 계약 test 기대를 고치는 것은 기준 변경이고, 이름 변경은 V5 승인 경로(`20260930-p4-relocate-test-retire`의
+diff_path 7개)를 바꾸지 않는다. 3차 시도에서 test는 운반 blob 21개 중 `test_probe_dup_scan.py`의 import 이름만 바꾼다(그 파일은 V5 diff_path 밖).
+code-author의 스캐너 본문(b414627)은 이름만 바꿔 다시 쓴다.
+
+## dispute 기록
+
+2차 시도 code-author dispute(b414627, `docs/02-design/disputes/20260929-probe-engine-dup.md`) 요지:
+
+> `test_ts6_dead_probes.py::test_dead_probe_files_are_absent`(192행). `probe_names_under(_TESTS_DIR)`가 `tests_dir.rglob("probe_*.py")`로
+> `A/tests` 트리 전체를 훑어 `probe_*.py` 파일 수를 `42 - 3 - 승격 수`(= 33)와 비교한다. 스캐너 파일 이름이 spec card 계약 1·신규 시그니처
+> 표로 `A/tests/tools/probe_dup_scan.py`로 고정돼 있어 `probe_*.py` 패턴에 걸리고, 수가 34가 돼 실패한다.
+> 요청: (1) test 쪽에서 `tools/`를 제외하거나 (2) 스캐너 파일 이름을 `probe_*.py`에 걸리지 않게 바꾼다.
+
+blob: c68d56051323f352a6a501fd9a0795c4ea2598f9 -- 결정: (2).

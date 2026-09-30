@@ -38,6 +38,6 @@
 
 | 모듈 | 심볼 | 시그니처 |
 |---|---|---|
-| `probe_dup_scan` | `*` | 신규 모듈 `A/tests/tools/probe_dup_scan.py` |
-| `probe_dup_scan` | `scan_source` | `def scan_source(source: str, path: str) -> list` |
-| `probe_dup_scan` | `main` | `def main(argv: list) -> int` |
+| `engine_dup_scan` | `*` | 신규 모듈 `A/tests/tools/engine_dup_scan.py` |
+| `engine_dup_scan` | `scan_source` | `def scan_source(source: str, path: str) -> list` |
+| `engine_dup_scan` | `main` | `def main(argv: list) -> int` |
