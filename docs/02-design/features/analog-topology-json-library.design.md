@@ -140,7 +140,7 @@ JSON 필드명으로 그대로 사용) — 새 이름을 발명하지 않으므�
 // workspaces/<design>/<design_name>.instance.json (사이징+layout 결과 — layout agent에게 그대로 전달)
 {
   "schema_version": "2.0",
-  "topology_ref": "library/folded_cascode.topology.json",
+  "topology_ref": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json",
 
   "sizing": {
     // sizing_recipe.py의 SizingResult를 소자별로 직렬화(write_sizing_results()가 채움)

@@ -14988,3 +14988,6 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
 - 복원 card 20260930-restore-plan-functions 완료(gate 4967a82, 3차 시도, red-green): lut_conditions_from_npz·derived_spec 0ecb686 원본 바이트 복원(ast·원문·위치 동일), V7 면제 20260930-restore-unwired-until-6a, V5 20260930-restore-p5-test-list, V3 32/32. 레지스트리 §7 두 행 보류(Phase 6a).
 - spec card 양식 _TEMPLATE.spec.md에 '## 작성 전 실측' 7항목 절 추가(속도 개선 1번 배선 -- 모든 새 spec card가 이 절을 채운다).
   다음: DF-35 -> DF-36 -> B28.
+
+- DF-35 20260930-df35-harness-paths 완료(gate 34bc75e, 1차 시도, red-green): run_harness 경로 세 줄 -> __file__ 유도(_REPO_ROOT), E-INST 치환 없이 raw 해시 base와 동일, 메인 체크아웃 유도 문자열 = 옛 리터럴. V3 손 변이 생존 2(abspath 제거 -- 3.14 __file__ 절대, sys.path insert->append -- 계약 밖).
+- 병렬 준비(사용자 지시): DF-36·B28 작성 전 실측을 읽기 전용 agent로 선행(scratchpad prep_df36.md·prep_b28.md). DF-36 저장소 밖 topology = ValueError(원칙 기본안), 설계 문서 analog-topology-json-library.design.md 143행 예시를 저장소 루트 기준으로 정정.
