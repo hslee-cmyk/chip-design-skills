@@ -131,9 +131,9 @@ U-02의 '삭제 11개'는 계획서에 3개만 이름이 있다(DF-21). 나머�
 
 ### 6.2 KCL 엣지 (P9)
 
-정본 `stick_diagram._kcl_and_matching_edges`. 중복 `kcl_series_union`(같은 엣지를 따로 구현, 57줄)과 `_metric_kcl_residual`의 엣지 생성부. 둘 다 엔진 운영 경로에 있다(각 2곳).
+정본 후보 `stick_diagram._kcl_and_matching_edges`(레일 판정을 넷 이름 상수 `_RAIL_NETS`로 한다 -- 확정은 B26, 계획 DF-19·DF-26 담당 Phase 4). 중복 = `kcl_series_union` 본문의 엣지 정의(넷별 단자 사용 목록·레일 제외·2단자 판정·매칭 쌍 사슬). `kcl_series_union` 자체는 엣지가 아니라 KCL 그룹(엣지의 연결 성분)을 돌려주는 다른 질문이고 엔진 운영 호출자가 2곳이라 지우지 않는다 -- 엣지 정의 자리에서 정본을 불러 union한다(이름·시그니처·반환 불변). (2026-09-30 정정, spec card `20260930-p9-kcl-edges`: 옛 문장은 `_metric_kcl_residual`의 엣지 생성부도 중복으로 적었으나 이 metric은 엣지를 만들지 않는다(노드별 부호 붙은 전류 합, float 반환 -- F3 성격, 다른 개념). 겹치는 것은 MOS 단자 전류 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합(B26)이고 이 Phase의 대상이 아니다.)
 
-* 차등 test: library 회로 전부에서 두 함수가 만드는 엣지 집합이 같은지(집합 동일성, 순서 무관).
+* 차등(DIFF-DUP): library 로드 가능한 회로 전부 × 두 입력(`current_forced` 매칭 쌍, `[]`)에서 `kcl_series_union`의 그룹과 정본의 엣지 목록이 base와 병합본에서 같다(auditor, 판정 유형 equivalence). 영구 test는 구성으로 정답이 정해진 합성 넷리스트로 그룹·엣지 집합을 판정한다(두 피검 함수를 서로의 기대값으로 쓰지 않는다 -- V4).
 * 다르면 F3 -- 통합하지 않고 레지스트리 상태를 고친다.
 
 ### 6.3 이 Phase가 통합하지 않는 것
@@ -190,10 +190,10 @@ G-3 (b)가 telescopic 계열에 해당한다. `_load_telescopic_topology_cached`
 | P6 | `d-move-tests` | R-1 중 test 전용 + 동반 레코드를 `tests`로 이관 | equivalence | (c) E-AST·E-LIB·E-INST | 이관 |
 | P7 | `registry-grade-fix` | R-4 9개 등급 정정, §2 중복 셀 실측 반영, D 목록 갱신, E0 도구 `A/tests/tools/reg_check.py` | red-green(도구 code 커밋 -- 2026-09-30 정정, spec card `20260930-registry-grade-fix`) | (a) 도구 합성 입력, (d) 레지스트리·실측 원자료 | 레지스트리, 도구 |
 | P8 | `dup-w-calc` | 인라인 6곳 → `size_transistor` | equivalence | (c) DIFF-DUP + E-LIB·E-INST | 중복 제거 |
-| P9 | `dup-kcl-edges` | `kcl_series_union`·`_metric_kcl_residual` 엣지 → 정본 | equivalence | (c) DIFF-DUP + E-LIB·E-INST | 중복 제거 |
+| P9 | `p9-kcl-edges` | `kcl_series_union` 본문의 엣지 정의 → 정본 후보 `_kcl_and_matching_edges` 호출(함수·시그니처 유지). `_metric_kcl_residual`은 대상 아님(엣지를 만들지 않음 -- 2026-09-30 정정, spec card `20260930-p9-kcl-edges`) | equivalence | (a) 합성 넷리스트 + (c) DIFF-DUP·E-LIB·E-INST | 중복 엣지 정의 제거, 레지스트리 §2 행 정정 |
 | P10 | `df23-inventory` | DF-23 전수 목록 문서화(`df23_inventory.json` 기준 266건)와 레지스트리 기록, 신규 148건의 담당 Phase 배정 | test-only(문서) | (d) 실측 원자료 | 목록 |
 
-card 하나의 단위는 계획 N3.12.3(관찰 가능한 계약 하나)이다. P5·P6·P8·P9는 equivalence라 code·test 두 역할이 모두 움직인다.
+card 하나의 단위는 계획 N3.12.3(관찰 가능한 계약 하나)이다. P5·P6·P9는 equivalence, P7·P8은 red-green이라 code·test 두 역할이 모두 움직인다(2026-09-30 정정: P7·P8은 code 커밋과 새 함수 때문에 red-green -- spec card `20260930-registry-grade-fix`·`20260930-dup-w-calc`).
 
 ---
 
@@ -215,7 +215,7 @@ auditor가 Phase 2 마지막 card 병합본의 격리 복제본 `<iso>`에서 �
 | ID | N6.2 `2` 조건 | 명령 | 통과 기준 |
 |---|---|---|---|
 | E0 | 승인된 D 목록 처리 | `$PY <iso>/skills/analog-gmid-design/assets/tests/tools/reg_check.py --registry <iso>/docs/03-analysis/gain-budget-gmid-sizing.function-registry.md --root <iso>` (P7이 만든다) | exit 0: §7 모든 행이 엔진에 실재(삭제·이관 항목 0), `처리` 열이 '보류(Phase n)' 형식, §1 집계 = §7 행 수. (2026-09-30 정정: U-02 승인 기록에 '보류' 목록이 없어 '승인표 보류 집합과 같음'을 처리 열 형식 검사로 기계화, 도구는 게이트 변경을 피해 tests/tools에 둔다 -- spec card `20260930-registry-grade-fix`) |
-| E1 | DUP 차등 test PASS 후 옛 함수 삭제 | `PT <iso>/…/tests/unit -k "dup_"` 그리고 `git -C <iso> grep -n "kcl_series_union\|_multilinear_interp_point_multi"` | 차등 test PASS, 삭제한 이름의 참조 0 |
+| E1 | DUP 차등 test PASS 후 중복 정의 삭제 | `PT <iso>/…/tests/contracts -k "dup_w_calc or dup_kcl_edges"`(`-k "dup_"`는 P4의 `test_probe_dup_scan.py`까지 잡는다) 그리고 `.ai/verification/20260930-dup-w-calc.json`·`.ai/verification/20260930-p9-kcl-edges.json`의 `checks.V2` | 차등 test PASS(실패 0, 수집 1개 이상), 두 판정 기록의 V2 PASS(P8 = 식 함수 비트 동일·E-LIB·E-INST, P9 = DIFF-DUP·E-LIB·E-INST가 base = 병합본). (2026-09-30 정정, spec card `20260930-p9-kcl-edges`: 옛 기준 '`kcl_series_union`·`_multilinear_interp_point_multi` 참조 0'은 (1) P9가 지우는 것이 함수가 아니라 `kcl_series_union` 본문의 중복 엣지 정의이고 -- 함수는 KCL 그룹을 돌려주며 운영 호출자가 2곳 -- (2) 다선형 보간은 §1 DUP 대상이 아니며(레지스트리 §2 상태 칸 비어 있음) (3) 차등 test가 `tests/contracts/`에 있어 성립하지 않았다. 중복 정의 삭제의 기계 판정은 card별 계약이다: P8 = W 식 인라인 0(`20260930-dup-w-calc` 계약 2), P9 = `kcl_series_union` 본문의 `_RAIL_NETS` 참조·`.source`/`.drain` 접근 0과 정본 호출(`20260930-p9-kcl-edges` 계약 1)) |
 | E2 | probe 엔진 식 재구현 0 | `$PY <iso>/skills/analog-gmid-design/assets/tests/tools/engine_dup_scan.py --root <iso>` | exit 0, 발견 0 |
 | E3 | DF-23 전수 목록 | `git -C <iso> cat-file -e HEAD:docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/df23_inventory.json` 와 목록 항목 수 대조 | 목록이 있고 항목마다 담당 Phase가 적혀 있다 |
 | E5 | 미래 topology 커버 | 합성 topology(라이브러리 밖 이름·넷)로 `PT <iso>/…/tests/unit -k new_topology` | PASS -- 로드·파이프라인 동일, 삭제한 선언 키는 `ValueError`, 일반 경로 선언은 값 산출 |
