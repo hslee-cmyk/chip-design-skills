@@ -22,9 +22,9 @@
 
 | 파일 | R0 | R1 | R2 | D | DUP | 비고 |
 |---|---|---|---|---|---|---|
-| sizing_recipe.py | 86 | 77 | 20 | 8 | 11 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
+| sizing_recipe.py | 86 | 77 | 20 | 9 | 11 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
 | stick_diagram.py | 85 | 16 | 12 | 15 | 7 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
-| 기타 모듈 | 22 | 16 | 1 | 0 | 1 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
+| 기타 모듈 | 22 | 16 | 1 | 1 | 1 | 표 행 기준(여러 함수를 한 행에 묶은 경우 1) |
 
 감사자 요약 기준(행 묶음 전 개수): sizing_recipe.py R0 84 / R1 77 / R2 19 / D 27 / DUP 11 (218), stick_diagram.py R0 101 / R1 16 / R2 12 / D 20 / DUP 7 (158).
 
@@ -482,7 +482,7 @@
 
 ## 7. D -- 운영 경로 호출 0 (배선/삭제 결정 필요)
 
-### sizing_recipe.py (8)
+### sizing_recipe.py (9)
 
 | 함수 | 책임 | 이관 목적지 | 처리 | 비고 |
 |---|---|---|---|---|
@@ -494,6 +494,7 @@
 | `node_pole_estimate` | 노드별 G/C 1차 pole 추정 | (삭제 후보) | 보류(Phase 4) | 삭제 판단. 4343-4346: L1 값(34.2도) 무효라고 자인. **§12.6-6 광범위 except 4138 확인**: `except (KeyError, ValueError): pass`로 Cgg 누락을 조용히 버림 -- 운영 미호출이라 영향은 probe 한정 |
 | `validate_theta_declaration_order` | theta 선언순서=실행순서 계약 검사 | topology_authoring | 보류(Phase 3) | topology_authoring 이관 대상이며 배선 승인 필요. D(배선 필요) |
 | `load_derived_bounds` | 사이드카 JSON 읽기 | optimizer S3(흡수) 또는 삭제 | 보류(Phase 4) | 흡수·삭제 판단. 유도값 저장 경로가 사이드카 vs topology.json `_derived`(`resolve_constraint_references` `:8423`) 두 갈래 — 엔진은 후자만 읽음 |
+| `lut_conditions_from_npz` | LUT npz의 corner/temp 기록 여부 반환 | circuit_state_graph S0(LUT 생성메타 해시) | 보류(Phase 6a) | 계획 N3.3 S0·I-A5. P5에서 잘못 삭제 → 복원(20260930-restore-plan-functions), 미배선 면제 20260930-restore-unwired-until-6a |
 
 ### stick_diagram.py (15)
 
@@ -515,7 +516,9 @@
 | `audit_vertical_stack_id_euler_feasibility` | 선언 vsid 그룹의 오일러 실현성 | stick_diagram(배선 여부 승인 필요) | 보류(Phase 4) | 배선 여부 승인 필요 |
 | `find_euler_repair_options` | unresolved_row 복구 선택지 진단 | stick_diagram(배선 승인 필요) | 보류(Phase 4) | 배선 승인 필요. 운영 0 |
 
-### 기타 모듈 (0)
+### 기타 모듈 (1)
 
-(남은 행 없음)
+| 함수 | 책임 | 이관 목적지 | 처리 | 비고 |
+|---|---|---|---|---|
+| `derived_spec` | override + `_spec_source` 기록, why 필수 | circuit_state_graph S0 | 보류(Phase 6a) | DEC-26(짝 게이트 require_declared_spec_source). P5에서 잘못 삭제 → 복원(20260930-restore-plan-functions), 미배선 면제 20260930-restore-unwired-until-6a |
 
