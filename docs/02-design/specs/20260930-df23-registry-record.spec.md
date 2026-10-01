@@ -4,6 +4,7 @@ phase: 2
 evidence_type: red-green
 gate_change: no
 approval: 20260923-20-dead-code-dup-design
+approval: 20261001-p10b-v3-equiv
 ---
 ## 의도
 
@@ -33,7 +34,7 @@ design 20 §8의 P10b 행(195행)은 P10 문서 커밋 0fa6ca2에서 이미 더�
 ## 관찰 가능한 계약
 
 1. **레지스트리 §8 (code 커밋)**: 레지스트리 끝(§7 뒤)에 절 하나를 더한다. §0~§7은 base와 바이트 동일하다(`git diff base M -- <레지스트리>`가 파일 끝 추가 줄뿐).
-   줄 끝은 기존 파일과 같은 CRLF다(실측: 524줄 전부 CRLF, 마지막 줄은 빈 줄 -- 섞으면 diff가 끝 추가만이 아니게 된다. 도구는 `str.splitlines()`로 줄을 나누므로 줄 끝 문자는 판정에 들지 않는다).
+   줄 끝은 기존 파일과 같게 둔다(blob은 LF, 작업 트리는 autocrlf로 CRLF -- 1차 시도 auditor 실측: base blob 524줄이 병합본 601줄의 접두. 섞으면 diff가 끝 추가만이 아니게 된다. 도구는 `str.splitlines()`로 줄을 나누므로 줄 끝 문자는 판정에 들지 않는다).
    모양(제목 줄·표 머리는 이 글자 그대로 -- 도구가 읽는다):
    * 제목 `## 8. DF-23 -- 엔진 이름 리터럴 종속 (전수 목록 기록)`.
    * 제목 다음 본문에 두 줄: `목록: \`docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/df23_inventory.json\``, `measured_at: \`<목록의 measured_at 값>\``.
@@ -55,18 +56,27 @@ design 20 §8의 P10b 행(195행)은 P10 문서 커밋 0fa6ca2에서 이미 더�
    * `df23-total`: §8.1 행 집합 {(축, 값) → 항목 수} ≠ 항목에서 센 값. 빠진 행·남는 행·다른 수·같은 (축, 값)의 두 번째 행마다 발견 하나(`name` = `<축>:<값>`).
    * `df23-function`: §8.2 행 집합 {(함수, 파일) → (항목 수, DF, 담당 Phase)} ≠ 계약 1 규칙으로 항목에서 만든 값. 빠진 행·남는 행·다른 칸·같은 (함수, 파일)의 두 번째 행마다 발견 하나
      (`name` = `<파일>::<함수>`).
-   입력 오류 → `ValueError`: (i) `inventory`에 `measured_at`·`items`가 없다, (ii) 항목에 `file`·`function`·`role`·`phase`·`plan_mapping` 중 하나가 없다, (iii) `function`이 빈 문자열이다,
+   **절·소절·행 경계**(1차 시도 V3 생존으로 드러난 정의 -- 규칙 문장의 범위를 명시한다): §8 = `## 8.`로 시작하고 `DF-23`을 담은 **첫** 제목 줄부터 그 뒤 처음 `## `로 시작하는 줄 전까지(§8 뒤 절의 줄·표는 읽지 않는다).
+   §8.1/§8.2 표 = §8 안에서 `### 8.1`/`### 8.2`로 시작하는 첫 줄부터 그 뒤 처음 `### `로 시작하는 줄 전까지에 있는 표 중 계약 1 표 머리를 가진 것(다른 `###` 소절 아래 같은 머리의 표는 읽지 않는다).
+   행의 칸이 표 머리보다 적으면 모자란 칸을 빈 문자열 `""`로 보고(예외를 내지 않는다), 많으면 표 머리 칸 수 뒤의 칸은 무시한다.
+   **`detail`**(값이 다른 행의 발견만 판정 대상, 나머지 발견의 `detail`은 자유 문장): `df23-total`의 다른 수 → `detail == f"항목 수 {reg!r} != {exp!r}"`(`reg` = 레지스트리 `항목 수` 칸 문자열, `exp` = 센 수의 10진 문자열),
+   `df23-function`의 다른 칸 → `detail == f"(항목 수, DF, 담당 Phase) {reg!r} != {exp!r}"`(`reg` = 레지스트리 세 칸 문자열의 tuple -- 모자란 칸은 `""`, `exp` = 계약 1 규칙으로 만든 세 값 문자열의 tuple).
+   칸 문자열은 `|`로 나눈 뒤 앞뒤 공백을 뗀 값이다.
+   입력 오류 → `ValueError`: (o) `inventory`가 dict가 아니다, `items`가 list가 아니다, 항목이 dict가 아니다(`TypeError` 등 다른 예외로 새지 않는다), (i) `inventory`에 `measured_at`·`items`가 없다, (ii) 항목에 `file`·`function`·`role`·`phase`·`plan_mapping` 중 하나가 없다, (iii) `function`이 빈 문자열이다,
    (iv) 서로 다른 `file` 값이 같은 마지막 경로 성분을 가진다(파일 칸이 모호), (v) `role`이 `동작을 정함`인 항목의 `plan_mapping`이 `^DF-\d+`에도 맞지 않고 `신규`로도 시작하지 않는다
    (P10 계약 3이 보장하는 형식 -- 다른 표기를 조용히 `신규`로 묶지 않는다).
 4. **CLI (code 커밋)**: `main(argv)`에 선택 인자 `--df23-inventory <경로>`. 주면 기존 판정 발견 뒤에 `check_df23` 발견을 더해 같은 형식(JSON 한 줄씩)으로 출력하고 exit 규칙(0 = 발견 0, 1 = 발견, 2 = 입력 오류 --
    목록 파일 없음·JSON 아님·최상위가 dict 아님·`ValueError` 포함)은 기존과 같다. `inventory_rel` = `os.path.relpath(realpath(목록), realpath(--root))`를 `/`로 이은 것이고, 루트 안인지는
    `os.path.normcase(os.path.realpath(…))` 두 값의 `os.path.commonpath`로 판정한다(루트 밖이면 exit 2). 인자를 주지 않으면 출력·exit가 base 도구와 같다.
+   발견 0이면 표준 출력의 마지막 줄이 정확히 `reg_check: 발견 0`이다(계약 2·5 (a)가 말하는 출력). 알 수 없는 인자는 `SystemExit`로 새지 않고 `main`이 정확히 2를 돌려준다.
+   표준 출력 인코딩이 UTF-8이 아닌 환경(예: 환경 변수 `PYTHONIOENCODING=ascii`로 스크립트를 실행)에서도 `UnicodeEncodeError` 없이 exit 0과 UTF-8 바이트 `reg_check: 발견 0`을 낸다(base 도구의 표준 출력 재설정 동작).
 5. **실제 저장소 대조 (auditor 측정 -- 영구 test가 아니다, 위 '왜 도구 규칙인가')**:
    (a) 병합본 격리 복제본에서 `reg_check.py --registry <iso>/docs/03-analysis/gain-budget-gmid-sizing.function-registry.md --root <iso> --df23-inventory <iso>/docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/df23_inventory.json` → exit 0, `발견 0`.
    (b) 거부 확인: 같은 명령을 base 레지스트리(§8 없음)와 병합본 도구로 돌리면 `df23-section` 발견, exit 1.
    (c) auditor 독립 재계산: auditor 자신의 스크립트(도구·code-author 산출을 쓰지 않는다)로 목록 `items`에서 §8.1·§8.2 값을 다시 만들어 병합본 레지스트리 §8 표와 같음.
    (d) 보충 뮤테이션: '판정 유형 근거' 끝 -- `mutate_changed.py`(V3)는 이 card의 변경 경로에서 대상 0이므로 auditor 자신의 변이 스크립트로 `check_df23`의 규칙 분기마다
-   (5규칙, `ValueError` (i)~(v), CLI `--df23-inventory` 경로의 exit 2 분기·루트 밖 분기·발견 합치기) 변이를 넣어 새 test가 죽이는지 재고 `checks.V3.basis`에 적는다(생존 0).
+   (5규칙, `ValueError` (i)~(v), CLI `--df23-inventory` 경로의 exit 2 분기·루트 밖 분기·발견 합치기) 변이를 넣어 새 test가 죽이는지 재고 `checks.V3.basis`에 적는다(생존 0 -- 승인 `20261001-p10b-v3-equiv`의 변이 id 중 auditor가 2차 병합본에서 등가로 다시 판정한 것만 제외.
+   변이 대상 def·연산자는 1차 시도 `scripts/mut_df23.py`와 같게 해 id를 비교할 수 있게 한다).
 6. **범위**: `git diff base M`의 경로 = 레지스트리, `A/tests/tools/reg_check.py`, `A/tests/contracts/` 새 test 파일 하나(`test_reg_check_df23.py`). 엔진(`A/*.py`, `workspaces/run_harness.py`)·library·목록 JSON·기존 test는
    바뀌지 않는다(E-LIB·E-INST 자명 동일). 새 코드에 회로·소자·넷·함수 이름 리터럴이 없다(묶음·열 값은 전부 목록 필드에서 온다 -- 일반성. 도구가 아는 리터럴은 목록 필드 이름과 필드 값 `동작을 정함`·`신규`, 표 머리뿐이다).
 
@@ -105,6 +115,9 @@ P7은 같은 자리가 `ModuleNotFoundError`(쌍 (`reg_check`, `*`))였다 -- �
 `from reg_check import check_df23`**를 둔다(test 함수 안에 import를 두지 않는다; `main`은 같은 문의 뒤 이름이나 그 다음 문으로). exit 2를 기대하는 CLI test는 같은 test 안에 정상 입력의 exit 0 대조를 짝으로 둔다.
 helper 이름은 `_p10b_` 접두사(P10 test가 `_p10_`를 쓴다 -- 그래프가 이름으로 잇는 '같은 이름의 모든 def' 간선을 피한다), test 함수 이름은 `test_p10b_` 접두사.
 피검 심볼은 **직접 호출**한다(`check_df23(...)`, `main([...])` -- `getattr`·parametrize 문자열로 심볼 이름을 넘기지 않는다). 경로를 비교하는 test(루트 밖 판정 등)는 `os.path.normcase(os.path.realpath(…))`로 비교한다.
+**판정 문장 모양**(1차 시도 V4 `test_lint` FAIL에서 온 규칙): (1) 모든 test 함수는 **본문에 직접** `assert`를 하나 이상 둔다(helper 안의 assert만으로 판정하지 않는다 -- helper는 값을 돌려주고 test 본문이 판정한다).
+(2) 빈 발견은 `assert len(findings) == 0`로 판정한다(`assert findings == []`처럼 피검 함수가 돌려줄 수 있는 리터럴과 같은지 비교하지 않는다 -- `test_lint` (2) '확실한 복사'로 읽힌다).
+발견이 있는 경우는 발견 레코드의 (`rule`, `name`) 다중집합이나 `detail` 문자열을 규칙 문장에서 만든 값과 비교한다.
 (d) 실측 원자료: 계약 5의 기대는 card base의 목록 JSON(P10 산출, auditor가 독립 재계산).
 
 ## 거부해야 할 입력
@@ -112,6 +125,11 @@ helper 이름은 `_p10b_` 접두사(P10 test가 `_p10_`를 쓴다 -- 그래프�
 규칙마다 합성 조각 → 발견: §8 없음·`measured_at:` 줄 없음·§8.2 표 머리 다름(`df23-section`), 경로 다름(`df23-path`), `measured_at` 한 글자 다름(`df23-measured-at`), §8.1에 `phase` 값 행 하나 빠짐·남는 행·수 1 차이·같은 행 두 번
 (`df23-total`), §8.2에 묶음 하나 빠짐·목록에 없는 (함수, 파일) 행·`항목 수` 1 차이·`DF` 칸에 `신규` 빠짐·`DF` 칸 번호 순서가 정수 오름차순이 아님(`DF-19, DF-4`가 아니라 `DF-4, DF-19`)·`담당 Phase`가 문자열 오름차순이 아님(`7b, 4`)·같은 행 두 번(`df23-function`).
 입력 오류 → `ValueError`(CLI exit 2): `function` 빈 문자열, `phase` 없는 항목, `measured_at` 없는 목록, 같은 파일 이름의 다른 경로, 동작 항목 `plan_mapping`이 `기타`처럼 DF 번호도 `신규`도 아님, 목록 파일 없음, 목록이 루트 밖.
+경계·모양(계약 3 '절·소절·행 경계'·`detail`, 계약 4 출력·종료): §8 뒤에 `## 9.` 절을 두고 그 안에 §8.1·§8.2 표 머리와 같은 표(틀린 값)를 둔 레지스트리(→ 그 표를 읽지 않음),
+§8 제목과 같은 모양의 두 번째 제목 줄 뒤에 다른 표를 둔 레지스트리(→ 첫 제목의 절만 읽음), `### 8.1` 뒤에 다른 `### ` 소절을 두고 그 아래 §8.1 머리 표(틀린 값)를 둔 레지스트리(§8.2도 같은 모양),
+§8.1·§8.2의 칸이 모자란 행(→ 예외 없이 다른 값 발견, `detail`의 `reg`에 `""`)·칸이 표 머리보다 많은 행(→ 앞 칸이 맞으면 발견 0), 값이 다른 행의 `detail` 정확 일치(§8.1·§8.2 각각),
+`inventory`가 dict 아님·`items`가 list 아님·항목이 dict 아님(→ `ValueError`, `check_df23` 직접 호출), 발견 0일 때 표준 출력 마지막 줄 `reg_check: 발견 0`,
+알 수 없는 인자 → `main`이 정확히 2를 돌려줌, `PYTHONIOENCODING=ascii`로 스크립트 실행(subprocess) → exit 0과 UTF-8 `reg_check: 발견 0`.
 발견하면 안 되는 것: §0~§7의 표(§8 밖), 목록 `totals`가 틀렸지만 `items`에서 센 값과 §8이 같은 경우(도구는 `items`만 믿는다), `role`이 `메시지뿐`인 항목(§8.2 대상 아님 -- `plan_mapping`이 `DF-31(…)`처럼 DF 번호로 시작해도,
 `신규`로도 DF로도 시작하지 않아도 마찬가지. P10 계약 2·3: 메시지뿐 항목은 옛 목록의 `plan_mapping`을 그대로 가질 수 있다), §8.2 행 순서만 다른 레지스트리.
 `--df23-inventory` 없이 §8 없는 레지스트리 → 기존 규칙만(발견 0이면 exit 0).
@@ -132,7 +150,10 @@ auditor가 독립으로 센다: 병합본 §8.1 행(role별·phase별 개수), �
 
 ## 결정 필요 항목
 
-없음(사용자 결정 대상 아님). 오케스트레이터 메모:
+결정됨: 1차 시도(판정 36a6ec8, push 안 됨 -- EL4 거부 사유 V3·V4) 뒤 보충 뮤테이션 생존 중 등가 9개의 면제를 사용자가 승인했다(승인 `20261001-p10b-v3-equiv`, 2026-10-01 "등가 9만 승인").
+면제는 그 기록의 변이 id에만 적용되고, auditor가 2차 병합본에서 각 id가 여전히 등가인지(같은 입력에 같은 결과·발견·exit) 다시 판정한다 -- 구조가 바뀌어 id가 맞지 않으면 면제도 적용되지 않는다.
+`detail`만 다른 변이 6개는 면제하지 않고 계약 3 `detail` 정의로 판정한다(사용자 선택). 나머지 비등가 30개는 계약 3·4의 경계·모양 문장과 '거부해야 할 입력' 추가 항목으로 test가 죽인다.
+오케스트레이터 메모:
 * **P10과의 접점(반영됨)**: P10 계약 1이 `function`을 두 card 공통으로 정의하고(모든 항목이 비지 않은 값) 계약 3이 동작 항목 `plan_mapping`을 `^DF-\d+` 또는 `신규`로 제한한다 -- 이 card 계약 3 `ValueError` (iii)·(v)는 그 형식을
   도구 쪽에서 다시 거부하는 것이다(조용한 기본값 금지). 커밋된 목록(0fa6ca2)에서 둘 다 성립한다(재현할 수치).
 * **design 20 §8 P10b 행**: P10 문서 커밋 0fa6ca2에서 195행으로 더해졌다(초안 문안 그대로). 이 card는 design 문서를 바꾸지 않는다.
