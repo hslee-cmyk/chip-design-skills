@@ -40,7 +40,7 @@
 | 전류미러 그룹 | 정본 후보(`true_current_mirror_groups`(connectivity, 키 kind·gate·source) -- 레일 판정을 `_DEFAULT_RAIL_HI/_LO` 넷 이름 리터럴로 읽음(sizing_recipe 2197행 근처), B26 해소 뒤 확정) | `stick_diagram.find_matching_candidates`(키 kind·gate 또는 kind·bias·rail), `_mirror_ratio_error_pairs`(선언 기반, 첫 쌍만), probe 3곳 복제 | ★ B19'에서 11 vs 18소자로 결론이 뒤집힌 원인. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
 | diffpair / tail | (미정) | `find_differential_pair_candidates`, `_diff_pair_layer1_groups`, `_propose_gm_id_roles`(SD, connectivity) vs `gain_stage_tails`, `input_referred_offset_pairs`(SR, 선언) | ★ S1 유도 정본을 정해야 함 |
 | 노드 DC 전압 | 정본 후보(`propagate_node_voltages`(평가당 1회로) -- 기본 인자 `rail_hi/rail_lo=_DEFAULT_RAIL_*` 넷 이름 리터럴을 엔진 호출부가 그대로 씀(sizing_recipe 3717행), B26 해소 뒤 확정) | 한 평가 안 4곳 재호출, `_hr_sum_ref_vds`·헤드룸 vsb 전파가 다른 순회로 같은 값, probe 2곳 | §12 D1 결정에 종속. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
-| KCL 엣지 | 정본 후보(`stick_diagram._kcl_and_matching_edges` -- 레일 판정을 `_RAIL_NETS` 넷 이름 리터럴로 읽음(stick_diagram 3148행), B26 해소 뒤 확정) | `kcl_series_union`이 같은 엣지를 따로 구현, `_metric_kcl_residual` | 행동 보존 통합 가능. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
+| KCL 엣지 | 정본 후보(`stick_diagram._kcl_and_matching_edges` -- 레일 판정을 `_RAIL_NETS` 넷 이름 리터럴로 읽음(`_kcl_and_matching_edges` 안 `_RAIL_NETS` 판정), B26 해소 뒤 확정) | `kcl_series_union`은 엣지 생성부를 정본 호출로 통합 완료(20260930-p9-kcl-edges). `_metric_kcl_residual`은 중복이 아니다 -- 엣지를 만들지 않고(노드별 부호 붙은 전류 합), 겹치는 것은 단자 전류 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합으로 다른 개념 | 엣지 정의 통합 완료, 정본 확정은 B26 뒤. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |
 | 스택 KVL 합 | `_hr_verify_group_kvl_sum` | `solve_diode_stack_current`(운영 0), 3곳 재계산 | |
 | 레일 넷 집합 | (정본 없음 -- `supply_nets` 선언에서 읽는 경로가 후보) | SD `_RAIL_NETS`(`vdd`/`gnd`/`vss` 리터럴), SR `_DEFAULT_RAIL_HI`/`_DEFAULT_RAIL_LO`(`vdd`/`VDD`·`gnd`/`GND`/`vss`/`VSS` 리터럴) | 이름 기반 상수는 정본이 아니다(엔진 식은 topology 무관) -- 상수 하나로 합치는 것은 해결이 아니다. 선언(`supply_nets`)에서 읽는 경로로 바꾸는 것이 백로그 B26. 소문자만/대소문자 불일치도 결함 후보 |
 | topology 로딩 | `_load_full_topology_cached` | `load_topology` 직접 호출(SR 4845/5056/8493, SD `run_topology_pipeline`, fixup), `json.load`(SR 8315) | 캐시 키를 내용 해시로(C-d) |
@@ -305,7 +305,7 @@
 | `_mna_stamp_capacitance` | 소자 Cgg(gate-source)+선언 커패시터 (a,b,C) 목록 | gmid_sizing_engine.py | **§12.6-6 광범위 except 4217 확인**: `except (KeyError, ValueError): continue`로 LUT 범위 밖 소자의 Cgg를 조용히 누락 -> cap_total 과소 -> PM 과대. 인자 `idx` 미사용(4259에서 None). 수정: 누락 목록 반환/실패 |
 | `build_ac_network` | omega 무관 부분(소자 스탬프·용량·노드목록·고정노드)을 한 번 조립 | gmid_sizing_engine.py(값은 S2 블록 memo) | 재사용 수명이 metric 한 번의 스윕뿐. 같은 평가에서 `_full_circuit_response`(5548)가 `_full_circuit_devices`를 smallsignal metric마다 **다시 조립**하고, 노드목록 루프(4252-4258)는 5552-5559와 동일 코드 -> ctx.si… |
 | `_metric_parasitic_pm_deg` | DC~ω_c 25점 로그스윕 위상 언랩 -> PM=180-누적지연 | gmid_sizing_engine.py | 국소: (1) `n_pts=25`, 시작 `ω_c·1e-4`(4407-4408)가 박힌 상수이고 "A0가 1e4를 넘지 않는 한 안전"(4405)이라는 가정에 의존 -- 상수 금지 원칙 (2) 4217 Cgg 누락을 그대로 물려받아 PM 과대 가능 (3) ω_c를 derived 우선으로 읽음(4384) … |
-| `_metric_kcl_residual` | 내부 노드 ΣI 잔차 최댓값(ideal_sources value_amp 반영, null이면 노드 제외) | gmid_sizing_engine.py | 계산 자체는 순수. 국소: 레일 이름을 인라인 튜플(4456)로 다시 정의 -- `_DEFAULT_RAIL_HI/LO`(3882-3883)와 정의 2벌. passive 전류 미계상(명시, 4448) |
+| `_metric_kcl_residual` | 내부 노드 ΣI 잔차 최댓값(ideal_sources value_amp 반영, null이면 노드 제외) | gmid_sizing_engine.py | 계산 자체는 순수. 국소: 레일 이름을 함수 안 인라인 튜플로 다시 정의 -- `_RAIL_NETS`·`_DEFAULT_RAIL_HI/LO`와 함께 정의 3벌(B26 대상). 엣지를 만들지 않는다(KCL 엣지 행과 다른 개념): 겹치는 것은 단자 전류 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합. passive 전류 미계상(함수 본문에 명시) |
 | `_metric_supply_current` | PMOS source/NMOS drain이 supply 레일인 소자 ID 합(실제 공급전류) | gmid_sizing_engine.py | 레일 튜플 인라인(4524) 중복. **배선 문제**: docstring이 `sum_current`는 스택 중복계상으로 2.82배 틀린 전력이라고 규명(4506-4512)했지만, 4개 회로 objective는 전부 `minimize power_uA`=`sum_current`(JSON 부록). 같은 개념 … |
 | `_mirror_ratio_error_pairs` | ratio 쌍마다 (ΔVDS/V_A, 입력환산 V), ctx.derived 캐시 | gmid_sizing_engine.py(값) + 쌍/미러군은 circui… | **§12.6-5 확인**: `a, b = names[0], names[1]`(4578) -- 3소자 이상 그룹은 첫 쌍만 검사. V_A·gm_id를 `a` 쪽만 씀(4585-4587). 선언 ratio 쌍 18개 중 11개는 connectivity상 미러 아님(§12.3-5) -> S1 미러군(`l_s… |
 | `input_referred_offset_pairs` | offset 쌍 중 전 소자 게이트가 ports input net인 쌍 | circuit_state_graph.py(S1 유도 사실) | 순수 구조 유도지만 `_load_full_topology_cached.__dict__["_cache"][path]` 사적 캐시에 직접 기록(4672,4691) -- 키가 경로 문자열(§12.3-7, C-d 위반: 파일 내용이 바뀌어도 적중). `ports` 선언은 파일럿·two_stage만 있음(grep… |
@@ -425,7 +425,7 @@
 
 | 함수 | 책임 | 이관 목적지 | 비고 |
 |---|---|---|---|
-| `trace_vdd_to_gnd_branches` | kind별 전류방향 고정 branch 골격(하향) | circuit_state_graph(S1 방향 엣지/뷰) | 전류방향 규약 3곳: SD:1216-1224, `_kcl_terminal_sign` SD:3580, SR `_metric_kcl_residual` SR:4469-4472 |
+| `trace_vdd_to_gnd_branches` | kind별 전류방향 고정 branch 골격(하향) | circuit_state_graph(S1 방향 엣지/뷰) | 전류방향 규약 3곳: 이 함수 안 `entry_net`/`exit_net`, `_kcl_terminal_sign`, SR `_metric_kcl_residual` -- 겹침은 단자 전류 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합이며 엣지 정의가 아니다 |
 | `trace_gnd_to_vdd_branches` | 상향 branch 골격 | circuit_state_graph | 위와 쌍 |
 | `suggest_vertical_stack_composites` | branch+idiom으로 vsid composite 제안 | topology_authoring |  |
 | `find_verified_differential_and_mirror_relations` | branch 구조 일치쌍 안의 diff/mirror 관계 | topology_authoring |  |
@@ -469,9 +469,9 @@
 | `find_matching_candidates` | mirror/diff_pair 후보 탐지(net-only 또는 idiom 경로) | circuit_state_graph(S1 matching 엣지 정의 1개… | mirror 정의 3개: net-only (kind,gate) SD:1024-1031 / idiom (kind,bias,rail) SD:1041 / SR `true_current_mirror_groups` (kind,gate,source)+레일게이트 제외 SR:2358-2382. diff_pair는 `_… |
 | `find_differential_pair_candidates` | inputs 선언 없이 diffpair 후보(shared_source) | circuit_state_graph | diffpair/tail 정의 다중: 여기 / `find_matching_candidates` diff_pair SD:1033-1046 / SR `gain_stage_tails`(stage source net을 drain으로 갖는 tail) SR:2434-2470 / SR `input_referred_o… |
 | `_diff_pair_layer1_groups` | net-only diff_pair 판정 재사용 | circuit_state_graph | docstring SD:1787-1789가 `find_matching_candidates` diff_pair와 같은 판정이라 명시 |
-| `kcl_series_union` | 2단자 내부넷+matching_pairs union-find KCL 그룹 | circuit_state_graph | 같은 edge를 `_kcl_and_matching_edges`(SD:3298, docstring "단일 정의로 분리")가 재구성하지만 이 함수 본문 SD:3188-3212는 그것을 쓰지 않고 독자 구현 |
-| `_kcl_and_matching_edges` | KCL/matching edge 목록(원인 보존) | circuit_state_graph | 상대: `kcl_series_union` |
-| `_kcl_terminal_sign` | PMOS/NMOS 단자 KCL 부호 | circuit_state_graph | 운영 0(D). SR `_metric_kcl_residual` SR:4469-4472이 같은 규약 독자 구현 |
+| `kcl_series_union` | 2단자 내부넷+matching_pairs union-find KCL 그룹 | circuit_state_graph | 엣지 정의는 `_kcl_and_matching_edges`를 불러 union한다(20260930-p9-kcl-edges 통합 완료, 이름·시그니처·반환 불변). 운영 호출자 2곳(SR `_build_theta_evaluator`, SD `_kcl_branch_map`) |
+| `_kcl_and_matching_edges` | KCL/matching edge 목록(원인 보존) | circuit_state_graph | KCL 엣지 정의 정본 후보(레일 판정 `_RAIL_NETS`, B26 뒤 확정). 호출자: `audit_vertical_stack_id_vs_kcl`, `propose_vertical_stack_id_gap_fill`, `kcl_series_union` |
+| `_kcl_terminal_sign` | PMOS/NMOS 단자 KCL 부호 | circuit_state_graph | 운영 0(D). SR `_metric_kcl_residual`이 같은 단자 전류 부호 규약을 독자 구현(겹침은 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합, 엣지 아님) |
 | `_quantize_to_grid` | 길이 grid 스냅 | stick_diagram(공용 유틸로 추출 가능) | SR `quantize_L` SR:799-815와 동일 공식; docstring SD:6059-6063이 순환 import 회피용 의도적 사본이라 명시 |
 
 ### 기타 모듈 (1)
