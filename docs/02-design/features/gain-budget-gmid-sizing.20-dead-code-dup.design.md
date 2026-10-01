@@ -191,7 +191,8 @@ G-3 (b)가 telescopic 계열에 해당한다. `_load_telescopic_topology_cached`
 | P7 | `registry-grade-fix` | R-4 9개 등급 정정, §2 중복 셀 실측 반영, D 목록 갱신, E0 도구 `A/tests/tools/reg_check.py` | red-green(도구 code 커밋 -- 2026-09-30 정정, spec card `20260930-registry-grade-fix`) | (a) 도구 합성 입력, (d) 레지스트리·실측 원자료 | 레지스트리, 도구 |
 | P8 | `dup-w-calc` | 인라인 6곳 → `size_transistor` | equivalence | (c) DIFF-DUP + E-LIB·E-INST | 중복 제거 |
 | P9 | `p9-kcl-edges` | `kcl_series_union` 본문의 엣지 정의 → 정본 후보 `_kcl_and_matching_edges` 호출(함수·시그니처 유지). `_metric_kcl_residual`은 대상 아님(엣지를 만들지 않음 -- 2026-09-30 정정, spec card `20260930-p9-kcl-edges`) | equivalence | (a) 합성 넷리스트 + (c) DIFF-DUP·E-LIB·E-INST | 중복 엣지 정의 제거, 레지스트리 §2 행 정정 |
-| P10 | `df23-inventory` | DF-23 전수 목록 문서화(`df23_inventory.json` 기준 266건)와 레지스트리 기록, 신규 148건의 담당 Phase 배정 | test-only(문서) | (d) 실측 원자료 | 목록 |
+| P10 | `df23-inventory` | DF-23 전수 목록 문서화(card base 재측정(`measured_at`))와 항목마다 담당 Phase 배정, 참조 문서의 Phase 2 삭제·이동 이름 표시(문서 백로그 B22 (b)). 레지스트리 기록은 별도 card(code 경로 -- 아래 행) (2026-09-30 정정, spec card `20260930-p10-df23-inventory`) | test-only(문서) | (d) 실측 원자료 | 목록 |
+| P10b | `df23-registry-record` | 레지스트리 §8에 DF-23 목록 기록(목록 경로·`measured_at`·총계·함수별 행)과 `reg_check.py --df23-inventory` 대조 규칙 | red-green(레지스트리·도구 code 커밋) | (a) 도구 합성 입력, (d) card base 목록 | 레지스트리 기록 |
 
 card 하나의 단위는 계획 N3.12.3(관찰 가능한 계약 하나)이다. P5·P6·P9는 equivalence, P7·P8은 red-green이라 code·test 두 역할이 모두 움직인다(2026-09-30 정정: P7·P8은 code 커밋과 새 함수 때문에 red-green -- spec card `20260930-registry-grade-fix`·`20260930-dup-w-calc`).
 
@@ -227,5 +228,5 @@ auditor가 Phase 2 마지막 card 병합본의 격리 복제본 `<iso>`에서 �
 
 없다. §9의 세 항목은 U-02 승인으로 닫는다(열린 질문이 아니라 사용자 결정 대기 항목이다). 실측에서 나온 다음 두 가지는 **계획서 개정 요청**으로 올린다.
 
-1. **레일 넷 이름 리터럴 63건에 DF 번호가 없다**(`vdd` 49·`gnd` 25·`vss` 4 중). `supply_nets`가 topology.json에 선언돼 있는데 코드가 이름을 직접 쓰고, 같은 레일 집합이 최소 세 곳에 따로 선언돼 있다(`sizing_recipe:3893-3894`, `sizing_recipe:8592`, `stick_diagram:3167`). `_metric_supply_current`는 `'vdd'`만 보는데 세 회로는 `vss`·`agnd`를 쓴다. → DF 신설 요청(담당 Phase 4, MG1 레일 이름 변경과 같은 자리).
+1. **레일 넷 이름 리터럴은 DF-19·DF-26(`수정 Phase` 4)이 이미 덮는다 -- 목록에서 두 행에 묶는다**(2026-09-30 정정, spec card `20260930-p10-df23-inventory`. 처음 기록 "레일 넷 이름 리터럴 63건에 DF 번호가 없다(`vdd` 49·`gnd` 25·`vss` 4 중) → DF 신설 요청"은 틀렸다 -- DF-19·DF-26 두 행이 이미 레일 이름 집합 하드코딩을 적고 있다). `supply_nets`가 topology.json에 선언돼 있는데 코드가 이름을 직접 쓰고, 같은 레일 집합이 최소 세 곳에 따로 선언돼 있다(`sizing_recipe:3893-3894`, `sizing_recipe:8592`, `stick_diagram:3167`). `_metric_supply_current`는 `'vdd'`만 보는데 세 회로는 `vss`·`agnd`를 쓴다. → 새 DF 없이 DF-19·DF-26 교체(담당 Phase 4, MG1 레일 이름 변경과 같은 자리)에서 다룬다.
 2. **DF-29·DF-30의 사정권이 기록보다 넓다**. DF-29는 공유 함수 둘(`_telescopic_open_loop_device_names`·`_telescopic_class_ab_open_loop_gains`)과 `_CMRR_REGISTRY`·`_PSRR_REGISTRY` 키까지, DF-30은 `_METRIC_UNITS`와 `if mtype == "folded_cascode_*"` 분기 3곳까지 함께 움직여야 한다. → DF 표 비고 보강 요청.

@@ -71,7 +71,7 @@ square-law는 weak/moderate inversion과 short-channel 소자에서 무너진다
 | 3 | 리포트 시각화 코드를 새로 작성하거나 텍스트로 대체 | `assets/report_template.html`의 렌더링 함수를 코드 그대로 복사해 재사용 |
 | 4 | 소자에 대한 명시적 목표치가 없다고 사이징을 스킵("범위 밖"으로 처리) | §1.5의 절차로 로컬 타겟을 유도해 반드시 값을 확정 |
 | 5 | **이 skill의 함수 집합을 수정·확장하고서, spec→instance.json 전 구간이 여전히 harness만으로·재현 가능하게·최선의 결과로 완주되는지 재검사하지 않고 완료 보고**(2026-07-31, 배치 7-6 발견 계기 — 다른 4개와 달리 특정 사고가 아니라 "매 수정마다 반복해야 하는 게이트"라는 게 원칙 자체) | §5 마지막 항목("skill 최종 게이트")의 절차 그대로 매번 재실행 — 1회성 설계 검증이 아니라 이 skill 자신의 무결성에 대한 상시 게이트임을 명심할 것 |
-| 6 | 순수 수식 함수의 self-test라는 이유로, 실제 `library/*.topology.json`에 존재하는 소자 이름을 그 회로에서의 kind/connectivity를 확인하지 않고 논문/기억만으로 역할 배정해서 씀(2026-07-31, `telescopic_class_ab` CMRR 계기) | 그 이름을 값에 채워 넣기 전에 `load_topology(그 실제 파일)`로 kind/connectivity(같은 노드 공유 등)를 먼저 assert — "수식 검증"과 "역할 배정 검증"을 별도 블록으로 분리 |
+| 6 | 순수 수식 함수의 self-test라는 이유로, 실제 `library/*.topology.json`에 존재하는 소자 이름을 그 회로에서의 kind/connectivity를 확인하지 않고 논문/기억만으로 역할 배정해서 씀(2026-07-31, `telescopic_class_ab` CMRR 계기 -- Phase 2에서 삭제) | 그 이름을 값에 채워 넣기 전에 `load_topology(그 실제 파일)`로 kind/connectivity(같은 노드 공유 등)를 먼저 assert — "수식 검증"과 "역할 배정 검증"을 별도 블록으로 분리 |
 
 ---
 

@@ -155,6 +155,7 @@
 ---
 
 ## B. DF-23 전수 -- 엔진 소스의 소자·넷·회로 이름과 topology 경로 리터럴
+이 절의 수는 1e2e243 측정 기록이다. 현재 목록은 `df23_inventory.json`(`measured_at`, 항목마다 `phase`).
 
 ### B-0. 방법
 

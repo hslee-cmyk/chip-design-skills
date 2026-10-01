@@ -253,13 +253,13 @@ VDS   gm/ID   ID(µA)   W(µm)      gain   준정적(fT≤0.1·f_nqs)
 gm/ID=21(weak 쪽, 전류는 작지만 폭이 넓음), 면적 최소는 gm/ID=3.5(strong 쪽, 폭은 작지만 전류가
 큼). `gm-id-methodology.md` §5.1 트레이드오프 삼각형을 숫자로, 자동 탐색으로 확인한 것이다.
 
-**부수적으로 발견한 버그**: 이 최적화기를 만들다가 `converge_with_parasitics()`의
+**부수적으로 발견한 버그**: 이 최적화기를 만들다가 `converge_with_parasitics()`(Phase 2에서 삭제)의
 `result.gain = gm_id * lut.gm_gds_ratio(...)`가 잘못됐다는 걸 발견했다 — `gm_gds_ratio()`가
 이미 완전한 gain(gm/gds)을 반환하는데 `gm_id`를 한 번 더 곱하고 있었다(예: gm/ID=20에서 실제
 gain=49.4인데 987.2로 출력). `find_optimal_sizing()` 자체는 `gm_gds_ratio()`를 직접 호출해
 이 버그의 영향을 받지 않았고(그래서 개발 중 이 차이를 알아챌 수 있었다), sizing(ID/W) 계산 경로와
 이 문서 §7·§8의 Walker/NGCC/I.G.S. 재현 수치들도 별도 경로로 계산돼 영향받지 않았음을 확인했다.
-`converge_with_parasitics()`는 수정 완료(현재 커밋에 반영됨).
+`converge_with_parasitics()`는 수정 완료(현재 커밋에 반영됨) -- 이 함수는 Phase 2에서 삭제.
 
 **한계**: 이산 격자 탐색이라 격자점 사이의 진짜 연속 최적점은 못 찾는다(§7.2 보간으로 gm/ID 자체는
 연속이지만 L/VDS는 격자값만 시도). 다단 회로(Miller OTA/NGCC)의 2D sizing space 접점 탐색은

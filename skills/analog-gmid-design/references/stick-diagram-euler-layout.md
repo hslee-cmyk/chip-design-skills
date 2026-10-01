@@ -110,7 +110,7 @@ stick-to-layout 변환(interconnect 배치)에 들어간다. 스펙 재검증 �
 > 안 맞아 표를 그대로 못 쓰는 stack 등)으로 나오는 경우가 흔하다 — 이럴 때 **"표에 맞는
 > 패턴이 없으니 대충 나눈다"로 타협하면 안 된다.** 대신 원리로 바로 내려가서 직접 구성한다:
 > `build_mirror_symmetric_pattern()`(§2.5.3, 절반만 설계하면 나머지는 자동 생성)과
-> `find_interleaved_symmetric_splits()`(§2.5.4, 개수가 안 맞는 매칭쌍도 다른 소자와 섞어
+> `find_interleaved_symmetric_splits()`(Phase 2에서 tests/tools/interleave_splits.py로 이동, §2.5.4, 개수가 안 맞는 매칭쌍도 다른 소자와 섞어
 > 대칭 살리기, 결과는 매칭 품질 순 정렬)가 바로 이 "표 없이 원리로 직접 만드는" 범용
 > 도구다 — 이 둘은 특정 패턴표 항목에 국한되지 않고 **어떤 소자 개수 조합에도 적용**된다.
 > §10 체크리스트에도 이 판단을 명시한다.
@@ -212,7 +212,7 @@ count_a−k개(오른쪽에 k개) 놓으면 항상 대칭이 성립한다 — k�
 동작이다. "여러 대칭 후보 중 가능한 한 잘게, 최대한 섞이도록 고른다"는 게
 이 기법의 실전 원칙이다.
 
-**구현**: `find_interleaved_symmetric_splits(count_a, count_b)`가 이 조건(count_a==count_b)을
+**구현**: `find_interleaved_symmetric_splits(count_a, count_b)`(Phase 2에서 tests/tools/interleave_splits.py로 이동)가 이 조건(count_a==count_b)을
 확인하고 가능한 모든 (a_left, a_right, b_left, b_right) 분할을, **"얼마나 고르게 섞였는가"
 (`|a_left − a_right|` 오름차순, 즉 매칭 효과가 좋은 순)로 정렬**해서 반환한다. 실제
 M9/M10=각 3개 사례를 넣으면 `[(1,2,2,1), (2,1,1,2), (0,3,3,0), (3,0,0,3)]`(가장 잘 섞인
@@ -461,7 +461,7 @@ M3/M3b tail 미러, M4/M5 부하 미러) 전부 허브-리프 구조다. §2.7.2
 맞추려면 diffpair(2행)·tailstack(1행)·loadstack(1행) — 총 4개 물리 행의 폭을 전부
 일치시켜야 한다: `search_stack_finger_w()`로 tailstack·loadstack의 finger_w를 각각
 재탐색해 둘 다 정확히 폭 10(5+5)에 맞추고, M1/M2는 처음부터 소자당 finger 10개(짝수)로
-잡아 `find_interleaved_symmetric_splits(10,10)`의 최선 분할 `(5,5,5,5)`로 diffpair의
+잡아 `find_interleaved_symmetric_splits(10,10)`(Phase 2에서 tests/tools/interleave_splits.py로 이동)의 최선 분할 `(5,5,5,5)`로 diffpair의
 2행도 폭 10에 맞췄다 — 세 finger_w 전부 원래 gm/ID sizing과 스냅 오차 0%로 딱 맞아떨어져
 4개 행이 전부 폭 10인 완전한 box가 됐다. box-shape로 finger_w를 바꾼 뒤에도 SPICE 전류
 매칭은 85.6%로 이전(87.3%)과 비슷한 수준을 유지했다 — diode-connected 미러(M3b, M4)는
@@ -1062,7 +1062,7 @@ PMOS 각 행을 쪼개야 하고, PMOS 그룹(90/94/94/40핑거)을 전부 이 �
 
 ```python
 from stick_diagram import (
-    Transistor, build_stick_diagram, render_stick_diagram,
+    Transistor, build_stick_diagram,  # render_stick_diagram: Phase 2에서 삭제
     check_finger_width_compatibility, split_into_stacks,
     find_matching_candidates, search_unit_cell_sizing,
     find_hub_merge_candidates, check_multi_leaf_hub_parity,  # §4.1 — stage 경계 넘는 stack 병합 판단
@@ -1099,7 +1099,7 @@ for stack_id, group in split_into_stacks(circuit).items():
 
 # 2단계: 정합성 문제 없는 stack만 오일러 분석
 for stack_id, result in build_stick_diagram(circuit).items():
-    print(render_stick_diagram(result))
+    # print(render_stick_diagram(result))  -- Phase 2에서 삭제
     if result.status == "blocked":
         # result.suggestions[0]이 가장 유력한 finger 조정 후보 —
         # 반드시 §5 체크리스트로 재검증한 뒤에만 채택할 것.
@@ -1220,7 +1220,7 @@ iteration을 돌려야 해."
       여전히 1개 metal layer, 진짜 오일러 trail이다 — 추가 layer가 필요한 게 아니다.)
 - [ ] **표준 패턴표(§2.5.1/§2.5.2)가 이 소자 개수 조합에 맞지 않는다면**(홀수 등), 대충
       나누고 넘어가지 않고 원리(대칭 + 최대한 섞기, §2.5 도입부 경고문 + §2.5.4)로 직접
-      구성했는가 — `build_mirror_symmetric_pattern()`/`find_interleaved_symmetric_splits()`
+      구성했는가 — `build_mirror_symmetric_pattern()`/`find_interleaved_symmetric_splits()`(Phase 2에서 tests/tools/interleave_splits.py로 이동)
       /`common_centroid_layout()`로 만든 배치가 실제로 대칭(`check_mirror_symmetry()`)과
       매칭 품질(가장 고르게 섞인 후보)을 둘 다 만족하는지 확인했는가?
 - [ ] finger 수/W 조정(box-shape 게이트 통과를 위한 것 포함)이 있었다면, **조정 후 W로

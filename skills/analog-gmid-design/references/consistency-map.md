@@ -204,9 +204,9 @@ SKILL.md 원칙 수정 시:
      `find_optimal_sizing()` — 와 `function-selection-map.md` §1 표를 함께 갱신).
   2. **`find_optimal_sizing()`이 준정적 조건을 손으로 재구현하고 있었다**(핵심 원칙 절대
      원칙 표 #1 "함수 실제 호출(손 축약 금지)" 위반, harness 우선순위 대원칙과도 무관하지
-     않음): `fT_dev = lut.fT(gm_id, L, VDS, vs); fnqs_ok = fT <= quasi_static_margin * fT_dev`로
+     않음): `fT_dev = lut.fT(gm_id, L, VDS, vs); fnqs_ok = fT <= quasi_static_margin * fT_dev`(`lut.fT()`는 Phase 2에서 삭제)로
      `check_quasi_static()`과 수학적으로 동일한 `fT<=margin*f_nqs` 비교를 별도로 계산하고
-     있었다 — element 함수를 호출하는 대신 그 안의 공식을 그대로 베껴 쓴 것. `lut.fT()`가
+     있었다 — element 함수를 호출하는 대신 그 안의 공식을 그대로 베껴 쓴 것. `lut.fT()`(Phase 2에서 삭제)가
      기준폭에서 잰 gm/Cgg 비(gm_ref/cgg_ref)이고, `gm`(고정 타깃)과 `lut.cgg_absolute(...,
      W)`(그 타깃 gm을 만드는 실제 폭에서의 절대 Cgg)의 비가 스케일링 불변성(폭에 비례해서
      gm/Cgg 둘 다 스케일되므로 비율은 폭 무관, `cgg_absolute()` 자체 docstring이 이 스케일링

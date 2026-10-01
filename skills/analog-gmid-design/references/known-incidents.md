@@ -101,7 +101,7 @@ gap을 못 잡았다. 배치 7-5(최종 재생성)까지 계획해놓고도 이 
 
 ## 사고 6 — 순수 수식 함수 self-test에 실제 회로의 소자 이름을 역할 검증 없이 씀
 
-`telescopic_class_ab` CMRR 폐형식(`_cmrr_telescopic_class_ab`)의 self-test를 작성하며,
+`telescopic_class_ab` CMRR 폐형식(`_cmrr_telescopic_class_ab`, 둘 다 Phase 2에서 삭제)의 self-test를 작성하며,
 "이 함수는 gm/gds *값*만 받는 순수 수식 함수라 topology.json엔 애초에 그 값이 없다"는
 이유로 `SizingContext(sized={"M1a": {gm,gds}, ...})`를 손으로 만들었다. 그런데 여기 쓴
 소자 **이름**(M1a/M2a/M3a/M4a/M6/M7/M5)이 `current_reuse_telescopic_ota.topology.json`에
@@ -122,7 +122,7 @@ placeholder가 아니라)을 참조하면, 그 이름에 대한 kind/connectivit
 가정과 일치하는지, (b) 역할 배정이 함의하는 connectivity 관계(같은 노드 공유, source=drain
 연결 등)가 실제 `source`/`drain`/`gate` 필드로 성립하는지를 assert로 먼저 검증하는 블록을
 넣는다. "수식 자체 검증"과 "역할 배정 검증"은 항상 별도의 두 블록으로 나눠 쓴다 — 실제
-구현 예시: `sizing_recipe.py`의 `telescopic_class_ab` self-test(2026-07-31, `_crt_by_name`
+구현 예시: `sizing_recipe.py`의 `telescopic_class_ab` self-test(Phase 2에서 삭제, 2026-07-31, `_crt_by_name`
 블록).
 
 ## 사고 7 — 공유 엔진 코드를 사전 승인 없이 고침 (원칙의 최초 근거)

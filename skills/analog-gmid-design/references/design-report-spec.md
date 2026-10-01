@@ -89,7 +89,7 @@
     safe_split_points()` 안전 지점 0개(강하게 interdigitate된 매칭 회로라 당연). **규칙**:
     안전 지점 0개는 "그 시퀀스를 그 자리에서 자르지 말라"는 뜻이지 "2행으로 나눌 방법이
     없다"는 뜻이 아니다 — 처음부터 2행으로 다시 지어야 한다(19번에서 실증).
-19. **증상**: 18번의 재구성 중 `find_interleaved_symmetric_splits()`가 반환한 모든 후보로
+19. **증상**: 18번의 재구성 중 `find_interleaved_symmetric_splits()`(Phase 2에서 tests/tools/interleave_splits.py로 이동)가 반환한 모든 후보로
     나눠도 `build_stick_diagram()`이 전부 `status="blocked"`(홀수차수 노드 4개, Euler 불가능)
     를 반환하는 dead end 발생 — 손으로 차수를 계산해보니 3개 net(tail/outA/outB)만으로 이미
     Euler 조건을 어김. **해결**: 반드시 쪼개야 하는 소자만 최소로 분할하고 나머지는 통째로
@@ -305,7 +305,7 @@ simulated annealing급 B*-tree/sequence-pair 최적화기로 다시 짜는 것�
    자리에서 자를 수 있는지**만 확인한다 — 안전 지점이 0개로 나오면 "이 시퀀스를 자르지
    말라"는 뜻이지 "이 소자들을 2행으로 나눌 방법이 없다"는 뜻이 아니다. 진짜 해법은 처음부터
    2행을 **다시 만드는 것**이다: 각 소자의 finger 수를 짝수로 만들고(또는 §2.5.4
-   `find_interleaved_symmetric_splits()`로 홀수 조합의 불균등 분할을 구하고), 각 소자를
+   `find_interleaved_symmetric_splits()`(Phase 2에서 tests/tools/interleave_splits.py로 이동)로 홀수 조합의 불균등 분할을 구하고), 각 소자를
    정확히 절반씩 두 행에 나눠 `build_mirror_symmetric_pattern()`으로 배치한 뒤
    `check_mirror_symmetry()`로 재확인한다 — 이게 정확히 이 회로의 S1_PMOS/S1_NMOS row0/row1
    이 이미 만들어진 방식이다. Maloberti PDF의 folded cascode/2-stage OTA 예제(`assets/
