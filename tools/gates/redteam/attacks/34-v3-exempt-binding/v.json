@@ -1,0 +1,221 @@
+{
+ "cases": [
+  {
+   "step": "legacy-unbound-leak",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"배율.\"\"\"\n    return 2.0 * x\n"
+    },
+    ".ai/approvals/20260930-rt-v3bind.md": {
+     "text": "---\nid: 20260930-rt-v3bind\ndate: 2026-09-30\ntarget_kind: decision\ntarget: rt_engine:rt_scale:stmt_delete:body[1]\nscope: redteam 합성 결정 기록(V3 등가 변이 면제 묶기 시험)\n---\n\n## 사용자 원문\n\n> redteam 합성 기록(실제 사용자 승인이 아니다)\n\n## 범위 설명\n\nredteam\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배 절댓값.\"\"\"\n    _ = len(\"rt\")\n    return 3.0 * abs(x)\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale_bind.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_bind():\n    # oracle (a) 구성: head rt_scale은 입력 절댓값의 3배 -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n    # oracle (a) 구성: 음수 입력도 절댓값의 3배 -- -2.0 -> 6.0(abs 제거 변이를 죽인다)\n    assert rt_scale(-2.0) == 6.0\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]",
+     "{\"id\": \"rt_engine:rt_scale:stmt_delete:body[1]\", \"reason\": \"unbound\"}"
+    ],
+    "basis": "spec card 20260930-v3-exempt-binding 계약 3·5·6·9(a): base 커밋의 decision 승인 기록에 해시 없는 원소 X(`@` 없음)가 있고 head가 rt_scale을 바꿔 X가 생존 -- 해시 없는 원소는 적용하지 않고(정상 실행 -> 생존 -> FAIL, exit 1) exempt_ignored에 {id, reason: unbound}(키 순서 그대로)를 싣는다. oracle (a) 구성: head rt_scale 본문 = docstring / `_ = len(\"rt\")` / `return 3.0 * abs(x)`(base `return 2.0 * x`와 모든 문장이 다름), test = rt_scale(2.0)==6.0·rt_scale(-2.0)==6.0 -- 변이 연산자(계약 머리 목록) 중 이 def에 생기는 것은 stmt_delete body[1]·body[2], early_return body[1], arith body[2].value, const+/- body[2].value.left 6개이고, `_ = len(\"rt\")` 삭제(X)만 결과를 바꾸지 않아 유일 생존, 나머지 5개는 6.0 단언에서 죽는다. red: base 도구는 경로만 보고 X를 면제해 생존 0 -> exit 0"
+   }
+  },
+  {
+   "step": "hash-mismatch",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"배율.\"\"\"\n    return 2.0 * x\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배 절댓값.\"\"\"\n    _ = len(\"rt\")\n    return 3.0 * abs(x)\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale_bind.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_bind():\n    # oracle (a) 구성: head rt_scale은 입력 절댓값의 3배 -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n    # oracle (a) 구성: 음수 입력도 절댓값의 3배 -- -2.0 -> 6.0(abs 제거 변이를 죽인다)\n    assert rt_scale(-2.0) == 6.0\n"
+    },
+    ".ai/approvals/20260930-rt-v3bind.md": {
+     "text": "---\nid: 20260930-rt-v3bind\ndate: 2026-09-30\ntarget_kind: decision\ntarget: rt_engine:rt_scale:stmt_delete:body[1]@@bindhash(base:skills/analog-gmid-design/assets/rt_engine.py:rt_scale)\nscope: redteam 합성 결정 기록(V3 등가 변이 면제 묶기 시험)\n---\n\n## 사용자 원문\n\n> redteam 합성 기록(실제 사용자 승인이 아니다)\n\n## 범위 설명\n\nredteam\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]",
+     "{\"id\": \"rt_engine:rt_scale:stmt_delete:body[1]\", \"reason\": \"hash_mismatch\", \"approved_hash\": \""
+    ],
+    "basis": "spec card 20260930-v3-exempt-binding 계약 2·5·6·9(b): 원소 X@<바꾸기 전(base) rt_scale 묶기 해시> -- head 묶기 해시와 달라 면제하지 않고 X 생존(exit 1), exempt_ignored에 {id, reason: hash_mismatch, approved_hash, ...}. 해시는 lib/rt.py @bindhash가 계약 머리 정의로 독립 계산. oracle (a) 구성: head rt_scale 본문 = docstring / `_ = len(\"rt\")` / `return 3.0 * abs(x)`(base `return 2.0 * x`와 모든 문장이 다름), test = rt_scale(2.0)==6.0·rt_scale(-2.0)==6.0 -- 변이 연산자(계약 머리 목록) 중 이 def에 생기는 것은 stmt_delete body[1]·body[2], early_return body[1], arith body[2].value, const+/- body[2].value.left 6개이고, `_ = len(\"rt\")` 삭제(X)만 결과를 바꾸지 않아 유일 생존, 나머지 5개는 6.0 단언에서 죽는다. base 도구도 exit 1(회귀 방지) -- 단계 red는 exempt_ignored 조각 없음"
+   }
+  },
+  {
+   "step": "bound-exempt",
+   "tool": "V3",
+   "kind": "control",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"배율.\"\"\"\n    return 2.0 * x\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배 절댓값.\"\"\"\n    _ = len(\"rt\")\n    return 3.0 * abs(x)\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale_bind.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_bind():\n    # oracle (a) 구성: head rt_scale은 입력 절댓값의 3배 -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n    # oracle (a) 구성: 음수 입력도 절댓값의 3배 -- -2.0 -> 6.0(abs 제거 변이를 죽인다)\n    assert rt_scale(-2.0) == 6.0\n"
+    },
+    ".ai/approvals/20260930-rt-v3bind.md": {
+     "text": "---\nid: 20260930-rt-v3bind\ndate: 2026-09-30\ntarget_kind: decision\ntarget: rt_engine:rt_scale:stmt_delete:body[1]@@bindhash(head:skills/analog-gmid-design/assets/rt_engine.py:rt_scale)\nscope: redteam 합성 결정 기록(V3 등가 변이 면제 묶기 시험)\n---\n\n## 사용자 원문\n\n> redteam 합성 기록(실제 사용자 승인이 아니다)\n\n## 범위 설명\n\nredteam\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "kind": "control",
+    "message_contains": [
+     "\"verdict\": \"PASS\"",
+     "\"survivors\": []",
+     "\"exempt_ignored\": []"
+    ],
+    "observed_equals": {
+     "lines": 6,
+     "by_result": {
+      "exempt": [
+       "rt_engine:rt_scale:stmt_delete:body[1]"
+      ]
+     }
+    },
+    "basis": "spec card 20260930-v3-exempt-binding 계약 1·5·6·9(c): 원소 X@<head rt_scale 묶기 해시>는 적용 -- X는 실행하지 않고 exempt, 나머지 5개 killed라 생존 0(PASS, exit 0), 적용하지 않은 원소가 없어 exempt_ignored 빈 목록. 관찰 out_jsonl: --out에 exempt 레코드도 append(WP-11)되어 줄 수 = head def 변이 6, killed·survived 밖 결과는 exempt [X]뿐. oracle (a) 구성: head rt_scale 본문 = docstring / `_ = len(\"rt\")` / `return 3.0 * abs(x)`(base `return 2.0 * x`와 모든 문장이 다름), test = rt_scale(2.0)==6.0·rt_scale(-2.0)==6.0 -- 변이 연산자(계약 머리 목록) 중 이 def에 생기는 것은 stmt_delete body[1]·body[2], early_return body[1], arith body[2].value, const+/- body[2].value.left 6개이고, `_ = len(\"rt\")` 삭제(X)만 결과를 바꾸지 않아 유일 생존, 나머지 5개는 6.0 단언에서 죽는다. red: base 도구는 `@` 원소를 몰라 X 생존 -> exit 1"
+   },
+   "observe": "out_jsonl"
+  },
+  {
+   "step": "bound-other-def",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"배율.\"\"\"\n    return 2.0 * x\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배 절댓값.\"\"\"\n    _ = len(\"rt\")\n    return 3.0 * abs(x)\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale_bind.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_bind():\n    # oracle (a) 구성: head rt_scale은 입력 절댓값의 3배 -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n    # oracle (a) 구성: 음수 입력도 절댓값의 3배 -- -2.0 -> 6.0(abs 제거 변이를 죽인다)\n    assert rt_scale(-2.0) == 6.0\n"
+    },
+    ".ai/approvals/20260930-rt-v3bind.md": {
+     "text": "---\nid: 20260930-rt-v3bind\ndate: 2026-09-30\ntarget_kind: decision\ntarget: rt_engine:rt_scale:stmt_delete:body[1]@@bindhash(head:skills/analog-gmid-design/assets/rt_engine.py:rt_gain)\nscope: redteam 합성 결정 기록(V3 등가 변이 면제 묶기 시험)\n---\n\n## 사용자 원문\n\n> redteam 합성 기록(실제 사용자 승인이 아니다)\n\n## 범위 설명\n\nredteam\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]",
+     "{\"id\": \"rt_engine:rt_scale:stmt_delete:body[1]\", \"reason\": \"hash_mismatch\", \"approved_hash\": \""
+    ],
+    "basis": "spec card 20260930-v3-exempt-binding 계약 2·5·9(d): 원소 해시가 같은 파일 다른 def(rt_gain, base·head 같음)의 묶기 해시 -- X의 def(rt_scale) 묶기 해시와 달라 면제하지 않음(X 생존, exit 1), hash_mismatch. 파일·모듈 단위 해시나 '아무 def 해시와 같으면' 적용하는 구현은 X를 면제해 exit 0. oracle (a) 구성: head rt_scale 본문 = docstring / `_ = len(\"rt\")` / `return 3.0 * abs(x)`(base `return 2.0 * x`와 모든 문장이 다름), test = rt_scale(2.0)==6.0·rt_scale(-2.0)==6.0 -- 변이 연산자(계약 머리 목록) 중 이 def에 생기는 것은 stmt_delete body[1]·body[2], early_return body[1], arith body[2].value, const+/- body[2].value.left 6개이고, `_ = len(\"rt\")` 삭제(X)만 결과를 바꾸지 않아 유일 생존, 나머지 5개는 6.0 단언에서 죽는다. base 도구도 exit 1 -- 단계 red는 exempt_ignored 조각 없음"
+   }
+  },
+  {
+   "step": "docstring-shift",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"배율.\"\"\"\n    return 2.0 * x\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배 절댓값.\"\"\"\n    _ = len(\"rt\")\n    x = abs(x)\n    return 3.0 * x\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale_bind.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_bind():\n    # oracle (a) 구성: head rt_scale은 입력 절댓값의 3배 -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n    # oracle (a) 구성: 음수 입력도 절댓값의 3배 -- -2.0 -> 6.0(abs 제거 변이를 죽인다)\n    assert rt_scale(-2.0) == 6.0\n"
+    },
+    "notes/attempt_k.py": {
+     "text": "def rt_scale(x):\n    _ = len(\"rt\")\n    x = abs(x)\n    return 3.0 * x\n"
+    },
+    ".ai/approvals/20260930-rt-v3bind.md": {
+     "text": "---\nid: 20260930-rt-v3bind\ndate: 2026-09-30\ntarget_kind: decision\ntarget: rt_engine:rt_scale:stmt_delete:body[1]@@bindhash(head:notes/attempt_k.py:rt_scale)\nscope: redteam 합성 결정 기록(V3 등가 변이 면제 묶기 시험)\n---\n\n## 사용자 원문\n\n> redteam 합성 기록(실제 사용자 승인이 아니다)\n\n## 범위 설명\n\nredteam\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]",
+     "{\"id\": \"rt_engine:rt_scale:stmt_delete:body[1]\", \"reason\": \"hash_mismatch\", \"approved_hash\": \""
+    ],
+    "basis": "spec card 20260930-v3-exempt-binding 계약 머리(묶기 해시 = docstring을 지우지 않은 def 원본)·계약 2·9(e): Dk(V3 대상 밖 notes/attempt_k.py, docstring 없음 -- Dk에서 X 경로 body[1]은 `x = abs(x)`)의 묶기 해시로 묶은 원소. head rt_scale = Dk 맨 앞에 docstring 한 줄만 더한 것 -- docstring을 지운 ① 해시는 Dk와 같지만 X 경로가 한 칸 밀려 `_ = len(\"rt\")`를 가리키고 묶기 해시는 다르다 -> 면제하지 않음, X 생존(exit 1), hash_mismatch. oracle (a) 구성: head 본문 docstring / `_ = len(\"rt\")` / `x = abs(x)` / `return 3.0 * x`, 같은 test -- `x = abs(x)` 삭제는 -2.0 -> -6.0으로 죽고 X(`_ = len(\"rt\")` 삭제)만 유일 생존. ① 해시로 묶는 구현이면 X 면제 -> exit 0. base 도구도 exit 1 -- 단계 red는 exempt_ignored 조각 없음"
+   }
+  },
+  {
+   "step": "malformed-element",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_scale"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"배율.\"\"\"\n    return 2.0 * x\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_scale(x):\n    \"\"\"3배 절댓값.\"\"\"\n    _ = len(\"rt\")\n    return 3.0 * abs(x)\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_scale_bind.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_scale\n\n\ndef test_rt_scale_bind():\n    # oracle (a) 구성: head rt_scale은 입력 절댓값의 3배 -- 2.0 -> 6.0\n    assert rt_scale(2.0) == 6.0\n    # oracle (a) 구성: 음수 입력도 절댓값의 3배 -- -2.0 -> 6.0(abs 제거 변이를 죽인다)\n    assert rt_scale(-2.0) == 6.0\n"
+    },
+    ".ai/approvals/20260930-rt-v3bind.md": {
+     "text": "---\nid: 20260930-rt-v3bind\ndate: 2026-09-30\ntarget_kind: decision\ntarget: rt_engine:rt_scale:stmt_delete:body[1]@abc\nscope: redteam 합성 결정 기록(V3 등가 변이 면제 묶기 시험)\n---\n\n## 사용자 원문\n\n> redteam 합성 기록(실제 사용자 승인이 아니다)\n\n## 범위 설명\n\nredteam\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]",
+     "{\"id\": \"rt_engine:rt_scale:stmt_delete:body[1]\", \"reason\": \"malformed\", \"element\": \"rt_engine:rt_scale:stmt_delete:body[1]@abc\"}"
+    ],
+    "basis": "spec card 20260930-v3-exempt-binding 계약 머리 원소 분리 규칙(`@` 뒤가 ^[0-9a-f]{64}$ 아님 -> 형식 오류, id = 첫 `@` 앞)·계약 3·9(f): 원소 X@abc는 적용하지 않고 X 생존(exit 1), exempt_ignored에 {id, reason: malformed, element: 원소 문자열}. oracle (a) 구성: head rt_scale 본문 = docstring / `_ = len(\"rt\")` / `return 3.0 * abs(x)`(base `return 2.0 * x`와 모든 문장이 다름), test = rt_scale(2.0)==6.0·rt_scale(-2.0)==6.0 -- 변이 연산자(계약 머리 목록) 중 이 def에 생기는 것은 stmt_delete body[1]·body[2], early_return body[1], arith body[2].value, const+/- body[2].value.left 6개이고, `_ = len(\"rt\")` 삭제(X)만 결과를 바꾸지 않아 유일 생존, 나머지 5개는 6.0 단언에서 죽는다. base 도구도 exit 1 -- 단계 red는 exempt_ignored 조각 없음"
+   }
+  }
+ ]
+}

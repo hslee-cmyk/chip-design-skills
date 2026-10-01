@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import os
 import re
@@ -520,15 +521,82 @@ def section_to_test(sec: dict) -> str:
     return f"def {sec['def']}():\n" + "\n".join(("    " + ln[indent:]) if ln.strip() else "" for ln in body) + "\n"
 
 
+# 공격 34(spec card 20260930-v3-exempt-binding 계약 9): 자리표시자 `@bindhash(<base|head>:<경로>:<qualname>)`.
+# 값 = 그 케이스 base/head 사전의 <경로> 파일 첫 단계 텍스트(_file_content 결과)에서 그 qualname def 노드 원본(docstring·
+# 데코레이터·중첩 def 포함)의 묶기 해시 -- 계약 머리 정의 그대로 표준 ast·hashlib로 독립 계산한다(피검 도구 import 금지).
+# `subst_str`의 `@{KEY}`·`@win(...)` 정규식은 `@bindhash(`에 맞지 않는다(문법 겹침 없음).
+_BINDHASH_MARK = "@bindhash("
+_BINDHASH_RE = re.compile(r"@bindhash\(([^()]*)\)")
+
+
+def _bind_hash(node: ast.AST) -> str:
+    """계약 머리 '묶기 해시': ast.dump 인자를 모두 명시한 sha256(소문자 16진 64자)."""
+    return hashlib.sha256(ast.dump(node, annotate_fields=True, include_attributes=False, indent=None,
+                                   show_empty=False).encode("utf-8")).hexdigest()
+
+
+def _defs_by_qualname(tree: ast.AST, qualname: str) -> list[ast.AST]:
+    """qualname 규칙(계약 머리): 클래스 안 `Cls.meth`, 중첩 def `outer.inner`. if/try 등 블록은 이름에 들어가지 않는다."""
+    found = []
+
+    def walk(node, prefix):
+        for child in ast.iter_child_nodes(node):
+            if isinstance(child, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+                q = f"{prefix}.{child.name}" if prefix else child.name
+                if q == qualname and not isinstance(child, ast.ClassDef):
+                    found.append(child)
+                walk(child, q)
+            else:
+                walk(child, prefix)
+
+    walk(tree, "")
+    return found
+
+
+def _resolve_bindhash(arg: str, stage1: dict[str, dict[str, bytes | None]]) -> str:
+    side, sep, rest = arg.partition(":")
+    path, sep2, qualname = rest.rpartition(":")
+    if not sep or not sep2 or side not in stage1 or not path or not qualname:
+        raise RuntimeError(f"@bindhash 형식 오류: {arg!r} (형식 <base|head>:<경로>:<qualname>)")
+    files = stage1[side]
+    if path not in files or files[path] is None:
+        raise RuntimeError(f"@bindhash 참조 경로가 {side} 사전에 없음: {path}")
+    text = files[path].decode("utf-8")
+    if _BINDHASH_MARK in text:
+        raise RuntimeError(f"@bindhash 참조 파일에 자리표시자가 있음(순환): {side}:{path}")
+    defs = _defs_by_qualname(ast.parse(text), qualname)
+    if not defs:
+        raise RuntimeError(f"@bindhash qualname def 없음: {side}:{path}:{qualname}")
+    if len(defs) > 1:
+        raise RuntimeError(f"@bindhash 같은 qualname def가 {len(defs)}개: {side}:{path}:{qualname}")
+    return _bind_hash(defs[0])
+
+
+def _vrepo_contents(S: State, case: dict) -> dict[str, dict[str, bytes | None]]:
+    """첫 단계: base·head 사전의 모든 파일 내용(_file_content 그대로). 둘째 단계: `@bindhash(...)` 치환.
+    자리표시자가 없는 파일은 첫 단계 바이트 그대로다."""
+    stage1 = {side: {p: _file_content(spec, S) for p, spec in case.get(side, {}).items()} for side in ("base", "head")}
+    out = {}
+    for side, files in stage1.items():
+        out[side] = {}
+        for p, data in files.items():
+            if data is not None and _BINDHASH_MARK.encode("utf-8") in data:
+                text = _BINDHASH_RE.sub(lambda m: _resolve_bindhash(m.group(1), stage1), data.decode("utf-8"))
+                if _BINDHASH_MARK in text:
+                    raise RuntimeError(f"@bindhash 자리표시자를 읽지 못함(괄호 형식): {side}:{p}")
+                data = text.encode("utf-8")
+            out[side][p] = data
+    return out
+
+
 def build_vrepo(S: State, name: str, case: dict) -> tuple[Path, str, str, str | None]:
     root = WORK / "v" / name
     if root.exists():
         shutil.rmtree(root)
     sb.init_repo(root)
     card_rel = None
-    base_files = case.get("base", {})
-    for p, spec in base_files.items():
-        data = _file_content(spec, S)
+    contents = _vrepo_contents(S, case)
+    for p, data in contents["base"].items():
         if data is not None:
             write(root / p, data, binary=True)
     if case.get("subjects"):
@@ -548,8 +616,7 @@ def build_vrepo(S: State, name: str, case: dict) -> tuple[Path, str, str, str | 
         git(root, "add", "-A")
         sb.commit(root, "interface card", "doc")
         base = gout(root, "rev-parse", "HEAD")
-    for p, spec in case.get("head", {}).items():
-        data = _file_content(spec, S)
+    for p, data in contents["head"].items():
         if data is None:
             git(root, "rm", "-q", p)
         else:
@@ -575,6 +642,25 @@ def _root_state(root: Path) -> tuple[str, str, str]:
     """root 저장소의 refs(for-each-ref)·작업 트리 상태(status --porcelain, 무시 파일 포함)·worktree 목록(읽기만)."""
     return (gout(root, "for-each-ref"), gout(root, "status", "--porcelain", "--ignored", "--untracked-files=all"),
             gout(root, "worktree", "list", "--porcelain"))
+
+
+def _out_jsonl_observed(path: Path) -> dict:
+    """`{"lines": <줄 수>, "by_result": {<result>: [id 오름차순]}}` -- by_result는 result가 killed·survived가 아닌 레코드만.
+    파일이 없으면 {"lines": 0, "by_result": {}}. 줄이 JSON 객체가 아니면 RuntimeError(조용한 통과 금지)."""
+    if not path.is_file():
+        return {"lines": 0, "by_result": {}}
+    lines = path.read_text(encoding="utf-8").splitlines()
+    by_result: dict[str, list[str]] = {}
+    for i, ln in enumerate(lines, 1):
+        try:
+            rec = json.loads(ln)
+        except ValueError as e:
+            raise RuntimeError(f"--out {path.name} {i}행이 JSON이 아님: {ln[:200]!r}") from e
+        if not isinstance(rec, dict):
+            raise RuntimeError(f"--out {path.name} {i}행이 JSON 객체가 아님: {ln[:200]!r}")
+        if rec.get("result") not in ("killed", "survived"):
+            by_result.setdefault(str(rec.get("result")), []).append(str(rec.get("id")))
+    return {"lines": len(lines), "by_result": {k: sorted(v) for k, v in sorted(by_result.items())}}
 
 
 def a_vcase(ns):
@@ -607,12 +693,25 @@ def a_vcase(ns):
             tmpdir.mkdir(parents=True)
             env = {"TMP": str(tmpdir), "TEMP": str(tmpdir), "TMPDIR": str(tmpdir)}
         state_before = _root_state(root) if case.get("root_state") else None
+        # 공격 34(spec card 20260930-v3-exempt-binding 계약 9): "observe": "out_jsonl" -> 도구 명령 끝에
+        # `--out $WORK/vout/<단계>.jsonl`(실행 전 있으면 지움), 실행 뒤 그 파일의 줄 수와 killed·survived 밖 결과별 id.
+        out_path = None
+        if case.get("observe") == "out_jsonl":
+            if tmpdir is not None or state_before is not None:
+                raise RuntimeError(f"{name}: observe out_jsonl은 tool_tmpdir·root_state와 함께 쓰지 않는다(관찰 객체 하나)")
+            out_path = WORK / "vout" / f"{name}.jsonl"
+            out_path.parent.mkdir(parents=True, exist_ok=True)
+            if out_path.exists():
+                out_path.unlink()
+            cmd += ["--out", posix(out_path)]
         r = sb.run_py(cmd, root, env=env)
         obj = iface.first_json_line(dec(r.stdout))
         observed = None
         if case.get("observe") == "v4_first":
             stm = iface.v4_statements(obj)
             observed = stm[0][1] if stm else None
+        elif out_path is not None:
+            observed = _out_jsonl_observed(out_path)
         elif tmpdir is not None or state_before is not None:
             observed = {}
             if tmpdir is not None:
