@@ -1,6 +1,6 @@
 # folded_cascode -- topology connectivity table
 
-소스: `skills/analog-gmid-design/assets/library/folded_cascode.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
+소스: `library/folded_cascode.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
 
 ## ⚠️ 자동 플래그 (사람 재확인 필요)
 
@@ -23,17 +23,17 @@
 | `vb1` | Ibg.t0, M3.gate, M4.gate, MP.drain, MP.gate | 5 |
 | `vb2` | Ibg.t1, M11.gate, MN.drain, MN.gate | 4 |
 | `vdd` | M3.source, M4.source, MP.source | 3 |
-| `vin_n` ⚠️ | M2.gate | 1 |
-| `vin_p` ⚠️ | M1.gate | 1 |
+| `vin_n` ⚠️ | M1.gate | 1 |
+| `vin_p` ⚠️ | M2.gate | 1 |
 
 ## 소자별 연결 표 (name/kind/source/drain/gate)
 
 | Name | Kind | Source | Drain | Gate |
 |---|---|---|---|---|
-| M1 | pmos | `tail` | `X` | `vin_p` |
+| M1 | pmos | `tail` | `X` | `vin_n` |
 | M10 | nmos | `gnd` | `Vg10` | `Vg9` |
 | M11 | nmos | `gnd` | `tail` | `vb2` |
-| M2 | pmos | `tail` | `Y` | `vin_n` |
+| M2 | pmos | `tail` | `Y` | `vin_p` |
 | M3 | pmos | `vdd` | `X` | `vb1` |
 | M4 | pmos | `vdd` | `Y` | `vb1` |
 | M5 | pmos | `Y` | `Vg7` | `bias3` |

@@ -39,17 +39,17 @@
 | `Vcmfb` | M36a.drain, M36a.gate, M37a.drain, M7.gate | 4 |
 | `Vg15` | M15.gate, M8.drain, M9a.source, M9b.drain | 4 |
 | `Vg25` | M17.drain, M18a.source, M18b.drain, M25.gate | 4 |
-| `Vim` ℹ️ | M1b.gate, M4b.gate | 2 |
-| `Vip` ℹ️ | M1a.gate, M4a.gate | 2 |
+| `Vim` ℹ️ | Cf2.t1, Cs2.t0, M1b.gate, M4b.gate | 4 |
+| `Vip` ℹ️ | Cf1.t1, Cs1.t0, M1a.gate, M4a.gate | 4 |
 | `Voc` ℹ️ | M37a.gate, R1.t1, R2.t0 | 3 |
 | `Voc_des` | M37b.gate, M39.drain, M39.gate, M40.source | 4 |
-| `Vom` | Cc1.t0, M15.drain, M16.drain, R1.t0 | 4 |
+| `Vom` | CL2.t0, Cc1.t0, Cf1.t0, M15.drain, M16.drain, R1.t0 | 6 |
 | `Vom1` | M18a.drain, M18b.source, M19.drain, M26.gate, M2a.drain, M3a.drain, Rz2.t1 | 7 |
-| `Vop` | Cc2.t0, M25.drain, M26.drain, R2.t1 | 4 |
+| `Vop` | CL1.t0, Cc2.t0, Cf2.t0, M25.drain, M26.drain, R2.t1 | 6 |
 | `Vop1` | M10.drain, M16.gate, M2b.drain, M3b.drain, M9a.drain, M9b.source, Rz1.t1 | 7 |
 | `Vx` | M1a.source, M1b.source, M58.source, M6.drain, M7.drain | 5 |
 | `Vy` | M4a.source, M4b.source, M5.drain, M63.source | 4 |
-| `gnd` | Iref.t1, M10.source, M12.source, M14b.source, M16.source, M19.source, M21.source, M24b.source, M26.source, M38.source, M40.drain, M40.gate, M5.source, M66.source, M68.source | 15 |
+| `gnd` | CL1.t1, CL2.t1, Cs1.t1, Cs2.t1, Iref.t1, M10.source, M12.source, M14b.source, M16.source, M19.source, M21.source, M24b.source, M26.source, M38.source, M40.drain, M40.gate, M5.source, M66.source, M68.source | 19 |
 | `vdd` | M11a.source, M13.source, M15.source, M17.source, M18_bg.source, M20a.source, M22.source, M25.source, M36a.source, M36b.source, M39.source, M6.source, M60.source, M61.source, M7.source, M8.source | 16 |
 
 ## 소자별 연결 표 (name/kind/source/drain/gate)
@@ -112,8 +112,14 @@
 
 | Name | Kind | Terminals |
 |---|---|---|
+| CL1 | capacitor | `Vop`, `gnd` |
+| CL2 | capacitor | `Vom`, `gnd` |
 | Cc1 | capacitor | `Vom`, `N_cc_rz1` |
 | Cc2 | capacitor | `Vop`, `N_cc_rz2` |
+| Cf1 | capacitor | `Vom`, `Vip` |
+| Cf2 | capacitor | `Vop`, `Vim` |
+| Cs1 | capacitor | `Vip`, `gnd` |
+| Cs2 | capacitor | `Vim`, `gnd` |
 | R1 | resistor | `Vom`, `Voc` |
 | R2 | resistor | `Voc`, `Vop` |
 | Rz1 | resistor | `N_cc_rz1`, `Vop1` |
@@ -127,4 +133,4 @@
 
 ⚠️ 위 소자는 실제 회로에 없는 **이상적 모델링 소자**다(예: 논문의 외부 레퍼런스 전류원/전압원) -- `implementable: false`. sizing/layout 파이프라인(`sizing_recipe.py`/`stick_diagram.py`)이 이 배열을 참조할 일이 생기면 반드시 걸러내고 실제 트랜지스터로 구현하지 말 것.
 
-총 51개 소자 + 6개 수동소자 + 1개 ideal source, 37개 net.
+총 51개 소자 + 12개 수동소자 + 1개 ideal source, 37개 net.
