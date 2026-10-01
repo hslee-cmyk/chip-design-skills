@@ -1,0 +1,101 @@
+{
+ "M2": "93b18dba05e304a3ad93a8e34a3492ca8c964eb9",
+ "M2_parents": [
+  "6bf510b6c7bf427129224338cd64930f0343d5d0",
+  "a410f310856d9969d4e6f9980535e52698bca8bd"
+ ],
+ "M2_trailers": "Role: doc\nChange-Id: 20260930-p9-kcl-edges",
+ "M2_first_parent_is_T2": true,
+ "diff_M1_M2": [
+  "docs/03-analysis/gain-budget-gmid-sizing.function-registry.md"
+ ],
+ "trees": {
+  "skills": {
+   "M1": "2ac390f36d1cf05debda1fe168a8c55e393ea952",
+   "M2": "2ac390f36d1cf05debda1fe168a8c55e393ea952",
+   "same": true
+  },
+  "skills/analog-gmid-design/assets/tests": {
+   "M1": "afd5927998475517cdef3bae9caca3ec9eba4a58",
+   "M2": "afd5927998475517cdef3bae9caca3ec9eba4a58",
+   "same": true
+  },
+  "workspaces": {
+   "M1": "1d0507d9b7f881bfc5d4512b9ba8b8caad25ca4d",
+   "M2": "1d0507d9b7f881bfc5d4512b9ba8b8caad25ca4d",
+   "same": true
+  },
+  "tools": {
+   "M1": "748ce52cfd0239a0fde8a846a16026a63729051b",
+   "M2": "748ce52cfd0239a0fde8a846a16026a63729051b",
+   "same": true
+  },
+  "skills/analog-gmid-design/assets/library": {
+   "M1": "5058ea8e55e332bc867f9c51172593c690a1c4fd",
+   "M2": "5058ea8e55e332bc867f9c51172593c690a1c4fd",
+   "same": true
+  }
+ },
+ "sd_blob": {
+  "K1": "ca46b5cd291c22504ced50655d8deefa4feec807",
+  "M2": "ca46b5cd291c22504ced50655d8deefa4feec807",
+  "same": true
+ },
+ "reuse_ok": true,
+ "registry_rows": {
+  "s2_kcl_edge": [
+   {
+    "line": 43,
+    "line_number_refs": [],
+    "text": "| KCL 엣지 | 정본 후보(`stick_diagram._kcl_and_matching_edges` -- 레일 판정을 `_RAIL_NETS` 넷 이름 리터럴로 읽음(`_kcl_and_matching_edges` 안 `_RAIL_NETS` 판정), B26 해소 뒤 확정) | `kcl_series_union`은 엣지 생성부를 정본 호출로 통합 완료(20260930-p9-kcl-edges). `_metric_kcl_residual`은 중복이 아니다 -- 엣지를 만들지 않고(노드별 부호 붙은 전류 합), 겹치는 것은 단자 전류 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합으로 다른 개념 | 엣지 정의 통합 완료, 정본 확정은 B26 뒤. 정본 함수가 넷 이름을 읽으므로 확정 정본이 아니다(B26) |",
+    "mentions_sign_convention": true,
+    "mentions_rail_name_set": true
+   }
+  ],
+  "s4_metric_kcl_residual": [
+   {
+    "line": 308,
+    "line_number_refs": [],
+    "text": "| `_metric_kcl_residual` | 내부 노드 ΣI 잔차 최댓값(ideal_sources value_amp 반영, null이면 노드 제외) | gmid_sizing_engine.py | 계산 자체는 순수. 국소: 레일 이름을 함수 안 인라인 튜플로 다시 정의 -- `_RAIL_NETS`·`_DEFAULT_RAIL_HI/LO`와 함께 정의 3벌(B26 대상). 엣지를 만들지 않는다(KCL 엣지 행과 다른 개념): 겹치는 것은 단자 전류 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합. passive 전류 미계상(함수 본문에 명시) |",
+    "mentions_sign_convention": true,
+    "mentions_rail_name_set": true
+   }
+  ],
+  "s5_trace_vdd": [
+   {
+    "line": 428,
+    "line_number_refs": [],
+    "text": "| `trace_vdd_to_gnd_branches` | kind별 전류방향 고정 branch 골격(하향) | circuit_state_graph(S1 방향 엣지/뷰) | 전류방향 규약 3곳: 이 함수 안 `entry_net`/`exit_net`, `_kcl_terminal_sign`, SR `_metric_kcl_residual` -- 겹침은 단자 전류 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합이며 엣지 정의가 아니다 |",
+    "mentions_sign_convention": true,
+    "mentions_rail_name_set": true
+   }
+  ],
+  "s6_kcl_series_union": [
+   {
+    "line": 472,
+    "line_number_refs": [],
+    "text": "| `kcl_series_union` | 2단자 내부넷+matching_pairs union-find KCL 그룹 | circuit_state_graph | 엣지 정의는 `_kcl_and_matching_edges`를 불러 union한다(20260930-p9-kcl-edges 통합 완료, 이름·시그니처·반환 불변). 운영 호출자 2곳(SR `_build_theta_evaluator`, SD `_kcl_branch_map`) |",
+    "mentions_sign_convention": false,
+    "mentions_rail_name_set": false
+   }
+  ],
+  "s6_kcl_and_matching_edges": [
+   {
+    "line": 473,
+    "line_number_refs": [],
+    "text": "| `_kcl_and_matching_edges` | KCL/matching edge 목록(원인 보존) | circuit_state_graph | KCL 엣지 정의 정본 후보(레일 판정 `_RAIL_NETS`, B26 뒤 확정). 호출자: `audit_vertical_stack_id_vs_kcl`, `propose_vertical_stack_id_gap_fill`, `kcl_series_union` |",
+    "mentions_sign_convention": false,
+    "mentions_rail_name_set": false
+   }
+  ],
+  "s6_kcl_terminal_sign": [
+   {
+    "line": 474,
+    "line_number_refs": [],
+    "text": "| `_kcl_terminal_sign` | PMOS/NMOS 단자 KCL 부호 | circuit_state_graph | 운영 0(D). SR `_metric_kcl_residual`이 같은 단자 전류 부호 규약을 독자 구현(겹침은 부호 규약(`_kcl_terminal_sign`)과 레일 이름 집합, 엣지 아님) |",
+    "mentions_sign_convention": true,
+    "mentions_rail_name_set": true
+   }
+  ]
+ }
+}

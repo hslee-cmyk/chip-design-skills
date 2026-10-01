@@ -1,0 +1,259 @@
+{
+ "note": "05-role-separation §12 순서 3, P9 2차 시도. 1차(T c8d55db·K 16a71fa·M b7765b0)는 순서 7 V2 FAIL(계약 8(c): 레지스트리 428행 'SD:1216-1224' 잔존, 판정 기록 미커밋). 2차 T2는 base가 같고 test blob·T 트리가 1차와 같다. 그래서 엔진·test 트리에만 기대는 base 기준값(DIFF-DUP·구조 AST·E-LIB·E-INST·V3 기준 시간)은 1차 측정을 재사용하고, 이력·커밋에 기댈 수 있는 것(freeze, T2 수집, T2 red 수집 전체 실행, V5 base->T2, strict, V3 인벤토리)은 T2로 다시 쟀다. 모든 수치는 auditor가 C:/g47/*에서 직접 쟀다. 1차 산출물은 이 폴더 attempt1_base_check.json·attempt1_order7/(1차 판정 기록 초안 record_draft_attempt1.json 포함)과 최상위 기준값 파일들. 커밋은 순서 7.",
+ "id": "20260930-p9-kcl-edges",
+ "attempt": 2,
+ "evidence_type": "equivalence",
+ "phase": "2",
+ "approval": [
+  "20260923-20-dead-code-dup-design",
+  "20260930-p9-e1-correction"
+ ],
+ "measured_at": "2026-10-01 (2차 순서 3)",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export)",
+  "clone_steps": "git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout <audit worktree> C:/g47/<이름> -> (별도 명령) git -C C:/g47/<이름> remote remove origin -> git -C C:/g47/<이름> checkout -q --detach <rev>. 복제본 iso(T)·base(base)·eq(base, E-INST·E-LIB 같은 경로) 모두 remote 0, 측정 뒤 status 0줄."
+ },
+ "freeze": {
+  "base_commit": "7535799302a9ff7cfbfcadb2281d16bf136fadcf",
+  "base_is_gate_master": true,
+  "base_is_gate_master_how": "git -C <주 저장소> rev-parse master = 7535799302a9ff7cfbfcadb2281d16bf136fadcf",
+  "test_commit_T": "6bf510b6c7bf427129224338cd64930f0343d5d0",
+  "T_tree": "97e27db70a1a4445bfaf89edd7c068be8a7cb40b",
+  "T_parent": "7535799302a9ff7cfbfcadb2281d16bf136fadcf",
+  "T_trailers": [
+   "Role: test",
+   "Change-Id: 20260930-p9-kcl-edges"
+  ],
+  "audit_branch": "role/audit/20260930-p9-kcl-edges",
+  "audit_branch_head_at_freeze": "6bf510b6c7bf427129224338cd64930f0343d5d0",
+  "worktree_status_at_freeze": "git status --porcelain 0줄(이 기록 폴더를 쓰기 전)",
+  "changed_paths_base_to_T": {
+   "added": [
+    "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py"
+   ],
+   "modified": []
+  },
+  "test_blob": "003c0d1d691ba81b6336c579a40441fb61985362 -- auditor git ls-tree T2로 확인, 1차 T c8d55db의 같은 경로 blob과 같다(test-author 보고는 대조용)",
+  "T_tree_equals_attempt1": "T2 트리 97e27db7 = 1차 T c8d55db 트리(git rev-parse <rev>^{tree})",
+  "outside_tests_diff": "git diff --name-only 7535799 T2 -- ':(exclude)skills/analog-gmid-design/assets/tests/**' 0줄",
+  "code_commit_K": null
+ },
+ "isolation": {
+  "clones": {
+   "C:/g47/iso2": "T2(6bf510b) -- 2차 수집·red 수집·V5·strict·V3 인벤토리. clone -c core.longpaths=true --no-hardlinks --no-local --no-checkout <audit worktree> -> remote remove origin -> checkout --detach, remote 0·status 0줄(측정 뒤도 0줄)",
+   "C:/g47/base, C:/g47/eq, C:/g47/m": "1차 그대로(remote 0, status 0줄). eq는 마지막 checkout이 1차 M b7765b0 -- 순서 7에서 쓰면 checkout --detach + clean -fdxq"
+  },
+  "gate_code": {
+   "how": "C:/Python314/python.exe -P C:/g47/scripts/extract_gate.py C:/g47/iso2 7535799… C:/g47/gate2_check -> C:/g47/gmid-gate-cache/7535799302a9ff7cfbfcadb2281d16bf136fadcf와 diff -r 차이 0",
+   "file_set_sha256": "705036ea1039e7abb0e449918a8209b229f4a685ab2da9d0e03907bf571d82c4 (1차와 같음)"
+  }
+ },
+ "strict_set": {
+  "how": "base 판 strict_check.py C:/g47/iso2 … -> 출력 strict_check2.txt가 1차 strict_check.txt와 바이트 동일",
+  "strict_needed": [],
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "new_symbols_from_interface_card": []
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g47/gmid-gate-cache/7535799302a9ff7cfbfcadb2281d16bf136fadcf C:/Python314/python.exe -P -m pytest -c C:/g47/gmid-gate-cache/7535799302a9ff7cfbfcadb2281d16bf136fadcf/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=2 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "base_run": {
+  "script": "bash C:/g47/scripts/run2.sh collect|red (run.sh의 루트를 C:/g47/iso2, 출력 이름을 *_T2로 바꾼 판)",
+  "collection": {
+   "base_collected": 813,
+   "base_reused": "1차 순서 3 base 수집 813(base 커밋 같음)",
+   "T_collected": 837,
+   "T_collect_exit": 0,
+   "T_ids_equal_attempt1": true,
+   "new_by_file": {
+    "skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py": 24
+   }
+  },
+  "full_run": {
+   "base": "1차 순서 3 재사용: 798 passed, 15 xfailed, exit 0(base 커밋 같음)",
+   "T2_on_base_engine": "822 passed, 15 xfailed, exit 0, 371.24s (C:/g47/iso2, -p merge_gate --continue-on-collection-errors, out/full_T2_red.txt), FAILED/ERROR 0"
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g47/out/red_T2.jsonl GMID_INTERFACE_CARD=C:/g47/iso2/docs/02-design/specs/20260930-p9-kcl-edges.interface.md PYTHONPYCACHEPREFIX=C:/g47/pyc2_full_iso PYTHONPATH=C:/g47/gmid-gate-cache/7535799302a9ff7cfbfcadb2281d16bf136fadcf C:/Python314/python.exe -P -m pytest -c C:/g47/gmid-gate-cache/7535799302a9ff7cfbfcadb2281d16bf136fadcf/pytest_gate.ini --rootdir=C:/g47/iso2 --confcutdir=C:/g47/iso2 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g47/iso2/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "db2ffce300415eef967e0926969d2b84550bbf1d878bd270054ef8924a8dba78",
+   "identical_to_attempt1": "red_T2.jsonl이 1차 red_T.jsonl과 바이트 동일(cmp) -- 12줄 전부 IC xfail builtins.Failed, AssertionError 0, test_dup_kcl_edges 항목 0",
+   "equivalence_judgement": "새 test 24개 전부 base 엔진에서 PASS, red 없음 -- equivalence 순서 3 조건 충족. 판정 기록 red 필드는 비운다"
+  }
+ },
+ "v5_base_to_T2": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g47/pyc2_v5 C:/Python314/python.exe C:/g47/gmid-gate-cache/7535799302a9ff7cfbfcadb2281d16bf136fadcf/weakening_diff.py --root C:/g47/iso2 --base 7535799302a9ff7cfbfcadb2281d16bf136fadcf --head 6bf510b6c7bf427129224338cd64930f0343d5d0",
+  "exit": 0,
+  "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}",
+  "auditor_judgement": "1차 base->T 출력과 바이트 동일. 새 파일 추가뿐, 약화 대상·diff 해시 없음"
+ },
+ "reuse_judgement": {
+  "rule": "base 커밋 7535799 동일 + T2 트리 = 1차 T 트리(97e27db7) -> skills·workspaces·tools·library 트리 id가 1차 base·T와 같다. DIFF-DUP·구조 AST·E-LIB·E-INST 기준값은 base 트리(엔진·library·analog-grammar·run_harness)에만 기대고 docs·이력을 읽지 않으므로 1차 값을 그대로 쓴다",
+  "reused": {
+   "diff_dup_baseline": {
+    "script": "PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g47/scripts/diff_dup.py C:/g47/base C:/g47/out/diffdup_base.json (이 폴더 scripts/diff_dup.py, 결과 diffdup_base.json)",
+    "environment_check": "계약 4 실행 환경: 복제본 트리 그대로, A를 sys.path 맨 앞, 모듈 이름 stick_diagram(stick_diagram.__file__ = skills/analog-gmid-design/assets/stick_diagram.py). analog-grammar: 복제본에 skills/analog-grammar/assets 추적 파일 존재, _import_analog_grammar('netclass','idioms')가 복제본 안 skills/analog-grammar/assets/netclass.py·idioms.py를 돌려줌(None이면·복제본 밖이면 중단하도록 작성) -- B34 조용한 실패 없음",
+    "load_failures": {
+     "_TEMPLATE": "AttributeError"
+    },
+    "n_groups_i_forced_ii_empty": {
+     "common_gate_amplifier": [
+      1,
+      1
+     ],
+     "current_reuse_telescopic_ota": [
+      17,
+      29
+     ],
+     "folded_cascode": [
+      5,
+      9
+     ],
+     "ngcc_3stage_ff": [
+      11,
+      12
+     ],
+     "nmcnr_amplifier": [
+      7,
+      10
+     ],
+     "pushpull_follower_buffer": [
+      3,
+      3
+     ],
+     "sf_pushpull_output_opamp": [
+      11,
+      12
+     ],
+     "two_stage_ota": [
+      3,
+      4
+     ],
+     "two_stage_ota_sf": [
+      4,
+      5
+     ]
+    },
+    "matches_spec_card_numbers": "spec card '재현할 수치' 9회로 × 2입력 18/18 같음",
+    "components_of_edges_equal_groups": "18/18 True(피검 함수와 독립인 auditor 연결 성분 구현으로 _kcl_and_matching_edges 엣지의 성분 = kcl_series_union 그룹, 대표·구성원·키 순서 포함)",
+    "rail_name_net_used_twice": "two_stage_ota의 gnd 하나(9회로 전수)",
+    "synthetic": "라이브러리 밖 이름 8소자(qa1…qc4, nx_1…nx_8, gnd 2회 = 레일 이름 넷 정확히 2회, nx_5 3회, nx_4 같은 소자 source=drain): 입력 pairs [(qc2,qb2),(qc4,qc3,qa1)] 3그룹, [] 6그룹, 성분 대조 2/2 True",
+    "hash_circuits": "1bd8ab2ba9ddac32b9943a58032ac8c6fa799ad3ebe54cc92ebe1c5947db2bf6",
+    "hash_synthetic": "c233a87ee037827c80536171fab70f9564995de69d86448768645c1d8a40010e",
+    "output_file_sha256": "187a611711dcd0bd45cb8ede14d0739099dfe82b5cead9b2bc89f7a6b731b03d",
+    "order7_rule": "병합본 복제본에서 같은 명령 -> circuits·synthetic 전체(그룹 list(items()) 순서 포함, 엣지 목록 그대로)가 이 파일과 같아야 한다(hash_circuits·hash_synthetic 동일 + JSON 대조). stick_diagram_file·analog_grammar 경로 칸도 같은 상대 경로"
+   },
+   "ast_structure_baseline": {
+    "script": "PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g47/scripts/ast_struct.py selftest; ... measure C:/g47/base C:/g47/out/ast_base.json (이 폴더 scripts/ast_struct.py, 결과 ast_base.json)",
+    "selftest": "OK -- 계약 1 판정기: 본문 _RAIL_NETS·.source 합성 소스 거부, find 루프 경로 압축 합성 소스 거부, 정본 호출 없는 합성 소스 거부, 정본 호출만·경로 압축 없음(docstring에 _RAIL_NETS·.source·경로 압축 글자) 통과. 5(b): docstring·주석의 _RAIL_NETS 글자 0으로 셈. 5(a): 합성 병합본의 새 문자열 'vss' 발견, docstring 변경은 제외, f-string 조각 포함",
+    "c1_base": {
+     "calls_canonical": 0,
+     "rail_nets_refs": 1,
+     "source_drain_attrs": 2,
+     "n_nested_find": 1,
+     "path_compression_assigns_in_find_loops": 1,
+     "find_loop_body_len": 2,
+     "verdict": "base에서 (a)(b)(c)(d) 모두 어긋남 -- spec card 계약 1 서술과 같다(V2 basis에 base 판정으로 적는다)"
+    },
+    "c3a_canonical_base": {
+     "line": 3134,
+     "dump_with_doc_sha256": "70888d3d4f258df0631c1cdb532309b65f1fb84bbdab1fa0ef81c7700cd0bc50",
+     "args_dump": "ast_base.json c3a_canonical.args_dump"
+    },
+    "c5b_rail_nets_ast_refs_base": 19,
+    "c5b_rail_nets_line_grep_base": 18,
+    "c5a_str_consts_base": "A/*.py 7개 + workspaces/run_harness.py, docstring 제외 문자열 상수 합계 5774(파일별 Counter는 ast_base.json c5a_str_consts_by_file). 순서 7: 병합본 Counter - base Counter = 빈 다중집합이어야 한다",
+    "c6_call_sites_base": [
+     [
+      "sizing_recipe.py",
+      "kcl_series_union",
+      "_build_theta_evaluator",
+      8055
+     ],
+     [
+      "stick_diagram.py",
+      "_kcl_and_matching_edges",
+      "audit_vertical_stack_id_vs_kcl",
+      3206
+     ],
+     [
+      "stick_diagram.py",
+      "_kcl_and_matching_edges",
+      "propose_vertical_stack_id_gap_fill",
+      3291
+     ],
+     [
+      "stick_diagram.py",
+      "kcl_series_union",
+      "_kcl_branch_map",
+      7310
+     ]
+    ],
+    "c7_base": "SD 최상위 정의 177개의 ast.dump sha256(docstring 포함·제외), A/*.py·run_harness.py 파일 sha256, library 파일 sha256 -- ast_base.json. kcl_series_union line 3003. sd_sha256·SR 파일 sha256도 같은 파일",
+    "T_equals_base": "C:/g47/iso(T)에서 같은 측정 결과 파일이 base와 바이트 동일(T는 test만 더함)",
+    "output_file_sha256": "956b1418daf70438580f5eb6ed50cbb2eee722fe5d9cf82e3a2be0f911a66954"
+   },
+   "e_lib_e_inst_baseline": {
+    "E-LIB": {
+     "script": "PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g47/scripts/e_lib.py C:/g47/eq C:/g47/out/elib_base.json (P8 e_lib.py 재사용)",
+     "base_hash": "1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f",
+     "base_output_file_sha256": "e7579d61800e161fc1c8c44163e7dd39c972655a50ee925d04c45235519bbc89",
+     "cross_check": "P8·DF-36 순서 3 기록의 E-LIB base_hash·출력 파일 sha256과 같다(엔진 동작이 그 뒤 바뀌지 않았다는 교차 확인). 9회로 load·V1·V2 전부 ok"
+    },
+    "E-INST": {
+     "script": "bash C:/g47/scripts/einst.sh C:/g47/eq base <회로> 3 (DF-36 e_inst_df36.py 재사용 -- 회마다 전·후 git checkout -- workspaces + clean -fdxq, 측정 뒤 C:/g47/eq status 0줄)",
+     "first_attempt_discarded": "처음에 P8 e_inst.py(run_harness 경로 리터럴 치환)로 돌렸다가 'literal count mismatch (0, 0)'로 6회 모두 exit 1(DF-35 뒤 run_harness가 __file__로 경로를 유도) -- 버리고 e_inst_df36.py로 다시 쟀다. 그 V3 기준 실행 시간 측정은 E-INST와 겹치지 않았다(E-INST 실패가 즉시 끝남)",
+     "folded_cascode": {
+      "raw_sha256": "ef3cd9963d0a80ac6e07ea5909286db1d8e67d8351a355c8aafd7a01fc9bb3f0",
+      "file_bytes_sha256": "8cd006a5094fb6c7e265d67c9aca777fbd71a7fde8aca6dfe7c92b0e56834a08",
+      "without_topology_ref_sha256": "0ca6746f1cb3d364f26f5ec6b37e931c7fbc3488b610b4e57f377a6067cda754",
+      "topology_ref": "skills/analog-gmid-design/assets/library/folded_cascode.topology.json (계약값과 같음, 경로 문자열 잎 0)",
+      "n_sizing": 13,
+      "elapsed_s": [
+       60.54,
+       67.78,
+       59.83
+      ],
+      "runs_identical": "3회 raw·파일 바이트 해시 동일"
+     },
+     "current_reuse_telescopic_ota": {
+      "raw_sha256": "2fc426d9ef3a9623898d54a3ee712c64913460770f3361c830938c11a1eb863d",
+      "file_bytes_sha256": "7dc9f2e2dc99a9cf42ec0efb3ee5131902df88c17ad69ccddf372745fd66d00d",
+      "without_topology_ref_sha256": "185b675e9dd363a535d2942c651cddee4cb1a0ee98b703f0c7abef99f50e51ca",
+      "topology_ref": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json (계약값과 같음, 경로 문자열 잎 0)",
+      "n_sizing": 51,
+      "elapsed_s": [
+       403.96,
+       282.92,
+       302.05
+      ],
+      "runs_identical": "3회 raw·파일 바이트 해시 동일"
+     },
+     "cross_check": "without_topology_ref_sha256 두 값이 DF-36 순서 3 base 값과 같다",
+     "timing_caveat": "시간은 관찰값(계약 9, 임계값 없음). P8 순서 3(13.3s·98.5s)·DF-36(24.9s·178.2s)보다 길다 -- 같은 기계에서 다른 agent 작업이 동시에 돈 것으로 보이며, 순서 7에서 base를 같은 시각대에 다시 재 비교하는 것이 좋다",
+     "files": "이 폴더 einst.txt(6줄), einst/base_<회로>_r1.json·.instance.json"
+    },
+    "order7": "병합본을 C:/g47/eq로 checkout -q --detach + clean -fdxq, 같은 명령(e_lib.py, einst.sh 3회). 판정: E-LIB base_hash 동일, E-INST 두 회로 raw_sha256·file_bytes_sha256 동일"
+   },
+   "attempt1_order7_base_side": "1차 순서 7의 같은 시각대 base 재측정(E-INST o7base1·o7base2, E-LIB elib_base_o7.json)은 attempt1_order7/에 있다 -- 2차 순서 7 동등 비교 기준으로도 쓴다"
+  },
+  "remeasured": "freeze, T2 수집(837, id 집합 1차 T와 같음), T2 전체 red 수집, V5 base->T2, strict, V3 인벤토리(T2: kcl_series_union 72, find 144, _kcl_and_matching_edges 142 -- 1차 T와 test 목록까지 같음, v3_inv_6bf510b.json)"
+ },
+ "v3_preparation": {
+  "inventory_T2": {
+   "kcl_series_union": 72,
+   "kcl_series_union.find": 144,
+   "_kcl_and_matching_edges": 142
+  },
+  "attempt1_order7": "1차 병합본 V3: 28변이 전부 죽음(timeout 4), --timeout 720 = 병합본 기준 218.49s의 3.3배, 3782s. 2차 병합본의 stick_diagram.py blob이 1차 K와 같고 tests 트리가 같으면 변이 대상·변이 id·인벤토리가 같으므로 재사용한다(o7_reuse.py가 조건을 판정)"
+ },
+ "order7_reuse_plan": {
+  "script": "bash C:/g47/scripts/o7_attempt2.sh <M2> (이 폴더 scripts/o7_attempt2.sh): C:/g47/m2 격리 복제 -> o7_reuse.py(재사용 조건: M2 첫 부모 = T2, stick_diagram.py blob = 1차 K 16a71fa blob, skills·workspaces·tools 트리 = 1차 M, 1차 M->M2 diff ⊆ 레지스트리 1파일; 계약 8 레지스트리 행별 줄 번호 표기·부호 규약/레일 이름 집합 언급) -> reg_check -> V4·V5·V6·V7. 자기 점검: 1차 M b7765b0에 돌리면 428행 'SD:1216-1224'를 찾고 reuse_ok False(첫 부모가 T2 아님)",
+  "if_reuse_ok": "V1·V3·DIFF-DUP·E-LIB·E-INST·구조 AST는 1차 순서 7 측정을 재사용(엔진·tests 트리 동일 근거를 basis에 적는다), 레지스트리 대조·reg_check·V4~V7·receive 사전 판정만 다시 돈다",
+  "if_not": "엔진이나 tests가 다르면 1차 순서 7 전 과정을 다시 돈다"
+ },
+ "outputs_kept": {
+  "C:/g47/out/red_T2.jsonl": "db2ffce300415eef967e0926969d2b84550bbf1d878bd270054ef8924a8dba78",
+  "C:/g47/out/full_T2_red.txt": "69d03ffad59c25dffe16b5fecb58ea075898819df270b861ec2e33ea536a133d",
+  "C:/g47/out/collect_iso2.txt": "e232715391807176d1497faf6fc50866c6ea4ccd400951c7c0078fe36ae11e34",
+  "C:/g47/out/v5_base_T2.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54"
+ }
+}

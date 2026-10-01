@@ -1,0 +1,7 @@
+m2 93b18dba05e304a3ad93a8e34a3492ca8c964eb9 remotes=0 st=0
+reg_check exit 0
+V5 exit 0
+V6 exit 0
+V7 exit 0
+V4 exit 0
+m2 after st=0
