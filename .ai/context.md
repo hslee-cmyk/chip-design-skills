@@ -15008,3 +15008,7 @@ except 제거 + **self-test에 게이트의 거부 케이스 4건**을 넣었다
   - B36 게이트 공백 -- `skills/analog-grammar`가 추적 파일인데 N3.12.2 쓰기 경로표 어느 행에도 없음: code-author는 못 쓰고 오케스트레이터·비 gmid agent 쓰기는 hook 통과, 게이트 도구(role_paths·V3·V7·source_lint·interface_card·weakening_diff) 범위 밖 -- 엔진 판정을 바꾸는 코드가 trailer·test·audit 없이 바뀔 수 있음. 결정 필요: 별도 skill로 게이트 범위 편입(기본안) 대 analog-gmid-design 흡수, 승인 2건. `install.py` SKILLS에 analog-grammar 추가는 사용자 작업(현재 설치본은 항상 B34 폴백으로 돔).
   - B37 `load_topology`가 topology `ports` 선언을 analog-grammar에 넘기지 않아 운영 경로가 이름 정규식(`HINT_*`)으로 입력·바이어스 넷을 추정 -- topology 의존(B26과 같은 종류).
   - B32 레지스트리 누락 -- 픽스처 함수 `folded_cascode_example`·`two_stage_ota_example` 행 없음(P10 재측정에서 발견).
+
+- P9 20260930-p9-kcl-edges 완료(gate 766b5c2, 2차 시도, equivalence): kcl_series_union 엣지 정의 -> _kcl_and_matching_edges 호출(경로 압축 제거), 레지스트리 정정. 1차 V2 FAIL(레지스트리 428행 낡은 줄 번호 SD:1216-1224) -> 2차 같은 test blob·엔진 blob, 레지스트리만 보완, 1차 측정 재사용(V3 28/28 killed, DIFF-DUP 36/36, E-LIB·E-INST 바이트 동일).
+- P10 문서 커밋 0fa6ca2(measured_at=766b5c2, df23_inventory 515항목 재측정, 참조 문서 19줄 표시) + spec/interface card. E4 phase 정정(fe638ab) + 승인 20260930-phase2-e4-phase(A3), 승인 20260930-b26-before-phase3(A2, decision).
+- 사용자 결정 2026-10-01: A1-a 면제 묶기 승인, A1-b V3 범위 N2(b)+T6 넓힘(B26-1 2,472->294 변이), A2·A3 승인. 결정 원문 wt/_drafts/user_decisions.md. UD-17(folded M1·M2 pmos 선언 vs NMOS 입력 폴디드, current_reuse Vom1) 공동분석 대기.
