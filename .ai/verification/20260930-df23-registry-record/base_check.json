@@ -1,0 +1,146 @@
+{
+ "note": "05-role-separation §12 순서 3 (재시도 3차) -- freeze(T), base 대비 red 확인, V5 base->T, V4 사전 실행, test 커밋의 계약·2차 V3 비등가 생존 9개 경계 대조. 모든 수치는 auditor가 격리 복제본 C:/g88/iso3(T)·C:/g88/base2(base, 트리 id로 재사용 판단)에서 직접 쟀다. '진단'으로 적은 측정은 2차 code 커밋 3fd34f6의 패치를 T 위에 얹은 auditor 전용 scratch 복제본(C:/g88/diag3·C:/g88/mut3)에서 잰 것이고 순서 7 판정이 아니다. 스크립트 사본 scripts/, 원자료 raw/. 커밋은 순서 7.",
+ "id": "20260930-df23-registry-record",
+ "attempt": 3,
+ "order": 3,
+ "evidence_type": "red-green",
+ "phase": "2",
+ "approval": ["20260923-20-dead-code-dup-design", "20261001-p10b-v3-equiv"],
+ "measured_at": "2026-10-01 (순서 3 측정 끝, 진단 뮤테이션 포함)",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export -- 사용자 site의 pytest)",
+  "clone_T": "git clone -q -c core.longpaths=true --no-hardlinks --no-local <audit worktree> C:/g88/iso3 -> git -C C:/g88/iso3 remote remove origin (HEAD 572d767, tree bc26b89d1919c7a4d5d23277e24f10087117e043, remote 0, status 0줄)",
+  "clone_base_reuse": "C:/g88/base2(2차 순서 3에서 만든 base 복제본) 재사용 -- HEAD 0f237862c007f6a53122f2bdfb3c87e6366ec133, HEAD^{tree} f7a13a2c426cbf158ec7ae6cc4e62bb278238fc6 = 0f23786^{tree}, status 0줄, remote 0. base 커밋이 2차와 같아 트리가 같으므로 재사용",
+  "temp_root": "C:/g88만 사용(iso3·diag3·mut3·gc3·gmid-gate-cache3·o3r·s3·pyc3_*). 2차 순서 7 출력 디렉터리 C:/g88/out3에 새 이름 파일(red_T.jsonl·full_T_red.txt·pre_V4*_T.txt·diag_*)을 썼다 -- 같은 이름 덮어쓰기 없음, status.txt에 줄 추가만"
+ },
+ "freeze": {
+  "base_commit": "0f237862c007f6a53122f2bdfb3c87e6366ec133",
+  "base_is_gate_master": "git -C <주 저장소> rev-parse master = 0f237862c007f6a53122f2bdfb3c87e6366ec133 (읽기만)",
+  "test_commit_T": "572d767e0d74a98523e6795928224ad65568c712",
+  "T_tree": "bc26b89d1919c7a4d5d23277e24f10087117e043",
+  "T_parent": "0f237862c007f6a53122f2bdfb3c87e6366ec133",
+  "T_trailers": ["Role: test", "Change-Id: 20260930-df23-registry-record"],
+  "audit_branch_head_at_freeze": "572d767e0d74a98523e6795928224ad65568c712 (role/audit/20260930-df23-registry-record, status 0줄)",
+  "changed_paths_base_to_T": {
+   "name_status": ["A skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py"],
+   "shortstat": "1 file changed, 1024 insertions(+)",
+   "blob_T": "d7bcab5fe221bcd09017d3831fd6ca249d735db2"
+  },
+  "tools_gates_tree": "0f23786:tools/gates = 572d767:tools/gates = a8e5a4a837f9d8647b843b17166679491b6ac0d6",
+  "code_commit_K": null
+ },
+ "gate_code": {
+  "cache_for_order7": "C:/g88/gc3/gmid-gate-cache/0f237862c007f6a53122f2bdfb3c87e6366ec133 (새로 뽑음, __pycache__ 없음 -- 실행은 모두 PYTHONPYCACHEPREFIX)",
+  "how": "C:/Python314/python.exe -B scripts/extract_gate.py <audit worktree> 0f23786 <캐시> -> 22개, file_set_sha256 705036ea1039e7abb0e449918a8209b229f4a685ab2da9d0e03907bf571d82c4 (2차 캐시와 같음)",
+  "reuse_judgement": "tools/gates 트리 a8e5a4a가 2차와 같아 내용은 같지만 2차 캐시 C:/g88/gmid-gate-cache/0f23786…에 실행 중 생긴 __pycache__가 있어 새로 뽑았다. 처음 뽑은 C:/g88/gmid-gate-cache3/<id>(같은 file_set_sha256)는 red 수집·V4·V5에 썼고, strict_check가 V1 -c 경로를 'gmid-gate-cache/<커밋>/' 모양으로 요구해(gmid-gate-cache3 경로로 돌린 결과 v1_command_check 실패 1건) 순서 7 V1은 gc3/gmid-gate-cache/<id>로 돈다(그 경로로 다시 돌린 v1_command_check 실패 0건, raw/strict_check2.txt)"
+ },
+ "strict_set": {
+  "card_parse": "base 판 parse_spec_card: phase=2, evidence_type=red-green, gate_change=no, approval=[20260923-20-dead-code-dup-design, 20261001-p10b-v3-equiv], activated_ic_case=[]",
+  "strict_needed": [],
+  "conftest_has_gmid_phase": true,
+  "v1_option": "--gmid-phase=2 --gmid-strict=",
+  "new_symbols_from_interface_card": [["reg_check", "check_df23"]]
+ },
+ "base_run": {
+  "collection": {
+   "base_collected": 886, "base_collect_exit": 0,
+   "T_collected": 886, "T_collect_exit": 2,
+   "T_collection_errors": ["skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py -- ImportError: cannot import name 'check_df23' from 'reg_check' (49행 모듈 머리 `from reg_check import check_df23, main`)"],
+   "id_set_base_vs_T": "같다(scripts/cmp_collect.py, raw/cmp_base_T.json: only 0/0, sha256 9e6f2745… 두 쪽 같음, 2차와 같은 값)",
+   "new_file_ids_expected": "137 -- 진단 복제본 diag3(T + 2차 code 패치) 전체 수집 1023 = 886 + test_reg_check_df23.py 137(raw/cmp_base_diag.json). test 함수 69개, parametrize 전개",
+   "merged_expectation": "병합본 수집 1023, 전체 실행 1008 passed·15 xfailed 예상(기존 id 상태 불변, 새 137 PASS) -- 순서 7에서 실측"
+  },
+  "full_run_T_on_base_tool": "871 passed, 15 xfailed, 1 error(수집), 367.68s (-p merge_gate --continue-on-collection-errors, raw/full_T_red.txt)",
+  "red_capture": {
+   "command": "bash scripts/red3.sh -- GMID_RED_CAPTURE=C:/g88/out3/red_T.jsonl GMID_INTERFACE_CARD=C:/g88/iso3/docs/02-design/specs/20260930-df23-registry-record.interface.md PYTHONPYCACHEPREFIX=C:/g88/pyc3_red PYTHONPATH=C:/g88/gmid-gate-cache3/0f23786… C:/Python314/python.exe -P -m pytest -c C:/g88/gmid-gate-cache3/0f23786…/pytest_gate.ini --rootdir=C:/g88/iso3 --confcutdir=C:/g88/iso3 -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= C:/g88/iso3/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "9e08e2608262e40982c83abbc5caff021d9670742002886ad9aa0fc21f3684b7 (1차·2차와 같다 -- test id가 모듈 단위)",
+   "capture_lines": 13,
+   "builtins_Failed_lines": "12 (IC xfail 안의 pytest.fail, 15 xfailed에 든다 -- 2차와 같은 줄)",
+   "red": [
+    {
+     "test_id": "skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py",
+     "exc_type": "builtins.ImportError",
+     "failure_hash": "dd51ea9c19cb4272034ad5dcc0bb900a00b04123ffa83e47abf5b643281e34db",
+     "new_symbol_pair": ["reg_check", "check_df23"]
+    }
+   ],
+   "allowed_type_judgement": "builtins.ImportError는 _NEW_SYMBOL_TYPES -- 쌍 (reg_check, check_df23)이 interface card 신규 시그니처 쌍과 같아 허용 red로 기록(card '판정 유형 근거'의 red 모양 그대로)",
+   "hash_recomputed": "13/13 (scripts/rehash.py, raw/rehash.txt)",
+   "red_count": 1
+  }
+ },
+ "test_rules_ast": {
+  "script": "scripts/ast_rules3.py -> raw/ast_rules3.txt",
+  "result": "test 함수 69개 모두 test_p10b_, 모듈 수준 helper 16개 모두 _p10b_; 모듈 머리 reg_check import는 49행 `from reg_check import check_df23, main` 하나; 함수 안 import 0; getattr 0; 피검 호출은 전부 test 본문(check_df23 59곳, main 16곳), helper 안 피검 호출 0(2차 `_p10b_check`·`_p10b_run` 제거됨); 본문 assert 없는 test 0; `== []` 0; 피검 직접 호출이 없는 test는 test_p10b_cli_script_ascii_stdout_prints_utf8 하나(계약 4가 subprocess 스크립트 실행을 요구)",
+  "minor": "test_p10b_boundary_several_sections_after_section8_not_read 안의 중첩 def `wrong_section`은 _p10b_ 접두사가 없다(모듈 수준 def가 아님). 저장소 grep에서 같은 이름의 def·문자열은 이 test 파일뿐 -- 그래프 이름 충돌 없음, 판정 영향 없음"
+ },
+ "v4_pre_run_T": {
+  "commands": [
+   "PYTHONPYCACHEPREFIX=C:/g88/pyc3_v4card C:/Python314/python.exe <캐시>/test_lint.py --root C:/g88/iso3 --base 0f23786… --head 572d767… --module-dir skills/analog-gmid-design/assets/tests/tools --interface-card C:/g88/iso3/docs/02-design/specs/20260930-df23-registry-record.interface.md",
+   "PYTHONPYCACHEPREFIX=C:/g88/pyc3_v4subj C:/Python314/python.exe <캐시>/test_lint.py --root C:/g88/iso3 --base 0f23786… --head 572d767… --module-dir skills/analog-gmid-design/assets/tests/tools --subject reg_check:check_df23 --subject reg_check:main"
+  ],
+  "exit": [0, 0],
+  "card_form": "verdict PASS, 발견 90 = (2) UNJUDGED 59 + (2) NO-SUBJECT 31, (1)(3)(4)(5) 0 (raw/pre_V4card_T.txt)",
+  "subject_form": "verdict PASS, 발견 90 = (2) UNJUDGED 64 + (2) PASS 11 + (2) NO-SUBJECT 15, (1)(3)(4)(5) 0 (raw/pre_V4subj_T.txt)",
+  "vs_attempt2": "2차 NO-SUBJECT 67(피검을 helper로 감싸 판정 문장에서 피검이 안 보임) -> 3차 card 형태 31·subject 형태 15. check_df23 판정 문장 59개는 전부 UNJUDGED(피검 인식, 확실한 복사 아님) -- check_df23 쪽 NO-SUBJECT 0",
+  "no_subject_breakdown": "card 형태 31 = 647행(구성 확인 `assert off != _P10B_MEASURED`) 1 + CLI test 30(interface card 피검이 check_df23뿐이라 main 판정은 피검 밖). subject 형태 15 = 647행, 929·989행(구성 확인 assert), stdout 해석 결과(_p10b_json_lines(capsys…)·out) 판정 9(871·872·882·883·891·892·903·909·921행), subprocess 실행 3(1022~1024행 -- 계약 4가 스크립트 실행 요구)",
+  "diag_merged": "진단 복제본 diag3(HEAD 7769a35 = T + 2차 code 패치, reg_check blob 38367fd8 = 2차 병합본과 같음)에서 같은 두 명령: 출력 바이트가 T와 같다(sha256 d9b93a20…·6d89cc69…, raw/diag_V4card.txt·diag_V4subj.txt) -- FAIL 0",
+  "status": "PASS(사전) -- 순서 7 V4 판정 아님. 순서 7에서 병합본으로 다시 돌리고 기대값마다 oracle 대조"
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g88/pyc3_v5 C:/Python314/python.exe <캐시>/weakening_diff.py --root C:/g88/iso3 --base 0f237862c007f6a53122f2bdfb3c87e6366ec133 --head 572d767e0d74a98523e6795928224ad65568c712",
+  "exit": 0,
+  "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+ },
+ "attempt2_v3_nonequiv_coverage": {
+  "how": "2차 판정 V3 basis의 비등가 생존 9개(증인 입력 9/9)마다 T의 새 test 중 그 경계를 구성하는 것을 소스로 대조하고, 진단 뮤테이션으로 실제로 죽는지 쟀다",
+  "rows": [
+   {"n": 1, "id": "reg_check:_df23_rows_under:stmt_delete:body[2].body[0].body[1]", "boundary": "같은 모양 `### 8.1`(8.2) 소절 둘 -- 첫 소절", "tests": "test_p10b_boundary_two_same_subsections_first_read_81/_82, ..._first_wrong_81/_82", "diag": "죽음"},
+   {"n": 2, "id": "reg_check:_df23_rows_under:const+:body[5].iter.args[0].right", "boundary": "소절 제목 바로 다음 줄이 `### `", "tests": "test_p10b_adjacent_subsection_then_other_subsection_ends_it[8.1|8.2]", "diag": "죽음"},
+   {"n": 3, "id": "reg_check:_df23_rows_under:arith:body[8].iter.args[0].slice.lower", "boundary": "`### 8.1`이 §8 첫 줄", "tests": "test_p10b_adjacent_title_then_subsection_81_first_line(+_wrong_value)", "diag": "죽음"},
+   {"n": 4, "id": "reg_check:_df23_rows_under:const+:body[8].iter.args[0].slice.lower.right", "boundary": "표 머리가 소절 제목 바로 다음 줄", "tests": "test_p10b_adjacent_subsection_then_table_header_is_read/_clean[8.1|8.2], test_p10b_adjacent_title_then_list_line_is_read", "diag": "죽음"},
+   {"n": 5, "id": "reg_check:check_df23:const+:body[7].iter.args[0].right", "boundary": "§8 제목 바로 다음 줄이 `## `", "tests": "test_p10b_adjacent_title_then_next_section_ends_section8", "diag": "죽음"},
+   {"n": 6, "id": "reg_check:check_df23:stmt_delete:body[7].body[0].body[1]", "boundary": "§8 뒤 `## ` 절 둘 이상 -- 처음 `## `에서 끝", "tests": "test_p10b_boundary_several_sections_after_section8_end_at_first[4], ..._not_read", "diag": "죽음"},
+   {"n": 7, "id": "reg_check:check_df23:arith:body[8].value.slice.lower", "boundary": "§8 제목 바로 앞 줄의 `목록:`·`measured_at:`", "tests": "test_p10b_adjacent_line_before_title_is_outside[2], test_p10b_adjacent_wrong_lines_before_title_not_read", "diag": "죽음"},
+   {"n": 8, "id": "reg_check:check_df23:const+:body[8].value.slice.lower.right", "boundary": "제목 바로 다음 줄의 `목록:`(`measured_at:`)", "tests": "test_p10b_adjacent_title_then_list_line_is_read/_wrong_value_found, test_p10b_adjacent_title_then_measured_at_line_is_read", "diag": "죽음"},
+   {"n": 9, "id": "reg_check:check_df23:const+:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.upper", "boundary": "칸이 머리보다 많은 §8.2 행의 값이 다를 때 detail", "tests": "test_p10b_boundary_long_row_82_detail_excludes_extra_cells (§8.1 짝: ..._long_row_81_...)", "diag": "죽음"}
+  ],
+  "gaps": "없음"
+ },
+ "diag_mutation": {
+  "what": "진단(순서 7 판정 아님): 2차 code 패치(_drafts/p10b_attempt2/code_3fd34f6.patch, sha256 a7bab435…)를 T 위에 얹은 scratch 복제본 C:/g88/mut3에서 1차·2차와 같은 scripts/mut_df23.py(sha256 2f98760d…)로 290개 변이. 첫 실행이 백그라운드 시간 제한(30분)으로 132개 뒤 멈춰, 같은 스크립트에 --skip/--first만 더한 scripts/mut_df23_r3.py로 나머지 158개(2차 생존 18개 먼저)를 이어 돌렸다. 중단 시 변이된 reg_check.py는 git checkout으로 복원 뒤 재개, 끝난 뒤 status 0줄",
+  "control": "기준 실행 179 passed(새 137 + test_reg_check.py 42) 두 번 모두",
+  "result": "290 변이(id 중복 0), timeout 0, 죽음 281, 생존 9 (raw/diag_mut_part1.jsonl·part2.jsonl)",
+  "survivors": "9개 모두 승인 20261001-p10b-v3-equiv의 변이 id(등가 9)와 같다 -- 2차 비등가 9개와 detail 변이는 전부 죽었다. 승인 밖 생존 0",
+  "order7_note": "순서 7은 실제 병합본 code로 다시 돈다. 등가 9의 면제는 그 병합본에서 id·위치가 같고 witness로 다시 등가 판정된 것만"
+ },
+ "contract_coverage_review": {
+  "contract1": "§8 모양을 계약 1 글자 그대로 합성(LF·CRLF), 제목 조건 두 쪽",
+  "contract2": "test_p10b_cli_without_option_keeps_old_behavior; 실제 저장소 E0는 순서 7 auditor 측정",
+  "contract3": "5규칙 전부·'거부해야 할 입력' 목록 전 항목·'발견하면 안 되는 것' 4종·절/소절/행 경계(뒤 절 하나·여럿, 두 번째 제목 두 방향, 다른 ### 소절 두 방향, 같은 모양 소절 둘 두 방향, 인접 줄 6종, 제목 앞 줄, 칸 모자람·많음)·detail(§8.1·§8.2 각각, 덧칸 미포함)·ValueError (o)(i)~(v)",
+  "contract4": "exit 0 + 마지막 줄, exit 1 + 레코드 키 넷, inventory_rel 상대 / 경로, 합치기 순서(stale -> df23-measured-at), exit 2: 파일 없음·JSON 아님·최상위 list/str/null·ValueError 7종·루트 밖(모두 짝 exit 0), 알 수 없는 인자 3종 -> 2, PYTHONIOENCODING=ascii subprocess",
+  "contract5": "auditor 측정(test 대상 아님, 파일 머리 5행에 명시)",
+  "contract6": "T 변경 = 새 test 파일 하나(이름 계약 그대로)",
+  "gaps_found": "없음"
+ },
+ "outputs_kept": {
+  "raw/red_T.jsonl": "9e08e2608262e40982c83abbc5caff021d9670742002886ad9aa0fc21f3684b7",
+  "raw/full_T_red.txt": "1b0d9606ab3508879e6c3af92833c346c693bcf594f8ea0b50b3b04e3fd4255f",
+  "raw/cmp_base_T.json": "8b2440636c7de431548a3ea01a32e0db31f1f9784f7c0f1e7ce61e39a3957b73",
+  "raw/cmp_base_diag.json": "a095df206125dc48ae5d5870ed986b5e82a3d0d03c1cb2fa1da6f688069fd5aa",
+  "raw/v5_base_T.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+  "raw/strict_check2.txt": "e69cbe189d42d799c15f96d52ba6028be6fd30ef178e56753fa70c65ee973c6a",
+  "raw/rehash.txt": "93c5e35ac7617e223b9f63ae26f120bc9fb9d71c7ead334b2e56d59634ead543",
+  "raw/pre_V4card_T.txt": "d9b93a20b1c856806263c7259b4c1bbcb3a5f684a3181f7b505b55048bf1bc2e",
+  "raw/pre_V4subj_T.txt": "6d89cc69bf167b6b8b67e62f4ebc374ae00e40912431495e306b07dec3c525a9",
+  "raw/diag_V4card.txt": "d9b93a20b1c856806263c7259b4c1bbcb3a5f684a3181f7b505b55048bf1bc2e",
+  "raw/diag_V4subj.txt": "6d89cc69bf167b6b8b67e62f4ebc374ae00e40912431495e306b07dec3c525a9",
+  "raw/diag_green.txt": "109cd09954837445be5dc32455e0b0ce3c4b246294d0150d4e0c1cae861d034a",
+  "raw/diag_mut_part1.jsonl": "f003c68f361586b1a5ac168855f96f147c20e526337e052b48b8d4bbfd397649",
+  "raw/diag_mut_part2.jsonl": "0699b9ec3fb349048e0e2a2721d92ea3aff5762fb00b89836c089fea953e4fcc",
+  "raw/ast_rules3.txt": "5e7826308a312a45f1b042d855df245c41dd6cde2284d23c1096fdd9b5af472d",
+  "raw/att2_survivors.txt": "e47b803d055dce4d81253aa866fe66226e758a496705d67a2a29def1a56eec88"
+ },
+ "next": "code-author가 K를 만들고 병합 뒤 순서 7: V1(수집 1023·1008 passed·15 xfailed 예상, -c는 C:/g88/gc3/gmid-gate-cache/0f23786…), V2(red 1건 -> 병합본 green, 계약 1·2·5·6), V3(base mutate_changed targets [] + scripts/mut_df23.py 생존 = 승인 등가 id 중 witness 재판정 통과분뿐), V4((2) 병합본 + oracle 대조), V5~V10."
+}

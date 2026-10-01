@@ -1,0 +1,60 @@
+{
+ "nonequiv_differs": {
+  "stmt_delete:body[2].body[0].body[1]": true,
+  "const+:body[5].iter.args[0].right": true,
+  "arith:body[8].iter.args[0].slice.lower": true,
+  "const+:body[8].iter.args[0].slice.lower.right": true,
+  "const+:body[7].iter.args[0].right": true,
+  "stmt_delete:body[7].body[0].body[1]": true,
+  "arith:body[8].value.slice.lower": true,
+  "const+:body[8].value.slice.lower.right": true,
+  "const+:body[17].orelse[1].body[3].orelse[0].orelse[0].body[0].value.args[0].args[3].values[1].value.args[0].slice.upper": true
+ },
+ "equiv": {
+  "const+:body[7].body[4].value.value.args[1]": [
+   true,
+   0,
+   1239
+  ],
+  "arith:body[15].orelse[1].body[0].value.right.right": [
+   true,
+   0,
+   1239
+  ],
+  "const+:body[15].orelse[1].body[0].value.right.right.left": [
+   true,
+   0,
+   1239
+  ],
+  "arith:body[17].orelse[1].body[0].value.right.right": [
+   true,
+   0,
+   1239
+  ],
+  "const+:body[17].orelse[1].body[0].value.right.right.left": [
+   true,
+   0,
+   1239
+  ],
+  "const-:body[8].iter.args[0].slice.lower.right": [
+   true,
+   0,
+   1239
+  ],
+  "const-:body[8].value.slice.lower.right": [
+   true,
+   0,
+   1239
+  ],
+  "stmt_delete:body[8].body[3].body[5]": [
+   true,
+   0,
+   8
+  ],
+  "stmt_delete:body[8].body[3].body[5].body[0]": [
+   true,
+   0,
+   8
+  ]
+ }
+}

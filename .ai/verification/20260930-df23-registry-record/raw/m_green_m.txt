@@ -1,0 +1,204 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+shuffle-seed: none
+real_lut: skills/analog-gmid-design/assets/sky130_nfet_pfet_lut_sample.npz sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f
+rootdir: C:\g88\m3
+configfile: ..\gc3\gmid-gate-cache\0f237862c007f6a53122f2bdfb3c87e6366ec133\pytest_gate.ini
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 179 items
+
+m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py . [  0%]
+........................................................................ [ 40%]
+................................................................         [ 76%]
+m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py .. [ 77%]
+........................................                                 [100%]
+
+=================================== PASSES ====================================
+____________________ test_main_exit_2_on_missing_registry _____________________
+---------------------------- Captured stderr call -----------------------------
+입력 오류: [Errno 2] No such file or directory: 'C:\\Windows\\Temp\\pytest-of-unknown\\pytest-92\\test_main_exit_2_on_missing_re0\\docs\\absent.md'
+___________________ test_main_exit_2_without_section7_title ___________________
+---------------------------- Captured stderr call -----------------------------
+입력 오류: 레지스트리에 '## 7.' 절이 없다
+=========================== short test summary info ===========================
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_clean_registry_has_no_findings[lf]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_clean_registry_has_no_findings[crlf]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_clean_ignores_row_order
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_ignores_wrong_totals_field
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_ignores_tables_outside_section8
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_ignores_message_only_items_mapping[other]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_ignores_message_only_items_mapping[df-number]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_ignores_message_only_items_mapping[new]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_tables_after_section8_not_read
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_piece_only_after_section8_is_missing[\ubaa9\ub85d]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_piece_only_after_section8_is_missing[measured_at]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_piece_only_after_section8_is_missing[8.1]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_piece_only_after_section8_is_missing[8.2]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_end_at_first[\ubaa9\ub85d]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_end_at_first[measured_at]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_end_at_first[8.1]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_end_at_first[8.2]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_not_read
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_second_title_wrong_tables_not_read
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_second_title_correct_section_not_used
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_other_subsection_tables_not_read
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_table_only_under_other_subsection[8.1]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_table_only_under_other_subsection[8.2]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_two_same_subsections_first_read_81
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_two_same_subsections_first_read_82
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_two_same_subsections_first_wrong_81
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_two_same_subsections_first_wrong_82
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_short_row_81_no_exception
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_short_row_82_no_exception
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_long_rows_extra_cells_ignored
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_long_row_81_detail_excludes_extra_cells
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_boundary_long_row_82_detail_excludes_extra_cells
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_title_then_list_line_is_read
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_title_then_measured_at_line_is_read
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_title_then_list_line_wrong_value_found
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_title_then_subsection_81_first_line
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_title_then_subsection_81_first_line_wrong_value
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_title_then_next_section_ends_section8
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_subsection_then_table_header_is_read[8.1]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_subsection_then_table_header_is_read[8.2]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_subsection_then_table_header_clean[8.1]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_subsection_then_table_header_clean[8.2]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_subsection_then_other_subsection_ends_it[8.1]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_subsection_then_other_subsection_ends_it[8.2]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_line_before_title_is_outside[list-line]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_line_before_title_is_outside[measured-at-line]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_adjacent_wrong_lines_before_title_not_read
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_detail_total[role-8-vs-7]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_detail_total[phase-2-vs-3]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_detail_function[count]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_detail_function[order]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_missing_title_only_finding
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_title_without_df23
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_df23_title_not_starting_with_8
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_missing_piece[\ubaa9\ub85d]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_missing_piece[measured_at]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_missing_piece[8.1]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_missing_piece[8.2]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_missing_both_tables
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_header_differs[81-header-differs]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_header_differs[82-header-differs]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_section_header_differs[82-columns-swapped]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_path_mismatch
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_path_follows_inventory_rel_argument
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_measured_at_mismatch
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_measured_at_follows_inventory
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_total_finds[missing-phase-row]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_total_finds[missing-role-row]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_total_finds[extra-row]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_total_finds[zero-count-row]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_total_finds[role-count-off]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_total_finds[phase-count-off]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_total_finds[duplicate-row]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_total_counts_items_not_rows82
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[missing-group]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[message-only-function-row]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[unknown-row]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[count-off]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[df-missing-new]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[df-not-int-order]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[df-new-not-last]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[df-duplicate]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[phase-not-str-order]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[phase-missing]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_finds[duplicate-row]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_wrong_file_cell
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_function_groups_by_file_name
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_inventory_not_dict[list]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_inventory_not_dict[str]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_inventory_not_dict[none]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_inventory_not_dict[int]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_items_not_list[dict]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_items_not_list[str]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_items_not_list[none]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_items_not_list[tuple]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_item_not_dict[str]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_item_not_dict[list]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_item_not_dict[none]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_item_not_dict[int]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_missing_top_key[measured_at]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_missing_top_key[items]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_missing_item_key[file]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_missing_item_key[function]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_missing_item_key[role]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_missing_item_key[phase]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_missing_item_key[plan_mapping]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_empty_function[behavior-item]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_empty_function[message-item]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_ambiguous_file_name
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[other-word]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[lowercase-df]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[paren-first]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[df-not-at-start]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[df-no-number]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[space-new]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_clean_exit_0
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_without_option_keeps_old_behavior
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_missing_section8_exit_1
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_inventory_rel_is_root_relative_slash_path
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_appends_after_existing_findings
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_missing_inventory_file
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_bad_inventory_json[not-json]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_bad_inventory_json[top-list]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_bad_inventory_json[top-string]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_bad_inventory_json[top-null]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[empty-function]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[missing-phase]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[missing-measured-at]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[ambiguous-file]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[behavior-mapping-other]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[items-not-list]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[item-not-dict]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_exit_2_inventory_outside_root
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_unknown_argument_returns_2[unknown-flag]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_unknown_argument_returns_2[unknown-opt-value]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_unknown_argument_returns_2[positional]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py::test_p10b_cli_script_ascii_stdout_prints_utf8
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_clean_registry_has_no_findings[disp-before-note]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_clean_registry_has_no_findings[disp-last]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_finds[missing-function]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_finds[missing-method]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_finds[other-class-method]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_finds[bare-method-name]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_finds_each_name_in_every_subsection
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_ignores[plain-name-in-description]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_ignores[backtick-name-in-non-first-cell]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_ignores[table-before-section7]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_ignores[table-after-section7]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_ignores[method-present]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_stale_depends_on_engine_names
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_finds_missing_column
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_finds_bad_value[not-hold]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_finds_bad_value[no-phase]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_finds_bad_value[phase-without-number]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_finds_bad_value[phase-letter-only]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_finds_bad_value[space-before-paren]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_finds_bad_value[not-at-start]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_finds_bad_value[empty]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_accepts[digit]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_accepts[digit-letter]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_accepts[two-digits]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_disposition_accepts[trailing-text]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_count_finds[s1-differs]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_count_finds[heading-differs]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_count_finds[rows-differ]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_count_checks_every_file_row
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_count_finds_unmatched_file[section7-file-missing-in-s1]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_count_finds_unmatched_file[s1-file-missing-in-section7]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_exit_0_when_all_names_are_engine_definitions
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_exit_1_on_non_engine_name[only-in-tests-tools]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_exit_1_on_non_engine_name[nested-function]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_exit_1_on_non_engine_name[bare-method]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_exit_1_on_non_engine_name[module-constant]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_exit_1_on_non_engine_name[absent]
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_json_line_has_four_keys
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_exit_2_on_missing_registry
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_exit_2_without_section7_title
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_main_on_this_repository_is_clean
+PASSED m3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check.py::test_repository_section7_lacks_r4_names
+============================= 179 passed in 4.31s =============================

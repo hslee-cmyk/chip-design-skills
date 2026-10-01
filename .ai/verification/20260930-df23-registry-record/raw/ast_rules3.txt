@@ -1,0 +1,9 @@
+test funcs 69 all test_p10b_ True
+helpers ['_p10b_item', '_p10b_inventory', '_p10b_md_row', '_p10b_table', '_p10b_join', '_p10b_section8', '_p10b_registry', '_p10b_names', '_p10b_pairs', '_p10b_rows81_without', '_p10b_rows81_replace', '_p10b_rows82_alpha', '_p10b_make_root', '_p10b_argv', '_p10b_clean_argv', '_p10b_json_lines'] all _p10b_ True
+module reg_check imports [(49, 'from reg_check import check_df23, main')]
+imports inside functions []
+calls (name, in_test_body) {('check_df23', True): 59, ('main', True): 16}
+helpers calling subject []
+tests without direct assert/raises []
+`== []` lines []
+tests using check_df23 or main in body 68 / subprocess-only ['test_p10b_cli_script_ascii_stdout_prints_utf8']

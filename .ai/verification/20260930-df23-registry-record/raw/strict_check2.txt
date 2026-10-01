@@ -1,0 +1,5 @@
+card {'id': '20260930-df23-registry-record', 'phase': '2', 'evidence_type': 'red-green', 'gate_change': 'no', 'approval': ['20260923-20-dead-code-dup-design', '20261001-p10b-v3-equiv'], 'activated_ic_case': []}
+strict_set []
+conftest_has_gmid_phase True
+v1_command_check []
+new_symbols [('reg_check', 'check_df23')]

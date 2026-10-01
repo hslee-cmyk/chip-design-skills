@@ -1,0 +1,28 @@
+........................................................................ [  8%]
+........................................................................ [ 16%]
+........................................................................ [ 24%]
+........................................................................ [ 32%]
+........................................................................ [ 40%]
+.......xxxxxx..x.........xxxxx.......................................... [ 48%]
+........................................................................ [ 56%]
+........................................................................ [ 65%]
+........................................................................ [ 73%]
+........................................................................ [ 81%]
+..x...x................................................................. [ 89%]
+..................................................................x..... [ 97%]
+......................                                                   [100%]
+=================================== ERRORS ====================================
+_ ERROR collecting skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py _
+ImportError while importing test module 'C:\g88\iso3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+C:\Python314\Lib\importlib\__init__.py:88: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+iso3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py:49: in <module>
+    from reg_check import check_df23, main  # noqa: E402  (check_df23은 base에 없는 신규 심볼 -- red의 근원)
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E   ImportError: cannot import name 'check_df23' from 'reg_check' (C:\g88\iso3\skills\analog-gmid-design\assets\tests\tools\reg_check.py)
+=========================== short test summary info ===========================
+ERROR iso3\skills\analog-gmid-design\assets\tests\contracts\test_reg_check_df23.py
+871 passed, 15 xfailed, 1 error in 367.68s (0:06:07)
