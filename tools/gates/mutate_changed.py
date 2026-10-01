@@ -10,7 +10,9 @@
 ④ 변이마다 `--head` 커밋의 격리 복제본(이력 포함, origin 없음)에서 그 test만(worktree는 바꾸지 않는다).
    인벤토리 기준 실행 실패 = ERROR(exit 2, 변이를 생존으로 세지 않는다)
 ⑤ 살아남은 변이가 있으면 FAIL. 변이 id = `<모듈>:<함수 qualname>:<연산자>:<AST 노드 경로>`.
-   등가 변이 면제는 `target_kind: decision`, `target` = 변이 id 목록인 승인 기록(head 트리).
+   등가 변이 면제는 `target_kind: decision`, `target` 원소 = `<변이 id>@<묶기 해시>`인 승인 기록(head 트리) --
+   head의 그 def 묶기 해시(`bind_hash`: docstring·데코레이터 포함 def 노드 원본의 `ast.dump` sha256)가 같을 때만
+   적용한다. 해시가 없거나 다르거나 형식이 틀린 원소는 적용하지 않고 출력 `exempt_ignored`에 싣는다.
 판정 JSON 한 줄, exit 0 PASS / 1 FAIL / 2 실행 오류. 변이마다 결과를 --out에 append(WP-11).
 """
 from __future__ import annotations
@@ -83,6 +85,52 @@ def _strip_doc(fn):
 
 def def_hash(fn):
     return hashlib.sha256(ast.dump(_strip_doc(fn), include_attributes=False).encode("utf-8")).hexdigest()
+
+
+def bind_hash(fn):
+    """면제 묶기 해시: 변이 경로를 정하는 바로 그 노드(docstring·데코레이터·중첩 def 포함)의 ast.dump sha256.
+    `def_hash`(① 대상 선택, docstring 제외)와 다르다. 인자는 판마다 기본값이 바뀌어도 같도록 모두 명시한다."""
+    return hashlib.sha256(ast.dump(fn, annotate_fields=True, include_attributes=False, indent=None,
+                                   show_empty=False).encode("utf-8")).hexdigest()
+
+
+_HASH_RE = re.compile(r"^[0-9a-f]{64}$")
+
+
+def approved_index(approved):
+    """승인 원소 집합 -> {id: [(원소 문자열, 종류, 해시)...]} (원소 문자열 오름차순). 종류 = bound|unbound|malformed."""
+    idx = {}
+    for el in sorted(set(e.strip() for e in approved)):
+        if "@" not in el:
+            mid, kind, h = el, "unbound", None
+        else:
+            parts = el.split("@")
+            mid = parts[0]
+            if len(parts) == 2 and _HASH_RE.match(parts[1]):
+                kind, h = "bound", parts[1]
+            else:
+                kind, h = "malformed", None
+        idx.setdefault(mid, []).append((el, kind, h))
+    return idx
+
+
+def exempt_decision(mid, head_hash, index):
+    """변이 하나의 면제 판정 -> (exempt 레코드 | None, exempt_ignored 항목 목록)."""
+    elems = index.get(mid)
+    if not elems:
+        return None, []
+    for _el, kind, h in elems:
+        if kind == "bound" and h == head_hash:
+            return {"id": mid, "result": "exempt", "bind_hash": head_hash}, []
+    ignored = []
+    for el, kind, h in elems:
+        if kind == "bound":
+            ignored.append({"id": mid, "reason": "hash_mismatch", "approved_hash": h, "head_hash": head_hash})
+        elif kind == "unbound":
+            ignored.append({"id": mid, "reason": "unbound"})
+        else:
+            ignored.append({"id": mid, "reason": "malformed", "element": el})
+    return None, ignored
 
 
 def changed_defs(base_src, head_src):
@@ -317,13 +365,14 @@ def main(argv):
         nodes, edges = rch.build_graph(head_files)
         test_nodes = [n for n in nodes if n.startswith(TESTS_PREFIX) and not n.startswith(TESTS_TOOLS)
                       and re.search(r"::(Test[^.]*\.)?test[^.]*$", n)]
-        approved = _approved(root, ns.head)
+        approved_idx = approved_index(_approved(root, ns.head))
         tmp = tempfile.mkdtemp(prefix="gmid-v3-")
         work = os.path.join(tmp, "copy")
         make_clone(root, work, ns.head)
         pyc = os.path.join(tmp, "pycache")
         os.makedirs(pyc)
         survivors, killed, results = [], 0, []
+        survivor_bindings, exempt_ignored = [], []
         baseline_ok = {}
         strict_for_inv = {}
         # C11(design §6.10): conftest가 --gmid-phase를 모르면(C6 전 모양) 옵션을 넘기지 않는다 -- merge gate
@@ -370,13 +419,21 @@ def main(argv):
                     if base_code != 0:
                         raise BaselineFailed(inv, base_code)
                     baseline_ok[tuple(inv)] = True
+                fn_bind = bind_hash(fn)   # def마다 한 번
                 for opname, npath, mfn in mutants(fn, head_src):
                     mid = "%s:%s:%s:%s" % (modname, q, opname, npath)
-                    if mid in approved:
-                        results.append({"id": mid, "result": "exempt"})
+                    # (범위 card 35: 대상 밖 판정 -- not_targeted -- 은 이 호출 앞에 온다)
+                    ex_rec, ignored = exempt_decision(mid, fn_bind, approved_idx)
+                    exempt_ignored.extend(ignored)
+                    if ex_rec is not None:
+                        results.append(ex_rec)
+                        if ns.out:
+                            with open(ns.out, "a", encoding="utf-8") as fh:
+                                fh.write(json.dumps(ex_rec, ensure_ascii=False) + "\n")
                         continue
                     if not inv:
                         survivors.append(mid)
+                        survivor_bindings.append("%s@%s" % (mid, fn_bind))
                         rec = {"id": mid, "result": "survived", "reason": "인벤토리 없음(도달하는 test 없음)"}
                     else:
                         with open(fpath, "w", encoding="utf-8", newline="\n") as fh:
@@ -386,6 +443,7 @@ def main(argv):
                             fh.write(head_src)
                         if code == 0:
                             survivors.append(mid)
+                            survivor_bindings.append("%s@%s" % (mid, fn_bind))
                             rec = {"id": mid, "result": "survived", "tests": inv}
                         else:
                             killed += 1
@@ -405,7 +463,9 @@ def main(argv):
         if tmp:
             _rmtree_force(tmp)
     print(json.dumps({"tool": "V3", "verdict": "FAIL" if survivors else "PASS", "targets": targets,
-                      "mutants": len(results), "killed": killed, "survivors": survivors}, ensure_ascii=False))
+                      "mutants": len(results), "killed": killed, "survivors": survivors,
+                      "survivor_bindings": survivor_bindings, "exempt_ignored": exempt_ignored},
+                     ensure_ascii=False))
     return 1 if survivors else 0
 
 
