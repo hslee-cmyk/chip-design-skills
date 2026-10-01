@@ -1,0 +1,51 @@
+{
+ "id": "20261001-topology-md-sync",
+ "order": 3,
+ "evidence_type": "test-only",
+ "base_commit": "19eb475d8531e6dd7d77aacb9a274b6143a1d116",
+ "freeze": {
+  "T": "2de923b842856ced3298faceddbe546c87fb868d",
+  "T_parent": "19eb475d8531e6dd7d77aacb9a274b6143a1d116",
+  "T_trailers": ["Role: test", "Change-Id: 20261001-topology-md-sync"],
+  "base_to_T_diff": ["A skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py"],
+  "diff_outside_test_path": 0,
+  "new_test_blobs": {"test_topology_md_sync.py": "8b11a4b4e032dacbe0cae2f1b6ef3d7f8dcc7e1c"}
+ },
+ "chain": {
+  "measured_at": "58024deb848aeb6bb5e06d7611f0164d11b01846",
+  "doc_commit_D": "7365b88ad45fa446c3c7b317e680a779699a1e3d",
+  "D_parent": "58024deb848aeb6bb5e06d7611f0164d11b01846",
+  "D_parent_equals_measured_at": true,
+  "first_parent_chain_measured_at_to_T": [
+   "7365b88 (Role: doc, Change-Id 20261001-topology-md-sync, md 2개 재생성 = D)",
+   "378ebe6 (Role: doc, Change-Id 없음, 승인 기록 20261001-b47-md-sync + 사용자 결정 기록)",
+   "80b9970 (Role: doc, Change-Id 20261001-topology-md-sync, spec + interface card)",
+   "1a464e4 (Role: doc, Change-Id 20261001-p2dod-e2-wording)",
+   "dc196cd (Role: doc, Change-Id 없음)",
+   "19eb475 (Role: doc, Change-Id 없음) = base",
+   "2de923b (Role: test, Change-Id 20261001-topology-md-sync) = T"
+  ]
+ },
+ "base_vs_T": {
+  "collect_base": 1023,
+  "collect_T": 1062,
+  "base_only_ids": 0,
+  "new_ids": {"tests/contracts/test_topology_md_sync.py": 39},
+  "base_full_run": "1008 passed, 15 xfailed, exit 0, 362.32s",
+  "T_full_run": "1047 passed, 15 xfailed, exit 0, 363.88s",
+  "status_changed_existing_ids": 0,
+  "new_tests_at_base_tree": "base 트리 + 새 test 1개 = T 트리(base..T diff가 새 파일 1개뿐) -- 새 test 39개 전부 PASS(계약 8 (a))"
+ },
+ "rejection_at_measured_at_contract8": {
+  "setup": "C:/g156/cst = 58024de checkout --detach + T의 새 test 파일 blob(git cat-file) 복사(hash-object 8b11a4b4 = T blob)",
+  "result": "1 failed(builtins.AssertionError, 수집 오류 0), 38 passed(합성 자기 점검 37 + test_mdsync_library_has_md)",
+  "failed_ids": ["contracts/test_topology_md_sync.py::test_mdsync_library_tables_match_json"],
+  "failure_hash_reference": "68b627068f8ad794eb31cae480fe9d81ce0659cb9468db8de464de4bc6ebec49",
+  "pairs": [[2, "folded_cascode"], [4, "folded_cascode"], [3, "current_reuse_telescopic_ota"], [4, "current_reuse_telescopic_ota"], [5, "current_reuse_telescopic_ota"]],
+  "pairs_equal_card_expectation": true,
+  "other_md_pairs": 0
+ },
+ "gate_code": "C:/g156/gmid-gate-cache/19eb475d8531e6dd7d77aacb9a274b6143a1d116 (git cat-file blob 19eb475:tools/gates/<파일>, redteam 밖 22개, 오케스트레이터 캐시와 diff -r 차이 0)",
+ "measured_by": "gmid-verification-auditor, 격리 복제본 C:/g156/iso(T)·C:/g156/base(base)·C:/g156/cst(measured_at), origin 제거",
+ "time": "2026-10-01T22:57:00+09:00"
+}

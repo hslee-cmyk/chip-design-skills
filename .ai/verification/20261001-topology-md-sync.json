@@ -1,0 +1,123 @@
+{
+ "id": "20261001-topology-md-sync",
+ "spec_card": "docs/02-design/specs/20261001-topology-md-sync.spec.md",
+ "evidence_type": "test-only",
+ "base_commit": "19eb475d8531e6dd7d77aacb9a274b6143a1d116",
+ "test_commit": "2de923b842856ced3298faceddbe546c87fb868d",
+ "code_commit": null,
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "test-only라 code 커밋·병합이 없어 판정 대상 트리는 T 2de923b842856ced3298faceddbe546c87fb868d 자신이다(design 05 §9.2-4 test-only 모양: old..new^ = T 하나, Role: test·Change-Id 20261001-topology-md-sync, 부모 = base 19eb475 = gate master, T = new^). git clone -c core.longpaths=true --no-hardlinks --no-local --no-checkout -> checkout --detach -> remote remove origin 으로 만든 격리 복제본 C:/g156/iso(HEAD = T, remote 0개, status 0줄)에서 base 판 게이트 코드(git cat-file blob 19eb475:tools/gates/<파일>, redteam 밖 22개를 C:/g156/gmid-gate-cache/19eb475…/에 풀었고 오케스트레이터 캐시와 diff -r 차이 0)의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x·-m 없음, --gmid-phase=2 --gmid-strict=): 1047 passed, 15 xfailed, 실패·오류·skip·xpass 0, exit 0, 363.88s. 엄격 집합은 base 판 merge_gate.strict_set(TreeView(C:/g156/iso, 19eb475), base 판 spec card) = 빈 집합(conftest_has_gmid_phase 참, card phase 2, activated_ic_case 없음). 같은 형태로 base 복제본 C:/g156/base(19eb475)를 돌리면 1008 passed, 15 xfailed, exit 0, 362.32s. --collect-only 대조: base 1023 -> T 1062, base에만 있는 id 0, 새 id 39 = 전부 tests/contracts/test_topology_md_sync.py, 기존 1023 id 중 결과가 바뀐 것 0(id별 결과 대조). base 판 merge_gate.v1_command_check(아래 V1 문자열, python_path C:/Python314/python.exe, old 19eb475…, strict 빈 집합, phase 2) 위반 0. 실행 뒤 복제본 status 0줄(새 test는 pytest tmp_path에만 쓰고 library md를 바꾸지 않는다). 환경: Python 3.14.2, pytest 9.0.2, pluggy 1.6.0. test-author 보고는 증거로 쓰지 않았다"
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "test-only(spec card evidence_type, design 05 §9.2-4 T = new^, code_commit null, red 필드 없음 -- 00-common §8.1). [모양] base 19eb475 -> T 2de923b(Role: test, Change-Id 20261001-topology-md-sync, 부모 base). base..T diff = 새 파일 1개(A/tests/contracts/test_topology_md_sync.py blob 8b11a4b4e032dacbe0cae2f1b6ef3d7f8dcc7e1c), test 경로 밖 diff 0(freeze). [변경 전 test 전부 + 새 test -- 계약 8 (a)] 기존 1023 id가 T에서 모두 같은 결과(1008 PASS + 15 xfail), 새 test 39개는 base(문서 커밋 D 포함) 트리 + 새 파일 = T 트리에서 39/39 PASS(V1, 새 파일 단독 실행도 39 passed) -- 판정 대상 md 6개 전부 계약 1~5 통과. [계약 8 (b) 거부 확인 -- auditor 측정] 문서 커밋 D = 7365b88ad45fa446c3c7b317e680a779699a1e3d(Role: doc, Change-Id 이 card), git rev-parse 7365b88^ = 58024deb848aeb6bb5e06d7611f0164d11b01846 = measured_at. 격리 복제본 C:/g156/cst를 58024de로 checkout --detach하고 T의 새 test 파일만 git cat-file blob으로 복사(hash-object 8b11a4b4 = T blob)해 base 판 캐시·-p merge_gate --continue-on-collection-errors·GMID_RED_CAPTURE·GMID_INTERFACE_CARD로 실행: 1 failed, 38 passed, 수집 오류 0, 실패 1개 = contracts/test_topology_md_sync.py::test_mdsync_library_tables_match_json, builtins.AssertionError(capture 해시 68b627068f8ad794eb31cae480fe9d81ce0659cb9468db8de464de4bc6ebec49 -- test-only라 red 필드에 넣지 않는 참고값). auditor 스크립트 C:/g156/scripts/audit_mdsync.py가 pytest 출력의 assert 메시지 줄(E 접두)에서 정규식 계약 (\\d) (\\S+): 로 뽑은 (계약, 파일) 쌍 = 정확히 {(2, folded_cascode), (4, folded_cascode), (3, current_reuse_telescopic_ota), (4, current_reuse_telescopic_ota), (5, current_reuse_telescopic_ota)} = card 계약 8 (b) 기대 집합. 나머지 4개 md(ngcc_3stage_ff, pushpull_follower_buffer, sf_pushpull_output_opamp, two_stage_ota_sf) 쌍 0(무동작 증거). 통과 38 = 합성 자기 점검 37(accepts 9, rejects 21, 파일 이름·짝 json 없음·빈 폴더 각 1, T(J) 형식 위반 3, 연결 파일 1) + test_mdsync_library_has_md. 메시지 사유: folded M1 Gate vin_p(md) vs vin_n(json)·M2 반대, net vin_n·vin_p 단자 차이; CRTO 수동 소자 CL1·CL2·Cf1·Cf2·Cs1·Cs2 json에만, net Vim·Vip·Vom·Vop·gnd 단자 차이, 합계 (51, 6, 1, 37) != json (51, 12, 1, 37) -- auditor가 json에서 따로 센 값과 같다(V10). [test-author의 card 밖 판단 2가지 -- card 문장과 대조, C:/g156/scripts/edge.py로 실제 동작 측정] (1) 구분 행 없는 표 -> 그 계약 FAIL: card는 표의 둘째 줄을 구분 행(데이터 아님)으로 정의해 표가 두 줄 이상임을 전제하고, 구분 행 없음에 대해 PASS를 정한 문장이 없다. 기대 다중집합이 비지 않으면 card 문자 그대로 읽어도 첫 데이터 행이 구분 행 자리로 빠져 FAIL이라 판정이 같다(측정: 소자 표 구분 행 삭제 -> {2}). 판정이 갈리는 입력은 기대 다중집합이 빈 경우(T(J) 빈 netlist + 머리만 있는 소자 표 -> test {2}, 문자 그대로면 통과)뿐인데 library 6개 netlist는 6~51개로 비지 않고 card 합성 목록에도 없어 영향 0 -- 어긋남 아님. (2) json 값이 문자열 아님 -> 그 값을 쓰는 계약 실패: card는 T(J) 원소가 dict 아님·키 없음만 계약 2 FAIL로 정하고 값 형식은 정하지 않는다. 측정: 소자 source 정수·목록 -> {2,4,5}, 수동 소자 terminal 정수 -> {3,4,5}, 수동 소자 kind 정수 -> {3,4,5}(문자 그대로 비교면 각각 {2,4}·{3,4}·{3}이고 목록 값은 Counter에서 TypeError로 test가 끝난다 -- card 금지). 어느 쪽이든 FAIL/PASS 결과는 같고 실패 계약 집합만 넓다. card가 집합을 정한 것은 '거부해야 할 입력' 목록뿐이고 test는 이 경우 집합을 단정하지 않으며(T(J) 형식 위반 3케이스도 2 포함만 단정 -- 오케스트레이터 주의 1과 같음) library json 6개의 T·P·S 값 중 문자열 아닌 값 0(auditor 측정)이라 영향 0 -- 어긋남 아님. [계약 6·9 -- V10에 수치] 금지 import 0, Change-Id 커밋 경로 3, D blob = card 값 = D 트리 렌더러 출력"
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 mutate_changed.py --root C:/g156/iso --base 19eb475… --head 2de923b… --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=2 --gmid-strict=: verdict PASS, targets [], mutants 0, killed 0, survivors [], exit 0, 70s. 대상 0은 base..T diff가 엔진 def를 건드리지 않기 때문이다(바뀐 경로는 A/tests/contracts/ 새 파일 1개, measured_at..T 사이 A/*.py·run_harness·library json·렌더러 변경 0 -- 계약 9). 새 test의 거부력은 V2 계약 8 (b)(measured_at 상태 5쌍 FAIL)와 합성 자기 점검 37개로 따로 보였다"
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: spec card oracle은 (d) 실측 원자료(판정 시점 A/library/<n>.topology.json)와 (a) 구성 입력(계약 7 합성 md·json 짝)이다. test_mdsync_library_tables_match_json의 기대값 = json 표준 모듈로 읽은 J에서 card 정의대로 만든 T(J)·P(J)·S(J)·N(J)(소자 5짝, 수동·ideal (name, kind 없으면 ?, terminals 튜플), net별 (소자, source/drain/gate/t<i>), 합계 (len T, len P, len S, len N)) -- card 계약 2~5 문장(d)과 일치, 렌더러·로더 import 0(계약 6, AST 측정); 표 머리 4개·절 접두 4개·합계 정규식·플래그 바이트(U+26A0 U+FE0F, U+2139 U+FE0F, U+26A1) = card 계약 문장 그대로(일치); auditor가 따로 구현한 셈(audit_mdsync.py)으로 json 6개의 (소자, 수동, ideal, net) = CRTO (51,12,1,37), folded (13,0,1,14), ngcc (16,3,0,13), pushpull (6,1,0,9), sf_pushpull (22,5,1,23), two_stage_ota_sf (9,2,0,10)이 T md 표 행 수·합계 줄과 같다(일치). test_mdsync_library_has_md = 계약 1 (a) 별도 함수(d)(일치). test_mdsync_selftest_accepts 9개 = card '통과해야 할 변형' 전부(기준, 기준 짝 2, CRLF, 소스: 경로, ⚠️ 제거, ℹ️로 바꿈, 자동 플래그 절 문장, 행 순서 섞기, 기준 짝 2 Value·Implementable 변경)(a)(일치). test_mdsync_selftest_rejects 21개 + 파일 이름·짝 json 없음·빈 폴더 3개 = card '거부해야 할 변형' 24개 전부, 기대 집합이 card 괄호와 하나씩 같다: Gate {2}·중복 {2}·삭제 {2}·소자 절 없음 {2}·json C2 {3,4,5}·수동 절 삭제 {3}·Terminals 뒤집기 {3}·json에만 I1 {3,4,5}·기준 짝 2 md vs 기준 json {3,4,5}·ideal 절만 {3}·Net 단자 삭제 {4}·단자 수 열 {4}·여분 net {4}·net 중복 {4}·백틱 없음 {4}·다른 플래그 {4}·합계 수동 수 {5}·합계 없음 {5}·합계 문형 {5}·소자 머리 {2}·H1 {1}·파일 이름 {1}·짝 json 없음 {1}·md 0개 {1}(a)(일치). 합성 기준 짝 md의 Net 표(gnd = C1.t1·M1.source, in = M1.gate·M2.gate, out = C1.t0·M1.drain·M2.drain, vdd = M2.source)와 짝 2 추가분(in += I1.t1, vdd += I1.t0)을 auditor가 card 정의로 손 계산해 같다(일치). test_mdsync_selftest_malformed_netlist_fails_c2 3개는 card 'T(J) 형식 위반이면 계약 2 FAIL(예외로 끝나지 않음)'(a) -- 2 포함만 단정(집합은 card가 정하지 않음, 일치). test_mdsync_selftest_accepts_linked_netlist는 card T(J)·P(J) 정의(연결 파일 netlist는 합치고 passive는 진입 json만)(a)(일치). 엔진 함수를 피검으로 부르는 기대값 0개. 관찰(판정 영향 0): 표 머리 행 비교가 행을 strip한 뒤 문자열 비교라 머리 행 끝 공백만 다른 경우를 통과시킨다(edge.py 측정) -- card는 '문자열로 같아야'라 문자 그대로면 FAIL. md 표 행은 | 로 시작해야 표로 잡히므로 차이는 줄 끝 공백뿐이고 T·measured_at md 6개의 표 머리 앞뒤 공백 0(측정), card 합성 목록에도 없다. 도구: interface card 신규 시그니처가 0행이라 test_lint.py --interface-card 단독은 '피검 심볼이 없다'로 exit 2(측정)여서, base 판 캐시 test_lint.py --root C:/g156/iso --base 19eb475 --head 2de923b --module-dir skills/analog-gmid-design/assets에 T 트리 A/*.py 최상위 def·class 373개 전부를 --subject로 넣어 실행 -> verdict PASS, exit 0, 대상 파일 1(새 test), findings 11 전부 규칙 (2) NO-SUBJECT(test 함수 9개의 assert 11개 -- == [] 비교인 accepts 484행·linked 609행 포함, 비교 값이 피검 호출 결과가 아니라 NO-SUBJECT), UNJUDGED 0, FAIL 0, 규칙 (1)(3)(4)(5) 발견 0. PASS는 독립의 증거가 아니다 -- 독립성은 위 기대값별 oracle 대조와 계약 8 (b) 거부 확인에 기댄다"
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 weakening_diff.py --root C:/g156/iso --base 19eb475… --head 2de923b…: verdict PASS, findings [], diff_paths [], diff_hash null, approved false, exit 0. 기존 test·conftest.py·test 분류 비 .py 파일 변경 0(새 파일 1개 추가뿐)이라 약화 대상 diff가 없다. 승인 기록 불필요"
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 source_lint.py --root C:/g156/iso --base 19eb475… --head 2de923b…: verdict PASS, targets [], findings [], exit 0, 39s. 엔진 소스·하니스 diff 0"
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "도입 Phase 2라 활성. base 판 캐시 reachability.py --root C:/g156/iso --base 19eb475… --head 2de923b…: verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개(sky130_lut_sweep.py::__main__, topology_to_markdown.py::__main__, run_harness.py::__main__, run_harness.py::run), roots_without_file 1개(gmid_design_pipeline.py::run_gmid_design_pipeline), exit 0, 62s. 새 def는 A/tests/contracts/ 아래 test 보조 함수(_mdsync_*)뿐이고 같은 파일의 test가 부른다(V1에서 39개 PASS)"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터다(base 판 계획서 v_intro[V8] = 4, auditor가 read_plan_tables로 확인). 이 card는 Phase 2이고 엔진 소스를 바꾸지 않는다"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터다(base 판 계획서 v_intro[V9] = 6b). 이 card는 Phase 2이고 엔진·library json 불변"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "spec card '재현할 수치'를 auditor가 격리 복제본에서 직접 세어 reproduced_numbers에 적었다(card·준비 보고의 수를 옮기지 않음, 스크립트 C:/g156/scripts/audit_mdsync.py는 git cat-file blob만 읽고 렌더러·test 파일을 import하지 않는다): 판정 대상 md 6(T 트리 library/*.topology.md), md별 (소자, 수동, ideal, net) = json에서 card 정의로 센 값 CRTO (51,12,1,37), folded_cascode (13,0,1,14), ngcc_3stage_ff (16,3,0,13), pushpull_follower_buffer (6,1,0,9), sf_pushpull_output_opamp (22,5,1,23), two_stage_ota_sf (9,2,0,10) -- T md 표 행 수와 합계 줄이 모두 같다; measured_at md CRTO 수동 6행·합계 (51,6,1,37). 계약 8 (b) 쌍 5, 실패 test id 1, 통과 합성 자기 점검 37. 계약 9: git log 58024de..2de923b 7개 중 Change-Id 20261001-topology-md-sync 커밋 3개(D 7365b88, card 80b9970, T 2de923b -- 이 판정 기록 audit 커밋이 4번째이고 .ai/verification/20261001-topology-md-sync* 경로만 더한다), 다른 커밋 4개(378ebe6·dc196cd·19eb475 Change-Id 없음, 1a464e4 Change-Id 20261001-p2dod-e2-wording)는 세지 않음; diff-tree 합집합에서 spec·interface card를 빼면 경로 3(folded_cascode.topology.md, current_reuse_telescopic_ota.topology.md, test_topology_md_sync.py) = card 기대; git diff --name-only 58024de 19eb475 -- A/library A/topology_to_markdown.py A/stick_diagram.py = D의 md 2개뿐; old..new^ = 새 test 1개; D blob folded 711a59108bd53891ea410963e235617a6955b416·CRTO 2a3e67a5ccef1aae8829688bedaa3098b57d74e2 = card 값, 그리고 auditor가 D 트리 사본(git archive 7365b88)에서 cwd = assets, 인자 library/<n>.topology.json, 둘째 인자 = 사본 밖으로 렌더러를 실행한 출력의 LF 정규화 blob이 두 값과 같고 나머지 4개 md도 T blob과 같다(6/6). 계약 6: 새 test AST import = {collections, json, pathlib, re, pytest}, A/*.py 7개 모듈·run_harness import 0, importlib·__import__·runpy·subprocess 이름·문자열 0; 쓰기 호출은 _mdsync_write_pair(write_bytes·write_text) 하나이고 호출자는 _mdsync_kinds·test_mdsync_selftest_accepts_linked_netlist뿐, 둘 다 pytest tmp_path에만 쓴다 -- library md 쓰기 0(V1 실행 뒤 복제본 status 0줄로 확인). test-author 보고는 대조용으로도 쓰지 않았다"
+  }
+ },
+ "reproduced_numbers": [
+  {"name": "판정 대상 md 수(T 트리 A/library/*.topology.md)", "value": 6, "command": "C:/Python314/python.exe -B C:/g156/scripts/audit_mdsync.py C:/g156/iso 19eb475… 2de923b… 58024de… 7365b88… 2de923b… C:/g156/out/c8_cst.txt C:/g156/render C:/g156/out/audit_T.json (n_md_T)"},
+  {"name": "current_reuse_telescopic_ota json 소자 수 len(T(J))", "value": 51, "command": "audit_mdsync.py (counts.json_T.devices)"},
+  {"name": "current_reuse_telescopic_ota json 수동 소자 수 len(P(J))", "value": 12, "command": "audit_mdsync.py (counts.json_T.passives)"},
+  {"name": "current_reuse_telescopic_ota json ideal source 수 len(S(J))", "value": 1, "command": "audit_mdsync.py (counts.json_T.ideals)"},
+  {"name": "current_reuse_telescopic_ota json net 수 len(N(J))", "value": 37, "command": "audit_mdsync.py (counts.json_T.nets)"},
+  {"name": "folded_cascode json 소자 수", "value": 13, "command": "audit_mdsync.py (counts.json_T.devices)"},
+  {"name": "folded_cascode json 수동 소자 수", "value": 0, "command": "audit_mdsync.py (counts.json_T.passives)"},
+  {"name": "folded_cascode json ideal source 수", "value": 1, "command": "audit_mdsync.py (counts.json_T.ideals)"},
+  {"name": "folded_cascode json net 수", "value": 14, "command": "audit_mdsync.py (counts.json_T.nets)"},
+  {"name": "ngcc_3stage_ff json 소자 수", "value": 16, "command": "audit_mdsync.py (counts.json_T.devices)"},
+  {"name": "ngcc_3stage_ff json 수동 소자 수", "value": 3, "command": "audit_mdsync.py (counts.json_T.passives)"},
+  {"name": "ngcc_3stage_ff json ideal source 수", "value": 0, "command": "audit_mdsync.py (counts.json_T.ideals)"},
+  {"name": "ngcc_3stage_ff json net 수", "value": 13, "command": "audit_mdsync.py (counts.json_T.nets)"},
+  {"name": "pushpull_follower_buffer json 소자 수", "value": 6, "command": "audit_mdsync.py (counts.json_T.devices)"},
+  {"name": "pushpull_follower_buffer json 수동 소자 수", "value": 1, "command": "audit_mdsync.py (counts.json_T.passives)"},
+  {"name": "pushpull_follower_buffer json ideal source 수", "value": 0, "command": "audit_mdsync.py (counts.json_T.ideals)"},
+  {"name": "pushpull_follower_buffer json net 수", "value": 9, "command": "audit_mdsync.py (counts.json_T.nets)"},
+  {"name": "sf_pushpull_output_opamp json 소자 수", "value": 22, "command": "audit_mdsync.py (counts.json_T.devices)"},
+  {"name": "sf_pushpull_output_opamp json 수동 소자 수", "value": 5, "command": "audit_mdsync.py (counts.json_T.passives)"},
+  {"name": "sf_pushpull_output_opamp json ideal source 수", "value": 1, "command": "audit_mdsync.py (counts.json_T.ideals)"},
+  {"name": "sf_pushpull_output_opamp json net 수", "value": 23, "command": "audit_mdsync.py (counts.json_T.nets)"},
+  {"name": "two_stage_ota_sf json 소자 수", "value": 9, "command": "audit_mdsync.py (counts.json_T.devices)"},
+  {"name": "two_stage_ota_sf json 수동 소자 수", "value": 2, "command": "audit_mdsync.py (counts.json_T.passives)"},
+  {"name": "two_stage_ota_sf json ideal source 수", "value": 0, "command": "audit_mdsync.py (counts.json_T.ideals)"},
+  {"name": "two_stage_ota_sf json net 수", "value": 10, "command": "audit_mdsync.py (counts.json_T.nets)"},
+  {"name": "md 6개 중 T md 표 행 수·합계 줄이 json 셈과 다른 md", "value": 0, "command": "audit_mdsync.py (counts.md_rows_T vs json_T)"},
+  {"name": "measured_at current_reuse_telescopic_ota md 수동 소자 행 수", "value": 6, "command": "audit_mdsync.py (counts.md_rows_Dparent.passives)"},
+  {"name": "library json 6개 T·P·S 값 중 문자열 아닌 값", "value": 0, "command": "audit_mdsync.py (counts.json_T.nonstring_values)"},
+  {"name": "계약 8 (b) measured_at에서 실패한 (계약, 파일) 쌍 수", "value": 5, "command": "C:/g156/cst(58024de + T 새 test 파일) 에서 base 캐시 pytest -p merge_gate --continue-on-collection-errors GMID_RED_CAPTURE=C:/g156/out/red_cst.json; 쌍은 audit_mdsync.py (c8b.pairs)"},
+  {"name": "계약 8 (b) measured_at에서 실패한 새 test id 수(AssertionError)", "value": 1, "command": "같은 실행 (c8b.n_failed)"},
+  {"name": "계약 8 (b) measured_at에서 통과한 합성 자기 점검 test 수", "value": 37, "command": "같은 실행 (c8b.passed_selftest)"},
+  {"name": "계약 8 (b) measured_at 수집 오류", "value": 0, "command": "같은 실행 (c8b.n_error)"},
+  {"name": "계약 9 measured_at..T Change-Id 20261001-topology-md-sync 커밋 수(audit 커밋 전)", "value": 3, "command": "audit_mdsync.py (c9.n_cid_commits) -- git log --format=%H 58024de..2de923b + interpret-trailers --parse"},
+  {"name": "계약 9 제외 뒤 변경 경로 수", "value": 3, "command": "audit_mdsync.py (c9.n_paths) -- git diff-tree --no-commit-id --name-only -r <커밋> 합집합"},
+  {"name": "계약 9 D blob이 card 값과 다른 md 수", "value": 0, "command": "audit_mdsync.py (c9.D_blobs_match_card)"},
+  {"name": "계약 9 D 트리 렌더러 출력(LF 정규화) blob이 T blob과 다른 md 수", "value": 0, "command": "bash C:/g156/scripts/render_D.sh; audit_mdsync.py (c9.render_equals_T_blob)"},
+  {"name": "계약 6 새 test 금지 import 수(A/*.py·run_harness·importlib·__import__·runpy·subprocess)", "value": 0, "command": "audit_mdsync.py (c6)"},
+  {"name": "V1 T passed", "value": 1047, "command": "V1 명령(auditor_run.commands)"},
+  {"name": "V1 T xfailed", "value": 15, "command": "V1 명령(auditor_run.commands)"},
+  {"name": "base 전체 passed", "value": 1008, "command": "V1 명령의 루트를 C:/g156/base로"},
+  {"name": "수집 id 수 base", "value": 1023, "command": "V1 명령 + --collect-only -q -p no:cacheprovider (C:/g156/base)"},
+  {"name": "수집 id 수 T", "value": 1062, "command": "V1 명령 + --collect-only -q -p no:cacheprovider (C:/g156/iso)"},
+  {"name": "V4 --subject 피검 심볼 수(T A/*.py 최상위 def·class)", "value": 373, "command": "C:/Python314/python.exe -B C:/g156/scripts/v4_subjects.py C:/g156/iso 2de923b… C:/g156/out/v4_subjects.txt"}
+ ],
+ "approvals": [
+  "20261001-b47-md-sync"
+ ],
+ "auditor_run": {
+  "time": "2026-10-01T23:05:00+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261001-topology-md-sync-audit",
+  "commands": [
+   "환경: $PY = C:/Python314/python.exe(3.14.2, pytest 9.0.2, pluggy 1.6.0), bash에서 APPDATA=C:/Users/HSLEE/AppData/Roaming·PYTHONIOENCODING=utf-8 export, TMP/TEMP = C:/g156/tmp, 격리 경로는 C:/g156/ 아래만",
+   "게이트 코드 캐시·격리: bash C:/g156/scripts/setup.sh -- git -C <audit worktree> ls-tree·cat-file blob 19eb475d8531e6dd7d77aacb9a274b6143a1d116:tools/gates/<파일>, redteam 밖 22개를 C:/g156/gmid-gate-cache/19eb475d8531e6dd7d77aacb9a274b6143a1d116/ 에(오케스트레이터 캐시와 diff -r 차이 0)",
+   "격리(T): git clone -q -c core.longpaths=true --no-hardlinks --no-local --no-checkout C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261001-topology-md-sync-audit C:/g156/iso; git -C C:/g156/iso checkout --detach 2de923b842856ced3298faceddbe546c87fb868d; git -C C:/g156/iso remote remove origin (remote 0개, status 0줄)",
+   "격리(base·measured_at): 같은 형태로 C:/g156/base(checkout --detach 19eb475), C:/g156/cst(checkout --detach 58024de + git -C C:/g156/iso cat-file blob 2de923b:<새 test> 복사), 각각 origin 제거",
+   "V1: PYTHONPYCACHEPREFIX=C:/g156/pyc/v1_iso PYTHONPATH=C:/g156/gmid-gate-cache/19eb475d8531e6dd7d77aacb9a274b6143a1d116 C:/Python314/python.exe -P -m pytest -c C:/g156/gmid-gate-cache/19eb475d8531e6dd7d77aacb9a274b6143a1d116/pytest_gate.ini --rootdir=C:/g156/iso --confcutdir=C:/g156/iso C:/g156/iso/skills/analog-gmid-design/assets/tests --gmid-phase=2 --gmid-strict= -rA",
+   "base 전체: 위 V1에서 PYTHONPYCACHEPREFIX·--rootdir·--confcutdir·test 경로를 C:/g156/base로 바꾼 실행(1008 passed, 15 xfailed, exit 0) -- bash C:/g156/scripts/v1.sh <iso|base>",
+   "수집 대조: bash C:/g156/scripts/collect.sh(위 두 형태에 --collect-only -q -p no:cacheprovider; base 1023, T 1062, base에만 0, 새 39), id별 결과 대조 C:/g156/scripts/cmp_v1.py(바뀐 기존 id 0)",
+   "엄격 집합·V1 형태 자기 점검: PYTHONPATH=<캐시> $PY -B -P C:/g156/scripts/strict.py C:/g156/iso 19eb475… 20261001-topology-md-sync '<V1 문자열>' (strict_set = 빈 집합, conftest_has_gmid_phase 참, v1_command_check 위반 0)",
+   "계약 8 (b): bash C:/g156/scripts/c8.sh -- GMID_RED_CAPTURE=C:/g156/out/red_cst.json GMID_INTERFACE_CARD=C:/g156/iso/docs/02-design/specs/20261001-topology-md-sync.interface.md PYTHONPATH=<캐시> $PY -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g156/cst --confcutdir=C:/g156/cst -p merge_gate --continue-on-collection-errors --gmid-phase=2 --gmid-strict= -rA C:/g156/cst/skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py (1 failed AssertionError, 38 passed)",
+   "계약 9 렌더러 대조: bash C:/g156/scripts/render_D.sh -- git -C C:/g156/iso archive 7365b88 skills/analog-gmid-design/assets | tar -x -C C:/g156/dtree, cwd = 그 assets, $PY -B topology_to_markdown.py library/<n>.topology.json C:/g156/render/<n>.topology.md (md 6개)",
+   "계약 6·8 쌍·9·재현 수치: $PY -B C:/g156/scripts/audit_mdsync.py C:/g156/iso 19eb475d8531e6dd7d77aacb9a274b6143a1d116 2de923b842856ced3298faceddbe546c87fb868d 58024deb848aeb6bb5e06d7611f0164d11b01846 7365b88ad45fa446c3c7b317e680a779699a1e3d 2de923b842856ced3298faceddbe546c87fb868d C:/g156/out/c8_cst.txt C:/g156/render C:/g156/out/audit_T.json (auditor 작성, 소스는 git cat-file blob만)",
+   "card 밖 판단 측정: $PY -B C:/g156/scripts/edge.py (T 판 새 test 판정기를 C:/g156/tmp/edge 합성 입력에 실행 -- 구분 행 없음, 문자열 아닌 json 값, 머리 행 끝 공백)",
+   "V3: $PY -B <캐시>/mutate_changed.py --root C:/g156/iso --base 19eb475d8531e6dd7d77aacb9a274b6143a1d116 --head 2de923b842856ced3298faceddbe546c87fb868d --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=2 --gmid-strict= --out C:/g156/out/v3.jsonl",
+   "V4: $PY -B C:/g156/scripts/v4_subjects.py C:/g156/iso 2de923b… C:/g156/out/v4_subjects.txt (373) -> $PY -B <캐시>/test_lint.py --root C:/g156/iso --base 19eb475… --head 2de923b… --module-dir skills/analog-gmid-design/assets --subject <373개> (--interface-card 단독은 신규 시그니처 0행이라 exit 2) -- bash C:/g156/scripts/vtools.sh",
+   "V5: $PY -B <캐시>/weakening_diff.py --root C:/g156/iso --base 19eb475d8531e6dd7d77aacb9a274b6143a1d116 --head 2de923b842856ced3298faceddbe546c87fb868d",
+   "V6: $PY -B <캐시>/source_lint.py --root C:/g156/iso --base 19eb475d8531e6dd7d77aacb9a274b6143a1d116 --head 2de923b842856ced3298faceddbe546c87fb868d",
+   "V7: $PY -B <캐시>/reachability.py --root C:/g156/iso --base 19eb475d8531e6dd7d77aacb9a274b6143a1d116 --head 2de923b842856ced3298faceddbe546c87fb868d",
+   "순서 3 기록: freeze(T)·base 대비 확인·계약 8 결과는 .ai/verification/20261001-topology-md-sync/base_check.json",
+   "사전 판정: 판정 기록 커밋 뒤 그 커밋을 C:/g156/rcv(origin 없는 복제본)에 받아 PYTHONPATH=<캐시> $PY -P <캐시>/merge_gate.py receive --git-dir C:/g156/rcv/.git --old 19eb475… --new <audit 커밋>"
+  ]
+ }
+}
