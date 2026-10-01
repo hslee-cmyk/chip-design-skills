@@ -522,3 +522,80 @@
 |---|---|---|---|---|
 | `derived_spec` | override + `_spec_source` 기록, why 필수 | circuit_state_graph S0 | 보류(Phase 6a) | DEC-26(짝 게이트 require_declared_spec_source). P5에서 잘못 삭제 → 복원(20260930-restore-plan-functions), 미배선 면제 20260930-restore-unwired-until-6a |
 
+## 8. DF-23 -- 엔진 이름 리터럴 종속 (전수 목록 기록)
+
+목록: `docs/03-analysis/gain-budget-gmid-sizing-20-dead-code-dup/df23_inventory.json`
+measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
+
+목록을 다시 재면 이 절을 같은 Phase 안에서 갱신한다(대조: `reg_check.py --df23-inventory`).
+
+### 8.1 총계
+
+| 축 | 값 | 항목 수 |
+|---|---|---|
+| phase | 3 | 61 |
+| phase | 4 | 63 |
+| phase | 6b | 1 |
+| phase | 7a | 27 |
+| phase | 7b | 46 |
+| phase | 해당 없음 | 317 |
+| role | 동작을 정함 | 213 |
+| role | 메시지뿐 | 302 |
+
+### 8.2 함수별 (role = 동작을 정함)
+
+| 함수 | 파일 | 항목 수 | DF | 담당 Phase |
+|---|---|---|---|---|
+| `<module>` | audit_current_forced.py | 1 | 신규 | 해당 없음 |
+| `<module>` | run_harness.py | 14 | DF-34 | 7b |
+| `_spec_current_reuse_telescopic_ota` | run_harness.py | 4 | DF-19, DF-34, 신규 | 4, 7b, 해당 없음 |
+| `_spec_folded_cascode` | run_harness.py | 2 | DF-19, DF-34 | 4, 7b |
+| `_spec_nmcnr_amplifier` | run_harness.py | 3 | DF-19, DF-34, 신규 | 4, 7b, 해당 없음 |
+| `_spec_two_stage_ota` | run_harness.py | 16 | DF-19, DF-33, DF-34, 신규 | 4, 7b, 해당 없음 |
+| `run` | run_harness.py | 2 | 신규 | 해당 없음 |
+| `<module>` | sizing_recipe.py | 17 | DF-19, DF-30, DF-31 | 4, 7a, 7b |
+| `SizingContext` | sizing_recipe.py | 1 | DF-23 | 4 |
+| `_build_theta_evaluator` | sizing_recipe.py | 7 | DF-19 | 4 |
+| `_folded_cascode_rout` | sizing_recipe.py | 1 | DF-30 | 7a |
+| `_full_circuit_response` | sizing_recipe.py | 1 | DF-19 | 4 |
+| `_hr_resolve_vertical_group` | sizing_recipe.py | 8 | DF-19 | 4 |
+| `_hr_verify_group_kvl_sum` | sizing_recipe.py | 1 | DF-19 | 4 |
+| `_metric_battery_centering_deviation` | sizing_recipe.py | 3 | DF-19 | 4 |
+| `_metric_device_footprint` | sizing_recipe.py | 3 | DF-30 | 7a |
+| `_metric_folded_cascode_gain_db` | sizing_recipe.py | 2 | DF-30 | 7a |
+| `_metric_folded_cascode_pm_deg` | sizing_recipe.py | 3 | DF-30 | 7a |
+| `_metric_kcl_residual` | sizing_recipe.py | 3 | DF-19 | 4 |
+| `_metric_nmcnr_gain_db` | sizing_recipe.py | 2 | DF-30 | 7a |
+| `_metric_nmcnr_pm_deg` | sizing_recipe.py | 2 | DF-30 | 7a |
+| `_metric_rail_referenced_voltage` | sizing_recipe.py | 2 | DF-19 | 4 |
+| `_metric_stack_headroom_slack` | sizing_recipe.py | 1 | DF-19 | 4 |
+| `_metric_supply_current` | sizing_recipe.py | 1 | DF-19 | 4 |
+| `_nmcnr_predict` | sizing_recipe.py | 5 | DF-30 | 7a |
+| `_nmcnr_stage1_rout` | sizing_recipe.py | 1 | DF-30 | 7a |
+| `build_ac_network` | sizing_recipe.py | 1 | DF-19 | 4 |
+| `gain_stage_tails` | sizing_recipe.py | 1 | DF-32 | 6b |
+| `require_declared_spec_source` | sizing_recipe.py | 2 | 신규 | 해당 없음 |
+| `search_stage_budget_L_warm_start` | sizing_recipe.py | 3 | DF-19 | 4 |
+| `stack_kvl_vgs_limit` | sizing_recipe.py | 1 | DF-19 | 4 |
+| `<module>` | stick_diagram.py | 3 | DF-19 | 4 |
+| `_propose_L_roles` | stick_diagram.py | 4 | DF-19 | 4 |
+| `_propose_gm_id_roles` | stick_diagram.py | 4 | DF-19 | 4 |
+| `_propose_headroom_roles` | stick_diagram.py | 1 | 신규 | 해당 없음 |
+| `find_differential_and_mirror_forks` | stick_diagram.py | 2 | DF-19 | 4 |
+| `find_differential_pair_candidates` | stick_diagram.py | 2 | DF-19 | 4 |
+| `find_matching_candidates` | stick_diagram.py | 2 | 신규 | 해당 없음 |
+| `find_verified_differential_and_mirror_relations` | stick_diagram.py | 2 | DF-19 | 4 |
+| `folded_cascode_example` | stick_diagram.py | 32 | 신규 | 3 |
+| `propose_theta_kcl_gap_fill` | stick_diagram.py | 1 | 신규 | 해당 없음 |
+| `trace_gnd_to_vdd_branches` | stick_diagram.py | 3 | DF-19 | 4 |
+| `trace_vdd_to_gnd_branches` | stick_diagram.py | 3 | DF-19 | 4 |
+| `two_stage_ota_example` | stick_diagram.py | 29 | 신규 | 3 |
+| `current_reuse_telescopic_topology` | topology_library.py | 1 | DF-31 | 7b |
+| `miller_ota_topology` | topology_library.py | 1 | DF-31 | 7b |
+| `ngcc_3stage_topology` | topology_library.py | 1 | DF-31 | 7b |
+| `nmcnr_3stage_topology` | topology_library.py | 2 | DF-31 | 7b |
+| `nmcnr_check_dominant_pole_approximation` | topology_library.py | 2 | DF-31 | 7b |
+| `nmcnr_compensation_elements` | topology_library.py | 1 | DF-31 | 7b |
+| `nmcnr_predict_ac_response` | topology_library.py | 2 | DF-31 | 7b |
+| `<module>` | topology_to_markdown.py | 1 | 신규 | 해당 없음 |
+
