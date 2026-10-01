@@ -3020,16 +3020,10 @@ def kcl_series_union(netlist: list, matching_pairs: list) -> dict:
 
     반환: `{stack_id: [소자명,...]}` — `stack_id`는 그 그룹의 netlist상 최초 등장 소자
     이름(입력 순서에만 의존하는 결정론적 값)."""
-    net_uses: dict = defaultdict(list)
-    for t in netlist:
-        net_uses[t.source].append(t.name)
-        net_uses[t.drain].append(t.name)
-
     parent = {t.name: t.name for t in netlist}
 
     def find(x):
         while parent[x] != x:
-            parent[x] = parent[parent[x]]
             x = parent[x]
         return x
 
@@ -3038,14 +3032,9 @@ def kcl_series_union(netlist: list, matching_pairs: list) -> dict:
         if ra != rb:
             parent[ra] = rb
 
-    for net, uses in net_uses.items():
-        if net in _RAIL_NETS:
-            continue
-        if len(uses) == 2 and uses[0] != uses[1]:
-            union(uses[0], uses[1])
-    for names in matching_pairs:
-        for a, b in zip(names, names[1:]):
-            union(a, b)
+    # 엣지 정의(내부 2단자 net + 매칭 쌍)는 `_kcl_and_matching_edges()` 한 곳에만 둔다.
+    for a, b, _kind, _detail in _kcl_and_matching_edges(netlist, matching_pairs):
+        union(a, b)
 
     order = {t.name: i for i, t in enumerate(netlist)}
     groups: dict = defaultdict(list)
