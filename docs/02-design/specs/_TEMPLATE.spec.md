@@ -43,6 +43,12 @@ approval: <승인 기록 id>
 5. 계획서 소비자: 지우거나 옮기는 이름을 `docs/01-plan`·`docs/02-design`에서 grep했다.
 6. 미배선: 새로 만들거나 되살리는 def가 운영 경로에서 불리지 않으면 V7 면제 승인(`target_kind: decision`)을 이 card 전에 받았다.
 7. 기존 계약 test: 바뀌는 이름·파일을 참조하는 기존 계약 test(`A/tests/contracts/`)를 grep했고, 조정이 필요하면 V5 승인 경로를 적었다.
+8. V3 규모: 초안 단계에서 `tools/gates/mutate_changed.py`의 `changed_defs`·`mutants`·`inventory`를 시뮬레이션 head에 돌려 대상 def 수·변이 수·인벤토리 test 수를 적었다(그 시점 gate에서 유효한 V3 대상 규칙으로). 바뀌는 def는 작게 유지했다 -- 인자를 넘기려고 호출부 def를 고치면 그 def도 V3 대상이 된다.
+9. 승인 줄: 동작을 바꾸거나 다른 Phase의 일을 당겨오는 card는 그것을 덮는 사용자 결정 승인 기록(`target_kind: decision`)이 `approval` 줄에 있다. design 승인은 '동작이 바뀌는 수정'을 범위에서 뺀 것이 있어 덮지 않는다 -- 기록의 범위 설명에 이 card id와 바뀌는 동작이 적혀 있는지 원문으로 확인했다.
+10. 범위 계약: '바뀐 파일·변경 0' 같은 범위·diff 계약은 '이 card `Change-Id` 커밋들의 diff'로 한정해 적었다(기준 커밋과 판정 대상 사이에 다른 card 커밋이 끼면 그 diff까지 걸린다).
+11. test 이름·모양: 새 test·보조 함수 이름은 card 접두(예: `_b26_`)로 기존 test와 겹치지 않고, 피검 함수는 test 본문에서 직접 부른다(`parametrize` 이름 문자열·모듈 상수 + `getattr`은 V3 인벤토리 간선으로 잡히지 않는다).
+12. 같음 판정: `__eq__`가 없는 객체나 프로세스마다 순서가 다른 `set`을 `==`로 비교하는 계약이 없다 -- 비교할 필드와 정렬·튜플화 규칙(정규화)을 계약에 적었다.
+13. red 모양: 각 계약의 base red가 허용 예외 타입(00-common §8.1)이다. `try/except Exception: pytest.fail`로 다른 예외를 `Failed`로 바꾸지 않고, 새 키워드 인자 직접 호출의 base `TypeError`는 red로 세지 않는다(red는 시그니처가 안 바뀌는 진입점이 맡는다).
 
 <!--
 양식의 정본은 docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md §11.2이고 필드 목록의 정본은
