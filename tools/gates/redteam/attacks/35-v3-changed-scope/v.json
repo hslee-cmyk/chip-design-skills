@@ -1,0 +1,365 @@
+{
+ "cases": [
+  {
+   "step": "unchanged-stmt-survivor",
+   "tool": "V3",
+   "kind": "control",
+   "subjects": [
+    "rt_engine.rt_calc"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_calc(x):\n    LOG.append(x * 3)\n    t = x + 1\n    return t\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_calc(x):\n    LOG.append(x * 3)\n    t = x + 2\n    return t\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_calc_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_calc\n\n\ndef test_rt_calc_scope():\n    # oracle (a) 구성: head rt_calc(x) = x + 2 -- 1 -> 3\n    assert rt_calc(1) == 3\n    # oracle (a) 구성: 음수 입력 -4 -> -2(LOG는 보지 않는다 -- 바뀌지 않은 문장 S의 변이를 살린다)\n    assert rt_calc(-4) == -2\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "kind": "control",
+    "message_contains": [
+     "\"verdict\": \"PASS\"",
+     "\"survivors\": []",
+     "\"not_targeted\": 4, \"targets_by_def\""
+    ],
+    "observed_equals": {
+     "lines": 10,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_calc:arith:body[0].value.args[0]",
+       "rt_engine:rt_calc:const+:body[0].value.args[0].right",
+       "rt_engine:rt_calc:const-:body[0].value.args[0].right",
+       "rt_engine:rt_calc:stmt_delete:body[0]"
+      ]
+     }
+    },
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1·4·5·8(a): 기존 def rt_calc에서 `t = x + 1` -> `t = x + 2`만 바꿈(replace 구간 -- 새 문장 body[1], 지운 문장의 삭제 지점 head j=2). oracle (a) 구성 -- 계약 1을 손으로 적용한 대상 6 = T1 body[1]의 stmt_delete·arith body[1].value·const+/- body[1].value.right(4), T6 가 삭제 지점 바로 뒤 body[2] `return t`의 stmt_delete(1, T6 나도 같은 문장), T5 early_return body[0](1). 대상 밖 4 = 바뀌지 않은 S `LOG.append(x * 3)`(body[0] -- C 바로 뒤가 아니고 C 앞이라 T6 나 밖, 조상 아님)의 stmt_delete·arith body[0].value.args[0]·const+/- body[0].value.args[0].right. test rt_calc(1)==3·rt_calc(-4)==-2는 대상 6을 모두 죽이고(NameError·-1·4·2·None·None) LOG를 보지 않아 S의 4개는 산다 -> 대상 생존 0, PASS(exit 0), not_targeted 4(계약 5 키 순서: 뒤가 targets_by_def). 관찰 out_jsonl: 대상 6 + not_targeted 4 = 10줄, killed·survived 밖은 not_targeted 4 id(오름차순). red: base 도구는 def 전체를 변이해 S의 4개가 생존 -> exit 1"
+   },
+   "observe": "out_jsonl"
+  },
+  {
+   "step": "changed-stmt-survivor",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_b"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_b(x):\n    t = x + 1\n    return t\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_b(x):\n    t = x + 1\n    LOG.append(t)\n    return t\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_b_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_b\n\n\ndef test_rt_b_scope():\n    # oracle (a) 구성: rt_b(x) = x + 1 -- 1 -> 2(LOG는 보지 않는다 -- 새 문장 삭제 X를 살린다)\n    assert rt_b(1) == 2\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_b:stmt_delete:body[1]\"]"
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T1)·4·8(b): base `t = x + 1`/`return t` 사이에 새 문장 `LOG.append(t)`(head body[1], insert) 삽입. oracle (a) 구성 -- 대상 2 = T1 body[1] stmt_delete(X, 그 문장에 다른 변이 없음), T5 early_return body[0]. T6 나: 새 문장이 바꾸는 이름 LOG(메서드 수신자)를 뒤 `return t`가 읽지 않음. 대상 밖 5 = body[0]의 stmt_delete·arith·const+/-(4), body[2] stmt_delete(1). test rt_b(1)==2는 early_return(None)을 죽이고 LOG를 보지 않아 X만 생존 -> exit 1, survivors [X]. 바뀐 문장을 대상에서 빼는 구현은 X가 not_targeted -> exit 0. base 도구도 대상 밖 5개를 모두 죽여(NameError·0·3·1·None) 같은 X 하나만 생존 -- 회귀 방지 단계"
+   }
+  },
+  {
+   "step": "enclosing-guard-survivor",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_c"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_c(a, b):\n    r = 0\n    if a < b or True:\n        r = a + 1\n    return r\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_c(a, b):\n    r = 0\n    if a < b or True:\n        r = a + 2\n    return r\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_c_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_c\n\n\ndef test_rt_c_scope():\n    # oracle (a) 구성: `or True`라 if 본문이 항상 돈다 -- r = a + 2, 1 -> 3\n    assert rt_c(1, 5) == 3\n    # oracle (a) 구성: a >= b여도 같은 경로 -- 5 -> 7\n    assert rt_c(5, 1) == 7\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]\"]"
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T4)·4·8(c): `if a < b or True:` 안의 `r = a + 1` -> `r = a + 2`만 바꿈(if는 머리 같은 짝, 본문 replace -- 새 문장 body[1].body[0], 삭제 지점 그 본문 j=1 -- 뒤 문장 없음). oracle (a) 구성 -- 대상 7 = T1 body[1].body[0]의 stmt_delete·arith·const+/-(4), T4 감싸는 if의 몫 stmt_delete body[1]·cmp_flip body[1].test.values[0].ops[0](X)(2 -- True는 bool이라 상수 변이 없음), T5 early_return(1). T6 나: 새 문장이 바꾸는 r을 같은 블록(if 본문) 뒤에서 읽는 문장 없음(`return r`은 다른 블록 -- 놓침 ②). 대상 밖 4 = body[0] `r = 0`의 stmt_delete·const+/-, body[2] stmt_delete. test는 X(`or True`로 등가 -- 비교를 어떻게 뒤집어도 조건이 참)만 살리고 나머지 대상 6을 죽인다(0·-1·4·2·0·None) -> survivors [X]. 감싸는 제어문을 빼는 구현은 X가 대상 밖 -> exit 0. base 도구는 `r = 0`의 stmt_delete·const+/-도 생존(if가 항상 r을 덮음) -> 조각 불일치"
+   }
+  },
+  {
+   "step": "unwrapped-stmt",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_d"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_d(x):\n    y = x + 1\n    if x > -1000:\n        LOG.append(y)\n    return y\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_d(x):\n    y = x + 1\n    LOG.append(y)\n    return y\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_d_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_d\n\n\ndef test_rt_d_scope():\n    # oracle (a) 구성: rt_d(x) = x + 1 -- 1 -> 2(LOG는 보지 않는다 -- 내어쓴 문장의 삭제 X를 살린다)\n    assert rt_d(1) == 2\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_d:stmt_delete:body[1]\"]"
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T1 -- 들여쓰기만 바뀐 문장은 새 문장)·4·8(d): 감싸던 `if x > -1000:`를 없애 `LOG.append(y)`를 내어씀(replace 구간 -- head 단순문 body[1]은 새 문장, base if는 지운 문장, 삭제 지점 j=2). oracle (a) 구성 -- 대상 3 = T1 body[1] stmt_delete(X), T6 가 body[2] `return y` stmt_delete, T5 early_return. 대상 밖 4 = body[0] `y = x + 1`의 stmt_delete·arith·const+/-. test rt_d(1)==2는 None을 돌려주는 두 변이를 죽이고 LOG를 보지 않아 X만 생존 -> survivors [X]. 내어쓴 문장을 '바뀌지 않음'으로 보는 구현은 X가 대상 밖 -> exit 0. base 도구도 대상 밖 4개를 죽여(NameError·0·3·1) 같은 X 하나 -- 회귀 방지 단계"
+   }
+  },
+  {
+   "step": "header-only-change",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_e"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_e(xs):\n    out = []\n    for v in [w for w in xs if w > -3]:\n        out.append(v * 2)\n    return out\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_e(xs):\n    out = []\n    for v in [w for w in xs if w > -1]:\n        out.append(v * 2)\n    return out\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_e_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_e\n\n\ndef test_rt_e_scope():\n    # oracle (a) 구성: 필터 w > -1을 통과한 0·1·2를 두 배 -- [0, 2, 4](-1과 -2 사이 입력이 없어 -2 경계는 구별되지 않는다)\n    assert rt_e([0, 1, 2]) == [0, 2, 4]\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand\"]"
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T2)·4·8(e): for 머리의 컴프리헨션 필터 `w > -3` -> `w > -1`만 바꾸고 본문 불변(같은 종류 복합문 짝, 머리 변경, 본문 equal). oracle (a) 구성 -- 대상 5 = T2 for의 몫: stmt_delete body[1], cmp_flip body[1].iter.generators[0].ifs[0].ops[0], const+/- body[1].iter.generators[0].ifs[0].comparators[0].operand(-1은 UnaryOp(-, 1) -- 상수는 operand 1), T5 early_return. T6 나: 머리가 바꾸는 이름 v·w를 같은 블록 뒤 `return out`이 읽지 않음. 대상 밖 6 = body[0] stmt_delete, 본문 `out.append(v * 2)`의 stmt_delete·arith·const+/-, body[2] stmt_delete. test rt_e([0, 1, 2])==[0, 2, 4]: const+(-2)는 같은 결과로 생존(X), const-(w > 0)은 [2, 4], 비교 뒤집기는 0을 남기지 않음, for 삭제는 [], early_return은 None -> survivors [X]. 머리만 바뀐 복합문을 빼는 구현은 X가 대상 밖 -> exit 0. base 도구도 대상 밖 6개를 죽여 같은 X 하나 -- 회귀 방지 단계"
+   }
+  },
+  {
+   "step": "header-default-bool",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_f"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_f(x, strict=False):\n    if strict:\n        raise ValueError(x)\n    return x\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_f(x, strict=True):\n    if strict:\n        raise ValueError(x)\n    return x\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"mutants\": 2, \"killed\"",
+     "\"rt_engine:rt_f:stmt_delete:body[0]\"",
+     "\"rt_engine:rt_f:early_return:body[0]\""
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T3·T5)·2·4·5·8(f): def 머리의 기본값만 `strict=False` -> `strict=True`(def 머리 변경, 바뀐 매개변수 = strict -- 기본값 지문이 다름), 본문 불변, rt_f에 닿는 test 없음. oracle (a) 구성 -- 대상 2 = T3 def 자기 필드(기본값 True/False는 bool -- 변이 없음) + strict를 읽는 `if strict:`의 몫 stmt_delete body[0](자기 필드 test에 변이 없음), T5 early_return body[0]. 대상 밖 2 = body[0].body[0] `raise` stmt_delete, body[1] `return x` stmt_delete. 인벤토리 없음 -> 대상 2개 모두 생존 -> FAIL(exit 1), mutants = 대상 수 2(계약 5 키 순서로 뒤 killed까지 붙여 20~29와 구별), 대상 id 각각(순서 무관). 대상 0개를 허용하는 구현은 mutants 0 -> exit 0. base 도구는 def 전체 4개 -> 조각 불일치"
+   }
+  },
+  {
+   "step": "delete-then-use",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_g"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_g(x):\n    LOG.append(x)\n    x = abs(x)\n    return str(x)\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_g(x):\n    LOG.append(x)\n    return str(x)\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_g_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import LOG, rt_g\n\n\ndef test_rt_g_scope():\n    n = len(LOG)\n    rt_g(3)\n    # oracle (a) 구성: rt_g는 호출마다 LOG에 입력 하나를 더한다 -- 3이 한 번(반환값은 보지 않는다 -- 뒤 문장 삭제 X를 살린다)\n    assert LOG[n:] == [3]\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_g:stmt_delete:body[1]\"]"
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T6 가)·4·6·8(g): 같은 블록에서 `x = abs(x)`만 지움(delete -- 삭제 지점 head j=1). oracle (a) 구성 -- 대상 2 = T6 가 바로 뒤 `return str(x)`(body[1])의 stmt_delete(X, 다른 변이 없음 -- T6 나도 같은 문장), T5 early_return body[0]. 대상 밖 1 = body[0] `LOG.append(x)` stmt_delete. test는 rt_g(3) 뒤 LOG에 [3]만 더해졌는지 본다 -- early_return은 LOG에 더하지 않아 죽고 X(return 삭제 -> None)는 반환값을 안 봐서 생존 -> survivors [X]. 삭제 지점 뒤 문장을 빼는 구현은 X가 대상 밖 -> exit 0. base 도구도 body[0] 삭제를 LOG로 죽여 같은 X 하나 -- 회귀 방지 단계"
+   }
+  },
+  {
+   "step": "decorator-mutant-applied",
+   "tool": "V3",
+   "kind": "control",
+   "subjects": [
+    "rt_engine.rt_h"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_h(x):\n    return x * 2\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\n@functools.lru_cache(maxsize=128)\ndef rt_h(x):\n    return x * 2\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_h_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_h\n\n\ndef test_rt_h_scope():\n    # oracle (a) 구성: head 데코레이터 lru_cache(maxsize=128) -- cache_info().maxsize는 선언값 128\n    assert rt_h.cache_info().maxsize == 128\n    # oracle (a) 구성: rt_h(x) = 2x -- 3 -> 6\n    assert rt_h(3) == 6\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "kind": "control",
+    "message_contains": [
+     "\"verdict\": \"PASS\"",
+     "\"survivors\": []"
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T3)·9·8(h): 데코레이터 `@functools.lru_cache(maxsize=128)`를 더함(def 머리 변경, 매개변수 불변, 본문 equal). oracle (a) 구성 -- 대상 3 = T3 자기 필드 const+/- decorator_list[0].keywords[0].value(127·129), T5 early_return. 대상 밖 4 = body[0] `return x * 2`의 stmt_delete·arith·const+/-. test가 cache_info().maxsize == 128과 rt_h(3) == 6을 보므로 데코레이터 변이가 소스에 실제로 적용되면(계약 9) 죽고 early_return(None)도 죽는다 -> PASS(exit 0). red: base 도구는 데코레이터 줄을 남겨 두 변이가 NOOP -> 생존 -> exit 1"
+   }
+  },
+  {
+   "step": "same-block-later-use",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_i"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_i(x):\n    mode = \"fast\"\n    LOG.append(x)\n    if mode == \"exact\":\n        r = x * 2 + 1\n    else:\n        r = x * 2 + 1\n    return r\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_i(x):\n    mode = \"exact\"\n    LOG.append(x)\n    if mode == \"exact\":\n        r = x * 2 + 1\n    else:\n        r = x * 2 + 1\n    return r\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_i_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import LOG, rt_i\n\n\ndef test_rt_i_scope():\n    n = len(LOG)\n    # oracle (a) 구성: 두 가지 모두 r = 2x + 1 -- 3 -> 7\n    assert rt_i(3) == 7\n    # oracle (a) 구성: rt_i는 호출마다 LOG에 입력 하나를 더한다 -- [3]\n    assert LOG[n:] == [3]\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_i:cmp_flip:body[2].test.ops[0]\"]"
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T6 나)·4·8(i): `mode = \"fast\"` -> `mode = \"exact\"`만 바꿈(replace -- 새 문장 body[0], 삭제 지점 j=1). 바뀌지 않은 `LOG.append(x)`(mode를 읽지 않음) 하나를 건너 같은 블록의 `if mode == \"exact\":`. oracle (a) 구성 -- 대상 5 = T1 body[0] stmt_delete(문자열 상수는 변이 없음), T6 가 body[1] stmt_delete, T6 나 mode를 읽는 if의 몫 stmt_delete body[2]·cmp_flip body[2].test.ops[0](X), T5 early_return. 대상 밖 15 = 두 가지 안 `r = x * 2 + 1` 각각의 stmt_delete·arith 2·const+/- 2개 상수(7씩, 다른 블록), body[3] `return r` stmt_delete. test rt_i(3)==7·LOG[n:]==[3]: mode 삭제 NameError, LOG 삭제, if 삭제(r 미정의), early_return이 죽고 X(두 가지가 같은 값 -- 등가)만 생존 -> survivors [X]. T6를 바로 뒤 문장만으로 둔 구현(승인 당시 정의)은 X가 대상 밖 -> exit 0. base 도구는 실행되지 않는 else 가지 변이도 생존 -> 조각 불일치"
+   }
+  },
+  {
+   "step": "loop-carried-use",
+   "tool": "V3",
+   "kind": "attack",
+   "subjects": [
+    "rt_engine.rt_j"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_j(xs):\n    out = []\n    acc = 0\n    for x in xs:\n        LOG.append(acc)\n        out.append(acc)\n        acc = x + 1\n    return out\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_j(xs):\n    out = []\n    acc = 0\n    for x in xs:\n        LOG.append(acc)\n        out.append(acc)\n        acc = x + 2\n    return out\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_j_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import rt_j\n\n\ndef test_rt_j_scope():\n    # oracle (a) 구성: 회차마다 직전 acc를 내고 acc = x + 2 -- 첫 회차 0, 둘째 1 + 2 = 3 -> [0, 3](LOG는 보지 않는다)\n    assert rt_j([1, 5]) == [0, 3]\n"
+    }
+   },
+   "expect": {
+    "exit": 1,
+    "layer": "V3",
+    "message_contains": [
+     "\"verdict\": \"FAIL\"",
+     "\"survivors\": [\"rt_engine:rt_j:stmt_delete:body[2].body[0]\"]"
+    ],
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1(T6 나 반복문 규칙)·4·8(j): for 본문 뒤쪽 `acc = x + 1` -> `acc = x + 2`만 바꿈(for는 머리 같은 짝, 본문 replace -- 새 문장 body[2].body[2], 삭제 지점 j=3 -- 뒤 문장 없음). oracle (a) 구성 -- 대상 8 = T1 body[2].body[2]의 stmt_delete·arith·const+/-(4), T4 for의 몫 stmt_delete body[2](자기 필드 x·xs에 변이 없음), T6 나 반복문 본문이라 위치와 무관하게 acc를 읽는 앞쪽 `LOG.append(acc)`(body[2].body[0], X)·`out.append(acc)`(body[2].body[1])의 stmt_delete, T5 early_return. 대상 밖 5 = body[0] stmt_delete, body[1] `acc = 0`의 stmt_delete·const+/-, body[3] stmt_delete. test rt_j([1, 5])==[0, 3]: 바꾼 문장 변이([0, 0]·[0, -1]·[0, 4]·[0, 2]), for 삭제([]), out.append 삭제([]), early_return(None)이 죽고 LOG를 보지 않아 X만 생존 -> survivors [X]. 반복문 앞쪽 규칙이 없는 구현은 X가 대상 밖 -> exit 0. base 도구도 대상 밖 5개를 죽여(NameError·UnboundLocalError·[1, 3]·[-1, 3]·None) 같은 X 하나 -- 회귀 방지 단계"
+   }
+  },
+  {
+   "step": "cross-block-not-targeted",
+   "tool": "V3",
+   "kind": "control",
+   "subjects": [
+    "rt_engine.rt_k"
+   ],
+   "base": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_k(x):\n    y = 0\n    if x > 0:\n        y = x * 2\n        LOG.append(y)\n    return y + 1\n"
+    }
+   },
+   "head": {
+    "skills/analog-gmid-design/assets/rt_engine.py": {
+     "text": "\"\"\"rt.\"\"\"\nimport functools\n\nLOG = []\n\n\ndef rt_gain(gm, ro):\n    \"\"\"이득.\"\"\"\n    return gm * ro\n\n\ndef rt_k(x):\n    y = 0\n    if x > 0:\n        y = x * 3\n        LOG.append(y)\n    return y + 1\n"
+    },
+    "skills/analog-gmid-design/assets/tests/test_rt_k_scope.py": {
+     "text": "import sys\nfrom pathlib import Path\n\nsys.path.insert(0, str(Path(__file__).resolve().parents[1]))\nfrom rt_engine import LOG, rt_k\n\n\ndef test_rt_k_scope():\n    n = len(LOG)\n    rt_k(1)\n    rt_k(-0.5)\n    rt_k(0)\n    rt_k(0.5)\n    # oracle (a) 구성: x > 0일 때만 LOG에 3x를 더한다 -- 1 -> 3, -0.5·0 -> 없음, 0.5 -> 1.5(반환값은 보지 않는다)\n    assert LOG[n:] == [3, 1.5]\n"
+    }
+   },
+   "expect": {
+    "exit": 0,
+    "layer": "V3",
+    "kind": "control",
+    "message_contains": [
+     "\"verdict\": \"PASS\"",
+     "\"survivors\": []",
+     "\"not_targeted\": 7, \"targets_by_def\""
+    ],
+    "observed_equals": {
+     "lines": 17,
+     "by_result": {
+      "not_targeted": [
+       "rt_engine:rt_k:arith:body[2].value",
+       "rt_engine:rt_k:const+:body[0].value",
+       "rt_engine:rt_k:const+:body[2].value.right",
+       "rt_engine:rt_k:const-:body[0].value",
+       "rt_engine:rt_k:const-:body[2].value.right",
+       "rt_engine:rt_k:stmt_delete:body[0]",
+       "rt_engine:rt_k:stmt_delete:body[2]"
+      ]
+     }
+    },
+    "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1·4·5·6·8(k) -- 승인한 약화의 경계(놓침 ②): if 본문의 `y = x * 2` -> `y = x * 3`만 바꿈(if 머리 같은 짝, 본문 replace -- 새 문장 body[1].body[0], 삭제 지점 그 본문 j=1). oracle (a) 구성 -- 대상 10 = T1 body[1].body[0]의 stmt_delete·arith·const+/-(4), T4 if의 몫 stmt_delete body[1]·cmp_flip body[1].test.ops[0]·const+/- body[1].test.comparators[0](4), T6 가 body[1].body[1] `LOG.append(y)` stmt_delete(1, T6 나도 같은 문장), T5 early_return(1). 대상 밖 7 = body[0] `y = 0`의 stmt_delete·const+/-, 바깥 블록 `return y + 1`(Y -- 바뀐 y를 다른 블록에서 읽음)의 stmt_delete·arith·const+/-. test는 rt_k(1)·rt_k(-0.5)·rt_k(0)·rt_k(0.5) 뒤 LOG에 [3, 1.5]가 더해졌는지만 본다 -- 대상 10은 모두 LOG를 바꾼다([0, 0]·[1/3, 1/6]·[4, 2.0]·[2, 1.0]·[]·비교 뒤집기는 x <= 0 쪽이나 0을 더함·상수 +1(x > 1)은 [], -1(x > -1)은 [3, -1.5, 0, 1.5]·LOG 삭제 []·early_return []), 반환값을 안 봐 Y는 산다 -> 대상 생존 0, PASS(exit 0), not_targeted 7. 관찰 out_jsonl: 10 + 7 = 17줄, not_targeted 7 id(오름차순, Y 4개 포함). 다른 블록까지 넓힌 구현은 Y가 대상이 되어 생존 -> exit 1(승인 범위와 다른 규칙). red: base 도구는 Y가 생존 -> exit 1"
+   },
+   "observe": "out_jsonl"
+  }
+ ]
+}

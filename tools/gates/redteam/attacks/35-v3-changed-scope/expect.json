@@ -1,0 +1,12 @@
+{
+ "layer": "V3",
+ "exit": 1,
+ "message_contains": [],
+ "modes": [
+  "direct"
+ ],
+ "phase": "0.5",
+ "basis": "spec card 20260930-v3-changed-stmt-scope 계약 1~6·8·9, oracle (a)(구성으로 정답이 정해진 합성 저장소 -- 단계마다 base def -> head def 한 곳만 바꾸고, 계약 1을 손으로 적용한 대상 변이 중 겨냥한 X가 유일 생존(attack)이거나 대상 생존 0(control)이 되게 test를 고른다. 같은 지문의 문장을 한 def 안에 반복하지 않는다)",
+ "title": "공격 35: V3 대상이 해시가 바뀐 기존 def의 바뀐 문장과 그 주변(감싸는 제어문·바로 뒤 문장·같은 블록 뒤쪽 사용·반복문 본문·머리 변경 몫·early_return)으로 좁혀지고, 대상 밖 변이는 실행하지 않고 not_targeted로 싣는다",
+ "steps_from_records": true
+}
