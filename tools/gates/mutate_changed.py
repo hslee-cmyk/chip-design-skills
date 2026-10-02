@@ -3,7 +3,10 @@
     $PY mutate_changed.py --root <격리 복제본 루트> --base <커밋> --head <커밋> --pytest-ini <캐시>/pytest_gate.ini
                           [--python <인터프리터>] [--timeout <초>] [--out <결과 jsonl>]
 
-① diff가 닿은 `def` 중 `ast.dump`(docstring 제외) 해시가 base와 다른 것(새 def 포함)
+① 대상 = diff가 닿은 `def` 중 `ast.dump`(docstring 제외) 해시가 base와 다른 것. 새 def는 본문 전체, 기존 def는
+   바뀐 문장·감싸는 제어문·바꾸거나 지운 문장 자리 바로 뒤 문장·같은 블록 뒤쪽(반복문 본문이면 그 본문 전체)에서
+   바뀐 이름을 읽는 문장·def 머리 변경 몫·`early_return`(정의: spec card 20260930-v3-changed-stmt-scope 계약 1).
+   대상 밖 변이는 실행하지 않고 수와 id만 출력한다(`not_targeted`, 판정 제외)
 ② 연산자: 비교 뒤집기, 산술 교체(`+↔-`, `*↔/`), 상수 변경(정수 ±1, 실수는 표기된 마지막 자릿수 한 단위 ±),
    문장 삭제, 조기 `return`, `except` 본문 삭제
 ③ 인벤토리 = 정적 호출 그래프(V7 `reachability.build_graph`)에서 그 함수에 도달하는 test 함수
@@ -19,6 +22,7 @@ from __future__ import annotations
 
 import ast
 import copy
+import difflib
 import hashlib
 import json
 import os
@@ -242,16 +246,268 @@ def mutants(fn, src_text):
 
 
 def _replace_def(src, fn, new_fn):
-    """소스에서 fn의 줄 범위를 new_fn의 unparse로 바꾼다(데코레이터 줄은 유지)."""
+    """소스에서 fn의 줄 범위(첫 데코레이터 줄부터 end_lineno)를 new_fn(데코레이터 포함)의 unparse로 바꾼다."""
     lines = src.split("\n")
-    start = fn.lineno - 1
+    start = min([fn.lineno] + [d.lineno for d in fn.decorator_list]) - 1
     end = fn.end_lineno
     ind = len(lines[start]) - len(lines[start].lstrip())
     nf = copy.deepcopy(new_fn)
-    nf.decorator_list = []
     text = ast.unparse(ast.fix_missing_locations(nf))
     new = [(" " * ind + l) if l.strip() else l for l in text.split("\n")]
     return "\n".join(lines[:start] + new + lines[end:])
+
+
+# ---------------------------------------------------------------- 대상 분류(spec card 20260930-v3-changed-stmt-scope 계약 1)
+_BLOCKS = ("body", "orelse", "finalbody", "handlers", "cases")
+_LOOPS = (ast.For, ast.AsyncFor, ast.While)
+
+
+def _blk(n, f):
+    v = getattr(n, f, None)
+    return v if isinstance(v, list) else []
+
+
+def _is_compound(n):
+    return any(_blk(n, f) for f in _BLOCKS)
+
+
+def _field(comp):
+    return comp.split("[", 1)[0]
+
+
+def _elem_path(owner_path, field, i):
+    return "%s.%s[%d]" % (owner_path, field, i) if owner_path else "%s[%d]" % (field, i)
+
+
+def _prefixes(path):
+    """경로의 비지 않은 누적 접두(`body[2].orelse[0]` -> `body[2]`, `body[2].orelse[0]`)."""
+    comps = path.split(".") if path else []
+    return [".".join(comps[:k]) for k in range(1, len(comps) + 1)]
+
+
+def _lead_name(n):
+    """`self.x`·`d[k]`·`out.append`의 맨 앞 Name id(없으면 None)."""
+    while isinstance(n, (ast.Attribute, ast.Subscript)):
+        n = n.value
+    return n.id if isinstance(n, ast.Name) else None
+
+
+def _scan_roots(n):
+    """복합문은 자기 필드(블록 필드 밖), 단순문은 부분 트리 전체."""
+    if not _is_compound(n):
+        return [n]
+    roots = []
+    for f, v in ast.iter_fields(n):
+        if f in _BLOCKS:
+            continue
+        if isinstance(v, list):
+            roots.extend(x for x in v if isinstance(x, ast.AST))
+        elif isinstance(v, ast.AST):
+            roots.append(v)
+    return roots
+
+
+def _reads(n):
+    """문장 n이 읽는 이름(단순문은 부분 트리, 복합문은 자기 필드의 `Name(Load)`)."""
+    out = set()
+    for r in _scan_roots(n):
+        for x in ast.walk(r):
+            if isinstance(x, ast.Name) and isinstance(x.ctx, ast.Load):
+                out.add(x.id)
+    return out
+
+
+def _writes(roots, extra_handler=None):
+    """바꾸는 이름 ⓐ~ⓓ(계약 1 용어). `roots` = 훑을 노드들, `extra_handler` = 자기 필드만 훑는 except 절."""
+    out = set()
+    if isinstance(extra_handler, ast.ExceptHandler) and extra_handler.name:
+        out.add(extra_handler.name)
+    for r in roots:
+        for x in ast.walk(r):
+            if isinstance(x, ast.Name) and isinstance(x.ctx, (ast.Store, ast.Del)):
+                out.add(x.id)
+            elif isinstance(x, (ast.Attribute, ast.Subscript)) and isinstance(x.ctx, (ast.Store, ast.Del)):
+                nm = _lead_name(x.value)
+                if nm:
+                    out.add(nm)
+            elif isinstance(x, ast.Call) and isinstance(x.func, ast.Attribute):
+                nm = _lead_name(x.func.value)
+                if nm:
+                    out.add(nm)
+            elif isinstance(x, ast.ExceptHandler) and x.name:
+                out.add(x.name)
+    return out
+
+
+def _params(fn):
+    """매개변수 이름 -> (종류, 위치, 기본값 지문, 주석 지문). 위치 전용·일반은 이은 위치 인자 순번, 키워드 전용은 그 목록 안 순번."""
+    a = fn.args
+    d = lambda x: ast.dump(x, include_attributes=False) if x is not None else None
+    out = {}
+    pos = list(a.posonlyargs) + list(a.args)
+    defaults = [None] * (len(pos) - len(a.defaults)) + list(a.defaults)
+    npo = len(a.posonlyargs)
+    for i, (p, df) in enumerate(zip(pos, defaults)):
+        out[p.arg] = ("posonly" if i < npo else "arg", i, d(df), d(p.annotation))
+    if a.vararg:
+        out[a.vararg.arg] = ("vararg", 0, None, d(a.vararg.annotation))
+    for i, (p, df) in enumerate(zip(a.kwonlyargs, a.kw_defaults)):
+        out[p.arg] = ("kwonly", i, d(df), d(p.annotation))
+    if a.kwarg:
+        out[a.kwarg.arg] = ("kwarg", 0, None, d(a.kwarg.annotation))
+    return out
+
+
+class _Scope:
+    """해시가 바뀐 기존 def 하나의 대상 변이 판정(def마다 한 번 만든다 -- 변이 루프 안에서 다시 맞추지 않는다)."""
+
+    def __init__(self, base_fn, head_fn):
+        self.full = set()      # 부분 트리 전체가 대상인 문장 경로(새 문장, 대상 단순문)
+        self.shared = set()    # 몫만 대상인 복합문 경로(자기 필드·자기 stmt_delete·except_body_delete)
+        self.deleted = 0
+        self._fp_cache = {}
+        self._events = []
+        self.header_changed = self._head_fp(base_fn) != self._head_fp(head_fn)
+        self.root_self = self.header_changed
+        self._match(base_fn.body, head_fn.body, "", "body", head_fn)
+        self._select(head_fn, base_fn)
+
+    # -- 지문
+    def _fp(self, n):
+        k = id(n)
+        if k not in self._fp_cache:
+            self._fp_cache[k] = ast.dump(n, include_attributes=False)
+        return self._fp_cache[k]
+
+    @staticmethod
+    def _head_fp(n):
+        c = copy.copy(n)
+        for f in _BLOCKS:
+            if isinstance(getattr(c, f, None), list):
+                setattr(c, f, [])
+        return ast.dump(c, include_attributes=False)
+
+    # -- 맞춤
+    def _match(self, base_list, head_list, owner_path, field, owner):
+        if not base_list and not head_list:
+            return
+        sm = difflib.SequenceMatcher(None, [self._fp(x) for x in base_list], [self._fp(x) for x in head_list],
+                                     autojunk=False)
+        for tag, i1, i2, j1, j2 in sm.get_opcodes():
+            if tag == "equal":
+                continue
+            if tag == "insert":
+                for j in range(j1, j2):
+                    self._events.append(("new", owner_path, field, head_list, j, head_list[j], None, owner))
+            elif tag == "delete":
+                for i in range(i1, i2):
+                    self._del(owner_path, field, head_list, j1, base_list[i], owner)
+            else:
+                free = list(range(i1, i2))
+                for j in range(j1, j2):
+                    h = head_list[j]
+                    pair = None
+                    if _is_compound(h):
+                        cands = [i for i in free if type(base_list[i]) is type(h) and _is_compound(base_list[i])]
+                        hh = self._head_fp(h)
+                        same = [i for i in cands if self._head_fp(base_list[i]) == hh]
+                        pair = same[0] if same else (cands[0] if cands else None)
+                    if pair is None:
+                        self._events.append(("new", owner_path, field, head_list, j, h, None, owner))
+                        continue
+                    free.remove(pair)
+                    b = base_list[pair]
+                    hp = _elem_path(owner_path, field, j)
+                    if self._head_fp(b) != self._head_fp(h):
+                        self._events.append(("hdr", owner_path, field, head_list, j, h, b, owner))
+                    for f in _BLOCKS:
+                        self._match(_blk(b, f), _blk(h, f), hp, f, h)
+                for i in free:
+                    self._del(owner_path, field, head_list, j2, base_list[i], owner)
+
+    def _del(self, owner_path, field, head_list, j, base_node, owner):
+        self.deleted += 1
+        self._events.append(("del", owner_path, field, head_list, j, None, base_node, owner))
+
+    # -- 대상 집합 만들기(T1~T4, T6)
+    def _add_share(self, path, node):
+        (self.shared if _is_compound(node) else self.full).add(path)
+
+    def _select(self, head_fn, base_fn):
+        reads_cache = {}
+
+        def reads(n):
+            k = id(n)
+            if k not in reads_cache:
+                reads_cache[k] = _reads(n)
+            return reads_cache[k]
+
+        for kind, owner_path, field, lst, j, h, b, owner in self._events:
+            # T4: 영역(또는 삭제 지점)을 감싸는 모든 복합문 -- 대상 def 자신은 뺀다
+            for p in _prefixes(owner_path):
+                self.shared.add(p)
+            loop_body = isinstance(owner, _LOOPS) and field == "body"
+            if kind == "new":
+                self.full.add(_elem_path(owner_path, field, j))               # T1
+                names = _writes([h])
+                after = j + 1
+            elif kind == "hdr":
+                self.shared.add(_elem_path(owner_path, field, j))             # T2
+                names = _writes(_scan_roots(h) + _scan_roots(b), extra_handler=None)
+                for x in (h, b):
+                    if isinstance(x, ast.ExceptHandler) and x.name:
+                        names.add(x.name)
+                after = j + 1
+            else:
+                if j < len(lst):                                              # T6 (가)
+                    self._add_share(_elem_path(owner_path, field, j), lst[j])
+                names = _writes([b])
+                after = j
+            if not names:
+                continue
+            for k, s in enumerate(lst):                                       # T6 (나)
+                if kind != "del" and k == j:
+                    continue
+                if not loop_body and k < after:
+                    continue
+                if reads(s) & names:
+                    self._add_share(_elem_path(owner_path, field, k), s)
+        if self.header_changed:                                               # T3
+            changed = set()
+            bp, hp = _params(base_fn), _params(head_fn)
+            for nm in set(bp) | set(hp):
+                if bp.get(nm) != hp.get(nm):
+                    changed.add(nm)
+            if changed:
+                def walk(node, path):
+                    for f in _BLOCKS:
+                        for i, e in enumerate(_blk(node, f)):
+                            ep = _elem_path(path, f, i)
+                            if reads(e) & changed:
+                                self._add_share(ep, e)
+                            walk(e, ep)
+                walk(head_fn, "")
+
+    def targets(self, opname, npath):
+        """변이 (연산자, 경로)가 대상인가."""
+        if opname == "early_return":                                          # T5
+            return True
+        node_path = re.sub(r"\.ops\[\d+\]$", "", npath) if opname == "cmp_flip" else npath
+        comps = node_path.split(".") if node_path else []
+        if self.root_self and comps and _field(comps[0]) not in _BLOCKS:     # T3 def 자기 필드
+            return True
+        for k in range(1, len(comps) + 1):
+            pre = ".".join(comps[:k])
+            if pre in self.full:
+                return True
+            if pre in self.shared:
+                rest = comps[k:]
+                if not rest:
+                    if opname in ("stmt_delete", "except_body_delete"):
+                        return True
+                elif _field(rest[0]) not in _BLOCKS:
+                    return True
+        return False
 
 
 def test_nodeid(nid):
@@ -373,6 +629,7 @@ def main(argv):
         os.makedirs(pyc)
         survivors, killed, results = [], 0, []
         survivor_bindings, exempt_ignored = [], []
+        not_targeted_n, targets_by_def = 0, {}
         baseline_ok = {}
         strict_for_inv = {}
         # C11(design §6.10): conftest가 --gmid-phase를 모르면(C6 전 모양) 옵션을 넘기지 않는다 -- merge gate
@@ -408,6 +665,12 @@ def main(argv):
             rc = subprocess.run(["git", "-C", root, "cat-file", "-e", "%s:%s" % (ns.base, path)], capture_output=True,
                                 env=dict(os.environ, GIT_NO_REPLACE_OBJECTS="1")).returncode
             base_src = rch._git(root, ["show", "%s:%s" % (ns.base, path)]).decode("utf-8") if rc == 0 else None
+            base_defs = {}
+            if base_src is not None:
+                try:
+                    base_defs = dict(rch.iter_defs(ast.parse(base_src)))
+                except SyntaxError:
+                    base_defs = {}
             modname = rch.module_name(path)
             fpath = os.path.join(work, *path.split("/"))
             for q, fn in changed_defs(base_src, head_src):
@@ -420,9 +683,22 @@ def main(argv):
                         raise BaselineFailed(inv, base_code)
                     baseline_ok[tuple(inv)] = True
                 fn_bind = bind_hash(fn)   # def마다 한 번
+                # 대상 분류도 def마다 한 번(새 def = 본문 전체). 맞추는 트리는 head·base def 노드 원본(docstring 포함)
+                scope = _Scope(base_defs[q], fn) if q in base_defs else None
+                stat = {"targeted": 0, "not_targeted": 0, "deleted_statements": scope.deleted if scope else 0,
+                        "def_header_changed": scope.header_changed if scope else False}
+                targets_by_def["%s::%s" % (path, q)] = stat
                 for opname, npath, mfn in mutants(fn, head_src):
                     mid = "%s:%s:%s:%s" % (modname, q, opname, npath)
-                    # (범위 card 35: 대상 밖 판정 -- not_targeted -- 은 이 호출 앞에 온다)
+                    if scope is not None and not scope.targets(opname, npath):
+                        # 대상 밖: 실행·면제 판정·인벤토리 생존 판정 없이 수와 id만 남긴다
+                        not_targeted_n += 1
+                        stat["not_targeted"] += 1
+                        if ns.out:
+                            with open(ns.out, "a", encoding="utf-8") as fh:
+                                fh.write(json.dumps({"id": mid, "result": "not_targeted"}, ensure_ascii=False) + "\n")
+                        continue
+                    stat["targeted"] += 1
                     ex_rec, ignored = exempt_decision(mid, fn_bind, approved_idx)
                     exempt_ignored.extend(ignored)
                     if ex_rec is not None:
@@ -464,7 +740,8 @@ def main(argv):
             _rmtree_force(tmp)
     print(json.dumps({"tool": "V3", "verdict": "FAIL" if survivors else "PASS", "targets": targets,
                       "mutants": len(results), "killed": killed, "survivors": survivors,
-                      "survivor_bindings": survivor_bindings, "exempt_ignored": exempt_ignored},
+                      "survivor_bindings": survivor_bindings, "exempt_ignored": exempt_ignored,
+                      "not_targeted": not_targeted_n, "targets_by_def": targets_by_def},
                      ensure_ascii=False))
     return 1 if survivors else 0
 
