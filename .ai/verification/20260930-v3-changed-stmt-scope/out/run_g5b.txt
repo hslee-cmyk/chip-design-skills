@@ -1,0 +1,22 @@
+repo=C:\g244\iso
+log=C:\g244\iso\tools\gates\redteam\logs\20261002-162958-direct.jsonl
+
+PASS             16-plan-tables                               
+PASS             17-casefold-collision                        
+PASS             17-conftest-v5                               
+PASS             17-isolated-run                              
+PASS             17-judging-env-el1                           
+PASS             17-judging-env-el3-el4                       
+PASS             17-pytest-candidates                         
+PASS             17-v1-without-P                              
+SKIPPED          18-test-author-reads-source                  modes ['installed']에 direct 없음
+PASS             19a-merge-no-commit-then-add                 
+PASS             19b-role-doc-merge-without-role-commits      
+PASS             19c-merge-reverting-to-ancestor              
+PASS             19d-normal-merge                             
+PASS             19e-outside-merge-old-ancestor               
+PASS             19f-ours-reversal                            
+PASS             19g-octopus                                  
+
+케이스: {"PASS": 15, "SKIPPED": 1}
+단계: {"PASS": 97, "RECORD": 5}

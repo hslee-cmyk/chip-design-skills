@@ -1,0 +1,256 @@
+{
+ "unchanged-stmt-survivor": {
+  "proto_N2w": [
+   "rt_engine:rt_calc:stmt_delete:body[1]",
+   "rt_engine:rt_calc:stmt_delete:body[2]",
+   "rt_engine:rt_calc:arith:body[1].value",
+   "rt_engine:rt_calc:const+:body[1].value.right",
+   "rt_engine:rt_calc:const-:body[1].value.right",
+   "rt_engine:rt_calc:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_calc:stmt_delete:body[1]",
+   "rt_engine:rt_calc:stmt_delete:body[2]",
+   "rt_engine:rt_calc:arith:body[1].value",
+   "rt_engine:rt_calc:const+:body[1].value.right",
+   "rt_engine:rt_calc:const-:body[1].value.right",
+   "rt_engine:rt_calc:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_calc:stmt_delete:body[1]",
+   "rt_engine:rt_calc:stmt_delete:body[2]",
+   "rt_engine:rt_calc:arith:body[1].value",
+   "rt_engine:rt_calc:const+:body[1].value.right",
+   "rt_engine:rt_calc:const-:body[1].value.right",
+   "rt_engine:rt_calc:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "changed-stmt-survivor": {
+  "proto_N2w": [
+   "rt_engine:rt_b:stmt_delete:body[1]",
+   "rt_engine:rt_b:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_b:stmt_delete:body[1]",
+   "rt_engine:rt_b:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_b:stmt_delete:body[1]",
+   "rt_engine:rt_b:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "enclosing-guard-survivor": {
+  "proto_N2w": [
+   "rt_engine:rt_c:stmt_delete:body[1]",
+   "rt_engine:rt_c:stmt_delete:body[1].body[0]",
+   "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]",
+   "rt_engine:rt_c:arith:body[1].body[0].value",
+   "rt_engine:rt_c:const+:body[1].body[0].value.right",
+   "rt_engine:rt_c:const-:body[1].body[0].value.right",
+   "rt_engine:rt_c:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_c:stmt_delete:body[1]",
+   "rt_engine:rt_c:stmt_delete:body[1].body[0]",
+   "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]",
+   "rt_engine:rt_c:arith:body[1].body[0].value",
+   "rt_engine:rt_c:const+:body[1].body[0].value.right",
+   "rt_engine:rt_c:const-:body[1].body[0].value.right",
+   "rt_engine:rt_c:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_c:stmt_delete:body[1]",
+   "rt_engine:rt_c:stmt_delete:body[1].body[0]",
+   "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]",
+   "rt_engine:rt_c:arith:body[1].body[0].value",
+   "rt_engine:rt_c:const+:body[1].body[0].value.right",
+   "rt_engine:rt_c:const-:body[1].body[0].value.right",
+   "rt_engine:rt_c:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "unwrapped-stmt": {
+  "proto_N2w": [
+   "rt_engine:rt_d:stmt_delete:body[1]",
+   "rt_engine:rt_d:stmt_delete:body[2]",
+   "rt_engine:rt_d:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_d:stmt_delete:body[1]",
+   "rt_engine:rt_d:stmt_delete:body[2]",
+   "rt_engine:rt_d:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_d:stmt_delete:body[1]",
+   "rt_engine:rt_d:stmt_delete:body[2]",
+   "rt_engine:rt_d:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "header-only-change": {
+  "proto_N2w": [
+   "rt_engine:rt_e:stmt_delete:body[1]",
+   "rt_engine:rt_e:cmp_flip:body[1].iter.generators[0].ifs[0].ops[0]",
+   "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+   "rt_engine:rt_e:const-:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+   "rt_engine:rt_e:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_e:stmt_delete:body[1]",
+   "rt_engine:rt_e:cmp_flip:body[1].iter.generators[0].ifs[0].ops[0]",
+   "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+   "rt_engine:rt_e:const-:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+   "rt_engine:rt_e:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_e:stmt_delete:body[1]",
+   "rt_engine:rt_e:cmp_flip:body[1].iter.generators[0].ifs[0].ops[0]",
+   "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+   "rt_engine:rt_e:const-:body[1].iter.generators[0].ifs[0].comparators[0].operand",
+   "rt_engine:rt_e:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "header-default-bool": {
+  "proto_N2w": [
+   "rt_engine:rt_f:stmt_delete:body[0]",
+   "rt_engine:rt_f:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_f:stmt_delete:body[0]",
+   "rt_engine:rt_f:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_f:stmt_delete:body[0]",
+   "rt_engine:rt_f:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "delete-then-use": {
+  "proto_N2w": [
+   "rt_engine:rt_g:stmt_delete:body[1]",
+   "rt_engine:rt_g:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_g:stmt_delete:body[1]",
+   "rt_engine:rt_g:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_g:stmt_delete:body[1]",
+   "rt_engine:rt_g:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "decorator-mutant-applied": {
+  "proto_N2w": [
+   "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value",
+   "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value",
+   "rt_engine:rt_h:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value",
+   "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value",
+   "rt_engine:rt_h:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_h:const+:decorator_list[0].keywords[0].value",
+   "rt_engine:rt_h:const-:decorator_list[0].keywords[0].value",
+   "rt_engine:rt_h:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "same-block-later-use": {
+  "proto_N2w": [
+   "rt_engine:rt_i:stmt_delete:body[0]",
+   "rt_engine:rt_i:stmt_delete:body[1]",
+   "rt_engine:rt_i:stmt_delete:body[2]",
+   "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]",
+   "rt_engine:rt_i:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_i:stmt_delete:body[0]",
+   "rt_engine:rt_i:stmt_delete:body[1]",
+   "rt_engine:rt_i:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_i:stmt_delete:body[0]",
+   "rt_engine:rt_i:stmt_delete:body[1]",
+   "rt_engine:rt_i:stmt_delete:body[2]",
+   "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]",
+   "rt_engine:rt_i:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "loop-carried-use": {
+  "proto_N2w": [
+   "rt_engine:rt_j:stmt_delete:body[2]",
+   "rt_engine:rt_j:stmt_delete:body[2].body[0]",
+   "rt_engine:rt_j:stmt_delete:body[2].body[1]",
+   "rt_engine:rt_j:stmt_delete:body[2].body[2]",
+   "rt_engine:rt_j:arith:body[2].body[2].value",
+   "rt_engine:rt_j:const+:body[2].body[2].value.right",
+   "rt_engine:rt_j:const-:body[2].body[2].value.right",
+   "rt_engine:rt_j:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_j:stmt_delete:body[2]",
+   "rt_engine:rt_j:stmt_delete:body[2].body[2]",
+   "rt_engine:rt_j:arith:body[2].body[2].value",
+   "rt_engine:rt_j:const+:body[2].body[2].value.right",
+   "rt_engine:rt_j:const-:body[2].body[2].value.right",
+   "rt_engine:rt_j:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_j:stmt_delete:body[2]",
+   "rt_engine:rt_j:stmt_delete:body[2].body[0]",
+   "rt_engine:rt_j:stmt_delete:body[2].body[1]",
+   "rt_engine:rt_j:stmt_delete:body[2].body[2]",
+   "rt_engine:rt_j:arith:body[2].body[2].value",
+   "rt_engine:rt_j:const+:body[2].body[2].value.right",
+   "rt_engine:rt_j:const-:body[2].body[2].value.right",
+   "rt_engine:rt_j:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ },
+ "cross-block-not-targeted": {
+  "proto_N2w": [
+   "rt_engine:rt_k:stmt_delete:body[1]",
+   "rt_engine:rt_k:stmt_delete:body[1].body[0]",
+   "rt_engine:rt_k:stmt_delete:body[1].body[1]",
+   "rt_engine:rt_k:cmp_flip:body[1].test.ops[0]",
+   "rt_engine:rt_k:const+:body[1].test.comparators[0]",
+   "rt_engine:rt_k:const-:body[1].test.comparators[0]",
+   "rt_engine:rt_k:arith:body[1].body[0].value",
+   "rt_engine:rt_k:const+:body[1].body[0].value.right",
+   "rt_engine:rt_k:const-:body[1].body[0].value.right",
+   "rt_engine:rt_k:early_return:body[0]"
+  ],
+  "proto_N2b": [
+   "rt_engine:rt_k:stmt_delete:body[1]",
+   "rt_engine:rt_k:stmt_delete:body[1].body[0]",
+   "rt_engine:rt_k:stmt_delete:body[1].body[1]",
+   "rt_engine:rt_k:cmp_flip:body[1].test.ops[0]",
+   "rt_engine:rt_k:const+:body[1].test.comparators[0]",
+   "rt_engine:rt_k:const-:body[1].test.comparators[0]",
+   "rt_engine:rt_k:arith:body[1].body[0].value",
+   "rt_engine:rt_k:const+:body[1].body[0].value.right",
+   "rt_engine:rt_k:const-:body[1].body[0].value.right",
+   "rt_engine:rt_k:early_return:body[0]"
+  ],
+  "auditor": [
+   "rt_engine:rt_k:stmt_delete:body[1]",
+   "rt_engine:rt_k:stmt_delete:body[1].body[0]",
+   "rt_engine:rt_k:stmt_delete:body[1].body[1]",
+   "rt_engine:rt_k:cmp_flip:body[1].test.ops[0]",
+   "rt_engine:rt_k:const+:body[1].test.comparators[0]",
+   "rt_engine:rt_k:const-:body[1].test.comparators[0]",
+   "rt_engine:rt_k:arith:body[1].body[0].value",
+   "rt_engine:rt_k:const+:body[1].body[0].value.right",
+   "rt_engine:rt_k:const-:body[1].body[0].value.right",
+   "rt_engine:rt_k:early_return:body[0]"
+  ],
+  "N2w_eq_auditor": true
+ }
+}

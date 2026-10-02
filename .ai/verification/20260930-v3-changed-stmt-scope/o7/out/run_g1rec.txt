@@ -1,0 +1,7 @@
+repo=C:\g259\iso
+log=C:\g259\iso\tools\gates\redteam\logs\20261002-184038-direct.jsonl
+
+ERROR            15-records                                   TimeoutExpired: Command '['C:\\Program Files\\Git\\bin\\bash.exe', '-s']' timed out after 3600 seconds
+
+케이스: {"ERROR": 1}
+단계: {}

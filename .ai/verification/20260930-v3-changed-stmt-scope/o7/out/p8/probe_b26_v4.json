@@ -1,0 +1,26 @@
+{
+ "label": "b26_v4",
+ "tool_exit": 1,
+ "records": 2442,
+ "targeted": 301,
+ "not_targeted": 2141,
+ "expect_targeted": 301,
+ "missing": [],
+ "extra": [],
+ "not_targeted_ok": true,
+ "stdout_keys": [
+  "tool",
+  "verdict",
+  "targets",
+  "mutants",
+  "killed",
+  "survivors",
+  "survivor_bindings",
+  "exempt_ignored",
+  "not_targeted",
+  "targets_by_def"
+ ],
+ "stdout_mutants": 301,
+ "stdout_not_targeted": 2141,
+ "order_ok": true
+}

@@ -1,0 +1,15 @@
+repo=C:\g259\iso
+log=C:\g259\iso\tools\gates\redteam\logs\20261002-184016-direct.jsonl
+
+PASS             26-gate-output-utf8                          
+PASS             27f-v6-reconfigure-except                    
+PASS             28-v3-gmid-options                           
+PASS             29-v4-decision-exempt                        
+PASS             31-v3-git-history                            
+PASS             34-v3-exempt-binding                         
+PASS             35-v3-changed-scope                          
+PASS             v3_survivor                                  
+PASS             v7_unwired                                   
+
+케이스: {"PASS": 9}
+단계: {"PASS": 89}

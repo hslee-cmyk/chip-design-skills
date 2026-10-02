@@ -1,0 +1,1 @@
+{"label": "p9_real", "tool_exit": 1, "records": 28, "targeted": 12, "not_targeted": 16, "expect_targeted": 12, "missing": [], "extra": [], "not_targeted_ok": true, "stdout_keys": "10°³", "stdout_mutants": 12, "stdout_not_targeted": 16, "order_ok": true}

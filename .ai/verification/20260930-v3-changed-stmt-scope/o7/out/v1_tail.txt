@@ -1,0 +1,25 @@
+PASSED skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s008_section
+PASSED skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s011_tan
+PASSED skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s012_start
+PASSED skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s013_Cgg1_total
+PASSED skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s014_section
+PASSED skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s015_Cgg2
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic1.py::test_vgs_consistency_all_devices - IC1 -- ��� Phase 6b -- ����: 6b DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic10.py::test_cache_key_covers_mutable_state - IC10 -- ��� Phase 6b -- ����: 6b DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[rail2] - IC11 -- ��� Phase 4 -- ����: 4 DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[rail3] - IC11 -- ��� Phase 6a -- ����: 6a DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[reject] - IC11 -- ��� Phase 6a -- ����: 6a DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic2.py::test_order_shuffle_invariance - IC2 -- ��� Phase 6b -- ����: 6b DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic4.py::test_role_label_removal_invariance - IC4 -- ��� Phase 6c -- ����: 6c DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic6.py::test_dof_catches_incident19_fixture - IC6 -- ��� Phase 6c -- ����: 6c DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::test_all_library_topologies_run[run] - IC7 -- ��� Phase 6a -- ����: 6a DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::test_all_library_topologies_run[stop] - IC7 -- ��� Phase 6c -- ����: 6c DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic8.py::test_unevidenced_derivation_stops_before_search - IC8 -- ��� Phase 6c -- ����: 6c DoD
+XFAIL skills/analog-gmid-design/assets/tests/contracts/test_ic9.py::test_no_raw_duplicated_writes - IC9 -- ��� Phase 6b -- ����: 6b DoD
+XFAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget - I-C11 two_stage_ota stage1_out KVL -- ��� Phase 4
+XFAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section - I-C11 two_stage_ota stage1_out KVL -- ��� Phase 4
+XFAIL skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1 - I-C11 two_stage_ota stage1_out KVL -- ��� Phase 4
+XPASS skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_coverage_and_field_completeness - IC3 -- ��� Phase 1 -- ����: 1 DoD
+XPASS skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_linked_topology_files_merge_and_collision - IC3 -- ��� Phase 1 -- ����: 1 DoD
+XPASS skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_gate_docstring_declares_blind_spots - IC5 -- ��� Phase 1 -- ����: 1 DoD
+=========== 1044 passed, 15 xfailed, 3 xpassed in 378.57s (0:06:18) ===========

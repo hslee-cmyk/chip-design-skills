@@ -1,0 +1,12 @@
+{
+ "P0": "0f237862c007f6a53122f2bdfb3c87e6366ec133",
+ "B1": "a64e335e00fecfb36f913a5321d54b087fcc9107",
+ "H4": "3a194cc5ad72c0dad504a37ddd1c298c950b6fd3",
+ "B1_H4_paths": [
+  "skills/analog-gmid-design/assets/sizing_recipe.py",
+  "skills/analog-gmid-design/assets/stick_diagram.py"
+ ],
+ "P0_B1_paths": [
+  "skills/analog-gmid-design/assets/stick_diagram.py"
+ ]
+}

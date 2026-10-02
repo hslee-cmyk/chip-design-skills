@@ -1,0 +1,7 @@
+repo=C:\g259\iso
+log=C:\g259\iso\tools\gates\redteam\logs\20261002-184110-direct.jsonl
+
+PASS             23-v4-boundary                               
+
+케이스: {"PASS": 1}
+단계: {"PASS": 169}

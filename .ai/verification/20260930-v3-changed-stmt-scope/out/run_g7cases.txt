@@ -1,0 +1,13 @@
+repo=C:\g244\iso
+log=C:\g244\iso\tools\gates\redteam\logs\20261002-163050-direct-cases.jsonl
+
+PASS             1b9b4ea-nameerror-swallow                    
+PASS             2e1944a-grid-points                          
+PASS             3250baa-l5c-if                               
+SKIPPED          5dc4679-kvl-violating-reference              재생 Phase 6b(05 §13.3) -- 0.5 대상 아님
+SKIPPED          caa970b-stale-expected-value                 실행 Phase 1 != 0.5
+PASS             e329283-area-alpha                           
+PASS             e5fbf92-test16-baseline                      
+
+케이스: {"PASS": 5, "SKIPPED": 2}
+단계: {"PASS": 6}

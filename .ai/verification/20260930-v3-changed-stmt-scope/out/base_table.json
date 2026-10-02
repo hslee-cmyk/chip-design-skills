@@ -1,0 +1,4669 @@
+{
+ "runs": [
+  {
+   "group": "g7cases",
+   "exit": 0,
+   "start": "2026-10-02T16:30:49+09:00",
+   "end": "2026-10-02T16:33:14+09:00",
+   "log": "C:/g244/iso/tools/gates/redteam/logs/20261002-163050-direct-cases.jsonl",
+   "log_sha256": "9f7db37f12c01d554f0f7064dbf44505c16a8c6c67bb6b5677988e28c0d4c1ce",
+   "summary": {
+    "summary": true,
+    "mode": "direct",
+    "phase": "0.5",
+    "cases": {
+     "PASS": 5,
+     "SKIPPED": 2
+    },
+    "steps": {
+     "PASS": 6
+    },
+    "repo": "C:\\g244\\iso",
+    "time": "20261002-163050"
+   }
+  },
+  {
+   "group": "g4a",
+   "exit": 0,
+   "start": "2026-10-02T16:29:29+09:00",
+   "end": "2026-10-02T16:46:51+09:00",
+   "log": "C:/g244/iso/tools/gates/redteam/logs/20261002-162930-direct.jsonl",
+   "log_sha256": "72e51f74adafb0a94eca60137e7ba52e48f0b335a81dd878b396c2b243388daa",
+   "summary": {
+    "summary": true,
+    "mode": "direct",
+    "phase": "0.5",
+    "cases": {
+     "PASS": 13,
+     "SKIPPED": 4
+    },
+    "steps": {
+     "PASS": 47,
+     "RECORD": 3
+    },
+    "repo": "C:\\g244\\iso",
+    "time": "20261002-162930"
+   }
+  },
+  {
+   "group": "g6c",
+   "exit": 0,
+   "start": "2026-10-02T16:30:19+09:00",
+   "end": "2026-10-02T17:00:54+09:00",
+   "log": "C:/g244/iso/tools/gates/redteam/logs/20261002-163020-direct.jsonl",
+   "log_sha256": "552e32a7086acd518dd710727c522760d46c23f235e1c133a3fe148aed949c22",
+   "summary": {
+    "summary": true,
+    "mode": "direct",
+    "phase": "0.5",
+    "cases": {
+     "PASS": 15,
+     "SKIPPED": 2
+    },
+    "steps": {
+     "PASS": 86,
+     "RECORD": 5
+    },
+    "repo": "C:\\g244\\iso",
+    "time": "20261002-163020"
+   }
+  },
+  {
+   "group": "g5b",
+   "exit": 0,
+   "start": "2026-10-02T16:29:57+09:00",
+   "end": "2026-10-02T17:02:35+09:00",
+   "log": "C:/g244/iso/tools/gates/redteam/logs/20261002-162958-direct.jsonl",
+   "log_sha256": "9f740c8515022ec1db64f4828e4a4c0849c8786b3692ea373a229f70274e8336",
+   "summary": {
+    "summary": true,
+    "mode": "direct",
+    "phase": "0.5",
+    "cases": {
+     "PASS": 15,
+     "SKIPPED": 1
+    },
+    "steps": {
+     "PASS": 97,
+     "RECORD": 5
+    },
+    "repo": "C:\\g244\\iso",
+    "time": "20261002-162958"
+   }
+  },
+  {
+   "group": "g3v3",
+   "exit": 1,
+   "start": "2026-10-02T16:28:33+09:00",
+   "end": "2026-10-02T17:08:06+09:00",
+   "log": "C:/g244/iso/tools/gates/redteam/logs/20261002-162833-direct.jsonl",
+   "log_sha256": "5429039b18dd0e06ac6221ed3f90cd379d30433f397140dd8896bbf338787aa6",
+   "summary": {
+    "summary": true,
+    "mode": "direct",
+    "phase": "0.5",
+    "cases": {
+     "PASS": 8,
+     "FAIL": 1
+    },
+    "steps": {
+     "PASS": 83,
+     "FAIL": 6
+    },
+    "repo": "C:\\g244\\iso",
+    "time": "20261002-162833"
+   }
+  },
+  {
+   "group": "g2v4b",
+   "exit": 0,
+   "start": "2026-10-02T16:29:10+09:00",
+   "end": "2026-10-02T17:09:48+09:00",
+   "log": "C:/g244/iso/tools/gates/redteam/logs/20261002-162911-direct.jsonl",
+   "log_sha256": "49eea5fd850f2b2f39f457576c682795cdb000289eaebcb002ba21dfd66d68fd",
+   "summary": {
+    "summary": true,
+    "mode": "direct",
+    "phase": "0.5",
+    "cases": {
+     "PASS": 1
+    },
+    "steps": {
+     "PASS": 169
+    },
+    "repo": "C:\\g244\\iso",
+    "time": "20261002-162911"
+   }
+  },
+  {
+   "group": "g1rec",
+   "exit": 0,
+   "start": "2026-10-02T16:28:48+09:00",
+   "end": "2026-10-02T17:23:59+09:00",
+   "log": "C:/g244/iso/tools/gates/redteam/logs/20261002-162848-direct.jsonl",
+   "log_sha256": "5f3b76815f4fac76a24273663650684a2c9cc73706fbc2a3800b9d5d38714cd5",
+   "summary": {
+    "summary": true,
+    "mode": "direct",
+    "phase": "0.5",
+    "cases": {
+     "PASS": 1
+    },
+    "steps": {
+     "PASS": 133
+    },
+    "repo": "C:\\g244\\iso",
+    "time": "20261002-162848"
+   }
+  }
+ ],
+ "cases": {
+  "01-code-author-write-tests": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "control-write-engine": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-write-tests": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-edit-tests": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "01b-dispute-own-vs-other-id": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "control-own-id": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-other-id": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "02-code-author-bash-tests": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "control-pre": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "control-post": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-pre": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-post": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "03-src-and-tests-one-commit": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "control-source-only": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-el3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-el4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "04-commit-no-verify": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "control-proper-commit": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-no-verify": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-dash-n": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-main-no-verify": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "05-commit-tree-push": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "attack-no-trailer": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-role-code-approvals": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control-role-outside-commit-tree": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "06-v4-expected-from-subject": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "07-v4-assert-under-if": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "08-v5-tolerance-widening": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control-approved": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "09-v6-broad-except": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "10-orchestrator-engine-edit": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "control-main-doc": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-main-edit": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-powershell-set-content": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-general-purpose-edit": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-empty-agent-type-edit": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "10b-outside-role-pass": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "pass-temp-write": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "pass-other-skill-write": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "pass-rtl-write": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-other-skill-conftest": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-other-skill-pyproject": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "pass-trailerless-rtl-commit::EL3": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "pass-trailerless-rtl-commit::EL4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "pass-outside-merge-el3": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "pass-outside-merge-el4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "10c-gate-cache": {
+   "verdict": "PASS",
+   "group": "g4a",
+   "steps": {
+    "warm-cache": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "allow-run-cache-script": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "allow-pythonpath-cache": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "allow-ps-pythonpath-cache": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-redirect-into-cache": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-cp-into-cache": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "tamper": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-after-tamper": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "control-after-tamper": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "11-rtl-agent-edit": {
+   "verdict": "SKIPPED",
+   "group": "g4a",
+   "steps": {},
+   "reason": "modes ['installed']에 direct 없음"
+  },
+  "12-optional-stages-off": {
+   "verdict": "SKIPPED",
+   "group": "g4a",
+   "steps": {},
+   "reason": "GB0 로드 게이트(DEC-60·DEC-75)는 Phase 6a 구현 -- 0.5 실행 대상 아님(계획 N4.3, 05 §13.2 마지막 행)"
+  },
+  "13-rails-without-supply-nets": {
+   "verdict": "SKIPPED",
+   "group": "g4a",
+   "steps": {},
+   "reason": "GB0 로드 게이트(DEC-60·DEC-75)는 Phase 6a 구현 -- 0.5 실행 대상 아님(계획 N4.3, 05 §13.2 마지막 행)"
+  },
+  "14-hidden-rail": {
+   "verdict": "SKIPPED",
+   "group": "g4a",
+   "steps": {},
+   "reason": "GB0 로드 게이트(DEC-60·DEC-75)는 Phase 6a 구현 -- 0.5 실행 대상 아님(계획 N4.3, 05 §13.2 마지막 행)"
+  },
+  "20a-code-author-role-test-or-other-id": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-el1": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-el1-role-test": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-el1-other-id": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "control-el2-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-el2-stop": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-el4-role-test": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-el4-other-id": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "20b-orchestrator-commit-in-role-wt": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "attack-el1-main-commit-role-code": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-el1-main-commit-role-doc": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-el4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "20c-two-ids-one-push": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-first-only": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "20d-tprime-on-code-side": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "20e-normal-equivalence": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-code-author-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-auditor-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-el4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "20e-normal-redgreen": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-test-author-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-code-author-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-auditor-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-el4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "20e-normal-testonly": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-test-author-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-auditor-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-el4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "21-remote-config-tamper": {
+   "verdict": "SKIPPED",
+   "group": "g6c",
+   "steps": {},
+   "reason": "modes ['installed']에 direct 없음"
+  },
+  "22-gate-tamper": {
+   "verdict": "SKIPPED",
+   "group": "g6c",
+   "steps": {},
+   "reason": "modes ['installed']에 direct 없음"
+  },
+  "24-command-parsing": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "a-two-line-m-merge": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "b-newline-then-push": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "b-control-echo": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "c-subst-push": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "d-heredoc-body": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "e-ansi-c-quote": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "f-redirect-amp": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "g-line-continuation-target": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "g-control-continuation-temp": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "25-dispute-cleanup": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "attack-remove-worktree": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-delete-branch": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "control-remove-worktree-after-record": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-delete-branch-after-record": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "27a-el2-foreign-uncommitted": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "record-code-pre": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "control-code-post-foreign-base-check": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-code-stop-foreign-base-check": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "record-test-pre": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "control-test-post-foreign-base-check": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-test-stop-foreign-base-check": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "record-code-pre2": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-code-post-foreign-engine-src": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-stop-foreign-engine-src": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "record-test-pre2": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-test-post-foreign-engine-src": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-stop-foreign-engine-src": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "27b-orchestrator-cleanup": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-main-merge-abort-audit": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-main-remove-force-audit": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-main-remove-force-test": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-code-author-merge-abort": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-author-remove-force-audit": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-author-remove-force-test": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-main-merge-abort-code": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-main-remove-force-outside-name": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-main-remove-force-outside-dir": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-main-remove-force-code-no-record": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "control-main-remove-force-code-after-record": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "27c-el3-integrity-marker": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-pre-commit-no-marker": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-commit-msg-no-marker": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-pre-merge-commit-no-marker": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-pre-commit-marker": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-commit-msg-marker": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-pre-merge-commit-marker": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "27d-assign-subst": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-assign-subst-path": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-assign-subst-suffix": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-assign-subst-push": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-echo-subst-push": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "control-assign-subst-cache-script": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-assign-subst-temp-script": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "27e-worktree-add-q": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "control-main-worktree-add": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-main-worktree-add-q": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-main-worktree-add-q-outside": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-author-worktree-add-q": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "30-rejudge-cache": {
+   "verdict": "PASS",
+   "group": "g6c",
+   "steps": {
+    "scope-push-no-row3b": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "row3b_interval_rows": 0,
+      "row3b_failed": 0,
+      "cache_summary": []
+     }
+    },
+    "scope-push-no-cache": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "rejudged": null
+     }
+    },
+    "first-no-cache-last-forged": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "row3b_interval_rows": 2,
+      "row3b_failed": 1,
+      "cache_summary": []
+     }
+    },
+    "first-no-cache-cache-file": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "rejudged": [
+       "B0 C1"
+      ]
+     }
+    },
+    "cache-last-forged": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "row3b_interval_rows": 1,
+      "row3b_failed": 1,
+      "cache_summary": [
+       {
+        "k": 1,
+        "ok": true
+       }
+      ]
+     }
+    },
+    "cache-last-forged-cache-file": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "rejudged": [
+       "B0 C1"
+      ]
+     }
+    },
+    "nonlast-forged-not-cached": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "row3b_interval_rows": 2,
+      "row3b_failed": 1,
+      "cache_summary": [
+       {
+        "k": 1,
+        "ok": true
+       }
+      ]
+     }
+    },
+    "nonlast-forged-not-cached-cache-file": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "rejudged": [
+       "B0 C1",
+       "F C3"
+      ]
+     }
+    },
+    "garbage-cache-nonlast-forged": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "row3b_interval_rows": 3,
+      "row3b_failed": 1,
+      "cache_summary": []
+     }
+    },
+    "garbage-cache-rewritten": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "rejudged": [
+       "B0 C1",
+       "F C3"
+      ]
+     }
+    },
+    "nonlast-forged-cached": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "row3b_interval_rows": 1,
+      "row3b_failed": 0,
+      "cache_summary": [
+       {
+        "k": 2,
+        "ok": true
+       }
+      ]
+     }
+    },
+    "nonlast-forged-cached-cache-file": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "rejudged": [
+       "B0 C1",
+       "C1 F",
+       "F C3"
+      ]
+     }
+    },
+    "warm-cache": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "ensure-cache-ran-stale-dir": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "exists": false
+     }
+    },
+    "ensure-cache-ran-tmp": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "exists": false
+     }
+    },
+    "ensure-cache-keeps-rejudged": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "rejudged": [
+       "B0 C1",
+       "C1 F",
+       "F C3"
+      ]
+     }
+    }
+   },
+   "reason": null
+  },
+  "16-plan-tables": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "attack-i-table-value-a": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-i-table-value-b": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-i-write-paths-a": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-i-write-paths-b": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-ii-broken-a": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-ii-broken-b": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-iii-broken-old": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control-approved-change-a": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-approved-change-b": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-prose-only-a": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-prose-only-b": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "17-casefold-collision": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "control-code-commit": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-el3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-el4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "17-conftest-v5": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "17-isolated-run": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "isolated": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "isolated-record-no-P": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "isolated-record-unconfined": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "17-judging-env-el1": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "attack-code-assets-conftest": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-root-conftest": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-skills-conftest": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-skill-pytest-ini": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-tests-tools-conftest": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-sitecustomize": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-pth": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-gitattributes": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-numpy-shadow-pkg": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-eng-shadow-pkg": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-pyc": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-code-workspaces-py": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-tests-pytest-ini": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-tests-pytest-toml": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-tests-dot-pytest-toml": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-tests-dot-pytest-ini": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-tests-Pytest-ini-case": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-tests-PYTEST-INI-case": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "attack-test-tests-Setup-cfg-case": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": null
+    },
+    "control-code-engine": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-code-tests-tools": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-test-new-test": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "record-code-workspaces-pyw": {
+     "verdict": "RECORD",
+     "exit": 2,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "17-judging-env-el3-el4": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "assets-conftest::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "assets-conftest::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "root-conftest::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "root-conftest::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "skills-conftest::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "skills-conftest::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "skill-pytest-ini-k::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "skill-pytest-ini-k::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "tests-tools-conftest::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "tests-tools-conftest::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sitecustomize::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sitecustomize::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "pth::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "pth::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "gitattributes-export-ignore::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "gitattributes-export-ignore::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "tests-pytest-ini::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "tests-pytest-ini::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "pytest-toml::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "pytest-toml::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "dot-pytest-toml::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "dot-pytest-toml::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "dot-pytest-ini::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "dot-pytest-ini::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "Pytest-ini-deselect::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "Pytest-ini-deselect::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "PYTEST-INI::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "PYTEST-INI::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "Setup-cfg::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "Setup-cfg::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "numpy-shadow-pkg::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "numpy-shadow-pkg::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "eng-shadow-pkg::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "eng-shadow-pkg::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "pyc-add-f::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "pyc-add-f::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "workspaces-py::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "workspaces-py::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "record-workspaces-pyw::EL3": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "record-workspaces-pyw::EL4": {
+     "verdict": "RECORD",
+     "exit": 0,
+     "observed": null
+    },
+    "control-rtl::EL3": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-rtl::EL4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "17-pytest-candidates": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "candidates": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "17-v1-without-P": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "attack-v1-no-P": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control-valid": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "18-test-author-reads-source": {
+   "verdict": "SKIPPED",
+   "group": "g5b",
+   "steps": {},
+   "reason": "modes ['installed']에 direct 없음"
+  },
+  "19a-merge-no-commit-then-add": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "control-clean-merge-state": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "attack-el3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-el4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "19b-role-doc-merge-without-role-commits": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "attack-el3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-el4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "19c-merge-reverting-to-ancestor": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "attack-el3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-el4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "19d-normal-merge": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "control-el3": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-el4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "19e-outside-merge-old-ancestor": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "control-el3": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "control-el4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "19f-ours-reversal": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "attack-el3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-el4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "19g-octopus": {
+   "verdict": "PASS",
+   "group": "g5b",
+   "steps": {
+    "attack-el3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-el4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "26-gate-output-utf8": {
+   "verdict": "PASS",
+   "group": "g3v3",
+   "steps": {
+    "el1-main-write-engine-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el1-main-write-engine-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el1-unknown-gmid-agent-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el1-unknown-gmid-agent-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el1-fail-closed-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el1-fail-closed-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el2bash-unknown-gmid-agent-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el2bash-unknown-gmid-agent-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el2bash-fail-closed-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el2bash-fail-closed-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el2stop-unknown-gmid-agent-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el2stop-unknown-gmid-agent-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el2stop-fail-closed-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "el2stop-fail-closed-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "session-startup-cp949": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "session-startup-unset": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "session-fail-closed-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "session-fail-closed-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "gmid-gate-unknown-hook-cp949": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "gmid-gate-unknown-hook-unset": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "gate-runner-direct-cp949": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "gate-runner-direct-unset": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "integrity-check-session-cp949": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "integrity-check-session-unset": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "merge-gate-bad-old-cp949": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "merge-gate-bad-old-unset": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "role-commit-gate-usage-cp949": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "role-commit-gate-usage-unset": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "interface-card-missing-spec-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "interface-card-missing-spec-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true
+     }
+    },
+    "v5-bad-revisions-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v5-bad-revisions-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v4-bad-revisions-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v4-bad-revisions-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v6-bad-revisions-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v6-bad-revisions-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v7-bad-revisions-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v7-bad-revisions-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v3-bad-revisions-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "v3-bad-revisions-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "import-layering-plan-without-section-cp949": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    },
+    "import-layering-plan-without-section-unset": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "stdout_utf8": true,
+      "stderr_utf8": true,
+      "hangul": true,
+      "json_lines": true
+     }
+    }
+   },
+   "reason": null
+  },
+  "27f-v6-reconfigure-except": {
+   "verdict": "PASS",
+   "group": "g3v3",
+   "steps": {
+    "v6obs-role-guard": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-role-diff-guard-bash": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-role-diff-guard-stop": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-role-session-start": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-gmid-gate": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-gate-runner": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-integrity": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-merge-gate": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-role-commit-gate": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-interface-card": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-weakening-diff": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-test-lint": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-source-lint": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-reachability": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-mutate-changed": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    },
+    "v6obs-import-layering": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "broad_pass_wrappers": 0
+     }
+    }
+   },
+   "reason": null
+  },
+  "28-v3-gmid-options": {
+   "verdict": "PASS",
+   "group": "g3v3",
+   "steps": {
+    "opts-kill": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "pre-c6-no-opts": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "pre-c6-with-opts": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "strict-outside-inventory": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "29-v4-decision-exempt": {
+   "verdict": "PASS",
+   "group": "g3v3",
+   "steps": {
+    "rule1-approved": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "rule1-no-approval": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "rule1-other-id-approved": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "rule3-approved": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "31-v3-git-history": {
+   "verdict": "PASS",
+   "group": "g3v3",
+   "steps": {
+    "git-history-kill": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "tmp_left": [],
+      "root_unchanged": true
+     }
+    },
+    "baseline-fail-error": {
+     "verdict": "PASS",
+     "exit": 2,
+     "observed": {
+      "tmp_left": [],
+      "root_unchanged": true
+     }
+    },
+    "survivor-fail-clean": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": {
+      "tmp_left": [],
+      "root_unchanged": true
+     }
+    }
+   },
+   "reason": null
+  },
+  "34-v3-exempt-binding": {
+   "verdict": "PASS",
+   "group": "g3v3",
+   "steps": {
+    "legacy-unbound-leak": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "hash-mismatch": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "bound-exempt": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": {
+      "lines": 6,
+      "by_result": {
+       "exempt": [
+        "rt_engine:rt_scale:stmt_delete:body[1]"
+       ]
+      }
+     }
+    },
+    "bound-other-def": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "docstring-shift": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "malformed-element": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "35-v3-changed-scope": {
+   "verdict": "FAIL",
+   "group": "g3v3",
+   "steps": {
+    "unchanged-stmt-survivor": {
+     "verdict": "FAIL",
+     "exit": 1,
+     "observed": {
+      "lines": 10,
+      "by_result": {}
+     }
+    },
+    "changed-stmt-survivor": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "enclosing-guard-survivor": {
+     "verdict": "FAIL",
+     "exit": 1,
+     "observed": null
+    },
+    "unwrapped-stmt": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "header-only-change": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "header-default-bool": {
+     "verdict": "FAIL",
+     "exit": 1,
+     "observed": null
+    },
+    "delete-then-use": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "decorator-mutant-applied": {
+     "verdict": "FAIL",
+     "exit": 1,
+     "observed": null
+    },
+    "same-block-later-use": {
+     "verdict": "FAIL",
+     "exit": 1,
+     "observed": null
+    },
+    "loop-carried-use": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "cross-block-not-targeted": {
+     "verdict": "FAIL",
+     "exit": 1,
+     "observed": {
+      "lines": 17,
+      "by_result": {}
+     }
+    }
+   },
+   "reason": null
+  },
+  "v3_survivor": {
+   "verdict": "PASS",
+   "group": "g3v3",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "control": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "v7_unwired": {
+   "verdict": "PASS",
+   "group": "g3v3",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "23-v4-boundary": {
+   "verdict": "PASS",
+   "group": "g2v4b",
+   "steps": {
+    "23-inventory": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "23-probe-01": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-02": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-03": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-04": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-05": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-06": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-07": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-08": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-09": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-10": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-11": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-12": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-13": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-14": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-15": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-16": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-17": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-18": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-19": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-20": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-21": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-22": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-23": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-24": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-25": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-26": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-27": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-28": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-29": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-30": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-31": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-32": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-33": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-34": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-35": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-36": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-37": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-38": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-39": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-40": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-41": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-42": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-43": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-44": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-45": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "NO-SUBJECT"
+    },
+    "23-probe-46": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-47": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-48": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-49": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-50": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-51": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-52": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-53": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-54": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "NO-SUBJECT"
+    },
+    "23-probe-55": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-56": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-57": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-58": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-59": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-60": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-61": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "UNJUDGED"
+    },
+    "23-probe-62": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-63": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    },
+    "23-probe-64": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-65": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-66": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-probe-67": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": "PASS"
+    },
+    "23-corpus-001": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-002": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       3,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-003": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-004": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-005": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-006": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-007": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-008": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-009": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-010": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-011": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-012": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-013": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-014": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       4,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-015": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-016": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-017": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-018": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-019": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       5,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-020": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       3,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-021": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-022": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-023": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       6,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-024": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       4,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-025": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-026": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-027": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-028": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-029": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "NO-SUBJECT"
+      ]
+     ]
+    },
+    "23-corpus-030": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "NO-SUBJECT"
+      ]
+     ]
+    },
+    "23-corpus-031": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-032": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-033": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       3,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-034": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       5,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-035": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-036": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-037": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       3,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-038": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-039": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-040": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       3,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-041": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-042": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-043": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-044": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-045": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-046": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-047": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-048": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-049": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-050": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-051": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       6,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-052": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       3,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-053": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       6,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-054": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       4,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-055": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       4,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-056": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       5,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-057": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-058": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       6,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-059": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       4,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-060": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-061": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       4,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-062": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-063": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       5,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-064": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       5,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-065": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-066": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-067": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-068": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-069": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       2,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-070": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-071": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-072": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-073": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-074": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-075": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-076": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-077": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-078": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-079": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-080": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "NO-SUBJECT"
+      ]
+     ]
+    },
+    "23-corpus-081": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "NO-SUBJECT"
+      ]
+     ]
+    },
+    "23-corpus-082": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "NO-SUBJECT"
+      ]
+     ]
+    },
+    "23-corpus-083": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "NO-SUBJECT"
+      ]
+     ]
+    },
+    "23-corpus-084": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-085": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-086": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       2,
+       "UNJUDGED"
+      ],
+      [
+       3,
+       "NO-SUBJECT"
+      ]
+     ]
+    },
+    "23-corpus-087": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       4,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-088": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-089": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       3,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-090": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       5,
+       "UNJUDGED"
+      ]
+     ]
+    },
+    "23-corpus-091": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       4,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-092": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       7,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-corpus-093": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": [
+      [
+       5,
+       "PASS"
+      ]
+     ]
+    },
+    "23-corpus-094": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": [
+      [
+       4,
+       "FAIL"
+      ]
+     ]
+    },
+    "23-sweep-audit_current_forced": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "23-sweep-design_report": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "23-sweep-sizing_recipe": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "23-sweep-sky130_lut_sweep": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "23-sweep-stick_diagram": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "23-sweep-topology_library": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "23-sweep-topology_to_markdown": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "15-records": {
+   "verdict": "PASS",
+   "group": "g1rec",
+   "steps": {
+    "r01-invalid-utf8": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r01-utf16be-bom": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r01-utf16le-bom": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r01-utf32be-bom": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r01-utf32le-bom": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r01-utf8-bom": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r02-duplicate-key": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r02-infinity-literal": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r02-nan-literal": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r02-neg-infinity-literal": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r03-1e400": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r03-c0-control": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r03-c1-u0085-test-id": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r03-int-401-digits": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r03-lone-surrogate": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r03-neg-1e400": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-approvals-duplicate": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-auditor-commands-empty": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-base-commit-trailing-newline": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-basis-newline-only": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-basis-whitespace": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-checks-array": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-code-commit-uppercase": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-dollar-schema-key": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-equivalence-code-commit-null": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-equivalence-commands-empty": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-equivalence-outputs-hash-63": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-evidence-type-missing": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-evidence-type-null": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-extra-field": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-id-trailing-newline": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-id-uppercase-slug": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-record-null": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-red-green-with-equivalence": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-red-green-without-red": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-reproduced-name-whitespace": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-spec-card-backslash": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-spec-card-trailing-newline": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-test-ids-duplicate": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-test-only-code-commit-key-missing": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-test-only-with-equivalence": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-time-missing": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-value-true": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-verdict-lowercase": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r04-verdict-n-a-lowercase": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r05-id-differs-from-file": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r05-old-malformed-record-not-loaded": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "r05-spec-card-id-differs": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-approval-file-missing": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-approval-invalid-date": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-approval-valid-crlf": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "r06-approval-valid-decision": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "r06-header-bom": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-comment-line": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-date-invalid": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-decision-with-diff-key": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-diff-missing-base": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-diff-path-dot-slash": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-id-not-filename": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-plan-tables-with-diff-path": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-scope-empty": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-staged-diff-with-head": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-target-kind-invalid": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-target-not-hex": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-header-unknown-key": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r06-id-invalid-date": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r07-length-mismatch": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r08-arabic-indic-digits": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r08-basic-format": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r08-fraction-9-digits": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "r08-leap-second": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r08-lowercase-t-z": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r08-no-timezone": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r08-space-separator": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r08-trailing-newline": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r08-utc-z": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "r09-auditor-command-u2028": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r09-basis-hangul-filler": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r09-basis-zwsp": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r09-equivalence-command-zwsp": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r09-reproduced-command-u1160": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r09-reproduced-name-ffa0": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r09-test-id-newline": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r09-test-id-space": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r09-worktree-115f": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-c10-parenthesized": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-c12-free-text": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-c13-other-phase-first": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-na-not-before-intro": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-spec-phase-0-doc": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-spec-phase-unknown": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-v4-oracle-not-line-start": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-v4-pass-without-oracle-line": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "r10-wrong-intro-phase": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s5-base-commit-ancestor": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "s5-base-commit-descendant": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s5-code-commit-not-K": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s5-evidence-type-mismatch": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s5-test-commit-not-T": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s7-v1-ini-not-cache": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s7-v1-missing": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s7-v1-python-path-literal": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "s7-v1-relative-test-path": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s7-v1-rootdir-ne-confcutdir": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s7-v1-two": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "s7-v1-valid-explicit": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "s8-check-fail": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-approval-not-staged-diff::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-approval-not-staged-diff::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-modifies-existing-approval::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-modifies-existing-approval::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-no-approval::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-no-approval::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-staged-diff-hash-mismatch::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-staged-diff-hash-mismatch::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-two-approvals::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-two-approvals::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-role-user-with-approval::EL3": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "sd-role-user-with-approval::EL4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "sd-topology-no-approval::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-topology-no-approval::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-topology-path-includes-approvals::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-topology-path-includes-approvals::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-topology-valid::EL3": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "sd-topology-valid::EL4": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "sd-topology-with-diff-head::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-topology-with-diff-head::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-topology-wrong-target::EL3": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "sd-topology-wrong-target::EL4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "valid-equivalence": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "valid-red-green": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "valid-same-failure-hash-two-tests": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    },
+    "valid-test-only": {
+     "verdict": "PASS",
+     "exit": 0,
+     "observed": null
+    }
+   },
+   "reason": null
+  }
+ },
+ "cases_replay": {
+  "1b9b4ea-nameerror-swallow": {
+   "verdict": "PASS",
+   "group": "g7cases",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "2e1944a-grid-points": {
+   "verdict": "PASS",
+   "group": "g7cases",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "3250baa-l5c-if": {
+   "verdict": "PASS",
+   "group": "g7cases",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  },
+  "5dc4679-kvl-violating-reference": {
+   "verdict": "SKIPPED",
+   "group": "g7cases",
+   "steps": {},
+   "reason": "재생 Phase 6b(05 §13.3) -- 0.5 대상 아님"
+  },
+  "caa970b-stale-expected-value": {
+   "verdict": "SKIPPED",
+   "group": "g7cases",
+   "steps": {},
+   "reason": "실행 Phase 1 != 0.5"
+  },
+  "e329283-area-alpha": {
+   "verdict": "PASS",
+   "group": "g7cases",
+   "steps": {
+    "attack": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": "FAIL"
+    }
+   },
+   "reason": null
+  },
+  "e5fbf92-test16-baseline": {
+   "verdict": "PASS",
+   "group": "g7cases",
+   "steps": {
+    "attack-v4": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    },
+    "attack-v5": {
+     "verdict": "PASS",
+     "exit": 1,
+     "observed": null
+    }
+   },
+   "reason": null
+  }
+ },
+ "coverage": {
+  "expected": 61,
+  "got": 61,
+  "missing": [],
+  "extra": []
+ },
+ "counts": {
+  "cases": {
+   "PASS": 53,
+   "SKIPPED": 7,
+   "FAIL": 1
+  },
+  "steps": {
+   "PASS": 615,
+   "RECORD": 13,
+   "FAIL": 6
+  }
+ },
+ "step_verdicts_sha256": "10b642c4218642e37d81e1ec492e78ba0bcdb876d23aa655b58cd0f7cca601ca",
+ "step_verdicts_n": 634,
+ "red": [
+  {
+   "test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::cross-block-not-targeted",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "a8c280abd3188ec99bad6a3bdf51c433f9c280207b1e3c3a01f959d070579dee"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::decorator-mutant-applied",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "8ef1dfec84c1c6f5a35c5b445db68777e83c54b9fe122303fbf31b3ae225fc30"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::enclosing-guard-survivor",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "55eab74dd8a4e51beb82bf3c02922a617dfd278b53a6df89a9e9f6e543ca2be6"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::header-default-bool",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "684a59b413d9826ef84af96ec4e47916fbaa550de0970579e4a00bc8cf6a5a99"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::same-block-later-use",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "2c299834adbc90570329030b8a4251ee9e2a77762742b4bcaec98ae267c530f7"
+  },
+  {
+   "test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::unchanged-stmt-survivor",
+   "exc_type": "redteam.FAIL",
+   "failure_hash": "03fba4fa826a0d72152497cdd31ca2e305245f37fee2a8938dca324337c80cb5"
+  }
+ ],
+ "aggregate_hash": "578509452129832487003551d7fb56384720c940a04cdcacfbb365f4d2fb94a1"
+}

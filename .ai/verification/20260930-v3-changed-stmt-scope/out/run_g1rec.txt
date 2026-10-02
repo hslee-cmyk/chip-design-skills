@@ -1,0 +1,7 @@
+repo=C:\g244\iso
+log=C:\g244\iso\tools\gates\redteam\logs\20261002-162848-direct.jsonl
+
+PASS             15-records                                   
+
+케이스: {"PASS": 1}
+단계: {"PASS": 133}

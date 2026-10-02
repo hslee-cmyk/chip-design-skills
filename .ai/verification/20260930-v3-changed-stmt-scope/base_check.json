@@ -1,0 +1,164 @@
+{
+ "id": "20260930-v3-changed-stmt-scope",
+ "attempt": 1,
+ "evidence_type": "red-green",
+ "gate_change": "yes",
+ "freeze": {
+  "T": "0ef74303697c5fa555acbdc21c7ed522252cd1b2",
+  "T_subject": "test: 공격 35 V3 대상 범위(바뀐 문장과 주변·not_targeted) 11단계 (a)~(k) -- 계약 8, oracle (a) 구성",
+  "T_trailers": {"Role": "test", "Change-Id": "20260930-v3-changed-stmt-scope"},
+  "T_parent": "4a286f0fad4f9beafd26647e1f95a89086e07919",
+  "base": "4a286f0fad4f9beafd26647e1f95a89086e07919",
+  "base_is_gate_master": "오케스트레이터 지시의 base = 4a286f0(승인 기록 커밋, gate master). T의 유일한 부모(rev-list --count 4a286f0..T = 1). 실제 저장소 master = 4a286f0(rev-parse, 측정 뒤에도 같음)",
+  "base_to_T_name_status": "A tools/gates/redteam/attacks/35-v3-changed-scope/{expect.json,run.sh,v.json} -- 3경로뿐",
+  "base_to_T_numstat": "expect.json +12, run.sh +9, v.json +365 (삭제 0)",
+  "T_path_check": "T 경로 = tools/gates/redteam/attacks/35-v3-changed-scope/** 뿐. lib/rt.py 변경 0(승인 범위 '덮는 것': rt.py 동작 추가 없음과 일치), tools/gates/(redteam 밖) 변경 0(git diff 4a286f0 T -- tools/gates ':!tools/gates/redteam' 빈 값), 기존 expect.json·v.json 변경 0",
+  "write_path_owner": "base 판 role_paths.read_write_paths(4a286f0 계획서 N3.12.2) + match_glob: 세 경로 모두 (gmid-test-author, tools/gates/redteam/**, 게이트 변경) 일치(오케스트레이터 tools/gates/** 부트스트랩 행도 일치) -- test-author 경로 (out/write_path_owner.txt)",
+  "worktree_clean": "audit worktree git status --porcelain 빈 값(판정 기록 쓰기 전), 브랜치 role/audit/20260930-v3-changed-stmt-scope, HEAD = T"
+ },
+ "gate_change_base_conditions": {
+  "spec_card": {"path": "docs/02-design/specs/20260930-v3-changed-stmt-scope.spec.md", "blob": "1f56f5f83a4f0c94368e4d632af83ef4844c9f75", "same_blob_at": "a6a7e34(승인 diff_head)·4a286f0(base)·T", "front_matter": "phase 0.5, evidence_type red-green, gate_change yes, approval 20260930-v3-changed-stmt-scope"},
+  "interface_card": {"path": "docs/02-design/specs/20260930-v3-changed-stmt-scope.interface.md", "blob": "2de82d29cea6baa1771195be747393923c5ab711", "regenerated": "base 판 interface_card.py <spec card> --root C:/g244/iso --out C:/g244/out/iface_regen.md exit 0('기존 함수 0개'), 재생성 파일 git hash-object = 2de82d2 -- 커밋본과 바이트 동일(diff 빈 값)"},
+  "approval": {
+   "path": ".ai/approvals/20260930-v3-changed-stmt-scope.md",
+   "blob_at_base": "36878ebd738f0a88c71aad85bafa83a20a60cc6e",
+   "target_kind": "diff",
+   "diff_base": "36e170eec5b9e893c03927e5bb45635071de7e69",
+   "diff_head": "a6a7e342627d72b8fc2c79844f69da7930333520",
+   "diff_path": ["docs/01-plan/features/gain-budget-gmid-sizing.plan.md", "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md", "docs/02-design/specs/20260930-v3-changed-stmt-scope.interface.md", "docs/02-design/specs/20260930-v3-changed-stmt-scope.spec.md"],
+   "user_quote": "② N2 (Recommended) / 규칙을 안내에 맞게 넓힘 (Recommended)",
+   "target_recomputed": "25f2ba19de7952abd3779fc5984e448d04b5f0f2ac8787b877ec0d215dc2bda6",
+   "target_in_record": "25f2ba19de7952abd3779fc5984e448d04b5f0f2ac8787b877ec0d215dc2bda6",
+   "match": true,
+   "in_approved_hashes_at_base": true,
+   "method": "base 판 blob(C:/g244/gate, extract_gate) PYTHONPATH 맨 앞, -P로 weakening_diff.diff_hash(C:/g244/iso, 36e170e, a6a7e34, 네 diff_path)·approved_hashes(C:/g244/iso, 4a286f0) -- out/approval_recompute.txt",
+   "chain": "36e170e -> a5566c8(문서: design 05 §10 V3 ①·계획 N4.2) -> a6a7e34(spec card + interface card) -> 4a286f0(승인 기록) -> T"
+  }
+ },
+ "isolation": {
+  "clone": "C:/g244/iso",
+  "commands": [
+   "git clone -q -c core.autocrlf=false -c core.longpaths=true --no-checkout --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-v3-changed-stmt-scope-audit C:/g244/iso",
+   "git -C C:/g244/iso remote remove origin",
+   "git -C C:/g244/iso config core.autocrlf false",
+   "git -C C:/g244/iso checkout -q role/audit/20260930-v3-changed-stmt-scope  (HEAD = T 0ef7430)",
+   "export TMP=TEMP=TMPDIR=C:/g244/tmp/<그룹> PYTHONDONTWRITEBYTECODE=1 APPDATA=C:/Users/HSLEE/AppData/Roaming (scripts/run_group.sh)",
+   "base 판 게이트 코드: C:/Python314/python.exe -B scripts/extract_gate.py C:/g244/iso 4a286f0 C:/g244/gate -> 22파일, file_set_sha256 de19ceb088c5862a33fc77e72b13338e67778ad29824f3c9a234a192a8108404"
+  ],
+  "gate_code_used": "run_all.py --mode direct는 --repo 복제본의 tools/gates/mutate_changed.py를 부른다. T의 tools/gates(redteam 밖) = 4a286f0 판(base..T 차이는 attacks/35/**뿐) -- 그래서 T 복제본 실행이 곧 base 게이트 실행이다. 하네스(lib/rt.py)도 base와 같다(T 변경 0)",
+  "cache_compare_limit": "<git-common-dir>/gmid-gate-cache/<커밋>/ 직접 대조는 하지 않았다(role_guard EL1이 저장소 내부 경로 인자를 거부 -- 선례 20260930-v3-exempt-binding과 같음). 대신 git cat-file 추출본(4a286f0)을 썼고 file_set_sha256을 적었다",
+  "real_repo_untouched": "실제 저장소 git status --short = 세션 시작 스냅숏과 같음(.bkit 두 M + 미추적 목록), log -g -3 맨 위 HEAD@{0} = 4a286f0 commit(승인 기록) -- 측정 중 변화 없음. audit worktree에는 .ai/verification/20260930-v3-changed-stmt-scope/ 아래만 썼다"
+ },
+ "red_check": {
+  "command": "C:/Python314/python.exe -u -B tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/g244/iso [--only <케이스> ...]  (cwd C:/g244/iso) -- 오케스트레이터 지시대로 전체를 한 번에 돌리지 않고 케이스 묶음 6개로 나눠 각각 run_in_background(같은 시각 병렬, 시작 시각 2초 간격으로 로그 이름 충돌 방지), 그리고 --cases 0.5 한 번",
+  "groups": {
+   "g3v3": "35-v3-changed-scope 34-v3-exempt-binding 28-v3-gmid-options 29-v4-decision-exempt 31-v3-git-history 26-gate-output-utf8 27f-v6-reconfigure-except v3_survivor v7_unwired",
+   "g1rec": "15-records",
+   "g2v4b": "23-v4-boundary",
+   "g4a": "01·01b·02·03·04·05·06·07·08·09·10·10b·10c·11·12·13·14 (전체 이름으로 --only)",
+   "g5b": "16·17-casefold-collision·17-conftest-v5·17-isolated-run·17-judging-env-el1·17-judging-env-el3-el4·17-pytest-candidates·17-v1-without-P·18·19a~19g",
+   "g6c": "20a·20b·20c·20d·20e(3)·21·22·24·25·27a~27e·30",
+   "g7cases": "--cases 0.5"
+  },
+  "runs": [
+   {"group": "g3v3", "exit": 1, "start": "2026-10-02T16:28:33+09:00", "end": "2026-10-02T17:08:06+09:00", "log": "out/logs/20261002-162833-direct.jsonl", "log_sha256": "5429039b18dd0e06ac6221ed3f90cd379d30433f397140dd8896bbf338787aa6", "cases": {"PASS": 8, "FAIL": 1}, "steps": {"PASS": 83, "FAIL": 6}},
+   {"group": "g1rec", "exit": 0, "start": "2026-10-02T16:28:48+09:00", "end": "2026-10-02T17:23:59+09:00", "log": "out/logs/20261002-162848-direct.jsonl", "log_sha256": "5f3b76815f4fac76a24273663650684a2c9cc73706fbc2a3800b9d5d38714cd5", "cases": {"PASS": 1}, "steps": {"PASS": 133}},
+   {"group": "g2v4b", "exit": 0, "start": "2026-10-02T16:29:10+09:00", "end": "2026-10-02T17:09:48+09:00", "log": "out/logs/20261002-162911-direct.jsonl", "log_sha256": "49eea5fd850f2b2f39f457576c682795cdb000289eaebcb002ba21dfd66d68fd", "cases": {"PASS": 1}, "steps": {"PASS": 169}},
+   {"group": "g4a", "exit": 0, "start": "2026-10-02T16:29:29+09:00", "end": "2026-10-02T16:46:51+09:00", "log": "out/logs/20261002-162930-direct.jsonl", "log_sha256": "72e51f74adafb0a94eca60137e7ba52e48f0b335a81dd878b396c2b243388daa", "cases": {"PASS": 13, "SKIPPED": 4}, "steps": {"PASS": 47, "RECORD": 3}},
+   {"group": "g5b", "exit": 0, "start": "2026-10-02T16:29:57+09:00", "end": "2026-10-02T17:02:35+09:00", "log": "out/logs/20261002-162958-direct.jsonl", "log_sha256": "9f740c8515022ec1db64f4828e4a4c0849c8786b3692ea373a229f70274e8336", "cases": {"PASS": 15, "SKIPPED": 1}, "steps": {"PASS": 97, "RECORD": 5}},
+   {"group": "g6c", "exit": 0, "start": "2026-10-02T16:30:19+09:00", "end": "2026-10-02T17:00:54+09:00", "log": "out/logs/20261002-163020-direct.jsonl", "log_sha256": "552e32a7086acd518dd710727c522760d46c23f235e1c133a3fe148aed949c22", "cases": {"PASS": 15, "SKIPPED": 2}, "steps": {"PASS": 86, "RECORD": 5}},
+   {"group": "g7cases", "exit": 0, "start": "2026-10-02T16:30:49+09:00", "end": "2026-10-02T16:33:14+09:00", "log": "out/logs/20261002-163050-direct-cases.jsonl", "log_sha256": "9f7db37f12c01d554f0f7064dbf44505c16a8c6c67bb6b5677988e28c0d4c1ce", "cases": {"PASS": 5, "SKIPPED": 2}, "steps": {"PASS": 6}}
+  ],
+  "log_copy": "로그 7개를 out/logs/에 바이트 그대로 복사(scratch 삭제 뒤 순서 7 기계 대조용). log_sha256은 원본(C:/g244/iso/tools/gates/redteam/logs/, CRLF 줄 끝) 바이트의 sha256 = audit worktree 작업 사본 바이트의 sha256(7개 모두 일치 확인). audit worktree는 core.autocrlf=true라 커밋 blob은 LF로 정규화된다 -- blob 바이트의 \n을 \r\n으로 바꾸면 log_sha256과 같다(7개 모두 확인). blob(LF) sha256: 162833 33c019a44b6d7d9a981c07b4010a167732980b2fad792ca58f1a997308911190, 162848 6da844d6b646c5f6adeb5cde84b5c2ad1fbe017043153be7b115872c4e9fdba4, 162911 6f0c53abd91a4345fbe31c0fa5b70a70db4652204cfcc1119b3171a0c0f53a18, 162930 f39bc6a25cd345df34bac80af64d9dec7ff28fa69203305def9e36c76c7cedcb, 162958 eddfdd0a031db1a7674f3ee6fcdf9449b5d715393141e7b6f82586a0eae765d3, 163020 1a7b2d1b60eb31580d311469b2e5a521a930f0ff34c687b3914a31a3fbf8f6f6, 163050-cases fe4d6cc1cb7fea5172f97cc25ac95fd704d7cfc0f50dcfa431501fb04b8c630d",
+  "coverage": "scripts/combine.py: 그룹 로그 합집합 = run_all.discover(None)의 61 디렉터리(attacks 59 + v3_survivor + v7_unwired)와 정확히 같음(빠짐 0, 중복 0, 밖 0)",
+  "case_35": "35-v3-changed-scope status ok, verdict FAIL, 11단계 모두 base 도구가 실제로 돌았다(하네스 ERROR·missing 0). 단계 exit: 11단계 모두 1",
+  "per_step": {
+   "unchanged-stmt-survivor": "control FAIL(red) -- exit 1(기대 0), base 출력 verdict FAIL·survivors = S `LOG.append(x * 3)`의 4개(stmt_delete body[0]·arith·const+/-), not_targeted 키 없음, observed {lines 10, by_result {}} != 기대(not_targeted 4)",
+   "changed-stmt-survivor": "attack PASS -- exit 1, survivors [rt_b:stmt_delete:body[1]] (base도 같은 X 하나 -- 회귀 방지 단계)",
+   "enclosing-guard-survivor": "attack FAIL(red) -- exit 1(기대와 같음), survivors 조각 불일치: base는 `r = 0`의 stmt_delete·const+/-도 생존(4개)",
+   "unwrapped-stmt": "attack PASS -- exit 1, survivors [rt_d:stmt_delete:body[1]]",
+   "header-only-change": "attack PASS -- exit 1, survivors [rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand]",
+   "header-default-bool": "attack FAIL(red) -- exit 1, '\"mutants\": 2, \"killed\"' 없음(base mutants 4)",
+   "delete-then-use": "attack PASS -- exit 1, survivors [rt_g:stmt_delete:body[1]]",
+   "decorator-mutant-applied": "control FAIL(red) -- exit 1(기대 0), base 도구가 데코레이터 상수 변이 2개를 NOOP으로 적용해 생존",
+   "same-block-later-use": "attack FAIL(red) -- exit 1, survivors 조각 불일치: base는 실행되지 않는 else 가지 변이 7개도 생존(8개)",
+   "loop-carried-use": "attack PASS -- exit 1, survivors [rt_j:stmt_delete:body[2].body[0]]",
+   "cross-block-not-targeted": "control FAIL(red) -- exit 1(기대 0), base survivors = `y = 0`의 3개 + Y `return y + 1`의 4개, observed {lines 17, by_result {}} != 기대(not_targeted 7)"
+  },
+  "expected_red_match": "spec card '판정 유형 근거'(red = (a), exit가 다른 (h)·(k), 브리프 3.1 '최소 (a)·(h)·(k)')를 포함한다. 실측 red 집합 = (a)·(c)·(f)·(h)·(i)·(k) 6단계, exit가 다른 단계 = (a)·(h)·(k). (c)·(f)·(i)는 base가 대상 밖 변이까지 돌려 조각이 달라진 red. (b)·(d)·(e)·(g)·(j)는 base에서 PASS(같은 X가 유일 생존 -- 좁힌 뒤에도 거부가 남는지 보이는 회귀 방지 단계). 이 기록은 격리 복제본 실측이다(작성자 보고 미사용)",
+  "failure_hash_method": "redteam 케이스(선례 20260930-v3-history-clone·20260930-v3-exempt-binding): test_id = tools/gates/redteam/attacks/35-v3-changed-scope::<단계>, failure_hash = base 판 merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") -- C:/g244/gate PYTHONPATH 맨 앞, -P (scripts/combine.py -> out/base_table.json)",
+  "red": [
+   {"test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::cross-block-not-targeted", "exc_type": "redteam.FAIL", "failure_hash": "a8c280abd3188ec99bad6a3bdf51c433f9c280207b1e3c3a01f959d070579dee"},
+   {"test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::decorator-mutant-applied", "exc_type": "redteam.FAIL", "failure_hash": "8ef1dfec84c1c6f5a35c5b445db68777e83c54b9fe122303fbf31b3ae225fc30"},
+   {"test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::enclosing-guard-survivor", "exc_type": "redteam.FAIL", "failure_hash": "55eab74dd8a4e51beb82bf3c02922a617dfd278b53a6df89a9e9f6e543ca2be6"},
+   {"test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::header-default-bool", "exc_type": "redteam.FAIL", "failure_hash": "684a59b413d9826ef84af96ec4e47916fbaa550de0970579e4a00bc8cf6a5a99"},
+   {"test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::same-block-later-use", "exc_type": "redteam.FAIL", "failure_hash": "2c299834adbc90570329030b8a4251ee9e2a77762742b4bcaec98ae267c530f7"},
+   {"test_id": "tools/gates/redteam/attacks/35-v3-changed-scope::unchanged-stmt-survivor", "exc_type": "redteam.FAIL", "failure_hash": "03fba4fa826a0d72152497cdd31ca2e305245f37fee2a8938dca324337c80cb5"}
+  ],
+  "aggregate_hash": "578509452129832487003551d7fb56384720c940a04cdcacfbb365f4d2fb94a1",
+  "aggregate_hash_method": "sha256(정렬한 failure_hash를 \\n으로 이은 UTF-8)"
+ },
+ "control_check": {
+  "base_table": "out/base_table.json(scripts/combine.py) -- 케이스·단계별 verdict·exit·observed",
+  "cases": {"PASS": 53, "SKIPPED": 7, "FAIL": 1},
+  "steps": {"PASS": 615, "RECORD": 13, "FAIL": 6},
+  "failed": "35-v3-changed-scope 하나(단계 FAIL = 위 red 6단계와 정확히 같음)",
+  "skipped": "11-rtl-agent-edit·18-test-author-reads-source·21-remote-config-tamper·22-gate-tamper(installed 전용), 12·13·14(Phase 6a)",
+  "contract7_cases": "34-v3-exempt-binding(6단계)·v3_survivor(2)·26-gate-output-utf8(42)·27f-v6-reconfigure-except(16)·28-v3-gmid-options(4)·29-v4-decision-exempt(4)·31-v3-git-history(3) 모두 PASS",
+  "consistency_with_previous_base": "선례 20260930-v3-exempt-binding base 표(케이스 PASS 52·SKIPPED 7·FAIL 1(34), 단계 PASS 604·RECORD 13·FAIL 6)에서 34가 병합으로 PASS가 되고 35(PASS 5·FAIL 6)가 더해진 수와 같다(604+6+5 = 615) -- 병렬 실행에 따른 간섭 흔적 없음",
+  "step_verdicts_sha256": "10b642c4218642e37d81e1ec492e78ba0bcdb876d23aa655b58cd0f7cca601ca",
+  "step_verdicts_sha256_method": "{<케이스>::<단계>: verdict} 634개 json.dumps(sort_keys=True, ensure_ascii=False) UTF-8 sha256 (combine.py, --cases 제외)",
+  "cases_replay": "--cases 0.5: PASS 5(1b9b4ea·2e1944a·3250baa·e329283·e5fbf92) / SKIPPED 2(5dc4679·caa970b), 단계 PASS 6, exit 0",
+  "no_op_baseline": "순서 7 기준: 병합본 --phase 0.5 --mode direct 전체·--cases 0.5의 케이스·단계 판정이 이 표와 같아야 하고, 차이는 35의 red 6단계(FAIL -> PASS)와 35 케이스(FAIL -> PASS)뿐이어야 한다(계약 7: 34·v3_survivor·26·27f·28·29·31 불변)"
+ },
+ "discrimination_check": {
+  "script": "scripts/disc35.py <T v.json> C:/g244/gate C:/g244/disc out/disc35.json (요약 out/disc35_summary.txt)",
+  "method": "rt.py와 독립으로 git 합성 저장소(base 커밋 -> head 커밋, v.json 사전 그대로)를 직접 만들고 base 도구(def 전체 변이)를 --out과 함께 돌려 변이 id별 killed/survived를 얻는다(11단계 모두 --out id 순서 = base mutants() 순서). 대상/대상 밖은 spec card 계약 1을 auditor가 직접 구현한 분류기(disc35.py classify -- difflib 규범 맞춤, 머리 지문, T1~T6·바뀐 이름 ⓐ~ⓓ·바뀐 매개변수)로 정했다. 병합본 예측 = 대상 변이의 결과는 base 실행 결과(변이 실행 방식은 계약 9 치환 말고 같다), 데코레이터 변이는 계약 9 판 치환(첫 데코레이터 줄부터)으로 바꾼 소스를 그 단계 test로 직접 pytest 실행한 결과. 변형(규칙 하나씩 뺀 정의)마다 그 단계의 기대(exit·조각·observed_equals)가 깨지는지 예측",
+  "per_step": {
+   "unchanged-stmt-survivor": {"X": "S `LOG.append(x * 3)`의 4 변이(control)", "c1_base_survived": true, "c2_targets": 6, "c2_targets_match_test_basis": true, "c2_targets_killed_all": true, "c3_aimed": "def 전체(좁히지 않음) -> S 생존 exit 1 -> 단계 FAIL(잡힘)"},
+   "changed-stmt-survivor": {"X": "rt_engine:rt_b:stmt_delete:body[1]", "c1_base_survived": true, "c2_targets": 2, "c2_X_target_rest_killed": true, "c3_aimed": "T1 뺌 -> X 대상 밖, exit 0 -> 잡힘"},
+   "enclosing-guard-survivor": {"X": "rt_engine:rt_c:cmp_flip:body[1].test.values[0].ops[0]", "c1_base_survived": true, "c2_targets": 7, "c2_X_target_rest_killed": true, "c3_aimed": "T4 뺌 -> X 대상 밖 -> 잡힘"},
+   "unwrapped-stmt": {"X": "rt_engine:rt_d:stmt_delete:body[1]", "c1_base_survived": true, "c2_targets": 3, "c2_X_target_rest_killed": true, "c3_aimed": "들여쓰기만 바뀐 문장을 '바뀌지 않음'(base 어딘가에 같은 지문)으로 보는 정의 -> X 대상 밖 -> 잡힘"},
+   "header-only-change": {"X": "rt_engine:rt_e:const+:body[1].iter.generators[0].ifs[0].comparators[0].operand", "c1_base_survived": true, "c2_targets": 5, "c2_X_target_rest_killed": true, "c3_aimed": "T2 뺌 -> X 대상 밖 -> 잡힘"},
+   "header-default-bool": {"X": "대상 2개(stmt_delete:body[0]·early_return:body[0]) 모두 인벤토리 없음 생존", "c1_base_survived": true, "c2_targets": 2, "c2_targets_match_test_basis": true, "c3_aimed": "T3·T5 함께 뺌(대상 0 -> exit 0), T3만 뺌, T5만 뺌(mutants 1 -> 조각 불일치) 모두 잡힘"},
+   "delete-then-use": {"X": "rt_engine:rt_g:stmt_delete:body[1]", "c1_base_survived": true, "c2_targets": 2, "c2_X_target_rest_killed": true, "c3_aimed": "**T6 가만 뺌 -> X는 T6 나(지운 `x = abs(x)`가 바꾸는 x를 `return str(x)`가 읽음)로 여전히 대상 -> 단계 통과(잡히지 않음)**. T6 가·나 함께 뺌 -> 잡힘"},
+   "decorator-mutant-applied": {"X": "const+/- decorator_list[0].keywords[0].value(control)", "c1_base_survived": true, "c1_base_replace_noop": "base _replace_def 결과 AST = 원본(두 변이 모두 NOOP)", "c9_probe": "계약 9 판 치환은 AST가 원본과 다르고 test가 죽인다(assert 129 == 128, assert 127 == 128)", "c2_targets": 3, "c2_targets_killed_all": true, "c3_aimed": "계약 9 없음(NOOP) -> 두 변이 생존 exit 1 -> 잡힘"},
+   "same-block-later-use": {"X": "rt_engine:rt_i:cmp_flip:body[2].test.ops[0]", "c1_base_survived": true, "c2_targets": 5, "c2_X_target_rest_killed": true, "c3_aimed": "승인 당시 정의(T6 = 바로 뒤만) -> X 대상 밖 -> 잡힘"},
+   "loop-carried-use": {"X": "rt_engine:rt_j:stmt_delete:body[2].body[0]", "c1_base_survived": true, "c2_targets": 8, "c2_X_target_rest_killed": true, "c3_aimed": "반복문 규칙 뺌(같은 블록 뒤쪽만) -> X 대상 밖 -> 잡힘"},
+   "cross-block-not-targeted": {"X": "Y `return y + 1`의 4 변이(control)", "c1_base_survived": true, "c2_targets": 10, "c2_targets_match_test_basis": true, "c2_targets_killed_all": true, "c3_aimed": "다른 블록(바깥 블록 뒤쪽)까지 넓힌 정의 -> Y 4개 대상·생존 exit 1 -> 잡힘. def 전체도 잡힘"}
+  },
+  "full_definition_vs_expect": "11단계 모두 auditor 분류(계약 1 전체) + base 실행 결과로 예측한 병합본 출력이 그 단계의 exit·message_contains 조각·observed_equals를 전부 만족(expect_holds_full = true 11/11). 대상 수 6·2·7·3·5·2·2·3·5·8·10 = test-author basis의 대상 수와 같음",
+  "variant_caught_by": {
+   "def 전체(좁히지 않음)": ["unchanged-stmt-survivor", "enclosing-guard-survivor", "header-default-bool", "same-block-later-use", "cross-block-not-targeted"],
+   "T1 뺌": ["unchanged-stmt-survivor", "changed-stmt-survivor", "unwrapped-stmt", "cross-block-not-targeted"],
+   "T2 뺌": ["header-only-change"],
+   "T3 뺌": ["header-default-bool"],
+   "T4 뺌": ["enclosing-guard-survivor", "cross-block-not-targeted"],
+   "T5 뺌": ["unchanged-stmt-survivor", "header-default-bool", "cross-block-not-targeted"],
+   "T6 가 뺌": [],
+   "T6 나 뺌": ["same-block-later-use", "loop-carried-use"],
+   "T6 가·나 뺌": ["unchanged-stmt-survivor", "delete-then-use", "same-block-later-use", "loop-carried-use", "cross-block-not-targeted"],
+   "T6 나를 바로 뒤로 한정": ["same-block-later-use"],
+   "반복문 규칙 뺌": ["loop-carried-use"],
+   "들여쓰기 = 바뀌지 않음": ["unwrapped-stmt"],
+   "다른 블록까지 넓힘": ["cross-block-not-targeted"],
+   "데코레이터 NOOP(계약 9 없음)": ["decorator-mutant-applied"]
+  },
+  "test_defect": {
+   "found": true,
+   "item": "판별력 ③ 불성립 1건 -- (g) delete-then-use가 겨냥한 규칙(spec card 계약 8 (g) '(T6 가)')을 혼자 빼면 잡지 못한다. 지운 `x = abs(x)`가 바꾸는 이름 x를 바로 뒤 `return str(x)`가 읽으므로 X는 T6 나로도 대상이다. 11단계 전체로도 'T6 가만 뺀 구현'을 잡는 단계가 없다((d) `return y` stmt_delete는 T6 가로만 대상이지만 test가 죽여 생존이 아니다)",
+   "origin": "spec card 계약 8 (g) 문장이 구성을 `x = clamp(x)`만 지우고 바로 뒤 `return f(x)`로 정한다(T6 나 넓힘 이전의 구성) -- test는 계약 문장대로다. 결함의 뿌리는 spec card 구성 문장",
+   "fix_hint": "지운 문장이 바꾸는 이름을 바로 뒤 문장이 읽지 않는 구성이면 X가 T6 가로만 대상이 된다. 예: base `LOG.append(x)` / `LOG.append(-x)` / `return str(x)`에서 `LOG.append(-x)`만 지우고(바꾸는 이름 LOG를 `return str(x)`가 읽지 않음), test는 LOG[n:] == [3]만 본다 -> X = `return str(x)`의 stmt_delete가 유일 생존, T6 가를 뺀 구현은 exit 0. spec card 계약 8 (g) 문구 수정 여부는 오케스트레이터(필요하면 사용자) 결정",
+   "other_steps": "나머지 10단계는 ①②③ 모두 성립"
+  },
+  "reference_cross_check": "참고 대조(판정 근거 아님): 키트 scope_proto.select(N2w)가 고른 대상 집합이 11단계 모두 auditor 분류와 같음(out/ref_proto.json). N2b(승인 당시 정의)는 (i) 3·(j) 6으로 줄어 X가 빠짐"
+ },
+ "observed_equals_hand_check": {
+  "unchanged-stmt-survivor": "head rt_calc 본문 [LOG.append(x * 3), t = x + 2, return t], base [.., t = x + 1, ..]. 맞춤: equal[0], replace a[1]->b[1](단순문 -> 새 문장, base `t = x + 1` 지운 문장, 삭제 지점 j2 = 2), equal[2]. 대상 = T1 body[1] 4(stmt_delete·arith body[1].value·const+/- body[1].value.right) + T6 가 body[2] stmt_delete(T6 나: t를 읽음, 같은 문장) + T5 early_return = 6. 대상 밖 = body[0] 부분 트리 4(stmt_delete body[0]·arith body[0].value.args[0]·const+/- body[0].value.args[0].right) -- body[0]은 C 앞(T6 나 '뒤' 아님)·조상 아님. lines = 6 + 4 = 10. 정렬 id 목록이 기대 observed_equals.by_result.not_targeted 4개와 원소·순서 모두 같다",
+  "cross-block-not-targeted": "head rt_k 본문 [y = 0, if x > 0: [y = x * 3, LOG.append(y)], return y + 1]. 맞춤: 최상위 replace a[1]->b[1] = 같은 종류·같은 머리 if 짝(머리 변경 아님) -> 본문 replace `y = x * 2` -> `y = x * 3`(새 문장 body[1].body[0], 삭제 지점 그 본문 j2 = 1). 대상 = T1 4 + T4 if의 몫 4(stmt_delete body[1]·cmp_flip body[1].test.ops[0]·const+/- body[1].test.comparators[0]) + T6 가 body[1].body[1] stmt_delete 1(T6 나: y를 읽음, 같은 문장) + T5 1 = 10. 대상 밖 = `y = 0` 3(stmt_delete body[0]·const+/- body[0].value) + `return y + 1` 4(stmt_delete body[2]·arith body[2].value·const+/- body[2].value.right -- y를 읽지만 다른 블록(바깥) = 놓침 ②) = 7. lines 17. 정렬 id 목록이 기대 7개와 원소·순서 모두 같다",
+  "result": "두 control 모두 observed_equals 목록 = 계약 1로 정한 대상 밖 id 전부(빠짐·더함 0), lines = 대상 + 대상 밖. disc35.py 예측 observed와도 같음(observed_ok true)"
+ },
+ "order7_plan": "브리프 3.2·3.3 그대로(V1 PASS 기준 -- pytest 전체 + 병합본 redteam 전체·--cases 0.5를 이 base 표(out/base_table.json·out/logs/)와 케이스·단계 단위 기계 대조, V2~V9 N/A + 참고 측정, V10 PASS + probe p1~p8). 위 test_defect의 처리(그대로 진행 / spec·test 고침)는 오케스트레이터 결정 뒤",
+ "measured_at": "2026-10-02T17:30:00+09:00",
+ "measured_by": "gmid-verification-auditor (격리 복제본 C:/g244, 작성자 보고 미사용)"
+}
