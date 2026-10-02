@@ -100,7 +100,7 @@ Context Anchor: 계획서에 `## Context Anchor` 절이 없어 옮기지 않는�
 | 승인 기록 양식 | `.ai/approvals/_TEMPLATE.md` | `코드` | 2 -- V5 판정 입력 | 0.5 공격 15(머리 형식 위반 거부) | `오케스트레이터` | `사용자` | CC-1 |
 | merge gate 로더·승인 기록 파서·red 해시 | 판정 기록 로더, `parse_approval_header`, `red_failure_hash`, red 수집 플러그인 | `코드` | 2 -- 병합 판정 | 0.5 공격 15 | `오케스트레이터` | `사용자` | CC-1 |
 | 계획서 판정 표 읽기 | `read_plan_tables`·`plan_phase_tokens` | `코드` | 2 -- N/A 판정 입력 | 0.5 공격 16(표 파손 거부, 승인 없는 표 개정 거부) | `오케스트레이터` | `사용자` | CC-2 |
-| 계측 인터페이스 | MOD10 `search`·`output_dir`·`instrument`·`activations_out` 인자, 평가 커널 빌더의 감싸기 | `코드` | 2 -- 보고 수치·판정 입력 | red-green | `gmid-code-author` | `gmid-test-author` | CC-7, CC-8 |
+| 계측 인터페이스 | MOD10 `instrument`·`activations_out` 인자, 평가 커널 빌더의 감싸기(진입점 `run_gmid_design_pipeline`과 `topology_path`·`search`·`output_dir` 인자는 Phase 3 M10이 만든다 -- design 30 §2.3) | `코드` | 2 -- 보고 수치·판정 입력 | red-green | `gmid-code-author` | `gmid-test-author` | CC-7, CC-8 |
 | xfail 생성과 표식 대조 | conftest `--gmid-phase`·`--gmid-strict`·`--gmid-dod`, `gmid_ic` 표식(케이스 키), 표식-계획서 대조 test | `코드` | 2 -- xfail 만료 판정 | 계획서 N4.1 직접 대조(§9.3) | `gmid-test-author` | `사용자`(계획서 N4.1 승인) | CC-3 |
 | 실패 규약 코드 | §7 | `코드` | 2 -- exit code·실패 레코드 | red-green | `gmid-code-author` | `gmid-test-author` | CC-4 |
 | 옛 키 게이트 | §6 | `코드` | 2 -- 로드 거부 | red-green | `gmid-code-author` | `gmid-test-author` | CC-5 |
@@ -428,7 +428,7 @@ $PY skills/analog-gmid-design/assets/tests/tools/measure_search_perf.py \
 
 ### 10.1 계측 인터페이스(엔진 쪽, CC-7)
 
-* 운영 진입점 `run_gmid_design_pipeline(spec, *, search, output_dir, instrument=None, activations_out=None)`(MOD10). `search`는 탐색 설정(`grid_points_per_theta`, `search_method`, `slsqp_kwargs` -- 지금 `SPECS[circuit]`에 있고 spec에는 없는 값)이다. 하네스 `run()`은 `spec_fn()` 반환값에 자기 기본값(`floorplan_target`, `max_layout_retry_rounds`)을 채운 spec과 `search`를 이 진입점에 넘기고, 받은 `output_dir`·`instrument`·`activations_out`을 그대로 넘긴다.
+* 운영 진입점 `run_gmid_design_pipeline(spec, *, topology_path, search, output_dir, instrument=None, activations_out=None)`(MOD10). `topology_path`는 topology 파일 경로다(지금 하네스가 `SPECS[circuit]["topology_file"]`에서 만들어 `optimize_full_circuit_budget`에 따로 넘긴다 -- spec에 없는 값, design 30 D-5). `search`는 탐색 설정(`grid_points_per_theta`, `search_method`, `slsqp_kwargs` -- 지금 `SPECS[circuit]`에 있고 spec에는 없는 값)이다. 하네스 `run()`은 `spec_fn()` 반환값에 자기 기본값(`floorplan_target`, `max_layout_retry_rounds`)을 채운 spec과 `topology_path`·`search`를 이 진입점에 넘기고, 받은 `output_dir`·`instrument`·`activations_out`을 그대로 넘긴다. 진입점과 `topology_path`·`search`·`output_dir`는 Phase 3(M10)이, `instrument`·`activations_out`은 CC-7·CC-8(Phase 4)이 만든다.
 * `instrument`는 세 메서드를 갖는다: `on_start(spec, search)`(진입점이 실제로 쓸 spec과 탐색 설정으로 한 번 부른다), `wrap_search(fn) -> fn`, `wrap_evaluate(fn) -> fn`.
 * **감싸는 지점은 각각 한 곳이다**:
   * `wrap_evaluate`: 평가 커널 빌더(Phase 3 전 `_build_theta_evaluator`, 이관 뒤 MOD6의 같은 함수) **안에서 반환 직전에** 평가 함수를 감싼다. 빌더를 부르는 곳이 여럿이어도(2026-09-18 AST: 운영 코드 6곳, `presolve_warm_start`의 재빌드 포함) 모든 평가가 감싸진다.

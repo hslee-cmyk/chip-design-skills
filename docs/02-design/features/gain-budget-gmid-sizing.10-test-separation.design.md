@@ -247,9 +247,9 @@ def check_topology_name_uniqueness(device_names: Sequence[str], passive_names: S
 * 앞뒤 공백을 뗀 줄이 `검사하지 않는 것:`으로 시작하는 줄이 1개 이상이고, 그 줄의 콜론 뒤나 다음 비지 않은 줄에 공백 아닌 문자가 있다.
 * 앞뒤 공백을 뗀 줄이 `영역:`으로 시작하는 줄이 **정확히 1개**이고 정규식 `^영역:\s*(없음\((스키마|배치)\)|(dc|ac_struct|ss|ls)(\s*,\s*(dc|ac_struct|ss|ls))*)\s*(\.|$)`에 맞는다. `없음(배치)`는 `00-common` §5 개정 요청 C1이다(레이아웃 게이트는 전기 영역도 스키마도 아니다).
 
-**영역 표**(현존 21개, test가 이 값과 같음을 단언 -- oracle (d) = 이 문서 승인):
+**영역 표**(현존 21개, test가 이 값과 같음을 단언 -- oracle (d) = 이 문서 승인). '파일' 열은 이 표를 쓸 때(Phase 3 전)의 정의 위치를 적은 **설명**이고 판정 키가 아니다 -- test는 함수 이름으로 대조하고, 정의 위치는 엔진 소스(`skills/analog-gmid-design/assets/*.py`, `workspaces/run_harness.py`)에서 그 이름을 최상위로 정의하는 파일이 정확히 하나인지로 찾는다(Phase 3 T0, design 30 §7.1 R-DEF). 판정 기준은 '영역' 값이다:
 
-| 파일 | 함수 | 영역 | 이유(N0.4 '영역') |
+| 파일(설명, Phase 3 전 위치) | 함수 | 영역 | 이유(N0.4 '영역') |
 |---|---|---|---|
 | `audit_current_forced.py` | `audit_topology` | 없음(스키마) | `matching_pairs` 선언과 `sizing_roles.theta` 선언의 대조 |
 | `sizing_recipe.py` | `check_quasi_static` | ss | gm·Cgg(선형화 값) |
