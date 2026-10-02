@@ -1,0 +1,43 @@
+== legacy-unbound-leak attack
+ target_lines ['target: rt_engine:rt_scale:stmt_delete:body[1]']
+ nophbytes True []
+ with 0 {"tool": "V3", "verdict": "PASS", "targets": ["skills/analog-gmid-design/assets/rt_engine.py"], "mutants": 6, "killed": 5, "survivors": []}
+ with_out [['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+ without 1 6 5 ['rt_engine:rt_scale:stmt_delete:body[1]']
+ without_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+== hash-mismatch attack
+ target_lines ['target: rt_engine:rt_scale:stmt_delete:body[1]@0deb1dd9dd1d98b4412c5cd7f284e6e2d6b55c45f32b3151f8bb118b9669c29d']
+ nophbytes True [('base:skills/analog-gmid-design/assets/rt_engine.py:rt_scale', '0deb1dd9dd1d98b4', True)]
+ with 1 {"tool": "V3", "verdict": "FAIL", "targets": ["skills/analog-gmid-design/assets/rt_engine.py"], "mutants": 6, "killed": 5, "survivors": ["rt_engine:rt_scale:stmt_delete:body[1]"]}
+ with_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+ without 1 6 5 ['rt_engine:rt_scale:stmt_delete:body[1]']
+ without_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+== bound-exempt control
+ target_lines ['target: rt_engine:rt_scale:stmt_delete:body[1]@59c1685f46675e7f1ce5304490df27e543eb287bad466955713af0295012ab7b']
+ nophbytes True [('head:skills/analog-gmid-design/assets/rt_engine.py:rt_scale', '59c1685f46675e7f', True)]
+ with 1 {"tool": "V3", "verdict": "FAIL", "targets": ["skills/analog-gmid-design/assets/rt_engine.py"], "mutants": 6, "killed": 5, "survivors": ["rt_engine:rt_scale:stmt_delete:body[1]"]}
+ with_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+ without 1 6 5 ['rt_engine:rt_scale:stmt_delete:body[1]']
+ without_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+== bound-other-def attack
+ target_lines ['target: rt_engine:rt_scale:stmt_delete:body[1]@8590813f3cbbd34331d0cfd04879ef113023be63c8a201466c83bb550314d5c0']
+ nophbytes True [('head:skills/analog-gmid-design/assets/rt_engine.py:rt_gain', '8590813f3cbbd343', True)]
+ with 1 {"tool": "V3", "verdict": "FAIL", "targets": ["skills/analog-gmid-design/assets/rt_engine.py"], "mutants": 6, "killed": 5, "survivors": ["rt_engine:rt_scale:stmt_delete:body[1]"]}
+ with_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+ without 1 6 5 ['rt_engine:rt_scale:stmt_delete:body[1]']
+ without_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+== docstring-shift attack
+ target_lines ['target: rt_engine:rt_scale:stmt_delete:body[1]@0541ddc51a6e6f37a7add1feb606206d11461488f4f492a3f69512d579f90656']
+ nophbytes True [('head:notes/attempt_k.py:rt_scale', '0541ddc51a6e6f37', True)]
+ with 1 {"tool": "V3", "verdict": "FAIL", "targets": ["skills/analog-gmid-design/assets/rt_engine.py"], "mutants": 7, "killed": 6, "survivors": ["rt_engine:rt_scale:stmt_delete:body[1]"]}
+ with_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:stmt_delete:body[3]', 'killed'], ['rt_engine:rt_scale:arith:body[3].value', 'killed'], ['rt_engine:rt_scale:const+:body[3].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[3].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+ without 1 7 6 ['rt_engine:rt_scale:stmt_delete:body[1]']
+ without_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:stmt_delete:body[3]', 'killed'], ['rt_engine:rt_scale:arith:body[3].value', 'killed'], ['rt_engine:rt_scale:const+:body[3].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[3].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+ e {'def_hash_Dk_eq_head': True, 'bind_Dk_ne_head': True, 'def_hash_Dk_ne_D0': True, 'Dk_body1': 'x = abs(x)', 'head_body1': "_ = len('rt')"}
+== malformed-element attack
+ target_lines ['target: rt_engine:rt_scale:stmt_delete:body[1]@abc']
+ nophbytes True []
+ with 1 {"tool": "V3", "verdict": "FAIL", "targets": ["skills/analog-gmid-design/assets/rt_engine.py"], "mutants": 6, "killed": 5, "survivors": ["rt_engine:rt_scale:stmt_delete:body[1]"]}
+ with_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]
+ without 1 6 5 ['rt_engine:rt_scale:stmt_delete:body[1]']
+ without_out [['rt_engine:rt_scale:stmt_delete:body[1]', 'survived'], ['rt_engine:rt_scale:stmt_delete:body[2]', 'killed'], ['rt_engine:rt_scale:arith:body[2].value', 'killed'], ['rt_engine:rt_scale:const+:body[2].value.left', 'killed'], ['rt_engine:rt_scale:const-:body[2].value.left', 'killed'], ['rt_engine:rt_scale:early_return:body[1]', 'killed']]

@@ -1,0 +1,628 @@
+{
+ "X": "rt_engine:rt_scale:stmt_delete:body[1]",
+ "steps": {
+  "legacy-unbound-leak": {
+   "kind": "attack",
+   "bindhash_checks": [],
+   "target_lines": [
+    "target: rt_engine:rt_scale:stmt_delete:body[1]"
+   ],
+   "no_placeholder_bytes_equal": true,
+   "with": {
+    "exit": 0,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"PASS\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": []}",
+    "stderr_tail": "",
+    "survivors": [],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "without": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "X_sole_survivor": true
+  },
+  "hash-mismatch": {
+   "kind": "attack",
+   "bindhash_checks": [
+    {
+     "in": "head:.ai/approvals/20260930-rt-v3bind.md",
+     "ref": "base:skills/analog-gmid-design/assets/rt_engine.py:rt_scale",
+     "auditor": "0deb1dd9dd1d98b4412c5cd7f284e6e2d6b55c45f32b3151f8bb118b9669c29d",
+     "rt_target_line": "target: rt_engine:rt_scale:stmt_delete:body[1]@0deb1dd9dd1d98b4412c5cd7f284e6e2d6b55c45f32b3151f8bb118b9669c29d",
+     "match": true
+    }
+   ],
+   "target_lines": [
+    "target: rt_engine:rt_scale:stmt_delete:body[1]@0deb1dd9dd1d98b4412c5cd7f284e6e2d6b55c45f32b3151f8bb118b9669c29d"
+   ],
+   "no_placeholder_bytes_equal": true,
+   "with": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "without": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "X_sole_survivor": true
+  },
+  "bound-exempt": {
+   "kind": "control",
+   "bindhash_checks": [
+    {
+     "in": "head:.ai/approvals/20260930-rt-v3bind.md",
+     "ref": "head:skills/analog-gmid-design/assets/rt_engine.py:rt_scale",
+     "auditor": "59c1685f46675e7f1ce5304490df27e543eb287bad466955713af0295012ab7b",
+     "rt_target_line": "target: rt_engine:rt_scale:stmt_delete:body[1]@59c1685f46675e7f1ce5304490df27e543eb287bad466955713af0295012ab7b",
+     "match": true
+    }
+   ],
+   "target_lines": [
+    "target: rt_engine:rt_scale:stmt_delete:body[1]@59c1685f46675e7f1ce5304490df27e543eb287bad466955713af0295012ab7b"
+   ],
+   "no_placeholder_bytes_equal": true,
+   "with": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "without": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "X_sole_survivor": true
+  },
+  "bound-other-def": {
+   "kind": "attack",
+   "bindhash_checks": [
+    {
+     "in": "head:.ai/approvals/20260930-rt-v3bind.md",
+     "ref": "head:skills/analog-gmid-design/assets/rt_engine.py:rt_gain",
+     "auditor": "8590813f3cbbd34331d0cfd04879ef113023be63c8a201466c83bb550314d5c0",
+     "rt_target_line": "target: rt_engine:rt_scale:stmt_delete:body[1]@8590813f3cbbd34331d0cfd04879ef113023be63c8a201466c83bb550314d5c0",
+     "match": true
+    }
+   ],
+   "target_lines": [
+    "target: rt_engine:rt_scale:stmt_delete:body[1]@8590813f3cbbd34331d0cfd04879ef113023be63c8a201466c83bb550314d5c0"
+   ],
+   "no_placeholder_bytes_equal": true,
+   "with": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "without": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "X_sole_survivor": true
+  },
+  "docstring-shift": {
+   "kind": "attack",
+   "bindhash_checks": [
+    {
+     "in": "head:.ai/approvals/20260930-rt-v3bind.md",
+     "ref": "head:notes/attempt_k.py:rt_scale",
+     "auditor": "0541ddc51a6e6f37a7add1feb606206d11461488f4f492a3f69512d579f90656",
+     "rt_target_line": "target: rt_engine:rt_scale:stmt_delete:body[1]@0541ddc51a6e6f37a7add1feb606206d11461488f4f492a3f69512d579f90656",
+     "match": true
+    }
+   ],
+   "target_lines": [
+    "target: rt_engine:rt_scale:stmt_delete:body[1]@0541ddc51a6e6f37a7add1feb606206d11461488f4f492a3f69512d579f90656"
+   ],
+   "no_placeholder_bytes_equal": true,
+   "with": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 7, \"killed\": 6, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 7,
+    "killed": 6,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[3]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[3].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[3].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[3].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "without": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 7, \"killed\": 6, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 7,
+    "killed": 6,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[3]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[3].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[3].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[3].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "X_sole_survivor": true,
+   "e_premise": {
+    "def_hash_Dk_eq_head": true,
+    "bind_Dk_ne_head": true,
+    "def_hash_Dk_ne_D0": true,
+    "Dk_body1": "x = abs(x)",
+    "head_body1": "_ = len('rt')"
+   }
+  },
+  "malformed-element": {
+   "kind": "attack",
+   "bindhash_checks": [],
+   "target_lines": [
+    "target: rt_engine:rt_scale:stmt_delete:body[1]@abc"
+   ],
+   "no_placeholder_bytes_equal": true,
+   "with": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "without": {
+    "exit": 1,
+    "stdout": "{\"tool\": \"V3\", \"verdict\": \"FAIL\", \"targets\": [\"skills/analog-gmid-design/assets/rt_engine.py\"], \"mutants\": 6, \"killed\": 5, \"survivors\": [\"rt_engine:rt_scale:stmt_delete:body[1]\"]}",
+    "stderr_tail": "",
+    "survivors": [
+     "rt_engine:rt_scale:stmt_delete:body[1]"
+    ],
+    "mutants": 6,
+    "killed": 5,
+    "keys": [
+     "tool",
+     "verdict",
+     "targets",
+     "mutants",
+     "killed",
+     "survivors"
+    ],
+    "out_records": [
+     [
+      "rt_engine:rt_scale:stmt_delete:body[1]",
+      "survived"
+     ],
+     [
+      "rt_engine:rt_scale:stmt_delete:body[2]",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:arith:body[2].value",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const+:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:const-:body[2].value.left",
+      "killed"
+     ],
+     [
+      "rt_engine:rt_scale:early_return:body[1]",
+      "killed"
+     ]
+    ]
+   },
+   "X_sole_survivor": true
+  }
+ }
+}

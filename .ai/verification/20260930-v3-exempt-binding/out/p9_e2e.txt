@@ -1,0 +1,14 @@
+repo=C:\g186\isop
+log=C:\g186\isop\tools\gates\redteam\logs\20261002-111346-direct.jsonl
+
+ERROR            99-p9-bindhash-error                         
+    - run.sh exit 1: \redteam\lib\rt.py"[0m, line [35m584[0m, in [35m<lambda>[0m
+    text = _BINDHASH_RE.sub(lambda m: [31m_resolve_bindhash[0m[1;31m(m.group(1), stage1)[0m, data.decode("utf-8"))
+                                      [31m~~~~~~~~~~~~~~~~~[0m[1;31m^^^^^^^^^^^^^^^^^^^^[0m
+  File [35m"C:\g186\isop\tools\gates\redteam\lib\rt.py"[0m, line [35m569[0m, in [35m_resolve_bindhash[0m
+    raise RuntimeError(f"@bindhash qualname def 없음: {side}:{path}:{qualname}")
+[1;35mRuntimeError[0m: [35m@bindhash qualname def 없음: head:skills/analog-gmid-design/assets/rt_engine.py:no_such_def[0m
+
+
+케이스: {"ERROR": 1}
+단계: {}

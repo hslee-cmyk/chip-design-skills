@@ -1,0 +1,133 @@
+{
+ "P1": {
+  "exit": [
+   1,
+   1
+  ],
+  "stdout_one_line": true,
+  "key_order": true,
+  "exempt_ignored_eq_expected": true,
+  "no_X1_in_ignored(p1a)": true,
+  "X2_three_sorted(p1b)": true,
+  "X3_once_two_records(p1c)": true,
+  "survivors_eq_expected": true,
+  "survivor_bindings": true,
+  "exempt_records": true,
+  "exempt_record_key_order": true,
+  "mutants_eq_out_lines_incl_exempt": true,
+  "out_order_eq_generation_order": true,
+  "p4_by_survivor": {
+   "pa:f2:stmt_delete:body[1]": {
+    "tool": "31b14007a45eb25a",
+    "auditor": "31b14007a45eb25a",
+    "eq": true
+   },
+   "pa:f3:stmt_delete:body[1]": {
+    "tool": "3e505c85d0222baa",
+    "auditor": "3e505c85d0222baa",
+    "eq": true
+   },
+   "pa:f5:stmt_delete:body[1]": {
+    "tool": "01c6523b5122b6e4",
+    "auditor": "01c6523b5122b6e4",
+    "eq": true
+   },
+   "pa:f5:stmt_delete:body[2]": {
+    "tool": "01c6523b5122b6e4",
+    "auditor": "01c6523b5122b6e4",
+    "eq": true
+   },
+   "pa:f5:stmt_delete:body[3]": {
+    "tool": "01c6523b5122b6e4",
+    "auditor": "01c6523b5122b6e4",
+    "eq": true
+   },
+   "pa:dec_fn:stmt_delete:body[1]": {
+    "tool": "4cb52c400fbbe99e",
+    "auditor": "4cb52c400fbbe99e",
+    "eq": true
+   },
+   "pa:dec2_fn:stmt_delete:body[1]": {
+    "tool": "0439293c4c159389",
+    "auditor": "0439293c4c159389",
+    "eq": true
+   },
+   "pa:dec2_fn:const+:decorator_list[0].args[0]": {
+    "tool": "0439293c4c159389",
+    "auditor": "0439293c4c159389",
+    "eq": true
+   },
+   "pa:dec2_fn:const-:decorator_list[0].args[0]": {
+    "tool": "0439293c4c159389",
+    "auditor": "0439293c4c159389",
+    "eq": true
+   },
+   "pa:af:stmt_delete:body[1]": {
+    "tool": "b1c4846cd80a6661",
+    "auditor": "b1c4846cd80a6661",
+    "eq": true
+   },
+   "pa:K.meth:stmt_delete:body[1]": {
+    "tool": "3bc8b3bc2ea887c9",
+    "auditor": "3bc8b3bc2ea887c9",
+    "eq": true
+   },
+   "pa:outer:stmt_delete:body[1].body[0]": {
+    "tool": "172fcde451ba5e71",
+    "auditor": "172fcde451ba5e71",
+    "eq": true
+   },
+   "pa:outer.inner:stmt_delete:body[0]": {
+    "tool": "2cc3226b14ec4537",
+    "auditor": "2cc3226b14ec4537",
+    "eq": true
+   },
+   "pb:g1:stmt_delete:body[1]": {
+    "tool": "ad7b5229c8ec0b9d",
+    "auditor": "ad7b5229c8ec0b9d",
+    "eq": true
+   }
+  },
+  "p4_kinds_present": {
+   "pa:dec_fn:": true,
+   "pa:af:": true,
+   "pa:K.meth:": true,
+   "pa:outer:stmt_delete:body[1].body[0]": true,
+   "pa:outer.inner:": true
+  },
+  "p4_nested_outer_binding_is_outer": true,
+  "p4_inner_binding_is_inner": true,
+  "p4_decorator_arg_mismatch": true,
+  "p5_malformed": true,
+  "p5_spaces_exempt": true,
+  "p8_exit_same": [
+   1,
+   1
+  ],
+  "p8_equal_without_new_keys": true,
+  "p8_new_keys": {
+   "exempt_ignored": [],
+   "survivor_bindings_match": true
+  },
+  "p8_out_equal": true
+ },
+ "P2": {
+  "exit_m": 0,
+  "exit_b": 0,
+  "targets_m": [
+   "skills/analog-gmid-design/assets/pc.py"
+  ],
+  "tests_tools_not_target": true,
+  "exempt_ignored_m": [
+   {
+    "id": "pc:h1:arith:body[0].value",
+    "reason": "unbound"
+   }
+  ],
+  "p2_only_own_id": true,
+  "p6_pass_with_nonempty_ignored": true,
+  "repo": "C:/g186/o7/pw\\P2",
+  "base": "4789c1dc89e41318cbe9e682aef0381292453357",
+  "head": "5a884be2002ed4b76eeae18026aed5e2e49060e3"
+ }
+}

@@ -1,0 +1,131 @@
+{
+ "id": "20260930-v3-exempt-binding",
+ "attempt": 1,
+ "evidence_type": "red-green",
+ "gate_change": "yes",
+ "freeze": {
+  "T": "8b1f9293681df57e79522c8a2262342ef07f87b3",
+  "T_subject": "test: redteam 공격 34(V3 면제 묶기 6단계 -- legacy-unbound-leak·hash-mismatch·bound-exempt·bound-other-def·docstring-shift·malformed-element) + rt.py @bindhash 자리표시자·observe out_jsonl(계약 9, 승인 범위 (ii))",
+  "T_trailers": {"Role": "test", "Change-Id": "20260930-v3-exempt-binding"},
+  "T_parent": "dd60db6515b6fe80ab16349835c19aa75d4f292f",
+  "base": "dd60db6515b6fe80ab16349835c19aa75d4f292f",
+  "base_is_gate_master": "오케스트레이터 지시의 base = dd60db6(승인 기록 커밋), T의 유일한 부모(rev-list --count dd60db6..T = 1)",
+  "base_to_T_name_status": "A attacks/34-v3-exempt-binding/{expect.json,run.sh,v.json}, M lib/rt.py",
+  "base_to_T_numstat": "4 파일: expect.json +12, run.sh +9, v.json +221, lib/rt.py +104/-5",
+  "base_to_T_changes_outside_redteam": 0,
+  "write_path_owner": "base 판 role_paths.read_write_paths(dd60db6 계획서) + match_glob: 두 경로 모두 PathRule(gmid-test-author, tools/gates/redteam/**, 조건 '게이트 변경') 일치(오케스트레이터 tools/gates/** 부트스트랩 행도 일치) -- test-author 경로",
+  "worktree_clean": "audit worktree git status --porcelain 빈 값(측정 시작 때), 브랜치 role/audit/20260930-v3-exempt-binding, HEAD = T"
+ },
+ "gate_change_base_conditions": {
+  "spec_card": {"path": "docs/02-design/specs/20260930-v3-exempt-binding.spec.md", "blob": "0a3dcdee2a3a5929455421a645a70617f71a7a7b", "same_blob_at": "7718505(승인 diff_head)·dd60db6(base)·T", "front_matter": "phase 0.5, evidence_type red-green, gate_change yes, approval 20260930-v3-exempt-binding"},
+  "interface_card": {"path": "docs/02-design/specs/20260930-v3-exempt-binding.interface.md", "blob": "ef46dd34e461b66c0d373bf96031ccbc341dfe49", "regenerated": "base 판 interface_card.py <spec card> --root C:/g186/iso --out C:/g186/out/iface_regen.md exit 0('기존 함수 0개'), 재생성 파일 git blob 해시(sha1 'blob <len>\\0'+내용) = ef46dd3 -- 커밋본과 같음. 두 표 빈 표"},
+  "approval": {
+   "path": ".ai/approvals/20260930-v3-exempt-binding.md",
+   "blob_at_base": "9ce6d9dcc52c0bcf7c964da5dec45d71d5341150",
+   "target_kind": "diff",
+   "diff_base": "cf26d3916c92899b015e0f3bf4944d7e8e0ca7df",
+   "diff_head": "7718505715a26585d1510ae4f55d8d358a35229d",
+   "diff_path": ["docs/01-plan/features/gain-budget-gmid-sizing.plan.md", "docs/02-design/features/gain-budget-gmid-sizing.05-role-separation.design.md", "docs/02-design/features/gain-budget-gmid-sizing.10-test-separation.design.md", "docs/02-design/specs/20260930-v3-exempt-binding.interface.md", "docs/02-design/specs/20260930-v3-exempt-binding.spec.md"],
+   "user_quote": "승인 (Recommended)",
+   "target_recomputed": "1ba14d40b454598f8a7c818d6883ffd2d49348d91140773d1b1577b7a298e7d0",
+   "target_in_record": "1ba14d40b454598f8a7c818d6883ffd2d49348d91140773d1b1577b7a298e7d0",
+   "match": true,
+   "in_approved_hashes_at_base": true,
+   "method": "base 판 blob(C:/g186/gate, extract_gate) PYTHONPATH 맨 앞, -P로 weakening_diff.diff_hash(C:/g186/iso, cf26d39, 7718505, 다섯 diff_path)·approved_hashes(C:/g186/iso, dd60db6) -- out/approval_recompute.txt",
+   "chain": "cf26d39 -> 84e91a4(문서: design 05·design 10·계획 N4.2) -> 7718505(spec card + interface card) -> dd60db6(승인 기록) -> T"
+  }
+ },
+ "isolation": {
+  "clone": "C:/g186/iso",
+  "commands": [
+   "git clone -c core.longpaths=true --no-checkout --no-hardlinks --no-local C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-v3-exempt-binding-audit C:/g186/iso",
+   "git -C C:/g186/iso remote remove origin",
+   "git -C C:/g186/iso checkout -q role/audit/20260930-v3-exempt-binding  (HEAD = T 8b1f929)",
+   "git clone -c core.longpaths=true --no-checkout --no-hardlinks --no-local <audit worktree> C:/g186/isob; git -C C:/g186/isob remote remove origin; git -C C:/g186/isob checkout -q --detach dd60db6  (base 하네스 대조용)",
+   "export APPDATA=C:/Users/HSLEE/AppData/Roaming TEMP=TMP=TMPDIR=C:/g186/tmp(iso)·C:/g186/tmpb(isob)·C:/g186/tmpp(probe) PYTHONDONTWRITEBYTECODE=1",
+   "base 판 게이트 코드: C:/Python314/python.exe -B scripts/extract_gate.py(선례 20260930-df23-registry-record) C:/g186/iso dd60db6 C:/g186/gate -> 22파일, file_set_sha256 705036ea1039e7abb0e449918a8209b229f4a685ab2da9d0e03907bf571d82c4"
+  ],
+  "gate_code_used": "run_all.py --mode direct는 --repo 복제본의 tools/gates/mutate_changed.py를 부른다. T·base 모두 tools/gates(redteam 밖) = dd60db6 판(base..T 차이는 redteam/**뿐). dd60db6 tools/gates 22파일 file_set_sha256 705036ea…는 선례 df23-registry-record에 기록된 0f23786 캐시 값과 같다(git diff 0f23786 dd60db6 -- tools/gates 빈 값)",
+  "cache_compare_limit": "<git-common-dir>/gmid-gate-cache/<커밋>/ 디렉터리 직접 대조는 하지 못했다: role_guard 훅(EL1)이 저장소 내부 경로 인자를 거부한다(ls·Glob 모두). 오케스트레이터가 캐시 커밋 id를 알려 주지 않았다 -- 대신 git cat-file 추출본의 file_set_sha256을 선례 기록값과 대조",
+  "real_repo_untouched": "audit worktree에는 .ai/verification/20260930-v3-exempt-binding/ 아래 파일만 썼다(커밋 없음 -- 순서 7에서). 실제 저장소·gate cache 쓰기 없음"
+ },
+ "red_check": {
+  "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/g186/iso  (cwd C:/g186/iso, 전체 한 번에 -- --only 없음)",
+  "started": "2026-10-02T01:43:02+09:00",
+  "finished": "2026-10-02T02:36:51+09:00",
+  "exit": 1,
+  "log": "C:/g186/iso/tools/gates/redteam/logs/20261002-014302-direct.jsonl",
+  "log_sha256": "6bb141c04800825b5431446616b50388e49ca2685dc4dd88555def28365a0dd0",
+  "case_34": "34-v3-exempt-binding status ok, run.sh exit 0(stderr 빈 값), verdict FAIL, 127.2초 -- 하네스 ERROR·missing 0, 6단계 모두 base 도구가 실제로 돌았다",
+  "per_step": {
+   "legacy-unbound-leak": "attack FAIL -- exit 0(기대 1), stdout {verdict PASS, mutants 6, killed 5, survivors []}: base 도구가 해시 없는 원소 X를 경로만으로 면제(조용한 면제). 계약 9(a) red 원인과 일치",
+   "hash-mismatch": "attack FAIL -- exit 1(기대와 같음), verdict FAIL·survivors [X] 조각은 맞고 exempt_ignored hash_mismatch 조각 없음(base 출력에 키 자체가 없음)",
+   "bound-exempt": "control FAIL -- exit 1(기대 0), verdict FAIL·survivors [X](base 도구가 `@` 원소를 모름), observed {lines 6, by_result {}} != 기대 {lines 6, by_result {exempt: [X]}}. 계약 9(c) red 원인과 일치",
+   "bound-other-def": "attack FAIL -- exit 1, survivors [X] 맞음, hash_mismatch 조각 없음",
+   "docstring-shift": "attack FAIL -- exit 1, mutants 7·killed 6·survivors [X] 맞음, hash_mismatch 조각 없음",
+   "malformed-element": "attack FAIL -- exit 1, survivors [X] 맞음, malformed 조각 없음"
+  },
+  "expected_red_match": "spec card '판정 유형 근거'(red 집합 = 6단계 전부, exit 자체가 다른 단계 = (a)·(c))와 정확히 일치. test-author 보고와 같으나 이 기록은 격리 복제본 실측이다",
+  "failure_hash_method": "redteam 케이스(선례 20260930-v3-history-clone): test_id = tools/gates/redteam/attacks/34-v3-exempt-binding::<단계>, failure_hash = base 판 merge_gate.red_failure_hash(test_id, \"redteam.FAIL\") -- C:/g186/gate PYTHONPATH 맨 앞, -P (out/red_hashes.json)",
+  "red": [
+   {"test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::bound-exempt", "exc_type": "redteam.FAIL", "failure_hash": "9ff578b9cf0afc1af6a09d05b51d13d052c941aa04a61023fba3ddf38077e175"},
+   {"test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::bound-other-def", "exc_type": "redteam.FAIL", "failure_hash": "050cf55ccc4ceed54dd73893d2346e93f8bbe192ab94864a5170a97f13617e08"},
+   {"test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::docstring-shift", "exc_type": "redteam.FAIL", "failure_hash": "28c3ff705b356f633d99610eaa4d55d595e083f2946c8ececdc1b3110946d38a"},
+   {"test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::hash-mismatch", "exc_type": "redteam.FAIL", "failure_hash": "3131af97b68392d20e1827407a96a4ce1dad07a028d81acee61bf004e41d3d0e"},
+   {"test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::legacy-unbound-leak", "exc_type": "redteam.FAIL", "failure_hash": "be6d198eeb02511ae56f5fad57f35e8b11baf55230152b254dab9ad66d2eb00f"},
+   {"test_id": "tools/gates/redteam/attacks/34-v3-exempt-binding::malformed-element", "exc_type": "redteam.FAIL", "failure_hash": "eeb5e7c5d306290e13d97af265583df21885a680dce1a40c744105b69ae8f44a"}
+  ],
+  "aggregate_hash": "18f342fc3abdd4f5987523338b74c31af3e662200be66d299571a68d2449a3ce",
+  "aggregate_hash_method": "sha256(정렬한 failure_hash를 \\n으로 이은 UTF-8)"
+ },
+ "discrimination_check": {
+  "script": "scripts/disc.py <T v.json> C:/g186/gate <T lib> C:/g186/probe/disc out/disc.json (요약 out/disc_summary.txt)",
+  "method": "rt.py와 독립으로 git으로 합성 저장소(base 커밋 -> head 커밋)를 직접 만들고 base 도구를 --out과 함께 돌린다. 단계마다 'with' = v.json 그대로(자리표시자 치환본, 승인 기록 포함), 'without' = .ai/approvals/ 파일을 뺀 같은 저장소",
+  "X": "rt_engine:rt_scale:stmt_delete:body[1]",
+  "without_survivors_eq_X": {"legacy-unbound-leak": true, "hash-mismatch": true, "bound-exempt": true, "bound-other-def": true, "docstring-shift": true, "malformed-element": true},
+  "without_counts": "(a)(b)(c)(d)(f): mutants 6, killed 5(stmt_delete body[2], arith body[2].value, const+/- body[2].value.left, early_return body[1]), survived [X]. (e): mutants 7, killed 6(stmt_delete body[2]·body[3], arith·const+/- body[3].value(.left), early_return body[1]), survived [X]",
+  "with_red_cause": "(a) base 도구 exit 0, mutants 6, --out 5줄(X 줄 없음 -- 면제 결과를 --out에 쓰지 않는 WP-11 누락도 재현). (b)(c)(d)(e)(f) exit 1, survivors [X], 출력 키 [tool, verdict, targets, mutants, killed, survivors] -- `@` 원소는 집합에 문자열로만 들어가 어떤 변이 id와도 같지 않다",
+  "e_premise": "base 도구 def_hash(Dk) == def_hash(head rt_scale) True, auditor 묶기 해시 Dk != head True, def_hash Dk != D0 True, Dk body[1] = `x = abs(x)`, head body[1] = `_ = len('rt')` -- ① 해시로 묶는 구현이면 X 면제 -> exit 0으로 잡힌다",
+  "verdict": "6단계 모두 X가 유일 생존 -- 각 단계가 겨냥한 규칙을 빠뜨린 구현은 X를 면제해 exit 0이 되어 잡힌다. test 결함 없음"
+ },
+ "rt_py_review": {
+  "change": "build_vrepo: base·head 파일 내용을 _vrepo_contents로 먼저 모두 만들고(첫 단계, _file_content 그대로) @bindhash(...)를 둘째 단계에서 치환. 묶기 해시 = ast.dump(annotate_fields=True, include_attributes=False, indent=None, show_empty=False) sha256, qualname 직접 구현(클래스·def 이름만). 오류(형식·경로 없음·순환·def 없음·중복 def·괄호 형식) RuntimeError. a_vcase: observe out_jsonl이면 --out $WORK/vout/<단계>.jsonl(있으면 지움), observed = {lines, by_result(killed·survived 밖, id 오름차순)}, 객체 아닌 줄 RuntimeError, tool_tmpdir·root_state와 함께 쓰면 RuntimeError",
+  "no_tested_tool_import": "grep: rt.py·iface.py·sb.py에 mutate_changed import 없음(iface.py 22·98행은 경로 문자열·파일 이름 비교뿐)",
+  "bindhash_independent": "disc.py가 계약 머리 정의를 스택 순회로 따로 구현해 계산한 해시와 T 하네스 _vrepo_contents가 넣은 target 줄이 4단계 모두 일치: (b) base rt_scale 0deb1dd9dd1d98b4…, (c) head rt_scale 59c1685f46675e7f…, (d) head rt_gain 8590813f3cbbd343…, (e) head notes/attempt_k.py rt_scale 0541ddc51a6e6f37… (전체 64자 out/disc.json). 자리표시자가 없는 파일은 첫 단계 바이트와 같음(6단계 모두 True)",
+  "ordering_note": "head 내용을 base 커밋 전에 만든다 -- _file_content는 State 변수·실제 저장소 git show만 읽고 build_vrepo 안에서 State를 바꾸지 않으므로 바이트는 같다. 아래 기계 대조로도 차이 0",
+  "keys_absent_equivalence_measured": "base 하네스(isob, rt.py e92d9f5) 대 T 하네스(iso, rt.py c2eb3b4), 게이트 코드 둘 다 dd60db6 판, 둘 다 redteam 전체(--phase 0.5 --mode direct, --only 없음)와 --cases 0.5를 한 번에 실행. scripts/cmp_harness.py -> out/cmp_harness.json(sha256 fa2e19fd8ccf87565e3f37f8d17a6817fd430119c6c1e5758ec89fe5c2c4d796): 공통 케이스 59 판정 차이 0, 공통 단계 617개 (verdict, exit, observed) 차이 0, base에만 있는 케이스·단계 0, T에만 있는 것 = 34 케이스 6단계. --cases 0.5 케이스 7·단계 6 차이 0",
+  "base_harness_runs": {
+   "full_log": "C:/g186/isob/tools/gates/redteam/logs/20261002-014318-direct.jsonl",
+   "full_log_sha256": "180ccd76e3d1262191b671119348573604f736d0faa2b9eeb2027b371c73b0e1",
+   "full_exit": 0, "full_cases": {"PASS": 52, "SKIPPED": 7}, "full_steps": {"PASS": 604, "RECORD": 13},
+   "cases_log": "C:/g186/isob/tools/gates/redteam/logs/20261002-023434-direct-cases.jsonl",
+   "cases_log_sha256": "6fb60ab9a6aac1ddb792fbd628c74717cf0f55a77b7dd1df69077a640c1c1710",
+   "cases_exit": 0,
+   "window": "2026-10-02T01:43:17 ~ 02:35:01(+09:00)"
+  },
+  "weakening": "강화·약화 없음: 기존 expect.json·v.json 변경 0(name-status A 3개 + M rt.py), rt.py 변경은 새 선택 키 두 개와 build_vrepo 두 단계화뿐이고 기존 케이스 결과 불변(위 대조)"
+ },
+ "control_check": {
+  "command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --phase 0.5 --mode direct --repo C:/g186/iso",
+  "exit": 1,
+  "log": "C:/g186/iso/tools/gates/redteam/logs/20261002-014302-direct.jsonl",
+  "log_sha256": "6bb141c04800825b5431446616b50388e49ca2685dc4dd88555def28365a0dd0",
+  "cases": {"PASS": 52, "SKIPPED": 7, "FAIL": 1},
+  "steps": {"PASS": 604, "RECORD": 13, "FAIL": 6},
+  "failed": "34-v3-exempt-binding 하나(단계 FAIL = red 6단계와 정확히 같음)",
+  "skipped": "11-rtl-agent-edit·18-test-author-reads-source·21-remote-config-tamper·22-gate-tamper(installed 전용), 12·13·14(Phase 6a)",
+  "contract8_cases": "26-gate-output-utf8·27f-v6-reconfigure-except·28-v3-gmid-options·29-v4-decision-exempt·31-v3-git-history·v3_survivor 모두 PASS",
+  "step_verdicts_sha256": "b1cf4f518548f83c3efdee0f35902be993ce4f59be41a07e17c74c9f1f09d6b0",
+  "step_verdicts_sha256_method": "{<케이스>::<단계>: verdict} 623개 json.dumps(sort_keys=True, ensure_ascii=False) UTF-8 sha256 (cmp_harness.py T_step_verdicts_sha256)",
+  "cases_command": "C:/Python314/python.exe tools/gates/redteam/run_all.py --cases 0.5 --mode direct --repo C:/g186/iso",
+  "cases_exit": 0,
+  "cases_log": "C:/g186/iso/tools/gates/redteam/logs/20261002-023651-direct-cases.jsonl",
+  "cases_log_sha256": "bdd38f694e802bfc092692837aaa83530f3fb84a4c69aae57d42193ec72e6e50",
+  "cases_result": "PASS 5(1b9b4ea·2e1944a·3250baa·e329283·e5fbf92) / SKIPPED 2(5dc4679, caa970b), 단계 PASS 6",
+  "test_author_claim_check": "test-author 보고('34 6단계 base에서 red, (a)(c) exit 다름, 기존 케이스 무변화 -- 두 번에 나눠 실행')를 전체 한 번 실행으로 다시 쟀다: 같은 결론(격리 실측)",
+  "no_op_baseline": "순서 7 기준: 병합본 --phase 0.5 --mode direct 전체·--cases 0.5의 케이스·단계 판정이 이 표와 같아야 하고, 차이는 34의 6단계(FAIL -> PASS)와 34 케이스(FAIL -> PASS)뿐이어야 한다"
+ },
+ "order7_plan": "브리프 3.2·3.3 그대로(V1 PASS -- pytest 전체 + redteam 병합본 대 이 표 기계 대조, V2~V9 N/A + 참고 측정, V10 PASS 빈 배열, probe p1~p10). 병합본 34 (c) observed 기대 {lines 6, by_result {exempt: [X]}}",
+ "measured_at": "2026-10-02T02:40:00+09:00",
+ "measured_by": "gmid-verification-auditor (격리 복제본 C:/g186, 작성자 보고 미사용)"
+}
