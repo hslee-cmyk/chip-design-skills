@@ -1,0 +1,9 @@
+subjects: 14
+test_b34_c5_no_gate_devices_unchanged line 266: left=1 ['audit_theta_root_direction'] right=0 shared=0 -> (1) no hit
+test_b34_c6_theta_without_findings line 287: left=1 ['audit_theta_root_direction'] right=0 shared=0 -> (1) no hit
+test_b34_c6_theta_without_findings line 294: left=1 ['audit_theta_root_direction'] right=0 shared=0 -> (1) no hit
+test_b34_c8_restored_values_equal_fresh_process line 342: left=14 ['audit_theta_root_direction', 'find_differential_and_mirror_forks', 'find_differential_pair_candidates', 'find_idiom_matches', 'find_stack_edges', 'find_verified_differential_and_mirror_relations', 'geometry_colocation_union', 'load_topology', 'propose_device_roles_gap_fill', 'propose_theta_kcl_gap_fill', 'propose_vertical_stack_id_gap_fill', 'refine_differential_and_mirror_relations', 'run_topology_pipeline', 'suggest_vertical_stack_composites'] right=0 shared=0 -> (1) no hit
+T c5: [('(2)', 257, 'UNJUDGED'), ('(2)', 258, 'UNJUDGED'), ('(2)', 259, 'UNJUDGED'), ('(2)', 260, 'UNJUDGED'), ('(2)', 265, 'UNJUDGED'), ('(2)', 266, 'UNJUDGED')]
+T c6: [('(2)', 286, 'UNJUDGED'), ('(2)', 287, 'UNJUDGED'), ('(2)', 293, 'UNJUDGED'), ('(2)', 294, 'UNJUDGED')]
+== [] variant c5: [('(2)', 257, 'UNJUDGED'), ('(2)', 258, 'UNJUDGED'), ('(2)', 259, 'UNJUDGED'), ('(2)', 260, 'UNJUDGED'), ('(2)', 264, 'FAIL')]
+== [] variant c6: [('(2)', 284, 'FAIL'), ('(2)', 290, 'FAIL')]

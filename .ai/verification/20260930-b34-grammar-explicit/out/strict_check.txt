@@ -1,0 +1,5 @@
+card {'id': '20260930-b34-grammar-explicit', 'phase': '3', 'evidence_type': 'red-green', 'gate_change': 'no', 'approval': ['20260930-b26-before-phase3', '20261001-b26-phase3-cards'], 'activated_ic_case': []}
+strict_set []
+conftest_has_gmid_phase True
+v1_command_check []
+new_symbols []

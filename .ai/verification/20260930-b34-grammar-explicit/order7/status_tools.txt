@@ -1,0 +1,11 @@
+V5 exit 0
+V5T exit 0
+V6 exit 0
+V7 exit 0
+V4 exit 0
+DONE fast
+DONE v1
+DONE green
+V3 exit 0
+V3 elapsed 1202s
+DONE v3

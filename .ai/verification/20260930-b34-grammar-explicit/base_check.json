@@ -1,0 +1,153 @@
+{
+ "note": "05-role-separation §12 순서 3(freeze·base 확인) -- B34. 모든 수치는 auditor가 격리 복제본 C:/g291/*에서 직접 쟀다(test-author 보고는 증거로 받지 않았다). 이 폴더는 순서 3에서 쓰기만 하고 커밋하지 않는다 -- 커밋은 순서 7(병합본 M 위 한 커밋, Role: audit).",
+ "id": "20260930-b34-grammar-explicit",
+ "attempt": 1,
+ "evidence_type": "red-green",
+ "phase": "3",
+ "approval": ["20260930-b26-before-phase3", "20261001-b26-phase3-cards"],
+ "measured_at": "2026-10-06T17:00:32+09:00",
+ "environment": {
+  "python": "C:/Python314/python.exe (3.14.2)",
+  "APPDATA": "C:/Users/HSLEE/AppData/Roaming (bash에서 export)",
+  "TMP_TEMP": "C:/g291/tmp",
+  "clone_steps": "git clone -q -c core.autocrlf=false -c core.longpaths=true --no-hardlinks --no-local <audit worktree> C:/g291/iso (T 체크아웃) / 같은 옵션 + --no-checkout -> C:/g291/base, 그 뒤 git -C C:/g291/base checkout -q --detach <base>. 두 복제본 모두 (별도 명령) git -C <복제본> remote remove origin. 측정 뒤 iso·base 모두 remote 0, status 0줄, core.autocrlf=false."
+ },
+ "freeze": {
+  "base_commit": "7243f2846210c0dba62329acb77885f84a26ff76",
+  "base_is_gate_master": true,
+  "base_is_gate_master_how": "오케스트레이터 지시(base = gate master 7243f28) + 주 저장소 git rev-parse HEAD(master) = 7243f2846210c0dba62329acb77885f84a26ff76 + T의 부모 = 7243f28",
+  "base_subject": "docs: B34 spec card 20260930-b34-grammar-explicit(...) + interface card",
+  "test_commit_T": "d504784862151205c1d10d3efa263469e6f620ab",
+  "T_tree": "ab3fd3fda095962dd3b3fb561e2df87964d8b1a2",
+  "T_parent": "7243f2846210c0dba62329acb77885f84a26ff76",
+  "T_trailers": ["Role: test", "Change-Id: 20260930-b34-grammar-explicit"],
+  "audit_branch": "role/audit/20260930-b34-grammar-explicit",
+  "audit_branch_head_at_freeze": "d504784862151205c1d10d3efa263469e6f620ab (= role/test/20260930-b34-grammar-explicit, git log --oneline role/test/...HEAD 0줄)",
+  "worktree_status_at_freeze": "git status --porcelain 0줄(이 기록 폴더를 쓰기 전)",
+  "changed_paths_base_to_T": {
+   "name_status": "A skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py (하나뿐)",
+   "shortstat": "1 file changed, 386 insertions(+)"
+  },
+  "test_blob": "ce4f3ad3ddadaa0c89fe29571711eb9c847583a9 (git ls-tree T), 파일 sha256 82dd51df1606e31d5552e7540510141523f8b7631f721a479fe326cff50552b0",
+  "engine_unchanged": "stick_diagram.py blob ca46b5cd291c22504ced50655d8deefa4feec807 base = T, tools 트리 466685f33f6a32b7fdeb9132398e0a0cfd5baa22 base = T",
+  "code_commit_K": null
+ },
+ "gate_code": {
+  "how": "C:/Python314/python.exe -P C:/g291/scripts/extract_gate.py C:/g291/base 7243f2846210c0dba62329acb77885f84a26ff76 C:/g291/gmid-gate-cache/7243f2846210c0dba62329acb77885f84a26ff76 (git ls-tree + cat-file blob, redteam 밖 22개, 선례 df36 스크립트 그대로)",
+  "file_set_sha256": "41885fd263066c317f65663aaf9bac206771fd57708ae539df271af96bd09d17"
+ },
+ "strict_set": {
+  "card_parse": "base 판 role_paths.parse_spec_card: id=20260930-b34-grammar-explicit, phase=3, evidence_type=red-green, gate_change=no, approval=[20260930-b26-before-phase3, 20261001-b26-phase3-cards], activated_ic_case=[]",
+  "strict_set": [],
+  "conftest_has_gmid_phase": true,
+  "v1_option": "--gmid-phase=3 --gmid-strict=",
+  "v1_command_check": [],
+  "new_symbols_from_interface_card": [],
+  "checked_with": "scripts/strict_check.py C:/g291/iso <base> <id> <V1 문자열(루트 C:/g291/m)> -> out/strict_check.txt"
+ },
+ "v1_command_template": "PYTHONPYCACHEPREFIX=<빈 디렉터리> PYTHONPATH=C:/g291/gmid-gate-cache/7243f2846210c0dba62329acb77885f84a26ff76 C:/Python314/python.exe -P -m pytest -c C:/g291/gmid-gate-cache/7243f2846210c0dba62329acb77885f84a26ff76/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=3 --gmid-strict= <복제본>/skills/analog-gmid-design/assets/tests",
+ "base_run": {
+  "script": "bash C:/g291/scripts/run.sh collect|base|red (scripts/run.sh)",
+  "collection": {
+   "base_collected": 1062,
+   "T_collected": 1105,
+   "collect_exit": "0·0",
+   "new_by_file": {"skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py": 43},
+   "new_breakdown": "c1 9 + c2 idioms 9 + c2 netclass 9 + c4 1 + c5 2 + c6 1 + c8 9 + selfcheck 3 = 43 (test 함수 11개)",
+   "base_minus_T": 0,
+   "rest_identical": "T 수집에서 새 파일을 뺀 id 집합 = base 수집 id 집합(정렬 diff 0)"
+  },
+  "full_run": {
+   "base": "1047 passed, 15 xfailed, exit 0, 351s (C:/g291/base, out/full_base.txt)",
+   "T_on_base_engine": "27 failed, 1063 passed, 15 xfailed, exit 1, 373s (C:/g291/iso, -p merge_gate --continue-on-collection-errors, out/full_T_red.txt). 1063 = 1047 + 새 파일 base 통과 16(c4 1, c5 2, c6 1, c8 9, selfcheck 3). 기존 test 결과 무변화, ERROR 0, 수집 오류 0"
+  },
+  "red_capture": {
+   "command": "GMID_RED_CAPTURE=C:/g291/out/red_T.jsonl GMID_INTERFACE_CARD=C:/g291/iso/docs/02-design/specs/20260930-b34-grammar-explicit.interface.md PYTHONPYCACHEPREFIX=C:/g291/pyc_full_iso PYTHONPATH=C:/g291/gmid-gate-cache/7243f2846210c0dba62329acb77885f84a26ff76 C:/Python314/python.exe -P -m pytest -c C:/g291/gmid-gate-cache/7243f2846210c0dba62329acb77885f84a26ff76/pytest_gate.ini --rootdir=C:/g291/iso --confcutdir=C:/g291/iso -p merge_gate --continue-on-collection-errors --gmid-phase=3 --gmid-strict= C:/g291/iso/skills/analog-gmid-design/assets/tests -q -rfE -p no:cacheprovider",
+   "capture_file_sha256": "4de304cb2ccc90b853ede99c111fb9cb61fc0994e06f409c1eb445dddbe1f9e0",
+   "capture_lines": "39줄 = 이 card 27(builtins.Failed 27) + 기존 IC xfail 12(builtins.Failed -- test_ic1·2·6·8·9·10 각 1, test_ic7 2, test_ic11 3. 이 card의 red 아님)",
+   "red_count": 27,
+   "red_set": "계약 1 test_b34_c1_both_absent_raises_named_import_error[9회로] 9 + 계약 2 test_b34_c2_idioms_only_absent_load_topology_raises[9회로] 9 + test_b34_c2_netclass_only_absent_find_stack_edges_raises[9회로] 9. 27/27 원인 'Failed: DID NOT RAISE <class 'ImportError'>'(pytest 출력 E 줄 27/27), 다른 예외 0, pytest FAILED 27 = 캡처 이 card 줄 27(빠짐·남음 0)",
+   "contract3_note": "계약 3 assert는 각 pytest.raises 뒤에 있어 base에서는 DID NOT RAISE가 먼저 난다 -- 계약 3 판정은 순서 7 병합본 green과 V3(except_body_delete 등)에서 본다",
+   "green_at_base": "계약 4·5·6·8·자기 점검 16 PASS(c8 9/9 -- 부재 구간 ImportError 허용, base 조용한 반환에서도 통과)",
+   "rule_match": "builtins.Failed는 base 판 merge_gate 상시 red 예외형(새 심볼 표 비어 있음 -- 대조 불필요)",
+   "hash_recomputed": "39줄 모두 base 판 merge_gate.red_failure_hash(test_id, exc_type) 재계산 = 캡처 failure_hash(불일치 0, out/red_check.json)",
+   "red_failure_hashes": "out/red_check.json 'b34' 27줄 -- 순서 7에서 판정 기록 red 필드로 옮긴다(IC xfail 12줄 제외). 27 해시를 정렬해 줄바꿈으로 이은 sha256 = ef2765b5ef51bc77aa9374d6d0484809482afbf91c12328d94d4385ac3cff764",
+   "green_expectation": "병합본에서 red 27 PASS, 새 파일 43 PASS, 나머지 1062 결과 base와 같음"
+  }
+ },
+ "discrimination_base": {
+  "script": "PYTHONHASHSEED=0 PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g291/scripts/discrim_b34.py C:/g291/iso out/discrim_base.json (계약 1 판정기 pytest.raises(ImportError)에 진입점 14 x 9회로, 부재 세 모드)",
+  "both_absent": "126/126 DID_NOT_RAISE(조용히 반환), RAISED 0, OTHER 0",
+  "idioms_only": "126/126 DID_NOT_RAISE, OTHER 0 (load_topology 9/9)",
+  "netclass_only": "126/126 DID_NOT_RAISE, OTHER 0 (find_stack_edges 9/9)",
+  "vs_brief": "브리프 3.1 '실측 126/126 반환, 다른 예외 0'과 같다. 브리프의 'idioms만 108/126'은 모의 head 쪽 ImportError 수(spec card 작성 전 실측 2)이고 base는 세 모드 모두 126/126 반환(spec card '판정 유형 근거'와 같다)"
+ },
+ "inventory_check": {
+  "script": "PYTHONPATH=<캐시> C:/Python314/python.exe -P C:/g291/scripts/inv_b34.py C:/g291/iso out/inv_b34.json (base 판 reachability.build_graph + mutate_changed.inventory, 도구 main과 같은 test 노드 필터)",
+  "base_tree": {"_import_analog_grammar": 160, "find_idiom_matches": 15, "find_stack_edges": 67, "audit_theta_root_direction": 4},
+  "T_tree": {"_import_analog_grammar": 168, "find_idiom_matches": 19, "find_stack_edges": 73, "audit_theta_root_direction": 8},
+  "k": {"_import_analog_grammar": 8, "find_idiom_matches": 4, "find_stack_edges": 6, "audit_theta_root_direction": 4},
+  "new_test_functions": 11,
+  "added_non_b34": "4 def 모두 0, removed 0 -- 기존 인벤토리는 그대로이고 늘어난 것은 새 test 함수뿐",
+  "verdict": "160·15·67·4 + k, k ≤ 11 -- 이름 규칙 위반에 의한 부풂(예 237·236·234·234) 없음. test-author에게 돌려보낼 사유 아님",
+  "k_detail": "k 원소: _import 8 = c1·c2 idioms·c2 netclass·c4·c5 no_gate·c5 import·c6·c8 / find_idiom 4 = c1·c5 no_gate·c6(audit 경유)·c8 / find_stack_edges 6 = c1·c2 netclass·c4·c5 no_gate·c5 import·c8 / audit 4 = c1·c5 no_gate·c6·c8",
+  "observation_name_link": "c5 import(test_b34_c5_import_without_grammar_succeeds)는 본문에 진입점 직접 호출이 없는데 _import·find_stack_edges 인벤토리에 든다. 원인(out/inv_path.txt): _b34_fresh_process의 subprocess.run 속성 호출을 그래프가 이름 'run'만으로 workspaces/run_harness.py::run·probes/probe_diode_window_corner.py::run 등에 잇는다(spec card가 경고한 이름 연결과 같은 기제, 단 helper def 이름이 아니라 표준 라이브러리 속성 이름). 영향: 이 두 인벤토리에 새 test 하나가 더 들어 V3 실행 시간이 조금 는다. 다른 test의 인벤토리는 바뀌지 않고(added_non_b34 0) 판정을 약하게 하지 않는다(더 많은 test가 돌 뿐). '본문 직접 호출로 닿는 수'보다 +1(두 def)이지만 상한 k ≤ 11 안 -- 결함으로 돌려보내지 않고 관찰로 남긴다(이름 규칙 _b34_·test_b34_은 지켰다)"
+ },
+ "v3_baseline_preview": {
+  "why": "도구는 인벤토리 기준 실행이 실패하면 ERROR(B28). 순서 3에서 T(base 엔진)는 새 red test 때문에 기준 실행이 실패하는 것이 정상이므로, 실패 집합이 정확히 red 집합 안인지와 이력 의존 test(ts6)가 이력 있는 복제본에서 통과하는지를 본다",
+  "with_x_same_as_tool": "scripts/v3_baseline.py(도구 run_tests와 같은 -x 명령): 4 인벤토리 모두 rc 1, 첫 실패 = test_b34_c1_both_absent_raises_named_import_error[common_gate_amplifier](red) (out/v3_baseline_T.jsonl)",
+  "without_x": "scripts/v3_baseline_nox.py(-x 없이, mutate_changed.make_clone 이력 있는 복제본 C:/g291/v3work2/copy): _import 168 -> 27 failed·202 passed·3 xfailed 258s / find_idiom 19 -> 9 failed·26 passed 44s / find_stack_edges 73 -> 18 failed·90 passed·3 xfailed 227s / audit 8 -> 9 failed·15 passed 40s. 실패는 4 인벤토리 모두 red 집합의 부분집합(red 밖 실패 0) -- 병합본에서 red가 green이 되면 기준 실행은 통과할 것으로 예상(순서 7에서 실제 도구로 다시 잰다). 각 실행 600s(도구 timeout) 미만. 작업 사본 status 0줄 (out/v3_baseline_nox_T.jsonl)",
+  "c8_stability": "c8(새 프로세스 oracle, pytest 프로세스는 PYTHONHASHSEED 무작위)은 full T 실행 9/9 + 인벤토리 실행 4회 각 9/9 = 45/45 PASS -- seed 의존 흔들림 관찰 없음"
+ },
+ "v4_preview_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g291/pyc_v4 C:/Python314/python.exe C:/g291/gmid-gate-cache/7243f28.../test_lint.py --root C:/g291/iso --interface-card C:/g291/iso/docs/02-design/specs/20260930-b34-grammar-explicit.interface.md --base 7243f28... --head d504784...",
+  "exit": 0,
+  "verdict": "PASS, 대상 파일 1(새 test 파일). (1)·(3) 발견 0. (2) UNJUDGED 11(c5 257~260·265·266, c6 286·287·293·294, c8 342), 나머지 NO-SUBJECT (out/v4_base_T.json)",
+  "contract8_shape": "판정 문장 342 `assert got == expected`: 도구 내부 _call_keys 왼쪽 14(진입점 14개 전부 test 본문 직접 호출)·오른쪽 0·공유 0 -> (1) 발견 없음 (out/v4diag_T.txt). expected = json.loads(<subprocess sys.executable -c _B34_FRESH_SCRIPT 의 stdout>), 같은 p·계약 1 인자, `assert rc == 0, err` 있음, 부재 구간(monkeypatch.context)이 복원 뒤 got 앞에 있음, helper 스냅샷·같은 프로세스 부재 전 값 섞임 없음 -- 결정 0.6-6 모양. 순서 3에서 돌려보낼 사유 없음",
+  "eq_empty_split": {
+   "what": "계약 5 `audit_theta_root_direction(fx, None) == []`와 계약 6 두 `== []`를 test-author가 `isinstance(x, list)` + `len(x) == 0` 두 문장으로 나눴다",
+   "tool_behaviour_measured": "같은 파일에서 세 곳만 `== []` 한 문장으로 되돌린 변형을 base 판 test_lint.lint_function에 넣으면 (2) FAIL 3건(c5 264, c6 284·290), 분할본은 같은 줄이 (2) UNJUDGED -- B60(빈 리스트 리터럴을 피검 `return []`의 복사로 읽음) 재현 (out/v4diag_T.txt)",
+   "auditor_judgement": "계약 강도 보존(이상)으로 판정한다. 근거: `isinstance(x, list) and len(x) == 0`은 `x == []`가 참인 실용 값(빈 list와 그 하위형)에서 참이고, `x == []`가 거짓인 값(None·튜플·dict·원소 있는 리스트·예외)에서 모두 거짓이다. 차이는 `== []`가 참이지만 list가 아닌 객체(예 UserList([]))를 분할본이 거부한다는 것뿐이라 분할본이 더 엄격하다. 피검 반환값을 기대값으로 만들지 않았고(기대 '빈 list'는 계약 문장 상수), 변이 판별(None 반환·원소 있는 반환·예외)도 같다. 나눈 두 문장은 모두 with/if/try 밖 최상위 assert라 (3) 문제 없음",
+   "oracle_check": "c5: (c) 기존 동작 -- test_s120_section 고정 값과 같은 종류(빈 리스트), base 실측 [] / c6: (a) 구성 -- gate 소자 없음 -> 비교 소자 없음, terms 빈 θ -> 비교 상대 없음, base 실측 [](T on base PASS)"
+  }
+ },
+ "v5_base_to_T": {
+  "command": "PYTHONPYCACHEPREFIX=C:/g291/pyc_v5 C:/Python314/python.exe C:/g291/gmid-gate-cache/7243f28.../weakening_diff.py --root C:/g291/iso --base 7243f28... --head d504784...",
+  "exit": 0,
+  "output": "{\"tool\": \"V5\", \"verdict\": \"PASS\", \"findings\": [], \"diff_paths\": [], \"diff_hash\": null, \"approved\": false}"
+ },
+ "contract7_baseline": {
+  "script": "PYTHONHASHSEED=<1|2> PYTHONDONTWRITEBYTECODE=1 C:/Python314/python.exe -P C:/g291/scripts/c7_digest.py C:/g291/base out/c7_base_seed<1|2>.json (auditor 독립 정규화 -- test 파일의 _b34_normalize를 쓰지 않음)",
+  "result": "126 진입점·회로 모두 값(예외 0), seed 1·2 combined 같음 = f510334207ba91b171bcfb6c425ca0f98004ea73ac89ea10d59bed274dd21aed",
+  "order7_rule": "병합본에 같은 스크립트(같은 seed 1·2) -> combined와 회로·진입점별 해시가 base와 같아야 계약 7(14x9 부분) 충족. E-LIB·E-INST는 순서 7에서 base·M 양쪽을 잰다"
+ },
+ "test_review_findings": {
+  "defects_requiring_return": [],
+  "observations": [
+   "c5 import test가 subprocess.run 이름 연결로 인벤토리에 든다(inventory_check.observation_name_link) -- 판정 약화 아님",
+   "c8 새 프로세스 스크립트가 test 모듈 자신(test_b34_grammar_explicit)을 import해 _b34_normalize·_b34_overrides를 쓴다 -- 기대값과 got이 같은 정규화를 거치는 것은 계약 8 문장과 맞고, 정규화 자체는 selfcheck_normalize가 거부 점검한다. 진입점 값은 별도 인터프리터에서 나온다",
+   "계약 8 부재 구간은 진입점 6개(load_topology·run_topology_pipeline·find_stack_edges·find_idiom_matches·refine·propose_device_roles)를 부른다 -- spec '진입점 여러 개'와 맞다"
+  ]
+ },
+ "outputs_kept": {
+  "out/full_base.txt": "b1460ea234337a8feae1def2eef9b8ff93689b236684e904dd8011b69967f4c3",
+  "out/full_T_red.txt": "d67097393259636d7de4d3756decbef5a66c53c3e86c3d42d3ceef852ff6a31a",
+  "out/red_T.jsonl": "4de304cb2ccc90b853ede99c111fb9cb61fc0994e06f409c1eb445dddbe1f9e0",
+  "out/red_check.json": "73f92f7aaf7dbdfec7c66dcc24dfc21f80999849e01ffbe76f38304d18eaa6e8",
+  "out/strict_check.txt": "00ff9a2b96c38740504b4fa1193026e70102961607df88db32dfa46578f4cda1",
+  "out/inv_b34.json": "df1480b9c59def94d5e29f1238c3386a5c3b3c6c9c124cb4918512fcf358f6be",
+  "out/inv_path.txt": "031d9c04f18cd8b61678366524c8d47a2255e83b86b023d70f4427b653d3c7dc",
+  "out/discrim_base.json": "7dd59acbd7578685c8e23bddc0d406ad5260dc0f77739e3b3c8830956bf1417e",
+  "out/v3_baseline_T.jsonl": "d15a5039526ef8de1d49fe0c52fdeb9e949e0631dac43bf0c825c38c3c42890a",
+  "out/v3_baseline_nox_T.jsonl": "eb3262d741110dc05bcb26d364429cdb51622e2519de8bb8fd9b65fa02df5f7f",
+  "out/v4_base_T.json": "ef608a34f2ce81e3b9f1cce5c47b44e79981bf9007c9007b7e6f7fe4be317a91",
+  "out/v4diag_T.txt": "248737fea872b62945d774fec427933e1b9fd66748c6ce737e59b3b51f0cbd74",
+  "out/v5_base_T.txt": "a2e2fe0f2d96c3292853a13755dd1223457711294e7e1ac0e8fa0d0bcae2cf54",
+  "out/c7_base_seed1.json": "0f4507298f0d17ac09a65b009d7ee77a299af246bcfb3d117c9e27de732a2c9f",
+  "out/c7_base_seed2.json": "a796ee06eeaf135453bdf587a1331cbe2767d06618b9ac2f086b3cf0102efa80",
+  "C:/g291/out/collect_base.txt (복사 안 함)": "53016ca0600c08fd79689e355e7ad126c889adc647b13e8df421d156d3f581ad",
+  "C:/g291/out/collect_iso.txt (복사 안 함)": "02636c0320c1ee5acd60a99a6acd03bfaf2f58c02334994d6abb489b3923c766"
+ },
+ "side_effect_check": "측정 뒤 주 저장소 HEAD 7243f28 그대로, git status --porcelain가 시작 스냅숏(38줄)과 같다. audit worktree는 이 기록 폴더 미추적뿐(커밋 없음, HEAD d504784). C:/g291만 썼고 끝에 C:/g291만 지운다. role_guard 훅이 주 저장소 reflog 조회와 .git 내부 경로 인자를 거부해 그 둘은 확인하지 않았다(대신 HEAD·status 대조)",
+ "next": "code-author K(사이트 1·2·3·11·11b) -> 병합 M -> 순서 7: V1(수집 1105, FAIL 0), V2(red 27 green), V3(실제 도구, 대상 10 기대·기준 실행 통과 확인), V4(위 eq_empty_split 판단 + oracle 대조 줄), V5(base->M), V6·V7, 계약 7(c7_digest·E-LIB·E-INST)."
+}

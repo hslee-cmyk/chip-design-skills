@@ -1,0 +1,10 @@
+E-LIB 1d2e3bf6acf762ebea14aa526405bfe63db9632cfab68672b93948c2be3b7a8f
+common_gate_amplifier 3 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+current_reuse_telescopic_ota 51 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+folded_cascode 13 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+ngcc_3stage_ff 16 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+nmcnr_amplifier 15 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+pushpull_follower_buffer 6 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+sf_pushpull_output_opamp 22 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota 7 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}
+two_stage_ota_sf 9 {'load': True, 'V1_own_stack': True, 'V2_kind_stack': True} {}

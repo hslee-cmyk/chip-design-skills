@@ -1,0 +1,9 @@
+7243f28    without  ok 9/9  exc []
+7243f28    with     ok 9/9  exc []
+c851e54    without  ok 0/9  exc ['ImportError']
+c851e54    with     ok 9/9  exc []
+base with == head with (meta_sha 9/9): True
+base without vs base with meta_sha 같은 회로 수: 0
+base without gap_fill_review: [0, 0, 0, 0, 0, 0, 0, 0, 0]
+base with    gap_fill_review: [0, 28, 4, 5, 12, 1, 1, 9, 2]
+head without 메시지 예: {'ok': False, 'exc': 'ImportError', 'msg': 'analog-grammar skill을 import할 수 없다(탐색 경로 C:\\g299\\inst\\c851e54_without\\skills\\analog-grammar\\assets)', 'cause': 'ModuleNotFoundError'}
