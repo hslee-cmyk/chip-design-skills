@@ -42,7 +42,7 @@ B26-1 사이트 자체(E1), def 기본값(E3), `_propose_*` 가드(E4)는 이 ca
 
 **공통 입력(계약 1~3)**:
 * `toy_lut` 픽스처(conftest)를 쓴다.
-* 입력을 만드는 데 쓰는 기존 공개 심볼(피검이 아니다): `size_transistor`, `SemiEmpiricalGmIdLUT.gm_gds_ratio`, `stick_diagram.build_stick_diagram`(계약 3의 `EULER_OK`). 클래스 `SizingContext`(필드 `sized`·`topology_path`)와 `Transistor`(필드 아래)는 생성자로만 쓴다.
+* 입력을 만드는 데 쓰는 기존 공개 심볼(이 계약들의 판정 대상은 아니지만 interface card 표에 있어 V4 도구는 그 호출을 피검 호출로 센다 -- `==` 판정의 기대 쪽에는 이 호출을 담지 않는 값만 쓴다, 계약 8): `size_transistor`, `SemiEmpiricalGmIdLUT.gm_gds_ratio`, `stick_diagram.build_stick_diagram`(계약 3의 `EULER_OK`). 클래스 `SizingContext`(필드 `sized`·`topology_path`)와 `Transistor`(필드 아래)는 생성자로만 쓴다.
 * `r = size_transistor(gm=200e-6, gm_id=12.0, L=0.5e-6, lut=toy_lut, vds=0.6)`로 두고, `W0 = r.W`.
 * 사이징 항목 `S = {"ID": r.ID, "W": W0, "L": 0.5e-6, "gm": r.gm, "gm_id": 12.0, "gds": r.gm / toy_lut.gm_gds_ratio(12.0, 0.5e-6, 0.6, 0.0), "kind": "nmos", "vds": 0.6, "vsb": 0.0}`.
 * 컨텍스트 `ctx(names) = sizing_recipe.SizingContext(sized={n: dict(S) for n in names}, topology_path=<계약 8의 합성 topology 파일 경로 문자열>)`.
@@ -67,15 +67,22 @@ B26-1 사이트 자체(E1), def 기본값(E3), `_propose_*` 가드(E4)는 이 ca
        근거: offset 쌍은 3c가 필수이고, `repair_matching_safety` docstring(stick_diagram.py 7555~7557) "`n_fingers`가 너무 작으면(예: 1) `common_centroid_layout()`의 회전-최적 경로 자체가 기하학적으로 `dx<=0.5`를 달성 못 한다". 핑거증가가 없는 경로라 그대로 남는다.
      * (c) `pr["repaired_rows"]`의 모든 키는 `"pair_row_repair"`로 시작하고, 그 행들의 소자 이름을 모아 정렬하면 `["Ma", "Mb"]`다.
        근거: `repair_matching_safety` docstring(같은 파일 7532) "행들(`f"{원래행}_repair{i}"`)로 대체한다".
-     * (d) `{t.stack_id for t in pr["transistors"]} == set(pr["repaired_rows"])`다.
-       근거: 코드 주석(sizing_recipe.py 9408~9412) "repaired_rows를 최종 정본으로 승격해 transistors/box_shape/audit_row_split을 덮어써서".
+     * (d) `{t.stack_id for t in pr["transistors"]} == {"pair_row_repair0_repair0_repair0"}`이고 `set(pr["repaired_rows"]) == {"pair_row_repair0_repair0_repair0"}`다(두 판정 모두 오른쪽은 이 card의 리터럴이다).
+       두 리터럴 비교가 함께 '`transistors`가 `repaired_rows`로 승격됨'(정합)을 판정한다. 같은 출력의 두 필드(`transistors`의 stack_id 집합과 `pr["repaired_rows"]`의 키)를 서로 `==`로 비교하지 않는다 -- 두 쪽이 같은 피검 호출에서 나오면 V4 규칙 (1) FAIL이다(1차 시도 실측, 계약 8).
+       근거: 코드 주석(sizing_recipe.py 9408~9412) "repaired_rows를 최종 정본으로 승격해 transistors/box_shape/audit_row_split을 덮어써서",
+       `repair_matching_safety` 시그니처 기본값 `max_iter: int = 3`(stick_diagram.py 7523)과 docstring(같은 파일 7532) "새 행들(`f"{원래행}_repair{i}"`)로 대체한다 (4) 하나라도 재배치가 있었으면 다시 (1)로".
+       (b)대로 3c가 핑거 1개로 끝까지 풀리지 않아 세 번 모두 재배치되므로 접미 `_repair0`이 세 번 붙는다.
+       리터럴 값 자체는 **(c) 기준선 값**이다(measured at gate `6c724de`, 2026-10-06, `PYTHONHASHSEED` 0·1·7·123·42 같음, 두 리터럴 비교 모두 참 -- 오케스트레이터 사전 측정, auditor가 다시 잰다).
+       참고 관찰: 같은 입력으로 `repair_matching_safety`를 `max_iter` 1·2·3·4로 부르면 접미가 1·2·3·4번 붙는다(기본값 = 3번) -- 반복 횟수 서술과 모순 없음.
+       반복 정책(예: 진전 없는 재배치에서 멈춤)을 바꾸는 후속 card는 이 test에 대해 V5(기존 계약 test 변경) 비용을 진다(계약 3(e)와 같은 사정).
 2. **euler-blocked 연결 행의 그룹 분할(E6-b, 공개 진입점 `run_matching_safety_with_finger_growth` 경유)**
    * 호출: 합성 topology(계약 8, netlist = `STAR` 세 소자의 연결)를 쓰는 `ctx(["M1","M2","M3"])`로
      `res = run_matching_safety_with_finger_growth({"row": STAR}, [], {}, ctx, {"nmos": toy_lut}, {}, [], gm_id_bounds=(11.9, 12.1))`.
    * 기대(`rows = res["rows"]`):
      * `set(rows) == {"row_seg0", "row_seg1"}`다.
-     * 두 행의 소자 이름 합집합을 정렬하면 `["M1", "M2", "M3"]`이고, 겹치지 않으며, 각 행이 비지 않는다.
-     * 모든 소자의 `stack_id`는 자기가 든 행의 키와 같고, `n_fingers == 1`이다.
+     * 두 행의 소자 이름을 **중복을 지우지 않고** 모아 정렬하면 `["M1", "M2", "M3"]`이다. 이 한 비교가 '겹치지 않음'까지 판정한다(따로 `len(x) == len(set(x))`를 단언하지 않는다 -- 계약 8).
+     * `{t.stack_id for t in rows["row_seg0"]} == {"row_seg0"}`이고 `{t.stack_id for t in rows["row_seg1"]} == {"row_seg1"}`이다(오른쪽은 리터럴 -- 각 행이 비지 않음도 이 두 비교가 함께 판정한다).
+     * 모든 소자의 `n_fingers`를 모은 집합이 `{1}`이다.
    * 근거:
      * 이 함수의 모든 반환은 euler 정리(비공개 정리 함수 _fixup_euler_blocked_rows -- 호출 금지)를 거친다(코드 주석 sizing_recipe.py 11784~11786).
      * 정리 함수 docstring: "1순위: `apply_and_revalidate_pair_adjustment()`로 매칭쌍 핑거증가, 안 되면 2순위: `find_min_crossover_layout_with_branch_composite()`로 그래프 이론상 항상 성공하는 그룹분할".
@@ -90,6 +97,7 @@ B26-1 사이트 자체(E1), def 기본값(E3), `_propose_*` 가드(E4)는 이 ca
      * `res["audit"].checks` 중 이름이 `"1. euler["`로 시작하는 체크가 1개 이상이고 전부 `.ok`다.
      * `build_stick_diagram([t for v in res["rows"].values() for t in v])`의 모든 값이 `.status == "ok"`다.
    * 근거: 코드 주석(sizing_recipe.py 11784~11786) "이 함수의 **모든** 반환 지점에서 최종 rows/ctx를 내보내기 전에 반드시 이 euler 정리를 거치고 그 결과로 audit을 다시 계산한다".
+   * `EULER_OK(res)`의 판정 문장(위 두 조건의 `assert`)은 그것을 쓰는 **test 함수 본문**((b)·(d)·(e))에 둔다. `_b26pre_` 도우미는 체크 목록·status 값을 계산해 돌려줄 수만 있다(계약 8 -- 도우미 안의 `assert`는 V4 도구가 그 test의 판정 문장으로 세지 않는다).
    * (a) **라운드 0개 소진**
      * 호출: `({"seg1": PAIR}, [("Ma","Mb")], {("Ma","Mb"): "offset"}, ctx(["Ma","Mb"]), lut_by_kind, metrics, loose, max_rounds=0)`.
      * 기대: `growth_rounds == []`, `unresolved_pair == "unknown"`, `unresolved_reason == "max_rounds_exceeded"`, `audit.ok is False`.
@@ -135,7 +143,8 @@ B26-1 사이트 자체(E1), def 기본값(E3), `_propose_*` 가드(E4)는 이 ca
      docstring(sizing_recipe.py 6507~6509): "declared가 통째로 비어있는 회로 … `refine_differential_and_mirror_relations()`의 `vertical_stack_id_candidates`(analog-grammar 기반 제안)로 폴백".
      같은 docstring은 3번 결과가 반환 전에 `derive_horizontal_stack_groups(transistors, groups, matching_pairs)`를 거친다고 적는다("먼저 kind로 쪼갠 뒤 … 선언된 매칭쌍만으로 그룹과 그룹을 잇는"). 여기서 매칭쌍은 `[]`다.
    * 기대:
-     * 모든 그룹의 소자를 모으면 각 소자가 정확히 한 번 나온다(반환 계약 `{stack_id: [device_name, ...]}`, 같은 docstring).
+     * 모든 그룹의 소자 이름을 **중복을 지우지 않고** 모아 정렬하면 `["M1", "M1c", "M2", "M2c", "M3", "M4", "M5"]`(입력 `CAS`의 이름, 리터럴)이다 -- 각 소자가 정확히 한 번 나온다(반환 계약 `{stack_id: [device_name, ...]}`, 같은 docstring).
+       이 한 비교가 '정확히 한 번'을 판정한다(따로 `len(x) == len(set(x))`를 단언하지 않는다 -- 계약 8).
      * 각 그룹의 kind는 하나다(같은 docstring "먼저 kind로 쪼갠 뒤").
      * **`M1`과 `M2`를 함께 담는 그룹이 있다** -- (c) 기준선 값(기준선 커밋은 oracle 절).
        `refine_differential_and_mirror_relations` docstring은 `vertical_stack_id_candidates`가 "cascode-stack 등 composite 병합(물리적 그룹)과 differential-pair/mirror 관계(leg a/b 판정)를 합친 최종 `vertical_stack_id` 후보"라고 적는다.
@@ -163,6 +172,13 @@ B26-1 사이트 자체(E1), def 기본값(E3), `_propose_*` 가드(E4)는 이 ca
    * 새 test 파일은 하나다: `A/tests/contracts/test_b26pre_existing_paths.py`. test 함수 이름은 `test_b26pre_`로, 모듈 수준 도우미 이름은 `_b26pre_`로 시작한다.
    * 엔진 비공개 도우미(_dc_replace, _fixup_euler_blocked_rows 등 밑줄로 시작하는 엔진 심볼)는 부르지 않는다. `stack_id`는 생성자 키워드로 준다.
    * `AuditResult`·`Transistor` 객체 자체를 `==`로 비교하지 않는다. 필드·이름 튜플로 비교한다.
+   * **판정 문장의 자리**: 판정 문장(`assert` 문)은 모두 `test_b26pre_` 함수 **본문**에 둔다. `_b26pre_` 모듈 도우미는 입력을 만들거나 값을 계산해 돌려줄 뿐 `assert`를 담지 않는다.
+     근거: V4 도구(gate `tools/gates/test_lint.py` 규칙 (4) -- 판정 문장 세기)는 test 함수 본문(중첩 `def` 제외)의 `assert` 문, 호출 이름이 `assert`로 시작하는 호출, `pytest.raises`·`pytest.warns`·`pytest.fail`·`pytest.deprecated_call`만 그 test의 판정 문장으로 센다(이 card의 계약에는 거부 test가 없어 뒤 넷은 쓰이지 않는다).
+     위 이름 규칙상 도우미 이름은 `_b26pre_`로 시작하므로 도우미 호출은 판정 문장이 되지 못한다 -- 판정을 도우미에만 두면 그 test는 판정 0개로 FAIL이다(1차 시도: 계약 3(b) test 1개와 계약 10 test 2개, 3 test FAIL).
+     판정 문장을 `if`·`try` 블록 안에만 두지 않는다(규칙 (3)). `for` 반복 안은 된다.
+   * **`==` 판정의 기대 쪽**: `==` 판정의 한 쪽은 이 card가 적은 리터럴(또는 interface card 심볼 호출을 담지 않는 값 -- `W0`·`S`처럼 `size_transistor` 결과에서 나온 값은 실제 쪽 입력(spec·`ctx`)에도 인라인되어 같은 호출이 두 쪽에 겹칠 수 있으므로 기대 쪽에 쓰지 않는다)이다. 같은 피검 호출의 출력에서 나온 두 값(같은 반환의 두 필드, 한 목록과 그 집합 등)을 `==`로 비교하지 않는다.
+     근거: V4 규칙 (1)은 지역 대입을 인라인한 뒤 판정 문장 두 쪽에 같은 피검 호출(같은 함수·같은 인자 정규형)이 있으면 FAIL이다(1차 시도: `{…stack_id…} == set(rr)`, `len(flat) == len(set(flat))`, `len(members) == len(set(members))` 3건).
+     다른 판정 문장이 이미 함축하는 중복 단언(리터럴 정렬 목록 비교 옆의 `len(x) == len(set(x))` 등)은 쓰지 않는다. `in`·`not in`·`len(…) == <정수>`·`all(…)`·`any(…)` 판정은 이 규칙의 대상이 아니다.
 9. **변이 판정(auditor 측정 -- 영구 test 아님)**
    * 측정 단위는 **base 문장 변이**다.
      * 주표(N2w): E6·E7 16문장(stmt_delete) + trace 루프 범위 2변이(SD `find_differential_pair_candidates`의 `for j in range(i + 1, len(chains)):` -- `1` const+, `i + 1` arith) = **18**. 변이 id(20) 환산은 참고로만 적는다.
@@ -192,6 +208,7 @@ B26-1 사이트 자체(E1), def 기본값(E3), `_propose_*` 가드(E4)는 이 ca
      * 동점 소자 중 어느 쪽이 먼저인지는 코드 주석('동점이면 이름순', stick_diagram.py 2760)만 정한다. docstring 규칙이 아니므로 계약은 그 순서에 기대지 않고 'Mx1·Mx2 중 정확히 하나'로 적는다.
        사전 측정(`C:/g116`, gate `0f23786` 사본): 이 단언은 base에서 두 test 모두 PASS, 씨앗 6문장(SD 2100·2101·2176·2177·3985·3986) 삭제 변이를 6/6 죽인다(죽이는 test는 v2의 `Mx1` 고정 단언과 같다). 동점 순서를 이름 역순으로 바꾼 변이(SD 2761)에서는 v2 단언이 두 test 모두 실패하고 이 단언은 통과한다.
    * 두 경우를 별개 test 함수로 둔다. 씨앗의 어느 방향이 빠졌을 때 결과가 바뀌는지는 탭이 어느 입력 넷에 몰렸는지에 달렸으므로 두 방향 모두 필요하다.
+     위 다섯 판정 문장(`assert`)은 두 test 함수 **본문** 각각에 둔다. 두 test가 같이 쓰는 입력 생성·`load_topology` 호출·역할 쌍 조회는 `_b26pre_` 도우미가 값으로 돌려줄 수 있지만 도우미 안에서 판정하지 않는다(계약 8).
      손 추적: `TAP_P`에서 `ninp→ninn` 방향이 빠지면 탭 소자의 gate 대응이 미지라 후보가 여럿이고(보류), `My`의 기대 파트너는 `Mx1`·`Mx2` 둘이라 보류된다 -- 아무도 짝이 되지 않는다. 반대 방향이 빠진 변이는 `TAP_N`이 같은 방식으로 잡는다.
    * B26-1 뒤: 씨앗 `{net: net for net in rails.nets}`는 `supply_nets: ["vdd","gnd"]` 선언과 같은 집합이라 판정이 바뀌지 않는다.
    * 이 계약은 v1이 '등가 후보'로 올렸던 씨앗 한 방향 삭제 6개(SD 2100·2101·2176·2177·3985·3986)를 죽인다(독립 검토 `_drafts/review_b26pre.md` §5 문장, 재실측 6/6).
@@ -264,7 +281,9 @@ test-only다. code 커밋이 없고(엔진·도구·레지스트리·library 불
   * 기준선 = 착수 시 gate `master`(B26-1 이전 known-good. 지금 `0f23786`이고 엔진은 사전 측정 커밋 `a796468`과 같다 -- `git diff --quiet a796468 0f23786 -- skills`. 착수 시 엔진이 다르면 auditor가 그 base에서 다시 잰다). 전제는 'B26-1은 이 경로에서 동작 보존 변경'이다(계획 N3.12.3: "기준선이 존재하고 동작 보존 변경이면 (c)").
   * 기대값은 '현재 출력 붙여넣기'가 아니다. 위 기준선의 동작이며, auditor가 그 기준선에서 독립으로 다시 잰다(`checks.V4.basis`의 `oracle 대조:`).
   * 각 (c) 항목은 '문서화된 의도와 모순 없음'을 확인했다(계약 문장마다 docstring·코드 주석을 파일:줄로 인용).
-    docstring에 값 자체가 없는 항목은 **(c) 기준선 값**이라고 따로 적었다: `unresolved_reason` 리터럴 3개, `unresolved_pair == "unknown"`, `_repair<i>`·`_seg<i>` 행 이름 형식, 계약 5의 'M1·M2 한 그룹', 계약 7의 `review_needed` 항목 모양, 계약 11 (b)의 원소 순서.
+    docstring에 값 자체가 없는 항목은 **(c) 기준선 값**이라고 따로 적었다: `unresolved_reason` 리터럴 3개, `unresolved_pair == "unknown"`, `_repair<i>`·`_seg<i>` 행 이름 형식, 계약 1 (d)의 stack_id 리터럴 집합(`{"pair_row_repair0_repair0_repair0"}` -- 접미 세 번은 `max_iter` 기본값 3과 docstring '(4) 다시 (1)로'에 맞는다), 계약 5의 'M1·M2 한 그룹', 계약 7의 `review_needed` 항목 모양, 계약 11 (b)의 원소 순서.
+  * 기대값은 모두 이 card의 리터럴(또는 피검을 부르지 않고 입력에서 만든 값)이다. 같은 피검 출력의 두 필드를 서로의 기대값으로 쓰지 않는다(계약 8 '`==` 판정의 기대 쪽').
+    1차 시도의 계약 1 (d) 문장(`… == set(pr["repaired_rows"])`)이 그 꼴이어서 리터럴로 개정했다(사용자 결정 2026-10-06 "(가) card 1(d)를 리터럴 기대값으로 개정 (Recommended)").
     * 계약 3(e)는 3b 실패가 하나도 없는 입력에서 사유 리터럴 `"only_3b_failures_left"`를 고정한다. 코드 주석(sizing_recipe.py 11823~11826, 11825행 '이 분기에 도달했다고 euler까지 깨끗하다는 보장이 없다')이 이 분기 도달을 인정하므로 의도와 모순은 아니다.
       다만 이름이 상황을 정확히 말하지 않는 리터럴의 (c) 고정이라, 사유 이름을 바꾸는 후속 card는 이 test에 대해 V5(기존 계약 test 변경) 비용을 진다.
   * 계약 1의 빈 문자열 역할 값은 입력 구성이다.
@@ -486,6 +505,15 @@ auditor가 독립으로 잰다. 아래는 오케스트레이터 사전 측정이
    * V3 주표(실제 도구 = `2183f2e`의 `mutate_changed.py`, base = `2183f2e`, head = B26-1 v4 모의 head(사이트 13줄 = 실제 B34 줄)): 대상 **301** / not_targeted **2,141**(레코드 2,442, defs 32, scope_proto N2w 대칭차 0, 순서 일치), 표 1 주표 20 id **20/20 targeted**.
      죽임(head 문장을 base 문장에 대응시켜 실제 도구 `mutants`·`_replace_def`로 같은 변이, 시제품만 seed 1): **18 죽음**(죽인 test 이름이 표 1과 같다), 생존 2 = `run_matching_safety_with_finger_growth` `body[10].body[1]`·`body[12]` = `2183f2e` SR **11799·11878**(backfill). 기준·복원 실행 19 passed.
      (덤) backfill 정리 모의 base 위 B26-1 v5 head: 대상 299 / not_targeted 2,136(2,435).
+   (2차 시도 개정 2026-10-06, gate master `6c724de`(= 이 card의 1차 커밋, `2183f2e..6c724de`의 `skills/`·`tools/` 차이 0), 저장소 읽기 전용, 모래상자 `C:/g344`(측정 뒤 삭제), 스크립트·출력 `_drafts/b26pre_att2_scripts/`. measured rev는 위 굵은 표지 그대로 `dd60db6`이고 표·인용 줄도 그 판 기준이다.)
+   * 1차 시도: test 커밋 T1 `d2b2ed7`, auditor 판정 **V4만 FAIL**(규칙 (1) 3건 -- 계약 1 (d)·2·5의 같은 출력 비교, 규칙 (4) 3건 -- 계약 3(b)·10의 판정이 `_b26pre_` 도우미에만 있음), V1·V2·V3·V5~V7·V10 PASS, V8·V9 N/A. 1차 산출물 보관 `_drafts/b26pre_attempt1/`(`T1.patch` sha256 `286667e2…`, 판정 기록 사본 sha256 `6e8ac3a5…`).
+   * 개정한 곳: 계약 1 (d)(리터럴 기대값 -- `transistors`의 stack_id 집합과 `repaired_rows` 키 집합을 각각 같은 리터럴과 비교해 정합 의미를 지킨다, 사용자 결정 2026-10-06 "(가) card 1(d)를 리터럴 기대값으로 개정 (Recommended)"), 계약 2·5(중복 단언 대신 리터럴 비교 한 번), 계약 3·10(판정 문장은 test 본문), 계약 8(판정 문장의 자리·`==` 판정의 기대 쪽), oracle 절 (c) 목록. 다른 계약의 기대값은 바꾸지 않았다.
+   * 계약 1 (d) 리터럴 실측: 계약 1 입력(1차 test 그대로) → base `6c724de`에서 `{t.stack_id for t in pr["transistors"]}` = `{"pair_row_repair0_repair0_repair0"}`(소자 `Ma`·`Mb` 둘 다 그 값, `repaired_rows` 키 집합과 같음, `audit_ok` False, 3c 체크 1개 ok False, `growth_rounds` 없음), `PYTHONHASHSEED` 0·1·7·123 모두 같다.
+     독립 검토 반영 재측정(같은 날, gate `6c724de` archive 모래상자 `C:/g365`, 1차 test blob + 측정 함수, seed 0·1·7·123·42): `{t.stack_id for t in pr["transistors"]} == {"pair_row_repair0_repair0_repair0"}`와 `set(pr["repaired_rows"]) == {"pair_row_repair0_repair0_repair0"}` 둘 다 참(행 `pair_row_repair0_repair0_repair0` = `["Ma","Mb"]`, `audit_ok` False). 1차 test 172행을 이 두 문장으로 바꾼 사본에서 gate `6c724de` 판 V4 도구: 두 줄 UNJUDGED(규칙 (1) FAIL 없음), 남은 FAIL 5 = 196·397행 대응 규칙 (1)과 규칙 (4) 3 test(+1줄 이동).
+     같은 두 소자 행을 `repair_matching_safety`에 바로 넣고 `max_iter` 1·2·3·4·기본값으로 부르면 행 키 접미 `_repair0`이 1·2·3·4·3번 붙는다.
+   * 개정 문장 시제품(오케스트레이터 사전 측정 전용 -- 커밋하지 않고 test-author·auditor에게 건네지 않으며 판정 증거가 아니다): 1차 test에 개정 계약 1 (d)·2·3·5·8·10만 반영.
+     gate `6c724de` 판 V4 도구(`--interface-card` 19행): 1차 test는 FAIL 6(172·196·397행 규칙 (1), 세 test 규칙 (4) -- 판정 기록과 같은 줄) 재현, 시제품은 **PASS exit 0, FAIL 0**(UNJUDGED 60, NO-SUBJECT 19). base에서 19 passed(seed 0·1).
+     base 문장 삭제 변이 29개(주표 E6·E7 15문장 -- SR 11799 빼고 전부, 참고표 14변이 -- SR 11801·SD 3278 cmp_flip 빼고 전부; 줄은 base `6c724de` 위치)를 1차 test와 시제품에 각각 넣어 그 파일만 실행(seed 1): **변이마다 결과와 죽인 test 이름이 같다**(주표 14 죽음·SR 11878 생존, 참고표 14 죽음). 기준·복원 실행 PASS, 엔진 diff 0.
 1. **사실 문장 재측정**:
    * 표 1·2의 base 줄은 v4 head 문장 줄을 HEAD 사본과 difflib로 대응시켜 `b26pre_table.py`로 구했다(v1). v2는 `kill_v2.py`가 각 줄의 (def, 문장 글)을 HEAD 사본에서 다시 찾아 32줄 모두 확인했다.
    * 인용 줄(HEAD 사본 `sed -n`): sizing_recipe.py 9363~9367(bare repair 폴백 주석), 9400~9406(LUT 없는 분기), 9408~9412(정본 승격 주석), 6507~6509(`resolve_stack_layout` 3번), 11582~(정리 함수 docstring), 11769~11770(backfill 주석), 11784~11786(모든 반환 지점 주석);
