@@ -600,6 +600,8 @@ skills/analog-gmid-design/assets/tests/
 | gmid-code-author | `skills/analog-gmid-design/assets/tests/tools/**` | -- | 없음 |
 | gmid-code-author | `tools/migrate/**` | -- | 없음 |
 | gmid-code-author | `workspaces/run_harness.py` | -- | 없음 |
+| gmid-code-author | `workspaces/current-reuse-telescopic-ota-report/*.py` | -- | 없음 |
+| gmid-code-author | `workspaces/two-stage-ota-report/*.py` | -- | 없음 |
 | gmid-code-author | `docs/03-analysis/gain-budget-gmid-sizing.function-registry.md` | -- | 없음 |
 | gmid-code-author | `docs/02-design/disputes/<id>.md` | -- | 자기 변경 id |
 | gmid-code-author | `tools/gates/*.py` | -- | 게이트 변경 |
