@@ -783,14 +783,14 @@ auditor가 Phase 3 마지막 card 병합본의 격리 복제본 `<iso>`에서 **
 # ---- 공통 (값은 auditor가 판정 기록에서 채운다) ----
 ISO=<iso>; S=<auditor 스크래치>; PY="C:/Python314/python.exe -B"
 export APPDATA="C:/Users/HSLEE/AppData/Roaming" HOME="C:/Users/HSLEE"   # v8(5차 검토 m3): 하위 bash에서 APPDATA가 비면 사용자 site의 numpy를 못 찾아 import_any가 거짓 FAIL
-GC="$ISO/tools/gates"     # 05 §4.4: 판정은 gate master 판 게이트 코드. M card는 tools/** 변경 0(D-16)이고 D0b~F2에는 Phase 3 밖 card도 tools/gates·tools/migrate를
+GC="<05 §4.4 캐시: git archive <H> tools/gates를 <iso> 밖(또는 <git-common-dir>/gmid-gate-cache/<H>/)에 푼 것>/tools/gates"   # 정정 D4. 05 §4.4: 판정은 gate master 판 게이트 코드. M card는 tools/** 변경 0(D-16)이고 D0b~F2에는 Phase 3 밖 card도 tools/gates·tools/migrate를
                           # 바꾸지 않는다(D-27, v8 -- 5차 검토 S6) -- 그래서 마지막 병합본의 tools/gates = 각 card 판정 때의 판. 아래 E2 앞에서 그 전제를 확인한다
-                          # (05 §4.4 캐시 <git-common-dir>/gmid-gate-cache/<그 커밋>/를 쓰면 GC를 그 안의 tools/gates로)
-PT3() {   # 10 §10 PT에서 --gmid-phase=1만 =3으로(v8 -- 5차 검토 B1). <cache> = 05 §4.4 캐시.
+                          # (정정 D4: <iso> 밖이라 E5가 <iso>를 P2D로 옮겨도 GC는 H 판 그대로 -- 게이트 출처 하나, PT3도 같은 $GC)
+PT3() {   # 10 §10 PT에서 --gmid-phase=1만 =3으로(v8 -- 5차 검토 B1). 게이트 코드 = $GC(05 §4.4 캐시 -- 정정 D4).
           # 첫 인자가 $ISO 아래 경로면 그것이 test 경로(10 §10 D4의 `PT <파일>` 용법), 아니면 tests 전체. 나머지 인자는 pytest 옵션
   local t="$ISO/skills/analog-gmid-design/assets/tests"
   case "${1:-}" in "$ISO"/*) t="$1"; shift;; esac
-  PYTHONPATH="<cache>" PYTHONPYCACHEPREFIX="$(mktemp -d)" C:/Python314/python.exe -P -m pytest -c "<cache>/pytest_gate.ini" --rootdir="$ISO" --confcutdir="$ISO"     "$t" --gmid-phase=3 "$@"
+  PYTHONPATH="$GC" PYTHONPYCACHEPREFIX="$(mktemp -d)" C:/Python314/python.exe -P -m pytest -c "$GC/pytest_gate.ini" --rootdir="$ISO" --confcutdir="$ISO"     "$t" --gmid-phase=3 "$@"
 }
 MPC=<tools/migrate/move_plan.py를 마지막으로 바꾼 판정 기록의 code_commit>     # 지금은 D0a(2차 검토 m6)
 git -C "$ISO" show "$MPC:tools/migrate/move_plan.py" > "$S/move_plan.py"
@@ -1031,17 +1031,17 @@ git -C "$ISO" show "$H:docs/03-analysis/gain-budget-gmid-sizing-30-module-split/
 git -C "$ISO" show "$P2D:.ai/verification/20260930-df36-instance-relpath/scripts/e_inst_df36.py"     > "$X/e_inst_df36.py"
 git -C "$ISO" show "$P2D:.ai/verification/20260930-df36-instance-relpath/scripts/e_lib.py"          > "$X/e_lib.py"
 sha256sum "$X"/e_inst_p3.py "$X"/e_lib_p3.py "$X"/e_inst_df36.py "$X"/e_lib.py > "$O/scripts.sha256"
-fresh() { git -C "$ISO" checkout -q --detach "$1" && git -C "$ISO" checkout -q -- . && git -C "$ISO" clean -q -fdx; }
+fresh() { git -C "$ISO" checkout -q -- . ; git -C "$ISO" clean -q -fdx; git -C "$ISO" checkout -q --detach "$1" && [ "$(git -C "$ISO" rev-parse HEAD)" = "$(git -C "$ISO" rev-parse "$1^{commit}")" ] && [ -z "$(git -C "$ISO" status --porcelain --ignored)" ] || { echo "E5 INVALID: 판 전환 실패 $1"; return 1; }; }   # 산출을 먼저 지우고 옮긴 뒤 HEAD·status를 확인한다(design 20 §10 E4 순서, Phase 2 브리핑 §2 -- 2026-10-02 정정 D1)
 for c in current_reuse_telescopic_ota folded_cascode; do                      # E-INST 회로 집합(20 §3)
-  fresh "$P2D"; $PY -P "$X/e_inst_df36.py" "$ISO" "$c" "$O/p2d_df36_$c.json"; echo "E5 p2d df36 $c exit=$?"   # 동등 확인용(F1 전 판)
-  fresh "$P2D"; $PY -P "$X/e_inst_p3.py"   "$ISO" "$c" "$O/p2d_p3_$c.json";   echo "E5 p2d p3 $c exit=$?"
-  fresh "$H";   $PY -P "$X/e_inst_p3.py"   "$ISO" "$c" "$O/h_p3_$c.json";     echo "E5 head p3 $c exit=$?"
+  fresh "$P2D" && $PY -P "$X/e_inst_df36.py" "$ISO" "$c" "$O/p2d_df36_$c.json"; echo "E5 p2d df36 $c exit=$?"   # 동등 확인용(F1 전 판). 판 전환 실패면 재지 않는다(정정 D2)
+  fresh "$P2D" && $PY -P "$X/e_inst_p3.py"   "$ISO" "$c" "$O/p2d_p3_$c.json";   echo "E5 p2d p3 $c exit=$?"
+  fresh "$H"   && $PY -P "$X/e_inst_p3.py"   "$ISO" "$c" "$O/h_p3_$c.json";     echo "E5 head p3 $c exit=$?"
 done
-fresh "$P2D"
+fresh "$P2D" || exit 1   # 판 전환 실패면 E-LIB를 다른 판에서 재지 않는다(`E5 INVALID` 줄은 fresh가 냈다 -- 정정 D2)
 $PY -P "$X/e_lib.py"    "$ISO" "$O/p2d_elib.json";              echo "E5 p2d elib exit=$?"          # 동등 확인용
 $PY -P "$X/e_lib_p3.py" "$ISO" "$O/p2d_elibp3_nomask.json";     echo "E5 p2d elibp3 nomask exit=$?" # 동등 확인용(빼는 키 없음)
 $PY -P "$X/e_lib_p3.py" "$ISO" "$O/p2d_elibp3.json" rails;      echo "E5 p2d elibp3 exit=$?"        # rails = MASK_META(D-28 (e))
-fresh "$H"
+fresh "$H" || exit 1     # 정정 D2
 $PY -P "$X/e_lib_p3.py" "$ISO" "$O/h_elibp3.json" rails;        echo "E5 head elibp3 exit=$?"
 $PY - "$O" "$ISO" "$P2D" <<'PYEOF'
 import hashlib, json, os, re, subprocess, sys
@@ -1096,7 +1096,7 @@ print("E5 E-LIB/E-INST PASS" if not bad else "E5 E-LIB/E-INST FAIL " + ",".join(
 PYEOF
 
 # ---- E6: 정의 보존(MOVE-TOTAL) ----
-$PY "$S/move_plan.py" check --root "$ISO" --base "$B0" --head HEAD --card ALL "${MP_ARGS[@]}" \
+$PY "$S/move_plan.py" check --root "$ISO" --base "$B0" --head "$H" --card ALL "${MP_ARGS[@]}" \
     --allow-changed workspaces/run_harness.py::run skills/analog-gmid-design/assets/gmid_design_pipeline.py::run_gmid_design_pipeline \
     > "$S/chk_all.json"; echo "E6 exit=$?"
 ```
