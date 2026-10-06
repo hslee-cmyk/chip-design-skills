@@ -1,0 +1,55 @@
+{
+ "id": "20260930-b26-pre-test-strengthen",
+ "order": 3,
+ "attempt": "2차 시도(1차 T1 d2b2ed7 V4 FAIL, card 개정 S2 ae1b588)",
+ "evidence_type": "test-only",
+ "base_commit": "ae1b5886e6fd4b5b18d6096d8ac6076259719ff3",
+ "base_vs_attempt1_card": "git diff --name-only 6c724de ae1b588 = docs/02-design/specs/20260930-b26-pre-test-strengthen.spec.md 하나, -- skills tools 차이 0개(엔진·게이트 코드 1차와 같음)",
+ "freeze": {
+  "T": "e4d5833f89a9a96db7410ce4bfc53703f4f9ef3f",
+  "T_parent": "ae1b5886e6fd4b5b18d6096d8ac6076259719ff3",
+  "first_parent_chain_base_to_T": ["e4d5833f89a9a96db7410ce4bfc53703f4f9ef3f (Role: test, Change-Id: 20260930-b26-pre-test-strengthen, 부모 = base)"],
+  "T_trailers": ["Role: test", "Change-Id: 20260930-b26-pre-test-strengthen"],
+  "merge_commits_in_chain": 0,
+  "base_to_T_diff": ["A skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py"],
+  "diff_outside_test_path": 0,
+  "new_test_blobs": {"test_b26pre_existing_paths.py": "f5f40d50a2d11e4de8c1b3363500d24b1cf8b692"},
+  "new_test_lines": 593
+ },
+ "new_test_file_alone_on_T_tree": {
+  "engine": "base 그대로(base..T diff = 새 test 파일 하나)",
+  "collected": 19,
+  "seed0": "19 passed, exit 0",
+  "seed1": "19 passed, exit 0",
+  "contract_map": {
+   "1": ["test_b26pre_ofcb_lutless_repair"],
+   "2": ["test_b26pre_euler_fixup_group_split"],
+   "3": ["test_b26pre_growth_zero_rounds", "test_b26pre_growth_zero_rounds_euler", "test_b26pre_growth_already_ok", "test_b26pre_growth_pair_not_found", "test_b26pre_growth_only_3b_left"],
+   "4": ["test_b26pre_full_audit_all_disposed", "test_b26pre_full_audit_mirror_undisposed", "test_b26pre_full_audit_diffpair_undisposed", "test_b26pre_full_audit_hub_gnd_undisposed"],
+   "5": ["test_b26pre_resolve_stack_candidates"],
+   "6": ["test_b26pre_vsid_gap_fill_no_ports", "test_b26pre_vsid_gap_fill_ports"],
+   "7": ["test_b26pre_case_collisions"],
+   "10": ["test_b26pre_seed_tap_p", "test_b26pre_seed_tap_n"],
+   "11": ["test_b26pre_trace_two_branches", "test_b26pre_trace_three_branches_order"]
+  },
+  "contracts_4_10_11_separate_functions": true,
+  "parametrize_count": 0,
+  "command": "PYTHONHASHSEED=<0|1> PYTHONPYCACHEPREFIX=C:/g371/pyc/new_<seed> PYTHONPATH=C:/g371/gmid-gate-cache/ae1b5886e6fd4b5b18d6096d8ac6076259719ff3 C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g371/iso --confcutdir=C:/g371/iso <iso>/skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py --gmid-phase=3 --gmid-strict= -rA -p no:cacheprovider --basetemp=C:/g371/tmp/bt_<seed> (scripts/order3.sh, 출력 out/order3/new_seed0.txt·new_seed1.txt)"
+ },
+ "v3_once": {
+  "command": "C:/Python314/python.exe -B <캐시>/mutate_changed.py --root C:/g371/iso --base ae1b5886e6fd4b5b18d6096d8ac6076259719ff3 --head e4d5833f89a9a96db7410ce4bfc53703f4f9ef3f --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict= --out C:/g371/out/v3.jsonl",
+  "result": {"tool": "V3", "verdict": "PASS", "targets": [], "mutants": 0, "killed": 0, "survivors": [], "survivor_bindings": [], "exempt_ignored": [], "not_targeted": 0, "targets_by_def": {}},
+  "exit": 0,
+  "seconds": 38,
+  "note": "변이 0이라 --out 파일은 생기지 않았다(stdout out/order3/v3_stdout.txt)"
+ },
+ "gate_code": "C:/g371/gmid-gate-cache/ae1b5886e6fd4b5b18d6096d8ac6076259719ff3 (git cat-file blob <base>:tools/gates/<파일>, redteam 밖 22개, file_set_sha256 41885fd263066c317f65663aaf9bac206771fd57708ae539df271af96bd09d17, 오케스트레이터 캐시와 파일 22/22 내용 같음(scripts/cache_cmp.py), mutate_changed.py의 not_targeted 7곳 -- card 35 판)",
+ "isolation": "git clone -q --no-hardlinks --no-local -c core.autocrlf=false -c core.longpaths=true <audit worktree> C:/g371/iso; git -C C:/g371/iso remote remove origin; remote 0개, HEAD = T, 실행 뒤 status 0줄",
+ "self_check": {
+  "audit_worktree_status_porcelain": ["?? .ai/verification/20260930-b26-pre-test-strengthen/"],
+  "log_role_test_to_HEAD": "",
+  "committed": false
+ },
+ "measured_by": "gmid-verification-auditor, 격리 복제본 C:/g371/iso(T), origin 제거. test-author 보고·오케스트레이터 사전 측정은 쓰지 않았다",
+ "time": "2026-10-06T22:46:00+09:00"
+}

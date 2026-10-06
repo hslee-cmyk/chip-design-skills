@@ -1,0 +1,1107 @@
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[common_gate_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[current_reuse_telescopic_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[folded_cascode]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[ngcc_3stage_ff]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[nmcnr_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[pushpull_follower_buffer]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[sf_pushpull_output_opamp]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c1_both_absent_raises_named_import_error[two_stage_ota_sf]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[common_gate_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[current_reuse_telescopic_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[folded_cascode]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[ngcc_3stage_ff]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[nmcnr_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[pushpull_follower_buffer]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[sf_pushpull_output_opamp]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[two_stage_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_idioms_only_absent_load_topology_raises[two_stage_ota_sf]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[common_gate_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[current_reuse_telescopic_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[folded_cascode]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[ngcc_3stage_ff]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[nmcnr_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[pushpull_follower_buffer]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[sf_pushpull_output_opamp]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[two_stage_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c2_netclass_only_absent_find_stack_edges_raises[two_stage_ota_sf]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c4_search_path_inserted_first_once
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c5_no_gate_devices_unchanged
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c5_import_without_grammar_succeeds
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c6_theta_without_findings
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[common_gate_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[current_reuse_telescopic_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[folded_cascode]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[ngcc_3stage_ff]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[nmcnr_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[pushpull_follower_buffer]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[sf_pushpull_output_opamp]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_c8_restored_values_equal_fresh_process[two_stage_ota_sf]
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_selfcheck_raises_rejects_quiet_fakes
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_selfcheck_exc_problems_rejects_bad_errors
+skills/analog-gmid-design/assets/tests/contracts/test_b34_grammar_explicit.py::test_b34_selfcheck_normalize_equal_and_different
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_deleted_names_are_not_registered_as_dict_values
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_runtime_registries_hold_no_deleted_callable[_METRICS_REGISTRY]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_runtime_registries_hold_no_deleted_callable[_CMRR_ESTIMATOR_REGISTRY]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_runtime_registries_hold_no_deleted_callable[_PSRR_ESTIMATOR_REGISTRY]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_runtime_registries_hold_no_deleted_callable[_COMPENSATION_REGISTRY]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[_METRICS_REGISTRY = {"slew": slew_rate}\n-slew_rate]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = {"conv": sr.converge_with_parasitics}\n-converge_with_parasitics]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = {"ft": SemiEmpiricalGmIdLUT.fT}\n-fT]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = {"cj": lut.junction_cap}\n-junction_cap]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = {"render": ("stick", render_stick_diagram)}\n-render_stick_diagram]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = {"sr": lambda i, c: slew_rate(i, c)}\n-slew_rate]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = dict(stick=render_stick_diagram)\n-render_stick_diagram]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = {}\nREG["hs"] = suggest_headroom_stack_groups\n-suggest_headroom_stack_groups]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = {k: slew_rate for k in ("a", "b")}\n-slew_rate]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_rejects_synthetic_registry[REG = {"fn": "converge_with_parasitics"}\n-converge_with_parasitics]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_accepts_sources_without_registration[# REG = {"slew": slew_rate}\nREG = {"gain": gain_fn}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_accepts_sources_without_registration[REG = {"slew_rate": gain_fn}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_accepts_sources_without_registration[fT = 1.0e9\nrow = {"fT_hz": 2.0}\nslew = slew_rate(1e-6, 1e-12)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_accepts_sources_without_registration[row = {"fT": fT}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registration_check_accepts_sources_without_registration[REG = {"note": "uses slew_rate formula"}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_runtime_registry_check_rejects_synthetic_registry
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[converge_with_parasitics]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[derived_spec]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[fT]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[junction_cap]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[lut_conditions_from_npz]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[render_stick_diagram]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[slew_rate]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[suggest_headroom_stack_groups]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_unregistered_metric_type_is_rejected[new_topology_future_metric]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_registered_metric_type_on_same_context_yields_value
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_rejection_check_fails_when_type_is_registered
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_deleted_names_have_no_ast_references
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[def slew_rate(ID, C):\n    return ID / C\n-slew_rate]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[class GmIdLUT:\n    def junction_cap(self, L, W):\n        return 0.0\n-junction_cap]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[class SemiEmpiricalGmIdLUT:\n    def fT(self, g, L, v):\n        return 1.0\n-fT]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[from sizing_recipe import converge_with_parasitics\n-converge_with_parasitics]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[import stick_diagram as sd\ng = sd.suggest_headroom_stack_groups({})\n-suggest_headroom_stack_groups]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[x = lut.fT(12.0, 1e-6, 0.6)\n-fT]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[f = SemiEmpiricalGmIdLUT.fT\n-fT]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[cj = lut.junction_cap(1e-6, 2e-6)\n-junction_cap]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[fn = render_stick_diagram\n-render_stick_diagram]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[def f(n):\n    return suggest_headroom_stack_groups(n)\n-suggest_headroom_stack_groups]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_rejects_synthetic_reference[import sizing_recipe as sr\nd = sr.slew_rate(1e-6, 1e-12)\n-slew_rate]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_accepts_sources_without_reference[# converge_with_parasitics(...) \ub294 \uc9c0\uc6e0\ub2e4\nx = 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_accepts_sources_without_reference[doc = 'sd.render_stick_diagram(n) \ub85c \ubc14\uafbc\ub2e4'\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_accepts_sources_without_reference[fT = gm / (2 * 3.14159 * cgg)\nrow = {'fT': fT}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_accepts_sources_without_reference[def fT(gm, cgg):\n    return gm / cgg\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_accepts_sources_without_reference[class Other:\n    def fT(self):\n        return 0.0\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_accepts_sources_without_reference[value = result.fT\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_dead.py::test_reference_check_accepts_sources_without_reference[r = make(fT=1e9, junction_cap=None)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_registries_drop_deleted_families[_CMRR_ESTIMATOR_REGISTRY]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_registries_drop_deleted_families[_PSRR_ESTIMATOR_REGISTRY]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_registry_check_rejects_synthetic_registry
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[cmrr_estimate-telescopic_class_ab]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[cmrr_estimate-telescopic_class_ab_cmfb]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[cmrr_estimate-new_topology_future_family]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[psrr_estimate-telescopic_class_ab]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[psrr_estimate-telescopic_class_ab_cmfb]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_family_is_rejected_on_new_topology[psrr_estimate-new_topology_future_family]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_rejection_check_fails_on_silent_or_unlisted_refusal
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_general_path_yields_value_on_new_topology[cmrr_like]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_general_path_yields_value_on_new_topology[psrr_like]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_finite_value_check_rejects_non_values
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_pilot_topology_path_literal_absent
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_rejects_synthetic_literal[P = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_rejects_synthetic_literal[def load():\n    return open(LIB / "current_reuse_telescopic_ota.topology.json")\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_rejects_synthetic_literal[name = "current_reuse_telescopic_ota"\npath = f"{LIB}/{name}.topology.json"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_rejects_synthetic_literal[p = f"{LIB}/current_reuse_telescopic_ota.topology.json"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_rejects_synthetic_literal[CACHE = {"topo": "library/current_reuse_telescopic_ota.topology.json"}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_accepts_sources_without_literal["""current_reuse_telescopic_ota.topology.json \uc758 connectivity\ub97c \uc77d\ub358 \uacf3(\uc0ad\uc81c)."""\nx = 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_accepts_sources_without_literal[def f():\n    """current_reuse_telescopic_ota \ud30c\uc77c\ub7ff \uc124\uba85."""\n    return 0\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_accepts_sources_without_literal[# path = "current_reuse_telescopic_ota.topology.json"\nx = 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_accepts_sources_without_literal[P = os.path.join(ASSETS, "library", "folded_cascode.topology.json")\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_accepts_sources_without_literal[def load(path):\n    return open(path)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_path_literal_check_accepts_sources_without_literal[msg = ("matching\uc774 \ub9de\ub2e4(`current_reuse_telescopic_ota` M13/M22 \ube44\uad50)")\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_deleted_names_have_no_ast_references
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[def _cmrr_telescopic_class_ab(metric_spec, ctx):\n    return 0.0\n-_cmrr_telescopic_class_ab]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[from sizing_recipe import _cmfb_amp_gain_diode_load\n-_cmfb_amp_gain_diode_load]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[import sizing_recipe as sr\ng = sr._telescopic_class_ab_open_loop_gains(s, c)\n-_telescopic_class_ab_open_loop_gains]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[REG = {'telescopic_class_ab_cmfb': _psrr_telescopic_class_ab_cmfb}\n-_psrr_telescopic_class_ab_cmfb]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[fn = _load_telescopic_topology_cached\n-_load_telescopic_topology_cached]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[def f(s):\n    return _telescopic_open_loop_device_names(s)\n-_telescopic_open_loop_device_names]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[x = _telescopic_class_ab_open_loop_response(s, c, 1, 0, 0, 0)\n-_telescopic_class_ab_open_loop_response]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[REG = dict(telescopic_class_ab=_psrr_telescopic_class_ab)\n-_psrr_telescopic_class_ab]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[REG = {}\nREG['x'] = _cmrr_telescopic_class_ab_cmfb\n-_cmrr_telescopic_class_ab_cmfb]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[_TELESCOPIC_FIXED_BASE = {'Vbias1': 0.0}\n-_TELESCOPIC_FIXED_BASE]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[_TELESCOPIC_FIXED_BASE: dict = {}\n-_TELESCOPIC_FIXED_BASE]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[def f(extra):\n    return {**_TELESCOPIC_FIXED_BASE, **extra}\n-_TELESCOPIC_FIXED_BASE]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[import sizing_recipe as sr\nbase = sr._TELESCOPIC_FIXED_BASE\n-_TELESCOPIC_FIXED_BASE]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[from sizing_recipe import _TELESCOPIC_FIXED_BASE\n-_TELESCOPIC_FIXED_BASE]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[class SizingContext:\n    _open_loop_gains_cache: dict = field(default_factory=dict)\n-_open_loop_gains_cache]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[class SizingContext:\n    _open_loop_gains_cache = None\n-_open_loop_gains_cache]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[hit = ctx._open_loop_gains_cache.get(key)\n-_open_loop_gains_cache]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[ctx._open_loop_gains_cache[key] = gains\n-_open_loop_gains_cache]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_rejects_synthetic_reference[self._open_loop_gains_cache = {}\n-_open_loop_gains_cache]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[# _cmrr_telescopic_class_ab(...) \ub294 \uc9c0\uc6e0\ub2e4\nx = 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[doc = '_telescopic_class_ab_open_loop_gains() \ub300\uc2e0 smallsignal_ratio_db'\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[spec = {'circuit_family': 'telescopic_class_ab_cmfb'}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[_cmrr_telescopic_class_ab_v2 = 1.0\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[r = make(_cmfb_amp_gain_diode_load=None)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[# _TELESCOPIC_FIXED_BASE \ub294 \ud30c\uc77c\ub7ff \ub137 \uc774\ub984\uc774\uc5c8\ub2e4\nFIXED = {'bias': 0.0}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[_TELESCOPIC_FIXED_BASE_V2 = {}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[note = '_open_loop_gains_cache \ub294 \uc9c0\uc6e0\ub2e4'\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[class OtherContext:\n    _open_loop_gains_cache = None\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_delete_telescopic.py::test_reference_check_accepts_sources_without_reference[def f():\n    _open_loop_gains_cache = {}\n    return _open_loop_gains_cache\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_moved_names_gone_from_engine
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[class RegressionVerdict:\n    ok: bool\n-RegressionVerdict]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[def _run_optimize_multistage_case(case, luts):\n    return {}\n-_run_optimize_multistage_case]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[_REGRESSION_ENGINES = {'optimize_multistage': None}\n-_REGRESSION_ENGINES]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[_REGRESSION_ENGINES: dict = {}\n-_REGRESSION_ENGINES]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[def run_regression_case(p, k, rel_tol=0.01):\n    pass\n-run_regression_case]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[def find_interleaved_symmetric_splits(a, b):\n    return []\n-find_interleaved_symmetric_splits]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[from regression_runner import run_regression_case\n-run_regression_case]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[import interleave_splits as m\ns = m.find_interleaved_symmetric_splits(3, 3)\n-find_interleaved_symmetric_splits]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[from x import y as RegressionVerdict\n-y]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_rejects_synthetic_reference[v = _REGRESSION_ENGINES['k']\n-_REGRESSION_ENGINES]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_accepts_sources_without_reference[# run_regression_case \ub294 tests/tools/regression_runner.py \ub85c \uc62e\uacbc\ub2e4\nx = 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_accepts_sources_without_reference[doc = 'find_interleaved_symmetric_splits(3, 3) \ucc38\uc870'\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_accepts_sources_without_reference[r = make(run_regression_case=None)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_accepts_sources_without_reference[def optimize_multistage(topology_fn, luts):\n    return None\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_reference_check_accepts_sources_without_reference[RegressionVerdictLike = 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_modules_define_moved_names
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_modules_do_not_copy_engine_definitions
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_definition_check_rejects_incomplete_module[def _run_optimize_multistage_case(c, l):\n    pass\n_REGRESSION_ENGINES = {}\ndef run_regression_case(p, k):\n    pass\n-expected0]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_definition_check_rejects_incomplete_module[class RegressionVerdict:\n    pass\ndef _run_optimize_multistage_case(c, l):\n    pass\ndef _REGRESSION_ENGINES():\n    return {}\ndef run_regression_case(p, k):\n    pass\n-expected1]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_definition_check_rejects_incomplete_module[def wrapper():\n    def find_interleaved_symmetric_splits(a, b):\n        return []\n-expected2]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_definition_check_rejects_incomplete_module[-expected3]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_definition_check_accepts_complete_module
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_engine_copy_check_rejects_and_accepts_synthetic_modules
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_new_tool_file_names_do_not_match_contract_patterns
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_tests_reference_moved_names_via_new_modules
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[from sizing_recipe import (optimize_multistage, run_regression_case)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[from stick_diagram import find_interleaved_symmetric_splits\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[from sizing_recipe import RegressionVerdict as RV\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[import sizing_recipe as sr\nv = sr.run_regression_case('p', 'k')\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[import stick_diagram\ns = stick_diagram.find_interleaved_symmetric_splits(3, 3)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[from regression_runner import find_interleaved_symmetric_splits\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[from .sizing_recipe import _REGRESSION_ENGINES\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[def run_regression_case(p, k):\n    return None\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_rejects_misdirected_reference[_REGRESSION_ENGINES = {}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_accepts_new_module_references[from regression_runner import run_regression_case\nv = run_regression_case('p', 'k')\n-None]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_accepts_new_module_references[from interleave_splits import find_interleaved_symmetric_splits\n-None]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_accepts_new_module_references[import regression_runner as rr\nv = rr.RegressionVerdict\n-None]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_accepts_new_module_references[from sizing_recipe import optimize_multistage\nx = _verdict.ok\n-None]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_accepts_new_module_references[# from sizing_recipe import run_regression_case\ns = 'run_regression_case'\n-None]
+skills/analog-gmid-design/assets/tests/contracts/test_d_move_tests.py::test_test_reference_check_accepts_new_module_references[from sizing_recipe import optimize_multistage\n_REGRESSION_ENGINES = {}\ndef run_regression_case(p, k):\n    return None\n-regression_runner]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_inventory_top_level
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_inventory_item_fields
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_inventory_phase_closed_set
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_inventory_phase_matches_df_table
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_inventory_rail_literals_on_df19_df26
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_inventory_totals
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[phase_missing]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[phase_2]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[phase_8]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[phase_empty]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[na_without_reason]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[df30_phase_4]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[df99_not_in_plan]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[message_phase_4]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[function_empty]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[function_two_dots]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[rail_on_df23]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[act_not_df_not_new]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[role_outside_set]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[context_outside]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_item[file_backslash]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_measured_at[measured_at_short]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_measured_at[measured_at_upper]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_measured_at[measured_at_none]
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_missing_measured_at
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_n_items_mismatch
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_by_phase_mismatch
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_rejects_unnamed_phase_column
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_judge_accepts_valid_synthetic
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_rail_set_from_declarations
+skills/analog-gmid-design/assets/tests/contracts/test_df23_inventory.py::test_p10_df_table_tokens_drop_phase_2
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_source_has_no_absolute_path_constants
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_rejects_synthetic_source[sys.path.insert(0, r"C:\\x\\y")\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_rejects_synthetic_source[ASSETS_DIR = "D:/a"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_rejects_synthetic_source[ROOT = "/home/u/repo"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_rejects_synthetic_source[p = os.path.join("C:\\\\Users\\\\u", "assets")\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_rejects_synthetic_source[def f():\n    return "/opt/repo/workspaces"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_rejects_synthetic_source[x = f"C:/Users/{name}/repo"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_accepts_sources_without_absolute_path[LIB = "library"\nLUT = "sky130_nfet_pfet_lut_sample.npz"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_accepts_sources_without_absolute_path[A = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "skills")\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_accepts_sources_without_absolute_path[# sys.path.insert(0, r"C:\\x\\y")\nx = 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_accepts_sources_without_absolute_path["""\uc608: C:\\\\Users\\\\u\\\\repo \ub610\ub294 /home/u/repo \uc5d0\uc11c \uc2e4\ud589"""\nx = 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_accepts_sources_without_absolute_path[def f():\n    """C:/Users/u/repo \uc608\uc2dc"""\n    return 1\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_absolute_path_check_accepts_sources_without_absolute_path[msg = "see C:/x for details"\nunit = "/s"\nsep = "/"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_expected_paths_exist
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_paths_workspaces_dir
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_paths_assets_dir
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_sys_path_assets_entry
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_paths_derived_under_assets[LIBRARY_DIR]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_harness_paths_derived_under_assets[LUTFILE]
+skills/analog-gmid-design/assets/tests/contracts/test_df35_harness_paths.py::test_path_checks_reject_wrong_paths
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_library_scope_present
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[common_gate_amplifier.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[current_reuse_telescopic_ota.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[folded_cascode.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[ngcc_3stage_ff.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[nmcnr_amplifier.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[pushpull_follower_buffer.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[sf_pushpull_output_opamp.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[two_stage_ota.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_is_repo_relative_for_library[two_stage_ota_sf.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_same_for_path_spellings_and_cwd
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_topology_ref_same_for_output_locations
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[common_gate_amplifier.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[current_reuse_telescopic_ota.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[folded_cascode.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[ngcc_3stage_ff.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[nmcnr_amplifier.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[pushpull_follower_buffer.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[sf_pushpull_output_opamp.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[two_stage_ota.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_instance_has_no_checkout_root_string[two_stage_ota_sf.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_outside_repo_topology_rejected
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_other_drive_topology_rejected[backslash]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_other_drive_topology_rejected[slash]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_missing_sizing_still_rejected
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills\\analog-gmid-design\\assets\\library\\x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills/analog-gmid-design/assets\\library/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[../skills/analog-gmid-design/assets/library/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills/analog-gmid-design/assets/tests/../library/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[./skills/analog-gmid-design/assets/library/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills/./analog-gmid-design/assets/library/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[C:/repo/skills/analog-gmid-design/assets/library/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[c:skills/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[/home/u/repo/skills/analog-gmid-design/assets/library/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[skills//analog-gmid-design/assets/library/x.topology.json]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_rejects_malformed_values[None]
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_relative_ref_check_accepts_normalized_value
+skills/analog-gmid-design/assets/tests/contracts/test_df36_instance_relpath.py::test_leak_and_pointer_checks_reject_wrong_values
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[chain_interleaved]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[three_use_net_not_merged]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[source_equals_drain_not_merged]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_pair_without_shared_net]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_pair_reversed_order]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_triple_chains]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[matching_triple_reversed_rep_last_declared]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[rail_named_net_three_uses_not_merged]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_no_matching]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_matching_joins_isolated]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_groups_on_synthetic_netlist[mixed_matching_joins_two_branches]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[chain_interleaved]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[three_use_net_not_merged]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[source_equals_drain_not_merged]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_pair_without_shared_net]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_pair_reversed_order]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_triple_chains]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[matching_triple_reversed_rep_last_declared]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[rail_named_net_three_uses_not_merged]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_no_matching]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_matching_joins_isolated]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_shape_on_synthetic_netlist[mixed_matching_joins_two_branches]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_series_union_signature_unchanged
+skills/analog-gmid-design/assets/tests/contracts/test_dup_kcl_edges.py::test_kcl_and_matching_edges_signature_unchanged
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.5e-07-1e-05-3.2]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07-1e-09-0.02]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e-06-0.001-15.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[2e-05-0.05-0.0001]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.8e-07-3.3e-12-7.7e-06]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[3.5e-07--2.5e-05-4.1]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[3.5e-07-2.5e-05--4.1]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[-3.5e-07--2.5e-05--4.1]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.0-1e-05-2.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07-0.0-2.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[-0.0-1e-05-2.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-07--0.0-2.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.1-0.2-0.3]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.3333333333333333-3.0-7.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[0.1-0.3-0.7]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[5e-324-1.0-1.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e-200-1e-200-1.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1e+200-1e+200-10000000000.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_hand_cases[1.7976931348623157e+308-1.0-2.0]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_seeded_physical_range
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_matches_inline_formula_seeded_bit_patterns
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_zero_density_behaves_like_inline
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_width_from_id_density_signature
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_bitwise_check_rejects_wrong_implementations
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_no_inline_w_formula_outside_new_function
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=L]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=_L]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=mL]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=L_m]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=L_up]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=L2]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=Lc]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[L=dev["L"]]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=ID]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=ID_target]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=I]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=dev["ID"]]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=ID_m]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[ID=ID2]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[IDu=idu]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[IDu=IDu]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[IDu=_idu_l]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[IDu=idu2]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\uc18d\uc131 \uc774\ub984]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\ucca8\uc790 \ud0a4 \uc14b]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\uacf1 \uc21c\uc11c \ub4a4\uc9d1\ud798 + \uc18d\uc131 \ubd84\ubaa8]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\uad04\ud638]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\ud568\uc218 \uc548(\uac00\ub4dc \ub4a4)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\ucef4\ud504\ub9ac\ud5e8\uc158 \uc548]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\uc0c8 \ud568\uc218 \ubc16\uc758 \ub450 \ubc88\uc9f8 \uc778\ub77c\uc778]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_rejects_synthetic_inline[\ud638\ucd9c \uc778\uc790 \uc548]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[A = L * L / idu\n-L*L/idu(\uba74\uc801 \ub300\uc6a9, ID \uacc4\uc5f4 \uc5c6\uc74c)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[idu = raw * L / self._w_ref_effective(L)\n-raw*L/w_ref(IDu\ub97c \ub9cc\ub4dc\ub294 \uc2dd)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[idu = raw * L / w_ref\n-raw*L/w_ref \uc774\ub984 \ubd84\ubaa8]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * ID / w_unit\n-\ubd84\ubaa8\uc5d0 idu \uc5c6\uc74c]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * ID / gm\n-\ubd84\ubaa8\uc5d0 idu \uc5c6\uc74c(gm)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[def width_from_id_density(L, ID, IDu):\n    return L * ID / IDu\n-\uc0c8 \ud568\uc218 \ubcf8\ubb38 \uc548]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[def width_from_id_density(L, ID, IDu):\n    w = ID * L / IDu\n    return w\n-\uc0c8 \ud568\uc218 \ubcf8\ubb38 \uc548(\uacf1 \uc21c\uc11c \ubc18\ub300)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[# W = L * ID / IDu\nW = width_from_id_density(L, ID, IDu)\n-\uc8fc\uc11d + \ud638\ucd9c]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[doc = "W = L * ID / IDu"\n-\ubb38\uc790\uc5f4]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[def f():\n    """W = L * ID / IDu (\uc2dd 1.18)."""\n    return 0\n-docstring]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * ID * IDu\n-\ub098\ub217\uc148 \uc5c6\uc74c]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * (ID / IDu)\n-(a*b)/c \ubaa8\uc591 \uc544\ub2d8]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = gm * L / IDu\n-ID \uacc4\uc5f4 \uc5c6\uc74c(gm)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = Lmin * ID / IDu\n-L \uacc4\uc5f4 \uc544\ub2d8(Lmin)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = VDD * ID / IDu\n-L \uacc4\uc5f4 \uc544\ub2d8(VDD)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = W_L * ID / IDu\n-L \uacc4\uc5f4 \uc544\ub2d8(W_L)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_w_formula_check_accepts_sources_without_inline[W = L * id_ / IDu\n-ID \uacc4\uc5f4 \uc544\ub2d8(\uc18c\ubb38\uc790 id_)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[L-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[_L-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[mL-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[L_m-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[L_up-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[L2-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[L10-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[Lc-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[Lmin-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[Lcd-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[l-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[mm-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[W_L-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[mmL-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[VL-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[L2c-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_l_family_rule[None-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[ID-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[ID_target-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[ID_m-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[ID2-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[I-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[tail_ID-True]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[id-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[Id-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[I2-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[IB-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_id_family_rule[None-False]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_size_transistor_calls_new_function
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_size_transistor_signature_unchanged
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_call_check_rejects_synthetic_sources[def size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    return L * gm / gm_id\n-\ud638\ucd9c \uc5c6\uc74c]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_call_check_rejects_synthetic_sources[def other():\n    return width_from_id_density(1, 2, 3)\n-\uc815\uc758 \uc5c6\uc74c]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_call_check_rejects_synthetic_sources[def size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    return 0\ndef g():\n    return width_from_id_density(1, 2, 3)\n-\ub2e4\ub978 \ud568\uc218\uc5d0\uc11c\ub9cc \ud638\ucd9c]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_call_check_rejects_synthetic_sources[def size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    f = width_from_id_density\n    return 0\n-\ucc38\uc870\ub9cc(\ud638\ucd9c \uc544\ub2d8)]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_call_check_accepts_synthetic_sources[def size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    return width_from_id_density(L, gm / gm_id, 1.0)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_dup_w_calc.py::test_call_check_accepts_synthetic_sources[import sizing_recipe as sr\ndef size_transistor(gm, gm_id, L, lut, vds, vsb=0.0):\n    return sr.width_from_id_density(L, 1.0, 2.0)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ic1.py::test_vgs_consistency_all_devices
+skills/analog-gmid-design/assets/tests/contracts/test_ic10.py::test_cache_key_covers_mutable_state
+skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[rail2]
+skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[rail3]
+skills/analog-gmid-design/assets/tests/contracts/test_ic11.py::test_rail_origin_shift_invariance[reject]
+skills/analog-gmid-design/assets/tests/contracts/test_ic2.py::test_order_shuffle_invariance
+skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_coverage_and_field_completeness
+skills/analog-gmid-design/assets/tests/contracts/test_ic3.py::test_linked_topology_files_merge_and_collision
+skills/analog-gmid-design/assets/tests/contracts/test_ic4.py::test_role_label_removal_invariance
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_gate_docstring_declares_blind_spots
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_format_checker_accepts_valid_control
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_format_checker_rejects_missing_blind_spot_section
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_format_checker_rejects_empty_blind_spot_section
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_format_checker_rejects_two_domain_lines
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_format_checker_rejects_unknown_domain_value
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_format_checker_rejects_missing_docstring
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_target_collector_finds_all_depths
+skills/analog-gmid-design/assets/tests/contracts/test_ic5.py::test_domain_table_uses_allowed_values
+skills/analog-gmid-design/assets/tests/contracts/test_ic6.py::test_dof_catches_incident19_fixture
+skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::test_all_library_topologies_run[run]
+skills/analog-gmid-design/assets/tests/contracts/test_ic7.py::test_all_library_topologies_run[stop]
+skills/analog-gmid-design/assets/tests/contracts/test_ic8.py::test_unevidenced_derivation_stops_before_search
+skills/analog-gmid-design/assets/tests/contracts/test_ic9.py::test_no_raw_duplicated_writes
+skills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py::test_plan_declares_eleven_ics
+skills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py::test_markers_match_plan
+skills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py::test_judge_accepts_matching_source
+skills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py::test_judge_rejects_phase_not_in_plan
+skills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py::test_judge_rejects_plan_phase_without_marker
+skills/analog-gmid-design/assets/tests/contracts/test_ic_markers_match_plan.py::test_judge_rejects_real_plan_mismatch
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_docs_mark_phase2_removed_names
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[table_row_deleted_unmarked]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[code_import_deleted_unmarked]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[code_import_continued]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[method_call_unmarked]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[selection_key_unmarked]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[moved_without_path]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[moved_wrong_path]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[moved_path_without_phase2]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_rejects_line[deleted_marked_as_moved]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_accepts_line[deleted_marked]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_accepts_line[method_call_marked]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_accepts_line[moved_marked]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_accepts_line[moved_runner_marked]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_ignores_partial_identifier[identifier_prefix_only]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_ignores_partial_identifier[ft_word_not_call]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_ignores_partial_identifier[identifier_embedded]
+skills/analog-gmid-design/assets/tests/contracts/test_phase2_stale_refs.py::test_p10_doc_judge_scans_files
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[lut-private/_query]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[lut-private/_w_ref_effective]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[lut-private/other-object]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[diode-inline/attr-eq]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[diode-inline/subscript-ne]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[diode-inline/get]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[diode-inline/drain-first-mixed]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[mirror-key/attr]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[mirror-key/subscript]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[mirror-key/get]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[gate-source-share/attr]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[gate-source-share/with-extra-operand]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[gate-source-share/get-and-subscript]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[rail-set/set]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[rail-set/list]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_finds_synthetic_reimplementation[rail-set/tuple-mixed-case]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_every_rule_has_a_positive_case
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[comment-and-string/all-rules]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[lut-private/data-attribute-read]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[lut-private/other-method-name]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[diode-inline/other-names]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[mirror-key/other-names]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[gate-source-share/not-and]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[fixed-vgs-width-formula]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[generic-union-find]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_rule_ignores_non_reimplementation[rail-set/not-all-rails]
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_canonical_calls_are_not_findings
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_finding_record_fields
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_findings_on_separate_lines_are_all_reported
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_exit_0_when_probes_are_clean
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_exit_1_and_json_lines_on_findings
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_ignores_files_outside_probes
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_ignores_non_python_files_in_probes
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_exit_2_on_syntax_error_file
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_exit_2_on_missing_root
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_decision_target_exempts_matching_finding
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_decision_target_list_element_exempts
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_target_for_other_file_does_not_exempt
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_target_for_other_rule_does_not_exempt
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_non_decision_record_does_not_exempt
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_underscore_record_is_not_read
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_partial_exemption_still_exits_1
+skills/analog-gmid-design/assets/tests/contracts/test_probe_dup_scan.py::test_main_on_this_repository_is_clean
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_clean_registry_has_no_findings[disp-before-note]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_clean_registry_has_no_findings[disp-last]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_finds[missing-function]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_finds[missing-method]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_finds[other-class-method]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_finds[bare-method-name]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_finds_each_name_in_every_subsection
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_ignores[plain-name-in-description]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_ignores[backtick-name-in-non-first-cell]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_ignores[table-before-section7]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_ignores[table-after-section7]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_ignores[method-present]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_stale_depends_on_engine_names
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_finds_missing_column
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_finds_bad_value[not-hold]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_finds_bad_value[no-phase]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_finds_bad_value[phase-without-number]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_finds_bad_value[phase-letter-only]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_finds_bad_value[space-before-paren]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_finds_bad_value[not-at-start]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_finds_bad_value[empty]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_accepts[digit]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_accepts[digit-letter]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_accepts[two-digits]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_disposition_accepts[trailing-text]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_count_finds[s1-differs]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_count_finds[heading-differs]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_count_finds[rows-differ]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_count_checks_every_file_row
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_count_finds_unmatched_file[section7-file-missing-in-s1]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_count_finds_unmatched_file[s1-file-missing-in-section7]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_exit_0_when_all_names_are_engine_definitions
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_exit_1_on_non_engine_name[only-in-tests-tools]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_exit_1_on_non_engine_name[nested-function]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_exit_1_on_non_engine_name[bare-method]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_exit_1_on_non_engine_name[module-constant]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_exit_1_on_non_engine_name[absent]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_json_line_has_four_keys
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_exit_2_on_missing_registry
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_exit_2_without_section7_title
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_main_on_this_repository_is_clean
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check.py::test_repository_section7_lacks_r4_names
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_clean_registry_has_no_findings[lf]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_clean_registry_has_no_findings[crlf]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_clean_ignores_row_order
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_ignores_wrong_totals_field
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_ignores_tables_outside_section8
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_ignores_message_only_items_mapping[other]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_ignores_message_only_items_mapping[df-number]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_ignores_message_only_items_mapping[new]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_tables_after_section8_not_read
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_piece_only_after_section8_is_missing[\ubaa9\ub85d]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_piece_only_after_section8_is_missing[measured_at]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_piece_only_after_section8_is_missing[8.1]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_piece_only_after_section8_is_missing[8.2]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_end_at_first[\ubaa9\ub85d]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_end_at_first[measured_at]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_end_at_first[8.1]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_end_at_first[8.2]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_several_sections_after_section8_not_read
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_second_title_wrong_tables_not_read
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_second_title_correct_section_not_used
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_other_subsection_tables_not_read
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_table_only_under_other_subsection[8.1]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_table_only_under_other_subsection[8.2]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_two_same_subsections_first_read_81
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_two_same_subsections_first_read_82
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_two_same_subsections_first_wrong_81
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_two_same_subsections_first_wrong_82
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_short_row_81_no_exception
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_short_row_82_no_exception
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_long_rows_extra_cells_ignored
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_long_row_81_detail_excludes_extra_cells
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_boundary_long_row_82_detail_excludes_extra_cells
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_title_then_list_line_is_read
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_title_then_measured_at_line_is_read
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_title_then_list_line_wrong_value_found
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_title_then_subsection_81_first_line
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_title_then_subsection_81_first_line_wrong_value
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_title_then_next_section_ends_section8
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_subsection_then_table_header_is_read[8.1]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_subsection_then_table_header_is_read[8.2]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_subsection_then_table_header_clean[8.1]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_subsection_then_table_header_clean[8.2]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_subsection_then_other_subsection_ends_it[8.1]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_subsection_then_other_subsection_ends_it[8.2]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_line_before_title_is_outside[list-line]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_line_before_title_is_outside[measured-at-line]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_adjacent_wrong_lines_before_title_not_read
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_detail_total[role-8-vs-7]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_detail_total[phase-2-vs-3]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_detail_function[count]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_detail_function[order]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_missing_title_only_finding
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_title_without_df23
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_df23_title_not_starting_with_8
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_missing_piece[\ubaa9\ub85d]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_missing_piece[measured_at]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_missing_piece[8.1]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_missing_piece[8.2]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_missing_both_tables
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_header_differs[81-header-differs]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_header_differs[82-header-differs]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_section_header_differs[82-columns-swapped]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_path_mismatch
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_path_follows_inventory_rel_argument
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_measured_at_mismatch
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_measured_at_follows_inventory
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_total_finds[missing-phase-row]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_total_finds[missing-role-row]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_total_finds[extra-row]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_total_finds[zero-count-row]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_total_finds[role-count-off]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_total_finds[phase-count-off]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_total_finds[duplicate-row]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_total_counts_items_not_rows82
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[missing-group]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[message-only-function-row]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[unknown-row]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[count-off]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[df-missing-new]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[df-not-int-order]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[df-new-not-last]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[df-duplicate]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[phase-not-str-order]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[phase-missing]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_finds[duplicate-row]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_wrong_file_cell
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_function_groups_by_file_name
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_inventory_not_dict[list]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_inventory_not_dict[str]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_inventory_not_dict[none]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_inventory_not_dict[int]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_items_not_list[dict]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_items_not_list[str]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_items_not_list[none]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_items_not_list[tuple]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_item_not_dict[str]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_item_not_dict[list]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_item_not_dict[none]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_item_not_dict[int]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_missing_top_key[measured_at]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_missing_top_key[items]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_missing_item_key[file]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_missing_item_key[function]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_missing_item_key[role]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_missing_item_key[phase]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_missing_item_key[plan_mapping]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_empty_function[behavior-item]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_empty_function[message-item]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_ambiguous_file_name
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[other-word]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[lowercase-df]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[paren-first]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[df-not-at-start]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[df-no-number]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_value_error_behavior_mapping[space-new]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_clean_exit_0
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_without_option_keeps_old_behavior
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_missing_section8_exit_1
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_inventory_rel_is_root_relative_slash_path
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_appends_after_existing_findings
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_missing_inventory_file
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_bad_inventory_json[not-json]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_bad_inventory_json[top-list]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_bad_inventory_json[top-string]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_bad_inventory_json[top-null]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[empty-function]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[missing-phase]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[missing-measured-at]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[ambiguous-file]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[behavior-mapping-other]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[items-not-list]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_value_error[item-not-dict]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_exit_2_inventory_outside_root
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_unknown_argument_returns_2[unknown-flag]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_unknown_argument_returns_2[unknown-opt-value]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_unknown_argument_returns_2[positional]
+skills/analog-gmid-design/assets/tests/contracts/test_reg_check_df23.py::test_p10b_cli_script_ascii_stdout_prints_utf8
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_lut_conditions_both_recorded
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_lut_conditions_corner_only
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_lut_conditions_temp_only
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_lut_conditions_none_recorded
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_lut_conditions_from_repository_npz
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_lut_condition_checks_reject_wrong_results
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_circuit_keys_present
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[current_reuse_telescopic_ota-]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[current_reuse_telescopic_ota-   ]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[current_reuse_telescopic_ota-\t\n]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[folded_cascode-]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[folded_cascode-   ]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[folded_cascode-\t\n]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[nmcnr_amplifier-]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[nmcnr_amplifier-   ]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[nmcnr_amplifier-\t\n]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[two_stage_ota-]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[two_stage_ota-   ]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_blank_why[two_stage_ota-\t\n]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_rejects_unregistered_key
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_without_override_keeps_registry_spec[current_reuse_telescopic_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_without_override_keeps_registry_spec[folded_cascode]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_without_override_keeps_registry_spec[nmcnr_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_without_override_keeps_registry_spec[two_stage_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_with_override_changes_only_named_keys[current_reuse_telescopic_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_with_override_changes_only_named_keys[folded_cascode]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_with_override_changes_only_named_keys[nmcnr_amplifier]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_with_override_changes_only_named_keys[two_stage_ota]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_sequence_override_written_as_length[current_reuse_telescopic_ota-list]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_sequence_override_written_as_length[current_reuse_telescopic_ota-tuple]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_sequence_override_written_as_length[folded_cascode-list]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_sequence_override_written_as_length[folded_cascode-tuple]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_sequence_override_written_as_length[nmcnr_amplifier-list]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_sequence_override_written_as_length[nmcnr_amplifier-tuple]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_sequence_override_written_as_length[two_stage_ota-list]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_sequence_override_written_as_length[two_stage_ota-tuple]
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_derived_spec_checks_reject_wrong_results
+skills/analog-gmid-design/assets/tests/contracts/test_restore_plan_functions.py::test_sequence_and_scalar_format_checks_reject_wrong_sources
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_library_has_md
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_library_tables_match_json
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[base]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[base2_with_ideal]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[crlf_line_ends]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[source_line_path_changed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[net_flag_removed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[net_flag_to_info]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[auto_flag_sentence_changed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[row_order_shuffled]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts[base2_value_implementable_changed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[device_gate_changed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[device_repeated_row]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[device_row_removed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[device_section_missing]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[json_only_passive_c2]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[passive_section_missing]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[passive_terminals_reversed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[json_only_ideal_i1]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[md2_against_json_without_ideal]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[ideal_section_only_added]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[net_terminal_removed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[net_count_column_wrong]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[net_extra_row]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[net_repeated_row]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[net_cell_no_backtick]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[net_cell_other_flag]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[total_passive_count_wrong]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[total_line_missing]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[total_line_wording]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[device_header_changed]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects[h1_name_differs]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects_file_name_vs_topology_name
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects_missing_json
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_rejects_empty_dir
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_malformed_netlist_fails_c2[netlist_elem_not_dict]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_malformed_netlist_fails_c2[netlist_elem_missing_gate]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_malformed_netlist_fails_c2[linked_file_absent]
+skills/analog-gmid-design/assets/tests/contracts/test_topology_md_sync.py::test_mdsync_selftest_accepts_linked_netlist
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_target_set_includes_legacy_scripts
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_tree_has_no_print_verdicts
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_verdict_counter_rejects_single_token
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_verdict_counter_rule_cases[v = 3\nprint(f"value={v} FAIL")\n-1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_verdict_counter_rule_cases[ok = True\nprint(f"{'PASS' if ok else 'FAIL'}")\n-2]
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_verdict_counter_rule_cases[import logging\nlogging.info("FAIL here")\n-1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_verdict_counter_rule_cases[logger = None\nlogger.warning("x", extra="PASS")\n-1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_verdict_counter_rule_cases[print("PASSED FAILURE")\n-0]
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_verdict_counter_rule_cases[msg = "PASS"\nassert msg, "FAIL"\n-0]
+skills/analog-gmid-design/assets/tests/contracts/test_ts3_no_print_verdicts.py::test_verdict_counter_rule_cases[print("OK", "SKIP")\n-0]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_dead_probe_files_are_absent
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_path_absence_check_rejects_surviving_file
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_exclusive_promotion_check_rejects_original_left_behind
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_sizing_recipe_source_has_no_l_role_multipliers
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_sizing_recipe_module_has_no_l_role_multipliers_attribute
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_symbol_absence_check_rejects_source_that_binds_it[_L_ROLE_MULTIPLIERS = {"tail": 1.0}\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_symbol_absence_check_rejects_source_that_binds_it[def f():\n    _L_ROLE_MULTIPLIERS = 1\n    return _L_ROLE_MULTIPLIERS\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_symbol_absence_check_rejects_source_that_binds_it[import os as _L_ROLE_MULTIPLIERS\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_symbol_absence_check_rejects_source_that_binds_it[class C:\n    pass\nC._L_ROLE_MULTIPLIERS = 2\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_symbol_absence_check_accepts_source_without_binding
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_audit_vsb_consistency_has_operational_caller
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return []\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return []\nrows = audit_vsb_consistency({}, {}, 1.8)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return []\nif __name__ == '__main__':\n    audit_vsb_consistency({}, {}, 1.8)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return audit_vsb_consistency({}, {}, vdd)\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_rejects_sources_without_operational_call[def audit_vsb_consistency(by_name, sized, vdd):\n    return []\ndef test_audit():\n    assert audit_vsb_consistency({}, {}, 1.8) == []\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_finds_operational_call[def run_pipeline(x):\n    return audit_vsb_consistency({}, {}, 1.8)\n-expected0]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_finds_operational_call[def run_pipeline(x):\n    return sr.audit_vsb_consistency({}, {}, 1.8)\n-expected1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_finds_operational_call[def outer():\n    def inner():\n        audit_vsb_consistency({}, {}, 1.8)\n    return inner\n-expected2]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_caller_check_finds_operational_call[def a():\n    audit_vsb_consistency({}, {}, 1.8)\ndef b():\n    audit_vsb_consistency({}, {}, 1.8)\n-expected3]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_pilot_instance_sizing_declares_vsb_not_vs
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_vsb_schema_check_rejects_stale_records[records0]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_vsb_schema_check_rejects_stale_records[records1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_vsb_schema_check_rejects_stale_records[records2]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_vsb_schema_check_rejects_stale_records[records3]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_dead_probes.py::test_vsb_schema_check_accepts_clean_records
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_inventory_lists_are_the_published_ones
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_only_promotion_candidates_remain_in_tests_root
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_promotion_judgment_rejects_half_moved_and_stray_promotions
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_relocated_probes_are_in_probes_dir
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_relocated_probes_are_gone_from_tests_root
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_probes_dir_has_no_windows_abs_path_literal
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_probes_dir_has_no_collected_test_module
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_rejects_synthetic_absolute_paths[ASSETS = r"C:\\Users\\HSLEE\\skills\\analog-gmid-design\\assets"\n-1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_rejects_synthetic_absolute_paths[INST = "C:/Users/HSLEE/workspaces/x.instance.json"\n-1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_rejects_synthetic_absolute_paths[P = "d:\\\\temp\\\\x.json"\n-1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_rejects_synthetic_absolute_paths[A = r"C:\\a"\nB = r"D:/b"\n-2]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_rejects_synthetic_absolute_paths[INST = (r"C:\\Users\\HSLEE\\workspaces"\n        r"\\report\\x.instance.json")\n-1]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_accepts_relative_sources[ASSETS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_accepts_relative_sources[P = os.path.join(ASSETS, "library", "x.topology.json")\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_accepts_relative_sources[MSG = "C: \ub4dc\ub77c\uc774\ube0c \uc598\uae30\ub97c \ud558\ub294 \ubb38\uc7a5"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_accepts_relative_sources[P = "../workspaces/x.json"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_accepts_relative_sources[P = "/usr/local/share/x.json"\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_abs_path_judge_accepts_relative_sources["""\ubb38\uc11c \ubb38\uc790\uc5f4 \uc548\uc758 C \uc598\uae30."""\n]
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_path_resolver_reads_synthetic_prologue
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_path_resolver_skips_unresolvable
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_assets_dir_holds_engine_entry_points
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_every_probe_derives_assets_from_its_own_location
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_every_probe_assets_equals_pre_move_target
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_every_probe_syspath_insert_targets_exist
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_every_probe_library_and_lut_paths_exist
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_instance_paths_equal_pre_move_literal
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_path_statement_marker_marks_path_lines_only
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_only_path_lines_judge_rejects_a_calculation_change
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_only_path_lines_judge_accepts_a_path_only_change
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_base_blob_reader_reads_the_base_tree
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_is_in_tools_dir
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_matches_base_except_path_lines
+skills/analog-gmid-design/assets/tests/contracts/test_ts6_probe_relocate.py::test_moved_tool_paths_equal_pre_move_targets
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_exit0_and_writes_file
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_body_is_block_verbatim_with_single_substitution
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_header_fixed_lines_in_order
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_import_line_names
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_encoding_utf8_no_bom_lf
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_deterministic_bytes
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_runs_and_matches_original_stdout
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2[no_block]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2[syntax_error]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_input_errors_exit2[two_blocks]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_missing_source_exit2
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unresolved_name_exit3
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[dunder_import_call]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[eval_call]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[exec_call]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[file_abspath_only]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[file_dirname_only]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[file_open]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[file_realpath]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[globals_call]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[locals_call]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_extract_rejects_unsupported_constructs_exit4[uses_assets_dir]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_exit0_and_count
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_kind_and_category
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_start_lines
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_verdict_counts
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_deps_and_provides
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_consecutive_majors_merge_into_one
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_consecutive_majors_merged_section_ends_at_second_major
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_plain_statement_starts_new_section
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_major_after_sub_marker_starts_new_section
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_sections_rejects_missing_source_exit2
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code[A_section_found]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code[B_section_found]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code[cli_and_dc_only]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_exit_code[selftest_only_in_subdir]
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_out_json_lists_top_level_files_only
+skills/analog-gmid-design/assets/tests/tooling/test_extract_selftest.py::test_scan_rejects_missing_root_exit2
+skills/analog-gmid-design/assets/tests/unit/test_probe_gm_id_monotonicity.py::test_solve_vgs_lands_on_strong_inversion_branch
+skills/analog-gmid-design/assets/tests/unit/test_probe_gm_id_monotonicity.py::test_solve_vgs_outside_strong_branch_takes_highest_root_or_refuses_unreachable
+skills/analog-gmid-design/assets/tests/unit/test_probe_gm_id_monotonicity.py::test_strong_branch_definition_on_synthetic_curve
+skills/analog-gmid-design/assets/tests/unit/test_probe_gm_id_monotonicity.py::test_strong_branch_judgment_rejects_weak_branch_root
+skills/analog-gmid-design/assets/tests/unit/test_probe_gm_id_monotonicity.py::test_highest_root_judgment_rejects_lower_root_and_wrong_refusal
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py::test_gm_id_max_within_thermal_limit_on_declared_L_search_grid
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py::test_gm_id_max_within_thermal_limit_over_declared_vds_candidates
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py::test_declared_L_search_range_stays_inside_lut_anchor_span
+skills/analog-gmid-design/assets/tests/unit/test_probe_lut_L_interpolation.py::test_thermal_limit_rejects_unphysical_lut
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_declared_signal_path_is_interior_and_monotone_in_sink_set
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_signal_path_judgment_rejects_unreachable_and_endpoint_nodes
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_node_pole_estimate_classifies_every_declared_path_node
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_pole_partition_judgment_rejects_dropped_and_double_counted_nodes
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_parasitic_pm_stays_within_pole_count_bound
+skills/analog-gmid-design/assets/tests/unit/test_probe_parasitic_pm_all_circuits.py::test_parasitic_pm_judgment_rejects_out_of_band_values
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py::test_engine_diode_classification_is_gate_equals_drain_on_library
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py::test_engine_diode_classification_ignores_role_labels
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py::test_sized_diodes_satisfy_vgs_equals_vds_whatever_their_role
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py::test_diode_set_judgment_rejects_role_only_diode
+skills/analog-gmid-design/assets/tests/unit/test_probe_prevention_wiring.py::test_diode_kvl_judgment_rejects_vgs_vds_mismatch
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_declared_metric_device_refs_are_sound_across_library
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_device_refs_never_leak_undeclared_names
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_metric_without_declared_devices_depends_on_every_device
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_revalidation_recomputes_metric_that_names_no_devices
+skills/analog-gmid-design/assets/tests/unit/test_probe_revalidation_scope.py::test_revalidation_judgment_rejects_skipped_and_mislabelled_metrics
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_every_declared_L_role_is_one_the_engine_derives
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_declared_L_role_is_rejected_when_theta_owned_or_unknown
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_role_L_is_derived_for_every_harness_circuit
+skills/analog-gmid-design/assets/tests/unit/test_probe_role_L_derivation.py::test_role_L_judgment_rejects_constant_fallback_and_out_of_range_L
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s001_build_topology_device_table
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s002_assemble_report_data
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s003_assemble_report_data
+skills/analog-gmid-design/assets/tests/unit/test_selftest_design_report.py::test_s004_report
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s003__evaluate
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s004_optimize_multistage
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s006_solve_id_for_target_gm
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s007_solve_diode_stack_current
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s008_compute_metric
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s009_revalidate_finger_override
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s010_apply_and_revalidate_pair_adjustment
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s011_run_topology_pipeline_with_finger_fixup
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s012_optimize_full_circuit_budget
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s013_resolve_stack_layout
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s014_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s015_suggest_matching_finger_growth
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s016_run_matching_safety_with_finger_growth
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s018_allocate_stack_headroom
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s019_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s020_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s021_search_gm_id_for_role
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s022_ro
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s023_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s024_section[down]
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s024_section[up]
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s025_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s026_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s027_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s028_estimate_area_budget
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s030_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s031_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s032_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s033_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s034_theta
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s035_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s036_optimize_full_circuit_budget
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s037_optimize_full_circuit_budget
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s038_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s039_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s040_VGS
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s041_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s042__ref_depth
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s043_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s045_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s046_diagnose_sizing_roles_gap
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s047_nmcnr_3stage_topology
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s048_require_declared_spec_source
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s049_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s050_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s051_optimize_full_circuit_budget_known_limitation
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s052_compensation
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s053_L_role
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s054_section_known_limitation
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s056_noise_1f_density
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s057_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s058__metric_flicker_plus_thermal_sum
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s059_estimate_mismatch_sigma
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s060_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s061_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s062_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s063__nmcnr_stage1_rout
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s064_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s065_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s067_family
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s070_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s071_current_reuse_telescopic_topology
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s073_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s074_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s075_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py::test_s076_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s021_M2b
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s022_common_centroid_layout
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s023_common_centroid_layout
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s024_interdigitate_layout
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s025_common_centroid_layout
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s027_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s028_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s029_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s030_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s031_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s032_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s033_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s034_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s036_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s037_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s038_N
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s039_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s040_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s041_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s042_interdigitate_layout
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s044_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s045_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s046_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s047_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s048_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s049_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s051_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s052_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s053_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s054_None
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s055__count_matching_pair_splits
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s056_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s057_check_box_shape
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s058_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s060_run_full_circuit_audit
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s061_pack_floorplan
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s062_find_diffusion_safe_split_points
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s063_pack_floorplan_grouped
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s064_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s065_diffusion
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s067_MB
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s069_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s070_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s071_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s072_audit_row_split
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s075_two_stage_ota_example
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s078_interdigitation
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s079_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s083_check_stick_diagram_coverage
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s084_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s086_folded_cascode_example
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s088_save_instance_json
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s089_run_topology_pipeline
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s090_run_topology_pipeline
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s092_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s093_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s094_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s096_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s097_ref
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s098_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s099_find_diode_stacks
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s100_find_diode_stacks
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s102_select_layout_tool
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s103_repair_matching_safety
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s104_repair_matching_safety
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s105_repair_matching_safety
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s106__branch_composite_pair
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s107__composite_collapse_for_crossover
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s108_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s109_repair_matching_safety
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s111_geometry_colocation_union
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s112_geometry_colocation_union
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s113_assign_finger_geometry
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s115_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s116_None
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s117_connectivity
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s118_folded_cascode_example
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s119_M2
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s120_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s122_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s123_dispositions
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s124_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s125_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s126_trace_vdd_to_gnd_branches
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s127_suggest_vertical_stack_composites
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s128_trace_gnd_to_vdd_branches
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s129_find_verified_differential_and_mirror_relations
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s130_find_differential_pair_candidates
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s131_refine_differential_and_mirror_relations
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s132_find_verified_differential_and_mirror_relations
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s133_refine_differential_and_mirror_relations
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s134__propose_vertical_stack_ids
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s135_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s136_refine_differential_and_mirror_relations
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s137_suggest_vertical_stack_composites
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s138_refine_differential_and_mirror_relations
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s139_find_verified_differential_and_mirror_relations
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s140_audit_vertical_stack_id_vs_kcl
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s141_merge_layout_groups_by_matching_pairs
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s142_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s143_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s144_audit_vertical_stack_id_euler_feasibility
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s145_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s146_find_euler_repair_options
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s147_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s148_derive_horizontal_stack_groups
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s149_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s151_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s152_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s153_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s154_load_topology
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s155_propose_device_roles_gap_fill
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s156_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s157_M1_known_limitation
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s158_propose_device_roles_gap_fill
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s159_apply_device_roles_gap_fill
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s160_propose_device_roles_gap_fill
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s161_find_authoritative_sizing_devices
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s162_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s163_find_unreviewed_matching_pairs
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s164_differential
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s165_audit_theta_root_direction
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s166_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s167_kcl_tail_M38
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s168_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s169_propose_theta_kcl_gap_fill
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s170_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s171_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s172_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_stick_diagram.py::test_s173_apply_theta_kcl_gap_fill
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s002_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s004_nmcnr_predict_ac_response
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s006_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s007_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s008_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s011_tan
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s012_start
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s013_Cgg1_total
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s014_section
+skills/analog-gmid-design/assets/tests/unit/test_selftest_topology_library.py::test_s015_Cgg2
+
+1105 tests collected in 14.23s

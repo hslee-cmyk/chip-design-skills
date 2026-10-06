@@ -1,0 +1,117 @@
+{
+ "id": "20260930-b26-pre-test-strengthen",
+ "spec_card": "docs/02-design/specs/20260930-b26-pre-test-strengthen.spec.md",
+ "evidence_type": "test-only",
+ "base_commit": "ae1b5886e6fd4b5b18d6096d8ac6076259719ff3",
+ "test_commit": "e4d5833f89a9a96db7410ce4bfc53703f4f9ef3f",
+ "code_commit": null,
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "test-only라 code 커밋·병합이 없어 판정 대상 트리는 T e4d5833f89a9a96db7410ce4bfc53703f4f9ef3f 자신이다(design 05 §9.2-4: base..T = T 하나, Role: test·Change-Id 20260930-b26-pre-test-strengthen, 부모 = base ae1b588 = gate master, 병합 0). 격리 복제본 C:/g372/iso(git clone --no-hardlinks --no-local -c core.autocrlf=false, origin 제거 -- remote 0개, HEAD = T, status 0줄)에서 base 판 게이트 코드(git cat-file blob ae1b588:tools/gates/<파일>, redteam 밖 22개, file_set_sha256 41885fd263066c317f65663aaf9bac206771fd57708ae539df271af96bd09d17, 오케스트레이터 캐시와 22/22 내용 같음)의 pytest_gate.ini로 slow 포함 전체 실행(-k·--deselect·-x 없음, --gmid-phase=3 --gmid-strict=): 1109 passed, 15 xfailed, 실패·오류·skip·xpass 0, exit 0, 248s. 같은 형태로 base 복제본 C:/g372/base(checkout --detach ae1b588, origin 제거): 1090 passed, 15 xfailed, exit 0, 249s. id별 대조(-rA 요약 줄 전체를 키로, scripts/cmp_v1.py): base 1105 id -> T 1124 id, base에만 있는 id 0, 기존 1105 id 중 결과가 바뀐 것 0, 새 id 19 = 전부 tests/contracts/test_b26pre_existing_paths.py이고 전부 PASSED. --collect-only 대조도 1105 -> 1124, base에만 0, 새 19. 엄격 집합 = base 판 merge_gate.strict_set(TreeView(iso, base), base 판 spec card) = 빈 집합(conftest_has_gmid_phase 참, card phase 3, activated_ic_case 없음), base 판 merge_gate.v1_command_check(아래 V1 문자열, python_path C:/Python314/python.exe, old ae1b588, strict 빈 집합, phase 3) 위반 0. 실행 뒤 두 복제본 status 0줄. 환경: Python 3.14.2, pytest 9.0.2, pluggy 1.6.0. 1차 card 6c724de..S2 ae1b588의 skills/·tools/ 차이 0(차이는 spec card 하나) -- 엔진·게이트 코드가 1차와 같다. 참고 관찰(브리프 사전 값 1090/15/1105와 같음 -- 판정은 관계로 했다). test-author 보고는 증거로 쓰지 않았다"
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "2차 시도(1차 T1 d2b2ed7 V4 FAIL, card 개정 S2 ae1b588). test-only(code_commit null, red·equivalence 필드 없음 -- 00-common §8.1). [① 모양] git log --format='%H %P' ae1b588..T = T 하나(부모 ae1b588, 병합 0), interpret-trailers --parse = Role: test·Change-Id: 20260930-b26-pre-test-strengthen, base..T diff = A skills/analog-gmid-design/assets/tests/contracts/test_b26pre_existing_paths.py 하나(blob f5f40d50a2d11e4de8c1b3363500d24b1cf8b692, 593줄), test 경로 밖 diff 0(freeze -- 순서 3 base_check.json). [② 변경 전 test] V1 대조: 기존 1105 id 결과 변화 0. [③ 새 test가 base 엔진에서 PASS] T 트리 = base 엔진 + 새 파일, 새 파일 단독 PYTHONHASHSEED 0·1 각각 19 passed(순서 3, C:/g371/iso), 수집 19 = card 계약 수(1:1, 2:1, 3:5, 4:4, 5:1, 6:2, 7:1, 10:2, 11:2), 계약 4·10·11의 경우들은 별개 test 함수(parametrize 0). [④ 거부 확인 = 계약 9 변이 측정, auditor 스크립트 scripts/kill_b26pre.py] (가) 대상 집합: C:/g372/r(audit worktree 격리 복제, autocrlf false, origin 제거, core.hooksPath 빈 폴더, checkout --detach base)에서 _drafts/post35_kit/p35_heads.py setup·build(로그 'REV ae1b588…에 실제 B34(2eb7e55)가 있다 -- mk_b1 건너뜀, b1 = REV archive 그대로' 확인, B1 = base) -> H4 227b679134a05eeb0a03349db9c9b75ea8a55c0d; base 판 캐시 mutate_changed.py를 가짜 pytest로 돌린 p35_v3count.py(B1..H4): 대상 301, not_targeted 2,141(레코드 2,442, defs 32), scope_proto N2w 대칭차 0, 순서 일치, 주표 20 id(auditor가 브리프 표에서 적은 ids_b26v4.json = p35_items.B26PRE_20 확인) 20/20 targeted. (다) 대응: H4 문장을 base 같은 def에서 rails= 키워드를 지운 ast.dump(if·while은 test, for는 iter)로 찾고 여럿이면 같은 깊이·가장 가까운 경로 -- 20개 모두 base 줄·글이 브리프 표와 같다(SR 11695·11697·11699·9403·9405·9403·9405·6572·11799·11800·11876·11878·11879·11880, SD 4515·3275·6878·6880·1562·1562), 변이 노드 dump(rails 제외)도 head와 같다. 주입: base 판 캐시 mutate_changed.mutants·_replace_def로 같은 연산자 변이를 T 클론 C:/g372/kt에 하나씩, 새 test 파일만 PYTHONHASHSEED=1·캐시 ini·--gmid-phase=3 --gmid-strict=·-rA로 실행, 매번 원본 바이트 복원 뒤 git diff --quiet 확인. 결과: id 단위 18/20 죽음, 생존 2 = run_matching_safety_with_finger_growth stmt_delete body[10].body[1]·body[12] = base SR 11799·11878 `_backfill_interdig_ok(result)`(브리프 기대와 같다); base 문장 단위 16/18 죽음(#4·#6, #5·#7이 같은 문장), 생존 같은 2문장. 죽인 test는 계약 번호로 브리프 표와 같다(계약 2 -> 11695·11697·11699, 계약 1 -> 9403·9405, 계약 5 -> 6572, 계약 3(c) -> 11800, 3(a) -> 11876, 3(b) -> 11879, 3(a)·3(b) -> 11880, 계약 7 -> 4515, 계약 6(b) -> 3275, 계약 4 mirror·diff -> 6878·6880, 계약 11 두 test -> const+, 11(b) -> arith). 2차 test에서 #13(11879 `_finalize`)은 test 본문의 EULER_OK 판정 문장(test_b26pre_growth_zero_rounds_euler)이 죽였다. 죽음은 전부 exit 1 + FAILED 1개 이상(assert 실패 또는 예외 -- 수집 오류·exit 2·4·5 0). 생존 2의 판정: 등가 아님 -- 결함, U-BF 결정으로 backfill 결함 card(20261001-b26-backfill-interdig-fix)가 문장을 지워 B26-1 대상에서 없앤다(card U2). 이 card의 FAIL 사유가 아니다. (라) 참고표(N2d만 16, base에서 (def, 문장 글)로 찾음 -- SR 11834·11835·11836·11801·11802·11827, SD 씨앗 2170·2171·2094·2095·3971·3972, 4516, 3278 cmp_flip·삭제, 3279): 15/16 죽음, 생존 1 = SR 11801(card 표기 11802, 성공 분기 `_finalize` -- 등가 후보, N2w 대상 아님, 처리 불필요). 씨앗 6/6 죽음(TAP_P·TAP_N test가 방향별로 나눠 죽임). 기준(변이 전)·복원(끝) 실행 19 passed, def 항등 치환(unparse만) 대조 11개 def 전부 19 passed. (마) 덤: 같은 range 줄 const-(range(i + 0, …)) 생존(등가 -- B26-1 Q1 몫), 동점 순서 역전 변이(stick_diagram.py 2755행 정렬을 이름 역순으로)에서 새 test 19 passed -- 그 변이가 계약 10 입력의 채택 소자를 TAP_P·TAP_N 모두 Mx1 -> Mx2로 실제로 바꾼다(scripts/tie_probe.py), 즉 '정확히 하나' 단언이 동점 순서에 기대지 않는다. [⑤ 다른 엔진] T의 새 파일 하나를 B34 전 엔진(dd60db6 archive -- 2eb7e55를 품지 않음 확인)과 backfill 정리 모의 base(C4B b88bbcbe822b4ef7876e7a4847ed7ef9f2164a65 = base에서 `_backfill_interdig_ok(result)` 두 줄만 삭제, numstat 0/2) archive(skills/analog-gmid-design/assets·skills/analog-grammar·docs/01-plan)에 넣어 seed 0·1: 4회 모두 19 passed"
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 mutate_changed.py(card 35 판, not_targeted 7곳) --root C:/g372/iso --base ae1b588… --head e4d5833… --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict=: verdict PASS, targets [], mutants 0, killed 0, survivors [], exempt_ignored [], not_targeted 0, targets_by_def {}, exit 0, 39s(순서 3에서도 같은 출력, 38s). 대상 0은 base..T diff가 엔진 def를 건드리지 않기 때문이다(새 test 파일 하나). card '판정 유형 근거'의 'V3 N/A'는 '대상 없음'의 뜻이다 -- base 판 계획서 read_plan_tables_text v_intro[V3] = 1이고 card phase 3이 도입 뒤라 로더 규칙 10이 N/A를 거부하므로 PASS + 도구 출력으로 적는다. 이 card의 몫(B26-1 V3 생존 감소)은 V2 ④·V10에 적었다"
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: (도구) base 판 캐시 test_lint.py --root C:/g372/iso --base ae1b588… --head e4d5833… --interface-card <iso>/docs/02-design/specs/20260930-b26-pre-test-strengthen.interface.md(관찰 가능한 계약 표 19행 -- 단독으로 돈다): verdict PASS, exit 0, 대상 파일 1(새 test), FAIL 0, findings 81 = (2) UNJUDGED 58 + (2) NO-SUBJECT 23(피검 호출이 _b26pre_full_audit_c3·_b26pre_seed_load 도우미 안에 있는 계약 4 네 test·계약 10 두 test의 판정 줄), 승인 면제 0. 1차 FAIL 6건(규칙 (1) 3 + (4) 3)은 0이 됐다. [2차 추가 기대] (i) test_lint FAIL 0 -- 위와 같다. (ii) AST(scripts/c8_static.py, 중첩 def·lambda 제외 본문의 assert 문 + assert로 시작하는 호출 + pytest.raises 등): 19 test 모두 판정 문장 1개 이상(최소 1: vsid_no_ports·case_collisions·trace 둘, 최대 10: ofcb_lutless_repair; zero_rounds_euler 4, seed_tap_p·seed_tap_n 각 6), 판정 0인 test 0; `_b26pre_` 도우미 19개의 assert 합 0. (iii) assert 안 `==` 비교 39개 전부 한 쪽이 리터럴(상수·튜플·목록·집합·dict 리터럴만)이다 -- 두 쪽이 같은 피검 호출 출력에서 나온 곳 0(도구 규칙 (1) 발견 0과 손 대조 일치; 1차의 172·196·397행 꼴 `{…stack_id…} == set(rr)`·`len(x) == len(set(x))`는 없어졌다). (iv) 계약 1 (d) 두 리터럴을 auditor 스크립트(scripts/v4_oracle.py -- test 파일을 import하지 않고 card 문장에서 입력을 직접 만듦)로 base 엔진(C:/g372/iso = T 트리, 엔진 = base ae1b588)에서 PYTHONHASHSEED 0·1 각각 다시 잼: {t.stack_id for t in pr['transistors']} = {'pair_row_repair0_repair0_repair0'}, set(pr['repaired_rows']) = {'pair_row_repair0_repair0_repair0'} -- test 177·178행 리터럴과 같다(오케스트레이터 값을 쓰지 않음). [기대값마다 card 'oracle 종류와 출처' 대조, (c)는 위 스크립트로 base에서 다시 잰 값, (a)는 card 넷리스트에서 손으로 셈] 계약 1 (c): repaired_rows·repaired_audit 있음, growth_rounds 없음, audit_ok False, 3c 체크 1개·ok False, repaired_rows 키 접두 pair_row_repair, 소자 ['Ma','Mb'] -- 165~178행 리터럴과 일치. 계약 2 (a) 구성: STAR 넷 차수 na 1·nx 3(M1.drain·M2.source·M3.source)·nb 1·nc 1, 홀수 차수 넷 4개라 trail 2개 이상(손 셈); 측정 rows {row_seg0:[M2], row_seg1:[M3, M1]}, n_fingers 전부 1, 행마다 stack_id = 행 키 -- 198·200·202·203·204행 리터럴과 일치(row_seg<i> 형식은 (c) 기준선 값). 계약 3 (c): (a) growth_rounds [], unresolved_pair 'unknown', unresolved_reason 'max_rounds_exceeded', audit.ok False, 행 seg1_repair0_repair0_repair0만, 소자 Ma·Mb; (b) euler 체크 2개 전부 ok, stick 전부 ok; (c) None·None·[]·[]·True, rows {seg1:[(Ma,1,seg1),(Mb,1,seg1)]}; (d) ('Ma','Mx')·'pair_not_found'·[]·[]·euler 2개 ok·stick ok; (e) None·'only_3b_failures_left'·[]·True·euler 1개 ok·stick ok -- 리터럴 3개·'unknown'·_repair<i> 형식 모두 일치(UNJUDGED 231~325행). 계약 4 (a) 구성: 후보 키 4개(hub_merge nmos gnd = M1·M2 source 공유, hub_merge nmos ntail = Ma·Mb source 공유, current_mirror nmos nb = M1·M2 gate 공유, diff_pair nmos ntail = 레일 아닌 같은 source·gate 다름; gnd는 레일이라 diff_pair 아님)를 손으로 셈; 측정 체크 '3.' 1개, 전부 처분 ok True, 세 omit 각각 ok False이고 repr(omit)이 detail에 있음 -- NO-SUBJECT 363~388행과 일치. 계약 5 (c): 측정 그룹 {cascode-stack_2:[M1,M2,M5], cascode-stack_1_a__pmos:[M3], cascode-stack_1_a__nmos:[M1c], cascode-stack_3_b__pmos:[M4], cascode-stack_3_b__nmos:[M2c]}(seed 0·1에서 dict 순서만 다르고 내용 같음) -- 소자 7개 정확히 한 번, 그룹마다 kind 하나, M1·M2 한 그룹(기준선 값) 420~423행과 일치. 계약 6 (a) 구성: 2단자 내부 넷 nx1(M1-M1c)·no1(M1c-M3)·nx2·no2, ntail 3단자(M1·M2·M5)라 엣지 아님 -> 포트 없음 제안 {M1c:colA, M3:colA}; 포트 주면 differential M1-M2로 두 컬럼 합침 -> {M1c,M2,M2c,M3,M4: colA}, conflicts {}, components [[M1,M1c,M2,M2c,M3,M4],[M5]] -- 손 셈·측정·436·448~450행 리터럴 셋 다 일치. 계약 7 (c): 측정 case_collisions 원소 [{nq: {NQ, nq}}] 하나 -- 475행과 일치. 계약 10 (a) 구성 + docstring 규칙 3: 측정 TAP_P·TAP_N 모두 ROLES(My) = (matching, mirror), Mx1 (matching, mirror), Mx2 키 없음, 매칭쌍 제안 [M3,M4]·[Mx1,My](Mx2·My 없음) -- '정확히 하나'·Z 키 없음·[X,My] 있음·[Z,My] 없음 단언(NO-SUBJECT 518~543행) 성립, 동점 역전 변이에서는 Mx2가 채택되고 test 통과(특정 이름 고정 아님 확인). 계약 11 (a) 구성: BR(n) branch 사슬 Ml<k>-Mi<k>-Mt, 위치 1(Mi)만 같은 kind·다른 gate·같은 non-rail source ntail(손 셈); 측정 n=2 trace 원소 [(vdd_to_gnd,1,(Mi1,Mi2),ntail),(gnd_to_vdd,1,(Mi1,Mi2),ntail)] + layer1_fallback 원소 1개(test가 _b26pre_trace에서 걸러 판정하지 않음 -- card '계약이 아닌 것'과 같음), n=3 방향마다 (Mi1,Mi2)·(Mi1,Mi3)·(Mi2,Mi3) 순서, vdd_to_gnd 먼저 -- (b) 순서(기준선 값) 573·586행과 일치. UNJUDGED 58·NO-SUBJECT 23은 위 대조로 판정했다(기대값을 피검 호출로 만든 곳 0). 계약 8 정적 확인(scripts/c8_static.py, AST): 파일 하나, test 19개 전부 test_b26pre_, 모듈 도우미 19개 전부 _b26pre_, 모듈 상수 9개 _B26PRE_, sizing_recipe·stick_diagram의 밑줄 심볼 참조 0, from-import 0, import {json, pathlib, sys, sizing_recipe, stick_diagram}, == 비교 중 AuditResult·Transistor 객체 비교 0(전부 필드·이름·튜플), library 회로 이름 10개 문자열 등장 0, 레일 같은 문자열 {vdd, gnd}만, topology 쓰기는 _b26pre_write_topology 하나(supply_nets [vdd, gnd]·schema_version 2.0, 호출 6곳), parametrize 0, layer1_fallback 판정 0, 계약 10은 len(adopted) == 1로 단언(특정 이름 고정 아님)"
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 weakening_diff.py --root C:/g372/iso --base ae1b588… --head e4d5833…: verdict PASS, findings [], diff_paths [], diff_hash null, approved false, exit 0. 기존 test·conftest 변경 0(새 파일 하나 추가뿐)"
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 source_lint.py --root C:/g372/iso --base ae1b588… --head e4d5833…: verdict PASS, targets [], findings [], exit 0, 13s. 엔진·하니스 diff 0"
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "도입 Phase 2(base 판 계획서 v_intro[V7] = 2)라 활성. base 판 캐시 reachability.py --root C:/g372/iso --base ae1b588… --head e4d5833…: verdict PASS, new_defs [], unreached [], unreached_without_approval [], roots 4개, roots_without_file 1개(gmid_design_pipeline.py::run_gmid_design_pipeline), exit 0, 26s. 새 def는 tests/ 아래 _b26pre_* 도우미뿐이고 같은 파일 test가 부른다"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터다(base 판 계획서 read_plan_tables_text v_intro[V8] = 4, auditor 확인). 이 card는 Phase 3이고 엔진 불변"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터다(base 판 계획서 v_intro[V9] = 6b, auditor 확인). 이 card는 Phase 3이고 엔진·library 불변"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "브리프 2.4 목록 1~12를 auditor 스크립트로 격리 복제본에서 다시 재서 reproduced_numbers에 주표·참고표를 나눠 적었다(사전 측정·작성자 보고·1차 판정 기록 수치를 옮기지 않음). 모두 사전 측정 값과 같다: 새 test 단독 seed 0·1 19/19, interface card 표 19행, V1 base 1090 passed·15 xfailed·id 1105 / T 1109·15·1124, B1..H4 대상 301·not_targeted 2,141·레코드 2,442·defs 32·대칭차 0, 주표 20/20 targeted, 주표 죽음 id 18/20(생존 SR 11799·11878)·base 문장 16/18, 참고표 15/16(생존 SR 11801, card 11802), 씨앗 6/6, 기준·복원 19 passed, (덤) C4B..H5 299·2,136(2,435), B34 전·C4B 엔진 새 test 19 passed. 계약 1 (d) 리터럴(base 재측정)도 card 값과 같다"
+  }
+ },
+ "reproduced_numbers": [
+  {"name": "새 test 파일 단독(T 트리, 엔진 = base) PYTHONHASHSEED=0 passed", "value": 19, "command": "bash .ai/verification/20260930-b26-pre-test-strengthen/scripts/order3.sh v3 (out/order3/new_seed0.txt)"},
+  {"name": "새 test 파일 단독(T 트리) PYTHONHASHSEED=1 passed", "value": 19, "command": "같은 스크립트 (out/order3/new_seed1.txt)"},
+  {"name": "새 test 함수 수(수집)", "value": 19, "command": "scripts/c8_static.py (n_tests) + V1 수집 대조 collect_new"},
+  {"name": "interface card 관찰 가능한 계약 표 행", "value": 19, "command": "grep -n '^| ' <iso>/docs/02-design/specs/20260930-b26-pre-test-strengthen.interface.md (9~27행, 7행 머리 줄 제외 -- 20줄 중 데이터 19)"},
+  {"name": "V1 base passed", "value": 1090, "command": "bash scripts/v1.sh base (out/order7/full_base.txt)"},
+  {"name": "V1 base xfailed", "value": 15, "command": "같음"},
+  {"name": "V1 base id 수", "value": 1105, "command": "scripts/cmp_v1.py (base_ids, collect_base)"},
+  {"name": "V1 T passed", "value": 1109, "command": "V1 명령(auditor_run.commands) = bash scripts/v1.sh iso (out/order7/full_iso.txt)"},
+  {"name": "V1 T xfailed", "value": 15, "command": "같음"},
+  {"name": "V1 T id 수", "value": 1124, "command": "scripts/cmp_v1.py (T_ids, collect_T)"},
+  {"name": "V1 base에만 있는 id", "value": 0, "command": "scripts/cmp_v1.py (base_only)"},
+  {"name": "V1 기존 id 중 결과가 바뀐 것", "value": 0, "command": "scripts/cmp_v1.py (changed_existing)"},
+  {"name": "이 card V3 대상(base..T)", "value": 0, "command": "base 캐시 mutate_changed.py --root C:/g372/iso --base ae1b588 --head e4d5833 (out/order7/tool_V3.txt)"},
+  {"name": "주표 -- B1..H4(B26-1 v4 모의 head) V3 대상", "value": 301, "command": "_drafts/post35_kit/p35_v3count.py --tool-dir <캐시> --root C:/g372/r --base ae1b588 --head 227b679 --label b26v4 --ids out/ids_b26v4.json (out/order7/v3_b26v4.json mutants)"},
+  {"name": "주표 -- B1..H4 not_targeted", "value": 2141, "command": "같음 (not_targeted)"},
+  {"name": "주표 -- B1..H4 레코드", "value": 2442, "command": "같음 (out_records)"},
+  {"name": "주표 -- B1..H4 defs", "value": 32, "command": "같음 (defs)"},
+  {"name": "주표 -- 도구 대상 vs scope_proto N2w 대칭차", "value": 0, "command": "같음 (sym_diff)"},
+  {"name": "주표 20 id 중 도구 대상(targeted)", "value": 20, "command": "같음 (ids_targeted)"},
+  {"name": "주표 죽음 -- id 단위", "value": 18, "command": "scripts/kill_b26pre.py run -> scripts/kill_summary.py (main_killed_ids)"},
+  {"name": "주표 생존 -- id 단위(SR 11799·11878 backfill)", "value": 2, "command": "같음 (main_survived_ids)"},
+  {"name": "주표 base 문장 단위 변이 수", "value": 18, "command": "같음 (main_stmt_units)"},
+  {"name": "주표 죽음 -- base 문장 단위", "value": 16, "command": "같음 (main_stmt_killed)"},
+  {"name": "참고표(N2d만) 변이 수", "value": 16, "command": "같음 (ref_total)"},
+  {"name": "참고표 죽음", "value": 15, "command": "같음 (ref_killed; 생존 SR 11801)"},
+  {"name": "씨앗 6문장 죽음", "value": 6, "command": "같음 (seed_killed)"},
+  {"name": "기준·복원 실행 passed(변이 전·끝 각각)", "value": 19, "command": "같음 (baseline before/after)"},
+  {"name": "def 항등 치환 대조 PASS 수", "value": 11, "command": "같음 (identity_controls, identity_all_pass)"},
+  {"name": "(덤) C4B..H5 V3 대상", "value": 299, "command": "p35_v3count.py --base b88bbcb --head 6bd4a3f --label b26v5 (out/order7/v3_b26v5.json)"},
+  {"name": "(덤) C4B..H5 not_targeted", "value": 2136, "command": "같음"},
+  {"name": "(덤) C4B..H5 레코드", "value": 2435, "command": "같음"},
+  {"name": "B34 전 엔진(dd60db6) 새 test passed(seed 0, 1 각각)", "value": 19, "command": "bash scripts/v2_alt_engines.sh (out/order7/alt_pre34_seed0.txt·seed1.txt)"},
+  {"name": "C4B 엔진 새 test passed(seed 0, 1 각각)", "value": 19, "command": "같음 (alt_c4b_seed0.txt·seed1.txt)"},
+  {"name": "V4 도구 FAIL 발견 수", "value": 0, "command": "base 캐시 test_lint.py --root C:/g372/iso --base ae1b588 --head e4d5833 --interface-card <card> (out/order7/tool_V4.txt)"},
+  {"name": "V4 UNJUDGED 수", "value": 58, "command": "같음"},
+  {"name": "V4 NO-SUBJECT 수", "value": 23, "command": "같음"},
+  {"name": "판정 문장 0개인 test 함수 수(본문 AST)", "value": 0, "command": "scripts/c8_static.py (tests_with_zero_judgement)"},
+  {"name": "_b26pre_ 도우미 안 assert 수", "value": 0, "command": "같음 (helpers_assert_total)"},
+  {"name": "두 쪽 모두 리터럴 아닌 == 판정 수", "value": 0, "command": "같음 (eq_same_subject_candidates 중 one_side_literal 거짓)"}
+ ],
+ "approvals": [
+  "20261001-b26-phase3-cards",
+  "20260930-b26-before-phase3"
+ ],
+ "auditor_run": {
+  "time": "2026-10-06T23:05:00+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20260930-b26-pre-test-strengthen-audit",
+  "commands": [
+   "notes: 2차 시도(1차 T1 d2b2ed7 V4 FAIL, card 개정 S2 ae1b588). 1차 card 6c724de..S2의 skills/·tools/ 차이 0. 1차 판정 기록·스크립트(_drafts/b26pre_attempt1/.ai/…)는 방법 참고로 경로·커밋만 바꿔(scripts/adapt.py) 다시 실행했고 수치는 전부 새로 쟀다",
+   "환경: $PY = C:/Python314/python.exe(3.14.2, pytest 9.0.2, pluggy 1.6.0), APPDATA=C:/Users/HSLEE/AppData/Roaming·HOME·PYTHONIOENCODING=utf-8, TMP/TEMP/TMPDIR = C:/g371/tmp(순서 3)·C:/g372/tmp(순서 7), 격리 경로는 C:/g371·C:/g372 아래만",
+   "게이트 코드 캐시: $PY -B scripts/extract_gate.py <audit worktree> ae1b5886e6fd4b5b18d6096d8ac6076259719ff3 C:/g372/gmid-gate-cache/ae1b5886e6fd4b5b18d6096d8ac6076259719ff3 (redteam 밖 22개, file_set_sha256 41885fd2…), $PY -B scripts/cache_cmp.py(오케스트레이터 캐시와 22/22 같음), grep -c not_targeted <캐시>/mutate_changed.py = 7",
+   "격리(T): git clone -q --no-hardlinks --no-local -c core.autocrlf=false -c core.longpaths=true <audit worktree> C:/g372/iso; git -C C:/g372/iso remote remove origin; test -z \"$(git -C C:/g372/iso remote)\"",
+   "격리(base): 같은 형태로 C:/g372/base + git -C C:/g372/base checkout -q --detach ae1b588; 변이 작업 사본 C:/g372/kt = C:/g372/iso 클론(origin 제거, HEAD = T); 모의 head 복제본 C:/g372/r(-c core.hooksPath=C:/g372/nohooks, user.name/email 임의, origin 제거, checkout --detach base)",
+   "순서 3: bash scripts/order3.sh v3 (C:/g371/iso, 새 test 단독 seed 0·1 + mutate_changed 1회) -> base_check.json",
+   "V1: PYTHONPYCACHEPREFIX=C:/g372/pyc/v1_T PYTHONPATH=C:/g372/gmid-gate-cache/ae1b5886e6fd4b5b18d6096d8ac6076259719ff3 C:/Python314/python.exe -P -m pytest -c C:/g372/gmid-gate-cache/ae1b5886e6fd4b5b18d6096d8ac6076259719ff3/pytest_gate.ini --rootdir=C:/g372/iso --confcutdir=C:/g372/iso C:/g372/iso/skills/analog-gmid-design/assets/tests --gmid-phase=3 --gmid-strict= -rA",
+   "base 전체·수집: bash scripts/v1.sh base(위 형태, 루트 C:/g372/base) / bash scripts/v1.sh iso(--collect-only 포함); 대조 $PY -B scripts/cmp_v1.py full_base.txt full_iso.txt v1_cmp.json collect_base.txt collect_iso.txt",
+   "엄격 집합·V1 형태: PYTHONPATH=<캐시> $PY -B -P scripts/strict_check.py C:/g372/iso ae1b588… 20260930-b26-pre-test-strengthen '<V1 문자열>' (strict_set [], v1_command_check [])",
+   "V3·V4·V5·V6·V7: bash scripts/vtools.sh -- $PY -B <캐시>/mutate_changed.py --root C:/g372/iso --base ae1b588… --head e4d5833… --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict= --out C:/g372/out/v3.jsonl; test_lint.py --root C:/g372/iso --base … --head … --interface-card <iso>/docs/02-design/specs/20260930-b26-pre-test-strengthen.interface.md; weakening_diff.py·source_lint.py·reachability.py --root C:/g372/iso --base … --head …",
+   "v_intro: PYTHONPATH=<캐시> $PY -B -P scripts/vintro.py C:/g372/iso ae1b588… (merge_gate.read_plan_tables_text(git show base:docs/01-plan/features/gain-budget-gmid-sizing.plan.md).v_intro) -> V3 1, V7 2, V8 4, V9 6b",
+   "계약 9 대상: $PY -B _drafts/post35_kit/p35_heads.py setup C:/g372 ae1b588… ; … build C:/g372 ae1b588… (out/heads.json); $PY -B scripts/ids_main20.py C:/g372/out/ids_b26v4.json; cp _drafts/v3scope_kit/scope_proto.py C:/g372/kit/v3scope/; $PY -B _drafts/post35_kit/p35_v3count.py --tool-dir <캐시> --root C:/g372/r --base ae1b588… --head 227b679134a05eeb0a03349db9c9b75ea8a55c0d --label b26v4 --work C:/g372/out --proto-dir C:/g372/kit/v3scope --ids C:/g372/out/ids_b26v4.json; (덤) --base b88bbcbe822b4ef7876e7a4847ed7ef9f2164a65 --head 6bd4a3f8cb304a778f414b6ac3f073e9abffbcbf --label b26v5",
+   "계약 9 죽임: $PY -B scripts/kill_b26pre.py run (대응 kill_map.json, 변이마다 kill_results.jsonl append, 로그 kill_logs/) -> $PY -B scripts/kill_summary.py C:/g372/out kill_summary.json; 덤 $PY -B scripts/tie_probe.py C:/g372/kt tie_probe.json",
+   "V2 ⑤: $PY -B scripts/prep_alt.py C:/g372/r <dd60db6 | b88bbcb> C:/g372/<pre34 | c4b> e4d5833… (archive skills/analog-gmid-design/assets·skills/analog-grammar·docs/01-plan + T 새 test blob) -> bash scripts/v2_alt_engines.sh",
+   "V4 oracle·계약 8: PYTHONHASHSEED=<0|1> $PY -B scripts/v4_oracle.py C:/g372/iso/skills/analog-gmid-design/assets <v4_oracle.json | v4_oracle_seed1.json> C:/g372/tmp/oracle<0|1>; $PY -B scripts/c8_static.py C:/g372/iso ae1b588… e4d5833… c8_static.json",
+   "사전 판정: 판정 기록 커밋 뒤 격리 bare 복제본에서 PYTHONPATH=<캐시> $PY -P <캐시>/merge_gate.py check-record --git-dir <bare> --rev <audit 커밋> --base ae1b588… --id 20260930-b26-pre-test-strengthen 그리고 receive --git-dir <bare> --old ae1b588… --new <audit 커밋>"
+  ]
+ }
+}

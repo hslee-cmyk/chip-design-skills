@@ -1,0 +1,2 @@
+REV ae1b5886e6fd4b5b18d6096d8ac6076259719ff3에 실제 B34(2eb7e55)가 있다 -- mk_b1 건너뜀, b1 = REV archive 그대로
+setup ok ae1b5886e6fd4b5b18d6096d8ac6076259719ff3

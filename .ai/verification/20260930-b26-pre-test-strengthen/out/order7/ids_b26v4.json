@@ -1,0 +1,22 @@
+[
+ "sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[13]",
+ "sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[14]",
+ "sizing_recipe:_fixup_euler_blocked_rows:stmt_delete:body[5].body[16]",
+ "sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5].body[3].orelse[0]",
+ "sizing_recipe:optimize_full_circuit_budget._evaluate_row_split:stmt_delete:body[5].body[3].orelse[1]",
+ "sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3].orelse[0]",
+ "sizing_recipe:optimize_full_circuit_budget:stmt_delete:body[12].body[3].body[5].body[3].orelse[1]",
+ "sizing_recipe:resolve_stack_layout:stmt_delete:body[5]",
+ "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[1]",
+ "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[10].body[2]",
+ "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[11]",
+ "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[12]",
+ "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[13]",
+ "sizing_recipe:run_matching_safety_with_finger_growth:stmt_delete:body[14]",
+ "stick_diagram:propose_device_roles_gap_fill:stmt_delete:body[49]",
+ "stick_diagram:propose_vertical_stack_id_gap_fill:stmt_delete:body[2]",
+ "stick_diagram:run_full_circuit_audit:stmt_delete:body[16]",
+ "stick_diagram:run_full_circuit_audit:stmt_delete:body[17]",
+ "stick_diagram:find_differential_pair_candidates:const+:body[8].body[3].body[1].body[0].iter.args[0].right",
+ "stick_diagram:find_differential_pair_candidates:arith:body[8].body[3].body[1].body[0].iter.args[0]"
+]

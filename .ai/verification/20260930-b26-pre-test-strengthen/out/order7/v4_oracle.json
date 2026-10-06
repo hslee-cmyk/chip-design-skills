@@ -1,0 +1,475 @@
+{
+ "c1": {
+  "has_repaired_rows": true,
+  "has_repaired_audit": true,
+  "has_growth_rounds": false,
+  "audit_ok": false,
+  "n_3c": 1,
+  "3c_ok": [
+   false
+  ],
+  "repaired_row_keys": [
+   "pair_row_repair0_repair0_repair0"
+  ],
+  "repaired_names": [
+   "Ma",
+   "Mb"
+  ],
+  "stack_ids_eq_rows": true,
+  "transistor_stack_id_set": [
+   "pair_row_repair0_repair0_repair0"
+  ],
+  "repaired_rows_key_set": [
+   "pair_row_repair0_repair0_repair0"
+  ]
+ },
+ "c2": {
+  "rows": {
+   "row_seg0": [
+    [
+     "M2",
+     1,
+     "row_seg0"
+    ]
+   ],
+   "row_seg1": [
+    [
+     "M3",
+     1,
+     "row_seg1"
+    ],
+    [
+     "M1",
+     1,
+     "row_seg1"
+    ]
+   ]
+  }
+ },
+ "c3": {
+  "a": {
+   "growth_rounds": [],
+   "unresolved_pair": "unknown",
+   "unresolved_reason": "max_rounds_exceeded",
+   "relaxed_pairs": [],
+   "audit_ok": false,
+   "rows": {
+    "seg1_repair0_repair0_repair0": [
+     [
+      "Ma",
+      1,
+      "seg1_repair0_repair0_repair0"
+     ],
+     [
+      "Mb",
+      1,
+      "seg1_repair0_repair0_repair0"
+     ]
+    ]
+   },
+   "n_euler_checks": 1,
+   "all_euler_ok": true,
+   "stick_status": [
+    [
+     "seg1_repair0_repair0_repair0",
+     "ok"
+    ]
+   ]
+  },
+  "b": {
+   "growth_rounds": [],
+   "unresolved_pair": "unknown",
+   "unresolved_reason": "max_rounds_exceeded",
+   "relaxed_pairs": [],
+   "audit_ok": false,
+   "rows": {
+    "row": [
+     [
+      "M1",
+      2,
+      "row"
+     ],
+     [
+      "M2",
+      1,
+      "row"
+     ],
+     [
+      "M3",
+      1,
+      "row"
+     ]
+    ],
+    "seg1_repair0_repair0_repair0": [
+     [
+      "Ma",
+      1,
+      "seg1_repair0_repair0_repair0"
+     ],
+     [
+      "Mb",
+      1,
+      "seg1_repair0_repair0_repair0"
+     ]
+    ]
+   },
+   "n_euler_checks": 2,
+   "all_euler_ok": true,
+   "stick_status": [
+    [
+     "row",
+     "ok"
+    ],
+    [
+     "seg1_repair0_repair0_repair0",
+     "ok"
+    ]
+   ]
+  },
+  "c": {
+   "growth_rounds": [],
+   "unresolved_pair": null,
+   "unresolved_reason": null,
+   "relaxed_pairs": [],
+   "audit_ok": true,
+   "rows": {
+    "seg1": [
+     [
+      "Ma",
+      1,
+      "seg1"
+     ],
+     [
+      "Mb",
+      1,
+      "seg1"
+     ]
+    ]
+   },
+   "n_euler_checks": 1,
+   "all_euler_ok": true,
+   "stick_status": [
+    [
+     "seg1",
+     "ok"
+    ]
+   ]
+  },
+  "d": {
+   "growth_rounds": [],
+   "unresolved_pair": [
+    "Ma",
+    "Mx"
+   ],
+   "unresolved_reason": "pair_not_found",
+   "relaxed_pairs": [],
+   "audit_ok": false,
+   "rows": {
+    "seg1": [
+     [
+      "Ma",
+      1,
+      "seg1"
+     ],
+     [
+      "Mb",
+      1,
+      "seg1"
+     ]
+    ],
+    "row": [
+     [
+      "M1",
+      2,
+      "row"
+     ],
+     [
+      "M2",
+      1,
+      "row"
+     ],
+     [
+      "M3",
+      1,
+      "row"
+     ]
+    ]
+   },
+   "n_euler_checks": 2,
+   "all_euler_ok": true,
+   "stick_status": [
+    [
+     "row",
+     "ok"
+    ],
+    [
+     "seg1",
+     "ok"
+    ]
+   ]
+  },
+  "e": {
+   "growth_rounds": [],
+   "unresolved_pair": null,
+   "unresolved_reason": "only_3b_failures_left",
+   "relaxed_pairs": [],
+   "audit_ok": true,
+   "rows": {
+    "row": [
+     [
+      "M1",
+      2,
+      "row"
+     ],
+     [
+      "M2",
+      1,
+      "row"
+     ],
+     [
+      "M3",
+      1,
+      "row"
+     ]
+    ]
+   },
+   "n_euler_checks": 1,
+   "all_euler_ok": true,
+   "stick_status": [
+    [
+     "row",
+     "ok"
+    ]
+   ]
+  }
+ },
+ "c4": {
+  "none": {
+   "n": 1,
+   "ok": [
+    true
+   ],
+   "omit_in_detail": false
+  },
+  "mirror": {
+   "n": 1,
+   "ok": [
+    false
+   ],
+   "omit_in_detail": true
+  },
+  "diff": {
+   "n": 1,
+   "ok": [
+    false
+   ],
+   "omit_in_detail": true
+  },
+  "hub_gnd": {
+   "n": 1,
+   "ok": [
+    false
+   ],
+   "omit_in_detail": true
+  }
+ },
+ "c5": {
+  "groups": {
+   "cascode-stack_1_a__pmos": [
+    "M3"
+   ],
+   "cascode-stack_1_a__nmos": [
+    "M1c"
+   ],
+   "cascode-stack_2": [
+    "M1",
+    "M2",
+    "M5"
+   ],
+   "cascode-stack_3_b__nmos": [
+    "M2c"
+   ],
+   "cascode-stack_3_b__pmos": [
+    "M4"
+   ]
+  }
+ },
+ "c6": {
+  "a_proposals": {
+   "M1c": "colA",
+   "M3": "colA"
+  },
+  "b_proposals": {
+   "M1c": "colA",
+   "M2": "colA",
+   "M2c": "colA",
+   "M3": "colA",
+   "M4": "colA"
+  },
+  "b_conflicts": {},
+  "b_components": [
+   [
+    "M1",
+    "M1c",
+    "M2",
+    "M2c",
+    "M3",
+    "M4"
+   ],
+   [
+    "M5"
+   ]
+  ]
+ },
+ "c7": {
+  "case_collisions": [
+   {
+    "nq": [
+     "NQ",
+     "nq"
+    ]
+   }
+  ]
+ },
+ "c10": {
+  "tap_p": {
+   "roles": {
+    "Mx1": [
+     "matching",
+     "mirror"
+    ],
+    "Mx2": [
+     null,
+     null
+    ],
+    "My": [
+     "matching",
+     "mirror"
+    ]
+   },
+   "review_pairs": [
+    [
+     "M3",
+     "M4"
+    ],
+    [
+     "Mx1",
+     "My"
+    ]
+   ]
+  },
+  "tap_n": {
+   "roles": {
+    "Mx1": [
+     "matching",
+     "mirror"
+    ],
+    "Mx2": [
+     null,
+     null
+    ],
+    "My": [
+     "matching",
+     "mirror"
+    ]
+   },
+   "review_pairs": [
+    [
+     "M3",
+     "M4"
+    ],
+    [
+     "Mx1",
+     "My"
+    ]
+   ]
+  }
+ },
+ "c11": {
+  "n2_all": [
+   [
+    "vdd_to_gnd",
+    1,
+    [
+     "Mi1",
+     "Mi2"
+    ],
+    "ntail"
+   ],
+   [
+    "gnd_to_vdd",
+    1,
+    [
+     "Mi1",
+     "Mi2"
+    ],
+    "ntail"
+   ],
+   [
+    "layer1_fallback",
+    null,
+    [
+     "Mi1",
+     "Mi2"
+    ],
+    "ntail"
+   ]
+  ],
+  "n3_all": [
+   [
+    "vdd_to_gnd",
+    1,
+    [
+     "Mi1",
+     "Mi2"
+    ],
+    "ntail"
+   ],
+   [
+    "vdd_to_gnd",
+    1,
+    [
+     "Mi1",
+     "Mi3"
+    ],
+    "ntail"
+   ],
+   [
+    "vdd_to_gnd",
+    1,
+    [
+     "Mi2",
+     "Mi3"
+    ],
+    "ntail"
+   ],
+   [
+    "gnd_to_vdd",
+    1,
+    [
+     "Mi1",
+     "Mi2"
+    ],
+    "ntail"
+   ],
+   [
+    "gnd_to_vdd",
+    1,
+    [
+     "Mi1",
+     "Mi3"
+    ],
+    "ntail"
+   ],
+   [
+    "gnd_to_vdd",
+    1,
+    [
+     "Mi2",
+     "Mi3"
+    ],
+    "ntail"
+   ]
+  ]
+ }
+}

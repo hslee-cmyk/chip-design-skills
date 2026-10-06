@@ -1,0 +1,57 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+shuffle-seed: none
+real_lut: skills/analog-gmid-design/assets/sky130_nfet_pfet_lut_sample.npz sha256=753d802a860320dd54b53b95920c6f9addcea821c55089358bf4b1f1ebaf177f
+rootdir: C:\g372\kt
+configfile: ..\gmid-gate-cache\ae1b5886e6fd4b5b18d6096d8ac6076259719ff3\pytest_gate.ini
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collected 19 items
+
+..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py . [  5%]
+...F..............                                                       [100%]
+
+================================== FAILURES ===================================
+________________________ test_b26pre_growth_already_ok ________________________
+
+tmp_path = WindowsPath('C:/g372/tmp/pytest-of-HSLEE/pytest-25/test_b26pre_growth_already_ok0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x000002B485A4A900>
+
+    def test_b26pre_growth_already_ok(tmp_path, toy_lut):
+        """계약 3(c): 처음부터 통과.
+    
+        oracle 대조: (c) 기존 동작 기준선. ratio 쌍은 3c 필수가 아니고(3b만 필수) 같은 행에 인접한 두 소자로 이미
+        통과한다(docstring '(2) ok면 성공 종료'). 행·핑거·stack_id가 입력 PAIR 그대로다(구성 -- 리터럴).
+        """
+        w0, s, path = _b26pre_growth_setup(tmp_path, toy_lut)
+        res = sizing_recipe.run_matching_safety_with_finger_growth(
+            {"seg1": _b26pre_pair(w0)}, [("Ma", "Mb")], {("Ma", "Mb"): "ratio"},
+            _b26pre_ctx(["Ma", "Mb"], s, path), {"nmos": toy_lut}, _b26pre_metrics(), _b26pre_loose(w0),
+            gm_id_bounds=(2.0, 28.0))
+        assert res["unresolved_pair"] is None
+>       assert res["unresolved_reason"] is None
+E       AssertionError: assert 'only_3b_failures_left' is None
+
+C:\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py:274: AssertionError
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_ofcb_lutless_repair
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_euler_fixup_group_split
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_zero_rounds_euler
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_pair_not_found
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_only_3b_left
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_all_disposed
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_mirror_undisposed
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_diffpair_undisposed
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_full_audit_hub_gnd_undisposed
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_resolve_stack_candidates
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_no_ports
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_vsid_gap_fill_ports
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_case_collisions
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_p
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_seed_tap_n
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_two_branches
+PASSED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_trace_three_branches_order
+FAILED ..\..\..\..\..\..\g372\kt\skills\analog-gmid-design\assets\tests\contracts\test_b26pre_existing_paths.py::test_b26pre_growth_already_ok
+======================== 1 failed, 18 passed in 2.06s =========================
