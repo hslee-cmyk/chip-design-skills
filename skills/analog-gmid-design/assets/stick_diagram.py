@@ -1026,10 +1026,9 @@ def find_matching_candidates(transistors: list, idiom_matches: list | None = Non
 #       matching 후보 오탐 필터. 상세 설계: references/analog-grammar-integration.md
 #       (2026-08-06, analog-topology-json-library 세션18 K/L절에서 시작된 논의).
 #       analog-grammar가 sys.path에 없으면(다른 skill이라 설치 여부가 실행 환경에
-#       좌우됨) 아래 어댑터(find_idiom_matches/find_stack_edges)는 조용히 None을
-#       반환한다 -- 호출자는 None이면 이 보강 기능 없이 기존 동작(idiom_matches=
-#       None/stack_edges=None)으로 폴백해야 한다.
-#       ImportError만 잡고 다른 예외는 그대로 던진다(조용히 다른 실패까지 삼키지 않음).
+#       좌우됨) 아래 어댑터(find_idiom_matches/find_stack_edges)는 skill 이름과 탐색
+#       경로를 담은 `ImportError`를 던진다(원래 예외는 `__cause__`) -- 조용한 None
+#       폴백은 없다. 다른 예외도 그대로 던진다(조용히 삼키지 않음).
 # ---------------------------------------------------------------------------
 
 def _to_analog_grammar_devs(transistors: list) -> list:
@@ -1044,8 +1043,8 @@ def _to_analog_grammar_devs(transistors: list) -> list:
 
 def _import_analog_grammar(*module_names):
     """`skills/analog-grammar/assets`를 sys.path에 넣고(멱등) 주어진 모듈들을 임포트해
-    튜플로 반환한다. analog-grammar가 없으면(ImportError) 전부 None인 튜플을 반환한다
-    -- 호출자가 언패킹 후 첫 값만 None-체크해도 되도록."""
+    튜플로 반환한다. analog-grammar가 없으면 `ImportError`(skill 이름·탐색 경로, 원래
+    예외는 `__cause__`)를 던진다."""
     import sys
     _ag_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..",
                                                 "analog-grammar", "assets"))
@@ -1054,8 +1053,8 @@ def _import_analog_grammar(*module_names):
     try:
         import importlib
         return tuple(importlib.import_module(name) for name in module_names)
-    except ImportError:
-        return tuple(None for _ in module_names)
+    except ImportError as e:
+        raise ImportError(f"analog-grammar skill을 import할 수 없다(탐색 경로 {_ag_path})") from e
 
 
 def find_idiom_matches(transistors: list, inputs=(), outputs=(), feedbacks=(),
@@ -1070,8 +1069,6 @@ def find_idiom_matches(transistors: list, inputs=(), outputs=(), feedbacks=(),
     승격해서 넘기면 이름 힌트 추정을 줄일 수 있다(references/analog-grammar-
     integration.md §5)."""
     netclass, idioms_mod = _import_analog_grammar("netclass", "idioms")
-    if netclass is None:
-        return None
     devs = _to_analog_grammar_devs(transistors)
     if not devs:
         return None
@@ -1086,8 +1083,6 @@ def find_stack_edges(transistors: list) -> list | None:
     있다"는 관계를 [(lower_name, upper_name, node), ...]로 반환한다.
     `find_stacked_matching_candidates()`(§1.7c)에 그대로 넘긴다."""
     (netclass,) = _import_analog_grammar("netclass")
-    if netclass is None:
-        return None
     devs = _to_analog_grammar_devs(transistors)
     if not devs:
         return None
@@ -1301,7 +1296,7 @@ def find_differential_and_mirror_forks(transistors: list, inputs=(), outputs=(),
     differential pair 2종류를 전부 찾는다(사용자 지적: "telescopic differential pair를
     인식 못하는 문제").
 
-    analog-grammar가 없으면 `None`을 반환한다.
+    analog-grammar가 없으면 `ImportError`를 던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그).
 
     반환(있으면): `{"forks": [{"direction": "vdd_to_gnd"|"gnd_to_vdd", "fork_prefix":
     [...], "fork_devices": (a, b), "relation": "mirror"|"differential"}, ...]}` --
@@ -1381,8 +1376,8 @@ def suggest_vertical_stack_composites(transistors: list, inputs=(), outputs=(),
     연속된 부분열로 나타나지 않는다(포함시켜도 매칭될 일이 없어 무해하지만, 명시적으로
     빼서 의도를 분명히 한다).
 
-    analog-grammar가 없으면(다른 skill이라 설치 여부가 환경에 좌우됨) `None`을 반환한다
-    (호출자는 이 보강 기능 없이 `trace_vdd_to_gnd_branches()`만 쓰는 폴백 필요).
+    analog-grammar가 없으면(다른 skill이라 설치 여부가 환경에 좌우됨) `ImportError`를
+    던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그).
 
     `direction`: `"vdd_to_gnd"`(기본, 하향 -- `trace_vdd_to_gnd_branches()`) 또는
     `"gnd_to_vdd"`(상향 -- `trace_gnd_to_vdd_branches()`). telescopic/current-reuse처럼
@@ -1530,8 +1525,8 @@ def find_differential_pair_candidates(transistors: list, inputs=(), outputs=(),
     정확히 이렇게 바뀜, 세션23) -- 이 승격을 자동으로 수행하는 오케스트레이션은
     아직 없음(다음 세션 후보).
 
-    analog-grammar가 없으면(`suggest_vertical_stack_composites()`가 의존) `None`을
-    반환한다. `inputs=`/`outputs=`/`feedbacks=`/`biases=`/`clocks=`는 composite 구성
+    analog-grammar가 없으면(`suggest_vertical_stack_composites()`가 의존) `ImportError`를
+    던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그). `inputs=`/`outputs=`/`feedbacks=`/`biases=`/`clocks=`는 composite 구성
     자체(idiom matching 정확도)에만 간접적으로 쓰이고, 후보 판정 자체(같은 source
     공유 여부)는 `Transistor.source`를 직접 비교하므로 net 분류와 무관하다.
 
@@ -1673,7 +1668,7 @@ def find_verified_differential_and_mirror_relations(transistors: list, inputs=()
     보고한다(조용히 덮어쓰지/버리지 않는다는 프로젝트 전역 원칙) -- `differential`/
     `mirror` 판정 로직 자체는 변경 없음(기존 두 버킷의 내용은 회귀 없음).
 
-    analog-grammar가 없으면 `None`을 반환한다.
+    analog-grammar가 없으면 `ImportError`를 던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그).
 
     반환(있으면): `{"differential": [...], "mirror": [...], "structurally_symmetric_
     no_connection": [...]}` -- 각 원소는 `{"direction": "vdd_to_gnd"|"gnd_to_vdd",
@@ -1888,8 +1883,7 @@ def _propose_vertical_stack_ids(transistors, relations, base_inputs, outputs, fe
     51개 회로라면 51개 키 전부 포함(모든 소자가 최소한 자기 혼자만의 singleton 그룹은
     받는다). `ambiguous_alternatives`는 0-B로도 못 푼 소자만 키로 가진다(`current_
     reuse_telescopic_ota`에서는 실측상 빈 딕셔너리, Test 41의 합성 fixture로 채워지는
-    경우를 검증). `suggest_vertical_stack_composites()`가 `None`을 반환하면
-    (analog-grammar 없음) 이 함수도 `None`."""
+    경우를 검증). analog-grammar가 없으면 `ImportError`를 던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그)."""
     netclass, _idioms_mod = _import_analog_grammar("netclass", "idioms")
     if netclass is None:
         return None
@@ -2067,8 +2061,8 @@ def _propose_gm_id_roles(transistors, base_inputs, outputs, feedbacks, biases, c
     충분했다 -- 회로 설계 원칙상 tail 전류원(GBW 직결)과 나머지(bias/mirror, gm/ID
     최소화가 우선)라는 이분법이 정확히 이 신호와 일치하기 때문으로 보인다.
 
-    analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `None`을
-    반환한다.
+    analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `ImportError`를
+    던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그).
 
     ⚠️ **2026-08-14 정정(사용자 지시 -- `load_topology()` 자동배선 중 실측 발견)**: 원래는
     `t.drain in shared_sources`가 아니면 무조건 `"matching"`을 채웠다 -- **연결관계가 전혀
@@ -2149,7 +2143,7 @@ def _propose_L_roles(transistors, relations, base_inputs, outputs, feedbacks, bi
     재현 가능한 성질이 아니다 -- 이 함수는 이 예외를 반영하지 않는다(구조적 기본값만
     제안, `topology.json` 채택 시 `M38`은 사람이 직접 `mirror`로 남겨둘 것).
 
-    analog-grammar가 없으면 `None`을 반환한다.
+    analog-grammar가 없으면 `ImportError`를 던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그).
 
     ⚠️ **2026-08-14 정정(사용자 지시)**: 이전엔 대칭 파트너를 못 찾은 소자도 `"mirror"`를
     기본값으로 채우고 `confirmed_by_structural_symmetry=False`로만 표시했다 -- 근거 없는
@@ -2238,7 +2232,7 @@ def _propose_headroom_roles(transistors, gm_id_role_candidates, vertical_stack_i
     회로엔 이름이 안 맞아 조용히 무의미해진다) -- `topology.json`에 실제로 채택할지는
     소자마다, 그리고 이 12+2개는 대개 다른 경로가 이미 값을 정하므로 채택 안 해도 됨.
 
-    analog-grammar가 없으면 `None`을 반환한다.
+    analog-grammar가 없으면 `ImportError`를 던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그).
 
     ⚠️ **2026-08-14 -- `_propose_gm_id_roles()`/`_propose_L_roles()`와 달리 이 함수는
     그대로 둔다(사용자 지시로 시도했다가 Test 45 회귀로 잘못됐음을 확인하고 되돌림)**:
@@ -2346,8 +2340,8 @@ def refine_differential_and_mirror_relations(transistors: list, inputs=(), outpu
        재분류되고, 그 net을 게이트로 받는 소자의 role이 `ACTIVE_LOAD`/`CURRENT_SOURCE`
        →`AMPLIFYING`으로 바뀔 수 있다 -- 세션23 `M7`: `CURRENT_SOURCE`→`AMPLIFYING`).
 
-    analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `None`을
-    반환한다.
+    analog-grammar가 없으면(`find_differential_pair_candidates()`가 의존) `ImportError`를
+    던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그).
 
     ⚠️ **2026-08-07 추가(세션24, 사용자 지시)**: `vertical_stack_id_candidates` 필드로
     cascode-stack 등 composite 병합(물리적 그룹)과 differential-pair/mirror 관계(leg
@@ -3071,8 +3065,7 @@ def geometry_colocation_union(netlist: list, matching_pairs: list) -> dict:
     1. **base**: `matching_pairs`(호출자가 `current_forced=true`로 거른 쌍만 넘긴다는
        계약은 그대로 — `current_mirror`/`branch_symmetric`류 순수 문서용 선언은 여전히
        제외)를 그대로 union한다.
-    2. **확장**: `find_stack_edges()`(analog-grammar 재사용, 없으면 soft-fail로 확장
-       생략) + `find_stacked_matching_candidates()`로 각 base pair 위에 재귀적으로
+    2. **확장**: `find_stack_edges()`(analog-grammar 재사용, 없으면 `ImportError`) + `find_stacked_matching_candidates()`로 각 base pair 위에 재귀적으로
        쌓인 소자를 찾아 같은 그룹으로 union한다. 이 상속은 **base pair의 대표 소자
        바로 위에 직렬로 얹힌, 같은 kind인 소자**만 좇아가므로(M1a→M2a처럼), `M58`처럼
        "같은 노드를 소스로 공유하는 병렬 소비자"(M1a/M1b의 **형제**이지 위에 얹힌 게
@@ -3268,7 +3261,7 @@ def propose_vertical_stack_id_gap_fill(transistors: list, matching_pairs: list,
        **의도적으로 제외**하고 `differential`만 쓴다. 실제로 diff pair의 공통 tail
        net은 보통 3단자 이상(두 다리+tail 전류원)이라 `internal_series`(정확히
        2단자)로는 애초에 못 잡는 관계 -- 이게 이 확장이 KCL 단독보다 진짜로 더 푸는
-       실제 사례다). `inputs=`를 안 주거나 analog-grammar가 없으면 조용히 건너뛴다
+       실제 사례다). `inputs=`를 안 주면 조용히 건너뛴다(analog-grammar가 없으면 `ImportError`)
        (기존처럼 KCL만으로 동작, 하위호환).
 
     ⚠️ 다른 `_propose_*`류와 같은 원칙(제안만, `topology.json`에 자동으로 안 씀).
@@ -3353,28 +3346,21 @@ def audit_theta_root_direction(transistors: list, sizing_roles: dict | None,
     그대로 재사용한다(자체 인접 그래프/BFS는 폐기).
 
     반환: `[{"theta": name, "root": root_dev, "reference": ref_dev, "note": ...}, ...]` --
-    analog-grammar를 못 불러오면 빈 리스트(다른 analog-grammar 연동 함수와 동일한 하위호환
-    원칙). ⚠️ 다른 `propose_*`/`audit_*`류와 같은 원칙 -- 아무것도 자동으로 안 고친다(찾기만).
+    analog-grammar를 못 불러오면 `ImportError`(탐색 경로 포함, 원래 예외는 `__cause__`). ⚠️ 다른 `propose_*`/`audit_*`류와 같은 원칙 -- 아무것도 자동으로 안 고친다(찾기만).
     ⚠️ `m_cascode()`가 찾는 lo/up 관계에 안 걸리는 방향 오류(예: 둘 다 CASCODE도 DIODE도
     아닌 CURRENT_SOURCE류 두 소자 중 어느 쪽이 진짜 자유도인가, nmcnr_amplifier가 처음에
     `M104`를 자유변수로 잘못 뒀던 것과 같은 유형)는 KCL 자유도 개수를 세는 별도 분석이
     필요해 이 함수 범위 밖이다.
 
-    검사하지 않는 것: `analog-grammar`를 못 불러오면 조용히 빈 리스트를 반환한다(실제로
-    검사해서 문제가 없는 것과 애초에 검사를 못한 것이 반환값만으로는 구분되지 않는다).
-    `m_cascode()`가 찾는 lo/up 관계에 안 걸리는 방향 오류(위 CURRENT_SOURCE류 자유도 선택
+    검사하지 않는 것: `m_cascode()`가 찾는 lo/up 관계에 안 걸리는 방향 오류(위 CURRENT_SOURCE류 자유도 선택
     문제)는 이 함수의 검사 범위 밖이다.
     영역: dc, ac_struct
     """
     netclass_mod, idioms_mod = _import_analog_grammar("netclass", "idioms")
-    if netclass_mod is None or idioms_mod is None:
-        return []
     devs = _to_analog_grammar_devs(transistors)
     if not devs:
         return []
     matches = find_idiom_matches(transistors, inputs, outputs, feedbacks, biases, clocks)
-    if matches is None:
-        return []
 
     findings = []
     for theta in (sizing_roles or {}).get("theta") or []:
@@ -3512,8 +3498,8 @@ def propose_theta_kcl_gap_fill(transistors: list, matching_pairs_meta: list,
 
     반환: `{"theta_proposals": [{"name",...,"bounds","feeds","intended_role_type",
     "_comment"}, ...], "review_needed": [{"device"|"devices", "reason"}, ...],
-    "unresolved_devices": [...]}` -- analog-grammar를 못 불러오면 전부 빈 값 +
-    `unavailable_reason`."""
+    "unresolved_devices": [...]}` -- analog-grammar를 못 불러오면 `ImportError`를
+    던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그)."""
     netclass_mod, idioms_mod = _import_analog_grammar("netclass", "idioms")
     if netclass_mod is None or idioms_mod is None:
         return {"theta_proposals": [], "review_needed": [], "unresolved_devices": [],
@@ -3918,8 +3904,8 @@ def propose_device_roles_gap_fill(transistors: list, device_roles: dict, matchin
     없는 소자만 새로 다루면 되는 gap이었다), review_needed에는 판단을 요구하는 미확정
     항목이 아니라 이 근거를 투명하게 남기는 정보성 기록만 남긴다.
 
-    analog-grammar가 없으면(`refine_differential_and_mirror_relations()`가 의존) 빈 제안 +
-    `unavailable_reason`을 반환한다.
+    analog-grammar가 없으면(`refine_differential_and_mirror_relations()`가 의존)
+    `ImportError`를 던진다 (`… is None` 분기는 도달 불가 -- 삭제는 B26-1/B35/백로그).
 
     **5번째 소스(2026-08-20 세션40 신설) -- `vds_match_vgs_of` 자동 제안**: `compensation.
     stage_devices` 소속 Y의 gate net이 다른 소자 X의 drain net과 같고 X.source==Y.source면
