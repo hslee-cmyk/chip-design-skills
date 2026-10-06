@@ -518,7 +518,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 
 | ID | 파일 | 책임 | 대표 대상 |
 |---|---|---|---|
-| MOD1 | `gmid_lut.py` | LUT 인터페이스·보간·역산·곡선 검사·보간 오차 | `GmIdLUT`, `SemiEmpiricalGmIdLUT`, `_multilinear_interp`, `_multilinear_interp_point_multi`, `_solve_vgs`, `lut_conditions_from_npz`, gmb 유도(`∂ID/∂VSB`) |
+| MOD1 | `gmid_lut.py` | LUT 인터페이스·보간·역산·곡선 검사·보간 오차 | `GmIdLUT`, `SemiEmpiricalGmIdLUT`, `_multilinear_interp`, `_multilinear_interp_point_multi`, `_QUERY_CACHE_MAX`, `_solve_vgs`, `lut_conditions_from_npz`, gmb 유도(`∂ID/∂VSB`) |
 | MOD2 | `topology_authoring.py` | topology·spec 로딩, 스키마·단위·참조·선언 순서 게이트, 구조 제안 | `validate_metric_units`, `metric_unit_scale`, `validate_no_legacy_vs_key`, `rail_declaration`(전원 선언 접근자, B26-1). load_topology와 validate_theta_declaration_order는 MOD3 구조 유도 함수를, require_declared_spec_source는 MOD3 spec_fingerprint를 불러 계층상 MOD3에 둔다(Phase 3 design 30 §6.2) |
 | MOD3 | `circuit_state_graph.py` | S0 지문, S1 구조 유도(개념당 정본), S1v, 결합 블록, topology 로딩(구조 자동채움을 부르므로) | `is_diode_connected`, `true_current_mirror_groups`, `l_sharing_classes`, `l_class_owners`, `vgs_alias_map`, `_kcl_and_matching_edges`, `trace_*_branches`, `propagate_topology_forced_currents`, `signal_path_nodes`, `find_hub_merge_candidates`, `spec_fingerprint`, `require_declared_spec_source`, `load_topology`, `validate_theta_declaration_order` |
 | MOD4 | `gmid_sizing_engine.py` | 소자 사이징, DC 해석(W 티어·순환 블록·봉인), 달성가능성·DOF, 보상 레지스트리, theta feed | `size_transistor`, `feasible_gm_ids`, `measure_L_knee`, `_hr_*`, `solve_diode_connected_vds`, `solve_stacked_diode_pair`, `_metric_nulling_resistor_ohm`, `topology_library.py` 보상식. theta feed 처리 함수는 여기 두되 적용 함수 apply_theta_feed와 feed 레지스트리는 metric을 부르는 처리기 때문에 Phase 3 동안 MOD5(Phase 3 design 30 §6.2) |
