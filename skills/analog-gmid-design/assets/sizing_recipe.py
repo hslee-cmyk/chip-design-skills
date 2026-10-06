@@ -6507,9 +6507,8 @@ def resolve_stack_layout(transistors: list, matching_pairs: list, device_roles: 
     3. declared가 통째로 비어있는 회로(예: `folded_cascode.topology.json` -- 실측 확인
        됨, `device_roles` 키 자체가 없음) -- `refine_differential_and_mirror_relations()`
        의 `vertical_stack_id_candidates`(analog-grammar 기반 제안)로 폴백.
-    4. analog-grammar 자체가 없어 candidates도 `None`이면 `geometry_colocation_union()`
-       (레거시 자동 추론)으로 최종 폴백 -- 이 함수가 아예 없던 회로/환경에서도 완전한
-       하위호환을 보장한다.
+    4. candidates가 `None`이면(도달 불가 -- analog-grammar가 없으면 `ImportError`)
+       `geometry_colocation_union()`(레거시 자동 추론)으로 최종 폴백한다.
 
     ⚠️ **2026-08-10 신설, 2026-08-11(세션28 후반부) `derive_horizontal_stack_groups()`로
     교체**: 2번(declared)/3번(candidates) 둘 다 최종 반환 전에
