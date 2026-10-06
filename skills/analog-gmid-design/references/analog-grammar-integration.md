@@ -92,10 +92,10 @@ import-time에 sys.path를 건드리지 않는다 — 호출 시점에 **optiona
 def classify_device_roles(transistors: list, inputs=(), outputs=(),
                             feedbacks=(), biases=(), clocks=()) -> dict | None:
     """analog-grammar skill(netclass.py)을 이용해 gate/source/drain 연결성만으로
-    device role을 배정한다. analog-grammar가 sys.path에 없으면(다른 skill이라 설치
-    여부가 이 스크립트 실행 환경에 좌우됨) None을 반환한다 — 호출자는 None이면 이
-    보강 기능 없이 기존 동작(role=None)으로 폴백해야 한다. 절대 예외를 삼키고 조용히
-    "판정 없음"으로 넘어가지 않는다 — ImportError만 잡고 다른 예외는 그대로 던진다."""
+    device role을 배정한다. analog-grammar를 import하지 못하면(설치 안 됨·경로 다름) skill
+    이름 `analog-grammar`와 탐색 경로를 적은 `ImportError`를 원래 예외에 이어(`from`) 던진다
+    (B34 -- 예전의 'None 반환 후 기존 동작으로 폴백'은 사이징 입력을 조용히 바꿔서 없앴다).
+    gate가 있는 소자가 없는 입력만 None이다."""
     import sys, os
     _ag_path = os.path.join(os.path.dirname(__file__), "..", "..", "analog-grammar", "assets")
     _ag_path = os.path.normpath(_ag_path)
@@ -103,8 +103,8 @@ def classify_device_roles(transistors: list, inputs=(), outputs=(),
         sys.path.insert(0, _ag_path)
     try:
         from netclass import classify_nets, assign_roles
-    except ImportError:
-        return None
+    except ImportError as e:
+        raise ImportError(f"analog-grammar skill을 import할 수 없다(탐색 경로 {_ag_path})") from e
 
     devs = _to_analog_grammar_devs(transistors)
     if not devs:
@@ -116,7 +116,8 @@ def classify_device_roles(transistors: list, inputs=(), outputs=(),
 `analog-gmid-design/assets`에서 `../../analog-grammar/assets`로의 상대경로는 두
 skill이 같은 저장소의 `skills/` 최상위에 나란히 있다는 전제(현재 실제 구조와 일치)에
 의존한다 — 저장소 밖에서 `analog-gmid-design/assets`만 따로 복사해 쓰는 경우엔
-자동으로 `None`이 되어 조용히 하위호환 경로로 빠진다(의도된 동작).
+skill 이름과 탐색 경로를 적은 `ImportError`로 멈춘다(B34 -- 예전에는 조용히 `None`이 되어
+하위호환 경로로 빠졌다). 설치본에서는 `install.py`가 `analog-grammar`도 함께 설치해야 한다.
 
 ## 4. 어댑터: `Transistor` → analog-grammar `devs` dict
 
@@ -183,9 +184,9 @@ def find_idiom_matches(transistors: list, inputs=(), outputs=(), feedbacks=(),
     (resolve_overlaps())는 Stage 4(계층 축약/보고용 요약)를 위한 것이지 matching-pair
     후보 생성과는 무관하다 — 예를 들어 current-reuse-pair(priority 9)가 그 아래
     differential-pair 2개를 흡수해도, 실제 W/L 매칭이 필요한 단위는 여전히 원래의
-    두 쌍(M1a/M1b, M4a/M4b)이지 4소자 뭉치가 아니다. analog-grammar가 sys.path에
-    없으면 None(호출자는 find_matching_candidates(transistors, idiom_matches=None)으로
-    폴백)."""
+    두 쌍(M1a/M1b, M4a/M4b)이지 4소자 뭉치가 아니다. analog-grammar를 import하지
+    못하면 `ImportError`(B34). gate가 있는 소자가 없는 입력이면 None(호출자는
+    find_matching_candidates(transistors, idiom_matches=None)으로 폴백)."""
     import sys, os
     _ag_path = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..",
                                                 "analog-grammar", "assets"))
@@ -194,8 +195,8 @@ def find_idiom_matches(transistors: list, inputs=(), outputs=(), feedbacks=(),
     try:
         from netclass import classify_nets, assign_roles
         from idioms import match_all
-    except ImportError:
-        return None
+    except ImportError as e:
+        raise ImportError(f"analog-grammar skill을 import할 수 없다(탐색 경로 {_ag_path})") from e
 
     devs = _to_analog_grammar_devs(transistors)
     if not devs:
@@ -437,10 +438,10 @@ analog-grammar가 도출할 수 없다 — 매핑 대상이 아니다.
    example()` fixture 재사용 — `idiom_matches=None`이면 옛 동작 그대로, `find_idiom_
    matches()` 결과를 넘기면 M11/MN이 `differential-pair` Match에 아예 안 잡히는지
    확인(둘 다 role=DIODE_CONNECTED라 `m_diffpair()`의 AMP 요구를 애초에 통과 못함).
-4. **analog-grammar 부재 시 폴백**: `sys.path`에서 `analog-grammar/assets`를 일부러
-   빼고 `find_idiom_matches()`가 `None`을 반환하는지, 그 `None`을 그대로
-   `find_matching_candidates(transistors, idiom_matches=None)`에 넘겼을 때 기존
-   동작과 동일한지 확인.
+4. **analog-grammar 부재 시 `ImportError`**(B34가 옛 '부재 시 None 폴백' 계획을 대체): `sys.modules`에
+   `netclass`·`idioms`를 `None`으로 두어 부재를 흉내 내고, 공개 진입점이 skill 이름 `analog-grammar`·
+   탐색 경로·원래 예외(`__cause__`)를 담은 `ImportError`를 내는지 확인(spec card
+   `20260930-b34-grammar-explicit` 계약 1~3).
 5. **캐스코드 대칭쌍 재현**(`find_stacked_matching_candidates()`, §6.3 선택지 4):
    `current_reuse_telescopic_ota` 실제 connectivity로 `find_idiom_matches()`가 낸
    `differential-pair`(M1a/M1b, M4a/M4b)를 `base_pairs`로, `netclass.stack_edges()`
