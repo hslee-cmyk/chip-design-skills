@@ -68,6 +68,7 @@ TLEF_PATH = r"C:\pdk\sky130_fd_sc_hd\tech\sky130_fd_sc_hd.tlef"   # MANUFACTURIN
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOD_SPICE = os.path.join(PDK_ROOT, "models", "parameters", "lod.spice")
 EXISTING_LUT = os.path.join(OUTPUT_DIR, "sky130_nfet_pfet_lut_sample.npz")   # candidates의 '기존 앵커' 출처
+L_GRID_JSON = os.path.join(OUTPUT_DIR, "sky130_lut_L_grid.json")   # 기본 L 입력(사용자 승인 목록, 출처는 파일 안)
 
 # ---------------------------------------------------------------------------
 # 격자 (L은 입력에서 받는다 -- 위 docstring)
@@ -418,8 +419,10 @@ def run_device(devcell: str, polarity: int, vb_sign: int, cfg: dict):
 # --------------------------------------------------------------------------- L 입력
 def read_l_list(l_json=None, l_um=None):
     """L 목록(um)과 출처. `--l-json`: 리스트 또는 {"L_um": [...]} json. `--l-um`: 쉼표 목록."""
-    if (l_json is None) == (l_um is None):
-        raise SystemExit("--l-json 과 --l-um 중 정확히 하나를 준다")
+    if l_json is not None and l_um is not None:
+        raise SystemExit("--l-json 과 --l-um 중 하나만 준다")
+    if l_json is None and l_um is None:
+        l_json = L_GRID_JSON   # 기본: 승인된 L 목록 파일
     if l_json is not None:
         d = json.load(open(l_json, encoding="utf-8"))
         vals = d["L_um"] if isinstance(d, dict) else d
@@ -617,6 +620,12 @@ def candidates(a):
            "decision_input": {"discontinuous_um": a.discontinuous_um, "tol_v": a.tol_v},
            "VS_axis": vs_arr.tolist(), "probes": probes, "candidates_um": cand, "origin": origin,
            "verification_midpoints_um_two_point_bins": mids, "bins_at_w_ref": bins_c}
+    if os.path.exists(a.compare_json):   # 승인 목록 파일과 대조(모델 파일에서 같은 목록이 다시 나오는지)
+        ref = json.load(open(a.compare_json, encoding="utf-8"))
+        res["compare"] = {"file": os.path.abspath(a.compare_json), "sha256": _sha256(a.compare_json),
+                          "L_um_equal": [round(x, 9) for x in ref["L_um"]] == cand,
+                          "midpoints_equal": [round(x, 9) for x in ref.get("verification_midpoints_um", [])] == mids}
+        print(f"compare {a.compare_json}: {res['compare']}")
     with open(a.out, "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1)
     print(f"candidates ({len(cand)}): {cand}")
@@ -712,7 +721,8 @@ def main(argv=None):
     ap = argparse.ArgumentParser(description="sky130 기준 폭 gm/ID LUT 생성기")
     sub = ap.add_subparsers(dest="cmd", required=True)
     s = sub.add_parser("sweep", help="LUT 생성")
-    s.add_argument("--l-json", default=None, help='L 목록 json(리스트 또는 {"L_um": [...]})')
+    s.add_argument("--l-json", default=None,
+                   help='L 목록 json(리스트 또는 {"L_um": [...]}); --l-um도 없으면 기본 sky130_lut_L_grid.json')
     s.add_argument("--l-um", default=None, help="L 목록(um, 쉼표)")
     s.add_argument("--out", required=True, help="산출 npz 경로")
     s.add_argument("--work", required=True, help="임시 넷리스트·체크포인트·진행 로그 경로")
@@ -729,6 +739,7 @@ def main(argv=None):
     c.add_argument("--work", required=True)
     c.add_argument("--out", required=True)
     c.add_argument("--existing-npz", default=EXISTING_LUT)
+    c.add_argument("--compare-json", default=L_GRID_JSON, help="후보·중점을 대조할 L 목록 파일(기본 승인 목록)")
     c.add_argument("--devices", default="nfet_01v8,pfet_01v8")
     c.add_argument("--vs-max", type=float, default=None)
     c.add_argument("--tlef", default=TLEF_PATH)

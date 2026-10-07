@@ -1,0 +1,5 @@
+{
+ "L_um": [0.15, 0.18, 0.185, 0.2, 0.25, 0.255, 0.3, 0.35, 0.425, 0.5, 0.7, 1.0, 1.5, 2.0, 2.5, 4.0, 8.0, 20.0],
+ "verification_midpoints_um": [0.165, 6.0, 14.0],
+ "provenance": "user_decisions.md 2026-10-07 '2는 승인해.' -- 18점 L 격자(기존 12 앵커 + bin lmin 0.18·2·8·20 + 불연속 경계 0.18·0.25의 위 bin 끝점 0.185·0.255) + 2점 bin 검증 전용 중점(LUT 축 아님). 근거 wt/_drafts/engine/lut_regen_plan.md K1·K1b·K2'. sky130_lut_sweep.py candidates --l-max-um 20 --discontinuous-um 0.18,0.25 가 모델 파일에서 같은 목록을 다시 낸다."
+}
