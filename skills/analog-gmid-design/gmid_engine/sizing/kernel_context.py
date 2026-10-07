@@ -5,10 +5,11 @@ WP-23 (3) 루프 불변 입력은 컨텍스트에, 설계 3.1).
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
 `dc_rails` -> `dc_struct_colour`(구조 색) -> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부) -> `dc_scc_order` ->
-`dc_theta_schema`(값 선언 저항). 계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은
+`dc_theta_schema`(값 선언 저항, engine 수동소자 -- DEC-92). 계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은
 그대로 전파된다(탐색 전 정지).
 * `lut.w_keys` 에 S1 MOS kind 가 모두 있어야 하고 그 (kind, w_key) 슬라이스가 LUT 에 있어야 한다(`ValueError`).
 * 노드 목표 넷은 S1 노드여야 한다(`ValueError` -- spec 로더가 이미 거부하는 경우라 계약 위반).
+* `inputs.engine_elements` 이름은 S1 원소여야 한다(`ValueError`, 같은 이유). 그중 수동소자만 `dc_theta_schema` 로 간다.
 """
 from gmid_engine.authoring import INPUT_DIRECTION
 from gmid_engine.core import fp_of
@@ -60,6 +61,9 @@ def build_kernel_context(s1graph, inputs, lut):
     unknown = sorted(set(targets) - nodes)
     if unknown:
         raise ValueError("build_kernel_context: 노드 목표 넷이 S1 노드가 아니다 " + repr(unknown))
+    stray = sorted(set(inputs.engine_elements) - set(classes))
+    if stray:
+        raise ValueError("build_kernel_context: engine 원소가 S1 원소가 아니다 " + repr(stray))
     values = dict(inputs.element_values)
     sources = tuple((n, values.get(n)) for n in sorted(classes)
                     if classes[n] == ELEMENT_SOURCE and kinds[n] == CURRENT_SOURCE)
@@ -73,7 +77,8 @@ def build_kernel_context(s1graph, inputs, lut):
     base = dc_current_basis(base, sources)
     base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None)
     base = dc_scc_order(base)
-    base = dc_theta_schema(base, tuple(n for n, _v in resistors))
+    engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)
+    base = dc_theta_schema(base, tuple(n for n, _v in resistors), engine_passives)
     fixed = dict(targets)
     if inputs.input_dc_v is not None:
         for net, direction in s1graph.column("node", "port_direction"):

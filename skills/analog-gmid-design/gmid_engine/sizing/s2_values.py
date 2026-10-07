@@ -16,6 +16,7 @@ DC_KEY = "dc"                                          # S2 dc graph 레코드�
 
 # ---- 원소 kind 어휘(스키마 낱말) -- graph 가 공개하지 않는 지원 kind 를 여기서 이름 붙인다
 RESISTOR = "resistor"
+CAPACITOR = "capacitor"
 CURRENT_SOURCE = "current_source"
 LINEAR_REGION = "linear"                               # spec intended_region 의 선형 영역 낱말(봉인 7 제외 대상)
 
@@ -55,8 +56,18 @@ THETA_LN_IDU = "ln_idu"
 THETA_L = "L"
 THETA_Y = "y"
 THETA_CURRENT = "current"
-THETA_RESISTANCE = "resistance"
-THETA_KINDS = (THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE, THETA_Y)
+THETA_RESISTANCE = "resistance"                        # DC 경로 저항(값 미선언) -- dc_columns 가 읽는다
+THETA_CAPACITANCE = "capacitance"                      # [DEC-92] engine 커패시터 -- DC 블록이 읽지 않는다
+THETA_SS_RESISTANCE = "ss_resistance"                  # [DEC-92 (3)(b)] DC 전류 0(잎 가지치기) engine 저항 중 구조 규칙 밖
+THETA_KINDS = (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE, THETA_SS_RESISTANCE, THETA_Y)
+THETA_PASSIVE_KINDS = (THETA_CAPACITANCE, THETA_SS_RESISTANCE)   # 소신호 회로에만 들어가는 θ(DC 반복 밖, DEC-70)
+
+# ---- [DEC-92 (3)] 영점 상쇄 저항 구조 규칙이 R 을 정하지 못한 사유(`ZeroCancel.reason`, None = 구조 규칙으로 정함)
+ZC_NO_CAPACITOR = "network_without_capacitor"          # 저항이 든 수동 망에 커패시터가 없다(RC 영점 망이 아니다)
+ZC_MULTIPLE_RESISTORS = "network_multiple_resistors"   # 망에 저항이 둘 이상 -- 1/Σgm 을 어느 저항에 둘지 정해지지 않는다
+ZC_RESISTOR_END = "resistor_end_not_unique"            # 저항의 두 단자 중 망 경계 넷이 정확히 하나가 아니다
+ZC_NO_CELL = "no_cs_cell"                              # 망이 gate–drain 을 잇는 CS 셀이 없다
+ZC_MIXED_DIRECTION = "cs_cell_direction_mixed"         # 저항 끝 넷이 어떤 셀에는 drain, 다른 셀에는 gate
 
 # ---- 봉인 항목(계획 N3.6 표 순서 -- 항목 번호 = 이 tuple 의 위치 + 1)
 SEAL_ITEM_NAMES = ("node_conflict", "vgs_match", "kcl", "versions", "writer_unique", "bulk_reverse", "saturation",
@@ -160,7 +171,8 @@ class DcInputs:
     """GB7 이 읽는 사람 선언(spec)의 투영. `supplies_v` = ((레일, V), ...) 이름순, `input_dc_v` = 입력 포트 공통 DC(V) 또는
     None(미선언·engine·결정 대기 -> U2 기본안 (a) W4), `node_targets` = ((넷, V), ...) W3, `element_values` =
     ((원소, 값 또는 None), ...) 저항(Ω)·이상 전류원(A), `linear_devices` = 선형 영역 선언 소자(봉인 7 제외),
-    `pending` = 결정 대기로 '미선언' 취급한 칸 ((경로, 결정 ID), ...)."""
+    `pending` = 결정 대기로 '미선언' 취급한 칸 ((경로, 결정 ID), ...), `engine_elements` = spec 값 mode 가 `engine` 인 원소
+    이름(정렬) -- 그중 수동소자가 DEC-92 θ 연속 성분·구조 규칙 대상이다(결정 대기 원소는 들지 않는다)."""
 
     supplies_v: tuple
     input_dc_v: object = None
@@ -168,6 +180,7 @@ class DcInputs:
     element_values: tuple = ()
     linear_devices: tuple = ()
     pending: tuple = ()
+    engine_elements: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -269,11 +282,27 @@ class SccEntry:
 class ThetaSchema:
     """θ 성분 목록 ((kind, key), ...) 정렬 -- 설계 3.1 5. DOF 표. `current_cone` = θ 전류 정의역: MOS 마다
     (MOS, (CurrentTerm, ...)) -- 그 MOS 전류 = Σ (num/den)·(θ 전류 또는 고정값) 이 > 0 이어야 한다(KCL 기저에서 유도,
-    `fixed` = 그 식이 읽는 값 선언 이상원 ((원소, A), ...)). 기저 원소 자신이 MOS 면 그 행은 θ_I > 0 상자 하한이 된다."""
+    `fixed` = 그 식이 읽는 값 선언 이상원 ((원소, A), ...)). 기저 원소 자신이 MOS 면 그 행은 θ_I > 0 상자 하한이 된다.
+    `zero_cancel` = DC 전류 0(잎 가지치기) engine 저항마다 `ZeroCancel`(이름순) -- reason None 이면 θ 가 아니라 봉인 스냅샷
+    gm 의 파생값(DEC-92 (3)(a)), 아니면 `ss_resistance` θ 성분(DEC-92 (3)(b))."""
 
     components: tuple
     current_cone: tuple = ()
     fixed: tuple = ()
+    zero_cancel: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class ZeroCancel:
+    """DEC-92 (3) 영점 상쇄 저항 구조 규칙의 판정 하나(연결만으로, θ 무관). `resistor` = 저항, `end_net` = 저항 단자 중 수동
+    망 경계 넷(없거나 둘이면 None), `far_nets` = 망의 나머지 경계 넷(정렬), `cells` = S(이름순 -- source 가 교류접지이고
+    {gate, drain} 이 {end_net, far_net 하나} 인 MOS), `reason` = None(R = 1/Σ_{c∈S} gm_c) 또는 `ZC_*` 사유(θ 폴백)."""
+
+    resistor: str
+    end_net: object
+    far_nets: tuple
+    cells: tuple
+    reason: object = None
 
 
 @dataclasses.dataclass(frozen=True)

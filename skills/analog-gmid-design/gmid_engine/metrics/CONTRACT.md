@@ -466,13 +466,21 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 - 면적: `area_search(GateArea(op.W, op.L) MOS 마다, PassiveArea(이름, 값) 값 있는 수동소자 -- 단위 면적 None)`.
 - `detail` = counted_rails, kcl_residual_amp, passive_area_undeclared, passive_value_missing, per_rail_amp((레일 넷, A), ...) 키 정렬.
 
-### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), passive_theta=()) -> SsEvaluation`
+### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=()) -> SsEvaluation`
+- **[r5 2026-10-08, DEC-92 / 7.9 Q5 해결] 인자 `passive_theta` 삭제**: engine 보상 수동소자 값은 이제 sizing θ 스키마 성분
+  (`capacitance`·`ss_resistance`, sizing CONTRACT 4.4 r5)이라 θ 에서 읽는다(값의 출처 하나). 6번째 위치 인자를 넘기던 호출은 TypeError.
 - `sealed` 가 `SealedSnapshot` 아님 -> TypeError(DEC-67). `ctx` 가 `KernelContext` 아님 -> TypeError. θ = `check_theta(ctx.schema, ...)`.
-- passive_values = spec 값(`ctx.inputs.element_values` 중 S1 수동소자, 값 None 제외) ∪ θ `resistance` ∪ `passive_theta`. 이름이
-  S1 수동소자가 아니거나 같은 소자 값이 두 출처면 ValueError. 정렬 tuple.
+- passive_values = spec 값(`ctx.inputs.element_values` 중 S1 수동소자, 값 None 제외) ∪ θ `resistance` ∪ [r5] θ `capacitance`·
+  `ss_resistance`(sizing `THETA_PASSIVE_KINDS`) ∪ [r5] **영점 상쇄 구조 규칙 값**: `ctx.schema.zero_cancel` 중 reason None 인 항목마다
+  (resistor, 1/Σ_{c∈cells} gm_c), gm_c = 이 호출이 쓴 `ss_dev` 필드의 `SsDevice.gm`(7.2 -- gm 정의 하나). 이름이 S1 수동소자가
+  아니거나 같은 소자 값이 두 출처면 ValueError(스키마가 S1·spec 에서 나오므로 정상 경로에서는 생기지 않는 계약 위반 표지). 정렬 tuple.
+  어느 출처에도 없는 수동소자(spec mode pending 등)는 그대로 `missing` -> `passive_value_undeclared`(7.4 (2)).
 - requests = constraints 의 (metric, view) 중 metric 이 None 아닌 것, 중복 제거·문서 순서. view_kind 가 있는 것만 `metrics_ss` 로.
-- 순서 `ss_dev(sealed.snapshot, ctx.lut)` -> `metrics_ss(..., ss_requests, passive_values)` -> `metrics_dc(..., passive_values,
-  tuple(counted_rails))`. `ss`·`dc` = 그 필드 값, `lineage` = 7.1.
+- 순서 `ss_dev(sealed.snapshot, ctx.lut)` -> (passive_values -- 구조 규칙이 gm 을 읽으므로 ss_dev 뒤) -> `metrics_ss(..., ss_requests,
+  passive_values)` -> `metrics_dc(..., passive_values, tuple(counted_rails))`. `ss`·`dc` = 그 필드 값, `lineage` = 7.1.
+- [r5] θ `capacitance`·`ss_resistance` 성분만 바꾼 θ' 로 `size_and_seal(ctx, θ', parent=res.lineage)` -> dc 블록 computes 0(sizing 7절
+  r5), 이어 `ss_evaluate(그 결과 sealed, ctx, θ', ...)` -> `ss_dev` reuse(dc_op 불변), `metrics_ss`·`metrics_dc` 각 computes 1
+  (수동 값이 입력). 구조 규칙 값은 gm 의 함수라 dc_op 가 같으면 같다.
 - 재사용: `ss_evaluate(res.lineage.sealed, 같은 인자)` -> 세 블록 computes 0·reuses 3, 결과 `snapshot is res.snapshot`.
   `size_and_seal(ctx, θ', parent=res.lineage)` 뒤 `ss_evaluate` -> dc_op 가 바뀌었으면 세 블록 재계산(바뀌지 않은 소자 LUT 조회는
   memo 적중), `recomputes_same_input` 0. 필드가 없는 lineage(예: `size_and_seal` 의 `ev.sealed`)에서 다시 부르면 다시 계산한다
@@ -491,7 +499,10 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 | S-7 | `ss_dev` 의 gm·gds·gmb·용량 = test 쪽이 `dc_op` 와 lut 공개 함수로 같은 식을 계산한 값 |
 | S-8 | 넷 이름 전단사 뒤 metric 값 같음(I-7 확장 -- 노드 인덱스는 이름 정렬 위치뿐) |
 | S-9 | `metrics_dc`: 2레일 회로 per_rail 합 = kcl_residual(≈ 0), `power_dc_w` = Σ V_k I_k |
-| S-10 | `ss_evaluate` 에 `SealedSnapshot` 아닌 값(`DcEvaluation` 등) -> TypeError, `passive_theta` 가 spec 값 있는 소자 -> ValueError |
+| S-10 | `ss_evaluate` 에 `SealedSnapshot` 아닌 값(`DcEvaluation` 등) -> TypeError. [r5] `passive_theta` 인자 없음(6번째 위치 인자 -> TypeError) |
+| S-11 | [r5] spec mode engine 커패시터는 θ `capacitance` 로 값이 들어가 소신호 요청이 값을 갖는다(같은 값을 spec 에 선언한 회로와 metric 값 같음) |
+| S-12 | [r5] 구조 규칙 저항(`zero_cancel` reason None) 값 = 1/Σ_{c∈cells} `ss_dev[c].gm` -- 같은 값을 spec 에 선언한 회로와 metric 값 같음 |
+| S-13 | [r5] θ `capacitance`·`ss_resistance` 만 바꾼 FD: dc 블록 computes 0, `ss_dev` reuse, `metrics_ss`·`metrics_dc` computes 1, `gain_ss_db`(용량 무관 DC 이득) 불변 |
 
 ### 7.8 9회로 시연 (2026-10-08, master 798f29c 병합 뒤 LUT v2(`resolve_lut_location`), 작성자 측 실측 -- 정본 아님)
 
@@ -516,7 +527,7 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
 | Q2 | 봉인 7 대기 동안 `SealedSnapshot` 0 | **결정: DEC-67 타입 게이트 유지, 잠정 경로 없음**. 봉인 7 은 LUT r6 VDSAT 로 배선 중(ng-seal7) |
 | Q3 | DEC-91 접합 용량 cdb·csb | **결정: 명시 대기 유지**(0 + `junction_model`). 의존: core `pdk_decl` 에 PDK 모델 카드 접합 파라미터(CJ·CJSW·MJ·MJSW·PB) 선언 -- 오케스트레이터가 따로 일정. 선언이 생기면 `junction_caps` 블록(DM 3.6) |
 | Q4 | DEC-78 합산 레일 | **결정: `power_dc_w` = 선언된 모든 공급 레일 합(7.5), `supply_current_dc` 는 spec 선택 선언 `counted_rails` 가 생길 때까지 `counted_rails_undeclared`**. spec 형식 항목(authoring 몫)으로 기록 |
-| Q5 | 보상 수동소자 θ(DEC-92) | **결정: sizing θ 스키마에 둔다**. 의존 기록 -- 그때까지 `passive_theta` 인자, 없으면 정의 불가 |
+| Q5 | 보상 수동소자 θ(DEC-92) | **결정: sizing θ 스키마에 둔다**. [r5 해결 2026-10-08] sizing r5 가 θ `capacitance`·`ss_resistance` 와 `zero_cancel` 을 두어 `passive_theta` 인자를 지웠다(7.6). 4회로(ngcc·nmcnr·two_stage·two_stage_sf) 봉인 점에서 GBW·PM 측정됨 -- sizing CONTRACT 10.3. 어긋나게 된 기존 test: `tests/metrics/test_ss_evaluate.py::test_s10_passive_theta_conflicts_rejected[4]`·`::test_passive_theta_supplies_engine_value`(test 작성자가 S-10~S-13 으로 갱신) |
 | Q6 | 용량 LUT VS 축 밖 | **해소: LUT r6(VS 0~1.8 V)**. 축 밖이면 여전히 후보 실패(설계 2.4) |
 | Q7 | LUT v2 용량은 부호 보존(음수 점 있음) -- 옛 1절 `MosSmallSignal` 용량 ≥ 0 과 충돌(nmcnr 실측 cgb −2.03e-16 F) | **결정 (a)**: 1절 용량을 '부호 있는 유한 실수'로(NaN·inf 만 거부), 부호 그대로 스탬프 -- SPICE 오라클과 같은 정의. 계약과 어긋나게 된 기존 test: `tests/metrics/test_records.py::test_mos_negative_value_error[cgs|cgd|cgb|cdb|csb]`(test 작성자가 계약에서 갱신, gm·gmb·gds 행은 그대로 유효) |
 
