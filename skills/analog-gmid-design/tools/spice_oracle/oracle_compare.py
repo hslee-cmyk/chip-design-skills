@@ -10,7 +10,12 @@
 
 공개 함수: compare(inp, meta, sim, judge) -> dict, to_markdown(result) -> str, merge_judge(inp_judge, file_judge, sat_margin)
 
-판정 설정(judge) -- 이 파일은 숫자 기본값을 갖지 않는다. 키가 없으면 그 항목은 "N/A(tol 미설정)".
+합격 판정(summary.verdict, 사용자 확정 2026-10-07) -- free 모드에서만:
+  PASS = acceptance 선언 제약 전부 만족 + ID > 0(off_current_A 가 있으면 그 값 초과)인 전 MOS 가 VDS-VDSAT >= sat_margin_V.
+  FAIL = 제약 불만족 또는 포화 아닌 전도 MOS. INCOMPLETE = sat_margin_V 미설정 또는 SPICE 로 못 잰 제약. BLOCKED = 막힘.
+  forced 모드는 진단용: verdict 는 막힘이 없으면 INCOMPLETE, 소자 ID·gm 차이가 허용오차를 넘으면 summary.warnings.
+  노드전압·소자 op·성능의 예측-SPICE 차이와 아래 judge 값은 기록만 한다(verdict 무관).
+판정 설정(judge) -- 이 파일은 숫자 기본값을 갖지 않는다. 키가 없으면 그 기록 항목은 "N/A(tol 미설정)".
   tolerances: ID_rel, VGS_abs_V, VDS_abs_V, VSB_abs_V, gm_rel, gds_rel, gm_id_rel, node_abs_V, W_rel,
               kcl_abs_A, dc_gain_db_abs, pm_deg_abs, ugf_hz_rel, f3db_hz_rel, supply_current_A_rel
   sat_margin_V: 포화 판정 VDS >= VDSAT + sat_margin_V. 없으면 영역 판정 N/A(여유 값은 보고).
@@ -22,6 +27,7 @@
 """
 import argparse
 import json
+import os
 import sys
 
 # measure -> (오차 종류, tolerance 키)
@@ -154,7 +160,7 @@ def compare(inp, meta, sim, judge):
     for c in (inp.get("acceptance") or {}).get("constraints") or []:
         sv = measure_value(c["measure"], sim, c)
         if sv is None or c.get("limit") is None:
-            ok = "N/A"
+            ok = "N/A(SPICE 값 없음)"
         elif c["op"] == ">=":
             ok = "PASS" if sv >= c["limit"] else "FAIL"
         elif c["op"] == "<=":
@@ -167,21 +173,53 @@ def compare(inp, meta, sim, judge):
     for net, i in sorted((sim.get("hold_current_A") or {}).items(), key=lambda kv: -abs(kv[1] or 0)):
         kcl.append({"net": net, "hold_current_A": i, "judge": judge_err(i, tol.get("kcl_abs_A"))})
 
-    verdicts = []
+    # ---- 기록용 비교 집계(verdict 무관) ----
+    recs = []
     for r in rows:
-        verdicts += list(r["judge"].values())
-    verdicts += [x["judge"] for x in node_rows if not x["held_by_testbench"]]
-    verdicts += [x["judge"] for x in perf] + [x["judge"] for x in cons] + [x["judge"] for x in kcl]
+        recs += list(r["judge"].values())
+    recs += [x["judge"] for x in node_rows if not x["held_by_testbench"]]
+    recs += [x["judge"] for x in perf] + [x["judge"] for x in kcl]
+    rec_cnt = {"PASS": recs.count("PASS"), "FAIL": recs.count("FAIL"),
+               "N/A": sum(1 for v in recs if v not in ("PASS", "FAIL"))}
     blockers = list(meta.get("blockers") or [])
-    if not sim.get("op_ok"):
+    if not sim.get("op_ok") and not sim.get("skipped"):
         blockers.append("ngspice .op 결과 없음: " + " | ".join(sim.get("log_errors") or [])[:600])
-    cnt = {"PASS": verdicts.count("PASS"), "FAIL": verdicts.count("FAIL"),
-           "N/A": sum(1 for v in verdicts if v not in ("PASS", "FAIL"))}
-    if blockers or cnt["FAIL"]:
-        verdict = "FAIL" if cnt["FAIL"] else "BLOCKED"
+    loop = sim.get("loop")
+    if loop is not None and not loop.get("measures"):
+        blockers.append("β 루프 측정 결과 없음(루프 넷리스트): " + " | ".join(loop.get("log_errors") or [])[:600])
+
+    # ---- 합격 판정(사용자 확정 2026-10-07): free 모드 = 선언 제약 만족 + 전도 MOS 전부 포화 ----
+    conducting = [r for r in rows if r["ID_spice"] is not None and r["ID_spice"] > (off_i if off_i is not None else 0)]
+    unsat = None if margin is None else [r["name"] for r in conducting
+                                         if r["sat_margin_spice_V"] is None or r["sat_margin_spice_V"] < margin]
+    cons_fail = [c.get("name") or c["measure"] for c in cons if c["judge"] == "FAIL"]
+    cons_na = [c.get("name") or c["measure"] for c in cons if c["judge"] not in ("PASS", "FAIL")]
+    warnings = []
+    if meta["bias"] == "forced":
+        for r in rows:
+            for key, tkey in (("ID_rel", "ID_rel"), ("gm_rel", "gm_rel")):
+                t = tol.get(tkey)
+                if t is not None and r[key] is not None and abs(r[key]) > t:
+                    warnings.append(f"{r['name']}: {key} {r[key]:+.3g} 가 허용오차 {t:g} 를 넘는다")
+    if blockers:
+        verdict, why = "BLOCKED", "막힘이 있어 합격 판정을 하지 않는다"
+    elif meta["bias"] != "free":
+        verdict, why = "INCOMPLETE", "forced 는 진단 모드 -- 합격 판정은 free 모드에서만 한다"
+    elif cons_fail or unsat:
+        verdict = "FAIL"
+        why = "; ".join(x for x in (f"선언 제약 불만족 {cons_fail}" if cons_fail else "",
+                                     f"포화 아닌 전도 MOS {unsat}" if unsat else "") if x)
+    elif margin is None or cons_na:
+        verdict = "INCOMPLETE"
+        why = "; ".join(x for x in ("sat_margin_V 미설정 -- 포화 조건 판정 불가" if margin is None else "",
+                                     f"SPICE 로 값을 못 얻은 제약 {cons_na}" if cons_na else "") if x)
     else:
-        verdict = "PASS" if cnt["N/A"] == 0 else "INCOMPLETE"
-    summary = {"verdict": verdict, "counts": cnt, "devices": len(rows),
+        verdict, why = "PASS", "선언 제약 전부 만족, 전도 MOS 전부 포화"
+    summary = {"verdict": verdict, "verdict_reason": why, "warnings": warnings,
+               "acceptance": {"constraints_failed": cons_fail, "constraints_unmeasured": cons_na,
+                              "conducting_devices": len(conducting), "unsaturated_conducting": unsat,
+                              "sat_margin_V": margin, "off_current_A": off_i},
+               "record_counts": rec_cnt, "devices": len(rows),
                "sat_in_spice": None if margin is None else sum(1 for r in rows if r["region_spice"] == "sat"),
                "not_sat": None if margin is None else [r["name"] for r in rows if r["region_spice"] != "sat"],
                "spice_ac": sim.get("ac"), "rail_current_A": sim.get("rail_current_A")}
@@ -201,8 +239,12 @@ def _f(v, f="{:.4g}"):
 
 def to_markdown(res):
     s = res["summary"]
-    L = [f"### {res['circuit']} -- 엔진 예측 vs SPICE (bias={res['bias']})",
-         f"- 판정: **{s['verdict']}** (PASS {s['counts']['PASS']}, FAIL {s['counts']['FAIL']}, N/A {s['counts']['N/A']})",
+    L = [f"### {res['circuit']} -- 엔진 예측 vs SPICE (bias={res['bias']})"]
+    for w in s.get("warnings") or []:
+        L.append(f"- **경고(forced)**: {w}")
+    rc = s["record_counts"]
+    L += [f"- 판정: **{s['verdict']}** -- {s['verdict_reason']}",
+         f"- 기록용 비교(판정 무관): 허용오차 안 {rc['PASS']}, 밖 {rc['FAIL']}, N/A {rc['N/A']}",
          f"- 모델 코너/온도(LUT npz 메타): {res['lut_meta'].get('corner')}, {res['lut_meta'].get('temp_c')} C",
          f"- 판정 설정: {json.dumps(res['judge_config'], ensure_ascii=False)}",
          (f"- SPICE 포화 소자 {s['sat_in_spice']}/{s['devices']}, 포화 아님: {', '.join(s['not_sat']) or '-'}"
@@ -220,6 +262,8 @@ def to_markdown(res):
                  f"{_f(p['err'], '{:+.3g}') if p['err_kind'] == 'abs' else _f(p['err'], '{:+.1%}')} | {p['judge']} |")
     L.append(f"| (참고) dc_gain_db / UGF Hz / PM deg / f-3dB Hz | | {_f(ac.get('dc_gain_db'))} / {_f(ac.get('ugf_hz'))} / "
              f"{_f(ac.get('pm_deg'))} / {_f(ac.get('f3db_hz'))} | | |")
+    L.append(f"| (참고) PM 정의 {ac.get('pm_definition')}: 루프 이득 기준점 dB / 루프 UGF Hz / 개루프 A 의 PM deg | | "
+             f"{_f(ac.get('loop_gain_dc_db'))} / {_f(ac.get('loop_ugf_hz'))} / {_f(ac.get('pm_open_loop_deg'))} | | |")
     for c in res["constraints"]:
         L.append(f"| 제약 {c.get('name', '')}: {c['measure']} {c['op']} {_f(c.get('limit'))} | | {_f(c['spice'])} | | {c['judge']} |")
     if res["kcl_residual"]:
@@ -252,6 +296,14 @@ def main(argv=None):
     a = ap.parse_args(argv)
     with open(a.oracle_input, encoding="utf-8") as f:
         inp = json.load(f)
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    from oracle_netlist import validate_input
+    errs = validate_input(inp)
+    if errs:
+        print("입력이 oracle_input.schema.json 위반 -- 거부(비교표를 쓰지 않음):")
+        for e in errs:
+            print("  ", e)
+        return 2
     with open(a.netlist + ".meta.json", encoding="utf-8") as f:
         meta = json.load(f)
     with open(a.sim_json, encoding="utf-8") as f:
@@ -265,7 +317,7 @@ def main(argv=None):
         json.dump(res, f, ensure_ascii=False, indent=1)
     with open(a.out_prefix + ".compare.md", "w", encoding="utf-8") as f:
         f.write(to_markdown(res))
-    print("verdict:", res["summary"]["verdict"], res["summary"]["counts"])
+    print("verdict:", res["summary"]["verdict"], "--", res["summary"]["verdict_reason"])
     return 0
 
 

@@ -414,6 +414,9 @@ def convert(dump, w_source, isrc, testbench, topology_path=None, instance_path=N
         top = sorted(spreads.items(), key=lambda kv: -kv[1])[:6]
         warnings.append("게이트 넷 예측 전압의 소자간 불일치(VGS 투표 폭, V): " + ", ".join(f"{k}={v:.3g}" for k, v in top))
 
+    # β 되먹임망: 입력 포트 넷에 단자가 물린 수동소자(연결성으로 정한다 -- 옛 엔진 metric 은 이를 부하로 쓴다)
+    in_nets = {ports[k] for k in ("input_p", "input_n", "input") if k in ports}
+    feedback = [p["name"] for p in passives if set(p["terminals"]) & in_nets]
     return {
         "schema": "spice_oracle_input/1",
         "circuit": key,
@@ -423,6 +426,7 @@ def convert(dump, w_source, isrc, testbench, topology_path=None, instance_path=N
         "sources": sources,
         "passives": passives,
         "bias_voltages": [],
+        "feedback_passives": feedback,
         "ports": ports,
         "predictions": {"nodes": node_pred, "devices": pdev, "metrics": metrics},
         "acceptance": {"constraints": cons, "not_measurable": not_meas},
