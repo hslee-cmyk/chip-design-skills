@@ -34,7 +34,7 @@ def port_declaration(doc, rails, known_nets):
                (SchemaHit("ports_type", PORTS_KEY, "ports 는 객체(넷 -> 선언)여야 한다: " + type(declared).__name__),))
     hits = []
     ports = []
-    for net in sorted(declared):
+    for net in declared:
         if net.startswith(COMMENT_PREFIX):
             continue
         entry = declared[net]
@@ -43,7 +43,7 @@ def port_declaration(doc, rails, known_nets):
             hits.append(SchemaHit("port_entry_type", where, "포트 선언이 객체가 아니다: " + type(entry).__name__, (net,)))
             continue
         before = len(hits)
-        for key in sorted(entry):
+        for key in entry:
             if not key.startswith(COMMENT_PREFIX) and key not in PORT_KEYS:
                 hits.append(SchemaHit("port_unknown_key", where + "." + key,
                                       "포트 선언 키 " + repr(key) + " 는 받지 않는다(" + repr(PORT_KEYS) + " 만)", (net,)))
@@ -66,4 +66,4 @@ def port_declaration(doc, rails, known_nets):
             hits.append(SchemaHit(rule, PORTS_KEY, "유효한 " + direction + " 포트가 하나도 없다(기본 전달 뷰에 필요)"))
     if hits:
         reject("ports", PORTS_KEY, hits)
-    return tuple(ports)
+    return tuple(sorted(ports, key=lambda p: p.net))

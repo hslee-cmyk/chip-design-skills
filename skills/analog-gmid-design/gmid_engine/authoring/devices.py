@@ -37,7 +37,7 @@ def device_declaration(doc):
             continue
         label = raw.get("name") if isinstance(raw.get("name"), str) else where
         bad = False
-        for key in sorted(raw):
+        for key in raw:
             if not key.startswith(COMMENT_PREFIX) and key not in DEVICE_KEYS:
                 hits.append(SchemaHit("element_unknown_key", where + "." + key,
                                       "netlist 원소 키 " + repr(key) + " 는 받지 않는다(연결 키 " + repr(DEVICE_KEYS)

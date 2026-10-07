@@ -32,7 +32,7 @@ def two_terminal_elements(raw, key, value_keys, ignored_keys, make):
             continue
         label = item.get("name") if isinstance(item.get("name"), str) else where
         before = len(hits)
-        for k in sorted(item):
+        for k in item:
             if not k.startswith(COMMENT_PREFIX) and k not in allowed:
                 hits.append(SchemaHit("element_unknown_key", where + "." + k,
                                       key + " 원소 키 " + repr(k) + " 는 받지 않는다(받는 키 " + repr(sorted(allowed)) + ")",
