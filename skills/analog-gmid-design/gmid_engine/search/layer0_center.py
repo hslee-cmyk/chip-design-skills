@@ -352,8 +352,38 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     """S-4b: 상자 중심이 받아들일 상태가 아니면 Halton 열(소수 기저, 스크램블 없음, index 1 부터)의 k 번째 점을 변수 자연 좌표
     (bounds 위 선형 = ln 변수는 ln 좌표)에 놓아 순서대로 평가하고, 처음 받아들일 상태인 점에서 멈춘다. 한도 = 평가 예산 규칙
     (`_budget_stop`: kernel_calls ≥ E_B 또는 벽시계). 벽시계(deadline)가 없을 때만 시험 점 수 ≤ E_B 를 더한다 -- 원뿔 밖 점은
-    커널 0 이라 커널 수만으로는 끝나지 않는다. 둘 다 없으면 시험하지 않는다(`probe_budget_undeclared`)."""
-    bases = _primes(len(variables))
+    커널 0 이라 커널 수만으로는 끝나지 않는다. 둘 다 없으면 시험하지 않는다(`probe_budget_undeclared`).
+
+    θ 전류(원뿔이 있을 때): 상자에서 독립으로 뽑지 않고 **상자 ∩ 원뿔 다면체 안 hit-and-run**(선형 전류 좌표)으로 옮긴다
+    (오케스트레이터 결정 2026-10-08) -- 출발 = 전류 중심(`theta0`, 원뿔 안). 시험 k 마다 방향 d_j = 2·φ − 1(전류 변수 j 의 Halton
+    좌표), 현재 점 p 에서 상자·원뿔 행(Σ w·I + 고정 > 0)이 허용하는 열린 현 (t_lo, t_hi) 위 t = t_lo + φ_s·(t_hi − t_lo)(φ_s =
+    마지막 Halton 좌표)로 한 걸음, 새 p 가 다음 시험의 출발(사슬). 받아들이지 못한 점도 사슬은 이어간다(원뿔 안이므로). 다른
+    변수는 위 Halton 좌표 그대로. 전류 중심이 원뿔 밖이면 전류도 상자 Halton(원뿔 밖 점은 커널 0)."""
+    schema = sctx.dc.schema
+    cur = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
+    inside = bool(cur) and bool(schema.current_cone) and all(
+        r.c > 0 for r in cone_rows(schema, tuple(sorted(theta0.items()))))
+    bases = _primes(len(variables) + (1 if inside else 0))
+    walk = None
+    if inside:
+        names = [variables[i].component[1] for i in cur]
+        col = {name: j for j, name in enumerate(names)}
+        fixed = {name: float(v) for name, v in schema.fixed}
+        rows_a, rows_f = [], []
+        for _m, terms in schema.current_cone:
+            a = np.zeros(len(cur))
+            f = 0.0
+            for t in terms:
+                if t.source in col:
+                    a[col[t.source]] += float(t.num) / t.den
+                else:
+                    f += float(t.num) / t.den * fixed[t.source]
+            rows_a.append(a)
+            rows_f.append(f)
+        rows_a, rows_f = np.asarray(rows_a), np.asarray(rows_f)
+        box_lo = np.asarray([math.exp(variables[i].lo) for i in cur])
+        box_hi = np.asarray([math.exp(variables[i].hi) for i in cur])
+        walk = np.asarray([theta0[variables[i].component] for i in cur], dtype=float)
     tried = 0
     while True:
         stop = _budget_stop(sctx)
@@ -365,10 +395,28 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
             if tried >= sctx.eval_budget:
                 return None, tried, "probe_eval_budget"
         tried += 1
+        phi = [_radical_inverse(tried, b) for b in bases]
         theta = dict(theta0)
-        for var, base in zip(variables, bases):
-            value = var.lo + _radical_inverse(tried, base) * (var.hi - var.lo)
+        for i, var in enumerate(variables):
+            value = var.lo + phi[i] * (var.hi - var.lo)
             theta[var.component] = math.exp(value) if var.log else value
+        if walk is not None:
+            d = np.asarray([2 * phi[i] - 1 for i in cur])
+            t_lo, t_hi = -math.inf, math.inf
+            for j in range(len(cur)):
+                if d[j]:
+                    a, b = (box_lo[j] - walk[j]) / d[j], (box_hi[j] - walk[j]) / d[j]
+                    t_lo, t_hi = max(t_lo, min(a, b)), min(t_hi, max(a, b))
+            slope, level = rows_a @ d, rows_a @ walk + rows_f
+            for s, lv in zip(slope, level):
+                if s > 0:
+                    t_lo = max(t_lo, -lv / s)
+                elif s < 0:
+                    t_hi = min(t_hi, -lv / s)
+            if t_lo < t_hi:
+                walk = walk + (t_lo + phi[-1] * (t_hi - t_lo)) * d
+            for j, i in enumerate(cur):
+                theta[variables[i].component] = float(min(max(walk[j], box_lo[j]), box_hi[j]))
         res = evaluate(sctx, theta, cells, origin=tag + (("probe", tried),))
         if res.status in ACCEPTED_STATUSES:
             return res, tried, None

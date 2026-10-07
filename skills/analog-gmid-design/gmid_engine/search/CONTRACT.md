@@ -29,6 +29,7 @@
   (경성 W 하한·반전 하한·원뿔). 새 파일 `layer0_center.py`(3.21), `start_points` 에 선택 인자 `layer0`(3.12), `find_front` 가
   층 0 을 먼저 부르고 notes 의 `layer0_inputs_missing`(막힘) 을 층 0 결과 기록으로 바꿨다(3.16). 9절 S-4 를 다시 썼다
   (입력 = 봉인 margin + θ 상자 + 경성 행; GB3·GB4·knee·GB5 근사식은 최소형 밖 정밀화). 9회로 실측 10.0000.
+  **[r5b]** Halton 시험의 θ 전류를 상자 ∩ 원뿔 안 hit-and-run 으로(3.21 3, I-18), sf·current_reuse 실패 분류표(10.0000).
 
 ### r4 덮어쓰기 요약 (아래 본문보다 우선)
 - `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, junction=None)`: `junction` = metrics `JunctionSource`
@@ -212,7 +213,11 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 3. **출발점 평가** `evaluate(sctx, θ, cells, origin = origin + (("stage", "layer0"),))`(`start_status` = 그 상태, `start_failure` =
    그 레코드). 받아들일 상태가 아니면 [r5, S-4b] **Halton 시험**: 변수 i(1 의 순서)에 i 번째 소수 기저, 시험 k = 1, 2, … 의 점
    x_i = lo_i + φ_{b_i}(k)·(hi_i − lo_i)(φ = 근기 역순(radical inverse), 스크램블 없음; ln 변수는 ln 좌표라 ln 균등), 나머지 θ
-   (전류 중심을 거친 θ 의 고정 성분)·cells 는 그대로. k 마다 시험 전 한도: `_budget_stop`(kernel_calls ≥ E_B 또는 벽시계 -> stop 접미
+   (전류 중심을 거친 θ 의 고정 성분)·cells 는 그대로. [r5b] **θ 전류는 원뿔 안 hit-and-run**(전류 중심이 원뿔 안이고 θ 전류·원뿔
+   행이 있을 때): 기저 수 = 변수 수 + 1(마지막 소수 = 걸음 비율 φ_s). 선형 전류 좌표의 점 p(처음 = 전류 중심)에서 방향
+   d_j = 2·φ_{b_j}(k) − 1(전류 변수 j), 열린 현 (t_lo, t_hi) = 상자 [e^lo, e^hi] 와 원뿔 행 Σ w·(p + t·d) + 고정 > 0 의 교집합,
+   t_lo < t_hi 면 p ← p + (t_lo + φ_s·(t_hi − t_lo))·d(아니면 p 그대로), θ 전류 = p(상자로 자름). p 는 받아들임과 무관하게 다음
+   시험으로 이어진다(사슬). 전류 중심이 원뿔 밖이면 전류도 위 상자 Halton. k 마다 시험 전 한도: `_budget_stop`(kernel_calls ≥ E_B 또는 벽시계 -> stop 접미
    `probe_eval_budget`·`probe_wall_budget`), deadline 이 None 일 때만: E_B 도 None 이면 `probe_budget_undeclared`, 시험 수 ≥ E_B 면
    `probe_eval_budget`(원뿔 밖 점은 커널 0 이라 커널 수만으로 끝나지 않는다 -- deadline 이 있으면 벽시계가 끝을 보장한다). `evaluate(..., origin = tag + (("probe", k),))`, 처음
    받아들일 상태인 점에서 멈추고 그 점이 4 의 출발점(`origin_point` "halton:<k>", `probes` = k). 없으면 start None, stop =
@@ -366,7 +371,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 | I-13 | [r5] `layer0_start` 의 start 가 있으면 그 θ 의 평가는 받아들일 상태이고, 이어 `start_points(sctx, (), (start,))` 는 커널 0(캐시 적중)으로 그 점을 첫 시작점(source "layer0")으로 돌려준다 |
 | I-14 | [r5] 원뿔의 모든 행이 항 하나(계수 1)이고 그 원천이 행 MOS 와 같은 kind 의 MOS 이면 전류 중심 = 상자 중심(u = 0) -- θ 전류 값이 상자 기하 중심과 같다(다른 kind 원천 행이 있으면 두 kind 상자 중심 차만큼 u > 0: 9회로 u = 4.28 ~ 4.83) |
 | I-15 | [r5] 같은 sctx 입력으로 두 번(새 컨텍스트) 부르면 같은 start θ·t(결정론, `PYTHONHASHSEED` 무관) |
-| I-17 | [r5] Halton 시험 점 k 의 좌표 = lo + φ_b(k)(hi − lo)(b = 변수 순서의 소수 2, 3, 5, …): toy 커널이 처음 k* 번째 점만 받아들이면 `probes` = k*, `origin_point` = "halton:k*", 최대-최소 전까지 커널 평가 수 ≤ 1(중심) + k*(원뿔 밖 점은 0) |
+| I-18 | [r5b] 원뿔이 있고 전류 중심이 원뿔 안이면 Halton 시험 점은 모두 원뿔 안(`counters["outside_domain"]` 증가 0, 부동소수 경계 반올림 제외) -- 선형 원뿔·상자의 열린 현 안 걸음 |
+| I-17 | [r5] Halton 시험 점 k 의 좌표 = lo + φ_b(k)(hi − lo)(b = 변수 순서의 소수 2, 3, 5, …; θ 전류는 I-18 의 걸음): toy 커널이 처음 k* 번째 점만 받아들이면 `probes` = k*, `origin_point` = "halton:k*", 최대-최소 전까지 커널 평가 수 ≤ 1(중심) + k*(원뿔 밖 점은 0) |
 | I-16 | [r5] 층 0 은 spec 성능 제약·목적 축 값을 읽지 않는다: spec judged 제약을 바꿔도(`judged_constraints`·`ss_constraints`) start θ 가 같다 |
 
 ## 6. S3 기록 형식 (`<root>/<context_fp>/`, 줄마다 flush)
@@ -419,8 +425,10 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
     -- LR5 'kind 별 knee' 를 공정 성질로 유지할지, (Q7) GB5 근사식의 topology 무관 정의(DEC-92 (2), 회로별 함수 금지).
   - **S-4b (처리 -- 오케스트레이터 결정 2026-10-08)** 출발점(상자 중심 + 전류 중심)이 받아들일 상태가 아니면 Halton 시험(3.21 3)
     으로 첫 받아들일 점을 찾고 거기서 최대-최소. 연속 1단계(봉인 위반 margin 으로 끌어오기)는 두지 않는다 -- 위반 점에는 경성 행이
-    없고 ④ 실패에는 margin 이 없다(클래스가 다른 margin 혼합 금지). **남은 열린 항목**: current_reuse·sf_pushpull 은 600 s 안에 받아들일
-    점 없음(10.0000) -- current_reuse 는 θ 전류 22개를 독립 표본하면 시험의 97 % 가 원뿔 밖이다(원뿔 안 표본 규칙이 없다).
+    없고 ④ 실패에는 margin 이 없다(클래스가 다른 margin 혼합 금지). [r5b] θ 전류는 원뿔 안 hit-and-run 으로 뽑는다(원뿔 밖 0).
+    **남은 열린 항목**(10.0000 r5b): current_reuse·sf_pushpull 은 600 s 안에 받아들일 점 없음 -- sf 는 9 노드 다변수 SCC 의
+    Gauss-Seidel 비수렴(sizing O10·O11, 구조적), current_reuse 는 1변수 노드 창 근 없음(봉인 7 단계 `no_root_in_window`)이 여러 writer 에 걸쳐
+    판정 미정(구조인지 표본인지 가르지 못함).
   - **S-4c (기록 -- 의미 한정)** 상자 중심은 전류 상자(꺼짐 전류 ~ 단일 finger 최대 ID)의 기하 중심이라 pA 대 전류·약반전 점이고,
     Halton 점은 W 가 m~Gm 급일 수 있다. 근본 원인 = W·면적 상한 미선언(S-3b, 오케스트레이터가 사용자 선언 요청 중). 층 0 시작점은
     **DC 정합 가능성만** 뜻하며(`Layer0Result` docstring, find_front notes `meaning "feasibility_only"`) 탐색은 출발 근거 이상으로 쓰지
@@ -486,6 +494,22 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   점, 커널 3,289). current_reuse·sf_pushpull 은 600 s 안에 받아들일 점이 없다: current_reuse 는 시험의 97 % 가 원뿔 밖(θ 전류 22개를
   상자에서 독립으로 뽑으면 차 전류 행이 거의 늘 음), 커널 평가 4,296 은 모두 실패; sf 는 원뿔 밖 0 인데 커널 1,249 모두 실패.
   둘 다 θ 저항 상자가 시연 전용 값이다.
+- **[r5b] 원뿔 안 hit-and-run 재측정**(같은 조건, 세 회로):
+
+  | 회로 | stop | Halton 시험 | kernel = 고유 키 | 원뿔 밖 | 실패 분류(커널 평가 중) | 실패 소자 상위 | wall(s) |
+  |---|---|---|---|---|---|---|---|
+  | current_reuse | `..+probe_wall_budget`, 시작점 없음 | 6,338 | 6,339 | **0**(r5: 97 %) | `no_root_in_window`(봉인 7 단계) 6,338, `lut_axis_out_of_range`(중심, tol_V VDS) 1 | M66 2,670, M14b 1,532, M24b 903, M36a 376, M36b 325, M39 264 | 600.1 |
+  | sf_pushpull | `..+probe_wall_budget`, 시작점 없음 | 1,166 | 1,167 | 0 | NONCONVERGENT 924(79 %), `lut_curve_undefined` 142(VDS = 0 -- 대부분 M20), `lut_target_out_of_range` 60, `no_root_in_window` 41 | NONCONVERGENT 는 매번 같은 SCC 16소자(M1·M5·M6·M9·M10·M12~M22) | 600.6 |
+  | nmcnr | converged, 시작점 있음(halton:1872, t 0.94) | 1,872 | 1,909 | 0 | `no_root_in_window` 992, `lut_target_out_of_range` 563, VDS 축 밖 191, NONCONVERGENT 75, `lut_curve_undefined` 48 | M203 798, M201 326, M105 302, M103 256, M301 232 | 146.3 |
+
+  - sf 진단(150 s 별도 실행): NONCONVERGENT 210건 모두 **같은 9 노드 SCC**(N13·N5·N12·N1·N1516·N910·Y·N20·N17), K_max 12, 마지막 두
+    Δ 비 중앙값 1.00(p10 0.76) -- Gauss-Seidel 이 수축하지 않는다(Δ 0.4~0.9 V 대 tol 0.73 mV). 표본과 무관하게 같은 SCC 에서 일어나므로
+    **구조적(다변수 SCC 풀이법, sizing O10·O11 '다변수 블록을 Newton·연속법으로 바꿀지는 설계 결정')** 이고 엔진 결함이라 단정할 수
+    없어 코드는 바꾸지 않았다. θ 저항 상자(시연 값)는 SCC 를 만들지 않는다(SCC 는 구조).
+  - current_reuse: 원뿔 밖 문제는 해결됐지만 커널 평가가 모두 1변수 노드 창 근 없음. writer 가 여러 소자(M66·M14b·M24b 등)로 흩어져
+    한 소자 고정 구조(늘 VDS≈0)는 아니다 -- 독립 표본한 ln_idu 와 걸음 전류의 조합이 창을 비우는 것인지(표본) 창 정의의 구조인지 아직
+    가르지 못했다(열린 항목).
+  - 선형 전류 좌표 걸음은 부피상 큰 전류 쪽에 몰린다(nmcnr 시작점 전류 20 µA ~ 2 mA, W 최대 2.6e9 m -- S-3b 상한 미선언).
 - L FD 스텝 = 제조 격자로 바꾼 뒤 L 열 고정 0(r5 초안: 모든 L 고정), L 이 칸 안에서 움직였다(위 'L 움직임' = 칸 중점에서 벗어난 소자
   수 / L 변수 수).
 - 시작점의 모양(S-4c·S-4d, **의미 = DC 정합 가능성뿐**): 상자 중심 출발 회로는 전류 0.4 pA ~ 4.3 nA, gm/ID 26 ~ 33.5(약반전),
