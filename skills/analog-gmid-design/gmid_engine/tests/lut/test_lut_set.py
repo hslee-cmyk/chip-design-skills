@@ -52,6 +52,64 @@ def test_toy_structure(toy):
     assert np.asarray(sl.on_mask).all()
 
 
+# ---------------------------------------------------------------------------
+# [r5] Hermite 보조 필드 (CONTRACT 1.4): vds_slope_ok·fc_ok_vgs·fc_ok_vds·hermite_fc
+# ---------------------------------------------------------------------------
+
+def _check_hermite_fields(sl, z):
+    from .conftest import RefSlice
+    rs = RefSlice(z)
+    nL, nG, nV, nS = (len(g) for g in rs.grids)
+    assert np.asarray(sl.fc_ok_vgs).shape == (nL, nG - 1, nV, nS)
+    assert np.asarray(sl.fc_ok_vds).shape == (nL, nG, nV - 1, nS)
+    for name in ("vds_slope_ok", "fc_ok_vgs", "fc_ok_vds"):
+        arr = getattr(sl, name)
+        assert np.asarray(arr).dtype == np.bool_, name
+        with pytest.raises(ValueError):
+            arr[0, 0, 0, 0] = arr[0, 0, 0, 0]
+    np.testing.assert_array_equal(np.asarray(sl.vds_slope_ok), rs.vds_ok)
+    np.testing.assert_array_equal(np.asarray(sl.fc_ok_vgs), rs.fc_vgs)
+    np.testing.assert_array_equal(np.asarray(sl.fc_ok_vds), rs.fc_vds)
+    assert tuple(sl.hermite_fc) == rs.hermite_fc()
+    return rs
+
+
+@pytest.mark.parametrize("w_key,W,scale", [(100, 1e-6, 1.0), (200, 2e-6, 2.0)])
+def test_r5_toy_hermite_fields(toy, w_key, W, scale):
+    """CONTRACT 7.1: hermite_fc = (("VDS", 18, 0), ("VGS", 24, 0))."""
+    sl = toy.slice_map[("nmos", w_key)]
+    _check_hermite_fields(sl, toy_slice_arrays(W, scale))
+    assert tuple(sl.hermite_fc) == (("VDS", 18, 0), ("VGS", 24, 0))
+    assert np.asarray(sl.fc_ok_vgs).all() and np.asarray(sl.fc_ok_vds).all()
+
+
+def test_r4_toy_hermite_fields_load_not_rejected(r4toy):
+    """CONTRACT 7.2: hermite_fc = (("VDS", 18, 18), ("VGS", 24, 12)) -- 위반이 있어도 로드는 거부하지 않는다."""
+    from .conftest import r4_toy_slice_arrays
+    sl = r4toy.slice_map[("nmos", 100)]
+    _check_hermite_fields(sl, r4_toy_slice_arrays(1e-6))
+    assert tuple(sl.hermite_fc) == (("VDS", 18, 18), ("VGS", 24, 12))
+    fv = np.asarray(sl.fc_ok_vgs)
+    assert not fv[:, 0].any() and fv[:, 1].all()                    # VGS 칸 0 위반, 칸 1 단조
+    assert not np.asarray(sl.fc_ok_vds).any()
+
+
+def test_non_hermite_cells_are_true(toy_build):
+    """Hermite 칸이 아닌 칸(한 끝 기울기 정의 안 됨)은 참. GDS 0 점 -> vds_slope_ok 거짓, 그 VDS 칸은 Hermite 칸 아님."""
+    sl_ = standard_toy_slices()
+    a = sl_[0][2]
+    a["GDS"][0, 1, 0, 0] = 0.0
+    a["ID"][2, 2, 1, 1] = 0.0
+    lut = toy_build(slices=sl_).load()
+    sl = lut.slice_map[("nmos", 100)]
+    rs = _check_hermite_fields(sl, a)
+    assert not bool(np.asarray(sl.vds_slope_ok)[0, 1, 0, 0])
+    assert bool(np.asarray(sl.fc_ok_vds)[0, 1, 0, 0])
+    assert bool(np.asarray(sl.fc_ok_vgs)[2, 1, 1, 1])
+    # 손계산: VDS 칸 18 − (GDS 0 점의 칸 1) − (ID 0 점의 칸 1) = 16, VGS 칸 24 − (ID 0 점 = VGS 끝 마디, 칸 1) = 23
+    assert rs.hermite_fc() == (("VDS", 16, 0), ("VGS", 23, 0))
+
+
 def test_log_floor_is_min_positive_and_on_mask(toy_build):
     sl = standard_toy_slices()
     a = sl[0][2]
@@ -310,6 +368,17 @@ def test_real_load(real_lut, real_slice_files, raw_cap, raw_slice):
         assert rel_close(near, {"nmos": 0.8845524, "pmos": 1.2508113}[kind], 1e-6)
         assert dw < b["nearest_other_rel_diff"] / 2
         assert rel_close(cap.w_ref_m, real_lut.slice_map[(kind, best)].w_m, 1e-12)
+
+
+@pytest.mark.lut_realdata
+def test_real_hermite_fields_all_slices(real_lut, real_slice_files, raw_slice):
+    """[r5] 모든 실 슬라이스의 vds_slope_ok·fc_ok_vgs·fc_ok_vds·hermite_fc = npz 독립 FC 계산(계약 1.4 실측과 대조 기록)."""
+    seen = set()
+    for kind, _, _, wk, _ in real_slice_files:
+        sl = real_lut.slice_map[(kind, wk)]
+        _check_hermite_fields(sl, raw_slice(kind, wk))
+        seen.add(tuple(sl.hermite_fc))
+    assert seen == {(("VDS", 276360, 0), ("VGS", 276480, 0))}
 
 
 # ---------------------------------------------------------------------------

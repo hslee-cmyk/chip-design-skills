@@ -13,8 +13,8 @@ import pytest
 from gmid_engine.core import SealViolationError
 from gmid_engine.lut import caps, gm_id_curve, gm_id_for_target, gmb, op_point, vgs_for_gm_id
 
-from .conftest import (BIN_L, bin_cap_arrays, bin_toy_raw, branch_solve_vgs, detail_of, expected_op, interp4, new_memo,
-                       rel_close, same_bounds, sheet_interp, two_sheet, um)
+from .conftest import (BIN_L, RefSlice, bin_cap_arrays, bin_toy_raw, detail_of, expected_op, interp4, new_memo,
+                       rel_close, same_bounds, sir_ref_b, target_ref, two_sheet, um)
 
 ULP = math.ulp(1e-6)
 
@@ -86,9 +86,12 @@ def test_anchor_value_used_for_l_dependent_outputs(toy_memo):
     L = 1e-6 + ULP
     op = op_point(toy_memo, "nmos", 100, L, 0.5, 0.5, 0.0)
     assert op.IDu == op_point(toy_memo, "nmos", 100, 1e-6, 0.5, 0.5, 0.0).IDu
-    assert rel_close(op.IDu, 1e-6 * 1e-6 / 1e-6, 1e-12)
+    # [r5] r5 toy: ID(1e-6, 0.5, 0.5, 0) = 1e-7·e^(10 − 1.5 + 0.05), IDu = ID·a/w_m
+    assert rel_close(op.IDu, 1e-7 * math.exp(8.55) * 1e-6 / 1e-6, 1e-12)
     r = gm_id_for_target(toy_memo, "nmos", 100, L, 0.5, 0.0, W=2e-6, current=2e-6)
     assert rel_close(r.id_a, 2e-6, 1e-12)
+    r0 = gm_id_for_target(toy_memo, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=2e-6)
+    assert r == r0
 
 
 def test_point_memo_key_shared_within_ulp(toy_memo):
@@ -100,9 +103,10 @@ def test_point_memo_key_shared_within_ulp(toy_memo):
 
 
 def test_no_l_interpolation_anywhere(toy_memo):
-    """앵커 위 값은 그 앵커 한 장만으로 정해진다: L=2e-6 의 IDu 는 이웃 앵커 값과 무관(손계산 ID·L/w = (1/2)·1e-6·2)."""
+    """앵커 위 값은 그 앵커 한 장만으로 정해진다: L=2e-6 의 IDu 는 이웃 앵커 값과 무관
+    ([r5] r5 toy 손계산 ID·L/w = (1/2)·1e-7·e^8.55·2)."""
     op = op_point(toy_memo, "nmos", 100, 2e-6, 0.5, 0.5, 0.0)
-    assert rel_close(op.IDu, 0.5 * 1e-6 * 2e-6 / 1e-6, 1e-12)
+    assert rel_close(op.IDu, 0.5 * 1e-7 * math.exp(8.55) * 2e-6 / 1e-6, 1e-12)
 
 
 @pytest.mark.lut_realdata
@@ -220,17 +224,49 @@ def test_real_edge_anchors(real_memo, raw_slice):
 # [r4] bin toy: 같은 bin 보간 값(npz 두 장 독립 계산)과 bin 경계 거부 -- 모든 조회 진입점
 # ---------------------------------------------------------------------------
 
+def _lw(z, L):
+    """4.0 L 위치(앵커 또는 같은 bin 두 장)의 선형 가중치 -- 가중치 0 인 장은 뺀다."""
+    lo, hi = two_sheet(z["L"], L)
+    Lg = [float(x) for x in z["L"]]
+    if hi >= len(Lg):
+        return ((lo, 1.0),)
+    t = (L - Lg[lo]) / (Lg[hi] - Lg[lo])
+    return tuple((i, w) for i, w in ((lo, 1.0 - t), (hi, t)) if w != 0.0)
+
+
 def exp_curve(z, L, vds, vs):
-    lI = [sheet_interp(z, "ID", L, float(v), vds, vs) for v in z["VGS"]]
-    lG = [sheet_interp(z, "GM", L, float(v), vds, vs) for v in z["VGS"]]
-    return np.exp(lI), np.exp(np.asarray(lG) - np.asarray(lI))
+    """[r5] 곡선 마디 기대값(4.2: V_a·S_a·cell_ok) + 마디 두 경로 차 상한(dV, dS)."""
+    rs = RefSlice(z)
+    Lw = _lw(z, L)
+    V, S, ok = rs.curve(Lw, vds, vs)
+    dV, dS = rs.curve_err(Lw, vds, vs)
+    return V, S, ok, dV, dS
 
 
 def exp_gmb(z, L, vgs, vds, vs):
-    VS = list(z["VS"])
+    """[r5] gmb = −ID(점)·(ln IDu(VS[k+1]) − ln IDu(VS[k]))/ΔVS, ln ID 는 4.2 축별 보간(RefSlice)."""
+    rs = RefSlice(z)
+    Lw = _lw(z, L)
+    VS = list(rs.grids[3])
     k = min(bisect.bisect_right(VS, vs) - 1, len(VS) - 2)
-    d = sheet_interp(z, "ID", L, vgs, vds, VS[k + 1]) - sheet_interp(z, "ID", L, vgs, vds, VS[k])
-    return -math.exp(sheet_interp(z, "ID", L, vgs, vds, vs)) * d / (VS[k + 1] - VS[k])
+    d = rs.op(Lw, L, vgs, vds, VS[k + 1])["lnID"] - rs.op(Lw, L, vgs, vds, VS[k])["lnID"]
+    return -math.exp(rs.op(Lw, L, vgs, vds, vs)["lnID"]) * d / (VS[k + 1] - VS[k])
+
+
+def check_root_in_bin(memo, wk, z, L, vds, vs, target):
+    """[r5] vgs_for_gm_id 기대: 독립 칸 선택(3절) -- 칸 단조 위반이면 lut_hermite_nonmonotone_cell, 해 없음이면
+    lut_no_strong_inversion_root, 그 밖은 독립 Hermite 근과 유도 상한(conftest) 안에서 같다."""
+    V, S, ok, dV, dS = exp_curve(z, L, vds, vs)
+    st, v, rb = sir_ref_b(z["VGS"], V, S, target, ok, dV=dV, dS=dS)
+    if st == "ok":
+        got = vgs_for_gm_id(memo, "nmos", wk, target, L, vds, vs)
+        assert abs(got - v) <= rb, (L, target, got, v, rb)
+        return got
+    with pytest.raises(SealViolationError) as ei:
+        vgs_for_gm_id(memo, "nmos", wk, target, L, vds, vs)
+    assert detail_of(ei.value)["reason"] == {"nonmono": "lut_hermite_nonmonotone_cell",
+                                             "none": "lut_no_strong_inversion_root"}[st]
+    return None
 
 
 def exp_caps(cap, L, vgs, vds, vs, W):
@@ -241,19 +277,27 @@ def exp_caps(cap, L, vgs, vds, vs, W):
     return cgg, cgd
 
 
-def exp_target_current(z, L, vds, vs, W):
-    """4절 표 gm_id_for_target(current) 독립 구현. 목표 = Q[p]·Q[p+1] 기하 평균(분지 첫 칸 안)."""
-    ids, g = exp_curve(z, L, vds, vs)
+def check_target_in_bin(memo, wk, z, L, vds, vs, W):
+    """[r5] gm_id_for_target(current) 기대: 목표 = Q[p]·Q[p+1] 기하 평균(분지 첫 칸 안). 독립 target_ref 가
+    칸 단조 위반이면 그 사유로 실패, 그 밖은 근 차·왕복 차 ≤ 유도 상한, gm_id·id_a = 그 vgs 의 독립 op 값."""
+    V, S, ok, dV, dS = exp_curve(z, L, vds, vs)
     w = float(z["W"])
-    Q = ids * W / w
-    p = int(np.argmax(g))
+    Q = np.exp(V) * W / w
+    p = int(np.argmax(S))
     T = math.sqrt(Q[p] * Q[p + 1])
-    VG = [float(v) for v in z["VGS"]]
-    i = p
-    vgs = VG[i] + (math.log(T) - math.log(Q[i])) / (math.log(Q[i + 1]) - math.log(Q[i])) * (VG[i + 1] - VG[i])
-    op = expected_op(z, L, vgs, vds, vs)
-    id_a = op["IDu"] * W / L
-    return T, vgs, op["gm_over_id"], id_a
+    res = target_ref(z["VGS"], V, S, ok, w, W, "current", T, with_bound=True, dV=dV, dS=dS)
+    if res[0] != "ok":
+        with pytest.raises(SealViolationError) as ei:
+            gm_id_for_target(memo, "nmos", wk, L, vds, vs, W=W, current=T)
+        assert detail_of(ei.value)["reason"] == res[0]
+        return None
+    _, vgs, rb, tb = res
+    r = gm_id_for_target(memo, "nmos", wk, L, vds, vs, W=W, current=T)
+    assert abs(r.vgs - vgs) <= rb, (L, r.vgs, vgs, rb)
+    assert abs(math.log(r.id_a) - math.log(T)) <= tb
+    op = op_point(memo, "nmos", wk, L, r.vgs, vds, vs)
+    assert r.gm_id == op.gm_over_id and r.id_a == op.IDu * W / L and r.gm_s == r.gm_id * r.id_a
+    return r
 
 
 IN_BIN_L = (1.25e-6, 1.75e-6, 3.5e-6, 7.5e-6)          # A·A·B·D 안 (같은 bin 양옆 앵커)
@@ -273,22 +317,25 @@ def test_bin_op_point_interpolates_in_bin(bin_memo, L):
 
 
 @pytest.mark.parametrize("L", IN_BIN_L)
-def test_bin_gmb_curve_root_caps_interpolate_in_bin(bin_memo, L):
+def test_bin_gmb_curve_root_caps_interpolate_in_bin(bin_memo, bin_toy_build, L):
     z = bin_toy_raw()
     assert rel_close(gmb(bin_memo, "nmos", 100, L, 0.3, 0.7, 0.2), exp_gmb(z, L, 0.3, 0.7, 0.2), 1e-12)
     c = gm_id_curve(bin_memo, "nmos", 100, L, 0.7, 0.2)
-    ids, g = exp_curve(z, L, 0.7, 0.2)
-    assert np.allclose(np.asarray(c.id_vals), ids, rtol=1e-12, atol=0)
-    assert np.allclose(np.asarray(c.gm_id_vals), g, rtol=1e-12, atol=0)
+    V, S, ok, _, _ = exp_curve(z, L, 0.7, 0.2)
+    assert np.allclose(np.asarray(c.id_vals), np.exp(V), rtol=1e-12, atol=0)
+    assert np.allclose(np.asarray(c.gm_id_vals), S, rtol=1e-12, atol=0)
+    assert tuple(bool(x) for x in c.cell_ok) == ok
     assert tuple(float(v) for v in c.vgs_grid) == tuple(float(v) for v in z["VGS"])
-    v = vgs_for_gm_id(bin_memo, "nmos", 100, 15.0, L, 0.7, 0.2)
-    assert abs(v - branch_solve_vgs(g, z["VGS"], 15.0)) <= 1e-12
-    T, vgs, gmid, id_a = exp_target_current(z, L, 0.7, 0.2, 2e-6)
-    r = gm_id_for_target(bin_memo, "nmos", 100, L, 0.7, 0.2, W=2e-6, current=T)
-    assert abs(r.vgs - vgs) <= 1e-12
-    assert rel_close(r.gm_id, gmid, 1e-11) and rel_close(r.id_a, id_a, 1e-11)
-    assert rel_close(r.id_a, T, 1e-11)                    # lnID 가 VGS 에 선형인 toy: 목표 전류 그대로
-    assert rel_close(r.gm_s, r.gm_id * r.id_a, 1e-14)
+    # [r5] 기본 bin toy 는 r4 toy 의 VGS 자료(칸 0 FC 위반) -- 역산은 독립 칸 선택대로 실패 또는 근
+    check_root_in_bin(bin_memo, 100, z, L, 0.7, 0.2, 15.0)
+    check_target_in_bin(bin_memo, 100, z, L, 0.7, 0.2, 2e-6)
+    # 기울기 자료가 맞는 bin toy: 같은 bin 보간 곡선에서 실제 근(독립 Hermite·유도 상한)
+    zc = bin_toy_raw(consistent=True)
+    mc = new_memo(bin_toy_build("bt_cons", consistent=True).load())
+    _, Sc, _, _, _ = exp_curve(zc, L, 0.7, 0.2)
+    tgt = 0.5 * (float(Sc[1]) + float(Sc[2]))                       # 분지 안 칸 [1, 2] 의 목표
+    assert check_root_in_bin(mc, 100, zc, L, 0.7, 0.2, tgt) is not None
+    assert check_target_in_bin(mc, 100, zc, L, 0.7, 0.2, 2e-6) is not None
     cp = caps(bin_memo, "nmos", L, 0.3, 0.7, 0.2, 3e-6)
     cgg, cgd = exp_caps(bin_cap_arrays(), L, 0.3, 0.7, 0.2, 3e-6)
     assert rel_close(cp.cgg, cgg, 1e-12) and rel_close(cp.cgd, cgd, 1e-12)
@@ -419,10 +466,12 @@ def test_real_in_bin_values(real_memo, real_lut, raw_slice, raw_cap, L):
         assert rel_close(getattr(op, f), v, 1e-11), (L, f)
     assert rel_close(gmb(real_memo, "nmos", 1000, L, 0.9, 0.9, 0.3), exp_gmb(z, L, 0.9, 0.9, 0.3), 1e-10)
     c = gm_id_curve(real_memo, "nmos", 1000, L, 0.9, 0.0)
-    ids, g = exp_curve(z, L, 0.9, 0.0)
-    assert np.allclose(np.asarray(c.id_vals), ids, rtol=1e-11, atol=0)
-    assert np.allclose(np.asarray(c.gm_id_vals), g, rtol=1e-11, atol=0)
-    assert abs(vgs_for_gm_id(real_memo, "nmos", 1000, 8.0, L, 0.9, 0.0) - branch_solve_vgs(g, z["VGS"], 8.0)) <= 1e-11
+    V, S, ok, _, _ = exp_curve(z, L, 0.9, 0.0)
+    fin = np.isfinite(S)
+    assert np.allclose(np.asarray(c.id_vals), np.exp(V), rtol=1e-11, atol=0)
+    assert np.allclose(np.asarray(c.gm_id_vals)[fin], S[fin], rtol=1e-11, atol=0)
+    assert tuple(bool(x) for x in c.cell_ok) == ok
+    assert check_root_in_bin(real_memo, 1000, z, L, 0.9, 0.0, 8.0) is not None
     cp = caps(real_memo, "nmos", L, 0.9, 0.9, 0.0, 5e-6)
     cap = {"L": raw_cap["L"], "VGS": raw_cap["VGS"], "VDS": raw_cap["VDS"], "VS": raw_cap["VS"],
            "CGG_n": raw_cap["CGG_n"], "CGD_n": raw_cap["CGD_n"], "w_ref_m": real_lut.cap_map["nmos"].w_ref_m}
@@ -431,8 +480,12 @@ def test_real_in_bin_values(real_memo, real_lut, raw_slice, raw_cap, L):
 
 
 @pytest.mark.lut_realdata
-def test_real_contract_gm_id_row(real_memo):
-    """CONTRACT 4.0 실측: 0.3875 µm 의 gm/ID 6.6575 는 0.35·0.425 µm 값 6.7234·6.5923 사이."""
+def test_real_contract_gm_id_row(real_memo, raw_slice):
+    """CONTRACT 4.0 실측: 0.35·0.425 µm 값 6.7234·6.5923(격자점 -- r4·r5 같은 저장값), 0.3875 µm 는 그 사이.
+    [r5] 0.3875 µm 값은 r4 실측 6.6575(로그공간 다선형)가 아니라 4.2 정의(VGS 격자점이라 마디 기울기 S = 두 L 장 gm/ID 의
+    선형 가중합) -- 기대값 = 독립 구현(RefSlice)."""
     g = [op_point(real_memo, "nmos", 1000, L, 0.9, 0.9, 0.0).gm_over_id for L in (0.35e-6, 0.3875e-6, 0.425e-6)]
-    assert g[1] == pytest.approx(6.6575, abs=5e-5)
     assert g[0] == pytest.approx(6.7234, abs=5e-5) and g[2] == pytest.approx(6.5923, abs=5e-5)
+    assert g[2] < g[1] < g[0]
+    exp = expected_op(raw_slice("nmos", 1000), 0.3875e-6, 0.9, 0.9, 0.0)["gm_over_id"]
+    assert rel_close(g[1], exp, 1e-11)

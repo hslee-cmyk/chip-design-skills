@@ -30,9 +30,17 @@ def test_lutspec_fields_and_value_semantics():
 
 
 def test_tolvcell_fields():
+    # [r5] 환산 전 값 gm_id_inverse_loo_v·id_equivalent_loo_v 가 뒤에 더해졌다(기본값 None -- 4칸 생성자 호출도 받는다)
     assert [f.name for f in dataclasses.fields(TolVCell)] == [
-        "gm_id_inverse_v", "id_equivalent_v", "n_targets", "n_inverse_failed"]
-    assert TolVCell(None, None, 0, 0) == TolVCell(None, None, 0, 0)
+        "gm_id_inverse_v", "id_equivalent_v", "n_targets", "n_inverse_failed",
+        "gm_id_inverse_loo_v", "id_equivalent_loo_v"]
+    c = TolVCell(None, None, 0, 0)
+    assert c == TolVCell(None, None, 0, 0)
+    assert c.gm_id_inverse_loo_v is None and c.id_equivalent_loo_v is None
+    assert c == TolVCell(None, None, 0, 0, None, None)
+    assert TolVCell(0.1, 0.2, 3, 1, 0.4, 0.8) != TolVCell(0.1, 0.2, 3, 1)
+    assert {f.name: f.default for f in dataclasses.fields(TolVCell)[4:]} == {
+        "gm_id_inverse_loo_v": None, "id_equivalent_loo_v": None}
 
 
 def test_query_results_are_immutable(toy, toy_memo):
