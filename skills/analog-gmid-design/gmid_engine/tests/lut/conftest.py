@@ -1,7 +1,12 @@
 """tests/lut 공용 픽스처 -- lut/CONTRACT.md 만 근거로 만든 입력·독립 계산(피검 조회 함수를 쓰지 않는다).
 
 - toy LUT: CONTRACT 7절 그대로(폭 1e-6·2e-6 슬라이스, 기준 LUT, LutSpec). 로드 거부 test 용으로 배열·manifest 를 바꿔 쓸 수 있다.
-- 실데이터: 폭 슬라이스 manifest(`GMID_LUT_MANIFEST`), 기준 LUT npz(`GMID_LUT_CAP_NPZ`), PDK tech LEF(`GMID_PDK_TLEF`).
+- 실데이터: [r6] 기본 = LUT v2(CONTRACT 1.8 -- 저장소 설정 `assets/lut_v2_location.json` 을 `resolve_lut_location(설정,
+  os.environ)` 으로 풀어 manifest·기준 LUT·검증 중점 파일·pdk_root 를 얻고 `load_lut_set` 에 `pdk_root`·`verify_midpoints` 를 넘긴다).
+  `GMID_LUT_MANIFEST`·`GMID_LUT_CAP_NPZ` 환경 덮어쓰기는 유지. PDK tech LEF(`GMID_PDK_TLEF`).
+  옛 12-L 세트(`old_*` 픽스처, `GMID_LUT_OLD_MANIFEST`·`GMID_LUT_OLD_CAP_NPZ`)와 GMBS·VDSAT 열이 없던 결정 B 이전 v2 슬라이스
+  (`nocol_*` 픽스처, `GMID_LUT_V2_NOCOL_MANIFEST`)는 계약이 여전히 다루는 경로(열 없는 세트 로드·`lut_column_unavailable`·
+  열 출처 "cap_table"·VS 할선 gmb)의 test 에만 쓴다.
   경로가 없으면 skip 이 아니라 명시적 FAIL(데이터가 없어 검증을 못 했다는 사실을 숨기지 않는다). 마커 `lut_realdata`.
 - 독립 경로: npz 를 numpy 로 직접 열어 격자점 값을 꺼내고, 보간·역보간·옛 `_solve_vgs` 규칙은 이 파일에서 따로 구현한다.
 """
@@ -22,7 +27,8 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from gmid_engine.lut import LutMemo, LutSpec, load_lut_set
+from gmid_engine.core import SchemaRejectedError
+from gmid_engine.lut import LutMemo, LutSpec, load_lut_set, resolve_lut_location
 
 HERE = Path(__file__).resolve().parent
 ENGINE_ROOT = HERE.parents[1]                       # .../gmid_engine
@@ -32,8 +38,13 @@ LEGACY_SR = SKILL_DIR / "legacy" / "sizing_recipe.py"
 
 REALDATA_MARKER = "lut_realdata"
 
-_DEFAULT_MANIFEST = r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\engine\lut_slices\manifest.json"
-_DEFAULT_CAP = str(SKILL_DIR / "assets" / "sky130_nfet_pfet_lut_sample.npz")
+# [r6] CONTRACT 1.8 저장소 설정(LUT v2 위치, sha256 고정)
+LOCATION_CONFIG = SKILL_DIR / "assets" / "lut_v2_location.json"
+# 옛 12-L 세트(계약 r6 이 여전히 다루는 '열 없는 세트' 경로 test 용)
+_OLD_MANIFEST = r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\engine\lut_slices\manifest.json"
+_OLD_CAP = str(SKILL_DIR / "assets" / "sky130_nfet_pfet_lut_sample.npz")
+# 결정 B 이전 v2 슬라이스(18 L·VS 10, GMBS·VDSAT 열 없음 -- CONTRACT 4.3 '옛 슬라이스와 쓰면 w_key 1000 만 cap_table')
+_NOCOL_MANIFEST = r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\engine\lut_v2\manifest.json"
 _DEFAULT_TLEF = r"C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef"
 
 # 실데이터 선언(test 쪽 PDK 선언): manifest device 이름 -> kind, kind -> 기준 LUT 열 접미사(기준 npz 의 열 이름 ID_n·CGG_p 등)
@@ -387,6 +398,16 @@ def hermite_der_absterms(y0, y1, m0, m1, h, t):
             + abs(y1 * (-6 * t2 + 6 * t)) + abs(h * m1 * (3 * t2 - 2 * t))) / h
 
 
+def casteljau_der_absterms(y0, y1, m0, m1, h, t):
+    """[r6 유도 보완] 엔진 경로(4.2: Bernstein 제어점 c = (y0, y0 + m0·h/3, y1 − m1·h/3, y1) 의 de Casteljau) 미분의 항 크기 합:
+    p'(x) = 3/h·[(1−t)²(c1 − c0) + 2t(1−t)(c2 − c1) + t²(c3 − c2)] -- 각 차 (c_{i+1} − c_i) 의 반올림은 |c_i| + |c_{i+1}| 에 비례하고
+    t 가 칸 끝이어도 0 이 되지 않는다(기저 형태의 Σ|항| 은 t → 0 에서 y 항이 사라져 이 경로의 오차를 덮지 못한다 -- v2 실데이터
+    pmos 0.7 µm 의 칸 끝 근에서 실측 5.2e-13 > 옛 상한 3.0e-13)."""
+    c0, c1, c2, c3 = abs(y0), abs(y0) + abs(m0) * h / 3, abs(y1) + abs(m1) * h / 3, abs(y1)
+    s = 1 - t
+    return 3.0 / h * (s * s * (c0 + c1) + 2 * t * s * (c1 + c2) + t * t * (c2 + c3))
+
+
 def hermite_val_absterms(y0, y1, m0, m1, h, t):
     """p(x) 계산의 항 크기 합 Σ|항|."""
     t2 = t * t
@@ -424,7 +445,9 @@ def hermite_root_bound(x0, x1, V0, V1, S0, S1, target, root, dV0=0.0, dV1=0.0, d
     """vgs 역산(p'(v) = 목표) 근 차 상한(V) -- 위 유도. residual 기울기 = p''(근)."""
     h = x1 - x0
     t = (root - x0) / h
-    err = 2 * gamma_n() * (hermite_der_absterms(V0, V1, S0, S1, h, t) + abs(target))
+    # 두 경로: 이 파일(기저 형태) + 엔진(de Casteljau, [r6 유도 보완])
+    err = gamma_n() * (hermite_der_absterms(V0, V1, S0, S1, h, t) + casteljau_der_absterms(V0, V1, S0, S1, h, t)
+                       + 2 * abs(target))
     err += node_err_term(h, t, dV0, dV1, dS0, dS1)
     slope = abs(hermite_der2(V0, V1, S0, S1, h, t))
     res = 2 * math.ulp(max(abs(x0), abs(x1)))
@@ -686,7 +709,9 @@ def hermite_residual_bound(x0, x1, V0, V1, S0, S1, target, root):
     (엔진 안에서는 역산과 op_point 가 같은 마디를 쓰므로 마디 차 항이 없다 -- 4.2 '같은 곡면')"""
     h = x1 - x0
     t = (root - x0) / h
-    err = 2 * gamma_n() * (hermite_der_absterms(V0, V1, S0, S1, h, t) + abs(target))
+    # [r6 유도 보완] 두 번의 평가(근 찾기 residual·op_point)는 모두 엔진 경로(de Casteljau) -> 그 항 크기 합으로
+    err = 2 * gamma_n() * (max(hermite_der_absterms(V0, V1, S0, S1, h, t), casteljau_der_absterms(V0, V1, S0, S1, h, t))
+                           + abs(target))
     return err + abs(hermite_der2(V0, V1, S0, S1, h, t)) * 2 * math.ulp(max(abs(x0), abs(x1)))
 
 
@@ -1009,12 +1034,37 @@ def _need(env, default, what):
 
 
 @pytest.fixture(scope="session")
-def real_paths():
+def real_location():
+    """[r6] CONTRACT 1.8 '쓰는 법' 그대로: resolve_lut_location(저장소 설정, os.environ). 실패는 FAIL(skip 아님)."""
+    if not LOCATION_CONFIG.is_file():
+        pytest.fail("LUT v2 위치 설정 없음: %s" % LOCATION_CONFIG, pytrace=False)
+    try:
+        return resolve_lut_location(str(LOCATION_CONFIG), os.environ)
+    except SchemaRejectedError as e:
+        pytest.fail("LUT v2 데이터 위치를 풀지 못함(실데이터 test 는 skip 하지 않는다): %r" % (e.record.detail,),
+                    pytrace=False)
+
+
+@pytest.fixture(scope="session")
+def real_paths(real_location):
+    """[r6] 기본 = LUT v2(설정 파일). GMID_LUT_MANIFEST·GMID_LUT_CAP_NPZ 로 덮어쓸 수 있다(1.8)."""
+    loc = real_location
+    if not loc.midpoints_path:
+        pytest.fail("설정에 verify_midpoints 가 없다: %s" % LOCATION_CONFIG, pytrace=False)
     return {
-        "manifest": _need("GMID_LUT_MANIFEST", _DEFAULT_MANIFEST, "폭 슬라이스 manifest.json"),
-        "cap": _need("GMID_LUT_CAP_NPZ", _DEFAULT_CAP, "기준 LUT npz"),
+        "manifest": _need("GMID_LUT_MANIFEST", loc.manifest_path, "폭 슬라이스 manifest.json"),
+        "cap": _need("GMID_LUT_CAP_NPZ", loc.cap_npz_path, "기준 LUT npz"),
+        "midpoints": loc.midpoints_path,
+        "pdk_root": loc.pdk_root,
         "tlef": _need("GMID_PDK_TLEF", _DEFAULT_TLEF, "PDK tech LEF"),
     }
+
+
+def load_real(paths, spec, **kw):
+    """[r6] 1.8 '쓰는 법': load_lut_set(manifest, cap, spec, pdk_root=, verify_midpoints=). kw 로 덮어쓴다."""
+    args = {"pdk_root": paths.get("pdk_root"), "verify_midpoints": paths.get("midpoints")}
+    args.update(kw)
+    return load_lut_set(paths["manifest"], paths["cap"], spec, **args)
 
 
 def manufacturing_grid_m(tlef_path):
@@ -1058,7 +1108,7 @@ def real_spec(real_paths, real_slice_files):
 
 @pytest.fixture(scope="session")
 def real_lut(real_paths, real_spec):
-    return load_lut_set(real_paths["manifest"], real_paths["cap"], real_spec)
+    return load_real(real_paths, real_spec)
 
 
 @pytest.fixture
@@ -1072,10 +1122,22 @@ def _load_raw(path):
         return {k: np.array(z[k]) for k in z.files}
 
 
-@pytest.fixture(scope="session")
-def raw_slice(real_slice_files):
-    """raw_slice(kind, w_key) -> npz 배열 dict(직접 읽음)."""
-    table = {(k, wk): p for k, _, _, wk, p in real_slice_files}
+def _slice_files(manifest_path, grid):
+    with open(manifest_path, encoding="utf-8") as f:
+        man = json.load(f)
+    dk = dict(REAL_DEVICE_KINDS)
+    base = Path(manifest_path).parent
+    out = []
+    for s in man["slices"]:
+        p = base / s["file"]
+        with np.load(p) as z:
+            W = float(z["W"])
+        out.append((dk[s["device"]], s["device"], W, int(round(W / grid)), str(p)))
+    return sorted(out, key=lambda t: (t[0], t[3]))
+
+
+def _raw_getter(files):
+    table = {(k, wk): p for k, _, _, wk, p in files}
 
     def get(kind, w_key):
         return _load_raw(table[(kind, w_key)])
@@ -1083,8 +1145,81 @@ def raw_slice(real_slice_files):
 
 
 @pytest.fixture(scope="session")
+def raw_slice(real_slice_files):
+    """raw_slice(kind, w_key) -> npz 배열 dict(직접 읽음)."""
+    return _raw_getter(real_slice_files)
+
+
+@pytest.fixture(scope="session")
 def raw_cap(real_paths):
     return _load_raw(real_paths["cap"])
+
+
+@pytest.fixture(scope="session")
+def raw_mid(real_paths):
+    """[r6] 검증 중점 파일 배열(직접 읽음)."""
+    return _load_raw(real_paths["midpoints"])
+
+
+# --- 옛 12-L 세트 (열 없는 세트 -- CONTRACT 1.2 '열이 없는 옛 12-L 세트도 그대로 로드') ---------------
+
+@pytest.fixture(scope="session")
+def old_paths(real_paths):
+    return {"manifest": _need("GMID_LUT_OLD_MANIFEST", _OLD_MANIFEST, "옛 12-L 폭 슬라이스 manifest.json"),
+            "cap": _need("GMID_LUT_OLD_CAP_NPZ", _OLD_CAP, "옛 기준 LUT npz"), "tlef": real_paths["tlef"]}
+
+
+@pytest.fixture(scope="session")
+def old_slice_files(old_paths):
+    return _slice_files(old_paths["manifest"], manufacturing_grid_m(old_paths["tlef"]))
+
+
+@pytest.fixture(scope="session")
+def old_spec(old_paths, old_slice_files):
+    mins = {}
+    for kind, _, W, _, _ in old_slice_files:
+        mins[kind] = min(W, mins.get(kind, W))
+    return LutSpec(manufacturing_grid_m(old_paths["tlef"]), tuple(sorted(mins.items())), REAL_DEVICE_KINDS,
+                   REAL_CAP_SUFFIX)
+
+
+@pytest.fixture(scope="session")
+def old_lut(old_paths, old_spec):
+    return load_lut_set(old_paths["manifest"], old_paths["cap"], old_spec)
+
+
+@pytest.fixture(scope="session")
+def old_raw_slice(old_slice_files):
+    return _raw_getter(old_slice_files)
+
+
+@pytest.fixture(scope="session")
+def old_raw_cap(old_paths):
+    return _load_raw(old_paths["cap"])
+
+
+# --- 결정 B 이전 v2 슬라이스(GMBS·VDSAT 없음) + v2 기준 LUT (CONTRACT 4.3 열 출처 "cap_table" 경로) ----------
+
+@pytest.fixture(scope="session")
+def nocol_paths(real_paths):
+    return {"manifest": _need("GMID_LUT_V2_NOCOL_MANIFEST", _NOCOL_MANIFEST, "열 없는 v2 폭 슬라이스 manifest.json"),
+            "cap": real_paths["cap"], "midpoints": real_paths["midpoints"], "pdk_root": real_paths["pdk_root"],
+            "tlef": real_paths["tlef"]}
+
+
+@pytest.fixture(scope="session")
+def nocol_slice_files(nocol_paths):
+    return _slice_files(nocol_paths["manifest"], manufacturing_grid_m(nocol_paths["tlef"]))
+
+
+@pytest.fixture(scope="session")
+def nocol_lut(nocol_paths, real_spec):
+    return load_real(nocol_paths, real_spec)
+
+
+@pytest.fixture(scope="session")
+def nocol_raw_slice(nocol_slice_files):
+    return _raw_getter(nocol_slice_files)
 
 
 def copy_tree(src_dir, dst_dir):
@@ -1368,3 +1503,303 @@ def same_bounds(a, b, rel=1e-9):
 def um(x):
     """m -> µm 6자리(ngspice 인스턴스 값과 같은 표기)."""
     return round(x * 1e6, 6)
+
+
+# ---------------------------------------------------------------------------
+# [r6] 선택 열·검증 중점 파일 toy 와 독립 기대값 경로 (CONTRACT 1.2·1.7·4.3·4.4·5.1·5.2·7.1 r6 표)
+# ---------------------------------------------------------------------------
+
+def width_key_ref(w_m, grid):
+    """CONTRACT 1.3 폭 키 규칙의 독립 구현: (round(W/grid), |W/grid − 키| ≤ 2·ulp(W/grid))."""
+    r = w_m / grid
+    k = int(round(r))
+    return k, abs(r - k) <= 2 * math.ulp(r)
+
+
+def r6_toy_cap_arrays():
+    """CONTRACT 7.1 r6 표 마지막 행: r5 toy 기준 LUT + GMBS_n = 0.25·ID_n, ID_n = 폭 1e-6 슬라이스 ID,
+    VDSAT_n = 0.1 + 0.2·VGS (축 broadcast). GM_n 은 없다(-> CapTable.on_mask None)."""
+    cap = toy_cap_arrays()
+    ID = toy_id(1.0)
+    cap["ID_n"] = ID
+    cap["GMBS_n"] = 0.25 * ID
+    V = np.empty(ID.shape)
+    V[...] = (0.1 + 0.2 * np.asarray(TOY_VGS))[None, :, None, None]
+    cap["VDSAT_n"] = V
+    return cap
+
+
+# 중점 toy (bin toy 와 같은 모델 파일·L 앵커 BIN_L·bin 표):
+#   ID = (1/Lu)·1e-7·exp(c(L)·(20v − 6v²))·exp(0.1·d)·(1, 0.5)[VS]·scale, c(L) = 1 + MID_ALPHA·Lu²  (Lu = L/µm)
+#   GM = ID·c(L)·(20 − 12v), GDS = 0.1·ID (기울기 자료가 값의 미분과 맞음 -- FC 위반 없음), VTH 0.4
+#   VDSAT = 0.1 + 0.2·v + 0.05·Lu²·(1 + d)        (L 에 2차 -> 중점 선형 보간 오차 = 0.05·(Lu_m − Lu0)(Lu1 − Lu_m)·(1 + d))
+#   GMBS = 0.3·ID·(1 + 0.1·v + 0.2·d + 0.05·vs)    (GMBS/ID 가 모든 축 선형 -> gmb 의 r 보간이 정확)
+# c(L) 이 L 에 2차라 중점의 gm/ID 곡선 L 선형 보간도 참값과 갈린다(gm_id_inverse 가 0 이 아님 -- 판별력).
+MID_ALPHA = 0.01
+
+
+def mid_toy_arrays(W, scale, meta, L=BIN_L, cols=("GMBS", "VDSAT"), n_vgs=3):
+    Lu = np.asarray(L, dtype=float) / 1e-6
+    c = 1.0 + MID_ALPHA * Lu ** 2
+    v = np.asarray(TOY_VGS[:n_vgs])
+    d = np.asarray(TOY_VDS)
+    s = np.asarray(TOY_VS)
+    fs = np.asarray(TOY_VS_FACTOR)
+    q = R5_A * v - R5_B * v * v
+    ID = ((1.0 / Lu)[:, None, None, None] * 1e-7 * np.exp(c[:, None, None, None] * q[None, :, None, None])
+          * np.exp(R5_C * d)[None, None, :, None] * fs[None, None, None, :] * scale)
+    GM = ID * (c[:, None] * (R5_A - 2 * R5_B * v)[None, :])[:, :, None, None]
+    out = {
+        "W": np.float64(W),
+        "L": np.asarray(L, dtype=float), "VGS": v.copy(), "VDS": d.copy(), "VS": s.copy(),
+        "ID": ID, "GM": GM, "GDS": ID * R5_C, "VTH": np.full(ID.shape, 0.4),
+        "meta_json": np.str_(json.dumps(meta)), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
+    }
+    if "VDSAT" in cols:
+        out["VDSAT"] = mid_vdsat(L, n_vgs)
+    if "GMBS" in cols:
+        out["GMBS"] = ID * mid_gmbs_per_id(len(L), n_vgs)
+    return out
+
+
+def mid_vdsat(L, n_vgs=3):
+    Lu = np.asarray(L, dtype=float) / 1e-6
+    v = np.asarray(TOY_VGS[:n_vgs])
+    d = np.asarray(TOY_VDS)
+    V = (0.1 + 0.2 * v[None, :, None, None] + 0.05 * (Lu ** 2)[:, None, None, None] * (1 + d)[None, None, :, None])
+    return np.broadcast_to(V, (len(L), n_vgs, len(d), len(TOY_VS))).copy()
+
+
+def mid_gmbs_per_id(nL, n_vgs=3):
+    v = np.asarray(TOY_VGS[:n_vgs])
+    d = np.asarray(TOY_VDS)
+    s = np.asarray(TOY_VS)
+    r = 0.3 * (1 + 0.1 * v[:, None, None] + 0.2 * d[None, :, None] + 0.05 * s[None, None, :])
+    return np.broadcast_to(r[None], (nL, n_vgs, len(d), len(s))).copy()
+
+
+def mid_point_arrays(L_points, w_ref_m=1e-6, scale=1.0, kinds=(("nmos", "_n"),), l_source=None, vdsat=True,
+                     drop=(), corner="tt", temp_c=27.0, axes=None):
+    """CONTRACT 1.7 검증 중점 파일 형식: L(중점)·VGS·VDS·VS, kind 마다 ID<접미사>·GM<접미사>(·VDSAT<접미사>), w_ref_m,
+    corner·temp_c, meta_json L_source. 값 = 중점 toy 식을 L_points 에서(폭 w_ref_m = scale·1e-6)."""
+    z = mid_toy_arrays(w_ref_m, scale, {}, L=L_points, cols=("VDSAT",) if vdsat else ())
+    out = {"L": np.asarray(L_points, dtype=float), "VGS": z["VGS"], "VDS": z["VDS"], "VS": z["VS"],
+           "corner": np.str_(corner), "temp_c": np.float64(temp_c)}
+    if axes:
+        out.update(axes)
+    if w_ref_m is not None:
+        out["w_ref_m"] = np.float64(w_ref_m)
+    for _, suf in kinds:
+        out["ID" + suf] = z["ID"]
+        out["GM" + suf] = z["GM"]
+        if vdsat:
+            out["VDSAT" + suf] = z["VDSAT"]
+    for k in drop:
+        out.pop(k, None)
+    meta = {"generator": "test"}
+    if l_source is not None:
+        meta["L_source"] = l_source
+    out["meta_json"] = np.str_(json.dumps(meta))
+    return out
+
+
+MID_L_SOURCE = {"kind": "json", "path": "approved_L.json", "sha256": "a" * 64, "key": "verification_midpoints_um"}
+
+
+class MidToy:
+    """중점 toy: bin toy 모델 파일(BIN_BLOCKS) + 중점 toy 슬라이스(폭 1e-6·2e-6) + 기준 LUT(bin_cap_arrays + 선택 열)
+    + 검증 중점 파일. slice_cols: 슬라이스 선택 열, cap_extra: 기준 LUT 에 더할 배열 dict, cap_meta: 기준 LUT meta_json."""
+
+    def __init__(self, root, slice_cols=("GMBS", "VDSAT"), cap_extra=None, cap_meta=None, mid=None,
+                 widths=((1e-6, 1.0), (2e-6, 2.0)), model_text=None, slice_mod=None):
+        self.root = Path(root)
+        self.pdk = self.root / "pdk"
+        mp = self.pdk / BIN_MODEL_REL
+        mp.parent.mkdir(parents=True, exist_ok=True)
+        mp.write_text(bin_model_text() if model_text is None else model_text, encoding="utf-8")
+        meta = {"pdk_root": str(self.pdk), "model_files_sha256": {BIN_MODEL_REL: sha256_file(mp)}}
+        slices = [("mid_w%d.npz" % i, "toyn", mid_toy_arrays(W, sc, meta, cols=slice_cols))
+                  for i, (W, sc) in enumerate(widths)]
+        if slice_mod is not None:
+            slice_mod([s[2] for s in slices])
+        self.slice_arrays = [s[2] for s in slices]
+        cap = bin_cap_arrays()
+        if cap_extra:
+            cap.update(cap_extra)
+        if cap_meta is not None:
+            cap["meta_json"] = np.str_(json.dumps(cap_meta))
+        self.build = ToyBuild(self.root / "lut", slices, cap)
+        self.mid_path = None
+        if mid is not None:
+            self.mid_path = self.root / "lut" / "midpoints.npz"
+            np.savez(self.mid_path, **mid)
+
+    def load(self, spec=TOY_SPEC, **kw):
+        if self.mid_path is not None and "verify_midpoints" not in kw:
+            kw["verify_midpoints"] = str(self.mid_path)
+        return load_lut_set(str(self.build.manifest), str(self.build.cap), spec, **kw)
+
+
+@pytest.fixture
+def mid_toy_build(tmp_path):
+    def make(sub="mt", **kw):
+        return MidToy(tmp_path / sub, **kw)
+    return make
+
+
+# --- 독립 구현: 4.0.1 bin 소속, 5.1 중점 외부 값, 5.2 VDSAT LOO -----------------------------------------------
+
+def bin_index_ref(bounds, x):
+    """CONTRACT 4.0.1: lo ≤ x ≤ hi(양끝 닫힘, 경계 1 ulp 이내 같은 값), 둘 다 품으면 lo 가 작은 구간. bounds 는 lo 오름차순."""
+    for i, (lo, hi) in enumerate(bounds):
+        if (x >= lo or abs(x - lo) <= math.ulp(lo)) and (x <= hi or abs(x - hi) <= math.ulp(hi)):
+            return i
+    return None
+
+
+def lin_cell_weights(grid, x):
+    """4.2 칸 규칙의 선형 가중치(가중치 0 인 마디 제외)."""
+    return axis_weights(grid, x)
+
+
+def lin_point_ref(grids, arr, Lw, vgs, vds, vsb):
+    """모든 축 선형(값 공간) -- Lw = ((L index, 가중치), ...), 나머지 축은 grids[1:] 위 4.2 칸 규칙."""
+    tot = 0.0
+    for iL, wl in Lw:
+        for g, wg in axis_weights(grids[1], vgs):
+            for b, wd in axis_weights(grids[2], vds):
+                for s, ws in axis_weights(grids[3], vsb):
+                    tot += wl * wg * wd * ws * float(arr[iL, g, b, s])
+    return tot
+
+
+def gmb_column_ref(z, Lw, vgs, vds, vsb, gmbs=None, idcol=None, grids=None):
+    """CONTRACT 4.4 [r6] gmb 정본(GMBS 열)의 독립 구현: gmb = ID(점) × r, ID(점) = exp(4.2 축별 보간 lnID)(= IDu·w_m/L),
+    r = GMBS/ID(ID > 0, 아니면 NaN) 의 L 장 + 모든 축 선형 보간; r 이 NaN 이면 gmb = GMBS 의 같은 선형 보간
+    ([해석] 그 값이 곧 gmb -- GMBS 는 A/V 라 ID 를 다시 곱하지 않는다).
+    gmbs·idcol·grids: 열 출처 표의 배열·축(없으면 슬라이스 z 의 GMBS·ID·축 -- origin "slice")."""
+    rs = RefSlice(z)
+    idp = math.exp(rs.op(Lw, 1.0, vgs, vds, vsb)["lnID"])
+    G = np.asarray(z["GMBS"] if gmbs is None else gmbs, dtype=float)
+    I = np.asarray(z["ID"] if idcol is None else idcol, dtype=float)
+    gr = rs.grids if grids is None else grids
+    with np.errstate(divide="ignore", invalid="ignore"):
+        R = np.where(I > 0, G / np.where(I > 0, I, 1.0), np.nan)
+    r = lin_point_ref(gr, R, Lw, vgs, vds, vsb)
+    if math.isnan(r):
+        return lin_point_ref(gr, G, Lw, vgs, vds, vsb)
+    return idp * r
+
+
+def branch_targets_ref(g):
+    """5절 목표 규칙: 정점 이후 index 중 오른쪽 모든 점보다 g_j 가 큰 점."""
+    g = np.asarray(g, dtype=float)
+    p = int(np.argmax(g))
+    return [j for j in range(p, len(g)) if all(g[j] > g[r] for r in range(j + 1, len(g)))]
+
+
+def midpoint_ref(slice_z, mid_z, suffix, L_m_index, i0, i1, vdsat_src=None, src_on=None):
+    """CONTRACT 5.1 한 중점(L 축 index L_m_index)의 세 값(VDS 격자점 k 마다)과 목표·실패 수 -- numpy 직접.
+    slice_z: 슬라이스 npz 배열, mid_z: 중점 npz 배열, i0·i1: 감싸는 앵커 index, vdsat_src: 출처 VDSAT 배열(4.3 규칙으로 고른 것)
+    또는 None, src_on: 출처 on_mask(없으면 None -> 생략). 반환 dict(inv, eq, vdsat: k 별 list(값 또는 None), n_t, n_f, bound_*)."""
+    Lg = np.asarray(slice_z["L"], dtype=float)
+    VGS = np.asarray(slice_z["VGS"], dtype=float)
+    nV = len(slice_z["VDS"])
+    nS = len(slice_z["VS"])
+    L_m = float(mid_z["L"][L_m_index])
+    t = (L_m - Lg[i0]) / (Lg[i1] - Lg[i0])
+    lI = log_floor(slice_z["ID"])[0]
+    lG = log_floor(slice_z["GM"])[0]
+    on = (slice_z["ID"] > 0) & (slice_z["GM"] > 0)
+    gmid_a = np.exp(lG - lI)
+    Im = np.asarray(mid_z["ID" + suffix][L_m_index], dtype=float)
+    Gm = np.asarray(mid_z["GM" + suffix][L_m_index], dtype=float)
+    mon = (Im > 0) & (Gm > 0)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        lIm = np.where(Im > 0, np.log(np.where(Im > 0, Im, 1.0)), np.nan)
+        gm_m = np.where(Im > 0, Gm / np.where(Im > 0, Im, 1.0), np.nan)
+    mask = mon & on[i0] & on[i1]                                     # [VGS, VDS, VS]
+    est = lI[i0] + t * (lI[i1] - lI[i0])
+    g2 = 2 * gamma_n()
+    eq, eqb, inv, invb, vd = [], [], [], [], []
+    n_t = n_f = 0
+    for k in range(nV):
+        mk = mask[:, k, :]
+        if mk.any():
+            e = np.abs(est[:, k, :] - lIm[:, k, :]) / gm_m[:, k, :]
+            A = (1 + abs(t)) * np.abs(lI[i0][:, k, :]) + abs(t) * np.abs(lI[i1][:, k, :]) + np.abs(lIm[:, k, :])
+            eq.append(float(e[mk].max()))
+            eqb.append(float((g2 * A / gm_m[:, k, :] + g2 * e)[mk].max()))
+        else:
+            eq.append(None)
+            eqb.append(None)
+        best = None
+        bb = None
+        for s in range(nS):
+            if not mask[:, k, s].all():
+                continue
+            gcur = gm_m[:, k, s]
+            Vc = est[:, k, s]
+            Sc = gmid_a[i0][:, k, s] + t * (gmid_a[i1][:, k, s] - gmid_a[i0][:, k, s])
+            dV = g2 * ((1 + abs(t)) * np.abs(lI[i0][:, k, s]) + abs(t) * np.abs(lI[i1][:, k, s]))
+            dS = g2 * ((1 + abs(t)) * np.abs(gmid_a[i0][:, k, s]) + abs(t) * np.abs(gmid_a[i1][:, k, s]))
+            for j in branch_targets_ref(gcur):
+                n_t += 1
+                st, root, rb = sir_ref_b(VGS, Vc, Sc, float(gcur[j]), dV=dV, dS=dS)
+                if st != "ok":
+                    n_f += 1
+                    continue
+                val = abs(root - VGS[j])
+                b = rb + math.ulp(max(abs(root), abs(float(VGS[j]))))
+                if best is None or val > best:
+                    best = val
+                bb = b if bb is None else max(bb, b)
+        inv.append(best)
+        invb.append(bb)
+        if vdsat_src is not None and ("VDSAT" + suffix) in mid_z:
+            Vm = np.asarray(mid_z["VDSAT" + suffix][L_m_index], dtype=float)
+            vm = mon[:, k, :].copy()
+            if src_on is not None:
+                vm &= src_on[i0][:, k, :] & src_on[i1][:, k, :]
+            if vm.any():
+                ve = vdsat_src[i0][:, k, :] + t * (vdsat_src[i1][:, k, :] - vdsat_src[i0][:, k, :])
+                vd.append(float(np.abs(ve - Vm[:, k, :])[vm].max()))
+            else:
+                vd.append(None)
+        else:
+            vd.append(None)
+    return {"inv": inv, "eq": eq, "vdsat": vd, "n_t": n_t, "n_f": n_f, "inv_bound": invb, "eq_bound": eqb}
+
+
+def vdsat_loo_cell_ref(grids, V, on, i, k, l_int):
+    """CONTRACT 5.2 셀 (i, k) 독립 구현: 축마다 내부 격자점을 빼고 두 이웃 선형 추정, 점 조건 = 그 점·축 방향 두 이웃이 on
+    (on None 이면 모든 점), L 축은 l_int(bin 안 내부 앵커)일 때만. 반환 (환산 전 셀 최댓값, 환산 후 = /2^2 의 최댓값, 상한)."""
+    Lg, VGS, VDS, VS = (np.asarray(g, dtype=float) for g in grids)
+    allon = np.ones(V.shape, dtype=bool) if on is None else on
+    vals, bnds = [], []
+    c = V[i, :, k, :]
+    o = allon[i, :, k, :]
+    g2 = 2 * gamma_n()
+
+    def add(est, ref, lo_, hi_, t, cond):
+        err = np.abs(est - ref)
+        bnd = g2 * ((1 + np.abs(t)) * np.abs(lo_) + np.abs(t) * np.abs(hi_) + np.abs(ref))
+        vals.extend(np.broadcast_to(err, cond.shape)[cond])
+        bnds.extend(np.broadcast_to(bnd, cond.shape)[cond])
+    if len(VGS) > 2:
+        t = ((VGS[1:-1] - VGS[:-2]) / (VGS[2:] - VGS[:-2]))[:, None]
+        add(c[:-2] + t * (c[2:] - c[:-2]), c[1:-1], c[:-2], c[2:], t, o[:-2] & o[1:-1] & o[2:])
+    if 0 < k < len(VDS) - 1:
+        t = (VDS[k] - VDS[k - 1]) / (VDS[k + 1] - VDS[k - 1])
+        lo_, hi_ = V[i, :, k - 1, :], V[i, :, k + 1, :]
+        add(lo_ + t * (hi_ - lo_), c, lo_, hi_, t, allon[i, :, k - 1, :] & o & allon[i, :, k + 1, :])
+    if len(VS) > 2:
+        t = ((VS[1:-1] - VS[:-2]) / (VS[2:] - VS[:-2]))[None, :]
+        add(c[:, :-2] + t * (c[:, 2:] - c[:, :-2]), c[:, 1:-1], c[:, :-2], c[:, 2:], t, o[:, :-2] & o[:, 1:-1] & o[:, 2:])
+    if l_int:
+        t = (Lg[i] - Lg[i - 1]) / (Lg[i + 1] - Lg[i - 1])
+        lo_, hi_ = V[i - 1, :, k, :], V[i + 1, :, k, :]
+        add(lo_ + t * (hi_ - lo_), c, lo_, hi_, t, allon[i - 1, :, k, :] & o & allon[i + 1, :, k, :])
+    if not vals:
+        return None, None, None
+    return float(max(vals)), float(max(vals)) / 4.0, float(max(bnds))
