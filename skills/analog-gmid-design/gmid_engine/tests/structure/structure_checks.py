@@ -202,12 +202,108 @@ def entry_points(tree: ast.Module) -> tuple[list[str], list[tuple]]:
     return [d.name for d in roots], concepts
 
 
+# (A) 보충 판정 -- 오케스트레이터 결정(2026-10-07, 사용자 규칙 취지 '한 파일에 너무 많은 함수'):
+#   (1) 데이터 선언 모듈(스키마 한 개념) (2) 공개 정의 0 파일 통과 (3) 비공개 모듈 = 공유 helper 검사.
+DATA_CLASS_DECORATORS = ("dataclass",)
+DATA_CLASS_BASES = ("NamedTuple", "Enum", "IntEnum", "StrEnum", "Flag", "IntFlag",
+                    "Exception", "BaseException")
+EXCEPTION_NAME_SUFFIXES = ("Error", "Exception", "Warning")   # Exception 계열 기반(ValueError 등)
+DATA_CLASSMETHOD_PREFIX = "from_"                           # classmethod 생성자
+
+
+def _base_name(b: ast.expr) -> str:
+    if isinstance(b, ast.Subscript):
+        b = b.value
+    return b.attr if isinstance(b, ast.Attribute) else (b.id if isinstance(b, ast.Name) else "")
+
+
+def _data_method_ok(n: ast.stmt) -> bool:
+    if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)):
+        decs = [_decorator_name(d) for d in n.decorator_list]
+        if _is_dunder(n.name) and not decs:
+            return True
+        if decs == ["property"]:
+            return True
+        return decs == ["classmethod"] and n.name.startswith(DATA_CLASSMETHOD_PREFIX)
+    return not isinstance(n, ast.ClassDef)          # 필드·대입·docstring 은 허용, 중첩 클래스는 불허
+
+
+def is_data_module(tree: ast.Module) -> bool:
+    """최상위 공개 정의가 전부 클래스이고 각 클래스가 dataclass/NamedTuple/Enum/Exception 계열이며
+    자체 메서드가 dunder·property·classmethod 생성자(from_*)뿐인 모듈."""
+    public = [n for n in tree.body
+              if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and not n.name.startswith("_")]
+    if not public or not all(isinstance(n, ast.ClassDef) for n in public):
+        return False
+    data = set()
+    changed = True
+    while changed:                                  # 같은 파일의 데이터 클래스를 기반으로 삼는 클래스도 계열
+        changed = False
+        for c in tree.body:
+            if not isinstance(c, ast.ClassDef) or c.name in data:
+                continue
+            bases = [_base_name(b) for b in c.bases]
+            kin = (any(_decorator_name(d) in DATA_CLASS_DECORATORS for d in c.decorator_list)
+                   or any(b in DATA_CLASS_BASES or b in data or b.endswith(EXCEPTION_NAME_SUFFIXES) for b in bases))
+            if kin and all(_data_method_ok(s) for s in c.body):
+                data.add(c.name)
+                changed = True
+    return all(c.name in data for c in public)
+
+
+def helper_users(root: Path, p: Path) -> dict[str, set[str]]:
+    """비공개 모듈 p 의 공개 함수 -> 그것을 import(또는 모듈 import 뒤 속성 사용)하는 같은 패키지 파일 집합."""
+    tree = parse(p)
+    funcs = [n.name for n in tree.body
+             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and not n.name.startswith("_")]
+    users = {f: set() for f in funcs}
+    dotted = ".".join(_module_of(root, p))
+    parts = p.relative_to(root).parts
+    scope = [q for q in engine_files(root)
+             if q != p and (len(parts) == 1 or q.relative_to(root).parts[0] == parts[0])]
+    for q in scope:
+        bindings = set()
+        qt = parse(q)
+        for n in ast.walk(qt):
+            if isinstance(n, ast.ImportFrom):
+                mod = resolve_from(root, q, n)
+                for a in n.names:
+                    if mod == dotted and a.name in users:
+                        users[a.name].add(rel(root, q))
+                    elif mod + "." + a.name == dotted:
+                        bindings.add(a.asname or a.name)
+        for n in ast.walk(qt):
+            if isinstance(n, ast.Attribute) and isinstance(n.value, ast.Name) \
+                    and n.value.id in bindings and n.attr in users:
+                users[n.attr].add(rel(root, q))
+    return users
+
+
+HELPER_MIN_USERS = 2   # '두 파일 이상에서 쓰이는 helper 만 공용 helper 모듈'(D 1.2 (나)4 (B))
+
+
 def check_a(root: Path) -> tuple[int, list[Violation]]:
     root = Path(root)
     targets = [p for p in engine_files(root) if p.name != "__init__.py"]
     out = []
     for p in targets:
-        names, concepts = entry_points(parse(p))
+        tree = parse(p)
+        if p.name.startswith("_"):
+            lines = {n.name: n.lineno for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+            for f, who in helper_users(root, p).items():
+                if len(who) < HELPER_MIN_USERS:
+                    out.append(Violation("helper_single_user", rel(root, p), lines[f],
+                                         "공용 helper %s 사용 파일 %d개(2개 이상이어야 함, 하나면 그 파일로 옮김): %s"
+                                         % (f, len(who), sorted(who))))
+            continue
+        names, concepts = entry_points(tree)
+        if not concepts and not names:
+            public = [n for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef))
+                      and not n.name.startswith("_")]
+            if not public:
+                continue                            # (2) 공개 정의 0(상수·단위 표)
+        if is_data_module(tree):
+            continue                                # (1) 스키마 한 개념
         if len(concepts) != 1:
             out.append(Violation("entry_points", rel(root, p), 1,
                                  "독립 진입점 개념 %d개(정확히 1개여야 함): %s" % (len(concepts), names)))

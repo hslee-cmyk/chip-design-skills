@@ -18,8 +18,11 @@ EXPECTED_BAD = {
     "rule_a": [
         ("entry_points", "core/decorated_and_plain.py", 1),     # 변형군 1 + 일반 공개 함수 1 = 2
         ("entry_points", "core/mixed_signature_variants.py", 1),  # 같은 데코레이터, 시그니처 2종 = 2
-        ("entry_points", "core/no_root.py", 1),                 # 공개 정의 0
         ("entry_points", "core/two_roots.py", 1),               # alpha, beta
+        ("entry_points", "core/failures_like.py", 1),           # 예외 + 공개 함수 2 -> 데이터 모듈 아님, 진입점 3
+        ("entry_points", "core/schema_with_method.py", 1),      # dataclass 에 일반 메서드 -> 데이터 모듈 아님, 진입점 2
+        ("helper_single_user", "core/_helpers_lonely.py", 1),   # shared: user_one.py 하나만 사용
+        ("helper_single_user", "core/_helpers_lonely.py", 5),   # unused: 사용 0
     ],
     "rule_b": [
         ("private_attr", "core/b.py", 7),       # amod._secret()

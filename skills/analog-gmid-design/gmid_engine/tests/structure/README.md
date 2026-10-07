@@ -36,7 +36,7 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -m structure
 
 | 규칙 | 판정 | 출처 | 예외 |
 |---|---|---|---|
-| A 파일당 독립 진입점 1개 | 공개(`_` 없는) 최상위 함수·클래스 중 같은 파일의 다른 최상위 문장(다른 정의·모듈 수준 대입·데코레이터·주석(annotation) 포함)이 이름으로 참조하지 않는 것 = 진입점. 진입점 '개념' 수가 정확히 1이어야 한다(0도 FAIL). 자기 재귀는 참조로 치지 않는다 | UD 127행 (A), D 1.2 (나)4 (A)·(다) | `__init__.py`, `tests/`. 레지스트리 데코레이터(`REGISTRY_DECORATORS = ("compute_block",)`, D 1.1 (나)2·3)로 등록된 진입점은 (데코레이터, 시그니처)가 같으면 한 개념 |
+| A 파일당 독립 진입점 1개 | 공개(`_` 없는) 최상위 함수·클래스 중 같은 파일의 다른 최상위 문장(다른 정의·모듈 수준 대입·데코레이터·주석(annotation) 포함)이 이름으로 참조하지 않는 것 = 진입점. 진입점 '개념' 수가 정확히 1이어야 한다. 자기 재귀는 참조로 치지 않는다. 보충(오케스트레이터 결정 2026-10-07, 사용자 규칙 취지 '한 파일에 너무 많은 함수'): (1) **데이터 선언 모듈**(최상위 공개 정의가 전부 클래스, 각 클래스가 `@dataclass`·NamedTuple·Enum 계열·Exception 계열(이름이 Error/Exception/Warning로 끝나는 기반 또는 같은 파일 데이터 클래스 기반), 자체 메서드는 dunder·`@property`·`@classmethod from_*`뿐) = 스키마 한 개념으로 통과. 최상위 공개 함수가 하나라도 있으면 일반 판정 (2) 공개 정의 0 파일(상수·단위 표) 통과 (3) **비공개 모듈**(`_`로 시작하는 파일) = 공유 helper: 진입점 판정 대신 공개 함수마다 같은 하위 패키지(루트 파일은 엔진 전체)의 **다른 파일 2개 이상**이 import(`from ._h import f` 또는 `from . import _h` 뒤 `_h.f`)해야 한다 | UD 127행 (A), D 1.2 (나)4 (A)·(B)·(다) | `__init__.py`, `tests/`. 레지스트리 데코레이터(`REGISTRY_DECORATORS = ("compute_block",)`, D 1.1 (나)2·3)로 등록된 진입점은 (데코레이터, 시그니처)가 같으면 한 개념 |
 | B 다른 파일의 `_` 이름 import 금지 | `from x import _y`(`_y`가 모듈 파일이 아닌 이름) 와, import로 묶인 이름에서 시작하는 속성 사슬의 `._y` 접근(`amod._y`, `gmid_engine.core.a._y`) | UD 127행 (B), D 1.2 (나)4 (B) | dunder(`__name__` 등). `from . import _helpers_x`처럼 `_` 이름이 같은 패키지의 **모듈 파일**이면 허용(공용 helper 모듈, D 3.1 161행) |
 | C 하위 패키지 계층·공개 API·순환 0 | (1) 하위 패키지는 층 표 `LAYER_ORDER`(core 0 < lut 1 < authoring 2 < graph 3 < sizing 4 < metrics 5 < search 6 < layout 7 < convergence 8 < report 9 < pipeline 10)에 있어야 한다 (2) 다른 하위 패키지 import는 층 번호가 **작은** 쪽만 (3) 형식은 `from gmid_engine.<pkg> import <이름>`(상대 import 동등)만, 이름은 그 `__init__.py`의 정적 `__all__` 안. `import gmid_engine.x`, `from gmid_engine import <pkg>`, `from gmid_engine.<pkg>.<file> import`, `import *` 금지 (4) 파일 단위 import 그래프(함수 안 import 포함)에 순환 0 | D 3.1 158행, D 1.2 (나)1·3, P N3.10 517행 | 루트 모듈(`gmid_engine/__init__.py` 등)은 층 맨 위로 보고 계층 검사를 하지 않는다(공개 API 형식은 검사). 하위 패키지가 루트를 import하면 위반 |
 | D 숫자 리터럴 | 허용: 0, 1, −1(실수 0.0·1.0 포함), 산술식(`BinOp`·`AugAssign`)의 양수 2, 첨자·슬라이스 안 숫자. 그 밖은 같은 줄 `# derive: <함수명>` 태그가 있고 그 함수가 엔진 어딘가의 최상위 함수일 때만 허용. 복소수 금지 | P 844행 V6, D 1.3 (나) | `core/units.py`(D 1.3 "단위 환산 계수는 `core/units.py` 한 곳") |
@@ -56,7 +56,7 @@ core 골격 단계에서는 원본 파일이 test보다 먼저 생기므로 누�
 
 | 규칙 | `bad` 트리가 담은 위반(기대 목록은 `test_structure_rules_reject_fixtures.py`) | `good` 트리가 보이는 허용 경우 |
 |---|---|---|
-| A | 진입점 2개(`two_roots.py`), 공개 정의 0(`no_root.py`), 같은 데코레이터·다른 시그니처(`mixed_signature_variants.py`), 변형군 + 일반 공개 함수(`decorated_and_plain.py`) | 함수가 쓰는 공개 클래스, `@compute_block` 같은 시그니처 변형 3개 + 비공개 helper, 자기 재귀 |
+| A | 진입점 2개(`two_roots.py`), 같은 데코레이터·다른 시그니처(`mixed_signature_variants.py`), 변형군 + 일반 공개 함수(`decorated_and_plain.py`), 예외 클래스 + 공개 함수 2개(`failures_like.py`), 일반 메서드가 있는 dataclass 2개(`schema_with_method.py`), 한 파일만 쓰는 helper·아무도 안 쓰는 helper(`_helpers_lonely.py`) | 함수가 쓰는 공개 클래스, `@compute_block` 같은 시그니처 변형 3개 + 비공개 helper, 자기 재귀, 공개 정의 0(`no_root.py`·`constants.py`), 데이터 선언 모듈(`records.py`: dataclass + `__post_init__`·property·`from_tuple`, Enum, NamedTuple, ValueError 기반 예외와 그 하위), 두 파일이 쓰는 helper(`_helpers_shared.py` ← `use_a.py`·`use_b.py`) |
 | B | `from .a import _secret`, `amod._secret()`, `gmid_engine.core.a._secret` | `from . import _helpers_text`(모듈), `self._value` |
 | C | 순환 `cyc_a`↔`cyc_b`, lut→report(위 방향), `from gmid_engine.lut.query import`, `__all__` 밖 이름, `import *`, `import gmid_engine.lut`, `from gmid_engine import lut`, 층 표 밖 패키지 `widgets` | 아래 방향 공개 API import(절대·상대), 패키지 안 helper, 루트 `__init__`의 재수출 |
 | D | 기본값 10, 비교의 2, 3, 0.5, −2, 없는 함수의 derive 태그, 2j, `units.py` 밖 1e-6 | 0·1·−1·0.0·1.0, 산술 2·`+= 2`, `x[3]`·`x[-2]`·`x[1:5]`·`x[:, 2]`, 있는 함수의 derive 태그, `core/units.py`의 1e-6 |
@@ -70,10 +70,9 @@ core 골격 단계에서는 원본 파일이 test보다 먼저 생기므로 누�
 1. **A의 레지스트리 데코레이터 이름**: 설계 문서에 이름이 나온 것은 `compute_block`뿐이다. D 1.2 (A)의 예시 'metric 레지스트리 항목들'의
    데코레이터 이름은 없다. 또 D 1.2 (C)는 `@compute_block`을 파일당 1개로 정하므로 `compute_block` 변형군 예외는 사실상 쓰이지 않는다.
    metric 레지스트리 데코레이터를 만들면 설계 문서에 이름을 적고 `REGISTRY_DECORATORS`에 더한다.
-2. **A와 설계 3.1 표의 충돌 가능성**: 규칙 A는 `__init__.py`·tests만 뺀다. 그래서 공개 정의가 0인 파일(상수만 있는 `core/units.py`,
-   루트 `_module_map.py`)과 공개 정의가 여럿인 파일(예외 클래스 여러 개 + `FailureRecord` + `exit_code_for` + `normalized_margin`을
-   한 파일에 둔 `core/failures.py`, dataclass 묶음 `graph/s1_model.py`, helper 여럿인 `_helpers_<주제>.py`)은 FAIL이다.
-   D 3.1은 "진입점 둘 이상이 되면 쪼갠다(규칙 A가 FAIL로 알려 준다)"라고 적어 엄격 판정을 택했지만, 데이터·helper 모듈 예외 여부는 사용자 결정이 필요하다.
+2. **A와 데이터·helper 모듈**(해결, 오케스트레이터 결정 2026-10-07): 규칙 표 A의 보충 (1)~(3)으로 정했다. 그래서
+   `core/failures.py`처럼 예외 클래스와 공개 함수(`exit_code_for`·`normalized_margin`)를 한 파일에 두면 FAIL이고, 함수는 별도 파일로 옮긴다.
+   보충 (3)은 공개 **함수**만 센다(비공개 모듈의 공개 클래스는 사용 수를 보지 않는다).
 3. **A의 '참조'**: 같은 파일 다른 최상위 문장의 이름(`ast.Name`) 참조로 판정한다. 문자열 주석(`"Foo"`)은 참조로 치지 않는다.
 4. **C의 패키지 안 층(`_module_map.py` 층 번호)**: D 3.1 둘째 규칙(패키지 안 import는 `_module_map.py` 층 오름차순)은 지도 형식이
    아직 없어 강제하지 않는다(파일 단위 순환 0만 강제). 함수 안 지연 import·`TYPE_CHECKING` import도 계층·순환에 센다.
