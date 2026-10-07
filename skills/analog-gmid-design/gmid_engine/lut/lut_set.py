@@ -17,6 +17,9 @@
   경계 공유 시 아래 bin)의 L bin 들과 L 앵커마다의 소속 bin 을 만든다. 로드 1회 계산, 슬라이스·용량 표에 보관
   (같은 모델 파일은 한 로드에서 한 번만 읽는다). 모델 파일 기록이 없거나 bin 블록이 없으면 빈 지도(L 보간 불가).
   용량 표는 채택 폭과 같은 슬라이스의 지도를 쓴다.
+* Hermite 단조 검사(DEC-87, 계획 N3.7, lut/CONTRACT.md 1.4): 슬라이스마다 VGS 축 칸(ln ID, 기울기 GM/ID)과 VDS 축 칸
+  (ln ID, 기울기 GDS/ID)의 Fritsch–Carlson 단조 조건을 한 번 계산해 `DcSlice.fc_ok_vgs`·`fc_ok_vds` 에 두고 칸 수·위반 수를
+  `hermite_fc` 에 기록한다(로드는 거부하지 않는다 -- 위반 칸은 조회에서 그 축 선형, 역산은 그 칸의 근을 내지 않는다, 4.2).
 """
 import math
 import re
@@ -26,8 +29,9 @@ import numpy as np
 
 from ._helpers_bins import bin_index
 from ._helpers_fail import schema_rejected
+from ._helpers_interp import HERMITE_DEGREE
 from .fingerprint import lut_fingerprint
-from .lut_types import CapTable, DcSlice, LBin, LBinMap, LutSet
+from .lut_types import AXES, CapTable, DcSlice, LBin, LBinMap, LutSet
 from .provenance import lut_provenance
 
 BIN_KEYS = ("lmin", "lmax", "wmin", "wmax")
@@ -96,6 +100,34 @@ def _grids_of(npz):
     return tuple(tuple(float(x) for x in np.asarray(npz[axis], dtype=float)) for axis in ("L", "VGS", "VDS", "VS"))
 
 
+def _fc_monotone(dy, m0, m1, h):
+    """2점 cubic-Hermite 칸의 Fritsch–Carlson 단조 조건(필요충분, 원소마다; dy = y1 − y0). 미분 p'(x)·h 의 Bernstein
+    계수 b0 = m0·h, b1 = n·dy − (m0 + m1)·h, b2 = m1·h (n = Hermite 차수) 로 쓰면 비감소 ⇔ b0 ≥ 0, b2 ≥ 0,
+    (b1 ≥ 0 또는 b1² ≤ b0·b2) 이고 -- Fritsch–Carlson(1980) 의 α = m0/δ, β = m1/δ 단조 영역과 같은 식 -- 비증가는 부호를
+    뒤집은 같은 조건이다((−b1)² = b1², (−b0)(−b2) = b0·b2). 둘 중 하나면 단조."""
+    b0 = m0 * h
+    b2 = m1 * h
+    b1 = HERMITE_DEGREE * dy - b0 - b2
+    inner = b1 * b1 <= b0 * b2
+    rising = (b0 >= 0) & (b2 >= 0) & ((b1 >= 0) | inner)
+    falling = (b0 <= 0) & (b2 <= 0) & ((b1 <= 0) | inner)
+    return rising | falling
+
+
+def _fc_ok(log_id, slope, slope_ok, grid, axis):
+    """축 `axis` 칸마다 단조 조건 배열(그 축 길이 n − 1), Hermite 칸 수, 위반 칸 수. 두 끝 기울기 자료가 다 있어야
+    Hermite 칸이고 아니면 참(그 칸은 선형으로 보간)."""
+    lower = tuple(slice(None, -1) if d == axis else slice(None) for d in range(log_id.ndim))
+    upper = tuple(slice(1, None) if d == axis else slice(None) for d in range(log_id.ndim))
+    both = slope_ok[lower] & slope_ok[upper]
+    h = np.diff(np.asarray(grid, dtype=float)).reshape(tuple(-1 if d == axis else 1 for d in range(log_id.ndim)))
+    with np.errstate(invalid="ignore", over="ignore"):
+        bad = both & ~_fc_monotone(np.diff(log_id, axis=axis), slope[lower], slope[upper], h)
+    ok = ~bad
+    ok.setflags(write=False)
+    return ok, int(both.sum()), int(bad.sum())
+
+
 def _build_slice(src, grids, parsed):
     with np.load(src.path) as npz:
         if _grids_of(npz) != grids:
@@ -113,12 +145,17 @@ def _build_slice(src, grids, parsed):
     log_gds, floor_gds, np_gds = _log_with_floor(raw_gds)
     on_mask = (raw_id > 0) & (raw_gm > 0)
     on_mask.setflags(write=False)
+    vds_slope_ok = (raw_id > 0) & (raw_gds > 0)
+    vds_slope_ok.setflags(write=False)
+    fc_vgs, n_vgs, bad_vgs = _fc_ok(log_id, np.exp(log_gm - log_id), on_mask, grids[1], AXES.index("VGS"))
+    fc_vds, n_vds, bad_vds = _fc_ok(log_id, np.exp(log_gds - log_id), vds_slope_ok, grids[2], AXES.index("VDS"))
     return DcSlice(
         src.kind, src.w_key, src.w_m, src.sha256, grids, grids, _readonly(grids[1]),
         _readonly(raw_id), _readonly(vth), on_mask, log_id, log_gm, log_gds,
         (("GDS", floor_gds), ("GM", floor_gm), ("ID", floor_id)),
         (("GDS", np_gds), ("GM", np_gm), ("ID", np_id)),
         _l_bin_map(src, grids[0], parsed),
+        vds_slope_ok, fc_vgs, fc_vds, (("VDS", n_vds, bad_vds), ("VGS", n_vgs, bad_vgs)),
     )
 
 

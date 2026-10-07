@@ -1,53 +1,26 @@
-"""고정 (L, VDS, VS) 의 gm/ID 곡선 -- VGS 격자 위 (ID, gm/ID) (설계 MOD1 2.1 `_gm_id_curve` 블록 복사).
+"""고정 (L, VDS, VS) 의 gm/ID 곡선 -- VGS 격자 마디의 (ln ID, gm/ID) 와 칸별 Hermite 사용 가능 여부 (설계 MOD1 2.1,
+lut/CONTRACT.md 4.2).
 
 진입점: `gm_id_curve`.
 
-L 은 앵커이거나 같은 모델 bin 안 두 앵커 사이만(`l_position`, lut/CONTRACT.md 4.0). 복사 블록은 그대로 두고, 블록에
-넘기는 `sl` 을 `l_position` 이 고른 L 격자 조각만 가진 보기(`_l_view`: L 격자 = (앵커,) 또는 같은 bin 의
-(아래 앵커, 위 앵커), 배열 = 그 장들)로 바꾼다 -- 1점 L 격자에서 `multilinear_interp` 의 L 가중치는 (1, 0) 이고 bit 1 쪽
-모서리는 가중치 0 이라 읽히지 않으므로 결과는 그 앵커 격자값의 (VDS, VS) 보간과 같고, 2점이면 그 두 장 사이 L 선형 보간이다
-(bin 밖 장은 보기에 없어 읽힐 수 없다).
-
-`_curve_arrays` 의 문장은 옛 `SemiEmpiricalGmIdLUT._gm_id_curve`(SR:455) 의 알고리즘 구간(캐시 줄 제외)을 그대로
-옮긴 것이다. 이름 바꿈만 있다: `self` -> `sl`(DcSlice), `_multilinear_interp` -> `multilinear_interp`,
-`_grids_list`·`_log_ID`·`_log_GM` -> `grids_list`·`log_ID`·`log_GM`(대조 규칙은 CONTRACT.md 6절).
+L 은 앵커이거나 같은 모델 bin 안 두 앵커 사이만(`l_position`, lut/CONTRACT.md 4.0). 마디 값은 `node_values`
+(op_point 와 같은 텐서곱의 (1)(2) 단계: ln ID = VDS Hermite·L·VS 선형, gm/ID = 저장 GM/ID 의 L·VDS·VS 선형)이고,
+마디 사이 곡선은 그 마디 값·기울기의 VGS Hermite 다 -- 그래서 이 곡선 위 역산(`vgs_for_gm_id`·`gm_id_for_target`)과
+`op_point` 가 같은 곡면이다. 옛 `_gm_id_curve` 블록 복사(다선형 보간 2회)는 r5 에서 없어졌다(CONTRACT 6절).
 """
-import types
-
 import numpy as np
 
 from ._helpers_anchor import l_position
-from ._helpers_interp import multilinear_interp
+from ._helpers_interp import node_values
 from .axis_guard import check_axes
 from .lut_types import AXES, Curve
-
-
-def _l_view(sl, lo, hi):
-    part = slice(lo, hi + 1)
-    return types.SimpleNamespace(
-        VGS_grid=sl.VGS_grid, grids_list=(sl.grids[0][part],) + tuple(sl.grids_list[1:]),
-        log_ID=sl.log_ID[part], log_GM=sl.log_GM[part])
-
-
-def _curve_arrays(sl, L, vds, vsb):
-    n = len(sl.VGS_grid)
-    pts = np.column_stack([
-        np.full(n, L), sl.VGS_grid, np.full(n, vds), np.full(n, vsb),
-    ])
-    log_id = np.asarray(multilinear_interp(sl.grids_list, sl.log_ID, pts))
-    # 2026-09-08(B15) -- GM도 로그공간에서 보간해 ID와 **같은 공간**에서 나눈다.
-    log_gm = np.asarray(multilinear_interp(sl.grids_list, sl.log_GM, pts))
-    id_vals = np.exp(log_id)
-    gm_id_vals = np.exp(log_gm - log_id)
-    result = (id_vals, gm_id_vals)
-    return result
 
 
 def gm_id_curve(memo, kind, w_key, L, vds, vsb):
     """(kind, w_key) 슬라이스의 `L`, 고정 (vds, vsb) 곡선 `Curve`(읽기 전용 배열). memo 영역 curve.
 
-    `id_vals` 는 슬라이스 폭 w_m 에서의 ID(A). 실패: L 이 앵커도 같은 bin 보간도 아님·축 밖 -> `SealViolationError`,
-    폭 키 없음 -> `KeyError`.
+    `id_vals` 는 슬라이스 폭 w_m 에서의 ID(A). `cell_ok`[j] 가 거짓인 칸(단조 위반)은 역산 함수가 쓰지 않는다.
+    실패: L 이 앵커도 같은 bin 보간도 아님·축 밖 -> `SealViolationError`, 폭 키 없음 -> `KeyError`.
     """
     sl = memo.lut.slice_map[(kind, w_key)]
     context = (("kind", kind), ("w_key", w_key))
@@ -56,9 +29,10 @@ def gm_id_curve(memo, kind, w_key, L, vds, vsb):
     check_axes((sl.grids[2], sl.grids[3]), (AXES[2], AXES[3]), (vds, vsb), context)
 
     def compute():
-        id_vals, gm_id_vals = _curve_arrays(_l_view(sl, lo, hi), l_val, vds, vsb)
-        id_vals.setflags(write=False)
-        gm_id_vals.setflags(write=False)
-        return Curve(sl.VGS_grid, id_vals, gm_id_vals)
+        log_id, gm_id, cell_fc_ok = node_values(sl, lo, hi, l_val, vds, vsb, range(len(sl.grids[1])))
+        arrays = (np.exp(log_id), gm_id, log_id, cell_fc_ok)
+        for arr in arrays:
+            arr.setflags(write=False)
+        return Curve(sl.VGS_grid, arrays[0], arrays[1], arrays[2], arrays[3])
 
     return memo.lookup("curve", "gm_id_curve", (kind, w_key, lo, hi, l_val, vds, vsb), compute)
