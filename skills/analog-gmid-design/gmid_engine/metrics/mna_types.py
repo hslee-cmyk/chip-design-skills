@@ -1,13 +1,19 @@
-"""MOD5 수치 핵심의 결과 레코드 -- 데이터 선언 모듈 (설계 design_mod1_lut_mod5_mna 3.3·3.4).
+"""MOD5 수치 핵심의 결과 레코드 -- 데이터 선언 모듈 (설계 design_mod1_lut_mod5_mna 3.3·3.4, 7a design 2.4).
 
 * `Undefined`: 값이 정의되지 않은 사유(값으로 담는다 -- MOD5 는 정의 불가로 예외를 던지지 않고, 판정 계층이 문맥
   (탐색 전 구조 판정 / 탐색 중 평가)에 따라 N3.14 분류로 옮긴다). `category` ∈ {definitional, numeric, structural}.
-* `MnaSystem`: 조립 결과(ω 무관 실수 G·C, 여기 열 BG·BC, 관측 행) -- 조립은 1회, 주파수마다 풀이만 한다.
-* `Roots`: (G, −C) 일반화 고유값(극점)과 열마다 관측 전달함수 영점 -- 격자 배치·상단 괄호에만 쓴다.
+* `MnaSystem`: 조립 결과(ω 무관 실수 G·C, 여기 열 BG·BC, 관측 행들) -- 조립은 1회, 주파수마다 풀이만 한다.
+* `Roots`: (G, −C) 일반화 고유값(극점)과 관측 행 × 열마다 전달함수 영점 -- 격자 배치·상단 괄호에만 쓴다.
 * `DcLimit`: ω → 0 극한 해(용량 전용 노드는 전하 보존 식으로 대체).
-* `SystemResponse`: 한 MnaSystem 의 공유 ω 격자 위 응답(행 = ω, 열 = 여기 열). ω = 0 이 첫 행. 정의 안 된 값은 NaN.
-* `PointSolution`: ω 한 점의 풀이(열마다 관측값과 사후 오차 추정).
-* `Factor`: 루프 이득 인수 하나 = (응답, 열 번호). 루프 이득 T = 인수들의 곱.
+* `SystemResponse`: 한 MnaSystem 의 공유 ω 격자 위 응답(축 = ω, 관측 행, 여기 열). ω = 0 이 첫 행. 정의 안 된 값은 NaN.
+* `PointSolution`: ω 한 점의 풀이(관측 행 × 열마다 관측값과 사후 오차 추정).
+* 루프 이득 인수 -- T = 인수들의 곱. 두 형식이 같은 규약을 따른다(`analyze_loop`·`find_crossing`·`phase_lag` 가 형식을
+  구분하지 않고 읽는다): 속성 `response`(공유 격자의 출처), `samples`(격자 위 인수 값), `poles`·`zeros`(상단 괄호용 근),
+  `undefined`(격자 표본의 정의 불가 사유). 격자 밖 한 점은 `PointSolution` → (복소값, 사후 오차, 사유)로 평가한다
+  (`_helpers_product.product_at`).
+  - `Factor`: 응답의 (관측 행, 열) 원소 하나.
+  - `ProbeFactor`: 절단 회로 계의 Middlebrook 이중 주입 루프 이득 T = (Tv·Ti − 1)/(Tv + Ti + 2)(`probe_factor`).
+* `CutCircuit`: 루프 절단 회로(`cut_circuit`) -- 절단 노드 쌍과 프로브 여기 열·관측.
 * `Crossing`: |T| = level 교차 하나(없으면 omega None + `undefined`).
 * `LoopAnalysis`: 한 인수 묶음에서 한 번 계산한 주파수 양(gain·UGF·GBW·위상 여유) -- metric 들이 공유한다.
 * `OutputResistance`, `ResponseRatio`, `SupplyCurrents`, `AreaSearch`: 나머지 metric 의 값 묶음.
@@ -47,12 +53,12 @@ class Undefined:
 
 @dataclasses.dataclass(frozen=True)
 class MnaSystem:
-    """조립된 소신호 계. 미지수 n 개, 여기 열 m 개.
+    """조립된 소신호 계. 미지수 n 개, 여기 열 m 개, 관측 r 개.
 
     * `nodes`: 미지수 노드 인덱스(정렬). `fixed_nodes`: 고정 노드(교류접지 ∪ 전압 구동, 정렬).
-    * `G`, `C`: (n, n) 실수. `BG`, `BC`: (n, m) 실수 -- 열 j 의 우변은 `BG[:, j] + jω·BC[:, j]`.
-    * `sense_row`: (n,) 관측 행, `sense_direct`: (m,) 고정 노드에서 바로 오는 관측 성분.
-    * `excitations`: 열 순서의 `Excitation` 레코드, `sense`: `Sense` 레코드.
+    * `G`, `C`: (n, n) 실수. `BG`, `BC`: (n, m) 실수 -- 열 j 의 우변은 `BG[:, j] + jω·BC[:, j]`(전하 주입은 `BC` 에만).
+    * `sense_rows`: (r, n) 관측 행, `sense_direct`: (r, m) 고정 노드에서 바로 오는 관측 성분.
+    * `excitations`: 열 순서의 `Excitation` 레코드, `senses`: 행 순서의 `Sense` 레코드.
     * `charge_nodes`: 컨덕턴스가 하나도 닿지 않는 미지수 노드(전체 G 행이 0 -- 용량으로만 연결)의 미지수 번호(0 기준).
       DC 극한에서 그 행의 KCL 을 전하 보존 식으로 바꾼다(`solve_dc_limit`).
     * `defects`: 값에 따라 생기는 구조 결함(`Undefined`, quantity "system") -- 있으면 응답 전체가 정의되지 않는다.
@@ -64,15 +70,15 @@ class MnaSystem:
     C: object
     BG: object
     BC: object
-    sense_row: object
+    sense_rows: object
     sense_direct: object
     excitations: tuple
-    sense: object
+    senses: tuple
     charge_nodes: tuple = ()
     defects: tuple = ()
 
     def __post_init__(self):
-        _freeze(self, "G", "C", "BG", "BC", "sense_row", "sense_direct")
+        _freeze(self, "G", "C", "BG", "BC", "sense_rows", "sense_direct")
 
     @property
     def columns(self):
@@ -82,7 +88,8 @@ class MnaSystem:
 
 @dataclasses.dataclass(frozen=True)
 class Roots:
-    """`poles`: 유한 극점(복소 tuple, 정렬). `zeros`: 열마다 유한 영점 tuple."""
+    """`poles`: 유한 극점(복소 tuple, 정렬). `zeros[r][j]`: 관측 행 r · 열 j 전달함수의 유한 영점 tuple(순수 전하 열은
+    빈 tuple -- 영점 = 같은 노드 전류 열 영점 ∪ {0} 이라 계산하지 않는다, `Factor` 로 쓰지 않는다)."""
 
     poles: tuple
     zeros: tuple
@@ -90,7 +97,7 @@ class Roots:
 
 @dataclasses.dataclass(frozen=True)
 class DcLimit:
-    """ω → 0 극한 관측값 `values` (m,) 실수(정의 안 된 열은 NaN)와 사유 `undefined`."""
+    """ω → 0 극한 관측값 `values` (r, m) 실수(정의 안 된 열은 NaN)와 사유 `undefined`."""
 
     values: object
     undefined: tuple = ()
@@ -101,7 +108,7 @@ class DcLimit:
 
 @dataclasses.dataclass(frozen=True)
 class SystemResponse:
-    """`omegas`: (k,) rad/s, 첫 원소 0. `values`: (k, m) 복소 관측값(정의 안 된 값은 NaN). `undefined`: 사유."""
+    """`omegas`: (k,) rad/s, 첫 원소 0. `values`: (k, r, m) 복소 관측값(정의 안 된 값은 NaN). `undefined`: 사유."""
 
     system: MnaSystem
     roots: Roots
@@ -114,13 +121,13 @@ class SystemResponse:
 
     @property
     def dc(self):
-        """ω = 0 관측값(실수, 극한 해)."""
+        """ω = 0 관측값 (r, m) 실수(극한 해)."""
         return self.values[0].real
 
 
 @dataclasses.dataclass(frozen=True)
 class PointSolution:
-    """ω 한 점: `values` (m,) 복소 관측값, `errors` (m,) 사후 오차 추정(반복 개선 1회 보정량의 관측 크기).
+    """ω 한 점: `values` (r, m) 복소 관측값, `errors` (r, m) 사후 오차 추정(반복 개선 1회 보정량의 관측 크기).
     특이면 값·오차가 NaN 이고 `undefined` 에 사유."""
 
     omega: float
@@ -134,10 +141,78 @@ class PointSolution:
 
 @dataclasses.dataclass(frozen=True)
 class Factor:
-    """루프 이득 인수 하나: `response` 의 `column` 번째 열."""
+    """루프 이득 인수 하나: `response` 의 관측 행 `row`, 열 `column` 원소(관측이 하나인 계는 row 0)."""
 
     response: SystemResponse
     column: int
+    row: int = 0
+
+    @property
+    def samples(self):
+        """공유 격자 위 인수 값 (k,) 복소."""
+        return self.response.values[:, self.row, self.column]
+
+    @property
+    def poles(self):
+        """상단 괄호용 극점(계의 극점)."""
+        return self.response.roots.poles
+
+    @property
+    def zeros(self):
+        """상단 괄호용 영점(그 관측 행·열의 영점)."""
+        return self.response.roots.zeros[self.row][self.column]
+
+    @property
+    def undefined(self):
+        """격자 표본의 정의 불가 사유(열을 적은 사유는 이 열 것만)."""
+        return tuple(u for u in self.response.undefined if dict(u.detail).get("column", self.column) == self.column)
+
+
+@dataclasses.dataclass(frozen=True)
+class CutCircuit:
+    """루프 절단 회로(`cut_circuit`, 7a design 2.2 L3).
+
+    * `circuit`: 절단 단자를 새 노드로 옮긴 `SmallSignalCircuit`(교류접지는 원래 그대로).
+    * `cuts`: 적용한 `LoopCut` tuple(입력 순서).
+    * `pairs`: (원래 노드 n_k, 새 노드 x_k) tuple, n 오름차순. x_k = 원래 회로 최대 노드 인덱스 뒤에 n 순서로 붙는다.
+    * `excitations`: 프로브 여기 열 4k 개 -- 단위 전류 I(n_1..n_k), I(x_1..x_k), 단위 전하 Q(n_1..n_k), Q(x_1..x_k).
+    * `senses`: 관측 2k 개 -- V(n_1..n_k), V(x_1..x_k). `build_mna(circuit, excitations, senses)` 로 조립 1회.
+    """
+
+    circuit: object
+    cuts: tuple
+    pairs: tuple
+    excitations: tuple
+    senses: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class ProbeFactor:
+    """절단 회로 계의 Middlebrook 루프 이득 인수(`probe_factor`, 7a design 2.4).
+
+    * `response`: 절단 회로 계의 `SystemResponse`(공유 격자). `pairs`: (n_k, x_k) 노드 쌍, `weights`: 쌍마다 가중 w_k.
+    * `rows`: V(n_1..n_k), V(x_1..x_k) 관측 행 번호. `current_columns`·`charge_columns`: 같은 노드 순서의 전류·전하 주입 열
+      번호, `current_scales`·`charge_scales`: 그 열의 주입 크기(Z = 관측 / 크기).
+    * `samples`: 격자 위 T (k,) 복소(정의 안 된 점은 NaN). `poles`·`zeros`: T 의 유한 극점·영점(상단 괄호용,
+      1/(1 + T) = 1/(1 + Tv) + 1/(1 + Ti) 가 한 계의 전달함수라는 항등식에서 증강 pencil 로 구한다).
+    * `undefined`: 격자 표본의 정의 불가 사유(`loop_cut_mixed_charge`, `loop_probe_singular`, `den_zero`, 응답 사유).
+    """
+
+    response: SystemResponse
+    pairs: tuple
+    weights: tuple
+    rows: tuple
+    current_columns: tuple
+    charge_columns: tuple
+    current_scales: tuple
+    charge_scales: tuple
+    samples: object = ()
+    poles: tuple = ()
+    zeros: tuple = ()
+    undefined: tuple = ()
+
+    def __post_init__(self):
+        _freeze(self, "samples")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -180,11 +255,13 @@ class LoopAnalysis:
 
 @dataclasses.dataclass(frozen=True)
 class OutputResistance:
-    """출력 포트 전류 주입 열의 ω = 0 응답 / 주입 전류(부호 그대로)."""
+    """출력 포트 전류 주입 열 `column`(관측 행 `row`)의 ω = 0 응답 / 주입 전류. 음수(양되먹임)는 값이 아니라 정의 불가
+    `negative_output_resistance`(오케스트레이터 결정 2026-10-07, 7a design Q3) -- `<=` 제약이 음수로 통과하지 않는다."""
 
     column: int
     rout_ohm: object
     undefined: tuple = ()
+    row: int = 0
 
 
 @dataclasses.dataclass(frozen=True)

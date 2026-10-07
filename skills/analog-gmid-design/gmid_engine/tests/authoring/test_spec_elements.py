@@ -151,7 +151,8 @@ def test_conflict_spec_pending_passive(sc):
 
 
 def test_feedback_element_unknown(sc):
-    sc.human["feedback"]["elements"] = ["Rfb", "Rzz"]
+    # Cfb = 입력 포트 넷(n_inn)에 단자 하나 -- 절단 규칙(7a design 2.2 L2) 위반 없는 알려진 소자 + 모르는 이름
+    sc.human["feedback"]["elements"] = ["Cfb", "Rzz"]
     sc.reject_only("feedback_element_unknown", "elements")
 
 

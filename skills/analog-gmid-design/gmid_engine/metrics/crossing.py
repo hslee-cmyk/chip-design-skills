@@ -15,7 +15,7 @@
 """
 import math
 
-from ._helpers_product import product_at
+from ._helpers_product import check_factors, product_at
 from .mna_types import Crossing, Undefined
 
 
@@ -32,8 +32,9 @@ def _rational_bound(poles, zeros, gain, omega):
 def _upper_bracket(factors, omegas, values, level, quantity):
     """(ω_hi, T(ω_hi)) 또는 Crossing(정의 불가)."""
     # |s| = 0 근은 뺀다: T(0) 이 유한한(여기 닿았다면 유한) 계에서 원점 극점은 원점 영점과 상쇄된 전하 모드다(용량 전용 노드).
-    poles = tuple(p for f in factors for p in f.response.roots.poles if p != 0)
-    zeros = tuple(z for f in factors for z in f.response.roots.zeros[f.column] if z != 0)
+    # 근은 인수 공통 규약 속성(`Factor`: 계 극점·그 행·열 영점, `ProbeFactor`: T 자신의 극점·영점)에서 읽는다.
+    poles = tuple(p for f in factors for p in f.poles if p != 0)
+    zeros = tuple(z for f in factors for z in f.zeros if z != 0)
     top = float(omegas[-1])
     if len(poles) < len(zeros) or top <= 0:
         return _absent(level, quantity, "no_crossing_above", "definitional", poles=len(poles), zeros=len(zeros))
@@ -58,6 +59,7 @@ def _upper_bracket(factors, omegas, values, level, quantity):
 
 def find_crossing(factors, omegas, values, level, quantity):
     """루프 인수 tuple, 공유 격자, 격자 위 T 값, level, 정의 불가 사유에 붙일 양 이름 -> `Crossing`."""
+    check_factors(factors)
     level = float(level)
     if not level > 0 or not math.isfinite(level):
         raise ValueError("find_crossing: level 은 양의 유한수여야 한다: %r" % level)

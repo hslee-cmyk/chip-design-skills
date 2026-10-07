@@ -4,7 +4,8 @@
   test 는 `from gmid_engine.authoring import ...`·`from gmid_engine.core import ...` 만 쓴다. 배치는 규칙 D(H):
   `tests/authoring/test_spec_<파일>.py`, `tests/authoring/test__spec_fields.py`, `tests/core/test_metric_signature.py`,
   9회로 교차는 `tests/integration/`. **이 커밋에는 test 가 없다**(지시: 계약만) -- 규칙 H(`-m structure_test_mapping`)는
-  이 16개 파일의 test 누락으로 FAIL 한다(기본 실행 밖).
+  이 16개 파일의 test 누락으로 FAIL 한다(기본 실행 밖). 7a 커밋(2026-10-07)이 더한 `spec_views.py`·`_feedback_cuts.py` 의
+  test(`test_spec_views.py`·`test__feedback_cuts.py`)도 test 작성 역할 몫이다(같은 규칙 H 누락).
 - 근거: `_drafts/engine/design_spec_format.md`(F1~F14 기본안 채택, 오케스트레이터 2026-10-07), `_drafts/user_decisions.md`
   2026-10-07, 계획 N3.15·N3.16·DEC-20·34·60·68·69·73·75·77, U-17·25·35·39. 실패 형식은 `CONTRACT.md` 0절과 같다.
 - **배선**: `load_sizing_spec` 은 공개 진입점이다. **아직 엔진 안 호출자는 없다** -- 파이프라인 MOD10 이 S0 입력으로
@@ -20,7 +21,8 @@
 - `topology`: `load_topology` 가 만든 `TopologyDoc`(아니면 `TypeError`). None 경로 없음.
 - `metric_catalog`: `Mapping[str, MetricSignature]`(아니면 `TypeError`). 빈 매핑이면 모든 제약이 `metric_unknown`.
 - 순서: `load_json_checked` -> `check_spec_schema` -> `meta_cross_check` -> `supplies_declaration` -> `input_dc_declaration`
-  -> `element_value_declaration` -> `constraint_declaration` -> `compensation_target_declaration` ->
+  -> `element_value_declaration` -> `constraint_declaration`(앞 게이트의 feedback 결과를 받아 기본 뷰를 `default_views` 로 로드
+  한 번에 한 번 유도, 7a design) -> `compensation_target_declaration` ->
   `node_target_declaration` -> `intended_region_declaration` -> `settings_declaration` -> `resolve_spec_references`.
 - JSON 수준 위반은 `json_read` 예외 그대로. 그 밖 위반은 전부 모아 `SchemaRejectedError` **한 번**:
   detail = {`gate`: `"spec_load"`, `where`: 경로 문자열, `hits`, `rejected_gates`(정렬 tuple), `not_evaluated`}.
@@ -79,15 +81,19 @@ objective, search, spice_check, front_refilter. 선택 = pending_constraints, co
 | `element_value_key` / `element_value` | 값 키 ≠ kind 표(capacitor→value_farad, resistor→value_ohm, current_source→value_dc_amp, voltage_source→value_dc_v) / 수동소자 값 ≤ 0 | elements |
 | `element_value_conflict` | topology 원소(수동소자·이상원)에 옛 값이 있는데 spec 이 다른 값·engine·pending(F5 이관 전 안전망 -- topology 값으로 spec 을 채우지 않는다) | elements |
 | `feedback_element_unknown` | feedback.elements 이름이 topology 수동소자 밖 | elements |
+| `feedback_element_not_on_input` | feedback.elements 소자의 두 단자 중 입력 포트 넷(direction input)에 물린 것이 없다 -- 루프를 끊을 단자가 없음(7a design 2.2 L2, 오라클 C14 막힘과 같은 조건) | elements |
+| `feedback_cut_ambiguous` | feedback.elements 소자의 두 단자가 모두 입력 포트 넷 -- 끊을 단자가 정해지지 않음(오라클 C14 보강과 같은 조건) | elements |
 | `node_target_net` | 노드 목표 넷이 레일이거나 단자 넷 밖 | node_targets |
 | `intended_region_device` | 소자가 topology 밖 | intended_region |
 | `metric_unknown` | 제약·pending_constraints metric 이 이름표 밖 | constraints |
 | `op_value` | 제약 op ∉ {>=, <=}, 예산 op ≠ <= | constraints, settings |
 | `value_and_ref` | value / value_from_constraint / value_from_file 이 정확히 하나가 아님 | constraints, compensation_targets |
 | `ref_kind_mismatch` | 참조인데 source.kind ≠ reference, 또는 그 반대 | constraints, compensation_targets |
-| `view_not_applicable` | view_kind None(뷰 없음)인 metric 에 view, metric 결정 대기 제약에 (결정 대기 아닌) view | constraints |
-| `view_required` | ratio metric 에 view 없음, transfer·loop·output_port metric 에 view 없고 output 포트가 1개가 아님 | constraints |
-| `view_not_defined_yet` | loop·output_port metric 에 결정 대기 표지가 아닌 view 선언(선언 뷰 모양은 7a design 몫, 7절 S1) | constraints |
+| `view_not_applicable` | view_kind None(뷰 없음)인 metric 에 view, metric 결정 대기 제약에 (결정 대기 아닌) view, **loop metric 에 결정 대기 아닌 view**(루프 뷰는 유도만 -- 7a design 2.9) | constraints |
+| `view_shape_not_supported` | loop metric 에 명시 모양 `{"cut_weights": …}` -- 계약에 예약된 모양(7a design 2.9)이지만 첫 소비 spec 이 생길 때까지 구현하지 않는다(조용히 무시하지 않고 거부, 7절 S3) | constraints |
+| `view_required` | ratio metric 에 view 없음 / transfer·loop(β = 1)에 view 없고 입력 포트가 차동쌍 1개(role differential_input_p·_n)·단일 1개(single_ended_input)가 아니거나 출력 포트가 단일 1개·차동쌍 1개(differential_output_p·_n)가 아님 / loop(β 루프)의 절단 넷 role 이 가중 어휘 밖 / output_port 에 view 없고 출력 포트가 1개가 아님 | constraints |
+| `view_excite_not_allowed` | output_port view 에 `ac_excite`(감지 전용 -- 여기는 DEC-66 이 고정) | constraints |
+| `view_sense_fixed_net` | output_port 감지 넷(sense_p·sense_n)이 고정 넷: 레일·입력 포트 넷·gate 전용 미구동 넷(레일·입력 포트가 아니고 단자가 전부 MOS gate -- graph `ac_ground_class` 비 None 과 같은 정의) | constraints |
 | `view_net_unknown` | 뷰 넷(ac_excite 키·sense_p·sense_n)이 어느 단자에도 없음 | constraints |
 | `constraint_duplicate` | 같은 (metric, op, view) 두 번(metric·view 결정 대기 제약은 비교 밖) | constraints |
 | `settling_order` | settling.linear_s > total_s | compensation_targets |
@@ -111,7 +117,20 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
   `pending`(`PendingMark` (경로, ID) 정렬), `section_fps`, `spec_fp`, `file_sha256`. 속성 `judged_constraints`.
 - `ConstraintDecl`: 참조는 해석된 `value`, `judged` = user_spec True / pending_spice False / reference 는 대상의 judged,
   metric 결정 대기면 `metric` None·`metric_decision`·`judged` False·`view` None. 참조 대상이 결정 대기면 `value` None +
-  `value_decision`(그 ID 가 `pending` 에도 들어간다). `view.mode` ∈ none/port/transfer/ratio/pending.
+  `value_decision`(그 ID 가 `pending` 에도 들어간다). `view.mode` ∈ none/port/transfer/ratio/pending/loop/sense.
+- `ViewDecl` 유도 필드(view 를 적지 않은 제약 -- `default_views(topology, feedback)` 가 로드 한 번에 한 번 계산, 7a design
+  2.2·2.3·2.5·3.1):
+  - 입력 포트 role 가중: 차동 입력 포트 집합 D 의 p = +1/|D|, n = −1/|D|(|D| = 2 → v_id = 1, v_cm = 0), 단일 입력 = 1.
+  - `port`(transfer 기본): `weights` = 입력 포트 (넷, 가중) 넷순, `sense` = `SenseDecl(sense_p, sense_n, sense_mode)`
+    (출력 1개 → single_ended, 차동 출력쌍 → differential).
+  - `loop`(pm_ss_deg 기본): `beta` ∈ {`declared`, `unity`}(`BETA_DECLARED`·`BETA_UNITY`). declared(feedback 비지 않음):
+    `cuts` = (되먹임 소자, 절단 넷) 소자 이름순 -- 절단 넷 = 소자의 입력 포트 넷 쪽 단자 넷, `weights` = 절단 넷 (넷, 가중)
+    넷순, `sense` None. unity(feedback 빈 list): `weights`·`sense` 가 `port` 와 같다. feedback 이 결정 대기 표지면 view =
+    `pending`(decision = feedback 의 ID -- 새 표지를 `pending` 에 더하지 않는다, 이미 `human.feedback` 표지로 들어 있다).
+  - `sense`(rout_ss_ohm): `sense` = `SenseDecl`(기본 = 출력 포트 1개면 그 넷 single_ended, 선언이면 그 감지 칸).
+  - topology 교차 검사를 못 한 로드(meta 불일치 -- 어차피 거부)나 feedback 이 거부된 로드에서는 유도하지 않은 mode 만 담는다.
+- 유도된 내용이 `ViewDecl` 에 들어가므로 `constraints_fp` 가 feedback·ports 변경을 따라간다(feedback 만 바꿔도 loop 제약이
+  있으면 `feedback_fp` 와 `constraints_fp` 가 함께 바뀐다).
 - 지문: `SpecSource` 는 `kind` 만 지문에 든다(`record`·`citation`·`decided`·`origin` 문구는 밖). `_` 주석 키 밖. 참조는
   해석된 값으로. 제약은 내용 지문 정렬(순서만 바꾼 spec 은 같은 지문). 섹션 지문(`SECTION_GROUPS`):
   supplies_fp(supplies_v), operating_fp(input_dc·node_voltage_targets_v·intended_region), elements_fp, feedback_fp,
@@ -126,8 +145,10 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
   `domain` ∈ `core.units.DOMAINS`(dc, ss, ls, geom), `view_kind` ∈ {None} ∪ `VIEW_KINDS`(transfer, loop, output_port,
   ratio -- MOD5 레지스트리 어휘, 정본은 `core.metric_signature.VIEW_KINDS` 한 곳; None = 뷰를 쓰지 않는 metric, 문자열
   `"none"` 은 어휘 밖), `objective_axis` ∈ {None} ∪ `OBJECTIVE_AXES`(power, area). 밖이면 `ValueError`.
-- `ViewDecl.mode`(3절, none/port/transfer/ratio/pending)는 로드 결과의 뷰 모양이고 `view_kind` 어휘와 별개다
-  (view_kind None 인 metric 의 결과 mode 가 `none`).
+- `ViewDecl.mode`(3절, none/port/transfer/ratio/pending/loop/sense)는 로드 결과의 뷰 모양이고 `view_kind` 어휘와 별개다
+  (view_kind None 인 metric 의 결과 mode 가 `none`, loop 는 `loop`, output_port 는 `sense`).
+- loop·output_port 뷰는 7a design(`_drafts/engine/design_7a_loop_output_views.md`)에서 정의되어 판정한다 -- 결정 대기 표지
+  전용이던 제한(옛 `view_not_defined_yet`)은 해제됐다.
 - 이름표 정본은 MOD5 레지스트리(core 에 이름 없음). 지금은 test 픽스처 이름표로만 돈다.
 
 ## 5. 9회로 spec 로드 결과 (2026-10-07, 이 커밋 코드 + library, 픽스처 이름표)
@@ -158,6 +179,17 @@ CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", u
 거부 실측(임시 스크립트, 원본 한 곳씩 깨뜨림): 2절 규칙 전부가 실제로 hit 를 냈다(`ref_ambiguous`·`source_origin`·
 `settling_order`·`view` 형식 `type` 은 미실측).
 
+7a 재측정(2026-10-07, 이 커밋 코드 + library, 픽스처 이름표 -- 위 표·표지 수는 바뀌지 않았다: 9/9 통과, pending 63):
+- 유도 뷰: loop β = 1 2건(ngcc_3stage_ff·nmcnr_amplifier `pm_ss_deg` -- 가중 (n −½, p +½), 출력 1개 single_ended), β 루프
+  유도 0건(8회로 feedback `[]`, 파일럿은 결정 대기). sense 3건(pushpull·sf_pushpull·two_stage_ota_sf `rout_ss_ohm` = 출력
+  포트 single_ended). 파일럿 `pm_ss_deg` 는 선언 표지 `{"pending": "MOD5"}` 가 그대로라 mode `pending`(MOD5) -- 표지를 지우면
+  feedback 결정 대기가 전파돼 `pending`(CI-10)이 된다(표지 삭제는 CI-10 결정 뒤, 오케스트레이터 몫).
+- 파일럿 feedback 후보를 넣은 복사본 로드: {Cf1, Cf2} → loop declared, cuts (Cf1, Vip)·(Cf2, Vim), weights (Vim −½, Vip +½);
+  {Cf1, Cf2, Cs1, Cs2} → 같은 절단 넷·가중, cuts 4개; `[]` → loop unity, 차동 출력 sense (Vop, Vom).
+- 새 규칙 거부(복사본 한 곳씩): `feedback_element_not_on_input`(파일럿 feedback CL1), `feedback_cut_ambiguous`(파일럿에
+  Vip–Vim 커패시터 추가), `view_excite_not_allowed`·`view_sense_fixed_net`(pushpull rout 에 ac_excite / sense_p = 입력 vin),
+  `view_shape_not_supported`·`view_not_applicable`(nmcnr pm 에 cut_weights / 감지 모양 view) -- 전부 그 규칙 하나만 냈다.
+
 ## 6. 설계(design_spec_format)와 다르게 정한 점
 
 1. `schema_version` 은 문자열 `"5"`(topology `"2.0"` 과 같은 관례 + 구조 규칙 D: 숫자 리터럴 5 금지).
@@ -173,10 +205,15 @@ CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", u
 7. 결정 대기 ID 에 `ET-n`·`MODn` 을 더했다(`MOD5` = 레지스트리 이름·뷰 정의를 MOD5 design 이 정할 칸).
 8. 섹션 지문에 `operating_fp`·`feedback_fp` 를 더했다(설계 목록에 자리가 없던 input_dc·노드 목표·영역·feedback).
 9. `MetricSignature.view_kind` 어휘는 MOD5 레지스트리와 같은 None/transfer/loop/output_port/ratio(4절, 정본
-   `core.metric_signature.VIEW_KINDS`). `pm_ss_deg` 는 loop(β 루프, 되먹임 수동소자는 spec `feedback`), `rout_ss_ohm` 은
-   output_port. 두 종류 모두 view 를 적지 않으면 포트 뷰(design_spec_format 1.7 규칙 그대로, output 포트가 1개가 아니면
-   `view_required`)이고, 선언 view 는 결정 대기 표지만 받는다(그 밖은 `view_not_defined_yet`) -- 7a design 이 A·β 절단점과
-   관측만 받는 출력 포트 뷰 모양을 정할 때까지(7절 S1).
+   `core.metric_signature.VIEW_KINDS`). `pm_ss_deg` = loop(view 미기재 → `feedback`·ports 유도 뷰, 결정 대기 아닌 선언 view
+   거부), `rout_ss_ohm` = output_port(감지 전용 `{sense_p, sense_n?, sense_mode}`, 미기재 → 단일 출력 포트). 정의는 7a design
+   (`_drafts/engine/design_7a_loop_output_views.md` 2.9·3.1).
+12. 7a 의 transfer 기본 포트 뷰도 같은 유도(`default_views`)를 쓴다: 입력 포트 모양(차동쌍 1개·단일 1개) 검사가 더해지고
+    차동 출력쌍(role differential_output_p·_n)을 받으며, `ViewDecl("port")` 에 가중·관측이 담긴다(7a design 4.2 view_required
+    수정 -- β = 1 루프와 같은 MnaSystem 이라 같은 유도를 쓴다).
+13. role 어휘(`ports.ROLE_*` 다섯 개)는 유도가 읽는 값으로만 정했다 -- 포트 로드는 여전히 role 형식만 본다.
+14. gate 전용 미구동 넷 판정은 graph `static_ac_ground` 와 같은 정의를 authoring(`spec_views`)이 TopologyDoc 에서 따로 한다
+    (authoring 은 graph 보다 아래 층이라 import 할 수 없다) -- MOD10 배선 때 한 곳으로 줄일 대상(6절 11번과 같은 처리).
 10. optional_stages 화이트리스트 이름(DEC-75 네 기능)은 이 파일이 snake_case 로 정했다.
 11. graph(MOD3, master 병합분)에 `graph/supplies.py` `supplies_declaration`(supplies_v 인자 검사)이 따로 있다 -- 이
     파일의 `spec_supplies.supplies_declaration` 과 같은 개념의 두 검사다. MOD10 배선 때 graph 쪽이 `SizingSpecDoc.supplies_v`
@@ -186,5 +223,6 @@ CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", u
 
 | # | 항목 | 현재 처리 |
 |---|---|---|
-| S1 | loop(`pm_ss_deg`)·output_port(`rout_ss_ohm`) metric 의 선언 view 모양 -- A·β 루프 절단점(metrics CONTRACT 3.10·M1), 관측만 받는 출력 포트 뷰(metrics CONTRACT 3.11: 구동 진폭 전부 0, 전류는 관측 노드에만) | 7a design. 그때까지 선언 view 는 결정 대기 표지만 받고 그 밖은 `view_not_defined_yet`, view 없음은 포트 뷰 |
+| S1 | loop(`pm_ss_deg`)·output_port(`rout_ss_ohm`) metric 의 선언 view 모양 | **닫음**(2026-10-07) -- 7a design: loop 는 유도만(2절·3절), output_port 는 감지 전용, `view_not_defined_yet` 삭제 |
+| S3 | 명시 loop view `{"cut_weights": {<절단 넷>: 가중}}`(β 루프) / `{<입력 포트 넷>: 가중}`(β = 1) -- 공통 모드 루프 같은 다른 모드 선택(7a design 2.9) | 계약에만 정의, 로더는 `view_shape_not_supported` 로 거부(배선 원칙: 첫 소비 spec -- 예: 7a Q2 에서 CM 루프 판정이 정해지면 -- 과 함께 구현). 키 집합 = 유도 절단 넷 집합(β = 1 은 입력 포트 집합), 0 아닌 유한 가중, 관측·절단 위치는 바꾸지 못한다 |
 | S2 | `mismatch_sigma_mv`·`mirror_ratio_error_mv` 가 MOD5 레지스트리(`metrics.metric_catalog()`)에 없다 -- library spec(파일럿·two_stage_ota·two_stage_ota_sf)과 픽스처 이름표에만 있다 | 실제 레지스트리 이름표로 로드하면 `metric_unknown`. 레지스트리 등록(정합 metric 계산 위치 포함) 또는 spec 쪽 결정 대기 표지 전환을 MOD10 배선 전에 정한다 |

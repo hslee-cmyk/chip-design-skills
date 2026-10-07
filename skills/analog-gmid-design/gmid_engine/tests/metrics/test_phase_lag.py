@@ -13,7 +13,7 @@ from .conftest import closed_miller, closed_single_pole, ex1_rc, ex2_amp, ex2_be
 def _t(factors):
     out = None
     for f in factors:
-        col = np.asarray(f.response.values)[:, f.column]
+        col = np.asarray(f.response.values)[:, f.row, f.column]
         out = col if out is None else out * col
     return out
 

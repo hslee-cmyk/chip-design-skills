@@ -20,7 +20,7 @@ def omega_grid(roots_seq):
     for roots in roots_seq:
         if not isinstance(roots, Roots):
             raise TypeError("omega_grid: 원소는 Roots 여야 한다: %r" % (roots,))
-        for z in roots.poles + tuple(z for col in roots.zeros for z in col):
+        for z in roots.poles + tuple(z for row in roots.zeros for col in row for z in col):
             mag = abs(z)
             if mag > 0 and math.isfinite(mag):
                 breaks.add(mag)

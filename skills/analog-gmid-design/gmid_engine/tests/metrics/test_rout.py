@@ -28,7 +28,7 @@ def test_ex2_rout_is_ro():
 
 def test_sign_of_current_kept():
     ck = SmallSignalCircuit(resistors=(Resistor(2, 0, 2e3),), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("i", currents=((2, -0.5),)),), Sense(2))
+    s = build_mna(ck, (Excitation("i", currents=((2, -0.5),)),), (Sense(2),))
     (r,) = solve_responses((s,))
     assert output_resistance(r, 0).rout_ohm == pytest.approx(2e3, rel=1e-12)
 
@@ -36,7 +36,7 @@ def test_sign_of_current_kept():
 def test_differential_rout():
     ck = SmallSignalCircuit(resistors=(Resistor(2, 0, 1e3), Resistor(3, 0, 2e3), Resistor(2, 3, 6e3)),
                             ac_ground=(0,))
-    s = build_mna(ck, (Excitation("id", currents=((2, 1.0), (3, -1.0))),), Sense(2, 3))
+    s = build_mna(ck, (Excitation("id", currents=((2, 1.0), (3, -1.0))),), (Sense(2, 3),))
     (r,) = solve_responses((s,))
     # 2–3 사이 본 저항: 6k ‖ (1k + 2k) = 2k
     assert output_resistance(r, 0).rout_ohm == pytest.approx(2e3, rel=1e-12)
@@ -50,7 +50,7 @@ def test_column_with_voltage_drive_rejected():
 
 def test_current_at_non_sense_node_rejected():
     ck = SmallSignalCircuit(resistors=(Resistor(2, 0, 1e3), Resistor(3, 2, 1e3)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("i", currents=((3, 1.0),)),), Sense(2))
+    s = build_mna(ck, (Excitation("i", currents=((3, 1.0),)),), (Sense(2),))
     (r,) = solve_responses((s,))
     with pytest.raises(ValueError):
         output_resistance(r, 0)
@@ -58,7 +58,7 @@ def test_current_at_non_sense_node_rejected():
 
 def test_differential_unbalanced_rejected():
     ck = SmallSignalCircuit(resistors=(Resistor(2, 0, 1e3), Resistor(3, 0, 2e3)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("id", currents=((2, 1.0), (3, 1.0))),), Sense(2, 3))
+    s = build_mna(ck, (Excitation("id", currents=((2, 1.0), (3, 1.0))),), (Sense(2, 3),))
     (r,) = solve_responses((s,))
     with pytest.raises(ValueError):
         output_resistance(r, 0)
@@ -67,7 +67,7 @@ def test_differential_unbalanced_rejected():
 def test_dc_undefined_gives_none_with_reason():
     # 관측 노드가 용량 전용: DC 전류 주입 -> 극한 발산
     ck = SmallSignalCircuit(capacitors=(Capacitor(2, 0, 1e-12),), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("i", currents=((2, 1.0),)),), Sense(2))
+    s = build_mna(ck, (Excitation("i", currents=((2, 1.0),)),), (Sense(2),))
     (r,) = solve_responses((s,))
     o = output_resistance(r, 0)
     assert o.rout_ohm is None

@@ -1,4 +1,4 @@
-"""CONTRACT 3.4·I-5: pencil_roots -- 극점 = (G, −C) 유한 일반화 고유값, zeros[j] = 열 j 관측 전달함수의 유한 영점,
+"""CONTRACT 3.4·I-5: pencil_roots -- 극점 = (G, −C) 유한 일반화 고유값, zeros[r][j] = 관측 행 r · 열 j 전달함수의 유한 영점,
 (|s|, 실부, 허부) 정렬, defects 면 빈 근, 용량 전용 노드 -> 원점 극점."""
 import pytest
 
@@ -25,14 +25,14 @@ def test_rc_single_pole_no_zero():
     assert isinstance(r, Roots)
     assert len(r.poles) == 1
     assert complex(r.poles[0]) == pytest.approx(complex(-1e6, 0.0), rel=1e-12)
-    assert len(r.zeros) == 1 and tuple(r.zeros[0]) == ()
+    assert len(r.zeros) == 1 and len(r.zeros[0]) == 1 and tuple(r.zeros[0][0]) == ()   # zeros[관측 행][열]
 
 
 def test_cs_pole():
     r = pencil_roots(ex2_amp())
     assert len(r.poles) == 1
     assert complex(r.poles[0]) == pytest.approx(complex(-EX2_GDS / EX2_CL, 0.0), rel=1e-12)
-    assert len(r.zeros) == 2 and all(tuple(z) == () for z in r.zeros)
+    assert len(r.zeros[0]) == 2 and all(tuple(z) == () for z in r.zeros[0])
 
 
 def test_miller_poles_and_rhp_zero():
@@ -47,7 +47,7 @@ def test_miller_poles_and_rhp_zero():
     assert abs(p1.imag) <= 1e-9 * abs(p1) and abs(p2.imag) <= 1e-9 * abs(p2)
     assert abs(p1) == pytest.approx(ref["p1"], rel=1e-9)
     assert abs(p2) == pytest.approx(ref["p2"], rel=1e-9)
-    (zs,) = r.zeros
+    (zs,) = r.zeros[0]
     assert len(zs) == 1
     assert complex(zs[0]) == pytest.approx(complex(2e9, 0.0), rel=1e-9)   # +gm2/Cc, 우반면
 
@@ -72,15 +72,15 @@ def test_charge_node_gives_origin_pole():
 
 def test_defects_give_empty_roots():
     ck = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 0, 1e3)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), Sense(5))
+    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), (Sense(5),))
     r = pencil_roots(s)
     assert tuple(r.poles) == ()
-    assert all(tuple(z) == () for z in r.zeros)
+    assert all(tuple(z) == () for z in r.zeros[0])
 
 
 def test_resistive_only_no_finite_roots():
     ck = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 0, 1e3)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), Sense(2))
+    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), (Sense(2),))
     r = pencil_roots(s)
     assert tuple(r.poles) == ()
-    assert tuple(r.zeros[0]) == ()
+    assert tuple(r.zeros[0][0]) == ()
