@@ -11755,7 +11755,8 @@ def run_matching_safety_with_finger_growth(
     반환: `{"rows", "audit", "ctx", "growth_rounds": [{"round","names","result"}, ...],
     "unresolved_pair": (a,b)|None, "unresolved_reason": str|None,
     "relaxed_pairs": [{"pair":(a,b), "reason":"gm_id_budget_exceeded",
-    "trim_recommended":True, "interdig_ok":bool|None}, ...]}`. `unresolved_reason`에
+    "trim_recommended":True, "interdig_ok":bool|None(반환 직전 _finalize가 계산한 최종 audit의
+    3b 체크로 채움)}, ...]}`. `unresolved_reason`에
     `"relaxed_to_layout"`이 새로 추가됐다 -- growth가 gm/ID 예산으로 막혀서 완화를 적용했고,
     (완화 대상 아닌 다른 3c 실패가 없어) 이 함수가 더 할 일이 없다는 뜻이다."""
     current_rows = {k: list(v) for k, v in rows.items()}
@@ -11765,8 +11766,8 @@ def run_matching_safety_with_finger_growth(
     relaxed_pair_keys: set = set()  # frozenset({a,b}) -- repair_matching_safety()에 그대로 전달
 
     def _backfill_interdig_ok(audit_result):
-        # 완화를 적용한 라운드에는 아직 그 결과가 반영된 audit이 없어 interdig_ok=None으로
-        # 남겨뒀다 -- 다음 라운드에 새로 계산된 audit_result가 나오면 그 3b 체크로 채운다.
+        # 완화 항목은 interdig_ok=None으로 만들어지고, 반환 직전 _finalize가 계산한
+        # 최종 audit(euler 정리 뒤)의 3b 체크로 채운다.
         for entry in relaxed_pairs:
             if entry["interdig_ok"] is not None:
                 continue
@@ -11796,7 +11797,6 @@ def run_matching_safety_with_finger_growth(
     for round_idx in range(max_rounds):
         current_rows, result = repair_matching_safety(
             current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys)
-        _backfill_interdig_ok(result)
         if result.ok:
             current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
             return {"rows": current_rows, "audit": result, "ctx": cur_ctx,
@@ -11875,7 +11875,6 @@ def run_matching_safety_with_finger_growth(
 
     current_rows, result = repair_matching_safety(
         current_rows, matching_pairs, pair_sensitivity, relaxed_pairs=relaxed_pair_keys)
-    _backfill_interdig_ok(result)
     current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)
     return {"rows": current_rows, "audit": result, "ctx": cur_ctx, "growth_rounds": growth_rounds,
             "unresolved_pair": None if result.ok else "unknown",
