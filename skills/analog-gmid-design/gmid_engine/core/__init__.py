@@ -22,16 +22,20 @@ from .graph_record import GraphRecord
 from .graph_snapshot import GraphSnapshot
 from .immutability import require_immutable
 from .margin import normalized_margin
+from .metric_signature import MetricSignature
 from .projection import Projection
+from .units import AMPLITUDE_DB_PER_DECADE, DOMAINS, METRIC_UNITS
 from .writer_error import WriterPermissionError
 from .writer_table import ENTITY_KINDS, WriterTable
 
 __all__ = (
+    "AMPLITUDE_DB_PER_DECADE",
     "BlockStats",
     "BoundedLRU",
     "CANDIDATE_FAILURE_CLASSES",
     "CanonPointer",
     "ComputeBlock",
+    "DOMAINS",
     "ENTITY_KINDS",
     "FAILURE_CLASSES",
     "FailureClass",
@@ -42,6 +46,8 @@ __all__ = (
     "InfeasibleSizingError",
     "InfeasibleTargetError",
     "LruStats",
+    "METRIC_UNITS",
+    "MetricSignature",
     "NonconvergentError",
     "Projection",
     "SchemaRejectedError",
