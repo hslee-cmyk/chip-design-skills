@@ -153,8 +153,8 @@ def test_topology_must_be_topology_doc(sc, bad_topo):
         load_sizing_spec(path, bad_topo, {})
 
 
-@pytest.mark.parametrize("bad_cat", [None, [("gain_ss_db", MetricSignature("dB", "ss", "transfer"))],
-                                     {"gain_ss_db": ("dB", "ss", "transfer")}])
+@pytest.mark.parametrize("bad_cat", [None, [("gain_ss_db", MetricSignature("db", "ss", "transfer"))],
+                                     {"gain_ss_db": ("db", "ss", "transfer")}])
 def test_catalog_must_be_mapping_of_signatures(sc, bad_cat):
     path = sc.write_spec(sc.spec)
     with pytest.raises(TypeError):

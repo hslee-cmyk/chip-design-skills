@@ -1,6 +1,7 @@
-"""graph/rel_matching.py -- `s1_rel_matching`: matching_ratio·l_class(비레일 gate gs 묶음)·matching_offset(계약 4.5, 7.5).
+"""graph/rel_matching.py -- `s1_rel_matching`: matching_ratio·l_class(비레일 gate gs 묶음)(계약 4.5, 7.5).
 
-기대값 = JSON 직접 집계(oracle)와 계약 7.5 표(파일럿 matching_offset 3묶음 포함).
+기대값 = JSON 직접 집계(oracle)와 계약 7.5 표. matching_offset 은 2026-10-07 Q8 (iii) 로 writer 가
+`s1_matching_groups`(matching_groups.py, 계약 4.5a)로 옮겨 이 파일에서 뺐다(그 test 는 test_matching_groups.py 몫).
 """
 from __future__ import annotations
 
@@ -14,18 +15,17 @@ SIX = (
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
 )
 NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
-# 계약 7.5 표: (matching_ratio = l_class 수, matching_offset {멤버: status})
+# 계약 7.5 표: matching_ratio = l_class 수
 TABLE = {
-    "common_gate_amplifier": (0, {}),
-    "current_reuse_telescopic_ota": (3, {("M37a", "M37b"): "derived", ("M4a", "M4b", "M63"): "review_needed",
-                                         ("M1a", "M1b", "M58"): "review_needed"}),
-    "folded_cascode": (3, {("M1", "M2"): "derived"}),
-    "ngcc_3stage_ff": (5, {("M1", "M2"): "derived"}),
-    "nmcnr_amplifier": (3, {("M102", "M103"): "derived"}),
-    "pushpull_follower_buffer": (0, {}),
-    "sf_pushpull_output_opamp": (4, {("M1", "M2"): "derived"}),
-    "two_stage_ota": (2, {("M1", "M2"): "derived"}),
-    "two_stage_ota_sf": (2, {("M1", "M2"): "derived"}),
+    "common_gate_amplifier": 0,
+    "current_reuse_telescopic_ota": 3,
+    "folded_cascode": 3,
+    "ngcc_3stage_ff": 5,
+    "nmcnr_amplifier": 3,
+    "pushpull_follower_buffer": 0,
+    "sf_pushpull_output_opamp": 4,
+    "two_stage_ota": 2,
+    "two_stage_ota_sf": 2,
 }
 
 
@@ -36,9 +36,7 @@ def _s1(gh, name):
 @pytest.mark.parametrize("name", NINE)
 def test_oracle_matches_table(gh, name):
     o = gh.oracle(gh.raw(name))
-    n, off = TABLE[name]
-    assert len(o.matching_ratio) == len(o.l_class) == n
-    assert {x[2]: x[3] for x in o.matching_offset} == off
+    assert len(o.matching_ratio) == len(o.l_class) == TABLE[name]
 
 
 @pytest.mark.parametrize("name", NINE)
@@ -50,16 +48,6 @@ def test_matching_ratio_and_l_class(gh, name):
     lc = gh.gval(s1, "rel_l_class")
     assert sorted((r.type, r.domain, r.members, r.status, r.evidence.basis) for r in lc) == sorted(o.l_class)
     assert sorted(r.members for r in mr) == sorted(r.members for r in lc)
-
-
-@pytest.mark.parametrize("name", NINE)
-def test_matching_offset(gh, name):
-    o = gh.oracle(gh.raw(name))
-    rels = gh.gval(_s1(gh, name), "rel_matching_offset")
-    got = sorted((r.type, r.domain, r.members, r.status, r.evidence.nets, r.evidence.basis) for r in rels)
-    assert got == sorted(o.matching_offset)
-    for r in rels:
-        assert list(r.members) == sorted(r.members)
 
 
 def test_rail_gate_group_is_not_mirror(gh, tmp_path):
@@ -75,7 +63,5 @@ def test_rail_gate_group_is_not_mirror(gh, tmp_path):
 def test_block_declaration():
     assert isinstance(s1_rel_matching, ComputeBlock)
     assert s1_rel_matching.name == S1_REL_MATCHING_WRITER
-    assert set(s1_rel_matching.reads) == {("graph", "gs_groups"), ("device", "element_class"), ("device", "kind"),
-                                          ("device", "pins"), ("node", "is_rail")}
-    assert set(s1_rel_matching.writes) == {("graph", "rel_l_class"), ("graph", "rel_matching_offset"),
-                                           ("graph", "rel_matching_ratio")}
+    assert set(s1_rel_matching.reads) == {("graph", "gs_groups"), ("node", "is_rail")}
+    assert set(s1_rel_matching.writes) == {("graph", "rel_l_class"), ("graph", "rel_matching_ratio")}

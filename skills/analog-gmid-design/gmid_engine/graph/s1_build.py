@@ -12,7 +12,7 @@
   레코드는 이전 스냅샷과 같은 객체다(구조 공유). `previous` 없이 같은 doc 으로 두 번 부르면 두 번 계산하고 블록 계수
   `recomputes_same_input` 이 올라간다 -- 같은 실행의 재사용은 호출자가 이전 S1 을 넘겨서 한다(graph 가 곧 캐시).
 * 순서(고정): supplies 검사 -> 키 -> structure -> bulk -> dc_conduction -> gs_groups -> branches -> dc_roles -> rel_vgs
-  -> rel_matching -> gvgs -> columns -> rel_kcl.
+  -> rel_matching -> matching_groups -> gvgs -> columns -> rel_kcl.
 """
 from gmid_engine.authoring import TopologyDoc
 from gmid_engine.core import GraphSnapshot, sorted_items
@@ -24,6 +24,7 @@ from .dc_conduction import s1_dc_conduction
 from .dc_roles import s1_dc_roles
 from .gs_groups import s1_gs_groups
 from .gvgs_cycles import s1_gvgs
+from .matching_groups import s1_matching_groups
 from .rel_kcl import s1_rel_kcl
 from .rel_matching import s1_rel_matching
 from .rel_vgs import s1_rel_vgs
@@ -56,6 +57,7 @@ def build_s1(doc, supplies_v=None, previous=None, column_limit=None):
     snapshot = s1_dc_roles(snapshot)
     snapshot = s1_rel_vgs(snapshot)
     snapshot = s1_rel_matching(snapshot)
+    snapshot = s1_matching_groups(snapshot)
     snapshot = s1_gvgs(snapshot)
     snapshot = s1_columns(snapshot, column_limit)
     snapshot = s1_rel_kcl(snapshot)

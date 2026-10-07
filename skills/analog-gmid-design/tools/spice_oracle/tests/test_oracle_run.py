@@ -8,7 +8,7 @@ import json
 
 import pytest
 
-from conftest import (CS, ORACLE_DIR, cs_input, make_lut, run_netlist, run_oracle, require_spice, stem_of)
+from conftest import (CS, OFF_ZERO, ORACLE_DIR, cs_input, make_lut, run_netlist, run_oracle, require_spice, stem_of)
 
 
 @pytest.fixture(autouse=True)
@@ -65,7 +65,8 @@ def test_c2_npz_without_temp_blocked_returns_2(tmp_path):
 
 def test_c8_pass_returns_0(tmp_path):
     """합격 정의: free, 제약 만족 + 전도 MOS 전부 포화(sat_margin 0.05 V; 손계산 여유 M1 ~0.83 V, MP1 ~1.14 V) -> PASS, 반환 0."""
-    inp = cs_input(make_lut(tmp_path / "lut.npz"), constraints=GAIN_PASS)
+    # [C23 조정] 전도 문턱 0(옛 ID > 0 규칙)을 소자별로 명시 -- 없으면 PASS 대신 INCOMPLETE
+    inp = cs_input(make_lut(tmp_path / "lut.npz"), constraints=GAIN_PASS, preds_devices=copy.deepcopy(OFF_ZERO))
     p, res = run_oracle(inp, tmp_path / "o", sat_margin=0.05)
     assert res["free"]["summary"]["verdict"] == "PASS", res["free"]["summary"]
     assert p.returncode == 0
