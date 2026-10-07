@@ -23,14 +23,14 @@ def test_single_pole():
 
 
 def test_breakpoints_and_geometric_midpoints():
-    r = Roots((complex(-1e3, 0), complex(-1e5, 0)), ((complex(2e4, 0),),))
+    r = Roots((complex(-1e3, 0), complex(-1e5, 0)), (((complex(2e4, 0),),),))   # zeros[관측 행][열]
     g = omega_grid((r,))
     _close_seq(g, (0.0, 1e3, math.sqrt(1e3 * 2e4), 2e4, math.sqrt(2e4 * 1e5), 1e5))
 
 
 def test_union_over_systems_sorted_unique():
     r1 = Roots((complex(-1e6, 0),), ((),))
-    r2 = Roots((complex(-1e4, 0), complex(-1e6, 0)), ((complex(-1e6, 0),),))
+    r2 = Roots((complex(-1e4, 0), complex(-1e6, 0)), (((complex(-1e6, 0),),),))
     g = omega_grid((r1, r2))
     _close_seq(g, (0.0, 1e4, math.sqrt(1e4 * 1e6), 1e6))
     assert list(g) == sorted(set(g))
@@ -43,12 +43,12 @@ def test_complex_pair_counted_once_by_magnitude():
 
 
 def test_origin_root_excluded():
-    g = omega_grid((Roots((complex(0, 0), complex(-1e6, 0)), ((complex(0, 0),),)),))
+    g = omega_grid((Roots((complex(0, 0), complex(-1e6, 0)), (((complex(0, 0),),),)),))
     _close_seq(g, (0.0, 1e6))
 
 
 def test_ascending_strict():
-    r = Roots((complex(-7e2, 0), complex(-3e8, 0), complex(-2e2, 0)), ((complex(5e4, 0), complex(-9e9, 0)),))
+    r = Roots((complex(-7e2, 0), complex(-3e8, 0), complex(-2e2, 0)), (((complex(5e4, 0), complex(-9e9, 0)),),))
     g = list(omega_grid((r,)))
     assert all(a < b for a, b in zip(g, g[1:]))
     assert len(g) == 1 + 5 + 4

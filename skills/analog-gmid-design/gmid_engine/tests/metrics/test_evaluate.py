@@ -121,15 +121,15 @@ def _undefined_sources():
     la = analyze_loop((Factor(r2d, 1),))
     out += [(n, la) for n in ("gain_ss_db", "ugf_ss_hz", "gbw_ss_hz", "pm_ss_deg", "parasitic_pm_ss_deg")]
     ck = SmallSignalCircuit(capacitors=(Capacitor(2, 0, 1e-12),), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("i", currents=((2, 1.0),)),), Sense(2))
+    s = build_mna(ck, (Excitation("i", currents=((2, 1.0),)),), (Sense(2),))
     (rc,) = solve_responses((s,))
     out.append(("rout_ss_ohm", output_resistance(rc, 0)))
     ck6 = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 3, 1e4)), ac_ground=(0,))
-    s6 = build_mna(ck6, (Excitation("g", voltages=((1, 1.0),)), Excitation("z", voltages=((3, 0.0),))), Sense(2))
+    s6 = build_mna(ck6, (Excitation("g", voltages=((1, 1.0),)), Excitation("z", voltages=((3, 0.0),))), (Sense(2),))
     (r6,) = solve_responses((s6,))
     out.append(("ratio_ss_db", response_ratio(r6, 0, 1)))
     ckd = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 0, 1e3)), ac_ground=(0,))
-    sd = build_mna(ckd, (Excitation("v", voltages=((1, 1.0),)),), Sense(5))   # isolated_node
+    sd = build_mna(ckd, (Excitation("v", voltages=((1, 1.0),)),), (Sense(5),))   # isolated_node
     (rd,) = solve_responses((sd,))
     lad = analyze_loop((Factor(rd, 0),))
     out += [(n, lad) for n in ("gain_ss_db", "gbw_ss_hz")]

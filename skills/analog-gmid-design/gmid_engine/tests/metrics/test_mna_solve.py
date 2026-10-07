@@ -50,8 +50,8 @@ def test_shared_grid_union_of_roots():
 def test_values_match_independent_mna():
     r_rc, r_amp = solve_responses((ex1_rc(), ex2_amp()))
     om = np.asarray(r_rc.omegas)
-    v_rc = np.asarray(r_rc.values)
-    v_amp = np.asarray(r_amp.values)
+    v_rc = np.asarray(r_rc.values)[:, 0]        # 관측 1개: (k, r, m) 의 관측 행 0
+    v_amp = np.asarray(r_amp.values)[:, 0]
     assert v_rc.shape == (4, 1) and v_amp.shape == (4, 2)
     for k, w in enumerate(om):
         if w == 0.0:
@@ -67,22 +67,22 @@ def test_values_match_independent_mna():
 
 def test_dc_row_is_dc_limit():
     (r,) = solve_responses((ex2_amp(),))
-    v = np.asarray(r.values)
+    v = np.asarray(r.values)[:, 0]
     assert v[0, 0] == pytest.approx(-100.0, rel=1e-12)
     assert v[0, 1] == pytest.approx(1e5, rel=1e-12)
-    assert np.array_equal(np.asarray(r.dc), v[0].real)
+    assert np.array_equal(np.asarray(r.dc)[0], v[0].real)
 
 
 def test_cap_divider_flat_at_all_grid_points():
     (r,) = solve_responses((ex2c_beta_cap(),))
-    v = np.asarray(r.values)[:, 0]
+    v = np.asarray(r.values)[:, 0, 0]
     assert np.allclose(v, 0.25, rtol=1e-12, atol=0)
     assert v[-1] == pytest.approx(0.25, rel=1e-12)
 
 
 def test_sc_loop_matches_independent_mna_and_injection_nan():
     (r,) = solve_responses((ex2d_sc_loop(),))
-    v = np.asarray(r.values)
+    v = np.asarray(r.values)[:, 0]
     om = np.asarray(r.omegas)
     assert v[0, 0] == pytest.approx(closed_sc_loop_dc(), rel=1e-12)
     assert math.isnan(v[0, 1].real) or math.isnan(v[0, 1].imag)
@@ -115,7 +115,7 @@ def test_charge_mode_origin_pole_not_a_grid_breakpoint():
 
 def test_defect_system_values_nan_no_exception():
     ck = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 0, 1e3)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), Sense(5))
+    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), (Sense(5),))
     (r,) = solve_responses((s,))
     assert np.all(np.isnan(np.asarray(r.values).real))
     assert "isolated_node" in codes(r.undefined)
@@ -141,7 +141,7 @@ def test_grid_change_triggers_no_reassembly():
     grids = [tuple(np.asarray(r.omegas)) for r in (a1, a2, a3)]
     assert len(set(grids)) == 3                        # 격자는 실제로 바뀌었다
     for r in (a1, a2, a3):
-        assert np.asarray(r.values)[0, 0] == pytest.approx(-100.0, rel=1e-12)
+        assert np.asarray(r.values)[0, 0, 0] == pytest.approx(-100.0, rel=1e-12)
 
 
 ex1_rc_prebuilt = ex1_rc()

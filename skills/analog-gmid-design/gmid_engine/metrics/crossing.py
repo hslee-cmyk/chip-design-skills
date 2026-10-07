@@ -2,6 +2,8 @@
 
 진입점: `find_crossing`.
 
+0. 격자 위 T 에 비유한 값(NaN)이 있으면 교차를 찾지 않고 인수의 첫 사유(없으면 `response_not_finite`)를 quantity 로 바꿔 낸다
+   (`analyze_loop` 를 거치지 않고 단독으로 불러도 같은 사유 -- NaN 을 `dc_not_above_level` 로 잘못 분류하지 않는다).
 1. 격자 위 |T| 에서 |T(0)| > level 이고 처음으로 |T| ≤ level 이 되는 칸을 괄호로 잡는다. |T(0)| ≤ level 이면 교차 없음
    (`dc_not_above_level`, definitional).
 2. 격자 끝까지 |T| > level 이면 상단 괄호를 극점·영점 상계로 유도한다: ω > max|p| 에서
@@ -15,7 +17,9 @@
 """
 import math
 
-from ._helpers_product import product_at
+import numpy
+
+from ._helpers_product import check_factors, product_at
 from .mna_types import Crossing, Undefined
 
 
@@ -32,8 +36,9 @@ def _rational_bound(poles, zeros, gain, omega):
 def _upper_bracket(factors, omegas, values, level, quantity):
     """(ω_hi, T(ω_hi)) 또는 Crossing(정의 불가)."""
     # |s| = 0 근은 뺀다: T(0) 이 유한한(여기 닿았다면 유한) 계에서 원점 극점은 원점 영점과 상쇄된 전하 모드다(용량 전용 노드).
-    poles = tuple(p for f in factors for p in f.response.roots.poles if p != 0)
-    zeros = tuple(z for f in factors for z in f.response.roots.zeros[f.column] if z != 0)
+    # 근은 인수 공통 규약 속성(`Factor`: 계 극점·그 행·열 영점, `ProbeFactor`: T 자신의 극점·영점)에서 읽는다.
+    poles = tuple(p for f in factors for p in f.poles if p != 0)
+    zeros = tuple(z for f in factors for z in f.zeros if z != 0)
     top = float(omegas[-1])
     if len(poles) < len(zeros) or top <= 0:
         return _absent(level, quantity, "no_crossing_above", "definitional", poles=len(poles), zeros=len(zeros))
@@ -58,10 +63,16 @@ def _upper_bracket(factors, omegas, values, level, quantity):
 
 def find_crossing(factors, omegas, values, level, quantity):
     """루프 인수 tuple, 공유 격자, 격자 위 T 값, level, 정의 불가 사유에 붙일 양 이름 -> `Crossing`."""
+    check_factors(factors)
     level = float(level)
     if not level > 0 or not math.isfinite(level):
         raise ValueError("find_crossing: level 은 양의 유한수여야 한다: %r" % level)
     mags = abs(values)
+    if not numpy.isfinite(mags).all():
+        # 격자 표본이 정의 안 됨(NaN) -- 비교로 넘어가지 않고 인수의 사유를 그대로 낸다(analyze_loop 와 같은 사유)
+        cause = next((u for f in factors for u in f.undefined),
+                     Undefined("response", "response_not_finite", "numeric"))
+        return Crossing(level=level, undefined=Undefined(quantity, cause.code, cause.category, cause.detail))
     if not mags[0] > level:
         return _absent(level, quantity, "dc_not_above_level", "definitional", dc_magnitude=float(mags[0]))
     lo = hi = v_hi = None

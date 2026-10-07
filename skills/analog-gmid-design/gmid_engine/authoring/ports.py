@@ -12,6 +12,8 @@
 * `port_net_unknown` -- 넷이 어느 단자에도 없다. `port_on_rail` -- 넷이 레일 선언에 있다.
 * `no_input_port` / `no_output_port` -- 유효한 input / output 포트가 하나도 없다.
 `_` 로 시작하는 키(주석)는 포트가 아니다.
+role 은 열린 문자열이다(로드는 형식만 본다). 기본 포트 뷰·루프 뷰 유도(spec `spec_views`, 7a design 2.3·2.5)가 읽는 role
+어휘는 아래 `ROLE_*` 다섯 개뿐이고, 그 밖 role 의 포트로는 기본 뷰가 정해지지 않는다(`view_required`).
 """
 from ._rejection import reject, require_object
 from .topology_model import PortDecl, SchemaHit
@@ -22,6 +24,11 @@ INPUT_DIRECTION = "input"
 OUTPUT_DIRECTION = "output"
 DIRECTIONS = (INPUT_DIRECTION, OUTPUT_DIRECTION)
 COMMENT_PREFIX = "_"
+ROLE_DIFFERENTIAL_INPUT_P = "differential_input_p"
+ROLE_DIFFERENTIAL_INPUT_N = "differential_input_n"
+ROLE_SINGLE_ENDED_INPUT = "single_ended_input"
+ROLE_DIFFERENTIAL_OUTPUT_P = "differential_output_p"
+ROLE_DIFFERENTIAL_OUTPUT_N = "differential_output_n"
 
 
 def port_declaration(doc, rails, known_nets):

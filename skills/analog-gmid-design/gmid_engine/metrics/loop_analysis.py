@@ -2,17 +2,18 @@
 
 진입점: `analyze_loop`.
 
-인수 묶음 T = Π Factor 하나에서 모든 주파수 양을 한 번에 계산해 `LoopAnalysis` 로 보관한다(같은 응답을 metric 이
-공유 -- UGF 이분을 위상 여유가 다시 하지 않는다). 레지스트리가 이 필드를 metric 이름에 잇는다:
-`gain_ss_db`·`ugf_ss_hz`·`gbw_ss_hz`·`parasitic_pm_ss_deg` = 선언 전달 뷰 인수, `pm_ss_deg` = β 루프 인수.
+인수 묶음 T = Π 인수(`Factor`·`ProbeFactor`, 공통 규약 -- mna_types docstring) 하나에서 모든 주파수 양을 한 번에 계산해
+`LoopAnalysis` 로 보관한다(같은 응답을 metric 이 공유 -- UGF 이분을 위상 여유가 다시 하지 않는다). 레지스트리가 이 필드를
+metric 이름에 잇는다: `gain_ss_db`·`ugf_ss_hz`·`gbw_ss_hz`·`parasitic_pm_ss_deg` = 선언 전달 뷰 인수, `pm_ss_deg` = 루프 뷰 인수.
 
 * `gain_db` = 20·log10|T(0)|(T(0) = ω → 0 극한).
 * `ugf_hz`: |T| = 1 첫 교차(`find_crossing`), Hz = ω/2π.
 * `gbw_hz` = |T(0)|·f_3dB, f_3dB = |T| = |T(0)|/√2 첫 교차. `gbw_ugf_gap_hz` = gbw − ugf.
-* `phase_margin_deg` = 180° − (T(0) 대비 UGF 까지 누적 위상 지연). **PM 정의(계획 N3.8, U-48 사용자 확정)**: 선언된
-  되먹임 수동소자가 있으면 그 β 루프의 루프 이득 T = A·β, 없으면 β = 1 루프 T = A. 이 함수는 T 를 인수 곱으로 받으므로
-  β = 1 은 인수 하나(A), β 루프는 인수 둘(A, β)이다. 기준이 T(0) 위상이라 되먹임 부호 관례(반전·비반전 관측)와 무관하다.
-  같은 계산을 전달 뷰 인수에 하면 `parasitic_pm_ss_deg`(DM 3.4: 같은 응답의 UGF 기준, 옛 손값 ω_c 폐기)다.
+* `phase_margin_deg` = 180° − (T(0) 대비 UGF 까지 누적 위상 지연). **PM 정의(계획 N3.8, U-48 사용자 확정, 7a design 2.4·2.5)**:
+  spec `feedback` 이 비어 있지 않으면 절단 회로 계의 `ProbeFactor` 하나(오라클 Middlebrook 과 같은 식 T = (Tv·Ti − 1)/(Tv + Ti + 2)),
+  빈 list 면 β = 1 -- 포트 전달 뷰 `Factor` 하나(T = A). A·β 를 따로 푼 인수 2개의 곱은 β 망이 증폭기를 싣는 부하를 빼므로
+  `pm_ss_deg` 의 정의가 아니다(인수 곱 기계 자체는 그대로 지원한다 -- 7a design 2.7). 기준이 T(0) 위상이라 되먹임 부호
+  관례(반전·비반전 관측)와 무관하다. 같은 계산을 전달 뷰 인수에 하면 `parasitic_pm_ss_deg`(DM 3.4)다.
 예외를 던지지 않는다: 정의되지 않은 양은 None 이고 `undefined` 에 `Undefined(quantity = 필드 이름, …)`.
 """
 import math
@@ -21,34 +22,24 @@ import numpy
 
 from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
 
+from ._helpers_product import check_factors
 from .crossing import find_crossing
-from .mna_types import Factor, LoopAnalysis, Undefined
+from .mna_types import LoopAnalysis, Undefined
 from .phase_lag import phase_lag
 
 _QUANTITIES = ("gain_db", "ugf_hz", "gbw_hz", "gbw_ugf_gap_hz", "phase_lag_rad", "phase_margin_deg")
 
 
 def _product_samples(factors):
-    if not isinstance(factors, tuple) or not factors:
-        raise TypeError("analyze_loop 는 비어 있지 않은 Factor tuple 을 받는다")
-    for f in factors:
-        if not isinstance(f, Factor):
-            raise TypeError("analyze_loop: 원소는 Factor 여야 한다: %r" % (f,))
-        if not 0 <= f.column < len(f.response.system.excitations):
-            raise ValueError("Factor.column %r 이 열 범위 밖이다" % (f.column,))
-    omegas = factors[0].response.omegas
+    omegas = check_factors(factors)
     values = numpy.ones(omegas.shape, dtype=complex)
     for f in factors:
-        if not numpy.array_equal(f.response.omegas, omegas):
-            raise ValueError("루프 인수들의 ω 격자가 다르다 -- 한 번의 solve_responses 로 함께 풀어야 한다")
-        values = values * f.response.values[:, f.column]
+        values = values * f.samples
     return omegas, values
 
 
 def _all_undefined(factors, values):
-    causes = tuple(
-        u for f in factors for u in f.response.undefined if dict(u.detail).get("column", f.column) == f.column
-    ) or (Undefined("response", "response_not_finite", "numeric"),)
+    causes = tuple(u for f in factors for u in f.undefined) or (Undefined("response", "response_not_finite", "numeric"),)
     first = causes[0]
     undefined = tuple(Undefined(q, first.code, first.category, first.detail) for q in _QUANTITIES)
     dc = values[0].real
@@ -63,7 +54,7 @@ def _retag(undefined, quantity):
 
 
 def analyze_loop(factors):
-    """Factor tuple(같은 solve_responses 결과) -> `LoopAnalysis`."""
+    """인수 tuple(`Factor`·`ProbeFactor`, 같은 solve_responses 결과) -> `LoopAnalysis`."""
     omegas, values = _product_samples(factors)
     if not numpy.isfinite(values).all():
         return _all_undefined(factors, values)

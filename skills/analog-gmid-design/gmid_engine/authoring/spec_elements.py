@@ -16,12 +16,15 @@
   engine·pending 이거나 수가 다름 -- 수동소자·이상원 모두). 같은 값이 두 곳에 있는 동안 조용히 갈리지 않게 막는다(topology 값 필드 삭제는 topology
   정리 단계 몫).
 `feedback` 모양: `{"pending": <ID>}` / `{"elements": [<수동소자 이름>…], "source"}`(빈 list = 되먹임 수동소자 없음 =
-β=1 루프, UD 9번). `type`(형식·중복), `feedback_element_unknown`(topology 수동소자 밖).
+β=1 루프, UD 9번). `type`(형식·중복), `feedback_element_unknown`(topology 수동소자 밖). 루프 절단 위치(7a design 2.2 L2):
+각 소자의 두 단자 중 입력 포트 넷에 물린 단자가 정확히 1개여야 한다 -- 0개 `feedback_element_not_on_input`(오라클 C14 막힘과
+같은 조건), 2개 `feedback_cut_ambiguous`(두 입력 넷 사이 소자 -- 어느 쪽을 끊을지 정해지지 않는다).
 `topology` 가 None 이면(meta 지문 불일치) 이름·kind 교차 검사를 하지 않는다(값 형식 검사만).
 결과: 요소 값은 이름순, feedback 은 이름순 tuple 또는 `PendingMark`.
 """
 from types import MappingProxyType
 
+from ._feedback_cuts import input_terminal_nets
 from ._spec_fields import COMMENT_PREFIX, at, finite_number, is_pending, key_hits, pending_decision
 from .spec_model import ElementValue, PendingMark
 from .spec_sources import source_declaration_checks
@@ -86,7 +89,25 @@ def _element(name, entry, where, kinds, topo_values):
     return result, hits
 
 
-def _feedback(raw, passive_names):
+def _cut_hits(names, topology):
+    hits = []
+    where = at(FEEDBACK_WHERE, "elements")
+    for index, name in enumerate(names):
+        nets = input_terminal_nets(name, topology)
+        if nets is None:
+            continue
+        if not nets:
+            hits.append(SchemaHit("feedback_element_not_on_input", at(where, index), "되먹임 요소 " + repr(name)
+                                  + " 의 단자가 입력 포트 넷에 물려 있지 않다 -- 루프를 끊을 단자가 없다(7a design 2.2 L2)",
+                                  (name,)))
+        elif len(nets) > 1:
+            hits.append(SchemaHit("feedback_cut_ambiguous", at(where, index), "되먹임 요소 " + repr(name)
+                                  + " 의 두 단자가 모두 입력 포트 넷 " + repr(nets) + " 에 물려 있다 -- 끊을 단자가 정해지지 않는다",
+                                  (name,) + nets))
+    return hits
+
+
+def _feedback(raw, passive_names, topology):
     if is_pending(raw):
         return PendingMark(FEEDBACK_WHERE, pending_decision(raw)), []
     if not isinstance(raw, dict):
@@ -104,6 +125,7 @@ def _feedback(raw, passive_names):
             if name not in passive_names:
                 hits.append(SchemaHit("feedback_element_unknown", at(at(FEEDBACK_WHERE, "elements"), index),
                                       "되먹임 요소 " + repr(name) + " 가 topology 수동소자에 없다", (name,)))
+        hits.extend(_cut_hits(names, topology))
     return tuple(sorted(names)), hits
 
 
@@ -136,7 +158,7 @@ def element_value_declaration(raw_values, raw_feedback, topology):
                 hits.append(SchemaHit("element_undeclared", WHERE, "topology 요소 " + repr(name)
                                       + " 의 값 선언이 없다(값 / engine / pending 중 하나로 적는다, F4)", (name,)))
         elements = tuple(sorted(declared, key=lambda x: x.name))
-    feedback, found = _feedback(raw_feedback, passive_names)
+    feedback, found = _feedback(raw_feedback, passive_names, topology)
     hits.extend(found)
     if hits:
         return None, None, tuple(hits)

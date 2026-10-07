@@ -1,11 +1,14 @@
 # gmid_engine.metrics 동작 계약 (test 작성용) -- 1단계: 엔진 상태와 독립인 수치 핵심
 
-- 대상: `gmid_engine.metrics.__all__`(이 단계 파일 23개, 아래 0절). test 는 `from gmid_engine.metrics import ...` 와
+- 대상: `gmid_engine.metrics.__all__`(이 단계 파일 27개, 아래 0절). test 는 `from gmid_engine.metrics import ...` 와
   `from gmid_engine.core import ...` 만 쓴다(`_` 이름 금지). test 배치(규칙 H): `gmid_engine/tests/metrics/test_<파일>.py`.
 - 근거: `wt/_drafts/engine/design_mod1_lut_mod5_mna.md`(이하 DM) 3.1~3.4, 계획 N3.8(gain·PM U-48), DEC-25·53·66·67·68·
   78·79, DF-06·16·19·26·28·29·30·37, WP-03, 설계 `design_spec_format.md` 3.2(`metric_catalog`), coordinator 결정
-  2026-10-07(용량 전용 노드 = 전하 보존 극한, 정의 불가 = 값으로 담기).
-- 이번 범위 밖(다음 단계): `ss_linearize`(봉인 스냅샷 → 이 레코드), GB4 `achievability`, GB5 `compensation`, `ls_fields`,
+  2026-10-07(용량 전용 노드 = 전하 보존 극한, 정의 불가 = 값으로 담기), `wt/_drafts/engine/design_7a_loop_output_views.md`
+  (이하 7a, 루프 뷰·출력 포트 뷰 -- 4.1 변경 목록), 오케스트레이터 결정 2026-10-07(7a Q3: 음의 rout = 정의 불가).
+- 이번 범위 밖(다음 단계): `ss_linearize`(봉인 스냅샷 → 이 레코드 -- 7a 배선 지점: spec `ViewDecl`(mode port·loop·sense)을
+  계 레코드로 사상한다. 소자 이름 → 원소 인덱스·`LoopCut`, 넷 → 노드 인덱스, 고정 노드 = 레일 ∪ gate 전용 미구동 넷 ∪
+  절단 안 된 입력 포트(7a 2.2 L4), 루프 계와 포트 전달 계를 한 번의 `solve_responses` 로), GB4 `achievability`, GB5 `compensation`, `ls_fields`,
   `@compute_block` 배선(S2 필드 `ss.mna`·`ss.freq`), `columns_current_check`, `area_layout_m2`. 이 단계 함수는 **입력
   레코드만 보는 순수 함수**이고 graph·S2·LUT 를 import 하지 않는다.
 
@@ -15,9 +18,12 @@
 
 | 층 | 파일 | 진입점 | 내용 |
 |---|---|---|---|
-| 0 | `records.py` | (데이터) | 입력 레코드: `MosSmallSignal`, `Resistor`, `Capacitor`, `Excitation`, `Sense`, `SmallSignalCircuit`, `StampSet`, `RailBias`, `ChannelCurrent`, `CurrentSource`, `DcOperatingPoint`, `GateArea`, `PassiveArea` |
-| 0 | `mna_types.py` | (데이터) | 결과 레코드: `Undefined`, `MnaSystem`, `Roots`, `DcLimit`, `SystemResponse`, `PointSolution`, `Factor`, `Crossing`, `LoopAnalysis`, `OutputResistance`, `ResponseRatio`, `SupplyCurrents`, `AreaSearch`, `MetricResult` |
+| 0 | `records.py` | (데이터) | 입력 레코드: `MosSmallSignal`, `Resistor`, `Capacitor`, `Excitation`, `Sense`, `SmallSignalCircuit`, `StampSet`, `LoopCut`, `RailBias`, `ChannelCurrent`, `CurrentSource`, `DcOperatingPoint`, `GateArea`, `PassiveArea` |
+| 0 | `mna_types.py` | (데이터) | 결과 레코드: `Undefined`, `MnaSystem`, `Roots`, `DcLimit`, `SystemResponse`, `PointSolution`, `Factor`, `ProbeFactor`, `CutCircuit`, `Crossing`, `LoopAnalysis`, `OutputResistance`, `ResponseRatio`, `SupplyCurrents`, `AreaSearch`, `MetricResult`. **인수 공통 규약**(`Factor`·`ProbeFactor`): 속성 `response`(공유 격자), `samples`(격자 위 값), `poles`·`zeros`(상단 괄호용 근), `undefined`(격자 표본 사유); 격자 밖 한 점은 `PointSolution` → (복소값, 사후 오차, 사유)(`_helpers_product.product_at`) |
 | 0 | `_helpers_stamp.py` | (helper) | `admittance_pair` |
+| 0 | `_helpers_pencil.py` | (helper) | `finite_eigs`(pencil 유한 고유값, `pencil_roots`·`probe_loop` 공용) |
+| 1 | `_helpers_probe.py` | (helper) | `probe_value`(Middlebrook T 한 점 평가·사후 오차, `probe_loop`·`_helpers_product` 공용) |
+| 1 | `loop_cut.py` | `cut_circuit` | 루프 절단 회로(3.16) |
 | 1 | `stamp_mos.py` | `mos_stamps` | MOS 소신호 스탬프 |
 | 1 | `stamp_two_terminal.py` | `two_terminal_stamps` | R·C 스탬프 |
 | 1 | `pencil_roots.py` | `pencil_roots` | 극점·영점 |
@@ -33,9 +39,10 @@
 | 2 | `catalog.py` | `metric_catalog` | {이름: MetricSignature} |
 | 2 | `evaluate.py` | `metric_value` | 이름으로 값 읽기 → `MetricResult` |
 | 3 | `mna_solve.py` | `solve_responses` | 공유 격자 응답 |
-| 3 | `_helpers_product.py` | (helper) | `product_at` |
+| 3 | `_helpers_product.py` | (helper) | `check_factors`, `product_at` |
 | 4 | `crossing.py` | `find_crossing` | |T| = level 교차 |
 | 4 | `phase_lag.py` | `phase_lag` | 누적 위상 지연 |
+| 4 | `probe_loop.py` | `probe_factor` | 절단 회로 계 → Middlebrook 루프 이득 인수(3.17) |
 | 5 | `loop_analysis.py` | `analyze_loop` | gain·UGF·GBW·위상 여유 한 번 계산 |
 
 core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, mv, amp, w, m2)·`DOMAINS`(dc, ss, ls, geom)·
@@ -54,17 +61,25 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
   (기본값 없음 -- `Resistor(a, b, None)` 은 `TypeError`, 0 은 `ValueError`).
 - **MOS 소신호**: I(d→s) = gm(vg − vs) + gmb(vb − vs) + gds(vd − vs). NMOS·PMOS 같은 식(소신호 크기는 양수).
   용량 cgs(g–s), cgd(g–d), cgb(g–b), cdb(d–b), csb(s–b). bulk 는 `b` 인덱스(레일이면 교류접지 노드).
-- **여기 열** `Excitation(name, voltages=((노드, V),…), currents=((노드, A),…))`: 전류는 노드로 들어가는 방향. 한 계의 모든 열에서
-  전압 구동 노드는 고정 노드이고, 그 열에 없는 구동 노드는 0 V. 이름은 계 안에서 유일.
-- **관측** `Sense(pos, neg=None)`: v(pos) − v(neg).
+- **여기 열** `Excitation(name, voltages=((노드, V),…), currents=((노드, A),…), charges=((노드, C),…))`: 전류·전하는 노드로
+  들어가는 방향. 전하 주입 q 는 전류 s·q 라 열의 `BC` 에만 들어간다(`BG` 0 -- 용량 전용 노드의 ω → 0 극한이 전하 보존 식으로
+  정의된다, 7a 2.4). 한 계의 모든 열에서 전압 구동 노드는 고정 노드이고, 그 열에 없는 구동 노드는 0 V. 이름은 계 안에서 유일.
+  고정 노드에 전류·전하 주입은 ValueError.
+- **관측** `Sense(pos, neg=None)`: v(pos) − v(neg). `build_mna(circuit, excitations, senses)` 의 `senses` 는 `Sense` tuple
+  (1개 이상, 관측 하나면 1-tuple) -- 같은 계를 여러 노드에서 본다(루프 절단 계 2k 관측).
+- **루프 절단** `LoopCut(kind ∈ {resistor, capacitor}, index, terminal ∈ {a, b})`: `SmallSignalCircuit` 의 그 원소 단자 하나를
+  새 노드로 옮긴다(3.16).
 - **DC**: `ChannelCurrent(drain, source, amp)` = 소자 안 drain→source 전류(부호 있음). `CurrentSource(from_node, to_node, amp)` =
   from 에서 나와 to 로 들어가는 전류.
 
 ## 2. 예외 규약과 정의 불가 값
 
 - **예외는 입력 계약 위반에만**: 형식 오류(`TypeError`), 값·뷰 정의 오류(`ValueError` -- 레코드 값, 여기 열 이름 중복,
-  구동 노드가 교류접지와 겹침, 고정 노드에 전류 주입, 관측이 구동 안 된 고정 노드뿐, 격자 다른 인수 묶기, rout·ratio 열 조건,
-  합산 레일 선언), 미등록 metric 이름(`KeyError`). 이것들은 값(사이징 점)과 무관한 배선·뷰 결함이다.
+  구동 노드가 교류접지와 겹침, 고정 노드에 전류·전하 주입, 관측이 구동 안 된 고정 노드뿐, 격자 다른 인수 묶기, 인수 행·열 범위
+  밖·순수 전하 열 인수, rout·ratio 열 조건, 합산 레일 선언, 절단 정의(원소 범위 밖·같은 원소 두 번·교류접지 절단),
+  프로브 열·관측 없음·중복, 0·비유한 가중(`probe_factor`)), 미등록 metric 이름(`KeyError`). 이것들은 값(사이징 점)과 무관한
+  배선·뷰 결함이다. **모양 위반은 TypeError 로 통일**: 비어 있으면 안 되는 tuple 이 비었음(excitations·senses·인수·
+  `cut_circuit` 의 cuts·`probe_factor` 의 pairs), tuple·쌍 형식이 아님, `probe_factor` 의 weights 길이 ≠ pairs 길이.
 - **값에 따라 생기는 정의 불가는 예외가 아니라 값**: 결과 묶음의 해당 필드가 None 이고 `undefined` 에
   `Undefined(quantity, code, category, detail)` 가 있다. `metric_value(name, source)` 는 항상 `MetricResult(name, value, undefined)`
   를 돌려준다. MOD5 는 N3.14 분류를 하지 않는다 -- 판정 계층이 문맥으로 분류한다(아래 표는 권고 대응).
@@ -74,8 +89,11 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `isolated_node` | structural | `build_mna`(`defects`) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
 | `singular_dc_limit` | structural | `solve_dc_limit` | 같음 |
 | `dc_charge_injection` | definitional | `solve_dc_limit`(그 열만) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
-| `dc_not_above_level`, `no_crossing_above`, `dc_zero`, `den_zero`, `num_zero`, `operand_undefined` | definitional | 교차·비·이득 | STRUCTURE_UNRESOLVED / 제약 위반 후보 실패(margin null, N3.14 표의 해당 하위 클래스는 판정 계층이 확정) |
+| `dc_not_above_level`, `no_crossing_above`, `dc_zero`, `den_zero`, `num_zero`, `operand_undefined` | definitional | 교차·비·이득·Middlebrook 분모(`probe_factor`) | STRUCTURE_UNRESOLVED / 제약 위반 후보 실패(margin null, N3.14 표의 해당 하위 클래스는 판정 계층이 확정) |
+| `loop_cut_mixed_charge` | definitional | `probe_factor` ω = 0(절단 노드 중 용량 전용과 전도 노드가 섞임 -- 열마다 1/s 차수가 달라 0차 동차성으로 극한을 못 낸다, 6절 M7) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
+| `negative_output_resistance` | definitional | `output_resistance`(DC 극한 관측 / I < 0 -- 양되먹임. 값을 내면 `<=` 제약이 통과하므로 정의 불가로 둔다, 7a Q3 오케스트레이터 결정 2026-10-07) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
 | `singular_mna`, `crossing_bracket_overflow`, `crossing_bound_violated`, `phase_jump_unresolved`, `zero_response_on_axis`, `response_not_finite`, `unrecorded_cause` | numeric | 풀이·이분·위상 | STRUCTURE_UNRESOLVED / NONCONVERGENT(후보 실패 클래스) |
+| `loop_probe_singular` | numeric | `probe_factor`(그 ω 에서 프로브 직렬 임피던스 행렬 M = Pᵀ·Z·P 가 특이 -- 영 피벗) | STRUCTURE_UNRESOLVED / NONCONVERGENT |
 
 ## 3. 함수 계약
 
@@ -83,9 +101,10 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - (행 노드, 열 노드, 값) tuple. KCL 행 = 노드에서 나가는 전류. MOS G 행: drain (d,d,gds)(d,g,gm)(d,b,gmb)(d,s,−(gm+gmb+gds)),
   source 는 부호 반대. 값 0 항목은 내지 않는다. 저항 = 1/R 의 2단자 4항목, 커패시터 = C 의 4항목. 다른 형식은 `TypeError`.
 
-### 3.2 `build_mna(circuit, excitations, sense) -> MnaSystem`
-- 소자마다 스탬프 함수를 **정확히 한 번** 부른다. 결과는 ω 와 무관한 실수 `G`·`C`(n×n), `BG`·`BC`(n×m), `sense_row`(n),
-  `sense_direct`(m). 배열은 쓰기 금지. 미지수 = 소자·여기·관측에 나오는 노드 − 고정 노드(교류접지 ∪ 전압 구동), 오름차순.
+### 3.2 `build_mna(circuit, excitations, senses) -> MnaSystem`
+- 소자마다 스탬프 함수를 **정확히 한 번** 부른다. 결과는 ω 와 무관한 실수 `G`·`C`(n×n), `BG`·`BC`(n×m, 전하 열 항은 `BC` 에),
+  `sense_rows`(r×n), `sense_direct`(r×m), `senses`(행 순서 `Sense` tuple). 배열은 쓰기 금지. 미지수 = 소자·여기·관측에 나오는
+  노드 − 고정 노드(교류접지 ∪ 전압 구동), 오름차순. 관측 하나라도 구동 안 된 고정 노드뿐이면 ValueError.
 - `defects`: 미지수 블록에서 G·C 의 그 행이 모두 0(KCL 식 없음) 또는 그 열이 모두 0 인 노드 → `isolated_node`(모든 ω 특이).
 - `charge_nodes`: 전체 G 행(고정 노드 열 포함)이 0 인 미지수 노드의 미지수 번호 = 용량으로만 이어진 노드.
 
@@ -94,30 +113,41 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - BG_F = 0 인 열: F 행을 **C_F·x = BC_F**(전하 보존 -- 블록 C_cc x_c = −C_cr x_r 의 일반형, 구동 노드 결합은 BC_F 에 있다)로,
   나머지 행은 G_R·x = BG_R 로 쌓은 실수 행렬을 LU 1회로 모든 열에 대해 푼다. 이것은 극한 식 자체의 해다(상수·작은 ω 근사 없음).
 - BG_F ≠ 0 인 열: 직류 전하 누적으로 극한 발산 → 그 열 NaN + `dc_charge_injection`. 쌓은 행렬이 특이면 모든 열 NaN +
-  `singular_dc_limit`. `defects` 가 있으면 모든 열 NaN + 그 사유.
+  `singular_dc_limit`. `defects` 가 있으면 모든 열 NaN + 그 사유. 결과 `values` 모양 (r, m).
+- 전하 주입 열은 변경 없이 들어간다: BG_F = 0 이라 F 행이 C_F·x = BC_F(전하 보존)로 풀린다 -- 새 풀이 규칙이 없고
+  `dc_charge_injection` 도 아니다(7a 2.4 'ω = 0').
 - **범위 한정**: 이 값은 소신호 전달의 ω → 0 극한이다. 용량 전용 노드의 **DC 동작점 전압**(바이어스)은 MOD5 몫이 아니다
   -- GB7 / spec 선언이 정한다. 여기서는 그 노드의 소신호 전하 보존만 쓴다.
 
 ### 3.4 `pencil_roots(system) -> Roots`
-- `poles` = (G, −C) 유한 일반화 고유값, `zeros[j]` = 열 j 관측 전달함수의 유한 영점(증강 pencil). 무한 판정은 QZ 동차 좌표
+- `poles` = (G, −C) 유한 일반화 고유값, `zeros[r][j]` = 관측 행 r · 열 j 전달함수의 유한 영점(증강 pencil). 순수 전하 열
+  (전압·전류 없이 전하만)은 빈 tuple -- 영점 = 같은 노드 전류 열 영점 ∪ {0} 이고 원점은 격자에서 빠져 더할 꺾임점이 없다
+  (그런 열은 `Factor` 로 쓰지 않는다, ValueError). QZ 전에 Ward 균형(행·열 2 의 거듭제곱 배율, log2 크기 최소제곱 한 번 --
+  고유값 불변, 상수 없음)을 하고 아래 판정은 균형 뒤 행렬로 한다. |s| = |α/β| 가 분해능 한계 ‖A‖_F/(차원·eps·‖E‖_F) 를 넘는
+  근도 무한대로 본다(β 의 상대 오차 1 초과 -- 예: 옛 구현의 −7e24 영점). 무한 판정은 QZ 동차 좌표
   |β| ≤ 차원·eps·‖E‖_F(상수 없음). 정렬 (|s|, 실부, 허부). `defects` 가 있으면 빈 근. **격자 배치·상단 괄호 전용**.
 - **원점 판정**(무한 판정과 같은 방식, 상수 없음): QZ 동차 좌표 (α, β) 에서 |α| ≤ 차원·eps·‖A‖_F 이면 그 고유값은 정확히
   0j 로 낸다(극점 pencil: A = G, 차원 n / 영점 pencil: 증강 A, 차원 n+1; eps = 배정밀도 기계 엡실론). 용량 전용 노드의 전하
   모드(원점 극점)가 반올림 잡음으로 작은 |s| 가 되어도 0 으로 판정된다. |s| = 0 은 격자 꺾임점·상단 괄호 상계에서 빠진다.
 
 ### 3.5 `omega_grid(roots_tuple) -> tuple`
-- 0.0 + 양의 유한 |극점|·|영점| 꺾임점 + 인접 꺾임점 기하 중점, 오름차순·중복 없음. 꺾임점 없으면 `(0.0,)`.
+- 0.0 + 양의 유한 |극점|·|영점| 꺾임점 + 인접 꺾임점 기하 중점, 오름차순·중복 없음. 꺾임점 없으면 `(0.0,)`. 서로 1 ulp 안
+  (다음 부동소수 이하)인 꺾임점은 하나(작은 쪽)로 친다. 격자 점 수 자체는 불변식 대상이 아니다(I-7 은 metric 불변).
 
 ### 3.6 `solve_responses(systems) -> tuple[SystemResponse]`
 - 계마다 `pencil_roots` 1회, 모든 계 근의 합집합으로 **공유 격자** 1개. ω = 0 은 `solve_dc_limit`(LU 1회, 모든 열),
   ω > 0 은 (k,n,n) 묶음 풀이 1회(특이면 점마다 다시 풀어 특이 ω 만 NaN + `singular_mna`). 재스탬프 없음.
-  `values[0]` = DC 극한, `dc` 속성 = `values[0].real`, `undefined` = 사유 모음.
+  `values` 모양 (k, r, m) = (ω, 관측 행, 열), `values[0]` = DC 극한, `dc` 속성 = `values[0].real`(r, m), `undefined` = 사유 모음.
 
 ### 3.7 `solve_point(system, omega) -> PointSolution`
-- ω > 0: A = G + jωC 의 LU 1회로 모든 열 풀이 + 같은 분해로 반복 개선 1회, `errors[j]` = |sense_row·dx|. ω = 0: `solve_dc_limit`.
-  영 피벗이면 NaN + `singular_mna`.
+- ω > 0: A = G + jωC 의 LU 1회로 모든 열 풀이 + 같은 분해로 반복 개선 1회, `errors[r, j]` = |sense_rows[r]·dx_j|. ω = 0:
+  `solve_dc_limit`(오차 0). `values`·`errors` 모양 (r, m). 영 피벗이면 NaN + `singular_mna`.
 
 ### 3.8 `find_crossing(factors, omegas, values, level, quantity) -> Crossing`
+- 인수 = `Factor`·`ProbeFactor`(0절 공통 규약, 섞어 묶을 수 있다). 근은 인수 속성 `poles`·`zeros`(`Factor`: 계 극점·그 행·열
+  영점, `ProbeFactor`: T 자신의 극점·영점). `product_at` 은 같은 계를 한 번만 푼다.
+- 격자 위 T(`values`)에 비유한 값이 있으면 교차를 찾지 않고 인수 `undefined` 의 첫 사유(없으면 `response_not_finite`)를
+  quantity 로 바꿔 `Crossing.undefined` 로 낸다(단독 호출도 `analyze_loop` 와 같은 사유).
 - T = Π 인수. |T(0)| ≤ level → `dc_not_above_level`. 격자에서 처음 |T| ≤ level 이 되는 칸을 괄호로. 격자 끝까지 > level 이면
   상계 |K|·Π(ω+|z|)/Π(ω−|p|)(ω > max|p|, 원점 근 제외)로 두 배씩 올려 상단 괄호를 유도하고 실제 풀이로 확인.
   극점 수 < 영점 수 또는 같고 |K| ≥ level → `no_crossing_above`. 이분: lo > 0 기하 중점, lo = 0 산술 중점. 정지 = 중점이 끝점과
@@ -130,15 +160,24 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - 인수는 같은 `solve_responses` 결과여야 한다(격자 다르면 ValueError). 표본에 NaN 이 있으면 모든 양이 그 사유로 정의 불가.
 - `gain_db` = 20·log10|T(0)|, `ugf_hz` = |T| = 1 교차 ω/2π, `gbw_hz` = |T(0)|·(|T| = |T(0)|/√2 교차)/2π,
   `gbw_ugf_gap_hz` = gbw − ugf, `phase_margin_deg` = 180° − `phase_lag`(UGF 까지).
-- **PM 정의(계획 N3.8, U-48)**: 선언된 되먹임 수동소자가 있으면 그 β 루프의 루프 이득 T = A·β → 인수 2개
-  `(Factor(A 응답, 열), Factor(β 응답, 열))`, 없으면 β = 1 → 인수 1개. 기준이 T(0) 위상이라 관측 부호와 무관.
-  루프 절단 위치(A·β 각 뷰의 정의)는 7a design 몫이다.
+- **PM 정의(계획 N3.8, U-48, 7a 2.1~2.7)**: `pm_ss_deg` 의 인수는 하나다. spec `feedback` 이 비어 있지 않으면 절단 회로
+  (`cut_circuit`) 계의 `ProbeFactor` 1개(오라클 Middlebrook 이중 주입과 같은 식 T = (Tv·Ti − 1)/(Tv + Ti + 2), 3.17), 빈 list 면
+  β = 1 -- 포트 전달 뷰 `Factor` 1개(T = A, `parasitic_pm_ss_deg` 의 기본 포트 뷰와 같은 MnaSystem, I-15). A·β 를 따로 푼 인수
+  2개의 곱은 β 망이 증폭기 출력을 싣는 부하와 증폭기 입력이 β 망을 싣는 부하를 빼므로 `pm_ss_deg` 의 정의가 **아니다**(예 7
+  대조: 무부하 곱 UGF 39756892.0418 Hz vs Middlebrook 22718224.0239 Hz, I-16). 인수 곱 기계 자체(예 2·2c)는 그대로 지원하고 test
+  대상으로 남는다. 절단 위치·가중 = 7a 2.2·2.3(spec 쪽 유도는 authoring SPEC_CONTRACT 2절·3절). 기준이 T(0) 위상이라 관측 부호와 무관.
 
-### 3.11 `output_resistance(response, column) -> OutputResistance`
-- 열 조건(ValueError): 구동 진폭 전부 0, 전류는 관측 노드에만(단일: pos 에 I / 차동: pos +I, neg −I).
-  `rout_ohm` = DC 극한 관측값 / I(부호 그대로). DC 극한이 정의 안 되면 None + 사유.
+### 3.11 `output_resistance(response, column, row=0) -> OutputResistance`
+- 계 = 포트 전달 뷰 계(입력 포트 고정 0 V, 레일·gate 전용 넷 교류접지 -- DEC-66 '모든 여기원 교류접지', 되먹임 소자가 있어도
+  개루프). output_port 뷰는 감지 전용(sense_p, sense_n, sense_mode -- 여기 없음, authoring SPEC_CONTRACT 3절 mode `sense`):
+  ss_linearize 가 이 계에 감지 노드 단위 전류 열 하나를 더하고 관측 행 `row` 를 감지로 둔다(감지 넷이 출력 포트와 다르면 관측
+  행을 하나 더 -- 같은 계, 조립 1회).
+- 열 조건(ValueError): 구동 진폭 전부 0, 전하 주입 없음, 전류는 관측 행 `row` 의 노드에만(단일: pos 에 I / 차동: pos +I,
+  neg −I). 관측 행 범위 밖도 ValueError.
+- `rout_ohm` = DC 극한 관측값 / I. DC 극한이 정의 안 되면 None + 그 사유. 값이 음수면 None + `negative_output_resistance`
+  (definitional, detail `value_ohm` -- 음수를 값으로 넘기면 `rout_ss_ohm <= x` 가 늘 통과한다, 7a Q3 오케스트레이터 결정).
 
-### 3.12 `response_ratio(response, num_column, den_column) -> ResponseRatio`
+### 3.12 `response_ratio(response, num_column, den_column, row=0) -> ResponseRatio`
 - `ratio_db` = 20·log10|H_num(0)/H_den(0)|, 같은 계의 두 열(같은 G·C·관측, 추가 분해 0). 분모·분자 0 은 `den_zero`·`num_zero`.
 
 ### 3.13 `supply_currents(op, counted_rails) -> SupplyCurrents`
@@ -158,7 +197,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `ugf_ss_hz` | LoopAnalysis.ugf_hz | hz | ss | transfer | -- |
 | `gbw_ss_hz` | LoopAnalysis.gbw_hz | hz | ss | transfer | -- |
 | `parasitic_pm_ss_deg` | LoopAnalysis.phase_margin_deg(전달 뷰 인수) | deg | ss | transfer | -- |
-| `pm_ss_deg` | LoopAnalysis.phase_margin_deg(β 루프 인수) | deg | ss | loop | -- |
+| `pm_ss_deg` | LoopAnalysis.phase_margin_deg(β 루프 `ProbeFactor` / β = 1 포트 `Factor`, 3.10) | deg | ss | loop | -- |
 | `ratio_ss_db` | ResponseRatio.ratio_db | db | ss | ratio | -- |
 | `rout_ss_ohm` | OutputResistance.rout_ohm | ohm | ss | output_port | -- |
 | `supply_current_dc` | SupplyCurrents.supply_current_dc | amp | dc | -- | power |
@@ -167,6 +206,42 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 
 - `metric_catalog()` = {이름: MetricSignature} 읽기 전용(spec 로더 `metric_catalog` 인자).
 - `metric_value`: 미등록 KeyError, 형식 다르면 TypeError, 그 외에는 `MetricResult`(값 None 이면 그 필드의 `Undefined` 들).
+- 오라클 측정 이름(DEC-90 (3) `oracle_measure`, 레지스트리 필드로는 아직 없음 -- 넣을 때 이 대응): `pm_ss_deg` → `pm_deg`,
+  `rout_ss_ohm` → `rout_ohm`(오라클 C26).
+
+### 3.16 `cut_circuit(circuit, cuts) -> CutCircuit` (7a 2.2 L3, 2.4 '계 구성')
+- 순수 함수. `LoopCut` 마다 그 원소 단자를 원래 노드 n 에서 새 노드 x 로 옮긴다. 같은 원래 노드에서 옮긴 단자는 같은 x(오라클
+  `lbx_<넷>` 하나). x = 원래 회로 최대 노드 인덱스 뒤에 n 오름차순(재번호 불변). 교류접지는 그대로(고정 노드 = 레일 ∪ gate 전용
+  미구동 넷 ∪ 절단 안 된 입력 포트는 회로 레코드를 만드는 쪽이 `ac_ground` 로 준다, 7a 2.2 L4).
+- 결과: `circuit`(절단 회로), `cuts`, `pairs`((n_k, x_k) n 오름차순), `excitations`(단위 전류 I(n_1..n_k), I(x_1..x_k), 단위 전하
+  Q(n_1..n_k), Q(x_1..x_k) -- 4k 열), `senses`(V(n_1..n_k), V(x_1..x_k) -- 2k 관측). `build_mna(cut.circuit, cut.excitations,
+  cut.senses)` 로 조립 1회.
+- TypeError: cuts 가 tuple 이 아니거나 비었음(2절 모양 위반 규약), 원소가 `LoopCut` 아님. ValueError: index 가 원소 수 밖,
+  같은 원소를 두 번(두 단자 모두 -- 로더 `feedback_cut_ambiguous` 와 같은 조건), 절단 노드가 교류접지.
+
+### 3.17 `probe_factor(response, pairs, weights) -> ProbeFactor` (7a 2.4)
+- `response` = 절단 회로 계 하나의 `SystemResponse`. 열·관측은 구조로 찾는다(노드 v: `Sense(v)`, v 에만 전류를 넣는 열, v 에만
+  전하를 넣는 열 -- 정확히 하나씩, 아니면 ValueError; 절단 노드가 미지수가 아니면 ValueError). `weights` = 쌍마다 0 아닌 유한
+  실수(0·비유한 ValueError, tuple 아님·길이 ≠ pairs 길이 TypeError).
+- Z(2k×2k, 행 = V(n), V(x), 열 = 같은 순서 단위 주입), P = [I; −I], M = Pᵀ·Z·P, s = [w; 0]:
+  Tv = −wᵀV_x / wᵀV_n(V = Z·P·M⁻¹w), Ti = wᵀI / wᵀ(w − I)(I = M⁻¹·Pᵀ·Z·s), **T = (Tv·Ti − 1)/(Tv + Ti + 2)** -- 오라클
+  `loop_gain` 과 같은 식·같은 부호 규약(`Vlb n x`, `Ilb 0 n`, `i(Vlb)` n → x). 오라클의 두 `.ac` 를 같은 계의 여기 열로 중첩
+  (근사 없음).
+- ω > 0: 전류 열. ω = 0: 전류 열 중 `dc_charge_injection` 이 없으면 전류 열 DC 해, 전부면 전하 열 DC 해(Tv·Ti 는 Z 의 0차
+  동차식이라 열마다 같은 배율 s 는 값을 바꾸지 않는다), 섞이면 T(0) NaN + `loop_cut_mixed_charge`. M 특이 → 그 점 NaN +
+  `loop_probe_singular`, Tv·Ti·T 분모 0 → `den_zero`.
+- 결과 필드: 격자 위 T `samples`(1회 계산 보관), T 의 `poles`·`zeros`(항등식 1/(1 + T) = 1/(1 + Tv) + 1/(1 + Ti) = Q,
+  Q·wᵀw = H + wᵀw, H = 프로브 전압원 k 개를 넣은 절단 회로 두 벌의 한 전달함수 → T = −H/(H + wᵀw): 영점 = H 영점, 극점 =
+  H + wᵀw 영점, 증강 pencil), `undefined`(격자 표본 사유).
+- 근의 정밀도 규약: `poles`·`zeros` 는 T 의 근이다 -- 근으로 재구성한 T(0)·Π(1 − s/z)/Π(1 − s/p) 가 T 와 같고(원점 근은 양쪽에
+  같은 수, 상쇄), 노드 번호에 무관하다. 그러려고 (1) 용량 전용 노드 행(G 행 0)을 s 로 나눠(`solve_dc_limit` 의 전하 보존 식과
+  같은 변환 -- 해 불변) 원점 결함 고유값을 없애고, 절단 노드가 용량 전용이면 프로브 전류 j = s·j'·2회 주입을 전하로 둔다(ω = 0
+  열 선택과 같은 규칙, T 는 실험 배율에 무관), (2) `finite_eigs` 가 Ward 균형 뒤 유한·원점·무한 판정을 한다(3.4). 서로 지워지는
+  극점·영점 쌍(분리 모드)은 남을 수 있다 -- 상계를 느슨하게 할 뿐 틀리게 하지 않고, 쌍을 지우려면 근 일치 문턱(상수)이 필요해
+  지우지 않는다. 2026-10-07 실측(예 7·7b DM·CM, 재번호 포함): 지배 극점이 폐형식과 상대오차 ≤ 1.5e-15, 우반면 근 0, 나머지는
+  같은 값 극점·영점 쌍. 사후 오차(격자 밖 점) = Z 원소 오차의 1차 전파 Σ|∂T/∂Z|·e,
+  ∂T/∂Z = −(1 + T)²·∂Q/∂Z(해석 미분, 상수 없음).
+- 격자: 루프 계와 포트 전달 계를 한 번의 `solve_responses` 로 함께 푼다(원래 회로 근이 격자에 들어간다, 7a 2.4 '격자' E2).
 
 ## 4. 불변식 (test 가 확인할 성질)
 
@@ -183,18 +258,23 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | I-9 | 엔진 소스에 숫자 리터럴·회로 이름 0(구조 test D·E) -- dB 계수는 `core/units.py` |
 | I-10 | 값 의존 정의 불가에서 예외 0: `metric_value` 는 항상 `MetricResult` |
 | I-11 | 용량 전용 노드: DC 극한 = 전하 보존 해(예 2c·2d), 그 노드에 DC 전류 주입한 열만 `dc_charge_injection` |
+| I-12 | Middlebrook T = 단일 제어원 루프의 되돌림 비: 예 7 에서 `probe_factor` T 와 폐형식의 상대오차 ≤ 차원·eps 규모(실측 ≤ 3.3e-15) |
+| I-13 | 가중 공통 배율 불변: 예 7b 에서 (½, −½) 와 (1, −1) 의 T 가 같다(모드는 부호·비가 고른다 -- DM 5, CM 25) |
+| I-14 | 절단 계 조립 1회: 4k 열·2k 관측 한 계, `cut_circuit`·`probe_factor`·`analyze_loop` 동안 스탬프 함수 추가 호출 0(`build_mna` 1회 뒤) |
+| I-15 | β = 1(feedback 빈 list)에서 `pm_ss_deg` = 기본 포트 뷰 `parasitic_pm_ss_deg` 비트 동일(같은 MnaSystem 의 같은 `Factor`) |
+| I-16 | A·β 무부하 인수 곱 값(예 7 대조 UGF 39756892.0418 Hz)을 `pm_ss_deg` 경로가 내면 FAIL -- 옛 정의 red |
 
 ## 5. 손계산 예 (엔진과 독립인 폐형식으로 대조 가능)
 
 모든 예는 노드 0 = 교류접지(소신호 접지). 진폭 1 V 구동. 아래 값은 2026-10-07 직접 실행에서 엔진과 손계산이 상대오차
-≤ 6.3e-12 로 일치했다(최대는 Miller p1 의 고유값 반올림).
+≤ 6.3e-12 로 일치했다(최대는 Miller p1 의 고유값 반올림). 관측은 모두 1-tuple(`(Sense(…),)`).
 
 ### 예 1 -- RC 저역통과
 - `Resistor(1, 2, 1e3)`, `Capacitor(2, 0, 1e-9)`, `ac_ground=(0,)`, 여기 1 V at 1, `Sense(2)`. H = 1/(1 + sRC).
 - 기대: `gain_ss_db` = 0, f_3dB = `gbw_ss_hz` = 1/(2πRC) = 159154.943 Hz. `ugf_ss_hz`·`pm_ss_deg` = 정의 안 됨
   (`dc_not_above_level`, |H(0)| = 1 은 1 을 넘지 않는다) -- `metric_value` 는 `MetricResult(value=None, undefined=…)`.
 
-### 예 2 -- 단일 극 증폭기(CS) + β 되먹임
+### 예 2 -- 단일 극 증폭기(CS) + β 되먹임 (인수 곱 기계 test -- `pm_ss_deg` 정의 아님, 3.10·예 7)
 - A 계: `MosSmallSignal(d=2, g=1, s=0, b=0, gm=1e-3, gmb=0, gds=1e-5)`, `Capacitor(2, 0, 1e-12)`, 열 `vin`(1 V at 1)·`iout`(1 A at 2),
   `Sense(2)`. β 계(저항): `Resistor(2, 3, 30e3)`, `Resistor(3, 0, 10e3)`, 열 `vfb`(1 V at 2), `Sense(3)`. 한 번의
   `solve_responses((A, β, …))` 로 푼다(공유 격자).
@@ -208,7 +288,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - `MosSmallSignal(d=9, g=1, s=2, b=0, gm=1e-3, gmb=2e-4, gds=1e-5)`, `Resistor(2, 0, 1e4)`, `ac_ground=(0, 9)`, `Sense(2)`.
 - A = gm/(gm + gmb + gds + 1/RL) = 0.763358779. gmb = 0 이면 0.900900901.
 
-### 예 2c -- 순수 용량 분압 β (전하 보존 극한)
+### 예 2c -- 순수 용량 분압 β (전하 보존 극한; 인수 곱 기계 test -- `pm_ss_deg` 정의 아님)
 - β 계: `Capacitor(2, 3, Cf=1e-12)`, `Capacitor(3, 0, Cs=3e-12)`, `ac_ground=(0,)`, 열 1 V at 2, `Sense(3)`. 노드 3 은 컨덕턴스가 없다
   (`charge_nodes`). 전하 보존: Cf(v3 − v2) + Cs·v3 = 0 → β = Cf/(Cf + Cs) = 0.25(모든 ω 에서 같다).
 - 기대: DC 극한 0.25, 격자 끝 |H| 0.25. 예 2 의 A 와 묶으면(인수 2개) 저항 β 와 같은 값: 27.9588001734 dB,
@@ -243,11 +323,38 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - `Resistor(1, 2, 1e3)`, `Resistor(2, 3, 1e4)`, 열 `num`(1 V at 1)·`den`(1 V at 3), `Sense(2)`.
 - H_num(0) = Rb/(Ra+Rb), H_den(0) = Ra/(Ra+Rb) → `ratio_ss_db` = 20·log10(Rb/Ra) = 20 dB.
 
+### 예 7 -- CS + 용량 되먹임(β 루프, 단일 절단, 용량 전용 절단 노드) (7a 2.8)
+- `MosSmallSignal(d=2, g=3, s=0, b=0, gm=1e-3, gmb=0, gds=1e-5)`, `Capacitor(2, 0, CL=1e-12)`, `Cf = Capacitor(2, 3, 1e-12)`
+  (capacitors index 1), `Cs = Capacitor(3, 0, 3e-12)`, `ac_ground=(0,)`. 입력 포트 = 노드 3, F = {Cf} →
+  `cut_circuit(c, (LoopCut("capacitor", 1, "b"),))`: pairs ((3, 4),). n = 3(gate + Cs), x = 4(Cf 만) 모두 용량 전용 → 전하 열 DC 극한.
+  `build_mna(cut.circuit, cut.excitations, cut.senses)`, `probe_factor(응답, cut.pairs, (1.0,))`.
+- 폐형식(되돌림 비): T(s) = gm·Cf/(Cf + Cs) / (gds + s(CL + Cf·Cs/(Cf + Cs))). T(0) = (gm/gds)·Cf/(Cf + Cs) = 25,
+  ω_p = gds/(CL + 0.75 pF) = 5714285.71429 rad/s.
+- 기대: Tv(0) = A0 + Cs/Cf = 103, Ti(0) = (A0 + 1)·Cf/Cs = 101/3(A0 = gm/gds = 100), T(0) = 25(정확). `gain_db` =
+  27.9588001734 dB, UGF = ω_p·√624/2π = 22718224.0239 Hz, `pm_ss_deg` = 180° − atan√624 = 92.292442776°. ω = 1e3·1e6·1e7·1e8·1e9
+  rad/s 에서 Middlebrook T 와 폐형식 상대오차 ≤ 3.3e-15. 2026-10-07 엔진 실측: T(0) = 24.999999999999993, UGF 상대오차
+  3.3e-16, PM 상대오차 3.1e-16, 5 점 최대 상대오차 3.13e-15.
+- 대조(I-16): 같은 소자로 A·β 무부하 인수 곱(예 2c 와 같은 계)이면 ω_p = gds/CL = 1e7 rad/s, UGF 39756892.0418 Hz -- 이 값을
+  `pm_ss_deg` 경로가 내면 FAIL(옛 정의 red). 단일 극이라 PM 은 둘 다 92.29° 이고 UGF 가 1.75배 다르다.
+
+### 예 7b -- 차동 절단 2개, 가중이 모드를 고른다
+- 예 7 반회로 두 벌(a: 노드 2·3, b: 노드 12·13, 각 Cf 를 index 1·4 로), 출력 사이 `Resistor(2, 12, 5e4)`. 절단 2개(두 입력),
+  가중 (+½, −½).
+- 차동 반회로 폐형식: 출력 부하 gds + 2/Rx → T_DM(0) = gm/(gds + 2/Rx)·0.25 = 5. 가중 (+½, +½) 면 Rx 에 전류가 없어
+  T_CM(0) = 25. 가중 (1, −1) 은 (½, −½) 와 같은 T(I-13).
+- 기대(실측): DM 5.000000000000001, CM 25.00000000000007, 배율 바꿈 값 동일.
+
+### 예 7c -- 섞인 절단(정의 불가 값)
+- 예 7 에서 Cs 를 `Resistor(3, 0, 1e5)` 로 바꾸면 n = 3 은 전도 노드, x = 4 는 용량 전용 → `metric_value("pm_ss_deg",
+  analyze_loop((pf,)))` = `MetricResult(value=None, undefined=(Undefined("phase_margin_deg", "loop_cut_mixed_charge",
+  "definitional", …),))`, 예외 없음(I-10).
+
 ## 6. 열린 항목
 
 | # | 항목 | 현재 처리 |
 |---|---|---|
-| M1 | PM 의 루프 절단 위치(A·β 각 뷰) | 7a design. 이 단계는 인수 곱 T 만 받는다. spec 쪽 loop·output_port 선언 view 는 그때까지 결정 대기 표지만 받는다(authoring SPEC_CONTRACT 7절 S1) |
+| M1 | PM 의 루프 절단 위치(A·β 각 뷰) | **닫음**(2026-10-07) -- 7a design: β 루프 = 절단 회로 `ProbeFactor`(Middlebrook), β = 1 = 포트 `Factor`, 인수 2개 곱은 정의 아님(3.10·3.16·3.17). spec 쪽은 authoring SPEC_CONTRACT 2절·3절(S1 닫음) |
+| M7 | 섞인 절단(전도 노드와 용량 전용 노드가 함께인 절단)의 ω → 0 극한 | 정의 불가 값 `loop_cut_mixed_charge`(로랑 전개 다음 차수가 필요). 9회로 선언에는 없다 -- 쓰는 회로가 생기면 확장 |
 | M3 | 정의 불가 사유 → N3.14 분류 | MOD5 는 값으로만 낸다(2절 표는 권고). 판정 계층이 확정 |
 | M4 | `supply_current_dc` 단위 접미사(DEC-68: `_amp`) | 설계 문서·spec 설계 objective 표 이름 그대로 |
 | M5 | `area_search_m2` 의 objective_axis | None(예산 대상은 판정 축 `area_layout_m2`) |

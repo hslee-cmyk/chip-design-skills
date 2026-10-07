@@ -145,8 +145,8 @@ def test_sense_sign_does_not_change_pm():
     ck = SmallSignalCircuit(mos=(MosSmallSignal(2, 1, 0, 0, EX2_GM, 0.0, EX2_GDS),),
                             capacitors=(Capacitor(2, 0, EX2_CL),), ac_ground=(0,))
     exc = (Excitation("vin", voltages=((1, 1.0),)),)
-    pos = build_mna(ck, exc, Sense(2))
-    neg = build_mna(ck, exc, Sense(0, 2))      # −v2
+    pos = build_mna(ck, exc, (Sense(2),))
+    neg = build_mna(ck, exc, (Sense(0, 2),))      # −v2
     rp, rn = solve_responses((pos, neg))
     a, b = analyze_loop((Factor(rp, 0),)), analyze_loop((Factor(rn, 0),))
     assert a.dc_value == pytest.approx(-b.dc_value, rel=R)

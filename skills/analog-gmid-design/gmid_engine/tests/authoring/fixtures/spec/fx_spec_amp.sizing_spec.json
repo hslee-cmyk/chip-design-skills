@@ -23,8 +23,9 @@
       "Vcm": {"pending": "SP-91"}
     },
     "feedback": {
-      "elements": ["Rfb", "Cfb"],
-      "source": {"kind": "user_spec", "record": "fixture feedback", "decided": "2026-10-07"}
+      "elements": ["Cfb"],
+      "source": {"kind": "user_spec", "record": "fixture feedback", "decided": "2026-10-07"},
+      "_c": "7a design 2.2 L2: every feedback element has exactly one terminal on an input port net (Cfb -> n_inn); Rfb (n_outp-n_fbk) touches no input so it is not a cut element"
     },
     "constraints": [
       {"metric": "gain_ss_db", "op": ">=", "value": 40,
@@ -32,7 +33,7 @@
        "_c": "port view (one output port)"},
       {"metric": "pm_ss_deg", "op": ">=", "value": 60,
        "source": {"kind": "user_spec", "record": "fixture pm", "decided": "2026-10-07"},
-       "_c": "loop metric (SPEC 6.9): no view = port view; declared view only as pending marker until 7a design (S1)"},
+       "_c": "loop metric (SPEC 6.9): no view = loop view derived from feedback (beta loop cut at n_inn) and ports (7a design 2.9)"},
       {"metric": "ratio_ss_db", "op": ">=", "value": 50, "view": {"pending": "MOD9"},
        "source": {"kind": "user_spec", "record": "fixture ratio", "decided": "2026-10-07"}},
       {"metric": "mismatch_sigma_mv", "op": "<=", "value": 4.0,

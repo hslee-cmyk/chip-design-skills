@@ -14,23 +14,25 @@ from gmid_engine.core import AMPLITUDE_DB_PER_DECADE
 from .mna_types import ResponseRatio, SystemResponse, Undefined
 
 
-def _column_value(response, column):
-    value = float(response.dc[column])
+def _column_value(response, row, column):
+    value = float(response.dc[row, column])
     if math.isnan(value):
         causes = tuple(u for u in response.undefined if dict(u.detail).get("column", column) == column)
         return None, causes[0] if causes else Undefined("response", "response_not_finite", "numeric")
     return value, None
 
 
-def response_ratio(response, num_column, den_column):
-    """`SystemResponse`, 분자 열, 분모 열 -> `ResponseRatio`."""
+def response_ratio(response, num_column, den_column, row=0):
+    """`SystemResponse`, 분자 열, 분모 열, 관측 행(관측이 하나면 0) -> `ResponseRatio`."""
     if not isinstance(response, SystemResponse):
         raise TypeError("response_ratio 는 SystemResponse 를 받는다")
     m = len(response.system.excitations)
     if not (0 <= num_column < m and 0 <= den_column < m) or num_column == den_column:
         raise ValueError("response_ratio: 열 (%r, %r) 이 범위 밖이거나 같다" % (num_column, den_column))
-    num, why_num = _column_value(response, num_column)
-    den, why_den = _column_value(response, den_column)
+    if not 0 <= row < len(response.system.senses):
+        raise ValueError("response_ratio: 관측 행 %r 이 범위 밖이다" % (row,))
+    num, why_num = _column_value(response, row, num_column)
+    den, why_den = _column_value(response, row, den_column)
     why = why_num or why_den
     if why is None and den == 0:
         why = Undefined("ratio_db", "den_zero", "definitional", (("column", den_column),))

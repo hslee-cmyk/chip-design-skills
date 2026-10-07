@@ -6,7 +6,7 @@
   들어간다: `record`·`citation`·`decided` 문구를 고쳐도 캐시가 산다(NFR-2, 설계 3.4). `pending_spice` 는 판정 여부를
   바꾸므로 kind 는 지문에 든다.
 * `PendingMark` -- 결정 대기 표지 하나(문서 경로, 결정 ID). `SizingSpecDoc.pending` 에 모인다(설계 1.5).
-* `InputDc`·`ElementValue`·`ExciteSense`·`ViewDecl`·`ConstraintDecl`·`TargetDecl`·`SettlingDecl`·`SettingValue`·
+* `InputDc`·`ElementValue`·`ExciteSense`·`SenseDecl`·`ViewDecl`·`ConstraintDecl`·`TargetDecl`·`SettlingDecl`·`SettingValue`·
   `RuleChoice`·`ObjectiveBudget`·`RegionDecl` -- 검증을 통과한 선언의 투영. `mode` 가 `pending` 이면 `decision` 에
   결정 ID 가 있고 값 필드는 None 이다.
 * `SizingSpecDoc` -- spec 전체 투영과 섹션 지문. 직접 만들지 말고 `SizingSpecDoc.from_sections` 로 만든다(지문 계산).
@@ -75,14 +75,35 @@ class ExciteSense:
 
 
 @dataclasses.dataclass(frozen=True)
+class SenseDecl:
+    """관측 하나(여기 없음): `sense_p`, `sense_n`(None 가능), `sense_mode` -- 출력 포트 뷰·루프 뷰(β = 1)의 관측."""
+
+    sense_p: str
+    sense_n: object
+    sense_mode: str
+
+
+@dataclasses.dataclass(frozen=True)
 class ViewDecl:
-    """제약의 뷰. `mode` ∈ none(뷰 없는 metric) / port(포트 뷰) / transfer / ratio / pending."""
+    """제약의 뷰. `mode` ∈ none(뷰 없는 metric) / port(포트 전달 뷰) / transfer / ratio / pending / loop / sense.
+
+    * port: `weights` = 입력 포트 (넷, 가중) 넷순(role 가중 -- 차동 ±1/|D|, 단일 1), `sense` = 출력 포트 `SenseDecl`
+      (topology 교차 검사를 못 한 로드에서는 둘 다 None).
+    * loop(7a design 2.2·2.3·2.5): `beta` ∈ declared(spec feedback 비지 않음) / unity(빈 list). declared 면 `cuts` =
+      (되먹임 소자, 절단 넷) 소자 이름순, `weights` = 절단 넷의 (넷, 가중) 넷순. unity 면 `weights`·`sense` 가 포트 전달 뷰와 같다.
+    * sense(출력 포트 뷰, 7a design 3.1): `sense` = 감지 `SenseDecl`(여기 없음).
+    * pending: `decision` = 결정 ID(선언 표지, 또는 loop 의 feedback 결정 대기 전파).
+    유도된 내용이 여기에 들어가므로 `constraints_fp` 가 feedback·ports 변경을 따라간다."""
 
     mode: str
     transfer: object = None
     num: object = None
     den: object = None
     decision: object = None
+    beta: object = None
+    cuts: tuple = ()
+    weights: tuple = ()
+    sense: object = None
 
 
 @dataclasses.dataclass(frozen=True)

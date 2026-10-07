@@ -10,11 +10,13 @@ from .crossing import find_crossing
 from .dc_limit import solve_dc_limit
 from .evaluate import metric_value
 from .loop_analysis import analyze_loop
+from .loop_cut import cut_circuit
 from .mna_build import build_mna
 from .mna_solve import solve_responses
 from .mna_types import (
     AreaSearch,
     Crossing,
+    CutCircuit,
     DcLimit,
     Factor,
     LoopAnalysis,
@@ -22,6 +24,7 @@ from .mna_types import (
     MnaSystem,
     OutputResistance,
     PointSolution,
+    ProbeFactor,
     ResponseRatio,
     Roots,
     SupplyCurrents,
@@ -31,6 +34,7 @@ from .mna_types import (
 from .omega_grid import omega_grid
 from .pencil_roots import pencil_roots
 from .phase_lag import phase_lag
+from .probe_loop import probe_factor
 from .ratio import response_ratio
 from .point_solve import solve_point
 from .records import (
@@ -40,6 +44,7 @@ from .records import (
     DcOperatingPoint,
     Excitation,
     GateArea,
+    LoopCut,
     MosSmallSignal,
     PassiveArea,
     RailBias,
@@ -60,18 +65,21 @@ __all__ = (
     "ChannelCurrent",
     "Crossing",
     "CurrentSource",
+    "CutCircuit",
     "DcLimit",
     "DcOperatingPoint",
     "Excitation",
     "Factor",
     "GateArea",
     "LoopAnalysis",
+    "LoopCut",
     "MetricResult",
     "MnaSystem",
     "MosSmallSignal",
     "OutputResistance",
     "PassiveArea",
     "PointSolution",
+    "ProbeFactor",
     "RailBias",
     "RegisteredMetric",
     "Resistor",
@@ -86,6 +94,7 @@ __all__ = (
     "analyze_loop",
     "area_search",
     "build_mna",
+    "cut_circuit",
     "find_crossing",
     "metric_catalog",
     "metric_registry",
@@ -95,6 +104,7 @@ __all__ = (
     "output_resistance",
     "pencil_roots",
     "phase_lag",
+    "probe_factor",
     "response_ratio",
     "solve_dc_limit",
     "solve_point",

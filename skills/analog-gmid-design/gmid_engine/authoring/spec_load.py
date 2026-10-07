@@ -100,8 +100,9 @@ def _load(path, topology, catalog, chain):
         run("elements", found)
     constraints = pending_constraints = None
     if "constraints" in human:
+        # feedback(앞 게이트 결과)에서 루프 뷰를 유도한다(7a design 2.2) -- 거부됐으면 None(유도 안 함, 이미 거부).
         constraints, pending_constraints, found = constraint_declaration(
-            human["constraints"], human.get("pending_constraints"), topo, catalog)
+            human["constraints"], human.get("pending_constraints"), topo, catalog, feedback)
         run("constraints", found)
     targets = section("compensation_targets", "compensation_targets", compensation_target_declaration)
     node_targets = section("node_targets", "node_voltage_targets_v", node_target_declaration, topo)

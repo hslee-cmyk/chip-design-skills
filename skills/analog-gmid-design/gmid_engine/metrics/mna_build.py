@@ -1,4 +1,4 @@
-"""MNA 조립 1회 (설계 design_mod1_lut_mod5_mna 3.3 '조립', 옛 `build_ac_network` SR:4067 의 목적만 계승).
+"""MNA 조립 1회 (설계 design_mod1_lut_mod5_mna 3.3 '조립', 옛 `build_ac_network` SR:4067 의 목적만 계승, 7a design 4.1 다중 관측·전하 열).
 
 진입점: `build_mna`.
 
@@ -6,8 +6,9 @@
 고정 노드 = 교류접지(선언 인덱스) ∪ 전압 구동 노드. 이름 리터럴('gnd' 등)·저항 기본값이 없다.
 
 미지수 x(미지수 노드 전압), 고정 노드 전압 u = U·e_j(열 j 의 구동 진폭)에서 KCL:
-    (G_uu + sC_uu)·x = −(G_uf + sC_uf)·u + i_inj   ->   BG = −G_uf·U + I_inj,  BC = −C_uf·U.
-관측 y = c_u·x + c_f·u  ->  `sense_row` = c_u, `sense_direct` = c_f·U.
+    (G_uu + sC_uu)·x = −(G_uf + sC_uf)·u + i_inj + s·q_inj   ->   BG = −G_uf·U + I_inj,  BC = −C_uf·U + Q_inj.
+관측 y_r = c_r,u·x + c_r,f·u  ->  `sense_rows[r]` = c_r,u, `sense_direct[r]` = c_r,f·U. 관측은 1개 이상(같은 계를 여러 노드에서
+본다 -- 루프 절단 계의 2k 관측, 7a design 2.4).
 """
 import numpy
 
@@ -21,7 +22,7 @@ def _reject(reason, nodes):
     raise ValueError("build_mna: 뷰 정의 결함 %s (노드 %r)" % (reason, nodes))
 
 
-def _check_inputs(circuit, excitations, sense):
+def _check_inputs(circuit, excitations, senses):
     if not isinstance(circuit, SmallSignalCircuit):
         raise TypeError("build_mna: circuit 는 SmallSignalCircuit 이어야 한다")
     if not isinstance(excitations, tuple) or not excitations:
@@ -32,21 +33,28 @@ def _check_inputs(circuit, excitations, sense):
     names = tuple(e.name for e in excitations)
     if len(set(names)) != len(names):
         _reject("excitation_name_duplicate", names)
-    if not isinstance(sense, Sense):
-        raise TypeError("build_mna: sense 는 Sense 여야 한다")
+    if not isinstance(senses, tuple) or not senses:
+        raise TypeError("build_mna: senses 는 비어 있지 않은 Sense tuple 이어야 한다(관측 하나면 1-tuple)")
+    for s in senses:
+        if not isinstance(s, Sense):
+            raise TypeError("build_mna: senses 원소는 Sense 여야 한다: %r" % (s,))
 
 
-def build_mna(circuit, excitations, sense):
-    """`SmallSignalCircuit` + 여기 열 tuple + `Sense` -> `MnaSystem`. 소자마다 스탬프 함수를 정확히 한 번 부른다.
+def _injections(excitations, field):
+    return {n for e in excitations for n, _ in getattr(e, field)}
 
-    뷰 정의 결함(값과 무관 -- 입력 계약 위반, ValueError): 여기 열 이름 중복, 구동 노드가 교류접지와 겹침, 전류 주입
-    노드가 고정 노드, 관측 노드가 구동되지 않는 고정 노드뿐.
+
+def build_mna(circuit, excitations, senses):
+    """`SmallSignalCircuit` + 여기 열 tuple + `Sense` tuple -> `MnaSystem`. 소자마다 스탬프 함수를 정확히 한 번 부른다.
+
+    뷰 정의 결함(값과 무관 -- 입력 계약 위반, ValueError): 여기 열 이름 중복, 구동 노드가 교류접지와 겹침, 전류·전하 주입
+    노드가 고정 노드, 어느 관측이 구동되지 않는 고정 노드뿐.
     값에 따라 생기는 구조 결함(예외 아님, `defects` 에 `Undefined(category="structural")`): 고립 미지수 노드(미지수
     블록에서 G·C 의 그 행이 모두 0 = KCL 식 없음, 또는 그 열이 모두 0 = 미지수가 어느 식에도 없음 -- 모든 ω 에서 특이).
     `charge_nodes` = 전체 G 행(고정 노드 열 포함)이 0 인 미지수 노드(용량으로만 이어짐 -- DC 는 전하 보존 극한)."""
-    _check_inputs(circuit, excitations, sense)
+    _check_inputs(circuit, excitations, senses)
     ground = frozenset(circuit.ac_ground)
-    driven = frozenset(n for e in excitations for n, _ in e.voltages)
+    driven = frozenset(_injections(excitations, "voltages"))
     clash = sorted(ground & driven)
     if clash:
         _reject("driven_node_is_ac_ground", tuple(clash))
@@ -59,16 +67,20 @@ def build_mna(circuit, excitations, sense):
         for row, col, _ in st.g + st.c:
             touched.add(row)
             touched.add(col)
-    for e in excitations:
-        touched.update(n for n, _ in e.currents)
-    touched.add(sense.pos)
-    if sense.neg is not None:
-        touched.add(sense.neg)
+    touched.update(_injections(excitations, "currents"))
+    touched.update(_injections(excitations, "charges"))
+    for s in senses:
+        touched.add(s.pos)
+        if s.neg is not None:
+            touched.add(s.neg)
     unknown = tuple(sorted(touched - fixed))
     fixed_order = tuple(sorted(fixed))
-    injected_fixed = sorted({n for e in excitations for n, _ in e.currents} & fixed)
+    injected_fixed = sorted(_injections(excitations, "currents") & fixed)
     if injected_fixed:
         _reject("current_injection_into_fixed_node", tuple(injected_fixed))
+    charged_fixed = sorted(_injections(excitations, "charges") & fixed)
+    if charged_fixed:
+        _reject("charge_injection_into_fixed_node", tuple(charged_fixed))
     index = {n: i for i, n in enumerate(unknown + fixed_order)}
     total = len(index)
     g_full = numpy.zeros((total, total))
@@ -90,30 +102,33 @@ def build_mna(circuit, excitations, sense):
     m = len(excitations)
     drive = numpy.zeros((len(fixed_order), m))
     inject = numpy.zeros((n, m))
+    charge = numpy.zeros((n, m))
     for j, e in enumerate(excitations):
         for node, amp in e.voltages:
             drive[index[node] - n, j] = amp
         for node, amp in e.currents:
             inject[index[node], j] = amp
-    full_sense = numpy.zeros(total)
-    full_sense[index[sense.pos]] += 1.0
-    if sense.neg is not None:
-        full_sense[index[sense.neg]] -= 1.0
-    sense_direct = full_sense[n:] @ drive
-    observable = full_sense[:n].any() or any(full_sense[index[x]] for x in sorted(driven))
-    if not observable:
-        _reject("sense_on_undriven_fixed_node", (sense.pos, sense.neg))
+        for node, amount in e.charges:
+            charge[index[node], j] = amount
+    full_sense = numpy.zeros((len(senses), total))
+    for r, s in enumerate(senses):
+        full_sense[r, index[s.pos]] += 1.0
+        if s.neg is not None:
+            full_sense[r, index[s.neg]] -= 1.0
+        observable = full_sense[r, :n].any() or any(full_sense[r, index[x]] for x in sorted(driven))
+        if not observable:
+            _reject("sense_on_undriven_fixed_node", (s.pos, s.neg))
     return MnaSystem(
         nodes=unknown,
         fixed_nodes=fixed_order,
         G=g_full[:n, :n],
         C=c_full[:n, :n],
         BG=inject - g_full[:n, n:] @ drive,
-        BC=-(c_full[:n, n:] @ drive),
-        sense_row=full_sense[:n],
-        sense_direct=sense_direct,
+        BC=charge - c_full[:n, n:] @ drive,
+        sense_rows=full_sense[:, :n],
+        sense_direct=full_sense[:, n:] @ drive,
         excitations=excitations,
-        sense=sense,
+        senses=senses,
         charge_nodes=charge_nodes,
         defects=defects,
     )

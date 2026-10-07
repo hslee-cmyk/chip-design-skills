@@ -89,7 +89,7 @@ def ex1_rc(nm=None):
     m = mapper(nm)
     ck = SmallSignalCircuit(resistors=(Resistor(m(1), m(2), 1e3),), capacitors=(Capacitor(m(2), m(0), 1e-9),),
                             ac_ground=(m(0),))
-    return build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)),), Sense(m(2)))
+    return build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)),), (Sense(m(2)),))
 
 
 EX2_GM, EX2_GDS, EX2_CL = 1e-3, 1e-5, 1e-12
@@ -104,21 +104,21 @@ def ex2_amp(nm=None):
         ac_ground=(m(0),),
     )
     return build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)), Excitation("iout", currents=((m(2), 1.0),))),
-                     Sense(m(2)))
+                     (Sense(m(2)),))
 
 
 def ex2_beta_res(nm=None):
     """예 2 β 계(저항): R(2,3,30k), R(3,0,10k), 1 V at 2, Sense(3) -> β = 0.25."""
     m = mapper(nm)
     ck = SmallSignalCircuit(resistors=(Resistor(m(2), m(3), 30e3), Resistor(m(3), m(0), 10e3)), ac_ground=(m(0),))
-    return build_mna(ck, (Excitation("vfb", voltages=((m(2), 1.0),)),), Sense(m(3)))
+    return build_mna(ck, (Excitation("vfb", voltages=((m(2), 1.0),)),), (Sense(m(3)),))
 
 
 def ex2c_beta_cap(nm=None, cf=1e-12, cs=3e-12):
     """예 2c: Cf(2,3), Cs(3,0), 1 V at 2, Sense(3) -> β = Cf/(Cf+Cs)."""
     m = mapper(nm)
     ck = SmallSignalCircuit(capacitors=(Capacitor(m(2), m(3), cf), Capacitor(m(3), m(0), cs)), ac_ground=(m(0),))
-    return build_mna(ck, (Excitation("vfb", voltages=((m(2), 1.0),)),), Sense(m(3)))
+    return build_mna(ck, (Excitation("vfb", voltages=((m(2), 1.0),)),), (Sense(m(3)),))
 
 
 def ex2b_sf(gmb=2e-4, nm=None):
@@ -129,7 +129,7 @@ def ex2b_sf(gmb=2e-4, nm=None):
         resistors=(Resistor(m(2), m(0), 1e4),),
         ac_ground=(m(0), m(9)),
     )
-    return build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)),), Sense(m(2)))
+    return build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)),), (Sense(m(2)),))
 
 
 EX2D = dict(gm=1e-3, gds=1e-5, cf=1e-12, cs=3e-12, cl=1e-12)
@@ -145,7 +145,7 @@ def ex2d_sc_loop(nm=None):
         ac_ground=(m(0),),
     )
     return build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)), Excitation("iinj", currents=((m(3), 1.0),))),
-                     Sense(m(2)))
+                     (Sense(m(2)),))
 
 
 EX3 = dict(gm1=1e-4, g1=1e-6, gm2=1e-3, g2=1e-5, c1=0.1e-12, cl=1e-12, cc=0.5e-12)
@@ -164,7 +164,7 @@ def ex3_miller(nm=None, with_cc=True):
         capacitors=tuple(caps),
         ac_ground=(m(0),),
     )
-    return build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)),), Sense(m(3)))
+    return build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)),), (Sense(m(3)),))
 
 
 def ex6_ratio(nm=None):
@@ -172,7 +172,7 @@ def ex6_ratio(nm=None):
     m = mapper(nm)
     ck = SmallSignalCircuit(resistors=(Resistor(m(1), m(2), 1e3), Resistor(m(2), m(3), 1e4)), ac_ground=(m(0),))
     return build_mna(ck, (Excitation("num", voltages=((m(1), 1.0),)), Excitation("den", voltages=((m(3), 1.0),))),
-                     Sense(m(2)))
+                     (Sense(m(2)),))
 
 
 RENUMBER = {0: 17, 1: 4, 2: 30, 3: 8, 9: 2}   # 0 이 교류접지가 아닌 번호로 가도 된다
