@@ -10,16 +10,19 @@
 
 공개 함수: compare(inp, meta, sim, judge) -> dict, to_markdown(result) -> str, merge_judge(inp_judge, file_judge, sat_margin),
           device_tolerance(inp, judge, name, key), iso_summary(rows, meta), forced_diagnosis(inp, rows, kcl),
-          diagnose(free_res, forced_res)
+          diagnose(free_res, forced_res), conduction_check(pred, idv), measure_value(measure, sim, item)
 [신규] 소자별 허용오차(C16): predictions.devices[].tol 이 한 소자라도 있으면 ID·gm 판정은 소자별 값만 쓴다(스칼라 폴백 없음).
 [신규] iso(C17): summary.iso = 소자별 ID 오차가 그 소자 허용오차 안인가(K3 판정), verdict 는 진단 모드라 INCOMPLETE.
 [신규] Z1(C18): 넷리스트를 --omit/--short 로 바꾼 실행은 합격 판정을 하지 않는다(INCOMPLETE).
 [신규] diagnosis(C19): forced 는 넷별 KCL 잔차 대 소자 tol_I 합, 게이트 공유 넷의 등가 dVGS = dID/gm 퍼짐을 기록,
        diagnose() 가 free FAIL 원인을 '경계조건 쪽'/'엔진 DC 비정합'으로 분류(기록만).
 
-합격 판정(summary.verdict, 사용자 확정 2026-10-07) -- free 모드에서만:
-  PASS = acceptance 선언 제약 전부 만족 + ID > 0(off_current_A 가 있으면 그 값 초과)인 전 MOS 가 VDS-VDSAT >= sat_margin_V.
-  FAIL = 제약 불만족 또는 포화 아닌 전도 MOS. INCOMPLETE = sat_margin_V 미설정 또는 SPICE 로 못 잰 제약. BLOCKED = 막힘.
+합격 판정(summary.verdict, 사용자 확정 2026-10-07, Q5 보강) -- free 모드에서만:
+  PASS = acceptance 선언 제약(ratio_db 포함, C24) 전부 만족 + ID > 그 소자 문턱인 전 MOS 가 VDS-VDSAT >= sat_margin_V
+         + 엔진 예측 전도 MOS 가 SPICE 에서도 ID > 그 소자 off_current_A(C23).
+  FAIL = 제약 불만족, 포화 아닌 전도 MOS, 또는 SPICE 에서 꺼진 예측 전도 MOS. INCOMPLETE = sat_margin_V 미설정, SPICE 로 못 잰
+  제약, 또는 전도 확인을 판정 못 한 소자(off_current_A 없음 등). BLOCKED = 막힘(C22 확산 기하 없음 포함).
+[신규] C25 slew_rate_v_per_s·settle_s: 기록 행만, not_measured(정의 미정).
   forced 모드는 진단용: verdict 는 막힘이 없으면 INCOMPLETE, 소자 ID·gm 차이가 허용오차를 넘으면 summary.warnings.
   노드전압·소자 op·성능의 예측-SPICE 차이와 아래 judge 값은 기록만 한다(verdict 무관).
 판정 설정(judge) -- 이 파일은 숫자 기본값을 갖지 않는다. 키가 없으면 그 기록 항목은 "N/A(tol 미설정)".
@@ -44,8 +47,15 @@ MEASURES = {
     "ugf_hz": ("rel", "ugf_hz_rel"),
     "f3db_hz": ("rel", "f3db_hz_rel"),
     "supply_current_A": ("rel", "supply_current_A_rel"),
+    "ratio_db": ("abs", "ratio_db_abs"),
 }
 NA_TOL = "N/A(tol 미설정)"
+# C25: 기록 전용 과도 measure -- SPICE 정의가 계약에 없어 재지 않는다(추측 금지). 정의가 정해지면 측정으로 바꾼다.
+TRANSIENT_MEASURES = ("slew_rate_v_per_s", "settle_s")
+TRANSIENT_NOT_MEASURED_REASON = (
+    "β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 "
+    "(gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, "
+    "driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)")
 
 
 def rel_err(s, p):
@@ -96,7 +106,29 @@ def measure_value(measure, sim, item):
     ac = sim.get("ac") or {}
     if measure == "supply_current_A":
         return (sim.get("rail_current_A") or {}).get(item.get("rail"))
+    if measure == "ratio_db":  # C24: 같은 view(dict 동등)를 잰 결과
+        for r in sim.get("ratio") or []:
+            if r.get("view") == item.get("view"):
+                return r.get("ratio_db")
+        return None
+    if measure in TRANSIENT_MEASURES:  # C25: 재지 않음
+        return None
     return ac.get(measure)
+
+
+def conduction_check(pred, idv):
+    """C23: 엔진 예측 전도 소자가 SPICE 에서 꺼졌는가. 반환 (predicted_conducting, 판정 문자열).
+    pred = predictions.devices[이름](없으면 None), idv = SPICE ID(크기 규칙, 부호 포함)."""
+    if pred is None:
+        return None, "N/A(예측 없음)"
+    if pred.get("region") == "off":
+        return False, "N/A(엔진 예측 off)"
+    thr = pred.get("off_current_A")
+    if thr is None:
+        return True, "N/A(off_current_A 없음)"
+    if idv is None:
+        return True, "N/A(SPICE ID 없음)"
+    return True, ("FAIL" if idv <= thr else "PASS")
 
 
 def _mul(a, b):
@@ -126,8 +158,11 @@ def compare(inp, meta, sim, judge):
         vsb = _mul(o.get("vbs"), -1.0)
         sat_m = None if vds is None or vdsat is None else vds - vdsat
         region = None if sat_m is None or margin is None else ("sat" if sat_m >= margin else "triode")
-        if off_i is not None and idv is not None and abs(idv) < off_i:
+        # 전도 문턱: 소자별 off_current_A(C23, 엔진 계산) 우선, 없으면 judge.off_current_A
+        thr = p.get("off_current_A") if p.get("off_current_A") is not None else off_i
+        if thr is not None and idv is not None and abs(idv) < thr:
             region = "off"
+        pc, cc = conduction_check(pdev.get(n), idv)
         vov = None if vgs is None or vth is None else vgs - vth
         r = {"name": n, "kind": k, "L": g["L"], "finger_w": g["finger_w"], "n_fingers": g["n_fingers"],
              "W_from_fingers": g["W_from_fingers"], "W_declared": g["W_declared"],
@@ -145,6 +180,9 @@ def compare(inp, meta, sim, judge):
              "sat_margin_spice_V": sat_m, "region_spice": region, "region_pred": p.get("region")}
         r["gm_id_rel"] = rel_err(r["gm_id_spice"], r["gm_id_pred"])
         r["tol_ID_rel"], r["tol_gm_rel"], r["tol_source"] = t_id, t_gm, t_id_src
+        r["off_current_A_pred"], r["conduction_threshold_A"] = p.get("off_current_A"), thr
+        r["predicted_conducting"], r["conduction_check"] = pc, cc
+        r["diffusion"] = g.get("diffusion")
         r["judge"] = {
             "W": judge_err(r["W_rel"], tol.get("W_rel")),
             "ID": judge_err(r["ID_rel"], t_id),
@@ -176,6 +214,10 @@ def compare(inp, meta, sim, judge):
     for it in pred.get("metrics") or []:
         kind, key = MEASURES.get(it["measure"], (None, None))
         sv = measure_value(it["measure"], sim, it)
+        if it["measure"] in TRANSIENT_MEASURES:
+            perf.append({**it, "spice": None, "err": None, "err_kind": None,
+                         "judge": "N/A(not_measured: 과도 정의 미정 -- summary.transient)"})
+            continue
         if kind is None:
             perf.append({**it, "spice": None, "err": None, "err_kind": None, "judge": "N/A(모르는 measure)"})
             continue
@@ -215,11 +257,16 @@ def compare(inp, meta, sim, judge):
         blockers.append("β 루프 측정 결과 없음(루프 넷리스트): " + " | ".join(loop.get("log_errors") or [])[:600])
 
     # ---- 합격 판정(사용자 확정 2026-10-07): free 모드 = 선언 제약 만족 + 전도 MOS 전부 포화 ----
-    conducting = [r for r in rows if r["ID_spice"] is not None and r["ID_spice"] > (off_i if off_i is not None else 0)]
+    conducting = [r for r in rows if r["ID_spice"] is not None and r["ID_spice"] >
+                  (r["conduction_threshold_A"] if r["conduction_threshold_A"] is not None else 0)]
     unsat = None if margin is None else [r["name"] for r in conducting
                                          if r["sat_margin_spice_V"] is None or r["sat_margin_spice_V"] < margin]
     cons_fail = [c.get("name") or c["measure"] for c in cons if c["judge"] == "FAIL"]
     cons_na = [c.get("name") or c["measure"] for c in cons if c["judge"] not in ("PASS", "FAIL")]
+    # C23: 엔진 예측 전도 소자가 SPICE 에서 꺼짐 -> FAIL, 판정 못 함 -> PASS 불가(엔진 예측 off 는 대상 밖)
+    off_spice = [r["name"] for r in rows if r["conduction_check"] == "FAIL"]
+    cond_na = {r["name"]: r["conduction_check"] for r in rows
+               if r["conduction_check"] not in ("PASS", "FAIL", "N/A(엔진 예측 off)")}
     warnings = []
     if meta["bias"] == "forced":
         for r in rows:
@@ -233,24 +280,41 @@ def compare(inp, meta, sim, judge):
         verdict, why = "INCOMPLETE", f"{meta['bias']} 는 진단 모드 -- 합격 판정은 free 모드에서만 한다"
     elif z1:
         verdict, why = "INCOMPLETE", f"Z1 제거법 진단 실행(회로 변경 omit={z1['omit']} short={z1['short']}) -- 합격 판정 안 함"
-    elif cons_fail or unsat:
+    elif cons_fail or unsat or off_spice:
         verdict = "FAIL"
         why = "; ".join(x for x in (f"선언 제약 불만족 {cons_fail}" if cons_fail else "",
-                                     f"포화 아닌 전도 MOS {unsat}" if unsat else "") if x)
-    elif margin is None or cons_na:
+                                     f"포화 아닌 전도 MOS {unsat}" if unsat else "",
+                                     f"엔진 예측 전도인데 SPICE 에서 꺼진 MOS {off_spice}" if off_spice else "") if x)
+    elif margin is None or cons_na or cond_na:
         verdict = "INCOMPLETE"
         why = "; ".join(x for x in ("sat_margin_V 미설정 -- 포화 조건 판정 불가" if margin is None else "",
-                                     f"SPICE 로 값을 못 얻은 제약 {cons_na}" if cons_na else "") if x)
+                                     f"SPICE 로 값을 못 얻은 제약 {cons_na}" if cons_na else "",
+                                     f"전도 확인(C23)을 판정 못 한 소자 {cond_na}" if cond_na else "") if x)
     else:
-        verdict, why = "PASS", "선언 제약 전부 만족, 전도 MOS 전부 포화"
+        verdict, why = "PASS", "선언 제약 전부 만족, 전도 MOS 전부 포화, 엔진 예측 전도 MOS 전부 SPICE 에서도 전도"
+    geo = meta.get("geometry") or {}
+    jsrc = [((g.get("diffusion") or {}).get("source")) for g in geo.values()]
     summary = {"verdict": verdict, "verdict_reason": why, "warnings": warnings,
                "acceptance": {"constraints_failed": cons_fail, "constraints_unmeasured": cons_na,
                               "conducting_devices": len(conducting), "unsaturated_conducting": unsat,
-                              "sat_margin_V": margin, "off_current_A": off_i},
+                              "sat_margin_V": margin, "off_current_A": off_i,
+                              "off_in_spice": off_spice, "conduction_not_evaluated": cond_na},
+               "junction_capacitance": {"included": bool(jsrc) and all(jsrc),
+                                        "by_source": {"device": jsrc.count("device"),
+                                                      "process_rule": jsrc.count("process_rule"),
+                                                      "none": jsrc.count(None)},
+                                        "missing": sorted(n for n, g in geo.items()
+                                                          if not (g.get("diffusion") or {}).get("source")),
+                                        "zero_area": sorted(n for n, g in geo.items()
+                                                            if (g.get("diffusion") or {}).get("source") and
+                                                            not any(g["diffusion"][k] for k in ("ad", "as", "pd", "ps")))},
+               "transient": {"status": "not_measured", "measures": list(TRANSIENT_MEASURES),
+                             "reason": TRANSIENT_NOT_MEASURED_REASON},
                "record_counts": rec_cnt, "devices": len(rows),
                "sat_in_spice": None if margin is None else sum(1 for r in rows if r["region_spice"] == "sat"),
                "not_sat": None if margin is None else [r["name"] for r in rows if r["region_spice"] != "sat"],
-               "spice_ac": sim.get("ac"), "rail_current_A": sim.get("rail_current_A")}
+               "spice_ac": sim.get("ac"), "spice_ratio": sim.get("ratio") or [],
+               "rail_current_A": sim.get("rail_current_A")}
     ti = meta.get("topology_identity") or {"status": "unverified", "diffs": [], "notes": ["넷리스트 meta 에 C15 결과 없음"]}
     summary["topology_identity"] = {"status": ti.get("status"), "required": ti.get("required", False),
                                     "diff_count": len(ti.get("diffs") or []), "path": ti.get("topology_path")}
@@ -388,6 +452,19 @@ def to_markdown(res):
         L.append(f"  - 차이: {dd}")
     for nm, why in (ti.get("declared_not_in_topology") or {}).items():
         L.append(f"  - 비교 제외(입력 선언): {nm} -- {why}")
+    acc = s.get("acceptance") or {}
+    if acc.get("off_in_spice") or acc.get("conduction_not_evaluated"):
+        L.append(f"- C23 전도 확인: SPICE 에서 꺼짐 {acc.get('off_in_spice') or '-'}, "
+                 f"판정 못 함 {acc.get('conduction_not_evaluated') or '-'}")
+    jc = s.get("junction_capacitance") or {}
+    L.append(f"- C22 접합 용량(확산 기하): 포함 {jc.get('included')} -- 출처 {jc.get('by_source')}"
+             + (f", 없음 {jc['missing']}" if jc.get("missing") else ""))
+    for rr in s.get("spice_ratio") or []:
+        L.append(f"- C24 ratio_db @ {_f(rr.get('f_hz'))} Hz: {_f(rr.get('ratio_db'))} dB "
+                 f"(|H_num| {_f((rr.get('num') or {}).get('mag'))}, |H_den| {_f((rr.get('den') or {}).get('mag'))})")
+    tr = s.get("transient") or {}
+    if tr:
+        L.append(f"- C25 슬루·정착: {tr.get('status')} -- {tr.get('reason')}")
     if s.get("z1"):
         L.append(f"- Z1 제거법 진단 실행: omit={s['z1']['omit']} short={s['z1']['short']}")
     if s.get("iso"):

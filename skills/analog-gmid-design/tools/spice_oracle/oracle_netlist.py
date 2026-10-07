@@ -11,7 +11,8 @@
 공개 함수: build_netlist(inp, bias, ac_file, loop=False) -> (text, meta), write_netlists(inp, bias, out_cir, ...) -> meta,
           validate_input(inp) -> [위반], loop_break_nets(inp), load_input(path), read_lut_meta(npz_path),
           parse_netlist_elements(text, inp), topology_elements(topo), topology_identity(inp, text, path),
-          resolve_topology_path(inp, input_path, override), apply_z1(inp, omit, short)
+          resolve_topology_path(inp, input_path, override), apply_z1(inp, omit, short),
+          diffusion_of(process, d), diffusion_gate(geometry, bias), ratio_views(inp)
 입력은 먼저 oracle_input.schema.json 으로 검증한다. 위반이면 넷리스트를 쓰지 않고 반환 2(README C13).
   * [신규] C15 topology 연결 동일성: 본 넷리스트를 다시 파싱한 (원소 이름, 종류, 단자 넷) 집합을 topology JSON
     (netlist + passive_elements + ideal_sources)과 비교한다. 다르면 막힘. topology 가 없으면 '미검증' 표시,
@@ -25,7 +26,9 @@
   * finger: 소자 하나 = 인스턴스 하나, `w=finger_w m=n_fingers`. nf 는 쓰지 않는다(ngspice 는 모델 bin 을
     총폭 w 로 고르고 BSIM4 크기식은 w/nf 로 계산해, nf>1 이면 다른 bin 계수를 외삽한다 -- lut_coverage_study 표 E).
     subckt 의 m 은 내부 소자를 m 배 하고 @ probe 값(id/gm/gds)도 m 배 총합으로 나온다(2026-10-07 실측).
-  * 확산 면적: process.diffusion(있으면) ad=as=ad_per_w_m*finger_w, pd=ps=finger_w+pd_extra_m. 없으면 생략.
+  * 확산 면적(C22): devices[].diffusion(Euler 행 공유 확산, finger 평균) -> process.diffusion(LUT 생성 규칙
+    ad=as=ad_per_w_m*finger_w, pd=ps=finger_w+pd_extra_m) -> 생략. free(합격 실행)에서 생략되는 소자가 있으면 막힘.
+  * [신규] C24 ratio_db(CMRR·PSRR): 뷰마다 .control 안에서 여기 원 acmag 를 바꿔 .ac 2회(fstart 한 점), wrdata.
   * bias=free : 회로가 DC 해를 스스로 찾는다. 입력 DC 는 dc_choke_H 로, AC 는 ac_couple_F 로 넣고
     출력 -> 반대 극성 입력 DC 되먹임으로 출력 DC 를 예측값 근처에 묶는다(차동 출력은 차동 성분만).
     testbench.nodeset_from_predictions 이면 예측 노드전압을 .nodeset(뉴턴 초기값)으로 준다.
@@ -111,17 +114,53 @@ def probe_name(process, kind, inst, param):
     return process["models"][kind]["op_probe"].replace("{inst}", inst.lower()).replace("{param}", param)
 
 
+def diffusion_of(process, d):
+    """소자 d 의 확산 기하(C22). 출처 순서: devices[].diffusion(Euler 행 공유 확산, finger 평균) -> process.diffusion
+    (LUT 생성 규칙) -> 없음. 반환 {source: 'device'|'process_rule'|None, ad, as, pd, ps}(값은 m 단위 하나당, m 은 ngspice 가 곱함)."""
+    own = d.get("diffusion")
+    if own:
+        return {"source": "device", "ad": float(own["ad_m2"]), "as": float(own["as_m2"]),
+                "pd": float(own["pd_m"]), "ps": float(own["ps_m"])}
+    dif = process.get("diffusion")
+    if dif:
+        fw = float(d["finger_w"])
+        ad = float(dif["ad_per_w_m"]) * fw
+        pd = fw + float(dif["pd_extra_m"])
+        return {"source": "process_rule", "ad": ad, "as": ad, "pd": pd, "ps": pd}
+    return {"source": None, "ad": None, "as": None, "pd": None, "ps": None}
+
+
 def device_line(process, d, nodes):
     m = process["models"][d["kind"]]
     fw = float(d["finger_w"])
     parts = [f"X{d['name']}", nodes[0], nodes[1], nodes[2], nodes[3], m["subckt"],
              f"l={_num(d['L'])}", f"w={_num(fw)}", f"m={int(d['n_fingers'])}"]
-    dif = process.get("diffusion")
-    if dif:
-        ad = float(dif["ad_per_w_m"]) * fw
-        pd = fw + float(dif["pd_extra_m"])
-        parts += [f"ad={_num(ad)}", f"as={_num(ad)}", f"pd={_num(pd)}", f"ps={_num(pd)}"]
+    dif = diffusion_of(process, d)
+    if dif["source"]:
+        parts += [f"{k}={_num(dif[k])}" for k in ("ad", "as", "pd", "ps")]
     return " ".join(parts)
+
+
+def diffusion_gate(geometry, bias):
+    """C22: 확산 기하가 없는 소자 목록 -> (막힘 목록, 노트 목록). free(합격 실행)만 막힘, 나머지는 노트."""
+    missing = sorted(n for n, g in geometry.items() if not (g.get("diffusion") or {}).get("source"))
+    if not missing:
+        return [], []
+    msg = f"C22 접합 용량: 확산 기하 없는 소자 {missing} (devices[].diffusion 도 process.diffusion 도 없음)"
+    if bias == "free":
+        return [msg + " -- 합격 실행(free)은 접합 용량을 넣어야 한다"], []
+    return [], [msg + f" -- {bias} 진단 실행이라 막지 않음(그 소자는 접합 용량 없음)"]
+
+
+def ratio_views(inp):
+    """C24: 제약·metric 중 measure == ratio_db 인 항목의 view 목록(dict 동등 기준 중복 제거, 처음 나온 순서)."""
+    out = []
+    items = list((inp.get("acceptance") or {}).get("constraints") or []) + \
+        list((inp.get("predictions") or {}).get("metrics") or [])
+    for it in items:
+        if it.get("measure") == "ratio_db" and it.get("view") is not None and it["view"] not in out:
+            out.append(it["view"])
+    return out
 
 
 def validate_input(inp, schema_path=SCHEMA_PATH):
@@ -198,8 +237,12 @@ def build_netlist(inp, bias, ac_file, loop=False):
         W_f = float(d["finger_w"]) * int(d["n_fingers"])
         geometry[d["name"]] = {"L": float(d["L"]), "finger_w": float(d["finger_w"]),
                                "n_fingers": int(d["n_fingers"]), "W_from_fingers": W_f,
-                               "W_declared": None if d.get("W") is None else float(d["W"])}
+                               "W_declared": None if d.get("W") is None else float(d["W"]),
+                               "diffusion": diffusion_of(process, d)}
         probes[d["name"]] = {p: probe_name(process, d["kind"], f"X{d['name']}", p) for p in OP_PARAMS}
+    dg_block, dg_note = diffusion_gate(geometry, bias)
+    blockers += dg_block
+    notes += dg_note
 
     for s in inp.get("sources") or []:
         a, b = s["terminals"]
@@ -261,6 +304,8 @@ def build_netlist(inp, bias, ac_file, loop=False):
             blockers.append(f"testbench.ac.{key} 없음 -- 입력 {net} 의 AC 크기를 정할 수 없다")
         else:
             ac_mag[net] = tb["ac"][key]
+    # C24 여기 수단: 테스트벤치가 이상 전압원으로 구동하는 넷 -> 그 원 이름(레일·입력 Vac·게이트 바이어스)
+    ac_src = dict(rail_src)
     loop_choke = None
     if loop and breaks:
         if tb.get("loop_dc_choke_H") is None:
@@ -302,6 +347,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
         else:
             L.append(f"Cac_{net} {N(net)} acs_{net} {coup}")
             L.append(f"Vac_{net} acs_{net} 0 DC 0 AC {_num(0 if loop else ac_mag.get(net, 0))}")
+            ac_src[net] = f"Vac_{net}"
 
     # 게이트 전용 넷
     declared_bias = {b["net"]: float(b["value"]) for b in inp.get("bias_voltages") or []}
@@ -318,6 +364,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
             blockers.append(f"구동 소자 없는 게이트 넷 {g}: bias_voltages 선언도 예측 전압도 없다")
             continue
         L.append(f"Vbias_{g} {N(g)} 0 DC {_num(gate_bias[g][0])}")
+        ac_src[g] = f"Vbias_{g}"
     for net, (v, why) in gate_bias.items():
         notes.append(f"게이트 전용 넷 {net} = {v:.6g} V ({why})")
 
@@ -372,6 +419,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
         L.append(f"let hout = v({N(out_se)})" if out_se else f"let hout = v({N(out_p)}) - v({N(out_n)})")
         L.append("set wr_singlescale")
         L.append(f"wrdata {ac_file} hout")
+    ratio_runs = _ratio_runs(L, inp, ac_src, all_nets, N, ac_file, blockers)
     L.append("quit")
     L.append(".endc")
     L.append(".end")
@@ -380,8 +428,59 @@ def build_netlist(inp, bias, ac_file, loop=False):
             "spice_node": {n: N(n) for n in all_nets}, "rail_sources": rail_src, "held": held,
             "unheld": unheld, "gate_bias": {k: v[0] for k, v in gate_bias.items()},
             "inputs": inputs, "has_ac": has_ac, "ac_file": ac_file if has_ac else None,
-            "notes": notes, "blockers": blockers}
+            "ratio_runs": ratio_runs, "notes": notes, "blockers": blockers}
     return "\n".join(L) + "\n", meta
+
+
+def _ratio_runs(L, inp, ac_src, all_nets, N, ac_file, blockers):
+    """C24: ratio_db 뷰마다 .ac 2회(num, den)를 .control 에 덧붙인다. 한 번의 .ac 에서 ac_excite 넷의 원은 그 진폭,
+    나머지 여기 가능한 원(레일·입력 Vac·게이트 바이어스)은 0. 측정 주파수 = testbench.ac.fstart_hz 한 점.
+    여기 넷이 그 원들 밖이거나 sense 넷이 회로 넷이 아니면 막힘. 반환 meta 용 목록."""
+    views = ratio_views(inp)
+    if not views:
+        return []
+    f0 = (inp["testbench"].get("ac") or {}).get("fstart_hz")
+    if f0 is None:
+        blockers.append("C24 ratio_db: testbench.ac.fstart_hz 없음 -- 측정 주파수를 정할 수 없다")
+        return []
+    ref = {r["net"] for r in inp["rails"] if r.get("reference")}
+    circuit = set(all_nets)
+    stem = ac_file[:-len(".ac.txt")] if ac_file.endswith(".ac.txt") else ac_file
+    runs, ok = [], True
+    for k, view in enumerate(views):
+        for side in ("num", "den"):
+            tv = view[side]
+            for net in sorted(tv["ac_excite"]):
+                if net in ref:
+                    blockers.append(f"C24 ratio_db 뷰 {k} {side}: reference 레일 {net} 은 여기할 수 없다(SPICE 노드 0)")
+                    ok = False
+                elif net not in ac_src:
+                    blockers.append(f"C24 ratio_db 뷰 {k} {side}: 여기 넷 {net} 을 테스트벤치가 이상 전압원으로 구동하지 않는다"
+                                    f"(여기 가능 넷 = 레일·입력·게이트 바이어스 {sorted(ac_src)}) -- DC 를 바꾸지 않고 AC 만 고정할 수 없다")
+                    ok = False
+            for key in ("sense_p", "sense_n"):
+                net = tv.get(key)
+                if net is not None and net not in circuit:
+                    blockers.append(f"C24 ratio_db 뷰 {k} {side}: {key} {net} 이 회로 넷(reference 제외)이 아니다")
+                    ok = False
+    if not ok:
+        return []
+    L.append("set wr_singlescale")
+    for k, view in enumerate(views):
+        run = {"view": view, "f_hz": float(f0)}
+        for side in ("num", "den"):
+            tv = view[side]
+            for net, src in sorted(ac_src.items()):
+                L.append(f"alter @{src.lower()}[acmag] = {_num(tv['ac_excite'].get(net, 0))}")
+            L.append(f"ac lin 1 {_num(f0)} {_num(f0)}")
+            sp = f"v({N(tv['sense_p'])})"
+            L.append(f"let hr{k}{side} = {sp} - v({N(tv['sense_n'])})" if tv["sense_mode"] == "differential"
+                     else f"let hr{k}{side} = {sp}")
+            fn = f"{stem}.ratio{k}.{side}.txt"
+            L.append(f"wrdata {fn} hr{k}{side}")
+            run[f"{side}_file"] = fn
+        runs.append(run)
+    return runs
 
 
 def _loop_tail(L, tb, breaks, ac_mag, prefix, N, notes, blockers, bias, lut):
@@ -431,7 +530,8 @@ def build_iso_netlist(inp):
         n = d["name"]
         W_f = float(d["finger_w"]) * int(d["n_fingers"])
         geometry[n] = {"L": float(d["L"]), "finger_w": float(d["finger_w"]), "n_fingers": int(d["n_fingers"]),
-                       "W_from_fingers": W_f, "W_declared": None if d.get("W") is None else float(d["W"])}
+                       "W_from_fingers": W_f, "W_declared": None if d.get("W") is None else float(d["W"]),
+                       "diffusion": diffusion_of(process, d)}
         pol = process["models"][d["kind"]].get("polarity")
         p = pdev.get(n) or {}
         miss = [k for k in ("VGS", "VDS", "VSB") if p.get(k) is None]
@@ -452,6 +552,7 @@ def build_iso_netlist(inp):
         applied[n] = {"V_g": vg, "V_d": vd, "V_s": 0.0, "V_b": vb, "polarity": pol}
     if not probes:
         blockers.append("iso: 단독 인스턴스를 만들 소자가 없다(예측 VGS/VDS/VSB 또는 polarity 없음)")
+    notes += diffusion_gate(geometry, "iso")[1]
     for n, why in skipped.items():
         notes.append(f"iso: {n} 단독 인스턴스 안 만듦 -- {why}")
     L += [".control", "set noaskquit", "op", "echo OPSTART"]

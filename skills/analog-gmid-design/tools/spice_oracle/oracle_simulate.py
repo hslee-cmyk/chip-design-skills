@@ -11,7 +11,9 @@
 공개 함수: run_ngspice(exe, cir, log, timeout_s, cache_dir, outputs), parse_op(log_text, meta), parse_ac_file(path),
           ac_measures(freq, re, im), pm_crosscheck(freq, re, im, mp_res), data_rel_resolution(path),
           mp_resolution(rel_resolution, values_per_sample), run_cache_key(exe, cir_path),
-          simulate(cir_path, meta, exe, timeout_s, cache_dir)
+          ratio_measure(run, folder), simulate(cir_path, meta, exe, timeout_s, cache_dir)
+[신규] C24 ratio_db(CMRR·PSRR): 넷리스트 meta.ratio_runs 의 num/den 데이터 파일(.ac 한 점)에서 sim.ratio 를 만든다
+  (데이터 파일은 C21 캐시에 함께 저장·복원).
 [신규] PM 교차 측정(C20, 기록만): PM 을 정한 루프 이득 L 로 폐루프 L/(1+L) 의 peaking Mp 를 재고 2차계 관계로 PM 을 역산해
   ac.pm_crosscheck_deg 로 남긴다(ac.pm_deg 와 다른 측정 방법 -- 교차점·위상 언랩 오류 검출용, 판정 무관).
 [신규] 실행 캐시(C21, 선택): cache_dir 가 있으면 (넷리스트 바이트, 넷리스트가 .include/.lib 로 읽는 모델 파일 전부의 바이트
@@ -279,19 +281,39 @@ def loop_gain(v_file, i_file, weights):
     return v[0], re_, im
 
 
+def ratio_measure(run, folder):
+    """C24: ratio_db 뷰 한 개의 두 .ac 결과(wrdata 한 점) -> {view, f_hz, num{re, im, mag}, den{...}, ratio_db}.
+    ratio_db = 20*log10(|H_num|/|H_den|). 파일이 없거나 |H_den| = 0 이면 ratio_db None."""
+    out = {"view": run["view"], "f_hz": run["f_hz"], "num": None, "den": None, "ratio_db": None}
+    for side in ("num", "den"):
+        raw = parse_ac_file(os.path.join(folder, run[f"{side}_file"]))
+        if raw:
+            re_, im = raw[1][0], raw[2][0]
+            out[side] = {"re": re_, "im": im, "mag": math.hypot(re_, im), "f_hz": raw[0][0]}
+    if out["num"] and out["den"] and out["den"]["mag"] > 0 and out["num"]["mag"] > 0:
+        out["ratio_db"] = 20 * math.log10(out["num"]["mag"] / out["den"]["mag"])
+    return out
+
+
 def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
     base = os.path.splitext(cir_path)[0]
     log_path = base + ".log"
     ac_path = os.path.join(os.path.dirname(os.path.abspath(cir_path)), meta["ac_file"]) if meta.get("ac_file") else None
     if ac_path and os.path.exists(ac_path):
         os.remove(ac_path)
+    runs = meta.get("ratio_runs") or []
+    d0 = os.path.dirname(os.path.abspath(cir_path))
+    rfiles = [r[f"{s}_file"] for r in runs for s in ("num", "den")]
+    for x in rfiles:
+        if os.path.exists(os.path.join(d0, x)):
+            os.remove(os.path.join(d0, x))
     if meta.get("blockers"):
         # 막힌 넷리스트는 돌리지 않는다(지어낸 값으로 채운 회로를 재지 않는다 -- README C2/C8)
         return {"skipped": "넷리스트 막힘: " + " | ".join(meta["blockers"]), "devices": {}, "nodes": {},
                 "rail_current_A": {}, "hold_current_A": {}, "ngspice_rc": None, "log": None, "log_errors": [],
-                "op_ok": False, "ac": None, "ac_file": None, "loop": None}
+                "op_ok": False, "ac": None, "ac_file": None, "loop": None, "ratio": []}
     rc, log, cst = run_ngspice(exe, cir_path, log_path, timeout_s, cache_dir,
-                               [meta["ac_file"]] if meta.get("ac_file") else [])
+                               ([meta["ac_file"]] if meta.get("ac_file") else []) + rfiles)
     res = parse_op(log, meta)
     res["ngspice_rc"] = rc
     res["cache"] = {"main": cst, "loop": None}
@@ -302,6 +324,7 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
     raw = parse_ac_file(ac_path)
     res["ac"] = ac_measures(*raw) if raw else None
     res["ac_file"] = ac_path
+    res["ratio"] = [ratio_measure(r, d0) for r in runs]
     res["loop"] = None
     lm = meta.get("loop")
     if lm:

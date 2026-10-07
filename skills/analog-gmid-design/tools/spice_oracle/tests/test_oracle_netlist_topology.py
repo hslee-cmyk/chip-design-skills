@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from conftest import ORACLE_DIR, cs_input, make_lut, require_spice, run_netlist, run_oracle, write_json
+from conftest import OFF_ZERO, ORACLE_DIR, cs_input, make_lut, require_spice, run_netlist, run_oracle, write_json
 
 FIX = Path(__file__).resolve().parent / "fixtures" / "tcs_nmos_rload.topology.json"
 REL = "skills/analog-gmid-design/tools/spice_oracle/tests/fixtures/tcs_nmos_rload.topology.json"
@@ -19,6 +19,7 @@ TOPO = json.loads(FIX.read_text(encoding="utf-8"))
 
 
 def base_input(lut, topo_path=None, **kw):
+    kw.setdefault("preds_devices", copy.deepcopy(OFF_ZERO))  # [C23 조정] 전도 문턱 0(옛 ID > 0 규칙) 명시
     inp = cs_input(lut, **kw)
     inp["sources"] = [{"name": "I1", "kind": "current", "terminals": ["vdd", "nout"], "value": 1e-7}]
     if topo_path is not None:
