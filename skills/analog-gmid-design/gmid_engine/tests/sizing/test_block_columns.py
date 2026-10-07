@@ -10,7 +10,7 @@ import pytest
 from gmid_engine.core import SealViolationError
 from gmid_engine.sizing import DC_KEY, PathValue, SccLog, Window, dc_columns
 
-from .conftest import (Oracle, build_ctx, circuit_cs_res, circuit_empty_window, detail, expected_columns, mos,
+from .conftest import (Oracle, build_ctx, circuit_cs_res, circuit_empty_window, detail, expected_columns, free_currents, mos,
                        node_voltages, rel_close, run_blocks, theta_a, theta_c, topo, two)
 
 TOL = 1e-12
@@ -135,7 +135,8 @@ def test_zero_current_drop_is_zero_and_cycle_dependent(tmp_path, toy_access):
                {"in": ("input", "x"), "out": ("output", "y")}, passives=[two("R2", "resistor", "g3", "vdd")])
     ctx = build_ctx(tmp_path, doc, toy_access)[2]
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.72, 0.0),
-          ("current", "M2"): 1e-6, ("y", "out"): 0.4}
+          ("y", "out"): 0.4}
+    th.update(free_currents(ctx, {"M1": 1e-6, "M2": 1e-6, "R2": 0.0}))
     assert set(dict(th)) == set(ctx.schema.components)
     snap = run_blocks(ctx, th, upto="columns")
     V = assert_voltages(snap, ctx, th)
@@ -183,8 +184,8 @@ def test_window_with_declared_target(tmp_path, toy_access):
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M5"): 2e-6,
           ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.5, vout - 0.3, 0.3),
           ("ln_idu", "M2"): Oracle.ln_idu("pmos", 0.7, 1.8 - vout, 0.0),
-          ("ln_idu", "M5"): Oracle.ln_idu("nmos", 0.65, 0.3, 0.0),
-          ("current", "M5"): 1e-5, ("y", "out"): y}     # 손 RREF: 열 (M1, M2, M5) -> pivot M1·M2, free M5
+          ("ln_idu", "M5"): Oracle.ln_idu("nmos", 0.65, 0.3, 0.0), ("y", "out"): y}
+    th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M5": 1e-5}))   # KCL: 세 소자 같은 전류
     assert set(th) == set(ctx.schema.components)
     snap = run_blocks(ctx, th, upto="columns")
     V = assert_voltages(snap, ctx, th)
@@ -206,10 +207,10 @@ def test_empty_window(tmp_path, toy_access):
     ctx = build_ctx(tmp_path, circuit_empty_window(), toy_access)[2]
     th = {}
     for kind, key in ctx.schema.components:
-        th[(kind, key)] = {"L": 1e-6, "current": 1e-5, "y": 0.5, "ln_idu": Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}[kind]
-    # 손 RREF: x 행 MA(+1) − MB(+1 to) + MC(+1) -> pivot MA = MB − MC, free MB·MC
-    assert {k for t, k in th if t == "current"} == {"MB", "MC"}
-    th[("current", "MB")] = 2e-5
+        if kind != "current":
+            th[(kind, key)] = {"L": 1e-6, "y": 0.5, "ln_idu": Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}[kind]
+    # KCL x: MA + MC = MB (MB 는 pmos, x 로 들어옴)
+    th.update(free_currents(ctx, {"MA": 1e-5, "MB": 2e-5, "MC": 1e-5}))
     snap = run_blocks(ctx, th, upto="lengths")
     items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
     with pytest.raises(SealViolationError) as ei:
@@ -253,6 +254,98 @@ def test_lut_axis_out_of_range_vsb(tmp_path, toy_access):
     d = detail(e)
     assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_axis_out_of_range"
     assert e.record.devices == ("M1",)
+
+
+# ---------------------------------------------------------------------------
+# [r2] 1변수 노드 = 구간 bisection (5.4)
+# ---------------------------------------------------------------------------
+
+def _mirror_ctx(tmp_path, toy_access):
+    doc = topo("bc_mirror",
+               [mos("M1", "nmos", "nb", "nb", "gnd"), mos("M2", "nmos", "out", "nb", "gnd"),
+                mos("M3", "pmos", "out", "in", "vdd")],
+               {"in": ("input", "x"), "out": ("output", "y")}, sources=[two("I1", "current_source", "vdd", "nb")])
+    return build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 1e-5),))[2]
+
+
+def _mirror_theta(ctx, v_diode):
+    import math as _m
+    from .conftest import B, I0, LAM
+    x1 = _m.log(I0["nmos"]) + (B + LAM) * v_diode            # 손계산: v = (x − ln I0)/(B + LAM) (vds = vgs, vsb 0)
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("ln_idu", "M1"): x1,
+          ("ln_idu", "M3"): Oracle.ln_idu("pmos", 0.7, 0.9, 0.0), ("y", "out"): 0.5}
+    th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5, "I1": 1e-5}))
+    assert set(th) == set(ctx.schema.components)
+    return th
+
+
+@pytest.mark.parametrize("v_star", [0.35, 0.6, 1.1])
+def test_diode_one_variable_bisection(tmp_path, toy_access, v_star):
+    ctx = _mirror_ctx(tmp_path, toy_access)
+    snap = run_blocks(ctx, _mirror_theta(ctx, v_star), upto="columns")
+    V = node_voltages(snap)
+    tol = Oracle.tol_v()
+    from .conftest import B, LAM
+    # bisection 마지막 구간 폭 ≤ tol -> 가운데 오차 ≤ tol/2, 한 번 다듬기(g) 로 |g'| = LAM/B 배 줄어든다
+    assert abs(V["nb"] - v_star) <= tol / 2 * (LAM / B) + 1e-12
+    log = {e.nodes: e for e in snap.value("graph", DC_KEY, "dc_scc_log")}[("nb",)]
+    # 구간 = 레일 [0, 1.8] ∩ vds(= x) ∈ [0, 1.8] ∩ vsb(= 0) ∈ VS 격자 -> [0, 1.8]; 반복 수 = k_max(1.8, tol)
+    assert log.iterations == math.ceil(math.log2(1.8 / tol))
+    assert log.k_max == log.iterations and log.tol == pytest.approx(tol, rel=1e-9)
+    # M2 는 종속(parallel): ln_idu = ln IDu(vgs = V(nb), vds = V(out))
+    assert abs(dict(snap.column("device", "dc_ln_idu"))["M2"] - Oracle.ln_idu("nmos", V["nb"], V["out"], 0.0)) <= 1e-9
+
+
+def test_source_follower_one_variable(tmp_path, toy_access):
+    """M1 nmos (vdd, in, out): out 은 vgs_source 1변수(vds = 1.8 − x, vsb = x). 근은 이 test 의 독립 이분법(1e-12)으로."""
+    doc = topo("bc_sf", [mos("M1", "nmos", "vdd", "in", "out"), mos("M2", "nmos", "out", "vb", "gnd")],
+               {"in": ("input", "x"), "out": ("output", "y")})
+    ctx = build_ctx(tmp_path, doc, toy_access)[2]
+    w = dict(ctx.base.column("node", "dc_writer"))
+    assert (w["out"].relation, w["out"].element) == ("vgs_source", "M1")
+    x1 = Oracle.ln_idu("nmos", 0.6, 0.9, 0.5)
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("ln_idu", "M1"): x1,
+          ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.55, 0.6, 0.0)}
+    for k, key in ctx.schema.components:
+        if k == "y":
+            th[(k, key)] = 0.7
+    th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5}))
+    assert set(th) == set(ctx.schema.components)
+    snap = run_blocks(ctx, th, upto="columns")
+    V = node_voltages(snap)
+    vin = V["in"]
+
+    def h(x):
+        return x - (vin - Oracle.vgs_of("nmos", x1, 1.8 - x, x))
+    lo, hi = 0.0, 1.8
+    for _ in range(200):
+        m = 0.5 * (lo + hi)
+        if (h(m) > 0) == (h(lo) > 0):
+            lo = m
+        else:
+            hi = m
+    root = 0.5 * (lo + hi)
+    assert abs(V["out"] - root) <= Oracle.tol_v() / 2
+
+
+@pytest.mark.parametrize("v_star", [2.0, -0.3])
+def test_no_root_in_window(tmp_path, toy_access, v_star):
+    """근이 레일 밖(2.0 V) 또는 VGS 격자 아래(−0.3 V): g 가 ±inf(목표 밖) -> 끝 부호 같음 -> no_root_in_window."""
+    ctx = _mirror_ctx(tmp_path, toy_access)
+    th = _mirror_theta(ctx, v_star)
+    snap = run_blocks(ctx, th, upto="lengths")
+    items = tuple(sorted(((t, k), v) for (t, k), v in th.items() if t in ("ln_idu", "resistance", "y")))
+    with pytest.raises(SealViolationError) as ei:
+        dc_columns(snap, items, ctx.fixed_values, ctx.resistor_values, ctx.lut)
+    d = detail(ei.value)
+    assert d["reason"] == "no_root_in_window"
+    assert d["item"] in (6, 7)
+    assert ei.value.record.devices == ("M1",)
+    assert d["node"] == "nb"
+    for k in ("lo", "hi", "h_lo", "h_hi", "bounds"):
+        assert k in d
+    assert d["lo"] == 0.0 and d["hi"] == 1.8
+    assert ei.value.record.margin is None                     # 두 끝 |h| 모두 무한
 
 
 def test_vdsat_not_in_window(ctx_c):

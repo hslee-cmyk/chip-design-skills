@@ -126,8 +126,10 @@ def test_ideal_source_term(tmp_path, toy_access):
                sources=[two("I1", "current_source", "vdd", "n"), two("I2", "current_source", "vdd", "n")])
     from .conftest import Oracle
     ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 1e-5), ("I2", 2e-5)))[2]
-    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("current", "M2"): 1e-5, ("y", "n"): 0.5,
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("y", "n"): 0.5,
           ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.0), ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.5, 0.9, 0.0)}
+    from .conftest import free_currents
+    th.update(free_currents(ctx, {"M1": 2e-5, "M2": 1e-5}))              # M1 + M2 = I1 + I2
     assert set(th) == set(ctx.schema.components)
     snap, _ = with_tol(ctx, th)
     exp = judge_expect(rows_of(snap, ()))

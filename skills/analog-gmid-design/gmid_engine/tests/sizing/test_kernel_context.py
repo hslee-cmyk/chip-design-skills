@@ -18,7 +18,7 @@ from gmid_engine.sizing import (DC_KEY, S2_WRITERS, DcInputs, KernelContext, Lut
 from .conftest import (NINE, SUPPLIES, W_KEYS, build_ctx, circuit_cs_pmos_load, detail, library_ctx, load_doc,
                        mos, new_access, topo, two)
 
-PLAN = ("dc_rails", "dc_current_basis", "dc_writer_plan", "dc_scc_order", "dc_theta_schema")
+PLAN = ("dc_rails", "dc_struct_colour", "dc_current_basis", "dc_writer_plan", "dc_scc_order", "dc_theta_schema")
 
 
 @pytest.fixture
@@ -209,7 +209,7 @@ def test_library_plan_invariants(name, toy_access):
     assert n_mos == dep + sum(1 for c in coords.values() if c.role == "writer")
     assert dep == cyc, "종속 수 %d ≠ G_vgs 순환수 %d" % (dep, cyc)
     assert sum(1 for w in writers.values() if w.tier == "W4") == w4
-    check(base.value("graph", DC_KEY, "dc_current_basis"), expected_basis(raw, inputs.element_values))
+    check(base.value("graph", DC_KEY, "dc_current_basis"), expected_basis(raw, inputs.element_values, base))
 
 
 @pytest.mark.parametrize("name", NINE)

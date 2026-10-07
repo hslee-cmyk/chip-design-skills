@@ -75,18 +75,25 @@ def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
-def write_toy_lut(root: Path):
+def write_toy_lut(root: Path, w_ref_m=W_M, extra_width=None):
     root.mkdir(parents=True, exist_ok=True)
     entries = []
     for kind in ("nmos", "pmos"):
         p = root / ("toy_%s.npz" % kind)
         np.savez(p, **toy_arrays(kind))
         entries.append({"device": DEVICE_OF[kind], "file": p.name, "sha256": _sha(p)})
+        if extra_width is not None:                      # 같은 식, 폭만 다른 슬라이스(ID·GM·GDS × 폭 비)
+            a = toy_arrays(kind)
+            k = extra_width / W_M
+            a.update(W=np.float64(extra_width), ID=a["ID"] * k, GM=a["GM"] * k, GDS=a["GDS"] * k)
+            p2 = root / ("toy_%s_w2.npz" % kind)
+            np.savez(p2, **a)
+            entries.append({"device": DEVICE_OF[kind], "file": p2.name, "sha256": _sha(p2)})
     (root / "manifest.json").write_text(json.dumps({"generator_sha256": "0" * 64, "slices": entries}),
                                         encoding="utf-8")
     shp = (len(TOY_L), len(TOY_VGS), len(TOY_VDS), len(TOY_VS))
     cap = {"L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS), "VS": np.asarray(TOY_VS),
-           "w_ref_m": np.float64(W_M), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+           "w_ref_m": np.float64(w_ref_m), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
     for kind in ("nmos", "pmos"):
         cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
         cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
@@ -310,6 +317,13 @@ def library_ctx(name, access):
     return _LIB[name]
 
 
+def free_currents(ctx, targets):
+    """손으로 정한 원소 전류 전체(KCL 을 만족하는 값)에서 θ current 성분(기저 free 원소)만 고른다."""
+    from gmid_engine.sizing import DC_KEY
+    basis = ctx.base.value("graph", DC_KEY, "dc_current_basis")
+    return {("current", k): targets[k] for k in basis.free}
+
+
 def theta_c(x1=None, x2=None, y=0.5, i2=1e-5, l1=1e-6, l2=2e-6):
     """회로 C 의 θ(dict). 기본 x1·x2 = vgs 0.6·0.7 이 나오도록 oracle 로 정한 좌표(VDS = y·1.8, VSB 0)."""
     vout = y * 1.8
@@ -525,6 +539,50 @@ def node_voltages(snap):
     V = dict(snap.column("node", "dc_rail_v"))
     V.update(dict(snap.column("node", "dc_v")))
     return V
+
+
+def wl_colours(snap):
+    """CONTRACT 3.0 구조 색(1-WL)의 독립 구현. 입력은 S1 필드만. 반환 ({노드: 색}, {원소: 색})."""
+    nodes = list(snap.keys("node"))
+    elems = list(snap.keys("device"))
+    sig0 = {}
+    for e in elems:
+        f = snap.field("device", e, "is_diode")
+        sig0[("e", e)] = ("e", snap.value("device", e, "element_class"), snap.value("device", e, "kind"),
+                          bool(f.value) if f is not None else False)
+    for n in nodes:
+        pd = snap.value("node", n, "port_direction")
+        sig0[("n", n)] = ("n", bool(snap.value("node", n, "is_rail")), pd if pd is not None else "")
+    adj = {v: [] for v in sig0}
+    for e in elems:
+        cls = snap.value("device", e, "element_class")
+        kind = snap.value("device", e, "kind")
+        pins = dict(snap.value("device", e, "pins"))
+        links = []
+        if cls == "mos":
+            links = [(t, pins[t]) for t in ("d", "g", "s")]
+            bf = snap.field("device", e, "bulk")
+            if bf is not None and bf.value is not None and bf.value.net is not None:
+                links.append(("b", bf.value.net))
+        elif cls == "ideal_source" and kind == "current_source":
+            links = [("t0", pins["t0"]), ("t1", pins["t1"])]
+        else:
+            links = [("t", pins["t0"]), ("t", pins["t1"])]
+        for lab, net in links:
+            adj[("e", e)].append((lab, ("n", net)))
+            adj[("n", net)].append((lab, ("e", e)))
+
+    def rank(sig):
+        order = {s: i for i, s in enumerate(sorted(set(sig.values())))}
+        return {v: order[s] for v, s in sig.items()}
+    col = rank(sig0)
+    while True:
+        sig = {v: (col[v], tuple(sorted((lab, col[u]) for lab, u in adj[v]))) for v in col}
+        new = rank(sig)
+        if len(set(new.values())) <= len(set(col.values())):
+            break
+        col = new
+    return ({k[1]: c for k, c in col.items() if k[0] == "n"}, {k[1]: c for k, c in col.items() if k[0] == "e"})
 
 
 def rref_free(columns, rows):

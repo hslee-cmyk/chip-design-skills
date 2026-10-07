@@ -17,13 +17,13 @@ from gmid_engine.core import (CANDIDATE_FAILURE_CLASSES, InfeasibleTargetError, 
 from gmid_engine import sizing as S
 from gmid_engine.sizing import DcEvaluation, check_theta, size_and_seal
 
-from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circuit_empty_window, detail, mos,
+from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circuit_empty_window, detail, free_currents, mos,
                        theta_a, theta_c, topo, two)
 
 EVAL12 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
           S.dc_seal_report)
-PLAN5 = (S.dc_rails, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
+PLAN5 = (S.dc_rails, S.dc_struct_colour, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
 
 
 def reset():
@@ -180,22 +180,26 @@ def test_failure_mos_current_nonpositive(tmp_path, toy_access):
                {"in": ("input", "x"), "n": ("output", "y")},
                sources=[two("I1", "current_source", "vdd", "n")])
     ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 1e-5),))[2]
-    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("current", "M2"): 3e-5, ("y", "n"): 0.5,
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("y", "n"): 0.5,
           ("ln_idu", "M1"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.0), ("ln_idu", "M2"): Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}
+    th.update(free_currents(ctx, {"M1": -2e-5, "M2": 3e-5}))     # KCL M1 + M2 = I1 -> 한 MOS 가 음수
     assert set(th) == set(ctx.schema.components)
-    with pytest.raises(SealViolationError) as ei:
-        size_and_seal(ctx, th)                                 # M1 = I1 − M2 = −2e-5
-    assert detail(ei.value)["reason"] == "device_current_nonpositive"
-    assert ei.value.record.devices == ("M1",) and ei.value.record.margin is None
-    assert isinstance(ei.value, CANDIDATE_FAILURE_CLASSES)
+    # [r2] 원뿔 밖 θ 는 check_theta 의 ValueError(정의역 밖) -- 후보 실패가 아니다
+    with pytest.raises(ValueError) as ei:
+        size_and_seal(ctx, th)
+    assert not isinstance(ei.value, CANDIDATE_FAILURE_CLASSES)
+    assert "M1" in str(ei.value)
+    with pytest.raises(ValueError):
+        check_theta(ctx.schema, th)
 
 
 def test_failure_empty_window(tmp_path, toy_access):
     ctx = build_ctx(tmp_path, circuit_empty_window(), toy_access)[2]
     th = {}
     for kind, key in ctx.schema.components:
-        th[(kind, key)] = {"L": 1e-6, "current": 1e-5, "y": 0.5, "ln_idu": Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}[kind]
-    th[("current", "MB")] = 2e-5
+        if kind != "current":
+            th[(kind, key)] = {"L": 1e-6, "y": 0.5, "ln_idu": Oracle.ln_idu("nmos", 0.6, 0.9, 0.0)}[kind]
+    th.update(free_currents(ctx, {"MA": 1e-5, "MB": 2e-5, "MC": 1e-5}))
     with pytest.raises(SealViolationError) as ei:
         size_and_seal(ctx, th)
     d = detail(ei.value)
@@ -233,6 +237,24 @@ def test_failure_seal_violation(tmp_path, toy_access):
     d = detail(ei.value)
     assert d["item"] == 6 and len(d["items"]) == 8
     assert ei.value.record.margin > 1
+
+
+def test_diode_mirror_full_evaluation(tmp_path, toy_access):
+    """1변수 노드(diode) 가 있는 회로도 봉인 1·2·3·4·5·6·8 pass, 7 undefined -> sealed None."""
+    from .test_block_columns import _mirror_ctx, _mirror_theta
+    ctx = _mirror_ctx(tmp_path, toy_access)
+    ev = size_and_seal(ctx, _mirror_theta(ctx, 0.6))
+    assert ev.sealed is None and ev.report.status == "undefined"
+    assert [i.status for i in ev.report.items] == ["pass"] * 6 + ["undefined", "pass"]
+
+
+def test_failure_no_root_in_window(tmp_path, toy_access):
+    from .test_block_columns import _mirror_ctx, _mirror_theta
+    ctx = _mirror_ctx(tmp_path, toy_access)
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(ctx, _mirror_theta(ctx, 2.0))
+    assert detail(ei.value)["reason"] == "no_root_in_window"
+    assert isinstance(ei.value, CANDIDATE_FAILURE_CLASSES)
 
 
 def test_candidate_failure_classes_exact():

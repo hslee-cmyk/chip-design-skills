@@ -14,9 +14,12 @@ from gmid_engine import sizing as S
 # CONTRACT 2절 표 (kind, field) -> writer  (graph.dc_seal_1/2/3/6/7/8 행은 6개로 풀어 적음)
 DC_TABLE = {
     ("node", "dc_rail_v"): "dc_rails",
+    ("node", "dc_colour"): "dc_struct_colour",              # [r2]
+    ("device", "dc_colour"): "dc_struct_colour",            # [r2]
     ("graph", "dc_current_basis"): "dc_current_basis",
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
+    ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
     ("graph", "dc_scc_order"): "dc_scc_order",
     ("node", "dc_column_nbrs"): "dc_scc_order",
     ("graph", "dc_theta_schema"): "dc_theta_schema",
@@ -41,7 +44,7 @@ DC_TABLE = {
 }
 
 BLOCKS = {
-    "dc_rails": S.dc_rails, "dc_current_basis": S.dc_current_basis, "dc_writer_plan": S.dc_writer_plan,
+    "dc_rails": S.dc_rails, "dc_struct_colour": S.dc_struct_colour, "dc_current_basis": S.dc_current_basis, "dc_writer_plan": S.dc_writer_plan,
     "dc_scc_order": S.dc_scc_order, "dc_theta_schema": S.dc_theta_schema, "dc_currents": S.dc_currents,
     "dc_lengths": S.dc_lengths, "dc_columns": S.dc_columns, "dc_widths": S.dc_widths,
     "dc_tolerances": S.dc_tolerances, "dc_seal_node_conflict": S.dc_seal_node_conflict,
@@ -51,9 +54,9 @@ BLOCKS = {
 }
 
 
-def test_dc_table_has_25_fields():
-    # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 25). 과제 지시문의 '22' 와 다르다 -- 정본은 계약 표.
-    assert len(DC_TABLE) == 25
+def test_dc_table_has_28_fields():
+    # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28). 과제 지시문의 '22' 와 다르다 -- 정본은 계약 표.
+    assert len(DC_TABLE) == 28
 
 
 def test_s2_writers_is_s1_plus_dc_table_exactly():
@@ -95,8 +98,13 @@ def test_block_name_and_writes_match_table(name):
 # CONTRACT 3·4·5절이 reads 를 다 적은 블록(writer_plan·theta_schema 는 이번 판 범위 밖)
 READS = {
     "dc_rails": {("node", "is_rail")},
+    "dc_struct_colour": {("device", "element_class"), ("device", "kind"), ("device", "is_diode"), ("device", "pins"),
+                         ("device", "bulk"), ("node", "is_rail"), ("node", "port_direction")},
     "dc_current_basis": {("device", "dc_nets"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
-                         ("node", "is_rail"), ("graph", "dc_pruned")},
+                         ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned")},
+    "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
+                       ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
+                       ("node", "dc_colour")},
     "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
                      ("graph", "columns"), ("graph", "branches")},
     "dc_currents": {("graph", "dc_current_basis")},
@@ -127,10 +135,14 @@ def test_vocabulary_constants():
     assert (S.REPORT_VIOLATED, S.REPORT_UNDEFINED, S.REPORT_SEALED) == ("violated", "undefined", "sealed")
     assert (S.SEAL_NODE_CONFLICT, S.SEAL_VGS_MATCH, S.SEAL_KCL, S.SEAL_VERSIONS, S.SEAL_WRITER_UNIQUE,
             S.SEAL_BULK_REVERSE, S.SEAL_SATURATION, S.SEAL_KVL_BRANCH) == (1, 2, 3, 4, 5, 6, 7, 8)
-    assert (S.REASON_CURRENT_NONPOSITIVE, S.REASON_EMPTY_WINDOW, S.REASON_LUT_QUERY, S.REASON_TOL_UNDEFINED,
-            S.REASON_VDSAT_MISSING, S.REASON_DECLARED_KCL) == (
-        "device_current_nonpositive", "empty_window", "lut_query_failed", "tol_v_undefined",
-        "lut_vdsat_column_missing", "declared_source_kcl_conflict")
+    assert (S.REASON_EMPTY_WINDOW, S.REASON_LUT_QUERY, S.REASON_TOL_UNDEFINED,
+            S.REASON_VDSAT_MISSING, S.REASON_DECLARED_KCL, S.REASON_NO_ROOT, S.REASON_STRICT_RECHECK) == (
+        "empty_window", "lut_query_failed", "tol_v_undefined",
+        "lut_vdsat_column_missing", "declared_source_kcl_conflict", "no_root_in_window", "strict_recheck_residual")
+    # [r2] 옛 device_current_nonpositive 는 없어졌다(정의역 밖 = ValueError)
+    assert not hasattr(S, "REASON_CURRENT_NONPOSITIVE")
+    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_INPUT_ORDER, S.TIE_CURRENT_PIVOT) == (
+        "writer_edge", "w4_root", "input_tie_order", "current_pivot")
     assert S.BRANCH_RESISTOR_CYCLE == "dc_resistor_cycle"
     assert S.BRANCH_MOS_ZERO_CURRENT == "mos_zero_current_structural"
     assert set(S.THETA_KINDS) == {"ln_idu", "L", "y", "current", "resistance"}
@@ -176,7 +188,11 @@ def test_value_fields_as_contract():
     assert names(S.NodeWrite) == ("tier", "relation", "element", "known", "y_key", "order")
     assert names(S.DeviceCoord) == ("role", "relation", "partner")
     assert names(S.CurrentTerm) == ("source", "num", "den")
-    assert names(S.CurrentBasis) == ("ends", "mos", "free", "fixed", "rows", "pruned", "resistors")
+    assert names(S.CurrentBasis) == ("ends", "mos", "free", "fixed", "rows", "pruned", "resistors", "ties")
+    assert names(S.TieBreak) == ("decision", "candidates", "chosen")
+    assert names(S.ThetaSchema) == ("components", "current_cone", "fixed")
+    ts = S.ThetaSchema((("L", "M1"),))
+    assert ts.current_cone == () and ts.fixed == ()
     assert names(S.ColumnNeighbor) == ("rails", "pred", "succ", "position", "length")
     assert names(S.SccEntry) == ("index", "nodes", "cyclic", "devices")
     assert names(S.Window) == ("lo", "hi", "constraints")
