@@ -16,7 +16,7 @@ EXPECTED = {
     "rout_ss_ohm": MetricSignature("ohm", "ss", "output_port", None),
     "supply_current_dc": MetricSignature("amp", "dc", None, "power"),
     "power_dc_w": MetricSignature("w", "dc", None, None),
-    "area_search_m2": MetricSignature("m2", "dc", None, None),
+    "area_search_m2": MetricSignature("m2", "geom", None, None),  # 3.15 영역 geom
 }
 
 

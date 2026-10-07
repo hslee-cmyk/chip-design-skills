@@ -23,7 +23,7 @@ TABLE = {
     "rout_ss_ohm": (OutputResistance, "rout_ohm", "ohm", "ss", "output_port", None),
     "supply_current_dc": (SupplyCurrents, "supply_current_dc", "amp", "dc", None, "power"),
     "power_dc_w": (SupplyCurrents, "power_dc_w", "w", "dc", None, None),
-    "area_search_m2": (AreaSearch, "area_search_m2", "m2", "dc", None, None),
+    "area_search_m2": (AreaSearch, "area_search_m2", "m2", "geom", None, None),  # 3.15 영역 geom
 }
 
 
