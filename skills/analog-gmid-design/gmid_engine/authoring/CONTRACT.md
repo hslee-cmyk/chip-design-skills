@@ -21,6 +21,9 @@
     `topology_load`.
   - `where`: 문서 위치(접근자는 최상위 키 이름, `json_read`·`topology_load` 는 `path` 문자열).
   - `hits`: `SchemaHit` tuple -- **걸린 곳 전부**(개수로 자르지 않는다). 순서는 게이트 순서, 게이트 안에서는 문서 순서.
+    예외: `check_name_uniqueness`·`check_hidden_rails` 는 원소 사이 관계 검사라 문서 순서가 정의되지 않으므로 이름순
+    (`name_duplicate` 는 이름, `name_case_collision` 은 casefold 키, `rail_not_connected`·`hidden_rail` 은 넷 이름 정렬,
+    결정론)이 정본이다.
   - `topology_load` 만 추가: `rejected_gates`(위반을 낸 게이트 이름 정렬 tuple), `not_evaluated`(입력 선언이 거부돼 돌리지
     못한 검사 이름 tuple, 0절 표).
 - `SchemaHit(rule, where, message, elements=())` frozen dataclass. `elements` 는 관련 원소·넷 이름의 **정렬·중복 제거**
