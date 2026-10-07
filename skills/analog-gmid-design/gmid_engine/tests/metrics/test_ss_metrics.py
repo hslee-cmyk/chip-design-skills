@@ -468,7 +468,7 @@ def test_unity_beta_pm_and_parasitic_share_resolution(tmp_path):
 # 기대값: conftest 폐형식 closed_ex8·closed_ex8a, 포트 뷰 극점은 이 파일의 2차식 근(노드 방정식 소거). 값 None -> resolution None(9.4).
 # =====================================================================================================================
 
-from .conftest import EX8, closed_ex8, closed_ex8a, quad_roots, topo_doc, load_case, s2_of
+from .conftest import EX8, check_rhp_detail, closed_ex8, closed_ex8a, quad_roots, topo_doc, load_case, s2_of
 
 PM_RHP = "loop_open_rhp_poles"
 RHP_SS = (
@@ -511,10 +511,10 @@ def _assert_pm_rhp(r, expected_root):
     assert r.undefined and r.undefined[0].code == PM_RHP
     u = r.undefined[0]
     assert (u.quantity, u.category) == ("phase_margin_deg", "definitional")
-    d = dict(u.detail)
-    assert d["rhp_pole_count"] == len(d["rhp_poles"]) == 1
-    z = complex(d["rhp_poles"][0])
-    assert abs(z.real - expected_root) <= 1e-9 * expected_root and abs(z.imag) <= 1e-9 * expected_root
+    roots = check_rhp_detail(u)                                           # 3.10 형식: float 쌍·정렬·개수·저장 순서
+    assert len(roots) == 1
+    re, im = roots[0]
+    assert abs(re - expected_root) <= 1e-9 * expected_root and abs(im) <= 1e-9 * expected_root
 
 
 def test_ex8_unity_both_pm_metrics_undefined_rhp(tmp_path):

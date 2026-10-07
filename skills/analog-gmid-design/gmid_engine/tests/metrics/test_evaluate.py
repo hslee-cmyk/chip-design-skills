@@ -167,7 +167,7 @@ def test_undefined_never_raises_always_metric_result():
 def test_ex8_both_pm_metrics_undefined_rhp_measured_metrics_kept():
     """2절 표: loop_open_rhp_poles 는 phase_margin_deg 만(-> pm_ss_deg·parasitic_pm_ss_deg). gain·UGF·GBW metric 은 값(예 8 폐형식).
     값 None 이므로 resolution 도 None(9.4 -- metric_value 는 원래 None)."""
-    from .conftest import closed_ex8, ex8_system, pm_undefined
+    from .conftest import check_rhp_detail, closed_ex8, ex8_system, pm_undefined
     d = closed_ex8()
     _, sysm = ex8_system()
     (r,) = solve_responses((sysm,))
@@ -180,6 +180,7 @@ def test_ex8_both_pm_metrics_undefined_rhp_measured_metrics_kept():
         assert m.undefined[0].quantity == "phase_margin_deg" and m.undefined[0].category == "definitional"
         assert pm_undefined(m) == m.undefined                      # 그 필드의 Undefined 만
         assert dict(m.undefined[0].detail)["rhp_pole_count"] == 1
+        assert len(check_rhp_detail(m.undefined[0])) == 1             # 3.10 float 쌍 형식
     assert metric_value("gain_ss_db", la).value == pytest.approx(20.0, rel=1e-12)
     assert metric_value("ugf_ss_hz", la).value == pytest.approx(d["ugf_hz"], rel=R)
     assert metric_value("gbw_ss_hz", la).value is not None

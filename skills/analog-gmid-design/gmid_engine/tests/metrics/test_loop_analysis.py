@@ -238,9 +238,12 @@ from .conftest import (
     EX7_CUT,
     EX7B_CUTS,
     EX8,
+    check_rhp_detail,
     circuit_of,
     closed_ex8,
     closed_ex8a,
+    closed_ring_poles,
+    ring_system,
     ex7_parts,
     ex7b_parts,
     ex8_parts,
@@ -258,15 +261,14 @@ PM_RHP = "loop_open_rhp_poles"
 
 
 def _rhp_detail(u):
-    """Undefined.detail -> (rhp_poles tuple, rhp_pole_count). 키 집합은 3.10 그대로 두 개(순서는 Undefined 레코드가 키로 정렬한다)."""
-    assert sorted(k for k, _ in u.detail) == ["rhp_pole_count", "rhp_poles"]
-    d = dict(u.detail)
-    assert isinstance(d["rhp_poles"], tuple)
-    return d["rhp_poles"], d["rhp_pole_count"]
+    """Undefined.detail -> (rhp_poles, rhp_pole_count). 형식 전부는 conftest check_rhp_detail(3.10 'detail 형식(정확히)')."""
+    roots = check_rhp_detail(u)
+    return roots, dict(u.detail)["rhp_pole_count"]
 
 
 def _assert_rhp(la, expected_roots):
-    """phase_margin_deg None, PM 의 첫 사유 = loop_open_rhp_poles(definitional), detail 근 = 기대 실근(정렬 순서)."""
+    """phase_margin_deg None, PM 의 첫 사유 = loop_open_rhp_poles(definitional), detail 근 = 기대 근(정렬 순서).
+    expected_roots 원소: 실수(허부 0) 또는 (re, im) 쌍."""
     assert la.phase_margin_deg is None
     pmu = pm_undefined(la)
     assert pmu, la.undefined
@@ -274,15 +276,12 @@ def _assert_rhp(la, expected_roots):
     assert isinstance(u, Undefined)
     assert (u.quantity, u.code, u.category) == ("phase_margin_deg", PM_RHP, "definitional")
     roots, count = _rhp_detail(u)
-    assert type(count) is int
     assert count == len(roots) == len(expected_roots)
-    for got, exp in zip(roots, expected_roots):
-        z = complex(got)
-        assert z.real > 0.0
-        assert abs(z.real - exp) <= ROOT_R * abs(exp), (z, exp)
-        assert abs(z.imag) <= ROOT_R * abs(exp), z
-    keys = [(abs(complex(r)), complex(r).real, complex(r).imag) for r in roots]
-    assert keys == sorted(keys)                      # 정렬 (|s|, 실부, 허부)
+    for (re, im), exp in zip(roots, expected_roots):
+        er, ei = exp if isinstance(exp, tuple) else (exp, 0.0)
+        scale = math.hypot(er, ei)
+        assert abs(re - er) <= ROOT_R * scale, ((re, im), exp)
+        assert abs(im - ei) <= ROOT_R * scale, ((re, im), exp)
     return u
 
 
@@ -368,8 +367,56 @@ def test_ex8_node_renumbering_same_rhp_detail():
     (ua, la_a), (ub, la_b) = out
     (pa, ca), (pb, cb) = _rhp_detail(ua), _rhp_detail(ub)
     assert ca == cb == 1
-    assert complex(pa[0]) == pytest.approx(complex(pb[0]), rel=1e-12)
+    assert pa[0][0] == pytest.approx(pb[0][0], rel=1e-12) and abs(pa[0][1] - pb[0][1]) <= 1e-12 * abs(pa[0][0])
     assert la_a.ugf_hz == pytest.approx(la_b.ugf_hz, rel=R)
+
+
+def test_ex8_detail_exact_stored_form():
+    """3.10 '저장 순서는 (("rhp_pole_count", n), ("rhp_poles", ((re, im), …)))' -- 예 8 은 ((2e7, 0.0),)·1. complex 원소 없음."""
+    _, sysm = ex8_system()
+    (r,) = solve_responses((sysm,))
+    u = pm_undefined(analyze_loop((Factor(r, 0),)))[0]
+    (k0, n), (k1, roots) = u.detail
+    assert (k0, k1, n, len(roots)) == ("rhp_pole_count", "rhp_poles", 1, 1)
+    assert not any(isinstance(v, complex) for p in roots for v in p)
+    assert roots[0][0] == pytest.approx(2e7, rel=ROOT_R) and abs(roots[0][1]) <= ROOT_R * 2e7
+    assert hash(u.detail) == hash(u.detail)                          # 불변·해시 가능(블록 write 전제)
+
+
+def test_conjugate_rhp_pair_two_entries_sorted():
+    """3.10 '켤레 복소쌍은 두 원소(허부 + 와 −)', 정렬 (|s|, 실부, 허부) -> 같은 |s|·실부라 허부 − 가 먼저. 고리 폐형식 극점
+    (−g − gm·c)/C 와 대조(폐형식은 아래 test 에서 독립 MNA 로 확인), 실극점은 좌반면이라 목록에 없다."""
+    real_p, pair = closed_ring_poles()
+    ck, sysm = ring_system()
+    (r,) = solve_responses((sysm,))
+    f = Factor(r, 0)
+    got = sorted((complex(p).real, complex(p).imag) for p in f.poles)
+    exp = sorted([(real_p, 0.0)] + list(pair))
+    for g, e in zip(got, exp):                                       # 입력 확인: 계 극점 = 폐형식
+        assert abs(g[0] - e[0]) <= 1e-9 * abs(complex(*e)) and abs(g[1] - e[1]) <= 1e-9 * abs(complex(*e))
+    la = analyze_loop((f,))
+    u = _assert_rhp(la, pair)
+    roots = check_rhp_detail(u)
+    assert len(roots) == 2 and roots[0][1] < 0.0 < roots[1][1]
+    assert abs(roots[0][0] - roots[1][0]) <= 1e-9 * roots[0][0]
+
+
+def test_ring_closed_form_matches_independent_mna():
+    """입력 확인: 고리 H = −gm0(g + sC)²/((g + sC)³ + gm³)(분모 근 = closed_ring_poles) 를 독립 MNA(ref_solve)와 대조."""
+    from .conftest import RING
+    p = RING
+    mos = (mos_t(2, 1, 0, 0, 1e-3, 0.0, 0.0), mos_t(3, 2, 0, 0, p["gm"], 0.0, p["gds"]),
+           mos_t(4, 3, 0, 0, p["gm"], 0.0, p["gds"]), mos_t(2, 4, 0, 0, p["gm"], 0.0, p["gds"]))
+    cap = ((2, 0, p["c"]), (3, 0, p["c"]), (4, 0, p["c"]))
+    real_p, pair = closed_ring_poles()
+    for w in (1e3, 1e6, 1e8, 1e10):
+        y = p["gds"] + 1j * w * p["c"]
+        h = -1e-3 * y * y / (y ** 3 + p["gm"] ** 3)
+        v = ref_solve(mos=mos, cap=cap, volts={1: 1.0}, sense=(2, None), omega=w)
+        assert abs(v - h) <= 1e-12 * abs(v)
+    for re, im in ((real_p, 0.0),) + pair:                          # 분모 근 확인
+        y = p["gds"] + complex(re, im) * p["c"]
+        assert abs(y ** 3 + p["gm"] ** 3) <= 1e-12 * p["gm"] ** 3
 
 
 def test_ex8_rhp_precondition_with_shared_grid():

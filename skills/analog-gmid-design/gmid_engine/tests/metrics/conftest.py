@@ -1175,6 +1175,44 @@ def probe_of(parts, cuts, weights=(1.0,), nm=None, extra=()):
     return rs[0], probe_factor(rs[0], cut.pairs, weights), rs[1:]
 
 
+def check_rhp_detail(u):
+    """3.10 'detail 형식(정확히)': 저장 순서 (("rhp_pole_count", n), ("rhp_poles", ((re, im), ...))), rhp_poles = Python float 쌍의
+    tuple(complex 아님), 실부 > 0, 중복 없음, (|s|, 실부, 허부) 오름차순, rhp_pole_count = int = len. 반환 rhp_poles."""
+    assert tuple(k for k, _ in u.detail) == ("rhp_pole_count", "rhp_poles")
+    (_, n), (_, roots) = u.detail
+    assert type(roots) is tuple
+    for p in roots:
+        assert type(p) is tuple and len(p) == 2, p
+        assert type(p[0]) is float and type(p[1]) is float, p
+        assert math.isfinite(p[0]) and math.isfinite(p[1]) and p[0] > 0.0, p
+    assert type(n) is int and n == len(roots)
+    assert len(set(roots)) == len(roots)
+    keys = [(math.hypot(re, im), re, im) for re, im in roots]
+    assert keys == sorted(keys)
+    return roots
+
+
+# 켤레 우반면 쌍 예(test 쪽 구성, 3.10 '켤레 복소쌍은 두 원소'): 반전 3단 고리(노드 2→3→4→2, 각 gm·gds·C) + 입력 M0(d=2, g=1, gds 0).
+# 노드마다 (g + sC)v_k + gm·v_{k−1} = 0 -> (g + sC)³ + gm³ = 0 -> s = (−g − gm·c)/C, c ∈ {1, e^{±j2π/3}}.
+RING = dict(gm=1e-4, gds=1e-5, c=1e-12)
+
+
+def ring_system():
+    p = RING
+    mos = ((2, 1, 0, 0, 1e-3, 0.0, 0.0), (3, 2, 0, 0, p["gm"], 0.0, p["gds"]), (4, 3, 0, 0, p["gm"], 0.0, p["gds"]),
+           (2, 4, 0, 0, p["gm"], 0.0, p["gds"]))
+    ck = circuit_of(mos, (), ((2, 0, p["c"]), (3, 0, p["c"]), (4, 0, p["c"])))
+    return ck, build_mna(ck, (Excitation("vin", voltages=((1, 1.0),)),), (Sense(2),))
+
+
+def closed_ring_poles():
+    """반환 (실극점, (re, im) 켤레 쌍 -- 허부 음·양 순)."""
+    p = RING
+    re = (-p["gds"] + 0.5 * p["gm"]) / p["c"]
+    im = p["gm"] * math.sqrt(3.0) / 2.0 / p["c"]
+    return (-p["gds"] - p["gm"]) / p["c"], ((re, -im), (re, im))
+
+
 def pm_undefined(la_or_result):
     """LoopAnalysis·MetricResult 의 undefined 중 quantity == "phase_margin_deg" 인 것(순서 유지)."""
     return tuple(u for u in (la_or_result.undefined or ()) if u.quantity == "phase_margin_deg")
