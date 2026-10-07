@@ -3,7 +3,7 @@
 거부 test 는 공허하지 않게 세 가지를 같이 본다:
   (a) 변형 입력이 정말 스키마 위반인지 jsonschema 로 먼저 확인(위반이 아니면 test 자체가 무의미),
   (b) 원본(위반 없는) 입력은 같은 진입점에서 받아들여진다(양성 대조),
-  (c) 변형 입력은 진입점이 0 이 아닌 코드로 끝나고 산출물(.cir / compare.json)을 쓰지 않는다.
+  (c) C13: 변형 입력은 netlist/compare/run 진입점이 반환 2 로 끝나고 산출물을 하나도 쓰지 않는다.
 """
 import copy
 import json
@@ -11,7 +11,8 @@ import json
 import jsonschema
 import pytest
 
-from conftest import ORACLE_DIR, cs_input, make_lut, rc_input, run_netlist, run_oracle, require_spice
+from conftest import (ORACLE_DIR, cs_input, make_lut, rc_input, require_spice, run_compare, run_netlist, run_oracle,
+                      run_simulate)
 
 SCHEMA = json.loads((ORACLE_DIR / "oracle_input.schema.json").read_text(encoding="utf-8"))
 
@@ -88,22 +89,60 @@ def test_valid_input_accepted_by_netlist(tmp_path):
     assert text is not None and meta is not None and meta.get("blockers") == []
 
 
+def _files(d):
+    return sorted(x.name for x in d.rglob("*") if x.is_file())
+
+
 @pytest.mark.parametrize("case", sorted(VIOLATIONS))
-def test_netlist_rejects_schema_violation(case, tmp_path):
+def test_c13_netlist_rejects_schema_violation(case, tmp_path):
+    """C13: 위반 목록 출력, 산출물 없음, 반환 2."""
     bad = cs_input(make_lut(tmp_path / "lut.npz"))
     VIOLATIONS[case](bad)
+    before = set(_files(tmp_path)) | {"t.input.json"}
     p, text, meta = run_netlist(bad, tmp_path)
-    assert p.returncode != 0 and text is None, (
-        f"{case}: oracle_netlist.py 가 스키마 위반 입력을 받아들였다 rc={p.returncode} "
-        f"cir_written={text is not None}\n{(p.stdout + p.stderr)[-600:]}")
+    assert p.returncode == 2, f"{case}: rc={p.returncode} {(p.stdout + p.stderr)[-600:]}"
+    assert text is None and meta is None
+    assert set(_files(tmp_path)) == before, sorted(set(_files(tmp_path)) - before)
+    assert (p.stdout + p.stderr).strip(), "위반 목록 출력 없음"
 
 
 @pytest.mark.parametrize("case", sorted(VIOLATIONS))
-def test_run_rejects_schema_violation(case, tmp_path):
+def test_c13_run_rejects_schema_violation(case, tmp_path):
     require_spice()
     bad = cs_input(make_lut(tmp_path / "lut.npz"))
     VIOLATIONS[case](bad)
-    p, res = run_oracle(bad, tmp_path / "o")
-    assert p.returncode != 0 and res["free"] is None, (
-        f"{case}: oracle_run.py 가 스키마 위반 입력으로 비교표를 냈다 rc={p.returncode} "
-        f"verdict={(res['free'] or {}).get('summary', {}).get('verdict')}")
+    out = tmp_path / "o"
+    p, res = run_oracle(bad, out)
+    assert p.returncode == 2, f"{case}: rc={p.returncode} {(p.stdout + p.stderr)[-600:]}"
+    assert res["free"] is None
+    assert _files(out) == ["t.input.json"], _files(out)   # 테스트가 쓴 입력 말고는 아무것도 없다
+    assert (p.stdout + p.stderr).strip()
+
+
+@pytest.fixture(scope="module")
+def good_sim(tmp_path_factory):
+    """compare 거부 test 용: 위반 없는 입력으로 만든 넷리스트·sim(양성 대조 포함)."""
+    require_spice()
+    d = tmp_path_factory.mktemp("c13_cmp")
+    inp = cs_input(make_lut(d / "lut.npz"))
+    p, text, meta = run_netlist(inp, d)
+    assert p.returncode == 0
+    q = run_simulate(d / "t.free.cir", d / "t.free.sim.json", d)
+    assert q.returncode == 0
+    return d, inp
+
+
+def test_c13_compare_accepts_valid_input(good_sim, tmp_path):
+    d, inp = good_sim
+    p, c = run_compare(inp, d / "t.free.cir", d / "t.free.sim.json", tmp_path / "ok")
+    assert p.returncode == 0 and c is not None, (p.stdout + p.stderr)[-800:]
+
+
+@pytest.mark.parametrize("case", sorted(VIOLATIONS))
+def test_c13_compare_rejects_schema_violation(good_sim, case, tmp_path):
+    d, inp = good_sim
+    bad = copy.deepcopy(inp)
+    VIOLATIONS[case](bad)
+    p, c = run_compare(bad, d / "t.free.cir", d / "t.free.sim.json", tmp_path / "bad")
+    assert p.returncode == 2 and c is None, f"{case}: rc={p.returncode}"
+    assert _files(tmp_path) == ["bad.input.json"], _files(tmp_path)

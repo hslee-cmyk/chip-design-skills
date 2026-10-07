@@ -7,7 +7,7 @@ import math
 
 import pytest
 
-from conftest import (CS, cs_input, dc_value, elem, kv, make_lut, run_netlist, x_lines)
+from conftest import (CS, FB, cs_input, dc_value, elem, fb_input, kv, make_lut, run_netlist, x_lines)
 
 
 @pytest.fixture
@@ -48,6 +48,8 @@ def test_c2_missing_npz_meta_blocks(tmp_path, missing):
     p, text, meta = run_netlist(cs_input(lut), tmp_path)
     assert meta is not None, (p.stdout + p.stderr)[-1500:]
     assert meta["blockers"], f"npz 에 {missing} 가 없는데 막힘이 없다"
+    if missing == "temp_c":   # C2 [변경]: temp_c 가 없으면 .temp 줄을 쓰지 않는다
+        assert text is not None and not any(ln.lower().startswith(".temp") for ln in text.splitlines())
 
 
 # ------------------------------------------------------------------ C3
@@ -279,3 +281,59 @@ def test_netlist_deterministic(tmp_path, lut, bias):
     _, t1, m1 = run_netlist(inp, tmp_path / "a", bias)
     _, t2, m2 = run_netlist(copy.deepcopy(inp), tmp_path / "a", bias)
     assert t1 == t2 and m1 == m2
+
+
+# ------------------------------------------------------------------ C14 β 루프 넷리스트
+def _loop_text(tmp_path, inp, bias="free"):
+    p, text, meta = run_netlist(inp, tmp_path, bias)
+    assert p.returncode == 0, (p.stdout + p.stderr)[-1500:]
+    lp = tmp_path / f"t.{bias}.loop.cir"
+    return text, meta, (lp.read_text(encoding="utf-8", errors="replace") if lp.exists() else None)
+
+
+@pytest.mark.parametrize("bias", ["free", "forced"])
+def test_c14_loop_netlist_breaks_feedback_at_input(tmp_path, lut, bias):
+    inp = fb_input(lut)
+    inp["predictions"]["nodes"]["nout"] = 0.93
+    text, meta, loop = _loop_text(tmp_path, inp, bias)
+    assert meta["blockers"] == [] and loop is not None, meta["blockers"]
+    # 되먹임 소자의 입력 넷 단자만 lbx_nin 으로, 반대쪽 단자는 그대로
+    rf, cin = elem(loop, "Rp_Rf"), elem(loop, "Cp_Cin")
+    assert rf is not None and rf[1:3] == ["nout", "lbx_nin"], rf
+    assert cin is not None and cin[1:3] == ["lbx_nin", "0"], cin
+    # 되먹임이 아닌 소자는 그대로
+    assert elem(loop, "Rp_RL")[1:3] == ["vdd", "nout"] and elem(loop, "Cp_CL")[1:3] == ["nout", "0"]
+    # 끊은 자리: 직렬 전압원(증폭기 쪽 +) + 증폭기 쪽 주입 전류원
+    v = elem(loop, "Vlb_nin")
+    i = elem(loop, "Ilb_nin")
+    assert v is not None and v[1:3] == ["nin", "lbx_nin"], v
+    assert i is not None and i[1:3] == ["0", "nin"], i
+    # 그 넷의 결합 C / AC 원은 없다
+    assert elem(loop, "Cac_nin") is None and elem(loop, "Vac_nin") is None
+    # 입력 DC 경로 = loop_dc_choke_H
+    ls = [ln.split() for ln in loop.splitlines() if ln.split() and ln.split()[0][:1] in "Ll"
+          and "nin" in ln.split()[1:3]]
+    assert ls and all(math.isclose(float(t[3]), FB["loop_choke"], rel_tol=1e-9) for t in ls), ls
+    # 본 넷리스트는 바뀌지 않는다(되먹임 소자는 nin 에 그대로)
+    assert elem(text, "Rp_Rf")[1:3] == ["nout", "nin"] and "lbx_" not in text
+
+
+def test_c14_no_feedback_passives_no_loop_netlist(tmp_path, lut):
+    text, meta, loop = _loop_text(tmp_path, fb_input(lut, feedback=None, loop_choke=None))
+    assert loop is None and meta["blockers"] == []
+
+
+@pytest.mark.parametrize("case", ["unknown_name", "not_on_input_net", "only_not_on_input_net", "no_loop_choke"])
+def test_c14_bad_declaration_blocks(tmp_path, lut, case):
+    """C14: 선언 이름이 passives 에 없거나, (선언 소자가) 입력 넷에 안 물리거나, loop_dc_choke_H 가 없으면 막힘.
+    not_on_input_net = 입력 넷에 물린 Rf 와 함께 입력 넷에 안 물린 RL 을 선언(소자 단위 해석)."""
+    if case == "only_not_on_input_net":
+        inp = fb_input(lut, feedback=("RL",))
+    elif case == "unknown_name":
+        inp = fb_input(lut, feedback=("Rf", "Cxx"))
+    elif case == "not_on_input_net":
+        inp = fb_input(lut, feedback=("Rf", "RL"))
+    else:
+        inp = fb_input(lut, loop_choke=None)
+    p, text, meta = run_netlist(inp, tmp_path)
+    assert meta is not None and meta["blockers"], f"{case}: 막힘 없음 rc={p.returncode}"

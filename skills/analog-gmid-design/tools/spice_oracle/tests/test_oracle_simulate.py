@@ -11,8 +11,8 @@ import math
 import numpy as np
 import pytest
 
-from conftest import (CS, RC, ac_grid, cs_input, independent_cs, make_lut, measure, rc_input, require_spice,
-                      run_netlist, run_simulate)
+from conftest import (CS, FB, RC, ac_grid, cs_input, fb_input, fb_loop_gain, fb_open_loop, independent_cs,
+                      independent_fb, make_lut, measure, rc_input, require_spice, run_netlist, run_simulate)
 
 
 def _simulate(inp, d, bias="free"):
@@ -109,6 +109,9 @@ def test_ac_cs_matches_independent_measurement(cs_sim):
     assert ac["ugf_hz"] == pytest.approx(m["ugf_hz"], rel=2e-3)
     assert ac["pm_deg"] == pytest.approx(m["pm_deg"], abs=0.2)
     assert ac["f3db_hz"] == pytest.approx(m["f3db_hz"], rel=1e-6)
+    # feedback_passives 선언 없음 -> β=1: PM = 개루프 A 의 PM
+    assert ac["pm_definition"] == "beta_1"
+    assert ac["pm_open_loop_deg"] == pytest.approx(ac["pm_deg"], abs=1e-9)
 
 
 def test_ac_cs_hand_small_signal(cs_sim):
@@ -140,3 +143,67 @@ def test_c2_corner_temp_reach_simulation(tmp_path, ref_root, corner, temp):
     tt = independent_cs(ref_root)
     assert s["devices"]["M1"]["id"] == pytest.approx(ind["M1"]["id"], rel=2e-4)
     assert abs(ind["M1"]["id"] / tt["M1"]["id"] - 1) > 0.01  # 코너/온도가 실제로 결과를 바꾸는 조건
+
+
+# ------------------------------------------------------------------ C14 β 루프 PM (손계산 해석식 대조)
+GRID = ac_grid(0.01, 1e10, 40)
+
+
+@pytest.fixture(scope="module")
+def fb_ref(ref_root):
+    r = independent_fb(ref_root)
+    T = fb_loop_gain(GRID, r["gm"], r["gds"])
+    A = fb_open_loop(GRID, r["gm"], r["gds"])
+    return r, measure(GRID, T), measure(GRID, A)
+
+
+@pytest.fixture(scope="module")
+def fb_sim(tmp_path_factory, ref_root):
+    d = tmp_path_factory.mktemp("sim_fb")
+    return _simulate(fb_input(make_lut(d / "lut.npz")), d)
+
+
+@pytest.fixture(scope="module")
+def fb_sim_beta1(tmp_path_factory, ref_root):
+    d = tmp_path_factory.mktemp("sim_fb_b1")
+    return _simulate(fb_input(make_lut(d / "lut.npz"), feedback=None, loop_choke=None), d)
+
+
+def test_c14_reference_is_not_trivial(fb_ref):
+    """해석식 조건 점검: β 루프 PM 과 개루프 A PM 이 크게 달라야 정의 구분이 의미 있다."""
+    _, mt, ma = fb_ref
+    assert mt["pm_deg"] is not None and ma["pm_deg"] is not None
+    assert 20 < mt["pm_deg"] < 80 and abs(ma["pm_deg"] - mt["pm_deg"]) > 20
+
+
+def test_c14_dc_operating_point_matches_independent(fb_sim, fb_ref):
+    r, _, _ = fb_ref
+    assert fb_sim["nodes"]["nout"] == pytest.approx(r["vout"], abs=2e-6)
+
+
+def test_c14_beta_loop_pm_matches_analytic_T(fb_sim, fb_ref):
+    """T = gm Zo Zp/(Rf+Zp) (gm, gds 는 독립 .op, MOS 용량 무시: Cin, CL 10 pF 대비 fF) 의 위상여유."""
+    _, mt, _ = fb_ref
+    ac = fb_sim["ac"]
+    assert ac["pm_definition"] == "beta_loop"
+    assert ac["pm_deg"] == pytest.approx(mt["pm_deg"], abs=0.5)
+    assert ac["loop_ugf_hz"] == pytest.approx(mt["ugf_hz"], rel=1e-2)
+    assert ac["loop_gain_dc_db"] == pytest.approx(mt["dc_gain_db"], abs=0.05)
+
+
+def test_c14_open_loop_pm_still_reported(fb_sim, fb_ref):
+    _, _, ma = fb_ref
+    ac = fb_sim["ac"]
+    assert ac["pm_open_loop_deg"] == pytest.approx(ma["pm_deg"], abs=0.5)
+    assert ac["dc_gain_db"] == pytest.approx(ma["dc_gain_db"], abs=0.05)
+    assert ac["ugf_hz"] == pytest.approx(ma["ugf_hz"], rel=1e-2)
+
+
+def test_c14_undeclared_feedback_is_beta_1(fb_sim_beta1, fb_ref):
+    """같은 회로라도 feedback_passives 미선언이면 β=1: PM = 개루프 A(해석식) 의 PM."""
+    _, mt, ma = fb_ref
+    ac = fb_sim_beta1["ac"]
+    assert ac["pm_definition"] == "beta_1"
+    assert ac["pm_deg"] == pytest.approx(ma["pm_deg"], abs=0.5)
+    assert ac["pm_deg"] == pytest.approx(ac["pm_open_loop_deg"], abs=1e-9)
+    assert abs(ac["pm_deg"] - mt["pm_deg"]) > 20

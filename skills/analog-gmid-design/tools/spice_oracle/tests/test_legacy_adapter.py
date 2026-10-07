@@ -68,6 +68,29 @@ def test_smoke_netlist_regenerates_identically(tmp_path, v, bias):
     assert text.replace("\r\n", "\n") == ref.replace("\r\n", "\n")
 
 
+@pytest.mark.parametrize("v", VARIANTS)
+def test_c12_smoke_input_declares_feedback_passives_on_input_ports(v):
+    """C12 [변경]: 입력 포트 넷에 단자가 물린 passives 를 feedback_passives 로 선언(smoke 입력 JSON 에서 직접 계산)."""
+    inp = smoke_input(v)
+    in_nets = {inp["ports"][k] for k in ("input_p", "input_n", "input") if k in inp["ports"]}
+    exp = sorted(x["name"] for x in inp["passives"] if set(x["terminals"]) & in_nets)
+    assert exp, "입력 넷에 물린 passives 가 없다(조건 점검)"
+    assert sorted(inp.get("feedback_passives", [])) == exp
+
+
+@pytest.mark.parametrize("v", VARIANTS)
+@pytest.mark.parametrize("bias", ["free", "forced"])
+def test_smoke_loop_netlist_regenerates_identically(tmp_path, v, bias):
+    inp = smoke_input(v)
+    inp["process"]["lut_npz"] = str(LUT)
+    name = f"{CIRCUIT}.{v}"
+    p, text, meta = run_netlist(inp, tmp_path, bias=bias, name=name)
+    assert p.returncode == 0, (p.stdout + p.stderr)[-1500:]
+    got = (tmp_path / f"{name}.{bias}.loop.cir").read_text(encoding="utf-8", errors="replace")
+    ref = (SMOKE / f"{CIRCUIT}.{v}.{bias}.loop.cir").read_text(encoding="utf-8", errors="replace")
+    assert got.splitlines() == ref.splitlines()
+
+
 # ------------------------------------------------------------------ C12 (옛 엔진 새 실행)
 def _strip(inp):
     x = json.loads(json.dumps(inp))

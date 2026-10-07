@@ -38,9 +38,6 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "legacy_slow: 옛 엔진 새 실행이 필요한 느린 test(--run-legacy 로 켬)")
-    config.addinivalue_line("markers", "acceptance_change_pending: 합격 정의 변경 예정(2026-10-07 확정) -- "
-                            "현재 계약의 허용오차·예측 비교 판정 확인용 묶음")
-
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--run-legacy"):
@@ -167,6 +164,73 @@ def rc_input(lut: Path, circuit="trc_lowpass_div") -> dict:
         "predictions": {"nodes": {"rin": c["vin"]}, "devices": {}, "metrics": []},
         "testbench": testbench_block(),
     }
+
+
+# 소형 회로 3: 단일단 NMOS CS + 저항 되먹임. nout -Rf- nin(게이트), nin -Cin- gnd, nout -RL- vdd, nout -CL- gnd.
+#   β 망 = {Rf, Cin}(둘 다 입력 넷 nin 에 물림). 손계산 루프 이득(gm 제어원 기준 return ratio, MOS 용량 무시):
+#     Zp = 1/(s Cin + 1/(s Lloop)),  Zo = 1/(1/RL + gds + s CL + 1/(Rf + Zp)),  T = gm Zo Zp/(Rf + Zp).
+#   개루프 A(입력 AC 접지 via 결합 C): A = (-gm + 1/Rf) / (1/RL + gds + s CL + 1/Rf).
+FB = dict(vdd=1.8, vin=0.7, rload=1e5, cl=10e-12, rf=1e6, cin=10e-12, L=0.5e-6, finger_w=2e-6, n=2,
+          loop_choke=1e20)
+
+
+def fb_input(lut: Path, *, feedback=("Rf", "Cin"), circuit="tfb_cs_rfeedback", loop_choke="default") -> dict:
+    c = FB
+    inp = {
+        "schema": "spice_oracle_input/1",
+        "circuit": circuit,
+        "process": process_block(lut, diffusion=False),
+        "rails": [{"net": "vdd", "voltage": c["vdd"]}, {"net": "gnd", "voltage": 0.0, "reference": True}],
+        "devices": [{"name": "M1", "kind": "nmos", "drain": "nout", "gate": "nin", "source": "gnd", "bulk": "gnd",
+                     "L": c["L"], "finger_w": c["finger_w"], "n_fingers": c["n"], "W": c["finger_w"] * c["n"]}],
+        "passives": [{"name": "RL", "kind": "resistor", "terminals": ["vdd", "nout"], "value": c["rload"]},
+                     {"name": "CL", "kind": "capacitor", "terminals": ["nout", "gnd"], "value": c["cl"]},
+                     {"name": "Rf", "kind": "resistor", "terminals": ["nout", "nin"], "value": c["rf"]},
+                     {"name": "Cin", "kind": "capacitor", "terminals": ["nin", "gnd"], "value": c["cin"]}],
+        "ports": {"input": "nin", "output": "nout"},
+        "predictions": {"nodes": {"nin": c["vin"]}, "devices": {}, "metrics": []},
+        "testbench": testbench_block(),
+    }
+    if feedback is not None:
+        inp["feedback_passives"] = list(feedback)
+    if loop_choke == "default":
+        inp["testbench"]["loop_dc_choke_H"] = c["loop_choke"]
+    elif loop_choke is not None:
+        inp["testbench"]["loop_dc_choke_H"] = loop_choke
+    return inp
+
+
+@lru_cache(maxsize=4)
+def _independent_fb_cached(workdir: str):
+    c = FB
+    body = [f"Vdd vdd 0 DC {c['vdd']}", f"Vin nin 0 DC {c['vin']}", f"RL vdd nout {c['rload']}",
+            f"Rf nout nin {c['rf']}"]
+    for i in range(c["n"]):
+        body.append(f"XM1_{i} nout nin 0 0 {NFET} l={c['L']} w={c['finger_w']}")
+    prints = ["v(nout)"] + [probe("nmos", f"xm1_{i}", q) for i in range(c["n"]) for q in ("gm", "gds", "id")]
+    op = run_spice("\n".join(body), Path(workdir), prints)["op"]
+    gm = sum(op[probe("nmos", f"xm1_{i}", "gm").lower()] for i in range(c["n"]))
+    gds = sum(op[probe("nmos", f"xm1_{i}", "gds").lower()] for i in range(c["n"]))
+    return {"gm": gm, "gds": gds, "vout": op["v(nout)"]}
+
+
+def independent_fb(root: Path):
+    """되먹임 회로 DC 동작점(손 넷리스트: 입력 넷을 이상 전압원 0.7 V 로) -> gm, gds."""
+    return _independent_fb_cached(str(root / "ind_fb"))
+
+
+def fb_loop_gain(f, gm, gds):
+    c = FB
+    s = 2j * np.pi * np.asarray(f)
+    zp = 1 / (s * c["cin"] + 1 / (s * c["loop_choke"]))
+    zo = 1 / (1 / c["rload"] + gds + s * c["cl"] + 1 / (c["rf"] + zp))
+    return gm * zo * zp / (c["rf"] + zp)
+
+
+def fb_open_loop(f, gm, gds):
+    c = FB
+    s = 2j * np.pi * np.asarray(f)
+    return (-gm + 1 / c["rf"]) / (1 / c["rload"] + gds + s * c["cl"] + 1 / c["rf"])
 
 
 def write_json(path: Path, obj) -> Path:
