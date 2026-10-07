@@ -160,3 +160,35 @@ def test_undefined_never_raises_always_metric_result():
         for u in m.undefined:
             assert u.category in ("structural", "definitional", "numeric")
             assert isinstance(u.code, str) and u.code
+
+
+# ---------- 3.10 PM 전제(예 8·8a): 두 PM metric 모두 loop_open_rhp_poles, 측정량 metric 은 값 ----------
+
+def test_ex8_both_pm_metrics_undefined_rhp_measured_metrics_kept():
+    """2절 표: loop_open_rhp_poles 는 phase_margin_deg 만(-> pm_ss_deg·parasitic_pm_ss_deg). gain·UGF·GBW metric 은 값(예 8 폐형식).
+    값 None 이므로 resolution 도 None(9.4 -- metric_value 는 원래 None)."""
+    from .conftest import check_rhp_detail, closed_ex8, ex8_system, pm_undefined
+    d = closed_ex8()
+    _, sysm = ex8_system()
+    (r,) = solve_responses((sysm,))
+    la = analyze_loop((Factor(r, 0),))
+    for name in ("pm_ss_deg", "parasitic_pm_ss_deg"):
+        m = metric_value(name, la)
+        assert isinstance(m, MetricResult) and m.name == name
+        assert m.value is None and m.resolution is None
+        assert m.undefined and m.undefined[0].code == "loop_open_rhp_poles"
+        assert m.undefined[0].quantity == "phase_margin_deg" and m.undefined[0].category == "definitional"
+        assert pm_undefined(m) == m.undefined                      # 그 필드의 Undefined 만
+        assert dict(m.undefined[0].detail)["rhp_pole_count"] == 1
+        assert len(check_rhp_detail(m.undefined[0])) == 1             # 3.10 float 쌍 형식
+    assert metric_value("gain_ss_db", la).value == pytest.approx(20.0, rel=1e-12)
+    assert metric_value("ugf_ss_hz", la).value == pytest.approx(d["ugf_hz"], rel=R)
+    assert metric_value("gbw_ss_hz", la).value is not None
+    assert metric_value("ugf_ss_hz", la).undefined == ()
+
+
+def test_ex8a_probe_pm_metric_undefined_rhp():
+    from .conftest import EX7_CUT, EX8, ex8a_parts, probe_of
+    _, pf, _ = probe_of(ex8a_parts(EX8["gx2"]), EX7_CUT)
+    m = metric_value("pm_ss_deg", analyze_loop((pf,)))
+    assert m.value is None and m.undefined[0].code == "loop_open_rhp_poles"

@@ -460,3 +460,104 @@ def test_unity_beta_pm_and_parasitic_share_resolution(tmp_path):
     m = bundle_map(_run(case)[2])
     assert m["pm_ss_deg"].resolution is not None
     assert m["pm_ss_deg"].resolution == m["parasitic_pm_ss_deg"].resolution
+
+
+# =====================================================================================================================
+# 3.10 PM 전제(2절 표: loop_open_rhp_poles 는 phase_margin_deg 만 -> pm_ss_deg·parasitic_pm_ss_deg, I-17, 예 8·8a) -- spec 뷰 경로.
+# 예 8 을 topology 로(넷 gnd·in·out·x, 교차 결합 M2·M3), 예 8a = 예 7 topology + 같은 쌍. 손 S2 ss_dev(lut_rel_tol 0.02).
+# 기대값: conftest 폐형식 closed_ex8·closed_ex8a, 포트 뷰 극점은 이 파일의 2차식 근(노드 방정식 소거). 값 None -> resolution None(9.4).
+# =====================================================================================================================
+
+from .conftest import EX8, check_rhp_detail, closed_ex8, closed_ex8a, quad_roots, topo_doc, load_case, s2_of
+
+PM_RHP = "loop_open_rhp_poles"
+RHP_SS = (
+    ("pm_ss_deg", ">=", 60.0, None),
+    ("parasitic_pm_ss_deg", ">=", 45.0, None),
+    ("gain_ss_db", ">=", 10.0, None),
+    ("ugf_ss_hz", ">=", 1.0, None),
+    ("gbw_ss_hz", ">=", 1.0, None),
+)
+RHP_EPS = 0.02
+
+
+def _cross_ss(gx2, eps=RHP_EPS):
+    gx = math.sqrt(gx2)
+    rep = lambda s: _dc.replace(s, lut_rel_tol=eps)                       # noqa: E731
+    return {"M1": rep(hand_ss(EX8["gm"], EX8["gds"])), "M2": rep(hand_ss(gx, EX8["gds"])),
+            "M3": rep(hand_ss(gx, EX8["gds"]))}
+
+
+def _cross_case(tmp_path, base7, gx2=EX8["gx2"], feedback=(), constraints=RHP_SS):
+    """base7 False: 예 8(M1 + 교차 쌍, CL(out)·Cx(x)). True: 예 8a(예 7 소자 + 교차 쌍 + Cx). 반환 (td, spec, 손 S2, passive 값)."""
+    mos = [("M1", "nmos", "out", "in", "gnd", "gnd"), ("M2", "nmos", "out", "x", "gnd", "gnd"),
+           ("M3", "nmos", "x", "out", "gnd", "gnd")]
+    pas = [("CL", "capacitor", "out", "gnd"), ("Cx", "capacitor", "x", "gnd")]
+    vals = {"CL": EX8["c"], "Cx": EX8["c"]}
+    if base7:
+        pas += [("Cf", "capacitor", "out", "in"), ("Cs", "capacitor", "in", "gnd")]
+        vals.update(CL=EX7["cl"], Cf=EX7["cf"], Cs=EX7["cs"])
+    topo = topo_doc("rhp8" + ("a" if base7 else "") + "_" + str(len(feedback)), mos=mos, passives=pas,
+                    ports={"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, rails=("gnd",))
+    els = tuple((n, k, vals[n]) for n, k, _, _ in pas)
+    td, spec = load_case(tmp_path, topo, {"gnd": 0.0}, els, feedback, constraints, input_dc_v=0.0)
+    snap = with_ss(s2_of(td, {"gnd": 0.0}), _cross_ss(gx2))
+    return td, spec, snap, tuple(sorted(vals.items()))
+
+
+def _assert_pm_rhp(r, expected_root):
+    assert r.value is None
+    assert r.resolution is None                                           # 9.4: 값 None -> resolution None
+    assert r.undefined and r.undefined[0].code == PM_RHP
+    u = r.undefined[0]
+    assert (u.quantity, u.category) == ("phase_margin_deg", "definitional")
+    roots = check_rhp_detail(u)                                           # 3.10 형식: float 쌍·정렬·개수·저장 순서
+    assert len(roots) == 1
+    re, im = roots[0]
+    assert abs(re - expected_root) <= 1e-9 * expected_root and abs(im) <= 1e-9 * expected_root
+
+
+def test_ex8_unity_both_pm_metrics_undefined_rhp(tmp_path):
+    """예 8, feedback [] -> pm_ss_deg(β = 1 포트)·parasitic_pm_ss_deg 둘 다 None + loop_open_rhp_poles(근 +2e7). gain·UGF·GBW 는 값과
+    분해능(gain lut = D·ε·4.8 -- test_resolution 의 폐형식), 옛 PM 271.145° 는 나오지 않는다."""
+    td, spec, snap, pv = _cross_case(tmp_path, base7=False)
+    v = {c.metric: c.view for c in spec.constraints}
+    assert v["pm_ss_deg"].mode == "loop" and v["pm_ss_deg"].beta == "unity"        # 입력 확인
+    m = bundle_map(metrics_ss(snap, requests_of(spec), pv).value("graph", METRICS_KEY, "metrics_ss"))
+    d = closed_ex8()
+    for q in ("pm_ss_deg", "parasitic_pm_ss_deg"):
+        _assert_pm_rhp(m[q], d["poles"][1])
+    assert rel_close(m["gain_ss_db"].value, 20.0, 1e-12)
+    assert rel_close(m["ugf_ss_hz"].value, d["ugf_hz"], 1e-9)
+    assert m["gbw_ss_hz"].value is not None
+    g = DB_PER_NEPER * RHP_EPS * 4.8
+    assert abs(m["gain_ss_db"].resolution - g) <= 1e-9 * g
+    for q in ("gain_ss_db", "ugf_ss_hz", "gbw_ss_hz"):
+        assert m[q].undefined == () or not m[q].undefined, q
+        assert isinstance(m[q].resolution, float), q
+
+
+def test_ex8a_beta_loop_and_port_pm_both_undefined_rhp(tmp_path):
+    """예 8a, feedback [Cf]: β 루프 pm_ss_deg -> 근 15481601.1727(T 의 우반면 극점, 폐루프는 안정). 같은 소자의 포트 뷰
+    parasitic_pm_ss_deg 도 우반면 극점(포트 H 분모 (CL + Cf)·C5 s² + (g2·C5 + g5(CL + Cf))s + (g2·g5 − gx²) 의 양근) -> 둘 다 None."""
+    td, spec, snap, pv = _cross_case(tmp_path, base7=True, feedback=("Cf",))
+    v = {c.metric: c.view for c in spec.constraints}
+    assert v["pm_ss_deg"].mode == "loop" and v["pm_ss_deg"].beta == "declared"     # 입력 확인
+    m = bundle_map(metrics_ss(snap, requests_of(spec), pv).value("graph", METRICS_KEY, "metrics_ss"))
+    _assert_pm_rhp(m["pm_ss_deg"], closed_ex8a(EX8["gx2"])["poles"][1])
+    cp, g2, g5, c5 = EX7["cl"] + EX7["cf"], 2.0 * EX8["gds"], EX8["gds"], EX8["c"]
+    port_rhp = quad_roots(cp * c5, g2 * c5 + g5 * cp, g2 * g5 - EX8["gx2"])[1]
+    assert port_rhp > 0.0
+    _assert_pm_rhp(m["parasitic_pm_ss_deg"], port_rhp)
+    assert m["gain_ss_db"].value is not None and m["gain_ss_db"].resolution is not None
+
+
+def test_no_rhp_ex7_pm_values_unchanged_with_rhp_neighbour(tmp_path, declared_eps):
+    """I-17 부정(뷰 경로): 우반면 극점 없는 예 7 의 PM 두 개는 폐형식 값 그대로이고 사유 없음 -- 예 8 평가를 먼저 해도 같다."""
+    _cross_case(tmp_path, base7=False)
+    m = bundle_map(_run(declared_eps)[2])
+    assert rel_close(m["pm_ss_deg"].value, closed_ex7()["pm_deg"], 1e-12)
+    assert rel_close(m["parasitic_pm_ss_deg"].value, ex7_port_closed()["pm_deg"], 1e-9)
+    for q in ("pm_ss_deg", "parasitic_pm_ss_deg"):
+        assert PM_RHP not in {u.code for u in (m[q].undefined or ())}
+        assert m[q].resolution is not None
