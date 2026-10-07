@@ -1,5 +1,129 @@
-"""자리표(규칙 H 1:1) -- `gmid_engine/search/slsqp_outer.py` 의 동작 test.
+"""CONTRACT 3.13 [r2] `solve_eps(sctx, start, minimize, eps, origin) -> SolveResult`.
 
-기준은 `gmid_engine/search/CONTRACT.md` 만 쓴다(피검 함수로 기대값을 만들지 않는다). 동작 test 는 독립 test 작성
-agent 가 채운다 -- 이 파일에는 아직 test 가 없다(수집 0개).
+- 시작점이 받아들일 상태가 아니면 즉시 (None, ..., "start_<사유>", ()).
+- best = 수락 반복 중 모든 c ≥ 0 이고 (목적, seq) 최소; ε 행 (ε − 값)/분해능 ≥ 0.
+- 한도: maxiter = max(1, Σ max(⌈log2((hi−lo)/hᵢ)⌉, 1)), 재시작 상한 = max(1, ⌈log2(max 반경 / 최소 hᵢ)⌉) (hᵢ = 시작점 FD 스텝);
+  새 x 평가 전 kernel_calls ≥ E_B -> stop eval_budget, perf_counter > deadline -> wall_budget.
+- FD 열 양방향 실패 -> 열 고정(aborts "frozen:<kind>:<key>", frozen) (S-16).
 """
+import math
+import time
+
+import pytest
+
+from gmid_engine.search import (
+    ACCEPTED_STATUSES,
+    AXIS_AREA,
+    AXIS_POWER,
+    SolveResult,
+    StartPoint,
+    evaluate,
+    solve_eps,
+    start_points,
+)
+
+from .conftest import (
+    CELLS_C,
+    build_case,
+    circuit_c,
+    circuit_p,
+    expected_fd_steps,
+    theta_p,
+    theta_r4c,
+)
+
+
+def _start(case, th):
+    starts, _ = start_points(case.sctx, [th])
+    assert len(starts) == 1
+    return starts[0]
+
+
+def _feasible(r):
+    return all(c.c >= 0 for c in r.constraints) and all(c.c >= 0 for c in r.cone)
+
+
+def test_start_not_accepted(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    bad = StartPoint("sx", tuple(sorted(theta_r4c(y=0.1, v1=1.5).items())), CELLS_C, "given")
+    r = solve_eps(case.sctx, bad, AXIS_POWER, None, ("t",))
+    assert isinstance(r, SolveResult)
+    assert r.best is None and r.iterations == 0 and r.restarts == 0 and tuple(r.history) == ()
+    assert r.stop.startswith("start_") and r.minimize == AXIS_POWER and r.eps is None
+
+
+@pytest.mark.parametrize("axis", [AXIS_POWER, AXIS_AREA])
+def test_minimize_from_start_bounded_by_limits(tmp_path, lut_sealed, axis):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
+    s = case.sctx
+    sp = _start(case, theta_r4c())
+    start_res = evaluate(s, sp.theta, sp.cells)
+    hs = expected_fd_steps(s, start_res)
+    r = solve_eps(s, sp, axis, None, ("t",))
+    assert r.best is not None and r.best.status in ACCEPTED_STATUSES and _feasible(r.best)
+    key = "power_w" if axis == AXIS_POWER else "area_m2"
+    assert getattr(r.best.objectives, key) <= getattr(start_res.objectives, key)
+    vs = s.domain.variables
+    used = [(v, h) for v, h in zip(vs, hs) if h]
+    maxiter = max(1, sum(max(math.ceil(math.log2((v.hi - v.lo) / h)), 1) for v, h in used))
+    cap = max(1, math.ceil(math.log2(max((v.hi - v.lo) / 2 for v, _ in used) / min(h for _, h in used))))
+    assert r.iterations <= maxiter
+    assert r.restarts <= cap
+    assert dict(s.counters)["recompute_same_key"] == 0
+
+
+def test_eps_constraint_respected(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
+    s = case.sctx
+    sp = _start(case, theta_r4c())
+    a0 = evaluate(s, sp.theta, sp.cells).objectives.area_m2
+    eps = (AXIS_AREA, 0.8 * a0)
+    r = solve_eps(s, sp, AXIS_POWER, eps, ("t",))
+    assert tuple(r.eps) == eps
+    if r.best is not None:
+        assert r.best.objectives.area_m2 <= eps[1]
+        assert _feasible(r.best)
+
+
+def test_eval_budget_stop(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=3)
+    s = case.sctx
+    sp = _start(case, theta_r4c())
+    r = solve_eps(s, sp, AXIS_POWER, None, ("t",))
+    assert r.stop == "eval_budget"
+    n = len(s.domain.variables)
+    assert dict(s.counters)["kernel_calls"] <= 3 + n + 1         # S-17: FD 한 번만큼 넘을 수 있다
+
+
+def test_wall_budget_stop(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
+    s = case.sctx
+    sp = _start(case, theta_r4c())
+    s.deadline = time.perf_counter() - 1.0
+    r = solve_eps(s, sp, AXIS_POWER, None, ("t",))
+    # x0 = exp(ln θ) 가 시작 θ 와 1 ulp 달라 첫 평가도 '새 x' -> 'start_' 접두가 붙을 수 있다(계약 문장은 wall_budget, 모호점 보고).
+    assert r.stop in ("wall_budget", "start_wall_budget")
+    assert r.best is None
+
+
+def test_fd_column_both_ways_out_freezes_variable(tmp_path, lut_sealed):
+    rv = 9e4
+    case = build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),),
+                      rbounds=(rv * (1 - 1e-9), rv * (1 + 1e-9)), eval_budget=200)
+    sp = _start(case, theta_p(case.dc, r=rv))
+    r = solve_eps(case.sctx, sp, AXIS_POWER, None, ("t",))
+    assert "frozen:resistance:R1" in tuple(r.aborts)
+    assert any(getattr(f, "component", f) == ("resistance", "R1") for f in r.frozen)
+    if r.best is not None:
+        assert dict(r.best.theta)[("resistance", "R1")] == pytest.approx(rv, rel=2e-9)
+
+
+def test_deterministic_rerun(tmp_path, lut_sealed):
+    out = []
+    for k in ("a", "b"):
+        case = build_case(tmp_path / k, circuit_c(), lut_sealed, eval_budget=400)
+        sp = _start(case, theta_r4c())
+        r = solve_eps(case.sctx, sp, AXIS_POWER, None, ("t",))
+        out.append((r.stop, r.iterations, r.restarts, None if r.best is None else r.best.theta,
+                    dict(case.sctx.counters)["kernel_calls"]))
+    assert out[0] == out[1]
