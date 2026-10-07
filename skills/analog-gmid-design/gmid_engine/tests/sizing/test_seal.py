@@ -2,7 +2,8 @@
 
 순서 tol -> 1·2·3·6·7·8 -> 4(calls + 위 7개) -> 5 -> report. violated -> SealViolationError(devices = margin 최대 fail 항목의
 devices, margin = 그 margin, detail = item·nodes·items((번호, 상태, margin) 8개)·item_detail). undefined ->
-DcEvaluation(sealed=None). 지금은 항목 7 이 항상 undefined 라 SealedSnapshot 이 나오지 않는다(O1) -- 음성 확인 포함.
+DcEvaluation(sealed=None). [r4] VDSAT 열이 없는 LUT(conftest 기본 toy)에서는 항목 7 이 undefined 라 SealedSnapshot 이 나오지
+않고(음성 확인), 열이 있는 LUT(r4 toy)에서는 1~8 이 모두 pass 인 점이 SealedSnapshot 이 된다 -- 7 fail 이면 나오지 않는다(음성).
 위반은 출력 필드를 자기 block_version 그대로 바꿔 넣어 만든다(입력 투영이 같아 봉인 4 는 pass 로 남는다).
 """
 import dataclasses
@@ -10,9 +11,9 @@ import dataclasses
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.sizing import DC_KEY, DcEvaluation, PathValue, SealReport, SealedSnapshot, seal_dc
+from gmid_engine.sizing import DC_KEY, DcEvaluation, PathValue, SealReport, SealedSnapshot, seal_dc, size_and_seal
 
-from .conftest import (eval_calls, node_voltages, resistances_of, tamper, theta_a, theta_c)
+from .conftest import (eval_calls, node_voltages, resistances_of, tamper, theta_a, theta_c, theta_r4c)
 
 
 def _seal(ctx, snap, calls, th, lin=()):
@@ -99,3 +100,53 @@ def test_circuit_a_undefined(ctx_a):
     snap, calls = eval_calls(ctx, th)
     ev = _seal(ctx, snap, calls, th)
     assert ev.sealed is None and ev.report.status == "undefined"
+
+
+# ---------------------------------------------------------------------------
+# [r4] VDSAT 열이 있는 LUT -- SealedSnapshot (양성·음성)
+# ---------------------------------------------------------------------------
+
+@pytest.mark.parametrize("y,v1,v2", [(0.5, 0.6, 0.7), (0.4, 0.8, 0.55)])
+def test_sealed_snapshot_when_all_pass(ctx_r4c, y, v1, v2):
+    """1~8 이 모두 pass -> REPORT_SEALED, DcEvaluation(sealed=SealedSnapshot(snapshot, report))."""
+    th = theta_r4c(y=y, v1=v1, v2=v2)
+    snap, calls = eval_calls(ctx_r4c, th)
+    ev = _seal(ctx_r4c, snap, calls, th)
+    assert [i.status for i in ev.report.items] == ["pass"] * 8
+    assert ev.report.status == "sealed"
+    assert isinstance(ev.sealed, SealedSnapshot)
+    assert ev.sealed.report == ev.report
+    assert ev.sealed.snapshot.fp == ev.snapshot.fp
+    assert ev.snapshot.value("graph", DC_KEY, "dc_seal_report") == ev.report
+    # size_and_seal 경로도 같다
+    ev2 = size_and_seal(ctx_r4c, th)
+    assert isinstance(ev2.sealed, SealedSnapshot) and ev2.report.status == "sealed"
+    assert ev2.snapshot.fp == ev.snapshot.fp
+
+
+@pytest.mark.parametrize("y,dev", [(0.1, "M1"), (0.9, "M2")])
+def test_no_sealed_snapshot_when_item7_fails(ctx_r4c, y, dev):
+    """음성: 다른 항목이 모두 pass 여도 봉인 7 fail -> violated -> SealViolationError(DcEvaluation 없음)."""
+    th = theta_r4c(y=y)
+    snap, calls = eval_calls(ctx_r4c, th)
+    with pytest.raises(SealViolationError) as ei:
+        _seal(ctx_r4c, snap, calls, th)
+    rec = ei.value.record
+    d = dict(rec.detail)
+    st = {x[0]: x[1] for x in d["items"]}
+    assert st[7] == "fail" and all(st[n] == "pass" for n in st if n != 7)
+    assert d["item"] == 7 and rec.devices == (dev,)
+    m7 = {x[0]: x[2] for x in d["items"]}[7]
+    assert rec.margin == m7 and m7 > 1.0
+    assert dict(d["item_detail"])["worst"] == dev
+    with pytest.raises(SealViolationError):
+        size_and_seal(ctx_r4c, th)
+
+
+def test_linear_declared_failing_device_still_sealed(ctx_r4c):
+    """봉인 7 행에서 빠지는 linear 선언 소자는 포화 위반이어도 봉인을 막지 않는다(음성의 반대쪽)."""
+    th = theta_r4c(y=0.1)                                       # M1 VDS 0.18 < VDsat
+    snap, calls = eval_calls(ctx_r4c, th)
+    ev = _seal(ctx_r4c, snap, calls, th, ("M1",))
+    assert ev.report.status == "sealed" and isinstance(ev.sealed, SealedSnapshot)
+    assert dict(ev.report.items[6].detail)["n_checked"] == 1
