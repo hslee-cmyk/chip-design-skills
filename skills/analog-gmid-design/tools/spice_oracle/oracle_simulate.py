@@ -2,14 +2,23 @@
 """oracle_simulate.py -- ngspice 배치 실행 + .op/.ac 결과 추출.
 
 진입점(단독 실행):
-    python oracle_simulate.py <netlist.cir> <out_sim.json> --ngspice <ngspice_con.exe> [--timeout-s S]
+    python oracle_simulate.py <netlist.cir> <out_sim.json> --ngspice <ngspice_con.exe> [--timeout-s S] [--cache-dir D]
 
   <netlist.cir>.meta.json(oracle_netlist.py 가 씀)을 읽어 probe 이름을 알고, ngspice -b 를 돌려
   .op(소자별 id/gm/gds/vth/vdsat/vgs/vds/vbs, 넷 전압, 레일 공급전류, forced 고정원 전류)와
   .ac(wrdata 파일 -> dc gain, f-3dB, UGF, PM)를 sim JSON 으로 쓴다.
 
-공개 함수: run_ngspice(exe, cir, log, timeout_s), parse_op(log_text, meta), parse_ac_file(path),
-          ac_measures(freq, re, im), simulate(cir_path, meta, exe, timeout_s)
+공개 함수: run_ngspice(exe, cir, log, timeout_s, cache_dir, outputs), parse_op(log_text, meta), parse_ac_file(path),
+          ac_measures(freq, re, im), pm_crosscheck(freq, re, im, mp_res), data_rel_resolution(path),
+          mp_resolution(rel_resolution, values_per_sample), run_cache_key(exe, cir_path),
+          ratio_measure(run, folder), simulate(cir_path, meta, exe, timeout_s, cache_dir)
+[신규] C24 ratio_db(CMRR·PSRR): 넷리스트 meta.ratio_runs 의 num/den 데이터 파일(.ac 한 점)에서 sim.ratio 를 만든다
+  (데이터 파일은 C21 캐시에 함께 저장·복원).
+[신규] PM 교차 측정(C20, 기록만): PM 을 정한 루프 이득 L 로 폐루프 L/(1+L) 의 peaking Mp 를 재고 2차계 관계로 PM 을 역산해
+  ac.pm_crosscheck_deg 로 남긴다(ac.pm_deg 와 다른 측정 방법 -- 교차점·위상 언랩 오류 검출용, 판정 무관).
+[신규] 실행 캐시(C21, 선택): cache_dir 가 있으면 (넷리스트 바이트, 넷리스트가 .include/.lib 로 읽는 모델 파일 전부의 바이트
+  (재귀), ngspice 실행 파일 경로, 명령 '-b') sha256 을 키로 로그·출력 데이터 파일을 저장하고 같은 키면 ngspice 를 다시
+  돌리지 않는다. 모델 파일을 하나라도 못 찾으면 캐시를 쓰지 않는다.
 
 부호 규칙(출력)
   * 소자 값은 ngspice 원값. BSIM4 @ 값은 극성 정규화돼 있다(PMOS 도 id/vgs/vds 양수, vbs=type*(Vb-Vs)).
@@ -33,12 +42,81 @@ import sys
 _NUM = r"([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)"
 
 
-def run_ngspice(exe, cir_path, log_path, timeout_s=None):
+_INC = re.compile(r"""^\s*\.(?:include|inc|lib)\s+["']?([^"'\s]+)["']?""", re.I)
+
+
+def _model_files(path, seen):
+    """path 가 .include/.lib 로 읽는 파일을 재귀로 모은다(상대 경로는 그 파일 폴더 기준). 못 찾으면 False."""
+    with open(path, encoding="utf-8", errors="replace") as f:
+        lines = f.readlines()
+    for ln in lines:
+        m = _INC.match(ln)
+        if not m:
+            continue
+        q = m.group(1)
+        q = q if os.path.isabs(q) else os.path.join(os.path.dirname(os.path.abspath(path)), q)
+        q = os.path.normcase(os.path.abspath(q))
+        if q in seen:
+            continue
+        if not os.path.exists(q):
+            return False
+        seen.add(q)
+        if not _model_files(q, seen):
+            return False
+    return True
+
+
+def run_cache_key(exe, cir_path):
+    """실행 캐시 키 sha256(넷리스트 바이트 + 모델 파일(재귀) 경로·바이트 + ngspice 경로 + '-b'). 모델 파일을 못 찾으면 None."""
+    import hashlib
+    seen = set()
+    if not _model_files(cir_path, seen):
+        return None
+    h = hashlib.sha256()
+    with open(cir_path, "rb") as f:
+        h.update(f.read())
+    for q in sorted(seen):
+        h.update(q.encode("utf-8"))
+        with open(q, "rb") as f:
+            h.update(hashlib.sha256(f.read()).digest())
+    h.update(os.path.abspath(exe).encode("utf-8"))
+    h.update(b"-b")
+    return h.hexdigest()
+
+
+def run_ngspice(exe, cir_path, log_path, timeout_s=None, cache_dir=None, outputs=()):
+    """ngspice -b 실행. 반환 (rc, 로그 텍스트, 캐시 상태 None|'hit'|'miss'|'off(모델 파일 못 찾음)').
+    outputs = 넷리스트가 cir 폴더에 쓰는 데이터 파일 이름(캐시에 함께 저장·복원)."""
+    import shutil
+    d = os.path.dirname(os.path.abspath(cir_path))
+    key = run_cache_key(exe, cir_path) if cache_dir else None
+    state = None if not cache_dir else ("off(모델 파일 못 찾음)" if key is None else "miss")
+    slot = os.path.join(cache_dir, key) if key else None
+    if slot and os.path.exists(os.path.join(slot, "done")):
+        for o in outputs:
+            src = os.path.join(slot, os.path.basename(o))
+            if os.path.exists(src):
+                shutil.copyfile(src, os.path.join(d, o))
+        shutil.copyfile(os.path.join(slot, "ngspice.log"), log_path)
+        with open(os.path.join(slot, "rc"), encoding="utf-8") as f:
+            rc = int(f.read().strip())
+        with open(log_path, encoding="utf-8", errors="replace") as f:
+            return rc, f.read(), "hit"
     with open(log_path, "w", encoding="utf-8", errors="replace") as fo:
-        r = subprocess.run([exe, "-b", os.path.basename(cir_path)], cwd=os.path.dirname(os.path.abspath(cir_path)),
+        r = subprocess.run([exe, "-b", os.path.basename(cir_path)], cwd=d,
                            stdout=fo, stderr=subprocess.STDOUT, timeout=timeout_s)
+    if slot:
+        os.makedirs(slot, exist_ok=True)
+        for o in outputs:
+            if os.path.exists(os.path.join(d, o)):
+                shutil.copyfile(os.path.join(d, o), os.path.join(slot, os.path.basename(o)))
+        shutil.copyfile(log_path, os.path.join(slot, "ngspice.log"))
+        with open(os.path.join(slot, "rc"), "w", encoding="utf-8") as f:
+            f.write(str(r.returncode))
+        with open(os.path.join(slot, "done"), "w", encoding="utf-8") as f:
+            f.write(os.path.abspath(cir_path))
     with open(log_path, encoding="utf-8", errors="replace") as f:
-        return r.returncode, f.read()
+        return r.returncode, f.read(), state
 
 
 def _grab(text, expr):
@@ -108,6 +186,63 @@ def ac_measures(freq, re_, im, ref="first"):
     return out
 
 
+def data_rel_resolution(path):
+    """wrdata 데이터 파일의 상대 분해능 u = 0.5 * 10^(1-d) (d = 파일에 찍힌 가수 유효숫자 수의 최솟값, 반올림 반 단위).
+    ngspice 가 실제로 쓴 출력 자릿수에서 읽는다(상수 없음). 숫자가 없거나 파일이 없으면 None."""
+    if not path or not os.path.exists(path):
+        return None
+    d_min = None
+    with open(path) as f:
+        for line in f:
+            for tok in line.split():
+                mant = re.split(r"[eE]", tok.lstrip("+-"), maxsplit=1)[0]
+                if not re.fullmatch(r"[0-9]+\.?[0-9]*|\.[0-9]+", mant):
+                    continue
+                digits = mant.replace(".", "").lstrip("0")
+                if digits and (d_min is None or len(digits) < d_min):
+                    d_min = len(digits)
+    return None if d_min is None else 0.5 * 10.0 ** (1 - d_min)
+
+
+def mp_resolution(rel_resolution, values_per_sample):
+    """Mp = |C(f_k)|/|C(f_0)| 의 분해능. 두 표본 각각이 데이터 파일의 실수 values_per_sample 개로 만들어지고 각 값의
+    상대 반올림 오차가 rel_resolution 이하이므로 1차 오차 한계 = (모은 값 개수 2*values_per_sample) * rel_resolution.
+    엔진 metrics/pencil_roots 의 원점 고유값 판정 |alpha| <= 차원*eps*||A||_F 와 같은 꼴(개수 * 단위 반올림 * 크기,
+    Mp ~ 1 이라 크기 1). 오라클은 엔진을 import 하지 않으므로(C1) 식만 같게 쓴다."""
+    return None if rel_resolution is None else 2 * values_per_sample * rel_resolution
+
+
+def pm_crosscheck(freq, re_, im, mp_res=None):
+    """PM 교차 측정(기록만): 루프 이득 L 에서 폐루프 C = L/(1+L), peaking Mp = max|C| / |C(f_first)|.
+    2차계 관계 Mp = 1/(2 z sqrt(1-z^2)) 로 z 를 풀고 PM = atan(2z / sqrt(sqrt(1+4z^4) - 2z^2)) [deg].
+    Mp <= 1 + mp_res(첫 점 뒤로 데이터 분해능보다 크게 솟지 않음, mp_res = mp_resolution())이면 z >= 1/sqrt(2) 라
+    PM 은 그 z 의 PM 이상이라는 것만 알 수 있다 -> 값 None + 하한. mp_res 가 None 이면 분해능 0(정확한 입력)."""
+    import numpy as np
+    L = np.asarray(re_) + 1j * np.asarray(im)
+    C = np.abs(L / (1.0 + L))
+    k = int(np.argmax(C))
+    mp = float(C[k] / C[0]) if C[0] > 0 else None
+    tol = mp_res or 0.0
+
+    def pm_of(z):
+        return math.degrees(math.atan2(2 * z, math.sqrt(math.sqrt(1 + 4 * z ** 4) - 2 * z ** 2)))
+    out = {"closed_loop_peaking_db": None if not mp else 20 * math.log10(mp),
+           "closed_loop_peak_hz": float(freq[k]), "pm_crosscheck_deg": None,
+           "pm_crosscheck_method": "closed_loop_peaking_2nd_order", "pm_crosscheck_mp_resolution": mp_res}
+    if mp is None:
+        out["pm_crosscheck_note"] = "폐루프 첫 점 크기 0 -- 계산 불가"
+    elif k == 0 or mp <= 1.0 + tol:
+        out["closed_loop_peaking_db"] = None
+        out["closed_loop_peak_hz"] = None
+        out["pm_crosscheck_note"] = (f"peaking 없음(Mp-1 = {mp - 1:.3g}, 데이터 분해능 {tol:.3g} 이하) -- "
+                                     f"2차 근사로 PM >= {pm_of(1 / math.sqrt(2)):.4g} deg")
+    else:
+        z = math.sqrt((1 - math.sqrt(1 - 1 / mp ** 2)) / 2)
+        out["pm_crosscheck_deg"] = pm_of(z)
+        out["pm_crosscheck_note"] = None
+    return out
+
+
 def _cols(path):
     """wrdata(wr_singlescale) 파일 -> (주파수 목록, [복소 열 목록])."""
     if not path or not os.path.exists(path):
@@ -146,20 +281,42 @@ def loop_gain(v_file, i_file, weights):
     return v[0], re_, im
 
 
-def simulate(cir_path, meta, exe, timeout_s=None):
+def ratio_measure(run, folder):
+    """C24: ratio_db 뷰 한 개의 두 .ac 결과(wrdata 한 점) -> {view, f_hz, num{re, im, mag}, den{...}, ratio_db}.
+    ratio_db = 20*log10(|H_num|/|H_den|). 파일이 없거나 |H_den| = 0 이면 ratio_db None."""
+    out = {"view": run["view"], "f_hz": run["f_hz"], "num": None, "den": None, "ratio_db": None}
+    for side in ("num", "den"):
+        raw = parse_ac_file(os.path.join(folder, run[f"{side}_file"]))
+        if raw:
+            re_, im = raw[1][0], raw[2][0]
+            out[side] = {"re": re_, "im": im, "mag": math.hypot(re_, im), "f_hz": raw[0][0]}
+    if out["num"] and out["den"] and out["den"]["mag"] > 0 and out["num"]["mag"] > 0:
+        out["ratio_db"] = 20 * math.log10(out["num"]["mag"] / out["den"]["mag"])
+    return out
+
+
+def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
     base = os.path.splitext(cir_path)[0]
     log_path = base + ".log"
     ac_path = os.path.join(os.path.dirname(os.path.abspath(cir_path)), meta["ac_file"]) if meta.get("ac_file") else None
     if ac_path and os.path.exists(ac_path):
         os.remove(ac_path)
+    runs = meta.get("ratio_runs") or []
+    d0 = os.path.dirname(os.path.abspath(cir_path))
+    rfiles = [r[f"{s}_file"] for r in runs for s in ("num", "den")]
+    for x in rfiles:
+        if os.path.exists(os.path.join(d0, x)):
+            os.remove(os.path.join(d0, x))
     if meta.get("blockers"):
         # 막힌 넷리스트는 돌리지 않는다(지어낸 값으로 채운 회로를 재지 않는다 -- README C2/C8)
         return {"skipped": "넷리스트 막힘: " + " | ".join(meta["blockers"]), "devices": {}, "nodes": {},
                 "rail_current_A": {}, "hold_current_A": {}, "ngspice_rc": None, "log": None, "log_errors": [],
-                "op_ok": False, "ac": None, "ac_file": None, "loop": None}
-    rc, log = run_ngspice(exe, cir_path, log_path, timeout_s)
+                "op_ok": False, "ac": None, "ac_file": None, "loop": None, "ratio": []}
+    rc, log, cst = run_ngspice(exe, cir_path, log_path, timeout_s, cache_dir,
+                               ([meta["ac_file"]] if meta.get("ac_file") else []) + rfiles)
     res = parse_op(log, meta)
     res["ngspice_rc"] = rc
+    res["cache"] = {"main": cst, "loop": None}
     res["log"] = log_path
     errs = [ln.strip() for ln in log.splitlines() if re.search(r"error|fatal|singular|abort", ln, re.I)]
     res["log_errors"] = errs[:40]
@@ -167,6 +324,7 @@ def simulate(cir_path, meta, exe, timeout_s=None):
     raw = parse_ac_file(ac_path)
     res["ac"] = ac_measures(*raw) if raw else None
     res["ac_file"] = ac_path
+    res["ratio"] = [ratio_measure(r, d0) for r in runs]
     res["loop"] = None
     lm = meta.get("loop")
     if lm:
@@ -176,12 +334,18 @@ def simulate(cir_path, meta, exe, timeout_s=None):
         for x in (vf, inf):
             if os.path.exists(x):
                 os.remove(x)
-        lrc, llog = run_ngspice(exe, lcir, os.path.splitext(lcir)[0] + ".log", timeout_s)
+        lrc, llog, lcst = run_ngspice(exe, lcir, os.path.splitext(lcir)[0] + ".log", timeout_s, cache_dir,
+                                      [lm["v_file"], lm["i_file"]])
+        res["cache"]["loop"] = lcst
         t = loop_gain(vf, inf, lm["weights"])
+        # T 한 표본 = 끊은 넷마다 v 파일 실수 4개(vx, vy 복소) + i 파일 실수 2개(ix 복소); 분해능은 두 파일 중 거친 쪽
+        uv, ui = data_rel_resolution(vf), data_rel_resolution(inf)
+        lres = mp_resolution(None if uv is None or ui is None else max(uv, ui), 6 * len(lm["weights"]))
         res["loop"] = {"ngspice_rc": lrc, "break_nets": lm["break_nets"],
                        "log_errors": [ln.strip() for ln in llog.splitlines()
                                       if re.search(r"error|fatal|singular|abort", ln, re.I)][:40],
-                       "measures": ac_measures(*t) if t else None}
+                       "measures": ac_measures(*t) if t else None,
+                       "pm_crosscheck": pm_crosscheck(*t, mp_res=lres) if t else None}
     if res["ac"] is not None:
         res["ac"]["pm_open_loop_deg"] = res["ac"]["pm_deg"]
         if lm:
@@ -190,8 +354,16 @@ def simulate(cir_path, meta, exe, timeout_s=None):
             res["ac"]["pm_definition"] = "beta_loop"
             res["ac"]["loop_ugf_hz"] = lt.get("ugf_hz")
             res["ac"]["loop_gain_dc_db"] = lt.get("dc_gain_db")
+            xc = (res["loop"] or {}).get("pm_crosscheck") or {}
         else:
             res["ac"]["pm_definition"] = "beta_1"
+            # A 한 표본 = 데이터 파일 실수 2개(출력/입력 복소)
+            xc = pm_crosscheck(*raw, mp_res=mp_resolution(data_rel_resolution(ac_path), 2))
+        res["ac"].update({k: xc.get(k) for k in ("pm_crosscheck_deg", "pm_crosscheck_note", "pm_crosscheck_method",
+                                                 "pm_crosscheck_mp_resolution",
+                                                 "closed_loop_peaking_db", "closed_loop_peak_hz")})
+        pc, pm = res["ac"].get("pm_crosscheck_deg"), res["ac"].get("pm_deg")
+        res["ac"]["pm_crosscheck_gap_deg"] = None if pc is None or pm is None else pc - pm
     return res
 
 
@@ -201,10 +373,11 @@ def main(argv=None):
     ap.add_argument("out_json")
     ap.add_argument("--ngspice", required=True, help="ngspice 콘솔 실행 파일 경로")
     ap.add_argument("--timeout-s", type=float, default=None)
+    ap.add_argument("--cache-dir", default=None, help="[신규] 실행 캐시 폴더(C21)")
     a = ap.parse_args(argv)
     with open(a.netlist + ".meta.json", encoding="utf-8") as f:
         meta = json.load(f)
-    res = simulate(a.netlist, meta, a.ngspice, a.timeout_s)
+    res = simulate(a.netlist, meta, a.ngspice, a.timeout_s, a.cache_dir)
     with open(a.out_json, "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1)
     print("wrote", a.out_json, "op_ok=", res["op_ok"], "ac=", None if res["ac"] is None else

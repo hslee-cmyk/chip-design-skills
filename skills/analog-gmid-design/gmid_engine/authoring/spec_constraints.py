@@ -10,8 +10,10 @@
 * `op` ∈ `OPS`(`op_value`). 값 자리는 `value`(유한 수) / `value_from_constraint`(같은 파일의 제약 metric 이름) /
   `value_from_file`(`<회로>#<이름>`) 중 정확히 하나(`value_and_ref`; `value` 비유한 수는 `type`). 참조 문자열 안 옛 이름은
   `legacy_name`. 참조는 `source.kind == reference` 와 함께만(`ref_kind_mismatch`), 해석은 `spec_refs`.
-* `view` -- metric 의 `view_kind`(`MetricSignature`)로 판정: `none` 은 view 가 오면 `view_not_applicable`; `transfer` 는
-  없으면 포트 뷰 -- topology output 포트가 정확히 하나가 아니면 `view_required`; `ratio` 는 `{num, den}` 필수
+* `view` -- metric 의 `view_kind`(`MetricSignature`)로 판정: None(뷰 없음)은 view 가 오면 `view_not_applicable`; `transfer`·`loop`·
+  `output_port` 는 없으면 포트 뷰 -- topology output 포트가 정확히 하나가 아니면 `view_required`; `loop`·`output_port`
+  (`PENDING_ONLY_VIEW_KINDS`)의 선언 view 는 결정 대기 표지만 받고 그 밖은 `view_not_defined_yet`(A·β 절단점·출력 포트
+  모양은 7a design, metrics CONTRACT M1); `ratio` 는 `{num, den}` 필수
   (`view_required`). 전달 뷰 모양 = `{ac_excite: {넷: 진폭}, sense_p, sense_n(null 가능), sense_mode}`
   (`SENSE_MODES`; differential 이면 sense_n 필수, single_ended 면 null) -- 형식 위반 `type`, 넷이 어느 단자에도 없으면
   `view_net_unknown`. `{"pending": <ID>}` 뷰는 받는다(뷰 정의 결정 대기).
@@ -37,6 +39,9 @@ ITEM_KEYS = ("metric", "op", "value", "view", "source") + REF_KEYS
 TRANSFER_KEYS = ("ac_excite", "sense_p", "sense_n", "sense_mode")
 RATIO_KEYS = ("num", "den")
 SENSE_MODES = ("differential", "single_ended")
+# 선언 뷰 모양이 아직 정의되지 않은 view_kind(core `VIEW_KINDS` 의 부분집합): loop 는 A·β 절단점, output_port 는 관측만
+# 받는 출력 포트 모양이 7a design 몫이다(metrics CONTRACT 3.10·3.11·M1). 선언 view 는 결정 대기 표지만 받는다.
+PENDING_ONLY_VIEW_KINDS = ("loop", "output_port")
 OUTPUT_DIRECTION = "output"
 
 
@@ -76,10 +81,14 @@ def _view(raw, signature, where, topology, nets, hits):
     if is_pending(raw):
         return ViewDecl("pending", decision=pending_decision(raw))
     kind = signature.view_kind
-    if kind == "none":
+    if kind is None:
         if raw is not None:
-            hits.append(SchemaHit("view_not_applicable", place, "이 metric 은 뷰를 쓰지 않는다(view_kind none)"))
+            hits.append(SchemaHit("view_not_applicable", place, "이 metric 은 뷰를 쓰지 않는다(view_kind None)"))
         return ViewDecl("none")
+    if kind in PENDING_ONLY_VIEW_KINDS and raw is not None:
+        hits.append(SchemaHit("view_not_defined_yet", place, "view_kind " + repr(kind) + " 의 선언 뷰 모양은 아직 정의되지 "
+                              "않았다(7a design, metrics CONTRACT M1) -- view 를 빼서 포트 뷰를 쓰거나 결정 대기 표지로 적는다"))
+        return None
     if raw is None:
         if kind == "ratio":
             hits.append(SchemaHit("view_required", where, "ratio metric 은 view {num, den} 선언이 필수다"))

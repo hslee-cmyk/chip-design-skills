@@ -22,17 +22,21 @@ from .graph_record import GraphRecord
 from .graph_snapshot import GraphSnapshot
 from .immutability import require_immutable
 from .margin import normalized_margin
-from .metric_signature import METRIC_DOMAINS, OBJECTIVE_AXES, VIEW_KINDS, MetricSignature
+from .metric_signature import OBJECTIVE_AXES, VIEW_KINDS, MetricSignature
+from .pdk_decl import PdkDecl, PdkQuantity, PdkRule, read_pdk_decl
 from .projection import Projection
+from .units import AMPLITUDE_DB_PER_DECADE, DOMAINS, METRIC_UNITS
 from .writer_error import WriterPermissionError
 from .writer_table import ENTITY_KINDS, WriterTable
 
 __all__ = (
+    "AMPLITUDE_DB_PER_DECADE",
     "BlockStats",
     "BoundedLRU",
     "CANDIDATE_FAILURE_CLASSES",
     "CanonPointer",
     "ComputeBlock",
+    "DOMAINS",
     "ENTITY_KINDS",
     "FAILURE_CLASSES",
     "FailureClass",
@@ -43,10 +47,13 @@ __all__ = (
     "InfeasibleSizingError",
     "InfeasibleTargetError",
     "LruStats",
-    "METRIC_DOMAINS",
+    "METRIC_UNITS",
     "MetricSignature",
     "NonconvergentError",
     "OBJECTIVE_AXES",
+    "PdkDecl",
+    "PdkQuantity",
+    "PdkRule",
     "Projection",
     "SchemaRejectedError",
     "SealViolationError",
@@ -60,6 +67,7 @@ __all__ = (
     "exit_code_for",
     "fp_of",
     "normalized_margin",
+    "read_pdk_decl",
     "require_immutable",
     "sorted_items",
 )

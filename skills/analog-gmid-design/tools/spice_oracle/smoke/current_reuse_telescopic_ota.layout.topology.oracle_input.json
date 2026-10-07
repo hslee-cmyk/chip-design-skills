@@ -2,7 +2,7 @@
  "schema": "spice_oracle_input/1",
  "circuit": "current_reuse_telescopic_ota",
  "process": {
-  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\ng-spice-oracle\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz",
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\ng-oracle2\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz",
   "ngspice_exe": "C:\\ngspice\\Spice64\\bin\\ngspice_con.exe",
   "models": {
    "nmos": {
@@ -11,7 +11,8 @@
      "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__{corner}.pm3.spice",
      "C:\\pdk\\sky130_fd_pr\\cells\\nfet_01v8\\sky130_fd_pr__nfet_01v8__mismatch.corner.spice"
     ],
-    "op_probe": "@m.{inst}.msky130_fd_pr__nfet_01v8[{param}]"
+    "op_probe": "@m.{inst}.msky130_fd_pr__nfet_01v8[{param}]",
+    "polarity": "n"
    },
    "pmos": {
     "subckt": "sky130_fd_pr__pfet_01v8",
@@ -20,7 +21,8 @@
      "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__{corner}.pm3.spice",
      "C:\\pdk\\sky130_fd_pr\\cells\\pfet_01v8\\sky130_fd_pr__pfet_01v8__mismatch.corner.spice"
     ],
-    "op_probe": "@m.{inst}.msky130_fd_pr__pfet_01v8[{param}]"
+    "op_probe": "@m.{inst}.msky130_fd_pr__pfet_01v8[{param}]",
+    "polarity": "p"
    }
   },
   "diffusion": {
@@ -807,9 +809,9 @@
    "VDD": 1.8,
    "vdd": 1.8,
    "gnd": 0.0,
-   "vss": 0.0,
    "VSS": 0.0,
    "GND": 0.0,
+   "vss": 0.0,
    "Vop1": 0.677278476824353,
    "N11a11b": 1.125,
    "N11b": 0.30000000000000004,
@@ -1434,13 +1436,17 @@
   }
  },
  "judge": {},
+ "topology": {
+  "path": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json",
+  "sha256": "237dbd76362c39bfe7fe8ea16e465fd2c479c8f84af6bdd6eac0eb16e392015d"
+ },
  "provenance": {
   "adapter": "legacy_adapter.py",
   "engine": "legacy (skills/analog-gmid-design/legacy)",
   "w_source": "layout",
   "isrc": "topology",
-  "topology": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\ng-spice-oracle\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
-  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\ng-spice-oracle\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz",
+  "topology": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\ng-oracle2\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+  "lut_npz": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\ng-oracle2\\skills\\analog-gmid-design\\assets\\sky130_nfet_pfet_lut_sample.npz",
   "metrics_unmapped": [
    "power_uA",
    "area_um2",

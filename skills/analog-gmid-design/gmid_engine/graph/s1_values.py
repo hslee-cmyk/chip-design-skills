@@ -7,9 +7,10 @@
 * `FieldNotComputed` -- 권한표에 있으나 그 writer 가 아직 돌지 않은 필드를 질의함(조용한 빈 값 금지, WP-02).
 
 S1 은 core `GraphSnapshot` 위에 산다. 필드마다 writer 하나(`S1_WRITERS`), 값과 함께 그 값을 만든 입력 버전을
-core `FieldValue` 가 기록한다(필드가 곧 캐시). writer = 구조·bulk 블록과 U2~U4 구조 유도 블록 9개
-(설계 design_mod3_structure_u2_u5 4.0 표, C2: 옛 예약 4행을 유형별 필드로 바꿈). U2~U4 값 형식 `Evidence`·`Segment`·
-`Branch`·`Column`·`ColumnOrphan`·`GsGroup`·`DcRole`·`RelEdge`·`GvgsSummary` 도 여기 둔다.
+core `FieldValue` 가 기록한다(필드가 곧 캐시). writer = 구조·bulk 블록과 U2~U4 구조 유도 블록 10개
+(설계 design_mod3_structure_u2_u5 4.0 표, C2: 옛 예약 4행을 유형별 필드로 바꿈; 레이아웃 matching 분류 블록
+`s1_matching_groups` 는 SYNTHESIS Q8 (i)(iii)). U2~U4 값 형식 `Evidence`·`Segment`·`Branch`·`Column`·`ColumnOrphan`·
+`GsGroup`·`DcRole`·`RelEdge`·`MatchingGroup`·`MatchingDisposition`·`GvgsSummary` 도 여기 둔다.
 """
 import dataclasses
 
@@ -80,6 +81,20 @@ DOMAIN_GEOM = "geom"
 CYCLE_V2_RAIL = "v2_rail"                              # 레일 고정 노드 F 를 지나는 v2 사이클(ΔV = 레일 차)
 CYCLE_V2_ZERO = "v2_zero"                              # F 를 지나지 않는 v2 사이클(ΣVGS = 0)
 COLUMN_RULE = "rail_pair_simple_path"
+# ---- 레이아웃 matching 분류 (SYNTHESIS Q8 (i)(iii), 사용자 승인 2026-10-07 -- 9회로 결과는 J-U4 대조표로 확인)
+MATCH_MIRROR = "mirror"                                # matching 그룹 kind
+MATCH_DIFF_PAIR = "diff_pair"
+MATCH_BRANCH_SYMMETRIC = "branch_symmetric"
+DISPOSITION_BIAS_DISTRIBUTION = "bias_distribution"    # 레이아웃 matching 제외 기록 kind
+DISPOSITION_FEEDBACK_SHARED = "feedback_shared"
+DISPOSITION_BIAS_SIBLING = "bias_sibling"
+MIRROR_RULE_WHOLE = "mirror_whole"                     # mirror 그룹 evidence.rule: 묶음 전체(소비 소자 없음)
+MIRROR_RULE_SIGNAL_CROSS_BLOCK = "mirror_signal_cross_block"   # diode 넷이 바이어스·루프 넷이 아님 -> 블록 넘어도 전체
+MIRROR_RULE_DIODE_BLOCK = "mirror_diode_block"         # 소비 소자를 뺀 diode 쪽 멤버
+MIRROR_RULE_CONSUMER_BLOCK = "mirror_consumer_block"   # 같은 블록에 모인 소비 소자끼리
+SIBLING_RULE_ROLE = "bias_sibling_dc_role"             # bias_sibling evidence.rule: 제외 근거
+SIBLING_RULE_GROUND_GATE = "bias_sibling_ground_gate"
+SIBLING_RULE_OWN_BRANCH_GATE = "bias_sibling_own_branch_gate"
 # J 항목(설계 6절 기본안)에 기댄 판정이 evidence.basis 에 남기는 ID
 J_PARALLEL_MERGE = "J13-a"
 J_PRUNE_ORDER = "J13-b"
@@ -89,6 +104,8 @@ J_ALL_VIEW_GROUND = "J-U3-a"
 J_UNRESOLVED_GROUP = "J-U3-c"
 J_L_CLASS = "J-U4-a"
 J_DIFF_PAIR = "J-U4-b"
+J_BRANCH_SYMMETRIC = "J-U4-c"                          # 캐스코드 대칭쌍 stack 전파(Q8 (i))
+J_MATCH_CLASS = "J-U4-d"                               # 블록·바이어스 넷·루프 신호 넷 분류(Q8 (iii))
 J_GVGS_READING = "J12-c"
 # U2~U4 정지 분기(core StructureUnresolvedError, detail reason = UNSUPPORTED_RULE_BRANCH)
 BRANCH_DC_SELF_LOOP = "dc_self_loop"
@@ -108,6 +125,7 @@ S1_DC_ROLES_WRITER = "s1_dc_roles"
 S1_REL_VGS_WRITER = "s1_rel_vgs"
 S1_REL_KCL_WRITER = "s1_rel_kcl"
 S1_REL_MATCHING_WRITER = "s1_rel_matching"
+S1_MATCHING_GROUPS_WRITER = "s1_matching_groups"
 S1_GVGS_WRITER = "s1_gvgs"
 STRUCTURE_WRITES = (
     ("node", "ac_ground_class"), ("node", "is_rail"), ("node", "port_direction"), ("node", "port_role"),
@@ -140,10 +158,17 @@ REL_VGS_READS = (("graph", "gs_groups"), ("device", "is_diode"), ("device", "pin
 REL_VGS_WRITES = (("graph", "rel_equal_vgs"), ("graph", "rel_vds_eq_vgs"))
 REL_KCL_READS = (("graph", "branches"),)
 REL_KCL_WRITES = (("graph", "rel_kcl_group"),)
-REL_MATCHING_READS = (
-    ("graph", "gs_groups"), ("device", "element_class"), ("device", "kind"), ("device", "pins"), ("node", "is_rail"),
+REL_MATCHING_READS = (("graph", "gs_groups"), ("node", "is_rail"))
+REL_MATCHING_WRITES = (("graph", "rel_l_class"), ("graph", "rel_matching_ratio"))
+MATCHING_GROUPS_READS = (
+    ("graph", "branches"), ("graph", "gs_groups"),
+    ("device", "dc_nets"), ("device", "dc_role"), ("device", "element_class"), ("device", "is_diode"),
+    ("device", "kind"), ("device", "pins"),
+    ("node", "ac_ground_class"), ("node", "is_rail"), ("node", "port_direction"),
 )
-REL_MATCHING_WRITES = (("graph", "rel_l_class"), ("graph", "rel_matching_offset"), ("graph", "rel_matching_ratio"))
+MATCHING_GROUPS_WRITES = (
+    ("graph", "matching_dispositions"), ("graph", "matching_groups"), ("graph", "rel_matching_offset"),
+)
 GVGS_READS = (
     ("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
     ("node", "is_rail"), ("node", "port_direction"),
@@ -156,14 +181,16 @@ S1_WRITERS = WriterTable(
                                  (S1_BRANCHES_WRITER, BRANCHES_WRITES), (S1_COLUMNS_WRITER, COLUMNS_WRITES),
                                  (S1_GS_GROUPS_WRITER, GS_GROUPS_WRITES), (S1_DC_ROLES_WRITER, DC_ROLES_WRITES),
                                  (S1_REL_VGS_WRITER, REL_VGS_WRITES), (S1_REL_KCL_WRITER, REL_KCL_WRITES),
-                                 (S1_REL_MATCHING_WRITER, REL_MATCHING_WRITES), (S1_GVGS_WRITER, GVGS_WRITES))
+                                 (S1_REL_MATCHING_WRITER, REL_MATCHING_WRITES),
+                                 (S1_MATCHING_GROUPS_WRITER, MATCHING_GROUPS_WRITES), (S1_GVGS_WRITER, GVGS_WRITES))
           for kind, field in writes)
 )
 
 # ---- rule_fp 대상: S1 필드 값을 정하는 graph 파일(이 패키지 안 basename). s1_key 가 파일 바이트로 지문한다.
 S1_RULE_FILES = ("ac_ground_static.py", "branches.py", "bulk_default.py", "columns.py", "dc_conduction.py",
-                 "dc_roles.py", "gs_groups.py", "gvgs_cycles.py", "rel_kcl.py", "rel_matching.py", "rel_vgs.py",
-                 "s1_build.py", "s1_index.py", "s1_structure.py", "s1_values.py", "supplies.py")
+                 "dc_roles.py", "gs_groups.py", "gvgs_cycles.py", "matching_groups.py", "rel_kcl.py",
+                 "rel_matching.py", "rel_vgs.py", "s1_build.py", "s1_index.py", "s1_structure.py", "s1_values.py",
+                 "supplies.py")
 NO_SUPPLIES_FP = "none"
 
 
@@ -267,6 +294,28 @@ class RelEdge:
 
     type: str
     domain: str
+    members: tuple
+    status: str
+    evidence: Evidence
+
+
+@dataclasses.dataclass(frozen=True)
+class MatchingGroup:
+    """레이아웃 matching 그룹. `kind` ∈ {mirror, diff_pair, branch_symmetric}, `members` 이름순, `status`
+    (derived | review_needed), `evidence`(rule·nets·group·basis -- CONTRACT 4.5a)."""
+
+    kind: str
+    members: tuple
+    status: str
+    evidence: Evidence
+
+
+@dataclasses.dataclass(frozen=True)
+class MatchingDisposition:
+    """레이아웃 matching 에서 뺀 소자와 근거. `kind` ∈ {bias_distribution, feedback_shared, bias_sibling},
+    `members` 이름순, `status` = proposed(J-U4 확인 전), `evidence`(CONTRACT 4.5a)."""
+
+    kind: str
     members: tuple
     status: str
     evidence: Evidence

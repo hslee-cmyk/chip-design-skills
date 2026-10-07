@@ -21,10 +21,11 @@
 - **규칙 C**: `@compute_block` 사용 수 ≤ 1 / 파일 (core 에는 0).
 - **층**: `_module_map.LAYERS` 의 core 층 tuple 에서, 파일은 앞 층 파일만 import 한다(같은 층끼리 금지, 순환 0).
   패키지 간은 `_module_map.PACKAGE_ORDER` 앞쪽으로만.
-- **숫자 리터럴**: 엔진 소스(tests 제외)의 int/float 리터럴은 {0, 1, -1, 2} 밖 0개(현재 core·_module_map 전부 0개).
+- **숫자 리터럴**: 엔진 소스(tests 제외)의 int/float 리터럴은 {0, 1, -1, 2} 밖 0개(현재 core·_module_map 전부 0개, 예외는 단위 표 `units.py` 하나).
 - **이름 리터럴**: 회로·소자·넷 이름 문자열 0개(core 문자열은 스키마 어휘 `"node"`·`"device"`·`"edge"`·`"graph"` 와
   N3.14 분류 키뿐).
-- **광범위 except 0**: core 에 `except` 절 자체가 없다.
+- **광범위 except 0**: core 의 `except` 절은 `pdk_decl.py` 의 좁은 두 개(`json.JSONDecodeError`·`SyntaxError` -> 선언 거부
+  `SchemaRejectedError` 로 바꾼다, 9절)뿐이다.
 - **모듈 수준 가변 캐시 0**: 모듈 수준 dict/list/set 대입·`@lru_cache`/`@cache`·`global` 문 0(분류표는 읽기 전용 매핑).
 - 자기 파일 self-test·`if __name__ == "__main__"` 0.
 
@@ -34,10 +35,12 @@
 | fingerprint.py | 0 | `fp_of` |
 | immutability.py | 0 | `require_immutable` |
 | margin.py | 0 | `normalized_margin` |
+| units.py | 0 | (공개 정의 0, 상수 표) `METRIC_UNITS`·`DOMAINS`·`AMPLITUDE_DB_PER_DECADE` -- 규칙 D 숫자 리터럴 예외 파일 |
 | writer_error.py | 0 | `WriterPermissionError` |
 | bounded_lru.py | 1 | `BoundedLRU` (`LruStats` 는 같은 파일 비진입 공개 이름) |
 | failure_record.py | 1 | `FailureRecord` |
 | field_value.py | 1 | `FieldValue` |
+| metric_signature.py | 1 | (데이터 선언 모듈) `MetricSignature(unit, domain, view_kind=None, objective_axis=None)` + 어휘 `VIEW_KINDS`(transfer, loop, output_port, ratio)·`OBJECTIVE_AXES`(power, area) -- unit ∈ `METRIC_UNITS`, domain ∈ `DOMAINS`(units 표), view_kind ∈ {None} ∪ `VIEW_KINDS`(None = 뷰 없음, 문자열 `"none"` 은 어휘 밖), objective_axis ∈ {None} ∪ `OBJECTIVE_AXES`; 밖이면 `ValueError`. 뷰 종류 어휘는 이 파일 한 곳 |
 | projection.py | 1 | `Projection` |
 | writer_table.py | 1 | `WriterTable` (+ 상수 `ENTITY_KINDS`) |
 | compute_block.py | 2 | `compute_block` (`ComputeBlock`·`BlockStats` 는 비진입 공개 이름) |
@@ -45,6 +48,7 @@
 | graph_record.py | 2 | `GraphRecord` |
 | failure_classes.py | 3 | (데이터 선언 모듈) `FailureClass` + 상수 `FAILURE_CLASSES`·`CANDIDATE_FAILURE_CLASSES`·`UNEXPECTED_EXIT_CODE` |
 | graph_snapshot.py | 3 | `GraphSnapshot` |
+| pdk_decl.py | 3 | `read_pdk_decl` (`PdkDecl`·`PdkQuantity`·`PdkRule` 는 비진입 공개 이름, 9절) |
 | canon_pointer.py | 4 | `CanonPointer` |
 | exit_code.py | 4 | `exit_code_for` |
 | (`gmid_engine/_module_map.py`) | -- | (데이터 선언 모듈) `ModuleEntry` + 상수 `PACKAGE_ORDER`·`LAYERS`·`MODULES` |
@@ -240,3 +244,73 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 - `Projection.from_snapshot(snapshot, reads, extras=())`: 선언 열마다 `snapshot.column` 을 담는다(빈 열도 포함 -> `column` 이 `()`).
 - `fp = fp_of((columns, extras))`: 같은 열 값·extras 면 같은 fp, reads 선언 순서와 무관.
 - 실패: extras 가변 -> `TypeError`; 선언 밖 열 -> `KeyError`; 열에 없는 key 의 `value` -> `KeyError`.
+
+---
+
+## 9. PDK 선언 `read_pdk_decl(decl_path, memo) -> PdkDecl` (계획 N3.16 'PDK 상수', U-30, WP-03, DEC-80 (i), DEC-93 (5), LY10)
+
+근거: PDK 상수는 한 곳 선언, 값마다 출처 규칙 번호, 코드에 숫자를 박지 않는다. 소비자: MOD7 `LayoutPdk`(layout CONTRACT 4.1·4.10 --
+`manufacturing_grid_m` 과 `PDK_RULE_QUANTITIES` 다섯 길이 + `rule_ids`).
+
+### 9.1 선언 파일 (JSON, UTF-8) -- PDK 마다 데이터 하나 (sky130 = `skills/analog-gmid-design/assets/sky130_pdk_decl.json`)
+- 최상위 키 정확히 `schema`(= `"gmid_pdk_decl/1"`), `pdk`(비지 않은 문자열), `pdk_root`(비지 않은 문자열), `sources`(비지 않은 객체),
+  `quantities`(비지 않은 객체) + 선택 `note`. 그 밖 키·빠진 키 -> 거부 `pdk_decl_keys`.
+- `sources.<이름>`: 경로는 `pdk_root + "/" + path`. 공통 키 `path`, `sha256`(64 hex), `format`, `encoding`, `units_m`(단위 글자 -> m 배율,
+  양의 유한 수, 비지 않음) + 선택 `note`. `format`:
+  - `"lef_statement"`: 줄에서 `#` 뒤를 버리고 `^\s*KEY\s+값\s*;\s*$` 인 줄마다 규칙 `KEY`(단위 글자 `""`). 그 밖 키 없음.
+  - `"rule_table_csv"`: 추가 키 `section_pattern`(정규식, 그룹 1 = 접두), `section_column`·`id_column`·`value_column`·`unit_column`(열 번호).
+    CSV 행을 차례로: section 열이 정규식에 맞으면 접두를 바꾸고, 아니면 접두가 있고 id 열이 비지 않을 때 규칙 `접두 + "." + id`
+    (값 글자 = value 열, 단위 글자 = unit 열, 없는 열은 `""`, 행 번호 = csv `line_num`).
+  - 그 밖 format -> `pdk_source_format_unknown`; 형식별 키가 다르거나 빠짐 -> `pdk_decl_keys`; `units_m` 위반 -> `pdk_source_units_invalid`.
+- `quantities.<이름>`: 키 정확히 `source`, `expression`, `basis`(유도 근거 글). `expression` = 산술식: 수, `+ - * /`, 단항 `-`, 괄호,
+  `max(...)`·`min(...)`, 그리고 **규칙 이름**(정규식 `[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)*`, 앞이 숫자·`.`·글자가 아닌 곳; `max`·`min`
+  제외). 규칙 이름은 모두 `source` 원본에서 찾는다.
+
+### 9.2 결과
+- `PdkDecl(pdk, decl_path, decl_sha256, sources, quantities)` -- frozen, `require_immutable` 통과, `fp_of` 결정론.
+  `sources` = ((원본 이름, 경로, sha256), ...) 이름 정렬, `quantities` = ((이름, `PdkQuantity`), ...) 이름 정렬.
+- `PdkQuantity(name, value_m, expression, rules, basis)`: `value_m` = 식에 규칙 값(m)을 넣은 float, `expression` = 선언 글 그대로,
+  `rules` = 식에 나온 규칙 `PdkRule` 들(첫 등장 순, 중복 없음).
+- `PdkRule(rule_id, value_m, value_text, unit_text, source, path, sha256, line)`: `value_m = float(value_text) x units_m[unit_text]`.
+- `decl.quantity(name)` / `value(name)` / `values(names)`(순서 그대로 tuple) / `rule_ids(names)` = `((name, expression), ...)`.
+  선언에 없는 이름 -> `pdk_quantity_undeclared`.
+- 캐시: 원본마다 매 호출 sha256 을 다시 재고, 파싱 결과는 `memo.lookup((format, sha256, 파싱 인자), ...)` -- 같은 원본·같은 파싱 인자로
+  두 번 부르면 두 번째는 memo 적중(파싱 0). 모듈 수준 캐시 없음.
+
+### 9.3 실패 (전부 `SchemaRejectedError`, `record.detail["reason"]` = 아래 키) -- `memo` 가 `BoundedLRU` 아니면 `TypeError`
+| reason | 조건 |
+|---|---|
+| `pdk_decl_missing` | 선언 파일 없음 |
+| `pdk_decl_json` | JSON 문법 오류 |
+| `pdk_decl_keys` / `pdk_decl_shape` / `pdk_decl_schema` | 키 집합 위반 / 객체·문자열 모양 위반 / schema 값 다름 |
+| `pdk_source_missing` / `pdk_source_sha256_mismatch` | 원본 파일 없음 / sha256 이 선언과 다름 |
+| `pdk_source_undeclared` | quantity 의 `source` 가 `sources` 에 없음 |
+| `pdk_rule_missing` / `pdk_rule_ambiguous` | 식의 규칙이 원본에 없음 / 두 번 이상 나옴(쓰일 때만 거부) |
+| `pdk_rule_not_numeric` / `pdk_rule_unit_unknown` | 값 글자가 수가 아님(`N/A`, `0.170 *L` 등) / 단위 글자가 `units_m` 에 없음 |
+| `pdk_expression_invalid` | 빈 식·규칙 이름 없는 식·문법 오류·허용 밖 노드(`**`, 속성, 다른 함수, 키워드 인자)·0 나누기 |
+| `pdk_quantity_invalid` | 결과가 유한하지 않거나 음수 |
+
+### 9.4 sky130 실값 (2026-10-07, 선언 sha256 은 커밋본 기준으로 재야 한다)
+원본: tlef `C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef`(sha256 `c8351e32...`), 공식 periphery 규칙표
+`C:/pdk/skywater-pdk/docs/rules/periphery/periphery.csv`(sha256 `432c56b9...`, google/skywater-pdk 7198cf64, 같은 폴더 `PROVENANCE.txt`).
+
+| 이름 | 식 | 값 |
+|---|---|---|
+| `manufacturing_grid_m` | `MANUFACTURINGGRID`(tlef 29행 0.005) | 5e-9 |
+| `finger_pitch_overhead_m` | `max(poly.2, licon.1 + 2 * licon.11)`(402·624·642행 0.210·0.170·0.055) | 2.8e-7 |
+| `row_gap_m` | `max(difftap.3, poly.8 + poly.2 + poly.8)`(324·408·402행) | 4.7e-7 |
+| `dummy_w_m` | `poly.1a + poly.7 + max(poly.2, licon.1 + 2 * licon.11) / 2`(400·407행 ...) | 5.4e-7 |
+| `tap_w_m` | `difftap.3 + max(difftap.1, licon.1 + 2 * licon.7)`(324·320·624·637행) | 6.8e-7 |
+| `well_spacing_m` | `max(nwell.2a + 2 * difftap.8, difftap.9 + difftap.8)`(121·329·330행) | 1.63e-6 |
+
+(값은 float 연산 결과 그대로 -- 예 `row_gap_m` = 4.6999999999999995e-07. test 는 손계산과 상대 오차로 비교한다.)
+식(기하 해석)은 선언 파일의 `basis` 에 적었고 사용자 ratify 대상이다.
+
+### 9.5 소비자 호출 (layout 브랜치 병합 시 `LayoutPdk` 를 만드는 쪽)
+```python
+from gmid_engine.core import BoundedLRU, read_pdk_decl
+decl = read_pdk_decl(decl_path, memo)            # memo = 부르는 쪽 BoundedLRU(원본 수 이상)
+pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(PDK_RULE_QUANTITIES))
+```
+`PDK_RULE_QUANTITIES` 순서 = `from_lut` 위치 인자 순서(overhead, gap, dummy, tap, well). 격자는 `from_lut` 가 `lut.spec.manufacturing_grid_m`
+에서 읽으므로 LUT 를 만드는 쪽이 `LutSpec(decl.value("manufacturing_grid_m"), ...)` 로 같은 선언값을 쓴다.

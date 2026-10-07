@@ -1,68 +1,62 @@
 #!/usr/bin/env python
-"""sky130_lut_sweep.py -- real 4D gm/ID LUT generator using ngspice + the SkyWater sky130
-open-source PDK (nfet_01v8 / pfet_01v8). Produces data directly loadable by
-SemiEmpiricalGmIdLUT in sizing_recipe.py.
+"""sky130_lut_sweep.py -- 기준 폭(W_ref) 4D gm/ID LUT 생성기 (ngspice + SkyWater sky130 nfet_01v8 / pfet_01v8).
 
-이 스크립트는 lut-generation-checklist.md §7.4(foundry 특성화 절차)의 실제 구현체이자, §7.3의
-"Cgd/Cdd는 op-info로 뽑지 말고 AC/Y-parameter로 뽑아라"는 함정 항목을 실제로 겪고 고친 결과다.
-`sky130_nfet_pfet_lut_sample.npz`가 이 스크립트로 생성한 (검증된) 샘플 결과물이다.
+이 스크립트는 lut-generation-checklist.md §7.4(foundry 특성화 절차)의 구현체이고, §7.3의 "Cgd/Cdd는 op-info로
+뽑지 말고 AC/Y-parameter로 뽑아라"를 따른다. 새 엔진(gmid_engine/lut, `load_lut_set`)은 이 산출물을 '기준 LUT'
+(용량·잡음 열, W_ref)으로 읽고, DC 정본은 폭 슬라이스(별도 생성기)다.
 
-## 사전 준비 (한 번만) — CLAUDE.md·sky130-worked-example.md §1 참조
+2026-10-07 개정(U-27 재생성, 사용자 승인 Q1 (a')~(g), 근거 wt/_drafts/engine/lut_regen_plan.md):
+* L 축은 **입력**에서 받는다(`sweep --l-json` 또는 `--l-um`). 이 파일에 L 목록을 적지 않는다. 각 L은 제조 격자
+  (tlef MANUFACTURINGGRID) 위, 모델 bin L 범위 안이어야 한다. 각 L이 쓰는 bin은 Python 규칙으로 추정하지 않고
+  ngspice `showmod`로 읽어 메타에 적는다(ngspice-46은 경계값 L = lmax에서 **아래 bin**을 쓴다, 계획 1.2a).
+* `candidates` 부명령: 사용자 결정(L 선형 보간은 한 PDK 모델 bin 안에서만) 아래 L 후보
+  = 기존 앵커(기존 LUT npz의 L 축) ∪ 모델 bin `lmin` 집합 ∪ (불연속 경계 b마다 b가 들지 않은 bin의 끝점 = 실제 전환
+  칸의 다른 점, ngspice-46에서 b + 격자 한 칸)을 [lmin 최솟값, --l-max-um] 안에서 낸다. bin 경계는 모델 파일
+  `lmin`/`lmax`를 파싱해 얻고(`bins.csv` L 집합과 교차 확인), 각 경계의 전환 칸 점프(VGS 환산)를 ngspice로 재서 함께
+  낸다. '불연속' 판정은 입력이다(`--discontinuous-um` 결정 또는 `--tol-v` 해상도) -- 이 파일은 임계값을 갖지 않는다.
+* VS 축 0 ~ VGS 축 상한(소자 정격, `--vs-max`로 바꿀 수 있음), 간격은 옛 VS 축 간격 그대로.
+* 열 추가: GMBS·VTH·VDSAT(op), CGS·CGB(소스·바디 AC 여기), CDD·CSS(드레인·소스 자기 용량, 접합 포함 = PDK 모델
+  카드), 잡음 SVG2_1HZ·SVG2_HF(게이트 환산 V²/Hz -- 옛 `SID_1F`는 inoise_spectrum(V/√Hz) 그대로였고 이름도
+  드레인 전류잡음처럼 보여서 바꿨다. SVG2_1HZ = SID_1F²).
+* 용량 열은 **부호 보존**(옛 `mag()`/`abs` 아님). 규약: CGG = −Im(i(vgs))/ω (게이트 여기), C_gx = +Im(i(vgs))/ω
+  (x 여기, x = d·s·b), CDD = −Im(i(vds))/ω (드레인 여기), CSS = −Im(i(vsrc))/ω (소스 여기). 게이트 행합
+  CGG = CGD + CGS + CGB 잔차와 게이트 실수부 최댓값을 메타 `checks`에 남긴다.
+* 생성기 결함 수정(D7): 점마다 `destroy all`(plot 누적 -- 2401점 조합 291 s → 3.5 s, 값 동일 실측),
+  stdout/stderr 분리(경고가 값 줄에 끼어 파싱이 죽던 결함), ngspice error/fatal 줄 검사, 체크포인트 이름을
+  VS **값** 기반으로, 조합 단위 병렬(ThreadPool), 메타(w_ref_m·sha256·단위·bin).
 
-1. ngspice-46(Windows 네이티브, SourceForge, BSD 라이선스).
-2. sky130 PDK 모델(SkyWater, Apache-2.0) — sparse-checkout으로 `models`+`cells/nfet_01v8`+
-   `cells/pfet_01v8`만 받는다(전체 110MB 중 28MB).
-3. 아래 NGSPICE_EXE / PDK_ROOT 상수를 자신의 경로로 수정.
+## 사전 준비 -- CLAUDE.md·sky130-worked-example.md §1
+ngspice-46(Windows 네이티브), sky130 PDK 모델(`models` + `cells/nfet_01v8` + `cells/pfet_01v8`). 아래 NGSPICE_EXE /
+PDK_ROOT / TLEF_PATH를 자기 경로로.
 
-## 왜 AC/Y-parameter로 뽑는가 (실제로 겪은 문제 — sky130-worked-example.md §7 참조)
+## 왜 AC/Y-parameter인가 (sky130-worked-example.md §7)
+ngspice BSIM4 `@device[cgd]`/`@device[cdd]` op-info는 믿을 수 없다(Cgd 36배, Cdd 부호까지 틀림 실측). 그래서 용량은
+전부 단일 주파수 F_TEST(fT 대비 충분히 낮은 순수 용량 구간)의 AC 전류 허수부로 뽑는다. ID/GM/GDS/GMBS/VTH/VDSAT는
+BSIM이 직접 내는 op 값이다(VDSAT은 SPICE 오라클 tools/spice_oracle의 `@m[vdsat]`과 같은 정의).
 
-ngspice BSIM4의 `@device[cgd]`/`@device[cdd]` **op-info 파라미터는 신뢰할 수 없다** — 실측 결과
-Cgd는 op-info 대비 AC 추출값이 **36배**, Cdd는 부호까지 틀리고 **~300배** 차이가 났다(직접
-`.op` 재확인으로 검증). Cgg는 상대적으로 양호(27% 차이)하지만 이 스크립트는 일관성을 위해
-Cgg/Cgd 둘 다 AC/Y-parameter로 통일해 뽑는다. ID/GM/GDS는 op-info가 신뢰할 만하다(BSIM이
-직접 계산하는 해석적 도함수이자 정의가 모호하지 않은 스칼라 DC 값이므로 — 다의적인 트랜스-커패시턴스
-행렬과 다르다).
+## 잡음 측정 구조
+드레인을 이상적 전압원이 바로 잡으면 `.noise v(d)`가 0이다. 그래서 `vds`가 중간 노드 `dd`를 구동하고 인덕터
+`lchoke`(DC 저항 0)로 `d`와 잇는다. AC 측정 중엔 LCHOKE_AC(사실상 wire), 잡음 측정 중엔 LCHOKE_NOISE(사실상 open).
 
-**추출 원리** (2-포트 Y-parameter, 게이트=포트1, 드레인=포트2, 소스/바디 접지):
-```
-Y11 = i_gate/v_gate |v_drain=0(AC접지)   = jw*Cgg   -> Cgg = |Y11|/(2*pi*f)
-Y12 = i_gate/v_drain |v_gate=0(AC접지)   = -jw*Cgd  -> Cgd = |Y12|/(2*pi*f)
-```
-gm은 게이트 여기 시 드레인 전류(Y21)에 실려나오므로, **게이트 전류(i_gate)를 보는 한** gm 오염이
-전혀 없다 — 이게 Y11/Y12로 뽑아야 하는 핵심 이유다. f=100MHz(fT 대비 충분히 낮아 순수 용량성
-구간)에서 단일 주파수로 계산하며, 10~1000MHz 대에서 크기가 주파수에 선형 비례하는 것으로 순수
-용량성임을 확인했다.
-
-## 구현 메모 — ngspice 컨트롤 스크립트 내부 루프
-
-각 (L, VS, 소자타입) 조합마다 ngspice 프로세스 하나를 띄우고, 그 안에서 VGS×VDS 49×49=2401개
-바이어스점을 `.control` 블록의 `while` 루프로 순회한다(점마다 새 프로세스를 띄우면 너무 느림).
-각 점에서: `alter`로 DC 바이어스 변경 → `op`으로 id/gm/gds 추출 → `alter ... ac=1/0` 전환 후
-`ac lin 1 100meg 100meg` 두 번(Y11 설정, Y12 설정)으로 Cgg/Cgd 추출. 결과는 `echo`/`print`로
-표준출력에 쌓아 Python에서 라인 단위로 파싱한다(ngspice 벡터를 루프 안에서 누적하는 방식은 각
-분석마다 새 plot 컨텍스트가 생겨 실패했다 — 대신 표준출력 파싱이 안정적이었다).
-
-## 체크포인트 (재실행 안전성)
-
-전체 스윕(NMOS+PMOS, L4×VS5×49×49)은 약 55분 걸린다. 조합(devcell,L,VS)마다 즉시
-`ac_sweep_checkpoints/*.npz`로 저장하므로, 중간에 프로세스가 죽어도(이 스크립트 개발 중 실제로
-한 번 background timeout으로 죽었다) 재실행 시 이미 끝난 조합은 건너뛰고 이어서 한다.
-
-## 검증된 사실
-
-- gm/ID 최대값 NMOS 29.93 S/A, PMOS 32.20 S/A(이론치 1/(nUT), n≈1.3 가정 시 ≈29.6과 근접),
-  두 소자 모두 VGS에 대해 단조감소.
-- Walker CS/차동쌍 pole-zero 예제(gm-id-methodology.md §6.5)를 이 LUT로 완전히 재현 —
-  fp1=739.85MHz, fp2=5.779GHz, W=3.32um. 별도로 손으로 한 단일점 AC 계산과 소수점까지 일치.
-- PMOS gm/ID=20(L=0.5um,VDS=0.9V)에서 W가 커지는 현상은 버그가 아니라 실제 물성(직접 `.op`
-  재확인으로 검증됨) — sky130-worked-example.md §5 참조.
+## 실행
+    python sky130_lut_sweep.py candidates --l-max-um 20 --work <임시> --out cand.json
+    python sky130_lut_sweep.py sweep --l-json <L 목록 json> --work <임시> --out <npz> [--jobs 8] [--devices ...]
+(소자, L, VS) 조합마다 ngspice 프로세스 1개, 그 안에서 VGS×VDS 격자를 `.control` 루프로 돈다. 조합마다 체크포인트
+(생성기 sha256이 같을 때만 재사용)와 진행 로그(append)를 `--work`에 남긴다.
 """
-import subprocess
-import sys
+import argparse
+import concurrent.futures as cf
+import csv
+import datetime
+import hashlib
+import json
+import math
 import os
 import re
-import math
+import subprocess
+import sys
 import time
+
 import numpy as np
 
 # ---------------------------------------------------------------------------
@@ -70,182 +64,272 @@ import numpy as np
 # ---------------------------------------------------------------------------
 NGSPICE_EXE = r"C:\ngspice\Spice64\bin\ngspice_con.exe"
 PDK_ROOT = r"C:\pdk\sky130_fd_pr"          # sparse-checkout으로 받은 위치
+TLEF_PATH = r"C:\pdk\sky130_fd_sc_hd\tech\sky130_fd_sc_hd.tlef"   # MANUFACTURINGGRID 출처
 OUTPUT_DIR = os.path.dirname(os.path.abspath(__file__))
 LOD_SPICE = os.path.join(PDK_ROOT, "models", "parameters", "lod.spice")
-CKPT_DIR = os.path.join(OUTPUT_DIR, "ac_sweep_checkpoints")
+EXISTING_LUT = os.path.join(OUTPUT_DIR, "sky130_nfet_pfet_lut_sample.npz")   # candidates의 '기존 앵커' 출처
+L_GRID_JSON = os.path.join(OUTPUT_DIR, "sky130_lut_L_grid.json")   # 기본 L 입력(사용자 승인 목록, 출처는 파일 안)
 
 # ---------------------------------------------------------------------------
-# 스윕 격자 (Jespers-style VGS/VDS 49점, L 4개, VS 5개 — 데모 규모, 필요시 조정)
+# 격자 (L은 입력에서 받는다 -- 위 docstring)
 # ---------------------------------------------------------------------------
-# 2026-08-13(세션31 계속, BZ①/CA -- two_stage_ota gain_db>=60이 L=1.0um(기존 상한)까지의
-# LUT로는 실제 sky130 LUT로도 물리적으로 불가능함을 실측 확인(.ai/context.md 세션31 CA)한 뒤
-# 사용자 지시로 L 상한 확장. 기존 4개 앵커점([0.15,0.35,0.5,1.0])은 그대로 두고 뒤에만 추가.
-#
-# 2026-09-08(B15, 사용자 승인) -- **중간 삽입 5개 추가**(0.20/0.25/0.30/0.425/0.70).
-# 옛 주석은 "새 앵커는 반드시 끝에만 추가할 것"이라고 못박았는데, 그 제약의 원인은 물리가
-# 아니라 **체크포인트 이름이 인덱스 기반**(`_L{iL}_`)이라 인덱스가 밀리면 다른 L의 결과가
-# 조용히 재사용된다는 것 하나였다. 그래서 이름을 **L 값 기반**(`_L0p1500_`, `_ltag()`)으로
-# 바꾸고 기존 70개를 마이그레이션했다 -- 이제 중간 삽입이 안전하다.
-#
-# 왜 삽입해야 했나: 앵커가 [0.15, 0.35]로 벌어져 있는 구간에서 **PMOS의 L 보간이 gm/ID를
-# 물리 상한(~30-38) 너머로 부순다**(L=0.30um에서 56,646). PMOS는 이 구간에서 같은 VGS의 ID가
-# 6자릿수 변하는데(짧은 채널 DIBL -- 물성 자체는 정상) `_gm_id_curve()`가 ID는 로그공간,
-# GM은 선형공간에서 보간해 두 보간이 불일치하기 때문이다. 보간식을 일관되게 고쳐도
-# (sizing_recipe.py 동반 수정) 그 구간의 **정확도**는 앵커를 넣는 것 말고 복원할 방법이 없다.
-# 근거: skills/analog-gmid-design/assets/tests/probe_lut_L_interpolation.py
-#
-# 삽입 위치의 근거: 실제 탐색 범위가 L in [0.15, 1.0]um이고(topology.json의 L_cascode/
-# L_stage2out_* theta bounds), ID 변화가 가장 급한 짧은 채널 쪽을 촘촘하게 둔다.
-# 결과적으로 그 범위 안 최대 앵커 간격이 0.30um(0.70->1.00)로 줄었다.
-#
-# ⚠️ 이 격자를 바꾸면 sky130_regression_reference.json의 nmcnr_3stage 골든값이 바뀐다
-# (L_candidates="lut.L"로 raw LUT.L을 그대로 쓰고, objective=power 동점 tie-break가 "먼저
-# 나온 후보 유지"라 후보 순서/구성에 의존한다) -- 골든 갱신 사유를 커밋에 남길 것.
-L_GRID_UM = [0.15, 0.20, 0.25, 0.30, 0.35, 0.425, 0.5, 0.70, 1.0, 1.5, 2.5, 4.0]
 N_VGS, N_VDS = 49, 49
 VGS_START, VGS_STOP = 0.0, 1.8   # sky130 nfet_01v8/pfet_01v8은 1.8V 소자
 VDS_START, VDS_STOP = 0.0, 1.8
-VS_GRID = [0.0, 0.2, 0.4, 0.6, 0.8]
-F_TEST = 100e6                    # AC 추출 주파수 (fT 대비 충분히 낮은 순수 용량성 구간)
-
+VS_STEP = 0.2                     # 옛 VS 축 [0, 0.2, 0.4, 0.6, 0.8]의 간격 그대로(U-27: 상한만 늘림)
+F_TEST = 100e6                    # AC 추출 주파수 (fT 대비 충분히 낮은 순수 용량성 구간), SVG2_HF 주파수
+NOISE_F_PROBE = 1.0               # SVG2_1HZ 주파수
+LCHOKE_AC = 1e-15                 # AC 측정 중엔 사실상 wire
+LCHOKE_NOISE = 1e9                # noise 측정 중엔 사실상 open
 VGS_ARR = np.linspace(VGS_START, VGS_STOP, N_VGS)
 VDS_ARR = np.linspace(VDS_START, VDS_STOP, N_VDS)
-_NUM_RE = re.compile(r"=\s*([-+0-9.eE]+)\s*$")
+
+# DUT 한 줄(기준 폭 W_ref와 확산 기하의 유일한 출처 -- W_REF_M은 이 줄에서 읽는다). 오라클 어댑터
+# (tools/spice_oracle/legacy_adapter.py)가 이 줄·`.include` 줄·_gen_netlist의 id 출력 줄·`run_device(...)` 호출을
+# 소스 정규식으로 읽는다(첫 일치를 쓴다 -- 주석에 그 형태를 그대로 적으면 주석이 먼저 잡힌다). 형태를 바꾸면 그쪽도 본다.
+DUT_LINE = "xdut d g s b sky130_fd_pr__{devcell} l={L_um}u w=5u ad=2.5p as=2.5p pd=7u ps=7u"
+COL_SUFFIX = {"nfet_01v8": "_n", "pfet_01v8": "_p"}   # 저장 열 접미사(옛 npz와 같음, 엔진 LutSpec.cap_column_suffix)
+OP_PARAMS = ("id", "gm", "gds", "gmbs", "vth", "vdsat")
+
+_SI_EXP = {"f": "e-15", "p": "e-12", "n": "e-9", "u": "e-6", "m": "e-3", "": ""}
+_VAL_RE = re.compile(r"^\s*(\S.*?)\s*=\s*([-+0-9.eE]+)\s*$")
+_BAD_RE = re.compile(r"\b(error|fatal)\b", re.I)
 
 
-NOISE_F_PROBE = 1.0    # SID_1F는 1Hz 기준(§ SemiEmpiricalGmIdLUT.noise_1f_density 참고)
-LCHOKE_AC = 1e-15      # Y11/Y12(100MHz) 측정 중엔 사실상 wire(임피던스 6e-7옴 무시 가능)
-LCHOKE_NOISE = 1e9     # noise(1Hz) 측정 중엔 사실상 open(임피던스 6e9옴, ro보다 훨씬 큼)
+def _w_ref_m():
+    m = re.search(r"\bw=([0-9.]+)(\w?)\s", DUT_LINE)
+    return float(m.group(1) + _SI_EXP[m.group(2)])   # 문자열로 지수를 붙여 5u -> 5e-06 그대로(곱셈 반올림 없음)
 
 
-def _gen_netlist(devcell, L_um, VS, vb_dc, polarity, lod_include):
-    """polarity: +1(NMOS, 양의 VGS/VDS) 또는 -1(PMOS, 음의 VGS/VDS 인가).
+W_REF_M = _w_ref_m()
 
-    배치 7-5b(2026-07-31) -- SID_1F(1/f 노이즈, 배치 7-3g가 요구하지만 이 스크립트엔 없던 필드)
-    추가. 드레인을 이상적 DC 전압원(`vds`)이 그대로 클램프하면 `.noise v(d) ...`가 항상
-    정확히 0을 반환한다(이상적 전압원 노드는 정의상 잡음전압이 0) -- 실측으로 확인한 뒤(아래
-    참고), `vds`가 중간노드 `dd`를 구동하고 큰 인덕터(`lchoke`, DC저항 0 -> 동작점 완전
-    보존)로 실제 드레인 `d`와 분리하는 구조로 바꿨다. 인덕턴스 값은 `alter`로 두 상태를
-    오간다: Y11/Y12(100MHz) 측정 중엔 `LCHOKE_AC`(사실상 wire, 기존 측정과 동일한 결과를
-    내도록)로, noise(1Hz) 측정 직전엔 `LCHOKE_NOISE`(사실상 open, 잡음이 드레인 자체
-    출력임피던스로만 나타나도록)로 전환 -- 단일 인덕터로 두 마리 토끼를 잡을 수 없어서
-    (임피던스는 주파수에 비례 증가만 하므로) 값 자체를 전환하는 방식을 택했다. 단일
-    bias점 스탠드얼론 테스트로 세 가지 다 확인: (1) 초기 클램프 구조는 노이즈가 항상
-    0(이상적 전압원 노드는 잡음전압이 정의상 0), (2) choke-decouple 단독 구조는 비영값,
-    (3) choke 토글(AC 측정 땐 작게, noise 측정 땐 크게)이 기존 Y11/Y12/id/gm/gds 값을
-    전혀 바꾸지 않으면서 (2)와 정확히 같은 noise 값을 낸다."""
-    vgs_vals = [round(polarity * v, 6) for v in VGS_ARR]
-    vds_vals = [round(polarity * v, 6) for v in VDS_ARR]
+
+def _sha256(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for blk in iter(lambda: f.read(1 << 20), b""):
+            h.update(blk)
+    return h.hexdigest()
+
+
+# --------------------------------------------------------------------------- PDK 읽기
+def manufacturing_grid_um(tlef=TLEF_PATH):
+    txt = open(tlef, encoding="utf-8", errors="replace").read()
+    m = re.search(r"^\s*MANUFACTURINGGRID\s+([0-9.eE+-]+)\s*;", txt, re.M)
+    if m is None:
+        raise RuntimeError(f"{tlef}: MANUFACTURINGGRID 없음")
+    return float(m.group(1))
+
+
+def grid_key(l_um, grid_um):
+    """L(um)의 제조 격자 정수 키. 격자 위가 아니면 거부(부동소수 반올림 몇 번만 허용)."""
+    q = l_um / grid_um
+    k = round(q)
+    if abs(q - k) > 4 * math.ulp(q):
+        raise RuntimeError(f"L={l_um} um 이 제조 격자 {grid_um} um 위에 있지 않다")
+    return k
+
+
+def model_file(devcell, corner="tt"):
+    return os.path.join(PDK_ROOT, "cells", devcell, f"sky130_fd_pr__{devcell}__{corner}.pm3.spice")
+
+
+def parse_bins(pm3_path):
+    """모델 파일의 `.model ... nmos|pmos` 블록마다 {model, lmin, lmax, wmin, wmax}[m]."""
+    txt = open(pm3_path, encoding="utf-8", errors="replace").read()
+    bins = []
+    for m in re.finditer(r"^\.model\s+(\S+)\s+[np]mos\b(.*?)(?=^\.model|\Z)", txt, re.S | re.I | re.M):
+        rec = {"model": m.group(1)}
+        for k in ("lmin", "lmax", "wmin", "wmax"):
+            mm = re.search(rf"\b{k}\s*=\s*([-+0-9.eE]+)", m.group(2), re.I)
+            if mm is None:
+                raise RuntimeError(f"{pm3_path}: {m.group(1)}에 {k} 없음")
+            rec[k] = float(mm.group(1))
+        bins.append(rec)
+    if not bins:
+        raise RuntimeError(f"{pm3_path}: .model bin을 하나도 못 읽음")
+    return bins
+
+
+def bin_lmins_um(devcell, bins):
+    """bin lmin 집합(um) -- PDK bins.csv L 집합과 같아야 한다(교차 확인, 다르면 거부)."""
+    lm = sorted({round(b["lmin"] * 1e6, 6) for b in bins})
+    csv_path = os.path.join(PDK_ROOT, "cells", devcell, f"sky130_fd_pr__{devcell}.bins.csv")
+    with open(csv_path, newline="") as f:
+        lc = sorted({round(float(r["L"]), 6) for r in csv.DictReader(f)})
+    if lm != lc:
+        raise RuntimeError(f"{devcell}: 모델 bin lmin 집합 {lm} != bins.csv L 집합 {lc}")
+    return lm, csv_path
+
+
+SHOWMOD_KEYS = ("lmin", "lmax", "wmin", "wmax")
+
+
+def showmod_cmd(inst):
+    """ngspice가 인스턴스에 실제로 고른 bin의 경계를 출력하는 명령. bin 소속은 Python 규칙으로 추정하지 않는다:
+    ngspice-46은 경계값(L = lmax = 이웃 lmin)에서 **아래 bin**을 고른다(lut_regen_plan.md 1.2a 실측)."""
+    return f"showmod m.{inst}.msky130_fd_pr__{{devcell}} : " + " ".join(SHOWMOD_KEYS)
+
+
+def parse_showmod(text, bins):
+    """`echo SHOWMOD <tag>` 뒤의 showmod 출력 블록마다 {tag: {lmin, lmax, wmin, wmax, model}}.
+    model 이름은 showmod가 잘라 찍으므로, 경계 4값이 모델 파일 bin과 정확히(상대 1e-12) 같은 것 하나로 정한다."""
+    out, tag, cur = {}, None, {}
+    for ln in text.splitlines():
+        s = ln.split()
+        if len(s) >= 2 and s[0] == "SHOWMOD":
+            tag, cur = s[1], {}
+            continue
+        if tag is not None and len(s) == 2 and s[0] in SHOWMOD_KEYS:
+            cur[s[0]] = float(s[1])
+            if len(cur) == len(SHOWMOD_KEYS):
+                hit = [b["model"] for b in bins
+                       if all(abs(b[k] - cur[k]) <= 1e-12 * abs(cur[k]) for k in SHOWMOD_KEYS)]
+                if len(hit) != 1:
+                    raise RuntimeError(f"showmod {cur} 와 같은 모델 bin {len(hit)}개 (1개여야 함)")
+                out[tag] = dict(cur, model=hit[0])
+                tag = None
+    return out
+
+
+def ngspice_bins(work, devcell, l_list):
+    """W_ref 인스턴스를 L마다 하나씩 두고 op 뒤 showmod로 ngspice가 실제로 쓴 bin을 읽는다 -> {L문자열: bin}."""
+    stem = f"bins_{devcell}_{len(l_list)}"
+    L = [f"* showmod bins {devcell}"] + model_includes(devcell)
+    L += ["vgs g 0 dc 0", "vds d 0 dc 0", "vsrc s 0 dc 0", "vb b 0 dc 0"]
+    for i, l_um in enumerate(l_list):
+        L.append(DUT_LINE.replace("xdut", f"xd{i}").format(devcell=devcell, L_um=l_um))
+    L += [".control", "op"]
+    for i, l_um in enumerate(l_list):
+        L += [f"echo SHOWMOD {l_um:g}", showmod_cmd(f"xd{i}").format(devcell=devcell)]
+    L += ["quit", ".endc", ".end"]
+    cir, log, err = (os.path.join(work, stem + s) for s in (".cir", ".log", ".err"))
+    open(cir, "w").write("\n".join(L) + "\n")
+    with open(log, "w") as fo, open(err, "w") as fe:
+        subprocess.run([NGSPICE_EXE, "-b", cir], cwd=work, stdout=fo, stderr=fe, timeout=300, check=False)
+    _check_log(stem, log, err)
+    res = parse_showmod(open(log, encoding="utf-8", errors="replace").read(), parse_bins(model_file(devcell)))
+    missing = [f"{x:g}" for x in l_list if f"{x:g}" not in res]
+    if missing:
+        raise RuntimeError(f"{devcell}: showmod 결과 없음 L={missing}")
+    for p in (cir, log, err):
+        _cleanup_temp(p)
+    return res
+
+
+def model_includes(devcell):
+    """DUT 넷리스트의 include 줄(오라클 어댑터가 이 함수 안의 f-string을 정규식으로 읽는다)."""
+    lod_include = LOD_SPICE if devcell.startswith("pfet") else ""
     L = []
-    L.append(f"* AC-based sweep {devcell} L={L_um}um VS={VS}")
     if lod_include:
         L.append(f'.include "{lod_include}"')
     L.append(f'.include "{PDK_ROOT}\\cells\\{devcell}\\sky130_fd_pr__{devcell}__tt.pm3.spice"')
     L.append(f'.include "{PDK_ROOT}\\cells\\{devcell}\\sky130_fd_pr__{devcell}__mismatch.corner.spice"')
-    L.append("")
-    L.append("vgs g 0 dc 0 ac 1")
-    L.append("vds dd 0 dc 0 ac 0")
-    L.append(f"lchoke dd d {LCHOKE_AC}")
-    L.append(f"vb  b 0 dc {vb_dc}")
-    L.append(f"xdut d g 0 b sky130_fd_pr__{devcell} l={L_um}u w=5u ad=2.5p as=2.5p pd=7u ps=7u")
-    L.append("")
-    L.append(".control")
+    return L
+
+
+def _included_files(devcell):
+    return [re.search(r'"(.*)"', ln).group(1).replace("\\\\", "\\") for ln in model_includes(devcell)]
+
+
+# --------------------------------------------------------------------------- sweep 넷리스트·파싱
+def _fields(devcell):
+    """점마다 출력하는 (열 이름, print 식) 순서. 파싱은 이 순서와 식 이름을 그대로 대조한다."""
+    inst = f"@m.xdut.msky130_fd_pr__{devcell}"
+    f = [(p.upper(), f"{inst}[{p}]") for p in OP_PARAMS]
+    f += [("IG_G", "imag(i(vgs))"), ("RG_G", "real(i(vgs))"),
+          ("IG_D", "imag(i(vgs))"), ("ID_D", "imag(i(vds))"),
+          ("IG_S", "imag(i(vgs))"), ("IS_S", "imag(i(vsrc))"),
+          ("IG_B", "imag(i(vgs))"),
+          ("N_1HZ", "inoise_spectrum"), ("N_HF", "inoise_spectrum")]
+    return f
+
+
+def _gen_netlist(devcell, L_um, VS, vb_dc, polarity):
+    """polarity: +1(NMOS) 또는 -1(PMOS, 음의 VGS/VDS 인가). 소스는 `vsrc`(DC 0)로 분리해 AC 여기한다."""
+    vgs_vals = [round(polarity * v, 6) for v in VGS_ARR]
+    vds_vals = [round(polarity * v, 6) for v in VDS_ARR]
+    fl = _fields(devcell)
+    pr = {k: e for k, e in fl}
+    ac = f"ac lin 1 {F_TEST:.0f} {F_TEST:.0f}"
+    L = [f"* AC-based sweep {devcell} L={L_um}um VS={VS}"]
+    L += model_includes(devcell)
+    L += ["", "vgs g 0 dc 0 ac 0", "vds dd 0 dc 0 ac 0", f"lchoke dd d {LCHOKE_AC}", "vsrc s 0 dc 0 ac 0",
+          f"vb  b 0 dc {vb_dc}", DUT_LINE.format(devcell=devcell, L_um=L_um), "", ".control"]
     L.append(f"let vgs_grid = vector({N_VGS})")
-    for i, v in enumerate(vgs_vals):
-        L.append(f"let vgs_grid[{i}] = {v}")
+    L += [f"let vgs_grid[{i}] = {v}" for i, v in enumerate(vgs_vals)]
     L.append(f"let vds_grid = vector({N_VDS})")
-    for i, v in enumerate(vds_vals):
-        L.append(f"let vds_grid[{i}] = {v}")
-    L.append("let ig = 0")
-    L.append(f"while ig < {N_VGS}")
-    L.append("  let vgv = vgs_grid[ig]")
-    L.append("  let ivd = 0")
-    L.append(f"  while ivd < {N_VDS}")
-    L.append("    let vdv = vds_grid[ivd]")
-    L.append("    alter vgs = $&vgv")
-    L.append("    alter vds = $&vdv")
-    L.append("    op")
-    L.append("    echo P")
-    L.append(f"    print @m.xdut.msky130_fd_pr__{devcell}[id]")
-    L.append(f"    print @m.xdut.msky130_fd_pr__{devcell}[gm]")
-    L.append(f"    print @m.xdut.msky130_fd_pr__{devcell}[gds]")
-    L.append("    alter vgs ac = 1")
-    L.append("    alter vds ac = 0")
-    L.append(f"    ac lin 1 {F_TEST:.0f} {F_TEST:.0f}")
-    L.append("    print mag(i(vgs))")            # Y11 -> Cgg
-    L.append("    alter vgs ac = 0")
-    L.append("    alter vds ac = 1")
-    L.append(f"    ac lin 1 {F_TEST:.0f} {F_TEST:.0f}")
-    L.append("    print mag(i(vgs))")            # Y12 -> Cgd
-    L.append(f"    alter lchoke = {LCHOKE_NOISE}")
-    L.append("    alter vgs ac = 1")
-    L.append("    alter vds ac = 0")
-    L.append(f"    noise v(d) vgs dec 1 {NOISE_F_PROBE:.0f} {NOISE_F_PROBE:.0f}")
-    L.append("    print inoise_spectrum")        # 게이트환산 1/f+열 잡음밀도(1Hz) -> SID_1F
-    L.append(f"    alter lchoke = {LCHOKE_AC}")
-    L.append("    let ivd = ivd + 1")
-    L.append("  end")
-    L.append("  let ig = ig + 1")
-    L.append("end")
-    L.append("quit")
-    L.append(".endc")
-    L.append(".end")
+    L += [f"let vds_grid[{i}] = {v}" for i, v in enumerate(vds_vals)]
+    L += ["let ig = 0", f"while ig < {N_VGS}", "  let vgv = vgs_grid[ig]", "  let ivd = 0",
+          f"  while ivd < {N_VDS}", "    let vdv = vds_grid[ivd]",
+          "    alter vgs = $&vgv", "    alter vds = $&vdv", "    op", "    echo P"]
+    L.append(f"    print @m.xdut.msky130_fd_pr__{devcell}[id]")   # 오라클 어댑터가 이 줄에서 op 프로브 형식을 읽는다
+    L += [f"    print {pr[p.upper()]}" for p in OP_PARAMS[1:]]
+    for src, prints in (("vgs", ("IG_G", "RG_G")), ("vds", ("IG_D", "ID_D")), ("vsrc", ("IG_S", "IS_S")),
+                        ("vb", ("IG_B",))):
+        L += [f"    alter {src} ac = 1", f"    {ac}"] + [f"    print {pr[k]}" for k in prints] + [f"    alter {src} ac = 0"]
+    L += [f"    alter lchoke = {LCHOKE_NOISE}", "    alter vgs ac = 1",
+          f"    noise v(d) vgs dec 1 {NOISE_F_PROBE:.0f} {NOISE_F_PROBE:.0f}", f"    print {pr['N_1HZ']}",
+          f"    noise v(d) vgs dec 1 {F_TEST:.0f} {F_TEST:.0f}", f"    print {pr['N_HF']}",
+          "    alter vgs ac = 0", f"    alter lchoke = {LCHOKE_AC}",
+          "    destroy all",
+          "    let ivd = ivd + 1", "  end", "  let ig = ig + 1", "end",
+          f"echo SHOWMOD {L_um:g}", showmod_cmd("xdut").format(devcell=devcell),   # 실제로 쓴 bin(메타)
+          "quit", ".endc", ".end"]
     return "\n".join(L) + "\n"
 
 
-def _parse_output(path):
-    """echo 'P' 마커로 구분된 반복 출력에서 id/gm/gds/Y11-mag/Y12-mag/noise를 순서대로
-    파싱한다(배치 7-5b: `inoise_spectrum` 6번째 값 추가 -- SID_1F)."""
-    lines = open(path, encoding="utf-8", errors="replace").read().splitlines()
-    id_v, gm_v, gds_v, y11_v, y12_v, noise_v = [], [], [], [], [], []
-    cur = []
-    for line in lines:
-        if "[id]" in line:
-            cur = [float(_NUM_RE.search(line).group(1))]
-        elif "[gm]" in line and cur:
-            cur.append(float(_NUM_RE.search(line).group(1)))
-        elif "[gds]" in line and cur:
-            cur.append(float(_NUM_RE.search(line).group(1)))
-        elif line.strip().startswith("mag(") and len(cur) in (3, 4):
-            cur.append(float(_NUM_RE.search(line).group(1)))
-        elif line.strip().startswith("inoise_spectrum") and len(cur) == 5:
-            cur.append(float(_NUM_RE.search(line).group(1)))
-            id_v.append(cur[0]); gm_v.append(cur[1]); gds_v.append(cur[2])
-            y11_v.append(cur[3]); y12_v.append(cur[4]); noise_v.append(cur[5])
+def _parse_output(path, devcell):
+    """`echo P` 마커 뒤의 값 줄을 `_fields` 순서·식 이름과 대조해 읽는다 -> {열: [VGS, VDS] 배열}."""
+    fl = _fields(devcell)
+    n_f = len(fl)
+    rows, cur = [], None
+    for line in open(path, encoding="utf-8", errors="replace").read().splitlines():
+        if line.strip() == "P":
+            if cur is not None:
+                raise RuntimeError(f"{path}: 점 {len(rows)} 값 {len(cur)}개 (기대 {n_f})")
             cur = []
-    n = N_VGS * N_VDS
-    if len(id_v) != n:
-        raise RuntimeError(f"expected {n} points, parsed {len(id_v)} from {path}")
-    ID = np.abs(np.array(id_v)).reshape(N_VGS, N_VDS)
-    GM = np.abs(np.array(gm_v)).reshape(N_VGS, N_VDS)
-    GDS = np.abs(np.array(gds_v)).reshape(N_VGS, N_VDS)
-    CGG = np.abs(np.array(y11_v)).reshape(N_VGS, N_VDS) / (2 * math.pi * F_TEST)
-    CGD = np.abs(np.array(y12_v)).reshape(N_VGS, N_VDS) / (2 * math.pi * F_TEST)
-    SID_1F = np.abs(np.array(noise_v)).reshape(N_VGS, N_VDS)
-    return ID, GM, GDS, CGG, CGD, SID_1F
+            continue
+        if cur is None:
+            continue
+        m = _VAL_RE.match(line)
+        if m is None or line.lstrip().startswith("Doing analysis"):   # 분석마다 찍는 'TEMP = .. TNOM = ..' 줄
+            continue
+        name, expr = fl[len(cur)]
+        if m.group(1).lower() != expr.lower():
+            raise RuntimeError(f"{path}: 점 {len(rows)} 필드 {name}: '{m.group(1)}' != '{expr}'")
+        cur.append(float(m.group(2)))
+        if len(cur) == n_f:
+            rows.append(cur)
+            cur = None
+    if cur is not None or len(rows) != N_VGS * N_VDS:
+        raise RuntimeError(f"expected {N_VGS * N_VDS} points, parsed {len(rows)} from {path}")
+    a = np.array(rows).reshape(N_VGS, N_VDS, n_f)
+    raw = {name: a[:, :, k] for k, (name, _) in enumerate(fl)}
+    w = 2 * math.pi * F_TEST
+    out = {p.upper(): np.abs(raw[p.upper()]) for p in OP_PARAMS}
+    out.update({"CGG": -raw["IG_G"] / w, "CGD": raw["IG_D"] / w, "CGS": raw["IG_S"] / w, "CGB": raw["IG_B"] / w,
+                "CDD": -raw["ID_D"] / w, "CSS": -raw["IS_S"] / w,
+                "SVG2_1HZ": raw["N_1HZ"] ** 2, "SVG2_HF": raw["N_HF"] ** 2})
+    chk = {"gate_real_max_S": float(np.abs(raw["RG_G"]).max()),
+           "vth_raw_min": float(raw["VTH"].min()), "vdsat_raw_min": float(raw["VDSAT"].min())}
+    return out, chk
+
+
+COLUMNS = ("ID", "GM", "GDS", "GMBS", "VTH", "VDSAT", "CGG", "CGD", "CGS", "CGB", "CDD", "CSS", "SVG2_1HZ", "SVG2_HF")
 
 
 def _ltag(L_um: float) -> str:
-    """체크포인트 이름에 쓰는 **L 값 기반** 태그(2026-09-08, B15).
-
-    예전에는 `L_GRID_UM`의 **인덱스**(`_L0_`)를 썼는데, 그러면 격자 중간에 새 앵커를
-    넣는 순간 인덱스가 밀려 **이미 계산된 다른 L의 결과가 조용히 재사용된다**. 값 자체를
-    이름에 넣으면 그 위험이 원천적으로 없어지고 중간 삽입이 안전해진다(옛 주석의 "새 앵커는
-    끝에만 추가" 제약은 이것 하나 때문이었다). 소수점은 파일명에서 `p`로 바꾼다."""
+    """체크포인트 이름에 쓰는 **값 기반** 태그(인덱스 기반이면 격자 중간 삽입 때 다른 L 결과가 조용히 재사용된다)."""
     return ("L%.4f" % L_um).replace(".", "p")
 
 
+def _vstag(VS: float) -> str:
+    return ("VS%.4f" % VS).replace(".", "p")
+
+
 def _cleanup_temp(path, attempts=5, delay=0.4):
-    """임시 넷리스트/출력 파일을 지운다 -- 지워지지 않으면 **남기고 알린다**(2026-09-08).
-
-    왜 예외를 그냥 삼키지 않는가: 조용히 넘어가는 코드는 이 프로젝트가 금지한다. 다만
-    이건 검사가 아니라 **뒷정리**라 성격이 다르다 -- `np.savez(ckpt, ...)`가 이 삭제보다
-    **먼저** 실행되므로 파일이 남아도 LUT 데이터의 정합성에는 아무 영향이 없다. 실제로
-    2026-09-08 스윕이 여기서 `PermissionError [WinError 32]`로 죽어 33개 조합을 남기고
-    중단됐다(Windows에서 ngspice 자식 프로세스/인덱서가 잠깐 파일을 잡고 있는 경합).
-
-    그래서 원인에 맞게 **짧게 재시도**하고(잠금은 대개 순간적이다), 그래도 안 되면
-    경고를 찍고 계속한다 -- 뒷정리 실패가 3시간짜리 스윕을 죽이는 게 더 큰 손해다."""
+    """임시 파일 삭제 -- Windows 잠금 경합은 짧게 재시도, 그래도 안 되면 경고하고 계속(체크포인트는 이미 저장됨)."""
     for i in range(attempts):
         try:
             os.remove(path)
@@ -254,84 +338,418 @@ def _cleanup_temp(path, attempts=5, delay=0.4):
             return True
         except OSError as e:
             if i == attempts - 1:
-                print(f"  [경고] 임시 파일 삭제 실패(계속 진행, 데이터 영향 없음): "
-                      f"{os.path.basename(path)} -- {e}", flush=True)
+                print(f"  [경고] 임시 파일 삭제 실패(계속 진행, 데이터 영향 없음): {os.path.basename(path)} -- {e}",
+                      flush=True)
                 return False
             time.sleep(delay)
     return False
 
 
-def _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign):
-    os.makedirs(CKPT_DIR, exist_ok=True)
-    tag = _ltag(L_um)
-    ckpt = os.path.join(CKPT_DIR, f"{devcell}_{tag}_VS{iVS}.npz")
+def _check_log(stem, *paths):
+    bad = []
+    for p in paths:
+        bad += [ln for ln in open(p, encoding="utf-8", errors="replace").read().splitlines() if _BAD_RE.search(ln)]
+    if bad:
+        raise RuntimeError(f"{stem}: ngspice 오류 {bad[:3]}")
+
+
+def _log_conditions(path):
+    txt = open(path, encoding="utf-8", errors="replace").read()
+    temps = sorted(set(re.findall(r"TEMP\s*=\s*([-0-9.]+)", txt)))
+    vers = sorted(set(re.findall(r"(ngspice-\d+\S*)", txt)))
+    return ";".join(temps), ";".join(vers)
+
+
+def _run_combo(cfg, devcell, L_um, VS, polarity, vb_sign):
+    stem = f"{devcell}_{_ltag(L_um)}_{_vstag(VS)}"
+    ckpt = os.path.join(cfg["ckpt"], stem + ".npz")
     if os.path.exists(ckpt):
         d = np.load(ckpt)
-        if "SID_1F" in d:
-            return d["ID"], d["GM"], d["GDS"], d["CGG"], d["CGD"], d["SID_1F"]
-        # 배치 7-5b 이전(노이즈 없이) 생성된 체크포인트 -- 그대로 못 쓴다. 재실행해서 채운다.
-
+        if str(d["gen_sha256"]) == cfg["gen_sha"] and all(c in d.files for c in COLUMNS):
+            return ({c: d[c] for c in COLUMNS}, json.loads(str(d["checks"])), str(d["temp_log"]),
+                    str(d["ngspice_ver"]), 0.0, True)
     vb_dc = vb_sign * VS * -1
-    netfile = os.path.join(OUTPUT_DIR, f"_ac_{devcell}_{tag}_VS{iVS}.cir")
-    outfile = os.path.join(OUTPUT_DIR, f"_ac_{devcell}_{tag}_VS{iVS}_out.txt")
-    net = _gen_netlist(devcell, L_um, VS, vb_dc, polarity,
-                        LOD_SPICE if devcell.startswith("pfet") else "")
+    netfile = os.path.join(cfg["work"], stem + ".cir")
+    outfile = os.path.join(cfg["work"], stem + "_out.txt")
+    errfile = os.path.join(cfg["work"], stem + "_err.txt")
     with open(netfile, "w") as f:
-        f.write(net)
-    with open(outfile, "w") as fo:
-        subprocess.run([NGSPICE_EXE, "-b", netfile], cwd=OUTPUT_DIR,
-                        stdout=fo, stderr=subprocess.STDOUT, timeout=300)
-    result = _parse_output(outfile)
-    np.savez(ckpt, ID=result[0], GM=result[1], GDS=result[2], CGG=result[3], CGD=result[4],
-             SID_1F=result[5])
-    _cleanup_temp(netfile)
-    _cleanup_temp(outfile)
-    return result
+        f.write(_gen_netlist(devcell, L_um, VS, vb_dc, polarity))
+    t0 = time.time()
+    with open(outfile, "w") as fo, open(errfile, "w") as fe:
+        subprocess.run([NGSPICE_EXE, "-b", netfile], cwd=cfg["work"], stdout=fo, stderr=fe, timeout=600,
+                       check=False)
+    dt = time.time() - t0
+    _check_log(stem, outfile, errfile)
+    out, chk = _parse_output(outfile, devcell)
+    sm = parse_showmod(open(outfile, encoding="utf-8", errors="replace").read(), parse_bins(model_file(devcell)))
+    if list(sm) != [f"{L_um:g}"]:
+        raise RuntimeError(f"{stem}: showmod bin을 못 읽음 {sm}")
+    chk["bin"] = sm[f"{L_um:g}"]
+    temps, vers = _log_conditions(outfile)
+    if not vers:
+        temps2, vers = _log_conditions(errfile)
+        temps = temps or temps2
+    np.savez(ckpt, gen_sha256=cfg["gen_sha"], checks=json.dumps(chk), temp_log=temps, ngspice_ver=vers, **out)
+    for p in (netfile, outfile, errfile):
+        _cleanup_temp(p)
+    return out, chk, temps, vers, dt, False
 
 
-def run_device(devcell: str, polarity: int, vb_sign: int, t0: float):
-    nL, nVS = len(L_GRID_UM), len(VS_GRID)
-    ID = np.zeros((nL, N_VGS, N_VDS, nVS))
-    GM = np.zeros((nL, N_VGS, N_VDS, nVS))
-    GDS = np.zeros((nL, N_VGS, N_VDS, nVS))
-    CGG = np.zeros((nL, N_VGS, N_VDS, nVS))
-    CGD = np.zeros((nL, N_VGS, N_VDS, nVS))
-    SID_1F = np.zeros((nL, N_VGS, N_VDS, nVS))
-    for iL, L_um in enumerate(L_GRID_UM):
-        for iVS, VS in enumerate(VS_GRID):
-            id_, gm_, gds_, cgg_, cgd_, sid1f_ = _run_combo(devcell, iL, L_um, iVS, VS, polarity, vb_sign)
-            ID[iL, :, :, iVS] = id_
-            GM[iL, :, :, iVS] = gm_
-            GDS[iL, :, :, iVS] = gds_
-            CGG[iL, :, :, iVS] = cgg_
-            CGD[iL, :, :, iVS] = cgd_
-            SID_1F[iL, :, :, iVS] = sid1f_
-            print(f"  [{devcell}] L={L_um}um VS={VS} done ({time.time()-t0:.0f}s elapsed)", flush=True)
-    return ID, GM, GDS, CGG, CGD, SID_1F
+def run_device(devcell: str, polarity: int, vb_sign: int, cfg: dict):
+    """한 소자의 (L, VS) 조합 전부를 cfg['jobs'] 병렬로 돌려 [L, VGS, VDS, VS] 배열 dict와 조합 기록을 낸다."""
+    Ls, VSs = cfg["L_um"], cfg["VS"]
+    arr = {c: np.zeros((len(Ls), N_VGS, N_VDS, len(VSs))) for c in COLUMNS}
+    recs = []
+    with cf.ThreadPoolExecutor(max_workers=cfg["jobs"]) as ex:
+        futs = {ex.submit(_run_combo, cfg, devcell, L, VS, polarity, vb_sign): (iL, iV)
+                for iL, L in enumerate(Ls) for iV, VS in enumerate(VSs)}
+        for fu in cf.as_completed(futs):
+            iL, iV = futs[fu]
+            out, chk, temps, vers, dt, cached = fu.result()
+            for c in COLUMNS:
+                arr[c][iL, :, :, iV] = out[c]
+            recs.append({"L_um": Ls[iL], "VS": float(VSs[iV]), "checks": chk, "temp": temps, "ngspice": vers,
+                         "seconds": round(dt, 3), "cached": cached})
+            with open(cfg["progress"], "a", encoding="utf-8") as pf:
+                pf.write(f"{devcell} L={Ls[iL]} VS={VSs[iV]:.4f} {'cached' if cached else f'{dt:.2f}s'} "
+                         f"elapsed={time.time() - cfg['t0']:.0f}s\n")
+    return arr, recs
+
+
+# --------------------------------------------------------------------------- L 입력
+def read_l_list(l_json=None, l_um=None):
+    """L 목록(um)과 출처. `--l-json`: 리스트 또는 {"L_um": [...]} json. `--l-um`: 쉼표 목록."""
+    if l_json is not None and l_um is not None:
+        raise SystemExit("--l-json 과 --l-um 중 하나만 준다")
+    if l_json is None and l_um is None:
+        l_json = L_GRID_JSON   # 기본: 승인된 L 목록 파일
+    if l_json is not None:
+        d = json.load(open(l_json, encoding="utf-8"))
+        vals = d["L_um"] if isinstance(d, dict) else d
+        src = {"kind": "json", "path": os.path.abspath(l_json), "sha256": _sha256(l_json)}
+    else:
+        vals = [x for x in l_um.split(",") if x.strip()]
+        src = {"kind": "cli", "value": l_um}
+    vals = [float(v) for v in vals]
+    if vals != sorted(set(vals)):
+        raise SystemExit(f"L 목록은 중복 없이 오름차순이어야 한다: {vals}")
+    return vals, src
+
+
+def check_l_list(l_list, devices, grid_um, work):
+    """각 L: 제조 격자 위, 모델 bin L 범위([lmin 최솟값, lmax 최댓값]) 안. bin은 ngspice showmod로 읽는다
+    -> {devcell: {L문자열: {lmin, lmax, wmin, wmax, model}}}."""
+    out = {}
+    for dev in devices:
+        bins = parse_bins(model_file(dev))
+        lo, hi = min(b["lmin"] for b in bins) * 1e6, max(b["lmax"] for b in bins) * 1e6
+        for L in l_list:
+            grid_key(L, grid_um)
+            if not lo - 1e-9 <= L <= hi + 1e-9:
+                raise SystemExit(f"{dev}: L={L} um 이 모델 bin 범위 [{lo}, {hi}] 밖")
+        out[dev] = ngspice_bins(work, dev, l_list)
+    return out
+
+
+# --------------------------------------------------------------------------- candidates (bin 경계 불연속 측정)
+def _read_raw(path):
+    """ngspice binary rawfile(실수) -> {변수 이름 또는 [param]: ndarray}."""
+    b = open(path, "rb").read()
+    i = b.index(b"Binary:\n")
+    nv = npt = None
+    names, invars = [], False
+    for ln in b[:i].decode("latin1").splitlines():
+        if ln.startswith("No. Variables:"):
+            nv = int(ln.split(":")[1])
+        elif ln.startswith("No. Points:"):
+            npt = int(ln.split(":")[1])
+        elif ln.startswith("Flags:") and "real" not in ln:
+            raise RuntimeError(f"{path}: 복소 raw는 지원 안 함")
+        elif ln.startswith("Variables:"):
+            invars = True
+        elif invars and ln.strip():
+            names.append(ln.split()[1])
+    a = np.frombuffer(b[i + 8:], dtype="<f8", count=nv * npt).reshape(npt, nv)
+    out = {}
+    for k, n in enumerate(names):
+        mm = re.search(r"\[(\w+)\]", n)
+        out[mm.group(1) if mm else n] = a[:, k]
+    return out
+
+
+def _dc_run(work, devcell, L_um, VS_arr, polarity, vb_sign):
+    """W_ref·L에서 VS마다 .dc(VDS 안쪽, VGS 바깥) -> id, gm, vth, vdsat [VGS, VDS, VS] (절댓값)."""
+    stem = f"dc_{devcell}_{_ltag(L_um)}"
+    inst = f"@m.xdut.msky130_fd_pr__{devcell}"
+    sg, sd = (VGS_STOP - VGS_START) / (N_VGS - 1), (VDS_STOP - VDS_START) / (N_VDS - 1)
+    L = [f"* bin boundary probe {devcell} L={L_um}"] + model_includes(devcell)
+    L += ["vgs g 0 dc 0", "vds d 0 dc 0", "vsrc s 0 dc 0", "vb b 0 dc 0", DUT_LINE.format(devcell=devcell, L_um=L_um),
+          ".save v(g) v(d) " + " ".join(f"{inst}[{q}]" for q in ("id", "gm", "vth", "vdsat")), ".control",
+          "set filetype=binary"]
+    for k, vs in enumerate(VS_arr):
+        L.append(f"alter vb dc = {vb_sign * vs * -1:.9g}")
+        L.append(f"dc vds {polarity * VDS_START:.9g} {polarity * VDS_STOP:.9g} {polarity * sd:.9g} "
+                 f"vgs {polarity * VGS_START:.9g} {polarity * VGS_STOP:.9g} {polarity * sg:.9g}")
+        L.append(f"write {os.path.join(work, f'{stem}_vs{k}.raw').replace(os.sep, '/')}")
+    L += ["quit", ".endc", ".end"]
+    cir, log, err = (os.path.join(work, stem + s) for s in (".cir", ".log", ".err"))
+    open(cir, "w").write("\n".join(L) + "\n")
+    with open(log, "w") as fo, open(err, "w") as fe:
+        subprocess.run([NGSPICE_EXE, "-b", cir], cwd=work, stdout=fo, stderr=fe, timeout=300, check=False)
+    _check_log(stem, log, err)
+    res = {q: np.empty((N_VGS, N_VDS, len(VS_arr))) for q in ("id", "gm", "vth", "vdsat")}
+    for k in range(len(VS_arr)):
+        rp = os.path.join(work, f"{stem}_vs{k}.raw")
+        r = _read_raw(rp)
+        for q in res:
+            res[q][:, :, k] = np.abs(r[q]).reshape(N_VGS, N_VDS)
+        _cleanup_temp(rp)
+    for p in (cir, log, err):
+        _cleanup_temp(p)
+    return res
+
+
+def boundary_probe(work, devcell, polarity, vb_sign, b_um, grid_um, VS_arr):
+    """모델 경계값 b 근처 격자점 b−2g … b+2g의 실제 bin(showmod)에서 전환 칸(t → t+1)을 찾고, 전환 칸의 Δln ID에서
+    양쪽 bin 안 칸(t−1→t, t+1→t+2)의 평균을 뺀 점프(매끄러운 L 의존 제거)를 VGS 환산(÷ gm/ID)으로 잰다.
+    점 = 네 L 모두 켜짐·포화(ID>0, VGS>=VTH, VDS>=VDSAT -- 문턱·포화 기준은 모델 op 값), W_ref, 전 VGS·VDS·VS 격자.
+    불연속 판정은 하지 않는다(계획 K1b: '점프 > 그 셀 tol_V' -- tol_V는 입력). `end_point_um` = 전환 칸 두 점 가운데
+    b가 아닌 점(b가 들지 않은 bin의 끝점; ngspice-46은 b를 아래 bin에 넣으므로 b+g)."""
+    k = grid_key(b_um, grid_um)
+    L5 = [round((k + d) * grid_um, 9) for d in (-2, -1, 0, 1, 2)]
+    sm = ngspice_bins(work, devcell, L5)
+    names = [sm[f"{L:g}"]["model"] for L in L5]
+    trans = [i for i in range(4) if names[i] != names[i + 1]]
+    if len(trans) != 1 or trans[0] not in (1, 2):
+        return {"boundary_um": b_um, "L_um": L5, "bins": names, "skipped": "W_ref에서 전환이 한 번이 아님"}
+    t = trans[0]
+    Ls = L5[t - 1:t + 3]
+    end_point = Ls[2] if Ls[1] == round(k * grid_um, 9) else Ls[1]
+    r = [_dc_run(work, devcell, L, VS_arr, polarity, vb_sign) for L in Ls]
+    names = names[t - 1:t + 3]
+    vg = VGS_ARR[:, None, None]
+    vd = VDS_ARR[None, :, None]
+    mask = np.ones(r[0]["id"].shape, bool)
+    for x in r:
+        mask &= (x["id"] > 0) & (x["gm"] > 0) & (vg >= x["vth"]) & (vd >= x["vdsat"])
+    lid = [np.log(np.where(mask, x["id"], 1.0)) for x in r]
+    d = [lid[i + 1] - lid[i] for i in range(3)]          # 부호 있는 한 칸 Δln ID: 아래 bin 칸, 전환 칸, 위 bin 칸
+    excess = d[1] - (d[0] + d[2]) / 2                     # 매끄러운 L 의존(1·2차)을 뺀 전환 칸 점프
+    gmid = r[1]["gm"] / np.where(mask, r[1]["id"], 1.0)
+    jump_v = np.abs(excess)[mask] / gmid[mask]            # VGS 환산 점프 |Δln ID|/(gm/ID) [V]
+    dvth = np.abs((r[2]["vth"] - r[1]["vth"]) - ((r[1]["vth"] - r[0]["vth"]) + (r[3]["vth"] - r[2]["vth"])) / 2)[mask]
+
+    def q(a):
+        return {"median": float(np.median(a)), "p90": float(np.percentile(a, 90)), "max": float(a.max())}
+
+    return {"boundary_um": b_um, "L_um": Ls, "bins": names, "end_point_um": end_point, "n_points": int(mask.sum()),
+            "median_step_dlnID": {"lower_bin": float(np.median(d[0][mask])), "switch": float(np.median(d[1][mask])),
+                                  "upper_bin": float(np.median(d[2][mask]))},
+            "switch_excess_dlnID": q(np.abs(excess)[mask]), "switch_jump_vgs_equiv_V": q(jump_v),
+            "switch_excess_dVTH_V": q(dvth)}
+
+
+def candidates(a):
+    grid = manufacturing_grid_um(a.tlef)
+    devices = a.devices.split(",")
+    vs_arr = vs_axis(a.vs_max)
+    old = np.load(a.existing_npz)
+    existing = sorted({round(grid_key(float(x) * 1e6, grid) * grid, 9) for x in old["L"]})
+    lmins, per_dev = set(), {}
+    for dev in devices:
+        lm, _ = bin_lmins_um(dev, parse_bins(model_file(dev)))
+        per_dev[dev] = lm
+        lmins.update(lm)
+    lo = min(lmins)
+    in_range = lambda x: lo - 1e-12 <= x <= a.l_max_um + 1e-12   # noqa: E731
+    lmins = sorted(x for x in lmins if in_range(x))
+    os.makedirs(a.work, exist_ok=True)
+    probes = {dev: [] for dev in devices}
+    disc, ends = set(), set()
+    for b in (x for x in lmins if x > lo):
+        for dev in devices:
+            if b not in per_dev[dev]:
+                continue
+            pol, vbs = (+1, +1) if COL_SUFFIX[dev] == "_n" else (-1, -1)
+            p = boundary_probe(a.work, dev, pol, vbs, b, grid, vs_arr)
+            if "skipped" not in p:   # 판정: 입력(--discontinuous-um 결정 또는 --tol-v 해상도). 이 파일은 임계값을 갖지 않는다
+                if a.discontinuous_um is not None:
+                    p["discontinuous"] = any(abs(b - x) < grid / 2 for x in a.discontinuous_um)
+                    p["decided_by"] = "--discontinuous-um"
+                else:
+                    p["discontinuous"] = p["switch_jump_vgs_equiv_V"]["max"] > a.tol_v
+                    p["decided_by"] = f"--tol-v {a.tol_v} vs max VGS-equivalent jump"
+                if p["discontinuous"]:
+                    disc.add(b)
+                    ends.add(p["end_point_um"])
+            probes[dev].append(p)
+    ends = sorted(ends)
+    cand = sorted({x for x in existing + lmins + ends if in_range(x)})
+    origin = {f"{x:g}": [t for t, s in (("existing_anchor", existing), ("bin_lmin", lmins),
+                                        ("other_side_end_of_discontinuous_boundary", ends)) if x in s] for x in cand}
+    bins_c = check_l_list(cand, devices, grid, a.work)
+    # 점이 2개(양끝)뿐인 bin 구간의 검증 전용 중점(LUT 축 아님, 계획 K2'). bin 구간 = W_ref가 쓰는 W bin(showmod
+    # wmin/wmax)의 L 구간 [lmin, lmax]. 연속 경계 b는 양쪽 구간의 공통 끝점, 불연속 경계 b는 showmod가 고른 bin에만 든다.
+    groups = {}
+    for dev in devices:
+        used = bins_c[dev]
+        wset = {(u["wmin"], u["wmax"]) for u in used.values()}
+        if len(wset) != 1:
+            raise RuntimeError(f"{dev}: 후보 L마다 W bin이 다름 {wset}")
+        wmin, wmax = next(iter(wset))
+        for bn in parse_bins(model_file(dev)):
+            if bn["wmin"] != wmin or bn["wmax"] != wmax:
+                continue
+            l0, l1 = bn["lmin"] * 1e6, bn["lmax"] * 1e6
+            mem = [x for x in cand if l0 - 1e-9 <= x <= l1 + 1e-9
+                   and not (any(abs(x - b) < grid / 2 for b in disc) and used[f"{x:g}"]["model"] != bn["model"])]
+            if mem:
+                groups[(dev, bn["model"])] = mem
+    mids = sorted({round(round((g[0] + g[1]) / 2 / grid) * grid, 9) for g in groups.values() if len(g) == 2})
+    res = {"generated": datetime.datetime.now().isoformat(timespec="seconds"),
+           "generator": os.path.basename(__file__), "generator_sha256": _sha256(os.path.abspath(__file__)),
+           "manufacturing_grid_um": grid, "tlef": a.tlef, "l_max_um": a.l_max_um, "w_ref_m": W_REF_M,
+           "existing_npz": os.path.abspath(a.existing_npz), "existing_anchors_um": existing,
+           "bin_lmins_um": lmins, "discontinuous_boundaries_um": sorted(disc), "other_side_end_points_um": ends,
+           "rule": "bin membership = ngspice showmod (not a Python rule). At each model boundary b, find the grid step "
+                   "where the actual bin switches (t->t+1); jump = dlnID(switch) - mean(dlnID of the two in-bin "
+                   "neighbour steps), VGS-equivalent = |jump|/(gm/ID); points on & saturated at all 4 L (ID>0, VGS>=VTH, "
+                   "VDS>=VDSAT), W=W_ref, full VGS/VDS/VS axes. Discontinuity is an input decision "
+                   "(--discontinuous-um, or --tol-v vs max jump). For a discontinuous b, add the switch-step point that "
+                   "is not b (end point of the bin b does not belong to).",
+           "decision_input": {"discontinuous_um": a.discontinuous_um, "tol_v": a.tol_v},
+           "VS_axis": vs_arr.tolist(), "probes": probes, "candidates_um": cand, "origin": origin,
+           "verification_midpoints_um_two_point_bins": mids, "bins_at_w_ref": bins_c}
+    if os.path.exists(a.compare_json):   # 승인 목록 파일과 대조(모델 파일에서 같은 목록이 다시 나오는지)
+        ref = json.load(open(a.compare_json, encoding="utf-8"))
+        res["compare"] = {"file": os.path.abspath(a.compare_json), "sha256": _sha256(a.compare_json),
+                          "L_um_equal": [round(x, 9) for x in ref["L_um"]] == cand,
+                          "midpoints_equal": [round(x, 9) for x in ref.get("verification_midpoints_um", [])] == mids}
+        print(f"compare {a.compare_json}: {res['compare']}")
+    with open(a.out, "w", encoding="utf-8") as f:
+        json.dump(res, f, ensure_ascii=False, indent=1)
+    print(f"candidates ({len(cand)}): {cand}")
+    print(f"discontinuous boundaries: {sorted(disc)}")
+    return res
+
+
+# --------------------------------------------------------------------------- sweep
+def vs_axis(vs_max=None):
+    top = VGS_STOP if vs_max is None else vs_max
+    n = int(round(top / VS_STEP)) + 1
+    v = np.round(VS_STEP * np.arange(n), 9)
+    if abs(v[-1] - top) > 1e-9:
+        raise SystemExit(f"VS 상한 {top} 이 간격 {VS_STEP}의 배수가 아니다")
+    return v
+
+
+def sweep(a):
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    grid = manufacturing_grid_um(a.tlef)
+    l_list, l_src = read_l_list(a.l_json, a.l_um)
+    devices = a.devices.split(",")
+    VS = vs_axis(a.vs_max)
+    os.makedirs(a.work, exist_ok=True)
+    bins_per_L = check_l_list(l_list, devices, grid, a.work)
+    ckpt = os.path.join(a.work, "ckpt")
+    os.makedirs(ckpt, exist_ok=True)
+    gen_sha = _sha256(os.path.abspath(__file__))
+    cfg = dict(work=a.work, ckpt=ckpt, gen_sha=gen_sha, L_um=l_list, VS=VS, jobs=a.jobs, t0=time.time(),
+               progress=os.path.join(a.work, "generation_progress.log"))
+    with open(cfg["progress"], "a", encoding="utf-8") as pf:
+        pf.write(f"# start {datetime.datetime.now().isoformat(timespec='seconds')} gen_sha256={gen_sha} "
+                 f"L={l_list} VS={VS.tolist()} devices={devices} jobs={a.jobs}\n")
+    runners = {"nfet_01v8": lambda: run_device("nfet_01v8", polarity=+1, vb_sign=+1, cfg=cfg),
+               "pfet_01v8": lambda: run_device("pfet_01v8", polarity=-1, vb_sign=-1, cfg=cfg)}
+    save, combos, model_sha = {}, {}, {}
+    temps, vers = set(), set()
+    checks = {}
+    for dev in devices:
+        arr, recs = runners[dev]()
+        sfx = COL_SUFFIX[dev]
+        save.update({c + sfx: arr[c] for c in COLUMNS})
+        combos[dev] = sorted(recs, key=lambda r: (r["L_um"], r["VS"]))
+        bad = [(r["L_um"], r["VS"]) for r in recs if r["checks"]["bin"] != bins_per_L[dev][f"{r['L_um']:g}"]]
+        if bad:   # 스윕 프로세스 안 showmod와 사전 showmod가 다르면 거부
+            raise RuntimeError(f"{dev}: 조합 showmod bin이 사전 확인과 다름 {bad[:5]}")
+        temps |= {r["temp"] for r in recs}
+        vers |= {r["ngspice"] for r in recs}
+        files = _included_files(dev) + [os.path.join(PDK_ROOT, "cells", dev, f"sky130_fd_pr__{dev}.bins.csv")]
+        model_sha[dev] = {os.path.relpath(f, PDK_ROOT).replace(os.sep, "/"): _sha256(f) for f in files}
+        cgg = arr["CGG"]
+        nz = np.abs(cgg) > 0
+        rowsum = np.abs(cgg - (arr["CGD"] + arr["CGS"] + arr["CGB"]))[nz] / np.abs(cgg)[nz]
+        checks[dev] = {"gate_rowsum_rel_max": float(rowsum.max()),
+                       "gate_real_max_S": max(r["checks"]["gate_real_max_S"] for r in recs),
+                       "vth_raw_min": min(r["checks"]["vth_raw_min"] for r in recs),
+                       "vdsat_raw_min": min(r["checks"]["vdsat_raw_min"] for r in recs),
+                       "cgg_min_F": float(cgg.min()), "cgb_min_F": float(arr["CGB"].min())}
+    if len(temps) != 1 or len(vers) != 1 or not next(iter(temps)):
+        raise RuntimeError(f"온도/버전이 조합마다 같지 않거나 못 읽음: {temps} {vers}")
+    temp_c = float(next(iter(temps)))
+    meta = {
+        "generator": os.path.basename(__file__), "generator_sha256": gen_sha, "ngspice": next(iter(vers)),
+        "ngspice_exe": NGSPICE_EXE, "pdk_root": PDK_ROOT, "corner": "tt", "temp_c_from_log": temp_c,
+        "model_files_sha256": model_sha, "w_ref_m": W_REF_M, "dut_line": DUT_LINE,
+        "L_source": l_src, "model_bin_per_L_at_w_ref": bins_per_L,
+        "manufacturing_grid_um": grid, "tlef": a.tlef,
+        "axes": {"L_m": [x * 1e-6 for x in l_list], "VGS_V": VGS_ARR.tolist(), "VDS_V": VDS_ARR.tolist(),
+                 "VS_V": VS.tolist()},
+        "array_layout": "[L, VGS, VDS, VS]", "column_suffix": COL_SUFFIX,
+        "units": {"ID": "A at W_ref", "GM": "S", "GDS": "S", "GMBS": "S", "VTH": "V", "VDSAT": "V",
+                  "CGG": "F", "CGD": "F", "CGS": "F", "CGB": "F", "CDD": "F", "CSS": "F",
+                  "SVG2_1HZ": "V^2/Hz (gate-referred, f=NOISE_F_PROBE)", "SVG2_HF": "V^2/Hz (gate-referred, f=F_TEST)"},
+        "sign_convention": "ID/GM/GDS/GMBS/VTH/VDSAT absolute values of BSIM op params (VDSAT = ngspice @m[vdsat], "
+                           "same as tools/spice_oracle). Capacitances keep sign: CGG=-Im(i(vgs))/w gate-excited, "
+                           "C_gx=+Im(i(vgs))/w x-excited (x=d,s,b), CDD=-Im(i(vds))/w, CSS=-Im(i(vsrc))/w, w=2*pi*F_TEST. "
+                           "Source node at 0 V via vsrc; body = -VS (nfet) / +VS (pfet); pfet driven with negative VGS/VDS.",
+        "frequencies_hz": {"F_TEST": F_TEST, "NOISE_F_PROBE": NOISE_F_PROBE},
+        "checks": checks, "combos": combos,
+        "date": datetime.date.today().isoformat(),
+    }
+    np.savez(a.out, corner="tt", temp_c=temp_c, w_ref_m=W_REF_M,
+             L=np.array(l_list) * 1e-6, VGS=VGS_ARR, VDS=VDS_ARR, VS=VS,
+             meta_json=json.dumps(meta, ensure_ascii=False), **save)
+    with open(cfg["progress"], "a", encoding="utf-8") as pf:
+        pf.write(f"# saved {a.out} total {time.time() - cfg['t0']:.1f}s\n")
+    print(f"Saved to {a.out} (total {time.time() - cfg['t0']:.0f}s)")
+    for k in sorted(save):
+        print(f"{k}: min={save[k].min():.3e} max={save[k].max():.3e}")
+
+
+def main(argv=None):
+    ap = argparse.ArgumentParser(description="sky130 기준 폭 gm/ID LUT 생성기")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    s = sub.add_parser("sweep", help="LUT 생성")
+    s.add_argument("--l-json", default=None,
+                   help='L 목록 json(리스트 또는 {"L_um": [...]}); --l-um도 없으면 기본 sky130_lut_L_grid.json')
+    s.add_argument("--l-um", default=None, help="L 목록(um, 쉼표)")
+    s.add_argument("--out", required=True, help="산출 npz 경로")
+    s.add_argument("--work", required=True, help="임시 넷리스트·체크포인트·진행 로그 경로")
+    s.add_argument("--jobs", type=int, default=8)
+    s.add_argument("--devices", default="nfet_01v8,pfet_01v8")
+    s.add_argument("--vs-max", type=float, default=None, help="기본 = VGS 축 상한(소자 정격)")
+    s.add_argument("--tlef", default=TLEF_PATH)
+    c = sub.add_parser("candidates", help="L 후보 = 기존 앵커 ∪ bin lmin ∪ 불연속 경계 바로 아래 점")
+    c.add_argument("--l-max-um", type=float, required=True, help="L 상한(사용자 결정 값을 넘긴다)")
+    dg = c.add_mutually_exclusive_group(required=True)
+    dg.add_argument("--discontinuous-um", type=lambda s: [float(x) for x in s.split(",") if x.strip()],
+                    help="불연속으로 둘 경계 b(um, 쉼표) -- 결정 입력(예: 계획 K1b 기본안)")
+    dg.add_argument("--tol-v", type=float, help="VGS 환산 점프 최댓값이 이 값(V, tol_V)을 넘는 경계를 불연속으로")
+    c.add_argument("--work", required=True)
+    c.add_argument("--out", required=True)
+    c.add_argument("--existing-npz", default=EXISTING_LUT)
+    c.add_argument("--compare-json", default=L_GRID_JSON, help="후보·중점을 대조할 L 목록 파일(기본 승인 목록)")
+    c.add_argument("--devices", default="nfet_01v8,pfet_01v8")
+    c.add_argument("--vs-max", type=float, default=None)
+    c.add_argument("--tlef", default=TLEF_PATH)
+    a = ap.parse_args(argv)
+    if a.cmd == "sweep":
+        sweep(a)
+    else:
+        candidates(a)
 
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    t0 = time.time()
-
-    print("=== NMOS (nfet_01v8) ===")
-    ID_n, GM_n, GDS_n, CGG_n, CGD_n, SID_1F_n = run_device("nfet_01v8", polarity=+1, vb_sign=+1, t0=t0)
-
-    print("=== PMOS (pfet_01v8) ===")
-    ID_p, GM_p, GDS_p, CGG_p, CGD_p, SID_1F_p = run_device("pfet_01v8", polarity=-1, vb_sign=-1, t0=t0)
-
-    npz_path = os.path.join(OUTPUT_DIR, "sky130_nfet_pfet_lut_sample.npz")
-    # 2026-09-08(A5) -- **이 LUT이 어느 조건에서 나왔는지**를 파일 자신이 들고 있게 한다.
-    # 이전에는 배열만 저장해, 사이징 결과가 어느 코너/온도에서 유효한지 산출물로 추적할
-    # 방법이 없었다(계획 §10.2 A5). 값은 지어낸 것이 아니라 이 스크립트가 실제로 쓰는 것이다:
-    #   corner -- 위 `.include`가 `__tt.pm3.spice`(typical-typical)를 넣는다
-    #   temp_c -- `.temp`/`.options temp` 지시자를 아예 안 넣으므로 ngspice 기본값 27C
-    np.savez(npz_path,
-             corner="tt", temp_c=27.0,
-             L=np.array(L_GRID_UM) * 1e-6, VGS=VGS_ARR, VDS=VDS_ARR, VS=np.array(VS_GRID),
-             ID_n=ID_n, GM_n=GM_n, GDS_n=GDS_n, CGG_n=CGG_n, CGD_n=CGD_n, SID_1F_n=SID_1F_n,
-             ID_p=ID_p, GM_p=GM_p, GDS_p=GDS_p, CGG_p=CGG_p, CGD_p=CGD_p, SID_1F_p=SID_1F_p)
-    print(f"\nSaved to {npz_path} (total {time.time()-t0:.0f}s)")
-    for name, arr in [("ID_n", ID_n), ("CGG_n", CGG_n), ("CGD_n", CGD_n), ("SID_1F_n", SID_1F_n),
-                      ("ID_p", ID_p), ("CGG_p", CGG_p), ("CGD_p", CGD_p), ("SID_1F_p", SID_1F_p)]:
-        print(f"{name}: min={arr.min():.3e} max={arr.max():.3e}")
+    main()

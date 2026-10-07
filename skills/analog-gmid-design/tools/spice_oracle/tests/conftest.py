@@ -86,6 +86,19 @@ def process_block(lut: Path, diffusion=True) -> dict:
     return blk
 
 
+# C22(free 는 확산 기하 필수): 독립 넷리스트(ad/pd 없음 = subckt 기본 0)와 같은 회로를 free 로 돌릴 때 쓰는 명시적 면적 0.
+ZERO_DIFFUSION = {"ad_m2": 0.0, "as_m2": 0.0, "pd_m": 0.0, "ps_m": 0.0,
+                  "basis": "test: 면적 0 명시(독립 넷리스트에 ad/pd 없음과 같은 회로)"}
+# C23(엔진 예측 전도 소자의 문턱 필수): 문턱 0 = 옛 'ID > 0 이면 전도' 규칙을 명시한 값.
+OFF_ZERO = {"M1": {"off_current_A": 0.0}, "MP1": {"off_current_A": 0.0}}
+
+
+def zero_diffusion(inp: dict) -> dict:
+    for d in inp["devices"]:
+        d["diffusion"] = dict(ZERO_DIFFUSION)
+    return inp
+
+
 def testbench_block() -> dict:
     return {"dc_choke_H": 1e12, "ac_couple_F": 1.0,
             "options": {"gmin": "1e-15", "reltol": "1e-4", "abstol": "1e-14", "vntol": "1e-7"},
@@ -112,7 +125,7 @@ def cs_input(lut: Path, *, preds_nodes=None, preds_devices=None, metrics=None, c
     inp = {
         "schema": "spice_oracle_input/1",
         "circuit": circuit,
-        "process": process_block(lut, diffusion=diffusion),
+        "process": process_block(lut, diffusion=diffusion is True),
         "rails": [{"net": "vdd", "voltage": c["vdd"]}, {"net": "vsp", "voltage": c["vsp"]},
                   {"net": "gnd", "voltage": 0.0, "reference": True}],
         "devices": [dev_n, dev_p],
@@ -127,6 +140,8 @@ def cs_input(lut: Path, *, preds_nodes=None, preds_devices=None, metrics=None, c
                         "metrics": metrics or []},
         "testbench": testbench_block(),
     }
+    if diffusion == "zero":
+        zero_diffusion(inp)
     if bias_voltages == "default":
         inp["bias_voltages"] = [{"net": "pb", "value": c["pb"]}]
     elif bias_voltages is not None:
@@ -174,8 +189,9 @@ FB = dict(vdd=1.8, vin=0.7, rload=1e5, cl=10e-12, rf=1e6, cin=10e-12, L=0.5e-6, 
           loop_choke=1e20)
 
 
-def fb_input(lut: Path, *, feedback=("Rf", "Cin"), circuit="tfb_cs_rfeedback", loop_choke="default") -> dict:
-    c = FB
+def fb_input(lut: Path, *, feedback=("Rf", "Cin"), circuit="tfb_cs_rfeedback", loop_choke="default",
+             cin=None, cl=None) -> dict:
+    c = dict(FB, **{k: v for k, v in (("cin", cin), ("cl", cl)) if v is not None})
     inp = {
         "schema": "spice_oracle_input/1",
         "circuit": circuit,
@@ -191,6 +207,7 @@ def fb_input(lut: Path, *, feedback=("Rf", "Cin"), circuit="tfb_cs_rfeedback", l
         "predictions": {"nodes": {"nin": c["vin"]}, "devices": {}, "metrics": []},
         "testbench": testbench_block(),
     }
+    zero_diffusion(inp)  # C22: 손계산·독립 넷리스트에 접합 용량이 없으므로 면적 0 을 명시
     if feedback is not None:
         inp["feedback_passives"] = list(feedback)
     if loop_choke == "default":
@@ -219,8 +236,8 @@ def independent_fb(root: Path):
     return _independent_fb_cached(str(root / "ind_fb"))
 
 
-def fb_loop_gain(f, gm, gds):
-    c = FB
+def fb_loop_gain(f, gm, gds, cin=None, cl=None):
+    c = dict(FB, **{k: v for k, v in (("cin", cin), ("cl", cl)) if v is not None})
     s = 2j * np.pi * np.asarray(f)
     zp = 1 / (s * c["cin"] + 1 / (s * c["loop_choke"]))
     zo = 1 / (1 / c["rload"] + gds + s * c["cl"] + 1 / (c["rf"] + zp))
@@ -244,23 +261,23 @@ def _run(args, cwd):
                           encoding="utf-8", errors="replace", cwd=str(cwd))
 
 
-def run_netlist(inp: dict, tmp: Path, bias="free", name="t"):
+def run_netlist(inp: dict, tmp: Path, bias="free", name="t", extra=()):
     """oracle_netlist.py -> (proc, 넷리스트 텍스트 또는 None, meta 또는 None)."""
     tmp.mkdir(parents=True, exist_ok=True)
     ip = write_json(tmp / f"{name}.input.json", inp)
     cir = tmp / f"{name}.{bias}.cir"
-    p = _run([ORACLE_DIR / "oracle_netlist.py", ip, cir, "--bias", bias], tmp)
+    p = _run([ORACLE_DIR / "oracle_netlist.py", ip, cir, "--bias", bias, *extra], tmp)
     text = cir.read_text(encoding="utf-8", errors="replace") if cir.exists() else None
     mp = Path(str(cir) + ".meta.json")
     meta = json.loads(mp.read_text(encoding="utf-8")) if mp.exists() else None
     return p, text, meta
 
 
-def run_simulate(cir: Path, sim: Path, cwd: Path):
-    return _run([ORACLE_DIR / "oracle_simulate.py", cir, sim, "--ngspice", NGSPICE], cwd)
+def run_simulate(cir: Path, sim: Path, cwd: Path, extra=()):
+    return _run([ORACLE_DIR / "oracle_simulate.py", cir, sim, "--ngspice", NGSPICE, *extra], cwd)
 
 
-def run_compare(inp: dict, cir: Path, sim: Path, prefix: Path, judge=None, sat_margin=None):
+def run_compare(inp: dict, cir: Path, sim: Path, prefix: Path, judge=None, sat_margin=None, extra=()):
     """oracle_compare.py -> (proc, compare.json dict 또는 None)."""
     ip = write_json(Path(str(prefix) + ".input.json"), inp)
     args = [ORACLE_DIR / "oracle_compare.py", ip, cir, sim, prefix]
@@ -268,12 +285,12 @@ def run_compare(inp: dict, cir: Path, sim: Path, prefix: Path, judge=None, sat_m
         args += ["--judge", write_json(Path(str(prefix) + ".judge.json"), judge)]
     if sat_margin is not None:
         args += ["--sat-margin-v", repr(sat_margin)]
-    p = _run(args, prefix.parent)
+    p = _run([*args, *extra], prefix.parent)
     cj = Path(str(prefix) + ".compare.json")
     return p, (json.loads(cj.read_text(encoding="utf-8")) if cj.exists() else None)
 
 
-def run_oracle(inp: dict, out: Path, biases=("free",), judge=None, sat_margin=None, tag=None, name="t"):
+def run_oracle(inp: dict, out: Path, biases=("free",), judge=None, sat_margin=None, tag=None, name="t", extra=()):
     """oracle_run.py -> (proc, {bias: compare.json dict 또는 None})."""
     out.mkdir(parents=True, exist_ok=True)
     ip = write_json(out / f"{name}.input.json", inp)
@@ -284,7 +301,7 @@ def run_oracle(inp: dict, out: Path, biases=("free",), judge=None, sat_margin=No
         args += ["--sat-margin-v", repr(sat_margin)]
     if tag is not None:
         args += ["--tag", tag]
-    p = _run(args, out)
+    p = _run([*args, *extra], out)
     res = {}
     for b in biases:
         cj = out / f"{stem_of(inp, b, tag)}.compare.json"
@@ -462,7 +479,7 @@ def preds_from_independent(ind) -> dict:
     for name in ("M1", "MP1"):
         d = ind[name]
         devs[name] = {"ID": d["id"], "VGS": d["vgs"], "VDS": d["vds"], "VSB": -d["vbs"], "gm": d["gm"],
-                      "gds": d["gds"], "gm_id": d["gm"] / d["id"], "region": "sat"}
+                      "gds": d["gds"], "gm_id": d["gm"] / d["id"], "region": "sat", "off_current_A": 0.0}
     m = measure(ind["f"], ind["H"])
     metrics = [{"name": k, "measure": k, "value": m[k]} for k in ("dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz")]
     metrics.append({"name": "ivdd", "measure": "supply_current_A", "rail": "vdd",
