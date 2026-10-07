@@ -132,15 +132,15 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
 
 ## 5. 9회로 spec 로드 결과 (2026-10-07, 이 커밋 코드 + library, 픽스처 이름표)
 
-픽스처 이름표 = gain_ss_db·ugf_ss_hz·gbw_ss_hz·pm_ss_deg·parasitic_pm_ss_deg·rout_ss_ohm(transfer), ratio_ss_db(ratio),
-mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(none), supply_current_dc(power), area_layout_m2(area).
+픽스처 이름표 = gain_ss_db·ugf_ss_hz·gbw_ss_hz·parasitic_pm_ss_deg(transfer), pm_ss_deg(loop), rout_ss_ohm(output_port), ratio_ss_db(ratio),
+mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(None), supply_current_dc(power), area_layout_m2(area).
 9/9 통과(0 hit), 두 번 로드 `spec_fp` 동일. 레지스트리 이름이 없는 2건(파일럿 옛 `classab_centering_dev_v`, ngcc 입력 범위
 옛 `icmr_v`)은 제약 `metric: {"pending": "MOD5"}` 로 값·출처를 남기고 판정 밖으로 두었다.
 
 | 회로 | 제약(판정) | pending 표지 |
 |---|---|---|
 | common_gate_amplifier | 0 | 6 |
-| current_reuse_telescopic_ota | 8(5) | 15 |
+| current_reuse_telescopic_ota | 8(5) | 13 |
 | folded_cascode | 0 | 7 |
 | ngcc_3stage_ff | 3(2) | 7 |
 | nmcnr_amplifier | 2(2) | 6 |
@@ -149,10 +149,11 @@ mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(none), supp
 | two_stage_ota | 2(1) | 7 |
 | two_stage_ota_sf | 3(2) | 6 |
 
-남은 표지 65개 = AC-3 9, PA-1 9, PA-2 9, CI-15 9, CI-18 9, SP-2 7, MOD5 7(파일럿 뷰 5·metric 1, ngcc metric 1), SP-3 2,
-SP-10 2(파일럿 CL1·CL2 해석), CI-10 1(파일럿 feedback), CI-17 1(folded Ibg). 기존 결정으로 푼 칸(오케스트레이터 적용
+남은 표지 63개 = AC-3 9, PA-1 9, PA-2 9, CI-15 9, CI-18 9, SP-2 7, MOD5 7(파일럿 뷰 5·metric 1, ngcc metric 1), SP-3 2,
+CI-10 1(파일럿 feedback), CI-17 1(folded Ibg). 기존 결정으로 푼 칸(오케스트레이터 적용
 2026-10-07): 포화 규칙 `vds_ge_vdsat`(UD 8번, 여유 0), 파일럿 밖 8회로 feedback `[]`(UD 9번 PM 정의 β=1), 보상 소자
-engine(파일럿 Cc1·Cc2·Rz1·Rz2, ngcc Cm1·Cm2, two_stage_ota_sf Cc -- nmcnr·two_stage 확정과 같은 원칙).
+engine(파일럿 Cc1·Cc2·Rz1·Rz2, ngcc Cm1·Cm2, two_stage_ota_sf Cc -- nmcnr·two_stage 확정과 같은 원칙), SP-10 = 파일럿
+CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", user_spec).
 
 거부 실측(임시 스크립트, 원본 한 곳씩 깨뜨림): 2절 규칙 전부가 실제로 hit 를 냈다(`ref_ambiguous`·`source_origin`·
 `settling_order`·`view` 형식 `type` 은 미실측).
