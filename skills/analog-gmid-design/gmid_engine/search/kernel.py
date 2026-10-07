@@ -112,7 +112,9 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
             # 봉인 점: ss_dev -> metrics_ss -> metrics_dc(metrics CONTRACT 7.6). lineage(ss 필드를 담은 DcEvaluation)를 이 점의
             # evaluation 으로 둔다 -- 다음 평가의 parent 가 그 필드를 재사용한다.
             try:
-                ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), ())
+                # ng-junction(metrics 7.6 필수 키워드 junction) 병합 뒤: 조건 없이 junction=sctx.junction 으로 바꾼다(한 줄)
+                extra = {} if sctx.junction is None else {"junction": sctx.junction}
+                ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), (), **extra)
                 evaluation, bundle = ssev.lineage, ssev.ss
             except CANDIDATE_FAILURE_CLASSES as exc:
                 evaluation, failure, status = None, exc.record, STATUS_FAILED

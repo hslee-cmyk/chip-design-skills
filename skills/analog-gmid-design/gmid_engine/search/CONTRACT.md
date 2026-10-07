@@ -24,6 +24,10 @@
   시연은 LUT v2(`resolve_lut_location`) -- 봉인 7 이 실제로 판정되어 `seal7_pending` 은 발동 0.
 
 ### r4 덮어쓰기 요약 (아래 본문보다 우선)
+- `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, junction=None)`: `junction` = metrics `JunctionSource`
+  (ng-junction, metrics 7.6 필수 키워드). None 이면 `ss_evaluate` 에 넘기지 않는다(master 에 아직 없음); 들어오면 필수로 바꾸고
+  kernel 의 조건 한 줄을 지운다. 봉인 7 은 master 정식(153bf47) -- 포화는 봉인 7 결과로만 다루고 W4 창·1변수 구간에 VDsat 항은 없다
+  (오케스트레이터 결정 2026-10-08).
 - 3.6 `objective_values(snapshot) -> Objectives`: 값 = `graph.metrics_dc`(key `METRICS_KEY`) `MetricBundle` 의 `power_dc_w`·
   `area_search_m2`(None 이면 ValueError), detail 의 `per_rail_amp`·`kcl_residual_amp`·`passive_area_undeclared`·
   `passive_value_missing`(→ `passive_value_undetermined`), `gate_area_m2` = Σ dc_op W·L, b_P 는 r3 식 그대로.

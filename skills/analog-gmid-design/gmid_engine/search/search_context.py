@@ -60,6 +60,7 @@ class SearchContext:
         self.seq = 0
         self.ss_constraints = ()
         self.spec_passive_values = ()
+        self.junction = None
         self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
         self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
@@ -78,7 +79,10 @@ def _disk_failures(archive, context_fp, schema_fp):
     return out
 
 
-def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl):
+def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, junction=None):
+    """`junction` = metrics `JunctionSource`(ng-junction, metrics CONTRACT 7.6) -- S0 당 1회 부르는 쪽이
+    `JunctionSource.from_decls(pdk_decl, read_pdk_decl(LUT 규칙 선언), dc_ctx.lut.memo.lut)` 로 만들어 넘긴다. 그 브랜치가 master 에
+    들어오기 전에는 None(ss_evaluate 에 넘기지 않음); 들어온 뒤 필수 인자로 바꾸고 kernel 의 조건 한 줄을 지운다."""
     domain = search_domain(dc_ctx, settings, pdk_decl)
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))
@@ -101,6 +105,7 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl):
     ctx = SearchContext(dc_ctx, domain, settings, context_fp, schema_fp, code_fp,
                         tuple(dc_ctx.inputs.element_values), tuple(judged), tuple(notes), archive)
     ctx.ss_constraints = tuple(ss)
+    ctx.junction = junction
     classes = dict(dc_ctx.base.column("device", "element_class"))
     ctx.spec_passive_values = tuple(sorted((n, float(v)) for n, v in dc_ctx.inputs.element_values
                                            if v is not None and classes.get(n) == ELEMENT_PASSIVE))
