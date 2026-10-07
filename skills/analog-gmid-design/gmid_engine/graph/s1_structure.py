@@ -13,8 +13,10 @@
 * device(원소 이름마다, MOS·수동소자·이상원 모두): `element_class`, `kind`, `pins`(((단자, 넷), ...)).
   MOS 만: `bulk_declared`(넷 | None), `is_diode`(gate == drain). 2단자만: `value_key`, `value`.
   지원 kind 밖 원소만: `unsupported`(분기 이름, DEC-59 기록만 -- 정지는 그 원소를 쓰는 소비자가 낸다).
+  모든 원소: `dc_nets`(C1) = authoring `dc_edges_unpruned`(DEC-70 유일 정의)의 그 원소 DC 엣지 넷 쌍(정렬 2-tuple),
+  DC 엣지가 아니면 None. U2 `dc_conduction` 은 이 필드만 읽는다(DC 엣지 정의를 둘로 가르지 않는다).
 """
-from gmid_engine.authoring import INPUT_DIRECTION, TWO_TERMINAL_NAMES
+from gmid_engine.authoring import INPUT_DIRECTION, TWO_TERMINAL_NAMES, dc_edges_unpruned
 from gmid_engine.core import compute_block
 
 from .ac_ground_static import static_ac_ground
@@ -75,4 +77,7 @@ def s1_structure(projection):
             put("device", "value", x.name, x.value)
             if x.kind not in supported:
                 put("device", "unsupported", x.name, branch_of[element_class])
+    dc_nets = {edge.element: edge.nets for edge in dc_edges_unpruned(devices, passives, sources)}
+    for name in tuple(columns[("device", "element_class")]):
+        put("device", "dc_nets", name, dc_nets.get(name))
     return columns
