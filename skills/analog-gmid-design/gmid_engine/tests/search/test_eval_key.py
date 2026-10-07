@@ -42,3 +42,13 @@ def test_unsorted_theta_rejected():
 def test_non_pair_theta_rejected():
     with pytest.raises(ValueError):
         eval_key("c", "s", (1.0, 2.0), (0,), None)
+
+
+@pytest.mark.parametrize("bad", [
+    ([("L", "M1"), 1e-6],),                         # list 쌍
+    ((("L", "M1"), 1e-6, 0.0),),                     # 원소 수 3
+])
+def test_r5_malformed_pairs_are_value_error(bad):
+    """r5: ((kind, key), 값) 2-tuple 들이 아니면(쌍 아님·원소 수 ≠ 2·list 쌍) ValueError."""
+    with pytest.raises(ValueError):
+        eval_key("c", "s", bad, (0,), None)

@@ -1,13 +1,12 @@
-"""CONTRACT r4 3.20 `ss_constraint_rows(bundle, declared) -> (rows, unmeasured)`.
+"""CONTRACT 3.20 + r5 명확화 + r6 S-19 `ss_constraint_rows(bundle, declared, model_error=())`.
 
 - declared 비면 ((), ()). bundle None -> 행 0, 선언마다 (metric, op, "ss_requires_sealed_snapshot") (I-12).
-- 값 None -> (metric, op, Undefined code '+' 연결). 값 있음 -> 행 `ss:<k>:<metric><op>`, c = (값 − 목표)/|목표|(>=) 또는
-  (목표 − 값)/|목표|(<=), 목표 0 이면 분모 1, active False.
-기대값은 손으로 만든 MetricBundle 값으로 test 가 계산한다. 선언 형식은 build_search_context 가 넘기는 `ss_constraints`
-(r4 3.9: ConstraintDecl, 문서 순서) 를 그대로 쓴다.
+- 값 None -> (metric, op, Undefined code 집합을 정렬해 '+' 로 이은 것; code 없으면 "undefined") (r5).
+- 값 있음: 분모 s = MetricResult.resolution (r6). s None -> unmeasured "resolution_undefined", s 0(모델 오차 선언 없음) ->
+  unmeasured "resolution_zero_model_error_undeclared"(0 나누기 없음). 그 밖 행 `ss:<k>:<metric><op>`(k = ss_constraints 안 0 부터
+  위치, r5), c = (값 − 목표)/s (>=) 또는 (목표 − 값)/s (<=), active = c ≤ 1.
+기대값은 손으로 만든 MetricBundle 값으로 test 가 계산한다. 선언 = build_search_context 의 `ss_constraints`(ConstraintDecl).
 """
-import re
-
 import pytest
 
 from gmid_engine.metrics import MetricBundle, MetricRequest, MetricResult, Undefined
@@ -16,7 +15,6 @@ from gmid_engine.search import ConstraintRow, ss_constraint_rows
 from .conftest import build_case, circuit_c
 
 CONS = (("gain_ss_db", ">=", 20.0, None), ("rout_ss_ohm", "<=", 5e4, None), ("ugf_ss_hz", ">=", 0.0, None))
-NAME = re.compile(r"^ss:(\d+):([a-z_0-9]+)(>=|<=)$")
 
 
 @pytest.fixture
@@ -28,18 +26,14 @@ def declared(tmp_path, lut_sealed):
 
 
 def _bundle(declared, values):
+    """values[metric] = (값, resolution) 또는 Undefined tuple."""
     entries = []
-    seen = set()
     for c in declared:
-        key = (c.metric, c.view)
-        if key in seen:
-            continue
-        seen.add(key)
         v = values[c.metric]
-        if isinstance(v, tuple):
+        if isinstance(v, tuple) and v and isinstance(v[0], Undefined) or v == ():
             entries.append((MetricRequest(c.metric, c.view), MetricResult(c.metric, None, v)))
         else:
-            entries.append((MetricRequest(c.metric, c.view), MetricResult(c.metric, v, ())))
+            entries.append((MetricRequest(c.metric, c.view), MetricResult(c.metric, v[0], (), v[1])))
     return MetricBundle(tuple(entries))
 
 
@@ -54,29 +48,43 @@ def test_no_sealed_bundle_all_unmeasured(declared):
     assert tuple(tuple(u) for u in un) == tuple((c.metric, c.op, "ss_requires_sealed_snapshot") for c in declared)
 
 
-def test_values_become_normalised_rows(declared):
-    rows, un = ss_constraint_rows(_bundle(declared, {"gain_ss_db": 30.0, "rout_ss_ohm": 1e5, "ugf_ss_hz": 30.0}), declared)
+def test_rows_normalised_by_resolution(declared):
+    vals = {"gain_ss_db": (30.0, 0.5), "rout_ss_ohm": (5.02e4, 40.0), "ugf_ss_hz": (3e6, 1e3)}
+    rows, un = ss_constraint_rows(_bundle(declared, vals), declared)
     assert tuple(un) == ()
-    assert len(rows) == 3 and all(isinstance(r, ConstraintRow) for r in rows)
-    exp = [(30.0 - 20.0) / 20.0, (5e4 - 1e5) / 5e4, (30.0 - 0.0) / 1.0]
-    ks = []
-    for r, c, e in zip(rows, declared, exp):
-        m = NAME.match(r.name)
-        assert m, r.name
-        assert (m.group(2), m.group(3)) == (c.metric, c.op)
-        ks.append(int(m.group(1)))
-        assert r.c == pytest.approx(e, rel=1e-15)
-        assert r.active is False
-    assert len(set(ks)) == 3 and ks == sorted(ks)      # 선언마다 다른 k, 선언 순서
+    assert all(isinstance(r, ConstraintRow) for r in rows)
+    exp = [("ss:0:gain_ss_db>=", (30.0 - 20.0) / 0.5), ("ss:1:rout_ss_ohm<=", (5e4 - 5.02e4) / 40.0),
+           ("ss:2:ugf_ss_hz>=", (3e6 - 0.0) / 1e3)]
+    assert [r.name for r in rows] == [n for n, _ in exp]
+    for r, (_, c) in zip(rows, exp):
+        assert r.c == pytest.approx(c, rel=1e-15)
+        assert r.active == (r.c <= 1)
 
 
-def test_undefined_value_joins_codes(declared):
+@pytest.mark.parametrize("value, active", [(20.4, True), (20.5, True), (20.6, False), (19.0, True)])
+def test_active_iff_c_le_one(declared, value, active):
+    vals = {"gain_ss_db": (value, 0.5), "rout_ss_ohm": (1.0, 1.0), "ugf_ss_hz": (1.0, 1.0)}
+    rows, _ = ss_constraint_rows(_bundle(declared, vals), declared)
+    r = rows[0]
+    assert r.c == pytest.approx((value - 20.0) / 0.5, rel=1e-15)
+    assert r.active is active
+
+
+def test_resolution_none_and_zero_are_unmeasured(declared):
+    vals = {"gain_ss_db": (30.0, None), "rout_ss_ohm": (4e4, 0.0), "ugf_ss_hz": (3e6, 1e3)}
+    rows, un = ss_constraint_rows(_bundle(declared, vals), declared)
+    assert [tuple(u) for u in un] == [("gain_ss_db", ">=", "resolution_undefined"),
+                                      ("rout_ss_ohm", "<=", "resolution_zero_model_error_undeclared")]
+    assert [r.name for r in rows] == ["ss:2:ugf_ss_hz>="]          # k 는 선언 위치 그대로
+    assert rows[0].c == pytest.approx(3e6 / 1e3, rel=1e-15)
+
+
+def test_undefined_value_codes_sorted_joined(declared):
     und = (Undefined("gain_ss_db", "passive_value_undeclared", "definitional"),
            Undefined("gain_ss_db", "no_crossing_above", "definitional"))
-    rows, un = ss_constraint_rows(_bundle(declared, {"gain_ss_db": und, "rout_ss_ohm": 4e4, "ugf_ss_hz": und}), declared)
-    un = [tuple(u) for u in un]
-    # 연결 순서는 계약에 없다(모호점 보고) -- code 집합으로 비교.
-    assert [(m, op) for m, op, _ in un] == [("gain_ss_db", ">="), ("ugf_ss_hz", ">=")]
-    assert all(set(r.split("+")) == {"passive_value_undeclared", "no_crossing_above"} for _, _, r in un)
-    assert len(rows) == 1
-    assert rows[0].c == pytest.approx((5e4 - 4e4) / 5e4, rel=1e-15)
+    vals = {"gain_ss_db": und, "rout_ss_ohm": (4e4, 100.0), "ugf_ss_hz": ()}
+    rows, un = ss_constraint_rows(_bundle(declared, vals), declared)
+    assert [tuple(u) for u in un] == [("gain_ss_db", ">=", "no_crossing_above+passive_value_undeclared"),
+                                      ("ugf_ss_hz", ">=", "undefined")]
+    assert len(rows) == 1 and rows[0].name == "ss:1:rout_ss_ohm<="
+    assert rows[0].c == pytest.approx((5e4 - 4e4) / 100.0, rel=1e-15)

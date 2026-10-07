@@ -117,3 +117,29 @@ def test_both_directions_out_of_bounds_gives_none(tmp_path, lut_sealed):
     assert res is None
     assert abs(h) == pytest.approx(he, rel=1e-12)
     assert dict(s.counters)["requests"] == before
+
+
+def test_passive_theta_step_is_min_tol_gm_id(tmp_path, lut_sealed):
+    """r6: DEC-92 θ(capacitance·ss_resistance, ln 좌표) 스텝 = 전 MOS dc_tol_v·gm_id 최솟값."""
+    from gmid_engine.search import evaluate
+    from .conftest import CELLS_C, Z_ELEMENTS, circuit_z, col, snap_of, theta_z
+    case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10))
+    s = case.sctx
+    th = theta_z(case.dc, y=0.3)
+    base = evaluate(s, tuple(sorted(th.items())), CELLS_C)
+    assert base.status in ACCEPTED_STATUSES
+    snap = snap_of(base)
+    ops, tol = col(snap, "device", "dc_op"), col(snap, "device", "dc_tol_v")
+    hand = min(tol[m] * ops[m].gm_id for m in ops)
+    vs = s.domain.variables
+    f = to_theta_fn(vs, fixed_l(th))
+    x = x_of(vs, th)
+    for comp in (("capacitance", "Cz"), ("ss_resistance", "Rz")):
+        i = [v.component for v in vs].index(comp)
+        skip = frozenset(j for j in range(len(vs)) if j != i)
+        res, h = fd_jacobian(s, vs, x, base, CELLS_C, f, (), skip=skip)[i]
+        assert res is not None and res.status in ACCEPTED_STATUSES
+        assert abs(h) == pytest.approx(hand, rel=1e-12)
+        xi = list(x)
+        xi[i] = x[i] + h
+        assert dict(res.theta)[comp] == pytest.approx(f(xi)[comp], rel=1e-14)

@@ -76,13 +76,33 @@ def test_theta_resistance_without_bounds_rejected_before_kernel(tmp_path, lut_se
 def test_settings_type_checked(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     with pytest.raises(TypeError):
-        build_search_context(case.dc, case.spec, (600.0, 40, None, SRC), None, case.pdk)
+        build_search_context(case.dc, case.spec, (600.0, 40, None, SRC), None, case.pdk, case.rule)
     with pytest.raises(TypeError):
-        build_search_context(case.dc, case.spec, SearchSettings(600.0, 40, None, SRC), None, None)
+        build_search_context(case.dc, case.spec, SearchSettings(600.0, 40, None, SRC), None, None, case.rule)
 
 
 def test_pdk_missing_quantity(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(), lut_sealed)
     with pytest.raises(SchemaRejectedError) as e:
-        build_search_context(case.dc, case.spec, case.settings, None, write_pdk(tmp_path / "p2", with_minw=False))
+        build_search_context(case.dc, case.spec, case.settings, None, write_pdk(tmp_path / "p2", with_minw=False), case.rule)
     assert dict(e.value.record.detail)["reason"] == "pdk_quantity_undeclared"
+
+
+def test_theta_capacitance_without_bounds_rejected_before_kernel(tmp_path, lut_sealed):
+    """r6: θ capacitance 가 있고 capacitance_bounds_f 미선언 -> theta_capacitance_bounds_undeclared, 커널 호출 0."""
+    from .conftest import Z_ELEMENTS, circuit_z
+    before = [b.stats().calls for b in (dc_currents, dc_columns, dc_widths)]
+    with pytest.raises(SchemaRejectedError) as e:
+        build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=None)
+    det = dict(e.value.record.detail)
+    assert det["reason"] == "theta_capacitance_bounds_undeclared" and tuple(det["capacitors"]) == ("Cz",)
+    assert [b.stats().calls for b in (dc_currents, dc_columns, dc_widths)] == before
+
+
+def test_junction_built_once_per_context(tmp_path, lut_sealed):
+    """r6: build_search_context 가 S0 당 1회 JunctionSource.from_decls(pdk, lut_rule, lut) -- 같은 선언이면 같은 묶음."""
+    from gmid_engine.metrics import JunctionSource
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    j = case.sctx.junction
+    assert isinstance(j, JunctionSource)
+    assert j == JunctionSource.from_decls(case.pdk, case.rule, case.dc.lut.memo.lut)

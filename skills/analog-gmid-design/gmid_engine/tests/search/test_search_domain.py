@@ -15,9 +15,11 @@ from .conftest import (
     R4_L,
     SRC,
     W_MIN,
+    Z_ELEMENTS,
     build_case,
     circuit_c,
     circuit_p,
+    circuit_z,
     expect_box,
     expect_ln_idu_bounds,
     r4_arrays,
@@ -117,3 +119,70 @@ def test_pdk_values_follow_declaration(tmp_path, lut_sealed):
     assert d.grid_m == pytest.approx(5e-9, rel=1e-12)
     assert d.w_min_m == pytest.approx(4.2e-7, rel=1e-12)
     assert d.area_resolution_m2 == pytest.approx(5e-9 * 4.2e-7, rel=1e-12)
+
+
+# ---------------------------------------------------------------- [r6] DEC-92 수동소자 θ 상자 · 모르는 θ 종류 · [r5] current_box kind
+
+def test_passive_theta_variables_use_declared_boxes(tmp_path, lut_sealed):
+    """r6: capacitance -> (ln, capacitance_bounds_f), ss_resistance -> (ln, resistance_bounds_ohm)."""
+    rb, cb = (1e2, 1e6), (1e-14, 1e-10)
+    case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=rb, cbounds=cb)
+    comps = case.dc.schema.components
+    assert ("capacitance", "Cz") in comps and ("ss_resistance", "Rz") in comps      # 입력 확인(sizing r5)
+    d = search_domain(case.dc, SearchSettings(600.0, 40, rb, SRC, cb), case.pdk)
+    vs = {v.component: v for v in d.variables}
+    assert [v.component for v in d.variables] == [c for c in comps if c[0] != "L"]
+    c, r = vs[("capacitance", "Cz")], vs[("ss_resistance", "Rz")]
+    assert c.log is True and (c.lo, c.hi) == (pytest.approx(math.log(cb[0]), rel=1e-15),
+                                              pytest.approx(math.log(cb[1]), rel=1e-15))
+    assert r.log is True and (r.lo, r.hi) == (pytest.approx(math.log(rb[0]), rel=1e-15),
+                                              pytest.approx(math.log(rb[1]), rel=1e-15))
+
+
+def test_capacitance_bounds_undeclared_rejected(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10))
+    with pytest.raises(SchemaRejectedError) as e:
+        search_domain(case.dc, SearchSettings(600.0, 40, (1e2, 1e6), SRC), case.pdk)
+    det = dict(e.value.record.detail)
+    assert (det["gate"], det["reason"]) == ("search_domain", "theta_capacitance_bounds_undeclared")
+    assert tuple(det["capacitors"]) == ("Cz",)
+
+
+def test_ss_resistance_needs_resistor_bounds(tmp_path, lut_sealed):
+    case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10))
+    with pytest.raises(SchemaRejectedError) as e:
+        search_domain(case.dc, SearchSettings(600.0, 40, None, SRC, (1e-14, 1e-10)), case.pdk)
+    det = dict(e.value.record.detail)
+    assert det["reason"] == "theta_resistance_bounds_undeclared"
+    assert "Rz" in tuple(det["resistors"])
+
+
+@pytest.mark.parametrize("cb", [(1e-12, 1e-12), (2e-12, 1e-12)])
+def test_empty_capacitance_box_value_error(tmp_path, lut_sealed, cb):
+    case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10))
+    with pytest.raises(ValueError):
+        search_domain(case.dc, SearchSettings(600.0, 40, (1e2, 1e6), SRC, cb), case.pdk)
+
+
+def test_unknown_theta_kind_value_error(tmp_path, lut_sealed):
+    """r6: 모르는 θ 종류는 조용히 건너뛰지 않고 ValueError."""
+    import dataclasses
+    case = build_case(tmp_path, circuit_c(), lut_sealed)
+    sch = case.dc.schema
+    bad = dataclasses.replace(sch, components=tuple(sorted(sch.components + (("bogus_kind", "X"),))))
+    dc2 = dataclasses.replace(case.dc, schema=bad)
+    with pytest.raises(ValueError):
+        search_domain(dc2, _settings(), case.pdk)
+
+
+def test_capacitance_bounds_default_none():
+    assert SearchSettings(600.0, 40, None, SRC).capacitance_bounds_f is None
+
+
+def test_current_box_kinds_are_circuit_mos_kinds(tmp_path, lut_sealed):
+    """r5: current_box 의 kind = 회로 S1 의 MOS kind 집합(이름순) -- 회로 P 는 pmos 만."""
+    case = build_case(tmp_path, circuit_p(), lut_sealed, elements=(("R1", "resistor", None),), rbounds=(1e3, 1e6))
+    d = search_domain(case.dc, _settings((1e3, 1e6)), case.pdk)
+    assert [k for k, _ in d.current_box] == ["pmos"]
+    arr = r4_arrays("pmos")
+    assert tuple(d.current_box[0][1]) == pytest.approx(expect_box(arr, [arr]), rel=1e-12)

@@ -127,3 +127,50 @@ def test_deterministic_rerun(tmp_path, lut_sealed):
         out.append((r.stop, r.iterations, r.restarts, None if r.best is None else r.best.theta,
                     dict(case.sctx.counters)["kernel_calls"]))
     assert out[0] == out[1]
+
+
+# ---------------------------------------------------------------- [r5] 시작 θ 재사용 · stop 어휘 · [r6] x 복사
+
+STOPS = {"start_candidate_failure", "start_constraint_set_changed", "start_eval_budget", "start_wall_budget", "converged",
+         "eval_budget", "wall_budget", "restart_cap", "all_columns_frozen", "candidate_failure", "constraint_set_changed"}
+
+
+def _stop_ok(stop):
+    return stop in STOPS or (stop.startswith("slsqp_") and stop[len("slsqp_"):].lstrip("-").isdigit()) \
+        or stop.startswith("start_")
+
+
+def test_start_theta_reused_no_extra_kernel(tmp_path, lut_sealed):
+    """r5 효율 수정: bounds 로 잘리지 않은 성분은 시작 θ 원값 -> 시작점 평가는 캐시 적중(같은 객체), 1 ulp 옆 키 재평가 0."""
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
+    s = case.sctx
+    sp = _start(case, theta_r4c())
+    start_res = evaluate(s, sp.theta, sp.cells)
+    r = solve_eps(s, sp, AXIS_POWER, None, ("t",))
+    assert r.history and r.history[0] is start_res
+    near = [h for h in r.history[1:] if h.key != start_res.key and all(
+        abs(a - b) <= 4 * math.ulp(b) for (_, a), (_, b) in zip(h.theta, start_res.theta))]
+    assert near == []
+
+
+def test_history_points_key_matches_their_theta(tmp_path, lut_sealed):
+    """r6 x 복사 불변식: 저장된 수락 점마다 키의 theta_hex = 그 점 θ 의 float.hex (저장 x 와 키 θ 불일치 0)."""
+    from gmid_engine.search import eval_key
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=400)
+    s = case.sctx
+    sp = _start(case, theta_r4c())
+    r = solve_eps(s, sp, AXIS_AREA, None, ("t",))
+    assert len(r.history) >= 2
+    for h in r.history:
+        assert h.key == eval_key(s.context_fp, s.schema_fp, h.theta, h.key.cells, h.key.w_fixed_fp)
+    assert r.best.key == eval_key(s.context_fp, s.schema_fp, r.best.theta, r.best.key.cells, None)
+
+
+def test_stop_vocabulary_complete(tmp_path, lut_sealed):
+    """r5: stop 은 완전 목록 안 -- 끝점·ε·L-b 풀이 모두."""
+    from gmid_engine.search import sweep_front
+    case = build_case(tmp_path, circuit_c(), lut_sealed, eval_budget=60)
+    starts, _ = start_points(case.sctx, [theta_r4c()])
+    out = sweep_front(case.sctx, starts)
+    stops = [r.stop for _, r in out["solves"]] + [dict(e)["stop"] for e in out["failed_eps"]]
+    assert stops and all(_stop_ok(x) for x in stops), stops

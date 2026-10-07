@@ -43,7 +43,7 @@ from sizing.conftest import (  # noqa: F401  (다른 test 파일이 여기서 �
     write_r4_lut,
 )
 from sizing.conftest import I0, LAM, r4_vs_term  # noqa: E402
-from metrics.conftest import load_case  # noqa: E402
+from metrics.conftest import spec_json, toy_junction_decls  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 SKILL_DIR = HERE.parents[2]
@@ -58,22 +58,35 @@ SRC = (("front_budget_s", "test_fixture"),)
 
 # ---------------------------------------------------------------- toy PDK 선언 (core 9.1)
 
-def write_pdk(root, grid_um=GRID_UM, minw_um=MINW_UM, with_minw=True):
-    from gmid_engine.core import BoundedLRU, read_pdk_decl
+def _decl_paths(root, grid_um=GRID_UM, minw_um=MINW_UM, with_minw=True):
+    """[r6] toy PDK 선언 = metrics conftest 의 toy 접합 선언(모델 카드 27 양 × kind) + lef 원본의 격자·최소 finger 폭,
+    LUT 생성 규칙 선언 = metrics conftest 의 toy 규칙 선언(core 9.1 형식, metrics 8.5 소비). 반환 (pdk 경로, 규칙 경로)."""
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
+    pp, rp = toy_junction_decls(root)
+    decl = json.loads(Path(pp).read_text(encoding="utf-8"))
     lef = root / "toy.lef"
     lef.write_text("MANUFACTURINGGRID %s ;\nMINW %s ;\n" % (grid_um, minw_um), encoding="utf-8")
     sha = hashlib.sha256(lef.read_bytes()).hexdigest()
-    q = {"manufacturing_grid_m": {"source": "lef", "expression": "MANUFACTURINGGRID", "basis": "toy grid"}}
+    decl["sources"]["lef"] = {"path": "toy.lef", "sha256": sha, "format": "lef_statement", "encoding": "utf-8",
+                              "units_m": {"": 1e-6}}
+    decl["quantities"]["manufacturing_grid_m"] = {"source": "lef", "expression": "MANUFACTURINGGRID", "basis": "toy grid"}
     if with_minw:
-        q["min_finger_w_m"] = {"source": "lef", "expression": "MINW", "basis": "toy min finger"}
-    decl = {"schema": "gmid_pdk_decl/1", "pdk": "toy", "pdk_root": str(root).replace("\\", "/"),
-            "sources": {"lef": {"path": "toy.lef", "sha256": sha, "format": "lef_statement", "encoding": "utf-8",
-                                "units_m": {"": 1e-6}}},
-            "quantities": q}
-    (root / "pdk.json").write_text(json.dumps(decl), encoding="utf-8")
-    return read_pdk_decl(str(root / "pdk.json"), BoundedLRU(8))
+        decl["quantities"]["min_finger_w_m"] = {"source": "lef", "expression": "MINW", "basis": "toy min finger"}
+    Path(pp).write_text(json.dumps(decl), encoding="utf-8")
+    return pp, rp
+
+
+def write_decls(root, **kw):
+    """-> (PdkDecl, LUT 규칙 PdkDecl)."""
+    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    pp, rp = _decl_paths(root, **kw)
+    memo = BoundedLRU(8)
+    return read_pdk_decl(pp, memo), read_pdk_decl(rp, memo)
+
+
+def write_pdk(root, **kw):
+    return write_decls(root, **kw)[0]
 
 
 # ---------------------------------------------------------------- LUT
@@ -191,26 +204,76 @@ def expect_ln_idu_bounds(a, w_m=W_M):
     return lo, hi
 
 
+def circuit_z():
+    """회로 Z: 회로 C + Rz (out, x) + Cz (x, gnd), 둘 다 spec engine. DC 전류 0 저항(가지치기) + 커패시터 -> sizing r5
+    θ `ss_resistance` Rz(영점 상쇄 구조 규칙이 정하지 못하는 망 -- sizing 10.3 toy 와 같은 모양)·`capacitance` Cz."""
+    d = circuit_cs_pmos_load()
+    d["passive_elements"] = [two("Rz", "resistor", "out", "x"), two("Cz", "capacitor", "x", "gnd")]
+    return d
+
+
+Z_ELEMENTS = (("Rz", "resistor", None), ("Cz", "capacitor", None))
+
+
+def theta_z(dc, cz=1e-12, rz=1e4, **kw):
+    """회로 Z 의 θ: 회로 C 의 θ + 수동소자 θ. y 키는 스키마(입력)에서 읽는다(W4 뿌리 이름)."""
+    th = dict(theta_r4c(**kw))
+    y = th.pop(("y", "out"))
+    ykeys = [k for k in dc.schema.components if k[0] == "y"]
+    assert len(ykeys) == 1
+    th[ykeys[0]] = y
+    th[("capacitance", "Cz")] = cz
+    th[("ss_resistance", "Rz")] = rz
+    assert set(th) == set(dc.schema.components), (sorted(th), dc.schema.components)
+    return th
+
+
 CELLS_C = (0, 1)        # 회로 C: M1 L = 1e-6 -> 칸 0, M2 L = 2e-6 -> 칸 1 (l_cells 는 L 앵커 오름차순, 이름순 MOS)
 CELLS_P = (0,)
 
 
+PENDING = "pending"     # elements 값 자리 표지: spec 에 {"pending": "SP-1"} (값 없음·engine 아님 -> 수동소자 값 미선언)
+
+
+def load_spec(tmp, topo_doc, elements=(), constraints=()):
+    """metrics conftest `spec_json` 으로 spec 을 만들고 PENDING 원소만 결정 대기 표지로 바꿔 authoring 로더로 읽는다."""
+    from gmid_engine.authoring import load_sizing_spec, load_topology
+    from gmid_engine.metrics import metric_catalog
+    tmp = Path(tmp)
+    tmp.mkdir(parents=True, exist_ok=True)
+    tp = tmp / (topo_doc["topology_name"] + ".topology.json")
+    tp.write_text(json.dumps(topo_doc, indent=1), encoding="utf-8")
+    td = load_topology(str(tp))
+    els = [(n, k, None if v == PENDING else v) for n, k, v in elements]
+    doc = spec_json(td, SUPPLIES, els, (), constraints)
+    for n, _, v in elements:
+        if v == PENDING:
+            doc["human"]["element_values"][n] = {"pending": "SP-1"}
+    sp = tmp / (topo_doc["topology_name"] + ".sizing_spec.json")
+    sp.write_text(json.dumps(doc, indent=1), encoding="utf-8")
+    return td, load_sizing_spec(str(sp), td, metric_catalog())
+
+
 def build_case(tmp, topo_doc, lut, constraints=(), elements=(), budget_s=600.0, eval_budget=40, rbounds=None,
-               archive_root=None, pdk=None, sources=SRC):
-    """topology·spec -> KernelContext -> SearchContext. 반환 SimpleNamespace(td, spec, dc, acc, pdk, settings, sctx)."""
+               archive_root=None, pdk=None, sources=SRC, cbounds=None, rule=None):
+    """topology·spec -> KernelContext -> SearchContext([r6] PDK 선언 + LUT 규칙 선언).
+    반환 SimpleNamespace(td, spec, dc, acc, pdk, rule, settings, sctx)."""
     from gmid_engine.graph import build_s1
     from gmid_engine.search import SearchSettings, build_search_context
     from gmid_engine.sizing import build_kernel_context, dc_inputs_from_spec
     tmp = Path(tmp)
     acc = new_access(lut)
-    td, spec = load_case(tmp / "case", topo_doc, SUPPLIES, elements=elements, constraints=constraints)
+    td, spec = load_spec(tmp / "case", topo_doc, elements=elements, constraints=constraints)
     inputs = dc_inputs_from_spec(spec)
     s1 = build_s1(td, dict(inputs.supplies_v))
     dc = build_kernel_context(s1, inputs, acc)
-    pdk = pdk if pdk is not None else write_pdk(tmp / "pdk")
-    settings = SearchSettings(budget_s, eval_budget, rbounds, tuple(sources))
-    sctx = build_search_context(dc, spec, settings, archive_root, pdk)
-    return SimpleNamespace(td=td, spec=spec, dc=dc, acc=acc, pdk=pdk, settings=settings, sctx=sctx)
+    if pdk is None or rule is None:
+        p2, r2 = write_decls(tmp / "pdk")
+        pdk = p2 if pdk is None else pdk
+        rule = r2 if rule is None else rule
+    settings = SearchSettings(budget_s, eval_budget, rbounds, tuple(sources), cbounds)
+    sctx = build_search_context(dc, spec, settings, archive_root, pdk, rule)
+    return SimpleNamespace(td=td, spec=spec, dc=dc, acc=acc, pdk=pdk, rule=rule, settings=settings, sctx=sctx)
 
 
 # ---------------------------------------------------------------- 스냅샷 읽기 (입력 열)
@@ -269,7 +332,7 @@ def expected_fd_steps(sctx, base, vgs_grid=R4_VGS, vds_grid=R4_VDS):
             i = min(max(bisect.bisect_right(g, op.vgs) - 1, 0), len(g) - 2)
             out.append((g[i + 1] - g[i]) * op.gm_id)
         elif t == "y":
-            node = [n for n, w in writers.items() if w.y_key == key][0]
+            node = [n for n, w in writers.items() if w.y_key == key and n in windows][0]
             w = windows.get(node)
             d = min(b - a for a, b in zip(vds_grid, vds_grid[1:]))
             out.append(None if w is None or w.hi - w.lo == 0 else d / (w.hi - w.lo))
@@ -278,6 +341,8 @@ def expected_fd_steps(sctx, base, vgs_grid=R4_VGS, vds_grid=R4_VDS):
             if not ms:
                 ms = [m for m in ops if tol.get(m) is not None]
             out.append(min(tol[m] * ops[m].gm_id for m in ms) if ms else None)
+        elif t in ("capacitance", "ss_resistance"):         # [r6] DEC-92 θ: 전 MOS dc_tol_v·gm_id 최솟값
+            out.append(min(tol[m] * ops[m].gm_id for m in ops if tol.get(m) is not None))
         elif t == "resistance":
             tmin = min(x for x in tol.values() if x is not None)
             i = abs(drop[key])

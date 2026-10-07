@@ -12,7 +12,7 @@ from pathlib import Path
 
 from gmid_engine.search import STATUS_PENDING_SEAL7, STATUS_SEALED, SearchFront, find_front
 
-from .conftest import SKILL_DIR, TESTS_DIR, build_case, circuit_c, front_signature, theta_r4c, write_pdk
+from .conftest import PENDING, SKILL_DIR, TESTS_DIR, build_case, circuit_c, front_signature, theta_r4c, write_pdk
 
 SS = (("gain_ss_db", ">=", 10.0, None),)
 PERF_KEYS = ("requests", "kernel_calls", "hits", "fail_hits", "disk_hits", "outside_domain", "recompute_same_key",
@@ -73,7 +73,7 @@ def test_pending_points_only_in_pending_front(tmp_path, lut_pending):
 
 def test_unmeasured_points_never_in_final_front(tmp_path, lut_sealed, short_root):
     case, fr = _run(tmp_path, lut_sealed, constraints=SS, eval_budget=30, archive_root=short_root,
-                    topo=circuit_c(with_cap=True), elements=(("CL", "capacitor", None),))
+                    topo=circuit_c(with_cap=True), elements=(("CL", "capacitor", PENDING),))
     assert tuple(fr.front) == ()
     assert len(fr.unmeasured_front) >= 1
     assert all(len(tuple(p.result.unmeasured)) >= 1 for p in fr.unmeasured_front)
@@ -132,3 +132,19 @@ def test_eval_budget_derived_and_recorded(tmp_path, lut_sealed):
     assert m, perf["eval_budget_source"]
     assert int(m.group(1)) == len(case.sctx.domain.variables) + 1
     assert isinstance(perf["eval_budget"], int) and perf["eval_budget"] > 0
+
+
+def test_passive_theta_circuit_front_measured(tmp_path, lut_sealed):
+    """r6 DEC-92: θ capacitance·ss_resistance 회로 -- 최종 front 점은 ss 제약이 측정되고(행 있음·unmeasured 0), I-1 유지."""
+    from .conftest import Z_ELEMENTS, circuit_z, theta_z
+    case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10),
+                      constraints=SS, eval_budget=40)
+    fr = find_front(case.sctx, [theta_z(case.dc)])
+    perf = dict(fr.perf)
+    assert perf["kernel_calls"] == perf["unique_keys"] and perf["recompute_same_key"] == 0
+    assert len(fr.front) >= 1
+    for p in fr.front:
+        assert tuple(p.result.unmeasured) == ()
+        assert any(c.name.startswith("ss:") for c in p.result.constraints)
+        th = dict(p.result.theta)
+        assert 1e-14 <= th[("capacitance", "Cz")] <= 1e-10 and 1e2 <= th[("ss_resistance", "Rz")] <= 1e6

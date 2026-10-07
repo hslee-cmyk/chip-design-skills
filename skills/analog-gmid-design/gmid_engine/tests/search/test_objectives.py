@@ -10,7 +10,7 @@ from gmid_engine.metrics import metrics_dc
 from gmid_engine.search import Objectives, objective_values
 from gmid_engine.sizing import size_and_seal
 
-from .conftest import build_case, expected_objectives, circuit_c, circuit_n, circuit_p, theta_n, theta_p, theta_r4c
+from .conftest import PENDING, build_case, expected_objectives, circuit_c, circuit_n, circuit_p, theta_n, theta_p, theta_r4c
 
 
 def _check(o, e, passive_area=0.0):
@@ -65,7 +65,7 @@ def test_zero_volt_rail_only_gives_none(tmp_path, lut_sealed):
 
 
 def test_passive_without_value_is_undetermined(tmp_path, lut_sealed):
-    case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, elements=(("CL", "capacitor", None),))
+    case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, elements=(("CL", "capacitor", PENDING),))
     ev = size_and_seal(case.dc, theta_r4c())
     o = objective_values(metrics_dc(ev.snapshot, (), ()))
     assert o.passive_value_undetermined == ("CL",)

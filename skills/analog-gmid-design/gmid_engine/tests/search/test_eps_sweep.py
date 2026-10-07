@@ -19,7 +19,7 @@ from gmid_engine.search import (
     sweep_front,
 )
 
-from .conftest import GRID, W_MIN, all_tied, build_case, circuit_c, dominates, ref_eps_values, theta_r4c
+from .conftest import GRID, PENDING, W_MIN, all_tied, build_case, circuit_c, dominates, ref_eps_values, theta_r4c
 
 SS = (("gain_ss_db", ">=", 10.0, None),)
 ID_RE = re.compile(r"^(EP:s\d+|EA:s\d+|eps:(power_dc_w|area_search_m2):\d+|L:.+:\d+)$")
@@ -138,7 +138,7 @@ def test_pending_never_in_final_front(tmp_path, lut_pending):
 
 def test_unmeasured_never_in_final_front(tmp_path, lut_sealed):
     """r4: ss 제약 미측정(수동소자 값 없음) 점은 최종 front 0, unmeasured_front 로만."""
-    _, out = _sweep(tmp_path, lut_sealed, constraints=SS, elements=(("CL", "capacitor", None),),
+    _, out = _sweep(tmp_path, lut_sealed, constraints=SS, elements=(("CL", "capacitor", PENDING),),
                     topo_kw={"with_cap": True})
     assert tuple(out["front"]) == ()
     assert len(out["unmeasured_front"]) >= 1

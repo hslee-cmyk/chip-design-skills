@@ -23,6 +23,7 @@ from gmid_engine.search import (
 from .conftest import (
     CELLS_C,
     CELLS_P,
+    PENDING,
     GRID,
     W_MIN,
     build_case,
@@ -88,10 +89,13 @@ def test_sealed_point_objectives_and_constraint_rows(case_c):
     assert spec_rows["spec:power_dc_w<="].c == pytest.approx((1e-3 - e["power"]) / e["bp"], rel=1e-9)
     assert spec_rows["spec:area_search_m2<="].c == pytest.approx((1e-9 - e["gate_area"]) / (GRID * W_MIN), rel=1e-9)
     ss_rows = r.constraints[n0 + 2:]
-    assert len(ss_rows) == 1 and re.fullmatch(r"ss:\d+:gain_ss_db>=", ss_rows[0].name)
-    ref = ss_evaluate(r.evaluation.sealed, case.dc, th, s.ss_constraints)
-    gain = [res.value for req, res in ref.ss.entries if req.metric == "gain_ss_db"][0]
-    assert ss_rows[0].c == pytest.approx((gain - 10.0) / 10.0, rel=1e-9)
+    # r6: 봉인 점 ss = ss_evaluate(sealed, dc, θ, ss_constraints, (), junction=sctx.junction), 분모 = MetricResult.resolution
+    ref = ss_evaluate(r.evaluation.sealed, case.dc, th, s.ss_constraints, (), junction=s.junction)
+    (res,) = [res for req, res in ref.ss.entries if req.metric == "gain_ss_db"]
+    assert res.value is not None and res.resolution is not None and res.resolution > 0
+    assert len(ss_rows) == 1 and ss_rows[0].name == "ss:0:gain_ss_db>="
+    assert ss_rows[0].c == pytest.approx((res.value - 10.0) / res.resolution, rel=1e-9)
+    assert ss_rows[0].active == (ss_rows[0].c <= 1)
     assert tuple(r.unmeasured) == ()
     # 원뿔 행: 회로 C 의 두 MOS 행은 기저 M2 하나 -> c = 1.
     assert [(x.name, x.c) for x in r.cone] == [("current_cone:M1", 1.0), ("current_cone:M2", 1.0)]
@@ -186,7 +190,7 @@ def test_pending_point_ss_all_unmeasured(tmp_path, lut_pending):
 
 def test_sealed_point_with_undeclared_passive_is_unmeasured(tmp_path, lut_sealed):
     case = build_case(tmp_path, circuit_c(with_cap=True), lut_sealed, constraints=SS_CONS,
-                      elements=(("CL", "capacitor", None),))
+                      elements=(("CL", "capacitor", PENDING),))
     r = evaluate(case.sctx, th_sorted(theta_r4c()), CELLS_C)
     assert r.status == STATUS_SEALED
     un = [tuple(u) for u in r.unmeasured]
@@ -269,3 +273,31 @@ def test_repeated_requests_kernel_equals_unique_keys(tmp_path, lut_sealed):
     assert c["kernel_calls"] == len([t for t in seen if seen[t].status != STATUS_OUTSIDE_DOMAIN])
     assert c["recompute_same_key"] == 0
     assert c["hits"] == 40 - len(seen)
+
+
+def test_pending_point_passive_values_include_passive_theta(tmp_path, lut_pending):
+    """r6: 봉인 아닌 점의 metrics_dc 수동 값 = spec 값 ∪ θ resistance·capacitance·ss_resistance -> 값 미정 목록에 없음,
+    단위 면적 선언이 없어 passive_area_undeclared 에 든다."""
+    from .conftest import Z_ELEMENTS, circuit_z, theta_z
+    case = build_case(tmp_path, circuit_z(), lut_pending, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10),
+                      constraints=SS_CONS)
+    r = evaluate(case.sctx, th_sorted(theta_z(case.dc)), CELLS_C)
+    assert r.status == STATUS_PENDING_SEAL7
+    assert tuple(r.objectives.passive_value_undetermined) == ()
+    assert tuple(r.objectives.passive_area_undeclared) == ("Cz", "Rz")
+    assert [tuple(u) for u in r.unmeasured] == [("gain_ss_db", ">=", "ss_requires_sealed_snapshot")]
+
+
+def test_sealed_point_with_passive_theta_has_ss_row(tmp_path, lut_sealed):
+    """DEC-92: θ capacitance·ss_resistance 가 ss 계에 들어가 봉인 점의 ss 제약이 측정된다(S-20 해소)."""
+    from .conftest import Z_ELEMENTS, circuit_z, theta_z
+    case = build_case(tmp_path, circuit_z(), lut_sealed, elements=Z_ELEMENTS, rbounds=(1e2, 1e6), cbounds=(1e-14, 1e-10),
+                      constraints=SS_CONS)
+    s = case.sctx
+    th = theta_z(case.dc)
+    r = evaluate(s, th_sorted(th), CELLS_C)
+    assert r.status == STATUS_SEALED and tuple(r.unmeasured) == ()
+    ref = ss_evaluate(r.evaluation.sealed, case.dc, th, s.ss_constraints, (), junction=s.junction)
+    (res,) = [x for q, x in ref.ss.entries if q.metric == "gain_ss_db"]
+    (row,) = [c for c in r.constraints if c.name.startswith("ss:")]
+    assert row.c == pytest.approx((res.value - 10.0) / res.resolution, rel=1e-9)
