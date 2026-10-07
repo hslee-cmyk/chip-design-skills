@@ -170,7 +170,8 @@ C17. **[신규]** `--bias iso`(단독 소자, K3): 소자마다 `X<name>` 인스
     verdict = 하나라도 밖이면 FAIL, 판정 못 한 소자가 있거나 판정한 소자가 없으면 INCOMPLETE, 아니면 PASS.
     iso 의 `summary.verdict` 는 진단 모드라 막힘이 없으면 늘 `INCOMPLETE`(C8 의 forced 와 같은 규칙).
 C18. **[신규]** Z1 제거법 `--omit <원소..>`(소자·수동소자·이상원을 넷리스트에서 뺌), `--short <수동소자..>`(`Vshort_<name>` 0 V
-    전압원으로 단락). 없는 이름, 수동소자가 아닌 단락, 같은 원소 중복, `feedback_passives` 원소 변경은 막힘.
+    전압원으로 단락). 없는 이름, 수동소자가 아닌 단락, 같은 원소 중복(같은 옵션 안 반복 예 `--omit RL RL`, 또는 omit·short
+    사이 중복), `feedback_passives` 원소 변경은 막힘.
     뺀 소자는 비교 행이 없고 `summary.z1.omitted_devices` 에 적는다. free 모드 verdict 는 막힘이 없으면 `INCOMPLETE`
     (회로를 바꾼 진단 실행이라 합격/불합격을 내지 않는다). 결과 이름이 섞이지 않게 `--tag` 를 같이 쓴다.
 C19. **[신규]** 진단(기록만, verdict 무관):
@@ -184,7 +185,12 @@ C19. **[신규]** 진단(기록만, verdict 무관):
 C20. **[신규]** PM 교차 측정(기록만): `ac.pm_deg` 를 정한 루프 이득 L(β 루프면 T, 아니면 A)로 폐루프 C = L/(1+L) 의 peaking
     Mp = max|C|/|C(fstart)| 를 재고 2차계 관계 Mp = 1/(2z·sqrt(1-z²)) 로 z, PM = atan(2z/sqrt(sqrt(1+4z⁴)-2z²)) 를 역산해
     `ac.pm_crosscheck_deg`, `ac.closed_loop_peaking_db`, `ac.closed_loop_peak_hz`, `ac.pm_crosscheck_gap_deg`(= 교차 - pm_deg).
-    peaking 이 없으면(최대가 첫 점, Mp <= 1) 값은 None 이고 `pm_crosscheck_note` 에 2차 근사 하한(z = 1/sqrt2 의 PM)을 적는다.
+    peaking 이 없으면(최대가 첫 점, 또는 Mp <= 1 + δ) `pm_crosscheck_deg`·`closed_loop_peaking_db`·`closed_loop_peak_hz` 는
+    None 이고 `pm_crosscheck_note` 에 2차 근사 하한(z = 1/sqrt2 의 PM)을 적는다. δ = Mp 의 데이터 분해능
+    = 2·n·u (`ac.pm_crosscheck_mp_resolution`): u = 0.5·10^(1-d) 는 ngspice 가 L 데이터 파일(wrdata)에 실제로 찍은 가수
+    유효숫자 d(파일 전체 최솟값, 루프면 v·i 두 파일 중 거친 쪽)의 반올림 반 단위, n 은 L 한 표본을 만드는 파일 실수 개수
+    (A: 2, β 루프 T: 끊은 넷마다 6), 2 는 Mp 가 두 표본의 비라서. 엔진 pencil_roots 원점 판정(차원·eps·‖A‖)과 같은 꼴의
+    1차 반올림 한계이고 상수가 없다(분해능 아래의 Mp-1 은 수치 잡음).
     같은 AC 데이터의 다른 측정 방법이라 교차점·위상 언랩 오류를 잡는 용도이고, 2차계가 아닌 루프에서는 근사다.
 C21. **[신규]** 실행 캐시(선택, `--cache-dir`): 키 = sha256(넷리스트 바이트 + 넷리스트가 `.include`/`.inc`/`.lib` 로 읽는 모델 파일
     전부(재귀, 경로+바이트) + ngspice 실행 파일 경로 + `-b`). 같은 키면 ngspice 를 돌리지 않고 저장한 로그·데이터 파일

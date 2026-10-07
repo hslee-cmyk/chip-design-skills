@@ -480,6 +480,9 @@ def apply_z1(inp, omit=(), short=()):
     allnames = set().union(*names.values())
     blockers = [f"Z1 --omit {n}: 그런 원소가 없다" for n in omit if n not in allnames]
     blockers += [f"Z1 --short {n}: 수동소자(passives)만 단락할 수 있다" for n in short if n not in names["passive"]]
+    # 같은 옵션 안 반복(예: --omit RL RL)도 막는다 -- 반복 이름은 대개 오타라 조용히 합치면 의도한 다른 원소가 빠진다
+    blockers += [f"Z1 --{opt} {n}: 같은 원소를 같은 옵션에 두 번 적었다"
+                 for opt, lst in (("omit", omit), ("short", short)) for n in sorted({m for m in lst if lst.count(m) > 1})]
     blockers += [f"Z1 --omit/--short {n}: 같은 원소를 두 번 바꿀 수 없다" for n in set(omit) & set(short)]
     fbp = set(x.get("feedback_passives") or [])
     blockers += [f"Z1 변경 대상 {n} 이 feedback_passives 에 있다(β 루프 정의가 바뀐다)" for n in (set(omit) | set(short)) & fbp]

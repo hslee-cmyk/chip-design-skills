@@ -9,7 +9,8 @@
   .ac(wrdata 파일 -> dc gain, f-3dB, UGF, PM)를 sim JSON 으로 쓴다.
 
 공개 함수: run_ngspice(exe, cir, log, timeout_s, cache_dir, outputs), parse_op(log_text, meta), parse_ac_file(path),
-          ac_measures(freq, re, im), pm_crosscheck(freq, re, im), run_cache_key(exe, cir_path),
+          ac_measures(freq, re, im), pm_crosscheck(freq, re, im, mp_res), data_rel_resolution(path),
+          mp_resolution(rel_resolution, values_per_sample), run_cache_key(exe, cir_path),
           simulate(cir_path, meta, exe, timeout_s, cache_dir)
 [신규] PM 교차 측정(C20, 기록만): PM 을 정한 루프 이득 L 로 폐루프 L/(1+L) 의 peaking Mp 를 재고 2차계 관계로 PM 을 역산해
   ac.pm_crosscheck_deg 로 남긴다(ac.pm_deg 와 다른 측정 방법 -- 교차점·위상 언랩 오류 검출용, 판정 무관).
@@ -183,25 +184,56 @@ def ac_measures(freq, re_, im, ref="first"):
     return out
 
 
-def pm_crosscheck(freq, re_, im):
+def data_rel_resolution(path):
+    """wrdata 데이터 파일의 상대 분해능 u = 0.5 * 10^(1-d) (d = 파일에 찍힌 가수 유효숫자 수의 최솟값, 반올림 반 단위).
+    ngspice 가 실제로 쓴 출력 자릿수에서 읽는다(상수 없음). 숫자가 없거나 파일이 없으면 None."""
+    if not path or not os.path.exists(path):
+        return None
+    d_min = None
+    with open(path) as f:
+        for line in f:
+            for tok in line.split():
+                mant = re.split(r"[eE]", tok.lstrip("+-"), maxsplit=1)[0]
+                if not re.fullmatch(r"[0-9]+\.?[0-9]*|\.[0-9]+", mant):
+                    continue
+                digits = mant.replace(".", "").lstrip("0")
+                if digits and (d_min is None or len(digits) < d_min):
+                    d_min = len(digits)
+    return None if d_min is None else 0.5 * 10.0 ** (1 - d_min)
+
+
+def mp_resolution(rel_resolution, values_per_sample):
+    """Mp = |C(f_k)|/|C(f_0)| 의 분해능. 두 표본 각각이 데이터 파일의 실수 values_per_sample 개로 만들어지고 각 값의
+    상대 반올림 오차가 rel_resolution 이하이므로 1차 오차 한계 = (모은 값 개수 2*values_per_sample) * rel_resolution.
+    엔진 metrics/pencil_roots 의 원점 고유값 판정 |alpha| <= 차원*eps*||A||_F 와 같은 꼴(개수 * 단위 반올림 * 크기,
+    Mp ~ 1 이라 크기 1). 오라클은 엔진을 import 하지 않으므로(C1) 식만 같게 쓴다."""
+    return None if rel_resolution is None else 2 * values_per_sample * rel_resolution
+
+
+def pm_crosscheck(freq, re_, im, mp_res=None):
     """PM 교차 측정(기록만): 루프 이득 L 에서 폐루프 C = L/(1+L), peaking Mp = max|C| / |C(f_first)|.
     2차계 관계 Mp = 1/(2 z sqrt(1-z^2)) 로 z 를 풀고 PM = atan(2z / sqrt(sqrt(1+4z^4) - 2z^2)) [deg].
-    Mp <= 1(첫 점 뒤로 솟지 않음)이면 z >= 1/sqrt(2) 라 PM 은 그 z 의 PM 이상이라는 것만 알 수 있다 -> 값 None + 하한."""
+    Mp <= 1 + mp_res(첫 점 뒤로 데이터 분해능보다 크게 솟지 않음, mp_res = mp_resolution())이면 z >= 1/sqrt(2) 라
+    PM 은 그 z 의 PM 이상이라는 것만 알 수 있다 -> 값 None + 하한. mp_res 가 None 이면 분해능 0(정확한 입력)."""
     import numpy as np
     L = np.asarray(re_) + 1j * np.asarray(im)
     C = np.abs(L / (1.0 + L))
     k = int(np.argmax(C))
     mp = float(C[k] / C[0]) if C[0] > 0 else None
+    tol = mp_res or 0.0
 
     def pm_of(z):
         return math.degrees(math.atan2(2 * z, math.sqrt(math.sqrt(1 + 4 * z ** 4) - 2 * z ** 2)))
     out = {"closed_loop_peaking_db": None if not mp else 20 * math.log10(mp),
            "closed_loop_peak_hz": float(freq[k]), "pm_crosscheck_deg": None,
-           "pm_crosscheck_method": "closed_loop_peaking_2nd_order"}
+           "pm_crosscheck_method": "closed_loop_peaking_2nd_order", "pm_crosscheck_mp_resolution": mp_res}
     if mp is None:
         out["pm_crosscheck_note"] = "폐루프 첫 점 크기 0 -- 계산 불가"
-    elif k == 0 or mp <= 1.0:
-        out["pm_crosscheck_note"] = f"peaking 없음 -- 2차 근사로 PM >= {pm_of(1 / math.sqrt(2)):.4g} deg"
+    elif k == 0 or mp <= 1.0 + tol:
+        out["closed_loop_peaking_db"] = None
+        out["closed_loop_peak_hz"] = None
+        out["pm_crosscheck_note"] = (f"peaking 없음(Mp-1 = {mp - 1:.3g}, 데이터 분해능 {tol:.3g} 이하) -- "
+                                     f"2차 근사로 PM >= {pm_of(1 / math.sqrt(2)):.4g} deg")
     else:
         z = math.sqrt((1 - math.sqrt(1 - 1 / mp ** 2)) / 2)
         out["pm_crosscheck_deg"] = pm_of(z)
@@ -283,11 +315,14 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
                                       [lm["v_file"], lm["i_file"]])
         res["cache"]["loop"] = lcst
         t = loop_gain(vf, inf, lm["weights"])
+        # T 한 표본 = 끊은 넷마다 v 파일 실수 4개(vx, vy 복소) + i 파일 실수 2개(ix 복소); 분해능은 두 파일 중 거친 쪽
+        uv, ui = data_rel_resolution(vf), data_rel_resolution(inf)
+        lres = mp_resolution(None if uv is None or ui is None else max(uv, ui), 6 * len(lm["weights"]))
         res["loop"] = {"ngspice_rc": lrc, "break_nets": lm["break_nets"],
                        "log_errors": [ln.strip() for ln in llog.splitlines()
                                       if re.search(r"error|fatal|singular|abort", ln, re.I)][:40],
                        "measures": ac_measures(*t) if t else None,
-                       "pm_crosscheck": pm_crosscheck(*t) if t else None}
+                       "pm_crosscheck": pm_crosscheck(*t, mp_res=lres) if t else None}
     if res["ac"] is not None:
         res["ac"]["pm_open_loop_deg"] = res["ac"]["pm_deg"]
         if lm:
@@ -299,8 +334,10 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
             xc = (res["loop"] or {}).get("pm_crosscheck") or {}
         else:
             res["ac"]["pm_definition"] = "beta_1"
-            xc = pm_crosscheck(*raw)
+            # A 한 표본 = 데이터 파일 실수 2개(출력/입력 복소)
+            xc = pm_crosscheck(*raw, mp_res=mp_resolution(data_rel_resolution(ac_path), 2))
         res["ac"].update({k: xc.get(k) for k in ("pm_crosscheck_deg", "pm_crosscheck_note", "pm_crosscheck_method",
+                                                 "pm_crosscheck_mp_resolution",
                                                  "closed_loop_peaking_db", "closed_loop_peak_hz")})
         pc, pm = res["ac"].get("pm_crosscheck_deg"), res["ac"].get("pm_deg")
         res["ac"]["pm_crosscheck_gap_deg"] = None if pc is None or pm is None else pc - pm
