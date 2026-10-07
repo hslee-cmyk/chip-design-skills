@@ -32,7 +32,7 @@ def check_topology_schema(doc):
         if key not in doc:
             hits.append(SchemaHit("missing_key", key, "필수 최상위 키 " + repr(key) + " 가 없다"))
     allowed = frozenset(REQUIRED_KEYS + DECLARATION_KEYS + OPTIONAL_KEYS + IGNORED_TAG_KEYS)
-    for key in sorted(doc):
+    for key in doc:
         if not key.startswith(COMMENT_PREFIX) and key not in allowed:
             hits.append(SchemaHit("unknown_key", key, "알 수 없는 최상위 키 " + repr(key)
                                   + " (받는 키 밖 -- 주석이면 '_' 접두를 쓴다)"))
