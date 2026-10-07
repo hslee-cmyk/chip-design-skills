@@ -290,3 +290,136 @@ def mos_t(d, g, s, b, gm, gmb, gds, cgs=0.0, cgd=0.0, cgb=0.0, cdb=0.0, csb=0.0)
 
 def phase(z):
     return cmath.phase(z)
+
+
+# ---------------------------------------------------------------- 7a: 루프 절단·Middlebrook 독립 구현 (CONTRACT 3.16·3.17·예 7)
+
+def ref_middlebrook(mos=(), res=(), cap=(), ac_ground=(0,), cuts=(), weights=(1.0,), omega=1.0):
+    """독립 Middlebrook 이중 주입(오라클 넷리스트와 같은 배치). 절단 회로를 test 쪽에서 직접 만들고(3.16: 같은 원래 노드
+    -> 같은 x, x = 원래 최대 노드 + 1 부터 n 오름차순) 쌍마다 프로브 전압원 `Vlb n x`(MNA 가지 전류 = n -> x)와 전류원
+    `Ilb 0 n`(n 으로 주입)을 넣는다.
+      - 전압 실험: Vlb_k = w_k, Ilb = 0 -> Tv = −wᵀV_x / wᵀV_n
+      - 전류 실험: Vlb = 0, Ilb_k = w_k -> I_k = i(Vlb_k), Ti = wᵀI / wᵀ(w − I)
+      - T = (Tv·Ti − 1)/(Tv + Ti + 2)
+    mos: (d, g, s, b, gm, gmb, gds), res/cap: (a, b, 값), cuts: ((kind, index, terminal), ...). ω > 0 전용.
+    반환 dict(T, Tv, Ti, pairs)."""
+    res = [list(r) for r in res]
+    cap = [list(c) for c in cap]
+    nodes = set(ac_ground)
+    for e in res + cap:
+        nodes |= {e[0], e[1]}
+    for m in mos:
+        nodes |= set(m[:4])
+    moved = []
+    for kind, idx, term in cuts:
+        el = (res if kind == "resistor" else cap)[idx]
+        moved.append((el, 0 if term == "a" else 1))
+    orig = sorted({el[t] for el, t in moved})
+    top = max(nodes)
+    xs = {n: top + 1 + i for i, n in enumerate(orig)}
+    for el, t in moved:
+        el[t] = xs[el[t]]
+    pairs = tuple((n, xs[n]) for n in orig)
+    allnodes = sorted(nodes | set(xs.values()))
+    unk = [n for n in allnodes if n not in set(ac_ground)]
+    ix = {n: i for i, n in enumerate(unk)}
+    nu, k = len(unk), len(pairs)
+    s = 1j * omega
+    a = np.zeros((nu + k, nu + k), dtype=complex)
+
+    def two(p, q, y):
+        for r_, c_, sg in ((p, p, 1.0), (q, q, 1.0), (p, q, -1.0), (q, p, -1.0)):
+            if r_ in ix and c_ in ix:
+                a[ix[r_], ix[c_]] += sg * y
+
+    for p, q, r in res:
+        two(p, q, 1.0 / r)
+    for p, q, c in cap:
+        two(p, q, s * c)
+    for d, g, so, b, gm, gmb, gds in mos:
+        for row, sg in ((d, 1.0), (so, -1.0)):
+            if row not in ix:
+                continue
+            for col, v in ((g, gm), (b, gmb), (d, gds), (so, -(gm + gmb + gds))):
+                if col in ix:
+                    a[ix[row], ix[col]] += sg * v
+    for j, (n, x) in enumerate(pairs):
+        a[ix[n], nu + j] += 1.0          # 가지 전류 n -> x 가 n 에서 나간다
+        a[ix[x], nu + j] -= 1.0
+        a[nu + j, ix[n]] += 1.0          # v(n) − v(x) = Vlb
+        a[nu + j, ix[x]] -= 1.0
+    w = np.asarray(weights, dtype=float)
+    rhs = np.zeros(nu + k, dtype=complex)
+    rhs[nu:] = w
+    sol = np.linalg.solve(a, rhs)
+    vn = np.array([sol[ix[n]] for n, _ in pairs])
+    vx = np.array([sol[ix[x]] for _, x in pairs])
+    tv = -(w @ vx) / (w @ vn)
+    rhs = np.zeros(nu + k, dtype=complex)
+    for j, (n, _) in enumerate(pairs):
+        rhs[ix[n]] += w[j]
+    sol = np.linalg.solve(a, rhs)
+    i_ = sol[nu:]
+    ti = (w @ i_) / (w @ (w - i_))
+    return dict(T=(tv * ti - 1.0) / (tv + ti + 2.0), Tv=tv, Ti=ti, pairs=pairs)
+
+
+EX7 = dict(gm=1e-3, gds=1e-5, cl=1e-12, cf=1e-12, cs=3e-12, rs=1e5, rx=5e4)
+EX7_CUT = (("capacitor", 1, "b"),)          # 예 7: Cf(capacitors index 1) 의 b 단자(노드 3 = 입력 포트)
+EX7B_CUTS = (("capacitor", 1, "b"), ("capacitor", 4, "b"))
+
+
+def ex7_parts(cs_resistor=False):
+    """예 7 원소(test tuple): MOS(d=2,g=3), caps [CL(2,0), Cf(2,3), Cs(3,0)] -- Cf = capacitors index 1.
+    cs_resistor=True 면 예 7c: Cs 대신 Resistor(3, 0, 1e5). 반환 (mos, res, cap)."""
+    p = EX7
+    mos = ((2, 3, 0, 0, p["gm"], 0.0, p["gds"]),)
+    if cs_resistor:
+        return mos, ((3, 0, p["rs"]),), ((2, 0, p["cl"]), (2, 3, p["cf"]))
+    return mos, (), ((2, 0, p["cl"]), (2, 3, p["cf"]), (3, 0, p["cs"]))
+
+
+def ex7b_parts():
+    """예 7b: 예 7 반회로 두 벌(a: 2·3, b: 12·13), Cf index 1·4, 출력 사이 Resistor(2, 12, 5e4)."""
+    p = EX7
+    mos = ((2, 3, 0, 0, p["gm"], 0.0, p["gds"]), (12, 13, 0, 0, p["gm"], 0.0, p["gds"]))
+    cap = ((2, 0, p["cl"]), (2, 3, p["cf"]), (3, 0, p["cs"]), (12, 0, p["cl"]), (12, 13, p["cf"]), (13, 0, p["cs"]))
+    return mos, ((2, 12, p["rx"]),), cap
+
+
+def circuit_of(mos, res, cap, ac_ground=(0,), nm=None):
+    """test tuple -> SmallSignalCircuit(노드 치환 nm 선택)."""
+    m = mapper(nm)
+    return SmallSignalCircuit(
+        mos=tuple(MosSmallSignal(m(d), m(g), m(s), m(b), gm, gmb, gds) for d, g, s, b, gm, gmb, gds in mos),
+        resistors=tuple(Resistor(m(a), m(b), v) for a, b, v in res),
+        capacitors=tuple(Capacitor(m(a), m(b), v) for a, b, v in cap),
+        ac_ground=tuple(m(n) for n in ac_ground),
+    )
+
+
+def closed_ex7():
+    """예 7 폐형식 되돌림 비 T(s) = gm·Cf/(Cf+Cs) / (gds + s(CL + Cf·Cs/(Cf+Cs))). 반환 dict(t, t0, wp, ugf_hz, pm_deg, gain_db)."""
+    p = EX7
+    k = p["cf"] / (p["cf"] + p["cs"])
+    ceq = p["cl"] + p["cf"] * p["cs"] / (p["cf"] + p["cs"])
+    t0 = p["gm"] * k / p["gds"]
+    wp = p["gds"] / ceq
+
+    def t(w):
+        return p["gm"] * k / (p["gds"] + 1j * w * ceq)
+
+    return dict(t=t, t0=t0, wp=wp, ugf_hz=wp * math.sqrt(t0 * t0 - 1.0) / TWO_PI, gain_db=20.0 * math.log10(t0),
+                pm_deg=180.0 - math.degrees(math.atan(math.sqrt(t0 * t0 - 1.0))))
+
+
+def closed_ex7b(mode):
+    """예 7b 반회로 폐형식: DM 출력 부하 gds + 2/Rx, CM 은 Rx 무전류(예 7 과 같음). 반환 dict(t0, wp, ugf_hz, pm_deg)."""
+    p = EX7
+    k = p["cf"] / (p["cf"] + p["cs"])
+    ceq = p["cl"] + p["cf"] * p["cs"] / (p["cf"] + p["cs"])
+    g = p["gds"] + (2.0 / p["rx"] if mode == "dm" else 0.0)
+    t0 = p["gm"] * k / g
+    wp = g / ceq
+    return dict(t0=t0, wp=wp, ugf_hz=wp * math.sqrt(t0 * t0 - 1.0) / TWO_PI,
+                pm_deg=180.0 - math.degrees(math.atan(math.sqrt(t0 * t0 - 1.0))))
