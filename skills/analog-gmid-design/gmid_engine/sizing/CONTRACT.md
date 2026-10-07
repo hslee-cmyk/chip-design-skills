@@ -15,6 +15,9 @@
   구조 색(1-WL) 키 뒤로 미루고 남은 동률을 `TieBreak` 로 기록(3·4.0·4.2절), θ 전류 정의역 = 전류 원뿔(4.4·5.1·5.2), 1변수 노드
   = 구간 bisection + 다변수 SCC 반복 중 투영·수렴 뒤 strict 검증(5.4·5.5), 레이아웃 전 폭 = LUT 생성 규칙 폭(1.3), 봉인 7 은
   VDSAT 접근자가 생길 때까지 미정 유지(6절·12절 O1).
+- **개정 r3(2026-10-08, 독립 test 작성자 보고 반영)**: `[r3]`. judge 의 tol 0 margin = +inf(코드를 계약에 맞춤), 계약에 calls 형식·
+  봉인 8 worst 이름·봉인 3 행 범위·margin 동률 규칙·`Window.constraints` 뜻·실패 최소 구성을 명시. S2 dc 필드는 r2 그대로
+  28개(+ S1 필드).
 
 ---
 
@@ -266,6 +269,9 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 - 창 [lo, hi]: 레일 전압 범위 [min, max] 에서 시작, x(입력 묶음이면 묶음 전원)에 채널이 닿는 MOS 마다 전류가 나가는 단자
   (nmos d, pmos s)면 lo = max(lo, V(반대 단자)), 들어오는 단자면 hi = min(hi, V(반대 단자)). lo > hi -> `SealViolationError`
   (devices (), margin None, detail item 7·reason `empty_window`·node·lo·hi·constraints). **VDsat 항 없음**(12절 O1).
+  [r3] `Window.constraints`(그리고 empty_window detail 의 `constraints`) = 창을 만든 순서 제약의 **개수**(위 MOS 마다 lo 또는
+  hi 하나씩 -- x 와 입력 묶음 전원에 채널(d 또는 s)이 닿는 MOS 수, 같은 MOS 가 두 묶음 전원에 닿으면 둘). 0 이면 창 = 레일 전압
+  범위. 값이 lo·hi 를 실제로 좁혔는지는 뜻하지 않는다.
 - [r2] **1변수 노드**(self-referential: writer MOS 의 d·s·bulk 중 하나가 x 자신 -- diode 의 gate 쓰기, 소스 추종의 source
   쓰기)는 **구간 bisection**(설계 3.4): h(x) = x − g(x). 구간 = 레일 전압 범위 ∩ {writer 의 vds ∈ [VDS 격자 최소, 최대]} ∩
   {vsb ∈ [VS 격자 최소, 최대]}(vds·vsb 는 x 의 1차식 -- x = 0, 1 두 점에서 계수를 잰다). g 평가에서 lut 가
@@ -284,6 +290,16 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   이웃의 과도 반복값 때문에 수렴할 θ 를 거부하지 않게. **수렴 뒤 strict 검증 바퀴**: SCC 노드마다 writer 식을 strict 로 다시
   재서(1변수는 bisection 전체, 실패는 위 구조화 실패 그대로) |새 값 − 수렴값| > tol 이면 `NonconvergentError`(reason
   `strict_recheck_residual`, margin = 잔차/tol, detail node·nodes) -- 투영이 최종값에 남지 않는다.
+- [r3] **실패를 일으키는 최소 구성**(test 작성용):
+  - `tol_v_undefined`: 보간 축 VGS·VDS·VS 가 모두 2점인 toy LUT(내부 격자점이 없어 lut CONTRACT 5절 축 양끝 규칙으로 모든
+    tol_V 셀이 None) + 1변수 노드가 있는 회로. 작성자 측 확인(2026-10-08): tester conftest 의 toy 식에 VGS = VDS = VS = (0, 1.8)
+    로 LUT 를 만들고 M1 nmos (x, x, gnd)(diode) + M2 pmos (x, pb, vdd), pb = 입력 포트(input_dc_v 0.9), θ = L 1 µm·전류 10 µA·
+    ln_idu(M1) 아무 값 -> `size_and_seal` 이 `SealViolationError`(devices ("M1",), margin None, detail {reason: tol_v_undefined}).
+    1변수 bisection 이 tol 을 먼저 재기 때문에 순환 노드가 하나라도 있으면 걸린다.
+  - `strict_recheck_residual`: 방어 검사다. 마지막 Gauss-Seidel 바퀴가 Δ ≤ tol 이었는데 그 뒤 앞 노드를 다시 재면 tol 을 넘게
+    움직이는 경우 -- SCC 루프 이득이 1 보다 큰데 시작값이 불안정 고정점 근처라 첫 바퀴들이 우연히 작게 움직인 경우에만 생긴다
+    (수축 루프에서는 다시 잰 변화 = q·Δ ≤ Δ ≤ tol 이라 구조상 생기지 않는다). 공개 API 만으로 재현되는 최소 구성은 찾지 못했다
+    (12절 O12) -- test 가 덮지 못하는 것을 숨기지 않으려고 적는다.
 - 종속 MOS: ln_idu = ln(op_point(노드 vgs, vds, vsb).IDu). writer: θ 값.
 - path_values: MOS 마다 VGS(좌표 역산, 최종 vds·vsb) 로 gate 에 (`PATH_MOS`, m) V(s) + s·VGS, source 에 V(g) − s·VGS;
   resistor_drop writer 마다 두 끝에 (`PATH_RESISTOR`, r) 상대 끝 ± Δ; input_tie 마다 두 끝에 (`PATH_TIE`, 그 노드);
@@ -314,25 +330,35 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 `dc_seal_bulk_reverse()` -> 7 `dc_seal_saturation(linear_devices)` -> 8 `dc_seal_kvl_branch()` -> 4 `seal_versions(snapshot,
 calls + 위 7개)` -> 5 `seal_writers(snapshot)` -> `dc_seal_report(item4, item5)`.
 
+[r3] **`calls` 형식**(`seal_dc`·`seal_versions` 공통): ((ComputeBlock, extras), ...) -- extras = 그 블록을 부를 때 넘긴 추가 인자
+tuple(블록 함수 호출 `block(snapshot, *extras)` 의 `extras` 그대로, 없으면 ()). `size_and_seal` 은 `((dc_currents,
+(θ 전류 쌍 tuple,)), (dc_lengths, (θ L 쌍 tuple,)), (dc_columns, (θ 쌍, fixed_values, resistor_values, lut)), (dc_widths,
+(lut,)))` 를 넘기고 `seal_dc` 가 봉인 블록 7개를 같은 형식으로 덧붙여 `seal_versions` 에 넘긴다. 계획 블록(rails·struct_colour·
+current_basis·writer_plan·scc_order·theta_schema)은 calls 에 들지 않는다(parent 검사가 plan_versions 로 대신한다).
+
 `judge(item, rows)`(rows = (대상, 크기, tol 또는 None, devices, nodes)): tol 이 정의된 행 중 크기 > tol 이 있으면 fail(대상 = 그
-행들), 없고 tol None 행이 있으면 undefined(대상 = 그 행들), 그 밖 pass. magnitude·tol·margin = margin(크기/tol, tol 0 이면 무한)
-최대 행(fail 이면 fail 행 중), 행이 없으면 None. detail = n_checked·n_undefined·worst(대상) 키 정렬.
+행들), 없고 tol None 행이 있으면 undefined(대상 = 그 행들), 그 밖 pass. magnitude·tol·margin = margin 최대 행(fail 이면 fail 행
+중), 행이 없으면 None. detail = n_checked·n_undefined·worst(대상) 키 정렬.
+[r3] **margin** = 크기/tol(core `normalized_margin`), 단 **tol == 0 이면 크기 > 0 -> +inf, 크기 ≤ 0 -> 0.0**(core 는 tol 0 에
+None 을 주지만 봉인에서는 '허용오차 0 을 넘은 위반' = 무한 위반이다; core 는 바꾸지 않고 sizing 이 정한다). **최대 margin 동률**이면
+대상 이름(rows 의 첫 칸, 문자열 비교)이 가장 큰 행이 대표(`worst`)다.
 
 | # | 블록 | 판정 |
 |---|---|---|
 | tol | `dc_tolerances` | dc_tol_v = lut `tol_v_table(kind, w_key).at(L, vds, "id_equivalent")`(None 가능), dc_gm_bound = max(gm_id_curve(L, vds, vsb) 의 id·gm/id)·W/w_m |
 | 1 | `dc_seal_node_conflict` | 노드마다 spread = max − min of {노드 값} ∪ path_values; tol = 닿는 PATH_MOS 소자 tol_v 최댓값(정의된 것), 없으면 None; MOS 관계가 없는 노드는 n·eps·max|V|(n = 값 수) |
 | 2 | `dc_seal_vgs_match` | MOS 마다 |ln idu_forward − ln_idu| / gm_id ≤ tol_v |
-| 3 | `dc_seal_kcl` | 레일 아닌 넷마다 |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = 채널이 닿는 MOS 의 tol_v·gm_bound 최댓값(정의된 것; MOS 는 있는데 모두 None 이면 None), MOS 없는 넷은 n·eps·Σ|I| |
+| 3 | `dc_seal_kcl` | [r3] 행 = DC 원소(`basis.ends` -- MOS·DC 저항·이상원, 가지치기 저항 제외)의 from·to 로 한 번이라도 나오는 레일 아닌 넷마다(DC 원소가 닿지 않는 넷 -- gate 전용 넷·커패시터만 닿는 넷 -- 은 행이 없고 n_checked 에 들지 않는다) |Σ from − Σ to|, MOS = idu_forward·W/L, 저항 = (V(from) − V(to))/R, 이상원 = dc_current; tol = 채널이 닿는 MOS 의 tol_v·gm_bound 최댓값(정의된 것; MOS 는 있는데 모두 None 이면 None), MOS 없는 넷은 n·eps·Σ|I| |
 | 4 | `seal_versions` | calls 의 블록마다 fp_of((이름, code_hash, Projection.from_snapshot(snapshot, reads, extras).fp)) == block_version 이고 그 블록 writes 필드의 input_version == block_version. 위반 블록 = detail `blocks`. magnitude = 위반 수, tol 0 |
 | 5 | `seal_writers` | 모든 필드 writer == 권한표 writer; 노드마다 dc_writer 있음, (tier == W0) == is_rail, dc_rail_v·dc_v 중 정확히 하나, dc_rail_v 있음 == is_rail. 위반 노드 = nodes, 위반 필드 = detail `fields` |
 | 6 | `dc_seal_bulk_reverse` | MOS 마다 max(0, −vsb, −(vds + vsb)) ≤ tol_v |
 | 7 | `dc_seal_saturation` | 항상 undefined(reason `lut_vdsat_column_missing`), devices = current > 0 이고 linear_devices 밖인 MOS, n_checked = 그 수 |
-| 8 | `dc_seal_kvl_branch` | S1 rel_kvl_branch 엣지마다 Σ_멤버 |ln idu_forward − ln_idu|/gm_id ≤ Σ 멤버 tol_v(하나라도 None 이면 None) |
+| 8 | `dc_seal_kvl_branch` | S1 rel_kvl_branch 엣지마다 Σ_멤버 |ln idu_forward − ln_idu|/gm_id ≤ Σ 멤버 tol_v(하나라도 None 이면 None). [r3] 행 대상 이름(= detail `worst` 값) = 엣지 `members`(S1 이 정한 순서 그대로)를 `"+"` 로 이은 문자열(예 `"M1+M2+M3+M4"`), devices = members |
 
 `SealReport.status`: fail 있으면 `REPORT_VIOLATED`("violated"), 아니고 undefined 있으면 `REPORT_UNDEFINED`, 아니면
 `REPORT_SEALED`. items = item 번호순 8개. 결과: violated -> `SealViolationError`(devices = margin 최대 fail 항목의 devices,
-margin = 그 margin, detail = item·nodes·items((번호, 상태, margin) 8개)·item_detail). undefined -> `DcEvaluation(sealed=None)`.
+margin = 그 margin, detail = item·nodes·items((번호, 상태, margin) 8개)·item_detail). [r3] fail 항목 선택 키 = (margin, 항목
+번호) 최대 -- margin None(봉인 4·5 처럼 정규화가 없는 항목)은 +inf 로 치고, 동률이면 번호가 큰 항목. undefined -> `DcEvaluation(sealed=None)`.
 sealed -> `DcEvaluation(sealed=SealedSnapshot(snapshot, report))`. **지금은 항목 7 이 항상 undefined 라 SealedSnapshot 이
 나오지 않는다**(O1).
 
@@ -461,5 +487,7 @@ O3·O8 기록 유지.
 - **O10 (부분 해결)** 1변수 노드 = 구간 bisection, 다변수 SCC = 반복 중 투영 + strict 검증. 남은 위험: 다변수 SCC 에서 투영으로
   멈춘 노드 때문에 실제 근이 있는데 strict 검증이 실패할 수 있다(sf_pushpull 0/215 가 그 경우인지 가르지 못함). 다변수 블록을
   Newton·연속법 등으로 바꿀지는 설계 결정.
+- **O12 [r3] `strict_recheck_residual` 재현 구성 없음**: 방어 검사(5.4 '실패를 일으키는 최소 구성'). 공개 API 만으로 덮을
+  구성이 생기면 계약에 더한다.
 - **O11 W4–W4 결합 비수렴**: 인접 W4 두 노드의 창이 서로를 읽으면 선형 수축비 y1(1 − y2) 가 1 에 가까울 때 K_max 안에 못
   들어와 NONCONVERGENT(common_gate 25/215). 설계 규칙('bisection 보다 느린 고정점 = 비수렴') 그대로의 결과다.
