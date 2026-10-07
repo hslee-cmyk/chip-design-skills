@@ -144,6 +144,15 @@ graph 레코드 key: `DC_KEY`(`"dc"`). 값은 모두 불변(frozen dataclass·tu
 | graph.dc_seal_1/2/3/6/7/8 | dc_seal_node_conflict / vgs_match / kcl / bulk_reverse / saturation / kvl_branch | DC_KEY | `SealItem` |
 | graph.dc_seal_report | dc_seal_report | DC_KEY | `SealReport` |
 
+[ss_linearize 2026-10-08] 권한표 `S2_WRITERS` 에는 위 dc 필드 뒤에 ss·metric 필드 3개(`SS_WRITES`)가 더 있다 -- writer 는
+metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여기서 선언한다(sizing 은 metrics 를 import 하지 않는다):
+
+| (kind, field) | writer | 대상 레코드 | 값 |
+|---|---|---|---|
+| device.ss_dev | ss_dev | 모든 MOS | metrics `SsDevice` |
+| graph.metrics_ss | metrics_ss | `METRICS_KEY`(`"metrics"`) | metrics `MetricBundle` |
+| graph.metrics_dc | metrics_dc | `METRICS_KEY` | metrics `MetricBundle` |
+
 노드전압 정본: 레일 = `dc_rail_v`, 그 밖 = `dc_v`(한 노드에 둘 중 하나만 -- 봉인 5). 소자 VGS/VDS/VSB 는 저장 필드가 아니고
 `DeviceOp` 는 노드전압 차의 파생이다(설정 API 없음, N3.4).
 

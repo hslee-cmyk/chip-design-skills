@@ -65,7 +65,10 @@ class MosSmallSignal:
     """MOS 소신호 모델 하나(NMOS·PMOS 공통 -- 소신호 식은 극성과 무관하다).
 
     채널 전류 `I(d→s) = gm·(vg − vs) + gmb·(vb − vs) + gds·(vd − vs)`. 용량은 단자 쌍마다 하나:
-    cgs(g–s), cgd(g–d), cgb(g–b), cdb(d–b), csb(s–b). 값은 소자 전체(W 반영) 절댓값, 모두 0 이상.
+    cgs(g–s), cgd(g–d), cgb(g–b), cdb(d–b), csb(s–b). 값은 소자 전체(W 반영). gm·gmb·gds 는 크기(0 이상 -- LUT 는 BSIM op 값의
+    크기를 저장한다). 용량 5개는 **부호 있는 유한 실수**(오케스트레이터 결정 2026-10-08 Q7): BSIM4 단자 용량(예 cgb = −∂Qg/∂Vb)은
+    부호가 있고 SPICE 오라클도 부호 그대로 스탬프한다 -- 같은 정의(U-48·DEC-90). 부호 규약의 원천 = LUT v2 생성기 meta
+    `sign_convention`(lut CONTRACT r6 1.2, `CapTable.sign_convention`). NaN·inf 만 거부한다.
     `label` 은 진단용 불투명 문자열(코드가 읽지 않는다)."""
 
     d: int
@@ -85,8 +88,10 @@ class MosSmallSignal:
     def __post_init__(self):
         for name in ("d", "g", "s", "b"):
             _node(getattr(self, name), "MosSmallSignal." + name)
-        for name in ("gm", "gmb", "gds", "cgs", "cgd", "cgb", "cdb", "csb"):
+        for name in ("gm", "gmb", "gds"):
             object.__setattr__(self, name, _finite(getattr(self, name), "MosSmallSignal." + name, nonnegative=True))
+        for name in ("cgs", "cgd", "cgb", "cdb", "csb"):
+            object.__setattr__(self, name, _finite(getattr(self, name), "MosSmallSignal." + name))
 
 
 @dataclasses.dataclass(frozen=True)

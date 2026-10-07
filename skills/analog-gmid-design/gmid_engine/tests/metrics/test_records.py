@@ -96,10 +96,30 @@ def test_string_node_type_error(make):
 
 # ---------- MOS 소신호 값 ----------
 
-@pytest.mark.parametrize("field", ["gm", "gmb", "gds", "cgs", "cgd", "cgb", "cdb", "csb"])
+@pytest.mark.parametrize("field", ["gm", "gmb", "gds"])
 def test_mos_negative_value_error(field):
+    """1절: gm·gmb·gds ≥ 0 -- 음수는 ValueError."""
     kw = dict(d=2, g=1, s=0, b=0, gm=1e-3, gmb=0.0, gds=1e-5)
-    kw[field] = -1e-6 if field.startswith("g") else -1e-15
+    kw[field] = -1e-6
+    with pytest.raises(ValueError):
+        MosSmallSignal(**kw)
+
+
+@pytest.mark.parametrize("field", ["cgs", "cgd", "cgb", "cdb", "csb"])
+def test_mos_negative_cap_accepted(field):
+    """1절(Q7 결정 a, 2026-10-08): 용량 5개는 부호 있는 유한 실수 -- 음수도 받고 값을 그대로 둔다(절댓값·클램프 없음)."""
+    kw = dict(d=2, g=1, s=0, b=0, gm=1e-3, gmb=0.0, gds=1e-5)
+    kw[field] = -2.03e-16
+    m = MosSmallSignal(**kw)
+    assert getattr(m, field) == -2.03e-16
+
+
+@pytest.mark.parametrize("field", ["cgs", "cgd", "cgb", "cdb", "csb"])
+@pytest.mark.parametrize("bad", [NAN, INF, -INF])
+def test_mos_cap_nonfinite_still_rejected(field, bad):
+    """Q7 뒤에도 NaN·±inf 용량은 ValueError(음수 허용이 검사 자체를 지운 것이 아님을 확인하는 거부 test)."""
+    kw = dict(d=2, g=1, s=0, b=0, gm=1e-3, gmb=0.0, gds=1e-5)
+    kw[field] = bad
     with pytest.raises(ValueError):
         MosSmallSignal(**kw)
 

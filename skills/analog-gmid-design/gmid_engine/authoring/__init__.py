@@ -35,7 +35,7 @@ from .spec_model import (
     TargetDecl,
     ViewDecl,
 )
-from .spec_views import BETA_DECLARED, BETA_UNITY, DefaultViews, default_views
+from .spec_views import BETA_DECLARED, BETA_UNITY, SENSE_DIFFERENTIAL, DefaultViews, default_views
 from .spec_node_targets import node_target_declaration
 from .spec_refs import resolve_spec_references
 from .spec_regions import intended_region_declaration
@@ -82,6 +82,7 @@ __all__ = (
     "SCHEMA_VERSION",
     "SECTION_GROUPS",
     "SPEC_SCHEMA_VERSION",
+    "SENSE_DIFFERENTIAL",
     "SchemaHit",
     "SenseDecl",
     "SettingValue",
