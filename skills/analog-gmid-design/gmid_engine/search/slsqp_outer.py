@@ -3,7 +3,8 @@
 진입점: `solve_eps(sctx, start, minimize, eps, origin) -> SolveResult`.
 
 * 변수: `SearchDomain.variables`(ln_idu·y·ln current·ln R) + 칸이 구간인(lo < hi) MOS 의 L(칸 bounds). L 칸 index 벡터는
-  시작점 것을 그대로 쓴다(L-a) -- 칸이 한 점인 L 은 고정값이다. 결정변수 밖 값은 바꾸지 않는다.
+  시작점 것을 그대로 쓴다(L-a) -- 칸이 한 점인 L 은 고정값이다. 결정변수 밖 값은 바꾸지 않는다. [r8, S-4f] 1변수 노드 writer 의
+  ln_idu 하한은 시작 칸의 칸 정점 하한(`cell_floor.ln_idu_floors(one_var_only=True, start=시작 θ)`).
 * 목적 = `minimize` 축 값 / 그 축 분해능, ε = (축, 상한) 이면 제약 (ε − 값)/분해능 ≥ 0(설계 5절). 분해능: 면적 = b_A(정의역),
   전력 = 시작점의 b_P(`Objectives.power_resolution_w` -- 풀이 하나 동안 고정해 목적 함수가 θ 마다 축척을 바꾸지 않게).
   다른 제약 = 커널 결과의 정규화 행 + θ 전류 원뿔 행. 가중합 없음(DEC-77).
@@ -29,6 +30,7 @@ from scipy.optimize import minimize as scipy_minimize
 
 from gmid_engine.sizing import THETA_L
 
+from .cell_floor import ln_idu_floors
 from .fd_jacobian import fd_jacobian
 from .kernel import evaluate
 from .search_values import ACCEPTED_STATUSES, AXIS_AREA, AXIS_POWER, CON_EPS, STAGE_SLSQP, SolveResult, Variable
@@ -54,15 +56,21 @@ def _layout(sctx, start):
             variables.append(Variable((THETA_L, mos), False, lo, hi))
         else:
             fixed[(THETA_L, mos)] = lo
+    # [r8, S-4f] 1변수 노드 writer(diode·소스 추종)의 ln_idu 상자 하한 = 시작 칸의 칸 정점 하한(시작 좌표는 넘지 않음) -- 칸이 고정된
+    # 이 풀이 안에서 상수. 정점 아래 좌표에서 그 노드 근이 늘 없어 SLSQP 가 실패 재시작만 하는 영역을 상자에서 뺀다.
+    for i, floor in ln_idu_floors(sctx, variables, start.cells, one_var_only=True, start=theta).items():
+        variables[i] = Variable(variables[i].component, variables[i].log, floor, variables[i].hi)
     names = {v.component for v in variables} | set(fixed)
     for comp in theta:
         if comp not in names:
             fixed[comp] = theta[comp]
-    x0 = []
+    x0, exact = [], []
     for v in variables:
         raw = theta[v.component]
-        x0.append(min(max(math.log(raw) if v.log else raw, v.lo), v.hi))
-    return tuple(variables), fixed, x0
+        coord = math.log(raw) if v.log else raw
+        x0.append(min(max(coord, v.lo), v.hi))
+        exact.append(raw if x0[-1] == coord else None)    # bounds 로 잘리지 않았으면 시작 θ 원값
+    return tuple(variables), fixed, x0, tuple(exact)
 
 
 def _axis_value(result, axis):
@@ -89,7 +97,7 @@ def _budget_stop(sctx):
 
 
 def solve_eps(sctx, start, minimize, eps, origin):
-    variables, fixed, x0 = _layout(sctx, start)
+    variables, fixed, x0, exact = _layout(sctx, start)
     lo = np.asarray([v.lo for v in variables], dtype=float)
     hi = np.asarray([v.hi for v in variables], dtype=float)
     tag = origin + (("stage", STAGE_SLSQP), ("minimize", minimize), ("eps", eps))
@@ -97,13 +105,16 @@ def solve_eps(sctx, start, minimize, eps, origin):
 
     def to_theta(x):
         out = dict(fixed)
-        for v, value in zip(variables, x):
+        for i, (v, value) in enumerate(zip(variables, x)):
             value = min(max(float(value), v.lo), v.hi)
-            out[v.component] = math.exp(value) if v.log else value
+            if value == x0[i] and exact[i] is not None:
+                out[v.component] = exact[i]     # 시작 좌표 그대로면 시작 θ 원값 -- ln→exp 왕복 1 ulp 로 키가 바뀌지 않게
+            else:
+                out[v.component] = math.exp(value) if v.log else value
         return out
 
     def point(x):
-        x = np.asarray(x, dtype=float)
+        x = np.array(x, dtype=float, copy=True)   # SLSQP 는 x 배열을 제자리에서 바꾼다 -- 복사본만 저장·키로 쓴다
         hx = tuple(float(v).hex() for v in x)
         hit = state["points"].get(hx)
         if hit is not None:
@@ -173,7 +184,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
             box_lo[i] = box_hi[i] = centre[i]
         cons = {"type": "ineq", "fun": lambda x: point(x)["c"], "jac": lambda x: jac_of(x)[1]}
         try:
-            out = scipy_minimize(lambda x: point(x)["f"], centre, jac=lambda x: jac_of(x)[0], method="SLSQP",
+            out = scipy_minimize(lambda x: point(x)["f"], np.array(centre, copy=True), jac=lambda x: jac_of(x)[0], method="SLSQP",
                                  bounds=list(zip(box_lo, box_hi)), constraints=[cons], callback=accept,
                                  options={"ftol": 1, "maxiter": maxiter})
             iterations += int(out.nit)

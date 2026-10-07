@@ -138,7 +138,7 @@ def probe_factor(response, pairs, weights):
     samples = []
     undefined = []
     for omega, values in zip(response.omegas, response.values):
-        value, _, why = probe_value(probe, float(omega), values, zero_errors, response.undefined)
+        value, _, why, _grad = probe_value(probe, float(omega), values, zero_errors, response.undefined)
         samples.append(value)
         undefined.extend(u for u in why if u not in undefined)
     poles, zeros = _roots(system, pairs, probe.weights)

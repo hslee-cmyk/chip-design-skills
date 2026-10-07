@@ -41,8 +41,9 @@ import time
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
 
-from gmid_engine.sizing import THETA_CURRENT, THETA_L, THETA_LN_IDU
+from gmid_engine.sizing import REASON_NO_ROOT, THETA_CURRENT, THETA_L, THETA_LN_IDU
 
+from .cell_floor import ln_idu_floors
 from .cone_rows import cone_rows
 from .fd_jacobian import fd_jacobian
 from .kernel import evaluate
@@ -88,6 +89,7 @@ class Layer0Result:
     rows: tuple
     probes: int
     origin_point: object
+    repairs: tuple = ()
 
 
 class _Abort(Exception):
@@ -190,6 +192,9 @@ def _budget_stop(sctx):
 
 
 def _maxmin(sctx, variables, theta0, cells, first, tag):
+    variables = list(variables)
+    for i, floor in ln_idu_floors(sctx, variables, cells, one_var_only=True, start=theta0).items():
+        variables[i] = Variable(variables[i].component, variables[i].log, floor, variables[i].hi)   # S-4f, solve_eps 와 같은 규칙
     lo = np.asarray([v.lo for v in variables], dtype=float)
     hi = np.asarray([v.hi for v in variables], dtype=float)
     fixed = {k: v for k, v in theta0.items() if k not in {v.component for v in variables}}
@@ -348,36 +353,105 @@ def _radical_inverse(index, base):
     return value
 
 
-def _peak_floors(sctx, variables, cells):
-    """[r5c, 오케스트레이터 승인 2026-10-08] 시험용 ln_idu 하한: 쓰기 소자 m 의 L 칸(층 0 이 고정)의 LUT L 앵커 전부 × VDS·VS 전
-    격자 곡선마다 gm/ID 정점 마디(강반전 분지 시작)의 ln IDu 를 재고 그 최댓값 -- 어느 격자 동작점에서도 좌표가 분지 시작 위다.
-    정점 마디가 on_mask 밖인 곡선은 뺀다(`search_domain` 의 하한 정의와 같은 곡선 집합, 그 최솟값 대신 칸 안 최댓값). 이 호출
-    안에서 (kind, w_key, 칸) 마다 한 번(층 0 은 S0 당 1회). 값이 변수 상한 이상이면 그 변수는 원래 상자 그대로. 반환 {index: lo}."""
+def _repairable(res):
+    """1변수 노드 근 없음(`no_root_in_window`)이고 창 양끝 h 가 둘 다 유한(같은 부호 = 근이 창 밖 한쪽)이며 margin(= 끝 |h| 최솟값 /
+    writer tol_V, sizing 이 정규화)이 있는 실패 -- 연속 위반 크기가 있는 실패. 그 밖(빈 창·NONCONVERGENT·LUT 실패)은 None."""
+    f = res.failure
+    if f is None or f.margin is None or not f.devices:
+        return None
+    d = dict(f.detail)
+    if d.get("reason") != REASON_NO_ROOT or "h_lo" not in d:
+        return None
+    if not (math.isfinite(d["h_lo"]) and math.isfinite(d["h_hi"])):
+        return None
+    return f.devices[0], f.margin, min(abs(d["h_lo"]), abs(d["h_hi"])) / f.margin
+
+
+def _repair(sctx, variables, res, cells, tag, gmid_max):
+    """S-4b 1단계(오케스트레이터 결정 2026-10-08): 실패 노드의 writer 소자 m 의 좌표 ln_idu 하나를 움직여 그 노드 근을 창 안으로.
+    커널 실패는 SCC 순서의 첫 실패 노드에서 멈춰 한 점이 위반 크기 하나만 주고(합·최대를 쓸 수 없다), FD 기준점(받아들인 스냅샷)도
+    없어 SLSQP 대신 좌표 bisection: 상자 양끝(하한은 칸 정점 하한) 중 그 노드가 통과하는 쪽을 찾고(평가 2), 불변식 '현재 쪽 = 같은
+    노드 실패, 끝 쪽 = 통과'로 ⌈log2(|끝 − x| / res)⌉ 번 가른다. res = tol_V·(gm/ID 최대)(d ln ID = gm/ID·dVGS -- tol_V 만큼의 VGS
+    변화가 만드는 ln IDu 변화의 상한, gm/ID 최대 = 그 슬라이스 on_mask 점 최댓값). 통과 쪽 점에서 다른 노드가 같은 종류로 실패하면
+    그 노드로 이어가고(사슬), 같은 소자가 다시 나오거나 위반 크기가 없는 실패면 끝. 반환 (받아들인 점 | None, 고친 소자 tuple)."""
+    index = {v.component: i for i, v in enumerate(variables)}
+    floors = ln_idu_floors(sctx, variables, cells)
     kinds = dict(sctx.dc.base.column("device", "kind"))
-    w_keys = dict(sctx.dc.lut.w_keys)
-    cell_of = {mos: table[j] for (mos, table), j in zip(sctx.domain.l_cells, cells)}
-    memo, out = {}, {}
-    for i, var in enumerate(variables):
-        ckind, m = var.component
-        if ckind != THETA_LN_IDU:
-            continue
-        kind = kinds[m]
-        key = (kind, w_keys[kind], cell_of[m])
-        if key not in memo:
-            sl = sctx.dc.lut.memo.lut.slice_map[(kind, w_keys[kind])]
-            lo_l, hi_l = cell_of[m]
-            grid_l = np.asarray(sl.grids[0], dtype=float)
-            pick = (grid_l >= lo_l - np.spacing(lo_l)) & (grid_l <= hi_l + np.spacing(hi_l))
-            ln_l = np.log(grid_l[pick])[:, None, None, None]
-            ln_idu = np.asarray(sl.log_ID)[pick] + ln_l - math.log(sl.w_m)
-            on = np.asarray(sl.on_mask, dtype=bool)[pick]
-            gm_id = np.where(on, np.asarray(sl.log_GM)[pick] - np.asarray(sl.log_ID)[pick], -np.inf)
-            peak = np.argmax(gm_id, axis=1)
-            at_peak = np.take_along_axis(ln_idu, peak[:, None, :, :], axis=1)[:, 0]
-            valid = np.take_along_axis(on, peak[:, None, :, :], axis=1)[:, 0]
-            memo[key] = float(np.max(np.where(valid, at_peak, -np.inf)))
-        if var.lo < memo[key] < var.hi:
-            out[i] = memo[key]
+    writers = dict(sctx.dc.base.column("node", "dc_writer"))
+    fixed_seen, done = set(), []
+    while True:
+        if res.status in ACCEPTED_STATUSES:
+            return res, tuple(done)
+        info = _repairable(res)
+        if info is None:
+            return None, tuple(done)
+        m, _margin, tol = info
+        if m in fixed_seen:
+            return None, tuple(done)
+        fixed_seen.add(m)
+        # 후보 좌표: 실패 writer m 자신, 다음 그 노드 writer 식의 '아는 쪽' 노드(diode 의 source·소스 추종의 gate)를 쓰는 소자 --
+        # 적층 diode 처럼 근이 창 밖인 원인이 아래 소자 전압이면 m 의 좌표만으로는 고칠 수 없다(r8 실측 current_reuse)
+        node = dict(res.failure.detail)["node"]
+        known = writers[node].known
+        candidates = [m]
+        if known in writers and writers[known].element is not None and writers[known].element != m:
+            candidates.append(writers[known].element)
+        base = dict(res.theta)
+
+        def same(r, m=m):
+            # 같은 노드(writer m)가 여전히 근 없음인가 -- 위반 크기가 유한이든 아니든(정점 아래 ±inf 포함) 아직 고쳐지지 않았다
+            return (r.failure is not None and dict(r.failure.detail).get("reason") == REASON_NO_ROOT
+                    and r.failure.devices[:1] == (m,))
+
+        found = None
+        for c in candidates:
+            i = index.get((THETA_LN_IDU, c))
+            if i is None:
+                continue
+            var = variables[i]
+            for bound in (floors.get(i, var.lo), var.hi):
+                if _budget_stop(sctx) is not None:
+                    return None, tuple(done)
+                th = dict(base)
+                th[var.component] = bound
+                r = evaluate(sctx, th, cells, origin=tag + (("repair", c),))
+                if not same(r):
+                    found = (c, var, bound, r)
+                    break
+            if found is not None:
+                break
+        if found is None:
+            return None, tuple(done)
+        c, var, end, end_res = found
+        x = base[var.component]
+
+        def run(value, base=base, var=var, c=c):
+            th = dict(base)
+            th[var.component] = value
+            return evaluate(sctx, th, cells, origin=tag + (("repair", c),))
+
+        res_ln = tol * gmid_max[kinds[c]]
+        steps = max(1, int(math.ceil(math.log2(abs(end - x) / res_ln)))) if abs(end - x) > res_ln else 0
+        lo_x, hi_x, hi_res = x, end, end_res
+        for _k in range(steps):
+            if _budget_stop(sctx) is not None:
+                break
+            mid = (lo_x + hi_x) / 2
+            r = run(mid)
+            if same(r):
+                lo_x = mid
+            else:
+                hi_x, hi_res = mid, r
+        done.append(c)
+        res = hi_res
+
+
+def _gmid_max(sctx):
+    out = {}
+    for kind, w_key in sctx.dc.lut.w_keys:
+        sl = sctx.dc.lut.memo.lut.slice_map[(kind, w_key)]
+        on = np.asarray(sl.on_mask, dtype=bool)
+        out[kind] = float(np.exp(np.max(np.where(on, np.asarray(sl.log_GM) - np.asarray(sl.log_ID), -np.inf))))
     return out
 
 
@@ -397,7 +471,10 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     inside = bool(cur) and bool(schema.current_cone) and all(
         r.c > 0 for r in cone_rows(schema, tuple(sorted(theta0.items()))))
     bases = _primes(len(variables) + (1 if inside else 0))
-    floors = _peak_floors(sctx, variables, cells)
+    floors = ln_idu_floors(sctx, variables, cells)
+    gmid_max = _gmid_max(sctx)
+    batch = len(variables) + 1          # 시험 묶음 = FD 한 sweep 크기(n + 1, E_B 유도와 같은 단위)
+    best, repaired = None, []
     walk = None
     if inside:
         names = [variables[i].component[1] for i in cur]
@@ -420,14 +497,20 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
         walk = np.asarray([theta0[variables[i].component] for i in cur], dtype=float)
     tried = 0
     while True:
+        if tried and tried % batch == 0 and best is not None:
+            fixed_res, chain = _repair(sctx, variables, best[1], cells, tag, gmid_max)
+            repaired.append(chain)
+            best = None
+            if fixed_res is not None:
+                return fixed_res, tried, "repair", tuple(repaired)
         stop = _budget_stop(sctx)
         if stop is not None:
-            return None, tried, "probe_" + stop
+            return None, tried, "probe_" + stop, tuple(repaired)
         if sctx.deadline is None:
             if sctx.eval_budget is None:
-                return None, tried, "probe_budget_undeclared"
+                return None, tried, "probe_budget_undeclared", tuple(repaired)
             if tried >= sctx.eval_budget:
-                return None, tried, "probe_eval_budget"
+                return None, tried, "probe_eval_budget", tuple(repaired)
         tried += 1
         phi = [_radical_inverse(tried, b) for b in bases]
         theta = dict(theta0)
@@ -454,7 +537,10 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
                 theta[variables[i].component] = float(min(max(walk[j], box_lo[j]), box_hi[j]))
         res = evaluate(sctx, theta, cells, origin=tag + (("probe", tried),))
         if res.status in ACCEPTED_STATUSES:
-            return res, tried, None
+            return res, tried, "halton", tuple(repaired)
+        info = _repairable(res)
+        if info is not None and (best is None or info[1] < best[0]):
+            best = (info[1], res)          # 묶음 안 위반 크기(margin) 최소 시험 점 -- 묶음이 끝나면 1단계 출발점
 
 
 def layer0_start(sctx, origin=()):
@@ -462,7 +548,7 @@ def layer0_start(sctx, origin=()):
     tag = origin + (("stage", STAGE_LAYER0),)
     variables, theta, cells = _box_centre(sctx)
     theta, centre_u = _current_centre(sctx, variables, theta)
-    failure, probes, source = None, 0, "centre"
+    failure, probes, source, repairs = None, 0, "centre", ()
     if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(theta.items())))):
         start_status = "centre_outside_cone"
         first = None
@@ -472,18 +558,18 @@ def layer0_start(sctx, origin=()):
         if first.status not in ACCEPTED_STATUSES:
             first = None
     if first is None:
-        first, probes, why = _halton_probe(sctx, variables, theta, cells, tag)
+        first, probes, why, repairs = _halton_probe(sctx, variables, theta, cells, tag)
         if first is None:
             reason = start_status
             if failure is not None:
                 reason = dict(failure.detail).get("reason") or failure.failure_class
             return Layer0Result(None, None, False, "start_" + str(reason) + "+" + why, centre_u, start_status, failure,
-                                0, 0, (), (), sctx.counters["kernel_calls"] - calls0, (), probes, None)
-        source = "halton:" + str(probes)
+                                0, 0, (), (), sctx.counters["kernel_calls"] - calls0, (), probes, None, repairs)
+        source = why + ":" + str(probes)          # 시작점 출처: "halton:k"(시험 점) 또는 "repair:k"(k 번째 시험 뒤 1단계)
         theta = dict(first.theta)
     best, stop, iterations, restarts, aborts, frozen, t_names = _maxmin(sctx, variables, theta, cells, first, tag)
     res = best["res"]
     start = StartPoint("layer0", res.theta, cells, SOURCE_LAYER0)
     return Layer0Result(start, float(np.min(best["s"])), bool(np.all(best["c"] >= 0)), stop, centre_u, start_status,
                         failure, iterations, restarts, aborts, frozen, sctx.counters["kernel_calls"] - calls0, t_names,
-                        probes, source)
+                        probes, source, repairs)

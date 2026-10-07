@@ -25,7 +25,7 @@ import math
 
 import numpy as np
 
-from gmid_engine.sizing import THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE, THETA_Y
+from gmid_engine.sizing import THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_PASSIVE_KINDS, THETA_RESISTANCE, THETA_Y
 
 from .kernel import evaluate
 from .search_values import ACCEPTED_STATUSES, STAGE_FD
@@ -74,6 +74,10 @@ def _steps(sctx, variables, base):
             steps.append(tol_min / drop if drop and tol_min else 0.0)
         elif kind == THETA_L:
             steps.append(sctx.domain.grid_m)             # 제조 격자 한 칸 -- bin 안 선형 보간이라 칸 안 할선 기울기가 같다
+        elif kind in THETA_PASSIVE_KINDS:
+            # [r6] DEC-92 소신호 전용 수동소자(ln 좌표): LUT 축이 없다 -- 소신호 모형의 상대 분해능(ss_dev lut_rel_tol =
+            # gm/ID·tol_V 의 최솟값)보다 작은 상대 변화는 metric 에서 구별되지 않으므로 그 값을 상대 스텝으로(전류 폴백과 같은 값)
+            steps.append(min(defined) if defined else None)
         else:
             raise ValueError("fd_jacobian: 모르는 θ 성분 " + repr(var.component))
     return steps

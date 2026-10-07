@@ -22,7 +22,8 @@ import numpy as np
 
 from gmid_engine.core import PdkDecl, SchemaRejectedError
 from gmid_engine.graph import ELEMENT_MOS
-from gmid_engine.sizing import THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE, THETA_Y
+from gmid_engine.sizing import (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE,
+                                THETA_SS_RESISTANCE, THETA_Y)
 
 from .current_box import current_box
 from .l_cells import l_cells
@@ -66,10 +67,15 @@ def search_domain(dc_ctx, settings, pdk_decl):
     boxes = {k: current_box(dc_ctx.lut, k) for k in mos_kinds}
     envelopes = {}
     variables, mos = [], []
-    resistors = [key for kind, key in dc_ctx.schema.components if kind == THETA_RESISTANCE]
+    resistors = [key for kind, key in dc_ctx.schema.components if kind in (THETA_RESISTANCE, THETA_SS_RESISTANCE)]
     if resistors and settings.resistance_bounds_ohm is None:
         raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "theta_resistance_bounds_undeclared",
                                           "resistors": tuple(resistors)})
+    capacitors = [key for kind, key in dc_ctx.schema.components if kind == THETA_CAPACITANCE]
+    if capacitors and settings.capacitance_bounds_f is None:
+        # 커패시터 상자는 PDK 선언에서 유도할 수 없다(capm.* 규칙값 N/A, cap_mim 셀 원본 없음 -- sizing CONTRACT O13)
+        raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "theta_capacitance_bounds_undeclared",
+                                          "capacitors": tuple(capacitors)})
     for component in dc_ctx.schema.components:
         ckind, key = component
         if ckind == THETA_LN_IDU:
@@ -82,11 +88,16 @@ def search_domain(dc_ctx, settings, pdk_decl):
         elif ckind == THETA_CURRENT:
             lo, hi = _current_bounds(dc_ctx, kinds, classes, boxes, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
-        elif ckind == THETA_RESISTANCE:
+        elif ckind in (THETA_RESISTANCE, THETA_SS_RESISTANCE):
             lo, hi = settings.resistance_bounds_ohm
+            variables.append(Variable(component, True, math.log(lo), math.log(hi)))
+        elif ckind == THETA_CAPACITANCE:
+            lo, hi = settings.capacitance_bounds_f
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind == THETA_L:
             mos.append(key)
+        else:
+            raise ValueError("search_domain: 모르는 θ 종류 " + repr(component))   # 조용히 건너뛰지 않는다(sizing O16)
     for var in variables:
         if not var.lo < var.hi:
             raise ValueError("search_domain: 빈 bounds " + repr(var))
