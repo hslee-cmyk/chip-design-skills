@@ -13,8 +13,9 @@ VDS))별 (계획 N3.6 사용자 확정 2026-10-07, DEC-87 tol_V 연동, 설계 M
   유도한다: 선형 값 p = 조건 수 2, Hermite 값 p = 조건 수 4, Hermite 미분(gm/ID 의 VGS 축) p = 4 − 1 = 3, VDS·VS·L 축의
   gm/ID(선형) p = 2. 환산 전 값도 셀에 따로 둔다(`*_loo_v`).
 * L 축: 앵커 i 의 양옆 앵커 i-1·i+1 이 **모두 i 와 같은 bin**(`LBinMap.anchor_bin`)일 때만(= bin 안 내부 앵커) 추정한다.
-  앵커 2개 bin 은 부르는 쪽이 bin 중점 검증 시뮬레이션의 보간 오차를 `l_bin_checks` 로 줄 수 있고(그 값은 이미 운영 보간의
-  칸 중앙 오차라 환산하지 않는다), 주지 않으면 "missing_external" 로 남는다 -- 앵커마다 `TolVTable.l_loo`, bin 마다
+  앵커 2개 bin 은 bin 중점 검증 시뮬레이션의 보간 오차를 외부 값으로 받는다(그 값은 이미 운영 보간의 칸 중앙 오차라 환산하지
+  않는다). [r6] `l_bin_checks=None`(기본)이면 LutSet 에 실린 검증 중점 파일에서 `midpoint_l_bin_checks` 로 만든 값을 쓰고,
+  `()` 을 주면 외부 값 없음. 받지 못한 bin 은 "missing_external" 로 남는다 -- 앵커마다 `TolVTable.l_loo`, bin 마다
   `TolVTable.l_loo_bins` 에 명시한다(조용히 빼지 않음).
 * 셀별 값만 낸다(전역 최댓값 하나로 줄이지 않는다). 두 지표(`TOL_V_METRICS`) -- 소비자 배정은 계획 N3.6:
   - `id_equivalent`: 점마다 |ln ID_loo − ln ID| / (gm/ID) / 2^p. 그 점과 축 방향 두 이웃이 모두 on_mask.
@@ -25,19 +26,27 @@ VDS))별 (계획 N3.6 사용자 확정 2026-10-07, DEC-87 tol_V 연동, 설계 M
     해가 없으면 값에 넣지 않고 `n_inverse_failed` 로 센다. LOO 는 측정이라 단조 검사로 거르지 않는다.
 * 셀 값 = 그 (L 앵커 i, VDS_k) 안의 모든 VGS·VS·목표·축 최댓값, 없으면 None.
 """
-import bisect
-
 import numpy as np
 
-from ._helpers_anchor import l_position
-from ._helpers_interp import HERMITE_CONDITIONS, LINEAR_CONDITIONS, hermite
+from ._helpers_interp import hermite
+from ._helpers_loo import (
+    HERMITE_ORDER,
+    HERMITE_SLOPE_ORDER,
+    LINEAR_ORDER,
+    branch_targets,
+    cell_max,
+    external_by_model,
+    l_interior,
+    l_loo_report,
+    loo_estimate,
+    opt,
+    table_at,
+    with_external,
+)
 from ._helpers_root import strong_inversion_root
-from .axis_guard import check_axes
 from .lut_types import AXES, TOL_V_METRICS, TolVCell
+from .midpoint_checks import midpoint_l_bin_checks
 
-LINEAR_ORDER = len(LINEAR_CONDITIONS)
-HERMITE_ORDER = len(HERMITE_CONDITIONS)
-HERMITE_SLOPE_ORDER = HERMITE_ORDER - 1
 LOO_ORDERS = (
     ("gm_id_inverse", "L", "linear", LINEAR_ORDER),
     ("gm_id_inverse", "VDS", "linear_slope", LINEAR_ORDER),
@@ -48,92 +57,11 @@ LOO_ORDERS = (
     ("id_equivalent", "VGS", "hermite", HERMITE_ORDER),
     ("id_equivalent", "VS", "linear", LINEAR_ORDER),
 )
-
-
-def _l_interior(l_bins, n):
-    """앵커마다 bin 안 내부(양옆 앵커가 같은 bin) 여부 tuple. 지도가 없으면 모두 거짓."""
-    if not l_bins.bins:
-        return (False,) * n
-    ab = l_bins.anchor_bin
-    return tuple(0 < i < n - 1 and ab[i - 1] == ab[i] == ab[i + 1] for i in range(n))
-
-
-def _external_by_model(l_bin_checks):
-    """`l_bin_checks` ((model, gm_id_inverse_v, id_equivalent_v), ...) -> {model: {metric 필드: 값}}. 같은 model 두 번 -> ValueError."""
-    out = {}
-    for model, inv, eq in l_bin_checks:
-        if model in out:
-            raise ValueError("tol_v_table: l_bin_checks 에 bin %r 가 두 번 있다" % (model,))
-        out[model] = {"gm_id_inverse_v": None if inv is None else float(inv),
-                      "id_equivalent_v": None if eq is None else float(eq)}
-    return out
-
-
-def _l_loo_report(l_bins, interior, external):
-    """(앵커별 상태 tuple, bin 별 (model, 앵커 index tuple, 상태) tuple, {앵커 index: 외부 값 dict}).
-
-    bin 상태: 내부 앵커 있음(앵커 3개 이상) "computed", 앵커 1개 "single_point"(그 bin 안 L 보간 자체가 없다 --
-    거부 `lut_l_bin_unbracketed`), 그 밖(앵커 2개) 외부 값이 있으면 "external", 없으면 "missing_external".
-    외부 값은 앵커 2개 bin 에만 받는다 -- 다른 bin·지도에 없는 model 이면 ValueError(조용히 버리지 않음).
-    """
-    if not l_bins.bins:
-        if external:
-            raise ValueError("tol_v_table: bin 지도가 없는 슬라이스에 l_bin_checks 가 주어졌다: %r" % (sorted(external),))
-        return ("bins_unavailable",) * len(interior), (), {}
-    ab = l_bins.anchor_bin
-    has_interior = {b for b, inner in zip(ab, interior) if inner}
-    status, per_bin, ext_rows = {}, [], {}
-    for b in sorted(set(ab)):
-        model = l_bins.bins[b].model
-        members = tuple(i for i, m in enumerate(ab) if m == b)
-        if b in has_interior:
-            status[b] = "computed"
-        elif len(members) <= 1:
-            status[b] = "single_point"
-        elif model in external:
-            status[b] = "external"
-            ext_rows.update({i: external[model] for i in members})
-        else:
-            status[b] = "missing_external"
-        per_bin.append((model, members, status[b]))
-    allowed = {model for model, _, st in per_bin if st == "external"}
-    unused = sorted(set(external) - allowed)
-    if unused:
-        raise ValueError("tol_v_table: l_bin_checks 는 앵커 2개 bin 에만 준다 -- 해당 없는 bin: %r" % (unused,))
-    anchor_status = {"computed": "bin_edge", "single_point": "bin_single_point", "external": "bin_external",
-                     "missing_external": "bin_missing_external"}
-    per_anchor = tuple("in_bin_interior" if inner else anchor_status[status[b]] for b, inner in zip(ab, interior))
-    return per_anchor, tuple(per_bin), ext_rows
+_EXTERNAL_FIELDS = ("gm_id_inverse_v", "id_equivalent_v")
 
 
 def _order(metric, axis):
     return next(p for m, a, _, p in LOO_ORDERS if m == metric and a == axis)
-
-
-def _pairs(arr, axis):
-    """축 `axis` 방향 (이전 이웃, 다음 이웃) 보기(첫 축으로 옮긴 모양, 길이 n − 2)."""
-    a = np.moveaxis(arr, axis, 0)
-    return a[:-2], a[2:]
-
-
-def _loo(lid, slope, slope_ok, axis, grid, hermite_axis):
-    """축 `axis` 내부 격자점의 LOO 추정 ln ID 와 점마다 차수 p (첫 축으로 옮긴 모양, 길이 n − 2).
-
-    `hermite_axis` 이고 두 이웃의 기울기 자료가 다 있으면 Hermite(차수 HERMITE_ORDER), 아니면 선형(LINEAR_ORDER)."""
-    x = np.asarray(grid, dtype=float)
-    shape = (-1,) + (1,) * (lid.ndim - 1)
-    h = (x[2:] - x[:-2]).reshape(shape)
-    t = ((x[1:-1] - x[:-2]) / (x[2:] - x[:-2])).reshape(shape)
-    y0, y1 = _pairs(lid, axis)
-    linear = y0 + t * (y1 - y0)
-    if not hermite_axis:
-        return linear, np.full(linear.shape, LINEAR_ORDER)
-    m0, m1 = _pairs(slope, axis)
-    ok0, ok1 = _pairs(slope_ok, axis)
-    use = ok0 & ok1
-    with np.errstate(invalid="ignore", over="ignore"):
-        herm, _ = hermite(y0, y1, m0, m1, h, t)
-    return np.where(use, herm, linear), np.where(use, HERMITE_ORDER, LINEAR_ORDER)
 
 
 def _id_equivalent(sl, lid, gm_id, gds_id, interior):
@@ -144,7 +72,7 @@ def _id_equivalent(sl, lid, gm_id, gds_id, interior):
     slopes = {"VGS": (gm_id, sl.on_mask), "VDS": (gds_id, sl.vds_slope_ok)}
     for axis, name in enumerate(AXES):
         slope, ok_mask = slopes.get(name, (lid, sl.on_mask))
-        est, order = _loo(lid, slope, ok_mask, axis, sl.grids[axis], name in slopes)
+        est, order = loo_estimate(lid, slope, ok_mask, axis, sl.grids[axis], name in slopes)
         mid = np.moveaxis(lid, axis, 0)[1:-1]
         on = np.moveaxis(sl.on_mask, axis, 0)
         ok = on[:-2] & on[1:-1] & on[2:]
@@ -154,25 +82,7 @@ def _id_equivalent(sl, lid, gm_id, gds_id, interior):
         for target, value in ((raw_best, raw), (best, raw / 2.0 ** order)):
             view = np.moveaxis(target, axis, 0)
             view[1:-1] = np.fmax(view[1:-1], value)
-    return _cell_max(best), _cell_max(raw_best)
-
-
-def _cell_max(per_point):
-    per_cell = np.moveaxis(per_point, (AXES.index("L"), AXES.index("VDS")), (0, 1))
-    flat = per_cell.reshape(per_cell.shape[0], per_cell.shape[1], -1)
-    out = np.full(flat.shape[:-1], np.nan)
-    has = ~np.isnan(flat).all(axis=-1)
-    out[has] = np.nanmax(flat[has], axis=-1)
-    return out
-
-
-def _targets(g, on_curve):
-    """(곡선 index, VGS index) 목표 쌍: 정점 이후이고 오른쪽 모든 점보다 gm/ID 가 큰 점."""
-    right = np.full(g.shape, -np.inf)
-    right[:, :-1] = np.maximum.accumulate(g[:, :0:-1], axis=1)[:, ::-1]
-    cols = np.arange(g.shape[1])
-    mask = (g > right) & (cols[None, :] >= np.argmax(g, axis=1)[:, None]) & on_curve[:, None]
-    return np.nonzero(mask)
+    return cell_max(best), cell_max(raw_best)
 
 
 def _vs_pairs(grid):
@@ -233,7 +143,7 @@ def _inverse_cell(sl, lid, gm_id, gds_id, i, k, l_inner, vs_pairs, orders):
     on_curve = sl.on_mask[i, :, k, :].all(axis=0)
     Y = lid[i, :, k, :].T
     G = gm_id[i, :, k, :].T
-    s_t, j_t = _targets(G, on_curve)
+    s_t, j_t = branch_targets(G, on_curve)
     families = []
     inner = (j_t > 0) & (j_t < n - 1)
     if inner.any():
@@ -277,9 +187,10 @@ class TolVTable:
     `l_loo_bins`: bin 마다 `(model, 앵커 index tuple, 상태)`, 상태 "computed"·"external"·"missing_external"·"single_point".
     `loo_orders`: Richardson 환산 기록 ((지표, 축, 방법, 차수 p, 환산 배수 2^-p), ...) -- `LOO_ORDERS` 그대로(VGS·VDS 축
     id_equivalent 에서 기울기 자료가 없어 선형으로 추정한 점은 선형 차수를 쓴다).
+    [r6] `l_bin_checks`: 실제로 쓴 외부 값((model, gm_id_inverse_v, id_equivalent_v), ...) model 정렬 -- 기본 경로면 중점 파일에서 온 값.
     """
 
-    def __init__(self, kind, w_key, L_anchors, vds_grid, cells, l_bins, l_loo, l_loo_bins, loo_orders):
+    def __init__(self, kind, w_key, L_anchors, vds_grid, cells, l_bins, l_loo, l_loo_bins, loo_orders, l_bin_checks=()):
         self.kind = kind
         self.w_key = w_key
         self.L_anchors = L_anchors
@@ -289,6 +200,7 @@ class TolVTable:
         self.l_loo = l_loo
         self.l_loo_bins = l_loo_bins
         self.loo_orders = loo_orders
+        self.l_bin_checks = l_bin_checks
 
     def at(self, L, vds, metric):
         """조회점 (L, vds) 의 tol_V(V): L 이 앵커면 그 앵커 행, 같은 bin 안 보간이면 양옆 앵커 두 행(CONTRACT 4.0),
@@ -300,41 +212,35 @@ class TolVTable:
         if metric not in TOL_V_METRICS:
             raise ValueError("TolVTable.at: metric 은 %s 중 하나" % (TOL_V_METRICS,))
         context = (("kind", self.kind), ("table", "tol_v"), ("w_key", self.w_key))
-        lo, hi, _ = l_position(self.L_anchors, self.l_bins, L, context)
-        vds = float(vds)
-        check_axes((self.vds_grid,), (AXES[2],), (vds,), context)
-        k = min(bisect.bisect_right(self.vds_grid, vds) - 1, len(self.vds_grid) - 2)
-        field = metric + "_v"
-        vals = [getattr(self.cells[i][b], field) for i in sorted({lo, hi}) for b in (k, k + 1)]
-        vals = [v for v in vals if v is not None]
-        return max(vals) if vals else None
+        return table_at(self, metric + "_v", L, vds, context)
 
 
-def _with_external(value, ext):
-    """셀 값과 외부 bin 값의 최댓값. 셀 값이 None(그 셀에 켜진 격자점 없음)이면 None 그대로."""
-    if value is None or ext is None:
-        return value
-    return max(value, ext)
+def _checks_of(memo, kind, w_key, l_bin_checks):
+    """정규화한 외부 값 tuple: None -> 중점 파일 값(`midpoint_l_bin_checks`; LutSet 에 중점 표가 없으면 그 조회 없이 ()),
+    아니면 주어진 값(model 정렬, float/None)."""
+    if l_bin_checks is None and not memo.lut.midpoints:
+        l_bin_checks = ()
+    if l_bin_checks is None:
+        rows = midpoint_l_bin_checks(memo, kind, w_key).rows
+        l_bin_checks = tuple((r.model, r.gm_id_inverse_v, r.id_equivalent_v) for r in rows)
+    return tuple(sorted((str(m), None if a is None else float(a), None if b is None else float(b))
+                        for m, a, b in l_bin_checks))
 
 
-def _opt(x):
-    return None if x is None or np.isnan(x) else float(x)
-
-
-def tol_v_table(memo, kind, w_key, l_bin_checks=()):
+def tol_v_table(memo, kind, w_key, l_bin_checks=None):
     """(kind, w_key) 슬라이스의 `TolVTable`. memo 영역 derived(같은 인자당 1회 계산). 폭 키 없음 -> `KeyError`.
 
-    `l_bin_checks`: 앵커 2개 bin 의 외부 L 방향 오차 `((model, gm_id_inverse_v, id_equivalent_v), ...)`(V, 값 None 허용) --
-    bin 중점 검증 시뮬레이션에서 잰 보간 오차(lut_regen_plan.md 2절 K2'). 그 bin 앵커 행의 정의된 셀 값과 최댓값을 취한다.
-    앵커 2개 bin 이 아닌 model·중복 model·지도 없는 슬라이스 -> `ValueError`.
+    `l_bin_checks`: 앵커 2개 bin 의 외부 L 방향 오차 `((model, gm_id_inverse_v, id_equivalent_v), ...)`(V, 값 None 허용).
+    [r6] None(기본) = LutSet 의 검증 중점 파일에서 잰 값(`midpoint_l_bin_checks`, 중점 파일이 없으면 빈 값), `()` = 외부 값 없음.
+    그 bin 앵커 행의 정의된 셀 값과 최댓값을 취한다. 앵커 2개 bin 이 아닌 model·중복 model·지도 없는 슬라이스 -> `ValueError`.
     """
     sl = memo.lut.slice_map[(kind, w_key)]
-    checks = tuple(sorted((str(m), None if a is None else float(a), None if b is None else float(b))
-                          for m, a, b in l_bin_checks))
+    checks = _checks_of(memo, kind, w_key, l_bin_checks)
 
     def compute():
-        interior = _l_interior(sl.l_bins, len(sl.grids[0]))
-        l_loo, l_loo_bins, ext_rows = _l_loo_report(sl.l_bins, interior, _external_by_model(checks))
+        interior = l_interior(sl.l_bins, len(sl.grids[0]))
+        external = external_by_model(checks, _EXTERNAL_FIELDS, "tol_v_table")
+        l_loo, l_loo_bins, ext_rows = l_loo_report(sl.l_bins, interior, external, "tol_v_table")
         lid = sl.log_ID
         gm_id = np.exp(sl.log_GM - lid)
         gds_id = np.exp(sl.log_GDS - lid)
@@ -348,11 +254,12 @@ def tol_v_table(memo, kind, w_key, l_bin_checks=()):
             for k in range(len(sl.grids[2])):
                 inv, inv_raw, n_try, n_failed = _inverse_cell(sl, lid, gm_id, gds_id, i, k, interior[i], vs_pairs, orders)
                 row.append(TolVCell(
-                    _with_external(_opt(inv), ext.get("gm_id_inverse_v")),
-                    _with_external(_opt(eq[i, k]), ext.get("id_equivalent_v")),
-                    n_try, n_failed, _opt(inv_raw), _opt(eq_raw[i, k])))
+                    with_external(opt(inv), ext.get("gm_id_inverse_v")),
+                    with_external(opt(eq[i, k]), ext.get("id_equivalent_v")),
+                    n_try, n_failed, opt(inv_raw), opt(eq_raw[i, k])))
             cells.append(tuple(row))
         orders = tuple((m, a, meth, p, 2.0 ** -p) for m, a, meth, p in LOO_ORDERS)
-        return TolVTable(kind, w_key, sl.grids[0], sl.grids[2], tuple(cells), sl.l_bins, l_loo, l_loo_bins, orders)
+        return TolVTable(kind, w_key, sl.grids[0], sl.grids[2], tuple(cells), sl.l_bins, l_loo, l_loo_bins, orders,
+                         checks)
 
     return memo.lookup("derived", "tol_v_table", (kind, w_key, checks), compute)

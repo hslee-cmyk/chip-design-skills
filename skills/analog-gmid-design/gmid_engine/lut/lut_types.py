@@ -11,11 +11,23 @@
   VS·L 축 선형. gm/ID 는 그 다항식의 VGS 미분으로 정의한다. 로드 때 Hermite 칸마다 Fritsch–Carlson 단조 조건을 검사해 둔다.
 * numpy 배열 필드는 읽기 전용(`writeable=False`)으로 만든다. 그래서 내용 지문은 `__canonical__` 이 파일 sha256
   등 출처 값으로 대신 말한다(배열 바이트를 매번 해시하지 않는다 -- DF-13 의 '내용 해시는 비싸다'를 로드 1회로 해소).
+* [r6] 열은 그 열을 **저장한 표**에서만 읽는다(폭을 건너 옮기지 않는다): 슬라이스 선택 열(`DcSlice.columns`) 또는 그 폭이
+  기준 LUT 폭(`CapTable.w_key`)과 같을 때의 기준 LUT 선택 열(`CapTable.columns`). 용량 열은 생성기 규약대로 부호를 보존한다.
 """
 import dataclasses
+import types
 
 AXES = ("L", "VGS", "VDS", "VS")
 TOL_V_METRICS = ("gm_id_inverse", "id_equivalent")
+TOL_VDSAT_METRICS = ("vdsat",)
+# 기준 LUT 선택 열(LUT v2 생성기 meta `units` 의 키) -- 있으면 읽고, 없으면 그 열을 쓰는 조회가 `lut_column_unavailable`.
+CAP_TABLE_COLUMNS = ("CDD", "CSS", "GDS", "GM", "GMBS", "ID", "SVG2_1HZ", "SVG2_HF", "VDSAT", "VTH")
+# 폭 슬라이스 선택 열 -- 지금 슬라이스 생성기는 쓰지 않는다(쓰게 되면 그 폭에서 바로 쓰인다, lut/CONTRACT.md 1.2).
+SLICE_OPTIONAL_COLUMNS = ("GMBS", "VDSAT")
+# 로드 때 한 번 만드는 파생 열: GMBS_PER_ID = GMBS/ID(ID > 0 인 점, 아니면 NaN) -- GMBS·ID 가 같은 표에 있을 때만.
+DERIVED_COLUMNS = ("GMBS_PER_ID",)
+# 열 출처 이름(`ColumnSource.origin`)
+COLUMN_ORIGINS = ("cap_table", "slice")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -76,7 +88,11 @@ class LBinMap:
 
 @dataclasses.dataclass(frozen=True)
 class LutProvenance:
-    """LUT 묶음의 출처: manifest·슬라이스·기준 LUT 파일 sha256, 측정 조건(corner·temp_c·recorded)."""
+    """LUT 묶음의 출처: manifest·슬라이스·기준 LUT 파일 sha256, 측정 조건(corner·temp_c·recorded).
+
+    [r6] `midpoints_*`: bin 검증 중점 파일(선택, `load_lut_set(verify_midpoints=)`)의 경로·sha256·meta `L_source`
+    (키 정렬 쌍 tuple)·측정 조건(`cap_conditions` 와 같은 형식). 없으면 None·None·()·().
+    """
 
     manifest_path: str
     manifest_sha256: str
@@ -85,6 +101,10 @@ class LutProvenance:
     cap_path: str
     cap_sha256: str
     cap_conditions: tuple
+    midpoints_path: object = None
+    midpoints_sha256: object = None
+    midpoints_l_source: tuple = ()
+    midpoints_conditions: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -100,6 +120,9 @@ class DcSlice:
     `fc_ok_vgs`[L, VGS 칸, VDS, VS]·`fc_ok_vds`[L, VGS, VDS 칸, VS] = 그 칸의 Hermite 가 Fritsch–Carlson 단조 조건을
     만족하면 참(기울기가 정의되지 않아 선형으로 보간하는 칸도 참), `hermite_fc` = (("VDS", Hermite 칸 수, 위반 칸 수),
     ("VGS", ...)). 위반 칸은 조회에서 그 축 선형으로 보간한다(lut/CONTRACT.md 4.2).
+
+    [r6] `columns`: 슬라이스 npz 에 있는 선택 열(`SLICE_OPTIONAL_COLUMNS`) + 파생 열(`DERIVED_COLUMNS`) {이름: 읽기 전용 배열}
+    (지금 슬라이스 생성기는 선택 열을 쓰지 않는다 -> 빈 매핑).
     """
 
     kind: str
@@ -122,6 +145,7 @@ class DcSlice:
     fc_ok_vgs: object
     fc_ok_vds: object
     hermite_fc: tuple
+    columns: object = types.MappingProxyType({})
 
     def __canonical__(self):
         return (self.kind, self.w_key, self.sha256)
@@ -133,6 +157,11 @@ class CapTable:
     `l_bins` = 채택 폭과 같은 슬라이스의 L bin 지도(같은 슬라이스가 없으면 빈 지도).
 
     `basis`: w_ref_m 채택 근거 ((키, 값), ...) -- 메타 기록인지, 어느 슬라이스와 ID 가 맞았는지.
+
+    [r6] `w_key`: w_ref_m 의 폭 키(슬라이스와 같은 2 ulp 규칙, 슬라이스 폭 키와 비교하는 값), `columns`: 기준 LUT 에 있는
+    선택 열(`CAP_TABLE_COLUMNS`) {이름: 읽기 전용 배열} + 파생 열(`DERIVED_COLUMNS`), `on_mask`: (ID > 0) & (GM > 0)(두 열이
+    있을 때, 아니면 None), `sign_convention`: 생성기 meta 의 부호 규약 문장(meta 없음 = None -- 옛 생성기는 용량 크기(mag)),
+    `l_source`: meta `L_source`(키 정렬 쌍 tuple, 없으면 ()).
     """
 
     kind: str
@@ -146,9 +175,38 @@ class CapTable:
     w_ref_m: float
     basis: tuple
     l_bins: LBinMap
+    w_key: object = None
+    columns: object = types.MappingProxyType({})
+    on_mask: object = None
+    sign_convention: object = None
+    l_source: tuple = ()
 
     def __canonical__(self):
         return (self.kind, self.sha256, self.w_ref_m, self.basis)
+
+
+@dataclasses.dataclass(frozen=True, eq=False)
+class MidpointTable:
+    """[r6] bin 검증 중점 파일의 한 kind(lut/CONTRACT.md 1.7). LUT 축이 아닌 L 점 `L_points`(m, 오름차순)에서 같은
+    (VGS, VDS, VS) 축(`grids` 세 개 -- 슬라이스 축과 float 단위로 같음)으로 잰 값. 폭 = `w_m`(파일 `w_ref_m`), 폭 키 `w_key`.
+
+    `log_ID` = ln ID(ID > 0 인 점, 아니면 NaN), `gm_id` = GM/ID(같은 점, 아니면 NaN), `on_mask` = (ID > 0) & (GM > 0),
+    `VDSAT` = 열이 있으면 읽기 전용 배열(없으면 None). 배열 모양 [len(L_points), VGS, VDS, VS].
+    """
+
+    kind: str
+    sha256: str
+    w_m: float
+    w_key: int
+    L_points: tuple
+    grids: tuple
+    log_ID: object
+    gm_id: object
+    on_mask: object
+    VDSAT: object
+
+    def __canonical__(self):
+        return (self.kind, self.sha256)
 
 
 @dataclasses.dataclass(frozen=True, eq=False)
@@ -156,6 +214,7 @@ class LutSet:
     """불변 LUT 묶음. `slice_map`: {(kind, w_key): DcSlice}, `cap_map`: {kind: CapTable} (읽기 전용 매핑).
 
     `fp` = `lut_fingerprint(provenance, cap 채택 근거)` -- memo 키와 S0 입력에 쓴다.
+    [r6] `midpoints`: {kind: MidpointTable}(검증 중점 파일을 주지 않았으면 빈 매핑).
     """
 
     spec: LutSpec
@@ -163,9 +222,27 @@ class LutSet:
     slice_map: object
     cap_map: object
     fp: str
+    midpoints: object = types.MappingProxyType({})
 
     def __canonical__(self):
         return self.fp
+
+
+@dataclasses.dataclass(frozen=True, eq=False)
+class ColumnSource:
+    """[r6] (kind, w_key) 에서 열 하나를 읽을 표(lut/CONTRACT.md 4.3). `origin` ∈ `COLUMN_ORIGINS`, `grids` = 그 표의 축 네 개,
+    `array` = 그 열(읽기 전용), `l_bins` = 그 표의 L bin 지도, `on_mask` = 그 표의 (ID > 0) & (GM > 0)(없으면 None),
+    `table_w_m` = 그 표가 잰 폭(m)."""
+
+    origin: str
+    column: str
+    kind: str
+    w_key: int
+    table_w_m: float
+    grids: tuple
+    array: object
+    l_bins: LBinMap
+    on_mask: object
 
 
 @dataclasses.dataclass(frozen=True)
@@ -212,13 +289,19 @@ class TargetSolution:
 
 @dataclasses.dataclass(frozen=True)
 class Caps:
-    """소자 총 폭 W 의 용량(F). `model`: "lut_cgs_cgb"(열 있음) 또는 "cgg_minus_cgd_at_gs"(cgs = cgg - cgd, cgb = 0)."""
+    """소자 총 폭 W 의 용량(F). `model`: "lut_cgs_cgb"(열 있음) 또는 "cgg_minus_cgd_at_gs"(cgs = cgg - cgd, cgb = 0).
+
+    [r6] `cdd`·`css`: 드레인·소스 자기 용량(기준 LUT CDD·CSS 열, 접합 포함 -- 열이 없으면 None). 값은 기준 LUT 의 부호 그대로
+    (LUT v2 는 부호 보존 -- CGB·CGS·CSS 등이 음수일 수 있다, `CapTable.sign_convention`).
+    """
 
     cgg: float
     cgd: float
     cgs: float
     cgb: float
     model: str
+    cdd: object = None
+    css: object = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -237,6 +320,57 @@ class TolVCell:
     n_inverse_failed: int
     gm_id_inverse_loo_v: object = None
     id_equivalent_loo_v: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class TolVdsatCell:
+    """[r6] VDsat 허용오차 표 한 칸((kind, w_key, L 앵커, VDS)): `vdsat_v` = VDSAT 열 leave-one-out(운영 보간과 같은 방법 --
+    모든 축 선형) 오차를 Richardson 환산(÷ 2^2)한 셀 안 최댓값(V)과 외부 bin 값의 최댓값, `vdsat_loo_v` = 환산 전 최댓값.
+    정의 안 되면 None."""
+
+    vdsat_v: object
+    vdsat_loo_v: object
+
+
+@dataclasses.dataclass(frozen=True)
+class MidpointRow:
+    """[r6] 검증 중점이 잰 앵커 2개 bin 하나의 L 보간 오차(V, lut/CONTRACT.md 5.1). `model` = 그 bin `.model` 이름,
+    `L_points` = 그 bin 에 든 중점들(m, 오름차순), 세 값 = 그 중점들 전체의 최댓값(정의된 점이 없으면 None).
+    `n_targets`·`n_inverse_failed` = gm/ID 역산 시도·해 없음 수(중점 합)."""
+
+    model: str
+    L_points: tuple
+    gm_id_inverse_v: object
+    id_equivalent_v: object
+    vdsat_v: object
+    n_targets: int
+    n_inverse_failed: int
+
+
+@dataclasses.dataclass(frozen=True)
+class MidpointChecks:
+    """[r6] (kind, w_key) 의 중점 검증 결과: `rows` = MidpointRow tuple(model 정렬), `skipped` = ((L, 사유, model 또는 None), ...)
+    -- 쓰지 않은 중점과 이유(lut/CONTRACT.md 5.1 표). `midpoints_sha256` = 중점 파일 sha256(없으면 None)."""
+
+    kind: str
+    w_key: int
+    rows: tuple
+    skipped: tuple
+    midpoints_sha256: object
+
+
+@dataclasses.dataclass(frozen=True)
+class LutLocation:
+    """[r6] 설정 파일로 정한 LUT 데이터 위치(lut/CONTRACT.md 1.8). 경로는 절대 경로, 파일 sha256 은 설정 기록과 대조됨.
+    `midpoints_path`·`pdk_root` 는 설정에 없으면 None. `sources` = ((항목, "env:<이름>" 또는 "config_default"), ...)."""
+
+    config_path: str
+    root: str
+    manifest_path: str
+    cap_npz_path: str
+    midpoints_path: object
+    pdk_root: object
+    sources: tuple
 
 
 @dataclasses.dataclass(frozen=True)
