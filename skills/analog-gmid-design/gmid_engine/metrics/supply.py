@@ -49,7 +49,12 @@ def supply_currents(op, counted_rails):
     if not isinstance(op, DcOperatingPoint):
         raise TypeError("supply_currents 는 DcOperatingPoint 를 받는다")
     rail_nodes = tuple(sorted(r.node for r in op.rails))
-    if not isinstance(counted_rails, tuple) or not counted_rails:
+    if not isinstance(counted_rails, tuple):
+        raise TypeError("supply_currents: counted_rails 는 레일 노드 인덱스 tuple 이어야 한다")
+    for node in counted_rails:
+        if isinstance(node, bool) or not isinstance(node, int):
+            raise TypeError("supply_currents: 합산 레일은 정수 노드 인덱스여야 한다(넷 이름이 아니다): %r" % (node,))
+    if not counted_rails:
         raise ValueError("supply_currents: 합산 레일 선언(counted_rails)이 비었다 -- 기본값 없음")
     unknown = sorted(set(counted_rails) - set(rail_nodes))
     if unknown or len(set(counted_rails)) != len(counted_rails):

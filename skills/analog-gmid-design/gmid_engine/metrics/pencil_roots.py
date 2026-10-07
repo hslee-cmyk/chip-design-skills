@@ -7,6 +7,8 @@
   A = [[G, −bg], [c, d]], E = [[C, −bc], [0, 0]].
 * '유한' 판정은 상수가 아니라 QZ 동차 좌표 (α, β)로 한다: |β| ≤ 차원·기계 엡실론·‖E‖_F 이면 무한대(β 가 반올림
   오차 수준) -- 특이 pencil 의 불확정 고유값(α·β 모두 반올림 수준)도 같은 판정으로 빠진다.
+  같은 방식으로 |α| ≤ 차원·eps·‖A‖_F 이면 그 고유값은 원점(s = 0, 정확히 0 으로 낸다)이다 -- 용량 전용 노드의 전하 모드가
+  반올림 잡음으로 작은 |s| 가 되어 격자 꺾임점에 들어가지 않게 한다(분해능 상수 없음).
 * 이 값은 **격자 배치와 상단 괄호에만** 쓴다. metric 값(교차·위상)은 실제 풀이로 잰다(옛 SR:4104 docstring 의
   관측·제어 불가 모드 문제를 피한다).
 """
@@ -23,11 +25,12 @@ def _finite_eigs(a, e):
     alpha, beta = scipy.linalg.eig(a, -e, right=False, homogeneous_eigvals=True)
     eps = numpy.finfo(float).eps
     tol_beta = size * eps * numpy.linalg.norm(e)
+    tol_alpha = size * eps * numpy.linalg.norm(a)
     out = []
     for al, be in zip(alpha, beta):
         if abs(be) <= tol_beta:
             continue
-        out.append(complex(al / be))
+        out.append(complex(0, 0) if abs(al) <= tol_alpha else complex(al / be))
     return tuple(sorted(out, key=lambda z: (abs(z), z.real, z.imag)))
 
 
