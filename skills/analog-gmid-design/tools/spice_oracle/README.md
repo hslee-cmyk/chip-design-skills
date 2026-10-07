@@ -23,30 +23,48 @@
 ## 입력 스키마 요약 (`oracle_input.schema.json` 이 정본)
 
 * `process`: `lut_npz`(코너 `corner`·온도 `temp_c` 메타를 여기서 읽음), `models[kind]`(`subckt`, `includes`(경로의
-  `{corner}` 를 npz corner 로 채움), `op_probe`(`@m.{inst}.<내부소자>[{param}]` 틀)), 선택 `diffusion`
-  (`ad_per_w_m`, `pd_extra_m`), 선택 `ngspice_exe`.
+  `{corner}` 를 npz corner 로 채움), `op_probe`(`@m.{inst}.<내부소자>[{param}]` 틀)), `diffusion`
+  (`ad_per_w_m`, `pd_extra_m`, LUT 생성 규칙 -- free 에서는 소자별 `devices[].diffusion` 이 없는 소자가 있으면 필수, C22),
+  선택 `ngspice_exe`.
 * `rails`: `[{net, voltage, reference?}]` -- reference 하나가 SPICE 0.
-* `devices`: `[{name, kind, drain, gate, source, bulk, L, finger_w, n_fingers, W}]`. 인스턴스는
+* `devices`: `[{name, kind, drain, gate, source, bulk, L, finger_w, n_fingers, W, diffusion?}]`. 인스턴스는
   `X<name> d g s b <subckt> l=L w=finger_w m=n_fingers`(nf 금지). `W` 는 엔진이 선언한 총폭(finger 곱과의 차를 `W_rel` 로 기록).
 * `sources`(이상 전류/전압원, `value_basis` 근거 문자열), `passives`(R/C), `bias_voltages`(게이트 전용 넷), `ports`
   (`input_p/input_n` 또는 `input`, `output_p/output_n` 또는 `output`).
 * **[신규]** `feedback_passives`: β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 소자). PM 정의를 정한다(아래).
-* `predictions`: `nodes`(넷 -> V), `devices`(이름 -> `ID, VGS, VDS, VSB, gm, gds, gm_id, region`), `metrics`
-  (`[{name, measure, value, rail?}]`, measure ∈ `dc_gain_db, ugf_hz, pm_deg, f3db_hz, supply_current_A`).
-* `acceptance.constraints`: `[{name, measure, op(>=|<=), limit}]` -- 회로 성능 스펙. 합격 판정에 쓰인다.
+* `predictions`: `nodes`(넷 -> V), `devices`(이름 -> `ID, VGS, VDS, VSB, gm, gds, gm_id, region(sat|triode|off),
+  off_current_A`), `metrics` (`[{name, measure, value, rail?, view?}]`, measure ∈ `dc_gain_db, ugf_hz, pm_deg, f3db_hz,
+  supply_current_A, ratio_db, slew_rate_v_per_s, settle_s`).
+* `acceptance.constraints`: `[{name, measure, op(>=|<=), limit, view?}]` -- 회로 성능 스펙. 합격 판정에 쓰인다
+  (measure 에 `ratio_db` 포함, 과도 measure 제외).
 * `testbench`: `dc_choke_H`, `ac_couple_F`, `ac{fstart_hz, fstop_hz, points_per_decade, input_*_ac, diff_feedback_gain}`,
   `options`, `nodeset_from_predictions`, **[신규]** `loop_dc_choke_H`(β 루프 측정용 입력 DC 경로, feedback_passives 가 있으면 필요).
 * `judge`: `sat_margin_V`(합격 판정의 포화 여유), `off_current_A`(선택), `tolerances{ID_rel, VGS_abs_V, VDS_abs_V, VSB_abs_V,
   gm_rel, gds_rel, gm_id_rel, node_abs_V, W_rel, kcl_abs_A, dc_gain_db_abs, pm_deg_abs, ugf_hz_rel, f3db_hz_rel,
   supply_current_A_rel}`(기록·경고용). **기본값 없음**. `--judge` 파일·`--sat-margin-v` 가 덮어쓴다.
 * 크기 규칙: 소자 전압·전류는 극성 정규화(PMOS 도 켜진 포화면 ID·VGS·VDS 양수, VSB = |바디-소스| 방향 양수).
-  ngspice BSIM4 의 `@` 값이 이미 이 규칙이라(실측) SPICE 쪽은 `VSB=-vbs` 외에 변환하지 않는다.
+  ID 는 **부호 포함**: 선언 드레인 기준 정상 방향 전도(NMOS 드레인으로 들어감, PMOS 드레인에서 나옴) = 양수, 역방향 = 음수.
+  **[정정 2026-10-07]** ngspice BSIM4 `@` 값 중 vgs·vds·vth·vdsat 는 이 규칙이지만(`@vds = type*(V(d)-V(s))`, 선언 단자
+  방향 부호 유지) **`@id` 는 소스/드레인 역할이 뒤바뀌어도 양수**(채널 전류 크기)다. 그래서 SPICE 쪽은
+  `ID = @id x sign(@vds)`(@vds = 0 이면 0, 둘 중 하나 없으면 None), `VSB = -vbs`, 나머지는 그대로다. 원값은 소자 행
+  `ID_spice_op_id` 에 남긴다. 실측(ngspice-46 sky130 tt, L=0.5 µm W=2 µm m=2, 드레인에 0 V 감지원): NMOS 역방향
+  (V(d)=0, V(s)=0.3, VG=1.8) @id = +4.981e-4, @vds = -0.3, 감지원 드레인 유입 전류 -4.981e-4; PMOS 역방향(V(d)=1.6,
+  V(s)=1.0) @id = +8.991e-5, @vds = -0.6, 드레인 유입 +8.991e-5(크기 규칙 -8.991e-5); 정상 방향 NMOS/PMOS, VDS 1 mV 경우도
+  `@id x sign(@vds)` = 극성 x 감지원 전류(상대차 1e-6 이하). 꺼진 소자(VGS=0)에서는 감지원 전류가 접합 누설을 포함해 @id 와
+  다르다(NMOS 2.08e-12 대 2.64e-13) -- 크기는 @id(LUT ID 열과 같은 양, `assets/sky130_lut_sweep.py` 가 `@m...[id]` 로 잼)를
+  쓰므로 엔진이 LUT VGS=0 누설로 낸 `off_current_A` 와 같은 양끼리 비교된다.
 
-## 합격 정의 (사용자 확정 2026-10-07)
+## 합격 정의 (사용자 확정 2026-10-07, Q5·Q6 보강 같은 날)
 
-`summary.verdict` 는 **free 모드에서만** 합격/불합격을 낸다. 합격 조건은 둘뿐이다.
-1. `acceptance.constraints` 의 선언 제약(회로 성능 스펙)을 SPICE 값이 전부 만족한다.
-2. ID > 0(`off_current_A` 가 있으면 ID > 그 값)인 모든 MOS 가 포화: VDS - VDSAT >= `sat_margin_V`(인자, 기본값 없음).
+`summary.verdict` 는 **free 모드에서만** 합격/불합격을 낸다. 합격 조건은 셋이다.
+1. `acceptance.constraints` 의 선언 제약(회로 성능 스펙)을 SPICE 값이 전부 만족한다. **[변경]** CMRR·PSRR(`ratio_db`,
+   C24)도 선언되면 여기서 판정한다. 슬루·정착은 판정 대상이 아니다(C25).
+2. SPICE 에서 전도하는 모든 MOS 가 포화: VDS - VDSAT >= `sat_margin_V`(인자, 기본값 없음). 전도 = **부호 있는** ID_spice
+   (크기 규칙) > 그 소자 문턱(C23 의 소자별 `off_current_A`, 없으면 `judge.off_current_A`) -- 역방향 전류(ID < 0)는 전도가
+   아니다(포화 검사 대상 밖, 엔진 예측 전도면 3 에서 FAIL). 문턱이 둘 다 없으면 소자 행 `conduction_threshold_A` 는 None 으로
+   기록하고 전도 = ID_spice > 0 이다.
+3. **[신규 C23]** 엔진이 전도로 예측한 MOS 가 SPICE 에서 꺼지지 않았다(문턱 = 엔진이 낸 소자별 `off_current_A`).
+그리고 합격 실행(free)은 접합 용량을 넣은 넷리스트여야 한다(C22: 확산 기하 없으면 막힘).
 
 노드전압·소자 ID/gm/gds/VGS/...·성능 metric 의 엔진-SPICE 차이는 **기록만** 한다(verdict 와 무관). 허용오차가 있으면
 기록 항목마다 `judge` 칸에 허용오차 안(PASS)/밖(FAIL)을 적지만 verdict 에 들어가지 않는다.
@@ -79,13 +97,15 @@
 ## 출력 (`oracle_run.py`, bias 마다)
 
 `<circuit>[.<tag>].<bias>.cir` / `.cir.meta.json` / `.log` / `.ac.txt` / `.sim.json` / `.compare.json` / `.compare.md`
-(+ feedback_passives 가 있으면 `.loop.cir` / `.loop.log` / `.loop.v.txt` / `.loop.i.txt`).
+(+ feedback_passives 가 있으면 `.loop.cir` / `.loop.log` / `.loop.v.txt` / `.loop.i.txt`, **[신규]** ratio_db 뷰가 있으면
+`.ratio<k>.num.txt` / `.ratio<k>.den.txt`).
 `compare.json` 최상위: `summary{verdict, verdict_reason, warnings, acceptance{constraints_failed, constraints_unmeasured,
-conducting_devices, unsaturated_conducting, sat_margin_V, off_current_A}, record_counts, sat_in_spice, not_sat, spice_ac,
-rail_current_A}`, `performance`, `constraints`, `kcl_residual`, `devices`, `nodes`, `blockers`, `notes`, `judge_config`,
-`lut_meta`, `provenance`.
+conducting_devices, unsaturated_conducting, sat_margin_V, off_current_A, off_in_spice, conduction_not_evaluated},
+junction_capacitance, transient, record_counts, sat_in_spice, not_sat, spice_ac, spice_ratio, rail_current_A}`,
+`performance`, `constraints`, `kcl_residual`, `devices`(행마다 **[신규]** `off_current_A_pred`, `conduction_threshold_A`,
+`predicted_conducting`, `conduction_check`, `diffusion`), `nodes`, `blockers`, `notes`, `judge_config`, `lut_meta`, `provenance`.
 측정 정의(개루프 A): gain = |H(fstart)|, UGF = |H|=1 첫 하강 교차(log 보간), f-3dB = |H| < |H0|/sqrt2 인 첫 주파수 점,
-supply_current = 레일 전압원이 공급하는 전류. PM 은 위 "PM 정의".
+supply_current = 레일 전압원이 공급하는 전류. PM 은 위 "PM 정의". **[신규]** ratio_db(CMRR·PSRR)는 C24, 슬루·정착은 C25.
 
 ## 동작 계약 (test 작성자용 -- 이 디렉터리의 test 는 다른 agent 가 쓴다)
 
@@ -95,8 +115,9 @@ C1. 입력 독립성: `oracle_*.py` 는 엔진 패키지(`gmid_engine`, `legacy`
 C2. **[변경]** 코너·온도: 넷리스트의 `.temp` 는 `process.lut_npz` 의 `temp_c`, include 경로의 `{corner}` 는 npz `corner` 로 채워진다.
     npz 에 둘 중 하나라도 없으면 `meta.blockers` 에 들어가고(.temp 줄은 쓰지 않음), ngspice 를 돌리지 않으며(`sim.skipped`),
     `compare.summary.verdict == "BLOCKED"`, `oracle_run.py` 반환 2.
-C3. finger 규칙: 소자 하나당 `X<name>` 줄 정확히 1개, `w=finger_w`, `m=n_fingers`, `nf=` 없음.
-    `diffusion` 이 있으면 `ad=as=ad_per_w_m*finger_w`, `pd=ps=finger_w+pd_extra_m`, 없으면 ad/as/pd/ps 없음.
+C3. **[변경]** finger 규칙: 소자 하나당 `X<name>` 줄 정확히 1개, `w=finger_w`, `m=n_fingers`, `nf=` 없음.
+    확산 기하(C22 출처 순서): `devices[].diffusion` 이 있으면 `ad=ad_m2 as=as_m2 pd=pd_m ps=ps_m`, 없고 `process.diffusion`
+    이 있으면 `ad=as=ad_per_w_m*finger_w`, `pd=ps=finger_w+pd_extra_m`, 둘 다 없으면 ad/as/pd/ps 없음(free 면 C22 막힘).
 C4. 레일: `reference=true` 넷은 SPICE 노드 `0`, 나머지 레일은 `Vrail_<net>` 전압원. reference 가 1개가 아니면 막힘.
     대소문자만 다른 두 넷(전압 같은 레일 별칭 제외)은 막힘.
 C5. free: 차동 입력+차동 출력이면 `Efb_<in>` 이 (Vo-Vo') 차동 성분을 `diff_feedback_gain` 배로 되먹이고 `Vofs_<in>` 은 -V_in_pred;
@@ -106,11 +127,13 @@ C6. 게이트 전용 넷(드레인/소스/전원/수동소자/입력 어디에�
     `Vbias_<net>` 과 notes 경고, 둘 다 없으면 막힘.
 C7. **[변경]** 기록: 오차 = SPICE - 예측(abs) 또는 (SPICE - 예측)/|예측|(rel). 허용오차가 있으면 기록 칸 `judge` 에 `|오차| <= tol`
     PASS / 밖 FAIL, 없으면 `N/A(tol 미설정)` -- **verdict 와 무관**. 영역: `sat_margin_V` 없으면 `None`(+`N/A(sat_margin 미설정)`),
-    있으면 VDS - VDSAT >= margin 이 `sat`, 아니면 `triode`; `off_current_A` 가 있으면 |ID| < 그 값은 `off`.
+    있으면 VDS - VDSAT >= margin 이 `sat`, 아니면 `triode`; 그 소자 문턱(**[변경]** `predictions.devices[].off_current_A`,
+    없으면 `judge.off_current_A`)이 있으면 |ID| < 그 값은 `off`.
     영역 기록 칸 = SPICE 영역 == predictions.devices[].region. 테스트벤치가 고정한 넷의 노드 기록은 `N/A(테스트벤치가 고정)`.
     forced 모드에서 |ID_rel| > tolerances.ID_rel 또는 |gm_rel| > tolerances.gm_rel 인 소자는 `summary.warnings` 와 Markdown 맨 앞.
 C8. **[변경]** verdict: 막힘이 있으면 `BLOCKED`. forced 모드는 그 밖에 늘 `INCOMPLETE`. free 모드는 선언 제약 FAIL 이 있거나
-    포화 아닌 전도 MOS(ID > 0, 또는 > off_current_A)가 있으면 `FAIL`; 아니면 `sat_margin_V` 미설정이거나 SPICE 값을 못 얻은 제약이
+    포화 아닌 전도 MOS(ID > 그 소자 문턱, 합격 정의 2)가 있거나 **[신규]** SPICE 에서 꺼진 '엔진 예측 전도' MOS(C23)가 있으면
+    `FAIL`; 아니면 `sat_margin_V` 미설정이거나 SPICE 값을 못 얻은 제약이 있거나 **[신규]** 전도 확인을 판정 못 한 소자(C23)가
     있으면 `INCOMPLETE`; 아니면 `PASS`. `oracle_run.py` 반환 코드: PASS/INCOMPLETE 0, FAIL 1, BLOCKED 2(여러 bias 중 최악).
 C9. **[변경]** acceptance 제약: `op` 이 `>=`/`<=` 일 때 SPICE 값으로 PASS/FAIL, SPICE 값 없으면 `N/A(SPICE 값 없음)`. 제약은 판정 대상.
 C10. **[변경]** 측정: 위 "측정 정의"와 "PM 정의" 그대로. |L| 가 1 아래로 내려가지 않거나 첫 점부터 1 미만이면 `ugf_hz`/`pm_deg` 는 None.
@@ -205,7 +228,78 @@ C12 보충. **[신규]** legacy_adapter: `topology{path, sha256}` 를 쓰고, to
   아직 계획만 있어 등가회로의 원소 구성을 정할 근거가 없다.
 * 결과 JSON `connectivity_fp` 대조: 엔진 `fp_of` 정의를 오라클이 import 없이(C1) 똑같이 재현한다는 보장이 없다. 대신 C15 가
   topology 파일 자체와 직접 비교하고 파일 sha256 을 기록한다.
-* 사용자 결정 대기(Q5·Q6): CMRR·PSRR·slew·settling 측정, 꺼진 소자 FAIL·`off_current_A` 필수, `diffusion` 필수.
+* 슬루·정착의 `.tran` 측정(C25): 정의가 계약에 없어 `not_measured` 로 기록만 한다.
+
+## [신규] Q5·Q6 사용자 결정 반영 -- 꺼진 소자, CMRR·PSRR, 슬루·정착, 접합 용량 (2026-10-07, 근거 `_drafts/engine/reference_review/` SYNTHESIS Q5·Q6, T03·T07·T09, G5-01·G6-02·G3-10·G1-02·G3-02·G2-16·G6-10·G1-12)
+
+### 입력 스키마 추가
+
+* `predictions.devices[].off_current_A`(≥ 0): 소자별 전도 문턱. **엔진이** 그 소자의 LUT VGS=0 누설 ID(그 소자 기하·VDS·VSB)로
+  계산해 넣는다. 오라클은 이 값을 만들거나 대신할 상수를 두지 않는다.
+* `predictions.devices[].region` 에 `off` 추가: 엔진이 꺼짐으로 예측한 소자(전도 확인 대상 아님).
+* `devices[].diffusion{ad_m2, as_m2, pd_m, ps_m, basis?}`: 소자별 확산 기하(finger 하나 = m 단위 하나당 값).
+* measure `ratio_db`(제약·metric 모두) + 항목 `view{num, den}`(각각 `{ac_excite{넷: 진폭}, sense_p, sense_n, sense_mode}`,
+  measure 가 `ratio_db` 면 필수). metric measure `slew_rate_v_per_s`·`settle_s`(기록 전용, 제약 enum 에는 없음).
+  허용오차 키 `tolerances.ratio_db_abs`.
+
+### 동작 계약 추가
+
+C22. **[신규]** 접합 용량·확산 기하(Q6):
+    - 넷리스트 소자 줄의 ad/as/pd/ps 출처 순서: (1) `devices[].diffusion` -> `ad=<ad_m2> as=<as_m2> pd=<pd_m> ps=<ps_m>`
+      (Euler 행 공유 확산: MOD7 `ly.diffusion[dev]` 통계에서 엔진·어댑터가 소자 전체 값을 n_fingers 로 나눈 finger 평균;
+      인스턴스는 `m=n_fingers` 를 유지하고 ngspice 가 m 배 한다 -- nf 인스턴스는 C3 그대로 금지), (2) 없으면 `process.diffusion`
+      규칙(레이아웃 전 첫 사이징점: **LUT 생성 규칙** -- `assets/sky130_lut_sweep.py` 의 DUT 줄 `w=5u ad=2.5p pd=7u` 에서
+      `ad_per_w_m = 2.5e-12/5e-6 = 0.5e-6 m`, `pd_extra_m = 7e-6 - 5e-6 = 2e-6 m`; legacy_adapter 가 이 줄에서 읽어 넣는다),
+      (3) 둘 다 없으면 ad/as/pd/ps 를 쓰지 않는다.
+    - free 모드(합격 실행, Z1 free 포함)에서 (3)인 소자가 하나라도 있으면 **막힘**: blocker 문장
+      `C22 접합 용량: 확산 기하 없는 소자 [...]`(이름 정렬). forced·iso 는 막지 않고 notes 에 그 소자 목록을 남긴다.
+    - meta `geometry[<소자>].diffusion` = `{source: "device"|"process_rule"|null, ad, as, pd, ps}`(null 출처면 값 4개 None).
+      `compare.summary.junction_capacitance = {included(전 소자 출처 있음 bool), by_source{device, process_rule, none},
+      missing[소자], zero_area[소자]}`. 값 0(ad=as=pd=ps=0)은 '접합 용량 없음'을 **명시한** 선언이라 막지 않지만
+      `zero_area` 에 이름을 남긴다(test 픽스처가 접합 용량 없는 독립 넷리스트와 같은 회로를 free 로 돌릴 때 쓴다 --
+      실제 엔진 입력에서 나오면 기하 출처를 의심할 표지).
+    - 값은 오라클이 계산하지 않는다: ngspice 가 PDK 모델카드 접합 파라미터(CJ·CJSW·MJ·MJSW·PB 등)와 ad/as/pd/ps 로 계산한다.
+      확인(2026-10-07, ngspice-46, sky130 tt, nfet_01v8 L=0.5 µm W=5 µm VDS=0.9 V VGS=0.7 V, 1 MHz 드레인 AC 전류의
+      허수부/ω): m=1 1.927 fF -> ad=as=2.5p pd=ps=7u 4.350 fF, m=2 3.854 fF -> 8.700 fF(접합분 2.42 / 4.85 fF, m 배).
+      subckt 가 `ad = {ad}` 등을 내부 소자로 넘긴다(`.param ad = 0 ...`, 기본 0 = 접합 용량 없음).
+C23. **[신규]** 꺼진 소자(Q5 (i)): free·forced·iso 모든 비교 행에 `off_current_A_pred`, `predicted_conducting`,
+    `conduction_check` 를 남긴다. 소자 행마다:
+    - `predicted_conducting`: `predictions.devices[이름]` 이 없으면 None, 있고 `region == "off"` 면 False, 아니면 True.
+    - `conduction_check`: None 예측 -> `N/A(예측 없음)`; False -> `N/A(엔진 예측 off)`; True 이고 `off_current_A` 없음 ->
+      `N/A(off_current_A 없음)`; SPICE ID 없음 -> `N/A(SPICE ID 없음)`; ID_spice(크기 규칙, 부호 포함) <= off_current_A ->
+      `FAIL`(꺼짐 -- 역방향 전류도 여기에 든다); 아니면 `PASS`.
+    - free verdict(C8): `FAIL` 이 하나라도 있으면 FAIL. `N/A(off_current_A 없음)`·`N/A(예측 없음)`·`N/A(SPICE ID 없음)` 인 소자가
+      있으면 PASS 가 될 수 없고 INCOMPLETE(조용한 통과 금지). `N/A(엔진 예측 off)` 는 verdict 에 영향 없음.
+    - `summary.acceptance` 에 `off_in_spice[소자]`, `conduction_not_evaluated{소자: 이유}` 를 더한다.
+    - 합격 정의 2(포화)의 전도 문턱도 소자별 `off_current_A` 가 우선이다(없으면 `judge.off_current_A`). 행 칸
+      `conduction_threshold_A` = 그 문턱, 둘 다 없으면 None(이때 전도 = 부호 있는 ID_spice > 0). 영역 기록 `off` 는 문턱이
+      있을 때 |ID_spice| < 문턱.
+C24. **[신규]** CMRR·PSRR = `ratio_db`(Q5 (ii) (A), 엔진 `ratio_ss_db` 와 같은 여기 정의):
+    - 정의: 뷰 `{num, den}` 각각에 대해 .ac 한 번(모두 2회). 한 번의 .ac 에서 `ac_excite` 에 적힌 넷은 그 진폭(위상 0, 음수
+      진폭 = 반대 위상)의 AC 전압으로, 테스트벤치가 이상 전압원으로 구동하는 **나머지 넷**(레일·입력·게이트 바이어스)은 AC 0 이다
+      (엔진 MNA 가 여기 넷과 상대 뷰의 여기 넷을 고정하는 것과 같은 꼴). 응답 H = V(sense_p) - V(sense_n)(differential) 또는
+      V(sense_p)(single_ended). `ratio_db = 20*log10(|H_num|/|H_den|)`.
+    - 측정 주파수 = `testbench.ac.fstart_hz` 한 점(`ac lin 1 f f`) -- 오라클의 DC 대용 기준점(측정 정의의 gain 과 같음).
+    - 여기 수단(넷리스트 이름은 그대로, `.control` 안에서 `alter @<원>[acmag]`): 입력 넷 = `Vac_<넷>`(결합 C 경유), 레일 =
+      `Vrail_<넷>`, 게이트 전용 바이어스 넷 = `Vbias_<넷>`. 이 셋 밖의 넷(내부 넷, forced 고정 넷 포함)이나 reference 레일을
+      `ac_excite` 에 적으면 **막힘**(이 넷을 AC 로만 고정할 수단이 없다 -- DC 를 바꾸지 않고 엔진 정의를 재현할 수 없음).
+      sense 넷이 회로 넷(reference 제외)이 아니어도 막힘.
+    - 같은 뷰(dict 동등)는 한 번만 잰다. 데이터 파일 `<stem>.ratio<k>.num.txt`/`.den.txt`(C21 캐시에 함께 저장·복원).
+    - `sim.ratio = [{view, f_hz, num{re, im, mag}, den{re, im, mag}, ratio_db}]`(|H_den| = 0 이거나 파일이 없으면 ratio_db None).
+      제약·metric 의 SPICE 값 = 같은 view 를 가진 항목의 ratio_db. 제약은 C9 그대로 판정 대상(PASS/FAIL, 값 없으면 N/A ->
+      INCOMPLETE), metric 은 기록(tolerances.ratio_db_abs).
+    - free·forced 둘 다 잰다(forced 는 진단 기록). iso·β 루프 넷리스트에는 없다.
+    - **[가정 -- 엔진 `ratio_ss_db` 구현(MOD5 `gain.py`) 전이라 대조 못 함]** (a) 엔진 정의 문장은 "같은 MnaSystem 두 여기 열의
+      응답비 dB"(design_mod1_lut_mod5_mna 3.4)뿐이라 평가 주파수는 `gain_ss_db` 의 H(0) 와 같은 DC 로 보고 오라클 DC 대용
+      fstart 를 쓴다. (b) 여기 안 한 테스트벤치 원 = AC 0 은 옛 `_metric_smallsignal_ratio_db`(also_fix = 두 여기 넷 합집합 0 고정)
+      와 같은 꼴이고, 그 밖의 레일·입력도 0 으로 둔다(이상 전압원이라 SPICE 에서 다른 선택이 없다). 엔진이 다르게 정하면 이
+      항목을 바꾼다. 파일럿 spec 의 CMRR·PSRR 뷰는 아직 `{"pending": "MOD5"}` 라 어댑터가 넣을 뷰가 없다.
+C25. **[신규]** 슬루·정착(Q5 (ii) (B), 기록 전용): metric measure `slew_rate_v_per_s`·`settle_s` 는 성능 기록 행을 만들지만
+    SPICE 값은 None, 판정 칸 `N/A(not_measured: ...)`. `compare.summary.transient = {status: "not_measured", measures,
+    reason}`. 이유: β 루프 `.tran` 정의(입력 계단 크기와 여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약
+    (`gmid_engine/authoring/SPEC_CONTRACT.md`, `_drafts/engine/design_spec_format.md` F11 -- settling 은 `{total_s, linear_s}`
+    뿐이고 오차 대역 없음, `driving_spec.slew_rate_*` 는 MOD5 레지스트리 미정)에 없다 -- 추측으로 정하지 않는다. 정의가 정해지면
+    이 항목을 측정으로 바꾼다. 제약 measure enum 에는 넣지 않았다(판정 대상 아님 -- 선언하려면 스키마 위반으로 드러난다).
 
 ## 옛 엔진 기준선 만들기
 

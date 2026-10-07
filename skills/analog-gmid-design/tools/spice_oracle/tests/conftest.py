@@ -86,6 +86,19 @@ def process_block(lut: Path, diffusion=True) -> dict:
     return blk
 
 
+# C22(free 는 확산 기하 필수): 독립 넷리스트(ad/pd 없음 = subckt 기본 0)와 같은 회로를 free 로 돌릴 때 쓰는 명시적 면적 0.
+ZERO_DIFFUSION = {"ad_m2": 0.0, "as_m2": 0.0, "pd_m": 0.0, "ps_m": 0.0,
+                  "basis": "test: 면적 0 명시(독립 넷리스트에 ad/pd 없음과 같은 회로)"}
+# C23(엔진 예측 전도 소자의 문턱 필수): 문턱 0 = 옛 'ID > 0 이면 전도' 규칙을 명시한 값.
+OFF_ZERO = {"M1": {"off_current_A": 0.0}, "MP1": {"off_current_A": 0.0}}
+
+
+def zero_diffusion(inp: dict) -> dict:
+    for d in inp["devices"]:
+        d["diffusion"] = dict(ZERO_DIFFUSION)
+    return inp
+
+
 def testbench_block() -> dict:
     return {"dc_choke_H": 1e12, "ac_couple_F": 1.0,
             "options": {"gmin": "1e-15", "reltol": "1e-4", "abstol": "1e-14", "vntol": "1e-7"},
@@ -112,7 +125,7 @@ def cs_input(lut: Path, *, preds_nodes=None, preds_devices=None, metrics=None, c
     inp = {
         "schema": "spice_oracle_input/1",
         "circuit": circuit,
-        "process": process_block(lut, diffusion=diffusion),
+        "process": process_block(lut, diffusion=diffusion is True),
         "rails": [{"net": "vdd", "voltage": c["vdd"]}, {"net": "vsp", "voltage": c["vsp"]},
                   {"net": "gnd", "voltage": 0.0, "reference": True}],
         "devices": [dev_n, dev_p],
@@ -127,6 +140,8 @@ def cs_input(lut: Path, *, preds_nodes=None, preds_devices=None, metrics=None, c
                         "metrics": metrics or []},
         "testbench": testbench_block(),
     }
+    if diffusion == "zero":
+        zero_diffusion(inp)
     if bias_voltages == "default":
         inp["bias_voltages"] = [{"net": "pb", "value": c["pb"]}]
     elif bias_voltages is not None:
@@ -192,6 +207,7 @@ def fb_input(lut: Path, *, feedback=("Rf", "Cin"), circuit="tfb_cs_rfeedback", l
         "predictions": {"nodes": {"nin": c["vin"]}, "devices": {}, "metrics": []},
         "testbench": testbench_block(),
     }
+    zero_diffusion(inp)  # C22: 손계산·독립 넷리스트에 접합 용량이 없으므로 면적 0 을 명시
     if feedback is not None:
         inp["feedback_passives"] = list(feedback)
     if loop_choke == "default":
@@ -463,7 +479,7 @@ def preds_from_independent(ind) -> dict:
     for name in ("M1", "MP1"):
         d = ind[name]
         devs[name] = {"ID": d["id"], "VGS": d["vgs"], "VDS": d["vds"], "VSB": -d["vbs"], "gm": d["gm"],
-                      "gds": d["gds"], "gm_id": d["gm"] / d["id"], "region": "sat"}
+                      "gds": d["gds"], "gm_id": d["gm"] / d["id"], "region": "sat", "off_current_A": 0.0}
     m = measure(ind["f"], ind["H"])
     metrics = [{"name": k, "measure": k, "value": m[k]} for k in ("dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz")]
     metrics.append({"name": "ivdd", "measure": "supply_current_A", "rail": "vdd",

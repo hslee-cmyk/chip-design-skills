@@ -89,7 +89,8 @@ def test_c3_diffusion_rule(tmp_path, lut):
 
 
 def test_c3_no_diffusion_no_area_params(tmp_path, lut):
-    p, text, meta = run_netlist(cs_input(lut, diffusion=False), tmp_path)
+    # [C22 조정] free 는 확산 기하가 없으면 막힘이라, '둘 다 없으면 ad/as/pd/ps 없음' 규칙은 forced 진단 실행에서 본다
+    p, text, meta = run_netlist(cs_input(lut, diffusion=False), tmp_path, "forced")
     ok(p, meta)
     for ln in x_lines(text):
         assert not set(kv(ln.split())) & {"ad", "as", "pd", "ps", "nf"}, ln
