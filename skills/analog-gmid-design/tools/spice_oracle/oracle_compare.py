@@ -14,6 +14,8 @@
           measure_undefined(measure, sim, item)
 [신규] C26 rout_ohm: 제약은 C9 그대로 판정, SPICE 값이 정의 불가(음의 실수부)면 'N/A(정의 불가: negative_real_part)'
        -> INCOMPLETE(PASS 불가). summary.spice_rout = sim.rout, summary.pm_loop = PM 루프 정의 기록(C12 보충·C27).
+[신규 C10] pm_deg: ac.pm_undefined(개루프 RHP 극·불안정 폐루프·안정성 근거 부족)이면 'N/A(정의 불가: <이유>)' ->
+       INCOMPLETE(PASS 불가). summary.stability = PM 안정성 근거 요약.
 [신규] 소자별 허용오차(C16): predictions.devices[].tol 이 한 소자라도 있으면 ID·gm 판정은 소자별 값만 쓴다(스칼라 폴백 없음).
 [신규] iso(C17): summary.iso = 소자별 ID 오차가 그 소자 허용오차 안인가(K3 판정), verdict 는 진단 모드라 INCOMPLETE.
 [신규] Z1(C18): 넷리스트를 --omit/--short 로 바꾼 실행은 합격 판정을 하지 않는다(INCOMPLETE).
@@ -138,8 +140,11 @@ def _rout_entry(sim, item):
 
 
 def measure_undefined(measure, sim, item):
-    """SPICE 값이 정의 불가인 이유(값이 None 인 까닭이 측정 실패가 아니라 정의 밖일 때). 지금은 C26 rout_ohm 의
-    'negative_real_part' 하나. 없으면 None. 판정 칸은 'N/A(정의 불가: <이유>)' -> 제약이면 INCOMPLETE(PASS 불가)."""
+    """SPICE 값이 정의 불가인 이유(값이 None 인 까닭이 측정 실패가 아니라 정의 밖일 때). C26 rout_ohm 의
+    'negative_real_part', [신규 C10] pm_deg 의 ac.pm_undefined(개루프 RHP 극·불안정 폐루프·안정성 근거 부족 -- PM 이 안정
+    여유가 아님). 없으면 None. 판정 칸은 'N/A(정의 불가: <이유>)' -> 제약이면 INCOMPLETE(PASS 불가)."""
+    if measure == "pm_deg":
+        return (sim.get("ac") or {}).get("pm_undefined")
     if measure == "rout_ohm":
         r = _rout_entry(sim, item)
         if r is not None and r.get("rout_ohm") is None and r.get("undefined") not in (None, "no_data"):
@@ -367,6 +372,7 @@ def compare(inp, meta, sim, judge):
                            "feedback_passives_basis": inp.get("feedback_passives_basis"),
                            "loop_break_nets": (sim.get("ac") or {}).get("loop_break_nets"),
                            "loop_weights": (sim.get("ac") or {}).get("loop_weights")},
+               "stability": _stability_summary((sim.get("ac") or {})),
                "rail_current_A": sim.get("rail_current_A")}
     ti = meta.get("topology_identity") or {"status": "unverified", "diffs": [], "notes": ["넷리스트 meta 에 C15 결과 없음"]}
     summary["topology_identity"] = {"status": ti.get("status"), "required": ti.get("required", False),
@@ -381,6 +387,21 @@ def compare(inp, meta, sim, judge):
     if meta["bias"] == "forced":
         res["diagnosis"] = forced_diagnosis(inp, rows, kcl)
     return res
+
+
+def _stability_summary(ac):
+    """[신규 C10] summary.stability = PM 안정성 근거 요약(전체는 summary.spice_ac.stability). ac 가 없으면 None."""
+    st = ac.get("stability") if ac else None
+    if not st:
+        return None
+    ny, tr = st.get("nyquist") or {}, st.get("transient") or {}
+    return {"pm_valid": st.get("pm_valid"), "pm_undefined": st.get("pm_undefined"), "pm_deg_raw": ac.get("pm_deg_raw"),
+            "loop": st.get("loop"), "closed_loop": st.get("closed_loop"),
+            "open_loop_rhp_poles": st.get("open_loop_rhp_poles"),
+            "open_loop_rhp_poles_bound": st.get("open_loop_rhp_poles_bound"),
+            "nyquist_encirclements_cw": ny.get("encirclements_cw"), "nyquist_reason": ny.get("reason"),
+            "transient_status": tr.get("status"), "transient_reason": tr.get("reason"),
+            "reason": st.get("reason")}
 
 
 def iso_summary(rows, meta):
@@ -532,6 +553,13 @@ def to_markdown(res):
         L.append(f"- PM 루프: {pl.get('pm_definition')}, feedback_passives {pl.get('feedback_passives')} "
                  f"(규칙 {pl.get('feedback_passives_basis') or '미기재'}), 절단 넷 {pl.get('loop_break_nets')}, "
                  f"가중 {pl.get('loop_weights')}")
+    sb = s.get("stability") or {}
+    if sb:
+        L.append(f"- C10 PM 안정성 근거: PM {'유효' if sb.get('pm_valid') else ('정의 불가 ' + str(sb.get('pm_undefined')) if sb.get('pm_undefined') else '검사 대상 아님')}"
+                 f" (Bode 식 원값 {_f(sb.get('pm_deg_raw'))} deg) -- Nyquist 시계 방향 감은 수 N = {_f(sb.get('nyquist_encirclements_cw'))}"
+                 + (f"({sb['nyquist_reason']})" if sb.get("nyquist_reason") else "")
+                 + f", 폐루프 과도 {sb.get('transient_status')}, 개루프 RHP 극 {sb.get('open_loop_rhp_poles_bound') or ''}"
+                 f"{_f(sb.get('open_loop_rhp_poles'))}")
     tr = s.get("transient") or {}
     if tr:
         L.append(f"- C25 슬루·정착: {tr.get('status')} -- {tr.get('reason')}")
