@@ -502,10 +502,14 @@ def transient_decision(path, plan):
     return out
 
 
-def stability_judgement(nyq, tran_status):
-    """Nyquist N(Z - P)과 폐루프 과도 상태로 PM 이 안정 여유인지 정한다(P = 0 이 증명될 때만 유효).
-    반환 {closed_loop, open_loop_rhp_poles, open_loop_rhp_poles_bound, pm_valid, pm_undefined}."""
+def stability_judgement(nyq, tran_status, pm_raw=None):
+    """Nyquist N(Z - P)과 폐루프 과도 상태로 PM 이 안정 여유인지 정한다(P = 0 일 때 유효 -- 음수 PM 도 유효한 여유,
+    엔진 metrics §3.10 과 같은 정의). 폐루프 불안정이고 N >= 1 이면 P = 0(Z = N)과 맞는 증거는 Bode PM < 0 뿐이다:
+    pm_raw < 0 이면 PM 값 유지(제약은 이전처럼 FAIL), pm_raw >= 0 이면 증거 충돌(P > 0 또는 놓친 모드)
+    -> stability_evidence_inconsistent. 반환 {closed_loop, open_loop_rhp_poles, open_loop_rhp_poles_bound, pm_valid,
+    pm_undefined}."""
     N = nyq.get("encirclements_cw") if nyq else None
+    neg = pm_raw is not None and pm_raw < 0
     S = tran_status if tran_status in ("stable", "unstable") else None
     r = {"closed_loop": S, "open_loop_rhp_poles": None, "open_loop_rhp_poles_bound": None, "pm_valid": False,
          "pm_undefined": None}
@@ -521,11 +525,18 @@ def stability_judgement(nyq, tran_status):
     elif S == "unstable":
         if N is not None and N <= 0:
             r.update(open_loop_rhp_poles=1 - N, open_loop_rhp_poles_bound=">=", pm_undefined=PM_UNDEFINED_RHP)
+        elif N is not None and neg:
+            r.update(open_loop_rhp_poles=0, open_loop_rhp_poles_bound="== (Z = N 과 일치)", pm_valid=True)
+        elif N is not None:
+            r["pm_undefined"] = PM_UNDEFINED_INCONSISTENT
         else:
             r["pm_undefined"] = PM_UNDEFINED_CL_UNSTABLE
     else:
-        if N is not None and N >= 1:
-            r.update(closed_loop="unstable", pm_undefined=PM_UNDEFINED_CL_UNSTABLE)
+        if N is not None and N >= 1 and neg:
+            r.update(closed_loop="unstable", open_loop_rhp_poles=0, open_loop_rhp_poles_bound="== (Z = N 과 일치)",
+                     pm_valid=True)
+        elif N is not None and N >= 1:
+            r.update(closed_loop="unstable", pm_undefined=PM_UNDEFINED_INCONSISTENT)
         elif N is not None and N < 0:
             r.update(open_loop_rhp_poles=-N, open_loop_rhp_poles_bound=">=", pm_undefined=PM_UNDEFINED_RHP)
         else:
@@ -533,7 +544,7 @@ def stability_judgement(nyq, tran_status):
     return r
 
 
-def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=None):
+def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=None, pm_raw=None):
     """PM 을 정한 루프 L 의 안정성 근거(C10). β 루프면 L = T(실제 루프), β=1 이면 L = sign*A(sign = 기준점 Re A 의 부호,
     PM 정의가 가정하는 음되먹임 닫기). Nyquist N(nyquist_count) + 폐루프 .tran(stability_netlist, transient_decision)
     -> stability_judgement. 동작점 패스 <stem>.stabop.cir(choke 전류·노드 전압), 과도 넷리스트 <stem>.stab.cir,
@@ -606,7 +617,7 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
                 tr.update(dec)
                 tr.update(netlist=os.path.basename(scir), file=plan["file"], ngspice_rc=rc, cache=cst)
     out["transient"] = tr
-    out.update(stability_judgement(nyq, tr.get("status")))
+    out.update(stability_judgement(nyq, tr.get("status"), pm_raw))
     out["gain_crossings_hz"] = cr
     return out
 
@@ -707,7 +718,7 @@ def apply_stability(res, cir_path, meta, Ldata, exe, timeout_s=None, cache_dir=N
         ac["stability"] = {"method": "nyquist_count + closed_loop_transient", "pm_valid": None, "pm_undefined": None,
                            "reason": "PM 값 없음(|L|=1 하강 교차 없음 또는 루프 측정 없음) -- 검사 대상 아님"}
         return
-    st = stability_check(cir_path, meta, res, Ldata, exe, timeout_s, cache_dir)
+    st = stability_check(cir_path, meta, res, Ldata, exe, timeout_s, cache_dir, ac.get("pm_deg"))
     # 캐시 상태는 결과가 아니다(C21: hit 이든 miss 든 ac 는 같아야 한다) -- sim.stability_cache 로 뺀다
     tr = st.get("transient") or {}
     res["stability_cache"] = {"op_pass": (tr.get("op_pass") or {}).pop("cache", None), "transient": tr.pop("cache", None)}

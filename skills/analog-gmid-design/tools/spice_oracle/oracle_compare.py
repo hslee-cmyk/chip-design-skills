@@ -558,8 +558,8 @@ def to_markdown(res):
         L.append(f"- C10 PM 안정성 근거: PM {'유효' if sb.get('pm_valid') else ('정의 불가 ' + str(sb.get('pm_undefined')) if sb.get('pm_undefined') else '검사 대상 아님')}"
                  f" (Bode 식 원값 {_f(sb.get('pm_deg_raw'))} deg) -- Nyquist 시계 방향 감은 수 N = {_f(sb.get('nyquist_encirclements_cw'))}"
                  + (f"({sb['nyquist_reason']})" if sb.get("nyquist_reason") else "")
-                 + f", 폐루프 과도 {sb.get('transient_status')}, 개루프 RHP 극 {sb.get('open_loop_rhp_poles_bound') or ''}"
-                 f"{_f(sb.get('open_loop_rhp_poles'))}")
+                 + f", 폐루프 과도 {sb.get('transient_status')}, 개루프 RHP 극 {_f(sb.get('open_loop_rhp_poles'))}"
+                 + (f" ({sb['open_loop_rhp_poles_bound']})" if sb.get("open_loop_rhp_poles_bound") else ""))
     tr = s.get("transient") or {}
     if tr:
         L.append(f"- C25 슬루·정착: {tr.get('status')} -- {tr.get('reason')}")

@@ -411,7 +411,8 @@ C27. **[신규]** 정의 일치 검사(엔진과 같은 양을 재는지):
 
 PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 없을 때(P = 0)만 안정 여유다. Nyquist: **Z = N + P**
 (Z = 폐루프 RHP 극 수, N = 측정 L(jω) 곡선이 −1 을 **시계 방향**으로 감는 수, P = 개루프 RHP 극 수). 오라클은 N 을 측정
-.ac 데이터에서 세고, Z > 0 여부를 폐루프 `.tran` 으로 보고, 둘로 P 를 추론한다. **P = 0 이 증명될 때만 PM 이 값이다.**
+.ac 데이터에서 세고, Z > 0 여부를 폐루프 `.tran` 으로 보고, 둘로 P 를 추론한다. **P = 0 이 증명되거나 증거가 P = 0 과
+맞을 때만 PM 이 값이다**(음수 PM 도 P = 0 이면 유효한 여유 -- 엔진 metrics §3.10 과 같은 정의, 오케스트레이터 결정 2026-10-08).
 
 ### 방법 선택과 기각한 것
 
@@ -457,19 +458,27 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
    이르면 `failed`. M_K <= floor' -> `stable`; 아니고 M_K >= M_1 -> `unstable`(K 창 동안 줄지 않음 = 증가·지속 진동);
    아니고 M_K < M_{K−1} -> `stable`(끝까지 감쇠 중); 그 밖 -> `undetermined`. 기록 `ac.stability.transient =
    {status: stable|unstable|undetermined|failed|not_run, reason, M, floor_V, plan, op_pass, netlist, file, ngspice_rc}`.
-6. **추론**(`stability_judgement`, S = 과도 상태, stable/unstable 이 아니면 '모름'):
+6. **추론**(`stability_judgement(nyq, S, pm_raw)`, S = 과도 상태, stable/unstable 이 아니면 '모름', pm_raw = Bode 식 원값).
+   폐루프가 불안정(S unstable 또는 N >= 1)이고 N >= 1 일 때 P = 0(Z = N)과 맞는 Bode 결과는 PM < 0 이다(첫 교차의 위상이
+   이미 −180 을 넘음) -- 이때 PM 값을 유지하고 pm 제약은 이전처럼 FAIL. PM >= 0 이면 '불안정인데 여유가 양수' = 증거 충돌
+   (P > 0 이거나 놓친 모드) -> `stability_evidence_inconsistent`.
 
-| S | N | `closed_loop` | `open_loop_rhp_poles`(`_bound`) | PM | `pm_undefined` |
-|---|---|---|---|---|---|
-| stable | 0 | stable | 0 (`==`) | **값 유지** | None |
-| stable | < 0 | stable | −N (`==`) | None | `open_loop_rhp_poles` |
-| stable | > 0 | stable | None | None | `stability_evidence_inconsistent` |
-| stable | None | stable | None | None | `nyquist_count_unavailable` |
-| unstable | <= 0 | unstable | 1 − N (`>=`) | None | `open_loop_rhp_poles` |
-| unstable | >= 1 또는 None | unstable | None | None | `closed_loop_unstable` |
-| 모름 | >= 1 | unstable | None | None | `closed_loop_unstable` |
-| 모름 | < 0 | None | −N (`>=`) | None | `open_loop_rhp_poles` |
-| 모름 | 0 또는 None | None | None | None | `stability_unverified` |
+| S | N | pm_raw | `closed_loop` | `open_loop_rhp_poles`(`_bound`) | PM | `pm_undefined` |
+|---|---|---|---|---|---|---|
+| stable | 0 | 아무 값 | stable | 0 (`==`) | **값 유지** | None |
+| stable | < 0 | 아무 값 | stable | −N (`==`) | None | `open_loop_rhp_poles` |
+| stable | > 0 | 아무 값 | stable | None | None | `stability_evidence_inconsistent` |
+| stable | None | 아무 값 | stable | None | None | `nyquist_count_unavailable` |
+| unstable | <= 0 | 아무 값 | unstable | 1 − N (`>=`) | None | `open_loop_rhp_poles` |
+| unstable | >= 1 | < 0 | unstable | 0 (`== (Z = N 과 일치)`) | **값 유지(음수)** | None |
+| unstable | >= 1 | >= 0 | unstable | None | None | `stability_evidence_inconsistent` |
+| unstable | None | 아무 값 | unstable | None | None | `closed_loop_unstable` |
+| 모름 | >= 1 | < 0 | unstable | 0 (`== (Z = N 과 일치)`) | **값 유지(음수)** | None |
+| 모름 | >= 1 | >= 0 | unstable | None | None | `stability_evidence_inconsistent` |
+| 모름 | < 0 | 아무 값 | None | −N (`>=`) | None | `open_loop_rhp_poles` |
+| 모름 | 0 또는 None | 아무 값 | None | None | None | `stability_unverified` |
+
+   (`closed_loop_unstable` 은 이제 '폐루프 불안정인데 N 을 못 세어 P = 0 과 맞는지 볼 수 없음' 한 경우만 쓴다.)
 
    `pm_valid` = (pm_undefined 가 None). 정의 불가면: `ac.pm_deg = None`, `ac.pm_undefined = <이유>`, `ac.pm_deg_raw` = 원값
    (유효해도 `pm_deg_raw` = `pm_deg`), β=1 이면 `ac.pm_open_loop_deg = None`(같은 양), β 루프의 `pm_open_loop_deg`(A 의
@@ -486,9 +495,9 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
 * 과도는 킥 넷(β 루프 절단 넷 / β=1 입력)에서 들뜨는 모드만 본다. 킥이 거의 안 들뜨게 하는 불안정 모드는 놓칠 수 있다.
   모드 맥놀이·늦게 자라는 모드는 `undetermined` -> PM 정의 불가(PASS 불가)로 드러난다.
 * 'unstable' 은 Z >= 1 만 안다(Z 의 개수는 모름) -- 그래서 P 는 하한(`>=`)만 낸다.
-* **판정 변화(알림)**: 폐루프가 불안정한 고전적 경우(P = 0, PM < 0, 예 nmcnr_amplifier 프로브 PM −49.4 deg)도 PM 이 정의
-  불가가 되어 pm 제약이 FAIL 이 아니라 N/A -> INCOMPLETE 다(다른 FAIL 이 없으면). '불안정 폐루프 -> FAIL' 규칙은 합격 정의
-  (사용자 확정)에 없어 넣지 않았다.
+* 고전적 불안정(P = 0, PM < 0, 예 nmcnr_amplifier 프로브 PM −49.4 deg)은 위 표대로 PM 값이 남아 pm 제약이 이전처럼 FAIL
+  이다(새 합격 규칙이 아니라 음수 PM 도 유효한 여유라는 엔진 정의와의 일치). 'Z = N' 은 Z 개수를 세지 못해 증명이 아니라
+  '증거가 P = 0 과 맞음'이다(`_bound` 에 그 뜻을 적음).
 
 ### 확인(2026-10-08, ngspice-46 sky130 tt, 기록 -- test 아님)
 
@@ -498,7 +507,7 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
   지수 증가율 5619 rad/s(0.2 %), 독립 폐루프 .tran(이상 단위 되먹임) 0.86 V 로 포화. 옛 오라클: PM 274.5 deg, pm_deg >= 60
   제약 **PASS**. 새 오라클: N = 0, 과도 unstable -> `open_loop_rhp_poles`(P >= 1), 제약 `N/A(정의 불가: open_loop_rhp_poles)`.
 * ngcc_3stage_ff 프로브(β=1, free·forced): 원값 211.3 / 211.6 deg -> N = 0, 과도 unstable -> `open_loop_rhp_poles`.
-  nmcnr_amplifier·two_stage_ota_sf 프로브: N = 2, 과도 unstable -> `closed_loop_unstable`.
+  nmcnr_amplifier·two_stage_ota_sf 프로브: N = 2, 과도 unstable, PM −49.4 / −23.7 deg -> P = 0 과 일치, PM 값 유지(제약 FAIL).
 * 안정 회로(값 불변 확인, 옛·새 오라클 비교에서 `pm_deg`·`pm_open_loop_deg`·`pm_crosscheck_deg`·`gap`·`ugf_hz`·`dc_gain_db`·
   `loop_ugf_hz` 비트 동일): test 회로 tcs_nmos_rload(94.22), tfb_cs_rfeedback β 루프(58.21), 같은 회로 β=1(94.87),
   Cin 1 pF(34.10), two_stage_ota 프로브 free 7.70 / forced 7.20, smoke current_reuse_telescopic_ota 차동 β 루프 forced
