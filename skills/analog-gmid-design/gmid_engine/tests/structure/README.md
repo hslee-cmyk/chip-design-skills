@@ -5,7 +5,7 @@
 
 ```bash
 PY=C:/Python314/python.exe
-$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure            # 규칙 A~G + 픽스처 거부 test
+$PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure            # 규칙 A~G·I + 픽스처 거부 test
 $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -m structure_test_mapping   # 규칙 H만
 ```
 
@@ -18,9 +18,9 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -m structure
 
 | 파일 | 역할 |
 |---|---|
-| `structure_checks.py` | 검사기(규칙별 `check_a`~`check_h`, `library_names`, 복사 등록부 `copy_audit`·`check_copy_manifest`·`check_copy_source`). 상수마다 출처 행 주석 |
+| `structure_checks.py` | 검사기(규칙별 `check_a`~`check_i`, `library_names`, 복사 등록부 `copy_audit`·`check_copy_manifest`·`check_copy_source`). 상수마다 출처 행 주석 |
 | `conftest.py` | `fixtures/` 수집 제외, 마커 `structure_test_mapping` 등록·기본 제외, 대상 수 요약 |
-| `test_structure_rules.py` | 규칙 A~G와 복사 등록부 대조(복사본·원본)를 진짜 엔진 트리에 건다 |
+| `test_structure_rules.py` | 규칙 A~G·I(I 예외 목록이 실제로 쓰이는지, library 태그 하위 키 분류 포함)와 복사 등록부 대조(복사본·원본)를 진짜 엔진 트리에 건다 |
 | `test_structure_test_mapping.py` | 규칙 H(마커 `structure_test_mapping`) |
 | `test_structure_rules_reject_fixtures.py` | 규칙마다 위반 픽스처 거부 + 허용 픽스처 통과, 규칙 E 이름 집합 수집 확인, 복사 등록부 픽스처(`rule_copy`) |
 | `fixtures/rule_<x>/{bad,good}/gmid_engine/` | 가짜 소스 트리. `fixtures/` 아래에 `__init__.py`가 없고 수집 제외라 import되지 않는다. `rule_copy/{bad,good}/legacy/old.py`는 엔진 밖 가짜 원본 |
@@ -44,6 +44,7 @@ $PY -m pytest skills/analog-gmid-design/gmid_engine/tests/structure -m structure
 | F 광범위 except 금지 | `except:`, `except Exception`, `except BaseException`(튜플 안, `builtins.Exception` 포함) | P N3.14(734~751행), D 1.6 | `pipeline/entry.py`에 1개까지(D 1.6 (다) "진입점 1곳 예외", D 3.1 pipeline `entry.py` = exit code) |
 | G 모듈 수준 가변 캐시 금지 | 모듈 최상위(if/try/with/for/while/match 블록 안 포함, def·class 안 제외)에서 dict/list/set 리터럴·컴프리헨션, `dict()`·`list()`·`set()`·`defaultdict`·`OrderedDict`·`Counter`·`deque`·`ChainMap`·`bytearray`·Weak* 생성 호출(튜플 안에 든 것 포함)을 대입. 추가로 `@lru_cache`·`@cache` 데코레이터(전역 캐시)와 `global` 문(전역 상태 쓰기) | D '확정 사항' 5(계산 블록은 graph setter로만, 모듈 수준 dict·전역 캐시 lint FAIL), 확정 사항 1·4, D 1.1 (나)3 | `__all__`. tuple·`frozenset(...)`·`MappingProxyType(...)`·문자열·숫자 상수는 허용. 복사 등록부 검증을 통과한 등록 정의(대입·def 안 데코레이터·`global` 포함, 아래 '복사 등록부') |
 | H test 파일 1:1 | `gmid_engine/<pkg>/.../<file>.py`(`__init__.py` 제외)마다 `tests/<pkg>/.../test_<file>.py`. 엔진 패키지 이름의 tests 하위 폴더에 원본 없는 `test_*.py`(고아)도 FAIL. 누락·고아 목록을 출력하고 FAIL(xfail 아님) | UD 127행 (D), D 1.2 (나)4 (D)·(다) `test_tests_mirror_sources`, D 3.1 162행 | 루트 바로 아래 파일(`_module_map.py` 등), 교차 관심사 폴더 `tests/{structure,contracts,integration,regression,oracles,perf,unit}`. 공개 동작이 없는 `_` 모듈 -- 최상위 함수·클래스가 하나도 없는 것(상수 표·등록부 `_copy_manifest.py`) 또는 데이터 선언 모듈(오케스트레이터 결정 2026-10-07). 함수가 있는 `_` 모듈(`_helpers_*.py`)은 대상 |
+| I 회로별 정보로 행동 결정 금지 | 사용자 대원칙(2026-10-07) "topology 에 종속된 엔진은 만들지 않는다. 임의의 topology 에 적용할 수 있어야 한다." (a) `tag_key_lookup`: 회로 식별·태그 키(`FORBIDDEN_LOOKUP_KEYS` -- `topology_name`, 태그 섹션 `device_roles`·`symmetry`·`sizing_roles`·`compensation`, 역할 키 `vertical_stack_id`·`fold_group`·`headroom_role`·`shared_gm_id_groups`·`budget_reference_device`·`gm_id_role`·`L_role`, library 태그 하위 역할 키 `gm_id_match_vgs_of`·`vds_match_vgs_of`·`same_as_device`·`matching_pairs`·`stage_devices`·`vds_kvl_groups`)를 문자열 리터럴로 조회: `x["k"]`(읽기·쓰기), `x.get/pop/setdefault/__getitem__/__contains__("k")`, `"k" in x`, `getattr/hasattr(x, "k")`, `match` 의 `{"k": ...}`, 속성 `x.k`. (b) `name_branch`: 식별 표현(속성 `name`·`topology_name`·`connectivity_fp`·`file_sha256`·`d`·`g`·`s`·`bulk`·`terminals`·`net`·`nets`·`element`, 키 `name`·`topology_name`·`drain`·`gate`·`source`·`bulk`·`terminals`)을 비어 있지 않은 문자열 리터럴과 비교(`==`·`!=`·`in`·`not in`, 리터럴 tuple/list/set 포함), `.startswith/endswith/find/rfind/index/rindex/count/__contains__/__eq__("lit")`, `re.match/search/fullmatch("pat", 식별)`, `match 식별: case "lit"`, 리터럴 키 표 `{"lit": ...}[식별]`·`.get(식별)`. 리터럴이 규칙 E 이름 집합의 원소이면 E 몫이라 (b)에서 뺀다(`check_i(root, names)`, 이름 집합 없이 부르면 전부 본다) | 대원칙 + 키 출처: authoring `CONTRACT.md` 머리 10행(태그 키 4개 = `IGNORED_TAG_KEYS`), P U-50(1197행), P IC4(852행), library 태그 섹션 하위 키, 과제 지시(`topology_name`·`matching_pairs`) | `TAG_LOOKUP_EXEMPT`(파일 단위, 허용 키 + 사유): `authoring/topology_schema.py`(`topology_name` -- 스키마 화이트리스트 검사, CONTRACT 3.2), `authoring/topology_load.py`(`topology_name` -- `TopologyDoc.name` 출처 기록, 지문 투영 밖, CONTRACT 2절), `report/`(폴더, `topology_name` -- 보고 출력용). 키 목록을 담는 선언(`IGNORED_TAG_KEYS = (...)`)·dict 리터럴의 키는 조회가 아니라 대상 아님 |
 
 ### H를 기본 실행에서 빼는 이유
 
@@ -104,6 +105,7 @@ COPIED_DEFINITIONS = (
 | F | `except:`, `except Exception`, `(ValueError, BaseException)`, `builtins.Exception`, 진입점의 두 번째 광범위 except | 좁은 except, 진입점의 광범위 except 1개 |
 | G | `{}`, `TABLE: list = []`, `set()`, `defaultdict(list)`, dict 컴프리헨션, 튜플 안 `{}`, if·except 블록 안 대입, `@lru_cache(maxsize=None)`, `@functools.cache`, `global` | `__all__` 리스트, tuple, `frozenset({...})`, `MappingProxyType({...})`, 함수 지역 dict |
 | H | 원본 `core/y.py`·`lut/q.py`·`core/_helpers_h.py`(함수 있는 `_` 모듈)의 test 없음, 고아 `tests/core/test_z.py` | 짝 맞는 test, 루트 `_module_map.py`, `tests/integration/`, test 없는 `core/_table.py`(상수만)·`core/_records.py`(데이터 선언) |
+| I | (a) `sizing/roles.py`: `doc["device_roles"]`, `.get("fold_group")`, `"headroom_role" in`, `getattr(dev, "L_role")`, `case {"gm_id_role": ...}`, `dev.vertical_stack_id`; `search/branch.py` `doc.topology_name`; 예외 파일이라도 허용 키 밖(`authoring/topology_schema.py` 의 `device_roles`, `report/summary.py` 의 `fold_group`). (b) `search/branch.py`: `doc.name == "folded_mirror_amp"`, `dev.s in ("rail_core", "rail_io")`, `.startswith("telescopic")`, `match port.net: case "outp" \| "outn"`, `{"cascode_amp": 5}.get(...)`; `search/lib_name.py` `doc.name == "two_stage_ota"`(이름 집합을 주면 E 몫으로 빠짐 -- 별도 test) | 스키마 화이트리스트 선언과 `topology_name` 검사(`authoring/topology_schema.py`), 보고용 `topology_name` 읽기·쓰기(`report/summary.py`), `dev.kind == "nmos"`·`port.direction == "input"`(스키마 어휘), 이름끼리 비교·이름 집합 멤버십(리터럴 없음), `name.startswith(COMMENT_PREFIX)`(상수 이름), 빈 문자열 비교 |
 | 복사 등록부(`rule_copy`) | 원본 `legacy/old.py`. 등록 안 된 정의(`graph/copied.py` `extra`의 7·`"B"`, 모듈 수준 `CACHE = {}`), 본문이 바뀐 등록 정의(`graph/changed.py`, 변수 이름만 바꿈 -> 해시 다름·면제 취소), 리터럴 목록 오기(`graph/miscount.py`, 실제 12·등록 ()), 없는 정의 등록(`gone`), 가짜 등록부(`lut/`: 새 코드 `invented`에 자기 해시 -> 원본 대조 실패, `../graph/copied.py` 경로), 원본이 엔진 안 자기 자신(`metrics/`), 짧은 항목·중복 항목(`search/`), 정적 tuple 아닌 표(`sizing/`), 엔진 루트 등록부. D·E·G 기대 위반은 면제가 없거나 취소된 정의 안의 것뿐 | `graph/`(규칙 D 밖 리터럴 3·4·40, 넷 이름 `"A"`·`"B"`, 모듈 수준 dict를 담은 등록 정의 2개 + 같은 파일의 미등록 정상 정의)와 `lut/`(리터럴 없는 등록 정의) -- 두 하위 패키지의 등록부. 면제가 없으면 D·E·G가 FAIL하므로 통과가 면제 동작의 증거 |
 
 ## 설계 문서에서 애매했던 점(이 test가 택한 해석)
@@ -137,3 +139,17 @@ COPIED_DEFINITIONS = (
     제외한다(공개 동작이 없는 `_` 모듈, 규칙 표 H 예외, 오케스트레이터 결정 2026-10-07) -- 등록부 검증은 이 폴더의 test가 한다.
 12. **리터럴 '집합'**: 설계 8절 2는 '집합'이라 적었지만 등록부(`layout/_copy_manifest.py`)는 중복을 유지한 정렬 tuple로 적었다.
     이 test도 중복 유지 목록으로 비교한다(같은 값의 리터럴이 하나 더 들어와도 잡는다).
+13. **I의 범위(무엇을 '회로별 정보'로 보나)**: 엔진은 회로를 구조(connectivity)로만 다루고 이름은 불투명한 값으로만 옮긴다.
+    그래서 (a) 손선언 태그를 읽는 입구(키 리터럴 조회)와 (b) 이름을 특정 문자열과 맞대 보는 분기를 막는다. 이름을 값으로
+    들고 다니는 것(`dev.name` 을 dict 키로 쓰기, 이름끼리 비교)은 허용한다. 변수 이름만 보고는 식별자인지 알 수 없어
+    (b)는 식별 속성·키를 통한 표현만 잡는다(`name == "x"` 처럼 지역 변수와의 비교는 잡지 않는다 -- 이 빈틈은
+    `tests/generality/` 의 이름 치환 metamorphic test 가 동작으로 메운다).
+14. **I (a) 키 목록의 library 하위 키**: 태그 섹션 전체가 유도 입력이 아니므로(authoring CONTRACT 머리, U-50) 섹션 아래 역할·대응
+    선언 키로 바로 조회하는 것도 같은 우회다. 일반 낱말(`vsb`·`theta`·`metrics`·`constraints`·`objective`·`function`·`notes`·
+    `parameters`·`dispositions`)은 엔진 자신의 값 키와 겹쳐 `TAG_SUBKEYS_NOT_BANNED` 로 뺐다(spec·constraints 는 U-50 이 입력으로
+    둔다). library 에 새 태그 하위 키가 생기면 `test_rule_i_library_tag_subkeys_classified` 가 둘 중 하나로 분류를 요구한다.
+15. **I 예외의 `report/`**: 아직 파일이 없는 폴더 접두 예외다(과제 지시 '보고 모듈이 topology_name 을 출력용으로 담는 것').
+    파일 항목 예외는 `test_rule_i_exemptions_are_used` 가 '예외를 빼면 실제로 걸리는 조회가 있다'(낡은 예외 0)를 확인한다.
+16. **tests/ 와 규칙 I**: 검사 대상은 다른 규칙과 같이 `tests/` 제외다. `tests/generality/topogen/`(합성 topology 생성기)은 스스로
+    규칙 A·B 검사기를 건다(`test_topogen_helpers_obey_structure_rules_a_b`). `tests/generality/` 는 엔진 하위 패키지 이름이 아니라
+    규칙 H 의 고아 검사 대상이 아니다.

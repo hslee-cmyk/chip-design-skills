@@ -78,11 +78,28 @@ EXPECTED_BAD = {
         ("missing_test", "lut/q.py", 0),
         ("orphan_test", "tests/core/test_z.py", 0),
     ],
+    "rule_i": [                                      # 이름 집합 없이 부른 경우(library 이름 리터럴도 (b)가 잡음)
+        ("name_branch", "search/branch.py", 2),       # doc.name == "folded_mirror_amp"
+        ("name_branch", "search/branch.py", 4),       # dev.s in ("rail_core", "rail_io")
+        ("name_branch", "search/branch.py", 6),       # doc.name.startswith("telescopic")
+        ("name_branch", "search/branch.py", 8),       # match port.net: case "outp" | "outn"
+        ("name_branch", "search/branch.py", 11),      # {"cascode_amp": 5}.get(doc.topology_name)
+        ("name_branch", "search/lib_name.py", 2),     # doc.name == "two_stage_ota"(library 이름 -- 이름 집합을 주면 E 몫)
+        ("tag_key_lookup", "authoring/topology_schema.py", 3),  # 예외 파일이라도 허용 키(topology_name) 밖
+        ("tag_key_lookup", "report/summary.py", 2),   # report/ 예외는 topology_name 만 -- fold_group 은 위반
+        ("tag_key_lookup", "search/branch.py", 11),   # doc.topology_name(예외 밖 파일)
+        ("tag_key_lookup", "sizing/roles.py", 2),     # doc["device_roles"]
+        ("tag_key_lookup", "sizing/roles.py", 3),     # roles.get("fold_group")
+        ("tag_key_lookup", "sizing/roles.py", 4),     # "headroom_role" in roles
+        ("tag_key_lookup", "sizing/roles.py", 5),     # getattr(dev, "L_role")
+        ("tag_key_lookup", "sizing/roles.py", 7),     # case {"gm_id_role": value}
+        ("tag_key_lookup", "sizing/roles.py", 9),     # dev.vertical_stack_id
+    ],
 }
 
 CHECKERS = {
     "rule_a": "check_a", "rule_b": "check_b", "rule_c": "check_c", "rule_d": "check_d",
-    "rule_f": "check_f", "rule_g": "check_g", "rule_h": "check_h",
+    "rule_f": "check_f", "rule_g": "check_g", "rule_h": "check_h", "rule_i": "check_i",
 }
 
 
@@ -98,6 +115,30 @@ def test_accepts_good_fixture(checks, fixture_tree, rule):
     n, v = getattr(checks, CHECKERS[rule])(fixture_tree(rule, "good"))
     assert n > 0
     assert v == [], "\n".join(str(x) for x in v)
+
+
+def test_rule_i_leaves_library_name_literals_to_rule_e(checks, fixture_tree, library):
+    """이름 집합을 주면 (b)는 library 이름 리터럴("two_stage_ota")을 규칙 E 에 넘기고 그 밖 리터럴만 잡는다(E 와 겹치지 않음)."""
+    _, names = library
+    assert "two_stage_ota" in names
+    assert not {"folded_mirror_amp", "rail_core", "rail_io", "telescopic", "outp", "outn", "cascode_amp"} & set(names)
+    n, v = checks.check_i(fixture_tree("rule_i", "bad"), names)
+    assert n > 0
+    want = sorted(k for k in EXPECTED_BAD["rule_i"] if k[1] != "search/lib_name.py")
+    assert _keys(v) == want, "\n".join(str(x) for x in v)
+    n, v = checks.check_e(fixture_tree("rule_i", "bad"), names)
+    assert ("name_literal", "search/lib_name.py", 2) in _keys(v)
+
+
+def test_rule_i_key_list_covers_declared_sources(checks):
+    """(a) 키 목록이 출처 문서의 키를 모두 담는다: authoring 의 IGNORED_TAG_KEYS(CONTRACT 머리), 계획 U-50·IC4, 과제 지시."""
+    keys = set(checks.FORBIDDEN_LOOKUP_KEYS)
+    assert {"device_roles", "symmetry", "sizing_roles", "compensation"} <= keys                 # authoring CONTRACT
+    assert {"vertical_stack_id", "fold_group", "headroom_role", "shared_gm_id_groups",
+            "budget_reference_device"} <= keys                                                  # U-50
+    assert {"gm_id_role", "L_role"} <= keys                                                     # IC4
+    assert {"topology_name", "matching_pairs"} <= keys                                          # 과제 지시
+    assert len(keys) == len(checks.FORBIDDEN_LOOKUP_KEYS)
 
 
 def test_rule_e_rejects_bad_fixture(checks, fixture_tree, library):

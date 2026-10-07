@@ -10,7 +10,7 @@ from .json_read import CheckedJson, load_json_checked
 from .linked_files import check_linked_files
 from .name_uniqueness import check_name_uniqueness
 from .passives import passive_declaration
-from .ports import port_declaration
+from .ports import INPUT_DIRECTION, port_declaration
 from .rails import rail_declaration
 from .topology_load import load_topology
 from .topology_model import (
@@ -32,6 +32,7 @@ __all__ = (
     "DcEdge",
     "DeviceDecl",
     "IGNORED_TAG_KEYS",
+    "INPUT_DIRECTION",
     "PassiveDecl",
     "PortDecl",
     "RailDeclaration",
