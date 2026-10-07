@@ -2,7 +2,8 @@
 
 진입점: `LutMemo`.
 
-* 영역 4개(`REGIONS`): point(OpPoint·gmb·용량), curve(Curve), root(VGS 근·역산), derived(tol_V 표·곡선 보고).
+* 영역 4개(`REGIONS`): point(OpPoint·gmb·용량·[r6] VDsat), curve(Curve), root(VGS 근·역산), derived(tol_V 표·곡선 보고·
+  [r6] VDsat 허용오차 표·중점 검증).
   영역마다 `core.BoundedLRU` 하나를 이 객체가 소유한다(모듈 수준 캐시 없음).
 * 키 = (LutSet 지문, 함수 이름) + 호출부가 넘긴 값(kind, w_key, 축 float 그대로 -- 반올림 없음). 객체·`id()` 키는
   `TypeError`(BoundedLRU 의 불변 검사).
@@ -13,7 +14,7 @@
 from gmid_engine.core import BoundedLRU
 
 REGIONS = ("curve", "derived", "point", "root")
-DERIVED_TABLES = ("curve_report", "tol_v_table")
+DERIVED_TABLES = ("curve_report", "midpoint_l_bin_checks", "tol_v_table", "tol_vdsat_table")
 SWEEP_REGIONS = ("curve", "point", "root")
 
 
