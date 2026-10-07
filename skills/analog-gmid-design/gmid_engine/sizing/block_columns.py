@@ -12,9 +12,11 @@
   되는 쪽의 교집합(전류가 나가는 단자면 lo ≥ V(반대), 들어오는 단자면 hi ≤ V(반대)), 제약 없는 쪽은 레일 전압 범위 끝.
   설계 3.4 는 기둥(레일~x 소자들의 VDsat 합)으로 적었으나 S1 기둥은 노드-단순 경로라 전류 방향을 거스르는 경로(분기 노드에서
   위로 돌아가는 경로)를 포함해 순서가 뒤집힌다 -- 인접 소자 제약을 이웃 노드가 다시 자기 창 안에 있는 사슬로 쓰면 같은
-  뜻이다. **VDsat 항은 넣지 않는다**: LUT VDSAT 열(U-27)이 없어 창이 정의 미확정이고 2/(gm/ID) 로 대신하지 않는다 -- 지금
-  창은 KVL 순서 창이다(열 생기면 `window` 만). 창이 비면(lo > hi) `SealViolationError`(item 7, reason `empty_window`).
-* 1변수 노드(diode gate·소스 추종 source)는 구간 bisection(`solve_self`, 설계 3.4). 다변수 순환 SCC 는 `gauss_seidel`
+  뜻이다. **VDsat 항은 넣지 않는다**: lut r6 에 VDSAT 열 조회가 생겼지만 인접 MOS 의 VDsat 은 그 소자 gate·bulk·x 자신을
+  읽어야 해서 W4 의존(`dc_scc_order`)을 바꿔야 한다(계약 12절 O1 잔여, 결정 대기) -- 창은 KVL 순서 창이고 포화는 봉인 7 이
+  판정한다. 창이 비면(lo > hi) `SealViolationError`(item 7, reason `empty_window`).
+* 1변수 노드(diode gate·소스 추종 source)는 구간 bisection(`solve_self`, 설계 3.4). VDS 쪽 구간 끝 = writer 슬라이스의 VDS
+  정의역 하한(`_vds_floor`, 데이터 유도), 끝점은 부동소수 반올림으로 축 밖에 떨어지지 않게 안쪽으로 맞춘다(`_inward`). 다변수 순환 SCC 는 `gauss_seidel`
   (N3.6 q 규칙·K_max) -- 반복 중에는 정의역 이탈을 투영하고(`update(strict=False)`) 수렴 뒤 strict 검증 바퀴로 확인한다. 허용오차 = SCC 쓰기 MOS(없으면 단자가 닿는 MOS) id_equivalent tol_V
   셀의 최솟값(현재 반복값의 L·VDS). 폭 = 레일 전압 범위. 시작값 = 기둥 위치 비례(레일 사이 선형, 기둥 밖이면 레일 중앙)
   다음 `start_writer`(MOS writer 식 1회). 저항 강하 전류는 `device.dc_drop_current`(저항만)를 읽는다 -- MOS 전류만 바뀐 θ 는
@@ -76,8 +78,37 @@ WRITES = (("node", "dc_v"), ("node", "dc_path_values"), ("node", "dc_window"), (
 _REL_MOS, _REL_RES, _REL_TIE, _REL_FIXED, _REL_Y = PATH_MOS, PATH_RESISTOR, PATH_TIE, PATH_FIXED, PATH_Y
 _TARGET_OUT_OF_RANGE = "lut_target_out_of_range"       # lut CONTRACT 4.1 gm_id_for_target 사유 키
 _TRANSIENT_LUT_REASONS = (_TARGET_OUT_OF_RANGE, "lut_axis_out_of_range")   # 반복 중 정의역 이탈(검증 바퀴가 다시 잰다)
+_CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역 하한(`_vds_floor`) 아래에서만 반복 중 이탈로 본다
 _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
 _BOUND_RAIL, _BOUND_VDS, _BOUND_VS = "rail", "vds_axis", "vs_axis"
+
+
+def _vds_floor(lut, kind):
+    """writer 슬라이스의 VDS 정의역 하한 = on_mask((ID > 0) & (GM > 0))가 그 VDS 격자 열부터 끝 열까지 모든 (L, VGS, VS)
+    점에서 켜진 첫 VDS 격자점(그런 열이 없으면 VDS 격자 최소 -- 축 범위 그대로). 그보다 작은 VDS 는 꺼진 열(LUT v2 는
+    VDS = 0 열: 전류 0)과 보간되어 gm/ID 곡선 마디가 정의되지 않는다(lut `lut_curve_undefined`) -- LUT 가 그 VDS 의 동작점을
+    표현하지 못한다는 데이터 사실이다. 상수 없음(데이터에서 유도). LUT memo derived 영역에 슬라이스당 1회(다른 캐시 없음)."""
+    w_key = w_key_of(lut, kind)
+    sl = lut.memo.lut.slice_map[(kind, w_key)]
+
+    def compute():
+        on = sl.on_mask
+        full = on.all(axis=tuple(a for a in range(on.ndim) if a != _VDS_AXIS))
+        axis = sl.grids[_VDS_AXIS]
+        for j in range(len(axis)):
+            if bool(full[j:].all()):
+                return float(axis[j])
+        return float(axis[0])
+
+    return lut.memo.lookup("derived", "sizing_vds_floor", (kind, w_key), compute)
+
+
+def _inward(x, toward, a, b, axis):
+    """1차식 v = a + b·x 의 구간 끝 x = (축 끝 − a)/b 를 부동소수 반올림으로 v 가 축 [axis[0], axis[-1]] 밖에 떨어지면
+    `toward` 쪽으로 한 ulp 씩 옮긴다(축 끝은 정의역 안 -- 반올림 때문에 끝점 조회가 축 밖·정의역 밖이 되지 않게)."""
+    while not axis[0] <= a + b * x <= axis[-1] and x != toward:
+        x = math.nextafter(x, toward)
+    return x
 
 
 def _kind_sign(kind):
@@ -167,6 +198,14 @@ class _Circuit:
             total += v0 + (v1 - v0) * c.position / c.length
         return total / len(cols)
 
+    def transient(self, exc, m, vds):
+        """반복 중(시작값 둘째 단계 포함, strict=False) 현재 값을 유지할 LUT 정의역 이탈인가: `lut_axis_out_of_range`·
+        `lut_target_out_of_range`, 또는 VDS 정의역 하한(`_vds_floor`) 아래에서 난 `lut_curve_undefined`."""
+        lut_reason = dict(exc.record.detail).get("lut_reason")
+        if lut_reason in _TRANSIENT_LUT_REASONS:
+            return True
+        return lut_reason == _CURVE_UNDEFINED and vds < _vds_floor(self.lut, self.kinds[m])
+
     def start_writer(self, net, values):
         """시작값 둘째 단계(쓰기 계획 순서): MOS writer 노드는 writer 식을 VDS = 레일 범위 절반에서 한 번 평가한 값
         (diode·소스 추종의 고정점 근처). VSB 는 `vgs_gate`(source 를 안다)면 현재값, `vgs_source`(source 가 x 자신)면 0
@@ -179,8 +218,13 @@ class _Circuit:
             m = w.element
             _vds, vsb = self.vds_vsb(m, values)
             vsb = vsb if w.relation == REL_VGS_GATE else 0.0
-            vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.L[m], (self.hi - self.lo) / 2, vsb,
-                                     self.ln_idu[m])
+            vds = (self.hi - self.lo) / 2
+            try:
+                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.L[m], vds, vsb, self.ln_idu[m])
+            except SealViolationError as exc:
+                if not self.transient(exc, m, vds):
+                    raise
+                return values[net]
             sign = _kind_sign(self.kinds[m])
             return values[w.known] + sign * vgs if w.relation == REL_VGS_GATE else values[w.known] - sign * vgs
         if w.relation in (REL_RESISTOR, REL_TIE):
@@ -237,11 +281,12 @@ class _Circuit:
 
         (vds0, vsb0), (vds1, vsb1) = channel(0.0), channel(1.0)
         bounds = [(self.lo, self.hi, _BOUND_RAIL)]
-        for a, b, axis, label in ((vds0, vds1 - vds0, grids[_VDS_AXIS], _BOUND_VDS),
+        vds_domain = (_vds_floor(self.lut, kind), grids[_VDS_AXIS][-1])
+        for a, b, axis, label in ((vds0, vds1 - vds0, vds_domain, _BOUND_VDS),
                                   (vsb0, vsb1 - vsb0, grids[_VS_AXIS], _BOUND_VS)):
             if b != 0:
                 ends = sorted(((axis[0] - a) / b, (axis[-1] - a) / b))
-                bounds.append((ends[0], ends[-1], label))
+                bounds.append((_inward(ends[0], ends[-1], a, b, axis), _inward(ends[-1], ends[0], a, b, axis), label))
         lo, lo_from = max((b[0], b[2]) for b in bounds)
         hi, hi_from = min((b[1], b[2]) for b in bounds)
 
@@ -280,7 +325,8 @@ class _Circuit:
 
     def update(self, net, values, strict=True):
         """노드 writer 식. `strict=False`(다변수 SCC Gauss-Seidel 반복 중): 1변수 노드는 투영 bisection, MOS writer 의 LUT
-        정의역 이탈(`lut_axis_out_of_range`·`lut_target_out_of_range` -- 이웃의 과도 반복값 때문)과 W4 창이 빈 경우는 실패
+        정의역 이탈(`lut_axis_out_of_range`·`lut_target_out_of_range`·VDS 정의역 하한 아래의 `lut_curve_undefined` -- 이웃의
+        과도 반복값 때문)과 W4 창이 빈 경우는 실패
         대신 현재 값을 그대로 둔다. 수렴 뒤 `strict=True` 검증 한 바퀴가 같은 식을 다시 재므로 최종값에 남지 않는다."""
         w = self.writers[net]
         if self.self_referential(net):
@@ -291,7 +337,7 @@ class _Circuit:
             try:
                 vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.L[m], vds, vsb, self.ln_idu[m])
             except SealViolationError as exc:
-                if strict or dict(exc.record.detail).get("lut_reason") not in _TRANSIENT_LUT_REASONS:
+                if strict or not self.transient(exc, m, vds):
                     raise
                 return values[net]
             sign = _kind_sign(self.kinds[m])

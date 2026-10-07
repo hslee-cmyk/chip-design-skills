@@ -6,7 +6,7 @@
 2. 봉인 4(`seal_versions`, 이번 평가의 모든 dc 블록 호출 `calls` + 1 의 블록) · 봉인 5(`seal_writers`).
 3. `dc_seal_report` 가 묶음을 graph 에 쓴다.
 4. 판정: violated -> `SealViolationError`(devices·margin = margin 이 가장 큰 fail 항목, detail = item·사유·전 항목 요약 --
-   모든 항목 결과를 남긴다). undefined(fail 없음, 미정 있음 -- 지금은 항목 7 VDSAT 열 대기) -> `DcEvaluation(sealed=None)`.
+   모든 항목 결과를 남긴다). undefined(fail 없음, 미정 있음 -- 예: VDSAT 열이 없는 LUT 세트의 항목 7, 셀 미정 tol) -> `DcEvaluation(sealed=None)`.
    sealed -> `DcEvaluation(sealed=SealedSnapshot)`.
 """
 import math
@@ -33,7 +33,7 @@ def seal_dc(snapshot, calls, lut, resistances, linear_devices):
         (dc_seal_vgs_match, ()),
         (dc_seal_kcl, (resistances,)),
         (dc_seal_bulk_reverse, ()),
-        (dc_seal_saturation, (linear_devices,)),
+        (dc_seal_saturation, (linear_devices, lut)),
         (dc_seal_kvl_branch, ()),
     )
     calls = tuple(calls)
