@@ -6,7 +6,9 @@
   `test__<이름>.py`), 9회로 교차는 `tests/integration/`.
 - 근거: `_drafts/engine/design_mod3_s1_graph.md` 2.1·6절, `NEW_ENGINE_DESIGN_REQUIREMENTS.md` 끝 '확정 사항',
   core `CONTRACT.md`(4절 실패 규약), C00 §6.2(위반을 모두 모아 한 번에), DEC-59·60·61·70·76, IC3·IC4, J9.
-- 범위: MOD2 topology 로드만. 회로 spec 로드(`supplies_v`, SP-1)·bulk 기본 규칙(CI-14)·S1 graph 는 다음 단계(graph/)다.
+- 범위: 이 문서는 MOD2 topology 로드. **회로 사이징 spec 로드(`load_sizing_spec`, `supplies_v` 등)는 `SPEC_CONTRACT.md`**
+  (2026-10-07 추가 -- 공개 진입점, 엔진 안 호출자는 아직 없음: MOD10 이 부를 예정). bulk 기본 규칙(CI-14)·S1 graph 는
+  다음 단계(graph/)다.
 - **태그 키는 읽지 않는다**: `device_roles`·`symmetry`·`sizing_roles`·`compensation` 은 허용하되 어느 함수도 값을 읽지
   않고, 결과(`TopologyDoc`)·지문에 들어가지 않는다. 태그를 채우는 경로는 없다(IC4).
 - **회로 파일(topology.json)은 이 단계에서 고치지 않았다**(connectivity 는 사용자만).

@@ -22,6 +22,7 @@ from .graph_record import GraphRecord
 from .graph_snapshot import GraphSnapshot
 from .immutability import require_immutable
 from .margin import normalized_margin
+from .metric_signature import METRIC_DOMAINS, OBJECTIVE_AXES, VIEW_KINDS, MetricSignature
 from .projection import Projection
 from .writer_error import WriterPermissionError
 from .writer_table import ENTITY_KINDS, WriterTable
@@ -42,13 +43,17 @@ __all__ = (
     "InfeasibleSizingError",
     "InfeasibleTargetError",
     "LruStats",
+    "METRIC_DOMAINS",
+    "MetricSignature",
     "NonconvergentError",
+    "OBJECTIVE_AXES",
     "Projection",
     "SchemaRejectedError",
     "SealViolationError",
     "SearchFailedError",
     "StructureUnresolvedError",
     "UNEXPECTED_EXIT_CODE",
+    "VIEW_KINDS",
     "WriterPermissionError",
     "WriterTable",
     "compute_block",

@@ -75,3 +75,131 @@ class Helpers:
 @pytest.fixture
 def ah():
     return Helpers
+
+
+# ---------------------------------------------------------------------------------------------------------------
+# 회로 사이징 spec 로더 test 공용 (근거: authoring/SPEC_CONTRACT.md + 공개 객체 docstring, spec_*.py 소스 미열람)
+# 픽스처 = fixtures/spec/ 의 합성 회로 fx_spec_amp(주 대상)·fx_spec_ref(value_from_file 대상). test 마다 tmp 디렉터리에
+# 복사하고 dict 를 바꿔 다시 쓴 뒤 load_sizing_spec 에 건다.
+# ---------------------------------------------------------------------------------------------------------------
+SPEC_FIXTURES = FIXTURES / "spec"
+SPEC_SUFFIX = ".sizing_spec.json"
+TOPO_SUFFIX = ".topology.json"
+
+
+def fixture_catalog():
+    """SPEC_CONTRACT 5절 '픽스처 이름표' 그대로(단위·domain 은 이 test 가 정함, view_kind·objective_axis 는 5절)."""
+    from gmid_engine.core import MetricSignature as M
+    return {
+        "gain_ss_db": M("dB", "ss", "transfer"),
+        "ugf_ss_hz": M("Hz", "ss", "transfer"),
+        "gbw_ss_hz": M("Hz", "ss", "transfer"),
+        "pm_ss_deg": M("deg", "ss", "transfer"),
+        "parasitic_pm_ss_deg": M("deg", "ss", "transfer"),
+        "rout_ss_ohm": M("ohm", "ss", "transfer"),
+        "ratio_ss_db": M("dB", "ss", "ratio"),
+        "mismatch_sigma_mv": M("mV", "dc", "none"),
+        "mirror_ratio_error_mv": M("mV", "dc", "none"),
+        "power_dc_w": M("W", "dc", "none"),
+        "area_search_m2": M("m2", "geom", "none"),
+        "supply_current_dc": M("A", "dc", "none", "power"),
+        "area_layout_m2": M("m2", "geom", "none", "area"),
+    }
+
+
+class SpecCase:
+    """tmp 디렉터리 하나에 fx_spec_amp·fx_spec_ref 의 topology·spec 을 복사해 두고 바꿔 쓴다."""
+
+    def __init__(self, tmp_path: Path):
+        self.dir = tmp_path
+        for p in SPEC_FIXTURES.iterdir():
+            if p.suffix == ".json":
+                (tmp_path / p.name).write_bytes(p.read_bytes())
+        self.spec = self.read_spec("fx_spec_amp")
+        self.topo = self.read_topo("fx_spec_amp")
+
+    # 읽기·쓰기 (test 쪽 json -- 피검 함수 아님)
+    def read_spec(self, circuit):
+        return json.loads((self.dir / (circuit + SPEC_SUFFIX)).read_text(encoding="utf-8"))
+
+    def read_topo(self, circuit):
+        return json.loads((self.dir / (circuit + TOPO_SUFFIX)).read_text(encoding="utf-8"))
+
+    def write_spec(self, doc, circuit="fx_spec_amp", stem=None):
+        p = self.dir / ((stem or circuit) + SPEC_SUFFIX)
+        p.write_text(json.dumps(doc, indent=2, ensure_ascii=False), encoding="utf-8")
+        return str(p)
+
+    def write_topo(self, doc, circuit="fx_spec_amp"):
+        p = self.dir / (circuit + TOPO_SUFFIX)
+        p.write_text(json.dumps(doc, indent=2, ensure_ascii=False), encoding="utf-8")
+        return str(p)
+
+    def topology(self, circuit="fx_spec_amp"):
+        from gmid_engine.authoring import load_topology
+        return load_topology(str(self.dir / (circuit + TOPO_SUFFIX)))
+
+    def resync_fp(self, circuit="fx_spec_amp", spec=None):
+        """topology 를 바꾼 test 용: 입력 준비로 meta.topology_fp 를 새 topology 의 지문에 맞춘다(기대값 아님)."""
+        spec = self.spec if spec is None else spec
+        spec["meta"]["topology_fp"] = self.topology(circuit).connectivity_fp
+        return spec
+
+    @property
+    def human(self):
+        return self.spec["human"]
+
+    def constraint(self, metric):
+        return next(c for c in self.human["constraints"] if c.get("metric") == metric)
+
+    def load(self, catalog=None, circuit="fx_spec_amp", stem=None):
+        from gmid_engine.authoring import load_sizing_spec
+        path = self.write_spec(self.spec, circuit, stem)
+        return load_sizing_spec(path, self.topology(circuit), fixture_catalog() if catalog is None else catalog)
+
+    def reject(self, catalog=None, circuit="fx_spec_amp", stem=None):
+        """한 번의 SchemaRejectedError + 공통 형식(gate spec_load·where 경로·rejected_gates 정렬). detail dict 반환."""
+        from gmid_engine.authoring import load_sizing_spec
+        path = self.write_spec(self.spec, circuit, stem)
+        topo = self.topology(circuit)
+        cat = fixture_catalog() if catalog is None else catalog
+        exc, detail = Helpers.rejected(load_sizing_spec, path, topo, cat)
+        assert detail["gate"] == "spec_load"
+        assert detail["where"] == path
+        rg = detail["rejected_gates"]
+        assert isinstance(rg, tuple) and list(rg) == sorted(set(rg))
+        assert isinstance(detail["not_evaluated"], tuple)
+        return detail
+
+    @staticmethod
+    def rules(detail):
+        return [h.rule for h in detail["hits"]]
+
+    @staticmethod
+    def only(detail, rule, gate, not_evaluated=("references",)):
+        """위반 하나: hits 가 정확히 [rule], rejected_gates == (gate,), not_evaluated 집합 일치.
+        기본 not_evaluated = {references}(SPEC_CONTRACT 0절: 앞 게이트에 위반이 있으면 참조 해석 안 함)."""
+        assert SpecCase.rules(detail) == [rule], [(h.rule, h.where, h.elements) for h in detail["hits"]]
+        assert detail["rejected_gates"] == (gate,), detail["rejected_gates"]
+        assert set(detail["not_evaluated"]) == set(not_evaluated), detail["not_evaluated"]
+        return detail["hits"][0]
+
+    def reject_only(self, rule, gate, not_evaluated=("references",), **kw):
+        return self.only(self.reject(**kw), rule, gate, not_evaluated)
+
+    def reject_has(self, rule, gate):
+        """rule 이 hits 에 있고 gate 가 rejected_gates 에 있다(다른 hit 동반 여부를 계약이 정하지 않은 경우만)."""
+        d = self.reject()
+        assert rule in self.rules(d), self.rules(d)
+        assert gate in d["rejected_gates"], d["rejected_gates"]
+        return d
+
+
+@pytest.fixture
+def sc(tmp_path):
+    return SpecCase(tmp_path)
+
+
+@pytest.fixture
+def catalog():
+    return fixture_catalog()

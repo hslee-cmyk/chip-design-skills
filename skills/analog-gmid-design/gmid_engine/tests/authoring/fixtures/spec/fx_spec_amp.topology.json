@@ -1,0 +1,29 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "fx_spec_amp",
+  "source": "hand-made spec test fixture (not a library circuit)",
+  "_note": "Synthetic 5T-style amp for the sizing-spec loader tests. No value fields on passives/sources (values live in the spec, F5).",
+  "linked_topology_files": [],
+  "supply_nets": ["rail_hi", "rail_lo"],
+  "netlist": [
+    {"name": "Q1", "kind": "nmos", "drain": "n_mid", "gate": "n_inp", "source": "n_tail"},
+    {"name": "Q2", "kind": "nmos", "drain": "n_outp", "gate": "n_inn", "source": "n_tail"},
+    {"name": "Q3", "kind": "pmos", "drain": "n_mid", "gate": "n_mid", "source": "rail_hi"},
+    {"name": "Q4", "kind": "pmos", "drain": "n_outp", "gate": "n_mid", "source": "rail_hi"},
+    {"name": "Q5", "kind": "nmos", "drain": "n_tail", "gate": "n_bias", "source": "rail_lo"}
+  ],
+  "passive_elements": [
+    {"name": "Rfb", "kind": "resistor", "terminals": ["n_outp", "n_fbk"]},
+    {"name": "Cfb", "kind": "capacitor", "terminals": ["n_fbk", "n_inn"]},
+    {"name": "Cld", "kind": "capacitor", "terminals": ["n_outp", "rail_lo"]}
+  ],
+  "ideal_sources": [
+    {"name": "Ibs", "kind": "current_source", "terminals": ["rail_hi", "n_bias"]},
+    {"name": "Vcm", "kind": "voltage_source", "terminals": ["n_vcm", "rail_lo"]}
+  ],
+  "ports": {
+    "n_inp": {"direction": "input", "role": "differential_input_p"},
+    "n_inn": {"direction": "input", "role": "differential_input_n"},
+    "n_outp": {"direction": "output", "role": "single_ended_output"}
+  }
+}

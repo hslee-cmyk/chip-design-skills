@@ -1,0 +1,173 @@
+# gmid_engine.authoring 회로 사이징 spec 로더 동작 계약 (MOD2, test 작성용)
+
+- 대상: `load_sizing_spec` 과 spec 게이트 함수들(`gmid_engine.authoring.__all__`), core `MetricSignature`.
+  test 는 `from gmid_engine.authoring import ...`·`from gmid_engine.core import ...` 만 쓴다. 배치는 규칙 D(H):
+  `tests/authoring/test_spec_<파일>.py`, `tests/authoring/test__spec_fields.py`, `tests/core/test_metric_signature.py`,
+  9회로 교차는 `tests/integration/`. **이 커밋에는 test 가 없다**(지시: 계약만) -- 규칙 H(`-m structure_test_mapping`)는
+  이 16개 파일의 test 누락으로 FAIL 한다(기본 실행 밖).
+- 근거: `_drafts/engine/design_spec_format.md`(F1~F14 기본안 채택, 오케스트레이터 2026-10-07), `_drafts/user_decisions.md`
+  2026-10-07, 계획 N3.15·N3.16·DEC-20·34·60·68·69·73·75·77, U-17·25·35·39. 실패 형식은 `CONTRACT.md` 0절과 같다.
+- **배선**: `load_sizing_spec` 은 공개 진입점이다. **아직 엔진 안 호출자는 없다** -- 파이프라인 MOD10 이 S0 입력으로
+  (MOD5 레지스트리에서 만든 이름표를 주입해) 부를 예정이다. 그 전까지 쓰는 곳은 이 계약의 test 와 9회로 로드 확인뿐이다.
+- **요소 값 정본 = spec**(F5, 사용자 확정 2026-10-07): 수동소자·이상원 값은 `element_values` 에만 둔다. topology 의 옛
+  값 필드 삭제와 `connectivity_fp` 투영에서 값 빼기는 topology 정리 단계 몫이라 이 커밋 밖이다(그동안 두 곳 값이
+  어긋나면 `element_value_conflict` 로 거부).
+
+---
+
+## 0. 공개 진입점 `load_sizing_spec(path, topology, metric_catalog) -> SizingSpecDoc`
+
+- `topology`: `load_topology` 가 만든 `TopologyDoc`(아니면 `TypeError`). None 경로 없음.
+- `metric_catalog`: `Mapping[str, MetricSignature]`(아니면 `TypeError`). 빈 매핑이면 모든 제약이 `metric_unknown`.
+- 순서: `load_json_checked` -> `check_spec_schema` -> `meta_cross_check` -> `supplies_declaration` -> `input_dc_declaration`
+  -> `element_value_declaration` -> `constraint_declaration` -> `compensation_target_declaration` ->
+  `node_target_declaration` -> `intended_region_declaration` -> `settings_declaration` -> `resolve_spec_references`.
+- JSON 수준 위반은 `json_read` 예외 그대로. 그 밖 위반은 전부 모아 `SchemaRejectedError` **한 번**:
+  detail = {`gate`: `"spec_load"`, `where`: 경로 문자열, `hits`, `rejected_gates`(정렬 tuple), `not_evaluated`}.
+  `rejected_gates` 이름: `spec_schema`, `spec_meta`, `supplies`, `input_dc`, `elements`, `constraints`,
+  `compensation_targets`, `node_targets`, `intended_region`, `settings`, `references`.
+- `not_evaluated`: `all_sections`(최상위·`meta`·`human` 중 객체 아닌 것이 있음 -- 섹션 검사 없음),
+  `topology_cross_checks`(meta 회로 이름 또는 topology 지문 불일치 -- 섹션 형식만 보고 topology 교차 검사는 안 함),
+  `references`(앞 게이트에 위반이 있으면 참조 해석 안 함). 필수 human 키가 없으면 `missing_key` 하나만 내고 그 섹션 검사는 하지
+  않는다(중복 보고 없음).
+- `value_from_file` 대상: 같은 디렉터리 `<회로>.topology.json`(`load_topology`) + `<회로>.sizing_spec.json`(같은 로더, 같은
+  이름표). 한 로드 안에서 같은 회로는 한 번만 읽는다. 사슬에 이미 있는 파일 = `ref_cycle`. 파일 없음 = `ref_unresolved`.
+  대상 로드 거부(지문 불일치 포함) = `ref_file_rejected`(`elements` = 대상 hit 의 rule 들). **파일 사이 순환**(A→B→A)은
+  대상 쪽 로드가 `ref_cycle` 로 거부되므로 바깥 hit 도 rule `ref_cycle`(`elements` = 대상 hit 의 rule 들, `ref_cycle` 포함)
+  이다 -- `ref_file_rejected` 가 아니다.
+- 캐시 없음: 같은 경로를 두 번 부르면 두 번 읽고 같은 `spec_fp` 를 낸다(결정론).
+
+## 1. 파일 형식 (요약 -- 정본은 이 절과 각 파일 docstring)
+
+`<topology_name>.sizing_spec.json`(topology 와 같은 디렉터리). 최상위 `{meta, human}` + `_` 주석 키(어떤 코드도 읽지 않음,
+지문 밖). `meta = {schema_version: "5", circuit, topology_fp, origin}`. `origin` ∈ {canonical, fixture}.
+
+결정 대기 표지 `{"pending": "<ID>"}`(주석 밖 키가 `pending` 하나): ID 형식 `SP-n`·`AC-n`·`CI-n`·`PA-n`·`ET-n`·`U-nn`·`MODn`.
+모든 표지는 `SizingSpecDoc.pending`(경로, ID)에 모인다. 표지를 받는 자리: `input_dc`, `element_values.<이름>`, `feedback`,
+제약 `metric`·`view`, 보상 목표 각 칸·`settling`, `node_voltage_targets_v`, `intended_region`, `objective.budgets`,
+`search`·`spice_check`·`front_refilter` 각 칸. 그 밖 자리에 오면 그 섹션의 `type`.
+
+human 키: 필수 = supplies_v, input_dc, element_values, feedback, constraints, node_voltage_targets_v, intended_region,
+objective, search, spice_check, front_refilter. 선택 = pending_constraints, compensation_targets.
+
+출처 `source`(모든 값 선언에 필수): kind ∈ {user_spec, pending_spice, reference, plan_rule}.
+| kind | 필수 부필드 | 허용 섹션 |
+|---|---|---|
+| user_spec | `record`(비어 있지 않음), `decided`(YYYY-MM-DD); `origin` ∈ {user, paper, drawing, lecture, legacy_harness}, paper·drawing·lecture 면 `citation` | 전부 |
+| pending_spice | `record` | constraints(판정 안 함, U-17) |
+| reference | 없음(값 대신 `value_from_constraint`/`value_from_file`) | constraints, compensation_targets |
+| plan_rule | `plan_id` | search, spice_check, front_refilter |
+
+## 2. 위반 규칙 (hit `rule` -> 조건)
+
+| rule | 조건 | 게이트 |
+|---|---|---|
+| `top_not_object` | 최상위가 객체 아님 | spec_schema |
+| `missing_key` | `meta`·`human`·meta 4키·human 필수 키·search/spice_check/front_refilter 필드 없음 | spec_schema, settings |
+| `unknown_key` | 닫힌 어휘 밖 키(옛 이름·회로 전용 키가 아닌 것) -- 모든 객체 | 해당 섹션 |
+| `legacy_name` | 키가 옛 이름 표(`_spec_fields.LEGACY_NAMES`), 제약 metric·참조 문자열이 옛 이름, source kind `pending_7a` | 해당 섹션 |
+| `circuit_specific_key` | 키가 회로 전용 키 표(`CIRCUIT_SPECIFIC_KEYS`: compensation, function, kg, Z, NDP, stage_devices, minimize, inherits, spec_fn …) | 해당 섹션 |
+| `type` | 형식 위반(객체/list/문자열/유한 수/bool, 값 자리·모드 키 개수, sense_mode 어휘, region 어휘 …) | 해당 섹션 |
+| `schema_version` | meta.schema_version ≠ `"5"` | spec_schema |
+| `pending_id_format` | 결정 대기 ID·pending_constraints decision 형식 밖 | spec_schema, constraints |
+| `circuit_name_mismatch` | meta.circuit ≠ topology.name, 또는 ≠ 파일 이름 stem | spec_meta |
+| `topology_fp_mismatch` | meta.topology_fp ≠ topology.connectivity_fp | spec_meta |
+| `source_missing` / `source_kind_unknown` / `paper_source_not_adopted` / `source_kind_not_allowed_here` / `source_record_missing` / `source_origin` / `citation_missing` | 1절 출처 표 위반(kind paper·paper_reference·literature·drawing 은 `paper_source_not_adopted`) | 해당 섹션 |
+| `supplies_value` / `supplies_net_missing` / `supplies_net_extra` / `supplies_top_rail_ambiguous` | 레일 전압 비유한 / topology 레일 빠짐 / 레일 밖 넷 / 최고 전위 레일 둘 이상 | supplies |
+| `input_dc_net_not_rail` / `input_dc_out_of_rails` | net 이 레일 밖 / value_v 가 레일 전압 범위 밖 | input_dc |
+| `element_unknown` / `element_undeclared` | spec 이름이 topology 수동·이상원 밖 / topology 원소 선언 누락(F4) | elements |
+| `element_value_key` / `element_value` | 값 키 ≠ kind 표(capacitor→value_farad, resistor→value_ohm, current_source→value_dc_amp, voltage_source→value_dc_v) / 수동소자 값 ≤ 0 | elements |
+| `element_value_conflict` | topology 원소(수동소자·이상원)에 옛 값이 있는데 spec 이 다른 값·engine·pending(F5 이관 전 안전망 -- topology 값으로 spec 을 채우지 않는다) | elements |
+| `feedback_element_unknown` | feedback.elements 이름이 topology 수동소자 밖 | elements |
+| `node_target_net` | 노드 목표 넷이 레일이거나 단자 넷 밖 | node_targets |
+| `intended_region_device` | 소자가 topology 밖 | intended_region |
+| `metric_unknown` | 제약·pending_constraints metric 이 이름표 밖 | constraints |
+| `op_value` | 제약 op ∉ {>=, <=}, 예산 op ≠ <= | constraints, settings |
+| `value_and_ref` | value / value_from_constraint / value_from_file 이 정확히 하나가 아님 | constraints, compensation_targets |
+| `ref_kind_mismatch` | 참조인데 source.kind ≠ reference, 또는 그 반대 | constraints, compensation_targets |
+| `view_not_applicable` | view_kind none 인 metric 에 view, metric 결정 대기 제약에 (결정 대기 아닌) view | constraints |
+| `view_required` | ratio metric 에 view 없음, transfer metric 에 view 없고 output 포트가 1개가 아님 | constraints |
+| `view_net_unknown` | 뷰 넷(ac_excite 키·sense_p·sense_n)이 어느 단자에도 없음 | constraints |
+| `constraint_duplicate` | 같은 (metric, op, view) 두 번(metric·view 결정 대기 제약은 비교 밖) | constraints |
+| `settling_order` | settling.linear_s > total_s | compensation_targets |
+| `budget_metric_not_objective` | 예산 metric 의 `objective_axis` 가 None 또는 이름표 밖 | settings |
+| `search_method` / `optional_stage_unknown` | search_method ∉ {default, precision} / optional_stages 키 ∉ {inner_block_dp, middle_y_coordinate_descent, threshold_bisection, global_sample_budget_fill} | settings |
+| `numeric_in_rule_field` / `rule_name_unknown` | 규칙 칸에 수 / 어휘 밖 규칙 이름 | settings |
+| `ref_unresolved` / `ref_ambiguous` / `ref_cycle` / `ref_file_rejected` | 참조 대상 없음·형식 틀림 / 같은 metric 제약 둘 이상 / 순환(파일 안·파일 사이) / 참조 파일 로드 거부 | references |
+
+규칙 어휘: spice_check = acceptance_rule{free_spec_and_all_saturated}, saturation_rule{vds_ge_vdsat, vds_ge_vdsat_plus_tol_v},
+node_compare_rule{record_only}, device_compare_rule{record_only}, forced_warn_rule{forced_device_diff_gt_lut_tolerance},
+front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_only}; front_refilter = axis_rule
+{layout_floorplan_outline}, tie_rule{manufacturing_grid_cell_area}, cycle_cap_rule{k_max_n3_6}. 끄는 키는 없다.
+
+## 3. 결과 `SizingSpecDoc` (frozen, `require_immutable` 통과, `fp_of` 가능)
+
+- 필드: `circuit`, `topology_fp`, `origin`, `supplies_v`((넷, V) 이름순), `input_dc`(`InputDc` mode net/value/engine/pending),
+  `element_values`(`ElementValue` 이름순, mode value/engine/pending), `feedback`(이름순 tuple 또는 `PendingMark`),
+  `constraints`(`ConstraintDecl` 문서 순서), `pending_constraints`((metric, ID) tuple), `compensation_targets`
+  ((키, `TargetDecl`/`SettlingDecl`/`PendingMark`) 이름순), `node_voltage_targets_v`, `intended_region`, `objective`
+  (`ObjectiveBudget` tuple 또는 `PendingMark`), `search`(`SettingValue`), `spice_check`·`front_refilter`(`RuleChoice`),
+  `pending`(`PendingMark` (경로, ID) 정렬), `section_fps`, `spec_fp`, `file_sha256`. 속성 `judged_constraints`.
+- `ConstraintDecl`: 참조는 해석된 `value`, `judged` = user_spec True / pending_spice False / reference 는 대상의 judged,
+  metric 결정 대기면 `metric` None·`metric_decision`·`judged` False·`view` None. 참조 대상이 결정 대기면 `value` None +
+  `value_decision`(그 ID 가 `pending` 에도 들어간다). `view.mode` ∈ none/port/transfer/ratio/pending.
+- 지문: `SpecSource` 는 `kind` 만 지문에 든다(`record`·`citation`·`decided`·`origin` 문구는 밖). `_` 주석 키 밖. 참조는
+  해석된 값으로. 제약은 내용 지문 정렬(순서만 바꾼 spec 은 같은 지문). 섹션 지문(`SECTION_GROUPS`):
+  supplies_fp(supplies_v), operating_fp(input_dc·node_voltage_targets_v·intended_region), elements_fp, feedback_fp,
+  constraints_fp(constraints·pending_constraints), compensation_fp, objective_fp, search_fp, spice_check_fp, refilter_fp.
+  `spec_fp` = `fp_of(section_fps)`. spice_check 만 바꾸면 spice_check_fp·spec_fp 만 바뀐다.
+- **실행 전 정지(MOD10 몫, 이 로더 밖)**: 사이징 실행이 읽는 필드에 `pending` 이 하나라도 있으면 전부 모아
+  `SchemaRejectedError` 한 번(결정 ID 목록). 로더는 표지를 통과시키고 모으기만 한다.
+
+## 4. `MetricSignature(unit, domain, view_kind, objective_axis=None)` (core, 데이터 선언)
+
+- frozen. `unit` 비어 있지 않은 문자열, `domain` ∈ `METRIC_DOMAINS`(dc, ss, ls, geom), `view_kind` ∈ `VIEW_KINDS`
+  (none, transfer, ratio), `objective_axis` ∈ {None} ∪ `OBJECTIVE_AXES`(power, area). 밖이면 `ValueError`.
+- 이름표 정본은 MOD5 레지스트리(core 에 이름 없음). 지금은 test 픽스처 이름표로만 돈다.
+
+## 5. 9회로 spec 로드 결과 (2026-10-07, 이 커밋 코드 + library, 픽스처 이름표)
+
+픽스처 이름표 = gain_ss_db·ugf_ss_hz·gbw_ss_hz·pm_ss_deg·parasitic_pm_ss_deg·rout_ss_ohm(transfer), ratio_ss_db(ratio),
+mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(none), supply_current_dc(power), area_layout_m2(area).
+9/9 통과(0 hit), 두 번 로드 `spec_fp` 동일. 레지스트리 이름이 없는 2건(파일럿 옛 `classab_centering_dev_v`, ngcc 입력 범위
+옛 `icmr_v`)은 제약 `metric: {"pending": "MOD5"}` 로 값·출처를 남기고 판정 밖으로 두었다.
+
+| 회로 | 제약(판정) | pending 표지 |
+|---|---|---|
+| common_gate_amplifier | 0 | 6 |
+| current_reuse_telescopic_ota | 8(5) | 15 |
+| folded_cascode | 0 | 7 |
+| ngcc_3stage_ff | 3(2) | 7 |
+| nmcnr_amplifier | 2(2) | 6 |
+| pushpull_follower_buffer | 1(1) | 5 |
+| sf_pushpull_output_opamp | 3(3) | 6 |
+| two_stage_ota | 2(1) | 7 |
+| two_stage_ota_sf | 3(2) | 6 |
+
+남은 표지 65개 = AC-3 9, PA-1 9, PA-2 9, CI-15 9, CI-18 9, SP-2 7, MOD5 7(파일럿 뷰 5·metric 1, ngcc metric 1), SP-3 2,
+SP-10 2(파일럿 CL1·CL2 해석), CI-10 1(파일럿 feedback), CI-17 1(folded Ibg). 기존 결정으로 푼 칸(오케스트레이터 적용
+2026-10-07): 포화 규칙 `vds_ge_vdsat`(UD 8번, 여유 0), 파일럿 밖 8회로 feedback `[]`(UD 9번 PM 정의 β=1), 보상 소자
+engine(파일럿 Cc1·Cc2·Rz1·Rz2, ngcc Cm1·Cm2, two_stage_ota_sf Cc -- nmcnr·two_stage 확정과 같은 원칙).
+
+거부 실측(임시 스크립트, 원본 한 곳씩 깨뜨림): 2절 규칙 전부가 실제로 hit 를 냈다(`ref_ambiguous`·`source_origin`·
+`settling_order`·`view` 형식 `type` 은 미실측).
+
+## 6. 설계(design_spec_format)와 다르게 정한 점
+
+1. `schema_version` 은 문자열 `"5"`(topology `"2.0"` 과 같은 관례 + 구조 규칙 D: 숫자 리터럴 5 금지).
+2. 파일: `legacy_names.py` 대신 공용 helper `_spec_fields.py`(표 + key_hits·value_slot 등). `spec_meta.py`·
+   `spec_input_dc.py`·`spec_targets.py`·`spec_node_targets.py`·`spec_regions.py` 를 따로 두었다(규칙 A 진입점 1개).
+3. 옛 이름 표에서 library 이름과 글자가 같은 `CL`·`vdd`·`Voc_des` 는 뺐다(구조 규칙 E) -- `unknown_key` 로 거부된다.
+4. 쓰는 spec 이 없는 선택 키 `driving_spec`·`same_as`·`cross_kind_matching`·`gain_budget_db_override`·`search.L_candidates`
+   와 참조 `value_from_spec` 은 만들지 않았다(배선 원칙) -- 지금은 `unknown_key`/`legacy_name` 으로 거부되고, 쓰는 spec 이
+   생길 때 그 행과 함께 만든다.
+5. 새 규칙: `ref_kind_mismatch`, `ref_ambiguous`, `ref_file_rejected`(설계 `ref_file_topology_fp` 를 포함), `view_not_applicable`,
+   `element_value_conflict`(F5 이관 전 안전망), `settling_order`, `source_origin`.
+6. `numeric_in_rule_field` 는 `spec_schema` 가 아니라 `spec_settings` 가 낸다(규칙 칸을 읽는 곳).
+7. 결정 대기 ID 에 `ET-n`·`MODn` 을 더했다(`MOD5` = 레지스트리 이름·뷰 정의를 MOD5 design 이 정할 칸).
+8. 섹션 지문에 `operating_fp`·`feedback_fp` 를 더했다(설계 목록에 자리가 없던 input_dc·노드 목표·영역·feedback).
+9. `MetricSignature.view_kind` 어휘는 none/transfer/ratio 셋(rout 는 transfer -- 포트 뷰의 출력 포트를 쓴다).
+10. optional_stages 화이트리스트 이름(DEC-75 네 기능)은 이 파일이 snake_case 로 정했다.
+11. graph(MOD3, master 병합분)에 `graph/supplies.py` `supplies_declaration`(supplies_v 인자 검사)이 따로 있다 -- 이
+    파일의 `spec_supplies.supplies_declaration` 과 같은 개념의 두 검사다. MOD10 배선 때 graph 쪽이 `SizingSpecDoc.supplies_v`
+    를 받도록 하나로 줄일 대상(이 커밋은 손대지 않음).
