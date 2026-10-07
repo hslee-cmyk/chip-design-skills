@@ -455,7 +455,7 @@ shadow 대조 보고와 그 밖의 실행 산출물은 `runs/<run_id>/`(`.gitign
 * `tol_V` = (kind, L 앵커, VDS)별 LUT leave-one-out 보간 오차(VGS 기준)의 최댓값. 계산 함수는 MOD1 `lut` 패키지의 tol_V 파일이 정본이다(방법 원천: 옛 `legacy/tests/probes/probe_interp_scheme_loo.py`를 복사해 함수화하고 test로 고정한다).
 * `tol_I` = `tol_V` × 해당 순환 블록 소자 gm의 최댓값. gm은 직전 봉인 스냅샷(S2p)의 `ss` 값을 쓰고, 첫 평가는 LUT 격자 최댓값을 쓴다(봉인 전 gm으로 허용오차가 순환하지 않게).
 * 반복 상한: `K_max = ceil(log2(구간폭 / tol_V))`(같은 구간을 bisection으로 풀 때의 반복 수). 고정점 반복도 같은 K_max를 상한으로 한다(그보다 느린 고정점은 bisection보다 나쁘다). 고정점 반복은 매 반복 q = 직전 변화비 `|Δk| / |Δk−1|`(추정에 필요한 최소 반복 3개)를 갱신하고, q < 1이면 수축 오차 한계 `q^(K_max − k)·|Δk| / (1 − q) > tol_V`로 남은 상한 안 도달 불가가 확정될 때, q ≥ 1이면 K_max에 닿을 때 NONCONVERGENT. 창 크기·연속 횟수 상수는 두지 않는다.
-* 같은 `tol_V`를 IC1 test의 허용오차, SPICE 비교(N3.8)의 노드전압 허용오차, 레이아웃 총 W 허용오차 상한(N3.17 LY1, `tol_V × (gm/ID)`)으로 쓴다.
+* 같은 `tol_V`를 IC1 test의 허용오차와 레이아웃 총 W 허용오차 상한(N3.17 LY1, `tol_V × (gm/ID)`)으로 쓴다. **SPICE 대조(사용자 확정 2026-10-07)**: 합격 조건은 SPICE free 모드에서 (i) 측정 회로 성능이 스펙 만족 (ii) ID > 0 인 모든 MOS 포화(VDS − VDsat ≥ 0) 둘뿐이다. 엔진 예측과 SPICE 의 노드전압·소자 ID·gm·gds·회로 성능 차이는 **기록만** 한다(회로 성능 차이는 모델 오차로 측정해 다음 풀이의 제약 여유로 쓴다, DEC-72·NFR-5). **경고**는 forced 모드(노드를 엔진 예측 전압에 강제)에서만: 소자 ID·gm 차이가 LUT 로 계산한 허용오차(`tol_V` 계열, 상수 아님)를 넘으면 엔진·LUT 결함 신호로 보고 맨 앞에 모은다. 근거: references/gm-id-methodology.md §6.5(손계산 대 SPICE 10~20%), §6.6(LUT gm/ID <5%), §4.5(최종은 시뮬레이터) -- free 모드 고임피던스 노드전압은 모델 차이에 민감해 합격 조건으로 쓰면 스펙을 만족하는 설계를 버린다.
 
 ### N3.7 결합 블록·달성가능성·DOF·할당
 
