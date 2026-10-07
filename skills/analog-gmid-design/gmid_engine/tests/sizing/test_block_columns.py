@@ -1,7 +1,7 @@
 """`dc_columns(snapshot, theta_items, fixed_values, resistor_values, lut)` -- CONTRACT 5.4: 노드전압 정본.
 
 기대값: conftest `expected_columns`(writer 식·창 규칙을 독립 구현, VGS 는 toy LUT 닫힌 식 `Oracle.vgs_of`)와 손계산.
-이 파일은 순환 SCC 가 없는 회로만 쓴다(순환 SCC 의 고정점 풀이는 fixed_point 변경 대상이라 이번 판 밖).
+순환 SCC 는 [r4] VDS 정의역 하한의 반복 중/strict 규칙 test(끝 절)에서만 쓴다(수렴값은 θ 를 해에서 거꾸로 만들어 손으로 안다).
 """
 import math
 
@@ -11,7 +11,8 @@ from gmid_engine.core import SealViolationError
 from gmid_engine.sizing import DC_KEY, PathValue, SccLog, Window, dc_columns
 
 from .conftest import (Oracle, build_ctx, circuit_cs_res, circuit_empty_window, detail, expected_columns, free_currents, mos,
-                       node_voltages, rel_close, run_blocks, theta_a, theta_c, topo, two)
+                       new_access, node_voltages, r4_arrays, r4_ln_idu, r4_vds_floor, r4_vgs_of, rel_close, run_blocks,
+                       theta_a, theta_c, theta_r4c, topo, two, write_r4_lut)
 
 TOL = 1e-12
 
@@ -352,3 +353,238 @@ def test_vdsat_not_in_window(ctx_c):
     th = theta_c(y=0.0, x1=Oracle.ln_idu("nmos", 0.6, 0.0, 0.0), x2=Oracle.ln_idu("pmos", 0.7, 1.8, 0.0))
     snap = run_blocks(ctx_c[2], th, upto="columns")
     assert node_voltages(snap)["out"] == 0.0
+
+
+def test_vdsat_not_in_window_even_with_column(ctx_r4c):
+    """[r4] (3) VDSAT 열이 있는 LUT 에서도 W4 창에 VDsat 항이 없다: y = 0 / 1 -> out 이 정확히 레일(창 = [0, 1.8])."""
+    for y in (0.0, 1.0):
+        snap = run_blocks(ctx_r4c, theta_r4c(y=y), upto="columns")
+        w = dict(snap.column("node", "dc_window"))["out"]
+        assert (w.lo, w.hi) == (0.0, 1.8)
+        assert node_voltages(snap)["out"] == 1.8 * y
+
+
+# ---------------------------------------------------------------------------
+# [r4] 1변수 구간의 VDS 정의역 하한(on_mask 유도) + 구간 끝 부동소수 안쪽 보정 + 반복 중/strict 의 lut_curve_undefined
+# ---------------------------------------------------------------------------
+# LUT F : nmos VDS 열 0 꺼짐(하한 0.25), pmos 열 0~3 꺼짐(하한 1.0) -- LUT v2 의 VDS = 0 열(ID = GM = 0) 모양.
+# LUT F2: nmos 는 열 0 켜짐, 열 1 에 꺼진 점 하나(L 2e-6·VGS 0.625·VS 0.25) -> '끝 열까지 모두 켜진 첫 열' = 열 2(0.5);
+#         pmos 는 열 0 꺼짐 + 마지막 열에 꺼진 점 하나(L 2e-6·VS 2.0) -> 끝까지 켜진 열이 없다 -> VDS 격자 최소(0.0).
+F_OFF = {"nmos": 1, "pmos": 4}
+F2_OFF_COLS = {"pmos": 1}
+F2_OFF_POINTS = {"nmos": [(1, 5, 1, 3)], "pmos": [(1, 3, 8, 10)]}
+
+
+def _floor(kind, which):
+    if which == "F":
+        return r4_vds_floor(r4_arrays(kind, off_cols=F_OFF[kind]))
+    return r4_vds_floor(r4_arrays(kind, off_cols=F2_OFF_COLS.get(kind, 0), off_points=F2_OFF_POINTS[kind]))
+
+
+def test_floor_oracle_values():
+    """기대값 원천 확인(피검 아님): on_mask 로 유도한 하한."""
+    assert _floor("nmos", "F") == 0.25 and _floor("pmos", "F") == 1.0
+    assert _floor("nmos", "F2") == 0.5 and _floor("pmos", "F2") == 0.0
+    # 판별력: '처음 모두 켜진 열'(끝까지 요구 없음) 규칙이면 F2 nmos 0.0, F2 pmos 0.25 가 된다
+    a = r4_arrays("pmos", off_cols=1, off_points=F2_OFF_POINTS["pmos"])
+    on = (a["ID"] > 0) & (a["GM"] > 0)
+    assert on[:, :, 1, :].all() and not on[:, :, 8, :].all()
+
+
+@pytest.fixture(scope="module")
+def acc_f(tmp_path_factory):
+    return new_access(write_r4_lut(tmp_path_factory.mktemp("lut_f"), off_cols=F_OFF))
+
+
+@pytest.fixture(scope="module")
+def acc_f2(tmp_path_factory):
+    return new_access(write_r4_lut(tmp_path_factory.mktemp("lut_f2"), off_cols=F2_OFF_COLS, off_points=F2_OFF_POINTS))
+
+
+def _diode_ctx(tmp_path, acc, kind, supplies=None):
+    """kind 의 diode M1(1변수 노드 nb) + 거울 M2 + 반대 kind 부하 M3. bulk = source 레일(vsb 0)."""
+    if kind == "nmos":
+        net = [mos("M1", "nmos", "nb", "nb", "gnd", "gnd"), mos("M2", "nmos", "out", "nb", "gnd", "gnd"),
+               mos("M3", "pmos", "out", "in", "vdd", "vdd")]
+        src = two("I1", "current_source", "vdd", "nb")
+    else:
+        net = [mos("M1", "pmos", "nb", "nb", "vdd", "vdd"), mos("M2", "pmos", "out", "nb", "vdd", "vdd"),
+               mos("M3", "nmos", "out", "in", "gnd", "gnd")]
+        src = two("I1", "current_source", "nb", "gnd")
+    doc = topo("r4_diode_%s" % kind, net, {"in": ("input", "x"), "out": ("output", "y")}, sources=[src])
+    return build_ctx(tmp_path, doc, acc, supplies=supplies, element_values=(("I1", 1e-5),))[2]
+
+
+def _diode_theta(ctx, kind, vgs1):
+    """M1 diode 의 vgs = vds = vgs1 이 근이 되는 좌표. out 은 y = 0.25(M2·M3 VDS 가 두 LUT 하한 위)."""
+    other = "pmos" if kind == "nmos" else "nmos"
+    th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("ln_idu", "M1"): r4_ln_idu(kind, vgs1, vgs1, 0.0),
+          ("ln_idu", "M3"): r4_ln_idu(other, 0.7, 1.35, 0.0), ("y", "out"): 0.25}
+    th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5, "I1": 1e-5}))
+    assert set(th) == set(ctx.schema.components)
+    return th
+
+
+def _no_root(ctx, th):
+    with pytest.raises(SealViolationError) as ei:
+        run_blocks(ctx, th, upto="columns")
+    d = detail(ei.value)
+    assert d["reason"] == "no_root_in_window" and ei.value.record.devices == ("M1",) and d["node"] == "nb"
+    return d
+
+
+@pytest.mark.parametrize("which", ["F", "F2"])
+def test_floor_is_interval_lo_nmos_diode(tmp_path, acc_f, acc_f2, which):
+    """nmos diode: vds = x -> 구간 lo = VDS 정의역 하한(on_mask 유도), 끝 출처 vds_axis -> item 7."""
+    ctx = _diode_ctx(tmp_path, acc_f if which == "F" else acc_f2, "nmos")
+    d = _no_root(ctx, _diode_theta(ctx, "nmos", 2.0))          # 근이 레일 위 -> 두 끝 h 같은 부호
+    assert d["lo"] == _floor("nmos", which) and d["hi"] == 1.8
+    assert "vds_axis" in d["bounds"] and d["item"] == 7
+
+
+def test_floor_is_interval_hi_pmos_diode(tmp_path, acc_f):
+    """pmos diode: vds = 1.8 − x ≥ 하한 1.0 -> 구간 hi = 0.8."""
+    ctx = _diode_ctx(tmp_path, acc_f, "pmos")
+    d = _no_root(ctx, _diode_theta(ctx, "pmos", 2.0))
+    assert d["lo"] == 0.0 and d["hi"] == 1.8 - _floor("pmos", "F")
+    assert "vds_axis" in d["bounds"] and d["item"] == 7
+
+
+def test_root_below_floor_is_no_root(tmp_path, acc_f):
+    """근(vds 0.6)이 pmos 하한 1.0 아래 -> 구간 밖 -> no_root_in_window(item 7, 유한 끝 |h| -> margin 있음)."""
+    ctx = _diode_ctx(tmp_path, acc_f, "pmos")
+    d = _no_root(ctx, _diode_theta(ctx, "pmos", 0.6))
+    assert d["hi"] == 0.8 and d["item"] == 7
+
+
+@pytest.mark.parametrize("kind,vgs1", [("nmos", 0.3), ("nmos", 0.6), ("pmos", 1.2)])
+def test_root_above_floor_solved(tmp_path, acc_f, kind, vgs1):
+    """하한 위의 근은 풀린다(r3 는 구간 끝 VDS = 0 의 lut_curve_undefined 로 실패하던 모양). 반복 수 = k_max(구간 폭, tol)."""
+    ctx = _diode_ctx(tmp_path, acc_f, kind)
+    snap = run_blocks(ctx, _diode_theta(ctx, kind, vgs1), upto="columns")
+    V = node_voltages(snap)
+    log = {e.nodes: e for e in snap.value("graph", DC_KEY, "dc_scc_log")}[("nb",)]
+    want = vgs1 if kind == "nmos" else 1.8 - vgs1
+    assert abs(V["nb"] - want) <= log.tol
+    width = 1.8 - _floor(kind, "F")
+    assert log.iterations == math.ceil(math.log2(width / log.tol))
+
+
+def test_floor_cached_in_lut_memo(tmp_path, acc_f):
+    """값은 LUT memo derived 영역 키 ("sizing_vds_floor", kind, w_key) 에 슬라이스당 1회."""
+    ctx = _diode_ctx(tmp_path, acc_f, "nmos")
+    run_blocks(ctx, _diode_theta(ctx, "nmos", 0.6), upto="columns")
+    misses = dict(acc_f.memo.stats())["derived"].misses
+
+    def not_cached():
+        raise AssertionError("하한이 derived memo 에 없다")
+    assert acc_f.memo.lookup("derived", "sizing_vds_floor", ("nmos", 100), not_cached) == _floor("nmos", "F")
+    run_blocks(ctx, _diode_theta(ctx, "nmos", 0.45), upto="columns")
+    assert dict(acc_f.memo.stats())["derived"].misses == misses
+
+
+def test_no_fully_on_suffix_falls_back_to_vds_min(tmp_path, acc_f2):
+    """끝 열까지 모두 켜진 열이 없으면 하한 = VDS 격자 최소(r3 그대로): pmos diode 구간 끝 vds = 0 이 꺼진 열이라 strict 1변수
+    bisection 의 끝점 평가가 lut_curve_undefined -> lut_query_failed. (잘못된 '처음 켜진 열' 규칙이면 하한 0.25 로 풀린다.)"""
+    ctx = _diode_ctx(tmp_path, acc_f2, "pmos")
+    with pytest.raises(SealViolationError) as ei:
+        run_blocks(ctx, _diode_theta(ctx, "pmos", 0.6), upto="columns")
+    d = detail(ei.value)
+    assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_curve_undefined"
+    assert ei.value.record.devices == ("M1",)
+    assert d["vds"] == 0.0
+
+
+def test_interval_end_nextafter_inside_axis(tmp_path, acc_f):
+    """gnd = 0.1 V: x_lo = (0.25 − a)/b 가 부동소수 반올림으로 vds = 0.24999999999999997(하한 밖, 꺼진 열과 보간)이 되는 구성.
+    구간 끝은 축 안으로 nextafter 된다 -> 끝점 조회가 정의역 밖이 되지 않는다(근 풀림, no_root 의 lo 도 축 안)."""
+    sup = {"vdd": 1.8, "gnd": 0.1}
+    F = _floor("nmos", "F")
+    a = 1.0 * (0.0 - 0.1)
+    b = 1.0 * (1.0 - 0.1) - a
+    x_naive = (F - a) / b
+    assert 1.0 * (x_naive - 0.1) < F                           # 전제: 보정 없으면 축 밖
+    ctx = _diode_ctx(tmp_path, acc_f, "nmos", supplies=sup)
+    d = _no_root(ctx, _diode_theta(ctx, "nmos", 2.0))
+    assert 1.0 * (d["lo"] - 0.1) >= F and d["lo"] > x_naive
+    assert d["lo"] - x_naive <= 4 * math.ulp(x_naive)
+    snap = run_blocks(ctx, _diode_theta(ctx, "nmos", 0.6), upto="columns")
+    log = {e.nodes: e for e in snap.value("graph", DC_KEY, "dc_scc_log")}[("nb",)]
+    assert abs(node_voltages(snap)["nb"] - 0.7) <= log.tol
+
+
+@pytest.mark.parametrize("vout,ok", [(0.1, False), (0.24, False), (0.26, True), (0.5, True)])
+def test_acyclic_writer_below_floor_is_strict_failure(tmp_path, acc_f, vout, ok):
+    """비순환(strict) writer 의 VDS 가 하한 아래면 lut_curve_undefined 그대로 실패(일시 이탈 규칙은 반복 중에만)."""
+    ctx = build_ctx(tmp_path, circuit_cs_res(bulk_m1="gnd"), acc_f)[2]
+    i = 1e-5
+    th = {("L", "M1"): 1e-6, ("ln_idu", "M1"): r4_ln_idu("nmos", 0.6, max(vout, 0.25), 0.0),
+          ("current", "R1"): i, ("resistance", "R1"): (1.8 - vout) / i}
+    if ok:
+        V = node_voltages(run_blocks(ctx, th, upto="columns"))
+        assert abs(V["out"] - vout) <= 1e-12
+        assert abs(V["in"] - r4_vgs_of("nmos", th[("ln_idu", "M1")], V["out"], 0.0)) <= 1e-9
+    else:
+        with pytest.raises(SealViolationError) as ei:
+            run_blocks(ctx, th, upto="columns")
+        d = detail(ei.value)
+        assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_curve_undefined"
+        assert d["device_query"] == "vgs_of_coordinate" and ei.value.record.devices == ("M1",)
+
+
+def _cycle_ctx(tmp_path, acc, kind_a):
+    """다변수 순환 SCC {x, y}: MA(kind_a) 가 gate x 를 쓰고(vgs_gate, drain = y -> y 에 의존), MB nmos (d = x, g = in, s = y,
+    b = y) 가 y 를 쓴다(vgs_source, 1변수 -- drain x 에 의존). in = W4(창 = 레일). 이상 전류원 IX·IY 가 KCL 을 닫는다."""
+    if kind_a == "pmos":
+        net = [mos("MA", "pmos", "y", "x", "vdd", "vdd"), mos("MB", "nmos", "x", "in", "y", "y")]
+        src = [two("IX", "current_source", "vdd", "x"), two("IY", "current_source", "y", "gnd")]
+    else:
+        net = [mos("MA", "nmos", "y", "x", "gnd", "gnd"), mos("MB", "nmos", "x", "in", "y", "y")]
+        src = [two("IX", "current_source", "vdd", "x"), two("IY", "current_source", "vdd", "y")]
+    doc = topo("r4_cycle_%s" % kind_a, net, {"in": ("input", "x"), "y": ("output", "y")}, sources=src)
+    ctx = build_ctx(tmp_path, doc, acc)[2]
+    w = dict(ctx.base.column("node", "dc_writer"))
+    assert (w["x"].relation, w["x"].element) == ("vgs_gate", "MA")
+    assert (w["y"].relation, w["y"].element) == ("vgs_source", "MB")
+    cyc = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
+    assert [set(e.nodes) for e in cyc] == [{"x", "y"}]
+    return ctx
+
+
+def _cycle_theta(kind_a, vin, x, y, vgs_a=0.6, vgs_b=0.6):
+    """해 (x, y) 가 정확히 나오는 θ: MA 는 vgs_a 를 VDS(MA) 에서, MB 는 vgs_b 를 VDS(MB) = x − y 에서 낸다."""
+    vds_a = (1.8 - y) if kind_a == "pmos" else y
+    return {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("current", "MA"): 1e-5, ("current", "MB"): 1e-5,
+            ("ln_idu", "MA"): r4_ln_idu(kind_a, vgs_a, max(vds_a, 0.25), 0.0),
+            ("ln_idu", "MB"): r4_ln_idu("nmos", vgs_b, x - y, 0.0), ("y", "input_common_mode"): vin / 1.8}
+
+
+def test_cyclic_transient_below_floor_tolerated(tmp_path, acc_f):
+    """[r4] 5.4: 반복 중(strict=False)에는 MOS writer 의 하한 아래 lut_curve_undefined 가 일시 이탈(현재 값 유지).
+    MA pmos(하한 1.0)의 시작값 계산은 계약 5.4 2단계 'VDS = 레일 범위/2 = 0.9' 라 하한 아래 -> 거부하면 안 된다.
+    수렴점: x = 1.8 − 0.6 = 1.2, y = vin − 0.6 = 0.5 (VDS(MA) = 1.3 ≥ 1.0, VDS(MB) = 0.7 ≥ 0.25 -> strict 검증도 통과)."""
+    assert 0.9 < _floor("pmos", "F")                           # 전제: 2단계 시작 VDS 가 하한 아래
+    ctx = _cycle_ctx(tmp_path, acc_f, "pmos")
+    snap = run_blocks(ctx, _cycle_theta("pmos", 1.1, 1.2, 0.5), upto="columns")
+    V = node_voltages(snap)
+    log = [e for e in snap.value("graph", DC_KEY, "dc_scc_log") if set(e.nodes) == {"x", "y"}][0]
+    assert abs(V["x"] - 1.2) <= log.tol and abs(V["y"] - 0.5) <= log.tol
+
+
+@pytest.mark.parametrize("vin,ok", [(0.7, False), (0.75, False), (0.9, True)])
+def test_cyclic_strict_recheck_below_floor_fails(tmp_path, acc_f, vin, ok):
+    """MA nmos(하한 0.25)의 수렴점 VDS = V(y) = vin − 0.6 이 하한 아래(0.1·0.15)면 반복 중 일시 이탈이어도 수렴 뒤 strict 검증에서
+    lut_curve_undefined 실패(투영이 최종값에 남지 않는다). 0.9 -> y = 0.3 ≥ 0.25 이면 풀린다."""
+    ctx = _cycle_ctx(tmp_path, acc_f, "nmos")
+    y = vin - 0.6
+    th = _cycle_theta("nmos", vin, 0.6, y)
+    if ok:
+        V = node_voltages(run_blocks(ctx, th, upto="columns"))
+        assert V["y"] >= _floor("nmos", "F") and abs(V["y"] - y) <= 0.01 and abs(V["x"] - 0.6) <= 0.01
+    else:
+        with pytest.raises(SealViolationError) as ei:
+            run_blocks(ctx, th, upto="columns")
+        d = detail(ei.value)
+        assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_curve_undefined"
+        assert ei.value.record.devices == ("MA",)
+        assert d["vds"] < _floor("nmos", "F")

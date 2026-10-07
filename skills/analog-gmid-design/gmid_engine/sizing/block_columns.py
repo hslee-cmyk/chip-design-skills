@@ -198,6 +198,14 @@ class _Circuit:
             total += v0 + (v1 - v0) * c.position / c.length
         return total / len(cols)
 
+    def transient(self, exc, m, vds):
+        """반복 중(시작값 둘째 단계 포함, strict=False) 현재 값을 유지할 LUT 정의역 이탈인가: `lut_axis_out_of_range`·
+        `lut_target_out_of_range`, 또는 VDS 정의역 하한(`_vds_floor`) 아래에서 난 `lut_curve_undefined`."""
+        lut_reason = dict(exc.record.detail).get("lut_reason")
+        if lut_reason in _TRANSIENT_LUT_REASONS:
+            return True
+        return lut_reason == _CURVE_UNDEFINED and vds < _vds_floor(self.lut, self.kinds[m])
+
     def start_writer(self, net, values):
         """시작값 둘째 단계(쓰기 계획 순서): MOS writer 노드는 writer 식을 VDS = 레일 범위 절반에서 한 번 평가한 값
         (diode·소스 추종의 고정점 근처). VSB 는 `vgs_gate`(source 를 안다)면 현재값, `vgs_source`(source 가 x 자신)면 0
@@ -210,8 +218,13 @@ class _Circuit:
             m = w.element
             _vds, vsb = self.vds_vsb(m, values)
             vsb = vsb if w.relation == REL_VGS_GATE else 0.0
-            vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.L[m], (self.hi - self.lo) / 2, vsb,
-                                     self.ln_idu[m])
+            vds = (self.hi - self.lo) / 2
+            try:
+                vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.L[m], vds, vsb, self.ln_idu[m])
+            except SealViolationError as exc:
+                if not self.transient(exc, m, vds):
+                    raise
+                return values[net]
             sign = _kind_sign(self.kinds[m])
             return values[w.known] + sign * vgs if w.relation == REL_VGS_GATE else values[w.known] - sign * vgs
         if w.relation in (REL_RESISTOR, REL_TIE):
@@ -324,9 +337,7 @@ class _Circuit:
             try:
                 vgs = _vgs_of_coordinate(self.lut, m, self.kinds[m], self.L[m], vds, vsb, self.ln_idu[m])
             except SealViolationError as exc:
-                lut_reason = dict(exc.record.detail).get("lut_reason")
-                below_floor = lut_reason == _CURVE_UNDEFINED and vds < _vds_floor(self.lut, self.kinds[m])
-                if strict or not (lut_reason in _TRANSIENT_LUT_REASONS or below_floor):
+                if strict or not self.transient(exc, m, vds):
                     raise
                 return values[net]
             sign = _kind_sign(self.kinds[m])

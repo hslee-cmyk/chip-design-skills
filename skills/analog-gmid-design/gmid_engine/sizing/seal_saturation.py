@@ -60,5 +60,5 @@ def dc_seal_saturation(projection):
     detail = (("reason", REASON_VDSAT_MISSING),) if missing else ()
     item = judge(SEAL_SATURATION, rows, detail)
     if item.tol is not None:
-        item = dataclasses.replace(item, detail=tuple(sorted(item.detail + (("slack_v", 2.0 * item.tol - item.magnitude),))))
+        item = dataclasses.replace(item, detail=tuple(sorted(item.detail + (("slack_v", item.tol - item.magnitude),))))
     return {("graph", "dc_seal_7"): {DC_KEY: item}}

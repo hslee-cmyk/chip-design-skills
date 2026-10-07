@@ -312,7 +312,9 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   SCC 의 writer MOS(없으면 d·s·bulk 값이 있는 entry.devices)의 `tol_v_cell` 최솟값; 모두 None -> `SealViolationError`
   reason `tol_v_undefined`). [r2] **반복 중(strict=False) 투영**: 1변수 노드는 근이 없거나 구간이 비면 |h| 가 작은 구간 끝
   (빈 구간이면 두 끝 가운데), 그 밖 MOS writer 의 `lut_axis_out_of_range`·`lut_target_out_of_range`·[r4] VDS 정의역 하한 아래에서
-  난 `lut_curve_undefined`(하한 이상에서 난 것은 반복 중에도 실패), W4 빈 창은 현재 값 유지 --
+  난 `lut_curve_undefined`(하한 이상에서 난 것은 반복 중에도 실패), W4 빈 창은 현재 값 유지 -- [r4] **시작값 2단계(투영 bisection·
+  MOS writer 식 1회, 조회 VDS = 레일 범위/2)도 반복의 일부(strict=False)**라 같은 규칙으로 그 노드의 현재(1단계) 값을 유지하고,
+  실패는 수렴 뒤 strict 검증 바퀴에서만 낸다 --
   이웃의 과도 반복값 때문에 수렴할 θ 를 거부하지 않게. **수렴 뒤 strict 검증 바퀴**: SCC 노드마다 writer 식을 strict 로 다시
   재서(1변수는 bisection 전체, 실패는 위 구조화 실패 그대로) |새 값 − 수렴값| > tol 이면 `NonconvergentError`(reason
   `strict_recheck_residual`, margin = 잔차/tol, detail node·nodes) -- 투영이 최종값에 남지 않는다.
