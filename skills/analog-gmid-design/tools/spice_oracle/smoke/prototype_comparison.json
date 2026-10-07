@@ -1,0 +1,384 @@
+[
+ {
+  "prototype": "forced_sizing_eng",
+  "oracle": "smoke/sizing.engine.forced",
+  "dc_gain_db": [
+   54.97885150726144,
+   54.97884183001075
+  ],
+  "ugf_hz": [
+   10451394.113847265,
+   10451393.353518512
+  ],
+  "pm_deg": [
+   79.25220487032384,
+   79.25220567673773
+  ],
+  "f3db_hz": [
+   18836.4909,
+   18836.4909
+  ],
+  "I_vdd_uA": [
+   83.9506,
+   83.9506
+  ],
+  "ID_maxrel(>1nA)": [
+   "M60",
+   1.4529118533325521e-06
+  ],
+  "VGS_maxabs": 0.0,
+  "VDS_maxabs": 0.0,
+  "node_maxabs": 0.0,
+  "kcl_maxabs_uA": 1.0000000003174137e-05,
+  "not_sat_proto": [
+   "M2a",
+   "M2b",
+   "M3a",
+   "M3b",
+   "M5"
+  ]
+ },
+ {
+  "prototype": "free_sizing_eng",
+  "oracle": "smoke/sizing.engine.free",
+  "dc_gain_db": [
+   -150.1225494000762,
+   -150.12261439180156
+  ],
+  "ugf_hz": [
+   null,
+   null
+  ],
+  "pm_deg": [
+   null,
+   null
+  ],
+  "f3db_hz": [
+   null,
+   null
+  ],
+  "I_vdd_uA": [
+   30.483900000000002,
+   30.484
+  ],
+  "ID_maxrel(>1nA)": [
+   "M37a",
+   3.4081221393514284e-06
+  ],
+  "VGS_maxabs": 0.59787,
+  "VDS_maxabs": 3.000000000086267e-07,
+  "node_maxabs": 9.999999999177334e-07,
+  "kcl_maxabs_uA": null,
+  "not_sat_proto": [
+   "M6",
+   "M7",
+   "M1a",
+   "M1b",
+   "M3a",
+   "M3b",
+   "M4a",
+   "M4b",
+   "M5",
+   "M15",
+   "M9a",
+   "M9b",
+   "M25",
+   "M18a",
+   "M18b",
+   "M63",
+   "M36b",
+   "M37a",
+   "M37b"
+  ]
+ },
+ {
+  "prototype": "forced_layout_eng",
+  "oracle": "smoke/layout.engine.forced",
+  "dc_gain_db": [
+   61.78597886319993,
+   61.785971084478064
+  ],
+  "ugf_hz": [
+   59178677.14610731,
+   58982562.113921024
+  ],
+  "pm_deg": [
+   18.006968692176315,
+   18.11218367354624
+  ],
+  "f3db_hz": [
+   70794.5784,
+   70794.5784
+  ],
+  "I_vdd_uA": [
+   87.6359,
+   87.636
+  ],
+  "ID_maxrel(>1nA)": [
+   "M11b",
+   0.9422322145876989
+  ],
+  "VGS_maxabs": 0.0,
+  "VDS_maxabs": 0.0,
+  "node_maxabs": 0.0,
+  "kcl_maxabs_uA": 0.5076014,
+  "not_sat_proto": [
+   "M2a",
+   "M2b",
+   "M3a",
+   "M3b",
+   "M5"
+  ]
+ },
+ {
+  "prototype": "free_layout_eng",
+  "oracle": "smoke/layout.engine.free",
+  "dc_gain_db": [
+   -176.83552055457963,
+   -176.8355236920969
+  ],
+  "ugf_hz": [
+   null,
+   null
+  ],
+  "pm_deg": [
+   null,
+   null
+  ],
+  "f3db_hz": [
+   null,
+   null
+  ],
+  "I_vdd_uA": [
+   41.5964,
+   41.5996
+  ],
+  "ID_maxrel(>1nA)": [
+   "M12",
+   0.007182345739595662
+  ],
+  "VGS_maxabs": 0.822039,
+  "VDS_maxabs": 0.03104489999999993,
+  "node_maxabs": 0.030687100000000023,
+  "kcl_maxabs_uA": null,
+  "not_sat_proto": [
+   "M6",
+   "M7",
+   "M1a",
+   "M1b",
+   "M3a",
+   "M3b",
+   "M4a",
+   "M4b",
+   "M5",
+   "M15",
+   "M9a",
+   "M9b",
+   "M10",
+   "M25",
+   "M18a",
+   "M18b",
+   "M19",
+   "M63",
+   "M37a"
+  ]
+ },
+ {
+  "prototype": "free_layout_topo",
+  "oracle": "smoke/layout.topology.free",
+  "dc_gain_db": [
+   -169.409184172967,
+   -169.40919330820944
+  ],
+  "ugf_hz": [
+   null,
+   null
+  ],
+  "pm_deg": [
+   null,
+   null
+  ],
+  "f3db_hz": [
+   null,
+   null
+  ],
+  "I_vdd_uA": [
+   244.92999999999998,
+   244.963
+  ],
+  "ID_maxrel(>1nA)": [
+   "M11a",
+   0.013458907110454799
+  ],
+  "VGS_maxabs": 0.41165300000000005,
+  "VDS_maxabs": 0.03630959999999994,
+  "node_maxabs": 0.035522899999999996,
+  "kcl_maxabs_uA": null,
+  "not_sat_proto": [
+   "M6",
+   "M7",
+   "M1a",
+   "M1b",
+   "M3a",
+   "M3b",
+   "M4a",
+   "M4b",
+   "M5",
+   "M15",
+   "M9a",
+   "M9b",
+   "M10",
+   "M25",
+   "M18a",
+   "M18b",
+   "M19",
+   "M63",
+   "M37a"
+  ]
+ },
+ {
+  "prototype": "forced_layout_eng",
+  "oracle": "outX/layout.engineX.forced",
+  "dc_gain_db": [
+   61.78597886319993,
+   61.785971084478064
+  ],
+  "ugf_hz": [
+   59178677.14610731,
+   59178677.62532132
+  ],
+  "pm_deg": [
+   18.006968692176315,
+   18.006969593300198
+  ],
+  "f3db_hz": [
+   70794.5784,
+   70794.5784
+  ],
+  "I_vdd_uA": [
+   87.6359,
+   87.636
+  ],
+  "ID_maxrel(>1nA)": [
+   "M8",
+   1.5796827523582778e-06
+  ],
+  "VGS_maxabs": 0.0,
+  "VDS_maxabs": 0.0,
+  "node_maxabs": 0.0,
+  "kcl_maxabs_uA": 9.000000000369823e-06,
+  "not_sat_proto": [
+   "M2a",
+   "M2b",
+   "M3a",
+   "M3b",
+   "M5"
+  ]
+ },
+ {
+  "prototype": "free_layout_eng",
+  "oracle": "outX/layout.engineX.free",
+  "dc_gain_db": [
+   -176.83552055457963,
+   -176.8355236920969
+  ],
+  "ugf_hz": [
+   null,
+   null
+  ],
+  "pm_deg": [
+   null,
+   null
+  ],
+  "f3db_hz": [
+   null,
+   null
+  ],
+  "I_vdd_uA": [
+   41.5964,
+   41.5965
+  ],
+  "ID_maxrel(>1nA)": [
+   "M38",
+   1.4786831560174942e-06
+  ],
+  "VGS_maxabs": 0.791352,
+  "VDS_maxabs": 1.0000000005838672e-07,
+  "node_maxabs": 9.999999994736442e-08,
+  "kcl_maxabs_uA": null,
+  "not_sat_proto": [
+   "M6",
+   "M7",
+   "M1a",
+   "M1b",
+   "M3a",
+   "M3b",
+   "M4a",
+   "M4b",
+   "M5",
+   "M15",
+   "M9a",
+   "M9b",
+   "M10",
+   "M25",
+   "M18a",
+   "M18b",
+   "M19",
+   "M63",
+   "M37a"
+  ]
+ },
+ {
+  "prototype": "free_layout_topo",
+  "oracle": "outX/layout.topologyX.free",
+  "dc_gain_db": [
+   -169.409184172967,
+   -169.40919330820944
+  ],
+  "ugf_hz": [
+   null,
+   null
+  ],
+  "pm_deg": [
+   null,
+   null
+  ],
+  "f3db_hz": [
+   null,
+   null
+  ],
+  "I_vdd_uA": [
+   244.92999999999998,
+   244.93099999999998
+  ],
+  "ID_maxrel(>1nA)": [
+   "M36a",
+   9.977704818914102e-07
+  ],
+  "VGS_maxabs": 0.37613,
+  "VDS_maxabs": 1.0000000000287557e-07,
+  "node_maxabs": 1.0000000000287557e-07,
+  "kcl_maxabs_uA": null,
+  "not_sat_proto": [
+   "M6",
+   "M7",
+   "M1a",
+   "M1b",
+   "M3a",
+   "M3b",
+   "M4a",
+   "M4b",
+   "M5",
+   "M15",
+   "M9a",
+   "M9b",
+   "M10",
+   "M25",
+   "M18a",
+   "M18b",
+   "M19",
+   "M63",
+   "M37a"
+  ]
+ }
+]
