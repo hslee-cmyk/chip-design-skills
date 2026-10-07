@@ -156,3 +156,36 @@ def test_sense_only_undriven_fixed_node_value_error():
 def test_string_node_in_circuit_type_error():
     with pytest.raises(TypeError):
         build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)),), "out")
+
+
+# ---------- 7a: 전하 열(BC 전용)·다중 관측 (1절·3.2) ----------
+
+def test_charge_column_goes_to_bc_only():
+    """전하 주입 q 는 전류 s·q -> 열의 BC 에만(+q, 노드로 들어가는 방향), BG 는 0. 예 2c 계 + 노드 3 전하 열."""
+    ck = SmallSignalCircuit(capacitors=(Capacitor(2, 3, 1e-12), Capacitor(3, 0, 3e-12)), ac_ground=(0,))
+    s = build_mna(ck, (Excitation("v", voltages=((2, 1.0),)), Excitation("q", charges=((3, 2.5),))), (Sense(3),))
+    assert tuple(s.nodes) == (3,)
+    assert np.array_equal(_arr(s.BG)[:, 1], [0.0])
+    assert np.array_equal(_arr(s.BC)[:, 1], [2.5])
+
+
+def test_multiple_senses_rows_in_order():
+    """senses = Sense tuple(관측 여러 개): sense_rows (r, n), sense_direct (r, m), senses 그대로."""
+    s = build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)),), (Sense(2), Sense(2, 1), Sense(1)))
+    assert tuple(s.senses) == (Sense(2), Sense(2, 1), Sense(1))
+    assert _arr(s.sense_rows).shape == (3, 1)
+    assert np.array_equal(_arr(s.sense_rows), [[1.0], [1.0], [0.0]])
+    assert np.array_equal(_arr(s.sense_direct), [[0.0], [-1.0], [1.0]])
+
+
+def test_charge_into_fixed_node_value_error():
+    with pytest.raises(ValueError):
+        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)), Excitation("q", charges=((1, 1.0),))), (Sense(2),))
+    with pytest.raises(ValueError):
+        build_mna(_rc(), (Excitation("q", charges=((0, 1.0),)),), (Sense(2),))
+
+
+def test_empty_senses_rejected():
+    """관측 1개 이상(1절)."""
+    with pytest.raises((TypeError, ValueError)):
+        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)),), ())
