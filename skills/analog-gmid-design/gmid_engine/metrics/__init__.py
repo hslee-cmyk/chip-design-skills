@@ -59,7 +59,7 @@ from .registry import RegisteredMetric, metric_registry
 from .rout import output_resistance
 from .ss_circuit import ss_circuit
 from .ss_evaluate import ss_evaluate
-from .ss_linearize import GMB_VS_CELL_SECANT, JUNCTION_PENDING, ss_dev
+from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_PENDING, ss_dev
 from .ss_metrics import metrics_ss
 from .ss_types import MetricBundle, MetricRequest, SsCircuit, SsDevice, SsEvaluation
 from .stamp_mos import mos_stamps
@@ -77,6 +77,7 @@ __all__ = (
     "DcOperatingPoint",
     "Excitation",
     "Factor",
+    "GMB_COLUMN",
     "GMB_VS_CELL_SECANT",
     "GateArea",
     "JUNCTION_PENDING",

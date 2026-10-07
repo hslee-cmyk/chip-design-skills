@@ -367,8 +367,8 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 
 근거: DM 3.2(`ss_linearize`)·3.3·3.5(커널 순서 봉인 → ss → mna → metric), 7a 2.2~2.5·3.2·4.5 단계 5(배선 지점), 설계
 `design_mod6_search_front.md` 2.2(블록 표 ss·mna·freq·⑥), REQ '확정 사항' 1·5(필드 = 캐시, writer 하나, 같은 입력 재계산 0),
-DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 `S2_WRITERS`·`SealedSnapshot`), lut CONTRACT r5 4.1(`op_point`·
-`gmb`·`caps`).
+DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 `S2_WRITERS`·`SealedSnapshot`), lut CONTRACT r6 4.1(`op_point`·
+`caps`)·4.3(열 출처)·4.4(`gmb` = GMBS 열), 오케스트레이터 결정 2026-10-08(7.9 Q1~Q6).
 
 ### 7.0 파일·층·필드
 
@@ -397,18 +397,21 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 - MOS(= `dc_op` 이 있는 소자)마다, `op = dc_op`, `w_m` = 슬라이스 `(op.kind, op.w_key)` 의 폭:
   `gm = op.gm_id · op.current`, `gds = op_point(memo, kind, w_key, L, vgs, vds, vsb).gds_per_w · op.W`,
   `gmb = lut.gmb(같은 인자) · op.W / w_m`, `(cgg, cgd, cgs, cgb, cap_model) = lut.caps(memo, kind, L, vgs, vds, vsb, op.W)`,
-  `cdb = csb = 0.0`, `gmb_model = GMB_VS_CELL_SECANT`(`"lut_vs_cell_secant"`), `junction_model = JUNCTION_PENDING`
-  (`"pending_pdk_junction_params"`). (L, vgs, vds, vsb) 는 `dc_op` 의 값 그대로(크기, LUT 부호 규약).
+  `cdb = csb = 0.0`, `junction_model = JUNCTION_PENDING`(`"pending_pdk_junction_params"`). (L, vgs, vds, vsb) 는 `dc_op` 의 값
+  그대로(크기, LUT 부호 규약).
+- [lut r6] `gmb_model`: lut CONTRACT 4.3 열 출처 규칙과 같은 판정 -- 그 폭 슬라이스 `columns` 에 `"GMBS_PER_ID"` 가 있거나, 기준 LUT
+  `CapTable.w_key == op.w_key` 이고 그 `columns` 에 있으면 `GMB_COLUMN`(`"lut_gmbs_column"`, 값 = lut `gmb` 의 열 정의 4.4), 아니면
+  `GMB_VS_CELL_SECANT`(`"lut_vs_cell_secant"`, 옛 LUT 의 r5 VS 할선 -- 임시 근사). LUT v2 실데이터는 모든 폭이 슬라이스 열이라 `GMB_COLUMN`.
+- [lut r6] 용량: LUT v2 는 CGS·CGB 열이 있어 `cap_model = "lut_cgs_cgb"`, 값은 **부호 보존**(lut 1.2 -- CGB·CGS 에 음수 점이 있다).
+  `Caps.cdd`·`css` 는 읽지 않는다(DEC-91: 접합 용량 정본은 PDK 접합 파라미터, CDD·CSS 는 대조 test 전용 -- 7.9 Q3).
 - LUT 조회 실패 -> `SealViolationError(devices=(소자,))`, detail = 원래 detail + reason `"lut_query_failed"`, `lut_reason` = 원래
-  reason, `device_query` ∈ {"op_point", "gmb", "caps"}. 실측 발동: 용량 표 VS 축 0~0.8 V(기준 LUT) 밖 -- pushpull nmos vsb 1.08 V(7.8).
+  reason, `device_query` ∈ {"op_point", "gmb", "caps"}. (옛 12-L 세트의 용량 VS 0~0.8 V 축 밖 실패는 LUT v2 VS 0~1.8 V 로 해소 -- 7.9 Q6.)
 - 불변식: 같은 `dc_op`·LUT -> 재사용(계산 0). `op_point` 는 `dc_widths` 가 같은 키로 이미 부른 값(LUT memo point 적중).
-- **[r6 에서 바뀌는 값]** ng-lutv2(LUT r6): GMBS 열 -> gmb 가 열 기반으로 바뀌고 `gmb_model` 이 달라진다. CGS·CGB 열이 생기면
-  `caps` 모형이 `"lut_cgs_cgb"` 가 되어 cgs·cgb 값이 바뀐다. CDD·CSS 열은 DEC-91 에서 **대조 test 전용**이라 cdb·csb 정본은 여전히
-  PDK 접합 파라미터 선언 대기(7.9 Q3). VDSAT 열은 이 블록이 아니라 봉인 7(sizing)을 바꾼다.
 
 ### 7.3 `ss_circuit(nodes, ground_nets, input_nets, devices, passive_values) -> SsCircuit`
 - `nodes` 위치 = 노드 인덱스. `devices` = ((이름, element_class, kind, pins, bulk 넷|None, SsDevice|None), ...).
-- MOS -> `MosSmallSignal(d, g, s, b, gm, gmb, gds, cgs, cgd, cgb, cdb, csb, label=이름)`(b = bulk 넷 인덱스). bulk None 또는 SsDevice
+- MOS -> `MosSmallSignal(d, g, s, b, gm, gmb, gds, cgs, cgd, cgb, cdb, csb, label=이름)`(b = bulk 넷 인덱스). `MosSmallSignal` 은
+  1절대로 용량 ≥ 0 을 요구하므로 LUT v2 의 음의 용량 값이 오면 **ValueError**(입력 계약 위반, 7.9 Q7 -- 결정 대기). bulk None 또는 SsDevice
   None -> `StructureUnresolvedError`(reason `unsupported_rule_branch`, rule_branch `ss_element_kind`).
 - 수동소자 kind ∈ `LOOP_CUT_KINDS`(resistor, capacitor): `passive_values` 에 값이 있으면 `Resistor(t0, t1, 값)`/`Capacitor(t0, t1, 값)`
   (pins 순서, label = 이름), 없으면 스탬프하지 않고 `missing` 에(이름순). `resistors`·`capacitors` = 회로 원소 순서의 이름.
@@ -448,7 +451,8 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 - 노드 인덱스 = (dc_rail_v ∪ dc_v 넷) 이름순. `DcOperatingPoint`: rails = `RailBias(레일, dc_rail_v)`; `basis.ends` 의 (원소, from, to)
   마다 MOS -> `ChannelCurrent(d, s, +dc_current if d == from else −dc_current)`, `basis.resistors` -> `Resistor(from, to,
   passive_values[원소])`, 그 밖 비수동 DC 원소(이상 전류원) -> `CurrentSource(from, to, dc_current)`; node_v = 그 저항 끝 중 dc_v 넷.
-- `supply_currents(op, counted)`: counted = `counted_rails` 인덱스, 비면 모든 레일(합만 버린다). entries 순서 `power_dc_w`,
+- **`power_dc_w` = 선언된 모든 공급 레일(spec `supplies_v` 의 레일 전부)의 Σ V_k·I_k**(오케스트레이터 결정 2026-10-08 Q4 -- 합산 선언과
+  무관). `supply_currents(op, counted)`: counted = `counted_rails` 인덱스, 비면 모든 레일을 넘기고 합만 버린다. entries 순서 `power_dc_w`,
   `supply_current_dc`, `area_search_m2`(view None). `counted_rails == ()` 이면 `supply_current_dc` = `Undefined("supply_current_dc",
   "counted_rails_undeclared", "definitional")`.
 - 면적: `area_search(GateArea(op.W, op.L) MOS 마다, PassiveArea(이름, 값) 값 있는 수동소자 -- 단위 면적 None)`.
@@ -481,31 +485,32 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 | S-9 | `metrics_dc`: 2레일 회로 per_rail 합 = kcl_residual(≈ 0), `power_dc_w` = Σ V_k I_k |
 | S-10 | `ss_evaluate` 에 `SealedSnapshot` 아닌 값(`DcEvaluation` 등) -> TypeError, `passive_theta` 가 spec 값 있는 소자 -> ValueError |
 
-### 7.8 9회로 시연 (2026-10-08, 작성자 측 실측 -- 정본 아님)
+### 7.8 9회로 시연 (2026-10-08, master 798f29c 병합 뒤 LUT v2(`resolve_lut_location`), 작성자 측 실측 -- 정본 아님)
 
-DC 점 = GB7 탐침(sizing CONTRACT 10절과 같은 θ 생성)에서 첫 '일관 DC 점'(봉인 7 만 undefined). 봉인 7 이 VDSAT 대기라
-`SealedSnapshot` 이 나오지 않아 시연은 그 점을 **명시적으로** `SealedSnapshot(ev.snapshot, ev.report)` 로 감쌌다(엔진 규칙 변경 아님).
-**master 그대로(lut r5 + sizing r3)는 common_gate 1회로만 일관 DC 점이 나온다**: 나머지는 GB7 1변수 bisection 이 구간 끝 VDS = 0
-(VDS 격자 최소, ID = 0 이라 r5 곡선 전체 gm/ID 미정)에서 `lut_curve_undefined` 로 실패한다(7.9 Q1). 시연 값은 시연 전용 런타임
-패치(곡선 전체 미정 -> '목표 > 분지' +inf, 커밋 안 함)로 얻은 점이다. 보상 수동소자는 GB5 전이라 변형 A(값 없음) / B(시연 θ: engine
-커패시터 1 pF, engine 저항 10 kΩ -- GB7 시연 R θ 와 같은 탐침값, 설계값 아님).
-- 블록 계수: 평가된 6회로 모두 첫 평가 computes 1/1/1, 같은 θ(lineage) 두 번째 computes 0·reuses 3·`snapshot is` 같음, FD(첫 current
-  성분 +1 %, parent = lineage) computes 1/1/1·`recomputes_same_input` 0.
-- 변형 A: ngcc·nmcnr·two_stage·two_stage_sf 의 소신호 제약 전부 `passive_value_undeclared`(Cm1·Cm2 / Cm1·Cm2·Rm / Cc·Rz / Cc), 전력·면적은 값.
-- pushpull: `ss_dev` 가 `lut_query_failed`(caps VS 1.08 V > 0.8 V) -- 기준 LUT VS 축 재생성(U-27) 전 실패 기록(설계 2.4 그대로).
+DC 점 = GB7 탐침(sizing CONTRACT 10절과 같은 θ 생성)에서 첫 '일관 DC 점'(봉인 7 만 undefined). 봉인 7 이 아직 master 에서
+undefined 라 시연은 그 점을 **명시적으로** `SealedSnapshot(ev.snapshot, ev.report)` 로 감쌌다(엔진 규칙 변경 아님 -- DEC-67 게이트 유지, Q2).
+master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 에서 수정 중). 아래 값은 시연 전용 런타임 패치(VDS = 0 곡선 전체
+미정 -> '목표 > 분지' +inf, 커밋 안 함)로 얻은 점이다. 보상 수동소자는 변형 A(값 없음) / B(시연 θ: engine 커패시터 1 pF, engine 저항
+10 kΩ -- 탐침값, 설계값 아님).
+- 근사 표시: 평가된 모든 회로 `(("cap", "lut_cgs_cgb"), ("gmb", "lut_gmbs_column"), ("junction", "pending_pdk_junction_params"))`.
+- 블록 계수: 평가된 6회로 모두 첫 평가 computes 1/1/1, 같은 θ(lineage) 두 번째 computes 0·reuses 3, FD(첫 current 성분 +1 %, parent =
+  lineage) computes 1/1/1·`recomputes_same_input` 0.
+- 변형 A: ngcc·two_stage·two_stage_sf 의 소신호 제약 `passive_value_undeclared`(Cm1·Cm2 / Cc·Rz / Cc), 전력·면적은 값.
+- pushpull: LUT v2 VS 축으로 평가됨(옛 세트의 caps VS 실패 해소) -- `rout_ss_ohm` 2958.2 Ω(탐침 θ, `<= 1000` 판정 대상 값 아님).
+- nmcnr: 탐침 점에서 한 MOS 의 `cgb` = −2.03e-16 F(LUT v2 부호 보존) -> `MosSmallSignal` ValueError(Q7).
 - current_reuse·sf_pushpull: 215 탐침 중 일관 DC 점 0(패치 유무 무관) -- ss 평가 못 함.
-- 시간·값 표는 커밋 보고서(값은 탐침 θ·시연 θ 의 것이라 설계 판단에 쓰지 않는다).
 
-### 7.9 열린 항목 (결정 필요 -- 추측으로 채우지 않았다)
+### 7.9 열린 항목·결정 (오케스트레이터 결정 2026-10-08)
 
-| # | 항목 | 현재 처리 |
+| # | 항목 | 처리 |
 |---|---|---|
-| Q1 | master 의 lut r5 + sizing r3 조합에서 GB7 1변수 bisection 이 VDS = 0 끝점에서 `lut_curve_undefined`(sizing 5.4 는 `lut_target_out_of_range` 만 ±inf) -- 9회로 중 8회로 탐침 통과 0 | sizing 몫. 시연은 런타임 패치로만(커밋 안 함) |
-| Q2 | 봉인 7(VDSAT) 대기 동안 `SealedSnapshot` 0 -> `ss_evaluate` 는 파이프라인에서 불릴 수 없다 | DEC-67 대로 타입 게이트 유지. 잠정 경로(봉인 7 만 undefined 인 점 허용)를 둘지는 결정 대기 |
-| Q3 | DEC-91 접합 용량 cdb·csb: PDK 접합 파라미터(CJ·CJSW·MJ·MJSW·PB)가 `sky130_pdk_decl.json` 에 없고 레이아웃 전 확산 기하 규칙도 정의 없음 | 0 + `junction_model` 표시. 선언이 생기면 `junction_caps` 블록(DM 3.6) |
-| Q4 | DEC-78 합산 레일 선언 위치(spec 에 키 없음) | `counted_rails` 인자, 비면 `supply_current_dc` 정의 불가 |
-| Q5 | 보상 수동소자 θ(DEC-92) -- sizing θ 스키마에 성분이 없다 | `passive_theta` 인자 자리만. 없으면 정의 불가 |
-| Q6 | 용량 LUT 축 밖(VS > 0.8 V)을 후보 실패(SealViolationError)로 둘지, 소신호 metric 만 정의 불가 값으로 둘지 | 설계 2.4 '실패로 기록' 을 따라 후보 실패 |
+| Q1 | lut r5/r6 + sizing r3: GB7 1변수 bisection 이 VDS = 0 끝점에서 `lut_curve_undefined` -- 8회로 탐침 통과 0 | **sizing 쪽 수정 중**(ng-seal7). 이 단계는 시연 런타임 패치로만 |
+| Q2 | 봉인 7 대기 동안 `SealedSnapshot` 0 | **결정: DEC-67 타입 게이트 유지, 잠정 경로 없음**. 봉인 7 은 LUT r6 VDSAT 로 배선 중(ng-seal7) |
+| Q3 | DEC-91 접합 용량 cdb·csb | **결정: 명시 대기 유지**(0 + `junction_model`). 의존: core `pdk_decl` 에 PDK 모델 카드 접합 파라미터(CJ·CJSW·MJ·MJSW·PB) 선언 -- 오케스트레이터가 따로 일정. 선언이 생기면 `junction_caps` 블록(DM 3.6) |
+| Q4 | DEC-78 합산 레일 | **결정: `power_dc_w` = 선언된 모든 공급 레일 합(7.5), `supply_current_dc` 는 spec 선택 선언 `counted_rails` 가 생길 때까지 `counted_rails_undeclared`**. spec 형식 항목(authoring 몫)으로 기록 |
+| Q5 | 보상 수동소자 θ(DEC-92) | **결정: sizing θ 스키마에 둔다**. 의존 기록 -- 그때까지 `passive_theta` 인자, 없으면 정의 불가 |
+| Q6 | 용량 LUT VS 축 밖 | **해소: LUT r6(VS 0~1.8 V)**. 축 밖이면 여전히 후보 실패(설계 2.4) |
+| Q7 | LUT v2 용량은 부호 보존(음수 점 있음) -- 1절 `MosSmallSignal` 은 용량 ≥ 0 을 요구해 ValueError(nmcnr 실측) | **결정 대기**: (a) 1절 계약을 '유한 실수'로 풀어 음의 transcapacitance 를 그대로 스탬프(기존 test 의 '음수 거부' 기대 변경 = 기준 변경이라 승인 필요) (b) 음수 점을 정의 불가 값/후보 실패로. 추측으로 고치지 않았다 |
 
 ### 7.10 설계와 다르게 정한 점
 1. **`ss.mna[view]`·`ss.freq[view]` 필드를 따로 두지 않았다**: `MnaSystem`·`SystemResponse` 는 numpy 배열이라 core 불변 값 규칙(core 2절)
