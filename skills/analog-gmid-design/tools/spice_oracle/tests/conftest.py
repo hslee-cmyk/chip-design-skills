@@ -174,8 +174,9 @@ FB = dict(vdd=1.8, vin=0.7, rload=1e5, cl=10e-12, rf=1e6, cin=10e-12, L=0.5e-6, 
           loop_choke=1e20)
 
 
-def fb_input(lut: Path, *, feedback=("Rf", "Cin"), circuit="tfb_cs_rfeedback", loop_choke="default") -> dict:
-    c = FB
+def fb_input(lut: Path, *, feedback=("Rf", "Cin"), circuit="tfb_cs_rfeedback", loop_choke="default",
+             cin=None, cl=None) -> dict:
+    c = dict(FB, **{k: v for k, v in (("cin", cin), ("cl", cl)) if v is not None})
     inp = {
         "schema": "spice_oracle_input/1",
         "circuit": circuit,
@@ -219,8 +220,8 @@ def independent_fb(root: Path):
     return _independent_fb_cached(str(root / "ind_fb"))
 
 
-def fb_loop_gain(f, gm, gds):
-    c = FB
+def fb_loop_gain(f, gm, gds, cin=None, cl=None):
+    c = dict(FB, **{k: v for k, v in (("cin", cin), ("cl", cl)) if v is not None})
     s = 2j * np.pi * np.asarray(f)
     zp = 1 / (s * c["cin"] + 1 / (s * c["loop_choke"]))
     zo = 1 / (1 / c["rload"] + gds + s * c["cl"] + 1 / (c["rf"] + zp))
@@ -244,23 +245,23 @@ def _run(args, cwd):
                           encoding="utf-8", errors="replace", cwd=str(cwd))
 
 
-def run_netlist(inp: dict, tmp: Path, bias="free", name="t"):
+def run_netlist(inp: dict, tmp: Path, bias="free", name="t", extra=()):
     """oracle_netlist.py -> (proc, 넷리스트 텍스트 또는 None, meta 또는 None)."""
     tmp.mkdir(parents=True, exist_ok=True)
     ip = write_json(tmp / f"{name}.input.json", inp)
     cir = tmp / f"{name}.{bias}.cir"
-    p = _run([ORACLE_DIR / "oracle_netlist.py", ip, cir, "--bias", bias], tmp)
+    p = _run([ORACLE_DIR / "oracle_netlist.py", ip, cir, "--bias", bias, *extra], tmp)
     text = cir.read_text(encoding="utf-8", errors="replace") if cir.exists() else None
     mp = Path(str(cir) + ".meta.json")
     meta = json.loads(mp.read_text(encoding="utf-8")) if mp.exists() else None
     return p, text, meta
 
 
-def run_simulate(cir: Path, sim: Path, cwd: Path):
-    return _run([ORACLE_DIR / "oracle_simulate.py", cir, sim, "--ngspice", NGSPICE], cwd)
+def run_simulate(cir: Path, sim: Path, cwd: Path, extra=()):
+    return _run([ORACLE_DIR / "oracle_simulate.py", cir, sim, "--ngspice", NGSPICE, *extra], cwd)
 
 
-def run_compare(inp: dict, cir: Path, sim: Path, prefix: Path, judge=None, sat_margin=None):
+def run_compare(inp: dict, cir: Path, sim: Path, prefix: Path, judge=None, sat_margin=None, extra=()):
     """oracle_compare.py -> (proc, compare.json dict 또는 None)."""
     ip = write_json(Path(str(prefix) + ".input.json"), inp)
     args = [ORACLE_DIR / "oracle_compare.py", ip, cir, sim, prefix]
@@ -268,12 +269,12 @@ def run_compare(inp: dict, cir: Path, sim: Path, prefix: Path, judge=None, sat_m
         args += ["--judge", write_json(Path(str(prefix) + ".judge.json"), judge)]
     if sat_margin is not None:
         args += ["--sat-margin-v", repr(sat_margin)]
-    p = _run(args, prefix.parent)
+    p = _run([*args, *extra], prefix.parent)
     cj = Path(str(prefix) + ".compare.json")
     return p, (json.loads(cj.read_text(encoding="utf-8")) if cj.exists() else None)
 
 
-def run_oracle(inp: dict, out: Path, biases=("free",), judge=None, sat_margin=None, tag=None, name="t"):
+def run_oracle(inp: dict, out: Path, biases=("free",), judge=None, sat_margin=None, tag=None, name="t", extra=()):
     """oracle_run.py -> (proc, {bias: compare.json dict 또는 None})."""
     out.mkdir(parents=True, exist_ok=True)
     ip = write_json(out / f"{name}.input.json", inp)
@@ -284,7 +285,7 @@ def run_oracle(inp: dict, out: Path, biases=("free",), judge=None, sat_margin=No
         args += ["--sat-margin-v", repr(sat_margin)]
     if tag is not None:
         args += ["--tag", tag]
-    p = _run(args, out)
+    p = _run([*args, *extra], out)
     res = {}
     for b in biases:
         cj = out / f"{stem_of(inp, b, tag)}.compare.json"

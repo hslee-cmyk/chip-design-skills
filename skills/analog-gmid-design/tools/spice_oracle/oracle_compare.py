@@ -8,7 +8,14 @@
   <netlist.cir>.meta.json(오라클 넷리스트 메타)과 sim.json(oracle_simulate.py)을 읽어
   <out_prefix>.compare.json, <out_prefix>.compare.md 를 쓴다.
 
-공개 함수: compare(inp, meta, sim, judge) -> dict, to_markdown(result) -> str, merge_judge(inp_judge, file_judge, sat_margin)
+공개 함수: compare(inp, meta, sim, judge) -> dict, to_markdown(result) -> str, merge_judge(inp_judge, file_judge, sat_margin),
+          device_tolerance(inp, judge, name, key), iso_summary(rows, meta), forced_diagnosis(inp, rows, kcl),
+          diagnose(free_res, forced_res)
+[신규] 소자별 허용오차(C16): predictions.devices[].tol 이 한 소자라도 있으면 ID·gm 판정은 소자별 값만 쓴다(스칼라 폴백 없음).
+[신규] iso(C17): summary.iso = 소자별 ID 오차가 그 소자 허용오차 안인가(K3 판정), verdict 는 진단 모드라 INCOMPLETE.
+[신규] Z1(C18): 넷리스트를 --omit/--short 로 바꾼 실행은 합격 판정을 하지 않는다(INCOMPLETE).
+[신규] diagnosis(C19): forced 는 넷별 KCL 잔차 대 소자 tol_I 합, 게이트 공유 넷의 등가 dVGS = dID/gm 퍼짐을 기록,
+       diagnose() 가 free FAIL 원인을 '경계조건 쪽'/'엔진 DC 비정합'으로 분류(기록만).
 
 합격 판정(summary.verdict, 사용자 확정 2026-10-07) -- free 모드에서만:
   PASS = acceptance 선언 제약 전부 만족 + ID > 0(off_current_A 가 있으면 그 값 초과)인 전 MOS 가 VDS-VDSAT >= sat_margin_V.
@@ -73,6 +80,18 @@ def merge_judge(inp_judge, file_judge, sat_margin):
     return j
 
 
+def device_tolerance(inp, judge, name, key):
+    """소자 name 의 허용오차(key = ID_rel|gm_rel). 반환 (값 또는 None, 출처 문자열).
+    predictions.devices 중 하나라도 tol 을 가지면 소자별 모드 -- 그 소자의 tol[key] 만 쓰고 없으면 None(스칼라 폴백 없음).
+    아무 소자도 tol 이 없으면 judge.tolerances[key] 스칼라(기존 동작)."""
+    pdev = (inp.get("predictions") or {}).get("devices") or {}
+    if any(isinstance(v, dict) and v.get("tol") for v in pdev.values()):
+        v = ((pdev.get(name) or {}).get("tol") or {}).get(key)
+        return v, ("device" if v is not None else "device(없음)")
+    v = judge["tolerances"].get(key)
+    return v, ("scalar" if v is not None else "none")
+
+
 def measure_value(measure, sim, item):
     ac = sim.get("ac") or {}
     if measure == "supply_current_A":
@@ -91,11 +110,17 @@ def compare(inp, meta, sim, judge):
     pred = inp.get("predictions") or {}
     pdev = pred.get("devices") or {}
     rows = []
+    z1_omitted = []
     for d in inp["devices"]:
         n, k = d["name"], d["kind"]
+        if n not in meta["geometry"]:  # Z1 --omit 으로 넷리스트에서 뺀 소자
+            z1_omitted.append(n)
+            continue
         o = (sim.get("devices") or {}).get(n) or {}
         p = pdev.get(n) or {}
         g = meta["geometry"][n]
+        t_id, t_id_src = device_tolerance(inp, judge, n, "ID_rel")
+        t_gm, _ = device_tolerance(inp, judge, n, "gm_rel")
         idv, gm, gds = o.get("id"), o.get("gm"), o.get("gds")
         vgs, vds, vth, vdsat = o.get("vgs"), o.get("vds"), o.get("vth"), o.get("vdsat")
         vsb = _mul(o.get("vbs"), -1.0)
@@ -119,13 +144,14 @@ def compare(inp, meta, sim, judge):
              "below_vth_spice": None if vov is None else vov < 0,
              "sat_margin_spice_V": sat_m, "region_spice": region, "region_pred": p.get("region")}
         r["gm_id_rel"] = rel_err(r["gm_id_spice"], r["gm_id_pred"])
+        r["tol_ID_rel"], r["tol_gm_rel"], r["tol_source"] = t_id, t_gm, t_id_src
         r["judge"] = {
             "W": judge_err(r["W_rel"], tol.get("W_rel")),
-            "ID": judge_err(r["ID_rel"], tol.get("ID_rel")),
+            "ID": judge_err(r["ID_rel"], t_id),
             "VGS": judge_err(r["VGS_err_V"], tol.get("VGS_abs_V")),
             "VDS": judge_err(r["VDS_err_V"], tol.get("VDS_abs_V")),
             "VSB": judge_err(r["VSB_err_V"], tol.get("VSB_abs_V")),
-            "gm": judge_err(r["gm_rel"], tol.get("gm_rel")),
+            "gm": judge_err(r["gm_rel"], t_gm),
             "gds": judge_err(r["gds_rel"], tol.get("gds_rel")),
             "gm_id": judge_err(r["gm_id_rel"], tol.get("gm_id_rel")),
         }
@@ -197,14 +223,16 @@ def compare(inp, meta, sim, judge):
     warnings = []
     if meta["bias"] == "forced":
         for r in rows:
-            for key, tkey in (("ID_rel", "ID_rel"), ("gm_rel", "gm_rel")):
-                t = tol.get(tkey)
+            for key, t in (("ID_rel", r["tol_ID_rel"]), ("gm_rel", r["tol_gm_rel"])):
                 if t is not None and r[key] is not None and abs(r[key]) > t:
                     warnings.append(f"{r['name']}: {key} {r[key]:+.3g} 가 허용오차 {t:g} 를 넘는다")
+    z1 = meta.get("z1")
     if blockers:
         verdict, why = "BLOCKED", "막힘이 있어 합격 판정을 하지 않는다"
     elif meta["bias"] != "free":
-        verdict, why = "INCOMPLETE", "forced 는 진단 모드 -- 합격 판정은 free 모드에서만 한다"
+        verdict, why = "INCOMPLETE", f"{meta['bias']} 는 진단 모드 -- 합격 판정은 free 모드에서만 한다"
+    elif z1:
+        verdict, why = "INCOMPLETE", f"Z1 제거법 진단 실행(회로 변경 omit={z1['omit']} short={z1['short']}) -- 합격 판정 안 함"
     elif cons_fail or unsat:
         verdict = "FAIL"
         why = "; ".join(x for x in (f"선언 제약 불만족 {cons_fail}" if cons_fail else "",
@@ -223,10 +251,113 @@ def compare(inp, meta, sim, judge):
                "sat_in_spice": None if margin is None else sum(1 for r in rows if r["region_spice"] == "sat"),
                "not_sat": None if margin is None else [r["name"] for r in rows if r["region_spice"] != "sat"],
                "spice_ac": sim.get("ac"), "rail_current_A": sim.get("rail_current_A")}
-    return {"circuit": inp.get("circuit"), "bias": meta["bias"], "lut_meta": meta["lut_meta"],
-            "judge_config": judge, "notes": meta.get("notes"), "blockers": blockers,
-            "summary": summary, "performance": perf, "constraints": cons, "kcl_residual": kcl,
-            "devices": rows, "nodes": node_rows, "provenance": inp.get("provenance")}
+    ti = meta.get("topology_identity") or {"status": "unverified", "diffs": [], "notes": ["넷리스트 meta 에 C15 결과 없음"]}
+    summary["topology_identity"] = {"status": ti.get("status"), "required": ti.get("required", False),
+                                    "diff_count": len(ti.get("diffs") or []), "path": ti.get("topology_path")}
+    summary["z1"] = None if not z1 else {**z1, "omitted_devices": z1_omitted}
+    if meta["bias"] == "iso":
+        summary["iso"] = iso_summary(rows, meta)
+    res = {"circuit": inp.get("circuit"), "bias": meta["bias"], "lut_meta": meta["lut_meta"],
+           "judge_config": judge, "notes": meta.get("notes"), "blockers": blockers,
+           "summary": summary, "performance": perf, "constraints": cons, "kcl_residual": kcl,
+           "devices": rows, "nodes": node_rows, "topology_identity": ti, "provenance": inp.get("provenance")}
+    if meta["bias"] == "forced":
+        res["diagnosis"] = forced_diagnosis(inp, rows, kcl)
+    return res
+
+
+def iso_summary(rows, meta):
+    """iso(K3 판정): 단독 인스턴스를 만든 소자마다 |ID_rel| <= tol_ID_rel 인가. verdict = PASS(전부 안) / FAIL(하나라도 밖) /
+    INCOMPLETE(ID 값·허용오차가 없는 소자, 또는 인스턴스를 못 만든 소자가 있음)."""
+    skipped = meta.get("iso_skipped") or {}
+    inside, outside, na = [], [], dict(skipped)
+    for r in rows:
+        if r["name"] in skipped:
+            continue
+        if r["ID_rel"] is None or r["tol_ID_rel"] is None:
+            na[r["name"]] = "ID 값 없음" if r["ID_rel"] is None else "tol_ID_rel 없음"
+        elif abs(r["ID_rel"]) <= r["tol_ID_rel"]:
+            inside.append(r["name"])
+        else:
+            outside.append(r["name"])
+    verdict = "FAIL" if outside else ("INCOMPLETE" if na or not inside else "PASS")
+    return {"verdict": verdict, "within_tol": inside, "outside_tol": outside, "not_judged": na,
+            "rule": "|ID_spice - ID_pred|/|ID_pred| <= tol_ID_rel (device_tolerance 규칙)"}
+
+
+def forced_diagnosis(inp, rows, kcl):
+    """forced 진단(기록만, C19).
+    (1) 넷별 KCL: 고정원 전류 |i_hold| 대 그 넷에 드레인/소스가 물린 소자들의 tol_I = |ID_pred| x tol_ID_rel 합.
+        허용오차가 없는 소자가 물린 넷은 판정 안 함(within None). dc_consistent = 판정한 넷이 전부 안이면 True,
+        하나라도 밖이면 False, 판정한 넷이 없으면 None.
+    (2) 게이트 공유 넷(게이트에 소자 2개 이상): 소자별 등가 dVGS = (ID_spice - ID_pred)/gm_pred(엔진이 의도한 동작점의 기울기 --
+        SPICE 에서 꺼진 소자의 gm 으로 나누면 값이 발산한다)와 그 퍼짐(최대-최소)."""
+    by = {r["name"]: r for r in rows}
+    att = {}
+    for d in inp["devices"]:
+        if d["name"] in by:
+            for t in ("drain", "source"):
+                att.setdefault(d[t], set()).add(d["name"])
+    nets, exceed, judged = [], [], 0
+    for k in kcl:
+        devs = sorted(att.get(k["net"], ()))
+        tols = [None if by[n]["ID_pred"] is None or by[n]["tol_ID_rel"] is None
+                else abs(by[n]["ID_pred"]) * by[n]["tol_ID_rel"] for n in devs]
+        i = k["hold_current_A"]
+        if i is None or not devs or any(t is None for t in tols):
+            nets.append({"net": k["net"], "hold_current_A": i, "devices": devs, "tol_I_sum_A": None, "within": None})
+            continue
+        tsum = sum(tols)
+        ok = abs(i) <= tsum
+        judged += 1
+        if not ok:
+            exceed.append(k["net"])
+        nets.append({"net": k["net"], "hold_current_A": i, "devices": devs, "tol_I_sum_A": tsum, "within": ok})
+    gates = {}
+    for d in inp["devices"]:
+        if d["name"] in by:
+            gates.setdefault(d["gate"], []).append(d["name"])
+    shared = []
+    for g, devs in sorted(gates.items()):
+        if len(devs) < 2:
+            continue
+        dv = {}
+        for n in devs:
+            r = by[n]
+            dv[n] = (None if r["ID_spice"] is None or r["ID_pred"] is None or not r["gm_pred"]
+                     else (r["ID_spice"] - r["ID_pred"]) / r["gm_pred"])
+        vals = [v for v in dv.values() if v is not None]
+        shared.append({"net": g, "dVGS_eq_V": dv, "spread_V": (max(vals) - min(vals)) if len(vals) >= 2 else None})
+    shared.sort(key=lambda x: -(x["spread_V"] or 0))
+    return {"kcl_nets": nets, "kcl_nets_judged": judged, "kcl_nets_exceeding": exceed,
+            "dc_consistent": None if judged == 0 else not exceed, "gate_shared_nets": shared,
+            "rule": "넷별 |i_hold| <= sum(|ID_pred| x tol_ID_rel) (드레인/소스가 그 넷에 물린 소자); dVGS_eq = dID/gm_pred"}
+
+
+def diagnose(free_res, forced_res):
+    """free FAIL 원인 분류(기록만, C19). 반환 dict(classification, reason, ...).
+    - free 가 FAIL 이 아니면 'not_applicable'.
+    - forced 결과가 없거나 막힘이면 'unknown'(분류 불가).
+    - forced dc_consistent True  -> 'boundary_condition'(엔진 DC 정합, free 수렴·고임피던스 노드·경계조건 쪽)
+    - forced dc_consistent False -> 'engine_dc_inconsistent'(엔진 DC 비정합 -- 엔진 쪽 결함)
+    - dc_consistent None(허용오차 없음 등)이면 'unknown'."""
+    fv = ((free_res or {}).get("summary") or {}).get("verdict")
+    if fv != "FAIL":
+        return {"classification": "not_applicable", "reason": f"free verdict {fv} -- FAIL 일 때만 분류"}
+    if not forced_res or forced_res.get("blockers") or "diagnosis" not in forced_res:
+        return {"classification": "unknown", "reason": "forced 결과 없음 또는 막힘 -- 분류 불가(--bias free forced 로 함께 실행)"}
+    dg = forced_res["diagnosis"]
+    out = {"forced_kcl_nets_exceeding": dg["kcl_nets_exceeding"], "forced_kcl_nets_judged": dg["kcl_nets_judged"],
+           "gate_shared_max_spread": (dg["gate_shared_nets"][0] if dg["gate_shared_nets"] else None)}
+    if dg["dc_consistent"] is True:
+        out.update(classification="boundary_condition",
+                   reason="forced KCL 잔차가 판정한 모든 넷에서 소자 tol_I 합 안 -- 엔진 DC 는 정합, free 수렴·경계조건 쪽 문제")
+    elif dg["dc_consistent"] is False:
+        out.update(classification="engine_dc_inconsistent",
+                   reason=f"forced KCL 잔차가 tol_I 합을 넘는 넷 {dg['kcl_nets_exceeding']} -- 엔진 DC 비정합")
+    else:
+        out.update(classification="unknown", reason="판정 가능한 forced KCL 넷이 없다(소자 허용오차 없음 등)")
+    return out
 
 
 def _f(v, f="{:.4g}"):
@@ -249,6 +380,23 @@ def to_markdown(res):
          f"- 판정 설정: {json.dumps(res['judge_config'], ensure_ascii=False)}",
          (f"- SPICE 포화 소자 {s['sat_in_spice']}/{s['devices']}, 포화 아님: {', '.join(s['not_sat']) or '-'}"
           if s["sat_in_spice"] is not None else "- 포화 판정: sat_margin_V 미설정(포화 여유 값만 보고)")]
+    ti = res.get("topology_identity") or {}
+    L.append(f"- C15 topology 연결 동일성: **{ti.get('status', 'unverified')}**"
+             + (f" (차이 {len(ti.get('diffs') or [])}건)" if ti.get("diffs") else "")
+             + (f" -- {'; '.join(ti.get('notes') or [])}" if ti.get("notes") else ""))
+    for dd in (ti.get("diffs") or [])[:20]:
+        L.append(f"  - 차이: {dd}")
+    for nm, why in (ti.get("declared_not_in_topology") or {}).items():
+        L.append(f"  - 비교 제외(입력 선언): {nm} -- {why}")
+    if s.get("z1"):
+        L.append(f"- Z1 제거법 진단 실행: omit={s['z1']['omit']} short={s['z1']['short']}")
+    if s.get("iso"):
+        iso = s["iso"]
+        L.append(f"- iso(단독 소자, K3): **{iso['verdict']}** -- 허용오차 안 {len(iso['within_tol'])}, 밖 {iso['outside_tol']}, "
+                 f"판정 못 함 {iso['not_judged']}")
+    if res.get("diagnosis_free"):
+        dgf = res["diagnosis_free"]
+        L.append(f"- 진단(free FAIL 원인): {dgf['classification']} -- {dgf['reason']}")
     for b in res["blockers"]:
         L.append(f"- 막힘: {b}")
     for n in res.get("notes") or []:
@@ -264,12 +412,25 @@ def to_markdown(res):
              f"{_f(ac.get('pm_deg'))} / {_f(ac.get('f3db_hz'))} | | |")
     L.append(f"| (참고) PM 정의 {ac.get('pm_definition')}: 루프 이득 기준점 dB / 루프 UGF Hz / 개루프 A 의 PM deg | | "
              f"{_f(ac.get('loop_gain_dc_db'))} / {_f(ac.get('loop_ugf_hz'))} / {_f(ac.get('pm_open_loop_deg'))} | | |")
+    if ac.get("pm_crosscheck_deg") is not None or ac.get("pm_crosscheck_note"):
+        L.append(f"| (참고) PM 교차 측정(폐루프 peaking 역산, 기록만) deg / peaking dB | | "
+                 f"{_f(ac.get('pm_crosscheck_deg'))} / {_f(ac.get('closed_loop_peaking_db'))} | "
+                 f"{_f(ac.get('pm_crosscheck_gap_deg'), '{:+.3g}')} | {ac.get('pm_crosscheck_note') or ''} |")
     for c in res["constraints"]:
         L.append(f"| 제약 {c.get('name', '')}: {c['measure']} {c['op']} {_f(c.get('limit'))} | | {_f(c['spice'])} | | {c['judge']} |")
     if res["kcl_residual"]:
         L += ["", "| forced 고정원 전류(KCL 잔차) 넷 | uA | 판정 |", "|---|---|---|"]
         for k in res["kcl_residual"]:
             L.append(f"| {k['net']} | {_f(None if k['hold_current_A'] is None else k['hold_current_A'] * 1e6)} | {k['judge']} |")
+    dg = res.get("diagnosis")
+    if dg:
+        L += ["", f"- forced 진단: dc_consistent={dg['dc_consistent']} (판정 넷 {dg['kcl_nets_judged']}, 넘는 넷 {dg['kcl_nets_exceeding']})"]
+        if dg["gate_shared_nets"]:
+            L += ["", "| 게이트 공유 넷 | 등가 dVGS 퍼짐 mV | 소자별 dVGS_eq mV |", "|---|---|---|"]
+            for gsn in dg["gate_shared_nets"]:
+                L.append(f"| {gsn['net']} | {_f(None if gsn['spread_V'] is None else gsn['spread_V'] * 1e3)} | "
+                         + ", ".join(f"{k}={_f(None if v is None else v * 1e3, '{:+.3g}')}" for k, v in gsn["dVGS_eq_V"].items())
+                         + " |")
     L += ["", "| 소자 | L um | finger_w um x m | ID 예측/SPICE uA | ID차 | VGS 예측/SPICE | VDS 예측/SPICE | VSB 예측/SPICE | VDSAT | 포화여유 | 영역 | gm차 | gds차 |",
           "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in res["devices"]:
@@ -293,6 +454,8 @@ def main(argv=None):
     ap.add_argument("out_prefix")
     ap.add_argument("--judge", default=None, help="판정 설정 JSON(tolerances, sat_margin_V)")
     ap.add_argument("--sat-margin-v", type=float, default=None)
+    ap.add_argument("--forced-compare", default=None,
+                    help="[신규] 같은 입력의 forced compare.json -- free 결과에 diagnosis_free(C19)를 붙인다")
     a = ap.parse_args(argv)
     with open(a.oracle_input, encoding="utf-8") as f:
         inp = json.load(f)
@@ -313,6 +476,9 @@ def main(argv=None):
         with open(a.judge, encoding="utf-8") as f:
             fj = json.load(f)
     res = compare(inp, meta, sim, merge_judge(inp.get("judge"), fj, a.sat_margin_v))
+    if a.forced_compare and res["bias"] == "free":
+        with open(a.forced_compare, encoding="utf-8") as f:
+            res["diagnosis_free"] = diagnose(res, json.load(f))
     with open(a.out_prefix + ".compare.json", "w", encoding="utf-8") as f:
         json.dump(res, f, ensure_ascii=False, indent=1)
     with open(a.out_prefix + ".compare.md", "w", encoding="utf-8") as f:
