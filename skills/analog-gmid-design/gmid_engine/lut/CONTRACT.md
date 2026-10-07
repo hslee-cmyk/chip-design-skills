@@ -243,7 +243,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 ## 8. 범위 밖·보류
 
-- `vdsat`(설계 2.10): 규칙 미확정(DF-25, 6b)·소비자 없음 → 만들지 않음. `gm_id_for_vgs`: 소비처 미확정(DEC-76) → 만들지 않음.
+- `vdsat`(설계 2.10): 소비자는 있다 -- GB7 봉인 7(포화 여유 `VDS − VDsat`)과 SPICE 포화 판정(오라클 BSIM `@m[vdsat]`)이 같은 VDsat 정의를 써야 한다(정의 통일). 그 정의의 원천인 LUT VDSAT 열이 LUT 재생성(U-27)에서 추가되기를 기다리므로 지금은 만들지 않는다(대기, 2/(gm/ID) 근사로 대신하지 않는다). `gm_id_for_vgs`: 소비처 미확정(DEC-76) → 만들지 않음.
 - E3 디스크 캐시(tol_V 표·곡선 보고 지문 키): 이 단계 밖. 현재 derived memo(실행 내)만.
 - toy LUT 픽스처(`tests/fixtures/toy_lut.py`, 옛 `_invq_newton`·`build_toy_lut` 복사)는 test 작성자 몫.
 - 옛 `SemiEmpiricalGmIdLUT`(W_ref = 5 µm 슬라이스 배열) 대비 `op_point`·`vgs_for_gm_id` 동치 test: 옛 로그 바닥(1e-18·1e-30)과 갈리는
