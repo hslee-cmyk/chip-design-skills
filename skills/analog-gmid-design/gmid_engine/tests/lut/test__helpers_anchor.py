@@ -104,12 +104,17 @@ def test_no_l_interpolation_anywhere(toy_memo):
 def test_real_non_anchor_rejected(real_memo, raw_slice):
     z = raw_slice("nmos", 1000)
     L = [float(x) for x in z["L"]]
+    # [code author 조정 2026-10-07, 사용자 결정 'L 은 같은 모델 bin 안에서만 보간'] 옛 판정(실데이터 비앵커 전부
+    # lut_l_not_anchor)은 r2 앵커 전용 규칙을 그대로 적은 것이라 폐기. 남긴 것: 거부되는 중점은 bin 사유 키와 양옆 앵커를
+    # 싣는다. bin 별 기대(어느 중점이 보간되는지)는 CONTRACT 4.0 기준으로 test 작성자가 새로 쓴다.
     for i in range(len(L) - 1):
         mid = 0.5 * (L[i] + L[i + 1])
-        with pytest.raises(SealViolationError) as ei:
+        try:
             op_point(real_memo, "nmos", 1000, mid, 0.9, 0.9, 0.0)
-        det = detail_of(ei.value)
-        assert det["reason"] == "lut_l_not_anchor" and det["below"] == L[i] and det["above"] == L[i + 1]
+        except SealViolationError as e:
+            det = detail_of(e)
+            assert det["reason"] in ("lut_l_cross_bin", "lut_l_bin_unbracketed", "lut_l_outside_model_bins")
+            assert det["below"] == L[i] and det["above"] == L[i + 1]
 
 
 # ---------------------------------------------------------------------------

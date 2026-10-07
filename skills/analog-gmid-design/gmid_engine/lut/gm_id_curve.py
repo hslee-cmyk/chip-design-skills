@@ -1,10 +1,12 @@
-"""고정 (L 앵커, VDS, VS) 의 gm/ID 곡선 -- VGS 격자 위 (ID, gm/ID) (설계 MOD1 2.1 `_gm_id_curve` 블록 복사).
+"""고정 (L, VDS, VS) 의 gm/ID 곡선 -- VGS 격자 위 (ID, gm/ID) (설계 MOD1 2.1 `_gm_id_curve` 블록 복사).
 
 진입점: `gm_id_curve`.
 
-L 은 앵커 이산 키다(계획 LR3, L 보간 없음). 복사 블록은 그대로 두고, 블록에 넘기는 `sl` 을 그 앵커 하나만 가진
-보기(`_anchor_view`: L 격자 = (앵커,), 배열 = 그 앵커 한 장)로 바꾼다 -- 1점 L 격자에서 `multilinear_interp` 의
-L 가중치는 (1, 0) 이고 bit 1 쪽 모서리는 가중치 0 이라 읽히지 않으므로, 결과는 그 앵커 격자값의 (VDS, VS) 보간과 같다.
+L 은 앵커이거나 같은 모델 bin 안 두 앵커 사이만(`l_position`, lut/CONTRACT.md 4.0). 복사 블록은 그대로 두고, 블록에
+넘기는 `sl` 을 `l_position` 이 고른 L 격자 조각만 가진 보기(`_l_view`: L 격자 = (앵커,) 또는 같은 bin 의
+(아래 앵커, 위 앵커), 배열 = 그 장들)로 바꾼다 -- 1점 L 격자에서 `multilinear_interp` 의 L 가중치는 (1, 0) 이고 bit 1 쪽
+모서리는 가중치 0 이라 읽히지 않으므로 결과는 그 앵커 격자값의 (VDS, VS) 보간과 같고, 2점이면 그 두 장 사이 L 선형 보간이다
+(bin 밖 장은 보기에 없어 읽힐 수 없다).
 
 `_curve_arrays` 의 문장은 옛 `SemiEmpiricalGmIdLUT._gm_id_curve`(SR:455) 의 알고리즘 구간(캐시 줄 제외)을 그대로
 옮긴 것이다. 이름 바꿈만 있다: `self` -> `sl`(DcSlice), `_multilinear_interp` -> `multilinear_interp`,
@@ -14,16 +16,17 @@ import types
 
 import numpy as np
 
-from ._helpers_anchor import l_anchor_index
+from ._helpers_anchor import l_position
 from ._helpers_interp import multilinear_interp
 from .axis_guard import check_axes
 from .lut_types import AXES, Curve
 
 
-def _anchor_view(sl, i):
+def _l_view(sl, lo, hi):
+    part = slice(lo, hi + 1)
     return types.SimpleNamespace(
-        VGS_grid=sl.VGS_grid, grids_list=((sl.grids[0][i],),) + tuple(sl.grids_list[1:]),
-        log_ID=sl.log_ID[i:i + 1], log_GM=sl.log_GM[i:i + 1])
+        VGS_grid=sl.VGS_grid, grids_list=(sl.grids[0][part],) + tuple(sl.grids_list[1:]),
+        log_ID=sl.log_ID[part], log_GM=sl.log_GM[part])
 
 
 def _curve_arrays(sl, L, vds, vsb):
@@ -41,20 +44,21 @@ def _curve_arrays(sl, L, vds, vsb):
 
 
 def gm_id_curve(memo, kind, w_key, L, vds, vsb):
-    """(kind, w_key) 슬라이스의 L 앵커 `L`, 고정 (vds, vsb) 곡선 `Curve`(읽기 전용 배열). memo 영역 curve.
+    """(kind, w_key) 슬라이스의 `L`, 고정 (vds, vsb) 곡선 `Curve`(읽기 전용 배열). memo 영역 curve.
 
-    `id_vals` 는 슬라이스 폭 w_m 에서의 ID(A). 실패: L 이 앵커가 아님·축 밖 -> `SealViolationError`, 폭 키 없음 -> `KeyError`.
+    `id_vals` 는 슬라이스 폭 w_m 에서의 ID(A). 실패: L 이 앵커도 같은 bin 보간도 아님·축 밖 -> `SealViolationError`,
+    폭 키 없음 -> `KeyError`.
     """
     sl = memo.lut.slice_map[(kind, w_key)]
     context = (("kind", kind), ("w_key", w_key))
-    i = l_anchor_index(sl.grids[0], L, context)
+    lo, hi, l_val = l_position(sl.grids[0], sl.l_bins, L, context)
     vds, vsb = float(vds), float(vsb)
     check_axes((sl.grids[2], sl.grids[3]), (AXES[2], AXES[3]), (vds, vsb), context)
 
     def compute():
-        id_vals, gm_id_vals = _curve_arrays(_anchor_view(sl, i), sl.grids[0][i], vds, vsb)
+        id_vals, gm_id_vals = _curve_arrays(_l_view(sl, lo, hi), l_val, vds, vsb)
         id_vals.setflags(write=False)
         gm_id_vals.setflags(write=False)
         return Curve(sl.VGS_grid, id_vals, gm_id_vals)
 
-    return memo.lookup("curve", "gm_id_curve", (kind, w_key, i, vds, vsb), compute)
+    return memo.lookup("curve", "gm_id_curve", (kind, w_key, lo, hi, l_val, vds, vsb), compute)
