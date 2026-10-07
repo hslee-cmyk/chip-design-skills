@@ -8,6 +8,10 @@
 - **개정 r2(2026-10-07, 사용자 확정 계획 N3.9 LR3·N3.6)**: 바뀐 곳에 `[r2]` 표시. 요지 -- L 은 LUT L 앵커 이산 키만(L 방향 보간 0,
   4.0절), tol_V 는 보간 축 VGS·VDS·VS leave-one-out(5절 전면 교체), 용량 kind 집합 fail-closed·`nearest_other_rel_diff` 분모(1.4),
   `CurveRow.n_curves` 정의(4절 표), 0절 파일 표(`_helpers_anchor.py`·층), 6절 gm_id_curve 블록 비고, 7절 toy 기대값.
+- **개정 r4(2026-10-07, 사용자 결정 'L 은 같은 PDK 모델 bin 안 두 LUT 점 사이에서만 선형 보간')**: 바뀐 곳에 `[r4]` 표시.
+  r2 의 'L 보간 0' 을 대체한다. 요지 -- 로드 때 슬라이스 meta 의 모델 파일에서 L bin 지도(`LBinMap`)를 한 번 만들고(1.2·1.3·1.4),
+  조회 L 은 앵커(r2/r3 그대로) 또는 같은 bin 의 양옆 앵커 사이 보간, bin 경계를 건너면 거부(4.0 전면 교체·새 사유 키 3개),
+  tol_V 에 같은 bin 안 L 방향 LOO 와 앵커 2개 bin 의 외부 오차 입력(5절), 0절 파일 표(`_helpers_bins.py`).
 - 실패 객체는 core 의 `SchemaRejectedError`(로드 거부)·`SealViolationError`(조회 실패)다. `record.detail` 은
   `{"reason": <사유 키>, ...}` 의 키 정렬 쌍 tuple 이고 `record.devices == ()`, `record.margin is None`
   (LUT 는 소자 이름을 모른다 -- 소자를 아는 호출부가 덧붙인다, P-28·P-34).
@@ -18,17 +22,18 @@
 
 | 층 | 파일 | 진입점 / 종류 |
 |---|---|---|
+| 0 | `_helpers_bins.py` [r4] | helper: `bin_index`(bin 소속 규칙, 4.0.1) |
 | 0 | `_helpers_fail.py` | helper: `schema_rejected`, `seal_violation` |
 | 0 | `_helpers_interp.py` | helper: `multilinear_interp`, `multilinear_interp_point_multi`(옛 본문 복사) |
 | 0 | `_helpers_root.py` | helper: `peak_index`, `strong_inversion_root` |
-| 0 | `lut_types.py` | 데이터 선언 모듈(`LutSpec`·`SliceSource`·`LutProvenance`·`DcSlice`·`CapTable`·`LutSet`·`OpPoint`·`Curve`·`TargetSolution`·`Caps`·`TolVCell`·`CurveRow`·`CurveReport`, 상수 `AXES`·`TOL_V_METRICS`) |
+| 0 | `lut_types.py` | 데이터 선언 모듈(`LutSpec`·`SliceSource`·[r4] `LBin`·`LBinMap`·`LutProvenance`·`DcSlice`·`CapTable`·`LutSet`·`OpPoint`·`Curve`·`TargetSolution`·`Caps`·`TolVCell`·`CurveRow`·`CurveReport`, 상수 `AXES`·`TOL_V_METRICS`) |
 | 0 | `fingerprint.py` | `lut_fingerprint` |
 | 0 | `lut_memo.py` | `LutMemo` (+ 상수 `REGIONS`·`DERIVED_TABLES`) |
 | 0 | `widths.py` | `widths` |
 | 1 | `axis_guard.py` | `check_axes` |
 | 1 | `curve_check.py` | `curve_report` |
 | 1 | `provenance.py` | `lut_provenance` |
-| 2 | `_helpers_anchor.py` [r2] | helper: `l_anchor_index` |
+| 2 | `_helpers_anchor.py` [r4] | helper: `l_position`(옛 `l_anchor_index` 대체 -- 앵커 또는 같은 bin 보간 위치) |
 | 2 | `lut_set.py` | `load_lut_set` |
 | 3 | `point_query.py` | `op_point` |
 | 3 | `gm_id_curve.py` | `gm_id_curve` |
@@ -52,7 +57,8 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - manifest: `{"generator_sha256": str, "slices": [{"device": str, "file": <manifest 폴더 기준 상대 경로>, "sha256": hex}, ...]}`
   (다른 키는 무시). 경로는 인자로만 받는다.
 - 슬라이스 npz 키: `W`(m, 스칼라), `L`(m)·`VGS`·`VDS`·`VS`(V, 오름차순 1차원), `ID`·`GM`·`GDS`·`VTH` 형상
-  `[len(L), len(VGS), len(VDS), len(VS)]`(그 폭의 절댓값), `meta_json`(JSON 문자열, `model_files_sha256` 객체 선택),
+  `[len(L), len(VGS), len(VDS), len(VS)]`(그 폭의 절댓값), `meta_json`(JSON 문자열, `model_files_sha256` 객체 선택 --
+  {PDK 루트 기준 상대 경로: sha256}; [r4] 비어 있지 않으면 `pdk_root`(문자열, 그 루트 폴더) 필수),
   측정 조건 `corner`·`temp_c`(선택 -- 없으면 recorded=False).
 - 기준 LUT(용량) npz 키: `L`·`VGS`·`VDS`·`VS`, kind 마다 `CGG<접미사>`·`CGD<접미사>`(필수), `CGS<접미사>`·`CGB<접미사>`(선택),
   `ID<접미사>`(폭 판정용, 선택), `w_ref_m`(선택), `corner`·`temp_c`(선택).
@@ -64,9 +70,13 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   ulp 허용 대상이 아니다.
 - `slices` 는 (kind, w_key) 정렬 `SliceSource` tuple. `conditions`·`cap_conditions` 는 옛 `lut_conditions_from_npz` 결과의
   키 정렬 쌍 tuple: 기록 있음 → `(("corner", str), ("recorded", True), ("temp_c", float))`, 없음 → `(("note", str), ("recorded", False))`.
+- [r4] **모델 파일**: 슬라이스 meta `model_files_sha256` 의 파일마다 경로 = `os.path.join(meta["pdk_root"], 상대 경로)`, 파일 sha256 을
+  다시 재서 기록값과 대조(같은 경로는 한 호출에서 1회). `SliceSource.model_paths` = ((상대 경로, 그 경로), ...) 상대 경로 정렬,
+  기록이 없으면 `()`. 경로는 지문에 들어가지 않는다(모델 sha256 은 이미 `model_files_sha256` 로 지문에 있다).
 - 실패(`SchemaRejectedError`, reason): `lut_manifest_missing`, `lut_device_undeclared`(device_kinds 밖), `lut_slice_missing`,
   `lut_slice_sha256_mismatch`, `lut_width_off_grid`(|W/grid − w_key| > `2·ulp(W/grid)`), `lut_slice_duplicate`(같은 (kind, w_key)),
-  `lut_manifest_empty`, `lut_cap_missing`.
+  `lut_manifest_empty`, `lut_cap_missing`, [r4] `lut_model_root_missing`(모델 파일 기록이 있는데 `pdk_root` 없음, detail `path` = 슬라이스),
+  `lut_model_file_missing`(detail `path, slice`), `lut_model_file_sha256_mismatch`(detail `path, recorded, actual, slice`).
 
 ### 1.4 `load_lut_set(manifest_path, cap_npz_path, spec) -> LutSet`
 - `LutSet(spec, provenance, slice_map, cap_map, fp)`: `slice_map` = 읽기 전용 매핑 {(kind, w_key): DcSlice}, `cap_map` = {kind: CapTable}.
@@ -82,11 +92,28 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - [r2] **용량 kind 집합(fail-closed)** = 슬라이스 kind ∪ `spec.cap_column_suffix` 선언 kind. 그 집합의 kind 마다 이 순서로 검사:
   접미사 선언 없음 → `lut_cap_kind_undeclared`, 슬라이스 없음 → `lut_cap_kind_without_slices`, `CGG<접미사>`·`CGD<접미사>` 열 없음 →
   `lut_cap_column_missing`. `cap_map` 의 키 = 이 집합.
+- [r4] **L bin 지도 `DcSlice.l_bins` = `LBinMap(model_files, w_bin, bins, anchor_bin)`** -- 로드 때 슬라이스마다 1회 계산해 보관
+  (조회마다 다시 만들지 않는다. 같은 모델 파일은 한 로드에서 한 번만 읽는다):
+  1. bin 블록 = 슬라이스 `model_paths` 파일들의 `.model <이름> ...` 블록 중 `lmin`·`lmax`·`wmin`·`wmax`(대소문자 무시, `키 = 숫자`)를
+     가진 것(값 m). 블록은 다음 `.model` 줄 또는 파일 끝까지. 넷 중 일부만 있는 블록 → `lut_model_bin_incomplete`(detail `path, model, keys`).
+     넷 다 없는 블록(bin 아닌 모델)은 무시.
+  2. bin 블록이 하나도 없으면(모델 파일 기록 없음 포함) **빈 지도** `LBinMap((), None, (), ())` -- 거부가 아니다. 빈 지도에서는 L 보간이 없다(4.0).
+  3. W bin: 블록들의 서로 다른 `(wmin, wmax)` 쌍을 오름차순으로 놓고 4.0.1 규칙(`bin_index`)으로 슬라이스 W(`w_m`)의 쌍을 고른다
+     → `w_bin`. 없으면 `lut_model_bins_no_width`(detail `path, w_m`).
+  4. `bins` = 그 `w_bin` 과 같은 `(wmin, wmax)` 블록의 `LBin(model, lmin, lmax)`, (lmin, lmax, model) 오름차순. 이웃 두 bin 이
+     `lo_b < hi_a` 이고 `|hi_a − lo_b| > ulp(lo_b)` 이면(겹침) `lut_model_bins_overlap`(detail `path, w_m, models`).
+  5. `anchor_bin[i]` = L 축 앵커 i 의 `bins` index(4.0.1 규칙). 어느 앵커라도 bin 이 없으면 `lut_l_anchor_outside_model_bins`(detail `path, w_m, L`).
+  `model_files` = 읽은 상대 경로 tuple. **`CapTable.l_bins`** = 그 kind 슬라이스 중 `w_m == w_ref_m` 인 것의 지도(없으면 빈 지도 --
+  기준 LUT 는 모델 파일 기록이 없으므로 채택 폭 슬라이스의 지도를 빌린다).
+- [r4 실측 2026-10-07, 생성 슬라이스 32개] 로드 1.75 s(r2 1.5 s). 모든 슬라이스의 `anchor_bin` = (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5)
+  (L 앵커 0.15·0.2·0.25·0.3·0.35·0.425·0.5·0.7·1·1.5·2.5·4 µm, bin = [0.15,0.18]·(0.18,0.25]·(0.25,0.5]·(0.5,1]·(1,2]·(2,4]). w_key 1000
+  (W = 4.9999999999999996e-06) 은 nmos·pmos 모두 `w_bin` (3e-6, 5e-6). pmos w_key 84·110 은 같은 `w_bin` (4.2e-7, 5.5e-7).
 - `fp == lut_fingerprint(provenance, ((kind, w_ref_m, basis), ...))`.
 - 실패(`SchemaRejectedError`, reason): 1.3 전부 + `lut_conditions_mismatch`, `lut_slice_axes_mismatch`, `lut_slice_shape_mismatch`,
   `lut_array_no_positive`, `lut_cap_axes_mismatch`, `lut_cap_kind_undeclared`, `lut_cap_kind_without_slices`, `lut_cap_column_missing`,
   `lut_cap_width_unresolved`
-  (슬라이스 1개뿐·동률·분리 조건 불충족·VS 값이 슬라이스 축에 없음·`w_ref_m`·`ID` 열 둘 다 없음).
+  (슬라이스 1개뿐·동률·분리 조건 불충족·VS 값이 슬라이스 축에 없음·`w_ref_m`·`ID` 열 둘 다 없음),
+  [r4] `lut_model_bin_incomplete`, `lut_model_bins_no_width`, `lut_model_bins_overlap`, `lut_l_anchor_outside_model_bins`.
 - [실측 2026-10-07, 생성 완료 슬라이스 32개 + `assets/sky130_nfet_pfet_lut_sample.npz`] 로드 1.5 s, nmos·pmos 모두 w_key 1000
   (5 µm) 채택, d_w ≈ 5.0e-7, 이웃 차 0.88(nmos)·1.25(pmos).
 
@@ -131,16 +158,47 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 공통: 축 이름 `AXES = ("L", "VGS", "VDS", "VS")`, L 은 m, 전압은 V(VS = vsb 크기). 입력 숫자는 `float()` 로 바꿔 쓴다.
 
-### 4.0 [r2] L = 앵커 이산 키 (계획 LR3, 사용자 확정 2026-10-07)
-- L 방향 보간은 어떤 조회 경로에도 없다(op_point·gm_id_curve·vgs_for_gm_id·gm_id_for_target·gmb·caps·TolVTable.at). 보간 축은 VGS·VDS·VS 3개.
-- 조회 L 은 L 축 격자의 앵커 a 하나와 `|L − a| ≤ math.ulp(a)` 이어야 한다(폭 키와 같은 원리 -- 근접 앵커 대체 없음). 그 앵커 값이 L 로
-  쓰인다(`IDu = ID·a/w_m`, `id_a = IDu·W/a`). op_point·gmb·caps·gm_id_curve 의 memo 키에는 앵커 index 가 들어가 1 ulp 이내 두 입력은
-  같은 키다(vgs_for_gm_id·gm_id_for_target 은 입력 float 를 키로 쓴다 -- 값은 같다).
-- [r3] **1 ulp 허용은 대칭이다**: 앵커 일치 검사를 범위 검사보다 **먼저** 한다. 그래서 격자 양끝 앵커도 `|L − a| ≤ ulp(a)` 이면
-  (격자 밖 쪽으로 1 ulp 벗어난 L 포함) 그 앵커로 받는다. 예: `L = L_max + ulp(L_max)` → 마지막 앵커, `L = L_min − ulp(L_min)` → 첫 앵커.
-- 실패(앵커 일치가 없을 때만): 1 ulp 를 넘어 격자 범위 밖 → `lut_axis_out_of_range`(axis "L"), 범위 안이지만 앵커가 아님 → `SealViolationError` reason **`lut_l_not_anchor`**,
-  detail `value, below, above`(양옆 앵커) + context(kind·w_key; 용량은 kind·table "cap"; tol_V 는 kind·table "tol_v"·w_key).
-- 앵커 위 조회 값은 r1(L 보간) 과 같다(L 가중치가 (1, 0) 인 같은 식).
+### 4.0 [r4 전면 교체] L = 앵커 또는 같은 모델 bin 안 보간 (사용자 결정 2026-10-07)
+적용 경로: op_point·gm_id_curve·vgs_for_gm_id·gm_id_for_target·gmb·caps·TolVTable.at(모두 같은 판정 `l_position`). 판정 순서:
+1. **앵커**(r2/r3 그대로): 조회 L 이 L 축 앵커 a 와 `|L − a| ≤ math.ulp(a)` 이면 그 앵커. 이 검사가 범위 검사보다 **먼저**다(대칭 --
+   격자 양끝 앵커도 바깥쪽 1 ulp 까지 받는다. 예 `L_max + ulp(L_max)` → 마지막 앵커). L 값으로 앵커 값 a 를 쓰고(`IDu = ID·a/w_m`,
+   `id_a = IDu·W/a`), 결과는 r2 앵커 조회와 **비트 단위로 같다**(L 격자 = (a,) 한 장, L 가중치 (1, 0)).
+2. 범위: 1 ulp 를 넘어 L 격자 밖(NaN 포함) → `lut_axis_out_of_range`(axis "L", 4.1).
+3. 양옆 앵커 below = L[k−1] < L < above = L[k] (k = `bisect_right(L 격자, L)`). 표의 bin 지도(`DcSlice.l_bins`, 용량은 `CapTable.l_bins`,
+   tol_V 는 `TolVTable.l_bins`)가
+   - **빈 지도** → `lut_l_not_anchor`(r2 사유 키 유지, detail 에 `bins: "unavailable"` 추가).
+   - `anchor_bin[k−1] == anchor_bin[k]`(같은 bin -- bin 은 구간이라 사이의 L 도 그 bin) → **보간**: L 격자 = (below, above) 두 장으로
+     (L, VGS, VDS, VS) 4축 다중선형 보간(`multilinear_interp*` 그대로, L 가중치 `t = (L − below)/(above − below)`, 각 열의 보간 공간 규칙 그대로 --
+     ID·GM·GDS 로그, VTH·용량 선형). L 값은 조회 L 그대로(`IDu = ID·L/w_m`, `id_a = IDu·W/L`). bin 밖 장은 읽지 않는다.
+   - 다르면 거부(bin 경계를 건너는 보간 금지). 조회 L 의 bin b = `bin_index(((lmin, lmax) of bins), L)`(4.0.1):
+     - b 없음(모델 bin 사이 빈틈) → **`lut_l_outside_model_bins`**
+     - b 의 LUT 앵커가 1개 이하 → **`lut_l_bin_unbracketed`**(그 bin 안에 감싸는 두 점이 없다)
+     - b 의 앵커가 2개 이상(L 이 그 앵커들 바깥, 감싸는 쌍이 경계를 건넘) → **`lut_l_cross_bin`**
+   - 세 거부의 detail: `value, below, above, below_bin, above_bin`(양옆 앵커의 bin `.model` 이름) + context; `lut_l_bin_unbracketed`·
+     `lut_l_cross_bin` 은 `bin, bin_lmin, bin_lmax, bin_anchors`(b 의 이름·경계·그 bin 앵커 L tuple) 추가. context = kind·w_key / 용량 kind·table "cap" /
+     tol_V kind·table "tol_v"·w_key.
+- memo 키: op_point·gmb·gm_id_curve = `(kind, w_key, lo, hi, L 값) + 나머지`, caps = `(kind, lo, hi, L 값, ...)`(lo, hi = 쓴 L 장 index,
+  앵커면 lo == hi 이고 L 값 = 앵커 값 → 1 ulp 이내 두 입력은 같은 키). vgs_for_gm_id·gm_id_for_target 은 입력 float 를 키로 쓴다.
+- [r4 실측, 생성 슬라이스 nmos w_key 1000, VGS = VDS = 0.9, VS = 0] L 0.3·0.3125·0.4·0.45 µm 보간 성공(bin (0.25, 0.5]),
+  0.6 µm → `lut_l_cross_bin`(bin (0.5, 1], 앵커 0.7·1.0), 0.17 µm → `lut_l_bin_unbracketed`(bin [0.15, 0.18], 앵커 0.15),
+  1.2 µm → `lut_l_bin_unbracketed`(bin (1, 2], 앵커 1.5), 0.22 µm·0.85 µm·3 µm 보간 성공. 0.3875 µm 의 gm/ID 6.6575 는 0.35·0.425 µm 값
+  6.7234·6.5923 사이.
+
+#### 4.0.1 [r4] bin 소속 규칙 (`_helpers_bins.bin_index`, 로드 배정과 조회가 같은 함수)
+- 값 x 는 `lo ≤ x ≤ hi` 인 구간에 든다(**양끝 닫힘**). 경계를 공유한 두 구간이 다 품으면 **lo 가 작은(아래) 구간**이 이긴다.
+  그래서 경계값 L = b 는 `lmax = b` 인 아래 bin 이다 -- 사실상 `lmin < L ≤ lmax`(맨 아래 bin 만 `lmin` 포함). W 도 같다(W = wmax 인 아래 W bin).
+  경계 비교는 그 경계값의 1 ulp 이내를 같은 값으로 본다(LUT L 은 `µm × 1e-6` 곱이라 경계와 1 ulp 어긋날 수 있다. 예: 슬라이스 W
+  4.9999999999999996e-06 은 경계 5e-06 위로 보아 W bin (3e-6, 5e-6)).
+- 근거(ngspice-46 실측, sky130 tt, `showmod` 의 lmin·lmax·wmin·wmax): (1) 생성 슬라이스 32개 × L 앵커 12개 = 384점 전부를 이 규칙의 예측과
+  대조해 **384/384 일치**(code author 실측 2026-10-07, 스크립트 `scratchpad/bin_verify.py`·결과 `bin_verify.out`) (2) W = 5 µm 에서 L = 0.5 µm →
+  bin [0.25, 0.5], 0.501 µm 까지 아래 bin, 0.5011 µm 부터 위 bin; L = 0.15 − 0.001 µm 도 맨 아래 bin, 0.1485 µm 은 "could not find a valid modelname"
+  (3) 오케스트레이터 측 별도 실측: 0.1809 µm → 아래, 0.181 µm → 위, W = 5 µm → [3, 5] bin(`lut_regen_plan.md` 1.2a, raw `scratchpad/bincheck/`).
+  **`lmin ≤ L < lmax` 가 아니다**(슬라이스 생성기 `bin_for` 와 meta `model_bin_per_L` 은 이 잘못된 규칙으로 적혀 있어 경계 앵커의 bin 이름이
+  실제와 다르다 -- 엔진은 그 meta 를 읽지 않는다).
+- ngspice 는 경계 바깥 약 1 nm 까지 아래 bin 을 쓰지만(위 (2)) 엔진은 그 허용폭을 쓰지 않는다(시뮬레이터 내부값 -- 박지 않음).
+  영향: 조회 L ∈ (b, b + ~1 nm] 은 엔진에선 위 bin 이다. 위 bin 의 앵커는 모두 b 보다 크므로(앵커 b 는 아래 bin) 그 L 을 위 bin 의
+  두 앵커가 감싸려면 (b, L) 안에 앵커가 있어야 하고, 제조 격자(0.005 µm) 위 앵커에서는 그런 점이 없다 -- 그 L 은 거부되며
+  ngspice 와 다른 bin 의 값으로 보간되지 않는다(앵커가 제조 격자 위에 있다는 전제).
 
 ### 4.1 축 검사
 축 밖(격자 최소·최대 밖, NaN 포함) → `SealViolationError` reason `lut_axis_out_of_range`, detail `axis, value, lo, hi, kind, w_key`
@@ -150,21 +208,21 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | 함수 | 반환 | 정의 |
 |---|---|---|
 | `check_axes(grids, names, point, context=())` | None | 위 축 검사. `context` 쌍은 detail 에 더해진다 |
-| `op_point(memo, kind, w_key, L, vgs, vds, vsb)` | `OpPoint` | [r2] L 앵커 한 장에서 (VGS, VDS, VS) 3축 다중선형 보간 1회: lnID·lnGM·lnGDS 로그공간, VTH 선형. `IDu = ID·L/w_m`, `gm_over_id = exp(lnGM−lnID)`, `gm_gds = exp(lnGM−lnGDS)`, `gds_per_w = GDS/w_m`, `vth` |
-| `gm_id_curve(memo, kind, w_key, L, vds, vsb)` | `Curve` | [r2] L 앵커 한 장, VGS 격자 전체에서 lnID·lnGM 보간: `id_vals = exp(lnID)`(폭 w_m 의 A), `gm_id_vals = exp(lnGM−lnID)`. `vgs_grid` 는 슬라이스 VGS 축. 배열 읽기 전용. VGS 축 검사는 없다(격자 전체) |
+| `op_point(memo, kind, w_key, L, vgs, vds, vsb)` | `OpPoint` | [r4] 4.0 의 L 장(앵커 1장 또는 같은 bin 2장)에서 (L, VGS, VDS, VS) 다중선형 보간 1회: lnID·lnGM·lnGDS 로그공간, VTH 선형. `IDu = ID·L/w_m`, `gm_over_id = exp(lnGM−lnID)`, `gm_gds = exp(lnGM−lnGDS)`, `gds_per_w = GDS/w_m`, `vth` |
+| `gm_id_curve(memo, kind, w_key, L, vds, vsb)` | `Curve` | [r4] 4.0 의 L 장(앵커 1장 또는 같은 bin 2장), VGS 격자 전체에서 lnID·lnGM 보간: `id_vals = exp(lnID)`(폭 w_m 의 A), `gm_id_vals = exp(lnGM−lnID)`. `vgs_grid` 는 슬라이스 VGS 축. 배열 읽기 전용. VGS 축 검사는 없다(격자 전체) |
 | `vgs_for_gm_id(memo, kind, w_key, gm_id, L, vds, vsb)` | float V | 3절 규칙으로 `gm_id_curve` 의 gm/ID 격자 값에서 선형 역보간(곡선 격자 위 gm/ID 가 VGS 에 대해 선형인 근사 -- `op_point(vgs).gm_over_id` 와는 칸 안에서 다를 수 있다). 해 없음 → `SealViolationError` reason `lut_no_strong_inversion_root`, detail `gm_id, L, vds, vsb, kind, w_key, branch_gm_id_min, branch_gm_id_max, peak_vgs` |
 | `gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None)` | `TargetSolution(vgs, gm_id, id_a, gm_s)` | Q = `id_vals·W/w_m`(current) 또는 `id_vals·gm_id_vals·W/w_m`(gm). 분지 index p 부터 Q 가 엄격히 증가하는 첫 구간 [p, e] 에서 ln Q 를 VGS 에 대해 선형으로 풀어 vgs, 그 vgs 의 `op_point` 로 `gm_id`, `id_a = IDu·W/L`, `gm_s = gm_id·id_a`. 목표가 Q[p]..Q[e] 밖이고 분지 Q 범위 밖 → reason `lut_target_out_of_range`, 범위 안이지만 단조 구간 밖에서만 닿음 → `lut_target_non_monotonic`(detail `quantity, target, W, L, vds, vsb, kind, w_key, branch_min, branch_max, monotone_lo, monotone_hi`). `gm`·`current` 둘 다/둘 다 없음, `W ≤ 0` → `ValueError` |
-| `gmb(memo, kind, w_key, L, vgs, vds, vsb)` | float A/V(폭 w_m) | VS 칸 k = `min(bisect_right(VS, vsb) − 1, len(VS) − 2)`, `gmb = −exp(lnID(점)) · (lnID(VS[k+1]) − lnID(VS[k])) / (VS[k+1] − VS[k])`([r2] L 앵커 한 장, VGS·VDS 는 조회점 값으로 보간). 소자 폭 W 값 = `× W / w_m`(부르는 쪽) |
-| `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | [r2] L 앵커 한 장의 기준 LUT 열 (VGS, VDS, VS) 선형 보간 × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(현재 VS 0~0.8 → vsb > 0.8 실패). kind 표 없음 → `KeyError` |
-| `tol_v_table(memo, kind, w_key)` | `TolVTable` | 5절 |
+| `gmb(memo, kind, w_key, L, vgs, vds, vsb)` | float A/V(폭 w_m) | VS 칸 k = `min(bisect_right(VS, vsb) − 1, len(VS) − 2)`, `gmb = −exp(lnID(점)) · (lnID(VS[k+1]) − lnID(VS[k])) / (VS[k+1] − VS[k])`([r4] 4.0 의 L 장, L·VGS·VDS 는 조회점 값으로 보간). 소자 폭 W 값 = `× W / w_m`(부르는 쪽) |
+| `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | [r4] 4.0 의 L 장(bin 지도 = `CapTable.l_bins`)에서 기준 LUT 열 (L, VGS, VDS, VS) 선형 보간 × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(현재 VS 0~0.8 → vsb > 0.8 실패). kind 표 없음 → `KeyError` |
+| `tol_v_table(memo, kind, w_key, l_bin_checks=())` | `TolVTable` | 5절 |
 | `curve_report(memo)` | `CurveReport(lut_fp, rows)` | 슬라이스·L 앵커마다 `CurveRow`(lut_types 문서): 격자점 곡선만. [r2] `n_curves` = **검사한** 곡선 수(건너뛴 곡선 제외), `n_skipped` = ID·GM 에 0 이하 격자점이 있어 뺀 곡선 수,
 `n_curves + n_skipped = len(VDS)·len(VS)`. 행 순서 (kind, w_key) 정렬 후 L 오름차순 |
 
 ---
 
-## 5. [r2 전면 교체] tol_V 표 `tol_v_table(memo, kind, w_key) -> TolVTable` (계획 N3.6, 사용자 확정 2026-10-07)
+## 5. [r2 전면 교체, r4 L 방향 추가] tol_V 표 `tol_v_table(memo, kind, w_key, l_bin_checks=()) -> TolVTable` (계획 N3.6, 사용자 확정 2026-10-07)
 
-- **보간 축 VGS·VDS·VS leave-one-out.** L 은 보간하지 않으므로(4.0) L 축 LOO 는 없고 **모든 L 앵커가 셀을 가진다**(r1 의 '양끝 앵커 None' 폐기).
+- **보간 축 VGS·VDS·VS leave-one-out + [r4] 같은 모델 bin 안의 L 축 leave-one-out.** **모든 L 앵커가 셀을 가진다**(r1 의 '양끝 앵커 None' 폐기).
 - 셀 = (kind, w_key, L 앵커 i, VDS 격자 k) -- `cells[i][k]` = `TolVCell`. **셀별 값만** 낸다(전역 최댓값으로 줄이지 않음).
 - LOO 추정(축 a ∈ {VGS, VDS, VS}, 내부 격자점 x_j, 0 < j < n_a − 1): `lnX_loo = lnX_{j−1} + t·(lnX_{j+1} − lnX_{j−1})`,
   `t = (x_j − x_{j−1}) / (x_{j+1} − x_{j−1})`, X ∈ {ID, GM}(로그공간 -- 운영 보간 `multilinear_interp` 의 그 축 2점 경우와 같은 식).
@@ -172,21 +230,43 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   - `id_equivalent`: 격자점 (i, g, k, s) 마다, 축 a 방향으로 그 점과 두 이웃이 모두 `on_mask` 이면 `|lnID_loo − lnID| / (gm/ID)`(gm/ID = 그 점의 참값).
     셀 값 = 그 (i, k) 의 모든 g·s·a 최댓값.
   - `gm_id_inverse`: 곡선 (i, k, s) 의 `on_mask` 가 VGS 전부 참일 때만. 목표 j = 참 곡선 gm/ID g 의 정점 이후 index 중 오른쪽 모든 점보다
-    g_j 가 큰 점(VGS_j = 그 곡선의 분지 해, 3절). 목표마다 LOO 곡선 최대 3개:
+    g_j 가 큰 점(VGS_j = 그 곡선의 분지 해, 3절). 목표마다 LOO 곡선 최대 3개([r4] L 축 포함 4개):
     VGS 축 = g 에서 j 점만 `exp(lnGM_loo − lnID_loo)` 로 바꾼 곡선(j 가 VGS 양끝이면 없음),
     VDS 축 = 곡선 (i, k−1, s)·(i, k+1, s) 로 보간한 곡선(k 가 내부이고 두 곡선 on_mask 전부 참일 때),
-    VS 축 = 곡선 (i, k, s−1)·(i, k, s+1) 로 같은 식(s 내부, 같은 조건).
+    VS 축 = 곡선 (i, k, s−1)·(i, k, s+1) 로 같은 식(s 내부, 같은 조건),
+    [r4] L 축 = 곡선 (i−1, k, s)·(i+1, k, s) 로 같은 식(i 가 bin 안 내부 앵커 -- 아래 'L 축 규칙', 같은 on_mask 조건). 그래서 목표마다 최대 4개.
     시도마다 `|strong_inversion_root(LOO 곡선, VGS, g_j) − VGS_j|`, 해 없으면 값에 넣지 않고 실패로 센다. 셀 값 = 모든 s·j·축 최댓값.
+- **[r4] L 축 규칙(bin 안에서만)**: 앵커 i 의 L 방향 LOO 는 `anchor_bin[i−1] == anchor_bin[i] == anchor_bin[i+1]`(0 < i < n_L − 1, 1.4 의 지도)일
+  때만 만든다 -- 운영 L 보간이 같은 bin 의 두 앵커만 쓰므로 경계를 건너는 추정은 만들지 않는다. 식은 위 LOO 식에서 x = L 격자(t 도 L 로).
+  `id_equivalent` 의 L 방향 점 조건은 다른 축과 같다(그 점·두 이웃 on_mask). 빈 지도면 L 방향 LOO 없음(r2 값 그대로).
+  - 앵커 3개 이상 bin: 첫·끝 앵커를 뺀 내부 앵커에만 L 방향 값이 있다(첫·끝 앵커 행은 L 방향 몫 없음 -- 그 bin 의 L 보간 오차는 내부 앵커 행이 잰다).
+  - 앵커 2개 bin: LOO 정의 불가. 부르는 쪽이 **`l_bin_checks`** = `((model, gm_id_inverse_v, id_equivalent_v), ...)`(V, 값 None 허용 -- bin 중점
+    검증 시뮬레이션에서 잰 그 bin 의 L 보간 오차, `lut_regen_plan.md` 2절 K2')를 주면 그 bin 두 앵커 행의 모든 셀에서 **정의된** 셀 값과의
+    최댓값을 셀 값으로 한다(셀 값이 None 이면 None 그대로 -- 켜진 격자점이 없는 셀). `n_targets`·`n_inverse_failed` 는 바뀌지 않는다.
+    주지 않으면 상태 "missing_external" 로 남는다(값에 L 방향 몫 없음을 명시).
+  - 앵커 1개 bin: 그 bin 안 L 보간 자체가 없다(4.0 `lut_l_bin_unbracketed`) -- L 방향 값 불필요, 상태 "single_point".
+  - `l_bin_checks` 오류 → `ValueError`: 같은 model 두 번, 앵커 2개 bin 이 아닌 model(지도에 없는 이름 포함), 빈 지도 슬라이스에 비어 있지 않은 값.
+  - memo 키 = `(kind, w_key, l_bin_checks 정규화)`(model 문자열·float/None, model 정렬) -- 다른 외부 값은 다른 표.
+- `TolVTable.l_loo`: 앵커마다 상태 -- `"in_bin_interior"`(L 방향 LOO 들어감), `"bin_edge"`(3개 이상 bin 의 첫·끝 앵커), `"bin_external"`,
+  `"bin_missing_external"`(앵커 2개 bin, 외부 값 있음/없음), `"bin_single_point"`, `"bins_unavailable"`(빈 지도).
+  `TolVTable.l_loo_bins`: 앵커가 하나 이상 든 bin 마다 `(model, 앵커 index tuple, 상태)`(bin index 오름차순), 상태 `"computed"`(3개 이상)·
+  `"external"`·`"missing_external"`·`"single_point"`. 빈 지도면 `()`.
 - **축 양끝 격자점 규칙**: 어떤 축의 양끝 격자점은 **그 축 방향** LOO 추정이 없고(이웃이 한쪽뿐 -- 외삽 추정은 만들지 않음), 다른 축 방향
   추정은 그대로 있다. 그래서 VDS 양끝 셀(k = 0, n_VDS − 1)은 VGS·VS 방향 값만으로, VGS 양끝 목표는 VDS·VS 방향 곡선으로만 정해진다.
   어떤 추정도 없는 셀의 그 지표 = None.
 - `TolVCell(gm_id_inverse_v, id_equivalent_v, n_targets, n_inverse_failed)`: [r2] `n_targets` = 그 셀의 gm/ID 역산 **시도** 수((목표, 축) 쌍),
   `n_inverse_failed` = 그중 해 없음 수.
-- `TolVTable.at(L, vds, metric)`: L 은 앵커 이산 키(4.0 -- 아니면 `lut_l_not_anchor`), VDS 칸 k = `min(bisect_right(vds_grid, vds) − 1, n − 2)`,
-  셀 (i, k)·(i, k+1) 두 칸의 그 지표 값 중 정의된 것의 최댓값(없으면 None). `metric` 이 TOL_V_METRICS 밖 → `ValueError`,
+- `TolVTable.at(L, vds, metric)`: [r4] L 위치는 4.0 판정(`TolVTable.l_bins`) -- 앵커면 행 {i}, 같은 bin 보간이면 행 {below, above};
+  거부 사유는 4.0 그대로(context kind·table "tol_v"·w_key). VDS 칸 k = `min(bisect_right(vds_grid, vds) − 1, n − 2)`,
+  그 행들 × 칸 (k, k+1) 셀의 그 지표 값 중 정의된 것의 최댓값(없으면 None). `metric` 이 TOL_V_METRICS 밖 → `ValueError`,
   VDS·L 범위 밖 → `SealViolationError`(`lut_axis_out_of_range`, table "tol_v").
-- `TolVTable` 속성: `kind, w_key, L_anchors, vds_grid, cells`.
-- [실측 2026-10-07, 생성 슬라이스 w_key 1000] 계산 nmos 14.9 s·pmos 13.5 s. 정의된 셀 576개(12 앵커 × 48 VDS -- VDS = 0 열은 ID 0 이라 정의 없음).
+- `TolVTable` 속성: `kind, w_key, L_anchors, vds_grid, cells`, [r4] `l_bins, l_loo, l_loo_bins`.
+- [r4 실측 2026-10-07, 생성 슬라이스 w_key 1000, l_bin_checks 없음 -- code author 측정] 계산 nmos 15.7 s·pmos 16.3 s. bin 상태(nmos·pmos 같음):
+  model .26 (앵커 0) single_point, .25 (1, 2) missing_external, .24 (3, 4, 5, 6) computed, .23 (7, 8) missing_external, .22 (9) single_point,
+  .21 (10, 11) missing_external → L 방향 LOO 가 있는 앵커는 0.35·0.425 µm 둘뿐. gm_id_inverse p50/p90/max = nmos 229/293/402 mV,
+  pmos 254/449/492 mV; id_equivalent p50/p90/max = nmos 4.1/21.2/264 mV, pmos 3.8/12.5/201 mV; 역산 시도(실패) nmos 814,032 (53,720),
+  pmos 779,455 (65,335). 앵커 행 최댓값 gm_id_inverse: nmos 0.35 µm 369 mV·0.425 µm 373 mV, pmos 492·454 mV.
+- [r2 실측 -- L 방향 LOO 없던 정의, 참고] 계산 nmos 14.9 s·pmos 13.5 s. 정의된 셀 576개(12 앵커 × 48 VDS -- VDS = 0 열은 ID 0 이라 정의 없음).
   gm_id_inverse 셀 p50/p90/max = nmos 222/286/402 mV, pmos 224/371/445 mV(역산 실패 시도 nmos 44,003/766,992, pmos 56,389/733,056).
   id_equivalent p50/p90/max = nmos 3.7/21.1/264 mV, pmos 3.6/10.6/201 mV. gm_id_inverse 의 큰 값은 VGS 축 LOO(간격 37.5 mV)가 정점·약반전
   평탄 구간 목표에서 내는 조건수 효과다(값의 채택은 소비자 설계 몫).
@@ -204,7 +284,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | `_helpers_interp.multilinear_interp` 본문 | `_multilinear_interp` SR:141 | 8 | (함수 이름만) | `d6bfc65c25e6e68f6b5f820c3a5a53ed6ed2429db00dc640ba15615dc7d69c54` |
 | `_helpers_interp.multilinear_interp_point_multi` 본문 | `_multilinear_interp_point_multi` SR:206 | 7 | (함수 이름만) | `76e24d9d66e06b760dc79b9d69ac51143cec7238046f9ed3ffd27a4b624c7cba` |
 | `provenance._lut_conditions_from_npz` 본문 | `lut_conditions_from_npz` SR:4782 | 3 | (함수 이름만) | `20513c618b94f19b50d8a4fcfc2fd0a17f934302259ed4e78d4b21163451235b` |
-| `gm_id_curve._curve_arrays` `n = len(sl.VGS_grid)` ~ `result = (id_vals, gm_id_vals)` | `_gm_id_curve` SR:463~474 | 7 | `self`→`sl`, `_multilinear_interp`→`multilinear_interp`, `._grids_list`·`._log_ID`·`._log_GM` → 밑줄 없는 속성 | `a84728e5e100c2c99d70529188915128fcf02ed5b8fa660c7bcf85941718743f` [r2: 블록 불변 -- 넘기는 `sl` 이 앵커 한 장 보기(L 격자 = (앵커,), 배열 = 그 앵커)라 L 보간이 없다] |
+| `gm_id_curve._curve_arrays` `n = len(sl.VGS_grid)` ~ `result = (id_vals, gm_id_vals)` | `_gm_id_curve` SR:463~474 | 7 | `self`→`sl`, `_multilinear_interp`→`multilinear_interp`, `._grids_list`·`._log_ID`·`._log_GM` → 밑줄 없는 속성 | `a84728e5e100c2c99d70529188915128fcf02ed5b8fa660c7bcf85941718743f` [r2: 블록 불변 -- 넘기는 `sl` 이 앵커 한 장 보기(L 격자 = (앵커,), 배열 = 그 앵커)라 L 보간이 없다; r4: 블록 불변 -- 보기가 4.0 의 L 장(앵커 1장 또는 같은 bin 2장)] |
 | `_helpers_root.strong_inversion_root` 구간 A `d = g - gm_id` ~ `idx = np.flatnonzero(...)` | `_solve_vgs` SR:539~540 | 2 | 없음 | `0a86bafdeaddf5c9a83cfce762d1a47b01dd6051c285ded5e26b803a4d0fc729` |
 | `_helpers_root.strong_inversion_root` 구간 B `i = int(idx[-1])` ~ `if x1 == x0: ...` | `_solve_vgs` SR:548~561 | 5 | 없음 | `29beb488b7222e495e3794d5685bd0d751289e08dc502368f9e7af3143c51680` |
 
@@ -221,6 +301,9 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 두 파일 모두 `corner="tt"`, `temp_c=27.0`, `meta_json='{"model_files_sha256": {}}'`. manifest device `"toyn"`.
 기준 LUT: 같은 축, `CGG_n = 1e-15`, `CGD_n = 2e-16`(상수 배열), `w_ref_m = 1e-6`, `corner`·`temp_c` 같음.
 `LutSpec(1e-8, (("nmos", 1.5e-6),), (("toyn", "nmos"),), (("nmos", "_n"),))`. 폭 키 100·200.
+[r4] 이 toy 는 모델 파일 기록이 없어 **빈 bin 지도**다 -- 아래 비앵커 L 행은 4.0 의 '빈 지도' 경로(`lut_l_not_anchor`, detail `bins: "unavailable"`),
+tol_V 값은 r2 그대로(`l_loo` 전부 "bins_unavailable", `l_loo_bins == ()`). bin 보간·bin 거부·L 방향 LOO 를 toy 로 보려면 meta 에 `pdk_root` 와
+`model_files_sha256`(그 파일의 sha256)을 적고, 그 루트 아래 `.model` 블록(`lmin`·`lmax`·`wmin`·`wmax`)을 가진 작은 모델 파일을 두면 된다(1.3·1.4).
 
 | 호출 | 기대값 |
 |---|---|

@@ -11,9 +11,10 @@ from .gm_id_curve import gm_id_curve
 
 
 def vgs_for_gm_id(memo, kind, w_key, gm_id, L, vds, vsb):
-    """L 앵커 `L`(계획 LR3, 보간 없음)의 (vds, vsb) 곡선에서 gm/ID = `gm_id` 인 강반전 분지의 VGS(V). memo 영역 root.
+    """`L`(앵커 또는 같은 모델 bin 안 보간, CONTRACT 4.0)의 (vds, vsb) 곡선에서 gm/ID = `gm_id` 인 강반전 분지의 VGS(V).
+    memo 영역 root.
 
-    실패: L 이 앵커가 아님·축 밖 -> `SealViolationError`(lut_l_not_anchor / lut_axis_out_of_range), 분지 안 해 없음 -> `SealViolationError`
+    실패: L 이 앵커도 같은 bin 보간도 아님·축 밖 -> `SealViolationError`(CONTRACT 4.0 사유 / lut_axis_out_of_range), 분지 안 해 없음 -> `SealViolationError`
     (reason "lut_no_strong_inversion_root", detail 에 목표·분지 gm/ID 범위·정점 VGS), 폭 키 없음 -> `KeyError`.
     """
     gm_id, L, vds, vsb = float(gm_id), float(L), float(vds), float(vsb)

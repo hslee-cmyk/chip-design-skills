@@ -8,6 +8,9 @@
   (옛 엔진은 운영 경로에서 안 불렀다 -- 여기서 S0 지문 조립에 배선한다). 기록이 없으면 `recorded=False` 를
   그대로 싣는다(값을 지어내지 않는다).
 * 경로는 인자로만 받는다(폴더 경로를 코드에 두지 않는다).
+* 모델 파일(L bin 지도의 원천, lut/CONTRACT.md 4.0): 슬라이스 meta 의 `model_files_sha256`(상대 경로 -> sha256)
+  파일을 meta `pdk_root` 아래에서 찾아 sha256 을 대조하고 `SliceSource.model_paths` 에 싣는다. 기록이 있는데
+  `pdk_root` 가 없거나·파일이 없거나·sha256 이 다르면 거부(같은 파일은 한 호출에서 한 번만 잰다).
 """
 import hashlib
 import json
@@ -46,6 +49,28 @@ def _conditions(npz):
     return sorted_items(_lut_conditions_from_npz(npz))
 
 
+def _model_paths(meta, slice_path, digests):
+    """meta 의 모델 파일 기록을 실제 경로로 풀고 sha256 대조. `digests` = 이 호출의 {경로: sha256} (같은 파일 1회)."""
+    recorded = sorted_items(meta.get("model_files_sha256") or {})
+    if not recorded:
+        return ()
+    root = meta.get("pdk_root")
+    if not root:
+        raise schema_rejected("lut_model_root_missing", path=slice_path)
+    out = []
+    for rel, want in recorded:
+        path = os.path.join(root, rel)
+        if not os.path.isfile(path):
+            raise schema_rejected("lut_model_file_missing", path=path, slice=slice_path)
+        if path not in digests:
+            digests[path] = _sha256_of(path)
+        if digests[path] != want:
+            raise schema_rejected("lut_model_file_sha256_mismatch", path=path, recorded=str(want),
+                                  actual=digests[path], slice=slice_path)
+        out.append((rel, path))
+    return tuple(out)
+
+
 def lut_provenance(manifest_path, cap_npz_path, spec):
     """manifest 와 기준 LUT(`cap_npz_path`) 의 출처를 읽어 `LutProvenance` 로 돌려준다.
 
@@ -62,6 +87,7 @@ def lut_provenance(manifest_path, cap_npz_path, spec):
     grid_m = spec.manufacturing_grid_m
     slices = []
     seen = set()
+    digests = {}
     for row in manifest.get("slices") or ():
         device = row.get("device")
         if device not in kinds:
@@ -87,6 +113,7 @@ def lut_provenance(manifest_path, cap_npz_path, spec):
         slices.append(SliceSource(
             kinds[device], device, w_m, w_key, path, digest, conditions,
             sorted_items(meta.get("model_files_sha256") or {}),
+            _model_paths(meta, path, digests),
         ))
     if not slices:
         raise schema_rejected("lut_manifest_empty", path=str(manifest_path))

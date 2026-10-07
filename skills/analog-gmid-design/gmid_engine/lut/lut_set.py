@@ -12,15 +12,70 @@
   차(분모 |기준 ID|)가 가장 작은 슬라이스를 고른다. 채택 조건: 그 차가 '고른 슬라이스와 가장 가까운 다른 슬라이스
   사이의 같은 차'(분모 |고른 슬라이스 ID|, 점 = 기준 ID > 0 이고 고른 슬라이스 ID > 0)의 절반보다 작다(기준이 다른 어느 폭보다 그 폭에 가깝다는 것을 데이터가 보일 때만). 슬라이스가 하나뿐이거나 동률,
   조건 불충족이면 로드 거부. 하네스의 박힌 폭 값은 읽지 않는다.
+* L bin 지도(`LBinMap`, lut/CONTRACT.md 4.0): 슬라이스가 기록한 모델 파일(`SliceSource.model_paths`)의 `.model` 블록
+  중 `lmin`·`lmax`·`wmin`·`wmax` 를 가진 것(bin 블록)을 읽어, 슬라이스 폭 W 를 품는 W bin 행(`_helpers_bins` 규칙 --
+  경계 공유 시 아래 bin)의 L bin 들과 L 앵커마다의 소속 bin 을 만든다. 로드 1회 계산, 슬라이스·용량 표에 보관
+  (같은 모델 파일은 한 로드에서 한 번만 읽는다). 모델 파일 기록이 없거나 bin 블록이 없으면 빈 지도(L 보간 불가).
+  용량 표는 채택 폭과 같은 슬라이스의 지도를 쓴다.
 """
+import math
+import re
 import types
 
 import numpy as np
 
+from ._helpers_bins import bin_index
 from ._helpers_fail import schema_rejected
 from .fingerprint import lut_fingerprint
-from .lut_types import CapTable, DcSlice, LutSet
+from .lut_types import CapTable, DcSlice, LBin, LBinMap, LutSet
 from .provenance import lut_provenance
+
+BIN_KEYS = ("lmin", "lmax", "wmin", "wmax")
+NO_BINS = LBinMap((), None, (), ())
+_MODEL_BLOCK = re.compile(r"^\.model\s+(?P<name>\S+)(?P<body>.*?)(?=^\.model\b|\Z)", re.S | re.I | re.M)
+_BIN_VALUE = tuple((k, re.compile(r"\b%s\s*=\s*(?P<value>[-+0-9.eE]+)" % k, re.I)) for k in BIN_KEYS)
+
+
+def _bin_blocks(path):
+    """모델 파일의 bin 블록 tuple: (이름, lmin, lmax, wmin, wmax) m. 키가 일부만 있는 블록은 거부."""
+    with open(path, encoding="utf-8", errors="replace") as fh:
+        text = fh.read()
+    out = []
+    for m in _MODEL_BLOCK.finditer(text):
+        found = {k: rx.search(m.group("body")) for k, rx in _BIN_VALUE}
+        have = tuple(k for k in BIN_KEYS if found[k] is not None)
+        if not have:
+            continue
+        if len(have) != len(BIN_KEYS):
+            raise schema_rejected("lut_model_bin_incomplete", path=path, model=m.group("name"), keys=have)
+        out.append((m.group("name"),) + tuple(float(found[k].group("value")) for k in BIN_KEYS))
+    return tuple(out)
+
+
+def _l_bin_map(src, l_grid, parsed):
+    """슬라이스 `src` 의 `LBinMap`. `parsed` = 이 로드의 {모델 경로: bin 블록} (같은 파일 1회 파싱)."""
+    blocks = []
+    for _, path in src.model_paths:
+        if path not in parsed:
+            parsed[path] = _bin_blocks(path)
+        blocks.extend(parsed[path])
+    if not blocks:
+        return NO_BINS
+    w_rows = sorted({(b[3], b[4]) for b in blocks})
+    j = bin_index(w_rows, src.w_m)
+    if j is None:
+        raise schema_rejected("lut_model_bins_no_width", path=src.path, w_m=src.w_m)
+    row = sorted((b[1], b[2], b[0]) for b in blocks if (b[3], b[4]) == w_rows[j])
+    for (_, hi_a, name_a), (lo_b, _, name_b) in zip(row, row[1:]):
+        if lo_b < hi_a and abs(hi_a - lo_b) > math.ulp(lo_b):
+            raise schema_rejected("lut_model_bins_overlap", path=src.path, w_m=src.w_m, models=(name_a, name_b))
+    intervals = tuple((lo, hi) for lo, hi, _ in row)
+    anchor_bin = tuple(bin_index(intervals, L) for L in l_grid)
+    if None in anchor_bin:
+        raise schema_rejected("lut_l_anchor_outside_model_bins", path=src.path, w_m=src.w_m,
+                              L=float(l_grid[anchor_bin.index(None)]))
+    return LBinMap(tuple(rel for rel, _ in src.model_paths), w_rows[j],
+                   tuple(LBin(name, lo, hi) for lo, hi, name in row), anchor_bin)
 
 
 def _readonly(arr):
@@ -41,7 +96,7 @@ def _grids_of(npz):
     return tuple(tuple(float(x) for x in np.asarray(npz[axis], dtype=float)) for axis in ("L", "VGS", "VDS", "VS"))
 
 
-def _build_slice(src, grids):
+def _build_slice(src, grids, parsed):
     with np.load(src.path) as npz:
         if _grids_of(npz) != grids:
             raise schema_rejected("lut_slice_axes_mismatch", path=src.path)
@@ -63,6 +118,7 @@ def _build_slice(src, grids):
         _readonly(raw_id), _readonly(vth), on_mask, log_id, log_gm, log_gds,
         (("GDS", floor_gds), ("GM", floor_gm), ("ID", floor_id)),
         (("GDS", np_gds), ("GM", np_gm), ("ID", np_id)),
+        _l_bin_map(src, grids[0], parsed),
     )
 
 
@@ -124,8 +180,10 @@ def _build_caps(spec, cap_path, cap_sha256, grids, slices_by_kind):
                     kind, np.asarray(npz[col["ID"]], dtype=float), cap_grids[3], slices_by_kind[kind])
             else:
                 raise schema_rejected("lut_cap_width_unresolved", kind=kind, why="no w_ref_m and no ID column")
+            same_w = [s.l_bins for s in slices_by_kind[kind] if s.w_m == w_ref]
             caps[kind] = CapTable(kind, cap_sha256, cap_grids, cap_grids, _readonly(npz[col["CGG"]]),
-                                  _readonly(npz[col["CGD"]]), optional["CGS"], optional["CGB"], w_ref, basis)
+                                  _readonly(npz[col["CGD"]]), optional["CGS"], optional["CGB"], w_ref, basis,
+                                  same_w[0] if same_w else NO_BINS)
     return caps
 
 
@@ -134,7 +192,7 @@ def load_lut_set(manifest_path, cap_npz_path, spec):
 
     실패(전부 `SchemaRejectedError`, detail.reason 은 CONTRACT.md 5절): manifest·파일 없음, sha256 불일치,
     선언 밖 소자, 폭이 제조 격자 밖, (kind, 폭 키) 중복, 축·형상 불일치, 측정 조건 불일치, 양수 원소 없는 배열,
-    용량 열·kind 접미사 없음, 용량 기준 폭 미확정.
+    용량 열·kind 접미사 없음, 용량 기준 폭 미확정, 모델 파일(bin 지도 원천) 없음·불일치·bin 블록 결함.
     """
     prov = lut_provenance(manifest_path, cap_npz_path, spec)
     conditions = {s.conditions for s in prov.slices}
@@ -149,7 +207,8 @@ def load_lut_set(manifest_path, cap_npz_path, spec):
                                       slices=slice_cond.get(key))
     with np.load(prov.slices[0].path) as npz:
         grids = _grids_of(npz)
-    slices = [_build_slice(src, grids) for src in prov.slices]
+    parsed = {}
+    slices = [_build_slice(src, grids, parsed) for src in prov.slices]
     by_kind = {}
     for s in slices:
         by_kind.setdefault(s.kind, []).append(s)
