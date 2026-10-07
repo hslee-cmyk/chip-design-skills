@@ -5,6 +5,9 @@
   (helper 는 `test__helpers_interp.py` 처럼 글자 그대로).
 - 근거: `_drafts/engine/design_mod1_lut_mod5_mna.md` 2절(MOD1), `_drafts/engine/NEW_ENGINE_DESIGN_REQUIREMENTS.md` 끝 '확정 사항',
   `_drafts/engine/tol_v_measurement.md`(분지 점프 결함·두 지표), core 계약 `gmid_engine/core/CONTRACT.md`.
+- **개정 r2(2026-10-07, 사용자 확정 계획 N3.9 LR3·N3.6)**: 바뀐 곳에 `[r2]` 표시. 요지 -- L 은 LUT L 앵커 이산 키만(L 방향 보간 0,
+  4.0절), tol_V 는 보간 축 VGS·VDS·VS leave-one-out(5절 전면 교체), 용량 kind 집합 fail-closed·`nearest_other_rel_diff` 분모(1.4),
+  `CurveRow.n_curves` 정의(4절 표), 0절 파일 표(`_helpers_anchor.py`·층), 6절 gm_id_curve 블록 비고, 7절 toy 기대값.
 - 실패 객체는 core 의 `SchemaRejectedError`(로드 거부)·`SealViolationError`(조회 실패)다. `record.detail` 은
   `{"reason": <사유 키>, ...}` 의 키 정렬 쌍 tuple 이고 `record.devices == ()`, `record.margin is None`
   (LUT 는 소자 이름을 모른다 -- 소자를 아는 호출부가 덧붙인다, P-28·P-34).
@@ -25,14 +28,15 @@
 | 1 | `axis_guard.py` | `check_axes` |
 | 1 | `curve_check.py` | `curve_report` |
 | 1 | `provenance.py` | `lut_provenance` |
+| 2 | `_helpers_anchor.py` [r2] | helper: `l_anchor_index` |
 | 2 | `lut_set.py` | `load_lut_set` |
-| 2 | `point_query.py` | `op_point` |
-| 2 | `gm_id_curve.py` | `gm_id_curve` |
-| 2 | `gmb.py` | `gmb` |
-| 2 | `cap_query.py` | `caps` |
-| 2 | `tolerance.py` | `tol_v_table` (`TolVTable` 은 비진입 공개 이름) |
-| 3 | `vgs_root.py` | `vgs_for_gm_id` |
-| 3 | `id_inverse.py` | `gm_id_for_target` |
+| 3 | `point_query.py` | `op_point` |
+| 3 | `gm_id_curve.py` | `gm_id_curve` |
+| 3 | `gmb.py` | `gmb` |
+| 3 | `cap_query.py` | `caps` |
+| 3 | `tolerance.py` | `tol_v_table` (`TolVTable` 은 비진입 공개 이름) |
+| 4 | `vgs_root.py` | `vgs_for_gm_id` |
+| 4 | `id_inverse.py` | `gm_id_for_target` |
 
 graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 함수는 모두 첫 인자로 `LutMemo` 를 받는다.
 
@@ -69,11 +73,16 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   있으면 corner·temp_c 가 슬라이스와 같다. 기준 LUT L·VGS·VDS 가 슬라이스와 같다(VS 는 달라도 됨).
 - **용량 기준 폭 `CapTable.w_ref_m`**: (1) 기준 npz 에 `w_ref_m` 이 있으면 그 값, `basis == (("method", "recorded_w_ref_m"),)`
   (2) 없으면 `ID<접미사>` 와 같은 kind 슬라이스 `ID` 를 기준 VS 값이 슬라이스 VS 축에 정확히 있는 열·기준 ID > 0 인 점에서 비교한다.
-  d_s = max |ID_s − ID_ref| / |ID_ref|. 최소 d 인 슬라이스 w 를 고르되 **d_w < (w 와 가장 가까운 다른 슬라이스 사이의 같은 차) / 2**
-  일 때만 채택. `basis` = `(("max_rel_diff", d_w), ("method", "slice_id_match"), ("nearest_other_rel_diff", 그 차), ("w_key", w))`.
+  d_s = max |ID_s − ID_ref| / |ID_ref|. 최소 d 인 슬라이스 w 를 고르되 **d_w < sep / 2** 일 때만 채택.
+  [r2] sep = min over 다른 슬라이스 s ≠ w of max |ID_s − ID_w| / |ID_w| -- **분모는 고른 슬라이스 ID_w**, 비교 점 = 기준 ID > 0 이고
+  ID_w > 0 인 같은 열의 점. `nearest_other_rel_diff` = sep. `basis` = `(("max_rel_diff", d_w), ("method", "slice_id_match"), ("nearest_other_rel_diff", 그 차), ("w_key", w))`.
+- [r2] **용량 kind 집합(fail-closed)** = 슬라이스 kind ∪ `spec.cap_column_suffix` 선언 kind. 그 집합의 kind 마다 이 순서로 검사:
+  접미사 선언 없음 → `lut_cap_kind_undeclared`, 슬라이스 없음 → `lut_cap_kind_without_slices`, `CGG<접미사>`·`CGD<접미사>` 열 없음 →
+  `lut_cap_column_missing`. `cap_map` 의 키 = 이 집합.
 - `fp == lut_fingerprint(provenance, ((kind, w_ref_m, basis), ...))`.
 - 실패(`SchemaRejectedError`, reason): 1.3 전부 + `lut_conditions_mismatch`, `lut_slice_axes_mismatch`, `lut_slice_shape_mismatch`,
-  `lut_array_no_positive`, `lut_cap_axes_mismatch`, `lut_cap_kind_undeclared`, `lut_cap_column_missing`, `lut_cap_width_unresolved`
+  `lut_array_no_positive`, `lut_cap_axes_mismatch`, `lut_cap_kind_undeclared`, `lut_cap_kind_without_slices`, `lut_cap_column_missing`,
+  `lut_cap_width_unresolved`
   (슬라이스 1개뿐·동률·분리 조건 불충족·VS 값이 슬라이스 축에 없음·`w_ref_m`·`ID` 열 둘 다 없음).
 - [실측 2026-10-07, 생성 완료 슬라이스 32개 + `assets/sky130_nfet_pfet_lut_sample.npz`] 로드 1.5 s, nmos·pmos 모두 w_key 1000
   (5 µm) 채택, d_w ≈ 5.0e-7, 이웃 차 0.88(nmos)·1.25(pmos).
@@ -118,6 +127,17 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 ## 4. 조회 API
 
 공통: 축 이름 `AXES = ("L", "VGS", "VDS", "VS")`, L 은 m, 전압은 V(VS = vsb 크기). 입력 숫자는 `float()` 로 바꿔 쓴다.
+
+### 4.0 [r2] L = 앵커 이산 키 (계획 LR3, 사용자 확정 2026-10-07)
+- L 방향 보간은 어떤 조회 경로에도 없다(op_point·gm_id_curve·vgs_for_gm_id·gm_id_for_target·gmb·caps·TolVTable.at). 보간 축은 VGS·VDS·VS 3개.
+- 조회 L 은 L 축 격자의 앵커 a 하나와 `|L − a| ≤ math.ulp(a)` 이어야 한다(폭 키와 같은 원리 -- 근접 앵커 대체 없음). 그 앵커 값이 L 로
+  쓰인다(`IDu = ID·a/w_m`, `id_a = IDu·W/a`). op_point·gmb·caps·gm_id_curve 의 memo 키에는 앵커 index 가 들어가 1 ulp 이내 두 입력은
+  같은 키다(vgs_for_gm_id·gm_id_for_target 은 입력 float 를 키로 쓴다 -- 값은 같다).
+- 실패: L 이 격자 범위 밖 → `lut_axis_out_of_range`(axis "L"), 범위 안이지만 앵커가 아님 → `SealViolationError` reason **`lut_l_not_anchor`**,
+  detail `value, below, above`(양옆 앵커) + context(kind·w_key; 용량은 kind·table "cap"; tol_V 는 kind·table "tol_v"·w_key).
+- 앵커 위 조회 값은 r1(L 보간) 과 같다(L 가중치가 (1, 0) 인 같은 식).
+
+### 4.1 축 검사
 축 밖(격자 최소·최대 밖, NaN 포함) → `SealViolationError` reason `lut_axis_out_of_range`, detail `axis, value, lo, hi, kind, w_key`
 (용량은 `w_key` 대신 `table: "cap"`, tol_V 는 `table: "tol_v"` 추가). 클램프·외삽 없음. 격자 끝점 자체는 축 안(정확값).
 (kind, w_key) 슬라이스가 없으면 `KeyError`(계약 위반 -- 폭은 `widths()` 에서만 고른다).
@@ -125,35 +145,46 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | 함수 | 반환 | 정의 |
 |---|---|---|
 | `check_axes(grids, names, point, context=())` | None | 위 축 검사. `context` 쌍은 detail 에 더해진다 |
-| `op_point(memo, kind, w_key, L, vgs, vds, vsb)` | `OpPoint` | 4축 다중선형 보간 1회: lnID·lnGM·lnGDS 로그공간, VTH 선형. `IDu = ID·L/w_m`, `gm_over_id = exp(lnGM−lnID)`, `gm_gds = exp(lnGM−lnGDS)`, `gds_per_w = GDS/w_m`, `vth` |
-| `gm_id_curve(memo, kind, w_key, L, vds, vsb)` | `Curve` | VGS 격자 전체에서 lnID·lnGM 보간: `id_vals = exp(lnID)`(폭 w_m 의 A), `gm_id_vals = exp(lnGM−lnID)`. `vgs_grid` 는 슬라이스 VGS 축. 배열 읽기 전용. VGS 축 검사는 없다(격자 전체) |
+| `op_point(memo, kind, w_key, L, vgs, vds, vsb)` | `OpPoint` | [r2] L 앵커 한 장에서 (VGS, VDS, VS) 3축 다중선형 보간 1회: lnID·lnGM·lnGDS 로그공간, VTH 선형. `IDu = ID·L/w_m`, `gm_over_id = exp(lnGM−lnID)`, `gm_gds = exp(lnGM−lnGDS)`, `gds_per_w = GDS/w_m`, `vth` |
+| `gm_id_curve(memo, kind, w_key, L, vds, vsb)` | `Curve` | [r2] L 앵커 한 장, VGS 격자 전체에서 lnID·lnGM 보간: `id_vals = exp(lnID)`(폭 w_m 의 A), `gm_id_vals = exp(lnGM−lnID)`. `vgs_grid` 는 슬라이스 VGS 축. 배열 읽기 전용. VGS 축 검사는 없다(격자 전체) |
 | `vgs_for_gm_id(memo, kind, w_key, gm_id, L, vds, vsb)` | float V | 3절 규칙으로 `gm_id_curve` 의 gm/ID 격자 값에서 선형 역보간(곡선 격자 위 gm/ID 가 VGS 에 대해 선형인 근사 -- `op_point(vgs).gm_over_id` 와는 칸 안에서 다를 수 있다). 해 없음 → `SealViolationError` reason `lut_no_strong_inversion_root`, detail `gm_id, L, vds, vsb, kind, w_key, branch_gm_id_min, branch_gm_id_max, peak_vgs` |
 | `gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None)` | `TargetSolution(vgs, gm_id, id_a, gm_s)` | Q = `id_vals·W/w_m`(current) 또는 `id_vals·gm_id_vals·W/w_m`(gm). 분지 index p 부터 Q 가 엄격히 증가하는 첫 구간 [p, e] 에서 ln Q 를 VGS 에 대해 선형으로 풀어 vgs, 그 vgs 의 `op_point` 로 `gm_id`, `id_a = IDu·W/L`, `gm_s = gm_id·id_a`. 목표가 Q[p]..Q[e] 밖이고 분지 Q 범위 밖 → reason `lut_target_out_of_range`, 범위 안이지만 단조 구간 밖에서만 닿음 → `lut_target_non_monotonic`(detail `quantity, target, W, L, vds, vsb, kind, w_key, branch_min, branch_max, monotone_lo, monotone_hi`). `gm`·`current` 둘 다/둘 다 없음, `W ≤ 0` → `ValueError` |
-| `gmb(memo, kind, w_key, L, vgs, vds, vsb)` | float A/V(폭 w_m) | VS 칸 k = `min(bisect_right(VS, vsb) − 1, len(VS) − 2)`, `gmb = −exp(lnID(점)) · (lnID(VS[k+1]) − lnID(VS[k])) / (VS[k+1] − VS[k])`(다른 축은 조회점 값으로 보간). 소자 폭 W 값 = `× W / w_m`(부르는 쪽) |
-| `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | 기준 LUT 열 선형 보간 × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(현재 VS 0~0.8 → vsb > 0.8 실패). kind 표 없음 → `KeyError` |
+| `gmb(memo, kind, w_key, L, vgs, vds, vsb)` | float A/V(폭 w_m) | VS 칸 k = `min(bisect_right(VS, vsb) − 1, len(VS) − 2)`, `gmb = −exp(lnID(점)) · (lnID(VS[k+1]) − lnID(VS[k])) / (VS[k+1] − VS[k])`([r2] L 앵커 한 장, VGS·VDS 는 조회점 값으로 보간). 소자 폭 W 값 = `× W / w_m`(부르는 쪽) |
+| `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | [r2] L 앵커 한 장의 기준 LUT 열 (VGS, VDS, VS) 선형 보간 × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(현재 VS 0~0.8 → vsb > 0.8 실패). kind 표 없음 → `KeyError` |
 | `tol_v_table(memo, kind, w_key)` | `TolVTable` | 5절 |
-| `curve_report(memo)` | `CurveReport(lut_fp, rows)` | 슬라이스·L 앵커마다 `CurveRow`(lut_types 문서): 격자점 곡선만, ID·GM 에 0 이하 점이 있는 곡선은 `n_skipped`. 행 순서 (kind, w_key) 정렬 후 L 오름차순 |
+| `curve_report(memo)` | `CurveReport(lut_fp, rows)` | 슬라이스·L 앵커마다 `CurveRow`(lut_types 문서): 격자점 곡선만. [r2] `n_curves` = **검사한** 곡선 수(건너뛴 곡선 제외), `n_skipped` = ID·GM 에 0 이하 격자점이 있어 뺀 곡선 수,
+`n_curves + n_skipped = len(VDS)·len(VS)`. 행 순서 (kind, w_key) 정렬 후 L 오름차순 |
 
 ---
 
-## 5. tol_V 표 `tol_v_table(memo, kind, w_key) -> TolVTable` (계획 N3.6)
+## 5. [r2 전면 교체] tol_V 표 `tol_v_table(memo, kind, w_key) -> TolVTable` (계획 N3.6, 사용자 확정 2026-10-07)
 
-- **셀별 값만 낸다**(`cells[i_L][i_vds]` = `TolVCell`) -- 전역 최댓값으로 줄이지 않는다. **두 지표를 모두** 낸다
-  (`TOL_V_METRICS = ("gm_id_inverse", "id_equivalent")`) -- 어느 지표를 어느 봉인·허용오차에 쓸지는 사용자 결정 대기라 고르지 않는다.
-- 내부 앵커 i(양끝 제외)마다 (VDS k, VS s):
-  - 곡선 i−1·i·i+1 의 그 (k, s) 에 `on_mask` 거짓 점이 하나라도 있으면 목표 없음.
-  - LOO 곡선: L 격자 (L[i−1], L[i+1]) 2점 × VGS 격자로 `multilinear_interp`(운영 보간과 같은 함수, lnID·lnGM) 를 L[i] 에서.
-  - 목표 j: 참 곡선(앵커 i 의 격자값) gm/ID g 의 정점 이후 index 중 오른쪽 모든 점보다 g_j 가 큰 점(= VGS_j 가 그 곡선의 분지 해).
-  - `gm_id_inverse`: |strong_inversion_root(LOO g, VGS, g_j) − VGS_j|. 해 없으면 값에 넣지 않고 `n_inverse_failed` +1.
-  - `id_equivalent`: |lnID_loo[j] − lnID[j]| / g_j.
-  - 셀 값 = 그 (i, k) 의 모든 s·j 최댓값(없으면 None). `n_targets`·`n_inverse_failed` 는 합계. 양끝 앵커 셀 = `TolVCell(None, None, 0, 0)`.
-- `TolVTable.at(L, vds, metric)`: L 칸 j = `min(bisect_right(L_anchors, L) − 1, n − 2)`, VDS 칸 k 같은 규칙, 네 셀 (j|j+1, k|k+1) 의
-  그 지표 값 중 정의된 것의 최댓값(없으면 None -- 끝 앵커 칸은 이웃 내부 앵커 값만 남는다). `metric` 이 TOL_V_METRICS 밖 → `ValueError`,
-  축 밖 → `SealViolationError`(`lut_axis_out_of_range`, table "tol_v").
+- **보간 축 VGS·VDS·VS leave-one-out.** L 은 보간하지 않으므로(4.0) L 축 LOO 는 없고 **모든 L 앵커가 셀을 가진다**(r1 의 '양끝 앵커 None' 폐기).
+- 셀 = (kind, w_key, L 앵커 i, VDS 격자 k) -- `cells[i][k]` = `TolVCell`. **셀별 값만** 낸다(전역 최댓값으로 줄이지 않음).
+- LOO 추정(축 a ∈ {VGS, VDS, VS}, 내부 격자점 x_j, 0 < j < n_a − 1): `lnX_loo = lnX_{j−1} + t·(lnX_{j+1} − lnX_{j−1})`,
+  `t = (x_j − x_{j−1}) / (x_{j+1} − x_{j−1})`, X ∈ {ID, GM}(로그공간 -- 운영 보간 `multilinear_interp` 의 그 축 2점 경우와 같은 식).
+- **두 지표**(`TOL_V_METRICS`; 소비자 배정은 계획 N3.6 -- 봉인 2 = `gm_id_inverse`, KCL·W 보존·소자 경고 = `id_equivalent`):
+  - `id_equivalent`: 격자점 (i, g, k, s) 마다, 축 a 방향으로 그 점과 두 이웃이 모두 `on_mask` 이면 `|lnID_loo − lnID| / (gm/ID)`(gm/ID = 그 점의 참값).
+    셀 값 = 그 (i, k) 의 모든 g·s·a 최댓값.
+  - `gm_id_inverse`: 곡선 (i, k, s) 의 `on_mask` 가 VGS 전부 참일 때만. 목표 j = 참 곡선 gm/ID g 의 정점 이후 index 중 오른쪽 모든 점보다
+    g_j 가 큰 점(VGS_j = 그 곡선의 분지 해, 3절). 목표마다 LOO 곡선 최대 3개:
+    VGS 축 = g 에서 j 점만 `exp(lnGM_loo − lnID_loo)` 로 바꾼 곡선(j 가 VGS 양끝이면 없음),
+    VDS 축 = 곡선 (i, k−1, s)·(i, k+1, s) 로 보간한 곡선(k 가 내부이고 두 곡선 on_mask 전부 참일 때),
+    VS 축 = 곡선 (i, k, s−1)·(i, k, s+1) 로 같은 식(s 내부, 같은 조건).
+    시도마다 `|strong_inversion_root(LOO 곡선, VGS, g_j) − VGS_j|`, 해 없으면 값에 넣지 않고 실패로 센다. 셀 값 = 모든 s·j·축 최댓값.
+- **축 양끝 격자점 규칙**: 어떤 축의 양끝 격자점은 **그 축 방향** LOO 추정이 없고(이웃이 한쪽뿐 -- 외삽 추정은 만들지 않음), 다른 축 방향
+  추정은 그대로 있다. 그래서 VDS 양끝 셀(k = 0, n_VDS − 1)은 VGS·VS 방향 값만으로, VGS 양끝 목표는 VDS·VS 방향 곡선으로만 정해진다.
+  어떤 추정도 없는 셀의 그 지표 = None.
+- `TolVCell(gm_id_inverse_v, id_equivalent_v, n_targets, n_inverse_failed)`: [r2] `n_targets` = 그 셀의 gm/ID 역산 **시도** 수((목표, 축) 쌍),
+  `n_inverse_failed` = 그중 해 없음 수.
+- `TolVTable.at(L, vds, metric)`: L 은 앵커 이산 키(4.0 -- 아니면 `lut_l_not_anchor`), VDS 칸 k = `min(bisect_right(vds_grid, vds) − 1, n − 2)`,
+  셀 (i, k)·(i, k+1) 두 칸의 그 지표 값 중 정의된 것의 최댓값(없으면 None). `metric` 이 TOL_V_METRICS 밖 → `ValueError`,
+  VDS·L 범위 밖 → `SealViolationError`(`lut_axis_out_of_range`, table "tol_v").
 - `TolVTable` 속성: `kind, w_key, L_anchors, vds_grid, cells`.
-- [실측] 생성 슬라이스 pmos w_key 1000 한 장 계산 7.9 s. 참고: 측정 문서(`tol_v_measurement.md`)는 켜짐 판정에 `ID ≥ 1e-12 A` 상수를
-  썼고 이 구현은 상수 대신 `on_mask`(ID·GM > 0) + 분지 목표 규칙을 쓴다 -- 정점 부근 평탄 구간 목표가 포함돼 gm_id_inverse 셀 값이
-  측정 문서보다 클 수 있다(예: pmos L=0.7 µm, VDS 0.9 V 셀 670 mV -- 최댓값은 VGS=0 정점 목표에서, 정점 근접 조건수 효과).
+- [실측 2026-10-07, 생성 슬라이스 w_key 1000] 계산 nmos 14.9 s·pmos 13.5 s. 정의된 셀 576개(12 앵커 × 48 VDS -- VDS = 0 열은 ID 0 이라 정의 없음).
+  gm_id_inverse 셀 p50/p90/max = nmos 222/286/402 mV, pmos 224/371/445 mV(역산 실패 시도 nmos 44,003/766,992, pmos 56,389/733,056).
+  id_equivalent p50/p90/max = nmos 3.7/21.1/264 mV, pmos 3.6/10.6/201 mV. gm_id_inverse 의 큰 값은 VGS 축 LOO(간격 37.5 mV)가 정점·약반전
+  평탄 구간 목표에서 내는 조건수 효과다(값의 채택은 소비자 설계 몫).
 
 ---
 
@@ -168,7 +199,7 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | `_helpers_interp.multilinear_interp` 본문 | `_multilinear_interp` SR:141 | 8 | (함수 이름만) | `d6bfc65c25e6e68f6b5f820c3a5a53ed6ed2429db00dc640ba15615dc7d69c54` |
 | `_helpers_interp.multilinear_interp_point_multi` 본문 | `_multilinear_interp_point_multi` SR:206 | 7 | (함수 이름만) | `76e24d9d66e06b760dc79b9d69ac51143cec7238046f9ed3ffd27a4b624c7cba` |
 | `provenance._lut_conditions_from_npz` 본문 | `lut_conditions_from_npz` SR:4782 | 3 | (함수 이름만) | `20513c618b94f19b50d8a4fcfc2fd0a17f934302259ed4e78d4b21163451235b` |
-| `gm_id_curve._curve_arrays` `n = len(sl.VGS_grid)` ~ `result = (id_vals, gm_id_vals)` | `_gm_id_curve` SR:463~474 | 7 | `self`→`sl`, `_multilinear_interp`→`multilinear_interp`, `._grids_list`·`._log_ID`·`._log_GM` → 밑줄 없는 속성 | `a84728e5e100c2c99d70529188915128fcf02ed5b8fa660c7bcf85941718743f` |
+| `gm_id_curve._curve_arrays` `n = len(sl.VGS_grid)` ~ `result = (id_vals, gm_id_vals)` | `_gm_id_curve` SR:463~474 | 7 | `self`→`sl`, `_multilinear_interp`→`multilinear_interp`, `._grids_list`·`._log_ID`·`._log_GM` → 밑줄 없는 속성 | `a84728e5e100c2c99d70529188915128fcf02ed5b8fa660c7bcf85941718743f` [r2: 블록 불변 -- 넘기는 `sl` 이 앵커 한 장 보기(L 격자 = (앵커,), 배열 = 그 앵커)라 L 보간이 없다] |
 | `_helpers_root.strong_inversion_root` 구간 A `d = g - gm_id` ~ `idx = np.flatnonzero(...)` | `_solve_vgs` SR:539~540 | 2 | 없음 | `0a86bafdeaddf5c9a83cfce762d1a47b01dd6051c285ded5e26b803a4d0fc729` |
 | `_helpers_root.strong_inversion_root` 구간 B `i = int(idx[-1])` ~ `if x1 == x0: ...` | `_solve_vgs` SR:548~561 | 5 | 없음 | `29beb488b7222e495e3794d5685bd0d751289e08dc502368f9e7af3143c51680` |
 
@@ -189,6 +220,8 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | 호출 | 기대값 |
 |---|---|
 | `widths(lut, "nmos")` | `(200,)` |
+| [r2] `op_point(m, "nmos", 100, 1.5e-6, 0.5, 0.5, 0.0)` | `SealViolationError` `lut_l_not_anchor`, below 1e-6, above 2e-6. `1e-6 + 2·ulp(1e-6)` 도 같은 실패, `1e-6 + ulp(1e-6)` 은 앵커 1e-6 값 |
+| [r2] `op_point(..., L=4e-6, ...)` | `lut_axis_out_of_range`, axis "L" |
 | `op_point(m, "nmos", 100, 1e-6, 0.25, 0.5, 0.0)` | IDu = √(1e-7·1e-6) = 3.16228e-7, gm_over_id = √(20·10) = 14.1421, gm_gds = √(200·100) = 141.421, gds_per_w = 0.0316228, vth 0.4. w_key 200 도 같은 값(정규화 확인, 마지막 몇 ulp 차이 허용) |
 | `vgs_for_gm_id(m, "nmos", 100, 15.0, 1e-6, 0.5, 0.0)` | 0.25 (정점 index 0, 구간 [0, 1] 선형) |
 | `vgs_for_gm_id(..., 25.0, ...)` | `SealViolationError` reason `lut_no_strong_inversion_root`, peak_vgs 0.0 |
@@ -197,9 +230,8 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | `gm_id_for_target(m, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=2e-6)` | vgs 0.5, gm_id 10, id_a 2e-6, gm_s 2e-5 |
 | 같은 호출 `current=1e-4` | `SealViolationError` reason `lut_target_out_of_range` |
 | `op_point(..., vsb=0.6)` | `SealViolationError` `lut_axis_out_of_range`, axis "VS", lo 0.0, hi 0.5 |
-| `tol_v_table(m, "nmos", 100).cells[1][k]` | id_equivalent_v = ln(2/√3) / 4 = 0.0359603(LOO lnID 는 ln(1/1)·ln(1/3) 평균 → ID 비 2/√3, 최소 g = 4), gm_id_inverse_v ≈ 0(gm/ID 가 L 무관이라 LOO 곡선 = 참 곡선; 부동소수 수준), n_targets 6. 정점 목표(g = 20)는 LOO 곡선 끝값의 반올림에 따라 해 없음으로 셀 수 있다(현 구현 n_inverse_failed = 1) |
-| `cells[0][k]`, `cells[2][k]` | `TolVCell(None, None, 0, 0)` |
-| `at(1.5e-6, 0.75, "id_equivalent")` | 0.0359603(앵커 0 은 None, 앵커 1 값) |
+| [r2] `tol_v_table(m, "nmos", 100).cells[i][k]`(i = 0, 1, 2, k = 0, 1 모두) | id_equivalent_v = 0(부동소수 수준: ID 가 VGS 에 기하수열이라 VGS 축 lnID LOO 가 정확, VDS·VS 축은 2점이라 내부점 없음). gm_id_inverse_v = |0.5·10/(20 − √80) − 0.5| = 0.0477458(목표 j = 1(g = 10)의 VGS 축 LOO: GM·ID 각 로그 이웃 평균 → g_loo[1] = √(20·4) = √80, 정점 0 의 구간 [0, 1] 역산 = 0.5·(20 − 10)/(20 − √80)). n_targets 2(VS 2점 × 내부 목표 1개 × VGS 축), n_inverse_failed 0 |
+| [r2] `at(2e-6, 0.75, "id_equivalent")` / `"gm_id_inverse"` | 0.0(부동소수 수준) / 0.0477458. `at(1.5e-6, 0.75, ...)` → `lut_l_not_anchor` |
 | `curve_report(m).rows[0]` | kind nmos, w_key 100, L 1e-6, n_curves 4, n_skipped 0, n_branch_nonmonotonic 0, gm_id_max 20, gm_gds_max 200 |
 
 ---

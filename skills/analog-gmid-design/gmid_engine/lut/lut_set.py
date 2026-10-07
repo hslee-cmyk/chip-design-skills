@@ -4,12 +4,13 @@
 
 * 슬라이스: 파일마다 소자 하나·폭 하나, 배열 `ID·GM·GDS·VTH` `[L, VGS, VDS, VS]`, 값은 그 폭에서의 절댓값.
   모든 슬라이스의 L·VGS·VDS·VS 축이 같아야 하고(정확히 같은 float), 측정 조건(corner·temp_c)이 같아야 한다.
-* 기준 LUT(용량): kind 마다 `CGG<접미사>`·`CGD<접미사>` 열이 있어야 하고 `CGS<접미사>`·`CGB<접미사>` 는 있으면 쓴다.
+* 기준 LUT(용량): kind 집합 = 슬라이스 kind ∪ `spec.cap_column_suffix` 선언 kind. 그 kind 마다 접미사 선언·슬라이스·
+  `CGG<접미사>`·`CGD<접미사>` 열이 모두 있어야 하고(하나라도 없으면 거부 -- fail-closed) `CGS<접미사>`·`CGB<접미사>` 는 있으면 쓴다.
   L·VGS·VDS 축은 슬라이스와 같아야 한다. VS 축은 기준 LUT 의 것(용량 조회의 축 범위).
 * 용량 기준 폭 `w_ref_m`(CapTable): (1) 기준 npz 에 `w_ref_m` 기록이 있으면 그 값 (2) 없으면 기준 LUT `ID<접미사>` 와
   같은 kind 슬라이스 `ID` 의 겹치는 격자점(기준 VS 값이 슬라이스 VS 축에 정확히 있는 점, 기준 ID > 0)에서 최대 상대
-  차가 가장 작은 슬라이스를 고른다. 채택 조건: 그 차가 '고른 슬라이스와 가장 가까운 다른 슬라이스 사이의 같은 차'의
-  절반보다 작다(기준이 다른 어느 폭보다 그 폭에 가깝다는 것을 데이터가 보일 때만). 슬라이스가 하나뿐이거나 동률,
+  차(분모 |기준 ID|)가 가장 작은 슬라이스를 고른다. 채택 조건: 그 차가 '고른 슬라이스와 가장 가까운 다른 슬라이스
+  사이의 같은 차'(분모 |고른 슬라이스 ID|, 점 = 기준 ID > 0 이고 고른 슬라이스 ID > 0)의 절반보다 작다(기준이 다른 어느 폭보다 그 폭에 가깝다는 것을 데이터가 보일 때만). 슬라이스가 하나뿐이거나 동률,
   조건 불충족이면 로드 거부. 하네스의 박힌 폭 값은 읽지 않는다.
 """
 import types
@@ -106,9 +107,11 @@ def _build_caps(spec, cap_path, cap_sha256, grids, slices_by_kind):
             raise schema_rejected("lut_cap_axes_mismatch", path=cap_path)
         files = set(npz.files)
         recorded_w = float(npz["w_ref_m"]) if "w_ref_m" in files else None
-        for kind in sorted(slices_by_kind):
+        for kind in sorted(set(slices_by_kind) | set(suffix)):
             if kind not in suffix:
                 raise schema_rejected("lut_cap_kind_undeclared", kind=kind)
+            if kind not in slices_by_kind:
+                raise schema_rejected("lut_cap_kind_without_slices", kind=kind)
             col = {name: name + suffix[kind] for name in ("CGG", "CGD", "CGS", "CGB", "ID")}
             for need in ("CGG", "CGD"):
                 if col[need] not in files:

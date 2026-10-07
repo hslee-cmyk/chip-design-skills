@@ -2,6 +2,7 @@
 
 공개 정의는 frozen dataclass 뿐이다(데이터 선언 모듈, 구조 규칙 A 보충 (1)). 계산은 다른 파일이 한다.
 
+* L 은 앵커 이산 키로만 쓴다(보간 축은 VGS·VDS·VS, 계획 LR3).
 * 축 순서는 `AXES` = (L, VGS, VDS, VS) 이고 슬라이스 배열 배치 `[L, VGS, VDS, VS]` 와 같다. VS 축은 source 기준
   body 전위 크기(vsb)다(슬라이스 생성기 sign_convention: source 접지, body = -VS(nfet) / +VS(pfet)).
 * 슬라이스 배열 값은 그 폭 `w_m` 에서의 절댓값(정규화 안 함). 정규화(`ID·L/w_m`)는 조회 함수가 한다.
@@ -174,10 +175,10 @@ class Caps:
 
 @dataclasses.dataclass(frozen=True)
 class TolVCell:
-    """tol_V 표 한 칸((kind, w_key, L 앵커, VDS)). 값은 VS·목표 전체의 최댓값(V), 정의 안 되면 None.
+    """tol_V 표 한 칸((kind, w_key, L 앵커, VDS)). 값은 보간 축 VGS·VDS·VS leave-one-out 의 셀 안 최댓값(V), 정의 안 되면 None.
 
     `gm_id_inverse_v`: |LOO 곡선에서 gm/ID 역산한 VGS - 참 VGS|. `id_equivalent_v`: |ln ID_loo - ln ID| / (gm/ID).
-    `n_targets`: 목표 수, `n_inverse_failed`: LOO 곡선에 강반전 해가 없어 역산이 실패한 목표 수(값에 넣지 않음).
+    `n_targets`: gm/ID 역산 시도 수((목표, 축) 쌍), `n_inverse_failed`: 그중 LOO 곡선에 강반전 해가 없던 수(값에 넣지 않음).
     """
 
     gm_id_inverse_v: object
@@ -190,7 +191,7 @@ class TolVCell:
 class CurveRow:
     """곡선 검사 한 줄((kind, w_key, L 앵커)). 격자점 값만 쓴다(보간 없음).
 
-    `n_curves`: 검사한 (VDS, VS) 곡선 수, `n_skipped`: ID 또는 GM 에 0 이하 격자점이 있어 뺀 곡선 수,
+    `n_curves`: 검사한 (VDS, VS) 곡선 수(건너뛴 곡선 제외), `n_skipped`: ID 또는 GM 에 0 이하 격자점이 있어 뺀 곡선 수,
     `n_branch_nonmonotonic`: 정점 오른쪽(강반전 분지)에서 gm/ID 가 한 번이라도 오른 곡선 수,
     `max_branch_rise`: 그 상승의 최대 상대 크기(오른 양 / 정점 값), `gm_id_max`: 곡선 정점의 최댓값,
     `gm_gds_max`: 격자 전체 GM/GDS 최댓값(GB4 입력).

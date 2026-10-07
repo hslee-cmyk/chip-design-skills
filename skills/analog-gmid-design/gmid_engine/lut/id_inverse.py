@@ -4,6 +4,7 @@
 진입점: `gm_id_for_target`.
 
 옛 함수는 gm/ID 범위 상수(2~30)·허용오차 상수로 이분 탐색하면서 단조성을 검사하지 않았다(DF-10). 여기서는:
+0. L 은 앵커 이산 키(계획 LR3) -- `gm_id_curve`·`op_point` 가 검사한다.
 1. 같은 곡선(`gm_id_curve`)의 VGS 격자 위에서 목표량 Q(VGS) = ID·W/w_m (current) 또는 gm·W/w_m (gm) 를 만든다.
 2. 강반전 분지(정점 index p 부터)에서 Q 가 **엄격히 증가하는 첫 구간** [p, q] 만 역산 대상으로 둔다.
 3. 목표가 Q[p]..Q[q] 안이면 그 구간에서 ln Q 를 VGS 에 대해 선형으로 풀고(보간면과 같은 로그공간 규칙),
@@ -15,6 +16,7 @@ import math
 
 import numpy as np
 
+from ._helpers_anchor import l_anchor_index
 from ._helpers_fail import seal_violation
 from ._helpers_root import peak_index
 from .gm_id_curve import gm_id_curve
@@ -66,7 +68,7 @@ def gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None
             lo, hi = math.log(q.item(j)), math.log(q.item(j + 1))
             vgs = v.item(j) + (math.log(target) - lo) / (hi - lo) * (v.item(j + 1) - v.item(j))
         op = op_point(memo, kind, w_key, L, vgs, vds, vsb)
-        id_a = op.IDu * W / L
+        id_a = op.IDu * W / sl.grids[0][l_anchor_index(sl.grids[0], L)]
         return TargetSolution(vgs, op.gm_over_id, id_a, op.gm_over_id * id_a)
 
     return memo.lookup("root", "gm_id_for_target", (kind, w_key, quantity, target, L, vds, vsb, W), compute)
