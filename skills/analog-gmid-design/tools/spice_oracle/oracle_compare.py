@@ -32,7 +32,8 @@
   off_current_A: 선택. |ID| 가 이보다 작으면 영역 'off'(포화 여유와 무관). 없으면 off 분류 안 함(ID 판정·below_vth 로 드러남).
 크기 규칙: ngspice BSIM4 의 @ 동작점 값은 소자 극성으로 정규화돼 나온다 -- PMOS 도 켜져 포화면 id, vgs, vds,
   vth, vdsat 가 양수이고 vbs = type*(Vb-Vs)(2026-10-07 실측: PMOS M1a 소스 1.55 V·바디 1.8 V 에서 vbs=-0.25,
-  vgs=+0.912). 그래서 두 극성 모두 ID=id, VGS=vgs, VDS=vds, VSB=-vbs 를 그대로 쓴다(엔진 예측도 크기 규칙).
+  vgs=+0.912). [정정 2026-10-07] 단 @id 는 소스/드레인 역할이 뒤바뀐(역방향 전도) 소자에서도 양수다(채널 전류 크기) --
+  @vds 는 선언 단자 방향 부호를 유지하므로 ID = @id x sign(@vds)(signed_id), VGS=vgs, VDS=vds, VSB=-vbs(엔진 예측도 크기 규칙).
   오차 = SPICE - 예측(abs) 또는 (SPICE - 예측)/|예측|(rel).
 """
 import argparse
@@ -116,6 +117,15 @@ def measure_value(measure, sim, item):
     return ac.get(measure)
 
 
+def signed_id(op_id, op_vds):
+    """크기 규칙 ID(부호 포함: 선언 드레인 기준 정상 방향 전도 = 양수, 역방향 = 음수) = @id x sign(@vds).
+    ngspice BSIM4 의 @id 는 소스/드레인 역할이 뒤바뀌어도 양수(채널 전류 크기)이고, @vds = type*(V(d)-V(s)) 는 선언 단자
+    방향의 부호를 유지한다(2026-10-07 실측, 0 V 감지원 대조 -- README 크기 규칙). @vds = 0 이면 0, 둘 중 하나가 없으면 None."""
+    if op_id is None or op_vds is None:
+        return None
+    return op_id * (1.0 if op_vds > 0 else (-1.0 if op_vds < 0 else 0.0))
+
+
 def conduction_check(pred, idv):
     """C23: 엔진 예측 전도 소자가 SPICE 에서 꺼졌는가. 반환 (predicted_conducting, 판정 문자열).
     pred = predictions.devices[이름](없으면 None), idv = SPICE ID(크기 규칙, 부호 포함)."""
@@ -153,8 +163,9 @@ def compare(inp, meta, sim, judge):
         g = meta["geometry"][n]
         t_id, t_id_src = device_tolerance(inp, judge, n, "ID_rel")
         t_gm, _ = device_tolerance(inp, judge, n, "gm_rel")
-        idv, gm, gds = o.get("id"), o.get("gm"), o.get("gds")
+        gm, gds = o.get("gm"), o.get("gds")
         vgs, vds, vth, vdsat = o.get("vgs"), o.get("vds"), o.get("vth"), o.get("vdsat")
+        idv = signed_id(o.get("id"), vds)  # 선언 단자 방향 부호(역방향 전도 = 음수)
         vsb = _mul(o.get("vbs"), -1.0)
         sat_m = None if vds is None or vdsat is None else vds - vdsat
         region = None if sat_m is None or margin is None else ("sat" if sat_m >= margin else "triode")
@@ -167,7 +178,8 @@ def compare(inp, meta, sim, judge):
         r = {"name": n, "kind": k, "L": g["L"], "finger_w": g["finger_w"], "n_fingers": g["n_fingers"],
              "W_from_fingers": g["W_from_fingers"], "W_declared": g["W_declared"],
              "W_rel": rel_err(g["W_from_fingers"], g["W_declared"]),
-             "ID_pred": p.get("ID"), "ID_spice": idv, "ID_rel": rel_err(idv, p.get("ID")),
+             "ID_pred": p.get("ID"), "ID_spice": idv, "ID_spice_op_id": o.get("id"),
+             "ID_rel": rel_err(idv, p.get("ID")),
              "VGS_pred": p.get("VGS"), "VGS_spice": vgs, "VGS_err_V": abs_err(vgs, p.get("VGS")),
              "VDS_pred": p.get("VDS"), "VDS_spice": vds, "VDS_err_V": abs_err(vds, p.get("VDS")),
              "VSB_pred": p.get("VSB"), "VSB_spice": vsb, "VSB_err_V": abs_err(vsb, p.get("VSB")),

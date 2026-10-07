@@ -43,15 +43,26 @@
   gm_rel, gds_rel, gm_id_rel, node_abs_V, W_rel, kcl_abs_A, dc_gain_db_abs, pm_deg_abs, ugf_hz_rel, f3db_hz_rel,
   supply_current_A_rel}`(기록·경고용). **기본값 없음**. `--judge` 파일·`--sat-margin-v` 가 덮어쓴다.
 * 크기 규칙: 소자 전압·전류는 극성 정규화(PMOS 도 켜진 포화면 ID·VGS·VDS 양수, VSB = |바디-소스| 방향 양수).
-  ngspice BSIM4 의 `@` 값이 이미 이 규칙이라(실측) SPICE 쪽은 `VSB=-vbs` 외에 변환하지 않는다.
+  ID 는 **부호 포함**: 선언 드레인 기준 정상 방향 전도(NMOS 드레인으로 들어감, PMOS 드레인에서 나옴) = 양수, 역방향 = 음수.
+  **[정정 2026-10-07]** ngspice BSIM4 `@` 값 중 vgs·vds·vth·vdsat 는 이 규칙이지만(`@vds = type*(V(d)-V(s))`, 선언 단자
+  방향 부호 유지) **`@id` 는 소스/드레인 역할이 뒤바뀌어도 양수**(채널 전류 크기)다. 그래서 SPICE 쪽은
+  `ID = @id x sign(@vds)`(@vds = 0 이면 0, 둘 중 하나 없으면 None), `VSB = -vbs`, 나머지는 그대로다. 원값은 소자 행
+  `ID_spice_op_id` 에 남긴다. 실측(ngspice-46 sky130 tt, L=0.5 µm W=2 µm m=2, 드레인에 0 V 감지원): NMOS 역방향
+  (V(d)=0, V(s)=0.3, VG=1.8) @id = +4.981e-4, @vds = -0.3, 감지원 드레인 유입 전류 -4.981e-4; PMOS 역방향(V(d)=1.6,
+  V(s)=1.0) @id = +8.991e-5, @vds = -0.6, 드레인 유입 +8.991e-5(크기 규칙 -8.991e-5); 정상 방향 NMOS/PMOS, VDS 1 mV 경우도
+  `@id x sign(@vds)` = 극성 x 감지원 전류(상대차 1e-6 이하). 꺼진 소자(VGS=0)에서는 감지원 전류가 접합 누설을 포함해 @id 와
+  다르다(NMOS 2.08e-12 대 2.64e-13) -- 크기는 @id(LUT ID 열과 같은 양, `assets/sky130_lut_sweep.py` 가 `@m...[id]` 로 잼)를
+  쓰므로 엔진이 LUT VGS=0 누설로 낸 `off_current_A` 와 같은 양끼리 비교된다.
 
 ## 합격 정의 (사용자 확정 2026-10-07, Q5·Q6 보강 같은 날)
 
 `summary.verdict` 는 **free 모드에서만** 합격/불합격을 낸다. 합격 조건은 셋이다.
 1. `acceptance.constraints` 의 선언 제약(회로 성능 스펙)을 SPICE 값이 전부 만족한다. **[변경]** CMRR·PSRR(`ratio_db`,
    C24)도 선언되면 여기서 판정한다. 슬루·정착은 판정 대상이 아니다(C25).
-2. SPICE 에서 전도하는 모든 MOS 가 포화: VDS - VDSAT >= `sat_margin_V`(인자, 기본값 없음). 전도 = ID > 그 소자 문턱
-   (C23 의 소자별 `off_current_A`, 없으면 `judge.off_current_A`, 둘 다 없으면 0).
+2. SPICE 에서 전도하는 모든 MOS 가 포화: VDS - VDSAT >= `sat_margin_V`(인자, 기본값 없음). 전도 = **부호 있는** ID_spice
+   (크기 규칙) > 그 소자 문턱(C23 의 소자별 `off_current_A`, 없으면 `judge.off_current_A`) -- 역방향 전류(ID < 0)는 전도가
+   아니다(포화 검사 대상 밖, 엔진 예측 전도면 3 에서 FAIL). 문턱이 둘 다 없으면 소자 행 `conduction_threshold_A` 는 None 으로
+   기록하고 전도 = ID_spice > 0 이다.
 3. **[신규 C23]** 엔진이 전도로 예측한 MOS 가 SPICE 에서 꺼지지 않았다(문턱 = 엔진이 낸 소자별 `off_current_A`).
 그리고 합격 실행(free)은 접합 용량을 넣은 넷리스트여야 한다(C22: 확산 기하 없으면 막힘).
 
@@ -260,7 +271,9 @@ C23. **[신규]** 꺼진 소자(Q5 (i)): free·forced·iso 모든 비교 행에 
     - free verdict(C8): `FAIL` 이 하나라도 있으면 FAIL. `N/A(off_current_A 없음)`·`N/A(예측 없음)`·`N/A(SPICE ID 없음)` 인 소자가
       있으면 PASS 가 될 수 없고 INCOMPLETE(조용한 통과 금지). `N/A(엔진 예측 off)` 는 verdict 에 영향 없음.
     - `summary.acceptance` 에 `off_in_spice[소자]`, `conduction_not_evaluated{소자: 이유}` 를 더한다.
-    - 합격 정의 2(포화)의 전도 문턱도 소자별 `off_current_A` 가 우선이다(없으면 `judge.off_current_A`, 그것도 없으면 0).
+    - 합격 정의 2(포화)의 전도 문턱도 소자별 `off_current_A` 가 우선이다(없으면 `judge.off_current_A`). 행 칸
+      `conduction_threshold_A` = 그 문턱, 둘 다 없으면 None(이때 전도 = 부호 있는 ID_spice > 0). 영역 기록 `off` 는 문턱이
+      있을 때 |ID_spice| < 문턱.
 C24. **[신규]** CMRR·PSRR = `ratio_db`(Q5 (ii) (A), 엔진 `ratio_ss_db` 와 같은 여기 정의):
     - 정의: 뷰 `{num, den}` 각각에 대해 .ac 한 번(모두 2회). 한 번의 .ac 에서 `ac_excite` 에 적힌 넷은 그 진폭(위상 0, 음수
       진폭 = 반대 위상)의 AC 전압으로, 테스트벤치가 이상 전압원으로 구동하는 **나머지 넷**(레일·입력·게이트 바이어스)은 AC 0 이다
