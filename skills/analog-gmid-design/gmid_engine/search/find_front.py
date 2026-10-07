@@ -27,6 +27,7 @@ from gmid_engine.sizing import (
     dc_seal_node_conflict,
     dc_seal_report,
     dc_seal_saturation,
+    dc_seal_vgs_match,
     dc_tolerances,
     dc_widths,
 )
@@ -35,9 +36,12 @@ from .eps_sweep import sweep_front
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, SearchFront
 from .start_points import start_points
 
-# sizing 공개 계산 블록(봉인 2 `dc_seal_vgs_match` 는 sizing `__all__` 에 빠져 있어 계수에서 빠진다 -- 열린 항목 S-9)
-_BLOCKS = (dc_currents, dc_lengths, dc_columns, dc_widths, dc_tolerances, dc_seal_node_conflict,
+# sizing 공개 계산 블록 12개(S-9: `dc_seal_vgs_match` 를 sizing `__all__` 에 더했다)
+_BLOCKS = (dc_currents, dc_lengths, dc_columns, dc_widths, dc_tolerances, dc_seal_node_conflict, dc_seal_vgs_match,
            dc_seal_kcl, dc_seal_bulk_reverse, dc_seal_saturation, dc_seal_kvl_branch, dc_seal_report)
+_LAYER0_MISSING = ("LR5 knee 격자(measure_L_knee: gm/ID·VDS 입력 필요)",
+                   "DEC-71 (4)(a) 필요 gm(블록 gain 예산 -- GB4 상한표·GB5·ss_linearize)",
+                   "DEC-71 (4)(c) VDS 배분의 VDsat 하한(lut VDSAT 접근자 -- 봉인 7 과 같은 대기)")
 
 
 def _block_totals():
@@ -56,6 +60,7 @@ def _point_record(sctx, point):
             "theta_hex": [[list(k), float(v).hex()] for k, v in res.theta], "cells": list(res.key.cells),
             AXIS_POWER: res.objectives.power_w, AXIS_AREA: res.objectives.area_m2,
             "gate_area_m2": res.objectives.gate_area_m2, "passives_in_area": False,
+            "power_resolution_w": res.objectives.power_resolution_w, "unmeasured": [list(u) for u in res.unmeasured],
             "active": [{"name": r.name, "c": r.c} for r in res.constraints if r.active],
             "origin": dict(point.origin), "snapshot_fp": res.evaluation.snapshot.fp, "snapshot_ref": ref}
 
@@ -63,8 +68,9 @@ def _point_record(sctx, point):
 def find_front(sctx, given_starts):
     t_start = time.perf_counter()
     blocks_before = _block_totals()
+    sctx.deadline = t_start + sctx.settings.front_budget_s
     starts, start_log = start_points(sctx, tuple(given_starts))
-    out = sweep_front(sctx, starts, t_start)
+    out = sweep_front(sctx, starts)
     blocks_after = _block_totals()
     notes = [dict(n) for n in sctx.constraint_notes]
     probe = next((s.best for _p, s in out["solves"] if s.best is not None), None)
@@ -74,7 +80,14 @@ def find_front(sctx, given_starts):
                       "passive_area_undeclared": list(probe.objectives.passive_area_undeclared)})
     notes.append({"verdict": "judgment_pending", "rule": "DEC-72", "reason": "model_error_unmeasured_front_estimated"})
     notes.append({"verdict": "not_run", "rule": "DEC-79", "reason": "layout_axis_refilter_is_mod8"})
-    notes.append({"verdict": "not_implemented", "rule": "DEC-71", "reason": "layer0_start_points_u49"})
+    notes.append({"verdict": "blocked", "rule": "DEC-71", "reason": "layer0_inputs_missing",
+                  "missing": list(_LAYER0_MISSING)})
+    notes.append({"verdict": "not_computed", "rule": "DEC-78", "reason": "supply_current_dc_needs_counted_rails_declaration",
+                  "axis_used": AXIS_POWER})
+    unmeasured = sorted({u for res in sctx.cache.values() for u in res.unmeasured})
+    if unmeasured:
+        notes.append({"verdict": "unmeasured", "rule": "S-1", "constraints": [list(u) for u in unmeasured],
+                      "points": sum(1 for res in sctx.cache.values() if res.unmeasured)})
     if out["pending_front"]:
         notes.append({"verdict": "pending", "rule": "DEC-88", "reason": "seal_7_undefined_vdsat_accessor_missing",
                       "pending_points": len(out["pending_front"])})
@@ -86,8 +99,11 @@ def find_front(sctx, given_starts):
                 block_calls=blocks_after[0] - blocks_before[0], block_reuses=blocks_after[1] - blocks_before[1],
                 block_computes=blocks_after[2] - blocks_before[2],
                 block_recomputes_same_input=blocks_after[3] - blocks_before[3], n_starts=len(starts),
-                n_solves=len(out["solves"]))
-    run_id = fp_of((sctx.context_fp, sctx.code_fp, sctx.settings, tuple(s.theta for s in starts)))
+                n_solves=len(out["solves"]), eval_budget=sctx.eval_budget, eval_budget_source=sctx.eval_budget_source,
+                frozen_columns=sum(len(s.frozen) for _p, s in out["solves"]),
+                stops_eval_budget=sum(1 for _p, s in out["solves"] if s.stop == "eval_budget"),
+                stops_wall_budget=sum(1 for _p, s in out["solves"] if s.stop == "wall_budget"))
+    run_id = fp_of((sctx.context_fp, sctx.code_fp, sctx.settings, sctx.eval_budget, tuple(s.theta for s in starts)))
     if sctx.archive is not None:
         sctx.archive.append_run({
             "run_id": run_id, "s0": sctx.context_fp, "schema_fp": sctx.schema_fp, "settings": sctx.settings,

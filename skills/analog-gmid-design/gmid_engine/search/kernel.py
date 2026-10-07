@@ -9,9 +9,12 @@
   실패 결과(커널 0) -> 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 `STATUS_OUTSIDE_DOMAIN`(커널 0, 정의역 밖) -> `size_and_seal`.
 * 후보 실패는 `CANDIDATE_FAILURE_CLASSES` 만 이름으로 잡아 `STATUS_FAILED` + FailureRecord(N3.14). ValueError·TypeError 등은
   호출 계약 위반이라 잡지 않는다(넓은 except 없음).
-* 성공: `seal_status`(봉인 7 대기 스위치) -> 목적(`objective_values`) -> 제약(`constraint_rows` + 목적 축 spec 제약).
+* 성공: `seal_status`(봉인 7 대기 스위치) -> 목적(`objective_values`, 점의 b_P 포함 -- None 이면 `STATUS_UNDEFINED`) ->
+  제약(`constraint_rows` + 목적 축 spec 제약(전력 분모 = 그 점의 b_P) + `ss_constraint_rows`, 재지 못한 ss 제약은 `unmeasured`).
+* E_B(평가 수 예산)가 선언되지 않았으면 평가 수가 n + 1 을 넘는 순간 한 번 ⌊B / median(평가 시간)⌋ 로 정한다(기록).
 * 커널을 부른 평가만 S3 evals 에 한 줄(설계 8절). 같은 키를 두 번 계산하면 `recompute_same_key` +1(정상 0).
 """
+import statistics
 import time
 from collections.abc import Mapping
 
@@ -33,11 +36,12 @@ from .search_values import (
     EvalResult,
 )
 from .seal7_pending import seal_status
+from .ss_constraints import ss_constraint_rows
 
 
 def _spec_rows(sctx, objectives):
     rows = []
-    scale = {AXIS_POWER: sctx.domain.power_resolution_w, AXIS_AREA: sctx.domain.area_resolution_m2}
+    scale = {AXIS_POWER: objectives.power_resolution_w, AXIS_AREA: sctx.domain.area_resolution_m2}
     value = {AXIS_POWER: objectives.power_w, AXIS_AREA: objectives.area_m2}
     for metric, op, target in sctx.judged_constraints:
         c = (value[metric] - target) / scale[metric] if op == ">=" else (target - value[metric]) / scale[metric]
@@ -57,6 +61,9 @@ def _record(sctx, result, origin):
     if result.objectives is not None:
         rec["objectives"] = {AXIS_POWER: result.objectives.power_w, AXIS_AREA: result.objectives.area_m2}
     rec["constraints"] = [{"name": r.name, "c": r.c, "active": r.active} for r in result.constraints]
+    rec["unmeasured"] = [list(u) for u in result.unmeasured]
+    if result.objectives is not None:
+        rec["power_resolution_w"] = result.objectives.power_resolution_w
     if result.evaluation is not None:
         rec["snapshot_fp"] = result.evaluation.snapshot.fp
     sctx.archive.append_eval(rec)
@@ -96,16 +103,25 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
         evaluation = size_and_seal(sctx.dc, dict(pairs), parent=base)
     except CANDIDATE_FAILURE_CLASSES as exc:
         failure = exc.record
+    unmeasured = ()
     if evaluation is not None:
         status = seal_status(evaluation)
         resistances = sctx.dc.resistor_values + tuple(
             (k[1], v) for k, v in pairs if k[0] == THETA_RESISTANCE)
         objectives = objective_values(evaluation.snapshot, resistances, sctx.element_values)
+        if objectives.power_resolution_w is None:
+            status = STATUS_UNDEFINED          # 전력 축 분해능 b_P 를 정할 tol 행이 없다 -- 목적 정규화 불가
         if status != STATUS_UNDEFINED:
             seal_rows, _undefined = constraint_rows(evaluation.snapshot, sctx.dc.lut)
-            rows = seal_rows + _spec_rows(sctx, objectives)
+            ss_rows, unmeasured = ss_constraint_rows(evaluation, sctx.ss_constraints)
+            rows = seal_rows + _spec_rows(sctx, objectives) + ss_rows
     sctx.eval_times.append(time.perf_counter() - start)
-    result = EvalResult(key, pairs, status, evaluation, objectives, rows, cone, failure, sctx.seq)
+    if sctx.eval_budget is None and len(sctx.eval_times) > len(sctx.domain.variables):
+        # E_B 를 한 번 정한다: 평가 한 sweep(n + 1 = FD Jacobian 한 번) 뒤의 시간 중앙값 t_ref -- 첫 평가의 LUT 파생표(tol_V) 1회
+        # 비용이 중앙값을 끌지 않게. 이후 모든 한도는 평가 수(결정론). 값·근거는 기록되고 settings.eval_budget 으로 재현한다.
+        sctx.eval_budget = int(sctx.settings.front_budget_s / statistics.median(sctx.eval_times))
+        sctx.eval_budget_source = "derived_once:floor(B/median_t_eval)@n_evals=" + str(len(sctx.eval_times))
+    result = EvalResult(key, pairs, status, evaluation, objectives, rows, cone, failure, sctx.seq, unmeasured)
     sctx.cache[key] = result
     _record(sctx, result, origin)
     return result

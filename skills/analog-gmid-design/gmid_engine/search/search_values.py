@@ -41,15 +41,15 @@ CON_EPS = "eps"
 class SearchSettings:
     """탐색 실행 선언(기본값 없음 -- 모두 부르는 쪽이 출처와 함께 넘긴다, WP-03).
 
-    `front_budget_s`: front 전체 벽시계 예산(s) -- spec `search.front_budget_s`(PA-2·U-47 결정 대기).
-    `power_resolution_w`: 전력 축 분해능 b_P(W) -- 설계 5절 'max(전력 격자 분해능, 모델 오차)'의 격자 분해능 정의가
-    없어(열린 항목 S-2) 선언으로만 받는다. `current_bounds_a`: θ 전류 기저 상자 (lo, hi) A -- GB4 상한표 미구현(S-3).
-    `resistance_bounds_ohm`: θ 저항 상자 (lo, hi) Ω 또는 None(θ 저항이 없는 회로). `sources`: ((필드, 출처 문자열), ...).
+    `front_budget_s`: front 전체 벽시계 예산 B(s) -- spec `search.front_budget_s`(PA-2·U-47 결정 대기). 벽시계는 바깥 정지
+    (기록)로만 쓴다. `eval_budget`: 커널 평가 수 예산 E_B(정수) 또는 None -- None 이면 E_B = ⌊B / t_ref⌋(t_ref = 시작점 확인
+    평가 시간 중앙값, 한 번 재서 기록)로 정한다. 탐색 안 모든 한도는 평가 수로 센다 -- 같은 E_B 면 결과가 결정론적이다.
+    `resistance_bounds_ohm`: θ 저항 상자 (lo, hi) Ω 또는 None. PDK 선언에 수동소자 범위가 없어 θ 저항이 있는 회로는 반드시
+    선언해야 한다(없으면 `search_domain` 이 SchemaRejectedError). `sources`: ((필드, 출처 문자열), ...).
     """
 
     front_budget_s: float
-    power_resolution_w: float
-    current_bounds_a: tuple
+    eval_budget: object
     resistance_bounds_ohm: object
     sources: tuple
 
@@ -68,12 +68,13 @@ class Variable:
 class SearchDomain:
     """S0·고정 W 집합마다 1개(설계 4.1). `variables` = 연속 변수(θ 성분 순), `l_cells` = ((MOS, ((lo, hi), ...)), ...)
     L 칸(PDK 모델 bin 안 LUT L 점 구간; 앵커 하나뿐인 칸은 lo == hi). `area_resolution_m2` = b_A = 제조 격자 × 최소 finger 폭
-    (DEC-80 (i), 모델 오차 미측정이라 (ii) = (i) -- '추정'), `power_resolution_w` = b_P(선언)."""
+    (DEC-80 (i), 모델 오차 미측정이라 (ii) = (i) -- '추정'). `current_box` = ((kind, (I_off, I_max)), ...) θ 전류 상자의
+    근거(`current_box.py`). 전력 분해능 b_P 는 점마다 다르다(`Objectives.power_resolution_w`)."""
 
     variables: tuple
     l_cells: tuple
     area_resolution_m2: float
-    power_resolution_w: float
+    current_box: tuple
 
 
 @dataclasses.dataclass(frozen=True)
@@ -90,7 +91,9 @@ class EvalKey:
 @dataclasses.dataclass(frozen=True)
 class Objectives:
     """목적 값. `power_w` = power_dc_w, `area_m2` = area_search_m2, `per_rail` = ((레일, I_k), ...),
-    `kcl_residual_a`, `gate_area_m2`, `passive_area_undeclared`, `passive_value_undetermined`(값 미정 수동소자)."""
+    `kcl_residual_a`, `gate_area_m2`, `passive_area_undeclared`, `passive_value_undetermined`(값 미정 수동소자),
+    `power_resolution_w` = b_P = Σ_레일 |V_k|·tol_I,k(tol_I,k = 레일 k 에 채널이 닿는 MOS 의 dc_tol_v·dc_gm_bound 최댓값 --
+    봉인 3 KCL 허용오차와 같은 식), 정의된 행이 없으면 None."""
 
     power_w: float
     area_m2: float
@@ -99,6 +102,7 @@ class Objectives:
     gate_area_m2: float
     passive_area_undeclared: tuple
     passive_value_undetermined: tuple
+    power_resolution_w: object = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -113,7 +117,8 @@ class ConstraintRow:
 @dataclasses.dataclass(frozen=True, eq=False)
 class EvalResult:
     """커널 1회 결과(설계 2.3). `evaluation` = DcEvaluation 또는 None, `failure` = FailureRecord 또는 None,
-    `constraints` = ConstraintRow tuple(ε 제약 제외 -- ε 는 키 밖이라 호출부가 붙인다), `cone` = 원뿔 제약 행."""
+    `constraints` = ConstraintRow tuple(ε 제약 제외 -- ε 는 키 밖이라 호출부가 붙인다), `cone` = 원뿔 제약 행,
+    `unmeasured` = 이 점에서 재지 못한 spec 제약 ((metric, op, 사유), ...) -- 빠뜨리지 않고 '미측정'으로 남긴다(S-1)."""
 
     key: EvalKey
     theta: tuple
@@ -124,6 +129,7 @@ class EvalResult:
     cone: tuple
     failure: object
     seq: int
+    unmeasured: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -140,7 +146,7 @@ class StartPoint:
 class SolveResult:
     """ε 풀이 하나(설계 6.2). `best` = 받아들인 최선 EvalResult 또는 None, `eps` = (축, 값) 또는 None,
     `minimize` = 최소화 축, `iterations`·`restarts`, `stop` = 종료 사유, `history` = 수락 반복 EvalResult tuple,
-    `aborts` = 재시작을 부른 중단 사유 tuple(순서대로)."""
+    `aborts` = 재시작을 부른 중단 사유 tuple(순서대로), `frozen` = FD 열이 양방향 실패해 고정한 변수 ((kind, key), ...)."""
 
     best: object
     eps: object
@@ -150,6 +156,7 @@ class SolveResult:
     stop: str
     history: tuple
     aborts: tuple = ()
+    frozen: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True, eq=False)

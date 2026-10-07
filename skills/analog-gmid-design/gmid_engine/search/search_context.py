@@ -8,8 +8,10 @@
   비례하는 작은 값이라 퇴출이 없다. `disk_failures` = S3 evals 실패 줄에서 재구성한 {EvalKey: FailureRecord}(같은 S0·코드 지문만,
   설계 7.3). 모듈 수준 캐시가 아니라 이 객체가 소유한다.
 * 계수 `counters`(설계 7.4): requests, kernel_calls, hits, fail_hits, disk_hits, outside_domain, recompute_same_key.
-* spec 제약: 판정 대상(`judged_constraints`) 중 metric 이 목적 축(power_dc_w·area_search_m2)인 것만 커널 결과로 잴 수 있다.
-  나머지(ss 영역 등)는 MOD5 `ss_linearize` 가 없어 `constraint_notes` 에 '판정 보류'로 남긴다(통과로 세지 않는다, S-1).
+* spec 제약(`spec.judged_constraints`): 값이 결정 대기면 `constraint_notes`(judgment_pending). 목적 축(power_dc_w·
+  area_search_m2) 제약은 `judged_constraints` -- 커널 결과로 잰다. 그 밖(ss 영역 등)은 `ss_constraints` -- 점마다
+  `ss_constraint_rows` 가 재거나 '미측정'으로 남긴다(S-1, 빠뜨리지 않음).
+* 예산: `eval_budget`(커널 평가 수 E_B, 선언 또는 find_front 가 한 번 유도), `deadline`(벽시계 바깥 정지).
 """
 import hashlib
 from pathlib import Path
@@ -53,6 +55,10 @@ class SearchContext:
                                          "outside_domain", "recompute_same_key")}
         self.eval_times = []
         self.seq = 0
+        self.ss_constraints = ()
+        self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
+        self.eval_budget_source = "declared" if settings.eval_budget is not None else None
+        self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
 
 
 def _disk_failures(archive, context_fp, schema_fp):
@@ -74,16 +80,21 @@ def build_search_context(dc_ctx, spec, settings, archive_root):
                         dc_ctx.inputs))
     schema_fp = fp_of(dc_ctx.schema)
     code_fp = _code_fp()
-    judged, notes = [], []
+    judged, ss, notes = [], [], []
     for decl in spec.judged_constraints:
-        if decl.metric in AXES and decl.value is not None:
+        if decl.value is None:
+            notes.append({"metric": decl.metric, "op": decl.op, "verdict": "judgment_pending",
+                          "reason": "constraint_value_pending", "decision": decl.value_decision})
+        elif decl.metric in AXES:
             judged.append((decl.metric, decl.op, float(decl.value)))
         else:
-            notes.append({"metric": decl.metric, "op": decl.op, "value": decl.value,
-                          "verdict": "judgment_pending", "reason": "metric_not_evaluable_without_ss_linearize"})
+            ss.append((decl.metric, decl.op, float(decl.value)))
+            notes.append({"metric": decl.metric, "op": decl.op, "value": decl.value, "verdict": "unmeasured",
+                          "reason": "ss_constraint_per_point_unmeasured_see_evals"})
     archive = None if archive_root is None else S3Archive(archive_root, context_fp, code_fp)
     ctx = SearchContext(dc_ctx, domain, settings, context_fp, schema_fp, code_fp,
                         tuple(dc_ctx.inputs.element_values), tuple(judged), tuple(notes), archive)
+    ctx.ss_constraints = tuple(ss)
     if archive is not None:
         ctx.disk_failures = _disk_failures(archive, context_fp, schema_fp)
     return ctx

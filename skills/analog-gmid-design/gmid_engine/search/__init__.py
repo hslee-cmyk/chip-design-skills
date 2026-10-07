@@ -7,6 +7,7 @@
 from .archive import S3Archive
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
+from .current_box import current_box
 from .eps_sweep import sweep_front
 from .eval_key import eval_key
 from .fd_jacobian import fd_jacobian
@@ -53,6 +54,7 @@ from .search_values import (
     Variable,
 )
 from .slsqp_outer import solve_eps
+from .ss_constraints import ss_constraint_rows
 from .start_points import start_points
 
 __all__ = (
@@ -91,6 +93,7 @@ __all__ = (
     "build_search_context",
     "cone_rows",
     "constraint_rows",
+    "current_box",
     "eval_key",
     "evaluate",
     "fd_jacobian",
@@ -103,6 +106,7 @@ __all__ = (
     "search_domain",
     "seal_status",
     "solve_eps",
+    "ss_constraint_rows",
     "start_points",
     "sweep_front",
 )

@@ -2,7 +2,7 @@
 
 - 대상: `gmid_engine/search/` 공개 API(`gmid_engine.search.__all__`). test 는 `from gmid_engine.search import ...` 와 그보다 앞
   패키지(`core`·`lut`·`authoring`·`graph`·`sizing`·`metrics`)의 공개 이름만 쓴다(`_` 이름·파일 모듈 직접 import 금지).
-  배치는 규칙 H: `gmid_engine/tests/search/test_<파일>.py`(지금은 docstring 만 있는 자리표 19개 -- 동작 test 는 독립 test
+  배치는 규칙 H: `gmid_engine/tests/search/test_<파일>.py`(지금은 docstring 만 있는 자리표 21개 -- 동작 test 는 독립 test
   작성자 몫), 9회로 교차는 `tests/integration/`, 불변식은 `tests/contracts/`.
 - 근거: `_drafts/engine/design_mod6_search_front.md`(이하 설계, Q3·Q7·Q10 개정본), `NEW_ENGINE_DESIGN_REQUIREMENTS.md` 끝
   '확정 사항' 3(S3)·7(L bin), 계획 DEC-34·54·72·77·78·79·80·85·88·95, LR3·LR5·LR10, U-47·U-49·U-51, sizing `CONTRACT.md` r2
@@ -10,6 +10,10 @@
 - 기대값은 test 쪽이 손계산·toy 커널(설계 9절 T1~T14)로 만든다(피검 함수로 기대값을 만들지 않는다). 10절 숫자는 작성자 측
   실행값(교차 확인용)이고 정본이 아니다.
 - 이 브랜치는 ng-gb7 r2(2db91e2) 위에 master(8d16dd7 병합: metrics·lut r4 L bin·core pdk_decl)를 합친 상태다.
+- **r2(2026-10-08, 오케스트레이터 결정 반영)**: 바뀐 곳에 `[r2]`. 요지 -- b_P 를 점마다 tol_I × |V_rail| 로 유도(S-2), θ 전류 상자를
+  LUT 에서 유도(`current_box`, S-3), θ 저항 상자는 선언 필수·없으면 구조화 거부(S-3), ss 제약은 점마다 '미측정' 기록 + 연결 자리
+  `ss_constraints`(S-1), 한도는 평가 수(E_B)로 세어 결정론(S-7/8), FD 양방향 실패 열은 변수 고정(S-16), sizing `__all__` 에
+  `dc_seal_vgs_match` 추가(S-9). 층 0(S-4)은 설계 입력 셋이 없어 막힘(9절).
 
 ---
 
@@ -20,11 +24,13 @@
 | 0 | `search_values.py` | 데이터 선언 모듈(상태·단계·축·제약 접두 어휘, 2절 형식) |
 | 1 | `archive.py` | `S3Archive` |
 | 1 | `cone_rows.py` | `cone_rows` |
+| 1 | `current_box.py` [r2] | `current_box` |
 | 1 | `eval_key.py` | `eval_key` |
 | 1 | `l_cells.py` | `l_cells` |
 | 1 | `objectives.py` | `objective_values` |
 | 1 | `pareto.py` | `nondominated` |
 | 1 | `seal7_pending.py` | `seal_status` ★ 봉인 7 대기 스위치(4절) |
+| 1 | `ss_constraints.py` [r2] | `ss_constraint_rows` ★ ss_linearize 연결 자리 |
 | 2 | `constraints.py` | `constraint_rows` |
 | 2 | `search_domain.py` | `search_domain` |
 | 3 | `search_context.py` | `build_search_context`(+ 비진입 공개 클래스 `SearchContext`) |
@@ -48,18 +54,19 @@ sctx   = build_search_context(dc_ctx, spec, settings, archive_root)             
 front  = find_front(sctx, given_starts)                                                               # -> SearchFront
 ```
 
-### 1.1 `SearchSettings(front_budget_s, power_resolution_w, current_bounds_a, resistance_bounds_ohm, sources)` -- frozen, 기본값 없음
+### 1.1 [r2] `SearchSettings(front_budget_s, eval_budget, resistance_bounds_ohm, sources)` -- frozen, 기본값 없음
 | 필드 | 뜻 | 상태 |
 |---|---|---|
-| `front_budget_s` | front 전체 벽시계 예산 B(s) | spec `search.front_budget_s` = PA-2 결정 대기, U-47 보류 -> 부르는 쪽 선언 |
-| `power_resolution_w` | 전력 축 분해능 b_P(W) | 설계 5절 '전력 격자 분해능' 정의 없음(열린 항목 S-2) -> 선언 |
-| `current_bounds_a` | θ 전류 기저 상자 (lo, hi) A | GB4 상한표 미구현(S-3) -> 선언 |
-| `resistance_bounds_ohm` | θ 저항 상자 (lo, hi) Ω 또는 None | 설계에 DC 경로 θ 저항 범위 출처 없음(S-3) -> 선언 |
+| `front_budget_s` | front 벽시계 예산 B(s) -- 바깥 정지(`wall_budget`, 기록)와 E_B 유도에만 | spec `search.front_budget_s` = PA-2 결정 대기, U-47 보류 -> 부르는 쪽 선언 |
+| `eval_budget` | 커널 평가 수 예산 E_B(int) 또는 None | None -> `evaluate` 가 커널 평가 수가 n + 1(n = 정의역 연속 변수 수, FD 한 번)을 넘는 순간 E_B = ⌊B / median(평가 시간)⌋ 를 한 번 정하고 기록(`eval_budget_source` = "derived_once:floor(B/median_t_eval)@n_evals=<수>") -- 첫 평가의 LUT 파생표(tol_V) 1회 비용이 중앙값을 끌지 않게 한 sweep 뒤에 잰다. 같은 E_B 를 넘기면 같은 결과 |
+| `resistance_bounds_ohm` | θ 저항 상자 (lo, hi) Ω 또는 None | PDK 선언에 수동소자 범위 없음 -> θ 저항이 있는 회로는 필수. 없으면 `search_domain` 이 `SchemaRejectedError`(3.7) |
 | `sources` | ((필드, 출처 문자열), ...) | S3 runs 에 그대로 기록 |
 
+b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·3.7·3.19).
+
 ### 1.2 `given_starts`
-θ Mapping({(kind, key): 값}, 스키마 전 성분) 의 iterable. 설계 6.1 시작점 출처 ① 층 0 은 미구현(S-4), ③ 선언 x0 은 spec 필드가 없어
-부르는 쪽이 넘긴다.
+θ Mapping({(kind, key): 값}, 스키마 전 성분) 의 iterable. 설계 6.1 시작점 출처 ① 층 0 은 [r2] 막힘(S-4 -- 설계가 시작점을
+유도하는 세 입력이 엔진에 없다, 9절), ③ 선언 x0 은 spec 필드가 없어 부르는 쪽이 넘긴다.
 
 ## 2. 값 형식 (`search_values`, 모두 frozen dataclass)
 
@@ -69,11 +76,12 @@ front  = find_front(sctx, given_starts)                                         
 - 단계: `STAGE_START`·`STAGE_SLSQP`·`STAGE_FD`·`STAGE_L_SEARCH`. 축: `AXIS_POWER` = "power_dc_w", `AXIS_AREA` =
   "area_search_m2", `AXES`. 제약 이름 접두: `CON_SEAL6`("seal6_bulk")·`CON_INVERSION`("inversion_floor")·`CON_CONE`
   ("current_cone")·`CON_EPS`("eps") + ":" + 소자/축. 목적 축 spec 제약은 "spec:" + metric + op.
-- `Variable(component, log, lo, hi)`, `SearchDomain(variables, l_cells, area_resolution_m2, power_resolution_w)`,
+- `Variable(component, log, lo, hi)`, [r2] `SearchDomain(variables, l_cells, area_resolution_m2, current_box)`,
   `EvalKey(context_fp, schema_fp, cells, w_fixed_fp, theta_hex)`, `Objectives(power_w, area_m2, per_rail, kcl_residual_a,
-  gate_area_m2, passive_area_undeclared, passive_value_undetermined)`, `ConstraintRow(name, c, active)`,
-  `EvalResult(key, theta, status, evaluation, objectives, constraints, cone, failure, seq)`(eq=False),
-  `StartPoint(start_id, theta, cells, source)`, `SolveResult(best, eps, minimize, iterations, restarts, stop, history, aborts=())`,
+  gate_area_m2, passive_area_undeclared, passive_value_undetermined, power_resolution_w=None)`, `ConstraintRow(name, c, active)`,
+  `EvalResult(key, theta, status, evaluation, objectives, constraints, cone, failure, seq, unmeasured=())`(eq=False),
+  `StartPoint(start_id, theta, cells, source)`, `SolveResult(best, eps, minimize, iterations, restarts, stop, history,
+  aborts=(), frozen=())`,
   `FrontPoint(point_id, result, origin, dominated_by=None)`, `ParetoResult(kept, folded, dominated)`,
   `SearchFront(run_id, front, pending_front, failed_eps, resolution, perf, notes)`, `NodeRow(point_id, status, voltage,
   tier, devices)`.
@@ -108,15 +116,35 @@ front  = find_front(sctx, given_starts)                                         
 - `area_m2` = metrics `area_search(GateArea(dc_op.W, dc_op.L) 전 MOS, PassiveArea(값 있는 수동소자, 단위 면적 None))`.
   수동소자 값이 `element_values`·`resistances` 어디에도 없으면 `passive_value_undetermined`(이름순), 값은 있는데 단위 면적
   선언이 없으면 `passive_area_undeclared`(U-36).
+- [r2] `power_resolution_w` = b_P = Σ_{레일 k} |dc_rail_v_k| · tol_I,k, tol_I,k = 채널 끝(`dc_current_basis.ends` 의 from·to)이
+  레일 넷 k 인 MOS 중 `dc_tol_v` 가 None 이 아닌 것의 `dc_tol_v·dc_gm_bound` 최댓값(sizing 봉인 3 KCL 허용오차 식을 레일 노드에
+  건 것). 행이 있는 레일이 없거나 합이 0 이면 None. power_dc_w 는 모든 레일 합이라 합산 레일 = 모든 레일(전압 0 레일은 0 기여).
+  `supply_current_dc` 는 합산 레일 선언(`counted_rails`)이 spec 에 없어 계산하지 않는다(notes `supply_current_dc_needs_counted_rails_declaration`).
 
 ### 3.7 `search_domain(dc_ctx, settings) -> SearchDomain`
 - `settings` 가 SearchSettings 아님 -> `TypeError`. 변수(θ 스키마 성분 순, L 제외):
   `ln_idu` = (False, kind 포락선 lo, hi): hi = 레이아웃 전 슬라이스 on_mask 격자점의 ln(ID·L/w_m) 최댓값, lo = (L, VDS, VS)
   곡선마다 gm/ID(= exp(log_GM − log_ID)) 최대 VGS 격자점의 ln IDu 중 최솟값(정점 격자점이 on_mask 인 곡선만).
-  `y` = (False, 0, 1). `current` = (True, ln lo, ln hi). `resistance` = (True, ln lo, ln hi) -- 선언 None 이면 `ValueError`.
+  `y` = (False, 0, 1). [r2] `current` = (True, ln I_off, ln I_max): 기저 원소가 MOS 면 그 kind 의 `current_box`, 아니면 그 원소를
+  항으로 갖는 `current_cone` MOS 행들의 kind 상자 (최소 I_off, 최대 I_max)(그런 행이 없으면 `ValueError`).
+  `resistance` = (True, ln lo, ln hi) -- [r2] θ 저항이 있는데 `resistance_bounds_ohm` 이 None 이면 변수를 만들기 전에
+  `SchemaRejectedError`(detail {gate "search_domain", reason "theta_resistance_bounds_undeclared", resistors (θ 순)}).
   lo ≥ hi 인 변수 -> `ValueError`.
 - `l_cells` = ((MOS, l_cells(kind)), ...) MOS 이름순. `area_resolution_m2` = `lut.spec.manufacturing_grid_m` ×
-  min(`lut.spec.min_finger_w_m` 값). `power_resolution_w` ≤ 0 -> `ValueError`.
+  min(`lut.spec.min_finger_w_m` 값). `current_box` = ((kind, (I_off, I_max)), ...) MOS kind 이름순.
+
+### 3.19 [r2] `current_box(lut_access, kind) -> (I_off, I_max)`
+- I_off = 레이아웃 전 폭 슬라이스(`w_keys[kind]`)의 VGS 격자 중 0(|v| ≤ ulp(격자 끝 크기)) 인 첫 index 면에서 on_mask 이고 ID > 0
+  인 점의 ID 최솟값(SPICE 오라클 `off_current_A` 와 같은 열 -- LUT VGS=0 누설 ID).
+- I_max = 그 kind 의 모든 슬라이스(`slice_map` 의 (kind, *))에서 on_mask 점 ID 최댓값(각 슬라이스 자기 폭의 ID -- finger 수 상한
+  선언이 없어 다중 finger 합은 넣지 않는다, S-3b).
+- VGS 0 없음 -> `SchemaRejectedError`(reason `lut_vgs_zero_missing`), 유효 점 없음 -> (reason `lut_current_box_empty`).
+
+### 3.20 [r2] `ss_constraint_rows(evaluation, declared) -> (rows, unmeasured)`
+- `declared` = ((metric, op, value), ...). 비면 ((), ()). `evaluation.sealed is None` -> ((), 선언마다 (metric, op,
+  "ss_requires_sealed_snapshot")). 봉인됨 -> ((), (metric, op, "ss_linearize_unavailable")). 행은 아직 만들지 않는다.
+- **연결 자리**: metrics `ss_linearize` 가 `__all__` 에 들어오면 봉인된 경우 분기 하나를 '봉인 스냅샷 -> ss 레코드 -> metric_value
+  -> 정규화 행'으로 바꾼다(호출부 `evaluate` 는 그대로). 봉인 7 대기 점은 그 뒤에도 '미측정'이다(DEC-67).
 
 ### 3.8 `constraint_rows(snapshot, lut_access) -> (rows, undefined)`
 - MOS 마다(`dc_op` 열 순서) tol = `dc_tol_v`; None 또는 ≤ 0 이면 `undefined` 에 이름(정렬) 하고 그 MOS 행 없음.
@@ -127,8 +155,10 @@ front  = find_front(sctx, given_starts)                                         
 ### 3.9 `build_search_context(dc_ctx, spec, settings, archive_root) -> SearchContext`
 - `context_fp` = fp_of((base.fp, plan_versions, lut, fixed_values, resistor_values, inputs)), `schema_fp` = fp_of(schema),
   `code_fp` = core·lut·graph·sizing·metrics·search `*.py` 바이트 sha256 묶음의 fp.
-- `spec.judged_constraints` 중 metric ∈ AXES 이고 값이 있는 것 -> `judged_constraints` ((metric, op, value), ...), 나머지 ->
-  `constraint_notes`(verdict `judgment_pending`, reason `metric_not_evaluable_without_ss_linearize`).
+- [r2] `spec.judged_constraints` 를 문서 순서로: 값 None -> `constraint_notes`(verdict `judgment_pending`, reason
+  `constraint_value_pending`, decision), metric ∈ AXES -> `judged_constraints` ((metric, op, value), ...), 그 밖 ->
+  `ss_constraints`(같은 형식) + `constraint_notes`(verdict `unmeasured`).
+- `eval_budget` = settings.eval_budget, `deadline` = None(find_front 가 정함).
 - `archive_root` 가 None 이면 S3 없음. 아니면 `S3Archive(root, context_fp, code_fp)` 이고 `disk_failures` = evals 의 ok 아닌 줄
   (같은 schema_fp·code_fp) -> {EvalKey: FailureRecord}.
 - `counters` 키: requests, kernel_calls, hits, fail_hits, disk_hits, outside_domain, recompute_same_key(모두 0 시작).
@@ -141,13 +171,15 @@ front  = find_front(sctx, given_starts)                                         
 4. `cone_rows` 에 c ≤ 0 -> outside_domain +1, `STATUS_OUTSIDE_DOMAIN`(seq −1), 캐시 저장. 커널 0, S3 줄 없음.
 5. kernel_calls +1, seq +1, `size_and_seal(dc, θ, parent=parent.evaluation)`. `NonconvergentError`·`SealViolationError` 만
    잡아 `STATUS_FAILED` + `exc.record`. 그 밖 예외는 전파(캐시·계수는 kernel_calls 까지 증가한 채).
-6. 성공: 상태 = `seal_status`. 목적 = `objective_values`(저항 = dc resistor_values + θ resistance). `STATUS_UNDEFINED` 가
-   아니면 제약 = `constraint_rows` 행 + 목적 축 spec 행(`spec:<m><op>`, c = (값 − 목표)/분해능(>=) 또는 (목표 − 값)/분해능(<=),
-   분해능 = b_P 또는 b_A).
-7. 캐시 저장, archive 가 있으면 evals 한 줄(8절).
+6. 성공: 상태 = `seal_status`. 목적 = `objective_values`(저항 = dc resistor_values + θ resistance). [r2] b_P 가 None 이면
+   상태 = `STATUS_UNDEFINED`. `STATUS_UNDEFINED` 가 아니면 제약 = `constraint_rows` 행 + 목적 축 spec 행(`spec:<m><op>`,
+   c = (값 − 목표)/분해능(>=) 또는 (목표 − 값)/분해능(<=), 분해능 = 그 점의 b_P 또는 b_A) + `ss_constraint_rows` 행,
+   `unmeasured` = ss_constraint_rows 의 미측정 목록.
+7. 캐시 저장, archive 가 있으면 evals 한 줄(8절). [r2] `eval_budget` 이 None 이고 평가 시간 수 > n 이면 E_B 를 정한다(1.1).
 - 같은 키를 커널로 두 번 계산하면 recompute_same_key +1(캐시가 막으므로 정상 0).
 
-### 3.11 `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin) -> ((EvalResult | None, step), ...)`
+### 3.11 `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()) -> ((EvalResult | None, step), ...)`
+- [r2] index ∈ `skip`(고정된 변수) -> (base, 0.0), 평가 없음.
 - 스텝(base 스냅샷에서): `ln_idu` = (dc_op.vgs 를 품는 VGS 격자 칸 폭) × gm_id; `y` = 첫 w_key 슬라이스 VDS 격자 최소 간격 /
   (그 y 키를 쓰는 노드 `dc_window` 의 hi − lo)(창 없음·폭 0 -> None); `current` = 그 기저를 항으로 갖는 MOS 의 tol·gm_id 최솟값
   (없으면 전 MOS 최솟값, 그것도 없으면 None); `resistance` = (전 MOS tol 최솟값) / (|dc_drop_current|·R)(강하 0 -> 0);
@@ -162,34 +194,43 @@ front  = find_front(sctx, given_starts)                                         
   가 품는 첫 칸(없으면 `ValueError`). 후보마다 `evaluate`(id "s<n>", 1부터) 1회 -> log 항목 {id, source, status, seq, fail?}.
   받아들일 상태이고 처음 보는 키면 `StartPoint`.
 
-### 3.13 `solve_eps(sctx, start, minimize, eps, deadline, origin) -> SolveResult`
+### 3.13 [r2] `solve_eps(sctx, start, minimize, eps, origin) -> SolveResult`
 - 변수 = domain.variables + 시작 칸이 구간인 MOS 의 L(칸 bounds). 칸이 한 점인 L 은 칸 lo 로 고정. x0 = 시작 θ(log 변수는 ln),
-  bounds 로 자름. 목적 = 축 값/분해능, 제약 = 커널 행 + 원뿔 행 (+ ε 행 (ε − 값)/분해능).
+  bounds 로 자름. 축 분해능 = {power: 첫 받아들인 점(시작점)의 b_P, area: b_A} -- 풀이 하나 동안 고정. 목적 = 축 값/분해능,
+  제약 = 커널 행 + 원뿔 행 (+ ε 행 (ε − 값)/분해능).
 - 시작점이 받아들일 상태가 아니면 즉시 `SolveResult(None, eps, minimize, 0, 0, "start_<사유>", ())`.
 - 같은 x(float.hex)는 한 번만 평가. x 평가 parent = 직전 수락 반복, FD parent = 그 x 평가.
-- 중단 사유: `candidate_failure`·`fd_column_failure`·`constraint_set_changed`(제약 이름 tuple 이 시작점과 다름) -> 재시작(마지막 수락
-  x 중심, 반경 = (hi − lo)/2 / 2^k), `budget`(deadline 지남) -> 끝. 재시작 상한 = max(1, ⌈log2(max 반경 / 최소 FD 스텝)⌉),
-  넘으면 stop `restart_cap`. `fd_column_failure` 가 마지막 수락 x 자신에서 났으면 같은 중심의 같은 열이 또 실패할 뿐이므로 stop
-  `fd_column_failure_at_centre`(S-16). `aborts` = 중단 사유 목록(FD 열 실패는 "fd_column_failure:<kind>:<key>"). 정상 끝: SLSQP(ftol 1, maxiter = max(1, ⌊남은 시간 / ((n + 1)·평가 시간 중앙값)⌋)) 결과
-  success 면 "converged", 아니면 "slsqp_<status>".
+- **한도(평가 수, 결정론)**: maxiter = max(1, Σᵢ max(⌈log2((hiᵢ − loᵢ)/hᵢ)⌉, 1))(hᵢ = 시작점 FD 실제 스텝 크기 > 0 인 변수만),
+  재시작 상한 = max(1, ⌈log2(max 반경 / 최소 hᵢ)⌉). 새 x 를 평가하기 전 `kernel_calls ≥ eval_budget` -> stop `eval_budget`,
+  `perf_counter > deadline` -> stop `wall_budget`(둘 다 재시작 없이 끝).
+- 중단 사유: `candidate_failure`·`constraint_set_changed` -> 재시작(마지막 수락 x 중심, 반경 = (hi − lo)/2 / 2^k; 중심이 바뀌면 고정
+  해제). `fd_column_failure`(열 i) -> 그 점이 마지막 수락 x 가 아니면 먼저 수락(고정 해제), 열 i 를 고정(bounds lo = hi = 중심 값)하고
+  같은 중심에서 다시(재시작 수에 안 넣음); 모든 변수가 고정되면 stop `all_columns_frozen`. `aborts` = 순서대로 사유("frozen:<kind>:<key>"
+  포함), `frozen` = 고정한 변수. 정상 끝: SLSQP(ftol 1) success 면 "converged", 아니면 "slsqp_<status>".
 - `best` = 수락 반복 중 모든 c ≥ 0 이고 (목적, seq) 최소. 없으면 None.
 
-### 3.14 `polish_l_cells(sctx, solved, deadline, origin) -> (SolveResult, ...)`
+### 3.14 [r2] `polish_l_cells(sctx, solved, origin) -> (SolveResult, ...)`
 - 설계 4.3 L-b(본문 docstring). 새 칸의 L = 위로 이동이면 새 칸 lo, 아래로면 hi. 시험 조건: 받아들일 상태 ∧ (목적 감소 ∨ 음의
-  제약 합 증가). 수락 = 재시작 해 목적 개선 ≥ 1(정규화 한 칸). 수락하면 그 해에서 다음 바퀴, 한 바퀴 수락 없음 또는 deadline -> 끝.
+  제약 합 증가). 수락 = 재시작 해 목적 개선 ≥ 1(정규화 한 칸 -- 전력은 그 바퀴 기준점의 b_P). 한 바퀴 수락 없음 또는 평가 예산·
+  벽시계 도달 -> 끝.
 
-### 3.15 `sweep_front(sctx, starts, t_start) -> dict`
-- 키: `solves`((id, SolveResult) -- 끝점 id "EP:<start>"/"EA:<start>", ε 점 "eps:<축>:<k>", L-b "L:<점>:<n>"), `failed_eps`,
-  `resolution`(정렬 쌍: b_A_m2, b_P_w, estimated True, coarse_factor, T_refilter_s 0.0, refilter "mod8_not_implemented",
-  끝점이 둘 다 있으면 N_eps·t_eps_s·T_fixed_s), `front`·`pending_front`(FrontPoint), `*_removed`((id, 지배자 id)),
-  `*_folded`.
-- ε 격자 점 수 = 열린 구간 (lo, hi) 안 hi − k·간격 점 수. N_ε = ⌊(B − T_fixed)/t_ε⌋. 총수 > max(N_ε, 0) 이면 간격 배수 ×2 반복.
+### 3.15 [r2] `sweep_front(sctx, starts) -> dict`
+- 키: `solves`((id, SolveResult) -- 끝점 id "EP:<start>"/"EA:<start>", ε 점 "eps:<축>:<k>", L-b "L:<점>:<n>"), `failed_eps`
+  (항목 {eps, minimize, stop, aborts, accepted, start?}), `resolution`(정렬 쌍: b_A_m2, b_P_rule, estimated True, coarse_factor,
+  E_refilter 0, refilter "mod8_not_implemented", E_B; 끝점이 둘 다 있으면 N_eps·e_eps·E_fixed·b_P_grid_w),
+  `front`·`pending_front`(FrontPoint), `*_removed`((id, 지배자 id)), `*_folded`.
+- ε 격자 점 수 = 열린 구간 (lo, hi) 안 hi − k·간격 점 수. N_ε = ⌊(E_B − E_fixed)/e_ε⌋(e_ε = 끝점 풀이 kernel_calls 중앙값).
+  총수 > max(N_ε, 0) 이면 간격 배수 ×2 반복. 전력 간격 = max(b_P(E_P), b_P(E_A)). 비지배 필터 전력 동률 폭 = max(b_P(p), b_P(q)).
 
-### 3.16 `find_front(sctx, given_starts) -> SearchFront`
-- `front` = 봉인된 점만(지금은 항상 ()), `pending_front` = 봉인 7 대기 비지배 점. `notes` 에 판정 보류 사유(1.1·9절).
-  `perf` = counters + unique_keys, eval_time_median_s, wall_s, lut_memo_evictions, block_calls/reuses/computes/
-  recomputes_same_input(sizing 계산 블록 11개 -- `dc_seal_vgs_match` 제외, S-9), n_starts, n_solves.
-- `run_id` = fp_of((context_fp, code_fp, settings, 시작 θ들)). archive 가 있으면 runs 한 줄 + front·대기 front 점 스냅샷 파일.
+### 3.16 [r2] `find_front(sctx, given_starts) -> SearchFront`
+- deadline = 시작 시각 + B. E_B 는 선언 또는 `evaluate` 의 한 번 유도(1.1) -- perf `eval_budget_source` 에 기록. ε 게이트 때
+  E_B 가 아직 None 이면 N_ε = 0.
+- `front` = 봉인된 점만(지금은 항상 ()), `pending_front` = 봉인 7 대기 비지배 점. `notes` 에 판정 보류 사유: constraint_notes,
+  DEC-79 review_needed, DEC-72 추정, MOD8 재필터 미실행, 층 0 막힘(`layer0_inputs_missing` + 빠진 입력 목록), supply_current_dc
+  미계산, ss 미측정(`unmeasured` -- 제약 목록과 점 수), 봉인 7 대기.
+  `perf` = counters + unique_keys, eval_time_median_s, wall_s, lut_memo_evictions, block_*(sizing 계산 블록 12개), n_starts, n_solves,
+  eval_budget, eval_budget_source, frozen_columns, stops_eval_budget, stops_wall_budget.
+- `run_id` = fp_of((context_fp, code_fp, settings, E_B, 시작 θ들)). archive 가 있으면 runs 한 줄 + front·대기 front 점 스냅샷 파일.
 
 ### 3.17 `node_across_front(front, node, archive=None) -> (NodeRow, ...)`
 - 원소가 `FrontPoint` 면 메모리 스냅샷, dict(runs front 항목)면 `archive.read_snapshot(entry["snapshot_ref"])`(archive 없으면
@@ -224,58 +265,107 @@ front  = find_front(sctx, given_starts)                                         
 | I-5 | 넓은 except 없음: 커널이 낸 ValueError·TypeError 는 evaluate 밖으로 전파 |
 | I-6 | 봉인 7 대기 점은 `SearchFront.front` 에 0개(4절) |
 | I-7 | `nondominated` 결과는 입력 순서 섞기에 불변, kept 안 두 점은 서로 지배하지 않고 모든 축 동률도 아니다 |
-| I-8 | 결정론: 예산이 묶이지 않은 실행(stop 에 "budget" 없음, SLSQP 가 maxiter 전에 끝남)은 `PYTHONHASHSEED` 무관 같은 front |
+| I-8 | [r2] 결정론: 같은 입력·같은 `eval_budget`(선언 또는 기록된 유도값)이고 `stops_wall_budget == 0` 이면 `PYTHONHASHSEED` 무관 같은 front -- 평가 수 예산에 묶인 실행도 포함 |
+| I-11 | [r2] θ 저항이 있고 `resistance_bounds_ohm` 이 None 이면 `build_search_context` 가 `SchemaRejectedError`(reason `theta_resistance_bounds_undeclared`) -- 커널 호출 0 |
+| I-12 | [r2] 봉인 7 대기 점의 ss 제약은 모두 `unmeasured`(사유 `ss_requires_sealed_snapshot`), 행 0 -- 제약이 조용히 빠지지 않는다 |
 | I-9 | `node_across_front` 커널 호출 0(counters 불변) |
 | I-10 | 엔진 소스 숫자 리터럴·회로 이름 0(구조 test D·E) |
 
 ## 6. S3 기록 형식 (`<root>/<context_fp>/`, 줄마다 flush)
 
 - `evals.jsonl`: {seq, schema_fp, cells, w_fixed_fp, theta_hex, theta, status, ok, origin, fail?, objectives?{power_dc_w,
-  area_search_m2}, constraints[{name, c, active}], snapshot_fp?, code_fp}.
+  area_search_m2}, power_resolution_w?, constraints[{name, c, active}], unmeasured[[metric, op, 사유]], snapshot_fp?, code_fp}.
 - `runs.jsonl`: {run_id, s0, schema_fp, settings, starts, resolution, front[], pending_front[], removed[], failed_eps,
   notes, perf, code_fp}; 점 = {point_id, status, seq, theta_hex[[키, hex]], cells, power_dc_w, area_search_m2, gate_area_m2,
-  passives_in_area False, active, origin, snapshot_fp, snapshot_ref}.
+  passives_in_area False, power_resolution_w, unmeasured, active, origin, snapshot_fp, snapshot_ref}.
 - `snapshots/<snapshot_fp>.json.gz`: {fp, records[{kind, key, fields{이름: {value, writer, input_version}}}]}.
 - Windows 경로 길이(260자) 때문에 `root` 는 짧아야 한다(지문 두 개가 64자).
 
 ## 7. 결정론
-- 정렬: θ 키·MOS 이름·front 남기는 순서(3.1). 난수 없음. 시간 의존은 deadline 과 maxiter(평가 시간 중앙값)뿐 -- I-8 조건.
+- 정렬: θ 키·MOS 이름·front 남기는 순서(3.1). 난수 없음. [r2] 탐색 안 한도(maxiter·재시작 상한·ε 수·평가 예산)는 모두 평가 수와
+  LUT 해상도에서 나온다. 시간이 들어가는 곳은 두 곳뿐이고 둘 다 기록된다: E_B 를 유도할 때 한 번 잰 t_ref(`eval_budget` 으로
+  다시 넘기면 재현), 바깥 벽시계 정지(`stops_wall_budget`). 그래서 I-8.
 
 ## 8. 설계와 다르게 정한 점
 
 1. 파일: 설계의 `theta_schema.py`(sizing `dc_theta_schema` 가 이미 정본)·`kernel_context.py`(sizing `KernelContext` 정본 +
    `search_context.py`)·`eval_cache.py`(캐시 = SearchContext 필드)·`budget.py`(예산 게이트는 eps_sweep 안 식)·`layer0_columns.py`
-   (미구현)·`budget_point.py`(예산 선언 PA-1 대기 -- 쓰는 곳이 없어 만들지 않음)는 없다. `cone_rows.py`·`l_cells.py`·
-   `objectives.py`·`seal7_pending.py`·`search_domain.py` 를 더했다.
+   (막힘, S-4)·`budget_point.py`(예산 선언 PA-1 대기 -- 쓰는 곳이 없어 만들지 않음)는 없다. `cone_rows.py`·`current_box.py`·
+   `l_cells.py`·`objectives.py`·`seal7_pending.py`·`search_domain.py`·`ss_constraints.py` 를 더했다.
 2. L 은 소자마다(sizing 스키마 -- `l_class` proposed), "동치류 bin" = 소자별 L 칸.
 3. 신뢰 상자: 전역 bounds 에서 시작해 실패 때 절반(S-7). 실패 점에 부분 목적값이 없어(size_and_seal 이 예외로 끝남) 봉인 6·7
-   실패도 재시작한다(S-10).
+   실패도 재시작한다(S-10, 오케스트레이터 승인 2026-10-08). FD 열 양방향 실패는 재시작 대신 변수 고정(S-16).
+6. [r2] b_P 는 상수가 아니라 점마다 유도(3.6). 풀이 하나·ε 격자·동률 폭은 그 점들의 b_P 를 쓴다(3.13·3.15).
+7. [r2] sizing `__all__` 에 `dc_seal_vgs_match` 를 더했다(이 브랜치 한 줄, sizing 쪽 누락 수정 -- 블록 계수 12개).
 4. 목적 값은 graph 필드가 아니라 metrics 순수 함수를 search 가 부른다(S-6). 전력 축 = power_dc_w(S-5).
 5. 평가 캐시는 모든 결과의 스냅샷을 든다(설계 7.2 는 front·parent 사슬만) -- 메모리 정책은 cProfile 뒤.
 
-## 9. 열린 항목 (결정 필요 -- 추측으로 채우지 않고 선언 입력으로 받았다)
+## 9. 열린 항목 ([r2] 오케스트레이터 결정 2026-10-08 반영 상태)
 
-- **S-1** spec 성능 제약(gain·GBW·PM 등 ss 영역)은 MOD5 `ss_linearize` 가 없어 잴 수 없다 -> `judgment_pending` 기록. 그 결과
-  제약이 없어 전력 최소·면적 최소가 같은 점(전류 하한)으로 모여 front 가 한 점으로 줄어든다(S-12).
-- **S-2** b_P '전력 격자 분해능'의 정의가 설계·계획에 없다 -> `power_resolution_w` 선언.
-- **S-3** θ 전류 상자(GB4 상한표 미구현)·θ 저항 상자 -> 선언.
-- **S-4** 시작점 ① 층 0(DEC-71, U-49) 미구현, `n_starts`·x0 spec 필드 없음 -> `given_starts`.
-- **S-5** 전력 축: DEC-78 은 레일 공급 전류 합(`supply_current_dc`, 이름표 objective_axis power)인데 합산 레일 선언(`counted_rails`)
-  이 spec 에 없다 -> 지시대로 `power_dc_w` 를 축으로 쓴다(2레일·gnd 0 이면 순서 같음, 3레일이면 다를 수 있다).
+- **S-1 (처리)** ss 제약은 점마다 `unmeasured` 로 기록(빠뜨리지 않음), 연결 자리 `ss_constraint_rows`(3.20) -- ng-sslin 의
+  `ss_linearize` 가 들어오면 한 분기만 바꾼다. 그 전에는 제약이 없어 전력 최소·면적 최소가 같은 방향으로 모인다(S-12).
+- **S-2 (처리)** b_P = Σ|V_rail|·tol_I(3.6). 실측 결과: b_P 가 점의 전력과 같은 크기(10절) -- tol_I = tol_V·gm_bound 의
+  gm_bound 가 곡선 전체 최대 gm 이라 크다. 그래서 전력 축 해상도가 거의 한 칸이 되어 전력 방향 ε 점이 0~수 개다. 이 b_P 를
+  그대로 쓸지(또는 gm_bound 대신 동작점 gm)는 결정 필요(**S-2b**).
+- **S-3 (처리)** θ 전류 상자 = `current_box`(3.19), θ 저항 상자 = 선언 필수·없으면 구조화 거부(3.7). **S-3b** finger 수 상한
+  선언이 PDK 선언에 없어 I_max 는 단일 finger 최대 폭 슬라이스 값이다(다중 finger 소자의 상한은 열린 항목). 시연에서 θ 저항이 있는
+  sf_pushpull·current_reuse 는 선언이 없어 거부된다(10절).
+- **S-4 (막힘 -- 추측 없이는 구현 불가)** 설계의 층 0 최소형(설계 6.1 '① 층 0 조립점: ℓ = LR5 knee 앵커, r = 역산 후보, y = 창
+  중앙', DEC-71 (4))은 세 입력이 필요한데 엔진에 없다: (a) LR5 knee(`measure_L_knee` 는 gm/ID·VDS 를 입력으로 받는다 -- 그 값이
+  (b) 에서 온다) (b) (4)(a) 필요 gm(블록 gain 예산 -- GB4 상한표·GB5·`ss_linearize`) (c) (4)(c) VDS 배분의 VDsat 하한(lut VDSAT
+  접근자 -- 봉인 7 과 같은 대기). y = 창 중앙만 유도 가능하다. 층 0 은 (b)·(c) 가 들어온 뒤 구현하고, 그동안 시작점은 S3 이전
+  front 점 + `given_starts` 이며 notes 에 `layer0_inputs_missing` 을 남긴다. spec `n_starts`·x0 필드는 설계가 시작점을 유도하므로
+  만들지 않았다.
+- **S-5 (처리)** 전력 축 = power_dc_w. supply_current_dc 는 합산 레일 선언이 필요하다(notes 기록).
 - **S-6** metrics 계산 블록 배선(S2 metric 필드) 없음 -> search 가 순수 함수 호출.
-- **S-7** 신뢰 상자 초기 반경 m(DEC-34 식) -- U-47 보류라 정할 수 없음.
-- **S-8** SLSQP 반복 상한 'ε 당 몫' -- U-47 보류 -> 남은 예산/((n+1)·t_eval)(시간 의존, I-8 조건).
-- **S-9** sizing `__all__` 에 `dc_seal_vgs_match` 가 빠져 있다(sizing 쪽 누락) -> 블록 계수에서 제외.
-- **S-10** 부분 목적값(설계 2.3)을 얻을 길이 없다(size_and_seal 실패 = 예외, 중간 스냅샷 없음).
+- **S-7 (U-47 보류 유지)** 신뢰 상자 초기 반경 m.
+- **S-8 (처리)** 반복 상한·ε 수·평가 예산을 평가 수로(3.13·3.15) -- 벽시계는 바깥 정지(기록).
+- **S-9 (처리)** sizing `__all__` 에 `dc_seal_vgs_match` 추가.
+- **S-10 (승인)** 부분 목적값이 없어 재시작(기록).
 - **S-11** FD y 스텝의 'VDS 격자 간격'(비균등 격자) -> 최소 간격으로 읽었다.
 - **S-13** 원뿔 제약 정규화(설계 5절 표에 없음) -> Σ항/Σ|항|.
 - **S-14** T_refilter(판정 축 재필터 시간) = 0 -- MOD8 미구현.
 - **S-15** L-b 의 'LR5 격자 안' -- LR5 knee 격자 미구현이라 LUT 의 모든 L 칸이 격자다.
-- **S-16** 수락된 점에서 FD 열이 양방향 모두 실패하면 설계 3절·6.2 는 '재시작'만 말한다 -- 같은 중심에서는 진전이 없다. 지금은
-  그 ε 풀이를 끝내고(`fd_column_failure_at_centre`) 실패 ε 로 기록한다. 열을 고정하거나 한쪽 차분 0 으로 둘지는 결정 필요.
-- **S-17** 벽시계 예산 초과: deadline 검사는 새 x 평가 때만 해서 FD 한 번·L-b 시험 한 번만큼 넘을 수 있다(실측 ≤ 10 s / 120 s).
+- **S-16 (처리)** FD 양방향 실패 열 = 변수 고정(3.13), 모두 고정되면 끝.
+- **S-17** 예산 초과: 예산 검사는 새 x 평가 때만 해서 FD 한 번·L-b 시험 한 번만큼(평가 수로 n + 1 이하) 넘을 수 있다.
+- **S-18 (r2 실측에서 새로 -- 결정 필요)** W ≥ 최소 finger 폭(LutSpec `min_finger_w_m`, PDK difftap) 제약이 설계 5절 표에 없다.
+  유도한 전류 하한(꺼짐 전류)과 합쳐지면 최소화가 비물리 폭으로 간다(10.0). 넣는다면 c = (W − W_min)/g(g = 제조 격자)가 원칙에 맞는
+  정규화다 -- 설계 개정 사항이라 넣지 않았다.
 
 ## 10. 9회로 실측 -- 작성자 측 시연(정본 아님)
+
+### 10.0 [r2] r2 실측 (2026-10-08, 이 커밋 코드)
+
+조건: 아래 r1 과 같은 LUT·spec·시작점 탐침(시작점 생성은 시연 하네스 몫 -- 층 0 막힘). **선언 가정은 B = 120 s 하나**이고
+b_P·θ 전류 상자·E_B 는 유도, θ 저항 상자는 미선언(그래서 θ 저항이 있는 두 회로는 거부). 최종 front 0/9(봉인 7 대기).
+
+| 회로 | θ / 변수 | 시작점 | requests | kernel = 고유 키 | recompute_same_key | 블록 reuse 비 | E_B(유도) | 풀이 수 | 고정 열 | 실패 ε | wall(s) | 대기 front (P W, A m²) | b_P(격자) / P |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| common_gate_amplifier | 9 / 6 | 2 | 382 | 37 | 0 | 0.16 | 11000 | 19 | 0 | 15(slsqp_4) | 0.6 | 1.37e-12, 6.4e-18 | 8.4e-7 / 1.4e-12 |
+| current_reuse_telescopic_ota | 105 | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 거부: `theta_resistance_bounds_undeclared` (R1, R2) | -- |
+| folded_cascode | 29 / 16 | 2 | 1037 | 140 | 0 | 0.17 | 406 | 12 | 11 | 8(slsqp_4) | 53.9 | 1.52e-5, 1.35e-10 | 7.0e-6 / 1.5e-5 |
+| ngcc_3stage_ff | 35 / 19 | 2 | 23962 | 1560 | 0 | 0.25 | 1555 | 76 | 1070 | 0 | 112.4 | 3.79e-4, 2.68e-8 | 4.7e-2 / 3.8e-4 |
+| nmcnr_amplifier | 36 / 21 | 2 | 8890 | 1524 | 0 | 0.20 | 1891 | 48 | 255 | 0 | 102.3 | 2.71e-4, 1.34e-10 | 1.8e-4 / 2.7e-4 |
+| pushpull_follower_buffer | 14 / 8 | 2 | 824 | 434 | 0 | 0.16 | 1757 | 25 | 1 | 0 | 15.3 | 3.27e-5, 3.41e-12 | 1.2e-4 / 3.3e-5 |
+| sf_pushpull_output_opamp | 47 | -- | -- | -- | -- | -- | -- | -- | -- | -- | -- | 거부: `theta_resistance_bounds_undeclared` (R1a, R1b, R1c) | -- |
+| two_stage_ota | 16 / 9 | 2 | 271 | 70 | 0 | 0.16 | 1199 | 7 | 0 | 3(slsqp_4) | 11.8 | 4.01e-6, 6.67e-11 | 4.8e-6 / 4.0e-6 |
+| two_stage_ota_sf | 20 / 11 | 2 | 16645 | 1663 | 0 | 0.18 | 4514 | 379 | 81 | 0 | 63.3 | 6.21e-6, 8.97e-13 | 1.3e-2 / 6.2e-6 |
+
+- 7회로 모두 `kernel_calls == unique_keys`, `recompute_same_key == 0`, LUT memo 퇴출 0, `stops_wall_budget == 0`.
+- 결정론(I-8, 평가 수 예산에 묶인 실행): nmcnr_amplifier 를 E_B = 300 선언, `PYTHONHASHSEED` 1·2 로 따로 -- kernel 323·323,
+  대기 front 동일.
+- **b_P(S-2b)**: 유도된 b_P 가 점의 전력과 같은 크기이거나 수십~수천 배 크다(ngcc 120 배, two_stage_ota_sf 2000 배) --
+  tol_I = tol_V·gm_bound 의 gm_bound(곡선 전체 gm 최대 × W/w_m)가 W 큰 소자에서 크다. 전력 축 해상도가 사실상 한 칸이라 ε 전력
+  방향 격자가 비거나 배수가 커진다(ngcc ε 배수 2097152).
+- **W 하한 없음(S-18)**: θ 전류 하한이 LUT 꺼짐 전류(~pA)라 전력·면적 최소화가 전류를 꺼짐 수준까지 내린다(common_gate 대기 점
+  P = 1.4 pW, A = 6.4e-18 m² -- W 가 최소 finger 폭보다 훨씬 작은 비물리 점). 설계 5절 제약 표에 W ≥ 최소 finger 폭(PDK)
+  행이 없어 넣지 않았다(결정 필요).
+- 고정 열(S-16): ngcc 1070, nmcnr 255 -- 대부분 L 열(칸 끝에서 양방향 실패). 실패 ε 는 모두 SLSQP status 4(부등식 양립 불가).
+- ss 제약은 대기 점마다 `unmeasured`(사유 `ss_requires_sealed_snapshot`)로 S3 evals 에 기록, notes 에 제약 목록.
+- cProfile(cumtime): folded_cascode 53.9 s 중 size_and_seal 52.8 s(98%), LUT `gm_id_for_target` 32.0 s, core `fp_of` 20.6 s;
+  two_stage_ota 11.8 s 중 size_and_seal 11.3 s, `fp_of` 7.1 s(60%). search 자체는 1~4%.
+
+### 10.1 r1 실측 (2026-10-07, 결정 전 -- 기록)
 
 조건: LUT = `_drafts/engine/lut_slices/manifest.json` + `assets/sky130_nfet_pfet_lut_sample.npz`(옛 LUT, VDSAT 열 없음),
 `pre_layout_lut_access`, spec = library(metric 이름표 = `metric_catalog()` + integration 픽스처의 mismatch_sigma_mv·

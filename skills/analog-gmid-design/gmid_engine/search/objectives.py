@@ -66,4 +66,20 @@ def objective_values(snapshot, resistances, element_values):
     area = area_search(gates, tuple(passives))
     per_rail = tuple((nodes[i], amp) for i, amp in supply.per_rail)
     return Objectives(supply.power_dc_w, area.area_search_m2, per_rail, supply.kcl_residual_amp, area.gate_area_m2,
-                      area.passive_area_undeclared, tuple(undetermined))
+                      area.passive_area_undeclared, tuple(undetermined), _power_resolution(snapshot))
+
+
+def _power_resolution(snapshot):
+    """b_P = Σ_레일 |V_k|·tol_I,k. tol_I,k = 레일 넷 k 에 d 또는 s 가 닿는 MOS 의 dc_tol_v·dc_gm_bound 최댓값(봉인 3 KCL 허용오차
+    식을 레일 노드에 건 것 -- 레일 전류 한 칸의 판정 분해능). 어느 레일에도 정의된 행이 없으면 None."""
+    tols = dict(snapshot.column("device", "dc_tol_v"))
+    bounds = dict(snapshot.column("device", "dc_gm_bound"))
+    channel = {e: (a, b) for e, a, b in snapshot.value("graph", DC_KEY, "dc_current_basis").ends}   # MOS 채널 = (d, s)
+    total, defined = 0.0, False
+    for rail, volt in snapshot.column("node", "dc_rail_v"):
+        rows = [tols[m] * bounds[m] for m, _op in snapshot.column("device", "dc_op")
+                if tols.get(m) is not None and rail in channel.get(m, ())]
+        if rows:
+            defined = True
+            total += abs(float(volt)) * max(rows)
+    return total if defined and total > 0 else None

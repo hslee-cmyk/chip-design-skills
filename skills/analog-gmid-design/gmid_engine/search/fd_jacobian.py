@@ -1,6 +1,7 @@
 """FD Jacobian -- 전진 차분, 열마다 parent = 기준점 (설계 design_mod6_search_front 3절).
 
-진입점: `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin) -> tuple[(EvalResult | None, 스텝)]`.
+진입점: `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()) -> tuple[(EvalResult | None, 스텝)]`.
+`skip` = 고정된 변수 index(그 열은 평가 없이 (base, 0.0)).
 
 * 열 i 마다 `evaluate(θ(x + hᵢeᵢ), parent=base)` 1회 -- sizing 이 기준점 스냅샷에서 hᵢ 가 읽히는 블록과 하류만 다시
   계산한다(전류 성분은 ④ 노드전압을 건드리지 않는다, 설계 2.2). 같은 x 는 키가 같아 캐시 적중(커널 0).
@@ -12,7 +13,8 @@
     열 = 0(평가 없음).
   - `L`(칸 안 연속): L 을 품는 LUT L 점 칸 폭(할선 -- 칸 경계 꺾임을 가로지른다).
 * 변수 상한을 넘으면 후진 스텝(−hᵢ). 열 점이 받아들일 상태(봉인 통과·대기)가 아니면 반대 방향을 한 번 더 시험하고, 둘 다 아니면
-  그 열은 (None, h) -- 부르는 쪽(SLSQP)이 6.2 재시작 규칙으로 넘긴다.
+  그 열은 (None, h) -- 부르는 쪽(SLSQP)이 그 변수를 고정한다(S-16, 0 도함수를 지어내지 않는다).
+* `L` 스텝은 그 변수 칸 안 앵커 간격만 쓰고, 값이 bound 와 1 ulp 이내면 bound 로 맞춘다(칸 끝 앵커의 반올림).
 """
 import bisect
 import math
@@ -76,9 +78,12 @@ def _steps(sctx, variables, base):
     return steps
 
 
-def fd_jacobian(sctx, variables, x, base, cells, to_theta, origin):
+def fd_jacobian(sctx, variables, x, base, cells, to_theta, origin, skip=frozenset()):
     columns = []
     for i, (var, h) in enumerate(zip(variables, _steps(sctx, variables, base))):
+        if i in skip:
+            columns.append((base, 0.0))       # 고정된 변수(S-16) -- 평가 없음, 부르는 쪽이 bounds 로 묶는다
+            continue
         if not h:
             columns.append((None, 0.0) if h is None else (base, 0.0))
             continue
