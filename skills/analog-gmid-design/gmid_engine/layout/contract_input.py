@@ -19,6 +19,7 @@
   하드 box 게이트 없음, 판정 축 = floorplan 외곽 면적).
 """
 import dataclasses
+import math
 
 from gmid_engine.lut import widths
 
@@ -38,6 +39,8 @@ PATTERN_INTERDIGITATION = "interdigitation"
 PATTERNS = (PATTERN_COMMON_CENTROID, PATTERN_INTERDIGITATION)
 # PDK 규칙 선언 길이(m) -- `LayoutPdk.rule_ids` 가 모두 덮어야 한다.
 PDK_RULE_QUANTITIES = ("finger_pitch_overhead_m", "row_gap_m", "dummy_w_m", "tap_w_m", "well_spacing_m")
+# PDK 선언(core `read_pdk_decl`)의 제조 격자 이름 -- LUT 격자와 같아야 한다(core CONTRACT 9.5).
+GRID_QUANTITY = "manufacturing_grid_m"
 
 
 def _require(condition, message):
@@ -146,6 +149,16 @@ class LayoutPdk:
         keys = tuple((kind, widths(lut, kind)) for kind in kinds)
         return cls(float(lut.spec.manufacturing_grid_m), keys, float(finger_pitch_overhead_m), float(row_gap_m),
                    float(dummy_w_m), float(tap_w_m), float(well_spacing_m), tuple(rule_ids), lut.fp)
+
+    @classmethod
+    def from_decl(cls, lut, decl):
+        """정본 생성 경로: PDK 선언(`core.read_pdk_decl` 결과 `PdkDecl`)의 다섯 길이·규칙 식 + LUT 폭 키(core CONTRACT 9.5).
+        LUT 격자(`lut.spec.manufacturing_grid_m`)가 선언 `manufacturing_grid_m` 과 1 ulp 넘게 다르면 `ValueError`
+        (LUT 를 만드는 쪽이 `LutSpec(decl.value("manufacturing_grid_m"), ...)` 로 같은 선언값을 써야 한다)."""
+        grid = float(decl.value(GRID_QUANTITY))
+        _require(abs(float(lut.spec.manufacturing_grid_m) - grid) <= math.ulp(grid),
+                 "LUT 격자 " + repr(lut.spec.manufacturing_grid_m) + " != PDK 선언 " + GRID_QUANTITY + " " + repr(grid))
+        return cls.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(PDK_RULE_QUANTITIES))
 
 
 @dataclasses.dataclass(frozen=True)

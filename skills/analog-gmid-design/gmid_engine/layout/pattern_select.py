@@ -199,7 +199,7 @@ def _layout(group, chosen, attempts, *, relaxed=False, pending=False, reason="",
     members = group.members
     if chosen is None:
         return GroupLayout(group.gid, group.role, members, None, None, None, None, (), (), None, None, None, None, None,
-                           False, relaxed, pending, False, reason, tuple(attempts), tuple(w_requests))
+                           False, relaxed, pending, pending, reason, tuple(attempts), tuple(w_requests))
     _, _, pattern, result, rows, choice, dx, dy = chosen
     return GroupLayout(group.gid, group.role, members, pattern, result["method"], choice[0].finger_w_key,
                        choice[0].finger_w_m, tuple((n, c.n_fingers) for n, c in zip(members, choice)), rows,
@@ -270,7 +270,7 @@ def _place(group, devices, fw_cand, pdk, rejected):
     else:
         relaxed = ev.best((PATTERN_INTERDIGITATION,), "relax") if PATTERN_INTERDIGITATION in allowed else None
     return _layout(group, relaxed, ev.attempts, relaxed=relaxed is not None,
-                   reason=("relaxed:" + why) if relaxed is not None else _why(None, ev, why))
+                   reason=("relaxed:" + why) if relaxed is not None else (why if ev.combos else "no_common_finger_w"))
 
 
 @compute_block(
