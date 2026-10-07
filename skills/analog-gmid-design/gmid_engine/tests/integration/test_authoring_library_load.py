@@ -1,8 +1,8 @@
 """9회로 교차 -- `load_topology` 를 assets/library 원본에 실제로 건다 (authoring CONTRACT 4절).
 
 기대값은 topology JSON 직접 집계(test 쪽 json)와 계약 4절 표 숫자에서 만든다. 피검 함수로 기대값을 만들지 않는다.
-folded_cascode·nmcnr_amplifier·two_stage_ota 거부는 **CI-12(사용자 결정 대기)의 현재 기본안(passive_elements 키 없으면
-거부)** 을 확인하는 test 다 -- 결정이 (b)로 바뀌면 이 test 들을 고친다.
+folded_cascode·nmcnr_amplifier·two_stage_ota 는 2026-10-07 topology 정정(b9c7042)으로 passive_elements 를 선언해
+이제 9회로 모두 로드를 통과한다(CI-12 기본안 '키 없으면 거부' 는 authoring 단위 test 가 픽스처로 확인).
 """
 from __future__ import annotations
 
@@ -27,9 +27,12 @@ PASS_TABLE = {
     "pushpull_follower_buffer": (6, 1, None, 3, None, None),
     "sf_pushpull_output_opamp": (22, 5, 1, 3, None, None),
     "two_stage_ota_sf": (9, 2, None, None, None, None),
+    # 예전 CI-12 3회로: 숫자 칸은 JSON 집계로만 확인(None)
+    "folded_cascode": (None, None, None, None, None, None),
+    "nmcnr_amplifier": (None, None, None, None, None, None),
+    "two_stage_ota": (None, None, None, None, None, None),
 }
-CI12_REJECT = ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")
-NE_ELEMENTS = {"name_uniqueness", "ports.port_net_unknown", "hidden_rails"}
+FORMER_CI12 = ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")
 TAGS = ("device_roles", "symmetry", "sizing_roles", "compensation")
 
 
@@ -61,7 +64,7 @@ def _value(e, fields):
 
 def test_library_has_exactly_nine_circuits():
     names = sorted(p.name[: -len(".topology.json")] for p in LIBRARY.glob("*.topology.json") if not p.name.startswith("_"))
-    assert names == sorted(set(PASS_TABLE) | set(CI12_REJECT))
+    assert names == sorted(PASS_TABLE)
 
 
 @pytest.mark.parametrize("name", sorted(PASS_TABLE))
@@ -102,28 +105,16 @@ def test_passing_circuit_matches_json_aggregate(name):
             assert got == want, (name, counts)
 
 
-@pytest.mark.parametrize("name", CI12_REJECT)
-def test_ci12_default_rejects_missing_passive_elements(name):
-    """CI-12 기본안(사용자 결정 대기): passive_elements 키 없는 회로는 passives/missing_key 하나로 거부."""
+@pytest.mark.parametrize("name", FORMER_CI12)
+def test_former_ci12_circuits_load_with_declared_passives(name):
+    """예전 CI-12 3회로는 이제 passive_elements 를 선언해 통과하고, 선언 수동소자가 JSON 집계와 같다."""
     raw = _raw(name)
-    assert "passive_elements" not in raw  # JSON 직접 확인: 키가 정말 없다
-    path = str(_path(name))
-    detail = _rejected(path)
-    assert detail["gate"] == "topology_load" and detail["where"] == path
-    assert [h.rule for h in detail["hits"]] == ["missing_key"]
-    assert detail["rejected_gates"] == ("passives",)
-    assert set(detail["not_evaluated"]) == NE_ELEMENTS
-
-
-@pytest.mark.parametrize("name", CI12_REJECT)
-def test_ci12_only_blocker_empty_passives_variant_passes(tmp_path, name):
-    """CI-12 기본안에서 거부 사유가 그 하나뿐임: 메모리 변형 passive_elements: [] 는 나머지 게이트를 통과(파일은 안 고침).
-    nmcnr 는 [] 가 회로 사실과 다르다(계약 4절) -- 여기선 '다른 게이트 위반 없음'만 본다."""
-    raw = _raw(name)
-    raw["passive_elements"] = []
-    doc = load_topology(_write(tmp_path, raw, name))
+    assert isinstance(raw.get("passive_elements"), list) and raw["passive_elements"]   # JSON 직접 확인: 선언 있음
+    doc = load_topology(str(_path(name)))
+    exp = sorted((e["name"], e["kind"], tuple(e["terminals"])) + _value(e, ("value_ohm", "value_farad"))
+                 for e in raw["passive_elements"])
+    assert [(p.name, p.kind, p.terminals, p.value_key, p.value) for p in doc.passives] == exp
     assert len(doc.devices) == len(raw["netlist"])
-    assert doc.passives == ()
 
 
 def test_current_reuse_resistor_connected_nets_not_rejected():
