@@ -2,13 +2,14 @@
 
 진입점: `find_front(sctx, given_starts) -> SearchFront`.
 
-순서: 시작점(`start_points`: S3 이전 front 점 + `given_starts`, 평가 1회로 봉인 상태 확인) -> `sweep_front`(끝점·ε 두 방향·
+순서: 층 0 시작점(`layer0_start`, DEC-71 최소형) -> 시작점(`start_points`: 층 0 점 + S3 이전 front 점 + `given_starts`,
+평가 1회로 봉인 상태 확인) -> `sweep_front`(끝점·ε 두 방향·
 비지배 필터·L-b) -> S3 기록(front·대기 front 점 스냅샷 파일, runs 한 줄) -> `SearchFront`.
 
 * **최종 front = 봉인된 점만.** 봉인 7 이 VDSAT 부재로 미정인 동안(`seal7_pending`) 모든 점은 `pending_front` 에만 있고
   `front` 는 비어 있다 -- 대기 front 는 '봉인 7 대기·추정'이며 판정·보고 값으로 쓰지 않는다(DEC-72·77).
 * 기록하는 판정 보류(`notes`): spec 성능 제약 중 잴 수 없는 것(ss 영역, S-1), 수동소자 면적·값 미선언(DEC-79 -- 보상·부하
-  수동소자가 있으면 `review_needed`), 층 0 시작점 미구현(S-4), 판정 축 재필터 미실행(MOD8 몫), 모델 오차 미측정('추정').
+  수동소자가 있으면 `review_needed`), 층 0 결과(최소형 -- 정밀화 GB3·GB4·knee 는 범위 밖, S-4), 판정 축 재필터 미실행(MOD8 몫), 모델 오차 미측정('추정').
 * 계측 `perf`(설계 7.4): requests·kernel_calls·hits·fail_hits·disk_hits·outside_domain·recompute_same_key, 고유 키 수,
   평가 시간 중앙값, sizing 계산 블록 calls·reuses·computes·recomputes_same_input 델타, LUT memo 퇴출 수.
   합격 기준(NFR-2): kernel_calls == 고유 키 수, recompute_same_key == 0, LUT memo 퇴출 0.
@@ -33,19 +34,18 @@ from gmid_engine.sizing import (
 )
 
 from .eps_sweep import sweep_front
+from .layer0_center import layer0_start
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, SearchFront
 from .start_points import start_points
 
 # sizing 공개 계산 블록 12개(S-9: `dc_seal_vgs_match` 를 sizing `__all__` 에 더했다)
 _BLOCKS = (dc_currents, dc_lengths, dc_columns, dc_widths, dc_tolerances, dc_seal_node_conflict, dc_seal_vgs_match,
            dc_seal_kcl, dc_seal_bulk_reverse, dc_seal_saturation, dc_seal_kvl_branch, dc_seal_report)
-# 층 0(DEC-71 최소형) 입력 상태(r4, 2026-10-08): VDsat(lut `vdsat`)·전회로 ss metric(`ss_evaluate`)은 있다. 남은 막힘 --
-# (4)(a) 소자별 필요 gm 은 '블록 gain 예산'(GB3 블록 분해·GB4 상한표·GB5 보상 규칙)에서 오는데 셋 다 엔진에 없다(ss 는 전회로
-# metric 만 낸다 -- 블록 국소 이득 모델이 아니다). (b) knee 는 measure_L_knee(엔진에 없음, legacy 만)가 gm/ID 를 입력으로 받는데 그
-# 값이 (a) 에서 온다. (c) VDS 배분은 VDsat 하한을 쓰지만 VDsat 이 소자 반전 수준(= (a) 의 gm/ID)에 달려 있다.
-_LAYER0_MISSING = ("DEC-71 (4)(a) 소자별 필요 gm -- 블록 gain 예산(GB3 블록·GB4 상한표·GB5) 미구현",
-                   "LR5 knee -- measure_L_knee 미이식 + 입력 gm/ID 가 (4)(a) 에서 옴",
-                   "DEC-71 (4)(c) VDS 배분 -- VDsat 은 있음(lut vdsat), 반전 수준이 (4)(a) 에서 옴")
+# 층 0 = DEC-71 최소형(R D18·U-49): 봉인 여유 최대-최소 중심 시작점 하나(`layer0_start`, 오케스트레이터 결정 2026-10-08).
+# 블록 gain 예산(GB3·GB4)·LR5 knee·GB5 근사식은 최소형 밖의 정밀화라 쓰지 않는다 -- notes 에 그 사실을 남긴다.
+_LAYER0_REFINEMENTS_OUT_OF_SCOPE = ("GB3 블록 분해·GB4 블록 gain 상한표(블록 gain 예산, DEC-71 (3)(6)·DEC-73)",
+                                    "LR5 knee 앵커(집계·측정점·격자 의존 열린 항목)",
+                                    "GB5 층 0 근사식(DEC-92 (2), comp_approx_gap)")
 
 
 def _block_totals():
@@ -73,7 +73,8 @@ def find_front(sctx, given_starts):
     t_start = time.perf_counter()
     blocks_before = _block_totals()
     sctx.deadline = t_start + sctx.settings.front_budget_s
-    starts, start_log = start_points(sctx, tuple(given_starts))
+    layer0 = layer0_start(sctx)
+    starts, start_log = start_points(sctx, tuple(given_starts), () if layer0.start is None else (layer0.start,))
     out = sweep_front(sctx, starts)
     blocks_after = _block_totals()
     notes = [dict(n) for n in sctx.constraint_notes]
@@ -87,8 +88,10 @@ def find_front(sctx, given_starts):
     notes.append({"verdict": "provisional", "rule": "S-3b",
                   "reason": "current_upper_is_single_finger_max_slice_needs_declared_max_nf_or_area_cap",
                   "current_box": [[k, list(v)] for k, v in sctx.domain.current_box]})
-    notes.append({"verdict": "blocked", "rule": "DEC-71", "reason": "layer0_inputs_missing",
-                  "missing": list(_LAYER0_MISSING)})
+    notes.append({"verdict": "layer0_minimal" if layer0.start is not None else "layer0_no_start", "rule": "DEC-71",
+                  "reason": "seal_margin_maxmin_centre", "stop": layer0.stop, "t": layer0.t, "hard_ok": layer0.hard_ok,
+                  "start_status": layer0.start_status, "centre_u": layer0.centre_u, "kernel_calls": layer0.kernel_calls,
+                  "refinements_out_of_scope": list(_LAYER0_REFINEMENTS_OUT_OF_SCOPE)})
     notes.append({"verdict": "not_computed", "rule": "DEC-78", "reason": "supply_current_dc_needs_counted_rails_declaration",
                   "axis_used": AXIS_POWER})
     unmeasured = sorted({u for res in sctx.cache.values() for u in res.unmeasured})

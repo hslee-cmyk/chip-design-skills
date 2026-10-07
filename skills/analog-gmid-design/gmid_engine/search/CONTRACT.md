@@ -23,6 +23,13 @@
   (다음 평가 parent 가 재사용). 최종 `front` = 봉인 + ss 제약 모두 측정, `unmeasured_front` 신설. 층 0 은 여전히 막힘(9절 S-4).
   시연은 LUT v2(`resolve_lut_location`) -- 봉인 7 이 실제로 판정되어 `seal7_pending` 은 발동 0.
 
+- **r5(2026-10-08, 층 0 최소형 -- 오케스트레이터 결정 'feasibility centering', 브랜치 ng-layer0 = ng-mod6 + 이 변경)**: `[r5]`.
+  층 0(DEC-71 최소형 = R D18·U-49·PUD DF-10, '기둥 KVL 조립으로 DC 정합 시작점 하나')을 **gain 예산 역산이 아니라 topology 무관
+  feasibility centering** 으로 구현했다 -- θ 상자 중심(자연 좌표) -> 전류 Chebyshev 중심(커널 0) -> 봉인 항목 여유 최대-최소
+  (경성 W 하한·반전 하한·원뿔). 새 파일 `layer0_center.py`(3.21), `start_points` 에 선택 인자 `layer0`(3.12), `find_front` 가
+  층 0 을 먼저 부르고 notes 의 `layer0_inputs_missing`(막힘) 을 층 0 결과 기록으로 바꿨다(3.16). 9절 S-4 를 다시 썼다
+  (입력 = 봉인 margin + θ 상자 + 경성 행; GB3·GB4·knee·GB5 근사식은 최소형 밖 정밀화). 9회로 실측 10.0000.
+
 ### r4 덮어쓰기 요약 (아래 본문보다 우선)
 - `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, junction=None)`: `junction` = metrics `JunctionSource`
   (ng-junction, metrics 7.6 필수 키워드). None 이면 `ss_evaluate` 에 넘기지 않는다(master 에 아직 없음); 들어오면 필수로 바꾸고
@@ -70,6 +77,7 @@
 | 5 | `fd_jacobian.py` | `fd_jacobian` |
 | 5 | `front_query.py` | `node_across_front` |
 | 5 | `start_points.py` | `start_points` |
+| 6 | `layer0_center.py` [r5] | `layer0_start`(+ 비진입 공개 클래스 `Layer0Result`, 상수 `SOURCE_LAYER0`·`STAGE_LAYER0`·`ROW_SEAL_ITEM`) |
 | 6 | `slsqp_outer.py` | `solve_eps` |
 | 7 | `l_bin_search.py` | `polish_l_cells` |
 | 8 | `eps_sweep.py` | `sweep_front` |
@@ -98,8 +106,8 @@ front  = find_front(sctx, given_starts)                                         
 b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·3.7·3.19).
 
 ### 1.2 `given_starts`
-θ Mapping({(kind, key): 값}, 스키마 전 성분) 의 iterable. 설계 6.1 시작점 출처 ① 층 0 은 [r2] 막힘(S-4 -- 설계가 시작점을
-유도하는 세 입력이 엔진에 없다, 9절), ③ 선언 x0 은 spec 필드가 없어 부르는 쪽이 넘긴다.
+θ Mapping({(kind, key): 값}, 스키마 전 성분) 의 iterable. 설계 6.1 시작점 출처 ① 층 0 은 [r5] `layer0_start`(3.21)가 만든다
+(~~[r2] 막힘~~), ③ 선언 x0 은 spec 필드가 없어 부르는 쪽이 넘긴다.
 
 ## 2. 값 형식 (`search_values`, 모두 frozen dataclass)
 
@@ -186,6 +194,32 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 - **연결 자리**: metrics `ss_linearize` 가 `__all__` 에 들어오면 봉인된 경우 분기 하나를 '봉인 스냅샷 -> ss 레코드 -> metric_value
   -> 정규화 행'으로 바꾼다(호출부 `evaluate` 는 그대로). 봉인 7 대기 점은 그 뒤에도 '미측정'이다(DEC-67).
 
+### 3.21 [r5] `layer0_start(sctx, origin=()) -> Layer0Result` -- 층 0 최소형(DEC-71 최소형, R D18·U-49)
+`Layer0Result(start, t, hard_ok, stop, centre_u, start_status, start_failure, iterations, restarts, aborts, frozen,
+kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확히 이 순서):
+1. **상자 중심**: `domain.variables` 마다 (lo + hi)/2(ln 변수는 ln 좌표 중점 -> θ 값 exp). L: `domain.l_cells` 의 MOS 마다 칸 j =
+   argmin_j |(ln lo_j + ln hi_j)/2 − (ln min_k lo_k + ln max_k hi_k)/2|(동률 index 작은 쪽), θ L = (lo_j + hi_j)/2, 칸이 구간
+   (lo_j < hi_j)이면 L 변수 `Variable((L, MOS), False, lo_j, hi_j)` 를 변수 목록 끝에 MOS 이름순으로 더한다. cells = 그 j 벡터.
+2. **전류 중심**(θ 전류 변수가 있고 `schema.current_cone` 이 비지 않을 때, 커널 0): 변수 z = θ 전류 변수의 ln 값, u ≥ 0.
+   q_m(z) = I_m(z)/I_c,m, I_m = Σ (num/den)·(e^z 또는 `schema.fixed` 값), I_c,m = √(I_off·I_max)(그 MOS kind 의
+   `domain.current_box`). scipy SLSQP(기본 ftol·maxiter): 최소화 u, 제약 q_m − e^(−u) ≥ 0·e^u − q_m ≥ 0(원뿔 행 중 θ 전류
+   변수를 하나라도 읽는 행 -- `schema.fixed` 만 읽는 행은 움직일 수 없어 빼고, 그 행의 원뿔 판정은 3 의 `cone_rows` 가 한다),
+   bounds = 변수 bounds·u ∈ [0, ∞), 출발 z = 1 의 값, u = 양의 q 중 max |ln q|(없으면 0). 결과 z 를 bounds 로 자른 값으로 θ 전류를
+   바꾸고 `centre_u` = 해 u. 해의 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 stop `current_centre_outside_cone`, 커널 0, start None.
+3. **출발점 평가** `evaluate(sctx, θ, cells, origin = origin + (("stage", "layer0"),))`. 받아들일 상태가 아니면 start None,
+   stop = "start_" + (실패면 FailureRecord detail `reason`(없으면 failure_class), 아니면 상태 문자열), `start_failure` = 그 레코드.
+4. **최대-최소**: 변수 x(1 의 목록) + t. t 행 = 출발점 봉인 보고 항목 중 margin 이 유한한 항목 i(번호순), 이름
+   `ROW_SEAL_ITEM:<i>`, s_i = 1 − margin_i. 경성 행 = 커널 제약 중 이름이 `w_min:`·`inversion_floor:` 로 시작하는 행(커널 순서) +
+   원뿔 행. SLSQP: 최소화 −t, 제약 [s − t ; c] ≥ 0, bounds = 변수 bounds + t 무한, ftol 1. 행 이름 집합이 출발점과 다르거나 점이
+   받아들일 상태가 아니면 중단 -> `solve_eps`(3.13)와 같은 재시작·열 고정·한도·예산 규칙(maxiter·재시작 상한 식 동일, stop 어휘
+   동일: converged / slsqp_<status> / eval_budget / wall_budget / restart_cap / all_columns_frozen). 출발 t = 그 중심점의 min s.
+5. 결과 = 수락 반복 중 키 (경성 행 모두 ≥ 0, min s, −seq) 최대인 점. `start = StartPoint("layer0", 그 점 θ, cells, "layer0")`,
+   `t` = 그 점 min s, `hard_ok` = 그 점 경성 행 모두 ≥ 0, `kernel_calls` = 이 호출 동안 늘어난 `counters["kernel_calls"]`,
+   `rows` = t 행 이름.
+- 넓은 except 없음(`evaluate` 가 후보 실패만 상태로 바꾼다). 결정론: 난수·시간 없음(예산·벽시계 정지만 3.13 과 같이 기록).
+- 범위 밖(최소형): 블록 gain 예산(GB3·GB4), LR5 knee, GB5 근사식, spec 성능 제약(ss 행·`spec:` 행은 t·경성 행에 넣지 않는다).
+  출발점이 받아들일 상태가 아닐 때의 '봉인 위반 margin 으로 출발점을 끌어오는' 1단계는 없다(9절 S-4b).
+
 ### 3.8 [r3] `constraint_rows(snapshot, lut_access, w_min_m, grid_m) -> (rows, undefined)`
 - MOS 마다(`dc_op` 열 순서) 먼저 [r3] `w_min:<m>` c = (dc_op.W − w_min_m)/grid_m(**설계 개정 S-18**, tol 과 무관하게 늘 있음),
   그다음 tol = `dc_tol_v`; None 또는 ≤ 0 이면 `undefined` 에 이름(정렬) 하고 그 MOS 의 나머지 행 없음.
@@ -231,8 +265,10 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   이내면 bound 로 맞추고 스텝 = 값 − x; bounds 밖이거나 값 == x 면 건너뜀; 아니면 `evaluate(..., parent=base)`. 처음 받아들일
   상태인 것을 (결과, 실제 스텝)으로. 둘 다 아니면 (None, h).
 
-### 3.12 `start_points(sctx, given) -> (starts, log)`
-- 후보 = S3 runs(같은 schema_fp·code_fp)의 front·pending_front 점 θ(`theta_hex` 복원) 다음 `given`. 칸 = L 마다 [lo − ulp, hi + ulp]
+### 3.12 `start_points(sctx, given, layer0=()) -> (starts, log)`
+- [r5] 후보 = `layer0`(StartPoint iterable -- 그 `source`·`theta` 를 쓴다, 보통 `layer0_start` 결과 0 또는 1개) 다음 S3 runs(같은
+  schema_fp·code_fp)의 front·pending_front 점 θ(`theta_hex` 복원) 다음 `given`. `layer0` 기본값 () 이면 r4 와 같다.
+  층 0 점의 평가는 이미 캐시에 있어 여기서 커널 0(hits +1). 칸 = L 마다 [lo − ulp, hi + ulp]
   가 품는 첫 칸(없으면 `ValueError`). 후보마다 `evaluate`(id "s<n>", 1부터) 1회 -> log 항목 {id, source, status, seq, fail?}.
   받아들일 상태이고 처음 보는 키면 `StartPoint`.
 
@@ -265,6 +301,10 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   총수 > max(N_ε, 0) 이면 간격 배수 ×2 반복. 전력 간격 = max(b_P(E_P), b_P(E_A)). 비지배 필터 전력 동률 폭 = max(b_P(p), b_P(q)).
 
 ### 3.16 [r2] `find_front(sctx, given_starts) -> SearchFront`
+- [r5] 순서: deadline 설정 -> `layer0_start(sctx)` -> `start_points(sctx, given_starts, (층 0 start,) 또는 ())` -> 스윕. notes 의
+  옛 `{verdict "blocked", reason "layer0_inputs_missing"}` 대신 `{verdict "layer0_minimal"(시작점 있음) | "layer0_no_start",
+  rule "DEC-71", reason "seal_margin_maxmin_centre", stop, t, hard_ok, start_status, centre_u, kernel_calls,
+  refinements_out_of_scope [GB3·GB4 블록 gain 예산, LR5 knee, GB5 근사식]}`. 층 0 평가도 perf 계수(kernel_calls 등)에 든다.
 - deadline = 시작 시각 + B. E_B 는 선언 또는 `evaluate` 의 한 번 유도(1.1) -- perf `eval_budget_source` 에 기록. ε 게이트 때
   E_B 가 아직 None 이면 N_ε = 0.
 - `front` = 봉인된 점만(지금은 항상 ()), `pending_front` = 봉인 7 대기 비지배 점. `notes` 에 판정 보류 사유: constraint_notes,
@@ -312,6 +352,10 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 | I-12 | [r2] 봉인 7 대기 점의 ss 제약은 모두 `unmeasured`(사유 `ss_requires_sealed_snapshot`), 행 0 -- 제약이 조용히 빠지지 않는다 |
 | I-9 | `node_across_front` 커널 호출 0(counters 불변) |
 | I-10 | 엔진 소스 숫자 리터럴·회로 이름 0(구조 test D·E) |
+| I-13 | [r5] `layer0_start` 의 start 가 있으면 그 θ 의 평가는 받아들일 상태이고, 이어 `start_points(sctx, (), (start,))` 는 커널 0(캐시 적중)으로 그 점을 첫 시작점(source "layer0")으로 돌려준다 |
+| I-14 | [r5] 원뿔의 모든 행이 항 하나(계수 1)이고 그 원천이 행 MOS 와 같은 kind 의 MOS 이면 전류 중심 = 상자 중심(u = 0) -- θ 전류 값이 상자 기하 중심과 같다(다른 kind 원천 행이 있으면 두 kind 상자 중심 차만큼 u > 0: 9회로 u = 4.28 ~ 4.83) |
+| I-15 | [r5] 같은 sctx 입력으로 두 번(새 컨텍스트) 부르면 같은 start θ·t(결정론, `PYTHONHASHSEED` 무관) |
+| I-16 | [r5] 층 0 은 spec 성능 제약·목적 축 값을 읽지 않는다: spec judged 제약을 바꿔도(`judged_constraints`·`ss_constraints`) start θ 가 같다 |
 
 ## 6. S3 기록 형식 (`<root>/<context_fp>/`, 줄마다 flush)
 
@@ -332,7 +376,7 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 
 1. 파일: 설계의 `theta_schema.py`(sizing `dc_theta_schema` 가 이미 정본)·`kernel_context.py`(sizing `KernelContext` 정본 +
    `search_context.py`)·`eval_cache.py`(캐시 = SearchContext 필드)·`budget.py`(예산 게이트는 eps_sweep 안 식)·`layer0_columns.py`
-   (막힘, S-4)·`budget_point.py`(예산 선언 PA-1 대기 -- 쓰는 곳이 없어 만들지 않음)는 없다. `cone_rows.py`·`current_box.py`·
+   ([r5] 기둥 KVL 역산 대신 `layer0_center.py` -- feasibility centering, 9절 S-4)·`budget_point.py`(예산 선언 PA-1 대기 -- 쓰는 곳이 없어 만들지 않음)는 없다. `cone_rows.py`·`current_box.py`·
    `l_cells.py`·`objectives.py`·`seal7_pending.py`·`search_domain.py`·`ss_constraints.py` 를 더했다.
 2. L 은 소자마다(sizing 스키마 -- `l_class` proposed), "동치류 bin" = 소자별 L 칸.
 3. 신뢰 상자: 전역 bounds 에서 시작해 실패 때 절반(S-7). 실패 점에 부분 목적값이 없어(size_and_seal 이 예외로 끝남) 봉인 6·7
@@ -350,7 +394,26 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 - **S-3 (처리)** θ 전류 상자 = `current_box`(3.19), θ 저항 상자 = 선언 필수·없으면 구조화 거부(3.7). **S-3b** finger 수 상한
   선언이 PDK 선언에 없어 I_max 는 단일 finger 최대 폭 슬라이스 값이다(다중 finger 소자의 상한은 열린 항목). 시연에서 θ 저항이 있는
   sf_pushpull·current_reuse 는 선언이 없어 거부된다(10절).
-- **S-4 (막힘 -- 추측 없이는 구현 불가)** 설계의 층 0 최소형(설계 6.1 '① 층 0 조립점: ℓ = LR5 knee 앵커, r = 역산 후보, y = 창
+- **S-4 [r5 처리 -- 아래 두 r2·r4 문단은 기록]** 층 0 최소형(R D18·U-49: DC 정합 시작점 하나)의 입력 = **봉인 항목 margin(sizing
+  봉인 보고) + θ 상자(`SearchDomain`) + 경성 행(W 하한·반전 하한·원뿔)** 이다(오케스트레이터 결정 2026-10-08, 3.21). r2·r4 의
+  '세 입력 없음'은 DEC-71 전체판(블록 gain 예산으로 소자별 필요 gm 을 역산)의 입력이었고, 최소형은 gain 예산을 받지 않는다(DEC-73 의
+  예산 배분·gain bin front 는 U-49 범위 밖). 그래서 다음은 **최소형 밖 정밀화**로 남는다: GB3 블록 분해·GB4 블록 gain 상한표,
+  LR5 knee 앵커, GB5 층 0 근사식(DEC-92 (2)), 슬루 하한 전류.
+  - **S-4a (기록, knee -- 지금 만들지 않음)** knee 를 만들 때의 결정: (Q1, 오케스트레이터 결정) PDK bin 경계를 건너는 앵커 구간은
+    knee 후보에서 뺀다(LR3 근거 -- 경계 구간은 모델 불연속을 잰다; LUT v2 실측 nmos 352 경우 중 28, pmos 25 가 경계 구간 knee).
+    열린 항목: (Q2) 동치류 gm/ID 가능역 안 여러 gm/ID 의 knee 집계 규칙(legacy 중앙값은 I-A15 '근거 없음'; LUT v2 에서 같은
+    (VDS, VS) 의 gm/ID 만 바꿔도 knee 2~6 종), (Q3) knee 를 재는 (VDS, VSB)·폭 슬라이스(층 0 에서 VDS 는 배분 결과라 순환),
+    (Q4, 사용자 몫) knee 가 L 격자 밀도에 의존함(LUT v2 nmos 70 % 가 0.18 µm = 첫 칸 위 끝, legacy 12-L 격자의 1.63×L_min 재현 안 됨)
+    -- LR5 'kind 별 knee' 를 공정 성질로 유지할지, (Q7) GB5 근사식의 topology 무관 정의(DEC-92 (2), 회로별 함수 금지).
+  - **S-4b (열린 항목)** 출발점(상자 중심 + 전류 중심)이 받아들일 상태가 아니면 층 0 시작점이 없다(stop `start_<사유>`) --
+    봉인 위반 margin 으로 출발점을 끌어오는 1단계는 두지 않았다: 위반 점에는 경성 행(W 하한·반전 하한)이 없고(스냅샷 없음) ④ 실패
+    (근 없음·LUT 실패)에는 margin 자체가 없어, 어느 행을 연속 목적으로 쓸지 정의가 없다(클래스가 다른 margin 혼합 금지, 설계 5절).
+  - **S-4c (기록)** 상자 중심은 전류 상자(꺼짐 전류 ~ 단일 finger 최대 ID)의 기하 중심이라 pA 대 전류·약반전 점이다(ln IDu 상자
+    중점도 포락선 중점). 성능 제약을 읽지 않는 최소형의 정의 그대로이며, 성능 쪽 이동은 외층 SLSQP 몫이다.
+  - **S-4d (기록)** 최대-최소의 t 는 일관성 항목(봉인 1·2 margin)이 1 근처로 묶는다(t ≤ 1) -- 물리 여유(봉인 7)가 허용오차 한 칸
+    이상이면 더 밀지 않는다(ftol 1 과 같은 분해능 규칙). L 변수는 칸 중점에서 FD L 스텝(칸 안 앵커 간격 = 칸 폭)이 양방향 모두
+    칸 밖이라 고정된다(S-16) -- 앵커가 둘뿐인 칸에서 L 은 층 0 에서 움직이지 않는다.
+- **S-4 (r2 기록 -- 막힘 -- 추측 없이는 구현 불가)** 설계의 층 0 최소형(설계 6.1 '① 층 0 조립점: ℓ = LR5 knee 앵커, r = 역산 후보, y = 창
   중앙', DEC-71 (4))은 세 입력이 필요한데 엔진에 없다: (a) LR5 knee(`measure_L_knee` 는 gm/ID·VDS 를 입력으로 받는다 -- 그 값이
   (b) 에서 온다) (b) (4)(a) 필요 gm(블록 gain 예산 -- GB4 상한표·GB5·`ss_linearize`) (c) (4)(c) VDS 배분의 VDsat 하한(lut VDSAT
   접근자 -- 봉인 7 과 같은 대기). y = 창 중앙만 유도 가능하다. 층 0 은 (b)·(c) 가 들어온 뒤 구현하고, 그동안 시작점은 S3 이전
@@ -381,6 +444,34 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   `layer0_inputs_missing` 에 위 목록을 남긴다(GB3·GB4·GB5 가 들어오면 다시).
 
 ## 10. 9회로 실측 -- 작성자 측 시연(정본 아님)
+
+### 10.0000 [r5] 층 0 실측 (2026-10-08, LUT v2, `layer0_start` 단독 -- 새 컨텍스트, 평가 예산 미선언·B = 600 s)
+
+θ 저항이 있는 두 회로(current_reuse R1·R2, sf_pushpull R1a~R1c)는 **시연 전용 상자 (1e2, 1e5) Ω**(GB7 §10 탐침 범위, 엔진 밖 하네스
+값 -- 사용자 선언 대기 S-3)로 돌렸다. wall 은 첫 평가의 LUT 파생표(tol_V) 1회 비용(~15 s)을 포함한다.
+
+| 회로 | 변수 | 전류 중심 u | 출발 상태 | stop | 층 0 시작점 | t(min 1 − margin) | 경성 행 | kernel = 고유 키 | 재시작 | wall(s) |
+|---|---|---|---|---|---|---|---|---|---|---|
+| common_gate_amplifier | 6 | 4.28 | sealed | converged | **있음** | 1.00 | ≥ 0 | 8 = 8 | 0 | 21.1 |
+| current_reuse_telescopic_ota | 54 | 4.40 | failed | `start_lut_query_failed`(M4a tol_V 셀 VDS = −3.8 mV 축 밖) | 없음 | -- | -- | 1 = 1 | -- | 18.5 |
+| folded_cascode | 16 | 4.63 | sealed | converged | **있음** | 0.89 | ≥ 0 | 18 = 18 | 0 | 24.0 |
+| ngcc_3stage_ff | 19 | 4.83 | sealed | converged | **있음** | 0.96 | ≥ 0 | 22 = 22 | 1 | 23.7 |
+| nmcnr_amplifier | 21 | 4.28 | failed | `start_lut_query_failed`(M301 VDS = 7.9e-14 V, `lut_curve_undefined`) | 없음 | -- | -- | 1 = 1 | -- | 20.4 |
+| pushpull_follower_buffer | 8 | 4.28 | sealed | converged | **있음** | 0.95 | ≥ 0 | 19 = 19 | 0 | 16.3 |
+| sf_pushpull_output_opamp | 25 | 4.28 | failed | `start_lut_query_failed`(M11 VDS = 0.55 mV, `lut_curve_undefined`) | 없음 | -- | -- | 1 = 1 | -- | 19.4 |
+| two_stage_ota | 9 | 4.28 | sealed | converged | **있음** | 0.93 | ≥ 0 | 11 = 11 | 0 | 22.6 |
+| two_stage_ota_sf | 11 | 4.28 | sealed | converged | **있음** | 0.87 | ≥ 0 | 13 = 13 | 0 | 23.7 |
+
+- sealed 6회로는 고정 행 제외 수정 전 코드로 쟀다 -- 그 회로들은 `schema.fixed` 만 읽는 원뿔 행이 없어 u·경로가 같다(수정 전후 u 동일
+  확인). 고정 행이 있는 current_reuse(Iref)·sf_pushpull 은 수정 뒤 값(sf u 14.29 -> 4.28).
+- **6/9 회로가 봉인 통과 층 0 시작점**을 얻었다(전부 `sealed`, 경성 행 모두 ≥ 0, `recompute_same_key` 0). 실패 3회로는 모두 출발점에서
+  소자 하나가 VDS ≈ 0(또는 음)에 놓여 LUT 조회가 축 밖·정의 안 됨으로 끝나는 ④ 실패라 margin 이 없다(S-4b). current_reuse 는 r5 전
+  초안(고정 이상원 행을 편차 경쟁에 넣음)에서 u = 19.1 이 고정 행으로 정해져 원뿔 밖(M16 c = −1.2e-4)이었고, 고정 행을 뺀 뒤 u = 4.40.
+- 시작점의 모양(S-4c·S-4d): 전류 0.4 pA ~ 6 nA, gm/ID 25.8 ~ 33.4(약반전), W 0.72 µm ~ 203 m(pushpull -- W 상한 선언 없음, S-3b),
+  봉인 7 slack/tol 20 ~ 504. t 는 봉인 1·2 margin(0.04 ~ 0.13)이 묶고 최대-최소는 1~2 반복에 끝난다. L 은 모든 소자가 칸
+  (1.5, 2.0) µm 의 중점 1.75 µm 에 고정(FD L 열 양방향 칸 밖, S-16).
+- find_front 배선(two_stage_ota, E_B = 150 선언, given 없음): 시작점 1(층 0), kernel 151 = 고유 151, 미측정 front 1점(Cc·Rz 값
+  미선언, S-20), notes 에 `layer0_minimal`.
 
 ### 10.000 [r4] r4 실측 (2026-10-08, LUT v2 `resolve_lut_location`, ng-seal7 병합 -- 봉인 7 실판정, B = 120 s 만 선언)
 

@@ -1,8 +1,9 @@
 """시작점 목록 (설계 design_mod6_search_front 6.1, 계획 N3.5·DEC-54·LR10 (L-c)).
 
-진입점: `start_points(sctx, given) -> (tuple[StartPoint], tuple[dict])`(받아들인 시작점, 시작점마다 확인 기록).
+진입점: `start_points(sctx, given, layer0=()) -> (tuple[StartPoint], tuple[dict])`(받아들인 시작점, 시작점마다 확인 기록).
 
-* 출처 순서: ① 층 0 조립점 -- **미구현**(DEC-71 최소형, U-49 뒤 `layer0_columns.py`, 열린 항목 S-4) ② 같은 S0·스키마·코드
+* 출처 순서: ① 층 0 시작점(`layer0` -- `layer0_start` 가 만든 StartPoint, DEC-71 최소형 = 봉인 여유 최대-최소 중심, 그 평가는
+  캐시에 있어 여기서 커널 0) ② 같은 S0·스키마·코드
   지문의 S3 이전 실행 front 점(`runs.jsonl`, 비지배 순위 1 = 설계 '상위' 정렬의 첫 단) ③ 부르는 쪽이 넘긴 θ(`given`, 선언 x0).
   ② 가 ③ 보다 앞이다(설계 순서). 같은 평가 키는 한 번만.
 * 칸 벡터 = L 값마다 그 값을 품는 L 칸 index(칸 경계 1 ulp 포함). 품는 칸이 없으면 `ValueError`(정의역 밖 θ).
@@ -41,8 +42,9 @@ def _s3_thetas(sctx):
     return tuple(out)
 
 
-def start_points(sctx, given):
-    candidates = [("s3", t) for t in _s3_thetas(sctx)]
+def start_points(sctx, given, layer0=()):
+    candidates = [(s.source, s.theta) for s in layer0]
+    candidates += [("s3", t) for t in _s3_thetas(sctx)]
     candidates += [("given", tuple(sorted(dict(t).items()))) for t in given]
     starts, log, seen = [], [], set()
     for n, (source, theta) in enumerate(candidates):
