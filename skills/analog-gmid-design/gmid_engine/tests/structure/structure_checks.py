@@ -949,3 +949,182 @@ def check_h(root: Path) -> tuple[int, list[Violation]]:
             if not src.is_file():
                 out.append(Violation("orphan_test", rel(root, t), 0, "원본 없음: %s" % rel(root, src)))
     return len(sources), out
+
+
+# ---------------------------------------------------------------- (I)
+#
+# 회로별 정보로 행동을 정하지 않는다. 사용자 대원칙(2026-10-07): "topology 에 종속된 엔진은 만들지 않는다.
+# 임의의 topology 에 적용할 수 있어야 한다." 두 부분:
+#   (a) 회로 식별·태그 키 문자열 리터럴로 조회 금지(아래 키 목록, 출처는 줄마다).
+#   (b) 회로·소자·넷 이름을 문자열 리터럴과 비교해 분기하는 코드 금지 -- 리터럴이 library 이름 집합의 원소이면
+#       규칙 E 가 이미 잡으므로 (b)는 그 밖 리터럴만 본다(E 와 겹치지 않는 부분).
+# 규칙 E 와 마찬가지로 문자열 전체 일치·대소문자 구분. 예외는 (파일, 허용 키) 명시 목록 + 사유만.
+
+# (a) 키 목록 -- 출처:
+#   AC = gmid_engine/authoring/CONTRACT.md 머리 10행 "태그 키는 읽지 않는다: device_roles·symmetry·sizing_roles·
+#        compensation" (= authoring topology_schema.IGNORED_TAG_KEYS, IC4)
+#   U50 = P U-50(1197행) "유도 입력으로 쓰지 않는 키: device_roles, vertical_stack_id, fold_group, headroom_role,
+#        shared_gm_id_groups, budget_reference_device, 손선언 theta·stage 구성"
+#   IC4 = P IC4(852행) "headroom_role/gm_id_role/L_role 전부 제거해도 결과 동일"
+#   LIB = assets/library/*.topology.json 의 태그 섹션(AC 4개) 하위 키 중 역할·대응 선언인 것 -- 섹션 전체가 유도 입력이
+#        아니므로(AC·U50) 그 하위 키로 바로 조회하는 것도 같은 우회다(README '규칙 I' 해석 2)
+#   ID = 회로 식별 키(과제 지시 2026-10-07 + schema REQUIRED_KEYS): 이름으로 회로를 고르는 입구
+TAG_SECTION_KEYS = ("device_roles", "symmetry", "sizing_roles", "compensation")                 # AC
+TAG_ROLE_KEYS_U50 = ("vertical_stack_id", "fold_group", "headroom_role",
+                     "shared_gm_id_groups", "budget_reference_device")                          # U50
+TAG_ROLE_KEYS_IC4 = ("gm_id_role", "L_role")                                                  # IC4 (headroom_role 은 U50)
+TAG_ROLE_KEYS_LIBRARY = ("gm_id_match_vgs_of", "vds_match_vgs_of", "same_as_device",           # LIB device_roles.*
+                         "matching_pairs",                                                    # LIB symmetry.*
+                         "stage_devices", "vds_kvl_groups")                                   # LIB compensation.* (U50 'stage 구성')
+CIRCUIT_ID_KEYS = ("topology_name",)                                                          # ID
+FORBIDDEN_LOOKUP_KEYS = (TAG_SECTION_KEYS + TAG_ROLE_KEYS_U50 + TAG_ROLE_KEYS_IC4
+                         + TAG_ROLE_KEYS_LIBRARY + CIRCUIT_ID_KEYS)
+# 일부러 뺀 태그 하위 키(README '규칙 I' 해석 3): device_roles.*.vsb(물리량 이름 -- 엔진이 유도한 값의 키와 겹친다),
+# sizing_roles.{theta, metrics, constraints, objective}·compensation.{function, notes, parameters}·symmetry.dispositions
+# (일반 낱말 -- spec·constraints 는 U50 이 입력으로 둔다). 섹션 키 자체는 위 목록에 있어 섹션을 거쳐 읽는 길은 막힌다.
+# library 태그 섹션에 새 하위 키가 생기면 둘 중 어디에 넣을지 정해야 test 가 통과한다(test_rule_i_library_tag_subkeys_classified).
+TAG_SUBKEYS_NOT_BANNED = ("vsb", "theta", "metrics", "constraints", "objective",
+                          "function", "notes", "parameters", "dispositions")
+
+# (a) 조회 형식: x["k"], x.get("k")/pop/setdefault/__getitem__/__contains__("k"), "k" in x, getattr/hasattr(x, "k"),
+#     match 의 {"k": ...} 패턴, 속성 x.k
+LOOKUP_METHODS = ("get", "pop", "setdefault", "__getitem__", "__contains__")
+LOOKUP_BUILTINS = ("getattr", "hasattr")
+
+# (a) 예외: (엔진 상대 경로 또는 '폴더/' 접두, 허용 키 tuple, 사유). 파일 단위 명시 목록.
+TAG_LOOKUP_EXEMPT = (
+    ("authoring/topology_schema.py", ("topology_name",),
+     "스키마 화이트리스트 검사 -- topology_name 의 존재·형식(비어 있지 않은 문자열)만 본다(authoring CONTRACT 3.2)"),
+    ("authoring/topology_load.py", ("topology_name",),
+     "로드 결과 TopologyDoc.name 에 출처 기록으로 담는다 -- connectivity_fp 투영 밖, 행동 결정 아님(authoring CONTRACT 2절)"),
+    ("report/", ("topology_name",),
+     "보고 모듈이 topology_name 을 결과 JSON·보고서 출력용으로 담는다(과제 지시 2026-10-07)"),
+)
+
+# (b) 식별 표현: 회로·원소·넷 이름을 담는 속성·키. 비교 상대가 문자열 리터럴이면 이름 분기다.
+#     출처: authoring CONTRACT 2절 필드(TopologyDoc.name·connectivity_fp·file_sha256, DeviceDecl name·d·g·s·bulk,
+#     PassiveDecl/SourceDecl name·terminals, PortDecl net, DcEdge element·nets) + topology JSON 원소 키(3.4·3.6).
+IDENTITY_ATTRS = ("name", "topology_name", "connectivity_fp", "file_sha256",
+                  "d", "g", "s", "bulk", "terminals", "net", "nets", "element")
+IDENTITY_KEYS = ("name", "topology_name", "drain", "gate", "source", "bulk", "terminals")
+IDENTITY_STR_METHODS = ("startswith", "endswith", "find", "rfind", "index", "rindex", "count", "__contains__", "__eq__")
+REGEX_FUNCS = ("match", "search", "fullmatch")
+
+
+def _str_const(n) -> str | None:
+    return n.value if isinstance(n, ast.Constant) and isinstance(n.value, str) else None
+
+
+def _tag_exempt(path: str, key: str) -> bool:
+    return any((path == place or (place.endswith("/") and path.startswith(place))) and key in keys
+               for place, keys, _ in TAG_LOOKUP_EXEMPT)
+
+
+def _tag_lookups(tree: ast.Module):
+    """(행, 키, 형식) -- (a) 조회."""
+    keys = set(FORBIDDEN_LOOKUP_KEYS)
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Subscript):
+            k = _str_const(n.slice)
+            if k in keys:
+                yield n.lineno, k, "x[%r]" % k
+        elif isinstance(n, ast.Call):
+            f, args = n.func, n.args
+            if isinstance(f, ast.Attribute) and f.attr in LOOKUP_METHODS and args and _str_const(args[0]) in keys:
+                yield n.lineno, args[0].value, "x.%s(%r)" % (f.attr, args[0].value)
+            elif isinstance(f, ast.Name) and f.id in LOOKUP_BUILTINS and len(args) >= 2 and _str_const(args[1]) in keys:
+                yield n.lineno, args[1].value, "%s(x, %r)" % (f.id, args[1].value)
+        elif isinstance(n, ast.Compare):
+            ops = [n.left] + n.comparators
+            for i, op in enumerate(n.ops):
+                k = _str_const(ops[i])
+                if isinstance(op, (ast.In, ast.NotIn)) and k in keys:
+                    yield n.lineno, k, "%r in x" % k
+        elif isinstance(n, ast.MatchMapping):
+            for kn in n.keys:
+                k = _str_const(kn)
+                if k in keys:
+                    yield n.lineno, k, "case {%r: ...}" % k
+        elif isinstance(n, ast.Attribute) and n.attr in keys:
+            yield n.lineno, n.attr, "x.%s" % n.attr
+
+
+def _is_identity(n) -> bool:
+    if isinstance(n, ast.Attribute):
+        return n.attr in IDENTITY_ATTRS
+    if isinstance(n, ast.Subscript):
+        return _str_const(n.slice) in IDENTITY_KEYS
+    if isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute) and n.func.attr == "get" and n.args:
+        return _str_const(n.args[0]) in IDENTITY_KEYS
+    return False
+
+
+def _str_literals(n) -> list[str]:
+    """비교 상대의 문자열 리터럴: 상수 하나, 또는 상수들의 tuple/list/set(멤버십). 빈 문자열은 이름이 아니다."""
+    if _str_const(n):
+        return [n.value]
+    if isinstance(n, (ast.Tuple, ast.List, ast.Set)):
+        return [e.value for e in n.elts if _str_const(e)]
+    return []
+
+
+def _pattern_literals(p) -> list[str]:
+    if isinstance(p, ast.MatchValue):
+        return [p.value.value] if _str_const(p.value) else []
+    if isinstance(p, ast.MatchOr):
+        return [s for q in p.patterns for s in _pattern_literals(q)]
+    if isinstance(p, ast.MatchAs) and p.pattern is not None:
+        return _pattern_literals(p.pattern)
+    return []
+
+
+def _name_branches(tree: ast.Module):
+    """(행, 리터럴 목록, 형식) -- (b) 이름 분기."""
+    for n in ast.walk(tree):
+        if isinstance(n, ast.Compare):
+            ops = [n.left] + n.comparators
+            for i in range(len(n.ops)):
+                a, b = ops[i], ops[i + 1]
+                for ident, other in ((a, b), (b, a)):
+                    lits = _str_literals(other)
+                    if _is_identity(ident) and lits:
+                        yield n.lineno, lits, "이름 비교"
+        elif isinstance(n, ast.Call) and isinstance(n.func, ast.Attribute):
+            f, args = n.func, n.args
+            if f.attr in IDENTITY_STR_METHODS and _is_identity(f.value):
+                lits = [s for a in args for s in _str_literals(a)]
+                if lits:
+                    yield n.lineno, lits, "이름 문자열 검사 .%s" % f.attr
+            elif f.attr in REGEX_FUNCS and len(args) >= 2 and _is_identity(args[1]) and _str_const(args[0]):
+                yield n.lineno, [args[0].value], "이름 정규식 %s" % f.attr
+            elif f.attr == "get" and isinstance(f.value, ast.Dict) and args and _is_identity(args[0]):
+                lits = [k.value for k in f.value.keys if _str_const(k)]
+                if lits:
+                    yield n.lineno, lits, "이름 키 표 {...}.get"
+        elif isinstance(n, ast.Subscript) and isinstance(n.value, ast.Dict) and _is_identity(n.slice):
+            lits = [k.value for k in n.value.keys if _str_const(k)]
+            if lits:
+                yield n.lineno, lits, "이름 키 표 {...}[...]"
+        elif isinstance(n, ast.Match) and _is_identity(n.subject):
+            lits = [s for c in n.cases for s in _pattern_literals(c.pattern)]
+            if lits:
+                yield n.lineno, lits, "이름 match"
+
+
+def check_i(root: Path, names=()) -> tuple[int, list[Violation]]:
+    """규칙 I. names = 규칙 E 이름 집합(library_names 의 둘째 값) -- (b)에서 그 원소인 리터럴은 E 몫이라 뺀다."""
+    root = Path(root)
+    targets = engine_files(root)
+    known = set(names)
+    out = []
+    for p in targets:
+        r = rel(root, p)
+        tree = parse(p)
+        for line, key, form in _tag_lookups(tree):
+            if not _tag_exempt(r, key):
+                out.append(Violation("tag_key_lookup", r, line, "회로 식별·태그 키 조회 %s" % form))
+        for line, lits, form in _name_branches(tree):
+            rest = sorted(set(lits) - known)
+            if rest:
+                out.append(Violation("name_branch", r, line, "%s: %s" % (form, rest)))
+    return len(targets), out

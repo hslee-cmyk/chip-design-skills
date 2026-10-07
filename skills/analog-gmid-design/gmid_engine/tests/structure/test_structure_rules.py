@@ -53,6 +53,55 @@ def test_rule_g_no_module_level_mutable_cache(checks, engine_root, report):
     _assert_clean(n, v, report, "G")
 
 
+def test_rule_i_no_circuit_specific_behavior(checks, engine_root, library, report):
+    """규칙 I: 회로 식별·태그 키 리터럴 조회 0 + 이름 리터럴 분기 0(library 이름 리터럴은 규칙 E 몫이라 넘긴다)."""
+    _, names = library
+    n, v = checks.check_i(engine_root, names)
+    _assert_clean(n, v, report, "I")
+
+
+def test_rule_i_exemptions_are_used(checks, engine_root, library, monkeypatch):
+    """예외 목록이 낡지 않았다: 지금 있는 예외 파일마다 예외를 빼면 실제로 걸리는 조회가 있다(쓰이지 않는 예외 0).
+    폴더 접두 예외(`report/`)는 그 폴더에 파일이 생기기 전까지 대상이 없을 수 있어 존재하는 파일 항목만 본다."""
+    _, names = library
+    exempt = checks.TAG_LOOKUP_EXEMPT
+    monkeypatch.setattr(checks, "TAG_LOOKUP_EXEMPT", ())
+    _, raw = checks.check_i(engine_root, names)
+    hit = {v.path for v in raw if v.kind == "tag_key_lookup"}
+    assert exempt
+    for place, keys, why in exempt:
+        assert why and keys and set(keys) <= set(checks.FORBIDDEN_LOOKUP_KEYS), place
+        if not place.endswith("/"):
+            assert (engine_root / place).is_file(), "예외 파일 없음: %s" % place
+            assert place in hit, "쓰이지 않는 예외: %s" % place
+
+
+def test_rule_i_library_tag_subkeys_classified(checks, engine_root):
+    """library 태그 섹션(device_roles 소자별·symmetry·sizing_roles·compensation)의 하위 키(`_` 주석 키 제외)는 전부
+    금지 목록(FORBIDDEN_LOOKUP_KEYS) 또는 사유를 적은 비금지 목록(TAG_SUBKEYS_NOT_BANNED) 중 하나에 있다.
+    library 에 새 역할 키가 생기면 이 test 가 분류를 요구한다(조용히 규칙 I 밖으로 새지 않게)."""
+    import json
+    lib = engine_root.parent / "assets" / "library"
+    found = set()
+    for f in sorted(lib.glob("*.topology.json")):
+        if f.name.startswith("_"):
+            continue
+        d = json.loads(f.read_text(encoding="utf-8"))
+        roles = d.get("device_roles")
+        if isinstance(roles, dict):
+            for entry in roles.values():
+                if isinstance(entry, dict):
+                    found.update(entry)
+        for sec in ("symmetry", "sizing_roles", "compensation"):
+            if isinstance(d.get(sec), dict):
+                found.update(d[sec])
+    found = {k for k in found if not k.startswith("_")}
+    assert found, "library 태그 하위 키 수집 0"
+    banned, free = set(checks.FORBIDDEN_LOOKUP_KEYS), set(checks.TAG_SUBKEYS_NOT_BANNED)
+    assert not banned & free
+    assert found <= banned | free, "분류 안 된 태그 하위 키: %s" % sorted(found - banned - free)
+
+
 def test_rule_copy_manifest_matches_copies(checks, engine_root, report):
     """복사 등록부(하위 패키지 `_copy_manifest.py`): 형식, 등록 정의 존재, 복사본 AST 해시·규칙 D 밖 리터럴 목록 일치.
     해시·리터럴은 검사기가 복사본에서 다시 잰다. 어긋난 정의는 D·E·G 면제도 취소된다(README '복사 등록부')."""

@@ -1,0 +1,12 @@
+{
+ "_comment": "legacy_adapter.py 가 오라클 입력 testbench 절에 그대로 넣는 값. 2026-10-07 SPICE 하네스 시제품(_drafts/engine/spice_harness/spice_harness.py)에서 쓴 값과 같다. 판정 기준이 아니라 테스트벤치 구성값이다(허용오차·포화 여유는 여기 없다).",
+ "dc_choke_H": 1e12,
+ "_loop_dc_choke_H": "β 루프 넷리스트의 입력 DC 경로. 1e12 H 는 입력 넷 용량(~1 pF)과 ~0.2 Hz 에서 공진해 fstart 0.01 Hz 의 T 를 망쳤다(실측). 1e20 H 면 공진 ~1.6e-4 Hz 로 fstart 아래.",
+ "loop_dc_choke_H": 1e20,
+ "ac_couple_F": 1.0,
+ "nodeset_from_predictions": true,
+ "nodeset_per_line": 8,
+ "options": {"gmin": "1e-15", "reltol": "1e-4", "abstol": "1e-14", "vntol": "1e-7", "itl1": "500", "itl2": "500"},
+ "ac": {"fstart_hz": 0.01, "fstop_hz": 1e10, "points_per_decade": 40,
+        "input_p_ac": 0.5, "input_n_ac": -0.5, "input_ac": 1.0, "diff_feedback_gain": 0.5}
+}

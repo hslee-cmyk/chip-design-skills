@@ -1,0 +1,152 @@
+{
+ "$schema": "https://json-schema.org/draft/2020-12/schema",
+ "$id": "spice_oracle_input/1",
+ "title": "SPICE 오라클 입력 (엔진 무관)",
+ "description": "엔진 하나가 낸 설계 해(연결·기하·바이어스)와 그 엔진의 예측값을 담는다. 오라클은 이것만 읽고 ngspice 로 재서 비교한다. 단위는 전부 SI(m, A, V, F, Ohm, Hz, deg). 소자 전압·전류는 크기 규칙(NMOS 그대로, PMOS 는 부호 반전: 켜진 포화 PMOS 의 ID/VGS/VDS 가 양수, VSB = PMOS 바디-소스).",
+ "type": "object",
+ "required": ["circuit", "process", "rails", "devices", "ports", "predictions", "testbench"],
+ "properties": {
+  "schema": {"const": "spice_oracle_input/1"},
+  "circuit": {"type": "string", "description": "회로 식별자(출력 파일 이름에만 쓰임)"},
+  "process": {
+   "type": "object",
+   "required": ["lut_npz", "models"],
+   "properties": {
+    "lut_npz": {"type": "string", "description": "엔진이 쓴 LUT npz. 코너(corner)·온도(temp_c) 메타를 여기서 읽는다(없으면 막힘)."},
+    "ngspice_exe": {"type": "string", "description": "ngspice 콘솔 실행 파일. oracle_run.py --ngspice 가 우선."},
+    "models": {
+     "type": "object",
+     "description": "소자 종류(kind) -> 모델. kind 값은 devices[].kind 와 같은 문자열.",
+     "additionalProperties": {
+      "type": "object",
+      "required": ["subckt", "includes", "op_probe"],
+      "properties": {
+       "subckt": {"type": "string", "description": "X 인스턴스로 부를 모델(subckt) 이름"},
+       "includes": {"type": "array", "items": {"type": "string"}, "description": ".include 경로. '{corner}' 자리는 LUT npz corner 로 채운다."},
+       "op_probe": {"type": "string", "description": "ngspice @ 동작점 표현 틀. {inst} = 소문자 인스턴스 이름(x<소자이름>), {param} = id|gm|gds|vth|vdsat|vgs|vds|vbs"}
+      }
+     }
+    },
+    "diffusion": {
+     "type": "object",
+     "description": "선택. finger 하나의 확산 면적/둘레 규칙: ad=as=ad_per_w_m*finger_w, pd=ps=finger_w+pd_extra_m. 없으면 넷리스트에서 생략(모델 기본값).",
+     "required": ["ad_per_w_m", "pd_extra_m"],
+     "properties": {"ad_per_w_m": {"type": "number"}, "pd_extra_m": {"type": "number"}}
+    }
+   }
+  },
+  "rails": {
+   "type": "array", "minItems": 1,
+   "description": "레일 넷과 전압. reference=true 인 것이 정확히 하나(SPICE 노드 0). 나머지는 이상 전압원 Vrail_<net>.",
+   "items": {"type": "object", "required": ["net", "voltage"],
+             "properties": {"net": {"type": "string"}, "voltage": {"type": "number"}, "reference": {"type": "boolean"}}}
+  },
+  "devices": {
+   "type": "array",
+   "description": "트랜지스터. 인스턴스 하나 = `X<name> d g s b <subckt> l=L w=finger_w m=n_fingers` (nf 는 쓰지 않는다).",
+   "items": {
+    "type": "object",
+    "required": ["name", "kind", "drain", "gate", "source", "bulk", "L", "finger_w", "n_fingers"],
+    "properties": {
+     "name": {"type": "string"}, "kind": {"type": "string"},
+     "drain": {"type": "string"}, "gate": {"type": "string"}, "source": {"type": "string"}, "bulk": {"type": "string"},
+     "L": {"type": "number"}, "finger_w": {"type": "number"}, "n_fingers": {"type": "integer", "minimum": 1},
+     "W": {"type": "number", "description": "엔진이 선언한 총폭. finger_w*n_fingers 와의 차이는 비교표 W_rel 로 보고(판정은 tolerances.W_rel)."}
+    }
+   }
+  },
+  "sources": {
+   "type": "array",
+   "description": "이상 전원. current: SPICE I p n(전류가 p 에서 소스를 지나 n 으로), voltage: V p n.",
+   "items": {"type": "object", "required": ["name", "kind", "terminals", "value"],
+             "properties": {"name": {"type": "string"}, "kind": {"enum": ["current", "voltage"]},
+                            "terminals": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
+                            "value": {"type": "number"}, "value_basis": {"type": "string", "description": "값의 근거(표에 그대로 찍힘)"}}}
+  },
+  "passives": {
+   "type": "array",
+   "items": {"type": "object", "required": ["name", "kind", "terminals", "value"],
+             "properties": {"name": {"type": "string"}, "kind": {"enum": ["resistor", "capacitor"]},
+                            "terminals": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
+                            "value": {"type": "number"}, "value_basis": {"type": "string"}}}
+  },
+  "feedback_passives": {
+   "type": "array", "items": {"type": "string"}, "uniqueItems": true,
+   "description": "β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 되먹임·입력측 소자). 있으면 PM 은 이 β 루프의 위상여유(루프 넷리스트, Middlebrook 이중 주입), 없으면 β=1(개루프 A) 위상여유. README 'PM 정의'."
+  },
+  "bias_voltages": {
+   "type": "array",
+   "description": "구동 소자 없는 게이트 전용 넷에 거는 이상 전압. 선언 안 된 그런 넷은 predictions.nodes 값으로 걸고 경고를 남긴다.",
+   "items": {"type": "object", "required": ["net", "value"], "properties": {"net": {"type": "string"}, "value": {"type": "number"}}}
+  },
+  "ports": {
+   "type": "object",
+   "description": "입력: input_p+input_n 또는 input. 출력: output_p+output_n 또는 output. AC 전달함수 = 출력(차동이면 p-n) / 입력 AC.",
+   "properties": {"input_p": {"type": "string"}, "input_n": {"type": "string"}, "input": {"type": "string"},
+                  "output_p": {"type": "string"}, "output_n": {"type": "string"}, "output": {"type": "string"}}
+  },
+  "predictions": {
+   "type": "object",
+   "properties": {
+    "nodes": {"type": "object", "additionalProperties": {"type": "number"}, "description": "넷 -> 예측 DC 전압. 입력 넷 예측값은 필수(입력 DC), forced 모드는 이 값으로 넷을 고정한다."},
+    "devices": {
+     "type": "object",
+     "description": "소자 이름 -> 예측 동작점(크기 규칙). 없는 키는 비교 N/A.",
+     "additionalProperties": {"type": "object", "properties": {
+      "ID": {"type": "number"}, "VGS": {"type": "number"}, "VDS": {"type": "number"}, "VSB": {"type": "number"},
+      "gm": {"type": "number"}, "gds": {"type": "number"}, "gm_id": {"type": "number"},
+      "region": {"enum": ["sat", "triode"], "description": "엔진이 가정한 영역. judge.sat_margin_V 가 있을 때만 판정."}}}
+    },
+    "metrics": {
+     "type": "array",
+     "items": {"type": "object", "required": ["measure", "value"], "properties": {
+      "name": {"type": "string", "description": "엔진 쪽 metric 이름(표시용)"},
+      "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A"]},
+      "value": {"type": "number"},
+      "rail": {"type": "string", "description": "supply_current_A 일 때 어느 레일의 공급전류인가"},
+      "basis": {"type": "string"}}}
+    }
+   }
+  },
+  "acceptance": {
+   "type": "object",
+   "properties": {
+    "constraints": {"type": "array", "items": {"type": "object", "required": ["measure", "op", "limit"], "properties": {
+     "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A"]},
+     "op": {"enum": [">=", "<="]}, "limit": {"type": "number"}, "rail": {"type": "string"}, "basis": {"type": "string"}}}},
+    "not_measurable": {"type": "array", "items": {"type": "string"}, "description": "SPICE 로 잴 수 없어 뺀 선언 제약(기록용)"}
+   }
+  },
+  "testbench": {
+   "type": "object",
+   "required": ["dc_choke_H", "ac_couple_F", "ac"],
+   "properties": {
+    "dc_choke_H": {"type": "number", "description": "DC 경로 인덕터(AC 에서 열림): 입력 DC, 되먹임, forced 고정"},
+    "ac_couple_F": {"type": "number", "description": "AC 입력 결합 커패시터"},
+    "loop_dc_choke_H": {"type": "number", "description": "β 루프 넷리스트에서 끊은 입력 넷의 DC 경로 인덕터. feedback_passives 가 있으면 필요(없으면 막힘). 루프 측정 시작 주파수에서 β 망 용량보다 충분히 큰 임피던스여야 한다 -- dc_choke_H 로는 입력 넷 용량과 공진해 저주파 T 가 틀린다(2026-10-07 실측)."},
+    "nodeset_from_predictions": {"type": "boolean", "description": "free 모드에서 예측 노드전압을 .nodeset 으로"},
+    "nodeset_per_line": {"type": "integer"},
+    "options": {"type": "object", "additionalProperties": {"type": "string"}, "description": ".option 키=값"},
+    "ac": {"type": "object", "required": ["fstart_hz", "fstop_hz", "points_per_decade"], "properties": {
+     "fstart_hz": {"type": "number"}, "fstop_hz": {"type": "number"}, "points_per_decade": {"type": "integer"},
+     "input_p_ac": {"type": "number"}, "input_n_ac": {"type": "number"}, "input_ac": {"type": "number"},
+     "diff_feedback_gain": {"type": "number", "description": "free 모드 차동 되먹임 계수 k: V(in) = Vin_pred + k*(V(o)-V(o_other))"}}}
+   }
+  },
+  "judge": {
+   "type": "object",
+   "description": "판정 설정. 기본값 없음 -- 없는 키는 N/A. oracle_run.py --judge 파일, --sat-margin-v 가 덮어쓴다.",
+   "properties": {
+    "sat_margin_V": {"type": "number"},
+    "off_current_A": {"type": "number", "description": "선택. |ID| < 이 값이면 영역 off"},
+    "tolerances": {"type": "object", "properties": {
+     "ID_rel": {"type": "number"}, "VGS_abs_V": {"type": "number"}, "VDS_abs_V": {"type": "number"}, "VSB_abs_V": {"type": "number"},
+     "gm_rel": {"type": "number"}, "gds_rel": {"type": "number"}, "gm_id_rel": {"type": "number"},
+     "node_abs_V": {"type": "number"}, "W_rel": {"type": "number"}, "kcl_abs_A": {"type": "number"},
+     "dc_gain_db_abs": {"type": "number"}, "pm_deg_abs": {"type": "number"}, "ugf_hz_rel": {"type": "number"},
+     "f3db_hz_rel": {"type": "number"}, "supply_current_A_rel": {"type": "number"}}}
+   }
+  },
+  "provenance": {"type": "object", "description": "어댑터가 남기는 출처·경고(오라클은 비교표에 그대로 옮길 뿐 해석하지 않는다)"}
+ }
+}
