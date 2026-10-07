@@ -95,7 +95,8 @@ LAYERS = (
         (
             ("bisect_root.py", "k_max.py", "s2_values.py"),
             ("_helpers_lut.py", "_helpers_seal.py", "block_currents.py", "block_lengths.py", "current_basis.py",
-             "dc_inputs.py", "fixed_point.py", "pre_layout_widths.py", "s2_lift.py", "scc_order.py", "seal_report.py",
+             "dc_inputs.py", "fixed_point.py", "pre_layout_widths.py", "s2_lift.py", "scc_newton.py", "scc_order.py",
+             "seal_report.py",
              "seal_saturation.py", "seal_versions.py", "seal_writers.py", "struct_colour.py", "theta_check.py",
              "theta_schema.py", "w0_rails.py", "writer_plan.py"),
             ("block_columns.py", "block_widths.py", "kernel_context.py", "seal_bulk_reverse.py", "seal_kcl.py",
@@ -387,6 +388,8 @@ MODULES = (
     ModuleEntry("sizing/writer_plan.py", "entry", "dc_writer_plan",
                 "쓰기 계획(F 묶은 G_vgs 최소 신장 숲, 노드 writer·소자 좌표 역할) 계산 블록", ("N3.4", "DEC-64", "DEC-95"),
                 compute_block="dc_writer_plan"),
+    ModuleEntry("sizing/scc_newton.py", "entry", "newton_solve",
+                "Gauss-Seidel 이 수축하지 않는 SCC 의 잔차 감쇠 Newton(LU·역추적 선 탐색·K_max 상한)", ("N3.6", "SC-c")),
     ModuleEntry("sizing/scc_order.py", "entry", "dc_scc_order",
                 "읽기 의존 그래프 Tarjan SCC 위상 순서·기둥 이웃 계산 블록", ("SC-c", "DEC-71"), compute_block="dc_scc_order"),
     ModuleEntry("sizing/theta_schema.py", "entry", "dc_theta_schema",

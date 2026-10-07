@@ -100,6 +100,14 @@ REASON_VDSAT_MISSING = "lut_vdsat_column_missing"
 REASON_LUT_QUERY = "lut_query_failed"
 REASON_NO_ROOT = "no_root_in_window"
 REASON_STRICT_RECHECK = "strict_recheck_residual"     # 다변수 SCC 수렴 뒤 strict 검증 바퀴 잔차 > tol
+REASON_NEWTON_START = "newton_start_outside_domain"    # 감쇠 Newton 시작점이 정의역 밖(LUT 조회 실패·빈 창)
+REASON_NEWTON_SINGULAR = "newton_singular"             # 야코비안 LU 영 피벗
+REASON_NEWTON_LINE_SEARCH = "newton_line_search"       # 역추적 선 탐색이 잔차를 줄이는 α 를 못 찾음
+REASON_NEWTON_CAP = "newton_iteration_cap"             # Newton 반복이 K_max 에 닿음
+SCC_GAUSS_SEIDEL = "gauss_seidel"                      # SccLog.method
+SCC_NEWTON = "newton"
+SCC_BISECTION = "bisection"
+SCC_DIRECT = "direct"
 
 # ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
 TIE_KRUSKAL = "writer_edge"                            # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
@@ -331,7 +339,9 @@ class Window:
 
 @dataclasses.dataclass(frozen=True)
 class SccLog:
-    """순환 블록 풀이 기록. `iterations` = 반복 수, `deltas` = 반복별 최대 변화, `tol` = 마지막 허용오차, `k_max` = 상한."""
+    """순환 블록 풀이 기록. `iterations` = 반복 수, `deltas` = 반복별 최대 변화(Newton 이면 반복별 ‖r‖∞), `tol` = 마지막
+    허용오차, `k_max` = 상한, `method` ∈ {direct, bisection, gauss_seidel, newton}, `fallback` = Newton 으로 바꾼 경우 그 전
+    Gauss-Seidel 의 (반복 수, 마지막 수축비 q 또는 None, Δ 열), 아니면 None."""
 
     index: int
     nodes: tuple
@@ -339,6 +349,8 @@ class SccLog:
     deltas: tuple
     tol: object
     k_max: object
+    method: str = SCC_DIRECT
+    fallback: object = None
 
 
 @dataclasses.dataclass(frozen=True)

@@ -17,7 +17,11 @@
   판정한다. 창이 비면(lo > hi) `SealViolationError`(item 7, reason `empty_window`).
 * 1변수 노드(diode gate·소스 추종 source)는 구간 bisection(`solve_self`, 설계 3.4). VDS 쪽 구간 끝 = writer 슬라이스의 VDS
   정의역 하한(`_vds_floor`, 데이터 유도), 끝점은 부동소수 반올림으로 축 밖에 떨어지지 않게 안쪽으로 맞춘다(`_inward`). 다변수 순환 SCC 는 `gauss_seidel`
-  (N3.6 q 규칙·K_max) -- 반복 중에는 정의역 이탈을 투영하고(`update(strict=False)`) 수렴 뒤 strict 검증 바퀴로 확인한다. 허용오차 = SCC 쓰기 MOS(없으면 단자가 닿는 MOS) id_equivalent tol_V
+  (N3.6 q 규칙·K_max) -- 반복 중에는 정의역 이탈을 투영하고(`update(strict=False)`) 수렴 뒤 strict 검증 바퀴로 확인한다.
+  Gauss-Seidel 이 K_max 안에 tol 에 닿지 못하면(측정한 수축비 q 로 판정 -- q ≥ 1 또는 q < 1 이지만 남은 상한 안 도달 불가)
+  같은 시작값에서 SCC 잔차 r = V − g(V) 에 감쇠 Newton(`newton_solve`, 야코비안 = `writer_grad` 의 LUT 미분)으로 바꾼다.
+  strict 검증 바퀴는 두 경우 모두 같다. GS 수렴점의 strict 검증이 `SealViolationError` 였는데 Newton 도
+  `NonconvergentError` 로 끝나면 그 strict 검증 위반을 그대로 낸다(cause = Newton 실패). 허용오차 = SCC 쓰기 MOS(없으면 단자가 닿는 MOS) id_equivalent tol_V
   셀의 최솟값(현재 반복값의 L·VDS). 폭 = 레일 전압 범위. 시작값 = 기둥 위치 비례(레일 사이 선형, 기둥 밖이면 레일 중앙)
   다음 `start_writer`(MOS writer 식 1회). 저항 강하 전류는 `device.dc_drop_current`(저항만)를 읽는다 -- MOS 전류만 바뀐 θ 는
   이 블록을 다시 돌리지 않는다.
@@ -32,12 +36,13 @@ import math
 
 from gmid_engine.core import NonconvergentError, SealViolationError, compute_block
 from gmid_engine.graph import MOS_TERMINAL_NAMES
-from gmid_engine.lut import AXES, gm_id_for_target
+from gmid_engine.lut import AXES, gm_id_for_target, gmb
 
 from ._helpers_lut import forward_point, terminal_voltages, tol_v_cell, w_key_of, with_device
 from .bisect_root import bisect_root
 from .fixed_point import gauss_seidel
 from .k_max import k_max
+from .scc_newton import newton_solve
 from .s2_values import (
     COORD_WRITER,
     DC_COLUMNS_WRITER,
@@ -58,6 +63,9 @@ from .s2_values import (
     REL_VGS_GATE,
     REL_VGS_SOURCE,
     REL_WINDOW,
+    SCC_BISECTION,
+    SCC_GAUSS_SEIDEL,
+    SCC_NEWTON,
     SEAL_BULK_REVERSE,
     SEAL_SATURATION,
     THETA_LN_IDU,
@@ -81,6 +89,7 @@ _TRANSIENT_LUT_REASONS = (_TARGET_OUT_OF_RANGE, "lut_axis_out_of_range")   # 반
 _CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역 하한(`_vds_floor`) 아래에서만 반복 중 이탈로 본다
 _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
 _BOUND_RAIL, _BOUND_VDS, _BOUND_VS = "rail", "vds_axis", "vs_axis"
+_GS_STOPPED = "gauss_seidel_stopped"                  # SccLog.fallback[0]: GS 가 K_max 안 tol 도달 불가로 멈춤
 
 
 def _vds_floor(lut, kind):
@@ -355,6 +364,83 @@ class _Circuit:
                                              "lo": lo, "hi": hi, "constraints": ncols})
         return lo + self.theta[(THETA_Y, w.y_key)] * (hi - lo)
 
+    def writer_grad(self, net, values):
+        """writer 식 값 g 와 노드전압에 대한 편미분 {노드: ∂g/∂V}(Newton 야코비안 행). 1변수 노드도 bisection 이 아니라 식
+        그대로(x 를 읽는 VDS·VSB 항이 야코비안 대각에 들어간다).
+        * MOS writer(부호 s, gate 쓰기 σ = +1 / source 쓰기 σ = −1): g = V(known) + s·σ·VGS(ln IDu, VDS, VSB). VGS 는 lnID(VGS,
+          VDS, VSB) = 목표의 음함수라 ∂VGS/∂VDS = −(gds/ID)/(gm/ID) = −1/(gm/gds), ∂VGS/∂VSB = (gmb/ID)/(gm/ID) = gmb/gm --
+          값은 역산 VGS 점의 lut `op_point`(gm_over_id·gm_gds, Hermite 미분과 같은 곡면)와 lut `gmb`(같은 점, 폭 w_m)에서.
+          vds = s(V(d) − V(s)), vsb = s(V(s) − V(b)) 사슬: ∂g/∂V(known) += 1, ∂g/∂V(d) += σ·∂VGS/∂VDS,
+          ∂g/∂V(s) += σ·(∂VGS/∂VSB − ∂VGS/∂VDS), ∂g/∂V(b) += −σ·∂VGS/∂VSB(같은 노드는 더한다).
+        * 저항 강하·같은 DC: g = V(known) + Δ, ∂g/∂V(known) = 1. W4: g = lo + y(hi − lo), lo 를 정한 이웃 노드에 1 − y, hi 를 정한
+          이웃 노드에 y(레일 끝이면 항 없음). 빈 창이면 `SealViolationError`(empty_window) -- 부르는 쪽(`newton_system`)이 정의역 밖으로 본다."""
+        w = self.writers[net]
+        if w.relation in (REL_VGS_GATE, REL_VGS_SOURCE):
+            m = w.element
+            kind = self.kinds[m]
+            d, _g, s = (self.pins[m][t] for t in MOS_TERMINAL_NAMES)
+            vds, vsb = self.vds_vsb(m, values)
+            vgs = _vgs_of_coordinate(self.lut, m, kind, self.L[m], vds, vsb, self.ln_idu[m])
+            point = forward_point(self.lut, m, kind, self.L[m], vgs, vds, vsb)
+            w_key = w_key_of(self.lut, kind)
+            w_m = self.lut.memo.lut.slice_map[(kind, w_key)].w_m
+            try:
+                gmb_w = gmb(self.lut.memo, kind, w_key, self.L[m], vgs, vds, vsb)
+            except SealViolationError as exc:
+                raise with_device(exc, m, "gmb") from exc
+            gm_w = point.gm_over_id * point.IDu * w_m / self.L[m]
+            dvgs_dvds = -1 / point.gm_gds
+            dvgs_dvsb = gmb_w / gm_w
+            sigma = 1 if w.relation == REL_VGS_GATE else -1
+            sign = _kind_sign(kind)
+            grad = {}
+            for node, value in ((w.known, 1.0), (d, sigma * dvgs_dvds), (s, sigma * (dvgs_dvsb - dvgs_dvds)),
+                                (self.bulk[m], -sigma * dvgs_dvsb)):
+                grad[node] = grad.get(node, 0.0) + value
+            return values[w.known] + sign * sigma * vgs, grad
+        if w.relation == REL_RESISTOR:
+            return values[w.known] + self.drop(w.element, w.known, net), {w.known: 1.0}
+        if w.relation == REL_TIE:
+            return values[w.known], {w.known: 1.0}
+        terms = [t for member in self.members.get(net, (net,)) for t in self.order_terms.get(member, ())]
+        lo, hi, lo_node, hi_node = self.lo, self.hi, None, None
+        for is_lower, other in terms:
+            if is_lower and values[other] > lo:
+                lo, lo_node = values[other], other
+            elif not is_lower and values[other] < hi:
+                hi, hi_node = values[other], other
+        if lo > hi:
+            raise SealViolationError(devices=(), margin=None,
+                                     detail={"item": SEAL_SATURATION, "reason": REASON_EMPTY_WINDOW, "node": net,
+                                             "lo": lo, "hi": hi, "constraints": len(terms)})
+        y = self.theta[(THETA_Y, w.y_key)]
+        grad = {}
+        if lo_node is not None:
+            grad[lo_node] = grad.get(lo_node, 0.0) + 1 - y
+        if hi_node is not None:
+            grad[hi_node] = grad.get(hi_node, 0.0) + y
+        return lo + y * (hi - lo), grad
+
+    def newton_system(self, nodes, values):
+        """SCC 잔차 r_i = V_i − g_i(V) 와 야코비안 J = I − ∂g/∂V(SCC 노드 열만 -- 바깥 노드는 이미 확정된 상수).
+        한 노드라도 정의역 밖(LUT 조회 실패·빈 창 = `SealViolationError`)이면 None(선 탐색이 α 를 줄인다)."""
+        index = {n: i for i, n in enumerate(nodes)}
+        residuals = []
+        rows = []
+        for n in nodes:
+            try:
+                g, grad = self.writer_grad(n, values)
+            except SealViolationError:
+                return None
+            residuals.append(values[n] - g)
+            row = [0.0] * len(nodes)
+            row[index[n]] = 1.0
+            for other, derivative in grad.items():
+                if other in index:
+                    row[index[other]] -= derivative
+            rows.append(tuple(row))
+        return tuple(residuals), tuple(rows)
+
     def drop(self, r, near, far):
         """V(far) − V(near) 를 저항 r 의 전류(t0 -> t1)와 저항값으로."""
         i = self.current[r]
@@ -376,6 +462,16 @@ class _Circuit:
         return min(tols)
 
 
+def _strict_recheck(c, entry, values, tol):
+    """검증 바퀴: 수렴점에서 SCC 노드마다 writer 식을 strict 로 다시 잰다(1변수는 bisection 전체). 정의역 밖이면 그
+    `SealViolationError` 그대로, |새 값 − 수렴값| > tol 이면 `NonconvergentError`(reason `strict_recheck_residual`)."""
+    for net in entry.nodes:
+        residual = abs(c.update(net, values) - values[net])
+        if residual > tol:
+            raise NonconvergentError(devices=entry.devices, margin=residual / tol,
+                                     detail={"node": net, "reason": REASON_STRICT_RECHECK, "nodes": entry.nodes})
+
+
 @compute_block(DC_COLUMNS_WRITER, reads=READS, writes=WRITES)
 def dc_columns(projection):
     c = _Circuit(projection)
@@ -395,22 +491,49 @@ def dc_columns(projection):
         if len(entry.nodes) == 1:
             (net,) = entry.nodes
             values[net], k, tol = c.solve_self(net, values)
-            logs.append(SccLog(entry.index, entry.nodes, k, (), tol, k))
+            logs.append(SccLog(entry.index, entry.nodes, k, (), tol, k, SCC_BISECTION))
             continue
+        positional = dict(values)
         for net in entry.nodes:
             values[net] = c.start_writer(net, values)
         writers = tuple(sorted({c.writers[n].element for n in entry.nodes
                                 if c.writers[n].relation in (REL_VGS_GATE, REL_VGS_SOURCE)}))
         devices = writers or tuple(m for m in entry.devices if c.has_channel_values(m, values))
-        values, (k, deltas, tol, limit) = gauss_seidel(
-            entry.nodes, values, lambda n, v: c.update(n, v, strict=False), lambda v, devs=devices: c.tolerance(devs, v),
-            c.hi - c.lo, entry.devices)
-        for net in entry.nodes:                            # 검증 바퀴: 수렴점에서 모든 writer 식을 strict 로 다시 잰다
-            residual = abs(c.update(net, values) - values[net])
-            if residual > tol:
-                raise NonconvergentError(devices=entry.devices, margin=residual / tol,
-                                         detail={"node": net, "reason": REASON_STRICT_RECHECK, "nodes": entry.nodes})
-        logs.append(SccLog(entry.index, entry.nodes, k, deltas, tol, limit))
+
+        def tolerance(v, devs=devices):
+            return c.tolerance(devs, v)
+
+        method, fallback, solved, seal_failure = SCC_GAUSS_SEIDEL, None, None, None
+        try:
+            solved, (k, deltas, tol, limit) = gauss_seidel(
+                entry.nodes, values, lambda n, v: c.update(n, v, strict=False), tolerance, c.hi - c.lo, entry.devices)
+            _strict_recheck(c, entry, solved, tol)
+        except NonconvergentError as exc:                  # Gauss-Seidel 이 K_max 안에 tol 에 닿지 못함(측정한 q 로 판정)
+            stopped = dict(exc.record.detail)              # 또는 수렴 판정 뒤 strict 검증 잔차 > tol
+            gs_deltas = stopped.get("deltas", deltas if solved is not None else ())
+            ratio = gs_deltas[-1] / gs_deltas[-2] if len(gs_deltas) > 1 and gs_deltas[-2] > 0 else None
+            fallback = (stopped.get("reason", _GS_STOPPED), ratio, tuple(gs_deltas))
+        except SealViolationError as exc:                  # 수렴 판정 뒤 strict 검증에서 writer 식이 정의역 밖 -- 반복 중
+            fallback = (dict(exc.record.detail).get("reason"), None, tuple(deltas))   # 투영으로 멈춘 노드가 있었다
+            seal_failure = exc
+        if fallback is not None:
+            method = SCC_NEWTON
+            starts = (values, positional) if solved is None else (values, solved, positional)
+
+            def system(v, nodes=entry.nodes):
+                return c.newton_system(nodes, v)
+
+            start = next((s for s in starts if system(s) is not None), values)
+            try:
+                solved, (k, deltas, tol, limit) = newton_solve(entry.nodes, start, system, tolerance, c.hi - c.lo,
+                                                               entry.devices)
+            except NonconvergentError as newton_exc:       # Newton 도 해를 못 찾았다 -- GS 수렴점에서 잰 strict 검증 위반이
+                if seal_failure is None:                   # 있었으면 그 사실(봉인 위반)을 낸다(strict 검증 규약 불변)
+                    raise
+                raise seal_failure from newton_exc
+            _strict_recheck(c, entry, solved, tol)
+        values = solved
+        logs.append(SccLog(entry.index, entry.nodes, k, deltas, tol, limit, method, fallback))
     ln_idu = {}
     for m, coord in c.coord.items():
         if coord.role == COORD_WRITER:

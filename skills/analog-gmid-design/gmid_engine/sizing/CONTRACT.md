@@ -31,6 +31,10 @@
   `ZeroCancel`(DEC-92 (3)(a) 구조 규칙 판정, 연결만으로) -- 규칙이 정하면 그 저항은 θ 가 아니고 metrics `ss_evaluate` 가 봉인
   스냅샷 gm 으로 R = 1/Σgm 을 계산한다(metrics CONTRACT 7.6 r5), (4) 수동소자 θ 의 탐색 상자는 sizing 이 아니라 search 선언 입력
   (12절 O13). 실측 10.3절. 이 개정과 어긋나게 된 기존 test 목록은 12절 O14(test 작성자 갱신 몫).
+- **개정 r6(2026-10-08, 오케스트레이터 결정 -- O10·O11: Gauss-Seidel 이 수축하지 않는 SCC 는 감쇠 Newton)**: `[r6]`. 요지 -- 다변수 SCC
+  에서 Gauss-Seidel 이 멈추거나(측정한 q 로 K_max 안 도달 불가) 수렴 판정 뒤 strict 검증에 실패하면 같은 시작값에서 SCC 잔차
+  r = V − g(V) 에 감쇠 Newton(`scc_newton.newton_solve`, 야코비안 = LUT 미분, LU, 역추적 선 탐색, 상한 K_max). `SccLog` 에
+  `method`·`fallback` 필드(기본값이 있어 기존 생성 호출과 호환). 5.4·5.5b·10.4절, 12절 O10·O11 닫음.
 
 ---
 
@@ -52,6 +56,7 @@
 | 1 | `w0_rails.py` | `dc_rails` | `dc_rails` |
 | 1 | `current_basis.py` | `dc_current_basis` | `dc_current_basis` |
 | 1 | `writer_plan.py` | `dc_writer_plan` | `dc_writer_plan` |
+| 1 | `scc_newton.py` [r6] | `newton_solve` | -- |
 | 1 | `scc_order.py` | `dc_scc_order` | `dc_scc_order` |
 | 1 | `theta_schema.py` | `dc_theta_schema` | `dc_theta_schema` |
 | 1 | `block_currents.py` | `dc_currents` | `dc_currents` |
@@ -361,6 +366,30 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   이웃의 과도 반복값 때문에 수렴할 θ 를 거부하지 않게. **수렴 뒤 strict 검증 바퀴**: SCC 노드마다 writer 식을 strict 로 다시
   재서(1변수는 bisection 전체, 실패는 위 구조화 실패 그대로) |새 값 − 수렴값| > tol 이면 `NonconvergentError`(reason
   `strict_recheck_residual`, margin = 잔차/tol, detail node·nodes) -- 투영이 최종값에 남지 않는다.
+- [r6] **Newton 으로 바꾸는 조건과 절차**(다변수 SCC 만, 크기 1 은 위 bisection 그대로):
+  1. `gauss_seidel` 이 `NonconvergentError` 를 내면(측정한 Δ 열의 수축비 q 가 1 이상이거나, q < 1 이지만 q^(K_max−k)·Δ/(1−q) > tol
+     -- 둘 다 'Gauss-Seidel 이 K_max 안에 tol 에 닿지 못한다'는 반복 자체의 데이터), 또는
+  2. 수렴 판정 뒤 strict 검증 바퀴가 `NonconvergentError`(strict_recheck_residual)나 `SealViolationError`(반복 중 투영으로 멈춘 노드의
+     writer 식이 수렴점에서 정의역 밖)를 내면,
+  그 실패를 내지 않고 감쇠 Newton 으로 바꾼다. 시작점 = 다음 후보 중 정의역 안(아래 `newton_system` 이 None 아님)인 첫 것: (a) 시작값
+  2단계 값, (b) 경우 2 면 Gauss-Seidel 수렴값, (c) 시작값 1단계(기둥 위치 비례) 값 -- 모두 밖이면 (a)(그러면 `newton_start_outside_domain`).
+  Newton 이 수렴하면 같은 strict 검증 바퀴를 다시 돌고 그 실패는 그대로 낸다. Newton 실패(5.5b 사유)는 경우 1 과 경우 2 의
+  `NonconvergentError` 면 그대로 낸다(후보 실패 `NonconvergentError`). **경우 2 의 `SealViolationError` 에서 Newton 도 실패하면 GS
+  수렴점에서 잰 그 strict 검증 `SealViolationError` 를 그대로 낸다**(r5 와 같은 분류·detail·devices, `__cause__` = Newton 의
+  `NonconvergentError`) -- strict 검증 규약은 바뀌지 않는다. Gauss-Seidel 이 수렴하고 strict 검증을 통과하면 Newton 은 돌지 않는다(값·반복 기록이 r5 와 같다).
+- [r6] **SCC 잔차와 야코비안**(`newton_system`): r_i = V_i − g_i(V)(g_i = 노드 writer 식, 1변수 노드도 bisection 이 아니라 식 그대로 --
+  x 를 읽는 VDS·VSB 항이 대각에 들어간다), J = I − ∂g/∂V(SCC 노드 열만). ∂g/∂V(`writer_grad`):
+  MOS writer(부호 s, gate 쓰기 σ = +1, source 쓰기 σ = −1, g = V(known) + s·σ·VGS): VGS 는 lnID(VGS, VDS, VSB) = 목표의 음함수라
+  ∂VGS/∂VDS = −1/(gm/gds), ∂VGS/∂VSB = gmb/gm -- 역산 VGS 점의 lut `op_point`(gm_over_id·gm_gds)와 lut `gmb`(같은 점, 폭 w_m,
+  gm = gm_over_id·IDu·w_m/L). ∂g/∂V(known) += 1, ∂g/∂V(d) += σ·∂VGS/∂VDS, ∂g/∂V(s) += σ·(∂VGS/∂VSB − ∂VGS/∂VDS),
+  ∂g/∂V(b) += −σ·∂VGS/∂VSB(같은 노드는 더한다). 저항 강하·같은 DC: ∂g/∂V(known) = 1. W4: lo 를 정한 이웃(그 이웃 값이 lo 를 엄격히
+  올린 마지막 항)에 1 − y, hi 를 정한 이웃에 y(레일 끝이면 없음). 한 노드라도 writer 식이 정의역 밖(`SealViolationError` -- LUT 조회
+  실패·빈 창)이면 None. 작성자 측 대조(LUT v2, folded·nmcnr·common_gate 통과 점): 중앙 차분과의 열별 최대 차 ≤ 1.0e−2
+  (|J| ≈ 1.2 -- 역산이 쓰는 칸 보간과 순방향 미분의 차), W4 선형 SCC 는 6.6e−12.
+- [r6] `SccLog.method` ∈ `SCC_DIRECT`("direct", 비순환)·`SCC_BISECTION`("bisection", 크기 1 순환)·`SCC_GAUSS_SEIDEL`("gauss_seidel")·
+  `SCC_NEWTON`("newton"); `fallback` = Newton 으로 바꾼 경우 (원인, q, Gauss-Seidel Δ 열) -- 원인 = "gauss_seidel_stopped"(경우 1) 또는
+  strict 검증 실패의 detail reason(경우 2: "strict_recheck_residual"·"lut_query_failed"·"empty_window" …), q = Δ 열 마지막 두 값의
+  비(없으면 None); Newton 이면 `deltas` = 반복마다 ‖r‖∞, `iterations` = Newton 반복 수.
 - [r3] **실패를 일으키는 최소 구성**(test 작성용):
   - `tol_v_undefined`: 보간 축 VGS·VDS·VS 가 모두 2점인 toy LUT(내부 격자점이 없어 lut CONTRACT 5절 축 양끝 규칙으로 모든
     tol_V 셀이 None) + 1변수 노드가 있는 회로. 작성자 측 확인(2026-10-08): tester conftest 의 toy 식에 VGS = VDS = VS = (0, 1.8)
@@ -384,6 +413,17 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   K_max = `k_max(width, tol)`. Δk ≤ tol 이면 반환. 아니면 stop = (k ≥ K_max); k ≥ 3 이고 Δk−1 > 0 이면 q = Δk/Δk−1, q < 1 이면
   stop = stop or q^max(K_max − k, 0)·Δk/(1 − q) > tol. stop -> `NonconvergentError`(devices, margin = Δk/tol, detail nodes·
   iterations·deltas·tol·k_max). 입력 `values` 는 바꾸지 않는다.
+
+### 5.5b [r6] `newton_solve(nodes, values, evaluate, tolerance, width, devices=()) -> (values, (k, norms, tol, K_max))`
+- `evaluate(values) -> (residuals, jacobian) | None`(n 개 잔차, n × n 행 tuple, 정의역 밖이면 None). `values` 는 바꾸지 않는다.
+- 시작점에서 evaluate 가 None 이면 `NonconvergentError`(reason `newton_start_outside_domain`, margin None, iterations 0, norms ()).
+- 반복: ‖r‖∞ 를 `norms` 에 더하고 tol = `tolerance(current)`, K_max = `k_max(width, tol)`. ‖r‖∞ ≤ tol 이면 반환(k = 받은 Newton
+  걸음 수). 아니면 k ≥ K_max 면 reason `newton_iteration_cap`. J 를 `scipy.linalg.lu_factor`, LU 대각에 0 이 있으면 reason
+  `newton_singular`. Δ = `lu_solve(−r)`. 선 탐색: α = 1, 1/2, 1/4, … 마다 시험점 V + αΔ(SCC 노드만), 정의역 안이고 ‖r‖₂ 가 줄면 받는다.
+  받을 α 없이 α < 1 이고 α·‖Δ‖∞ < tol 이 되거나(더 줄인 걸음은 노드를 tol 보다 덜 움직인다) 시험점이 부동소수로 현재 점과
+  같아지면(모든 노드) reason `newton_line_search`.
+- 실패는 모두 `NonconvergentError`(devices, margin = ‖r‖∞/tol(시작점 밖이면 None), detail reason·nodes·iterations·norms·tol·k_max).
+- 상수 없음: 감쇠 비 1/2(이분), 반복 상한 = bisection 과 같은 K_max(DEC-32), 선 탐색 끝 = tol(걸음 크기)·부동소수 해상도.
 
 ### 5.6 `k_max(width, tol)` = ceil(log2(width/tol)), width ≤ tol 이면 1. 양의 유한 수가 아니면 `ValueError`.
 
@@ -459,7 +499,8 @@ SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항
 | [r2] θ 전류가 원뿔 밖(MOS 전류 ≤ 0) | check_theta | ValueError(정의역 밖, 후보 실패 아님) | 메시지 (MOS, 전류) | -- | -- |
 | W4 창이 빔(strict) | ④ | SealViolationError | empty_window(item 7) | () | None |
 | [r2] 1변수 노드 근 없음·구간 빔 | ④ | SealViolationError | no_root_in_window(item 6/7) | writer | 끝 |h|/tol |
-| [r2] 다변수 SCC strict 검증 잔차 > tol | ④ | NonconvergentError | strict_recheck_residual | SCC 소자 | 잔차/tol |
+| [r2] 다변수 SCC strict 검증 잔차 > tol (r6: Newton 뒤 검증에서만 -- Gauss-Seidel 뒤 실패는 Newton 으로 바꾼다) | ④ | NonconvergentError | strict_recheck_residual | SCC 소자 | 잔차/tol |
+| [r6] Newton 시작점 정의역 밖 / 영 피벗 / 선 탐색 실패 / K_max 도달 | ④ | NonconvergentError | newton_start_outside_domain / newton_singular / newton_line_search / newton_iteration_cap | SCC 소자 | ‖r‖∞/tol (시작점 밖 None) |
 | LUT 축 밖·목표 밖·앵커 아님 | ④⑤·tol·[r4] 봉인 7(device_query `vdsat`·`tol_vdsat_cell`) | SealViolationError | lut_query_failed + lut_reason | 소자 | LUT 값(None) |
 | 허용오차 셀 전부 미정 | ④ | SealViolationError | tol_v_undefined | SCC 소자 | None |
 | 순환 블록 비수렴 | ④ | NonconvergentError | detail nodes·iterations·deltas·tol·k_max | SCC 소자 | Δk/tol |
@@ -568,6 +609,34 @@ spec 제약 + 관측 요청(`gbw_ss_hz`·`ugf_ss_hz`·`pm_ss_deg`·`gain_ss_db`,
 - 이름 전단사(테스트 helper `rename`, seed 1·2, `engine_elements` 도 σ 로 옮김): 9회로 모두 θ 수동 성분 집합·`zero_cancel`(end·far·
   S·reason)이 σ 로 옮겨진 것과 같다.
 
+### 10.4 [r6] SCC 감쇠 Newton 실측 (2026-10-08, 작성자 측 시연 -- 정본 아님)
+탐침 = 10절 θ 생성기(LUT v2, seed 20261008, 회로당 215 θ: gm/ID 탐침 × y 탐침 격자 + 난수, θ `resistance` 10 kΩ·`capacitance`
+1 pF 탐침값). '일관' = `size_and_seal` 이 실패 없이 돌고 봉인 7 외 항목이 모두 통과, '봉인' = SealedSnapshot. before = master
+(Gauss-Seidel 만), after = 이 개정(선 탐색 α·‖Δ‖∞ < tol 정지, 경우 2 SealViolationError 유지 규칙 포함 최종 코드). ms = 점당
+`size_and_seal` 시간 p50/p90, 합 = 215 점 합(s).
+
+| 회로 | 일관 before -> after | 봉인 before -> after | ms p50/p90 before -> after | 합 s | after 실패 reason(상위) |
+|---|---|---|---|---|---|
+| common_gate_amplifier | 190 -> 207 | 144 -> 155 | 21.7/29.6 -> 25.0/32.3 | 27 -> 31 | NONCONVERGENT 17 -> 0 |
+| current_reuse_telescopic_ota | 0 -> 0 | 0 -> 0 | 125.1/175.5 -> 151.4/193.5 | 29 -> 34 | 봉인 7 no_root_in_window 208(변화 없음) |
+| folded_cascode | 79 -> 84 | 31 -> 31 | 141.5/256.1 -> 182.7/305.0 | 30 -> 36 | no_root_in_window 96, strict_recheck_residual 2 |
+| ngcc_3stage_ff | 90 -> 90 | 74 -> 74 | 40.3/116.4 -> 40.0/114.2 | 13 -> 13 | 변화 없음 |
+| nmcnr_amplifier | 57 -> 57 | 20 -> 20 | 38.3/136.6 -> 35.8/156.8 | 12 -> 14 | 변화 없음 |
+| pushpull_follower_buffer | 6 -> 6 | 1 -> 1 | 29.4/37.9 -> 25.5/34.4 | 6 -> 5 | 변화 없음(lut_axis_out_of_range 190) |
+| sf_pushpull_output_opamp | 2 -> 5 | 0 -> 0 | 135.1/253.2 -> 218.5/361.0 | 33 -> 51 | lut_curve_undefined 180 -> 172, newton_line_search 10 |
+| two_stage_ota | 101 -> 101 | 72 -> 72 | 40.6/83.9 -> 29.9/72.2 | 8 -> 7 | 일부 재분류(lut_axis_out_of_range 9) |
+| two_stage_ota_sf | 56 -> 56 | 38 -> 38 | 21.4/70.4 -> 21.4/67.4 | 6 -> 6 | 일부 재분류(lut_axis_out_of_range 4) |
+
+- 일관·봉인 수가 줄어든 회로 없음(9회로). 늘어난 곳: common_gate +17 일관·+11 봉인(W4–W4 선형 SCC, O11), folded +5, sf_pushpull +3.
+- 실패 θ 에서 Newton 도 해를 못 찾은 경우 경우 2(strict 검증 `SealViolationError`)는 그 위반을 그대로 내므로 reason 분포가 before 와
+  거의 같다. 정체 증거(sf_pushpull, 선 탐색 조기 정지·유지 규칙 전 실행): 실패 θ 의 반복별 ‖r‖∞ 가 0.22~0.30 V 에서 멈추고
+  `newton_iteration_cap` margin ≈ 250~350 -- 정의역 안 극소가 0 이 아닌 잔차라 그 θ 에는 정의역 안 해가 없다고 본다(증명 아님, 관찰).
+- 시간: 늘어난 비용은 실패 θ 에서 도는 Newton 이다. 선 탐색 조기 정지(α·‖Δ‖∞ < tol) 전 실행은 sf p50/p90 605/924 ms·folded
+  275/661 ms 였고 정지 규칙으로 218/361·183/305 ms 로 줄었다(통과 수 동일).
+- current_reuse 는 0 그대로: 주 원인이 SCC 풀이가 아니라 봉인 7 writer 창 no_root_in_window(208/215) -- 이 개정 범위 밖.
+- 야코비안 대조(순환 SCC 가 있는 회로의 첫 봉인 θ, 중앙 차분 h = 1e-5 V): MOS writer 열 max|FD − J| ≤ 1e-2(|J| ≈ 1.2, LUT
+  Hermite 미분과 차분의 차), W4 선형 노드 6.6e-12.
+
 ## 11. 설계와 다르게 정한 점
 
 1. **저장 = core GraphSnapshot 하나**: 설계 2.1 `DcField`·`setter.py`·`field_reuse.py`·`writer_table.py` 대신 core 의
@@ -622,13 +691,14 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 - **O8 형제 lineage 재계산 (기록)**: FD 형제 평가끼리 같은 입력은 재계산된다(graph 가 곧 캐시라 다른 lineage 값을 볼 길이 없음).
 - **O9 성능 (사용자 승인 대기)**: 시간의 35~73% 가 core 투영 지문(`fp_of` 재직렬화). 투영 지문을 (key, `FieldValue.value_fp`) 로
   만들면 블록 호출·봉인 4 모두 줄어든다 -- core 변경. `TolVTable.at` 중복 조회는 memo 밖.
-- **O10 (부분 해결)** 1변수 노드 = 구간 bisection, 다변수 SCC = 반복 중 투영 + strict 검증. 남은 위험: 다변수 SCC 에서 투영으로
-  멈춘 노드 때문에 실제 근이 있는데 strict 검증이 실패할 수 있다(sf_pushpull 0/215 가 그 경우인지 가르지 못함). 다변수 블록을
-  Newton·연속법 등으로 바꿀지는 설계 결정.
+- **O10 (닫음, r6)** 1변수 노드 = 구간 bisection, 다변수 SCC = Gauss-Seidel(수축할 때) -> 못 하거나 strict 검증 실패 시 감쇠 Newton
+  (5.4 [r6]). sf_pushpull 의 9노드 SCC 실측: Newton 이 정의역 안 시작점에서 돌고, 실패한 θ 는 ‖r‖∞ 가 0.22~0.30 V 에서 멈추는
+  정체(잔차가 0 이 아닌 극소 -- 그 θ 에 정의역 안 해가 없다고 관찰). 그 θ 는 GS strict 검증 위반(주로 lut_curve_undefined)
+  이나 `newton_line_search` 로 거부된다(10.4).
 - **O12 [r3] `strict_recheck_residual` 재현 구성 없음**: 방어 검사(5.4 '실패를 일으키는 최소 구성'). 공개 API 만으로 덮을
   구성이 생기면 계약에 더한다.
-- **O11 W4–W4 결합 비수렴**: 인접 W4 두 노드의 창이 서로를 읽으면 선형 수축비 y1(1 − y2) 가 1 에 가까울 때 K_max 안에 못
-  들어와 NONCONVERGENT(common_gate 25/215). 설계 규칙('bisection 보다 느린 고정점 = 비수렴') 그대로의 결과다.
+- **O11 (닫음, r6)** W4–W4 결합으로 Gauss-Seidel 이 느리게 수축해 K_max 안에 못 닿으면 Newton 으로 바꾼다 -- 선형 SCC 라 한
+  걸음에 수렴(common_gate NONCONVERGENT 17 -> 0, 10.4).
 - **O13 [r5] 수동소자 θ 탐색 상자 (search 몫, 배선 대기)**: 커패시터 상자는 PDK 선언에서 유도할 수 없다 -- 로컬 PDK 원본을 확인한
   결과 periphery 규칙표(`skywater-pdk/docs/rules/periphery/periphery.csv`)의 `capm.*` 행(최소 폭·최대 면적 등)은 값이 모두 `N/A`
   이고, `sky130_fd_pr/models/capacitors/sky130_fd_pr__model__cap_mim.model.spice` 가 include 하는 `cells/cap_mim_m3/` 는 로컬에
