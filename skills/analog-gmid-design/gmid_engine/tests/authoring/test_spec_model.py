@@ -133,7 +133,6 @@ def test_constraints_tuple_keeps_document_order(sc):
     ("operating_fp", lambda h: h["input_dc"].update(value_v=0.5)),
     ("operating_fp", lambda h: h["node_voltage_targets_v"]["n_mid"].update(value_v=0.8)),
     ("elements_fp", lambda h: h["element_values"]["Rfb"].update(value_ohm=20000.0)),
-    ("feedback_fp", lambda h: h["feedback"].update(elements=["Rfb"])),
     ("constraints_fp", lambda h: h["pending_constraints"].append({"metric": "rout_ss_ohm", "decision": "SP-7"})),
     ("compensation_fp", lambda h: h["compensation_targets"]["gbw_target_hz"].update(value=2e7)),
     ("objective_fp", lambda h: h["objective"]["budgets"]["supply_current_dc"].update(value=0.002)),
@@ -147,6 +146,16 @@ def test_one_section_change_moves_only_its_fp(sc, section, mutate):
     mutate(sc.human)
     other = sc.load()
     assert _changed(base, other) == {section}
+    assert other.spec_fp != base.spec_fp
+
+
+def test_feedback_change_moves_feedback_and_loop_constraint_fp(sc):
+    """feedback 변경은 feedback_fp 와, 그 feedback 에서 유도한 루프 뷰를 담은 constraints_fp 를 함께 옮긴다
+    (SPEC_CONTRACT 3절 -- 유도된 내용이 ViewDecl 에 들어가 constraints_fp 가 feedback 을 따라간다, 7a design 4.2)."""
+    base = sc.load()
+    sc.human["feedback"].update(elements=[])
+    other = sc.load()
+    assert _changed(base, other) == {"feedback_fp", "constraints_fp"}
     assert other.spec_fp != base.spec_fp
 
 

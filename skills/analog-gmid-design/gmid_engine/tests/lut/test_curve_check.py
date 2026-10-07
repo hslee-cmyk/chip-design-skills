@@ -19,6 +19,29 @@ def test_contract_toy_row0(toy, toy_memo):
     assert r.n_curves == 4 and r.n_skipped == 0 and r.n_branch_nonmonotonic == 0
     assert rel_close(r.gm_id_max, 20.0, 1e-12)
     assert rel_close(r.gm_gds_max, 200.0, 1e-12)
+    assert r.n_hermite_nonmonotone == 0                       # [r5] 7.1 행
+    assert all(x.n_hermite_nonmonotone == 0 for x in rep.rows)
+
+
+def test_r4_toy_n_hermite_nonmonotone(r4toy_memo):
+    """[r5] CONTRACT 7.2: 모든 행 n_hermite_nonmonotone = 10 (VGS 4 + VDS 6)."""
+    rows = curve_report(r4toy_memo).rows
+    assert len(rows) == 6
+    assert [r.n_hermite_nonmonotone for r in rows] == [10] * 6
+
+
+def test_n_hermite_nonmonotone_counts_single_violation(toy_build):
+    """음성 대조: r5 toy 의 격자점 하나(GM)를 바꿔 VGS 칸 하나만 위반 -> 그 L 행만 1, 다른 행 0 (독립 FC 로 확인)."""
+    from .conftest import RefSlice
+    sl = standard_toy_slices()
+    a = sl[0][2]
+    a["GM"][1, 0, 1, 1] = a["ID"][1, 0, 1, 1] * 200.0          # L 2e-6·VDS 1·VS 0.5 곡선 칸 [0,1] 왼쪽 기울기 200
+    rs = RefSlice(a)
+    bad = int((~rs.fc_vgs[1]).sum() + (~rs.fc_vds[1]).sum())
+    assert bad == 1 and int((~rs.fc_vgs).sum()) == 1
+    rows = curve_report(new_memo(toy_build(slices=sl).load())).rows
+    assert [(r.w_key, r.L, r.n_hermite_nonmonotone) for r in rows] == [
+        (100, 1e-6, 0), (100, 2e-6, 1), (100, 3e-6, 0), (200, 1e-6, 0), (200, 2e-6, 0), (200, 3e-6, 0)]
 
 
 def test_row_order_and_count(toy_memo):
@@ -77,3 +100,17 @@ def test_real_rows_against_npz(real_lut, raw_slice):
                 assert rel_close(r.gm_id_max, float(gmid.max()), 1e-9), (kind, wk, L)
                 assert rel_close(r.gm_gds_max, float(gmgds.max()), 1e-9), (kind, wk, L)
             assert 0 <= r.n_branch_nonmonotonic <= r.n_curves
+
+
+@pytest.mark.lut_realdata
+def test_real_n_hermite_nonmonotone_against_independent_fc(real_lut, raw_slice):
+    """[r5] n_hermite_nonmonotone = 그 L 앵커의 count(~fc_ok_vgs[i]) + count(~fc_ok_vds[i]) -- FC 는 npz 에서 독립 계산."""
+    from .conftest import RefSlice
+    rows = curve_report(new_memo(real_lut)).rows
+    by = {(r.kind, r.w_key, r.L): r for r in rows}
+    for kind, wk in (("nmos", 72), ("nmos", 1000), ("pmos", 1000)):
+        z = raw_slice(kind, wk)
+        rs = RefSlice(z)
+        for iL, L in enumerate(z["L"]):
+            exp = int((~rs.fc_vgs[iL]).sum() + (~rs.fc_vds[iL]).sum())
+            assert by[(kind, wk, float(L))].n_hermite_nonmonotone == exp, (kind, wk, iL)

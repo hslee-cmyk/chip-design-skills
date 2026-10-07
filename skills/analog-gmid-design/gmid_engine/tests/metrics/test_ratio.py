@@ -41,7 +41,7 @@ def _zero_column_system(zero_first):
     ck = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 3, 1e4)), ac_ground=(0,))
     good = Excitation("good", voltages=((1, 1.0),))
     zero = Excitation("zero", voltages=((3, 0.0),))
-    return build_mna(ck, (zero, good) if zero_first else (good, zero), Sense(2))
+    return build_mna(ck, (zero, good) if zero_first else (good, zero), (Sense(2),))
 
 
 def test_den_zero_is_value_not_exception():

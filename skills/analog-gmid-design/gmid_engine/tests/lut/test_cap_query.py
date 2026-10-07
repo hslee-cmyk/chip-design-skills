@@ -61,28 +61,108 @@ def test_unknown_kind_keyerror(toy_memo):
 
 @pytest.mark.lut_realdata
 def test_real_grid_points_match_npz(real_memo, real_lut, raw_cap):
-    # w_ref_m: 기준 LUT 에 w_ref_m 이 없어 slice_id_match -> 5 µm 슬라이스(test_lut_set 이 독립으로 확인)
+    """[r6] LUT v2: 기준 LUT 에 w_ref_m(5e-06) 기록 -> 그 값, CGS·CGB·CDD·CSS 열 -> model "lut_cgs_cgb", 값은 저장 부호 그대로 × W/w_ref_m."""
     rng = np.random.default_rng(7)
+    w_rec = float(raw_cap["w_ref_m"])
     for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
         w_ref = real_lut.cap_map[kind].w_ref_m
-        assert rel_close(w_ref, 5e-6, 1e-9)
+        assert w_ref == w_rec
         for _ in range(20):
             iL, iG, k, s = (int(rng.integers(0, n)) for n in raw_cap["CGG" + suf].shape)
             pt = (float(raw_cap["L"][iL]), float(raw_cap["VGS"][iG]), float(raw_cap["VDS"][k]), float(raw_cap["VS"][s]))
             W = 2.5e-6
             c = caps(real_memo, kind, *pt, W)
-            cgg = float(raw_cap["CGG" + suf][iL, iG, k, s]) * W / w_ref
-            cgd = float(raw_cap["CGD" + suf][iL, iG, k, s]) * W / w_ref
-            assert rel_close(c.cgg, cgg, 1e-12) and rel_close(c.cgd, cgd, 1e-12)
-            assert c.model == "cgg_minus_cgd_at_gs" and c.cgb == 0.0
-            assert rel_close(c.cgs, cgg - cgd, 1e-9)
+            assert c.model == "lut_cgs_cgb"
+            for attr, col in (("cgg", "CGG"), ("cgd", "CGD"), ("cgs", "CGS"), ("cgb", "CGB"), ("cdd", "CDD"), ("css", "CSS")):
+                exp = float(raw_cap[col + suf][iL, iG, k, s]) * W / w_ref
+                assert rel_close(getattr(c, attr), exp, 1e-12) or getattr(c, attr) == exp == 0.0, (kind, attr)
 
 
 @pytest.mark.lut_realdata
-def test_real_cap_vs_axis_limit(real_memo):
-    # 기준 LUT VS 축 0~0.8: vsb 0.9 는 용량 실패, DC 조회(슬라이스 VS 0~1.8)는 성공
-    op_point(real_memo, "nmos", 1000, 1e-6, 0.9, 0.9, 0.9)
+@pytest.mark.parametrize("kind,suf,col", [("nmos", "_n", "CGB"), ("pmos", "_p", "CGB"), ("pmos", "_p", "CSS"),
+                                          ("pmos", "_p", "CGD"), ("nmos", "_n", "CGS")])
+def test_real_signed_caps_pass_through(real_memo, real_lut, raw_cap, kind, suf, col):
+    """[r6] 1.2·4.1 caps: 용량은 부호 보존(CGB·CGS·CSS·CGD(pfet) 에 음수 점) -- 엔진은 로그·절댓값을 쓰지 않는다.
+    저장값이 음수인 격자점에서 caps 의 그 필드 = 음수 저장값 × W/w_ref_m (npz 직접)."""
+    arr = raw_cap[col + suf]
+    neg = np.argwhere(arr < 0)
+    assert len(neg) > 0, "전제: 음수 점이 있어야 한다(계약 1.2)"
+    w_ref = real_lut.cap_map[kind].w_ref_m
+    attr = col.lower()
+    for idx in (neg[0], neg[len(neg) // 2], neg[-1]):
+        iL, iG, k, s = (int(x) for x in idx)
+        pt = (float(raw_cap["L"][iL]), float(raw_cap["VGS"][iG]), float(raw_cap["VDS"][k]), float(raw_cap["VS"][s]))
+        c = caps(real_memo, kind, *pt, 3e-6)
+        exp = float(arr[iL, iG, k, s]) * 3e-6 / w_ref
+        assert exp < 0 and getattr(c, attr) < 0
+        assert rel_close(getattr(c, attr), exp, 1e-12), (kind, col, idx)
+
+
+@pytest.mark.lut_realdata
+def test_real_cap_vs_axis_limit(real_memo, raw_cap):
+    """[r6] LUT v2 기준 LUT VS 축 0~1.8: vsb 0.9 는 용량도 성공, 1.8 초과는 용량·DC 모두 축 밖."""
+    assert float(raw_cap["VS"][-1]) == 1.8
+    caps(real_memo, "nmos", 1e-6, 0.9, 0.9, 0.9, 1e-6)
+    hi = float(np.nextafter(1.8, 2.0))
     with pytest.raises(SealViolationError) as ei:
-        caps(real_memo, "nmos", 1e-6, 0.9, 0.9, 0.9, 1e-6)
+        caps(real_memo, "nmos", 1e-6, 0.9, 0.9, hi, 1e-6)
+    det = detail_of(ei.value)
+    assert det["table"] == "cap" and det["axis"] == "VS" and det["hi"] == 1.8
+    with pytest.raises(SealViolationError):
+        op_point(real_memo, "nmos", 1000, 1e-6, 0.9, 0.9, hi)
+
+
+@pytest.mark.lut_realdata
+def test_old_set_cap_vs_axis_limit_and_model(old_lut):
+    """옛 12-L 세트(4.1 caps '옛 세트 VS 0~0.8 -> vsb > 0.8 실패'): CGS·CGB 열 없음 -> "cgg_minus_cgd_at_gs", cdd·css None,
+    vsb 0.9 는 용량 실패·DC 성공."""
+    m = new_memo(old_lut, 64)
+    op_point(m, "nmos", 1000, 1e-6, 0.9, 0.9, 0.9)
+    with pytest.raises(SealViolationError) as ei:
+        caps(m, "nmos", 1e-6, 0.9, 0.9, 0.9, 1e-6)
     det = detail_of(ei.value)
     assert det["table"] == "cap" and det["axis"] == "VS" and det["hi"] == 0.8
+    c = caps(m, "nmos", 1e-6, 0.9, 0.9, 0.4, 2e-6)
+    assert c.model == "cgg_minus_cgd_at_gs" and c.cgb == 0.0 and c.cdd is None and c.css is None
+    assert rel_close(c.cgs, c.cgg - c.cgd, 1e-12)
+
+
+# ---------------------------------------------------------------------------
+# [r6] cdd·css 필드, 부호 보존 (toy)
+# ---------------------------------------------------------------------------
+
+def test_contract_toy_r6_cdd_css_none(toy_memo):
+    """7.1 r6 표: r5 toy(CDD·CSS 없음) -> r5 값 + cdd None, css None."""
+    c = caps(toy_memo, "nmos", 1e-6, 0.5, 0.5, 0.0, 3e-6)
+    assert c.cdd is None and c.css is None
+    assert rel_close(c.cgg, 3e-15, 1e-12) and c.model == "cgg_minus_cgd_at_gs"
+
+
+def test_cdd_css_interpolated_and_negative_passthrough(toy_build):
+    """CDD·CSS 열 = 같은 선형 보간 × W/w_ref_m. 음수 저장값(CGB·CSS)은 부호 그대로 -- 로그 공간이면 정의 불가,
+    절댓값이면 부호가 바뀐다(판별)."""
+    cap = toy_cap_arrays()
+    shp = (3, 3, 2, 2)
+    cgb = np.empty(shp)
+    cgb[...] = np.asarray((-1e-16, -3e-16, 2e-16))[None, :, None, None]
+    css = np.empty(shp)
+    css[...] = np.asarray((-4e-16, -2e-16))[None, None, None, :]
+    cap.update({"CGS_n": np.full(shp, 5e-16), "CGB_n": cgb, "CDD_n": np.full(shp, 7e-16), "CSS_n": css})
+    m = new_memo(toy_build("signed", cap=cap).load())
+    pt = (2e-6, 0.25, 0.7, 0.25)
+    c = caps(m, "nmos", *pt, 2e-6)
+    grids = (TOY_L, TOY_VGS, TOY_VDS, TOY_VS)
+    assert c.model == "lut_cgs_cgb"
+    assert rel_close(c.cgb, interp4(grids, cgb, pt) * 2.0, 1e-12) and rel_close(c.cgb, -4e-16, 1e-12)
+    assert rel_close(c.css, interp4(grids, css, pt) * 2.0, 1e-12) and rel_close(c.css, -6e-16, 1e-12)
+    assert rel_close(c.cdd, 1.4e-15, 1e-12)
+    # 격자점: 음수 저장값 그대로
+    c0 = caps(m, "nmos", 1e-6, 0.0, 0.5, 0.0, 1e-6)
+    assert c0.cgb == -1e-16 and c0.css == -4e-16
+
+
+def test_cdd_without_css(toy_build):
+    cap = toy_cap_arrays()
+    cap["CDD_n"] = np.full((3, 3, 2, 2), 7e-16)
+    c = caps(new_memo(toy_build("cddonly", cap=cap).load()), "nmos", 1e-6, 0.5, 0.5, 0.0, 1e-6)
+    assert rel_close(c.cdd, 7e-16, 1e-12) and c.css is None

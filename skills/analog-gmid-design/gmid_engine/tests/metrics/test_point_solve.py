@@ -23,10 +23,10 @@ def test_rc_point(w):
     p = solve_point(ex1_rc(), w)
     assert isinstance(p, PointSolution)
     assert p.omega == w
-    assert np.asarray(p.values)[0] == pytest.approx(1.0 / (1.0 + 1j * w * 1e-6), rel=1e-12)
+    assert np.asarray(p.values)[0, 0] == pytest.approx(1.0 / (1.0 + 1j * w * 1e-6), rel=1e-12)
     e = np.asarray(p.errors)
-    assert e.shape == (1,) and np.all(np.isfinite(e)) and np.all(e >= 0.0)
-    assert e[0] <= 1e-12 * abs(np.asarray(p.values)[0])
+    assert e.shape == (1, 1) and np.all(np.isfinite(e)) and np.all(e >= 0.0)     # (관측 행, 열)
+    assert e[0, 0] <= 1e-12 * abs(np.asarray(p.values)[0, 0])
     assert p.undefined == ()
 
 
@@ -34,7 +34,7 @@ def test_rc_point(w):
 def test_miller_point_matches_closed_form(w):
     ref = closed_miller()
     p = solve_point(ex3_miller(), w)
-    assert np.asarray(p.values)[0] == pytest.approx(ref["h"](w), rel=1e-10)
+    assert np.asarray(p.values)[0, 0] == pytest.approx(ref["h"](w), rel=1e-10)
 
 
 def test_miller_point_matches_independent_mna_after_renumber():
@@ -45,12 +45,12 @@ def test_miller_point_matches_independent_mna_after_renumber():
     cap = ((3, 9, q["c1"]), (1, 9, q["cl"]), (3, 1, q["cc"]))
     w = 4.2e6
     exp = ref_solve(mos=mos, cap=cap, ac_ground=(9,), volts={7: 1.0}, sense=(1, None), omega=w)
-    assert np.asarray(solve_point(s, w).values)[0] == pytest.approx(exp, rel=1e-12)
+    assert np.asarray(solve_point(s, w).values)[0, 0] == pytest.approx(exp, rel=1e-12)
 
 
 def test_zero_omega_is_dc_limit():
     p = solve_point(ex2d_sc_loop(), 0.0)
-    v = np.asarray(p.values)
+    v = np.asarray(p.values)[0]
     assert v[0] == pytest.approx(-300.0 / 104.0, rel=1e-12)
     assert math.isnan(complex(v[1]).real)
     assert "dc_charge_injection" in codes(p.undefined)
@@ -63,7 +63,7 @@ def test_singular_point_nan_no_exception():
         capacitors=(Capacitor(4, 0, 1e-12),),
         ac_ground=(0,),
     )
-    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), Sense(3))
+    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), (Sense(3),))
     assert s.defects == ()
     p = solve_point(s, 1e6)
     assert np.all(np.isnan(np.asarray(p.values).real))

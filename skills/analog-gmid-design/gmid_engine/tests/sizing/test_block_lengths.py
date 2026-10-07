@@ -1,5 +1,33 @@
-"""자리표(규칙 H 1:1) -- `gmid_engine/sizing/block_lengths.py` 의 동작 test.
+"""`dc_lengths(snapshot, theta_lengths)` -- CONTRACT 5.3: reads device.element_class; 키 ≠ MOS 집합 -> ValueError;
+writes dc_L (모든 MOS)."""
+import pytest
 
-기준은 `gmid_engine/sizing/CONTRACT.md` 만 쓴다(피검 함수로 기대값을 만들지 않는다). 동작 test 는 독립 test 작성
-agent 가 채운다 -- 이 파일에는 아직 test 가 없다(수집 0개).
-"""
+from gmid_engine.sizing import dc_lengths
+
+
+def test_writes_all_mos(ctx_a):
+    base = ctx_a[2].base
+    out = dc_lengths(base, (("M1", 2e-6),))
+    assert dict(out.column("device", "dc_L")) == {"M1": 2e-6}
+    assert out.field("device", "M1", "dc_L").writer == "dc_lengths"
+
+
+def test_two_mos(ctx_c):
+    out = dc_lengths(ctx_c[2].base, (("M1", 1e-6), ("M2", 2e-6)))
+    assert dict(out.column("device", "dc_L")) == {"M1": 1e-6, "M2": 2e-6}
+
+
+@pytest.mark.parametrize("bad", [
+    (),
+    (("M1", 1e-6),),                              # M2 빠짐
+    (("M1", 1e-6), ("M2", 2e-6), ("M3", 1e-6)),   # 남음
+    (("M1", 1e-6), ("R1", 1e-6)),                 # MOS 아님
+])
+def test_key_set_must_equal_mos(ctx_c, bad):
+    with pytest.raises(ValueError):
+        dc_lengths(ctx_c[2].base, bad)
+
+
+def test_resistor_not_a_length_key(ctx_a):
+    with pytest.raises(ValueError):
+        dc_lengths(ctx_a[2].base, (("M1", 1e-6), ("R1", 1e-6)))

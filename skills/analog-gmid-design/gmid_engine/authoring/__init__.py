@@ -27,6 +27,7 @@ from .spec_model import (
     PendingMark,
     RegionDecl,
     RuleChoice,
+    SenseDecl,
     SettingValue,
     SettlingDecl,
     SizingSpecDoc,
@@ -34,6 +35,7 @@ from .spec_model import (
     TargetDecl,
     ViewDecl,
 )
+from .spec_views import BETA_DECLARED, BETA_UNITY, SENSE_DIFFERENTIAL, DefaultViews, default_views
 from .spec_node_targets import node_target_declaration
 from .spec_refs import resolve_spec_references
 from .spec_regions import intended_region_declaration
@@ -57,10 +59,13 @@ from .topology_model import (
 from .topology_schema import IGNORED_TAG_KEYS, SCHEMA_VERSION, check_topology_schema
 
 __all__ = (
+    "BETA_DECLARED",
+    "BETA_UNITY",
     "CheckedJson",
     "ConstraintDecl",
     "DC_CONDUCTING_PASSIVE_KINDS",
     "DcEdge",
+    "DefaultViews",
     "DeviceDecl",
     "ElementValue",
     "ExciteSense",
@@ -77,7 +82,9 @@ __all__ = (
     "SCHEMA_VERSION",
     "SECTION_GROUPS",
     "SPEC_SCHEMA_VERSION",
+    "SENSE_DIFFERENTIAL",
     "SchemaHit",
+    "SenseDecl",
     "SettingValue",
     "SettlingDecl",
     "SizingSpecDoc",
@@ -95,6 +102,7 @@ __all__ = (
     "compensation_target_declaration",
     "constraint_declaration",
     "dc_edges_unpruned",
+    "default_views",
     "device_declaration",
     "element_value_declaration",
     "input_dc_declaration",

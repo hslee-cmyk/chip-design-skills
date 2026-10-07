@@ -3,8 +3,9 @@
 graph·S2 를 모르는 불변 레코드다. 노드는 **정수 인덱스**(넷 이름이 아니다 -- 이름 리터럴·topology 종속 금지)이고,
 교류접지·레일은 이름이 아니라 선언된 인덱스 집합으로 받는다. 값 검사(유한·부호)는 생성 때 한 번 한다.
 
-* 소신호: `MosSmallSignal`(gm·gmb·gds·cgs·cgd·cgb·cdb·csb), `Resistor`, `Capacitor`, `Excitation`(여기 열 하나),
-  `Sense`(관측), `SmallSignalCircuit`(소자 묶음 + 교류접지 노드), `StampSet`(스탬프 결과).
+* 소신호: `MosSmallSignal`(gm·gmb·gds·cgs·cgd·cgb·cdb·csb), `Resistor`, `Capacitor`, `Excitation`(여기 열 하나 --
+  전압 구동·전류 주입·전하 주입), `Sense`(관측 하나), `SmallSignalCircuit`(소자 묶음 + 교류접지 노드), `StampSet`(스탬프 결과),
+  `LoopCut`(루프 절단 하나: 수동소자 단자 하나를 새 노드로 옮긴다 -- 7a design 2.2).
 * DC: `RailBias`, `ChannelCurrent`, `CurrentSource`, `DcOperatingPoint`.
 * 면적: `GateArea`, `PassiveArea`.
 """
@@ -64,7 +65,10 @@ class MosSmallSignal:
     """MOS 소신호 모델 하나(NMOS·PMOS 공통 -- 소신호 식은 극성과 무관하다).
 
     채널 전류 `I(d→s) = gm·(vg − vs) + gmb·(vb − vs) + gds·(vd − vs)`. 용량은 단자 쌍마다 하나:
-    cgs(g–s), cgd(g–d), cgb(g–b), cdb(d–b), csb(s–b). 값은 소자 전체(W 반영) 절댓값, 모두 0 이상.
+    cgs(g–s), cgd(g–d), cgb(g–b), cdb(d–b), csb(s–b). 값은 소자 전체(W 반영). gm·gmb·gds 는 크기(0 이상 -- LUT 는 BSIM op 값의
+    크기를 저장한다). 용량 5개는 **부호 있는 유한 실수**(오케스트레이터 결정 2026-10-08 Q7): BSIM4 단자 용량(예 cgb = −∂Qg/∂Vb)은
+    부호가 있고 SPICE 오라클도 부호 그대로 스탬프한다 -- 같은 정의(U-48·DEC-90). 부호 규약의 원천 = LUT v2 생성기 meta
+    `sign_convention`(lut CONTRACT r6 1.2, `CapTable.sign_convention`). NaN·inf 만 거부한다.
     `label` 은 진단용 불투명 문자열(코드가 읽지 않는다)."""
 
     d: int
@@ -84,8 +88,10 @@ class MosSmallSignal:
     def __post_init__(self):
         for name in ("d", "g", "s", "b"):
             _node(getattr(self, name), "MosSmallSignal." + name)
-        for name in ("gm", "gmb", "gds", "cgs", "cgd", "cgb", "cdb", "csb"):
+        for name in ("gm", "gmb", "gds"):
             object.__setattr__(self, name, _finite(getattr(self, name), "MosSmallSignal." + name, nonnegative=True))
+        for name in ("cgs", "cgd", "cgb", "cdb", "csb"):
+            object.__setattr__(self, name, _finite(getattr(self, name), "MosSmallSignal." + name))
 
 
 @dataclasses.dataclass(frozen=True)
@@ -121,18 +127,22 @@ class Capacitor:
 @dataclasses.dataclass(frozen=True)
 class Excitation:
     """여기 열 하나. `voltages`: 전압 구동 노드와 진폭((노드, V) 쌍), `currents`: 전류 주입 노드와 진폭((노드, A) 쌍,
-    노드로 들어가는 방향). 한 MnaSystem 의 모든 열에서 전압 구동 노드는 고정 노드가 되고, 그 열에 없는 구동 노드는 0 V 다."""
+    노드로 들어가는 방향), `charges`: 전하 주입 노드와 크기((노드, C) 쌍, 노드로 들어가는 전하 = 전류 s·q -- 열의 `BC` 에만
+    들어가고 `BG` 에는 0 이라 용량 전용 노드의 ω → 0 극한이 전하 보존 식으로 정의된다, 7a design 2.4).
+    한 MnaSystem 의 모든 열에서 전압 구동 노드는 고정 노드가 되고, 그 열에 없는 구동 노드는 0 V 다."""
 
     name: str
     voltages: tuple = ()
     currents: tuple = ()
+    charges: tuple = ()
 
     def __post_init__(self):
         if not isinstance(self.name, str) or not self.name:
             raise ValueError("Excitation.name 은 비어 있지 않은 문자열이어야 한다")
         _node_amp_pairs(self.voltages, "Excitation.voltages")
         _node_amp_pairs(self.currents, "Excitation.currents")
-        if not self.voltages and not self.currents:
+        _node_amp_pairs(self.charges, "Excitation.charges")
+        if not self.voltages and not self.currents and not self.charges:
             raise ValueError("Excitation %r 에 여기원이 없다" % self.name)
 
 
@@ -170,6 +180,30 @@ class SmallSignalCircuit:
             _node(node, "SmallSignalCircuit.ac_ground")
         if len(set(self.ac_ground)) != len(self.ac_ground):
             raise ValueError("SmallSignalCircuit.ac_ground 에 중복 노드가 있다")
+
+
+LOOP_CUT_KINDS = ("resistor", "capacitor")
+LOOP_CUT_TERMINALS = ("a", "b")
+
+
+@dataclasses.dataclass(frozen=True)
+class LoopCut:
+    """루프 절단 하나: `SmallSignalCircuit` 의 `kind`(resistor | capacitor) 원소 `index` 번째의 단자 `terminal`(a | b)을
+    새 노드로 옮긴다(`cut_circuit`). 어느 단자를 끊을지는 선언(spec `feedback` 소자의 입력 포트 넷 쪽 단자)이 정한다."""
+
+    kind: str
+    index: int
+    terminal: str
+
+    def __post_init__(self):
+        if self.kind not in LOOP_CUT_KINDS:
+            raise ValueError("LoopCut.kind 는 %r 중 하나여야 한다: %r" % (LOOP_CUT_KINDS, self.kind))
+        if isinstance(self.index, bool) or not isinstance(self.index, int):
+            raise TypeError("LoopCut.index 는 정수여야 한다: %r" % (self.index,))
+        if self.index < 0:
+            raise ValueError("LoopCut.index 는 0 이상이어야 한다: %r" % (self.index,))
+        if self.terminal not in LOOP_CUT_TERMINALS:
+            raise ValueError("LoopCut.terminal 은 %r 중 하나여야 한다: %r" % (LOOP_CUT_TERMINALS, self.terminal))
 
 
 @dataclasses.dataclass(frozen=True)

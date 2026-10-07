@@ -1,4 +1,4 @@
-"""CONTRACT 3.2: build_mna -- 소자마다 스탬프 1회, ω 무관 실수 G·C·BG·BC·sense_row·sense_direct(쓰기 금지),
+"""CONTRACT 3.2: build_mna -- 소자마다 스탬프 1회, ω 무관 실수 G·C·BG·BC·sense_rows·sense_direct(쓰기 금지, 관측 1-tuple),
 미지수 = 등장 노드 − 고정 노드 오름차순, defects(isolated_node)·charge_nodes, 2절 입력 계약 위반 ValueError."""
 import numpy as np
 import pytest
@@ -35,8 +35,8 @@ def test_rc_matrices_by_hand():
     assert np.allclose(_arr(s.C), [[1e-9]], rtol=1e-15, atol=0)
     assert np.allclose(_arr(s.BG), [[1e-3]], rtol=1e-15, atol=0)
     assert np.allclose(_arr(s.BC), [[0.0]], atol=0)
-    assert np.array_equal(_arr(s.sense_row), [1.0])
-    assert np.array_equal(_arr(s.sense_direct), [0.0])
+    assert np.array_equal(_arr(s.sense_rows), [[1.0]])
+    assert np.array_equal(_arr(s.sense_direct), [[0.0]])
     assert s.defects == () and s.charge_nodes == ()
 
 
@@ -77,9 +77,9 @@ def test_unknowns_ascending_and_fixed_excluded():
 
 def test_sense_direct_for_driven_neg_node():
     ck = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3),), capacitors=(Capacitor(2, 0, 1e-9),), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("a", voltages=((1, 1.0),)), Excitation("b", voltages=((1, 3.0),))), Sense(2, 1))
-    assert np.array_equal(_arr(s.sense_row), [1.0])
-    assert np.allclose(_arr(s.sense_direct), [-1.0, -3.0], rtol=1e-15, atol=0)
+    s = build_mna(ck, (Excitation("a", voltages=((1, 1.0),)), Excitation("b", voltages=((1, 3.0),))), (Sense(2, 1),))
+    assert np.array_equal(_arr(s.sense_rows), [[1.0]])
+    assert np.allclose(_arr(s.sense_direct), [[-1.0, -3.0]], rtol=1e-15, atol=0)
 
 
 def test_omitted_driven_node_is_zero_volt_in_other_column():
@@ -90,7 +90,7 @@ def test_omitted_driven_node_is_zero_volt_in_other_column():
 
 def test_arrays_read_only():
     s = ex3_miller()
-    for name in ("G", "C", "BG", "BC", "sense_row", "sense_direct"):
+    for name in ("G", "C", "BG", "BC", "sense_rows", "sense_direct"):
         a = getattr(s, name)
         with pytest.raises((ValueError, TypeError)):
             a[(0,) * np.ndim(a)] = 123.0
@@ -107,7 +107,7 @@ def test_each_stamp_called_exactly_once_per_element():
         ac_ground=(0,),
     )
     with count_calls(mos_stamps, two_terminal_stamps) as n:
-        build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), Sense(4))
+        build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), (Sense(4),))
     assert n == {"mos_stamps": 2, "two_terminal_stamps": 5}
 
 
@@ -115,7 +115,7 @@ def test_each_stamp_called_exactly_once_per_element():
 
 def test_isolated_node_defect():
     ck = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 0, 1e3)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), Sense(5))   # 노드 5: 어떤 소자에도 없다
+    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), (Sense(5),))   # 노드 5: 어떤 소자에도 없다
     assert "isolated_node" in codes(s.defects)
     assert all(u.category == "structural" for u in s.defects)
 
@@ -133,26 +133,59 @@ def _rc():
 
 def test_duplicate_excitation_name_value_error():
     with pytest.raises(ValueError):
-        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)), Excitation("v", voltages=((1, 2.0),))), Sense(2))
+        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)), Excitation("v", voltages=((1, 2.0),))), (Sense(2),))
 
 
 def test_driven_node_overlapping_ac_ground_value_error():
     with pytest.raises(ValueError):
-        build_mna(_rc(), (Excitation("v", voltages=((0, 1.0),)),), Sense(2))
+        build_mna(_rc(), (Excitation("v", voltages=((0, 1.0),)),), (Sense(2),))
 
 
 def test_current_into_fixed_node_value_error():
     with pytest.raises(ValueError):
-        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)), Excitation("i", currents=((1, 1.0),))), Sense(2))
+        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)), Excitation("i", currents=((1, 1.0),))), (Sense(2),))
     with pytest.raises(ValueError):
-        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)), Excitation("i", currents=((0, 1.0),))), Sense(2))
+        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)), Excitation("i", currents=((0, 1.0),))), (Sense(2),))
 
 
 def test_sense_only_undriven_fixed_node_value_error():
     with pytest.raises(ValueError):
-        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)),), Sense(0))
+        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)),), (Sense(0),))
 
 
 def test_string_node_in_circuit_type_error():
     with pytest.raises(TypeError):
         build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)),), "out")
+
+
+# ---------- 7a: 전하 열(BC 전용)·다중 관측 (1절·3.2) ----------
+
+def test_charge_column_goes_to_bc_only():
+    """전하 주입 q 는 전류 s·q -> 열의 BC 에만(+q, 노드로 들어가는 방향), BG 는 0. 예 2c 계 + 노드 3 전하 열."""
+    ck = SmallSignalCircuit(capacitors=(Capacitor(2, 3, 1e-12), Capacitor(3, 0, 3e-12)), ac_ground=(0,))
+    s = build_mna(ck, (Excitation("v", voltages=((2, 1.0),)), Excitation("q", charges=((3, 2.5),))), (Sense(3),))
+    assert tuple(s.nodes) == (3,)
+    assert np.array_equal(_arr(s.BG)[:, 1], [0.0])
+    assert np.array_equal(_arr(s.BC)[:, 1], [2.5])
+
+
+def test_multiple_senses_rows_in_order():
+    """senses = Sense tuple(관측 여러 개): sense_rows (r, n), sense_direct (r, m), senses 그대로."""
+    s = build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)),), (Sense(2), Sense(2, 1), Sense(1)))
+    assert tuple(s.senses) == (Sense(2), Sense(2, 1), Sense(1))
+    assert _arr(s.sense_rows).shape == (3, 1)
+    assert np.array_equal(_arr(s.sense_rows), [[1.0], [1.0], [0.0]])
+    assert np.array_equal(_arr(s.sense_direct), [[0.0], [-1.0], [1.0]])
+
+
+def test_charge_into_fixed_node_value_error():
+    with pytest.raises(ValueError):
+        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)), Excitation("q", charges=((1, 1.0),))), (Sense(2),))
+    with pytest.raises(ValueError):
+        build_mna(_rc(), (Excitation("q", charges=((0, 1.0),)),), (Sense(2),))
+
+
+def test_empty_senses_rejected():
+    """관측 1개 이상(1절)."""
+    with pytest.raises((TypeError, ValueError)):
+        build_mna(_rc(), (Excitation("v", voltages=((1, 1.0),)),), ())

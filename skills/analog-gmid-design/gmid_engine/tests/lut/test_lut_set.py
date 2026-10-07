@@ -9,9 +9,10 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SchemaRejectedError
-from gmid_engine.lut import CapTable, DcSlice, LutSet, LutSpec
+from gmid_engine.lut import CapTable, DcSlice, LutSet, LutSpec, MidpointTable
 
-from .conftest import (BIN_ANCHOR_BIN_LO, BIN_BLOCKS, BIN_MODEL_REL, TOY_L, TOY_SPEC, TOY_VDS, TOY_VGS, TOY_VS, curve_cap_arrays, curve_slice_arrays, detail_of,
+from .conftest import (BIN_ANCHOR_BIN_LO, BIN_BLOCKS, BIN_MODEL_REL, MID_L_SOURCE, TOY_L, TOY_SPEC, TOY_VDS, TOY_VGS, TOY_VS,
+                       curve_cap_arrays, curve_slice_arrays, detail_of, mid_point_arrays, sha256_file,
                        rel_close,
                        standard_toy_slices, toy_cap_arrays, toy_slice_arrays)
 
@@ -50,6 +51,64 @@ def test_toy_structure(toy):
     np.testing.assert_array_equal(np.asarray(sl.log_GM), np.log(a["GM"]))
     np.testing.assert_array_equal(np.asarray(sl.log_GDS), np.log(a["GDS"]))
     assert np.asarray(sl.on_mask).all()
+
+
+# ---------------------------------------------------------------------------
+# [r5] Hermite 보조 필드 (CONTRACT 1.4): vds_slope_ok·fc_ok_vgs·fc_ok_vds·hermite_fc
+# ---------------------------------------------------------------------------
+
+def _check_hermite_fields(sl, z):
+    from .conftest import RefSlice
+    rs = RefSlice(z)
+    nL, nG, nV, nS = (len(g) for g in rs.grids)
+    assert np.asarray(sl.fc_ok_vgs).shape == (nL, nG - 1, nV, nS)
+    assert np.asarray(sl.fc_ok_vds).shape == (nL, nG, nV - 1, nS)
+    for name in ("vds_slope_ok", "fc_ok_vgs", "fc_ok_vds"):
+        arr = getattr(sl, name)
+        assert np.asarray(arr).dtype == np.bool_, name
+        with pytest.raises(ValueError):
+            arr[0, 0, 0, 0] = arr[0, 0, 0, 0]
+    np.testing.assert_array_equal(np.asarray(sl.vds_slope_ok), rs.vds_ok)
+    np.testing.assert_array_equal(np.asarray(sl.fc_ok_vgs), rs.fc_vgs)
+    np.testing.assert_array_equal(np.asarray(sl.fc_ok_vds), rs.fc_vds)
+    assert tuple(sl.hermite_fc) == rs.hermite_fc()
+    return rs
+
+
+@pytest.mark.parametrize("w_key,W,scale", [(100, 1e-6, 1.0), (200, 2e-6, 2.0)])
+def test_r5_toy_hermite_fields(toy, w_key, W, scale):
+    """CONTRACT 7.1: hermite_fc = (("VDS", 18, 0), ("VGS", 24, 0))."""
+    sl = toy.slice_map[("nmos", w_key)]
+    _check_hermite_fields(sl, toy_slice_arrays(W, scale))
+    assert tuple(sl.hermite_fc) == (("VDS", 18, 0), ("VGS", 24, 0))
+    assert np.asarray(sl.fc_ok_vgs).all() and np.asarray(sl.fc_ok_vds).all()
+
+
+def test_r4_toy_hermite_fields_load_not_rejected(r4toy):
+    """CONTRACT 7.2: hermite_fc = (("VDS", 18, 18), ("VGS", 24, 12)) -- 위반이 있어도 로드는 거부하지 않는다."""
+    from .conftest import r4_toy_slice_arrays
+    sl = r4toy.slice_map[("nmos", 100)]
+    _check_hermite_fields(sl, r4_toy_slice_arrays(1e-6))
+    assert tuple(sl.hermite_fc) == (("VDS", 18, 18), ("VGS", 24, 12))
+    fv = np.asarray(sl.fc_ok_vgs)
+    assert not fv[:, 0].any() and fv[:, 1].all()                    # VGS 칸 0 위반, 칸 1 단조
+    assert not np.asarray(sl.fc_ok_vds).any()
+
+
+def test_non_hermite_cells_are_true(toy_build):
+    """Hermite 칸이 아닌 칸(한 끝 기울기 정의 안 됨)은 참. GDS 0 점 -> vds_slope_ok 거짓, 그 VDS 칸은 Hermite 칸 아님."""
+    sl_ = standard_toy_slices()
+    a = sl_[0][2]
+    a["GDS"][0, 1, 0, 0] = 0.0
+    a["ID"][2, 2, 1, 1] = 0.0
+    lut = toy_build(slices=sl_).load()
+    sl = lut.slice_map[("nmos", 100)]
+    rs = _check_hermite_fields(sl, a)
+    assert not bool(np.asarray(sl.vds_slope_ok)[0, 1, 0, 0])
+    assert bool(np.asarray(sl.fc_ok_vds)[0, 1, 0, 0])
+    assert bool(np.asarray(sl.fc_ok_vgs)[2, 1, 1, 1])
+    # 손계산: VDS 칸 18 − (GDS 0 점의 칸 1) − (ID 0 점의 칸 1) = 16, VGS 칸 24 − (ID 0 점 = VGS 끝 마디, 칸 1) = 23
+    assert rs.hermite_fc() == (("VDS", 16, 0), ("VGS", 23, 0))
 
 
 def test_log_floor_is_min_positive_and_on_mask(toy_build):
@@ -294,13 +353,31 @@ def _independent_width_choice(raw_cap, raw_slice, keys, suffix):
 
 @pytest.mark.lut_realdata
 def test_real_load(real_lut, real_slice_files, raw_cap, raw_slice):
+    """[r6] LUT v2: 슬라이스 32개, 축 18 L·VS 10(0~1.8), 기준 LUT 에 w_ref_m(5e-06) 기록 -> basis (("method", "recorded_w_ref_m"),).
+    기록값은 슬라이스 ID 대조로도 같은 폭(키 1000)을 고른다(데이터 정합 확인 -- 독립 계산)."""
     assert len(real_lut.slice_map) == len(real_slice_files) == 32
     assert set(real_lut.slice_map) == {(k, wk) for k, _, _, wk, _ in real_slice_files}
+    for sl in real_lut.slice_map.values():
+        assert len(sl.grids[0]) == 18 and len(sl.grids[3]) == 10
+        assert sl.grids[3][0] == 0.0 and sl.grids[3][-1] == 1.8
     for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
+        cap = real_lut.cap_map[kind]
+        assert tuple(cap.basis) == (("method", "recorded_w_ref_m"),)
+        assert cap.w_ref_m == float(raw_cap["w_ref_m"]) == 5e-06
         keys = [(k, wk) for (k, wk) in real_lut.slice_map if k == kind]
         best, dw, near, second = _independent_width_choice(raw_cap, raw_slice, keys, suf)
+        assert best == 1000 and dw < near / 2
+
+
+@pytest.mark.lut_realdata
+def test_old_set_load_slice_id_match(old_lut, old_slice_files, old_raw_cap, old_raw_slice):
+    """옛 12-L 세트(w_ref_m 기록 없음 -- 1.4 (2) slice_id_match): 계약 1.4 실측 nmos·pmos 모두 w_key 1000, 이웃 차 0.88·1.25."""
+    assert len(old_lut.slice_map) == len(old_slice_files) == 32
+    for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
+        keys = [(k, wk) for (k, wk) in old_lut.slice_map if k == kind]
+        best, dw, near, second = _independent_width_choice(old_raw_cap, old_raw_slice, keys, suf)
         assert best == 1000
-        cap = real_lut.cap_map[kind]
+        cap = old_lut.cap_map[kind]
         b = dict(cap.basis)
         assert b["method"] == "slice_id_match" and b["w_key"] == best
         assert rel_close(b["max_rel_diff"], dw, 1e-9)
@@ -309,7 +386,29 @@ def test_real_load(real_lut, real_slice_files, raw_cap, raw_slice):
         assert rel_close(b["nearest_other_rel_diff"], near, 1e-12), (kind, b, near, second)
         assert rel_close(near, {"nmos": 0.8845524, "pmos": 1.2508113}[kind], 1e-6)
         assert dw < b["nearest_other_rel_diff"] / 2
-        assert rel_close(cap.w_ref_m, real_lut.slice_map[(kind, best)].w_m, 1e-12)
+        assert rel_close(cap.w_ref_m, old_lut.slice_map[(kind, best)].w_m, 1e-12)
+        assert cap.w_key == 1000                                            # [r6] 폭 키
+        assert cap.l_bins == old_lut.slice_map[(kind, 1000)].l_bins
+
+
+@pytest.mark.lut_realdata
+def test_real_hermite_fields_all_slices(real_lut, real_slice_files, raw_slice):
+    """[r5] 모든 실 슬라이스의 vds_slope_ok·fc_ok_vgs·fc_ok_vds·hermite_fc = npz 독립 FC 계산.
+    [r6] LUT v2(18 L·VS 10)의 칸 수는 독립 계산이 정한다(옛 12-L 실측 276360·276480 은 old_lut test)."""
+    seen = set()
+    for kind, _, _, wk, _ in real_slice_files:
+        sl = real_lut.slice_map[(kind, wk)]
+        _check_hermite_fields(sl, raw_slice(kind, wk))
+        seen.add(tuple(sl.hermite_fc))
+    print("LUT v2 hermite_fc 종류: %r" % (sorted(seen),))
+
+
+@pytest.mark.lut_realdata
+def test_old_set_hermite_fields(old_lut, old_slice_files, old_raw_slice):
+    """옛 12-L 세트: 계약 1.4 [r5 실측] 모든 슬라이스 hermite_fc = (("VDS", 276360, 0), ("VGS", 276480, 0))."""
+    for kind, _, _, wk, _ in old_slice_files[:3]:
+        _check_hermite_fields(old_lut.slice_map[(kind, wk)], old_raw_slice(kind, wk))
+    assert {tuple(sl.hermite_fc) for sl in old_lut.slice_map.values()} == {(("VDS", 276360, 0), ("VGS", 276480, 0))}
 
 
 # ---------------------------------------------------------------------------
@@ -357,3 +456,152 @@ def test_no_bin_blocks_gives_empty_map(bin_toy_build):
     lut = bin_toy_build(blocks=()).load()
     for sl in lut.slice_map.values():
         assert sl.l_bins.bins == () and sl.l_bins.w_bin is None and sl.l_bins.anchor_bin == ()
+
+
+# ---------------------------------------------------------------------------
+# [r6] 1.7 검증 중점 파일 로드: MidpointTable 필드, 거부 순서 (1)~(7)
+# ---------------------------------------------------------------------------
+
+MID_LS = (3.25e-6, 3.5e-6, 7.5e-6)
+
+
+def _mid(**kw):
+    kw.setdefault("l_source", MID_L_SOURCE)
+    return mid_point_arrays(MID_LS, **kw)
+
+
+def _mid_reject(mid_toy_build, sub, mid, **kw):
+    mt = mid_toy_build(sub, mid=mid, **kw)
+    with pytest.raises(SchemaRejectedError) as ei:
+        mt.load()
+    return detail_of(ei.value), mt
+
+
+def test_midpoint_table_fields(mid_toy_build):
+    m = _mid()
+    m["ID_n"] = m["ID_n"].copy()
+    m["ID_n"][0, 0, 0, 0] = 0.0                                     # ID 0 점 -> log_ID·gm_id NaN, on_mask 거짓
+    mt = mid_toy_build("mf", mid=m)
+    lut = mt.load()
+    assert set(lut.midpoints) == {"nmos"}
+    t = lut.midpoints["nmos"]
+    assert isinstance(t, MidpointTable)
+    assert (t.kind, t.sha256, t.w_m, t.w_key) == ("nmos", sha256_file(mt.mid_path), 1e-6, 100)
+    assert tuple(t.L_points) == MID_LS
+    assert tuple(tuple(g) for g in t.grids) == (tuple(m["VGS"]), tuple(m["VDS"]), tuple(m["VS"]))
+    I, G = m["ID_n"], m["GM_n"]
+    pos = I > 0
+    lg = np.asarray(t.log_ID)
+    assert np.isnan(lg[0, 0, 0, 0]) and np.array_equal(lg[pos], np.log(I[pos]))
+    gi = np.asarray(t.gm_id)
+    assert np.isnan(gi[0, 0, 0, 0]) and np.array_equal(gi[pos], G[pos] / I[pos])
+    assert np.array_equal(np.asarray(t.on_mask), (I > 0) & (G > 0))
+    assert np.array_equal(np.asarray(t.VDSAT), m["VDSAT_n"])
+    t2 = mid_toy_build("mf2", mid=_mid(vdsat=False)).load().midpoints["nmos"]
+    assert t2.VDSAT is None
+
+
+def test_contract_toy_r6_table(toy):
+    """7.1 r6 표 첫 세 행(선택 열·중점 파일 없는 r5 toy)."""
+    ct = toy.cap_map["nmos"]
+    assert (ct.w_key, dict(ct.columns), ct.on_mask, ct.sign_convention, tuple(ct.l_source)) == (100, {}, None, None, ())
+    assert dict(toy.slice_map[("nmos", 100)].columns) == {}
+    assert dict(toy.midpoints) == {} and toy.provenance.midpoints_sha256 is None
+
+
+def test_no_midpoints_empty_mapping(mid_toy_build, toy):
+    assert dict(toy.midpoints) == {}
+    assert dict(mid_toy_build("nm").load().midpoints) == {}
+
+
+@pytest.mark.parametrize("ls", [None, {"kind": "cli"}, {"kind": "cli", "value": "0.165,6.0,14.0"}])
+def test_reject_l_source_unrecorded(mid_toy_build, ls):
+    """(1) meta L_source 에 sha256 없음(없음·`--l-um` cli -- 생성기 sky130_lut_sweep.py read_l_list 의 모양
+    {"kind": "cli", "value": <쉼표 문자열>}) -> lut_midpoints_l_source_unrecorded."""
+    m = mid_point_arrays(MID_LS, l_source=ls)
+    det, _ = _mid_reject(mid_toy_build, "lsu", m)
+    assert det["reason"] == "lut_midpoints_l_source_unrecorded" and "path" in det and "l_source" in det
+
+
+def test_l_source_matching_cap_accepted_mismatch_rejected(mid_toy_build):
+    """(2) 기준 LUT L_source sha256 이 있고 중점 sha256 과 다름 -> lut_midpoints_l_source_mismatch(detail path, kind, cap, midpoints).
+    같으면 로드."""
+    ok = mid_toy_build("lsok", mid=_mid(), cap_meta={"L_source": dict(MID_L_SOURCE)}).load()
+    assert dict(ok.cap_map["nmos"].l_source)["sha256"] == MID_L_SOURCE["sha256"]
+    det, _ = _mid_reject(mid_toy_build, "lsbad", _mid(), cap_meta={"L_source": {"kind": "json", "sha256": "b" * 64}})
+    assert det["reason"] == "lut_midpoints_l_source_mismatch"
+    assert (det["kind"], det["cap"], det["midpoints"]) == ("nmos", "b" * 64, MID_L_SOURCE["sha256"])
+
+
+@pytest.mark.parametrize("field,val", [("corner", "ff"), ("temp_c", 85.0)])
+def test_reject_conditions_mismatch(mid_toy_build, field, val):
+    det, _ = _mid_reject(mid_toy_build, "cond", _mid(**{field: val}))
+    assert det["reason"] == "lut_conditions_mismatch"
+    assert det["key"] == field and det["midpoints"] == val
+
+
+@pytest.mark.parametrize("axis", ["VGS", "VDS", "VS"])
+def test_reject_axes_mismatch(mid_toy_build, axis):
+    m = _mid()
+    a = np.asarray(m[axis], dtype=float).copy()
+    a[-1] = np.nextafter(a[-1], 10.0)                               # 1 ulp 도 다르면 거부(float 단위 같음)
+    m[axis] = a
+    det, _ = _mid_reject(mid_toy_build, "ax", m)
+    assert det["reason"] == "lut_midpoints_axes_mismatch"
+
+
+def test_reject_width_missing_and_off_grid(mid_toy_build):
+    det, _ = _mid_reject(mid_toy_build, "wm", _mid(w_ref_m=None))
+    assert det["reason"] == "lut_midpoints_width_missing"
+    m = _mid()
+    m["w_ref_m"] = np.float64(1.005e-6)                             # 100.5 격자 -> 격자 밖
+    det, _ = _mid_reject(mid_toy_build, "wo", m)
+    assert det["reason"] == "lut_width_off_grid"
+
+
+@pytest.mark.parametrize("drop", ["ID_n", "GM_n"])
+def test_reject_column_missing(mid_toy_build, drop):
+    det, _ = _mid_reject(mid_toy_build, "cm", _mid(drop=(drop,)))
+    assert det["reason"] == "lut_midpoints_column_missing"
+    # [해석] detail column 이 접미사 없는 이름("ID")인지 열 이름("ID_n")인지는 계약에 없다 -- 둘 다 허용
+    assert det["kind"] == "nmos" and det["column"] in (drop.split("_")[0], drop)
+
+
+def test_reject_shape_mismatch(mid_toy_build):
+    m = _mid()
+    m["GM_n"] = m["GM_n"][:, :, :, :1]
+    det, _ = _mid_reject(mid_toy_build, "sm", m)
+    assert det["reason"] == "lut_midpoints_shape_mismatch"
+
+
+@pytest.mark.parametrize("bad,first", [
+    # (고친 것들, 먼저 나와야 할 사유) -- 1.7 검사 순서 (1) l_source -> (3) 조건 -> (4) 축 -> (5) 폭 -> (7) 열
+    ({"l_source": None, "corner": "ff"}, "lut_midpoints_l_source_unrecorded"),
+    ({"corner": "ff", "axis": "VGS"}, "lut_conditions_mismatch"),
+    ({"axis": "VDS", "w_ref_m": None}, "lut_midpoints_axes_mismatch"),
+    ({"w_ref_m": None, "drop": ("GM_n",)}, "lut_midpoints_width_missing"),
+])
+def test_reject_order(mid_toy_build, bad, first):
+    kw = dict(bad)
+    axis = kw.pop("axis", None)
+    kw.setdefault("l_source", MID_L_SOURCE)
+    m = mid_point_arrays(MID_LS, **kw)
+    if axis:
+        a = np.asarray(m[axis], dtype=float).copy()
+        a[0] = a[0] - 1e-3
+        m[axis] = a
+    det, _ = _mid_reject(mid_toy_build, "ord", m)
+    assert det["reason"] == first
+
+
+@pytest.mark.lut_realdata
+def test_real_midpoints_loaded(real_lut, raw_mid):
+    """[r6] 1.7 실측: L = 0.165·6.0·14.0 µm, w_ref_m 5e-06 -> 폭 키 1000, nmos·pmos 표."""
+    assert set(real_lut.midpoints) == {"nmos", "pmos"}
+    for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
+        t = real_lut.midpoints[kind]
+        assert t.w_key == 1000 and t.w_m == float(raw_mid["w_ref_m"]) == 5e-06
+        assert tuple(t.L_points) == tuple(float(x) for x in raw_mid["L"]) == (1.65e-7, 6e-6, 1.4e-5)
+        assert np.array_equal(np.asarray(t.VDSAT), raw_mid["VDSAT" + suf])
+        I, G = raw_mid["ID" + suf], raw_mid["GM" + suf]
+        assert np.array_equal(np.asarray(t.on_mask), (I > 0) & (G > 0))

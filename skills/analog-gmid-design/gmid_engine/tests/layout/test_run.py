@@ -161,6 +161,17 @@ def test_review_needed_relaxed_diff_pair(toy_lut):
     assert g.relaxed and "w_request" in steps and steps.index("w_request") < steps.index("relax")   # LY5
 
 
+def test_review_needed_cc_only_not_adjustable(toy_lut):
+    # 4.15 [r5]: c 1, 조정 불가, allowed_patterns=("common_centroid",) -> pattern None, relaxed False, reason w_not_adjustable,
+    # review_needed = (ReviewItem("g1", "diff_pair", "w_not_adjustable", None, None),)
+    ds = [dev("A", "h", "da", 1e-6, adj=False), dev("B", "h", "db", 1e-6, adj=False)]
+    res = run_layout(make_input(ds, [mg("g1", ("A", "B"), "diff_pair", "h", patterns=("common_centroid",))],
+                                [rg("r1", ("A", "B"))], toy_pdk(toy_lut)), new_memo(toy_lut))
+    g = res.groups[0]
+    assert (g.pattern, g.relaxed, g.pending, g.provisional, g.reason) == (None, False, False, False, "w_not_adjustable")
+    assert res.review_needed == (ReviewItem("g1", "diff_pair", "w_not_adjustable", None, None),)
+
+
 def test_review_needed_failed_cc_and_not_mirror(toy_lut):
     ds = [dev("E", "p", "q", 2e-6, gate="gc"), dev("F", "r", "t", 2e-6, gate="gx"),
           dev("A", "h", "da", 2e-6), dev("B", "h", "db", 2e-6)]
@@ -298,7 +309,7 @@ def test_id_change_recomputes_from_slices(toy_lut):
     memo = new_memo(toy_lut)
     inp1 = composite(toy_pdk(toy_lut))
     r1 = run_layout(inp1, memo)
-    devs = tuple(dataclasses.replace(d, ID_A=1.5e-6) if d.name == "D" else d for d in inp1.devices)
+    devs = tuple(dataclasses.replace(d, ID_A=1.5 * d.ID_A) if d.name == "D" else d for d in inp1.devices)
     r2 = run_layout(dataclasses.replace(inp1, devices=devs), memo, previous=r1)
     assert r2.computed_blocks[:1] == ("ly_slice_density",)
     assert "ly_finger_candidates" in r2.computed_blocks
@@ -369,9 +380,11 @@ def test_determinism_across_hash_seeds(seed_runner):
     assert len(set(outs.values())) == 1
 
 
-# --- 실 LUT M3a 회귀 (CONTRACT 4.18 -- 계약 수치는 참고, 기대값은 npz 독립 계산) ----------------------------------------
+# --- 실 LUT M3a 회귀 (CONTRACT 4.18 [r5] -- 계약 수치는 r5 이전 참고값이라 기대값으로 쓰지 않는다) ------------------------
+# 기대값 경로: 슬라이스 값(vgs·J·tol_V)은 4.2 의 정의 그대로 lut 공개 API(vgs_for_gm_id·op_point·tol_v_table.at -- lut 계약·test 소관)로
+# 따로 구하고, 그 위의 레이아웃 규칙(4.2 W_need·4.3 허용오차·4.4 후보·4.7 폭 키 선택)은 이 파일에서 독립 구현해 대조한다.
+# 회귀 판정은 계약이 고정한 비교 방법만: 옛 규칙(err 대 참고 W_m)의 후보가 아니라 W_need 기준으로 고른다.
 
-import bisect  # noqa: E402
 import json  # noqa: E402
 import os  # noqa: E402
 import re  # noqa: E402
@@ -383,7 +396,7 @@ _SKILL = Path(__file__).resolve().parents[3]
 REAL_MANIFEST = os.environ.get("GMID_LUT_MANIFEST", r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\engine\lut_slices\manifest.json")
 REAL_CAP = os.environ.get("GMID_LUT_CAP_NPZ", str(_SKILL / "assets" / "sky130_nfet_pfet_lut_sample.npz"))
 REAL_TLEF = os.environ.get("GMID_PDK_TLEF", r"C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef")
-REAL_KEYS = (600, 1000)          # 실행 시간(슬라이스당 tol_V 표 15~24 s) 때문에 4.18 의 두 후보 키만 PDK 폭 키로 준다
+REAL_KEYS = (600, 1000)          # 실행 시간(슬라이스당 tol_V 표) 때문에 4.18 의 두 후보 키만 PDK 폭 키로 준다
 # 파일럿 소자(4.18; ID·gm/ID·VDS·VSB 는 tools/spice_oracle/smoke 의 sizing oracle_input, W_m = DM T1 표의 참고 W)
 PILOT = (("M3a", 1e-6, 4.9822534479836025e-06, 15.0, 0.2, 0.4772784768243529, 3.495e-6),
          ("M3b", 1e-6, 4.9822534479836025e-06, 15.0, 0.2, 0.47727847682435304, 3.393e-6),
@@ -402,100 +415,35 @@ def _grid(tlef):
     return float(m.group(1)) * 1e-6
 
 
-def _real_slices(manifest, grid):
+def _real_spec(manifest, grid):
+    from gmid_engine.lut import LutSpec
     base = Path(manifest).parent
-    out = {}
+    mins = {}
+    kinds = {"nfet_01v8": "nmos", "pfet_01v8": "pmos"}
     for s in json.loads(Path(manifest).read_text(encoding="utf-8"))["slices"]:
-        if s["device"] != "nfet_01v8":
-            continue
         with np.load(base / s["file"]) as z:
-            arr = {k: np.array(z[k]) for k in ("W", "L", "VGS", "VDS", "VS", "ID", "GM")}
-        out[int(round(float(arr["W"]) / grid))] = arr
-    return out
+            W = float(z["W"])
+        k = kinds[s["device"]]
+        mins[k] = min(W, mins.get(k, W))
+    return LutSpec(grid, tuple(sorted(mins.items())), tuple(sorted(kinds.items())), (("nmos", "_n"), ("pmos", "_p")))
 
 
-def _logf(a):
-    return np.log(np.clip(a, a[a > 0].min(), None))
+def _slice_values(memo, kind, key, L, ID_A, gm_id, vds, vsb):
+    """4.2 의 정의 그대로(lut 공개 API): vgs, J = IDu / L, W_need = ID_A / J, tol = id_equivalent 셀."""
+    from gmid_engine.lut import op_point, tol_v_table, vgs_for_gm_id
+    vgs = vgs_for_gm_id(memo, kind, key, gm_id, L, vds, vsb)
+    J = op_point(memo, kind, key, L, vgs, vds, vsb).IDu / L
+    tol = tol_v_table(memo, kind, key).at(L, vds, "id_equivalent")
+    return {"vgs": vgs, "J": J, "W_need": ID_A / J, "tol": float(tol)}
 
 
-def _cell(grid, x):
-    g = list(grid)
-    if x == g[-1]:
-        return len(g) - 2, 1.0
-    i = min(max(bisect.bisect_right(g, x) - 1, 0), len(g) - 2)
-    return i, (x - g[i]) / (g[i + 1] - g[i])
-
-
-def _oracle_slice(arr, L, ID_A, gm_id, vds, vsb):
-    """lut 계약 3·4·5절의 독립 구현(numpy): vgs 분지 해, J = ID/W(슬라이스), W_need, id_equivalent tol(at)."""
-    Lg = arr["L"]
-    i = int(np.argmin(np.abs(Lg - L)))
-    assert abs(Lg[i] - L) <= np.spacing(Lg[i])
-    lI, lG = _logf(arr["ID"])[i], _logf(arr["GM"])[i]                     # [VGS, VDS, VS]
-    on = ((arr["ID"] > 0) & (arr["GM"] > 0))[i]
-    VGS, VDS, VS = arr["VGS"], arr["VDS"], arr["VS"]
-    k, fk = _cell(VDS, vds)
-    s, fs = _cell(VS, vsb)
-
-    def bil(x):            # x[VGS, VDS, VS] -> VGS 곡선
-        return ((1 - fk) * (1 - fs) * x[:, k, s] + fk * (1 - fs) * x[:, k + 1, s]
-                + (1 - fk) * fs * x[:, k, s + 1] + fk * fs * x[:, k + 1, s + 1])
-    g = np.exp(bil(lG) - bil(lI))
-    p = int(np.argmax(g))
-    d = g - gm_id
-    cand = [j for j in range(p, len(g) - 1) if d[j] * d[j + 1] <= 0.0]
-    assert cand, "독립 계산: 강반전 분지 해 없음"
-    j = cand[-1]
-    ga, gb, va, vb = g[j], g[j + 1], VGS[j], VGS[j + 1]
-    x0, x1, y0, y1 = (ga, gb, va, vb) if ga <= gb else (gb, ga, vb, va)
-    vgs = vb if x1 == x0 else (y1 - y0) / (x1 - x0) * (gm_id - x0) + y0
-    gi, fg = _cell(VGS, vgs)
-    curve_lo, curve_hi = bil(lI)[gi], bil(lI)[gi + 1]
-    ID_slice = float(np.exp((1 - fg) * curve_lo + fg * curve_hi))
-    J = ID_slice / float(arr["W"])
-    # id_equivalent: 셀 (i, kk) 의 모든 g·s·축 LOO 최댓값, at = 칸 kk·kk+1 중 정의된 값 최댓값
-    kk = min(bisect.bisect_right(list(VDS), vds) - 1, len(VDS) - 2)
-    gmid_pt = np.exp(lG - lI)
-    vals = []
-    for kc in (kk, kk + 1):
-        best = None
-        # VGS 축
-        for a_axis, grid_ax in ((0, VGS), (1, VDS), (2, VS)):
-            n = len(grid_ax)
-            for m in range(1, n - 1):
-                if a_axis == 1 and m != kc:
-                    continue
-                t = (grid_ax[m] - grid_ax[m - 1]) / (grid_ax[m + 1] - grid_ax[m - 1])
-                if a_axis == 0:
-                    lo, mid, hi = lI[m - 1, kc, :], lI[m, kc, :], lI[m + 1, kc, :]
-                    ok = on[m - 1, kc, :] & on[m, kc, :] & on[m + 1, kc, :]
-                    gm_ = gmid_pt[m, kc, :]
-                elif a_axis == 1:
-                    lo, mid, hi = lI[:, m - 1, :], lI[:, m, :], lI[:, m + 1, :]
-                    ok = on[:, m - 1, :] & on[:, m, :] & on[:, m + 1, :]
-                    gm_ = gmid_pt[:, m, :]
-                else:
-                    lo, mid, hi = lI[:, kc, m - 1], lI[:, kc, m], lI[:, kc, m + 1]
-                    ok = on[:, kc, m - 1] & on[:, kc, m] & on[:, kc, m + 1]
-                    gm_ = gmid_pt[:, kc, m]
-                if not ok.any():
-                    continue
-                e = (np.abs(lo + t * (hi - lo) - mid) / gm_)[ok]
-                v = float(e.max())
-                best = v if best is None else max(best, v)
-        if best is not None:
-            vals.append(best)
-    tol = max(vals) if vals else None
-    return {"vgs": vgs, "J": J, "W_need": ID_A / J, "tol": tol}
-
-
-def _oracle_geometry(devs, slices, grid):
-    """4.4 후보 + 4.7 비그룹 행 그룹 규칙(독립 구현). 반환 {이름: (키, nf, W_need, err, effective, ok)}."""
+def _oracle_geometry(memo, devs, grid):
+    """4.3·4.4 후보 + 4.7 비그룹 행 그룹 규칙(독립 구현). 반환 ({이름: (키, nf, W_need, err, effective, ok)}, 후보)."""
     cands = {}
     for name, L, ID, gm, vds, vsb, _W in devs:
         out = []
         for key in REAL_KEYS:
-            o = _oracle_slice(slices[key], L, ID, gm, vds, vsb)
+            o = _slice_values(memo, "nmos", key, L, ID, gm, vds, vsb)
             fw = key * grid
             q = o["W_need"] / fw
             for nf in sorted({max(1, math.floor(q)), max(1, math.ceil(q))}):
@@ -511,7 +459,7 @@ def _oracle_geometry(devs, slices, grid):
 
         def score(key):
             okd = [n for n in remaining if any(c[0] == key and c[5] for c in cands[n])]
-            nfsum = sum(min((c for c in cands[n] if c[0] == key), key=lambda c: (c[3], c[1]))[1] for n in okd)
+            nfsum = sum(min((c for c in cands[n] if c[0] == key and c[5]), key=lambda c: (c[3], c[1]))[1] for n in okd)
             return (-len(okd), nfsum, -key), okd
         key = min(keys, key=lambda k: score(k)[0])
         for n in score(key)[1]:
@@ -524,39 +472,38 @@ def _oracle_geometry(devs, slices, grid):
 
 @pytest.mark.layout_realdata
 def test_m3a_regression_real_lut():
-    """4.18 M3a: 옛 규칙(err 대 참고 W_m)의 키 1000 nf 1(M3a 43 %)은, M4a·M4b 에게 키 1000 이 ok 가 아니게 된 새 규칙에서 선택되지 않는다.
+    """4.18 [r5]: 실 LUT 에서 레이아웃이 W_need(fw) 기준 규칙으로 고르고, 옛 규칙(err 대 참고 W_m)의 후보를 고르지 않는다.
 
-    기대값은 npz 를 numpy 로 직접 읽은 독립 계산(_oracle_*)이고 계약의 수치(17.1 %·1.4 %)는 참고만 한다.
+    r5 이전 계약 수치(키 600·17.1 %·1.4 %)는 기대값으로 쓰지 않는다. 선택은 독립 구현(_oracle_geometry) 결과와 같아야 하고,
+    옛 규칙의 '43 %' 후보(M3a 키 1000 nf 1)가 새 규칙에서 행 공통 키 밖이 되면(M4a·M4b 에게 키 1000 이 ok 아님) 선택되지 않아야 한다.
     """
-    from gmid_engine.lut import LutSpec, load_lut_set
-    grid = _grid(_need(REAL_TLEF, "PDK tlef"))
-    slices = _real_slices(_need(REAL_MANIFEST, "폭 슬라이스 manifest"), grid)
-    widths_by_kind = {"nmos": min(float(a["W"]) for a in slices.values())}
-    pf = [float(np.load(Path(REAL_MANIFEST).parent / s["file"])["W"]) for s in
-          json.loads(Path(REAL_MANIFEST).read_text(encoding="utf-8"))["slices"] if s["device"] == "pfet_01v8"]
-    spec = LutSpec(grid, (("nmos", widths_by_kind["nmos"]), ("pmos", min(pf))),
-                   (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos")), (("nmos", "_n"), ("pmos", "_p")))
-    lut = load_lut_set(REAL_MANIFEST, _need(REAL_CAP, "기준 LUT"), spec)
-    full = toy_pdk(lut)
     from gmid_engine.layout import LayoutPdk
+    from gmid_engine.lut import load_lut_set
+    grid = _grid(_need(REAL_TLEF, "PDK tlef"))
+    manifest = _need(REAL_MANIFEST, "폭 슬라이스 manifest")
+    lut = load_lut_set(manifest, _need(REAL_CAP, "기준 LUT"), _real_spec(manifest, grid))
+    full = toy_pdk(lut)
     pdk = LayoutPdk(full.manufacturing_grid_m, (("nmos", REAL_KEYS),), 0.0, 0.0, 0.0, 0.0, 0.0, full.rule_ids, lut.fp)
-    ds = [dev(n, "s_" + n, "d_" + n, ID, L=L, gm_id=gm, vds=vds, vsb=vsb, W=W) for n, L, ID, gm, vds, vsb, W in PILOT]
-    res = run_layout(make_input(ds, [], [rg("rp", [d.name for d in ds])], pdk), new_memo(lut))
-    chosen, cands = _oracle_geometry(PILOT, slices, grid)
+    ds = [dev(n, "s_" + n, "d_" + n, None, ID_A=ID, L=L, gm_id=gm, vds=vds, vsb=vsb, W=W) for n, L, ID, gm, vds, vsb, W in PILOT]
+    memo = new_memo(lut)
+    res = run_layout(make_input(ds, [], [rg("rp", [d.name for d in ds])], pdk), memo)
+    chosen, cands = _oracle_geometry(memo, PILOT, grid)
     by = {d.name: d for d in res.devices}
     for name, (key, nf, W_need, err, eff, ok) in chosen.items():
         d = by[name]
-        assert d.W_need_m == pytest.approx(W_need, rel=1e-6), name
+        assert d.W_need_m == pytest.approx(W_need, rel=1e-12), name
         assert (round(d.finger_w_m / grid), d.n_fingers) == (key, nf), name
-        assert d.W_err_rel == pytest.approx(err, rel=1e-6, abs=1e-12), name
-        assert d.W_tol_effective == pytest.approx(eff, rel=1e-6), name
-    # 회귀 전제(독립 계산): M4a·M4b 는 키 1000 에서 ok 가 아니다
-    for n in ("M4a", "M4b"):
-        assert not any(c[0] == 1000 and c[5] for c in cands[n]), "전제 불성립: %s 키 1000 이 ok" % n
-    # 옛 규칙 후보(키 1000 nf 1, 대 W_m 오차 43 %)는 선택되지 않는다
+        assert d.W_err_rel == pytest.approx(err, rel=1e-9, abs=1e-15), name
+        assert d.W_tol_effective == pytest.approx(eff, rel=1e-12), name
+        assert d.W_err_rel == pytest.approx(abs(d.W_realized_m - d.W_need_m) / d.W_need_m, rel=1e-12)   # 대 W_need, 대 W_m 아님
+        assert d.W_m == dict((p[0], p[6]) for p in PILOT)[name]                                       # W 를 바꾸지 않는다
+    reqs = {w.device for w in res.w_requests}
+    for d in res.devices:
+        assert d.W_err_rel <= d.W_tol_effective or d.name in reqs
+    # 옛 규칙의 후보(대 참고 W_m 오차): M3a 키 1000 nf 1 = |5 µm − 3.495 µm| / 3.495 µm
     old_err = abs(1000 * grid - 3.495e-6) / 3.495e-6
     assert old_err == pytest.approx(0.431, abs=1e-3)
-    m3a = by["M3a"]
-    assert (round(m3a.finger_w_m / grid), m3a.n_fingers) != (1000, 1)
-    assert m3a.W_err_rel == pytest.approx(abs(m3a.W_realized_m - m3a.W_need_m) / m3a.W_need_m, rel=1e-12)
-    assert res.revalidation.required is True
+    key1000_ok_for_m4 = any(c[0] == 1000 and c[5] for n in ("M4a", "M4b") for c in cands[n])
+    if not key1000_ok_for_m4:
+        assert (round(by["M3a"].finger_w_m / grid), by["M3a"].n_fingers) != (1000, 1)
+    assert res.revalidation.required is True and res.revalidation.status == "pending_wiring"

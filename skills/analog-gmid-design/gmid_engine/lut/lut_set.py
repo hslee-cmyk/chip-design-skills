@@ -17,17 +17,42 @@
   경계 공유 시 아래 bin)의 L bin 들과 L 앵커마다의 소속 bin 을 만든다. 로드 1회 계산, 슬라이스·용량 표에 보관
   (같은 모델 파일은 한 로드에서 한 번만 읽는다). 모델 파일 기록이 없거나 bin 블록이 없으면 빈 지도(L 보간 불가).
   용량 표는 채택 폭과 같은 슬라이스의 지도를 쓴다.
+* Hermite 단조 검사(DEC-87, 계획 N3.7, lut/CONTRACT.md 1.4): 슬라이스마다 VGS 축 칸(ln ID, 기울기 GM/ID)과 VDS 축 칸
+  (ln ID, 기울기 GDS/ID)의 Fritsch–Carlson 단조 조건을 한 번 계산해 `DcSlice.fc_ok_vgs`·`fc_ok_vds` 에 두고 칸 수·위반 수를
+  `hermite_fc` 에 기록한다(로드는 거부하지 않는다 -- 위반 칸은 조회에서 그 축 선형, 역산은 그 칸의 근을 내지 않는다, 4.2).
+* [r6] 선택 열(LUT v2): 기준 LUT 의 `CAP_TABLE_COLUMNS`(GMBS·VTH·VDSAT·CDD·CSS·SVG2_1HZ·SVG2_HF·ID·GM·GDS)와 슬라이스의
+  `SLICE_OPTIONAL_COLUMNS` 는 있으면 읽고 없으면 비워 둔다(옛 12-L 세트도 그대로 로드 -- 그 열을 쓰는 조회가 구조화된
+  `lut_column_unavailable` 로 실패한다, 조용히 대체하지 않는다). 기준 LUT meta 의 부호 규약 문장과 `L_source` 를 표에 싣는다
+  (용량 열은 부호 보존 값 그대로 -- 로그·절댓값을 쓰지 않는다). 기준 LUT 폭 키(`CapTable.w_key`)는 슬라이스와 같은 폭 키
+  규칙(`_helpers_width`)으로 정하고, bin 지도·열 출처 판정은 float 폭이 아니라 이 키로 같은 폭을 찾는다.
+* [r6] 검증 중점 파일(`verify_midpoints`, 선택): 슬라이스와 같은 VGS·VDS·VS 축, 같은 측정 조건, meta `L_source` 에 sha256
+  (승인 L 파일), 기준 LUT meta 에 `L_source` sha256 이 있으면 같은 값 -- 아니면 거부. kind 마다 `MidpointTable`.
 """
+import json
 import math
 import re
 import types
 
 import numpy as np
 
+from gmid_engine.core import sorted_items
+
 from ._helpers_bins import bin_index
 from ._helpers_fail import schema_rejected
+from ._helpers_interp import HERMITE_DEGREE
+from ._helpers_width import width_key
 from .fingerprint import lut_fingerprint
-from .lut_types import CapTable, DcSlice, LBin, LBinMap, LutSet
+from .lut_types import (
+    AXES,
+    CAP_TABLE_COLUMNS,
+    SLICE_OPTIONAL_COLUMNS,
+    CapTable,
+    DcSlice,
+    LBin,
+    LBinMap,
+    LutSet,
+    MidpointTable,
+)
 from .provenance import lut_provenance
 
 BIN_KEYS = ("lmin", "lmax", "wmin", "wmax")
@@ -96,6 +121,34 @@ def _grids_of(npz):
     return tuple(tuple(float(x) for x in np.asarray(npz[axis], dtype=float)) for axis in ("L", "VGS", "VDS", "VS"))
 
 
+def _fc_monotone(dy, m0, m1, h):
+    """2점 cubic-Hermite 칸의 Fritsch–Carlson 단조 조건(필요충분, 원소마다; dy = y1 − y0). 미분 p'(x)·h 의 Bernstein
+    계수 b0 = m0·h, b1 = n·dy − (m0 + m1)·h, b2 = m1·h (n = Hermite 차수) 로 쓰면 비감소 ⇔ b0 ≥ 0, b2 ≥ 0,
+    (b1 ≥ 0 또는 b1² ≤ b0·b2) 이고 -- Fritsch–Carlson(1980) 의 α = m0/δ, β = m1/δ 단조 영역과 같은 식 -- 비증가는 부호를
+    뒤집은 같은 조건이다((−b1)² = b1², (−b0)(−b2) = b0·b2). 둘 중 하나면 단조."""
+    b0 = m0 * h
+    b2 = m1 * h
+    b1 = HERMITE_DEGREE * dy - b0 - b2
+    inner = b1 * b1 <= b0 * b2
+    rising = (b0 >= 0) & (b2 >= 0) & ((b1 >= 0) | inner)
+    falling = (b0 <= 0) & (b2 <= 0) & ((b1 <= 0) | inner)
+    return rising | falling
+
+
+def _fc_ok(log_id, slope, slope_ok, grid, axis):
+    """축 `axis` 칸마다 단조 조건 배열(그 축 길이 n − 1), Hermite 칸 수, 위반 칸 수. 두 끝 기울기 자료가 다 있어야
+    Hermite 칸이고 아니면 참(그 칸은 선형으로 보간)."""
+    lower = tuple(slice(None, -1) if d == axis else slice(None) for d in range(log_id.ndim))
+    upper = tuple(slice(1, None) if d == axis else slice(None) for d in range(log_id.ndim))
+    both = slope_ok[lower] & slope_ok[upper]
+    h = np.diff(np.asarray(grid, dtype=float)).reshape(tuple(-1 if d == axis else 1 for d in range(log_id.ndim)))
+    with np.errstate(invalid="ignore", over="ignore"):
+        bad = both & ~_fc_monotone(np.diff(log_id, axis=axis), slope[lower], slope[upper], h)
+    ok = ~bad
+    ok.setflags(write=False)
+    return ok, int(both.sum()), int(bad.sum())
+
+
 def _build_slice(src, grids, parsed):
     with np.load(src.path) as npz:
         if _grids_of(npz) != grids:
@@ -104,8 +157,9 @@ def _build_slice(src, grids, parsed):
         raw_gm = np.asarray(npz["GM"], dtype=float)
         raw_gds = np.asarray(npz["GDS"], dtype=float)
         vth = npz["VTH"]
+        extra = {name: _readonly(npz[name]) for name in SLICE_OPTIONAL_COLUMNS if name in npz.files}
     shape = tuple(len(g) for g in grids)
-    for name, arr in (("ID", raw_id), ("GM", raw_gm), ("GDS", raw_gds), ("VTH", vth)):
+    for name, arr in (("ID", raw_id), ("GM", raw_gm), ("GDS", raw_gds), ("VTH", vth)) + tuple(sorted(extra.items())):
         if arr.shape != shape:
             raise schema_rejected("lut_slice_shape_mismatch", path=src.path, array=name)
     log_id, floor_id, np_id = _log_with_floor(raw_id)
@@ -113,12 +167,18 @@ def _build_slice(src, grids, parsed):
     log_gds, floor_gds, np_gds = _log_with_floor(raw_gds)
     on_mask = (raw_id > 0) & (raw_gm > 0)
     on_mask.setflags(write=False)
+    vds_slope_ok = (raw_id > 0) & (raw_gds > 0)
+    vds_slope_ok.setflags(write=False)
+    fc_vgs, n_vgs, bad_vgs = _fc_ok(log_id, np.exp(log_gm - log_id), on_mask, grids[1], AXES.index("VGS"))
+    fc_vds, n_vds, bad_vds = _fc_ok(log_id, np.exp(log_gds - log_id), vds_slope_ok, grids[2], AXES.index("VDS"))
     return DcSlice(
         src.kind, src.w_key, src.w_m, src.sha256, grids, grids, _readonly(grids[1]),
         _readonly(raw_id), _readonly(vth), on_mask, log_id, log_gm, log_gds,
         (("GDS", floor_gds), ("GM", floor_gm), ("ID", floor_id)),
         (("GDS", np_gds), ("GM", np_gm), ("ID", np_id)),
         _l_bin_map(src, grids[0], parsed),
+        vds_slope_ok, fc_vgs, fc_vds, (("VDS", n_vds, bad_vds), ("VGS", n_vgs, bad_vgs)),
+        _with_derived(extra, raw_id),
     )
 
 
@@ -154,6 +214,34 @@ def _cap_width_by_id_match(kind, ref_id, cap_vs, slices):
     return chosen.w_m, basis
 
 
+def _meta_of(npz):
+    return json.loads(str(npz["meta_json"])) if "meta_json" in npz.files else {}
+
+
+def _with_derived(cols, raw_id):
+    """선택 열 dict 에 파생 열(`DERIVED_COLUMNS`)을 더한 읽기 전용 매핑. GMBS_PER_ID = GMBS/ID(ID > 0, 아니면 NaN)."""
+    if "GMBS" in cols:
+        positive = raw_id > 0
+        cols["GMBS_PER_ID"] = _readonly(np.where(positive, cols["GMBS"] / np.where(positive, raw_id, 1.0), np.nan))
+    return types.MappingProxyType(cols)
+
+
+def _cap_columns(npz, files, suffix, shape, cap_path):
+    """기준 LUT 선택 열 {이름: 읽기 전용 배열}(있는 것만 + 파생 열)과 on_mask((ID > 0) & (GM > 0), 두 열이 없으면 None)."""
+    cols = {}
+    for name in CAP_TABLE_COLUMNS:
+        if name + suffix in files:
+            arr = _readonly(npz[name + suffix])
+            if arr.shape != shape:
+                raise schema_rejected("lut_cap_shape_mismatch", path=cap_path, column=name + suffix)
+            cols[name] = arr
+    on_mask = None
+    if "ID" in cols and "GM" in cols:
+        on_mask = (cols["ID"] > 0) & (cols["GM"] > 0)
+        on_mask.setflags(write=False)
+    return (_with_derived(cols, cols["ID"]) if "ID" in cols else types.MappingProxyType(cols)), on_mask
+
+
 def _build_caps(spec, cap_path, cap_sha256, grids, slices_by_kind):
     suffix = dict(spec.cap_column_suffix)
     caps = {}
@@ -163,6 +251,10 @@ def _build_caps(spec, cap_path, cap_sha256, grids, slices_by_kind):
             raise schema_rejected("lut_cap_axes_mismatch", path=cap_path)
         files = set(npz.files)
         recorded_w = float(npz["w_ref_m"]) if "w_ref_m" in files else None
+        meta = _meta_of(npz)
+        sign = meta.get("sign_convention")
+        l_source = sorted_items(meta.get("L_source") or {})
+        shape = tuple(len(g) for g in cap_grids)
         for kind in sorted(set(slices_by_kind) | set(suffix)):
             if kind not in suffix:
                 raise schema_rejected("lut_cap_kind_undeclared", kind=kind)
@@ -180,21 +272,79 @@ def _build_caps(spec, cap_path, cap_sha256, grids, slices_by_kind):
                     kind, np.asarray(npz[col["ID"]], dtype=float), cap_grids[3], slices_by_kind[kind])
             else:
                 raise schema_rejected("lut_cap_width_unresolved", kind=kind, why="no w_ref_m and no ID column")
-            same_w = [s.l_bins for s in slices_by_kind[kind] if s.w_m == w_ref]
+            w_key, on_grid = width_key(w_ref, spec.manufacturing_grid_m)
+            w_key = w_key if on_grid else None
+            same_w = [s.l_bins for s in slices_by_kind[kind] if s.w_key == w_key]
+            columns, on_mask = _cap_columns(npz, files, suffix[kind], shape, cap_path)
             caps[kind] = CapTable(kind, cap_sha256, cap_grids, cap_grids, _readonly(npz[col["CGG"]]),
                                   _readonly(npz[col["CGD"]]), optional["CGS"], optional["CGB"], w_ref, basis,
-                                  same_w[0] if same_w else NO_BINS)
+                                  same_w[0] if same_w else NO_BINS, w_key, columns, on_mask, sign, l_source)
     return caps
 
 
-def load_lut_set(manifest_path, cap_npz_path, spec):
+def _midpoint_tables(spec, prov, grids, slice_conditions, caps):
+    """검증 중점 파일 -> {kind: MidpointTable}(lut/CONTRACT.md 1.7). 축·조건·L 출처·폭·열 검사(거부 = SchemaRejectedError)."""
+    path = prov.midpoints_path
+    l_source = dict(prov.midpoints_l_source)
+    if not l_source.get("sha256"):
+        raise schema_rejected("lut_midpoints_l_source_unrecorded", path=path, l_source=prov.midpoints_l_source)
+    for kind, cap in sorted(caps.items()):
+        cap_sha = dict(cap.l_source).get("sha256")
+        if cap_sha and cap_sha != l_source["sha256"]:
+            raise schema_rejected("lut_midpoints_l_source_mismatch", path=path, kind=kind, cap=cap_sha,
+                                  midpoints=l_source["sha256"])
+    mid_cond = dict(prov.midpoints_conditions)
+    if mid_cond.get("recorded"):
+        for key in ("corner", "temp_c"):
+            if key in mid_cond and mid_cond.get(key) != slice_conditions.get(key):
+                raise schema_rejected("lut_conditions_mismatch", key=key, midpoints=mid_cond.get(key),
+                                      slices=slice_conditions.get(key))
+    suffix = dict(spec.cap_column_suffix)
+    out = {}
+    with np.load(path) as npz:
+        mid_grids = _grids_of(npz)
+        if mid_grids[1:] != grids[1:]:
+            raise schema_rejected("lut_midpoints_axes_mismatch", path=path)
+        if "w_ref_m" not in npz.files:
+            raise schema_rejected("lut_midpoints_width_missing", path=path)
+        w_m = float(npz["w_ref_m"])
+        w_key, on_grid = width_key(w_m, spec.manufacturing_grid_m)
+        if not on_grid:
+            raise schema_rejected("lut_width_off_grid", path=path, w_m=w_m, grid_m=spec.manufacturing_grid_m)
+        shape = tuple(len(g) for g in mid_grids)
+        for kind in sorted(caps):
+            arrays = {}
+            for name in ("ID", "GM", "VDSAT"):
+                key = name + suffix[kind]
+                if key not in npz.files:
+                    if name == "VDSAT":
+                        continue
+                    raise schema_rejected("lut_midpoints_column_missing", path=path, kind=kind, column=key)
+                arrays[name] = np.asarray(npz[key], dtype=float)
+                if arrays[name].shape != shape:
+                    raise schema_rejected("lut_midpoints_shape_mismatch", path=path, column=key)
+            on = (arrays["ID"] > 0) & (arrays["GM"] > 0)
+            on.setflags(write=False)
+            positive = arrays["ID"] > 0
+            safe_id = np.where(positive, arrays["ID"], 1.0)
+            log_id = _readonly(np.where(positive, np.log(safe_id), np.nan))
+            gm_id = _readonly(np.where(positive, arrays["GM"] / safe_id, np.nan))
+            vdsat = _readonly(arrays["VDSAT"]) if "VDSAT" in arrays else None
+            out[kind] = MidpointTable(kind, prov.midpoints_sha256, w_m, w_key, mid_grids[0], mid_grids[1:],
+                                      log_id, gm_id, on, vdsat)
+    return types.MappingProxyType(out)
+
+
+def load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None):
     """manifest(슬라이스 목록)·기준 LUT 경로와 `LutSpec` 으로 불변 `LutSet` 을 만든다.
 
-    실패(전부 `SchemaRejectedError`, detail.reason 은 CONTRACT.md 5절): manifest·파일 없음, sha256 불일치,
+    `pdk_root`: 모델 파일을 찾을 PDK 루트(None = 슬라이스 meta 의 절대 경로). `verify_midpoints`: bin 검증 중점 npz(선택 --
+    주면 tol 표의 앵커 2개 bin 외부 값 원천, lut/CONTRACT.md 5.1).
+    실패(전부 `SchemaRejectedError`, detail.reason 은 CONTRACT.md 1.3·1.4·1.7): manifest·파일 없음, sha256 불일치,
     선언 밖 소자, 폭이 제조 격자 밖, (kind, 폭 키) 중복, 축·형상 불일치, 측정 조건 불일치, 양수 원소 없는 배열,
-    용량 열·kind 접미사 없음, 용량 기준 폭 미확정, 모델 파일(bin 지도 원천) 없음·불일치·bin 블록 결함.
+    용량 열·kind 접미사 없음, 용량 기준 폭 미확정, 모델 파일(bin 지도 원천) 없음·불일치·bin 블록 결함, 중점 파일 결함.
     """
-    prov = lut_provenance(manifest_path, cap_npz_path, spec)
+    prov = lut_provenance(manifest_path, cap_npz_path, spec, pdk_root=pdk_root, verify_midpoints=verify_midpoints)
     conditions = {s.conditions for s in prov.slices}
     if len(conditions) != 1:
         raise schema_rejected("lut_conditions_mismatch", conditions=tuple(sorted(conditions)))
@@ -212,12 +362,15 @@ def load_lut_set(manifest_path, cap_npz_path, spec):
     by_kind = {}
     for s in slices:
         by_kind.setdefault(s.kind, []).append(s)
-    caps = _build_caps(spec,prov.cap_path, prov.cap_sha256, grids, by_kind)
+    caps = _build_caps(spec, prov.cap_path, prov.cap_sha256, grids, by_kind)
     cap_basis = tuple((kind, caps[kind].w_ref_m, caps[kind].basis) for kind in sorted(caps))
     fp = lut_fingerprint(prov, cap_basis)
+    midpoints = (types.MappingProxyType({}) if prov.midpoints_path is None
+                 else _midpoint_tables(spec, prov, grids, slice_cond, caps))
     return LutSet(
         spec, prov,
         types.MappingProxyType({(s.kind, s.w_key): s for s in slices}),
         types.MappingProxyType(caps),
         fp,
+        midpoints,
     )

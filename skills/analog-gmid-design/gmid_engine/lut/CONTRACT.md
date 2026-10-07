@@ -12,6 +12,26 @@
   r2 의 'L 보간 0' 을 대체한다. 요지 -- 로드 때 슬라이스 meta 의 모델 파일에서 L bin 지도(`LBinMap`)를 한 번 만들고(1.2·1.3·1.4),
   조회 L 은 앵커(r2/r3 그대로) 또는 같은 bin 의 양옆 앵커 사이 보간, bin 경계를 건너면 거부(4.0 전면 교체·새 사유 키 3개),
   tol_V 에 같은 bin 안 L 방향 LOO 와 앵커 2개 bin 의 외부 오차 입력(5절), 0절 파일 표(`_helpers_bins.py`).
+- **개정 r5(2026-10-07, 사용자 결정 reference 검토 Q2 (i) 예·(ii) (A) = 계획 DEC-87·N3.6·N3.7)**: 바뀐 곳에 `[r5]` 표시.
+  r4 까지의 '3축 다중선형(로그공간)'을 대체한다. 요지 -- ln ID 는 **VGS 축 2점 cubic-Hermite(기울기 = 저장 GM/ID)·VDS 축 2점
+  cubic-Hermite(기울기 = 저장 GDS/ID)**, VS·L 축 선형(L 은 r4 의 bin 안 선형 그대로), ln GDS·VTH·용량은 모든 축 선형.
+  **gm/ID 는 그 다항식의 VGS 미분으로 정의**(op_point·gm_id_curve·역산이 한 곡면, 4.2). 역산은 같은 Hermite 칸 안 bisection(3절).
+  로드 때 Hermite 칸마다 Fritsch–Carlson 단조 조건을 검사해 기록하고 위반 칸은 선형·역산 거부(1.4·4.2). tol_V 는 운영 보간과
+  같은 방법의 LOO 를 Richardson 2^p 로 환산(5절). 옛 다선형 복사본은 패키지에서 빠지고 기대값 비교 참조(옛 파일 원본)로만 남는다(6절).
+  7절 toy 를 기울기가 자료와 맞는 r5 toy 로 바꿨다(r4 toy 는 FC 위반 예시로 남김).
+- **개정 r6(2026-10-08, LUT v2 배선 -- 재생성 데이터 `lut_v2/`, sizing 계약 12절 O1)**: 바뀐 곳에 `[r6]` 표시. 요지 --
+  (1) 로더가 LUT v2 선택 열(GMBS·VTH·VDSAT·CDD·CSS·SVG2_1HZ·SVG2_HF·ID·GM·GDS)을 읽고, 열이 없는 옛 12-L 세트도 그대로 로드한다
+  (그 열을 쓰는 조회만 구조화된 `lut_column_unavailable`, 1.2·4.3). 용량은 부호 보존 값 그대로(1.4·4.1 caps). (2) 열 출처 규칙 -- 열은
+  저장한 표에서만, 폭을 건너 옮기지 않는다(4.3). (3) `vdsat` 접근자(모든 축 선형, 4.3)와 `tol_vdsat_table`(VDSAT 열 선형 LOO +
+  Richardson 2^2, 5.2). (4) `gmb` 정본 = GMBS 열(있을 때), 없으면 r5 VS 할선(4.4). (5) 검증 중점 파일(`verify_midpoints`, 1.7)과
+  `midpoint_l_bin_checks`(5.1) -- `tol_v_table`·`tol_vdsat_table` 의 `l_bin_checks` 기본값이 `()` 에서 **None(= 중점 파일 값)**으로
+  바뀌었다(5절). (6) `pdk_root` 덮어쓰기 인자(1.3)와 설정 파일 기반 데이터 위치 `resolve_lut_location`(1.8). (7) 기준 LUT 폭 키
+  `CapTable.w_key` -- r5 까지 bin 지도·폭 비교를 float `w_m == w_ref_m` 으로 해서 LUT v2(`w_ref_m` = 5e-06 기록, 슬라이스 W =
+  4.9999999999999996e-06)에서 `CapTable.l_bins` 가 빈 지도가 되던 결함(비앵커 L 의 `caps` 가 `lut_l_not_anchor`)을 폭 키 비교로 고쳤다(1.4).
+  (8) 0절 파일 표(새 파일 7개, 층 재배치), `DERIVED_TABLES` 4개(2절), 지문에 중점 파일 sha256(1.5).
+  (9) [2026-10-08 오케스트레이터 결정 A] 외부 L 값(`l_bin_checks`·`MidpointRow`)은 **셀 단위 -- (bin, VDS 격자점)마다**(5절·5.1·5.2).
+  (10) [결정 B] 폭 슬라이스 32개를 GMBS·VDSAT 포함으로 재생성(기존 열 비트 동일) -- 모든 폭에서 `vdsat`·`tol_vdsat_table`·GMBS 열 `gmb`
+  (4.3·4.4), VS 축 Hermite 는 보류. (11) [결정 C] 앵커 2개 bin .23·.22·.21 은 외부 값 없이 `missing_external` 로 명시(8절).
 - 실패 객체는 core 의 `SchemaRejectedError`(로드 거부)·`SealViolationError`(조회 실패)다. `record.detail` 은
   `{"reason": <사유 키>, ...}` 의 키 정렬 쌍 tuple 이고 `record.devices == ()`, `record.margin is None`
   (LUT 는 소자 이름을 모른다 -- 소자를 아는 호출부가 덧붙인다, P-28·P-34).
@@ -24,24 +44,31 @@
 |---|---|---|
 | 0 | `_helpers_bins.py` [r4] | helper: `bin_index`(bin 소속 규칙, 4.0.1) |
 | 0 | `_helpers_fail.py` | helper: `schema_rejected`, `seal_violation` |
-| 0 | `_helpers_interp.py` | helper: `multilinear_interp`, `multilinear_interp_point_multi`(옛 본문 복사) |
-| 0 | `_helpers_root.py` | helper: `peak_index`, `strong_inversion_root` |
-| 0 | `lut_types.py` | 데이터 선언 모듈(`LutSpec`·`SliceSource`·[r4] `LBin`·`LBinMap`·`LutProvenance`·`DcSlice`·`CapTable`·`LutSet`·`OpPoint`·`Curve`·`TargetSolution`·`Caps`·`TolVCell`·`CurveRow`·`CurveReport`, 상수 `AXES`·`TOL_V_METRICS`) |
+| 0 | `_helpers_interp.py` [r5] | helper: `cell`, `hermite`, `hermite_root`, `linear_point`, `node_values`(축별 보간, 4.2), 상수 `LINEAR_CONDITIONS`·`HERMITE_CONDITIONS`·`HERMITE_DEGREE` |
+| 0 | `_helpers_width.py` [r6] | helper: `width_key(w_m, grid_m) -> (키, 격자 위 여부)`(1.3 규칙, provenance·lut_set 공용) |
+| 1 | `_helpers_root.py` [r5] | helper: `peak_index`, `strong_inversion_root`(곡선 묶음, 칸 안 Hermite 근 -- `hermite_root` 를 쓴다) |
+| 1 | `_helpers_columns.py` [r6] | helper: `column_source(lut, kind, w_key, column, required=True)`(열 출처, 4.3) |
+| 0 | `lut_types.py` | 데이터 선언 모듈(`LutSpec`·`SliceSource`·[r4] `LBin`·`LBinMap`·`LutProvenance`·`DcSlice`·`CapTable`·`LutSet`·`OpPoint`·`Curve`·`TargetSolution`·`Caps`·`TolVCell`·`CurveRow`·`CurveReport`, [r6] `MidpointTable`·`ColumnSource`·`TolVdsatCell`·`MidpointRow`·`MidpointChecks`·`LutLocation`, 상수 `AXES`·`TOL_V_METRICS`·[r6] `TOL_VDSAT_METRICS`·`CAP_TABLE_COLUMNS`·`SLICE_OPTIONAL_COLUMNS`·`DERIVED_COLUMNS`·`COLUMN_ORIGINS`) |
 | 0 | `fingerprint.py` | `lut_fingerprint` |
 | 0 | `lut_memo.py` | `LutMemo` (+ 상수 `REGIONS`·`DERIVED_TABLES`) |
 | 0 | `widths.py` | `widths` |
 | 1 | `axis_guard.py` | `check_axes` |
 | 1 | `curve_check.py` | `curve_report` |
 | 1 | `provenance.py` | `lut_provenance` |
+| 1 | `data_location.py` [r6] | `resolve_lut_location`(1.8) |
 | 2 | `_helpers_anchor.py` [r4] | helper: `l_position`(옛 `l_anchor_index` 대체 -- 앵커 또는 같은 bin 보간 위치) |
 | 2 | `lut_set.py` | `load_lut_set` |
+| 3 | `_helpers_loo.py` [r6] | helper: `l_interior`·`external_by_model`·`l_loo_report`·`loo_estimate`·`cell_max`·`branch_targets`·`with_external`·`opt`·`table_at`, 상수 `LINEAR_ORDER`·`HERMITE_ORDER`·`HERMITE_SLOPE_ORDER`(r5 `tolerance.py` 안 함수를 옮김 -- 동작 같음) |
 | 3 | `point_query.py` | `op_point` |
 | 3 | `gm_id_curve.py` | `gm_id_curve` |
-| 3 | `gmb.py` | `gmb` |
 | 3 | `cap_query.py` | `caps` |
-| 3 | `tolerance.py` | `tol_v_table` (`TolVTable` 은 비진입 공개 이름) |
+| 3 | `vdsat_query.py` [r6] | `vdsat`(4.3) |
+| 4 | `gmb.py` [r5, r6] | `gmb`(`op_point` 를 부른다, 4.4) |
 | 4 | `vgs_root.py` | `vgs_for_gm_id` |
 | 4 | `id_inverse.py` | `gm_id_for_target` |
+| 4 | `midpoint_checks.py` [r6] | `midpoint_l_bin_checks`(5.1) |
+| 5 | `tolerance.py` [r6 층 3 → 5] | `tol_v_table` (`TolVTable` 은 비진입 공개 이름, 상수 `LOO_ORDERS`) |
+| 5 | `vdsat_tolerance.py` [r6] | `tol_vdsat_table` (`TolVdsatTable` 비진입 공개 이름, 상수 `LOO_ORDERS`, 5.2) |
 
 graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 함수는 모두 첫 인자로 `LutMemo` 를 받는다.
 
@@ -62,8 +89,25 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   측정 조건 `corner`·`temp_c`(선택 -- 없으면 recorded=False).
 - 기준 LUT(용량) npz 키: `L`·`VGS`·`VDS`·`VS`, kind 마다 `CGG<접미사>`·`CGD<접미사>`(필수), `CGS<접미사>`·`CGB<접미사>`(선택),
   `ID<접미사>`(폭 판정용, 선택), `w_ref_m`(선택), `corner`·`temp_c`(선택).
+- [r6] 기준 LUT 선택 열: kind 마다 `CAP_TABLE_COLUMNS` = (`CDD`, `CSS`, `GDS`, `GM`, `GMBS`, `ID`, `SVG2_1HZ`, `SVG2_HF`, `VDSAT`,
+  `VTH`) 각 `<이름><접미사>` 가 있으면 읽는다(모양 = 기준 LUT 축 모양, 다르면 `lut_cap_shape_mismatch`, detail `path, column`).
+  없는 열은 그냥 없다(로드 거부 아님 -- 옛 `assets/sky130_nfet_pfet_lut_sample.npz` 는 ID·GM·GDS 만 있다). `meta_json`(선택)의
+  `sign_convention`(문자열)·`L_source`(객체) 를 표에 싣는다. LUT v2 생성기 규약: ID·GM·GDS·GMBS·VTH·VDSAT 은 BSIM op 값의 크기,
+  **용량은 부호 보존**(CGG = −Im(i(vgs))/ω 게이트 여기, C_gx = +Im(i(vgs))/ω x 여기, CDD = −Im(i(vds))/ω, CSS = −Im(i(vsrc))/ω --
+  CGB·CGS·CSS·CGD(pfet) 에 음수 점이 있다), SVG2_* 는 게이트 환산 잡음 V²/Hz. 엔진은 용량에 로그·절댓값을 쓰지 않는다(4.1 caps).
+- [r6] 슬라이스 선택 열: `SLICE_OPTIONAL_COLUMNS` = (`GMBS`, `VDSAT`)(접미사 없음, 모양 = 슬라이스 모양, 다르면
+  `lut_slice_shape_mismatch` detail `array` = 그 이름). [r6, 2026-10-08 오케스트레이터 결정 B] 슬라이스 생성기가 GMBS·VDSAT 를
+  같은 .dc 에서 저장하도록 바뀌어(기존 4열 비트 동일) 저장소 설정의 슬라이스 32개 모두 두 열을 가진다. 옛 슬라이스(열 없음)도 그대로 로드된다.
+- [r6] 파생 열(로드 1회): 표에 GMBS·ID 가 다 있으면 `GMBS_PER_ID` = GMBS/ID(ID > 0 인 점, 아니면 NaN)를 그 표의 `columns` 에 더한다
+  (`DERIVED_COLUMNS`). 기준 LUT 표는 ID·GM 이 다 있으면 `CapTable.on_mask` = (ID > 0) & (GM > 0).
 
-### 1.3 `lut_provenance(manifest_path, cap_npz_path, spec) -> LutProvenance`
+### 1.3 `lut_provenance(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None) -> LutProvenance`
+- [r6] `pdk_root`: None 이 아니면 모델 파일 경로 = `os.path.join(pdk_root, 상대 경로)`(meta `pdk_root` 대신, `lut_model_root_missing`
+  판정도 이 값으로). sha256 대조는 그대로라 같은 모델 파일이면 어느 폴더든 같은 결과·같은 지문.
+- [r6] `verify_midpoints`: None 이 아니면 그 파일 `(절대 경로, sha256, meta L_source 키 정렬 쌍, 측정 조건)` 을
+  `LutProvenance.midpoints_path·midpoints_sha256·midpoints_l_source·midpoints_conditions` 에 싣는다(파일 없음 → `lut_midpoints_missing`
+  detail `path`). 주지 않으면 None·None·()·().
+- [r6] 폭 키 규칙은 `_helpers_width.width_key` 한 곳(아래 문장과 같은 규칙).
 - 슬라이스마다 파일 sha256 을 다시 재서 manifest 값과 대조. 폭 키 `w_key = round(W / grid)`(int).
   [r3] 폭 키 허용도 대칭이다: |W/grid − w_key| ≤ `2·ulp(W/grid)` 이면 위·아래 어느 쪽으로 벗어나도 그 키(`abs` 판정). W 에는 격자 범위
   검사가 없으므로(폭 집합 = 슬라이스 집합) 경계 순서 문제가 없다. `widths()` 의 최소 finger 폭 필터는 정수 키 × grid 와 선언값의 비교라
@@ -78,8 +122,14 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   `lut_manifest_empty`, `lut_cap_missing`, [r4] `lut_model_root_missing`(모델 파일 기록이 있는데 `pdk_root` 없음, detail `path` = 슬라이스),
   `lut_model_file_missing`(detail `path, slice`), `lut_model_file_sha256_mismatch`(detail `path, recorded, actual, slice`).
 
-### 1.4 `load_lut_set(manifest_path, cap_npz_path, spec) -> LutSet`
-- `LutSet(spec, provenance, slice_map, cap_map, fp)`: `slice_map` = 읽기 전용 매핑 {(kind, w_key): DcSlice}, `cap_map` = {kind: CapTable}.
+### 1.4 `load_lut_set(manifest_path, cap_npz_path, spec, *, pdk_root=None, verify_midpoints=None) -> LutSet`
+- `LutSet(spec, provenance, slice_map, cap_map, fp, midpoints)`: `slice_map` = 읽기 전용 매핑 {(kind, w_key): DcSlice}, `cap_map` = {kind: CapTable},
+  [r6] `midpoints` = {kind: MidpointTable}(1.7, 중점 파일을 주지 않으면 빈 매핑). `pdk_root`·`verify_midpoints` 는 1.3 으로 넘긴다.
+- [r6] `CapTable` 추가 필드: `w_key`(= `width_key(w_ref_m, grid)` 의 키, 격자 밖이면 None), `columns`(1.2 선택 열 + 파생 열, 읽기 전용
+  매핑), `on_mask`, `sign_convention`(meta 문자열 또는 None), `l_source`(meta `L_source` 키 정렬 쌍 또는 ()). `DcSlice.columns` 도 같은 뜻.
+- [r6 결함 수정] **`CapTable.l_bins` = 그 kind 슬라이스 중 `w_key == CapTable.w_key` 인 것의 지도**(r4·r5 는 `w_m == w_ref_m` float 비교 --
+  LUT v2 는 `w_ref_m` = 5e-06 이고 슬라이스 W = 4.9999999999999996e-06 이라 빈 지도가 되어 비앵커 L 의 `caps` 가 `lut_l_not_anchor` 로
+  실패했다. 옛 세트는 w_ref 를 슬라이스 ID 대조로 고르므로 float 가 같아 영향 없었다).
 - `DcSlice`: `grids` = 축별 float tuple 4개, 배열은 읽기 전용 numpy. 로그 배열 `log_ID·log_GM·log_GDS` = `ln(clip(배열, 그 배열의 최소 양수값))`
   (상수 바닥 없음), `floors`·`nonpositive` 에 바닥값·0 이하 원소 수 기록, `on_mask = (ID > 0) & (GM > 0)`.
 - 불변식: 모든 슬라이스의 L·VGS·VDS·VS 가 float 단위로 같다. 측정 조건(`conditions`)이 모두 같다. 기준 LUT 조건이 기록돼
@@ -108,6 +158,19 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - [r4 실측 2026-10-07, 생성 슬라이스 32개] 로드 1.75 s(r2 1.5 s). 모든 슬라이스의 `anchor_bin` = (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5)
   (L 앵커 0.15·0.2·0.25·0.3·0.35·0.425·0.5·0.7·1·1.5·2.5·4 µm, bin = [0.15,0.18]·(0.18,0.25]·(0.25,0.5]·(0.5,1]·(1,2]·(2,4]). w_key 1000
   (W = 4.9999999999999996e-06) 은 nmos·pmos 모두 `w_bin` (3e-6, 5e-6). pmos w_key 84·110 은 같은 `w_bin` (4.2e-7, 5.5e-7).
+- [r5] **Hermite 보조 필드(슬라이스마다 로드 1회, DEC-87·N3.7)**:
+  - `DcSlice.vds_slope_ok` = `(ID > 0) & (GDS > 0)`(원시 배열, VDS 기울기 GDS/ID 가 정의되는 격자점). VGS 기울기 GM/ID 의
+    정의 격자점은 `on_mask` 다. 기울기 값 = `exp(log_GM − log_ID)`(VGS)·`exp(log_GDS − log_ID)`(VDS).
+  - `DcSlice.fc_ok_vgs` 모양 `[nL, nVGS − 1, nVDS, nVS]`·`fc_ok_vds` 모양 `[nL, nVGS, nVDS − 1, nVS]`(읽기 전용 bool): 그 축 칸
+    (두 이웃 격자점, 값 y = ln ID, 기울기 m)이 **Hermite 칸**(두 끝 기울기 정의)이면 Fritsch–Carlson 단조 조건의 참·거짓,
+    Hermite 칸이 아니면 참. 단조 조건(필요충분, 원소마다, h = 칸 폭, n = Hermite 차수 = 3): `b0 = m0·h`, `b2 = m1·h`,
+    `b1 = n·(y1 − y0) − b0 − b2`, `q = (b1² ≤ b0·b2)`; 비감소 = `b0 ≥ 0 ∧ b2 ≥ 0 ∧ (b1 ≥ 0 ∨ q)`, 비증가 = `b0 ≤ 0 ∧ b2 ≤ 0 ∧
+    (b1 ≤ 0 ∨ q)`, 단조 = 둘 중 하나(p'(x)·h 의 Bernstein 계수가 [0, 1] 에서 한 부호 -- Fritsch–Carlson(1980) α = m0/δ,
+    β = m1/δ 영역과 같은 식. 예: δ = 0 이고 기울기 ≠ 0 이면 위반).
+  - `DcSlice.hermite_fc = (("VDS", Hermite 칸 수, 위반 칸 수), ("VGS", Hermite 칸 수, 위반 칸 수))`. 위반이 있어도 **로드는
+    거부하지 않는다**(위반 칸의 조회 규칙은 4.2, 보고는 `curve_report` 의 `n_hermite_nonmonotone`).
+  - [r5 실측 2026-10-07, 생성 슬라이스 32개] 모든 슬라이스 `hermite_fc = (("VDS", 276360, 0), ("VGS", 276480, 0))`(위반 0 --
+    off 격자점은 VDS = 0 열 5880개뿐). 로드 3.0 s → 5.1 s(같은 기계·같은 시각 측정, FC 검사 ≈ 1.1 s 포함).
 - `fp == lut_fingerprint(provenance, ((kind, w_ref_m, basis), ...))`.
 - 실패(`SchemaRejectedError`, reason): 1.3 전부 + `lut_conditions_mismatch`, `lut_slice_axes_mismatch`, `lut_slice_shape_mismatch`,
   `lut_array_no_positive`, `lut_cap_axes_mismatch`, `lut_cap_kind_undeclared`, `lut_cap_kind_without_slices`, `lut_cap_column_missing`,
@@ -121,10 +184,49 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - 64자 hex = `core.fp_of` of (manifest sha256, 생성기 sha256, 슬라이스별 (kind, w_key, 파일 sha256, 조건, 모델 파일 sha256),
   기준 LUT sha256·조건, cap_basis). 파일 경로는 들어가지 않는다(같은 파일을 다른 폴더로 옮겨도 같은 지문), 어느 sha256 이든
   바뀌면 다른 지문.
+- [r6] `provenance.midpoints_sha256` 이 None 이 아니면 7번째 항목 `("midpoints_sha256", 값)` 을 더한다(중점 값이 tol 표 외부 값으로
+  들어가므로). None 이면 r5 와 **같은 지문**(항목 6개 그대로).
 
 ### 1.6 `widths(lut, kind) -> tuple[int]`
 - `kind` 슬라이스 폭 키 중 `w_key · grid ≥ min_finger_w_m[kind]` 인 것의 오름차순. 근접 폭 대체·보간 없음.
 - 실패: `min_finger_w_m` 에 kind 없음 → `KeyError`. 그 kind 슬라이스가 없으면 `()`.
+
+### 1.7 [r6] 검증 중점 파일 (`load_lut_set(..., verify_midpoints=경로)`)
+- 형식 = 기준 LUT 생성기 산출 npz(`sky130_lut_sweep.py sweep --l-json <승인 L 파일> --l-json-key verification_midpoints_um`): `L`(LUT 축이
+  아닌 중점, m)·`VGS`·`VDS`·`VS`, kind 마다 `ID<접미사>`·`GM<접미사>`(필수)·`VDSAT<접미사>`(선택), `w_ref_m`(필수), `corner`·`temp_c`,
+  `meta_json` 의 `L_source`.
+- 검사 순서와 거부(`SchemaRejectedError` reason): (1) meta `L_source` 에 `sha256` 없음 → `lut_midpoints_l_source_unrecorded`(detail `path,
+  l_source`) -- `--l-um` 으로 만든 파일(`{"kind": "cli"}`)은 거부 (2) 어느 kind 의 `CapTable.l_source` 에 sha256 이 있고 중점 sha256 과
+  다름 → `lut_midpoints_l_source_mismatch`(detail `path, kind, cap, midpoints`) (3) 중점 조건이 기록돼 있고 corner·temp_c 가 슬라이스와 다름 →
+  `lut_conditions_mismatch`(detail `key, midpoints, slices`) (4) `VGS`·`VDS`·`VS` 가 슬라이스 축과 float 단위로 다름 → `lut_midpoints_axes_mismatch`
+  (5) `w_ref_m` 없음 → `lut_midpoints_width_missing` (6) `w_ref_m` 이 제조 격자 밖 → `lut_width_off_grid` (7) kind(= `cap_map` 키) 마다 ID·GM
+  열 없음 → `lut_midpoints_column_missing`(detail `path, kind, column`), 열 모양 ≠ 파일 축 모양 → `lut_midpoints_shape_mismatch`.
+- `MidpointTable(kind, sha256, w_m, w_key, L_points, grids, log_ID, gm_id, on_mask, VDSAT)`: `L_points` = 파일 L 축, `grids` = (VGS, VDS, VS),
+  `log_ID` = ln ID(ID > 0, 아니면 NaN), `gm_id` = GM/ID(같은 점, 아니면 NaN), `on_mask` = (ID > 0) & (GM > 0), `VDSAT` = 열 또는 None.
+- [실측 2026-10-08] `lut_v2/sky130_nfet_pfet_lut_v2_verify_midpoints.npz` sha256 `d243f380…990f`(재생성 -- 배열은 옛 `--l-um` 파일과
+  비트 동일, meta 만 `L_source = {kind json, sha256 0147c262…, key verification_midpoints_um}`·생성기 sha 바뀜), L = 0.165·6.0·14.0 µm,
+  `w_ref_m` 5e-06 → 폭 키 1000.
+
+### 1.8 [r6] 데이터 위치 `resolve_lut_location(config_path, env) -> LutLocation`
+- 설정 JSON: `{"root": {"env": 이름, "default": 폴더}, "pdk_root": {"env", "default"}(선택), "files": {"manifest": {"path", "sha256"},
+  "cap_npz": {...}, "verify_midpoints": {...}(선택)}}`. 다른 키는 무시. `env` = 매핑(부르는 쪽이 `os.environ` 를 넘긴다 -- 모듈은 환경을
+  직접 읽지 않는다).
+- root·pdk_root = `env[이름]` 이 비어 있지 않으면 그 값(`sources` 에 `"env:<이름>"`), 아니면 `default`(`"config_default"`), 둘 다 없으면
+  `lut_location_config_invalid`. 경로는 `os.path.abspath`.
+- 파일: `path` 는 root 기준 상대(절대 경로·`..` 조각·빈 값·sha256 없음 → `lut_location_config_invalid` detail `item, why`), 파일 없음 →
+  `lut_location_file_missing`(detail `item, path`), sha256 다름 → `lut_location_sha256_mismatch`(detail `item, path, recorded, actual`).
+  manifest·cap_npz 항목이 없으면 `lut_location_config_invalid`. 설정 파일 없음 → `lut_location_config_missing`, root 폴더 없음 →
+  `lut_location_root_missing`, `root`·`files` 가 객체가 아님 → `lut_location_config_invalid`. 슬라이스는 여기서 재지 않는다(manifest 가
+  고정하고 `load_lut_set` 이 대조).
+- `LutLocation(config_path, root, manifest_path, cap_npz_path, midpoints_path, pdk_root, sources)`, `sources` = ((항목, 출처), ...) 항목 정렬.
+- 저장소 설정: `skills/analog-gmid-design/assets/lut_v2_location.json` -- root 기본 `C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2`
+  (git 밖, `GMID_LUT_V2_ROOT` 로 덮어씀), pdk_root 기본 `C:/pdk/sky130_fd_pr`(`GMID_PDK_ROOT`), 세 파일 sha256 고정. 쓰는 법:
+  `loc = resolve_lut_location(<설정>, os.environ)` → `load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
+  verify_midpoints=loc.midpoints_path)`.
+- **test 기본 경로 전환(아직 안 함 -- `tests/lut/conftest.py` 는 test 작성자 몫)**: conftest 의 `_DEFAULT_MANIFEST`·`_DEFAULT_CAP`(옛 12-L
+  세트)를 위 설정의 `resolve_lut_location` 결과로 바꾸고 `load_lut_set` 에 `pdk_root`·`verify_midpoints` 를 넘긴다(`GMID_LUT_MANIFEST`·
+  `GMID_LUT_CAP_NPZ` 환경 덮어쓰기는 유지 가능). 옛 세트 기대값(12 앵커 bin 상태, VS 상한 0.8 V, `cgg_minus_cgd_at_gs` 모델 등)을
+  쓰는 test 는 v2 값(18 앵커, VS 0~1.8, `lut_cgs_cgb`)으로 다시 써야 한다.
 
 ---
 
@@ -136,21 +238,34 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - `lookup(region, fn_name, key, compute)`: 키 = `(lut.fp, fn_name) + tuple(key)`. 적중이면 저장 값 그대로(`is`), 아니면 compute 1회.
   가변 원소가 든 키 → `TypeError`. 알 수 없는 region → `KeyError`.
 - `stats()` → `(("curve", LruStats), ("derived", ...), ("point", ...), ("root", ...))`.
-- 조회 함수별 영역: `op_point`·`gmb`·`caps` = point, `gm_id_curve` = curve, `vgs_for_gm_id`·`gm_id_for_target` = root,
-  `tol_v_table`·`curve_report` = derived. 같은 인자 두 번 → 두 번째는 compute 0(그 영역 hits +1). 실패한 조회는 저장되지 않는다.
+- 조회 함수별 영역: `op_point`·`gmb`·`caps`·[r6] `vdsat` = point, `gm_id_curve` = curve, `vgs_for_gm_id`·`gm_id_for_target` = root,
+  `tol_v_table`·`curve_report`·[r6] `tol_vdsat_table`·`midpoint_l_bin_checks` = derived. [r6] `DERIVED_TABLES` =
+  ("curve_report", "midpoint_l_bin_checks", "tol_v_table", "tol_vdsat_table") -- derived 상한 = 슬라이스 수 × 4(r5 는 × 2).
+  `tol_v_table`·`tol_vdsat_table` 을 `l_bin_checks=None` 으로 부르면 LutSet 에 중점 표가 있을 때만 `midpoint_l_bin_checks` 를 먼저
+  부른다(derived misses +1, 두 번째부터 hits) -- 중점 표가 없으면 그 조회를 하지 않는다(r5 와 같은 misses 수).
+  [r6] `gmb` 의 compute 는 GMBS 열이 있으면 `op_point` 1회(조회점), 없으면 3회(r5). 같은 인자 두 번 → 두 번째는 compute 0(그 영역 hits +1). 실패한 조회는 저장되지 않는다.
+  [r5] `gmb` 의 compute 는 같은 (L, vgs, vds) 의 `op_point` 3회(VS 칸 양끝·조회점, point 영역)를 부른다 -- 첫 `gmb` 호출은 point
+  영역 misses 가 gmb 1 + op_point ≤ 3 늘어난다(이미 있던 op_point 키는 hits).
 - 같은 내용의 LutSet 두 개(같은 파일, 다른 폴더)는 같은 `fp` 라 같은 키가 된다.
 
 ---
 
 ## 3. 분지 규칙(정본) -- `vgs_for_gm_id`·`gm_id_for_target`·`tol_v_table`·`curve_report` 공통
 
-- 곡선 = 고정 (L, VDS, VS) 의 VGS 격자 위 gm/ID. **정점 index p** = gm/ID 최댓값의 첫 index(`argmax`).
-- **강반전 분지 = index p 이상(VGS ≥ VGS[p])**. 목표를 품는 구간(두 끝점 편차 곱 ≤ 0)은 분지 안의 구간 [i, i+1] (i ≥ p) 만 보고,
-  그중 가장 오른쪽을 고른다. 분지 안에 그런 구간이 없으면 **해 없음 = 실패**(정점 왼쪽 해로 내려가지 않는다).
+- 곡선 = 고정 (L, VDS, VS) 의 VGS 격자 **마디** gm/ID(`Curve.gm_id_vals`). **정점 index p** = 마디 gm/ID 최댓값의 첫 index(`argmax`).
+- **강반전 분지 = index p 이상(VGS ≥ VGS[p])**. 목표를 품는 칸(두 끝 마디 편차 곱 ≤ 0)은 분지 안의 칸 [i, i+1] (i ≥ p) 만 보고,
+  그중 가장 오른쪽을 고른다. 분지 안에 그런 칸이 없으면 **해 없음 = 실패**(정점 왼쪽 해로 내려가지 않는다).
+- [r5] **칸 안의 근 = 그 칸 VGS Hermite 의 미분이 목표인 VGS**(값 = 마디 ln ID, 기울기 = 마디 gm/ID, 4.2 와 같은 다항식).
+  두 끝 미분 = 두 끝 마디 gm/ID 라 고른 칸에는 근이 있다. 계산 = `hermite_root` bisection: 위 끝 residual 이 정확히 0 이면 위 끝
+  VGS, 반올림으로 두 끝 residual 이 같은 부호면 |residual| 이 작은 끝, 그 밖은 불변식 'residual(lo) 가 위 끝 residual 과 같은
+  부호 아님' 을 지키며 반복 K_max = ceil(log2(칸 폭 / ulp(max(|v0|, |v1|)))) 번(N3.6 K_max 규칙의 tol 자리에 부동소수 분해능 --
+  tol_V 는 이 역산으로 재므로 쓸 수 없다), 결과 = 마지막 lo. 그래서 결과 VGS 의 `op_point(...).gm_over_id` 는 목표와 부동소수
+  분해능 안에서 같다(r4 까지는 칸 안에서 다를 수 있었다). 칸이 단조 위반(`Curve.cell_ok` 거짓)이면 실패
+  `lut_hermite_nonmonotone_cell`, 곡선에 gm/ID 가 정의 안 된 마디(NaN)가 있으면 실패 `lut_curve_undefined`(4.1 표).
 - 왜 새로 썼나: 옛 `_solve_vgs` 는 전 구간에서 가장 오른쪽 구간을 골라, 분지 안에 해가 없으면 정점 왼쪽 누설 분지(VGS≈0)의 교차를
-  ValueError 없이 돌려줬다(tol_V 실측: 유효 목표 184,027 중 3,918(2.13%), 오차 최대 1.78 V). 그래서 구간 선택(분지 거르기·해 없음)은
-  새로 쓰고, 고른 구간의 2점 역보간 문장만 본문 그대로 복사했다(6절 구간 A·B). 옛 결과가 분지 안의 해였던 입력에서는
-  새 결과가 비트 단위로 같다(분지 거르기는 옛 후보 집합의 부분집합을 남기고, 가장 오른쪽 구간은 그대로다).
+  ValueError 없이 돌려줬다(tol_V 실측: 유효 목표 184,027 중 3,918(2.13%), 오차 최대 1.78 V). r4 까지는 칸 선택만 새로 쓰고 칸 안
+  2점 선형 역보간 문장을 복사했으나 [r5] 칸 안 근이 Hermite 로 바뀌어 복사 구간은 남지 않는다(6절). 칸 선택 규칙(분지 거르기·
+  가장 오른쪽·해 없음)은 r4 와 같다.
 
 ---
 
@@ -168,8 +283,8 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
    tol_V 는 `TolVTable.l_bins`)가
    - **빈 지도** → `lut_l_not_anchor`(r2 사유 키 유지, detail 에 `bins: "unavailable"` 추가).
    - `anchor_bin[k−1] == anchor_bin[k]`(같은 bin -- bin 은 구간이라 사이의 L 도 그 bin) → **보간**: L 격자 = (below, above) 두 장으로
-     (L, VGS, VDS, VS) 4축 다중선형 보간(`multilinear_interp*` 그대로, L 가중치 `t = (L − below)/(above − below)`, 각 열의 보간 공간 규칙 그대로 --
-     ID·GM·GDS 로그, VTH·용량 선형). L 값은 조회 L 그대로(`IDu = ID·L/w_m`, `id_a = IDu·W/L`). bin 밖 장은 읽지 않는다.
+     보간한다. L 축은 선형(L 가중치 `t = (L − below)/(above − below)`), [r5] 다른 축은 4.2 의 축별 방법(r4 의 '4축 다중선형' 대체).
+     L 값은 조회 L 그대로(`IDu = ID·L/w_m`, `id_a = IDu·W/L`). bin 밖 장은 읽지 않는다.
    - 다르면 거부(bin 경계를 건너는 보간 금지). 조회 L 의 bin b = `bin_index(((lmin, lmax) of bins), L)`(4.0.1):
      - b 없음(모델 bin 사이 빈틈) → **`lut_l_outside_model_bins`**
      - b 의 LUT 앵커가 1개 이하 → **`lut_l_bin_unbracketed`**(그 bin 안에 감싸는 두 점이 없다)
@@ -208,34 +323,130 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 | 함수 | 반환 | 정의 |
 |---|---|---|
 | `check_axes(grids, names, point, context=())` | None | 위 축 검사. `context` 쌍은 detail 에 더해진다 |
-| `op_point(memo, kind, w_key, L, vgs, vds, vsb)` | `OpPoint` | [r4] 4.0 의 L 장(앵커 1장 또는 같은 bin 2장)에서 (L, VGS, VDS, VS) 다중선형 보간 1회: lnID·lnGM·lnGDS 로그공간, VTH 선형. `IDu = ID·L/w_m`, `gm_over_id = exp(lnGM−lnID)`, `gm_gds = exp(lnGM−lnGDS)`, `gds_per_w = GDS/w_m`, `vth` |
-| `gm_id_curve(memo, kind, w_key, L, vds, vsb)` | `Curve` | [r4] 4.0 의 L 장(앵커 1장 또는 같은 bin 2장), VGS 격자 전체에서 lnID·lnGM 보간: `id_vals = exp(lnID)`(폭 w_m 의 A), `gm_id_vals = exp(lnGM−lnID)`. `vgs_grid` 는 슬라이스 VGS 축. 배열 읽기 전용. VGS 축 검사는 없다(격자 전체) |
-| `vgs_for_gm_id(memo, kind, w_key, gm_id, L, vds, vsb)` | float V | 3절 규칙으로 `gm_id_curve` 의 gm/ID 격자 값에서 선형 역보간(곡선 격자 위 gm/ID 가 VGS 에 대해 선형인 근사 -- `op_point(vgs).gm_over_id` 와는 칸 안에서 다를 수 있다). 해 없음 → `SealViolationError` reason `lut_no_strong_inversion_root`, detail `gm_id, L, vds, vsb, kind, w_key, branch_gm_id_min, branch_gm_id_max, peak_vgs` |
-| `gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None)` | `TargetSolution(vgs, gm_id, id_a, gm_s)` | Q = `id_vals·W/w_m`(current) 또는 `id_vals·gm_id_vals·W/w_m`(gm). 분지 index p 부터 Q 가 엄격히 증가하는 첫 구간 [p, e] 에서 ln Q 를 VGS 에 대해 선형으로 풀어 vgs, 그 vgs 의 `op_point` 로 `gm_id`, `id_a = IDu·W/L`, `gm_s = gm_id·id_a`. 목표가 Q[p]..Q[e] 밖이고 분지 Q 범위 밖 → reason `lut_target_out_of_range`, 범위 안이지만 단조 구간 밖에서만 닿음 → `lut_target_non_monotonic`(detail `quantity, target, W, L, vds, vsb, kind, w_key, branch_min, branch_max, monotone_lo, monotone_hi`). `gm`·`current` 둘 다/둘 다 없음, `W ≤ 0` → `ValueError` |
-| `gmb(memo, kind, w_key, L, vgs, vds, vsb)` | float A/V(폭 w_m) | VS 칸 k = `min(bisect_right(VS, vsb) − 1, len(VS) − 2)`, `gmb = −exp(lnID(점)) · (lnID(VS[k+1]) − lnID(VS[k])) / (VS[k+1] − VS[k])`([r4] 4.0 의 L 장, L·VGS·VDS 는 조회점 값으로 보간). 소자 폭 W 값 = `× W / w_m`(부르는 쪽) |
-| `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | [r4] 4.0 의 L 장(bin 지도 = `CapTable.l_bins`)에서 기준 LUT 열 (L, VGS, VDS, VS) 선형 보간 × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(현재 VS 0~0.8 → vsb > 0.8 실패). kind 표 없음 → `KeyError` |
-| `tol_v_table(memo, kind, w_key, l_bin_checks=())` | `TolVTable` | 5절 |
+| `op_point(memo, kind, w_key, L, vgs, vds, vsb)` | `OpPoint` | [r5] 4.0 의 L 장에서 4.2 의 축별 보간 1회: `IDu = exp(lnID)·L/w_m`, `gm_over_id` = lnID 의 VGS 미분(4.2), `gm_gds = gm_over_id · exp(lnID − lnGDS)`, `gds_per_w = exp(lnGDS)/w_m`(lnGDS 모든 축 선형), `vth`(모든 축 선형). 단조 위반 칸은 그 축 선형으로 보간하고 실패하지 않는다 |
+| `gm_id_curve(memo, kind, w_key, L, vds, vsb)` | `Curve` | [r5] 4.0 의 L 장, VGS 격자 **마디마다** 4.2 의 마디 값: `log_id_vals` = V_a, `id_vals = exp(V_a)`(폭 w_m 의 A), `gm_id_vals` = S_a(정의 안 되면 NaN), `cell_ok`(길이 nVGS − 1) = 4.2 의 VGS 칸 단조 조건. `vgs_grid` 는 슬라이스 VGS 축. 배열 읽기 전용. 마디 사이 곡선은 그 칸의 VGS Hermite(op_point 와 같은 곡면). VGS 축 검사는 없다(격자 전체) |
+| `vgs_for_gm_id(memo, kind, w_key, gm_id, L, vds, vsb)` | float V | [r5] 3절 규칙(칸 선택 + 칸 안 Hermite 미분 근). 실패(`SealViolationError`): 곡선에 NaN 마디 → `lut_curve_undefined`(detail `gm_id, L, vds, vsb, kind, w_key, n_undefined`), 해 없음 → `lut_no_strong_inversion_root`(detail `gm_id, L, vds, vsb, kind, w_key, branch_gm_id_min, branch_gm_id_max, peak_vgs`), 고른 칸 `cell_ok` 거짓 → `lut_hermite_nonmonotone_cell`(detail `gm_id, L, vds, vsb, kind, w_key, axis "VGS", cell_lo, cell_hi` -- 칸 양끝 VGS) |
+| `gm_id_for_target(memo, kind, w_key, L, vds, vsb, *, W, gm=None, current=None)` | `TargetSolution(vgs, gm_id, id_a, gm_s)` | Q = `id_vals·W/w_m`(current) 또는 `id_vals·gm_id_vals·W/w_m`(gm) -- 마디 값. 분지 index p 부터 마디 Q 가 엄격히 증가하는 첫 구간 [p, e] 에서 칸 j = p + max(searchsorted(Q[p..e], 목표, left) − 1, 0). j = e 면 vgs = VGS[e], 아니면 [r5] 칸 [j, j+1] 의 VGS Hermite 로 ln Q(vgs) = ln 목표를 `hermite_root` 로 푼다(current: ln Q = p(v) + ln(W/w_m), gm: ln Q = p(v) + ln p'(v) + ln(W/w_m)). 그 vgs 의 `op_point` 로 `gm_id`, `id_a = IDu·W/L`, `gm_s = gm_id·id_a`. 목표가 Q[p]..Q[e] 밖이고 분지 Q 범위 밖 → reason `lut_target_out_of_range`, 범위 안이지만 단조 구간 밖에서만 닿음 → `lut_target_non_monotonic`(detail `quantity, target, W, L, vds, vsb, kind, w_key, branch_min, branch_max, monotone_lo, monotone_hi`). [r5] NaN 마디 → `lut_curve_undefined`(detail `quantity, target, W, L, vds, vsb, kind, w_key, n_undefined`), 칸 j(j < e) 의 `cell_ok` 거짓 → `lut_hermite_nonmonotone_cell`(앞 detail + `axis "VGS", cell_lo, cell_hi`). `gm`·`current` 둘 다/둘 다 없음, `W ≤ 0` → `ValueError` |
+| `vdsat(memo, kind, w_key, L, vgs, vds, vsb)` [r6] | float V | 4.3 |
+| `tol_vdsat_table(memo, kind, w_key, l_bin_checks=None)` [r6] | `TolVdsatTable` | 5.2 |
+| `midpoint_l_bin_checks(memo, kind, w_key)` [r6] | `MidpointChecks` | 5.1 |
+| `gmb(memo, kind, w_key, L, vgs, vds, vsb)` | float A/V(폭 w_m) | [r6] GMBS 열이 있으면 4.4 의 열 정의(정본). 없으면 아래 r5 정의. [r5] VS 칸 k = `min(bisect_right(VS, vsb) − 1, len(VS) − 2)`(VS 는 선형 축이라 칸 안 ln ID 가 vsb 에 선형), `gmb = −ID(점) · (ln IDu(VS[k+1]) − ln IDu(VS[k])) / (VS[k+1] − VS[k])`, 세 값 모두 같은 (L, vgs, vds) 의 `op_point`(ID(점) = IDu·w_m/L). 소자 폭 W 값 = `× W / w_m`(부르는 쪽) |
+| `caps(memo, kind, L, vgs, vds, vsb, W)` | `Caps(cgg, cgd, cgs, cgb, model)` F | [r4] 4.0 의 L 장(bin 지도 = `CapTable.l_bins`)에서 기준 LUT 열 (L, VGS, VDS, VS) 모든 축 선형 보간([r5] `linear_point`, 4.2 표) × `W / w_ref_m`. CGS·CGB 열이 있으면 `model = "lut_cgs_cgb"`, 없으면 `"cgg_minus_cgd_at_gs"`(cgs = cgg − cgd, cgb = 0.0). 축은 기준 LUT 축(옛 세트 VS 0~0.8 → vsb > 0.8 실패, LUT v2 는 0~1.8). kind 표 없음 → `KeyError`. [r6] `Caps.cdd`·`css` = CDD·CSS 열이 있으면 같은 보간 × W/w_ref_m, 없으면 None. 값은 저장 부호 그대로(음수 가능 -- 로그·절댓값 없음). bin 지도 = `CapTable.l_bins`(1.4 폭 키 수정) |
+| `tol_v_table(memo, kind, w_key, l_bin_checks=None)` | `TolVTable` | 5절([r6] 기본값 None = 중점 파일 값) |
 | `curve_report(memo)` | `CurveReport(lut_fp, rows)` | 슬라이스·L 앵커마다 `CurveRow`(lut_types 문서): 격자점 곡선만. [r2] `n_curves` = **검사한** 곡선 수(건너뛴 곡선 제외), `n_skipped` = ID·GM 에 0 이하 격자점이 있어 뺀 곡선 수,
-`n_curves + n_skipped = len(VDS)·len(VS)`. 행 순서 (kind, w_key) 정렬 후 L 오름차순 |
+`n_curves + n_skipped = len(VDS)·len(VS)`. [r5] `n_hermite_nonmonotone` = 그 L 앵커 i 의 `count(~fc_ok_vgs[i]) + count(~fc_ok_vds[i])`. 행 순서 (kind, w_key) 정렬 후 L 오름차순 |
 
----
+### 4.2 [r5] 축별 보간 방법 (DEC-87 -- `op_point`·`gm_id_curve`·역산·`gmb` 공통, `_helpers_interp`)
 
-## 5. [r2 전면 교체, r4 L 방향 추가] tol_V 표 `tol_v_table(memo, kind, w_key, l_bin_checks=()) -> TolVTable` (계획 N3.6, 사용자 확정 2026-10-07)
+| 양 | L | VGS | VDS | VS |
+|---|---|---|---|---|
+| ln ID | 선형(4.0 의 L 장) | 2점 cubic-Hermite, 기울기 = 저장 GM/ID | 2점 cubic-Hermite, 기울기 = 저장 GDS/ID | 선형 |
+| gm/ID | (ln ID 의 VGS 미분으로 **정의**) | Hermite 미분 | 마디 기울기 S_a 는 선형 | 마디 기울기 S_a 는 선형 |
+| ln GDS, VTH, 용량 | 선형 | 선형 | 선형 | 선형 |
+
+- 칸 규칙: 축마다 `cell(grid, x)` = (i, t), i = `min(max(bisect_right(grid, x) − 1, 0), n − 2)`, t = (x − grid[i])/(grid[i+1] − grid[i])
+  (마지막 격자점은 마지막 칸 t = 1). 선형 가중치가 0 인 마디(t = 0 이면 i+1, t = 1 이면 i)는 읽지 않는다.
+- 2점 cubic-Hermite(x0, x1 = x0 + h, 끝 값 y0·y1, 끝 기울기 m0·m1, t = (x − x0)/h): `p = y0·h00 + h·m0·h10 + y1·h01 + h·m1·h11`
+  (h00 = 2t³ − 3t² + 1, h10 = t³ − 2t² + t, h01 = −2t³ + 3t², h11 = t³ − t²), 미분 `p'(x) = dp/dt / h`. 코드는 같은 다항식을 Bernstein
+  제어점 (y0, y0 + m0·h/3, y1 − m1·h/3, y1) 의 de Casteljau 로 계산한다(3 = 조건 수 4 − 1). p(x0) = y0, p'(x0) = m0, p(x1) = y1, p'(x1) = m1.
+- **조회점 (L, vgs, vds, vsb) 의 계산**(텐서곱 순서):
+  1. VGS 칸 [a, a+1] = `cell(VGS, vgs)`, VDS 칸 k = `cell(VDS, vds)`(t_d), VS·L 은 선형 가중(L 은 4.0 의 장 안).
+  2. VGS 마디 a' ∈ {a, a+1} 마다 **마디 값** V_a' 와 **마디 기울기** S_a':
+     - y_b = Σ_{L, VS 모서리} w·lnID[·, a', b, ·] (b = k, k+1), m_b = Σ w·(GDS/ID)[·, a', b, ·].
+     - V_a' = VDS 가 격자점이면 그 y_b, 아니면 Hermite(y_k, y_k+1, m_k, m_k+1, h_d, t_d) -- 단, 가중치 0 이 아닌 (L, VS) 모서리의
+       `vds_slope_ok` 가 (b = k, k+1) 모두 참이고 `fc_ok_vds[·, a', k, ·]` 가 모두 참일 때만, 아니면 VDS 선형 y_k + t_d·(y_k+1 − y_k).
+     - S_a' = Σ_{L, VDS, VS 모서리(가중치 ≠ 0)} w·(GM/ID) -- 그 모서리 중 `on_mask` 거짓이 있으면 NaN.
+  3. **VGS Hermite 칸** = S_a·S_a+1 이 둘 다 유한이고 `fc_ok_vgs[·, a, ·, ·]` 가 가중치 ≠ 0 인 (L, VDS, VS) 모서리에서 모두 참.
+     Hermite 칸이면 lnID = p(vgs), gm/ID = p'(vgs) (VGS 가 격자점 t ∈ {0, 1} 이면 그 마디의 V·S 그대로 -- 반올림 없음),
+     아니면 lnID = V_a + t·(V_a+1 − V_a), gm/ID = (V_a+1 − V_a)/h (그 직선의 미분 -- 정의 유지).
+- 결과: 격자점(네 축 모두 격자 위, L 앵커)에서 lnID·gm/ID·lnGDS·VTH 는 저장값 그대로(r4·옛 다선형과 같은 값, gm_gds 만 식이
+  `gm/ID·exp(lnID − lnGDS)` 라 몇 ulp 차). 마디 사이에서 gm/ID 는 ln ID 의 VGS 미분과 **같다**(같은 곡면).
+- 이 표에 없는 축 조합의 기울기 자료(GMBS 열 -- VS 축 Hermite 기울기 −GMBS/ID)는 열이 생기면 VS 를 Hermite 로 바꾼다(DEC-87, 계획 범위 밖).
+  [r6] 재생성 슬라이스가 GMBS 를 가져 기울기 자료는 생겼지만 **VS 축 Hermite 는 보류**(오케스트레이터 결정 B, 2026-10-08 -- 운영 보간·
+  tol_V·FC 검사·toy 기대값이 함께 바뀌는 별도 변경). VS 축은 r6 에서도 선형이다(8절).
+- [r5 실측 2026-10-07, ngspice-46 새 점 -- code author 측정, 소자 W = 5 µm(w_key 1000), L 0.15·0.35·1·4 µm, VS 0·0.4 V, 강반전 분지
+  (VGS ≥ 그 곡선 정점) · VDS ≥ 2 격자칸] 칸 중앙 오차(엔진 op_point 대 ngspice, `|Δln ID|/(gm/ID)` V 단위 / gm/ID 상대):
+  - VGS 칸 중앙(VDS 격자점) nmos: r4 p50 0.286 mV·p99 0.904 mV / gm/ID p99 0.53 % → r5 p50 0.13 µV·p99 2.5 µV / p99 0.0012 %
+    (pmos r4 p50 0.297 mV·p99 0.773 mV / 0.49 % → r5 p50 0.26 µV·p99 2.2 µV / 0.0010 %), 18,048점씩.
+  - VDS 칸 중앙(VGS 격자점) nmos: r4 p99 11.1 mV → r5 p99 0.149 mV(pmos 5.36 → 0.064 mV), gm/ID 상대 p99 0.22 % → 0.20 %
+    (gm/ID 의 VDS 방향은 설계상 선형 -- 변화 없음이 맞다), 18,032점씩.
+  - 격자점 대조(L 0.35 µm, 4,606점씩): ngspice 재실행 ID = LUT ID(차 0), gm/ID 상대 ≤ 6.4e-15(ngspice GM/ID 와 LUT 저장 GM/ID 의 계산 차).
+    r5 op_point 의 격자점 값은 옛 다선형과 비트 단위로 같다(6절, 실데이터 1,168 격자점 대조 -- gm_gds 만 상대 ≤ 2.2e-16).
+- [r5 실측] 시간(같은 기계, 다른 agent 부하 있음 -- 비율만 참고): op_point 2000점 새 memo 0.21 s → 0.38 s(점당 ~105 → ~190 µs, memo 키
+  지문 비용 ~80 µs 포함), vgs_for_gm_id 300회(곡선 포함) 0.93 s → 0.43 s.
+
+### 4.3 [r6] 선택 열 출처와 `vdsat`
+
+**열 출처 `column_source(lut, kind, w_key, column, required=True)`**(`_helpers_columns`, 반환 `ColumnSource(origin, column, kind, w_key,
+table_w_m, grids, array, l_bins, on_mask)`): (1) 슬라이스 (kind, w_key) 의 `columns` 에 열이 있으면 origin "slice"(그 슬라이스의 축·
+bin 지도·on_mask) (2) 아니면 `cap_map[kind].w_key == w_key` 이고 기준 LUT `columns` 에 열이 있으면 origin "cap_table"(기준 LUT 축·
+`CapTable.l_bins`·`CapTable.on_mask`, `table_w_m` = w_ref_m) (3) 아니면 `required` 면 `SealViolationError` **`lut_column_unavailable`**
+(detail `column, kind, w_key, cap_w_key, slice_columns, cap_columns` -- 뒤 둘은 이름 정렬 tuple), 아니면 None. 슬라이스 없음 → `KeyError`.
+**다른 폭의 열로 대신하지 않는다**(폭 무관 가정을 박지 않음). [r6 결정 B] 재생성 슬라이스(GMBS·VDSAT 포함)에서는 모든 폭이 origin
+"slice" 다(w_key 1000 도 슬라이스 열이 우선 -- 기준 LUT 열과는 print 자릿수 차 ≤ 5e-7). 옛 슬라이스와 쓰면 w_key 1000 만 "cap_table".
+
+**`vdsat(memo, kind, w_key, L, vgs, vds, vsb) -> float`(V)**: 열 = `column_source(..., "VDSAT")`. L 위치 = `l_position(src.grids[0],
+src.l_bins, L, context)`, 축 검사 = `check_axes(src.grids[1:], ...)`(context = `kind, table = src.origin, w_key`), 값 = 4.0 의 L 장에서
+`linear_point`(**모든 축 선형, 값 공간**). memo point 키 `(kind, w_key, lo, hi, L 값, vgs, vds, vsb)`. 실패 = 열 없음(`lut_column_unavailable`,
+memo 에 저장 안 됨)·4.0·4.1 사유.
+- 왜 선형인가: VDSAT 의 도함수 열이 LUT 에 없다. 4.2 의 Hermite 는 저장 GM/ID·GDS/ID 가 ln ID 의 정확한 편미분이라서 썼다 -- 격자
+  차분으로 기울기를 만들면 그 기울기 자체가 새 추정(3점 차분 = 다른 보간법)이고 운영 보간과 tol 의 '같은 방법'이 깨진다. 오차는 같은
+  방법(선형) LOO 로 잰다(5.2). 격자점에서는 저장값 그대로.
+- 정의 통일(DEC-88): 열 = 생성기 meta "VDSAT = ngspice @m[vdsat], same as tools/spice_oracle" -- 오라클 포화 판정과 같은 양.
+
+### 4.4 [r6] `gmb` 정본 = GMBS 열
+- GMBS 열이 있으면(`column_source(..., "GMBS_PER_ID", required=False)` 가 None 아님): `gmb = ID(점) × r`, ID(점) = `op_point(memo, kind,
+  w_key, L, vgs, vds, vsb).IDu · w_m / L값`(같은 Hermite 곡면), r = 파생 열 GMBS_PER_ID 의 4.0 L 장 + 모든 축 선형 보간(축·bin 지도 =
+  열 출처 표의 것, context table = origin). r 이 NaN(가중치 ≠ 0 인 모서리에 ID ≤ 0 -- LUT v2 는 VDS = 0 열뿐)이면 GMBS 열 값의 같은
+  선형 보간. 격자점에서 r·ID(점) = 저장 GMBS × (슬라이스 ID / 기준 LUT ID).
+- 열이 없으면 r5 정의(4.1 표 VS 할선) 그대로.
+- 왜 열이 정본인가: 오라클 SPICE 의 `gmbs` 와 같은 양이고, 할선은 VS 칸(0.2 V) 평균 기울기라 점 미분이 아니다.
+- [실측 2026-10-08, LUT v2 w_key 1000, 무작위 1500 (L 앵커, VGS index ≥ 8 격자점과 그 칸 중앙, VDS index ≥ 8, VS 격자) 점, seed 20261008]
+  r5 할선 대 열 정의 상대차 p50/p90/p99/max: nmos 격자점 2.2 %/5.3 %/8.0 %/13.5 %, 칸 중앙 2.1 %/5.1 %/8.0 %/13.8 %; pmos 격자점
+  2.3 %/5.2 %/18.0 %/85.8 %, 칸 중앙 2.2 %/5.1 %/19.0 %/90.0 %. 열 경로 대 기준 LUT 저장 GMBS(격자점) 상대차 최대 4.9e-7(print 자릿수 차).
+  재생성 슬라이스(열 출처 "slice")로 다시 재도 같은 값(할선 대 열 차는 소수 3자리까지 같음, 열 경로 대 기준 LUT GMBS 최대 4.9e-7).
+- [r6 결정 B] 재생성 슬라이스 검증(`_drafts/engine/lut_v2_slices_vdsat/verification_slices_vdsat.json`): 32개 모두 ID·GM·GDS·VTH·축·W·조건이
+  옛 v2 슬라이스와 비트 동일, 새 열 GMBS·VDSAT 유한값; W = 5 µm 슬라이스 대 기준 LUT 최대 상대차 GMBS 4.99e-7(n)·4.9e-6(p), VDSAT
+  5.0e-7(n·p); 다른 폭 8점(seed 20261008) 새 독립 .op 대비 ID·VDSAT·GMBS 최대 상대차 3.2e-7. 생성기 sha256 8df35d2e…(옛 6ad080e9…),
+  manifest sha256 a25b9036…, 576 조합 1230.6 s(jobs 9).
+
+## 5. [r2 전면 교체, r4 L 방향 추가, r5 같은 방법 LOO + Richardson] tol_V 표 `tol_v_table(memo, kind, w_key, l_bin_checks=()) -> TolVTable` (계획 N3.6, 사용자 확정 2026-10-07)
 
 - **보간 축 VGS·VDS·VS leave-one-out + [r4] 같은 모델 bin 안의 L 축 leave-one-out.** **모든 L 앵커가 셀을 가진다**(r1 의 '양끝 앵커 None' 폐기).
 - 셀 = (kind, w_key, L 앵커 i, VDS 격자 k) -- `cells[i][k]` = `TolVCell`. **셀별 값만** 낸다(전역 최댓값으로 줄이지 않음).
-- LOO 추정(축 a ∈ {VGS, VDS, VS}, 내부 격자점 x_j, 0 < j < n_a − 1): `lnX_loo = lnX_{j−1} + t·(lnX_{j+1} − lnX_{j−1})`,
-  `t = (x_j − x_{j−1}) / (x_{j+1} − x_{j−1})`, X ∈ {ID, GM}(로그공간 -- 운영 보간 `multilinear_interp` 의 그 축 2점 경우와 같은 식).
-- **두 지표**(`TOL_V_METRICS`; 소비자 배정은 계획 N3.6 -- 봉인 2 = `gm_id_inverse`, KCL·W 보존·소자 경고 = `id_equivalent`):
-  - `id_equivalent`: 격자점 (i, g, k, s) 마다, 축 a 방향으로 그 점과 두 이웃이 모두 `on_mask` 이면 `|lnID_loo − lnID| / (gm/ID)`(gm/ID = 그 점의 참값).
-    셀 값 = 그 (i, k) 의 모든 g·s·a 최댓값.
+- [r5] **LOO 추정 = 운영 보간과 같은 방법**(DEC-87, 4.2): 축 a, 내부 격자점 x_j(0 < j < n_a − 1), 이웃 x_{j−1}·x_{j+1},
+  H = x_{j+1} − x_{j−1}, t = (x_j − x_{j−1})/H.
+  - ln ID 추정: VGS 축 = Hermite(lnID_{j−1}, lnID_{j+1}, (GM/ID)_{j−1}, (GM/ID)_{j+1}, H, t), 두 이웃 `on_mask` 가 참일 때(아니면 선형);
+    VDS 축 = Hermite(같은 식, 기울기 (GDS/ID)), 두 이웃 `vds_slope_ok` 일 때(아니면 선형); VS·L 축 = 선형 `lnID_{j−1} + t·(lnID_{j+1} − lnID_{j−1})`.
+  - gm/ID 곡선의 LOO(gm_id_inverse 용, 아래): VGS 축 = 마디 j 를 **뺀** 곡선(칸 [j−1, j+1] 이 하나의 Hermite 칸이 된다);
+    VDS 축 = 각 VGS 마디의 ln ID 를 위 VDS 식(Hermite/선형)으로, gm/ID 를 선형 `g_{k−1} + t·(g_{k+1} − g_{k−1})` 으로 만든 곡선;
+    VS·L 축 = ln ID·gm/ID 모두 선형으로 만든 곡선. LOO 는 측정이라 FC 단조 검사로 거르지 않는다.
+- [r5] **Richardson 환산**(Q2 (ii) (A)): LOO 는 간격 2배(H = 2h) 격자의 오차라 운영 칸(간격 h)의 칸 중앙 오차보다 2^p 배 크다.
+  점마다(id_equivalent)·시도마다(gm_id_inverse) LOO 값을 **그 (지표, 축, 방법) 의 차수 p 로 2^p 나눈 값**을 셀 값의 후보로 쓴다.
+  p 는 방법에서 유도(새 상수 0): 값 보간 차수 = 조건 수(선형 2, Hermite 4), Hermite 미분 = 4 − 1 = 3. 표(`tolerance.LOO_ORDERS`,
+  `TolVTable.loo_orders` = ((지표, 축, 방법, p, 2^−p), ...)):
+
+  | 지표 | L | VGS | VDS | VS |
+  |---|---|---|---|---|
+  | `id_equivalent` | linear p 2 | hermite p 4 | hermite p 4 | linear p 2 |
+  | `gm_id_inverse` | linear p 2 | hermite_slope p 3 | linear_slope p 2 | linear p 2 |
+
+  id_equivalent 의 VGS·VDS 점에서 위 'Hermite 조건'이 거짓이라 선형으로 추정한 점은 p = 2. gm_id_inverse 의 VDS 는 gm/ID 가 VDS 에
+  선형(4.2)이라 p = 2. 비균일 격자(L 축)도 같은 2^p 를 쓴다(VGS·VDS·VS 격자는 균일).
+  [code author 해석 -- 계획 문구는 'Hermite 4' 이고 gm/ID 의 VGS 축 3 은 미분 차수에서 유도한 것. 확인 대상]
+- **두 지표**(`TOL_V_METRICS`; 소비자 배정은 계획 N3.6 -- `gm_id_inverse` = gm/ID 를 목표로 VGS 를 역산하는 단계(층 0),
+  `id_equivalent` = 봉인 2(DEC-88)·KCL·W 허용오차 상한·소자 경고·순환 블록 수렴):
+  - `id_equivalent`: 격자점 (i, g, k, s) 마다, 축 a 방향으로 그 점과 두 이웃이 모두 `on_mask` 이면 `|lnID_loo − lnID| / (gm/ID) / 2^p`
+    (gm/ID = 그 점의 저장값 GM/ID). 셀 값 = 그 (i, k) 의 모든 g·s·a 최댓값.
   - `gm_id_inverse`: 곡선 (i, k, s) 의 `on_mask` 가 VGS 전부 참일 때만. 목표 j = 참 곡선 gm/ID g 의 정점 이후 index 중 오른쪽 모든 점보다
-    g_j 가 큰 점(VGS_j = 그 곡선의 분지 해, 3절). 목표마다 LOO 곡선 최대 3개([r4] L 축 포함 4개):
-    VGS 축 = g 에서 j 점만 `exp(lnGM_loo − lnID_loo)` 로 바꾼 곡선(j 가 VGS 양끝이면 없음),
-    VDS 축 = 곡선 (i, k−1, s)·(i, k+1, s) 로 보간한 곡선(k 가 내부이고 두 곡선 on_mask 전부 참일 때),
-    VS 축 = 곡선 (i, k, s−1)·(i, k, s+1) 로 같은 식(s 내부, 같은 조건),
-    [r4] L 축 = 곡선 (i−1, k, s)·(i+1, k, s) 로 같은 식(i 가 bin 안 내부 앵커 -- 아래 'L 축 규칙', 같은 on_mask 조건). 그래서 목표마다 최대 4개.
-    시도마다 `|strong_inversion_root(LOO 곡선, VGS, g_j) − VGS_j|`, 해 없으면 값에 넣지 않고 실패로 센다. 셀 값 = 모든 s·j·축 최댓값.
+    g_j 가 큰 점(VGS_j = 그 곡선의 분지 해, 3절). 목표마다 LOO 곡선 최대 4개:
+    VGS 축(j 가 VGS 양끝이면 없음), VDS 축(k 가 내부이고 곡선 (i, k±1, s) 의 on_mask 전부 참일 때),
+    VS 축(s 내부, 곡선 (i, k, s±1) 같은 조건), [r4] L 축(i 가 bin 안 내부 앵커 -- 아래 'L 축 규칙', 곡선 (i±1, k, s) 같은 조건).
+    시도마다 [r5] `|strong_inversion_root(LOO 곡선, g_j) − VGS_j| / 2^p`(3절의 운영 역산 -- 칸 선택 + 칸 안 Hermite 미분 근),
+    해 없으면 값에 넣지 않고 실패로 센다. 셀 값 = 모든 s·j·축 최댓값.
+- [r5] `TolVCell` 에 환산 전 값 `gm_id_inverse_loo_v`·`id_equivalent_loo_v`(같은 규칙의 환산 전 셀 최댓값, 정의 없으면 None)가 더해졌다
+  (기본값 None -- 4칸 생성자 호출도 받는다). 외부 L 값(`l_bin_checks`, 아래)은 이미 운영 보간의 칸 중앙 오차라 **환산하지 않고**
+  환산 후 셀 값과의 최댓값에만 들어간다(환산 전 필드에는 들어가지 않는다).
 - **[r4] L 축 규칙(bin 안에서만)**: 앵커 i 의 L 방향 LOO 는 `anchor_bin[i−1] == anchor_bin[i] == anchor_bin[i+1]`(0 < i < n_L − 1, 1.4 의 지도)일
   때만 만든다 -- 운영 L 보간이 같은 bin 의 두 앵커만 쓰므로 경계를 건너는 추정은 만들지 않는다. 식은 위 LOO 식에서 x = L 격자(t 도 L 로).
   `id_equivalent` 의 L 방향 점 조건은 다른 축과 같다(그 점·두 이웃 on_mask). 빈 지도면 L 방향 LOO 없음(r2 값 그대로).
@@ -244,9 +455,16 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
     검증 시뮬레이션에서 잰 그 bin 의 L 보간 오차, `lut_regen_plan.md` 2절 K2')를 주면 그 bin 두 앵커 행의 모든 셀에서 **정의된** 셀 값과의
     최댓값을 셀 값으로 한다(셀 값이 None 이면 None 그대로 -- 켜진 격자점이 없는 셀). `n_targets`·`n_inverse_failed` 는 바뀌지 않는다.
     주지 않으면 상태 "missing_external" 로 남는다(값에 L 방향 몫 없음을 명시).
+    [r6] **기본값 `l_bin_checks=None`** = `midpoint_l_bin_checks(memo, kind, w_key).rows` 의 `(model, gm_id_inverse_v, id_equivalent_v)`
+    (5.1 -- LutSet 에 중점 표가 없으면 그 조회 없이 `()`). `()` 을 명시하면 외부 값 없음(r5 기본 동작). 실제로 쓴 값은
+    `TolVTable.l_bin_checks`(정규화 tuple, model 정렬).
+    [r6, 오케스트레이터 결정 A -- **셀 단위**] 값 칸은 **VDS 격자점마다의 수열**(길이 = `len(vds_grid)`, 원소 float 또는 None)이고 그 bin 두
+    앵커 행의 셀 (i, k) 에는 k 번째 원소만 더한다(원소 None 이면 그 셀은 외부 몫 없음). 수 하나(r5 형식)는 모든 k 같은 값, None 은 모든 k
+    None 으로 정규화한다(`_helpers_loo.per_vds`). 길이가 다르면 `ValueError`. 정규화 형식 = `(model, (k 별 tuple), (k 별 tuple))`.
   - 앵커 1개 bin: 그 bin 안 L 보간 자체가 없다(4.0 `lut_l_bin_unbracketed`) -- L 방향 값 불필요, 상태 "single_point".
   - `l_bin_checks` 오류 → `ValueError`: 같은 model 두 번, 앵커 2개 bin 이 아닌 model(지도에 없는 이름 포함), 빈 지도 슬라이스에 비어 있지 않은 값.
-  - memo 키 = `(kind, w_key, l_bin_checks 정규화)`(model 문자열·float/None, model 정렬) -- 다른 외부 값은 다른 표.
+  - memo 키 = `(kind, w_key, l_bin_checks 정규화)`(model 문자열·VDS 별 float/None tuple, model 정렬) -- 다른 외부 값은 다른 표
+    (수 하나와 그 수를 모든 VDS 에 둔 수열은 같은 키).
 - `TolVTable.l_loo`: 앵커마다 상태 -- `"in_bin_interior"`(L 방향 LOO 들어감), `"bin_edge"`(3개 이상 bin 의 첫·끝 앵커), `"bin_external"`,
   `"bin_missing_external"`(앵커 2개 bin, 외부 값 있음/없음), `"bin_single_point"`, `"bins_unavailable"`(빈 지도).
   `TolVTable.l_loo_bins`: 앵커가 하나 이상 든 bin 마다 `(model, 앵커 index tuple, 상태)`(bin index 오름차순), 상태 `"computed"`(3개 이상)·
@@ -261,6 +479,33 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   그 행들 × 칸 (k, k+1) 셀의 그 지표 값 중 정의된 것의 최댓값(없으면 None). `metric` 이 TOL_V_METRICS 밖 → `ValueError`,
   VDS·L 범위 밖 → `SealViolationError`(`lut_axis_out_of_range`, table "tol_v").
 - `TolVTable` 속성: `kind, w_key, L_anchors, vds_grid, cells`, [r4] `l_bins, l_loo, l_loo_bins`.
+- `TolVTable` [r5] 속성 `loo_orders`(위 환산 표 그대로). [r6] 속성 `l_bin_checks`(위).
+- [r6] r5 의 `tolerance.py` 안 helper(`_l_interior`·`_l_loo_report`·`_external_by_model`·`_loo`·`_cell_max`·`_targets`·`_with_external`·
+  `_opt`·`at` 본문)는 `_helpers_loo` 로 옮겨 `tol_vdsat_table`·`midpoint_l_bin_checks` 와 같이 쓴다 -- 식·순서·오류 문장 같음.
+- [r6 실측 2026-10-08, LUT v2 w_key 1000, 기본 `l_bin_checks=None`(중점 파일)] 계산 nmos 19.6 s·pmos 19.7 s(중점 검증 포함; 재생성 슬라이스로 다시 잰 때 11.7~13.6 s -- 기계 부하 차, 값은 같음). bin 상태(nmos·pmos
+  같음): .26 (앵커 0, 1 = 0.15·0.18) **external**, .25 (2, 3, 4) computed, .24 (5~9) computed, .23 (10, 11 = 0.7·1)·.22 (12, 13 = 1.5·2)·
+  .21 (14, 15 = 2.5·4) **missing_external**(이 bin 들의 중점이 파일에 없다 -- 8절, 명시 상태로 둔다), .20 (16 = 8)·.19 (17 = 20) single_point.
+  [셀 단위 외부 값, 2026-10-08] .26 행(앵커 0·1) 셀 값 p50/p90/max: nmos gm_id_inverse 505/518/518 mV, id_equivalent 10.7/17.2/18.9 mV;
+  pmos 279/313/316 mV, 16.3/21.3/22.7 mV (스칼라 외부 값이던 때는 행 전부가 max). 표 전체: id_equivalent nmos 0.94/6.9/18.9 mV, pmos
+  0.94/10.8/22.7 mV; gm_id_inverse nmos 52/428/518 mV, pmos 65/212/316 mV. gm_id_inverse 는 셀 단위로도 거의 줄지 않는다 -- 모든 VDS 에
+  정점 근처 평탄 목표가 있다(5.1 분포).
+- [r5] **환산 검증 test(ngspice 칸 중앙 표본, 계획 N3.6 -- test 작성자 구현, 실데이터 마커)**: 셀 표본(최소: nmos·pmos w_key 1000,
+  L 앵커 0.15·0.35·1·4 µm, VS index 0·2, 모든 VDS 격자점)에서 ngspice 로 **VGS 칸 중앙**(VGS_j + h/2, VDS·VS 격자점)과
+  **VDS 칸 중앙**(VDS_k + h/2, VGS·VS 격자점)의 ID·GM 을 새로 잰다. 넷리스트는 슬라이스 생성기(`_drafts/engine/lut_slices/
+  sky130_dc_width_slices.py` `build_netlist`)와 같은 소자·기하·극성·바디 부호(dc 스윕 시작을 반 칸 옮김). 점마다
+  e = |ln ID_op_point − ln ID_spice| / (GM/ID)_spice. 판정: (a) 강반전 분지(VGS ≥ 그 격자 곡선 정점)·VDS ≥ 2 격자칸 점에서 e ≤
+  `tol_v_table(...).at(L, vds, "id_equivalent")` 가 **모든 점**에서 성립(셀 tol 은 상한이어야 한다) (b) VGS 칸 중앙 e 의 p50·p99 가
+  VGS 축 id_equivalent LOO(환산 전, 같은 점들의 이웃 j)/2^4 의 p50·p99 와 같은 자릿수(비 0.5~2 -- Richardson 환산이 맞는지).
+  (c) 같은 넷리스트를 격자점에서 돌리면 LUT 값과 같다(설정 동일성 확인). [실측 2026-10-07, code author] (a) e / 셀 tol 최대 0.0048
+  (VGS 중앙)·0.29(VDS 중앙), 넘는 점 0/72,160 (b) nmos: 칸 중앙 e p50 0.13 µV·p99 2.5 µV 대 LOO/16 p50 0.15 µV·p99 2.6 µV, pmos:
+  0.26·2.2 µV 대 0.30·2.5 µV(선형 r4 도 같은 방식으로 0.286·0.904 mV 대 LOO/4 0.289·0.961 mV) (c) ID 차 0.
+- [r5 실측 2026-10-07, 생성 슬라이스 w_key 1000, l_bin_checks 없음 -- code author 측정, 같은 기계 r4 와 나란히] 계산 2표(nmos+pmos)
+  48.9 s → 24.0 s. id_equivalent 셀 p50/p90/max: nmos 4.1/21.2/264 mV → **0.87/1.9/5.5 mV**, pmos 3.8/12.5/201 mV → **0.93/2.8/3.7 mV**
+  (환산 전 nmos 3.5/7.6/41.8 mV, pmos 3.7/11.5/31.9 mV -- VS 축 선형 LOO 가 지배). gm_id_inverse 셀 p50/p90/max: nmos 229/293/402 mV
+  → **49/73/114 mV**, pmos 254/449/492 mV → **61/113/124 mV**(환산 전 nmos 195/290/455, pmos 244/451/494 mV -- 정점·약반전 평탄
+  목표의 조건수 효과). 역산 시도(실패) nmos 814,032 (56,517), pmos 779,455 (67,164) -- VGS 축 LOO 가 마디를 빼는 정의라 r4 와 실패 수가
+  다르다. VGS 축만의 id_equivalent LOO(독립 numpy, 강반전 on 점): nmos 선형 p50 1.16 mV·p99 3.85 mV → Hermite p50 2.3 µV·p99 42 µV,
+  pmos 0.95/3.37 mV → 4.8/39 µV.
 - [r4 실측 2026-10-07, 생성 슬라이스 w_key 1000, l_bin_checks 없음 -- code author 측정] 계산 nmos 15.7 s·pmos 16.3 s. bin 상태(nmos·pmos 같음):
   model .26 (앵커 0) single_point, .25 (1, 2) missing_external, .24 (3, 4, 5, 6) computed, .23 (7, 8) missing_external, .22 (9) single_point,
   .21 (10, 11) missing_external → L 방향 LOO 가 있는 앵커는 0.35·0.425 µm 둘뿐. gm_id_inverse p50/p90/max = nmos 229/293/402 mV,
@@ -271,9 +516,58 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   id_equivalent p50/p90/max = nmos 3.7/21.1/264 mV, pmos 3.6/10.6/201 mV. gm_id_inverse 의 큰 값은 VGS 축 LOO(간격 37.5 mV)가 정점·약반전
   평탄 구간 목표에서 내는 조건수 효과다(값의 채택은 소비자 설계 몫).
 
+### 5.1 [r6] 앵커 2개 bin 의 외부 값 `midpoint_l_bin_checks(memo, kind, w_key) -> MidpointChecks`
+- memo derived, 키 `(kind, w_key)`. `MidpointChecks(kind, w_key, rows, skipped, midpoints_sha256)`.
+- `lut.midpoints` 에 kind 가 없으면 `MidpointChecks(kind, w_key, (), (), None)`.
+- 중점 m(L_m, `L_points` 순서)마다 아래 순서로 판정, 쓰지 않으면 `skipped` 에 `(L_m, 사유, model 또는 None)`:
+  1. 중점 표 `w_key` ≠ 조회 w_key → `"width_differs"`(다른 폭으로 옮기지 않는다) 2. 슬라이스 bin 지도 없음 → `"bins_unavailable"`
+  3. L 앵커와 1 ulp 이내 → `"is_anchor"` 4. `bin_index`(4.0.1)로 bin 없음 → `"outside_model_bins"` 5. 그 bin 의 앵커 수 < 2 → `"single_point"`(model 있음),
+  > 2 → `"bin_has_interior_anchors"` 6. 두 앵커 a0 < L_m < a1 가 아님 → `"not_bracketed"`.
+- 남은 중점: t = (L_m − a0)/(a1 − a0), 슬라이스 앵커 행 i0·i1. [r6 결정 A] **세 값은 VDS 격자점 k 마다의 tuple**(길이 = 슬라이스 VDS
+  격자 수, 그 k 에 점·목표가 없으면 원소 None) -- 아래 max 는 그 VDS_k 의 (VGS, VS) 점·목표에 대해.
+  - `id_equivalent_v[k]` = max over (VGS, VS) 격자점 [중점 on_mask ∧ 슬라이스 on_mask(i0) ∧ on_mask(i1)] (VDS = VDS_k) of
+    |lnID(i0) + t·(lnID(i1) − lnID(i0)) − lnID_m| / gm_id_m (`DcSlice.log_ID`, 중점 `log_ID`·`gm_id`).
+  - `gm_id_inverse_v[k]`: 곡선 = (VDS_k, VS_s), 곡선 on = 위 마스크가 VGS 전부 참. 중점 곡선 gm/ID g(off 점은 −∞)에서 5절 목표 규칙
+    (`branch_targets` -- 정점 이후, 오른쪽 모든 점보다 큼)으로 (곡선, j). 보간 곡선 = (lnID, gm/ID) 를 L 선형(gm/ID 앵커 값 =
+    exp(log_GM − log_ID)) -- 운영 `gm_id_curve` 의 마디 값과 같다. 값 = VDS_k 곡선 목표들의 max |strong_inversion_root(보간 곡선, g_j) − VGS_j|
+    (해 있는 것). `n_targets` = 목표 수, `n_inverse_failed` = 해 없음 수(모든 VDS 합). 목표 없음 → 모두 None, 0, 0.
+  - `vdsat_v[k]`: `column_source(..., "VDSAT", required=False)` 가 있고 중점 VDSAT 이 있고 출처 표 축(VGS, VDS, VS) = 중점 축일 때,
+    max over (VGS, VS) [중점 on_mask ∧ (출처 on_mask(i0) ∧ on_mask(i1), 출처에 on_mask 가 없으면 생략)] of |V(i0) + t·(V(i1) − V(i0)) − VDSAT_m|,
+    아니면 모두 None. 출처는 4.3 규칙(슬라이스 열이 있으면 슬라이스).
+  - Richardson 환산 없음(운영 보간의 칸 안 오차 자체).
+- 같은 bin 의 중점이 여럿이면 한 `MidpointRow` 로 합친다: `L_points` 오름차순(파일 순서), 세 값은 k 마다 최댓값(None 은 무시), 개수는 합.
+  `rows` = model 이름 정렬.
+- [실측 2026-10-08, LUT v2 + 중점 파일, w_key 1000] nmos: rows = (.26, (1.65e-7,), 23,520 목표, 실패 0) 하나, VDS 별 값 p50/p90/max:
+  gm_id_inverse 505/518/518 mV, id_equivalent 10.7/17.1/18.9 mV, vdsat 2.04/2.40/2.49 mV(k = 0 은 ID = 0 이라 None).
+  skipped = ((6e-6, "single_point", model.20), (1.4e-5, "single_point", model.19)). pmos: (.26, 19,671, 1,569), gm_id_inverse 279/313/316 mV,
+  id_equivalent 16.3/21.2/22.7 mV, vdsat 19.6/29.8/32.5 mV, 같은 skipped. nmos w_key 84 → 세 중점 모두 "width_differs".
+  중점 0.165 µm 점별 분포(독립 numpy 재계산): id_equivalent p50/p90/p99/max nmos 6.0/12.1/16.8/18.9 mV, pmos 6.6/14.1/20.4/22.7 mV;
+  gm_id_inverse nmos 10.5/206/440/518 mV(최악 목표 gm/ID 24.7 -- 정점 근처 평탄 목표), 목표 gm/ID ≤ 15 만 보면 8.9/20/26/29 mV,
+  pmos 6.4/100/286/316 mV(≤ 15: 3.9/8.8/57/111 mV).
+
+### 5.2 [r6] VDsat 허용오차 `tol_vdsat_table(memo, kind, w_key, l_bin_checks=None) -> TolVdsatTable`
+- 열 = `column_source(..., "VDSAT")`(없으면 `lut_column_unavailable`, 표를 만들지 않음). 축·bin 지도 = 열 출처 표의 것.
+- 셀 (i_L, k_VDS) -- 5절과 같은 틀(`_helpers_loo`): 축 a ∈ AXES 마다 내부 격자점 x_j 를 빼고 두 이웃의 **선형** 추정(운영 `vdsat` 와 같은
+  방법), 점 조건 = 그 점과 축 방향 두 이웃이 출처 `on_mask`(None 이면 모든 점), L 축은 `l_interior`(bin 안 내부 앵커)에서만.
+  점 값 = |VDSAT_loo − VDSAT|(V). 셀 `TolVdsatCell(vdsat_v, vdsat_loo_v)`: `vdsat_loo_v` = 환산 전 셀 최댓값, `vdsat_v` = 점 값 / 2^2
+  (선형 차수 p = 2, 네 축 모두)의 셀 최댓값과 외부 bin 값의 최댓값(셀 값이 None 이면 None).
+- 외부 값 `l_bin_checks = ((model, vdsat_v), ...)`: None(기본) = `midpoint_l_bin_checks` rows 의 `(model, vdsat_v)`(중점 표 없으면 `()`),
+  `()` = 없음. vdsat_v 는 5절과 같은 셀 단위(VDS 별 수열, 수 하나·None 허용, `per_vds` 정규화). 오류 규칙(중복·앵커 2개 bin 아님·빈 지도에 값 → `ValueError`)과 `l_loo`·`l_loo_bins` 상태 이름은 5절과 같다.
+- `TolVdsatTable` 속성: `kind, w_key, origin, L_anchors, vds_grid, cells, l_bins, l_loo, l_loo_bins, loo_orders, l_bin_checks`.
+  `loo_orders` = (("vdsat", "L", "linear", 2, 0.25), ("vdsat", "VDS", ...), ("vdsat", "VGS", ...), ("vdsat", "VS", ...))(축 이름순).
+  `at(L, vds, metric="vdsat")` = 5절 `TolVTable.at` 와 같은 행·칸 규칙(`table_at`), context `kind, table "tol_vdsat", w_key`, metric 이
+  `TOL_VDSAT_METRICS` 밖 → `ValueError`. memo derived 키 `(kind, w_key, l_bin_checks 정규화)`.
+- 소비자(sizing O1): 봉인 7 `VDS − VDsat ≥ +tol_VDsat` 의 tol_VDsat = `tol_vdsat_table(memo, kind, w_key).at(L, vds)`.
+- [실측 2026-10-08, 재생성 슬라이스(GMBS·VDSAT) + 중점 파일, w_key 1000, 기본 외부 값(셀 단위)] 출처 "slice", 계산 0.23 s. 셀 vdsat_v
+  p50/p90/max nmos 0.93/1.88/2.49 mV, pmos 1.08/10.2/32.5 mV(max = .26 외부 값 -- pmos 0.165 µm 중점 VDSAT 보간 오차; .26 행 셀 p50 nmos
+  2.04 mV·pmos 19.6 mV), 환산 전 nmos 3.3/4.4/8.5 mV, pmos 4.1/9.8/22.2 mV. bin 상태는 5절 실측과 같다. 예: `vdsat(nmos, 1000, 1 µm, 0.9, 0.9, 0)`
+  = 0.2557 V, L 0.85 µm·vsb 0.3 = 0.2107 V, `tol_vdsat_table(nmos, 1000).at(1e-6, 0.9)` = 0.93 mV. 다른 폭: nmos w_key 72 origin "slice",
+  `vdsat(1 µm, 0.9, 0.9, 0.3)` = 0.2576 V, 셀 p50/p90/max 0.97/1.31/1.39 mV; pmos w_key 84 0.0586 V, 0.89/1.36/8.18 mV -- 2-앵커 bin 은 모두
+  missing_external(중점 파일은 w_key 1000 만, `width_differs`). 옛 슬라이스와 쓰면 w_key 1000 만 "cap_table"(값 차 ≤ 5e-7 상대).
+
 ---
 
-## 6. 복사본 AST 해시 (설계 2.1 '복사'·'블록 복사')
+## 6. [r5 개정] 복사본 AST 해시 (설계 2.1 '복사'·'블록 복사')와 옛 다선형 참조
 
 판정: 대상 문장 목록(docstring 제외)의 `ast.dump(Module(body=문장들), include_attributes=False)` sha256 이 옛 것과 같다.
 함수 이름 변경은 허용. 블록 복사는 (첫 문장, 끝 문장) 앵커로 구간을 자르고, 이름 바꿈 표를 옛 AST 에 적용한 뒤 비교한다.
@@ -281,53 +575,123 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 | 새 위치 | 옛 위치 | 문장 수 | 이름 바꿈 | sha256 (옛 = 새) |
 |---|---|---|---|---|
-| `_helpers_interp.multilinear_interp` 본문 | `_multilinear_interp` SR:141 | 8 | (함수 이름만) | `d6bfc65c25e6e68f6b5f820c3a5a53ed6ed2429db00dc640ba15615dc7d69c54` |
-| `_helpers_interp.multilinear_interp_point_multi` 본문 | `_multilinear_interp_point_multi` SR:206 | 7 | (함수 이름만) | `76e24d9d66e06b760dc79b9d69ac51143cec7238046f9ed3ffd27a4b624c7cba` |
 | `provenance._lut_conditions_from_npz` 본문 | `lut_conditions_from_npz` SR:4782 | 3 | (함수 이름만) | `20513c618b94f19b50d8a4fcfc2fd0a17f934302259ed4e78d4b21163451235b` |
-| `gm_id_curve._curve_arrays` `n = len(sl.VGS_grid)` ~ `result = (id_vals, gm_id_vals)` | `_gm_id_curve` SR:463~474 | 7 | `self`→`sl`, `_multilinear_interp`→`multilinear_interp`, `._grids_list`·`._log_ID`·`._log_GM` → 밑줄 없는 속성 | `a84728e5e100c2c99d70529188915128fcf02ed5b8fa660c7bcf85941718743f` [r2: 블록 불변 -- 넘기는 `sl` 이 앵커 한 장 보기(L 격자 = (앵커,), 배열 = 그 앵커)라 L 보간이 없다; r4: 블록 불변 -- 보기가 4.0 의 L 장(앵커 1장 또는 같은 bin 2장)] |
-| `_helpers_root.strong_inversion_root` 구간 A `d = g - gm_id` ~ `idx = np.flatnonzero(...)` | `_solve_vgs` SR:539~540 | 2 | 없음 | `0a86bafdeaddf5c9a83cfce762d1a47b01dd6051c285ded5e26b803a4d0fc729` |
-| `_helpers_root.strong_inversion_root` 구간 B `i = int(idx[-1])` ~ `if x1 == x0: ...` | `_solve_vgs` SR:548~561 | 5 | 없음 | `29beb488b7222e495e3794d5685bd0d751289e08dc502368f9e7af3143c51680` |
 
-구간 A 와 B 사이(분지 거르기·해 없음 처리)는 3절 사유로 새로 쓴 문장이라 대조 대상이 아니다. 옛 `_solve_vgs` 의
-`_, g = self._gm_id_curve(...)`·`vgs_grid = self.VGS_grid`·캐시 줄, `_gm_id_curve` 의 캐시 줄은 옮기지 않았다.
+[r5] **복사 고정에서 빠진 것(DEC-87 '옛 다선형 보간 복사본은 기대값 비교 참조로만')**: r4 표의 `_helpers_interp.multilinear_interp`·
+`multilinear_interp_point_multi`(옛 SR:141·206), `gm_id_curve._curve_arrays`(옛 `_gm_id_curve` SR:463~474), `_helpers_root.strong_inversion_root`
+구간 A·B(옛 `_solve_vgs` SR:539~540·548~561)는 운영 경로가 Hermite 로 바뀌어 패키지에서 없어졌다(운영 경로에 쓰이지 않는 복사본을 패키지에
+두면 구조 규칙 A 보충 (3) -- helper 공개 함수는 다른 파일 2개 이상이 import -- 도 어긴다). **기대값 비교 참조 = 옛 파일 원본**
+(`legacy/sizing_recipe.py` = 태그 `legacy-engine-v1`) 의 아래 정의다. test 는 그 정의를 원본에서 읽어(AST 해시로 원본이 바뀌지 않았음을
+확인한 뒤) 실행해 기대값을 만들 수 있다:
+
+| 참조 정의(옛 파일) | 문장 수 | sha256(본문, docstring 제외) | 쓰임 |
+|---|---|---|---|
+| `_multilinear_interp` SR:141 | 8 | `d6bfc65c25e6e68f6b5f820c3a5a53ed6ed2429db00dc640ba15615dc7d69c54` | 격자점 동치 기대값 |
+| `_multilinear_interp_point_multi` SR:206 | 7 | `76e24d9d66e06b760dc79b9d69ac51143cec7238046f9ed3ffd27a4b624c7cba` | 격자점 동치 기대값 |
+
+**옛 함수와의 동치 test 는 격자점에서만**(DEC-87): L 앵커·VGS·VDS·VS 모두 격자점인 조회에서 `op_point` 의 IDu·gm_over_id·gds_per_w·vth 는
+옛 다선형 결과(로그공간, 같은 바닥 규칙)와 **비트 단위로 같고**, gm_gds 는 식이 `gm/ID·exp(lnID − lnGDS)` 로 바뀌어 상대 차 ≤ 1e-14 다
+(실측 최대 2.2e-16, 3 슬라이스 1,168 격자점 -- 마지막 격자점 포함).
+`gm_id_curve` 는 VDS·VS 가 격자점이면 마디 값(`id_vals`, `gm_id_vals`)이 옛 곡선과 비트 단위로 같다. 격자 밖 조회의 기대값은 4.2 의
+식(독립 구현)이나 7절 toy 의 닫힌 식에서 낸다. 옛 `_solve_vgs` 와의 비교는 3절 칸 선택 규칙만 같고(칸 index), 칸 안 근은 다르다.
 
 ---
 
 ## 7. 손계산 toy (test 작성자가 그대로 만들 수 있는 입력)
 
+[r5] toy 를 **기울기 자료가 값 자료의 미분과 맞는** r5 toy 로 바꿨다(r4 toy 는 GM/ID 가 d lnID/dVGS 와 다르고 GDS/ID 가 d lnID/dVDS
+와 달라 Hermite 칸이 단조 위반 -- 아래 7.2 의 FC 예시로 남긴다). r5 toy 는 ln ID 가 VGS 의 2차식·VDS 의 1차식이라 cubic-Hermite 가
+**정확히** 재현하므로 격자 밖 기대값이 닫힌 식이다(같은 입력에서 옛 다선형은 다른 값을 낸다 -- 판별력).
+
+### 7.1 [r5] r5 toy
+
 축: `L = (1e-6, 2e-6, 3e-6)`, `VGS = (0.0, 0.5, 1.0)`, `VDS = (0.5, 1.0)`, `VS = (0.0, 0.5)`.
-폭 1e-6 m 슬라이스: `ID[iL, iG, k, s] = (1e-6 / L[iL]) · (1e-7, 1e-6, 1e-5)[iG] · (1.0, 0.5)[s]`(VDS 무관),
-`GM = ID · (20, 10, 4)[iG]`, `GDS = ID / 10`, `VTH = 0.4`. 폭 2e-6 m 슬라이스 = 위 ID·GM·GDS × 2(같은 VTH).
+폭 1e-6 m 슬라이스: `ID[iL, iG, k, s] = (1e-6 / L[iL]) · 1e-7 · exp(20·VGS − 6·VGS²) · exp(0.1·VDS) · (1.0, 0.5)[s]`,
+`GM = ID · (20 − 12·VGS)`, `GDS = ID · 0.1`, `VTH = 0.4`. 폭 2e-6 m 슬라이스 = 위 ID·GM·GDS × 2(같은 VTH).
+닫힌 식(L = 1e-6 장): `lnID(v, d, s) = ln(1e-7) + 20v − 6v² + 0.1d + ln(0.5)·s/0.5`, `gm/ID = 20 − 12v`(4.2 정의 그대로 정확),
+ln GDS 는 VGS 방향 **선형**(4.2) 이라 격자 밖 VGS 의 gds 는 닫힌 식 ln(0.1·ID) 가 아니라 이웃 마디 ln GDS 의 선형 보간이다.
 두 파일 모두 `corner="tt"`, `temp_c=27.0`, `meta_json='{"model_files_sha256": {}}'`. manifest device `"toyn"`.
 기준 LUT: 같은 축, `CGG_n = 1e-15`, `CGD_n = 2e-16`(상수 배열), `w_ref_m = 1e-6`, `corner`·`temp_c` 같음.
 `LutSpec(1e-8, (("nmos", 1.5e-6),), (("toyn", "nmos"),), (("nmos", "_n"),))`. 폭 키 100·200.
 [r4] 이 toy 는 모델 파일 기록이 없어 **빈 bin 지도**다 -- 아래 비앵커 L 행은 4.0 의 '빈 지도' 경로(`lut_l_not_anchor`, detail `bins: "unavailable"`),
-tol_V 값은 r2 그대로(`l_loo` 전부 "bins_unavailable", `l_loo_bins == ()`). bin 보간·bin 거부·L 방향 LOO 를 toy 로 보려면 meta 에 `pdk_root` 와
+tol_V 의 `l_loo` 전부 "bins_unavailable", `l_loo_bins == ()`. bin 보간·bin 거부·L 방향 LOO 를 toy 로 보려면 meta 에 `pdk_root` 와
 `model_files_sha256`(그 파일의 sha256)을 적고, 그 루트 아래 `.model` 블록(`lmin`·`lmax`·`wmin`·`wmax`)을 가진 작은 모델 파일을 두면 된다(1.3·1.4).
 
-| 호출 | 기대값 |
+| 호출 | 기대값(r5 toy) |
 |---|---|
+| `lut.slice_map[("nmos", 100)].hermite_fc` | `(("VDS", 18, 0), ("VGS", 24, 0))` |
 | `widths(lut, "nmos")` | `(200,)` |
 | [r2] `op_point(m, "nmos", 100, 1.5e-6, 0.5, 0.5, 0.0)` | `SealViolationError` `lut_l_not_anchor`, below 1e-6, above 2e-6. `1e-6 + 2·ulp(1e-6)` 도 같은 실패, `1e-6 + ulp(1e-6)` 은 앵커 1e-6 값 |
 | [r2] `op_point(..., L=4e-6, ...)` | `lut_axis_out_of_range`, axis "L" |
-| `op_point(m, "nmos", 100, 1e-6, 0.25, 0.5, 0.0)` | IDu = √(1e-7·1e-6) = 3.16228e-7, gm_over_id = √(20·10) = 14.1421, gm_gds = √(200·100) = 141.421, gds_per_w = 0.0316228, vth 0.4. w_key 200 도 같은 값(정규화 확인, 마지막 몇 ulp 차이 허용) |
-| `vgs_for_gm_id(m, "nmos", 100, 15.0, 1e-6, 0.5, 0.0)` | 0.25 (정점 index 0, 구간 [0, 1] 선형) |
+| `op_point(m, "nmos", 100, 1e-6, 0.25, 0.5, 0.0)` | IDu = 1e-7·e^4.675 = 1.072326e-5, gm_over_id = 17, gds_per_w = exp(½(ln GDS(0) + ln GDS(0.5)))/1e-6 = 1e-8·e^4.3/1e-6 = 0.7369979, gm_gds = 17·exp(lnID − lnGDS) = 170·e^0.375 = 247.3485, vth 0.4. w_key 200 도 같은 값(마지막 몇 ulp 차이 허용) |
+| `op_point(m, "nmos", 100, 2e-6, 0.7, 0.8, 0.3)` | IDu = ID·2e-6/1e-6 = 4.543835e-3(ID = 0.5·1e-7·e^(14 − 2.94 + 0.08)·0.5^0.6), gm_over_id = 11.6 (VDS·VS 격자 밖 -- VDS Hermite·VS 선형도 정확) |
+| `vgs_for_gm_id(m, "nmos", 100, 15.0, 1e-6, 0.5, 0.0)` | 5/12 = 0.4166667 (칸 [0, 0.5], Hermite 미분 = 20 − 12v) |
+| `vgs_for_gm_id(m, "nmos", 100, 11.0, 2e-6, 0.8, 0.3)` | 0.75 (칸 [0.5, 1]) |
 | `vgs_for_gm_id(..., 25.0, ...)` | `SealViolationError` reason `lut_no_strong_inversion_root`, peak_vgs 0.0 |
-| `gmb(m, "nmos", 100, 1e-6, 0.5, 0.5, 0.25)` | −√(1e-6·5e-7) · ln(0.5) / 0.5 = 9.80258e-7 |
+| `gmb(m, "nmos", 100, 1e-6, 0.5, 0.5, 0.25)` | −ID·ln(0.5)/0.5, ID = 1e-7·e^8.55·√0.5 → 5.064753e-4 |
 | `caps(m, "nmos", 1e-6, 0.5, 0.5, 0.0, 3e-6)` | cgg 3e-15, cgd 6e-16, cgs 2.4e-15, cgb 0.0, model `"cgg_minus_cgd_at_gs"` |
-| `gm_id_for_target(m, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=2e-6)` | vgs 0.5, gm_id 10, id_a 2e-6, gm_s 2e-5 |
-| 같은 호출 `current=1e-4` | `SealViolationError` reason `lut_target_out_of_range` |
+| `gm_id_for_target(m, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=2·1e-7·e^4.675)` | vgs 0.25, gm_id 17, id_a = 2.144651e-5, gm_s = 17·id_a = 3.645907e-4 (`gm=3.645907e-4` 도 같은 vgs) |
+| 같은 호출 `current=1.0` | `SealViolationError` reason `lut_target_out_of_range` (마디 Q 최대 = 2·1e-7·e^14.05 ≈ 0.253) |
 | `op_point(..., vsb=0.6)` | `SealViolationError` `lut_axis_out_of_range`, axis "VS", lo 0.0, hi 0.5 |
-| [r2] `tol_v_table(m, "nmos", 100).cells[i][k]`(i = 0, 1, 2, k = 0, 1 모두) | id_equivalent_v = 0(부동소수 수준: ID 가 VGS 에 기하수열이라 VGS 축 lnID LOO 가 정확, VDS·VS 축은 2점이라 내부점 없음). gm_id_inverse_v = |0.5·10/(20 − √80) − 0.5| = 0.0477458(목표 j = 1(g = 10)의 VGS 축 LOO: GM·ID 각 로그 이웃 평균 → g_loo[1] = √(20·4) = √80, 정점 0 의 구간 [0, 1] 역산 = 0.5·(20 − 10)/(20 − √80)). n_targets 2(VS 2점 × 내부 목표 1개 × VGS 축), n_inverse_failed 0 |
-| [r2] `at(2e-6, 0.75, "id_equivalent")` / `"gm_id_inverse"` | 0.0(부동소수 수준) / 0.0477458. `at(1.5e-6, 0.75, ...)` → `lut_l_not_anchor` |
-| `curve_report(m).rows[0]` | kind nmos, w_key 100, L 1e-6, n_curves 4, n_skipped 0, n_branch_nonmonotonic 0, gm_id_max 20, gm_gds_max 200 |
+| `gm_id_curve(m, "nmos", 100, 1e-6, 0.5, 0.0)` | `gm_id_vals` = (20, 14, 8), `log_id_vals − ln(1e-7)` = (0.05, 8.55, 14.05), `cell_ok` = (True, True) |
+| [r5] `tol_v_table(m, "nmos", 100).cells[i][k]`(i = 0, 1, 2, k = 0, 1 모두) | id_equivalent_v = 0, gm_id_inverse_v = 0(둘 다 부동소수 수준 -- VGS 축 Hermite LOO 가 2차식을 정확히 재현, VDS·VS 축은 2점이라 내부점 없음), `*_loo_v` 도 0 수준. n_targets 2(VS 2점 × VGS 내부 목표 1개(j = 1) × VGS 축), n_inverse_failed 0. 판별: 옛 선형 LOO 였다면 id_equivalent 환산 전 = |ln ID(0.5) 의 선형 추정 − 참값|/14 = 1.5/14 = 0.107 V |
+| [r5] `at(2e-6, 0.75, "id_equivalent")` / `"gm_id_inverse"` | 0 수준 / 0 수준. `at(1.5e-6, 0.75, ...)` → `lut_l_not_anchor` |
+| [r5] `tol_v_table(...).loo_orders` | 5절 표의 8줄, 환산 배수 0.25·0.25·0.125·0.25·0.25·0.0625·0.0625·0.25 (지표·축 이름순) |
+| `curve_report(m).rows[0]` | kind nmos, w_key 100, L 1e-6, n_curves 4, n_skipped 0, n_branch_nonmonotonic 0, gm_id_max 20, gm_gds_max 200, [r5] n_hermite_nonmonotone 0 |
+
+[r6] 같은 r5 toy(선택 열·중점 파일 없음)의 r6 기대값:
+
+| 호출 | 기대값(r6, r5 toy) |
+|---|---|
+| `lut.cap_map["nmos"].w_key` / `.columns` / `.on_mask` / `.sign_convention` / `.l_source` | 100 / 빈 매핑 / None / None / () |
+| `lut.slice_map[("nmos", 100)].columns` | 빈 매핑 |
+| `lut.midpoints`, `lut.provenance.midpoints_sha256` | 빈 매핑, None (지문은 r5 와 같은 6항목) |
+| `vdsat(m, "nmos", 100, 1e-6, 0.5, 0.5, 0.0)` | `SealViolationError` `lut_column_unavailable`, detail column "VDSAT", kind "nmos", w_key 100, cap_w_key 100, slice_columns (), cap_columns () |
+| `tol_vdsat_table(m, "nmos", 100)` | 같은 `lut_column_unavailable` |
+| `midpoint_l_bin_checks(m, "nmos", 100)` | `MidpointChecks("nmos", 100, (), (), None)` |
+| `caps(m, "nmos", 1e-6, 0.5, 0.5, 0.0, 3e-6)` | r5 값 + cdd None, css None |
+| `gmb(...)`(7.1 행) | r5 값 그대로(GMBS 열 없음 → VS 할선) |
+| `tol_v_table(m, "nmos", 100)`(l_bin_checks 생략) | r5 값 그대로, `.l_bin_checks == ()`(중점 표 없음 → midpoint 조회 없음) |
+| toy 기준 LUT 에 `GMBS_n = 0.25·ID_n`, `ID_n` = 폭 1e-6 슬라이스 ID, `VDSAT_n = 0.1 + 0.2·VGS`(축 broadcast) 를 더한 경우 | `gmb(m, "nmos", 100, 1e-6, 0.25, 0.5, 0.0)` = 0.25 · ID(점), ID(점) = 1e-7·e^4.675·… 의 op_point 값(= IDu·w_m/L); `vdsat(m, "nmos", 100, 1.0e-6, 0.25, 0.75, 0.25)` = 0.15(선형 정확); `tol_vdsat_table(m, "nmos", 100).cells[i][k].vdsat_v` = 0 수준(선형 자료), origin "cap_table"; w_key 200 → `lut_column_unavailable` |
+
+### 7.2 [r5] FC 위반 예시 = r4 toy
+
+r4 toy: 위 7.1 과 같은 축·기준 LUT·LutSpec, 슬라이스만 `ID[iL, iG, k, s] = (1e-6 / L[iL]) · (1e-7, 1e-6, 1e-5)[iG] · (1.0, 0.5)[s]`(VDS 무관),
+`GM = ID · (20, 10, 4)[iG]`, `GDS = ID / 10`(폭 2e-6 = × 2). VGS 칸 0(ln ID 차 ln10, 기울기 20·10, h 0.5)은 b1 = 3·ln10 − 15 = −8.09,
+b1² = 65.5 > b0·b2 = 50 → 위반, VGS 칸 1(기울기 10·4)은 b1 = −0.092, b1² ≤ 10 → 단조. VDS 칸은 ln ID 차 0 인데 기울기 0.1 이라 위반.
+
+| 호출 | 기대값(r4 toy) |
+|---|---|
+| `slice_map[("nmos", 100)].hermite_fc` | `(("VDS", 18, 18), ("VGS", 24, 12))`; `curve_report(m).rows[i].n_hermite_nonmonotone` = 10 (VGS 4 + VDS 6, 모든 행) |
+| `op_point(m, "nmos", 100, 1e-6, 0.25, 0.75, 0.0)` | VGS·VDS 모두 선형 칸 → IDu = √(1e-7·1e-6) = 3.162278e-7, gm_over_id = ln10/0.5 = 4.605170(그 직선의 미분), gm_gds = 46.05170, gds_per_w 0.03162278, vth 0.4 -- 실패하지 않는다 |
+| `vgs_for_gm_id(m, "nmos", 100, 15.0, 1e-6, 0.5, 0.0)` | 고른 칸 [0, 0.5] 위반 → `SealViolationError` `lut_hermite_nonmonotone_cell`, detail axis "VGS", cell_lo 0.0, cell_hi 0.5 |
+| `vgs_for_gm_id(m, "nmos", 100, 7.0, 1e-6, 0.5, 0.0)` | 칸 [0.5, 1] (단조) 의 Hermite 미분 = 7 인 근 0.5834716 (2차식 근, 칸 안 t = 0.1669433) |
+| `gm_id_for_target(m, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=2e-6)` | 마디 Q = (2e-7, 2e-6, 2e-5) 에서 칸 j = 0 (searchsorted left − 1 → max 0) 이 위반 → `lut_hermite_nonmonotone_cell` |
+| `tol_v_table(m, "nmos", 100).cells[0][0]` | id_equivalent_loo_v = |ln(1e-6) − Hermite(ln1e-7, ln1e-5, 20, 4, H = 1, t = ½)| / 10 = 0.2, id_equivalent_v = 0.2/16 = 0.0125 |
 
 ---
 
 ## 8. 범위 밖·보류
 
-- `vdsat`(설계 2.10): 소비자는 있다 -- GB7 봉인 7(포화 여유 `VDS − VDsat`)과 SPICE 포화 판정(오라클 BSIM `@m[vdsat]`)이 같은 VDsat 정의를 써야 한다(정의 통일). 그 정의의 원천인 LUT VDSAT 열이 LUT 재생성(U-27)에서 추가되기를 기다리므로 지금은 만들지 않는다(대기, 2/(gm/ID) 근사로 대신하지 않는다). `gm_id_for_vgs`: 소비처 미확정(DEC-76) → 만들지 않음.
+- ~~`vdsat` 대기~~ → [r6] 만들었다(4.3·5.2). `gm_id_for_vgs`: 소비처 미확정(DEC-76) → 만들지 않음.
+- [r6 결정 B 완료] 슬라이스 생성기(`_drafts/engine/lut_slices/sky130_dc_width_slices.py`)가 VDSAT·GMBS 를 저장하고 576 조합을 다시
+  돌렸다(`_drafts/engine/lut_v2_slices_vdsat/`, 검증 `verification_slices_vdsat.json`) -- 모든 폭에서 `vdsat`·`tol_vdsat_table`·GMBS 열 `gmb`.
+  **VS 축 Hermite(GMBS 기울기)는 보류**(4.2 끝).
+- [r6] **앵커 2개 bin .23(0.7·1 µm)·.22(1.5·2 µm)·.21(2.5·4 µm) 은 중점이 없다**(5절 실측 missing_external). 승인 L 파일의
+  `verification_midpoints_um` = (0.165, 6.0, 14.0) 중 6.0·14.0 은 앵커 1개 bin(.20 = (4, 8] 앵커 8, .19 = (8, 20] 앵커 20)에 들어
+  쓰이지 않는다(그 L 은 조회 자체가 `lut_l_bin_unbracketed`). lut_regen_plan K2' 가 2점 bin 을 "[0.15, 0.18], (4, 8], (8, 20]" 으로 적은
+  것은 경계값(4·8 µm)을 위 bin 으로 본 것으로 4.0.1 실측 규칙(경계 = 아래 bin)과 다르다. 바로잡으려면 중점 0.85·1.75·3.25 µm(제조 격자 위)를
+  승인 L 파일에 더하고 1.7 의 생성 명령으로 다시 만든다(승인 파일 변경 -- 사용자 승인 대상, 약 6분).
+- [r6] 외부 값은 셀(VDS) 단위로 바꿨다(오케스트레이터 결정 A). 그래도 gm_id_inverse 는 .26 행 p50 505 mV(nmos)로 크다 -- 모든 VDS 에
+  정점 근처 평탄 목표(gm/ID ≈ 24.7)가 있어서다(5.1 분포: 점별 p50 10.5 mV, 목표 gm/ID ≤ 15 만이면 max 29 mV). 목표 gm/ID 범위 제한은 소비자
+  tol 의미를 바꾸는 계약 변경 -- 결정 대상.
+- [r6] **외부 값이 없는 앵커 2개 bin(명시 상태 `missing_external`)**: .23 (0.7·1 µm), .22 (1.5·2 µm), .21 (2.5·4 µm) -- nmos·pmos 모두, w_key 1000.
+  다른 폭은 중점 파일 폭이 아니라 모든 2-앵커 bin 이 missing_external(`width_differs`). 승인 L 파일은 바꾸지 않는다(사용자 확인 대기).
+- [r6] SVG2_1HZ·SVG2_HF·VTH(기준 LUT)·CDD·CSS 외 열: 로드만 하고(`CapTable.columns`) 조회 함수는 없다(잡음 소비처 미정).
 - E3 디스크 캐시(tol_V 표·곡선 보고 지문 키): 이 단계 밖. 현재 derived memo(실행 내)만.
 - toy LUT 픽스처(`tests/fixtures/toy_lut.py`, 옛 `_invq_newton`·`build_toy_lut` 복사)는 test 작성자 몫.
-- 옛 `SemiEmpiricalGmIdLUT`(W_ref = 5 µm 슬라이스 배열) 대비 `op_point`·`vgs_for_gm_id` 동치 test: 옛 로그 바닥(1e-18·1e-30)과 갈리는
-  점(ID < 1e-18)은 비교에서 뺀다. 옛 해가 정점 왼쪽인 입력은 새 쪽이 실패해야 한다(3절).
+- 옛 `SemiEmpiricalGmIdLUT`(W_ref = 5 µm 슬라이스 배열) 대비 `op_point` 동치 test: [r5] **격자점에서만**(6절). 옛 로그 바닥(1e-18·1e-30)과
+  갈리는 점(ID < 1e-18)은 비교에서 뺀다. `vgs_for_gm_id` 는 칸 선택(3절)만 옛과 비교할 수 있고 칸 안 근은 다르다. 옛 해가 정점 왼쪽인
+  입력은 새 쪽이 실패해야 한다(3절).
+- [r5] VS 축 Hermite(GMBS 열 -- 기울기 −GMBS/ID): GMBS 열이 LUT 재생성(Q1)에서 생기면 4.2 표의 VS 를 바꾼다. 그때까지 VS 는 선형이고
+  gmb 는 VS 칸 할선(이웃 칸 경계에서 계단).

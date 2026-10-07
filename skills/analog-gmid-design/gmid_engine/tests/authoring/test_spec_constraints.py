@@ -55,7 +55,7 @@ def test_view_modes(sc):
     doc = sc.load()
     modes = {c.metric: c.view.mode for c in doc.constraints if c.metric}
     assert modes["gain_ss_db"] == "port"            # transfer metric, view 없음, output 포트 1개
-    assert modes["pm_ss_deg"] == "port"             # loop metric(6절 9번), view 없음 -> 포트 뷰
+    assert modes["pm_ss_deg"] == "loop"             # loop metric(6절 9번), view 없음 -> feedback·ports 유도 루프 뷰(7a)
     assert modes["parasitic_pm_ss_deg"] == "transfer"
     assert modes["ratio_ss_db"] == "pending"
     assert modes["mismatch_sigma_mv"] == "none"     # view_kind None
@@ -74,9 +74,11 @@ def test_differential_view_ok(sc):
     sc.load()
 
 
-# --- loop(pm_ss_deg)·output_port(rout_ss_ohm) metric 뷰: SPEC_CONTRACT 2절 view_not_defined_yet·view_required, 6절 9번, 7절 S1 ---
+# --- loop(pm_ss_deg)·output_port(rout_ss_ohm) metric 뷰: SPEC_CONTRACT 2절 view_not_applicable·view_excite_not_allowed·
+# view_required, 6절 9번 (7a design 2.9·3.1 -- 옛 view_not_defined_yet 규칙은 삭제됐다) ---
 ROUT = {"metric": "rout_ss_ohm", "op": "<=", "value": 5000.0}
 DIFFERENTIAL = {"ac_excite": {"n_inp": 1.0}, "sense_p": "n_outp", "sense_n": "n_mid", "sense_mode": "differential"}
+DECLARED_VIEW_RULE = {"pm_ss_deg": "view_not_applicable", "rout_ss_ohm": "view_excite_not_allowed"}
 
 
 def _loop_or_port(sc, metric):
@@ -88,10 +90,11 @@ def _loop_or_port(sc, metric):
 
 @pytest.mark.parametrize("metric", ["pm_ss_deg", "rout_ss_ohm"])
 @pytest.mark.parametrize("view", [TRANSFER, DIFFERENTIAL], ids=["transfer_shaped", "differential_shaped"])
-def test_view_not_defined_yet_declared_view(sc, metric, view):
-    """loop·output_port metric 에 결정 대기 표지가 아닌 view 선언 -> view_not_defined_yet(옛 픽스처 pm_ss_deg 전달 뷰 포함)."""
+def test_declared_transfer_shaped_view_on_loop_output_port(sc, metric, view):
+    """loop metric 에 결정 대기 아닌 선언 view -> view_not_applicable(루프 뷰는 유도만), output_port 에 ac_excite 가 있는
+    view -> view_excite_not_allowed(감지 전용)."""
     _loop_or_port(sc, metric)["view"] = copy.deepcopy(view)
-    sc.reject_only("view_not_defined_yet", "constraints")
+    sc.reject_only(DECLARED_VIEW_RULE[metric], "constraints")
 
 
 @pytest.mark.parametrize("metric", ["pm_ss_deg", "rout_ss_ohm"])
@@ -104,17 +107,19 @@ def test_loop_output_port_pending_view_accepted(sc, metric):
     assert "MOD7" in {p.decision for p in doc.pending}
 
 
-@pytest.mark.parametrize("metric", ["pm_ss_deg", "rout_ss_ohm"])
-def test_loop_output_port_undeclared_view_is_port(sc, metric):
-    """view 를 적지 않으면 포트 뷰(output 포트 1개인 픽스처)."""
+@pytest.mark.parametrize("metric,mode", [("pm_ss_deg", "loop"), ("rout_ss_ohm", "sense")])
+def test_loop_output_port_undeclared_view_is_derived(sc, metric, mode):
+    """view 를 적지 않으면 유도 뷰: loop(feedback·ports), output_port 는 감지 뷰(output 포트 1개인 픽스처)."""
     _loop_or_port(sc, metric)
     got = [c for c in sc.load().constraints if c.metric == metric][0]
-    assert got.view.mode == "port"
+    assert got.view.mode == mode
 
 
 @pytest.mark.parametrize("metric", ["pm_ss_deg", "rout_ss_ohm"])
 def test_loop_output_port_undeclared_view_two_outputs_required(sc, metric):
-    """포트 뷰 규칙: view 없고 output 포트가 1개가 아니면 view_required. 다른 view 없는 제약은 뷰를 채워 hit 1개로 만든다."""
+    """포트 뷰 규칙: view 없고 output 포트가 1개가 아니면 view_required. 다른 view 없는 제약은 뷰를 채워 hit 1개로 만든다.
+    loop 는 β = 1(feedback 빈 list)일 때만 출력 포트가 루프 뷰를 정한다(β 루프는 절단 넷만 쓴다) -- β = 1 로 둔다."""
+    sc.human["feedback"]["elements"] = []
     _two_outputs(sc)
     for m in ("gain_ss_db", "ugf_ss_hz"):
         sc.constraint(m)["view"] = copy.deepcopy(TRANSFER)
@@ -232,6 +237,7 @@ def _two_outputs(sc):
 
 
 def test_view_required_transfer_two_outputs(sc):
+    sc.human["feedback"]["elements"] = []   # β = 1: pm_ss_deg 루프 뷰도 포트 뷰 규칙을 따른다(β 루프면 출력 포트와 무관)
     _two_outputs(sc)
     d = sc.reject()
     # view 없는 transfer·loop·output_port 제약 전부(gain_ss_db·ugf_ss_hz transfer, pm_ss_deg loop)

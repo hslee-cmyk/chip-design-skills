@@ -23,7 +23,7 @@ from .conftest import closed_miller, closed_single_pole, ex1_rc, ex2_amp, ex2_be
 def _t(factors):
     out = None
     for f in factors:
-        col = np.asarray(f.response.values)[:, f.column]
+        col = np.asarray(f.response.values)[:, f.row, f.column]
         out = col if out is None else out * col
     return out
 
@@ -80,7 +80,7 @@ def test_dc_not_above_level(level):
 
 def test_no_crossing_above_flat_response():
     ck = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 0, 1e3)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), Sense(2))
+    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), (Sense(2),))
     (r,) = solve_responses((s,))
     c = _cross((Factor(r, 0),), 0.25, q="flat")
     assert c.omega is None

@@ -87,3 +87,8 @@ for v in sizing.engine layout.engine layout.topology; do
 
 이 디렉터리의 `*.oracle_input.json` 은 위 첫 줄(옛 엔진 새 실행)로 만든 것이고, 안의 절대 경로는 작업 worktree 경로다.
 `*.cir`, `*.compare.md` 는 그 입력으로 돌린 산출물이다.
+
+**재생성 2026-10-08**(C12 보충 `feedback_passives_basis` 반영): 위 재현 절차를 그대로 다시 돌렸다(옛 엔진 새 실행 engine_ok).
+입력 3개는 provenance·LUT 절대 경로를 빼면 이전 것과 `feedback_passives_basis = "legacy_c12_input_net_passives"` 한 키만 다르고,
+`*.cir`·`*.loop.cir` 는 바이트 동일, 2절 표의 수치(gain·UGF·PM·I(vdd)·verdict)도 같다. `*.compare.md` 는 그사이 추가된 기록
+행(C15·C22·C23·C25·C27·PM 루프·PM 교차 측정·forced 진단)이 붙은 현재 형식으로 바뀌었다.

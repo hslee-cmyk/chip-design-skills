@@ -32,16 +32,17 @@
 * `sources`(이상 전류/전압원, `value_basis` 근거 문자열), `passives`(R/C), `bias_voltages`(게이트 전용 넷), `ports`
   (`input_p/input_n` 또는 `input`, `output_p/output_n` 또는 `output`).
 * **[신규]** `feedback_passives`: β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 소자). PM 정의를 정한다(아래).
+  **[신규 C12 보충]** 선택 `feedback_passives_basis`(그 집합을 정한 규칙 문자열, 기록 전용).
 * `predictions`: `nodes`(넷 -> V), `devices`(이름 -> `ID, VGS, VDS, VSB, gm, gds, gm_id, region(sat|triode|off),
   off_current_A`), `metrics` (`[{name, measure, value, rail?, view?}]`, measure ∈ `dc_gain_db, ugf_hz, pm_deg, f3db_hz,
-  supply_current_A, ratio_db, slew_rate_v_per_s, settle_s`).
+  supply_current_A, ratio_db, rout_ohm, slew_rate_v_per_s, settle_s`).
 * `acceptance.constraints`: `[{name, measure, op(>=|<=), limit, view?}]` -- 회로 성능 스펙. 합격 판정에 쓰인다
-  (measure 에 `ratio_db` 포함, 과도 measure 제외).
+  (measure 에 `ratio_db`·**[신규 C26]** `rout_ohm` 포함, 과도 measure 제외).
 * `testbench`: `dc_choke_H`, `ac_couple_F`, `ac{fstart_hz, fstop_hz, points_per_decade, input_*_ac, diff_feedback_gain}`,
   `options`, `nodeset_from_predictions`, **[신규]** `loop_dc_choke_H`(β 루프 측정용 입력 DC 경로, feedback_passives 가 있으면 필요).
 * `judge`: `sat_margin_V`(합격 판정의 포화 여유), `off_current_A`(선택), `tolerances{ID_rel, VGS_abs_V, VDS_abs_V, VSB_abs_V,
   gm_rel, gds_rel, gm_id_rel, node_abs_V, W_rel, kcl_abs_A, dc_gain_db_abs, pm_deg_abs, ugf_hz_rel, f3db_hz_rel,
-  supply_current_A_rel}`(기록·경고용). **기본값 없음**. `--judge` 파일·`--sat-margin-v` 가 덮어쓴다.
+  supply_current_A_rel, ratio_db_abs, rout_ohm_rel}`(기록·경고용). **기본값 없음**. `--judge` 파일·`--sat-margin-v` 가 덮어쓴다.
 * 크기 규칙: 소자 전압·전류는 극성 정규화(PMOS 도 켜진 포화면 ID·VGS·VDS 양수, VSB = |바디-소스| 방향 양수).
   ID 는 **부호 포함**: 선언 드레인 기준 정상 방향 전도(NMOS 드레인으로 들어감, PMOS 드레인에서 나옴) = 양수, 역방향 = 음수.
   **[정정 2026-10-07]** ngspice BSIM4 `@` 값 중 vgs·vds·vth·vdsat 는 이 규칙이지만(`@vds = type*(V(d)-V(s))`, 선언 단자
@@ -58,7 +59,8 @@
 
 `summary.verdict` 는 **free 모드에서만** 합격/불합격을 낸다. 합격 조건은 셋이다.
 1. `acceptance.constraints` 의 선언 제약(회로 성능 스펙)을 SPICE 값이 전부 만족한다. **[변경]** CMRR·PSRR(`ratio_db`,
-   C24)도 선언되면 여기서 판정한다. 슬루·정착은 판정 대상이 아니다(C25).
+   C24)도 선언되면 여기서 판정한다. **[신규]** 출력 저항(`rout_ohm`, C26)도 같다(음의 실수부는 정의 불가 -> PASS 불가).
+   슬루·정착은 판정 대상이 아니다(C25).
 2. SPICE 에서 전도하는 모든 MOS 가 포화: VDS - VDSAT >= `sat_margin_V`(인자, 기본값 없음). 전도 = **부호 있는** ID_spice
    (크기 규칙) > 그 소자 문턱(C23 의 소자별 `off_current_A`, 없으면 `judge.off_current_A`) -- 역방향 전류(ID < 0)는 전도가
    아니다(포화 검사 대상 밖, 엔진 예측 전도면 3 에서 FAIL). 문턱이 둘 다 없으면 소자 행 `conduction_threshold_A` 는 None 으로
@@ -85,6 +87,13 @@
   `ac.pm_deg` = 이 값, `ac.pm_definition` = `beta_loop`|`beta_1`, `ac.pm_open_loop_deg` = 늘 A 기준 값,
   `ac.loop_gain_dc_db`/`ac.loop_ugf_hz` = T 의 기준점 크기·교차 주파수.
 * 검증: 이상 gm 증폭기 + Cf/Cs/Cin 회로에서 해석식 T 와 1.3e-4 이내 일치(2026-10-07).
+* **[신규 7a]** 엔진 `pm_ss_deg` 는 같은 절단(`feedback` 소자의 입력 포트 넷 쪽 단자)·같은 두 주입을 절단 회로 MNA 의 Z 행렬로
+  중첩 계산한다(`_drafts/engine/design_7a_loop_output_views.md` 2.4) -- 수식 T = (Tv·Ti − 1)/(Tv + Ti + 2) 동일.
+* **[신규 7a] 가중 정의**: 차동 입력(`input_p`·`input_n`)은 v_id = `input_p_ac − input_n_ac` = 1, v_cm = `input_p_ac + input_n_ac`
+  = 0(즉 +½, −½), 단일 입력(`input`)은 `input_ac` = 1. β 루프 T 는 가중의 공통 배율에 무관하지만 부호·비가 모드(차동/공통)를
+  고르고, β=1 의 A 는 배율에 비례하므로 이 정의값이어야 엔진과 같은 양이다(C27 이 검사).
+* **[신규 7a]** 엔진과의 차이(기록으로만 드러냄, 판정 아님): 엔진 기준점은 ω → 0 극한, 오라클은 fstart(C10 과 같은 관례);
+  엔진은 절단 넷의 DC 경로가 없고 오라클은 `loop_dc_choke_H` 를 둔다 -> C27 의 `ac.loop_choke_ratio` 가 그 근사의 크기.
 
 ## 바이어스 모드
 
@@ -98,14 +107,16 @@
 
 `<circuit>[.<tag>].<bias>.cir` / `.cir.meta.json` / `.log` / `.ac.txt` / `.sim.json` / `.compare.json` / `.compare.md`
 (+ feedback_passives 가 있으면 `.loop.cir` / `.loop.log` / `.loop.v.txt` / `.loop.i.txt`, **[신규]** ratio_db 뷰가 있으면
-`.ratio<k>.num.txt` / `.ratio<k>.den.txt`).
+`.ratio<k>.num.txt` / `.ratio<k>.den.txt`, **[신규 C26]** rout_ohm 뷰가 있으면 `.rout<k>.txt`).
 `compare.json` 최상위: `summary{verdict, verdict_reason, warnings, acceptance{constraints_failed, constraints_unmeasured,
 conducting_devices, unsaturated_conducting, sat_margin_V, off_current_A, off_in_spice, conduction_not_evaluated},
-junction_capacitance, transient, record_counts, sat_in_spice, not_sat, spice_ac, spice_ratio, rail_current_A}`,
+junction_capacitance, transient, record_counts, sat_in_spice, not_sat, spice_ac, spice_ratio, spice_rout, pm_loop,
+rail_current_A}`,
 `performance`, `constraints`, `kcl_residual`, `devices`(행마다 **[신규]** `off_current_A_pred`, `conduction_threshold_A`,
 `predicted_conducting`, `conduction_check`, `diffusion`), `nodes`, `blockers`, `notes`, `judge_config`, `lut_meta`, `provenance`.
 측정 정의(개루프 A): gain = |H(fstart)|, UGF = |H|=1 첫 하강 교차(log 보간), f-3dB = |H| < |H0|/sqrt2 인 첫 주파수 점,
-supply_current = 레일 전압원이 공급하는 전류. PM 은 위 "PM 정의". **[신규]** ratio_db(CMRR·PSRR)는 C24, 슬루·정착은 C25.
+supply_current = 레일 전압원이 공급하는 전류. PM 은 위 "PM 정의". **[신규]** ratio_db(CMRR·PSRR)는 C24, 슬루·정착은 C25,
+**[신규]** 출력 저항 rout_ohm 은 C26.
 
 ## 동작 계약 (test 작성자용 -- 이 디렉터리의 test 는 다른 agent 가 쓴다)
 
@@ -122,6 +133,9 @@ C4. 레일: `reference=true` 넷은 SPICE 노드 `0`, 나머지 레일은 `Vrail
     대소문자만 다른 두 넷(전압 같은 레일 별칭 제외)은 막힘.
 C5. free: 차동 입력+차동 출력이면 `Efb_<in>` 이 (Vo-Vo') 차동 성분을 `diff_feedback_gain` 배로 되먹이고 `Vofs_<in>` 은 -V_in_pred;
     단일 출력이면 `out -> input_n` 이득 1, 오프셋 V_out_pred - V_in_pred; 되먹임 없는 입력은 `Vdc_<in>` + choke.
+    **[명확화]** 출력 DC 되먹임(`Efb_`·`Vofs_`·`Lfb_`)은 **차동 입력(`input_p`·`input_n` 둘 다 있음)에만** 건다. 단일 입력
+    (`input`) 회로는 출력 종류와 무관하게 되먹임이 없고 그 입력은 `Vdc_<in>`(예측 DC) + `Ldc_<in>` choke 이다. 차동 입력 +
+    단일 출력이면 `input_n` 에만 `Efb`(`input_p` 는 `Vdc`), 차동 입력 + 차동 출력이면 두 입력 모두 `Efb`.
     forced: 레일·입력·게이트 전용 바이어스 넷을 뺀 모든 소자 단자 넷(예측 있음)에 `Vhold_<net>` + choke, free 모드 `.nodeset` 없음.
 C6. 게이트 전용 넷(드레인/소스/전원/수동소자/입력 어디에도 안 물림): `bias_voltages` 값, 없으면 `predictions.nodes` 값의
     `Vbias_<net>` 과 notes 경고, 둘 다 없으면 막힘.
@@ -139,14 +153,28 @@ C9. **[변경]** acceptance 제약: `op` 이 `>=`/`<=` 일 때 SPICE 값으로 P
 C10. **[변경]** 측정: 위 "측정 정의"와 "PM 정의" 그대로. |L| 가 1 아래로 내려가지 않거나 첫 점부터 1 미만이면 `ugf_hz`/`pm_deg` 는 None.
 C11. 숫자 기본값: `oracle_*.py` 에 허용오차·포화 여유·테스트벤치 값의 숫자 기본값이 없다(모두 입력/인자). 스키마 필수 testbench 값이
     빠지면 C13 거부, 선택 값(`input_*_ac`, `diff_feedback_gain`, `loop_dc_choke_H`)이 필요한데 없으면 막힘.
+    **[신규]** C27 의 가중 검사(차동 차 1·합 0, 단일 1)는 정의값 검사이지 숫자 기본값이 아니다 -- 값은 여전히 입력에서만 온다.
 C12. legacy_adapter: 같은 dump 를 두 번 변환하면 같은 입력이 나온다(provenance 경로 제외). `--from-dump` 결과와 엔진을 새로 돌린
     결과는 엔진이 결정론적이면 같다. **[변경]** 입력 포트 넷에 단자가 물린 passives 를 `feedback_passives` 로 선언한다.
+    **[신규 7a 보충]** 이 '입력 넷에 물린 passives 전부' 규칙은 **옛 엔진 기준선 전용**이다. 어댑터는 그 표지로
+    `feedback_passives_basis = "legacy_c12_input_net_passives"` 를 쓴다. 새 엔진이 오라클 입력을 만들 때는
+    `feedback_passives` = spec `feedback.elements` 그대로(다시 추론하지 않음, 7a design 2.2 L1)이고 표지는
+    `"spec_feedback_elements"` 다. 두 규칙이 다른 집합을 고르면(예: 파일럿 CI-10 이 {Cf1, Cf2} 를 고르면 옛 규칙은
+    {Cf1, Cf2, Cs1, Cs2}) 두 PM 은 **다른 루프**를 잰 값이라 직접 비교하지 않는다 -- 비교하는 쪽은
+    `compare.summary.pm_loop{pm_definition, feedback_passives, feedback_passives_basis, loop_break_nets, loop_weights}` 를 보고
+    가른다. 오라클은 표지를 해석하지 않고 그대로 옮긴다(판정 무관, 없으면 None).
 C13. **[신규]** 스키마 검증: `oracle_netlist.py`, `oracle_compare.py`, `oracle_run.py` 는 입력을 `oracle_input.schema.json`
     (Draft 2020-12)으로 검증하고, 위반이면 위반 목록을 출력하고 **아무 산출물도 쓰지 않고** 반환 2 로 끝난다.
 C14. **[신규]** β 루프: `feedback_passives` 가 있으면 `<stem>.loop.cir` 에서 그 소자들의 입력 넷 단자만 `lbx_<넷>` 으로 바뀌고,
     끊은 넷마다 `Vlb_<넷> <넷> lbx_<넷>` 과 `Ilb_<넷> 0 <넷>` 이 있고, 그 넷의 결합 C/AC 원은 없다. **[변경]** 판정은 소자 단위(fail-closed):
     선언된 되먹임 수동소자 **각각**이 passives 에 있고 입력 포트 넷에 물려 있어야 하며, 하나라도 아니면 막힘이고 blocker 문장에
     그 소자 이름을 적는다. `loop_dc_choke_H` 가 없어도 막힘.
+    **[신규 7a 보강]** 선언된 되먹임 수동소자의 두 단자 중 입력 포트 넷에 물린 단자는 **정확히 1개**여야 한다. 두 단자가 모두
+    입력 포트 넷(서로 다른 두 입력 넷 사이, 또는 같은 입력 넷 양단)이면 절단 단자가 정해지지 않으므로 막힘이고 blocker 문장에
+    그 소자 이름과 단자를 적는다(엔진 `feedback_cut_ambiguous` 와 같은 조건; 0개는 위 기존 막힘 = 엔진
+    `feedback_element_not_on_input`). 막힌 입력은 ngspice 를 돌리지 않는다(C8 BLOCKED).
+    **[신규 7a]** 루프 넷리스트의 2회(전류 주입) 데이터 파일 `<stem>.loop.i.txt` 는 끊은 넷마다 `i(Vlb_<넷>)` 열 뒤에
+    (C27 기록용) 끊은 넷마다 `v(<넷>)` 열을 같은 넷 순서로 덧붙인다. T 계산은 앞의 i 열만 쓴다(값 변화 없음).
 
 ## [신규] 연결 동일성·단독 소자·진단 도구 (2026-10-07, 근거 `_drafts/engine/reference_review/` SYNTHESIS T09·T05(4), G4-11·G4-12, G3-06·G3-07·G3-14)
 
@@ -168,7 +196,8 @@ C15. **[신규]** topology 연결 동일성(free/forced): `oracle_netlist.py` �
     회로 원소 표(이름, 종류, 단자 넷)를 만들고 topology JSON(`netlist` + `passive_elements` + `ideal_sources`)과 비교한다.
     - 원소 분류는 넷리스트 이름 접두사로만: `X`=소자(종류 = subckt -> models kind), `Rp_`/`Cp_`=저항/커패시터,
       `Isrc_`/`Vsrc_`=전류/전압원(topology `current_source`/`voltage_source` 와 같은 뜻). 테스트벤치 원소(`Vrail_ Efb_ Vofs_
-      Lfb_ Vdc_ Ldc_ Cac_ Vac_ Vbias_ Vhold_ Lhold_ Vlb_ Ilb_ Vshort_ Viso_`)는 빼고 `excluded_testbench` 에 적는다.
+      Lfb_ Vdc_ Ldc_ Cac_ Vac_ Vbias_ Vhold_ Lhold_ Vlb_ Ilb_ Vshort_ Viso_ Irout_`)는 빼고 `excluded_testbench` 에 적는다
+      (**[신규]** `Irout_` = C26 감지 전류원).
       어느 쪽에도 안 맞는 원소는 차이(fail-closed). SPICE 노드 `0` 은 reference 레일 넷 이름으로 되돌려 비교한다.
     - 같아야 하는 것: 원소 이름 집합, 원소마다 종류, 단자 넷. MOS 는 (drain, gate, source) 순서 그대로(+ topology 가
       `bulk` 를 선언한 원소는 bulk 도), 저항·커패시터는 순서 무관, 이상원은 순서 그대로(방향).
@@ -217,7 +246,7 @@ C20. **[신규]** PM 교차 측정(기록만): `ac.pm_deg` 를 정한 루프 이
     같은 AC 데이터의 다른 측정 방법이라 교차점·위상 언랩 오류를 잡는 용도이고, 2차계가 아닌 루프에서는 근사다.
 C21. **[신규]** 실행 캐시(선택, `--cache-dir`): 키 = sha256(넷리스트 바이트 + 넷리스트가 `.include`/`.inc`/`.lib` 로 읽는 모델 파일
     전부(재귀, 경로+바이트) + ngspice 실행 파일 경로 + `-b`). 같은 키면 ngspice 를 돌리지 않고 저장한 로그·데이터 파일
-    (`.ac.txt`, 루프 `.v.txt`/`.i.txt`)을 복원한다. 모델 파일을 하나라도 못 찾으면 캐시를 쓰지 않는다. `sim.cache =
+    (`.ac.txt`, 루프 `.v.txt`/`.i.txt`, C24 `.ratio<k>.*.txt`, **[신규]** C26 `.rout<k>.txt`)을 복원한다. 모델 파일을 하나라도 못 찾으면 캐시를 쓰지 않는다. `sim.cache =
     {main, loop}` 이 `hit`/`miss`/`off(모델 파일 못 찾음)`/None(캐시 미사용).
 C12 보충. **[신규]** legacy_adapter: `topology{path, sha256}` 를 쓰고, topology 에 없는 출력 부하(`LOAD_<출력>`)에
     `not_in_topology_reason` 을 달며, `models[kind].polarity` 를 LUT 생성기 `run_device(..., polarity=±1)` 에서 읽는다.
@@ -300,6 +329,68 @@ C25. **[신규]** 슬루·정착(Q5 (ii) (B), 기록 전용): metric measure `sl
     (`gmid_engine/authoring/SPEC_CONTRACT.md`, `_drafts/engine/design_spec_format.md` F11 -- settling 은 `{total_s, linear_s}`
     뿐이고 오차 대역 없음, `driving_spec.slew_rate_*` 는 MOD5 레지스트리 미정)에 없다 -- 추측으로 정하지 않는다. 정의가 정해지면
     이 항목을 측정으로 바꾼다. 제약 measure enum 에는 넣지 않았다(판정 대상 아님 -- 선언하려면 스키마 위반으로 드러난다).
+
+## [신규] 7a 루프·출력 포트 뷰 -- 출력 저항, 정의 일치 검사 (2026-10-07, 근거 `_drafts/engine/design_7a_loop_output_views.md` 2.3·2.6·3.3·4.3)
+
+### 입력 스키마 추가
+
+* measure `rout_ohm`(제약·metric 모두) + 항목 `view` = 감지 전용 뷰 `$defs/sense_view`
+  `{sense_p, sense_n?, sense_mode}`(measure 가 `rout_ohm` 이면 필수). `additionalProperties: false` 라 `ac_excite` 를 두면
+  **스키마 위반**(C13: 아무 산출물도 쓰지 않고 반환 2). `sense_mode = "differential"` 이면 `sense_n` 은 필수 비빈 문자열,
+  `"single_ended"` 면 `sense_n` 이 없거나 null(문자열이면 스키마 위반). 허용오차 키 `tolerances.rout_ohm_rel`(기록 전용, rel).
+* `feedback_passives_basis`(C12 보충, 위).
+
+### 동작 계약 추가
+
+C26. **[신규]** 출력 저항 `rout_ohm`(엔진 `rout_ss_ohm` 의 출력 포트 뷰와 같은 여기 정의, 7a design 3.1·3.2·3.3):
+    - 정의: 뷰마다 .ac 한 번, 주파수 = `testbench.ac.fstart_hz` 한 점(`ac lin 1 f f`, C24 와 같은 DC 대용 기준점). 그 .ac 에서
+      테스트벤치가 이상 전압원으로 구동하는 **모든** 여기 원(레일 `Vrail_`, 입력 `Vac_`(결합 C 경유), 게이트 바이어스 `Vbias_`)의
+      AC 진폭은 0 이고(`alter @<원>[acmag] = 0`, C24 수단), 감지 넷에 단위 AC 전류를 넣는다: single_ended 는
+      `Irout_<k> 0 <sense_p> DC 0 AC …`(sense_p 로 +1 A 주입), differential 은 거기에 `Irout_<k>n <sense_n> 0 DC 0 AC …`
+      (sense_n 에서 1 A 뽑음)을 더한다. 두 전류원은 넷리스트 본문에 `DC 0 AC 0` 으로 있고(.op·개루프 A·C24 실행에 영향 없음)
+      자기 .ac 직전에만 `alter @irout_<k>[acmag] = 1`(다른 뷰의 것은 0)로 켠다. k = 뷰 번호(0부터, 아래 중복 제거 뒤 순서).
+    - 응답 H = V(sense_p) − V(sense_n)(differential) 또는 V(sense_p)(single_ended) [V/A = Ohm]. **`rout_ohm` = Re(H)**(부호
+      그대로가 아니라 아래 규칙), 기록에 Im(H)·|H| 도 남긴다.
+    - **음의 실수부 = 정의 불가**(엔진 결정: 음의 출력 저항은 정의 불가 값이며 통과하지 않는다): Re(H) < 0 이면 `rout_ohm` = None,
+      `undefined = "negative_real_part"`. 제약이면 판정 칸 `N/A(정의 불가: negative_real_part)`, 항목 `undefined` 칸에 같은 이유
+      -> C8 에서 'SPICE 로 값을 못 얻은 제약'으로 세어 **free verdict 는 PASS 가 될 수 없고 INCOMPLETE**(다른 FAIL 이 있으면 FAIL).
+      metric 이면 성능 기록 판정 칸이 같은 `N/A(정의 불가: …)`. Re(H) = 0 은 값 0(정의 불가 아님). 데이터 파일이 없으면
+      `rout_ohm` None, `undefined = "no_data"` -> 판정 칸은 기존 `N/A(SPICE 값 없음)`.
+    - 뷰 동일성: (sense_p, sense_n(없으면 null), sense_mode) 가 같으면 같은 뷰(`sense_n` 키 없음 = null)이고 한 번만 잰다
+      (제약을 먼저, 그다음 metric 순서로 처음 나온 순서). 제약·metric 의 SPICE 값 = 같은 뷰의 측정 결과.
+    - 막힘(넷리스트 meta.blockers, 문장이 `C26 rout_ohm` 으로 시작, 하나라도 있으면 rout 실행을 하나도 넣지 않음):
+      `fstart_hz` 없음; 감지 넷(single_ended 는 sense_p, differential 은 둘 다)이 reference 레일; 회로 넷(소자·수동소자 단자 넷,
+      reference 제외)이 아님; 테스트벤치가 이상 전압원으로 구동하는 넷(비-reference 레일, 입력 포트 넷, 게이트 전용 바이어스 넷 --
+      엔진 출력 포트 뷰의 고정 노드라 정의 밖); differential 에서 sense_p == sense_n.
+    - 데이터 파일 `<stem>.rout<k>.txt`(wrdata, C21 캐시에 함께 저장·복원). `meta.rout_runs = [{view, f_hz, file}]`,
+      `sim.rout = [{view, f_hz, re, im, mag, rout_ohm, undefined}]`(view 는 정규형 `{sense_p, sense_n, sense_mode}`),
+      `compare.summary.spice_rout = sim.rout`. 막힌 넷리스트의 sim 은 `rout: []`.
+    - free·forced 둘 다 잰다(forced 는 진단 기록, verdict 는 C8 대로 INCOMPLETE). iso·β 루프 넷리스트에는 없다.
+    - 개루프 값의 유효 조건(판정 아님, C27 `ac.dc_path_isolation`): free 단일 출력의 `Efb`·`Lfb` 처럼 choke 로 들어오는 DC 경로가
+      fstart 에서 충분히 열려 있어야(ω²LC ≫ 1) 입력 AC 0 고정 = 엔진 고정 노드와 같다.
+    - 확인(2026-10-07, ngspice-46 sky130 tt, 손으로 쓴 독립 넷리스트 + 손계산 대조, test 아님): NMOS CS(RL 100 kΩ) Re(H) =
+      91430.56 Ω = RL‖(1/gds)(상대차 6e-8); 소스 팔로워(RS 10 kΩ) 1963.696 Ω = 1/(gm + gmbs + gds + 1/RS)(2e-7; 1/(gm+gmbs)
+      = 2457 Ω 은 RS·gds 를 뺀 근사); 반회로 두 개 차동 139384.8 Ω = Ro1 + Ro2(독립 넷리스트와 1.4e-7); 교차 결합 쌍 차동
+      Re(H) = −106960.5 Ω = 2/(1/RL + gds − gm) -> `negative_real_part`, 제약 N/A, verdict INCOMPLETE.
+C27. **[신규]** 정의 일치 검사(엔진과 같은 양을 재는지):
+    - 가중: metric·제약 중 하나라도 measure 가 `dc_gain_db`·`ugf_hz`·`pm_deg`(개루프 A 의 크기를 쓰는 값; `f3db_hz` 는 배율
+      무관이라 제외)이면, 차동 입력(ports 에 `input_p`·`input_n`)은 `input_p_ac − input_n_ac == 1` 이고
+      `input_p_ac + input_n_ac == 0`, 단일 입력(`input`)은 `input_ac == 1` 이어야 한다(부동소수 정확 비교). 아니면 막힘(문장이
+      `C27 가중 정의` 로 시작, 실제 값과 해당 measure 를 적음). 해당 키가 없으면 이 검사는 보지 않는다(C11 이 막는다). 같은 키가
+      β 루프 절단 가중이라(PM 정의) 이 검사가 루프 가중(차동 ±½, 단일 1)도 보장한다. 검사는 본·루프 넷리스트 모두에 걸린다.
+    - 기록(판정 아님, 숫자 문턱 없음):
+      `ac.dc_path_isolation = [{net, choke_H, couple_F, f_hz, omega2_LC, output_feedback}]` -- 본 넷리스트 입력 넷마다
+      (2π·fstart)²·`dc_choke_H`·`ac_couple_F`, `output_feedback` = 그 입력에 free 출력 DC 되먹임(Efb)이 걸렸는가.
+      `ac.loop_choke_ratio = [{net, f_hz, choke_H, node_impedance_ohm, ratio}]`(β 루프일 때, 아니면 None) -- 2회(전류 주입)
+      실행의 첫 점에서 끊은 넷 k 마다 node_impedance = |V(n_k)/w_k|, ratio = |2π·f·`loop_dc_choke_H`| / node_impedance
+      (w_k = 0 이면 둘 다 None). ≫ 1 이면 choke 가 열린 것으로 본다.
+    - 루프 정의 노출: `ac.loop_break_nets`(β 루프 = 끊은 넷, β=1 = 빈 목록), `ac.loop_weights`({넷: 가중} -- β 루프 = 끊은 넷
+      가중, β=1 = 입력 넷의 AC 여기 진폭), 그리고 `compare.summary.pm_loop`(C12 보충).
+
+### 구현하지 않은 것
+
+* 엔진 쪽 ω → 0 극한과 오라클 fstart 값의 차이 보정: 정의상 기록 차(C27 기록)로만 둔다. 숫자 문턱을 두지 않는다.
+* 공통 모드 루프·CMFB 루프 PM(7a design 7절 Q2), 명시 루프 뷰 `cut_weights`: 사용자 결정 전이라 입력 형식에 없다.
 
 ## 옛 엔진 기준선 만들기
 

@@ -19,13 +19,14 @@ from .mna_types import DcLimit, MnaSystem, Undefined
 
 
 def solve_dc_limit(system):
-    """`MnaSystem` -> `DcLimit`(열마다 ω → 0 극한 관측값, 정의 안 된 열은 NaN + 사유)."""
+    """`MnaSystem` -> `DcLimit`(관측 행 × 열마다 ω → 0 극한 관측값 (r, m), 정의 안 된 열은 NaN + 사유).
+    전하 주입 열은 BG_F = 0 이라 F 행이 C_F·x = BC_F 로 그대로 들어간다(새 규칙 없음, `dc_charge_injection` 아님)."""
     if not isinstance(system, MnaSystem):
         raise TypeError("solve_dc_limit 은 MnaSystem 을 받는다")
-    m = len(system.excitations)
-    nan = numpy.full(m, numpy.nan)
+    nan = numpy.full(system.sense_direct.shape, numpy.nan)
     if system.defects:
         return DcLimit(values=nan, undefined=system.defects)
+    m = len(system.excitations)
     n = system.G.shape[0]
     if n == 0:
         return DcLimit(values=system.sense_direct.astype(float))
@@ -42,12 +43,12 @@ def solve_dc_limit(system):
             undefined=(Undefined("response", "singular_dc_limit", "structural", (("charge_nodes", nodes),)),),
         )
     x = scipy.linalg.lu_solve((lu, piv), rhs)
-    values = system.sense_row @ x + system.sense_direct
+    values = system.sense_rows @ x + system.sense_direct
     undefined = []
     for j in range(m):
         injected = tuple(system.nodes[i] for i in charge if system.BG[i, j])
         if injected:
-            values[j] = numpy.nan
+            values[:, j] = numpy.nan
             undefined.append(
                 Undefined("response", "dc_charge_injection", "definitional", (("column", j), ("nodes", injected)))
             )

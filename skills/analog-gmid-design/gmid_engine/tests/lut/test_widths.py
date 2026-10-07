@@ -44,10 +44,10 @@ def test_real_widths(real_lut, real_slice_files, real_spec, real_paths):
     for kind in ("nmos", "pmos"):
         exp = tuple(sorted(wk for k, _, _, wk, _ in real_slice_files if k == kind and wk * grid >= mins[kind]))
         assert widths(real_lut, kind) == exp
-        assert len(exp) == {"nmos": 20, "pmos": 12}[kind]
+        assert len(exp) == {"nmos": 20, "pmos": 12}[kind]     # LUT v2 도 같은 폭 집합(슬라이스 32개)
     # 하한을 0.6 µm 로 올리면 그 미만 폭이 빠진다(대체 없음)
     spec = LutSpec(grid, (("nmos", 0.6e-6), ("pmos", 0.6e-6)), real_spec.device_kinds, real_spec.cap_column_suffix)
-    from gmid_engine.lut import load_lut_set
-    lut2 = load_lut_set(real_paths["manifest"], real_paths["cap"], spec)
+    from .conftest import load_real
+    lut2 = load_real(real_paths, spec)                     # [r6] 1.8 '쓰는 법'(pdk_root·verify_midpoints)
     assert widths(lut2, "nmos")[0] == 120 and 116 not in widths(lut2, "nmos")
     assert widths(lut2, "pmos")[0] == 128

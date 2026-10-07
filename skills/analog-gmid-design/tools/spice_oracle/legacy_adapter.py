@@ -451,6 +451,7 @@ def convert(dump, w_source, isrc, testbench, topology_path=None, instance_path=N
         "passives": passives,
         "bias_voltages": [],
         "feedback_passives": feedback,
+        "feedback_passives_basis": "legacy_c12_input_net_passives",  # C12 보충: 옛 기준선 전용 규칙(새 엔진은 spec feedback)
         "ports": ports,
         "predictions": {"nodes": node_pred, "devices": pdev, "metrics": metrics},
         "acceptance": {"constraints": cons, "not_measurable": not_meas},

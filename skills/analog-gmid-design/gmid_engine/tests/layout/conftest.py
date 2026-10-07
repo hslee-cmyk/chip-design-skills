@@ -10,6 +10,7 @@ from __future__ import annotations
 import dataclasses
 import importlib.util
 import json
+import math
 import os
 import subprocess
 import sys
@@ -87,7 +88,7 @@ def seed_runner():
 
 
 # ---------------------------------------------------------------------------
-# 2단계(CONTRACT 4절) 공용 -- toy LUT(4.15 = lut 계약 7절 toy, 최소 finger 1e-6), 입력 생성기, 독립 계산
+# 2단계(CONTRACT 4절) 공용 -- toy LUT(4.15 = lut 계약 7.1 r5 toy, 최소 finger 1e-6), 입력 생성기, 독립 계산
 # 피검(layout 계산) 함수는 여기서 부르지 않는다. 기대값은 계약 손계산 또는 이 파일의 독립 계산에서 나온다.
 # ---------------------------------------------------------------------------
 
@@ -100,24 +101,52 @@ TOY_L = (1e-6, 2e-6, 3e-6)
 TOY_VGS = (0.0, 0.5, 1.0)
 TOY_VDS = (0.5, 1.0)
 TOY_VS = (0.0, 0.5)
-TOY_ID_VGS = (1e-7, 1e-6, 1e-5)
-TOY_GM_RATIO = (20.0, 10.0, 4.0)
 TOY_VS_FACTOR = (1.0, 0.5)
 GRID = 1e-8
+# [r5] lut 계약 7.1 r5 toy 닫힌 식: ln ID = ln(1e-7·(1e-6/L)) + 20v − 6v² + 0.1d + ln(0.5)·s/0.5, gm/ID = 20 − 12v, GDS = 0.1·ID
+TOY_GM_ID = 14.0                              # layout 4.15 소자 공통 gm/ID -> 20 − 12v = 14 의 근 v = 0.5 (격자점)
+TOY_VGS_ROOT = (20.0 - TOY_GM_ID) / 12.0
+TOY_VDS_OP = 0.5
 
 
-def _toy_slice(W, scale):
+def toy_ln_id(v, d, L=1e-6, s_factor=1.0):
+    return math.log(1e-7 * (1e-6 / L) * s_factor) + 20.0 * v - 6.0 * v * v + 0.1 * d
+
+
+# I1 = 키 100 슬라이스(W 1e-6) 의 동작점(v 0.5, d 0.5, vsb 0, L 1e-6) ID = 1e-7·e^8.55 (layout 4.2), J0 = I1 / 1e-6 A/m
+I1 = math.exp(toy_ln_id(TOY_VGS_ROOT, TOY_VDS_OP))
+J0 = I1 / 1e-6
+
+
+def _toy_slice_r4(W, scale):
+    """lut 7.2 r4 toy(FC 위반 예시) -- 4.2 의 거부 경로 확인용."""
     ID = np.empty((3, 3, 2, 2))
     for iL, L in enumerate(TOY_L):
         for iG in range(3):
             for k in range(2):
                 for s in range(2):
-                    ID[iL, iG, k, s] = (1e-6 / L) * TOY_ID_VGS[iG] * TOY_VS_FACTOR[s]
+                    ID[iL, iG, k, s] = (1e-6 / L) * (1e-7, 1e-6, 1e-5)[iG] * TOY_VS_FACTOR[s]
     ID = ID * scale
-    GM = ID * np.asarray(TOY_GM_RATIO)[None, :, None, None]
+    GM = ID * np.asarray((20.0, 10.0, 4.0))[None, :, None, None]
     return {
         "W": np.float64(W), "L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS),
         "VS": np.asarray(TOY_VS), "ID": ID, "GM": GM, "GDS": ID / 10.0, "VTH": np.full(ID.shape, 0.4),
+        "meta_json": np.str_('{"model_files_sha256": {}}'), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
+    }
+
+
+def _toy_slice(W, scale):
+    ID = np.empty((3, 3, 2, 2))
+    for iL, L in enumerate(TOY_L):
+        for iG, v in enumerate(TOY_VGS):
+            for k, d in enumerate(TOY_VDS):
+                for s in range(2):
+                    ID[iL, iG, k, s] = math.exp(toy_ln_id(v, d, L, TOY_VS_FACTOR[s]))
+    ID = ID * scale
+    GM = ID * (20.0 - 12.0 * np.asarray(TOY_VGS))[None, :, None, None]
+    return {
+        "W": np.float64(W), "L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS),
+        "VS": np.asarray(TOY_VS), "ID": ID, "GM": GM, "GDS": ID * 0.1, "VTH": np.full(ID.shape, 0.4),
         "meta_json": np.str_('{"model_files_sha256": {}}'), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
     }
 
@@ -126,15 +155,15 @@ def _sha(p):
     return hashlib.sha256(Path(p).read_bytes()).hexdigest()
 
 
-def build_toy_lut(root, id_scale=1.0):
-    """CONTRACT 4.15 toy(lut 계약 7절 슬라이스 2장 + 기준 LUT, LutSpec 최소 finger 1e-6). id_scale != 1 이면 내용이 다른 LUT(다른 fp)."""
+def build_toy_lut(root, id_scale=1.0, variant="r5"):
+    """CONTRACT 4.15 [r5] toy(lut 계약 7.1 r5 toy 슬라이스 2장 + 기준 LUT, LutSpec 최소 finger 1e-6). id_scale != 1 이면 내용이 다른 LUT(다른 fp)."""
     from gmid_engine.lut import LutSpec, load_lut_set
     root = Path(root)
     root.mkdir(parents=True, exist_ok=True)
     entries = []
     for fname, W, scale in (("toy_w100.npz", 1e-6, 1.0), ("toy_w200.npz", 2e-6, 2.0)):
         p = root / fname
-        np.savez(p, **_toy_slice(W, scale * id_scale))
+        np.savez(p, **(_toy_slice if variant == "r5" else _toy_slice_r4)(W, scale * id_scale))
         entries.append({"device": "toyn", "file": fname, "sha256": _sha(p)})
     (root / "manifest.json").write_text(json.dumps({"generator_sha256": "0" * 64, "slices": entries}), encoding="utf-8")
     shp = (3, 3, 2, 2)
@@ -160,11 +189,16 @@ def toy_pdk(lut, overhead=0.0, gap=0.0, dummy=0.0, tap=0.0, well=0.0, rules=None
     return LayoutPdk.from_lut(lut, overhead, gap, dummy, tap, well, rule_ids() if rules is None else rules)
 
 
-def dev(name, s, d, ID, gate="g", W=4e-6, L=1e-6, gm_id=10.0, vds=0.5, vsb=0.0, diode=False, adj=True,
-        kind="nmos", body="sub"):
-    """4.15 소자 공통값(kind nmos, body sub, L 1e-6, gm/ID 10, vds 0.5, vsb 0, W_m 4e-6 참고)."""
+def dev(name, s, d, w_need, gate="g", W=4e-6, L=1e-6, gm_id=TOY_GM_ID, vds=TOY_VDS_OP, vsb=0.0, diode=False, adj=True,
+        kind="nmos", body="sub", ID_A=None):
+    """4.15 소자 공통값(kind nmos, body sub, L 1e-6, gm/ID 14, vds 0.5, vsb 0, W_m 4e-6 참고).
+
+    [r5] 넷째 인자 `w_need` = toy 동작점에서의 W_need(m). 계약 4.15 의 'ID_A = c x I1 -> W_need = c x 1e-6' 그대로
+    ID_A = w_need x J0 (J0 = I1 / 1e-6). 실 LUT 등 다른 조건은 `ID_A=` 로 전류를 직접 준다.
+    """
     from gmid_engine.layout import LayoutDevice
-    return LayoutDevice(name, kind, d, gate, s, body, W, L, ID, gm_id, vds, vsb, diode, adj)
+    current = w_need * J0 if ID_A is None else ID_A
+    return LayoutDevice(name, kind, d, gate, s, body, W, L, current, gm_id, vds, vsb, diode, adj)
 
 
 def make_input(devices, groups, row_groups, pdk, rejected=()):

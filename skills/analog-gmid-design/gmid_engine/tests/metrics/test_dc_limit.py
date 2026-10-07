@@ -21,7 +21,8 @@ from .conftest import closed_sc_loop_dc, codes, ex1_rc, ex2_amp, ex2b_sf, ex2c_b
 
 
 def _v(d):
-    return np.asarray(d.values)
+    # 관측 1개 계: values (1, m) 의 관측 행 0
+    return np.asarray(d.values)[0]
 
 
 def test_rc_dc_is_one():
@@ -77,7 +78,7 @@ def test_sc_loop_dc_and_injection_column_only():
 def test_injection_into_charge_node_only_that_column():
     # 노드 3: Cf(2,3)·Cs(3,0) 만. 열 a = 1 V at 2(정상), 열 b = 노드 3 에 1 A(발산)
     ck = SmallSignalCircuit(capacitors=(Capacitor(2, 3, 1e-12), Capacitor(3, 0, 3e-12)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("a", voltages=((2, 1.0),)), Excitation("b", currents=((3, 1.0),))), Sense(3))
+    s = build_mna(ck, (Excitation("a", voltages=((2, 1.0),)), Excitation("b", currents=((3, 1.0),))), (Sense(3),))
     d = solve_dc_limit(s)
     assert _v(d)[0] == pytest.approx(0.25, rel=1e-12)
     assert math.isnan(_v(d)[1])
@@ -93,7 +94,7 @@ def test_singular_dc_limit_all_columns_nan():
         capacitors=(Capacitor(1, 2, 1e-12), Capacitor(3, 0, 1e-12)),
         ac_ground=(0,),
     )
-    s = build_mna(ck, (Excitation("a", voltages=((1, 1.0),)), Excitation("b", voltages=((1, 2.0),))), Sense(3))
+    s = build_mna(ck, (Excitation("a", voltages=((1, 1.0),)), Excitation("b", voltages=((1, 2.0),))), (Sense(3),))
     assert tuple(s.charge_nodes) == ()
     d = solve_dc_limit(s)
     assert np.all(np.isnan(_v(d)))
@@ -103,7 +104,7 @@ def test_singular_dc_limit_all_columns_nan():
 
 def test_defects_give_nan_with_reason():
     ck = SmallSignalCircuit(resistors=(Resistor(1, 2, 1e3), Resistor(2, 0, 1e3)), ac_ground=(0,))
-    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), Sense(5))
+    s = build_mna(ck, (Excitation("v", voltages=((1, 1.0),)),), (Sense(5),))
     d = solve_dc_limit(s)
     assert np.all(np.isnan(_v(d)))
     assert "isolated_node" in codes(d.undefined)
