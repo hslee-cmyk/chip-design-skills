@@ -7,8 +7,9 @@
   둘 이상 `ref_ambiguous`). 대상이 다시 참조면 따라가고, 되돌아오면 `ref_cycle`.
 * `value_from_file: "<회로>#<이름>"` -- `load_referenced(<회로>)` 가 돌려준 그 회로의 로드된 `SizingSpecDoc` 에서
   `<이름>` 이 보상 목표 키면 그 목표 값, 아니면 metric 이 그 이름인 제약 하나의 값. 형식이 틀리면 `ref_unresolved`.
-  `load_referenced` 는 (doc 또는 None, hits) 를 돌려준다 -- 대상 파일 거부·순환(`ref_cycle`)·대상 topology 지문 불일치는
-  그 hits 로 온다(`spec_load` 가 대상 topology 를 읽어 대상 spec 을 같은 로더로 읽는다).
+  `load_referenced` 는 (doc 또는 None, rule, hits) 를 돌려준다 -- rule = `ref_unresolved`(대상 파일 없음) /
+  `ref_cycle`(로드 사슬에 이미 있음) / `ref_file_rejected`(대상 로드 거부, 지문 불일치 포함). 대상 거부 hits 에 `ref_cycle`
+  이 있으면(파일 사이 순환이 대상 쪽에서 잡힘) 바깥 rule 도 `ref_cycle` 이다(`spec_load` 가 대상 topology 를 읽어 대상 spec 을 같은 로더로 읽는다).
 * 판정 여부: 참조 제약의 `judged` = 대상 제약의 `judged`(대상이 `pending_spice` 면 판정 안 함, U-17). 보상 목표처럼
   판정이 없는 대상이면 True.
 * 대상 값이 결정 대기면 참조한 칸도 결정 대기다: 값 None + `value_decision`(목표는 `decision`), 그 ID 를 PendingMark 로
@@ -60,10 +61,11 @@ def resolve_spec_references(constraints, targets, load_referenced):
             circuit, sep, name = text.partition(FILE_SEPARATOR)
             if not sep or not circuit or not name:
                 return None, SchemaHit("ref_unresolved", where, "value_from_file 형식은 '<회로>#<이름>': " + repr(text))
-            doc, file_hits = load_referenced(circuit)
+            doc, rule, file_hits = load_referenced(circuit)
             if doc is None:
                 elements = tuple(sorted({h.rule for h in file_hits}))
-                rule = "ref_cycle" if "ref_cycle" in elements else "ref_file_rejected"
+                if rule == "ref_file_rejected" and "ref_cycle" in elements:
+                    rule = "ref_cycle"  # 파일 사이 순환은 바깥에서도 ref_cycle(elements = 대상 hit rule 들)
                 return None, SchemaHit(rule, where, "참조 파일 " + repr(circuit) + " 을 로드하지 못했다: "
                                        + repr(elements), elements)
             result, hit = _resolve_in(doc.constraints, doc.compensation_targets, name, where, frozenset(), None)

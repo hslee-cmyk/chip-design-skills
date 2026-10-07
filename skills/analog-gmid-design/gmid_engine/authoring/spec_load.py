@@ -136,13 +136,16 @@ def _load(path, topology, catalog, chain):
 
 
 def _load_referenced(directory, circuit, catalog, chain):
+    """(doc 또는 None, rule, hits). rule 은 doc 이 None 일 때 바깥 hit 의 rule(spec_refs 계약)."""
     spec_path = directory / (circuit + SPEC_SUFFIX)
     if spec_path.resolve() in chain:
-        return None, (SchemaHit("ref_cycle", str(spec_path), "참조 파일 사슬이 순환한다: " + str(spec_path), (circuit,)),)
+        return None, "ref_cycle", (SchemaHit("ref_cycle", str(spec_path), "참조 파일 사슬이 순환한다: " + str(spec_path),
+                                             (circuit,)),)
     try:
         topology = load_topology(directory / (circuit + _TOPOLOGY_SUFFIX))
-        return _load(spec_path, topology, catalog, chain), ()
+        return _load(spec_path, topology, catalog, chain), None, ()
     except SchemaRejectedError as exc:
-        return None, tuple(dict(exc.record.detail)["hits"])
+        return None, "ref_file_rejected", tuple(dict(exc.record.detail)["hits"])
     except FileNotFoundError:
-        return None, (SchemaHit("ref_unresolved", str(spec_path), "참조 회로 파일이 없다: " + circuit, (circuit,)),)
+        return None, "ref_unresolved", (SchemaHit("ref_unresolved", str(spec_path), "참조 회로 파일이 없다: " + circuit,
+                                                  (circuit,)),)

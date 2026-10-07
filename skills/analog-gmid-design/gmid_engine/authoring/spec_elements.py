@@ -13,7 +13,7 @@
 * `element_value` -- 수동소자 값(`POSITIVE_KEYS`)이 0 이하.
 * `element_unknown` / `element_undeclared` -- spec 이름이 topology 원소 밖 / topology 원소가 spec 에 없다.
 * `element_value_conflict` -- topology 원소에 값 필드가 남아 있는데(F5 이관 전 옛 위치) spec 선언과 다르다(spec 이
-  값이 아니거나 수가 다름). 같은 값이 두 곳에 있는 동안 조용히 갈리지 않게 막는다(topology 값 필드 삭제는 topology
+  engine·pending 이거나 수가 다름 -- 수동소자·이상원 모두). 같은 값이 두 곳에 있는 동안 조용히 갈리지 않게 막는다(topology 값 필드 삭제는 topology
   정리 단계 몫).
 `feedback` 모양: `{"pending": <ID>}` / `{"elements": [<수동소자 이름>…], "source"}`(빈 list = 되먹임 수동소자 없음 =
 β=1 루프, UD 9번). `type`(형식·중복), `feedback_element_unknown`(topology 수동소자 밖).
@@ -40,9 +40,22 @@ VALUE_KEYS = tuple(sorted(VALUE_KEY_BY_KIND.values()))
 POSITIVE_KEYS = ("value_farad", "value_ohm")
 
 
+def _conflict(name, result, where, topo_values):
+    # topology 에 옛 값이 남아 있으면 spec 은 같은 수여야 한다(engine·pending 도 어긋남 -- 값을 topology 에서 채우지 않는다).
+    if topo_values is None or topo_values.get(name) is None:
+        return []
+    old = topo_values[name]
+    if result is not None and result.mode == "value" and result.value == old:
+        return []
+    mode = result.mode if result is not None else "invalid"
+    return [SchemaHit("element_value_conflict", where, "topology 원소 " + repr(name) + " 에 값 " + repr(old)
+                      + " 이 남아 있는데 spec 선언(" + mode + ")과 다르다 -- 값 정본은 spec(F5)", (name,))]
+
+
 def _element(name, entry, where, kinds, topo_values):
     if is_pending(entry):
-        return ElementValue(name, "pending", decision=pending_decision(entry)), []
+        result = ElementValue(name, "pending", decision=pending_decision(entry))
+        return result, _conflict(name, result, where, topo_values)
     if not isinstance(entry, dict):
         return None, [SchemaHit("type", where, "요소 값 선언은 객체여야 한다: " + type(entry).__name__, (name,))]
     hits = key_hits(entry, VALUE_KEYS + (ENGINE_KEY, "source"), where, (name,))
@@ -69,12 +82,7 @@ def _element(name, entry, where, kinds, topo_values):
                                   + ") 의 값 키는 " + repr(VALUE_KEY_BY_KIND.get(kind)) + " 여야 한다: " + repr(key),
                                   (name,)))
         result = ElementValue(name, "value", key, float(value) if finite_number(value) else None, source)
-    if topo_values is not None and topo_values.get(name) is not None:
-        old = topo_values[name]
-        if result.mode != "value" or result.value != old:
-            hits.append(SchemaHit("element_value_conflict", where, "topology 원소 " + repr(name) + " 에 값 " + repr(old)
-                                  + " 이 남아 있는데 spec 선언(" + result.mode + ")과 다르다 -- 값 정본은 spec(F5)",
-                                  (name,)))
+    hits.extend(_conflict(name, result, where, topo_values))
     return result, hits
 
 

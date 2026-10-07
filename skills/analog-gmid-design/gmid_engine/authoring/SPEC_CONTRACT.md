@@ -32,7 +32,9 @@
   않는다(중복 보고 없음).
 - `value_from_file` 대상: 같은 디렉터리 `<회로>.topology.json`(`load_topology`) + `<회로>.sizing_spec.json`(같은 로더, 같은
   이름표). 한 로드 안에서 같은 회로는 한 번만 읽는다. 사슬에 이미 있는 파일 = `ref_cycle`. 파일 없음 = `ref_unresolved`.
-  대상 로드 거부(지문 불일치 포함) = `ref_file_rejected`(`elements` = 대상 hit 의 rule 들).
+  대상 로드 거부(지문 불일치 포함) = `ref_file_rejected`(`elements` = 대상 hit 의 rule 들). **파일 사이 순환**(A→B→A)은
+  대상 쪽 로드가 `ref_cycle` 로 거부되므로 바깥 hit 도 rule `ref_cycle`(`elements` = 대상 hit 의 rule 들, `ref_cycle` 포함)
+  이다 -- `ref_file_rejected` 가 아니다.
 - 캐시 없음: 같은 경로를 두 번 부르면 두 번 읽고 같은 `spec_fp` 를 낸다(결정론).
 
 ## 1. 파일 형식 (요약 -- 정본은 이 절과 각 파일 docstring)
@@ -75,7 +77,7 @@ objective, search, spice_check, front_refilter. 선택 = pending_constraints, co
 | `input_dc_net_not_rail` / `input_dc_out_of_rails` | net 이 레일 밖 / value_v 가 레일 전압 범위 밖 | input_dc |
 | `element_unknown` / `element_undeclared` | spec 이름이 topology 수동·이상원 밖 / topology 원소 선언 누락(F4) | elements |
 | `element_value_key` / `element_value` | 값 키 ≠ kind 표(capacitor→value_farad, resistor→value_ohm, current_source→value_dc_amp, voltage_source→value_dc_v) / 수동소자 값 ≤ 0 | elements |
-| `element_value_conflict` | topology 원소에 옛 값이 있는데 spec 이 다른 값·engine·pending(F5 이관 전 안전망) | elements |
+| `element_value_conflict` | topology 원소(수동소자·이상원)에 옛 값이 있는데 spec 이 다른 값·engine·pending(F5 이관 전 안전망 -- topology 값으로 spec 을 채우지 않는다) | elements |
 | `feedback_element_unknown` | feedback.elements 이름이 topology 수동소자 밖 | elements |
 | `node_target_net` | 노드 목표 넷이 레일이거나 단자 넷 밖 | node_targets |
 | `intended_region_device` | 소자가 topology 밖 | intended_region |
