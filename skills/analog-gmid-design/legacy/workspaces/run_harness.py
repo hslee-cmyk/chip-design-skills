@@ -33,9 +33,12 @@ import os
 import traceback
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 WORKSPACES_DIR = os.path.dirname(os.path.abspath(__file__))
-_REPO_ROOT = os.path.dirname(WORKSPACES_DIR)
+# 2026-10-07 legacy 이동: <루트>/skills/analog-gmid-design/legacy/workspaces/run_harness.py.
+# 엔진 소스는 legacy/, 공용 입력(library·LUT npz)은 assets/ 에 있다(LEGACY.md).
+ENGINE_DIR = os.path.dirname(WORKSPACES_DIR)
+_REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(ENGINE_DIR)))
 ASSETS_DIR = os.path.join(_REPO_ROOT, "skills", "analog-gmid-design", "assets")
-sys.path.insert(0, ASSETS_DIR)
+sys.path.insert(0, ENGINE_DIR)
 import numpy as np
 from sizing_recipe import (SemiEmpiricalGmIdLUT, optimize_full_circuit_budget, dense_candidates,
                             layout_grid_L_candidates, diagnose_sizing_roles_gap)

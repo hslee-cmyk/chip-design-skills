@@ -34,8 +34,8 @@ ASSETS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file_
 sys.path.insert(0, ASSETS)
 import sizing_recipe as sr
 
-TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
-INST = os.path.join(ASSETS, "..", "..", "..", "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
+TOPO = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
+INST = os.path.join(ASSETS, "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
 trs, meta = sr.load_topology(TOPO)
 sized = json.load(open(INST, encoding="utf-8"))["sizing"]
 by = {t.name: t for t in trs}

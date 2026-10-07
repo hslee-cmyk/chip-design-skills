@@ -7,6 +7,9 @@ skill-test-workspace/
 # 논문 PDF 렌더링/크롭 이미지 -- 저작권 있는 논문 페이지 복제본, 저장소에 안 넣음
 workspaces/*/paper_pages/
 workspaces/*/fig*_zoom*.png
+# 2026-10-07 옛 엔진 산출물 디렉터리를 legacy/workspaces/ 로 옮김 -- 같은 규칙
+skills/analog-gmid-design/legacy/workspaces/*/paper_pages/
+skills/analog-gmid-design/legacy/workspaces/*/fig*_zoom*.png
 
 # bkit runtime/snapshots (auto-generated, local) — .bkit/state/ is tracked
 .bkit/runtime/
@@ -23,11 +26,11 @@ __pycache__/
 
 # 조사 스크립트가 남기는 측정 결과(재현 가능한 생성물 -- 핵심 수치는 각 스크립트
 # docstring에 기록한다). 2026-09-08: 프로브가 결과를 파일로도 쓰게 바뀌었다.
-skills/analog-gmid-design/assets/tests/*.result.txt
-skills/analog-gmid-design/assets/tests/*.sizing_cache.json
-skills/analog-gmid-design/assets/tests/*.theta_star.json
-skills/analog-gmid-design/assets/tests/*.unwired_theta.json
-skills/analog-gmid-design/assets/tests/*.window_dump.txt
+skills/analog-gmid-design/legacy/tests/*.result.txt
+skills/analog-gmid-design/legacy/tests/*.sizing_cache.json
+skills/analog-gmid-design/legacy/tests/*.theta_star.json
+skills/analog-gmid-design/legacy/tests/*.unwired_theta.json
+skills/analog-gmid-design/legacy/tests/*.window_dump.txt
 skills/analog-gmid-design/assets/library/.bkit/
 
 # 역할 분리 부트스트랩 ①·④(계획 N3.12.6): 탐색 아카이브와 실행 산출물은 추적하지 않는다(EL2 무시 목록)

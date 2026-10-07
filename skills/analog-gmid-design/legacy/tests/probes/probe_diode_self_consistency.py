@@ -38,15 +38,15 @@ sys.path.insert(0, ASSETS)
 import numpy as np
 import sizing_recipe as sr
 
-TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
-INST = os.path.join(ASSETS, "..", "..", "..", "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
+TOPO = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
+INST = os.path.join(ASSETS, "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
 
 trs, meta = sr.load_topology(TOPO)
 sized = json.load(open(INST, encoding="utf-8"))["sizing"]
 for v in sized.values():
     if "vs" in v and "vsb" not in v:
         v["vsb"] = v.pop("vs")
-npz = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
+npz = np.load(os.path.join(ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz"))
 mk = lambda k: sr.SemiEmpiricalGmIdLUT(npz["L"], npz["VGS"], npz["VDS"], npz["VS"],
                                        npz["ID_" + k], npz["GM_" + k], npz["GDS_" + k],
                                        npz["CGG_" + k], W_ref=5e-6)

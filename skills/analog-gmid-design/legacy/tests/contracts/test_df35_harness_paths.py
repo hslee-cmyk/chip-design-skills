@@ -34,11 +34,13 @@ import sys
 
 import pytest
 
-# contracts(0) -> tests(1) -> assets(2) -> analog-gmid-design(3) -> skills(4) -> 저장소 루트(5)
+# contracts(0) -> tests(1) -> legacy(2) -> analog-gmid-design(3) -> skills(4) -> 저장소 루트(5)
+# 2026-10-07 legacy 이동: 엔진 소스·하네스는 legacy/, 공용 입력(library·LUT)은 assets/ (LEGACY.md).
 _THIS_FILE = pathlib.Path(__file__).resolve()
 _REPO_ROOT = _THIS_FILE.parents[5]
 _EXPECTED_ASSETS = _REPO_ROOT / "skills" / "analog-gmid-design" / "assets"
-_EXPECTED_WORKSPACES = _REPO_ROOT / "workspaces"
+_EXPECTED_ENGINE = _REPO_ROOT / "skills" / "analog-gmid-design" / "legacy"
+_EXPECTED_WORKSPACES = _EXPECTED_ENGINE / "workspaces"
 _HARNESS_FILE = _EXPECTED_WORKSPACES / "run_harness.py"
 _LOADED_NAME = "_df35_run_harness_under_test"
 
@@ -143,7 +145,8 @@ def _is_engine_module(module) -> bool:
         return False
     parts = pathlib.PurePath(os.path.abspath(path)).parts
     lowered = [p.lower() for p in parts]
-    in_assets = any(lowered[i:i + 2] == ["analog-gmid-design", "assets"] for i in range(len(lowered) - 1))
+    in_assets = any(lowered[i:i + 2] in (["analog-gmid-design", "assets"], ["analog-gmid-design", "legacy"])
+                    for i in range(len(lowered) - 1))
     return in_assets or "workspaces" in lowered
 
 
@@ -157,8 +160,8 @@ def loaded_harness():
     assert _HARNESS_FILE.is_file(), f"피검 파일이 없다: {_HARNESS_FILE}"
     saved_path = list(sys.path)
     saved_modules = set(sys.modules)
-    expected_assets = _norm(_EXPECTED_ASSETS)
-    sys.path[:] = [p for p in sys.path if not (p and _norm(p) == expected_assets)]
+    expected_dirs = {_norm(_EXPECTED_ASSETS), _norm(_EXPECTED_ENGINE)}
+    sys.path[:] = [p for p in sys.path if not (p and _norm(p) in expected_dirs)]
     before = collections.Counter(sys.path)
     spec = importlib.util.spec_from_file_location(_LOADED_NAME, str(_HARNESS_FILE))
     module = importlib.util.module_from_spec(spec)
@@ -188,11 +191,13 @@ def assert_path_under(actual, root, what: str) -> None:
 
 
 def assert_added_assets_paths_are(added: list, expected_assets) -> None:
-    """판정: 로드가 sys.path에 더한 assets 경로(`.../analog-gmid-design/assets`)가 있고, 전부 기대 ASSETS_DIR다."""
+    """판정: 로드가 sys.path에 더한 `expected_assets`와 끝 세 구획이 같은 경로(예 `.../analog-gmid-design/legacy`)가
+    있고, 전부 기대 경로다."""
+    tail = [s.lower() for s in pathlib.PurePath(os.path.normpath(str(expected_assets))).parts[-3:]]
     assets_like = [p for p in added
                    if pathlib.PurePath(os.path.normpath(p)).parts[-3:] and
                    [s.lower() for s in pathlib.PurePath(os.path.normpath(p)).parts[-3:]]
-                   == ["skills", "analog-gmid-design", "assets"]]
+                   == tail]
     assert assets_like, f"로드가 sys.path에 assets 경로를 넣지 않았다(더한 항목 {added})"
     wrong = [p for p in assets_like if _norm(p) != _norm(expected_assets)]
     assert wrong == [], f"다른 체크아웃의 assets 경로가 sys.path에 들어갔다 {wrong} (기대 {str(expected_assets)!r})"
@@ -203,7 +208,7 @@ def test_expected_paths_exist():
     assert _EXPECTED_ASSETS.is_dir(), _EXPECTED_ASSETS
     assert _EXPECTED_WORKSPACES.is_dir(), _EXPECTED_WORKSPACES
     assert _HARNESS_FILE.is_file(), _HARNESS_FILE
-    assert (_EXPECTED_ASSETS / "sizing_recipe.py").is_file(), "기대 ASSETS_DIR에 엔진이 없다"
+    assert (_EXPECTED_ENGINE / "sizing_recipe.py").is_file(), "기대 엔진 디렉터리(legacy)에 엔진이 없다"
 
 
 def test_harness_paths_workspaces_dir(loaded_harness):
@@ -220,9 +225,10 @@ def test_harness_paths_assets_dir(loaded_harness):
 
 
 def test_harness_sys_path_assets_entry(loaded_harness):
-    # oracle (a) 구성: 로드가 sys.path에 넣은 assets 경로 = 기대 ASSETS_DIR(메인 체크아웃 경로 아님). 계약 3.
+    # oracle (a) 구성: 로드가 sys.path에 넣은 엔진 경로 = 기대 legacy 디렉터리(메인 체크아웃 경로 아님). 계약 3.
+    # 2026-10-07 legacy 이동: 엔진 소스가 assets/ 에서 legacy/ 로 옮겨 sys.path 항목도 legacy 다.
     _, added = loaded_harness
-    assert_added_assets_paths_are(added, _EXPECTED_ASSETS)
+    assert_added_assets_paths_are(added, _EXPECTED_ENGINE)
 
 
 @pytest.mark.parametrize("name", ["LIBRARY_DIR", "LUTFILE"])

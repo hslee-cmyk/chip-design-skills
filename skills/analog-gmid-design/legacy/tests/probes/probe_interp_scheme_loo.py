@@ -65,7 +65,7 @@ def emit(*parts):
 
 # 스윕이 이 파일을 갱신 중일 수 있으므로 인자로 다른 경로를 받을 수 있게 한다.
 NPZ = sys.argv[1] if len(sys.argv) > 1 else os.path.join(
-    ASSETS, "sky130_nfet_pfet_lut_sample.npz")
+    ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz")
 d = np.load(NPZ)
 L_ALL = [float(x) for x in d["L"]]
 emit("LUT:", os.path.basename(NPZ))

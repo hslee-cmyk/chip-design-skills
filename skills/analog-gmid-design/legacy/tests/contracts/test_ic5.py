@@ -26,7 +26,7 @@ import pytest
 
 _ASSETS_DIR = pathlib.Path(__file__).resolve().parents[2]
 _REPO_ROOT = pathlib.Path(__file__).resolve().parents[5]
-_HARNESS = _REPO_ROOT / "workspaces" / "run_harness.py"
+_HARNESS = _ASSETS_DIR / "workspaces" / "run_harness.py"  # 2026-10-07 legacy 이동
 
 # oracle (d) design §5.6 대상 이름 규칙(원문).
 _TARGET_NAME_RES = (re.compile(r"^(check_|verify_|validate_|audit_|reject_|require_)"),

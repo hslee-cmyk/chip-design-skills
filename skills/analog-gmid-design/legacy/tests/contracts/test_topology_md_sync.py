@@ -31,7 +31,7 @@ import pytest
 _MDSYNC_CONTRACTS_DIR = pathlib.Path(__file__).resolve().parent
 # contracts -> tests -> assets
 _MDSYNC_ASSETS = _MDSYNC_CONTRACTS_DIR.parents[1]
-_MDSYNC_LIBRARY = _MDSYNC_ASSETS / "library"
+_MDSYNC_LIBRARY = _MDSYNC_ASSETS.parent / "assets" / "library"  # 2026-10-07: 공용 입력은 assets/
 
 _MDSYNC_FLAG_WARN = " \u26a0\ufe0f"  # 공백 + U+26A0 + U+FE0F (card '플래그 문자')
 _MDSYNC_FLAG_INFO = " \u2139\ufe0f"  # 공백 + U+2139 + U+FE0F

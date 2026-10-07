@@ -54,7 +54,7 @@ import pytest
 _TESTS_DIR = pathlib.Path(__file__).resolve().parents[1]
 _ASSETS_DIR = _TESTS_DIR.parent
 _REPO_ROOT = _ASSETS_DIR.parents[2]
-_RUN_HARNESS = _REPO_ROOT / "workspaces" / "run_harness.py"
+_RUN_HARNESS = _ASSETS_DIR / "workspaces" / "run_harness.py"  # 2026-10-07 legacy 이동
 
 # spec card 계약 1 표의 함수 9개(전부 sizing_recipe 모듈 함수 -- 이름 자체가 식별자다).
 _DELETED_NAMES = frozenset({

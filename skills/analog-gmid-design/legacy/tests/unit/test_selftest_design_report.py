@@ -31,7 +31,7 @@ def s000_state(assets_dir, library_dir):
     _lib_dir = library_dir
     _crt_topo = os.path.join(_lib_dir, "current_reuse_telescopic_ota.topology.json")
     _crt_instance = os.path.normpath(os.path.join(
-        assets_dir, "..", "..", "..",
+        assets_dir,
         "workspaces", "current-reuse-telescopic-ota-report",
         "current_reuse_telescopic_ota.instance.json"))
 

@@ -44,7 +44,7 @@ import pytest
 _THIS_FILE = pathlib.Path(__file__).resolve()
 _REPO_ROOT = _THIS_FILE.parents[5]
 _ASSETS_DIR = _THIS_FILE.parents[2]
-_LIBRARY_DIR = _ASSETS_DIR / "library"
+_LIBRARY_DIR = _REPO_ROOT / "skills" / "analog-gmid-design" / "assets" / "library"  # 2026-10-07: 공용 입력은 assets/, 엔진은 legacy/
 if str(_ASSETS_DIR) not in sys.path:
     sys.path.insert(0, str(_ASSETS_DIR))
 
@@ -162,7 +162,7 @@ def test_library_scope_present():
     # 판정 범위가 공허하지 않다: library 회로가 있고 파일럿이 그중 하나다.
     assert _LIBRARY_NAMES, f"library topology가 없다: {_LIBRARY_DIR}"
     assert _PILOT_NAME in _LIBRARY_NAMES
-    assert (_REPO_ROOT / "skills" / "analog-gmid-design" / "assets").samefile(_ASSETS_DIR)
+    assert (_REPO_ROOT / "skills" / "analog-gmid-design" / "legacy").samefile(_ASSETS_DIR)
 
 
 @pytest.mark.parametrize("name", _LIBRARY_NAMES)
@@ -189,7 +189,7 @@ def test_topology_ref_same_for_path_spellings_and_cwd(tmp_path, monkeypatch):
         "cwd_root_relative_forward": (str(_REPO_ROOT), os.path.relpath(absolute, _REPO_ROOT).replace("\\", "/")),
         "cwd_library_bare": (str(_LIBRARY_DIR), _PILOT_NAME),
         "cwd_library_dot": (str(_LIBRARY_DIR), "./" + _PILOT_NAME),
-        "cwd_assets_dotdot": (str(_ASSETS_DIR / "tests"), os.path.join("..", "library", _PILOT_NAME)),
+        "cwd_assets_dotdot": (str(_ASSETS_DIR / "tests"), os.path.join("..", "..", "assets", "library", _PILOT_NAME)),
     }
     refs = {}
     for label, (cwd, arg) in spellings.items():

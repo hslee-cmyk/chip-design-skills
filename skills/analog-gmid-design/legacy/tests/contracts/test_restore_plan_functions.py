@@ -40,8 +40,8 @@ import pytest
 _TESTS_DIR = pathlib.Path(__file__).resolve().parents[1]
 _ASSETS_DIR = _TESTS_DIR.parent
 _REPO_ROOT = _ASSETS_DIR.parents[2]
-_WORKSPACES_DIR = _REPO_ROOT / "workspaces"
-_REPO_LUT = _ASSETS_DIR / "sky130_nfet_pfet_lut_sample.npz"
+_WORKSPACES_DIR = _ASSETS_DIR / "workspaces"  # 2026-10-07 legacy 이동
+_REPO_LUT = _ASSETS_DIR.parent / "assets" / "sky130_nfet_pfet_lut_sample.npz"  # 공용 입력
 
 # import 순서: A를 sys.path 맨 앞에 두고 `sizing_recipe`를 **먼저** import한 뒤 `run_harness`를 import한다.
 # `run_harness`가 import 때 메인 저장소 assets 경로를 sys.path 맨 앞에 넣으므로(기존 결함), 먼저 import하면

@@ -166,7 +166,7 @@ if __name__ == "__main__":
 
     paths = sys.argv[1:]
     if not paths:
-        lib_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "library")
+        lib_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "assets", "library")
         # _TEMPLATE.topology.json은 실제 회로가 아니라 자리표시자 예시라 제외(Transistor
         # 필드가 실제 값이 아니라 설명 문자열이라 load_topology()가 그대로 못 읽음).
         paths = sorted(p for p in glob.glob(os.path.join(lib_dir, "*.topology.json"))

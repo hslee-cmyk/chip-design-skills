@@ -32,7 +32,7 @@ import math
 
 ASSETS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # probes -> tests -> assets
 sys.path.insert(0, ASSETS)
-sys.path.insert(0, os.path.join(ASSETS, "..", "..", "..", "workspaces"))
+sys.path.insert(0, os.path.join(ASSETS, "workspaces"))
 import sizing_recipe as sr
 import run_harness as H
 
@@ -53,7 +53,7 @@ emit("mirror_ratio_error_pct 상한 유도 -- 선언된 랜덤 예산의 전류�
 emit("=" * 104)
 
 for key, cfg in H.SPECS.items():
-    topo = os.path.join(ASSETS, "library", cfg["topology_file"])
+    topo = os.path.join(ASSETS, "..", "assets", "library", cfg["topology_file"])
     spec = H.canonical_spec(key)
     emit("")
     emit("-" * 104)

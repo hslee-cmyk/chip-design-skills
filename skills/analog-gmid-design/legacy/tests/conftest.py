@@ -35,9 +35,11 @@ _TESTS_DIR = os.path.dirname(os.path.abspath(__file__))
 # tests -> assets -> analog-gmid-design -> skills -> 저장소 루트
 _REPO_ROOT = os.path.abspath(os.path.join(_TESTS_DIR, "..", "..", "..", ".."))
 _GATES_DIR = os.path.join(_REPO_ROOT, "tools", "gates")
-# tests -> assets(A)
+# tests -> legacy(A: 옛 엔진 소스, 2026-10-07 assets/ 에서 이동)
 _ASSETS_DIR = os.path.dirname(_TESTS_DIR)
-_REAL_LUT_PATH = os.path.join(_ASSETS_DIR, "sky130_nfet_pfet_lut_sample.npz")
+# 공용 입력(library·LUT npz)은 assets/ 에 남았다(LEGACY.md)
+_SHARED_ASSETS_DIR = os.path.join(os.path.dirname(_ASSETS_DIR), "assets")
+_REAL_LUT_PATH = os.path.join(_SHARED_ASSETS_DIR, "sky130_nfet_pfet_lut_sample.npz")
 if _GATES_DIR not in sys.path:
     sys.path.append(_GATES_DIR)
 
@@ -149,8 +151,8 @@ def assets_dir():
 
 
 @pytest.fixture(scope="session")
-def library_dir(assets_dir):
-    return os.path.join(assets_dir, "library")
+def library_dir():
+    return os.path.join(_SHARED_ASSETS_DIR, "library")
 
 
 @pytest.fixture(scope="session")

@@ -29,11 +29,11 @@
 import os, sys, time, json, itertools, tempfile
 ASSETS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # probes -> tests -> assets
 sys.path.insert(0, ASSETS)
-sys.path.insert(0, os.path.join(ASSETS, "..", "..", "..", "workspaces"))
+sys.path.insert(0, os.path.join(ASSETS, "workspaces"))
 import numpy as np, sizing_recipe as sr
 import run_harness as H
 
-TOPO_SRC = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
+TOPO_SRC = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
 topo = json.load(open(TOPO_SRC, encoding="utf-8"))
 # L theta bounds를 LUT 전 구간으로 넓힌다(원본은 [0.15,1.0]um라 앵커 4개만 든다)
 for th in topo["sizing_roles"]["theta"]:
@@ -42,7 +42,7 @@ for th in topo["sizing_roles"]["theta"]:
 TOPO = os.path.join(tempfile.gettempdir(), "knee_scan.topology.json")
 json.dump(topo, open(TOPO, "w", encoding="utf-8"))
 
-d = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
+d = np.load(os.path.join(ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz"))
 mk = lambda k: sr.SemiEmpiricalGmIdLUT(d["L"], d["VGS"], d["VDS"], d["VS"], d["ID_" + k],
                                        d["GM_" + k], d["GDS_" + k], d["CGG_" + k],
                                        W_ref=5e-6, SID_1F=d["SID_1F_" + k])

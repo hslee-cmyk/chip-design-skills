@@ -68,7 +68,7 @@ square-law는 weak/moderate inversion과 short-channel 소자에서 무너진다
 |---|---|---|
 | 1 | 함수가 있는데 결과를 손으로 근사·요약·재구성 | 그 함수를 실제로 호출해 나온 값을 그대로 사용(`function-selection-map.md`에서 어느 함수인지 확인) |
 | 2 | 외부 논문/자료의 topology를 일반 지식으로 상상해서 채움 | 원문 도면을 직접 읽고(이미지 렌더링 등) 소자별 넷리스트 표로 먼저 옮겨 적은 뒤 그 표만 근거로 진행 |
-| 3 | 리포트 시각화 코드를 새로 작성하거나 텍스트로 대체 | `assets/report_template.html`의 렌더링 함수를 코드 그대로 복사해 재사용 |
+| 3 | 리포트 시각화 코드를 새로 작성하거나 텍스트로 대체 | `legacy/report_template.html`의 렌더링 함수를 코드 그대로 복사해 재사용 |
 | 4 | 소자에 대한 명시적 목표치가 없다고 사이징을 스킵("범위 밖"으로 처리) | §1.5의 절차로 로컬 타겟을 유도해 반드시 값을 확정 |
 | 5 | **이 skill의 함수 집합을 수정·확장하고서, spec→instance.json 전 구간이 여전히 harness만으로·재현 가능하게·최선의 결과로 완주되는지 재검사하지 않고 완료 보고**(2026-07-31, 배치 7-6 발견 계기 — 다른 4개와 달리 특정 사고가 아니라 "매 수정마다 반복해야 하는 게이트"라는 게 원칙 자체) | §5 마지막 항목("skill 최종 게이트")의 절차 그대로 매번 재실행 — 1회성 설계 검증이 아니라 이 skill 자신의 무결성에 대한 상시 게이트임을 명심할 것 |
 | 6 | 순수 수식 함수의 self-test라는 이유로, 실제 `library/*.topology.json`에 존재하는 소자 이름을 그 회로에서의 kind/connectivity를 확인하지 않고 논문/기억만으로 역할 배정해서 씀(2026-07-31, `telescopic_class_ab` CMRR 계기 -- Phase 2에서 삭제) | 그 이름을 값에 채워 넣기 전에 `load_topology(그 실제 파일)`로 kind/connectivity(같은 노드 공유 등)를 먼저 assert — "수식 검증"과 "역할 배정 검증"을 별도 블록으로 분리 |
@@ -347,7 +347,7 @@ topology.json`으로 등록돼 있으면 `run_topology_pipeline(topology_json_pa
 이후에만 실제 finger 배치·metal 상호연결 단계로 넘어간다.
 
 Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절의 산출물은
-회로에 종속되지 않는 일반 코드 `assets/stick_diagram.py`로 실제로 계산한다.
+회로에 종속되지 않는 일반 코드 `legacy/stick_diagram.py`로 실제로 계산한다.
 
 ---
 
@@ -378,7 +378,7 @@ Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절
 재확인할 것 — import만 하고 호출부가 없는 것도 실패다(§5 참고).
 
 **형식**: 시각 렌더링(사람용) + 같은 파일 안 `<script>` JS 객체 리터럴(agent용, 렌더링이 이
-객체에서 파생되므로 두 층이 어긋날 수 없음) 이중 구조. 템플릿: `assets/report_template.html`.
+객체에서 파생되므로 두 층이 어긋날 수 없음) 이중 구조. 템플릿: `legacy/report_template.html`.
 
 ⚠️ **이 skill의 모든 산출물은 완료 보고 전에 반드시 시각 검증한다** — Artifact 배포는 시각
 검증을 가능하게 하는 수단이지 그 자체가 목적이 아니다. 문법적으로 유효한 데이터 구조라도 실제
@@ -400,7 +400,7 @@ Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절
   시 `../skill-validation-prompt.md` 절차로 재검증하고 이 맵의 변경 이력에 기록한다.
 - `references/design-report-spec.md` — §7 정본. 8개 섹션 정의, PRE-FLIGHT 체크리스트, 시각
   검증 절차.
-- `assets/report_template.html` — §7 규격을 구현한 완전한 템플릿. 새 리포트는 이 파일을 복사해
+- `legacy/report_template.html` — §7 규격을 구현한 완전한 템플릿. 새 리포트는 이 파일을 복사해
   데이터만 교체한다 — 렌더링 함수를 다시 쓰지 않는다.
 - `references/gm-id-methodology.md` — 방법론 전체(핵심 변수·관계식·LUT 생성·설계 절차·
   트레이드오프·worked example·noise/matching·§9 deep-submicron 한계·§10 3-stage OTA·§11
@@ -409,9 +409,9 @@ Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절
   체크리스트 + 실전 보간 알고리즘.
 - `references/spice-verification-workflow.md` — §5의 "폐루프 SPICE 수렴 워크플로우"와
   "LUT↔SPICE 교차검증 절차" 정본.
-- `assets/sizing_recipe.py` — §1 6단계 sizing 방정식 구현. 함수별 사용 상황은
+- `legacy/sizing_recipe.py` — §1 6단계 sizing 방정식 구현. 함수별 사용 상황은
   `function-selection-map.md` §1.
-- `assets/topology_library.py` — 반복 사용되는 토폴로지의 `topology_fn`/보상소자 함수 모음.
+- `legacy/topology_library.py` — 반복 사용되는 토폴로지의 `topology_fn`/보상소자 함수 모음.
   함수별 사용 상황·검증 상태는 `function-selection-map.md` §2. 새 토폴로지 추가 전 반드시
   `references/topology-fn-derivation-guide.md` §1을 먼저 읽는다.
 - `references/topology-fn-derivation-guide.md` — 새 `topology_fn`(및 보상소자 함수)을
@@ -422,7 +422,7 @@ Worked example(Folded Cascode 등): `stick-diagram-euler-layout.md` §6. 이 절
 - `references/stick-diagram-euler-layout.md` — §6의 정본. Stick diagram, Euler trail
   그래프화, stack 분할, sizing↔layout 피드백 루프, cell shape(box) 판단 기준, 병합/대칭성
   검증까지 전부 포함.
-- `assets/stick_diagram.py` — §6의 회로-무관 구현. 함수별 사용 상황은
+- `legacy/stick_diagram.py` — §6의 회로-무관 구현. 함수별 사용 상황은
   `function-selection-map.md` §3~§6.
 - `assets/library/*.topology.json` — 이미 등록된 topology의 connectivity+matching+위상보정
   참조 정본. 재사이징해도 재사용 가능 — 새로 만들지 말고 먼저 확인할 것.

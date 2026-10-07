@@ -25,7 +25,8 @@ import os
 import json
 from collections import defaultdict
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+# load_topology는 옛 엔진(legacy/stick_diagram.py)에 있다 -- legacy 삭제 전에 새 엔진 로더로 바꿔야 한다(LEGACY.md).
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "legacy"))
 from stick_diagram import load_topology  # noqa: E402
 
 

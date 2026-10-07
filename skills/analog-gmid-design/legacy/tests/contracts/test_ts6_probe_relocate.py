@@ -89,6 +89,10 @@ _UNIT_DIR = _TESTS_DIR / "unit"
 # `A/tests/unit/test_<이름>.py`다(계약 1의 `<주제>`는 이름에서 `probe_` 접두사를 뺀 것이므로 `test_` + 이름).
 _PROMOTED_PREFIX = "test_"
 _TESTS_REL = _TESTS_DIR.relative_to(_REPO_ROOT).as_posix()
+# 2026-10-07 legacy 이동: 엔진·tests는 legacy/, 공용 입력(library·LUT npz)은 assets/ 에 남았다(LEGACY.md).
+# base 커밋(_BASE_COMMIT)의 blob은 옛 자리(assets/tests)에 있으므로 기준선은 그 경로로 읽는다.
+_SHARED_ASSETS_DIR = _ASSETS_DIR.parent / "assets"
+_TESTS_REL_AT_BASE = "skills/analog-gmid-design/assets/tests"
 
 # 계약 5의 운영 도구(spec card가 이름을 댄 것).
 _TOOL_NAME = "derive_achievable_bounds.py"
@@ -524,10 +528,10 @@ def test_path_resolver_skips_unresolvable():
 def test_assets_dir_holds_engine_entry_points():
     # oracle (a): `A`의 정의(design §5: A = `skills/analog-gmid-design/assets`)가 곧 기대값이다.
     # 아래 판정이 "아무 디렉터리"를 `A`로 인정하지 않게 하는 전제다.
-    assert _ASSETS_DIR.name == "assets" and _ASSETS_DIR.parent.name == "analog-gmid-design"
+    assert _ASSETS_DIR.name == "legacy" and _ASSETS_DIR.parent.name == "analog-gmid-design"
     assert (_ASSETS_DIR / "sizing_recipe.py").is_file()
-    assert (_ASSETS_DIR / "library").is_dir()
-    assert (_ASSETS_DIR / "sky130_nfet_pfet_lut_sample.npz").is_file()
+    assert (_SHARED_ASSETS_DIR / "library").is_dir()
+    assert (_SHARED_ASSETS_DIR / "sky130_nfet_pfet_lut_sample.npz").is_file()
 
 
 def test_every_probe_derives_assets_from_its_own_location():
@@ -586,7 +590,10 @@ def test_every_probe_library_and_lut_paths_exist():
                 continue
             rel = os.path.relpath(os.path.realpath(value), os.path.realpath(_ASSETS_DIR))
             if rel.startswith(os.pardir):
-                continue                                   # `A` 밖(저장소 루트·workspaces 등)은 여기서 안 본다
+                # 공용 입력(library·LUT npz)은 legacy 이동 뒤 assets/ 에 있다 -- 그 아래면 assets 기준으로 본다.
+                rel = os.path.relpath(os.path.realpath(value), os.path.realpath(_SHARED_ASSETS_DIR))
+            if rel.startswith(os.pardir):
+                continue                                   # `A`·공용 assets 밖(저장소 루트 등)은 여기서 안 본다
             inside_assets.append((name, var, value, rel))
             if not os.path.exists(value):
                 missing.append(f"{name}:{var}={value}")
@@ -599,7 +606,7 @@ def test_every_probe_library_and_lut_paths_exist():
 def test_instance_paths_equal_pre_move_literal():
     # oracle (c): 이동 전 절대 경로 리터럴이 가리키던 곳이 기대값이다(base 트리에서 옮겨 적은 꼬리 경로).
     # 그 파일은 산출물이라 없는 복제본도 있으므로 존재가 아니라 **가리키는 곳**을 대조한다.
-    expected = os.path.join(str(_REPO_ROOT), *_PRE_MOVE_INSTANCE_TAIL)
+    expected = os.path.join(str(_ASSETS_DIR), *_PRE_MOVE_INSTANCE_TAIL)  # 2026-10-07: workspaces 산출물도 legacy/ 로 이동
     found = {}
     for name, path, src in _probe_sources():
         names, _ = resolve_path_names(src, str(path))
@@ -652,8 +659,8 @@ def test_only_path_lines_judge_accepts_a_path_only_change():
 def test_base_blob_reader_reads_the_base_tree():
     # oracle (a): base 커밋에 옛 자리가 있다는 사실이 기대값이다 -- 아래 기준선 대조가 공허해지지 않게.
     for name in _relocated_names():
-        assert base_blob_text(f"{_TESTS_REL}/{name}.py").strip()
-    assert base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}").strip()
+        assert base_blob_text(f"{_TESTS_REL_AT_BASE}/{name}.py").strip()
+    assert base_blob_text(f"{_TESTS_REL_AT_BASE}/{_TOOL_NAME}").strip()
 
 
 # --------------------------------------------------------------------------------------
@@ -669,7 +676,7 @@ def test_moved_tool_matches_base_except_path_lines():
     # oracle (c): 기준선 = base 커밋 blob 그 자체(계약 5의 '경로 계산 줄을 뺀 나머지가 원본과 같다').
     new_path = _TOOLS_DIR / _TOOL_NAME
     assert new_path.is_file(), f"{new_path} 가 없다"
-    assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL}/{_TOOL_NAME}"),
+    assert_only_path_lines_changed(base_blob_text(f"{_TESTS_REL_AT_BASE}/{_TOOL_NAME}"),
                                    new_path.read_text(encoding="utf-8"), _TOOL_NAME)
 
 

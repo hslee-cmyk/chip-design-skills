@@ -41,7 +41,7 @@ def emit(*p):
         f.write(line + "\n")
 
 
-LIB = os.path.join(ASSETS, "library")
+LIB = os.path.join(ASSETS, "..", "assets", "library")
 with open(os.path.join(LIB, "current_reuse_telescopic_ota.topology.json"),
           "r", encoding="utf-8") as f:
     TOPO = json.load(f)
@@ -68,7 +68,7 @@ TOPO["sizing_roles"]["constraints"] = [
     if c["metric"] != "classab_centering_dev_v"]
 CONS = TOPO["sizing_roles"]["constraints"]
 
-d = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
+d = np.load(os.path.join(ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz"))
 mk = lambda k: sr.SemiEmpiricalGmIdLUT(d["L"], d["VGS"], d["VDS"], d["VS"], d["ID_" + k],
                                        d["GM_" + k], d["GDS_" + k], d["CGG_" + k],
                                        W_ref=5e-6, SID_1F=d["SID_1F_" + k])

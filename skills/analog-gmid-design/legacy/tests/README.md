@@ -4,7 +4,8 @@
 
 저장소 루트에서 실행한다(`$PY` = `C:/Python314/python.exe`).
 
-* C6 전: `$PY -P -m pytest -c tools/gates/pytest_gate.ini --rootdir=. --confcutdir=. skills/analog-gmid-design/assets/tests`
+* C6 전: `$PY -P -m pytest -c tools/gates/pytest_gate.ini --rootdir=. --confcutdir=. skills/analog-gmid-design/legacy/tests`
+  (2026-10-07 `assets/tests`에서 `legacy/tests`로 옮김 -- `../LEGACY.md`)
 * C6 뒤: 위 명령 끝에 `--gmid-phase=<Phase>`를 붙인다.
 * 순서 의존 확인(C9): `--shuffle-seed=<int>`를 더하면 수집 순서를 `random.Random(<int>)`로 섞는다.
 

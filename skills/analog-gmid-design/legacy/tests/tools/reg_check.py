@@ -24,6 +24,8 @@ _DISP_RE = re.compile(r"^보류\(Phase [0-9]+[a-z]?\)")
 _FIRST_NAME_RE = re.compile(r"^`([^`]+)`")
 _HEADING_N_RE = re.compile(r"^###\s+(.+?)\s*\((\d+)\)\s*$")
 _ASSETS_REL = ("skills", "analog-gmid-design", "assets")
+# 2026-10-07 legacy 이동: 옛 엔진 소스·하네스는 legacy/ 로 옮겼다. 이동 전 범위(A/*.py + 하네스)를 그대로 본다.
+_LEGACY_REL = ("skills", "analog-gmid-design", "legacy")
 
 
 def _split_row(line):
@@ -337,12 +339,12 @@ def collect_engine_names(root):
     """엔진 정의 이름 집합(모듈 문서 참조)."""
     root = pathlib.Path(root)
     names = set()
-    assets = root.joinpath(*_ASSETS_REL)
-    for p in sorted(assets.glob("*.py")):
-        names |= _defs_of(p)
-    harness = root / "workspaces" / "run_harness.py"
-    if harness.is_file():
-        names |= _defs_of(harness)
+    for rel in (_ASSETS_REL, _LEGACY_REL):
+        for p in sorted(root.joinpath(*rel).glob("*.py")):
+            names |= _defs_of(p)
+    for harness in (root / "workspaces" / "run_harness.py", root.joinpath(*_LEGACY_REL) / "workspaces" / "run_harness.py"):
+        if harness.is_file():
+            names |= _defs_of(harness)
     return names
 
 

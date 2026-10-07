@@ -30,12 +30,12 @@ B9 vs=0이 틀린 값인가 -- **부정확한 전제였다**
 """
 import os, sys, json
 from collections import defaultdict
-ASSETS = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\skills\analog-gmid-design\assets"
+ASSETS = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # 2026-10-07: 엔진은 legacy/ (tests -> legacy)
 sys.path.insert(0, ASSETS)
 import numpy as np, sizing_recipe as sr
 
-TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
-INST = r"C:\Users\HSLEE\Documents\Todoc\fpga\chip-design-skills\workspaces\current-reuse-telescopic-ota-report\current_reuse_telescopic_ota.instance.json"
+TOPO = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
+INST = os.path.join(ASSETS, "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
 VDD = 1.8
 RAIL_HI, RAIL_LO = {"vdd", "VDD"}, {"gnd", "GND", "vss", "VSS"}
 

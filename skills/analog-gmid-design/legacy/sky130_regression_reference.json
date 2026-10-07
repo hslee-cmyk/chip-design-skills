@@ -1,6 +1,6 @@
 {
   "process": "sky130",
-  "lut_file": "sky130_nfet_pfet_lut_sample.npz",
+  "lut_file": "../assets/sky130_nfet_pfet_lut_sample.npz",
   "source": "sky130-worked-example.md",
   "cases": {
     "nmcnr_3stage_GBW5M_CL10p_PM70_kg0.5": {

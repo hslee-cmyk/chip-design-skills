@@ -11,7 +11,7 @@ gm_id가 아직 없을 수 있다 -- 그러면 pre-pass 자체가 성립하지 �
 import sys, os, json, collections
 ASSETS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # probes -> tests -> assets
 sys.path.insert(0, ASSETS)
-sys.path.insert(0, os.path.join(ASSETS, "..", "..", "..", "workspaces"))
+sys.path.insert(0, os.path.join(ASSETS, "workspaces"))
 import numpy as np
 import sizing_recipe as sr
 import run_harness as H
@@ -38,8 +38,8 @@ def emit(*parts):
 
 
 
-LUTFILE = os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz")
-TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
+LUTFILE = os.path.join(ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz")
+TOPO = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
 
 trs, meta = sr.load_topology(TOPO)
 BY = {t.name: t for t in trs}

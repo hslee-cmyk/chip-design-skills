@@ -42,7 +42,7 @@ import os
 
 ASSETS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # probes -> tests -> assets
 sys.path.insert(0, ASSETS)
-sys.path.insert(0, os.path.join(ASSETS, "..", "..", "..", "workspaces"))
+sys.path.insert(0, os.path.join(ASSETS, "workspaces"))
 import numpy as np
 import sizing_recipe as sr
 import run_harness as H
@@ -60,7 +60,7 @@ def emit(*p):
         f.write(line + "\n")
 
 
-TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
+TOPO = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
 SPEC = H.canonical_spec("current_reuse_telescopic_ota")
 VDD = SPEC["vdd"]
 P, N = SPEC["lut_by_kind"]["pmos"], SPEC["lut_by_kind"]["nmos"]

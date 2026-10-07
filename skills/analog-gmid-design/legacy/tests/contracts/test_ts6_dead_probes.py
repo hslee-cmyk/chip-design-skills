@@ -58,7 +58,7 @@ _UNIT_DIR = _TESTS_DIR / "unit"
 _PROMOTED_PREFIX = "test_"
 
 _SIZING_RECIPE = _ASSETS_DIR / "sizing_recipe.py"
-_PILOT_INSTANCE = (_REPO_ROOT / "workspaces" / "current-reuse-telescopic-ota-report"
+_PILOT_INSTANCE = (_ASSETS_DIR / "workspaces" / "current-reuse-telescopic-ota-report"
                    / "current_reuse_telescopic_ota.instance.json")
 _MISSING_SYMBOL = "_L_ROLE_MULTIPLIERS"
 _AUDIT_FUNC = "audit_vsb_consistency"

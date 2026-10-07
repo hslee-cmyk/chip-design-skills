@@ -39,7 +39,7 @@ _TESTS_DIR = pathlib.Path(__file__).resolve().parents[1]
 _ASSETS_DIR = _TESTS_DIR.parent
 _REPO_ROOT = _ASSETS_DIR.parents[2]
 _TOOLS_DIR = _TESTS_DIR / "tools"
-_PROBES_REL = pathlib.PurePosixPath("skills", "analog-gmid-design", "assets", "tests", "probes")
+_PROBES_REL = pathlib.PurePosixPath("skills", "analog-gmid-design", "legacy", "tests", "probes")  # 2026-10-07 legacy 이동
 
 if str(_TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(_TOOLS_DIR))
@@ -316,9 +316,9 @@ def test_main_ignores_files_outside_probes(tmp_path, capsys):
     # oracle (a): 계약 1 범위는 `A/tests/probes/**/*.py`다 -- unit/·tools/·A 바로 아래의 재구현은 훑지 않는다.
     root = _make_root(tmp_path, {
         _probe("probe_clean.py"): "z = 3\n",
-        "skills/analog-gmid-design/assets/tests/unit/test_x.py": "RAILS = {\"vdd\", \"gnd\"}\n",
-        "skills/analog-gmid-design/assets/tests/tools/tool_x.py": "d = t.gate == t.drain\n",
-        "skills/analog-gmid-design/assets/engine_x.py": "RAILS = {\"vdd\", \"gnd\"}\n",
+        "skills/analog-gmid-design/legacy/tests/unit/test_x.py": "RAILS = {\"vdd\", \"gnd\"}\n",
+        "skills/analog-gmid-design/legacy/tests/tools/tool_x.py": "d = t.gate == t.drain\n",
+        "skills/analog-gmid-design/legacy/engine_x.py": "RAILS = {\"vdd\", \"gnd\"}\n",
     })
     rc, recs = _run_main(root, capsys)
     assert rc == 0

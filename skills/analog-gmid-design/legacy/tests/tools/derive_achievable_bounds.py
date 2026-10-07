@@ -29,7 +29,7 @@ import time
 
 ASSETS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # tools -> tests -> assets
 sys.path.insert(0, ASSETS)
-sys.path.insert(0, os.path.join(ASSETS, "..", "..", "..", "workspaces"))
+sys.path.insert(0, os.path.join(ASSETS, "workspaces"))
 import sizing_recipe as sr
 import run_harness as H
 
@@ -54,7 +54,7 @@ for key in keys:
     if key not in H.SPECS:
         emit(f"[{key}] 등록되지 않은 circuit_key -- 건너뜀({sorted(H.SPECS)})")
         continue
-    topo = os.path.join(ASSETS, "library", H.SPECS[key]["topology_file"])
+    topo = os.path.join(ASSETS, "..", "assets", "library", H.SPECS[key]["topology_file"])
     spec = H.canonical_spec(key)
     with open(topo, encoding="utf-8") as fh:
         cons = (json.load(fh).get("sizing_roles") or {}).get("constraints") or []

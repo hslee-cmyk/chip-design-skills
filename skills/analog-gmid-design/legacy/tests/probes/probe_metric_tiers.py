@@ -25,12 +25,12 @@ import os, sys, json, time, dataclasses
 ASSETS = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))  # probes -> tests -> assets
 sys.path.insert(0, ASSETS)
 import numpy as np, sizing_recipe as sr
-TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
-INST = os.path.join(ASSETS, "..", "..", "..", "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
+TOPO = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
+INST = os.path.join(ASSETS, "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
 trs, meta = sr.load_topology(TOPO)
 sized0 = json.load(open(INST, encoding="utf-8"))["sizing"]
 kind_of = {t.name: t.kind for t in trs}
-d = np.load(os.path.join(ASSETS,"sky130_nfet_pfet_lut_sample.npz"))
+d = np.load(os.path.join(ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz"))
 mk=lambda k: sr.SemiEmpiricalGmIdLUT(d["L"],d["VGS"],d["VDS"],d["VS"],d["ID_"+k],d["GM_"+k],d["GDS_"+k],d["CGG_"+k],W_ref=5e-6)
 spec={"lut_by_kind":{"nmos":mk("n"),"pmos":mk("p")},"lut":mk("n"),"vdd":1.8,
       "vth0_slope":{"nfet":3.356e-3,"pfet":5.856e-3}}

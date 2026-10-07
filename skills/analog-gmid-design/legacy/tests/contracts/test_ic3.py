@@ -32,7 +32,7 @@ import sys
 import pytest
 
 _ASSETS_DIR = pathlib.Path(__file__).resolve().parents[2]
-_LIBRARY_DIR = _ASSETS_DIR / "library"
+_LIBRARY_DIR = _ASSETS_DIR.parent / "assets" / "library"  # 2026-10-07: 공용 입력은 assets/, 엔진은 legacy/
 if str(_ASSETS_DIR) not in sys.path:
     sys.path.insert(0, str(_ASSETS_DIR))
 

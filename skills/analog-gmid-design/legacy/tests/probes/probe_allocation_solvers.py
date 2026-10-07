@@ -26,7 +26,7 @@ sys.path.insert(0, ASSETS)
 import numpy as np
 import sizing_recipe as sr
 
-d = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
+d = np.load(os.path.join(ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz"))
 LUT = sr.SemiEmpiricalGmIdLUT(d["L"], d["VGS"], d["VDS"], d["VS"],
                               d["ID_n"], d["GM_n"], d["GDS_n"], d["CGG_n"], W_ref=5e-6)
 VS = 0.0

@@ -56,9 +56,9 @@ def emit(*p):
         f.write(line + "\n")
 
 
-TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
+TOPO = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
 VDD, W_LO, W_HI = 1.8, 1e-6, 200e-6
-d = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
+d = np.load(os.path.join(ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz"))
 mk = lambda k: sr.SemiEmpiricalGmIdLUT(d["L"], d["VGS"], d["VDS"], d["VS"], d["ID_" + k],
                                        d["GM_" + k], d["GDS_" + k], d["CGG_" + k],
                                        W_ref=5e-6, SID_1F=d["SID_1F_" + k])

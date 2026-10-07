@@ -47,7 +47,7 @@ import stick_diagram  # noqa: E402
 # 저장소 루트: tests/contracts/<이 파일> -> parents[5](contracts, tests, assets, analog-gmid-design, skills, 루트).
 _B34_ROOT = _B34_HERE.parents[5]
 # library 9회로: `_`로 시작하는 파일(작성 틀)은 회로가 아니다(spec card 계약 1).
-_B34_PATHS = sorted(p for p in glob.glob(str(_B34_ASSETS / "library" / "*.topology.json"))
+_B34_PATHS = sorted(p for p in glob.glob(str(_B34_ASSETS.parent / "assets" / "library" / "*.topology.json"))
                     if not os.path.basename(p).startswith("_"))
 _B34_IDS = [os.path.basename(p).split(".")[0] for p in _B34_PATHS]
 

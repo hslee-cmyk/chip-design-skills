@@ -481,7 +481,7 @@ def s157_state(library_dir):
     """섹션 S157(이관본 줄 2996-3065)의 입력(하네스 spec, 원본·변형 topology 경로)을 만드는 문장. 피검 호출
     `optimize_full_circuit_budget()`은 ValueError(I-C11)를 내므로 test 본문에 둔다(spec card 계약 4)."""
     _t49_lib = library_dir
-    _t53g_workspaces = _t49_os.path.normpath(_t49_os.path.join(_t49_lib, "..", "..", "..", "..", "workspaces"))
+    _t53g_workspaces = _t49_os.path.normpath(_t49_os.path.join(_t49_lib, "..", "..", "legacy", "workspaces"))
     _t53g_harness_path = _t49_os.path.join(_t53g_workspaces, "run_harness.py")
     # contract 4: 이관본 `if not exists: SKIP` 조건을 먼저 단언한다 -- workspaces/run_harness.py는 추적되는 파일.
     assert _t49_os.path.exists(_t53g_harness_path)

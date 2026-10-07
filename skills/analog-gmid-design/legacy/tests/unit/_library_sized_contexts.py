@@ -24,8 +24,8 @@ import sys
 _HERE = os.path.dirname(os.path.abspath(__file__))
 # unit -> tests -> assets(A)
 ASSETS = os.path.abspath(os.path.join(_HERE, "..", ".."))
-# A -> analog-gmid-design -> skills -> 저장소 루트 -> workspaces
-_WORKSPACES = os.path.abspath(os.path.join(ASSETS, "..", "..", "..", "workspaces"))
+# A(legacy) -> workspaces (2026-10-07 legacy 이동)
+_WORKSPACES = os.path.abspath(os.path.join(ASSETS, "workspaces"))
 for _path in (ASSETS, _WORKSPACES):
     if _path not in sys.path:
         sys.path.insert(0, _path)
@@ -33,7 +33,7 @@ for _path in (ASSETS, _WORKSPACES):
 import sizing_recipe as sr  # noqa: E402
 import run_harness as H  # noqa: E402
 
-LIBRARY_DIR = os.path.join(ASSETS, "library")
+LIBRARY_DIR = os.path.join(ASSETS, "..", "assets", "library")  # 공용 입력
 THETA_STAR_PATH = os.path.join(ASSETS, "tests", "canonical_theta_star.json")
 
 _TOPOLOGY_CACHE = {}

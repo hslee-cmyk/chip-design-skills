@@ -122,7 +122,7 @@ def s015_state(assets_dir, toy_lut):
         ("Ma", "Mb"), _l4d_transistors, _l4d_ctx, {"nmos": lut}, _l4d_metrics, _l4d_tight,
         gm_id_bounds=(2.0, 28.0))
     _l4d_m6_trs, _l4d_m6_meta = load_topology(
-        _os.path.join(assets_dir, "library",
+        _os.path.join(assets_dir, "..", "assets", "library",
                        "current_reuse_telescopic_ota.topology.json"))
     _l4d_m6_by_name = {t.name: t for t in _l4d_m6_trs}
     _l4d_m6_names = ["M1a", "M1b", "M2a", "M2b", "M6", "M7"]
@@ -1402,7 +1402,7 @@ def test_s015_suggest_matching_finger_growth(assets_dir, toy_lut):
         "거부됐는데 transistors가 원본과 다름"
 
     _l4d_m6_trs, _l4d_m6_meta = load_topology(
-        _os.path.join(assets_dir, "library",
+        _os.path.join(assets_dir, "..", "assets", "library",
                        "current_reuse_telescopic_ota.topology.json"))
     _l4d_m6_by_name = {t.name: t for t in _l4d_m6_trs}
     _l4d_m6_names = ["M1a", "M1b", "M2a", "M2b", "M6", "M7"]
@@ -2915,7 +2915,7 @@ def test_s070_section(assets_dir):
         "M39": {"gm": 40e-6, "gds": 0.3e-6}, "M40": {"gm": 40e-6, "gds": 0.3e-6},
     }
     _full_topo_path = _os_ss.path.join(
-        assets_dir,
+        assets_dir, "..", "assets",
         "library", "current_reuse_telescopic_ota.topology.json")
     _full_ctx = SizingContext(sized=_full_sized, topology_path=_full_topo_path)
     _ss_cmrr_spec = {"type": "smallsignal_ratio_db",

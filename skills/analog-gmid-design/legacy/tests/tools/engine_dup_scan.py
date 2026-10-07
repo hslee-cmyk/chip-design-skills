@@ -23,7 +23,9 @@ import json
 import pathlib
 import sys
 
-PROBES_REL = ("skills", "analog-gmid-design", "assets", "tests", "probes")
+PROBES_REL = ("skills", "analog-gmid-design", "legacy", "tests", "probes")  # 2026-10-07 legacy 이동
+_LEGACY_PREFIX = "skills/analog-gmid-design/legacy/"
+_PRE_LEGACY_PREFIX = "skills/analog-gmid-design/assets/"
 _PRIVATE_METHODS = ("_query", "_w_ref_effective")
 _RAIL_NAMES = frozenset(("vdd", "vss", "gnd", "agnd", "avdd", "avss", "dvdd", "dvss"))
 
@@ -144,7 +146,11 @@ def main(argv: list) -> int:
         return 2
     unexempted = 0
     for rec in records:
-        if "%s::%s" % (rec["path"], rec["rule"]) in exempt:
+        # 2026-10-07 legacy 이동: 이동 전 승인 기록(.ai/approvals, 이력이라 고치지 않음)은 옛 자리
+        # `skills/analog-gmid-design/assets/tests/probes/...` 경로로 적혀 있다 -- 같은 파일(git rename)이므로 옛 경로도 본다.
+        old_path = rec["path"].replace(_LEGACY_PREFIX, _PRE_LEGACY_PREFIX, 1) if rec["path"].startswith(_LEGACY_PREFIX) else None
+        if ("%s::%s" % (rec["path"], rec["rule"]) in exempt
+                or (old_path is not None and "%s::%s" % (old_path, rec["rule"]) in exempt)):
             rec["exempt"] = True
         else:
             unexempted += 1

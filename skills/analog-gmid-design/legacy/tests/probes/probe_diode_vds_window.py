@@ -47,8 +47,8 @@ def emit(*parts):
 
 
 
-TOPO = os.path.join(ASSETS, "library", "current_reuse_telescopic_ota.topology.json")
-INST = os.path.join(ASSETS, "..", "..", "..", "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
+TOPO = os.path.join(ASSETS, "..", "assets", "library", "current_reuse_telescopic_ota.topology.json")
+INST = os.path.join(ASSETS, "workspaces", "current-reuse-telescopic-ota-report", "current_reuse_telescopic_ota.instance.json")
 W_BOUNDS = (1e-6, 200e-6)
 
 trs, meta = sr.load_topology(TOPO)
@@ -59,7 +59,7 @@ for v in sized.values():
     if "vs" in v and "vsb" not in v:
         v["vsb"] = v.pop("vs")
 
-npz = np.load(os.path.join(ASSETS, "sky130_nfet_pfet_lut_sample.npz"))
+npz = np.load(os.path.join(ASSETS, "..", "assets", "sky130_nfet_pfet_lut_sample.npz"))
 mk = lambda k: sr.SemiEmpiricalGmIdLUT(npz["L"], npz["VGS"], npz["VDS"], npz["VS"],
                                         npz["ID_" + k], npz["GM_" + k], npz["GDS_" + k],
                                         npz["CGG_" + k], W_ref=5e-6)
