@@ -23,6 +23,7 @@ from .graph_snapshot import GraphSnapshot
 from .immutability import require_immutable
 from .margin import normalized_margin
 from .metric_signature import OBJECTIVE_AXES, VIEW_KINDS, MetricSignature
+from .pdk_decl import PdkDecl, PdkQuantity, PdkRule, read_pdk_decl
 from .projection import Projection
 from .units import AMPLITUDE_DB_PER_DECADE, DOMAINS, METRIC_UNITS
 from .writer_error import WriterPermissionError
@@ -50,6 +51,9 @@ __all__ = (
     "MetricSignature",
     "NonconvergentError",
     "OBJECTIVE_AXES",
+    "PdkDecl",
+    "PdkQuantity",
+    "PdkRule",
     "Projection",
     "SchemaRejectedError",
     "SealViolationError",
@@ -63,6 +67,7 @@ __all__ = (
     "exit_code_for",
     "fp_of",
     "normalized_margin",
+    "read_pdk_decl",
     "require_immutable",
     "sorted_items",
 )

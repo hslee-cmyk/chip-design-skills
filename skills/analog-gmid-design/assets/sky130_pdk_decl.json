@@ -1,0 +1,61 @@
+{
+  "schema": "gmid_pdk_decl/1",
+  "pdk": "sky130",
+  "pdk_root": "C:/pdk",
+  "note": "PDK 선언(계획 N3.16 'PDK 상수', U-30, DEC-93 (5), LY10). 값은 아래 원본 파일에서 엔진(gmid_engine.core.read_pdk_decl)이 계산한다 -- 여기에는 규칙 번호 식과 원본 출처만 둔다. 길이 식(quantities 의 basis)은 레이아웃 기하 해석이라 사용자 ratify 대상이다(2026-10-07 작성).",
+  "sources": {
+    "tech_lef": {
+      "path": "sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef",
+      "sha256": "c8351e320a3d89640a1aae4cc0991d41646553362007fb45f40d3882d3b1688f",
+      "format": "lef_statement",
+      "encoding": "utf-8",
+      "units_m": {"": 1e-6},
+      "note": "출처 C:/pdk/sky130_fd_sc_hd/tech/PROVENANCE.txt (google/skywater-pdk-libs-sky130_fd_sc_hd ac7fb61f). LEF 거리 단위는 micron(LEF/DEF 5.8 Language Reference, UNITS 절 -- 값은 micron, DATABASE MICRONS 는 DB 정수 배율)."
+    },
+    "periphery_rules": {
+      "path": "skywater-pdk/docs/rules/periphery/periphery.csv",
+      "sha256": "432c56b98213cb308c21a23f939f51f87539cf081b7dbd476f5dc837f61d6311",
+      "format": "rule_table_csv",
+      "encoding": "utf-8",
+      "section_pattern": "^\\(([^()]+?)(?:\\.-)+\\)$",
+      "section_column": 0,
+      "id_column": 0,
+      "value_column": 3,
+      "unit_column": 4,
+      "units_m": {"µm": 1e-6, "": 1e-6},
+      "note": "출처 C:/pdk/skywater-pdk/docs/rules/periphery/PROVENANCE.txt (google/skywater-pdk 7198cf64, SkyWater 공식 periphery rules 표). 규칙 번호 = 절 머리 '(poly.-)' 의 접두 + '.' + 첫 열. 단위 열이 빈 행(poly.7·poly.8·difftap.4·5 등)은 표 전체 단위 µm 로 읽는다(같은 절의 길이 규칙이고 표가 µm 표이므로) -- 'mm' 로 적힌 행(x.1a·x.1b 격자, 실제는 µm 오기)은 단위 표에 넣지 않아 쓰면 거부된다."
+    }
+  },
+  "quantities": {
+    "manufacturing_grid_m": {
+      "source": "tech_lef",
+      "expression": "MANUFACTURINGGRID",
+      "basis": "제조 격자 = tlef MANUFACTURINGGRID (계획 N3.16, DEC-80 (i))."
+    },
+    "finger_pitch_overhead_m": {
+      "source": "periphery_rules",
+      "expression": "max(poly.2, licon.1 + 2 * licon.11)",
+      "basis": "행 폭 = Σ nf x (L + overhead)(layout 4.11). 이웃 두 gate 사이 공유 확산에 contact 하나: licon.1(licon 폭) + 양쪽 licon.11(diff 위 licon-gate 간격), poly.2(poly-poly 간격)보다 작을 수 없다."
+    },
+    "row_gap_m": {
+      "source": "periphery_rules",
+      "expression": "max(difftap.3, poly.8 + poly.2 + poly.8)",
+      "basis": "위아래 두 행의 diff 가장자리 사이: 각 행 gate poly 가 diff 밖으로 poly.8(endcap)만큼 나오고 두 poly 사이 poly.2, diff-diff 간격 difftap.3 보다 작을 수 없다."
+    },
+    "dummy_w_m": {
+      "source": "periphery_rules",
+      "expression": "poly.1a + poly.7 + max(poly.2, licon.1 + 2 * licon.11) / 2",
+      "basis": "행 양끝 dummy 하나가 더하는 폭(floorplan 4.10 은 행마다 2 x dummy_w). nf 개 finger 의 행 폭 식은 contact 확산 nf 개를 세지만 dummy 둘을 두면 확산 nf+1 개 + dummy gate 둘(최소 폭 poly.1a) + 바깥 확산 연장 둘(poly.7)이라, 끝 하나당 poly.1a + poly.7 + (contact 확산 폭)/2."
+    },
+    "tap_w_m": {
+      "source": "periphery_rules",
+      "expression": "difftap.3 + max(difftap.1, licon.1 + 2 * licon.7)",
+      "basis": "행마다 body tap 하나(floorplan 4.10): 행과 닿지 않는 tap 까지 diff-tap 간격 difftap.3 + licon 하나를 품는 고립 tap 폭(licon.1 + 양쪽 licon.7), diff/tap 최소 폭 difftap.1 보다 작을 수 없다."
+    },
+    "well_spacing_m": {
+      "source": "periphery_rules",
+      "expression": "max(nwell.2a + 2 * difftap.8, difftap.9 + difftap.8)",
+      "basis": "body 가 다른 묶음 사이 diff-diff 간격(floorplan 4.10): 서로 다른 두 nwell(nwell.2a) 안 p+ diff 가 각자 nwell 에 difftap.8 만큼 둘러싸이는 경우와, n+ diff 와 nwell(difftap.9) 안 p+ diff(difftap.8)의 경우 중 큰 값."
+    }
+  }
+}
