@@ -22,6 +22,7 @@ from gmid_engine.graph import (
     s1_dc_roles,
     s1_gs_groups,
     s1_gvgs,
+    s1_matching_groups,
     s1_rel_kcl,
     s1_rel_matching,
     s1_rel_vgs,
@@ -46,7 +47,7 @@ TABLE = {
     "two_stage_ota_sf": (4, 4, (("gnd", "vdd", 4),), 0),
 }
 BLOCKS = (s1_structure, s1_bulk, s1_dc_conduction, s1_gs_groups, s1_branches, s1_dc_roles, s1_rel_vgs,
-          s1_rel_matching, s1_gvgs, s1_columns, s1_rel_kcl)
+          s1_rel_matching, s1_matching_groups, s1_gvgs, s1_columns, s1_rel_kcl)
 
 
 def _s1(gh, name, **kw):
