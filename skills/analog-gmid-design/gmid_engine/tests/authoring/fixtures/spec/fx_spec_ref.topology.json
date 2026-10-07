@@ -1,0 +1,16 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "fx_spec_ref",
+  "source": "hand-made spec test fixture: value_from_file target",
+  "linked_topology_files": [],
+  "supply_nets": ["rail_hi", "rail_lo"],
+  "netlist": [
+    {"name": "Q1", "kind": "nmos", "drain": "n_o", "gate": "n_i", "source": "rail_lo"},
+    {"name": "Q2", "kind": "pmos", "drain": "n_o", "gate": "n_b", "source": "rail_hi"}
+  ],
+  "passive_elements": [],
+  "ports": {
+    "n_i": {"direction": "input", "role": "single_ended_input"},
+    "n_o": {"direction": "output", "role": "single_ended_output"}
+  }
+}
