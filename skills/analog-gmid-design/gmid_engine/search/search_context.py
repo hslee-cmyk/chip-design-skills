@@ -64,6 +64,7 @@ class SearchContext:
         self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
         self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
+        self.cell_floors = {}                            # [r8] `cell_floor` 의 (kind, w_key, L 칸) -> 칸 정점 하한 등 S0 수명 캐시
 
 
 def _disk_failures(archive, context_fp, schema_fp):

@@ -3,7 +3,8 @@
 진입점: `solve_eps(sctx, start, minimize, eps, origin) -> SolveResult`.
 
 * 변수: `SearchDomain.variables`(ln_idu·y·ln current·ln R) + 칸이 구간인(lo < hi) MOS 의 L(칸 bounds). L 칸 index 벡터는
-  시작점 것을 그대로 쓴다(L-a) -- 칸이 한 점인 L 은 고정값이다. 결정변수 밖 값은 바꾸지 않는다.
+  시작점 것을 그대로 쓴다(L-a) -- 칸이 한 점인 L 은 고정값이다. 결정변수 밖 값은 바꾸지 않는다. [r8, S-4f] 1변수 노드 writer 의
+  ln_idu 하한은 시작 칸의 칸 정점 하한(`cell_floor.ln_idu_floors(one_var_only=True, start=시작 θ)`).
 * 목적 = `minimize` 축 값 / 그 축 분해능, ε = (축, 상한) 이면 제약 (ε − 값)/분해능 ≥ 0(설계 5절). 분해능: 면적 = b_A(정의역),
   전력 = 시작점의 b_P(`Objectives.power_resolution_w` -- 풀이 하나 동안 고정해 목적 함수가 θ 마다 축척을 바꾸지 않게).
   다른 제약 = 커널 결과의 정규화 행 + θ 전류 원뿔 행. 가중합 없음(DEC-77).
@@ -29,6 +30,7 @@ from scipy.optimize import minimize as scipy_minimize
 
 from gmid_engine.sizing import THETA_L
 
+from .cell_floor import ln_idu_floors
 from .fd_jacobian import fd_jacobian
 from .kernel import evaluate
 from .search_values import ACCEPTED_STATUSES, AXIS_AREA, AXIS_POWER, CON_EPS, STAGE_SLSQP, SolveResult, Variable
@@ -54,6 +56,10 @@ def _layout(sctx, start):
             variables.append(Variable((THETA_L, mos), False, lo, hi))
         else:
             fixed[(THETA_L, mos)] = lo
+    # [r8, S-4f] 1변수 노드 writer(diode·소스 추종)의 ln_idu 상자 하한 = 시작 칸의 칸 정점 하한(시작 좌표는 넘지 않음) -- 칸이 고정된
+    # 이 풀이 안에서 상수. 정점 아래 좌표에서 그 노드 근이 늘 없어 SLSQP 가 실패 재시작만 하는 영역을 상자에서 뺀다.
+    for i, floor in ln_idu_floors(sctx, variables, start.cells, one_var_only=True, start=theta).items():
+        variables[i] = Variable(variables[i].component, variables[i].log, floor, variables[i].hi)
     names = {v.component for v in variables} | set(fixed)
     for comp in theta:
         if comp not in names:
