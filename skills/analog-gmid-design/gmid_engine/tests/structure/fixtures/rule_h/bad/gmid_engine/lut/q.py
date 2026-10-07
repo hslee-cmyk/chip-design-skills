@@ -1,0 +1,2 @@
+def q():
+    return None
