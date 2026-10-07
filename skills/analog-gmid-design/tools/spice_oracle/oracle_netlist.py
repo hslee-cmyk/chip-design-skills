@@ -13,7 +13,10 @@
           parse_netlist_elements(text, inp), topology_elements(topo), topology_identity(inp, text, path),
           resolve_topology_path(inp, input_path, override), apply_z1(inp, omit, short),
           diffusion_of(process, d), diffusion_gate(geometry, bias), ratio_views(inp),
-          rout_views(inp), sense_key(view), excitation_weight_check(inp), dc_path_isolation(tb, inputs, fb)
+          rout_views(inp), sense_key(view), excitation_weight_check(inp), dc_path_isolation(tb, inputs, fb),
+          [신규 C10] stability_op_netlist(text, nodes), stability_netlist(text, mode, weights, output_nodes, plan)
+          -- PM 안정성 근거용 동작점 패스·폐루프 .tran 넷리스트(본·루프 넷리스트 텍스트는 바꾸지 않는다)
+  * [신규 C10] meta.outputs·output_nodes·tb_options(폐루프 .tran 이 쓴다).
   * [신규] C26 rout_ohm: 뷰마다 감지 넷에 Irout_<k>(DC 0, AC 0) 전류원을 두고 .control 안에서 모든 여기 원 acmag 0,
     그 뷰의 Irout 만 acmag 1 로 .ac 한 점(fstart).
   * [신규] C27: A 크기를 쓰는 measure 가 있으면 입력 AC 진폭이 정의값(차동 ±1/2, 단일 1)인지 검사(아니면 막힘),
@@ -53,6 +56,8 @@ BIASES = ("free", "forced", "iso")
 CIRCUIT_PREFIXES = {"X": "device", "Rp_": "resistor", "Cp_": "capacitor", "Isrc_": "current", "Vsrc_": "voltage"}
 TESTBENCH_PREFIXES = ("Vrail_", "Efb_", "Vofs_", "Lfb_", "Vdc_", "Ldc_", "Cac_", "Vac_", "Vbias_", "Vhold_", "Lhold_",
                       "Vlb_", "Ilb_", "Vshort_", "Viso_", "Irout_")
+# 테스트벤치 DC 경로 choke(인덕터) 접두사 -- [신규 C10 안정성] 폐루프 .tran 넷리스트에서 동작점 전류원 + .ic 로 바뀐다
+CHOKE_PREFIXES = ("Lfb_", "Ldc_", "Lhold_")
 # C27: 개루프 A 의 크기를 쓰는 measure(입력 AC 진폭에 비례하는 값). f3db_hz 는 배율 무관이라 빠진다.
 A_SCALED_MEASURES = ("dc_gain_db", "ugf_hz", "pm_deg")
 # topology ideal_sources 의 kind 어휘 -> 오라클 sources[].kind 어휘(같은 뜻의 두 이름)
@@ -488,14 +493,104 @@ def build_netlist(inp, bias, ac_file, loop=False):
     L.append(".endc")
     L.append(".end")
     blockers = N.blockers + blockers
+    outs = [out_se] if out_se else ([out_p, out_n] if (out_p and out_n) else [])
     meta = {"bias": bias, "lut_meta": lut, "geometry": geometry, "probes": probes, "nets": all_nets,
             "spice_node": {n: N(n) for n in all_nets}, "rail_sources": rail_src, "held": held,
             "unheld": unheld, "gate_bias": {k: v[0] for k, v in gate_bias.items()},
             "inputs": inputs, "has_ac": has_ac, "ac_file": ac_file if has_ac else None,
+            # [신규 C10 안정성] 출력 넷과 그 SPICE 노드 쌍(차동이면 (p, n), 단일이면 (out, 0)), 테스트벤치 .option
+            "outputs": outs, "output_nodes": [N(outs[0]), N(outs[1]) if len(outs) == 2 else "0"] if outs else [],
+            "tb_options": dict(tb.get("options") or {}),
             "ratio_runs": ratio_runs, "rout_runs": rout_runs, "input_ac_weights": dict(ac_mag),
             "dc_path_isolation": dc_path_isolation(tb, inputs, fb),
             "notes": notes, "blockers": blockers}
     return "\n".join(L) + "\n", meta
+
+
+def stability_op_netlist(text, nodes):
+    """[신규 C10 안정성] 폐루프 .tran 넷리스트를 만들기 전 동작점 패스: text(오라클 넷리스트)의 .control 앞 본문 그대로에
+    `op` 와 print(테스트벤치 choke 전류 i(<choke>), 주어진 SPICE 노드와 choke 회로 쪽 노드의 v(..))를 붙인다.
+    반환 (텍스트, choke 이름 목록, 노드 목록). 이 패스의 값이 stability_netlist 의 choke_I·node_V 가 된다(같은 본문의 .op)."""
+    body, chokes, nn = [], [], [n for n in nodes if n != "0"]
+    for raw in text.splitlines():
+        if raw.strip().lower().startswith(".control"):
+            break
+        body.append(raw)
+        tok = raw.split()
+        if tok and tok[0].startswith(CHOKE_PREFIXES):
+            chokes.append(tok[0])
+            if tok[2] not in nn and tok[2] != "0":
+                nn.append(tok[2])
+    body += [".control", "set noaskquit", "op", "echo OPSTART"]
+    body += [f"print i({c.lower()})" for c in chokes] + [f"print v({n.lower()})" for n in nn]
+    body += ["echo OPEND", "quit", ".endc", ".end"]
+    return "\n".join(body) + "\n", chokes, nn
+
+
+def stability_netlist(text, mode, weights, output_nodes, plan):
+    """[신규 C10 안정성] 폐루프 과도(.tran) 넷리스트. text = 오라클이 쓴 넷리스트(.control 앞 본문만 쓴다).
+    mode = 'beta_loop': text 는 루프 넷리스트 -- Vlb_<넷>(DC 0) 이 이미 루프 안 직렬 원이고 Vlb = 0 이면 실제 폐루프다.
+      끊은 넷마다 Vlb 에 PULSE(0 -> w_k*kick) 를 건다(w_k = weights[넷]).
+    mode = 'beta_1': text 는 본 넷리스트 -- 입력 넷마다 그 넷의 테스트벤치 원(Cac_·Vac_·Vdc_·Ldc_·Efb_·Vofs_·Lfb_)을 빼고
+      `Ecl_<넷> <넷 노드> ecl_<넷> <출력 노드 쌍> g` + `Vcl_<넷> ecl_<넷> 0 PULSE(V0 -> V0 + w_k*kick)` 로 직접 구동한다:
+      V(넷) = V_op(넷) + g*(H - H_op) + w_k*kick(t), g = -sign*w_k, V0 = V_op(넷) - g*H_op(H = 출력 차동/단일 전압).
+      입력 AC = -sign*w_k*H 라 루프 이득 = sign*A(β=1, sign = 기준점 A 실수부 부호 -> 기준점에서 음되먹임), 동작점은
+      H = H_op 에서 본 동작점과 같다. (결합 C 1 F 를 이상 VCVS 로 구동하면 큰 진동에서 .tran 이 'Timestep too small' --
+      2026-10-08 실측 nmcnr_amplifier.)
+    나머지 테스트벤치 choke(CHOKE_PREFIXES: Lfb_·Ldc_·Lhold_ <tb 노드> <회로 노드> L)는 `Itb_<이름> <tb 노드> <회로 노드>
+    DC <I_op>`(같은 본문의 동작점 패스 stability_op_netlist 가 잰 그 choke 전류) + `.ic v(<회로 노드>) = <V_op>` 로 바꾼다:
+    .ic 는 uic 없이 쓰면 과도 시작 전
+    바이어스 해에서만 그 노드를 묶고 t > 0 에서 푼다(SPICE .ic 의미) -- 바이어스 = 본 동작점, 과도 중에는 전류가 얼어 있는
+    이상적 choke 와 같다(큰 L 을 그대로 두면 ngspice .tran 이 'Timestep too small' 로 멈춘다, 2026-10-08 실측:
+    1e20/1e12 H 실패, 1e8 H 성공). plan = {kick_V, td, tr, pw, tstop, tmax, file, sign, choke_I{이름 소문자: A},
+    node_V{SPICE 노드 소문자: V}, input_nodes{넷: SPICE 노드}}. 반환 (텍스트, 못 만든 것 목록)."""
+    def pulse(v0, a):
+        return (f"PULSE({_num(v0)} {_num(v0 + a)} {_num(plan['td'])} {_num(plan['tr'])} {_num(plan['tr'])} "
+                f"{_num(plan['pw'])} {_num(2 * plan['tstop'])})")
+    body, done, ics, bad = [], set(), [], []
+    ci, nv = plan.get("choke_I") or {}, plan.get("node_V") or {}
+    drop, h_op = set(), None
+    if mode == "beta_1":
+        drop = {f"{p}{net}" for net in weights for p in ("Cac_", "Vac_", "Vdc_", "Ldc_", "Efb_", "Vofs_", "Lfb_")}
+        vo = [0.0 if n == "0" else nv.get(n.lower()) for n in output_nodes]
+        h_op = None if None in vo else vo[0] - vo[1]
+    for raw in text.splitlines():
+        if raw.strip().lower().startswith(".control"):
+            break
+        tok = raw.split()
+        if tok and tok[0] in drop:
+            continue
+        if tok and tok[0].startswith(CHOKE_PREFIXES):
+            i_op, v_op = ci.get(tok[0].lower()), nv.get(tok[2].lower())
+            if i_op is None or v_op is None:
+                bad.append(f"{tok[0]}(동작점 전류 {i_op}, 노드 {tok[2]} 전압 {v_op})")
+                body.append(raw)
+                continue
+            body.append(f"Itb_{tok[0]} {tok[1]} {tok[2]} DC {_num(i_op)}")
+            ics.append(f".ic v({tok[2]})={_num(v_op)}")
+            continue
+        if mode == "beta_loop" and tok and tok[0].startswith("Vlb_") and tok[0][4:] in weights:
+            net = tok[0][4:]
+            body.append(f"{tok[0]} {tok[1]} {tok[2]} DC 0 " + pulse(0.0, weights[net] * plan["kick_V"]))
+            done.add(net)
+            continue
+        body.append(raw)
+    if mode == "beta_1":
+        for net, w in weights.items():
+            node = (plan.get("input_nodes") or {}).get(net)
+            v_in = None if node is None else nv.get(node.lower())
+            if v_in is None or h_op is None:
+                bad.append(f"입력 {net}(동작점 전압 {v_in}, 출력 H_op {h_op})")
+                continue
+            g = -plan["sign"] * w
+            body.append(f"Ecl_{net} {node} ecl_{net} {output_nodes[0]} {output_nodes[1]} {_num(g)}")
+            body.append(f"Vcl_{net} ecl_{net} 0 " + pulse(v_in - g * h_op, w * plan["kick_V"]))
+            done.add(net)
+    hst = f"v({output_nodes[0]})" + ("" if output_nodes[1] == "0" else f" - v({output_nodes[1]})")
+    body += ics
+    body += [".control", "set noaskquit", f"tran {_num(plan['tmax'])} {_num(plan['tstop'])} 0 {_num(plan['tmax'])}",
+             f"let hst = {hst}", "set wr_singlescale", f"wrdata {plan['file']} hst", "quit", ".endc", ".end"]
+    return "\n".join(body) + "\n", sorted(set(weights) - done) + bad
 
 
 def dc_path_isolation(tb, inputs, fb):
