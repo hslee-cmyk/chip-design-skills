@@ -35,9 +35,11 @@ def _fields(cls):
 
 
 def test_field_names_and_order():
-    """7.1 생성자 순서 그대로."""
+    """7.1 생성자 순서 그대로([9절] 13번째 `lut_rel_tol`, 기본값 None)."""
     assert _fields(SsDevice) == ["gm", "gmb", "gds", "cgg", "cgs", "cgd", "cgb", "cdb", "csb", "cap_model", "gmb_model",
-                                 "junction_model"]
+                                 "junction_model", "lut_rel_tol"]
+    assert _dev().lut_rel_tol is None                       # 12칸 생성자 호출도 받는다(7.1)
+    assert dataclasses.replace(_dev(), lut_rel_tol=0.02).lut_rel_tol == 0.02
     assert _fields(SsCircuit) == ["nodes", "circuit", "resistors", "capacitors", "ground_nets", "input_nets", "missing"]
     assert _fields(MetricRequest) == ["metric", "view"]
     assert _fields(MetricBundle) == ["entries", "approximations", "detail"]

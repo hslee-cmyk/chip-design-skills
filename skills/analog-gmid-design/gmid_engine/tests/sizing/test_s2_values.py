@@ -133,6 +133,14 @@ def test_block_reads_declared_as_contract(name):
     assert set(BLOCKS[name].reads) == READS[name]
 
 
+def test_theta_schema_reads_include_structural_rule_fields():
+    """[r5] 4.4: dc_theta_schema 의 reads 에 구조 규칙용 S1 필드 device.{pins, bulk}, node.{terminals, is_rail,
+    port_direction, ac_ground_class} 가 든다(나머지 reads 는 4.4 가 다 적지 않아 부분집합으로만 확인)."""
+    need = {("device", "pins"), ("device", "bulk"), ("node", "terminals"), ("node", "is_rail"),
+            ("node", "port_direction"), ("node", "ac_ground_class")}
+    assert need <= set(S.dc_theta_schema.reads)
+
+
 def test_vocabulary_constants():
     assert S.DC_KEY == "dc"
     assert (S.TIER_W0, S.TIER_W1, S.TIER_W2, S.TIER_W3, S.TIER_W4) == ("W0", "W1", "W2", "W3", "W4")
@@ -155,7 +163,15 @@ def test_vocabulary_constants():
         "writer_edge", "w4_root", "input_tie_order", "current_pivot")
     assert S.BRANCH_RESISTOR_CYCLE == "dc_resistor_cycle"
     assert S.BRANCH_MOS_ZERO_CURRENT == "mos_zero_current_structural"
-    assert set(S.THETA_KINDS) == {"ln_idu", "L", "y", "current", "resistance"}
+    # [r5] 4.4: capacitance(engine 커패시터)·ss_resistance(DC 전류 0 engine 저항 중 구조 규칙 밖) 추가, 둘 다 DC 블록이 읽지 않는
+    # THETA_PASSIVE_KINDS(4.4·7절)
+    assert set(S.THETA_KINDS) == {"ln_idu", "L", "y", "current", "resistance", "capacitance", "ss_resistance"}
+    assert set(S.THETA_PASSIVE_KINDS) == {"capacitance", "ss_resistance"}
+    assert set(S.THETA_PASSIVE_KINDS) <= set(S.THETA_KINDS)
+    # [r5] 4.4 영점 상쇄 구조 규칙 판정 reason 어휘
+    assert (S.ZC_NO_CAPACITOR, S.ZC_MULTIPLE_RESISTORS, S.ZC_RESISTOR_END, S.ZC_NO_CELL, S.ZC_MIXED_DIRECTION) == (
+        "network_without_capacitor", "network_multiple_resistors", "resistor_end_not_unique", "no_cs_cell",
+        "cs_cell_direction_mixed")
 
 
 def test_value_defaults():
@@ -180,6 +196,9 @@ VALUE_INSTANCES = [
     S.SealItem(1, "pass", 0.0, 1.0, 0.0, (), (), (("n_checked", 1),)),
     S.DeviceOp("nmos", 1e-5, -13.0, 10.0, 1e-6, 2e-6, 0.6, 0.9, 0.0, 100, 1e-6),
     S.DcInputs((("gnd", 0.0), ("vdd", 1.8))),
+    S.DcInputs((("gnd", 0.0), ("vdd", 1.8)), engine_elements=("Cc", "Rz")),
+    S.ZeroCancel("Rz", "out", ("in",), ("M1",)),
+    S.ThetaSchema((("L", "M1"),), zero_cancel=(S.ZeroCancel("Rz", None, (), (), "resistor_end_not_unique"),)),
 ]
 
 
@@ -200,9 +219,11 @@ def test_value_fields_as_contract():
     assert names(S.CurrentTerm) == ("source", "num", "den")
     assert names(S.CurrentBasis) == ("ends", "mos", "free", "fixed", "rows", "pruned", "resistors", "ties")
     assert names(S.TieBreak) == ("decision", "candidates", "chosen")
-    assert names(S.ThetaSchema) == ("components", "current_cone", "fixed")
+    assert names(S.ThetaSchema) == ("components", "current_cone", "fixed", "zero_cancel")      # [r5]
     ts = S.ThetaSchema((("L", "M1"),))
-    assert ts.current_cone == () and ts.fixed == ()
+    assert ts.current_cone == () and ts.fixed == () and ts.zero_cancel == ()
+    assert names(S.ZeroCancel) == ("resistor", "end_net", "far_nets", "cells", "reason")        # [r5]
+    assert S.ZeroCancel("Rz", "out", ("in",), ("M1",)).reason is None
     assert names(S.ColumnNeighbor) == ("rails", "pred", "succ", "position", "length")
     assert names(S.SccEntry) == ("index", "nodes", "cyclic", "devices")
     assert names(S.Window) == ("lo", "hi", "constraints")
@@ -216,4 +237,4 @@ def test_value_fields_as_contract():
     assert names(S.KernelContext) == ("base", "inputs", "lut", "schema", "fixed_values", "resistor_values",
                                       "plan_versions")
     assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "linear_devices",
-                                 "pending")
+                                 "pending", "engine_elements")                                   # [r5]
