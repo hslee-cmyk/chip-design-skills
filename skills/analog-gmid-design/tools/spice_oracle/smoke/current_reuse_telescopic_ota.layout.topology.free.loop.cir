@@ -96,7 +96,7 @@ alter @ilb_vip[acmag] = 0.5
 alter @vlb_vim[acmag] = 0
 alter @ilb_vim[acmag] = -0.5
 ac dec 40 0.01 1e+10
-wrdata current_reuse_telescopic_ota.layout.topology.free.loop.i.txt i(vlb_vip) i(vlb_vim)
+wrdata current_reuse_telescopic_ota.layout.topology.free.loop.i.txt i(vlb_vip) i(vlb_vim) v(Vip) v(Vim)
 quit
 .endc
 .end

@@ -11,7 +11,11 @@
 공개 함수: run_ngspice(exe, cir, log, timeout_s, cache_dir, outputs), parse_op(log_text, meta), parse_ac_file(path),
           ac_measures(freq, re, im), pm_crosscheck(freq, re, im, mp_res), data_rel_resolution(path),
           mp_resolution(rel_resolution, values_per_sample), run_cache_key(exe, cir_path),
-          ratio_measure(run, folder), simulate(cir_path, meta, exe, timeout_s, cache_dir)
+          ratio_measure(run, folder), rout_measure(run, folder), loop_choke_ratio(i_file, nets, weights, choke_H),
+          simulate(cir_path, meta, exe, timeout_s, cache_dir)
+[신규] C26 rout_ohm: meta.rout_runs 의 데이터 파일(.ac 한 점, 감지 노드 단위 AC 전류)에서 sim.rout 를 만든다
+  (rout_ohm = Re(V/I), 음수면 None + undefined, C21 캐시에 함께 저장·복원).
+[신규] C27 기록: ac.dc_path_isolation(넷리스트 meta), ac.loop_choke_ratio(β 루프 2회 실행 첫 점), ac.loop_break_nets·loop_weights.
 [신규] C24 ratio_db(CMRR·PSRR): 넷리스트 meta.ratio_runs 의 num/den 데이터 파일(.ac 한 점)에서 sim.ratio 를 만든다
   (데이터 파일은 C21 캐시에 함께 저장·복원).
 [신규] PM 교차 측정(C20, 기록만): PM 을 정한 루프 이득 L 로 폐루프 L/(1+L) 의 peaking Mp 를 재고 2차계 관계로 PM 을 역산해
@@ -295,6 +299,48 @@ def ratio_measure(run, folder):
     return out
 
 
+ROUT_NEGATIVE = "negative_real_part"
+
+
+def rout_measure(run, folder):
+    """C26: rout_ohm 뷰 한 개의 .ac 한 점(감지 노드 단위 AC 전류) -> {view, f_hz, re, im, mag, rout_ohm, undefined}.
+    H = V(sense_p) [- V(sense_n)] 를 주입 전류 1 A 로 나눈 값이 임피던스이고 rout_ohm = Re(H)(엔진 rout_ss_ohm 의 ω -> 0
+    실수 값과 같은 쪽). Re(H) < 0 이면 rout_ohm None + undefined = 'negative_real_part'(정의 불가 -- 엔진 결정: 음의 출력
+    저항은 통과하지 않는다), 파일이 없으면 None + 'no_data'."""
+    out = {"view": run["view"], "f_hz": run["f_hz"], "re": None, "im": None, "mag": None, "rout_ohm": None,
+           "undefined": None}
+    raw = parse_ac_file(os.path.join(folder, run["file"]))
+    if not raw:
+        out["undefined"] = "no_data"
+        return out
+    re_, im = raw[1][0], raw[2][0]
+    out.update(re=re_, im=im, mag=math.hypot(re_, im), f_hz=raw[0][0])
+    if re_ < 0:
+        out["undefined"] = ROUT_NEGATIVE
+    else:
+        out["rout_ohm"] = re_
+    return out
+
+
+def loop_choke_ratio(i_file, break_nets, weights, choke_H):
+    """C27 기록(판정 아님): β 루프 2회(전류 주입) 실행의 첫 점(fstart)에서 끊은 넷 k 마다
+    |jω·L_choke| / |V(n_k)/w_k| (w_k = 그 넷 주입 전류 진폭). >> 1 이면 choke 가 측정 대역에서 열린 것으로 본다.
+    반환 [{net, f_hz, choke_H, node_impedance_ohm, ratio}] 또는 None(파일·choke 없음). w_k = 0 이면 그 넷 ratio None."""
+    c = _cols(i_file)
+    nb = len(break_nets)
+    if c is None or choke_H is None or not c[1] or len(c[1][0]) < 2 * nb:
+        return None
+    f0, row = c[0][0], c[1][0]
+    out = []
+    for k, net in enumerate(break_nets):
+        w = weights[k]
+        z = None if not w else abs(row[nb + k] / w)
+        zl = 2 * math.pi * f0 * float(choke_H)
+        out.append({"net": net, "f_hz": f0, "choke_H": float(choke_H), "node_impedance_ohm": z,
+                    "ratio": None if not z else zl / z})
+    return out
+
+
 def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
     base = os.path.splitext(cir_path)[0]
     log_path = base + ".log"
@@ -302,8 +348,9 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
     if ac_path and os.path.exists(ac_path):
         os.remove(ac_path)
     runs = meta.get("ratio_runs") or []
+    rruns = meta.get("rout_runs") or []
     d0 = os.path.dirname(os.path.abspath(cir_path))
-    rfiles = [r[f"{s}_file"] for r in runs for s in ("num", "den")]
+    rfiles = [r[f"{s}_file"] for r in runs for s in ("num", "den")] + [r["file"] for r in rruns]
     for x in rfiles:
         if os.path.exists(os.path.join(d0, x)):
             os.remove(os.path.join(d0, x))
@@ -311,7 +358,7 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
         # 막힌 넷리스트는 돌리지 않는다(지어낸 값으로 채운 회로를 재지 않는다 -- README C2/C8)
         return {"skipped": "넷리스트 막힘: " + " | ".join(meta["blockers"]), "devices": {}, "nodes": {},
                 "rail_current_A": {}, "hold_current_A": {}, "ngspice_rc": None, "log": None, "log_errors": [],
-                "op_ok": False, "ac": None, "ac_file": None, "loop": None, "ratio": []}
+                "op_ok": False, "ac": None, "ac_file": None, "loop": None, "ratio": [], "rout": []}
     rc, log, cst = run_ngspice(exe, cir_path, log_path, timeout_s, cache_dir,
                                ([meta["ac_file"]] if meta.get("ac_file") else []) + rfiles)
     res = parse_op(log, meta)
@@ -325,6 +372,7 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
     res["ac"] = ac_measures(*raw) if raw else None
     res["ac_file"] = ac_path
     res["ratio"] = [ratio_measure(r, d0) for r in runs]
+    res["rout"] = [rout_measure(r, d0) for r in rruns]
     res["loop"] = None
     lm = meta.get("loop")
     if lm:
@@ -345,18 +393,26 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
                        "log_errors": [ln.strip() for ln in llog.splitlines()
                                       if re.search(r"error|fatal|singular|abort", ln, re.I)][:40],
                        "measures": ac_measures(*t) if t else None,
-                       "pm_crosscheck": pm_crosscheck(*t, mp_res=lres) if t else None}
+                       "pm_crosscheck": pm_crosscheck(*t, mp_res=lres) if t else None,
+                       "choke_ratio": loop_choke_ratio(inf, lm["break_nets"], lm["weights"], lm.get("choke_H"))}
     if res["ac"] is not None:
         res["ac"]["pm_open_loop_deg"] = res["ac"]["pm_deg"]
+        res["ac"]["dc_path_isolation"] = meta.get("dc_path_isolation")  # C27 기록(판정 아님)
         if lm:
             lt = (res["loop"] or {}).get("measures") or {}
             res["ac"]["pm_deg"] = lt.get("pm_deg")
             res["ac"]["pm_definition"] = "beta_loop"
             res["ac"]["loop_ugf_hz"] = lt.get("ugf_hz")
             res["ac"]["loop_gain_dc_db"] = lt.get("dc_gain_db")
+            res["ac"]["loop_break_nets"] = list(lm["break_nets"])
+            res["ac"]["loop_weights"] = dict(zip(lm["break_nets"], lm["weights"]))
+            res["ac"]["loop_choke_ratio"] = (res["loop"] or {}).get("choke_ratio")
             xc = (res["loop"] or {}).get("pm_crosscheck") or {}
         else:
             res["ac"]["pm_definition"] = "beta_1"
+            res["ac"]["loop_break_nets"] = []
+            res["ac"]["loop_weights"] = dict(meta.get("input_ac_weights") or {})  # β=1: A 의 입력 여기 가중
+            res["ac"]["loop_choke_ratio"] = None
             # A 한 표본 = 데이터 파일 실수 2개(출력/입력 복소)
             xc = pm_crosscheck(*raw, mp_res=mp_resolution(data_rel_resolution(ac_path), 2))
         res["ac"].update({k: xc.get(k) for k in ("pm_crosscheck_deg", "pm_crosscheck_note", "pm_crosscheck_method",
