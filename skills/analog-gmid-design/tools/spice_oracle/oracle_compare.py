@@ -10,7 +10,10 @@
 
 공개 함수: compare(inp, meta, sim, judge) -> dict, to_markdown(result) -> str, merge_judge(inp_judge, file_judge, sat_margin),
           device_tolerance(inp, judge, name, key), iso_summary(rows, meta), forced_diagnosis(inp, rows, kcl),
-          diagnose(free_res, forced_res), conduction_check(pred, idv), measure_value(measure, sim, item)
+          diagnose(free_res, forced_res), conduction_check(pred, idv), measure_value(measure, sim, item),
+          measure_undefined(measure, sim, item)
+[신규] C26 rout_ohm: 제약은 C9 그대로 판정, SPICE 값이 정의 불가(음의 실수부)면 'N/A(정의 불가: negative_real_part)'
+       -> INCOMPLETE(PASS 불가). summary.spice_rout = sim.rout, summary.pm_loop = PM 루프 정의 기록(C12 보충·C27).
 [신규] 소자별 허용오차(C16): predictions.devices[].tol 이 한 소자라도 있으면 ID·gm 판정은 소자별 값만 쓴다(스칼라 폴백 없음).
 [신규] iso(C17): summary.iso = 소자별 ID 오차가 그 소자 허용오차 안인가(K3 판정), verdict 는 진단 모드라 INCOMPLETE.
 [신규] Z1(C18): 넷리스트를 --omit/--short 로 바꾼 실행은 합격 판정을 하지 않는다(INCOMPLETE).
@@ -41,6 +44,9 @@ import json
 import os
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from oracle_netlist import sense_key  # noqa: E402
+
 # measure -> (오차 종류, tolerance 키)
 MEASURES = {
     "dc_gain_db": ("abs", "dc_gain_db_abs"),
@@ -49,6 +55,7 @@ MEASURES = {
     "f3db_hz": ("rel", "f3db_hz_rel"),
     "supply_current_A": ("rel", "supply_current_A_rel"),
     "ratio_db": ("abs", "ratio_db_abs"),
+    "rout_ohm": ("rel", "rout_ohm_rel"),
 }
 NA_TOL = "N/A(tol 미설정)"
 # C25: 기록 전용 과도 measure -- SPICE 정의가 계약에 없어 재지 않는다(추측 금지). 정의가 정해지면 측정으로 바꾼다.
@@ -112,9 +119,32 @@ def measure_value(measure, sim, item):
             if r.get("view") == item.get("view"):
                 return r.get("ratio_db")
         return None
+    if measure == "rout_ohm":  # C26: 같은 감지 뷰(sense_key 동등)를 잰 결과. 정의 불가(음의 실수부)면 None
+        r = _rout_entry(sim, item)
+        return None if r is None else r.get("rout_ohm")
     if measure in TRANSIENT_MEASURES:  # C25: 재지 않음
         return None
     return ac.get(measure)
+
+
+def _rout_entry(sim, item):
+    if item.get("view") is None:
+        return None
+    k = sense_key(item["view"])
+    for r in sim.get("rout") or []:
+        if sense_key(r.get("view") or {}) == k:
+            return r
+    return None
+
+
+def measure_undefined(measure, sim, item):
+    """SPICE 값이 정의 불가인 이유(값이 None 인 까닭이 측정 실패가 아니라 정의 밖일 때). 지금은 C26 rout_ohm 의
+    'negative_real_part' 하나. 없으면 None. 판정 칸은 'N/A(정의 불가: <이유>)' -> 제약이면 INCOMPLETE(PASS 불가)."""
+    if measure == "rout_ohm":
+        r = _rout_entry(sim, item)
+        if r is not None and r.get("rout_ohm") is None and r.get("undefined") not in (None, "no_data"):
+            return r["undefined"]
+    return None
 
 
 def signed_id(op_id, op_vds):
@@ -234,12 +264,17 @@ def compare(inp, meta, sim, judge):
             perf.append({**it, "spice": None, "err": None, "err_kind": None, "judge": "N/A(모르는 measure)"})
             continue
         e = rel_err(sv, it["value"]) if kind == "rel" else abs_err(sv, it["value"])
-        perf.append({**it, "spice": sv, "err": e, "err_kind": kind, "judge": judge_err(e, tol.get(key))})
+        und = measure_undefined(it["measure"], sim, it)
+        perf.append({**it, "spice": sv, "err": e, "err_kind": kind,
+                     "judge": f"N/A(정의 불가: {und})" if und else judge_err(e, tol.get(key))})
 
     cons = []
     for c in (inp.get("acceptance") or {}).get("constraints") or []:
         sv = measure_value(c["measure"], sim, c)
-        if sv is None or c.get("limit") is None:
+        und = measure_undefined(c["measure"], sim, c)
+        if und:
+            ok = f"N/A(정의 불가: {und})"
+        elif sv is None or c.get("limit") is None:
             ok = "N/A(SPICE 값 없음)"
         elif c["op"] == ">=":
             ok = "PASS" if sv >= c["limit"] else "FAIL"
@@ -247,7 +282,7 @@ def compare(inp, meta, sim, judge):
             ok = "PASS" if sv <= c["limit"] else "FAIL"
         else:
             ok = f"N/A(op {c['op']} 미지원)"
-        cons.append({**c, "spice": sv, "judge": ok})
+        cons.append({**c, "spice": sv, "judge": ok, "undefined": und})
 
     kcl = []
     for net, i in sorted((sim.get("hold_current_A") or {}).items(), key=lambda kv: -abs(kv[1] or 0)):
@@ -326,6 +361,12 @@ def compare(inp, meta, sim, judge):
                "sat_in_spice": None if margin is None else sum(1 for r in rows if r["region_spice"] == "sat"),
                "not_sat": None if margin is None else [r["name"] for r in rows if r["region_spice"] != "sat"],
                "spice_ac": sim.get("ac"), "spice_ratio": sim.get("ratio") or [],
+               "spice_rout": sim.get("rout") or [],
+               "pm_loop": {"pm_definition": (sim.get("ac") or {}).get("pm_definition"),
+                           "feedback_passives": list(inp.get("feedback_passives") or []),
+                           "feedback_passives_basis": inp.get("feedback_passives_basis"),
+                           "loop_break_nets": (sim.get("ac") or {}).get("loop_break_nets"),
+                           "loop_weights": (sim.get("ac") or {}).get("loop_weights")},
                "rail_current_A": sim.get("rail_current_A")}
     ti = meta.get("topology_identity") or {"status": "unverified", "diffs": [], "notes": ["넷리스트 meta 에 C15 결과 없음"]}
     summary["topology_identity"] = {"status": ti.get("status"), "required": ti.get("required", False),
@@ -474,6 +515,23 @@ def to_markdown(res):
     for rr in s.get("spice_ratio") or []:
         L.append(f"- C24 ratio_db @ {_f(rr.get('f_hz'))} Hz: {_f(rr.get('ratio_db'))} dB "
                  f"(|H_num| {_f((rr.get('num') or {}).get('mag'))}, |H_den| {_f((rr.get('den') or {}).get('mag'))})")
+    for rr in s.get("spice_rout") or []:
+        v = rr.get("view") or {}
+        L.append(f"- C26 rout_ohm @ {_f(rr.get('f_hz'))} Hz ({v.get('sense_mode')} {v.get('sense_p')}"
+                 + (f" - {v.get('sense_n')}" if v.get("sense_n") else "") + f"): {_f(rr.get('rout_ohm'))} Ohm "
+                 f"(Re {_f(rr.get('re'))}, Im {_f(rr.get('im'))})"
+                 + (f" -- 정의 불가 {rr['undefined']}" if rr.get("undefined") else ""))
+    sac = s.get("spice_ac") or {}
+    for d in sac.get("dc_path_isolation") or []:
+        L.append(f"- C27 기록(판정 아님) 입력 {d['net']}: (2πf)²·L·C = {_f(d.get('omega2_LC'))} @ {_f(d.get('f_hz'))} Hz"
+                 + (" (출력 DC 되먹임 경로)" if d.get("output_feedback") else ""))
+    for d in sac.get("loop_choke_ratio") or []:
+        L.append(f"- C27 기록(판정 아님) β 루프 절단 넷 {d['net']}: |jωL|/|Z_node| = {_f(d.get('ratio'))} @ {_f(d.get('f_hz'))} Hz")
+    pl = s.get("pm_loop") or {}
+    if pl.get("feedback_passives") or pl.get("feedback_passives_basis"):
+        L.append(f"- PM 루프: {pl.get('pm_definition')}, feedback_passives {pl.get('feedback_passives')} "
+                 f"(규칙 {pl.get('feedback_passives_basis') or '미기재'}), 절단 넷 {pl.get('loop_break_nets')}, "
+                 f"가중 {pl.get('loop_weights')}")
     tr = s.get("transient") or {}
     if tr:
         L.append(f"- C25 슬루·정착: {tr.get('status')} -- {tr.get('reason')}")

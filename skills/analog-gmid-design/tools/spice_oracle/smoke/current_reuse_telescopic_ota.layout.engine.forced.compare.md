@@ -4,6 +4,15 @@
 - 모델 코너/온도(LUT npz 메타): tt, 27.0 C
 - 판정 설정: {"tolerances": {}, "sat_margin_V": 0.0, "off_current_A": 1e-12}
 - SPICE 포화 소자 46/51, 포화 아님: M2a, M2b, M3a, M3b, M5
+- C15 topology 연결 동일성: **verified**
+- C23 전도 확인: SPICE 에서 꺼짐 -, 판정 못 함 {'M6': 'N/A(off_current_A 없음)', 'M7': 'N/A(off_current_A 없음)', 'M1a': 'N/A(off_current_A 없음)', 'M1b': 'N/A(off_current_A 없음)', 'M2a': 'N/A(off_current_A 없음)', 'M2b': 'N/A(off_current_A 없음)', 'M3a': 'N/A(off_current_A 없음)', 'M3b': 'N/A(off_current_A 없음)', 'M4a': 'N/A(off_current_A 없음)', 'M4b': 'N/A(off_current_A 없음)', 'M5': 'N/A(off_current_A 없음)', 'M8': 'N/A(off_current_A 없음)', 'M11a': 'N/A(off_current_A 없음)', 'M11b': 'N/A(off_current_A 없음)', 'M15': 'N/A(off_current_A 없음)', 'M9a': 'N/A(off_current_A 없음)', 'M9b': 'N/A(off_current_A 없음)', 'M12': 'N/A(off_current_A 없음)', 'M10': 'N/A(off_current_A 없음)', 'M14a': 'N/A(off_current_A 없음)', 'M14b': 'N/A(off_current_A 없음)', 'M16': 'N/A(off_current_A 없음)', 'M13': 'N/A(off_current_A 없음)', 'M22': 'N/A(off_current_A 없음)', 'M20a': 'N/A(off_current_A 없음)', 'M20b': 'N/A(off_current_A 없음)', 'M25': 'N/A(off_current_A 없음)', 'M18a': 'N/A(off_current_A 없음)', 'M18b': 'N/A(off_current_A 없음)', 'M21': 'N/A(off_current_A 없음)', 'M19': 'N/A(off_current_A 없음)', 'M23a': 'N/A(off_current_A 없음)', 'M24b': 'N/A(off_current_A 없음)', 'M26': 'N/A(off_current_A 없음)', 'M17': 'N/A(off_current_A 없음)', 'M18_bg': 'N/A(off_current_A 없음)', 'M60': 'N/A(off_current_A 없음)', 'M61': 'N/A(off_current_A 없음)', 'M64': 'N/A(off_current_A 없음)', 'M63': 'N/A(off_current_A 없음)', 'M58': 'N/A(off_current_A 없음)', 'M57': 'N/A(off_current_A 없음)', 'M66': 'N/A(off_current_A 없음)', 'M68': 'N/A(off_current_A 없음)', 'M36a': 'N/A(off_current_A 없음)', 'M36b': 'N/A(off_current_A 없음)', 'M37a': 'N/A(off_current_A 없음)', 'M37b': 'N/A(off_current_A 없음)', 'M38': 'N/A(off_current_A 없음)', 'M39': 'N/A(off_current_A 없음)', 'M40': 'N/A(off_current_A 없음)'}
+- C22 접합 용량(확산 기하): 포함 True -- 출처 {'device': 0, 'process_rule': 51, 'none': 0}
+- C27 기록(판정 아님) 입력 Vip: (2πf)²·L·C = 3.948e+09 @ 0.01 Hz
+- C27 기록(판정 아님) 입력 Vim: (2πf)²·L·C = 3.948e+09 @ 0.01 Hz
+- C27 기록(판정 아님) β 루프 절단 넷 Vip: |jωL|/|Z_node| = 2.434e+08 @ 0.01 Hz
+- C27 기록(판정 아님) β 루프 절단 넷 Vim: |jωL|/|Z_node| = 2.434e+08 @ 0.01 Hz
+- PM 루프: beta_loop, feedback_passives ['Cf1', 'Cf2', 'Cs1', 'Cs2'] (규칙 legacy_c12_input_net_passives), 절단 넷 ['Vip', 'Vim'], 가중 {'Vip': 0.5, 'Vim': -0.5}
+- C25 슬루·정착: not_measured -- β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)
 - current source Iref=1.992901379e-07 (엔진 ID(M18_bg) (--isrc engine))
 - resistor R1=1000000000 (옛 엔진 sense 저항 기본값(legacy sizing_recipe 상수))
 - resistor R2=1000000000 (옛 엔진 sense 저항 기본값(legacy sizing_recipe 상수))
@@ -62,6 +71,7 @@
 | pm_deg (parasitic_pm_deg) | 75.02 | 50.77 | -24.3 | N/A(tol 미설정) |
 | (참고) dc_gain_db / UGF Hz / PM deg / f-3dB Hz | | 61.79 / 5.898e+07 / 50.77 / 7.079e+04 | | |
 | (참고) PM 정의 beta_loop: 루프 이득 기준점 dB / 루프 UGF Hz / 개루프 A 의 PM deg | | 47.88 / 2.582e+07 / 18.11 | | |
+| (참고) PM 교차 측정(폐루프 peaking 역산, 기록만) deg / peaking dB | | 51.02 / 1.367 | +0.25 |  |
 | 제약 gain_db: dc_gain_db >= 54 | | 61.79 | | PASS |
 | 제약 parasitic_pm_deg: pm_deg >= 70 | | 50.77 | | FAIL |
 
@@ -98,6 +108,23 @@
 | Vbias1 | 0.004792 | N/A(tol 미설정) |
 | Voc | -0.001318 | N/A(tol 미설정) |
 | Vbias2 | -0.0009509 | N/A(tol 미설정) |
+
+- forced 진단: dc_consistent=None (판정 넷 0, 넘는 넷 [])
+
+| 게이트 공유 넷 | 등가 dVGS 퍼짐 mV | 소자별 dVGS_eq mV |
+|---|---|---|
+| Vbias3 | 9.776e+04 | M3a=+5.74e+03, M3b=+5.74e+03, M64=+3.92e+03, M63=+1.02e+05 |
+| Vbias2 | 5.66e+04 | M2a=-56.5, M2b=-56.5, M58=+5.65e+04, M57=-8.55 |
+| N11b | 190 | M11b=+202, M9a=+11.8 |
+| N20b | 190 | M20b=+202, M18a=+11.8 |
+| Vim | 184.3 | M1b=-40.6, M4b=+144 |
+| Vip | 184.3 | M1a=-40.6, M4a=+144 |
+| Vbias4 | 87.27 | M5=-7.24, M12=-8.64, M10=+78.4, M21=-8.64, M19=+78.4, M66=-8.85, M68=-8.65, M38=+25.6 |
+| N14a14b | 47.67 | M9b=-44.7, M14a=+2.96 |
+| N24b23a | 47.67 | M18b=-44.7, M23a=+2.96 |
+| Voc_des | 45.94 | M37b=-53.9, M39=-7.99 |
+| Vbias1 | 26.11 | M6=-4.69, M8=-8.86, M13=+17.2, M22=+17.2, M17=-8.86, M18_bg=+1.39, M60=+4.59, M61=-3.92 |
+| Vcmfb | 6.944 | M7=-4.62, M36a=-11.6 |
 
 | 소자 | L um | finger_w um x m | ID 예측/SPICE uA | ID차 | VGS 예측/SPICE | VDS 예측/SPICE | VSB 예측/SPICE | VDSAT | 포화여유 | 영역 | gm차 | gds차 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|

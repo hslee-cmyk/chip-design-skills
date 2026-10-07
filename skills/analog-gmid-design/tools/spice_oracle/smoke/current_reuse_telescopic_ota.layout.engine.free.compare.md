@@ -4,6 +4,16 @@
 - 모델 코너/온도(LUT npz 메타): tt, 27.0 C
 - 판정 설정: {"tolerances": {}, "sat_margin_V": 0.0, "off_current_A": 1e-12}
 - SPICE 포화 소자 32/51, 포화 아님: M6, M7, M1a, M1b, M3a, M3b, M4a, M4b, M5, M15, M9a, M9b, M10, M25, M18a, M18b, M19, M63, M37a
+- C15 topology 연결 동일성: **verified**
+- C23 전도 확인: SPICE 에서 꺼짐 -, 판정 못 함 {'M6': 'N/A(off_current_A 없음)', 'M7': 'N/A(off_current_A 없음)', 'M1a': 'N/A(off_current_A 없음)', 'M1b': 'N/A(off_current_A 없음)', 'M2a': 'N/A(off_current_A 없음)', 'M2b': 'N/A(off_current_A 없음)', 'M3a': 'N/A(off_current_A 없음)', 'M3b': 'N/A(off_current_A 없음)', 'M4a': 'N/A(off_current_A 없음)', 'M4b': 'N/A(off_current_A 없음)', 'M5': 'N/A(off_current_A 없음)', 'M8': 'N/A(off_current_A 없음)', 'M11a': 'N/A(off_current_A 없음)', 'M11b': 'N/A(off_current_A 없음)', 'M15': 'N/A(off_current_A 없음)', 'M9a': 'N/A(off_current_A 없음)', 'M9b': 'N/A(off_current_A 없음)', 'M12': 'N/A(off_current_A 없음)', 'M10': 'N/A(off_current_A 없음)', 'M14a': 'N/A(off_current_A 없음)', 'M14b': 'N/A(off_current_A 없음)', 'M16': 'N/A(off_current_A 없음)', 'M13': 'N/A(off_current_A 없음)', 'M22': 'N/A(off_current_A 없음)', 'M20a': 'N/A(off_current_A 없음)', 'M20b': 'N/A(off_current_A 없음)', 'M25': 'N/A(off_current_A 없음)', 'M18a': 'N/A(off_current_A 없음)', 'M18b': 'N/A(off_current_A 없음)', 'M21': 'N/A(off_current_A 없음)', 'M19': 'N/A(off_current_A 없음)', 'M23a': 'N/A(off_current_A 없음)', 'M24b': 'N/A(off_current_A 없음)', 'M26': 'N/A(off_current_A 없음)', 'M17': 'N/A(off_current_A 없음)', 'M18_bg': 'N/A(off_current_A 없음)', 'M60': 'N/A(off_current_A 없음)', 'M61': 'N/A(off_current_A 없음)', 'M64': 'N/A(off_current_A 없음)', 'M63': 'N/A(off_current_A 없음)', 'M58': 'N/A(off_current_A 없음)', 'M57': 'N/A(off_current_A 없음)', 'M66': 'N/A(off_current_A 없음)', 'M68': 'N/A(off_current_A 없음)', 'M36a': 'N/A(off_current_A 없음)', 'M36b': 'N/A(off_current_A 없음)', 'M37a': 'N/A(off_current_A 없음)', 'M37b': 'N/A(off_current_A 없음)', 'M38': 'N/A(off_current_A 없음)', 'M39': 'N/A(off_current_A 없음)', 'M40': 'N/A(off_current_A 없음)'}
+- C22 접합 용량(확산 기하): 포함 True -- 출처 {'device': 0, 'process_rule': 51, 'none': 0}
+- C27 기록(판정 아님) 입력 Vip: (2πf)²·L·C = 3.948e+09 @ 0.01 Hz (출력 DC 되먹임 경로)
+- C27 기록(판정 아님) 입력 Vim: (2πf)²·L·C = 3.948e+09 @ 0.01 Hz (출력 DC 되먹임 경로)
+- C27 기록(판정 아님) β 루프 절단 넷 Vip: |jωL|/|Z_node| = 6.353e+05 @ 0.01 Hz
+- C27 기록(판정 아님) β 루프 절단 넷 Vim: |jωL|/|Z_node| = 6.353e+05 @ 0.01 Hz
+- PM 루프: beta_loop, feedback_passives ['Cf1', 'Cf2', 'Cs1', 'Cs2'] (규칙 legacy_c12_input_net_passives), 절단 넷 ['Vip', 'Vim'], 가중 {'Vip': 0.5, 'Vim': -0.5}
+- C25 슬루·정착: not_measured -- β 루프 .tran 정의(입력 계단 크기·여기 넷, 정착 오차 대역, 슬루 측정 구간)가 엔진·spec 계약에 없다 (gmid_engine/authoring/SPEC_CONTRACT.md, design_spec_format F11: settling 은 {total_s, linear_s} 뿐 오차 대역 없음, driving_spec.slew_rate_* 는 MOD5 레지스트리 미정) -- 추측으로 정하지 않음(Q5 (ii) (B), 2026-10-07)
+- 진단(free FAIL 원인): unknown -- 판정 가능한 forced KCL 넷이 없다(소자 허용오차 없음 등)
 - current source Iref=1.992901379e-07 (엔진 ID(M18_bg) (--isrc engine))
 - resistor R1=1000000000 (옛 엔진 sense 저항 기본값(legacy sizing_recipe 상수))
 - resistor R2=1000000000 (옛 엔진 sense 저항 기본값(legacy sizing_recipe 상수))
@@ -64,6 +74,7 @@
 | pm_deg (parasitic_pm_deg) | 75.02 | - | - | N/A |
 | (참고) dc_gain_db / UGF Hz / PM deg / f-3dB Hz | | -176.8 / - / - / - | | |
 | (참고) PM 정의 beta_loop: 루프 이득 기준점 dB / 루프 UGF Hz / 개루프 A 의 PM deg | | -174 / - / - | | |
+| (참고) PM 교차 측정(폐루프 peaking 역산, 기록만) deg / peaking dB | | 0.0001337 / 112.6 | - |  |
 | 제약 gain_db: dc_gain_db >= 54 | | -176.8 | | FAIL |
 | 제약 parasitic_pm_deg: pm_deg >= 70 | | - | | N/A(SPICE 값 없음) |
 

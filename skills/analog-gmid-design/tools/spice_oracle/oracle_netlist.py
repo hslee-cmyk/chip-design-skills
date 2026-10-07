@@ -12,7 +12,12 @@
           validate_input(inp) -> [위반], loop_break_nets(inp), load_input(path), read_lut_meta(npz_path),
           parse_netlist_elements(text, inp), topology_elements(topo), topology_identity(inp, text, path),
           resolve_topology_path(inp, input_path, override), apply_z1(inp, omit, short),
-          diffusion_of(process, d), diffusion_gate(geometry, bias), ratio_views(inp)
+          diffusion_of(process, d), diffusion_gate(geometry, bias), ratio_views(inp),
+          rout_views(inp), sense_key(view), excitation_weight_check(inp), dc_path_isolation(tb, inputs, fb)
+  * [신규] C26 rout_ohm: 뷰마다 감지 넷에 Irout_<k>(DC 0, AC 0) 전류원을 두고 .control 안에서 모든 여기 원 acmag 0,
+    그 뷰의 Irout 만 acmag 1 로 .ac 한 점(fstart).
+  * [신규] C27: A 크기를 쓰는 measure 가 있으면 입력 AC 진폭이 정의값(차동 ±1/2, 단일 1)인지 검사(아니면 막힘),
+    choke·결합 C 유효 조건은 meta.dc_path_isolation 에 기록만. [C14 보강] 두 단자가 모두 입력 포트 넷인 되먹임 소자는 막힘.
 입력은 먼저 oracle_input.schema.json 으로 검증한다. 위반이면 넷리스트를 쓰지 않고 반환 2(README C13).
   * [신규] C15 topology 연결 동일성: 본 넷리스트를 다시 파싱한 (원소 이름, 종류, 단자 넷) 집합을 topology JSON
     (netlist + passive_elements + ideal_sources)과 비교한다. 다르면 막힘. topology 가 없으면 '미검증' 표시,
@@ -47,7 +52,9 @@ BIASES = ("free", "forced", "iso")
 # 넷리스트 원소 이름 접두사. 회로 원소(topology 대조 대상)와 테스트벤치 원소(대조 제외)를 이 표로만 가른다(C15).
 CIRCUIT_PREFIXES = {"X": "device", "Rp_": "resistor", "Cp_": "capacitor", "Isrc_": "current", "Vsrc_": "voltage"}
 TESTBENCH_PREFIXES = ("Vrail_", "Efb_", "Vofs_", "Lfb_", "Vdc_", "Ldc_", "Cac_", "Vac_", "Vbias_", "Vhold_", "Lhold_",
-                      "Vlb_", "Ilb_", "Vshort_", "Viso_")
+                      "Vlb_", "Ilb_", "Vshort_", "Viso_", "Irout_")
+# C27: 개루프 A 의 크기를 쓰는 measure(입력 AC 진폭에 비례하는 값). f3db_hz 는 배율 무관이라 빠진다.
+A_SCALED_MEASURES = ("dc_gain_db", "ugf_hz", "pm_deg")
 # topology ideal_sources 의 kind 어휘 -> 오라클 sources[].kind 어휘(같은 뜻의 두 이름)
 TOPOLOGY_SOURCE_KINDS = {"current_source": "current", "voltage_source": "voltage", "current": "current",
                          "voltage": "voltage"}
@@ -163,6 +170,52 @@ def ratio_views(inp):
     return out
 
 
+def sense_key(view):
+    """C26: 감지 전용 뷰의 정규형 (sense_p, sense_n 또는 None, sense_mode). sense_n 이 없는 것과 null 은 같은 뷰다."""
+    return (view.get("sense_p"), view.get("sense_n"), view.get("sense_mode"))
+
+
+def rout_views(inp):
+    """C26: 제약·metric 중 measure == rout_ohm 인 항목의 view 목록(sense_key 기준 중복 제거, 처음 나온 순서).
+    반환 원소 = {sense_p, sense_n(없으면 None), sense_mode}."""
+    out, seen = [], set()
+    items = list((inp.get("acceptance") or {}).get("constraints") or []) + \
+        list((inp.get("predictions") or {}).get("metrics") or [])
+    for it in items:
+        if it.get("measure") != "rout_ohm" or it.get("view") is None:
+            continue
+        k = sense_key(it["view"])
+        if k not in seen:
+            seen.add(k)
+            out.append({"sense_p": k[0], "sense_n": k[1], "sense_mode": k[2]})
+    return out
+
+
+def excitation_weight_check(inp):
+    """C27: 개루프 A 의 크기를 쓰는 measure(A_SCALED_MEASURES)가 metric·제약에 있으면 입력 AC 진폭이 정의값이어야 한다 --
+    차동 입력(input_p·input_n): input_p_ac - input_n_ac == 1 이고 input_p_ac + input_n_ac == 0(v_id = 1, v_cm = 0, 즉 ±1/2),
+    단일 입력(input): input_ac == 1. 같은 키가 β 루프 절단 가중이다(README 'PM 정의'). 값이 없으면 여기서는 보지 않는다
+    (C11 이 막는다). 반환 막힘 목록. 정의값(0·1) 검사이지 숫자 기본값이 아니다(C11 과 충돌 없음)."""
+    items = list((inp.get("acceptance") or {}).get("constraints") or []) + \
+        list((inp.get("predictions") or {}).get("metrics") or [])
+    used = sorted({it.get("measure") for it in items if it.get("measure") in A_SCALED_MEASURES})
+    if not used:
+        return []
+    ports, ac = inp["ports"], (inp["testbench"].get("ac") or {})
+    if ports.get("input_p") and ports.get("input_n"):
+        p, n = ac.get("input_p_ac"), ac.get("input_n_ac")
+        if p is None or n is None or (p - n == 1 and p + n == 0):
+            return []
+        return [f"C27 가중 정의: 차동 입력은 input_p_ac - input_n_ac == 1, input_p_ac + input_n_ac == 0 이어야 한다"
+                f"(v_id = 1, v_cm = 0) -- 지금 input_p_ac={p!r}, input_n_ac={n!r} (measure {used})"]
+    if ports.get("input"):
+        v = ac.get("input_ac")
+        if v is None or v == 1:
+            return []
+        return [f"C27 가중 정의: 단일 입력은 input_ac == 1 이어야 한다 -- 지금 {v!r} (measure {used})"]
+    return []
+
+
 def validate_input(inp, schema_path=SCHEMA_PATH):
     """oracle_input.schema.json 위반 목록(빈 목록이면 통과). 위반 입력은 진입점이 거부한다(README C13)."""
     import jsonschema
@@ -185,6 +238,10 @@ def loop_break_nets(inp):
     blockers = [f"feedback_passives 의 {n} 이 passives 에 없다" for n in names if n not in by]
     blockers += [f"feedback_passives 의 {n} 이 입력 포트 넷 {in_nets} 에 물려 있지 않다(단자 {by[n]['terminals']})"
                  for n in names if n in by and not set(by[n]["terminals"]) & set(in_nets)]
+    # [C14 보강] 절단 단자는 정확히 1개: 두 단자가 모두 입력 포트 넷이면 어느 쪽을 떼는지 정해지지 않는다(엔진 feedback_cut_ambiguous)
+    blockers += [f"feedback_passives 의 {n} 은 두 단자 {by[n]['terminals']} 가 모두 입력 포트 넷이다 -- 절단 단자가 "
+                 f"하나로 정해지지 않는다(엔진 feedback_cut_ambiguous 와 같은 조건)"
+                 for n in names if n in by and sum(t in in_nets for t in by[n]["terminals"]) == 2]
     nets =[n for n in in_nets if any(n in by[x]["terminals"] for x in names if x in by)]
     if not nets:
         blockers.append("feedback_passives 가 어느 입력 포트 넷에도 물려 있지 않다")
@@ -206,6 +263,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
     for k in ("corner", "temp_c"):
         if lut[k] is None:
             blockers.append(f"LUT npz 에 {k} 메타가 없다: {process['lut_npz']}")
+    blockers += excitation_weight_check(inp)
     N = _Nets(inp["rails"])
     devs = inp["devices"]
     kinds = {d["kind"] for d in devs}
@@ -393,7 +451,12 @@ def build_netlist(inp, bias, ac_file, loop=False):
 
     all_nets = [n for n in dev_nets + passive_nets if N(n) != "0"]
     if loop:
-        return _loop_tail(L, tb, breaks, ac_mag, ac_file, N, notes, blockers, bias, lut)
+        return _loop_tail(L, tb, breaks, ac_mag, ac_file, N, notes, blockers, bias, lut, loop_choke)
+    rout_plan = _rout_plan(inp, ac_src, all_nets, N, blockers)
+    for k, view in enumerate(rout_plan):  # C26 감지 전류원(DC 0, AC 0 -- 자기 .ac 에서만 alter 로 1)
+        L.append(f"Irout_{k} 0 {N(view['sense_p'])} DC 0 AC 0")
+        if view["sense_mode"] == "differential":
+            L.append(f"Irout_{k}n {N(view['sense_n'])} 0 DC 0 AC 0")
     L.append(".control")
     L.append("set noaskquit")
     L.append("op")
@@ -420,6 +483,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
         L.append("set wr_singlescale")
         L.append(f"wrdata {ac_file} hout")
     ratio_runs = _ratio_runs(L, inp, ac_src, all_nets, N, ac_file, blockers)
+    rout_runs = _rout_runs(L, rout_plan, inp, ac_src, N, ac_file)
     L.append("quit")
     L.append(".endc")
     L.append(".end")
@@ -428,8 +492,90 @@ def build_netlist(inp, bias, ac_file, loop=False):
             "spice_node": {n: N(n) for n in all_nets}, "rail_sources": rail_src, "held": held,
             "unheld": unheld, "gate_bias": {k: v[0] for k, v in gate_bias.items()},
             "inputs": inputs, "has_ac": has_ac, "ac_file": ac_file if has_ac else None,
-            "ratio_runs": ratio_runs, "notes": notes, "blockers": blockers}
+            "ratio_runs": ratio_runs, "rout_runs": rout_runs, "input_ac_weights": dict(ac_mag),
+            "dc_path_isolation": dc_path_isolation(tb, inputs, fb),
+            "notes": notes, "blockers": blockers}
     return "\n".join(L) + "\n", meta
+
+
+def dc_path_isolation(tb, inputs, fb):
+    """C27 기록(판정 아님): 본 넷리스트에서 입력 넷마다 DC 경로 choke(dc_choke_H)와 AC 결합 C(ac_couple_F)의
+    (2*pi*fstart)^2 * L * C. 결합 C 가 fstart 에서 입력을 AC 접지하는 동안 choke 로 들어오는 경로(free 출력 DC 되먹임
+    Efb·Lfb, 또는 Vdc·Ldc)가 입력 넷 전압에 남기는 몫이 약 1/(ω²LC) 이다 -- >> 1 이면 그 입력은 fstart 에서 AC 0
+    고정(개루프)으로 본다. 숫자 문턱은 두지 않는다. 반환 [{net, choke_H, couple_F, f_hz, omega2_LC, output_feedback}]."""
+    import math
+    f0 = (tb.get("ac") or {}).get("fstart_hz")
+    out = []
+    for net in inputs:
+        Lh, Cf = tb.get("dc_choke_H"), tb.get("ac_couple_F")
+        w2lc = None if f0 is None or Lh is None or Cf is None else (2 * math.pi * float(f0)) ** 2 * float(Lh) * float(Cf)
+        out.append({"net": net, "choke_H": Lh, "couple_F": Cf, "f_hz": f0, "omega2_LC": w2lc,
+                    "output_feedback": net in fb})
+    return out
+
+
+def _rout_plan(inp, ac_src, all_nets, N, blockers):
+    """C26: rout_ohm 뷰 목록을 검사해 잴 뷰만 돌려준다(하나라도 막히면 빈 목록 + 막힘).
+    막힘: fstart_hz 없음, 감지 넷이 회로 넷(reference 제외)이 아님, reference 레일, 테스트벤치가 이상 전압원으로 구동하는
+    넷(레일·입력 Vac·게이트 바이어스 = 엔진의 고정 노드), differential 에서 sense_p == sense_n."""
+    views = rout_views(inp)
+    if not views:
+        return []
+    if (inp["testbench"].get("ac") or {}).get("fstart_hz") is None:
+        blockers.append("C26 rout_ohm: testbench.ac.fstart_hz 없음 -- 측정 주파수를 정할 수 없다")
+        return []
+    ref = {r["net"] for r in inp["rails"] if r.get("reference")}
+    circuit = set(all_nets)
+    ok = True
+    for k, view in enumerate(views):
+        keys = ("sense_p", "sense_n") if view["sense_mode"] == "differential" else ("sense_p",)
+        for key in keys:
+            net = view[key]
+            if net in ref:
+                blockers.append(f"C26 rout_ohm 뷰 {k}: {key} {net} 은 reference 레일(SPICE 노드 0)이다")
+                ok = False
+            elif net not in circuit:
+                blockers.append(f"C26 rout_ohm 뷰 {k}: {key} {net} 이 회로 넷(reference 제외)이 아니다")
+                ok = False
+            elif net in ac_src:
+                blockers.append(f"C26 rout_ohm 뷰 {k}: {key} {net} 은 테스트벤치가 이상 전압원으로 구동하는 넷"
+                                f"(레일·입력·게이트 바이어스 {sorted(ac_src)})이다 -- 엔진 출력 포트 뷰의 고정 노드라 정의 밖")
+                ok = False
+        if view["sense_mode"] == "differential" and view["sense_p"] == view["sense_n"]:
+            blockers.append(f"C26 rout_ohm 뷰 {k}: sense_p 와 sense_n 이 같은 넷 {view['sense_p']} 이다")
+            ok = False
+    return views if ok else []
+
+
+def _rout_runs(L, plan, inp, ac_src, N, ac_file):
+    """C26: 뷰마다 .ac 한 점(fstart): 여기 가능한 모든 AC 원(레일·입력 Vac·게이트 바이어스) acmag 0, 그 뷰의 감지 전류원만
+    acmag 1(single_ended: sense_p 로 1 A 주입, differential: sense_p 로 +1 A, sense_n 에서 1 A 뽑음), 다른 뷰의 감지
+    전류원은 0. H = V(sense_p) [- V(sense_n)] 를 <stem>.rout<k>.txt 로. 반환 meta 용 목록."""
+    if not plan:
+        return []
+    f0 = inp["testbench"]["ac"]["fstart_hz"]
+    stem = ac_file[:-len(".ac.txt")] if ac_file.endswith(".ac.txt") else ac_file
+    srcs = []
+    for k, view in enumerate(plan):
+        srcs.append(f"irout_{k}")
+        if view["sense_mode"] == "differential":
+            srcs.append(f"irout_{k}n")
+    L.append("set wr_singlescale")
+    runs = []
+    for k, view in enumerate(plan):
+        for net, src in sorted(ac_src.items()):
+            L.append(f"alter @{src.lower()}[acmag] = 0")
+        mine = {f"irout_{k}", f"irout_{k}n"}
+        for s in srcs:
+            L.append(f"alter @{s}[acmag] = {1 if s in mine else 0}")
+        L.append(f"ac lin 1 {_num(f0)} {_num(f0)}")
+        sp = f"v({N(view['sense_p'])})"
+        L.append(f"let hrout{k} = {sp} - v({N(view['sense_n'])})" if view["sense_mode"] == "differential"
+                 else f"let hrout{k} = {sp}")
+        fn = f"{stem}.rout{k}.txt"
+        L.append(f"wrdata {fn} hrout{k}")
+        runs.append({"view": view, "f_hz": float(f0), "file": fn})
+    return runs
 
 
 def _ratio_runs(L, inp, ac_src, all_nets, N, ac_file, blockers):
@@ -483,7 +629,8 @@ def _ratio_runs(L, inp, ac_src, all_nets, N, ac_file, blockers):
     return runs
 
 
-def _loop_tail(L, tb, breaks, ac_mag, prefix, N, notes, blockers, bias, lut):
+def _loop_tail(L, tb, breaks, ac_mag, prefix, N, notes, blockers, bias, lut, loop_choke=None):
+    """i 파일 열 = 끊은 넷마다 i(Vlb) 뒤에 (C27 기록용) 끊은 넷마다 V(넷) -- 2회(전류 주입) 실행의 증폭기 쪽 노드 전압."""
     ac = tb["ac"]
     L.append(".control")
     L.append("set noaskquit")
@@ -494,12 +641,14 @@ def _loop_tail(L, tb, breaks, ac_mag, prefix, N, notes, blockers, bias, lut):
         L.append(f"alter @vlb_{n.lower()}[acmag] = 0")
         L.append(f"alter @ilb_{n.lower()}[acmag] = {_num(ac_mag.get(n, 0))}")
     L.append(f"ac dec {int(ac['points_per_decade'])} {_num(ac['fstart_hz'])} {_num(ac['fstop_hz'])}")
-    L.append("wrdata " + f"{prefix}.i.txt " + " ".join(f"i(vlb_{n.lower()})" for n in breaks))
+    L.append("wrdata " + f"{prefix}.i.txt " + " ".join(f"i(vlb_{n.lower()})" for n in breaks)
+             + "".join(f" v({N(n)})" for n in breaks))
     L.append("quit")
     L.append(".endc")
     L.append(".end")
     meta = {"bias": bias, "lut_meta": lut, "break_nets": breaks, "weights": [ac_mag.get(n, 0) for n in breaks],
             "v_file": f"{prefix}.v.txt", "i_file": f"{prefix}.i.txt", "notes": notes,
+            "choke_H": None if loop_choke is None else float(loop_choke),
             "blockers": N.blockers + blockers}
     return "\n".join(L) + "\n", meta
 

@@ -84,7 +84,11 @@
   },
   "feedback_passives": {
    "type": "array", "items": {"type": "string"}, "uniqueItems": true,
-   "description": "β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 되먹임·입력측 소자). 있으면 PM 은 이 β 루프의 위상여유(루프 넷리스트, Middlebrook 이중 주입), 없으면 β=1(개루프 A) 위상여유. README 'PM 정의'."
+   "description": "β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 되먹임·입력측 소자). 있으면 PM 은 이 β 루프의 위상여유(루프 넷리스트, Middlebrook 이중 주입), 없으면 β=1(개루프 A) 위상여유. README 'PM 정의'. [변경 C14] 원소마다 두 단자 중 입력 포트 넷에 물린 단자가 정확히 1개여야 한다(0개·2개 모두 막힘)."
+  },
+  "feedback_passives_basis": {
+   "type": "string", "minLength": 1,
+   "description": "[신규 C12 보충] 선택. feedback_passives 를 정한 규칙(기록 전용, 판정 무관). 옛 어댑터 = 'legacy_c12_input_net_passives'(입력 포트 넷에 물린 passives 전부), 새 엔진 = 'spec_feedback_elements'(spec feedback.elements 그대로). 두 규칙이 다른 집합을 고르면 두 PM 은 다른 루프를 잰 값이다 -- compare.summary.pm_loop 에 그대로 남는다."
   },
   "bias_voltages": {
    "type": "array",
@@ -117,14 +121,17 @@
      "type": "array",
      "items": {"type": "object", "required": ["measure", "value"], "properties": {
       "name": {"type": "string", "description": "엔진 쪽 metric 이름(표시용)"},
-      "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A", "ratio_db",
+      "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A", "ratio_db", "rout_ohm",
                            "slew_rate_v_per_s", "settle_s"],
-                  "description": "[신규] ratio_db = 엔진 ratio_ss_db(CMRR·PSRR 일반형, view 필수, C24). slew_rate_v_per_s·settle_s = 기록 전용(C25: 지금은 SPICE 정의 미정이라 not_measured)."},
+                  "description": "[신규] ratio_db = 엔진 ratio_ss_db(CMRR·PSRR 일반형, view 필수, C24). [신규 C26] rout_ohm = 엔진 rout_ss_ohm(출력 포트 뷰, 감지 전용 view 필수). slew_rate_v_per_s·settle_s = 기록 전용(C25: 지금은 SPICE 정의 미정이라 not_measured)."},
       "value": {"type": "number"},
       "rail": {"type": "string", "description": "supply_current_A 일 때 어느 레일의 공급전류인가"},
-      "view": {"$ref": "#/$defs/ratio_view"},
+      "view": {"anyOf": [{"$ref": "#/$defs/ratio_view"}, {"$ref": "#/$defs/sense_view"}]},
       "basis": {"type": "string"}},
-      "allOf": [{"if": {"properties": {"measure": {"const": "ratio_db"}}}, "then": {"required": ["view"]}}]}
+      "allOf": [{"if": {"properties": {"measure": {"const": "ratio_db"}}, "required": ["measure"]},
+                 "then": {"required": ["view"], "properties": {"view": {"$ref": "#/$defs/ratio_view"}}}},
+                {"if": {"properties": {"measure": {"const": "rout_ohm"}}, "required": ["measure"]},
+                 "then": {"required": ["view"], "properties": {"view": {"$ref": "#/$defs/sense_view"}}}}]}
     }
    }
   },
@@ -132,11 +139,15 @@
    "type": "object",
    "properties": {
     "constraints": {"type": "array", "items": {"type": "object", "required": ["measure", "op", "limit"], "properties": {
-     "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A", "ratio_db"],
-                                              "description": "[신규] ratio_db(CMRR·PSRR, view 필수) 는 판정 대상(Q5 (ii), C24). slew·settling 은 판정 대상이 아니라 여기 없다(C25)."},
+     "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A", "ratio_db",
+                                                      "rout_ohm"],
+                                              "description": "[신규] ratio_db(CMRR·PSRR, view 필수) 는 판정 대상(Q5 (ii), C24). [신규 C26] rout_ohm(출력 저항, 감지 전용 view 필수)도 판정 대상. slew·settling 은 판정 대상이 아니라 여기 없다(C25)."},
      "op": {"enum": [">=", "<="]}, "limit": {"type": "number"}, "rail": {"type": "string"},
-     "view": {"$ref": "#/$defs/ratio_view"}, "basis": {"type": "string"}},
-     "allOf": [{"if": {"properties": {"measure": {"const": "ratio_db"}}}, "then": {"required": ["view"]}}]}},
+     "view": {"anyOf": [{"$ref": "#/$defs/ratio_view"}, {"$ref": "#/$defs/sense_view"}]}, "basis": {"type": "string"}},
+     "allOf": [{"if": {"properties": {"measure": {"const": "ratio_db"}}, "required": ["measure"]},
+                "then": {"required": ["view"], "properties": {"view": {"$ref": "#/$defs/ratio_view"}}}},
+               {"if": {"properties": {"measure": {"const": "rout_ohm"}}, "required": ["measure"]},
+                "then": {"required": ["view"], "properties": {"view": {"$ref": "#/$defs/sense_view"}}}}]}},
     "not_measurable": {"type": "array", "items": {"type": "string"}, "description": "SPICE 로 잴 수 없어 뺀 선언 제약(기록용)"}
    }
   },
@@ -167,7 +178,8 @@
      "gm_rel": {"type": "number"}, "gds_rel": {"type": "number"}, "gm_id_rel": {"type": "number"},
      "node_abs_V": {"type": "number"}, "W_rel": {"type": "number"}, "kcl_abs_A": {"type": "number"},
      "dc_gain_db_abs": {"type": "number"}, "pm_deg_abs": {"type": "number"}, "ugf_hz_rel": {"type": "number"},
-     "f3db_hz_rel": {"type": "number"}, "supply_current_A_rel": {"type": "number"}, "ratio_db_abs": {"type": "number"}}}
+     "f3db_hz_rel": {"type": "number"}, "supply_current_A_rel": {"type": "number"}, "ratio_db_abs": {"type": "number"},
+     "rout_ohm_rel": {"type": "number", "description": "[신규 C26] rout_ohm metric 기록의 상대 허용오차(기록 전용)"}}}
    }
   },
   "topology": {
@@ -196,6 +208,18 @@
    "description": "[신규 C24] 엔진 ratio_ss_db 뷰 {num, den}: 각 전달 뷰의 응답비 20*log10(|H_num|/|H_den|).",
    "required": ["num", "den"],
    "properties": {"num": {"$ref": "#/$defs/transfer_view"}, "den": {"$ref": "#/$defs/transfer_view"}}
+  },
+  "sense_view": {
+   "type": "object", "additionalProperties": false,
+   "description": "[신규 C26] 엔진 output_port 뷰(감지 전용, 7a design 3.1): sense_p, sense_n(differential 이면 필수 문자열, single_ended 면 없거나 null), sense_mode. ac_excite 는 둘 수 없다(여기는 정의가 고정: 모든 AC 원 0 + 감지 노드 단위 AC 전류).",
+   "required": ["sense_p", "sense_mode"],
+   "properties": {
+    "sense_p": {"type": "string", "minLength": 1},
+    "sense_n": {"type": ["string", "null"]},
+    "sense_mode": {"enum": ["differential", "single_ended"]}},
+   "allOf": [{"if": {"properties": {"sense_mode": {"const": "differential"}}},
+              "then": {"required": ["sense_n"], "properties": {"sense_n": {"type": "string", "minLength": 1}}},
+              "else": {"properties": {"sense_n": {"type": "null"}}}}]
   }
  }
 }
