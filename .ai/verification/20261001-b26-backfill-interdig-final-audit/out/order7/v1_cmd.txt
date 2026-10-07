@@ -1,0 +1,1 @@
+PYTHONPYCACHEPREFIX=C:/g394/pyc/v1_M PYTHONPATH=C:/g394/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab C:/Python314/python.exe -P -m pytest -c C:/g394/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab/pytest_gate.ini --rootdir=C:/g394/iso --confcutdir=C:/g394/iso C:/g394/iso/skills/analog-gmid-design/assets/tests --gmid-phase=3 --gmid-strict= -rA

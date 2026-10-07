@@ -1,0 +1,10 @@
+.....                                                                    [100%]
+=================================== PASSES ====================================
+=========================== short test summary info ===========================
+PASSED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_in_loop_relaxed_to_layout
+PASSED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_after_loop_max_rounds_exceeded
+PASSED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_pair_not_found
+PASSED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_no_finger_w
+PASSED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_growth_not_applicable
+5 passed in 3.21s
+rc=0

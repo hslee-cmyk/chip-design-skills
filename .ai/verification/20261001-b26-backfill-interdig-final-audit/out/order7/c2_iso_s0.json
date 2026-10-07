@@ -1,0 +1,1484 @@
+{
+ "root": "C:/g394/iso",
+ "sizing_recipe": "C:\\g394/iso\\skills\\analog-gmid-design\\assets\\sizing_recipe.py",
+ "W0": 1.1507625848080339e-05,
+ "PYTHONHASHSEED": "0",
+ "cases": [
+  {
+   "label": "repro_m1_none",
+   "m": 1,
+   "metrics": "none",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": "unknown",
+   "unresolved_reason": "max_rounds_exceeded",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "repro_m2_none",
+   "m": 2,
+   "metrics": "none",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": null,
+   "unresolved_reason": "relaxed_to_layout",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "repro_m3_none",
+   "m": 3,
+   "metrics": "none",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": null,
+   "unresolved_reason": "relaxed_to_layout",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "repro_m5_none",
+   "m": 5,
+   "metrics": "none",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": null,
+   "unresolved_reason": "relaxed_to_layout",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "pnf_none",
+   "m": 3,
+   "metrics": "none",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg2": [
+     [
+      "Mc",
+      1,
+      "seg2"
+     ]
+    ],
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg2]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ],
+    [
+     "3a. row-presence[Mc/Mx] (kind=sensitivity=offset,shares_node=None)",
+     true
+    ],
+    [
+     "3b. interdigitation[Mc/Mx]",
+     false
+    ],
+    [
+     "3c. common-centroid[Mc/Mx]",
+     false
+    ]
+   ],
+   "unresolved_pair": [
+    "Mc",
+    "Mx"
+   ],
+   "unresolved_reason": "pair_not_found",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "nofw_none",
+   "m": 3,
+   "metrics": "none",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg2_repair0_repair0_repair0_repair0_repair0_repair0": [
+     [
+      "Mc",
+      1,
+      "seg2_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "Md",
+      1,
+      "seg2_repair0_repair0_repair0_repair0_repair0_repair0"
+     ]
+    ],
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg2_repair0_repair0_repair0_repair0_repair0_repair0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ],
+    [
+     "3a. row-presence[Mc/Md] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Mc/Md] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Mc/Md]",
+     false
+    ]
+   ],
+   "unresolved_pair": [
+    "Mc",
+    "Md"
+   ],
+   "unresolved_reason": "no_finger_w",
+   "growth_rounds_len": 2,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "gna_none",
+   "m": 3,
+   "metrics": "none",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg2_repair0_repair0_repair0_repair0_repair0_repair0": [
+     [
+      "Mc",
+      1,
+      "seg2_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "Md",
+      2,
+      "seg2_repair0_repair0_repair0_repair0_repair0_repair0"
+     ]
+    ],
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg2_repair0_repair0_repair0_repair0_repair0_repair0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ],
+    [
+     "3a. row-presence[Mc/Md] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Mc/Md] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Mc/Md]",
+     false
+    ]
+   ],
+   "unresolved_pair": [
+    "Mc",
+    "Md"
+   ],
+   "unresolved_reason": "growth_not_applicable",
+   "growth_rounds_len": 2,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "gmidv_none",
+   "m": 3,
+   "metrics": "none",
+   "allow_layout_relaxation": false,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": [
+    "Ma",
+    "Mb"
+   ],
+   "unresolved_reason": "gm_id_violation",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": []
+  },
+  {
+   "label": "plain_none",
+   "m": 3,
+   "metrics": "none",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_repair0_repair0_repair0_repair0_repair0_repair0": [
+     [
+      "Ma",
+      1,
+      "seg1_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "Mb",
+      1,
+      "seg1_repair0_repair0_repair0_repair0_repair0_repair0"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_repair0_repair0_repair0_repair0_repair0_repair0]",
+     true
+    ],
+    [
+     "2. box-shape",
+     true
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": null,
+   "unresolved_reason": "relaxed_to_layout",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "repro_m1_pair_area",
+   "m": 1,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": "unknown",
+   "unresolved_reason": "max_rounds_exceeded",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "repro_m2_pair_area",
+   "m": 2,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": null,
+   "unresolved_reason": "relaxed_to_layout",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "repro_m3_pair_area",
+   "m": 3,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": null,
+   "unresolved_reason": "relaxed_to_layout",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "repro_m5_pair_area",
+   "m": 5,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": null,
+   "unresolved_reason": "relaxed_to_layout",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "pnf_pair_area",
+   "m": 3,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg2": [
+     [
+      "Mc",
+      1,
+      "seg2"
+     ]
+    ],
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg2]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ],
+    [
+     "3a. row-presence[Mc/Mx] (kind=sensitivity=offset,shares_node=None)",
+     true
+    ],
+    [
+     "3b. interdigitation[Mc/Mx]",
+     false
+    ],
+    [
+     "3c. common-centroid[Mc/Mx]",
+     false
+    ]
+   ],
+   "unresolved_pair": [
+    "Mc",
+    "Mx"
+   ],
+   "unresolved_reason": "pair_not_found",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "nofw_pair_area",
+   "m": 3,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg2_repair0_repair0_repair0_repair0_repair0_repair0": [
+     [
+      "Mc",
+      1,
+      "seg2_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "Md",
+      1,
+      "seg2_repair0_repair0_repair0_repair0_repair0_repair0"
+     ]
+    ],
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg2_repair0_repair0_repair0_repair0_repair0_repair0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ],
+    [
+     "3a. row-presence[Mc/Md] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Mc/Md] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Mc/Md]",
+     false
+    ]
+   ],
+   "unresolved_pair": [
+    "Mc",
+    "Md"
+   ],
+   "unresolved_reason": "no_finger_w",
+   "growth_rounds_len": 2,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "gna_pair_area",
+   "m": 3,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg2_repair0_repair0_repair0_repair0_repair0_repair0": [
+     [
+      "Mc",
+      1,
+      "seg2_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "Md",
+      2,
+      "seg2_repair0_repair0_repair0_repair0_repair0_repair0"
+     ]
+    ],
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg2_repair0_repair0_repair0_repair0_repair0_repair0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ],
+    [
+     "3a. row-presence[Mc/Md] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Mc/Md] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Mc/Md]",
+     false
+    ]
+   ],
+   "unresolved_pair": [
+    "Mc",
+    "Md"
+   ],
+   "unresolved_reason": "growth_not_applicable",
+   "growth_rounds_len": 2,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  },
+  {
+   "label": "gmidv_pair_area",
+   "m": 3,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": false,
+   "rows": {
+    "seg1_seg0": [
+     [
+      "Mp",
+      1,
+      "seg1_seg0"
+     ]
+    ],
+    "seg1_seg1": [
+     [
+      "Mb",
+      1,
+      "seg1_seg1"
+     ],
+     [
+      "Ma",
+      1,
+      "seg1_seg1"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_seg0]",
+     true
+    ],
+    [
+     "1. euler[seg1_seg1]",
+     true
+    ],
+    [
+     "2. box-shape",
+     false
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": [
+    "Ma",
+    "Mb"
+   ],
+   "unresolved_reason": "gm_id_violation",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": []
+  },
+  {
+   "label": "plain_pair_area",
+   "m": 3,
+   "metrics": "pair_area",
+   "allow_layout_relaxation": true,
+   "rows": {
+    "seg1_repair0_repair0_repair0_repair0_repair0_repair0": [
+     [
+      "Ma",
+      1,
+      "seg1_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "Mb",
+      1,
+      "seg1_repair0_repair0_repair0_repair0_repair0_repair0"
+     ]
+    ]
+   },
+   "audit_ok": false,
+   "audit_checks": [
+    [
+     "1. euler[seg1_repair0_repair0_repair0_repair0_repair0_repair0]",
+     true
+    ],
+    [
+     "2. box-shape",
+     true
+    ],
+    [
+     "3a. row-presence[Ma/Mb] (kind=sensitivity=offset,shares_node=True)",
+     true
+    ],
+    [
+     "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+     true
+    ],
+    [
+     "3c. common-centroid[Ma/Mb]",
+     false
+    ]
+   ],
+   "unresolved_pair": null,
+   "unresolved_reason": "relaxed_to_layout",
+   "growth_rounds_len": 1,
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "Ma",
+      "Mb"
+     ],
+     "reason": "gm_id_budget_exceeded",
+     "trim_recommended": true,
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  }
+ ]
+}

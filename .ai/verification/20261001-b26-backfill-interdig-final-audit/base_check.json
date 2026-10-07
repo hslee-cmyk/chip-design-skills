@@ -1,0 +1,91 @@
+{
+ "id": "20261001-b26-backfill-interdig-final-audit",
+ "order": 3,
+ "evidence_type": "red-green",
+ "phase": "3",
+ "base_commit": "863a037cc0d774bb984006ea39966c5e4dd741ab",
+ "gate_master_at_start": "863a037cc0d774bb984006ea39966c5e4dd741ab (실제 저장소 master = refs/remotes/gate/master, base와 같음)",
+ "gate_code_cache": {
+  "path": "C:/g393/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab/",
+  "source": "git -C <audit wt> cat-file blob 863a037cc0d774bb984006ea39966c5e4dd741ab:tools/gates/<파일>",
+  "cmp_with_orchestrator_cache": "16개 파일(cmdsplit·gate_config.json·import_layering·integrity·interface_card·merge_gate·mutate_changed·pytest_gate.ini·reachability·requirements.txt·role_commit_gate·role_hooks·role_paths·source_lint·test_lint·weakening_diff) 모두 cmp 같음"
+ },
+ "isolation": {
+  "clones": {
+   "C:/g393/iso": "T 3004096c81b839998518c14c16d3cd2d6ec6c9bf (detach)",
+   "C:/g393/isob": "base 863a037cc0d774bb984006ea39966c5e4dd741ab (detach)",
+   "C:/g393/var_i|var_ii|var_iii|var_fix": "T + sizing_recipe.py 줄 삭제 변형(판별력 전용)"
+  },
+  "clone_command": "git clone --no-hardlinks --no-local -c core.autocrlf=false -c core.longpaths=true --no-checkout <audit wt> <clone> && git -C <clone> remote remove origin && test -z \"$(git -C <clone> remote)\" && git -C <clone> checkout --detach <commit>",
+  "clones_clean_after_runs": "iso·isob git status --porcelain 빈 출력(pytest -p no:cacheprovider, basetemp·pycache는 C:/g393 아래)"
+ },
+ "freeze": {
+  "T": "3004096c81b839998518c14c16d3cd2d6ec6c9bf",
+  "audit_wt_HEAD": "3004096c81b839998518c14c16d3cd2d6ec6c9bf",
+  "role_test_branch_tip": "3004096c81b839998518c14c16d3cd2d6ec6c9bf",
+  "T_parent": "863a037cc0d774bb984006ea39966c5e4dd741ab",
+  "log_base_to_T": ["3004096c81b839998518c14c16d3cd2d6ec6c9bf 863a037cc0d774bb984006ea39966c5e4dd741ab"],
+  "first_parent_chain": "커밋 1개, 병합 커밋 0, 부모 = base",
+  "T_trailers_interpret_trailers_parse": ["Role: test", "Change-Id: 20261001-b26-backfill-interdig-final-audit"],
+  "base_to_T_diff_name_only": ["skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py"],
+  "base_to_T_numstat": "206 0 (새 파일)",
+  "new_test_blob": "d03b55f752b0377b1a01f3b63cb8ee2f63fcc146",
+  "new_tests": ["test_b26bf_in_loop_relaxed_to_layout", "test_b26bf_after_loop_max_rounds_exceeded", "test_b26bf_site_pair_not_found", "test_b26bf_site_no_finger_w", "test_b26bf_site_growth_not_applicable"]
+ },
+ "strict_set": {
+  "value": "",
+  "how": "base 판 merge_gate.strict_set(TreeView(base), parse_spec_card(이 card)) -- card activated_ic_case [] 이고 같은 Phase 3 병합 card의 키 없음 → 빈 집합, V1에 --gmid-strict= (scripts/order3/strict.py)"
+ },
+ "red": {
+  "command": "PYTHONHASHSEED=<0|1> PYTHONPYCACHEPREFIX=C:/g393/pyc_<label> PYTHONPATH=C:/g393/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab GMID_RED_CAPTURE=C:/g393/out/red_<label>.jsonl GMID_INTERFACE_CARD=<iso>/docs/02-design/specs/20261001-b26-backfill-interdig-final-audit.interface.md C:/Python314/python.exe -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=C:/g393/iso --confcutdir=C:/g393/iso --gmid-phase=3 --gmid-strict= -p merge_gate --continue-on-collection-errors --basetemp=C:/g393/bt/<label> -p no:cacheprovider -rfE -q <iso>/skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py (scripts/order3/run.sh)",
+  "engine": "base 그대로(base..T diff = 새 test 파일 하나)",
+  "seed0": "5 failed, exit 1",
+  "seed1": "5 failed, exit 1 (seed 0과 같은 test·같은 줄·같은 해시)",
+  "failures": [
+   {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_in_loop_relaxed_to_layout", "exc_type": "builtins.AssertionError", "line": 126, "assert": "rp[0][\"interdig_ok\"] is c3b[0].ok", "message": "assert False is True (3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님] ok=True, detail 'seg1_seg1: 인접')", "failure_hash": "f1f9638d4f283d9dccec9afe79a74bcac8c7c8b7dd207e72a10014cf4bc67858", "role": "red 증거 (a)"},
+   {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_after_loop_max_rounds_exceeded", "exc_type": "builtins.AssertionError", "line": 144, "assert": "rp[0][\"interdig_ok\"] is c3b[0].ok", "message": "assert False is True (같은 3b 체크 ok=True)", "failure_hash": "8d9293c9fd46c6f580ad034b2ea6a2d4d7834ae3194e3bd8e78ecbf6d072a6d0", "role": "red 증거 (b)"},
+   {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_pair_not_found", "exc_type": "builtins.AssertionError", "line": 165, "assert": "rp[0][\"interdig_ok\"] is c3b[0].ok", "message": "assert False is True", "failure_hash": "720adcbd6ea65c848f51e649b6bfff7512840aca8f17be3f01d0d867d17c9518", "role": "반환 자리 (iii) -- red 허용(card: (a)(b) 밖 자리는 red일 필요 없음)"},
+   {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_no_finger_w", "exc_type": "builtins.AssertionError", "line": 185, "assert": "rp[0][\"interdig_ok\"] is c3b[0].ok", "message": "assert False is True", "failure_hash": "4702071de1c6c7249392f00007d9b893993781b87895d5377eac579aaba42d69", "role": "반환 자리 (iv) no_finger_w -- red 허용"},
+   {"test_id": "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_growth_not_applicable", "exc_type": "builtins.AssertionError", "line": 206, "assert": "rp[0][\"interdig_ok\"] is c3b[0].ok", "message": "assert False is True", "failure_hash": "b0446cb6ea77479abd0f76f2f73c847f87bab2e31f3e3df4674a460178a8af77", "role": "반환 자리 (iv) growth_not_applicable -- red 허용"}
+  ],
+  "failed_at_other_asserts": "0 -- unresolved_reason·쌍 목록·3b 체크 개수 단언은 5개 test 모두 통과하고 마지막 `is` 단언에서만 실패(계약대로의 red 이유)",
+  "red_test_ids_choice": "red.test_ids에는 (a)(b) 두 test만 넣는다(card '판정 유형 근거': red 증거는 (a)(b)). 반환 자리 test 3개의 base red는 V2 basis에 따로 적는다(순서 7 판정 기록에서).",
+  "capture_full_suite_diff": "base 전체 실행 red 캡처 12줄(xfail의 builtins.Failed 12, 모두 기존 test)과 T 전체 실행 캡처 17줄의 차 = 위 5개(AssertionError)뿐, base 쪽에만 있는 것 0"
+ },
+ "gm_id_violation_docstring": "새 test 파일 머리 docstring 25~32행에 (iv) gm_id_violation 자리를 test하지 못한 사실·시도 입력(allow_layout_relaxation=False로 Ma/Mb만 → gm_id_violation이나 relaxed_pairs == []; 기본값에서 둘째 쌍 Mc/Md를 pmos·다른 행·finger_w 2배·같은 행 4가지 → 모두 relaxed_to_layout, relaxed_pairs 2쌍)·결과가 적혀 있다. 구조 보장 확인은 순서 7(3.2 '반환 경로 구조 확인', 병합본 코드) 몫. (i) 성공 None 자리도 docstring 33~34행에 서술 근거로 test 없음이 적혀 있다.",
+ "discrimination": {
+  "how": "T 복제본의 base 엔진 sizing_recipe.py에서 지정 줄만 지운 사본(scripts/order3/mkvar.py -- 줄 글이 `_backfill_interdig_ok(result)`/`(fixed_audit)`가 아니면 멈춤) + 새 test 파일 + tests/unit/test_selftest_sizing_recipe.py(L4e = test_s016_run_matching_safety_with_finger_growth) 실행, seed 0·1 같음",
+  "table": [
+   {"variant": "(i) 11799만 삭제(루프 안 사전 backfill)", "in_loop": "PASS", "after_loop": "FAIL(144, assert False is True)", "site_pair_not_found": "PASS", "site_no_finger_w": "PASS", "site_growth_not_applicable": "PASS", "L4e": "PASS", "selftest_file": "66 passed·2 xfailed 그대로", "total": "1 failed, 70 passed, 2 xfailed", "expected": "루프 뒤 test 실패 -- 잡음"},
+   {"variant": "(ii) 11878만 삭제(루프 뒤 사전 backfill)", "in_loop": "FAIL(126, assert False is True)", "after_loop": "PASS", "site_pair_not_found": "FAIL(165)", "site_no_finger_w": "FAIL(185)", "site_growth_not_applicable": "FAIL(206)", "L4e": "PASS", "total": "4 failed, 67 passed, 2 xfailed", "expected": "루프 안 test 실패 -- 잡음"},
+   {"variant": "(iii) 11792·11799·11878 삭제(_finalize 안 backfill까지)", "in_loop": "FAIL(126, assert None is True)", "after_loop": "FAIL(144, assert None is True)", "site_pair_not_found": "FAIL(165, None is True)", "site_no_finger_w": "FAIL(185, None is True)", "site_growth_not_applicable": "FAIL(206, None is True)", "L4e": "FAIL(test_selftest_sizing_recipe.py:1480, assert None is not None)", "total": "6 failed, 65 passed, 2 xfailed", "expected": "두 test와 L4e 실패 -- 잡음"},
+   {"variant": "대조: 11799·11878 둘 다 삭제(card 수정 후보 모양, 판별력 양성 대조 -- 판정 근거 아님)", "in_loop": "PASS", "after_loop": "PASS", "site_pair_not_found": "PASS", "site_no_finger_w": "PASS", "site_growth_not_applicable": "PASS", "L4e": "PASS", "total": "71 passed, 2 xfailed"}
+  ],
+  "verdict": "card '거부해야 할 입력' 3가지 모두 test가 잡는다 -- test 결함 없음. 반환 자리 test 3개는 (ii)·(iii)에서 실패, (i)에서 통과(그 자리들은 루프 안 반환 -- 11799 삭제로 바로잡히는 경로)."
+ },
+ "suite_baseline": {
+  "command": "위 red 명령과 같고 대상만 <clone>/skills/analog-gmid-design/assets/tests 전체, PYTHONHASHSEED=0, -k·--deselect·-x 없음",
+  "base_863a037": "1109 passed, 15 xfailed, 0 failed, exit 0 (308.65s) -- out/order3/pytest_full_B_s0.txt",
+  "T_3004096": "5 failed, 1109 passed, 15 xfailed, exit 1 (309.59s) -- 실패 5 = 새 test 5개뿐, 기존 test passed·xfailed 수 base와 같음 -- out/order3/pytest_full_T_s0.txt"
+ },
+ "v3_base_to_T": {
+  "command": "C:/Python314/python.exe <캐시>/mutate_changed.py --root C:/g393/iso --base 863a037cc0d774bb984006ea39966c5e4dd741ab --head 3004096c81b839998518c14c16d3cd2d6ec6c9bf --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase 3 --gmid-strict= (scripts/order3/v3.sh)",
+  "output": {"tool": "V3", "verdict": "PASS", "targets": [], "mutants": 0, "killed": 0, "survivors": [], "survivor_bindings": [], "exempt_ignored": [], "not_targeted": 0, "targets_by_def": {}},
+  "note": "기대대로 targets [] (base..T 엔진 diff 0). 실행 뒤 iso status 빈 출력·HEAD T 그대로"
+ },
+ "not_done_in_order3": "브리프 3.1 'base 기준값'의 E-INST 두 회로·계약 2 대조용 호출 결과는 3.3 절차를 따르라고 되어 있고, 이번 지시는 3.1까지만 읽게 해 3.3을 읽지 않았다 -- 이 두 base 기준값은 순서 7에서 base 복제본(863a037)으로 잰다.",
+ "real_repo_invariance": {
+  "path": "C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills",
+  "start": {"HEAD": "863a037cc0d774bb984006ea39966c5e4dd741ab", "status_porcelain_md5": "0474ab6da39520d0d12058d19f11359c", "reflog_lines": 359, "for_each_ref_md5": "c70297ae6cd44e4a3d5f5f09afc3074d"},
+  "end": {"HEAD": "863a037cc0d774bb984006ea39966c5e4dd741ab", "status_porcelain_md5": "0474ab6da39520d0d12058d19f11359c", "reflog_lines": 359, "for_each_ref_md5": "60969550bdab434fd7ce0aa451928d3e"},
+  "for_each_ref_diff_cause": "refs/heads/role/code/20261001-b26-backfill-interdig-final-audit가 495bb0e(커밋 시각 2026-10-07 13:05:14 +0900)로 움직였다 -- 병행 중인 code-author 커밋이다(이 역할은 그 브랜치·worktree를 건드리지 않았다). role/audit·role/test = 3004096, master·gate/master = 863a037 그대로. HEAD·status·reflog 같음."
+ },
+ "audit_wt_end_state": {
+  "status_porcelain": "?? .ai/verification/20261001-b26-backfill-interdig-final-audit/",
+  "log_oneline_role_test_to_HEAD": "",
+  "log_guard_note": "git -C <audit wt> log --oneline role/test/20261001-b26-backfill-interdig-final-audit..HEAD 빈 출력 -- 순서 3 커밋 없음(산출물 미커밋)"
+ },
+ "evidence_files": "scripts/order3/(cache.sh·freeze.sh·strict.py·run.sh·mkvar.py·variants.sh·runvars.sh·v3.sh), out/order3/(pytest_*.txt, red_*.jsonl, v3_base_T.txt)",
+ "scratch": "C:/g393 -- 삭제 시도(rm -rf C:/g393)를 Claude Code 내장 안전 검사가 거부해 남아 있다(우회하지 않음, 오케스트레이터/사용자 삭제 필요)",
+ "measured_at": "2026-10-07"
+}

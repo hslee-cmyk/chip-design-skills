@@ -1,0 +1,32 @@
+.F................................................x...x................. [ 98%]
+.                                                                        [100%]
+================================== FAILURES ===================================
+__________________ test_b26bf_after_loop_max_rounds_exceeded __________________
+
+tmp_path = WindowsPath('C:/g393/bt/var_i_s0/test_b26bf_after_loop_max_roun0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x00000157A4E21D30>
+
+    def test_b26bf_after_loop_max_rounds_exceeded(tmp_path, toy_lut):
+        """계약 1 (b) 루프 뒤 경로(반환 자리 (v)): m=1 → "max_rounds_exceeded"이고 CONSISTENT(res).
+    
+        oracle 대조: 20261001-b26-backfill-interdig-fix (d) 사용자 결정 -- relaxed_pairs[i]["interdig_ok"]는 반환
+        audit(euler 정리 뒤 최종 물리 구조)의 3b 판정. 입력은 (a) 구성(모듈 docstring). "max_rounds_exceeded"와 완화 쌍
+        목록 [("Ma", "Mb")]는 spec card 계약 1 리터럴.
+        """
+        w0, s = _b26bf_sizing(toy_lut)
+        res = _b26bf_run(tmp_path, toy_lut, s, {"seg1": _b26bf_seg1(w0)},
+                         [("Ma", "Mb")], {("Ma", "Mb"): "offset"}, 1)
+        assert res["unresolved_reason"] == "max_rounds_exceeded"
+        rp = res["relaxed_pairs"]
+        assert [e["pair"] for e in rp] == [("Ma", "Mb")]
+        c3b = _b26bf_3b_checks(res, "Ma", "Mb")
+        assert len(c3b) == 1, [c.name for c in res["audit"].checks]
+>       assert rp[0]["interdig_ok"] is c3b[0].ok
+E       AssertionError: assert False is True
+E        +  where True = AuditCheck(name='3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', ok=True, detail='seg1_seg1: 인접').ok
+
+C:\g393\var_i\skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py:144: AssertionError
+=========================== short test summary info ===========================
+FAILED ..\..\..\..\..\..\g393\var_i\skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py::test_b26bf_after_loop_max_rounds_exceeded
+1 failed, 70 passed, 2 xfailed in 47.14s
+rc=1

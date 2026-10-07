@@ -1,0 +1,14 @@
+real_repo HEAD 863a037cc0d774bb984006ea39966c5e4dd741ab
+real_repo status_md5 0474ab6da39520d0d12058d19f11359c
+real_repo reflog_lines 359
+real_repo for_each_ref_md5 40cf9d2f4ce281440a6b916129040b13
+real_repo gate/master 863a037cc0d774bb984006ea39966c5e4dd741ab
+audit_wt HEAD 0bb22782775fd759f9478aeae16e8202095d09a9
+audit_wt M parents 3004096c81b839998518c14c16d3cd2d6ec6c9bf 495bb0ea12fa859bea38685851ee46a84e2af039
+audit_wt M trailers: Role: doc;Change-Id: 20261001-b26-backfill-interdig-final-audit;
+M tree c08452ec22217e529952e765e46bd519dd919eab K tree c08452ec22217e529952e765e46bd519dd919eab
+K trailers: Role: code;Change-Id: 20261001-b26-backfill-interdig-final-audit;
+K parent 3004096c81b839998518c14c16d3cd2d6ec6c9bf
+first-parent M..HEAD: []
+iso HEAD 0bb22782775fd759f9478aeae16e8202095d09a9 remotes=[] status=[0]
+isob HEAD 863a037cc0d774bb984006ea39966c5e4dd741ab remotes=[] status=[0]

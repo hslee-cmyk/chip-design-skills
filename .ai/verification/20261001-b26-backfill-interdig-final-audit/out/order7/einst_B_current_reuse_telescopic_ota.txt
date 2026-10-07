@@ -1,0 +1,1 @@
+current_reuse_telescopic_ota sha256 7dc9f2e2dc99a9cf42ec0efb3ee5131902df88c17ad69ccddf372745fd66d00d calls 1 [[(['M4a', 'M4b'], True, True), (['M3a', 'M3b'], False, True)]] []

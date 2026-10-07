@@ -1,0 +1,6 @@
+base lines 1124 Counter({'PASSED': 1109, 'XFAIL': 15}) dup keys 0
+M lines 1129 Counter({'PASSED': 1114, 'XFAIL': 15}) dup keys 0
+base에만(줄 단위) 0 []
+M에만(줄 단위) 5 [('skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_after_loop_max_rounds_exceeded', 'PASSED'), ('skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_in_loop_relaxed_to_layout', 'PASSED'), ('skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_growth_not_applicable', 'PASSED'), ('skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_no_finger_w', 'PASSED'), ('skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_pair_not_found', 'PASSED')]
+id 기준: base에만 0 M에만 5
+결과 바뀐 기존 id 0 []

@@ -1,0 +1,16 @@
+.ai/approvals/20261001-b26-backfill-interdig-fix.md
+.ai/context.md
+.ai/verification/20260930-b26-pre-test-strengthen.json
+.ai/verification/20260930-b26-pre-test-strengthen/out/order7/kill_map.json
+.ai/verification/20260930-b26-pre-test-strengthen/out/order7/kill_results.jsonl
+.ai/verification/20260930-b26-pre-test-strengthen/out/order7/kill_stdout.txt
+.ai/verification/20260930-b26-pre-test-strengthen/out/order7/kill_summary.json
+.ai/verification/20260930-p9-kcl-edges/ast_base.json
+.ai/verification/20260930-p9-kcl-edges/attempt1_order7/ast_m.json
+docs/02-design/features/gain-budget-gmid-sizing.30-module-split.design.md
+docs/02-design/specs/20260930-b26-pre-test-strengthen.spec.md
+docs/02-design/specs/20260930-v3-changed-stmt-scope.spec.md
+docs/02-design/specs/20261001-b26-backfill-interdig-final-audit.spec.md
+skills/analog-gmid-design/assets/sizing_recipe.py
+skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py
+skills/analog-gmid-design/assets/tests/unit/test_selftest_sizing_recipe.py

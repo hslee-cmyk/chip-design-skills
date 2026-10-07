@@ -1,0 +1,379 @@
+{
+ "root": "C:/g394/einst_M",
+ "circuit": "current_reuse_telescopic_ota",
+ "instance_json": "C:/g394/einst_M\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json",
+ "instance_sha256": "7dc9f2e2dc99a9cf42ec0efb3ee5131902df88c17ad69ccddf372745fd66d00d",
+ "instance_has_interdig_ok": false,
+ "calls": [
+  {
+   "unresolved_reason": "growth_not_applicable",
+   "audit_ok": false,
+   "rows": {
+    "diffpair_branch_a__pmos": [
+     [
+      "M6",
+      4,
+      "diffpair_branch_a__pmos"
+     ]
+    ],
+    "vx_tail_b": [
+     [
+      "M7",
+      4,
+      "vx_tail_b"
+     ]
+    ],
+    "diffpair_branch_a__nmos": [
+     [
+      "M5",
+      2,
+      "diffpair_branch_a__nmos"
+     ]
+    ],
+    "biasgen_vom_a": [
+     [
+      "M8",
+      2,
+      "biasgen_vom_a"
+     ],
+     [
+      "M9a",
+      2,
+      "biasgen_vom_a"
+     ],
+     [
+      "M18a",
+      2,
+      "biasgen_vom_a"
+     ],
+     [
+      "M17",
+      2,
+      "biasgen_vom_a"
+     ]
+    ],
+    "biasgen_vom_battery_a__pmos": [
+     [
+      "M11a",
+      1,
+      "biasgen_vom_battery_a__pmos"
+     ],
+     [
+      "M11b",
+      2,
+      "biasgen_vom_battery_a__pmos"
+     ],
+     [
+      "M20a",
+      1,
+      "biasgen_vom_battery_a__pmos"
+     ],
+     [
+      "M20b",
+      2,
+      "biasgen_vom_battery_a__pmos"
+     ]
+    ],
+    "output_stage_a__pmos": [
+     [
+      "M15",
+      2,
+      "output_stage_a__pmos"
+     ],
+     [
+      "M25",
+      2,
+      "output_stage_a__pmos"
+     ]
+    ],
+    "biasgen_vom_floatsrc_sink": [
+     [
+      "M9b",
+      1,
+      "biasgen_vom_floatsrc_sink"
+     ],
+     [
+      "M10",
+      1,
+      "biasgen_vom_floatsrc_sink"
+     ],
+     [
+      "M18b",
+      1,
+      "biasgen_vom_floatsrc_sink"
+     ],
+     [
+      "M19",
+      1,
+      "biasgen_vom_floatsrc_sink"
+     ]
+    ],
+    "biasgen_vom_battery_a__nmos": [
+     [
+      "M12",
+      1,
+      "biasgen_vom_battery_a__nmos"
+     ],
+     [
+      "M21",
+      1,
+      "biasgen_vom_battery_a__nmos"
+     ]
+    ],
+    "biasgen_vom_battery_b__nmos": [
+     [
+      "M14a",
+      1,
+      "biasgen_vom_battery_b__nmos"
+     ],
+     [
+      "M14b",
+      1,
+      "biasgen_vom_battery_b__nmos"
+     ],
+     [
+      "M23a",
+      1,
+      "biasgen_vom_battery_b__nmos"
+     ],
+     [
+      "M24b",
+      1,
+      "biasgen_vom_battery_b__nmos"
+     ]
+    ],
+    "output_stage_a__nmos": [
+     [
+      "M16",
+      2,
+      "output_stage_a__nmos"
+     ],
+     [
+      "M26",
+      2,
+      "output_stage_a__nmos"
+     ]
+    ],
+    "biasgen_vom_battery_b__pmos": [
+     [
+      "M13",
+      2,
+      "biasgen_vom_battery_b__pmos"
+     ],
+     [
+      "M22",
+      2,
+      "biasgen_vom_battery_b__pmos"
+     ]
+    ],
+    "vbias3_stack__nmos": [
+     [
+      "M64",
+      1,
+      "vbias3_stack__nmos"
+     ],
+     [
+      "M63",
+      1,
+      "vbias3_stack__nmos"
+     ]
+    ],
+    "vbias2_stack__pmos": [
+     [
+      "M58",
+      1,
+      "vbias2_stack__pmos"
+     ],
+     [
+      "M57",
+      5,
+      "vbias2_stack__pmos"
+     ]
+    ],
+    "vbias4_stack": [
+     [
+      "M66",
+      1,
+      "vbias4_stack"
+     ]
+    ],
+    "vbias2_stack__nmos": [
+     [
+      "M68",
+      1,
+      "vbias2_stack__nmos"
+     ]
+    ],
+    "cmfb_load_a": [
+     [
+      "M36a",
+      5,
+      "cmfb_load_a"
+     ],
+     [
+      "M36b",
+      5,
+      "cmfb_load_a"
+     ]
+    ],
+    "cmfb_tail_seg1_seg1": [
+     [
+      "M38",
+      3,
+      "cmfb_tail_seg1_seg1"
+     ]
+    ],
+    "cmfb_vocdes_gen": [
+     [
+      "M39",
+      2,
+      "cmfb_vocdes_gen"
+     ],
+     [
+      "M40",
+      1,
+      "cmfb_vocdes_gen"
+     ]
+    ],
+    "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0": [
+     [
+      "M1a",
+      1,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "M2a",
+      1,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "M1b",
+      1,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "M2b",
+      1,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair0"
+     ]
+    ],
+    "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1": [
+     [
+      "M1b",
+      1,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1"
+     ],
+     [
+      "M2b",
+      1,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1"
+     ],
+     [
+      "M1a",
+      1,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1"
+     ],
+     [
+      "M2a",
+      1,
+      "diffpair_branch_a__pmos_repair0_repair0_repair0_repair1"
+     ]
+    ],
+    "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0": [
+     [
+      "M4a",
+      1,
+      "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "M3a",
+      1,
+      "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "M4b",
+      1,
+      "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "M3b",
+      1,
+      "diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+     ]
+    ],
+    "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0": [
+     [
+      "M18_bg",
+      1,
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0"
+     ]
+    ],
+    "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0": [
+     [
+      "M61",
+      1,
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0"
+     ],
+     [
+      "M60",
+      1,
+      "biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0"
+     ]
+    ],
+    "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0": [
+     [
+      "M37b",
+      1,
+      "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+     ],
+     [
+      "M37a",
+      1,
+      "cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0"
+     ]
+    ]
+   },
+   "relaxed_pairs": [
+    {
+     "pair": [
+      "M4a",
+      "M4b"
+     ],
+     "interdig_ok": true,
+     "audit_3b": [
+      [
+       "3b. interdigitation[M4a/M4b] [참고용 -- 이 kind는 필수 아님]",
+       true
+      ]
+     ],
+     "consistent": true
+    },
+    {
+     "pair": [
+      "M3a",
+      "M3b"
+     ],
+     "interdig_ok": false,
+     "audit_3b": [
+      [
+       "3b. interdigitation[M3a/M3b] [참고용 -- 이 kind는 필수 아님]",
+       false
+      ]
+     ],
+     "consistent": true
+    }
+   ]
+  }
+ ],
+ "harness_fail_line": [],
+ "log_tail": [
+  "  - 1. device count vs manifest: True (total 51 == expected 51)",
+  "  - 2. net-name case consistency: True (all net names already single-case)",
+  "  - 3. every matching/hub-merge candidate has a recorded disposition: True (19 candidate groups, all disposed)",
+  "box_shape.ok=False(참고용) rectangular=False width_ratio=10.129 approx=False row_widths={'diffpair_branch_a__pmos': 1.8956188948403124e-06, 'vx_tail_b': 1.8956188948403124e-06, 'diffpair_branch_a__nmos': 1.0218213646447948e-06, 'biasgen_vom_a': 2.495618894840312e-06, 'biasgen_vom_battery_a__pmos': 1.47e-06, 'output_stage_a__pmos': 6e-07, 'biasgen_vom_floatsrc_sink': 1.5118213646447948e-06, 'biasgen_vom_battery_a__nmos': 1.0218213646447948e-06, 'biasgen_vom_battery_b__nmos': 9.8e-07, 'output_stage_a__nmos': 6e-07, 'biasgen_vom_battery_b__pmos': 1.8956188948403124e-06, 'vbias3_stack__nmos': 4.9e-07, 'vbias2_stack__pmos': 2.0400000000000004e-06, 'vbias4_stack': 5.109106823223974e-07, 'vbias2_stack__nmos': 5.109106823223974e-07, 'cmfb_load_a': 4.739047237100781e-06, 'cmfb_tail_seg1_seg1': 1.5327320469671924e-06, 'cmfb_vocdes_gen': 1.02e-06, 'diffpair_branch_a__pmos_repair0_repair0_repair0_repair0': 3.07e-06, 'diffpair_branch_a__pmos_repair0_repair0_repair0_repair1': 3.07e-06, 'diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0': 4.8e-06, 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0': 4.739047237100781e-07, 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0': 9.478094474201562e-07, 'cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0': 7e-07} row_heights={'diffpair_branch_a__pmos': 3.601651420847071e-05, 'vx_tail_b': np.float64(6.294991616543746e-06), 'diffpair_branch_a__nmos': 3.601651420847071e-05, 'biasgen_vom_a': 3.601651420847071e-05, 'biasgen_vom_battery_a__pmos': 3.601651420847071e-05, 'output_stage_a__pmos': np.float64(2.927134370261609e-06), 'biasgen_vom_floatsrc_sink': 3.601651420847071e-05, 'biasgen_vom_battery_a__nmos': np.float64(1.29555504647714e-06), 'biasgen_vom_battery_b__nmos': np.float64(2.3664719854065454e-06), 'output_stage_a__nmos': np.float64(4.548854075897015e-06), 'biasgen_vom_battery_b__pmos': np.float64(2.3664719854065454e-06), 'vbias3_stack__nmos': np.float64(2.3664719854065454e-06), 'vbias2_stack__pmos': 3.601651420847071e-05, 'vbias4_stack': np.float64(1.2195015200966542e-06), 'vbias2_stack__nmos': np.float64(1.291250561269389e-06), 'cmfb_load_a': 3.601651420847071e-05, 'cmfb_tail_seg1_seg1': 3.601651420847071e-05, 'cmfb_vocdes_gen': np.float64(4.548854075897015e-06), 'diffpair_branch_a__pmos_repair0_repair0_repair0_repair0': 3.601651420847071e-05, 'diffpair_branch_a__pmos_repair0_repair0_repair0_repair1': 3.601651420847071e-05, 'diffpair_branch_a__nmos_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0': 3.601651420847071e-05, 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0': np.float64(4.548854075897015e-06), 'biasgen_ref_seg1_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair1_repair0_repair0_repair0': np.float64(4.548854075897015e-06), 'cmfb_tail_seg1_seg1_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0_repair0': 3.601651420847071e-05}",
+  "floorplan.aspect_ratio=1.138 packing_density=0.998 (정본 판정=floorplan_ok=True)",
+  "coverage.ok=True missing=set()",
+  "instance.json 저장: C:\\g394\\einst_M\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.instance.json (audit_ok=False -- audit_row_split에 남은 FAIL 항목 그대로 저장됨)",
+  "report.html 저장: C:\\g394\\einst_M\\workspaces\\current-reuse-telescopic-ota-report\\current_reuse_telescopic_ota.report.html"
+ ]
+}

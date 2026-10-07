@@ -1,0 +1,159 @@
+{
+ "file": "C:/g394/isob/skills/analog-gmid-design/assets/sizing_recipe.py",
+ "def_line": 11711,
+ "def_end": 11883,
+ "nested_defs": [
+  "_backfill_interdig_ok",
+  "_finalize"
+ ],
+ "returns": [
+  {
+   "line": 11802,
+   "end_line": 11804,
+   "prev_line": 11801,
+   "prev_text": "current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)",
+   "via_finalize": true,
+   "unresolved_reason_expr": "None",
+   "enclosing": [
+    "result.ok",
+    "for round_idx"
+   ]
+  },
+  {
+   "line": 11828,
+   "end_line": 11830,
+   "prev_line": 11827,
+   "prev_text": "current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)",
+   "via_finalize": true,
+   "unresolved_reason_expr": "reason",
+   "enclosing": [
+    "not failing_3c",
+    "for round_idx"
+   ]
+  },
+  {
+   "line": 11836,
+   "end_line": 11838,
+   "prev_line": 11835,
+   "prev_text": "current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)",
+   "via_finalize": true,
+   "unresolved_reason_expr": "'pair_not_found'",
+   "enclosing": [
+    "a not in all_devs or b not in all_devs",
+    "for round_idx"
+   ]
+  },
+  {
+   "line": 11862,
+   "end_line": 11864,
+   "prev_line": 11861,
+   "prev_text": "current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)",
+   "via_finalize": true,
+   "unresolved_reason_expr": "reason",
+   "enclosing": [
+    "not fix['applied']",
+    "for round_idx"
+   ]
+  },
+  {
+   "line": 11880,
+   "end_line": 11883,
+   "prev_line": 11879,
+   "prev_text": "current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)",
+   "via_finalize": true,
+   "unresolved_reason_expr": "None if result.ok else 'max_rounds_exceeded'",
+   "enclosing": []
+  }
+ ],
+ "all_returns_via_finalize": true,
+ "backfill_calls_outside_nested": [
+  {
+   "line": 11799,
+   "text": "_backfill_interdig_ok(result)"
+  },
+  {
+   "line": 11878,
+   "text": "_backfill_interdig_ok(result)"
+  }
+ ],
+ "finalize_calls": [
+  {
+   "line": 11787,
+   "func": "_fixup_euler_blocked_rows",
+   "args": [
+    "rows_in",
+    "matching_pairs",
+    "pair_sensitivity",
+    "ctx_in",
+    "lut_by_kind",
+    "metrics_specs",
+    "constraints"
+   ]
+  },
+  {
+   "line": 11790,
+   "func": "audit_row_split",
+   "args": [
+    "fixed_rows"
+   ]
+  },
+  {
+   "line": 11792,
+   "func": "_backfill_interdig_ok",
+   "args": [
+    "fixed_audit"
+   ]
+  }
+ ],
+ "relaxed_pairs_append": [
+  {
+   "line": 11858,
+   "enclosing_if_body": [
+    "not fix['applied']",
+    "reason == 'gm_id_violation' and allow_layout_relaxation"
+   ]
+  }
+ ],
+ "relaxed_pairs_name_uses": [
+  {
+   "line": 11764,
+   "ctx": "Store",
+   "text": "relaxed_pairs: list = []  # 세션17: [{\"pair\",\"reason\",\"trim_recommended\",\"interdig_ok\"}, ...]"
+  },
+  {
+   "line": 11804,
+   "ctx": "Load",
+   "text": "\"unresolved_reason\": None, \"relaxed_pairs\": relaxed_pairs}"
+  },
+  {
+   "line": 11826,
+   "ctx": "Load",
+   "text": "reason = \"relaxed_to_layout\" if relaxed_pairs else \"only_3b_failures_left\""
+  },
+  {
+   "line": 11830,
+   "ctx": "Load",
+   "text": "\"unresolved_reason\": reason, \"relaxed_pairs\": relaxed_pairs}"
+  },
+  {
+   "line": 11838,
+   "ctx": "Load",
+   "text": "\"unresolved_reason\": \"pair_not_found\", \"relaxed_pairs\": relaxed_pairs}"
+  },
+  {
+   "line": 11858,
+   "ctx": "Load",
+   "text": "relaxed_pairs.append({\"pair\": (a, b), \"reason\": \"gm_id_budget_exceeded\","
+  },
+  {
+   "line": 11864,
+   "ctx": "Load",
+   "text": "\"unresolved_reason\": reason, \"relaxed_pairs\": relaxed_pairs}"
+  },
+  {
+   "line": 11883,
+   "ctx": "Load",
+   "text": "\"relaxed_pairs\": relaxed_pairs}"
+  }
+ ]
+}

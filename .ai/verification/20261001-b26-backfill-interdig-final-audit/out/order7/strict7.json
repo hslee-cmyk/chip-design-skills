@@ -1,0 +1,44 @@
+{
+ "card": {
+  "activated_ic_case": [],
+  "phase": "3",
+  "evidence_type": "red-green",
+  "gate_change": "no"
+ },
+ "strict_set": [],
+ "v1_command": "PYTHONPYCACHEPREFIX=C:/g394/pyc/v1_M PYTHONPATH=C:/g394/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab C:/Python314/python.exe -P -m pytest -c C:/g394/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab/pytest_gate.ini --rootdir=C:/g394/iso --confcutdir=C:/g394/iso C:/g394/iso/skills/analog-gmid-design/assets/tests --gmid-phase=3 --gmid-strict= -rA",
+ "v1_command_check": [],
+ "v_intro": {
+  "V1": "1",
+  "V2": "1",
+  "V3": "1",
+  "V4": "1",
+  "V5": "1",
+  "V6": "1",
+  "V7": "2",
+  "V8": "4",
+  "V9": "6b",
+  "V10": "0.5"
+ },
+ "phase_order": [
+  "0.5",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6a",
+  "6b",
+  "6c",
+  "7a",
+  "7b",
+  "7c"
+ ],
+ "red_failure_hash": {
+  "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_in_loop_relaxed_to_layout": "f1f9638d4f283d9dccec9afe79a74bcac8c7c8b7dd207e72a10014cf4bc67858",
+  "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_after_loop_max_rounds_exceeded": "8d9293c9fd46c6f580ad034b2ea6a2d4d7834ae3194e3bd8e78ecbf6d072a6d0",
+  "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_pair_not_found": "720adcbd6ea65c848f51e649b6bfff7512840aca8f17be3f01d0d867d17c9518",
+  "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_no_finger_w": "4702071de1c6c7249392f00007d9b893993781b87895d5377eac579aaba42d69",
+  "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_growth_not_applicable": "b0446cb6ea77479abd0f76f2f73c847f87bab2e31f3e3df4674a460178a8af77"
+ }
+}

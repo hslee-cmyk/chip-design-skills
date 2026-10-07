@@ -1,0 +1,101 @@
+{
+ "id": "20261001-b26-backfill-interdig-final-audit",
+ "spec_card": "docs/02-design/specs/20261001-b26-backfill-interdig-final-audit.spec.md",
+ "evidence_type": "red-green",
+ "base_commit": "863a037cc0d774bb984006ea39966c5e4dd741ab",
+ "test_commit": "3004096c81b839998518c14c16d3cd2d6ec6c9bf",
+ "code_commit": "495bb0ea12fa859bea38685851ee46a84e2af039",
+ "red": {
+  "test_ids": [
+   "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_in_loop_relaxed_to_layout",
+   "skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_after_loop_max_rounds_exceeded"
+  ],
+  "failure_hashes": [
+   "f1f9638d4f283d9dccec9afe79a74bcac8c7c8b7dd207e72a10014cf4bc67858",
+   "8d9293c9fd46c6f580ad034b2ea6a2d4d7834ae3194e3bd8e78ecbf6d072a6d0"
+  ]
+ },
+ "checks": {
+  "V1": {
+   "verdict": "PASS",
+   "basis": "병합본 M 0bb22782775fd759f9478aeae16e8202095d09a9(부모 T 3004096·code K 495bb0e, 트레일러 Role: doc·Change-Id 이 id, M 트리 = K 트리 c08452ec22217e529952e765e46bd519dd919eab)의 격리 복제본 C:/g394/iso(git clone --no-hardlinks --no-local -c core.autocrlf=false, origin 제거 -- remote 0개, checkout --detach M, 시작 status 0줄)에서 base 판 게이트 코드(git cat-file blob 863a037:tools/gates/<파일> 16개 -> C:/g394/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab/, 오케스트레이터 캐시와 16/16 cmp 같음)의 pytest_gate.ini로 slow 포함 전체 실행(auditor_run의 'V1: ' 명령, -k·--deselect·-x 없음, cwd = 복제본 루트, PYTHONHASHSEED 0): 1114 passed, 15 xfailed, 실패·오류·skip·xpass 0, exit 0, 245.9s. 같은 명령 형태로 base 복제본 C:/g394/isob(checkout --detach 863a037, origin 제거): 1109 passed, 15 xfailed, exit 0, 245.6s. -rA 요약 줄 전체를 키로 대조(scripts/order7/cmp_v1.py, 공백 든 parametrize id 때문에 줄 전체를 키로): base 1124줄 -> M 1129줄, base에만 있는 줄 0, 결과가 바뀐 기존 id 0, 새 id 5 = tests/contracts/test_b26_backfill_interdig.py의 test_b26bf_ 5개 전부 PASSED. 엄격 집합 = base 판 merge_gate.strict_set(TreeView(iso, 863a037), base 판 spec card) = 빈 집합(card phase 3, activated_ic_case 없음 -- scripts/order7/strict7.py), base 판 merge_gate.v1_command_check(V1 문자열, python_path C:/Python314/python.exe, old 863a037, strict 빈 집합, phase 3) 위반 0. 실행 뒤 두 복제본 status 0줄(.pytest_cache는 무시 대상). 참고 관찰(브리프 기대 1114/15와 같음 -- 판정은 관계로 했다). 작성자 보고는 증거로 쓰지 않았다"
+  },
+  "V2": {
+   "verdict": "PASS",
+   "basis": "[① 모양] base 863a037 -> T 3004096(Role: test, 부모 base, diff = A tests/contracts/test_b26_backfill_interdig.py 하나, 206줄) -> K 495bb0e(Role: code, 부모 T, diff = sizing_recipe.py 하나 +4/-5: 루프 안 11799·루프 뒤 11878의 _backfill_interdig_ok(result) 두 줄 삭제 + backfill 주석 2줄·반환 docstring 1줄 고침) -> M(Role: doc, 부모 T·K, 트리 = K). base..M diff = 그 두 파일뿐, test 커밋 이후 test 파일 불변(K는 sizing_recipe.py만). freeze는 순서 3 base_check.json. [② red] T 격리 복제본 C:/g394/isot(base 엔진 + 새 test)에서 base 판 merge_gate 플러그인 red 수집(-p merge_gate --continue-on-collection-errors, GMID_RED_CAPTURE, GMID_INTERFACE_CARD, --gmid-phase=3 --gmid-strict=), PYTHONHASHSEED 0·1 각각 5 failed, 전부 builtins.AssertionError이고 실패 단언은 마지막 `rp[0]['interdig_ok'] is c3b[0].ok`(assert False is True) -- 사유·쌍 목록·3b 체크 개수 단언은 통과(순서 3과 같음). red.test_ids = 계약 1 (a)(b) 두 test(card '판정 유형 근거': red 증거는 (a)(b)), 해시는 캡처 값 = base 판 merge_gate.red_failure_hash(id, AssertionError) 재계산 값과 같음. 반환 자리 test 3개(site_pair_not_found·site_no_finger_w·site_growth_not_applicable)도 base에서 같은 단언으로 red(해시 720adcbd…·4702071d…·b0446cb6…) -- card는 '(a)(b) 밖 자리는 red일 필요가 없다'고만 해 허용이고, red.test_ids에 넣지 않고 여기에 적는다. [③ green] M 복제본에서 같은 명령 seed 0·1 각각 5 passed, 캡처 0줄. [④ 회귀 = 계약 3] V1 대조: 기존 id 결과 변화 0, 특히 L4e test_selftest_sizing_recipe.py::test_s016_run_matching_safety_with_finger_growth PASSED(파일 66 passed·2 xfailed, base 같음), b26pre test_b26pre_existing_paths.py 19 passed(계약 3(e) test_b26pre_growth_only_3b_left 포함, base 같음), test_selftest_stick_diagram.py 130 passed·1 xfailed(base 같음). [⑤ 판별력, 순서 3] base 사본에서 11799만 지움 -> 루프 뒤 test 실패, 11878만 지움 -> 루프 안 test 실패, _finalize 안 11792까지 지움 -> 두 test + L4e 실패(base_check.json discrimination). [⑥ 반환 경로 구조 확인, 병합본 코드 AST -- scripts/order7/return_paths.py, out/order7/return_paths_iso.json] run_matching_safety_with_finger_growth(11711~11882)의 중첩 def 밖 return은 다섯이고 다섯 모두 같은 블록 바로 앞 문장이 `current_rows, cur_ctx, result = _finalize(current_rows, cur_ctx)`다: 11802(성공 None, if result.ok), 11828(reason = 'relaxed_to_layout' if relaxed_pairs else 'only_3b_failures_left', if not failing_3c), 11836('pair_not_found'), 11862(reason = no_finger_w·gm_id_violation·growth_not_applicable, if not fix['applied']), 11879(루프 뒤, None 또는 'max_rounds_exceeded'). _finalize(11787~11794) 안 호출은 _fixup_euler_blocked_rows -> audit_row_split(fixed_rows) -> _backfill_interdig_ok(fixed_audit)(11793) 그대로 남아 있고, 중첩 def 밖 _backfill_interdig_ok 호출은 0(base는 11799·11878 둘). 'only_3b_failures_left' 반환(11826~11830, card 목록 (i)~(v)에 없음): reason은 11826에서 relaxed_pairs가 비었을 때만 이 값이고, 그 뒤 반환까지 _finalize만 실행되는데 _finalize·_backfill_interdig_ok는 relaxed_pairs 항목의 interdig_ok만 쓰고 목록에 넣지 않는다(바깥 함수에서 relaxed_pairs 이름은 11765 대입 하나만 Store, 나머지 7곳 Load, append는 11858 하나) -- 따라서 이 반환에서 relaxed_pairs는 항상 빈 목록이고 비지 않을 수 없다. 'gm_id_violation' 반환(11862, test 미구성 자리): relaxed_pairs.append는 11858 하나뿐이고 그 조건이 `reason == 'gm_id_violation' and allow_layout_relaxation`이며 바로 continue한다 -- gm_id_violation으로 반환에 이르면 allow_layout_relaxation이 거짓이고(인자, 함수 안에서 바뀌지 않음) 그러면 어느 라운드에서도 append가 일어나지 않으므로 relaxed_pairs는 항상 비어 있다; 어느 경우든 이 반환도 _finalize 경유다. 계약 2 대조 gmidv_* 두 입력(allow_layout_relaxation=False)에서도 relaxed_pairs == [] 실측. test-author docstring 25~34행에 gm_id_violation 시도 입력·결과와 (i) 서술 근거가 적혀 있음(순서 3 확인). [⑦ 계약 2, scripts/order7/contract2.py -- test 파일을 import하지 않고 card 문장으로 입력 구성] 18 입력(card 재현 m = 1·2·3·5 × metrics 없음·pair_area 있음, 반환 자리 pair_not_found·no_finger_w·growth_not_applicable·gm_id_violation(allow=False)·정리할 일 없는 같은 행 쌍, 각 metrics 두 가지) × PYTHONHASHSEED 0·1을 base·M 복제본에서 돌려 rows(행 키·소자·n_fingers·stack_id), audit 체크 이름·ok, audit.ok, unresolved_pair·unresolved_reason, growth_rounds 길이, relaxed_pairs의 pair·reason·trim_recommended가 18/18 같고, 다른 것은 interdig_ok뿐: 14 항목 False -> True(재현 8·반환 자리 6), 같은 행 대조 2 항목 True 그대로; 반환 audit 3b와 어긋난 항목 base 14 -> M 0. seed 0·1 출력 같음"
+  },
+  "V3": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 mutate_changed.py(범위 card 20260930-v3-changed-stmt-scope 병합 판, grep -c targets_by_def = 3) --root C:/g394/iso --base 863a037cc0d774bb984006ea39966c5e4dd741ab --head 0bb22782775fd759f9478aeae16e8202095d09a9 --pytest-ini <캐시>/pytest_gate.ini --python C:/Python314/python.exe --gmid-phase=3 --gmid-strict=: verdict PASS, exit 0, targets [sizing_recipe.py], mutants 5, killed 5, survivors [], exempt_ignored [], not_targeted 92, targets_by_def {sizing_recipe.py::run_matching_safety_with_finger_growth: targeted 5, not_targeted 92, deleted_statements 3, def_header_changed false}. 죽은 대상: stmt_delete body[9](for 루프), body[9].body[1](if result.ok -- 지운 11799 자리 바로 뒤), body[11](루프 뒤 _finalize -- 지운 11878 자리 바로 뒤), body[1](current_rows 초기화), early_return body[1]. 브리프 사전 관찰(대상 4, deleted 2)과의 차이 분류: K가 함수 docstring(body[0] Expr)을 한 줄 고쳐 문장 맞춤에서 옛 docstring이 지운 문장 1개로 세어지고(deleted 3 = backfill 호출 2 + docstring 1), 그 자리 바로 뒤 문장 body[1]이 대상에 들었다 -- 코드 의미 변경이 아니라 card가 요구한 docstring 정정의 몫이고 생존 0이라 면제 불필요. 실행 뒤 iso status 0줄, HEAD M 그대로(도구는 C:/g394/tmp 아래 자체 복제본에서 변이)"
+  },
+  "V4": {
+   "verdict": "PASS",
+   "basis": "oracle 대조: (도구) base 판 캐시 test_lint.py --root C:/g394/iso --interface-card <iso>/docs/02-design/specs/20261001-b26-backfill-interdig-final-audit.interface.md(관찰 가능한 계약 4행) --base 863a037cc0d774bb984006ea39966c5e4dd741ab --head 3004096c81b839998518c14c16d3cd2d6ec6c9bf: verdict PASS, exit 0, 대상 파일 1(새 test), FAIL 0, unjudged [], findings 20 = 전부 규칙 (2) NO-SUBJECT 정보 항목(피검 호출이 도우미 _b26bf_run 안에 있어서 -- test 5개 × 판정 assert 4개, FAIL 아님); 기대값마다 card 'oracle 종류와 출처' 대조(test 5개가 같은 4단 모양): (1) `res['unresolved_reason'] == '<값>'`의 relaxed_to_layout·max_rounds_exceeded·pair_not_found·no_finger_w·growth_not_applicable은 card 계약 1 반환 자리 목록 (ii)(v)(iii)(iv)의 리터럴(반환 docstring의 관찰 가능한 값) -- 입력이 의도한 자리에 닿았는지 확인용이고 피검 출력을 옮긴 값이 아니다(계약 2 대조에서 base·M 모두 같은 사유, card 재현 'm=1 max_rounds_exceeded, 2 이상 relaxed_to_layout'과 일치); (2) `[e['pair'] for e in rp] == [('Ma', 'Mb')]`는 card 계약 1 CONSISTENT 정의의 리터럴; (3) `len(c3b) == 1`은 CONSISTENT의 '정확히 1개'; (4) `rp[0]['interdig_ok'] is c3b[0].ok`는 oracle (d) 사용자 결정 U-BF 승인 기록 20261001-b26-backfill-interdig-fix(target_kind decision, 범위 문장 'relaxed_pairs[i][interdig_ok]를 반환 audit(euler 정리 뒤 최종 물리 구조)의 3b 판정으로 채운다')의 관계 단언 그대로 -- True/False를 숫자로 박지 않았고 rows 모양도 단언하지 않는다(card '구성 쪽 독립 단언은 넣지 않는다'와 일치). 각 test docstring의 'oracle 대조:' 줄이 그 승인 기록 id를 적는다. 입력은 (a) 구성: card 넷 차수(n2 차수 3, n1·n4·n5 차수 1)를 auditor가 손으로 세어 euler-blocked 확인, 계약 2 스크립트로 base·M 모두 정리가 seg1을 seg1_seg0 [Mp]·seg1_seg1 [Mb, Ma]로 나눔을 실측. 판정 assert는 모두 test 본문에 있고 _b26bf_ 도우미 5개(sizing·t·seg1·run·3b_checks)에 assert 0(AST 대조)"
+  },
+  "V5": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 weakening_diff.py --root C:/g394/iso --base 863a037cc0d774bb984006ea39966c5e4dd741ab --head 3004096c81b839998518c14c16d3cd2d6ec6c9bf, 그리고 --head 0bb22782775fd759f9478aeae16e8202095d09a9: 둘 다 verdict PASS, findings [], diff_paths [], diff_hash null, approved false, exit 0. base..M에서 기존 test·기준선 변경 0(diff는 sizing_recipe.py와 새 test 파일 하나). DEC-40(브리프 3.4): 기존 test 변경 0(L4e `is not None` 그대로), M 트리 git grep -l interdig_ok의 비코드 히트는 .ai/approvals·.ai/context.md·과거 판정 기록(.ai/verification/…)·design·spec card 문서뿐이고 test가 읽는 기준선 파일 0, E-INST 두 회로의 instance.json에 interdig_ok 키 없음, library에서 값이 바뀐 회로 0(V10) -- 재생성할 기준선이 없어 DEC-40 승인 불필요. 관찰 가능한 반환값 변경 자체는 decision 승인 20261001-b26-backfill-interdig-fix가 덮는다"
+  },
+  "V6": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 source_lint.py --root C:/g394/iso --base 863a037cc0d774bb984006ea39966c5e4dd741ab --head 0bb22782775fd759f9478aeae16e8202095d09a9: verdict PASS, targets [skills/analog-gmid-design/assets/sizing_recipe.py], findings [], exit 0. 손 대조: K diff는 호출 문장 2줄 삭제 + 주석 2줄·docstring 1줄 교체뿐이라 새 except·skip·숫자 리터럴 0"
+  },
+  "V7": {
+   "verdict": "PASS",
+   "basis": "base 판 캐시 reachability.py --root C:/g394/iso --base 863a037cc0d774bb984006ea39966c5e4dd741ab --head 0bb22782775fd759f9478aeae16e8202095d09a9: verdict PASS, new_defs [], unreached [], unreached_without_approval [], exit 0(roots_without_file 1 = gmid_design_pipeline.py::run_gmid_design_pipeline, 이 card와 무관한 기존 항목). 새 def 없음. 배선: _backfill_interdig_ok는 _finalize 안 11793 호출로 계속 불리고, _finalize는 다섯 반환 자리 모두에서 불린다(V2 ⑥), 이 def의 엔진 안 호출부 optimize_full_circuit_budget -> run_harness.run 경로로 E-INST 두 회로에서 호출 1회씩 실측(V10)"
+  },
+  "V8": {
+   "verdict": "N/A",
+   "basis": "도입 4: 폴백 발동 0 검사는 Phase 4부터다(base 판 계획서 read_plan_tables_text v_intro[V8] = 4, phase_order에서 card phase 3이 앞 -- scripts/order7/strict7.py 출력)"
+  },
+  "V9": {
+   "verdict": "N/A",
+   "basis": "도입 6b: 물리 불변식 검사는 Phase 6b부터다(base 판 계획서 v_intro[V9] = 6b, card phase 3이 앞)"
+  },
+  "V10": {
+   "verdict": "PASS",
+   "basis": "card '재현할 수치'를 auditor 독립 스크립트로 다시 쟀다(작성자·오케스트레이터 사전 값은 증거로 쓰지 않음). (가) '재현'(bf_repro 상당, scripts/order7/contract2.py, base 복제본 863a037, seed 0·1): m = 1·2·3·5 × metrics 없음·있음 8 호출 모두 relaxed_pairs == [(Ma, Mb), interdig_ok False], 반환 audit 3b. interdigitation[Ma/Mb] [참고용 …] ok True, 3c ok False라 audit.ok False, 반환 rows == {seg1_seg0: [Mp], seg1_seg1: [Mb, Ma]}, unresolved_reason m=1 max_rounds_exceeded·m≥2 relaxed_to_layout -- card 서술과 같다; 병합본에서는 같은 호출의 interdig_ok만 True(반환 audit 3b와 일치), 나머지 같음. (나) red-green(bf_redgreen 상당): base 엔진(T 복제본) 계약 1 두 test red(seed 0·1, assert False is True), 병합본 green(seed 0·1), 병합본 V1에서 test_selftest_sizing_recipe.py 66 passed·2 xfailed, test_selftest_stick_diagram.py 130 passed·1 xfailed, b26pre 19 passed. (다) 전체 회귀(bf_fullsuite 상당, card가 auditor에게 착수 base에서 다시 재라고 한 몫): base 1109 passed·15 xfailed -> M 1114 passed·15 xfailed, 실패 0(V1). (라) library(card 'library 회로 적용 여부', 브리프 3.3 E-INST, scripts/order7/einst.py -- run_harness.run을 전용 격리 복제본 C:/g394/einst_B(863a037)·einst_M(M)에서 돌리고 이 def를 감싸 반환만 읽음): current_reuse_telescopic_ota 호출 1(unresolved_reason growth_not_applicable, 완화 2쌍 M4a/M4b interdig_ok True·M3a/M3b False, 둘 다 반환 audit 3b와 일치), base·M 같음; folded_cascode 호출 1, 완화 0; base에서 다시 만든 instance.json sha256과 M 재생성본이 두 회로 모두 같다(7dc9f2e2…·8cd006a5… -- 커밋된 파일 586a2912…·d4ce00d7…와는 base·M 모두 같게 다르다, card가 말한 이 card와 무관한 차이), 감싸기 기록(rows·audit·사유·relaxed_pairs)도 경로 문자열 말고 바이트 같음 -> library에서 값이 달라지는 회로·쌍 0(승인 기록 '재검토' 해당 없음). (마) 독립 퍼즈 400건·검토 수치는 저장소 밖 초안이라 재현 대상에서 뺐다"
+  }
+ },
+ "reproduced_numbers": [
+  {"name": "V1 병합본 passed", "value": 1114, "command": "V1 명령(auditor_run), out/order7/v1_M.txt"},
+  {"name": "V1 병합본 xfailed", "value": 15, "command": "V1 명령(auditor_run), out/order7/v1_M.txt"},
+  {"name": "V1 base passed(같은 명령, base 복제본)", "value": 1109, "command": "bash scripts/order7/v1.sh C:/g394/isob B, out/order7/v1_B.txt"},
+  {"name": "기존 id 중 결과가 바뀐 것", "value": 0, "command": "python scripts/order7/cmp_v1.py out/order7/v1_B.txt out/order7/v1_M.txt"},
+  {"name": "새 test PASS 수(병합본)", "value": 5, "command": "python scripts/order7/cmp_v1.py out/order7/v1_B.txt out/order7/v1_M.txt"},
+  {"name": "base 엔진 red 수(새 test 파일, seed 0·1 각각)", "value": 5, "command": "bash scripts/order7/red7.sh (C:/g394/isot = T), out/order7/red7_T_s0.jsonl·red7_T_s1.jsonl"},
+  {"name": "계약 2 입력 중 interdig_ok 밖 필드가 같은 입력 수(18 중)", "value": 18, "command": "bash scripts/order7/c2run.sh -> python scripts/order7/c2cmp.py, out/order7/c2_cmp.txt"},
+  {"name": "계약 2 interdig_ok가 바뀐 항목 수(False -> True)", "value": 14, "command": "bash scripts/order7/c2run.sh -> python scripts/order7/c2cmp.py, out/order7/c2_cmp.txt"},
+  {"name": "계약 2 반환 audit 3b와 어긋난 항목 수(병합본)", "value": 0, "command": "bash scripts/order7/c2run.sh -> python scripts/order7/c2cmp.py, out/order7/c2_cmp.txt"},
+  {"name": "계약 2 반환 audit 3b와 어긋난 항목 수(base)", "value": 14, "command": "bash scripts/order7/c2run.sh -> python scripts/order7/c2cmp.py, out/order7/c2_cmp.txt"},
+  {"name": "E-INST instance.json 해시가 base 재생성본과 다른 회로 수(2 중)", "value": 0, "command": "bash scripts/order7/einst.sh B 863a037… ; bash scripts/order7/einst.sh M 0bb2278…, out/order7/einst_*.json"},
+  {"name": "E-INST current_reuse_telescopic_ota 완화 쌍 수", "value": 2, "command": "bash scripts/order7/einst.sh M 0bb2278…, out/order7/einst_M_current_reuse_telescopic_ota.json"},
+  {"name": "V3 대상 변이 수", "value": 5, "command": "bash scripts/order7/tools.sh (mutate_changed.py), out/order7/v3_stdout.txt"},
+  {"name": "V3 생존 수", "value": 0, "command": "bash scripts/order7/tools.sh (mutate_changed.py), out/order7/v3_stdout.txt"},
+  {"name": "병합본 중첩 def 밖 return 수(모두 _finalize 경유)", "value": 5, "command": "python scripts/order7/return_paths.py C:/g394/iso/skills/analog-gmid-design/assets/sizing_recipe.py, out/order7/return_paths_iso.json"},
+  {"name": "병합본 중첩 def 밖 _backfill_interdig_ok 호출 수", "value": 0, "command": "python scripts/order7/return_paths.py C:/g394/iso/skills/analog-gmid-design/assets/sizing_recipe.py, out/order7/return_paths_iso.json"}
+ ],
+ "approvals": [
+  "20261001-b26-backfill-interdig-fix",
+  "20261001-b26-phase3-cards"
+ ],
+ "auditor_run": {
+  "time": "2026-10-07T13:32:21+09:00",
+  "worktree": "C:/Users/HSLEE/Documents/Todoc/fpga/wt/20261001-b26-backfill-interdig-final-audit-audit",
+  "commands": [
+   "격리: git clone -q --no-hardlinks --no-local -c core.autocrlf=false -c core.longpaths=true --no-checkout <audit worktree> C:/g394/<iso|isob|isot|einst_B|einst_M> -> git -C <복제본> remote remove origin -> test -z \"$(git -C <복제본> remote)\" -> git -C <복제본> checkout -q --detach <M 0bb2278|base 863a037|T 3004096|base|M> (scripts/order7/setup.sh·red7.sh·einst.sh)",
+   "게이트 코드: git -C <audit worktree> cat-file blob 863a037cc0d774bb984006ea39966c5e4dd741ab:tools/gates/<파일> > C:/g394/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab/<파일> (16개, 오케스트레이터 캐시와 cmp 같음 -- out/order7/cache_cmp.txt)",
+   "환경: APPDATA=C:/Users/HSLEE/AppData/Roaming HOME=C:/Users/HSLEE PYTHONIOENCODING=utf-8 TMP=TEMP=TMPDIR=C:/g394/tmp/<라벨>, cwd = 복제본 루트(env -C), $PY = C:/Python314/python.exe",
+   "V1: PYTHONPYCACHEPREFIX=C:/g394/pyc/v1_M PYTHONPATH=C:/g394/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab C:/Python314/python.exe -P -m pytest -c C:/g394/gmid-gate-cache/863a037cc0d774bb984006ea39966c5e4dd741ab/pytest_gate.ini --rootdir=C:/g394/iso --confcutdir=C:/g394/iso C:/g394/iso/skills/analog-gmid-design/assets/tests --gmid-phase=3 --gmid-strict= -rA",
+   "base 대조 전체 실행: bash scripts/order7/v1.sh C:/g394/isob B (V1과 같은 형태, rootdir·대상만 isob) ; python scripts/order7/cmp_v1.py out/order7/v1_B.txt out/order7/v1_M.txt",
+   "엄격 집합·V1 형식·계획서 표·red 해시: PYTHONPYCACHEPREFIX=C:/g394/pyc/strict $PY -P scripts/order7/strict7.py out/order7/v1_cmd.txt -> out/order7/strict7.json",
+   "red·green: bash scripts/order7/red7.sh = <복제본 isot|iso>에서 PYTHONHASHSEED=<0|1> PYTHONPATH=<캐시> GMID_RED_CAPTURE=C:/g394/out/red7_<T|M>_s<n>.jsonl GMID_INTERFACE_CARD=<복제본>/docs/02-design/specs/20261001-b26-backfill-interdig-final-audit.interface.md $PY -P -m pytest -c <캐시>/pytest_gate.ini --rootdir=<복제본> --confcutdir=<복제본> --gmid-phase=3 --gmid-strict= -p merge_gate --continue-on-collection-errors --basetemp=C:/g394/bt/<라벨> -p no:cacheprovider -rA -q <복제본>/skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py",
+   "반환 경로 구조: $PY -B scripts/order7/return_paths.py C:/g394/<iso|isob>/skills/analog-gmid-design/assets/sizing_recipe.py out/order7/return_paths_<iso|isob>.json",
+   "계약 2·재현: bash scripts/order7/c2run.sh (contract2.py를 isob·iso에서 PYTHONHASHSEED 0·1, c2cmp.py 대조)",
+   "E-INST: bash scripts/order7/einst.sh B 863a037cc0d774bb984006ea39966c5e4dd741ab ; bash scripts/order7/einst.sh M 0bb22782775fd759f9478aeae16e8202095d09a9 (einst.py: run_harness.run(current_reuse_telescopic_ota|folded_cascode), 이 def 감싸 반환 읽기, instance.json sha256)",
+   "V3~V7: bash scripts/order7/tools.sh = <캐시>/{test_lint.py --interface-card … --base 863a037… --head 3004096…, weakening_diff.py --head 3004096…·0bb2278…, source_lint.py, reachability.py, mutate_changed.py --pytest-ini <캐시>/pytest_gate.ini --python $PY --gmid-phase=3 --gmid-strict= --out C:/g394/out/v3.jsonl} --root C:/g394/iso --base 863a037cc0d774bb984006ea39966c5e4dd741ab --head 0bb22782775fd759f9478aeae16e8202095d09a9",
+   "실제 저장소 불변: C:/Users/HSLEE/Documents/Todoc/fpga/chip-design-skills HEAD 863a037, status --porcelain md5 0474ab6da39520d0d12058d19f11359c, reflog 359줄, for-each-ref md5 40cf9d2f4ce281440a6b916129040b13 -- 시작(out/order7/start_state.txt)과 판정 커밋 전 끝(out/order7/end_state.txt) 같음",
+   "판정 기록 출력 사본: cp C:/g394/out/* .ai/verification/20261001-b26-backfill-interdig-final-audit/out/order7/"
+  ]
+ }
+}

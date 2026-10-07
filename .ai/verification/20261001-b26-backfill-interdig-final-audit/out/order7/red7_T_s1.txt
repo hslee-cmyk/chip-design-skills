@@ -1,0 +1,141 @@
+FFFFF                                                                    [100%]
+================================== FAILURES ===================================
+____________________ test_b26bf_in_loop_relaxed_to_layout _____________________
+
+tmp_path = WindowsPath('C:/g394/bt/red7_T_s1/test_b26bf_in_loop_relaxed_to_0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x000002B87FD41D30>
+
+    def test_b26bf_in_loop_relaxed_to_layout(tmp_path, toy_lut):
+        """계약 1 (a) 루프 안 경로(반환 자리 (ii)): m=2 → "relaxed_to_layout"이고 CONSISTENT(res).
+    
+        oracle 대조: 20261001-b26-backfill-interdig-fix (d) 사용자 결정 -- relaxed_pairs[i]["interdig_ok"]는 반환
+        audit(euler 정리 뒤 최종 물리 구조)의 3b 판정. 입력은 (a) 구성(모듈 docstring). "relaxed_to_layout"과 완화 쌍
+        목록 [("Ma", "Mb")]는 spec card 계약 1 리터럴.
+        """
+        w0, s = _b26bf_sizing(toy_lut)
+        res = _b26bf_run(tmp_path, toy_lut, s, {"seg1": _b26bf_seg1(w0)},
+                         [("Ma", "Mb")], {("Ma", "Mb"): "offset"}, 2)
+        assert res["unresolved_reason"] == "relaxed_to_layout"
+        rp = res["relaxed_pairs"]
+        assert [e["pair"] for e in rp] == [("Ma", "Mb")]
+        c3b = _b26bf_3b_checks(res, "Ma", "Mb")
+        assert len(c3b) == 1, [c.name for c in res["audit"].checks]
+>       assert rp[0]["interdig_ok"] is c3b[0].ok
+E       AssertionError: assert False is True
+E        +  where True = AuditCheck(name='3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', ok=True, detail='seg1_seg1: 인접').ok
+
+skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py:126: AssertionError
+__________________ test_b26bf_after_loop_max_rounds_exceeded __________________
+
+tmp_path = WindowsPath('C:/g394/bt/red7_T_s1/test_b26bf_after_loop_max_roun0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x000002B87FD41D30>
+
+    def test_b26bf_after_loop_max_rounds_exceeded(tmp_path, toy_lut):
+        """계약 1 (b) 루프 뒤 경로(반환 자리 (v)): m=1 → "max_rounds_exceeded"이고 CONSISTENT(res).
+    
+        oracle 대조: 20261001-b26-backfill-interdig-fix (d) 사용자 결정 -- relaxed_pairs[i]["interdig_ok"]는 반환
+        audit(euler 정리 뒤 최종 물리 구조)의 3b 판정. 입력은 (a) 구성(모듈 docstring). "max_rounds_exceeded"와 완화 쌍
+        목록 [("Ma", "Mb")]는 spec card 계약 1 리터럴.
+        """
+        w0, s = _b26bf_sizing(toy_lut)
+        res = _b26bf_run(tmp_path, toy_lut, s, {"seg1": _b26bf_seg1(w0)},
+                         [("Ma", "Mb")], {("Ma", "Mb"): "offset"}, 1)
+        assert res["unresolved_reason"] == "max_rounds_exceeded"
+        rp = res["relaxed_pairs"]
+        assert [e["pair"] for e in rp] == [("Ma", "Mb")]
+        c3b = _b26bf_3b_checks(res, "Ma", "Mb")
+        assert len(c3b) == 1, [c.name for c in res["audit"].checks]
+>       assert rp[0]["interdig_ok"] is c3b[0].ok
+E       AssertionError: assert False is True
+E        +  where True = AuditCheck(name='3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', ok=True, detail='seg1_seg1: 인접').ok
+
+skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py:144: AssertionError
+_______________________ test_b26bf_site_pair_not_found ________________________
+
+tmp_path = WindowsPath('C:/g394/bt/red7_T_s1/test_b26bf_site_pair_not_found0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x000002B87FD41D30>
+
+    def test_b26bf_site_pair_not_found(tmp_path, toy_lut):
+        """반환 자리 (iii) "pair_not_found": 첫 쌍 (Ma, Mb) 완화 뒤 둘째 쌍 (Mc, Mx)의 Mx가 어느 행에도 없다.
+    
+        oracle 대조: 20261001-b26-backfill-interdig-fix (d) 사용자 결정 -- relaxed_pairs[i]["interdig_ok"]는 반환
+        audit(euler 정리 뒤 최종 물리 구조)의 3b 판정. 입력은 (a) 구성: seg1(모듈 docstring) + 행 seg2 = [Mc],
+        Mx는 입력 rows에 없음. "pair_not_found"는 spec card 계약 1 반환 자리 (iii) 리터럴.
+        """
+        w0, s = _b26bf_sizing(toy_lut)
+        rows = {"seg1": _b26bf_seg1(w0), "seg2": [_b26bf_t("Mc", "vt", "nc", "gc", w0, "seg2")]}
+        res = _b26bf_run(tmp_path, toy_lut, s, rows, [("Ma", "Mb"), ("Mc", "Mx")],
+                         {("Ma", "Mb"): "offset", ("Mc", "Mx"): "offset"}, 3)
+        assert res["unresolved_reason"] == "pair_not_found"
+        rp = res["relaxed_pairs"]
+        assert [e["pair"] for e in rp] == [("Ma", "Mb")]
+        c3b = _b26bf_3b_checks(res, "Ma", "Mb")
+        assert len(c3b) == 1, [c.name for c in res["audit"].checks]
+>       assert rp[0]["interdig_ok"] is c3b[0].ok
+E       AssertionError: assert False is True
+E        +  where True = AuditCheck(name='3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', ok=True, detail='seg1_seg1: 인접').ok
+
+skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py:165: AssertionError
+_________________________ test_b26bf_site_no_finger_w _________________________
+
+tmp_path = WindowsPath('C:/g394/bt/red7_T_s1/test_b26bf_site_no_finger_w0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x000002B87FD41D30>
+
+    def test_b26bf_site_no_finger_w(tmp_path, toy_lut):
+        """반환 자리 (iv) "no_finger_w": 첫 쌍 (Ma, Mb) 완화 뒤 둘째 쌍 (Mc, Md)의 finger_w가 None이다.
+    
+        oracle 대조: 20261001-b26-backfill-interdig-fix (d) 사용자 결정 -- relaxed_pairs[i]["interdig_ok"]는 반환
+        audit(euler 정리 뒤 최종 물리 구조)의 3b 판정. 입력은 (a) 구성: seg1(모듈 docstring) + 행 seg2 = [Mc, Md]
+        (공통 source vt, n_fingers 1, finger_w None). "no_finger_w"는 spec card 계약 1 반환 자리 (iv) 리터럴.
+        """
+        w0, s = _b26bf_sizing(toy_lut)
+        rows = {"seg1": _b26bf_seg1(w0),
+                "seg2": [_b26bf_t("Mc", "vt", "nc", "gc", None, "seg2"), _b26bf_t("Md", "vt", "nd", "gd", None, "seg2")]}
+        res = _b26bf_run(tmp_path, toy_lut, s, rows, [("Ma", "Mb"), ("Mc", "Md")],
+                         {("Ma", "Mb"): "offset", ("Mc", "Md"): "offset"}, 3)
+        assert res["unresolved_reason"] == "no_finger_w"
+        rp = res["relaxed_pairs"]
+        assert [e["pair"] for e in rp] == [("Ma", "Mb")]
+        c3b = _b26bf_3b_checks(res, "Ma", "Mb")
+        assert len(c3b) == 1, [c.name for c in res["audit"].checks]
+>       assert rp[0]["interdig_ok"] is c3b[0].ok
+E       AssertionError: assert False is True
+E        +  where True = AuditCheck(name='3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', ok=True, detail='seg1_seg1: 인접').ok
+
+skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py:185: AssertionError
+____________________ test_b26bf_site_growth_not_applicable ____________________
+
+tmp_path = WindowsPath('C:/g394/bt/red7_T_s1/test_b26bf_site_growth_not_app0')
+toy_lut = <sizing_recipe.SemiEmpiricalGmIdLUT object at 0x000002B87FD41D30>
+
+    def test_b26bf_site_growth_not_applicable(tmp_path, toy_lut):
+        """반환 자리 (iv) "growth_not_applicable": 첫 쌍 (Ma, Mb) 완화 뒤 둘째 쌍 (Mc, Md)의 n_fingers가 1·2로 다르다.
+    
+        oracle 대조: 20261001-b26-backfill-interdig-fix (d) 사용자 결정 -- relaxed_pairs[i]["interdig_ok"]는 반환
+        audit(euler 정리 뒤 최종 물리 구조)의 3b 판정. 입력은 (a) 구성: seg1(모듈 docstring) + 행 seg2 = [Mc(n_fingers 1),
+        Md(n_fingers 2)](공통 source vt, finger_w W0). "growth_not_applicable"은 spec card 계약 1 반환 자리 (iv) 리터럴.
+        """
+        w0, s = _b26bf_sizing(toy_lut)
+        rows = {"seg1": _b26bf_seg1(w0),
+                "seg2": [_b26bf_t("Mc", "vt", "nc", "gc", w0, "seg2", n_fingers=1),
+                         _b26bf_t("Md", "vt", "nd", "gd", w0, "seg2", n_fingers=2)]}
+        res = _b26bf_run(tmp_path, toy_lut, s, rows, [("Ma", "Mb"), ("Mc", "Md")],
+                         {("Ma", "Mb"): "offset", ("Mc", "Md"): "offset"}, 3)
+        assert res["unresolved_reason"] == "growth_not_applicable"
+        rp = res["relaxed_pairs"]
+        assert [e["pair"] for e in rp] == [("Ma", "Mb")]
+        c3b = _b26bf_3b_checks(res, "Ma", "Mb")
+        assert len(c3b) == 1, [c.name for c in res["audit"].checks]
+>       assert rp[0]["interdig_ok"] is c3b[0].ok
+E       AssertionError: assert False is True
+E        +  where True = AuditCheck(name='3b. interdigitation[Ma/Mb] [참고용 -- 이 kind는 필수 아님]', ok=True, detail='seg1_seg1: 인접').ok
+
+skills\analog-gmid-design\assets\tests\contracts\test_b26_backfill_interdig.py:206: AssertionError
+=========================== short test summary info ===========================
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_in_loop_relaxed_to_layout
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_after_loop_max_rounds_exceeded
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_pair_not_found
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_no_finger_w
+FAILED skills/analog-gmid-design/assets/tests/contracts/test_b26_backfill_interdig.py::test_b26bf_site_growth_not_applicable
+5 failed in 3.02s
+rc=1
