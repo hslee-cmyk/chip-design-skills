@@ -47,6 +47,7 @@ from .conftest import (
     DB_PER_NEPER,
     EPS,
     EX7,
+    EX8,
     EX7_CAP,
     EX7_MOS12,
     EX7V_CAP,
@@ -172,6 +173,52 @@ def test_r5_undefined_fields_absent_example1():
     res = metric_resolutions(la, (f,), lut_parameters(ck, ()))
     assert tuple(r.quantity for r in res) == ("gain_db", "gbw_hz")
     assert all(r.lut == 0.0 and r.value == r.numeric for r in res)
+
+
+def _gain_lut_cross_pair(gx2, eps):
+    """예 8·8a·8b 의 gain lut 폐형식(9.3 결합 규칙). T0 ∝ gm1·gds3/(gm2·gm3 − (gds1 + gds2)·gds3)(8a·8b 는 β 배 -- 용량은 LUT
+    파라미터 아님). ∂ln|T0|/∂ln p 의 절댓값 합 = 1(gm1) + 3·k(gds3·gm2·gm3) + 2·(k − 1)/2(gds1·gds2), k = gm2·gm3/|D|,
+    D = gm2·gm3 − 2·gds²(같은 gds). lut = D_dB·ε·합."""
+    gds = EX8["gds"]
+    dd = abs(gx2 - 2.0 * gds * gds)
+    k = gx2 / dd
+    s = 1.0 + 3.0 * k + 2.0 * (gds * gds / dd)
+    return DB_PER_NEPER * eps * s
+
+
+def test_r5_pm_undefined_by_rhp_precondition_absent_ex8():
+    """3.10 PM 전제 + 9.3/R-5: 예 8 은 phase_margin_deg None(loop_open_rhp_poles) -> 분해능 결과에 PM 이 없다. 나머지 필드는 그대로
+    (gain lut 폐형식: 합 1 + 3·1.2 + 2·0.1 = 4.8)."""
+    from .conftest import closed_ex8, ex8_system
+    ck, sysm = ex8_system()
+    (resp,) = solve_responses((sysm,))
+    f = Factor(resp, 0, 0)
+    la = analyze_loop((f,))
+    assert la.phase_margin_deg is None and la.ugf_hz is not None       # 입력 확인
+    res = _by_q(metric_resolutions(la, (f,), lut_parameters(ck, (0.02, 0.02, 0.02))))
+    assert tuple(res) == ("gain_db", "ugf_hz", "gbw_hz")
+    g = _gain_lut_cross_pair(EX8["gx2"], 0.02)
+    assert abs(g - DB_PER_NEPER * 0.02 * 4.8) <= 1e-12 * g              # 손계산 합 4.8
+    assert abs(res["gain_db"].lut - g) <= R1_RTOL * g
+    for r in res.values():
+        assert r.value is not None and r.value == max(r.lut, r.numeric)
+    assert closed_ex8()["ugf_hz"] == pytest.approx(la.ugf_hz, rel=1e-9)
+
+
+@pytest.mark.parametrize("which", ["8a", "8b"])
+def test_r5_pm_undefined_by_rhp_precondition_absent_probe(which):
+    """예 8a(ProbeFactor, 폐루프 안정)·8b(|T0| 0.5 -> UGF 도 None): PM 분해능 없음, gain lut 폐형식(β 는 용량비 -- LUT 밖)."""
+    from .conftest import EX7_CUT, ex8a_parts, probe_of, circuit_of
+    gx2 = EX8["gx2"] if which == "8a" else EX8["gx2_8b"]
+    parts = ex8a_parts(gx2)
+    _, pf, _ = probe_of(parts, EX7_CUT)
+    la = analyze_loop((pf,))
+    assert la.phase_margin_deg is None                                 # 입력 확인
+    res = _by_q(metric_resolutions(la, (pf,), lut_parameters(circuit_of(*parts), (0.02, 0.02, 0.02))))
+    assert "phase_margin_deg" not in res
+    assert ("ugf_hz" in res) == (which == "8a")
+    g = _gain_lut_cross_pair(gx2, 0.02)
+    assert abs(res["gain_db"].lut - g) <= R1_RTOL * g
 
 
 def test_r4_undetermined_epsilon_value_none_numeric_kept():

@@ -1065,3 +1065,116 @@ EX7V_MOS = (mos_t(2, 3, 0, 0, 1e-3, 1e-4, 1e-5, cgs=0.3e-12, cgd=0.2e-12, cgb=-0
 EX7V_CAP = ((2, 0, 1e-12), (2, 3, 1e-12), (3, 0, 3e-12))
 EX7_MOS12 = (mos_t(2, 3, 0, 0, 1e-3, 0.0, 1e-5),)
 EX7_CAP = ((2, 0, 1e-12), (2, 3, 1e-12), (3, 0, 3e-12))
+
+
+# =====================================================================================================================
+# 예 8·8a·8b -- PM 전제(CONTRACT 3.10 'PM 전제', 2절 `loop_open_rhp_poles`, I-17). 교차 결합 쌍(M2·M3)이 개루프 T 에 우반면 극점을
+# 만든다. 기대값은 아래 폐형식(노드 방정식을 손으로 소거한 2차식의 근)뿐이고, 폐형식 자체는 test 에서 독립 MNA(`ref_solve`)·독립
+# Middlebrook(`ref_middlebrook`)과 대조한다. 엔진 소스(loop_analysis.py)는 열람하지 않았다.
+# =====================================================================================================================
+
+EX8 = dict(gm=1e-3, gds=1e-5, c=1e-12, gx2=1.2e-9, gx2_8b=5.2e-9)
+
+
+def ex8_parts(gx2=EX8["gx2"]):
+    """예 8 test tuple: M1(d=2, g=1), 교차 결합 M2(d=2, g=5, gm=gx)·M3(d=5, g=2, gm=gx), C(2,0)·C(5,0), gx = √gx2."""
+    p = EX8
+    gx = math.sqrt(gx2)
+    mos = ((2, 1, 0, 0, p["gm"], 0.0, p["gds"]), (2, 5, 0, 0, gx, 0.0, p["gds"]), (5, 2, 0, 0, gx, 0.0, p["gds"]))
+    return mos, (), ((2, 0, p["c"]), (5, 0, p["c"]))
+
+
+def ex8_system(nm=None, gx2=EX8["gx2"]):
+    """예 8 계: 열 1 V at 1, Sense(2). 반환 (SmallSignalCircuit, MnaSystem)."""
+    m = mapper(nm)
+    ck = circuit_of(*ex8_parts(gx2), nm=nm)
+    return ck, build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)),), (Sense(m(2)),))
+
+
+def ex8a_parts(gx2=EX8["gx2"]):
+    """예 8a(gx2 1.2e-9)·8b(gx2 5.2e-9): 예 7 회로(Cf = capacitors index 1 유지) + 노드 2 에 예 8 의 교차 결합 쌍·노드 5 용량."""
+    p = EX8
+    gx = math.sqrt(gx2)
+    mos, res, cap = ex7_parts()
+    mos = mos + ((2, 5, 0, 0, gx, 0.0, p["gds"]), (5, 2, 0, 0, gx, 0.0, p["gds"]))
+    return mos, res, cap + ((5, 0, p["c"]),)
+
+
+def quad_roots(a, b, c):
+    """a s² + b s + c = 0 의 두 실근(판별식 > 0 전제), 상쇄 없는 공식, 오름차순."""
+    disc = b * b - 4.0 * a * c
+    assert disc > 0.0
+    q = -0.5 * (b + math.copysign(math.sqrt(disc), b))
+    return tuple(sorted((q / a, c / q)))
+
+
+def closed_real_rational(t0, zeros, poles):
+    """T(s) = t0·Π(1 − s/z)/Π(1 − s/p) (모든 근 실수, 0 아님). 위상(T(0) 기준) = Σ_p atan(ω/p) − Σ_z atan(ω/z) -- 각 항이
+    (−π/2, π/2) 라 언랩이 필요 없다. |T(0)| > 1 이면 |T| = 1 교차를 brentq 로(조밀 로그 격자에서 부호 바뀜이 한 번임을 확인).
+    반환 dict(t, phase, ugf_w, ugf_hz, lag_rad, old_pm_deg)."""
+
+    def t(w):
+        s = 1j * w
+        v = complex(t0)
+        for z in zeros:
+            v *= 1.0 - s / z
+        for p in poles:
+            v /= 1.0 - s / p
+        return v
+
+    def ph(w):
+        return sum(math.atan(w / p) for p in poles) - sum(math.atan(w / z) for z in zeros)
+
+    out = dict(t=t, phase=ph, ugf_w=None, ugf_hz=None, lag_rad=None, old_pm_deg=None)
+    if abs(t0) > 1.0:
+        grid = np.logspace(0, 13, 4001)
+        f = np.array([abs(t(w)) - 1.0 for w in grid])
+        assert int(np.count_nonzero(np.diff(np.sign(f)))) == 1     # 교차 하나(첫 교차 = 유일 교차)
+        wu = brentq(lambda w: abs(t(w)) - 1.0, 1.0, 1e13, xtol=1e-9, rtol=4 * EPS, maxiter=500)
+        lag = -ph(wu)
+        out.update(ugf_w=wu, ugf_hz=wu / TWO_PI, lag_rad=lag, old_pm_deg=180.0 - math.degrees(lag))
+    return out
+
+
+def closed_ex8(gx2=EX8["gx2"]):
+    """예 8 폐형식(β = 1 포트 Factor = 전달 H): 노드 2 (g2 + sC)v2 + gx·v5 = −gm·v1(g2 = 2gds), 노드 5 gx·v2 + (g5 + sC)v5 = 0
+    (g5 = gds) -> H = −gm(g5 + sC)/((g2 + sC)(g5 + sC) − gx²). 극점 = 분모 근, 영점 −g5/C, T0 = gm·g5/(gx² − g2·g5).
+    폐루프 1 + T = 0 근 = C²s² + (C(g2 + g5) − gm·C)s + (g2·g5 − gx² − gm·g5) 의 근."""
+    p = EX8
+    g2, g5, c = 2.0 * p["gds"], p["gds"], p["c"]
+    poles = quad_roots(c * c, c * (g2 + g5), g2 * g5 - gx2)
+    t0 = p["gm"] * g5 / (gx2 - g2 * g5)
+    d = closed_real_rational(t0, (-g5 / c,), poles)
+    d.update(t0=t0, poles=poles, zero=-g5 / c,
+             closed_loop=quad_roots(c * c, c * (g2 + g5) - p["gm"] * c, g2 * g5 - gx2 - p["gm"] * g5))
+    return d
+
+
+def closed_ex8a(gx2=EX8["gx2"]):
+    """예 8a·8b 의 되돌림 비(gm 제어원, 절단 노드 3 = gate + Cs 용량 전용): 노드 3 은 v2·β(β = Cf/(Cf + Cs)), 노드 2 유효 어드미턴스
+    g2 + s·Ceff − gx²/(g5 + sC5)(Ceff = CL + Cf·Cs/(Cf + Cs)) -> T = gm·β(g5 + sC5)/((g2 + sCeff)(g5 + sC5) − gx²).
+    (예 7 의 T = gm·β/(gds + sCeff) 에 교차 결합 항만 더한 것 -- test 에서 독립 Middlebrook 과 대조한다.)
+    폐루프(1 + T = 0) 근 = Ceff·C5 s² + ((g2 + gm·β)C5 + g5·Ceff)s + ((g2 + gm·β)g5 − gx²) 의 근."""
+    p, q = EX8, EX7
+    beta = q["cf"] / (q["cf"] + q["cs"])
+    ceff = q["cl"] + q["cf"] * q["cs"] / (q["cf"] + q["cs"])
+    g2, g5, c5, gmb = 2.0 * p["gds"], p["gds"], p["c"], q["gm"] * beta
+    poles = quad_roots(ceff * c5, g2 * c5 + g5 * ceff, g2 * g5 - gx2)
+    t0 = gmb * g5 / (g2 * g5 - gx2)
+    d = closed_real_rational(t0, (-g5 / c5,), poles)
+    d.update(t0=t0, poles=poles, zero=-g5 / c5,
+             closed_loop=quad_roots(ceff * c5, (g2 + gmb) * c5 + g5 * ceff, (g2 + gmb) * g5 - gx2))
+    return d
+
+
+def probe_of(parts, cuts, weights=(1.0,), nm=None, extra=()):
+    """parts=(mos,res,cap) -> (절단 계 응답, ProbeFactor, extra 응답들). 절단 계 + extra 계를 한 번의 solve_responses 로."""
+    from gmid_engine.metrics import LoopCut, cut_circuit, probe_factor, solve_responses
+    cut = cut_circuit(circuit_of(*parts, nm=nm), tuple(LoopCut(k, i, t) for k, i, t in cuts))
+    rs = solve_responses((build_mna(cut.circuit, cut.excitations, cut.senses),) + tuple(extra))
+    return rs[0], probe_factor(rs[0], cut.pairs, weights), rs[1:]
+
+
+def pm_undefined(la_or_result):
+    """LoopAnalysis·MetricResult 의 undefined 중 quantity == "phase_margin_deg" 인 것(순서 유지)."""
+    return tuple(u for u in (la_or_result.undefined or ()) if u.quantity == "phase_margin_deg")
