@@ -45,6 +45,11 @@
     }
   },
   "quantities": {
+    "min_finger_w_m": {
+      "source": "periphery_rules",
+      "expression": "difftap.2",
+      "basis": "MOS finger 하나의 최소 채널 폭 = difftap.2 '최소 채널 폭(Diff And Poly)'(areaid.sc 밖 FET). search 의 W 하한 제약 W >= W_min(설계 개정 2026-10-08, S-18)이 읽는다. difftap.2b(areaid.sc 안)·2a(지정 셀)는 표준셀 안 FET 용이라 쓰지 않는다."
+    },
     "manufacturing_grid_m": {
       "source": "tech_lef",
       "expression": "MANUFACTURINGGRID",

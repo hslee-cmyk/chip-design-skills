@@ -255,6 +255,7 @@ __all__ = (
     "dc_seal_node_conflict",
     "dc_seal_report",
     "dc_seal_saturation",
+    "dc_seal_vgs_match",
     "dc_struct_colour",
     "dc_theta_schema",
     "dc_tolerances",
