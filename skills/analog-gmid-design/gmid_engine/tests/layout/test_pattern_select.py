@@ -149,6 +149,11 @@ def test_branch_symmetric_row_swap(toy_lut):
     assert [r.transistor_sequence for r in g.rows] == [("E", "F"), ("F", "E")]
     assert (g.dx, g.dy) == (0.0, 0.0) and g.reason == "cc_same_W" and g.ok
     check_offsets(g)
+    # 4.15 [r5]: 키 200 nf (1,1) 조합(200칸)이 먼저 평가 -- 조각 행 1개라 중심 불일치 -- 그다음 키 100 nf (2,2)
+    ev = [(a.finger_w_m, a.n_fingers, a.method, a.reason) for a in g.attempts]
+    assert ev[0][1:] == ((1, 1), "row_swap", "evaluated") and ev[0][0] == pytest.approx(2e-6)
+    assert (g.attempts[0].dx, g.attempts[0].dy) == (1.0, 0.0)
+    assert ev[1][1:] == ((2, 2), "row_swap", "evaluated") and ev[1][0] == pytest.approx(1e-6)
 
 
 def test_branch_symmetric_gate_differs(toy_lut):
