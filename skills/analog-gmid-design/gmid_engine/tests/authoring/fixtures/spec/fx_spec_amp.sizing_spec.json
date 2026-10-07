@@ -1,0 +1,87 @@
+{
+  "_comment": "Hand-made valid sizing spec for fx_spec_amp (spec loader tests). meta.topology_fp = connectivity_fp of fx_spec_amp.topology.json (test_spec_meta checks it).",
+  "meta": {
+    "schema_version": "5",
+    "circuit": "fx_spec_amp",
+    "topology_fp": "fe001c608a2261240628e3be1f7f2ae2a74d183cc87895f15a5540513c107b4b",
+    "origin": "fixture"
+  },
+  "human": {
+    "supplies_v": {
+      "values": {"rail_hi": 1.2, "rail_lo": 0.0},
+      "source": {"kind": "user_spec", "record": "fixture supply", "decided": "2026-10-07"}
+    },
+    "input_dc": {
+      "value_v": 0.6,
+      "source": {"kind": "user_spec", "record": "fixture input cm", "decided": "2026-10-07"}
+    },
+    "element_values": {
+      "Rfb": {"value_ohm": 10000.0, "source": {"kind": "user_spec", "record": "fixture R", "decided": "2026-10-07"}},
+      "Cfb": {"engine": true, "source": {"kind": "user_spec", "record": "fixture engine C", "decided": "2026-10-07"}},
+      "Cld": {"value_farad": 1e-12, "source": {"kind": "user_spec", "record": "fixture CL adopted", "decided": "2026-10-07", "origin": "paper", "citation": "fixture paper p.1"}},
+      "Ibs": {"value_dc_amp": 2e-05, "source": {"kind": "user_spec", "record": "fixture bias", "decided": "2026-10-07"}},
+      "Vcm": {"pending": "SP-91"}
+    },
+    "feedback": {
+      "elements": ["Rfb", "Cfb"],
+      "source": {"kind": "user_spec", "record": "fixture feedback", "decided": "2026-10-07"}
+    },
+    "constraints": [
+      {"metric": "gain_ss_db", "op": ">=", "value": 40,
+       "source": {"kind": "user_spec", "record": "fixture gain", "decided": "2026-10-07"},
+       "_c": "port view (one output port)"},
+      {"metric": "pm_ss_deg", "op": ">=", "value": 60,
+       "view": {"ac_excite": {"n_inp": 0.5, "n_inn": -0.5}, "sense_p": "n_outp", "sense_n": null, "sense_mode": "single_ended"},
+       "source": {"kind": "user_spec", "record": "fixture pm", "decided": "2026-10-07"}},
+      {"metric": "ratio_ss_db", "op": ">=", "value": 50, "view": {"pending": "MOD9"},
+       "source": {"kind": "user_spec", "record": "fixture ratio", "decided": "2026-10-07"}},
+      {"metric": "mismatch_sigma_mv", "op": "<=", "value": 4.0,
+       "source": {"kind": "pending_spice", "record": "fixture: SPICE pending"}},
+      {"metric": "mirror_ratio_error_mv", "op": "<=", "value_from_constraint": "mismatch_sigma_mv",
+       "source": {"kind": "reference"}},
+      {"metric": "parasitic_pm_ss_deg", "op": ">=", "value_from_constraint": "pm_ss_deg",
+       "source": {"kind": "reference"}},
+      {"metric": {"pending": "MOD5"}, "op": "<=", "value": 0.1,
+       "source": {"kind": "user_spec", "record": "fixture unnamed metric", "decided": "2026-10-07"}},
+      {"metric": "ugf_ss_hz", "op": ">=", "value_from_file": "fx_spec_ref#ugf_ss_hz",
+       "source": {"kind": "reference"}}
+    ],
+    "pending_constraints": [
+      {"metric": "gbw_ss_hz", "decision": "SP-92"}
+    ],
+    "compensation_targets": {
+      "gbw_target_hz": {"value": 10000000.0, "source": {"kind": "user_spec", "record": "fixture gbw", "decided": "2026-10-07"}},
+      "pm_target_deg": {"value_from_constraint": "pm_ss_deg", "source": {"kind": "reference"}},
+      "settling": {"total_s": 4e-08, "linear_s": 3e-08, "source": {"kind": "user_spec", "record": "fixture settling", "decided": "2026-10-07"}}
+    },
+    "node_voltage_targets_v": {
+      "n_mid": {"value_v": 0.7, "source": {"kind": "user_spec", "record": "fixture node", "decided": "2026-10-07"}}
+    },
+    "intended_region": {},
+    "objective": {
+      "budgets": {
+        "supply_current_dc": {"op": "<=", "value": 0.001, "source": {"kind": "user_spec", "record": "fixture power budget", "decided": "2026-10-07"}}
+      }
+    },
+    "search": {
+      "wall_clock_budget_s": {"value": 300, "source": {"kind": "plan_rule", "plan_id": "DEC-34"}},
+      "front_budget_s": {"value": 60, "source": {"kind": "plan_rule", "plan_id": "DEC-34"}},
+      "search_method": {"value": "default", "source": {"kind": "plan_rule", "plan_id": "DEC-73"}},
+      "optional_stages": {"value": {"threshold_bisection": true}, "source": {"kind": "plan_rule", "plan_id": "DEC-75"}},
+      "dof_rank_sample_count": {"value": 10, "source": {"kind": "plan_rule", "plan_id": "N3.7"}}
+    },
+    "spice_check": {
+      "acceptance_rule": {"rule": "free_spec_and_all_saturated", "source": {"kind": "user_spec", "record": "fixture", "decided": "2026-10-07"}},
+      "saturation_rule": {"rule": "vds_ge_vdsat", "source": {"kind": "user_spec", "record": "fixture", "decided": "2026-10-07"}},
+      "node_compare_rule": {"rule": "record_only", "source": {"kind": "user_spec", "record": "fixture", "decided": "2026-10-07"}},
+      "device_compare_rule": {"rule": "record_only", "source": {"kind": "user_spec", "record": "fixture", "decided": "2026-10-07"}},
+      "forced_warn_rule": {"rule": "forced_device_diff_gt_lut_tolerance", "source": {"kind": "user_spec", "record": "fixture", "decided": "2026-10-07"}},
+      "front_points_rule": {"rule": "all_front_points", "source": {"kind": "plan_rule", "plan_id": "AC-3"}}
+    },
+    "front_refilter": {
+      "axis_rule": {"rule": "layout_floorplan_outline", "source": {"kind": "user_spec", "record": "fixture", "decided": "2026-10-07"}},
+      "tie_rule": {"rule": "manufacturing_grid_cell_area", "source": {"kind": "user_spec", "record": "fixture", "decided": "2026-10-07"}},
+      "cycle_cap_rule": {"rule": "k_max_n3_6", "source": {"kind": "plan_rule", "plan_id": "N3.6"}}
+    }
+  }
+}

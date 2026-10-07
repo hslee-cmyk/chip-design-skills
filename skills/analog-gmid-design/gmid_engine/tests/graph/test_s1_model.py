@@ -1,7 +1,7 @@
 """graph/s1_model.py -- `S1Graph(key, snapshot)` 질의(계약 5절).
 
 - column: snapshot.column 과 같은 key 정렬 tuple. value: 값, 레코드·필드 없음 KeyError.
-- (kind, field) 가 S1_WRITERS 밖 -> KeyError, writer 미계산 -> FieldNotComputed(빈 tuple 아님). 4.3 예약 필드는 항상 FieldNotComputed.
+- (kind, field) 가 S1_WRITERS 밖 -> KeyError, writer 미계산 -> FieldNotComputed(빈 tuple 아님). build_s1 결과는 모든 권한표 필드가 계산돼 있다(C2: 예약 필드 없음).
 - 결정론: snapshot.fp 가 프로세스·PYTHONHASHSEED·netlist 순서와 무관.
 """
 from __future__ import annotations
@@ -16,7 +16,7 @@ import pytest
 
 from gmid_engine.core import GraphSnapshot, fp_of
 from gmid_engine.graph import (
-    RESERVED_FIELDS,
+    GRAPH_KEY,
     S1_BULK_WRITER,
     S1_STRUCTURE_WRITER,
     S1_WRITERS,
@@ -52,8 +52,6 @@ def test_frozen_and_fields(gh):
 def test_column_equals_snapshot_column_sorted_tuple(gh, name):
     s1 = _s1(gh, name)
     for (kind, field), writer in S1_WRITERS.entries:
-        if writer not in (S1_STRUCTURE_WRITER, S1_BULK_WRITER):
-            continue
         col = s1.column(kind, field)
         assert isinstance(col, tuple)
         assert col == s1.snapshot.column(kind, field)
@@ -64,13 +62,24 @@ def test_column_equals_snapshot_column_sorted_tuple(gh, name):
 
 
 @pytest.mark.parametrize("name", NINE)
-def test_reserved_fields_not_computed(gh, name):
+def test_every_writer_field_computed_after_build(gh, name):
     s1 = _s1(gh, name)
-    for kind, field, _ in RESERVED_FIELDS:
-        with pytest.raises(FieldNotComputed):
-            s1.column(kind, field)
-        with pytest.raises(FieldNotComputed):
-            s1.value(kind, "M1", field)
+    writers = {w for _, w in S1_WRITERS.entries}
+    for w in writers:
+        assert s1.snapshot.block_version(w) is not None, w
+    for (kind, field), _w in S1_WRITERS.entries:
+        s1.column(kind, field)                          # FieldNotComputed 없음
+        if kind == "graph":
+            assert s1.snapshot.keys("graph") == (GRAPH_KEY,)
+            assert s1.value("graph", GRAPH_KEY, field) == dict(s1.column("graph", field))[GRAPH_KEY]
+
+
+def test_old_reserved_rows_gone(gh):
+    # C2: 옛 예약 (edge, relation) 은 권한표 밖 -> KeyError(FieldNotComputed 아님)
+    s1 = _s1(gh, "ngcc_3stage_ff")
+    with pytest.raises(KeyError) as ei:
+        s1.column("edge", "relation")
+    assert not isinstance(ei.value, FieldNotComputed)
 
 
 def test_outside_writer_table_key_error(gh):
@@ -117,6 +126,11 @@ def test_structure_only_snapshot_bulk_not_computed(gh):
     assert len(g.column("node", "terminals")) == len(gh.agg(gh.raw("pushpull_follower_buffer")).nodes)
     with pytest.raises(FieldNotComputed):
         g.column("device", "bulk")
+    for kind, field in (("graph", "dc_segments"), ("graph", "columns"), ("device", "dc_role"), ("graph", "gvgs_summary")):
+        with pytest.raises(FieldNotComputed):
+            g.column(kind, field)
+        with pytest.raises(FieldNotComputed):
+            g.value(kind, GRAPH_KEY, field)
 
 
 # ------------------------------------------------------------------ 결정론

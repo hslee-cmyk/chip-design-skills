@@ -1,0 +1,217 @@
+{
+  "_comment": "회로 사이징 spec(사람 선언, 정본) -- 형식 gmid_engine/authoring/SPEC_CONTRACT.md, 값 출처 = 각 source. 미정 칸은 {\"pending\": <결정 ID>}.",
+  "meta": {
+    "schema_version": "5",
+    "circuit": "two_stage_ota_sf",
+    "topology_fp": "406584ec6ca2af5769883850979648aeed9574379bb06f34f91a1a266feacc33",
+    "origin": "canonical"
+  },
+  "human": {
+    "supplies_v": {
+      "values": {
+        "vdd": 1.8,
+        "gnd": 0.0
+      },
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-07 \"two_stage_ota_sf도 1.8로 확정하고 한꺼번에 반영해\"",
+        "decided": "2026-10-07"
+      }
+    },
+    "input_dc": {
+      "pending": "SP-2"
+    },
+    "element_values": {
+      "CL": {
+        "value_farad": 3e-12,
+        "source": {
+          "kind": "user_spec",
+          "record": "two_stage_ota_sf.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-25 added.CL_farad (two_stage_ota 정본 CL 3 pF, 부하 위치 vout)",
+          "decided": "2026-09-21"
+        }
+      },
+      "Cc": {
+        "engine": true,
+        "source": {
+          "kind": "user_spec",
+          "record": "보상 소자 값은 엔진 계산(사용자 확정 nmcnr Cm1·Cm2·Rm(TQ Q3)·two_stage Rz·Cc(TQ Q4·Q4') 와 같은 원칙, 오케스트레이터 적용 2026-10-07)",
+          "decided": "2026-10-07"
+        }
+      }
+    },
+    "feedback": {
+      "elements": [],
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-07 \"9, 10, 11번은 기본안대로 해\" 9번 PM 정의 -- 선언된 되먹임 수동소자가 없으면 beta=1 루프. 이 회로에는 되먹임 수동소자 선언이 없다(오케스트레이터 적용)",
+        "decided": "2026-10-07"
+      }
+    },
+    "constraints": [
+      {
+        "metric": "gain_ss_db",
+        "op": ">=",
+        "value_from_file": "two_stage_ota#gain_ss_db",
+        "source": {
+          "kind": "reference"
+        },
+        "_view_comment": "포트 뷰 = 이 회로 output 포트 vout(U-25 '감지 vout', 팔로워 감쇠 포함)."
+      },
+      {
+        "metric": "mismatch_sigma_mv",
+        "op": "<=",
+        "value_from_file": "two_stage_ota#mismatch_sigma_mv",
+        "source": {
+          "kind": "reference"
+        }
+      },
+      {
+        "metric": "rout_ss_ohm",
+        "op": "<=",
+        "value": 1000,
+        "source": {
+          "kind": "user_spec",
+          "record": "two_stage_ota_sf.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-25 added.rout_ohm",
+          "decided": "2026-09-21",
+          "origin": "lecture",
+          "citation": "강의 26 p.26-6 'Rout ≤ 1000Ω'"
+        }
+      }
+    ],
+    "pending_constraints": [
+      {
+        "metric": "pm_ss_deg",
+        "decision": "SP-3"
+      }
+    ],
+    "compensation_targets": {
+      "gbw_target_hz": {
+        "value_from_file": "two_stage_ota#gbw_target_hz",
+        "source": {
+          "kind": "reference"
+        }
+      }
+    },
+    "_compensation_targets_comment": "옛 inherits.spec_fn(하네스 함수 이름)은 값 단위 파일 참조로 대체(F6).",
+    "node_voltage_targets_v": {
+      "pending": "CI-15"
+    },
+    "intended_region": {
+      "pending": "CI-18"
+    },
+    "objective": {
+      "budgets": {
+        "pending": "PA-1"
+      },
+      "_budgets_comment": "기본안 = 예산 미선언(front 제시 후 정지, DEC-77). 논문 전력·면적 값은 채택 기록이 없어 넣지 않는다."
+    },
+    "search": {
+      "wall_clock_budget_s": {
+        "value": 300,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-34",
+          "record": "U-26(c) 기본안: 파일럿 선언값 300 s 를 전 회로 공통(회로별 변경은 PA-2)"
+        }
+      },
+      "front_budget_s": {
+        "pending": "PA-2"
+      },
+      "search_method": {
+        "value": "default",
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-73"
+        }
+      },
+      "optional_stages": {
+        "value": {},
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-75",
+          "record": "기본 비활성"
+        }
+      },
+      "dof_rank_sample_count": {
+        "value": 10,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "N3.7",
+          "record": "기본 10"
+        }
+      }
+    },
+    "spice_check": {
+      "acceptance_rule": {
+        "rule": "free_spec_and_all_saturated",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "saturation_rule": {
+        "rule": "vds_ge_vdsat",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화(VDS - VDsat >= 0, 여유 0)",
+          "decided": "2026-10-07"
+        }
+      },
+      "node_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "device_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "forced_warn_rule": {
+        "rule": "forced_device_diff_gt_lut_tolerance",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "front_points_rule": {
+        "pending": "AC-3"
+      },
+      "_front_points_rule_comment": "기본안 endpoints_and_budget_point(AC-3·U-45 결정 대기)."
+    },
+    "front_refilter": {
+      "axis_rule": {
+        "rule": "layout_floorplan_outline",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "tie_rule": {
+        "rule": "manufacturing_grid_cell_area",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "cycle_cap_rule": {
+        "rule": "k_max_n3_6",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+{
+  "_comment": "Hand-made minimal spec: value_from_file target of fx_spec_amp (fx_spec_ref#ugf_ss_hz, fx_spec_ref#gbw_target_hz).",
+  "meta": {
+    "schema_version": "5",
+    "circuit": "fx_spec_ref",
+    "topology_fp": "a9e75e5461101ef1b35008a27540687a6fdedf99b0a21c4244e45f86e7befb7f",
+    "origin": "fixture"
+  },
+  "human": {
+    "supplies_v": {
+      "values": {"rail_hi": 1.2, "rail_lo": 0.0},
+      "source": {"kind": "user_spec", "record": "fixture supply", "decided": "2026-10-07"}
+    },
+    "input_dc": {"engine": true, "source": {"kind": "user_spec", "record": "fixture engine cm", "decided": "2026-10-07"}},
+    "element_values": {},
+    "feedback": {"elements": [], "source": {"kind": "user_spec", "record": "fixture beta=1", "decided": "2026-10-07"}},
+    "constraints": [
+      {"metric": "ugf_ss_hz", "op": ">=", "value": 100000000.0,
+       "source": {"kind": "user_spec", "record": "fixture ugf", "decided": "2026-10-07"}},
+      {"metric": "rout_ss_ohm", "op": "<=", "value": 5000.0,
+       "source": {"kind": "pending_spice", "record": "fixture rout pending spice"}}
+    ],
+    "compensation_targets": {
+      "gbw_target_hz": {"value": 20000000.0, "source": {"kind": "user_spec", "record": "fixture gbw", "decided": "2026-10-07"}},
+      "pm_target_deg": {"pending": "SP-93"}
+    },
+    "node_voltage_targets_v": {},
+    "intended_region": {"pending": "CI-94"},
+    "objective": {"budgets": {}},
+    "search": {
+      "wall_clock_budget_s": {"value": 300, "source": {"kind": "plan_rule", "plan_id": "DEC-34"}},
+      "front_budget_s": {"pending": "PA-2"},
+      "search_method": {"value": "precision", "source": {"kind": "plan_rule", "plan_id": "DEC-73"}},
+      "optional_stages": {"value": {}, "source": {"kind": "plan_rule", "plan_id": "DEC-75"}},
+      "dof_rank_sample_count": {"value": 10, "source": {"kind": "plan_rule", "plan_id": "N3.7"}}
+    },
+    "spice_check": {
+      "acceptance_rule": {"rule": "free_spec_and_all_saturated", "source": {"kind": "plan_rule", "plan_id": "UD-8"}},
+      "saturation_rule": {"rule": "vds_ge_vdsat_plus_tol_v", "source": {"kind": "plan_rule", "plan_id": "UD-8"}},
+      "node_compare_rule": {"rule": "record_only", "source": {"kind": "plan_rule", "plan_id": "UD-8"}},
+      "device_compare_rule": {"rule": "record_only", "source": {"kind": "plan_rule", "plan_id": "UD-8"}},
+      "forced_warn_rule": {"rule": "forced_device_diff_gt_lut_tolerance", "source": {"kind": "plan_rule", "plan_id": "UD-8"}},
+      "front_points_rule": {"pending": "AC-3"}
+    },
+    "front_refilter": {
+      "axis_rule": {"rule": "layout_floorplan_outline", "source": {"kind": "plan_rule", "plan_id": "UD-12"}},
+      "tie_rule": {"rule": "manufacturing_grid_cell_area", "source": {"kind": "plan_rule", "plan_id": "UD-12"}},
+      "cycle_cap_rule": {"rule": "k_max_n3_6", "source": {"kind": "plan_rule", "plan_id": "UD-12"}}
+    }
+  }
+}

@@ -173,9 +173,14 @@ def test_unsupported_kind_bulk_undetermined(gh, tmp_path):
     name = raw["netlist"][1]["name"]
     doc = gh.load_raw(tmp_path, raw)
     for sv in (None, {"vdd": 1.8, "gnd": 0.0}):
-        got = _bulk(build_s1(doc, sv))
+        # bulk 블록 결과(계약 4.2 우선순위 2)는 블록을 직접 불러 본다
+        snap = gh.structure_and_bulk(doc, sv)
+        got = {k: (v.net, v.origin, v.reason) for k, v in snap.column("device", "bulk")}
         assert got[name] == (None, "undetermined", "unsupported_kind")
         assert got == gh.agg(raw).expected_bulk(sv)
+        # build_s1 은 U2 s1_dc_conduction 에서 정지한다(계약 4.6, DU 대비 9절 10)
+        d, devices = _stop(lambda: build_s1(doc, sv))
+        assert d["rule_branch"] == "mos_kind_unsupported" and devices == (name,)
 
 
 # ------------------------------------------------------------------ 정지: 다중 도메인 / 전위 동률 (계약 7.3)
@@ -257,13 +262,18 @@ def test_potential_tie_two_rails_equal(gh):
 
 
 def test_tie_needs_default_rule_user(gh, tmp_path):
-    # 동률이어도 4번 규칙을 쓰는 MOS 가 하나도 없으면(전부 미지원 kind) 정지하지 않는다
+    # 동률이어도 4번 규칙을 쓰는 MOS 가 하나도 없으면(전부 미지원 kind) bulk 정지 검사는 걸리지 않는다.
+    # build_s1 은 bulk 를 지나 U2 에서 mos_kind_unsupported 로 정지한다(동률 정지가 아님이 증거).
     raw = gh.raw("common_gate_amplifier")
     for e in raw["netlist"]:
         e["kind"] = "njfet"
     doc = gh.load_raw(tmp_path, raw)
-    got = _bulk(build_s1(doc, {"vdd": 1.0, "gnd": 1.0}))
-    assert set(got.values()) == {(None, "undetermined", "unsupported_kind")}
+    sv = {"vdd": 1.0, "gnd": 1.0}
+    snap = gh.structure_and_bulk(doc, sv)
+    assert {v for _, v in snap.column("device", "bulk")} == {BulkResult(None, "undetermined", "unsupported_kind")}
+    d, devices = _stop(lambda: build_s1(doc, sv))
+    assert d["rule_branch"] == "mos_kind_unsupported"
+    assert devices == tuple(sorted(e["name"] for e in raw["netlist"]))
 
 
 @pytest.mark.parametrize("name", NINE)
