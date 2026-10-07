@@ -427,8 +427,9 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
     으로 첫 받아들일 점을 찾고 거기서 최대-최소. 연속 1단계(봉인 위반 margin 으로 끌어오기)는 두지 않는다 -- 위반 점에는 경성 행이
     없고 ④ 실패에는 margin 이 없다(클래스가 다른 margin 혼합 금지). [r5b] θ 전류는 원뿔 안 hit-and-run 으로 뽑는다(원뿔 밖 0).
     **남은 열린 항목**(10.0000 r5b): current_reuse·sf_pushpull 은 600 s 안에 받아들일 점 없음 -- sf 는 9 노드 다변수 SCC 의
-    Gauss-Seidel 비수렴(sizing O10·O11, 구조적), current_reuse 는 1변수 노드 창 근 없음(봉인 7 단계 `no_root_in_window`)이 여러 writer 에 걸쳐
-    판정 미정(구조인지 표본인지 가르지 못함).
+    Gauss-Seidel 비수렴(sizing O10·O11, 구조적 -- sizing 브랜치 ng-scc-newton 몫), current_reuse 는 [r5c 진단] **diode writer 의
+    ln_idu 표본이 강반전 분지 아래**(창 정의는 정상, 표본 정의역 문제 -- 10.0000 r5c). 제안(미구현, 결정 대기): 층 0 시험의 ln_idu
+    하한을 L 칸이 고정된 뒤 그 칸 L 범위의 곡선 정점 ln IDu 최댓값(VDS·VS 전 격자)으로 좁힌다 -- LUT 유도, 어느 동작점에서도 정점 위.
   - **S-4c (기록 -- 의미 한정)** 상자 중심은 전류 상자(꺼짐 전류 ~ 단일 finger 최대 ID)의 기하 중심이라 pA 대 전류·약반전 점이고,
     Halton 점은 W 가 m~Gm 급일 수 있다. 근본 원인 = W·면적 상한 미선언(S-3b, 오케스트레이터가 사용자 선언 요청 중). 층 0 시작점은
     **DC 정합 가능성만** 뜻하며(`Layer0Result` docstring, find_front notes `meaning "feasibility_only"`) 탐색은 출발 근거 이상으로 쓰지
@@ -507,8 +508,26 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
     **구조적(다변수 SCC 풀이법, sizing O10·O11 '다변수 블록을 Newton·연속법으로 바꿀지는 설계 결정')** 이고 엔진 결함이라 단정할 수
     없어 코드는 바꾸지 않았다. θ 저항 상자(시연 값)는 SCC 를 만들지 않는다(SCC 는 구조).
   - current_reuse: 원뿔 밖 문제는 해결됐지만 커널 평가가 모두 1변수 노드 창 근 없음. writer 가 여러 소자(M66·M14b·M24b 등)로 흩어져
-    한 소자 고정 구조(늘 VDS≈0)는 아니다 -- 독립 표본한 ln_idu 와 걸음 전류의 조합이 창을 비우는 것인지(표본) 창 정의의 구조인지 아직
-    가르지 못했다(열린 항목).
+    한 소자 고정 구조(늘 VDS≈0)는 아니다.
+  - **[r5c] current_reuse 진단**(150 s 별도 실행, `no_root_in_window` 2,365건, 스크립트 scratchpad `l0_cr_diag.py`):
+
+    | writer | 관계 | 창 [lo, hi] 끝 출처 | 창 폭 | h 끝 부호(건수) | 실패 표본 ln_idu 상자 위치 | 그 ln_idu 만 훑었을 때 노드 근이 생기는 위치 |
+    |---|---|---|---|---|---|---|
+    | M66(nmos diode, s = gnd) | vgs_gate | VDS 축 하한 / 레일 | 1.7625 V | (+inf, +inf) 975, (+, +inf) 38, (+, +) 35 | 0.00 ~ 0.42 | ≥ 0.425 |
+    | M14b(nmos diode, gnd) | vgs_gate | VDS 축 / 레일 | 1.7625 V | (+inf, +inf) 535 / 572 | 0.00 ~ 0.42 | ≥ 0.425 |
+    | M24b(nmos diode, gnd) | vgs_gate | VDS 축 / 레일 | 1.7625 V | (+inf, +inf) 313 / 333 | 0.00 ~ 0.42 | ≥ 0.425 |
+    | M36a(pmos diode, vdd) | vgs_gate | VDS 축 / VDS 축 | 1.7625 V | (−inf, −inf) 128 / 147 | 0.00 ~ 0.99(중앙 0.19) | ≥ 0.325 |
+    | M39(pmos diode, vdd) | vgs_gate | VDS 축 / VDS 축 | 1.7625 V | (−inf, −inf) 112 / 115 | 중앙 0.15 | ≥ 0.325 |
+    | M36b·M18_bg·M20a·M11a(pmos diode) | vgs_gate | VDS 축 / VDS 축 | 1.7625 V | 대부분 (−inf, −inf) | 중앙 0.11 ~ 0.26 | ≥ 0.325(M36b) |
+
+    - 실패 writer 는 **모두 diode**(gate = drain, source = 레일)이고 창은 VDS 정의역 전체(1.7625 V = VDS 하한 ~ 레일)다 -- 창이 좁아서가
+      아니다. h 끝이 ±inf 인 것은 그 VDS 전 구간에서 목표 IDu 가 그 곡선의 **강반전 분지 시작(gm/ID 정점) 아래**라는 뜻이다(분지 규칙상
+      정점 왼쪽 근은 해가 아니다). 다른 θ 를 고정하고 그 소자 ln_idu 만 상자 위에서 훑으면 nmos 는 상자 위치 0.425, pmos 는 0.325 부터
+      그 노드 근이 생기고, 그때는 다음 diode 가 같은 이유로 실패한다(M66 -> M14b -> M11a·M18_bg 사슬).
+    - 판정: **창 정의(구조)가 아니라 표본 정의역 문제**다. ln_idu 상자 하한은 전 (L, VDS, VS) 곡선 정점 중 최솟값(search_domain 3.7)이라
+      실제 동작점의 정점보다 훨씬 낮고, writer 일반은 이를 `inversion_floor` 연속 제약으로 다루지만 diode writer 는 1변수 노드라 정점 아래
+      표본이 곧 근 없음이다. diode 가 16개라 독립 표본이 모두 정점 위일 확률이 작다(대략 0.6^16). 전류(걸음)는 diode 노드 근에 영향이 없다
+      (VGS 는 ln IDu·L·VDS·VSB 로만 정해짐, DEC-88). 엔진 결함으로 단정할 근거가 없어 코드는 바꾸지 않았다 -- 제안은 9절 S-4b.
   - 선형 전류 좌표 걸음은 부피상 큰 전류 쪽에 몰린다(nmcnr 시작점 전류 20 µA ~ 2 mA, W 최대 2.6e9 m -- S-3b 상한 미선언).
 - L FD 스텝 = 제조 격자로 바꾼 뒤 L 열 고정 0(r5 초안: 모든 L 고정), L 이 칸 안에서 움직였다(위 'L 움직임' = 칸 중점에서 벗어난 소자
   수 / L 변수 수).
