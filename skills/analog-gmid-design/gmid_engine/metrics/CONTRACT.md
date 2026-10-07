@@ -10,7 +10,7 @@
 - 1단계(0~6절) 함수는 **입력 레코드만 보는 순수 함수**이고 graph·S2·LUT 를 import 하지 않는다. **2단계(7절, 2026-10-08)** =
   `ss_linearize` 배선: 봉인 스냅샷 → `ss_dev`·`metrics_ss`·`metrics_dc` 계산 블록 → S2 필드, 진입점 `ss_evaluate` (7a 4.5 단계 5
   배선 지점 -- spec `ViewDecl` → 계 레코드). 그 파일들만 graph·sizing·lut·authoring 을 import 한다(PACKAGE_ORDER 앞쪽).
-- 아직 범위 밖: GB4 `achievability`, GB5 `compensation`(보상 수동소자 θ -- 7절은 값을 `passive_theta` 인자로 받는 자리만 둔다),
+- 아직 범위 밖: GB4 `achievability`, GB5 `compensation` 근사식(보상 수동소자 값 자체는 r5 부터 sizing θ 성분 -- 7.6),
   `ls_fields`, `columns_current_check`, `area_layout_m2`, `nqs_ratio`·`mismatch_sigma_v`, 레이아웃 기하(MOD7 `ly.diffusion`)로 하는
   접합 용량(지금은 LUT 생성 규칙 기하, 7.2·8절).
 
@@ -502,17 +502,26 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 - `detail` = counted_rails, kcl_residual_amp, passive_area_undeclared, passive_value_missing, per_rail_amp((레일 넷, A), ...) 키 정렬.
 - [9절] 전력·면적 결과의 `resolution` 은 None(LUT 소신호 불확실성 전파 대상이 아니다 -- 전력 축 분해능 b_P 는 search 쪽 유도값).
 
-### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), passive_theta=(), *, junction) -> SsEvaluation`
+### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), *, junction) -> SsEvaluation`
+- **[r5 2026-10-08, DEC-92 / 7.9 Q5 해결] 인자 `passive_theta` 삭제**: engine 보상 수동소자 값은 이제 sizing θ 스키마 성분
+  (`capacitance`·`ss_resistance`, sizing CONTRACT 4.4 r5)이라 θ 에서 읽는다(값의 출처 하나). 6번째 위치 인자를 넘기던 호출은 TypeError.
 - `sealed` 가 `SealedSnapshot` 아님 -> TypeError(DEC-67). `ctx` 가 `KernelContext` 아님 -> TypeError. `junction`(**필수 키워드**,
   2026-10-08 새 입력) 이 `JunctionSource` 아님 -> TypeError. θ = `check_theta(ctx.schema, ...)`.
 - `junction` 이 새 입력인 이유: `KernelContext`(sizing)에 PDK 선언이 없다. 부르는 쪽이 S0 당 1회
   `JunctionSource.from_decls(read_pdk_decl(pdk 선언), read_pdk_decl(LUT 규칙 선언), ctx.lut.memo.lut)` 로 만든다(core 9.5·8.5).
   기본값을 두지 않는다(접합 용량 없는 평가 경로 = 옛 대기 경로를 남기지 않는다).
-- passive_values = spec 값(`ctx.inputs.element_values` 중 S1 수동소자, 값 None 제외) ∪ θ `resistance` ∪ `passive_theta`. 이름이
-  S1 수동소자가 아니거나 같은 소자 값이 두 출처면 ValueError. 정렬 tuple.
+- passive_values = spec 값(`ctx.inputs.element_values` 중 S1 수동소자, 값 None 제외) ∪ θ `resistance` ∪ [r5] θ `capacitance`·
+  `ss_resistance`(sizing `THETA_PASSIVE_KINDS`) ∪ [r5] **영점 상쇄 구조 규칙 값**: `ctx.schema.zero_cancel` 중 reason None 인 항목마다
+  (resistor, 1/Σ_{c∈cells} gm_c), gm_c = 이 호출이 쓴 `ss_dev` 필드의 `SsDevice.gm`(7.2 -- gm 정의 하나). 이름이 S1 수동소자가
+  아니거나 같은 소자 값이 두 출처면 ValueError(스키마가 S1·spec 에서 나오므로 정상 경로에서는 생기지 않는 계약 위반 표지). 정렬 tuple.
+  어느 출처에도 없는 수동소자(spec mode pending 등)는 그대로 `missing` -> `passive_value_undeclared`(7.4 (2)).
 - requests = constraints 의 (metric, view) 중 metric 이 None 아닌 것, 중복 제거·문서 순서. view_kind 가 있는 것만 `metrics_ss` 로.
-- 순서 `ss_dev(sealed.snapshot, ctx.lut, junction)` -> `metrics_ss(..., ss_requests, passive_values)` -> `metrics_dc(..., passive_values,
-  tuple(counted_rails))`. `ss`·`dc` = 그 필드 값, `lineage` = 7.1.
+- 순서 `ss_dev(sealed.snapshot, ctx.lut, junction)` -> (passive_values -- 구조 규칙이 gm 을 읽으므로 ss_dev 뒤) ->
+  `metrics_ss(..., ss_requests, passive_values)` -> `metrics_dc(..., passive_values, tuple(counted_rails))`. `ss`·`dc` = 그 필드 값,
+  `lineage` = 7.1.
+- [r5] θ `capacitance`·`ss_resistance` 성분만 바꾼 θ' 로 `size_and_seal(ctx, θ', parent=res.lineage)` -> dc 블록 computes 0(sizing 7절
+  r5), 이어 `ss_evaluate(그 결과 sealed, ctx, θ', ..., junction=같은 묶음)` -> `ss_dev` reuse(dc_op·junction 불변), `metrics_ss`·
+  `metrics_dc` 각 computes 1(수동 값이 입력). 구조 규칙 값은 gm 의 함수라 dc_op 가 같으면 같다.
 - 재사용: `ss_evaluate(res.lineage.sealed, 같은 인자)` -> 세 블록 computes 0·reuses 3, 결과 `snapshot is res.snapshot`.
   `size_and_seal(ctx, θ', parent=res.lineage)` 뒤 `ss_evaluate` -> dc_op 가 바뀌었으면 세 블록 재계산(바뀌지 않은 소자 LUT 조회는
   memo 적중), `recomputes_same_input` 0. 필드가 없는 lineage(예: `size_and_seal` 의 `ev.sealed`)에서 다시 부르면 다시 계산한다
@@ -531,13 +540,16 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 | S-7 | `ss_dev` 의 gm·gds·gmb·용량 = test 쪽이 `dc_op` 와 lut 공개 함수로 같은 식을 계산한 값 |
 | S-8 | 넷 이름 전단사 뒤 metric 값 같음(I-7 확장 -- 노드 인덱스는 이름 정렬 위치뿐) |
 | S-9 | `metrics_dc`: 2레일 회로 per_rail 합 = kcl_residual(≈ 0), `power_dc_w` = Σ V_k I_k |
-| S-10 | `ss_evaluate` 에 `SealedSnapshot` 아닌 값(`DcEvaluation` 등) -> TypeError, `passive_theta` 가 spec 값 있는 소자 -> ValueError |
+| S-10 | `ss_evaluate` 에 `SealedSnapshot` 아닌 값(`DcEvaluation` 등) -> TypeError. [r5] `passive_theta` 인자 없음(6번째 위치 인자·`passive_theta` 키워드 -> TypeError) |
 | S-11 | (DEC-91) `ss_dev` 의 cdb·csb = 같은 `dc_op`·`JunctionSource` 로 부른 `junction_caps`(8절) 값, `junction_model == JUNCTION_LUT_RULE`, `approximations` 에 `("junction", "pdk_bsim4_lut_rule_diffusion")` |
 | S-12 | `JunctionSource` 의 한 필드(예 `temp_c`, 다른 PDK 선언의 params)만 바꾸면 `ss_dev` 재계산(computes +1), 같은 묶음이면 재사용(computes 0) -- `recomputes_same_input` 0 |
 | S-13 | `ss_evaluate(..., junction=...)` 없이 부르면 TypeError(필수 키워드), `JunctionSource` 아닌 값 -> TypeError |
 | S-14 | (9절) `ss_dev` 의 `lut_rel_tol` = 같은 소자 `dc_op.gm_id · dc_tol_v`(test 쪽이 S2 에 dc_tol_v 를 손으로 쓴 값), 열이 없거나 None 이면 None; `ss_dev.reads` 에 `("device", "dc_tol_v")` |
 | S-15 | (9절) `metrics_ss` 의 값 있는 결과 `resolution` = test 쪽이 같은 회로·같은 ε 로 `lut_parameters`·`metric_resolutions` 를 부른 그 필드 value(비트); 한 MOS 라도 `lut_rel_tol` None 이면 모든 소신호 결과 `resolution` None, 값은 그대로 |
 | S-16 | (9절) 손 S2 예 7(ε = 0.02 가 되도록 gm/ID·dc_tol_v 를 쓴 스냅샷)의 β 루프 `pm_ss_deg` 분해능 = 9.5 폐형식 0.0917466739° (상대 ≤ 1e-9), 같은 입력 두 번째 평가는 블록 재사용(분해능 재계산 0 -- S-6) |
+| S-17 | [r5] (DEC-92, 옛 r5 번호 S-11, 병합 전 S-14) spec mode engine 커패시터는 θ `capacitance` 로 값이 들어가 소신호 요청이 값을 갖는다(같은 값을 spec 에 선언한 회로와 metric 값 같음) |
+| S-18 | [r5] (DEC-92, 옛 r5 번호 S-12, 병합 전 S-15) 구조 규칙 저항(`zero_cancel` reason None) 값 = 1/Σ_{c∈cells} `ss_dev[c].gm` -- 같은 값을 spec 에 선언한 회로와 metric 값 같음 |
+| S-19 | [r5] (DEC-92, 옛 r5 번호 S-13, 병합 전 S-16) θ `capacitance`·`ss_resistance` 만 바꾼 FD: dc 블록 computes 0, `ss_dev` reuse, `metrics_ss`·`metrics_dc` computes 1. `gain_ss_db`(용량 무관 DC 이득)는 **수치상** 불변(상대 차 ≤ 수 ulp -- 비트 동일 아님: `ss_resistance` 만 바꾼 경우 MNA 조립·풀이 순서 때문에 1 ulp 차가 실측됨) |
 
 ### 7.8 9회로 시연 (2026-10-08, master 798f29c 병합 뒤 LUT v2(`resolve_lut_location`), 작성자 측 실측 -- 정본 아님)
 
@@ -563,7 +575,7 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
 | Q2 | 봉인 7 대기 동안 `SealedSnapshot` 0 | **결정: DEC-67 타입 게이트 유지, 잠정 경로 없음**. 봉인 7 은 LUT r6 VDSAT 로 배선 중(ng-seal7) |
 | Q3 | DEC-91 접합 용량 cdb·csb | **닫음(2026-10-08)**: core PDK 선언에 모델 카드 접합 파라미터(core 9.4), `junction_caps`(8절), `ss_dev` 배선(7.2, 레이아웃 전 LUT 생성 규칙 기하). 남은 것: 레이아웃 기하(MOD7 `ly.diffusion`)가 S2 에 생기면 그 기하로 바꾸는 경로 |
 | Q4 | DEC-78 합산 레일 | **결정: `power_dc_w` = 선언된 모든 공급 레일 합(7.5), `supply_current_dc` 는 spec 선택 선언 `counted_rails` 가 생길 때까지 `counted_rails_undeclared`**. spec 형식 항목(authoring 몫)으로 기록 |
-| Q5 | 보상 수동소자 θ(DEC-92) | **결정: sizing θ 스키마에 둔다**. 의존 기록 -- 그때까지 `passive_theta` 인자, 없으면 정의 불가 |
+| Q5 | 보상 수동소자 θ(DEC-92) | **결정: sizing θ 스키마에 둔다**. [r5 해결 2026-10-08] sizing r5 가 θ `capacitance`·`ss_resistance` 와 `zero_cancel` 을 두어 `passive_theta` 인자를 지웠다(7.6). 4회로(ngcc·nmcnr·two_stage·two_stage_sf) 봉인 점에서 GBW·PM 측정됨 -- sizing CONTRACT 10.3. 어긋나게 된 기존 test: `tests/metrics/test_ss_evaluate.py::test_s10_passive_theta_conflicts_rejected[4]`·`::test_passive_theta_supplies_engine_value`(test 작성자가 S-10·S-14~S-16 으로 갱신 -- 병합 때 junction S-11~S-13·분해능 S-14~S-16 과 겹쳐 DEC-92 행을 S-17~S-19 로 옮김) |
 | Q6 | 용량 LUT VS 축 밖 | **해소: LUT r6(VS 0~1.8 V)**. 축 밖이면 여전히 후보 실패(설계 2.4) |
 | Q7 | LUT v2 용량은 부호 보존(음수 점 있음) -- 옛 1절 `MosSmallSignal` 용량 ≥ 0 과 충돌(nmcnr 실측 cgb −2.03e-16 F) | **결정 (a)**: 1절 용량을 '부호 있는 유한 실수'로(NaN·inf 만 거부), 부호 그대로 스탬프 -- SPICE 오라클과 같은 정의. 계약과 어긋나게 된 기존 test: `tests/metrics/test_records.py::test_mos_negative_value_error[cgs|cgd|cgb|cdb|csb]`(test 작성자가 계약에서 갱신, gm·gmb·gds 행은 그대로 유효) |
 
@@ -657,7 +669,7 @@ junction = JunctionSource.from_decls(
     read_pdk_decl(".../assets/sky130_pdk_decl.json", memo),
     read_pdk_decl(".../assets/sky130_lut_rule_decl.json", memo),
     ctx.lut.memo.lut)                                  # kind·온도는 LUT 에서 -- S0 당 1회
-res = ss_evaluate(sealed, ctx, theta, constraints, counted_rails, passive_theta, junction=junction)
+res = ss_evaluate(sealed, ctx, theta, constraints, counted_rails, junction=junction)
 ```
 - `ss_dev` 안: `junction_caps(junction.params_of(op.kind), junction.pre_layout_geometry(w_m, op.W / w_m), op.vds + op.vsb, op.vsb,
   junction.temp_c)` -> `SsDevice.cdb·csb`, `junction_model = JUNCTION_LUT_RULE`. 옛 `JUNCTION_PENDING`(cdb = csb = 0) 경로·이름은 삭제.

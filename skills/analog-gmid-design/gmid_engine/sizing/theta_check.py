@@ -5,6 +5,7 @@
 * `values`: {(kind, key): 수} Mapping 또는 그 쌍 iterable. 키 집합이 `schema.components` 와 정확히 같아야 한다(빠짐·남음
   -> `ValueError`, 목록을 메시지로). 값은 유한 실수(bool 제외).
 * 정의역(탐색 bounds 가 아니라 θ 가 뜻을 갖는 집합): `y` ∈ [0, 1](창 안 위치), `L` > 0, `resistance` > 0,
+  [DEC-92] `capacitance` > 0·`ss_resistance` > 0(탐색 상자는 search 몫 -- PDK 선언에 수동소자 범위가 없어 선언 입력),
   **θ 전류 = 전류 원뿔 `schema.current_cone`**: MOS 행마다 Σ (num/den)·(θ 전류 또는 `schema.fixed` 값) > 0(유리수로 정확히
   잰다). 밖이면 `ValueError`(MOS 이름과 그 전류 목록) -- 전도 MOS 전류 ≤ 0 은 평가 실패가 아니라 정의역 밖이다(탐색은 이
   선형 부등식을 제약으로 받는다). 기저 원소가 MOS 자신인 행은 θ_I > 0 상자 하한이다.
@@ -14,7 +15,10 @@ import math
 from collections.abc import Mapping
 from fractions import Fraction
 
-from .s2_values import THETA_CURRENT, THETA_L, THETA_RESISTANCE, THETA_Y, Theta, ThetaSchema
+from .s2_values import (THETA_CAPACITANCE, THETA_CURRENT, THETA_L, THETA_RESISTANCE, THETA_SS_RESISTANCE, THETA_Y, Theta,
+                        ThetaSchema)
+
+_POSITIVE_KINDS = (THETA_CAPACITANCE, THETA_L, THETA_RESISTANCE, THETA_SS_RESISTANCE)
 
 
 def check_theta(schema, values):
@@ -35,7 +39,7 @@ def check_theta(schema, values):
         kind = key[0]
         if kind == THETA_Y and not 0 <= value <= 1:
             raise ValueError("check_theta: y 는 [0, 1] 이다 " + repr((key, value)))
-        if kind in (THETA_L, THETA_RESISTANCE) and not value > 0:
+        if kind in _POSITIVE_KINDS and not value > 0:
             raise ValueError("check_theta: 양수여야 한다 " + repr((key, value)))
         out.append((key, value))
     source = {key: Fraction(v) for (kind, key), v in out if kind == THETA_CURRENT}
