@@ -91,11 +91,11 @@ def test_failed_query_not_stored(toy_memo):
 
 
 @pytest.mark.parametrize("region,call", [
-    ("point", lambda m: op_point(m, "nmos", 100, 1.5e-6, 0.3, 0.6, 0.2)),
-    ("point", lambda m: gmb(m, "nmos", 100, 1.5e-6, 0.3, 0.6, 0.2)),
-    ("point", lambda m: caps(m, "nmos", 1.5e-6, 0.3, 0.6, 0.2, 2e-6)),
-    ("curve", lambda m: gm_id_curve(m, "nmos", 100, 1.5e-6, 0.6, 0.2)),
-    ("root", lambda m: vgs_for_gm_id(m, "nmos", 100, 12.0, 1.5e-6, 0.6, 0.2)),
+    ("point", lambda m: op_point(m, "nmos", 100, 2e-6, 0.3, 0.6, 0.2)),
+    ("point", lambda m: gmb(m, "nmos", 100, 2e-6, 0.3, 0.6, 0.2)),
+    ("point", lambda m: caps(m, "nmos", 2e-6, 0.3, 0.6, 0.2, 2e-6)),
+    ("curve", lambda m: gm_id_curve(m, "nmos", 100, 2e-6, 0.6, 0.2)),
+    ("root", lambda m: vgs_for_gm_id(m, "nmos", 100, 12.0, 2e-6, 0.6, 0.2)),
     ("root", lambda m: gm_id_for_target(m, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=2e-6)),
     ("derived", lambda m: tol_v_table(m, "nmos", 100)),
     ("derived", lambda m: curve_report(m)),

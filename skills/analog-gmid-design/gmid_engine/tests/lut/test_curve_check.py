@@ -36,7 +36,7 @@ def test_nonpositive_point_curve_is_skipped(toy_build):
     r0 = rows[0]
     assert (r0.kind, r0.w_key, r0.L) == ("nmos", 100, 1e-6)
     assert r0.n_skipped == 2
-    # 계약은 n_curves 가 건너뛴 곡선을 포함하는지 적지 않았다 -- 구현은 '검사한 곡선 수'(합 = (VDS, VS) 곡선 4 개)
+    # [r2] n_curves = 검사한 곡선 수(건너뛴 곡선 제외), n_curves + n_skipped = len(VDS)·len(VS)
     assert r0.n_curves + r0.n_skipped == 4 and r0.n_curves == 2
     assert rows[1].n_skipped == 0
     # 남은 곡선(VDS 0.5·VS 0.5, VDS 1.0·VS 0) 값만: gm/ID 최대 20, gm/gds 최대 200

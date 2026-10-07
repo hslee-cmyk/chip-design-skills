@@ -178,6 +178,23 @@ def test_reject_cap_kind_undeclared(toy_build):
     assert det["reason"] == "lut_cap_kind_undeclared" and det["kind"] == "nmos"
 
 
+@pytest.mark.parametrize("cap_cols", [False, True])
+def test_reject_cap_kind_without_slices(toy_build, cap_cols):
+    # [r2] 용량 kind 집합 = 슬라이스 kind ∪ 접미사 선언 kind (fail-closed): 선언됐지만 슬라이스 없는 kind -> 거부
+    # (열 유무와 무관: 검사 순서가 접미사 -> 슬라이스 -> 열)
+    cap = toy_cap_arrays()
+    if cap_cols:
+        cap["CGG_q"], cap["CGD_q"] = cap["CGG_n"].copy(), cap["CGD_n"].copy()
+    spec = LutSpec(1e-8, (("nmos", 1.5e-6), ("qmos", 1e-6)), (("toyn", "nmos"), ("toyq", "qmos")),
+                   (("nmos", "_n"), ("qmos", "_q")))
+    det = _reject(toy_build(cap=cap), spec)
+    assert det["reason"] == "lut_cap_kind_without_slices" and det["kind"] == "qmos"
+
+
+def test_cap_map_keys_are_cap_kind_set(toy):
+    assert set(toy.cap_map) == {"nmos"} == {k for k, _ in toy.slice_map}
+
+
 @pytest.mark.parametrize("drop", ["CGG_n", "CGD_n"])
 def test_reject_cap_column_missing(toy_build, drop):
     cap = toy_cap_arrays()
@@ -268,7 +285,8 @@ def _independent_width_choice(raw_cap, raw_slice, keys, suffix):
         d[wk] = float(np.max(np.abs(I[mask] - IR[mask]) / np.abs(IR[mask])))
     best = min(d, key=d.get)
     Ib, mask = ids[best]
-    near = min(float(np.max(np.abs(ids[w][0][mask] - Ib[mask]) / np.abs(Ib[mask]))) for w in d if w != best)
+    m2 = mask & (Ib > 0)                     # [r2] 비교 점: 기준 ID > 0 이고 ID_w > 0, 분모 ID_w
+    near = min(float(np.max(np.abs(ids[w][0][m2] - Ib[m2]) / np.abs(Ib[m2]))) for w in d if w != best)
     second = sorted(d.values())[1]
     return best, d[best], near, second
 
@@ -286,8 +304,8 @@ def test_real_load(real_lut, real_slice_files, raw_cap, raw_slice):
         assert b["method"] == "slice_id_match" and b["w_key"] == best
         assert rel_close(b["max_rel_diff"], dw, 1e-9)
         assert dw < 1e-6
-        # 이웃 차: 계약 실측 0.88(nmos)·1.25(pmos). 분모 해석(ID_w 또는 ID_ref)에 따라 1e-7 상대 차라 1e-6 로 대조
-        assert rel_close(b["nearest_other_rel_diff"], near, 1e-6), (kind, b, near, second)
+        # [r2] sep = min over s ≠ w of max |ID_s − ID_w| / |ID_w| (분모 = 고른 슬라이스). 계약 실측 0.88(nmos)·1.25(pmos)
+        assert rel_close(b["nearest_other_rel_diff"], near, 1e-12), (kind, b, near, second)
         assert rel_close(near, {"nmos": 0.8845524, "pmos": 1.2508113}[kind], 1e-6)
         assert dw < b["nearest_other_rel_diff"] / 2
         assert rel_close(cap.w_ref_m, real_lut.slice_map[(kind, best)].w_m, 1e-12)

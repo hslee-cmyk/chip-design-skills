@@ -1,5 +1,6 @@
 """`_helpers_interp` (multilinear_interp·multilinear_interp_point_multi) -- CONTRACT 6절 복사본 AST 해시와,
-공개 조회(op_point·gm_id_curve)가 4축 다중선형 보간(로그공간)을 하는지 독립 구현과 대조한다.
+공개 조회(op_point·gm_id_curve)가 [r2] L 앵커 한 장에서 (VGS, VDS, VS) 다중선형 보간(로그공간)을 하는지 독립 구현과 대조한다
+(독립 4축 구현에 L = 앵커를 넣으면 L 가중치 (1, 0) 이라 앵커 한 장 3축 보간과 같은 식).
 """
 import math
 
@@ -33,8 +34,8 @@ def _toy_logs(scale=1.0, W=1e-6):
 
 
 @pytest.mark.parametrize("pt", [
-    (1.5e-6, 0.25, 0.75, 0.25),
-    (2.7e-6, 0.9, 0.6, 0.1),
+    (2e-6, 0.25, 0.75, 0.25),
+    (3e-6, 0.9, 0.6, 0.1),
     (1e-6, 0.1, 1.0, 0.5),
     (3e-6, 1.0, 0.5, 0.0),
 ])
@@ -55,7 +56,7 @@ def test_op_point_offgrid_matches_independent_multilinear_toy(toy_memo, pt):
 def test_gm_id_curve_offgrid_matches_independent_multilinear_toy(toy_memo):
     a, lI, lG, _ = _toy_logs()
     grids = (TOY_L, TOY_VGS, TOY_VDS, TOY_VS)
-    L, vds, vsb = 1.7e-6, 0.8, 0.3
+    L, vds, vsb = 2e-6, 0.8, 0.3
     c = gm_id_curve(toy_memo, "nmos", 100, L, vds, vsb)
     for j, v in enumerate(TOY_VGS):
         li = interp4(grids, lI, (L, v, vds, vsb))
@@ -73,7 +74,8 @@ def test_op_point_offgrid_matches_independent_multilinear_real(real_memo, raw_sl
         lI, lG, lD = log_floor(z["ID"])[0], log_floor(z["GM"])[0], log_floor(z["GDS"])[0]
         W = float(z["W"])
         for _ in range(25):
-            pt = tuple(float(rng.uniform(g[0], g[-1])) for g in grids)
+            pt = (float(z["L"][int(rng.integers(0, len(z["L"])))]),) + tuple(
+                float(rng.uniform(g[0], g[-1])) for g in grids[1:])
             li, lg, ld = interp4(grids, lI, pt), interp4(grids, lG, pt), interp4(grids, lD, pt)
             op = op_point(real_memo, kind, wk, *pt)
             assert rel_close(op.IDu, math.exp(li) * pt[0] / W, 1e-10), (kind, pt)

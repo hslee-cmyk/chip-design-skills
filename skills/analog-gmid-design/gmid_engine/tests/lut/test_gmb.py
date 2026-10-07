@@ -32,7 +32,7 @@ def test_toy_offgrid_other_axes(toy_memo):
     a = toy_slice_arrays(1e-6)
     lI = log_floor(a["ID"])[0]
     grids = (TOY_L, TOY_VGS, TOY_VDS, TOY_VS)
-    L, vgs, vds, vsb = 1.6e-6, 0.7, 0.8, 0.1
+    L, vgs, vds, vsb = 2e-6, 0.7, 0.8, 0.1
     d = (interp4(grids, lI, (L, vgs, vds, 0.5)) - interp4(grids, lI, (L, vgs, vds, 0.0))) / 0.5
     hand = -math.exp(interp4(grids, lI, (L, vgs, vds, vsb))) * d
     assert rel_close(gmb(toy_memo, "nmos", 100, L, vgs, vds, vsb), hand, 1e-12)

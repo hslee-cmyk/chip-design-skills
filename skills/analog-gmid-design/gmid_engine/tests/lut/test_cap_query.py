@@ -24,7 +24,7 @@ def test_lut_cgs_cgb_model_when_columns_present(toy_build):
     cap["CGS_n"] = np.full((3, 3, 2, 2), 5e-16)
     cap["CGB_n"] = np.full((3, 3, 2, 2), 1e-16)
     m = new_memo(toy_build(cap=cap).load())
-    c = caps(m, "nmos", 2e-6, 0.3, 0.7, 0.1, 2e-6)
+    c = caps(m, "nmos", 2e-6, 0.3, 0.7, 0.1, 2e-6)       # L 앵커
     assert c.model == "lut_cgs_cgb"
     assert rel_close(c.cgs, 1e-15, 1e-12)
     assert rel_close(c.cgb, 2e-16, 1e-12)
@@ -37,7 +37,7 @@ def test_linear_not_log_interpolation(toy_build):
     cgg[...] = np.asarray((1e-15, 2e-15, 4e-15))[None, :, None, None]
     cap["CGG_n"] = cgg
     m = new_memo(toy_build(cap=cap).load())
-    pt = (1.3e-6, 0.25, 0.6, 0.3)
+    pt = (3e-6, 0.25, 0.6, 0.3)
     c = caps(m, "nmos", *pt, 1e-6)
     hand = 1.5e-15                                               # 선형: (1+2)/2, 로그면 √2
     assert rel_close(c.cgg, hand, 1e-12)

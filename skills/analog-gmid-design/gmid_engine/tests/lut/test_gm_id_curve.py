@@ -1,6 +1,8 @@
 """`gm_id_curve` -- CONTRACT 4절: VGS 격자 전체에서 lnID·lnGM 보간, id_vals = exp(lnID)(폭 w_m 의 A),
 gm_id_vals = exp(lnGM − lnID), vgs_grid = 슬라이스 VGS 축, 배열 읽기 전용. 6절 `_curve_arrays` 블록 복사 해시.
 """
+import math
+
 import numpy as np
 import pytest
 
@@ -46,11 +48,14 @@ def test_arrays_read_only(toy_memo):
 
 
 def test_curve_memo_region(toy_memo):
-    a = gm_id_curve(toy_memo, "nmos", 100, 1.5e-6, 0.7, 0.2)
-    b = gm_id_curve(toy_memo, "nmos", 100, 1.5e-6, 0.7, 0.2)
+    a = gm_id_curve(toy_memo, "nmos", 100, 2e-6, 0.7, 0.2)
+    b = gm_id_curve(toy_memo, "nmos", 100, 2e-6, 0.7, 0.2)
     assert a is b
+    # [r2] memo 키에 앵커 index: 1 ulp 이내 L 은 같은 키
+    c = gm_id_curve(toy_memo, "nmos", 100, math.nextafter(2e-6, 1.0), 0.7, 0.2)
+    assert c is a
     st = dict(toy_memo.stats())["curve"]
-    assert st.misses == 1 and st.hits == 1
+    assert st.misses == 1 and st.hits == 2
 
 
 def test_missing_width_keyerror(toy_memo):

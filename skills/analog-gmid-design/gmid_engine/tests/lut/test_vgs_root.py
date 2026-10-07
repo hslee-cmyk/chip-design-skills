@@ -111,7 +111,8 @@ def test_legacy_bitwise_equal_when_legacy_root_in_branch_real(real_memo, raw_sli
 
 @pytest.mark.lut_realdata
 def test_round_trip_against_independent_linear_interp(real_memo, raw_slice):
-    """vgs_for_gm_id 결과를 npz 원자료의 단순 선형 보간으로 되돌리면 목표 gm/ID 가 나온다(격자 L 과 칸 안 L 모두)."""
+    """vgs_for_gm_id 결과를 npz 원자료의 단순 선형 보간으로 되돌리면 목표 gm/ID 가 나온다
+    ([r2] L 은 앵커만, VDS·VS 는 격자점과 칸 안 모두)."""
     rng = np.random.default_rng(5)
     for kind, wk in (("nmos", 72), ("nmos", 1000), ("pmos", 1000), ("pmos", 1400)):
         z = raw_slice(kind, wk)
@@ -121,10 +122,13 @@ def test_round_trip_against_independent_linear_interp(real_memo, raw_slice):
         VGS = [float(v) for v in z["VGS"]]
         done = 0
         while done < 10:
-            iL, k, s = int(rng.integers(0, 11)), int(rng.integers(4, 49)), int(rng.integers(0, 10))
+            iL, k, s = int(rng.integers(0, 12)), int(rng.integers(4, 48)), int(rng.integers(0, 9))
             off_grid = done % 2 == 1
-            L = float(z["L"][iL]) if not off_grid else float(z["L"][iL] + 0.37 * (z["L"][iL + 1] - z["L"][iL]))
+            L = float(z["L"][iL])
             vds, vsb = float(z["VDS"][k]), float(z["VS"][s])
+            if off_grid:
+                vds = float(z["VDS"][k] + 0.37 * (z["VDS"][k + 1] - z["VDS"][k]))
+                vsb = float(z["VS"][s] + 0.61 * (z["VS"][s + 1] - z["VS"][s]))
             # 독립 곡선: VGS 격자마다 4축 다중선형(로그공간) -> gm/ID
             g = np.array([math.exp(interp4(grids, lG, (L, v, vds, vsb)) - interp4(grids, lI, (L, v, vds, vsb)))
                           for v in VGS])
