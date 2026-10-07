@@ -115,9 +115,9 @@ def _check(ss, exp, op, js, rtol=1e-12, temp_c=27.0, params=None, rule=None):
 
 
 def test_block_declaration():
-    """reads device.dc_op, writes device.ss_dev, writer = 권한표 writer_of(device, ss_dev)."""
+    """reads device.dc_op·[9절] device.dc_tol_v, writes device.ss_dev, writer = 권한표 writer_of(device, ss_dev)."""
     assert ss_dev.name == SS_DEV_WRITER == S2_WRITERS.writer_of("device", "ss_dev") == "ss_dev"
-    assert tuple(ss_dev.reads) == (("device", "dc_op"),)
+    assert tuple(ss_dev.reads) == (("device", "dc_op"), ("device", "dc_tol_v"))
     assert tuple(ss_dev.writes) == (("device", "ss_dev"),)
 
 
@@ -372,3 +372,43 @@ def test_determinism(tmp_path, tmp_path_factory):
         snap, _ = _snap(tmp_path / ("d%d" % i))
         fps.append(fp_of(ss_dev(snap, lut_access(lut), js).column("device", "ss_dev")))
     assert fps[0] == fps[1]
+
+
+# ---------------------------------------------------------------- 9절: lut_rel_tol = gm/ID · dc_tol_v (S-14)
+
+def test_s14_lut_rel_tol_is_gm_id_times_dc_tol_v(tmp_path, lut_a, decl_paths):
+    """S-14: lut_rel_tol = 같은 소자 dc_op.gm_id · dc_tol_v(손으로 쓴 셀, 같은 곱 -> 비트), 셀 None 이면 None. 다른 필드는 ε 와 무관."""
+    acc = lut_access(lut_a)
+    js = _js(decl_paths, lut_a)
+    snap, ops = _snap(tmp_path)
+    base = dict(ss_dev(snap, acc, js).column("device", "ss_dev"))
+    s1 = hand_write(snap, "device", "dc_tol_v", {"M1": 0.002, "M2": None})
+    col = dict(ss_dev(s1, acc, js).column("device", "ss_dev"))
+    assert col["M1"].lut_rel_tol == ops["M1"].gm_id * 0.002
+    assert col["M2"].lut_rel_tol is None
+    s2 = hand_write(snap, "device", "dc_tol_v", {"M1": 0.002, "M2": 0.0035})
+    col2 = dict(ss_dev(s2, acc, js).column("device", "ss_dev"))
+    assert col2["M2"].lut_rel_tol == ops["M2"].gm_id * 0.0035
+    for m in ops:
+        assert dataclasses.replace(col2[m], lut_rel_tol=None) == dataclasses.replace(base[m], lut_rel_tol=None)
+
+
+def test_s14_no_dc_tol_v_column_gives_none(tmp_path, lut_a, decl_paths):
+    """S-14: dc_tol_v 를 쓰지 않은 스냅샷(열 없음 / 셀 없음) -> lut_rel_tol None."""
+    snap, ops = _snap(tmp_path)
+    col = dict(ss_dev(snap, lut_access(lut_a), _js(decl_paths, lut_a)).column("device", "ss_dev"))
+    assert all(col[m].lut_rel_tol is None for m in ops)
+
+
+def test_s14_dc_tol_v_change_recomputes_once(tmp_path, lut_a, decl_paths):
+    """7.2 [9절]: dc_tol_v 만 바뀌어도 블록 입력 버전이 바뀐다(재계산 1회), 같은 값이면 재사용."""
+    acc = lut_access(lut_a)
+    js = _js(decl_paths, lut_a)
+    snap, ops = _snap(tmp_path)
+    s1 = ss_dev(hand_write(snap, "device", "dc_tol_v", {"M1": 0.002, "M2": 0.003}), acc, js)
+    ss_dev.reset_stats()
+    assert ss_dev(s1, acc, js) is s1
+    s2 = ss_dev(hand_write(s1, "device", "dc_tol_v", {"M1": 0.004, "M2": 0.003}, version="tol2"), acc, js)
+    st = ss_dev.stats()
+    assert (st.computes, st.reuses, st.recomputes_same_input) == (1, 1, 0)
+    assert s2.value("device", "M1", "ss_dev").lut_rel_tol == ops["M1"].gm_id * 0.004

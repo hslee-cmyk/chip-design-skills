@@ -4,8 +4,11 @@
 진입점: `ss_dev`(`@compute_block`) -- `ss_dev(snapshot, lut, junction)`.
 
 * reads `device.dc_op`(GB7 `DeviceOp` -- kind·ID·gm/ID·L·W·VGS·VDS·VSB 크기·폭 키), extras `(lut, junction)`(sizing `LutAccess`,
-  metrics `JunctionSource` -- 접합 파라미터·LUT 생성 규칙 선언·온도·PDK 선언 sha256 이 블록 입력 버전에 든다).
+  metrics `JunctionSource` -- 접합 파라미터·LUT 생성 규칙 선언·온도·PDK 선언 sha256 이 블록 입력 버전에 든다), [NFR-5]
+  `device.dc_tol_v`(sizing `dc_tolerances` 가 쓴 그 소자의 tol_V(id_equivalent) 셀 -- 봉인 2 와 같은 값, LUT 다시 조회 안 함).
   writes `device.ss_dev` = `SsDevice`(MOS 마다).
+* [NFR-5] `lut_rel_tol` = `dc_op.gm_id · dc_tol_v`(무차원, metrics CONTRACT 9.1) -- tol_V(id_equivalent) = |Δln ID| / (gm/ID) 의 정의를
+  되돌린 LUT 전류의 상대 불확실성. `dc_tol_v` 가 None 이거나 없으면 None(분해능 미정).
 * 소자마다 같은 동작점의 LUT 조회 세 가지(모두 LUT memo point 영역 -- `op_point` 는 `dc_widths` 가 같은 키로 이미 불러
   적중이다): gm = ID·(gm/ID)(`DeviceOp.gm_id`, dc 정의값), gds = `op_point(...).gds_per_w`·W, gmb = lut `gmb(...)`·W/w_m,
   용량 = lut `caps(..., W)`(cgg·cgd·cgs·cgb·모형). [lut r6] `gmb` 는 GMBS 열이 있으면 열 정의(정본, lut CONTRACT 4.4), 없으면
@@ -27,7 +30,7 @@ from gmid_engine.sizing import REASON_LUT_QUERY, SS_DEV_WRITER
 from .junction_cap import junction_caps
 from .ss_types import SsDevice
 
-READS = (("device", "dc_op"),)
+READS = (("device", "dc_op"), ("device", "dc_tol_v"))
 WRITES = (("device", "ss_dev"),)
 GMB_COLUMN = "lut_gmbs_column"                        # lut gmb: GMBS 열(정본, lut CONTRACT r6 4.4)
 GMB_VS_CELL_SECANT = "lut_vs_cell_secant"              # lut gmb: VS 선형 칸 할선(GMBS 열 없는 옛 LUT, 설계 MOD1 2.8 임시)
@@ -51,7 +54,7 @@ def _gmb_model(table, kind, w_key):
     return GMB_COLUMN if cap is not None and cap.w_key == w_key and GMBS_COLUMN in cap.columns else GMB_VS_CELL_SECANT
 
 
-def _linearize(lut, junction, device, op):
+def _linearize(lut, junction, device, op, tol_v):
     memo = lut.memo
     w_m = memo.lut.slice_map[(op.kind, op.w_key)].w_m
     args = (op.L, op.vgs, op.vds, op.vsb)
@@ -64,11 +67,13 @@ def _linearize(lut, junction, device, op):
         gm=op.gm_id * op.current, gmb=body * op.W / w_m, gds=point.gds_per_w * op.W,
         cgg=cap.cgg, cgs=cap.cgs, cgd=cap.cgd, cgb=cap.cgb, cdb=jc.cdb, csb=jc.csb,
         cap_model=cap.model, gmb_model=_gmb_model(memo.lut, op.kind, op.w_key), junction_model=JUNCTION_LUT_RULE,
+        lut_rel_tol=None if tol_v is None else op.gm_id * tol_v,
     )
 
 
 @compute_block(SS_DEV_WRITER, reads=READS, writes=WRITES)
 def ss_dev(projection):
     lut, junction = projection.extras
-    return {("device", "ss_dev"): {m: _linearize(lut, junction, m, op)
+    tols = dict(projection.column("device", "dc_tol_v"))
+    return {("device", "ss_dev"): {m: _linearize(lut, junction, m, op, tols.get(m))
                                    for m, op in projection.column("device", "dc_op")}}
