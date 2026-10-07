@@ -11,10 +11,14 @@
   - `current`(ln 좌표): 그 기저 원소를 항으로 갖는 MOS 들의 tol_V(id_eq)·gm/ID 최솟값(상대 스텝 -- M7 L1 W 허용 상대오차와 같은 식).
   - `resistance`(ln 좌표): tol_V 최솟값 / (I·R)(I·R 강하가 tol_V 만큼 움직이는 상대 ΔR). I = 0 이면 그 저항은 DC 에 닿지 않아
     열 = 0(평가 없음).
-  - `L`(칸 안 연속): L 을 품는 LUT L 점 칸 폭(할선 -- 칸 경계 꺾임을 가로지른다).
+  - `L`(칸 안 연속): [r5, 오케스트레이터 결정 2026-10-08] PDK 제조 격자 한 칸(`domain.grid_m` = `manufacturing_grid_m`,
+    실현 가능한 L 의 최소 변화). 유도: bin 안 L 은 이웃 앵커 사이 선형 보간(LUT 4.0)이라 앵커 칸 안의 어느 할선도 그 칸의
+    기울기와 같다 -- 그래서 앵커 간격 스텝은 정보를 더하지 않고, 칸 중점에서 칸 폭만큼 가면 양방향 모두 칸 밖이라 열이 고정됐다
+    (r4 실측: 9회로 L 전부 고정). 격자 한 칸 스텝은 칸 안에 머물러 양쪽이 실제로 실패할 때만 고정된다(S-16). 앵커 위 점은
+    한쪽 칸의 기울기(전진, 상한이면 후진)다. ~~r4: L 을 품는 LUT L 점 칸 폭(할선)~~.
 * 변수 상한을 넘으면 후진 스텝(−hᵢ). 열 점이 받아들일 상태(봉인 통과·대기)가 아니면 반대 방향을 한 번 더 시험하고, 둘 다 아니면
   그 열은 (None, h) -- 부르는 쪽(SLSQP)이 그 변수를 고정한다(S-16, 0 도함수를 지어내지 않는다).
-* `L` 스텝은 그 변수 칸 안 앵커 간격만 쓰고, 값이 bound 와 1 ulp 이내면 bound 로 맞춘다(칸 끝 앵커의 반올림).
+* 값이 bound 와 1 ulp 이내면 bound 로 맞춘다(칸 끝 앵커의 반올림).
 """
 import bisect
 import math
@@ -69,10 +73,7 @@ def _steps(sctx, variables, base):
             drop = abs(currents.get(key, 0.0)) * theta[var.component]
             steps.append(tol_min / drop if drop and tol_min else 0.0)
         elif kind == THETA_L:
-            op = ops[key]
-            sl = lut.memo.lut.slice_map[(op.kind, w_keys[op.kind])]
-            inside = [float(a) for a in sl.grids[0] if var.lo - math.ulp(var.lo) <= a <= var.hi + math.ulp(var.hi)]
-            steps.append(_cell_width(inside, op.L))      # 칸(bin) 안 앵커 간격만 -- 칸 끝에서 이웃 bin 간격을 쓰지 않는다
+            steps.append(sctx.domain.grid_m)             # 제조 격자 한 칸 -- bin 안 선형 보간이라 칸 안 할선 기울기가 같다
         else:
             raise ValueError("fd_jacobian: 모르는 θ 성분 " + repr(var.component))
     return steps

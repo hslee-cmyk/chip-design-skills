@@ -17,8 +17,10 @@
    이상원만 읽는 행은 움직일 수 없어 뺀다), I_c,m = 그 MOS kind 의
    `SearchDomain.current_box` 기하 중심. 기저 원소가 MOS 하나뿐인 행은 상자 중심에서 u = 0 이라 1 의 중심과 같다.
    수렴 판정은 scipy SLSQP 기본값(이 문제는 커널이 없어 판정 분해능 단위가 없다 -- 부동소수 수준).
-3. **최대-최소**(커널): 시작점을 평가해 받아들일 상태(봉인 통과·봉인 7 대기)가 아니면 여기서 끝(`start_<상태 또는 실패 사유>`,
-   층 0 시작점 없음). 받아들일 상태면 변수 x(정의역 연속 변수 + 칸이 구간인 L) 와 t 로
+3. **최대-최소**(커널): 시작점을 평가해 받아들일 상태(봉인 통과·봉인 7 대기)가 아니면(전류 중심이 원뿔 밖이어도) [S-4b,
+   오케스트레이터 결정 2026-10-08] 같은 변수·같은 L 칸에서 Halton 열(스크램블 없음) 점을 순서대로 평가해 처음 받아들일 상태인
+   점을 출발점으로 삼는다(`_halton_probe` -- 한도는 평가 예산 규칙). 그래도 없으면 끝(`start_<사유>+probe_<한도>`, 층 0 시작점
+   없음). 받아들일 상태면 변수 x(정의역 연속 변수 + 칸이 구간인 L) 와 t 로
    최대화 t, 제약 s_i(x) − t ≥ 0(봉인 항목 i = 1..8 중 시작점 margin 이 유한한 항목, s_i = 1 − margin_i -- margin ≤ 1 이 pass
    이므로 s_i ≥ 0 ⇔ pass, 단위는 그 항목 허용오차), 그리고 경성 제약 c ≥ 0: W 하한(`w_min`)·반전 하한(`inversion_floor`)·
    전류 원뿔(`current_cone`) 행. 원뿔·W 하한 행은 판정 분해능 단위가 봉인 margin 과 달라(원뿔 c ≤ 1, W 는 제조 격자 칸)
@@ -65,7 +67,11 @@ class Layer0Result:
     `hard_ok` = 그 점의 경성 제약(W 하한·반전 하한·원뿔)이 모두 ≥ 0, `stop` = 종료 사유, `centre_u` = 전류 중심 문제의 해 u
     (MOS 전류의 상자 중심 대비 최대 ln 편차, θ 전류가 없으면 None), `start_status` = 출발점 평가 상태, `start_failure` = 그
     FailureRecord 또는 None, `iterations`·`restarts`·`aborts`·`frozen` = 최대-최소 풀이 기록, `kernel_calls` = 이 단계의 커널
-    평가 수, `rows` = t 행 이름(봉인 항목) tuple."""
+    평가 수, `rows` = t 행 이름(봉인 항목) tuple, `probes` = S-4b Halton 시험 점 수(중심이 받아들여졌으면 0), `origin_point` =
+    최대-최소 출발점 출처("centre" 또는 "halton:<k>", 시작점 없으면 None).
+
+    **의미 한정**: 층 0 시작점은 DC 정합(봉인 통과) 가능성만 뜻한다 -- W·면적 상한 선언이 없어(S-3b) pA 전류·거대 W 점일 수
+    있고, 탐색은 그 점을 출발 근거 이상으로 쓰지 않는다(front·보고 값이 아니다)."""
 
     start: object
     t: object
@@ -80,6 +86,8 @@ class Layer0Result:
     frozen: tuple
     kernel_calls: int
     rows: tuple
+    probes: int
+    origin_point: object
 
 
 class _Abort(Exception):
@@ -206,7 +214,7 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
         return np.asarray([s for _a, s in ts], dtype=float), np.asarray([c for _a, c in hs], dtype=float)
 
     def point(x, res=None):
-        x = np.asarray(x[:n], dtype=float)
+        x = np.array(x[:n], dtype=float)      # 복사 -- SLSQP 가 넘긴 배열을 제자리에서 바꿔도 저장한 x 가 키와 어긋나지 않게
         hx = tuple(float(v).hex() for v in x)
         hit = state["points"].get(hx)
         if hit is not None:
@@ -322,23 +330,77 @@ def _coord(var, value):
     return min(max(math.log(value) if var.log else value, var.lo), var.hi)
 
 
+def _primes(count):
+    out, k = [], 1
+    while len(out) < count:
+        k += 1
+        if all(k % p for p in out):
+            out.append(k)
+    return out
+
+
+def _radical_inverse(index, base):
+    value, scale = 0.0, 1.0 / base
+    while index:
+        index, digit = divmod(index, base)
+        value += digit * scale
+        scale /= base
+    return value
+
+
+def _halton_probe(sctx, variables, theta0, cells, tag):
+    """S-4b: 상자 중심이 받아들일 상태가 아니면 Halton 열(소수 기저, 스크램블 없음, index 1 부터)의 k 번째 점을 변수 자연 좌표
+    (bounds 위 선형 = ln 변수는 ln 좌표)에 놓아 순서대로 평가하고, 처음 받아들일 상태인 점에서 멈춘다. 한도 = 평가 예산 규칙
+    (`_budget_stop`: kernel_calls ≥ E_B 또는 벽시계). 벽시계(deadline)가 없을 때만 시험 점 수 ≤ E_B 를 더한다 -- 원뿔 밖 점은
+    커널 0 이라 커널 수만으로는 끝나지 않는다. 둘 다 없으면 시험하지 않는다(`probe_budget_undeclared`)."""
+    bases = _primes(len(variables))
+    tried = 0
+    while True:
+        stop = _budget_stop(sctx)
+        if stop is not None:
+            return None, tried, "probe_" + stop
+        if sctx.deadline is None:
+            if sctx.eval_budget is None:
+                return None, tried, "probe_budget_undeclared"
+            if tried >= sctx.eval_budget:
+                return None, tried, "probe_eval_budget"
+        tried += 1
+        theta = dict(theta0)
+        for var, base in zip(variables, bases):
+            value = var.lo + _radical_inverse(tried, base) * (var.hi - var.lo)
+            theta[var.component] = math.exp(value) if var.log else value
+        res = evaluate(sctx, theta, cells, origin=tag + (("probe", tried),))
+        if res.status in ACCEPTED_STATUSES:
+            return res, tried, None
+
+
 def layer0_start(sctx, origin=()):
     calls0 = sctx.counters["kernel_calls"]
     tag = origin + (("stage", STAGE_LAYER0),)
     variables, theta, cells = _box_centre(sctx)
     theta, centre_u = _current_centre(sctx, variables, theta)
+    failure, probes, source = None, 0, "centre"
     if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(theta.items())))):
-        return Layer0Result(None, None, False, "current_centre_outside_cone", centre_u, "not_evaluated", None, 0, 0,
-                            (), (), 0, ())
-    first = evaluate(sctx, theta, cells, origin=tag)
-    if first.status not in ACCEPTED_STATUSES:
-        reason = first.status
-        if first.status == STATUS_FAILED and first.failure is not None:
-            reason = dict(first.failure.detail).get("reason") or first.failure.failure_class
-        return Layer0Result(None, None, False, "start_" + str(reason), centre_u, first.status, first.failure, 0, 0,
-                            (), (), sctx.counters["kernel_calls"] - calls0, ())
+        start_status = "centre_outside_cone"
+        first = None
+    else:
+        first = evaluate(sctx, theta, cells, origin=tag)
+        start_status, failure = first.status, first.failure
+        if first.status not in ACCEPTED_STATUSES:
+            first = None
+    if first is None:
+        first, probes, why = _halton_probe(sctx, variables, theta, cells, tag)
+        if first is None:
+            reason = start_status
+            if failure is not None:
+                reason = dict(failure.detail).get("reason") or failure.failure_class
+            return Layer0Result(None, None, False, "start_" + str(reason) + "+" + why, centre_u, start_status, failure,
+                                0, 0, (), (), sctx.counters["kernel_calls"] - calls0, (), probes, None)
+        source = "halton:" + str(probes)
+        theta = dict(first.theta)
     best, stop, iterations, restarts, aborts, frozen, t_names = _maxmin(sctx, variables, theta, cells, first, tag)
     res = best["res"]
     start = StartPoint("layer0", res.theta, cells, SOURCE_LAYER0)
-    return Layer0Result(start, float(np.min(best["s"])), bool(np.all(best["c"] >= 0)), stop, centre_u, first.status,
-                        None, iterations, restarts, aborts, frozen, sctx.counters["kernel_calls"] - calls0, t_names)
+    return Layer0Result(start, float(np.min(best["s"])), bool(np.all(best["c"] >= 0)), stop, centre_u, start_status,
+                        failure, iterations, restarts, aborts, frozen, sctx.counters["kernel_calls"] - calls0, t_names,
+                        probes, source)

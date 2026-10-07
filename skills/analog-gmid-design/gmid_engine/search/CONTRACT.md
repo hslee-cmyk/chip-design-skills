@@ -196,7 +196,9 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 
 ### 3.21 [r5] `layer0_start(sctx, origin=()) -> Layer0Result` -- 층 0 최소형(DEC-71 최소형, R D18·U-49)
 `Layer0Result(start, t, hard_ok, stop, centre_u, start_status, start_failure, iterations, restarts, aborts, frozen,
-kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확히 이 순서):
+kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docstring). **의미 한정**: 층 0 시작점은 DC 정합(봉인
+통과) 가능성만 뜻한다 -- W·면적 상한 선언이 없어(S-3b) pA 전류·거대 W 점일 수 있고, 탐색은 출발 근거 이상으로 쓰지 않는다(front·보고
+값 아님; find_front notes `meaning "feasibility_only"`). 단계(정확히 이 순서):
 1. **상자 중심**: `domain.variables` 마다 (lo + hi)/2(ln 변수는 ln 좌표 중점 -> θ 값 exp). L: `domain.l_cells` 의 MOS 마다 칸 j =
    argmin_j |(ln lo_j + ln hi_j)/2 − (ln min_k lo_k + ln max_k hi_k)/2|(동률 index 작은 쪽), θ L = (lo_j + hi_j)/2, 칸이 구간
    (lo_j < hi_j)이면 L 변수 `Variable((L, MOS), False, lo_j, hi_j)` 를 변수 목록 끝에 MOS 이름순으로 더한다. cells = 그 j 벡터.
@@ -205,9 +207,16 @@ kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확�
    `domain.current_box`). scipy SLSQP(기본 ftol·maxiter): 최소화 u, 제약 q_m − e^(−u) ≥ 0·e^u − q_m ≥ 0(원뿔 행 중 θ 전류
    변수를 하나라도 읽는 행 -- `schema.fixed` 만 읽는 행은 움직일 수 없어 빼고, 그 행의 원뿔 판정은 3 의 `cone_rows` 가 한다),
    bounds = 변수 bounds·u ∈ [0, ∞), 출발 z = 1 의 값, u = 양의 q 중 max |ln q|(없으면 0). 결과 z 를 bounds 로 자른 값으로 θ 전류를
-   바꾸고 `centre_u` = 해 u. 해의 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 stop `current_centre_outside_cone`, 커널 0, start None.
-3. **출발점 평가** `evaluate(sctx, θ, cells, origin = origin + (("stage", "layer0"),))`. 받아들일 상태가 아니면 start None,
-   stop = "start_" + (실패면 FailureRecord detail `reason`(없으면 failure_class), 아니면 상태 문자열), `start_failure` = 그 레코드.
+   바꾸고 `centre_u` = 해 u. 해의 원뿔 행(`cone_rows`)에 c ≤ 0 이 있으면 커널 없이 3 의 시험으로 간다(`start_status`
+   "centre_outside_cone").
+3. **출발점 평가** `evaluate(sctx, θ, cells, origin = origin + (("stage", "layer0"),))`(`start_status` = 그 상태, `start_failure` =
+   그 레코드). 받아들일 상태가 아니면 [r5, S-4b] **Halton 시험**: 변수 i(1 의 순서)에 i 번째 소수 기저, 시험 k = 1, 2, … 의 점
+   x_i = lo_i + φ_{b_i}(k)·(hi_i − lo_i)(φ = 근기 역순(radical inverse), 스크램블 없음; ln 변수는 ln 좌표라 ln 균등), 나머지 θ
+   (전류 중심을 거친 θ 의 고정 성분)·cells 는 그대로. k 마다 시험 전 한도: `_budget_stop`(kernel_calls ≥ E_B 또는 벽시계 -> stop 접미
+   `probe_eval_budget`·`probe_wall_budget`), deadline 이 None 일 때만: E_B 도 None 이면 `probe_budget_undeclared`, 시험 수 ≥ E_B 면
+   `probe_eval_budget`(원뿔 밖 점은 커널 0 이라 커널 수만으로 끝나지 않는다 -- deadline 이 있으면 벽시계가 끝을 보장한다). `evaluate(..., origin = tag + (("probe", k),))`, 처음
+   받아들일 상태인 점에서 멈추고 그 점이 4 의 출발점(`origin_point` "halton:<k>", `probes` = k). 없으면 start None, stop =
+   "start_" + (출발 실패 사유 또는 상태) + "+" + 한도 사유. 중심이 받아들여지면 `probes` 0, `origin_point` "centre".
 4. **최대-최소**: 변수 x(1 의 목록) + t. t 행 = 출발점 봉인 보고 항목 중 margin 이 유한한 항목 i(번호순), 이름
    `ROW_SEAL_ITEM:<i>`, s_i = 1 − margin_i. 경성 행 = 커널 제약 중 이름이 `w_min:`·`inversion_floor:` 로 시작하는 행(커널 순서) +
    원뿔 행. SLSQP: 최소화 −t, 제약 [s − t ; c] ≥ 0, bounds = 변수 bounds + t 무한, ftol 1. 행 이름 집합이 출발점과 다르거나 점이
@@ -218,7 +227,7 @@ kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확�
    `rows` = t 행 이름.
 - 넓은 except 없음(`evaluate` 가 후보 실패만 상태로 바꾼다). 결정론: 난수·시간 없음(예산·벽시계 정지만 3.13 과 같이 기록).
 - 범위 밖(최소형): 블록 gain 예산(GB3·GB4), LR5 knee, GB5 근사식, spec 성능 제약(ss 행·`spec:` 행은 t·경성 행에 넣지 않는다).
-  출발점이 받아들일 상태가 아닐 때의 '봉인 위반 margin 으로 출발점을 끌어오는' 1단계는 없다(9절 S-4b).
+  출발점이 받아들일 상태가 아닐 때 '봉인 위반 margin 으로 끌어오는' 연속 1단계 대신 Halton 시험을 쓴다(9절 S-4b).
 
 ### 3.8 [r3] `constraint_rows(snapshot, lut_access, w_min_m, grid_m) -> (rows, undefined)`
 - MOS 마다(`dc_op` 열 순서) 먼저 [r3] `w_min:<m>` c = (dc_op.W − w_min_m)/grid_m(**설계 개정 S-18**, tol 과 무관하게 늘 있음),
@@ -259,8 +268,9 @@ kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확�
 - 스텝(base 스냅샷에서): `ln_idu` = (dc_op.vgs 를 품는 VGS 격자 칸 폭) × gm_id; `y` = 첫 w_key 슬라이스 VDS 격자 최소 간격 /
   (그 y 키를 쓰는 노드 `dc_window` 의 hi − lo)(창 없음·폭 0 -> None); `current` = 그 기저를 항으로 갖는 MOS 의 tol·gm_id 최솟값
   (없으면 전 MOS 최솟값, 그것도 없으면 None); `resistance` = (전 MOS tol 최솟값) / (|dc_drop_current|·R)(강하 0 -> 0);
-  `L` = 그 변수 칸 [lo, hi] 안 L 앵커들(1 ulp 포함)만으로 dc_op.L 을 품는 앵커 간격(L == hi 면 마지막 간격) -- 이웃 bin 간격을
-  쓰지 않는다.
+  `L` = [r5] PDK 제조 격자 한 칸 `domain.grid_m`(유도: bin 안 L 은 이웃 앵커 사이 선형 보간이라 앵커 칸 안 어느 할선도 같은
+  기울기 -- 앵커 간격 스텝은 칸 중점에서 양방향 모두 칸 밖이 되어 r4·r5 초안 실측 9회로 L 열이 전부 고정됐다. 격자 한 칸은 실현
+  가능한 최소 L 변화이고 칸 안에 머물러, 고정은 양쪽 평가가 실제로 실패할 때만 일어난다 -- S-16). ~~r4: 그 변수 칸 안 앵커 간격~~.
 - 스텝 0 -> (base, 0.0)(평가 없음). None -> (None, 0.0). x + h > hi 면 h = −h. h, −h 순으로: 값 = x + 스텝, bound 와 1 ulp
   이내면 bound 로 맞추고 스텝 = 값 − x; bounds 밖이거나 값 == x 면 건너뜀; 아니면 `evaluate(..., parent=base)`. 처음 받아들일
   상태인 것을 (결과, 실제 스텝)으로. 둘 다 아니면 (None, h).
@@ -303,7 +313,8 @@ kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확�
 ### 3.16 [r2] `find_front(sctx, given_starts) -> SearchFront`
 - [r5] 순서: deadline 설정 -> `layer0_start(sctx)` -> `start_points(sctx, given_starts, (층 0 start,) 또는 ())` -> 스윕. notes 의
   옛 `{verdict "blocked", reason "layer0_inputs_missing"}` 대신 `{verdict "layer0_minimal"(시작점 있음) | "layer0_no_start",
-  rule "DEC-71", reason "seal_margin_maxmin_centre", stop, t, hard_ok, start_status, centre_u, kernel_calls,
+  rule "DEC-71", reason "seal_margin_maxmin_centre", stop, t, hard_ok, start_status, centre_u, kernel_calls, probes,
+  origin_point, meaning "feasibility_only", meaning_reason "w_area_upper_bound_undeclared_S-3b",
   refinements_out_of_scope [GB3·GB4 블록 gain 예산, LR5 knee, GB5 근사식]}`. 층 0 평가도 perf 계수(kernel_calls 등)에 든다.
 - deadline = 시작 시각 + B. E_B 는 선언 또는 `evaluate` 의 한 번 유도(1.1) -- perf `eval_budget_source` 에 기록. ε 게이트 때
   E_B 가 아직 None 이면 N_ε = 0.
@@ -355,6 +366,7 @@ kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확�
 | I-13 | [r5] `layer0_start` 의 start 가 있으면 그 θ 의 평가는 받아들일 상태이고, 이어 `start_points(sctx, (), (start,))` 는 커널 0(캐시 적중)으로 그 점을 첫 시작점(source "layer0")으로 돌려준다 |
 | I-14 | [r5] 원뿔의 모든 행이 항 하나(계수 1)이고 그 원천이 행 MOS 와 같은 kind 의 MOS 이면 전류 중심 = 상자 중심(u = 0) -- θ 전류 값이 상자 기하 중심과 같다(다른 kind 원천 행이 있으면 두 kind 상자 중심 차만큼 u > 0: 9회로 u = 4.28 ~ 4.83) |
 | I-15 | [r5] 같은 sctx 입력으로 두 번(새 컨텍스트) 부르면 같은 start θ·t(결정론, `PYTHONHASHSEED` 무관) |
+| I-17 | [r5] Halton 시험 점 k 의 좌표 = lo + φ_b(k)(hi − lo)(b = 변수 순서의 소수 2, 3, 5, …): toy 커널이 처음 k* 번째 점만 받아들이면 `probes` = k*, `origin_point` = "halton:k*", 최대-최소 전까지 커널 평가 수 ≤ 1(중심) + k*(원뿔 밖 점은 0) |
 | I-16 | [r5] 층 0 은 spec 성능 제약·목적 축 값을 읽지 않는다: spec judged 제약을 바꿔도(`judged_constraints`·`ss_constraints`) start θ 가 같다 |
 
 ## 6. S3 기록 형식 (`<root>/<context_fp>/`, 줄마다 flush)
@@ -405,14 +417,19 @@ kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확�
     (VDS, VS) 의 gm/ID 만 바꿔도 knee 2~6 종), (Q3) knee 를 재는 (VDS, VSB)·폭 슬라이스(층 0 에서 VDS 는 배분 결과라 순환),
     (Q4, 사용자 몫) knee 가 L 격자 밀도에 의존함(LUT v2 nmos 70 % 가 0.18 µm = 첫 칸 위 끝, legacy 12-L 격자의 1.63×L_min 재현 안 됨)
     -- LR5 'kind 별 knee' 를 공정 성질로 유지할지, (Q7) GB5 근사식의 topology 무관 정의(DEC-92 (2), 회로별 함수 금지).
-  - **S-4b (열린 항목)** 출발점(상자 중심 + 전류 중심)이 받아들일 상태가 아니면 층 0 시작점이 없다(stop `start_<사유>`) --
-    봉인 위반 margin 으로 출발점을 끌어오는 1단계는 두지 않았다: 위반 점에는 경성 행(W 하한·반전 하한)이 없고(스냅샷 없음) ④ 실패
-    (근 없음·LUT 실패)에는 margin 자체가 없어, 어느 행을 연속 목적으로 쓸지 정의가 없다(클래스가 다른 margin 혼합 금지, 설계 5절).
-  - **S-4c (기록)** 상자 중심은 전류 상자(꺼짐 전류 ~ 단일 finger 최대 ID)의 기하 중심이라 pA 대 전류·약반전 점이다(ln IDu 상자
-    중점도 포락선 중점). 성능 제약을 읽지 않는 최소형의 정의 그대로이며, 성능 쪽 이동은 외층 SLSQP 몫이다.
+  - **S-4b (처리 -- 오케스트레이터 결정 2026-10-08)** 출발점(상자 중심 + 전류 중심)이 받아들일 상태가 아니면 Halton 시험(3.21 3)
+    으로 첫 받아들일 점을 찾고 거기서 최대-최소. 연속 1단계(봉인 위반 margin 으로 끌어오기)는 두지 않는다 -- 위반 점에는 경성 행이
+    없고 ④ 실패에는 margin 이 없다(클래스가 다른 margin 혼합 금지). **남은 열린 항목**: current_reuse·sf_pushpull 은 600 s 안에 받아들일
+    점 없음(10.0000) -- current_reuse 는 θ 전류 22개를 독립 표본하면 시험의 97 % 가 원뿔 밖이다(원뿔 안 표본 규칙이 없다).
+  - **S-4c (기록 -- 의미 한정)** 상자 중심은 전류 상자(꺼짐 전류 ~ 단일 finger 최대 ID)의 기하 중심이라 pA 대 전류·약반전 점이고,
+    Halton 점은 W 가 m~Gm 급일 수 있다. 근본 원인 = W·면적 상한 미선언(S-3b, 오케스트레이터가 사용자 선언 요청 중). 층 0 시작점은
+    **DC 정합 가능성만** 뜻하며(`Layer0Result` docstring, find_front notes `meaning "feasibility_only"`) 탐색은 출발 근거 이상으로 쓰지
+    않는다.
   - **S-4d (기록)** 최대-최소의 t 는 일관성 항목(봉인 1·2 margin)이 1 근처로 묶는다(t ≤ 1) -- 물리 여유(봉인 7)가 허용오차 한 칸
-    이상이면 더 밀지 않는다(ftol 1 과 같은 분해능 규칙). L 변수는 칸 중점에서 FD L 스텝(칸 안 앵커 간격 = 칸 폭)이 양방향 모두
-    칸 밖이라 고정된다(S-16) -- 앵커가 둘뿐인 칸에서 L 은 층 0 에서 움직이지 않는다.
+    이상이면 더 밀지 않는다(ftol 1 과 같은 분해능 규칙). [r5 처리] L FD 스텝을 제조 격자 한 칸으로 바꿔(3.11) L 이 칸 안에서 움직인다
+    (초안: 칸 폭 스텝이라 칸 중점에서 양방향 칸 밖 -> 9회로 L 전부 고정).
+  - **S-4e (열린 항목)** `solve_eps` 의 점 저장도 `np.asarray(x)`(복사 아님)라 SLSQP 가 제자리 갱신하면 저장 x 와 키가 어긋날 수 있다
+    -- 층 0 에서 재현·수정한 결함과 같은 패턴(slsqp_outer 는 이 변경 범위 밖이라 그대로 둠).
 - **S-4 (r2 기록 -- 막힘 -- 추측 없이는 구현 불가)** 설계의 층 0 최소형(설계 6.1 '① 층 0 조립점: ℓ = LR5 knee 앵커, r = 역산 후보, y = 창
   중앙', DEC-71 (4))은 세 입력이 필요한데 엔진에 없다: (a) LR5 knee(`measure_L_knee` 는 gm/ID·VDS 를 입력으로 받는다 -- 그 값이
   (b) 에서 온다) (b) (4)(a) 필요 gm(블록 gain 예산 -- GB4 상한표·GB5·`ss_linearize`) (c) (4)(c) VDS 배분의 VDsat 하한(lut VDSAT
@@ -450,28 +467,35 @@ kernel_calls, rows)`(frozen dataclass, 필드 뜻은 docstring). 단계(정확�
 θ 저항이 있는 두 회로(current_reuse R1·R2, sf_pushpull R1a~R1c)는 **시연 전용 상자 (1e2, 1e5) Ω**(GB7 §10 탐침 범위, 엔진 밖 하네스
 값 -- 사용자 선언 대기 S-3)로 돌렸다. wall 은 첫 평가의 LUT 파생표(tol_V) 1회 비용(~15 s)을 포함한다.
 
-| 회로 | 변수 | 전류 중심 u | 출발 상태 | stop | 층 0 시작점 | t(min 1 − margin) | 경성 행 | kernel = 고유 키 | 재시작 | wall(s) |
-|---|---|---|---|---|---|---|---|---|---|---|
-| common_gate_amplifier | 6 | 4.28 | sealed | converged | **있음** | 1.00 | ≥ 0 | 8 = 8 | 0 | 21.1 |
-| current_reuse_telescopic_ota | 54 | 4.40 | failed | `start_lut_query_failed`(M4a tol_V 셀 VDS = −3.8 mV 축 밖) | 없음 | -- | -- | 1 = 1 | -- | 18.5 |
-| folded_cascode | 16 | 4.63 | sealed | converged | **있음** | 0.89 | ≥ 0 | 18 = 18 | 0 | 24.0 |
-| ngcc_3stage_ff | 19 | 4.83 | sealed | converged | **있음** | 0.96 | ≥ 0 | 22 = 22 | 1 | 23.7 |
-| nmcnr_amplifier | 21 | 4.28 | failed | `start_lut_query_failed`(M301 VDS = 7.9e-14 V, `lut_curve_undefined`) | 없음 | -- | -- | 1 = 1 | -- | 20.4 |
-| pushpull_follower_buffer | 8 | 4.28 | sealed | converged | **있음** | 0.95 | ≥ 0 | 19 = 19 | 0 | 16.3 |
-| sf_pushpull_output_opamp | 25 | 4.28 | failed | `start_lut_query_failed`(M11 VDS = 0.55 mV, `lut_curve_undefined`) | 없음 | -- | -- | 1 = 1 | -- | 19.4 |
-| two_stage_ota | 9 | 4.28 | sealed | converged | **있음** | 0.93 | ≥ 0 | 11 = 11 | 0 | 22.6 |
-| two_stage_ota_sf | 11 | 4.28 | sealed | converged | **있음** | 0.87 | ≥ 0 | 13 = 13 | 0 | 23.7 |
+최종 코드(Halton 시험 S-4b + L FD 스텝 = 제조 격자 + 고정 이상원 행 제외). E_B 는 미선언이라 `evaluate` 가 한 번 유도했다(1.1),
+벽시계 B = 600 s(deadline). current_reuse 는 최종 시험 한도 규칙(deadline 이 있으면 시험 수 상한 없음)으로 따로 다시 쟀다.
 
-- sealed 6회로는 고정 행 제외 수정 전 코드로 쟀다 -- 그 회로들은 `schema.fixed` 만 읽는 원뿔 행이 없어 u·경로가 같다(수정 전후 u 동일
-  확인). 고정 행이 있는 current_reuse(Iref)·sf_pushpull 은 수정 뒤 값(sf u 14.29 -> 4.28).
-- **6/9 회로가 봉인 통과 층 0 시작점**을 얻었다(전부 `sealed`, 경성 행 모두 ≥ 0, `recompute_same_key` 0). 실패 3회로는 모두 출발점에서
-  소자 하나가 VDS ≈ 0(또는 음)에 놓여 LUT 조회가 축 밖·정의 안 됨으로 끝나는 ④ 실패라 margin 이 없다(S-4b). current_reuse 는 r5 전
-  초안(고정 이상원 행을 편차 경쟁에 넣음)에서 u = 19.1 이 고정 행으로 정해져 원뿔 밖(M16 c = −1.2e-4)이었고, 고정 행을 뺀 뒤 u = 4.40.
-- 시작점의 모양(S-4c·S-4d): 전류 0.4 pA ~ 6 nA, gm/ID 25.8 ~ 33.4(약반전), W 0.72 µm ~ 203 m(pushpull -- W 상한 선언 없음, S-3b),
-  봉인 7 slack/tol 20 ~ 504. t 는 봉인 1·2 margin(0.04 ~ 0.13)이 묶고 최대-최소는 1~2 반복에 끝난다. L 은 모든 소자가 칸
-  (1.5, 2.0) µm 의 중점 1.75 µm 에 고정(FD L 열 양방향 칸 밖, S-16).
-- find_front 배선(two_stage_ota, E_B = 150 선언, given 없음): 시작점 1(층 0), kernel 151 = 고유 151, 미측정 front 1점(Cc·Rz 값
-  미선언, S-20), notes 에 `layer0_minimal`.
+| 회로 | 변수 | 출발 | stop | 층 0 시작점 | Halton 시험(k) | t | 경성 행 | kernel = 고유 키 | 원뿔 밖(커널 0) | 재시작 | L 움직임 | wall(s) |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| common_gate_amplifier | 6 | 중심 sealed | converged | **있음** | 0 | 1.00 | ≥ 0 | 11 = 11 | 0 | 0 | 2/3 | 33.6 |
+| current_reuse_telescopic_ota | 54 | 중심 실패(M4a tol_V 셀 VDS −3.8 mV) | `start_lut_query_failed+probe_wall_budget` | 없음 | 164,289 | -- | -- | 4,296 = 4,296 | 159,994 | -- | -- | 601.1 |
+| folded_cascode | 16 | 중심 sealed | converged | **있음** | 0 | 0.88 | ≥ 0 | 31 = 31 | 0 | 0 | 9/13 | 42.0 |
+| ngcc_3stage_ff | 19 | 중심 sealed | converged | **있음** | 0 | 0.95 | ≥ 0 | 38 = 38 | 0 | 1 | 11/16 | 38.2 |
+| nmcnr_amplifier | 21 | 중심 실패(M301 VDS 7.9e-14 V) | converged | **있음**(halton:7122) | 7,122 | 0.96 | ≥ 0 | 3,289 = 3,289 | 4,724 | 2 | 15/15 | 286.7 |
+| pushpull_follower_buffer | 8 | 중심 sealed | converged | **있음** | 0 | 0.93 | ≥ 0 | 32 = 32 | 0 | 1 | 5/6 | 37.2 |
+| sf_pushpull_output_opamp | 25 | 중심 실패(M11 VDS 0.55 mV) | `start_lut_query_failed+probe_wall_budget` | 없음 | 1,248 | -- | -- | 1,249 = 1,249 | 0 | -- | -- | 600.4 |
+| two_stage_ota | 9 | 중심 sealed | converged | **있음** | 0 | 0.93 | ≥ 0 | 18 = 18 | 0 | 0 | 6/7 | 39.1 |
+| two_stage_ota_sf | 11 | 중심 sealed | converged | **있음** | 0 | 0.89 | ≥ 0 | 22 = 22 | 0 | 0 | 5/9 | 28.9 |
+
+- **7/9 회로가 봉인 통과 층 0 시작점**(전부 `sealed`, 경성 행 ≥ 0, `recompute_same_key` 0). Halton 시험이 nmcnr 을 살렸다(7,122 번째
+  점, 커널 3,289). current_reuse·sf_pushpull 은 600 s 안에 받아들일 점이 없다: current_reuse 는 시험의 97 % 가 원뿔 밖(θ 전류 22개를
+  상자에서 독립으로 뽑으면 차 전류 행이 거의 늘 음), 커널 평가 4,296 은 모두 실패; sf 는 원뿔 밖 0 인데 커널 1,249 모두 실패.
+  둘 다 θ 저항 상자가 시연 전용 값이다.
+- L FD 스텝 = 제조 격자로 바꾼 뒤 L 열 고정 0(r5 초안: 모든 L 고정), L 이 칸 안에서 움직였다(위 'L 움직임' = 칸 중점에서 벗어난 소자
+  수 / L 변수 수).
+- 시작점의 모양(S-4c·S-4d, **의미 = DC 정합 가능성뿐**): 상자 중심 출발 회로는 전류 0.4 pA ~ 4.3 nA, gm/ID 26 ~ 33.5(약반전),
+  W 0.70 µm ~ 254 m(pushpull); Halton 출발 nmcnr 은 전류 1e-16 ~ 4.4e-4 A, W 최대 3.4e9 m. 원인은 W·면적 상한 미선언(S-3b,
+  사용자 선언 요청 중). t 는 봉인 1·2 margin 이 묶는다(0.88 ~ 1.00).
+- [r5 초안 기록] 중심만 쓰던 초안: 6/9(중심 sealed 6), 실패 3 은 출발점 ④ 실패. 고정 이상원 행을 편차 경쟁에 넣은 초안은 current_reuse
+  u = 19.1(원뿔 밖, M16 c = −1.2e-4) -> 고정 행 제외 뒤 u = 4.40. 최대-최소 점 저장에서 SLSQP 가 넘긴 배열을 복사하지 않아 제자리 갱신으로
+  키가 어긋나던 결함(nmcnr Halton 출발에서 재현)을 복사로 고쳤다 -- 같은 패턴(`np.asarray(x)` 저장)이 `solve_eps` 에도 있다(열린 항목).
+- find_front 배선(two_stage_ota, E_B = 150 선언, given 없음, 초안 코드): 시작점 1(층 0), kernel 151 = 고유 151, 미측정 front 1점(Cc·Rz
+  값 미선언, S-20), notes 에 `layer0_minimal`.
 
 ### 10.000 [r4] r4 실측 (2026-10-08, LUT v2 `resolve_lut_location`, ng-seal7 병합 -- 봉인 7 실판정, B = 120 s 만 선언)
 

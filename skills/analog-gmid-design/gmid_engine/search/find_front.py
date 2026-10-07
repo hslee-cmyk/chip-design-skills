@@ -91,6 +91,8 @@ def find_front(sctx, given_starts):
     notes.append({"verdict": "layer0_minimal" if layer0.start is not None else "layer0_no_start", "rule": "DEC-71",
                   "reason": "seal_margin_maxmin_centre", "stop": layer0.stop, "t": layer0.t, "hard_ok": layer0.hard_ok,
                   "start_status": layer0.start_status, "centre_u": layer0.centre_u, "kernel_calls": layer0.kernel_calls,
+                  "probes": layer0.probes, "origin_point": layer0.origin_point, "meaning": "feasibility_only",
+                  "meaning_reason": "w_area_upper_bound_undeclared_S-3b",
                   "refinements_out_of_scope": list(_LAYER0_REFINEMENTS_OUT_OF_SCOPE)})
     notes.append({"verdict": "not_computed", "rule": "DEC-78", "reason": "supply_current_dc_needs_counted_rails_declaration",
                   "axis_used": AXIS_POWER})
