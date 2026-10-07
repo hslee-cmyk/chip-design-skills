@@ -1,5 +1,209 @@
-"""자리표(규칙 H 1:1) -- `gmid_engine/sizing/s2_values.py` 의 동작 test.
+"""`s2_values` (데이터 선언 모듈) -- CONTRACT 2절: S2 dc 필드 권한표 `S2_WRITERS` = S1 권한표 전부 + dc 필드(필드마다 writer
+하나), 값 형식은 frozen dataclass, 어휘 상수.
 
-기준은 `gmid_engine/sizing/CONTRACT.md` 만 쓴다(피검 함수로 기대값을 만들지 않는다). 동작 test 는 독립 test 작성
-agent 가 채운다 -- 이 파일에는 아직 test 가 없다(수집 0개).
+기대 표는 CONTRACT 2절 표를 이 파일에 옮겨 적은 것이다(피검 상수로 기대값을 만들지 않는다).
 """
+import dataclasses
+
+import pytest
+
+from gmid_engine.core import WriterPermissionError, require_immutable
+from gmid_engine.graph import S1_WRITERS
+from gmid_engine import sizing as S
+
+# CONTRACT 2절 표 (kind, field) -> writer  (graph.dc_seal_1/2/3/6/7/8 행은 6개로 풀어 적음)
+DC_TABLE = {
+    ("node", "dc_rail_v"): "dc_rails",
+    ("node", "dc_colour"): "dc_struct_colour",              # [r2]
+    ("device", "dc_colour"): "dc_struct_colour",            # [r2]
+    ("graph", "dc_current_basis"): "dc_current_basis",
+    ("node", "dc_writer"): "dc_writer_plan",
+    ("device", "dc_coord"): "dc_writer_plan",
+    ("graph", "dc_tie_breaks"): "dc_writer_plan",           # [r2]
+    ("graph", "dc_scc_order"): "dc_scc_order",
+    ("node", "dc_column_nbrs"): "dc_scc_order",
+    ("graph", "dc_theta_schema"): "dc_theta_schema",
+    ("device", "dc_current"): "dc_currents",
+    ("device", "dc_drop_current"): "dc_currents",
+    ("device", "dc_L"): "dc_lengths",
+    ("node", "dc_v"): "dc_columns",
+    ("node", "dc_path_values"): "dc_columns",
+    ("node", "dc_window"): "dc_columns",
+    ("device", "dc_ln_idu"): "dc_columns",
+    ("graph", "dc_scc_log"): "dc_columns",
+    ("device", "dc_op"): "dc_widths",
+    ("device", "dc_tol_v"): "dc_tolerances",
+    ("device", "dc_gm_bound"): "dc_tolerances",
+    ("graph", "dc_seal_1"): "dc_seal_node_conflict",
+    ("graph", "dc_seal_2"): "dc_seal_vgs_match",
+    ("graph", "dc_seal_3"): "dc_seal_kcl",
+    ("graph", "dc_seal_6"): "dc_seal_bulk_reverse",
+    ("graph", "dc_seal_7"): "dc_seal_saturation",
+    ("graph", "dc_seal_8"): "dc_seal_kvl_branch",
+    ("graph", "dc_seal_report"): "dc_seal_report",
+}
+
+BLOCKS = {
+    "dc_rails": S.dc_rails, "dc_struct_colour": S.dc_struct_colour, "dc_current_basis": S.dc_current_basis, "dc_writer_plan": S.dc_writer_plan,
+    "dc_scc_order": S.dc_scc_order, "dc_theta_schema": S.dc_theta_schema, "dc_currents": S.dc_currents,
+    "dc_lengths": S.dc_lengths, "dc_columns": S.dc_columns, "dc_widths": S.dc_widths,
+    "dc_tolerances": S.dc_tolerances, "dc_seal_node_conflict": S.dc_seal_node_conflict,
+    "dc_seal_vgs_match": S.dc_seal_vgs_match, "dc_seal_kcl": S.dc_seal_kcl,
+    "dc_seal_bulk_reverse": S.dc_seal_bulk_reverse, "dc_seal_saturation": S.dc_seal_saturation,
+    "dc_seal_kvl_branch": S.dc_seal_kvl_branch, "dc_seal_report": S.dc_seal_report,
+}
+
+
+def test_dc_table_has_28_fields():
+    # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28). 과제 지시문의 '22' 와 다르다 -- 정본은 계약 표.
+    assert len(DC_TABLE) == 28
+
+
+def test_s2_writers_is_s1_plus_dc_table_exactly():
+    s1 = dict(S1_WRITERS.entries)
+    s2 = dict(S.S2_WRITERS.entries)
+    expected = dict(s1)
+    expected.update(DC_TABLE)
+    assert s2 == expected
+    assert len(S.S2_WRITERS.entries) == len(S1_WRITERS.entries) + len(DC_TABLE)
+    for k, w in s1.items():
+        assert S.S2_WRITERS.writer_of(*k) == w
+
+
+def test_one_writer_per_field_and_permission_enforced():
+    keys = [k for k, _ in S.S2_WRITERS.entries]
+    assert len(keys) == len(set(keys))
+    for (kind, field), w in DC_TABLE.items():
+        assert S.S2_WRITERS.require(w, kind, field) is None
+        with pytest.raises(WriterPermissionError):
+            S.S2_WRITERS.require("not_" + w, kind, field)
+
+
+def test_dc_writes_constant_matches_table():
+    got = {}
+    for w, fields in S.DC_WRITES:
+        for f in fields:
+            assert f not in got
+            got[f] = w
+    assert got == DC_TABLE
+
+
+@pytest.mark.parametrize("name", sorted(BLOCKS))
+def test_block_name_and_writes_match_table(name):
+    b = BLOCKS[name]
+    assert b.name == name
+    assert set(b.writes) == {k for k, w in DC_TABLE.items() if w == name}
+
+
+# CONTRACT 3·4·5절이 reads 를 다 적은 블록(writer_plan·theta_schema 는 이번 판 범위 밖)
+READS = {
+    "dc_rails": {("node", "is_rail")},
+    "dc_struct_colour": {("device", "element_class"), ("device", "kind"), ("device", "is_diode"), ("device", "pins"),
+                         ("device", "bulk"), ("node", "is_rail"), ("node", "port_direction")},
+    "dc_current_basis": {("device", "dc_nets"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
+                         ("device", "dc_colour"), ("node", "is_rail"), ("graph", "dc_pruned")},
+    "dc_writer_plan": {("device", "element_class"), ("device", "is_diode"), ("device", "kind"), ("device", "pins"),
+                       ("device", "dc_colour"), ("node", "is_rail"), ("node", "port_direction"),
+                       ("node", "dc_colour")},
+    "dc_scc_order": {("node", "dc_writer"), ("device", "pins"), ("device", "bulk"), ("device", "element_class"),
+                     ("graph", "columns"), ("graph", "branches")},
+    "dc_currents": {("graph", "dc_current_basis")},
+    "dc_lengths": {("device", "element_class")},
+    "dc_columns": {("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
+                   ("device", "dc_drop_current"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"),
+                   ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"),
+                   ("graph", "dc_scc_order")},
+    "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
+                  ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk")},
+}
+
+
+@pytest.mark.parametrize("name", sorted(READS))
+def test_block_reads_declared_as_contract(name):
+    assert set(BLOCKS[name].reads) == READS[name]
+
+
+def test_vocabulary_constants():
+    assert S.DC_KEY == "dc"
+    assert (S.TIER_W0, S.TIER_W1, S.TIER_W2, S.TIER_W3, S.TIER_W4) == ("W0", "W1", "W2", "W3", "W4")
+    assert (S.REL_RAIL, S.REL_TARGET, S.REL_INPUT_DC, S.REL_VGS_GATE, S.REL_VGS_SOURCE, S.REL_RESISTOR, S.REL_TIE,
+            S.REL_WINDOW) == ("rail", "declared_target", "input_dc", "vgs_gate", "vgs_source", "resistor_drop",
+                              "input_tie", "free_window")
+    assert (S.COORD_WRITER, S.COORD_DEPENDENT) == ("writer", "dependent")
+    assert (S.DEP_TREE, S.DEP_PARALLEL, S.DEP_CYCLE, S.DEP_FIXED) == ("tree", "parallel_vgs", "cycle_vgs", "fixed_vgs")
+    assert S.INPUT_GROUP_KEY == "input_common_mode"
+    assert (S.REPORT_VIOLATED, S.REPORT_UNDEFINED, S.REPORT_SEALED) == ("violated", "undefined", "sealed")
+    assert (S.SEAL_NODE_CONFLICT, S.SEAL_VGS_MATCH, S.SEAL_KCL, S.SEAL_VERSIONS, S.SEAL_WRITER_UNIQUE,
+            S.SEAL_BULK_REVERSE, S.SEAL_SATURATION, S.SEAL_KVL_BRANCH) == (1, 2, 3, 4, 5, 6, 7, 8)
+    assert (S.REASON_EMPTY_WINDOW, S.REASON_LUT_QUERY, S.REASON_TOL_UNDEFINED,
+            S.REASON_VDSAT_MISSING, S.REASON_DECLARED_KCL, S.REASON_NO_ROOT, S.REASON_STRICT_RECHECK) == (
+        "empty_window", "lut_query_failed", "tol_v_undefined",
+        "lut_vdsat_column_missing", "declared_source_kcl_conflict", "no_root_in_window", "strict_recheck_residual")
+    # [r2] 옛 device_current_nonpositive 는 없어졌다(정의역 밖 = ValueError)
+    assert not hasattr(S, "REASON_CURRENT_NONPOSITIVE")
+    assert (S.TIE_KRUSKAL, S.TIE_ROOT, S.TIE_INPUT_ORDER, S.TIE_CURRENT_PIVOT) == (
+        "writer_edge", "w4_root", "input_tie_order", "current_pivot")
+    assert S.BRANCH_RESISTOR_CYCLE == "dc_resistor_cycle"
+    assert S.BRANCH_MOS_ZERO_CURRENT == "mos_zero_current_structural"
+    assert set(S.THETA_KINDS) == {"ln_idu", "L", "y", "current", "resistance"}
+
+
+def test_value_defaults():
+    nw = S.NodeWrite("W0", "rail")
+    assert (nw.element, nw.known, nw.y_key, nw.order) == (None, None, None, 0)
+    assert S.DeviceCoord("writer", "tree").partner is None
+    si = S.SealItem(1, "pass")
+    assert (si.magnitude, si.tol, si.margin, si.devices, si.nodes, si.detail) == (None, None, None, (), (), ())
+    assert S.DcEvaluation(None, None).sealed is None
+    di = S.DcInputs((("gnd", 0.0),))
+    assert (di.input_dc_v, di.node_targets, di.element_values, di.linear_devices, di.pending) == (None, (), (), (), ())
+
+
+VALUE_INSTANCES = [
+    S.NodeWrite("W2", "vgs_gate", "M1", "gnd", None, 3),
+    S.DeviceCoord("dependent", "parallel_vgs", "M1"),
+    S.CurrentTerm("M2", 1, 1),
+    S.ColumnNeighbor(("gnd", "vdd"), "gnd", "vdd", 1, 2),
+    S.SccEntry(0, ("out",), False, ("M1",)),
+    S.PathValue(("vgs", "M1"), 0.5),
+    S.Window(0.0, 1.8, 2),
+    S.SealItem(1, "pass", 0.0, 1.0, 0.0, (), (), (("n_checked", 1),)),
+    S.DeviceOp("nmos", 1e-5, -13.0, 10.0, 1e-6, 2e-6, 0.6, 0.9, 0.0, 100, 1e-6),
+    S.DcInputs((("gnd", 0.0), ("vdd", 1.8))),
+]
+
+
+@pytest.mark.parametrize("obj", VALUE_INSTANCES, ids=lambda o: type(o).__name__)
+def test_values_frozen_and_immutable(obj):
+    assert dataclasses.is_dataclass(obj)
+    assert require_immutable(obj) is None
+    f = dataclasses.fields(obj)[0].name
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        setattr(obj, f, None)
+
+
+def test_value_fields_as_contract():
+    def names(c):
+        return tuple(f.name for f in dataclasses.fields(c))
+    assert names(S.NodeWrite) == ("tier", "relation", "element", "known", "y_key", "order")
+    assert names(S.DeviceCoord) == ("role", "relation", "partner")
+    assert names(S.CurrentTerm) == ("source", "num", "den")
+    assert names(S.CurrentBasis) == ("ends", "mos", "free", "fixed", "rows", "pruned", "resistors", "ties")
+    assert names(S.TieBreak) == ("decision", "candidates", "chosen")
+    assert names(S.ThetaSchema) == ("components", "current_cone", "fixed")
+    ts = S.ThetaSchema((("L", "M1"),))
+    assert ts.current_cone == () and ts.fixed == ()
+    assert names(S.ColumnNeighbor) == ("rails", "pred", "succ", "position", "length")
+    assert names(S.SccEntry) == ("index", "nodes", "cyclic", "devices")
+    assert names(S.Window) == ("lo", "hi", "constraints")
+    assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max")
+    assert names(S.DeviceOp) == ("kind", "current", "ln_idu", "gm_id", "L", "W", "vgs", "vds", "vsb", "w_key",
+                                 "idu_forward")
+    assert names(S.SealItem) == ("item", "status", "magnitude", "tol", "margin", "devices", "nodes", "detail")
+    assert names(S.SealReport) == ("items", "status")
+    assert names(S.SealedSnapshot) == ("snapshot", "report")
+    assert names(S.DcEvaluation) == ("snapshot", "report", "sealed")
+    assert names(S.KernelContext) == ("base", "inputs", "lut", "schema", "fixed_values", "resistor_values",
+                                      "plan_versions")
+    assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "linear_devices",
+                                 "pending")
