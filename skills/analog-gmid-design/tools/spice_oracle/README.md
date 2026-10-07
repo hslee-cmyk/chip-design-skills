@@ -10,10 +10,10 @@
 | 파일 | 진입점 | 역할 |
 |---|---|---|
 | `oracle_input.schema.json` | - | 입력 형식(JSON Schema 2020-12). 진입점은 입력을 이것으로 먼저 검증한다 |
-| `oracle_netlist.py` | `python oracle_netlist.py <input.json> <out.cir> --bias free\|forced` | 넷리스트 + `<out.cir>.meta.json`, feedback_passives 가 있으면 `<stem>.loop.cir` |
-| `oracle_simulate.py` | `python oracle_simulate.py <netlist.cir> <sim.json> --ngspice EXE [--timeout-s S]` | `ngspice -b` 실행, .op/.ac(+β 루프) 추출 |
-| `oracle_compare.py` | `python oracle_compare.py <input.json> <netlist.cir> <sim.json> <out_prefix> [--judge J] [--sat-margin-v V]` | 합격 판정 + 비교 기록 |
-| `oracle_run.py` | `python oracle_run.py <input.json> <out_dir> --bias free [forced] [--judge J] [--sat-margin-v V] [--ngspice EXE] [--tag T]` | 위 셋을 한 번에(bias 마다) |
+| `oracle_netlist.py` | `python oracle_netlist.py <input.json> <out.cir> --bias free\|forced\|iso [--topology T] [--require-topology] [--omit N..] [--short N..]` | 넷리스트 + `<out.cir>.meta.json`, feedback_passives 가 있으면 `<stem>.loop.cir` |
+| `oracle_simulate.py` | `python oracle_simulate.py <netlist.cir> <sim.json> --ngspice EXE [--timeout-s S] [--cache-dir D]` | `ngspice -b` 실행, .op/.ac(+β 루프) 추출 |
+| `oracle_compare.py` | `python oracle_compare.py <input.json> <netlist.cir> <sim.json> <out_prefix> [--judge J] [--sat-margin-v V] [--forced-compare F]` | 합격 판정 + 비교 기록 |
+| `oracle_run.py` | `python oracle_run.py <input.json> <out_dir> --bias free [forced] [iso] [--judge J] [--sat-margin-v V] [--ngspice EXE] [--tag T] [--topology T] [--require-topology] [--omit N..] [--short N..] [--cache-dir D]` | 위 셋을 한 번에(bias 마다) |
 | `legacy_adapter.py` | `python legacy_adapter.py <circuit_key> <out_dir> --w-source layout\|sizing --isrc topology\|engine [--from-dump D] [--instance I] [--topology T]` | 옛 엔진 실행(또는 dump) -> 오라클 입력 |
 | `legacy_testbench.json` | - | 어댑터가 넣는 테스트벤치 구성값 |
 | `smoke/` | - | 스모크 실행 산출물과 보고서(`smoke/SMOKE_REPORT.md`) |
@@ -125,11 +125,83 @@ C14. **[신규]** β 루프: `feedback_passives` 가 있으면 `<stem>.loop.cir`
     선언된 되먹임 수동소자 **각각**이 passives 에 있고 입력 포트 넷에 물려 있어야 하며, 하나라도 아니면 막힘이고 blocker 문장에
     그 소자 이름을 적는다. `loop_dc_choke_H` 가 없어도 막힘.
 
+## [신규] 연결 동일성·단독 소자·진단 도구 (2026-10-07, 근거 `_drafts/engine/reference_review/` SYNTHESIS T09·T05(4), G4-11·G4-12, G3-06·G3-07·G3-14)
+
+### 입력 스키마 추가(전부 선택 필드)
+
+* `topology{path, sha256?}`: C15 대조용 topology JSON. 상대 경로는 입력 파일 폴더 기준, 진입점 `--topology` 가 우선.
+* `passives[].not_in_topology_reason`, `sources[].not_in_topology_reason`: topology 에 없는 원소(예: 어댑터가 spec CL 로 넣은
+  부하)를 C15 비교에서 뺄 때 그 이유. 비교 결과 `declared_not_in_topology` 에 그대로 남는다.
+* `process.models[kind].polarity` (`n`|`p`): iso 모드가 크기 규칙 예측을 단자 전압으로 바꿀 때 쓴다.
+* `predictions.devices[].tol{ID_rel, gm_rel, basis?}`: 소자별 LUT 계산 허용오차(엔진이 그 소자 셀 tol 에서 계산한 값).
+
+### 동작 계약 추가
+
+C15. **[신규]** topology 연결 동일성(free/forced): `oracle_netlist.py` 가 자기가 쓴 본 넷리스트(.control 앞)를 다시 파싱해
+    회로 원소 표(이름, 종류, 단자 넷)를 만들고 topology JSON(`netlist` + `passive_elements` + `ideal_sources`)과 비교한다.
+    - 원소 분류는 넷리스트 이름 접두사로만: `X`=소자(종류 = subckt -> models kind), `Rp_`/`Cp_`=저항/커패시터,
+      `Isrc_`/`Vsrc_`=전류/전압원(topology `current_source`/`voltage_source` 와 같은 뜻). 테스트벤치 원소(`Vrail_ Efb_ Vofs_
+      Lfb_ Vdc_ Ldc_ Cac_ Vac_ Vbias_ Vhold_ Lhold_ Vlb_ Ilb_ Vshort_ Viso_`)는 빼고 `excluded_testbench` 에 적는다.
+      어느 쪽에도 안 맞는 원소는 차이(fail-closed). SPICE 노드 `0` 은 reference 레일 넷 이름으로 되돌려 비교한다.
+    - 같아야 하는 것: 원소 이름 집합, 원소마다 종류, 단자 넷. MOS 는 (drain, gate, source) 순서 그대로(+ topology 가
+      `bulk` 를 선언한 원소는 bulk 도), 저항·커패시터는 순서 무관, 이상원은 순서 그대로(방향).
+    - `not_in_topology_reason` 이 있는 입력 원소는 비교에서 뺀다(topology 에 같은 이름이 있으면 '넷리스트에 없음' 차이).
+    - 결과 `meta.topology_identity` / `compare.topology_identity` = `{status, topology_path, sha256_actual, sha256_declared,
+      diffs, compared, excluded_testbench, declared_not_in_topology, bulk_compared, notes, required}`,
+      `compare.summary.topology_identity = {status, required, diff_count, path}`. status:
+      `verified`(차이 0) / `mismatch` -> **막힘**(blocker 문장에 차이 목록) / `unverified`(topology 없음 또는 파일 없음 -- 표시만,
+      verdict 무관) / `not_applicable`(iso).
+    - `--require-topology`(합격 실행 플래그, `oracle_netlist.py`·`oracle_run.py`): `unverified` 이면 막힘.
+    - 입력 `topology.sha256` 이 실제 파일 sha256 과 다르면 notes 에 기록만 한다(판정은 연결 비교로).
+    - Z1 실행(C18)에서는 변경 **전** 넷리스트로 비교한다.
+C16. **[신규]** 소자별 허용오차: `predictions.devices` 중 하나라도 `tol` 이 있으면 소자별 모드 -- 소자 기록의 ID·gm 판정,
+    forced 경고(C7), iso 판정(C17), forced 진단(C19)이 그 소자의 `tol.ID_rel`/`tol.gm_rel` 만 쓰고, 없는 소자는
+    `N/A(tol 미설정)`(judge.tolerances 의 ID_rel/gm_rel 스칼라로 채우지 않는다). 아무 소자도 `tol` 이 없으면 기존 스칼라 동작.
+    소자 기록에 `tol_ID_rel`, `tol_gm_rel`, `tol_source`(`device`|`device(없음)`|`scalar`|`none`)를 남긴다.
+C17. **[신규]** `--bias iso`(단독 소자, K3): 소자마다 `X<name>` 인스턴스 하나(C3 finger·확산 규칙 동일)를 자기 노드
+    `iso_d_/iso_g_/iso_b_<name>` 에 두고 소스를 0 으로, `Viso_g/d/b_<name>` 이상 전압원으로 V(g) = s·VGS, V(d) = s·VDS,
+    V(b) = -s·VSB 를 건다(s = polarity n:+1, p:-1, 값은 predictions.devices 크기 규칙). `.op` 만, 회로 연결·테스트벤치 없음.
+    예측 VGS/VDS/VSB 나 polarity 가 없는 소자는 인스턴스를 만들지 않고 `meta.iso_skipped` 에 이유. 한 소자도 못 만들면 막힘.
+    `compare.summary.iso = {verdict, within_tol, outside_tol, not_judged, rule}`: |ID_rel| <= 그 소자 허용오차(C16)면 안,
+    verdict = 하나라도 밖이면 FAIL, 판정 못 한 소자가 있거나 판정한 소자가 없으면 INCOMPLETE, 아니면 PASS.
+    iso 의 `summary.verdict` 는 진단 모드라 막힘이 없으면 늘 `INCOMPLETE`(C8 의 forced 와 같은 규칙).
+C18. **[신규]** Z1 제거법 `--omit <원소..>`(소자·수동소자·이상원을 넷리스트에서 뺌), `--short <수동소자..>`(`Vshort_<name>` 0 V
+    전압원으로 단락). 없는 이름, 수동소자가 아닌 단락, 같은 원소 중복, `feedback_passives` 원소 변경은 막힘.
+    뺀 소자는 비교 행이 없고 `summary.z1.omitted_devices` 에 적는다. free 모드 verdict 는 막힘이 없으면 `INCOMPLETE`
+    (회로를 바꾼 진단 실행이라 합격/불합격을 내지 않는다). 결과 이름이 섞이지 않게 `--tag` 를 같이 쓴다.
+C19. **[신규]** 진단(기록만, verdict 무관):
+    - forced compare `diagnosis`: (1) 고정원 넷마다 |KCL 잔차| 대 그 넷에 드레인/소스가 물린 소자들의 tol_I = |ID_pred|·tol_ID_rel
+      합(C16 허용오차, 없는 소자가 물리면 그 넷은 판정 안 함) -> `kcl_nets[]`, `kcl_nets_exceeding`, `dc_consistent`
+      (판정한 넷 전부 안 True / 하나라도 밖 False / 판정한 넷 없음 None). (2) 게이트 공유 넷(게이트에 소자 2개 이상)마다
+      소자별 등가 dVGS = (ID_spice - ID_pred)/gm_pred 와 퍼짐(최대-최소), 퍼짐 큰 순.
+    - free compare `diagnosis_free`(`oracle_run.py` 가 free 와 forced 를 함께 돌렸을 때, 또는 `oracle_compare.py --forced-compare`):
+      free verdict 가 FAIL 이 아니면 `not_applicable`; forced 결과가 없거나 막힘이면 `unknown`; forced `dc_consistent` True ->
+      `boundary_condition`(엔진 DC 정합, free 수렴·경계조건 쪽), False -> `engine_dc_inconsistent`, None -> `unknown`.
+C20. **[신규]** PM 교차 측정(기록만): `ac.pm_deg` 를 정한 루프 이득 L(β 루프면 T, 아니면 A)로 폐루프 C = L/(1+L) 의 peaking
+    Mp = max|C|/|C(fstart)| 를 재고 2차계 관계 Mp = 1/(2z·sqrt(1-z²)) 로 z, PM = atan(2z/sqrt(sqrt(1+4z⁴)-2z²)) 를 역산해
+    `ac.pm_crosscheck_deg`, `ac.closed_loop_peaking_db`, `ac.closed_loop_peak_hz`, `ac.pm_crosscheck_gap_deg`(= 교차 - pm_deg).
+    peaking 이 없으면(최대가 첫 점, Mp <= 1) 값은 None 이고 `pm_crosscheck_note` 에 2차 근사 하한(z = 1/sqrt2 의 PM)을 적는다.
+    같은 AC 데이터의 다른 측정 방법이라 교차점·위상 언랩 오류를 잡는 용도이고, 2차계가 아닌 루프에서는 근사다.
+C21. **[신규]** 실행 캐시(선택, `--cache-dir`): 키 = sha256(넷리스트 바이트 + 넷리스트가 `.include`/`.inc`/`.lib` 로 읽는 모델 파일
+    전부(재귀, 경로+바이트) + ngspice 실행 파일 경로 + `-b`). 같은 키면 ngspice 를 돌리지 않고 저장한 로그·데이터 파일
+    (`.ac.txt`, 루프 `.v.txt`/`.i.txt`)을 복원한다. 모델 파일을 하나라도 못 찾으면 캐시를 쓰지 않는다. `sim.cache =
+    {main, loop}` 이 `hit`/`miss`/`off(모델 파일 못 찾음)`/None(캐시 미사용).
+C12 보충. **[신규]** legacy_adapter: `topology{path, sha256}` 를 쓰고, topology 에 없는 출력 부하(`LOAD_<출력>`)에
+    `not_in_topology_reason` 을 달며, `models[kind].polarity` 를 LUT 생성기 `run_device(..., polarity=±1)` 에서 읽는다.
+
+### 구현하지 않은 것(근거 문서의 뜻이 정해지지 않음)
+
+* `--ideal`(엔진 `ss` 의 VCCS+gds+C 등가 넷리스트): 입력에 소신호 용량(cgs·cgd·cdb·…)이 없고, 재사용하라는 'MNA 오라클'이
+  아직 계획만 있어 등가회로의 원소 구성을 정할 근거가 없다.
+* 결과 JSON `connectivity_fp` 대조: 엔진 `fp_of` 정의를 오라클이 import 없이(C1) 똑같이 재현한다는 보장이 없다. 대신 C15 가
+  topology 파일 자체와 직접 비교하고 파일 sha256 을 기록한다.
+* 사용자 결정 대기(Q5·Q6): CMRR·PSRR·slew·settling 측정, 꺼진 소자 FAIL·`off_current_A` 필수, `diffusion` 필수.
+
 ## 옛 엔진 기준선 만들기
 
 ```bash
 PY=C:/Python314/python.exe
 T=skills/analog-gmid-design/tools/spice_oracle
 $PY -P $T/legacy_adapter.py current_reuse_telescopic_ota /c/tmp/oracle --w-source sizing --isrc engine   # 옛 엔진 ~4.5분
-$PY -P $T/oracle_run.py /c/tmp/oracle/current_reuse_telescopic_ota.sizing.engine.oracle_input.json /c/tmp/oracle --bias free forced --judge my_judge.json
+$PY -P $T/oracle_run.py /c/tmp/oracle/current_reuse_telescopic_ota.sizing.engine.oracle_input.json /c/tmp/oracle --bias free forced --judge my_judge.json --require-topology
 ```

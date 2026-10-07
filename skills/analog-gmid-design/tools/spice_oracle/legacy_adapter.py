@@ -26,6 +26,9 @@
     LUT 특성화 폭(W_ref) bin 에 들도록 n = floor(W/W_ref) 개 finger 로 나눈다(finger_w = W/n).
   * 공정: LUT 생성기(assets/sky130_lut_sweep.py)의 공개 상수(PDK_ROOT, LOD_SPICE, NGSPICE_EXE)와 소스의
     include/DUT/probe 줄에서 모델 include 규칙, subckt, 확산 면적 규칙, W_ref 를 읽는다. 코너 자리는 '{corner}'.
+    [신규] models[kind].polarity = 생성기 run_device 의 polarity 인자(+1 -> n, -1 -> p) -- 오라클 iso 모드가 쓴다.
+  * [신규] topology = {path: 변환에 쓴 topology JSON, sha256} -- 오라클 C15 연결 동일성 대조용. topology 에 없는
+    부하 C(LOAD_<출력>)는 not_in_topology_reason 을 달아 비교에서 뺀다(이유가 비교 결과에 기록됨).
 """
 import argparse
 import ast
@@ -157,8 +160,10 @@ def process_from_lut_generator(lut_npz, corner):
     spec.loader.exec_module(mod)  # 생성기는 __main__ 가드 뒤에서만 실행된다(상수 정의만 실행)
     with open(LUT_GENERATOR, encoding="utf-8") as f:
         src = f.read()
-    cells = {("nmos" if int(pol) > 0 else "pmos"): cell
-             for cell, pol in re.findall(r'run_device\("(\w+)",\s*polarity=([+-]?\d)', src)}
+    cells, polarity = {}, {}
+    for cell, pol in re.findall(r'run_device\("(\w+)",\s*polarity=([+-]?\d)', src):
+        kind = "nmos" if int(pol) > 0 else "pmos"
+        cells[kind], polarity[kind] = cell, ("n" if int(pol) > 0 else "p")  # 생성기 polarity 인자(+1/-1)
     inc_tpl = [t.replace("\\\\", "\\") for t in re.findall(r'\.include "(\{PDK_ROOT\}[^"]*)"', src)]
     lod = re.search(r'LOD_SPICE if devcell\.startswith\("(\w+)"\)', src)
     dut = re.search(r'xdut \S+ \S+ \S+ \S+ (\S+) l=\{L_um\}u w=([0-9.]+)(\w?) ad=([0-9.]+)(\w?) as=\S+ '
@@ -180,11 +185,17 @@ def process_from_lut_generator(lut_npz, corner):
             p = t.replace("{PDK_ROOT}", mod.PDK_ROOT).replace("{devcell}", cell)
             incs.append(re.sub(rf"__{re.escape(corner)}\.", "__{corner}.", p))
         op_probe = probe.group(1).replace("xdut", "{inst}").replace("{devcell}", cell) + "[{param}]"
-        models[kind] = {"subckt": subckt, "includes": incs, "op_probe": op_probe}
+        models[kind] = {"subckt": subckt, "includes": incs, "op_probe": op_probe, "polarity": polarity[kind]}
     return {"lut_npz": lut_npz, "ngspice_exe": mod.NGSPICE_EXE, "models": models,
             "diffusion": {"ad_per_w_m": ad0 / w0, "pd_extra_m": pd0 - w0},
             "lut_reference_width_m": w0,
             "provenance": f"LUT 생성기 {os.path.relpath(LUT_GENERATOR, SKILL_DIR)} 공개 상수 + DUT/include/probe 줄"}
+
+
+def _sha256_file(path):
+    import hashlib
+    with open(path, "rb") as f:
+        return hashlib.sha256(f.read()).hexdigest()
 
 
 def legacy_constant(module_file, name):
@@ -372,7 +383,8 @@ def convert(dump, w_source, isrc, testbench, topology_path=None, instance_path=N
         else:
             for o in outs:
                 passives.append({"name": f"LOAD_{o}", "kind": "capacitor", "terminals": [o, ref_net], "value": cl,
-                                 "value_basis": basis})
+                                 "value_basis": basis,
+                                 "not_in_topology_reason": f"topology 에 출력 부하 C 가 없어 어댑터가 {basis} 로 넣은 부하"})
 
     # 예측 metric / 제약
     mdecl = topo.get("sizing_roles", {}).get("metrics") or {}
@@ -432,6 +444,7 @@ def convert(dump, w_source, isrc, testbench, topology_path=None, instance_path=N
         "acceptance": {"constraints": cons, "not_measurable": not_meas},
         "testbench": testbench,
         "judge": {},
+        "topology": {"path": topo_p, "sha256": _sha256_file(topo_p)},
         "provenance": {"adapter": "legacy_adapter.py", "engine": "legacy (skills/analog-gmid-design/legacy)",
                        "w_source": w_source, "isrc": isrc, "topology": topo_p, "lut_npz": lut_p,
                        "metrics_unmapped": unmapped, "warnings": warnings, "blockers": blockers,
