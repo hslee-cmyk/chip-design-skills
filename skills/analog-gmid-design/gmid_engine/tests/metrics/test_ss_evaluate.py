@@ -1,5 +1,5 @@
-"""`ss_evaluate`(봉인 스냅샷 -> ss_dev -> metrics_ss -> metrics_dc) -- metrics CONTRACT 7.6 (+ 7.7 S-6·S-10·S-11·S-12·S-13,
-7.9 Q2·Q4·Q5).
+"""`ss_evaluate`(봉인 스냅샷 -> ss_dev -> metrics_ss -> metrics_dc) -- metrics CONTRACT 7.6 (+ 7.7 S-6·S-10, 접합 S-11~S-13,
+DEC-92 수동 θ S-14~S-16, 7.9 Q2·Q4·Q5).
 
 회로: CS 증폭기 M1 nmos (out, in, gnd) + 저항 부하 R1 (vdd, out, 값 = θ resistance) + CL (out, gnd, 값 = spec 1 pF).
 DC 점은 실제 sizing 경로(build_kernel_context -> size_and_seal, toy LUT r6)로 만든다. 봉인 7 판정 결과와 무관하게 같은 점을 쓰려고
@@ -73,13 +73,17 @@ def _topo(cl_engine=False):
                     passives=[("R1", "resistor", "vdd", "out"), ("CL", "capacitor", "out", "gnd")], rails=("vdd", "gnd"))
 
 
-def theta(i=I0, r=R0, vgs=VGS0, l1=L0):
+def theta(i=I0, r=R0, vgs=VGS0, l1=L0, cl=None):
+    """cl: [r5] engine CL 의 θ capacitance 값(None 이면 성분 없음)."""
     vout = 1.8 - i * r
-    return {("L", "M1"): l1, ("ln_idu", "M1"): lut_ln_idu("nmos", vgs, vout, 0.0),
-            ("current", "R1"): i, ("resistance", "R1"): r}
+    th = {("L", "M1"): l1, ("ln_idu", "M1"): lut_ln_idu("nmos", vgs, vout, 0.0),
+          ("current", "R1"): i, ("resistance", "R1"): r}
+    if cl is not None:
+        th[("capacitance", "CL")] = cl
+    return th
 
 
-def build(tmp, cl_engine=False, cons=CONS):
+def build(tmp, cl_engine=False, cons=CONS, th=None):
     """(spec, ctx, ev, junction) -- spec 로더 -> dc_inputs_from_spec -> build_s1 -> build_kernel_context -> size_and_seal,
     접합 묶음은 S0 당 1회 from_decls(toy 선언, ctx.lut.memo.lut)."""
     from gmid_engine.graph import build_s1
@@ -88,7 +92,7 @@ def build(tmp, cl_engine=False, cons=CONS):
     inputs = dc_inputs_from_spec(spec)
     lut = load_lut_v2(tmp / "lut")
     ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs, lut_access(lut))
-    ev = size_and_seal(ctx, theta())
+    ev = size_and_seal(ctx, theta() if th is None else th)
     return spec, ctx, ev, toy_junction(tmp / "junction", ctx.lut.memo.lut)
 
 
@@ -254,29 +258,94 @@ def test_theta_checked(base):
         ss_evaluate(sealed, ctx, th, spec.constraints, junction=js)
 
 
-@pytest.mark.parametrize("pt", [(("CL", 2e-12),), (("M1", 1.0),), (("nope", 1.0),), (("R1", 5e4),)],
-                         ids=["spec_valued", "not_passive", "unknown", "theta_resistance_too"])
-def test_s10_passive_theta_conflicts_rejected(base, pt):
-    """S-10: passive_theta 가 spec 값 있는 소자·S1 수동소자 아닌 이름·θ resistance 와 겹침 -> ValueError."""
+def test_s10_passive_theta_argument_removed(base):
+    """S-10 [r5]: passive_theta 인자 삭제 -- 6번째 위치 인자·passive_theta 키워드 모두 TypeError(junction 을 바르게 줘도,
+    블록 호출 전)."""
     spec, ctx, _, sealed, _, js = base
+    for b in BLOCKS:
+        b.reset_stats()
+    with pytest.raises(TypeError):
+        ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), (), junction=js)
+    with pytest.raises(TypeError):
+        ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), passive_theta=(("CL", 1e-12),), junction=js)
+    assert all(b.stats().calls == 0 for b in BLOCKS)
+
+
+@pytest.mark.parametrize("case", ["spec_valued", "not_passive", "unknown", "theta_resistance_too", "rule_and_theta"])
+def test_passive_value_two_sources_or_non_passive_rejected(base, case):
+    """7.6 [r5]: passive_values 의 출처(spec 값 ∪ θ resistance ∪ θ capacitance·ss_resistance ∪ 구조 규칙 값)에서 이름이 S1
+    수동소자가 아니거나 같은 소자 값이 두 출처면 ValueError. 정상 경로(build_kernel_context)는 이런 스키마를 만들지 않으므로
+    KernelContext 의 schema 를 손으로 바꿔 계약 위반 표지를 직접 만든다(θ 는 그 스키마의 components 에 맞춘다)."""
+    from gmid_engine.sizing import ZeroCancel
+    spec, ctx, _, sealed, _, js = base
+    s = ctx.schema
+    th = theta()
+    zc = s.zero_cancel
+    extra = {"spec_valued": ("capacitance", "CL"),           # CL 은 spec 값 1 pF -> 두 출처
+             "not_passive": ("capacitance", "M1"),           # MOS
+             "unknown": ("capacitance", "nope"),             # S1 에 없는 이름
+             "theta_resistance_too": ("ss_resistance", "R1"),  # R1 은 이미 θ resistance
+             "rule_and_theta": None}[case]
+    comps = s.components
+    if extra is not None:
+        comps = tuple(sorted(comps + (extra,)))
+        th[extra] = 1e-12 if extra[0] == "capacitance" else 5e4
+    else:                                                    # 구조 규칙 값(R1 = 1/gm(M1))과 θ resistance R1 -> 두 출처
+        zc = (ZeroCancel("R1", "out", ("in",), ("M1",), None),)
+    bad = dataclasses.replace(ctx, schema=dataclasses.replace(s, components=comps, zero_cancel=zc))
     with pytest.raises(ValueError):
-        ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), pt, junction=js)
+        ss_evaluate(sealed, bad, th, spec.constraints, ("vdd",), junction=js)
 
 
-def test_passive_theta_supplies_engine_value(tmp_path):
-    """Q5: spec 값이 engine 인 수동소자(CL) -- passive_theta 가 없으면 소신호 요청 passive_value_undeclared,
-    주면 그 값으로 평가(같은 CL 1 pF 를 spec 에 둔 경우와 값이 같다)."""
-    spec, ctx, ev, js = build(tmp_path / "e", cl_engine=True)
+def test_s14_engine_capacitor_value_from_theta(tmp_path):
+    """S-14 [r5] (DEC-92): spec mode engine 커패시터 CL 은 θ capacitance -- θ 값으로 소신호 요청이 값을 갖고, 같은 값을 spec
+    에 선언한 회로와 metric 값이 같다(비트). (θ 값이 소신호 회로에 실제로 들어가는지는 아래 영점 상쇄 회로의 ugf 폐형식이 잰다.)"""
+    spec, ctx, ev, js = build(tmp_path / "e", cl_engine=True, th=theta(cl=1e-12))
+    assert ("capacitance", "CL") in ctx.schema.components
     sealed = SealedSnapshot(ev.snapshot, ev.report)
-    r0 = ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), junction=js)
-    for _, r in r0.ss.entries:
-        assert r.value is None and [u.code for u in r.undefined] == ["passive_value_undeclared"]
-        assert dict(r.undefined[0].detail)["elements"] == ("CL",)
-    assert bundle_map(r0.dc)["power_dc_w"].value is not None
-    r1 = ss_evaluate(sealed, ctx, theta(), spec.constraints, ("vdd",), (("CL", 1e-12),), junction=js)
+    r1 = ss_evaluate(sealed, ctx, theta(cl=1e-12), spec.constraints, ("vdd",), junction=js)
+    for _, r in r1.ss.entries:
+        assert r.value is not None and r.undefined == ()
     spec2, ctx2, ev2, js2 = build(tmp_path / "v", cl_engine=False)
     r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx2, theta(), spec2.constraints, ("vdd",), junction=js2)
     assert [(q.metric, r.value) for q, r in r1.ss.entries] == [(q.metric, r.value) for q, r in r2.ss.entries]
+    assert [(q.metric, r.value) for q, r in r1.dc.entries] == [(q.metric, r.value) for q, r in r2.dc.entries]
+
+
+def _spec_with_pending(tmp, name, topo, elements, pending, cons):
+    """spec_json 에 element_values.<이름> = {"pending": ID} 표지를 넣어 로더로 읽는다(SPEC_CONTRACT 결정 대기 표지)."""
+    import json
+    from gmid_engine.authoring import load_sizing_spec
+    from gmid_engine.metrics import metric_catalog
+    from .conftest import spec_json, topo_only
+    tmp.mkdir(parents=True, exist_ok=True)
+    td = topo_only(tmp, topo)
+    d = spec_json(td, SUP, elements, (), cons)
+    for el, decision in pending:
+        d["human"]["element_values"][el] = {"pending": decision}
+    p = tmp / (name + ".sizing_spec.json")
+    p.write_text(json.dumps(d, indent=1), encoding="utf-8")
+    return td, load_sizing_spec(str(p), td, metric_catalog())
+
+
+def test_pending_capacitor_stays_missing(tmp_path):
+    """sizing 1.2·metrics 7.6 [r5]: mode pending 커패시터는 engine_elements 에 들지 않아 θ 도 아니고 -> 소신호 요청 전부
+    passive_value_undeclared(elements = (CL,)), dc 묶음은 값."""
+    from gmid_engine.graph import build_s1
+    td, spec = _spec_with_pending(tmp_path / "p", "sse_cs_res_p", _topo(True) | {"topology_name": "sse_cs_res_p"},
+                                  (("R1", "resistor", None),), (("CL", "SP-9"),), CONS)
+    inputs = dc_inputs_from_spec(spec)
+    assert "CL" not in inputs.engine_elements
+    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs,
+                               lut_access(load_lut_v2(tmp_path / "lut")))
+    assert not any(k == "CL" for _, k in ctx.schema.components)
+    js = toy_junction(tmp_path / "junction", ctx.lut.memo.lut)
+    ev = size_and_seal(ctx, theta())
+    r = ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, theta(), spec.constraints, ("vdd",), junction=js)
+    for _, x in r.ss.entries:
+        assert x.value is None and [u.code for u in x.undefined] == ["passive_value_undeclared"]
+        assert dict(x.undefined[0].detail)["elements"] == ("CL",)
+    assert bundle_map(r.dc)["power_dc_w"].value is not None
 
 
 def test_s6_lineage_reuse_zero_compute(base):
@@ -390,3 +459,197 @@ def test_sky130_decls_ss_dev_junction_matches_reference(base):
     cdb_t, _ = ref_caps(tj.sky_ref_params("nmos"), geo, op.vds + op.vsb, op.vsb, 37.0)
     got_t = r_t.snapshot.value("device", "M1", "ss_dev").cdb
     assert rel_close(got_t, cdb_t, JUNCTION_RTOL) and rel_close(got_t, 1.6234719737286454e-14, JUNCTION_RTOL)
+
+
+# ---------------------------------------------------------------------------
+# [r5] DEC-92: θ 수동 성분·영점 상쇄 구조 규칙 값이 소신호 회로에 들어간다 (S-15·S-16 + 폐형식)
+# ---------------------------------------------------------------------------
+# 회로: 위 CS(M1, R1 θ resistance, CL spec 1 pF) + 보상망.
+#  "cell":   Rz(out, m)–Cc(m, in), 둘 다 engine. 망 경계 {out, in}, end out, far (in,), M1 drain 쪽 셀 -> 구조 규칙
+#            (sizing 4.4) Rz = 1/gm(M1), θ = capacitance Cc.
+#  "nocell": Rz(out, m)–Cz(m, gnd), 둘 다 engine. far (gnd,) -> no_cs_cell -> θ ss_resistance Rz, θ capacitance Cz.
+#  "cell_decl": "cell" 과 같은 topology, Rz 를 spec 값으로 선언(S-15 대조용).
+# 폐형식(포트 전달 뷰: in 1 V 구동·고정, gnd·vdd 교류접지, m 은 소거): Yz = sC/(1 + sCR),
+#   H(s) = −(gm − s·cgd − Yz_in)/(gds + 1/R1 + s(CL + cgd + cdb) + Yz_in + Yz_gnd)
+#   ("cell" 은 Cc 가 in 쪽이라 Yz_in = Yz, Yz_gnd = 0 / "nocell" 은 Yz_in = 0, Yz_gnd = Yz). cdb = 접합(d = out, b = gnd, 7.2·8절
+#   독립 식 oracle_junction), csb·cgs·cgb 는 고정 넷 사이, gmb 는 vbs = 0 이라 들지 않는다. ugf = |H| = 1 교차(3.10) -- brentq.
+
+ZC_CONS = (
+    ("gain_ss_db", ">=", 0.0, None),
+    ("ugf_ss_hz", ">=", 1.0, None),
+    ("power_dc_w", "<=", 1.0, None),
+)
+
+
+def zc_topo(case):
+    pas = [("R1", "resistor", "vdd", "out"), ("CL", "capacitor", "out", "gnd")]
+    if case in ("cell", "cell_decl"):
+        pas += [("Rz", "resistor", "out", "m"), ("Cc", "capacitor", "m", "in")]
+    else:
+        pas += [("Rz", "resistor", "out", "m"), ("Cz", "capacitor", "m", "gnd")]
+    return topo_doc("sse_zc_" + case, mos=[("M1", "nmos", "out", "in", "gnd", "gnd")], passives=pas,
+                    rails=("vdd", "gnd"))
+
+
+def zc_theta(ctx, c=1e-12, rz=None, **kw):
+    """θ: 위 CS θ + 수동 성분. 전류 free 원소는 스키마에서 고른다(R1·M1 직렬 -- 값 같음)."""
+    base_th = theta(**kw)
+    i = base_th.pop(("current", "R1"))
+    th = dict(base_th)
+    for t, k in ctx.schema.components:
+        if t == "current":
+            th[(t, k)] = i
+        elif t == "capacitance":
+            th[(t, k)] = c
+        elif t == "ss_resistance":
+            th[(t, k)] = rz
+    return th
+
+
+def zc_build(tmp, case, rz_decl=None):
+    """(spec, ctx, junction) -- 접합 묶음은 S0 당 1회 from_decls(toy 선언, ctx.lut.memo.lut)(8.5)."""
+    from gmid_engine.graph import build_s1
+    cap = "Cc" if case != "nocell" else "Cz"
+    els = (("R1", "resistor", None), ("CL", "capacitor", 1e-12), (cap, "capacitor", None),
+           ("Rz", "resistor", rz_decl))
+    td, spec = load_case(tmp / "case", zc_topo(case), SUP, els, (), ZC_CONS)
+    inputs = dc_inputs_from_spec(spec)
+    ctx = build_kernel_context(build_s1(td, dict(inputs.supplies_v)), inputs,
+                               lut_access(load_lut_v2(tmp / "lut")))
+    return spec, ctx, toy_junction(tmp / "junction", ctx.lut.memo.lut)
+
+
+def zc_ugf(snap, case, c, rz, r1=R0, cl=1e-12):
+    """폐형식 ugf(Hz). 소신호 값은 봉인 dc_op 에서 독립 oracle(npz 해석식·8.2 접합 식)로."""
+    from scipy.optimize import brentq
+    op = snap.value("device", "M1", "dc_op")
+    ss = oracle_ss(op, "slice", "lut_cgs_cgb")
+    cdb, _ = oracle_junction(op)
+    gm, gds, cgd = ss["gm"], ss["gds"], ss["cgd"]
+
+    def h(w):
+        s = 1j * w
+        yz = s * c / (1.0 + s * c * rz)
+        y_in, y_gnd = (yz, 0.0) if case == "cell" else (0.0, yz)
+        return -(gm - s * cgd - y_in) / (gds + 1.0 / r1 + s * (cl + cgd + cdb) + y_in + y_gnd)
+
+    assert abs(h(1e-3)) > 1.0
+    wu = brentq(lambda w: abs(h(w)) - 1.0, 1.0, 1e13, xtol=1e-12, rtol=1e-15, maxiter=500)
+    return wu / (2.0 * math.pi), gm
+
+
+@pytest.fixture(scope="module")
+def zc_cell(tmp_path_factory):
+    spec, ctx, js = zc_build(tmp_path_factory.mktemp("zc_cell"), "cell")
+    th = zc_theta(ctx)
+    ev = size_and_seal(ctx, th)
+    res = ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, th, spec.constraints, ("vdd",), junction=js)
+    return spec, ctx, th, res, js
+
+
+@pytest.fixture(scope="module")
+def zc_nocell(tmp_path_factory):
+    spec, ctx, js = zc_build(tmp_path_factory.mktemp("zc_nocell"), "nocell")
+    th = zc_theta(ctx, rz=1e4)
+    ev = size_and_seal(ctx, th)
+    res = ss_evaluate(SealedSnapshot(ev.snapshot, ev.report), ctx, th, spec.constraints, ("vdd",), junction=js)
+    return spec, ctx, th, res, js
+
+
+def test_zc_schema_premise(zc_cell, zc_nocell):
+    """전제(sizing 4.4 -- 독립 판정은 tests/sizing/test_theta_schema): cell 은 Rz 가 구조 규칙(θ 아님), nocell 은 θ 폴백."""
+    from gmid_engine.sizing import ZC_NO_CELL
+    ctx = zc_cell[1]
+    (z,) = ctx.schema.zero_cancel
+    assert (z.resistor, z.end_net, z.far_nets, z.cells, z.reason) == ("Rz", "out", ("in",), ("M1",), None)
+    assert ("capacitance", "Cc") in ctx.schema.components
+    assert not any(k == "Rz" for _, k in ctx.schema.components)
+    ctx2 = zc_nocell[1]
+    (z2,) = ctx2.schema.zero_cancel
+    assert z2.reason == ZC_NO_CELL
+    assert {("capacitance", "Cz"), ("ss_resistance", "Rz")} <= set(ctx2.schema.components)
+
+
+def test_zc_rule_value_enters_small_signal(zc_cell):
+    """7.6 [r5]: 구조 규칙 값 Rz = 1/Σ_{c∈cells} gm_c(gm = ss_dev.gm) 와 θ capacitance Cc 가 소신호 회로에 든다 -- ugf 가
+    그 값으로 세운 폐형식과 같다. 다른 Rz(≈0·10·1/10 배)로 세운 폐형식과는 다르다(값이 실제로 쓰였다는 음성 대조)."""
+    res = zc_cell[3]
+    m = bundle_map(res.ss)
+    assert m["ugf_ss_hz"].undefined == ()
+    gm_ss = res.snapshot.value("device", "M1", "ss_dev").gm
+    ugf, gm = zc_ugf(res.snapshot, "cell", 1e-12, 1.0 / gm_ss)
+    assert rel_close(gm, gm_ss, 1e-12)
+    assert rel_close(m["ugf_ss_hz"].value, ugf, 1e-7), (m["ugf_ss_hz"].value, ugf)
+    for k in (1e-9, 10.0, 0.1):
+        other, _ = zc_ugf(res.snapshot, "cell", 1e-12, k / gm_ss)
+        assert not rel_close(m["ugf_ss_hz"].value, other, 1e-5)
+
+
+def test_zc_fallback_theta_enters_small_signal(zc_nocell):
+    """θ ss_resistance Rz·θ capacitance Cz 가 소신호 회로에 든다 -- ugf 폐형식(Rz–Cz 를 out–gnd 에)."""
+    th, res = zc_nocell[2], zc_nocell[3]
+    ugf, _ = zc_ugf(res.snapshot, "nocell", th[("capacitance", "Cz")], th[("ss_resistance", "Rz")])
+    assert rel_close(bundle_map(res.ss)["ugf_ss_hz"].value, ugf, 1e-7)
+
+
+def test_s15_rule_equals_spec_declared_value(zc_cell, tmp_path):
+    """S-15 (DEC-92): 구조 규칙 Rz = 1/gm(M1) 회로의 metric 값 == 같은 값을 spec 에 선언한 회로(Rz value)의 metric 값(비트)."""
+    res = zc_cell[3]
+    op = res.snapshot.value("device", "M1", "dc_op")
+    rz = 1.0 / (op.gm_id * op.current)                  # 7.2 gm = gm_id·current
+    spec2, ctx2, js2 = zc_build(tmp_path, "cell_decl", rz_decl=rz)
+    assert ctx2.schema.zero_cancel == () and not any(k == "Rz" for _, k in ctx2.schema.components)
+    th2 = zc_theta(ctx2)
+    ev2 = size_and_seal(ctx2, th2)
+    assert ev2.snapshot.column("node", "dc_v") == res.snapshot.column("node", "dc_v")
+    r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx2, th2, spec2.constraints, ("vdd",), junction=js2)
+    for a, b in ((res.ss, r2.ss), (res.dc, r2.dc)):
+        assert [(q.metric, x.value) for q, x in a.entries] == [(q.metric, x.value) for q, x in b.entries]
+
+
+def _dc_blocks():
+    from gmid_engine import sizing as S
+    return (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
+            S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
+            S.dc_seal_report)
+
+
+@pytest.mark.parametrize("which", ["cell", "nocell_c", "nocell_r"])
+def test_s16_passive_theta_fd_reuses_dc_and_ss_dev(zc_cell, zc_nocell, which):
+    """S-16 (DEC-92) / 7.6 [r5] / sizing 7절 r5: θ capacitance·ss_resistance 만 바꾼 FD(parent = lineage, 같은 junction 묶음)
+    -> dc 블록 computes 0, ss_dev reuse(computes 0), metrics_ss·metrics_dc computes 1, recomputes_same_input 0,
+    gain_ss_db 수치상 불변(S-16: 비트 동일 아님 -- ss_resistance 만 바꾼 경우 1 ulp 차 허용), ugf 는 새 θ 로 세운 폐형식과 같다."""
+    spec, ctx, th, res, js = zc_cell if which == "cell" else zc_nocell
+    th2 = dict(th)
+    if which in ("cell", "nocell_c"):
+        key = ("capacitance", "Cc" if which == "cell" else "Cz")
+    else:
+        key = ("ss_resistance", "Rz")
+    th2[key] = th[key] * 1.1
+    dc = _dc_blocks()
+    for b in dc + BLOCKS:
+        b.reset_stats()
+    ev2 = size_and_seal(ctx, th2, parent=res.lineage)
+    assert all(b.stats().computes == 0 for b in dc), {b.name: b.stats().computes for b in dc}
+    r2 = ss_evaluate(SealedSnapshot(ev2.snapshot, ev2.report), ctx, th2, spec.constraints, ("vdd",), junction=js)
+    st = {b.name: b.stats() for b in BLOCKS}
+    assert (st[ss_dev.name].computes, st[ss_dev.name].reuses) == (0, 1)
+    assert st[metrics_ss.name].computes == 1 and st[metrics_dc.name].computes == 1
+    assert all(s.recomputes_same_input == 0 for s in st.values())
+    assert all(b.stats().computes == 0 for b in dc)
+    m1, m2 = bundle_map(res.ss), bundle_map(r2.ss)
+    assert rel_close(m2["gain_ss_db"].value, m1["gain_ss_db"].value, 1e-13)
+    if which == "cell":
+        exp, _ = zc_ugf(r2.snapshot, "cell", th2[key], 1.0 / r2.snapshot.value("device", "M1", "ss_dev").gm)
+    elif which == "nocell_c":
+        exp, _ = zc_ugf(r2.snapshot, "nocell", th2[key], th2[("ss_resistance", "Rz")])
+    else:
+        exp, _ = zc_ugf(r2.snapshot, "nocell", th2[("capacitance", "Cz")], th2[key])
+    assert rel_close(m2["ugf_ss_hz"].value, exp, 1e-7)
+    assert not rel_close(m2["ugf_ss_hz"].value, m1["ugf_ss_hz"].value, 1e-9)
+    # 같은 θ' 를 lineage 에서 다시 -> 세 블록 모두 reuse
+    for b in BLOCKS:
+        b.reset_stats()
+    again = ss_evaluate(r2.lineage.sealed, ctx, th2, spec.constraints, ("vdd",), junction=js)
+    assert again.snapshot is r2.snapshot
+    assert all(b.stats().computes == 0 for b in BLOCKS)
