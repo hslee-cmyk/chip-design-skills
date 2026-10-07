@@ -178,7 +178,8 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
     inputs2 = type(inputs)(tuple(sorted((sn[k], v) for k, v in inputs.supplies_v)), inputs.input_dc_v,
                            tuple((sn[k], v) for k, v in inputs.node_targets),
                            tuple(sorted((se.get(k, k), v) for k, v in inputs.element_values)),
-                           tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending)
+                           tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending,
+                           tuple(sorted(se[k] for k in inputs.engine_elements)))          # [r5] 7번째 칸도 σ 로
     ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs2.supplies_v)), inputs2, toy_access)
     cand = _tie_candidates(ctx)
     w1 = {sigma[m] for m, c in ctx.base.column("device", "dc_coord") if c.role == "writer"}
@@ -194,6 +195,15 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
     assert len(w1) == len(w2) and len(k1) == len(k2)
     tiers = lambda c: sorted(w.tier for _, w in c.base.column("node", "dc_writer"))   # noqa: E731
     assert tiers(ctx) == tiers(ctx2)
+    # [r5] 수동소자 θ 성분과 영점 상쇄 판정(연결만으로 정해짐 -- 동률 기록 없음)은 σ 를 그대로 따른다(9절 + 4.4)
+    pk = ("capacitance", "ss_resistance")
+    assert {(t, sigma[k]) for t, k in ctx.schema.components if t in pk} == {
+        (t, k) for t, k in ctx2.schema.components if t in pk}
+    zc1 = {(sigma[z.resistor], sigma[z.end_net] if z.end_net is not None else None,
+            tuple(sorted(sigma[n] for n in z.far_nets)), tuple(sorted(sigma[c] for c in z.cells)), z.reason)
+           for z in ctx.schema.zero_cancel}
+    zc2 = {(z.resistor, z.end_net, tuple(z.far_nets), tuple(z.cells), z.reason) for z in ctx2.schema.zero_cancel}
+    assert zc1 == zc2
 
 
 def test_block_is_theta_free_and_reused(ctx_c):

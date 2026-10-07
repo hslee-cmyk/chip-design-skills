@@ -10,6 +10,8 @@
 * 블록 순서와 추가 인자(블록이 실제로 읽는 θ 성분만 -- 한 성분을 움직이면 그 성분을 읽는 블록과 하류만 다시 계산):
   `dc_currents`(θ current) -> `dc_lengths`(θ L) -> `dc_columns`(θ ln_idu·y·resistance, 고정 노드값, 선언 저항, LUT) ->
   `dc_widths`(LUT) -> `seal_dc`.
+  [DEC-92] θ `capacitance`·`ss_resistance`(DC 전류가 흐르지 않는 수동소자)는 어느 DC 블록에도 넘기지 않는다 -- 그 성분만
+  바꾼 θ 는 parent 에서 DC·봉인 블록 계산 0(소신호 값은 metrics `ss_evaluate` 가 θ 에서 읽는다).
 * 실패: 후보 실패 = `SealViolationError`·`NonconvergentError`(core `CANDIDATE_FAILURE_CLASSES`) -- 탐색 층이 이름으로 잡아 S3
   실패 레코드로 남긴다. 그 밖(ValueError·TypeError = 호출 계약 위반)은 잡지 않는다.
 """
