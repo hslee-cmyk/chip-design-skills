@@ -59,6 +59,9 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 
 ### 1.3 `lut_provenance(manifest_path, cap_npz_path, spec) -> LutProvenance`
 - 슬라이스마다 파일 sha256 을 다시 재서 manifest 값과 대조. 폭 키 `w_key = round(W / grid)`(int).
+  [r3] 폭 키 허용도 대칭이다: |W/grid − w_key| ≤ `2·ulp(W/grid)` 이면 위·아래 어느 쪽으로 벗어나도 그 키(`abs` 판정). W 에는 격자 범위
+  검사가 없으므로(폭 집합 = 슬라이스 집합) 경계 순서 문제가 없다. `widths()` 의 최소 finger 폭 필터는 정수 키 × grid 와 선언값의 비교라
+  ulp 허용 대상이 아니다.
 - `slices` 는 (kind, w_key) 정렬 `SliceSource` tuple. `conditions`·`cap_conditions` 는 옛 `lut_conditions_from_npz` 결과의
   키 정렬 쌍 tuple: 기록 있음 → `(("corner", str), ("recorded", True), ("temp_c", float))`, 없음 → `(("note", str), ("recorded", False))`.
 - 실패(`SchemaRejectedError`, reason): `lut_manifest_missing`, `lut_device_undeclared`(device_kinds 밖), `lut_slice_missing`,
@@ -133,7 +136,9 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
 - 조회 L 은 L 축 격자의 앵커 a 하나와 `|L − a| ≤ math.ulp(a)` 이어야 한다(폭 키와 같은 원리 -- 근접 앵커 대체 없음). 그 앵커 값이 L 로
   쓰인다(`IDu = ID·a/w_m`, `id_a = IDu·W/a`). op_point·gmb·caps·gm_id_curve 의 memo 키에는 앵커 index 가 들어가 1 ulp 이내 두 입력은
   같은 키다(vgs_for_gm_id·gm_id_for_target 은 입력 float 를 키로 쓴다 -- 값은 같다).
-- 실패: L 이 격자 범위 밖 → `lut_axis_out_of_range`(axis "L"), 범위 안이지만 앵커가 아님 → `SealViolationError` reason **`lut_l_not_anchor`**,
+- [r3] **1 ulp 허용은 대칭이다**: 앵커 일치 검사를 범위 검사보다 **먼저** 한다. 그래서 격자 양끝 앵커도 `|L − a| ≤ ulp(a)` 이면
+  (격자 밖 쪽으로 1 ulp 벗어난 L 포함) 그 앵커로 받는다. 예: `L = L_max + ulp(L_max)` → 마지막 앵커, `L = L_min − ulp(L_min)` → 첫 앵커.
+- 실패(앵커 일치가 없을 때만): 1 ulp 를 넘어 격자 범위 밖 → `lut_axis_out_of_range`(axis "L"), 범위 안이지만 앵커가 아님 → `SealViolationError` reason **`lut_l_not_anchor`**,
   detail `value, below, above`(양옆 앵커) + context(kind·w_key; 용량은 kind·table "cap"; tol_V 는 kind·table "tol_v"·w_key).
 - 앵커 위 조회 값은 r1(L 보간) 과 같다(L 가중치가 (1, 0) 인 같은 식).
 
