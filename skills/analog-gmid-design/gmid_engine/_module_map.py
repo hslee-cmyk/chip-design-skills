@@ -183,7 +183,7 @@ MODULES = (
     ModuleEntry("authoring/linked_files.py", "entry", "check_linked_files",
                 "linked_topology_files 비어 있지 않으면 거부", ("DEC-76",)),
     ModuleEntry("authoring/name_uniqueness.py", "entry", "check_name_uniqueness",
-                "소자·수동소자·이상원 이름 유일성(IC3)", ("IC3",)),
+                "소자·수동소자·이상원 이름 유일성(IC3) + 넷 이름 대소문자 충돌", ("IC3", "G4-09")),
     ModuleEntry("authoring/topology_schema.py", "entry", "check_topology_schema",
                 "최상위 키 화이트리스트·schema_version·topology_name", ("MOD2", "IC4")),
     ModuleEntry("authoring/devices.py", "entry", "device_declaration",
