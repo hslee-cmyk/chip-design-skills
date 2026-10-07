@@ -7,6 +7,7 @@
 from .area import area_search
 from .catalog import metric_catalog
 from .crossing import find_crossing
+from .dc_limit import solve_dc_limit
 from .evaluate import metric_value
 from .loop_analysis import analyze_loop
 from .mna_build import build_mna
@@ -14,18 +15,23 @@ from .mna_solve import solve_responses
 from .mna_types import (
     AreaSearch,
     Crossing,
+    DcLimit,
     Factor,
     LoopAnalysis,
+    MetricResult,
     MnaSystem,
     OutputResistance,
     PointSolution,
+    ResponseRatio,
     Roots,
     SupplyCurrents,
     SystemResponse,
+    Undefined,
 )
 from .omega_grid import omega_grid
 from .pencil_roots import pencil_roots
 from .phase_lag import phase_lag
+from .ratio import response_ratio
 from .point_solve import solve_point
 from .records import (
     Capacitor,
@@ -54,11 +60,13 @@ __all__ = (
     "ChannelCurrent",
     "Crossing",
     "CurrentSource",
+    "DcLimit",
     "DcOperatingPoint",
     "Excitation",
     "Factor",
     "GateArea",
     "LoopAnalysis",
+    "MetricResult",
     "MnaSystem",
     "MosSmallSignal",
     "OutputResistance",
@@ -67,12 +75,14 @@ __all__ = (
     "RailBias",
     "RegisteredMetric",
     "Resistor",
+    "ResponseRatio",
     "Roots",
     "Sense",
     "SmallSignalCircuit",
     "StampSet",
     "SupplyCurrents",
     "SystemResponse",
+    "Undefined",
     "analyze_loop",
     "area_search",
     "build_mna",
@@ -85,6 +95,8 @@ __all__ = (
     "output_resistance",
     "pencil_roots",
     "phase_lag",
+    "response_ratio",
+    "solve_dc_limit",
     "solve_point",
     "solve_responses",
     "supply_currents",

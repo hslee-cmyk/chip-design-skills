@@ -4,53 +4,38 @@
 
 * 계마다 극점·영점(`pencil_roots`)을 한 번 구하고, 모든 계의 근으로 공유 ω 격자(`omega_grid`)를 만든다
   (루프 인수들이 같은 격자 위에서 곱해진다).
-* ω = 0: G 를 LU 분해 1회 해서 모든 여기 열(구동 열 + 전류 주입 열)을 한 번에 푼다(실수 해).
+* ω = 0: `solve_dc_limit` -- LU 1회로 모든 여기 열(구동 열 + 전류 주입 열), 용량 전용 노드는 전하 보존 극한.
 * ω > 0: 격자 전체를 (k, n, n) 묶음 `G + jωC` 로 만들어 `numpy.linalg.solve` 한 번에 푼다(재스탬프 없음).
-* 특이: DC 경로 없는 노드(`dc_floating`)는 DC 풀이 전에 거부, ω 묶음 풀이가 특이면 그 ω 를 찾아 함께 거부.
+  묶음 풀이가 특이면 점마다 `solve_point` 로 다시 풀어 특이한 ω 만 NaN + 사유로 남긴다.
+* 예외를 던지지 않는다: 구조 결함·특이·극한 발산은 값 NaN + `undefined`.
 """
 import numpy
-import scipy.linalg
 
-from gmid_engine.core import StructureUnresolvedError
-
+from .dc_limit import solve_dc_limit
 from .mna_types import MnaSystem, SystemResponse
 from .omega_grid import omega_grid
 from .pencil_roots import pencil_roots
 from .point_solve import solve_point
 
 
-def _dc_values(system):
-    n = system.G.shape[0]
-    if n == 0:
-        return system.sense_direct.astype(float)
-    if system.dc_floating:
-        raise StructureUnresolvedError(
-            detail={"reason": "dc_floating_node", "nodes": system.dc_floating, "omega": 0.0}
-        )
-    lu, piv = scipy.linalg.lu_factor(system.G)
-    if not numpy.diag(lu).all():
-        raise StructureUnresolvedError(detail={"reason": "singular_mna", "omega": 0.0})
-    x = scipy.linalg.lu_solve((lu, piv), system.BG)
-    return system.sense_row @ x + system.sense_direct
-
-
 def _ac_values(system, omegas):
     n = system.G.shape[0]
     m = len(system.excitations)
     if not omegas.size:
-        return numpy.zeros((0, m), dtype=complex)
+        return numpy.zeros((0, m), dtype=complex), ()
+    if system.defects:
+        return numpy.full((omegas.size, m), numpy.nan, dtype=complex), ()
     if n == 0:
-        return numpy.broadcast_to(system.sense_direct.astype(complex), (omegas.size, m)).copy()
+        return numpy.broadcast_to(system.sense_direct.astype(complex), (omegas.size, m)).copy(), ()
     jw = omegas[:, None, None] * complex(0, 1)
     a = system.G[None, :, :] + jw * system.C[None, :, :]
     b = system.BG[None, :, :] + jw * system.BC[None, :, :]
     try:
         x = numpy.linalg.solve(a, b)
     except numpy.linalg.LinAlgError:
-        for omega in omegas:
-            solve_point(system, omega)
-        raise
-    return numpy.einsum("n,knm->km", system.sense_row, x) + system.sense_direct[None, :]
+        points = tuple(solve_point(system, omega) for omega in omegas)
+        return numpy.vstack([p.values[None, :] for p in points]), tuple(u for p in points for u in p.undefined)
+    return numpy.einsum("n,knm->km", system.sense_row, x) + system.sense_direct[None, :], ()
 
 
 def solve_responses(systems):
@@ -64,8 +49,10 @@ def solve_responses(systems):
     grid = numpy.array(omega_grid(roots))
     out = []
     for system, r in zip(systems, roots):
-        dc = _dc_values(system)
-        ac = _ac_values(system, grid[1:])
-        values = numpy.vstack((dc.astype(complex)[None, :], ac))
-        out.append(SystemResponse(system=system, roots=r, omegas=grid, values=values))
+        limit = solve_dc_limit(system)
+        ac, ac_undefined = _ac_values(system, grid[1:])
+        values = numpy.vstack((limit.values.astype(complex)[None, :], ac))
+        out.append(SystemResponse(
+            system=system, roots=r, omegas=grid, values=values, undefined=limit.undefined + ac_undefined,
+        ))
     return tuple(out)

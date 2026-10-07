@@ -1,6 +1,6 @@
 """루프 이득 T = 인수 곱의 격자 밖 한 점 평가 공용 helper (사용처: `crossing.py`, `phase_lag.py`).
 
-공개 함수: `product_at(factors, omega)` -- ω 한 점의 T 와 |T| 사후 오차. 같은 계를 쓰는 인수가 여럿이면 그 계는 한 번만 푼다.
+공개 함수: `product_at(factors, omega)` -- ω 한 점의 T 와 |T| 사후 오차와 정의 불가 사유. 같은 계를 쓰는 인수가 여럿이면 그 계는 한 번만 푼다.
 """
 import numpy
 
@@ -23,17 +23,20 @@ def _check(factors):
 
 
 def product_at(factors, omega):
-    """Factor tuple, ω -> (T(jω), |T| 사후 오차). 오차 = |T|·Σ e_i/|F_i|(인수 하나가 0 이면 그 인수 오차 × 나머지 곱)."""
+    """Factor tuple, ω -> (T(jω), |T| 사후 오차, 사유 tuple). 오차 = |T|·Σ e_i/|F_i|(인수 하나가 0 이면 그 인수 오차 ×
+    나머지 곱). 어느 인수 계가 그 ω 에서 정의되지 않으면(특이·결함) T 는 NaN 이고 사유 tuple 이 비어 있지 않다."""
     _check(factors)
     solved = []
     values = []
     errors = []
+    undefined = []
     for f in factors:
         system = f.response.system
         point = next((p for s, p in solved if s is system), None)
         if point is None:
             point = solve_point(system, omega)
             solved.append((system, point))
+            undefined.extend(point.undefined)
         values.append(complex(point.values[f.column]))
         errors.append(float(point.errors[f.column]))
     total = complex(numpy.prod(values))
@@ -41,4 +44,4 @@ def product_at(factors, omega):
     for i, err in enumerate(errors):
         others = numpy.prod([abs(v) for k, v in enumerate(values) if k != i])
         bound += err * others
-    return total, float(bound)
+    return total, float(bound), tuple(undefined)

@@ -5,8 +5,11 @@
 여기원 전부 교류접지(그 열의 구동 진폭 0), 출력 포트에 전류 I 를 주입한 열의 DC 관측값 / I. 추가 분해 없음 --
 `solve_responses` 의 DC 풀이(모든 열 한 번)를 읽는다. 열 조건: 전압 구동 진폭이 전부 0, 전류 주입은 관측 노드에만
 (단일 관측: pos 에 I / 차동 관측: pos 에 +I, neg 에 −I). 부호는 그대로 낸다(음수면 그대로 보고).
+DC 극한이 정의되지 않으면(용량 전용 노드 주입 등) 예외 없이 `rout_ohm=None` + `undefined`.
 """
-from .mna_types import OutputResistance, SystemResponse
+import math
+
+from .mna_types import OutputResistance, SystemResponse, Undefined
 
 
 def _injection_amp(excitation, sense):
@@ -35,4 +38,11 @@ def output_resistance(response, column):
             "output_resistance: 열 %r 은 관측 노드 전류 주입 열이 아니다(구동 진폭 0, 관측 노드에만 주입)"
             % (system.excitations[column].name,)
         )
-    return OutputResistance(column=column, rout_ss_ohm=float(response.dc[column]) / amp)
+    value = float(response.dc[column])
+    if math.isnan(value):
+        causes = tuple(u for u in response.undefined if dict(u.detail).get("column", column) == column)
+        cause = causes[0] if causes else Undefined("response", "response_not_finite", "numeric")
+        return OutputResistance(
+            column=column, rout_ohm=None, undefined=(Undefined("rout_ohm", cause.code, cause.category, cause.detail),),
+        )
+    return OutputResistance(column=column, rout_ohm=value / amp)

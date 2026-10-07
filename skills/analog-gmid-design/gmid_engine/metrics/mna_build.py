@@ -11,17 +11,14 @@
 """
 import numpy
 
-from gmid_engine.core import StructureUnresolvedError
-
-from .mna_types import MnaSystem
+from .mna_types import MnaSystem, Undefined
 from .records import Excitation, Sense, SmallSignalCircuit
 from .stamp_mos import mos_stamps
 from .stamp_two_terminal import two_terminal_stamps
 
 
-def _reject(reason, **detail):
-    detail["reason"] = reason
-    raise StructureUnresolvedError(detail=detail)
+def _reject(reason, nodes):
+    raise ValueError("build_mna: 뷰 정의 결함 %s (노드 %r)" % (reason, nodes))
 
 
 def _check_inputs(circuit, excitations, sense):
@@ -34,7 +31,7 @@ def _check_inputs(circuit, excitations, sense):
             raise TypeError("build_mna: excitations 원소는 Excitation 이어야 한다: %r" % (e,))
     names = tuple(e.name for e in excitations)
     if len(set(names)) != len(names):
-        _reject("excitation_name_duplicate", columns=names)
+        _reject("excitation_name_duplicate", names)
     if not isinstance(sense, Sense):
         raise TypeError("build_mna: sense 는 Sense 여야 한다")
 
@@ -42,16 +39,17 @@ def _check_inputs(circuit, excitations, sense):
 def build_mna(circuit, excitations, sense):
     """`SmallSignalCircuit` + 여기 열 tuple + `Sense` -> `MnaSystem`. 소자마다 스탬프 함수를 정확히 한 번 부른다.
 
-    거부(`StructureUnresolvedError`, detail `reason`): 여기 열 이름 중복, 구동 노드가 교류접지와 겹침,
-    전류 주입 노드가 고정 노드, 관측 노드가 구동되지 않는 고정 노드뿐, 고립 미지수 노드(미지수 블록에서 G·C 의 그 행이
-    모두 0 = KCL 식 없음, 또는 그 열이 모두 0 = 미지수가 어느 식에도 없음 -- 모든 ω 에서 특이).
-    `dc_floating` = 미지수 블록 G 의 그 행 또는 열이 0 인 노드(용량으로만 이어짐, ω = 0 에서만 특이)."""
+    뷰 정의 결함(값과 무관 -- 입력 계약 위반, ValueError): 여기 열 이름 중복, 구동 노드가 교류접지와 겹침, 전류 주입
+    노드가 고정 노드, 관측 노드가 구동되지 않는 고정 노드뿐.
+    값에 따라 생기는 구조 결함(예외 아님, `defects` 에 `Undefined(category="structural")`): 고립 미지수 노드(미지수
+    블록에서 G·C 의 그 행이 모두 0 = KCL 식 없음, 또는 그 열이 모두 0 = 미지수가 어느 식에도 없음 -- 모든 ω 에서 특이).
+    `charge_nodes` = 전체 G 행(고정 노드 열 포함)이 0 인 미지수 노드(용량으로만 이어짐 -- DC 는 전하 보존 극한)."""
     _check_inputs(circuit, excitations, sense)
     ground = frozenset(circuit.ac_ground)
     driven = frozenset(n for e in excitations for n, _ in e.voltages)
     clash = sorted(ground & driven)
     if clash:
-        _reject("driven_node_is_ac_ground", nodes=tuple(clash))
+        _reject("driven_node_is_ac_ground", tuple(clash))
     fixed = ground | driven
     stamps = tuple(mos_stamps(m) for m in circuit.mos) + tuple(
         two_terminal_stamps(p) for p in circuit.resistors + circuit.capacitors
@@ -70,7 +68,7 @@ def build_mna(circuit, excitations, sense):
     fixed_order = tuple(sorted(fixed))
     injected_fixed = sorted({n for e in excitations for n, _ in e.currents} & fixed)
     if injected_fixed:
-        _reject("current_injection_into_fixed_node", nodes=tuple(injected_fixed))
+        _reject("current_injection_into_fixed_node", tuple(injected_fixed))
     index = {n: i for i, n in enumerate(unknown + fixed_order)}
     total = len(index)
     g_full = numpy.zeros((total, total))
@@ -85,9 +83,10 @@ def build_mna(circuit, excitations, sense):
         unknown[i] for i in range(n)
         if not (g_full[i, :n].any() or c_full[i, :n].any()) or not (g_full[:n, i].any() or c_full[:n, i].any())
     )
+    defects = ()
     if isolated:
-        _reject("isolated_node", nodes=isolated)
-    dc_floating = tuple(unknown[i] for i in range(n) if not (g_full[i, :n].any() and g_full[:n, i].any()))
+        defects = (Undefined("system", "isolated_node", "structural", (("nodes", isolated),)),)
+    charge_nodes = tuple(i for i in range(n) if not g_full[i].any())
     m = len(excitations)
     drive = numpy.zeros((len(fixed_order), m))
     inject = numpy.zeros((n, m))
@@ -103,7 +102,7 @@ def build_mna(circuit, excitations, sense):
     sense_direct = full_sense[n:] @ drive
     observable = full_sense[:n].any() or any(full_sense[index[x]] for x in sorted(driven))
     if not observable:
-        _reject("sense_on_undriven_fixed_node", nodes=(sense.pos, sense.neg))
+        _reject("sense_on_undriven_fixed_node", (sense.pos, sense.neg))
     return MnaSystem(
         nodes=unknown,
         fixed_nodes=fixed_order,
@@ -115,5 +114,6 @@ def build_mna(circuit, excitations, sense):
         sense_direct=sense_direct,
         excitations=excitations,
         sense=sense,
-        dc_floating=dc_floating,
+        charge_nodes=charge_nodes,
+        defects=defects,
     )

@@ -35,6 +35,8 @@ def pencil_roots(system):
     """`MnaSystem` -> `Roots`(유한 극점, 열마다 유한 영점). 정렬은 (크기, 실부, 허부) -- 결정론."""
     if not isinstance(system, MnaSystem):
         raise TypeError("pencil_roots 는 MnaSystem 을 받는다")
+    if system.defects:
+        return Roots(poles=(), zeros=tuple(() for _ in system.excitations))
     g, c = system.G, system.C
     n = g.shape[0]
     poles = _finite_eigs(g, c)
