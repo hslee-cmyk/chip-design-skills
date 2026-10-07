@@ -18,6 +18,13 @@
 - **개정 r3(2026-10-08, 독립 test 작성자 보고 반영)**: `[r3]`. judge 의 tol 0 margin = +inf(코드를 계약에 맞춤), 계약에 calls 형식·
   봉인 8 worst 이름·봉인 3 행 범위·margin 동률 규칙·`Window.constraints` 뜻·실패 최소 구성을 명시. S2 dc 필드는 r2 그대로
   28개(+ S1 필드).
+- **개정 r4(2026-10-08, GB7 열린 질문 O1 처리 -- lut r6 `vdsat`·`tol_vdsat_table` 배선)**: `[r4]`. 요지 -- (1) 봉인 7 이 VDSAT 열로
+  실제 판정한다(6절 표): `dc_seal_saturation(snapshot, linear_devices, lut)`, 열 없는 LUT 세트(옛 12-L 등)만 undefined + reason
+  `lut_vdsat_column_missing`. 이제 1~8 이 모두 pass 인 점은 `SealedSnapshot` 이 된다. (2) 1변수 bisection 구간의 VDS 쪽 끝 =
+  writer 슬라이스의 **VDS 정의역 하한**(on_mask 가 끝 열까지 모두 켜진 첫 VDS 격자점, 데이터 유도 -- LUT v2 는 VDS = 0 열이 전류
+  0 이라 그 열과 보간되는 첫 칸의 gm/ID 곡선이 `lut_curve_undefined`) + 구간 끝 부동소수 안쪽 보정(5.4). 반복 중(strict=False)
+  에는 그 하한 아래의 `lut_curve_undefined` 도 일시 이탈로 본다. (3) W4 창·1변수 구간의 VDsat 항은 **넣지 않았다** -- 계획 블록
+  (`dc_scc_order` 의존 규칙) 변경이 필요해 결정 대기(12절 O1 잔여, 실측 포함).
 
 ---
 
@@ -277,13 +284,22 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   V(x) = V(known) / free_window V = lo + y·(hi − lo).
 - 창 [lo, hi]: 레일 전압 범위 [min, max] 에서 시작, x(입력 묶음이면 묶음 전원)에 채널이 닿는 MOS 마다 전류가 나가는 단자
   (nmos d, pmos s)면 lo = max(lo, V(반대 단자)), 들어오는 단자면 hi = min(hi, V(반대 단자)). lo > hi -> `SealViolationError`
-  (devices (), margin None, detail item 7·reason `empty_window`·node·lo·hi·constraints). **VDsat 항 없음**(12절 O1).
+  (devices (), margin None, detail item 7·reason `empty_window`·node·lo·hi·constraints). **VDsat 항 없음**(12절 O1 -- [r4] 열은
+  생겼지만 창에 넣으려면 인접 MOS 의 gate·bulk·자기 노드를 W4 의존에 더해야 해서(4.3 변경) 결정 대기. 포화는 봉인 7 이 판정한다).
   [r3] `Window.constraints`(그리고 empty_window detail 의 `constraints`) = 창을 만든 순서 제약의 **개수**(위 MOS 마다 lo 또는
   hi 하나씩 -- x 와 입력 묶음 전원에 채널(d 또는 s)이 닿는 MOS 수, 같은 MOS 가 두 묶음 전원에 닿으면 둘). 0 이면 창 = 레일 전압
   범위. 값이 lo·hi 를 실제로 좁혔는지는 뜻하지 않는다.
 - [r2] **1변수 노드**(self-referential: writer MOS 의 d·s·bulk 중 하나가 x 자신 -- diode 의 gate 쓰기, 소스 추종의 source
-  쓰기)는 **구간 bisection**(설계 3.4): h(x) = x − g(x). 구간 = 레일 전압 범위 ∩ {writer 의 vds ∈ [VDS 격자 최소, 최대]} ∩
-  {vsb ∈ [VS 격자 최소, 최대]}(vds·vsb 는 x 의 1차식 -- x = 0, 1 두 점에서 계수를 잰다). g 평가에서 lut 가
+  쓰기)는 **구간 bisection**(설계 3.4): h(x) = x − g(x). 구간 = 레일 전압 범위 ∩ {writer 의 vds ∈ [VDS 정의역 하한, VDS 격자
+  최대]} ∩ {vsb ∈ [VS 격자 최소, 최대]}(vds·vsb 는 x 의 1차식 -- x = 0, 1 두 점에서 계수를 잰다).
+  [r4] **VDS 정의역 하한** = writer 슬라이스(`pre_layout_lut_access` 의 (kind, w_key))의 `on_mask`((ID > 0) & (GM > 0))가 그 VDS 격자
+  열부터 마지막 열까지 모든 (L, VGS, VS) 점에서 참인 첫 VDS 격자점(그런 열이 없으면 VDS 격자 최소 = r3 그대로). 왜: 그보다 작은 VDS
+  는 꺼진 열(LUT v2 는 VDS = 0 열, 저장 ID 가 바닥값이고 GM = 0)과 보간되어 gm/ID 곡선 마디가 정의되지 않는다(lut `lut_curve_undefined`)
+  -- 부호가 정해진 정의역 밖(`lut_target_out_of_range` 의 ±inf)이 아니라 LUT 가 그 VDS 의 동작점을 표현하지 못하는 구간이므로
+  bisection 구간에서 뺀다. 그 구간의 점은 VDsat(약반전에서도 수십 mV 이상) 아래라 어차피 봉인 7 을 통과할 수 없다(LUT v2 실데이터:
+  하한 = 0.0375 V, nmos·pmos w_key 1000). 값은 LUT memo derived 영역 키 `("sizing_vds_floor", kind, w_key)` 에 슬라이스당 1회.
+  [r4] 구간 끝 x = (축 끝 − a)/b 는 부동소수 반올림으로 vds·vsb 가 축 끝을 한 ulp 넘을 수 있어, 1차식 값이 축 안에 들 때까지 반대 끝
+  쪽으로 `math.nextafter` 한다(끝점 조회가 정의역 밖이 되지 않게 -- r3 에서는 VDS = 0 끝이 이 때문에도 실패했다). g 평가에서 lut 가
   `lut_target_out_of_range` 를 내면 목표 > branch_max 면 VGS = +inf, 아니면 −inf(부호가 정해진 정의역 밖); 그 밖 LUT 실패는
   `lut_query_failed`. tol = 구간 가운데 점의 writer `tol_v_cell`, 반복 수 = `k_max(hi − lo, tol)`(hi = lo 면 1) -> 마지막 구간
   폭 ≤ tol, 가운데 점 x 뒤 g(x) 가 유한·구간 안이면 그것(한 번 다듬기). 구간이 비거나(lo > hi) 끝 부호가 같으면
@@ -295,7 +311,10 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   식 1회, 저항·같은 DC 는 writer 식, W4 그대로) 뒤 `gauss_seidel`(width = 레일 범위, devices = entry.devices, 허용오차 =
   SCC 의 writer MOS(없으면 d·s·bulk 값이 있는 entry.devices)의 `tol_v_cell` 최솟값; 모두 None -> `SealViolationError`
   reason `tol_v_undefined`). [r2] **반복 중(strict=False) 투영**: 1변수 노드는 근이 없거나 구간이 비면 |h| 가 작은 구간 끝
-  (빈 구간이면 두 끝 가운데), 그 밖 MOS writer 의 `lut_axis_out_of_range`·`lut_target_out_of_range`, W4 빈 창은 현재 값 유지 --
+  (빈 구간이면 두 끝 가운데), 그 밖 MOS writer 의 `lut_axis_out_of_range`·`lut_target_out_of_range`·[r4] VDS 정의역 하한 아래에서
+  난 `lut_curve_undefined`(하한 이상에서 난 것은 반복 중에도 실패), W4 빈 창은 현재 값 유지 -- [r4] **시작값 2단계(투영 bisection·
+  MOS writer 식 1회, 조회 VDS = 레일 범위/2)도 반복의 일부(strict=False)**라 같은 규칙으로 그 노드의 현재(1단계) 값을 유지하고,
+  실패는 수렴 뒤 strict 검증 바퀴에서만 낸다 --
   이웃의 과도 반복값 때문에 수렴할 θ 를 거부하지 않게. **수렴 뒤 strict 검증 바퀴**: SCC 노드마다 writer 식을 strict 로 다시
   재서(1변수는 bisection 전체, 실패는 위 구조화 실패 그대로) |새 값 − 수렴값| > tol 이면 `NonconvergentError`(reason
   `strict_recheck_residual`, margin = 잔차/tol, detail node·nodes) -- 투영이 최종값에 남지 않는다.
@@ -336,7 +355,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 ## 6. 봉인 (`seal_dc(snapshot, calls, lut, resistances, linear_devices) -> DcEvaluation`)
 
 순서: `dc_tolerances(lut)` -> 1 `dc_seal_node_conflict()` -> 2 `dc_seal_vgs_match()` -> 3 `dc_seal_kcl(resistances)` -> 6
-`dc_seal_bulk_reverse()` -> 7 `dc_seal_saturation(linear_devices)` -> 8 `dc_seal_kvl_branch()` -> 4 `seal_versions(snapshot,
+`dc_seal_bulk_reverse()` -> 7 `dc_seal_saturation(linear_devices, lut)`([r4] lut 추가) -> 8 `dc_seal_kvl_branch()` -> 4 `seal_versions(snapshot,
 calls + 위 7개)` -> 5 `seal_writers(snapshot)` -> `dc_seal_report(item4, item5)`.
 
 [r3] **`calls` 형식**(`seal_dc`·`seal_versions` 공통): ((ComputeBlock, extras), ...) -- extras = 그 블록을 부를 때 넘긴 추가 인자
@@ -361,15 +380,15 @@ None 을 주지만 봉인에서는 '허용오차 0 을 넘은 위반' = 무한 �
 | 4 | `seal_versions` | calls 의 블록마다 fp_of((이름, code_hash, Projection.from_snapshot(snapshot, reads, extras).fp)) == block_version 이고 그 블록 writes 필드의 input_version == block_version. 위반 블록 = detail `blocks`. magnitude = 위반 수, tol 0 |
 | 5 | `seal_writers` | 모든 필드 writer == 권한표 writer; 노드마다 dc_writer 있음, (tier == W0) == is_rail, dc_rail_v·dc_v 중 정확히 하나, dc_rail_v 있음 == is_rail. 위반 노드 = nodes, 위반 필드 = detail `fields` |
 | 6 | `dc_seal_bulk_reverse` | MOS 마다 max(0, −vsb, −(vds + vsb)) ≤ tol_v |
-| 7 | `dc_seal_saturation` | 항상 undefined(reason `lut_vdsat_column_missing`), devices = current > 0 이고 linear_devices 밖인 MOS, n_checked = 그 수 |
+| 7 | `dc_seal_saturation` | [r4] 행 = `dc_op.current > 0` 이고 linear_devices 밖인 MOS(이름순), n_checked = 그 수(0 이면 행 없음 -> pass). 행마다 VDsat = lut `vdsat(memo, op.kind, op.w_key, op.L, op.vgs, op.vds, op.vsb)`, tol = lut `tol_vdsat_table(memo, op.kind, op.w_key).at(op.L, op.vds)`(None 가능 -> 그 행 undefined). 요구 = VDS − VDsat ≥ +tol(DEC-88). **크기 = VDsat − VDS + 2·tol, tol = tol** -> margin = 1 − (VDS − VDsat − tol)/tol(N3.14 방향: 클수록 나쁨, > 1 ⇔ VDS − VDsat < tol ⇔ fail; 계획 N3.6 의 margin(VDS − VDsat − tol)/tol 은 1 − margin). tol None 행의 크기 = VDsat − VDS(보고용, 판정에 안 씀). 대표 행이 있으면 detail `slack_v` = 그 행 VDS − VDsat − tol(V). VDSAT 열이 없는 소자(lut `lut_column_unavailable`)는 tol None 행(undefined)이고 detail `reason` = `lut_vdsat_column_missing`(열이 있으면 이 키가 없다). 그 밖 lut 실패 -> `SealViolationError`(devices (소자,), reason `lut_query_failed`, lut_reason 원래 사유, device_query `vdsat`·`tol_vdsat_cell`) |
 | 8 | `dc_seal_kvl_branch` | S1 rel_kvl_branch 엣지마다 Σ_멤버 |ln idu_forward − ln_idu|/gm_id ≤ Σ 멤버 tol_v(하나라도 None 이면 None). [r3] 행 대상 이름(= detail `worst` 값) = 엣지 `members`(S1 이 정한 순서 그대로)를 `"+"` 로 이은 문자열(예 `"M1+M2+M3+M4"`), devices = members |
 
 `SealReport.status`: fail 있으면 `REPORT_VIOLATED`("violated"), 아니고 undefined 있으면 `REPORT_UNDEFINED`, 아니면
 `REPORT_SEALED`. items = item 번호순 8개. 결과: violated -> `SealViolationError`(devices = margin 최대 fail 항목의 devices,
 margin = 그 margin, detail = item·nodes·items((번호, 상태, margin) 8개)·item_detail). [r3] fail 항목 선택 키 = (margin, 항목
 번호) 최대 -- margin None(봉인 4·5 처럼 정규화가 없는 항목)은 +inf 로 치고, 동률이면 번호가 큰 항목. undefined -> `DcEvaluation(sealed=None)`.
-sealed -> `DcEvaluation(sealed=SealedSnapshot(snapshot, report))`. **지금은 항목 7 이 항상 undefined 라 SealedSnapshot 이
-나오지 않는다**(O1).
+sealed -> `DcEvaluation(sealed=SealedSnapshot(snapshot, report))`. [r4] VDSAT 열이 있는 LUT(v2)에서는 1~8 이 모두 pass 인 점이
+SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항목 7 이 undefined 라 여전히 나오지 않는다.
 
 ## 7. `size_and_seal(ctx, theta, parent=None) -> DcEvaluation`
 
@@ -395,7 +414,7 @@ sealed -> `DcEvaluation(sealed=SealedSnapshot(snapshot, report))`. **지금은 �
 | W4 창이 빔(strict) | ④ | SealViolationError | empty_window(item 7) | () | None |
 | [r2] 1변수 노드 근 없음·구간 빔 | ④ | SealViolationError | no_root_in_window(item 6/7) | writer | 끝 |h|/tol |
 | [r2] 다변수 SCC strict 검증 잔차 > tol | ④ | NonconvergentError | strict_recheck_residual | SCC 소자 | 잔차/tol |
-| LUT 축 밖·목표 밖·앵커 아님 | ④⑤·tol | SealViolationError | lut_query_failed + lut_reason | 소자 | LUT 값(None) |
+| LUT 축 밖·목표 밖·앵커 아님 | ④⑤·tol·[r4] 봉인 7(device_query `vdsat`·`tol_vdsat_cell`) | SealViolationError | lut_query_failed + lut_reason | 소자 | LUT 값(None) |
 | 허용오차 셀 전부 미정 | ④ | SealViolationError | tol_v_undefined | SCC 소자 | None |
 | 순환 블록 비수렴 | ④ | NonconvergentError | detail nodes·iterations·deltas·tol·k_max | SCC 소자 | Δk/tol |
 | 봉인 위반 | 봉인 | SealViolationError | item·items·item_detail | 최악 항목 | 최악 margin |
@@ -448,6 +467,35 @@ R log-U[100 Ω, 100 kΩ]) = 회로당 215 θ.
   LUT memo 퇴출 0, 퇴출 뒤 재계산 0. 중복 인자 호출(folded FD 16회): gm_id_for_target 2442/817 고유, op_point 263/73 --
   중복은 전부 LUT memo hit(계산 0). `TolVTable.at` 494/158 은 memo 밖 표 조회(O9).
 
+### 10.2 [r4] LUT v2 실측 (2026-10-08, 작성자 측 시연 -- 정본 아님)
+LUT = `resolve_lut_location(assets/lut_v2_location.json, os.environ)`(재생성 슬라이스 32개 GMBS·VDSAT 포함 + 기준 LUT + 검증 중점),
+LutSpec grid = tlef MANUFACTURINGGRID, w_keys = `pre_layout_lut_access`(nmos·pmos 1000). 탐침 θ 는 10절 규칙(L 1 µm, writer gm/ID
+{8..24}×y {0.25, 0.5, 0.75} 15점 + 전류 LP(scipy linprog), 무작위 200개 seed 20261008, 탐침 R 10 kΩ) = 회로당 215 θ.
+'일관' = 봉인 1·2·3·4·5·6·8 pass. 봉인 7 margin 은 6절 표의 N3.14 방향(> 1 = fail).
+
+| 회로 | 일관: r3 코드(master) | 일관: r4 VDS 하한만 | SealedSnapshot (r4) | 봉인 7 fail (r4) | 봉인 7 fail 대표 소자 | fail margin 최소 | 통과 margin 최대 | 평가 ms p50/p90 |
+|---|---|---|---|---|---|---|---|---|
+| common_gate_amplifier | 181 | 181 | 140 | 41 | M1 21, M3 16, M2 4 | 7.18 | −1.21 | 21/32 |
+| current_reuse_telescopic_ota | 0 | 0 | 0 | 0 | -- | -- | -- | 144/189 |
+| folded_cascode | 0 | 76 | 22 | 54 | M5 24, M4 14, M3 8, M11 4 | 1.45 | −0.40 | 130/244 |
+| ngcc_3stage_ff | 0 | 86 | 65 | 21 | M0 18, M14 2, M7 1 | 2.98 | −1.16 | 37/104 |
+| nmcnr_amplifier | 0 | 57 | 17 | 40 | M301 22, M107 5, M104 4, M101 4 | 1.84 | −4.37 | 32/140 |
+| pushpull_follower_buffer | 0 | 7 | 2 | 5 | M6 4, M5 1 | 59.9 | 0.63 | 29/41 |
+| sf_pushpull_output_opamp | 0 | 1 | 0 | 1 | M8 1 | 63.3 | -- | 122/208 |
+| two_stage_ota | 0 | 96 | 70 | 26 | M2 9, M5 7, M1 6, M6 2 | 3.96 | 0.78 | 23/58 |
+| two_stage_ota_sf | 0 | 72 | 50 | 22 | M5 7, M2 6, M6 4, M9 3 | 3.12 | −0.05 | 28/88 |
+
+- r3 코드(master)에서 8회로가 0 인 것은 1변수 bisection 구간 끝 VDS = 0 의 `lut_curve_undefined`(LUT v2 의 VDS = 0 열) 때문이다
+  (회로당 215/215 가 그 사유; common_gate 는 1변수 노드가 없다). r4 VDS 하한 뒤 남은 대표 실패: `no_root_in_window`(item 7) --
+  current_reuse 210, folded 100, ngcc 120, nmcnr 125, two_stage 94, two_stage_sf 131; pushpull `lut_axis_out_of_range`(VS 축) 199;
+  sf_pushpull 하한 아래(VDS = 0) `lut_curve_undefined` 158(strict 경로 -- 실패 유지)·NONCONVERGENT 29; common_gate NONCONVERGENT 26.
+- SealedSnapshot + 봉인 7 fail = 일관 점 수('r4 VDS 하한만' 열, 봉인 7 판정 전 실행)와 회로마다 같다(같은 seed 두 실행의 개수 대조 --
+  봉인 7 판정이 다른 항목·노드전압 풀이를 바꾸지 않는다).
+- 옛 12-L 세트(VDSAT 열 없음)에서 같은 탐침: two_stage_ota·common_gate·folded 의 일관 점 15·24·10 개가 모두 undefined + reason
+  `lut_vdsat_column_missing`, SealedSnapshot 0(열 없는 세트의 정직한 경로 유지).
+- 시간: 봉인 7 은 소자마다 `vdsat` 1회(point memo) + `TolVdsatTable.at`. 평가 중앙값은 VDS 하한만 넣은 실행과 같은 수준(잡음 범위,
+  다른 agent 부하 있음). `tol_vdsat_table` 은 kind 마다 프로세스당 1회(derived memo).
+
 ## 11. 설계와 다르게 정한 점
 
 1. **저장 = core GraphSnapshot 하나**: 설계 2.1 `DcField`·`setter.py`·`field_reuse.py`·`writer_table.py` 대신 core 의
@@ -473,9 +521,18 @@ R log-U[100 Ω, 100 kΩ]) = 회로당 215 θ.
 ## 12. 열린 질문 (결정 필요 -- 추측으로 채우지 않았다)
 
 처리 상태(r2, 오케스트레이터 결정 2026-10-07): O2·O4·O6 해결, O10 부분 해결, O1 대기(우회 없음), O7·O9 사용자 승인 대기,
-O3·O8 기록 유지.
+O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 대기(아래).
 
-- **O1 VDSAT 접근자 (대기 -- 우회 없음)**: 봉인 7 은 lut 에 VDSAT 접근자가 생길 때까지 undefined, SealedSnapshot 0, W4 창에
+- **[r4] O1 처리 상태**: (a)·(b) API 는 lut r6 의 `vdsat`·`tol_vdsat_table(...).at(L, vds)` 로 생겼고 봉인 7 판정식을 배선했다
+  (6절 표). **잔여(결정 대기) -- W4 창·1변수 구간의 VDsat 항**: 인접 MOS 의 VDsat(L, vgs, vds, vsb)은 그 MOS 의 gate·bulk 와 x 자신을
+  읽으므로, 창에 넣으려면 4.3 의 free_window 의존에 {인접 MOS gate, bulk, x} 를 더해야 한다(설계 3.4 'W4 노드는 그 기둥의 SCC 에
+  함께 든다'). 작성자 측 측정(LUT v2, 이 커밋 계획 블록 + 의존만 바꾼 계산): 순환 SCC 크기가 common_gate [2] -> [5], folded
+  [3, 2, …] -> [3, 3, …], ngcc [1×4] -> [2, 1×4], nmcnr [2, 1×3] -> [4, 1×3], two_stage_ota [1, 1] -> [4, 1], two_stage_ota_sf
+  [1×3] -> [3, 1×3](current_reuse·pushpull·sf_pushpull 변화 없음) -- 6회로에서 1변수 bisection 이 다변수 Gauss-Seidel 로 바뀌고
+  (O10·O11 위험), 4.3·`test_scc_order`·창 test 가 함께 바뀐다. 그래서 이 개정에서는 넣지 않았고 포화는 봉인 7 이 판정한다(창은 위치
+  매개화일 뿐 봉인 판정과 무관). 1변수 구간의 writer 자신의 포화 하한(vds ≥ VDsat + tol)은 h 가 단조이면 '근이 그 쪽에 있는가'와
+  같아 봉인 7 의 writer 행과 같은 판정(실패 분류만 no_root_in_window 로 앞당김)이라 따로 두지 않았다.
+- **O1 VDSAT 접근자 (r3 까지의 기록)**: 봉인 7 은 lut 에 VDSAT 접근자가 생길 때까지 undefined, SealedSnapshot 0, W4 창에
   VDsat 항 없음. lut CONTRACT r5(브랜치 ng-hermite)에도 VDSAT 접근자가 없다. **이 계약이 요구하는 lut 공개 API**(로더가 LUT v2
   VDSAT 열을 읽은 뒤): (a) `vdsat(memo, kind, w_key, L, vgs, vds, vsb) -> float`(V, 크기, point 영역 memo, 축 규칙·실패는 op_point
   와 같음 -- 오라클 `@m[vdsat]` 과 같은 양, DEC-88), (b) `tol_v_table(...).at(L, vds, "vdsat")` 처럼 `TOL_V_METRICS` 에 VDSAT 열
