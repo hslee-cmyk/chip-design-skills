@@ -101,6 +101,186 @@ def write_toy_lut(root: Path, w_ref_m=W_M, extra_width=None):
     return root / "manifest.json", root / "cap.npz"
 
 
+# ---------------------------------------------------------------------------
+# [r4] VDSAT 열·꺼진 VDS 열이 있는 toy LUT (sizing CONTRACT r4 6절 봉인 7, 5.4 VDS 정의역 하한)
+# ---------------------------------------------------------------------------
+# 격자는 2진 분수(0.125·0.25 V 간격)라 VDSAT 선형 보간·LOO 차·Richardson 1/4 가 모두 부동소수 정확 -> 봉인 7 경계(±1 ulp)를
+# 손으로 정확히 만들 수 있다. ID 식은 위 toy 와 같다(VGS 2차·VDS 1차 -> Hermite 정확).
+R4_L = (1e-6, 2e-6)
+R4_VGS = tuple(0.125 * i for i in range(17))          # 0 .. 2.0
+R4_VDS = tuple(0.25 * i for i in range(9))            # 0 .. 2.0
+R4_VS = tuple(-0.5 + 0.25 * i for i in range(11))     # -0.5 .. 2.0
+# VDSAT[kind] = c0 + c1·VGS + c2·VGS² + cs·VS + cl·(L index)  (VDS 무관). VGS 축 LOO 차 = c2·h² (h = 0.125) 정확,
+# 다른 축은 1차라 LOO 0, L 축은 bin 지도가 없어 LOO 없음 -> lut 5.2 셀 vdsat_v = c2·h²/2² (모든 셀 같음).
+R4_VDSAT = {"nmos": (0.0625, 0.25, 0.25, 0.125, 0.0625), "pmos": (0.125, 0.25, 0.5, 0.0625, 0.125)}
+
+
+def r4_vdsat_grid(kind, iL, vgs, vs):
+    """VDSAT 열 값(격자점 vgs·vs 에서 정확)."""
+    c0, c1, c2, cs, cl = R4_VDSAT[kind]
+    return c0 + c1 * vgs + c2 * vgs * vgs + cs * vs + cl * iL
+
+
+def r4_tol_vdsat(kind):
+    """lut 5.2: 선형 LOO 차 c2·h²(VGS 축 내부점 모두 같음) / 2^2. h = VGS 간격."""
+    h = R4_VGS[1] - R4_VGS[0]
+    return R4_VDSAT[kind][2] * h * h / 4.0
+
+
+R4_GRIDS = (R4_L, R4_VGS, R4_VDS, R4_VS)
+
+
+def r4_arrays(kind, vdsat=True, off_cols=0, off_points=(), grids=R4_GRIDS):
+    """off_cols: VDS index 0..off_cols-1 열 전부 꺼짐(ID = GM = GDS = 0 -- LUT v2 의 VDS = 0 열 모양).
+    off_points: (iL, iG, k, s) 점의 GM = 0(ID > 0 유지 -> on_mask 거짓). grids = (L, VGS, VDS, VS)."""
+    gL, gG, gD, gS = (np.asarray(g, dtype=float) for g in grids)
+    Lg = gL[:, None, None, None]
+    G = gG[None, :, None, None]
+    D = gD[None, None, :, None]
+    S = gS[None, None, None, :]
+    ID = (W_M / Lg) * I0[kind] * np.exp(B * G - 0.5 * C * G * G + LAM * D - A * S * S)
+    GM = ID * (B - C * G)
+    GDS = ID * LAM
+    if off_cols:
+        ID[:, :, :off_cols, :] = 0.0
+        GM[:, :, :off_cols, :] = 0.0
+        GDS[:, :, :off_cols, :] = 0.0
+    for p in off_points:
+        GM[p] = 0.0
+    out = {"W": np.float64(W_M), "L": gL, "VGS": gG, "VDS": gD,
+           "VS": gS, "ID": ID, "GM": GM, "GDS": GDS, "VTH": np.full(ID.shape, 0.4),
+           "meta_json": np.str_('{"model_files_sha256": {}}'), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+    if vdsat:
+        c0, c1, c2, cs, cl = R4_VDSAT[kind]
+        iL = np.arange(len(gL), dtype=float)[:, None, None, None]
+        out["VDSAT"] = (c0 + c1 * G + c2 * G * G + cs * S + cl * iL) + np.zeros(ID.shape)
+    return out
+
+
+def r4_vds_floor(arrays):
+    """[r4] 5.4 VDS 정의역 하한의 독립 계산: on_mask = (ID > 0) & (GM > 0) 가 그 VDS 열부터 마지막 열까지 모든
+    (L, VGS, VS) 점에서 참인 첫 VDS 격자점, 없으면 VDS 격자 최소."""
+    on = (arrays["ID"] > 0) & (arrays["GM"] > 0)
+    vds = arrays["VDS"]
+    for k in range(len(vds)):
+        if on[:, :, k:, :].all():
+            return float(vds[k])
+    return float(vds[0])
+
+
+def write_r4_lut(root: Path, vdsat=("nmos", "pmos"), off_cols=None, off_points=None, grids=R4_GRIDS):
+    """vdsat = VDSAT 슬라이스 열을 가진 kind. off_cols / off_points = {kind: ...}(r4_arrays 인자). -> LutSet."""
+    root.mkdir(parents=True, exist_ok=True)
+    off_cols = dict(off_cols or {})
+    off_points = dict(off_points or {})
+    entries = []
+    for kind in ("nmos", "pmos"):
+        p = root / ("r4_%s.npz" % kind)
+        np.savez(p, **r4_arrays(kind, kind in vdsat, off_cols.get(kind, 0), off_points.get(kind, ()), grids))
+        entries.append({"device": DEVICE_OF[kind], "file": p.name, "sha256": _sha(p)})
+    (root / "manifest.json").write_text(json.dumps({"generator_sha256": "0" * 64, "slices": entries}),
+                                        encoding="utf-8")
+    gL, gG, gD, gS = (np.asarray(g, dtype=float) for g in grids)
+    shp = (len(gL), len(gG), len(gD), len(gS))
+    cap = {"L": gL, "VGS": gG, "VDS": gD, "VS": gS,
+           "w_ref_m": np.float64(W_M), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+    for kind in ("nmos", "pmos"):
+        cap["CGG" + SUFFIX[kind]] = np.full(shp, 1e-15)
+        cap["CGD" + SUFFIX[kind]] = np.full(shp, 2e-16)
+    np.savez(root / "cap.npz", **cap)
+    return load_lut_set(str(root / "manifest.json"), str(root / "cap.npz"), TOY_SPEC)
+
+
+def r4_vs_term(vsb):
+    return _lin(R4_VS, [-A * v * v for v in R4_VS], vsb)
+
+
+def r4_ln_idu(kind, vgs, vds, vsb):
+    """r4 toy 의 ln IDu(L 무관). VS 항 = R4_VS 격자 위 −A·VS² 의 구간 선형. vds 는 켜진 VDS 칸 안이어야 한다."""
+    return math.log(I0[kind]) + Oracle.f(vgs) + LAM * vds + r4_vs_term(vsb)
+
+
+def r4_vgs_of(kind, ln_idu, vds, vsb):
+    r = ln_idu - math.log(I0[kind]) - LAM * vds - r4_vs_term(vsb)
+    return (B - math.sqrt(B * B - 2.0 * C * r)) / C
+
+
+def r4_vdsat_at(kind, L, vgs, vsb):
+    """lut 4.3 vdsat 의 독립 계산: npz 열을 모든 축 선형(VDS 무관 열이라 VDS 가중 생략, L 은 앵커만)."""
+    arr = r4_arrays(kind)["VDSAT"]
+    iL = R4_L.index(L)
+    col = arr[iL, :, 0, :]
+    i = min(max(bisect.bisect_right(R4_VGS, vgs) - 1, 0), len(R4_VGS) - 2)
+    t = (vgs - R4_VGS[i]) / (R4_VGS[i + 1] - R4_VGS[i])
+    j = min(max(bisect.bisect_right(R4_VS, vsb) - 1, 0), len(R4_VS) - 2)
+    u = (vsb - R4_VS[j]) / (R4_VS[j + 1] - R4_VS[j])
+    v = 0.0
+    for a, wa in ((i, 1 - t), (i + 1, t)):
+        for b, wb in ((j, 1 - u), (j + 1, u)):
+            if wa * wb != 0.0:
+                v += wa * wb * float(col[a, b])
+    return v
+
+
+@pytest.fixture(scope="session")
+def r4_lut(tmp_path_factory):
+    """VDSAT 열(nmos·pmos), 모든 점 켜짐."""
+    return write_r4_lut(tmp_path_factory.mktemp("r4_lut"))
+
+
+@pytest.fixture(scope="session")
+def r4_access(r4_lut):
+    return new_access(r4_lut)
+
+
+# ---------------------------------------------------------------------------
+# [r4] 실데이터 LUT v2 (lut CONTRACT 1.8 '쓰는 법') -- 없으면 skip 이 아니라 FAIL
+# ---------------------------------------------------------------------------
+REALDATA_MARKER = "sizing_realdata"
+LOCATION_CONFIG = SKILL_DIR / "assets" / "lut_v2_location.json"
+_DEFAULT_TLEF = r"C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef"
+REAL_DEVICE_KINDS = (("nfet_01v8", "nmos"), ("pfet_01v8", "pmos"))
+REAL_CAP_SUFFIX = (("nmos", "_n"), ("pmos", "_p"))
+
+
+def pytest_configure(config):
+    config.addinivalue_line("markers", REALDATA_MARKER + ": 실 LUT v2(설정 파일·tlef) sizing test -- 데이터가 없으면 FAIL")
+
+
+@pytest.fixture(scope="session")
+def real_lut_v2():
+    """-> (LutSet, {(kind, w_key): 슬라이스 npz 경로}). grid = tlef MANUFACTURINGGRID, min_finger = kind 별 슬라이스 최소 W."""
+    import os
+    import re
+    from gmid_engine.core import SchemaRejectedError
+    from gmid_engine.lut import resolve_lut_location
+    try:
+        loc = resolve_lut_location(str(LOCATION_CONFIG), os.environ)
+    except SchemaRejectedError as e:
+        pytest.fail("LUT v2 데이터 위치를 풀지 못함(실데이터 test 는 skip 하지 않는다): %r" % (e.record.detail,),
+                    pytrace=False)
+    tlef = os.environ.get("GMID_PDK_TLEF") or _DEFAULT_TLEF
+    if not Path(tlef).is_file():
+        pytest.fail("PDK tlef 없음: %s" % tlef, pytrace=False)
+    m = re.search(r"^\s*MANUFACTURINGGRID\s+([0-9.eE+-]+)\s*;", Path(tlef).read_text(encoding="utf-8", errors="replace"),
+                  re.M)
+    grid = float(m.group(1)) * 1e-6
+    man = json.loads(Path(loc.manifest_path).read_text(encoding="utf-8"))
+    dk = dict(REAL_DEVICE_KINDS)
+    files, mins = {}, {}
+    for s in man["slices"]:
+        p = Path(loc.manifest_path).parent / s["file"]
+        with np.load(p) as z:
+            W = float(z["W"])
+        kind = dk[s["device"]]
+        files[(kind, int(round(W / grid)))] = p
+        mins[kind] = min(W, mins.get(kind, W))
+    spec = LutSpec(grid, tuple(sorted(mins.items())), REAL_DEVICE_KINDS, REAL_CAP_SUFFIX)
+    lut = load_lut_set(loc.manifest_path, loc.cap_npz_path, spec, pdk_root=loc.pdk_root,
+                       verify_midpoints=loc.midpoints_path)
+    return lut, files
+
+
 @pytest.fixture(scope="session")
 def toy_lut_paths(tmp_path_factory):
     return write_toy_lut(tmp_path_factory.mktemp("sizing_toy_lut"))
@@ -287,6 +467,19 @@ def ctx_c(tmp_path_factory, toy_access):
 def ev_c(ctx_c):
     from gmid_engine.sizing import size_and_seal
     return size_and_seal(ctx_c[2], theta_c())
+
+
+@pytest.fixture(scope="session")
+def ctx_r4c(tmp_path_factory, r4_access):
+    """회로 C 를 VDSAT 열이 있는 r4 toy LUT 로 만든 KernelContext."""
+    return build_ctx(tmp_path_factory.mktemp("ctx_r4c"), circuit_cs_pmos_load(), r4_access)[2]
+
+
+def theta_r4c(y=0.5, v1=0.6, v2=0.7, l1=1e-6, l2=2e-6, i2=1e-5):
+    """r4 toy 회로 C 의 θ: M1 vgs = v1, M2 vgs = v2 가 나오는 좌표(VDS = y·1.8 / 1.8 − y·1.8, VSB 0)."""
+    vout = y * 1.8
+    return {("L", "M1"): l1, ("L", "M2"): l2, ("ln_idu", "M1"): r4_ln_idu("nmos", v1, vout, 0.0),
+            ("ln_idu", "M2"): r4_ln_idu("pmos", v2, 1.8 - vout, 0.0), ("current", "M2"): i2, ("y", "out"): y}
 
 
 @pytest.fixture(scope="session")
