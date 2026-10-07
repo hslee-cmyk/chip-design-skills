@@ -193,4 +193,7 @@ COPIED_DEFINITIONS = (
     ('floorplan_pack.py', 'pack_floorplan_grouped', '8335~8385',
      '07d7ade2f4940468a965a01fc9158779edc8820a25086274129879e669f6cef0',
      ('2.0', '40')),
+    ('hub_candidates.py', 'find_hub_merge_candidates', '2635~2658',
+     '7b0a7824d05c5e79dfd12419149bb07b9dba4488440a85139062fd4fbcf60c5c',
+     ('2',)),
 )

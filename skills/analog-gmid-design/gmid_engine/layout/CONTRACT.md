@@ -1,7 +1,11 @@
 # gmid_engine.layout 동작 계약 (test 작성용) -- 1단계: 복사 단위 + canonical_rows, 2단계: 행 구성(4절)
 
-- 대상: 0~3절 = 1단계 파일 14개(아래 0절 표). **4절 = 2단계 행 구성 7단계·입력/출력 계약·graph 레이아웃 필드**(파일 12개).
-  MOD8 W_request 루프는 다음 단계라 이 계약에 없다.
+- 대상: 0~3절 = 1단계 파일 15개(아래 0절 표, 2026-10-07 `hub_candidates.py` 복사 추가). **4절 = 2단계 행 구성·입력/출력 계약·
+  graph 레이아웃 필드**(파일 15개). MOD8 W_request 루프·레이아웃 뒤 재검증 실행은 다음 단계라 이 계약에는 요청 인터페이스만 있다(4.14).
+- **2026-10-07 사용자 결정 Q4·Q8 반영판**(근거 `wt/_drafts/engine/reference_review/SYNTHESIS.md` Q4·Q8, G2-01~03·05~07·09·10·14·20):
+  LY1 보존량 = (ID, gm/ID, L), 실현 W 의 기준 = `W_need(fw) = ID / J_slice(fw)`(4.2), 허용오차는 후보 순위 기준·실효 = max(상한, 하한)
+  (4.3), 레이아웃 뒤 재검증 요청(4.14), branch_symmetric 행 swap·제외 role·review_needed(4.5~4.6), box 하드 게이트 폐지·판정 축 면적
+  목적·dummy/tap/well 포함·hub 병합(4.9~4.11).
 - 근거: `wt/_drafts/engine/design_mod7_layout.md`(이하 DM) 1절 표·1.1 복사 정의 전수표·2.1 AST 해시·2.2 리터럴·7절 끝 결정론
   결함·8절 2 기본안, `NEW_ENGINE_DESIGN_REQUIREMENTS.md` 1.5(결정론).
 - import 경로: 1단계 test 는 파일 모듈을 직접 import 한다(2단계 공개 API 는 4.0 -- `from gmid_engine.layout import ...`)
@@ -21,8 +25,9 @@
 
 | 파일 | 층 | 독립 진입점 | 내용 |
 |---|---|---|---|
-| `_copy_manifest.py` | 0 | (데이터, 공개 정의 0) | `COPY_SOURCE`, `COPIED_DEFINITIONS`(59행) |
+| `_copy_manifest.py` | 0 | (데이터, 공개 정의 0) | `COPY_SOURCE`, `COPIED_DEFINITIONS`(60행) |
 | `transistor.py` | 0 | `Transistor` | 복사 |
+| `hub_candidates.py` | 0 | `find_hub_merge_candidates` | 복사(SD 2635~2658, 2026-10-07 Q8 (viii)) |
 | `coverage.py` | 1 | `check_stick_diagram_coverage` | 복사(+`CoverageVerdict`) |
 | `euler_graph.py` | 1 | `build_graph` | 복사(+`StackGraph`) |
 | `row_fold.py` | 1 | `apply_explicit_row_split` | 복사 |
@@ -52,11 +57,11 @@
 `_copy_manifest.COPIED_DEFINITIONS` 의 행 = `(새 파일, 정의 이름, "SD시작~SD끝", 해시, 리터럴 tuple)`.
 
 불변식:
-1. 행 수 59, (새 파일, 정의 이름) 중복 없음, DM 1.1 표와 같은 집합.
+1. 행 수 60, (새 파일, 정의 이름) 중복 없음, DM 1.1 표 59행 + `('hub_candidates.py', 'find_hub_merge_candidates')`(Q8 (viii))와 같은 집합.
 2. 행마다 `layout/<새 파일>` 의 같은 이름 최상위 정의가 정확히 1개 있고 그 해시 = manifest 해시.
 3. SD 가 저장소에 있으면: SD 의 같은 이름 최상위 정의 해시 = manifest 해시, 그 노드의 `(lineno, end_lineno)` = manifest 행 범위
    (데코레이터 줄 제외). -> 3자 일치. SD 삭제 뒤에는 2자(manifest·새 파일).
-4. 복사 파일(manifest 의 새 파일 12개)의 최상위 문장 = 모듈 docstring + import + manifest 등록 정의 + (`_helpers_hubleaf.py` 만)
+4. 복사 파일(manifest 의 새 파일 13개)의 최상위 문장 = 모듈 docstring + import + manifest 등록 정의 + (`_helpers_hubleaf.py` 만)
    공개 별칭 대입 `x = _x`. 등록 밖 정의 0.
 5. 복사 파일마다 모듈 전역 이름 해석 완전: 정의가 읽는 전역 이름은 모두 그 모듈에서 묶이거나 builtin(symtable 기준 미해결 0),
    모든 layout 모듈 import 성공.
@@ -70,8 +75,8 @@
 
 manifest 리터럴 tuple = 그 정의 안 숫자 리터럴 중 구조 규칙 D(`tests/structure/structure_checks._number_allowed`)가 허용하지 않는
 것의 repr 문자열(USub 가 붙으면 앞에 `-`), 정렬. 불변식:
-1. 정의마다: 규칙 D 위반 리터럴의 정렬 다중집합 = manifest tuple(현재 합계 61개).
-2. layout 전체의 규칙 D 위반은 모두 manifest 등록 정의 안에 있다(등록 밖 0). `canonical_rows.py`·`_copy_manifest.py` 는 0.
+1. 정의마다: 규칙 D 위반 리터럴의 정렬 다중집합 = manifest tuple(현재 합계 62개).
+2. layout 전체의 규칙 D 위반은 모두 manifest 등록 정의 안에 있다(등록 밖 0). 새 코드 파일(`canonical_rows.py`·4절 파일)·`_copy_manifest.py` 는 0.
 3. 등록 정의별 현재 집합(이 표가 바뀌면 복사 본문이 바뀐 것 -- 해시도 깨진다):
 
 | 정의 | 리터럴 |
@@ -80,7 +85,7 @@ manifest 리터럴 tuple = 그 정의 안 숫자 리터럴 중 구조 규칙 D(`
 | `_common_centroid_residual` | 0.5 |
 | `_hubleaf_sequence_node_path` | 2 |
 | `_MAX_CROSSOVER_PAIRING_NODES` | 8 |
-| `_pair_odd_nodes_by_mirror`, `find_min_crossover_layout`, `check_euler_condition`, `_try_pattern_table_match` | 2 |
+| `_pair_odd_nodes_by_mirror`, `find_min_crossover_layout`, `check_euler_condition`, `_try_pattern_table_match`, `find_hub_merge_candidates` | 2 |
 | `skyline_pack` | 1e-09 |
 | `skyline_pack_best_width` | 3, 60 |
 | `pack_to_height` | 60 |
@@ -145,12 +150,13 @@ Layout02.pdf p.15·p.19)과 같다. p.19 3·4열(3행·4행 배열)은 표에 �
 
 ## 3. 구조 규칙과의 현재 충돌 (예외 메커니즘 없음 -- 구조 test 소관)
 
-DM 8절 2 기본안 = 'lint 예외를 `_copy_manifest.py` 등록 정의로 한정 + 예외 리터럴 집합 고정'. 현재 `tests/structure` 검사기에는
-manifest 예외 메커니즘이 없어서 아래가 FAIL 이다(모두 manifest 등록 정의 안, 등록 밖 0).
+DM 8절 2 기본안 = 'lint 예외를 `_copy_manifest.py` 등록 정의로 한정 + 예외 리터럴 집합 고정'. 아래는 manifest 등록 정의 안의
+규칙 위반 원자료다(등록 밖 0). [2026-10-07 실측] 현재 `tests/structure` 검사기는 manifest 등록 정의를 면제하므로(copy audit) A~G·I
+모두 PASS 다.
 
 | 규칙 | 위반 수 | 위치 |
 |---|---|---|
-| D 숫자 리터럴 | 61 | 1.1 표 그대로 |
+| D 숫자 리터럴 | 62 | 1.1 표 그대로 |
 | E 회로 이름 | 12 | `'A'`·`'B'` 문자열(패턴 글자)이 library 한 회로의 넷 이름 `A`·`B` 와 전체 일치: `_common_centroid_from_pattern_table` 8, `_try_pattern_table_match` 2, `INTERDIGITATION_PATTERNS` 2 |
 | G 모듈 수준 가변 객체 | 2 | `INTERDIGITATION_PATTERNS`, `COMMON_CENTROID_PATTERNS`(dict 리터럴 -- `MappingProxyType` 으로 감싸면 해시가 깨진다) |
 
@@ -158,172 +164,324 @@ A·B·C·F 는 위반 0. H(마커 `structure_test_mapping`)는 test 파일 14개
 
 ---
 
-## 4. 행 구성 (2단계) -- `run_layout` 과 계산 블록 5개
+## 4. 행 구성 (2단계) -- `run_layout` 과 계산 블록 4개 (2026-10-07 Q4·Q8 반영판)
 
-근거: DM 2절(입력 인터페이스)·3절(행 구성 7단계)·4절(graph 레이아웃 필드), 계획 N3.17 LY1~LY7·'레이아웃 입력·출력 계약',
-core 계약 5·6절(GraphSnapshot·`compute_block`), lut 계약 1.6(`widths`)·5절(tol_V `id_equivalent`).
-단위: 길이·폭 m, 면적 m^2, 전압 V. **폭 키** = finger_w / 제조 격자(정수, LUT 슬라이스 폭 키와 같은 것).
+근거: DM 2절(입력 인터페이스)·3절(행 구성)·4절(graph 레이아웃 필드), 계획 N3.17 LY1~LY7·'레이아웃 입력·출력 계약',
+core 계약 5·6절(GraphSnapshot·`compute_block`), lut 계약 1.6(`widths`)·4절(`vgs_for_gm_id`·`op_point`)·5절(tol_V `id_equivalent`),
+사용자 결정 2026-10-07 Q4 (i)~(iv)·Q8 (i)~(ix)(`reference_review/SYNTHESIS.md`).
+단위: 길이·폭 m, 면적 m^2, 전압 V, 전류 A, 전류 밀도 A/m. **폭 키** = finger_w / 제조 격자(정수, LUT 슬라이스 폭 키와 같은 것).
 
-### 4.0 파일·층·진입점 (`_module_map.LAYERS` layout 층 7~10, 층 0~2 에 더한 파일 포함)
+### 4.0 파일·층·진입점 (`_module_map.LAYERS` layout)
 
 | 파일 | 층 | 진입점 / 종류 | graph 필드(writer) |
 |---|---|---|---|
 | `_ly_fields.py` | 0 | 상수 표(공개 정의 0) -- 필드 이름·`LY_WRITERS`·`BLOCK_WRITERS` | -- |
-| `contract_input.py` | 0 | 데이터 선언: `LayoutDevice`·`MatchingGroup`·`RowGroup`·`LayoutPdk`(`from_lut`)·`LayoutInput`, 상수 `KINDS`·`ROLE_DIFF_PAIR`·`PATTERN_COMMON_CENTROID`·`PATTERN_INTERDIGITATION`·`PATTERNS` | -- |
-| `contract_output.py` | 0 | 데이터 선언: `FingerCandidate`·`WRequest`·`GroupAttempt`·`PatternRow`·`GroupLayout`·`DeviceFinger`·`RowLayout`·`BoxVerdict`·`RowsLayout`·`FloorplanSummary`·`DeviceLayout`·`LayoutResult` | -- |
+| `contract_input.py` | 0 | 데이터 선언: `LayoutDevice`·`MatchingGroup`·`RowGroup`·`LayoutPdk`(`from_lut`)·`LayoutInput`, 상수 `KINDS`·`ROLE_*`·`LAYOUT_ROLES`·`EXCLUDED_ROLES`·`ROLES`·`CC_REQUIRED_ROLES`·`PATTERN_*`·`PATTERNS`·`PDK_RULE_QUANTITIES` | -- |
+| `contract_output.py` | 0 | 데이터 선언: `SliceDensity`·`WTolerance`·`FingerCandidate`·`WRequest`·`GroupAttempt`·`PatternRow`·`GroupLayout`·`MatchingDisposition`·`DeviceFinger`·`RowLayout`·`BoxVerdict`·`FoldAttempt`·`MergeDecision`·`GroupRebuild`·`RowsLayout`·`FloorplanSummary`·`DeviceLayout`·`ReviewItem`·`RealizedDevice`·`Revalidation`·`LayoutResult`, 상수 `REVALIDATION_*`·`AREA_ITEM_*`·`MERGE_NOISE_NOTE` | -- |
+| `hub_candidates.py` | 0 | `find_hub_merge_candidates`(복사, 1절) | -- |
+| `slice_density.py` | 1 | `slice_density` | (run_layout 이 device `ly_slices` 에 씀, writer `ly_slice_density`) |
 | `w_tolerance.py` | 1 | `w_tolerance` | -- |
 | `finger_candidates.py` | 2 | `finger_candidates`(@compute_block) | device `ly_fw_cand`(`ly_finger_candidates`) |
+| `floorplan.py` | 3 | `floorplan_of`(계산 블록 아님 -- `compose_rows` 가 부른다) | -- |
+| `_helpers_pattern.py` | 7 | 공용 helper: `orient`·`offsets`·`pattern_rows` | -- |
 | `box_shape.py` | 7 | `box_verdict` | -- |
-| `pattern_select.py` | 7 | `pattern_select`(@compute_block) | graph `ly_groups`(`ly_pattern_select`) |
 | `row_euler.py` | 7 | `row_euler` | -- |
-| `finger_geometry.py` | 8 | `finger_geometry`(@compute_block) | device `ly_finger`(`ly_finger_geometry`) |
-| `rows.py` | 8 | `compose_rows`(@compute_block) | graph `ly_rows`(`ly_rows`) |
-| `floorplan.py` | 9 | `floorplan`(@compute_block) | graph `ly_floorplan`(`ly_floorplan`) |
-| `run.py` | 10 | `run_layout` | 입력 필드(`ly_input`) |
+| `patterns_row_swap.py` | 8 | `row_swap_layout` | -- |
+| `pattern_select.py` | 9 | `pattern_select`(@compute_block) | graph `ly_groups`·`ly_dispositions`(`ly_pattern_select`) |
+| `finger_geometry.py` | 9 | `finger_geometry`(@compute_block) | device `ly_finger`(`ly_finger_geometry`) |
+| `rows.py` | 9 | `compose_rows`(@compute_block) | graph `ly_rows`·`ly_floorplan`(`ly_rows`) |
+| `run.py` | 10 | `run_layout` | 입력 필드(`ly_input`), device `ly_slices`(`ly_slice_density`) |
 
 공개 API(`gmid_engine.layout.__all__`): `LayoutDevice`, `LayoutInput`, `LayoutPdk`, `LayoutResult`, `MatchingGroup`, `RowGroup`,
 `run_layout`. 파일별 test 는 파일 모듈을 직접 import 해도 된다(1단계와 같다). 계산 블록은 core `ComputeBlock` 이라
-`block(snapshot)` 으로 부르고 `block.stats()` 로 계수를 본다.
+`block(snapshot)` 으로 부르고 `block.stats()` 로 계수를 본다. `_ly_fields.BLOCK_WRITERS` = (`ly_finger_candidates`, `ly_pattern_select`,
+`ly_finger_geometry`, `ly_rows`). 옛 `floorplan` 계산 블록·`ly_floorplan` writer 는 없다(`ly_floorplan` 필드는 writer `ly_rows`).
 
 ### 4.1 입력 계약 (`contract_input.py`, 전부 frozen dataclass, 값은 불변)
 
-- `LayoutDevice(name, kind, drain, gate, source, body, W_m, L_m, ID_A, gm_id, vds_V, vsb_V, tol_v_V, diode, W_adjustable)`.
-  `kind` ∈ `KINDS`. `W_m`·`L_m`·`gm_id`·`tol_v_V` 는 양의 **float**(int 거부). 위반 → `ValueError`.
-  `tol_v_V` = 그 소자 동작점의 LUT tol_V `id_equivalent` 셀 값(부르는 쪽이 `lut.tol_v_table(...).at(L, vds, "id_equivalent")` 로 채움).
-  `W_adjustable` = MOD8 이 이 소자 W 를 바꿀 수 있음.
-- `MatchingGroup(gid, members, role, hub_net, allowed_patterns)`: `members` tuple(중복 없음, 2개 이상), `allowed_patterns` = `PATTERNS`
-  의 비지 않은 부분 tuple, `role == "diff_pair"` 이면 `"common_centroid"` 포함 필수. `hub_net` 은 None 가능. 위반 → `ValueError`.
+- `LayoutDevice(name, kind, drain, gate, source, body, W_m, L_m, ID_A, gm_id, vds_V, vsb_V, diode, W_adjustable)`.
+  `kind` ∈ `KINDS`. `W_m`·`L_m`·`ID_A`·`gm_id` 는 양의 **float**(int 거부). 위반 → `ValueError`.
+  **보존량 = (`ID_A`, `gm_id`, `L_m`)**(Q4 (i)). `W_m` = sizing 이 기준 슬라이스에서 낸 **참고 W** -- 보존 대상이 아니고
+  `DeviceLayout.W_m`·`no_usable_slice` 요청에만 옮겨진다. `L_m` 은 LUT L 앵커여야 한다(아니면 그 소자의 모든 슬라이스가 `lut_l_not_anchor`
+  로 빠진다, 4.2). 옛 `tol_v_V` 필드는 없다(tol_V 는 슬라이스마다 레이아웃이 LUT 에서 읽는다, 4.2). `diode` = 재검증 때 ID 재보정
+  불필요 표시(Q4 (iii)), `W_adjustable` = MOD8 이 이 소자 W 를 바꿀 수 있음.
+- `MatchingGroup(gid, members, role, hub_net, allowed_patterns)`: `members` tuple(중복 없음, 2개 이상), `role` ∈ `ROLES` =
+  `LAYOUT_ROLES`(`"diff_pair"`, `"mirror"`, `"branch_symmetric"`) + `EXCLUDED_ROLES`(`"bias_distribution"`, `"feedback_shared"`),
+  `allowed_patterns` = `PATTERNS` 의 비지 않은 부분 tuple, role ∈ `CC_REQUIRED_ROLES`(diff_pair·branch_symmetric) 이면
+  `"common_centroid"` 포함 필수. `hub_net` 은 None 가능(branch_symmetric 은 읽지 않는다). 위반 → `ValueError`.
 - `RowGroup(rid, kind, body_net, members)`: `members` tuple(중복 없음), `kind` ∈ `KINDS`.
-- `LayoutPdk(manufacturing_grid_m, slice_width_keys, finger_pitch_overhead_m, row_gap_m, source_fp)`: 격자 > 0, 여유·간격 >= 0.
-  `slice_width_keys` = ((kind, (폭 키 오름차순, ...)), ...). `LayoutPdk.from_lut(lut, overhead, gap)` = (`lut.spec.manufacturing_grid_m`,
-  kind 마다 `lut.widths(lut, kind)`(kind 정렬), overhead, gap, `lut.fp`) -- overhead·gap 은 float 로 바뀐다.
-- `LayoutInput(devices, matching_groups, row_groups, pdk, box_max_row_ratio, rejected_requests=())`. `ValueError` 조건:
+- `LayoutPdk(manufacturing_grid_m, slice_width_keys, finger_pitch_overhead_m, row_gap_m, dummy_w_m, tap_w_m, well_spacing_m,
+  rule_ids, source_fp)`: 격자 > 0, `PDK_RULE_QUANTITIES` 다섯 길이(`finger_pitch_overhead_m`, `row_gap_m`, `dummy_w_m`, `tap_w_m`,
+  `well_spacing_m`) >= 0, `rule_ids` = ((이름, 규칙 번호), ...) 이름 중복 없음이고 다섯 이름 모두 비지 않은 규칙 번호(Q8 (vii)).
+  위반 → `ValueError`. `slice_width_keys` = ((kind, (폭 키 오름차순, ...)), ...).
+  `LayoutPdk.from_lut(lut, overhead, gap, dummy, tap, well, rule_ids)` = (`lut.spec.manufacturing_grid_m`, kind 마다 `lut.widths(lut, kind)`
+  (kind 정렬), 다섯 길이(float 로), `tuple(rule_ids)`, `lut.fp`).
+- `LayoutInput(devices, matching_groups, row_groups, pdk, rejected_requests=())`. `ValueError` 조건:
   소자 이름 중복, gid·rid 중복, 행 그룹 멤버가 없는 소자, 한 소자가 두 행 그룹, 소자 (kind, body) != 행 그룹 (kind, body_net),
-  어느 행 그룹에도 없는 소자, PDK 폭 키에 소자 kind 없음, 그룹 멤버가 없는 소자, 그룹 멤버가 두 행 그룹에 걸침,
-  `rejected_requests` 중복, `box_max_row_ratio < 1`.
+  어느 행 그룹에도 없는 소자, PDK 폭 키에 소자 kind 없음, 그룹 멤버가 없는 소자, `LAYOUT_ROLES` 그룹 멤버가 두 행 그룹에 걸침
+  (`EXCLUDED_ROLES` 그룹은 이 검사 없음 -- 블록을 넘는 바이어스 분배가 정상), `rejected_requests` 중복.
+  **box 행 폭 비 허용치는 없다**(Q8 (vi): 하드 box 게이트 폐지 -- 옛 `box_max_row_ratio` 필드 삭제).
 
-### 4.2 `w_tolerance(gm_id, tol_v, finger_w_m, grid_m) -> (lower, upper)`
-`upper = tol_v * gm_id`, `lower = grid_m / (2 * finger_w_m)`. 손계산: (10.0, 0.01, 1e-6, 5e-9) -> (0.0025, 0.1).
+### 4.2 `slice_density(memo, device, keys) -> tuple[SliceDensity]` (Q4 (i)(iv))
 
-### 4.3 `finger_candidates` -- device `ly_fw_cand`
-reads device `ly_device`, graph `ly_pdk`. 소자마다 tuple: 그 kind 의 폭 키 오름차순, 키마다 nf ∈ sorted({max(1, floor(W/fw)), max(1, ceil(W/fw))})
-(fw = 키 x 격자), `FingerCandidate(키, fw, nf, nf*fw, |nf*fw − W|/W, lower, upper, ok)`, `ok = err <= upper and lower <= upper`.
-상한 밖 후보도 남는다(ok=False). 같은 (kind, W, gm/ID, tol_V) 소자는 같은 tuple 객체.
+`memo` = MOD1 `LutMemo`. `keys` 순서 그대로, 키마다 finger_w = 키 x `memo.lut.spec.manufacturing_grid_m`:
+1. `vgs = vgs_for_gm_id(memo, kind, 키, gm_id, L_m, vds_V, vsb_V)`, `op = op_point(memo, kind, 키, L_m, vgs, vds_V, vsb_V)`,
+   `J = op.IDu / L_m`(A/m, = ID/W 그 슬라이스), `W_need = ID_A / J`,
+   `tol = tol_v_table(memo, kind, 키).at(L_m, vds_V, "id_equivalent")`(다른 지표는 쓰지 않는다).
+2. `SliceDensity(키, finger_w, vgs, J, W_need, float(tol), "")`.
+3. 1 의 어느 조회가 `SealViolationError` 이면 `SliceDensity(키, finger_w, None, None, None, None, <그 예외 detail 의 reason>)`
+   (예: `lut_no_strong_inversion_root`, `lut_axis_out_of_range`, `lut_l_not_anchor`). tol 이 None 이면
+   `SliceDensity(키, finger_w, vgs, None, None, None, "tol_v_undefined")`. 다른 예외는 그대로 올라간다.
+- 조회 캐시는 `memo` 가 한다(같은 인자 두 번째 조회 = memo hit).
+- 손계산(lut 계약 7절 toy, `LutSpec(1e-8, (("nmos", 1e-6),), (("toyn","nmos"),), (("nmos","_n"),))` -- 최소 finger 1e-6 이라 폭 키
+  (100, 200)): gm_id 10.0, L 1e-6, vds 0.5, vsb 0.0 이면 두 키 모두 vgs 0.5, J = 1.0 A/m(키 100: ID 1e-6/W 1e-6, 키 200: 2e-6/2e-6),
+  **W_need = ID_A(수치 그대로, m)**, tol_V = 0.0(VGS 내부점 LOO 가 log-선형 toy 에서 정확, VDS·VS 는 2점이라 LOO 없음 -- 부동소수
+  잔차 1e-15 수준 허용). gm_id 25.0 이면 모든 키 `lut_no_strong_inversion_root`.
 
-### 4.4 `pattern_select` -- graph `ly_groups` (key `"layout"`, 값 = gid 정렬 `GroupLayout` tuple)
+### 4.3 `w_tolerance(gm_id, tol_v, finger_w_m, grid_m) -> WTolerance` (LY1, Q4 (iv))
+`upper = tol_v * gm_id`, `lower = grid_m / (2 * finger_w_m)`, `effective = max(upper, lower)`, `grid_dominated = lower > upper`.
+손계산: (10.0, 0.01, 1e-6, 5e-9) -> (0.0025, 0.1, 0.1, False); (10.0, 0.0, 1e-6, 1e-8) -> (0.005, 0.0, 0.005, True).
+이 허용오차는 **후보 순위 기준**이다(합격 판정은 레이아웃 뒤 재검증, 4.14).
+
+### 4.4 `finger_candidates` -- device `ly_fw_cand`
+reads device `ly_device`·`ly_slices`, graph `ly_pdk`. 소자마다 tuple: `ly_slices` 순서(폭 키 오름차순)로 `reason == ""` 인 슬라이스만,
+슬라이스마다 nf ∈ sorted({max(1, floor(W_need/fw)), max(1, ceil(W_need/fw))}),
+`FingerCandidate(키, fw, nf, W_need, nf*fw, |nf*fw − W_need|/W_need, lower, upper, effective, grid_dominated, ok)`,
+허용오차 = `w_tolerance(gm_id, 슬라이스 tol_v_V, fw, 격자)`, `ok = err <= effective`. 밖 후보도 남는다(ok=False).
+같은 (gm_id, 슬라이스 tuple) 소자는 같은 tuple 객체. 사용 가능 슬라이스가 없으면 빈 tuple.
+
+### 4.5 `pattern_select` -- graph `ly_groups`(gid 정렬 `GroupLayout` tuple), `ly_dispositions`(gid 정렬 `MatchingDisposition` tuple)
 reads device `ly_device`·`ly_fw_cand`, graph `ly_pdk`·`ly_groups_in`·`ly_rejected`. 그룹마다 독립(전 그룹 판정, LY6).
 
+0. **제외 role(Q8 (iii))**: role ∈ `EXCLUDED_ROLES` 그룹은 `ly_groups` 에 없고 `MatchingDisposition(gid, role, members,
+   "excluded_from_layout_matching", 사유)` 로 `ly_dispositions` 에 간다. 사유 문자열: bias_distribution =
+   `"gate shared by a diode reference and consumers in other blocks: bias distribution, not a matched pair (Q8 (iii))"`,
+   feedback_shared = `"loop signal gate shared: feedback sharing, not a matched pair (Q8 (iii))"`. 그 멤버는 일반 행 소자로 배치되고
+   행 matching 쌍(4.11)에도 들어가지 않는다.
 1. 전제(어기면 `pattern=None`, `ok=False`, `reason` = 아래, `attempts` = (step `"precondition"` 1개)):
-   `hub_net is None` -> `"no_hub_net"`; 멤버의 source 도 drain 도 hub 가 아님 -> `"member_not_on_hub:<이름>"`; hub 반대쪽(leaf) 넷이 겹침 -> `"leaf_net_shared"`.
-   전제를 만족하면 멤버를 hub 가 source 가 되게 세워 패턴 함수에 넘긴다(MOS source/drain 대칭).
+   - diff_pair·mirror(hub-leaf): `hub_net is None` -> `"no_hub_net"`; 멤버의 source 도 drain 도 hub 가 아님 -> `"member_not_on_hub:<이름>"`;
+     hub 반대쪽(leaf) 넷이 겹침 -> `"leaf_net_shared"`. 만족하면 멤버를 hub 가 source 가 되게 세워 패턴 함수에 넘긴다.
+   - branch_symmetric(Q8 (i)(ii)): 멤버의 (kind, gate) 가 모두 같지 않으면 `"branch_gate_differs"`. hub 는 보지 않고 소자 source·drain
+     그대로 넘긴다.
 2. 후보 조합 = 모든 멤버에게 `ok` 인 공통 폭 키 x 멤버별 그 키의 ok nf(곱집합). 조합 순서 = (행 폭 칸 수 = floor(sum(nf x (L_m + overhead)) / 격자),
    최대 err, 폭 키).
-3. 패턴 호출: common-centroid -- 멤버 nf 가 모두 같고 nf >= 멤버 수면 `common_centroid_layout(trs, n_rows=None, max_candidates=총 finger)`,
+3. 패턴 호출: common-centroid -- branch_symmetric 이면 `row_swap_layout(trs, 멤버 수, 쌍, 민감도)`(4.6, 쌍 = 멤버 이름 정렬 (0,1),(2,3),...,
+   민감도 `"ratio"`). 그 밖은 멤버 nf 가 모두 같고 nf >= 멤버 수면 `common_centroid_layout(trs, n_rows=None, max_candidates=총 finger)`,
    멤버 2개이고 nf 가 다르면 `n_rows=2`, 그 밖은 호출하지 않고 attempt `reason="cc_precondition"`.
    interdigitation -- `INTERDIGITATION_PATTERNS` 의 base 를 이름 정렬 순으로 보며 글자 수 = 멤버 수이고 어떤 repeat 의 글자별 개수를
-   (개수 내림차순, 글자) 로 늘어놓은 것 = 멤버 nf 를 (nf 내림차순, 이름) 으로 늘어놓은 것인 첫 base 를 넘긴다(그 대응으로 글자 정렬
-   순 = 소자 순서). 없으면 `base=None`.
+   (개수 내림차순, 글자) 로 늘어놓은 것 = 멤버 nf 를 (nf 내림차순, 이름) 으로 늘어놓은 것인 첫 base 를 넘긴다. 없으면 `base=None`.
 4. 행마다 `canonical_row` 로 node_sequence 정규화 -> `PatternRow`. **dx·dy** = 멤버 무게중심 x·y 의 (최대 − 최소), finger 피치 단위:
-   행 r(0부터, 행 수 R), 그 행 길이 n 의 i 번째 finger 의 x = i − (n−1)/2, y = r − (R−1)/2. 무게중심 일치(`centred`) = dx == dy == 0(정확한 유리수).
-5. 정렬 키(사전식) = (centred 아니면 1, 방법이 `pattern_table`·`rotation_exact` 아니면 1, crossover_count, isolated_pairs, residual,
-   행 폭 칸 수, 최대 err, 폭 키, 패턴 이름, nf tuple). 최선 = 최소 키. 앞 다섯 칸이 (0,0,0,0,0.0) 인 후보가 나온 뒤 행 폭 칸 수가 더 큰
-   조합은 평가하지 않는다(attempts 에도 없다).
-6. 차동쌍(`role == "diff_pair"`, LY5): (i) common-centroid 만으로 5의 최선을 찾고 centred 이면 채택, `reason="cc_same_W"`.
-   (ii) 아니면 멤버 모두 `W_adjustable` 이고 `rejected_requests` 에 없을 때: `W_new = 멤버 수 x 키* x 격자`,
-   키* = 그 kind 폭 키 중 |키 x 격자 − max(멤버 W)/멤버 수| 최소(동률은 작은 키), 멤버마다 `WRequest(이름, W, W_new, "cc_nf", gid)`,
-   `pending=True`, `provisional=True`, `reason="w_request_pending"`, 배치 = (i) 의 최선(없으면 pattern None), attempts 끝에 step `"w_request"`
-   (finger_w = W_new/멤버 수, nf = 멤버 수씩, reason `"cc_nf"`).
-   (iii) 그 밖: attempts 에 step `"w_request"`(reason `"w_request_rejected"`(멤버 중 거부 있음) 또는 `"w_not_adjustable"`), interdigitation
-   으로 5의 최선(step `"relax"`), `relaxed=True`, `reason="relaxed:<사유>"`. interdigitation 이 허용 밖이거나 후보가 없으면 pattern None,
-   relaxed False.
-7. 차동쌍이 아니면 허용 패턴 전부(`PATTERNS` 순)로 5의 최선, `reason="selected"`. 최선이 없으면 `"no_common_finger_w"`(공통 ok 폭 없음)
+   행 r(0부터, 행 수 R), 그 행 길이 n 의 i 번째 finger 의 x = i − (n−1)/2, y = r − (R−1)/2. `centred` = dx == dy == 0(정확한 유리수).
+5. 정렬 키(사전식) = 머리 + 꼬리. 머리 = (**mirror 만** 앞에: interdigitation 성립 아니면 1 (Q8 (ii)) ; 그다음 공통: centred 아니면 1,
+   방법이 `pattern_table`·`rotation_exact` 아니면 1, crossover_count, isolated_pairs, residual), 꼬리 = (행 폭 칸 수, 최대 err, 폭 키,
+   패턴 이름, nf tuple). **interdigitation 성립** = 패턴이 interdigitation 이고 결과 crossover_count == 0. 최선 = 최소 키.
+   머리가 모두 0 인 후보가 나온 뒤 행 폭 칸 수가 더 큰 조합은 평가하지 않는다(attempts 에도 없다).
+6. diff_pair·branch_symmetric(LY5, Q8 (ii)): (i) common-centroid 만으로 5의 최선을 찾고 centred 이면 채택, `reason="cc_same_W"`.
+   (ii) 아니면 멤버 모두 `W_adjustable` 이고 `rejected_requests` 에 없을 때: 멤버 모두에게 사용 가능한(후보가 있는) 폭 키 중
+   |키 x 격자 − max(멤버 W_need(키))/n| 최소(동률은 작은 키) 키*, `W_new = n x 키* x 격자`(n = 멤버 수), 멤버마다
+   `WRequest(이름, W_need(키*), W_new, "cc_nf", gid)`, `pending=True`, `provisional=True`, `reason="w_request_pending"`,
+   배치 = (i) 의 최선(없으면 pattern None), attempts 끝에 step `"w_request"`(finger_w = W_new/n, nf = n씩, reason `"cc_nf"`).
+   (iii) 그 밖: attempts 에 step `"w_request"`(reason `"w_request_rejected"`(멤버 중 거부 있음) / `"w_not_adjustable"` /
+   `"no_usable_slice"`(조정 가능하지만 공통 사용 가능 폭 키 없음)), 그다음 완화:
+   - diff_pair: interdigitation 으로 5의 최선(step `"relax"`), interdigitation 이 허용 밖이거나 후보가 없으면 pattern None, relaxed False.
+   - branch_symmetric: interdigitation 은 공유 hub 가 없어 그래프상 불가 -- (i) 의 최선 행 swap 배치를 그대로(무게중심 불일치) 쓰고
+     attempts 끝에 step `"relax"`(pattern common_centroid, method `"row_swap"`, 그 dx·dy, ok False, reason `"row_swap_uncentred"`).
+     (i) 의 최선이 없으면 pattern None, relaxed False.
+   완화되면 `relaxed=True`, `reason="relaxed:<사유>"`, 아니면 reason = 7 의 사유 규칙(`"no_common_finger_w"` / `"no_applicable_pattern"`)
+   이되 후보가 있으면 그 사유 대신 (iii) 사유.
+7. mirror: 허용 패턴 전부(`PATTERNS` 순)로 5의 최선, `reason="selected"`. 최선이 없으면 `"no_common_finger_w"`(공통 ok 폭 없음)
    또는 `"no_applicable_pattern"`.
 - `GroupLayout.ok` = 채택 배치가 centred. `attempts` = 평가 순서대로 전부(`GroupAttempt(step, pattern, finger_w_m, n_fingers, W_realized_m,
   method, dx, dy, ok, reason)`, 전제 밖은 method/dx/dy None, 평가한 것은 reason `"evaluated"`).
 
-### 4.5 `finger_geometry` -- device `ly_finger`
-reads device `ly_device`·`ly_fw_cand`, graph `ly_groups`·`ly_row_groups`.
+### 4.6 `row_swap_layout(transistors, n_rows, matching_pairs, pair_sensitivity) -> dict` (Q8 (ii))
+1. `apply_explicit_row_split({"row_swap": transistors}, {"row_swap": n_rows})` -- 멤버마다 nf 를 n_rows 조각(앞 조각부터 +1, 0 조각 없음).
+2. 조각 행 r(0부터)마다 `row_euler(조각 소자 이름 정렬, matching_pairs, pair_sensitivity)` 의 segment 를 r 칸 순환 회전
+   (segment 수 k 이면 `segments[r % k:] + segments[:r % k]`), `crossover_after` = segment 경계 직전 finger index, `canonical_row` 정규화.
+3. 반환 `{"rows": [...], "method": "row_swap", "crossover_count": 행 Euler crossover_count 합, "isolated_pairs": count_isolated_pairs(rows,
+   이름 정렬), "residual": common_centroid_residual(rows)}`.
+손계산: E(p→q), F(r→t) 같은 gate, nf 2·2, n_rows 2 -> 행 `("E","F")`, `("F","E")`, segment 2개씩, dx = dy = 0, crossover_count 0.
+nf 1·1, n_rows 2 -> 조각 행 1개(`("E","F")`)뿐 -> dx 1.0(무게중심 불일치).
+
+### 4.7 `finger_geometry` -- device `ly_finger`
+reads device `ly_fw_cand`, graph `ly_groups`·`ly_row_groups`.
 - pattern 이 있는 그룹 멤버: 그 그룹의 폭 키·nf 후보, `origin="group"`, `group=gid`.
 - 나머지(행 그룹 rid 정렬, 행 그룹 안 이름 정렬): 남은 소자 중 **가장 많은 소자에게 ok 인 폭 키** -> 동률이면 그 소자들의
   (그 키에서 err 최소 nf) 합 최소 -> 동률이면 큰 키. 그 키가 ok 인 소자 모두에 그 키의 (err, nf) 최소 후보를 주고 남은 소자로 반복.
   다른 행 그룹의 폭은 보지 않는다(단위셀 폴백·seed 전파 없음).
-- 어떤 키도 ok 가 아닌 소자: 전체 후보 중 (err, nf, −키) 최소를 잠정으로 쓰고 `w_request = WRequest(이름, W, 그 후보 실현 W,
-  "finger_quantization", None)`. 단 그 소자가 어떤 그룹의 `w_requests` 에 이미 있으면 `w_request=None`(그룹 요청이 대신). 그 밖은 `w_request=None`.
+- 어떤 키도 ok 가 아닌 소자: 전체 후보 중 (err, nf, −키) 최소를 잠정으로 쓰고 `w_request = WRequest(이름, 그 후보 W_need, 그 후보 실현 W,
+  "finger_quantization", None)`. 단 그 소자가 어떤 그룹의 `w_requests` 에 이미 있으면 `w_request=None`. 그 밖은 `w_request=None`.
+- 후보가 하나도 없는 소자(모든 슬라이스 제외)는 `ly_finger` 에 값이 없다(4.12 가 `no_usable_slice` 로 기록).
+- `DeviceFinger(name, 키, fw, nf, W_need, 실현 W, err, lower, upper, effective, grid_dominated, ok, origin, group, w_request)`.
 
-### 4.6 `row_euler(transistors, matching_pairs, pair_sensitivity) -> dict`
+### 4.8 `row_euler(transistors, matching_pairs, pair_sensitivity) -> dict` (변경 없음)
 소자를 source·drain 넷 연결 성분(diffusion 섬)으로 나눠(섬 = 이름 정렬, 섬 순서 = 첫 이름 정렬) 섬마다: `build_graph` ->
 `check_euler_condition`; 가능하면 섬 안 쌍이 있을 때 `mirror_symmetric_trail`(성공 시 "mirror"), 아니면 `hierholzer`("euler");
 불가면 `find_min_crossover_layout(섬, matching_pairs=섬 안 쌍, pair_sensitivity=섬 안 쌍의 값 또는 None)`("crossover").
 반환: `transistor_sequence`, `node_sequence`(`canonical_row` 결과), `segments`, `crossover_after`(각 segment 끝 finger index, 마지막 제외),
 `method`(crossover > mirror > euler 우선 표기), `crossover_count`(섬별 합), `n_components`. finger 수는 바꾸지 않는다.
 
-### 4.7 `box_verdict(rows, max_row_ratio, folds) -> BoxVerdict`
-`rows` = ((id, 폭, 높이), ...). width_ratio = 최대 폭 / 최소 폭(동률은 id 순으로 정렬해 가장 넓은·좁은 id), `ok = width_ratio <= max_row_ratio`,
-total_width = 최대 폭, total_height = 높이 합, elongation = max/min(두 값), `folds` 는 tuple 로 옮긴다.
+### 4.9 `box_verdict(rows, folds) -> BoxVerdict` (Q8 (vi) -- 기록만)
+`rows` = ((id, 폭, 높이), ...). `BoxVerdict(width_ratio, elongation, total_width_m, total_height_m, widest_row, narrowest_row, folds)`:
+width_ratio = 최대 폭 / 최소 폭(동률은 id 순으로 정렬해 가장 넓은·좁은 id), total_width = 최대 폭, total_height = 높이 합,
+elongation = max/min(두 값), `folds` 는 tuple 로 옮긴다. **ok 필드·허용치 없음**.
 
-### 4.8 `compose_rows` -- graph `ly_rows`(`RowsLayout(rows, box)`)
-reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_row_groups`·`ly_pdk`·`ly_box_ratio`.
-- 행 그룹(rid 정렬)마다: pattern 있는 그룹(gid 정렬, 멤버 ⊂ 행 그룹)의 i 번째 패턴 행 -> 행 id `"<rid>/<gid>/<i>"`, method `"pattern:<방법>"`,
-  `walk_ok` = segment 마다 `check_walk_sequence(segment 순서, segment 안 finger 수의 Transistor)` 모두 ok, crossover_count = len(crossover_after).
-  나머지 소자는 폭 키별로 행 id `"<rid>/w<키>"`, `row_euler`(쌍 = 각 입력 그룹 멤버를 이름 정렬해 (0,1),(2,3),... 로 묶은 것,
-  민감도 = 차동쌍 `"offset"`, 그 밖 `"ratio"`).
-- 행 폭 = sum(nf x (L_m + overhead)), 높이 = finger_w. `devices` = ((이름, 그 행 finger 수), ...) 이름 정렬.
-- box: `box_verdict` FAIL 이고 가장 넓은 행이 `<rid>/w<키>` 행(아직 안 접은 것)이면 n = 2, 3, ..., (그 행 최대 nf) 로
-  `apply_explicit_row_split` 해 각 조각을 `row_euler`, 행 폭 비가 직전 n 보다 줄지 않으면 멈추고 가장 좋은 n 을 원래 비보다 작을 때만
-  적용(`folds` 에 (행 id, n)), 접은 조각 id = `"<행 id>_split<j>"`(복사 함수 규칙). 반복. 가장 넓은 행이 패턴 행이거나 개선이 없으면
-  멈추고 그 판정을 남긴다. 행은 id 정렬.
+### 4.10 `floorplan_of(rows, bodies, pdk) -> FloorplanSummary` (Q8 (vii), 판정 축 면적)
+`rows` = `RowLayout` 들(비어 있지 않음), `bodies` = {행 그룹 id: body 넷}. 격자 g = `pdk.manufacturing_grid_m`.
+- 행마다 `FloorplanBlock(행 id, (행 폭 + 2 x dummy_w_m + tap_w_m)/g, finger_w/g)` -- 행 끝 dummy 양끝 둘 + 행마다 body tap 하나.
+- body 넷별로 묶는다. body 마다 `pack_floorplan_grouped(spine_groups = {행 그룹 id: 그 행 블록들(행 순서)}, [], gap = row_gap_m/g,
+  transistor_sequences = {행 id: 순서})`, 그 배치를 bbox 왼쪽 아래 원점으로 옮긴다.
+- body 가 하나면 그 결과가 전부. 둘 이상이면 body 마다 `FloorplanBlock("body:<body>", 그 bbox 폭, 높이)` 를 복사 함수
+  `pack_floorplan(blocks, [], gap = max(row_gap_m, well_spacing_m)/g)` 로 배치하고 안쪽 배치를 그 자리로 옮긴다(well 간격은 body 가 다른
+  묶음 사이에만).
+- `placements` = 행 id 정렬 (id, x, y, 폭, 높이) m(폭은 dummy·tap 포함), `outline_area_m2 = bbox 폭 x bbox 높이`, `area_tie_m2 = g^2`,
+  `aspect_ratio` = max/min(bbox 두 변), `packing_density` = 블록 면적 합 / 외곽 면적,
+  `included` = (("finger_pitch_overhead", overhead, 규칙), ("row_end_dummy_x2_per_row", dummy_w, 규칙), ("body_tap_per_row", tap_w, 규칙),
+  ("row_gap", gap, 규칙)) + body 가 둘 이상이면 ("well_spacing_between_bodies", well, 규칙). 규칙 = `pdk.rule_ids` 의 그 이름 값.
 
-### 4.9 `floorplan` -- graph `ly_floorplan`(`FloorplanSummary`)
-reads graph `ly_rows`·`ly_pdk`. 행마다 `FloorplanBlock(행 id, 폭/격자, finger_w/격자)`, `spine_groups` = {행 그룹 id: 그 행 블록들}(행 id 순),
-`mirror_pairs = []`, `gap = row_gap_m / 격자`, `transistor_sequences` = {행 id: 순서}로 `pack_floorplan_grouped`. 결과 길이 x 격자 -> m.
-`outline_area_m2 = bbox 폭 x bbox 높이`, `area_tie_m2 = 격자^2`, `placements` = 행 id 정렬 (id, x, y, 폭, 높이).
+### 4.11 `compose_rows` -- graph `ly_rows`(`RowsLayout(rows, box, fold_attempts, merge_decisions, rebuilt_groups)`), `ly_floorplan`
+reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_row_groups`·`ly_pdk`.
+행 matching 쌍 = `ly_groups_in` 중 `LAYOUT_ROLES` 그룹(gid 정렬) 멤버를 이름 정렬해 (0,1),(2,3),... 로 묶은 것, 민감도 = diff_pair `"offset"`,
+그 밖 `"ratio"`. **matching 소자** = `LAYOUT_ROLES` 그룹 멤버.
+1. 초기 행(행 그룹 rid 정렬): pattern 있는 그룹(gid 정렬, 멤버 ⊂ 행 그룹)의 i 번째 패턴 행 -> 행 id `"<rid>/<gid>/<i>"`, method
+   `"pattern:<방법>"`, `walk_ok` = segment 마다 `check_walk_sequence(segment 순서, segment 안 finger 수의 Transistor)` 모두 ok,
+   crossover_count = len(crossover_after), `group=gid`, `matching=True`. 나머지 소자(`ly_finger` 값이 있는 것)는 폭 키별 행 `"<rid>/w<키>"`,
+   `row_euler`, `group=None`, `matching` = 그 행에 matching 소자가 있음. 행 폭 = sum(nf x (L_m + overhead)), 높이 = finger_w,
+   `devices` = ((이름, 그 행 finger 수), ...) 이름 정렬.
+2. **hub 병합(Q8 (viii))**: `group is None and not matching` 인 행을 (kind, body, 폭 키) 로 나눠(정렬 순) 행이 둘 이상인 묶음마다
+   그 행들의 Transistor 로 `find_hub_merge_candidates` -> 후보 (kind, 넷) 를 넷 이름 정렬 순으로: 그 후보 소자가 지금 들어 있는 행들
+   (정렬, 이미 합친 행 포함)이 둘 이상이면 그 행들의 소자 전부를 `row_euler` 한 행(id = 행 id 들을 `"+"` 로 이은 것, 행 그룹 = 첫 행의
+   행 그룹)으로 합친 시험안을 만들고, 판정 축 면적(`floorplan_of`)이 **줄면** 채택. 시도마다
+   `MergeDecision(행 id tuple, 넷, merged, "area_decreased"|"area_not_decreased", 전 면적, 후 면적, MERGE_NOISE_NOTE)`.
+   노이즈 결합 우려는 거부 사유로 쓰지 않는다(note 기록만).
+3. **box 개선(Q8 (v)(vi))** -- 목적 = 외곽 면적 A(현재 행 집합의 `floorplan_of`). 2 뒤의 행을 (−폭, id) 순으로 한 번씩:
+   - `group` 이 있는 행(그 그룹 첫 등장만): 패턴이 common-centroid(행 swap 포함)이면 재구성: k = (현재 그 그룹 행 수 + 1) .. (멤버 최대 nf)
+     마다 `row_swap_layout(trs, k, ...)`(branch_symmetric) 또는 `common_centroid_layout(trs, n_rows=k, max_candidates=총 finger)`,
+     새 행 id `"<rid>/<gid>/<i>"`, Euler(walk)·matching 재판정: walk 실패 또는 max(dx, dy) > 현재 max(dx, dy) 또는 행 crossover 최대 증가면
+     `FoldAttempt(... "rebuild", k, 면적, dx, dy, False, "matching_worse")` 로 남기고 다음 k. 아니면 `"evaluated"`, 직전 채택 후보 면적
+     이상이면 멈춘다. 가장 작은 면적이 현재 A 보다 작으면 적용(그 시도 `adopted=True, reason="adopted"`) + `GroupRebuild(gid, k, method, dx, dy)`.
+     interdigitation 패턴은 `FoldAttempt(행 id "<rid>/<gid>", "rebuild", 현재 행 수, A, None, None, False, "pattern_not_rebuildable")`.
+   - `group` 없고 `matching` 인 행: 자동으로 접지 않는다 -- `FoldAttempt(id, "fold", 1, A, None, None, False, "matching_row_not_auto_folded")`.
+   - 그 밖(matching 없음): n = 2, 3, ..., (그 행 최대 nf) 로 `apply_explicit_row_split({id: 행 소자}, {id: n})`, 조각마다 `row_euler`
+     (조각 id = `"<id>_split<j>"`, 복사 함수 규칙), `FoldAttempt(id, "fold", n, 면적, None, None, False, "evaluated")`; 면적이 직전 n 보다
+     줄지 않으면 멈추고, 가장 작은 면적이 현재 A 보다 작을 때만 적용(`folds` 에 (id, n), 그 시도 adopted).
+4. 행은 id 정렬, `box = box_verdict(((id, 폭, finger_w), ...), folds)`, `ly_floorplan` = 최종 행의 `floorplan_of`.
+   초기 행이 하나도 없으면(모든 소자에 사용 가능 슬라이스 없음) `ValueError`.
+   같은 행 집합 내용의 `floorplan_of` 와 같은 행 내용의 `row_euler` 는 블록 호출 안에서 한 번만 계산한다(memo).
 
-### 4.10 `run_layout(layout_input, previous=None) -> LayoutResult`
-1. 스냅샷 = `previous.snapshot`(있으면) 아니면 `GraphSnapshot.empty(LY_WRITERS)`. writer `"ly_input"`, 입력 버전 `fp_of(layout_input)` 으로
-   device `ly_device`({이름: LayoutDevice}), graph(key `"layout"`) `ly_pdk`·`ly_groups_in`(입력 tuple 그대로)·`ly_row_groups`·`ly_box_ratio`·
+### 4.12 `run_layout(layout_input, memo, previous=None) -> LayoutResult`
+1. `memo.lut.fp != layout_input.pdk.source_fp` -> `ValueError`.
+2. 스냅샷 = `previous.snapshot`(있으면) 아니면 `GraphSnapshot.empty(LY_WRITERS)`. writer `"ly_input"`, 입력 버전 `fp_of(layout_input)` 으로
+   device `ly_device`({이름: LayoutDevice}), graph(key `"layout"`) `ly_pdk`·`ly_groups_in`(입력 tuple 그대로)·`ly_row_groups`·
    `ly_rejected`(정렬 tuple) 를 쓴다.
-2. 블록 순서 `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows` -> `floorplan`. `computed_blocks` = 이번 호출에서
-   block_version 이 바뀐 writer 이름(순서대로).
-3. `devices` = 입력 순 `DeviceLayout(이름, finger_w, nf, ((행 id, nf), ...) 행 id 순, W, 실현 W, err, lower, upper, origin)`.
-   `w_requests` = 그룹 요청 + 소자 finger_quantization 요청, (device, reason) 정렬. `coverage_ok`·`coverage_missing`(정렬) =
-   `check_stick_diagram_coverage(입력 이름, {행 id: 행 소자 이름})`.
-   `w_invariant_ok` = 모든 소자에서 (행별 nf 합 == nf) 이고 (err <= upper 또는 그 소자 이름의 W_request 있음).
+3. 슬라이스: 버전 = `fp_of((memo.lut.fp, pdk.slice_width_keys, ((이름, kind, L, ID, gm_id, vds, vsb), ...) 입력 순))`. 스냅샷의
+   `block_version("ly_slice_density")` 가 같으면 건너뛰고, 다르면 소자마다 `slice_density(memo, 소자, 그 kind 폭 키)`(같은 (kind, L, ID, gm_id,
+   vds, vsb) 는 한 번) 를 device `ly_slices` 에 쓴다.
+4. 블록 순서 `finger_candidates` -> `pattern_select` -> `finger_geometry` -> `compose_rows`. `computed_blocks` = 이번 호출에서 쓴 writer 이름
+   (`"ly_slice_density"` 를 다시 계산했으면 맨 앞, 그다음 block_version 이 바뀐 블록 순서대로).
+5. `devices` = 입력 순 `DeviceLayout(이름, finger_w, nf, ((행 id, nf), ...) 행 id 순, W_m(참고), W_need, 실현 W, err, lower, upper, effective,
+   grid_dominated, origin, excluded_slices = ((키, 사유), ...) 제외된 슬라이스)`. `ly_finger` 값이 없는 소자는 finger_w·nf·W_need 이후
+   숫자 필드가 None, rows `()`.
+   `w_requests` = 그룹 요청 + 소자 finger_quantization 요청 + `ly_finger` 없는 소자마다 `WRequest(이름, W_m, W_m, "no_usable_slice", None)`,
+   (device, reason) 정렬. `coverage_ok`·`coverage_missing`(정렬) = `check_stick_diagram_coverage(입력 이름, {행 id: 행 소자 이름})`.
+   `w_invariant_ok` = 모든 소자가 `ly_finger` 를 갖고 (행별 nf 합 == nf) 이고 (err <= effective 또는 그 소자 이름의 W_request 있음).
+6. `review_needed`(결과 첫 필드, Q8 (iv)) = `groups` 순으로 role ∈ `CC_REQUIRED_ROLES` 이고 (`relaxed` 이거나 (pattern None 이고 pending 아님))
+   인 그룹마다 `ReviewItem(gid, role, reason, dx, dy)` -- dx·dy 는 그 그룹이 4.11 3 에서 재구성됐으면 `GroupRebuild` 값, 아니면 그룹 값.
+7. `matching_dispositions` = `ly_dispositions`, `rows`·`box`·`fold_attempts`·`merge_decisions` = `ly_rows` 값, `floorplan` = `ly_floorplan`.
+8. `revalidation` = 4.14.
 
-### 4.11 불변식 (test 대상)
-1. **총 W 보존(LY1)**: 모든 소자 `W_err_rel <= W_tol_upper` 또는 그 소자 `W_request` 존재. 행 접기·crossover 전후 소자별 행 finger 합 불변.
-2. **W 를 바꾸지 않는다(LY3)**: `DeviceLayout.W_m` = 입력 W. W 변경은 `w_requests` 로만.
-3. **행별 finger_w(LY2·L6)**: 한 행의 finger_w 는 하나, 비그룹 소자의 폭 키는 같은 행 그룹 소자의 ok 후보에서만.
-4. **전 그룹 판정(LY6)**: `groups` 는 입력 그룹 전부(gid 정렬). 앞 그룹이 전제 밖이어도 뒤 그룹 판정이 있다.
-5. **조용한 완화 금지(LY5)**: `relaxed=True` 이면 attempts 에 step `"cc_same_W"`(또는 후보 없음) 와 `"w_request"` 가 `"relax"` 앞에 있다.
-6. **결정론(NFR-4)**: 같은 입력이면 `PYTHONHASHSEED` 와 무관하게 결과(snapshot 제외)가 같다.
-7. **필드 = 캐시(L11)**: 같은 입력으로 `previous` 를 주면 `computed_blocks == ()` 이고 결과가 같다. `box_max_row_ratio` 만 바꾸면
-   `("ly_rows", ...)` 부터만(앞 세 블록 재사용), 소자 하나의 W 만 바꾸면 `ly_finger_candidates` 부터 다시 계산(결과가 같은 블록 뒤는 재사용될 수 있다).
-   각 블록 `stats().recomputes_same_input == 0`.
-8. coverage: `coverage_ok` 이고 `coverage_missing == ()`.
+### 4.13 불변식 (test 대상)
+1. **보존량 (ID, gm/ID, L)(LY1, Q4 (i))**: `DeviceLayout.W_need_m` = 그 소자 finger_w 슬라이스의 `ID_A / J_slice`; 모든 배치 소자
+   `W_err_rel = |W_realized − W_need| / W_need` 이고 `W_err_rel <= W_tol_effective` 또는 그 소자 `W_request` 존재. 행 접기·crossover·hub 병합·
+   재구성 전후 소자별 행 finger 합 불변. 같은 matching 그룹 멤버는 같은 finger_w(같은 슬라이스).
+2. **실효 허용오차(Q4 (iv))**: `W_tol_effective = max(W_tol_upper, W_tol_lower)`, `grid_dominated = W_tol_lower > W_tol_upper`,
+   `W_tol_upper = (그 슬라이스 id_equivalent tol_V 셀) x gm/ID`.
+3. **W 를 바꾸지 않는다(LY3)**: `DeviceLayout.W_m` = 입력 W_m. W 변경은 `w_requests` 로만.
+4. **행별 finger_w(LY2·L6)**: 한 행의 finger_w 는 하나, 비그룹 소자의 폭 키는 같은 행 그룹 소자의 ok 후보에서만(hub 병합은 같은 폭 키 행끼리만).
+5. **전 그룹 판정(LY6)**: `groups` 는 `LAYOUT_ROLES` 입력 그룹 전부(gid 정렬), `matching_dispositions` 는 `EXCLUDED_ROLES` 입력 그룹 전부.
+6. **조용한 완화 금지(LY5)**: `relaxed=True` 이면 attempts 에 step `"cc_same_W"`(또는 후보 없음) 와 `"w_request"` 가 `"relax"`(diff_pair 는
+   interdigitation 평가, branch_symmetric 은 `row_swap_uncentred` 기록) 앞에 있고, 그 그룹이 `review_needed` 에 있다.
+7. **자동 접기 범위(Q8 (v))**: `"fold"` 로 adopted 된 행에는 matching 소자가 없다. matching 패턴 행은 `"rebuild"` 로만 바뀌고, 채택된 rebuild 의
+   max(dx, dy) 는 원래 이하.
+8. **하드 box 게이트 없음(Q8 (vi))**: 접기·재구성·병합 채택은 판정 축 외곽 면적 감소로만 정해진다(채택 시도의 면적 < 그 시점 면적).
+9. **결정론(NFR-4)**: 같은 입력이면 `PYTHONHASHSEED` 와 무관하게 결과(snapshot·computed_blocks 제외)가 같다.
+10. **필드 = 캐시(L11)**: 같은 입력·같은 memo LUT 로 `previous` 를 주면 `computed_blocks == ()` 이고 결과(computed_blocks 제외)가 같다.
+    `rejected_requests` 만 바꾸면 `ly_slice_density`·`ly_finger_candidates` 는 재사용, `ly_pattern_select` 부터 다시 계산될 수 있다.
+    소자 하나의 ID 만 바꾸면 `ly_slice_density` 부터 다시 계산한다. 각 블록 `stats().recomputes_same_input == 0`.
+11. coverage: 모든 소자에 사용 가능 슬라이스가 있으면 `coverage_ok` 이고 `coverage_missing == ()`.
+12. **재검증 요청(Q4 (ii))**: `revalidation.required is True` 가 W_request 유무와 무관하게 항상 참.
 
-### 4.12 손계산 오라클 (toy)
-`pdk = LayoutPdk(5e-9, (("nmos", (200, 400, 1000)),), 0.0, 0.0, "toy")`(폭 1·2·5 µm). 소자(kind nmos, body "sub", L 1e-6, ID 1e-6,
-gm/ID 10.0, vds 0.5, vsb 0.0, tol_V 0.01 -> upper 0.1, diode False, adjustable True): A(s h, d da, W 4e-6), B(s h, d db, W 4e-6),
-C(s x, d y, W 3e-6), D(s y, d z, W 6e-6). 그룹 `MatchingGroup("g1", ("A","B"), "diff_pair", "h", PATTERNS)`, 행 그룹 `("r", "nmos", "sub", (A,B,C,D))`,
-box 기준 1.5.
-- C 후보: (200, nf 3, err 0, ok), (400, 1, 1/3, x), (400, 2, 1/3, x), (1000, 1, 2/3, x). lower = 0.0025 / 0.00125 / 0.0005.
-- g1: 첫 조합(폭 칸 = 4 fingers x 1e-6 / 5e-9 = 800) = 키 400, nf (2,2) -> `rotation_exact`, 행 `("A","B")`/`("B","A")`, node `("da","h","db")`/
-  `("db","h","da")`, dx = dy = 0, ok, `reason="cc_same_W"`, attempts 1개(다음 조합 키 200 nf (4,4) 는 폭 칸 1600 이라 평가 안 함).
-- C·D: 공통 ok 키는 200 뿐 -> C 3, D 6 finger, 행 `"r/w200"` 폭 9e-6 -> 행 폭 비 9/2 = 4.5 > 1.5 -> 접기 n=2 (C 2/1, D 3/3: 폭 5,4 -> 비 2.5),
-  n=3 (C 1/1/1, D 2/2/2: 3,3,3 -> 비 1.5), n=4 (3,3,2,1 -> 비 3.0, 증가 -> 멈춤) -> n=3 적용, folds `(("r/w200", 3),)`, 각 조각 순서
-  `("C","D","D")`, node `("x","y","z","y")`, method "euler", box ok(비 1.5).
-- 행 5개: `r/g1/0`, `r/g1/1`(폭 2e-6, 높이 2e-6), `r/w200_split0..2`(폭 3e-6, 높이 1e-6). `w_requests == ()`, `w_invariant_ok`.
-- 차동쌍 완화 순서(T5), 행 그룹 `("r", "nmos", "sub", ("A","B"))` 만:
-  - A·B W `1.5e-6`(모든 후보 err 1/3 > 0.1 -> ok 후보 없음, 조합 0): adjustable -> pattern None, `pending=True`, `reason="w_request_pending"`,
-    attempts = (`("w_request", "cc_nf")`), w_requests = A·B 각 `WRequest(이름, 1.5e-6, 2e-6, "cc_nf", "g1")`(키* = |키 x 5e-9 − 0.75e-6| 최소 = 200,
-    W_new = 2 x 1e-6) -- finger_quantization 요청은 따로 내지 않는다. `W_adjustable=False` -> pattern None, relaxed False, `reason="no_common_finger_w"`,
-    attempts `(("w_request","w_not_adjustable"),)`, w_requests = A·B `"finger_quantization"`(group None). `rejected_requests=("A","B")` -> 같은 모양,
-    사유 `"w_request_rejected"`. 세 경우 모두 `w_invariant_ok`.
-  - A·B W `1.1e-6`, `W_adjustable=False`: 키 200 nf 1 (err 0.0909 ok) -> cc 는 nf 1 < 2 라 `cc_precondition` -> `w_request`(`w_not_adjustable`) ->
-    `relax`: interdigitation `pattern_table`(base "AB"), 행 `("A","B")`, dx 1.0, ok False, `relaxed=True`, `reason="relaxed:w_not_adjustable"`,
-    attempts step 순서 `cc_same_W`, `w_request`, `relax`, w_requests ().
+### 4.14 레이아웃 뒤 재검증 요청 (Q4 (ii)(iii)) -- 소비자 배선 대기
+- `Revalidation(required=True, status=REVALIDATION_PENDING ("pending_wiring"), seals=REVALIDATION_SEALS ("seal_1".."seal_8"),
+  devices = 입력 순 배치 소자의 RealizedDevice, consumer=REVALIDATION_CONSUMER, reason=REVALIDATION_PENDING_REASON)`.
+- `RealizedDevice(name, kind, finger_w_key, finger_w_m, n_fingers, W_need_m, W_realized_m, ID_A, gm_id, L_m, vds_V, vsb_V, recalibrate_id,
+  recompute_node_voltages)`: `recalibrate_id = not diode`(Q4 (iii): diode 는 ID 재보정 불필요), `recompute_node_voltages = True`(모든 소자 --
+  diode 도 노드전압·봉인은 다시 계산).
+- **소비 계약(배선 대기 -- 가짜 구현 없음)**: MOD8 `convergence` 가 `LayoutResult.revalidation` 을 받아 실현 기하(폭 키·nf·실현 W)로 평가 커널을
+  1회 다시 돌리고 봉인 1~8 을 재실행한 뒤 통과하면 freeze, 위반하면 W_request 경로로 보낸다. LY1 허용오차는 후보 순위 기준일 뿐이다.
+  평가 커널(MOD5 metrics·sizing 블록)·봉인(MOD6)·MOD8 은 아직 엔진에 없어(`gmid_engine/metrics`·`sizing`·`convergence` 비어 있음) 지금
+  status 는 늘 `"pending_wiring"` 이다. 소비자가 생기면 status 를 바꾸는 쪽은 MOD8 이다(레이아웃은 요청만 낸다).
+- 계획 LY7('평가 커널은 W_request 가 있을 때만')은 Q4 (ii)로 바뀐다: MOD7 결과마다 재검증 1회는 W_request 와 무관하게 돈다. 레이아웃
+  재시도(기하 판정)는 여전히 전기 재계산 없이 돈다.
 
-### 4.13 결정·범위 밖
-- MOD8(W_request 를 받아 sizing 재평가·`rejected_requests` 를 채워 다시 부르기)은 다음 단계. 이번 범위는 W_request 를 결과로 내보내기만.
-- box FAIL 은 W 를 바꾸지 않고 FAIL 로 남긴다. 패턴 행은 접지 않는다(matching 배치 보존).
+### 4.15 손계산 오라클 (toy -- lut 계약 7절 toy LUT, 최소 finger 1e-6)
+`spec = LutSpec(1e-8, (("nmos", 1e-6),), (("toyn","nmos"),), (("nmos","_n"),))`, 슬라이스 2장(lut 계약 7절 `toy_w100`·`toy_w200`),
+`memo = LutMemo(lut, point=…, curve=…, root=…)`, `pdk = LayoutPdk.from_lut(lut, 0.0, 0.0, 0.0, 0.0, 0.0, rules)`(rules = 다섯 이름에 아무
+규칙 문자열) -> 폭 키 (100, 200), finger_w 1e-6·2e-6. 소자 공통: kind nmos, body "sub", L 1e-6, gm/ID 10.0, vds 0.5, vsb 0.0, diode False,
+adjustable True, W_m 4e-6(참고). 4.2 에 의해 **W_need = ID_A**(m), tol_V = 0 이라 상한 0, 실효 = 하한(키 100: 0.005, 키 200: 0.0025),
+`grid_dominated=True`.
+- 소자 C(s x, d y, ID 0.75e-6): 후보 키 100 nf 1(W_need 0.75e-6, err 1/3, ok False), 키 200 nf 1(err 5/3, ok False) -> ok 없음 ->
+  `finger_quantization` 요청 `WRequest("C", 0.75e-6, 1e-6, "finger_quantization", None)`(err 최소 = 키 100 nf 1).
+- 차동쌍 g1 = A(s h, d da), B(s h, d db), hub "h":
+  - ID 2e-6 씩: 키 100 nf 2(err 0, ok) -> `rotation_exact`, 행 `("A","B")`/`("B","A")`, dx = dy = 0, `reason="cc_same_W"`, ok.
+  - ID 1e-6 씩: 키 100 nf 1 만 ok -> cc 는 nf 1 < 2 라 `cc_precondition` -> adjustable 이면 `w_request`: 키* = |키 x 1e-8 − 1e-6/2| 최소 = 100,
+    `WRequest(A, 1e-6, 2e-6, "cc_nf", "g1")`·B 같음, `pending`, pattern None, `review_needed` 에 없음(pending).
+    `W_adjustable=False` 면 attempts `cc_same_W`(cc_precondition) -> `w_request`(w_not_adjustable) -> `relax`: interdigitation `pattern_table`
+    (base "AB") 행 `("A","B")`, dx 1.0, `relaxed=True`, `reason="relaxed:w_not_adjustable"`, `review_needed` = (ReviewItem("g1", "diff_pair",
+    "relaxed:w_not_adjustable", 1.0, 0.0),).
+- branch_symmetric g2 = E(s p, d q), F(s r, d t), 같은 gate "gc", ID 2e-6 씩: 키 100 nf 2 -> `row_swap`, 행 `("E","F")`/`("F","E")`, dx = dy = 0,
+  `reason="cc_same_W"`. gate 를 다르게 하면 `precondition` `"branch_gate_differs"`.
+- bias_distribution g3 = (C, D): `ly_groups` 에 없고 `matching_dispositions` 에 사유와 함께 있다. C·D 는 일반 Euler 행.
+- hub 병합: 같은 body 의 행 그룹 r(C(s x, d y), D(s y, d z), ID 1e-6) 과 r2(G(s y, d w), ID 1e-6) -> 두 행 `r/w100`·`r2/w100` 이 넷 "y" 후보,
+  합친 행 소자 C·D·G -> `MergeDecision(("r/w100","r2/w100"), "y", merged, ...)` 이 하나 있고 merged 는 (후 면적 < 전 면적)과 같다.
+- 접기: 행 그룹 r3 의 H(s k, d m, ID 12e-6) 혼자 -> 키 200 nf 6 행 `r3/w200` -> "fold" 시도 n = 2, 3, ... 가 기록되고, 채택이 있으면 그 면적이
+  그 시점 면적보다 작다(H 의 행별 nf 합 = 6 유지).
+
+### 4.16 결정·범위 밖·다른 패키지 대기
+- MOD8(W_request 를 받아 sizing 재평가·`rejected_requests` 를 채워 다시 부르기)·재검증 실행(4.14)은 다음 단계.
+- 패턴 행은 `apply_explicit_row_split` 로 접지 않는다(matching 배치 보존) -- 패턴 함수로만 재구성한다(4.11 3).
 - 블록 단위 재사용(core `compute_block`): 한 블록이 읽는 열 중 하나라도 바뀌면 그 블록 전체를 다시 계산한다(소자별 부분 재사용은 MOD8 단계 과제).
+- **다른 패키지 생산자 대기(레이아웃은 소비만 구현)**:
+  - graph(MOD3): `branch_symmetric` 유도(stack 전파: 확정 쌍 위 같은 kind·같은 gate 쌍, 증거 {base_pair, shared_gate}), `bias_distribution`·
+    `feedback_shared` 분류, 차동쌍 유도에서 바이어스 형제 제외, matching 레코드 status(derived·ratified 만 레이아웃에 전달), stage 별 행 그룹
+    (`graph/row_groups.py` -- 같은 (kind, body)의 행 그룹이 여럿일 때만 hub 병합이 stage 를 넘는다). 현재 graph 에는 `rel_matching_ratio`·
+    `rel_matching_offset` 만 있고 위 role 생산자가 없다.
+  - core: `pdk_decl.py`(dummy·tap·well 간격 규칙 선언) 없음 -- 지금은 부르는 쪽이 `LayoutPdk` 다섯 길이와 `rule_ids` 를 넘긴다.
+  - MOD5·MOD6·MOD8: 평가 커널·봉인 1~8·수렴 루프(4.14 소비자).
+- `pack_floorplan` 의 H 스윕은 면적이 아니라 aspect ratio 최소를 고른다(복사 본문) -- 판정 축 면적은 그 결과의 bbox 다. 복사 본문 리터럴의
+  A_L 민감도는 4.17.
+
+### 4.17 복사 floorplan 본문 리터럴의 A_L 민감도 (Q8 (ix) -- 작성자 실측, 참고·판정 아님)
+- 방법: `floorplan_pack.py` 사본(저장소 밖 임시 모듈)에서 리터럴 하나씩 ±1 단계(정수 ±1, 소수 끝자리 ±1, 1e-9 는 x10·/10) 바꿔
+  `floorplan_of` 의 `outline_area_m2` 를 원본과 비교. 대상: `pack_floorplan` H 스윕 0.3·2.2, `height_steps` 40(grouped·pack_floorplan),
+  `width_tolerance` 2.0(grouped·pack_floorplan), `width_steps` 60(`skyline_pack_best_width`·`pack_to_height`), 반올림 자릿수 3, 맞춤 여유 1e-9.
+  (0.5 는 제곱근 지수, 0.6·100 은 `evaluate_row_split_candidates` 보고용이라 면적과 무관.)
+- 입력: 무작위(seed 1~7) 행 6·12·16·20·30·30·45개, 행 그룹 4·8개, body 2개, 격자 5e-9, PDK 길이(행 간격 0.27 µm, dummy 0.15 µm,
+  tap 0.17 µm, well 1.27 µm).
+- 결과(2026-10-07): 7 입력 x 20 변경 = 140 경우 모두 ΔA_L = 0(격자 한 칸 기준 grid^2·grid x 긴 변 둘 다 미만). 따라서 Q8 (ix) 의
+  '본문 수정 승인 재요청' 조건은 발동하지 않았다. 큰 변경(예: 2.2 -> 0.1)은 A_L 을 바꾸므로(+28 %) 계측 자체는 유효하다.
+  test 화(`test_floorplan_literal_sensitivity.py`)는 test 작성자 몫.
+
+### 4.18 실 LUT 실측 -- 파일럿 T1 행 M3a (작성자 실측, 참고·판정 아님)
+- 입력: 실 LUT(`wt/_drafts/engine/lut_slices/manifest.json`, nmos 폭 키 20개, 격자 5e-9), 파일럿 `engine.json` sizing 의 M3a·M3b(L 1 µm,
+  gm/ID 15, VDS 0.2, ID 4.98 µA)·M4a·M4b(L 1.4 µm -> 측정 편의상 가장 가까운 앵커 1.5 µm), 행 그룹 하나, matching 그룹 없음.
+- 옛 규칙(7ac0210: err = |nf fw − W_m|/W_m, 상한 = 기준 슬라이스(키 1000) id_equivalent 셀 x gm/ID): 상한 M3a 0.492, M4a 0.074 ->
+  네 소자 모두 키 1000 nf 1 선택, M3a 오차 43.1 %(통과). 같은 선택의 **실제** 오차(그 슬라이스 W_need 대비): M3a 47.4 %, M4a 10.2 %
+  -- M4a 는 자기 상한 7.4 % 를 넘는데도 옛 지표(4.1 %)가 숨겼다.
+- 새 규칙: M3a W_need(fw) 가 슬라이스에 따라 3.18~4.45 µm(키 1400~148, 참고 W 3.49 µm 대비 −9 %~+27 %). 키 1000 이 M4a·M4b 에서
+  ok 가 아니게 되어(W_need 대비 10.2 % > 7.3 %) 공통 키가 600 으로 바뀌고 M3a 오차 17.1 %, M4a 1.4 %. M3a·M3b 를 branch_symmetric
+  그룹으로 주면 행 swap 키 336 nf 2, 오차 8.2 %, dx = dy = 0.
+- 남는 한계: M3a 동작점의 id_equivalent 셀이 30~33 mV 라 상한이 45~50 % 다(이 행 다른 소자가 없으면 키 1000 nf 1 의 47 % 도 순위
+  허용 안). 이 크기의 실현 오차를 막는 것은 4.14 재검증(배선 대기)과 tol_V 측정 정의(SYNTHESIS T05·Q2) 몫이다.
+- 비용: 첫 `run_layout` 490 s 중 대부분이 슬라이스 20장의 `tol_v_table`(장당 약 14~24 s, `LutMemo` derived 영역에 캐시 -- 같은 memo
+  재호출에서는 다시 계산하지 않는다).
