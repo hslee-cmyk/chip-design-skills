@@ -31,8 +31,17 @@ def _warm(solve, tag):
     return StartPoint(tag, best.theta, best.key.cells, "warm")
 
 
-def _filter(sctx, entries, status):
-    pool = [(pid, s) for pid, s in entries if s.best is not None and s.best.status == status]
+_CLASSES = (
+    # (이름, 상태, ss 제약 모두 측정됨 요구) -- 최종 front = 봉인 + 모두 측정(미측정이 있으면 만족을 판정할 수 없다, S-1)
+    ("front", STATUS_SEALED, True),
+    ("unmeasured_front", STATUS_SEALED, False),
+    ("pending_front", STATUS_PENDING_SEAL7, None),
+)
+
+
+def _filter(sctx, entries, status, measured):
+    pool = [(pid, s) for pid, s in entries if s.best is not None and s.best.status == status
+            and (measured is None or (not s.best.unmeasured) == measured)]
     points = tuple((pid, (s.best.objectives.power_w, s.best.objectives.area_m2),
                     sum(r.c for r in s.best.constraints if r.active)) for pid, s in pool)
     b_p = {pid: s.best.objectives.power_resolution_w for pid, s in pool}
@@ -104,8 +113,8 @@ def sweep_front(sctx, starts):
                 else:
                     previous = solve
     out = {"failed_eps": tuple(failed), "resolution": tuple(sorted(resolution.items()))}
-    for status, name in ((STATUS_SEALED, "front"), (STATUS_PENDING_SEAL7, "pending_front")):
-        kept, removed, folded = _filter(sctx, entries, status)
+    for name, status, measured in _CLASSES:
+        kept, removed, folded = _filter(sctx, entries, status, measured)
         solves = dict(entries)
         extra = []
         for point in kept:
@@ -113,7 +122,9 @@ def sweep_front(sctx, starts):
                 extra.append(("L:" + point.point_id + ":" + str(n + 1), new))
         if extra:
             entries.extend(extra)
-            kept, removed, folded = _filter(sctx, entries, status)
+            kept, removed, folded = _filter(sctx, entries, status, measured)
+    for name, status, measured in _CLASSES:          # L-b 새 점이 다른 묶음에 들 수 있어 마지막 entries 로 한 번 더 거른다
+        kept, removed, folded = _filter(sctx, entries, status, measured)
         out[name] = kept
         out[name + "_removed"] = removed
         out[name + "_folded"] = folded

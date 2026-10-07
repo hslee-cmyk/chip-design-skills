@@ -18,6 +18,8 @@ import hashlib
 from pathlib import Path
 
 from gmid_engine.core import FailureRecord, fp_of
+from gmid_engine.graph import ELEMENT_PASSIVE
+from gmid_engine.metrics import metric_registry
 
 from .archive import S3Archive
 from .search_domain import search_domain
@@ -57,6 +59,7 @@ class SearchContext:
         self.eval_times = []
         self.seq = 0
         self.ss_constraints = ()
+        self.spec_passive_values = ()
         self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
         self.deadline = None                             # 벽시계 바깥 정지(perf_counter 기준) -- find_front 가 정한다
@@ -82,20 +85,25 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl):
     schema_fp = fp_of(dc_ctx.schema)
     code_fp = _code_fp()
     judged, ss, notes = [], [], []
+    registry = metric_registry()
     for decl in spec.judged_constraints:
         if decl.value is None:
             notes.append({"metric": decl.metric, "op": decl.op, "verdict": "judgment_pending",
                           "reason": "constraint_value_pending", "decision": decl.value_decision})
         elif decl.metric in AXES:
             judged.append((decl.metric, decl.op, float(decl.value)))
+        elif decl.metric in registry and registry[decl.metric].signature.view_kind is not None:
+            ss.append(decl)
         else:
-            ss.append((decl.metric, decl.op, float(decl.value)))
             notes.append({"metric": decl.metric, "op": decl.op, "value": decl.value, "verdict": "unmeasured",
-                          "reason": "ss_constraint_per_point_unmeasured_see_evals"})
+                          "reason": "metric_not_in_registry_or_no_ss_view"})
     archive = None if archive_root is None else S3Archive(archive_root, context_fp, code_fp)
     ctx = SearchContext(dc_ctx, domain, settings, context_fp, schema_fp, code_fp,
                         tuple(dc_ctx.inputs.element_values), tuple(judged), tuple(notes), archive)
     ctx.ss_constraints = tuple(ss)
+    classes = dict(dc_ctx.base.column("device", "element_class"))
+    ctx.spec_passive_values = tuple(sorted((n, float(v)) for n, v in dc_ctx.inputs.element_values
+                                           if v is not None and classes.get(n) == ELEMENT_PASSIVE))
     if archive is not None:
         ctx.disk_failures = _disk_failures(archive, context_fp, schema_fp)
     return ctx

@@ -17,6 +17,31 @@
 - **r3(2026-10-08, 오케스트레이터 결정 2차)**: `[r3]`. b_P 의 gm 을 동작점 gm(ID·gm/ID)으로(S-2b), **설계 개정 S-18** W ≥ W_min 제약
   (W_min = PDK 선언 `min_finger_w_m` = difftap.2, core `sky130_pdk_decl.json` 에 quantity 추가), b_A 도 PDK 선언 두 값의 곱,
   `build_search_context`·`search_domain` 이 `pdk_decl` 을 받는다, I_max 잠정 표기(S-3b).
+- **r4(2026-10-08, master ss_linearize + ng-seal7 병합)**: `[r4]`. S-1 배선 -- 봉인 점은 `metrics.ss_evaluate`, 대기·미정 점은
+  `metrics.metrics_dc` 로 S2 필드를 만들고 목적·제약을 그 필드에서 읽는다(옛 S-6 해소 -- search 는 전력·면적을 다시 계산하지 않는다).
+  ss 제약 행은 `ss_constraint_rows(bundle, declared)`, Undefined 는 `unmeasured`. 평가의 `evaluation` = ss 필드를 담은 lineage
+  (다음 평가 parent 가 재사용). 최종 `front` = 봉인 + ss 제약 모두 측정, `unmeasured_front` 신설. 층 0 은 여전히 막힘(9절 S-4).
+  시연은 LUT v2(`resolve_lut_location`) -- 봉인 7 이 실제로 판정되어 `seal7_pending` 은 발동 0.
+
+### r4 덮어쓰기 요약 (아래 본문보다 우선)
+- 3.6 `objective_values(snapshot) -> Objectives`: 값 = `graph.metrics_dc`(key `METRICS_KEY`) `MetricBundle` 의 `power_dc_w`·
+  `area_search_m2`(None 이면 ValueError), detail 의 `per_rail_amp`·`kcl_residual_amp`·`passive_area_undeclared`·
+  `passive_value_missing`(→ `passive_value_undetermined`), `gate_area_m2` = Σ dc_op W·L, b_P 는 r3 식 그대로.
+- 3.10 `evaluate` 6단계: 상태 = `seal_status`. `STATUS_SEALED` 면 `ss_evaluate(ev.sealed, dc_ctx, θ, sctx.ss_constraints, (), ())`
+  (`NonconvergentError`·`SealViolationError` 는 후보 실패로), `evaluation` = 결과 `lineage`, bundle = `.ss`. 그 밖이면
+  `metrics_dc(ev.snapshot, 수동소자 값, ())`(수동소자 값 = spec 값 있는 수동소자 ∪ θ 저항, 이름 정렬 -- `ss_evaluate` 와 같은 값이라
+  나중에 같은 점이 봉인되면 블록 재사용), `evaluation` = DcEvaluation(그 스냅샷, report, sealed). 그다음 목적·b_P(None 이면
+  `STATUS_UNDEFINED`)·제약 = constraint_rows + 목적 축 spec 행 + `ss_constraint_rows(bundle, ss_constraints)`.
+- 3.9: `ss_constraints` = judged·값 있음·목적 축 밖·`metric_registry()` 에서 view_kind 가 있는 metric 의 `ConstraintDecl` tuple(문서
+  순서). 레지스트리 밖·view 없는 판정 제약은 notes(`metric_not_in_registry_or_no_ss_view`). `spec_passive_values` 를 둔다.
+- 3.20 `ss_constraint_rows(bundle, declared)`: 본문 docstring -- bundle None 이면 전부 `ss_requires_sealed_snapshot`, 값 None 이면
+  (metric, op, Undefined code '+' 연결), 값이 있으면 `ss:<k>:<metric><op>` c = (값 − 목표)/|목표|(>=) 또는 반대, 목표 0 이면 분모 1,
+  `active` False(S-19).
+- 3.15·3.16: 비지배 묶음 셋 -- `front`(봉인·미측정 없음), `unmeasured_front`(봉인·미측정 있음), `pending_front`(봉인 7 대기). L-b 뒤
+  마지막 entries 로 셋 다 다시 거른다. `SearchFront.unmeasured_front`(기본 ()), runs 에 `unmeasured_front` 목록.
+- 9절 추가: **S-19** ss metric 의 NFR-5 '격자 분해능' 정의 없음 -> 정규화 = |목표|(조건수용), 활성 판정 보류. **S-20** engine 값
+  보상 수동소자(Cc·Rz·Cm, DEC-92)의 θ 성분이 sizing 스키마에 아직 없어 그 회로의 ss 제약은 전부 `passive_value_undeclared` --
+  최종 front 에 들 수 없다(`unmeasured_front` 로만).
 
 ---
 
@@ -345,9 +370,36 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 - **S-2b (r3 처리)** b_P 의 gm = 동작점 gm(3.6).
 - **S-3b (잠정 유지)** I_max = 단일 finger 최대 슬라이스 ID -- 참 상한은 선언된 최대 nf 또는 면적 상한이 필요(열린 항목, notes
   `provisional`).
-- **S-4** 층 0 은 ng-sslin(`ss_linearize`)·ng-seal7(VDSAT) 병합 뒤 다시 다룬다(오케스트레이터).
+- **S-4 (r4 -- 병합 뒤에도 막힘)** ss_linearize·VDsat 이 들어왔지만 층 0 최소형의 세 조각이 모두 (4)(a) '소자별 필요 gm' 에 매달린다:
+  필요 gm 은 블록 gain 예산(GB3 블록 분해·GB4 상한표·GB5 보상 규칙)에서 오는데 셋 다 엔진에 없다(`ss_evaluate` 는 전회로 metric 만
+  낸다 -- 블록 국소 이득 모델이 아니다). knee(`measure_L_knee`, legacy 만 -- 미이식)는 gm/ID 를 입력으로 받고, VDS 배분의 VDsat
+  하한은 있으나(lut `vdsat`) 소자 반전 수준이 (a) 에서 온다. y = 창 중앙만 유도된다. 그래서 층 0 은 구현하지 않고 notes
+  `layer0_inputs_missing` 에 위 목록을 남긴다(GB3·GB4·GB5 가 들어오면 다시).
 
 ## 10. 9회로 실측 -- 작성자 측 시연(정본 아님)
+
+### 10.000 [r4] r4 실측 (2026-10-08, LUT v2 `resolve_lut_location`, ng-seal7 병합 -- 봉인 7 실판정, B = 120 s 만 선언)
+
+| 회로 | 변수 | 시작점 | requests | kernel = 고유 키 | 블록 reuse | E_B | 풀이 | 실패 ε | wall(s) | 최종 front | 미측정 front | 대기 | spec ss 제약 |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| common_gate_amplifier | 6 | 2 | 36204 | 5019 | 0.16 | 8605 | 799 | 70 | 89.6 | **3** | 0 | 0 | 없음 |
+| current_reuse_telescopic_ota | -- | -- | -- | -- | -- | -- | -- | -- | -- | 거부(θ 저항 상자 미선언) | | | |
+| folded_cascode | 16 | 2 | 1879 | 289 | 0.18 | 1023 | 16 | 12 | 81.8 | **2** | 0 | 0 | 없음 |
+| ngcc_3stage_ff | 19 | 2 | 4368 | 249 | 0.19 | 2969 | 50 | 46 | 13.9 | 0 | 1 | 0 | gbw ≥ 10 MHz, pm ≥ 63.4° -- 미측정(Cm1·Cm2 값 없음) |
+| nmcnr_amplifier | 21 | 2 | 3990 | 259 | 0.18 | 3806 | 44 | 40 | 14.1 | 0 | 1 | 0 | gbw ≥ 816 kHz, pm ≥ 70° -- 미측정(보상 수동소자 값 없음) |
+| pushpull_follower_buffer | 8 | 1 | 1282 | 570 | 0.15 | 5132 | 18 | 0 | 9.8 | **1** | 0 | 0 | rout ≤ 1000 Ω -- **856.2 Ω 만족**(c = 0.144) |
+| sf_pushpull_output_opamp | -- | -- | -- | -- | -- | -- | -- | -- | -- | 거부(θ 저항 상자 미선언) | | | |
+| two_stage_ota | 9 | 2 | 30967 | 316 | 0.18 | 5055 | 300 | 0 | 59.2 | 0 | 2 | 0 | gain ≥ 57 dB -- 미측정(Cc·Rz 값 없음) |
+| two_stage_ota_sf | 11 | 2 | 22537 | 189 | 0.15 | 6012 | 159 | 112 | 10.5 | 0 | 2 | 0 | gain ≥ 57 dB, rout ≤ 1000 Ω -- 미측정(Cc 값 없음) |
+
+- 7회로 `kernel_calls == unique_keys`, `recompute_same_key == 0`, LUT memo 퇴출 0, 벽시계 정지 0. 봉인 7 대기 점 0(스위치 발동 0 --
+  VDSAT 열이 있어 `seal7_pending` 무동작).
+- 최종 front 6점(3회로). 실제 성능 제약이 있는 최종 점은 pushpull 1점뿐이다 -- 나머지 두 회로는 판정 제약이 없어 front 가 전류 하한
+  쪽으로 간다(common_gate 한 점 P = 4.6e-14 W). 4회로는 engine 값 보상 수동소자의 θ 성분이 아직 sizing 스키마에 없어(DEC-92, S-20)
+  ss 제약이 전부 `passive_value_undeclared` -- 최종 front 0.
+- 결정론: common_gate E_B = 800 선언·B = 900 s, seed 1·2 -- kernel 575·575, 최종 front 동일.
+- cProfile(cumtime): folded 81.8 s 중 size_and_seal 73.8 s, core `fp_of` 38.4 s, LUT `gm_id_for_target` 37.4 s; two_stage 59.2 s 중
+  size_and_seal 40.2 s, `fp_of` 27.5 s -- evaluate 의 metrics_dc·ss·캐시 적중 처리(30957 요청) 약 9 s.
 
 ### 10.00 [r3] r3 실측 (2026-10-08, 이 커밋 코드 -- B = 120 s 만 선언, b_P 동작점 gm, W ≥ W_min)
 

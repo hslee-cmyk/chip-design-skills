@@ -188,7 +188,8 @@ class ParetoResult:
 class SearchFront:
     """탐색 축 front(설계 6.3 6). `front` = 봉인된(STATUS_SEALED) 비지배 점만 -- 최종 front. `pending_front` = 봉인 7 대기
     점끼리의 비지배 점(최종 아님, '추정'·대기 표기). `failed_eps` = 풀이 실패 ε, `resolution` = ((키, 값), ...),
-    `perf` = ((키, 값), ...), `notes` = 열린 항목·판정 보류 기록."""
+    `perf` = ((키, 값), ...), `notes` = 열린 항목·판정 보류 기록, `unmeasured_front` = 봉인됐지만 spec ss 제약 중 미측정이 있는
+    점끼리의 비지배 점(최종 아님 -- 만족을 판정할 수 없다). `front` 는 봉인 + spec ss 제약 모두 측정·만족(c ≥ 0)인 점만."""
 
     run_id: str
     front: tuple
@@ -197,6 +198,7 @@ class SearchFront:
     resolution: tuple
     perf: tuple
     notes: tuple
+    unmeasured_front: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)

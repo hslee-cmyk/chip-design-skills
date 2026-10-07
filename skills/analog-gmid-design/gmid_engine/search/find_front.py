@@ -39,9 +39,13 @@ from .start_points import start_points
 # sizing 공개 계산 블록 12개(S-9: `dc_seal_vgs_match` 를 sizing `__all__` 에 더했다)
 _BLOCKS = (dc_currents, dc_lengths, dc_columns, dc_widths, dc_tolerances, dc_seal_node_conflict, dc_seal_vgs_match,
            dc_seal_kcl, dc_seal_bulk_reverse, dc_seal_saturation, dc_seal_kvl_branch, dc_seal_report)
-_LAYER0_MISSING = ("LR5 knee 격자(measure_L_knee: gm/ID·VDS 입력 필요)",
-                   "DEC-71 (4)(a) 필요 gm(블록 gain 예산 -- GB4 상한표·GB5·ss_linearize)",
-                   "DEC-71 (4)(c) VDS 배분의 VDsat 하한(lut VDSAT 접근자 -- 봉인 7 과 같은 대기)")
+# 층 0(DEC-71 최소형) 입력 상태(r4, 2026-10-08): VDsat(lut `vdsat`)·전회로 ss metric(`ss_evaluate`)은 있다. 남은 막힘 --
+# (4)(a) 소자별 필요 gm 은 '블록 gain 예산'(GB3 블록 분해·GB4 상한표·GB5 보상 규칙)에서 오는데 셋 다 엔진에 없다(ss 는 전회로
+# metric 만 낸다 -- 블록 국소 이득 모델이 아니다). (b) knee 는 measure_L_knee(엔진에 없음, legacy 만)가 gm/ID 를 입력으로 받는데 그
+# 값이 (a) 에서 온다. (c) VDS 배분은 VDsat 하한을 쓰지만 VDsat 이 소자 반전 수준(= (a) 의 gm/ID)에 달려 있다.
+_LAYER0_MISSING = ("DEC-71 (4)(a) 소자별 필요 gm -- 블록 gain 예산(GB3 블록·GB4 상한표·GB5) 미구현",
+                   "LR5 knee -- measure_L_knee 미이식 + 입력 gm/ID 가 (4)(a) 에서 옴",
+                   "DEC-71 (4)(c) VDS 배분 -- VDsat 은 있음(lut vdsat), 반전 수준이 (4)(a) 에서 옴")
 
 
 def _block_totals():
@@ -113,9 +117,11 @@ def find_front(sctx, given_starts):
             "starts": list(start_log), "resolution": dict(out["resolution"]),
             "front": [_point_record(sctx, p) for p in out["front"]],
             "pending_front": [_point_record(sctx, p) for p in out["pending_front"]],
+            "unmeasured_front": [_point_record(sctx, p) for p in out["unmeasured_front"]],
             "removed": [{"point_id": a, "reason": "dominated", "by": b}
-                        for a, b in out["front_removed"] + out["pending_front_removed"]],
+                        for a, b in out["front_removed"] + out["pending_front_removed"]
+                        + out["unmeasured_front_removed"]],
             "failed_eps": list(out["failed_eps"]), "notes": notes, "perf": perf})
     pending = tuple(p for p in out["pending_front"] if p.result.status == STATUS_PENDING_SEAL7)
     return SearchFront(run_id, out["front"], pending, out["failed_eps"], out["resolution"],
-                       tuple(sorted(perf.items())), tuple(notes))
+                       tuple(sorted(perf.items())), tuple(notes), out["unmeasured_front"])
