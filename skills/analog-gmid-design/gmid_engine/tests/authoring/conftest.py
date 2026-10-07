@@ -88,22 +88,23 @@ TOPO_SUFFIX = ".topology.json"
 
 
 def fixture_catalog():
-    """SPEC_CONTRACT 5절 '픽스처 이름표' 그대로(단위·domain 은 이 test 가 정함, view_kind·objective_axis 는 5절)."""
+    """SPEC_CONTRACT 5절 '픽스처 이름표'. 어휘는 SPEC_CONTRACT 4절·core CONTRACT 0절(unit ∈ METRIC_UNITS 소문자 접미사,
+    view_kind None = 뷰 없음), pm_ss_deg = loop·rout_ss_ohm = output_port 는 SPEC_CONTRACT 6절 9번(metrics CONTRACT 3.15 와 같음)."""
     from gmid_engine.core import MetricSignature as M
     return {
-        "gain_ss_db": M("dB", "ss", "transfer"),
-        "ugf_ss_hz": M("Hz", "ss", "transfer"),
-        "gbw_ss_hz": M("Hz", "ss", "transfer"),
-        "pm_ss_deg": M("deg", "ss", "transfer"),
+        "gain_ss_db": M("db", "ss", "transfer"),
+        "ugf_ss_hz": M("hz", "ss", "transfer"),
+        "gbw_ss_hz": M("hz", "ss", "transfer"),
+        "pm_ss_deg": M("deg", "ss", "loop"),
         "parasitic_pm_ss_deg": M("deg", "ss", "transfer"),
-        "rout_ss_ohm": M("ohm", "ss", "transfer"),
-        "ratio_ss_db": M("dB", "ss", "ratio"),
-        "mismatch_sigma_mv": M("mV", "dc", "none"),
-        "mirror_ratio_error_mv": M("mV", "dc", "none"),
-        "power_dc_w": M("W", "dc", "none"),
-        "area_search_m2": M("m2", "geom", "none"),
-        "supply_current_dc": M("A", "dc", "none", "power"),
-        "area_layout_m2": M("m2", "geom", "none", "area"),
+        "rout_ss_ohm": M("ohm", "ss", "output_port"),
+        "ratio_ss_db": M("db", "ss", "ratio"),
+        "mismatch_sigma_mv": M("mv", "dc", None),
+        "mirror_ratio_error_mv": M("mv", "dc", None),
+        "power_dc_w": M("w", "dc", None),
+        "area_search_m2": M("m2", "geom", None),
+        "supply_current_dc": M("amp", "dc", None, "power"),
+        "area_layout_m2": M("m2", "geom", None, "area"),
     }
 
 

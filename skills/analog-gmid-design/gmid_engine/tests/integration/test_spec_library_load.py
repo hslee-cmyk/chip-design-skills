@@ -16,26 +16,27 @@ from gmid_engine.core import MetricSignature as M
 
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
 
-CATALOG = {
-    "gain_ss_db": M("dB", "ss", "transfer"),
-    "ugf_ss_hz": M("Hz", "ss", "transfer"),
-    "gbw_ss_hz": M("Hz", "ss", "transfer"),
-    "pm_ss_deg": M("deg", "ss", "transfer"),
+CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
+    "gain_ss_db": M("db", "ss", "transfer"),
+    "ugf_ss_hz": M("hz", "ss", "transfer"),
+    "gbw_ss_hz": M("hz", "ss", "transfer"),
+    "pm_ss_deg": M("deg", "ss", "loop"),
     "parasitic_pm_ss_deg": M("deg", "ss", "transfer"),
-    "rout_ss_ohm": M("ohm", "ss", "transfer"),
-    "ratio_ss_db": M("dB", "ss", "ratio"),
-    "mismatch_sigma_mv": M("mV", "dc", "none"),
-    "mirror_ratio_error_mv": M("mV", "dc", "none"),
-    "power_dc_w": M("W", "dc", "none"),
-    "area_search_m2": M("m2", "geom", "none"),
-    "supply_current_dc": M("A", "dc", "none", "power"),
-    "area_layout_m2": M("m2", "geom", "none", "area"),
+    "rout_ss_ohm": M("ohm", "ss", "output_port"),
+    "ratio_ss_db": M("db", "ss", "ratio"),
+    "mismatch_sigma_mv": M("mv", "dc", None),
+    "mirror_ratio_error_mv": M("mv", "dc", None),
+    "power_dc_w": M("w", "dc", None),
+    "area_search_m2": M("m2", "geom", None),
+    "supply_current_dc": M("amp", "dc", None, "power"),
+    "area_layout_m2": M("m2", "geom", None, "area"),
 }
 
-# 5절 표: 회로 -> (제약 수, 판정 수, pending 표지 수)
+# 5절 표: 회로 -> (제약 수, 판정 수, pending 표지 수). 파일럿 pending 은 SP-10 해소(사용자 2026-10-07 "파일럿 CL1·CL2가
+# 각각 1 pF", 커밋 0bc22fe) 뒤 JSON 표지 직접 집계 13(= 5절 표 15 - SP-10 2).
 TABLE = {
     "common_gate_amplifier": (0, 0, 6),
-    "current_reuse_telescopic_ota": (8, 5, 15),
+    "current_reuse_telescopic_ota": (8, 5, 13),
     "folded_cascode": (0, 0, 7),
     "ngcc_3stage_ff": (3, 2, 7),
     "nmcnr_amplifier": (2, 2, 6),
@@ -44,8 +45,12 @@ TABLE = {
     "two_stage_ota": (2, 1, 7),
     "two_stage_ota_sf": (3, 2, 6),
 }
-ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 7, "SP-3": 2, "SP-10": 2,
+# 5절 ID 합계에서 SP-10 2 가 빠진다(SP-10 해소, 위 TABLE 주석) -- 합계 65 -> 63, JSON 직접 집계와 같음.
+ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 7, "SP-3": 2,
              "CI-10": 1, "CI-17": 1}
+PILOT = "current_reuse_telescopic_ota"
+SP10_ELEMENTS = ("CL1", "CL2")
+SP10_FARAD = 1e-12  # 사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF"
 
 
 def _spec(name):
@@ -129,7 +134,22 @@ def test_pending_id_totals():
     doc_total = Counter(p.decision for name in TABLE for p in _load(name).pending)
     assert json_total == doc_total
     assert dict(json_total) == ID_TOTALS
-    assert sum(ID_TOTALS.values()) == 65
+    assert sum(ID_TOTALS.values()) == 63
+
+
+def test_sp10_resolved_pilot_load_caps():
+    """SP-10 해소: 파일럿 CL1·CL2 는 결정 대기가 아니라 각각 1e-12 F user_spec 값(SPEC_CONTRACT 1절 출처 표·2절 element_value_key
+    capacitor -> value_farad). 기대값은 사용자 결정 문장 + JSON 직접 읽기."""
+    raw = _spec(PILOT)["human"]["element_values"]
+    for name in SP10_ELEMENTS:
+        assert "pending" not in raw[name]
+        assert raw[name]["value_farad"] == SP10_FARAD
+        assert raw[name]["source"]["kind"] == "user_spec"
+    doc = _load(PILOT)
+    got = {e.name: e for e in doc.element_values}
+    for name in SP10_ELEMENTS:
+        assert (got[name].mode, got[name].value_key, got[name].value) == ("value", "value_farad", SP10_FARAD)
+    assert "SP-10" not in {p.decision for n in TABLE for p in _load(n).pending}
 
 
 @pytest.mark.parametrize("name", sorted(TABLE))

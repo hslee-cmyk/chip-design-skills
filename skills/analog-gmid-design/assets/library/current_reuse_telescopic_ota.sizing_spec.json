@@ -71,12 +71,22 @@
         }
       },
       "CL1": {
-        "pending": "SP-10"
+        "value_farad": 1e-12,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"파일럿 CL1·CL2가 각각 1 pF\" -- SP-10 해소(차동 출력 양쪽 각각 1 pF)",
+          "decided": "2026-10-07"
+        }
       },
       "CL2": {
-        "pending": "SP-10"
+        "value_farad": 1e-12,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"파일럿 CL1·CL2가 각각 1 pF\" -- SP-10 해소(차동 출력 양쪽 각각 1 pF)",
+          "decided": "2026-10-07"
+        }
       },
-      "_CL_comment": "사용자 채택값 C_Ltot 1 pF(UD 항목 4). topology 가 CL1·CL2 둘 다 C_Ltot 를 가리켜 옛 실행은 '각 1 pF'로 읽었다 -- 이 해석(각 출력 1 pF 인지 합 1 pF 인지)이 SP-10 확인 대기.",
+      "_CL_comment": "사용자 채택값 C_Ltot 1 pF(UD 항목 4)의 해석 SP-10 을 2026-10-07 사용자가 '각각 1 pF'로 확정했다(합계 2 pF). topology 의 CL1·CL2 가 둘 다 C_Ltot 를 가리키는 것과 같은 값이다.",
       "Cf1": {
         "value_farad": 5e-13,
         "source": {

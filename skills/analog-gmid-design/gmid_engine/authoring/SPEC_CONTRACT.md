@@ -85,8 +85,9 @@ objective, search, spice_check, front_refilter. 선택 = pending_constraints, co
 | `op_value` | 제약 op ∉ {>=, <=}, 예산 op ≠ <= | constraints, settings |
 | `value_and_ref` | value / value_from_constraint / value_from_file 이 정확히 하나가 아님 | constraints, compensation_targets |
 | `ref_kind_mismatch` | 참조인데 source.kind ≠ reference, 또는 그 반대 | constraints, compensation_targets |
-| `view_not_applicable` | view_kind none 인 metric 에 view, metric 결정 대기 제약에 (결정 대기 아닌) view | constraints |
-| `view_required` | ratio metric 에 view 없음, transfer metric 에 view 없고 output 포트가 1개가 아님 | constraints |
+| `view_not_applicable` | view_kind None(뷰 없음)인 metric 에 view, metric 결정 대기 제약에 (결정 대기 아닌) view | constraints |
+| `view_required` | ratio metric 에 view 없음, transfer·loop·output_port metric 에 view 없고 output 포트가 1개가 아님 | constraints |
+| `view_not_defined_yet` | loop·output_port metric 에 결정 대기 표지가 아닌 view 선언(선언 뷰 모양은 7a design 몫, 7절 S1) | constraints |
 | `view_net_unknown` | 뷰 넷(ac_excite 키·sense_p·sense_n)이 어느 단자에도 없음 | constraints |
 | `constraint_duplicate` | 같은 (metric, op, view) 두 번(metric·view 결정 대기 제약은 비교 밖) | constraints |
 | `settling_order` | settling.linear_s > total_s | compensation_targets |
@@ -119,10 +120,14 @@ front_points_rule{endpoints_and_budget_point, all_front_points, budget_point_onl
 - **실행 전 정지(MOD10 몫, 이 로더 밖)**: 사이징 실행이 읽는 필드에 `pending` 이 하나라도 있으면 전부 모아
   `SchemaRejectedError` 한 번(결정 ID 목록). 로더는 표지를 통과시키고 모으기만 한다.
 
-## 4. `MetricSignature(unit, domain, view_kind, objective_axis=None)` (core, 데이터 선언)
+## 4. `MetricSignature(unit, domain, view_kind=None, objective_axis=None)` (core, 데이터 선언)
 
-- frozen. `unit` 비어 있지 않은 문자열, `domain` ∈ `METRIC_DOMAINS`(dc, ss, ls, geom), `view_kind` ∈ `VIEW_KINDS`
-  (none, transfer, ratio), `objective_axis` ∈ {None} ∪ `OBJECTIVE_AXES`(power, area). 밖이면 `ValueError`.
+- frozen. `unit` ∈ `core.units.METRIC_UNITS`(db, hz, deg, ohm, mv, amp, w, m2 -- DEC-68 이름 접미사 어휘),
+  `domain` ∈ `core.units.DOMAINS`(dc, ss, ls, geom), `view_kind` ∈ {None} ∪ `VIEW_KINDS`(transfer, loop, output_port,
+  ratio -- MOD5 레지스트리 어휘, 정본은 `core.metric_signature.VIEW_KINDS` 한 곳; None = 뷰를 쓰지 않는 metric, 문자열
+  `"none"` 은 어휘 밖), `objective_axis` ∈ {None} ∪ `OBJECTIVE_AXES`(power, area). 밖이면 `ValueError`.
+- `ViewDecl.mode`(3절, none/port/transfer/ratio/pending)는 로드 결과의 뷰 모양이고 `view_kind` 어휘와 별개다
+  (view_kind None 인 metric 의 결과 mode 가 `none`).
 - 이름표 정본은 MOD5 레지스트리(core 에 이름 없음). 지금은 test 픽스처 이름표로만 돈다.
 
 ## 5. 9회로 spec 로드 결과 (2026-10-07, 이 커밋 코드 + library, 픽스처 이름표)
@@ -166,8 +171,19 @@ engine(파일럿 Cc1·Cc2·Rz1·Rz2, ngcc Cm1·Cm2, two_stage_ota_sf Cc -- nmcnr
 6. `numeric_in_rule_field` 는 `spec_schema` 가 아니라 `spec_settings` 가 낸다(규칙 칸을 읽는 곳).
 7. 결정 대기 ID 에 `ET-n`·`MODn` 을 더했다(`MOD5` = 레지스트리 이름·뷰 정의를 MOD5 design 이 정할 칸).
 8. 섹션 지문에 `operating_fp`·`feedback_fp` 를 더했다(설계 목록에 자리가 없던 input_dc·노드 목표·영역·feedback).
-9. `MetricSignature.view_kind` 어휘는 none/transfer/ratio 셋(rout 는 transfer -- 포트 뷰의 출력 포트를 쓴다).
+9. `MetricSignature.view_kind` 어휘는 MOD5 레지스트리와 같은 None/transfer/loop/output_port/ratio(4절, 정본
+   `core.metric_signature.VIEW_KINDS`). `pm_ss_deg` 는 loop(β 루프, 되먹임 수동소자는 spec `feedback`), `rout_ss_ohm` 은
+   output_port. 두 종류 모두 view 를 적지 않으면 포트 뷰(design_spec_format 1.7 규칙 그대로, output 포트가 1개가 아니면
+   `view_required`)이고, 선언 view 는 결정 대기 표지만 받는다(그 밖은 `view_not_defined_yet`) -- 7a design 이 A·β 절단점과
+   관측만 받는 출력 포트 뷰 모양을 정할 때까지(7절 S1).
 10. optional_stages 화이트리스트 이름(DEC-75 네 기능)은 이 파일이 snake_case 로 정했다.
 11. graph(MOD3, master 병합분)에 `graph/supplies.py` `supplies_declaration`(supplies_v 인자 검사)이 따로 있다 -- 이
     파일의 `spec_supplies.supplies_declaration` 과 같은 개념의 두 검사다. MOD10 배선 때 graph 쪽이 `SizingSpecDoc.supplies_v`
     를 받도록 하나로 줄일 대상(이 커밋은 손대지 않음).
+
+## 7. 열린 항목
+
+| # | 항목 | 현재 처리 |
+|---|---|---|
+| S1 | loop(`pm_ss_deg`)·output_port(`rout_ss_ohm`) metric 의 선언 view 모양 -- A·β 루프 절단점(metrics CONTRACT 3.10·M1), 관측만 받는 출력 포트 뷰(metrics CONTRACT 3.11: 구동 진폭 전부 0, 전류는 관측 노드에만) | 7a design. 그때까지 선언 view 는 결정 대기 표지만 받고 그 밖은 `view_not_defined_yet`, view 없음은 포트 뷰 |
+| S2 | `mismatch_sigma_mv`·`mirror_ratio_error_mv` 가 MOD5 레지스트리(`metrics.metric_catalog()`)에 없다 -- library spec(파일럿·two_stage_ota·two_stage_ota_sf)과 픽스처 이름표에만 있다 | 실제 레지스트리 이름표로 로드하면 `metric_unknown`. 레지스트리 등록(정합 metric 계산 위치 포함) 또는 spec 쪽 결정 대기 표지 전환을 MOD10 배선 전에 정한다 |
