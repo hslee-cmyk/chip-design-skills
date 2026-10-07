@@ -25,6 +25,7 @@
 ## 공용 입력 (assets/ 에 남는다 -- 새 엔진도 쓴다)
 
 * `assets/library/*.topology.json`, `*.topology.md` -- 회로 토폴로지(유일한 토폴로지 소스)
+  * library 는 공용 입력이라 2026-10-07 정정(TOPOLOGY_CORRECTION_QUEUE 일괄 반영: folded_cascode M1·M2 nmos, passive_elements·`_declared_target_spec.supplies_v` 추가) 이후 legacy 결과는 tag `legacy-engine-v1` 시점과 다를 수 있다.
 * `assets/sky130_nfet_pfet_lut_sample.npz` -- sky130 LUT
 * `assets/sky130_lut_sweep.py`, `assets/ac_sweep_checkpoints/` -- LUT 생성기와 그 재개용 체크포인트
   (생성기가 `OUTPUT_DIR/ac_sweep_checkpoints`를 읽고 쓰므로 생성기와 같이 둔다)

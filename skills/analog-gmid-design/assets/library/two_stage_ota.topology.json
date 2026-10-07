@@ -143,6 +143,38 @@
       "gate": "bias"
     }
   ],
+  "passive_elements": [
+    {
+      "name": "Rz",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "O1",
+        "N_cc_rz"
+      ],
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE Q4'): O1 - Rz - N_cc_rz - Cc - OUT 직렬 보상의 수동 저항. N_cc_rz 는 이 JSON 이 붙인 중간 노드 이름. 값은 엔진이 계산한다(null)."
+    },
+    {
+      "name": "Cc",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "N_cc_rz",
+        "OUT"
+      ],
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE Q4'): 직렬 보상 커패시터(N_cc_rz-OUT). 값은 엔진이 계산한다(null)."
+    },
+    {
+      "name": "CL",
+      "kind": "capacitor",
+      "value_farad": 3e-12,
+      "terminals": [
+        "OUT",
+        "gnd"
+      ],
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE Q4') \"3pF으로 확정해.\": 부하 용량 3 pF(OUT-gnd)."
+    }
+  ],
   "symmetry": {
     "_matching_pairs_comment": "2026-08-05(세션9) -- M5/M7(kind=current_matched)로 잘못 선언돼 있던 걸 발견해 M6/M7(진짜 KCL 근거, OUT 2단자)로 고쳤다가 다시 뺐다. M6/M7은 derive_stack_groups()의 '정확히 2단자면 병합' 규칙이 선언 없이 자동으로 처리하고, 이건 소자 미스매치가 아니라 순수 위상적(KCL) 사실이라 interdig 등 레이아웃 매칭으로 개선될 게 없어 matching_pairs(소자 매칭 선언용)에 넣는 게 오히려 잘못된 신호다 -- compensation.notes에 산문으로 그 관계를 기록해뒀다. M5는 매칭 의도 자체가 없음(사용자 확인, NDP로 1단/2단 전류비가 달라도 됨).",
     "matching_pairs": [
@@ -335,6 +367,13 @@
     "OUT": {
       "role": "single_ended_output",
       "direction": "output"
+    }
+  },
+  "_declared_target_spec": {
+    "supplies_v": {
+      "vdd": 1.8,
+      "gnd": 0.0,
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE '전원' 행): 레일 전위 vdd 1.8 V, gnd 0 V. 저장 위치는 nmcnr_amplifier·ngcc_3stage_ff 의 `_declared_target_spec.supplies_v` 관례를 따른다."
     }
   }
 }

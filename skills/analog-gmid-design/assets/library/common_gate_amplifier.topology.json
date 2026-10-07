@@ -65,5 +65,12 @@
       "vout_max": "VDD - VDS3(sat)",
       "vout_min": "VDS1(sat) + VDS2(sat)"
     }
+  },
+  "_declared_target_spec": {
+    "supplies_v": {
+      "vdd": 1.8,
+      "gnd": 0.0,
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE '전원' 행): 레일 전위 vdd 1.8 V, gnd 0 V. 저장 위치는 nmcnr_amplifier·ngcc_3stage_ff 의 `_declared_target_spec.supplies_v` 관례를 따른다."
+    }
   }
 }
