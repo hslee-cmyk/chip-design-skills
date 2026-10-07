@@ -19,18 +19,19 @@ from gmid_engine.core import SchemaRejectedError, exit_code_for
 
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
 
-# 계약 4절 표: (소자, 수동, 이상원, 레일, in 포트, out 포트) -- 표에 없는 칸은 None(JSON 집계만으로 확인)
+# (소자, 수동, 이상원, 레일, in 포트, out 포트) -- 계약 4절 표(레일·포트)와 7절 실측(2026-10-07, 9회로 전부 통과:
+# 소자/수동/이상원). 4절 표의 'CI-12 3회로 거부'는 topology 정정 b9c7042 뒤 낡았다 -- 현 실측(7절) 기준. 빈 칸은 None.
 PASS_TABLE = {
-    "common_gate_amplifier": (3, 0, None, 2, 1, 1),
+    "common_gate_amplifier": (3, 0, 0, 2, 1, 1),
     "current_reuse_telescopic_ota": (51, 12, 1, None, 2, 2),
-    "ngcc_3stage_ff": (16, 3, None, None, None, None),
-    "pushpull_follower_buffer": (6, 1, None, 3, None, None),
+    "ngcc_3stage_ff": (16, 3, 0, None, None, None),
+    "pushpull_follower_buffer": (6, 1, 0, 3, None, None),
     "sf_pushpull_output_opamp": (22, 5, 1, 3, None, None),
-    "two_stage_ota_sf": (9, 2, None, None, None, None),
-    # 예전 CI-12 3회로: 숫자 칸은 JSON 집계로만 확인(None)
-    "folded_cascode": (None, None, None, None, None, None),
-    "nmcnr_amplifier": (None, None, None, None, None, None),
-    "two_stage_ota": (None, None, None, None, None, None),
+    "two_stage_ota_sf": (9, 2, 0, None, None, None),
+    # 예전 CI-12 3회로(7절 실측)
+    "folded_cascode": (13, 1, 1, None, None, None),
+    "nmcnr_amplifier": (15, 5, 0, None, None, None),
+    "two_stage_ota": (7, 3, 0, None, None, None),
 }
 FORMER_CI12 = ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")
 TAGS = ("device_roles", "symmetry", "sizing_roles", "compensation")
@@ -126,6 +127,31 @@ def test_current_reuse_resistor_connected_nets_not_rejected():
     assert {"N_cc_rz1", "N_cc_rz2"} <= only_two
     doc = load_topology(str(_path("current_reuse_telescopic_ota")))
     assert {"N_cc_rz1", "N_cc_rz2"} <= {t for p in doc.passives for t in p.terminals}
+
+
+def _net_names(raw):
+    nets = {e[k] for e in raw["netlist"] for k in ("drain", "gate", "source", "bulk") if k in e}
+    nets |= {t for e in raw.get("passive_elements", []) + raw.get("ideal_sources", []) for t in e["terminals"]}
+    return nets | set(raw["supply_nets"]) | {k for k in raw["ports"] if not k.startswith("_")}
+
+
+@pytest.mark.parametrize("name", sorted(PASS_TABLE))
+def test_no_net_case_collision_false_reject(name):
+    """CONTRACT 7절: net_case_collision 추가 뒤에도 9회로 오거부 0. JSON 집계로 실제 casefold 충돌이 없음도 확인."""
+    nets = _net_names(_raw(name))
+    assert len({n.casefold() for n in nets}) == len(nets)
+    load_topology(str(_path(name)))
+
+
+def test_net_case_collision_current_reuse_variant(tmp_path):
+    """7절 실측 재현: current_reuse M2b drain Vop1 -> vop1 이면 net_case_collision 하나, gate name_uniqueness."""
+    raw = _raw("current_reuse_telescopic_ota")
+    m2b = next(e for e in raw["netlist"] if e["name"] == "M2b")
+    assert m2b["drain"] == "Vop1"
+    m2b["drain"] = "vop1"
+    detail = _rejected(_write(tmp_path, raw, "current_reuse_telescopic_ota"))
+    assert [(h.rule, h.elements) for h in detail["hits"]] == [("net_case_collision", ("Vop1", "vop1"))]
+    assert detail["rejected_gates"] == ("name_uniqueness",)
 
 
 @pytest.mark.parametrize("name", ["pushpull_follower_buffer", "sf_pushpull_output_opamp"])
