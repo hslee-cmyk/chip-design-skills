@@ -70,6 +70,10 @@
                             "terminals": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
                             "value": {"type": "number"}, "value_basis": {"type": "string"}}}
   },
+  "feedback_passives": {
+   "type": "array", "items": {"type": "string"}, "uniqueItems": true,
+   "description": "β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 되먹임·입력측 소자). 있으면 PM 은 이 β 루프의 위상여유(루프 넷리스트, Middlebrook 이중 주입), 없으면 β=1(개루프 A) 위상여유. README 'PM 정의'."
+  },
   "bias_voltages": {
    "type": "array",
    "description": "구동 소자 없는 게이트 전용 넷에 거는 이상 전압. 선언 안 된 그런 넷은 predictions.nodes 값으로 걸고 경고를 남긴다.",
@@ -119,6 +123,7 @@
    "properties": {
     "dc_choke_H": {"type": "number", "description": "DC 경로 인덕터(AC 에서 열림): 입력 DC, 되먹임, forced 고정"},
     "ac_couple_F": {"type": "number", "description": "AC 입력 결합 커패시터"},
+    "loop_dc_choke_H": {"type": "number", "description": "β 루프 넷리스트에서 끊은 입력 넷의 DC 경로 인덕터. feedback_passives 가 있으면 필요(없으면 막힘). 루프 측정 시작 주파수에서 β 망 용량보다 충분히 큰 임피던스여야 한다 -- dc_choke_H 로는 입력 넷 용량과 공진해 저주파 T 가 틀린다(2026-10-07 실측)."},
     "nodeset_from_predictions": {"type": "boolean", "description": "free 모드에서 예측 노드전압을 .nodeset 으로"},
     "nodeset_per_line": {"type": "integer"},
     "options": {"type": "object", "additionalProperties": {"type": "string"}, "description": ".option 키=값"},

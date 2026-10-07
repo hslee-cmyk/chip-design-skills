@@ -790,6 +790,12 @@
   }
  ],
  "bias_voltages": [],
+ "feedback_passives": [
+  "Cf1",
+  "Cf2",
+  "Cs1",
+  "Cs2"
+ ],
  "ports": {
   "input_p": "Vip",
   "input_n": "Vim",
@@ -798,11 +804,11 @@
  },
  "predictions": {
   "nodes": {
-   "vdd": 1.8,
    "VDD": 1.8,
+   "vdd": 1.8,
+   "gnd": 0.0,
    "vss": 0.0,
    "VSS": 0.0,
-   "gnd": 0.0,
    "GND": 0.0,
    "Vop1": 0.677278476824353,
    "N11a11b": 1.125,
@@ -1405,6 +1411,7 @@
  },
  "testbench": {
   "dc_choke_H": 1000000000000.0,
+  "loop_dc_choke_H": 1e+20,
   "ac_couple_F": 1.0,
   "nodeset_from_predictions": true,
   "nodeset_per_line": 8,

@@ -6,7 +6,8 @@
                          [--judge judge.json] [--sat-margin-v V] [--ngspice EXE] [--timeout-s S] [--tag TAG]
 
   bias 마다 <out_dir>/<circuit>[.<tag>].<bias>.{cir, cir.meta.json, log, ac.txt, sim.json, compare.json, compare.md}
-  를 쓰고, 끝에 판정 요약을 출력한다. 반환 코드: 0 = 모든 bias 판정 PASS/INCOMPLETE, 1 = FAIL, 2 = BLOCKED.
+  를 쓰고, 끝에 판정 요약을 출력한다. 반환 코드: 0 = 모든 bias 판정 PASS/INCOMPLETE, 1 = FAIL, 2 = BLOCKED
+  또는 입력이 스키마 위반(그때는 아무 산출물도 쓰지 않음). 합격 판정은 free 모드만(README "합격 정의").
   ngspice 경로는 --ngspice, 없으면 입력 process.ngspice_exe.
 
 이 파일은 oracle_netlist / oracle_simulate / oracle_compare 의 공개 함수만 부른다.
@@ -17,7 +18,7 @@ import os
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from oracle_netlist import build_netlist, load_input  # noqa: E402
+from oracle_netlist import load_input, validate_input, write_netlists  # noqa: E402
 from oracle_simulate import simulate  # noqa: E402
 from oracle_compare import compare, merge_judge, to_markdown  # noqa: E402
 
@@ -25,11 +26,7 @@ from oracle_compare import compare, merge_judge, to_markdown  # noqa: E402
 def run_one(inp, out_dir, bias, judge, exe, timeout_s=None, tag=""):
     stem = f"{inp.get('circuit', 'circuit')}{('.' + tag) if tag else ''}.{bias}"
     cir = os.path.join(out_dir, stem + ".cir")
-    text, meta = build_netlist(inp, bias, stem + ".ac.txt")
-    with open(cir, "w", encoding="utf-8") as f:
-        f.write(text)
-    with open(cir + ".meta.json", "w", encoding="utf-8") as f:
-        json.dump(meta, f, ensure_ascii=False, indent=1)
+    meta = write_netlists(inp, bias, cir)
     sim = simulate(cir, meta, exe, timeout_s)
     with open(os.path.join(out_dir, stem + ".sim.json"), "w", encoding="utf-8") as f:
         json.dump(sim, f, ensure_ascii=False, indent=1)
@@ -54,6 +51,12 @@ def main(argv=None):
     ap.add_argument("--tag", default="")
     a = ap.parse_args(argv)
     inp = load_input(a.oracle_input)
+    errs = validate_input(inp)
+    if errs:
+        print("입력이 oracle_input.schema.json 위반 -- 거부(넷리스트·비교표를 쓰지 않음):")
+        for e in errs:
+            print("  ", e)
+        return 2
     exe = a.ngspice or inp["process"].get("ngspice_exe")
     if not exe:
         print("ngspice 실행 파일 경로 없음(--ngspice 또는 process.ngspice_exe)")
@@ -69,8 +72,11 @@ def main(argv=None):
         res = run_one(inp, a.out_dir, bias, judge, exe, a.timeout_s, a.tag)
         s = res["summary"]
         ac = s.get("spice_ac") or {}
-        print(f"[{bias}] verdict={s['verdict']} counts={s['counts']} gain_db={ac.get('dc_gain_db')} "
-              f"ugf_hz={ac.get('ugf_hz')} pm_deg={ac.get('pm_deg')} rail_I={s.get('rail_current_A')}")
+        print(f"[{bias}] verdict={s['verdict']} ({s['verdict_reason']}) gain_db={ac.get('dc_gain_db')} "
+              f"ugf_hz={ac.get('ugf_hz')} pm_deg={ac.get('pm_deg')}({ac.get('pm_definition')}) "
+              f"rail_I={s.get('rail_current_A')}")
+        for w in s.get("warnings") or []:
+            print("  WARNING:", w)
         for b in res["blockers"]:
             print("  BLOCKER:", b)
         worst = max(worst, {"PASS": 0, "INCOMPLETE": 0, "FAIL": 1, "BLOCKED": 2}[s["verdict"]])

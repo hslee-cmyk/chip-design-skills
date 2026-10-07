@@ -7,7 +7,9 @@
   넷리스트(.cir)와 그 메타(<out.cir>.meta.json: 소자 probe 이름, 넷 목록, 고정한 넷, 경고/막힘)를 쓴다.
   ngspice 는 부르지 않는다(oracle_simulate.py 몫).
 
-공개 함수: build_netlist(inp, bias, ac_file) -> (text, meta), load_input(path), read_lut_meta(npz_path)
+공개 함수: build_netlist(inp, bias, ac_file, loop=False) -> (text, meta), write_netlists(inp, bias, out_cir) -> meta,
+          validate_input(inp) -> [위반], loop_break_nets(inp), load_input(path), read_lut_meta(npz_path)
+입력은 먼저 oracle_input.schema.json 으로 검증한다. 위반이면 넷리스트를 쓰지 않고 반환 2(README C13).
 
 규칙(값은 전부 입력에서 온다 -- 이 파일은 회로·소자·공정 이름과 수치 상수를 갖지 않는다)
   * 코너·온도: process.lut_npz 의 메타(corner, temp_c). include 경로의 '{corner}' 자리를 npz corner 로 채우고
@@ -28,6 +30,7 @@ import json
 import os
 import sys
 
+SCHEMA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "oracle_input.schema.json")
 OP_PARAMS = ("id", "gm", "gds", "vth", "vdsat", "vgs", "vds", "vbs")  # BSIM 동작점 파라미터 이름
 
 
@@ -105,15 +108,44 @@ def device_line(process, d, nodes):
     return " ".join(parts)
 
 
-def build_netlist(inp, bias, ac_file):
+def validate_input(inp, schema_path=SCHEMA_PATH):
+    """oracle_input.schema.json 위반 목록(빈 목록이면 통과). 위반 입력은 진입점이 거부한다(README C13)."""
+    import jsonschema
+    with open(schema_path, encoding="utf-8") as f:
+        schema = json.load(f)
+    v = jsonschema.Draft202012Validator(schema)
+    return [f"{'/'.join(str(x) for x in e.absolute_path) or '(최상위)'}: {e.message}"
+            for e in sorted(v.iter_errors(inp), key=lambda e: list(map(str, e.absolute_path)))]
+
+
+def loop_break_nets(inp):
+    """β 루프를 끊을 넷 = 선언된 되먹임 수동소자(feedback_passives)가 물린 입력 포트 넷. (넷 목록, 막힘 목록)."""
+    names = inp.get("feedback_passives") or []
+    if not names:
+        return [], []
+    ports = inp["ports"]
+    in_nets = [ports[k] for k in ("input_p", "input_n", "input") if ports.get(k)]
+    by = {p["name"]: p for p in inp.get("passives") or []}
+    blockers = [f"feedback_passives 의 {n} 이 passives 에 없다" for n in names if n not in by]
+    nets = [n for n in in_nets if any(n in by[x]["terminals"] for x in names if x in by)]
+    if not nets:
+        blockers.append("feedback_passives 가 어느 입력 포트 넷에도 물려 있지 않다")
+    return nets, blockers
+
+
+def build_netlist(inp, bias, ac_file, loop=False):
+    """loop=False: 본 넷리스트(.op + 개루프 A 의 .ac). loop=True: β 루프 이득 측정용 넷리스트
+    (되먹임 수동소자의 입력 쪽 단자를 lbx_<넷> 으로 떼고 직렬 전압원 Vlb·주입 전류원 Ilb 를 넣어 .ac 2회 --
+    Middlebrook 이중 주입). loop=True 에서 ac_file 은 두 데이터 파일 이름의 접두사."""
     if bias not in ("free", "forced"):
         raise ValueError(f"bias 는 free|forced: {bias!r}")
     process, tb = inp["process"], inp["testbench"]
     pred = (inp.get("predictions") or {}).get("nodes") or {}
     lut = read_lut_meta(process["lut_npz"])
     blockers, notes = [], []
-    if lut["corner"] is None or lut["temp_c"] is None:
-        blockers.append(f"LUT npz 에 corner/temp_c 메타가 없다: {process['lut_npz']}")
+    for k in ("corner", "temp_c"):
+        if lut[k] is None:
+            blockers.append(f"LUT npz 에 {k} 메타가 없다: {process['lut_npz']}")
     N = _Nets(inp["rails"])
     devs = inp["devices"]
     kinds = {d["kind"] for d in devs}
@@ -121,7 +153,8 @@ def build_netlist(inp, bias, ac_file):
 
     L = [f"* spice_oracle: {inp.get('circuit', '?')} bias={bias}"]
     L += _includes(process, kinds, lut["corner"])
-    L.append(f".temp {_num(lut['temp_c'])}")
+    if lut["temp_c"] is not None:
+        L.append(f".temp {_num(lut['temp_c'])}")
     if tb.get("options"):
         L.append(".option " + " ".join(f"{k}={v}" for k, v in tb["options"].items()))
     rail_src = {}
@@ -157,9 +190,14 @@ def build_netlist(inp, bias, ac_file):
         L.append(f"{letter}src_{s['name']} {N(a)} {N(b)} DC {_num(s['value'])}")
         notes.append(f"{s['kind']} source {s['name']}={_num(s['value'])} ({s.get('value_basis', '근거 미기재')})")
 
+    breaks, bb = loop_break_nets(inp) if loop else ([], [])
+    blockers += bb
+    fbp = set(inp.get("feedback_passives") or [])
     passive_nets = []
     for p in inp.get("passives") or []:
         a, b = p["terminals"]
+        if loop and p["name"] in fbp:
+            a, b = (f"lbx_{a}" if a in breaks else a), (f"lbx_{b}" if b in breaks else b)
         driven.update([a, b])
         letter = {"resistor": "R", "capacitor": "C"}.get(p["kind"])
         if letter is None:
@@ -189,21 +227,33 @@ def build_netlist(inp, bias, ac_file):
             fb[inp_n] = ("diff", out_p, out_n)
             fb[inp_p] = ("diff", out_n, out_p)
     ac_mag = {}
-    if inp_p and inp_n:
-        ac_mag = {inp_p: tb["ac"]["input_p_ac"], inp_n: tb["ac"]["input_n_ac"]}
-    elif in_se:
-        ac_mag = {in_se: tb["ac"]["input_ac"]}
+    need = {inp_p: "input_p_ac", inp_n: "input_n_ac"} if (inp_p and inp_n) else ({in_se: "input_ac"} if in_se else {})
+    for net, key in need.items():
+        if tb["ac"].get(key) is None:
+            blockers.append(f"testbench.ac.{key} 없음 -- 입력 {net} 의 AC 크기를 정할 수 없다")
+        else:
+            ac_mag[net] = tb["ac"][key]
+    loop_choke = None
+    if loop and breaks:
+        if tb.get("loop_dc_choke_H") is None:
+            blockers.append("testbench.loop_dc_choke_H 없음 -- β 루프 측정의 입력 DC 경로를 정할 수 없다")
+        else:
+            loop_choke = _num(tb["loop_dc_choke_H"])
     for net in inputs:
         driven.add(net)
+        ch = loop_choke if (loop and net in breaks and loop_choke) else choke
         vin = pred.get(net)
         if vin is None:
             blockers.append(f"입력 {net} 의 예측 DC 전압 없음(predictions.nodes)")
             continue
         if net in fb and fb[net][0] == "diff":
             _, o, o_other = fb[net]
+            if tb["ac"].get("diff_feedback_gain") is None:
+                blockers.append("testbench.ac.diff_feedback_gain 없음 -- free 차동 되먹임을 만들 수 없다")
+                continue
             L.append(f"Efb_{net} fbs_{net} 0 {N(o)} {N(o_other)} {_num(tb['ac']['diff_feedback_gain'])}")
             L.append(f"Vofs_{net} fbs_{net} fbd_{net} DC {_num(-vin)}")
-            L.append(f"Lfb_{net} fbd_{net} {N(net)} {choke}")
+            L.append(f"Lfb_{net} fbd_{net} {N(net)} {ch}")
             notes.append(f"free: 차동 DC 되먹임 k*(V({o})-V({o_other})) -> {net}, 입력 공통모드 {vin:.6g} V(예측)")
         elif net in fb:
             o = fb[net][1]
@@ -213,13 +263,17 @@ def build_netlist(inp, bias, ac_file):
                 continue
             L.append(f"Efb_{net} fbs_{net} 0 {N(o)} 0 1")
             L.append(f"Vofs_{net} fbs_{net} fbd_{net} DC {_num(vo - vin)}")
-            L.append(f"Lfb_{net} fbd_{net} {N(net)} {choke}")
+            L.append(f"Lfb_{net} fbd_{net} {N(net)} {ch}")
             notes.append(f"free: DC 되먹임 {o} -> {net} (V({o})_pred={vo:.6g}, V({net})_pred={vin:.6g})")
         else:
             L.append(f"Vdc_{net} dcs_{net} 0 DC {_num(vin)}")
-            L.append(f"Ldc_{net} dcs_{net} {N(net)} {choke}")
-        L.append(f"Cac_{net} {N(net)} acs_{net} {coup}")
-        L.append(f"Vac_{net} acs_{net} 0 DC 0 AC {_num(ac_mag.get(net, 0))}")
+            L.append(f"Ldc_{net} dcs_{net} {N(net)} {ch}")
+        if net in breaks:
+            L.append(f"Vlb_{net} {N(net)} lbx_{net} DC 0 AC {_num(ac_mag.get(net, 0))}")
+            L.append(f"Ilb_{net} 0 {N(net)} DC 0 AC 0")
+        else:
+            L.append(f"Cac_{net} {N(net)} acs_{net} {coup}")
+            L.append(f"Vac_{net} acs_{net} 0 DC 0 AC {_num(0 if loop else ac_mag.get(net, 0))}")
 
     # 게이트 전용 넷
     declared_bias = {b["net"]: float(b["value"]) for b in inp.get("bias_voltages") or []}
@@ -263,6 +317,8 @@ def build_netlist(inp, bias, ac_file):
         notes.append(f"free: .nodeset {len(ns)}개 = 예측 노드전압(뉴턴 초기값)")
 
     all_nets = [n for n in dev_nets + passive_nets if N(n) != "0"]
+    if loop:
+        return _loop_tail(L, tb, breaks, ac_mag, ac_file, N, notes, blockers, bias, lut)
     L.append(".control")
     L.append("set noaskquit")
     L.append("op")
@@ -280,6 +336,10 @@ def build_netlist(inp, bias, ac_file):
     has_ac = bool(inputs) and bool(out_se or (out_p and out_n))
     if has_ac:
         ac = tb["ac"]
+        miss = [k for k in ("points_per_decade", "fstart_hz", "fstop_hz") if ac.get(k) is None]
+        if miss:
+            blockers.append(f"testbench.ac 에 {miss} 없음")
+            ac = {k: ac.get(k) or 0 for k in ("points_per_decade", "fstart_hz", "fstop_hz")}
         L.append(f"ac dec {int(ac['points_per_decade'])} {_num(ac['fstart_hz'])} {_num(ac['fstop_hz'])}")
         L.append(f"let hout = v({N(out_se)})" if out_se else f"let hout = v({N(out_p)}) - v({N(out_n)})")
         L.append("set wr_singlescale")
@@ -296,6 +356,50 @@ def build_netlist(inp, bias, ac_file):
     return "\n".join(L) + "\n", meta
 
 
+def _loop_tail(L, tb, breaks, ac_mag, prefix, N, notes, blockers, bias, lut):
+    ac = tb["ac"]
+    L.append(".control")
+    L.append("set noaskquit")
+    L.append("set wr_singlescale")
+    L.append(f"ac dec {int(ac['points_per_decade'])} {_num(ac['fstart_hz'])} {_num(ac['fstop_hz'])}")
+    L.append("wrdata " + f"{prefix}.v.txt " + " ".join(f"v(lbx_{n}) v({N(n)})" for n in breaks))
+    for n in breaks:
+        L.append(f"alter @vlb_{n.lower()}[acmag] = 0")
+        L.append(f"alter @ilb_{n.lower()}[acmag] = {_num(ac_mag.get(n, 0))}")
+    L.append(f"ac dec {int(ac['points_per_decade'])} {_num(ac['fstart_hz'])} {_num(ac['fstop_hz'])}")
+    L.append("wrdata " + f"{prefix}.i.txt " + " ".join(f"i(vlb_{n.lower()})" for n in breaks))
+    L.append("quit")
+    L.append(".endc")
+    L.append(".end")
+    meta = {"bias": bias, "lut_meta": lut, "break_nets": breaks, "weights": [ac_mag.get(n, 0) for n in breaks],
+            "v_file": f"{prefix}.v.txt", "i_file": f"{prefix}.i.txt", "notes": notes,
+            "blockers": N.blockers + blockers}
+    return "\n".join(L) + "\n", meta
+
+
+def write_netlists(inp, bias, out_cir):
+    """본 넷리스트 + (feedback_passives 가 있으면) 루프 넷리스트를 쓰고 meta 를 돌려준다.
+    루프 넷리스트는 <out_cir 확장자 뺀 이름>.loop.cir, meta['loop'] 에 그 메타."""
+    stem = os.path.splitext(os.path.basename(out_cir))[0]
+    text, meta = build_netlist(inp, bias, f"{stem}.ac.txt")
+    meta["loop"] = None
+    if inp.get("feedback_passives"):
+        ltext, lmeta = build_netlist(inp, bias, f"{stem}.loop", loop=True)
+        lcir = os.path.join(os.path.dirname(os.path.abspath(out_cir)), f"{stem}.loop.cir")
+        with open(lcir, "w", encoding="utf-8") as f:
+            f.write(ltext)
+        lmeta["netlist"] = os.path.basename(lcir)
+        meta["loop"] = lmeta
+        for b in lmeta["blockers"]:
+            if b not in meta["blockers"]:
+                meta["blockers"].append(b)
+    with open(out_cir, "w", encoding="utf-8") as f:
+        f.write(text)
+    with open(out_cir + ".meta.json", "w", encoding="utf-8") as f:
+        json.dump(meta, f, ensure_ascii=False, indent=1)
+    return meta
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="오라클 입력 JSON -> ngspice 넷리스트")
     ap.add_argument("oracle_input")
@@ -303,13 +407,14 @@ def main(argv=None):
     ap.add_argument("--bias", choices=("free", "forced"), required=True)
     a = ap.parse_args(argv)
     inp = load_input(a.oracle_input)
-    stem = os.path.splitext(os.path.basename(a.out_cir))[0]
-    text, meta = build_netlist(inp, a.bias, f"{stem}.ac.txt")
+    errs = validate_input(inp)
+    if errs:
+        print("입력이 oracle_input.schema.json 위반 -- 거부(넷리스트를 쓰지 않음):")
+        for e in errs:
+            print("  ", e)
+        return 2
     os.makedirs(os.path.dirname(os.path.abspath(a.out_cir)), exist_ok=True)
-    with open(a.out_cir, "w", encoding="utf-8") as f:
-        f.write(text)
-    with open(a.out_cir + ".meta.json", "w", encoding="utf-8") as f:
-        json.dump(meta, f, ensure_ascii=False, indent=1)
+    meta = write_netlists(inp, a.bias, a.out_cir)
     print("wrote", a.out_cir)
     if meta["blockers"]:
         print("BLOCKERS:", meta["blockers"])

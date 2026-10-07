@@ -1,5 +1,6 @@
 ### current_reuse_telescopic_ota -- 엔진 예측 vs SPICE (bias=forced)
-- 판정: **FAIL** (PASS 48, FAIL 5, N/A 446)
+- 판정: **INCOMPLETE** -- forced 는 진단 모드 -- 합격 판정은 free 모드에서만 한다
+- 기록용 비교(판정 무관): 허용오차 안 46, 밖 5, N/A 446
 - 모델 코너/온도(LUT npz 메타): tt, 27.0 C
 - 판정 설정: {"tolerances": {}, "sat_margin_V": 0.0, "off_current_A": 1e-12}
 - SPICE 포화 소자 46/51, 포화 아님: M2a, M2b, M3a, M3b, M5
@@ -26,10 +27,11 @@
 | dc_gain_db (gain_db) | 61.56 | 54.98 | -6.58 | N/A(tol 미설정) |
 | dc_gain_db (gain_full_circuit_db) | 67.08 | 54.98 | -12.1 | N/A(tol 미설정) |
 | supply_current_A (supply_current_uA) | 8.202e-05 | 8.395e-05 | +2.3% | N/A(tol 미설정) |
-| pm_deg (parasitic_pm_deg) | 75.02 | 79.25 | +4.23 | N/A(tol 미설정) |
-| (참고) dc_gain_db / UGF Hz / PM deg / f-3dB Hz | | 54.98 / 1.045e+07 / 79.25 / 1.884e+04 | | |
+| pm_deg (parasitic_pm_deg) | 75.02 | 90.01 | +15 | N/A(tol 미설정) |
+| (참고) dc_gain_db / UGF Hz / PM deg / f-3dB Hz | | 54.98 / 1.045e+07 / 90.01 / 1.884e+04 | | |
+| (참고) PM 정의 beta_loop: 루프 이득 기준점 dB / 루프 UGF Hz / 개루프 A 의 PM deg | | 43.25 / 4.247e+06 / 79.25 | | |
 | 제약 gain_db: dc_gain_db >= 54 | | 54.98 | | PASS |
-| 제약 parasitic_pm_deg: pm_deg >= 70 | | 79.25 | | PASS |
+| 제약 parasitic_pm_deg: pm_deg >= 70 | | 90.01 | | PASS |
 
 | forced 고정원 전류(KCL 잔차) 넷 | uA | 판정 |
 |---|---|---|

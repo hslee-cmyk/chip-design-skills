@@ -1,5 +1,6 @@
 ### current_reuse_telescopic_ota -- 엔진 예측 vs SPICE (bias=free)
-- 판정: **FAIL** (PASS 32, FAIL 20, N/A 447)
+- 판정: **FAIL** -- 선언 제약 불만족 ['gain_db']; 포화 아닌 전도 MOS ['M6', 'M7', 'M1a', 'M1b', 'M3a', 'M3b', 'M4a', 'M4b', 'M5', 'M15', 'M9b', 'M25', 'M18b', 'M63', 'M37a']
+- 기록용 비교(판정 무관): 허용오차 안 32, 밖 19, N/A 446
 - 모델 코너/온도(LUT npz 메타): tt, 27.0 C
 - 판정 설정: {"tolerances": {}, "sat_margin_V": 0.0, "off_current_A": 1e-12}
 - SPICE 포화 소자 32/51, 포화 아님: M6, M7, M1a, M1b, M3a, M3b, M4a, M4b, M5, M15, M9a, M9b, M25, M18a, M18b, M63, M36b, M37a, M37b
@@ -30,8 +31,9 @@
 | supply_current_A (supply_current_uA) | 8.202e-05 | 3.048e-05 | -62.8% | N/A(tol 미설정) |
 | pm_deg (parasitic_pm_deg) | 75.02 | - | - | N/A |
 | (참고) dc_gain_db / UGF Hz / PM deg / f-3dB Hz | | -150.1 / - / - / - | | |
+| (참고) PM 정의 beta_loop: 루프 이득 기준점 dB / 루프 UGF Hz / 개루프 A 의 PM deg | | -159.2 / - / - | | |
 | 제약 gain_db: dc_gain_db >= 54 | | -150.1 | | FAIL |
-| 제약 parasitic_pm_deg: pm_deg >= 70 | | - | | N/A |
+| 제약 parasitic_pm_deg: pm_deg >= 70 | | - | | N/A(SPICE 값 없음) |
 
 | 소자 | L um | finger_w um x m | ID 예측/SPICE uA | ID차 | VGS 예측/SPICE | VDS 예측/SPICE | VSB 예측/SPICE | VDSAT | 포화여유 | 영역 | gm차 | gds차 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|

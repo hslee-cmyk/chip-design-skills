@@ -19,22 +19,37 @@ Python 3.14 + numpy 2.4.6. 임시 경로 `/c/g465`(끝나고 삭제).
   옛 엔진 노드전압 복원 충돌 4건(최대 0.2227 V), 게이트 넷 VGS 투표 폭(Vbias2 0.89 V, Vbias3 0.646 V, Voc_des 0.546 V ...),
   layout W != sizing W 31소자, **instance.json 행 w != n_fingers*finger_w: M11b, M20b**(행 w=36.02 um, n=2, finger_w=36.02 um).
 
-## 2. 오라클 결과 (판정 설정 `smoke_judge.json`: sat_margin 0 V, off |ID|<1 pA -- 시제품 영역 규칙 재현용, 허용오차 미설정)
+## 2. 오라클 결과 (2026-10-07 재실행: 새 합격 정의·β 루프 PM 반영)
 
-| 입력(w_source.isrc) | bias | gain dB | UGF Hz | PM deg | I(vdd) uA | 포화 | 선언 제약 gain>=54 / PM>=70 | verdict |
-|---|---|---|---|---|---|---|---|---|
-| sizing.engine | forced | 54.979 | 1.0451e7 | 79.252 | 83.951 | 46/51 (M2a M2b off, M3a M3b M5 triode) | PASS / PASS | FAIL(영역 5) |
-| sizing.engine | free | -150.1(동작 안 함) | - | - | 30.48 | 32/51 | FAIL / N/A | FAIL |
-| layout.engine | forced | 61.786 | 5.898e7 | 18.11 | 87.64 | 46/51 | PASS / FAIL | FAIL |
-| layout.engine | free | -176.8 | - | - | 41.60 | 32/51 | FAIL / N/A | FAIL |
-| layout.topology | forced | 61.786 | 5.898e7 | 18.11 | 87.64 | 46/51 | PASS / FAIL | FAIL |
-| layout.topology | free | -169.4 | - | - | 244.96 | 32/51 | FAIL / N/A | FAIL |
+판정 설정 `smoke_judge.json`: sat_margin 0 V, off |ID|<1 pA(시제품 영역 규칙 재현용, 사용자 확정 기준 아님), 허용오차 미설정.
+어댑터가 입력 포트 넷에 물린 Cf1, Cf2, Cs1, Cs2 를 `feedback_passives` 로 선언 -> PM 은 β 루프 기준(README "PM 정의").
+
+| 입력(w_source.isrc) | bias | gain dB(A) | UGF Hz(A) | PM deg(β 루프) | PM deg(A, β=1) | 루프 T 기준점 dB / UGF Hz | I(vdd) uA | 포화 아닌 전도 MOS | 제약 gain>=54 / PM>=70 | verdict |
+|---|---|---|---|---|---|---|---|---|---|---|
+| sizing.engine | forced | 54.979 | 1.0451e7 | 90.01 | 79.252 | 43.25 / 4.247e6 | 83.951 | M3a M3b M5 | PASS / PASS | INCOMPLETE(진단 모드) |
+| sizing.engine | free | -150.1(동작 안 함) | - | - | - | - | 30.48 | 15개 | FAIL / N/A(측정 불가) | **FAIL** |
+| layout.engine | forced | 61.786 | 5.898e7 | 50.77 | 18.11 | 47.88 / 2.582e7 | 87.64 | M3a M3b M5 | PASS / FAIL | INCOMPLETE(진단 모드) |
+| layout.engine | free | -176.8 | - | - | - | - | 41.60 | 17개 | FAIL / N/A | **FAIL** |
+| layout.topology | forced | 61.786 | 5.898e7 | 50.77 | 18.11 | 47.88 / 2.582e7 | 87.64 | M3a M3b M5 | PASS / FAIL | INCOMPLETE(진단 모드) |
+| layout.topology | free | -169.4 | - | - | - | - | 244.96 | 17개 | FAIL / N/A | **FAIL** |
+
+* 합격 판정(free): 세 입력 모두 FAIL -- 선언 제약 gain_db>=54 불만족(회로가 DC 해에서 죽음) + 전도 MOS 15~17개 비포화.
+  M2a/M2b 는 ID 0.55 pA 로 off(전도 아님) 라 포화 조건에서 빠진다. `oracle_run.py` 반환 1.
+* forced 는 진단: β 루프 PM 90.0 deg(sizing W)로 개루프 A 의 79.25 deg 보다 크다(β = T/A = 145.4/561 = 0.26 에서 교차가
+  4.25 MHz 로 내려감). 엔진 parasitic_pm_deg 75.02 와의 차이는 기록만.
+* 경고 기능 확인(별도 실행, 허용오차 ID_rel=gm_rel=0.1): forced sizing.engine 에서 62건 경고가 비교표 맨 앞에 찍힘
+  (예: M1a ID_rel -0.645). 스모크 기본 설정에는 허용오차가 없어 경고 0.
+* β 루프 측정 정확도: 이상 gm 증폭기(gm 1 mS, Ro 1 MOhm, CL 1 pF, Cin 0.2 pF, Cf=Cs=0.5 pF)에서 해석식 루프 이득과
+  최대 상대차 1.3e-4. 입력 DC 경로를 `dc_choke_H`(1e12 H)로 두면 입력 넷 용량과 ~0.2 Hz 에서 공진해 fstart(0.01 Hz)의
+  T 가 틀렸다(PM 270 deg 로 나옴) -- 그래서 `loop_dc_choke_H`(어댑터 1e20 H)를 따로 둔다.
 
 엔진 예측: gain_db 61.56(단 이득 합) / gain_full_circuit_db 67.08(MNA), parasitic_pm_deg 75.02, supply_current 82.02 uA.
-forced sizing.engine KCL 잔차(고정원 전류) 상위: Vy +197.7 uA, N64_63 -182.1, Vom1 -38.0, Vop1 -36.8, N3a4a +34.9, N3b4b +33.8.
+forced sizing.engine KCL 잔차(고정원 전류) 상위: Vy +197.7 uA, N64_63 -182.0, Vom1 -38.0, Vop1 -36.8.
 free 모드에서 출력 Vop/Vom 은 1.8 V 레일, Vom1/Vop1 ~0.08 V(예측 0.677) -- 엔진 동작점이 자기일관적 DC 해로 실현되지 않는다는 시제품 결론과 같다.
 
 ## 3. 시제품 대비 수치 일치 (`prototype_comparison.json`)
+
+아래는 첫 커밋(a622379) 때 대조. 이번 수정에서 개루프 A 측정·.op 경로는 바뀌지 않아(gain/UGF/개루프 PM/I(vdd) 값 동일) 그대로 유효하다.
 
 | 시제품(재실행) | 오라클 | gain dB 차 | UGF 상대차 | PM 차 deg | I(vdd) 차 uA | 소자 ID 최대 상대차(>1 nA) | 노드 최대차 V | KCL 최대차 uA | 영역 목록 |
 |---|---|---|---|---|---|---|---|---|---|
@@ -56,8 +71,8 @@ free 모드에서 출력 Vop/Vom 은 1.8 V 레일, Vom1/Vop1 ~0.08 V(예측 0.67
 
 ## 4. 판정 기준 관련 남은 사용자 결정 (오라클은 값을 정하지 않음)
 
-허용오차 값 전부, `sat_margin_V`, `off_current_A`, 엔진 gain 정의(단 이득 합 vs MNA) 중 어느 것을 SPICE gain 과 대조할지,
-PM 정의(개루프 A vs beta 루프 -- current_reuse 의 Cf/Cs 는 회로에 둔 채 입력을 이상 AC 원으로 구동한다), layout W 와 sizing W 중 기준.
+확정됨(2026-10-07): 합격 정의(free 제약 + 포화), PM 정의(β 루프 / β=1). 남은 것: `sat_margin_V`·`off_current_A` 값,
+경고용 허용오차(ID_rel, gm_rel) 값, layout W 와 sizing W 중 기준.
 
 ## 재현
 
