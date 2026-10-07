@@ -11,6 +11,9 @@ from .search_values import EvalKey
 
 
 def eval_key(context_fp, schema_fp, theta, cells, w_fixed_fp):
+    theta = tuple(theta)
+    if not all(isinstance(p, tuple) and len(p) == len(("key", "value")) for p in theta):   # (키, 값) 쌍
+        raise ValueError("eval_key: θ 는 ((kind, key), 값) 쌍의 tuple 이어야 한다")
     keys = tuple(k for k, _v in theta)
     if keys != tuple(sorted(keys)):
         raise ValueError("eval_key: θ 는 키 정렬 쌍이어야 한다")

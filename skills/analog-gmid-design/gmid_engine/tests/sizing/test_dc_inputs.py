@@ -41,7 +41,9 @@ def expected_projection(spec):
     if isinstance(spec.intended_region, tuple):
         lin = tuple(sorted(r.device for r in spec.intended_region if r.region == "linear"))
     pend = tuple(sorted((p.path, p.decision) for p in spec.pending))
-    return DcInputs(tuple(spec.supplies_v), input_dc_v, nt, ev, lin, pend)
+    # [r5] engine_elements = element_values 중 mode == "engine" 인 원소 이름 정렬 tuple(pending 은 들지 않는다)
+    eng = tuple(sorted(e.name for e in spec.element_values if e.mode == "engine"))
+    return DcInputs(tuple(spec.supplies_v), input_dc_v, nt, ev, lin, pend, eng)
 
 
 @pytest.mark.parametrize("name", NINE)
@@ -103,6 +105,29 @@ def test_element_values_value_vs_other_modes():
            ElementValue("Rz", "pending", None, None, None, "SP-9"))
     spec = dataclasses.replace(_base(), element_values=evs)
     assert dc_inputs_from_spec(spec).element_values == (("CL", 3e-12), ("Cc", None), ("Rz", None))
+
+
+def test_engine_elements_engine_only_sorted_pending_excluded():
+    """[r5] 1.2: engine_elements = mode engine 원소만(이름 정렬). value·pending 은 들지 않는다(결정 대기 값은 엔진이 고르지
+    않는다). 수동소자·이상원 모두 이름이 든다(1.1)."""
+    evs = (ElementValue("Rz", "engine", None, None, None, None),
+           ElementValue("CL", "value", "value_farad", 3e-12, None, None),
+           ElementValue("Cc", "engine", None, None, None, None),
+           ElementValue("Cp", "pending", None, None, None, "SP-9"),
+           ElementValue("Ib", "engine", None, None, None, None))
+    spec = dataclasses.replace(_base(), element_values=evs)
+    got = dc_inputs_from_spec(spec)
+    assert got.engine_elements == ("Cc", "Ib", "Rz")
+    assert "Cp" not in got.engine_elements and "CL" not in got.engine_elements
+    # element_values 투영 규칙은 그대로(engine·pending 모두 None)
+    assert dict(got.element_values) == {"Rz": None, "CL": 3e-12, "Cc": None, "Cp": None, "Ib": None}
+
+
+def test_engine_elements_default_empty():
+    assert DcInputs((("gnd", 0.0),)).engine_elements == ()
+    spec = dataclasses.replace(_base(), element_values=(ElementValue("CL", "value", "value_farad", 3e-12, None,
+                                                                     None),))
+    assert dc_inputs_from_spec(spec).engine_elements == ()
 
 
 def test_linear_devices_from_intended_region_sorted():

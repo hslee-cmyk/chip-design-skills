@@ -15,6 +15,7 @@ s·(C_F·x − BC_F) = BG_F 이다. BG_F 는 그 노드에 주입한 전류뿐(G
 import numpy
 import scipy.linalg
 
+from ._helpers_dc import dc_limit_parts
 from .mna_types import DcLimit, MnaSystem, Undefined
 
 
@@ -26,18 +27,13 @@ def solve_dc_limit(system):
     nan = numpy.full(system.sense_direct.shape, numpy.nan)
     if system.defects:
         return DcLimit(values=nan, undefined=system.defects)
-    m = len(system.excitations)
     n = system.G.shape[0]
     if n == 0:
         return DcLimit(values=system.sense_direct.astype(float))
-    charge = list(system.charge_nodes)
-    matrix = numpy.array(system.G)
-    rhs = numpy.array(system.BG)
-    matrix[charge, :] = system.C[charge, :]
-    rhs[charge, :] = system.BC[charge, :]
+    matrix, rhs, injected = dc_limit_parts(system)
     lu, piv = scipy.linalg.lu_factor(matrix)
     if not numpy.diag(lu).all():
-        nodes = tuple(system.nodes[i] for i in charge)
+        nodes = tuple(system.nodes[i] for i in system.charge_nodes)
         return DcLimit(
             values=nan,
             undefined=(Undefined("response", "singular_dc_limit", "structural", (("charge_nodes", nodes),)),),
@@ -45,11 +41,9 @@ def solve_dc_limit(system):
     x = scipy.linalg.lu_solve((lu, piv), rhs)
     values = system.sense_rows @ x + system.sense_direct
     undefined = []
-    for j in range(m):
-        injected = tuple(system.nodes[i] for i in charge if system.BG[i, j])
-        if injected:
-            values[:, j] = numpy.nan
-            undefined.append(
-                Undefined("response", "dc_charge_injection", "definitional", (("column", j), ("nodes", injected)))
-            )
+    for j, nodes in injected:
+        values[:, j] = numpy.nan
+        undefined.append(
+            Undefined("response", "dc_charge_injection", "definitional", (("column", j), ("nodes", nodes)))
+        )
     return DcLimit(values=values, undefined=tuple(undefined))

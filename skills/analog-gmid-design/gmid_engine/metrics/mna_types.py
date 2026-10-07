@@ -17,7 +17,9 @@
 * `Crossing`: |T| = level 교차 하나(없으면 omega None + `undefined`).
 * `LoopAnalysis`: 한 인수 묶음에서 한 번 계산한 주파수 양(gain·UGF·GBW·위상 여유) -- metric 들이 공유한다.
 * `OutputResistance`, `ResponseRatio`, `SupplyCurrents`, `AreaSearch`: 나머지 metric 의 값 묶음.
-* `MetricResult`: 이름으로 읽은 metric 값 하나(값 또는 정의 불가 사유).
+* `MetricResult`: 이름으로 읽은 metric 값 하나(값 또는 정의 불가 사유) + 분해능.
+* 분해능(NFR-5 '격자 분해능', metrics CONTRACT 9절): `ParameterSet`(LUT 파라미터 불확실성), `ResponseSensitivity`(한 계·한 ω 의
+  1차 민감도), `Resolution`(결과 필드 하나의 분해능).
 
 numpy 배열 필드는 생성 때 쓰기 금지로 바꾼다(불변 스냅샷).
 """
@@ -266,12 +268,13 @@ class OutputResistance:
 
 @dataclasses.dataclass(frozen=True)
 class ResponseRatio:
-    """같은 MnaSystem 두 여기 열의 ω = 0 응답 크기비(dB) -- CMRR·PSRR 일반형."""
+    """같은 MnaSystem 두 여기 열의 ω = 0 응답 크기비(dB) -- CMRR·PSRR 일반형. `row` = 관측 행(분해능 계산이 읽는다)."""
 
     num_column: int
     den_column: int
     ratio_db: object
     undefined: tuple = ()
+    row: int = 0
 
 
 @dataclasses.dataclass(frozen=True)
@@ -303,9 +306,64 @@ class AreaSearch:
 
 
 @dataclasses.dataclass(frozen=True)
+class ParameterSet:
+    """LUT 에서 온 MOS 소신호 파라미터와 그 불확실성(`lut_parameters`, metrics CONTRACT 9절).
+
+    * `params`: ((MOS 순번, 파라미터 이름), ...) -- 값이 0 이 아닌 LUT 파라미터만, MOS 순번·`LUT_PARAMETERS` 순서.
+    * `delta`: (P,) Δp = ε_d·|p|(ε_d = 그 MOS 의 LUT 상대 불확실성 `rel_tol[d]`). `rel_tol`: MOS 순번 순서의 ε_d(None = 미정).
+    * 단위 스탬프 항목(파라미터 p 를 1, 나머지를 0 으로 둔 `mos_stamps` 항목을 모은 것 -- 노드 인덱스 공간):
+      `rows`·`cols`·`values` (E,), `capacitive` (E,) bool(C 항목이면 참), `owner` (E,) 그 항목의 파라미터 번호.
+    * `undetermined`: ε 가 None 인 MOS 순번(비어 있지 않으면 분해능을 정하지 않는다 -- 미정을 0 으로 두지 않는다)."""
+
+    params: tuple
+    delta: object
+    rel_tol: tuple
+    rows: object
+    cols: object
+    values: object
+    capacitive: object
+    owner: object
+    undetermined: tuple = ()
+
+    def __post_init__(self):
+        _freeze(self, "delta", "rows", "cols", "values", "capacitive", "owner")
+
+
+@dataclasses.dataclass(frozen=True)
+class ResponseSensitivity:
+    """한 계·한 ω 의 관측값과 1차 민감도(`response_sensitivity`, metrics CONTRACT 9절).
+
+    * `values`: (r, m) 관측값(ω = 0 은 `solve_dc_limit` 과 같은 전하 보존 극한 식), `errors`: (r, m) 같은 분해로 반복 개선
+      1회 한 보정량의 관측 크기(`solve_point` 와 같은 사후 오차).
+    * `d_param`: (P, r, m) ∂V/∂p(`ParameterSet.params` 순서), `d_omega`: (r, m) ∂V/∂ω(ω = 0 이면 None).
+    * 정의되지 않으면(구조 결함·특이) 배열 필드가 None 이고 `undefined` 에 사유."""
+
+    omega: float
+    values: object = None
+    errors: object = None
+    d_param: object = None
+    d_omega: object = None
+    undefined: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class Resolution:
+    """결과 묶음 필드 하나의 분해능(그 필드와 같은 단위, `metric_resolutions`, metrics CONTRACT 9절).
+    `lut` = LUT 조회 불확실성의 1차 최악 전파 Σ|∂q/∂p|·Δp, `numeric` = MNA 풀이 사후 오차의 1차 전파,
+    `value` = max(lut, numeric) -- 하나라도 정하지 못하면(None) None."""
+
+    quantity: str
+    value: object
+    lut: object = None
+    numeric: object = None
+
+
+@dataclasses.dataclass(frozen=True)
 class MetricResult:
-    """metric 하나: 값(float) 또는 None + 사유(`Undefined` tuple). 판정 계층이 사유를 N3.14 분류로 옮긴다."""
+    """metric 하나: 값(float) 또는 None + 사유(`Undefined` tuple). 판정 계층이 사유를 N3.14 분류로 옮긴다.
+    `resolution` = 값의 분해능(metric 과 같은 단위, CONTRACT 9절 -- NFR-5 '격자 분해능'). 값이 None 이거나 정하지 못하면 None."""
 
     name: str
     value: object
     undefined: tuple = ()
+    resolution: object = None

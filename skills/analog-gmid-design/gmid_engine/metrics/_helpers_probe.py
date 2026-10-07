@@ -1,6 +1,8 @@
-"""Middlebrook 이중 주입 루프 이득 T 한 점 평가 공용 helper (사용처: `probe_loop.py` 격자 표본, `_helpers_product.py` 격자 밖 한 점).
+"""Middlebrook 이중 주입 루프 이득 T 한 점 평가 공용 helper (사용처: `probe_loop.py` 격자 표본, `_helpers_product.py` 격자 밖 한 점,
+`resolution.py` 분해능의 ∂T/∂V).
 
-공개 함수: `probe_value(probe, omega, values, errors, causes)` -- 절단 회로 계의 관측값 (r, m) 한 점에서 T, |T| 사후 오차, 사유.
+공개 함수: `probe_value(probe, omega, values, errors, causes)` -- 절단 회로 계의 관측값 (r, m) 한 점에서 T, |T| 사후 오차, 사유,
+∂T/∂V((r, m) 복소 -- 고른 열·관측 칸만 0 아님, 정의 안 되면 None).
 
 식(7a design 2.4, 오라클 `loop_gain` 과 같은 식·같은 부호 규약 -- 근사 없음): 프로브를 지운 절단 회로의 Z(2k×2k, 행 = 관측
 V(n_1..n_k), V(x_1..x_k), 열 = 같은 노드 순서의 단위 주입)에서 P = [I; −I], M = Pᵀ·Z·P(프로브에서 본 직렬 임피던스 행렬),
@@ -60,25 +62,26 @@ def _columns(probe, omega, causes):
 
 def probe_value(probe, omega, values, errors, causes):
     """`probe`(`ProbeFactor` 의 행·열·크기·가중 필드), ω, 관측값 (r, m), 오차 (r, m), 그 점의 사유 tuple ->
-    (T 복소 또는 NaN, |T| 사후 오차, 사유 tuple). 예외를 던지지 않는다."""
+    (T 복소 또는 NaN, |T| 사후 오차, 사유 tuple, ∂T/∂V (r, m) 복소 또는 None). 예외를 던지지 않는다.
+    ∂T/∂V 는 ∂T/∂Z(아래 해석 미분)를 Z = V[행, 고른 열] / 주입 크기 로 되돌린 것이다(고른 칸 밖은 0)."""
     nan = complex(math.nan, math.nan)
     picked = _columns(probe, omega, causes)
     if isinstance(picked[0], Undefined):
-        return nan, math.nan, picked
+        return nan, math.nan, picked, None
     columns, scales = picked
     scale = numpy.array(scales, dtype=float)
     z = numpy.asarray(values)[numpy.ix_(probe.rows, columns)] / scale[None, :]
     e = numpy.asarray(errors)[numpy.ix_(probe.rows, columns)] / numpy.abs(scale)[None, :]
     if not numpy.isfinite(z).all():
         why = _relevant(causes, omega, columns) or (_undefined("response_not_finite", "numeric", omega),)
-        return nan, math.nan, why
+        return nan, math.nan, why, None
     w = numpy.array(probe.weights, dtype=float)
     k = w.size
     p = numpy.vstack((numpy.eye(k), -numpy.eye(k)))
     s = numpy.concatenate((w, numpy.zeros(k)))
     lu, piv = scipy.linalg.lu_factor(p.T @ z @ p)
     if not numpy.diag(lu).all():
-        return nan, math.nan, (_undefined("loop_probe_singular", "numeric", omega),)
+        return nan, math.nan, (_undefined("loop_probe_singular", "numeric", omega),), None
     i_v = scipy.linalg.lu_solve((lu, piv), w.astype(complex))
     v = z @ (p @ i_v)
     den_v = w @ v[:k]
@@ -86,16 +89,18 @@ def probe_value(probe, omega, values, errors, causes):
     g = w @ i_i
     den_i = w @ w - g
     if den_v == 0 or den_i == 0:
-        return nan, math.nan, (_undefined("den_zero", "definitional", omega),)
+        return nan, math.nan, (_undefined("den_zero", "definitional", omega),), None
     t_v = -(w @ v[k:]) / den_v
     t_i = g / den_i
     total = t_v + t_i + 2
     if total == 0:
-        return nan, math.nan, (_undefined("den_zero", "definitional", omega),)
+        return nan, math.nan, (_undefined("den_zero", "definitional", omega),), None
     t = (t_v * t_i - 1) / total
     lam = scipy.linalg.lu_solve((lu, piv), p.T @ (z.T @ s), trans=1)
     mu = scipy.linalg.lu_solve((lu, piv), w.astype(complex), trans=1)
     grad_v = numpy.outer(s - p @ lam, p @ i_v)
     grad_i = numpy.outer(p @ mu, s - p @ i_i)
     grad_t = -((1 + t) ** 2) * (grad_v - grad_i) / (w @ w)
-    return complex(t), float(numpy.sum(numpy.abs(grad_t) * e)), ()
+    grad_full = numpy.zeros(numpy.shape(values), dtype=complex)
+    grad_full[numpy.ix_(probe.rows, columns)] = grad_t / scale[None, :]
+    return complex(t), float(numpy.sum(numpy.abs(grad_t) * e)), (), grad_full

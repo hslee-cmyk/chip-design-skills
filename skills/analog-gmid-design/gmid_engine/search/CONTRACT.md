@@ -46,6 +46,60 @@
 - 9절 추가: **S-19** ss metric 의 NFR-5 '격자 분해능' 정의 없음 -> 정규화 = |목표|(조건수용), 활성 판정 보류. **S-20** engine 값
   보상 수동소자(Cc·Rz·Cm, DEC-92)의 θ 성분이 sizing 스키마에 아직 없어 그 회로의 ss 제약은 전부 `passive_value_undeclared` --
   최종 front 에 들 수 없다(`unmeasured_front` 로만).
+- **S-19 결정(오케스트레이터 2026-10-08)**: 정본 분해능 = 소자별 tol_V 셀(LUT 조회 불확실성)을 gm·gds·gmb·용량으로 옮긴 뒤 metric 마다
+  1차 감도로 전파한 값과 MNA 수치 오차 중 큰 쪽 = metrics `MetricResult.resolution`(브랜치 ng-resolution bc76f6b, 검증 중). 병합 뒤
+  `ss_constraint_rows` 의 분모 s = max(resolution, DEC-72 모델 오차(선언 시)), s 가 None 또는 0 이면 행 없이 `unmeasured`
+  (사유 `resolution_undefined`), `active` = c ≤ 1. 그때까지는 아래 3.20 의 |목표| 축척(조건수용, active False)이 유지된다.
+
+### r6 (2026-10-08, master 병합: metrics 9절 resolution·DEC-92 보상 수동소자 θ·junction 필수) -- 아래 본문보다 우선
+- **S-19 적용**: `ss_constraint_rows(bundle, declared, model_error=())` -- 분모 = `MetricResult.resolution`. None -> unmeasured
+  "resolution_undefined", 0 -> 모델 오차 선언(DEC-72)이 있으면 그 값, 없으면 unmeasured "resolution_zero_model_error_undeclared"(0 나누기
+  없음), 둘 다 있으면 max. `active` = c ≤ 1. 모델 오차 선언은 아직 없어 kernel 은 () 를 넘긴다. (3.20 의 |목표| 축척 폐기.)
+- **`build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl)`**: `lut_rule_decl` = core
+  `read_pdk_decl(LUT 생성 규칙 선언)` -- 여기서 S0 당 1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, lut)`(metrics 7.6 필수
+  junction). r4/r5 의 `junction=None` 인자는 없어졌다(**독립 test 갱신 필요** -- test 작성자 몫).
+- **DEC-92 θ 종류**: `capacitance` -> 변수 (ln, `settings.capacitance_bounds_f`), 선언 없으면 `SchemaRejectedError`
+  (gate `search_domain`, reason `theta_capacitance_bounds_undeclared`, capacitors = θ 순) -- PDK 에서 유도 불가(sizing O13).
+  `ss_resistance` -> `resistance_bounds_ohm`(없으면 기존 `theta_resistance_bounds_undeclared`, resistors 에 포함). 모르는 θ 종류는
+  `ValueError`(조용히 건너뛰지 않는다). `SearchSettings` 끝에 `capacitance_bounds_f: object = None` 추가(기존 4필드 위치 불변).
+- **FD 스텝**(DEC-92 θ, ln 좌표): 전 MOS `dc_tol_v·gm_id` 최솟값(소신호 모형 상대 분해능 -- LUT 축이 없는 수동소자). 
+- **kernel**: 봉인 점 `ss_evaluate(sealed, dc, θ, ss_constraints, (), junction=sctx.junction)`(passive_theta 인자 삭제됨). 봉인 아닌 점의
+  `metrics_dc` 수동 값 = spec 값 ∪ θ resistance·capacitance·ss_resistance(이름 정렬). 영점 상쇄 구조 규칙 저항(1/Σgm)은 ss_dev 가
+  있어야 정해져 봉인 아닌 점에서는 `passive_value_missing` 이다(면적 단위 선언이 없어 면적 값은 같다).
+
+- **x 복사(r6, layer-0 작성자 지적)**: `solve_eps` 의 `point(x)` 는 SLSQP 가 넘긴 배열을 `np.array(..., copy=True)` 로 복사해 저장·키로 쓰고,
+  재시작 중심도 복사본을 넘긴다. 회귀 확인(scratch, nmcnr): 콜백 뒤 x 를 제자리 변경해도 수락 점의 저장 x → θ 키 불일치 0. 단 scipy 1.18
+  의 SLSQP 경로는 fun/jac 에 복사본을 넘겨 수정 전 코드에서도 이 회로에서는 재현되지 않았다(방어적 수정).
+
+### r6 9회로 실측 (2026-10-08, LUT v2, master 병합본, B = 120 s)
+- **A(선언 그대로)**: θ 수동소자 상자 미선언으로 6회로 거부 -- θ 저항(current_reuse R1·R2, sf_pushpull R1a~c), θ 커패시터(ngcc Cm1·Cm2,
+  nmcnr Cm1·Cm2, two_stage_ota Cc, two_stage_ota_sf Cc). 돈 3회로 최종 front: common_gate 3(제약 없음), folded 2(제약 없음),
+  pushpull 2 -- rout_ss_ohm 997.98 Ω(c = 0.076, **활성**), 619.18 Ω(c = 27.4) ≤ 1000.
+- **B(시연 가정: θ R [100 Ω, 100 kΩ], θ C [0.1, 10] pF -- 결정 대기 값)**: two_stage_ota 1점(gain 82.40 dB ≥ 57, c = 25.7),
+  two_stage_ota_sf 1점(gain 79.40 dB ≥ 57, rout 995.46 Ω ≤ 1000 c = 0.177 활성), ngcc·nmcnr 최종 0(gbw·pm 을 만족하는 봉인 점을 못 찾음 --
+  시작점 2개·예산 120 s), current_reuse·sf_pushpull 시작점 0(탐침 200 전부 실패).
+- 9회로 모두 `kernel_calls == unique_keys`, `recompute_same_key == 0`. 벽시계 정지는 pushpull·ngcc·two_stage(B)에서 기록됨.
+
+### r5 명확화 (2026-10-08, 독립 test 1386711 대조 -- 의미 변경 없음, 아래 본문보다 우선)
+- **`cells`**(evaluate·eval_key·StartPoint·EvalKey): MOS 마다 L 칸 index 의 tuple, 순서 = `SearchDomain.l_cells` 순서(MOS 이름순),
+  값 j = 그 MOS 의 `l_cells[i][1]` 안 위치(0 부터).
+- **`eval_key`**: θ 가 ((kind, key), 값) 2-tuple 들이 아니면(쌍이 아님·원소 수 ≠ 2·list 쌍) `ValueError`(3.2 -- TypeError 아님).
+- **ss 행 이름** `ss:<k>:<metric><op>`: k = `sctx.ss_constraints`(선언 순서) 안의 0 부터 위치. unmeasured 사유 = 그 결과
+  `undefined` 의 code 집합을 정렬해 '+' 로 이은 것(code 가 없으면 "undefined").
+- **3.20 `declared`** = spec `ConstraintDecl` tuple(r4 -- (metric, op, value) 3-tuple 아님).
+- **constraint_notes**: r2 의 'ss 제약마다 verdict unmeasured' note 는 r4 에서 없앴다(코드 그대로). 남는 것: 값 결정 대기
+  (`judgment_pending`/`constraint_value_pending`), 레지스트리 밖·view 없는 판정 제약(`unmeasured`/`metric_not_in_registry_or_no_ss_view`).
+  점마다 미측정은 `EvalResult.unmeasured` 와 find_front notes 의 `S-1` 항목(제약 목록·점 수).
+- **solve_eps stop 어휘**(완전 목록): 시작점이 받아들일 상태가 아니거나 예산에 걸리면 "start_" + 사유 -- "start_candidate_failure",
+  "start_constraint_set_changed", "start_eval_budget", "start_wall_budget". 그 밖 "converged", "slsqp_<status>", "eval_budget",
+  "wall_budget", "restart_cap", "all_columns_frozen", 그리고 중단 사유 그대로("candidate_failure"·"constraint_set_changed" -- 재시작
+  상한 전 SLSQP 가 끝났을 때 마지막 사유). `perf.stops_eval_budget`·`stops_wall_budget` 은 "eval_budget"·"wall_budget" 만 센다.
+- **`S3Archive.read_snapshot(rel)`** → dict(`json.load` 결과: {fp, records[{kind, key, fields}]}).
+- **`SearchDomain.current_box`** 의 kind = 그 회로 S1 의 MOS kind 집합(이름순) -- LUT 의 모든 kind 가 아니다.
+- **효율 수정(r5)**: `solve_eps` 가 시작 좌표 x0 를 θ 로 되돌릴 때 bounds 로 잘리지 않은 성분은 시작 θ 원값을 그대로 쓴다(ln→exp
+  왕복 1 ulp 차이로 시작점이 다른 평가 키가 되어 커널을 한 번 더 부르던 결함).
+- **열린 항목 S-21(관찰, 알고리즘 변경 없음)**: 전력 최소 끝점 E_P(SLSQP 국소해)가 같은 실행의 ε 점에 지배당하는 경우가 있다(설계 PA 2.4
+  국소해 실례와 같음) -- front 필터가 지배당한 끝점을 `removed` 로 뺀다. 끝점 multi-start 수·재시도 규칙은 결정 대기.
 
 ---
 

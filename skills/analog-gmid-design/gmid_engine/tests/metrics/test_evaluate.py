@@ -84,6 +84,20 @@ def test_rout_ratio_share_same_dc_solution():
     assert metric_value("ratio_ss_db", response_ratio(r6, 0, 1)).value == pytest.approx(20.0, rel=1e-12)
 
 
+def test_metric_value_does_not_compute_resolution():
+    """3.15·9.0: metric_value 단독 호출은 분해능을 계산하지 않는다 -- 값이 있어도 resolution None(분해능은 metrics_ss 가 붙인다)."""
+    (r,) = solve_responses((ex3_miller(),))
+    la = analyze_loop((Factor(r, 0),))
+    (ra,) = solve_responses((ex2_amp(),))
+    for name, src in (("gain_ss_db", la), ("ugf_ss_hz", la), ("pm_ss_deg", la), ("gbw_ss_hz", la),
+                      ("rout_ss_ohm", output_resistance(ra, 1))):
+        m = metric_value(name, src)
+        assert m.value is not None and m.resolution is None, name
+    s = supply_currents(_op(), (10,))
+    assert metric_value("power_dc_w", s).resolution is None
+    assert MetricResult("x", 1.0, ()).resolution is None            # 기본값 None(3칸 생성자)
+
+
 def test_supply_and_area_metrics():
     s = supply_currents(_op(), (10,))
     assert metric_value("supply_current_dc", s).value == pytest.approx(25e-6, rel=1e-12)

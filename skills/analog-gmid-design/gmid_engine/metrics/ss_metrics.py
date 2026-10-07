@@ -21,6 +21,9 @@
   모든 계는 **한 번의** `solve_responses` 로 푼다(공유 격자 -- 루프 계와 포트 계가 함께, 7a 2.4 '격자').
 * 값은 `metric_value`(레지스트리 필드 읽기 -- 예외 없음, 정의 불가는 `Undefined`). 묶음 `approximations` = ss_dev 의
   (cap, cap_model)·(gmb, gmb_model)·(junction, junction_model) -- 용량 의존 metric 이 근사·미정 위에 있음을 매 결과에 싣는다(M6).
+* [NFR-5] 값마다 분해능 `MetricResult.resolution`(metrics CONTRACT 9절): `lut_parameters(회로, ss_dev 의 lut_rel_tol)` 한 번,
+  분석 열쇠마다 `metric_resolutions` 한 번(같은 계·같은 ω 의 수반 풀이는 블록 안 memo 로 공유). 블록 안에서 계산하므로 입력이 같으면
+  블록 재사용으로 다시 계산하지 않는다. 미정이면 None.
 """
 import dataclasses
 
@@ -31,6 +34,7 @@ from gmid_engine.sizing import METRICS_KEY, METRICS_SS_WRITER
 from .evaluate import metric_value
 from .loop_analysis import analyze_loop
 from .loop_cut import cut_circuit
+from .lut_parameters import lut_parameters
 from .mna_build import build_mna
 from .mna_solve import solve_responses
 from .mna_types import Factor, MetricResult, Undefined
@@ -38,6 +42,7 @@ from .probe_loop import probe_factor
 from .ratio import response_ratio
 from .records import LOOP_CUT_KINDS, LOOP_CUT_TERMINALS, Excitation, LoopCut, Sense
 from .registry import metric_registry
+from .resolution import metric_resolutions
 from .rout import output_resistance
 from .ss_circuit import ss_circuit
 from .ss_types import MetricBundle
@@ -159,16 +164,19 @@ def _plan(request, ledger):
 
 
 def _analysis(plan, responses, cuts):
+    """분석 열쇠 -> (분석 결과, 분해능 출처 -- 루프: 인수 tuple, rout·ratio: 그 응답)."""
     kind, key = plan[0], plan[1]
     response = responses[key]
     if kind == "loop":
-        return analyze_loop((Factor(response, plan[2], plan[3]),))
+        factors = (Factor(response, plan[2], plan[3]),)
+        return analyze_loop(factors), factors
     if kind == "probe":
         cut, weights = cuts[key]
-        return analyze_loop((probe_factor(response, cut.pairs, weights),))
+        factors = (probe_factor(response, cut.pairs, weights),)
+        return analyze_loop(factors), factors
     if kind == "rout":
-        return output_resistance(response, plan[2], plan[3])
-    return response_ratio(response, plan[2], plan[3], plan[4])
+        return output_resistance(response, plan[2], plan[3]), response
+    return response_ratio(response, plan[2], plan[3], plan[4]), response
 
 
 def _approximations(ss_values):
@@ -178,9 +186,13 @@ def _approximations(ss_values):
     return tuple(sorted(found))
 
 
-def _plain(result):
-    """graph 필드 값으로 넣을 수 있게 값을 파이썬 float 로(numpy 스칼라 -> float, 지문 규칙 core 1절)."""
-    return result if result.value is None else MetricResult(result.name, float(result.value), result.undefined)
+def _plain(result, resolutions):
+    """graph 필드 값으로 넣을 수 있게 값을 파이썬 float 로(numpy 스칼라 -> float, 지문 규칙 core 1절) + 그 필드의 분해능."""
+    if result.value is None:
+        return result
+    field = metric_registry()[result.name].field
+    found = next((r.value for r in resolutions if r.quantity == field), None)
+    return MetricResult(result.name, float(result.value), result.undefined, None if found is None else float(found))
 
 
 @compute_block(METRICS_SS_WRITER, reads=READS, writes=WRITES)
@@ -210,11 +222,15 @@ def metrics_ss(projection):
         plans = {r: _plan(r, ledger) for r in requests if r not in pending}
         if plans:
             responses, cuts = ledger.solve()
+            parameters = lut_parameters(ss.circuit, tuple(ss_values[m.label].lut_rel_tol for m in ss.circuit.mos))
+            memo = {}                                   # (id(계), ω) -> 수반 풀이 -- 이 블록 호출 안에서만 산다
             done = {}
             for request, plan in plans.items():
                 if plan not in done:
-                    done[plan] = _analysis(plan, responses, cuts)
-                results[request] = _plain(metric_value(request.metric, done[plan]))
+                    analysis, source = _analysis(plan, responses, cuts)
+                    done[plan] = (analysis, metric_resolutions(analysis, source, parameters, memo))
+                analysis, resolutions = done[plan]
+                results[request] = _plain(metric_value(request.metric, analysis), resolutions)
             first = next(iter(responses.values()))
             detail = (("grid_points", len(first.omegas)), ("systems", len(responses)))
     bundle = MetricBundle(tuple((r, results[r]) for r in requests), _approximations(ss_values.values()), detail)

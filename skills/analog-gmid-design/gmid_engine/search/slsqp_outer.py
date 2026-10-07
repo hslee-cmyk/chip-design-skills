@@ -58,11 +58,13 @@ def _layout(sctx, start):
     for comp in theta:
         if comp not in names:
             fixed[comp] = theta[comp]
-    x0 = []
+    x0, exact = [], []
     for v in variables:
         raw = theta[v.component]
-        x0.append(min(max(math.log(raw) if v.log else raw, v.lo), v.hi))
-    return tuple(variables), fixed, x0
+        coord = math.log(raw) if v.log else raw
+        x0.append(min(max(coord, v.lo), v.hi))
+        exact.append(raw if x0[-1] == coord else None)    # bounds 로 잘리지 않았으면 시작 θ 원값
+    return tuple(variables), fixed, x0, tuple(exact)
 
 
 def _axis_value(result, axis):
@@ -89,7 +91,7 @@ def _budget_stop(sctx):
 
 
 def solve_eps(sctx, start, minimize, eps, origin):
-    variables, fixed, x0 = _layout(sctx, start)
+    variables, fixed, x0, exact = _layout(sctx, start)
     lo = np.asarray([v.lo for v in variables], dtype=float)
     hi = np.asarray([v.hi for v in variables], dtype=float)
     tag = origin + (("stage", STAGE_SLSQP), ("minimize", minimize), ("eps", eps))
@@ -97,13 +99,16 @@ def solve_eps(sctx, start, minimize, eps, origin):
 
     def to_theta(x):
         out = dict(fixed)
-        for v, value in zip(variables, x):
+        for i, (v, value) in enumerate(zip(variables, x)):
             value = min(max(float(value), v.lo), v.hi)
-            out[v.component] = math.exp(value) if v.log else value
+            if value == x0[i] and exact[i] is not None:
+                out[v.component] = exact[i]     # 시작 좌표 그대로면 시작 θ 원값 -- ln→exp 왕복 1 ulp 로 키가 바뀌지 않게
+            else:
+                out[v.component] = math.exp(value) if v.log else value
         return out
 
     def point(x):
-        x = np.asarray(x, dtype=float)
+        x = np.array(x, dtype=float, copy=True)   # SLSQP 는 x 배열을 제자리에서 바꾼다 -- 복사본만 저장·키로 쓴다
         hx = tuple(float(v).hex() for v in x)
         hit = state["points"].get(hx)
         if hit is not None:
@@ -173,7 +178,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
             box_lo[i] = box_hi[i] = centre[i]
         cons = {"type": "ineq", "fun": lambda x: point(x)["c"], "jac": lambda x: jac_of(x)[1]}
         try:
-            out = scipy_minimize(lambda x: point(x)["f"], centre, jac=lambda x: jac_of(x)[0], method="SLSQP",
+            out = scipy_minimize(lambda x: point(x)["f"], np.array(centre, copy=True), jac=lambda x: jac_of(x)[0], method="SLSQP",
                                  bounds=list(zip(box_lo, box_hi)), constraints=[cons], callback=accept,
                                  options={"ftol": 1, "maxiter": maxiter})
             iterations += int(out.nit)

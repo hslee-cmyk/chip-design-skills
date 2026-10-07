@@ -25,6 +25,12 @@
   0 이라 그 열과 보간되는 첫 칸의 gm/ID 곡선이 `lut_curve_undefined`) + 구간 끝 부동소수 안쪽 보정(5.4). 반복 중(strict=False)
   에는 그 하한 아래의 `lut_curve_undefined` 도 일시 이탈로 본다. (3) W4 창·1변수 구간의 VDsat 항은 **넣지 않았다** -- 계획 블록
   (`dc_scc_order` 의존 규칙) 변경이 필요해 결정 대기(12절 O1 잔여, 실측 포함).
+- **개정 r5(2026-10-08, DEC-92 / search S-20 -- engine 보상 수동소자 θ)**: `[r5]`. 요지 -- (1) `DcInputs.engine_elements`(spec 값
+  mode `engine` 원소 이름) 신설, (2) θ 성분 종류 `capacitance`(engine 커패시터)·`ss_resistance`(DC 전류 0 engine 저항 중 영점 상쇄
+  구조 규칙 밖) 신설 -- 둘 다 DC 블록이 읽지 않는다(4.4·5.1·7절), (3) `ThetaSchema.zero_cancel` = 가지치기된 engine 저항마다
+  `ZeroCancel`(DEC-92 (3)(a) 구조 규칙 판정, 연결만으로) -- 규칙이 정하면 그 저항은 θ 가 아니고 metrics `ss_evaluate` 가 봉인
+  스냅샷 gm 으로 R = 1/Σgm 을 계산한다(metrics CONTRACT 7.6 r5), (4) 수동소자 θ 의 탐색 상자는 sizing 이 아니라 search 선언 입력
+  (12절 O13). 실측 10.3절. 이 개정과 어긋나게 된 기존 test 목록은 12절 O14(test 작성자 갱신 몫).
 
 ---
 
@@ -79,9 +85,10 @@ ctx    = build_kernel_context(s1, inputs, pre_layout_lut_access(memo))         #
 ev     = size_and_seal(ctx, theta, parent=None)                                # θ 마다 -> DcEvaluation
 ```
 
-### 1.1 `DcInputs(supplies_v, input_dc_v=None, node_targets=(), element_values=(), linear_devices=(), pending=())` -- frozen
+### 1.1 `DcInputs(supplies_v, input_dc_v=None, node_targets=(), element_values=(), linear_devices=(), pending=(), engine_elements=())` -- frozen
 - `supplies_v` ((레일, V), ...) / `input_dc_v` 입력 포트 공통 DC(V) 또는 None / `node_targets` ((넷, V), ...) W3 /
-  `element_values` ((원소, 값 또는 None), ...) / `linear_devices` 소자 이름 tuple / `pending` ((경로, 결정 ID), ...).
+  `element_values` ((원소, 값 또는 None), ...) / `linear_devices` 소자 이름 tuple / `pending` ((경로, 결정 ID), ...) /
+  [r5] `engine_elements` 원소 이름 tuple(정렬) -- spec 값 mode 가 `engine` 인 원소(수동소자·이상원 모두; 수동소자만 4.4 가 쓴다).
 
 ### 1.2 `dc_inputs_from_spec(spec) -> DcInputs`
 - `spec` 이 authoring `SizingSpecDoc` 이 아니면 `TypeError`.
@@ -90,6 +97,8 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
   (PendingMark·None) (). `element_values` = `spec.element_values` 각 원소의 (name, mode == "value" 면 value 아니면 None).
   `linear_devices` = intended_region 이 tuple 일 때 region == `"linear"` 인 소자(이름순). `pending` = `spec.pending` 의
   (path, decision) 이름순 -- **결정 대기 칸은 '미선언'으로 투영하고 막지 않는다**(정지는 MOD10 몫, SPEC_CONTRACT 3절).
+  [r5] `engine_elements` = `spec.element_values` 중 mode == `"engine"` 인 원소 이름 정렬 tuple. mode `pending` 은 들지 않는다
+  (결정 대기 값은 엔진이 고르지 않는다 -- 그런 수동소자는 θ 도 구조 규칙도 아니고 소신호에서 `passive_value_undeclared`).
 
 ### 1.3 `LutAccess(memo, w_keys)` -- frozen, `__canonical__() = (memo.lut.fp, w_keys)`
 - `memo` = lut `LutMemo`(graph 밖 유일 memo), `w_keys` = ((kind, w_key), ...) 레이아웃 전 사이징이 쓰는 폭 슬라이스.
@@ -106,9 +115,10 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
 - `supplies_declaration(dict(inputs.supplies_v), 레일 집합)`(graph) 위반 -> `SchemaRejectedError` 그대로.
   `fp_of(그 정규화 결과) != s1graph.key.supplies_v_fp` -> `ValueError`(S1 을 다른 supplies 로 만들었다).
 - S1 MOS kind 마다 `w_keys` 에 kind 가 있고 `(kind, w_key)` 가 `memo.lut.slice_map` 에 있어야 한다 -> 아니면 `ValueError`.
-- `node_targets` 넷이 S1 노드가 아니면 `ValueError`.
+- `node_targets` 넷이 S1 노드가 아니면 `ValueError`. [r5] `engine_elements` 이름이 S1 원소가 아니면 `ValueError`.
 - 순서: `lift_s1` -> `dc_rails(supplies)` -> [r2] `dc_struct_colour()` -> `dc_current_basis(이상 전류원 ((이름, 값 또는 None), ...) 이름순)` ->
-  `dc_writer_plan(정렬 W3 넷 tuple, input_dc_v is not None)` -> `dc_scc_order` -> `dc_theta_schema(값 선언 DC 저항 이름 tuple)`.
+  `dc_writer_plan(정렬 W3 넷 tuple, input_dc_v is not None)` -> `dc_scc_order` -> `dc_theta_schema(값 선언 DC 저항 이름 tuple,
+  [r5] engine_elements 중 S1 수동소자(element_class passive) 이름 정렬 tuple)`.
   계획 블록의 `StructureUnresolvedError`·`InfeasibleTargetError` 는 그대로 전파(탐색 전 정지).
 - `KernelContext(base, inputs, lut, schema, fixed_values, resistor_values, plan_versions)`:
   `fixed_values` = W3 목표 ∪ (input_dc_v 가 있으면 입력 포트마다 그 값, W3 가 우선) ((넷, V), ...) 이름순,
@@ -173,7 +183,8 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
 - [r2] `TieBreak(decision, candidates, chosen)` -- decision ∈ `TIE_KRUSKAL`("writer_edge")·`TIE_ROOT`("w4_root")·
   `TIE_INPUT_ORDER`("input_tie_order")·`TIE_CURRENT_PIVOT`("current_pivot"), candidates·chosen 이름순 tuple.
 - `ColumnNeighbor(rails, pred, succ, position, length)`, `SccEntry(index, nodes, cyclic, devices)`,
-  `ThetaSchema(components, current_cone=(), fixed=())`, `Theta(values)`, `PathValue(relation, value)`, `Window(lo, hi, constraints)`,
+  `ThetaSchema(components, current_cone=(), fixed=(), zero_cancel=())`([r5] 4.4),
+  [r5] `ZeroCancel(resistor, end_net, far_nets, cells, reason=None)`(4.4), `Theta(values)`, `PathValue(relation, value)`, `Window(lo, hi, constraints)`,
   `SccLog(index, nodes, iterations, deltas, tol, k_max)`,
   `DeviceOp(kind, current, ln_idu, gm_id, L, W, vgs, vds, vsb, w_key, idu_forward)`,
   `SealItem(item, status, magnitude=None, tol=None, margin=None, devices=(), nodes=(), detail=())`, `SealReport(items, status)`,
@@ -250,9 +261,41 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   `devices` = d·g·s 중 하나가 SCC 노드인 MOS 이름순.
 - `dc_column_nbrs` = S1 `Column` 경로(r1 에서 걷기)마다 내부 노드의 (rails, pred, succ, position, length) -- 시작값 전용.
 
-### 4.4 `dc_theta_schema(snapshot, declared_resistors)` -- `ThetaSchema(components, current_cone, fixed)`
+### 4.4 `dc_theta_schema(snapshot, declared_resistors, engine_passives)` -- `ThetaSchema(components, current_cone, fixed, zero_cancel)`
+- [r5] reads 에 device.{pins, bulk}, node.{terminals, is_rail, port_direction, ac_ground_class} 추가(S1 필드 -- 구조 규칙용).
 - components (정렬): (`ln_idu`, writer MOS), (`L`, 모든 MOS), (`y`, W4 y 키), (`current`, `free` 원소), (`resistance`, DC 저항
   중 `declared_resistors` 밖). `l_class` 관계는 status proposed 라 읽지 않는다 -> L 은 소자마다.
+  [r5] (DEC-92) + (`capacitance`, `engine_passives` 중 kind `"capacitor"`) + (`ss_resistance`, `engine_passives` 중 kind
+  `"resistor"` 이고 `basis.pruned` 에 들며 `zero_cancel` 판정의 reason 이 None 이 아닌 것). `engine_passives` 중 가지치기 안 된
+  저항은 지금처럼 `resistance`(값 미선언 DC 저항 규칙이 이미 덮는다 -- 이름이 두 종류에 동시에 들지 않는다). S1 수동소자가 아닌
+  이름은 무시(호출자 `build_kernel_context` 가 걸러 넘긴다).
+- [r5] **DC 무관 근거(요소 종류별)**: 커패시터 = S1 `dc_nets` None(DC 엣지 아님) -> G_vgs·KCL·dc_columns 어디에도 없다.
+  가지치기 저항 = DC 전류 0(S1 4.3 잎 가지치기, `dc_currents` 가 0.0 을 쓴다) -> 강하 0 이라 값이 노드전압에 들어가지 않는다
+  (`dc_columns` 의 resistor_drop 은 전류 0 이면 Δ = 0 이고 R 을 읽지 않는다). DC 경로 저항은 전류가 흘러 DC 를 바꾸므로 `resistance`
+  (DC 블록이 읽음)로 남는다. 그래서 `capacitance`·`ss_resistance` 는 `THETA_PASSIVE_KINDS` 이고 `size_and_seal` 이 어느 DC 블록에도
+  넘기지 않는다(7절).
+- [r5] **영점 상쇄 구조 규칙**(DEC-92 (3)(a), `zero_cancel` = `engine_passives` 중 `basis.pruned` 에 든 저항마다 `ZeroCancel`,
+  저항 이름순). 연결(S1 필드)만 쓴다:
+  1. 내부 넷 = 레일 아님 · `port_direction` None · `terminals` 가 비지 않고 그 원소가 모두 수동소자 · 어떤 MOS 의 `bulk.net` 도 아님.
+  2. 망 N(R): R 의 두 넷에서 시작해 내부 넷이면 그 넷에 닿는 수동소자를 모두 망에 넣고 그 소자의 다른 넷으로 넘어간다(내부 넷이
+     아닌 넷에서는 멈춘다). 닿은 비내부 넷 = 경계 넷. `end_net` = R 의 두 넷 중 경계 넷(정확히 하나일 때, 아니면 None),
+     `far_nets` = 경계 넷 − R 의 넷(정렬).
+  3. 판정 순서와 reason: 망에 커패시터 없음 -> `ZC_NO_CAPACITOR`("network_without_capacitor"); R 밖 저항이 망에 있음 ->
+     `ZC_MULTIPLE_RESISTORS`("network_multiple_resistors"); `end_net` None -> `ZC_RESISTOR_END`("resistor_end_not_unique");
+     S = MOS(이름순) 중 source 넷의 `ac_ground_class` 가 None 아님(CS 셀) 이고 (drain == end_net 이고 gate ∈ far_nets) 또는
+     (gate == end_net 이고 drain ∈ far_nets) 인 것 -- 비면 `ZC_NO_CELL`("no_cs_cell"), drain 쪽·gate 쪽 셀이 섞이면
+     `ZC_MIXED_DIRECTION`("cs_cell_direction_mixed", cells 는 채움), 아니면 reason None(cells = S). reason 이 먼저 정해지는 경우
+     cells = ().
+     **`ZC_RESISTOR_END` 는 방어 분기다**(독립 test 보고 2026-10-08): 공개 로더 경로(topology 로드 -> `build_s1`)에서는 도달하지
+     않는다 -- R 의 두 넷이 모두 내부 넷인 망(경계 없는 수동 섬)은 authoring `hidden_rails` 검사가 먼저 거부하고, 두 넷이 모두
+     경계 넷이면 망이 R 하나뿐이라(수동소자는 내부 넷을 건너서만 망에 든다) `ZC_NO_CAPACITOR` 가 먼저 정해진다. 손으로 만든 S1 에서만 재현되며, 판정 순서·사유 값은
+     위 그대로 유지한다.
+  4. reason None -> R 은 θ 가 아니다(값 = 봉인 스냅샷에서 1/Σ_{c∈S} gm_c, metrics `ss_evaluate`). 그 밖 -> (`ss_resistance`, R)
+     θ 성분(DEC-92 (3)(b) 폴백).
+  - **규칙 문구 해석**(12절 O15 -- J7 ratify 대상): 계획 DEC-92 (3)(a) 'S = 저항 끝 넷을 출력으로 갖고 루프 반대쪽에서 신호를 받는
+    CS 셀'을 R–C 직렬 순서와 무관하게 읽었다(직렬 임피던스 R + 1/sC 는 순서와 무관 -- 영점 s = 1/(C(1/gm − R)) 도 같다). 그래서
+    end_net 이 셀의 drain(R 이 출력 쪽 -- nmcnr 배치)이든 gate(R 이 입력 쪽 -- two_stage_ota 배치)이든 같은 규칙이다. 문구를
+    글자대로(drain == end_net 만) 읽으면 two_stage_ota 의 Rz 는 S = ∅ -> θ 폴백이 된다.
 - [r2] **θ 전류 정의역** `current_cone` = MOS 이름순 ((MOS, 그 MOS 의 `rows` 항), ...), `fixed` = `basis.fixed`. 정의역 =
   {θ 전류 : 모든 MOS 행 Σ (num/den)·(θ 전류 또는 fixed 값) > 0} -- 전도 MOS 전류 > 0 을 KCL 기저에서 θ 의 선형 부등식으로 옮긴
   열린 다면체(원뿔 + 고정값 이동). 기저 원소가 MOS 자신인 행은 θ_I > 0 상자 하한이다. 탐색은 이 부등식을 선형 제약으로 받는다.
@@ -261,7 +304,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 
 ### 5.1 `check_theta(schema, values) -> Theta`
 - `schema` 가 ThetaSchema 아님 -> `TypeError`. 키 집합 ≠ components -> `ValueError`(빠짐·남음 목록). 값이 bool·비실수·
-  비유한 -> `ValueError`. `y` ∉ [0, 1], `L` ≤ 0, `resistance` ≤ 0 -> `ValueError`. [r2] `current_cone` 의 어떤 MOS 행이
+  비유한 -> `ValueError`. `y` ∉ [0, 1], `L` ≤ 0, `resistance` ≤ 0, [r5] `capacitance` ≤ 0, `ss_resistance` ≤ 0 -> `ValueError`. [r2] `current_cone` 의 어떤 MOS 행이
   ≤ 0(유리수 정확 계산) -> `ValueError`(메시지에 (MOS, 전류) 목록) -- 정의역 밖이지 후보 실패가 아니다. 반환 = 키 정렬
   (((kind, key), float), ...).
 
@@ -401,6 +444,9 @@ SealedSnapshot 이 된다(10.2절 실측). 열이 없는 LUT 세트에서는 항
   θ 한 성분만 다른 parent 에서: `current` 성분 -> dc_currents·dc_widths·dc_tolerances 와 그 하류 봉인만 다시(DC 저항 전류가
   바뀌지 않으면 dc_columns·봉인 1 은 reuse), `ln_idu`·`y`·`resistance` -> dc_columns 와 하류(dc_currents·dc_lengths reuse).
   하류 봉인 블록은 입력 값이 같으면 reuse(예: 값이 같은 SealItem 이면 dc_seal_report reuse).
+  [r5] `capacitance`·`ss_resistance`(`THETA_PASSIVE_KINDS`) 성분만 다른 θ 를 parent 에서 부르면 **dc 블록 전부 computes 0**
+  (어느 블록의 extras 에도 들지 않는다 -- `seal_dc` 의 `resistances` 도 θ `resistance` 만). 결과는 parent 와 같은 봉인 상태이고,
+  소신호 쪽은 metrics `ss_evaluate` 에서 `ss_dev` reuse·`metrics_ss`·`metrics_dc` 만 계산(metrics CONTRACT 7.6).
 - 후보 실패(`CANDIDATE_FAILURE_CLASSES`) = SealViolationError·NonconvergentError. ValueError·TypeError 는 호출 계약 위반.
 
 ## 8. 실패 규약 요약 (N3.14)
@@ -496,6 +542,32 @@ LutSpec grid = tlef MANUFACTURINGGRID, w_keys = `pre_layout_lut_access`(nmos·pm
 - 시간: 봉인 7 은 소자마다 `vdsat` 1회(point memo) + `TolVdsatTable.at`. 평가 중앙값은 VDS 하한만 넣은 실행과 같은 수준(잡음 범위,
   다른 agent 부하 있음). `tol_vdsat_table` 은 kind 마다 프로세스당 1회(derived memo).
 
+### 10.3 [r5] DEC-92 수동소자 θ 실측 (2026-10-08, 작성자 측 시연 -- 정본 아님)
+LUT·탐침 = 10.2 와 같음(seed 0, 회로당 첫 SealedSnapshot 점). θ `capacitance` = 1 pF, θ `ss_resistance` = 10 kΩ(탐침값, 설계값 아님).
+spec 제약 + 관측 요청(`gbw_ss_hz`·`ugf_ss_hz`·`pm_ss_deg`·`gain_ss_db`, 로더 기본 뷰 port / loop β = 1)을 metrics `ss_evaluate` 로 평가.
+
+| 회로 | engine 원소 | θ 수동 성분 | zero_cancel (end, far, S, reason) | 구조 R (Ω) | 탐침 수 | GBW (Hz) | PM (°) | 수동 θ ×1.1 뒤 dc 블록 computes / ss (ss_dev, metrics_ss, metrics_dc) |
+|---|---|---|---|---|---|---|---|---|
+| ngcc_3stage_ff | Cm1, Cm2 | capacitance Cm1, Cm2 | -- | -- | 4 | 1.890e8 | 214.98 | 0 / (0, 1, 1) |
+| nmcnr_amplifier | Cm1, Cm2, Rm | capacitance Cm1, Cm2 | Rm: Vout, {NodeM2, NodeS2}, {M301}, None | 870.7 | 23 | 8.222e6 | −40.49 | 0 / (0, 1, 1) |
+| two_stage_ota | Cc, Rz | capacitance Cc | Rz: O1, {OUT}, {M6}, None | 838.6 | 6 | 1.178e8 | 15.46 | 0 / (0, 1, 1) |
+| two_stage_ota_sf | Cc | capacitance Cc | -- | -- | 6 | 1.237e8 | −12.36 | 0 / (0, 1, 1) |
+
+- r4(master)까지 이 네 회로의 소신호 요청은 전부 `passive_value_undeclared`(search S-20). r5 에서 모든 요청이 값(Undefined 0) --
+  spec 판정 제약 `gbw_ss_hz`·`pm_ss_deg`(ngcc·nmcnr), `gain_ss_db`(two_stage·two_stage_sf), `rout_ss_ohm`(two_stage_sf 685.2 Ω) 포함.
+  값은 탐침 θ 의 값이라 판정 통과 여부는 뜻이 없다(PM 214.98° 처럼 metrics PM 정의 범위 밖으로 보이는 값은 metrics 쪽 관찰로 남긴다).
+- 같은 θ 를 lineage 에서 다시: dc 블록 computes 0·ss 블록 computes 0, 값 비트 동일(4회로). 수동 θ 만 ×1.1: dc 12블록 모두 reuse
+  (`size_and_seal` 8.9~21.8 ms -- 계산 0 인 호출의 남은 비용, 프로파일은 재지 않음), ss 쪽 `ss_dev` reuse·`metrics_ss`·`metrics_dc` 1회씩, `gain_ss_db`
+  는 수치상 불변(이 시연 4회로에서는 출력 자릿수 그대로; 독립 test 실측으로 `ss_resistance` 만 바꾸면 1 ulp 차가 날 수 있어 비트 동일을
+  계약하지 않는다 -- metrics S-16)·GBW/PM 변화(예 two_stage GBW 1.178e8 -> 1.093e8).
+- 9회로 판정(일반성): 수동 θ·구조 규칙이 생기는 회로는 engine 수동소자가 있는 6회로뿐 -- common_gate·folded·pushpull 은 engine
+  수동소자가 없어 무동작(θ 차원 불변). sf_pushpull = capacitance Cc 만(R1a~R1c 는 DC 경로 engine 저항 = 기존 `resistance`),
+  current_reuse(파일럿) = capacitance Cc1·Cc2, Rz1: Vop1 / {Vom} / {M16}, Rz2: Vom1 / {Vop} / {M26} 구조 규칙(R1·R2 는 DC 경로
+  `resistance`). θ 폴백(`ss_resistance`)은 library 9회로에서 0건 -- toy(CS + Rz–Cz 를 out–gnd 에 건 망)에서 `ZC_NO_CELL` -> `ss_resistance`
+  θ 가 소신호에 들어가고, Cz 를 out–in 에 걸면 S = {M1} 구조 규칙으로 바뀌는 것을 확인(dc 블록 reuse 동일).
+- 이름 전단사(테스트 helper `rename`, seed 1·2, `engine_elements` 도 σ 로 옮김): 9회로 모두 θ 수동 성분 집합·`zero_cancel`(end·far·
+  S·reason)이 σ 로 옮겨진 것과 같다.
+
 ## 11. 설계와 다르게 정한 점
 
 1. **저장 = core GraphSnapshot 하나**: 설계 2.1 `DcField`·`setter.py`·`field_reuse.py`·`writer_table.py` 대신 core 의
@@ -557,3 +629,29 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   구성이 생기면 계약에 더한다.
 - **O11 W4–W4 결합 비수렴**: 인접 W4 두 노드의 창이 서로를 읽으면 선형 수축비 y1(1 − y2) 가 1 에 가까울 때 K_max 안에 못
   들어와 NONCONVERGENT(common_gate 25/215). 설계 규칙('bisection 보다 느린 고정점 = 비수렴') 그대로의 결과다.
+- **O13 [r5] 수동소자 θ 탐색 상자 (search 몫, 배선 대기)**: 커패시터 상자는 PDK 선언에서 유도할 수 없다 -- 로컬 PDK 원본을 확인한
+  결과 periphery 규칙표(`skywater-pdk/docs/rules/periphery/periphery.csv`)의 `capm.*` 행(최소 폭·최대 면적 등)은 값이 모두 `N/A`
+  이고, `sky130_fd_pr/models/capacitors/sky130_fd_pr__model__cap_mim.model.spice` 가 include 하는 `cells/cap_mim_m3/` 는 로컬에
+  없다(용량 밀도·한계 수치 원본 없음). 그래서 core `pdk_decl` 에 선언 항목을 더하지 않았다(원본 없는 수치 = 지어낸 상수). θ 저항
+  상자와 같은 규칙으로 **search 선언 입력**이어야 한다: search `SearchSettings` 에 커패시터 상자(F)를 두고, θ `capacitance` 가 있는데
+  선언이 없으면 `search_domain` 이 변수를 만들기 전에 `SchemaRejectedError`(gate `search_domain`, reason
+  `theta_capacitance_bounds_undeclared`, capacitors = θ 순). θ `ss_resistance` 는 θ `resistance` 와 같은 `resistance_bounds_ohm`
+  (없으면 기존 `theta_resistance_bounds_undeclared`, resistors 에 포함). sizing 은 정의역(> 0)만 강제한다(5.1). search 는 master 에
+  없어(브랜치 ng-mod6) 이 커밋에서 배선하지 못했다 -- ng-mod6 병합 때 `search_domain`·`fd_jacobian`(θ 종류 분기)·`kernel`(아래 O16)
+  이 함께 바뀌어야 한다.
+- **O14 [r5] 이 개정과 어긋나게 된 기존 test (test 작성자 갱신 몫 -- 작성자는 test 를 고치지 않았다)**, 32건:
+  `tests/sizing/test_dc_inputs.py::test_library_projection[current_reuse·ngcc·nmcnr·sf_pushpull·two_stage·two_stage_sf]`(기대 DcInputs 에
+  `engine_elements` 없음), `tests/sizing/test_s2_values.py::test_vocabulary_constants`(THETA_KINDS 집합)·`::test_value_fields_as_contract`
+  (ThetaSchema 필드), `tests/sizing/test_theta_schema.py::test_library_schema[같은 6회로]`(capacitance 성분)·`::test_block_reuse`
+  (`dc_theta_schema(base, ())` -- extras 가 이제 2개), `tests/sizing/test_writer_plan.py::test_library_renaming_metamorphic[같은 6회로 ×
+  seed 1·2]`(σ 로 옮긴 DcInputs 를 6칸으로 만들어 engine_elements 가 빠짐 -- 7번째 칸도 σ 로 옮기면 9회로 모두 성립, 10.3절),
+  `tests/metrics/test_ss_evaluate.py::test_s10_passive_theta_conflicts_rejected[4]`·`::test_passive_theta_supplies_engine_value`
+  (`passive_theta` 인자 삭제 -- metrics CONTRACT 7.6 r5; engine CL 은 이제 θ `capacitance`).
+- **O15 [r5] 영점 상쇄 규칙 문구 해석 (J7 ratify 대상)**: 4.4 의 순서 무관 해석. 회로별 S(작성자 측 판정): two_stage_ota Rz -> {M6},
+  nmcnr Rm -> {M301}, current_reuse(파일럿) Rz1 -> {M16}·Rz2 -> {M26}. 글자대로 해석하면 two_stage_ota·파일럿에서 R 이 입력 쪽에 있어
+  S = ∅(θ 폴백)이 된다 -- 어느 쪽인지는 사용자 ratify.
+- **O16 [r5] search(ng-mod6) 병합 시 바뀌어야 할 호출부**: `ss_evaluate` 의 6번째 위치 인자 `passive_theta` 삭제(metrics 7.6) --
+  ng-mod6 `search/kernel.py` 의 `ss_evaluate(..., sctx.ss_constraints, (), (), **extra)` 는 `()` 하나를 지워야 한다. 봉인 아닌 점의
+  `metrics_dc` 수동 값(`spec_passive_values + θ resistance`)에 θ `capacitance`·`ss_resistance` 를 더해야 면적이 같은 값을 쓴다
+  (봉인 점과 같은 입력 -> 재사용). `search_domain` 은 지금 모르는 θ 종류를 조용히 건너뛴다(코드 읽기로 확인, 변수 없음) --
+  그 θ 가 빠진 후보는 `check_theta` 키 불일치가 될 것으로 본다(ng-mod6 에서 실행해 보지는 않았다). O13 상자 배선이 필요하다.

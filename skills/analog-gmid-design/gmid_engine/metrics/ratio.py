@@ -40,10 +40,10 @@ def response_ratio(response, num_column, den_column, row=0):
         why = Undefined("ratio_db", "num_zero", "definitional", (("column", num_column),))
     if why is not None:
         return ResponseRatio(
-            num_column=num_column, den_column=den_column, ratio_db=None,
+            num_column=num_column, den_column=den_column, ratio_db=None, row=row,
             undefined=(Undefined("ratio_db", why.code, why.category, why.detail),),
         )
     return ResponseRatio(
         num_column=num_column, den_column=den_column,
-        ratio_db=AMPLITUDE_DB_PER_DECADE * math.log10(abs(num / den)),
+        ratio_db=AMPLITUDE_DB_PER_DECADE * math.log10(abs(num / den)), row=row,
     )

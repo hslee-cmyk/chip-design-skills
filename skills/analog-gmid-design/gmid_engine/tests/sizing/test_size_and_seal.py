@@ -133,6 +133,74 @@ def test_current_through_resistor_recomputes_columns(ctx_a):
     assert c["dc_currents"] == 1 and c["dc_columns"] == 1 and c["dc_lengths"] == 0
 
 
+@pytest.fixture(scope="module")
+def ctx_passive(tmp_path_factory, toy_access):
+    """회로 A + Rz(out, m)–Cz(m, gnd) (둘 다 engine): Rz 는 가지치기 저항이고 구조 규칙 no_cs_cell -> θ ss_resistance,
+    Cz -> θ capacitance (4.4 r5). 그 밖 θ 는 회로 A 와 같다."""
+    doc = circuit_cs_res()
+    doc["topology_name"] = "ss_passive_theta"
+    doc["passive_elements"] += [two("Rz", "resistor", "out", "m"), two("Cz", "capacitor", "m", "gnd")]
+    return build_ctx(tmp_path_factory.mktemp("ctx_passive"), doc, toy_access,
+                     element_values=(("Cz", None), ("R1", None), ("Rz", None)), engine_elements=("Cz", "Rz"))[2]
+
+
+def theta_passive(cz=1e-12, rz=1e4, **kw):
+    th = theta_a(**kw)
+    th[("capacitance", "Cz")] = cz
+    th[("ss_resistance", "Rz")] = rz
+    return th
+
+
+def test_passive_theta_components_present(ctx_passive):
+    keys = set(ctx_passive.schema.components)
+    assert ("capacitance", "Cz") in keys and ("ss_resistance", "Rz") in keys
+    assert {k for t, k in keys if t in S.THETA_PASSIVE_KINDS} == {"Cz", "Rz"}
+
+
+@pytest.mark.parametrize("key,val", [(("capacitance", "Cz"), 1.1e-12), (("ss_resistance", "Rz"), 1.1e4), ("both", None)])
+def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
+    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuses 12), 계획 블록
+    호출 0, 결과는 parent 와 같은 봉인 상태(스냅샷 지문·report 같음)."""
+    ctx = ctx_passive
+    ev1 = size_and_seal(ctx, theta_passive())
+    th = theta_passive(cz=2e-12, rz=3e4) if key == "both" else {**theta_passive(), key: val}
+    reset()
+    ev2 = size_and_seal(ctx, th, parent=ev1)
+    st = stats()
+    assert all(st[b.name].computes == 0 for b in EVAL12), {b.name: st[b.name].computes for b in EVAL12}
+    assert sum(st[b.name].reuses for b in EVAL12) == 12
+    assert all(st[b.name].calls == 0 for b in PLAN5)
+    assert ev2.snapshot.fp == ev1.snapshot.fp and ev2.report == ev1.report
+
+
+def test_passive_theta_not_in_dc_values(ctx_passive):
+    """수동 θ 를 크게 바꿔 parent 없이 새로 평가해도 DC 노드전압·소자 op 는 비트 동일(DC 블록이 읽지 않는다)."""
+    ctx = ctx_passive
+    a = size_and_seal(ctx, theta_passive())
+    b = size_and_seal(ctx, theta_passive(cz=7e-11, rz=123.0))
+    assert a.snapshot.fp == b.snapshot.fp
+    assert a.snapshot.column("node", "dc_v") == b.snapshot.column("node", "dc_v")
+
+
+@pytest.mark.parametrize("key", [("capacitance", "Cz"), ("ss_resistance", "Rz")])
+@pytest.mark.parametrize("bad", [0.0, -1e-12])
+def test_passive_theta_domain(ctx_passive, key, bad):
+    """5.1 [r5]: capacitance ≤ 0, ss_resistance ≤ 0 -> ValueError(check_theta, size_and_seal 경로 모두)."""
+    th = {**theta_passive(), key: bad}
+    with pytest.raises(ValueError):
+        check_theta(ctx_passive.schema, th)
+    with pytest.raises(ValueError):
+        size_and_seal(ctx_passive, th)
+
+
+def test_passive_theta_key_required(ctx_passive):
+    """수동 θ 성분도 components 의 일부 -- 빠지면 키 불일치 ValueError(5.1)."""
+    th = theta_passive()
+    del th[("capacitance", "Cz")]
+    with pytest.raises(ValueError):
+        size_and_seal(ctx_passive, th)
+
+
 def test_parent_chain_then_back_reuses_nothing_wrongly(ctx_c):
     """θ0 -> θ1 -> θ0 (parent = θ1 평가): 값은 θ0 첫 평가와 같다(재사용이 값을 바꾸지 않는다)."""
     ctx = ctx_c[2]

@@ -11,8 +11,11 @@ from .crossing import find_crossing
 from .dc_metrics import metrics_dc
 from .dc_limit import solve_dc_limit
 from .evaluate import metric_value
+from .junction_cap import DiffusionGeometry, JunctionCaps, JunctionParams, junction_caps
+from .junction_source import JunctionSource
 from .loop_analysis import analyze_loop
 from .loop_cut import cut_circuit
+from .lut_parameters import LUT_PARAMETERS, lut_parameters
 from .mna_build import build_mna
 from .mna_solve import solve_responses
 from .mna_types import (
@@ -25,9 +28,12 @@ from .mna_types import (
     MetricResult,
     MnaSystem,
     OutputResistance,
+    ParameterSet,
     PointSolution,
     ProbeFactor,
+    Resolution,
     ResponseRatio,
+    ResponseSensitivity,
     Roots,
     SupplyCurrents,
     SystemResponse,
@@ -56,10 +62,12 @@ from .records import (
     StampSet,
 )
 from .registry import RegisteredMetric, metric_registry
+from .resolution import metric_resolutions
 from .rout import output_resistance
+from .sensitivity import response_sensitivity
 from .ss_circuit import ss_circuit
 from .ss_evaluate import ss_evaluate
-from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_PENDING, ss_dev
+from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_LUT_RULE, ss_dev
 from .ss_metrics import metrics_ss
 from .ss_types import MetricBundle, MetricRequest, SsCircuit, SsDevice, SsEvaluation
 from .stamp_mos import mos_stamps
@@ -75,12 +83,17 @@ __all__ = (
     "CutCircuit",
     "DcLimit",
     "DcOperatingPoint",
+    "DiffusionGeometry",
     "Excitation",
     "Factor",
     "GMB_COLUMN",
     "GMB_VS_CELL_SECANT",
     "GateArea",
-    "JUNCTION_PENDING",
+    "JUNCTION_LUT_RULE",
+    "JunctionCaps",
+    "JunctionParams",
+    "JunctionSource",
+    "LUT_PARAMETERS",
     "LoopAnalysis",
     "LoopCut",
     "MetricBundle",
@@ -89,13 +102,16 @@ __all__ = (
     "MnaSystem",
     "MosSmallSignal",
     "OutputResistance",
+    "ParameterSet",
     "PassiveArea",
     "PointSolution",
     "ProbeFactor",
     "RailBias",
     "RegisteredMetric",
     "Resistor",
+    "Resolution",
     "ResponseRatio",
+    "ResponseSensitivity",
     "Roots",
     "Sense",
     "SmallSignalCircuit",
@@ -111,8 +127,11 @@ __all__ = (
     "build_mna",
     "cut_circuit",
     "find_crossing",
+    "junction_caps",
+    "lut_parameters",
     "metric_catalog",
     "metric_registry",
+    "metric_resolutions",
     "metric_value",
     "metrics_dc",
     "metrics_ss",
@@ -123,6 +142,7 @@ __all__ = (
     "phase_lag",
     "probe_factor",
     "response_ratio",
+    "response_sensitivity",
     "solve_dc_limit",
     "solve_point",
     "solve_responses",
