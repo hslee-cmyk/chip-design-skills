@@ -180,3 +180,13 @@ def test_ss_dev_not_required(snap):
     assert snap.column("device", "ss_dev") == ()
     _bundle(snap, counted=("vdd",))
     assert ss_dev.name != metrics_dc.name
+
+
+def test_power_area_resolution_none(snap):
+    """[9절] 7.5: 전력·면적 결과의 resolution 은 None(LUT 소신호 불확실성 전파 대상 아님) -- 값이 있어도."""
+    _, b = _bundle(snap, counted=("vdd",))
+    e = _entries(b)
+    assert set(e) == {"power_dc_w", "supply_current_dc", "area_search_m2"}
+    for name, r in e.items():
+        assert r.value is not None, name
+        assert r.resolution is None, name

@@ -18,7 +18,9 @@ import dataclasses
 @dataclasses.dataclass(frozen=True)
 class SsDevice:
     """MOS 소신호 값(S, F). gm = ID·(gm/ID), gds = (GDS/w_m)·W, gmb = 같은 보간면 VS 미분 × W/w_m, 용량 = lut `caps`(W 비례),
-    cdb·csb = 접합 용량(DEC-91 -- 정본 계산 전이면 0 이고 `junction_model` 이 그 사실을 적는다)."""
+    cdb·csb = 접합 용량(DEC-91 -- 정본 계산 전이면 0 이고 `junction_model` 이 그 사실을 적는다).
+    `lut_rel_tol` = LUT 파라미터(gm·gmb·gds·cgs·cgd·cgb)의 상대 불확실성 ε = (gm/ID)·tol_V(id_equivalent)(metrics CONTRACT 9.1,
+    무차원) -- 그 소자의 tol_V 셀이 미정이면 None(분해능을 정하지 않는다)."""
 
     gm: float
     gmb: float
@@ -32,6 +34,7 @@ class SsDevice:
     cap_model: str
     gmb_model: str
     junction_model: str
+    lut_rel_tol: object = None
 
 
 @dataclasses.dataclass(frozen=True)
