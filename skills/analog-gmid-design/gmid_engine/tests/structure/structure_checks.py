@@ -12,10 +12,12 @@
 from __future__ import annotations
 
 import ast
+import hashlib
 import json
 import re
+from collections import Counter
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 ENGINE_PACKAGE = "gmid_engine"
 
@@ -57,6 +59,16 @@ MUTABLE_CONSTRUCTORS = (
 )
 CACHE_DECORATORS = ("lru_cache", "cache")
 MODULE_LEVEL_EXEMPT_NAMES = ("__all__",)  # 공개 API 목록(D 1.2 (나)1) -- 상태가 아니다
+
+# (D·E·G 예외) 복사 등록부. 출처: wt/_drafts/engine/design_mod7_layout.md 8절 2 기본안
+#   "복사본 내부 탐색 상한 리터럴: manifest 한정 예외 + 리터럴 집합 test 고정", 같은 문서 1.1·2.1·2.2.
+#   하위 패키지 폴더의 이 이름 파일이 등록부다(층 무관). 형식·검증 절차는 README '복사 등록부'.
+COPY_MANIFEST_NAME = "_copy_manifest.py"
+COPY_MANIFEST_SOURCE = "COPY_SOURCE"            # 원본 파일(저장소 기준 상대 경로) 문자열
+COPY_MANIFEST_TABLE = "COPIED_DEFINITIONS"      # (파일, 정의 이름, "시작~끝", sha256 hex, 리터럴 문자열 tuple) tuple
+COPY_ROWS = re.compile(r"^(\d+)~(\d+)$")
+COPY_HASH = re.compile(r"^[0-9a-f]{64}$")
+COPY_SOURCE_KINDS = ("copy_source_missing", "copy_source_in_engine", "copy_source_mismatch")
 
 # (H) 엔진 하위 패키지가 아닌 tests/ 하위 폴더(교차 관심사). 출처: D 3.1 'test 배치'(162행).
 CROSS_CUTTING_TEST_DIRS = ("structure", "contracts", "integration", "regression", "oracles", "perf", "unit")
@@ -251,12 +263,27 @@ def is_data_module(tree: ast.Module) -> bool:
     return all(c.name in data for c in public)
 
 
+def helper_public_functions(tree: ast.Module) -> dict[str, int]:
+    """비공개 모듈의 공개 함수 이름 -> 행. 공개 최상위 def 와, 같은 파일 최상위 함수 이름을 값으로 갖는
+    공개 대입(별칭, 예: `build_rows = _build_rows`)을 모두 센다(별칭으로 공개한 helper 도 2파일 사용 조건 적용).
+    오케스트레이터 결정 2026-10-07."""
+    defs = {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    out = {}
+    for n in tree.body:
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and not n.name.startswith("_"):
+            out[n.name] = n.lineno
+        elif isinstance(n, (ast.Assign, ast.AnnAssign)) and isinstance(n.value, ast.Name) and n.value.id in defs:
+            targets = n.targets if isinstance(n, ast.Assign) else [n.target]
+            for t in targets:
+                if isinstance(t, ast.Name) and not t.id.startswith("_"):
+                    out.setdefault(t.id, n.lineno)
+    return out
+
+
 def helper_users(root: Path, p: Path) -> dict[str, set[str]]:
     """비공개 모듈 p 의 공개 함수 -> 그것을 import(또는 모듈 import 뒤 속성 사용)하는 같은 패키지 파일 집합."""
     tree = parse(p)
-    funcs = [n.name for n in tree.body
-             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and not n.name.startswith("_")]
-    users = {f: set() for f in funcs}
+    users = {f: set() for f in helper_public_functions(tree)}
     dotted = ".".join(_module_of(root, p))
     parts = p.relative_to(root).parts
     scope = [q for q in engine_files(root)
@@ -289,7 +316,7 @@ def check_a(root: Path) -> tuple[int, list[Violation]]:
     for p in targets:
         tree = parse(p)
         if p.name.startswith("_"):
-            lines = {n.name: n.lineno for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+            lines = helper_public_functions(tree)
             for f, who in helper_users(root, p).items():
                 if len(who) < HELPER_MIN_USERS:
                     out.append(Violation("helper_single_user", rel(root, p), lines[f],
@@ -478,6 +505,206 @@ def check_c(root: Path) -> tuple[int, list[Violation]]:
     return len(files), out
 
 
+# ---------------------------------------------------------------- 복사 등록부 (D·E·G 예외)
+#
+# 옛 엔진 정의를 본문 그대로 복사한 최상위 정의는 하위 패키지의 `_copy_manifest.py`에 등록한다.
+# 등록 정의 노드 범위 안의 D·E·G 위반만 면제하되, 아래가 전부 성립할 때만이다(하나라도 깨지면 면제 취소 + 위반):
+#   (1) 등록부 형식이 맞다 (2) 그 정의가 manifest 폴더의 그 파일에 최상위로 정확히 1개
+#   (3) 복사본 정의의 AST 해시 == 등록 해시 (4) 정의 안 규칙 D 밖 리터럴 목록 == 등록 목록
+#   (5) 원본 파일(엔진 밖)의 등록 행 범위에 같은 이름 정의가 있고 그 AST 해시 == 등록 해시.
+# 해시·리터럴은 이 검사기가 직접 다시 잰다(등록부 작성자의 계산을 쓰지 않는다 -- 작성자≠검증자).
+
+def _def_name(n: ast.stmt) -> str | None:
+    """최상위 정의 이름: def·class, 이름 하나에 대한 대입(Assign·AnnAssign). 그 밖은 None."""
+    if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+        return n.name
+    if isinstance(n, ast.Assign) and len(n.targets) == 1 and isinstance(n.targets[0], ast.Name):
+        return n.targets[0].id
+    if isinstance(n, ast.AnnAssign) and isinstance(n.target, ast.Name):
+        return n.target.id
+    return None
+
+
+def copy_hash(node: ast.AST) -> str:
+    """정의 노드의 AST 해시 = sha256(ast.dump(annotate_fields=True, include_attributes=False)).
+    docstring·데코레이터 포함, 주석·위치 제외. ast.dump 출력은 Python 버전에 따라 다를 수 있다(README)."""
+    text = ast.dump(node, annotate_fields=True, include_attributes=False)
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _literal_text(n: ast.Constant, parent: dict[int, ast.AST]) -> str:
+    par = parent.get(id(n))
+    negated = isinstance(par, ast.UnaryOp) and isinstance(par.op, ast.USub)
+    return ("-%r" if negated else "%r") % (n.value,)
+
+
+def copy_literals(node: ast.AST, parent: dict[int, ast.AST]) -> tuple[str, ...]:
+    """정의 안 숫자 리터럴 중 규칙 D 허용 집합 밖인 것의 repr(음수는 '-' 앞붙임), 정렬, 중복 유지.
+    derive 태그는 보지 않는다(복사본은 원본 그대로라 태그가 없다)."""
+    return tuple(sorted(_literal_text(n, parent) for n in ast.walk(node)
+                        if isinstance(n, ast.Constant) and type(n.value) in (int, float, complex)
+                        and not _number_allowed(n, parent)))
+
+
+def _literal(node: ast.AST | None):
+    if node is None:
+        return None
+    try:
+        return ast.literal_eval(node)
+    except (ValueError, TypeError, SyntaxError, MemoryError, RecursionError):
+        return None
+
+
+def _plain_relative(text: str, suffix: str = "") -> bool:
+    p = PurePosixPath(text)
+    return bool(text) and "\\" not in text and not p.is_absolute() and ".." not in p.parts \
+        and ":" not in text and p.name.endswith(suffix)
+
+
+def _entry_ok(e) -> bool:
+    return (isinstance(e, tuple) and len(e) == 5 and all(isinstance(x, str) for x in e[:4])
+            and isinstance(e[4], tuple) and all(isinstance(x, str) for x in e[4])
+            and _plain_relative(e[0], ".py") and PurePosixPath(e[0]).name != COPY_MANIFEST_NAME
+            and COPY_ROWS.match(e[2]) is not None and COPY_HASH.match(e[3]) is not None)
+
+
+def _find_source(root: Path, text: str) -> Path | None:
+    """원본 경로 = 엔진 루트의 조상 폴더 중 처음으로 <조상>/<COPY_SOURCE> 파일이 있는 곳(진짜 트리: 저장소 루트)."""
+    for anc in root.parents:
+        f = anc / text
+        if f.is_file():
+            return f.resolve()
+    return None
+
+
+@dataclass(frozen=True)
+class CopyAudit:
+    entries: int            # 등록부 항목 수(형식 위반 포함)
+    compared: int           # 원본과 대조한 항목 수
+    exempt: dict            # 엔진 상대 경로 -> 면제 정의 이름 frozenset (검증 통과 항목만)
+    violations: tuple
+
+
+def copy_audit(root: Path) -> CopyAudit:
+    root = Path(root).resolve()
+    out: list[Violation] = []
+    exempt: dict[str, set[str]] = {}
+    entries = compared = 0
+    cache: dict[Path, tuple] = {}
+
+    def load(p: Path) -> tuple:
+        if p not in cache:
+            t = parse(p)
+            cache[p] = (t, _parents(t))
+        return cache[p]
+
+    for m in engine_files(root):
+        if m.name != COPY_MANIFEST_NAME:
+            continue
+        mr = rel(root, m)
+        if len(m.relative_to(root).parts) < 2:
+            out.append(Violation("copy_manifest_location", mr, 0, "등록부는 하위 패키지 폴더 안에만(루트 등록부는 무시)"))
+            continue
+        top = {}
+        for s in parse(m).body:
+            if isinstance(s, (ast.Assign, ast.AnnAssign)) and _def_name(s) in (COPY_MANIFEST_SOURCE, COPY_MANIFEST_TABLE):
+                top[_def_name(s)] = s
+        src_stmt, tab_stmt = top.get(COPY_MANIFEST_SOURCE), top.get(COPY_MANIFEST_TABLE)
+        src_text = _literal(src_stmt.value) if src_stmt is not None else None
+        if not (isinstance(src_text, str) and _plain_relative(src_text)):
+            out.append(Violation("copy_manifest_format", mr, src_stmt.lineno if src_stmt is not None else 0,
+                                 "%s 는 저장소 기준 상대 경로 문자열 상수여야 함" % COPY_MANIFEST_SOURCE))
+            continue
+        if tab_stmt is None or not isinstance(tab_stmt.value, (ast.Tuple, ast.List)):
+            out.append(Violation("copy_manifest_format", mr, tab_stmt.lineno if tab_stmt is not None else 0,
+                                 "%s 는 항목 tuple 들의 정적 tuple 이어야 함" % COPY_MANIFEST_TABLE))
+            continue
+        source = _find_source(root, src_text)
+        if source is None:
+            out.append(Violation("copy_source_missing", mr, src_stmt.lineno, "원본 %r 없음" % src_text))
+        elif root in source.parents:
+            out.append(Violation("copy_source_in_engine", mr, src_stmt.lineno,
+                                 "원본 %r 이 엔진 트리 안(복사본을 원본으로 삼을 수 없음)" % src_text))
+            source = None
+        rows = []
+        for el in tab_stmt.value.elts:
+            entries += 1
+            e = _literal(el)
+            if not _entry_ok(e):
+                out.append(Violation("copy_manifest_format", mr, el.lineno,
+                                     "항목 형식 (manifest 폴더 안 .py, 정의 이름, '시작~끝', sha256 hex, 리터럴 문자열 tuple) 아님"))
+                continue
+            rows.append((el.lineno, e))
+        counts = Counter((e[0], e[1]) for _, e in rows)
+        seen = set()
+        for line, (fname, name, span, digest, lits) in rows:
+            if counts[(fname, name)] > 1:
+                if (fname, name) in seen:
+                    out.append(Violation("copy_manifest_duplicate", mr, line, "%s:%s 중복 등록(모두 면제 안 함)" % (fname, name)))
+                seen.add((fname, name))
+                continue
+            ok = True
+            target = m.parent / fname
+            nodes = []
+            if target.is_file():
+                tree, parent = load(target)
+                nodes = [n for n in tree.body if _def_name(n) == name]
+            if len(nodes) != 1:
+                out.append(Violation("copy_missing_definition", mr, line,
+                                     "%s 의 최상위 정의 %s %d개(정확히 1개여야 함)" % (fname, name, len(nodes))))
+                ok = False
+            else:
+                node, tr = nodes[0], rel(root, target)
+                if copy_hash(node) != digest:
+                    out.append(Violation("copy_definition_changed", tr, node.lineno,
+                                         "복사 정의 변경: %s 의 AST 해시가 등록부와 다름(면제 취소)" % name))
+                    ok = False
+                got = copy_literals(node, parent)
+                if got != tuple(sorted(lits)):
+                    out.append(Violation("copy_literal_mismatch", tr, node.lineno,
+                                         "%s 리터럴 %s != 등록부 %s(면제 취소)" % (name, list(got), sorted(lits))))
+                    ok = False
+            if source is None:
+                ok = False
+            else:
+                compared += 1
+                a, b = (int(x) for x in COPY_ROWS.match(span).groups())
+                stree, _ = load(source)
+                hits = [n for n in stree.body if _def_name(n) == name and n.lineno == a and n.end_lineno == b]
+                if len(hits) != 1:
+                    out.append(Violation("copy_source_mismatch", mr, line,
+                                         "원본 %s %s행에 최상위 정의 %s 없음" % (src_text, span, name)))
+                    ok = False
+                elif copy_hash(hits[0]) != digest:
+                    out.append(Violation("copy_source_mismatch", mr, line,
+                                         "원본 %s %s행 %s 의 AST 해시가 등록부와 다름" % (src_text, span, name)))
+                    ok = False
+            if ok:
+                exempt.setdefault(rel(root, target), set()).add(name)
+    return CopyAudit(entries, compared, {k: frozenset(v) for k, v in exempt.items()}, tuple(sorted(out)))
+
+
+def _exempt_nodes(tree: ast.Module, names) -> set[int]:
+    """면제 정의(최상위) 노드와 그 하위 노드 전부의 id."""
+    ids = set()
+    for s in tree.body:
+        if _def_name(s) in names:
+            ids.update(id(x) for x in ast.walk(s))
+    return ids
+
+
+def check_copy_manifest(root: Path) -> tuple[int, list[Violation]]:
+    """등록부 형식 + 복사본 쪽 대조((1)~(4)). 대상 수 = 등록부 항목 수."""
+    a = copy_audit(root)
+    return a.entries, [v for v in a.violations if v.kind not in COPY_SOURCE_KINDS]
+
+
+def check_copy_source(root: Path) -> tuple[int, list[Violation]]:
+    """원본 쪽 대조((5)). 대상 수 = 원본과 대조한 항목 수."""
+    a = copy_audit(root)
+    return a.compared, [v for v in a.violations if v.kind in COPY_SOURCE_KINDS]
+
+
 # ---------------------------------------------------------------- (D)
 
 def defined_functions(root: Path) -> set[str]:
@@ -510,22 +737,23 @@ def check_d(root: Path) -> tuple[int, list[Violation]]:
     root = Path(root)
     targets = [p for p in engine_files(root) if rel(root, p) not in NUMERIC_LITERAL_HOME]
     known = defined_functions(root)
+    exempt = copy_audit(root).exempt
     out = []
     for p in targets:
         text = p.read_text(encoding="utf-8")
         lines = text.split("\n")
         tree = ast.parse(text, filename=str(p))
         parent = _parents(tree)
+        skip = _exempt_nodes(tree, exempt.get(rel(root, p), ()))
         for n in ast.walk(tree):
             if not (isinstance(n, ast.Constant) and type(n.value) in (int, float, complex)):
                 continue
-            if _number_allowed(n, parent):
+            if _number_allowed(n, parent) or id(n) in skip:
                 continue
             m = DERIVE_TAG.search(lines[n.lineno - 1])
             if m and m.group(1) in known:
                 continue
-            par = parent.get(id(n))
-            shown = "-%r" % (n.value,) if isinstance(par, ast.UnaryOp) and isinstance(par.op, ast.USub) else repr(n.value)
+            shown = _literal_text(n, parent)
             why = " (derive 태그의 함수 %r 없음)" % m.group(1) if m else ""
             out.append(Violation("numeric_literal", rel(root, p), n.lineno, shown + why))
     return len(targets), out
@@ -582,10 +810,13 @@ def library_names(library_dir: Path) -> tuple[list[str], dict[str, list[str]]]:
 def check_e(root: Path, names: dict[str, list[str]]) -> tuple[int, list[Violation]]:
     root = Path(root)
     targets = engine_files(root)
+    exempt = copy_audit(root).exempt
     out = []
     for p in targets:
-        for n in ast.walk(parse(p)):
-            if isinstance(n, ast.Constant) and isinstance(n.value, str) and n.value in names:
+        tree = parse(p)
+        skip = _exempt_nodes(tree, exempt.get(rel(root, p), ()))
+        for n in ast.walk(tree):
+            if isinstance(n, ast.Constant) and isinstance(n.value, str) and n.value in names and id(n) not in skip:
                 out.append(Violation("name_literal", rel(root, p), n.lineno,
                                      "%r = %s" % (n.value, ", ".join(names[n.value][:4]))))
     return len(targets), out
@@ -649,11 +880,15 @@ def _mutable_value(v: ast.expr | None) -> bool:
 def check_g(root: Path) -> tuple[int, list[Violation]]:
     root = Path(root)
     targets = engine_files(root)
+    exempt = copy_audit(root).exempt
     out = []
     for p in targets:
         r = rel(root, p)
         tree = parse(p)
+        skip = _exempt_nodes(tree, exempt.get(r, ()))
         for s in _module_level(tree.body):
+            if id(s) in skip:
+                continue
             if isinstance(s, ast.Assign):
                 tnames = [t.id for t in s.targets if isinstance(t, ast.Name)]
                 value = s.value
@@ -668,6 +903,8 @@ def check_g(root: Path) -> tuple[int, list[Violation]]:
                 out.append(Violation("module_mutable", r, s.lineno,
                                      "모듈 수준 가변 객체 대입 %s" % (tnames or "<target>")))
         for n in ast.walk(tree):
+            if id(n) in skip:
+                continue
             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
                 for d in n.decorator_list:
                     if _decorator_name(d) in CACHE_DECORATORS:
@@ -680,10 +917,21 @@ def check_g(root: Path) -> tuple[int, list[Violation]]:
 
 # ---------------------------------------------------------------- (H)
 
+def h_exempt(p: Path) -> bool:
+    """H 제외(오케스트레이터 결정 2026-10-07, 근거: 공개 동작이 없는 등록부·표): `_`로 시작하는 모듈 중
+    최상위 함수·클래스가 하나도 없는 것(상수 표·등록부, 예: `_copy_manifest.py`) 또는 데이터 선언 모듈."""
+    if not p.name.startswith("_"):
+        return False
+    tree = parse(p)
+    if not any(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) for n in tree.body):
+        return True
+    return is_data_module(tree)
+
+
 def check_h(root: Path) -> tuple[int, list[Violation]]:
     root = Path(root)
     sources = [p for p in engine_files(root)
-               if p.name != "__init__.py" and len(p.relative_to(root).parts) > 1]
+               if p.name != "__init__.py" and len(p.relative_to(root).parts) > 1 and not h_exempt(p)]
     out = []
     for p in sources:
         parts = p.relative_to(root).parts

@@ -199,7 +199,59 @@
       "gate": "VB5"
     }
   ],
-  "_compensation_network_comment": "netlist 스키마엔 수동소자가 없어(connectivity 전용) 여기 별도 기록: Cm1(NodeM2 -> NodeCM), Cm2(NodeS2 -> NodeCM) -- 원문 abstract가 명시한 대로 'only ONE null resistor'라 Cm1/Cm2가 같은 노드(NodeCM)에서 만나 그 뒤에 Rm 하나를 공유한다(2026-07-31 사용자 정정 -- 처음엔 Cm1/Rm이 직렬, Cm2는 별도 무저항 경로로 잘못 읽었었다). Rm(NodeCM -> Vout), CL(Vout -> vss). Rm=1/gm3(원문 Eq 6, structure 4 조건) -- 실값은 nmcnr_compensation_elements()로 계산.",
+  "passive_elements": [
+    {
+      "name": "Cm1",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "NodeM2",
+        "NodeCM"
+      ],
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE Q3): 1단 출력 NodeM2 와 공통 노드 NodeCM 사이 보상 커패시터. 값은 엔진이 계산한다(null)."
+    },
+    {
+      "name": "Cm2",
+      "kind": "capacitor",
+      "value_farad": null,
+      "terminals": [
+        "NodeS2",
+        "NodeCM"
+      ],
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE Q3): 2단 출력 NodeS2 와 공통 노드 NodeCM 사이 보상 커패시터. 값은 엔진이 계산한다(null)."
+    },
+    {
+      "name": "Rm",
+      "kind": "resistor",
+      "value_ohm": null,
+      "terminals": [
+        "NodeCM",
+        "Vout"
+      ],
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE Q3): Cm1·Cm2 공통 노드 NodeCM 과 Vout 사이 null 저항 하나. 값은 엔진이 계산한다(null)."
+    },
+    {
+      "name": "CL",
+      "kind": "capacitor",
+      "value_farad": 1e-10,
+      "terminals": [
+        "Vout",
+        "vss"
+      ],
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE Q3): 부하 용량 100 pF(Vout-vss)."
+    },
+    {
+      "name": "RL",
+      "kind": "resistor",
+      "value_ohm": 25000.0,
+      "terminals": [
+        "Vout",
+        "vss"
+      ],
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE Q3''' \"25kOhm을 넣어.\"): 부하 저항 25 kΩ(Vout-vss). 논문 측정 조건 100 pF ∥ 25 kΩ."
+    }
+  ],
+  "_compensation_network_comment": "netlist 스키마엔 수동소자가 없어(connectivity 전용) 여기 별도 기록: Cm1(NodeM2 -> NodeCM), Cm2(NodeS2 -> NodeCM) -- 원문 abstract가 명시한 대로 'only ONE null resistor'라 Cm1/Cm2가 같은 노드(NodeCM)에서 만나 그 뒤에 Rm 하나를 공유한다(2026-07-31 사용자 정정 -- 처음엔 Cm1/Rm이 직렬, Cm2는 별도 무저항 경로로 잘못 읽었었다). Rm(NodeCM -> Vout), CL(Vout -> vss). Rm=1/gm3(원문 Eq 6, structure 4 조건) -- 실값은 nmcnr_compensation_elements()로 계산. 2026-10-07: 이 소자들은 이제 passive_elements 에 선언돼 있다(Cm1·Cm2·Rm·CL 100 pF·RL 25 kΩ, TOPOLOGY_CORRECTION_QUEUE Q3·Q3''').",
   "ports": {
     "_comment": "2026-09-17 신설(사용자 확정: input = M102.gate / M103.gate, output = M301.drain = M302.drain). N3.2-2 기본 전달 뷰를 만들려면 필요하다(U-08, 6a 착수 조건). connectivity는 건드리지 않고 역할만 적는다. 극성은 넷 이름을 믿지 않고 독립 소신호 해석으로 확인했다(2026-09-17 `review9_input_polarity_probe`): Vin_p -> v(Vout) 동상, Vin_n -> 역상이라 이름과 역할이 일치한다. VB1~VB5는 gate에만 붙고 구동되지 않는 넷이라 포트가 아니라 교류접지다(N3.2-1 (2)).",
     "Vin_p": {

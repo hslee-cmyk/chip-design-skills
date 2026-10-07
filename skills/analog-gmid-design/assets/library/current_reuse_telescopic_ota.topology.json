@@ -2079,5 +2079,12 @@
         "_comment": "2026-09-10(§7.11 L2 완성) -- 위상여유가 이 회로의 PM 목표를 넘어야 한다. 값을 숫자로 적지 않고 spec의 PM_target_deg를 참조한다(새 상수가 아니라 이미 선언된 값 자체이고, 복제하면 두 곳이 조용히 갈린다). **이 제약이 곧 L의 상한이다**: L↑ -> Cgg↑ -> 노드 pole↓ -> PM↓. metric은 L2(복소 MNA 주파수응답)로 재므로 보상망(Cc/Rz의 zero, Miller pole splitting, C_L 부하)이 전부 반영된다."
       }
     ]
+  },
+  "_declared_target_spec": {
+    "supplies_v": {
+      "vdd": 1.8,
+      "gnd": 0.0,
+      "_comment": "2026-10-07 사용자 확정(TOPOLOGY_CORRECTION_QUEUE '전원' 행): 레일 전위 vdd 1.8 V, gnd 0 V. 저장 위치는 nmcnr_amplifier·ngcc_3stage_ff 의 `_declared_target_spec.supplies_v` 관례를 따른다."
+    }
   }
 }

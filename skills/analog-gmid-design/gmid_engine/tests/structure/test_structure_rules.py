@@ -51,3 +51,19 @@ def test_rule_f_no_broad_except(checks, engine_root, report):
 def test_rule_g_no_module_level_mutable_cache(checks, engine_root, report):
     n, v = checks.check_g(engine_root)
     _assert_clean(n, v, report, "G")
+
+
+def test_rule_copy_manifest_matches_copies(checks, engine_root, report):
+    """복사 등록부(하위 패키지 `_copy_manifest.py`): 형식, 등록 정의 존재, 복사본 AST 해시·규칙 D 밖 리터럴 목록 일치.
+    해시·리터럴은 검사기가 복사본에서 다시 잰다. 어긋난 정의는 D·E·G 면제도 취소된다(README '복사 등록부')."""
+    n, v = checks.check_copy_manifest(engine_root)
+    _assert_clean(n, v, report, "복사 등록부(복사본)")
+
+
+def test_rule_copy_manifest_matches_original(checks, engine_root, report):
+    """복사 등록부의 원본 대조: COPY_SOURCE(엔진 밖) 파일을 다시 파싱해 등록 행 범위의 같은 이름 정의
+    AST 해시가 등록 해시와 같다. 등록 항목 전부가 원본과 대조되어야 한다."""
+    n_entries, _ = checks.check_copy_manifest(engine_root)
+    n, v = checks.check_copy_source(engine_root)
+    _assert_clean(n, v, report, "복사 등록부(원본)")
+    assert n == n_entries, "원본과 대조한 항목 %d개 != 등록 항목 %d개" % (n, n_entries)

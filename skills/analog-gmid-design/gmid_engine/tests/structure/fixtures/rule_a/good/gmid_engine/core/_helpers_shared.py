@@ -4,3 +4,6 @@ def shared(x):
 
 def _inner(x):
     return x
+
+
+inner = _inner
