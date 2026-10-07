@@ -24,8 +24,8 @@
 - **숫자 리터럴**: 엔진 소스(tests 제외)의 int/float 리터럴은 {0, 1, -1, 2} 밖 0개(현재 core·_module_map 전부 0개, 예외는 단위 표 `units.py` 하나).
 - **이름 리터럴**: 회로·소자·넷 이름 문자열 0개(core 문자열은 스키마 어휘 `"node"`·`"device"`·`"edge"`·`"graph"` 와
   N3.14 분류 키뿐).
-- **광범위 except 0**: core 의 `except` 절은 `pdk_decl.py` 의 좁은 두 개(`json.JSONDecodeError`·`SyntaxError` -> 선언 거부
-  `SchemaRejectedError` 로 바꾼다, 9절)뿐이다.
+- **광범위 except 0**: core 의 `except` 절은 `pdk_decl.py` 의 좁은 네 개(`json.JSONDecodeError`·`SyntaxError`·`LookupError`(코덱 이름)·
+  `re.error` -> 선언 거부 `SchemaRejectedError` 로 바꾼다, 9절)뿐이다.
 - **모듈 수준 가변 캐시 0**: 모듈 수준 dict/list/set 대입·`@lru_cache`/`@cache`·`global` 문 0(분류표는 읽기 전용 매핑).
 - 자기 파일 self-test·`if __name__ == "__main__"` 0.
 
@@ -253,18 +253,32 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 `manufacturing_grid_m` 과 `PDK_RULE_QUANTITIES` 다섯 길이 + `rule_ids`).
 
 ### 9.1 선언 파일 (JSON, UTF-8) -- PDK 마다 데이터 하나 (sky130 = `skills/analog-gmid-design/assets/sky130_pdk_decl.json`)
-- 최상위 키 정확히 `schema`(= `"gmid_pdk_decl/1"`), `pdk`(비지 않은 문자열), `pdk_root`(비지 않은 문자열), `sources`(비지 않은 객체),
-  `quantities`(비지 않은 객체) + 선택 `note`. 그 밖 키·빠진 키 -> 거부 `pdk_decl_keys`.
-- `sources.<이름>`: 경로는 `pdk_root + "/" + path`. 공통 키 `path`, `sha256`(64 hex), `format`, `encoding`, `units_m`(단위 글자 -> m 배율,
-  양의 유한 수, 비지 않음) + 선택 `note`. `format`:
+- 최상위는 JSON 객체(배열·수·문자열이면 `pdk_decl_shape`). 키 정확히 `schema`(= `"gmid_pdk_decl/1"`), `pdk`(비지 않은 문자열),
+  `pdk_root`(비지 않은 문자열), `sources`(비지 않은 객체), `quantities`(비지 않은 객체) + 선택 `note`. 그 밖 키·빠진 키 -> `pdk_decl_keys`;
+  `pdk`·`pdk_root`·`sources`·`quantities`·`sources.<이름>`·`quantities.<이름>` 의 타입·빈 값 위반 -> `pdk_decl_shape`.
+- `sources.<이름>`: 경로는 `pdk_root + "/" + path`. 공통 키 `path`(비지 않은 문자열), `sha256`(정확히 64자 **소문자** hex 문자열 -- 아니면
+  `pdk_decl_shape`, 형식은 맞는데 파일 값과 다르면 `pdk_source_sha256_mismatch`), `format`, `encoding`(원본 파일 바이트를 글로 풀 때 쓰는
+  파이썬 코덱 이름, 예 `"utf-8"` -- 문자열이 아니거나 알 수 없는 코덱이면 `pdk_decl_shape`; 선언 파일 자체는 늘 UTF-8),
+  `units_m`(단위 글자 -> m 배율, 양의 유한 수(bool 아님), 비지 않은 객체) + 선택 `note`. `format`:
   - `"lef_statement"`: 줄에서 `#` 뒤를 버리고 `^\s*KEY\s+값\s*;\s*$` 인 줄마다 규칙 `KEY`(단위 글자 `""`). 그 밖 키 없음.
-  - `"rule_table_csv"`: 추가 키 `section_pattern`(정규식, 그룹 1 = 접두), `section_column`·`id_column`·`value_column`·`unit_column`(열 번호).
+  - `"rule_table_csv"`: 추가 키 `section_pattern`(정규식 문자열, 그룹 1 = 접두), `section_column`·`id_column`·`value_column`·`unit_column`
+    (열 번호, 0 이상 int, bool 아님). 정규식이 문자열이 아니거나 컴파일되지 않음, 열 번호가 정수 아님·음수·bool -> `pdk_decl_shape`.
     CSV 행을 차례로: section 열이 정규식에 맞으면 접두를 바꾸고, 아니면 접두가 있고 id 열이 비지 않을 때 규칙 `접두 + "." + id`
     (값 글자 = value 열, 단위 글자 = unit 열, 없는 열은 `""`, 행 번호 = csv `line_num`).
   - 그 밖 format -> `pdk_source_format_unknown`; 형식별 키가 다르거나 빠짐 -> `pdk_decl_keys`; `units_m` 위반 -> `pdk_source_units_invalid`.
-- `quantities.<이름>`: 키 정확히 `source`, `expression`, `basis`(유도 근거 글). `expression` = 산술식: 수, `+ - * /`, 단항 `-`, 괄호,
-  `max(...)`·`min(...)`, 그리고 **규칙 이름**(정규식 `[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)*`, 앞이 숫자·`.`·글자가 아닌 곳; `max`·`min`
-  제외). 규칙 이름은 모두 `source` 원본에서 찾는다.
+  - 원본 하나의 검사 순서: 객체 아님(`pdk_decl_shape`) -> format -> 키 집합 -> `units_m` -> 값 모양(`pdk_decl_shape`) -> 파일 존재 -> sha256 대조.
+- `quantities.<이름>`: 키 정확히 `source`, `expression`, `basis`. 셋 다 문자열이어야 하고(아니면 -- 예 `expression: 5` -- `pdk_decl_shape`),
+  `basis`(유도 근거 글)는 비지 않아야 한다(`pdk_decl_shape`). `expression` = 산술식: 수(int·float), `+ - * /`, 단항 `-`, 괄호,
+  `max(...)`·`min(...)`(위치 인자 1개 이상, 키워드 없음), 그리고 **규칙 이름**(정규식 `[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)*`, 앞이
+  숫자·`.`·글자가 아닌 곳; `max`·`min` 제외 -- 점으로 이어진 낱말 전체가 규칙 이름 하나라 `poly.2.x` 는 속성 접근이 아니라 규칙 `poly.2.x`).
+  규칙 이름은 모두 `source` 원본에서 찾는다.
+- **식 검사 순서**(앞 단계에서 걸리면 그 사유): (1) `source` 가 `sources` 에 없음 `pdk_source_undeclared` (2) 공백뿐인 식
+  `pdk_expression_invalid` (3) 문법 오류 `pdk_expression_invalid` (4) **모양 검사 -- 규칙 이름을 찾기 전에**: 허용 밖 노드(`max`·`min` 밖
+  함수 호출(`abs(...)`, `__import__(...)` 등 -- 함수 자리의 낱말은 이름 조회 없이 거부), 키워드 인자(`max(a, key=b)`), 문자열 상수
+  (`'a'`), bool, `**`·`%`·`//`, 비교, 단독 `max` 등) -> `pdk_expression_invalid` (5) 규칙 이름이 하나도 없음 `pdk_expression_invalid`
+  (6) 규칙 이름을 등장 순으로 찾음: `pdk_rule_missing`·`pdk_rule_ambiguous`·`pdk_rule_not_numeric`·`pdk_rule_unit_unknown`
+  (7) 계산 중 0 나누기 `pdk_expression_invalid` (8) 결과가 유한하지 않거나 **음수** `pdk_quantity_invalid` -- **정확히 0 은 허용**
+  (layout `LayoutPdk` 길이는 >= 0).
 
 ### 9.2 결과
 - `PdkDecl(pdk, decl_path, decl_sha256, sources, quantities)` -- frozen, `require_immutable` 통과, `fp_of` 결정론.
@@ -282,13 +296,14 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 |---|---|
 | `pdk_decl_missing` | 선언 파일 없음 |
 | `pdk_decl_json` | JSON 문법 오류 |
-| `pdk_decl_keys` / `pdk_decl_shape` / `pdk_decl_schema` | 키 집합 위반 / 객체·문자열 모양 위반 / schema 값 다름 |
+| `pdk_decl_keys` / `pdk_decl_schema` | 키 집합 위반 / schema 값 다름 |
+| `pdk_decl_shape` | 모양 위반: 최상위가 객체 아님(배열 등), `pdk`·`pdk_root` 빈/비문자열, `sources`·`quantities` 가 비지 않은 객체 아님, 원본·quantity 항목이 객체 아님, `path`·`encoding` 빈/비문자열, 알 수 없는 코덱, `sha256` 이 64자 소문자 hex 아님, `section_pattern` 비문자열·컴파일 실패, 열 번호가 0 이상 int 아님(bool 포함), quantity 의 `source`·`expression`·`basis` 비문자열, 빈 `basis` |
 | `pdk_source_missing` / `pdk_source_sha256_mismatch` | 원본 파일 없음 / sha256 이 선언과 다름 |
 | `pdk_source_undeclared` | quantity 의 `source` 가 `sources` 에 없음 |
 | `pdk_rule_missing` / `pdk_rule_ambiguous` | 식의 규칙이 원본에 없음 / 두 번 이상 나옴(쓰일 때만 거부) |
 | `pdk_rule_not_numeric` / `pdk_rule_unit_unknown` | 값 글자가 수가 아님(`N/A`, `0.170 *L` 등) / 단위 글자가 `units_m` 에 없음 |
-| `pdk_expression_invalid` | 빈 식·규칙 이름 없는 식·문법 오류·허용 밖 노드(`**`, 속성, 다른 함수, 키워드 인자)·0 나누기 |
-| `pdk_quantity_invalid` | 결과가 유한하지 않거나 음수 |
+| `pdk_expression_invalid` | 공백뿐인 식·규칙 이름 없는 식·문법 오류·허용 밖 노드(다른 함수, 키워드 인자, 문자열 상수, `**` 등 -- 규칙 이름 조회보다 먼저, 9.1 순서)·0 나누기 |
+| `pdk_quantity_invalid` | 결과가 유한하지 않거나 음수(정확히 0 은 허용) |
 
 ### 9.4 sky130 실값 (2026-10-07, 선언 sha256 은 커밋본 기준으로 재야 한다)
 원본: tlef `C:/pdk/sky130_fd_sc_hd/tech/sky130_fd_sc_hd.tlef`(sha256 `c8351e32...`), 공식 periphery 규칙표

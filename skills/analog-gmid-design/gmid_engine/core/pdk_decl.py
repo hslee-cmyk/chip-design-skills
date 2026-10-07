@@ -13,6 +13,7 @@
 * 실패는 전부 `SchemaRejectedError(detail={"reason": ...})`(로드 게이트 거부, 사유 키는 core CONTRACT 9절).
 """
 import ast
+import codecs
 import csv
 import dataclasses
 import hashlib
@@ -47,6 +48,7 @@ _NUMBER = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?
 _REFERENCE = re.compile(r"(?<![0-9.A-Za-z_])[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)*")
 _LEF_STATEMENT = re.compile(r"^\s*([A-Za-z_][A-Za-z0-9_]*)\s+(\S+)\s*;\s*$")
 _PLACEHOLDER = "ref_"
+_SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
 def _reject(reason, **detail):
@@ -168,6 +170,7 @@ def _load_source(root, name, spec, memo):
             not isinstance(f, (int, float)) or isinstance(f, bool) or not math.isfinite(f) or f <= 0
             for f in units_m.values()):
         raise _reject("pdk_source_units_invalid", source=name)
+    _check_source_shape(name, fmt, spec)
     path = root.rstrip("/\\") + "/" + spec["path"]
     if not os.path.isfile(path):
         raise _reject("pdk_source_missing", source=name, path=path)
@@ -179,6 +182,33 @@ def _load_source(root, name, spec, memo):
     params = tuple((k, spec[k]) for k in dict(_PARSE_KEYS)[fmt])
     table = memo.lookup((fmt, digest, params), lambda: _parsed(fmt, data.decode(spec["encoding"]), dict(params)))
     return path, digest, dict(table)
+
+
+def _check_source_shape(name, fmt, spec):
+    """원본 선언 값의 모양: path·encoding 비지 않은 문자열(encoding 은 파이썬 코덱 이름), sha256 = 64자 소문자 hex,
+    rule_table_csv 는 section_pattern 이 컴파일되는 정규식이고 열 번호가 0 이상 정수. 위반 -> `pdk_decl_shape`."""
+    where = "sources." + name
+    for key in ("path", "encoding", "sha256"):
+        if not isinstance(spec[key], str) or not spec[key]:
+            raise _reject("pdk_decl_shape", where=where + "." + key)
+    if not _SHA256.fullmatch(spec["sha256"]):
+        raise _reject("pdk_decl_shape", where=where + ".sha256")
+    try:
+        codecs.lookup(spec["encoding"])
+    except LookupError:
+        raise _reject("pdk_decl_shape", where=where + ".encoding") from None
+    if fmt != _FORMAT_TABLE:
+        return
+    for key in ("section_column", "id_column", "value_column", "unit_column"):
+        column = spec[key]
+        if isinstance(column, bool) or not isinstance(column, int) or column < 0:
+            raise _reject("pdk_decl_shape", where=where + "." + key)
+    if not isinstance(spec["section_pattern"], str):
+        raise _reject("pdk_decl_shape", where=where + ".section_pattern")
+    try:
+        re.compile(spec["section_pattern"])
+    except re.error:
+        raise _reject("pdk_decl_shape", where=where + ".section_pattern") from None
 
 
 def _rule(source_name, source, units_m, rule_id):
@@ -219,6 +249,31 @@ def _evaluate(node, values, expression):
     raise _reject("pdk_expression_invalid", expression=expression, why=type(node).__name__)
 
 
+def _check_expression_shape(node, expression):
+    """식 모양 검사(규칙 이름을 찾기 전에): 수(int·float, bool 아님), 규칙 이름 자리표, 단항 `-`, `+ - * /`,
+    `max`·`min` 호출(위치 인자 1개 이상, 키워드 없음)만. 그 밖(다른 함수·키워드·문자열·속성·`**` 등) -> `pdk_expression_invalid`."""
+    if isinstance(node, ast.Expression):
+        _check_expression_shape(node.body, expression)
+        return
+    if isinstance(node, ast.Constant) and type(node.value) in (int, float):
+        return
+    if isinstance(node, ast.Name) and node.id.startswith(_PLACEHOLDER):
+        return
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.USub):
+        _check_expression_shape(node.operand, expression)
+        return
+    if isinstance(node, ast.BinOp) and type(node.op) in dict(_BINOPS):
+        _check_expression_shape(node.left, expression)
+        _check_expression_shape(node.right, expression)
+        return
+    if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id in dict(_FUNCTIONS)
+            and node.args and not node.keywords):
+        for arg in node.args:
+            _check_expression_shape(arg, expression)
+        return
+    raise _reject("pdk_expression_invalid", expression=expression, why=type(node).__name__)
+
+
 def _references(expression):
     """식의 규칙 이름(등장 순, 중복 없음)과 이름을 자리표로 바꾼 파이썬 식."""
     names = []
@@ -239,19 +294,23 @@ def _references(expression):
 def _quantity(name, spec, sources, source_specs):
     _require_keys("quantities." + name, spec, _QUANTITY_KEYS, _QUANTITY_KEYS)
     source_name, expression = spec["source"], spec["expression"]
+    for key in ("source", "expression", "basis"):
+        if not isinstance(spec[key], str):
+            raise _reject("pdk_decl_shape", where="quantities." + name + "." + key)
+    if not spec["basis"]:
+        raise _reject("pdk_decl_shape", where="quantities." + name + ".basis")
     if source_name not in sources:
         raise _reject("pdk_source_undeclared", quantity=name, source=source_name)
-    if not isinstance(spec["basis"], str) or not spec["basis"]:
-        raise _reject("pdk_decl_shape", where="quantities." + name + ".basis")
-    if not isinstance(expression, str) or not expression.strip():
+    if not expression.strip():
         raise _reject("pdk_expression_invalid", quantity=name, expression=expression, why="empty")
     rule_names, python_text = _references(expression)
-    if not rule_names:
-        raise _reject("pdk_expression_invalid", quantity=name, expression=expression, why="no_rule")
     try:
         tree = ast.parse(python_text, mode="eval")
     except SyntaxError:
         raise _reject("pdk_expression_invalid", quantity=name, expression=expression, why="syntax") from None
+    _check_expression_shape(tree, expression)
+    if not rule_names:
+        raise _reject("pdk_expression_invalid", quantity=name, expression=expression, why="no_rule")
     units_m = source_specs[source_name]["units_m"]
     rules = tuple(_rule(source_name, sources[source_name], units_m, rid) for rid in rule_names)
     values = {_PLACEHOLDER + str(i): rule.value_m for i, rule in enumerate(rules)}
