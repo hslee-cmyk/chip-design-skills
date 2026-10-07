@@ -3,7 +3,9 @@ free verdict 는 막힘이 없으면 INCOMPLETE. 손계산: RL(vdd-nout) 단락 
 """
 import pytest
 
-from conftest import (CS, by_name, cs_input, dc_value, elem, fb_input, make_lut, run_netlist, run_oracle,
+import copy
+
+from conftest import (CS, OFF_ZERO, by_name, cs_input, dc_value, elem, fb_input, make_lut, run_netlist, run_oracle,
                       require_spice)
 
 
@@ -13,7 +15,7 @@ def lut(tmp_path):
 
 
 def cs(lut):
-    inp = cs_input(lut)
+    inp = cs_input(lut, preds_devices=copy.deepcopy(OFF_ZERO))  # [C23 조정] 전도 문턱 0(옛 ID > 0 규칙) 명시
     inp["sources"] = [{"name": "I1", "kind": "current", "terminals": ["vdd", "nout"], "value": 1e-7}]
     return inp
 

@@ -24,7 +24,7 @@ def _inp(lut, ind, tols, id_scale=None):
         devs[n]["ID"] = ind[n]["id"] * s
     for n, t in tols.items():
         devs[n]["tol"] = t
-    return cs_input(lut, diffusion=False, preds_nodes=pr["nodes"], preds_devices=devs)
+    return cs_input(lut, diffusion="zero", preds_nodes=pr["nodes"], preds_devices=devs)
 
 
 @pytest.fixture(scope="module")

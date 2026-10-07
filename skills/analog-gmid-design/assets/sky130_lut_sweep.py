@@ -6,7 +6,7 @@
 (용량·잡음 열, W_ref)으로 읽고, DC 정본은 폭 슬라이스(별도 생성기)다.
 
 2026-10-07 개정(U-27 재생성, 사용자 승인 Q1 (a')~(g), 근거 wt/_drafts/engine/lut_regen_plan.md):
-* L 축은 **입력**에서 받는다(`sweep --l-json` 또는 `--l-um`). 이 파일에 L 목록을 적지 않는다. 각 L은 제조 격자
+* L 축은 **입력**에서 받는다(`sweep --l-json [--l-json-key K]` 또는 `--l-um`). 이 파일에 L 목록을 적지 않는다. 각 L은 제조 격자
   (tlef MANUFACTURINGGRID) 위, 모델 bin L 범위 안이어야 한다. 각 L이 쓰는 bin은 Python 규칙으로 추정하지 않고
   ngspice `showmod`로 읽어 메타에 적는다(ngspice-46은 경계값 L = lmax에서 **아래 bin**을 쓴다, 계획 1.2a).
 * `candidates` 부명령: 사용자 결정(L 선형 보간은 한 PDK 모델 bin 안에서만) 아래 L 후보
@@ -417,17 +417,28 @@ def run_device(devcell: str, polarity: int, vb_sign: int, cfg: dict):
 
 
 # --------------------------------------------------------------------------- L 입력
-def read_l_list(l_json=None, l_um=None):
-    """L 목록(um)과 출처. `--l-json`: 리스트 또는 {"L_um": [...]} json. `--l-um`: 쉼표 목록."""
+def read_l_list(l_json=None, l_um=None, l_json_key="L_um"):
+    """L 목록(um)과 출처. `--l-json`: 리스트 또는 {key: [...]} json(key = `--l-json-key`, 기본 "L_um";
+    예: 승인 파일의 "verification_midpoints_um"). `--l-um`: 쉼표 목록. json 출처는 path·sha256·key를 남긴다."""
     if l_json is not None and l_um is not None:
         raise SystemExit("--l-json 과 --l-um 중 하나만 준다")
     if l_json is None and l_um is None:
         l_json = L_GRID_JSON   # 기본: 승인된 L 목록 파일
     if l_json is not None:
         d = json.load(open(l_json, encoding="utf-8"))
-        vals = d["L_um"] if isinstance(d, dict) else d
-        src = {"kind": "json", "path": os.path.abspath(l_json), "sha256": _sha256(l_json)}
+        if isinstance(d, dict):
+            if l_json_key not in d:
+                raise SystemExit(f"{l_json} 에 키 {l_json_key!r} 가 없다(있는 키: {sorted(d)})")
+            vals = d[l_json_key]
+        else:
+            if l_json_key != "L_um":
+                raise SystemExit(f"{l_json} 은 리스트 json이라 --l-json-key {l_json_key!r} 를 쓸 수 없다")
+            vals = d
+        src = {"kind": "json", "path": os.path.abspath(l_json), "sha256": _sha256(l_json),
+               "key": l_json_key if isinstance(d, dict) else None}
     else:
+        if l_json_key != "L_um":
+            raise SystemExit("--l-json-key 는 --l-json(또는 기본 승인 파일)과만 쓴다")
         vals = [x for x in l_um.split(",") if x.strip()]
         src = {"kind": "cli", "value": l_um}
     vals = [float(v) for v in vals]
@@ -646,7 +657,7 @@ def vs_axis(vs_max=None):
 def sweep(a):
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     grid = manufacturing_grid_um(a.tlef)
-    l_list, l_src = read_l_list(a.l_json, a.l_um)
+    l_list, l_src = read_l_list(a.l_json, a.l_um, a.l_json_key)
     devices = a.devices.split(",")
     VS = vs_axis(a.vs_max)
     os.makedirs(a.work, exist_ok=True)
@@ -723,6 +734,8 @@ def main(argv=None):
     s = sub.add_parser("sweep", help="LUT 생성")
     s.add_argument("--l-json", default=None,
                    help='L 목록 json(리스트 또는 {"L_um": [...]}); --l-um도 없으면 기본 sky130_lut_L_grid.json')
+    s.add_argument("--l-json-key", default="L_um",
+                   help='--l-json(기본 승인 파일 포함)에서 읽을 키. 검증 중점 실행 = verification_midpoints_um')
     s.add_argument("--l-um", default=None, help="L 목록(um, 쉼표)")
     s.add_argument("--out", required=True, help="산출 npz 경로")
     s.add_argument("--work", required=True, help="임시 넷리스트·체크포인트·진행 로그 경로")

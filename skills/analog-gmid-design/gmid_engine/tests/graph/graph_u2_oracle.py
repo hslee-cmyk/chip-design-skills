@@ -269,18 +269,7 @@ class U2Oracle:
         mirrors = [(g, s, m) for _k, g, s, m in self.gs_groups if g not in self.rails]
         self.matching_ratio = tuple(("matching_ratio", "dc", m, "derived", (g, s)) for g, s, m in mirrors)
         self.l_class = tuple(("l_class", "geom", m, "proposed", ("J-U4-a",)) for _g, _s, m in mirrors)
-        by_ks = defaultdict(list)
-        for n, e in self.mos.items():
-            if e["source"] not in self.rails:
-                by_ks[(e["kind"], e["source"])].append(n)
-        off = []
-        for (_kind, s), members in sorted(by_ks.items()):
-            gates = sorted({self.mos[m]["gate"] for m in members})
-            if len(gates) >= 2:
-                members = tuple(sorted(members))
-                off.append(("matching_offset", "dc_to_ss", members,
-                            "derived" if len(members) == 2 else "review_needed", (s,) + tuple(gates), ("J-U4-b",)))
-        self.matching_offset = tuple(off)
+        # matching_offset(옛 규칙: 바이어스 형제 미제외) 집계는 2026-10-07 Q8 (iii) 로 규칙이 바뀌어 뺐다(계약 4.5a).
 
     def _node(self, net):
         return F if net in self.rails else net

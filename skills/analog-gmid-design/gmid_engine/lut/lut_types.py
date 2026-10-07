@@ -2,7 +2,8 @@
 
 공개 정의는 frozen dataclass 뿐이다(데이터 선언 모듈, 구조 규칙 A 보충 (1)). 계산은 다른 파일이 한다.
 
-* L 은 앵커 이산 키로만 쓴다(보간 축은 VGS·VDS·VS, 계획 LR3).
+* L 은 LUT 앵커이거나, 같은 PDK 모델 bin 안의 두 이웃 앵커 사이일 때만 그 둘로 선형 보간한다(사용자 결정 2026-10-07,
+  bin 경계를 건너는 보간 금지). bin 지도(`LBinMap`)는 로드 때 슬라이스가 기록한 모델 파일에서 한 번 만든다.
 * 축 순서는 `AXES` = (L, VGS, VDS, VS) 이고 슬라이스 배열 배치 `[L, VGS, VDS, VS]` 와 같다. VS 축은 source 기준
   body 전위 크기(vsb)다(슬라이스 생성기 sign_convention: source 접지, body = -VS(nfet) / +VS(pfet)).
 * 슬라이스 배열 값은 그 폭 `w_m` 에서의 절댓값(정규화 안 함). 정규화(`ID·L/w_m`)는 조회 함수가 한다.
@@ -33,7 +34,8 @@ class LutSpec:
 
 @dataclasses.dataclass(frozen=True)
 class SliceSource:
-    """manifest 의 슬라이스 한 줄과 그 파일에서 읽은 출처 값."""
+    """manifest 의 슬라이스 한 줄과 그 파일에서 읽은 출처 값. `model_paths`: ((meta 상대 경로, 실제 경로), ...) --
+    meta `model_files_sha256` 의 파일을 meta `pdk_root` 아래에서 찾아 sha256 을 대조한 것(정렬)."""
 
     kind: str
     device: str
@@ -43,6 +45,31 @@ class SliceSource:
     sha256: str
     conditions: tuple
     model_files_sha256: tuple
+    model_paths: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class LBin:
+    """PDK 모델 bin 하나(L 방향): `.model` 이름과 그 블록의 `lmin`·`lmax`(m)."""
+
+    model: str
+    lmin: float
+    lmax: float
+
+
+@dataclasses.dataclass(frozen=True)
+class LBinMap:
+    """슬라이스(또는 용량 표) 하나의 L bin 지도 -- 로드 때 한 번 계산해 표와 함께 보관한다.
+
+    `model_files`: 읽은 모델 파일(슬라이스 meta 의 상대 경로) tuple, `w_bin`: 고른 W bin `(wmin, wmax)`,
+    `bins`: 그 W bin 행의 L bin(`LBin`, lmin 오름차순), `anchor_bin`: L 앵커마다 그 앵커가 속한 `bins` index.
+    bin 정보가 없으면(모델 파일 기록 없음·bin 블록 없음) 모두 빈 값 -- `bins == ()` 이 '지도 없음' 이다.
+    """
+
+    model_files: tuple
+    w_bin: object
+    bins: tuple
+    anchor_bin: tuple
 
 
 @dataclasses.dataclass(frozen=True)
@@ -62,6 +89,7 @@ class LutProvenance:
 class DcSlice:
     """DC 폭 슬라이스 하나(소자 kind·폭 키 하나). 로그 배열은 그 배열의 최소 양수값을 바닥으로 만든다
     (데이터를 자르지 않음 -- 옛 상수 바닥 1e-18·1e-30 대체). `on_mask` = (ID > 0) & (GM > 0) 격자점.
+    `l_bins` = 그 폭의 L bin 지도(`LBinMap`, lut/CONTRACT.md 4.0).
 
     `floors`: ((배열 이름, 바닥값), ...), `nonpositive`: ((배열 이름, 0 이하 원소 수), ...).
     원시 GM·GDS 배열은 로그 배열과 on_mask 로 충분해 보관하지 않는다(메모리).
@@ -82,6 +110,7 @@ class DcSlice:
     log_GDS: object
     floors: tuple
     nonpositive: tuple
+    l_bins: LBinMap
 
     def __canonical__(self):
         return (self.kind, self.w_key, self.sha256)
@@ -90,6 +119,7 @@ class DcSlice:
 @dataclasses.dataclass(frozen=True, eq=False)
 class CapTable:
     """기준 LUT 의 용량 열(한 kind). `CGS`·`CGB` 는 열이 없으면 None. `w_ref_m` = 이 배열이 잰 폭.
+    `l_bins` = 채택 폭과 같은 슬라이스의 L bin 지도(같은 슬라이스가 없으면 빈 지도).
 
     `basis`: w_ref_m 채택 근거 ((키, 값), ...) -- 메타 기록인지, 어느 슬라이스와 ID 가 맞았는지.
     """
@@ -104,6 +134,7 @@ class CapTable:
     CGB: object
     w_ref_m: float
     basis: tuple
+    l_bins: LBinMap
 
     def __canonical__(self):
         return (self.kind, self.sha256, self.w_ref_m, self.basis)

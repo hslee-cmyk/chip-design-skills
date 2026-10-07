@@ -26,7 +26,8 @@ def held(ref_root):
 
 
 def _devs(src, tols):
-    d = {n: {"ID": src[n]["id"], "gm": src[n]["gm"]} for n in ("M1", "MP1")}
+    # [C23 조정] off_current_A 0 = 옛 'ID > 0 이면 전도' 규칙을 명시(없으면 free 가 PASS 대신 INCOMPLETE)
+    d = {n: {"ID": src[n]["id"], "gm": src[n]["gm"], "off_current_A": 0.0} for n in ("M1", "MP1")}
     for n, t in tols.items():
         d[n]["tol"] = {"ID_rel": t}
     return d

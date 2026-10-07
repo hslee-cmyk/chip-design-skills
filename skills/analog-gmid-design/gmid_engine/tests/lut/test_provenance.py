@@ -11,7 +11,7 @@ import pytest
 from gmid_engine.core import SchemaRejectedError
 from gmid_engine.lut import LutProvenance, LutSpec, SliceSource, lut_provenance
 
-from .conftest import (LEGACY_SR, LUT_SRC, TOY_SPEC, ast_sha, detail_of, function_body, sha256_file,
+from .conftest import (BIN_MODEL_REL, LEGACY_SR, LUT_SRC, TOY_SPEC, ast_sha, detail_of, function_body, sha256_file,
                        standard_toy_slices, toy_slice_arrays)
 
 H_COND = "20513c618b94f19b50d8a4fcfc2fd0a17f934302259ed4e78d4b21163451235b"
@@ -184,3 +184,69 @@ def test_real_provenance(real_paths, real_spec, real_manifest, real_slice_files)
     # 기준 LUT 에는 corner·temp_c 가 있다
     assert p.cap_conditions == COND_TT
     assert {s.w_key for s in p.slices if s.kind == "nmos"} >= {72, 1000, 1400}
+
+
+# ---------------------------------------------------------------------------
+# [r4] 모델 파일 (1.3): pdk_root + 상대 경로, sha256 재측정, SliceSource.model_paths, 거부 3종
+# ---------------------------------------------------------------------------
+
+def _same_path(a, b):
+    return Path(a).resolve() == Path(b).resolve()
+
+
+def test_model_paths_recorded(bin_toy_build, toy_build):
+    bt = bin_toy_build()
+    p = lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC)
+    for s in p.slices:
+        assert len(s.model_paths) == 1
+        rel, path = s.model_paths[0]
+        assert rel == BIN_MODEL_REL and _same_path(path, bt.model_path)
+    assert all(s.model_paths == () for s in _prov(toy_build()).slices)     # 기록 없는 toy -> ()
+
+
+def _reject_both(bt):
+    """lut_provenance 와 load_lut_set 둘 다 같은 사유로 거부."""
+    out = []
+    for call in (lambda: lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC), bt.load):
+        with pytest.raises(SchemaRejectedError) as ei:
+            call()
+        out.append(detail_of(ei.value))
+    assert out[0]["reason"] == out[1]["reason"]
+    return out[0]
+
+
+def test_reject_model_root_missing(bin_toy_build):
+    def drop_root(meta):
+        meta = dict(meta)
+        del meta["pdk_root"]
+        return meta
+    bt = bin_toy_build(meta_fn=drop_root)
+    det = _reject_both(bt)
+    assert det["reason"] == "lut_model_root_missing"
+    assert any(_same_path(det["path"], p) for p in bt.slice_paths)     # detail path = 슬라이스
+
+
+def test_empty_model_record_without_root_is_fine(bin_toy_build):
+    """기록이 비어 있으면 pdk_root 가 없어도 된다(빈 지도)."""
+    lut = bin_toy_build(meta_fn=lambda meta: {"model_files_sha256": {}}).load()
+    assert all(sl.l_bins.bins == () for sl in lut.slice_map.values())
+
+
+def test_reject_model_file_missing(bin_toy_build):
+    bt = bin_toy_build(model_text=False)
+    det = _reject_both(bt)
+    assert det["reason"] == "lut_model_file_missing"
+    # path: 1.3 은 '경로 = os.path.join(pdk_root, 상대 경로)' -- detail 이 상대 표기인지 결합 경로인지는 명시 없음(둘 다 허용)
+    assert det["path"] == BIN_MODEL_REL or _same_path(det["path"], bt.model_path)
+    assert any(_same_path(det["slice"], p) for p in bt.slice_paths)
+
+
+def test_reject_model_file_sha256_mismatch(bin_toy_build):
+    bt = bin_toy_build()
+    recorded = bt.meta["model_files_sha256"][BIN_MODEL_REL]
+    bt.model_path.write_text(bt.model_path.read_text(encoding="utf-8") + "* edited\n", encoding="utf-8")
+    det = _reject_both(bt)
+    assert det["reason"] == "lut_model_file_sha256_mismatch"
+    assert det["recorded"] == recorded and det["actual"] == sha256_file(bt.model_path)
+    assert det["path"] == BIN_MODEL_REL or _same_path(det["path"], bt.model_path)
+    assert any(_same_path(det["slice"], p) for p in bt.slice_paths)

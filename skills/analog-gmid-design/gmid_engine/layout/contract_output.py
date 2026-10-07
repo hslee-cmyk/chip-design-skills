@@ -1,0 +1,361 @@
+"""MOD7 레이아웃 출력 계약과 graph 필드 값 레코드 (계획 N3.17 출력 계약, design_mod7_layout.md 3절 끝·4절,
+사용자 결정 2026-10-07 Q4·Q8).
+
+데이터 선언 모듈(공개 정의 = frozen dataclass 뿐). 모든 값은 불변(tuple·스칼라·frozen dataclass)이라 graph 필드 값과
+지문(core `fp_of`)에 그대로 쓰인다. 길이·폭 m, 면적 m^2, 전류 밀도 A/m. 폭 키 = finger_w / 제조 격자(정수).
+
+필드 값: `SliceDensity`(device `ly_slices`), `FingerCandidate`(device `ly_fw_cand`), `GroupLayout`·`MatchingDisposition`
+(graph `ly_groups`·`ly_dispositions`), `DeviceFinger`(device `ly_finger`), `RowsLayout`·`FloorplanSummary`
+(graph `ly_rows`·`ly_floorplan`). 최종 결과: `LayoutResult`(맨 앞 `review_needed`, 끝에 재검증 요청 `Revalidation`).
+"""
+import dataclasses
+
+# 레이아웃 뒤 재검증(Q4 (ii)): 실현 기하로 평가 커널 1회 + 봉인 1~8 을 다시 돌린 뒤 freeze.
+REVALIDATION_SEALS = ("seal_1", "seal_2", "seal_3", "seal_4", "seal_5", "seal_6", "seal_7", "seal_8")
+REVALIDATION_PENDING = "pending_wiring"
+REVALIDATION_CONSUMER = "convergence (MOD8): evaluation kernel + seals 1-8 on realized geometry, then freeze"
+REVALIDATION_PENDING_REASON = ("evaluation kernel (MOD5 metrics / sizing blocks) and seals 1-8 (MOD6) are not in the engine "
+                               "yet -- MOD8 convergence must consume this request before freeze")
+# 판정 축 면적 포함 항목(Q8 (vii)) -- FloorplanSummary.included 의 항목 이름.
+AREA_ITEM_ROW_END_DUMMY = "row_end_dummy_x2_per_row"
+AREA_ITEM_TAP = "body_tap_per_row"
+AREA_ITEM_WELL_SPACING = "well_spacing_between_bodies"
+AREA_ITEM_ROW_GAP = "row_gap"
+AREA_ITEM_FINGER_OVERHEAD = "finger_pitch_overhead"
+# stage 를 넘는 hub 병합(Q8 (viii)) -- 노이즈 결합 우려는 기록만 한다(거부 사유로 쓰지 않는다).
+MERGE_NOISE_NOTE = "noise_coupling_not_evaluated (recorded only, not a rejection reason)"
+
+
+@dataclasses.dataclass(frozen=True)
+class SliceDensity:
+    """PDK 특성화 폭 슬라이스 하나에서의 보존량 실현(Q4 (i)): 그 슬라이스의 gm/ID 근 `vgs_V`, 전류 밀도 `J_A_per_m`(= ID/W),
+    `W_need_m` = ID / J, `tol_v_V` = 그 슬라이스 tol_V 셀(`id_equivalent`) 값. `reason` = "" 이면 사용 가능, 아니면 이 폭을
+    후보에서 뺀 사유(LUT 실패 reason 또는 `tol_v_undefined`) -- 그때 숫자 필드는 None."""
+
+    finger_w_key: int
+    finger_w_m: float
+    vgs_V: object
+    J_A_per_m: object
+    W_need_m: object
+    tol_v_V: object
+    reason: str
+
+
+@dataclasses.dataclass(frozen=True)
+class WTolerance:
+    """W 허용오차(LY1, Q4 (iv)): `lower` = grid/(2 fw), `upper` = tol_V(id_equivalent 셀) x gm/ID,
+    `effective` = max(upper, lower), `grid_dominated` = lower > upper."""
+
+    lower: float
+    upper: float
+    effective: float
+    grid_dominated: bool
+
+
+@dataclasses.dataclass(frozen=True)
+class FingerCandidate:
+    """finger_w 후보 하나(LY1·LY2): 폭 키, finger 수, 그 슬라이스의 `W_need_m`, 실현 W = nf x fw,
+    상대 오차 = |nf fw - W_need| / W_need, 허용오차(`WTolerance` 의 네 값). `ok` = 오차 <= 실효 허용오차 --
+    후보 순위 기준일 뿐 합격 판정이 아니다(합격은 레이아웃 뒤 재검증, Q4 (ii))."""
+
+    finger_w_key: int
+    finger_w_m: float
+    n_fingers: int
+    W_need_m: float
+    W_realized_m: float
+    err_rel: float
+    lower: float
+    upper: float
+    tol_effective: float
+    grid_dominated: bool
+    ok: bool
+
+
+@dataclasses.dataclass(frozen=True)
+class WRequest:
+    """MOD8 에 돌려주는 W 변경 요청(LY3). 레이아웃은 W 를 적용하지 않는다. `W_old_m` = 그 폭 슬라이스의 W_need."""
+
+    device: str
+    W_old_m: float
+    W_new_m: float
+    reason: str
+    group: object = None
+
+
+@dataclasses.dataclass(frozen=True)
+class GroupAttempt:
+    """그룹 배치 시도 하나(조용한 완화 금지 -- 시도 순서대로 전부 남긴다, LY5)."""
+
+    step: str
+    pattern: object
+    finger_w_m: object
+    n_fingers: tuple
+    W_realized_m: tuple
+    method: object
+    dx: object
+    dy: object
+    ok: bool
+    reason: str
+
+
+@dataclasses.dataclass(frozen=True)
+class PatternRow:
+    """패턴 함수가 낸 행 하나(정규화 후). `segments` = ((transistor_sequence, node_sequence), ...)."""
+
+    transistor_sequence: tuple
+    node_sequence: tuple
+    segments: tuple
+    crossover_after: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class GroupLayout:
+    """matching 그룹 결과. `ok` = 멤버 무게중심 일치(dx = dy = 0, finger 피치 단위). `pending` = W_request 를 내고 MOD8
+    응답 대기(배치는 `provisional`). `relaxed` = 차동쌍·branch_symmetric 이 완화됨(LY5 (iii), Q8 (ii))."""
+
+    gid: str
+    role: str
+    members: tuple
+    pattern: object
+    method: object
+    finger_w_key: object
+    finger_w_m: object
+    n_fingers: tuple
+    rows: tuple
+    residual: object
+    crossover_count: object
+    isolated_pairs: object
+    dx: object
+    dy: object
+    ok: bool
+    relaxed: bool
+    pending: bool
+    provisional: bool
+    reason: str
+    attempts: tuple
+    w_requests: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class MatchingDisposition:
+    """레이아웃 matching 에서 뺀 그룹의 기록(Q8 (iii)): `disposition` = "excluded_from_layout_matching", `reason` = 근거."""
+
+    gid: str
+    role: str
+    members: tuple
+    disposition: str
+    reason: str
+
+
+@dataclasses.dataclass(frozen=True)
+class DeviceFinger:
+    """소자별 finger 확정(행별 finger_w, LY2·L6). `origin` = "group" | "row". `w_request` 는 실효 허용오차를 못 지킬 때만."""
+
+    name: str
+    finger_w_key: int
+    finger_w_m: float
+    n_fingers: int
+    W_need_m: float
+    W_realized_m: float
+    err_rel: float
+    lower: float
+    upper: float
+    tol_effective: float
+    grid_dominated: bool
+    ok: bool
+    origin: str
+    group: object
+    w_request: object
+
+
+@dataclasses.dataclass(frozen=True)
+class RowLayout:
+    """물리 행 하나. `devices` = ((이름, finger 수), ...), 폭 = sum(nf x (L + PDK 여유)), 높이 = finger_w.
+    `method`: "pattern:<방법>" | "euler" | "mirror" | "crossover". `n_components` = diffusion 섬 수.
+    `group` = 패턴 행이면 그 gid. `matching` = 이 행에 레이아웃 matching 그룹 멤버가 있음(자동 접기 대상 아님, Q8 (v))."""
+
+    row_id: str
+    row_group: str
+    kind: str
+    finger_w_key: int
+    finger_w_m: float
+    width_m: float
+    devices: tuple
+    transistor_sequence: tuple
+    node_sequence: tuple
+    segments: tuple
+    method: str
+    crossover_count: int
+    n_components: int
+    walk_ok: bool
+    group: object
+    matching: bool
+
+
+@dataclasses.dataclass(frozen=True)
+class BoxVerdict:
+    """행 폭 비(max/min)와 길이 비 -- 기록만(Q8 (vi): 하드 box 게이트 없음). `folds` = ((행 id, 접은 행 수), ...)."""
+
+    width_ratio: float
+    elongation: float
+    total_width_m: float
+    total_height_m: float
+    widest_row: str
+    narrowest_row: str
+    folds: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class FoldAttempt:
+    """box 개선 시도 하나(목적 = 판정 축 외곽 면적, Q8 (v)(vi)). `action` = "fold"(matching 없는 행 접기) |
+    "rebuild"(matching 패턴 행을 패턴 함수로 n_rows 재구성). dx·dy 는 rebuild 의 재판정 값(fold 는 None)."""
+
+    row_id: str
+    action: str
+    n_rows: int
+    outline_area_m2: float
+    dx: object
+    dy: object
+    adopted: bool
+    reason: str
+
+
+@dataclasses.dataclass(frozen=True)
+class MergeDecision:
+    """stage 를 넘는 hub 병합 후보 하나의 판정(Q8 (viii)): 병합 전후 판정 축 면적으로 채택, `note` = 노이즈 결합 기록."""
+
+    rows: tuple
+    net: str
+    merged: bool
+    reason: str
+    area_before_m2: float
+    area_after_m2: object
+    note: str
+
+
+@dataclasses.dataclass(frozen=True)
+class GroupRebuild:
+    """패턴 행 재구성으로 바뀐 matching 그룹의 최종 배치(Q8 (v)): 행 수·방법·dx·dy."""
+
+    gid: str
+    n_rows: int
+    method: str
+    dx: float
+    dy: float
+
+
+@dataclasses.dataclass(frozen=True)
+class RowsLayout:
+    """graph `ly_rows` 값: 물리 행 전부(행 id 정렬), 행 폭 비 기록, box 개선 시도, hub 병합 판정, 재구성된 그룹."""
+
+    rows: tuple
+    box: BoxVerdict
+    fold_attempts: tuple
+    merge_decisions: tuple
+    rebuilt_groups: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class FloorplanSummary:
+    """floorplan 결과. `outline_area_m2` = 외곽(bbox) 면적(판정 축 면적, 사용자 확정 12번 (나)),
+    `area_tie_m2` = 격자 한 칸 면적(재필터 동률 해상도). `placements` = ((행 id, x, y, 폭, 높이), ...) m(폭은 dummy·tap 포함).
+    `included` = ((항목, 값 m, PDK 규칙 번호), ...) -- 판정 축 면적에 넣은 항목(Q8 (vii), front 표 '포함 항목' 열)."""
+
+    bbox_width_m: float
+    bbox_height_m: float
+    outline_area_m2: float
+    area_tie_m2: float
+    aspect_ratio: float
+    packing_density: float
+    placements: tuple
+    included: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class DeviceLayout:
+    """소자별 최종: finger_w·nf·행별 finger 수, 참고 W, 슬라이스 W_need, 실현 W·오차·허용오차(하한·상한·실효·격자 지배),
+    후보에서 뺀 폭 슬라이스 ((폭 키, 사유), ...)."""
+
+    name: str
+    finger_w_m: float
+    n_fingers: int
+    rows: tuple
+    W_m: float
+    W_need_m: float
+    W_realized_m: float
+    W_err_rel: float
+    W_tol_lower: float
+    W_tol_upper: float
+    W_tol_effective: float
+    grid_dominated: bool
+    origin: str
+    excluded_slices: tuple
+
+
+@dataclasses.dataclass(frozen=True)
+class ReviewItem:
+    """결과 맨 앞 `review_needed` 항목(Q8 (iv)): 완화되었거나 배치되지 못한 차동쌍·branch_symmetric 그룹과 그 dx·dy(피치 단위)."""
+
+    gid: str
+    role: str
+    reason: str
+    dx: object
+    dy: object
+
+
+@dataclasses.dataclass(frozen=True)
+class RealizedDevice:
+    """재검증 입력 소자 하나(Q4 (ii)(iii)): 실현 기하(폭 키·finger_w·nf·실현 W)와 보존량·동작점.
+    `recalibrate_id` = False 는 diode 연결 소자(ID 재보정 불필요), `recompute_node_voltages` 는 모든 소자 True."""
+
+    name: str
+    kind: str
+    finger_w_key: int
+    finger_w_m: float
+    n_fingers: int
+    W_need_m: float
+    W_realized_m: float
+    ID_A: float
+    gm_id: float
+    L_m: float
+    vds_V: float
+    vsb_V: float
+    recalibrate_id: bool
+    recompute_node_voltages: bool
+
+
+@dataclasses.dataclass(frozen=True)
+class Revalidation:
+    """레이아웃 뒤 재검증 요청(Q4 (ii)): W_request 유무와 관계없이 항상 `required`. `status` = `REVALIDATION_PENDING`
+    (평가 커널·봉인이 엔진에 생기기 전까지), `seals` = `REVALIDATION_SEALS`, `consumer` = 이 요청을 소비할 곳."""
+
+    required: bool
+    status: str
+    seals: tuple
+    devices: tuple
+    consumer: str
+    reason: str
+
+
+@dataclasses.dataclass(frozen=True)
+class LayoutResult:
+    """`run_layout` 반환. 맨 앞 `review_needed`(Q8 (iv)). `w_invariant_ok` = 행별 finger 합 = 소자 nf 이고 실효 허용오차를 넘는
+    소자는 모두 W_request 가 있다. `revalidation` = 재검증 요청(Q4 (ii)). `computed_blocks` = 이번 호출에서 다시 계산한
+    writer 이름(나머지는 graph 필드 재사용). `snapshot` = 결과 필드를 담은 core GraphSnapshot(다음 호출의 `previous`)."""
+
+    review_needed: tuple
+    devices: tuple
+    groups: tuple
+    matching_dispositions: tuple
+    rows: tuple
+    box: BoxVerdict
+    fold_attempts: tuple
+    merge_decisions: tuple
+    floorplan: FloorplanSummary
+    coverage_ok: bool
+    coverage_missing: tuple
+    w_requests: tuple
+    w_invariant_ok: bool
+    revalidation: Revalidation
+    computed_blocks: tuple
+    snapshot: object = dataclasses.field(default=None, compare=False, repr=False)
