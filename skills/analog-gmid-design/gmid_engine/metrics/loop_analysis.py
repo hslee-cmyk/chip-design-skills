@@ -68,8 +68,11 @@ def _rhp_poles(factors):
 def _margin_reason(rhp, fallback):
     """`phase_margin_deg` 정의 불가 사유: 우반면 극점이 있으면 그것(전제 위반이 먼저), 아니면 `fallback`(교차·위상 사유)."""
     if rhp:
+        # 근은 (실부, 허부) float 쌍으로 담는다: Undefined 는 블록(graph.metrics_ss)에 그대로 쓰이고 core `require_immutable` 은
+        # complex 를 받지 않는다(값 의존 정의 불가에서 예외 금지 -- CONTRACT 2절·7.4).
+        pairs = tuple((float(p.real), float(p.imag)) for p in rhp)
         return Undefined("phase_margin_deg", "loop_open_rhp_poles", "definitional",
-                         (("rhp_poles", rhp), ("rhp_pole_count", len(rhp))))
+                         (("rhp_poles", pairs), ("rhp_pole_count", len(rhp))))
     return _retag(fallback, "phase_margin_deg")
 
 

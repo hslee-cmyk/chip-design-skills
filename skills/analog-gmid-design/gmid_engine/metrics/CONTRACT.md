@@ -103,7 +103,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `dc_not_above_level`, `no_crossing_above`, `dc_zero`, `den_zero`, `num_zero`, `operand_undefined` | definitional | 교차·비·이득·Middlebrook 분모(`probe_factor`) | STRUCTURE_UNRESOLVED / 제약 위반 후보 실패(margin null, N3.14 표의 해당 하위 클래스는 판정 계층이 확정) |
 | `loop_cut_mixed_charge` | definitional | `probe_factor` ω = 0(절단 노드 중 용량 전용과 전도 노드가 섞임 -- 열마다 1/s 차수가 달라 0차 동차성으로 극한을 못 낸다, 6절 M7) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
 | `negative_output_resistance` | definitional | `output_resistance`(DC 극한 관측 / I < 0 -- 양되먹임. 값을 내면 `<=` 제약이 통과하므로 정의 불가로 둔다, 7a Q3 오케스트레이터 결정 2026-10-07) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
-| `loop_open_rhp_poles` | definitional | `analyze_loop` 의 `phase_margin_deg` 만(→ `pm_ss_deg`·`parasitic_pm_ss_deg`). 루프 인수 `poles` 에 실부 > 0 인 근이 있음 -- Nyquist P > 0 이라 180° − 지연은 안정 여유가 아니다(3.10 전제). detail `rhp_poles`(근 tuple, 정렬 (|s|, 실부, 허부))·`rhp_pole_count`. 값을 내면 위상 앞섬으로 PM > 180° 가 `>=` 제약을 통과한다(ngcc 2026-10-08: PM 218°, SPICE 과도 0.73 Vpp 발진) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
+| `loop_open_rhp_poles` | definitional | `analyze_loop` 의 `phase_margin_deg` 만(→ `pm_ss_deg`·`parasitic_pm_ss_deg`). 루프 인수 `poles` 에 실부 > 0 인 근이 있음 -- Nyquist P > 0 이라 180° − 지연은 안정 여유가 아니다(3.10 전제). detail `rhp_poles`(근마다 `(실부, 허부)` float 쌍의 tuple -- complex 아님(블록 write 의 core `require_immutable`), 중복 없이 (|s|, 실부, 허부) 오름차순)·`rhp_pole_count`(int), 키 이름순 저장(3.10). 값을 내면 위상 앞섬으로 PM > 180° 가 `>=` 제약을 통과한다(ngcc 2026-10-08: PM 218°, SPICE 과도 0.73 Vpp 발진) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
 | `singular_mna`, `crossing_bracket_overflow`, `crossing_bound_violated`, `phase_jump_unresolved`, `zero_response_on_axis`, `response_not_finite`, `unrecorded_cause` | numeric | 풀이·이분·위상 | STRUCTURE_UNRESOLVED / NONCONVERGENT(후보 실패 클래스) |
 | `loop_probe_singular` | numeric | `probe_factor`(그 ω 에서 프로브 직렬 임피던스 행렬 M = Pᵀ·Z·P 가 특이 -- 영 피벗) | STRUCTURE_UNRESOLVED / NONCONVERGENT |
 
@@ -182,8 +182,12 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
   P = 0 일 때뿐이다(그때 Z = N 이고, −1 을 감지 않는 조건이 UGF 위상으로 읽힌다). 그래서 정의를
   **`phase_margin_deg` = 180° − `phase_lag`(UGF 까지), 단 인수 `poles` 의 모든 근이 Re ≤ 0 일 때**로 한다. 인수 `poles` 의
   합집합(`Factor`: 계 극점, `ProbeFactor`: T 의 극점 -- 둘 다 `finite_eigs` 근, 3.4·3.17)에 Re > 0 인 근이 하나라도 있으면
-  `phase_margin_deg` = None + `Undefined("phase_margin_deg", "loop_open_rhp_poles", "definitional", (("rhp_poles", 근 tuple),
-  ("rhp_pole_count", 개수)))` 이다. 이 사유가 교차·위상 사유(`dc_not_above_level` 등)보다 먼저다(전제 위반). `phase_lag_rad`·
+  `phase_margin_deg` = None + `Undefined("phase_margin_deg", "loop_open_rhp_poles", "definitional", (("rhp_poles", 근 쌍 tuple),
+  ("rhp_pole_count", 개수)))` 이다. **detail 형식(정확히)**: `rhp_poles` = 근마다 `(실부, 허부)` Python float 쌍의 tuple
+  (complex 객체가 아니다 -- `Undefined` 는 블록 `graph.metrics_ss` 에 그대로 쓰이고 core `require_immutable` 이 complex 를 받지
+  않는다, 2절·7.4 '값 의존 정의 불가는 예외가 아님'), 중복 없이 (|s|, 실부, 허부) 오름차순(= `finite_eigs` 정렬). 켤레 복소쌍은
+  두 원소(허부 + 와 −)로 들어간다. `rhp_pole_count` = int = `len(rhp_poles)`. `Undefined` 가 detail 을 키 이름순으로 정렬하므로
+  저장 순서는 `(("rhp_pole_count", n), ("rhp_poles", ((re, im), …)))` 이다. 이 사유가 교차·위상 사유(`dc_not_above_level` 등)보다 먼저다(전제 위반). `phase_lag_rad`·
   `ugf_hz`·`gain_db`·`gbw_hz` 는 측정량이라 그대로 낸다. 우반면 근이 없으면 결과는 이 전제를 넣기 전과 비트 동일(I-17).
   - **문턱**: 새 상수 없이 근의 분해능 규약(3.4)을 그대로 쓴다 -- `finite_eigs` 가 원점으로 판정한 근은 정확히 0j 라 Re > 0 에
     들지 않고, 나머지 근의 실부 부호를 그대로 읽는다(Re > 0 엄격 비교).
@@ -391,7 +395,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
   det = (g2 + sC)(g5 + sC) − gx² = C²(s − 2e7)(s + 5e7), **T(s) = 10·(1 + s/1e7)/((1 − s/2e7)(1 + s/5e7))** -- 극점 +2e7(우반면)·
   −5e7, 영점 −1e7, T(0) = 10.
 - 기대: `gain_db` = 20, UGF = 158931912.449 Hz(|T| = 1, brentq), `phase_lag_rad` = −(atan(ω_u/1e7) + atan(ω_u/2e7) − atan(ω_u/5e7))
-  = −1.59078562547(위상 앞섬), **`phase_margin_deg` = None + `loop_open_rhp_poles`(rhp_poles = (2e7 + 0j,), 개수 1)**. 옛 정의
+  = −1.59078562547(위상 앞섬), **`phase_margin_deg` = None + `loop_open_rhp_poles`(rhp_poles = ((2e7, 0.0),), 개수 1)**. 옛 정의
   값 180° − 지연 = 271.145302449° 는 `>=` 제약을 통과하지만 폐루프 특성식 1 + T = 0 의 근은 +9.812e8·−1.121e7 rad/s(불안정) --
   이 값을 `pm_ss_deg`·`parasitic_pm_ss_deg` 경로가 내면 FAIL(옛 정의 red). 2026-10-08 엔진 실측: 극점 19999999.999999996 + 0j,
   UGF 158931912.4494295 Hz(폐형식과 상대오차 ~5e-16), `phase_lag_rad` 폐형식과 비트 동일.
