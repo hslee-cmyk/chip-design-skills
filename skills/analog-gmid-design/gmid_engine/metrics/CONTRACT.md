@@ -76,8 +76,10 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 
 - **예외는 입력 계약 위반에만**: 형식 오류(`TypeError`), 값·뷰 정의 오류(`ValueError` -- 레코드 값, 여기 열 이름 중복,
   구동 노드가 교류접지와 겹침, 고정 노드에 전류·전하 주입, 관측이 구동 안 된 고정 노드뿐, 격자 다른 인수 묶기, 인수 행·열 범위
-  밖·순수 전하 열 인수, rout·ratio 열 조건, 합산 레일 선언, 절단 정의(빈 cuts·원소 범위 밖·같은 원소 두 번·교류접지 절단),
-  프로브 열·관측 없음(`probe_factor`)), 미등록 metric 이름(`KeyError`). 이것들은 값(사이징 점)과 무관한 배선·뷰 결함이다.
+  밖·순수 전하 열 인수, rout·ratio 열 조건, 합산 레일 선언, 절단 정의(원소 범위 밖·같은 원소 두 번·교류접지 절단),
+  프로브 열·관측 없음·중복, 0·비유한 가중(`probe_factor`)), 미등록 metric 이름(`KeyError`). 이것들은 값(사이징 점)과 무관한
+  배선·뷰 결함이다. **모양 위반은 TypeError 로 통일**: 비어 있으면 안 되는 tuple 이 비었음(excitations·senses·인수·
+  `cut_circuit` 의 cuts·`probe_factor` 의 pairs), tuple·쌍 형식이 아님, `probe_factor` 의 weights 길이 ≠ pairs 길이.
 - **값에 따라 생기는 정의 불가는 예외가 아니라 값**: 결과 묶음의 해당 필드가 None 이고 `undefined` 에
   `Undefined(quantity, code, category, detail)` 가 있다. `metric_value(name, source)` 는 항상 `MetricResult(name, value, undefined)`
   를 돌려준다. MOD5 는 N3.14 분류를 하지 않는다 -- 판정 계층이 문맥으로 분류한다(아래 표는 권고 대응).
@@ -120,14 +122,17 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 ### 3.4 `pencil_roots(system) -> Roots`
 - `poles` = (G, −C) 유한 일반화 고유값, `zeros[r][j]` = 관측 행 r · 열 j 전달함수의 유한 영점(증강 pencil). 순수 전하 열
   (전압·전류 없이 전하만)은 빈 tuple -- 영점 = 같은 노드 전류 열 영점 ∪ {0} 이고 원점은 격자에서 빠져 더할 꺾임점이 없다
-  (그런 열은 `Factor` 로 쓰지 않는다, ValueError). 무한 판정은 QZ 동차 좌표
+  (그런 열은 `Factor` 로 쓰지 않는다, ValueError). QZ 전에 Ward 균형(행·열 2 의 거듭제곱 배율, log2 크기 최소제곱 한 번 --
+  고유값 불변, 상수 없음)을 하고 아래 판정은 균형 뒤 행렬로 한다. |s| = |α/β| 가 분해능 한계 ‖A‖_F/(차원·eps·‖E‖_F) 를 넘는
+  근도 무한대로 본다(β 의 상대 오차 1 초과 -- 예: 옛 구현의 −7e24 영점). 무한 판정은 QZ 동차 좌표
   |β| ≤ 차원·eps·‖E‖_F(상수 없음). 정렬 (|s|, 실부, 허부). `defects` 가 있으면 빈 근. **격자 배치·상단 괄호 전용**.
 - **원점 판정**(무한 판정과 같은 방식, 상수 없음): QZ 동차 좌표 (α, β) 에서 |α| ≤ 차원·eps·‖A‖_F 이면 그 고유값은 정확히
   0j 로 낸다(극점 pencil: A = G, 차원 n / 영점 pencil: 증강 A, 차원 n+1; eps = 배정밀도 기계 엡실론). 용량 전용 노드의 전하
   모드(원점 극점)가 반올림 잡음으로 작은 |s| 가 되어도 0 으로 판정된다. |s| = 0 은 격자 꺾임점·상단 괄호 상계에서 빠진다.
 
 ### 3.5 `omega_grid(roots_tuple) -> tuple`
-- 0.0 + 양의 유한 |극점|·|영점| 꺾임점 + 인접 꺾임점 기하 중점, 오름차순·중복 없음. 꺾임점 없으면 `(0.0,)`.
+- 0.0 + 양의 유한 |극점|·|영점| 꺾임점 + 인접 꺾임점 기하 중점, 오름차순·중복 없음. 꺾임점 없으면 `(0.0,)`. 서로 1 ulp 안
+  (다음 부동소수 이하)인 꺾임점은 하나(작은 쪽)로 친다. 격자 점 수 자체는 불변식 대상이 아니다(I-7 은 metric 불변).
 
 ### 3.6 `solve_responses(systems) -> tuple[SystemResponse]`
 - 계마다 `pencil_roots` 1회, 모든 계 근의 합집합으로 **공유 격자** 1개. ω = 0 은 `solve_dc_limit`(LU 1회, 모든 열),
@@ -141,6 +146,8 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 ### 3.8 `find_crossing(factors, omegas, values, level, quantity) -> Crossing`
 - 인수 = `Factor`·`ProbeFactor`(0절 공통 규약, 섞어 묶을 수 있다). 근은 인수 속성 `poles`·`zeros`(`Factor`: 계 극점·그 행·열
   영점, `ProbeFactor`: T 자신의 극점·영점). `product_at` 은 같은 계를 한 번만 푼다.
+- 격자 위 T(`values`)에 비유한 값이 있으면 교차를 찾지 않고 인수 `undefined` 의 첫 사유(없으면 `response_not_finite`)를
+  quantity 로 바꿔 `Crossing.undefined` 로 낸다(단독 호출도 `analyze_loop` 와 같은 사유).
 - T = Π 인수. |T(0)| ≤ level → `dc_not_above_level`. 격자에서 처음 |T| ≤ level 이 되는 칸을 괄호로. 격자 끝까지 > level 이면
   상계 |K|·Π(ω+|z|)/Π(ω−|p|)(ω > max|p|, 원점 근 제외)로 두 배씩 올려 상단 괄호를 유도하고 실제 풀이로 확인.
   극점 수 < 영점 수 또는 같고 |K| ≥ level → `no_crossing_above`. 이분: lo > 0 기하 중점, lo = 0 산술 중점. 정지 = 중점이 끝점과
@@ -209,12 +216,13 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - 결과: `circuit`(절단 회로), `cuts`, `pairs`((n_k, x_k) n 오름차순), `excitations`(단위 전류 I(n_1..n_k), I(x_1..x_k), 단위 전하
   Q(n_1..n_k), Q(x_1..x_k) -- 4k 열), `senses`(V(n_1..n_k), V(x_1..x_k) -- 2k 관측). `build_mna(cut.circuit, cut.excitations,
   cut.senses)` 로 조립 1회.
-- ValueError: cuts 빈 tuple(TypeError), index 가 원소 수 밖, 같은 원소를 두 번(두 단자 모두 -- 로더 `feedback_cut_ambiguous` 와
-  같은 조건), 절단 노드가 교류접지.
+- TypeError: cuts 가 tuple 이 아니거나 비었음(2절 모양 위반 규약), 원소가 `LoopCut` 아님. ValueError: index 가 원소 수 밖,
+  같은 원소를 두 번(두 단자 모두 -- 로더 `feedback_cut_ambiguous` 와 같은 조건), 절단 노드가 교류접지.
 
 ### 3.17 `probe_factor(response, pairs, weights) -> ProbeFactor` (7a 2.4)
 - `response` = 절단 회로 계 하나의 `SystemResponse`. 열·관측은 구조로 찾는다(노드 v: `Sense(v)`, v 에만 전류를 넣는 열, v 에만
-  전하를 넣는 열 -- 정확히 하나씩, 아니면 ValueError; 절단 노드가 미지수가 아니면 ValueError). `weights` = 쌍마다 0 아닌 유한 실수.
+  전하를 넣는 열 -- 정확히 하나씩, 아니면 ValueError; 절단 노드가 미지수가 아니면 ValueError). `weights` = 쌍마다 0 아닌 유한
+  실수(0·비유한 ValueError, tuple 아님·길이 ≠ pairs 길이 TypeError).
 - Z(2k×2k, 행 = V(n), V(x), 열 = 같은 순서 단위 주입), P = [I; −I], M = Pᵀ·Z·P, s = [w; 0]:
   Tv = −wᵀV_x / wᵀV_n(V = Z·P·M⁻¹w), Ti = wᵀI / wᵀ(w − I)(I = M⁻¹·Pᵀ·Z·s), **T = (Tv·Ti − 1)/(Tv + Ti + 2)** -- 오라클
   `loop_gain` 과 같은 식·같은 부호 규약(`Vlb n x`, `Ilb 0 n`, `i(Vlb)` n → x). 오라클의 두 `.ac` 를 같은 계의 여기 열로 중첩
@@ -224,7 +232,14 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
   `loop_probe_singular`, Tv·Ti·T 분모 0 → `den_zero`.
 - 결과 필드: 격자 위 T `samples`(1회 계산 보관), T 의 `poles`·`zeros`(항등식 1/(1 + T) = 1/(1 + Tv) + 1/(1 + Ti) = Q,
   Q·wᵀw = H + wᵀw, H = 프로브 전압원 k 개를 넣은 절단 회로 두 벌의 한 전달함수 → T = −H/(H + wᵀw): 영점 = H 영점, 극점 =
-  H + wᵀw 영점, 증강 pencil), `undefined`(격자 표본 사유). 사후 오차(격자 밖 점) = Z 원소 오차의 1차 전파 Σ|∂T/∂Z|·e,
+  H + wᵀw 영점, 증강 pencil), `undefined`(격자 표본 사유).
+- 근의 정밀도 규약: `poles`·`zeros` 는 T 의 근이다 -- 근으로 재구성한 T(0)·Π(1 − s/z)/Π(1 − s/p) 가 T 와 같고(원점 근은 양쪽에
+  같은 수, 상쇄), 노드 번호에 무관하다. 그러려고 (1) 용량 전용 노드 행(G 행 0)을 s 로 나눠(`solve_dc_limit` 의 전하 보존 식과
+  같은 변환 -- 해 불변) 원점 결함 고유값을 없애고, 절단 노드가 용량 전용이면 프로브 전류 j = s·j'·2회 주입을 전하로 둔다(ω = 0
+  열 선택과 같은 규칙, T 는 실험 배율에 무관), (2) `finite_eigs` 가 Ward 균형 뒤 유한·원점·무한 판정을 한다(3.4). 서로 지워지는
+  극점·영점 쌍(분리 모드)은 남을 수 있다 -- 상계를 느슨하게 할 뿐 틀리게 하지 않고, 쌍을 지우려면 근 일치 문턱(상수)이 필요해
+  지우지 않는다. 2026-10-07 실측(예 7·7b DM·CM, 재번호 포함): 지배 극점이 폐형식과 상대오차 ≤ 1.5e-15, 우반면 근 0, 나머지는
+  같은 값 극점·영점 쌍. 사후 오차(격자 밖 점) = Z 원소 오차의 1차 전파 Σ|∂T/∂Z|·e,
   ∂T/∂Z = −(1 + T)²·∂Q/∂Z(해석 미분, 상수 없음).
 - 격자: 루프 계와 포트 전달 계를 한 번의 `solve_responses` 로 함께 푼다(원래 회로 근이 격자에 들어간다, 7a 2.4 '격자' E2).
 
