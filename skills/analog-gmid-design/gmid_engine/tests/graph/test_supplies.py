@@ -125,9 +125,19 @@ def test_build_s1_rejects_bad_supplies(gh):
         assert [h.rule for h in d["hits"]] == [rule]
 
 
+def test_user_confirmed_supplies_agree_with_topology_declaration(gh):
+    # 사용자 확정값 {vdd 1.8, gnd 0} 과 topology `_declared_target_spec.supplies_v`(있으면, `_` 키 제외)가 같다
+    for name in gh.NINE:
+        spec = gh.raw(name).get("_declared_target_spec")
+        declared = spec.get("supplies_v") if isinstance(spec, dict) else None
+        assert isinstance(declared, dict), name               # 9회로 모두 선언 보유(b9c7042)
+        declared = {k: v for k, v in declared.items() if not k.startswith("_")}
+        assert gh.supplies_for(name) == declared, name
+
+
 def test_library_supplies_are_accepted(gh):
     # 계약 7절 출처의 supplies_v 는 각 회로 레일 선언과 맞아 거부되지 않는다(test 쪽 집계로 기대값)
-    for name in gh.SIX:
+    for name in gh.NINE:
         sv = gh.supplies_for(name)
         doc = gh.load_lib(name)
         if sv is None:

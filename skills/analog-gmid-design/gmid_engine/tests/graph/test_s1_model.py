@@ -31,6 +31,9 @@ SIX = (
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
 )
 
+# 9회로 전부(2026-10-07 topology 정정 b9c7042 뒤 모두 load 통과) -- JSON 직접 집계 대조용
+NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
+
 
 def _s1(gh, name):
     return build_s1(gh.load_lib(name), gh.supplies_for(name))
@@ -45,7 +48,7 @@ def test_frozen_and_fields(gh):
         s1.key = None  # type: ignore[misc]
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_column_equals_snapshot_column_sorted_tuple(gh, name):
     s1 = _s1(gh, name)
     for (kind, field), writer in S1_WRITERS.entries:
@@ -60,7 +63,7 @@ def test_column_equals_snapshot_column_sorted_tuple(gh, name):
             assert s1.value(kind, k, field) == v
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_reserved_fields_not_computed(gh, name):
     s1 = _s1(gh, name)
     for kind, field, _ in RESERVED_FIELDS:
@@ -141,7 +144,7 @@ print(json.dumps(res, sort_keys=True))
 
 
 def test_snapshot_fp_deterministic_across_hash_seeds_and_order(gh, tmp_path):
-    spec = {n: gh.supplies_for(n) for n in SIX}
+    spec = {n: gh.supplies_for(n) for n in NINE}
     results = []
     for i, seed in enumerate(("0", "1", "31337", "random")):
         d = tmp_path / ("run%d" % i)
@@ -152,19 +155,23 @@ def test_snapshot_fp_deterministic_across_hash_seeds_and_order(gh, tmp_path):
             capture_output=True, text=True, env=env, check=True)
         results.append(json.loads(out.stdout))
     assert all(r == results[0] for r in results)
-    for name in SIX:
+    for name in NINE:
         assert results[0][name + "/orig"] == results[0][name + "/shuf"]
     # 이 프로세스 값과도 같다
-    for name in SIX:
+    for name in NINE:
         s1 = _s1(gh, name)
         assert results[0][name + "/orig"][0] == s1.snapshot.fp
 
 
 def test_different_circuits_different_fp(gh):
-    fps = {_s1(gh, n).snapshot.fp for n in SIX}
-    assert len(fps) == len(SIX)
+    fps = {_s1(gh, n).snapshot.fp for n in NINE}
+    assert len(fps) == len(NINE)
 
 
-def test_key_is_hashable_value(gh):
-    s1 = _s1(gh, "two_stage_ota_sf")
-    assert fp_of(s1.key) == fp_of(build_s1(gh.load_lib("two_stage_ota_sf"), None).key)
+def test_key_fp_equal_for_equal_inputs(gh):
+    # 같은 doc·supplies_v 로 별도 빌드한 키는 == 이고 fp_of 도 같다. supplies 유무가 다르면 다르다.
+    name = "two_stage_ota_sf"
+    s1 = _s1(gh, name)
+    again = build_s1(gh.load_lib(name), gh.supplies_for(name)).key
+    assert s1.key == again and fp_of(s1.key) == fp_of(again)
+    assert fp_of(s1.key) != fp_of(build_s1(gh.load_lib(name), None).key)

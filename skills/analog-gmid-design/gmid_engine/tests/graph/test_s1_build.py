@@ -14,6 +14,9 @@ SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
 )
+
+# 9회로 전부(2026-10-07 topology 정정 b9c7042 뒤 모두 load 통과) -- JSON 직접 집계 대조용
+NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
 FIELDS = ("calls", "reuses", "computes", "recomputes_same_input")
 
 
@@ -30,7 +33,7 @@ def _bulk(s1):
     return {k: (v.net, v.origin, v.reason) for k, v in s1.column("device", "bulk")}
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_same_inputs_with_previous_returns_same_object(gh, name):
     doc = gh.load_lib(name)
     sv = gh.supplies_for(name)
@@ -49,16 +52,17 @@ def test_same_inputs_reloaded_doc_previous_still_same(gh):
     assert build_s1(gh.load_lib(name), sv, previous=s1) is s1
 
 
-@pytest.mark.parametrize("name,sv2", [
-    ("pushpull_follower_buffer", {"vdd": 0.9, "vss": -0.9, "agnd": 0.0}),
-    ("sf_pushpull_output_opamp", {"vdd": 3.3, "vss": 0.0, "agnd": 1.65}),
-    ("current_reuse_telescopic_ota", {"vdd": 0.9, "gnd": -0.9}),
-    ("two_stage_ota_sf", {"vdd": 1.8, "gnd": 0.0}),          # None -> 값: bulk 만 다시
+@pytest.mark.parametrize("name,sv1,sv2", [
+    ("pushpull_follower_buffer", "lib", {"vdd": 0.9, "vss": -0.9, "agnd": 0.0}),
+    ("sf_pushpull_output_opamp", "lib", {"vdd": 3.3, "vss": 0.0, "agnd": 1.65}),
+    ("current_reuse_telescopic_ota", "lib", {"vdd": 0.9, "gnd": -0.9}),
+    ("two_stage_ota_sf", None, {"vdd": 1.8, "gnd": 0.0}),    # None -> 값: bulk 만 다시
+    ("nmcnr_amplifier", "lib", {"vdd": 1.8, "vss": 0.0}),    # ±0.9 -> 0/1.8 원점 이동
 ])
-def test_supplies_only_change_reuses_structure(gh, name, sv2):
+def test_supplies_only_change_reuses_structure(gh, name, sv1, sv2):
     doc = gh.load_lib(name)
     agg = gh.agg(gh.raw(name))
-    s1 = build_s1(doc, gh.supplies_for(name))
+    s1 = build_s1(doc, gh.supplies_for(name) if sv1 == "lib" else sv1)
     before = _stats()
     s2 = build_s1(doc, sv2, previous=s1)
     d = _delta(before, _stats())

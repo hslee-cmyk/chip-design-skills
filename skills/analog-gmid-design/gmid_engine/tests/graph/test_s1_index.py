@@ -13,8 +13,11 @@ SIX = (
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
 )
 
+# 9회로 전부(2026-10-07 topology 정정 b9c7042 뒤 모두 load 통과) -- JSON 직접 집계 대조용
+NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
 
-@pytest.mark.parametrize("name", SIX)
+
+@pytest.mark.parametrize("name", NINE)
 def test_index_matches_json_terminals(gh, name):
     agg = gh.agg(gh.raw(name))
     doc = gh.load_lib(name)

@@ -25,7 +25,9 @@ SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
 )
-CI12 = ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")
+
+# 9회로 전부(2026-10-07 topology 정정 b9c7042 뒤 모두 load 통과) -- JSON 직접 집계 대조용
+NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
 # 계약 7.1 표 bulk 열: (origin, reason) -> {net: 개수}
 TABLE_BULK = {
     "common_gate_amplifier": {("gnd", "default_rule"): 2, ("vdd", "default_rule"): 1},
@@ -33,13 +35,7 @@ TABLE_BULK = {
     "ngcc_3stage_ff": {("gnd", "default_rule"): 9, ("vdd", "default_rule"): 7},
     "pushpull_follower_buffer": {("vss", "default_rule"): 3, ("vdd", "default_rule"): 3},
     "sf_pushpull_output_opamp": {("vss", "default_rule"): 11, ("vdd", "default_rule"): 11},
-    "two_stage_ota_sf": {(None, "undetermined"): 9},
-}
-# 계약 7.2 참고값(passive_elements: [] 변형) bulk 분포
-TABLE_BULK_CI12 = {
-    "folded_cascode": {("gnd", "default_rule"): 6, ("vdd", "default_rule"): 7},
-    "nmcnr_amplifier": {("vss", "default_rule"): 7, ("vdd", "default_rule"): 8},
-    "two_stage_ota": {("gnd", "default_rule"): 4, ("vdd", "default_rule"): 3},
+    "two_stage_ota_sf": {("gnd", "default_rule"): 6, ("vdd", "default_rule"): 3},   # 7.1 갱신: 사용자 확정 supplies_v
 }
 
 
@@ -87,7 +83,7 @@ def test_two_stage_ota_sf_needs_supplies(gh):
     assert len(_bulk(s1)) == 9
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_without_supplies_every_default_device_needs_supplies(gh, name):
     agg = gh.agg(gh.raw(name))
     got = _bulk(build_s1(gh.load_lib(name), None))
@@ -270,22 +266,20 @@ def test_tie_needs_default_rule_user(gh, tmp_path):
     assert set(got.values()) == {(None, "undetermined", "unsupported_kind")}
 
 
-@pytest.mark.parametrize("name", SIX + CI12)
-def test_nine_originals_never_falsely_stop(gh, tmp_path, name):
-    """9회로 원본 연결은 정지하지 않는다(7.3). CI-12 3회로는 load 가 거부하므로 메모리 `passive_elements: []`
-    변형(연결 그대로 -- 정지 판정은 MOS 채널만 본다)으로 확인한다."""
-    raw = gh.ci12_variant(name) if name in CI12 else gh.raw(name)
+@pytest.mark.parametrize("name", NINE)
+def test_nine_originals_never_falsely_stop(gh, name):
+    """9회로 원본 연결은 정지하지 않는다(7.3). 9회로 모두 library 원본 그대로 load 한다."""
+    raw = gh.raw(name)
     sv = gh.supplies_for(name, raw)
     agg = gh.agg(raw)
     if sv is not None:                                             # JSON 으로 '정지 조건 없음' 을 먼저 확인
         lo, vmin, hi, vmax = agg.extreme_rails(sv)
         assert len(lo) == 1 and len(hi) == 1
         assert agg.channel_rails <= {lo[0], hi[0]}
-    doc = gh.load_raw(tmp_path, raw) if name in CI12 else gh.load_lib(name)
+    doc = gh.load_lib(name)
     got = _bulk(build_s1(doc, sv))
     assert got == agg.expected_bulk(sv)
-    if name in CI12:
-        assert _dist(got) == TABLE_BULK_CI12[name]
+    assert all(v[1] == "default_rule" for v in got.values())   # 9회로 모두 supplies 있음
 
 
 # ------------------------------------------------------------------ 블록 형식

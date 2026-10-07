@@ -13,6 +13,9 @@ SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
 )
+
+# 9회로 전부(2026-10-07 topology 정정 b9c7042 뒤 모두 load 통과) -- JSON 직접 집계 대조용
+NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
 # 계약 7.1 표 gate_only_undriven 열
 TABLE_GATE_ONLY = {
     "common_gate_amplifier": ("VNBias1", "VNBias2", "VPBias1"),
@@ -29,17 +32,18 @@ def _run(doc, agg):
     return idx, static_ac_ground(idx, tuple(sorted(doc.rails)), tuple(sorted(agg.input_nets)))
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_library_classes_match_json(gh, name):
     agg = gh.agg(gh.raw(name))
-    assert agg.gate_only == TABLE_GATE_ONLY[name]           # 집계 자체를 계약 표와 교차 확인
+    if name in TABLE_GATE_ONLY:
+        assert agg.gate_only == TABLE_GATE_ONLY[name]       # 집계 자체를 계약 7.1 표와 교차 확인
     doc = gh.load_lib(name)
     idx, out = _run(doc, agg)
     assert [n for n, _ in out] == [n for n, _ in idx]       # index 순서 그대로
     got = dict(out)
     for net in agg.terminals:
         assert got[net] == agg.ac_class(net), net
-    assert tuple(sorted(n for n, c in out if c == AC_GROUND_GATE_ONLY)) == TABLE_GATE_ONLY[name]
+    assert tuple(sorted(n for n, c in out if c == AC_GROUND_GATE_ONLY)) == agg.gate_only
     assert {n for n, c in out if c == AC_GROUND_RAIL} == set(agg.rails)
 
 

@@ -27,6 +27,9 @@ SIX = (
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
 )
 
+# 9회로 전부(2026-10-07 topology 정정 b9c7042 뒤 모두 load 통과) -- JSON 직접 집계 대조용
+NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
+
 
 def _expected_rule_fp(graph_dir: Path) -> str:
     pairs = []
@@ -36,7 +39,7 @@ def _expected_rule_fp(graph_dir: Path) -> str:
     return fp_of(tuple(pairs))
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_key_parts(gh, name):
     doc = gh.load_lib(name)
     sv = gh.supplies_for(name)
@@ -99,7 +102,7 @@ def _annotate(raw: dict, tags) -> dict:
     return raw
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_annotation_tags_order_do_not_change_key(gh, tmp_path, name):
     raw = gh.raw(name)
     sv = gh.supplies_for(name, raw)

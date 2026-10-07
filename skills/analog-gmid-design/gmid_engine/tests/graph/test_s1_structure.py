@@ -22,6 +22,9 @@ SIX = (
     "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
     "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
 )
+
+# 9회로 전부(2026-10-07 topology 정정 b9c7042 뒤 모두 load 통과) -- JSON 직접 집계 대조용
+NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
 # 계약 7.1 표: (node 수, 레일, n, p, 수동, 이상원, is_diode 참, in, out)
 TABLE = {
     "common_gate_amplifier": (7, ("gnd", "vdd"), 2, 1, 0, 0, (), 1, 1),
@@ -48,7 +51,7 @@ def test_json_aggregate_matches_contract_table(gh, name):
     assert (len(agg.passives), len(agg.sources), agg.diodes, agg.n_in, agg.n_out) == (npas, nsrc, diodes, nin, nout)
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_node_fields(gh, name):
     agg = gh.agg(gh.raw(name))
     s1 = _s1(gh, name)
@@ -70,7 +73,7 @@ def test_node_fields(gh, name):
     assert gate_only == agg.gate_only
 
 
-@pytest.mark.parametrize("name", SIX)
+@pytest.mark.parametrize("name", NINE)
 def test_device_fields(gh, name):
     agg = gh.agg(gh.raw(name))
     s1 = _s1(gh, name)

@@ -30,12 +30,14 @@ SIX = (
     "sf_pushpull_output_opamp",
     "two_stage_ota_sf",
 )
-# authoring 이 passives/missing_key 로 거부하는 3회로(CI-12 대기, 계약 7.2)
+# 예전 CI-12 3회로(2026-10-07 b9c7042 topology 정정으로 passive_elements 선언 -- 이제 load 통과)
 CI12 = ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")
 NINE = tuple(sorted(SIX + CI12))
 
 USER_CONFIRMED_SUPPLIES = {"vdd": 1.8, "gnd": 0.0}           # 사용자 확정(2026-10-07, user_decisions 1번)
-USER_CONFIRMED_CIRCUITS = ("two_stage_ota", "current_reuse_telescopic_ota", "folded_cascode", "common_gate_amplifier")
+USER_CONFIRMED_CIRCUITS = (  # 계약 7절 + two_stage_ota_sf(7절 갱신)
+    "two_stage_ota_sf", "two_stage_ota", "current_reuse_telescopic_ota", "folded_cascode", "common_gate_amplifier",
+)
 TAG_KEYS = ("device_roles", "symmetry", "sizing_roles", "compensation")
 MOS_KINDS = ("nmos", "pmos")
 INPUT = "input"
@@ -68,13 +70,6 @@ def load_raw(tmp_path: Path, doc: dict, stem: str = "variant"):
 
 def load_lib(name: str):
     return load_topology(str(LIBRARY / (name + ".topology.json")))
-
-
-def ci12_variant(name: str) -> dict:
-    """CI-12 3회로를 메모리 안에서 `passive_elements: []` 로 바꾼 변형(계약 7.2 참고값 조건, 파일은 고치지 않음)."""
-    d = raw(name)
-    d["passive_elements"] = []
-    return d
 
 
 def rename_nets(doc: dict, mapping: dict) -> dict:
@@ -175,7 +170,6 @@ class Helpers:
     write = staticmethod(write)
     load_raw = staticmethod(load_raw)
     load_lib = staticmethod(load_lib)
-    ci12_variant = staticmethod(ci12_variant)
     rename_nets = staticmethod(rename_nets)
     agg = staticmethod(JsonAgg)
     bulk_tuple = staticmethod(bulk_tuple)
