@@ -91,8 +91,9 @@ def mantissa_digits(path: Path) -> int:
     return d
 
 
-def decide(stab_txt: Path, p):
-    """README 절차 5: e = H - H(0), 창 j 의 M_j = max|e|, floor' = floor + u·max|H|."""
+def decide_run(stab_txt: Path, p):
+    """README 절차 5 의 한 실행 판정(3fdabd7 개정): e = H - H(0), 창 j 의 M_j = max|e|, floor' = floor + u·max|H|.
+    M_K <= floor' -> stable; M_K >= M_1 -> unstable; M_1 > M_2 > ... > M_K -> decaying; 그 밖 -> undetermined."""
     a = np.loadtxt(stab_txt)
     t, h = a[:, 0], a[:, 1]
     u = 0.5 * 10.0 ** (1 - mantissa_digits(stab_txt))
@@ -101,7 +102,7 @@ def decide(stab_txt: Path, p):
     for j in range(p["K"]):
         lo, hi = p["t_end"] + j * p["W"], p["t_end"] + (j + 1) * p["W"]
         sel = (t >= lo) & (t <= hi)
-        m.append(float(e[sel].max()))
+        m.append(float(e[sel].max()) if sel.any() else float("nan"))
     fl = p["floor"] + u * float(np.abs(h).max())
     if t[-1] < p["tstop"] * (1 - 2 * u):
         st = "failed"
@@ -109,11 +110,36 @@ def decide(stab_txt: Path, p):
         st = "stable"
     elif m[-1] >= m[0]:
         st = "unstable"
-    elif m[-1] < m[-2]:
-        st = "stable"
+    elif all(m[j] > m[j + 1] for j in range(len(m) - 1)):
+        st = "decaying"
     else:
         st = "undetermined"
     return {"status": st, "M": m, "floor2": fl}
+
+
+def extension_plan(p, first):
+    """README 절차 5: decaying 이면 r = M_K/M_{K-1}, n = ceil(ln(floor'/M_K)/ln r), 창 K + n, tstop = t_end + (K + n)·W."""
+    m = first["M"]
+    r = m[-1] / m[-2]
+    n = math.ceil(math.log(first["floor2"] / m[-1]) / math.log(r))
+    return n, dict(p, K=p["K"] + n, tstop=p["t_end"] + (p["K"] + n) * p["W"])
+
+
+def decide(stab_txt: Path, p):
+    """절차 5 전체: 첫 실행(.stab.txt) 판정, decaying 이면 연장 실행(.stab2.txt)을 같은 규칙으로 판정해 최종 상태.
+    반환 status = 최종, first = 첫 실행 상태, M·floor2 = 첫 실행 값, ext = 연장 판정(+ n, plan) 또는 None."""
+    first = decide_run(stab_txt, p)
+    out = {"status": first["status"], "first": first["status"], "M": first["M"], "floor2": first["floor2"],
+           "ext": None}
+    if first["status"] != "decaying":
+        return out
+    n, p2 = extension_plan(p, first)
+    ext = decide_run(Path(str(stab_txt).replace(".stab.txt", ".stab2.txt")), p2)
+    ext.update(n=n, plan=p2)
+    out["ext"] = ext
+    out["status"] = {"stable": "stable", "decaying": "stable", "unstable": "unstable"}.get(ext["status"],
+                                                                                         "undetermined")
+    return out
 
 
 def expected_row(s, n, pm_raw):
@@ -459,8 +485,13 @@ def test_rhp_transient_plan_and_decision(rhp_run):
     dec = decide(o / f"{stem}.stab.txt", pl)
     t = _sim(o, inp)["ac"]["stability"]["transient"]
     assert t["status"] == dec["status"], (t["status"], dec)
+    assert t["first_status"] == dec["first"] == "unstable", (t["first_status"], dec)
     assert t["M"] == pytest.approx(dec["M"], rel=1e-2)
     assert t["floor_V"] == pytest.approx(dec["floor2"], rel=1e-6)
+    # 첫 실행이 decaying 이 아니면 연장 없음: extension 기록·.stab2.* 파일·캐시 extension 키 모두 없다
+    assert "extension" not in t or t["extension"] is None, t.get("extension")
+    assert not list(o.glob(f"{stem}.stab2*"))
+    assert "extension" not in _sim(o, inp)["stability_cache"]
 
 
 def test_rhp_pm_undefined_open_loop_rhp_poles(rhp_run):
@@ -592,6 +623,38 @@ def test_rhp_variants_never_pass(tmp_path, ref_root, rb):
     tr = _sim(tmp_path / "o", inp)["ac"]["stability"]["transient"]
     assert st["pm_valid"] is False and st["pm_undefined"] in VOCAB, (st, tr.get("M"))
     assert c["summary"]["verdict"] != "PASS" and p.returncode == 0, (c["summary"]["verdict"], st, tr.get("M"))
+    # 절차 5 독립 재계산(연장 포함) = 오라클 기록, 지속 진동은 절대 stable 이 아님
+    stem = stem_of(inp, "free")
+    f, L, _ = ac_loop_from_files(tmp_path / "o", stem, beta_loop=False)
+    dec = decide(tmp_path / "o" / f"{stem}.stab.txt", plan(f, L, [ref["nodes"]["n2"]]))
+    assert tr["first_status"] == dec["first"] and tr["status"] == dec["status"] != "stable", (tr, dec)
+    check_row(st, nyquist(L)["N"], dec["status"], st["pm_deg_raw"])
+
+
+def test_sustained_oscillation_undetermined_incomplete(tmp_path, ref_root):
+    """절차 5 개정의 계기(40158dd 의 rb1e6, M = [1.43, 1.21, 0.68, 1.13, 1.45, 1.30]): 창 사이 다시 커짐(M_K < M_1,
+    단조 감소 아님) -> 첫 실행 `undetermined`, 연장 없음 -> 최종 '모름', N = 0 -> `stability_unverified`,
+    pm 제약 N/A -> INCOMPLETE(반환 0). 독립 폐루프 .tran 은 지속 진동(test_rhp_fixture_...)."""
+    rb = RB["rb1e6"]
+    ref = rhp_ref(ref_root, rb)
+    inp = rhp_input(make_lut(tmp_path / "lut.npz"), rb, constraints=[pm_con(">=", 60.0)])
+    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
+    c = res["free"]
+    o, stem = tmp_path / "o", stem_of(inp, "free")
+    f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
+    dec = decide(o / f"{stem}.stab.txt", plan(f, L, [ref["nodes"]["n2"]]))
+    m = dec["M"]
+    assert m[-1] < m[0] and not all(m[j] > m[j + 1] for j in range(len(m) - 1)), m     # 다시 커짐(전제)
+    assert dec["first"] == dec["status"] == "undetermined", dec
+    tr = _sim(o, inp)["ac"]["stability"]["transient"]
+    assert tr["first_status"] == "undetermined" == tr["status"], tr
+    assert tr["M"] == pytest.approx(m, rel=1e-2)
+    assert tr.get("extension") is None and not list(o.glob(f"{stem}.stab2*"))
+    st = c["summary"]["stability"]
+    assert st["closed_loop"] is None and st["pm_undefined"] == "stability_unverified" and st["pm_valid"] is False, st
+    k = _cons(c, "pmc")
+    assert k["judge"] == "N/A(정의 불가: stability_unverified)" and k["spice"] is None, k
+    assert c["summary"]["verdict"] == "INCOMPLETE" and p.returncode == 0, c["summary"]
 
 
 # ====================================================================== 고전적 불안정(P = 0, PM < 0) -> 값 유지, FAIL
@@ -811,20 +874,74 @@ def test_no_pm_raw_not_checked(tmp_path):
     assert not list((tmp_path / "o").glob("*.stab*"))
 
 
-def test_cache_stability_outside_ac(tmp_path):
-    """C21: 폐루프 과도 캐시 상태는 sim.stability_cache = {op_pass, transient}(ac 밖). 첫 실행 miss, 재실행 hit,
-    hit·miss 에서 ac 동일, .stab.txt 복원. 캐시 미사용이면 둘 다 None."""
-    inp = _fb_inp(make_lut(tmp_path / "lut.npz"))
+@pytest.mark.parametrize("circ", ["fb_beta_loop", "three_lowpm"])
+def test_cache_stability_outside_ac(tmp_path, circ):
+    """C21: 폐루프 과도 캐시 상태는 sim.stability_cache = {op_pass, transient}(+ 연장 실행을 했을 때만 extension)(ac 밖).
+    첫 실행 miss, 재실행 hit, hit·miss 에서 ac 동일, .stab.txt(·.stab2.txt) 복원. 캐시 미사용이면 전부 None."""
+    lut = make_lut(tmp_path / "lut.npz")
+    inp = _fb_inp(lut) if circ == "fb_beta_loop" else three_input(lut, CAPS["stable_lowpm"],
+                                                                    constraints=[pm_con(">=", 10.0)])
     cache = tmp_path / "cache"
     run_oracle(inp, tmp_path / "o1", sat_margin=SAT, extra=["--cache-dir", cache])
     run_oracle(inp, tmp_path / "o2", sat_margin=SAT, extra=["--cache-dir", cache])
     run_oracle(inp, tmp_path / "o3", sat_margin=SAT)
     s1, s2, s3 = (_sim(tmp_path / k, inp) for k in ("o1", "o2", "o3"))
-    assert s1["stability_cache"] == {"op_pass": "miss", "transient": "miss"}, s1["stability_cache"]
-    assert s2["stability_cache"] == {"op_pass": "hit", "transient": "hit"}, s2["stability_cache"]
-    assert s3["stability_cache"] == {"op_pass": None, "transient": None}, s3["stability_cache"]
+    extended = s1["ac"]["stability"]["transient"].get("extension") is not None
+    if circ == "three_lowpm":
+        assert extended                          # 아래 test_extension_decaying_to_stable 의 전제와 같음
+    keys = ["op_pass", "transient"] + (["extension"] if extended else [])
+    assert s1["stability_cache"] == dict.fromkeys(keys, "miss"), s1["stability_cache"]
+    assert s2["stability_cache"] == dict.fromkeys(keys, "hit"), s2["stability_cache"]
+    assert s3["stability_cache"] == dict.fromkeys(keys, None), s3["stability_cache"]
     for s in (s1, s2, s3):
         assert "stability_cache" not in s["ac"] and "stability_cache" not in s["ac"]["stability"]
     assert s1["ac"] == s2["ac"]
-    assert (tmp_path / "o2" / f"{stem_of(inp, 'free')}.stab.txt").exists()
+    stem = stem_of(inp, "free")
+    assert (tmp_path / "o2" / f"{stem}.stab.txt").exists()
+    assert (tmp_path / "o2" / f"{stem}.stab2.txt").exists() is extended
     assert s2["ac"]["stability"]["transient"]["status"] == "stable"
+
+
+def test_extension_decaying_to_stable(lowpm_run, ref_root):
+    """절차 5 연장: 저 PM(~16 deg) 3단은 첫 실행 K 창에서 창마다 줄지만 floor' 에 못 닿음 -> `decaying` -> 연장 실행
+    `.stab2.*`(같은 킥·같은 창, n = ceil(ln(floor'/M_K)/ln(M_K/M_{K-1})), tstop = t_end + (K + n)·W) -> 같은 규칙으로
+    stable/decaying -> 최종 stable. 기록 모양: transient{status, first_status, ..., extension{status, M, floor_V, reason,
+    netlist, file, ngspice_rc, extension_windows, tstop}}."""
+    d, inp, res, ref, p = lowpm_run
+    o, stem = d / "o", stem_of(inp, "free")
+    f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
+    pl = plan(f, L, [ref["v3"]])
+    dec = decide(o / f"{stem}.stab.txt", pl)
+    assert dec["first"] == "decaying" and dec["ext"] is not None, dec                 # 전제(독립 재계산)
+    assert dec["ext"]["status"] in ("stable", "decaying") and dec["status"] == "stable", dec["ext"]
+    tr = _sim(o, inp)["ac"]["stability"]["transient"]
+    assert tr["first_status"] == "decaying" and tr["status"] == "stable", tr
+    assert tr["M"] == pytest.approx(dec["M"], rel=1e-2) and tr["floor_V"] == pytest.approx(dec["floor2"], rel=1e-6)
+    assert tr["plan"]["windows"] == pl["K"]                                           # plan 은 첫 실행 것
+    ex = tr["extension"]
+    assert {"status", "M", "floor_V", "reason", "netlist", "file", "ngspice_rc", "extension_windows",
+            "tstop"} <= set(ex), set(ex)
+    assert ex["extension_windows"] == dec["ext"]["n"] > 0, (ex["extension_windows"], dec["ext"]["n"])
+    assert ex["tstop"] == pytest.approx(dec["ext"]["plan"]["tstop"], rel=1e-9)
+    assert ex["status"] == dec["ext"]["status"] and ex["ngspice_rc"] == 0, ex
+    assert len(ex["M"]) == pl["K"] + ex["extension_windows"]
+    assert ex["M"] == pytest.approx(dec["ext"]["M"], rel=1e-2)
+    assert ex["floor_V"] == pytest.approx(dec["ext"]["floor2"], rel=1e-6)
+    assert ex["netlist"] == f"{stem}.stab2.cir" and ex["file"] == f"{stem}.stab2.txt", ex
+    t1 = (o / f"{stem}.stab.cir").read_text(encoding="utf-8")
+    t2 = (o / f"{stem}.stab2.cir").read_text(encoding="utf-8")
+    # 같은 킥·같은 동작점·같은 시간 척도(V1 V2 TD TR TF PW; PER 은 펄스 반복 방지용이라 tstop 에 따라 다를 수 있음)
+    assert pulse_of(t2, "Vcl_nin")[0][:6] == pulse_of(t1, "Vcl_nin")[0][:6]
+    tr2 = tran_line(t2)
+    assert tr2[0] == pytest.approx(pl["tmax"], rel=1e-6) and tr2[1] == pytest.approx(ex["tstop"], rel=1e-6), tr2
+    assert (o / f"{stem}.stab2.log").exists()
+    assert res["free"]["summary"]["stability"]["transient_status"] == "stable"
+
+
+def test_extension_record_absent_when_not_decaying(classic_run):
+    """첫 실행이 decaying 이 아니면(고전적 불안정 -> unstable) 그 상태가 최종: extension 없음, .stab2.* 없음."""
+    d, inp, res, ref, _ = classic_run
+    o, stem = d / "o", stem_of(inp, "free")
+    tr = _sim(o, inp)["ac"]["stability"]["transient"]
+    assert tr["first_status"] == tr["status"] != "decaying", tr
+    assert tr.get("extension") is None and not list(o.glob(f"{stem}.stab2*"))
