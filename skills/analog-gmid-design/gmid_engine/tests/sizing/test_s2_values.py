@@ -59,13 +59,23 @@ def test_dc_table_has_28_fields():
     assert len(DC_TABLE) == 28
 
 
+# [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
+# 옛 기대 'S1 + dc 만' 은 ss 필드 배선으로 대체된 동작이다 -- 독립 test 작성자가 계약 표에서 다시 확인할 대상.
+SS_TABLE = {
+    ("device", "ss_dev"): "ss_dev",
+    ("graph", "metrics_ss"): "metrics_ss",
+    ("graph", "metrics_dc"): "metrics_dc",
+}
+
+
 def test_s2_writers_is_s1_plus_dc_table_exactly():
     s1 = dict(S1_WRITERS.entries)
     s2 = dict(S.S2_WRITERS.entries)
     expected = dict(s1)
     expected.update(DC_TABLE)
+    expected.update(SS_TABLE)
     assert s2 == expected
-    assert len(S.S2_WRITERS.entries) == len(S1_WRITERS.entries) + len(DC_TABLE)
+    assert len(S.S2_WRITERS.entries) == len(S1_WRITERS.entries) + len(DC_TABLE) + len(SS_TABLE)
     for k, w in s1.items():
         assert S.S2_WRITERS.writer_of(*k) == w
 
