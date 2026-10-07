@@ -6,7 +6,9 @@ lut_regen_plan.md 2절 K2', 계획 N3.6).
 * 앵커 2개 bin 은 L 방향 LOO 가 정의되지 않는다. 그래서 그 bin 안 중점 L_m 에서 SPICE 로 잰 값(`LutSet.midpoints`)과 운영 보간
   (두 앵커 a0 < L_m < a1 의 L 선형, VGS·VDS·VS 는 격자점이라 4.2 의 마디 값 그대로)을 비교한 오차를 그 bin 의 외부 값으로 낸다.
   운영 보간의 칸 안 오차 그 자체라 Richardson 환산을 하지 않는다(tol 표 5절).
-* 지표(tol 표와 같은 정의, t = (L_m − a0)/(a1 − a0)):
+* [r6, 오케스트레이터 결정 A] 세 값은 **VDS 격자점마다**의 최댓값 tuple(길이 = VDS 격자 수, 그 VDS 에 점·목표가 없으면 None) --
+  내부 LOO 셀 (앵커, VDS_k) 와 같은 해상도. bin 에 스칼라 하나(최댓값)를 두면 행 전체를 덮어 너무 거칠다.
+* 지표(tol 표와 같은 정의, t = (L_m − a0)/(a1 − a0), 아래 max 는 그 VDS_k 의 VGS·VS 점·목표에 대해):
   - `id_equivalent_v` = max |lnID_a0 + t·(lnID_a1 − lnID_a0) − ln ID_m| / (GM/ID)_m, 점 = 중점 on(ID > 0, GM > 0)이고 두 앵커 on_mask.
   - `gm_id_inverse_v` = max |strong_inversion_root(보간 곡선, g_j) − VGS_j|, 곡선 (VDS_k, VS_s) 마다 중점·두 앵커 곡선이 VGS 전부 on,
     보간 곡선 = (ln ID, gm/ID) 를 L 선형(운영 `gm_id_curve` 의 마디 값), 목표 j = 중점 곡선의 분지 목표(`branch_targets`).
@@ -32,18 +34,20 @@ from .lut_types import MidpointChecks, MidpointRow
 _PAIR = len(LINEAR_CONDITIONS)   # L 선형 보간의 점 수 = 앵커 2개 bin 의 앵커 수
 
 
-def _nanmax(values, mask):
-    sel = values[mask]
-    return float(sel.max()) if sel.size else None
+def _vds_max(values, mask):
+    """[VGS, VDS, VS] 점 값 -> VDS 격자점마다 mask 참 점의 최댓값 tuple(점 없으면 None)."""
+    return tuple(float(values[:, k, :][mask[:, k, :]].max()) if mask[:, k, :].any() else None
+                 for k in range(values.shape[1]))
 
 
 def _curves(arr):
-    """[VGS, VDS, VS] -> (VDS·VS 곡선, VGS)."""
+    """[VGS, VDS, VS] -> (VDS·VS 곡선, VGS) -- 곡선 index c = VDS index · len(VS) + VS index."""
     return np.moveaxis(arr, 0, -1).reshape(-1, arr.shape[0])
 
 
 def _inverse(sl, mt, m, i0, i1, t):
-    """(최대 오차 또는 None, 시도 수, 실패 수) -- gm/ID 역산 지표."""
+    """(VDS 별 최대 오차 tuple, 시도 수, 실패 수) -- gm/ID 역산 지표."""
+    n_vds, n_vs = len(sl.grids[2]), len(sl.grids[3])
     y = sl.log_ID[i0] + t * (sl.log_ID[i1] - sl.log_ID[i0])
     g_a = [np.exp(sl.log_GM[i] - sl.log_ID[i]) for i in (i0, i1)]
     g = g_a[0] + t * (g_a[1] - g_a[0])
@@ -51,29 +55,31 @@ def _inverse(sl, mt, m, i0, i1, t):
     truth = _curves(np.where(mt.on_mask[m], mt.gm_id[m], -np.inf))
     c, j = branch_targets(truth, on)
     if not c.size:
-        return None, 0, 0
+        return (None,) * n_vds, 0, 0
     v = np.asarray(sl.VGS_grid)
     root, _ = strong_inversion_root(np.broadcast_to(v, (c.size, v.size)), _curves(y)[c], _curves(g)[c], truth[c, j])
     found = np.isfinite(root)
-    worst = float(np.abs(root[found] - v[j[found]]).max()) if found.any() else None
+    err = np.abs(root - v[j])
+    vds_of = c // n_vs
+    worst = tuple(float(err[found & (vds_of == k)].max()) if (found & (vds_of == k)).any() else None
+                  for k in range(n_vds))
     return worst, int(c.size), int(np.count_nonzero(~found))
 
 
-def _vdsat(memo, kind, w_key, mt, m, i0, i1, t):
+def _vdsat(memo, kind, w_key, mt, m, i0, i1, t, n_vds):
     src = column_source(memo.lut, kind, w_key, "VDSAT", required=False)
     if src is None or mt.VDSAT is None or tuple(src.grids[1:]) != tuple(mt.grids):
-        return None
+        return (None,) * n_vds
     mask = mt.on_mask[m]
     if src.on_mask is not None:
         mask = mask & src.on_mask[i0] & src.on_mask[i1]
     est = src.array[i0] + t * (src.array[i1] - src.array[i0])
-    return _nanmax(np.abs(est - mt.VDSAT[m]), mask)
+    return _vds_max(np.abs(est - mt.VDSAT[m]), mask)
 
 
 def _merge(a, b):
-    if a is None or b is None:
-        return b if a is None else a
-    return max(a, b)
+    """VDS 별 tuple 두 개의 원소별 최댓값(None 은 무시)."""
+    return tuple(y if x is None else x if y is None else max(x, y) for x, y in zip(a, b))
 
 
 def midpoint_l_bin_checks(memo, kind, w_key):
@@ -117,9 +123,9 @@ def midpoint_l_bin_checks(memo, kind, w_key):
             lid = sl.log_ID[i0] + t * (sl.log_ID[i1] - sl.log_ID[i0])
             on = mt.on_mask[m] & sl.on_mask[i0] & sl.on_mask[i1]
             with np.errstate(invalid="ignore"):
-                eq = _nanmax(np.abs(lid - mt.log_ID[m]) / mt.gm_id[m], on)
+                eq = _vds_max(np.abs(lid - mt.log_ID[m]) / mt.gm_id[m], on)
             inv, n_try, n_failed = _inverse(sl, mt, m, i0, i1, t)
-            vd = _vdsat(memo, kind, w_key, mt, m, i0, i1, t)
+            vd = _vdsat(memo, kind, w_key, mt, m, i0, i1, t, len(sl.grids[2]))
             prev = per_model.get(model)
             if prev is None:
                 per_model[model] = ((L_m,), inv, eq, vd, n_try, n_failed)

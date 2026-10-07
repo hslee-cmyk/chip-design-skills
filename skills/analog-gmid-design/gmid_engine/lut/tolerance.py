@@ -40,6 +40,7 @@ from ._helpers_loo import (
     l_loo_report,
     loo_estimate,
     opt,
+    per_vds,
     table_at,
     with_external,
 )
@@ -223,14 +224,17 @@ def _checks_of(memo, kind, w_key, l_bin_checks):
     if l_bin_checks is None:
         rows = midpoint_l_bin_checks(memo, kind, w_key).rows
         l_bin_checks = tuple((r.model, r.gm_id_inverse_v, r.id_equivalent_v) for r in rows)
-    return tuple(sorted((str(m), None if a is None else float(a), None if b is None else float(b))
+    n_vds = len(memo.lut.slice_map[(kind, w_key)].grids[2])
+    return tuple(sorted((str(m), per_vds(a, n_vds, "tol_v_table"), per_vds(b, n_vds, "tol_v_table"))
                         for m, a, b in l_bin_checks))
 
 
 def tol_v_table(memo, kind, w_key, l_bin_checks=None):
     """(kind, w_key) 슬라이스의 `TolVTable`. memo 영역 derived(같은 인자당 1회 계산). 폭 키 없음 -> `KeyError`.
 
-    `l_bin_checks`: 앵커 2개 bin 의 외부 L 방향 오차 `((model, gm_id_inverse_v, id_equivalent_v), ...)`(V, 값 None 허용).
+    `l_bin_checks`: 앵커 2개 bin 의 외부 L 방향 오차 `((model, gm_id_inverse_v, id_equivalent_v), ...)`(V). [r6] 값 칸은
+    VDS 격자점마다의 수열(길이 = VDS 격자 수, 원소 None 허용 -- 셀 (앵커, VDS_k) 에 k 번째 값) 또는 수 하나(모든 VDS 같은 값)
+    또는 None. 길이가 다르면 ValueError.
     [r6] None(기본) = LutSet 의 검증 중점 파일에서 잰 값(`midpoint_l_bin_checks`, 중점 파일이 없으면 빈 값), `()` = 외부 값 없음.
     그 bin 앵커 행의 정의된 셀 값과 최댓값을 취한다. 앵커 2개 bin 이 아닌 model·중복 model·지도 없는 슬라이스 -> `ValueError`.
     """
@@ -254,8 +258,8 @@ def tol_v_table(memo, kind, w_key, l_bin_checks=None):
             for k in range(len(sl.grids[2])):
                 inv, inv_raw, n_try, n_failed = _inverse_cell(sl, lid, gm_id, gds_id, i, k, interior[i], vs_pairs, orders)
                 row.append(TolVCell(
-                    with_external(opt(inv), ext.get("gm_id_inverse_v")),
-                    with_external(opt(eq[i, k]), ext.get("id_equivalent_v")),
+                    with_external(opt(inv), ext["gm_id_inverse_v"][k] if ext else None),
+                    with_external(opt(eq[i, k]), ext["id_equivalent_v"][k] if ext else None),
                     n_try, n_failed, opt(inv_raw), opt(eq_raw[i, k])))
             cells.append(tuple(row))
         orders = tuple((m, a, meth, p, 2.0 ** -p) for m, a, meth, p in LOO_ORDERS)

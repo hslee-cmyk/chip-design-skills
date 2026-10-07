@@ -335,7 +335,8 @@ class TolVdsatCell:
 @dataclasses.dataclass(frozen=True)
 class MidpointRow:
     """[r6] 검증 중점이 잰 앵커 2개 bin 하나의 L 보간 오차(V, lut/CONTRACT.md 5.1). `model` = 그 bin `.model` 이름,
-    `L_points` = 그 bin 에 든 중점들(m, 오름차순), 세 값 = 그 중점들 전체의 최댓값(정의된 점이 없으면 None).
+    `L_points` = 그 bin 에 든 중점들(m, 오름차순), 세 값 = VDS 격자점마다의 tuple(길이 = VDS 격자 수) -- 그 VDS 의 점·목표와
+    그 중점들 전체의 최댓값(정의된 점이 없으면 그 원소 None).
     `n_targets`·`n_inverse_failed` = gm/ID 역산 시도·해 없음 수(중점 합)."""
 
     model: str

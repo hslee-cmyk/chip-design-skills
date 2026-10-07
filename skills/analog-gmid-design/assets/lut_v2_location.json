@@ -1,10 +1,10 @@
 {
  "schema": "gmid_lut_location/1",
- "description": "sky130 LUT v2 (2026-10-07 재생성, 18 L x VS 0~1.8 V, 14열) 데이터 위치. 데이터는 git 밖, 이 파일이 sha256 으로 고정한다. 읽는 함수: gmid_engine.lut.resolve_lut_location (lut/CONTRACT.md 1.8). 출처 기록: <root>/REGEN_REPORT.md, <root>/verification/.",
+ "description": "sky130 LUT v2 (2026-10-07 재생성, 18 L x VS 0~1.8 V, 14열) 데이터 위치. 데이터는 git 밖, 이 파일이 sha256 으로 고정한다. 읽는 함수: gmid_engine.lut.resolve_lut_location (lut/CONTRACT.md 1.8). 출처 기록: <root>/REGEN_REPORT.md, <root>/verification/. 2026-10-08: 폭 슬라이스 32개를 GMBS·VDSAT 포함으로 재생성(기존 4열 비트 동일, <root>/verification/slices_vdsat/).",
  "root": {"env": "GMID_LUT_V2_ROOT", "default": "C:/Users/HSLEE/Documents/Todoc/fpga/lut_data/sky130_lut_v2"},
  "pdk_root": {"env": "GMID_PDK_ROOT", "default": "C:/pdk/sky130_fd_pr"},
  "files": {
-  "manifest": {"path": "manifest.json", "sha256": "bb37a7ae3db20134dde76bc1c359a054c6614f5d8a7973c262e2cf14fc6d348d"},
+  "manifest": {"path": "manifest.json", "sha256": "a25b903657bfe6725b6d0f0d3f11435288fdfb37b0912d176638861c804cb2d2"},
   "cap_npz": {"path": "sky130_nfet_pfet_lut_v2.npz", "sha256": "337bd058cda4001d608dd0eeb261920da7a7656028c1a8d276484541d74b1da0"},
   "verify_midpoints": {"path": "sky130_nfet_pfet_lut_v2_verify_midpoints.npz", "sha256": "d243f38073e682b894e56edf2afe40360a3f35049a126485d4935e81cd04990f"}
  }

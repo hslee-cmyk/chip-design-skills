@@ -29,15 +29,28 @@ def l_interior(l_bins, n):
     return tuple(0 < i < n - 1 and ab[i - 1] == ab[i] == ab[i + 1] for i in range(n))
 
 
+def per_vds(value, n_vds, table_name):
+    """외부 값 한 칸 -> VDS 격자점마다의 tuple(길이 n_vds, float 또는 None). None -> 모두 None, 수 -> 모든 VDS 같은 값
+    (r5 스칼라 형식), 길이 n_vds 의 수열 -> 그대로(r6 셀 단위). 길이가 다르면 ValueError."""
+    if value is None:
+        return (None,) * n_vds
+    if np.ndim(value) == 0:
+        return (float(value),) * n_vds
+    vals = tuple(value)
+    if len(vals) != n_vds:
+        raise ValueError("%s: l_bin_checks 값의 길이 %d != VDS 격자 %d" % (table_name, len(vals), n_vds))
+    return tuple(None if v is None else float(v) for v in vals)
+
+
 def external_by_model(l_bin_checks, fields, table_name):
-    """`l_bin_checks` ((model, 값...), ...) -> {model: {필드: 값 또는 None}} (`fields` = 값 칸 이름 순서).
-    같은 model 두 번 -> ValueError."""
+    """`l_bin_checks` ((model, 값...), ...) -> {model: {필드: 값}} (`fields` = 값 칸 이름 순서, 값은 부르는 쪽이 `per_vds` 로
+    정규화한 VDS 별 tuple). 같은 model 두 번 -> ValueError."""
     out = {}
     for row in l_bin_checks:
         model, values = row[0], row[1:]
         if model in out:
             raise ValueError("%s: l_bin_checks 에 bin %r 가 두 번 있다" % (table_name, model))
-        out[model] = {f: None if v is None else float(v) for f, v in zip(fields, values)}
+        out[model] = dict(zip(fields, values))
     return out
 
 
