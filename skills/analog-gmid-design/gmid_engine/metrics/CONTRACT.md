@@ -57,7 +57,11 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 
 - **노드 = 정수 인덱스**. 넷 이름 문자열을 노드로 주면 `TypeError`. 교류접지·레일은 이름이 아니라 선언된 인덱스 집합
   (`SmallSignalCircuit.ac_ground`, `DcOperatingPoint.rails`)으로 받는다. 인덱스만 바꿔 번호 매긴 같은 회로는 metric 이 같다(I-7).
-- 모든 값 필드는 생성 때 검사: 유한 실수, `MosSmallSignal` 의 gm·gmb·gds·용량 ≥ 0, `Resistor.ohm`·`Capacitor.farad` > 0
+- 모든 값 필드는 생성 때 검사: 유한 실수, `MosSmallSignal` 의 gm·gmb·gds ≥ 0, **`MosSmallSignal` 용량 5개(cgs·cgd·cgb·cdb·csb)는
+  부호 있는 유한 실수**(NaN·inf 만 ValueError -- 오케스트레이터 결정 2026-10-08 Q7: BSIM4 단자 용량(예 cgb = −∂Qg/∂Vb)은 부호가
+  있고 SPICE 오라클이 부호 그대로 스탬프하므로 같은 정의로 비교하려면 엔진도 부호 그대로 스탬프한다. 부호 규약의 원천 = LUT v2
+  생성기 meta `sign_convention`(lut CONTRACT r6 1.2 -- 용량은 부호 보존, CGB·CGS·CSS·CGD(pfet) 에 음수 점), 엔진은 절댓값·클램프를
+  쓰지 않는다), `Resistor.ohm`·`Capacitor.farad` > 0
   (기본값 없음 -- `Resistor(a, b, None)` 은 `TypeError`, 0 은 `ValueError`).
 - **MOS 소신호**: I(d→s) = gm(vg − vs) + gmb(vb − vs) + gds(vd − vs). NMOS·PMOS 같은 식(소신호 크기는 양수).
   용량 cgs(g–s), cgd(g–d), cgb(g–b), cdb(d–b), csb(s–b). bulk 는 `b` 인덱스(레일이면 교류접지 노드).
@@ -411,7 +415,7 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 ### 7.3 `ss_circuit(nodes, ground_nets, input_nets, devices, passive_values) -> SsCircuit`
 - `nodes` 위치 = 노드 인덱스. `devices` = ((이름, element_class, kind, pins, bulk 넷|None, SsDevice|None), ...).
 - MOS -> `MosSmallSignal(d, g, s, b, gm, gmb, gds, cgs, cgd, cgb, cdb, csb, label=이름)`(b = bulk 넷 인덱스). `MosSmallSignal` 은
-  1절대로 용량 ≥ 0 을 요구하므로 LUT v2 의 음의 용량 값이 오면 **ValueError**(입력 계약 위반, 7.9 Q7 -- 결정 대기). bulk None 또는 SsDevice
+  용량을 부호 있는 유한 실수로 받으므로(1절, Q7 결정) LUT v2 의 음의 용량은 그대로 스탬프된다. bulk None 또는 SsDevice
   None -> `StructureUnresolvedError`(reason `unsupported_rule_branch`, rule_branch `ss_element_kind`).
 - 수동소자 kind ∈ `LOOP_CUT_KINDS`(resistor, capacitor): `passive_values` 에 값이 있으면 `Resistor(t0, t1, 값)`/`Capacitor(t0, t1, 값)`
   (pins 순서, label = 이름), 없으면 스탬프하지 않고 `missing` 에(이름순). `resistors`·`capacitors` = 회로 원소 순서의 이름.
@@ -493,11 +497,11 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
 미정 -> '목표 > 분지' +inf, 커밋 안 함)로 얻은 점이다. 보상 수동소자는 변형 A(값 없음) / B(시연 θ: engine 커패시터 1 pF, engine 저항
 10 kΩ -- 탐침값, 설계값 아님).
 - 근사 표시: 평가된 모든 회로 `(("cap", "lut_cgs_cgb"), ("gmb", "lut_gmbs_column"), ("junction", "pending_pdk_junction_params"))`.
-- 블록 계수: 평가된 6회로 모두 첫 평가 computes 1/1/1, 같은 θ(lineage) 두 번째 computes 0·reuses 3, FD(첫 current 성분 +1 %, parent =
+- 블록 계수: 평가된 7회로 모두 첫 평가 computes 1/1/1, 같은 θ(lineage) 두 번째 computes 0·reuses 3, FD(첫 current 성분 +1 %, parent =
   lineage) computes 1/1/1·`recomputes_same_input` 0.
 - 변형 A: ngcc·two_stage·two_stage_sf 의 소신호 제약 `passive_value_undeclared`(Cm1·Cm2 / Cc·Rz / Cc), 전력·면적은 값.
 - pushpull: LUT v2 VS 축으로 평가됨(옛 세트의 caps VS 실패 해소) -- `rout_ss_ohm` 2958.2 Ω(탐침 θ, `<= 1000` 판정 대상 값 아님).
-- nmcnr: 탐침 점에서 한 MOS 의 `cgb` = −2.03e-16 F(LUT v2 부호 보존) -> `MosSmallSignal` ValueError(Q7).
+- nmcnr: 탐침 점에 음의 `cgb`(−2.03e-16 F, LUT v2 부호 보존)가 있다 -- Q7 결정 (a) 뒤 부호 그대로 스탬프되어 평가됨(7회로 평가).
 - current_reuse·sf_pushpull: 215 탐침 중 일관 DC 점 0(패치 유무 무관) -- ss 평가 못 함.
 
 ### 7.9 열린 항목·결정 (오케스트레이터 결정 2026-10-08)
@@ -510,7 +514,7 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
 | Q4 | DEC-78 합산 레일 | **결정: `power_dc_w` = 선언된 모든 공급 레일 합(7.5), `supply_current_dc` 는 spec 선택 선언 `counted_rails` 가 생길 때까지 `counted_rails_undeclared`**. spec 형식 항목(authoring 몫)으로 기록 |
 | Q5 | 보상 수동소자 θ(DEC-92) | **결정: sizing θ 스키마에 둔다**. 의존 기록 -- 그때까지 `passive_theta` 인자, 없으면 정의 불가 |
 | Q6 | 용량 LUT VS 축 밖 | **해소: LUT r6(VS 0~1.8 V)**. 축 밖이면 여전히 후보 실패(설계 2.4) |
-| Q7 | LUT v2 용량은 부호 보존(음수 점 있음) -- 1절 `MosSmallSignal` 은 용량 ≥ 0 을 요구해 ValueError(nmcnr 실측) | **결정 대기**: (a) 1절 계약을 '유한 실수'로 풀어 음의 transcapacitance 를 그대로 스탬프(기존 test 의 '음수 거부' 기대 변경 = 기준 변경이라 승인 필요) (b) 음수 점을 정의 불가 값/후보 실패로. 추측으로 고치지 않았다 |
+| Q7 | LUT v2 용량은 부호 보존(음수 점 있음) -- 옛 1절 `MosSmallSignal` 용량 ≥ 0 과 충돌(nmcnr 실측 cgb −2.03e-16 F) | **결정 (a)**: 1절 용량을 '부호 있는 유한 실수'로(NaN·inf 만 거부), 부호 그대로 스탬프 -- SPICE 오라클과 같은 정의. 계약과 어긋나게 된 기존 test: `tests/metrics/test_records.py::test_mos_negative_value_error[cgs|cgd|cgb|cdb|csb]`(test 작성자가 계약에서 갱신, gm·gmb·gds 행은 그대로 유효) |
 
 ### 7.10 설계와 다르게 정한 점
 1. **`ss.mna[view]`·`ss.freq[view]` 필드를 따로 두지 않았다**: `MnaSystem`·`SystemResponse` 는 numpy 배열이라 core 불변 값 규칙(core 2절)
