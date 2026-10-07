@@ -1,7 +1,7 @@
 """`dc_widths(snapshot, lut)` -- CONTRACT 5.7: MOS 마다 DeviceOp. vgs·vds·vsb = 노드전압 차의 크기(s = +1 nmos/−1 pmos),
 op = op_point(노드 점), W = ID·L/exp(ln_idu), gm_id = op.gm_over_id, idu_forward = op.IDu, w_key = w_keys[kind].
 
-기대값: toy LUT 닫힌 식(conftest Oracle) -- IDu = I0·exp(B·vgs + LAM·vds + vs항), gm/ID = GMAX·exp(−vgs/V0).
+기대값: toy LUT 닫힌 식(conftest Oracle) -- IDu = I0·exp(B·vgs + LAM·vds + vs항), gm/ID = B − C·vgs.
 """
 import math
 

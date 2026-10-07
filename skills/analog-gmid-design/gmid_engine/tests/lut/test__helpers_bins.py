@@ -196,11 +196,14 @@ def test_real_anchor_bins_match_ngspice(real_lut, ngspice_bins, kind, device):
         if hit != [b.model]:
             bad.append((key, i, b.model, hit))
     assert not bad, bad[:10]
-    assert len(got) == len(pts) == 12 * len(keys)
+    # [r6] LUT v2 = 앵커 18개(옛 12-L 은 12)
+    assert len(got) == len(pts) == sum(len(real_lut.slice_map[k].grids[0]) for k in keys) == 18 * len(keys)
 
 
-# 경계값·경계 한 제조 격자(5 nm) 위 -- 비앵커 조회의 b(거부 detail 의 bin 경계·bin 앵커)가 showmod 의 bin 과 같다
-BOUNDARY_L_UM = (0.18, 0.185, 0.255, 0.505, 1.005, 2.0, 2.005)
+# 경계 바로 위 -- 비앵커 조회의 b(거부 detail 의 bin 경계·bin 앵커)가 showmod 의 bin 과 같다.
+# [r6] LUT v2 는 경계값 0.18·0.25·0.5·1·2·4·8 µm 가 모두 앵커라(옛 12-L 의 0.18·0.185·0.255·2.0 은 v2 앵커) 경계 위 값만 쓴다
+# (0.1825·0.2525 는 제조 격자 반 칸 -- ngspice 는 1 nm 넘게 위라 위 bin, 4.0.1).
+BOUNDARY_L_UM = (0.1825, 0.2525, 0.505, 1.005, 2.005, 4.005, 8.005)
 
 
 @pytest.mark.lut_realdata
@@ -229,11 +232,24 @@ def test_real_boundary_queries_match_ngspice(real_lut, ngspice_bins, kind, devic
 
 @pytest.mark.lut_realdata
 def test_real_contract_anchor_bin_table(real_lut):
-    """CONTRACT 1.4 [r4 실측] 표: 모든 슬라이스 anchor_bin = (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5), w_key 1000 은 w_bin (3e-6, 5e-6),
-    pmos w_key 84·110 은 같은 w_bin (4.2e-7, 5.5e-7). (값 자체의 참은 위 ngspice 대조가 정한다.)"""
-    for key, sl in real_lut.slice_map.items():
-        assert sl.l_bins.anchor_bin == (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5), key
+    """[r6] CONTRACT 5절 r6 실측 bin 상태(w_key 1000, nmos·pmos 같음): .26 = 앵커 0·1, .25 = 2·3·4, .24 = 5~9, .23 = 10·11,
+    .22 = 12·13, .21 = 14·15, .20 = 16, .19 = 17 -> anchor_bin = (0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7).
+    w_key 1000 은 w_bin (3e-6, 5e-6), pmos w_key 84·110 은 같은 w_bin (4.2e-7, 5.5e-7)(1.4 r4 실측 -- W 는 그대로).
+    (값 자체의 참은 위 ngspice 대조가 정한다. 옛 12-L 표 (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5)는 old_lut 에서 확인.)"""
+    for kind in ("nmos", "pmos"):
+        lb = real_lut.slice_map[(kind, 1000)].l_bins
+        assert lb.anchor_bin == (0, 0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7), kind
+        # bins 는 그 W bin 의 모든 bin(앵커 없는 bin 포함, 1.4 의 4.) -- 앵커가 든 bin 의 이름만 본다
+        used = sorted(set(lb.anchor_bin))
+        assert tuple(lb.bins[j].model.rsplit(".", 1)[1] for j in used) == ("26", "25", "24", "23", "22", "21", "20", "19")
     for kind in ("nmos", "pmos"):
         assert same_bounds(real_lut.slice_map[(kind, 1000)].l_bins.w_bin, (3e-6, 5e-6))
     assert same_bounds(real_lut.slice_map[("pmos", 84)].l_bins.w_bin, (4.2e-7, 5.5e-7))
     assert same_bounds(real_lut.slice_map[("pmos", 110)].l_bins.w_bin, (4.2e-7, 5.5e-7))
+
+
+@pytest.mark.lut_realdata
+def test_old_set_contract_anchor_bin_table(old_lut):
+    """옛 12-L 세트(계약 1.4 r4 실측 표, 그대로 로드됨): 모든 슬라이스 anchor_bin = (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5)."""
+    for key, sl in old_lut.slice_map.items():
+        assert sl.l_bins.anchor_bin == (0, 1, 1, 2, 2, 2, 2, 3, 3, 4, 5, 5), key

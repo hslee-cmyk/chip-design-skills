@@ -1,6 +1,8 @@
 """`lut_fingerprint` -- CONTRACT 1.5: 64자 hex, 경로 무관, 어느 sha256·cap_basis 든 바뀌면 다른 지문, 결정론(10)."""
+import dataclasses
 import os
 import re
+import shutil
 import subprocess
 import sys
 
@@ -9,7 +11,8 @@ import pytest
 
 from gmid_engine.lut import load_lut_set, lut_fingerprint
 
-from .conftest import SKILL_DIR, TOY_SPEC, copy_tree, standard_toy_slices, toy_cap_arrays
+from .conftest import (MID_L_SOURCE, SKILL_DIR, TOY_SPEC, copy_tree, load_real, mid_point_arrays, sha256_file,
+                       standard_toy_slices, toy_cap_arrays)
 
 
 def _basis(lut):
@@ -83,6 +86,55 @@ def test_fp_deterministic_across_hashseed(toy_build, toy):
 
 @pytest.mark.lut_realdata
 def test_real_fp_deterministic(real_lut, real_paths, real_spec):
-    again = load_lut_set(real_paths["manifest"], real_paths["cap"], real_spec)
+    """[r6] 기본 로드(1.8 '쓰는 법' -- pdk_root·verify_midpoints)를 다시 해도 같은 지문, 지문 = lut_fingerprint(provenance, basis)."""
+    again = load_real(real_paths, real_spec)
     assert again.fp == real_lut.fp
     assert real_lut.fp == lut_fingerprint(real_lut.provenance, _basis(real_lut))
+
+
+@pytest.mark.lut_realdata
+def test_real_fp_midpoints_item(real_lut, real_paths, real_spec):
+    """[r6] 1.5: 중점 파일을 주면 지문에 중점 sha256 항목이 더해진다 -- 중점 없이 로드한 지문과 다르고,
+    provenance 에서 중점 sha256 만 None 으로 바꾼 지문은 중점 없는 로드의 지문과 같다(r5 와 같은 6항목)."""
+    plain = load_real(real_paths, real_spec, verify_midpoints=None)
+    assert plain.provenance.midpoints_sha256 is None
+    assert plain.fp != real_lut.fp
+    stripped = dataclasses.replace(real_lut.provenance, midpoints_path=None, midpoints_sha256=None,
+                                   midpoints_l_source=(), midpoints_conditions=())
+    assert lut_fingerprint(stripped, _basis(real_lut)) == plain.fp
+
+
+# ---------------------------------------------------------------------------
+# [r6] 1.5 중점 sha256 항목 (toy)
+# ---------------------------------------------------------------------------
+
+def _mid_toy(mid_toy_build, sub, L_points=(3.5e-6,), **kw):
+    return mid_toy_build(sub, mid=mid_point_arrays(L_points, l_source=MID_L_SOURCE, **kw))
+
+
+def test_midpoints_add_fp_item(mid_toy_build):
+    mt = _mid_toy(mid_toy_build, "a")
+    with_mid = mt.load()
+    without = mt.load(verify_midpoints=None)
+    assert with_mid.provenance.midpoints_sha256 == sha256_file(mt.mid_path)
+    assert without.provenance.midpoints_sha256 is None
+    assert with_mid.fp != without.fp
+    assert with_mid.fp == lut_fingerprint(with_mid.provenance, _basis(with_mid))
+    # 중점 sha256 만 지문을 바꾼다: 그 항목을 지운 provenance 의 지문 = 중점 없는 로드
+    stripped = dataclasses.replace(with_mid.provenance, midpoints_path=None, midpoints_sha256=None,
+                                   midpoints_l_source=(), midpoints_conditions=())
+    assert lut_fingerprint(stripped, _basis(with_mid)) == without.fp
+
+
+def test_midpoints_content_changes_fp_path_does_not(mid_toy_build, tmp_path):
+    a = _mid_toy(mid_toy_build, "a").load()
+    b = _mid_toy(mid_toy_build, "b", L_points=(3.25e-6,)).load()                # 다른 중점 내용
+    assert a.fp != b.fp
+    mt = _mid_toy(mid_toy_build, "c")
+    moved = tmp_path / "moved_mid" / "x.npz"
+    moved.parent.mkdir()
+    shutil.copyfile(mt.mid_path, moved)
+    c1 = mt.load()
+    c2 = mt.load(verify_midpoints=str(moved))
+    assert c1.provenance.midpoints_path != c2.provenance.midpoints_path
+    assert c1.fp == c2.fp

@@ -1,12 +1,13 @@
 """tests/sizing 공용 픽스처 -- `gmid_engine/sizing/CONTRACT.md`(+ core·lut·graph·authoring 계약)만 근거로 만든 입력과
 독립 계산. sizing `.py` 소스는 열람하지 않았다.
 
-- toy LUT: 이 파일이 정한 해석식으로 npz 를 직접 쓴다(nmos·pmos 한 폭 슬라이스씩). 식이 분리형이고 로그공간에서
-  VGS·VDS 에 선형이라, lut 계약의 다중선형(로그공간) 보간·역보간 결과를 손으로 닫힌 식으로 낼 수 있다:
-      ID[L, VGS, VDS, VS] = (W/L) · I0[kind] · exp(B·VGS + LAM·VDS − A·VS²)
-      GM = ID · GMAX · exp(−VGS / V0),  GDS = ID / 10,  VTH = 0.4
-  VS 방향만 곡률(−A·VS²)이 있어 tol_V id_equivalent 가 0 이 아니다(VS 축 LOO = A·h²). VS 축은 음수 점(−0.45)을 포함해
-  봉인 6(bulk 역바이어스) 위반을 LUT 축 안에서 만들 수 있다.
+- toy LUT: 이 파일이 정한 해석식으로 npz 를 직접 쓴다(nmos·pmos 한 폭 슬라이스씩). lut r5(4.2·7절)는 VGS·VDS 축이 저장 기울기
+  (GM/ID·GDS/ID)를 쓰는 2점 cubic-Hermite 이고 Fritsch–Carlson 단조 조건을 검사하므로, 기울기가 자료와 정확히 맞는 식을 쓴다:
+      ln ID[L, VGS, VDS, VS] = ln(W/L) + ln I0[kind] + B·VGS − C·VGS²/2 + LAM·VDS − A·VS²
+      GM/ID = B − C·VGS (= d lnID/dVGS),  GDS/ID = LAM (= d lnID/dVDS),  VTH = 0.4
+  VGS 방향은 2차, VDS 방향은 1차라 cubic-Hermite 가 정확히 재현한다(칸 안 값·미분 모두 닫힌 식). VS 축은 선형 보간이라 VS 항은
+  격자 위 −A·VS² 의 구간 선형 -- 그래서 tol_V id_equivalent 는 VS 축 LOO(A·h²) / 2^2(Richardson, lut 5절) 만 남는다. VS 축은 음수 점
+  (−0.45)을 포함해 봉인 6(bulk 역바이어스) 위반을 LUT 축 안에서 만들 수 있다.
 - 손 회로: topology JSON 을 이 파일에서 dict 로 만들어 authoring `load_topology` 로 읽는다(입력 생성용 공개 API).
 - 기대값: `Oracle` 이 npz 배열(numpy 로 직접 읽음)·닫힌 식으로 계산한다. 피검 함수로 기대값을 만들지 않는다.
 """
@@ -41,12 +42,11 @@ TOY_L = (1e-6, 2e-6)
 TOY_VGS = tuple(round(0.1 * i, 10) for i in range(19))          # 0.0 .. 1.8
 TOY_VDS = tuple(round(0.3 * i, 10) for i in range(7))           # 0.0 .. 1.8
 TOY_VS = (-0.45, 0.0, 0.45, 0.9, 1.35, 1.8)
-I0 = {"nmos": 1e-8, "pmos": 5e-9}
-B = 8.0
+I0 = {"nmos": 1e-11, "pmos": 5e-12}
+B = 20.0                        # gm/ID(VGS = 0)
+C = 8.0                         # gm/ID 기울기: gm/ID = B − C·VGS (1.8 V 에서 5.6 > 0)
 LAM = 0.1
-A = 0.5
-GMAX = 25.0
-V0 = 0.8
+A = 2.0
 DEVICE_OF = {"nmos": "toyn", "pmos": "toyp"}
 SUFFIX = {"nmos": "_n", "pmos": "_p"}
 TOY_SPEC = LutSpec(GRID_M, (("nmos", 1e-6), ("pmos", 1e-6)), (("toyn", "nmos"), ("toyp", "pmos")),
@@ -60,12 +60,12 @@ def toy_arrays(kind):
     G = np.asarray(TOY_VGS)[None, :, None, None]
     D = np.asarray(TOY_VDS)[None, None, :, None]
     S = np.asarray(TOY_VS)[None, None, None, :]
-    ID = (W_M / Lg) * I0[kind] * np.exp(B * G + LAM * D - A * S * S)
-    GM = ID * GMAX * np.exp(-G / V0)
+    ID = (W_M / Lg) * I0[kind] * np.exp(B * G - 0.5 * C * G * G + LAM * D - A * S * S)
+    GM = ID * (B - C * G)
     return {
         "W": np.float64(W_M),
         "L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS), "VS": np.asarray(TOY_VS),
-        "ID": ID, "GM": GM, "GDS": ID / 10.0, "VTH": np.full(ID.shape, 0.4),
+        "ID": ID, "GM": GM, "GDS": ID * LAM, "VTH": np.full(ID.shape, 0.4),
         "meta_json": np.str_('{"model_files_sha256": {}}'),
         "corner": np.str_("tt"), "temp_c": np.float64(27.0),
     }
@@ -135,53 +135,73 @@ def _lin(xs, ys, x):
     return float(ys[i] + (ys[i + 1] - ys[i]) * t)
 
 
+def _hermite(y0, y1, m0, m1, h, t):
+    """2점 cubic-Hermite(lut 4.2 식 그대로, 독립 구현)."""
+    h00 = 2 * t ** 3 - 3 * t ** 2 + 1
+    h10 = t ** 3 - 2 * t ** 2 + t
+    h01 = -2 * t ** 3 + 3 * t ** 2
+    h11 = t ** 3 - t ** 2
+    return y0 * h00 + h * m0 * h10 + y1 * h01 + h * m1 * h11
+
+
 class Oracle:
-    """toy LUT 의 독립 계산. vs 항은 VS 격자 위 −A·VS² 의 구간 선형 보간(lut 계약: 로그공간 다중선형)."""
+    """toy LUT 의 독립 계산(r5). VGS·VDS 는 Hermite 가 정확히 재현하는 2차·1차 식이라 닫힌 식, VS 항은 VS 격자 위
+    −A·VS² 의 구간 선형 보간."""
 
     @staticmethod
     def vs_term(vsb):
         return _lin(TOY_VS, [-A * v * v for v in TOY_VS], vsb)
 
     @staticmethod
+    def f(vgs):
+        return B * vgs - 0.5 * C * vgs * vgs
+
+    @staticmethod
     def ln_idu(kind, vgs, vds, vsb):
         # IDu = ID·L/w_m = I0·exp(...)  (L 무관)
-        return math.log(I0[kind]) + B * vgs + LAM * vds + Oracle.vs_term(vsb)
+        return math.log(I0[kind]) + Oracle.f(vgs) + LAM * vds + Oracle.vs_term(vsb)
 
     @staticmethod
     def vgs_of(kind, ln_idu, vds, vsb):
-        """좌표 역산: ln IDu = ln I0 + B·vgs + LAM·vds + vs_term  ->  vgs."""
-        return (ln_idu - math.log(I0[kind]) - LAM * vds - Oracle.vs_term(vsb)) / B
+        """좌표 역산: f(vgs) = ln IDu − ln I0 − LAM·vds − vs_term, f 증가 가지(vgs < B/C)의 근."""
+        r = ln_idu - math.log(I0[kind]) - LAM * vds - Oracle.vs_term(vsb)
+        return (B - math.sqrt(B * B - 2.0 * C * r)) / C
 
     @staticmethod
     def gm_id(vgs):
-        return GMAX * math.exp(-vgs / V0)
+        return B - C * vgs
 
     @staticmethod
     def tol_v():
-        """tol_v_table(...).at(L, vds, "id_equivalent") -- lut 계약 5절 정의를 npz 배열에 직접 적용(셀 최댓값)."""
+        """tol_v_table(...).at(L, vds, "id_equivalent") -- lut 계약 5절 r5 정의(운영과 같은 방법 LOO: VGS 축 Hermite(기울기
+        GM/ID)·VDS 축 Hermite(기울기 GDS/ID)·VS 축 선형, Richardson 2^p 환산 p = 4/4/2, L 축은 모델 bin 지도 없음 -> 없음)를
+        npz 배열에 직접 적용한 셀 최댓값."""
         arr = toy_arrays("nmos")
         lnI = np.log(arr["ID"])
         g = arr["GM"] / arr["ID"]
+        sd = arr["GDS"] / arr["ID"]
         best = 0.0
         grids = (arr["L"], arr["VGS"], arr["VDS"], arr["VS"])
-        for ax in (1, 2, 3):
+        for ax, slope, p in ((1, g, 4), (2, sd, 4), (3, None, 2)):
             x = grids[ax]
-            n = len(x)
-            for j in range(1, n - 1):
-                t = (x[j] - x[j - 1]) / (x[j + 1] - x[j - 1])
-                sl = [slice(None)] * 4
-                sm, sj, sp = list(sl), list(sl), list(sl)
+            for j in range(1, len(x) - 1):
+                H = x[j + 1] - x[j - 1]
+                t = (x[j] - x[j - 1]) / H
+                sm, sj, sp = [slice(None)] * 4, [slice(None)] * 4, [slice(None)] * 4
                 sm[ax], sj[ax], sp[ax] = j - 1, j, j + 1
-                loo = lnI[tuple(sm)] + t * (lnI[tuple(sp)] - lnI[tuple(sm)])
-                val = np.abs(loo - lnI[tuple(sj)]) / g[tuple(sj)]
+                y0, y1 = lnI[tuple(sm)], lnI[tuple(sp)]
+                if slope is None:
+                    loo = y0 + t * (y1 - y0)
+                else:
+                    loo = _hermite(y0, y1, slope[tuple(sm)], slope[tuple(sp)], H, t)
+                val = np.abs(loo - lnI[tuple(sj)]) / g[tuple(sj)] / 2 ** p
                 best = max(best, float(val.max()))
         return best
 
     @staticmethod
     def gm_bound(kind, L, vds, vsb, W):
-        """max over VGS 격자 of (id·gm/id) at (L, vds, vsb) × W/w_m. id·gm/id = GM(폭 w_m)."""
-        best = max(math.exp(math.log(W_M / L) + math.log(I0[kind]) + B * v + LAM * vds + Oracle.vs_term(vsb)
-                            + math.log(GMAX) - v / V0) for v in TOY_VGS)
+        """max over VGS 마디 of (id·gm/id) at (L, vds, vsb) × W/w_m."""
+        best = max(math.exp(math.log(W_M / L) + Oracle.ln_idu(kind, v, vds, vsb)) * Oracle.gm_id(v) for v in TOY_VGS)
         return best * W / W_M
 
 
@@ -287,17 +307,21 @@ NINE = ("common_gate_amplifier", "current_reuse_telescopic_ota", "folded_cascode
         "two_stage_ota_sf")
 
 
-def spec_catalog():
+# SPEC_CONTRACT 5절 픽스처 이름표 중 MOD5 레지스트리(metrics.metric_catalog)에 아직 없는 이름(7절 S2 + area 축 예산 metric).
+# 나머지는 실제 레지스트리를 그대로 쓴다(이름표를 두 곳에 정의하지 않는다).
+def _registry_gaps():
     from gmid_engine.core import MetricSignature as M
-    return {  # authoring SPEC_CONTRACT 5절 픽스처 이름표
-        "gain_ss_db": M("dB", "ss", "transfer"), "ugf_ss_hz": M("Hz", "ss", "transfer"),
-        "gbw_ss_hz": M("Hz", "ss", "transfer"), "pm_ss_deg": M("deg", "ss", "transfer"),
-        "parasitic_pm_ss_deg": M("deg", "ss", "transfer"), "rout_ss_ohm": M("ohm", "ss", "transfer"),
-        "ratio_ss_db": M("dB", "ss", "ratio"), "mismatch_sigma_mv": M("mV", "dc", "none"),
-        "mirror_ratio_error_mv": M("mV", "dc", "none"), "power_dc_w": M("W", "dc", "none"),
-        "area_search_m2": M("m2", "geom", "none"), "supply_current_dc": M("A", "dc", "none", "power"),
-        "area_layout_m2": M("m2", "geom", "none", "area"),
-    }
+    return {"mismatch_sigma_mv": M("mv", "dc"), "mirror_ratio_error_mv": M("mv", "dc"),
+            "area_layout_m2": M("m2", "geom", None, "area")}
+
+
+def spec_catalog():
+    from gmid_engine.metrics import metric_catalog
+    cat = dict(metric_catalog())
+    for k, v in _registry_gaps().items():
+        assert k not in cat, "레지스트리에 생긴 이름은 test 쪽 보충에서 지운다: %s" % k
+        cat[k] = v
+    return cat
 
 
 _LIB = {}

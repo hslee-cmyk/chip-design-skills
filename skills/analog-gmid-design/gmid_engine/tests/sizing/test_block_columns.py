@@ -270,8 +270,7 @@ def _mirror_ctx(tmp_path, toy_access):
 
 def _mirror_theta(ctx, v_diode):
     import math as _m
-    from .conftest import B, I0, LAM
-    x1 = _m.log(I0["nmos"]) + (B + LAM) * v_diode            # 손계산: v = (x − ln I0)/(B + LAM) (vds = vgs, vsb 0)
+    x1 = Oracle.ln_idu("nmos", v_diode, v_diode, 0.0)       # diode: vds = vgs, vsb 0
     th = {("L", "M1"): 1e-6, ("L", "M2"): 1e-6, ("L", "M3"): 1e-6, ("ln_idu", "M1"): x1,
           ("ln_idu", "M3"): Oracle.ln_idu("pmos", 0.7, 0.9, 0.0), ("y", "out"): 0.5}
     th.update(free_currents(ctx, {"M1": 1e-5, "M2": 1e-5, "M3": 1e-5, "I1": 1e-5}))
@@ -285,9 +284,9 @@ def test_diode_one_variable_bisection(tmp_path, toy_access, v_star):
     snap = run_blocks(ctx, _mirror_theta(ctx, v_star), upto="columns")
     V = node_voltages(snap)
     tol = Oracle.tol_v()
-    from .conftest import B, LAM
-    # bisection 마지막 구간 폭 ≤ tol -> 가운데 오차 ≤ tol/2, 한 번 다듬기(g) 로 |g'| = LAM/B 배 줄어든다
-    assert abs(V["nb"] - v_star) <= tol / 2 * (LAM / B) + 1e-12
+    from .conftest import LAM
+    # bisection 마지막 구간 폭 ≤ tol -> 가운데 오차 ≤ tol/2, 한 번 다듬기(g) 로 |g'| = LAM/(gm/ID) 배 줄어든다
+    assert abs(V["nb"] - v_star) <= tol / 2 * (LAM / Oracle.gm_id(v_star)) + 1e-12
     log = {e.nodes: e for e in snap.value("graph", DC_KEY, "dc_scc_log")}[("nb",)]
     # 구간 = 레일 [0, 1.8] ∩ vds(= x) ∈ [0, 1.8] ∩ vsb(= 0) ∈ VS 격자 -> [0, 1.8]; 반복 수 = k_max(1.8, tol)
     assert log.iterations == math.ceil(math.log2(1.8 / tol))

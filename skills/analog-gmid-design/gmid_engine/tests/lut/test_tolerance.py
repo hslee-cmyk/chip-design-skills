@@ -19,11 +19,12 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.lut import TOL_V_METRICS, LBinMap, TolVCell, TolVTable, op_point, tol_v_table
+from gmid_engine.lut import (TOL_V_METRICS, LBinMap, TolVCell, TolVTable, midpoint_l_bin_checks, op_point,
+                             tol_v_table)
 
 from .conftest import (BIN_ANCHOR_BIN_HI, BIN_ANCHOR_BIN_LO, BIN_L, TOY_L, TOY_VDS, RefSlice, bin_toy_raw, detail_of,
-                       hermite_val, new_memo, parse_model_bins, r4_toy_slice_arrays, rel_close, same_bounds,
-                       tol_cell_ref, toy_slice_arrays, um)
+                       hermite_val, midpoint_ref, new_memo, parse_model_bins, r4_toy_slice_arrays, rel_close, same_bounds,
+                       sha256_file, tol_cell_ref, toy_slice_arrays, um)
 
 LOO_ORDERS_EXPECTED = (
     ("gm_id_inverse", "L", "linear", 2, 0.25),
@@ -222,7 +223,14 @@ def test_independent_impl_reproduces_contract_rows():
 
 @pytest.fixture(scope="module")
 def real_table(real_lut):
+    """[r6] 기본 l_bin_checks=None -> 중점 파일 값(5.1)이 앵커 2개 bin 의 외부 값으로 들어간 표."""
     return tol_v_table(new_memo(real_lut), "pmos", 1000)
+
+
+@pytest.fixture(scope="module")
+def real_table_noext(real_lut):
+    """l_bin_checks=() (외부 값 없음 -- r5 기본 동작)."""
+    return tol_v_table(new_memo(real_lut), "pmos", 1000, ())
 
 
 def l_loo_rows(anchor_bin):
@@ -249,22 +257,54 @@ def real_pmos_l_rows(real_pmos_anchor_bin):
 
 
 @pytest.fixture(scope="module")
-def real_ref_cells(raw_slice, real_pmos_anchor_bin):
-    """pmos w_key 1000 전 셀 독립 계산(역산 근 포함 -- 약 1분). L 방향 LOO 앵커는 ngspice showmod 로 정한 bin 에서."""
+def real_mid_ext(raw_slice, raw_mid, real_pmos_anchor_bin):
+    """[r6] 5.1 의 pmos w_key 1000 외부 값 독립 계산: 중점 0.165 µm 를 감싸는 앵커 2개 bin(showmod 로 정한 bin 표시)의 앵커 쌍.
+    반환 {앵커 index: (inv[k], eq[k])} -- 그 bin 두 앵커 행에 들어갈 VDS 별 값."""
+    z = raw_slice("pmos", 1000)
+    Lg = [float(x) for x in z["L"]]
+    ab = real_pmos_anchor_bin
+    out = {}
+    for m, Lm in enumerate(float(x) for x in raw_mid["L"]):
+        if any(abs(Lm - a) <= math.ulp(a) for a in Lg) or not (Lg[0] < Lm < Lg[-1]):
+            continue
+        k = bisect.bisect_right(Lg, Lm)
+        i0, i1 = k - 1, k
+        if ab[i0] != ab[i1] or ab.count(ab[i0]) != 2:
+            continue                                     # 감싸는 쌍이 같은 bin 이고 그 bin 의 앵커가 정확히 2개일 때만(5.1 1~6)
+        ref = midpoint_ref(z, raw_mid, "_p", m, i0, i1)
+        out[i0] = out[i1] = (ref["inv"], ref["eq"], ref["inv_bound"], ref["eq_bound"])
+    return out
+
+
+@pytest.fixture(scope="module")
+def real_ref_cells(raw_slice, real_pmos_anchor_bin, real_mid_ext):
+    """pmos w_key 1000 전 셀 독립 계산(역산 근 포함). L 방향 LOO 앵커는 ngspice showmod 로 정한 bin 에서.
+    [r6] 앵커 2개 bin 행에는 5.1 독립 외부 값(VDS 별)을 정의된 환산 후 셀 값과의 최댓값으로 넣는다(5절, 환산 없음)."""
     z = raw_slice("pmos", 1000)
     rs = RefSlice(z)
-    return [[tol_cell_ref(rs, i, k, real_pmos_anchor_bin) for k in range(len(z["VDS"]))] for i in range(len(z["L"]))]
+    cells = [[tol_cell_ref(rs, i, k, real_pmos_anchor_bin) for k in range(len(z["VDS"]))] for i in range(len(z["L"]))]
+    for i, (inv, eq, invb, eqb) in real_mid_ext.items():
+        for k, r in enumerate(cells[i]):
+            for key, ext, eb in (("inv", inv[k], invb[k]), ("eq", eq[k], eqb[k])):
+                if r[key] is not None and ext is not None and ext > r[key]:
+                    r[key] = ext
+                    r[key + "_bound"] = eb
+    return cells
 
 
 @pytest.mark.lut_realdata
-def test_real_l_rows_are_contract_anchors(real_pmos_l_rows):
-    assert real_pmos_l_rows == frozenset({4, 5})                 # 0.35·0.425 µm (CONTRACT 5절 r4 실측)
+def test_real_l_rows_are_contract_anchors(real_pmos_l_rows, real_pmos_anchor_bin):
+    """[r6] CONTRACT 5절 r6 실측 bin 상태: .25 (앵커 2·3·4)·.24 (5~9) computed -> 내부 앵커 3·6·7·8(0.2·0.3·0.35·0.425 µm).
+    .26 (0·1)·.23·.22·.21 은 앵커 2개, .20·.19 는 1개."""
+    assert real_pmos_l_rows == frozenset({3, 6, 7, 8})
+    sizes = [real_pmos_anchor_bin.count(b) for b in sorted(set(real_pmos_anchor_bin))]
+    assert sizes == [2, 3, 5, 2, 2, 2, 1, 1]
 
 
 @pytest.mark.lut_realdata
 def test_real_table_totals_match_independent(real_table, real_ref_cells, real_pmos_l_rows):
-    """[r5] r4 의 등호 복원(최댓값·합계)을 r5 독립 구현 값으로: 셀 최댓값은 유도 상한 안에서 같고, 시도·실패 합계는 정확히.
-    (r4 독립 구현 값 0.49207258763504047 V·0.20112031777415645 V·실패 65,335 는 선형 LOO 정의 -- r5 에서 바뀐다.)"""
+    """[r5] 셀 최댓값은 유도 상한 안에서 같고, 시도·실패 합계는 정확히(독립 구현 값 -- [r6] LUT v2 는 옛 실측 779,455 (67,164) 와 다르다).
+    [r6] 셀 값에는 중점 외부 값(.26 행)이 들어 있다(독립 5.1 구현)."""
     t = real_table
     assert all((t.l_loo[i] == "in_bin_interior") == (i in real_pmos_l_rows) for i in range(len(t.L_anchors)))
     for key, attr in (("inv", "gm_id_inverse_v"), ("eq", "id_equivalent_v"),
@@ -279,7 +319,7 @@ def test_real_table_totals_match_independent(real_table, real_ref_cells, real_pm
     n_f = sum(c.n_inverse_failed for row in t.cells for c in row)
     assert (n_t, n_f) == (sum(r["n_t"] for row in real_ref_cells for r in row),
                           sum(r["n_f"] for row in real_ref_cells for r in row))
-    assert (n_t, n_f) == (779455, 67164)                        # CONTRACT 5절 r5 실측과도 같다
+    print("pmos 1000 역산 시도 %d (실패 %d)" % (n_t, n_f))
 
 
 @pytest.mark.lut_realdata
@@ -292,7 +332,7 @@ def test_real_table_shape_and_per_cell(real_table, raw_slice):
     assert len(t.cells) == nL and all(len(r) == nV for r in t.cells)
     assert all(isinstance(c, TolVCell) for r in t.cells for c in r)
     defined = [c for r in t.cells for c in r if c.gm_id_inverse_v is not None or c.id_equivalent_v is not None]
-    assert len(defined) == 576                                   # 12 앵커 × 48 VDS (VDS = 0 열은 ID 0)
+    assert len(defined) == 18 * 48 == nL * (nV - 1)              # [r6] 18 앵커 × 48 VDS (VDS = 0 열은 ID 0)
     assert all(t.cells[i][0] == TolVCell(None, None, 0, 0) for i in range(nL))
     assert all(t.cells[i][-1].gm_id_inverse_v is not None for i in range(nL))
     assert tuple(tuple(r) for r in t.loo_orders) == LOO_ORDERS_EXPECTED
@@ -300,7 +340,7 @@ def test_real_table_shape_and_per_cell(real_table, raw_slice):
 
 @pytest.mark.lut_realdata
 def test_real_all_cells_match_independent(real_table, real_ref_cells):
-    """전 셀(12 × 49): n_targets·n_inverse_failed 정확히, 네 값(환산 후·환산 전) -- 허용 차는 `_cell_matches`."""
+    """전 셀(18 × 49): n_targets·n_inverse_failed 정확히, 네 값(환산 후·환산 전) -- 허용 차는 `_cell_matches`."""
     n_t = n_f = 0
     for i, row in enumerate(real_ref_cells):
         for k, ref in enumerate(row):
@@ -315,14 +355,36 @@ def test_real_all_cells_match_independent(real_table, real_ref_cells):
 
 
 @pytest.mark.lut_realdata
-def test_real_scaled_values_are_loo_over_two_pow_p(real_table):
-    """환산 후 ≤ 환산 전 / 2^p_min(= /4) 이고 ≥ 환산 전 / 2^p_max(id_equivalent /16, gm_id_inverse /8) -- 셀 최댓값의 범위 성질."""
-    for row in real_table.cells:
+def test_real_scaled_values_are_loo_over_two_pow_p(real_table_noext):
+    """환산 후 ≤ 환산 전 / 2^p_min(= /4) 이고 ≥ 환산 전 / 2^p_max(id_equivalent /16, gm_id_inverse /8) -- 셀 최댓값의 범위 성질.
+    [r6] 외부 값은 환산 후 값에만 들어가므로(5절) 이 성질은 외부 값 없는 표(l_bin_checks=())에서 본다."""
+    for row in real_table_noext.cells:
         for c in row:
             if c.id_equivalent_v is not None:
                 assert c.id_equivalent_loo_v / 16 <= c.id_equivalent_v <= c.id_equivalent_loo_v / 4   # 2^p 나눔은 정확
             if c.gm_id_inverse_v is not None:
                 assert c.gm_id_inverse_loo_v / 8 <= c.gm_id_inverse_v <= c.gm_id_inverse_loo_v / 4
+
+
+@pytest.mark.lut_realdata
+def test_real_default_external_equals_explicit_midpoint_rows(real_lut, real_table, real_table_noext):
+    """[r6] 5절: 기본 l_bin_checks=None = midpoint_l_bin_checks(...).rows 의 (model, gm_id_inverse_v, id_equivalent_v).
+    명시해 준 표와 같은 객체(memo 키 = 정규화 형식)이고, 외부 값 없는 표와는 .26 두 행만 다르다."""
+    m = new_memo(real_lut)
+    rows = midpoint_l_bin_checks(m, "pmos", 1000).rows
+    assert len(rows) == 1
+    explicit = tuple((r.model, r.gm_id_inverse_v, r.id_equivalent_v) for r in rows)
+    t_def = tol_v_table(m, "pmos", 1000)
+    assert tol_v_table(m, "pmos", 1000, explicit) is t_def
+    assert tuple(t_def.l_bin_checks) == tuple((mo, tuple(a), tuple(b)) for mo, a, b in explicit)
+    st = {mo: idx for mo, idx, _ in real_table.l_loo_bins}
+    ext_rows = set(st[rows[0].model])
+    assert ext_rows == {0, 1}
+    for i in range(len(real_table.cells)):
+        for k in range(len(real_table.cells[i])):
+            if i not in ext_rows:
+                assert real_table.cells[i][k] == real_table_noext.cells[i][k]
+    assert any(real_table.cells[i][k] != real_table_noext.cells[i][k] for i in ext_rows for k in range(49))
 
 
 @pytest.mark.lut_realdata
@@ -340,8 +402,9 @@ def test_real_at_is_max_of_two_cells(real_table):
 
 
 @pytest.mark.lut_realdata
-def test_real_external_l_values_not_converted(real_lut, real_table):
-    """5절 [r5]: 외부 L 값(l_bin_checks)은 환산하지 않고 환산 후 셀 값과의 최댓값에만 들어가며 환산 전 필드에는 안 들어간다."""
+def test_real_external_l_values_not_converted(real_lut, real_table, real_table_noext):
+    """5절 [r5]: 외부 L 값(l_bin_checks)은 환산하지 않고 환산 후 셀 값과의 최댓값에만 들어가며 환산 전 필드에는 안 들어간다.
+    [r6] 비교 기준 = 외부 값 없는 표(l_bin_checks=()) -- 기본 표는 .26 에 중점 값이 들어 있다."""
     st = dict((m, (idx, s)) for m, idx, s in real_table.l_loo_bins)
     model, (idx, s) = next((m, v) for m, v in st.items() if v[1] == "missing_external")
     ext = 0.5                                       # 셀 값보다 큰 외부 값(V) -- 환산되면 0.5/4 등으로 보일 것
@@ -349,7 +412,7 @@ def test_real_external_l_values_not_converted(real_lut, real_table):
     n = 0
     for i in range(len(t2.cells)):
         for k, c2 in enumerate(t2.cells[i]):
-            c1 = real_table.cells[i][k]
+            c1 = real_table_noext.cells[i][k]
             assert (c2.n_targets, c2.n_inverse_failed) == (c1.n_targets, c1.n_inverse_failed)
             assert (c2.gm_id_inverse_loo_v, c2.id_equivalent_loo_v) == (c1.gm_id_inverse_loo_v, c1.id_equivalent_loo_v)
             for attr in ("gm_id_inverse_v", "id_equivalent_v"):
@@ -365,9 +428,9 @@ def test_real_external_l_values_not_converted(real_lut, real_table):
 
 @pytest.mark.lut_realdata
 def test_real_l_rows_cells_match_independent(real_table, real_ref_cells, real_pmos_l_rows, raw_slice):
-    """L 방향 LOO 가 들어가는 두 행(0.35·0.425 µm)의 모든 VDS 셀 -- r5 독립 구현과 유도 상한 안에서 같다.
+    """L 방향 LOO 가 들어가는 행([r6] 0.2·0.3·0.35·0.425 µm)의 모든 VDS 셀 -- 독립 구현과 유도 상한 안에서 같다.
     판별: 그 행의 시도 수는 L 방향 없는 독립 계산보다 많다(L 방향 몫이 실제로 들어갔다)."""
-    assert real_pmos_l_rows == frozenset({4, 5})
+    assert real_pmos_l_rows == frozenset({3, 6, 7, 8})
     rs = RefSlice(raw_slice("pmos", 1000))
     for i in sorted(real_pmos_l_rows):
         for k, ref in enumerate(real_ref_cells[i]):
@@ -377,9 +440,13 @@ def test_real_l_rows_cells_match_independent(real_table, real_ref_cells, real_pm
 
 
 @pytest.mark.lut_realdata
-def test_real_statuses_match_ngspice_bins(real_table, real_lut, ngspice_bins):
-    """앵커·bin 상태: 앵커 bin 을 showmod 로 묶어 앵커 수로 정한다(3개 이상 computed, 2개 missing_external, 1개 single_point)."""
+def test_real_statuses_match_ngspice_bins(real_table, real_table_noext, real_lut, ngspice_bins, raw_mid):
+    """앵커·bin 상태: 앵커 bin 을 showmod 로 묶어 앵커 수로 정한다(3개 이상 computed, 2개 missing_external, 1개 single_point).
+    [r6] 기본 표(중점 외부 값): 앵커 2개 bin 중 중점 파일의 L 이 두 앵커 사이에 있는 bin 만 external(= .26, 중점 0.165 µm),
+    나머지 2개 bin(.23·.22·.21)은 missing_external(계약 8절 결정 C). 외부 값 없는 표는 r5 와 같다."""
     sl = real_lut.slice_map[("pmos", 1000)]
+    Lg = [float(x) for x in sl.grids[0]]
+    mids = [float(x) for x in raw_mid["L"]]
     b = ngspice_bins.query("pfet_01v8", [(um(sl.w_m), um(L)) for L in sl.grids[0]])
     names = parse_model_bins(ngspice_bins.pm3("pfet_01v8"))
     groups = []
@@ -388,26 +455,35 @@ def test_real_statuses_match_ngspice_bins(real_table, real_lut, ngspice_bins):
             groups[-1][1].append(i)
         else:
             groups.append((g, [i]))
-    exp_bins, exp_loo = [], [None] * len(b)
-    for g, idx in groups:
-        name = [n for n, bnd in names.items() if same_bounds(bnd, g)]
-        assert len(name) == 1
-        st = "computed" if len(idx) >= 3 else ("missing_external" if len(idx) == 2 else "single_point")
-        exp_bins.append((name[0], tuple(idx), st))
-        for j, i in enumerate(idx):
-            exp_loo[i] = ({"missing_external": "bin_missing_external", "single_point": "bin_single_point"}.get(st)
-                          or ("bin_edge" if j in (0, len(idx) - 1) else "in_bin_interior"))
-    assert tuple(real_table.l_loo_bins) == tuple(exp_bins)
-    assert tuple(real_table.l_loo) == tuple(exp_loo)
+    for table, use_mid in ((real_table_noext, False), (real_table, True)):
+        exp_bins, exp_loo = [], [None] * len(b)
+        for g, idx in groups:
+            name = [n for n, bnd in names.items() if same_bounds(bnd, g)]
+            assert len(name) == 1
+            st = "computed" if len(idx) >= 3 else ("missing_external" if len(idx) == 2 else "single_point")
+            if st == "missing_external" and use_mid and any(Lg[idx[0]] < m < Lg[idx[1]] for m in mids):
+                st = "external"
+            exp_bins.append((name[0], tuple(idx), st))
+            for j, i in enumerate(idx):
+                exp_loo[i] = ({"missing_external": "bin_missing_external", "external": "bin_external",
+                               "single_point": "bin_single_point"}.get(st)
+                              or ("bin_edge" if j in (0, len(idx) - 1) else "in_bin_interior"))
+        assert tuple(table.l_loo_bins) == tuple(exp_bins), use_mid
+        assert tuple(table.l_loo) == tuple(exp_loo), use_mid
+    ext = [m for m, _, s in real_table.l_loo_bins if s == "external"]
+    assert len(ext) == 1 and ext[0].endswith(".26")
+    assert sorted(m.rsplit(".", 1)[1] for m, _, s in real_table.l_loo_bins if s == "missing_external") == ["21", "22", "23"]
 
 
 @pytest.mark.lut_realdata
 def test_real_at_in_bin_and_cross_bin(real_table):
     t = real_table
     La = list(t.L_anchors)
-    L = 0.5 * (La[4] + La[5])                           # 0.3875 µm, 같은 bin 0.35·0.425
+    i0 = min(range(len(La)), key=lambda i: abs(La[i] - 0.35e-6))
+    assert abs(La[i0] - 0.35e-6) <= math.ulp(0.35e-6) and abs(La[i0 + 1] - 0.425e-6) <= math.ulp(0.425e-6)
+    L = 0.5 * (La[i0] + La[i0 + 1])                     # 0.3875 µm, 같은 bin 0.35·0.425 ([r6] 앵커 7·8)
     for metric, attr in (("gm_id_inverse", "gm_id_inverse_v"), ("id_equivalent", "id_equivalent_v")):
-        vals = [getattr(t.cells[i][k], attr) for i in (4, 5) for k in (24, 25)]
+        vals = [getattr(t.cells[i][k], attr) for i in (i0, i0 + 1) for k in (24, 25)]
         vals = [v for v in vals if v is not None]
         assert t.at(L, 0.9, metric) == max(vals)
     with pytest.raises(SealViolationError) as ei:
@@ -597,13 +673,25 @@ QUANTS = ("id", "gm", "gds", "vth")
 GEN_GRID_TOL_V = None          # 슬라이스 생성기(manifest 폴더의 manifest["generator"])의 GRID_TOL_V 를 읽어 채운다
 
 
+_GEN_SEARCH = (r"C:\Users\HSLEE\Documents\Todoc\fpga\wt\_drafts\engine\lut_slices",)   # 계약 8절의 슬라이스 생성기 위치
+
+
 def _load_generator_grid_tol(manifest_path):
-    """스윕 전압 검사 허용 = 슬라이스 생성기 선언 GRID_TOL_V(근거 하나 -- 값을 옮겨 적지 않는다)."""
+    """스윕 전압 검사 허용 = 슬라이스 생성기 선언 GRID_TOL_V(근거 하나 -- 값을 옮겨 적지 않는다).
+    [r6] LUT v2 manifest 폴더(git 밖 데이터 폴더)에는 생성기가 없다 -> manifest 폴더, GMID_LUT_GENERATOR_DIR, 계약 8절 위치 순으로
+    찾되 **manifest 의 generator_sha256 과 같은 파일만** 쓴다(다른 판의 생성기로 바꿔 읽지 않는다)."""
     global GEN_GRID_TOL_V
-    base = os.path.dirname(manifest_path)
     with open(manifest_path, encoding="utf-8") as f:
-        gen = json.load(f)["generator"]
-    src = open(os.path.join(base, gen), encoding="utf-8").read()
+        man = json.load(f)
+    gen, gsha = man["generator"], man["generator_sha256"]
+    dirs = [os.path.dirname(manifest_path)] + [d for d in (os.environ.get("GMID_LUT_GENERATOR_DIR"),) if d]
+    dirs += list(_GEN_SEARCH)
+    cands = [os.path.join(d, gen) for d in dirs if os.path.isfile(os.path.join(d, gen))]
+    hit = [p for p in cands if sha256_file(p) == gsha]
+    if not hit:
+        pytest.fail("manifest generator_sha256 %s 와 같은 슬라이스 생성기 %s 를 찾지 못함(후보 %r)" % (gsha, gen, cands),
+                    pytrace=False)
+    src = open(hit[0], encoding="utf-8").read()
     m = re.search(r"^GRID_TOL_V\s*=\s*([0-9.eE+-]+)", src, re.M)
     assert m, "생성기에 GRID_TOL_V 없음"
     GEN_GRID_TOL_V = float(m.group(1))

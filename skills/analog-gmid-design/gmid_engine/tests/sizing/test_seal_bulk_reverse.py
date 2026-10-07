@@ -78,6 +78,6 @@ def test_size_and_seal_raises_item6(ctx_bulk_out):
 
 
 def test_small_reverse_within_tol_passes(ctx_bulk_out):
-    """vsb = −0.02 (< tol_v 0.038) -> pass."""
-    snap, _ = with_tol(ctx_bulk_out, theta_bulk(0.02))
+    """vsb = −0.01 (< tol_v 0.018) -> pass."""
+    snap, _ = with_tol(ctx_bulk_out, theta_bulk(0.01))
     assert run(snap).status == "pass"

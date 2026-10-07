@@ -1,7 +1,7 @@
 """`dc_tolerances(snapshot, lut)` -- CONTRACT 6절 tol 행: dc_tol_v = tol_v_table(kind, w_key).at(L, vds, "id_equivalent"),
 dc_gm_bound = max(gm_id_curve(L, vds, vsb) 의 id·gm/id)·W/w_m.
 
-기대값: toy LUT npz 배열에 lut 계약 5절 id_equivalent LOO 정의를 직접 적용(conftest `Oracle.tol_v`: VS 축 곡률 A·h² 를
+기대값: toy LUT npz 배열에 lut 계약 5절 id_equivalent LOO 정의(r5 Hermite·Richardson)를 직접 적용(conftest `Oracle.tol_v`: VS 축 곡률 A·h²/4 를
 gm/ID 최솟점으로 나눈 값 -- 모든 셀 같음), gm_bound 는 닫힌 식(VGS 격자 최대 1.8 V 의 GM).
 """
 import math
@@ -10,12 +10,13 @@ import pytest
 
 from gmid_engine.sizing import dc_tolerances
 
-from .conftest import A, GMAX, Oracle, V0, mos_table, rel_close, run_blocks, theta_a, theta_c
+from .conftest import A, B, C, Oracle, mos_table, rel_close, run_blocks, theta_a, theta_c
 
 
 def test_oracle_tol_hand_value():
-    # 손계산: VS 간격 0.45 -> LOO 오차 A·h² = 0.10125, gm/ID 최소 = GMAX·exp(−1.8/V0)
-    assert rel_close(Oracle.tol_v(), A * 0.45 ** 2 / (GMAX * math.exp(-1.8 / V0)), 1e-9)
+    # 손계산(r5): VGS(2차)·VDS(1차) Hermite LOO 는 정확(0), VS 선형 LOO 오차 A·h² (h = 0.45), Richardson ÷ 2^2,
+    # gm/ID 최소 = B − 1.8·C
+    assert rel_close(Oracle.tol_v(), A * 0.45 ** 2 / 4 / (B - 1.8 * C), 1e-9)
 
 
 @pytest.mark.parametrize("which", ["C", "A"])
