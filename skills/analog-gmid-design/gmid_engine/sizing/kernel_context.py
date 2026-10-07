@@ -4,7 +4,7 @@ WP-23 (3) 루프 불변 입력은 컨텍스트에, 설계 3.1).
 진입점: `build_kernel_context(s1graph, inputs, lut) -> KernelContext`.
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
-`dc_rails` -> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부) -> `dc_scc_order` ->
+`dc_rails` -> `dc_struct_colour`(구조 색) -> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부) -> `dc_scc_order` ->
 `dc_theta_schema`(값 선언 저항). 계획 블록의 정지(`StructureUnresolvedError`)·KCL 선언 충돌(`InfeasibleTargetError`)은
 그대로 전파된다(탐색 전 정지).
 * `lut.w_keys` 에 S1 MOS kind 가 모두 있어야 하고 그 (kind, w_key) 슬라이스가 LUT 에 있어야 한다(`ValueError`).
@@ -22,6 +22,7 @@ from .s2_values import (
     DC_KEY,
     DC_RAILS_WRITER,
     DC_SCC_ORDER_WRITER,
+    DC_STRUCT_COLOUR_WRITER,
     DC_THETA_SCHEMA_WRITER,
     DC_WRITER_PLAN_WRITER,
     RESISTOR,
@@ -30,11 +31,12 @@ from .s2_values import (
     LutAccess,
 )
 from .scc_order import dc_scc_order
+from .struct_colour import dc_struct_colour
 from .theta_schema import dc_theta_schema
 from .w0_rails import dc_rails
 from .writer_plan import dc_writer_plan
 
-PLAN_WRITERS = (DC_RAILS_WRITER, DC_CURRENT_BASIS_WRITER, DC_WRITER_PLAN_WRITER, DC_SCC_ORDER_WRITER,
+PLAN_WRITERS = (DC_RAILS_WRITER, DC_STRUCT_COLOUR_WRITER, DC_CURRENT_BASIS_WRITER, DC_WRITER_PLAN_WRITER, DC_SCC_ORDER_WRITER,
                 DC_THETA_SCHEMA_WRITER)
 
 
@@ -67,6 +69,7 @@ def build_kernel_context(s1graph, inputs, lut):
                       and values.get(n) is not None)
     base = lift_s1(s1graph)
     base = dc_rails(base, supplies)
+    base = dc_struct_colour(base)
     base = dc_current_basis(base, sources)
     base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None)
     base = dc_scc_order(base)

@@ -5,8 +5,9 @@
 * 미지수 = DC 원소(S1 `device.dc_nets` 가 있는 MOS·저항·이상원, 잎 가지치기된 저항 제외) 전류. 양의 방향 = nmos d->s,
   pmos s->d(전도 방향), 2단자 t0->t1(이상 전류원은 SPICE 규약: t0 에서 source 를 지나 t1 로).
 * 방정식 = 레일이 아닌 넷마다 KCL(나가는 전류 합 − 들어오는 전류 합 = 0). 값이 선언된 이상 전류원은 고정값(DEC-08).
-* 유리수(Fraction) 기약 행사다리꼴로 푼다(부동소수 허용오차 상수 없음). 열 순서 = 원소 이름순(결정론 tie-break);
-  pivot 이 아닌 열 = θ 전류 성분(독립 기저), pivot 열 = 기저와 고정값의 선형식.
+* 유리수(Fraction) 기약 행사다리꼴로 푼다(부동소수 허용오차 상수 없음). 열 순서 = (원소 구조 색 `dc_colour`, 이름) --
+  이름은 같은 구조 색 안에서만 순서를 정한다. pivot 이 아닌 열 = θ 전류 성분(독립 기저), pivot 열 = 기저와 고정값의 선형식.
+  같은 구조 색 열이 기저/종속으로 갈리면 `ties` 에 `TieBreak(current_pivot, 후보, 기저로 고른 쪽)` 을 남긴다.
 * `matching_ratio` 관계는 비율 값 선언이 어디에도 없어(S1·spec) 전류를 강제하지 않는다 -- 미러 출력 전류도 기저에 든다.
 * 정지/실패: 고정값끼리 KCL 이 어긋남 -> `InfeasibleTargetError`(reason `declared_source_kcl_conflict`). KCL 상 전류가
   항상 0 인 MOS -> `StructureUnresolvedError`(rule_branch `mos_zero_current_structural`) -- 전도 소자로 사이징할 수 없다.
@@ -29,13 +30,15 @@ from .s2_values import (
     DC_CURRENT_BASIS_WRITER,
     DC_KEY,
     REASON_DECLARED_KCL,
+    TIE_CURRENT_PIVOT,
     CurrentBasis,
     CurrentTerm,
+    TieBreak,
 )
 
 READS = (
     ("device", "dc_nets"), ("device", "element_class"), ("device", "kind"), ("device", "pins"),
-    ("node", "is_rail"), ("graph", "dc_pruned"),
+    ("node", "is_rail"), ("graph", "dc_pruned"), ("device", "dc_colour"),
 )
 WRITES = (("graph", "dc_current_basis"),)
 _PMOS = "pmos"
@@ -85,7 +88,8 @@ def dc_current_basis(projection):
     fixed = tuple((name, float(declared[name])) for name in elements
                   if classes[name] == ELEMENT_SOURCE and kinds[name] == CURRENT_SOURCE and name in declared)
     fixed_names = tuple(name for name, _v in fixed)
-    unknown = tuple(name for name in elements if name not in fixed_names)
+    colour = dict(projection.column("device", "dc_colour"))
+    unknown = tuple(sorted((name for name in elements if name not in fixed_names), key=lambda n: (colour[n], n)))
     nets = sorted({net for _e, a, b in ends for net in (a, b)} - rails)
     col = {name: i for i, name in enumerate(unknown + fixed_names)}
     rows = []
@@ -122,5 +126,12 @@ def dc_current_basis(projection):
         raise StructureUnresolvedError(devices=dead, detail={"reason": UNSUPPORTED_RULE_BRANCH,
                                                              "rule_branch": BRANCH_MOS_ZERO_CURRENT})
     resistors = tuple(name for name in elements if classes[name] == ELEMENT_PASSIVE)
-    basis = CurrentBasis(ends, mos, free, fixed, tuple((name, terms[name]) for name in elements), pruned, resistors)
+    groups = {}
+    for name in unknown:
+        groups.setdefault(colour[name], []).append(name)
+    ties = tuple(TieBreak(TIE_CURRENT_PIVOT, tuple(sorted(g)), tuple(sorted(n for n in g if n in free)))
+                 for _c, g in sorted(groups.items())
+                 if len(g) > 1 and 0 < sum(n in free for n in g) < len(g))
+    basis = CurrentBasis(ends, mos, tuple(sorted(free)), fixed, tuple((name, terms[name]) for name in elements), pruned,
+                         resistors, ties)
     return {("graph", "dc_current_basis"): {DC_KEY: basis}}

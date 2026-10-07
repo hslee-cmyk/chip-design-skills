@@ -82,14 +82,22 @@ BRANCH_RESISTOR_CYCLE = "dc_resistor_cycle"
 BRANCH_MOS_ZERO_CURRENT = "mos_zero_current_structural"
 BRANCH_ORIENTATION = "mos_orientation_unsupported"
 REASON_DECLARED_KCL = "declared_source_kcl_conflict"
-REASON_CURRENT_NONPOSITIVE = "device_current_nonpositive"
 REASON_EMPTY_WINDOW = "empty_window"
 REASON_TOL_UNDEFINED = "tol_v_undefined"
 REASON_VDSAT_MISSING = "lut_vdsat_column_missing"
 REASON_LUT_QUERY = "lut_query_failed"
+REASON_NO_ROOT = "no_root_in_window"
+REASON_STRICT_RECHECK = "strict_recheck_residual"     # 다변수 SCC 수렴 뒤 strict 검증 바퀴 잔차 > tol
+
+# ---- 남은 동률(구조 색이 같은 후보)을 이름 순서로 깬 결정의 종류(`TieBreak.decision`)
+TIE_KRUSKAL = "writer_edge"                            # 같은 (순위, 구조 색) MOS·저항 엣지 묶음이 트리/비트리로 갈림
+TIE_ROOT = "w4_root"                                   # F 없는 성분의 W4 뿌리 후보가 같은 구조 색
+TIE_INPUT_ORDER = "input_tie_order"                    # 같은 DC 엣지를 잇는 입력 포트 순서(같은 구조 색)
+TIE_CURRENT_PIVOT = "current_pivot"                    # 같은 구조 색 원소 열이 θ 전류 기저/종속으로 갈림
 
 # ---- 필드 writer(= 계산 블록 이름)
 DC_RAILS_WRITER = "dc_rails"
+DC_STRUCT_COLOUR_WRITER = "dc_struct_colour"
 DC_CURRENT_BASIS_WRITER = "dc_current_basis"
 DC_WRITER_PLAN_WRITER = "dc_writer_plan"
 DC_SCC_ORDER_WRITER = "dc_scc_order"
@@ -111,7 +119,8 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 DC_WRITES = (
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
-    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"))),
+    (DC_STRUCT_COLOUR_WRITER, (("node", "dc_colour"), ("device", "dc_colour"))),
+    (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "dc_theta_schema"),)),
     (DC_CURRENTS_WRITER, (("device", "dc_current"), ("device", "dc_drop_current"))),
@@ -176,7 +185,7 @@ class CurrentBasis:
     """원소 단위 KCL 해 공간(θ 무관). `ends` = ((원소, from 넷, to 넷), ...) -- 양의 전류가 from -> to 로 흐르는 방향
     (nmos d->s, pmos s->d, 2단자 t0->t1). `mos` = MOS 원소, `free` = θ 전류 성분 원소(독립 기저), `fixed` = ((원소, A), ...)
     값 선언 이상 전류원, `rows` = ((원소, (CurrentTerm, ...)), ...) 모든 DC 원소의 전류 = Σ 항, `pruned` = 잎 가지치기된
-    저항(전류 0), `resistors` = DC 경로 저항(가지치기 제외)."""
+    저항(전류 0), `resistors` = DC 경로 저항(가지치기 제외), `ties` = 같은 구조 색 열이 기저/종속으로 갈린 기록(TieBreak)."""
 
     ends: tuple
     mos: tuple
@@ -185,6 +194,17 @@ class CurrentBasis:
     rows: tuple
     pruned: tuple
     resistors: tuple = ()
+    ties: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class TieBreak:
+    """구조 색으로 가르지 못한 동률을 이름 순서로 깬 기록. `decision` ∈ TIE_*, `candidates` = 같은 키의 후보(이름순),
+    `chosen` = 이름 순서로 고른 쪽(writer·뿌리·θ 기저 등)."""
+
+    decision: str
+    candidates: tuple
+    chosen: tuple
 
 
 @dataclasses.dataclass(frozen=True)
@@ -235,9 +255,13 @@ class SccEntry:
 
 @dataclasses.dataclass(frozen=True)
 class ThetaSchema:
-    """θ 성분 목록 ((kind, key), ...) 정렬 -- 설계 3.1 5. DOF 표."""
+    """θ 성분 목록 ((kind, key), ...) 정렬 -- 설계 3.1 5. DOF 표. `current_cone` = θ 전류 정의역: MOS 마다
+    (MOS, (CurrentTerm, ...)) -- 그 MOS 전류 = Σ (num/den)·(θ 전류 또는 고정값) 이 > 0 이어야 한다(KCL 기저에서 유도,
+    `fixed` = 그 식이 읽는 값 선언 이상원 ((원소, A), ...)). 기저 원소 자신이 MOS 면 그 행은 θ_I > 0 상자 하한이 된다."""
 
     components: tuple
+    current_cone: tuple = ()
+    fixed: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
