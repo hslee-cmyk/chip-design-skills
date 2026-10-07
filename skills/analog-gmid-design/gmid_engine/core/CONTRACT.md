@@ -21,7 +21,7 @@
 - **규칙 C**: `@compute_block` 사용 수 ≤ 1 / 파일 (core 에는 0).
 - **층**: `_module_map.LAYERS` 의 core 층 tuple 에서, 파일은 앞 층 파일만 import 한다(같은 층끼리 금지, 순환 0).
   패키지 간은 `_module_map.PACKAGE_ORDER` 앞쪽으로만.
-- **숫자 리터럴**: 엔진 소스(tests 제외)의 int/float 리터럴은 {0, 1, -1, 2} 밖 0개(현재 core·_module_map 전부 0개).
+- **숫자 리터럴**: 엔진 소스(tests 제외)의 int/float 리터럴은 {0, 1, -1, 2} 밖 0개(현재 core·_module_map 전부 0개, 예외는 단위 표 `units.py` 하나).
 - **이름 리터럴**: 회로·소자·넷 이름 문자열 0개(core 문자열은 스키마 어휘 `"node"`·`"device"`·`"edge"`·`"graph"` 와
   N3.14 분류 키뿐).
 - **광범위 except 0**: core 에 `except` 절 자체가 없다.
@@ -34,10 +34,12 @@
 | fingerprint.py | 0 | `fp_of` |
 | immutability.py | 0 | `require_immutable` |
 | margin.py | 0 | `normalized_margin` |
+| units.py | 0 | (공개 정의 0, 상수 표) `METRIC_UNITS`·`DOMAINS`·`AMPLITUDE_DB_PER_DECADE` -- 규칙 D 숫자 리터럴 예외 파일 |
 | writer_error.py | 0 | `WriterPermissionError` |
 | bounded_lru.py | 1 | `BoundedLRU` (`LruStats` 는 같은 파일 비진입 공개 이름) |
 | failure_record.py | 1 | `FailureRecord` |
 | field_value.py | 1 | `FieldValue` |
+| metric_signature.py | 1 | (데이터 선언 모듈) `MetricSignature(unit, domain, view_kind=None, objective_axis=None)` + 어휘 `VIEW_KINDS`(transfer, loop, output_port, ratio)·`OBJECTIVE_AXES`(power, area) -- unit ∈ `METRIC_UNITS`, domain ∈ `DOMAINS`(units 표), view_kind ∈ {None} ∪ `VIEW_KINDS`(None = 뷰 없음, 문자열 `"none"` 은 어휘 밖), objective_axis ∈ {None} ∪ `OBJECTIVE_AXES`; 밖이면 `ValueError`. 뷰 종류 어휘는 이 파일 한 곳 |
 | projection.py | 1 | `Projection` |
 | writer_table.py | 1 | `WriterTable` (+ 상수 `ENTITY_KINDS`) |
 | compute_block.py | 2 | `compute_block` (`ComputeBlock`·`BlockStats` 는 비진입 공개 이름) |
