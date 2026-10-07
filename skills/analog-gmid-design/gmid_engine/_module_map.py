@@ -26,8 +26,9 @@ PACKAGE_ORDER = (
 
 @dataclasses.dataclass(frozen=True)
 class ModuleEntry:
-    """`path`: gmid_engine 기준 상대 경로(`/` 구분). `kind`: "entry"(독립 진입점 1개) 또는 "helper"(공용 helper,
-    규칙 B 예외). `entry_point`: 그 파일의 독립 진입점 이름(helper 는 None). `compute_block`: 그 파일의 계산 블록
+    """`path`: gmid_engine 기준 상대 경로(`/` 구분). `kind`: "entry"(독립 진입점 1개), "data"(데이터 선언 모듈 --
+    공개 정의가 전부 dataclass/NamedTuple/Enum/Exception 클래스, 한 개념으로 셈) 또는 "helper"(공용 helper, 규칙 B 예외).
+    `entry_point`: 그 파일의 독립 진입점 이름(data·helper 는 None). `compute_block`: 그 파일의 계산 블록
     이름(없으면 None, 규칙 C -- 파일당 최대 1). `plan_ids`: 구현하는 계획·설계 ID."""
 
     path: str
@@ -44,9 +45,9 @@ LAYERS = (
         (
             ("determinism.py", "fingerprint.py", "immutability.py", "margin.py", "writer_error.py"),
             ("bounded_lru.py", "failure_record.py", "field_value.py", "projection.py", "writer_table.py"),
-            ("compute_block.py", "failures.py", "graph_record.py"),
-            ("graph_snapshot.py",),
-            ("canon_pointer.py",),
+            ("compute_block.py", "failure_errors.py", "graph_record.py"),
+            ("failure_classes.py", "graph_snapshot.py"),
+            ("canon_pointer.py", "exit_code.py"),
         ),
     ),
 )
@@ -75,8 +76,12 @@ MODULES = (
     ModuleEntry("core/compute_block.py", "entry", "compute_block",
                 "계산 블록 데코레이터: 투영 입력, 입력 버전 같으면 재사용, graph setter 로만 기록, 계수",
                 ("NFR-2", "SC-a", "SC-b", "SC-d", "SC-e")),
-    ModuleEntry("core/failures.py", "entry", "exit_code_for",
-                "N3.14 예외 클래스·분류표·후보 실패 클래스·exit code", ("N3.14",)),
+    ModuleEntry("core/failure_errors.py", "data", None,
+                "N3.14 예외 클래스 모음(데이터 선언 모듈)", ("N3.14",)),
+    ModuleEntry("core/failure_classes.py", "data", None,
+                "N3.14 분류표·후보 실패 클래스·예상 밖 exit code(데이터 선언 모듈)", ("N3.14",)),
+    ModuleEntry("core/exit_code.py", "entry", "exit_code_for",
+                "예외 -> N3.14 exit code", ("N3.14",)),
     ModuleEntry("core/graph_record.py", "entry", "GraphRecord",
                 "graph 레코드(노드·소자·엣지·graph) 불변 필드 묶음", ("N3.3",)),
     ModuleEntry("core/graph_snapshot.py", "entry", "GraphSnapshot",

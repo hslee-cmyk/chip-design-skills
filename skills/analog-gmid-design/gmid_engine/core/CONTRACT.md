@@ -14,8 +14,9 @@
 판정 정의(이 계약이 쓰는 계수 방법):
 - **독립 진입점(규칙 A)**: 파일의 모듈 최상위 `def`/`class` 중 이름이 `_` 로 시작하지 않는 것 가운데, 같은 파일의
   **다른 최상위 def/class 노드 안**(본문·기반 클래스 목록·데코레이터·주석 포함, `ast.walk`)에 `ast.Name` 으로
-  나타나지 않는 것. 파일마다 정확히 1개. (모듈 최상위 대입문 -- `FAILURE_CLASSES = ...` 등 -- 은 정의가 아니다.)
-  파일별 진입점은 `gmid_engine/_module_map.py` 의 `MODULES[*].entry_point` 와 같아야 한다.
+  나타나지 않는 것. 파일마다 정확히 1개. **데이터 선언 모듈**(공개 정의가 전부 dataclass/NamedTuple/Enum/Exception
+  클래스이고 메서드는 dunder·property·from_* 생성자만)은 한 개념으로 통과, 공개 정의 0 파일도 통과(오케스트레이터 해석
+  2026-10-07). `_module_map.MODULES[*].kind == "data"` 가 그 파일이고, `"entry"` 파일의 진입점은 `entry_point` 와 같다.
 - **규칙 B**: 다른 파일의 `_` 이름 import 0. 비공개 helper 는 자기 파일에서만 쓴다.
 - **규칙 C**: `@compute_block` 사용 수 ≤ 1 / 파일 (core 에는 0).
 - **층**: `_module_map.LAYERS` 의 core 층 tuple 에서, 파일은 앞 층 파일만 import 한다(같은 층끼리 금지, 순환 0).
@@ -24,6 +25,7 @@
 - **이름 리터럴**: 회로·소자·넷 이름 문자열 0개(core 문자열은 스키마 어휘 `"node"`·`"device"`·`"edge"`·`"graph"` 와
   N3.14 분류 키뿐).
 - **광범위 except 0**: core 에 `except` 절 자체가 없다.
+- **모듈 수준 가변 캐시 0**: 모듈 수준 dict/list/set 대입·`@lru_cache`/`@cache`·`global` 문 0(분류표는 읽기 전용 매핑).
 - 자기 파일 self-test·`if __name__ == "__main__"` 0.
 
 | 파일 | 층 | 독립 진입점 |
@@ -39,10 +41,13 @@
 | projection.py | 1 | `Projection` |
 | writer_table.py | 1 | `WriterTable` (+ 상수 `ENTITY_KINDS`) |
 | compute_block.py | 2 | `compute_block` (`ComputeBlock`·`BlockStats` 는 비진입 공개 이름) |
-| failures.py | 2 | `exit_code_for` (예외 클래스 7개·`FailureClass`·`FAILURE_CLASSES`·`CANDIDATE_FAILURE_CLASSES`) |
+| failure_errors.py | 2 | (데이터 선언 모듈) N3.14 예외 클래스 7개 |
 | graph_record.py | 2 | `GraphRecord` |
+| failure_classes.py | 3 | (데이터 선언 모듈) `FailureClass` + 상수 `FAILURE_CLASSES`·`CANDIDATE_FAILURE_CLASSES`·`UNEXPECTED_EXIT_CODE` |
 | graph_snapshot.py | 3 | `GraphSnapshot` |
 | canon_pointer.py | 4 | `CanonPointer` |
+| exit_code.py | 4 | `exit_code_for` |
+| (`gmid_engine/_module_map.py`) | -- | (데이터 선언 모듈) `ModuleEntry` + 상수 `PACKAGE_ORDER`·`LAYERS`·`MODULES` |
 
 ---
 
@@ -113,7 +118,8 @@
 - 읽기 전용: 항목 대입 -> `TypeError`.
 - 기반 `InfeasibleSizingError` 는 등록되지 않는다.
 
-### 4.4 `CANDIDATE_FAILURE_CLASSES`
+### 4.4 `CANDIDATE_FAILURE_CLASSES`, `UNEXPECTED_EXIT_CODE`
+- `UNEXPECTED_EXIT_CODE == 1`(N3.14 '예상 밖 예외').
 - `(NonconvergentError, SealViolationError)` (이 순서의 tuple). `InfeasibleSizingError`·`SchemaRejectedError` 미포함.
 
 ### 4.5 `exit_code_for(exc) -> int`

@@ -5,10 +5,9 @@ from .canon_pointer import CanonPointer
 from .compute_block import BlockStats, ComputeBlock, compute_block
 from .determinism import sorted_items
 from .failure_record import FailureRecord
-from .failures import (
-    CANDIDATE_FAILURE_CLASSES,
-    FAILURE_CLASSES,
-    FailureClass,
+from .exit_code import exit_code_for
+from .failure_classes import CANDIDATE_FAILURE_CLASSES, FAILURE_CLASSES, UNEXPECTED_EXIT_CODE, FailureClass
+from .failure_errors import (
     InfeasibleSizingError,
     InfeasibleTargetError,
     NonconvergentError,
@@ -16,7 +15,6 @@ from .failures import (
     SealViolationError,
     SearchFailedError,
     StructureUnresolvedError,
-    exit_code_for,
 )
 from .field_value import FieldValue
 from .fingerprint import fp_of
@@ -50,6 +48,7 @@ __all__ = (
     "SealViolationError",
     "SearchFailedError",
     "StructureUnresolvedError",
+    "UNEXPECTED_EXIT_CODE",
     "WriterPermissionError",
     "WriterTable",
     "compute_block",
