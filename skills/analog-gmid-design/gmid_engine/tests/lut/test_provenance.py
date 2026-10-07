@@ -143,16 +143,21 @@ def _walk(W0, grid, direction):
 
 
 @pytest.mark.parametrize("direction", [math.inf, -math.inf])
-def test_two_ulp_boundary(toy_build, direction):
+@pytest.mark.parametrize("idx,W0,key", [(1, 2e-6, 200), (0, 1e-6, 100)])
+def test_two_ulp_boundary(toy_build, direction, idx, W0, key):
+    """[r3] 폭 키 허용 대칭: W/grid 가 키 위·아래 어느 쪽으로든 2 ulp 이내면 그 키, 넘으면 거부."""
     grid = 1e-8
-    ok_W, bad_W = _walk(2e-6, grid, direction)
-    assert ok_W != 2e-6 and 0 < _ulps_off(ok_W, grid) <= 2 < _ulps_off(bad_W, grid)
+    ok_W, bad_W = _walk(W0, grid, direction)
+    assert ok_W != W0 and 0 < _ulps_off(ok_W, grid) <= 2 < _ulps_off(bad_W, grid)
+    r = ok_W / grid
+    assert (r > key) if direction > 0 else (r < key)            # 실제로 그 방향으로 벗어난 비율
     sl = standard_toy_slices()
-    sl[1] = (sl[1][0], sl[1][1], toy_slice_arrays(ok_W, 2.0))
+    scale = sl[idx][2]["ID"][0, 0, 0, 0] / toy_slice_arrays(1e-6)["ID"][0, 0, 0, 0]
+    sl[idx] = (sl[idx][0], sl[idx][1], toy_slice_arrays(ok_W, scale))
     p = _prov(toy_build("ok", slices=sl))
-    s = [x for x in p.slices if x.w_key == 200]
-    assert len(s) == 1 and s[0].w_m == ok_W                     # round(W / grid) = 200
-    sl[1] = (sl[1][0], sl[1][1], toy_slice_arrays(bad_W, 2.0))
+    s = [x for x in p.slices if x.w_key == key]
+    assert len(s) == 1 and s[0].w_m == ok_W                     # round(W / grid) = key
+    sl[idx] = (sl[idx][0], sl[idx][1], toy_slice_arrays(bad_W, scale))
     det = _reject(toy_build("bad", slices=sl))
     assert det["reason"] == "lut_width_off_grid"
 
