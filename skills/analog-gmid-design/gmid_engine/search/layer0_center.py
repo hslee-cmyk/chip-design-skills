@@ -41,7 +41,7 @@ import time
 import numpy as np
 from scipy.optimize import minimize as scipy_minimize
 
-from gmid_engine.sizing import THETA_CURRENT, THETA_L
+from gmid_engine.sizing import THETA_CURRENT, THETA_L, THETA_LN_IDU
 
 from .cone_rows import cone_rows
 from .fd_jacobian import fd_jacobian
@@ -348,6 +348,39 @@ def _radical_inverse(index, base):
     return value
 
 
+def _peak_floors(sctx, variables, cells):
+    """[r5c, 오케스트레이터 승인 2026-10-08] 시험용 ln_idu 하한: 쓰기 소자 m 의 L 칸(층 0 이 고정)의 LUT L 앵커 전부 × VDS·VS 전
+    격자 곡선마다 gm/ID 정점 마디(강반전 분지 시작)의 ln IDu 를 재고 그 최댓값 -- 어느 격자 동작점에서도 좌표가 분지 시작 위다.
+    정점 마디가 on_mask 밖인 곡선은 뺀다(`search_domain` 의 하한 정의와 같은 곡선 집합, 그 최솟값 대신 칸 안 최댓값). 이 호출
+    안에서 (kind, w_key, 칸) 마다 한 번(층 0 은 S0 당 1회). 값이 변수 상한 이상이면 그 변수는 원래 상자 그대로. 반환 {index: lo}."""
+    kinds = dict(sctx.dc.base.column("device", "kind"))
+    w_keys = dict(sctx.dc.lut.w_keys)
+    cell_of = {mos: table[j] for (mos, table), j in zip(sctx.domain.l_cells, cells)}
+    memo, out = {}, {}
+    for i, var in enumerate(variables):
+        ckind, m = var.component
+        if ckind != THETA_LN_IDU:
+            continue
+        kind = kinds[m]
+        key = (kind, w_keys[kind], cell_of[m])
+        if key not in memo:
+            sl = sctx.dc.lut.memo.lut.slice_map[(kind, w_keys[kind])]
+            lo_l, hi_l = cell_of[m]
+            grid_l = np.asarray(sl.grids[0], dtype=float)
+            pick = (grid_l >= lo_l - np.spacing(lo_l)) & (grid_l <= hi_l + np.spacing(hi_l))
+            ln_l = np.log(grid_l[pick])[:, None, None, None]
+            ln_idu = np.asarray(sl.log_ID)[pick] + ln_l - math.log(sl.w_m)
+            on = np.asarray(sl.on_mask, dtype=bool)[pick]
+            gm_id = np.where(on, np.asarray(sl.log_GM)[pick] - np.asarray(sl.log_ID)[pick], -np.inf)
+            peak = np.argmax(gm_id, axis=1)
+            at_peak = np.take_along_axis(ln_idu, peak[:, None, :, :], axis=1)[:, 0]
+            valid = np.take_along_axis(on, peak[:, None, :, :], axis=1)[:, 0]
+            memo[key] = float(np.max(np.where(valid, at_peak, -np.inf)))
+        if var.lo < memo[key] < var.hi:
+            out[i] = memo[key]
+    return out
+
+
 def _halton_probe(sctx, variables, theta0, cells, tag):
     """S-4b: 상자 중심이 받아들일 상태가 아니면 Halton 열(소수 기저, 스크램블 없음, index 1 부터)의 k 번째 점을 변수 자연 좌표
     (bounds 위 선형 = ln 변수는 ln 좌표)에 놓아 순서대로 평가하고, 처음 받아들일 상태인 점에서 멈춘다. 한도 = 평가 예산 규칙
@@ -364,6 +397,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     inside = bool(cur) and bool(schema.current_cone) and all(
         r.c > 0 for r in cone_rows(schema, tuple(sorted(theta0.items()))))
     bases = _primes(len(variables) + (1 if inside else 0))
+    floors = _peak_floors(sctx, variables, cells)
     walk = None
     if inside:
         names = [variables[i].component[1] for i in cur]
@@ -398,7 +432,8 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
         phi = [_radical_inverse(tried, b) for b in bases]
         theta = dict(theta0)
         for i, var in enumerate(variables):
-            value = var.lo + phi[i] * (var.hi - var.lo)
+            low = floors.get(i, var.lo)
+            value = low + phi[i] * (var.hi - low)
             theta[var.component] = math.exp(value) if var.log else value
         if walk is not None:
             d = np.asarray([2 * phi[i] - 1 for i in cur])

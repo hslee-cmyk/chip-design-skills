@@ -30,6 +30,7 @@
   층 0 을 먼저 부르고 notes 의 `layer0_inputs_missing`(막힘) 을 층 0 결과 기록으로 바꿨다(3.16). 9절 S-4 를 다시 썼다
   (입력 = 봉인 margin + θ 상자 + 경성 행; GB3·GB4·knee·GB5 근사식은 최소형 밖 정밀화). 9회로 실측 10.0000.
   **[r5b]** Halton 시험의 θ 전류를 상자 ∩ 원뿔 안 hit-and-run 으로(3.21 3, I-18), sf·current_reuse 실패 분류표(10.0000).
+  **[r5c]** 시험 ln_idu 하한 = 칸 정점 하한(모든 쓰기 소자, 3.21 3), search_domain 채택 제안(S-4f), 9회로 재측정(10.0000).
 
 ### r4 덮어쓰기 요약 (아래 본문보다 우선)
 - `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, junction=None)`: `junction` = metrics `JunctionSource`
@@ -217,7 +218,13 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    행이 있을 때): 기저 수 = 변수 수 + 1(마지막 소수 = 걸음 비율 φ_s). 선형 전류 좌표의 점 p(처음 = 전류 중심)에서 방향
    d_j = 2·φ_{b_j}(k) − 1(전류 변수 j), 열린 현 (t_lo, t_hi) = 상자 [e^lo, e^hi] 와 원뿔 행 Σ w·(p + t·d) + 고정 > 0 의 교집합,
    t_lo < t_hi 면 p ← p + (t_lo + φ_s·(t_hi − t_lo))·d(아니면 p 그대로), θ 전류 = p(상자로 자름). p 는 받아들임과 무관하게 다음
-   시험으로 이어진다(사슬). 전류 중심이 원뿔 밖이면 전류도 위 상자 Halton. k 마다 시험 전 한도: `_budget_stop`(kernel_calls ≥ E_B 또는 벽시계 -> stop 접미
+   시험으로 이어진다(사슬). 전류 중심이 원뿔 밖이면 전류도 위 상자 Halton. [r5c] **칸 정점 하한**: `ln_idu` 변수(= 쓰기 소자 m)의
+   시험 하한 lo'_m = max over {m 의 L 칸 [lo, hi] 안 LUT L 앵커(± spacing)} × {VDS·VS 전 격자} 의 곡선(정점 마디가 on_mask 인 곡선만)
+   에서 gm/ID 정점 마디의 ln IDu(= lnID + ln L − ln w_m) -- (kind, w_key, 칸) 마다 이 호출 안에서 1회. lo < lo'_m < hi 일 때만 적용
+   (그 밖은 원래 상자), 시험 점 = lo'_m + φ·(hi − lo'_m). **모든 쓰기 소자에 적용**: 보장('어느 격자 동작점에서도 좌표가 강반전 분지
+   시작 위' = 그 칸 앵커 L 에서 `inversion_floor` 행 c ≥ 0)이 소자 역할과 무관하게 (kind, w_key, 칸) 만으로 정해져 diode 와 같다
+   (diode 는 이 보장이 곧 노드 근 존재의 필요조건, 일반 writer 는 연속 제약 하나를 미리 만족). 칸 안 앵커 사이 L(선형 보간)의 정점은
+   따로 묶지 않았다(앵커 최댓값). 최대-최소 SLSQP 의 bounds 는 원래 상자 그대로. k 마다 시험 전 한도: `_budget_stop`(kernel_calls ≥ E_B 또는 벽시계 -> stop 접미
    `probe_eval_budget`·`probe_wall_budget`), deadline 이 None 일 때만: E_B 도 None 이면 `probe_budget_undeclared`, 시험 수 ≥ E_B 면
    `probe_eval_budget`(원뿔 밖 점은 커널 0 이라 커널 수만으로 끝나지 않는다 -- deadline 이 있으면 벽시계가 끝을 보장한다). `evaluate(..., origin = tag + (("probe", k),))`, 처음
    받아들일 상태인 점에서 멈추고 그 점이 4 의 출발점(`origin_point` "halton:<k>", `probes` = k). 없으면 start None, stop =
@@ -428,8 +435,13 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
     없고 ④ 실패에는 margin 이 없다(클래스가 다른 margin 혼합 금지). [r5b] θ 전류는 원뿔 안 hit-and-run 으로 뽑는다(원뿔 밖 0).
     **남은 열린 항목**(10.0000 r5b): current_reuse·sf_pushpull 은 600 s 안에 받아들일 점 없음 -- sf 는 9 노드 다변수 SCC 의
     Gauss-Seidel 비수렴(sizing O10·O11, 구조적 -- sizing 브랜치 ng-scc-newton 몫), current_reuse 는 [r5c 진단] **diode writer 의
-    ln_idu 표본이 강반전 분지 아래**(창 정의는 정상, 표본 정의역 문제 -- 10.0000 r5c). 제안(미구현, 결정 대기): 층 0 시험의 ln_idu
-    하한을 L 칸이 고정된 뒤 그 칸 L 범위의 곡선 정점 ln IDu 최댓값(VDS·VS 전 격자)으로 좁힌다 -- LUT 유도, 어느 동작점에서도 정점 위.
+    ln_idu 표본이 강반전 분지 아래**(창 정의는 정상, 표본 정의역 문제 -- 10.0000 r5c). [r5c 처리, 오케스트레이터 승인] 층 0 시험의
+    ln_idu 하한 = 칸 정점 하한(3.21 3, `_peak_floors`).
+  - **S-4f (제안만 -- search_domain 채택 여부)** 같은 하한을 `search_domain`(외층 SLSQP 상자)의 **1변수 diode writer** ln_idu 하한으로
+    쓸지: 근거 -- diode writer 는 노드 근이 정점 아래에서 늘 없으므로(분지 규칙) 그 아래 상자는 SLSQP 가 실패 재시작만 하는 영역이다.
+    단 외층에서는 L 이 칸 안에서 움직이고 칸 이동(L-b)도 있어 하한이 칸마다 달라진다 -- 상자가 칸에 의존하게 되고(지금 상자는 S0 당
+    1회), 일반 writer 는 이미 연속 제약 `inversion_floor` 가 있어 같은 보장을 상자로 옮길 이유가 약하다. 기본안: diode writer 에 한해
+    칸별 상자 하한으로 채택(칸 고정인 `solve_eps` 한 번 안에서는 상수) -- MOD6 작성자·오케스트레이터 결정 대기.
   - **S-4c (기록 -- 의미 한정)** 상자 중심은 전류 상자(꺼짐 전류 ~ 단일 finger 최대 ID)의 기하 중심이라 pA 대 전류·약반전 점이고,
     Halton 점은 W 가 m~Gm 급일 수 있다. 근본 원인 = W·면적 상한 미선언(S-3b, 오케스트레이터가 사용자 선언 요청 중). 층 0 시작점은
     **DC 정합 가능성만** 뜻하며(`Layer0Result` docstring, find_front notes `meaning "feasibility_only"`) 탐색은 출발 근거 이상으로 쓰지
@@ -529,6 +541,24 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
       표본이 곧 근 없음이다. diode 가 16개라 독립 표본이 모두 정점 위일 확률이 작다(대략 0.6^16). 전류(걸음)는 diode 노드 근에 영향이 없다
       (VGS 는 ln IDu·L·VDS·VSB 로만 정해짐, DEC-88). 엔진 결함으로 단정할 근거가 없어 코드는 바꾸지 않았다 -- 제안은 9절 S-4b.
   - 선형 전류 좌표 걸음은 부피상 큰 전류 쪽에 몰린다(nmcnr 시작점 전류 20 µA ~ 2 mA, W 최대 2.6e9 m -- S-3b 상한 미선언).
+- **[r5c] 칸 정점 하한 적용 후 9회로 재측정**(같은 조건, E_B 유도·B = 600 s):
+
+  | 회로 | 결과 | 출발 | Halton 시험 | kernel = 고유 키 | t | 실패(커널 평가 중) | wall(s) |
+  |---|---|---|---|---|---|---|---|
+  | common_gate·folded·ngcc·pushpull·two_stage_ota·two_stage_ota_sf | **있음**(변화 없음) | 중심 | 0 | 11·31·38·32·18·22 | 1.00·0.88·0.95·0.93·0.93·0.89(r5b 와 같음) | -- | 26 ~ 32 |
+  | nmcnr | **있음** | halton:**156**(r5b 1,872) | 156 | 193 | 0.93 | curve_undefined 101(M301), no_root 51, target 밖 4 | **44.3**(r5b 146) |
+  | current_reuse | 없음(`..+probe_eval_budget`) | -- | 511 | 512(= 유도 E_B) | -- | no_root_in_window 481, tol_V VDS 축 밖 31 | 284.2 |
+  | sf_pushpull | 없음(`..+probe_wall_budget`) | -- | 1,171 | 1,172 | -- | NONCONVERGENT 966 등(r5b 와 같은 SCC) | 600.4 |
+
+  - **7/9 유지, 회귀 0**(중심 출발 6회로는 시험을 쓰지 않아 경로 동일). nmcnr 시작점: 전류 0.54 ~ 12 µA, W 최대 1,653 m(S-3b).
+  - current_reuse: 유도 E_B 가 512(하한 덕에 커널이 더 깊이 풀려 평가 중앙값 ≈ 1.2 s)라 284 s 에 평가 예산으로 멈췄다. 실패 분류가
+    바뀌었다(300 s 진단, 267건, `l0_cr_diag.py`): 레일 diode(M66·M14b·M24b·M36a·M39 …)의 '분지 아래(±inf)' 실패는 사라지고(남은 몇 건은
+    유한 동부호 = 창 위), 상위가 **적층 diode**(M11b 위 M11a, M14a 위 M14b, M23a, M20b -- source 가 다른 diode 노드, 창 폭 0.01 ~ 1.6 V,
+    h 동부호: 필요한 gate 전압이 창 밖)와 source 추종(M4a: 창이 빔 -- VS 축·VDS 정의역 교집합 공집합, M37b·M18b·M9b: h 동부호)이다.
+    실패 표본의 ln_idu 는 상자 위치 0.73 ~ 0.99(강반전 쪽) -- 하한이 '분지 아래'를 막자 이번에는 **적층 VGS 합이 레일 차를 넘는 고반전
+    조합**이 남았다. 창 정의 결함이 아니라 표본(높은 ln_idu 끼리의 적층) 쪽이며 구조적 하한은 아니다(같은 소자도 낮은 위치에선 통과).
+    엔진 결함 근거가 없어 코드는 바꾸지 않았다(열린 항목: 적층 diode 의 ln_idu 상한을 '레일 차 − 아래 diode VGS' 로 묶는 규칙은 아직 정의
+    없음).
 - L FD 스텝 = 제조 격자로 바꾼 뒤 L 열 고정 0(r5 초안: 모든 L 고정), L 이 칸 안에서 움직였다(위 'L 움직임' = 칸 중점에서 벗어난 소자
   수 / L 변수 수).
 - 시작점의 모양(S-4c·S-4d, **의미 = DC 정합 가능성뿐**): 상자 중심 출발 회로는 전류 0.4 pA ~ 4.3 nA, gm/ID 26 ~ 33.5(약반전),
