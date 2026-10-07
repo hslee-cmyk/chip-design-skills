@@ -133,6 +133,9 @@ C4. 레일: `reference=true` 넷은 SPICE 노드 `0`, 나머지 레일은 `Vrail
     대소문자만 다른 두 넷(전압 같은 레일 별칭 제외)은 막힘.
 C5. free: 차동 입력+차동 출력이면 `Efb_<in>` 이 (Vo-Vo') 차동 성분을 `diff_feedback_gain` 배로 되먹이고 `Vofs_<in>` 은 -V_in_pred;
     단일 출력이면 `out -> input_n` 이득 1, 오프셋 V_out_pred - V_in_pred; 되먹임 없는 입력은 `Vdc_<in>` + choke.
+    **[명확화]** 출력 DC 되먹임(`Efb_`·`Vofs_`·`Lfb_`)은 **차동 입력(`input_p`·`input_n` 둘 다 있음)에만** 건다. 단일 입력
+    (`input`) 회로는 출력 종류와 무관하게 되먹임이 없고 그 입력은 `Vdc_<in>`(예측 DC) + `Ldc_<in>` choke 이다. 차동 입력 +
+    단일 출력이면 `input_n` 에만 `Efb`(`input_p` 는 `Vdc`), 차동 입력 + 차동 출력이면 두 입력 모두 `Efb`.
     forced: 레일·입력·게이트 전용 바이어스 넷을 뺀 모든 소자 단자 넷(예측 있음)에 `Vhold_<net>` + choke, free 모드 `.nodeset` 없음.
 C6. 게이트 전용 넷(드레인/소스/전원/수동소자/입력 어디에도 안 물림): `bias_voltages` 값, 없으면 `predictions.nodes` 값의
     `Vbias_<net>` 과 notes 경고, 둘 다 없으면 막힘.
