@@ -2,9 +2,10 @@
 design_gb7_dc_canonical). 계약: `CONTRACT.md`.
 
 다른 패키지와 test 는 이 `__all__` 만 쓴다. 공개 흐름:
-`dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, LutAccess(memo, w_keys))` (S0 당 1회) ->
+`dc_inputs_from_spec(spec)` -> `build_kernel_context(build_s1(...), inputs, pre_layout_lut_access(memo))` (S0 당 1회) ->
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
+from .bisect_root import bisect_root
 from .block_columns import dc_columns
 from .block_currents import dc_currents
 from .block_lengths import dc_lengths
@@ -14,6 +15,7 @@ from .dc_inputs import dc_inputs_from_spec
 from .fixed_point import gauss_seidel
 from .k_max import k_max
 from .kernel_context import build_kernel_context
+from .pre_layout_widths import pre_layout_lut_access
 from .s2_lift import lift_s1
 from .s2_values import (
     BRANCH_MOS_ZERO_CURRENT,
@@ -34,10 +36,11 @@ from .s2_values import (
     PATH_RESISTOR,
     PATH_TIE,
     PATH_Y,
-    REASON_CURRENT_NONPOSITIVE,
     REASON_DECLARED_KCL,
     REASON_EMPTY_WINDOW,
     REASON_LUT_QUERY,
+    REASON_NO_ROOT,
+    REASON_STRICT_RECHECK,
     REASON_TOL_UNDEFINED,
     REASON_VDSAT_MISSING,
     REL_INPUT_DC,
@@ -65,6 +68,10 @@ from .s2_values import (
     SEAL_VERSIONS,
     SEAL_VGS_MATCH,
     SEAL_WRITER_UNIQUE,
+    TIE_CURRENT_PIVOT,
+    TIE_INPUT_ORDER,
+    TIE_KRUSKAL,
+    TIE_ROOT,
     THETA_CURRENT,
     THETA_KINDS,
     THETA_L,
@@ -93,6 +100,7 @@ from .s2_values import (
     SealItem,
     SealReport,
     Theta,
+    TieBreak,
     ThetaSchema,
     Window,
 )
@@ -109,6 +117,7 @@ from .seal_versions import seal_versions
 from .seal_vgs_match import dc_seal_vgs_match
 from .seal_writers import seal_writers
 from .size_and_seal import size_and_seal
+from .struct_colour import dc_struct_colour
 from .theta_check import check_theta
 from .theta_schema import dc_theta_schema
 from .w0_rails import dc_rails
@@ -144,10 +153,11 @@ __all__ = (
     "PATH_TIE",
     "PATH_Y",
     "PathValue",
-    "REASON_CURRENT_NONPOSITIVE",
     "REASON_DECLARED_KCL",
     "REASON_EMPTY_WINDOW",
     "REASON_LUT_QUERY",
+    "REASON_NO_ROOT",
+    "REASON_STRICT_RECHECK",
     "REASON_TOL_UNDEFINED",
     "REASON_VDSAT_MISSING",
     "REL_INPUT_DC",
@@ -175,6 +185,10 @@ __all__ = (
     "SEAL_VERSIONS",
     "SEAL_VGS_MATCH",
     "SEAL_WRITER_UNIQUE",
+    "TIE_CURRENT_PIVOT",
+    "TIE_INPUT_ORDER",
+    "TIE_KRUSKAL",
+    "TIE_ROOT",
     "SccEntry",
     "SccLog",
     "SealItem",
@@ -192,8 +206,10 @@ __all__ = (
     "TIER_W3",
     "TIER_W4",
     "Theta",
+    "TieBreak",
     "ThetaSchema",
     "Window",
+    "bisect_root",
     "build_kernel_context",
     "check_theta",
     "dc_columns",
@@ -209,6 +225,7 @@ __all__ = (
     "dc_seal_node_conflict",
     "dc_seal_report",
     "dc_seal_saturation",
+    "dc_struct_colour",
     "dc_theta_schema",
     "dc_tolerances",
     "dc_widths",
@@ -216,6 +233,7 @@ __all__ = (
     "gauss_seidel",
     "k_max",
     "lift_s1",
+    "pre_layout_lut_access",
     "seal_dc",
     "seal_versions",
     "seal_writers",
