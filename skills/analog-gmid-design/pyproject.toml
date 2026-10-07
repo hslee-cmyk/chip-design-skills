@@ -1,0 +1,20 @@
+# 새 gm/ID 엔진 패키지(gmid_engine). legacy/ 는 패키지에 넣지 않는다.
+# editable 설치 없이도 gmid_engine/tests/conftest.py 가 이 디렉터리를 sys.path 에 넣는다.
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gmid-engine"
+version = "0.0.1"
+description = "gm/ID sizing engine (Circuit State Graph architecture)"
+requires-python = ">=3.10"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["gmid_engine", "gmid_engine.*"]
+exclude = ["gmid_engine.tests", "gmid_engine.tests.*"]
+
+[tool.pytest.ini_options]
+testpaths = ["gmid_engine/tests"]
