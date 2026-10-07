@@ -132,15 +132,20 @@ mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(none), supp
 
 | 회로 | 제약(판정) | pending 표지 |
 |---|---|---|
-| common_gate_amplifier | 0 | 8 |
-| current_reuse_telescopic_ota | 8(5) | 20 |
-| folded_cascode | 0 | 9 |
-| ngcc_3stage_ff | 3(2) | 11 |
-| nmcnr_amplifier | 2(2) | 8 |
-| pushpull_follower_buffer | 1(1) | 7 |
-| sf_pushpull_output_opamp | 3(3) | 8 |
-| two_stage_ota | 2(1) | 9 |
-| two_stage_ota_sf | 3(2) | 9 |
+| common_gate_amplifier | 0 | 6 |
+| current_reuse_telescopic_ota | 8(5) | 15 |
+| folded_cascode | 0 | 7 |
+| ngcc_3stage_ff | 3(2) | 7 |
+| nmcnr_amplifier | 2(2) | 6 |
+| pushpull_follower_buffer | 1(1) | 5 |
+| sf_pushpull_output_opamp | 3(3) | 6 |
+| two_stage_ota | 2(1) | 7 |
+| two_stage_ota_sf | 3(2) | 6 |
+
+남은 표지 65개 = AC-3 9, PA-1 9, PA-2 9, CI-15 9, CI-18 9, SP-2 7, MOD5 7(파일럿 뷰 5·metric 1, ngcc metric 1), SP-3 2,
+SP-10 2(파일럿 CL1·CL2 해석), CI-10 1(파일럿 feedback), CI-17 1(folded Ibg). 기존 결정으로 푼 칸(오케스트레이터 적용
+2026-10-07): 포화 규칙 `vds_ge_vdsat`(UD 8번, 여유 0), 파일럿 밖 8회로 feedback `[]`(UD 9번 PM 정의 β=1), 보상 소자
+engine(파일럿 Cc1·Cc2·Rz1·Rz2, ngcc Cm1·Cm2, two_stage_ota_sf Cc -- nmcnr·two_stage 확정과 같은 원칙).
 
 거부 실측(임시 스크립트, 원본 한 곳씩 깨뜨림): 2절 규칙 전부가 실제로 hit 를 냈다(`ref_ambiguous`·`source_origin`·
 `settling_order`·`view` 형식 `type` 은 미실측).
@@ -161,3 +166,6 @@ mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(none), supp
 8. 섹션 지문에 `operating_fp`·`feedback_fp` 를 더했다(설계 목록에 자리가 없던 input_dc·노드 목표·영역·feedback).
 9. `MetricSignature.view_kind` 어휘는 none/transfer/ratio 셋(rout 는 transfer -- 포트 뷰의 출력 포트를 쓴다).
 10. optional_stages 화이트리스트 이름(DEC-75 네 기능)은 이 파일이 snake_case 로 정했다.
+11. graph(MOD3, master 병합분)에 `graph/supplies.py` `supplies_declaration`(supplies_v 인자 검사)이 따로 있다 -- 이
+    파일의 `spec_supplies.supplies_declaration` 과 같은 개념의 두 검사다. MOD10 배선 때 graph 쪽이 `SizingSpecDoc.supplies_v`
+    를 받도록 하나로 줄일 대상(이 커밋은 손대지 않음).

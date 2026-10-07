@@ -39,18 +39,37 @@
         }
       },
       "Cc1": {
-        "pending": "SP-9"
+        "engine": true,
+        "source": {
+          "kind": "user_spec",
+          "record": "보상 소자 값은 엔진 계산(사용자 확정 nmcnr Cm1·Cm2·Rm(TQ Q3)·two_stage Rz·Cc(TQ Q4·Q4') 와 같은 원칙, 오케스트레이터 적용 2026-10-07)",
+          "decided": "2026-10-07"
+        }
       },
       "Cc2": {
-        "pending": "SP-9"
+        "engine": true,
+        "source": {
+          "kind": "user_spec",
+          "record": "보상 소자 값은 엔진 계산(사용자 확정 nmcnr Cm1·Cm2·Rm(TQ Q3)·two_stage Rz·Cc(TQ Q4·Q4') 와 같은 원칙, 오케스트레이터 적용 2026-10-07)",
+          "decided": "2026-10-07"
+        }
       },
       "Rz1": {
-        "pending": "SP-9"
+        "engine": true,
+        "source": {
+          "kind": "user_spec",
+          "record": "보상 소자 값은 엔진 계산(사용자 확정 nmcnr Cm1·Cm2·Rm(TQ Q3)·two_stage Rz·Cc(TQ Q4·Q4') 와 같은 원칙, 오케스트레이터 적용 2026-10-07)",
+          "decided": "2026-10-07"
+        }
       },
       "Rz2": {
-        "pending": "SP-9"
+        "engine": true,
+        "source": {
+          "kind": "user_spec",
+          "record": "보상 소자 값은 엔진 계산(사용자 확정 nmcnr Cm1·Cm2·Rm(TQ Q3)·two_stage Rz·Cc(TQ Q4·Q4') 와 같은 원칙, 오케스트레이터 적용 2026-10-07)",
+          "decided": "2026-10-07"
+        }
       },
-      "_Cc_Rz_comment": "기본안 engine(옛 하네스 '500 fF 는 폴백, Cc 는 보상망이 유도', 옛 Rz=1/gm 규칙) -- 확정 기록이 없어 SP-9(보상 수동소자 엔진 계산 확인) 대기.",
       "CL1": {
         "pending": "SP-10"
       },
@@ -286,9 +305,13 @@
         }
       },
       "saturation_rule": {
-        "pending": "AC-1"
+        "rule": "vds_ge_vdsat",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화(VDS - VDsat >= 0, 여유 0)",
+          "decided": "2026-10-07"
+        }
       },
-      "_saturation_rule_comment": "UD 8번 '전 MOS 포화'를 여유 없는 포화(vds_ge_vdsat)로 읽을지, tol_V 여유(vds_ge_vdsat_plus_tol_v)를 둘지는 AC-1(포화 여유) 확인 대기 -- 설계 2.0 '확인' 칸.",
       "node_compare_rule": {
         "rule": "record_only",
         "source": {
