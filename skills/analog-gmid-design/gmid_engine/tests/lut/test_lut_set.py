@@ -3,6 +3,7 @@
 거부 test 는 toy 임시 사본을 고쳐 만든다(manifest sha256 은 고친 파일로 다시 잰다 -- sha 불일치는 test_provenance).
 """
 import json
+import math
 
 import numpy as np
 import pytest
@@ -10,7 +11,7 @@ import pytest
 from gmid_engine.core import SchemaRejectedError
 from gmid_engine.lut import CapTable, DcSlice, LutSet, LutSpec
 
-from .conftest import (TOY_L, TOY_SPEC, TOY_VDS, TOY_VGS, TOY_VS, curve_cap_arrays, curve_slice_arrays, detail_of,
+from .conftest import (BIN_ANCHOR_BIN_LO, BIN_BLOCKS, BIN_MODEL_REL, TOY_L, TOY_SPEC, TOY_VDS, TOY_VGS, TOY_VS, curve_cap_arrays, curve_slice_arrays, detail_of,
                        rel_close,
                        standard_toy_slices, toy_cap_arrays, toy_slice_arrays)
 
@@ -378,3 +379,50 @@ def test_real_hermite_fields_all_slices(real_lut, real_slice_files, raw_slice):
         _check_hermite_fields(sl, raw_slice(kind, wk))
         seen.add(tuple(sl.hermite_fc))
     assert seen == {(("VDS", 276360, 0), ("VGS", 276480, 0))}
+
+
+# ---------------------------------------------------------------------------
+# [r4] L bin 지도 로드 거부 (1.4) -- bin toy 임시 사본의 모델 파일을 고쳐 만든다(meta sha256 은 고친 파일로 다시 잰다)
+# ---------------------------------------------------------------------------
+
+def _blocks_set(name, idx, value, blocks=BIN_BLOCKS):
+    return tuple(b[:idx] + (value,) + b[idx + 1:] if b[0] == name else b for b in blocks)
+
+
+def test_reject_model_bin_incomplete(bin_toy_build):
+    det = _reject(bin_toy_build(extra=".model toyn__half nmos\n+ lmin = 1e-06 lmax = 2e-06"))
+    assert det["reason"] == "lut_model_bin_incomplete"
+    assert det["model"] == "toyn__half" and "path" in det and "keys" in det
+
+
+def test_reject_model_bins_no_width(bin_toy_build):
+    # 아래 W 범위 wmax 를 0.9 µm, 위 범위 wmin 을 1.1 µm 로: 폭 1e-6 슬라이스가 어느 W 범위에도 없다
+    blocks = tuple(b[:4] + (0.9e-6,) if b[4] == 1e-6 else (b[:3] + (1.1e-6,) + b[4:]) for b in BIN_BLOCKS)
+    det = _reject(bin_toy_build(blocks=blocks))
+    assert det["reason"] == "lut_model_bins_no_width"
+    assert det["w_m"] == 1e-6 and "path" in det
+
+
+def test_reject_model_bins_overlap(bin_toy_build):
+    det = _reject(bin_toy_build(blocks=_blocks_set("toyn__model.1", 1, 1.9e-6)))     # B = [1.9, 4] 가 A = [1, 2] 와 겹침
+    assert det["reason"] == "lut_model_bins_overlap"
+    assert det["w_m"] == 1e-6 and set(det["models"]) == {"toyn__model.0", "toyn__model.1"}
+
+
+def test_adjacent_within_one_ulp_is_not_overlap(bin_toy_build):
+    lo_b = 2e-6 - math.ulp(2e-6)                      # B 의 lmin 이 A 의 lmax 보다 1 ulp 아래 -> 겹침 아님
+    lut = bin_toy_build(blocks=_blocks_set("toyn__model.1", 1, lo_b)).load()
+    assert lut.slice_map[("nmos", 100)].l_bins.anchor_bin == BIN_ANCHOR_BIN_LO
+
+
+def test_reject_anchor_outside_model_bins(bin_toy_build):
+    det = _reject(bin_toy_build(blocks=tuple(b for b in BIN_BLOCKS if b[0] != "toyn__model.4")))   # 9 µm 앵커의 bin 없음
+    assert det["reason"] == "lut_l_anchor_outside_model_bins"
+    assert det["L"] == 9e-6 and det["w_m"] == 1e-6 and "path" in det
+
+
+def test_no_bin_blocks_gives_empty_map(bin_toy_build):
+    """모델 파일에 bin 블록이 하나도 없으면 거부가 아니라 빈 지도(1.4 의 2.)."""
+    lut = bin_toy_build(blocks=()).load()
+    for sl in lut.slice_map.values():
+        assert sl.l_bins.bins == () and sl.l_bins.w_bin is None and sl.l_bins.anchor_bin == ()

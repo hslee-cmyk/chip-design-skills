@@ -19,10 +19,11 @@ import numpy as np
 import pytest
 
 from gmid_engine.core import SealViolationError
-from gmid_engine.lut import TOL_V_METRICS, TolVCell, TolVTable, op_point, tol_v_table
+from gmid_engine.lut import TOL_V_METRICS, LBinMap, TolVCell, TolVTable, op_point, tol_v_table
 
-from .conftest import (TOY_L, TOY_VDS, RefSlice, detail_of, hermite_val, new_memo, r4_toy_slice_arrays, rel_close,
-                       tol_cell_ref, toy_slice_arrays)
+from .conftest import (BIN_ANCHOR_BIN_HI, BIN_ANCHOR_BIN_LO, BIN_L, TOY_L, TOY_VDS, RefSlice, bin_toy_raw, detail_of,
+                       hermite_val, new_memo, parse_model_bins, r4_toy_slice_arrays, rel_close, same_bounds,
+                       tol_cell_ref, toy_slice_arrays, um)
 
 LOO_ORDERS_EXPECTED = (
     ("gm_id_inverse", "L", "linear", 2, 0.25),
@@ -224,13 +225,61 @@ def real_table(real_lut):
     return tol_v_table(new_memo(real_lut), "pmos", 1000)
 
 
+def l_loo_rows(anchor_bin):
+    """[r4] L 방향 LOO 를 만드는 앵커 i 집합(5절 'L 축 규칙'): 0 < i < n−1 이고 앵커 i−1·i·i+1 의 bin 이 같다.
+    anchor_bin 은 test 쪽에서 독립으로 정한 앵커별 bin 표시(ngspice showmod 또는 toy 모델 파일 손계산)."""
+    if not anchor_bin:
+        return frozenset()
+    n = len(anchor_bin)
+    return frozenset(i for i in range(1, n - 1) if anchor_bin[i - 1] == anchor_bin[i] == anchor_bin[i + 1])
+
+
 @pytest.fixture(scope="module")
-def real_ref_cells(real_lut, raw_slice):
-    """pmos w_key 1000 전 셀 독립 계산(역산 근 포함 -- 약 1분)."""
+def real_pmos_anchor_bin(real_lut, ngspice_bins):
+    """pmos w_key 1000 앵커별 bin 표시 -- ngspice showmod 로 정한 bin(엔진 지도 미사용)."""
+    sl = real_lut.slice_map[("pmos", 1000)]
+    b = ngspice_bins.query("pfet_01v8", [(um(sl.w_m), um(L)) for L in sl.grids[0]])
+    uniq = sorted(set(b))
+    return tuple(uniq.index(x) for x in b)
+
+
+@pytest.fixture(scope="module")
+def real_pmos_l_rows(real_pmos_anchor_bin):
+    return l_loo_rows(real_pmos_anchor_bin)
+
+
+@pytest.fixture(scope="module")
+def real_ref_cells(raw_slice, real_pmos_anchor_bin):
+    """pmos w_key 1000 전 셀 독립 계산(역산 근 포함 -- 약 1분). L 방향 LOO 앵커는 ngspice showmod 로 정한 bin 에서."""
     z = raw_slice("pmos", 1000)
     rs = RefSlice(z)
-    ab = tuple(real_lut.slice_map[("pmos", 1000)].l_bins.anchor_bin)
-    return [[tol_cell_ref(rs, i, k, ab) for k in range(len(z["VDS"]))] for i in range(len(z["L"]))]
+    return [[tol_cell_ref(rs, i, k, real_pmos_anchor_bin) for k in range(len(z["VDS"]))] for i in range(len(z["L"]))]
+
+
+@pytest.mark.lut_realdata
+def test_real_l_rows_are_contract_anchors(real_pmos_l_rows):
+    assert real_pmos_l_rows == frozenset({4, 5})                 # 0.35·0.425 µm (CONTRACT 5절 r4 실측)
+
+
+@pytest.mark.lut_realdata
+def test_real_table_totals_match_independent(real_table, real_ref_cells, real_pmos_l_rows):
+    """[r5] r4 의 등호 복원(최댓값·합계)을 r5 독립 구현 값으로: 셀 최댓값은 유도 상한 안에서 같고, 시도·실패 합계는 정확히.
+    (r4 독립 구현 값 0.49207258763504047 V·0.20112031777415645 V·실패 65,335 는 선형 LOO 정의 -- r5 에서 바뀐다.)"""
+    t = real_table
+    assert all((t.l_loo[i] == "in_bin_interior") == (i in real_pmos_l_rows) for i in range(len(t.L_anchors)))
+    for key, attr in (("inv", "gm_id_inverse_v"), ("eq", "id_equivalent_v"),
+                      ("inv_loo", "gm_id_inverse_loo_v"), ("eq_loo", "id_equivalent_loo_v")):
+        refs = [r for row in real_ref_cells for r in row if r[key] is not None]
+        got = max(getattr(c, attr) for row in t.cells for c in row if getattr(c, attr) is not None)
+        exp = max(r[key] for r in refs)
+        bnd = max(r[key + "_bound" if key in ("inv", "eq") else key.replace("_loo", "_loo_bound")] for r in refs)
+        assert abs(got - exp) <= bnd, (key, got, exp, bnd)
+        print("pmos 1000 셀 최댓값 %s = %.17g (독립 %.17g)" % (key, got, exp))
+    n_t = sum(c.n_targets for row in t.cells for c in row)
+    n_f = sum(c.n_inverse_failed for row in t.cells for c in row)
+    assert (n_t, n_f) == (sum(r["n_t"] for row in real_ref_cells for r in row),
+                          sum(r["n_f"] for row in real_ref_cells for r in row))
+    assert (n_t, n_f) == (779455, 67164)                        # CONTRACT 5절 r5 실측과도 같다
 
 
 @pytest.mark.lut_realdata
@@ -312,6 +361,225 @@ def test_real_external_l_values_not_converted(real_lut, real_table):
                     assert v2 == v1
     assert n > 0
     assert dict((m, s2) for m, _, s2 in t2.l_loo_bins)[model] == "external"
+
+
+@pytest.mark.lut_realdata
+def test_real_l_rows_cells_match_independent(real_table, real_ref_cells, real_pmos_l_rows, raw_slice):
+    """L 방향 LOO 가 들어가는 두 행(0.35·0.425 µm)의 모든 VDS 셀 -- r5 독립 구현과 유도 상한 안에서 같다.
+    판별: 그 행의 시도 수는 L 방향 없는 독립 계산보다 많다(L 방향 몫이 실제로 들어갔다)."""
+    assert real_pmos_l_rows == frozenset({4, 5})
+    rs = RefSlice(raw_slice("pmos", 1000))
+    for i in sorted(real_pmos_l_rows):
+        for k, ref in enumerate(real_ref_cells[i]):
+            _cell_matches(real_table.cells[i][k], ref)
+        no_l = tol_cell_ref(rs, i, 24, None, with_roots=False)
+        assert real_table.cells[i][24].n_targets > no_l["n_t"]
+
+
+@pytest.mark.lut_realdata
+def test_real_statuses_match_ngspice_bins(real_table, real_lut, ngspice_bins):
+    """앵커·bin 상태: 앵커 bin 을 showmod 로 묶어 앵커 수로 정한다(3개 이상 computed, 2개 missing_external, 1개 single_point)."""
+    sl = real_lut.slice_map[("pmos", 1000)]
+    b = ngspice_bins.query("pfet_01v8", [(um(sl.w_m), um(L)) for L in sl.grids[0]])
+    names = parse_model_bins(ngspice_bins.pm3("pfet_01v8"))
+    groups = []
+    for i, g in enumerate(b):
+        if groups and same_bounds(groups[-1][0], g):
+            groups[-1][1].append(i)
+        else:
+            groups.append((g, [i]))
+    exp_bins, exp_loo = [], [None] * len(b)
+    for g, idx in groups:
+        name = [n for n, bnd in names.items() if same_bounds(bnd, g)]
+        assert len(name) == 1
+        st = "computed" if len(idx) >= 3 else ("missing_external" if len(idx) == 2 else "single_point")
+        exp_bins.append((name[0], tuple(idx), st))
+        for j, i in enumerate(idx):
+            exp_loo[i] = ({"missing_external": "bin_missing_external", "single_point": "bin_single_point"}.get(st)
+                          or ("bin_edge" if j in (0, len(idx) - 1) else "in_bin_interior"))
+    assert tuple(real_table.l_loo_bins) == tuple(exp_bins)
+    assert tuple(real_table.l_loo) == tuple(exp_loo)
+
+
+@pytest.mark.lut_realdata
+def test_real_at_in_bin_and_cross_bin(real_table):
+    t = real_table
+    La = list(t.L_anchors)
+    L = 0.5 * (La[4] + La[5])                           # 0.3875 µm, 같은 bin 0.35·0.425
+    for metric, attr in (("gm_id_inverse", "gm_id_inverse_v"), ("id_equivalent", "id_equivalent_v")):
+        vals = [getattr(t.cells[i][k], attr) for i in (4, 5) for k in (24, 25)]
+        vals = [v for v in vals if v is not None]
+        assert t.at(L, 0.9, metric) == max(vals)
+    with pytest.raises(SealViolationError) as ei:
+        t.at(0.6e-6, 0.9, "gm_id_inverse")                # 0.5(bin .24)·0.7(bin .23) 사이, bin (0.5, 1] 앵커 2개
+    det = detail_of(ei.value)
+    assert det["reason"] == "lut_l_cross_bin" and det["table"] == "tol_v" and det["w_key"] == 1000
+
+
+# ---------------------------------------------------------------------------
+# [r4] 같은 bin 안 L 방향 LOO (5절 'L 축 규칙'), 상태, 외부 l_bin_checks, at() 의 L 위치(4.0) -- bin toy
+#   [r5] 셀 값 기대값은 r5 독립 구현(tol_cell_ref, L 축 선형·VGS/VDS Hermite·Richardson)으로 바꿨다.
+# ---------------------------------------------------------------------------
+
+BIN_TOY_L_LOO_LO = ("bin_edge", "in_bin_interior", "bin_edge", "bin_missing_external", "bin_missing_external",
+                    "bin_missing_external", "bin_missing_external", "bin_single_point")
+BIN_TOY_L_LOO_BINS_LO = (("toyn__model.0", (0, 1, 2), "computed"), ("toyn__model.1", (3, 4), "missing_external"),
+                         ("toyn__model.3", (5, 6), "missing_external"), ("toyn__model.4", (7,), "single_point"))
+
+
+def _assert_table_matches_ref(t, z, anchor_bin):
+    rs = RefSlice(z)
+    for i in range(len(z["L"])):
+        for k in range(len(z["VDS"])):
+            _cell_matches(t.cells[i][k], tol_cell_ref(rs, i, k, anchor_bin))
+
+
+def test_bin_toy_cells_match_independent(bin_toy, bin_memo):
+    t = tol_v_table(bin_memo, "nmos", 100)
+    assert l_loo_rows(BIN_ANCHOR_BIN_LO) == frozenset({1})
+    _assert_table_matches_ref(t, bin_toy_raw(), BIN_ANCHOR_BIN_LO)
+    for k in range(2):
+        assert t.cells[1][k].n_targets == 8                 # VS 2 × (VGS 축 목표 1 + L 축 목표 3)
+        for i in (0, 2, 3, 7):
+            assert t.cells[i][k].n_targets == 2
+    assert t.l_bins == bin_toy.slice_map[("nmos", 100)].l_bins
+    assert tuple(t.l_loo) == BIN_TOY_L_LOO_LO
+    assert tuple(t.l_loo_bins) == BIN_TOY_L_LOO_BINS_LO
+
+
+def test_bin_toy_l_direction_hand_value(bin_toy_build):
+    """[r5] L 방향 LOO 손계산(기울기 자료가 맞는 bin toy -- VGS Hermite LOO 는 2차식 정확이라 0, L 방향만 남는다):
+    앵커 1.5 µm 행 ln ID 의 L 방향 선형 LOO 오차 = |½(ln 1 + ln ½) − ln(1/1.5)| (VGS 몫 c(L)·q(v) 는 L 에 선형이라 정확),
+    gm/ID 최소 = c(1.5)·8 = 1.15·8 -> 환산 전 그 값, 환산 후 /4 (L 축 linear p 2)."""
+    m = new_memo(bin_toy_build("bt_cons", consistent=True).load())
+    t = tol_v_table(m, "nmos", 100)
+    hand = abs(0.5 * math.log(0.5) + math.log(1.5)) / (8.0 * 1.15)
+    z = bin_toy_raw(consistent=True)
+    rs = RefSlice(z)
+    for k in range(2):
+        ref = tol_cell_ref(rs, 1, k, BIN_ANCHOR_BIN_LO)
+        _cell_matches(t.cells[1][k], ref)
+        assert abs(ref["eq_loo"] - hand) <= ref["eq_loo_bound"]
+        assert abs(t.cells[1][k].id_equivalent_loo_v - hand) <= 2 * ref["eq_loo_bound"]
+        assert t.cells[1][k].id_equivalent_v == t.cells[1][k].id_equivalent_loo_v / 4
+        # L 방향 몫이 없는 행은 0 수준(판별: 같은 자료에서 L 방향 몫만 hand 를 만든다)
+        for i in (0, 2):
+            r0 = tol_cell_ref(rs, i, k, BIN_ANCHOR_BIN_LO)
+            assert t.cells[i][k].id_equivalent_loo_v <= 2 * r0["eq_loo_bound"] < hand
+
+
+def test_bin_toy_upper_width_rows(bin_toy, bin_memo):
+    """폭 2e-6 슬라이스(위 W 범위: A' [1, 4]·D' (4, 10]): L 방향 LOO 앵커 = 1·2·3·6."""
+    t = tol_v_table(bin_memo, "nmos", 200)
+    rows = l_loo_rows(BIN_ANCHOR_BIN_HI)
+    assert rows == frozenset({1, 2, 3, 6})
+    _assert_table_matches_ref(t, bin_toy_raw(2.0, 2e-6), BIN_ANCHOR_BIN_HI)
+    assert tuple(t.l_loo) == ("bin_edge", "in_bin_interior", "in_bin_interior", "in_bin_interior", "bin_edge",
+                              "bin_edge", "in_bin_interior", "bin_edge")
+    assert tuple(t.l_loo_bins) == (("toyn__model.5", (0, 1, 2, 3, 4), "computed"),
+                                   ("toyn__model.6", (5, 6, 7), "computed"))
+
+
+def test_empty_map_statuses(toy_memo):
+    t = tol_v_table(toy_memo, "nmos", 100)
+    assert tuple(t.l_loo) == ("bins_unavailable",) * 3
+    assert tuple(t.l_loo_bins) == ()
+    assert t.l_bins == LBinMap((), None, (), ())
+
+
+def test_external_checks_maxed_into_two_anchor_bins(bin_memo):
+    base = tol_v_table(bin_memo, "nmos", 100)
+    checks = (("toyn__model.1", 0.5, None), ("toyn__model.3", None, 0.25))
+    t = tol_v_table(bin_memo, "nmos", 100, checks)
+    assert t is not base
+    for i in range(len(BIN_L)):
+        for k in range(2):
+            b, c = base.cells[i][k], t.cells[i][k]
+            assert (c.n_targets, c.n_inverse_failed) == (b.n_targets, b.n_inverse_failed)
+            # [r5] 외부 값은 환산 전 필드에 들어가지 않는다
+            assert (c.gm_id_inverse_loo_v, c.id_equivalent_loo_v) == (b.gm_id_inverse_loo_v, b.id_equivalent_loo_v)
+            inv, eq = b.gm_id_inverse_v, b.id_equivalent_v
+            if i in (3, 4) and inv is not None:
+                inv = max(inv, 0.5)
+            if i in (5, 6) and eq is not None:
+                eq = max(eq, 0.25)
+            assert (c.gm_id_inverse_v, c.id_equivalent_v) == (inv, eq), (i, k)
+    assert t.cells[3][0].gm_id_inverse_v == 0.5 and t.cells[5][1].id_equivalent_v == 0.25   # 실제로 올라갔다
+    assert tuple(t.l_loo) == BIN_TOY_L_LOO_LO[:3] + ("bin_external",) * 4 + ("bin_single_point",)
+    assert tuple(t.l_loo_bins) == (BIN_TOY_L_LOO_BINS_LO[0], ("toyn__model.1", (3, 4), "external"),
+                                   ("toyn__model.3", (5, 6), "external"), BIN_TOY_L_LOO_BINS_LO[3])
+    # 한 bin 만 주면 나머지는 missing_external
+    t1 = tol_v_table(bin_memo, "nmos", 100, (("toyn__model.3", 0.1, 0.1),))
+    assert tuple(t1.l_loo)[3:7] == ("bin_missing_external",) * 2 + ("bin_external",) * 2
+
+
+def test_external_checks_none_cells_stay_none(bin_toy_build):
+    """셀 값이 None 이면 외부 값이 있어도 None. VGS 2 점(내부점 없음)·VDS·VS 2 점, L 앵커 1·2 µm 가 한 bin(앵커 2개):
+    어떤 축에도 LOO 가 없어 모든 셀 None -> 외부 값을 줘도 None, 시도 수 0."""
+    bt = bin_toy_build(blocks=(("toyn__model.0", 1e-6, 2e-6, 0.5e-6, 3e-6),), L=(1e-6, 2e-6), n_vgs=2)
+    m = new_memo(bt.load())
+    base = tol_v_table(m, "nmos", 100)
+    assert tuple(base.l_loo) == ("bin_missing_external",) * 2
+    t = tol_v_table(m, "nmos", 100, (("toyn__model.0", 0.7, 0.7),))
+    assert tuple(t.l_loo) == ("bin_external",) * 2
+    assert tuple(t.l_loo_bins) == (("toyn__model.0", (0, 1), "external"),)
+    assert all(c == TolVCell(None, None, 0, 0) for row in t.cells for c in row)
+
+
+def test_external_checks_memo_normalized(bin_memo):
+    a = tol_v_table(bin_memo, "nmos", 100, (("toyn__model.1", 0.5, None), ("toyn__model.3", None, 0.25)))
+    b = tol_v_table(bin_memo, "nmos", 100, (("toyn__model.3", None, 0.25), ("toyn__model.1", 0.5, None)))
+    assert a is b
+    c = tol_v_table(bin_memo, "nmos", 100, (("toyn__model.1", 0.5, None), ("toyn__model.3", None, 0.26)))
+    assert c is not a
+
+
+@pytest.mark.parametrize("checks", [
+    (("toyn__model.1", 0.1, 0.1), ("toyn__model.1", 0.2, 0.2)),     # 같은 model 두 번
+    (("toyn__model.0", 0.1, 0.1),),                                  # 앵커 3개 bin
+    (("toyn__model.4", 0.1, 0.1),),                                  # 앵커 1개 bin
+    (("toyn__model.2", 0.1, 0.1),),                                  # 앵커 0개 bin
+    (("no_such_model", 0.1, 0.1),),                                  # 지도에 없는 이름
+])
+def test_external_checks_invalid(bin_memo, checks):
+    with pytest.raises(ValueError):
+        tol_v_table(bin_memo, "nmos", 100, checks)
+
+
+def test_external_checks_on_empty_map_invalid(toy_memo):
+    with pytest.raises(ValueError):
+        tol_v_table(toy_memo, "nmos", 100, (("anything", 0.1, 0.1),))
+    assert tol_v_table(toy_memo, "nmos", 100, ()) is tol_v_table(toy_memo, "nmos", 100)
+
+
+@pytest.mark.parametrize("L,rows", [(1.25e-6, (0, 1)), (1.75e-6, (1, 2)), (3.5e-6, (3, 4)), (7.5e-6, (5, 6))])
+def test_at_in_bin_uses_both_rows(bin_memo, L, rows):
+    t = tol_v_table(bin_memo, "nmos", 100)
+    for vds in (0.5, 0.75, 1.0):
+        for metric, attr in (("gm_id_inverse", "gm_id_inverse_v"), ("id_equivalent", "id_equivalent_v")):
+            vals = [getattr(t.cells[i][k], attr) for i in rows for k in (0, 1)]
+            vals = [v for v in vals if v is not None]
+            assert t.at(L, vds, metric) == (max(vals) if vals else None), (L, vds, metric)
+
+
+@pytest.mark.parametrize("L,reason", [(2.5e-6, "lut_l_cross_bin"), (6.5e-6, "lut_l_cross_bin"),
+                                      (4.5e-6, "lut_l_bin_unbracketed"), (8.5e-6, "lut_l_bin_unbracketed"),
+                                      (5.5e-6, "lut_l_outside_model_bins")])
+def test_at_rejects_across_bins(bin_memo, L, reason):
+    t = tol_v_table(bin_memo, "nmos", 100)
+    with pytest.raises(SealViolationError) as ei:
+        t.at(L, 0.75, "gm_id_inverse")
+    det = detail_of(ei.value)
+    assert det["reason"] == reason and det["value"] == L
+    assert det["table"] == "tol_v" and det["kind"] == "nmos" and det["w_key"] == 100
+
+
+def test_at_empty_map_detail(toy_memo):
+    t = tol_v_table(toy_memo, "nmos", 100)
+    with pytest.raises(SealViolationError) as ei:
+        t.at(1.5e-6, 0.75, "gm_id_inverse")
+    det = detail_of(ei.value)
+    assert det["reason"] == "lut_l_not_anchor" and det["bins"] == "unavailable"
 
 
 # ---------------------------------------------------------------------------

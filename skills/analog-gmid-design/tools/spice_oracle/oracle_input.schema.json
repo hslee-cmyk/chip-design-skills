@@ -23,15 +23,17 @@
       "properties": {
        "subckt": {"type": "string", "description": "X 인스턴스로 부를 모델(subckt) 이름"},
        "includes": {"type": "array", "items": {"type": "string"}, "description": ".include 경로. '{corner}' 자리는 LUT npz corner 로 채운다."},
-       "op_probe": {"type": "string", "description": "ngspice @ 동작점 표현 틀. {inst} = 소문자 인스턴스 이름(x<소자이름>), {param} = id|gm|gds|vth|vdsat|vgs|vds|vbs"}
+       "op_probe": {"type": "string", "description": "ngspice @ 동작점 표현 틀. {inst} = 소문자 인스턴스 이름(x<소자이름>), {param} = id|gm|gds|vth|vdsat|vgs|vds|vbs"},
+       "polarity": {"enum": ["n", "p"], "description": "[신규] 선택. 소자 극성. bias=iso(단독 소자)가 크기 규칙 예측 VGS/VDS/VSB 를 단자 전압으로 바꿀 때 쓴다(없으면 그 kind 소자는 iso N/A)."}
       }
      }
     },
     "diffusion": {
      "type": "object",
-     "description": "선택. finger 하나의 확산 면적/둘레 규칙: ad=as=ad_per_w_m*finger_w, pd=ps=finger_w+pd_extra_m. 없으면 넷리스트에서 생략(모델 기본값).",
+     "description": "finger 하나의 확산 면적/둘레 규칙(LUT 생성 규칙 -- 레이아웃 전 첫 사이징점용): ad=as=ad_per_w_m*finger_w, pd=ps=finger_w+pd_extra_m. devices[].diffusion 이 있는 소자는 그 값이 우선. [변경 C22] free 모드(합격 실행)에서 두 출처 모두 없는 소자가 있으면 막힘.",
      "required": ["ad_per_w_m", "pd_extra_m"],
-     "properties": {"ad_per_w_m": {"type": "number"}, "pd_extra_m": {"type": "number"}}
+     "properties": {"ad_per_w_m": {"type": "number"}, "pd_extra_m": {"type": "number"},
+                    "basis": {"type": "string", "description": "규칙의 근거(예: LUT 생성기 넷리스트의 ad/pd)"}}
     }
    }
   },
@@ -51,7 +53,15 @@
      "name": {"type": "string"}, "kind": {"type": "string"},
      "drain": {"type": "string"}, "gate": {"type": "string"}, "source": {"type": "string"}, "bulk": {"type": "string"},
      "L": {"type": "number"}, "finger_w": {"type": "number"}, "n_fingers": {"type": "integer", "minimum": 1},
-     "W": {"type": "number", "description": "엔진이 선언한 총폭. finger_w*n_fingers 와의 차이는 비교표 W_rel 로 보고(판정은 tolerances.W_rel)."}
+     "W": {"type": "number", "description": "엔진이 선언한 총폭. finger_w*n_fingers 와의 차이는 비교표 W_rel 로 보고(판정은 tolerances.W_rel)."},
+     "diffusion": {
+      "type": "object",
+      "description": "[신규 C22] 선택. 이 소자의 확산 기하(Euler 행 공유 확산, 레이아웃 MOD7 ly.diffusion 통계에서 엔진·어댑터가 계산). 값은 finger 하나(= m 단위 하나)당 평균: 소자 전체 드레인 확산 면적 합 / n_fingers 등. 인스턴스는 m=n_fingers 를 유지하므로 ngspice 가 m 배 한다. 있으면 process.diffusion 규칙보다 우선.",
+      "required": ["ad_m2", "as_m2", "pd_m", "ps_m"],
+      "properties": {"ad_m2": {"type": "number", "minimum": 0}, "as_m2": {"type": "number", "minimum": 0},
+                     "pd_m": {"type": "number", "minimum": 0}, "ps_m": {"type": "number", "minimum": 0},
+                     "basis": {"type": "string", "description": "출처(예: ly.diffusion 스냅샷 지문)"}}
+     }
     }
    }
   },
@@ -61,14 +71,16 @@
    "items": {"type": "object", "required": ["name", "kind", "terminals", "value"],
              "properties": {"name": {"type": "string"}, "kind": {"enum": ["current", "voltage"]},
                             "terminals": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
-                            "value": {"type": "number"}, "value_basis": {"type": "string", "description": "값의 근거(표에 그대로 찍힘)"}}}
+                            "value": {"type": "number"}, "value_basis": {"type": "string", "description": "값의 근거(표에 그대로 찍힘)"},
+                            "not_in_topology_reason": {"type": "string", "minLength": 1, "description": "[신규] 선택. topology 에 없는 원소(예: spec 부하)라 C15 연결 동일성 비교에서 뺄 때 그 이유. 비교 결과에 그대로 기록된다."}}}
   },
   "passives": {
    "type": "array",
    "items": {"type": "object", "required": ["name", "kind", "terminals", "value"],
              "properties": {"name": {"type": "string"}, "kind": {"enum": ["resistor", "capacitor"]},
                             "terminals": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
-                            "value": {"type": "number"}, "value_basis": {"type": "string"}}}
+                            "value": {"type": "number"}, "value_basis": {"type": "string"},
+                            "not_in_topology_reason": {"type": "string", "minLength": 1, "description": "[신규] 선택. topology 에 없는 원소(예: spec CL 로 어댑터가 넣은 부하)라 C15 비교에서 뺄 때 그 이유."}}}
   },
   "feedback_passives": {
    "type": "array", "items": {"type": "string"}, "uniqueItems": true,
@@ -95,16 +107,24 @@
      "additionalProperties": {"type": "object", "properties": {
       "ID": {"type": "number"}, "VGS": {"type": "number"}, "VDS": {"type": "number"}, "VSB": {"type": "number"},
       "gm": {"type": "number"}, "gds": {"type": "number"}, "gm_id": {"type": "number"},
-      "region": {"enum": ["sat", "triode"], "description": "엔진이 가정한 영역. judge.sat_margin_V 가 있을 때만 판정."}}}
+      "region": {"enum": ["sat", "triode", "off"], "description": "엔진이 가정한 영역. judge.sat_margin_V 가 있을 때만 기록 판정. [변경 C23] 'off' = 엔진이 꺼짐으로 예측(전도 확인 대상 아님). 없거나 sat/triode 면 엔진 예측 = 전도."},
+      "off_current_A": {"type": "number", "minimum": 0, "description": "[신규 C23] 이 소자의 전도 문턱(엔진이 LUT 의 VGS=0 누설 ID 로 이 소자 기하·바이어스에서 계산). 엔진이 전도로 예측한 소자의 SPICE ID(크기 규칙, 부호 포함)가 이 값 이하이면 '꺼짐' -> free verdict FAIL. 없으면 그 소자의 전도 확인은 '판정 안 함'(PASS 불가 -> INCOMPLETE). 오라클은 문턱을 만들지 않는다."},
+      "tol": {"type": "object", "description": "[신규] 선택. 소자별 LUT 계산 허용오차(엔진이 그 소자 셀 tol 에서 계산한 값). 한 소자라도 있으면 소자별 모드: ID·gm 기록 판정·forced 경고·iso 판정이 이 값만 쓰고 judge.tolerances 의 ID_rel/gm_rel 스칼라는 쓰지 않는다(없는 소자는 N/A).",
+       "properties": {"ID_rel": {"type": "number", "minimum": 0}, "gm_rel": {"type": "number", "minimum": 0},
+                      "basis": {"type": "string"}}}}}
     },
     "metrics": {
      "type": "array",
      "items": {"type": "object", "required": ["measure", "value"], "properties": {
       "name": {"type": "string", "description": "엔진 쪽 metric 이름(표시용)"},
-      "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A"]},
+      "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A", "ratio_db",
+                           "slew_rate_v_per_s", "settle_s"],
+                  "description": "[신규] ratio_db = 엔진 ratio_ss_db(CMRR·PSRR 일반형, view 필수, C24). slew_rate_v_per_s·settle_s = 기록 전용(C25: 지금은 SPICE 정의 미정이라 not_measured)."},
       "value": {"type": "number"},
       "rail": {"type": "string", "description": "supply_current_A 일 때 어느 레일의 공급전류인가"},
-      "basis": {"type": "string"}}}
+      "view": {"$ref": "#/$defs/ratio_view"},
+      "basis": {"type": "string"}},
+      "allOf": [{"if": {"properties": {"measure": {"const": "ratio_db"}}}, "then": {"required": ["view"]}}]}
     }
    }
   },
@@ -112,8 +132,11 @@
    "type": "object",
    "properties": {
     "constraints": {"type": "array", "items": {"type": "object", "required": ["measure", "op", "limit"], "properties": {
-     "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A"]},
-     "op": {"enum": [">=", "<="]}, "limit": {"type": "number"}, "rail": {"type": "string"}, "basis": {"type": "string"}}}},
+     "name": {"type": "string"}, "measure": {"enum": ["dc_gain_db", "ugf_hz", "pm_deg", "f3db_hz", "supply_current_A", "ratio_db"],
+                                              "description": "[신규] ratio_db(CMRR·PSRR, view 필수) 는 판정 대상(Q5 (ii), C24). slew·settling 은 판정 대상이 아니라 여기 없다(C25)."},
+     "op": {"enum": [">=", "<="]}, "limit": {"type": "number"}, "rail": {"type": "string"},
+     "view": {"$ref": "#/$defs/ratio_view"}, "basis": {"type": "string"}},
+     "allOf": [{"if": {"properties": {"measure": {"const": "ratio_db"}}}, "then": {"required": ["view"]}}]}},
     "not_measurable": {"type": "array", "items": {"type": "string"}, "description": "SPICE 로 잴 수 없어 뺀 선언 제약(기록용)"}
    }
   },
@@ -144,9 +167,35 @@
      "gm_rel": {"type": "number"}, "gds_rel": {"type": "number"}, "gm_id_rel": {"type": "number"},
      "node_abs_V": {"type": "number"}, "W_rel": {"type": "number"}, "kcl_abs_A": {"type": "number"},
      "dc_gain_db_abs": {"type": "number"}, "pm_deg_abs": {"type": "number"}, "ugf_hz_rel": {"type": "number"},
-     "f3db_hz_rel": {"type": "number"}, "supply_current_A_rel": {"type": "number"}}}
+     "f3db_hz_rel": {"type": "number"}, "supply_current_A_rel": {"type": "number"}, "ratio_db_abs": {"type": "number"}}}
    }
   },
+  "topology": {
+   "type": "object", "required": ["path"],
+   "description": "[신규] 선택. C15 연결 동일성 대조용 topology JSON(netlist + passive_elements + ideal_sources). path 는 저장소 루트 기준 상대 경로('/' 구분, 루트 = 입력 파일 폴더에서 위로 처음 .git 이 있는 폴더, 없으면 오라클 코드 폴더에서 같은 방법), 진입점 --topology 가 우선. 없으면 '동일성 미검증' 표시, --require-topology(합격 실행)이면 막힘.",
+   "properties": {"path": {"type": "string"}, "sha256": {"type": "string", "description": "입력을 만들 때의 파일 바이트 sha256(다르면 기록만)"}}
+  },
   "provenance": {"type": "object", "description": "어댑터가 남기는 출처·경고(오라클은 비교표에 그대로 옮길 뿐 해석하지 않는다)"}
+ },
+ "$defs": {
+  "transfer_view": {
+   "type": "object", "additionalProperties": false,
+   "description": "[신규 C24] 엔진 spec 전달 뷰와 같은 모양(gmid_engine/authoring/spec_constraints.py TRANSFER_KEYS): ac_excite = {넷: AC 진폭}, sense_p, sense_n(single_ended 면 null), sense_mode.",
+   "required": ["ac_excite", "sense_p", "sense_n", "sense_mode"],
+   "properties": {
+    "ac_excite": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number"}},
+    "sense_p": {"type": "string", "minLength": 1},
+    "sense_n": {"type": ["string", "null"]},
+    "sense_mode": {"enum": ["differential", "single_ended"]}},
+   "allOf": [{"if": {"properties": {"sense_mode": {"const": "differential"}}},
+              "then": {"properties": {"sense_n": {"type": "string", "minLength": 1}}},
+              "else": {"properties": {"sense_n": {"type": "null"}}}}]
+  },
+  "ratio_view": {
+   "type": "object", "additionalProperties": false,
+   "description": "[신규 C24] 엔진 ratio_ss_db 뷰 {num, den}: 각 전달 뷰의 응답비 20*log10(|H_num|/|H_den|).",
+   "required": ["num", "den"],
+   "properties": {"num": {"$ref": "#/$defs/transfer_view"}, "den": {"$ref": "#/$defs/transfer_view"}}
+  }
  }
 }

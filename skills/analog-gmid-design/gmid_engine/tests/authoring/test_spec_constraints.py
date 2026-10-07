@@ -55,22 +55,83 @@ def test_view_modes(sc):
     doc = sc.load()
     modes = {c.metric: c.view.mode for c in doc.constraints if c.metric}
     assert modes["gain_ss_db"] == "port"            # transfer metric, view 없음, output 포트 1개
-    assert modes["pm_ss_deg"] == "transfer"
+    assert modes["pm_ss_deg"] == "port"             # loop metric(6절 9번), view 없음 -> 포트 뷰
+    assert modes["parasitic_pm_ss_deg"] == "transfer"
     assert modes["ratio_ss_db"] == "pending"
-    assert modes["mismatch_sigma_mv"] == "none"     # view_kind none
+    assert modes["mismatch_sigma_mv"] == "none"     # view_kind None
 
 
 def test_transfer_view_projection(sc):
     doc = sc.load()
-    v = [c for c in doc.constraints if c.metric == "pm_ss_deg"][0].view.transfer
+    v = [c for c in doc.constraints if c.metric == "parasitic_pm_ss_deg"][0].view.transfer
     assert v.ac_excite == tuple(sorted(TRANSFER["ac_excite"].items()))
     assert (v.sense_p, v.sense_n, v.sense_mode) == ("n_outp", None, "single_ended")
 
 
 def test_differential_view_ok(sc):
-    sc.constraint("pm_ss_deg")["view"] = {"ac_excite": {"n_inp": 1.0}, "sense_p": "n_outp", "sense_n": "n_mid",
-                                          "sense_mode": "differential"}
+    sc.constraint("parasitic_pm_ss_deg")["view"] = {"ac_excite": {"n_inp": 1.0}, "sense_p": "n_outp", "sense_n": "n_mid",
+                                                    "sense_mode": "differential"}
     sc.load()
+
+
+# --- loop(pm_ss_deg)·output_port(rout_ss_ohm) metric 뷰: SPEC_CONTRACT 2절 view_not_defined_yet·view_required, 6절 9번, 7절 S1 ---
+ROUT = {"metric": "rout_ss_ohm", "op": "<=", "value": 5000.0}
+DIFFERENTIAL = {"ac_excite": {"n_inp": 1.0}, "sense_p": "n_outp", "sense_n": "n_mid", "sense_mode": "differential"}
+
+
+def _loop_or_port(sc, metric):
+    """pm_ss_deg 는 픽스처에 있다(loop). rout_ss_ohm(output_port) 은 제약을 하나 더한다."""
+    if metric == "rout_ss_ohm":
+        _add(sc, **copy.deepcopy(ROUT))
+    return sc.constraint(metric)
+
+
+@pytest.mark.parametrize("metric", ["pm_ss_deg", "rout_ss_ohm"])
+@pytest.mark.parametrize("view", [TRANSFER, DIFFERENTIAL], ids=["transfer_shaped", "differential_shaped"])
+def test_view_not_defined_yet_declared_view(sc, metric, view):
+    """loop·output_port metric 에 결정 대기 표지가 아닌 view 선언 -> view_not_defined_yet(옛 픽스처 pm_ss_deg 전달 뷰 포함)."""
+    _loop_or_port(sc, metric)["view"] = copy.deepcopy(view)
+    sc.reject_only("view_not_defined_yet", "constraints")
+
+
+@pytest.mark.parametrize("metric", ["pm_ss_deg", "rout_ss_ohm"])
+def test_loop_output_port_pending_view_accepted(sc, metric):
+    """선언 view 는 결정 대기 표지만 받는다 -- 결과 view.mode pending, 그 ID 가 doc.pending 에 모인다(1절)."""
+    _loop_or_port(sc, metric)["view"] = {"pending": "MOD7"}
+    doc = sc.load()
+    got = [c for c in doc.constraints if c.metric == metric][0]
+    assert got.view.mode == "pending"
+    assert "MOD7" in {p.decision for p in doc.pending}
+
+
+@pytest.mark.parametrize("metric", ["pm_ss_deg", "rout_ss_ohm"])
+def test_loop_output_port_undeclared_view_is_port(sc, metric):
+    """view 를 적지 않으면 포트 뷰(output 포트 1개인 픽스처)."""
+    _loop_or_port(sc, metric)
+    got = [c for c in sc.load().constraints if c.metric == metric][0]
+    assert got.view.mode == "port"
+
+
+@pytest.mark.parametrize("metric", ["pm_ss_deg", "rout_ss_ohm"])
+def test_loop_output_port_undeclared_view_two_outputs_required(sc, metric):
+    """포트 뷰 규칙: view 없고 output 포트가 1개가 아니면 view_required. 다른 view 없는 제약은 뷰를 채워 hit 1개로 만든다."""
+    _two_outputs(sc)
+    for m in ("gain_ss_db", "ugf_ss_hz"):
+        sc.constraint(m)["view"] = copy.deepcopy(TRANSFER)
+    if metric == "rout_ss_ohm":
+        sc.constraint("pm_ss_deg")["view"] = {"pending": "MOD7"}
+    _loop_or_port(sc, metric)
+    sc.reject_only("view_required", "constraints")
+
+
+@pytest.mark.parametrize("metric", ["mismatch_sigma_mv", "power_dc_w", "area_search_m2"])
+@pytest.mark.parametrize("view", [TRANSFER, DIFFERENTIAL], ids=["transfer_shaped", "differential_shaped"])
+def test_view_not_applicable_none_view_kind(sc, metric, view):
+    """view_kind None(픽스처 이름표) metric 에 선언 view -> view_not_applicable."""
+    if metric != "mismatch_sigma_mv":
+        _add(sc, metric=metric, op="<=", value=1.0)
+    sc.constraint(metric)["view"] = copy.deepcopy(view)
+    sc.reject_only("view_not_applicable", "constraints")
 
 
 def test_ratio_view_num_den_transfer(sc):
@@ -173,9 +234,11 @@ def _two_outputs(sc):
 def test_view_required_transfer_two_outputs(sc):
     _two_outputs(sc)
     d = sc.reject()
-    # view 없는 transfer 제약 전부(gain_ss_db, parasitic_pm_ss_deg, ugf_ss_hz)
+    # view 없는 transfer·loop·output_port 제약 전부(gain_ss_db·ugf_ss_hz transfer, pm_ss_deg loop)
     want = sum(1 for c in sc.human["constraints"] if isinstance(c["metric"], str)
-               and c["metric"] in ("gain_ss_db", "parasitic_pm_ss_deg", "ugf_ss_hz") and "view" not in c)
+               and c["metric"] in ("gain_ss_db", "parasitic_pm_ss_deg", "ugf_ss_hz", "pm_ss_deg", "rout_ss_ohm")
+               and "view" not in c)
+    assert want == 3  # 픽스처 JSON 집계: gain_ss_db, pm_ss_deg, ugf_ss_hz
     assert sc.rules(d) == ["view_required"] * want
     assert d["rejected_gates"] == ("constraints",)
 
@@ -184,12 +247,13 @@ def test_explicit_view_ok_with_two_outputs(sc):
     _two_outputs(sc)
     for m in ("gain_ss_db", "parasitic_pm_ss_deg", "ugf_ss_hz"):
         sc.constraint(m)["view"] = copy.deepcopy(TRANSFER)
+    sc.constraint("pm_ss_deg")["view"] = {"pending": "MOD7"}  # loop: 선언 view 는 결정 대기 표지만
     sc.load()
 
 
 @pytest.mark.parametrize("field,val", [("sense_p", "n_ghost"), ("sense_n", "n_ghost")])
 def test_view_net_unknown_sense(sc, field, val):
-    v = sc.constraint("pm_ss_deg")["view"]
+    v = sc.constraint("parasitic_pm_ss_deg")["view"]
     v[field] = val
     if field == "sense_n":
         v["sense_mode"] = "differential"
@@ -197,7 +261,7 @@ def test_view_net_unknown_sense(sc, field, val):
 
 
 def test_view_net_unknown_excite(sc):
-    sc.constraint("pm_ss_deg")["view"]["ac_excite"]["n_ghost"] = 0.1
+    sc.constraint("parasitic_pm_ss_deg")["view"]["ac_excite"]["n_ghost"] = 0.1
     sc.reject_only("view_net_unknown", "constraints")
 
 
@@ -211,7 +275,7 @@ def test_view_net_unknown_excite(sc):
     lambda v: v.update(sense_p=3),
 ])
 def test_view_type(sc, mutate):
-    mutate(sc.constraint("pm_ss_deg")["view"])
+    mutate(sc.constraint("parasitic_pm_ss_deg")["view"])
     sc.reject_only("type", "constraints")
 
 
@@ -274,7 +338,7 @@ def test_constraint_unknown_key(sc):
 
 def test_all_constraint_hits_collected(sc):
     sc.constraint("gain_ss_db")["op"] = "=="
-    sc.constraint("pm_ss_deg")["view"]["sense_p"] = "n_ghost"
+    sc.constraint("parasitic_pm_ss_deg")["view"]["sense_p"] = "n_ghost"
     _add(sc, metric="slew_ss_vps", op=">=", value=1.0)
     d = sc.reject()
     assert sc.rules(d) == ["op_value", "view_net_unknown", "metric_unknown"]

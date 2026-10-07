@@ -108,7 +108,9 @@ U_FIELDS = {
     "s1_dc_roles": (("device", "dc_role"),),
     "s1_rel_vgs": (("graph", "rel_equal_vgs"), ("graph", "rel_vds_eq_vgs")),
     "s1_rel_kcl": (("graph", "rel_kcl_group"),),
-    "s1_rel_matching": (("graph", "rel_matching_ratio"), ("graph", "rel_l_class"), ("graph", "rel_matching_offset")),
+    "s1_rel_matching": (("graph", "rel_matching_ratio"), ("graph", "rel_l_class")),
+    "s1_matching_groups": (("graph", "rel_matching_offset"), ("graph", "matching_groups"),
+                           ("graph", "matching_dispositions")),
     "s1_gvgs": (("graph", "rel_kvl_branch"), ("graph", "gvgs_summary")),
 }
 
@@ -167,10 +169,11 @@ def test_unsupported_branches_per_element_class():
 
 
 def test_rule_files_are_contract_list():
-    # 계약 3절: graph 파일 16개(s1_key.py·s1_model.py 제외)
+    # 계약 3절: graph 파일 17개(s1_key.py·s1_model.py 제외)
     assert tuple(S1_RULE_FILES) == (
         "ac_ground_static.py", "branches.py", "bulk_default.py", "columns.py", "dc_conduction.py", "dc_roles.py",
-        "gs_groups.py", "gvgs_cycles.py", "rel_kcl.py", "rel_matching.py", "rel_vgs.py", "s1_build.py",
+        "gs_groups.py", "gvgs_cycles.py", "matching_groups.py", "rel_kcl.py", "rel_matching.py", "rel_vgs.py",
+        "s1_build.py",
         "s1_index.py", "s1_structure.py", "s1_values.py", "supplies.py",
     )
     assert "s1_key.py" not in S1_RULE_FILES and "s1_model.py" not in S1_RULE_FILES

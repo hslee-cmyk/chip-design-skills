@@ -6,7 +6,8 @@
 - 근거: `_drafts/engine/design_mod3_s1_graph.md` 2.2·3·4·5·6절, `_drafts/engine/design_mod3_structure_u2_u5.md`(이하 DU)
   0.1·1~3·5·6·7절(U2~U4, U5 는 범위 밖), `NEW_ENGINE_DESIGN_REQUIREMENTS.md` 끝 '확정 사항'(최우선),
   `user_decisions.md` 2026-10-07(1번 supplies_v, 6번 bulk 기본 규칙, 10번 병렬 합쳐 세기), core `CONTRACT.md` 5·6절,
-  authoring `CONTRACT.md`, 계획 DEC-57·64·70·71, N3.3(status 전이표), 용어집 91~92행.
+  authoring `CONTRACT.md`, 계획 DEC-57·64·70·71, N3.3(status 전이표), 용어집 91~92행,
+  `_drafts/engine/reference_review/SYNTHESIS.md` Q8 (i)(iii)(사용자 승인 2026-10-07 "B는 추천대로 해" -- 4.5a).
 - 입력: `authoring.load_topology(path)` 결과 `TopologyDoc` + 인자 `supplies_v`(+ `column_limit`). 엔진은 topology 의 `_` 키
   (`_declared_target_spec` 등)를 읽지 않는다 -- test 픽스처가 필요하면 test 쪽에서 꺼내 인자로 넘긴다.
 - 대원칙(DU 0절): 규칙은 connectivity(S1 필드)·선언(포트·레일·수동/이상원 선언)만으로 판정한다. 회로·소자·넷 이름은
@@ -35,13 +36,14 @@
 | branches.py | 3 | `s1_branches`(`@compute_block`) | U2 분기 노드·가지 |
 | dc_roles.py | 3 | `s1_dc_roles`(`@compute_block`) | U3 소자 DC 역할 |
 | rel_vgs.py | 3 | `s1_rel_vgs`(`@compute_block`) | U4 equal_vgs·vds_eq_vgs |
-| rel_matching.py | 3 | `s1_rel_matching`(`@compute_block`) | U4 matching_ratio·l_class·matching_offset |
+| rel_matching.py | 3 | `s1_rel_matching`(`@compute_block`) | U4 matching_ratio·l_class |
 | gvgs_cycles.py | 3 | `s1_gvgs`(`@compute_block`) | U4 G_vgs 순환수·kvl_branch·v1·VDS-1 |
 | columns.py | 4 | `s1_columns`(`@compute_block`) | U2 기둥·쌍 요약·orphan·열거 상한 |
+| matching_groups.py | 4 | `s1_matching_groups`(`@compute_block`) | U4 matching_offset(바이어스 형제 제외)·레이아웃 matching 그룹·제외 기록(4.5a) |
 | rel_kcl.py | 4 | `s1_rel_kcl`(`@compute_block`) | U4 kcl_group |
 | s1_build.py | 5 | `build_s1` | 공개 진입점(빌드 순서·재사용) |
 
-U2~U4 블록 9개는 서로 import 하지 않는다(값은 graph 필드로만 전달). 어느 것도 `device.bulk`·supplies 를 읽지 않는다.
+U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 전달). 어느 것도 `device.bulk`·supplies 를 읽지 않는다.
 
 ## 1. `build_s1(doc, supplies_v=None, previous=None, column_limit=None) -> S1Graph`
 
@@ -49,14 +51,15 @@ U2~U4 블록 9개는 서로 import 하지 않는다(값은 graph 필드로만 �
   `TypeError`. `column_limit` 가 None 도 0 이상 int 도 아님(bool 포함) -> `TypeError`.
 - 순서(고정): `supplies_declaration(supplies_v, doc.rails)` -> `s1_key(doc, supplies)` -> 재사용 판정 -> `s1_structure(base,
   doc.devices, doc.passives, doc.sources, 정렬 레일 tuple, doc.ports)` -> `s1_bulk(·, supplies)` -> `s1_dc_conduction` ->
-  `s1_gs_groups` -> `s1_branches` -> `s1_dc_roles` -> `s1_rel_vgs` -> `s1_rel_matching` -> `s1_gvgs` -> `s1_columns(·, column_limit)`
+  `s1_gs_groups` -> `s1_branches` -> `s1_dc_roles` -> `s1_rel_vgs` -> `s1_rel_matching` -> `s1_matching_groups` -> `s1_gvgs` ->
+  `s1_columns(·, column_limit)`
   -> `s1_rel_kcl` -> `S1Graph(key, snapshot)`. `base` = `previous.snapshot`(있으면) 또는 `GraphSnapshot.empty(S1_WRITERS)`.
 - 재사용 판정: `previous.key == key` 이고 (`column_limit` 가 None 이거나 `previous` 의 기둥 수 ≤ `column_limit`)이면
   `previous` 를 **그대로**(`is`) 반환, 블록 호출 0. 기둥 수가 상한을 넘으면 반환하지 않고 블록을 부른다 -- `s1_columns` 만
   입력(extras)이 바뀌어 다시 돌고 정지한다(1.1).
 - 재사용(확정 사항 1·2·5):
   - 같은 doc·supplies_v·column_limit 로 `previous` 를 넘기면 같은 객체, 모든 블록 계수 변화 0.
-  - supplies_v 만 바꿔 `previous` 를 넘기면 `s1_bulk` 만 compute, 나머지 10 블록은 reuse(입력 버전 같음). node 레코드는
+  - supplies_v 만 바꿔 `previous` 를 넘기면 `s1_bulk` 만 compute, 나머지 11 블록은 reuse(입력 버전 같음). node 레코드는
     모두 이전 스냅샷과 같은 객체, device 레코드는 bulk 필드가 바뀌는 MOS 만 새 객체.
   - `column_limit` 만 바꾸면(키 같음, 이전 기둥 수가 새 상한 초과) `s1_columns` 만 compute.
   - `previous` 없이 같은 doc 으로 두 번 부르면 두 번 계산하고 각 블록 `stats().recomputes_same_input` 이 1 오른다
@@ -84,8 +87,9 @@ U2~U4 블록 9개는 서로 import 하지 않는다(값은 graph 필드로만 �
 
 - `topology_fp == doc.connectivity_fp`.
 - `rule_fp` = `fp_of`(((basename, 파일 바이트(CRLF -> LF 정규화) sha256), ...) basename 정렬) over `S1_RULE_FILES`
-  = (ac_ground_static, branches, bulk_default, columns, dc_conduction, dc_roles, gs_groups, gvgs_cycles, rel_kcl,
-  rel_matching, rel_vgs, s1_build, s1_index, s1_structure, s1_values, supplies).py -- S1 필드 값을 정하는 graph 파일 16개
+  = (ac_ground_static, branches, bulk_default, columns, dc_conduction, dc_roles, gs_groups, gvgs_cycles,
+  matching_groups, rel_kcl, rel_matching, rel_vgs, s1_build, s1_index, s1_structure, s1_values, supplies).py -- S1 필드 값을
+  정하는 graph 파일 17개
   (s1_key.py·s1_model.py 제외). 같은 소스면 프로세스·`PYTHONHASHSEED` 와 무관하게 같다.
 - `supplies_v_fp` = `fp_of(supplies)`, supplies None 이면 `NO_SUPPLIES_FP`(`"none"`). 전위 하나라도 다르면 다르다.
 - `column_limit` 는 키에 들어가지 않는다(열린 결정 O1 기본안 -- 예산은 S1 키 밖).
@@ -100,7 +104,8 @@ writer 이름 = 블록 이름(`S1_*_WRITER` 상수). 권한표 = 아래 4.1~4.5 
 
 공통 값 형식(s1_values, 모두 frozen dataclass):
 - `Evidence(rule, nets=(), group=(), basis=())` -- `basis` = 판정이 기댄 J 항목 ID(DU 6절 기본안: `J13-a`·`J13-b`·`J13-c`·
-  `J13-d`·`J-U3-a`·`J-U3-c`·`J-U4-a`·`J-U4-b`·`J12-c`, 상수 `J_*`). J 에 기대지 않은 판정은 `()`.
+  `J13-d`·`J-U3-a`·`J-U3-c`·`J-U4-a`·`J-U4-b`·`J12-c`, Q8 신설 `J-U4-c`(`J_BRANCH_SYMMETRIC`)·`J-U4-d`(`J_MATCH_CLASS`),
+  상수 `J_*`). J 에 기대지 않은 판정은 `()`.
 - status 어휘(계획 N3.3 전이표, 엔진 규칙만으로 정함): `STATUS_DERIVED`(`"derived"`), `STATUS_PROPOSED`(`"proposed"`),
   `STATUS_REVIEW_NEEDED`(`"review_needed"`). declared 대조(태그·`vertical_stack_id`)는 S1 밖 U14 몫이라 S1 에 `declared` 는 없다.
 
@@ -213,8 +218,11 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
 | `rel_kcl_group` (`s1_rel_kcl`) | kcl_group | dc | segment 2개 이상인 가지마다 / segment 원소 tuple 들(걷는 순서) | derived | nets = 가지 ends, basis (J13-a,) |
 | `rel_matching_ratio` (`s1_rel_matching`) | matching_ratio | dc | gate 가 **비레일**인 gs 묶음(미러)마다 / 멤버 | derived | nets (gate, source) |
 | `rel_l_class` (`s1_rel_matching`) | l_class | geom | 같은 묶음마다 / 멤버 | **proposed** | basis (J-U4-a,) |
-| `rel_matching_offset` (`s1_rel_matching`) | matching_offset | dc_to_ss | 같은 (kind, **비레일** source) MOS 묶음 중 gate 넷이 2개 이상으로 갈리는 것 / 멤버 이름순 | 멤버 정확히 2 -> derived, 3 이상 -> review_needed | nets (source,) + gate 넷 정렬, basis (J-U4-b,) |
+| `rel_matching_offset` (**`s1_matching_groups`**, 4.5a) | matching_offset | dc_to_ss | 같은 (kind, **비레일** source) MOS 묶음 중 gate 넷이 2개 이상으로 갈리는 것에서 **바이어스 형제를 뺀 뒤** gate 넷이 아직 2개 이상인 것 / 남은 멤버 이름순 | 남은 멤버 정확히 2 -> derived, 3 이상 -> review_needed | rule matching_offset, nets (source,) + 남은 멤버 gate 넷 정렬, group (), basis (J-U4-b,) |
 | `rel_kvl_branch` (`s1_gvgs`) | kvl_branch | dc | G_vgs v2 사이클마다 / 사이클 대표 소자 이름순 | derived | rule `v2_rail`(F 경유) 또는 `v2_zero`, nets = 사이클의 비레일 넷 정렬, basis (J12-c,) |
+
+`rel_matching_ratio`·`rel_l_class` 는 DC 전류비·L 동치류 관계라 4.5a 의 레이아웃 분류(bias_distribution·feedback_shared)와
+무관하게 묶음 전체를 담는다(이번 변경으로 바뀌지 않음). `s1_rel_matching` reads = `graph.gs_groups`, `node.is_rail` 뿐.
 
 **`s1_gvgs`** (reads `device.{element_class, is_diode, kind, pins}`, `node.{is_rail, port_direction}`; writes `graph.rel_kvl_branch`,
 `graph.gvgs_summary`):
@@ -234,6 +242,91 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
   `RelEdge("port_diff", dc, 멤버, derived, basis (J12-c,))`(제약 없음, 대조만), `vds_saturation` = `RelEdge("vds_saturation", dc,
   members, derived, basis (J12-c,))`(포화 하한 부등식).
 
+### 4.5a 레이아웃 matching 분류 -- `s1_matching_groups` (SYNTHESIS Q8 (i)(iii), 사용자 승인 2026-10-07)
+
+**`s1_matching_groups`** (reads `graph.{branches, gs_groups}`, `device.{dc_nets, dc_role, element_class, is_diode, kind, pins}`,
+`node.{ac_ground_class, is_rail, port_direction}`; writes `graph.rel_matching_offset`, `graph.matching_groups`,
+`graph.matching_dispositions`). 정지 분기 없음(기록만). 9회로 결과는 회로 해석이라 사용자 J-U4 대조표
+(`_drafts/engine/J_U4_matching_table.md`)로 확인받는다 -- 그 전까지 아래 수치는 기대값이 아니라 작성자 실행값이다.
+
+**구조 정의**(모두 기존 S1 필드만으로 정한다. 소자·넷 이름은 결정론적 순서에만 쓴다):
+
+| 용어 | 정의 |
+|---|---|
+| G | `node.ac_ground_class` 가 None 이 아닌 넷(레일 ∪ gate 전용 비입력 넷, 4.1) |
+| 입력 포트 넷 | `node.port_direction == "input"` |
+| 가지 넷 nets(b) | `graph.branches` 의 가지 b 의 `ends` ∪ 모든 segment `nets` |
+| 소자의 가지 | 그 소자를 segment 원소로 갖는 가지(MOS 는 가지치기 대상이 아니라 정확히 하나) |
+| 블록 | 가지 그래프에서 **레일이 아닌** 가지 끝 넷을 공유하는 가지끼리 이은 연결 성분(= DC 전도 그래프에서 레일 넷을 지웠을 때의 연결 성분). 소자의 블록 = 그 소자 가지의 블록. 블록 넷 = 그 가지들의 nets 합집합 |
+| 바이어스 블록 | 최대 고정점: 모든 블록에서 시작해, (a) 블록 넷에 입력 포트 넷이 있거나 (b) 블록 안 diode 아닌 MOS 중 gate 가 G ∪ (현재 바이어스 블록들의 넷)에 없는 것이 있는 블록을 빼기를 변화가 없을 때까지 반복한 나머지. 뜻: 레일은 교류접지라 블록 사이 DC 신호 통로는 gate 뿐이고, 블록 안 전류를 정하는 gate 가 모두 바이어스이면 그 블록 넷은 전부 바이어스다(자기 바이어스 고리 -- 서로 gate 를 대는 블록끼리 -- 도 남는다) |
+| 바이어스 넷 B | 바이어스 블록들의 넷 합집합 |
+| 영향 그래프 | 방향 그래프. 노드 = G 밖 넷. MOS 마다 g→d, g→s, s→d, `dc_nets` 가 있는 수동소자(저항)마다 양방향. 커패시터·이상원은 엣지 없음. 끝점이 같거나 한쪽이 G 인 엣지는 넣지 않는다 |
+| 루프 신호 넷 L | 영향 그래프의 강연결 성분 C 중 (1) 넷 2개 이상 (2) 양 끝이 C 안인 MOS 엣지가 있고 (3) 어느 가지 하나의 nets 에도 C 전체가 들지 않는 것들의 넷 합집합. (3)은 diode 겹침(diode 위에 gate 를 같은 넷에 둔 소자를 쌓은 self-cascode 등)처럼 한 가지 안에서 닫히는 국소 고리를 뺀다. 커패시터를 빼므로 보상 커패시터(Miller 등)로만 닫히는 고리는 L 이 아니다 |
+| 바이어스 형제 | 차동쌍 후보 묶음 멤버 중 다음 하나에 해당(검사 순서 = 기록 rule): `dc_role.role` ∈ {diode_reference, bias_current_source} -> `bias_sibling_dc_role` / gate ∈ G -> `bias_sibling_ground_gate` / gate 가 **자기 가지** nets 안 -> `bias_sibling_own_branch_gate`(그 가지 전류가 자기 gate 를 정하는 바이어스 다리) |
+| 소비 소자 | gate 비레일 gs 묶음에 diode 멤버가 있을 때, diode 멤버가 하나도 없는 블록에 있는 diode 아닌 멤버 |
+
+**차동쌍 후보** `rel_matching_offset`(4.5 표 행): 같은 (kind, 비레일 source) MOS 묶음(멤버 이름순) 중 gate 넷이 2개 이상인 것마다
+바이어스 형제를 빼고, 남은 멤버 gate 넷이 2개 이상이면 RelEdge 하나. 뺀 소자는 남은 멤버로 RelEdge 를 만들었든 아니든
+소자마다 `bias_sibling` 기록 하나(아래 표). 묶음 순서 = (kind, source) 순.
+
+**`graph.matching_groups`** = `MatchingGroup(kind, members, status, evidence)` tuple, 순서 = (1) gate 비레일 gs 묶음 순서대로
+각 묶음의 mirror 그룹들(한 묶음 안에서는 diode_block 다음 consumer_block) (2) `rel_matching_offset` 순서대로 diff_pair (3) branch_symmetric 찾은 순서.
+
+| kind | 만드는 조건 | members | status | evidence (rule, nets, group, basis) |
+|---|---|---|---|---|
+| mirror | gate 비레일 gs 묶음에 소비 소자가 없음(diode 멤버 없음 포함) | 묶음 멤버 전부 | derived | (`mirror_whole`, (gate, source), diode 멤버, ()) |
+| mirror | 소비 소자가 있고 gate ∉ B, gate ∉ L | 묶음 멤버 전부 | derived | (`mirror_signal_cross_block`, (gate, source), diode 멤버, (J-U4-d,)) |
+| mirror | 소비 소자가 있고 gate ∈ B 또는 L, 소비 소자 아닌 멤버(diode 쪽)가 2개 이상 | 그 멤버 | derived | (`mirror_diode_block`, (gate, source), diode 멤버, (J-U4-d,)) |
+| mirror | 같은 경우, 같은 블록에 모인 소비 소자가 2개 이상(블록마다) | 그 블록의 소비 소자 | derived | (`mirror_consumer_block`, (gate, source), diode 멤버, (J-U4-d,)) -- 블록별 그룹 순서 = members 순 |
+| diff_pair | `rel_matching_offset` RelEdge 마다 | 그 members | 그 status | (`diff_pair`, 그 evidence.nets, (), (J-U4-b,)) |
+| branch_symmetric | 아래 stack 전파 | 위 소자들 | derived | (`branch_symmetric`, (gate,) + source 넷 정렬, seed 그룹 members, (J-U4-c,)) |
+
+**branch_symmetric stack 전파**(Q8 (i)): 대기열 = 위 (1)(2) 그룹 중 status derived. 대기열의 그룹 S 마다, S 의 멤버 m 의 drain 이
+레일이 아니면 kind 가 m 과 같고 source == m 의 drain 이며 S 멤버가 아닌 MOS 를 모두 '위 소자'로 모아 gate 넷별로 나눈다.
+gate 넷 하나의 위 소자들의 source 넷이 2개 이상이고 그 멤버 집합이 이미 있는 그룹(어느 kind 든)과 같지 않으면 새
+branch_symmetric 그룹(gate 넷 순)을 만들고 대기열 끝에 넣는다(고정점까지 -- 쌓인 캐스코드가 다시 seed). diode 인 위 소자도
+넣는다(캐스코드 미러 diode 쪽). kind 가 다른 drain-drain 접합(PMOS/NMOS 경계)은 같은 kind 조건으로 걸러진다.
+
+**`graph.matching_dispositions`** = `MatchingDisposition(kind, members, status, evidence)` tuple, 순서 = bias_sibling 전부(차동쌍
+후보 묶음 순, 묶음 안 멤버 순) 다음 gs 묶음 순서대로 bias_distribution·feedback_shared. status 는 모두 **proposed**(J-U4 확인 전).
+
+| kind | 조건 | members | evidence (rule, nets, group, basis) |
+|---|---|---|---|
+| bias_sibling | 차동쌍 후보 묶음에서 뺀 바이어스 형제(소자마다 하나) | (그 소자,) | (위 형제 rule 셋 중 하나, (source, 그 소자 gate), 남은 멤버, (J-U4-b, J-U4-d)) |
+| bias_distribution | gate 비레일 gs 묶음에 소비 소자가 있고 gate ∈ B | 그 묶음의 소비 소자 전부 | (`bias_distribution`, (gate, source), diode 멤버, (J-U4-d,)) |
+| feedback_shared | 같은 경우 gate ∉ B 이고 gate ∈ L | 그 묶음의 소비 소자 전부 | (`feedback_shared`, (gate, source), diode 멤버, (J-U4-d,)) |
+
+판정 순서는 B 먼저, 그다음 L. 한 소자가 disposition(diode 기준 관계 제외)과 `mirror_consumer_block` 그룹(같은 블록 소비 소자끼리의
+관계)에 함께 나올 수 있다 -- 둘은 다른 관계다.
+
+**레이아웃 전달 정책**(G4-20 기본안, 소비자 MOD7 몫): 레이아웃 matching 에는 `matching_groups` 중 status derived(와 이후
+ratified)만 쓰고, review_needed 그룹·`matching_dispositions` 는 matching 없이 배치하며 근거와 함께 결과에 남긴다.
+
+**9회로 실측**(작성자 실행값, 2026-10-07 -- J-U4 대조표 확인 전):
+
+| 회로 | mirror | diff_pair | branch_symmetric | bias_distribution | feedback_shared | bias_sibling |
+|---|---|---|---|---|---|---|
+| common_gate_amplifier | 0 | 0 | 0 | 0 | 0 | 0 |
+| current_reuse_telescopic_ota | 2 ({M10, M19, M5, M68}, {M17, M6, M61, M8} -- consumer_block) | 3 ({M37a, M37b}, {M4a, M4b}, {M1a, M1b}) | 2 ({M3a, M3b}, {M2a, M2b}) | 2 (Vbias4: M10, M12, M19, M21, M38, M5, M68 / Vbias1: M13, M17, M22, M6, M60, M61, M8) | 1 (Vcmfb: M7) | 2 (M63, M58 -- own_branch_gate) |
+| folded_cascode | 2 ({M10, M9} whole, {M3, M4} consumer_block) | 1 | 2 ({M7, M8}, {M5, M6}) | 2 (vb2: M11 / vb1: M3, M4) | 0 | 0 |
+| ngcc_3stage_ff | 5 (ND {M3, M4, M6B}·NX {M6A, M7}·NP {M10, M9} signal_cross_block, {M14, M8}·{M0, M12, M5} whole) | 1 | 0 | 0 | 0 | 0 |
+| nmcnr_amplifier | 3 ({M203, M204} signal_cross_block, {M104, M105}·{M108, M109} whole) | 1 | 1 ({M106, M107}) | 0 | 0 | 0 |
+| pushpull_follower_buffer | 0 | 0 | 0 | 0 | 0 | 0 |
+| sf_pushpull_output_opamp | 3 ({M14, M16, M20}·{M17, M6, M9}·{M11, M8} whole) | 1 | 3 ({M13, M15}, {M10, M5}, {M12, M7}) | 1 (NB: M3) | 0 | 0 |
+| two_stage_ota | 2 (whole) | 1 | 0 | 0 | 0 | 0 |
+| two_stage_ota_sf | 2 (whole) | 1 | 0 | 0 | 0 | 0 |
+
+B(레일 제외): current_reuse {N11a11b, N11b, N14a14b, N14a_14b, N20a20b, N20b, N23a24b, N24b23a, Vbias1, Vbias4, Voc_des},
+folded {vb1, vb2}, sf {NB}, 나머지 6회로 ∅. L: current_reuse 만 비어 있지 않음(CMFB·출력단·주 블록을 잇는 성분 하나 --
+Vcmfb·Vx·Vom1·Vop1·Vom·Vop·Voc·Vbias2 등 16넷), 나머지 8회로 ∅. matching_offset 은 파일럿이 {M1a, M1b}·{M4a, M4b}·{M37a, M37b}
+모두 derived(옛 규칙의 3멤버 review_needed 2건이 M58·M63 제외로 2멤버), 나머지 6회로는 옛 규칙과 같다.
+
+**일반성**(작성자 측 측정, `tests/generality/topogen` 합성 회로): syn_cs_load·syn_diffpair5·syn_follower 는 diode 기준 바이어스
+블록 -> 다른 블록 전류원이라 bias_distribution 1건씩, branch_symmetric·feedback_shared·bias_sibling 0(그 구조 없음, 무동작).
+손 변형: diffpair5 꼬리에 M58/M57형 바이어스 다리 추가 -> diff_pair 유지 + bias_sibling 1, 같은 gate 로 쌓인 diode 쌍은
+branch_symmetric 0; NMOS 캐스코드 2단 -> branch_symmetric 2. 이름 치환 3벌·순서 섞기 3벌·극성 뒤집기에서 분류가 치환표를
+따라감(42/42), 단 복제는 모든 kind 수가 정확히 2배.
+
 ### 4.6 정지 분기 (모두 core `StructureUnresolvedError`, exit 2, `detail["reason"] == "unsupported_rule_branch"`)
 
 | `rule_branch` | 블록 | 조건 | `record.devices` / detail |
@@ -246,7 +339,8 @@ domain 어휘 `DOMAIN_DC`(`"dc"`)·`DOMAIN_DC_TO_SS`(`"dc_to_ss"`)·`DOMAIN_GEOM
 | `mos_kind_unsupported` | s1_dc_roles | 지원 밖 MOS kind(블록 단독 호출 시) | 그 소자 |
 | `gvgs_self_edge` | s1_gvgs | MOS gate == source(비레일) | 그 소자 / `nets` |
 
-review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offset 3개 이상·column_orphans).
+review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offset 3개 이상·column_orphans). `s1_matching_groups` 는 정지 분기가
+없다(분류 못 하는 경우는 mirror 그대로 또는 disposition 기록).
 
 ## 5. `S1Graph(key, snapshot)` 질의
 
@@ -264,7 +358,7 @@ review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offse
 - `static_ac_ground(index, rails, input_nets)` -> index 넷 순서 그대로 `((넷, 분류|None), ...)`(4.1 규칙).
 - 계산 블록(core `ComputeBlock`, `stats()`·`reset_stats()`): `s1_structure(snapshot, devices, passives, sources, rails, ports)`,
   `s1_bulk(snapshot, supplies)`, `s1_dc_conduction(snapshot)`, `s1_gs_groups(snapshot)`, `s1_branches(snapshot)`,
-  `s1_dc_roles(snapshot)`, `s1_rel_vgs(snapshot)`, `s1_rel_matching(snapshot)`, `s1_gvgs(snapshot)`,
+  `s1_dc_roles(snapshot)`, `s1_rel_vgs(snapshot)`, `s1_rel_matching(snapshot)`, `s1_matching_groups(snapshot)`, `s1_gvgs(snapshot)`,
   `s1_columns(snapshot, column_limit)`, `s1_rel_kcl(snapshot)`. 직접 부를 때 extras 는 불변이어야 한다(core 6.2). 선행 블록 필드가
   없으면 projection 의 graph 값 조회가 `KeyError`.
 
@@ -343,7 +437,7 @@ sf 에 레일 vddx(1.5) 추가 + pmos source 하나 이동 -> outside vddx; vddx
 | 회로 | equal_vgs | vds_eq_vgs | kcl_group | matching_ratio = l_class | matching_offset | G_vgs cyclomatic (v2 포트0 / 포트1 / v1) | fixed_vgs | VDS-1 |
 |---|---|---|---|---|---|---|---|---|
 | common_gate_amplifier | 0 | 0 | 1 | 0 | -- | 0 (0/0/0) | 0 | 0 |
-| current_reuse_telescopic_ota | 3 | 16 | 18 | 3 | {M37a, M37b} derived; {M4a, M4b, M63}, {M1a, M1b, M58} review_needed | **5 (4/0/1)** | 0 | **22** |
+| current_reuse_telescopic_ota | 3 | 16 | 18 | 3 | {M37a, M37b}, {M4a, M4b}, {M1a, M1b} 모두 derived (M63·M58 = bias_sibling, 4.5a) | **5 (4/0/1)** | 0 | **22** |
 | folded_cascode | 3 | 4 | 3 | 3 | {M1, M2} derived | 0 | 0 | 1 (M10) |
 | ngcc_3stage_ff | 5 | 3 | 6 | 5 | {M1, M2} derived | 0 | 0 | 6 |
 | nmcnr_amplifier | 3 | 2 | 5 | 3 | {M102, M103} derived | 0 | 0 | 4 |
@@ -357,6 +451,7 @@ sf 에 레일 vddx(1.5) 추가 + pmos source 하나 이동 -> outside vddx; vddx
 `v2_zero`(입력 포트 하나를 지나는 v2). sf kvl_branch {M18, M19, M21, M22} `v2_zero`. 9회로 모두 kvl_branch ∪ port_diff
 멤버 합집합 = Gs 비다리 엣지(불변량 확인). 대표 소자 선택은 이름 tie-break 이라 test 는 개수와 이 불변량으로 비교한다.
 VDS-1 22/1/6/4/0/0/1/1 = DU 3.4 표(J12-c 재측정)와 일치. matching_offset 은 S6a '차동쌍 후보'와 대조 보고 대상(기대값 아님).
+옛 규칙(바이어스 형제 미제외)의 파일럿 값은 {M4a, M4b, M63}·{M1a, M1b, M58} review_needed 였다(2026-10-07 Q8 (iii) 로 변경).
 
 ### 7.6 재사용·결정론·정지 (작성자 측 실행 확인)
 
@@ -406,4 +501,13 @@ design_mod3_structure_u2_u5(DU) 대비:
     previous 를 그대로 돌려준다.
 16. **O2**: core 레코드 key 는 str 만(tuple 불가) -- U2~U4 는 graph 레코드 key `"s1"` 하나라 영향 없음, U5 로 넘긴다(8절).
 17. **matching_offset 정의 구체화**: 같은 (kind, 비레일 source) 묶음에서 gate 넷이 2개 이상으로 갈릴 때만(gate 가 모두 같으면
-    gs 묶음). 파일럿 입력쌍 M1a/M1b 는 같은 source 의 M58 때문에 3멤버 review_needed 가 된다(J-U4-b 판독 대상).
+    gs 묶음). ~~파일럿 입력쌍 M1a/M1b 는 같은 source 의 M58 때문에 3멤버 review_needed~~ -> 18번으로 바뀜.
+18. **Q8 (i)(iii) 레이아웃 matching 분류(2026-10-07, 4.5a)**: (a) `rel_matching_offset` writer 를 `s1_rel_matching` 에서 새 블록
+    `s1_matching_groups` 로 옮겼다 -- 바이어스 형제 제외가 가지·DC 역할을 읽어 블록 입력이 달라서(규칙 C, writer 1). (b) 설계
+    문서의 'MOD3 블록(stage·bias)'·'loops.py 루프'는 아직 없는 모듈이라, 블록 = 레일을 지운 DC 성분, 바이어스 넷 = 바이어스 블록
+    최대 고정점, 루프 신호 = 영향 그래프의 비국소 강연결 성분(커패시터 제외)으로 기존 S1 필드에서 정의했다. (c) 바이어스·루프
+    판정은 diode 가 있는 gs 묶음의 '소비 소자'에만 건다(diode 없는 묶음은 mirror 그대로) -- 승인 문언 'diode 와 다른 블록의
+    소비 소자'와 DRS (c)(d) 의 'diode 가 만든 노드를 읽는 관계'를 따른 것. (d) 같은 블록에 모인 소비 소자끼리는 mirror
+    (`mirror_consumer_block`)로 남겼다 -- 빼면 folded M3/M4 같은 대칭 전류원과 그 위 캐스코드쌍 seed 가 사라진다(J-U4 확인 대상).
+    (e) branch_symmetric seed 에 mirror 도 넣었다(folded M7/M8·nmcnr M106/M107·sf 3쌍은 mirror 위에 쌓임). (f) 차동쌍 후보의
+    '신호 넷 gate(입력 포트 또는 graph.symmetry 대응) 정확히 2' 조건(G5-03)은 U5 가 없어 넣지 않았다 -- 바이어스 형제 제외만.

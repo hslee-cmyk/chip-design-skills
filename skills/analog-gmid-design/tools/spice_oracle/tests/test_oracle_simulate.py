@@ -28,7 +28,7 @@ def _simulate(inp, d, bias="free"):
 @pytest.fixture(scope="module")
 def cs_sim(tmp_path_factory, ref_root):
     d = tmp_path_factory.mktemp("sim_cs")
-    inp = cs_input(make_lut(d / "lut.npz"), diffusion=False)
+    inp = cs_input(make_lut(d / "lut.npz"), diffusion="zero")
     return _simulate(inp, d), independent_cs(ref_root)
 
 
@@ -127,7 +127,7 @@ def test_ac_cs_hand_small_signal(cs_sim):
 def test_c10_gain_never_below_one_no_ugf_pm(tmp_path):
     """fstop 을 1 kHz 로 줄이면 |H|(~12.9) 가 1 아래로 내려가지 않는다 -> UGF/PM None."""
     require_spice()
-    inp = cs_input(make_lut(tmp_path / "lut.npz"), diffusion=False)
+    inp = cs_input(make_lut(tmp_path / "lut.npz"), diffusion="zero")
     inp["testbench"]["ac"]["fstop_hz"] = 1e3
     ac = _simulate(inp, tmp_path)["ac"]
     assert ac["dc_gain_db"] > 20
@@ -137,7 +137,7 @@ def test_c10_gain_never_below_one_no_ugf_pm(tmp_path):
 @pytest.mark.parametrize("corner,temp", [("ff", 50.0)])
 def test_c2_corner_temp_reach_simulation(tmp_path, ref_root, corner, temp):
     """C2 가 실제 모델에 닿는지: npz(ff, 50 C) 로 만든 오라클 결과 = 독립 넷리스트(ff, .temp 50)."""
-    inp = cs_input(make_lut(tmp_path / "lut.npz", corner=corner, temp_c=temp), diffusion=False)
+    inp = cs_input(make_lut(tmp_path / "lut.npz", corner=corner, temp_c=temp), diffusion="zero")
     s = _simulate(inp, tmp_path)
     ind = independent_cs(ref_root, corner=corner, temp_c=temp)
     tt = independent_cs(ref_root)

@@ -12,7 +12,7 @@ import copy
 
 import pytest
 
-from conftest import (CS, all_judges, by_name, cs_input, independent_cs, make_lut, measure,
+from conftest import (CS, OFF_ZERO, all_judges, by_name, cs_input, independent_cs, make_lut, measure,
                       preds_from_independent, rc_input, run_compare, run_netlist, run_simulate)
 
 FULL_TOL = {"ID_rel": 1e-3, "VGS_abs_V": 1e-4, "VDS_abs_V": 1e-4, "VSB_abs_V": 1e-4, "gm_rel": 1e-3,
@@ -55,7 +55,7 @@ def ind(ref_root):
 def free_case(tmp_path_factory, ind):
     d = tmp_path_factory.mktemp("cmp_free")
     pr = preds_from_independent(ind)
-    inp = cs_input(make_lut(d / "lut.npz"), diffusion=False, preds_nodes=pr["nodes"],
+    inp = cs_input(make_lut(d / "lut.npz"), diffusion="zero", preds_nodes=pr["nodes"],
                    preds_devices=pr["devices"], metrics=pr["metrics"])
     return Case(d, inp, "free")
 
@@ -106,10 +106,14 @@ def test_accept_unsaturated_conducting_mos_fails(free_case, ind):
 
 
 def test_accept_off_device_excluded_from_saturation_check(free_case, ind):
-    """off_current_A = 1.2*ID(M1) (< ID(MP1)) -> M1 은 전도 소자가 아니어서 포화 검사에서 빠진다 -> PASS."""
+    """off_current_A = 1.2*ID(M1) (< ID(MP1)) -> M1 은 전도 소자가 아니어서 포화 검사에서 빠진다 -> PASS.
+    [C23 조정] 소자별 문턱이 scalar 보다 우선이고, 엔진 예측 전도인 소자가 꺼지면 FAIL 이라 같은 상황을 '엔진이 M1 을
+    off 로 예측(region off, 소자별 문턱 1.2*ID(M1))' 으로 표현한다."""
     m = _margins(ind)
     assert ind["MP1"]["id"] > 1.2 * ind["M1"]["id"]
-    _, c = free_case.cmp(judge={"sat_margin_V": m["M1"] + 0.05, "off_current_A": 1.2 * ind["M1"]["id"]})
+    inp = copy.deepcopy(free_case.inp)
+    inp["predictions"]["devices"]["M1"].update(region="off", off_current_A=1.2 * ind["M1"]["id"])
+    _, c = free_case.cmp(inp, judge={"sat_margin_V": m["M1"] + 0.05, "off_current_A": 1.2 * ind["M1"]["id"]})
     assert by_name(c["devices"], "name", "M1")["region_spice"] == "off"
     assert c["summary"]["acceptance"]["conducting_devices"] == 1   # MP1 만
     assert c["summary"]["acceptance"]["unsaturated_conducting"] == []
@@ -248,7 +252,7 @@ def test_c7_region_record_compares_prediction(free_case):
 def test_w_rel_recorded(tmp_path, W_decl, rel):
     """손계산: W_rel = (finger_w * n_fingers - W)/|W|, finger_w*n = 2 um x 2 = 4 um. 기록 칸만, verdict 무관.
     (넷리스트 meta 가 기하를 나르므로 W 를 바꾼 입력으로 넷리스트부터 다시 만든다)"""
-    inp = cs_input(make_lut(tmp_path / "lut.npz"), diffusion=False, W=W_decl)
+    inp = cs_input(make_lut(tmp_path / "lut.npz"), W=W_decl, preds_devices=copy.deepcopy(OFF_ZERO))
     _, c = Case(tmp_path, inp, "free").cmp(judge={"tolerances": {"W_rel": 0.01}, "sat_margin_V": 0.05})
     m1 = by_name(c["devices"], "name", "M1")
     assert m1["W_from_fingers"] == pytest.approx(4e-6, rel=1e-12)

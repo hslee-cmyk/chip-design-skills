@@ -19,6 +19,7 @@ from gmid_engine.graph import (
     s1_dc_roles,
     s1_gs_groups,
     s1_gvgs,
+    s1_matching_groups,
     s1_rel_kcl,
     s1_rel_matching,
     s1_rel_vgs,
@@ -33,9 +34,9 @@ SIX = (
 # 9회로 전부(2026-10-07 topology 정정 b9c7042 뒤 모두 load 통과) -- JSON 직접 집계 대조용
 NINE = tuple(sorted(SIX + ("folded_cascode", "nmcnr_amplifier", "two_stage_ota")))
 FIELDS = ("calls", "reuses", "computes", "recomputes_same_input")
-# 계약 1절 빌드 순서의 블록 11개
+# 계약 1절 빌드 순서의 블록 12개
 ALL_BLOCKS = (s1_structure, s1_bulk, s1_dc_conduction, s1_gs_groups, s1_branches, s1_dc_roles, s1_rel_vgs,
-              s1_rel_matching, s1_gvgs, s1_columns, s1_rel_kcl)
+              s1_rel_matching, s1_matching_groups, s1_gvgs, s1_columns, s1_rel_kcl)
 U_BLOCKS = tuple(b for b in ALL_BLOCKS if b not in (s1_structure, s1_bulk))
 
 
@@ -130,7 +131,7 @@ def test_no_previous_every_block_recomputes_same_input(gh):
     before = _all_stats()
     build_s1(doc, sv)
     d = _delta(before, _all_stats())
-    assert set(d) == {b.name for b in ALL_BLOCKS} and len(d) == 11
+    assert set(d) == {b.name for b in ALL_BLOCKS} and len(d) == 12
     assert all(v == (1, 0, 1, 1) for v in d.values()), d
 
 
