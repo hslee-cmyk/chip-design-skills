@@ -286,6 +286,10 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
      (gate == end_net 이고 drain ∈ far_nets) 인 것 -- 비면 `ZC_NO_CELL`("no_cs_cell"), drain 쪽·gate 쪽 셀이 섞이면
      `ZC_MIXED_DIRECTION`("cs_cell_direction_mixed", cells 는 채움), 아니면 reason None(cells = S). reason 이 먼저 정해지는 경우
      cells = ().
+     **`ZC_RESISTOR_END` 는 방어 분기다**(독립 test 보고 2026-10-08): 공개 로더 경로(topology 로드 -> `build_s1`)에서는 도달하지
+     않는다 -- R 의 두 넷이 모두 내부 넷인 망(경계 없는 수동 섬)은 authoring `hidden_rails` 검사가 먼저 거부하고, 두 넷이 모두
+     경계 넷이면 망이 R 하나뿐이라(수동소자는 내부 넷을 건너서만 망에 든다) `ZC_NO_CAPACITOR` 가 먼저 정해진다. 손으로 만든 S1 에서만 재현되며, 판정 순서·사유 값은
+     위 그대로 유지한다.
   4. reason None -> R 은 θ 가 아니다(값 = 봉인 스냅샷에서 1/Σ_{c∈S} gm_c, metrics `ss_evaluate`). 그 밖 -> (`ss_resistance`, R)
      θ 성분(DEC-92 (3)(b) 폴백).
   - **규칙 문구 해석**(12절 O15 -- J7 ratify 대상): 계획 DEC-92 (3)(a) 'S = 저항 끝 넷을 출력으로 갖고 루프 반대쪽에서 신호를 받는
@@ -554,7 +558,8 @@ spec 제약 + 관측 요청(`gbw_ss_hz`·`ugf_ss_hz`·`pm_ss_deg`·`gain_ss_db`,
   값은 탐침 θ 의 값이라 판정 통과 여부는 뜻이 없다(PM 214.98° 처럼 metrics PM 정의 범위 밖으로 보이는 값은 metrics 쪽 관찰로 남긴다).
 - 같은 θ 를 lineage 에서 다시: dc 블록 computes 0·ss 블록 computes 0, 값 비트 동일(4회로). 수동 θ 만 ×1.1: dc 12블록 모두 reuse
   (`size_and_seal` 8.9~21.8 ms -- 계산 0 인 호출의 남은 비용, 프로파일은 재지 않음), ss 쪽 `ss_dev` reuse·`metrics_ss`·`metrics_dc` 1회씩, `gain_ss_db`
-  불변·GBW/PM 변화(예 two_stage GBW 1.178e8 -> 1.093e8).
+  는 수치상 불변(이 시연 4회로에서는 출력 자릿수 그대로; 독립 test 실측으로 `ss_resistance` 만 바꾸면 1 ulp 차가 날 수 있어 비트 동일을
+  계약하지 않는다 -- metrics S-16)·GBW/PM 변화(예 two_stage GBW 1.178e8 -> 1.093e8).
 - 9회로 판정(일반성): 수동 θ·구조 규칙이 생기는 회로는 engine 수동소자가 있는 6회로뿐 -- common_gate·folded·pushpull 은 engine
   수동소자가 없어 무동작(θ 차원 불변). sf_pushpull = capacitance Cc 만(R1a~R1c 는 DC 경로 engine 저항 = 기존 `resistance`),
   current_reuse(파일럿) = capacitance Cc1·Cc2, Rz1: Vop1 / {Vom} / {M16}, Rz2: Vom1 / {Vop} / {M26} 구조 규칙(R1·R2 는 DC 경로

@@ -54,8 +54,9 @@ def test_defaults():
 
 
 def _dev():
-    return SsDevice(1e-3, 2e-4, 1e-5, 1e-15, 6e-16, 2e-16, -2.03e-16, 0.0, 0.0, "lut_cgs_cgb", "lut_gmbs_column",
-                    "pending_pdk_junction_params")
+    # 접합 표시 = 7.2 JUNCTION_LUT_RULE 값(옛 "pending_pdk_junction_params" 는 삭제됨), cdb·csb 는 PDK 접합 식 값 크기
+    return SsDevice(1e-3, 2e-4, 1e-5, 1e-15, 6e-16, 2e-16, -2.03e-16, 1.6e-14, 2.3e-14, "lut_cgs_cgb", "lut_gmbs_column",
+                    "pdk_bsim4_lut_rule_diffusion")
 
 
 @pytest.mark.parametrize("make", [
@@ -77,6 +78,13 @@ def test_fp_follows_values():
     a = _dev()
     b = dataclasses.replace(a, cgb=2.03e-16)          # 부호만 다름
     assert fp_of(a) != fp_of(b)
+    assert fp_of(a) != fp_of(dataclasses.replace(a, csb=2.4e-14))          # 접합 용량도 지문에 든다
+
+
+def test_junction_model_constant():
+    """7.2: SsDevice.junction_model 값 상수 JUNCTION_LUT_RULE = "pdk_bsim4_lut_rule_diffusion"."""
+    from gmid_engine.metrics import JUNCTION_LUT_RULE
+    assert JUNCTION_LUT_RULE == "pdk_bsim4_lut_rule_diffusion" == _dev().junction_model
 
 
 def test_s2_writer_table_has_ss_fields():

@@ -663,9 +663,9 @@ def _sha_of(path):
     return _hashlib.sha256(_Path(path).read_bytes()).hexdigest()
 
 
-def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs=LUT_VS):
+def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs=LUT_VS, temp_c=27.0):
     """toy LUT(npz 직접 작성). slice_gmbs: 슬라이스 GMBS 열. cap_cgs_cgb: 기준 LUT CGS·CGB 열. cap_gmbs: 기준 LUT GMBS·ID 열.
-    cap_vs: 기준 LUT VS 축(슬라이스와 달라도 됨, lut 1.4)."""
+    cap_vs: 기준 LUT VS 축(슬라이스와 달라도 됨, lut 1.4). temp_c: 측정 온도(슬라이스·기준 LUT 같은 값, None 이면 기록 안 함)."""
     root = _Path(root)
     root.mkdir(parents=True, exist_ok=True)
     entries = []
@@ -676,7 +676,9 @@ def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs
         a = {"W": np.float64(LUT_WM), "L": np.asarray(LUT_L), "VGS": np.asarray(LUT_VGS), "VDS": np.asarray(LUT_VDS),
              "VS": np.asarray(LUT_VS), "ID": ID, "GM": ID * (LUT_B - LUT_C * G), "GDS": ID * LUT_LAM,
              "VTH": np.full(ID.shape, 0.4), "meta_json": np.str_('{"model_files_sha256": {}}'),
-             "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+             "corner": np.str_("tt")}
+        if temp_c is not None:
+            a["temp_c"] = np.float64(temp_c)
         if slice_gmbs:
             c0, c1 = GMBS_COEF["slice"]
             a["GMBS"] = ID * (c0 + c1 * S)
@@ -685,7 +687,9 @@ def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs
         entries.append({"device": dev, "file": p.name, "sha256": _sha_of(p)})
     (root / "manifest.json").write_text(_json.dumps({"generator_sha256": "0" * 64, "slices": entries}), encoding="utf-8")
     cap = {"L": np.asarray(LUT_L), "VGS": np.asarray(LUT_VGS), "VDS": np.asarray(LUT_VDS), "VS": np.asarray(cap_vs),
-           "w_ref_m": np.float64(LUT_WM), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+           "w_ref_m": np.float64(LUT_WM), "corner": np.str_("tt")}
+    if temp_c is not None:
+        cap["temp_c"] = np.float64(temp_c)
     for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
         cols = lut_cap_cols(kind, LUT_L, LUT_VGS, LUT_VDS, cap_vs)
         cap["CGG" + suf] = cols["CGG"]
@@ -776,8 +780,8 @@ def oracle_ss(op, gmb_source="slice", cap_model="lut_cgs_cgb"):
         cgs, cgb = caps["CGS"] * sc, caps["CGB"] * sc
     else:
         cgs, cgb = cgg - cgd, 0.0
-    return dict(gm=op.gm_id * op.current, gds=gds, gmb=gmb_w * op.W / LUT_WM, cgg=cgg, cgd=cgd, cgs=cgs, cgb=cgb,
-                cdb=0.0, csb=0.0)
+    # 접합 용량 cdb·csb 는 LUT 가 아니라 PDK 선언에서 온다(DEC-91) -- oracle_junction 이 따로 계산한다.
+    return dict(gm=op.gm_id * op.current, gds=gds, gmb=gmb_w * op.W / LUT_WM, cgg=cgg, cgd=cgd, cgs=cgs, cgb=cgb)
 
 
 def device_op(kind, L, vgs, vds, vsb, W, current=1e-5, gm_id=12.0):
@@ -785,3 +789,126 @@ def device_op(kind, L, vgs, vds, vsb, W, current=1e-5, gm_id=12.0):
     from gmid_engine.sizing import DeviceOp
     ln = lut_ln_idu(kind, vgs, vds, vsb)
     return DeviceOp(kind, current, ln, gm_id, L, W, vgs, vds, vsb, LUT_WKEY, math.exp(ln))
+
+
+# ---------------------------------------------------------------- 접합 용량 독립 기준 식 (CONTRACT 8.2) + toy 선언
+
+JUNCTION_FIELDS = ("cjs", "cjd", "cjsws", "cjswd", "cjswgs", "cjswgd", "mjs", "mjd", "mjsws", "mjswd", "mjswgs", "mjswgd",
+                   "pbs", "pbd", "pbsws", "pbswd", "pbswgs", "pbswgd", "tcj", "tcjsw", "tcjswg", "tpb", "tpbsw", "tpbswg",
+                   "tnom", "permod", "dwj")
+
+
+def _ref_junction_side(p, fw, area, perim, v, temp_c, s):
+    """한 쪽(s = "s" source / "d" drain)의 finger 하나 용량 -- 8.2-2..5 (피검 함수와 독립 구현)."""
+    dT = temp_c - p["tnom"]
+    wc = fw - 2 * p["dwj"]
+    p_eff = perim - wc if p["permod"] == 1 else perim
+    total = 0.0
+    for c, tc, mj, pb, tp, g in (
+        (p["cj" + s], p["tcj"], p["mj" + s], p["pb" + s], p["tpb"], area),
+        (p["cjsw" + s], p["tcjsw"], p["mjsw" + s], p["pbsw" + s], p["tpbsw"], p_eff),
+        (p["cjswg" + s], p["tcjswg"], p["mjswg" + s], p["pbswg" + s], p["tpbswg"], wc),
+    ):
+        c0 = c * max(0.0, 1.0 + tc * dT) * g
+        pbt = pb - tp * dT
+        assert pbt > 0 and wc > 0
+        if v > 0:
+            total += c0 * (1.0 + v / pbt) ** (-mj) if c0 > 0 else 0.0
+        else:
+            total += c0 * (1.0 - mj * v / pbt)
+    return total
+
+
+def ref_caps(p, geo, v_db, v_sb, temp_c):
+    """8.2 독립 기준 식. p = {필드: 값}, geo = (finger_w, ad, as, pd, ps, m) -> (cdb, csb)."""
+    fw, ad, as_, pd, ps, m = geo
+    return (m * _ref_junction_side(p, fw, ad, pd, v_db, temp_c, "d"),
+            m * _ref_junction_side(p, fw, as_, ps, v_sb, temp_c, "s"))
+
+
+# toy 모델 카드 접합 파라미터(kind 마다·drain/source 쪽마다 다른 값 -- 섞이면 드러나게). 값은 단위 글자 없는 repr 로 카드에
+# 쓰므로(units_m {"": 1.0}) 선언 값 = 이 float 그대로.
+TOY_JUNCTION = {
+    "nmos": dict(cjs=1.1e-3, cjd=0.9e-3, cjsws=1.2e-10, cjswd=0.8e-10, cjswgs=2.5e-10, cjswgd=1.5e-10,
+                 mjs=0.45, mjd=0.35, mjsws=0.2, mjswd=0.3, mjswgs=0.7, mjswgd=0.6,
+                 pbs=0.8, pbd=0.7, pbsws=0.9, pbswd=0.6, pbswgs=1.1, pbswgd=1.2,
+                 tcj=1e-3, tcjsw=2e-4, tcjswg=3e-4, tpb=1e-3, tpbsw=2e-3, tpbswg=5e-4,
+                 tnom=25.0, permod=1.0, dwj=2e-8),
+    "pmos": dict(cjs=0.7e-3, cjd=0.6e-3, cjsws=1.0e-10, cjswd=0.9e-10, cjswgs=2.2e-10, cjswgd=2.0e-10,
+                 mjs=0.35, mjd=0.4, mjsws=0.3, mjswd=0.25, mjswgs=0.9, mjswgd=0.8,
+                 pbs=0.66, pbd=0.75, pbsws=0.74, pbswd=0.7, pbswgs=1.4, pbswgd=1.3,
+                 tcj=1.2e-3, tcjsw=3.7e-4, tcjswg=0.0, tpb=2e-3, tpbsw=1.2e-3, tpbswg=0.0,
+                 tnom=30.0, permod=1.0, dwj=1e-8),
+}
+# toy LUT 생성 규칙 DUT 줄(ad ≠ as, pd ≠ ps -- 쪽이 바뀌면 드러나게). SI 값 그대로(단위 글자 없음).
+TOY_RULE_LINE = "xdut d g s b dev l=1e-6 w=4e-6 ad=2e-12 as=1.2e-12 pd=9e-6 ps=7e-6"
+
+
+def toy_rule_values(rule_line=TOY_RULE_LINE):
+    """규칙 DUT 줄에서 4개 양을 식(ad / w, as / w, pd − w, ps − w) 그대로 따로 계산."""
+    kv = dict(t.split("=") for t in rule_line.split() if "=" in t)
+    w, ad, as_, pd, ps = (float(kv[k]) for k in ("w", "ad", "as", "pd", "ps"))
+    return dict(ad_per_w=ad / w, as_per_w=as_ / w, pd_extra=pd - w, ps_extra=ps - w)
+
+
+def _write_sha(path, data):
+    path.write_bytes(data)
+    return _hashlib.sha256(data).hexdigest()
+
+
+def toy_junction_decls(root, params=None, rule_line=TOY_RULE_LINE, kinds=("nmos", "pmos")):
+    """toy PDK 선언(kind 마다 모델 카드 원본 하나, 27개 양 `junction_<kind>_<필드>`) + toy LUT 규칙 선언(core 9.1 형식).
+    반환 (pdk 선언 경로, 규칙 선언 경로)."""
+    root = _Path(root)
+    (root / "m").mkdir(parents=True, exist_ok=True)
+    params = TOY_JUNCTION if params is None else params
+    sources, quantities = {}, {}
+    for kind in kinds:
+        body = "\n".join("+ %s = %r" % (f, float(params[kind][f])) for f in JUNCTION_FIELDS)
+        text = ("* toy %s card\n.model tj_%s.0 %s level = 54 vth0 = 0.3\n%s\n.model tj_%s.1 %s level = 54 vth0 = 0.4\n%s\n"
+                % (kind, kind, kind, body, kind, kind, body))
+        sha = _write_sha(root / "m" / ("%s.spice" % kind), text.encode("utf-8"))
+        sources["card_" + kind] = {"path": "m/%s.spice" % kind, "sha256": sha, "format": "spice_model_card",
+                                   "encoding": "utf-8", "model_pattern": r"tj_%s\.[0-9]+" % kind, "units_m": {"": 1.0}}
+        for f in JUNCTION_FIELDS:
+            quantities["junction_%s_%s" % (kind, f)] = {"source": "card_" + kind, "expression": f, "basis": "toy"}
+    pdk = {"schema": "gmid_pdk_decl/1", "pdk": "toyjw", "pdk_root": root.as_posix(), "sources": sources,
+           "quantities": quantities}
+    gsha = _write_sha(root / "gen.py", ('DUT_LINE = "%s"\n' % rule_line).encode("utf-8"))
+    rule = {"schema": "gmid_pdk_decl/1", "pdk": "toyjw", "pdk_root": "unused",
+            "sources": {"gen": {"path": "gen.py", "base": "decl_dir", "newline": "lf", "sha256": gsha,
+                                "format": "spice_instance_line", "encoding": "utf-8",
+                                "line_pattern": r'^DUT_LINE\s*=\s*"([^"]*)"', "units_m": {"": 1.0}}},
+            "quantities": {"lut_diffusion_ad_per_w_m": {"source": "gen", "expression": "ad / w", "basis": "t"},
+                           "lut_diffusion_as_per_w_m": {"source": "gen", "expression": "as / w", "basis": "t"},
+                           "lut_diffusion_pd_extra_m": {"source": "gen", "expression": "pd - w", "basis": "t"},
+                           "lut_diffusion_ps_extra_m": {"source": "gen", "expression": "ps - w", "basis": "t"}}}
+    pp, rp = root / "pdk.json", root / "rule.json"
+    pp.write_bytes(_json.dumps(pdk).encode("utf-8"))
+    rp.write_bytes(_json.dumps(rule).encode("utf-8"))
+    return str(pp), str(rp)
+
+
+def read_decls(pdk_path, rule_path):
+    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    memo = BoundedLRU(8)
+    return read_pdk_decl(pdk_path, memo), read_pdk_decl(rule_path, memo)
+
+
+def toy_junction(root, lut, **kw):
+    """8.5 소비자 호출 그대로: JunctionSource.from_decls(PDK 선언, 규칙 선언, LUT 세트)."""
+    from gmid_engine.metrics import JunctionSource
+    return JunctionSource.from_decls(*read_decls(*toy_junction_decls(root, **kw)), lut)
+
+
+def oracle_junction(op, params=None, temp_c=27.0, rule=None, w_m=LUT_WM):
+    """7.2 접합 항의 독립 계산: 기하 = LUT 규칙(finger_w = w_m, m = W / w_m), v_db = vds + vsb, v_sb = vsb."""
+    p = (TOY_JUNCTION if params is None else params)[op.kind]
+    r = toy_rule_values() if rule is None else rule
+    geo = (w_m, r["ad_per_w"] * w_m, r["as_per_w"] * w_m, w_m + r["pd_extra"], w_m + r["ps_extra"], op.W / w_m)
+    return ref_caps(p, geo, op.vds + op.vsb, op.vsb, temp_c)
+
+
+# 독립 기준 식과 엔진의 차이 허용: 둘 다 같은 식을 연산 순서만 다르게 푼다 -- 쪽마다 항 3개 x (곱·합·나눗셈·거듭제곱)
+# 약 10회 반올림, 최종 m 곱·합 포함 약 40회 x eps(2.2e-16) = 9e-15. 거듭제곱 지수 곱의 오차 증폭(|mj| ≤ 1)을 넣어 10 배 여유.
+JUNCTION_RTOL = 40 * 2.220446049250313e-16 * 10
