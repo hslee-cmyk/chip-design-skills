@@ -232,6 +232,35 @@ CELLS_C = (0, 1)        # 회로 C: M1 L = 1e-6 -> 칸 0, M2 L = 2e-6 -> 칸 1 (
 CELLS_P = (0,)
 
 
+def peak_floor(a, lo, hi, w_m=None):
+    """[r8] 3.22 칸 정점 하한의 독립 계산(npz 배열 a, 칸 [lo, hi]): 칸 안 L 앵커(± spacing) × VDS·VS 전 격자 곡선마다 GM/ID 최대 VGS
+    마디(비유한 -> −inf), 그 마디가 on_mask 인 곡선만 lnID + ln L − ln w_m, 그 최댓값. w_m = 슬라이스 폭(기본 a["W"])."""
+    w_m = float(a["W"]) if w_m is None else w_m
+    Ls = np.asarray(a["L"], dtype=float)
+    ID, GM = np.asarray(a["ID"], dtype=float), np.asarray(a["GM"], dtype=float)
+    m = on_mask({"ID": ID, "GM": GM})
+    best = -math.inf
+    for i, L in enumerate(Ls):
+        if not (lo - np.spacing(lo) <= L <= hi + np.spacing(hi)):
+            continue
+        for k in range(ID.shape[2]):
+            for s in range(ID.shape[3]):
+                with np.errstate(divide="ignore", invalid="ignore"):
+                    g = GM[i, :, k, s] / ID[i, :, k, s]
+                g = np.where(np.isfinite(g), g, -np.inf)
+                j = int(np.argmax(g))
+                if m[i, j, k, s]:
+                    best = max(best, math.log(ID[i, j, k, s]) + math.log(L) - math.log(w_m))
+    return best
+
+
+def circuit_diode():
+    """[r8] M1 nmos diode (out, out, gnd) + M2 pmos (out, in, vdd). out = M1 vgs_gate(known gnd) 이고 M1 의 drain -> 1변수 노드
+    (3.22 one_var_only = {M1}). in = M2 vgs_gate(known vdd), in 은 M2 의 gate -> 1변수 아님."""
+    return topo("hand_diode", [mos("M1", "nmos", "out", "out", "gnd"), mos("M2", "pmos", "out", "in", "vdd")],
+                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")})
+
+
 PENDING = "pending"     # elements 값 자리 표지: spec 에 {"pending": "SP-1"} (값 없음·engine 아님 -> 수동소자 값 미선언)
 
 

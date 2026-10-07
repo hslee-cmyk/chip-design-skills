@@ -119,6 +119,30 @@ def test_both_directions_out_of_bounds_gives_none(tmp_path, lut_sealed):
     assert dict(s.counters)["requests"] == before
 
 
+@pytest.mark.parametrize("grid_um, grid_m", [("0.01", 1e-8), ("0.005", 5e-9)])
+def test_l_step_is_one_manufacturing_grid(tmp_path, lut_sealed, grid_um, grid_m):
+    """[r5·r8] L 열 스텝 = PDK 제조 격자 한 칸 `domain.grid_m`(앵커 간격 1 µm 가 아님). L 변수(칸 [1, 2] µm)를 넘겨
+    아래 끝에서 +grid, 위 끝에서 −grid(x + h > hi 면 부호 뒤집기). 평가 성공·실패와 무관하게 돌려준 스텝 크기 = grid."""
+    from gmid_engine.search import Variable
+
+    from .conftest import write_pdk
+    pdk = write_pdk(tmp_path / ("g" + grid_um.replace(".", "")), grid_um=grid_um)
+    th = theta_r4c(y=0.3)
+    case = build_case(tmp_path, circuit_c(), lut_sealed, pdk=pdk)
+    s = case.sctx
+    assert s.domain.grid_m == pytest.approx(grid_m, rel=1e-12)
+    base = evaluate(s, tuple(sorted(th.items())), CELLS_C)
+    assert base.status in ACCEPTED_STATUSES
+    lv = (Variable(("L", "M1"), False, 1e-6, 2e-6),)
+    fixed = {k: v for k, v in th.items() if k != ("L", "M1")}
+    f = to_theta_fn(lv, fixed)
+    for x0, sign in ((1e-6, 1.0), (2e-6, -1.0)):
+        res, h = fd_jacobian(s, lv, (x0,), base, CELLS_C, f, ())[0]
+        assert h == pytest.approx(sign * grid_m, rel=1e-6), (x0, h)
+        if res is not None:
+            assert dict(res.theta)[("L", "M1")] == pytest.approx(x0 + h, rel=1e-15)
+
+
 def test_passive_theta_step_is_min_tol_gm_id(tmp_path, lut_sealed):
     """r6: DEC-92 θ(capacitance·ss_resistance, ln 좌표) 스텝 = 전 MOS dc_tol_v·gm_id 최솟값."""
     from gmid_engine.search import evaluate

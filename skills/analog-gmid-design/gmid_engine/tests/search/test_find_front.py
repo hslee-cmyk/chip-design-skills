@@ -39,7 +39,8 @@ def test_sealed_run_perf_and_invariants(tmp_path, lut_sealed, short_root):
     assert any(k.startswith("block_") for k in perf)
     assert perf["kernel_calls"] == perf["unique_keys"]                       # I-1
     assert perf["recompute_same_key"] == 0
-    assert perf["eval_budget"] == 40 and perf["n_starts"] == 1
+    # [r5] 3.16 find_front 는 layer0_start 를 먼저 부르고 그 start 를 start_points 의 첫 후보로 넘긴다(3.12) -> 층 0 + given = 2
+    assert perf["eval_budget"] == 40 and perf["n_starts"] == 2
     assert perf["kernel_calls"] <= 40 + len(case.sctx.domain.variables) + 1   # S-17
     lines = (Path(short_root) / case.sctx.context_fp / "evals.jsonl").read_text(encoding="utf-8").splitlines()
     assert len([x for x in lines if x.strip()]) == perf["kernel_calls"]       # I-2
@@ -53,9 +54,20 @@ def test_notes_record_open_items(tmp_path, lut_sealed):
     _, fr = _run(tmp_path, lut_sealed, eval_budget=30)
     notes = _notes(fr)
     reasons = {n.get("reason") for n in notes}
-    assert "layer0_inputs_missing" in reasons
-    l0 = [n for n in notes if n.get("reason") == "layer0_inputs_missing"][0]
-    assert l0.get("verdict") == "blocked" and len(l0.get("missing", ())) >= 1
+    # [r5] 3.16: 옛 {blocked, layer0_inputs_missing} 대신 층 0 결과 기록
+    assert "layer0_inputs_missing" not in reasons
+    (l0,) = [n for n in notes if n.get("reason") == "seal_margin_maxmin_centre"]
+    assert l0["verdict"] == "layer0_minimal" and l0["rule"] == "DEC-71"
+    for k in ("stop", "t", "hard_ok", "start_status", "centre_u", "kernel_calls", "probes", "origin_point"):
+        assert k in l0, k
+    assert l0["meaning"] == "feasibility_only" and l0["meaning_reason"] == "w_area_upper_bound_undeclared_S-3b"
+    assert len(l0["refinements_out_of_scope"]) >= 1
+    # 층 0 기록 값 = 같은 입력 새 컨텍스트의 layer0_start 결과(I-15 결정론)
+    from gmid_engine.search import layer0_start
+    case2 = build_case(tmp_path / "l0", circuit_c(), lut_sealed, eval_budget=30)
+    r = layer0_start(case2.sctx)
+    assert (l0["stop"], l0["t"], l0["hard_ok"], l0["origin_point"], l0["probes"]) == \
+        (r.stop, r.t, r.hard_ok, r.origin_point, r.probes)
     assert "supply_current_dc_needs_counted_rails_declaration" in reasons
     assert any(n.get("rule") == "DEC-79" for n in notes)
     assert any(n.get("rule") == "DEC-72" for n in notes)
