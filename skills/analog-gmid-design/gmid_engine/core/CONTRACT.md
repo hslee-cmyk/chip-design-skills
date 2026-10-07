@@ -345,7 +345,11 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 **접합 파라미터(DEC-91, 2026-10-08)** -- 같은 선언 파일에 원본 둘 추가: `nfet_01v8_tt_model_card` =
 `C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice`(sha256 `eec2f478...`, `model_pattern`
 `sky130_fd_pr__nfet_01v8__model\.[0-9]+` -> 블록 180개), `pfet_01v8_tt_model_card` = `.../pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice`
-(sha256 `3ecdcb8c...`, 블록 108개) -- 둘 다 LUT v2 meta `model_files_sha256` 과 같은 파일, `units_m` `{"": 1.0}`, 줄 끝 CRLF 원본 그대로.
+(sha256 `3ecdcb8c...`, 블록 108개) -- 둘 다 LUT v2 meta `model_files_sha256` 과 같은 파일, `units_m` `{"": 1.0}`. 줄 끝(정정
+2026-10-08): `C:/pdk/sky130_fd_pr` 는 git 체크아웃이고(`core.autocrlf=true`) **git blob 은 LF, 이 설치의 작업 사본은 CRLF**
+(`git ls-files --eol` 실측 `i/lf w/crlf`, 두 파일 모든 줄 CRLF). 선언 sha256 은 작업 사본(CRLF) 바이트 값 = LUT meta 가 기록한 값이라
+`newline` 키를 두지 않는다. LF 로 체크아웃한 다른 설치(또는 LF 사본)에서는 `pdk_source_sha256_mismatch` 로 거부된다 -- 그때는 그 설치의
+바이트로 선언을 다시 고정하거나 `newline: "lf"` + blob sha256 으로 바꾼다(LUT meta sha256 과는 어긋남을 감수). 파서는 줄 끝과 무관하다.
 양 이름 `junction_<kind>_<BSIM4 이름>`(kind = `nmos`·`pmos`, 이름 = metrics `JunctionParams` 필드 27개). 접합 파라미터는 **bin 전부에서
 같은 값**(작성자 전수 확인 2026-10-08)이라 식은 bin 공통 규칙 이름이다. drain 쪽 이름(cjd·cjswd·cjswgd·mjd·mjswd·mjswgd·pbd·pbswd·pbswgd)은
 모델 카드에 없어 식이 source 쪽 규칙(BSIM4 기본값: 미지정 drain = source). `dwj` 식 = `dwc - xw / 2`(dwj 미지정 -> dwc, Weffcj 의 xw 포함).

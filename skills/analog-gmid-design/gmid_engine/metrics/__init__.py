@@ -12,6 +12,7 @@ from .dc_metrics import metrics_dc
 from .dc_limit import solve_dc_limit
 from .evaluate import metric_value
 from .junction_cap import DiffusionGeometry, JunctionCaps, JunctionParams, junction_caps
+from .junction_source import JunctionSource
 from .loop_analysis import analyze_loop
 from .loop_cut import cut_circuit
 from .mna_build import build_mna
@@ -60,7 +61,7 @@ from .registry import RegisteredMetric, metric_registry
 from .rout import output_resistance
 from .ss_circuit import ss_circuit
 from .ss_evaluate import ss_evaluate
-from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_PENDING, ss_dev
+from .ss_linearize import GMB_COLUMN, GMB_VS_CELL_SECANT, JUNCTION_LUT_RULE, ss_dev
 from .ss_metrics import metrics_ss
 from .ss_types import MetricBundle, MetricRequest, SsCircuit, SsDevice, SsEvaluation
 from .stamp_mos import mos_stamps
@@ -82,9 +83,10 @@ __all__ = (
     "GMB_COLUMN",
     "GMB_VS_CELL_SECANT",
     "GateArea",
-    "JUNCTION_PENDING",
+    "JUNCTION_LUT_RULE",
     "JunctionCaps",
     "JunctionParams",
+    "JunctionSource",
     "LoopAnalysis",
     "LoopCut",
     "MetricBundle",
