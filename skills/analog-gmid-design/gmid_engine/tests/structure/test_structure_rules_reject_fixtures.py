@@ -23,6 +23,8 @@ EXPECTED_BAD = {
         ("entry_points", "core/schema_with_method.py", 1),      # dataclass 에 일반 메서드 -> 데이터 모듈 아님, 진입점 2
         ("helper_single_user", "core/_helpers_lonely.py", 1),   # shared: user_one.py 하나만 사용
         ("helper_single_user", "core/_helpers_lonely.py", 5),   # unused: 사용 0
+        ("helper_single_user", "core/_helpers_alias.py", 5),    # 별칭 impl = _impl: user_one.py 하나만 사용
+        ("helper_single_user", "core/_helpers_alias.py", 6),    # 별칭 spare = _impl: 사용 0
     ],
     "rule_b": [
         ("private_attr", "core/b.py", 7),       # amod._secret()
@@ -71,6 +73,7 @@ EXPECTED_BAD = {
         ("module_mutable", "core/state.py", 16),      # except 블록 안 dict()
     ],
     "rule_h": [
+        ("missing_test", "core/_helpers_h.py", 0),   # _ 모듈이라도 함수가 있으면 H 대상
         ("missing_test", "core/y.py", 0),
         ("missing_test", "lut/q.py", 0),
         ("orphan_test", "tests/core/test_z.py", 0),

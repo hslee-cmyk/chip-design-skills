@@ -263,12 +263,27 @@ def is_data_module(tree: ast.Module) -> bool:
     return all(c.name in data for c in public)
 
 
+def helper_public_functions(tree: ast.Module) -> dict[str, int]:
+    """비공개 모듈의 공개 함수 이름 -> 행. 공개 최상위 def 와, 같은 파일 최상위 함수 이름을 값으로 갖는
+    공개 대입(별칭, 예: `build_rows = _build_rows`)을 모두 센다(별칭으로 공개한 helper 도 2파일 사용 조건 적용).
+    오케스트레이터 결정 2026-10-07."""
+    defs = {n.name for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+    out = {}
+    for n in tree.body:
+        if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and not n.name.startswith("_"):
+            out[n.name] = n.lineno
+        elif isinstance(n, (ast.Assign, ast.AnnAssign)) and isinstance(n.value, ast.Name) and n.value.id in defs:
+            targets = n.targets if isinstance(n, ast.Assign) else [n.target]
+            for t in targets:
+                if isinstance(t, ast.Name) and not t.id.startswith("_"):
+                    out.setdefault(t.id, n.lineno)
+    return out
+
+
 def helper_users(root: Path, p: Path) -> dict[str, set[str]]:
     """비공개 모듈 p 의 공개 함수 -> 그것을 import(또는 모듈 import 뒤 속성 사용)하는 같은 패키지 파일 집합."""
     tree = parse(p)
-    funcs = [n.name for n in tree.body
-             if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef)) and not n.name.startswith("_")]
-    users = {f: set() for f in funcs}
+    users = {f: set() for f in helper_public_functions(tree)}
     dotted = ".".join(_module_of(root, p))
     parts = p.relative_to(root).parts
     scope = [q for q in engine_files(root)
@@ -301,7 +316,7 @@ def check_a(root: Path) -> tuple[int, list[Violation]]:
     for p in targets:
         tree = parse(p)
         if p.name.startswith("_"):
-            lines = {n.name: n.lineno for n in tree.body if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))}
+            lines = helper_public_functions(tree)
             for f, who in helper_users(root, p).items():
                 if len(who) < HELPER_MIN_USERS:
                     out.append(Violation("helper_single_user", rel(root, p), lines[f],
@@ -902,10 +917,21 @@ def check_g(root: Path) -> tuple[int, list[Violation]]:
 
 # ---------------------------------------------------------------- (H)
 
+def h_exempt(p: Path) -> bool:
+    """H 제외(오케스트레이터 결정 2026-10-07, 근거: 공개 동작이 없는 등록부·표): `_`로 시작하는 모듈 중
+    최상위 함수·클래스가 하나도 없는 것(상수 표·등록부, 예: `_copy_manifest.py`) 또는 데이터 선언 모듈."""
+    if not p.name.startswith("_"):
+        return False
+    tree = parse(p)
+    if not any(isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) for n in tree.body):
+        return True
+    return is_data_module(tree)
+
+
 def check_h(root: Path) -> tuple[int, list[Violation]]:
     root = Path(root)
     sources = [p for p in engine_files(root)
-               if p.name != "__init__.py" and len(p.relative_to(root).parts) > 1]
+               if p.name != "__init__.py" and len(p.relative_to(root).parts) > 1 and not h_exempt(p)]
     out = []
     for p in sources:
         parts = p.relative_to(root).parts
