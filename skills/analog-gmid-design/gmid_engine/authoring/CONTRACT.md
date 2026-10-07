@@ -24,8 +24,8 @@
   - `where`: 문서 위치(접근자는 최상위 키 이름, `json_read`·`topology_load` 는 `path` 문자열).
   - `hits`: `SchemaHit` tuple -- **걸린 곳 전부**(개수로 자르지 않는다). 순서는 게이트 순서, 게이트 안에서는 문서 순서.
     예외: `check_name_uniqueness`·`check_hidden_rails` 는 원소 사이 관계 검사라 문서 순서가 정의되지 않으므로 이름순
-    (`name_duplicate` 는 이름, `name_case_collision` 은 casefold 키, `rail_not_connected`·`hidden_rail` 은 넷 이름 정렬,
-    결정론)이 정본이다.
+    (`name_duplicate` 는 이름, `name_case_collision`·`net_case_collision` 은 casefold 키(원소 위반 다음 넷 위반),
+    `rail_not_connected`·`hidden_rail` 은 넷 이름 정렬, 결정론)이 정본이다.
   - `topology_load` 만 추가: `rejected_gates`(위반을 낸 게이트 이름 정렬 tuple), `not_evaluated`(입력 선언이 거부돼 돌리지
     못한 검사 이름 tuple, 0절 표).
 - `SchemaHit(rule, where, message, elements=())` frozen dataclass. `elements` 는 관련 원소·넷 이름의 **정렬·중복 제거**
@@ -135,11 +135,12 @@ kind 값은 제한 없음(nmos·pmos 밖은 graph 가 기록만). 원소 이름 
 키 없으면 `()`. 원소 규칙은 3.6 과 같고(`ideal_sources_type` 포함), 받는 키 = {name, kind, terminals, value_amp, value_volt,
 implementable} + `_`, 값 필드 = value_amp·value_volt, `implementable` 은 읽지 않는다. kind 제한 없음(`voltage_source` 통과).
 
-### 3.8 `check_name_uniqueness(devices, passives, sources)` (IC3, 이상원 포함)
+### 3.8 `check_name_uniqueness(devices, passives, sources, supply_nets=(), port_nets=())` (IC3, 이상원 포함 + 넷 대소문자, 7절)
 | rule | 조건 |
 |---|---|
 | `name_duplicate` | 세 종류를 합친 이름 공간에서 같은 이름 2번 이상(소자끼리·소자-수동·소자-이상원·수동끼리 모두), 이름마다 하나 |
 | `name_case_collision` | casefold 가 같고 글자는 다른 이름 묶음마다 하나(`elements` = 그 이름들) |
+| `net_case_collision` | 넷 이름 집합(MOS d/g/s/선언 bulk ∪ 2단자 terminals ∪ `supply_nets` ∪ `port_nets`)에서 casefold 가 같고 글자는 다른 묶음마다 하나(`elements`·`where` = 그 넷 이름들). 원소 이름과 넷 이름은 다른 공간(서로 비교 안 함). 자동 통일·레일 별칭 예외 없음 |
 
 ### 3.9 `port_declaration(doc, rails, known_nets) -> tuple[PortDecl]` -- gate `ports`
 | rule | 조건 |
@@ -208,3 +209,46 @@ implementable} + `_`, 값 필드 = value_amp·value_volt, `implementable` 은 �
   `passive_declaration` 의 `missing_key` 분기만 바뀐다.
 - **SP-1(supplies_v)·CI-14(bulk 기본 규칙)**: MOD2 범위 밖. `DeviceDecl.bulk` 는 선언값만 담고(9회로 모두 None),
   기본 규칙 적용은 graph(`bulk_default.py`)가 `supplies_v` 와 함께 한다.
+
+## 7. [신규] 넷 이름 대소문자 충돌 `net_case_collision` (2026-10-07, 브랜치 ng-authoring2)
+
+- 근거: `_drafts/engine/reference_review/SYNTHESIS.md` T15 (2)·3절 'MOD2 입력 게이트 -- 지금 가능', G4-09, G5-10
+  (사고 '4·24차 넷 이름 대소문자 충돌'), FSM 155행 '0번 net 이름 대소문자 스캔 -- 자동 소문자 통일 없이 사람이 원본을 고친다'.
+  전에는 원소 이름만 casefold 검사(3.8)해서 엔진은 받고 오라클 C4 가 막았다.
+- 위치: 규칙 A(파일당 진입점 1개) 때문에 새 파일을 만들지 않고 `check_name_uniqueness` 에 규칙을 더했다. 추가 인자
+  `supply_nets`·`port_nets` 는 기본값 `()` 라 기존 3인자 호출은 그대로다(원소 이름 검사 + 단자 넷 검사).
+- `load_topology`: `supply_nets` 원본 list 의 비어 있지 않은 문자열 원소와 `ports` 원본 객체의 `_` 아닌 키를 넘긴다.
+  rails·ports 선언이 다른 게이트에서 거부돼도 이 문자열은 쓸 수 있으므로 넷 검사는 돈다(새 `not_evaluated` 이름 없음).
+  원소 선언 하나라도 거부되면 기존대로 `name_uniqueness` 전체가 `not_evaluated`(넷 검사 포함). 위반은 gate
+  `name_uniqueness` 로 다른 위반과 함께 한 번에 거부한다(0절 형식 그대로).
+- 다른 규칙과 겹침: 포트 키만 대소문자가 다르면 `port_net_unknown` 도, 레일 선언만 다르면 `rail_not_connected` 도 같이
+  난다(둘 다 낸다 -- 원인 진단은 `net_case_collision` 이 준다).
+- 실측(2026-10-07, 이 커밋 코드 + library 원본, `/c/g486` 임시 스크립트):
+  - 9회로 `load_topology` **전부 통과**(오거부 0): common_gate 3/0/0, current_reuse 51/12/1, folded 13/1/1, ngcc 16/3/0,
+    nmcnr 15/5/0, pushpull 6/1/0, sf_pushpull 22/5/1, two_stage 7/3/0, two_stage_sf 9/2/0 (소자/수동/이상원).
+    (4절 표의 CI-12 거부 3회로는 topology 정정 b9c7042 뒤 통과 -- integration test 머리말과 같음.)
+  - 거부 확인: current_reuse M2b drain `Vop1`→`vop1` -> hits `[net_case_collision ('Vop1','vop1')]` 하나,
+    rejected_gates `("name_uniqueness",)`. two_stage_ota_sf `supply_nets` 에 기존 레일의 대소문자 변형 추가 ->
+    `net_case_collision` + `rail_not_connected`. M1 gate `vin_n`→`VIN_N`(포트 키는 그대로) -> `net_case_collision`
+    + `port_net_unknown`.
+- test: 이 단계는 test 파일을 쓰지 않았다(작성자≠검증자). 필요한 test: 단자끼리·단자-레일·단자-포트 충돌 각 1,
+  원소 이름-넷 이름 같은 casefold 는 통과, 3인자 호출 회귀, 9회로 오거부 0, rails·ports 거부 시에도 넷 검사가 도는지.
+
+## 8. [신규] `authoring_anomalies` -- 구현하지 않음(정의 불명확, 보고)
+
+SYNTHESIS T15 (1)은 '비차단 `authoring_anomalies`(dangling 넷, 대칭 미해결)'라고만 적는다. 구현하지 않은 이유:
+1. **dangling 정의가 문서마다 다르다.** G4-08 = '채널 단자가 1개뿐이고 다른 단자가 없는 넷', TEC 104행 = 'net 참조
+   카운트 1'. 레일·포트를 빼는지는 어느 쪽도 적지 않았다. 9회로 실측(2026-10-07):
+   - G4-08 정의 그대로: common_gate `{gnd, vdd}`(레일 -- 소자 3개 회로라 레일 단자가 1개씩), 나머지 8회로 0.
+     레일·포트를 빼면 9회로 전부 0.
+   - TEC 정의(참조 1): common_gate {VNBias1, VNBias2, VPBias1, gnd, vdd}, folded·sf·two_stage·two_stage_sf {vin_n, vin_p},
+     ngcc {VBN, Vinn, Vinp}, nmcnr {VB1, VB4, VB5, Vin_n, Vin_p}, pushpull {VNB1, VPB1, agnd} -- 입력 포트·gate 전용
+     바이어스가 대부분이라 `bias_inputs`(Q9 (i), 사용자 결정 대기)와 겹친다.
+   어느 정의·어떤 제외를 정본으로 할지 정해야 한다.
+2. **'대칭 미해결'은 MOD2 에서 계산할 수 없다.** G4-19 의 대칭 미해결 목록은 `graph.symmetry` 출력이다. authoring(층 2)은
+   graph(층 3)를 import 할 수 없고 태그 키도 읽지 않는다(IC4). 이 항목은 graph 또는 MOD9 `report/topology_review.py` 몫이다.
+3. **소비자가 없다.** 비차단 보고를 받아 출력할 MOD9 `topology_review` 가 아직 없어(SYNTHESIS: MOD9 design 은 Q11 (iv) 뒤)
+   지금 만들면 배선되지 않는 결과가 된다.
+- 결정 필요: (a) dangling 정의(G4-08 채널 1개 / TEC 참조 1), (b) 레일·포트 제외 여부, (c) 결과를 어디에 담을지
+  (`TopologyDoc` 필드 / 별도 함수) -- (c)는 MOD9 설계와 함께. `bias_inputs` 게이트는 Q9 (i) 대기라 하지 않았다.
+

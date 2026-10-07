@@ -4,7 +4,8 @@
 
 순서: `load_json_checked`(JSON 수준 위반이면 그 `SchemaRejectedError` 를 그대로 낸다 -- 문서가 없으니 다음 게이트가 없다)
 -> `check_topology_schema` -> `check_linked_files` -> 선언 접근자 `device_declaration`·`rail_declaration`·
-`passive_declaration`·`source_declaration` -> `check_name_uniqueness` -> `port_declaration` -> `check_hidden_rails`.
+`passive_declaration`·`source_declaration` -> `check_name_uniqueness`(원소 이름 + 넷 이름 대소문자 충돌 -- 넷 집합에 `supply_nets` 문자열·`ports` 키를 원본에서 더한다)
+-> `port_declaration` -> `check_hidden_rails`.
 접근자가 낸 `SchemaRejectedError` 는 그 hits 를 모으고 계속한다. 어떤 검사의 입력 선언이 거부됐으면 그 검사는
 돌릴 수 없으므로 `not_evaluated` 에 이름을 남긴다(조용히 건너뛰지 않는다 -- 문서는 이미 거부된다):
 `name_uniqueness`·`hidden_rails` 는 통째로, `port_declaration` 은 형식 검사는 그대로 하고 `ports.port_net_unknown`
@@ -27,12 +28,21 @@ from .json_read import load_json_checked
 from .linked_files import check_linked_files
 from .name_uniqueness import check_name_uniqueness
 from .passives import passive_declaration
-from .ports import port_declaration
-from .rails import rail_declaration
+from .ports import COMMENT_PREFIX, PORTS_KEY, port_declaration
+from .rails import SUPPLY_KEY, rail_declaration
 from .topology_model import TopologyDoc
 from .topology_schema import check_topology_schema
 
 _GATE = "topology_load"
+
+
+def _declared_net_names(data):
+    # net_case_collision 입력: supply_nets 의 문자열 원소, ports 의 비주석 키(원본 선언 그대로 -- 그 선언이 거부돼도 쓴다).
+    supply = data.get(SUPPLY_KEY)
+    ports = data.get(PORTS_KEY)
+    supply_nets = tuple(x for x in supply if isinstance(x, str) and x) if isinstance(supply, list) else ()
+    port_nets = tuple(k for k in ports if not k.startswith(COMMENT_PREFIX)) if isinstance(ports, dict) else ()
+    return supply_nets, port_nets
 
 
 def load_topology(path):
@@ -67,7 +77,7 @@ def load_topology(path):
     not_evaluated = []
     elements_ok = devices is not None and passives is not None and sources is not None
     if elements_ok:
-        run_check("name_uniqueness", check_name_uniqueness, devices, passives, sources)
+        run_check("name_uniqueness", check_name_uniqueness, devices, passives, sources, *_declared_net_names(data))
     else:
         not_evaluated.append("name_uniqueness")
     known_nets = None
