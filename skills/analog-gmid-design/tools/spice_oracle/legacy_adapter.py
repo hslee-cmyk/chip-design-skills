@@ -27,7 +27,7 @@
   * 공정: LUT 생성기(assets/sky130_lut_sweep.py)의 공개 상수(PDK_ROOT, LOD_SPICE, NGSPICE_EXE)와 소스의
     include/DUT/probe 줄에서 모델 include 규칙, subckt, 확산 면적 규칙, W_ref 를 읽는다. 코너 자리는 '{corner}'.
     [신규] models[kind].polarity = 생성기 run_device 의 polarity 인자(+1 -> n, -1 -> p) -- 오라클 iso 모드가 쓴다.
-  * [신규] topology = {path: 변환에 쓴 topology JSON, sha256} -- 오라클 C15 연결 동일성 대조용. topology 에 없는
+  * [신규] topology = {path: 변환에 쓴 topology JSON(저장소 루트 기준 상대 경로), sha256} -- 오라클 C15 연결 동일성 대조용. topology 에 없는
     부하 C(LOAD_<출력>)는 not_in_topology_reason 을 달아 비교에서 뺀다(이유가 비교 결과에 기록됨).
 """
 import argparse
@@ -190,6 +190,18 @@ def process_from_lut_generator(lut_npz, corner):
             "diffusion": {"ad_per_w_m": ad0 / w0, "pd_extra_m": pd0 - w0},
             "lut_reference_width_m": w0,
             "provenance": f"LUT 생성기 {os.path.relpath(LUT_GENERATOR, SKILL_DIR)} 공개 상수 + DUT/include/probe 줄"}
+
+
+def _repo_relative(path):
+    """topology 경로 -> 저장소 루트 기준 상대 경로('/' 구분, 오라클 C15 해석 규칙). 루트는 이 파일 폴더에서 위로 처음
+    '.git' 이 있는 폴더. 루트 밖 파일이면 절대 경로 그대로(이식성 없음 -- 경고는 오라클 notes 에 경로로 드러남)."""
+    d = HERE
+    while not os.path.exists(os.path.join(d, ".git")):
+        if os.path.dirname(d) == d:
+            return os.path.abspath(path)
+        d = os.path.dirname(d)
+    rel = os.path.relpath(os.path.abspath(path), d) if os.path.splitdrive(path)[0].lower() == os.path.splitdrive(d)[0].lower() else None
+    return os.path.abspath(path) if rel is None or rel.startswith("..") else rel.replace(os.sep, "/")
 
 
 def _sha256_file(path):
@@ -444,7 +456,7 @@ def convert(dump, w_source, isrc, testbench, topology_path=None, instance_path=N
         "acceptance": {"constraints": cons, "not_measurable": not_meas},
         "testbench": testbench,
         "judge": {},
-        "topology": {"path": topo_p, "sha256": _sha256_file(topo_p)},
+        "topology": {"path": _repo_relative(topo_p), "sha256": _sha256_file(topo_p)},
         "provenance": {"adapter": "legacy_adapter.py", "engine": "legacy (skills/analog-gmid-design/legacy)",
                        "w_source": w_source, "isrc": isrc, "topology": topo_p, "lut_npz": lut_p,
                        "metrics_unmapped": unmapped, "warnings": warnings, "blockers": blockers,

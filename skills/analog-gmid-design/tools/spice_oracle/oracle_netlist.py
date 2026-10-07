@@ -497,16 +497,32 @@ def apply_z1(inp, omit=(), short=()):
     return x, mods, blockers
 
 
+def repo_root(start):
+    """start 폴더에서 위로 올라가며 처음 만나는 '.git'(폴더 또는 worktree 의 파일)이 있는 폴더. 없으면 None."""
+    d = os.path.abspath(start)
+    while True:
+        if os.path.exists(os.path.join(d, ".git")):
+            return d
+        up = os.path.dirname(d)
+        if up == d:
+            return None
+        d = up
+
+
 def resolve_topology_path(inp, input_path=None, override=None):
-    """topology JSON 경로: --topology 인자가 우선, 없으면 입력 topology.path(상대 경로면 입력 파일 폴더 기준). 없으면 None."""
+    """topology JSON 경로: --topology 인자가 우선(그대로 절대화), 없으면 입력 topology.path.
+    topology.path 가 상대 경로면 **저장소 루트 기준**(README C15): 루트 = 입력 파일 폴더에서 위로 처음 '.git' 이 있는 폴더,
+    없으면 이 오라클 코드 폴더에서 같은 방법. 루트를 못 찾으면 None(-> 미검증). 절대 경로는 그대로(이식성 없음)."""
     if override:
         return os.path.abspath(override)
     p = (inp.get("topology") or {}).get("path")
     if not p:
         return None
-    if not os.path.isabs(p) and input_path:
-        p = os.path.join(os.path.dirname(os.path.abspath(input_path)), p)
-    return os.path.abspath(p)
+    if os.path.isabs(p):
+        return os.path.abspath(p)
+    root = (repo_root(os.path.dirname(os.path.abspath(input_path))) if input_path else None) \
+        or repo_root(os.path.dirname(os.path.abspath(__file__)))
+    return None if root is None else os.path.abspath(os.path.join(root, *p.split("/")))
 
 
 def parse_netlist_elements(text, inp):

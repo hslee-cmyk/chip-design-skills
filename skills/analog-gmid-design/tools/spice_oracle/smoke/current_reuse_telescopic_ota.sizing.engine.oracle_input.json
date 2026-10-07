@@ -1437,7 +1437,7 @@
  },
  "judge": {},
  "topology": {
-  "path": "C:\\Users\\HSLEE\\Documents\\Todoc\\fpga\\wt\\ng-oracle2\\skills\\analog-gmid-design\\assets\\library\\current_reuse_telescopic_ota.topology.json",
+  "path": "skills/analog-gmid-design/assets/library/current_reuse_telescopic_ota.topology.json",
   "sha256": "237dbd76362c39bfe7fe8ea16e465fd2c479c8f84af6bdd6eac0eb16e392015d"
  },
  "provenance": {

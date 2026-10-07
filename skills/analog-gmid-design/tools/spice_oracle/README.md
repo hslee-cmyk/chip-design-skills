@@ -129,7 +129,11 @@ C14. **[신규]** β 루프: `feedback_passives` 가 있으면 `<stem>.loop.cir`
 
 ### 입력 스키마 추가(전부 선택 필드)
 
-* `topology{path, sha256?}`: C15 대조용 topology JSON. 상대 경로는 입력 파일 폴더 기준, 진입점 `--topology` 가 우선.
+* `topology{path, sha256?}`: C15 대조용 topology JSON. `path` 는 **저장소 루트 기준 상대 경로**(`/` 구분, 예
+  `skills/analog-gmid-design/assets/library/<회로>.topology.json`) -- 기계·worktree 에 무관하게 같은 문자열. 저장소 루트 =
+  입력 파일 폴더에서 위로 올라가며 처음 `.git`(폴더 또는 worktree 파일)이 있는 폴더, 없으면 오라클 코드 폴더에서 같은 방법.
+  루트를 못 찾거나 파일이 없으면 `unverified`. 절대 경로도 받지만 이식성이 없다. 진입점 `--topology`(그대로 절대화)가 우선.
+  `sha256` 대조는 C15 대로.
 * `passives[].not_in_topology_reason`, `sources[].not_in_topology_reason`: topology 에 없는 원소(예: 어댑터가 spec CL 로 넣은
   부하)를 C15 비교에서 뺄 때 그 이유. 비교 결과 `declared_not_in_topology` 에 그대로 남는다.
 * `process.models[kind].polarity` (`n`|`p`): iso 모드가 크기 규칙 예측을 단자 전압으로 바꿀 때 쓴다.
