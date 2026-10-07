@@ -11,12 +11,17 @@
 from __future__ import annotations
 
 import copy
+import dataclasses
 import json
 from pathlib import Path
 
 import pytest
 
 from gmid_engine.authoring import load_topology
+from gmid_engine.core import GraphSnapshot
+from gmid_engine.core import StructureUnresolvedError, exit_code_for
+from gmid_engine.graph import GRAPH_KEY, S1_WRITERS, s1_bulk, s1_structure, supplies_declaration
+from graph_u2_oracle import StopExpected, U2Oracle
 
 HERE = Path(__file__).resolve().parent
 SKILL_DIR = HERE.parents[2]                                   # .../analog-gmid-design
@@ -154,6 +159,62 @@ class JsonAgg:
                 tuple(sorted(r for r in pot if pot[r] == vmax)), vmax)
 
 
+def structure_and_bulk(doc, supplies_v=None):
+    """build_s1 순서(계약 1절)의 앞 두 블록만 직접 부른 스냅샷 -- U2 정지 전의 S1 기본 필드를 보려고."""
+    snap = s1_structure(GraphSnapshot.empty(S1_WRITERS), doc.devices, doc.passives, doc.sources,
+                        tuple(sorted(doc.rails)), doc.ports)
+    return s1_bulk(snap, supplies_declaration(supplies_v, doc.rails))
+
+
+def ev_plain(e):
+    return (e.rule, e.nets, e.group, e.basis)
+
+
+def seg_plain(s):
+    return (s.nets, s.elements)
+
+
+def branch_plain(b):
+    return (b.id, b.ends, tuple(seg_plain(s) for s in b.segments), b.has_ideal_source)
+
+
+def column_plain(c):
+    return (c.id, c.rails, c.branch_order, c.parallel_expansion, c.status, ev_plain(c.evidence))
+
+
+def gs_plain(g):
+    return (g.kind, g.gate, g.source, g.members)
+
+
+def role_plain(r):
+    return (r.role, r.status, ev_plain(r.evidence))
+
+
+def rel_plain(r):
+    return (r.type, r.domain, r.members, r.status, ev_plain(r.evidence))
+
+
+def gval(s1, field):
+    """graph 필드 값(계약 5절 `value("graph", GRAPH_KEY, field)`)."""
+    return s1.value("graph", GRAPH_KEY, field)
+
+
+def stop(fn):
+    """fn() 이 STRUCTURE_UNRESOLVED(exit 2, reason unsupported_rule_branch)로 정지 -> (detail dict, devices)."""
+    import pytest as _pytest
+    with _pytest.raises(StructureUnresolvedError) as ei:
+        fn()
+    exc = ei.value
+    assert exit_code_for(exc) == 2
+    d = dict(exc.record.detail)
+    assert d["reason"] == "unsupported_rule_branch"
+    return d, exc.record.devices
+
+
+def oracle(doc_raw, merge=True, column_limit=None):
+    return U2Oracle(doc_raw, merge=merge, column_limit=column_limit)
+
+
 def bulk_tuple(b):
     return (b.net, b.origin, b.reason)
 
@@ -173,6 +234,19 @@ class Helpers:
     rename_nets = staticmethod(rename_nets)
     agg = staticmethod(JsonAgg)
     bulk_tuple = staticmethod(bulk_tuple)
+    structure_and_bulk = staticmethod(structure_and_bulk)
+    ev_plain = staticmethod(ev_plain)
+    seg_plain = staticmethod(seg_plain)
+    branch_plain = staticmethod(branch_plain)
+    column_plain = staticmethod(column_plain)
+    gs_plain = staticmethod(gs_plain)
+    role_plain = staticmethod(role_plain)
+    rel_plain = staticmethod(rel_plain)
+    gval = staticmethod(gval)
+    stop = staticmethod(stop)
+    oracle = staticmethod(oracle)
+    StopExpected = StopExpected
+    astuple = staticmethod(dataclasses.astuple)
 
 
 @pytest.fixture
