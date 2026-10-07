@@ -8,7 +8,8 @@
 내용이라, `_` 주석만 바뀐 파일은 입력 버전이 같아 재계산하지 않는다. 쓰는 필드:
 
 * node(넷마다 -- 단자 넷 ∪ 선언 bulk 넷 ∪ 레일): `terminals`((원소, 단자) 정렬 tuple, bulk 제외), `is_rail`,
-  `port_direction`·`port_role`(포트 아니면 None), `ac_ground_class`(`static_ac_ground`, 단자 없는 넷은 None).
+  `port_direction`·`port_role`(포트 아니면 None), `ac_ground_class`(레일은 단자 유무와 무관하게 `AC_GROUND_RAIL`, 그 밖은 `static_ac_ground`,
+  단자 없는 넷은 None).
 * device(원소 이름마다, MOS·수동소자·이상원 모두): `element_class`, `kind`, `pins`(((단자, 넷), ...)).
   MOS 만: `bulk_declared`(넷 | None), `is_diode`(gate == drain). 2단자만: `value_key`, `value`.
   지원 kind 밖 원소만: `unsupported`(분기 이름, DEC-59 기록만 -- 정지는 그 원소를 쓰는 소비자가 낸다).
@@ -19,6 +20,7 @@ from gmid_engine.core import compute_block
 from .ac_ground_static import static_ac_ground
 from .s1_index import terminal_index
 from .s1_values import (
+    AC_GROUND_RAIL,
     ELEMENT_MOS,
     ELEMENT_PASSIVE,
     ELEMENT_SOURCE,
@@ -52,7 +54,7 @@ def s1_structure(projection):
         put("node", "is_rail", net, net in rails)
         put("node", "port_direction", net, None if port is None else port.direction)
         put("node", "port_role", net, None if port is None else port.role)
-        put("node", "ac_ground_class", net, ac_class.get(net))
+        put("node", "ac_ground_class", net, AC_GROUND_RAIL if net in rails else ac_class.get(net))
 
     branch_of = dict(UNSUPPORTED_BRANCHES)
     for x in devices:

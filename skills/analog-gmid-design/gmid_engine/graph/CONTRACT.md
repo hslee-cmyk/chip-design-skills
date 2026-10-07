@@ -82,7 +82,7 @@ node 레코드 = 단자 넷(MOS d/g/s, 2단자 terminals) ∪ 선언 bulk 넷 �
 | `terminals` | ((원소, 단자), ...) 정렬. 단자 ∈ `MOS_TERMINAL_NAMES`(`d`,`g`,`s`) ∪ authoring `TWO_TERMINAL_NAMES`(`t0`,`t1`). bulk 미포함(bulk 만 있는 넷은 `()`) |
 | `is_rail` | 넷 ∈ `doc.rails` |
 | `port_direction` / `port_role` | 포트면 direction(`input`/`output`)·role, 아니면 None |
-| `ac_ground_class` | `AC_GROUND_RAIL`(`"rail"`) = 레일. `AC_GROUND_GATE_ONLY`(`"gate_only_undriven"`) = 레일 아님·입력 포트 아님·단자가 전부 `g`. 그 밖(단자 없는 넷 포함) None |
+| `ac_ground_class` | `AC_GROUND_RAIL`(`"rail"`) = 레일 선언 넷 -- **단자 유무와 무관**(bulk 만 붙은 레일도 rail). `AC_GROUND_GATE_ONLY`(`"gate_only_undriven"`) = 레일 아님·입력 포트 아님·단자가 전부 `g`. 그 밖(레일이 아닌 단자 없는 넷 포함) None |
 
 device 레코드 = 모든 원소.
 
@@ -149,7 +149,7 @@ MOS 레코드마다 `bulk` = `BulkResult(net, origin, reason)`:
 ## 7. 9회로 실측 (2026-10-07, 이 커밋 코드 + library 원본, JSON 직접 집계와 일치)
 
 supplies_v: two_stage_ota·current_reuse·folded·common_gate = 사용자 확정 `{vdd: 1.8, gnd: 0}`; ngcc·nmcnr·pushpull·sf =
-topology `_declared_target_spec.supplies_v`(`_comment` 제외); two_stage_ota_sf = 없음(None).
+topology `_declared_target_spec.supplies_v`(`_comment` 제외); two_stage_ota_sf = 사용자 확정 `{vdd: 1.8, gnd: 0}`(topology 반영은 topo-batch 브랜치 `_declared_target_spec`).
 
 ### 7.1 지금 만들 수 있는 6회로 (기대 집계값)
 
@@ -160,7 +160,7 @@ topology `_declared_target_spec.supplies_v`(`_comment` 제외); two_stage_ota_sf
 | ngcc_3stage_ff | 13 | gnd, vdd | 16 (9/7) | 3 | 0 | 3 (M3, M6A, M9) | VBN, VBP | 2/1 | default gnd 9, vdd 7 |
 | pushpull_follower_buffer | 9 | agnd, vdd, vss | 6 (3/3) | 1 | 0 | 0 | VNB1, VPB1 | 1/1 | default vss 3, vdd 3 (agnd 0) |
 | sf_pushpull_output_opamp | 23 | agnd, vdd, vss | 22 (11/11) | 5 | 1 | 1 (M4) | 없음 | 2/1 | default vss 11, vdd 11 (agnd 0) |
-| two_stage_ota_sf | 10 | gnd, vdd | 9 (6/3) | 2 | 0 | 1 (M3) | bias | 2/1 | undetermined(needs_supplies_v) 9 |
+| two_stage_ota_sf | 10 | gnd, vdd | 9 (6/3) | 2 | 0 | 1 (M3) | bias | 2/1 | default gnd 6, vdd 3 (supplies_v 사용자 확정 {vdd 1.8, gnd 0}; 넘기지 않으면 undetermined(needs_supplies_v) 9) |
 
 6회로 모두 `unsupported` 열 `()`, 4.3 필드 `FieldNotComputed`, `build_s1(doc, sv, previous=s1) is s1`.
 
@@ -176,7 +176,7 @@ two_stage_ota node 9, MOS 7 (4/3), diode 1 (M3), gate_only bias, bulk gnd 4·vdd
 
 | 회로 | 레일(전위) | 채널 레일 | {최저, 최고} | 판정 |
 |---|---|---|---|---|
-| 2레일 7회로 | vdd/gnd(1.8/0) 또는 vdd/vss(0.9/-0.9) | 두 레일 | 같은 두 레일 | 통과(two_stage_ota_sf 는 supplies 없음이라 검사 미적용, 채널 레일 2개) |
+| 2레일 7회로 | vdd/gnd(1.8/0) 또는 vdd/vss(0.9/-0.9) | 두 레일 | 같은 두 레일 | 통과 |
 | pushpull_follower_buffer | vdd 1.8, vss 0, agnd 0.9 | vdd, vss (agnd 는 CL 단자만) | vss, vdd | 통과 |
 | sf_pushpull_output_opamp | vdd 1.8, vss 0, agnd 0.9 | vdd, vss (agnd 는 CL·Cc 단자만) | vss, vdd | 통과 |
 
