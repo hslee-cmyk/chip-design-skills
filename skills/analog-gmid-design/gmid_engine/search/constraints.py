@@ -1,6 +1,9 @@
 """정규화 제약 행 -- 커널 결과 스냅샷에서 (설계 design_mod6_search_front 5절, N3.14, NFR-5).
 
-진입점: `constraint_rows(snapshot, lut_access) -> (rows, undefined)`.
+진입점: `constraint_rows(snapshot, lut_access, w_min_m, grid_m) -> (rows, undefined)`.
+
+* [설계 개정 S-18, 2026-10-08] W 하한: MOS 마다(tol 과 무관하게 늘) c = (W − W_min)/g. W_min = PDK 선언 `min_finger_w_m`
+  (difftap.2), g = PDK `manufacturing_grid_m` -- W 판정 분해능 = 제조 격자 한 칸.
 
 모든 행은 c ≥ 0 무차원이고 분모는 그 양의 판정 분해능이다(상수 없음). `active` = c ≤ 1(여유가 분해능 한 칸 이하).
 * 봉인 6 벌크(설계 5절 표): MOS 마다 c = (min(vsb, vds + vsb) + tol_V)/tol_V -- 역바이어스 여유(양수 = 역바이어스),
@@ -18,19 +21,20 @@ import numpy as np
 from gmid_engine.lut import gm_id_curve
 from gmid_engine.sizing import COORD_WRITER
 
-from .search_values import CON_INVERSION, CON_SEAL6, ConstraintRow
+from .search_values import CON_INVERSION, CON_SEAL6, CON_WMIN, ConstraintRow
 
 
 def _row(name, c):
     return ConstraintRow(name, float(c), c <= 1)
 
 
-def constraint_rows(snapshot, lut_access):
+def constraint_rows(snapshot, lut_access, w_min_m, grid_m):
     tols = dict(snapshot.column("device", "dc_tol_v"))
     coords = dict(snapshot.column("device", "dc_coord"))
     w_keys = dict(lut_access.w_keys)
     rows, undefined = [], []
     for m, op in snapshot.column("device", "dc_op"):
+        rows.append(_row(CON_WMIN + ":" + m, (op.W - w_min_m) / grid_m))
         tol = tols.get(m)
         if tol is None or not tol > 0:
             undefined.append(m)

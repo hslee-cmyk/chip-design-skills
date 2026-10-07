@@ -6,7 +6,8 @@
   SPICE 오라클 `off_current_A`(엔진이 LUT VGS=0 누설 ID 로 내는 양)와 같은 열이다. 소자 기하·바이어스가 θ 로 정해지기 전이라
   격자 전체 최솟값을 쓴다: 이보다 작은 전류는 어느 동작점에서도 꺼진 소자와 구별되지 않는다.
 * I_max(상한) = 그 kind 의 모든 폭 슬라이스에서 ID 최댓값(각 슬라이스는 자기 폭 w_m 의 ID) -- 특성화된 최대 단일 finger 폭의
-  최대 전류(GB4 상한표의 '행 최대 ID' 자리). PDK 선언에 finger 수 상한이 없어 여러 finger 합 폭은 넣지 않는다(열린 항목 S-3b).
+  최대 전류(GB4 상한표의 '행 최대 ID' 자리). **잠정값**(오케스트레이터 2026-10-08): PDK 선언에 finger 수 상한이 없어 여러 finger
+  합 폭은 넣지 않는다 -- 참 상한은 선언된 최대 nf 또는 면적 상한이 있어야 정해진다(열린 항목 S-3b, find_front notes `provisional`).
 * VGS 격자에 0 이 없거나 유효 점이 없으면 `SchemaRejectedError`(detail reason `lut_vgs_zero_missing`·`lut_current_box_empty`).
 """
 import math

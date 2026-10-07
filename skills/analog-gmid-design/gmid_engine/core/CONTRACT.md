@@ -317,6 +317,10 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 | `dummy_w_m` | `poly.1a + poly.7 + max(poly.2, licon.1 + 2 * licon.11) / 2`(400·407행 ...) | 5.4e-7 |
 | `tap_w_m` | `difftap.3 + max(difftap.1, licon.1 + 2 * licon.7)`(324·320·624·637행) | 6.8e-7 |
 | `well_spacing_m` | `max(nwell.2a + 2 * difftap.8, difftap.9 + difftap.8)`(121·329·330행) | 1.63e-6 |
+| `min_finger_w_m` [2026-10-08 추가] | `difftap.2`(321행 0.420 µm, areaid.sc 밖 FET 최소 채널 폭) | 4.2e-7 |
+
+`min_finger_w_m` 은 MOD6 설계 개정 S-18(search W ≥ W_min 제약, 소비자 `search.build_search_context`)로 더한 quantity 다. 선언 형식·
+읽기 규칙은 9.1~9.3 그대로이고 엔진 코드 변경은 없다(선언 파일 sha256 은 바뀐다).
 
 (값은 float 연산 결과 그대로 -- 예 `row_gap_m` = 4.6999999999999995e-07. test 는 손계산과 상대 오차로 비교한다.)
 식(기하 해석)은 선언 파일의 `basis` 에 적었고 사용자 ratify 대상이다.

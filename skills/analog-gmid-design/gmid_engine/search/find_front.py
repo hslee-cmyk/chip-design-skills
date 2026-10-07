@@ -80,6 +80,9 @@ def find_front(sctx, given_starts):
                       "passive_area_undeclared": list(probe.objectives.passive_area_undeclared)})
     notes.append({"verdict": "judgment_pending", "rule": "DEC-72", "reason": "model_error_unmeasured_front_estimated"})
     notes.append({"verdict": "not_run", "rule": "DEC-79", "reason": "layout_axis_refilter_is_mod8"})
+    notes.append({"verdict": "provisional", "rule": "S-3b",
+                  "reason": "current_upper_is_single_finger_max_slice_needs_declared_max_nf_or_area_cap",
+                  "current_box": [[k, list(v)] for k, v in sctx.domain.current_box]})
     notes.append({"verdict": "blocked", "rule": "DEC-71", "reason": "layer0_inputs_missing",
                   "missing": list(_LAYER0_MISSING)})
     notes.append({"verdict": "not_computed", "rule": "DEC-78", "reason": "supply_current_dc_needs_counted_rails_declaration",

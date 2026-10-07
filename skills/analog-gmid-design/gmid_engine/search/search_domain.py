@@ -12,20 +12,23 @@
   있는데 None 이면 `SchemaRejectedError`(detail gate `search_domain`, reason `theta_resistance_bounds_undeclared`, resistors) --
   기본값 없음.
 * `L`: 연속 변수는 칸이 정해진 뒤(분지마다) 칸 [lo, hi] 로 만든다(lo == hi 칸은 고정). 여기서는 `l_cells` 표만 둔다.
-* `area_resolution_m2` = b_A = 제조 격자 × kind 최소 finger 폭의 최솟값(DEC-80 (i), 설계 6.4 'Σ W·L 축 한 칸').
+* `area_resolution_m2` = b_A = PDK 선언 `manufacturing_grid_m` × `min_finger_w_m`(difftap.2)(DEC-80 (i), 설계 6.4 'Σ W·L 축
+  한 칸') -- 같은 두 값을 W 하한 제약(S-18)이 `w_min_m`·`grid_m` 으로 읽는다. 진입점은 `search_domain(dc_ctx, settings, pdk_decl)`.
   면적 모델 오차가 미측정이라 (ii) = (i) 이고 '추정'이다(DEC-72·80). 전력 분해능 b_P 는 점마다(`objectives`).
 """
 import math
 
 import numpy as np
 
-from gmid_engine.core import SchemaRejectedError
+from gmid_engine.core import PdkDecl, SchemaRejectedError
 from gmid_engine.graph import ELEMENT_MOS
 from gmid_engine.sizing import THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE, THETA_Y
 
 from .current_box import current_box
 from .l_cells import l_cells
 from .search_values import SearchDomain, SearchSettings, Variable
+
+_PDK_QUANTITIES = ("manufacturing_grid_m", "min_finger_w_m")   # PDK 선언 이름(core CONTRACT 9.4) -- 값은 선언 파일이 계산
 
 
 def _ln_idu_envelope(lut_access, kind):
@@ -52,9 +55,11 @@ def _current_bounds(dc_ctx, kinds, classes, boxes, key):
     return min(boxes[kinds[m]][0] for m in users), max(boxes[kinds[m]][1] for m in users)
 
 
-def search_domain(dc_ctx, settings):
+def search_domain(dc_ctx, settings, pdk_decl):
     if not isinstance(settings, SearchSettings):
         raise TypeError("search_domain: settings 는 SearchSettings 여야 한다(기본값 없음)")
+    if not isinstance(pdk_decl, PdkDecl):
+        raise TypeError("search_domain: pdk_decl 은 core read_pdk_decl 결과여야 한다")
     kinds = dict(dc_ctx.base.column("device", "kind"))
     classes = dict(dc_ctx.base.column("device", "element_class"))
     mos_kinds = sorted({kinds[m] for m, c in classes.items() if c == ELEMENT_MOS})
@@ -87,6 +92,6 @@ def search_domain(dc_ctx, settings):
             raise ValueError("search_domain: 빈 bounds " + repr(var))
     cells = {}
     table = tuple((m, cells.setdefault(kinds[m], l_cells(dc_ctx.lut, kinds[m]))) for m in sorted(mos))
-    spec = dc_ctx.lut.memo.lut.spec
-    b_area = spec.manufacturing_grid_m * min(w for _k, w in spec.min_finger_w_m)
-    return SearchDomain(tuple(variables), table, float(b_area), tuple(sorted(boxes.items())))
+    grid, w_min = pdk_decl.values(_PDK_QUANTITIES)
+    return SearchDomain(tuple(variables), table, float(grid * w_min), tuple(sorted(boxes.items())), float(w_min),
+                        float(grid))

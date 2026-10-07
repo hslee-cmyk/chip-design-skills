@@ -70,14 +70,16 @@ def objective_values(snapshot, resistances, element_values):
 
 
 def _power_resolution(snapshot):
-    """b_P = Σ_레일 |V_k|·tol_I,k. tol_I,k = 레일 넷 k 에 d 또는 s 가 닿는 MOS 의 dc_tol_v·dc_gm_bound 최댓값(봉인 3 KCL 허용오차
-    식을 레일 노드에 건 것 -- 레일 전류 한 칸의 판정 분해능). 어느 레일에도 정의된 행이 없으면 None."""
+    """b_P = Σ_레일 |V_k|·tol_I,k. tol_I,k = 레일 넷 k 에 채널이 닿는 MOS 의 dc_tol_v·gm 최댓값, gm = 그 점의 동작점 gm =
+    dc_op.current·dc_op.gm_id(오케스트레이터 결정 S-2b, 2026-10-08). 봉인 3 KCL 허용오차와 같은 모양(노드마다 닿는 소자 최댓값)이지만
+    봉인 3 은 곡선 전체 최대 gm(`dc_gm_bound`)을 쓴다(sizing 계약, 바꾸지 않음) -- 봉인은 어느 동작점에서나 안전한 상계가
+    필요하지만 탐색 축 해상도는 '이 점의 전류가 tol_V 만큼 흔들릴 때 전력이 움직이는 양'이라 점 국소 gm 이 맞다(gm_bound 는 W 큰
+    소자에서 수십~수천 배 과대, r2 실측). 어느 레일에도 정의된 행이 없으면 None."""
     tols = dict(snapshot.column("device", "dc_tol_v"))
-    bounds = dict(snapshot.column("device", "dc_gm_bound"))
     channel = {e: (a, b) for e, a, b in snapshot.value("graph", DC_KEY, "dc_current_basis").ends}   # MOS 채널 = (d, s)
     total, defined = 0.0, False
     for rail, volt in snapshot.column("node", "dc_rail_v"):
-        rows = [tols[m] * bounds[m] for m, _op in snapshot.column("device", "dc_op")
+        rows = [tols[m] * op.current * op.gm_id for m, op in snapshot.column("device", "dc_op")
                 if tols.get(m) is not None and rail in channel.get(m, ())]
         if rows:
             defined = True

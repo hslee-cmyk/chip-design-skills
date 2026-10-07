@@ -112,7 +112,8 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
         if objectives.power_resolution_w is None:
             status = STATUS_UNDEFINED          # 전력 축 분해능 b_P 를 정할 tol 행이 없다 -- 목적 정규화 불가
         if status != STATUS_UNDEFINED:
-            seal_rows, _undefined = constraint_rows(evaluation.snapshot, sctx.dc.lut)
+            seal_rows, _undefined = constraint_rows(evaluation.snapshot, sctx.dc.lut, sctx.domain.w_min_m,
+                                                    sctx.domain.grid_m)
             ss_rows, unmeasured = ss_constraint_rows(evaluation, sctx.ss_constraints)
             rows = seal_rows + _spec_rows(sctx, objectives) + ss_rows
     sctx.eval_times.append(time.perf_counter() - start)

@@ -14,6 +14,9 @@
   LUT 에서 유도(`current_box`, S-3), θ 저항 상자는 선언 필수·없으면 구조화 거부(S-3), ss 제약은 점마다 '미측정' 기록 + 연결 자리
   `ss_constraints`(S-1), 한도는 평가 수(E_B)로 세어 결정론(S-7/8), FD 양방향 실패 열은 변수 고정(S-16), sizing `__all__` 에
   `dc_seal_vgs_match` 추가(S-9). 층 0(S-4)은 설계 입력 셋이 없어 막힘(9절).
+- **r3(2026-10-08, 오케스트레이터 결정 2차)**: `[r3]`. b_P 의 gm 을 동작점 gm(ID·gm/ID)으로(S-2b), **설계 개정 S-18** W ≥ W_min 제약
+  (W_min = PDK 선언 `min_finger_w_m` = difftap.2, core `sky130_pdk_decl.json` 에 quantity 추가), b_A 도 PDK 선언 두 값의 곱,
+  `build_search_context`·`search_domain` 이 `pdk_decl` 을 받는다, I_max 잠정 표기(S-3b).
 
 ---
 
@@ -50,7 +53,8 @@
 
 ```
 dc_ctx = build_kernel_context(build_s1(...), dc_inputs_from_spec(spec), pre_layout_lut_access(memo))   # sizing, S0 당 1회
-sctx   = build_search_context(dc_ctx, spec, settings, archive_root)                                  # S0 당 1회
+pdk    = read_pdk_decl(<PDK 선언 json>, BoundedLRU(…))                                              # core, [r3]
+sctx   = build_search_context(dc_ctx, spec, settings, archive_root, pdk)                             # S0 당 1회
 front  = find_front(sctx, given_starts)                                                               # -> SearchFront
 ```
 
@@ -75,8 +79,8 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   탐색 경로가 따라가는 상태.
 - 단계: `STAGE_START`·`STAGE_SLSQP`·`STAGE_FD`·`STAGE_L_SEARCH`. 축: `AXIS_POWER` = "power_dc_w", `AXIS_AREA` =
   "area_search_m2", `AXES`. 제약 이름 접두: `CON_SEAL6`("seal6_bulk")·`CON_INVERSION`("inversion_floor")·`CON_CONE`
-  ("current_cone")·`CON_EPS`("eps") + ":" + 소자/축. 목적 축 spec 제약은 "spec:" + metric + op.
-- `Variable(component, log, lo, hi)`, [r2] `SearchDomain(variables, l_cells, area_resolution_m2, current_box)`,
+  ("current_cone")·`CON_EPS`("eps")·[r3] `CON_WMIN`("w_min") + ":" + 소자/축. 목적 축 spec 제약은 "spec:" + metric + op.
+- `Variable(component, log, lo, hi)`, [r3] `SearchDomain(variables, l_cells, area_resolution_m2, current_box, w_min_m, grid_m)`,
   `EvalKey(context_fp, schema_fp, cells, w_fixed_fp, theta_hex)`, `Objectives(power_w, area_m2, per_rail, kcl_residual_a,
   gate_area_m2, passive_area_undeclared, passive_value_undetermined, power_resolution_w=None)`, `ConstraintRow(name, c, active)`,
   `EvalResult(key, theta, status, evaluation, objectives, constraints, cone, failure, seq, unmeasured=())`(eq=False),
@@ -116,13 +120,18 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 - `area_m2` = metrics `area_search(GateArea(dc_op.W, dc_op.L) 전 MOS, PassiveArea(값 있는 수동소자, 단위 면적 None))`.
   수동소자 값이 `element_values`·`resistances` 어디에도 없으면 `passive_value_undetermined`(이름순), 값은 있는데 단위 면적
   선언이 없으면 `passive_area_undeclared`(U-36).
-- [r2] `power_resolution_w` = b_P = Σ_{레일 k} |dc_rail_v_k| · tol_I,k, tol_I,k = 채널 끝(`dc_current_basis.ends` 의 from·to)이
-  레일 넷 k 인 MOS 중 `dc_tol_v` 가 None 이 아닌 것의 `dc_tol_v·dc_gm_bound` 최댓값(sizing 봉인 3 KCL 허용오차 식을 레일 노드에
-  건 것). 행이 있는 레일이 없거나 합이 0 이면 None. power_dc_w 는 모든 레일 합이라 합산 레일 = 모든 레일(전압 0 레일은 0 기여).
+- [r3] `power_resolution_w` = b_P = Σ_{레일 k} |dc_rail_v_k| · tol_I,k, tol_I,k = 채널 끝(`dc_current_basis.ends` 의 from·to)이
+  레일 넷 k 인 MOS 중 `dc_tol_v` 가 None 이 아닌 것의 `dc_tol_v · gm_op` 최댓값, gm_op = `dc_op.current · dc_op.gm_id`(그 점의
+  동작점 gm). 행이 있는 레일이 없거나 합이 0 이면 None. **봉인 3 과 다른 점**: sizing 봉인 3 의 KCL 허용오차는 `dc_gm_bound`(곡선
+  전체 최대 gm × W/w_m)를 쓰고 그대로 둔다(sizing 계약 -- 봉인은 어느 동작점에서나 안전한 상계가 필요). 탐색 축 해상도는 '이 점의
+  전류가 tol_V 만큼 흔들릴 때 전력이 움직이는 양'이라 점 국소 gm 이 맞다 -- gm_bound 를 쓰면 W 큰 소자에서 수십~수천 배 과대였다
+  (r2 실측: ngcc 120 배, two_stage_ota_sf 2000 배). power_dc_w 는 모든 레일 합이라 합산 레일 = 모든 레일(전압 0 레일은 0 기여).
   `supply_current_dc` 는 합산 레일 선언(`counted_rails`)이 spec 에 없어 계산하지 않는다(notes `supply_current_dc_needs_counted_rails_declaration`).
 
 ### 3.7 `search_domain(dc_ctx, settings) -> SearchDomain`
-- `settings` 가 SearchSettings 아님 -> `TypeError`. 변수(θ 스키마 성분 순, L 제외):
+- [r3] 진입 `search_domain(dc_ctx, settings, pdk_decl)`. `settings` 가 SearchSettings 아님·`pdk_decl` 이 core `PdkDecl` 아님 ->
+  `TypeError`. `pdk_decl` 에 `manufacturing_grid_m`·`min_finger_w_m` 이 없으면 core 의 `pdk_quantity_undeclared` 거부 그대로.
+  변수(θ 스키마 성분 순, L 제외):
   `ln_idu` = (False, kind 포락선 lo, hi): hi = 레이아웃 전 슬라이스 on_mask 격자점의 ln(ID·L/w_m) 최댓값, lo = (L, VDS, VS)
   곡선마다 gm/ID(= exp(log_GM − log_ID)) 최대 VGS 격자점의 ln IDu 중 최솟값(정점 격자점이 on_mask 인 곡선만).
   `y` = (False, 0, 1). [r2] `current` = (True, ln I_off, ln I_max): 기저 원소가 MOS 면 그 kind 의 `current_box`, 아니면 그 원소를
@@ -130,14 +139,16 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
   `resistance` = (True, ln lo, ln hi) -- [r2] θ 저항이 있는데 `resistance_bounds_ohm` 이 None 이면 변수를 만들기 전에
   `SchemaRejectedError`(detail {gate "search_domain", reason "theta_resistance_bounds_undeclared", resistors (θ 순)}).
   lo ≥ hi 인 변수 -> `ValueError`.
-- `l_cells` = ((MOS, l_cells(kind)), ...) MOS 이름순. `area_resolution_m2` = `lut.spec.manufacturing_grid_m` ×
-  min(`lut.spec.min_finger_w_m` 값). `current_box` = ((kind, (I_off, I_max)), ...) MOS kind 이름순.
+- `l_cells` = ((MOS, l_cells(kind)), ...) MOS 이름순. [r3] `grid_m` = PDK `manufacturing_grid_m`, `w_min_m` = PDK
+  `min_finger_w_m`, `area_resolution_m2` = grid_m × w_min_m. `current_box` = ((kind, (I_off, I_max)), ...) MOS kind 이름순
+  (I_max 잠정 -- S-3b).
 
 ### 3.19 [r2] `current_box(lut_access, kind) -> (I_off, I_max)`
 - I_off = 레이아웃 전 폭 슬라이스(`w_keys[kind]`)의 VGS 격자 중 0(|v| ≤ ulp(격자 끝 크기)) 인 첫 index 면에서 on_mask 이고 ID > 0
   인 점의 ID 최솟값(SPICE 오라클 `off_current_A` 와 같은 열 -- LUT VGS=0 누설 ID).
 - I_max = 그 kind 의 모든 슬라이스(`slice_map` 의 (kind, *))에서 on_mask 점 ID 최댓값(각 슬라이스 자기 폭의 ID -- finger 수 상한
-  선언이 없어 다중 finger 합은 넣지 않는다, S-3b).
+  선언이 없어 다중 finger 합은 넣지 않는다, S-3b). **잠정값** -- 참 상한은 선언된 최대 nf 또는 면적 상한이 필요하다(notes
+  verdict `provisional`).
 - VGS 0 없음 -> `SchemaRejectedError`(reason `lut_vgs_zero_missing`), 유효 점 없음 -> (reason `lut_current_box_empty`).
 
 ### 3.20 [r2] `ss_constraint_rows(evaluation, declared) -> (rows, unmeasured)`
@@ -146,13 +157,15 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 - **연결 자리**: metrics `ss_linearize` 가 `__all__` 에 들어오면 봉인된 경우 분기 하나를 '봉인 스냅샷 -> ss 레코드 -> metric_value
   -> 정규화 행'으로 바꾼다(호출부 `evaluate` 는 그대로). 봉인 7 대기 점은 그 뒤에도 '미측정'이다(DEC-67).
 
-### 3.8 `constraint_rows(snapshot, lut_access) -> (rows, undefined)`
-- MOS 마다(`dc_op` 열 순서) tol = `dc_tol_v`; None 또는 ≤ 0 이면 `undefined` 에 이름(정렬) 하고 그 MOS 행 없음.
+### 3.8 [r3] `constraint_rows(snapshot, lut_access, w_min_m, grid_m) -> (rows, undefined)`
+- MOS 마다(`dc_op` 열 순서) 먼저 [r3] `w_min:<m>` c = (dc_op.W − w_min_m)/grid_m(**설계 개정 S-18**, tol 과 무관하게 늘 있음),
+  그다음 tol = `dc_tol_v`; None 또는 ≤ 0 이면 `undefined` 에 이름(정렬) 하고 그 MOS 의 나머지 행 없음.
 - `seal6_bulk:<m>` c = (min(vsb, vds + vsb) + tol)/tol. 쓰기 소자(`dc_coord.role == "writer"`)면 `inversion_floor:<m>`
   c = (ln_idu − r_peak)·gm_id/tol, r_peak = ln(curve.id_vals[argmax gm_id_vals]) + ln L − ln w_m(`gm_id_curve(memo, kind,
   w_key, L, vds, vsb)`). `active` = c ≤ 1.
 
-### 3.9 `build_search_context(dc_ctx, spec, settings, archive_root) -> SearchContext`
+### 3.9 [r3] `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl) -> SearchContext`
+- 정의역 = `search_domain(dc_ctx, settings, pdk_decl)`.
 - `context_fp` = fp_of((base.fp, plan_versions, lut, fixed_values, resistor_values, inputs)), `schema_fp` = fp_of(schema),
   `code_fp` = core·lut·graph·sizing·metrics·search `*.py` 바이트 sha256 묶음의 fp.
 - [r2] `spec.judged_constraints` 를 문서 순서로: 값 None -> `constraint_notes`(verdict `judgment_pending`, reason
@@ -304,9 +317,7 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 
 - **S-1 (처리)** ss 제약은 점마다 `unmeasured` 로 기록(빠뜨리지 않음), 연결 자리 `ss_constraint_rows`(3.20) -- ng-sslin 의
   `ss_linearize` 가 들어오면 한 분기만 바꾼다. 그 전에는 제약이 없어 전력 최소·면적 최소가 같은 방향으로 모인다(S-12).
-- **S-2 (처리)** b_P = Σ|V_rail|·tol_I(3.6). 실측 결과: b_P 가 점의 전력과 같은 크기(10절) -- tol_I = tol_V·gm_bound 의
-  gm_bound 가 곡선 전체 최대 gm 이라 크다. 그래서 전력 축 해상도가 거의 한 칸이 되어 전력 방향 ε 점이 0~수 개다. 이 b_P 를
-  그대로 쓸지(또는 gm_bound 대신 동작점 gm)는 결정 필요(**S-2b**).
+- **S-2 (처리)** b_P = Σ|V_rail|·tol_I(3.6). r2 는 gm_bound 를 써서 b_P 가 점 전력과 같은 크기 이상이었다 -> r3 에서 동작점 gm.
 - **S-3 (처리)** θ 전류 상자 = `current_box`(3.19), θ 저항 상자 = 선언 필수·없으면 구조화 거부(3.7). **S-3b** finger 수 상한
   선언이 PDK 선언에 없어 I_max 는 단일 finger 최대 폭 슬라이스 값이다(다중 finger 소자의 상한은 열린 항목). 시연에서 θ 저항이 있는
   sf_pushpull·current_reuse 는 선언이 없어 거부된다(10절).
@@ -328,13 +339,37 @@ b_P(전력 분해능)와 θ 전류 상자는 선언이 아니라 유도다(3.6·
 - **S-15** L-b 의 'LR5 격자 안' -- LR5 knee 격자 미구현이라 LUT 의 모든 L 칸이 격자다.
 - **S-16 (처리)** FD 양방향 실패 열 = 변수 고정(3.13), 모두 고정되면 끝.
 - **S-17** 예산 초과: 예산 검사는 새 x 평가 때만 해서 FD 한 번·L-b 시험 한 번만큼(평가 수로 n + 1 이하) 넘을 수 있다.
-- **S-18 (r2 실측에서 새로 -- 결정 필요)** W ≥ 최소 finger 폭(LutSpec `min_finger_w_m`, PDK difftap) 제약이 설계 5절 표에 없다.
-  유도한 전류 하한(꺼짐 전류)과 합쳐지면 최소화가 비물리 폭으로 간다(10.0). 넣는다면 c = (W − W_min)/g(g = 제조 격자)가 원칙에 맞는
-  정규화다 -- 설계 개정 사항이라 넣지 않았다.
+- **S-18 (r3 처리 -- 설계 개정)** W ≥ W_min 제약 행 c = (W − W_min)/g 를 더했다(3.8). W_min = PDK 선언 `min_finger_w_m`
+  (difftap.2 = 0.42 µm, core CONTRACT 9.4 에 추가), g = `manufacturing_grid_m`. 설계 5절 제약 표에 없던 행이라 계획 기록은
+  오케스트레이터 몫. b_A 도 같은 두 PDK 값의 곱(LutSpec 의 슬라이스 최소 폭 대신 -- 한 출처).
+- **S-2b (r3 처리)** b_P 의 gm = 동작점 gm(3.6).
+- **S-3b (잠정 유지)** I_max = 단일 finger 최대 슬라이스 ID -- 참 상한은 선언된 최대 nf 또는 면적 상한이 필요(열린 항목, notes
+  `provisional`).
+- **S-4** 층 0 은 ng-sslin(`ss_linearize`)·ng-seal7(VDSAT) 병합 뒤 다시 다룬다(오케스트레이터).
 
 ## 10. 9회로 실측 -- 작성자 측 시연(정본 아님)
 
-### 10.0 [r2] r2 실측 (2026-10-08, 이 커밋 코드)
+### 10.00 [r3] r3 실측 (2026-10-08, 이 커밋 코드 -- B = 120 s 만 선언, b_P 동작점 gm, W ≥ W_min)
+
+| 회로 | 변수 | requests | kernel = 고유 키 | 블록 reuse | E_B(유도) | 풀이 | 고정 열 | 실패 ε | wall(s) | 대기 front 점: P(W), A(m²), b_P/P, w_min 활성 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| common_gate_amplifier | 6 | 7924 | 188 | 0.17 | 6891 | 203 | 602 | 0 | 6.0 | 4.6e-14, 1.4e-12, 0.18, 0 |
+| current_reuse_telescopic_ota | -- | -- | -- | -- | -- | -- | -- | -- | -- | 거부(θ 저항 상자 미선언) |
+| folded_cascode | 16 | 940 | 209 | 0.16 | 309 | 6 | 18 | 3 | 93.3 | 9.2e-6, 3.7e-9, 0.055, 1 / 1.7e-5, 1.6e-10, 0.061, 0 |
+| ngcc_3stage_ff | 19 | 3941 | 240 | 0.20 | 2370 | 42 | 22 | 38 | 19.0 | 2.5e-5, 1.0e-8, 0.022, 0 |
+| nmcnr_amplifier | 21 | 13963 | 356 | 0.20 | 2810 | 47 | 402 | 0 | 26.0 | 1.35e-5, 4.4e-9, 0.16, 1 |
+| pushpull_follower_buffer | 8 | 26278 | 3718 | 0.17 | 4014 | 252 | 1753 | 126 | 101.4 | 5.5e-14, 1.1e-7, 0.089, 2 / 1.3e-10, 3.5e-10, 0.094, 0 |
+| sf_pushpull_output_opamp | -- | -- | -- | -- | -- | -- | -- | -- | -- | 거부(θ 저항 상자 미선언) |
+| two_stage_ota | 9 | 4313 | 2569 | 0.15 | 4397 | 117 | 107 | 107 | 120.1(벽시계 정지 1) | 7.8e-13, 6.4e-10, 0.041, 0 / 3.9e-11, 2.7e-10, 0.036, 0 |
+| two_stage_ota_sf | 11 | 1861 | 104 | 0.16 | 4593 | 40 | 8 | 37 | 5.9 | 6.5e-6, 2.5e-8, 0.31, 0 |
+
+- 7회로 `kernel_calls == unique_keys`, `recompute_same_key == 0`, LUT memo 퇴출 0. 대기 점 소자 W 최솟값 ≥ 0.42 µm(W_min) 전부.
+- **b_P/P = 0.02~0.31**(r2 의 1~2000 배에서 내려옴). 결정론: two_stage_ota E_B = 600 선언·B = 900 s, seed 1·2 -- kernel 505·505, 대기
+  front 동일.
+- 남은 비물리: W ≥ W_min 을 지켜도 전류가 꺼짐 전류 근처(pW)까지 내려간다(common_gate·pushpull·two_stage 대기 점 P ~ 1e-14~1e-10 W) --
+  성능 제약(S-1)이 없어서다. 실패 ε 는 SLSQP status 4·8.
+
+### 10.0 [r2] r2 실측 (2026-10-08, r2 코드)
 
 조건: 아래 r1 과 같은 LUT·spec·시작점 탐침(시작점 생성은 시연 하네스 몫 -- 층 0 막힘). **선언 가정은 B = 120 s 하나**이고
 b_P·θ 전류 상자·E_B 는 유도, θ 저항 상자는 미선언(그래서 θ 저항이 있는 두 회로는 거부). 최종 front 0/9(봉인 7 대기).

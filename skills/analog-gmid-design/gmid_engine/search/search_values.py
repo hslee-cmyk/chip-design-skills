@@ -35,6 +35,7 @@ CON_SEAL6 = "seal6_bulk"
 CON_INVERSION = "inversion_floor"
 CON_CONE = "current_cone"
 CON_EPS = "eps"
+CON_WMIN = "w_min"                            # 설계 개정 S-18: W ≥ PDK min_finger_w_m
 
 
 @dataclasses.dataclass(frozen=True)
@@ -69,12 +70,16 @@ class SearchDomain:
     """S0·고정 W 집합마다 1개(설계 4.1). `variables` = 연속 변수(θ 성분 순), `l_cells` = ((MOS, ((lo, hi), ...)), ...)
     L 칸(PDK 모델 bin 안 LUT L 점 구간; 앵커 하나뿐인 칸은 lo == hi). `area_resolution_m2` = b_A = 제조 격자 × 최소 finger 폭
     (DEC-80 (i), 모델 오차 미측정이라 (ii) = (i) -- '추정'). `current_box` = ((kind, (I_off, I_max)), ...) θ 전류 상자의
-    근거(`current_box.py`). 전력 분해능 b_P 는 점마다 다르다(`Objectives.power_resolution_w`)."""
+    근거(`current_box.py`; I_max 는 잠정 -- 단일 finger 최대 슬라이스, S-3b). 전력 분해능 b_P 는 점마다 다르다
+    (`Objectives.power_resolution_w`). `w_min_m`·`grid_m` = PDK 선언 `min_finger_w_m`(difftap.2)·`manufacturing_grid_m`
+    (W 하한 제약 S-18 과 b_A = grid_m × w_min_m)."""
 
     variables: tuple
     l_cells: tuple
     area_resolution_m2: float
     current_box: tuple
+    w_min_m: float
+    grid_m: float
 
 
 @dataclasses.dataclass(frozen=True)

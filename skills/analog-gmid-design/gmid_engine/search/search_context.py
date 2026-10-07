@@ -1,6 +1,7 @@
 """탐색 컨텍스트 -- S0 당 1회 루프 불변 입력 + 실행 수명 평가 캐시·계수 (설계 2.1·7.2·7.4, WP-23 (3)).
 
-진입점: `build_search_context(dc_ctx, spec, settings, archive_root) -> SearchContext`.
+진입점: `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl) -> SearchContext`(`pdk_decl` = core
+`read_pdk_decl` 결과 -- W 하한·b_A 의 `min_finger_w_m`·`manufacturing_grid_m`).
 
 * 담는 것: sizing `KernelContext`(dc), `SearchDomain`, 지문 3개(S0 = `context_fp`, θ 스키마 = `schema_fp`, 코드 =
   `code_fp` -- core·lut·graph·sizing·metrics·search 소스 바이트 sha256), spec 요소 값, 판정 보류 제약 기록, S3 기록기.
@@ -74,8 +75,8 @@ def _disk_failures(archive, context_fp, schema_fp):
     return out
 
 
-def build_search_context(dc_ctx, spec, settings, archive_root):
-    domain = search_domain(dc_ctx, settings)
+def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl):
+    domain = search_domain(dc_ctx, settings, pdk_decl)
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))
     schema_fp = fp_of(dc_ctx.schema)
