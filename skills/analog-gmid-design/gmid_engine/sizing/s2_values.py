@@ -2,7 +2,8 @@
 
 공개 정의는 frozen dataclass 뿐이다(규칙 A 데이터 선언 모듈). 계산은 다른 파일이 한다.
 
-S2 `dc` 는 S1 과 **같은** core `GraphSnapshot` 위에 산다: 권한표 `S2_WRITERS` = S1 권한표 전부 + 아래 dc 필드.
+S2 `dc` 는 S1 과 **같은** core `GraphSnapshot` 위에 산다: 권한표 `S2_WRITERS` = S1 권한표 전부 + 아래 dc 필드 + ss·metric
+필드(`SS_WRITES`, writer = metrics 계산 블록 -- metrics CONTRACT 7절 ss_linearize).
 `lift_s1` 이 S1 스냅샷을 이 권한표로 옮기고, 그 뒤 dc 계산 블록이 필드를 쓴다(필드마다 writer 하나, 값과 함께 입력
 버전 -- 필드가 곧 캐시). graph 레코드 key: node = 넷, device = 원소 이름, graph = `DC_KEY`.
 """
@@ -137,9 +138,20 @@ DC_WRITES = (
     (DC_SEAL_KVL_WRITER, (("graph", "dc_seal_8"),)),
     (DC_SEAL_REPORT_WRITER, (("graph", "dc_seal_report"),)),
 )
+# ---- S2 ss·metric 필드(writer = MOD5 계산 블록, metrics CONTRACT 7절). 권한표가 S2 한 곳이라 여기서 선언한다
+# (sizing 은 metrics 를 import 하지 않는다 -- 이름은 스키마 낱말이다). graph 레코드 key: device = 소자, graph = METRICS_KEY.
+METRICS_KEY = "metrics"
+SS_DEV_WRITER = "ss_dev"                               # device.ss_dev: 봉인 op 의 소신호 선형화(MOS 마다)
+METRICS_SS_WRITER = "metrics_ss"                       # graph.metrics_ss: 뷰 계 MNA -> 제약 metric 묶음
+METRICS_DC_WRITER = "metrics_dc"                       # graph.metrics_dc: 레일 전류·전력·탐색 축 면적 묶음
+SS_WRITES = (
+    (SS_DEV_WRITER, (("device", "ss_dev"),)),
+    (METRICS_SS_WRITER, (("graph", "metrics_ss"),)),
+    (METRICS_DC_WRITER, (("graph", "metrics_dc"),)),
+)
 S2_WRITERS = WriterTable(
     tuple((kind, field, writer) for (kind, field), writer in S1_WRITERS.entries)
-    + tuple((kind, field, writer) for writer, writes in DC_WRITES for kind, field in writes)
+    + tuple((kind, field, writer) for writer, writes in DC_WRITES + SS_WRITES for kind, field in writes)
 )
 
 
