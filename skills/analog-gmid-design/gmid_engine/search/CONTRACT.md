@@ -292,7 +292,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
    (전류 중심을 거친 θ 의 고정 성분)·cells 는 그대로. [r5b] **θ 전류는 원뿔 안 hit-and-run**(전류 중심이 원뿔 안이고 θ 전류·원뿔
    행이 있을 때): 기저 수 = 변수 수 + 1(마지막 소수 = 걸음 비율 φ_s). 선형 전류 좌표의 점 p(처음 = 전류 중심)에서 방향
    d_j = 2·φ_{b_j}(k) − 1(전류 변수 j), 열린 현 (t_lo, t_hi) = 상자 [e^lo, e^hi] 와 원뿔 행 Σ w·(p + t·d) + 고정 > 0 의 교집합,
-   t_lo < t_hi 면 p ← p + (t_lo + φ_s·(t_hi − t_lo))·d(아니면 p 그대로), θ 전류 = p(상자로 자름). p 는 받아들임과 무관하게 다음
+   t_lo·t_hi 가 둘 다 유한이고 t_lo < t_hi 면 p ← p + (t_lo + φ_s·(t_hi − t_lo))·d, 아니면 p 그대로([r8b] 방향이 0 -- 예: θ 전류 변수
+   하나에서 기저 2 의 첫 시험 φ = 1/2 -- 이면 현의 양끝이 무한이라 걸음 없음; 무한 × 0 = NaN 을 만들지 않는다), θ 전류 = p(상자로 자름). p 는 받아들임과 무관하게 다음
    시험으로 이어진다(사슬). 전류 중심이 원뿔 밖이면 전류도 위 상자 Halton. [r5c] **칸 정점 하한**: `ln_idu` 변수(= 쓰기 소자 m)의
    시험 하한 lo'_m = max over {m 의 L 칸 [lo, hi] 안 LUT L 앵커(± spacing)} × {VDS·VS 전 격자} 의 곡선(정점 마디가 on_mask 인 곡선만)
    에서 gm/ID 정점 마디의 ln IDu(= lnID + ln L − ln w_m) -- (kind, w_key, 칸) 마다 이 호출 안에서 1회. lo < lo'_m < hi 일 때만 적용

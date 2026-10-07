@@ -531,7 +531,9 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
                     t_lo = max(t_lo, -lv / s)
                 elif s < 0:
                     t_hi = min(t_hi, -lv / s)
-            if t_lo < t_hi:
+            # 방향이 0(모든 전류 성분 0 -- 예: 전류 변수 하나, 기저 2 의 첫 시험 φ = 1/2)이면 현이 정해지지 않는다(양끝 무한):
+            # 걸음 없음(p 그대로). 끝이 무한인 현·빈 현도 걸음 없음 -- 무한 × 0 = NaN 을 만들지 않는다.
+            if math.isfinite(t_lo) and math.isfinite(t_hi) and t_lo < t_hi:
                 walk = walk + (t_lo + phi[-1] * (t_hi - t_lo)) * d
             for j, i in enumerate(cur):
                 theta[variables[i].component] = float(min(max(walk[j], box_lo[j]), box_hi[j]))
