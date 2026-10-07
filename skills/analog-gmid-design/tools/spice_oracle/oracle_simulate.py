@@ -456,10 +456,12 @@ def tran_plan(crossings_hz, temp_c, floor_v, file_name):
 def transient_decision(path, plan):
     """폐루프 과도 판정. e(t) = H(t) - H(0)(H(0) = 동작점), 킥이 끝난 뒤 창 j = 1..K 의 M_j = max|e|.
     floor = plan.floor_V + (데이터 파일 반올림 u*max|H|).
-      M_K <= floor           -> stable(해 분해능 아래로 감쇠)
-      M_K >= M_1             -> unstable(K 창 동안 줄지 않음 = 증가 또는 지속 진동)
-      M_K <  M_{K-1}         -> stable(끝 창까지 감쇠 중)
-      그 밖(줄었다 다시 커짐) -> undetermined.
+      M_K <= floor                         -> stable(해 분해능 아래로 감쇠)
+      M_K >= M_1                           -> unstable(K 창 동안 줄지 않음 = 증가 또는 지속 진동)
+      M_1 > M_2 > ... > M_K(모든 창 감소)  -> decaying(감쇠가 창마다 일관 -- 아직 floor 위, 연장 실행으로 확인할 것)
+      그 밖(창 사이 다시 커짐)             -> undetermined(완화 진동·맥놀이·늦게 자라는 모드 -- stable 아님).
+    [변경 2026-10-08] 옛 'M_K < M_{K-1} 이면 stable' 은 지속 완화 진동(M = [1.43, 1.21, 0.68, 1.13, 1.45, 1.30])을
+    stable 로 판정했다(독립 test 40158dd rb1e6) -- 끝 두 창만 보는 규칙을 없앴다.
     반환 {status, M, floor_V, reason}."""
     out = {"status": "failed", "M": None, "floor_V": None, "reason": None}
     if not path or not os.path.exists(path):
@@ -495,11 +497,40 @@ def transient_decision(path, plan):
         out.update(status="stable", reason="끝 창 응답이 해 분해능 아래로 감쇠")
     elif M[-1] >= M[0]:
         out.update(status="unstable", reason="K 창 동안 응답이 줄지 않음(증가 또는 지속 진동)")
-    elif M[-1] < M[-2]:
-        out.update(status="stable", reason="끝 창까지 감쇠 중")
+    elif all(b < a for a, b in zip(M, M[1:])):
+        out.update(status="decaying", reason="모든 창에서 감소하지만 아직 해 분해능 위")
     else:
-        out.update(status="undetermined", reason="응답이 줄었다가 끝 창에서 다시 커짐(맥놀이 또는 늦게 자라는 모드)")
+        out.update(status="undetermined", reason="창 사이 응답이 다시 커짐(완화 진동·맥놀이·늦게 자라는 모드)")
     return out
+
+
+def extension_plan(plan, dec, file_name):
+    """decaying 이면 마지막 창 감쇠비 r = M_K/M_{K-1} 의 기하 감쇠로 floor' 에 닿는 창 수 n = ceil(ln(floor'/M_K)/ln r)
+    만큼 늘린 계획(같은 킥·같은 창, 창 수 K + n). 측정한 감쇠율에서 유도(상수 없음). 아니면 None."""
+    M, fl = dec.get("M") or [], dec.get("floor_V")
+    if dec.get("status") != "decaying" or len(M) < 2 or not fl or M[-1] <= fl:
+        return None
+    r = M[-1] / M[-2]
+    n = math.ceil(math.log(fl / M[-1]) / math.log(r))
+    p = dict(plan)
+    p.update(windows=plan["windows"] + n, tstop=plan["t_kick_end"] + (plan["windows"] + n) * plan["window_s"],
+             file=file_name, extension_windows=n)
+    return p
+
+
+def final_transient_status(dec1, dec2):
+    """첫 실행과 연장 실행으로 최종 상태. 첫 실행이 decaying 이 아니면 그 상태(stable·unstable·undetermined·failed).
+    decaying 이면 연장 실행이: stable(floor' 도달) 또는 decaying(투영 시간 전체에서 창마다 감소 = 감쇠 입증) -> stable,
+    unstable -> unstable, 그 밖(failed·undetermined) -> undetermined. 'stable' 은 floor' 도달 또는 입증된 감쇠뿐이다."""
+    s1 = dec1.get("status")
+    if s1 != "decaying":
+        return s1
+    s2 = (dec2 or {}).get("status")
+    if s2 in ("stable", "decaying"):
+        return "stable"
+    if s2 == "unstable":
+        return "unstable"
+    return "undetermined"
 
 
 def stability_judgement(nyq, tran_status, pm_raw=None):
@@ -616,6 +647,27 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
                 dec = transient_decision(sfile, plan)
                 tr.update(dec)
                 tr.update(netlist=os.path.basename(scir), file=plan["file"], ngspice_rc=rc, cache=cst)
+                tr["first_status"] = dec["status"]
+                p2 = extension_plan(plan, dec, f"{stem}.stab2.txt")
+                dec2 = None
+                if p2 is not None:  # 감쇠가 일관되지만 floor' 위 -> 투영한 길이만큼 늘려 감쇠를 입증
+                    s2text, _ = stability_netlist(text, mode, w, meta["output_nodes"], p2)
+                    s2cir = os.path.join(d, f"{stem}.stab2.cir")
+                    with open(s2cir, "w", encoding="utf-8") as fh:
+                        fh.write(s2text)
+                    s2file = os.path.join(d, p2["file"])
+                    if os.path.exists(s2file):
+                        os.remove(s2file)
+                    rc2, _, cst2 = run_ngspice(exe, s2cir, os.path.splitext(s2cir)[0] + ".log", timeout_s, cache_dir,
+                                               [p2["file"]])
+                    dec2 = transient_decision(s2file, p2)
+                    tr["extension"] = {**dec2, "netlist": os.path.basename(s2cir), "file": p2["file"],
+                                       "ngspice_rc": rc2, "cache": cst2, "extension_windows": p2["extension_windows"],
+                                       "tstop": p2["tstop"]}
+                tr["status"] = final_transient_status(dec, dec2)
+                if tr["status"] != dec["status"]:
+                    tr["reason"] = (f"첫 실행 {dec['status']}({dec['reason']}) -> 연장 실행 "
+                                    f"{(dec2 or {}).get('status')}({(dec2 or {}).get('reason')})")
     out["transient"] = tr
     out.update(stability_judgement(nyq, tr.get("status"), pm_raw))
     out["gain_crossings_hz"] = cr
@@ -722,6 +774,8 @@ def apply_stability(res, cir_path, meta, Ldata, exe, timeout_s=None, cache_dir=N
     # 캐시 상태는 결과가 아니다(C21: hit 이든 miss 든 ac 는 같아야 한다) -- sim.stability_cache 로 뺀다
     tr = st.get("transient") or {}
     res["stability_cache"] = {"op_pass": (tr.get("op_pass") or {}).pop("cache", None), "transient": tr.pop("cache", None)}
+    if tr.get("extension"):  # 연장 실행을 했을 때만 키가 생긴다
+        res["stability_cache"]["extension"] = tr["extension"].pop("cache", None)
     ac["stability"] = st
     why = st.get("pm_undefined")
     if not why:
