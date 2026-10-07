@@ -53,7 +53,7 @@ def product_at(factors, omega):
             point = solve_point(system, omega)
             solved.append((system, point))
         if isinstance(f, ProbeFactor):
-            value, err, why = probe_value(f, float(omega), point.values, point.errors, point.undefined)
+            value, err, why, _grad = probe_value(f, float(omega), point.values, point.errors, point.undefined)
         else:
             value, err, why = point.values[f.row, f.column], point.errors[f.row, f.column], point.undefined
         undefined.extend(u for u in why if u not in undefined)

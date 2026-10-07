@@ -1,7 +1,11 @@
 """봉인 스냅샷 하나 -> 소신호 선형화 + spec 제약 metric + 전력·면적 (계획 N3.5 커널 '봉인 -> ss_linearize -> mna -> metric',
 설계 design_mod1_lut_mod5_mna 3.2·3.5 커널 순서, 7a design 4.5 단계 5 배선 지점, metrics CONTRACT 7절).
 
-진입점: `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), passive_theta=()) -> SsEvaluation`.
+진입점: `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), passive_theta=(), *, junction) -> SsEvaluation`.
+
+* `junction` = metrics `JunctionSource`(DEC-91 접합 용량 입력 -- PDK 선언·LUT 생성 규칙 선언·LUT 측정 온도, 부르는 쪽이
+  `JunctionSource.from_decls(read_pdk_decl(...), read_pdk_decl(...), ctx.lut.memo.lut)` 로 S0 당 1회 만든다). 필수 키워드 인자:
+  `KernelContext` 에 PDK 선언이 없어서 새 입력으로 명시했다(metrics CONTRACT 7.6). 아니면 TypeError.
 
 * `sealed` = sizing `SealedSnapshot`(DEC-67 -- 타입으로 강제, 봉인 안 된 스냅샷의 ss 는 계산하지 않는다), `ctx` = 그 스냅샷을
   만든 `KernelContext`, `theta` = 그 θ(`Theta` 또는 매핑 -- `check_theta` 로 다시 정규화, θ 저항 값을 읽는다),
@@ -23,6 +27,7 @@ from gmid_engine.sizing import (METRICS_KEY, THETA_RESISTANCE, DcEvaluation, Ker
                                 check_theta)
 
 from .dc_metrics import metrics_dc
+from .junction_source import JunctionSource
 from .registry import metric_registry
 from .ss_linearize import ss_dev
 from .ss_metrics import metrics_ss
@@ -54,18 +59,20 @@ def _requests(constraints):
     return tuple(seen)
 
 
-def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), passive_theta=()):
+def ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), passive_theta=(), *, junction):
     if not isinstance(sealed, SealedSnapshot):
         raise TypeError("ss_evaluate: 봉인 스냅샷(SealedSnapshot)만 받는다(DEC-67)")
     if not isinstance(ctx, KernelContext):
         raise TypeError("ss_evaluate: ctx 는 build_kernel_context 결과여야 한다")
+    if not isinstance(junction, JunctionSource):
+        raise TypeError("ss_evaluate: junction 은 JunctionSource 여야 한다(DEC-91 접합 용량 입력)")
     theta = check_theta(ctx.schema, theta.values if isinstance(theta, Theta) else theta)
     snapshot = sealed.snapshot
     values = _passive_values(snapshot, ctx, theta, passive_theta)
     requests = _requests(tuple(constraints))
     registry = metric_registry()
     ss_requests = tuple(r for r in requests if registry[r.metric].signature.view_kind is not None)
-    snapshot = ss_dev(snapshot, ctx.lut)
+    snapshot = ss_dev(snapshot, ctx.lut, junction)
     snapshot = metrics_ss(snapshot, ss_requests, values)
     snapshot = metrics_dc(snapshot, values, tuple(counted_rails))
     lineage = DcEvaluation(snapshot, sealed.report, SealedSnapshot(snapshot, sealed.report))

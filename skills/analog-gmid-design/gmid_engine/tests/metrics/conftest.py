@@ -663,9 +663,9 @@ def _sha_of(path):
     return _hashlib.sha256(_Path(path).read_bytes()).hexdigest()
 
 
-def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs=LUT_VS):
+def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs=LUT_VS, temp_c=27.0):
     """toy LUT(npz 직접 작성). slice_gmbs: 슬라이스 GMBS 열. cap_cgs_cgb: 기준 LUT CGS·CGB 열. cap_gmbs: 기준 LUT GMBS·ID 열.
-    cap_vs: 기준 LUT VS 축(슬라이스와 달라도 됨, lut 1.4)."""
+    cap_vs: 기준 LUT VS 축(슬라이스와 달라도 됨, lut 1.4). temp_c: 측정 온도(슬라이스·기준 LUT 같은 값, None 이면 기록 안 함)."""
     root = _Path(root)
     root.mkdir(parents=True, exist_ok=True)
     entries = []
@@ -676,7 +676,9 @@ def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs
         a = {"W": np.float64(LUT_WM), "L": np.asarray(LUT_L), "VGS": np.asarray(LUT_VGS), "VDS": np.asarray(LUT_VDS),
              "VS": np.asarray(LUT_VS), "ID": ID, "GM": ID * (LUT_B - LUT_C * G), "GDS": ID * LUT_LAM,
              "VTH": np.full(ID.shape, 0.4), "meta_json": np.str_('{"model_files_sha256": {}}'),
-             "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+             "corner": np.str_("tt")}
+        if temp_c is not None:
+            a["temp_c"] = np.float64(temp_c)
         if slice_gmbs:
             c0, c1 = GMBS_COEF["slice"]
             a["GMBS"] = ID * (c0 + c1 * S)
@@ -685,7 +687,9 @@ def write_lut_v2(root, slice_gmbs=True, cap_cgs_cgb=True, cap_gmbs=False, cap_vs
         entries.append({"device": dev, "file": p.name, "sha256": _sha_of(p)})
     (root / "manifest.json").write_text(_json.dumps({"generator_sha256": "0" * 64, "slices": entries}), encoding="utf-8")
     cap = {"L": np.asarray(LUT_L), "VGS": np.asarray(LUT_VGS), "VDS": np.asarray(LUT_VDS), "VS": np.asarray(cap_vs),
-           "w_ref_m": np.float64(LUT_WM), "corner": np.str_("tt"), "temp_c": np.float64(27.0)}
+           "w_ref_m": np.float64(LUT_WM), "corner": np.str_("tt")}
+    if temp_c is not None:
+        cap["temp_c"] = np.float64(temp_c)
     for kind, suf in (("nmos", "_n"), ("pmos", "_p")):
         cols = lut_cap_cols(kind, LUT_L, LUT_VGS, LUT_VDS, cap_vs)
         cap["CGG" + suf] = cols["CGG"]
@@ -776,8 +780,8 @@ def oracle_ss(op, gmb_source="slice", cap_model="lut_cgs_cgb"):
         cgs, cgb = caps["CGS"] * sc, caps["CGB"] * sc
     else:
         cgs, cgb = cgg - cgd, 0.0
-    return dict(gm=op.gm_id * op.current, gds=gds, gmb=gmb_w * op.W / LUT_WM, cgg=cgg, cgd=cgd, cgs=cgs, cgb=cgb,
-                cdb=0.0, csb=0.0)
+    # 접합 용량 cdb·csb 는 LUT 가 아니라 PDK 선언에서 온다(DEC-91) -- oracle_junction 이 따로 계산한다.
+    return dict(gm=op.gm_id * op.current, gds=gds, gmb=gmb_w * op.W / LUT_WM, cgg=cgg, cgd=cgd, cgs=cgs, cgb=cgb)
 
 
 def device_op(kind, L, vgs, vds, vsb, W, current=1e-5, gm_id=12.0):
@@ -785,3 +789,279 @@ def device_op(kind, L, vgs, vds, vsb, W, current=1e-5, gm_id=12.0):
     from gmid_engine.sizing import DeviceOp
     ln = lut_ln_idu(kind, vgs, vds, vsb)
     return DeviceOp(kind, current, ln, gm_id, L, W, vgs, vds, vsb, LUT_WKEY, math.exp(ln))
+
+
+# ---------------------------------------------------------------- 접합 용량 독립 기준 식 (CONTRACT 8.2) + toy 선언
+
+JUNCTION_FIELDS = ("cjs", "cjd", "cjsws", "cjswd", "cjswgs", "cjswgd", "mjs", "mjd", "mjsws", "mjswd", "mjswgs", "mjswgd",
+                   "pbs", "pbd", "pbsws", "pbswd", "pbswgs", "pbswgd", "tcj", "tcjsw", "tcjswg", "tpb", "tpbsw", "tpbswg",
+                   "tnom", "permod", "dwj")
+
+
+def _ref_junction_side(p, fw, area, perim, v, temp_c, s):
+    """한 쪽(s = "s" source / "d" drain)의 finger 하나 용량 -- 8.2-2..5 (피검 함수와 독립 구현)."""
+    dT = temp_c - p["tnom"]
+    wc = fw - 2 * p["dwj"]
+    p_eff = perim - wc if p["permod"] == 1 else perim
+    total = 0.0
+    for c, tc, mj, pb, tp, g in (
+        (p["cj" + s], p["tcj"], p["mj" + s], p["pb" + s], p["tpb"], area),
+        (p["cjsw" + s], p["tcjsw"], p["mjsw" + s], p["pbsw" + s], p["tpbsw"], p_eff),
+        (p["cjswg" + s], p["tcjswg"], p["mjswg" + s], p["pbswg" + s], p["tpbswg"], wc),
+    ):
+        c0 = c * max(0.0, 1.0 + tc * dT) * g
+        pbt = pb - tp * dT
+        assert pbt > 0 and wc > 0
+        if v > 0:
+            total += c0 * (1.0 + v / pbt) ** (-mj) if c0 > 0 else 0.0
+        else:
+            total += c0 * (1.0 - mj * v / pbt)
+    return total
+
+
+def ref_caps(p, geo, v_db, v_sb, temp_c):
+    """8.2 독립 기준 식. p = {필드: 값}, geo = (finger_w, ad, as, pd, ps, m) -> (cdb, csb)."""
+    fw, ad, as_, pd, ps, m = geo
+    return (m * _ref_junction_side(p, fw, ad, pd, v_db, temp_c, "d"),
+            m * _ref_junction_side(p, fw, as_, ps, v_sb, temp_c, "s"))
+
+
+# toy 모델 카드 접합 파라미터(kind 마다·drain/source 쪽마다 다른 값 -- 섞이면 드러나게). 값은 단위 글자 없는 repr 로 카드에
+# 쓰므로(units_m {"": 1.0}) 선언 값 = 이 float 그대로.
+TOY_JUNCTION = {
+    "nmos": dict(cjs=1.1e-3, cjd=0.9e-3, cjsws=1.2e-10, cjswd=0.8e-10, cjswgs=2.5e-10, cjswgd=1.5e-10,
+                 mjs=0.45, mjd=0.35, mjsws=0.2, mjswd=0.3, mjswgs=0.7, mjswgd=0.6,
+                 pbs=0.8, pbd=0.7, pbsws=0.9, pbswd=0.6, pbswgs=1.1, pbswgd=1.2,
+                 tcj=1e-3, tcjsw=2e-4, tcjswg=3e-4, tpb=1e-3, tpbsw=2e-3, tpbswg=5e-4,
+                 tnom=25.0, permod=1.0, dwj=2e-8),
+    "pmos": dict(cjs=0.7e-3, cjd=0.6e-3, cjsws=1.0e-10, cjswd=0.9e-10, cjswgs=2.2e-10, cjswgd=2.0e-10,
+                 mjs=0.35, mjd=0.4, mjsws=0.3, mjswd=0.25, mjswgs=0.9, mjswgd=0.8,
+                 pbs=0.66, pbd=0.75, pbsws=0.74, pbswd=0.7, pbswgs=1.4, pbswgd=1.3,
+                 tcj=1.2e-3, tcjsw=3.7e-4, tcjswg=0.0, tpb=2e-3, tpbsw=1.2e-3, tpbswg=0.0,
+                 tnom=30.0, permod=1.0, dwj=1e-8),
+}
+# toy LUT 생성 규칙 DUT 줄(ad ≠ as, pd ≠ ps -- 쪽이 바뀌면 드러나게). SI 값 그대로(단위 글자 없음).
+TOY_RULE_LINE = "xdut d g s b dev l=1e-6 w=4e-6 ad=2e-12 as=1.2e-12 pd=9e-6 ps=7e-6"
+
+
+def toy_rule_values(rule_line=TOY_RULE_LINE):
+    """규칙 DUT 줄에서 4개 양을 식(ad / w, as / w, pd − w, ps − w) 그대로 따로 계산."""
+    kv = dict(t.split("=") for t in rule_line.split() if "=" in t)
+    w, ad, as_, pd, ps = (float(kv[k]) for k in ("w", "ad", "as", "pd", "ps"))
+    return dict(ad_per_w=ad / w, as_per_w=as_ / w, pd_extra=pd - w, ps_extra=ps - w)
+
+
+def _write_sha(path, data):
+    path.write_bytes(data)
+    return _hashlib.sha256(data).hexdigest()
+
+
+def toy_junction_decls(root, params=None, rule_line=TOY_RULE_LINE, kinds=("nmos", "pmos")):
+    """toy PDK 선언(kind 마다 모델 카드 원본 하나, 27개 양 `junction_<kind>_<필드>`) + toy LUT 규칙 선언(core 9.1 형식).
+    반환 (pdk 선언 경로, 규칙 선언 경로)."""
+    root = _Path(root)
+    (root / "m").mkdir(parents=True, exist_ok=True)
+    params = TOY_JUNCTION if params is None else params
+    sources, quantities = {}, {}
+    for kind in kinds:
+        body = "\n".join("+ %s = %r" % (f, float(params[kind][f])) for f in JUNCTION_FIELDS)
+        text = ("* toy %s card\n.model tj_%s.0 %s level = 54 vth0 = 0.3\n%s\n.model tj_%s.1 %s level = 54 vth0 = 0.4\n%s\n"
+                % (kind, kind, kind, body, kind, kind, body))
+        sha = _write_sha(root / "m" / ("%s.spice" % kind), text.encode("utf-8"))
+        sources["card_" + kind] = {"path": "m/%s.spice" % kind, "sha256": sha, "format": "spice_model_card",
+                                   "encoding": "utf-8", "model_pattern": r"tj_%s\.[0-9]+" % kind, "units_m": {"": 1.0}}
+        for f in JUNCTION_FIELDS:
+            quantities["junction_%s_%s" % (kind, f)] = {"source": "card_" + kind, "expression": f, "basis": "toy"}
+    pdk = {"schema": "gmid_pdk_decl/1", "pdk": "toyjw", "pdk_root": root.as_posix(), "sources": sources,
+           "quantities": quantities}
+    gsha = _write_sha(root / "gen.py", ('DUT_LINE = "%s"\n' % rule_line).encode("utf-8"))
+    rule = {"schema": "gmid_pdk_decl/1", "pdk": "toyjw", "pdk_root": "unused",
+            "sources": {"gen": {"path": "gen.py", "base": "decl_dir", "newline": "lf", "sha256": gsha,
+                                "format": "spice_instance_line", "encoding": "utf-8",
+                                "line_pattern": r'^DUT_LINE\s*=\s*"([^"]*)"', "units_m": {"": 1.0}}},
+            "quantities": {"lut_diffusion_ad_per_w_m": {"source": "gen", "expression": "ad / w", "basis": "t"},
+                           "lut_diffusion_as_per_w_m": {"source": "gen", "expression": "as / w", "basis": "t"},
+                           "lut_diffusion_pd_extra_m": {"source": "gen", "expression": "pd - w", "basis": "t"},
+                           "lut_diffusion_ps_extra_m": {"source": "gen", "expression": "ps - w", "basis": "t"}}}
+    pp, rp = root / "pdk.json", root / "rule.json"
+    pp.write_bytes(_json.dumps(pdk).encode("utf-8"))
+    rp.write_bytes(_json.dumps(rule).encode("utf-8"))
+    return str(pp), str(rp)
+
+
+def read_decls(pdk_path, rule_path):
+    from gmid_engine.core import BoundedLRU, read_pdk_decl
+    memo = BoundedLRU(8)
+    return read_pdk_decl(pdk_path, memo), read_pdk_decl(rule_path, memo)
+
+
+def toy_junction(root, lut, **kw):
+    """8.5 소비자 호출 그대로: JunctionSource.from_decls(PDK 선언, 규칙 선언, LUT 세트)."""
+    from gmid_engine.metrics import JunctionSource
+    return JunctionSource.from_decls(*read_decls(*toy_junction_decls(root, **kw)), lut)
+
+
+def oracle_junction(op, params=None, temp_c=27.0, rule=None, w_m=LUT_WM):
+    """7.2 접합 항의 독립 계산: 기하 = LUT 규칙(finger_w = w_m, m = W / w_m), v_db = vds + vsb, v_sb = vsb."""
+    p = (TOY_JUNCTION if params is None else params)[op.kind]
+    r = toy_rule_values() if rule is None else rule
+    geo = (w_m, r["ad_per_w"] * w_m, r["as_per_w"] * w_m, w_m + r["pd_extra"], w_m + r["ps_extra"], op.W / w_m)
+    return ref_caps(p, geo, op.vds + op.vsb, op.vsb, temp_c)
+
+
+# 독립 기준 식과 엔진의 차이 허용: 둘 다 같은 식을 연산 순서만 다르게 푼다 -- 쪽마다 항 3개 x (곱·합·나눗셈·거듭제곱)
+# 약 10회 반올림, 최종 m 곱·합 포함 약 40회 x eps(2.2e-16) = 9e-15. 거듭제곱 지수 곱의 오차 증폭(|mj| ≤ 1)을 넣어 10 배 여유.
+JUNCTION_RTOL = 40 * 2.220446049250313e-16 * 10
+
+
+# =====================================================================================================================
+# 9절 (metric 분해능) 공용 -- CONTRACT 9절만 근거. metrics 의 새 소스(lut_parameters·sensitivity·resolution·_helpers_dc)와
+# 바뀐 소스는 열람하지 않았다. 기대값 = 9.5 폐형식(test 쪽 재계산) + 아래 독립 MNA 의 중심 차분(파라미터마다 다시 세워 푼다).
+# =====================================================================================================================
+
+EPS = float(np.finfo(float).eps)
+LUT_P = ("gm", "gmb", "gds", "cgs", "cgd", "cgb")      # 9.1 LUT_PARAMETERS (계약 문자열의 test 쪽 사본)
+MOS_IX = {"gm": 4, "gmb": 5, "gds": 6, "cgs": 7, "cgd": 8, "cgb": 9, "cdb": 10, "csb": 11}   # mos_t tuple 위치
+DB_PER_NEPER = 20.0 / math.log(10.0)                     # 9.3 D = 20·log10(e)
+FD_H = 1e-6                                              # R-2 의 상대 차분 폭
+FD_RTOL = 1e-6                                           # R-2 의 허용 상대 차
+
+
+def circuit12(mos, res=(), cap=(), ac_ground=(0,), nm=None):
+    """mos_t 12-tuple(용량 포함) -> SmallSignalCircuit(노드 치환 nm 선택)."""
+    m = mapper(nm)
+    return SmallSignalCircuit(
+        mos=tuple(MosSmallSignal(m(t[0]), m(t[1]), m(t[2]), m(t[3]), *t[4:]) for t in mos),
+        resistors=tuple(Resistor(m(a), m(b), v) for a, b, v in res),
+        capacitors=tuple(Capacitor(m(a), m(b), v) for a, b, v in cap),
+        ac_ground=tuple(m(n) for n in ac_ground),
+    )
+
+
+def columns_of(excitations):
+    """Excitation 레코드 -> 독립 풀이용 열 dict(입력 레코드 읽기만)."""
+    return tuple({"v": dict(e.voltages), "i": dict(e.currents), "q": dict(e.charges)} for e in excitations)
+
+
+def senses_of(senses):
+    return tuple((s.pos, s.neg) for s in senses)
+
+
+def ref_system(mos=(), res=(), cap=(), ac_ground=(0,), columns=(), senses=(), omega=1.0):
+    """독립 MNA(여러 열·여러 관측). mos: mos_t 12-tuple, res/cap: (a, b, 값 -- 음수 용량 허용), columns: ({"v","i","q"}, ...),
+    senses: ((pos, neg | None), ...). 반환 (r, m) 복소 배열.
+    - 고정 노드 = ac_ground ∪ 모든 열의 전압 구동 노드(열에 없는 구동 노드는 0 V -- CONTRACT 1절).
+    - ω > 0: (G + jωC)x = I + jω·Q.
+    - ω = 0: 전하 보존 극한(3.3) -- 전체 G 행이 0 인 미지수 노드 행은 C 행·x = Q, 나머지는 G 행·x = I. 그 노드에 I ≠ 0 인 열은 NaN.
+    풀기 전 행마다 최대 크기로 나눈다(해 불변 -- 용량 전용 행과 컨덕턴스 행의 크기 차를 없앤다)."""
+    nodes = set(ac_ground)
+    for col in columns:
+        nodes |= set(col["v"]) | set(col["i"]) | set(col["q"])
+    for p, n in senses:
+        nodes |= {p} | ({n} if n is not None else set())
+    for t in tuple(res) + tuple(cap):
+        nodes |= {t[0], t[1]}
+    for t in mos:
+        nodes |= set(t[:4])
+    nodes = sorted(nodes)
+    ix = {n: i for i, n in enumerate(nodes)}
+    N = len(nodes)
+    G = np.zeros((N, N))
+    C = np.zeros((N, N))
+
+    def two(M, a, b, y):
+        M[ix[a], ix[a]] += y
+        M[ix[b], ix[b]] += y
+        M[ix[a], ix[b]] -= y
+        M[ix[b], ix[a]] -= y
+
+    for a, b, r in res:
+        two(G, a, b, 1.0 / r)
+    for a, b, c in cap:
+        two(C, a, b, c)
+    for d, g, so, b, gm, gmb, gds, cgs, cgd, cgb, cdb, csb in mos:
+        for row, sg in ((d, 1.0), (so, -1.0)):
+            r_ = ix[row]
+            G[r_, ix[g]] += sg * gm
+            G[r_, ix[b]] += sg * gmb
+            G[r_, ix[d]] += sg * gds
+            G[r_, ix[so]] -= sg * (gm + gmb + gds)
+        for a, bb, c in ((g, so, cgs), (g, d, cgd), (g, b, cgb), (d, b, cdb), (so, b, csb)):
+            if c:
+                two(C, a, bb, c)
+    fixed = set(ac_ground)
+    for col in columns:
+        fixed |= set(col["v"])
+    fi = [ix[n] for n in nodes if n in fixed]
+    unk = [n for n in nodes if n not in fixed]
+    ui = [ix[n] for n in unk]
+    charge = [n for n in unk if not np.any(G[ix[n], :])]
+    out = np.zeros((len(senses), len(columns)), dtype=complex)
+    for j, col in enumerate(columns):
+        xf = np.array([col["v"].get(n, 0.0) for n in nodes if n in fixed], dtype=complex)
+        if omega > 0.0:
+            Y = G + 1j * omega * C
+            A = Y[np.ix_(ui, ui)]
+            rhs = np.array([col["i"].get(n, 0.0) + 1j * omega * col["q"].get(n, 0.0) for n in unk]) - Y[np.ix_(ui, fi)] @ xf
+        else:
+            if any(col["i"].get(n, 0.0) != 0.0 for n in charge):
+                out[:, j] = np.nan
+                continue
+            A = np.zeros((len(ui), len(ui)), dtype=complex)
+            rhs = np.zeros(len(ui), dtype=complex)
+            for k, n in enumerate(unk):
+                M, src = (C, col["q"]) if n in charge else (G, col["i"])
+                A[k] = M[ix[n], ui]
+                rhs[k] = src.get(n, 0.0) - M[ix[n], fi] @ xf
+        scale = np.max(np.abs(A), axis=1)
+        x = np.linalg.solve(A / scale[:, None], rhs / scale)
+        full = {n: v for n, v in zip([n for n in nodes if n in fixed], xf)}
+        full.update(zip(unk, x))
+        for r, (p, n) in enumerate(senses):
+            out[r, j] = full[p] - (full[n] if n is not None else 0.0)
+    return out
+
+
+def perturbed(mos, k, name, factor):
+    """mos_t tuple 들 중 k 번째 MOS 의 파라미터 name 만 factor 배."""
+    out = [list(t) for t in mos]
+    out[k][MOS_IX[name]] *= factor
+    return tuple(tuple(t) for t in out)
+
+
+def central_diff(mos, k, name, fn, h=FD_H):
+    """∂fn/∂p ≈ (fn(p(1+h)) − fn(p(1−h)))/(p+ − p−) -- 실제 부동소수 폭으로 나눈다."""
+    p = mos[k][MOS_IX[name]]
+    pp, pm = p * (1.0 + h), p * (1.0 - h)
+    return (fn(perturbed(mos, k, name, 1.0 + h)) - fn(perturbed(mos, k, name, 1.0 - h))) / (pp - pm)
+
+
+def lut_params_of(mos):
+    """9.1: (MOS 순번, 이름) -- 값 ≠ 0 인 LUT 파라미터만, (MOS 순번, LUT_P 순서)."""
+    return tuple((k, nm) for k, t in enumerate(mos) for nm in LUT_P if t[MOS_IX[nm]] != 0.0)
+
+
+# ---------------------------------------------------------------- 9절 변형 회로 (음의 용량·Miller·gmb)
+
+# 예 3 Miller + source 축퇴(Rs: gmb 가 의미 있게) + 두 MOS 의 cgs·cgd·음의 cgb·접합(cdb·csb -- LUT 파라미터 아님)
+MILLER_V_MOS = (
+    mos_t(2, 1, 4, 0, 1e-4, 2e-5, 1e-6, cgs=20e-15, cgd=5e-15, cgb=-3e-15, cdb=2e-15, csb=1e-15),
+    mos_t(3, 2, 0, 0, 1e-3, 1e-4, 1e-5, cgs=50e-15, cgd=10e-15, cgb=-5e-15, cdb=4e-15, csb=0.0),
+)
+MILLER_V_RES = ((4, 0, 1e3),)
+MILLER_V_CAP = ((2, 0, 0.1e-12), (3, 0, 1e-12), (2, 3, 0.5e-12))
+MILLER_V_COLS = ({"v": {1: 1.0}, "i": {}, "q": {}},)
+MILLER_V_SENSE = ((3, None),)
+
+
+def miller_v_system(mos=MILLER_V_MOS, nm=None):
+    m = mapper(nm)
+    ck = circuit12(mos, MILLER_V_RES, MILLER_V_CAP, (0,), nm)
+    return ck, build_mna(ck, (Excitation("vin", voltages=((m(1), 1.0),)),), (Sense(m(3)),))
+
+
+# 예 7 + gmb·cgs·cgd·음의 cgb·cdb(절단 전 원래 회로, Cf = capacitors index 1)
+EX7V_MOS = (mos_t(2, 3, 0, 0, 1e-3, 1e-4, 1e-5, cgs=0.3e-12, cgd=0.2e-12, cgb=-0.1e-12, cdb=0.05e-12),)
+EX7V_CAP = ((2, 0, 1e-12), (2, 3, 1e-12), (3, 0, 3e-12))
+EX7_MOS12 = (mos_t(2, 3, 0, 0, 1e-3, 0.0, 1e-5),)
+EX7_CAP = ((2, 0, 1e-12), (2, 3, 1e-12), (3, 0, 3e-12))
