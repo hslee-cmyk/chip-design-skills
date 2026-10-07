@@ -5,9 +5,13 @@
 
 * 엔진 코드에는 PDK 이름·규칙 번호·숫자·경로가 없다. 선언 파일(JSON)이 원본 파일(경로·sha256·형식·단위)과
   길이마다 규칙 식(`max(poly.2, licon.1 + 2 * licon.11)` 같은 산술식, 이름 = 원본 파일의 규칙 번호)을 정한다.
-* 원본 형식 두 가지(선언의 `format`): `lef_statement`(줄 머리 `KEY 값 ;`, 예 tlef `MANUFACTURINGGRID`)와
-  `rule_table_csv`(절 머리 행 + 규칙 행 표, 열 번호·절 머리 정규식은 선언이 준다). 규칙 하나가 원본에 두 번 나오면
-  모호 -- 식이 그 규칙을 쓸 때만 거부한다.
+* 원본 형식 네 가지(선언의 `format`): `lef_statement`(줄 머리 `KEY 값 ;`, 예 tlef `MANUFACTURINGGRID`),
+  `rule_table_csv`(절 머리 행 + 규칙 행 표, 열 번호·절 머리 정규식은 선언이 준다), `spice_model_card`(SPICE `.model`
+  블록의 `키 = 값` -- 블록 이름 정규식은 선언이 준다, bin 공통 키와 bin 별 `모델.키`, DEC-91 접합 파라미터),
+  `spice_instance_line`(정규식이 고른 SPICE 소자 줄의 `키=값` -- 예 LUT 생성기 DUT 줄의 확산 기하). 규칙 하나가 원본에
+  두 번 나오면(모델 카드는 bin 마다 값이 다르면) 모호 -- 식이 그 규칙을 쓸 때만 거부한다.
+* 원본 경로 기준은 `pdk_root`(기본) 또는 선언 파일 폴더(원본의 `base` = `"decl_dir"`, PDK 밖 원본).
+* 양의 값(`value_m`)은 원본 단위 표(`units_m`)로 환산한 SI 값이다(길이면 m, 면적 m², 접합 용량 F/m² 등 -- 이름이 단위를 적는다).
 * 원본 파일은 매 호출 sha256 을 다시 재서 선언값과 대조하고(다르면 거부), 파싱 결과는 부르는 쪽 `BoundedLRU` 에
   (형식, sha256, 파싱 인자) 키로 둔다 -- 같은 파일은 sha256 당 한 번만 파싱한다. 모듈 수준 캐시는 없다(규칙 G).
 * 실패는 전부 `SchemaRejectedError(detail={"reason": ...})`(로드 게이트 거부, 사유 키는 core CONTRACT 9절).
@@ -33,15 +37,42 @@ _TOP_KEYS = ("note", "pdk", "pdk_root", "quantities", "schema", "sources")
 _QUANTITY_KEYS = ("basis", "expression", "source")
 _FORMAT_LEF = "lef_statement"
 _FORMAT_TABLE = "rule_table_csv"
+_FORMAT_MODEL = "spice_model_card"
+_FORMAT_INSTANCE = "spice_instance_line"
+_OPTIONAL_SOURCE_KEYS = ("base", "newline", "note")
 _SOURCE_KEYS = (
-    (_FORMAT_LEF, ("encoding", "format", "note", "path", "sha256", "units_m")),
-    (_FORMAT_TABLE, ("encoding", "format", "id_column", "note", "path", "section_column", "section_pattern",
-                     "sha256", "unit_column", "units_m", "value_column")),
+    (_FORMAT_LEF, ("base", "encoding", "format", "newline", "note", "path", "sha256", "units_m")),
+    (_FORMAT_TABLE, ("base", "encoding", "format", "id_column", "newline", "note", "path", "section_column",
+                     "section_pattern", "sha256", "unit_column", "units_m", "value_column")),
+    (_FORMAT_MODEL, ("base", "encoding", "format", "model_pattern", "newline", "note", "path", "sha256", "units_m")),
+    (_FORMAT_INSTANCE, ("base", "encoding", "format", "line_pattern", "newline", "note", "path", "sha256",
+                        "units_m")),
 )
 _PARSE_KEYS = (
     (_FORMAT_LEF, ("encoding",)),
     (_FORMAT_TABLE, ("encoding", "id_column", "section_column", "section_pattern", "unit_column", "value_column")),
+    (_FORMAT_MODEL, ("encoding", "model_pattern")),
+    (_FORMAT_INSTANCE, ("encoding", "line_pattern")),
 )
+_PATTERN_KEYS = (
+    (_FORMAT_LEF, ()),
+    (_FORMAT_TABLE, ("section_pattern",)),
+    (_FORMAT_MODEL, ("model_pattern",)),
+    (_FORMAT_INSTANCE, ("line_pattern",)),
+)
+# 원본 경로의 기준: pdk_root(기본) 또는 선언 파일이 있는 폴더(PDK 밖 원본 -- 예 LUT 생성기 소스)
+_BASE_PDK_ROOT = "pdk_root"
+_BASE_DECL_DIR = "decl_dir"
+_BASES = (_BASE_PDK_ROOT, _BASE_DECL_DIR)
+# 원본 바이트 그대로(기본) 또는 CRLF -> LF 로 맞춘 바이트로 sha256 을 재고 푼다("lf": git 이 체크아웃마다 줄 끝을 바꾸는
+# 저장소 안 원본 -- 선언 sha256 = 저장소 blob 내용)
+_NEWLINE_LF = "lf"
+_CRLF = b"\r\n"
+_LF = b"\n"
+_MODEL_HEAD = re.compile(r"^\s*\.model\s+(?P<name>\S+)\s+\S+(?P<rest>.*)$", re.IGNORECASE)
+_SPICE_PARAM = re.compile(r"([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(\{[^}]*\}|'[^']*'|[^\s(){}=']+)")
+_SPICE_VALUE = re.compile(r"(?P<number>[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?)(?P<scale>[A-Za-z]*)")
+_SPICE_INLINE_COMMENT = re.compile(r"\s[$;].*$")
 _FUNCTIONS = (("max", max), ("min", min))
 _BINOPS = ((ast.Add, operator.add), (ast.Sub, operator.sub), (ast.Mult, operator.mul), (ast.Div, operator.truediv))
 _NUMBER = re.compile(r"[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?")
@@ -152,30 +183,113 @@ def _parse_table(text, params):
     return entries
 
 
+def _spice_entry(raw, line_no):
+    """SPICE 값 글자 하나 -> (값 글자, 배율 글자(소문자), 행). 수 + 배율 글자 꼴이 아니면(`{식}` 등) 값 글자 그대로, 배율 ""
+    -- 식이 그 규칙을 쓰면 `pdk_rule_not_numeric` 으로 거부된다."""
+    value = _SPICE_VALUE.fullmatch(raw)
+    if value is None:
+        return raw, "", line_no
+    return value.group("number"), value.group("scale").lower(), line_no
+
+
+def _parse_model_card(text, params):
+    """`.model <이름> <형> ...` + `+` 이어진 줄의 `키 = 값` 묶음. 이름이 `model_pattern` 에 맞는 블록만 읽는다.
+
+    규칙 이름(전부 소문자, SPICE 는 대소문자 무관): `<모델 이름>.<키>`(bin 별, 블록마다 하나) 그리고 `<키>`(bin 공통) --
+    맞은 블록 전부가 같은 값 글자를 가지면 항목 하나(첫 블록의 행), 블록마다 값이 다르거나 어느 블록에 키가 없으면 항목이
+    둘 이상이라 식이 쓸 때 `pdk_rule_ambiguous`(그때는 bin 별 이름을 써야 한다)."""
+    model_re = re.compile(params["model_pattern"])
+    blocks = []
+    current = None
+    for line_no, raw in enumerate(text.splitlines(), start=1):
+        stripped = raw.strip()
+        if not stripped or stripped.startswith("*"):
+            continue
+        body = _SPICE_INLINE_COMMENT.sub("", raw)
+        head = _MODEL_HEAD.match(body)
+        if head:
+            current = None
+            if not model_re.fullmatch(head.group("name")):
+                continue
+            current = (head.group("name").lower(), line_no, {})
+            blocks.append(current)
+            body = head.group("rest")
+        elif stripped.startswith("+"):
+            if current is None:
+                continue
+            body = body.strip()[len("+"):]
+        else:
+            current = None
+            continue
+        for key, value in _SPICE_PARAM.findall(body):
+            current[2].setdefault(key.lower(), []).append(_spice_entry(value, line_no))
+    entries = {}
+    for name, _, found in blocks:
+        for key, values in found.items():
+            entries.setdefault(name + "." + key, []).extend(values)
+    for key in sorted({k for _, _, found in blocks for k in found}):
+        distinct = {}
+        for _, head_line, found in blocks:
+            for value_text, unit_text, line_no in found.get(key, (("", "", head_line),)):
+                distinct.setdefault((value_text, unit_text), line_no)
+        entries[key] = [(value_text, unit_text, line_no) for (value_text, unit_text), line_no in distinct.items()]
+    return entries
+
+
+def _parse_instance_line(text, params):
+    """`line_pattern` 이 맞는 줄마다(그룹이 있으면 그룹 1 글자, 없으면 맞은 글자 전체) `키=값` 을 규칙 `키`(소문자)로.
+    두 줄 이상에 나온 키는 항목이 둘 이상이라 쓰일 때 `pdk_rule_ambiguous`."""
+    line_re = re.compile(params["line_pattern"])
+    entries = {}
+    for line_no, raw in enumerate(text.splitlines(), start=1):
+        found = line_re.search(raw)
+        if found is None:
+            continue
+        body = found.group(1) if line_re.groups else found.group(0)
+        for key, value in _SPICE_PARAM.findall(body):
+            entries.setdefault(key.lower(), []).append(_spice_entry(value, line_no))
+    return entries
+
+
+def _parse_lef_text(text, params):
+    return _parse_lef(text)
+
+
+_PARSERS = (
+    (_FORMAT_LEF, _parse_lef_text),
+    (_FORMAT_TABLE, _parse_table),
+    (_FORMAT_MODEL, _parse_model_card),
+    (_FORMAT_INSTANCE, _parse_instance_line),
+)
+
+
 def _parsed(fmt, text, params):
-    entries = _parse_lef(text) if fmt == _FORMAT_LEF else _parse_table(text, params)
+    entries = dict(_PARSERS)[fmt](text, params)
     return tuple((rid, tuple(found)) for rid, found in sorted_items(entries))
 
 
-def _load_source(root, name, spec, memo):
+def _load_source(root, decl_dir, name, spec, memo):
     if not isinstance(spec, dict):
         raise _reject("pdk_decl_shape", where="sources." + name)
     fmt = spec.get("format")
     allowed = dict(_SOURCE_KEYS).get(fmt)
     if allowed is None:
         raise _reject("pdk_source_format_unknown", source=name, format=fmt)
-    _require_keys("sources." + name, spec, allowed, tuple(k for k in allowed if k != "note"))
+    _require_keys("sources." + name, spec, allowed, tuple(k for k in allowed if k not in _OPTIONAL_SOURCE_KEYS))
     units_m = spec["units_m"]
     if not isinstance(units_m, dict) or not units_m or any(
             not isinstance(f, (int, float)) or isinstance(f, bool) or not math.isfinite(f) or f <= 0
             for f in units_m.values()):
         raise _reject("pdk_source_units_invalid", source=name)
     _check_source_shape(name, fmt, spec)
-    path = root.rstrip("/\\") + "/" + spec["path"]
+    base = decl_dir if spec.get("base", _BASE_PDK_ROOT) == _BASE_DECL_DIR else root
+    path = base.rstrip("/\\") + "/" + spec["path"]
     if not os.path.isfile(path):
         raise _reject("pdk_source_missing", source=name, path=path)
     with open(path, "rb") as fh:
         data = fh.read()
+    if spec.get("newline") == _NEWLINE_LF:
+        data = data.replace(_CRLF, _LF)
     digest = hashlib.sha256(data).hexdigest()
     if digest != spec["sha256"]:
         raise _reject("pdk_source_sha256_mismatch", source=name, path=path, declared=spec["sha256"], actual=digest)
@@ -186,29 +300,34 @@ def _load_source(root, name, spec, memo):
 
 def _check_source_shape(name, fmt, spec):
     """원본 선언 값의 모양: path·encoding 비지 않은 문자열(encoding 은 파이썬 코덱 이름), sha256 = 64자 소문자 hex,
-    rule_table_csv 는 section_pattern 이 컴파일되는 정규식이고 열 번호가 0 이상 정수. 위반 -> `pdk_decl_shape`."""
+    선택 `base` ∈ {"pdk_root", "decl_dir"}, 선택 `newline` = "lf", 정규식 키(section_pattern·model_pattern·line_pattern)는
+    컴파일되는 문자열, rule_table_csv 열 번호는 0 이상 정수. 위반 -> `pdk_decl_shape`."""
     where = "sources." + name
     for key in ("path", "encoding", "sha256"):
         if not isinstance(spec[key], str) or not spec[key]:
             raise _reject("pdk_decl_shape", where=where + "." + key)
     if not _SHA256.fullmatch(spec["sha256"]):
         raise _reject("pdk_decl_shape", where=where + ".sha256")
+    if not isinstance(spec.get("base", _BASE_PDK_ROOT), str) or spec.get("base", _BASE_PDK_ROOT) not in _BASES:
+        raise _reject("pdk_decl_shape", where=where + ".base")
+    if "newline" in spec and spec["newline"] != _NEWLINE_LF:
+        raise _reject("pdk_decl_shape", where=where + ".newline")
     try:
         codecs.lookup(spec["encoding"])
     except LookupError:
         raise _reject("pdk_decl_shape", where=where + ".encoding") from None
-    if fmt != _FORMAT_TABLE:
-        return
-    for key in ("section_column", "id_column", "value_column", "unit_column"):
-        column = spec[key]
-        if isinstance(column, bool) or not isinstance(column, int) or column < 0:
+    if fmt == _FORMAT_TABLE:
+        for key in ("section_column", "id_column", "value_column", "unit_column"):
+            column = spec[key]
+            if isinstance(column, bool) or not isinstance(column, int) or column < 0:
+                raise _reject("pdk_decl_shape", where=where + "." + key)
+    for key in dict(_PATTERN_KEYS)[fmt]:
+        if not isinstance(spec[key], str):
             raise _reject("pdk_decl_shape", where=where + "." + key)
-    if not isinstance(spec["section_pattern"], str):
-        raise _reject("pdk_decl_shape", where=where + ".section_pattern")
-    try:
-        re.compile(spec["section_pattern"])
-    except re.error:
-        raise _reject("pdk_decl_shape", where=where + ".section_pattern") from None
+        try:
+            re.compile(spec[key])
+        except re.error:
+            raise _reject("pdk_decl_shape", where=where + "." + key) from None
 
 
 def _rule(source_name, source, units_m, rule_id):
@@ -345,7 +464,8 @@ def read_pdk_decl(decl_path, memo):
     root = decl["pdk_root"]
     if not isinstance(root, str) or not root or not isinstance(decl["pdk"], str) or not decl["pdk"]:
         raise _reject("pdk_decl_shape", where="pdk/pdk_root", path=decl_path)
-    sources = {name: _load_source(root, name, spec, memo) for name, spec in sorted_items(source_specs)}
+    decl_dir = os.path.dirname(os.path.abspath(decl_path))
+    sources = {name: _load_source(root, decl_dir, name, spec, memo) for name, spec in sorted_items(source_specs)}
     quantities = tuple((name, _quantity(name, spec, sources, source_specs))
                        for name, spec in sorted_items(quantity_specs))
     return PdkDecl(decl["pdk"], decl_path, hashlib.sha256(raw).hexdigest(),

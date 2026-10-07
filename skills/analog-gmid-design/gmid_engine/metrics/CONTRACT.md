@@ -1,6 +1,6 @@
 # gmid_engine.metrics 동작 계약 (test 작성용) -- 1단계: 엔진 상태와 독립인 수치 핵심 + 2단계: ss_linearize 배선(7절)
 
-- 대상: `gmid_engine.metrics.__all__`(이 단계 파일 27개, 아래 0절). test 는 `from gmid_engine.metrics import ...` 와
+- 대상: `gmid_engine.metrics.__all__`(이 단계 파일 27개 + 접합 용량 `junction_cap.py`(8절), 아래 0절). test 는 `from gmid_engine.metrics import ...` 와
   `from gmid_engine.core import ...` 만 쓴다(`_` 이름 금지). test 배치(규칙 H): `gmid_engine/tests/metrics/test_<파일>.py`.
 - 근거: `wt/_drafts/engine/design_mod1_lut_mod5_mna.md`(이하 DM) 3.1~3.4, 계획 N3.8(gain·PM U-48), DEC-25·53·66·67·68·
   78·79, DF-06·16·19·26·28·29·30·37, WP-03, 설계 `design_spec_format.md` 3.2(`metric_catalog`), coordinator 결정
@@ -10,7 +10,8 @@
   `ss_linearize` 배선: 봉인 스냅샷 → `ss_dev`·`metrics_ss`·`metrics_dc` 계산 블록 → S2 필드, 진입점 `ss_evaluate` (7a 4.5 단계 5
   배선 지점 -- spec `ViewDecl` → 계 레코드). 그 파일들만 graph·sizing·lut·authoring 을 import 한다(PACKAGE_ORDER 앞쪽).
 - 아직 범위 밖: GB4 `achievability`, GB5 `compensation`(보상 수동소자 θ -- 7절은 값을 `passive_theta` 인자로 받는 자리만 둔다),
-  `ls_fields`, `columns_current_check`, `area_layout_m2`, `nqs_ratio`·`mismatch_sigma_v`, DEC-91 접합 용량 정본 계산(7.2).
+  `ls_fields`, `columns_current_check`, `area_layout_m2`, `nqs_ratio`·`mismatch_sigma_v`, 레이아웃 기하(MOD7 `ly.diffusion`)로 하는
+  접합 용량(지금은 LUT 생성 규칙 기하, 7.2·8절).
 
 ---
 
@@ -22,6 +23,7 @@
 | 0 | `mna_types.py` | (데이터) | 결과 레코드: `Undefined`, `MnaSystem`, `Roots`, `DcLimit`, `SystemResponse`, `PointSolution`, `Factor`, `ProbeFactor`, `CutCircuit`, `Crossing`, `LoopAnalysis`, `OutputResistance`, `ResponseRatio`, `SupplyCurrents`, `AreaSearch`, `MetricResult`. **인수 공통 규약**(`Factor`·`ProbeFactor`): 속성 `response`(공유 격자), `samples`(격자 위 값), `poles`·`zeros`(상단 괄호용 근), `undefined`(격자 표본 사유); 격자 밖 한 점은 `PointSolution` → (복소값, 사후 오차, 사유)(`_helpers_product.product_at`) |
 | 0 | `_helpers_stamp.py` | (helper) | `admittance_pair` |
 | 0 | `_helpers_pencil.py` | (helper) | `finite_eigs`(pencil 유한 고유값, `pencil_roots`·`probe_loop` 공용) |
+| 0 | `junction_cap.py` | `junction_caps` | 접합 용량 cdb·csb(BSIM4, DEC-91) + 입력 레코드 `JunctionParams`·`DiffusionGeometry`, 결과 `JunctionCaps` (8절) |
 | 1 | `_helpers_probe.py` | (helper) | `probe_value`(Middlebrook T 한 점 평가·사후 오차, `probe_loop`·`_helpers_product` 공용) |
 | 1 | `loop_cut.py` | `cut_circuit` | 루프 절단 회로(3.16) |
 | 1 | `stamp_mos.py` | `mos_stamps` | MOS 소신호 스탬프 |
@@ -379,6 +381,7 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 | 층 | 파일 | 진입점 | 계산 블록(writer) | 쓰는 필드 |
 |---|---|---|---|---|
 | 0 | `ss_types.py` | (데이터) `SsDevice`·`SsCircuit`·`MetricRequest`·`MetricBundle`·`SsEvaluation` | -- | -- |
+| 1 | `junction_source.py` | `JunctionSource` | -- | -- (접합 용량 입력 묶음, 7.2·7.6) |
 | 1 | `ss_linearize.py` | `ss_dev` | `ss_dev` | `device.ss_dev`(MOS 마다 `SsDevice`) |
 | 1 | `ss_circuit.py` | `ss_circuit` | -- | -- |
 | 3 | `dc_metrics.py` | `metrics_dc` | `metrics_dc` | `graph.metrics_dc`(key `METRICS_KEY` = `"metrics"`) |
@@ -397,17 +400,32 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
 - `MetricBundle(entries, approximations=(), detail=())` -- `entries` = ((MetricRequest, MetricResult), ...) 요청 순서.
 - `SsEvaluation(snapshot, ss, dc, lineage=None)` -- `lineage` = sizing `DcEvaluation(snapshot, report, SealedSnapshot(snapshot, report))`.
 
-### 7.2 `ss_dev(snapshot, lut)` -- reads `device.dc_op`, extras `(LutAccess,)`
+### 7.2 `ss_dev(snapshot, lut, junction)` -- reads `device.dc_op`, extras `(LutAccess, JunctionSource)`
 - MOS(= `dc_op` 이 있는 소자)마다, `op = dc_op`, `w_m` = 슬라이스 `(op.kind, op.w_key)` 의 폭:
   `gm = op.gm_id · op.current`, `gds = op_point(memo, kind, w_key, L, vgs, vds, vsb).gds_per_w · op.W`,
   `gmb = lut.gmb(같은 인자) · op.W / w_m`, `(cgg, cgd, cgs, cgb, cap_model) = lut.caps(memo, kind, L, vgs, vds, vsb, op.W)`,
-  `cdb = csb = 0.0`, `junction_model = JUNCTION_PENDING`(`"pending_pdk_junction_params"`). (L, vgs, vds, vsb) 는 `dc_op` 의 값
-  그대로(크기, LUT 부호 규약).
+  **접합 용량(DEC-91, 2026-10-08 배선)** `(cdb, csb) = junction_caps(junction.params_of(op.kind),
+  junction.pre_layout_geometry(w_m, op.W / w_m), op.vds + op.vsb, op.vsb, junction.temp_c)`(8절 -- 기하 = LUT 생성 규칙,
+  finger_w = w_m, m = W / w_m), `junction_model = JUNCTION_LUT_RULE`(`"pdk_bsim4_lut_rule_diffusion"`). (L, vgs, vds, vsb) 는 `dc_op` 의 값
+  그대로(크기, LUT 부호 규약). 옛 `JUNCTION_PENDING`(cdb = csb = 0) 경로와 이름은 삭제했다.
+- `JunctionSource(params, lut_rule_decl, temp_c, pdk_decl_sha256)`(frozen): `params` = ((kind, `JunctionParams`), ...) kind 정렬,
+  `lut_rule_decl` = LUT 규칙 core `PdkDecl`, `temp_c` = LUT 측정 온도, `pdk_decl_sha256` = PDK 선언 파일 sha256.
+  `JunctionSource.from_decls(pdk_decl, lut_rule_decl, lut_set)`: kind = `lut_set.spec.device_kinds` 의 kind 집합(정렬), 온도 =
+  `dict(lut_set.provenance.cap_conditions)["temp_c"]`(없으면 ValueError), params = `JunctionParams.from_pdk_decl(pdk_decl, kind)`.
+  `params_of(kind)`(없는 kind -> KeyError), `pre_layout_geometry(finger_w, m)` = `DiffusionGeometry.from_lut_rule(lut_rule_decl, finger_w, m)`.
+  블록 입력 버전에 이 묶음 전체가 지문으로 든다 -> 접합 파라미터·LUT 규칙 선언(원본 sha256 포함)·온도·PDK 선언 sha256 중 하나가
+  바뀌면 `ss_dev` 재계산, 같으면 재사용.
+- 접합 계산 예외(`junction_caps` 의 ValueError -- Weffcj ≤ 0, 보정 뒤 PB ≤ 0)는 그대로 전파한다(LUT 조회 실패처럼 감싸지 않는다 --
+  선언 결함이지 후보 실패가 아니다).
 - [lut r6] `gmb_model`: lut CONTRACT 4.3 열 출처 규칙과 같은 판정 -- 그 폭 슬라이스 `columns` 에 `"GMBS_PER_ID"` 가 있거나, 기준 LUT
   `CapTable.w_key == op.w_key` 이고 그 `columns` 에 있으면 `GMB_COLUMN`(`"lut_gmbs_column"`, 값 = lut `gmb` 의 열 정의 4.4), 아니면
   `GMB_VS_CELL_SECANT`(`"lut_vs_cell_secant"`, 옛 LUT 의 r5 VS 할선 -- 임시 근사). LUT v2 실데이터는 모든 폭이 슬라이스 열이라 `GMB_COLUMN`.
 - [lut r6] 용량: LUT v2 는 CGS·CGB 열이 있어 `cap_model = "lut_cgs_cgb"`, 값은 **부호 보존**(lut 1.2 -- CGB·CGS 에 음수 점이 있다).
   `Caps.cdd`·`css` 는 읽지 않는다(DEC-91: 접합 용량 정본은 PDK 접합 파라미터, CDD·CSS 는 대조 test 전용 -- 7.9 Q3).
+- 불변식(접합): `ss.cdb`·`ss.csb` == test 쪽이 같은 `dc_op`·`JunctionSource` 로 `junction_caps` 를 부른 값(비트). 작성자 실측(아래
+  test_ss_evaluate CS 픽스처, toy LUT r6 + sky130 선언): M1 nmos W 2.3700841597752005e-05, w_m 1e-6, vds 0.9, vsb 0 ->
+  cdb 1.6192271478167327e-14, csb 2.3226455532310698e-14(직접 호출과 같음), 같은 입력 재호출 computes 0, `temp_c` 만 +10 바꾼 묶음 ->
+  `ss_dev` computes +1(cdb 1.6234719737286454e-14).
 - LUT 조회 실패 -> `SealViolationError(devices=(소자,))`, detail = 원래 detail + reason `"lut_query_failed"`, `lut_reason` = 원래
   reason, `device_query` ∈ {"op_point", "gmb", "caps"}. (옛 12-L 세트의 용량 VS 0~0.8 V 축 밖 실패는 LUT v2 VS 0~1.8 V 로 해소 -- 7.9 Q6.)
 - 불변식: 같은 `dc_op`·LUT -> 재사용(계산 0). `op_point` 는 `dc_widths` 가 같은 키로 이미 부른 값(LUT memo point 적중).
@@ -466,12 +484,16 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 - 면적: `area_search(GateArea(op.W, op.L) MOS 마다, PassiveArea(이름, 값) 값 있는 수동소자 -- 단위 면적 None)`.
 - `detail` = counted_rails, kcl_residual_amp, passive_area_undeclared, passive_value_missing, per_rail_amp((레일 넷, A), ...) 키 정렬.
 
-### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), passive_theta=()) -> SsEvaluation`
-- `sealed` 가 `SealedSnapshot` 아님 -> TypeError(DEC-67). `ctx` 가 `KernelContext` 아님 -> TypeError. θ = `check_theta(ctx.schema, ...)`.
+### 7.6 `ss_evaluate(sealed, ctx, theta, constraints, counted_rails=(), passive_theta=(), *, junction) -> SsEvaluation`
+- `sealed` 가 `SealedSnapshot` 아님 -> TypeError(DEC-67). `ctx` 가 `KernelContext` 아님 -> TypeError. `junction`(**필수 키워드**,
+  2026-10-08 새 입력) 이 `JunctionSource` 아님 -> TypeError. θ = `check_theta(ctx.schema, ...)`.
+- `junction` 이 새 입력인 이유: `KernelContext`(sizing)에 PDK 선언이 없다. 부르는 쪽이 S0 당 1회
+  `JunctionSource.from_decls(read_pdk_decl(pdk 선언), read_pdk_decl(LUT 규칙 선언), ctx.lut.memo.lut)` 로 만든다(core 9.5·8.5).
+  기본값을 두지 않는다(접합 용량 없는 평가 경로 = 옛 대기 경로를 남기지 않는다).
 - passive_values = spec 값(`ctx.inputs.element_values` 중 S1 수동소자, 값 None 제외) ∪ θ `resistance` ∪ `passive_theta`. 이름이
   S1 수동소자가 아니거나 같은 소자 값이 두 출처면 ValueError. 정렬 tuple.
 - requests = constraints 의 (metric, view) 중 metric 이 None 아닌 것, 중복 제거·문서 순서. view_kind 가 있는 것만 `metrics_ss` 로.
-- 순서 `ss_dev(sealed.snapshot, ctx.lut)` -> `metrics_ss(..., ss_requests, passive_values)` -> `metrics_dc(..., passive_values,
+- 순서 `ss_dev(sealed.snapshot, ctx.lut, junction)` -> `metrics_ss(..., ss_requests, passive_values)` -> `metrics_dc(..., passive_values,
   tuple(counted_rails))`. `ss`·`dc` = 그 필드 값, `lineage` = 7.1.
 - 재사용: `ss_evaluate(res.lineage.sealed, 같은 인자)` -> 세 블록 computes 0·reuses 3, 결과 `snapshot is res.snapshot`.
   `size_and_seal(ctx, θ', parent=res.lineage)` 뒤 `ss_evaluate` -> dc_op 가 바뀌었으면 세 블록 재계산(바뀌지 않은 소자 LUT 조회는
@@ -492,6 +514,9 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 | S-8 | 넷 이름 전단사 뒤 metric 값 같음(I-7 확장 -- 노드 인덱스는 이름 정렬 위치뿐) |
 | S-9 | `metrics_dc`: 2레일 회로 per_rail 합 = kcl_residual(≈ 0), `power_dc_w` = Σ V_k I_k |
 | S-10 | `ss_evaluate` 에 `SealedSnapshot` 아닌 값(`DcEvaluation` 등) -> TypeError, `passive_theta` 가 spec 값 있는 소자 -> ValueError |
+| S-11 | (DEC-91) `ss_dev` 의 cdb·csb = 같은 `dc_op`·`JunctionSource` 로 부른 `junction_caps`(8절) 값, `junction_model == JUNCTION_LUT_RULE`, `approximations` 에 `("junction", "pdk_bsim4_lut_rule_diffusion")` |
+| S-12 | `JunctionSource` 의 한 필드(예 `temp_c`, 다른 PDK 선언의 params)만 바꾸면 `ss_dev` 재계산(computes +1), 같은 묶음이면 재사용(computes 0) -- `recomputes_same_input` 0 |
+| S-13 | `ss_evaluate(..., junction=...)` 없이 부르면 TypeError(필수 키워드), `JunctionSource` 아닌 값 -> TypeError |
 
 ### 7.8 9회로 시연 (2026-10-08, master 798f29c 병합 뒤 LUT v2(`resolve_lut_location`), 작성자 측 실측 -- 정본 아님)
 
@@ -500,7 +525,8 @@ undefined 라 시연은 그 점을 **명시적으로** `SealedSnapshot(ev.snapsh
 master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 에서 수정 중). 아래 값은 시연 전용 런타임 패치(VDS = 0 곡선 전체
 미정 -> '목표 > 분지' +inf, 커밋 안 함)로 얻은 점이다. 보상 수동소자는 변형 A(값 없음) / B(시연 θ: engine 커패시터 1 pF, engine 저항
 10 kΩ -- 탐침값, 설계값 아님).
-- 근사 표시: 평가된 모든 회로 `(("cap", "lut_cgs_cgb"), ("gmb", "lut_gmbs_column"), ("junction", "pending_pdk_junction_params"))`.
+- 근사 표시: 평가된 모든 회로 `(("cap", "lut_cgs_cgb"), ("gmb", "lut_gmbs_column"), ("junction", "pending_pdk_junction_params"))`
+  (이 시연은 접합 배선 전 -- 배선 뒤 junction 항은 `"pdk_bsim4_lut_rule_diffusion"`, 9회로 재시연은 아직 안 함).
 - 블록 계수: 평가된 7회로 모두 첫 평가 computes 1/1/1, 같은 θ(lineage) 두 번째 computes 0·reuses 3, FD(첫 current 성분 +1 %, parent =
   lineage) computes 1/1/1·`recomputes_same_input` 0.
 - 변형 A: ngcc·two_stage·two_stage_sf 의 소신호 제약 `passive_value_undeclared`(Cm1·Cm2 / Cc·Rz / Cc), 전력·면적은 값.
@@ -514,7 +540,7 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
 |---|---|---|
 | Q1 | lut r5/r6 + sizing r3: GB7 1변수 bisection 이 VDS = 0 끝점에서 `lut_curve_undefined` -- 8회로 탐침 통과 0 | **sizing 쪽 수정 중**(ng-seal7). 이 단계는 시연 런타임 패치로만 |
 | Q2 | 봉인 7 대기 동안 `SealedSnapshot` 0 | **결정: DEC-67 타입 게이트 유지, 잠정 경로 없음**. 봉인 7 은 LUT r6 VDSAT 로 배선 중(ng-seal7) |
-| Q3 | DEC-91 접합 용량 cdb·csb | **결정: 명시 대기 유지**(0 + `junction_model`). 의존: core `pdk_decl` 에 PDK 모델 카드 접합 파라미터(CJ·CJSW·MJ·MJSW·PB) 선언 -- 오케스트레이터가 따로 일정. 선언이 생기면 `junction_caps` 블록(DM 3.6) |
+| Q3 | DEC-91 접합 용량 cdb·csb | **닫음(2026-10-08)**: core PDK 선언에 모델 카드 접합 파라미터(core 9.4), `junction_caps`(8절), `ss_dev` 배선(7.2, 레이아웃 전 LUT 생성 규칙 기하). 남은 것: 레이아웃 기하(MOD7 `ly.diffusion`)가 S2 에 생기면 그 기하로 바꾸는 경로 |
 | Q4 | DEC-78 합산 레일 | **결정: `power_dc_w` = 선언된 모든 공급 레일 합(7.5), `supply_current_dc` 는 spec 선택 선언 `counted_rails` 가 생길 때까지 `counted_rails_undeclared`**. spec 형식 항목(authoring 몫)으로 기록 |
 | Q5 | 보상 수동소자 θ(DEC-92) | **결정: sizing θ 스키마에 둔다**. 의존 기록 -- 그때까지 `passive_theta` 인자, 없으면 정의 불가 |
 | Q6 | 용량 LUT VS 축 밖 | **해소: LUT r6(VS 0~1.8 V)**. 축 밖이면 여전히 후보 실패(설계 2.4) |
@@ -528,3 +554,92 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
    memo 적중이라 계산 0.
 3. **전력·면적은 `metrics_dc` 별도 블록**: 소신호 값을 읽지 않으므로 ss 변경에 재계산되지 않게.
 4. **S3 기록은 쓰지 않는다**: S3 는 search archive(MOD6 8절) 몫이고 아직 없다. 이 단계는 S2 필드까지.
+
+---
+
+## 8. 접합 용량 `junction_caps(params, geometry, v_db, v_sb, temp_c) -> JunctionCaps` (DEC-91 (2)(3), N3.16 'PDK 상수', 2026-10-08)
+
+근거: DEC-91 (3) 값 정본 = PDK 모델 카드 접합 파라미터(core PDK 선언) + 봉인점 역바이어스 + 확산 기하. (2) 레이아웃 뒤 기하 = MOD7
+`ly.diffusion[dev]`(Euler 행 공유 확산, finger 평균, `m = n_fingers`), 레이아웃 전 첫 사이징점 = LUT 생성 규칙. 오라클(spice_oracle
+C22)이 같은 ad/as/pd/ps 를 넷리스트에 쓰고 ngspice 가 같은 식을 푼다 -- 엔진과 SPICE 가 같은 값을 내야 한다(아래 대조 표).
+LUT `CDD`·`CSS` 열(− CGD·CGS)은 대조 test 전용(정본 아님). 이 파일은 입력 레코드만 보는 순수 함수다(graph·S2·LUT import 0).
+
+### 8.1 입력 레코드 (frozen dataclass, 생성 때 검사 -- bool·비수 `TypeError`, 비유한 `ValueError`, 값은 float 로 정규화)
+- `JunctionParams(cjs, cjd, cjsws, cjswd, cjswgs, cjswgd, mjs, mjd, mjsws, mjswd, mjswgs, mjswgd, pbs, pbd, pbsws, pbswd, pbswgs,
+  pbswgd, tcj, tcjsw, tcjswg, tpb, tpbsw, tpbswg, tnom, permod, dwj)` -- 필드 이름 = BSIM4 모델 카드 이름(s = source 쪽, d = drain 쪽,
+  sw = STI 측벽, swg = gate 측벽), SI(F/m²·F/m·V·1/K·V/K), `tnom` °C. 검사: `permod ∈ {0, 1}`(아니면 ValueError), cj*·mj* ≥ 0,
+  pb* > 0(아니면 ValueError). `dwj` = 접합 유효 폭 축소량(Weffcj = finger_w − 2·dwj -- xw 포함, 부호 제한 없음).
+  - `JunctionParams.from_pdk_decl(decl, kind)`: core `PdkDecl` 에서 `junction_<kind>_<필드>` 27개를 필드 순서로 `decl.values(...)`
+    (없으면 core `SchemaRejectedError(pdk_quantity_undeclared)`). kind = 엔진 소자 kind(`"nmos"`·`"pmos"`) -- 이름 규약은 선언 파일 몫.
+- `DiffusionGeometry(finger_w_m, ad_m2, as_m2, pd_m, ps_m, m)` -- finger 하나의 기하(m, m²) + finger 수 `m`(실수 허용, ngspice `m`).
+  검사: `finger_w_m > 0`, `m > 0`, ad·as·pd·ps ≥ 0(아니면 ValueError).
+  - `DiffusionGeometry.from_lut_rule(decl, finger_w_m, m)`: LUT 규칙 선언(`assets/sky130_lut_rule_decl.json`)의
+    `lut_diffusion_ad_per_w_m`·`lut_diffusion_as_per_w_m`·`lut_diffusion_pd_extra_m`·`lut_diffusion_ps_extra_m` 으로
+    `ad = ad_per_w·finger_w`, `as = as_per_w·finger_w`, `pd = finger_w + pd_extra`, `ps = finger_w + ps_extra`(C22 규칙과 같음).
+- 결과 `JunctionCaps(cdb, csb)` -- 소자 전체(m 배) F.
+
+### 8.2 식 (BSIM4 4.5 접합 용량 = ngspice BSIM4v5 와 같은 식, 실측 대조 8.4)
+1. 형식: `params` 가 `JunctionParams` 아님·`geometry` 가 `DiffusionGeometry` 아님 -> TypeError. `v_db`·`v_sb`·`temp_c` 는 유한 실수
+   (bool·비수 TypeError, 비유한 ValueError).
+2. ΔT = temp_c − tnom. 영바이어스 단위 용량 온도 보정 `C(T) = C · max(0, 1 + tc·ΔT)`(바닥 tcj, STI 측벽 tcjsw, gate 측벽 tcjswg),
+   내부 전위 `PB(T) = PB − tp·ΔT`(tpb, tpbsw, tpbswg). PB(T) ≤ 0 이면 ValueError(ngspice 는 0.01 V 로 자른다 -- 그 범위는 받지 않음).
+3. Weffcj = finger_w − 2·dwj, ≤ 0 이면 ValueError.
+4. 쪽마다(drain: ad·pd·cjd·…·v_db, source: as·ps·cjs·…·v_sb) 영바이어스 용량 세 항:
+   바닥 `c0₁ = C_j(T)·A`, STI 측벽 `c0₂ = C_jsw(T)·P_eff`, gate 측벽 `c0₃ = C_jswg(T)·Weffcj`.
+   `P_eff = P − Weffcj`(permod 1) 또는 `P`(permod 0). **P_eff 를 0 으로 자르지 않는다** -- P < Weffcj 면 c0₂ < 0(ngspice BSIM4v5 동작).
+5. 항마다 바이어스 의존(v = 그 쪽 역바이어스, 양수 = 역방향):
+   - v > 0: c0 > 0 이면 `c0·(1 + v/PB(T))^(−MJ)`, c0 ≤ 0 이면 0.
+   - v ≤ 0(영·순바이어스): `c0·(1 − MJ·v/PB(T))`(선형 연장, 음수 c0 도 더함 -- v = 0 이면 c0).
+6. `cdb = m · Σ drain 항`, `csb = m · Σ source 항`.
+- 바이어스 부호: nmos v_db = V(d) − V(b), v_sb = V(s) − V(b); pmos 는 부호 반대(V(b) − V(d) 등). LUT 규약으로 `v_sb = VSB`,
+  `v_db = VDS + VSB`(극성 정규화 크기).
+- 알려진 불연속(ngspice 자체, 정정 2026-10-08 독립 test 실측 반영): P < Weffcj(STI 측벽 c0 < 0)이고 바이어스가 정확히 0 일 때
+  ngspice 는 접합 전압의 수치 잡음 부호(실측 vbs = −2.2e-16 등)로 5의 어느 가지를 탈지 정해진다. **kind 와 무관**(nmos·pmos 모두
+  생길 수 있다)하고 어느 가지가 될지는 넷리스트(전원 배치·노드 순서)·온도에 따라 달라진다 -- 작성자 실측은 pmos 한 경우(ngspice
+  1.3830782127e-15 = 역방향 가지, 엔진 1.3001046135e-15 = v = 0 가지, 6.0 %)였고 nmos 같은 조건은 그 넷리스트에서 v = 0 가지로 일치했다.
+  이 점에서 엔진(언제나 v = 0 가지)과 ngspice 의 차는 최대 |c0₂·m| 만큼이다. 레이아웃 기하가 permod 1 에서 `ps ≥ finger_w`(gate 변
+  포함 둘레)를 지키면 생기지 않는다 -- MOD7 `ly.diffusion` 둘레 규약 확인 대상.
+- 순바이어스·고온 편차(독립 test 실측): 85 °C 순바이어스에서 ngspice 와 상대 1.2e-8 차 -- sky130 모델의 `rbodymod` 바디 저항망 때문에
+  내부 접합 노드 전압이 단자 전압과 아주 조금 달라서다(식 차이 아님). 역바이어스·27 °C 대조(8.4)에는 나타나지 않는다.
+
+### 8.3 손계산 예 (test 작성용, 엔진과 독립인 폐형식)
+- 공통 params: cj* = 1e-3, cjsw* = 1e-10, cjswg* = 2e-10, mj*·mjsw*·mjswg* = 0.5, pb* = 1, t* = 0, tnom = 27, permod = 1, dwj = 0;
+  geometry(finger_w 1e-6, ad = as = 1e-12, pd = ps = 3e-6, m = 2), temp_c = 27.
+  - v_db = 3: 영바이어스 합 = 1e-15 + 1e-10·2e-6 + 2e-10·1e-6 = 1.4e-15, 인수 (1 + 3)^(−0.5) = 0.5 -> cdb = 2·1.4e-15·0.5 = 1.4e-15.
+  - v_sb = 0 -> csb = 2·1.4e-15 = 2.8e-15. v_sb = −0.5(순방향) -> 인수 1 + 0.5·0.5 = 1.25 -> csb = 3.5e-15.
+  - permod = 0 이면 P_eff = 3e-6 -> finger 하나 영바이어스 합 1e-15 + 3e-16 + 2e-16 = 1.5e-15, v = 0 에서 cdb = csb = 3.0e-15.
+  - tcj = 1e-3, tnom = 30, temp_c = 27 -> 바닥 항 1e-15·(1 − 3e-3), v = 0 에서 cdb = 2·(0.997e-15 + 4e-16) = 2.794e-15.
+  - ps = 0.5e-6(< finger_w): c0₂ = 1e-10·(−0.5e-6) = −5e-17 -> v_sb = 3 이면 그 항 0(csb = 2·(1e-15 + 2e-16)·0.5 = 1.2e-15), v_sb = 0 이면
+    csb = 2·(1e-15 − 5e-17 + 2e-16) = 2.3e-15.
+- 값 위반: permod 0.5, pbs 0, finger_w 0, m 0, ad −1e-15, dwj = finger_w/2 -> ValueError. `JunctionParams(..., cjs=True)` -> TypeError.
+- sky130 실데이터(PDK 선언 core 9.4): `JunctionParams.from_pdk_decl(decl, "nmos").cjs == 0.001339749237`, `.tnom == 30.0`,
+  `.permod == 1.0`, `.dwj == 0.0`, `.cjd == .cjs`; `DiffusionGeometry.from_lut_rule(rule, 2e-6, 3)` -> ad = as = 1e-12(5e-7·2e-6),
+  pd = ps = 4e-6(부동소수 2e-6 + 2.0000000000000003e-06).
+
+### 8.4 ngspice 대조 (2026-10-08, 작성자 실측 -- ngspice-46 sky130 tt, TEMP 27 °C, 단일 소자 `X d g s b ... l w ad as pd ps m`,
+`.op` 의 `@m.xdut.m<cell>[capbd]`/`[capbs]`, 출력 12자리)
+- 대상 2 kind x 기하 3(LUT 규칙 finger 2 µm x 3, LUT 규칙 0.42 µm x 8, Euler 꼴 finger 1 µm·ad 0.29 pm²·as 0.145 pm²·pd 1.58 µm·
+  ps 0.79 µm x 4) x L 3(0.15·0.5·4 µm -- 다른 모델 bin) x (v_db, v_sb) 5((0,0)·(0.3,0.1)·(0.9,0.4)·(1.8,1.0)·(−0.2,−0.1)) = 90점.
+- 결과: 87점 상대 오차 ≤ 2.3e-11(출력 자릿수 한계), 나머지 3점 = 8.2 의 ngspice 불연속(pmos Euler 꼴 v_sb = 0, 6.0 %). L(bin)을
+  바꿔도 ngspice 값 동일(접합 파라미터 bin 공통 확인). 독립 AC 대조(op 정보 아님): 같은 W·L·바이어스에서 drain 기하만 바꾼 두
+  넷리스트의 `−Im(I(vd))/ω` 차 = 엔진 cdb 차, 상대 오차 ≤ 8.5e-11(nmos·pmos, v_db 0·0.5·1.2).
+- 예(L 0.5 µm, LUT 규칙 finger 2 µm x 3): nmos (0.3, 0.1) cdb 4.8168933609e-15 / ngspice 4.8168933610e-15, csb 5.3305595669e-15;
+  pmos (0.9, 0.4) cdb 3.0214419372e-15, csb 3.5374819305e-15(양쪽 같음).
+
+### 8.5 소비자 호출 (배선 완료 2026-10-08 -- `ss_dev`, 7.2·7.6)
+```python
+from gmid_engine.core import BoundedLRU, read_pdk_decl
+from gmid_engine.metrics import JunctionSource, ss_evaluate
+
+memo = BoundedLRU(5)                                   # 두 선언 원본 5개(PDK 4 + LUT 규칙 1)
+junction = JunctionSource.from_decls(
+    read_pdk_decl(".../assets/sky130_pdk_decl.json", memo),
+    read_pdk_decl(".../assets/sky130_lut_rule_decl.json", memo),
+    ctx.lut.memo.lut)                                  # kind·온도는 LUT 에서 -- S0 당 1회
+res = ss_evaluate(sealed, ctx, theta, constraints, counted_rails, passive_theta, junction=junction)
+```
+- `ss_dev` 안: `junction_caps(junction.params_of(op.kind), junction.pre_layout_geometry(w_m, op.W / w_m), op.vds + op.vsb, op.vsb,
+  junction.temp_c)` -> `SsDevice.cdb·csb`, `junction_model = JUNCTION_LUT_RULE`. 옛 `JUNCTION_PENDING`(cdb = csb = 0) 경로·이름은 삭제.
+- 레이아웃 뒤(아직 S2 에 없음): `ly.diffusion[dev]` 의 finger 평균 ad/as/pd/ps 와 n_fingers -> `DiffusionGeometry(fw, ad, as_, pd, ps, nf)`
+  로 이 규칙 기하를 대체한다(그때 `junction_model` 새 값 -- MOD7/MOD8 배선 몫).
+- 꺼진 소자·순바이어스: v_db·v_sb 가 음수(순방향)면 8.2-5 의 선형 연장 값이 나온다(봉인 6 이 tol_V 넘는 순바이어스를 이미 거부).
