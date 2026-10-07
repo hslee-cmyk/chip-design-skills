@@ -111,7 +111,8 @@
 `<circuit>[.<tag>].<bias>.cir` / `.cir.meta.json` / `.log` / `.ac.txt` / `.sim.json` / `.compare.json` / `.compare.md`
 (+ feedback_passives 가 있으면 `.loop.cir` / `.loop.log` / `.loop.v.txt` / `.loop.i.txt`, **[신규]** ratio_db 뷰가 있으면
 `.ratio<k>.num.txt` / `.ratio<k>.den.txt`, **[신규 C26]** rout_ohm 뷰가 있으면 `.rout<k>.txt`, **[신규 C10]** PM 값이 있으면
-`.stabop.cir` / `.stabop.log` / `.stab.cir` / `.stab.log` / `.stab.txt`).
+`.stabop.cir` / `.stabop.log` / `.stab.cir` / `.stab.log` / `.stab.txt`, 연장 실행을 했으면 `.stab2.cir` / `.stab2.log` /
+`.stab2.txt`).
 `compare.json` 최상위: `summary{verdict, verdict_reason, warnings, acceptance{constraints_failed, constraints_unmeasured,
 conducting_devices, unsaturated_conducting, sat_margin_V, off_current_A, off_in_spice, conduction_not_evaluated},
 junction_capacitance, transient, record_counts, sat_in_spice, not_sat, spice_ac, spice_ratio, spice_rout, pm_loop,
@@ -259,9 +260,9 @@ C20. **[신규]** PM 교차 측정(기록만): `ac.pm_deg` 를 정한 루프 이
     `pm_crosscheck_mp_resolution` 는 |C| 측정값이라 그대로 남긴다. PM 이 유효하면 C20 값은 이전과 같다.
 C21. **[신규]** 실행 캐시(선택, `--cache-dir`): 키 = sha256(넷리스트 바이트 + 넷리스트가 `.include`/`.inc`/`.lib` 로 읽는 모델 파일
     전부(재귀, 경로+바이트) + ngspice 실행 파일 경로 + `-b`). 같은 키면 ngspice 를 돌리지 않고 저장한 로그·데이터 파일
-    (`.ac.txt`, 루프 `.v.txt`/`.i.txt`, C24 `.ratio<k>.*.txt`, **[신규]** C26 `.rout<k>.txt`, **[신규 C10]** `.stab.txt`)을 복원한다. 모델 파일을 하나라도 못 찾으면 캐시를 쓰지 않는다. `sim.cache =
+    (`.ac.txt`, 루프 `.v.txt`/`.i.txt`, C24 `.ratio<k>.*.txt`, **[신규]** C26 `.rout<k>.txt`, **[신규 C10]** `.stab.txt`·`.stab2.txt`)을 복원한다. 모델 파일을 하나라도 못 찾으면 캐시를 쓰지 않는다. `sim.cache =
     {main, loop}` 이 `hit`/`miss`/`off(모델 파일 못 찾음)`/None(캐시 미사용). **[신규 C10]** 폐루프 과도 실행의 캐시 상태는
-    `sim.stability_cache = {op_pass, transient}`(동작점 패스·폐루프 과도, 같은 어휘; 결과가 아니라 `ac` 밖에 둔다 --
+    `sim.stability_cache = {op_pass, transient}`(+ 연장 실행을 했을 때만 `extension` 키; 같은 어휘; 결과가 아니라 `ac` 밖에 둔다 --
     hit·miss 에서 `ac` 는 같다).
 C12 보충. **[신규]** legacy_adapter: `topology{path, sha256}` 를 쓰고, topology 에 없는 출력 부하(`LOAD_<출력>`)에
     `not_in_topology_reason` 을 달며, `models[kind].polarity` 를 LUT 생성기 `run_device(..., polarity=±1)` 에서 읽는다.
@@ -455,10 +456,22 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
    (과도 `not_run`). 기록 `ac.stability.transient.plan`.
 5. **과도 판정**(`transient_decision`): e(t) = H(t) − H(0), 창 j = 1..K(t_end 부터 W 씩)의 M_j = max|e|,
    floor' = floor + u·max|H|(u = .stab.txt 반올림 반 단위, C20 의 data_rel_resolution). 마지막 시각이 tstop·(1 − 2u) 보다
-   이르면 `failed`. M_K <= floor' -> `stable`; 아니고 M_K >= M_1 -> `unstable`(K 창 동안 줄지 않음 = 증가·지속 진동);
-   아니고 M_K < M_{K−1} -> `stable`(끝까지 감쇠 중); 그 밖 -> `undetermined`. 기록 `ac.stability.transient =
-   {status: stable|unstable|undetermined|failed|not_run, reason, M, floor_V, plan, op_pass, netlist, file, ngspice_rc}`.
-6. **추론**(`stability_judgement(nyq, S, pm_raw)`, S = 과도 상태, stable/unstable 이 아니면 '모름', pm_raw = Bode 식 원값).
+   이르면 `failed`. 첫 실행 판정: M_K <= floor' -> `stable`; 아니고 M_K >= M_1 -> `unstable`(K 창 동안 줄지 않음 =
+   증가·지속 진동); 아니고 **모든 창에서 감소**(M_1 > M_2 > … > M_K) -> `decaying`; 그 밖(창 사이 다시 커짐) -> `undetermined`.
+   **[변경 2026-10-08]** 옛 규칙 'M_K < M_{K−1} 이면 stable'(끝 두 창만 봄)은 지속 완화 진동(독립 test 40158dd, 손 RHP 회로
+   Rb 1 MΩ·R1 51764.7 Ω: M = [1.43, 1.21, 0.68, 1.13, 1.45, 1.30], 진폭 1.3 V)을 stable 로 판정해 PM 283.8 deg 가 pm >= 60
+   을 PASS 시켰다 -- 없앴다. `stable` 은 **floor' 도달** 또는 **입증된 감쇠**뿐이다:
+   - `decaying` 이면 **연장 실행** `<stem>.stab2.cir` / `.stab2.log` / `.stab2.txt`(같은 킥·같은 창, 같은 동작점 패스 값):
+     마지막 창 감쇠비 r = M_K/M_{K−1} 의 기하 감쇠로 floor' 에 닿는 창 수 n = ceil(ln(floor'/M_K)/ln r) 만큼 늘린다
+     (창 수 K + n, tstop = t_end + (K + n)·W -- 측정한 감쇠율에서 유도, 상수 없음). 연장 실행을 같은 규칙으로 판정해
+     `stable`(floor' 도달) 또는 `decaying`(투영한 시간 전체에서 창마다 감소 = 감쇠 입증) -> 최종 `stable`, `unstable` ->
+     `unstable`, 그 밖(`undetermined`·`failed`) -> `undetermined`.
+   - 첫 실행이 `decaying` 이 아니면 그 상태가 최종이다(연장 없음, `.stab2.*` 없음).
+   최종 `undetermined` 는 아래 표의 '모름' -> PM 정의 불가(PASS 불가). 기록 `ac.stability.transient = {status(최종),
+   first_status, reason, M(첫 실행), floor_V(첫 실행), plan(첫 실행), op_pass, netlist, file, ngspice_rc,
+   extension{status, M, floor_V, reason, netlist, file, ngspice_rc, extension_windows, tstop}(연장했을 때만)}`.
+   연장 실행 캐시 상태는 `sim.stability_cache.extension`(C21, 데이터 파일 `.stab2.txt` 도 캐시 대상).
+6. **추론**(`stability_judgement(nyq, S, pm_raw)`, S = 최종 과도 상태(절차 5, 연장 반영), stable/unstable 이 아니면 '모름', pm_raw = Bode 식 원값).
    폐루프가 불안정(S unstable 또는 N >= 1)이고 N >= 1 일 때 P = 0(Z = N)과 맞는 Bode 결과는 PM < 0 이다(첫 교차의 위상이
    이미 −180 을 넘음) -- 이때 PM 값을 유지하고 pm 제약은 이전처럼 FAIL. PM >= 0 이면 '불안정인데 여유가 양수' = 증거 충돌
    (P > 0 이거나 놓친 모드) -> `stability_evidence_inconsistent`.
@@ -493,7 +506,9 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
 
 * 스윕 밖: f < fstart 의 L(기준점을 DC 로 보는 오라클 관례)과 f > fstop 꼬리(|L(fstop)| < 1 만 확인)는 보지 않는다.
 * 과도는 킥 넷(β 루프 절단 넷 / β=1 입력)에서 들뜨는 모드만 본다. 킥이 거의 안 들뜨게 하는 불안정 모드는 놓칠 수 있다.
-  모드 맥놀이·늦게 자라는 모드는 `undetermined` -> PM 정의 불가(PASS 불가)로 드러난다.
+  완화 진동·모드 맥놀이·늦게 자라는 모드는 `undetermined` -> PM 정의 불가(PASS 불가)로 드러난다. 감쇠가 기하적이지 않고
+  느려지면(여러 모드) 연장 실행이 floor' 에 못 닿을 수 있다 -- 그래도 창마다 감소가 이어지면 `stable`(입증된 감쇠),
+  다시 커지면 `undetermined`.
 * 'unstable' 은 Z >= 1 만 안다(Z 의 개수는 모름) -- 그래서 P 는 하한(`>=`)만 낸다.
 * 고전적 불안정(P = 0, PM < 0, 예 nmcnr_amplifier 프로브 PM −49.4 deg)은 위 표대로 PM 값이 남아 pm 제약이 이전처럼 FAIL
   이다(새 합격 규칙이 아니라 음수 PM 도 유효한 여유라는 엔진 정의와의 일치). 'Z = N' 은 Z 개수를 세지 못해 증명이 아니라
