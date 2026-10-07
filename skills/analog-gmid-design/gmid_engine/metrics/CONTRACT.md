@@ -98,6 +98,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `dc_not_above_level`, `no_crossing_above`, `dc_zero`, `den_zero`, `num_zero`, `operand_undefined` | definitional | 교차·비·이득·Middlebrook 분모(`probe_factor`) | STRUCTURE_UNRESOLVED / 제약 위반 후보 실패(margin null, N3.14 표의 해당 하위 클래스는 판정 계층이 확정) |
 | `loop_cut_mixed_charge` | definitional | `probe_factor` ω = 0(절단 노드 중 용량 전용과 전도 노드가 섞임 -- 열마다 1/s 차수가 달라 0차 동차성으로 극한을 못 낸다, 6절 M7) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
 | `negative_output_resistance` | definitional | `output_resistance`(DC 극한 관측 / I < 0 -- 양되먹임. 값을 내면 `<=` 제약이 통과하므로 정의 불가로 둔다, 7a Q3 오케스트레이터 결정 2026-10-07) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
+| `loop_open_rhp_poles` | definitional | `analyze_loop` 의 `phase_margin_deg` 만(→ `pm_ss_deg`·`parasitic_pm_ss_deg`). 루프 인수 `poles` 에 실부 > 0 인 근이 있음 -- Nyquist P > 0 이라 180° − 지연은 안정 여유가 아니다(3.10 전제). detail `rhp_poles`(근 tuple, 정렬 (|s|, 실부, 허부))·`rhp_pole_count`. 값을 내면 위상 앞섬으로 PM > 180° 가 `>=` 제약을 통과한다(ngcc 2026-10-08: PM 218°, SPICE 과도 0.73 Vpp 발진) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
 | `singular_mna`, `crossing_bracket_overflow`, `crossing_bound_violated`, `phase_jump_unresolved`, `zero_response_on_axis`, `response_not_finite`, `unrecorded_cause` | numeric | 풀이·이분·위상 | STRUCTURE_UNRESOLVED / NONCONVERGENT(후보 실패 클래스) |
 | `loop_probe_singular` | numeric | `probe_factor`(그 ω 에서 프로브 직렬 임피던스 행렬 M = Pᵀ·Z·P 가 특이 -- 영 피벗) | STRUCTURE_UNRESOLVED / NONCONVERGENT |
 
@@ -172,6 +173,25 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
   2개의 곱은 β 망이 증폭기 출력을 싣는 부하와 증폭기 입력이 β 망을 싣는 부하를 빼므로 `pm_ss_deg` 의 정의가 **아니다**(예 7
   대조: 무부하 곱 UGF 39756892.0418 Hz vs Middlebrook 22718224.0239 Hz, I-16). 인수 곱 기계 자체(예 2·2c)는 그대로 지원하고 test
   대상으로 남는다. 절단 위치·가중 = 7a 2.2·2.3(spec 쪽 유도는 authoring SPEC_CONTRACT 2절·3절). 기준이 T(0) 위상이라 관측 부호와 무관.
+- **PM 전제 -- 개루프 T 에 우반면 극점 없음(Nyquist P = 0, 2026-10-08)**: `phase_margin_deg` = 180° − 지연이 안정 여유인 것은
+  P = 0 일 때뿐이다(그때 Z = N 이고, −1 을 감지 않는 조건이 UGF 위상으로 읽힌다). 그래서 정의를
+  **`phase_margin_deg` = 180° − `phase_lag`(UGF 까지), 단 인수 `poles` 의 모든 근이 Re ≤ 0 일 때**로 한다. 인수 `poles` 의
+  합집합(`Factor`: 계 극점, `ProbeFactor`: T 의 극점 -- 둘 다 `finite_eigs` 근, 3.4·3.17)에 Re > 0 인 근이 하나라도 있으면
+  `phase_margin_deg` = None + `Undefined("phase_margin_deg", "loop_open_rhp_poles", "definitional", (("rhp_poles", 근 tuple),
+  ("rhp_pole_count", 개수)))` 이다. 이 사유가 교차·위상 사유(`dc_not_above_level` 등)보다 먼저다(전제 위반). `phase_lag_rad`·
+  `ugf_hz`·`gain_db`·`gbw_hz` 는 측정량이라 그대로 낸다. 우반면 근이 없으면 결과는 이 전제를 넣기 전과 비트 동일(I-17).
+  - **문턱**: 새 상수 없이 근의 분해능 규약(3.4)을 그대로 쓴다 -- `finite_eigs` 가 원점으로 판정한 근은 정확히 0j 라 Re > 0 에
+    들지 않고, 나머지 근의 실부 부호를 그대로 읽는다(Re > 0 엄격 비교).
+  - **Nyquist 감김 수 대안을 쓰지 않는 이유**: (1) P 를 근 목록에서 세야 하는데 목록에는 상쇄 안 된 공통 근(분리 모드, 3.17 --
+    지우려면 근 일치 문턱 상수가 필요해 지우지 않는다)이 남아 P 를 과대 계상한다(예 8b: 목록 P = 2, 실제 T 의 P = 1, 폐루프 우반면
+    1 개 -- Z = N + P 가 2 로 틀린다). 근이 있는지 여부만 보는 판정은 그 근이 T 의 실제 극점이든 숨은 우반면 모드든 결론이 같다
+    (둘 다 PM 이 안정 여유가 아님 -- 숨은 우반면 모드는 그 자체로 폐회로 불안정). (2) N 은 1 + T 의 위상을 jω 축 전체(ω → ∞
+    포함)에서 언랩해야 해 격자 끝·−1 근처 세분 규칙이 새로 필요하다. (3) N 을 정확히 알아도 P > 0 이면 180° − 지연은 여유가
+    아니다 -- 일반화 여유는 spec 에 정의가 없다. 그래서 근 존재 판정이 근 분해능 규약 아래에서 정확하고, 감김 수는 검증용으로만
+    쓴다(예 8·8a·8b 에서 Z = N + P 가 폐회로 근 수와 맞음을 실측).
+  - **폐루프 일관성(기록)**: `ProbeFactor` 의 폐루프 극점 = 1/(1 + T) = Q 의 극점 = 절단 전 회로(프로브 전압원 0 V 로 닫은
+    회로)의 계 극점(`pencil_roots(build_mna(원래 회로, …)).poles`). MOD5 는 이 값을 metric 으로 내지 않는다(이 전제는 PM 의 정의
+    조건이지 안정 판정이 아니다) -- 예 8a 처럼 개루프 우반면 극점이 있어도 폐루프가 안정일 수 있고, 그때도 PM 은 정의되지 않는다.
 
 ### 3.11 `output_resistance(response, column, row=0) -> OutputResistance`
 - 계 = 포트 전달 뷰 계(입력 포트 고정 0 V, 레일·gate 전용 넷 교류접지 -- DEC-66 '모든 여기원 교류접지', 되먹임 소자가 있어도
@@ -269,6 +289,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | I-14 | 절단 계 조립 1회: 4k 열·2k 관측 한 계, `cut_circuit`·`probe_factor`·`analyze_loop` 동안 스탬프 함수 추가 호출 0(`build_mna` 1회 뒤) |
 | I-15 | β = 1(feedback 빈 list)에서 `pm_ss_deg` = 기본 포트 뷰 `parasitic_pm_ss_deg` 비트 동일(같은 MnaSystem 의 같은 `Factor`) |
 | I-16 | A·β 무부하 인수 곱 값(예 7 대조 UGF 39756892.0418 Hz)을 `pm_ss_deg` 경로가 내면 FAIL -- 옛 정의 red |
+| I-17 | PM 전제(3.10): 인수 `poles` 에 Re > 0 근이 있으면 `phase_margin_deg` 는 None + `loop_open_rhp_poles`(예 8·8a·8b -- 옛 값 271.145°·274.443° 를 내면 FAIL). 없으면 `LoopAnalysis` 전 필드·`undefined` 가 전제 도입 전과 비트 동일(예 1~7c). `phase_lag_rad`·`ugf_hz` 는 우반면 근이 있어도 값 그대로 |
 
 ## 5. 손계산 예 (엔진과 독립인 폐형식으로 대조 가능)
 
@@ -354,6 +375,31 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 - 예 7 에서 Cs 를 `Resistor(3, 0, 1e5)` 로 바꾸면 n = 3 은 전도 노드, x = 4 는 용량 전용 → `metric_value("pm_ss_deg",
   analyze_loop((pf,)))` = `MetricResult(value=None, undefined=(Undefined("phase_margin_deg", "loop_cut_mixed_charge",
   "definitional", …),))`, 예외 없음(I-10).
+
+### 예 8 -- 우반면 극점 하나인 T (β = 1 `Factor`, PM 전제 위반, 3.10)
+- `M1 = MosSmallSignal(d=2, g=1, s=0, b=0, gm=1e-3, gmb=0, gds=1e-5)`, 교차 결합 쌍 `M2(d=2, g=5, s=0, b=0, gm=gx, gds=1e-5)`·
+  `M3(d=5, g=2, s=0, b=0, gm=gx, gds=1e-5)`, gx = √1.2e-9, `Capacitor(2, 0, 1e-12)`, `Capacitor(5, 0, 1e-12)`, `ac_ground=(0,)`,
+  열 1 V at 1, `Sense(2)`, `Factor(응답, 0)`.
+- 폐형식: 노드 2 (g2 + sC)v2 + gx·v5 = −gm·v1(g2 = 2e-5), 노드 5 gx·v2 + (g5 + sC)v5 = 0(g5 = 1e-5) →
+  det = (g2 + sC)(g5 + sC) − gx² = C²(s − 2e7)(s + 5e7), **T(s) = 10·(1 + s/1e7)/((1 − s/2e7)(1 + s/5e7))** -- 극점 +2e7(우반면)·
+  −5e7, 영점 −1e7, T(0) = 10.
+- 기대: `gain_db` = 20, UGF = 158931912.449 Hz(|T| = 1, brentq), `phase_lag_rad` = −(atan(ω_u/1e7) + atan(ω_u/2e7) − atan(ω_u/5e7))
+  = −1.59078562547(위상 앞섬), **`phase_margin_deg` = None + `loop_open_rhp_poles`(rhp_poles = (2e7 + 0j,), 개수 1)**. 옛 정의
+  값 180° − 지연 = 271.145302449° 는 `>=` 제약을 통과하지만 폐루프 특성식 1 + T = 0 의 근은 +9.812e8·−1.121e7 rad/s(불안정) --
+  이 값을 `pm_ss_deg`·`parasitic_pm_ss_deg` 경로가 내면 FAIL(옛 정의 red). 2026-10-08 엔진 실측: 극점 19999999.999999996 + 0j,
+  UGF 158931912.4494295 Hz(폐형식과 상대오차 ~5e-16), `phase_lag_rad` 폐형식과 비트 동일.
+
+### 예 8a -- 개루프 우반면, 폐루프 안정(`ProbeFactor`) -- PM 은 그래도 정의 안 됨
+- 예 7 회로 + 노드 2 에 교차 결합 쌍(예 8 의 M2·M3·노드 5 용량, gx = √1.2e-9), 절단·가중 예 7 과 같다.
+- 노드 2 순 컨덕턴스 = 2e-5 − gx²/g5 = −1e-4(개루프 음수 → T 극점 하나 우반면), 되먹임이 더하는 gm·Cf/(Cf + Cs) = 2.5e-4 로
+  폐루프는 안정. 실측(2026-10-08): T 극점 우반면 15481601.1727 rad/s 1 개, 폐루프 극점(절단 전 회로) 0·−5.3945e6·−1.5889e8 --
+  Nyquist N = −1(반시계 1 회), Z = N + P = 0. 옛 값 274.443°, 새 값 None + `loop_open_rhp_poles`(개수 1).
+
+### 예 8b -- 상쇄 안 된 공통 우반면 근(감김 수 대안이 틀리는 예)
+- 예 8a 에서 gx = √5.2e-9(순 컨덕턴스 −5e-4). 실측: T 극점 +8278492.15·+43801205.4·−6.52e7·−1.726e8, 영점 +8278492.15·−1e7·
+  −1.726e8 -- +8278492.15 는 극점·영점 양쪽에 있는 공통 근(분리 모드)이자 폐루프 극점이다. |T(0)| = 0.5 라 UGF 는
+  `dc_not_above_level` 이고 `phase_margin_deg` 사유는 `loop_open_rhp_poles`(개수 2, 전제 위반이 먼저). 폐루프 우반면 극점 1 개 =
+  N(0) + 실제 T 의 P(1). 근 목록으로 P 를 세면 2 라 Z = 2 로 틀린다(3.10 '대안을 쓰지 않는 이유' (1)).
 
 ## 6. 열린 항목
 

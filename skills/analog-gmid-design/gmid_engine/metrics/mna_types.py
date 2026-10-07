@@ -238,7 +238,8 @@ class LoopAnalysis:
     * `dc_value`: T(0)(실수 극한). `gain_db` = 20·log10|T(0)|.
     * `ugf`: |T| = 1 교차, `ugf_hz` = ω/2π.
     * `f3db`: |T| = |T(0)|/√2 교차, `gbw_hz` = |T(0)|·f_3dB, `gbw_ugf_gap_hz` = gbw − ugf(단일 극점 가정 진단).
-    * `phase_lag_rad`: T(0) 대비 UGF 까지 누적 위상 지연, `phase_margin_deg` = 180° − 지연.
+    * `phase_lag_rad`: T(0) 대비 UGF 까지 누적 위상 지연, `phase_margin_deg` = 180° − 지연(인수 극점이 모두 Re ≤ 0 일 때만 --
+      우반면 극점이 있으면 None + `loop_open_rhp_poles`, metrics CONTRACT 3.10 PM 전제).
     """
 
     dc_value: object
