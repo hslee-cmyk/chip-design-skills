@@ -227,7 +227,16 @@ def test_value_fields_as_contract():
     assert names(S.ColumnNeighbor) == ("rails", "pred", "succ", "position", "length")
     assert names(S.SccEntry) == ("index", "nodes", "cyclic", "devices")
     assert names(S.Window) == ("lo", "hi", "constraints")
-    assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max")
+    # [r6] 머리말 r6: method·fallback 필드 추가, '기본값이 있어 기존 생성 호출과 호환' -> 옛 6칸 뒤에 붙고 6칸 생성이 된다.
+    # (기본값 자체는 계약에 적혀 있지 않아 값은 검사하지 않는다.)
+    assert names(S.SccLog) == ("index", "nodes", "iterations", "deltas", "tol", "k_max", "method", "fallback")
+    old = S.SccLog(0, ("x",), 1, (0.0,), 1e-3, 11)
+    assert (old.index, old.nodes, old.iterations, old.deltas, old.tol, old.k_max) == (0, ("x",), 1, (0.0,), 1e-3, 11)
+    # [r6] 5.4 SccLog.method 어휘·5.5b 실패 사유 어휘
+    assert (S.SCC_DIRECT, S.SCC_BISECTION, S.SCC_GAUSS_SEIDEL, S.SCC_NEWTON) == (
+        "direct", "bisection", "gauss_seidel", "newton")
+    assert (S.REASON_NEWTON_START, S.REASON_NEWTON_SINGULAR, S.REASON_NEWTON_LINE_SEARCH, S.REASON_NEWTON_CAP) == (
+        "newton_start_outside_domain", "newton_singular", "newton_line_search", "newton_iteration_cap")
     assert names(S.DeviceOp) == ("kind", "current", "ln_idu", "gm_id", "L", "W", "vgs", "vds", "vsb", "w_key",
                                  "idu_forward")
     assert names(S.SealItem) == ("item", "status", "magnitude", "tol", "margin", "devices", "nodes", "detail")
