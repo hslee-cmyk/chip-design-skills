@@ -211,8 +211,9 @@ core 계약 5·6절(GraphSnapshot·`compute_block`), lut 계약 1.6(`widths`)·4
 - `LayoutDevice(name, kind, drain, gate, source, body, W_m, L_m, ID_A, gm_id, vds_V, vsb_V, diode, W_adjustable)`.
   `kind` ∈ `KINDS`. `W_m`·`L_m`·`ID_A`·`gm_id` 는 양의 **float**(int 거부). 위반 → `ValueError`.
   **보존량 = (`ID_A`, `gm_id`, `L_m`)**(Q4 (i)). `W_m` = sizing 이 기준 슬라이스에서 낸 **참고 W** -- 보존 대상이 아니고
-  `DeviceLayout.W_m`·`no_usable_slice` 요청에만 옮겨진다. `L_m` 은 LUT L 앵커여야 한다(아니면 그 소자의 모든 슬라이스가 `lut_l_not_anchor`
-  로 빠진다, 4.2). 옛 `tol_v_V` 필드는 없다(tol_V 는 슬라이스마다 레이아웃이 LUT 에서 읽는다, 4.2). `diode` = 재검증 때 ID 재보정
+  `DeviceLayout.W_m`·`no_usable_slice` 요청에만 옮겨진다. `L_m` 은 lut 계약 4.0(r4) 규칙을 따른다: L 앵커이거나 같은
+  모델 bin 안 두 앵커 사이(보간). 그 밖이면 그 소자의 슬라이스가 lut 사유(`lut_l_not_anchor`(빈 bin 지도 포함)·`lut_l_outside_model_bins`·
+  `lut_l_bin_unbracketed`·`lut_l_cross_bin`·`lut_axis_out_of_range`)로 빠진다(4.2). 레이아웃은 L 판정을 따로 하지 않는다. 옛 `tol_v_V` 필드는 없다(tol_V 는 슬라이스마다 레이아웃이 LUT 에서 읽는다, 4.2). `diode` = 재검증 때 ID 재보정
   불필요 표시(Q4 (iii)), `W_adjustable` = MOD8 이 이 소자 W 를 바꿀 수 있음.
 - `MatchingGroup(gid, members, role, hub_net, allowed_patterns)`: `members` tuple(중복 없음, 2개 이상), `role` ∈ `ROLES` =
   `LAYOUT_ROLES`(`"diff_pair"`, `"mirror"`, `"branch_symmetric"`) + `EXCLUDED_ROLES`(`"bias_distribution"`, `"feedback_shared"`),
@@ -247,13 +248,19 @@ core 계약 5·6절(GraphSnapshot·`compute_block`), lut 계약 1.6(`widths`)·4
    `tol = tol_v_table(memo, kind, 키).at(L_m, vds_V, "id_equivalent")`(다른 지표는 쓰지 않는다).
 2. `SliceDensity(키, finger_w, vgs, J, W_need, float(tol), "")`.
 3. 1 의 어느 조회가 `SealViolationError` 이면 `SliceDensity(키, finger_w, None, None, None, None, <그 예외 detail 의 reason>)`
-   (예: `lut_no_strong_inversion_root`, `lut_axis_out_of_range`, `lut_l_not_anchor`). tol 이 None 이면
+   (예: `lut_no_strong_inversion_root`, `lut_axis_out_of_range`, `lut_l_not_anchor`, [r5] `lut_hermite_nonmonotone_cell`(lut 계약 4.2 --
+   역산 칸이 Fritsch–Carlson 위반)). tol 이 None 이면
    `SliceDensity(키, finger_w, vgs, None, None, None, "tol_v_undefined")`. 다른 예외는 그대로 올라간다.
 - 조회 캐시는 `memo` 가 한다(같은 인자 두 번째 조회 = memo hit).
-- 손계산(lut 계약 7절 toy, `LutSpec(1e-8, (("nmos", 1e-6),), (("toyn","nmos"),), (("nmos","_n"),))` -- 최소 finger 1e-6 이라 폭 키
-  (100, 200)): gm_id 10.0, L 1e-6, vds 0.5, vsb 0.0 이면 두 키 모두 vgs 0.5, J = 1.0 A/m(키 100: ID 1e-6/W 1e-6, 키 200: 2e-6/2e-6),
-  **W_need = ID_A(수치 그대로, m)**, tol_V = 0.0(VGS 내부점 LOO 가 log-선형 toy 에서 정확, VDS·VS 는 2점이라 LOO 없음 -- 부동소수
-  잔차 1e-15 수준 허용). gm_id 25.0 이면 모든 키 `lut_no_strong_inversion_root`.
+- [r5] 손계산(lut 계약 **7.1 r5 toy** 슬라이스 2장, 단 `LutSpec(1e-8, (("nmos", 1e-6),), (("toyn","nmos"),), (("nmos","_n"),))` -- 최소 finger
+  1e-6 이라 폭 키 (100, 200); lut 7.1 의 1.5e-6 이면 (200,) 뿐): gm_id **14.0**, L 1e-6, vds 0.5, vsb 0.0 이면 두 키 모두
+  vgs = 0.5(gm/ID = 20 − 12v 의 근, 격자점), **I1 = 1e-7·e^8.55 A**(= 키 100 슬라이스(W 1e-6)의 그 점 ID, 8.55 = 20·0.5 − 6·0.25 + 0.1·0.5)
+  = 5.16675443e-4 A, **J0 = I1 / 1e-6 = 0.1·e^8.55 = 516.675443 A/m**(키 200 은 ID x2 / W x2 라 같은 J), 그래서
+  **W_need = (ID_A / I1) x 1e-6 m**(작성자 실측: ID_A = I1 이면 W_need = 9.999999999999953e-07 -- 상대 1e-13 이내로 비교).
+  tol_V(`id_equivalent`) = 0 수준(r5 Hermite 가 2차식 ln ID 를 정확히 재현, Richardson 환산 뒤에도 0 수준; 실측 키 200 셀 7.9e-18 V) ->
+  상한 = tol_V x 14 ≈ 1e-16(실측 키 100 3.3e-16, 키 200 1.1e-16), 실효 = 하한, `grid_dominated=True`. gm_id 25.0 이면 모든 키
+  `lut_no_strong_inversion_root`. **r4 toy(lut 7.2)는 VGS 칸 [0, 0.5] 이 FC 위반이라 역산이 `lut_hermite_nonmonotone_cell` 로 거부되어
+  모든 슬라이스가 빠진다 -- layout 오라클에 쓰지 않는다.**
 
 ### 4.3 `w_tolerance(gm_id, tol_v, finger_w_m, grid_m) -> WTolerance` (LY1, Q4 (iv))
 `upper = tol_v * gm_id`, `lower = grid_m / (2 * finger_w_m)`, `effective = max(upper, lower)`, `grid_dominated = lower > upper`.
@@ -307,7 +314,7 @@ reads device `ly_device`·`ly_fw_cand`, graph `ly_pdk`·`ly_groups_in`·`ly_reje
    완화되면 `relaxed=True`, `reason="relaxed:<사유>"`. 완화되지 않으면(pattern None, relaxed False): **2 의 후보 조합이 하나 이상
    있으면**(멤버 모두에게 ok 인 공통 폭 키가 있음 -- 패턴 함수가 배치를 냈는지와 무관) reason = (iii) 사유(`"w_request_rejected"` /
    `"w_not_adjustable"` / `"no_usable_slice"`), 조합이 없으면 `"no_common_finger_w"`. (`"no_applicable_pattern"` 은 6 에서 나오지 않는다.)
-   예: 4.15 toy 차동쌍 ID 1e-6, `W_adjustable=False`, `allowed_patterns=("common_centroid",)` -> 키 100 nf 1 조합 있음 ->
+   예: 4.15 toy 차동쌍 ID = I1(W_need 1e-6), `W_adjustable=False`, `allowed_patterns=("common_centroid",)` -> 키 100 nf 1 조합 있음 ->
    reason `"w_not_adjustable"`, pattern None, relaxed False.
    - pending·provisional: (ii) 경로면 배치 유무와 관계없이 `pending = provisional = True`(pattern None 이어도), 그 밖은 둘 다 False.
 7. mirror: 허용 패턴 전부(`PATTERNS` 순)로 5의 최선, `reason="selected"`. 최선이 없으면 `"no_common_finger_w"`(공통 ok 폭 없음)
@@ -446,28 +453,36 @@ reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_ro
 - 계획 LY7('평가 커널은 W_request 가 있을 때만')은 Q4 (ii)로 바뀐다: MOD7 결과마다 재검증 1회는 W_request 와 무관하게 돈다. 레이아웃
   재시도(기하 판정)는 여전히 전기 재계산 없이 돈다.
 
-### 4.15 손계산 오라클 (toy -- lut 계약 7절 toy LUT, 최소 finger 1e-6)
-`spec = LutSpec(1e-8, (("nmos", 1e-6),), (("toyn","nmos"),), (("nmos","_n"),))`, 슬라이스 2장(lut 계약 7절 `toy_w100`·`toy_w200`),
+### 4.15 손계산 오라클 ([r5] toy -- lut 계약 **7.1 r5 toy** LUT, 최소 finger 1e-6)
+`spec = LutSpec(1e-8, (("nmos", 1e-6),), (("toyn","nmos"),), (("nmos","_n"),))`(lut 7.1 의 LutSpec 에서 최소 finger 만 1e-6), 슬라이스 2장
+(lut 7.1 r5 toy `toy_w100`(W 1e-6)·`toy_w200`(W 2e-6, ID·GM·GDS x2)), 기준 LUT 는 lut 7.1 그대로,
 `memo = LutMemo(lut, point=…, curve=…, root=…)`, `pdk = LayoutPdk.from_lut(lut, 0.0, 0.0, 0.0, 0.0, 0.0, rules)`(rules = 다섯 이름에 아무
-규칙 문자열) -> 폭 키 (100, 200), finger_w 1e-6·2e-6. 소자 공통: kind nmos, body "sub", L 1e-6, gm/ID 10.0, vds 0.5, vsb 0.0, diode False,
-adjustable True, W_m 4e-6(참고). 4.2 에 의해 **W_need = ID_A**(m), tol_V = 0 이라 상한 0, 실효 = 하한(키 100: 0.005, 키 200: 0.0025),
-`grid_dominated=True`.
-- 소자 C(s x, d y, ID 0.75e-6): 후보 키 100 nf 1(W_need 0.75e-6, err 1/3, ok False), 키 200 nf 1(err 5/3, ok False) -> ok 없음 ->
-  `finger_quantization` 요청 `WRequest("C", 0.75e-6, 1e-6, "finger_quantization", None)`(err 최소 = 키 100 nf 1).
+규칙 문자열) -> 폭 키 (100, 200), finger_w 1e-6·2e-6. 소자 공통: kind nmos, body "sub", L 1e-6, **gm/ID 14.0**, vds 0.5, vsb 0.0,
+diode False, adjustable True, W_m 4e-6(참고). **전류 단위 I1 = 1e-7·e^8.55 A = 5.16675443e-4 A**(4.2). 아래 소자 전류는 `ID_A = c x I1` 로
+주고, 4.2 에 의해 **W_need = c x 1e-6 m**(두 키 모두 같은 J0; 실측 상대 오차 ~5e-15 -- 정수배 err 은 0 이 아니라 ~5e-15 이므로 ok 판정에는
+영향 없음). tol_V ≈ 0 이라 상한 ≈ 1e-16, 실효 = 하한(키 100: 0.005, 키 200: 0.0025), `grid_dominated=True`.
+(r4 toy 에서 쓰던 `ID 1e-6 -> W_need 1e-6`, gm/ID 10 은 r5 에서 성립하지 않는다 -- r4 toy 는 역산이 FC 위반으로 거부된다.)
+- 소자 C(s x, d y, c 0.75): 후보 키 100 nf 1(W_need 0.75e-6, err 1/3, ok False), 키 200 nf 1(err 5/3, ok False) -> ok 없음 ->
+  `finger_quantization` 요청 `WRequest("C", W_old ≈ 0.75e-6, 1e-6, "finger_quantization", None)`(err 최소 = 키 100 nf 1).
 - 차동쌍 g1 = A(s h, d da), B(s h, d db), hub "h":
-  - ID 2e-6 씩: 키 100 nf 2(err 0, ok) -> `rotation_exact`, 행 `("A","B")`/`("B","A")`, dx = dy = 0, `reason="cc_same_W"`, ok.
-  - ID 1e-6 씩: 키 100 nf 1 만 ok -> cc 는 nf 1 < 2 라 `cc_precondition` -> adjustable 이면 `w_request`: 키* = |키 x 1e-8 − 1e-6/2| 최소 = 100,
-    `WRequest(A, 1e-6, 2e-6, "cc_nf", "g1")`·B 같음, `pending`, pattern None, `review_needed` 에 없음(pending).
+  - c 2 씩: 조합 순서(행 폭 칸 수)상 키 200 nf (1,1)(200 칸, W_need 2e-6 = 1 x 2e-6, err ≈ 0, ok)이 키 100 nf (2,2)(400 칸)보다 먼저
+    평가되어 `cc_precondition`(nf 1 < 2), 그다음 키 100 nf (2,2) -> `rotation_exact`, 행 `("A","B")`/`("B","A")`, dx = dy = 0, `reason="cc_same_W"`, ok.
+    attempts = (("cc_same_W", "cc_precondition"), ("cc_same_W", "evaluated")).
+  - c 1 씩: 키 100 nf 1 만 ok -> cc 는 nf 1 < 2 라 `cc_precondition` -> adjustable 이면 `w_request`: 키* = |키 x 1e-8 − 1e-6/2| 최소 = 100,
+    `WRequest(A, W_old ≈ 1e-6, 2e-6, "cc_nf", "g1")`·B 같음, `pending = provisional = True`, pattern None, `review_needed` 에 없음(pending).
     `W_adjustable=False` 면 attempts `cc_same_W`(cc_precondition) -> `w_request`(w_not_adjustable) -> `relax`: interdigitation `pattern_table`
     (base "AB") 행 `("A","B")`, dx 1.0, `relaxed=True`, `reason="relaxed:w_not_adjustable"`, `review_needed` = (ReviewItem("g1", "diff_pair",
-    "relaxed:w_not_adjustable", 1.0, 0.0),).
-- branch_symmetric g2 = E(s p, d q), F(s r, d t), 같은 gate "gc", ID 2e-6 씩: 키 100 nf 2 -> `row_swap`, 행 `("E","F")`/`("F","E")`, dx = dy = 0,
-  `reason="cc_same_W"`. gate 를 다르게 하면 `precondition` `"branch_gate_differs"`.
+    "relaxed:w_not_adjustable", 1.0, 0.0),). 같은데 `allowed_patterns=("common_centroid",)` 이면 pattern None, relaxed False,
+    reason `"w_not_adjustable"`, `review_needed` = (ReviewItem("g1", "diff_pair", "w_not_adjustable", None, None),).
+- branch_symmetric g2 = E(s p, d q), F(s r, d t), 같은 gate "gc", c 2 씩: 키 100 nf 2 -> `row_swap`, 행 `("E","F")`/`("F","E")`, dx = dy = 0,
+  `reason="cc_same_W"`(키 200 nf 1 조합은 조각 행 1개라 중심 불일치로 먼저 평가된다). gate 를 다르게 하면 `precondition` `"branch_gate_differs"`.
 - bias_distribution g3 = (C, D): `ly_groups` 에 없고 `matching_dispositions` 에 사유와 함께 있다. C·D 는 일반 Euler 행.
-- hub 병합: 같은 body 의 행 그룹 r(C(s x, d y), D(s y, d z), ID 1e-6) 과 r2(G(s y, d w), ID 1e-6) -> 두 행 `r/w100`·`r2/w100` 이 넷 "y" 후보,
+- hub 병합: 같은 body 의 행 그룹 r(C(s x, d y), D(s y, d z), c 1 씩) 과 r2(G(s y, d w), c 1) -> 두 행 `r/w100`·`r2/w100` 이 넷 "y" 후보,
   합친 행 소자 C·D·G -> `MergeDecision(("r/w100","r2/w100"), "y", merged, ...)` 이 하나 있고 merged 는 (후 면적 < 전 면적)과 같다.
-- 접기: 행 그룹 r3 의 H(s k, d m, ID 12e-6) 혼자 -> 키 200 nf 6 행 `r3/w200` -> "fold" 시도 n = 2, 3, ... 가 기록되고, 채택이 있으면 그 면적이
+- 접기: 행 그룹 r3 의 H(s k, d m, c 12) 혼자 -> 키 200 nf 6 행 `r3/w200` -> "fold" 시도 n = 2, 3, ... 가 기록되고, 채택이 있으면 그 면적이
   그 시점 면적보다 작다(H 의 행별 nf 합 = 6 유지).
+- 작성자 실측(참고, 판정 아님 -- PDK 길이 모두 0): 위 r/r2/r3 입력(C·D·G·H 만)에서 merged = False(면적 감소 없음), "fold" 시도 n = 2, 3
+  둘 다 미채택, `w_invariant_ok` True.
 
 ### 4.16 결정·범위 밖·다른 패키지 대기
 - MOD8(W_request 를 받아 sizing 재평가·`rejected_requests` 를 채워 다시 부르기)·재검증 실행(4.14)은 다음 단계.
@@ -478,7 +493,7 @@ adjustable True, W_m 4e-6(참고). 4.2 에 의해 **W_need = ID_A**(m), tol_V = 
     `feedback_shared` 분류, 차동쌍 유도에서 바이어스 형제 제외, matching 레코드 status(derived·ratified 만 레이아웃에 전달), stage 별 행 그룹
     (`graph/row_groups.py` -- 같은 (kind, body)의 행 그룹이 여럿일 때만 hub 병합이 stage 를 넘는다). 현재 graph 에는 `rel_matching_ratio`·
     `rel_matching_offset` 만 있고 위 role 생산자가 없다.
-  - core: `pdk_decl.py`(dummy·tap·well 간격 규칙 선언) 없음 -- 지금은 부르는 쪽이 `LayoutPdk` 다섯 길이와 `rule_ids` 를 넘긴다.
+  - core: `read_pdk_decl` 은 있다(core 9절) -- 정본 경로는 `LayoutPdk.from_decl`(4.1). `run_layout` 을 부르는 엔진 쪽 호출자(MOD8·pipeline)는 아직 없다.
   - MOD5·MOD6·MOD8: 평가 커널·봉인 1~8·수렴 루프(4.14 소비자).
 - `pack_floorplan` 의 H 스윕은 면적이 아니라 aspect ratio 최소를 고른다(복사 본문) -- 판정 축 면적은 그 결과의 bbox 다. 복사 본문 리터럴의
   A_L 민감도는 4.17.
@@ -495,6 +510,8 @@ adjustable True, W_m 4e-6(참고). 4.2 에 의해 **W_need = ID_A**(m), tol_V = 
   test 화(`test_floorplan_literal_sensitivity.py`)는 test 작성자 몫.
 
 ### 4.18 실 LUT 실측 -- 파일럿 T1 행 M3a (작성자 실측, 참고·판정 아님)
+- [r5 주의] 아래 수치는 2026-10-07 **r3/r4 LUT(VGS·VDS 다선형, 선형 LOO tol_V)** 시점 값이다. r5(Hermite 보간·Richardson 환산 tol_V)에서는
+  W_need·tol_V·선택 키가 달라질 수 있어 재측정 전에는 기대값으로 쓰지 않는다(옛/새 규칙의 비교 방법만 참고).
 - 입력: 실 LUT(`wt/_drafts/engine/lut_slices/manifest.json`, nmos 폭 키 20개, 격자 5e-9), 파일럿 `engine.json` sizing 의 M3a·M3b(L 1 µm,
   gm/ID 15, VDS 0.2, ID 4.98 µA)·M4a·M4b(L 1.4 µm -> 측정 편의상 가장 가까운 앵커 1.5 µm), 행 그룹 하나, matching 그룹 없음.
 - 옛 규칙(7ac0210: err = |nf fw − W_m|/W_m, 상한 = 기준 슬라이스(키 1000) id_equivalent 셀 x gm/ID): 상한 M3a 0.492, M4a 0.074 ->

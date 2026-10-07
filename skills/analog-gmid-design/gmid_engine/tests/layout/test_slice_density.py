@@ -1,7 +1,8 @@
 """CONTRACT 4.2 `slice_density(memo, device, keys) -> tuple[SliceDensity]` (Q4 (i)(iv)) -- toy 손계산, 제외 사유, memo 캐시.
 
-보존량 (ID, gm/ID, L) 에서 슬라이스마다 J = op.IDu / L, W_need = ID_A / J, tol = id_equivalent 셀. toy(lut 계약 7절)는 J = 1 A/m 이라
-W_need = ID_A(m), tol_V = 0(부동소수 잔차 수준).
+보존량 (ID, gm/ID, L) 에서 슬라이스마다 J = op.IDu / L, W_need = ID_A / J, tol = id_equivalent 셀. [r5] toy(lut 계약 7.1)는
+gm/ID 14 -> vgs 0.5(격자점), J0 = I1 / 1e-6 = 0.1·e^8.55 A/m(두 키 같음), ID_A = c x I1 -> W_need = c x 1e-6, tol_V = 0 수준.
+r4 toy(lut 7.2)는 VGS 칸 [0, 0.5] 이 FC 위반이라 모든 슬라이스가 `lut_hermite_nonmonotone_cell` 로 빠진다.
 """
 from __future__ import annotations
 
@@ -10,7 +11,7 @@ import pytest
 from gmid_engine.layout.contract_output import SliceDensity
 from gmid_engine.layout.slice_density import slice_density
 
-from .conftest import dev, new_memo
+from .conftest import I1, J0, TOY_VGS_ROOT, build_toy_lut, dev, new_memo
 
 
 def _stats(memo):
@@ -25,12 +26,13 @@ def test_toy_hand_values(toy_memo, ID):
         assert isinstance(sd, SliceDensity)
         assert sd.finger_w_key == key
         assert sd.finger_w_m == pytest.approx(key * 1e-8, rel=1e-12)
-        assert sd.vgs_V == pytest.approx(0.5, abs=1e-12)
-        assert sd.J_A_per_m == pytest.approx(1.0, rel=1e-9)
-        assert sd.W_need_m == pytest.approx(ID, rel=1e-9)                 # W_need = ID_A (수치 그대로, m)
-        assert sd.W_need_m == pytest.approx(ID / sd.J_A_per_m, rel=1e-12)  # W_need = ID / J
+        assert sd.vgs_V == pytest.approx(TOY_VGS_ROOT, abs=1e-12)        # 20 − 12v = 14 -> 0.5
+        assert sd.J_A_per_m == pytest.approx(J0, rel=1e-12)               # 0.1·e^8.55 = 516.675443 A/m
+        assert J0 == pytest.approx(516.675443, rel=1e-9) and I1 == pytest.approx(5.16675443e-4, rel=1e-9)
+        assert sd.W_need_m == pytest.approx(ID, rel=1e-12)                # ID_A = c x I1 -> W_need = c x 1e-6
+        assert sd.W_need_m == pytest.approx(ID * J0 / sd.J_A_per_m, rel=1e-12)  # W_need = ID_A / J
         assert isinstance(sd.tol_v_V, float)
-        assert abs(sd.tol_v_V) <= 1e-12                                   # id_equivalent 셀 = 0 (잔차 1e-15 수준)
+        assert abs(sd.tol_v_V) <= 1e-12                                   # id_equivalent 셀 = 0 수준(실측 1e-18~1e-16)
         assert sd.reason == ""
 
 
@@ -40,6 +42,15 @@ def test_w_need_is_from_preserved_quantities_not_reference_W(toy_memo):
     b = slice_density(toy_memo, dev("X", "s", "d", 0.75e-6, W=9e-6), (100, 200))
     assert [x.W_need_m for x in a] == [x.W_need_m for x in b]
     assert all(x.W_need_m == pytest.approx(0.75e-6, rel=1e-9) for x in a)
+
+
+def test_r4_toy_rejected_by_hermite_fc(tmp_path):
+    # 4.2 [r5]: r4 toy(lut 7.2) 는 역산 칸이 Fritsch–Carlson 위반 -> 모든 슬라이스 제외(사유 그대로)
+    memo = new_memo(build_toy_lut(tmp_path / "r4", variant="r4"))
+    out = slice_density(memo, dev("X", "s", "d", 2e-6), (100, 200))
+    assert [(s.finger_w_key, s.reason) for s in out] == [(100, "lut_hermite_nonmonotone_cell"),
+                                                         (200, "lut_hermite_nonmonotone_cell")]
+    assert all((s.vgs_V, s.J_A_per_m, s.W_need_m, s.tol_v_V) == (None,) * 4 for s in out)
 
 
 def test_keys_order_kept(toy_memo):
