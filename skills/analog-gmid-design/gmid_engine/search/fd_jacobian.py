@@ -1,0 +1,102 @@
+"""FD Jacobian -- 전진 차분, 열마다 parent = 기준점 (설계 design_mod6_search_front 3절).
+
+진입점: `fd_jacobian(sctx, variables, x, base, cells, to_theta, origin) -> tuple[(EvalResult | None, 스텝)]`.
+
+* 열 i 마다 `evaluate(θ(x + hᵢeᵢ), parent=base)` 1회 -- sizing 이 기준점 스냅샷에서 hᵢ 가 읽히는 블록과 하류만 다시
+  계산한다(전류 성분은 ④ 노드전압을 건드리지 않는다, 설계 2.2). 같은 x 는 키가 같아 캐시 적중(커널 0).
+* 스텝 hᵢ(상수 없음 -- 그 좌표의 LUT 해상도, 설계 3절):
+  - `ln_idu`(쓰기 소자 m): 동작점 VGS 를 품는 VGS 격자 칸 폭 × gm/ID(d ln ID = (gm/ID)·dVGS).
+  - `y`: VDS 격자 최소 칸 폭 / 그 W4 창 폭(창 = 그 y 키를 쓰는 뿌리 노드의 `dc_window`).
+  - `current`(ln 좌표): 그 기저 원소를 항으로 갖는 MOS 들의 tol_V(id_eq)·gm/ID 최솟값(상대 스텝 -- M7 L1 W 허용 상대오차와 같은 식).
+  - `resistance`(ln 좌표): tol_V 최솟값 / (I·R)(I·R 강하가 tol_V 만큼 움직이는 상대 ΔR). I = 0 이면 그 저항은 DC 에 닿지 않아
+    열 = 0(평가 없음).
+  - `L`(칸 안 연속): L 을 품는 LUT L 점 칸 폭(할선 -- 칸 경계 꺾임을 가로지른다).
+* 변수 상한을 넘으면 후진 스텝(−hᵢ). 열 점이 받아들일 상태(봉인 통과·대기)가 아니면 반대 방향을 한 번 더 시험하고, 둘 다 아니면
+  그 열은 (None, h) -- 부르는 쪽(SLSQP)이 6.2 재시작 규칙으로 넘긴다.
+"""
+import bisect
+import math
+
+import numpy as np
+
+from gmid_engine.sizing import THETA_CURRENT, THETA_L, THETA_LN_IDU, THETA_RESISTANCE, THETA_Y
+
+from .kernel import evaluate
+from .search_values import ACCEPTED_STATUSES, STAGE_FD
+
+
+def _cell_width(grid, value):
+    grid = [float(g) for g in grid]
+    i = min(max(bisect.bisect_right(grid, value) - 1, 0), len(grid) - 2)
+    return grid[i + 1] - grid[i]
+
+
+def _steps(sctx, variables, base):
+    snap = base.evaluation.snapshot
+    lut = sctx.dc.lut
+    w_keys = dict(lut.w_keys)
+    ops = dict(snap.column("device", "dc_op"))
+    tols = dict(snap.column("device", "dc_tol_v"))
+    defined = [tols[m] * ops[m].gm_id for m in ops if tols.get(m)]
+    tol_min = min(t for t in tols.values() if t) if any(tols.values()) else None
+    sources = {}
+    for mos, terms in sctx.dc.schema.current_cone:
+        for t in terms:
+            sources.setdefault(t.source, []).append(mos)
+    windows = {}
+    writers = dict(snap.column("node", "dc_writer"))
+    for node, win in snap.column("node", "dc_window"):
+        windows[writers[node].y_key] = win.hi - win.lo
+    currents = dict(snap.column("device", "dc_drop_current"))
+    theta = dict(base.theta)
+    steps = []
+    for var in variables:
+        kind, key = var.component
+        if kind == THETA_LN_IDU:
+            op = ops[key]
+            sl = lut.memo.lut.slice_map[(op.kind, w_keys[op.kind])]
+            steps.append(_cell_width(sl.VGS_grid, op.vgs) * op.gm_id)
+        elif kind == THETA_Y:
+            vds = np.diff(np.asarray(lut.memo.lut.slice_map[lut.w_keys[0]].grids[2], dtype=float))
+            width = windows.get(key)
+            steps.append(float(np.min(vds)) / width if width else None)
+        elif kind == THETA_CURRENT:
+            rel = [tols[m] * ops[m].gm_id for m in sources.get(key, ()) if tols.get(m)]
+            steps.append(min(rel) if rel else (min(defined) if defined else None))
+        elif kind == THETA_RESISTANCE:
+            drop = abs(currents.get(key, 0.0)) * theta[var.component]
+            steps.append(tol_min / drop if drop and tol_min else 0.0)
+        elif kind == THETA_L:
+            op = ops[key]
+            sl = lut.memo.lut.slice_map[(op.kind, w_keys[op.kind])]
+            inside = [float(a) for a in sl.grids[0] if var.lo - math.ulp(var.lo) <= a <= var.hi + math.ulp(var.hi)]
+            steps.append(_cell_width(inside, op.L))      # 칸(bin) 안 앵커 간격만 -- 칸 끝에서 이웃 bin 간격을 쓰지 않는다
+        else:
+            raise ValueError("fd_jacobian: 모르는 θ 성분 " + repr(var.component))
+    return steps
+
+
+def fd_jacobian(sctx, variables, x, base, cells, to_theta, origin):
+    columns = []
+    for i, (var, h) in enumerate(zip(variables, _steps(sctx, variables, base))):
+        if not h:
+            columns.append((None, 0.0) if h is None else (base, 0.0))
+            continue
+        h = -h if x[i] + h > var.hi else h
+        found = None
+        for step in (h, -h):
+            value = x[i] + step
+            for bound in (var.lo, var.hi):
+                if abs(value - bound) <= math.ulp(bound):     # 칸 끝 앵커까지 스텝의 반올림(1 ulp)은 그 끝으로
+                    value = bound
+            if not var.lo <= value <= var.hi or value == x[i]:
+                continue
+            step = value - x[i]
+            probe = list(x)
+            probe[i] = value
+            res = evaluate(sctx, to_theta(probe), cells, parent=base, origin=origin + (("stage", STAGE_FD),))
+            if res.status in ACCEPTED_STATUSES:
+                found = (res, step)
+                break
+        columns.append(found if found is not None else (None, h))
+    return tuple(columns)
