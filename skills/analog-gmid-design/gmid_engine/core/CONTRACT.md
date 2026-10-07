@@ -247,24 +247,45 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 
 ---
 
-## 9. PDK 선언 `read_pdk_decl(decl_path, memo) -> PdkDecl` (계획 N3.16 'PDK 상수', U-30, WP-03, DEC-80 (i), DEC-93 (5), LY10)
+## 9. PDK 선언 `read_pdk_decl(decl_path, memo) -> PdkDecl` (계획 N3.16 'PDK 상수', U-30, WP-03, DEC-80 (i), DEC-91, DEC-93 (5), LY10)
 
 근거: PDK 상수는 한 곳 선언, 값마다 출처 규칙 번호, 코드에 숫자를 박지 않는다. 소비자: MOD7 `LayoutPdk`(layout CONTRACT 4.1·4.10 --
-`manufacturing_grid_m` 과 `PDK_RULE_QUANTITIES` 다섯 길이 + `rule_ids`).
+`manufacturing_grid_m` 과 `PDK_RULE_QUANTITIES` 다섯 길이 + `rule_ids`), metrics 접합 용량(metrics CONTRACT 8절 -- 모델 카드 접합
+파라미터 `junction_<kind>_<BSIM4 이름>` 과 LUT 생성 규칙 확산 기하 `lut_diffusion_*`, DEC-91).
+- 양의 값 `value_m` 은 원본 단위 표(`units_m`)로 환산한 **SI 값**이다(길이 양은 m, 면적 m², 접합 용량 F/m²·F/m, 전위 V, 무차원, `tnom` °C --
+  단위는 양 이름·`basis` 가 적는다; 필드 이름 `value_m`·`units_m` 은 r1 그대로).
 
 ### 9.1 선언 파일 (JSON, UTF-8) -- PDK 마다 데이터 하나 (sky130 = `skills/analog-gmid-design/assets/sky130_pdk_decl.json`)
 - 최상위는 JSON 객체(배열·수·문자열이면 `pdk_decl_shape`). 키 정확히 `schema`(= `"gmid_pdk_decl/1"`), `pdk`(비지 않은 문자열),
   `pdk_root`(비지 않은 문자열), `sources`(비지 않은 객체), `quantities`(비지 않은 객체) + 선택 `note`. 그 밖 키·빠진 키 -> `pdk_decl_keys`;
   `pdk`·`pdk_root`·`sources`·`quantities`·`sources.<이름>`·`quantities.<이름>` 의 타입·빈 값 위반 -> `pdk_decl_shape`.
-- `sources.<이름>`: 경로는 `pdk_root + "/" + path`. 공통 키 `path`(비지 않은 문자열), `sha256`(정확히 64자 **소문자** hex 문자열 -- 아니면
+- `sources.<이름>`: 경로는 `pdk_root + "/" + path`(선택 `base` 가 `"decl_dir"` 이면 `선언 파일 폴더(절대 경로) + "/" + path`). 공통 키
+  `path`(비지 않은 문자열), `sha256`(정확히 64자 **소문자** hex 문자열 -- 아니면
   `pdk_decl_shape`, 형식은 맞는데 파일 값과 다르면 `pdk_source_sha256_mismatch`), `format`, `encoding`(원본 파일 바이트를 글로 풀 때 쓰는
   파이썬 코덱 이름, 예 `"utf-8"` -- 문자열이 아니거나 알 수 없는 코덱이면 `pdk_decl_shape`; 선언 파일 자체는 늘 UTF-8),
-  `units_m`(단위 글자 -> m 배율, 양의 유한 수(bool 아님), 비지 않은 객체) + 선택 `note`. `format`:
+  `units_m`(단위 글자 -> SI 배율, 양의 유한 수(bool 아님), 비지 않은 객체) + 선택 `note`, 선택 `base`(`"pdk_root"`(기본)|`"decl_dir"`,
+  그 밖 값·비문자열 -> `pdk_decl_shape`), 선택 `newline`(`"lf"` 만 -- 그 밖 -> `pdk_decl_shape`; 있으면 파일 바이트의 `\r\n` 을 `\n` 으로
+  바꾼 뒤 sha256 을 재고 그 바이트를 푼다 -- 체크아웃마다 줄 끝이 바뀌는 저장소 안 원본용, 선언 sha256 = git blob 내용의 sha256;
+  없으면 원본 바이트 그대로). `format`:
   - `"lef_statement"`: 줄에서 `#` 뒤를 버리고 `^\s*KEY\s+값\s*;\s*$` 인 줄마다 규칙 `KEY`(단위 글자 `""`). 그 밖 키 없음.
   - `"rule_table_csv"`: 추가 키 `section_pattern`(정규식 문자열, 그룹 1 = 접두), `section_column`·`id_column`·`value_column`·`unit_column`
     (열 번호, 0 이상 int, bool 아님). 정규식이 문자열이 아니거나 컴파일되지 않음, 열 번호가 정수 아님·음수·bool -> `pdk_decl_shape`.
     CSV 행을 차례로: section 열이 정규식에 맞으면 접두를 바꾸고, 아니면 접두가 있고 id 열이 비지 않을 때 규칙 `접두 + "." + id`
     (값 글자 = value 열, 단위 글자 = unit 열, 없는 열은 `""`, 행 번호 = csv `line_num`).
+  - **SPICE 값 글자**(아래 두 형식 공통): `키 = 값` 쌍은 정규식 `([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(\{[^}]*\}|'[^']*'|[^\s(){}=']+)` 로 찾고,
+    키는 **소문자로** 바꾼다(SPICE 는 대소문자 무관 -- 선언 식도 소문자로 쓴다). 값이 `수(부호·소수·지수 허용) + 영문자*` 꼴이면 값 글자 =
+    수 부분, 단위 글자 = 뒤 영문자(소문자로) -- 예 `2.5p` -> ("2.5", "p"), `0.44` -> ("0.44", ""); 그 꼴이 아니면(`{식}`·`'식'`) 값 글자 =
+    그대로, 단위 글자 `""`(식이 그 규칙을 쓰면 `pdk_rule_not_numeric`).
+  - `"spice_model_card"`(DEC-91 접합 파라미터): 추가 키 `model_pattern`(정규식 문자열 -- 모델 이름 전체 일치(`fullmatch`, 대소문자 그대로)).
+    줄 단위로: 빈 줄·`*` 로 시작하는 줄은 건너뛴다; 줄의 `공백 + $` 또는 `공백 + ;` 뒤는 주석으로 버린다; `^\s*\.model\s+<이름>\s+<형>...`
+    (대소문자 무관) 줄은 블록 머리 -- 이름이 `model_pattern` 에 맞으면 새 블록(머리 줄 나머지의 `키 = 값` 도 읽는다), 아니면 블록 밖;
+    `+` 로 시작하는 줄은 블록 안이면 그 뒤를 읽는다; 그 밖 줄은 블록을 닫는다. 규칙 이름 두 가지:
+    `<모델 이름(소문자)>.<키>` = bin 별(블록에서 나온 항목 그대로), `<키>` = bin 공통 -- 맞은 블록 전부의 (값 글자, 단위 글자) 가 하나면
+    항목 1개(행 = 첫 블록에서의 행), 블록마다 다르거나 어느 블록에 키가 없으면(없는 블록은 (`""`, `""`, 그 블록 머리 행) 으로 셈) 서로 다른
+    값마다 항목 하나 -> 식이 쓰면 `pdk_rule_ambiguous`(그때는 bin 별 이름을 써야 한다). 맞는 블록이 없으면 모든 규칙이 `pdk_rule_missing`.
+  - `"spice_instance_line"`(LUT 생성 규칙 확산 기하): 추가 키 `line_pattern`(정규식 문자열, `re.search`). 맞는 줄마다 그룹이 있으면 그룹 1,
+    없으면 맞은 글자 전체에서 `키=값` 을 읽어 규칙 `<키>` 항목(행 = 그 줄)을 더한다 -- 두 줄 이상에 나온 키는 쓰이면 `pdk_rule_ambiguous`.
+  - 정규식 키(`section_pattern`·`model_pattern`·`line_pattern`)가 문자열이 아니거나 컴파일되지 않으면 `pdk_decl_shape`.
   - 그 밖 format -> `pdk_source_format_unknown`; 형식별 키가 다르거나 빠짐 -> `pdk_decl_keys`; `units_m` 위반 -> `pdk_source_units_invalid`.
   - 원본 하나의 검사 순서: 객체 아님(`pdk_decl_shape`) -> format -> 키 집합 -> `units_m` -> 값 모양(`pdk_decl_shape`) -> 파일 존재 -> sha256 대조.
 - `quantities.<이름>`: 키 정확히 `source`, `expression`, `basis`. 셋 다 문자열이어야 하고(아니면 -- 예 `expression: 5` -- `pdk_decl_shape`),
@@ -297,7 +318,7 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 | `pdk_decl_missing` | 선언 파일 없음 |
 | `pdk_decl_json` | JSON 문법 오류 |
 | `pdk_decl_keys` / `pdk_decl_schema` | 키 집합 위반 / schema 값 다름 |
-| `pdk_decl_shape` | 모양 위반: 최상위가 객체 아님(배열 등), `pdk`·`pdk_root` 빈/비문자열, `sources`·`quantities` 가 비지 않은 객체 아님, 원본·quantity 항목이 객체 아님, `path`·`encoding` 빈/비문자열, 알 수 없는 코덱, `sha256` 이 64자 소문자 hex 아님, `section_pattern` 비문자열·컴파일 실패, 열 번호가 0 이상 int 아님(bool 포함), quantity 의 `source`·`expression`·`basis` 비문자열, 빈 `basis` |
+| `pdk_decl_shape` | 모양 위반: 최상위가 객체 아님(배열 등), `pdk`·`pdk_root` 빈/비문자열, `sources`·`quantities` 가 비지 않은 객체 아님, 원본·quantity 항목이 객체 아님, `path`·`encoding` 빈/비문자열, 알 수 없는 코덱, `sha256` 이 64자 소문자 hex 아님, `base` 가 `"pdk_root"`·`"decl_dir"` 밖(비문자열 포함), `newline` 이 `"lf"` 아님, 정규식 키(`section_pattern`·`model_pattern`·`line_pattern`) 비문자열·컴파일 실패, 열 번호가 0 이상 int 아님(bool 포함), quantity 의 `source`·`expression`·`basis` 비문자열, 빈 `basis` |
 | `pdk_source_missing` / `pdk_source_sha256_mismatch` | 원본 파일 없음 / sha256 이 선언과 다름 |
 | `pdk_source_undeclared` | quantity 의 `source` 가 `sources` 에 없음 |
 | `pdk_rule_missing` / `pdk_rule_ambiguous` | 식의 규칙이 원본에 없음 / 두 번 이상 나옴(쓰일 때만 거부) |
@@ -321,6 +342,37 @@ N3.14 클래스가 아니다: `exit_code_for` -> 1, `CANDIDATE_FAILURE_CLASSES` 
 (값은 float 연산 결과 그대로 -- 예 `row_gap_m` = 4.6999999999999995e-07. test 는 손계산과 상대 오차로 비교한다.)
 식(기하 해석)은 선언 파일의 `basis` 에 적었고 사용자 ratify 대상이다.
 
+**접합 파라미터(DEC-91, 2026-10-08)** -- 같은 선언 파일에 원본 둘 추가: `nfet_01v8_tt_model_card` =
+`C:/pdk/sky130_fd_pr/cells/nfet_01v8/sky130_fd_pr__nfet_01v8__tt.pm3.spice`(sha256 `eec2f478...`, `model_pattern`
+`sky130_fd_pr__nfet_01v8__model\.[0-9]+` -> 블록 180개), `pfet_01v8_tt_model_card` = `.../pfet_01v8/sky130_fd_pr__pfet_01v8__tt.pm3.spice`
+(sha256 `3ecdcb8c...`, 블록 108개) -- 둘 다 LUT v2 meta `model_files_sha256` 과 같은 파일, `units_m` `{"": 1.0}`, 줄 끝 CRLF 원본 그대로.
+양 이름 `junction_<kind>_<BSIM4 이름>`(kind = `nmos`·`pmos`, 이름 = metrics `JunctionParams` 필드 27개). 접합 파라미터는 **bin 전부에서
+같은 값**(작성자 전수 확인 2026-10-08)이라 식은 bin 공통 규칙 이름이다. drain 쪽 이름(cjd·cjswd·cjswgd·mjd·mjswd·mjswgd·pbd·pbswd·pbswgd)은
+모델 카드에 없어 식이 source 쪽 규칙(BSIM4 기본값: 미지정 drain = source). `dwj` 식 = `dwc - xw / 2`(dwj 미지정 -> dwc, Weffcj 의 xw 포함).
+
+| kind | cjs | cjsws | cjswgs | mjs | mjsws | mjswgs | pbs | pbsws | pbswgs | tcj | tcjsw | tcjswg | tpb | tpbsw | tpbswg | tnom | permod | dwj |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| nmos | 0.001339749237 | 3.67354204e-11 | 2.38232788e-10 | 0.44 | 0.0009 | 0.8 | 0.729 | 0.2 | 0.95578 | 0.000792 | 1e-05 | 0.0 | 0.0012287 | 0.0 | 0.0 | 30.0 | 1.0 | 0.0 |
+| pmos | 0.0007380194454 | 9.888892e-11 | 2.39155046e-10 | 0.34629 | 0.29781 | 0.9274 | 0.6587 | 0.7418 | 1.4338 | 0.0012407 | 0.00037357 | 2e-12 | 0.0020386 | 0.001246 | 0.0 | 30.0 | 1.0 | 0.0 |
+
+규칙 행(nfet 파일, 첫 블록 `sky130_fd_pr__nfet_01v8__model.0`): cjs 231, pbs 230, tnom 240, permod 47, dwc 175, xw 216(pfet: cjs 277,
+tnom 38, permod 69). 거부 실례: 식 `vth0`(bin 마다 값이 다름) -> `pdk_rule_ambiguous`, `sky130_fd_pr__nfet_01v8__model.26.vth0`(값이
+`{...}` 식) -> `pdk_rule_not_numeric`, `dwj` -> `pdk_rule_missing`, `sky130_fd_pr__nfet_01v8__model.26.cjs` -> 0.001339749237(행 7199).
+
+**LUT 생성 규칙 선언** `skills/analog-gmid-design/assets/sky130_lut_rule_decl.json`(같은 스키마, 2026-10-08): 원본 `lut_generator` =
+`base: "decl_dir"` + `sky130_lut_sweep.py`(LUT 생성기), `newline: "lf"`, sha256 `419fe1e1...`(git blob), `spice_instance_line`,
+`line_pattern` `^DUT_LINE\s*=\s*"([^"]*)"`(90행, 글자 `xdut d g s b sky130_fd_pr__{devcell} l={L_um}u w=5u ad=2.5p as=2.5p pd=7u ps=7u`),
+`units_m` `{"u": 1e-6, "p": 1e-12}`.
+
+| 이름 | 식 | 값 |
+|---|---|---|
+| `lut_diffusion_ad_per_w_m` | `ad / w` (2.5e-12 / 5e-6) | 5e-7 |
+| `lut_diffusion_as_per_w_m` | `as / w` | 5e-7 |
+| `lut_diffusion_pd_extra_m` | `pd - w` (7e-6 − 5e-6) | 2.0000000000000003e-06 |
+| `lut_diffusion_ps_extra_m` | `ps - w` | 2.0000000000000003e-06 |
+
+(규칙 `l` 의 값 글자는 `{L_um}` -> 쓰이면 `pdk_rule_not_numeric`.)
+
 ### 9.5 소비자 호출 (layout 브랜치 병합 시 `LayoutPdk` 를 만드는 쪽)
 ```python
 from gmid_engine.core import BoundedLRU, read_pdk_decl
@@ -329,3 +381,7 @@ pdk = LayoutPdk.from_lut(lut, *decl.values(PDK_RULE_QUANTITIES), decl.rule_ids(P
 ```
 `PDK_RULE_QUANTITIES` 순서 = `from_lut` 위치 인자 순서(overhead, gap, dummy, tap, well). 격자는 `from_lut` 가 `lut.spec.manufacturing_grid_m`
 에서 읽으므로 LUT 를 만드는 쪽이 `LutSpec(decl.value("manufacturing_grid_m"), ...)` 로 같은 선언값을 쓴다.
+
+접합 용량 소비자(DEC-91): `metrics.JunctionParams.from_pdk_decl(decl, kind)`·`metrics.DiffusionGeometry.from_lut_rule(lut_rule_decl, finger_w, m)`
+-> `metrics.junction_caps(...)` (metrics CONTRACT 8.5 -- ss_linearize `ss_dev` 가 부른다). 두 선언을 같은 memo 로 읽으면 원본 5개
+(memo 상한 5 이상이면 두 번째 호출부터 파싱 0).

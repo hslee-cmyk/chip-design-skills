@@ -107,7 +107,7 @@ LAYERS = (
     (
         "metrics",
         (
-            ("_helpers_pencil.py", "_helpers_stamp.py", "mna_types.py", "records.py"),
+            ("_helpers_pencil.py", "_helpers_stamp.py", "junction_cap.py", "mna_types.py", "records.py"),
             ("_helpers_probe.py", "area.py", "dc_limit.py", "loop_cut.py", "omega_grid.py", "pencil_roots.py", "ratio.py",
              "registry.py", "rout.py", "stamp_mos.py", "stamp_two_terminal.py", "supply.py"),
             ("catalog.py", "evaluate.py", "mna_build.py", "point_solve.py"),
@@ -423,6 +423,9 @@ MODULES = (
                 "Undefined·MnaSystem·Roots·DcLimit·SystemResponse·Factor·ProbeFactor·CutCircuit·Crossing·LoopAnalysis·MetricResult 등 결과 레코드(데이터 선언 모듈)", ("MOD5", "7a")),
     ModuleEntry("metrics/_helpers_stamp.py", "helper", None,
                 "2단자 어드미턴스 스탬프(MOS 용량·수동소자 공용)", ("MOD5",)),
+    ModuleEntry("metrics/junction_cap.py", "entry", "junction_caps",
+                "접합 용량 cdb·csb: PDK 선언 BSIM4 접합 파라미터 + 역바이어스 + 확산 기하(레이아웃 전 LUT 생성 규칙)",
+                ("DEC-91", "N3.16", "MOD5")),
     ModuleEntry("metrics/_helpers_pencil.py", "helper", None,
                 "pencil 유한 고유값(QZ 동차 좌표 유한·원점 판정, pencil_roots·probe_loop 공용)", ("MOD5", "7a")),
     ModuleEntry("metrics/_helpers_probe.py", "helper", None,

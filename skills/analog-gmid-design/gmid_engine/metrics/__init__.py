@@ -9,6 +9,7 @@ from .catalog import metric_catalog
 from .crossing import find_crossing
 from .dc_limit import solve_dc_limit
 from .evaluate import metric_value
+from .junction_cap import DiffusionGeometry, JunctionCaps, JunctionParams, junction_caps
 from .loop_analysis import analyze_loop
 from .loop_cut import cut_circuit
 from .mna_build import build_mna
@@ -68,9 +69,12 @@ __all__ = (
     "CutCircuit",
     "DcLimit",
     "DcOperatingPoint",
+    "DiffusionGeometry",
     "Excitation",
     "Factor",
     "GateArea",
+    "JunctionCaps",
+    "JunctionParams",
     "LoopAnalysis",
     "LoopCut",
     "MetricResult",
@@ -96,6 +100,7 @@ __all__ = (
     "build_mna",
     "cut_circuit",
     "find_crossing",
+    "junction_caps",
     "metric_catalog",
     "metric_registry",
     "metric_value",
