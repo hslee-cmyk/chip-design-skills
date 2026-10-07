@@ -1,0 +1,157 @@
+"""graph/s1_build.py -- `build_s1(doc, supplies_v=None, previous=None)` (계약 1절: 순서·재사용·실패).
+
+필드=캐시 대원칙(확정 사항 1·2·5)을 계수로 확인한다: compute_block 계수는 모듈 전역 블록 객체에 누적되므로
+항상 호출 전후 차이로 본다.
+"""
+from __future__ import annotations
+
+import pytest
+
+from gmid_engine.core import GraphSnapshot, SchemaRejectedError, WriterTable
+from gmid_engine.graph import S1_WRITERS, S1Graph, build_s1, s1_bulk, s1_structure
+
+SIX = (
+    "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
+    "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
+)
+FIELDS = ("calls", "reuses", "computes", "recomputes_same_input")
+
+
+def _stats():
+    a, b = s1_structure.stats(), s1_bulk.stats()
+    return {"structure": tuple(getattr(a, f) for f in FIELDS), "bulk": tuple(getattr(b, f) for f in FIELDS)}
+
+
+def _delta(before, after):
+    return {k: tuple(y - x for x, y in zip(before[k], after[k])) for k in before}
+
+
+def _bulk(s1):
+    return {k: (v.net, v.origin, v.reason) for k, v in s1.column("device", "bulk")}
+
+
+@pytest.mark.parametrize("name", SIX)
+def test_same_inputs_with_previous_returns_same_object(gh, name):
+    doc = gh.load_lib(name)
+    sv = gh.supplies_for(name)
+    s1 = build_s1(doc, sv)
+    before = _stats()
+    again = build_s1(doc, sv, previous=s1)
+    assert again is s1
+    assert _delta(before, _stats()) == {"structure": (0, 0, 0, 0), "bulk": (0, 0, 0, 0)}   # 블록 호출 0
+
+
+def test_same_inputs_reloaded_doc_previous_still_same(gh):
+    # 같은 파일을 다시 읽은 별개의 TopologyDoc 객체여도 키가 같으면 previous 그대로
+    name = "sf_pushpull_output_opamp"
+    sv = gh.supplies_for(name)
+    s1 = build_s1(gh.load_lib(name), sv)
+    assert build_s1(gh.load_lib(name), sv, previous=s1) is s1
+
+
+@pytest.mark.parametrize("name,sv2", [
+    ("pushpull_follower_buffer", {"vdd": 0.9, "vss": -0.9, "agnd": 0.0}),
+    ("sf_pushpull_output_opamp", {"vdd": 3.3, "vss": 0.0, "agnd": 1.65}),
+    ("current_reuse_telescopic_ota", {"vdd": 0.9, "gnd": -0.9}),
+    ("two_stage_ota_sf", {"vdd": 1.8, "gnd": 0.0}),          # None -> 값: bulk 만 다시
+])
+def test_supplies_only_change_reuses_structure(gh, name, sv2):
+    doc = gh.load_lib(name)
+    agg = gh.agg(gh.raw(name))
+    s1 = build_s1(doc, gh.supplies_for(name))
+    before = _stats()
+    s2 = build_s1(doc, sv2, previous=s1)
+    d = _delta(before, _stats())
+    assert d["structure"] == (1, 1, 0, 0)          # 호출 1, reuse 1, compute 0
+    assert d["bulk"][0] == 1 and d["bulk"][2] == 1 and d["bulk"][1] == 0
+    assert s2 is not s1
+    assert s2.key.topology_fp == s1.key.topology_fp and s2.key.supplies_v_fp != s1.key.supplies_v_fp
+    # node 레코드는 전부 같은 객체
+    assert s2.snapshot.keys("node") == s1.snapshot.keys("node")
+    for k in s1.snapshot.keys("node"):
+        assert s2.snapshot.record("node", k) is s1.snapshot.record("node", k)
+    # MOS 레코드는 bulk 가 새로 쓰여 새 객체, 2단자 레코드(bulk 없음)는 그대로(core 5.6 구조 공유)
+    for k in agg.mos:
+        assert s2.snapshot.record("device", k) is not s1.snapshot.record("device", k)
+    for k in list(agg.passives) + list(agg.sources):
+        assert s2.snapshot.record("device", k) is s1.snapshot.record("device", k)
+    # 결과는 previous 없이 새로 만든 것과 같은 내용
+    fresh = build_s1(doc, sv2)
+    assert fresh.snapshot.fp == s2.snapshot.fp
+    assert _bulk(s2) == agg.expected_bulk(sv2)
+
+
+def test_no_previous_recomputes_and_is_counted(gh):
+    name = "ngcc_3stage_ff"
+    doc = gh.load_lib(name)
+    sv = gh.supplies_for(name)
+    first = build_s1(doc, sv)
+    before = _stats()
+    second = build_s1(doc, sv)
+    d = _delta(before, _stats())
+    assert second is not first
+    assert second.snapshot.fp == first.snapshot.fp and second.key == first.key
+    assert d["structure"] == (1, 0, 1, 1)          # 두 번 계산, recomputes_same_input +1
+    assert d["bulk"] == (1, 0, 1, 1)
+
+
+def test_previous_of_other_doc_gives_fresh_content(gh):
+    # previous 가 다른 회로여도 열 교체로 결과는 새로 만든 것과 같다(이전 회로 레코드 잔존 없음)
+    a = build_s1(gh.load_lib("current_reuse_telescopic_ota"), {"vdd": 1.8, "gnd": 0.0})
+    doc_b = gh.load_lib("common_gate_amplifier")
+    b = build_s1(doc_b, {"vdd": 1.8, "gnd": 0.0}, previous=a)
+    fresh = build_s1(doc_b, {"vdd": 1.8, "gnd": 0.0})
+    assert b.snapshot.fp == fresh.snapshot.fp
+    assert b.snapshot.keys("device") == fresh.snapshot.keys("device")
+    assert b.snapshot.keys("node") == fresh.snapshot.keys("node")
+    assert b.key == fresh.key
+
+
+def test_chain_back_to_original_supplies(gh):
+    # A -> B -> A: 세 번째는 previous(B) 와 키가 달라 새 객체지만 내용은 첫 번째와 같고 structure 는 reuse
+    name = "pushpull_follower_buffer"
+    doc = gh.load_lib(name)
+    sv = gh.supplies_for(name)
+    s_a = build_s1(doc, sv)
+    s_b = build_s1(doc, {"vdd": 2.5, "vss": 0.0, "agnd": 1.0}, previous=s_a)
+    before = _stats()
+    s_c = build_s1(doc, sv, previous=s_b)
+    assert _delta(before, _stats())["structure"] == (1, 1, 0, 0)
+    assert s_c.key == s_a.key and s_c.snapshot.fp == s_a.snapshot.fp
+    assert build_s1(doc, sv, previous=s_c) is s_c
+
+
+# ------------------------------------------------------------------ 실패
+
+
+def test_doc_type_error(gh):
+    raw = gh.raw("common_gate_amplifier")
+    for bad in (raw, str(gh.LIBRARY / "common_gate_amplifier.topology.json"), None):
+        with pytest.raises(TypeError):
+            build_s1(bad, None)
+
+
+def test_previous_type_error(gh):
+    doc = gh.load_lib("common_gate_amplifier")
+    s1 = build_s1(doc, None)
+    for bad in (s1.snapshot, "previous", s1.key, GraphSnapshot.empty(S1_WRITERS)):
+        with pytest.raises(TypeError):
+            build_s1(doc, None, previous=bad)
+
+
+def test_previous_with_other_writer_table_type_error(gh):
+    doc = gh.load_lib("common_gate_amplifier")
+    s1 = build_s1(doc, None)
+    other = S1Graph(s1.key, GraphSnapshot.empty(WriterTable([("node", "terminals", "someone_else")])))
+    with pytest.raises(TypeError):
+        build_s1(doc, None, previous=other)
+    # 키가 같아도 권한표가 다르면 그대로 돌려주지 않는다
+    assert other.key == s1.key
+
+
+def test_bad_supplies_rejected_before_blocks(gh):
+    doc = gh.load_lib("common_gate_amplifier")
+    before = _stats()
+    with pytest.raises(SchemaRejectedError):
+        build_s1(doc, {"vdd": "1.8", "gnd": 0.0})
+    assert _delta(before, _stats()) == {"structure": (0, 0, 0, 0), "bulk": (0, 0, 0, 0)}

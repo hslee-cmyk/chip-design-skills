@@ -1,0 +1,170 @@
+"""graph/s1_model.py -- `S1Graph(key, snapshot)` 질의(계약 5절).
+
+- column: snapshot.column 과 같은 key 정렬 tuple. value: 값, 레코드·필드 없음 KeyError.
+- (kind, field) 가 S1_WRITERS 밖 -> KeyError, writer 미계산 -> FieldNotComputed(빈 tuple 아님). 4.3 예약 필드는 항상 FieldNotComputed.
+- 결정론: snapshot.fp 가 프로세스·PYTHONHASHSEED·netlist 순서와 무관.
+"""
+from __future__ import annotations
+
+import dataclasses
+import json
+import os
+import subprocess
+import sys
+
+import pytest
+
+from gmid_engine.core import GraphSnapshot, fp_of
+from gmid_engine.graph import (
+    RESERVED_FIELDS,
+    S1_BULK_WRITER,
+    S1_STRUCTURE_WRITER,
+    S1_WRITERS,
+    FieldNotComputed,
+    S1Graph,
+    build_s1,
+    s1_structure,
+)
+
+SIX = (
+    "common_gate_amplifier", "current_reuse_telescopic_ota", "ngcc_3stage_ff",
+    "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota_sf",
+)
+
+
+def _s1(gh, name):
+    return build_s1(gh.load_lib(name), gh.supplies_for(name))
+
+
+def test_frozen_and_fields(gh):
+    s1 = _s1(gh, "common_gate_amplifier")
+    assert [f.name for f in dataclasses.fields(S1Graph)] == ["key", "snapshot"]
+    assert isinstance(s1.snapshot, GraphSnapshot)
+    assert s1.snapshot.writers == S1_WRITERS
+    with pytest.raises(dataclasses.FrozenInstanceError):
+        s1.key = None  # type: ignore[misc]
+
+
+@pytest.mark.parametrize("name", SIX)
+def test_column_equals_snapshot_column_sorted_tuple(gh, name):
+    s1 = _s1(gh, name)
+    for (kind, field), writer in S1_WRITERS.entries:
+        if writer not in (S1_STRUCTURE_WRITER, S1_BULK_WRITER):
+            continue
+        col = s1.column(kind, field)
+        assert isinstance(col, tuple)
+        assert col == s1.snapshot.column(kind, field)
+        keys = [k for k, _ in col]
+        assert keys == sorted(keys)
+        for k, v in col:
+            assert s1.value(kind, k, field) == v
+
+
+@pytest.mark.parametrize("name", SIX)
+def test_reserved_fields_not_computed(gh, name):
+    s1 = _s1(gh, name)
+    for kind, field, _ in RESERVED_FIELDS:
+        with pytest.raises(FieldNotComputed):
+            s1.column(kind, field)
+        with pytest.raises(FieldNotComputed):
+            s1.value(kind, "M1", field)
+
+
+def test_outside_writer_table_key_error(gh):
+    s1 = _s1(gh, "ngcc_3stage_ff")
+    for kind, field in (("device", "w"), ("node", "voltage"), ("graph", "terminals"), ("device", "dc_roles")):
+        with pytest.raises(KeyError) as ei:
+            s1.column(kind, field)
+        assert not isinstance(ei.value, FieldNotComputed)
+        with pytest.raises(KeyError) as ei:
+            s1.value(kind, "M0", field)
+        assert not isinstance(ei.value, FieldNotComputed)
+
+
+def test_value_missing_record_or_field_key_error(gh):
+    s1 = _s1(gh, "ngcc_3stage_ff")
+    agg = gh.agg(gh.raw("ngcc_3stage_ff"))
+    with pytest.raises(KeyError):
+        s1.value("device", "NO_SUCH_DEVICE", "kind")
+    with pytest.raises(KeyError):
+        s1.value("node", "NO_SUCH_NET", "is_rail")
+    cap = sorted(agg.passives)[0]
+    with pytest.raises(KeyError):
+        s1.value("device", cap, "is_diode")          # 수동소자에는 MOS 전용 필드 없음
+    with pytest.raises(KeyError):
+        s1.value("device", cap, "bulk")
+
+
+def test_not_computed_on_empty_snapshot(gh):
+    key = _s1(gh, "common_gate_amplifier").key
+    empty = S1Graph(key, GraphSnapshot.empty(S1_WRITERS))
+    for kind, field in (("node", "terminals"), ("device", "bulk"), ("device", "pins")):
+        with pytest.raises(FieldNotComputed):
+            empty.column(kind, field)
+        with pytest.raises(FieldNotComputed):
+            empty.value(kind, "x", field)
+
+
+def test_structure_only_snapshot_bulk_not_computed(gh):
+    # s1_structure 만 돈 스냅샷: 구조 필드는 질의되고 bulk 는 FieldNotComputed(빈 tuple 아님)
+    doc = gh.load_lib("pushpull_follower_buffer")
+    snap = s1_structure(GraphSnapshot.empty(S1_WRITERS), doc.devices, doc.passives, doc.sources,
+                        tuple(sorted(doc.rails)), doc.ports)
+    g = S1Graph(build_s1(doc, None).key, snap)
+    assert len(g.column("node", "terminals")) == len(gh.agg(gh.raw("pushpull_follower_buffer")).nodes)
+    with pytest.raises(FieldNotComputed):
+        g.column("device", "bulk")
+
+
+# ------------------------------------------------------------------ 결정론
+
+
+_DET_SCRIPT = r"""
+import json, random, sys
+sys.path.insert(0, sys.argv[1])
+from gmid_engine.authoring import load_topology
+from gmid_engine.graph import build_s1
+lib, out_dir = sys.argv[2], sys.argv[3]
+spec = json.loads(sys.argv[4])
+res = {}
+for name, sv in spec.items():
+    p = lib + "/" + name + ".topology.json"
+    raw = json.load(open(p, encoding="utf-8"))
+    random.Random(int(sys.argv[5])).shuffle(raw["netlist"])
+    q = out_dir + "/" + name + ".shuf.topology.json"
+    open(q, "w", encoding="utf-8").write(json.dumps(raw))
+    for tag, path in (("orig", p), ("shuf", q)):
+        s1 = build_s1(load_topology(path), sv)
+        res[name + "/" + tag] = [s1.snapshot.fp, s1.key.topology_fp, s1.key.rule_fp, s1.key.supplies_v_fp]
+print(json.dumps(res, sort_keys=True))
+"""
+
+
+def test_snapshot_fp_deterministic_across_hash_seeds_and_order(gh, tmp_path):
+    spec = {n: gh.supplies_for(n) for n in SIX}
+    results = []
+    for i, seed in enumerate(("0", "1", "31337", "random")):
+        d = tmp_path / ("run%d" % i)
+        d.mkdir()
+        env = dict(os.environ, PYTHONHASHSEED=seed, PYTHONDONTWRITEBYTECODE="1")
+        out = subprocess.run(
+            [sys.executable, "-c", _DET_SCRIPT, str(gh.SKILL_DIR), str(gh.LIBRARY), str(d), json.dumps(spec), str(i + 3)],
+            capture_output=True, text=True, env=env, check=True)
+        results.append(json.loads(out.stdout))
+    assert all(r == results[0] for r in results)
+    for name in SIX:
+        assert results[0][name + "/orig"] == results[0][name + "/shuf"]
+    # 이 프로세스 값과도 같다
+    for name in SIX:
+        s1 = _s1(gh, name)
+        assert results[0][name + "/orig"][0] == s1.snapshot.fp
+
+
+def test_different_circuits_different_fp(gh):
+    fps = {_s1(gh, n).snapshot.fp for n in SIX}
+    assert len(fps) == len(SIX)
+
+
+def test_key_is_hashable_value(gh):
+    s1 = _s1(gh, "two_stage_ota_sf")
+    assert fp_of(s1.key) == fp_of(build_s1(gh.load_lib("two_stage_ota_sf"), None).key)
