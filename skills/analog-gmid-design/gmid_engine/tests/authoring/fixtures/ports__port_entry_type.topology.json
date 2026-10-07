@@ -1,0 +1,123 @@
+{
+  "schema_version": "2.0",
+  "topology_name": "fx_base_amp",
+  "source": "hand-made test fixture (not a library circuit)",
+  "_note": "Valid base for the authoring tests. Names are disjoint from assets/library. n_rzn sits only on 2-terminal elements but reaches rail_lo through Rf -> Q3 (resistor DC path). rail_ac is used only by Cload (a capacitor), so removing it from supply_nets makes it a hidden rail.",
+  "linked_topology_files": [],
+  "supply_nets": [
+    "rail_hi",
+    "rail_lo",
+    "rail_ac"
+  ],
+  "_supply_nets_comment": "three rails; rail_ac only on a capacitor",
+  "compensation": {
+    "anything": [
+      1,
+      2,
+      3
+    ]
+  },
+  "device_roles": "tag values are never read",
+  "symmetry": {
+    "matching_pairs": [
+      [
+        "Q1",
+        "Q3"
+      ]
+    ],
+    "_comment": "never read"
+  },
+  "sizing_roles": [
+    1,
+    "two",
+    null
+  ],
+  "netlist": [
+    {
+      "name": "Q1",
+      "kind": "nmos",
+      "drain": "n_mid",
+      "gate": "n_inp",
+      "source": "rail_lo",
+      "_comment": "input device"
+    },
+    {
+      "name": "Q2",
+      "kind": "pmos",
+      "drain": "n_mid",
+      "gate": "n_bias",
+      "source": "rail_hi",
+      "bulk": "rail_hi"
+    },
+    {
+      "name": "Q3",
+      "kind": "nmos",
+      "drain": "n_outp",
+      "gate": "n_mid",
+      "source": "rail_lo"
+    },
+    {
+      "name": "Q4",
+      "kind": "pmos",
+      "drain": "n_outp",
+      "gate": "n_bias",
+      "source": "rail_hi"
+    }
+  ],
+  "passive_elements": [
+    {
+      "name": "Rf",
+      "kind": "resistor",
+      "terminals": [
+        "n_outp",
+        "n_rzn"
+      ],
+      "value_ohm": 1000.0
+    },
+    {
+      "name": "Cf",
+      "kind": "capacitor",
+      "terminals": [
+        "n_rzn",
+        "n_mid"
+      ],
+      "value_farad": 1e-12,
+      "value_from_spec": "Cf_spec"
+    },
+    {
+      "name": "Cload",
+      "kind": "capacitor",
+      "terminals": [
+        "n_outp",
+        "rail_ac"
+      ],
+      "value_farad": null,
+      "_comment": "load"
+    }
+  ],
+  "ideal_sources": [
+    {
+      "name": "Ib",
+      "kind": "current_source",
+      "terminals": [
+        "rail_hi",
+        "n_bias"
+      ],
+      "value_amp": 1e-05,
+      "implementable": false
+    }
+  ],
+  "ports": {
+    "_comment": "underscore keys are not ports",
+    "n_inp": {
+      "direction": "input",
+      "role": "single_ended_input"
+    },
+    "n_outp": {
+      "direction": "output",
+      "role": "single_ended_output",
+      "_comment": "out"
+    },
+    "n_mid": "input"
+  }
+}
