@@ -11,6 +11,8 @@
     (극성 표를 따로 두지 않는다).
   - DC 저항(`basis.resistors`, 잎 가지치기 제외 -- 가지치기 저항은 전류 0): 값은 `passive_values`.
   - 이상 전류원(ends 의 나머지 DC 원소): (from, to, `dc_current`) -- 선언값 또는 θ 전류.
+* `counted_rails` = 합산 레일의 **넷 이름** tuple(노드 인덱스 아님). 레일(`dc_rail_v` 넷) 밖 이름(회로에 없는 넷 포함)·중복 ->
+  ValueError(선언 결함, 2절 표 '합산 레일 선언' -- KeyError 는 미등록 metric 이름 전용).
 * `counted_rails` 가 비면 `supply_current_dc` 는 정의 불가 `counted_rails_undeclared`(definitional) -- 레일별 전류·전력은 합산 선언과
   무관하므로 그대로 낸다(`supply_currents` 는 빈 선언을 거부하므로 레일 전부를 넘겨 부르고 합만 버린다).
 * 면적: MOS 마다 `GateArea(W, L)`(dc_op), 값이 있는 수동소자 `PassiveArea(값, 단위 면적 None)` -- PDK 수동소자 단위 면적
@@ -68,6 +70,11 @@ def metrics_dc(projection):
     names = sorted({n for n, _v in projection.column("node", "dc_rail_v")} | {n for n, _v in projection.column("node", "dc_v")})
     index = {net: i for i, net in enumerate(names)}
     op = _operating_point(projection, index, values)
+    rails = {n for n, _v in projection.column("node", "dc_rail_v")}
+    outside = tuple(n for n in counted_rails if n not in rails)
+    if outside or len(set(counted_rails)) != len(counted_rails):
+        raise ValueError("metrics_dc: 합산 레일 선언 결함(레일 밖 넷 %r 또는 중복 %r) -- counted_rails 는 레일 넷 이름"
+                         % (outside, tuple(counted_rails)))
     counted = tuple(index[n] for n in counted_rails) or tuple(r.node for r in op.rails)
     supply = supply_currents(op, counted)
     classes = dict(projection.column("device", "element_class"))

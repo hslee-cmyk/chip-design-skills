@@ -418,7 +418,8 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
   용량을 부호 있는 유한 실수로 받으므로(1절, Q7 결정) LUT v2 의 음의 용량은 그대로 스탬프된다. bulk None 또는 SsDevice
   None -> `StructureUnresolvedError`(reason `unsupported_rule_branch`, rule_branch `ss_element_kind`).
 - 수동소자 kind ∈ `LOOP_CUT_KINDS`(resistor, capacitor): `passive_values` 에 값이 있으면 `Resistor(t0, t1, 값)`/`Capacitor(t0, t1, 값)`
-  (pins 순서, label = 이름), 없으면 스탬프하지 않고 `missing` 에(이름순). `resistors`·`capacitors` = 회로 원소 순서의 이름.
+  (pins 순서, label = 이름), 없으면 스탬프하지 않고 `missing` 에(이름순). `resistors`·`capacitors` = 회로 원소 순서의 이름 --
+  **스탬프한(값 있는) 원소만** 든다(값 없는 원소는 `missing` 에만 있고 `circuit` 에도 이 두 tuple 에도 없다).
 - 이상 전류원(element_class ideal_source, kind current_source): 스탬프 없음(소신호 개방). 그 밖 원소(이상 전압원, 다른 수동 kind)
   -> 위와 같은 `StructureUnresolvedError`(devices = 그 원소, detail element_class·kind).
 - `circuit.ac_ground == ()`(뷰가 정한다), `ground_nets`·`input_nets` 정렬.
@@ -439,7 +440,7 @@ tuple(view_kind 가 None 이 아닌 등록 metric), `passive_values` = ((이름,
   | `port`, `loop`(beta ≠ declared), `transfer` | F = ground ∪ input ∪ 구동 넷 | 전압 구동(weights 또는 ac_excite) | sense_p − sense_n | `analyze_loop((Factor(응답, 열, 관측 행),))` |
   | `loop` beta declared | 절단 계: ac_ground = ground ∪ (input − 절단 넷), `cut_circuit`(되먹임 소자의 절단 넷 쪽 단자) | 프로브 4k | 2k | `analyze_loop((probe_factor(응답, pairs, 가중),))`, 가중 = view weights 를 pairs 의 n 순서로 |
   | `sense` | F = ground ∪ input | 전류 sense_p +1(차동이면 sense_n −1) | sense | `output_resistance(응답, 열, 행)` |
-  | `ratio` | F = ground ∪ input ∪ num·den 구동 넷 | num 열, den 열 | num 관측(= den 관측이어야 함, 아니면 ValueError) | `response_ratio` |
+  | `ratio`(ViewDecl `num`·`den` = 각각 authoring `ExciteSense(ac_excite, sense_p, sense_n, sense_mode)` -- SPEC_CONTRACT 2·3절 ratio view `{num, den}`) | F = ground ∪ input ∪ num·den 구동 넷 | num 열, den 열 | num 관측(= den 관측이어야 함, 아니면 ValueError) | `response_ratio` |
 
   같은 (계, 열, 관측) 은 같은 분석 객체를 쓴다 -> β = 1 `pm_ss_deg` 와 같은 포트 뷰 `parasitic_pm_ss_deg` 는 **한 평가 안에서** 비트
   동일(I-15). 요청 집합이 다른 평가끼리는 공유 격자가 달라 마지막 자리가 다를 수 있다(실측: 포트 PM 60.49744894787342 대
@@ -456,9 +457,12 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
   마다 MOS -> `ChannelCurrent(d, s, +dc_current if d == from else −dc_current)`, `basis.resistors` -> `Resistor(from, to,
   passive_values[원소])`, 그 밖 비수동 DC 원소(이상 전류원) -> `CurrentSource(from, to, dc_current)`; node_v = 그 저항 끝 중 dc_v 넷.
 - **`power_dc_w` = 선언된 모든 공급 레일(spec `supplies_v` 의 레일 전부)의 Σ V_k·I_k**(오케스트레이터 결정 2026-10-08 Q4 -- 합산 선언과
-  무관). `supply_currents(op, counted)`: counted = `counted_rails` 인덱스, 비면 모든 레일을 넘기고 합만 버린다. entries 순서 `power_dc_w`,
-  `supply_current_dc`, `area_search_m2`(view None). `counted_rails == ()` 이면 `supply_current_dc` = `Undefined("supply_current_dc",
-  "counted_rails_undeclared", "definitional")`.
+  무관).
+- `counted_rails` = 합산 레일의 **넷 이름** tuple(노드 인덱스가 아니다). 레일(`dc_rail_v` 넷) 밖 이름(회로에 없는 넷·레일 아닌 넷)이나
+  중복 -> **ValueError**(합산 레일 선언 결함, 2절 표 -- KeyError 는 미등록 metric 이름 전용, 3.13 과 같은 규칙).
+  `supply_currents(op, counted)`: counted = 그 이름들의 노드 인덱스, 비면 모든 레일을 넘기고 합만 버린다. entries 순서 `power_dc_w`,
+  `supply_current_dc`, `area_search_m2`(view None). `counted_rails == ()` 이면 `supply_current_dc` = `MetricResult("supply_current_dc",
+  None, (Undefined("supply_current_dc", "counted_rails_undeclared", "definitional"),))` -- 그 `Undefined.detail == ()`(빈 tuple).
 - 면적: `area_search(GateArea(op.W, op.L) MOS 마다, PassiveArea(이름, 값) 값 있는 수동소자 -- 단위 면적 None)`.
 - `detail` = counted_rails, kcl_residual_amp, passive_area_undeclared, passive_value_missing, per_rail_amp((레일 넷, A), ...) 키 정렬.
 
