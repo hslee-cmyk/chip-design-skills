@@ -81,9 +81,12 @@ def test_anchor_value_used_for_l_dependent_outputs(toy_memo):
     L = 1e-6 + ULP
     op = op_point(toy_memo, "nmos", 100, L, 0.5, 0.5, 0.0)
     assert op.IDu == op_point(toy_memo, "nmos", 100, 1e-6, 0.5, 0.5, 0.0).IDu
-    assert rel_close(op.IDu, 1e-6 * 1e-6 / 1e-6, 1e-12)
+    # [r5] r5 toy: ID(1e-6, 0.5, 0.5, 0) = 1e-7·e^(10 − 1.5 + 0.05), IDu = ID·a/w_m
+    assert rel_close(op.IDu, 1e-7 * math.exp(8.55) * 1e-6 / 1e-6, 1e-12)
     r = gm_id_for_target(toy_memo, "nmos", 100, L, 0.5, 0.0, W=2e-6, current=2e-6)
     assert rel_close(r.id_a, 2e-6, 1e-12)
+    r0 = gm_id_for_target(toy_memo, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=2e-6)
+    assert r == r0
 
 
 def test_point_memo_key_shared_within_ulp(toy_memo):
@@ -95,9 +98,10 @@ def test_point_memo_key_shared_within_ulp(toy_memo):
 
 
 def test_no_l_interpolation_anywhere(toy_memo):
-    """앵커 위 값은 그 앵커 한 장만으로 정해진다: L=2e-6 의 IDu 는 이웃 앵커 값과 무관(손계산 ID·L/w = (1/2)·1e-6·2)."""
+    """앵커 위 값은 그 앵커 한 장만으로 정해진다: L=2e-6 의 IDu 는 이웃 앵커 값과 무관
+    ([r5] r5 toy 손계산 ID·L/w = (1/2)·1e-7·e^8.55·2)."""
     op = op_point(toy_memo, "nmos", 100, 2e-6, 0.5, 0.5, 0.0)
-    assert rel_close(op.IDu, 0.5 * 1e-6 * 2e-6 / 1e-6, 1e-12)
+    assert rel_close(op.IDu, 0.5 * 1e-7 * math.exp(8.55) * 2e-6 / 1e-6, 1e-12)
 
 
 @pytest.mark.lut_realdata

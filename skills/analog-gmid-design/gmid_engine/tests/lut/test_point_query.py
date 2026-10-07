@@ -1,5 +1,6 @@
-"""`op_point` -- CONTRACT 4절·7절: 4축 다중선형 보간 1회(lnID·lnGM·lnGDS 로그공간, VTH 선형),
-IDu = ID·L/w_m, gm_over_id, gm_gds, gds_per_w = GDS/w_m, vth. 격자점에서는 npz 원값과 일치. 없는 폭 KeyError.
+"""`op_point` -- CONTRACT 4.1 표·4.2·7절 [r5]: L 장에서 축별 보간 1회(ln ID: VGS·VDS Hermite, VS·L 선형; gm/ID = ln ID 의 VGS 미분;
+ln GDS·VTH 모든 축 선형), IDu = exp(lnID)·L/w_m, gm_gds = gm/ID·exp(lnID − lnGDS), gds_per_w = exp(lnGDS)/w_m, vth.
+격자점에서는 npz 원값과 일치. 단조 위반 칸은 그 축 선형(실패 없음). 없는 폭 KeyError.
 """
 import math
 
@@ -12,14 +13,17 @@ from .conftest import log_floor, rel_close
 
 
 def test_contract_toy_row(toy_memo):
+    """CONTRACT 7.1: (1e-6, 0.25, 0.5, 0) -> IDu = 1e-7·e^4.675, gm/ID 17, gds_per_w 1e-8·e^4.3/1e-6, gm_gds 170·e^0.375."""
     for wk in (100, 200):
         op = op_point(toy_memo, "nmos", wk, 1e-6, 0.25, 0.5, 0.0)
         assert isinstance(op, OpPoint)
-        assert rel_close(op.IDu, math.sqrt(1e-7 * 1e-6), 1e-12)
-        assert rel_close(op.gm_over_id, math.sqrt(20 * 10), 1e-12)
-        assert rel_close(op.gm_gds, math.sqrt(200 * 100), 1e-12)
-        assert rel_close(op.gds_per_w, 0.0316228, 1e-5)
-        assert rel_close(op.gds_per_w, math.sqrt(1e-8 * 1e-7) / 1e-6, 1e-12)
+        assert rel_close(op.IDu, 1e-7 * math.exp(4.675), 1e-12)
+        assert rel_close(op.IDu, 1.072326e-5, 1e-6)
+        assert rel_close(op.gm_over_id, 17.0, 1e-12)
+        assert rel_close(op.gds_per_w, 1e-8 * math.exp(4.3) / 1e-6, 1e-12)
+        assert rel_close(op.gds_per_w, 0.7369979, 1e-6)
+        assert rel_close(op.gm_gds, 170.0 * math.exp(0.375), 1e-12)
+        assert rel_close(op.gm_gds, 247.3485, 1e-6)
         assert op.vth == pytest.approx(0.4, abs=1e-15)
     a = op_point(toy_memo, "nmos", 100, 1e-6, 0.25, 0.5, 0.0)
     b = op_point(toy_memo, "nmos", 200, 1e-6, 0.25, 0.5, 0.0)
@@ -27,13 +31,23 @@ def test_contract_toy_row(toy_memo):
         assert math.isclose(getattr(a, f), getattr(b, f), rel_tol=1e-14), f
 
 
+def test_contract_toy_row_offgrid_vds_vs(toy_memo):
+    """CONTRACT 7.1: (2e-6, 0.7, 0.8, 0.3) -> IDu = 4.543835e-3, gm/ID 11.6 (VDS Hermite·VS 선형도 정확)."""
+    op = op_point(toy_memo, "nmos", 100, 2e-6, 0.7, 0.8, 0.3)
+    ID = 0.5 * 1e-7 * math.exp(14 - 2.94 + 0.08) * 0.5 ** 0.6
+    assert rel_close(op.IDu, ID * 2e-6 / 1e-6, 1e-12)
+    assert rel_close(op.IDu, 4.543835e-3, 1e-6)
+    assert rel_close(op.gm_over_id, 11.6, 1e-12)
+
+
 def test_toy_grid_points(toy_memo):
-    # L = 2e-6, VGS 1.0, VS 0.5: ID = (1/2)·1e-5·0.5 -> IDu = ID·L/w = 2.5e-6·2 = 5e-6
+    # L = 2e-6, VGS 1.0, VDS 1.0, VS 0.5: ID = (1/2)·1e-7·e^(14 + 0.1)·0.5 -> IDu = ID·L/w
     op = op_point(toy_memo, "nmos", 100, 2e-6, 1.0, 1.0, 0.5)
-    assert rel_close(op.IDu, 5e-6, 1e-12)
-    assert rel_close(op.gm_over_id, 4.0, 1e-12)
-    assert rel_close(op.gm_gds, 40.0, 1e-12)
-    assert rel_close(op.gds_per_w, 2.5e-6 / 10 / 1e-6, 1e-12)
+    ID = 0.5 * 1e-7 * math.exp(14.1) * 0.5
+    assert rel_close(op.IDu, ID * 2.0, 1e-12)
+    assert rel_close(op.gm_over_id, 8.0, 1e-12)
+    assert rel_close(op.gm_gds, 80.0, 1e-12)
+    assert rel_close(op.gds_per_w, ID * 0.1 / 1e-6, 1e-12)
 
 
 def test_inputs_converted_with_float(toy_memo):
