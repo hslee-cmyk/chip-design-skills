@@ -20,7 +20,7 @@ from collections.abc import Mapping
 
 from gmid_engine.core import CANDIDATE_FAILURE_CLASSES
 from gmid_engine.metrics import metrics_dc, ss_evaluate
-from gmid_engine.sizing import THETA_RESISTANCE, DcEvaluation, size_and_seal
+from gmid_engine.sizing import THETA_PASSIVE_KINDS, THETA_RESISTANCE, DcEvaluation, size_and_seal
 
 from .cone_rows import cone_rows
 from .constraints import constraint_rows
@@ -39,6 +39,8 @@ from .search_values import (
 )
 from .seal7_pending import seal_status
 from .ss_constraints import ss_constraint_rows
+
+_THETA_PASSIVES = (THETA_RESISTANCE,) + THETA_PASSIVE_KINDS
 
 
 def _spec_rows(sctx, objectives):
@@ -112,14 +114,14 @@ def evaluate(sctx, theta, cells, parent=None, origin=()):
             # 봉인 점: ss_dev -> metrics_ss -> metrics_dc(metrics CONTRACT 7.6). lineage(ss 필드를 담은 DcEvaluation)를 이 점의
             # evaluation 으로 둔다 -- 다음 평가의 parent 가 그 필드를 재사용한다.
             try:
-                # ng-junction(metrics 7.6 필수 키워드 junction) 병합 뒤: 조건 없이 junction=sctx.junction 으로 바꾼다(한 줄)
-                extra = {} if sctx.junction is None else {"junction": sctx.junction}
-                ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), (), **extra)
+                ssev = ss_evaluate(evaluation.sealed, sctx.dc, pairs, sctx.ss_constraints, (), junction=sctx.junction)
                 evaluation, bundle = ssev.lineage, ssev.ss
             except CANDIDATE_FAILURE_CLASSES as exc:
                 evaluation, failure, status = None, exc.record, STATUS_FAILED
         else:
-            values = sctx.spec_passive_values + tuple((k[1], v) for k, v in pairs if k[0] == THETA_RESISTANCE)
+            # 수동소자 값 = spec 값 ∪ θ 저항·커패시터·ss 저항(DEC-92) -- ss_evaluate 와 같은 규칙. 영점 상쇄 구조 규칙 저항(1/Σgm)은
+            # ss_dev(봉인 점 전용)가 있어야 정해져 봉인 아닌 점에서는 값 없음(passive_value_missing -- 면적 단위 선언이 없어 면적 값은 같다)
+            values = sctx.spec_passive_values + tuple((k[1], v) for k, v in pairs if k[0] in _THETA_PASSIVES)
             snap = metrics_dc(evaluation.snapshot, tuple(sorted(values)), ())
             evaluation = DcEvaluation(snap, evaluation.report, evaluation.sealed)
     if evaluation is not None:

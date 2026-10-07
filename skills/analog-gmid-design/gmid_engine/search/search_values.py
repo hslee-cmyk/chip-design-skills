@@ -46,13 +46,16 @@ class SearchSettings:
     (기록)로만 쓴다. `eval_budget`: 커널 평가 수 예산 E_B(정수) 또는 None -- None 이면 E_B = ⌊B / t_ref⌋(t_ref = 시작점 확인
     평가 시간 중앙값, 한 번 재서 기록)로 정한다. 탐색 안 모든 한도는 평가 수로 센다 -- 같은 E_B 면 결과가 결정론적이다.
     `resistance_bounds_ohm`: θ 저항 상자 (lo, hi) Ω 또는 None. PDK 선언에 수동소자 범위가 없어 θ 저항이 있는 회로는 반드시
-    선언해야 한다(없으면 `search_domain` 이 SchemaRejectedError). `sources`: ((필드, 출처 문자열), ...).
+    선언해야 한다(없으면 `search_domain` 이 SchemaRejectedError). θ `ss_resistance`(DEC-92)도 이 상자. `sources`: ((필드, 출처 문자열), ...).
+    [r6] `capacitance_bounds_f`: θ `capacitance`(DEC-92 engine 커패시터) 상자 (lo, hi) F 또는 None -- PDK 선언에서 유도 불가(sizing O13),
+    θ 커패시터가 있는데 None 이면 `search_domain` 이 SchemaRejectedError(`theta_capacitance_bounds_undeclared`).
     """
 
     front_budget_s: float
     eval_budget: object
     resistance_bounds_ohm: object
     sources: tuple
+    capacitance_bounds_f: object = None
 
 
 @dataclasses.dataclass(frozen=True)

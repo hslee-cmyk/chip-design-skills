@@ -108,7 +108,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
         return out
 
     def point(x):
-        x = np.asarray(x, dtype=float)
+        x = np.array(x, dtype=float, copy=True)   # SLSQP 는 x 배열을 제자리에서 바꾼다 -- 복사본만 저장·키로 쓴다
         hx = tuple(float(v).hex() for v in x)
         hit = state["points"].get(hx)
         if hit is not None:
@@ -178,7 +178,7 @@ def solve_eps(sctx, start, minimize, eps, origin):
             box_lo[i] = box_hi[i] = centre[i]
         cons = {"type": "ineq", "fun": lambda x: point(x)["c"], "jac": lambda x: jac_of(x)[1]}
         try:
-            out = scipy_minimize(lambda x: point(x)["f"], centre, jac=lambda x: jac_of(x)[0], method="SLSQP",
+            out = scipy_minimize(lambda x: point(x)["f"], np.array(centre, copy=True), jac=lambda x: jac_of(x)[0], method="SLSQP",
                                  bounds=list(zip(box_lo, box_hi)), constraints=[cons], callback=accept,
                                  options={"ftol": 1, "maxiter": maxiter})
             iterations += int(out.nit)

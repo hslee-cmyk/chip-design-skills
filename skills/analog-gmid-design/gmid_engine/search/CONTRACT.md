@@ -51,6 +51,35 @@
   `ss_constraint_rows` 의 분모 s = max(resolution, DEC-72 모델 오차(선언 시)), s 가 None 또는 0 이면 행 없이 `unmeasured`
   (사유 `resolution_undefined`), `active` = c ≤ 1. 그때까지는 아래 3.20 의 |목표| 축척(조건수용, active False)이 유지된다.
 
+### r6 (2026-10-08, master 병합: metrics 9절 resolution·DEC-92 보상 수동소자 θ·junction 필수) -- 아래 본문보다 우선
+- **S-19 적용**: `ss_constraint_rows(bundle, declared, model_error=())` -- 분모 = `MetricResult.resolution`. None -> unmeasured
+  "resolution_undefined", 0 -> 모델 오차 선언(DEC-72)이 있으면 그 값, 없으면 unmeasured "resolution_zero_model_error_undeclared"(0 나누기
+  없음), 둘 다 있으면 max. `active` = c ≤ 1. 모델 오차 선언은 아직 없어 kernel 은 () 를 넘긴다. (3.20 의 |목표| 축척 폐기.)
+- **`build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl)`**: `lut_rule_decl` = core
+  `read_pdk_decl(LUT 생성 규칙 선언)` -- 여기서 S0 당 1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, lut)`(metrics 7.6 필수
+  junction). r4/r5 의 `junction=None` 인자는 없어졌다(**독립 test 갱신 필요** -- test 작성자 몫).
+- **DEC-92 θ 종류**: `capacitance` -> 변수 (ln, `settings.capacitance_bounds_f`), 선언 없으면 `SchemaRejectedError`
+  (gate `search_domain`, reason `theta_capacitance_bounds_undeclared`, capacitors = θ 순) -- PDK 에서 유도 불가(sizing O13).
+  `ss_resistance` -> `resistance_bounds_ohm`(없으면 기존 `theta_resistance_bounds_undeclared`, resistors 에 포함). 모르는 θ 종류는
+  `ValueError`(조용히 건너뛰지 않는다). `SearchSettings` 끝에 `capacitance_bounds_f: object = None` 추가(기존 4필드 위치 불변).
+- **FD 스텝**(DEC-92 θ, ln 좌표): 전 MOS `dc_tol_v·gm_id` 최솟값(소신호 모형 상대 분해능 -- LUT 축이 없는 수동소자). 
+- **kernel**: 봉인 점 `ss_evaluate(sealed, dc, θ, ss_constraints, (), junction=sctx.junction)`(passive_theta 인자 삭제됨). 봉인 아닌 점의
+  `metrics_dc` 수동 값 = spec 값 ∪ θ resistance·capacitance·ss_resistance(이름 정렬). 영점 상쇄 구조 규칙 저항(1/Σgm)은 ss_dev 가
+  있어야 정해져 봉인 아닌 점에서는 `passive_value_missing` 이다(면적 단위 선언이 없어 면적 값은 같다).
+
+- **x 복사(r6, layer-0 작성자 지적)**: `solve_eps` 의 `point(x)` 는 SLSQP 가 넘긴 배열을 `np.array(..., copy=True)` 로 복사해 저장·키로 쓰고,
+  재시작 중심도 복사본을 넘긴다. 회귀 확인(scratch, nmcnr): 콜백 뒤 x 를 제자리 변경해도 수락 점의 저장 x → θ 키 불일치 0. 단 scipy 1.18
+  의 SLSQP 경로는 fun/jac 에 복사본을 넘겨 수정 전 코드에서도 이 회로에서는 재현되지 않았다(방어적 수정).
+
+### r6 9회로 실측 (2026-10-08, LUT v2, master 병합본, B = 120 s)
+- **A(선언 그대로)**: θ 수동소자 상자 미선언으로 6회로 거부 -- θ 저항(current_reuse R1·R2, sf_pushpull R1a~c), θ 커패시터(ngcc Cm1·Cm2,
+  nmcnr Cm1·Cm2, two_stage_ota Cc, two_stage_ota_sf Cc). 돈 3회로 최종 front: common_gate 3(제약 없음), folded 2(제약 없음),
+  pushpull 2 -- rout_ss_ohm 997.98 Ω(c = 0.076, **활성**), 619.18 Ω(c = 27.4) ≤ 1000.
+- **B(시연 가정: θ R [100 Ω, 100 kΩ], θ C [0.1, 10] pF -- 결정 대기 값)**: two_stage_ota 1점(gain 82.40 dB ≥ 57, c = 25.7),
+  two_stage_ota_sf 1점(gain 79.40 dB ≥ 57, rout 995.46 Ω ≤ 1000 c = 0.177 활성), ngcc·nmcnr 최종 0(gbw·pm 을 만족하는 봉인 점을 못 찾음 --
+  시작점 2개·예산 120 s), current_reuse·sf_pushpull 시작점 0(탐침 200 전부 실패).
+- 9회로 모두 `kernel_calls == unique_keys`, `recompute_same_key == 0`. 벽시계 정지는 pushpull·ngcc·two_stage(B)에서 기록됨.
+
 ### r5 명확화 (2026-10-08, 독립 test 1386711 대조 -- 의미 변경 없음, 아래 본문보다 우선)
 - **`cells`**(evaluate·eval_key·StartPoint·EvalKey): MOS 마다 L 칸 index 의 tuple, 순서 = `SearchDomain.l_cells` 순서(MOS 이름순),
   값 j = 그 MOS 의 `l_cells[i][1]` 안 위치(0 부터).
