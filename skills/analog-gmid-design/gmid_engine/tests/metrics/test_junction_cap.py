@@ -20,13 +20,13 @@ import pytest
 from gmid_engine.core import BoundedLRU, SchemaRejectedError, fp_of, read_pdk_decl, require_immutable
 from gmid_engine.metrics import DiffusionGeometry, JunctionCaps, JunctionParams, junction_caps
 
+from .conftest import JUNCTION_FIELDS, ref_caps
+
 SKILL_DIR = Path(__file__).resolve().parents[3]
 PDK_DECL = SKILL_DIR / "assets" / "sky130_pdk_decl.json"
 LUT_RULE_DECL = SKILL_DIR / "assets" / "sky130_lut_rule_decl.json"
 
-FIELDS = ("cjs", "cjd", "cjsws", "cjswd", "cjswgs", "cjswgd", "mjs", "mjd", "mjsws", "mjswd", "mjswgs", "mjswgd",
-          "pbs", "pbd", "pbsws", "pbswd", "pbswgs", "pbswgd", "tcj", "tcjsw", "tcjswg", "tpb", "tpbsw", "tpbswg",
-          "tnom", "permod", "dwj")
+FIELDS = JUNCTION_FIELDS
 
 
 def _load_json(path):
@@ -53,33 +53,7 @@ def rel_close(a, b, rtol):
     return abs(a - b) <= rtol * max(abs(a), abs(b))
 
 
-# ---------------------------------------------------------------- 독립 기준 식 (계약 8.2)
-
-def _ref_side(p, fw, area, perim, v, temp_c, s):
-    """한 쪽(s = "s" source / "d" drain)의 finger 하나 용량 -- 8.2-2..5."""
-    dT = temp_c - p["tnom"]
-    wc = fw - 2 * p["dwj"]
-    p_eff = perim - wc if p["permod"] == 1 else perim
-    total = 0.0
-    for c, tc, mj, pb, tp, g in (
-        (p["cj" + s], p["tcj"], p["mj" + s], p["pb" + s], p["tpb"], area),
-        (p["cjsw" + s], p["tcjsw"], p["mjsw" + s], p["pbsw" + s], p["tpbsw"], p_eff),
-        (p["cjswg" + s], p["tcjswg"], p["mjswg" + s], p["pbswg" + s], p["tpbswg"], wc),
-    ):
-        c0 = c * max(0.0, 1.0 + tc * dT) * g
-        pbt = pb - tp * dT
-        assert pbt > 0 and wc > 0
-        if v > 0:
-            total += c0 * (1.0 + v / pbt) ** (-mj) if c0 > 0 else 0.0
-        else:
-            total += c0 * (1.0 - mj * v / pbt)
-    return total
-
-
-def ref_caps(p, geo, v_db, v_sb, temp_c):
-    """geo = (finger_w, ad, as, pd, ps, m) -> (cdb, csb)."""
-    fw, ad, as_, pd, ps, m = geo
-    return (m * _ref_side(p, fw, ad, pd, v_db, temp_c, "d"), m * _ref_side(p, fw, as_, ps, v_sb, temp_c, "s"))
+# 독립 기준 식(계약 8.2) `ref_caps` 는 conftest 로 옮겼다 -- ss_linearize·junction_source test 도 같은 식을 쓴다.
 
 
 # ---------------------------------------------------------------- 8.3 손계산 예
