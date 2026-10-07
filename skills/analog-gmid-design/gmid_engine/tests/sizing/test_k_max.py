@@ -1,5 +1,34 @@
-"""자리표(규칙 H 1:1) -- `gmid_engine/sizing/k_max.py` 의 동작 test.
+"""`k_max(width, tol)` -- CONTRACT 5.6: ceil(log2(width/tol)), width ≤ tol 이면 1. 양의 유한 수가 아니면 ValueError."""
+import math
 
-기준은 `gmid_engine/sizing/CONTRACT.md` 만 쓴다(피검 함수로 기대값을 만들지 않는다). 동작 test 는 독립 test 작성
-agent 가 채운다 -- 이 파일에는 아직 test 가 없다(수집 0개).
-"""
+import pytest
+
+from gmid_engine.sizing import k_max
+
+
+@pytest.mark.parametrize("width,tol,expected", [
+    (8.0, 1.0, 3),            # log2 8 = 3 정확
+    (4.0, 1.0, 2),
+    (10.0, 1.0, 4),           # log2 10 = 3.32 -> 4
+    (1.8, 1e-3, 11),          # log2 1800 = 10.81 -> 11
+    (1.8, 0.0384, 6),         # log2 46.9 = 5.55 -> 6
+    (1.0, 1.0, 1),            # width == tol -> 1
+    (0.5, 1.0, 1),            # width < tol -> 1
+    (2.0 + 1e-12, 1.0, 2),
+])
+def test_values(width, tol, expected):
+    assert k_max(width, tol) == expected
+    assert k_max(width, tol) == (1 if width <= tol else math.ceil(math.log2(width / tol)))
+
+
+def test_returns_int():
+    assert isinstance(k_max(10.0, 1.0), int)
+
+
+@pytest.mark.parametrize("width,tol", [
+    (0.0, 1.0), (-1.0, 1.0), (1.0, 0.0), (1.0, -1e-3),
+    (math.inf, 1.0), (1.0, math.inf), (math.nan, 1.0), (1.0, math.nan),
+])
+def test_rejects_non_positive_or_non_finite(width, tol):
+    with pytest.raises(ValueError):
+        k_max(width, tol)
