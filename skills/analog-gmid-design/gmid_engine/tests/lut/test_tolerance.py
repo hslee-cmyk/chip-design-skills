@@ -38,18 +38,18 @@ FIELDS = (("gm_id_inverse_v", "inv"), ("id_equivalent_v", "eq"),
           ("gm_id_inverse_loo_v", "inv_loo"), ("id_equivalent_loo_v", "eq_loo"))
 
 
-def _cell_matches(c, ref, rel=1e-9, abs_=1e-12):
-    """id_equivalent: 상대 1e-9(닫힌 식 값). gm_id_inverse: 역산 근 차 절대 1e-8 V. 근거(실측): 정점 근처 평탄 목표에서
-    근의 반올림 민감도 = 미분 반올림 / p'' 라, 미분 계산 경로가 다른(기저 함수 대 de Casteljau) 독립 bisection 과 환산 전
-    최대 1.5e-9 V 차가 났다(pmos 1000 셀 (5, 14)). 셀 값(수십~수백 mV)보다 7자리 작다."""
+def _cell_matches(c, ref):
+    """허용 차 = 독립 구현이 셀마다 유도한 상한(conftest `hermite_root_bound`·`tol_cell_ref` 의 γ_n 유도 -- 임의 상수 없음):
+    gm_id_inverse = 시도마다 (두 경로 residual 반올림 / |p''(근)| + bisection 분해능 2 ulp + 뺄셈 1 ulp) 의 최댓값,
+    id_equivalent = 점마다 (추정·뺄셈 반올림 / gm/ID + 나눗셈 상대 오차) 의 최댓값. 시도·실패 수는 정확히."""
     assert (c.n_targets, c.n_inverse_failed) == (ref["n_t"], ref["n_f"])
     for attr, key in FIELDS:
         got, exp = getattr(c, attr), ref[key]
         if exp is None:
             assert got is None, attr
         else:
-            tol = max(abs_, rel * abs(exp)) if key.startswith("eq") else 1e-8
-            assert got is not None and abs(got - exp) <= tol, (attr, got, exp)
+            tol = ref[key + "_bound"] if key in ("inv", "eq") else ref[key.replace("_loo", "_loo_bound")]
+            assert got is not None and abs(got - exp) <= tol, (attr, got, exp, tol)
 
 
 # ---------------------------------------------------------------------------
@@ -67,22 +67,27 @@ def test_contract_toy_cells(toy_memo):
         for k in range(2):
             c = t.cells[i][k]
             assert isinstance(c, TolVCell)
-            # 0 수준(부동소수): VGS 축 Hermite LOO 가 2차식을 정확히 재현, VDS·VS 축은 2점이라 내부점 없음
-            for attr, _ in FIELDS:
+            # 0 수준(부동소수): VGS 축 Hermite LOO 가 2차식을 정확히 재현, VDS·VS 축은 2점이라 내부점 없음.
+            # 참값 0 이므로 |값| ≤ |값 − 독립| + |독립 − 0| ≤ 2·(유도 상한)
+            ref = tol_cell_ref(rs, i, k)
+            for attr, key in FIELDS:
                 v = getattr(c, attr)
-                assert v is not None and 0.0 <= v < 1e-12, (i, k, attr, v)
+                b = ref[key + "_bound"] if key in ("inv", "eq") else ref[key.replace("_loo", "_loo_bound")]
+                assert v is not None and 0.0 <= v <= 2 * b, (i, k, attr, v, b)
             assert (c.n_targets, c.n_inverse_failed) == (2, 0)
-            _cell_matches(c, tol_cell_ref(rs, i, k))
+            _cell_matches(c, ref)
     # 판별: 옛 선형 LOO 였다면 id_equivalent 환산 전 = |ln ID(0.5) 의 선형 추정 − 참값|/14 = 1.5/14
     assert rel_close(abs(0.5 * (0.0 + 14.0) - 8.5) / 14.0, 0.107, 2e-3)
 
 
 def test_contract_toy_at(toy_memo):
     t = tol_v_table(toy_memo, "nmos", 100)
-    for metric in TOL_V_METRICS:
-        v = t.at(2e-6, 0.75, metric)
-        assert v is not None and 0.0 <= v < 1e-12
-        assert t.at(3e-6, 1.0, metric) < 1e-12
+    rs = RefSlice(toy_slice_arrays(1e-6))
+    for metric, key in (("gm_id_inverse", "inv_bound"), ("id_equivalent", "eq_bound")):
+        for i, L in ((1, 2e-6), (2, 3e-6)):
+            b = max(tol_cell_ref(rs, i, k)[key] for k in range(2))       # at = 두 칸 최댓값 -> 상한도 두 칸 최댓값
+            v = t.at(L, 0.75 if i == 1 else 1.0, metric)
+            assert v is not None and 0.0 <= v <= 2 * b, (metric, L, v, b)
         assert t.at(1e-6 + math.ulp(1e-6), 0.5, metric) == t.at(1e-6, 0.5, metric)
     with pytest.raises(SealViolationError) as ei:
         t.at(1.5e-6, 0.75, "id_equivalent")
@@ -103,15 +108,17 @@ def test_r4_toy_cells(r4toy_memo):
     id_equivalent_v = 0.2/16 = 0.0125. 모든 셀 = 독립 구현."""
     t = tol_v_table(r4toy_memo, "nmos", 100)
     c = t.cells[0][0]
-    assert rel_close(c.id_equivalent_loo_v, 0.2, 1e-12)
-    assert rel_close(c.id_equivalent_v, 0.0125, 1e-12)
     rs = RefSlice(r4_toy_slice_arrays(1e-6))
+    r00 = tol_cell_ref(rs, 0, 0)
+    assert abs(c.id_equivalent_loo_v - 0.2) <= r00["eq_loo_bound"]          # 닫힌 값과의 차 ≤ 유도 상한
+    assert abs(c.id_equivalent_v - 0.0125) <= r00["eq_bound"]
     for i in range(3):
         for k in range(2):
             _cell_matches(t.cells[i][k], tol_cell_ref(rs, i, k))
-    # gm_id_inverse 는 VGS 축(hermite_slope p 3) 하나뿐: 환산 후 = 환산 전 / 8, LOO 는 FC 검사로 거르지 않는다
-    assert rel_close(c.gm_id_inverse_v, c.gm_id_inverse_loo_v / 8.0, 1e-12)
-    assert c.gm_id_inverse_v > 0.01
+    # gm_id_inverse 는 VGS 축(hermite_slope p 3) 하나뿐: 환산 후 = 환산 전 / 8 (2 의 거듭제곱 나눔은 정확),
+    # LOO 는 FC 검사로 거르지 않는다(위반 칸 [0, 0.5] 를 품는 곡선에서도 값이 있다)
+    assert c.gm_id_inverse_v == c.gm_id_inverse_loo_v / 8.0
+    assert c.gm_id_inverse_v > 0.0
 
 
 def test_at_rejects_non_anchor_l(toy_memo):
@@ -178,10 +185,14 @@ def test_vds_linear_fallback_order(toy_build):
     # 손계산(i 0, k 1, VS 0, VGS 0.5): 선형 LOO 오차 = |½(0.3·0.25 + 0.3·2.25) − 0.3| = 0.075, gm/ID 14
     # -> 환산 전 0.075/14, 환산 후 /4. 다른 점은 Hermite(VDS·VGS) 가 2차식을 정확히 재현 -> 0 수준.
     c = t.cells[0][1]
-    assert rel_close(c.id_equivalent_loo_v, 0.075 / 14.0, 1e-9)
-    assert rel_close(c.id_equivalent_v, 0.075 / 14.0 / 4.0, 1e-9)
-    # 같은 셀의 L 1 행(GDS 정상)은 Hermite 라 0 수준 -- 폴백이 없으면 이 값이 된다(판별)
-    assert t.cells[1][1].id_equivalent_loo_v < 1e-12
+    r01 = tol_cell_ref(rs, 0, 1)
+    assert abs(c.id_equivalent_loo_v - 0.075 / 14.0) <= r01["eq_loo_bound"] + abs(r01["eq_loo"] - 0.075 / 14.0)
+    assert abs(r01["eq_loo"] - 0.075 / 14.0) <= r01["eq_loo_bound"]          # 손계산 값 = 독립 구현(상한 안)
+    assert c.id_equivalent_v == c.id_equivalent_loo_v / 4.0                  # 선형 폴백 p 2 -> 정확히 /4
+    # 같은 셀의 L 1 행(GDS 정상)은 Hermite 라 0 수준(≤ 2·상한) -- 폴백이 없으면 L 0 행도 이 값이 된다(판별)
+    r11 = tol_cell_ref(rs, 1, 1)
+    assert t.cells[1][1].id_equivalent_loo_v <= 2 * r11["eq_loo_bound"]
+    assert c.id_equivalent_loo_v > 2 * r11["eq_loo_bound"]
 
 
 def test_deterministic_and_memo(toy, toy_memo):
@@ -198,9 +209,10 @@ def test_independent_impl_reproduces_contract_rows():
     for i in range(3):
         for k in range(2):
             r = tol_cell_ref(rs5, i, k)
-            assert all(r[key] < 1e-12 for key in ("inv", "eq", "inv_loo", "eq_loo")) and (r["n_t"], r["n_f"]) == (2, 0)
+            assert all(r[key] <= r[key + "_bound"] for key in ("inv", "eq", "inv_loo", "eq_loo"))   # 참값 0
+            assert (r["n_t"], r["n_f"]) == (2, 0)
     r = tol_cell_ref(rs4, 0, 0)
-    assert rel_close(r["eq_loo"], 0.2, 1e-12) and rel_close(r["eq"], 0.0125, 1e-12)
+    assert abs(r["eq_loo"] - 0.2) <= r["eq_loo_bound"] and abs(r["eq"] - 0.0125) <= r["eq_bound"]
 
 
 # ---------------------------------------------------------------------------
@@ -259,9 +271,9 @@ def test_real_scaled_values_are_loo_over_two_pow_p(real_table):
     for row in real_table.cells:
         for c in row:
             if c.id_equivalent_v is not None:
-                assert c.id_equivalent_loo_v / 16 * (1 - 1e-12) <= c.id_equivalent_v <= c.id_equivalent_loo_v / 4 * (1 + 1e-12)
+                assert c.id_equivalent_loo_v / 16 <= c.id_equivalent_v <= c.id_equivalent_loo_v / 4   # 2^p 나눔은 정확
             if c.gm_id_inverse_v is not None:
-                assert c.gm_id_inverse_loo_v / 8 * (1 - 1e-12) <= c.gm_id_inverse_v <= c.gm_id_inverse_loo_v / 4 * (1 + 1e-12)
+                assert c.gm_id_inverse_loo_v / 8 <= c.gm_id_inverse_v <= c.gm_id_inverse_loo_v / 4
 
 
 @pytest.mark.lut_realdata
@@ -314,6 +326,19 @@ SAMPLE_L_UM = (0.15, 0.35, 1.0, 4.0)
 SAMPLE_VS_INDEX = (0, 2)
 DEVCELL = {"nmos": ("nfet_01v8", +1, -1), "pmos": ("pfet_01v8", -1, +1)}     # (cell, 극성, 바디 부호) -- 슬라이스 생성기와 같음
 QUANTS = ("id", "gm", "gds", "vth")
+GEN_GRID_TOL_V = None          # 슬라이스 생성기(manifest 폴더의 manifest["generator"])의 GRID_TOL_V 를 읽어 채운다
+
+
+def _load_generator_grid_tol(manifest_path):
+    """스윕 전압 검사 허용 = 슬라이스 생성기 선언 GRID_TOL_V(근거 하나 -- 값을 옮겨 적지 않는다)."""
+    global GEN_GRID_TOL_V
+    base = os.path.dirname(manifest_path)
+    with open(manifest_path, encoding="utf-8") as f:
+        gen = json.load(f)["generator"]
+    src = open(os.path.join(base, gen), encoding="utf-8").read()
+    m = re.search(r"^GRID_TOL_V\s*=\s*([0-9.eE+-]+)", src, re.M)
+    assert m, "생성기에 GRID_TOL_V 없음"
+    GEN_GRID_TOL_V = float(m.group(1))
 
 
 def _ngspice():
@@ -382,7 +407,8 @@ def _run_spice(z, kind, iL, workdir):
     meta = json.loads(str(z["meta_json"]))
     VGS, VDS, VS = (np.asarray(z[a], dtype=float) for a in ("VGS", "VDS", "VS"))
     hg, hd = float(VGS[1] - VGS[0]), float(VDS[1] - VDS[0])
-    assert np.allclose(np.diff(VGS), hg, atol=1e-12) and np.allclose(np.diff(VDS), hd, atol=1e-12)
+    # 균일 격자 확인 -- 허용 = 슬라이스 생성기의 GRID_TOL_V(dc 스윕 전압과 축 값의 허용 차, 생성기 선언값)
+    assert np.abs(np.diff(VGS) - hg).max() <= GEN_GRID_TOL_V and np.abs(np.diff(VDS) - hd).max() <= GEN_GRID_TOL_V
     w_um = round(float(z["W"]) * 1e6, 6)
     l_um = round(float(z["L"][iL]) * 1e6, 6)
     sweeps = {"gmid": (VDS[0], VDS[-1], hd, VGS[0] + hg / 2, VGS[-1] - hg / 2, hg),
@@ -408,13 +434,15 @@ def _run_spice(z, kind, iL, workdir):
         g, d = r["v(g)"], r["v(d)"]
         assert g.size == len(gax) * len(dax), (tag, g.size)
         g, d = g.reshape(len(gax), len(dax)), d.reshape(len(gax), len(dax))       # 바깥 vgs, 안쪽 vds
-        assert np.abs(pol * g - gax[:, None]).max() <= 1e-9 and np.abs(pol * d - dax[None, :]).max() <= 1e-9
+        assert (np.abs(pol * g - gax[:, None]).max() <= GEN_GRID_TOL_V
+                and np.abs(pol * d - dax[None, :]).max() <= GEN_GRID_TOL_V)
         out[(si, tag)] = {q: np.abs(r[q]).reshape(len(gax), len(dax)) for q in QUANTS}
     return out
 
 
 @pytest.fixture(scope="module")
-def spice_samples(real_lut, raw_slice, tmp_path_factory):
+def spice_samples(real_lut, raw_slice, real_paths, tmp_path_factory):
+    _load_generator_grid_tol(real_paths["manifest"])
     work = tmp_path_factory.mktemp("tolv_spice")
     res = {}
     for kind in ("nmos", "pmos"):
@@ -433,18 +461,14 @@ def _peak_vgs(rs, iL, k, s):
 
 @pytest.mark.lut_realdata
 def test_ngspice_grid_rerun_equals_lut(spice_samples, raw_slice):
-    """(c) 설정 동일성: 같은 넷리스트 격자점 스윕 = LUT ID·GM·GDS·VTH."""
-    worst = 0.0
+    """(c) 설정 동일성: 같은 넷리스트 격자점 스윕 = LUT ID·GM·GDS·VTH (계약 실측 '차 0' -- 비트 단위 동일)."""
     for (kind, iL), out in spice_samples.items():
         z = raw_slice(kind, 1000)
         for si in SAMPLE_VS_INDEX:
             sp = out[(si, "grid")]
             for q in QUANTS:
                 lut = np.asarray(z[q.upper()][iL, :, :, si], dtype=float)
-                d = np.abs(sp[q] - lut) / np.maximum(np.abs(lut), 1e-300)
-                worst = max(worst, float(d[lut != 0].max()))
-                assert np.array_equal(sp[q], lut) or float(d[lut != 0].max()) <= 1e-12, (kind, iL, si, q)
-    print("격자점 재실행 최대 상대차 %.3g" % worst)
+                assert np.array_equal(sp[q], lut), (kind, iL, si, q)
 
 
 @pytest.mark.lut_realdata

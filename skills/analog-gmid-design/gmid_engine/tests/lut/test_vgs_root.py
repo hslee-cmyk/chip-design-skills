@@ -14,12 +14,34 @@ from gmid_engine.core import SealViolationError
 from gmid_engine.lut import op_point, vgs_for_gm_id
 
 from .conftest import (R5_A, R5_B, RefSlice, anchor_w, branch_solve_vgs, detail_of, l_weights, legacy_solve_vgs,
-                       log_floor, rel_close, sir_ref)
+                       log_floor, rel_close, sir_ref_b)
+
+
+def _toy_ref(arrays, iL, vds, vsb, t):
+    """(상태, 근, 근 차 상한, 왕복 상한) -- 독립 곡선 마디 + conftest γ_n 유도 상한."""
+    rs = RefSlice(arrays)
+    V, S, ok = rs.curve(anchor_w(iL), vds, vsb)
+    dV, dS = rs.curve_err(anchor_w(iL), vds, vsb)
+    return sir_ref_b(rs.grids[1], V, S, t, ok, with_residual=True, dV=dV, dS=dS)
+
+
+def _assert_root(memo, arrays, L, iL, vds, vsb, t, closed=None):
+    v = vgs_for_gm_id(memo, "nmos", 100, t, L, vds, vsb)
+    st, exp, rb, resb = _toy_ref(arrays, iL, vds, vsb, t)
+    assert st == "ok" and abs(v - exp) <= rb, (t, v, exp, rb)
+    if closed is not None:
+        # 닫힌 값과의 차 ≤ 엔진 경로 오차(≤ 두 경로 상한 rb) -- 독립 구현도 같은 상한 안이어야 한다
+        assert abs(v - closed) <= rb and abs(exp - closed) <= rb, (t, v, closed, rb)
+    back = op_point(memo, "nmos", 100, L, v, vds, vsb).gm_over_id
+    assert abs(back - t) <= resb, (t, back, resb)
+    return v
 
 
 def test_contract_toy_rows(toy_memo):
-    assert rel_close(vgs_for_gm_id(toy_memo, "nmos", 100, 15.0, 1e-6, 0.5, 0.0), 5.0 / 12.0, 1e-12)
-    assert rel_close(vgs_for_gm_id(toy_memo, "nmos", 100, 11.0, 2e-6, 0.8, 0.3), 0.75, 1e-12)
+    from .conftest import toy_slice_arrays
+    a = toy_slice_arrays(1e-6)
+    _assert_root(toy_memo, a, 1e-6, 0, 0.5, 0.0, 15.0, closed=5.0 / 12.0)
+    _assert_root(toy_memo, a, 2e-6, 1, 0.8, 0.3, 11.0, closed=0.75)
     with pytest.raises(SealViolationError) as ei:
         vgs_for_gm_id(toy_memo, "nmos", 100, 25.0, 1e-6, 0.5, 0.0)
     det = detail_of(ei.value)
@@ -31,10 +53,10 @@ def test_contract_toy_rows(toy_memo):
 
 
 def test_toy_round_trip_and_below_branch(toy_memo):
+    from .conftest import toy_slice_arrays
+    a = toy_slice_arrays(1e-6)
     for t in (19.0, 12.5, 14.0, 10.0, 8.5):
-        v = vgs_for_gm_id(toy_memo, "nmos", 100, t, 2e-6, 0.7, 0.3)
-        assert rel_close(v, (R5_A - t) / (2 * R5_B), 1e-12), t          # 닫힌 식 gm/ID = 20 − 12v
-        assert rel_close(op_point(toy_memo, "nmos", 100, 2e-6, v, 0.7, 0.3).gm_over_id, t, 1e-12)
+        _assert_root(toy_memo, a, 2e-6, 1, 0.7, 0.3, t, closed=(R5_A - t) / (2 * R5_B))   # 닫힌 식 gm/ID = 20 − 12v
     with pytest.raises(SealViolationError):
         vgs_for_gm_id(toy_memo, "nmos", 100, 7.9, 1e-6, 0.5, 0.0)
 
@@ -47,6 +69,7 @@ def test_r4_toy_rows(r4toy_memo):
     assert det["reason"] == "lut_hermite_nonmonotone_cell"
     assert det["axis"] == "VGS" and det["cell_lo"] == 0.0 and det["cell_hi"] == 0.5
     assert (det["gm_id"], det["L"], det["vds"], det["vsb"], det["kind"], det["w_key"]) == (15.0, 1e-6, 0.5, 0.0, "nmos", 100)
+    from .conftest import r4_toy_slice_arrays
     v = vgs_for_gm_id(r4toy_memo, "nmos", 100, 7.0, 1e-6, 0.5, 0.0)
     # 손계산: ln ID 차 δ = ln10, h 0.5, m0 10, m1 4 -> p'(t) = 6δt(1−t)/h + m0(1−4t+3t²) + m1(3t²−2t) = 7
     d, h, m0, m1 = math.log(10.0), 0.5, 10.0, 4.0
@@ -56,10 +79,10 @@ def test_r4_toy_rows(r4toy_memo):
     t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
     if not 0 < t < 1:
         t = (-b + math.sqrt(b * b - 4 * a * c)) / (2 * a)
-    assert rel_close(t, 0.1669433, 1e-6)
-    assert abs(v - (0.5 + 0.5 * t)) <= 1e-12
-    assert rel_close(v, 0.5834716, 1e-7)
-    assert rel_close(op_point(r4toy_memo, "nmos", 100, 1e-6, v, 0.5, 0.0).gm_over_id, 7.0, 1e-12)
+    assert abs(t - 0.1669433) <= 0.5e-7                     # 계약 인쇄 자릿수(7자리)의 반올림 반 단위
+    assert abs(v - 0.5834716) <= 0.5e-7
+    v2 = _assert_root(r4toy_memo, r4_toy_slice_arrays(1e-6), 1e-6, 0, 0.5, 0.0, 7.0, closed=0.5 + 0.5 * t)
+    assert v2 == v
 
 
 def test_curve_undefined(curve_lut):
@@ -146,9 +169,9 @@ def test_legacy_cell_choice_equal_when_legacy_root_in_branch_real(real_memo, raw
             i_old = int(np.flatnonzero(d[:-1] * d[1:] <= 0.0)[-1])
             got = vgs_for_gm_id(real_memo, "pmos", 1000, t, L, vds, vsb)
             assert VGS[i_old] <= got <= VGS[i_old + 1], t
-            st, exp = sir_ref(VGS, V, S, t, ok)
-            assert st == "ok" and abs(got - exp) <= 1e-12, t
-            assert rel_close(op_point(real_memo, "pmos", 1000, L, got, vds, vsb).gm_over_id, t, 1e-12)
+            st, exp, rb, resb = sir_ref_b(VGS, V, S, t, ok, with_residual=True)
+            assert st == "ok" and abs(got - exp) <= rb, (t, got, exp, rb)
+            assert abs(op_point(real_memo, "pmos", 1000, L, got, vds, vsb).gm_over_id - t) <= resb
             n += 1
     assert n >= 15
 
@@ -186,13 +209,14 @@ def test_round_trip_against_independent_hermite(real_lut, real_memo, raw_slice):
             if hi - lo < 1.0:
                 continue
             t = float(rng.uniform(lo + 0.05 * (hi - lo), hi - 0.05 * (hi - lo)))
-            st, exp_v = sir_ref(VGS, V, S, t, ok)
+            dV, dS = rs.curve_err(pos[0], vds, vsb)
+            st, exp_v, rb, resb = sir_ref_b(VGS, V, S, t, ok, with_residual=True, dV=dV, dS=dS)
             if st != "ok":
                 with pytest.raises(SealViolationError):
                     vgs_for_gm_id(real_memo, kind, wk, t, L, vds, vsb)
                 continue
             v = vgs_for_gm_id(real_memo, kind, wk, t, L, vds, vsb)
             assert v >= VGS[p]
-            assert abs(v - exp_v) <= 1e-9, (kind, wk, L, vds, vsb, t, v, exp_v)
-            assert rel_close(op_point(real_memo, kind, wk, L, v, vds, vsb).gm_over_id, t, 1e-9)
+            assert abs(v - exp_v) <= rb, (kind, wk, L, vds, vsb, t, v, exp_v, rb)
+            assert abs(op_point(real_memo, kind, wk, L, v, vds, vsb).gm_over_id - t) <= resb
             done += 1

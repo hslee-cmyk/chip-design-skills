@@ -23,19 +23,45 @@ def _q_cur(v, W=2e-6):
     return (W / 1e-6) * math.exp(r5_toy_lnid(v, 0.5, 0.0))
 
 
+def _toy_check(r, quantity, t, W=2e-6, closed=None, arrays=None):
+    from .conftest import toy_slice_arrays
+    rs = RefSlice(toy_slice_arrays(1e-6) if arrays is None else arrays)
+    return _check(r, rs, 0, 0.5, 0.0, W, quantity, t, closed)
+
+
+def _check(r, rs, iL, vds, vsb, W, quantity, t, closed=None):
+    """독립 경로(target_ref)와 근 차·왕복 차를 conftest γ_n 유도 상한으로 판정(임의 상수 없음). 격자점 (L, VDS, VS) 곡선."""
+    from .conftest import hermite_der, hermite_der_absterms, gamma_n
+    V, S, ok = rs.curve(anchor_w(iL), vds, vsb)
+    st, v, rb, tb = target_ref(rs.grids[1], V, S, ok, rs.w_m, W, quantity, t, with_bound=True)
+    assert st == "ok" and abs(r.vgs - v) <= rb, (r.vgs, v, rb)
+    if closed is not None:
+        assert abs(r.vgs - closed) <= rb and abs(v - closed) <= rb, (r.vgs, v, closed, rb)
+    got = r.id_a if quantity == "current" else r.gm_s
+    assert abs(math.log(got) - math.log(t)) <= tb, ("왕복", got, t, tb)
+    assert r.gm_s == r.gm_id * r.id_a                                     # 4.1 표 정의(같은 곱)
+    # gm_id = 엔진 근에서 p'(4.2) -- 독립 p' 를 엔진 근에서 평가한 값과의 차 ≤ 두 경로 평가 반올림
+    a = min(max(int(np.searchsorted(np.asarray(rs.grids[1]), r.vgs, side="right")) - 1, 0), len(V) - 2)
+    x0, x1 = rs.grids[1][a], rs.grids[1][a + 1]
+    h, tt = x1 - x0, (r.vgs - x0) / (x1 - x0)
+    pd = hermite_der(V[a], V[a + 1], S[a], S[a + 1], h, tt)
+    assert abs(r.gm_id - pd) <= 2 * gamma_n() * hermite_der_absterms(V[a], V[a + 1], S[a], S[a + 1], h, tt)
+    return v
+
+
 def test_contract_toy_row(toy_memo):
     t = 2 * 1e-7 * math.exp(4.675)
     r = _solve(toy_memo, W=2e-6, current=t)
     assert isinstance(r, TargetSolution)
-    assert rel_close(r.vgs, 0.25, 1e-12)
-    assert rel_close(r.gm_id, 17.0, 1e-12)
-    assert rel_close(r.id_a, 2.144651e-5, 1e-6) and rel_close(r.id_a, t, 1e-12)
-    assert rel_close(r.gm_s, 3.645907e-4, 1e-6) and rel_close(r.gm_s, 17.0 * r.id_a, 1e-15)
-    # gm 목표 3.645907e-4(= 17·id_a) 도 같은 vgs
+    _toy_check(r, "current", t, closed=0.25)
+    # 계약 인쇄값(7자리)과의 차 ≤ 인쇄 자릿수 반 단위
+    assert abs(r.gm_id - 17.0) <= 0.5e-6 * 17.0
+    assert abs(r.id_a - 2.144651e-5) <= 0.5e-11 and abs(r.gm_s - 3.645907e-4) <= 0.5e-10
+    # gm 목표(= 17·id_a) 도 같은 vgs
     r2 = _solve(toy_memo, W=2e-6, gm=17.0 * t)
-    assert rel_close(r2.vgs, 0.25, 1e-12) and rel_close(r2.gm_s, 17.0 * t, 1e-12)
+    _toy_check(r2, "gm", 17.0 * t, closed=0.25)
     r3 = _solve(toy_memo, W=2e-6, gm=3.645907e-4)
-    assert abs(r3.vgs - 0.25) < 1e-7
+    _toy_check(r3, "gm", 3.645907e-4)
 
 
 @pytest.mark.parametrize("v", [0.1, 0.4, 0.5, 0.8, 0.97])
@@ -43,10 +69,7 @@ def test_toy_current_hermite_exact(toy_memo, v):
     """r5 toy: ln Q 가 VGS 의 2차식이라 Hermite 가 정확 -> 목표 = Q(v) 면 vgs = v."""
     t = _q_cur(v)
     r = _solve(toy_memo, W=2e-6, current=t)
-    assert abs(r.vgs - v) <= 1e-12
-    assert rel_close(r.gm_id, R5_A - 2 * R5_B * v, 1e-11)
-    assert rel_close(r.id_a, t, 1e-12)
-    assert rel_close(r.gm_s, r.gm_id * r.id_a, 1e-15)
+    _toy_check(r, "current", t, closed=v)
 
 
 @pytest.mark.parametrize("v", [0.2, 0.5, 0.75])
@@ -54,8 +77,7 @@ def test_toy_gm_target(toy_memo, v):
     # gm: ln Q = p(v) + ln p'(v) + ln(W/w_m), p' = 20 − 12v (정확)
     t = _q_cur(v) * (R5_A - 2 * R5_B * v)
     r = _solve(toy_memo, W=2e-6, gm=t)
-    assert abs(r.vgs - v) <= 1e-12
-    assert rel_close(r.gm_s, t, 1e-12)
+    _toy_check(r, "gm", t, closed=v)
 
 
 @pytest.mark.parametrize("kw,quantity", [
@@ -108,9 +130,11 @@ def test_non_monotonic_vs_out_of_range(curve_lut):
     # 단조 구간 안 목표는 칸 [0,1] Hermite 로 푼다: 목표 = 칸 중앙 Hermite 값 -> vgs 0.25
     lnmid = 0.5 * (math.log(1e-7) + math.log(ids[1])) + 0.5 * (20.0 - 10.0) / 8
     r = gm_id_for_target(memo, "nmos", 100, 1e-6, 0.5, 0.0, W=1e-6, current=math.exp(lnmid))
-    assert abs(r.vgs - 0.25) <= 1e-12
-    # 그 해의 gm/ID = Hermite 미분(t = ½): 1.5·δ/h − (m0 + m1)/4 = 1.5·7.5/0.5 − 7.5
-    assert rel_close(r.gm_id, 1.5 * 7.5 / 0.5 - 7.5, 1e-11)
+    from .conftest import curve_slice_arrays
+    _check(r, RefSlice(curve_slice_arrays(1e-6, vgs, ids, (20.0, 10.0, 4.0))), 0, 0.5, 0.0, 1e-6, "current",
+           math.exp(lnmid), closed=0.25)
+    # 그 해의 gm/ID = Hermite 미분(t = ½) 의 닫힌 값 1.5·δ/h − (m0 + m1)/4 = 15 (위 _check 가 p'(근) 와 유도 상한으로 확인)
+    assert 1.5 * 7.5 / 0.5 - 7.5 == 15.0
 
 
 def test_r4_toy_nonmonotone_cell(r4toy_memo):
@@ -124,11 +148,10 @@ def test_r4_toy_nonmonotone_cell(r4toy_memo):
         assert key in det, key
     assert (det["quantity"], det["target"], det["W"], det["kind"], det["w_key"]) == ("current", 2e-6, 2e-6, "nmos", 100)
     # 단조 칸 [0.5, 1] 의 목표는 푼다 -- 독립 구현
-    rs_V = np.log(np.array([2e-7, 2e-6, 2e-5]) / 2.0)
-    st, v = target_ref((0.0, 0.5, 1.0), rs_V, (20.0, 10.0, 4.0), (False, True), 1e-6, 2e-6, "current", 6e-6)
+    from .conftest import r4_toy_slice_arrays
     r = gm_id_for_target(r4toy_memo, "nmos", 100, 1e-6, 0.5, 0.0, W=2e-6, current=6e-6)
-    assert st == "ok" and abs(r.vgs - v) <= 1e-12 and 0.5 < r.vgs < 1.0
-    assert rel_close(r.id_a, 6e-6, 1e-12)
+    _toy_check(r, "current", 6e-6, arrays=r4_toy_slice_arrays(1e-6))
+    assert 0.5 < r.vgs < 1.0
 
 
 def test_curve_undefined(curve_lut):
@@ -177,15 +200,9 @@ def test_real_round_trip(real_memo, raw_slice, quantity):
                 continue
             j = int(rng.integers(p, e))
             t = math.exp(0.5 * (math.log(Q[j]) + math.log(Q[j + 1])))
-            st, vgs_hand = target_ref(VGS, V, S, ok, w, W, quantity, t)
             r = gm_id_for_target(real_memo, kind, wk, L, vds, vsb, W=W, **{quantity: t})
-            assert st == "ok"
-            assert abs(r.vgs - vgs_hand) <= 1e-9, (kind, wk, iL, k, s, j)
+            _check(r, rs, iL, vds, vsb, W, quantity, t)              # 근·왕복·p'(근) -- 유도 상한
             op = op_point(real_memo, kind, wk, L, r.vgs, vds, vsb)
-            assert r.gm_id == op.gm_over_id
-            assert rel_close(r.id_a, op.IDu * W / L, 1e-15)
-            ref = rs.op(anchor_w(iL), L, r.vgs, vds, vsb)
-            assert rel_close(r.gm_id, ref["gm_over_id"], 1e-9)
-            got = r.id_a if quantity == "current" else r.gm_s
-            assert rel_close(got, t, 1e-9), "왕복: 목표 %s 로 되돌아오지 않는다" % quantity
+            assert r.gm_id == op.gm_over_id                            # 4.1 표: gm_id = op_point(vgs).gm_over_id
+            assert r.id_a == op.IDu * W / L                            # id_a = IDu·W/L (같은 식)
             done += 1

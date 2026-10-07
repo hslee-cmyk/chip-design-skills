@@ -14,7 +14,7 @@ from gmid_engine.core import SealViolationError
 from gmid_engine.lut import op_point, vgs_for_gm_id
 
 from .conftest import (LEGACY_SR, anchored_block, ast_sha, branch_solve_vgs, detail_of, fc_ok, legacy_solve_vgs,
-                       lut_package_window_hashes, rel_close, sir_ref)
+                       lut_package_window_hashes, sir_ref_b)
 
 H_BLOCK_A = "0a86bafdeaddf5c9a83cfce762d1a47b01dd6051c285ded5e26b803a4d0fc729"
 H_BLOCK_B = "29beb488b7222e495e3794d5685bd0d751289e08dc502368f9e7af3143c51680"
@@ -48,11 +48,20 @@ def _curve_ok(ids, g, vgs):
 
 
 def _ref(ids, g, vgs, target):
-    return sir_ref(vgs, np.log(np.asarray(ids, dtype=float)), g, target, _curve_ok(ids, g, vgs))
+    """(상태, 근, 근 차 상한, 왕복 상한) -- 상한은 conftest 의 γ_n 유도(임의 상수 없음)."""
+    return sir_ref_b(vgs, np.log(np.asarray(ids, dtype=float)), g, target, _curve_ok(ids, g, vgs), with_residual=True)
 
 
 def _back(memo, v):
     return op_point(memo, "nmos", 100, 1e-6, v, 0.5, 0.0).gm_over_id
+
+
+def _check_root(memo, ids, g, vgs, t):
+    v = _q(memo, t)
+    st, exp, rb, resb = _ref(ids, g, vgs, t)
+    assert st == "ok" and abs(v - exp) <= rb, (t, v, exp, rb)
+    assert abs(_back(memo, v) - t) <= resb, ("왕복: op_point gm/ID = 목표(같은 곡면)", t, _back(memo, v), resb)
+    return v
 
 
 def test_fixture_curve_cells_are_monotone():
@@ -63,18 +72,13 @@ def test_fixture_curve_cells_are_monotone():
 def test_rightmost_interval_inside_branch(curve_lut):
     # 정점 index 1(g=30). 목표 13 은 분지 안 [1,2]·[2,3]·[3,4] 세 칸이 품는다 -> 가장 오른쪽 [3,4]
     memo, g = curve_lut(VGS6, IDS6, G6)
-    v = _q(memo, 13.0)
+    v = _check_root(memo, IDS6, g, VGS6, 13.0)
     assert 0.6 < v < 0.8
-    st, exp = _ref(IDS6, g, VGS6, 13.0)
-    assert st == "ok" and abs(v - exp) <= 1e-12
-    assert rel_close(_back(memo, v), 13.0, 1e-12), "역산 결과의 op_point gm/ID = 목표(같은 곡면)"
     # 칸 선택은 옛 2점 규칙과 같은 칸 -- 근은 다르다(Hermite 미분)
     assert branch_solve_vgs(g, VGS6, 13.0) != v and 0.6 < branch_solve_vgs(g, VGS6, 13.0) < 0.8
     # 목표 5: 정점 왼쪽 [0,1] 끝점도 닿지만 분지 [4,5] 가 품는다 -> 분지 해
-    v5 = _q(memo, 5.0)
+    v5 = _check_root(memo, IDS6, g, VGS6, 5.0)
     assert 0.8 < v5 < 1.0
-    assert abs(v5 - _ref(IDS6, g, VGS6, 5.0)[1]) <= 1e-12
-    assert rel_close(_back(memo, v5), 5.0, 1e-12)
 
 
 def test_peak_is_first_argmax(curve_lut):
@@ -110,10 +114,12 @@ def test_flat_interval_takes_upper_end_when_residual_zero(curve_lut):
     vgs = (0.0, 0.5, 1.0)
     ids = (1e-7, 1e-7 * math.exp(10.0), 1e-7 * math.exp(15.0))
     memo, g = curve_lut(vgs, ids, (30.0, 10.0, 10.0))
-    assert abs(g[1] - g[2]) <= 1e-14 * g[2]          # 로그 차의 반올림만큼 다를 수 있다
     assert _curve_ok(ids, g, vgs) == (True, True)
-    # 목표 = 위 끝 마디 값: 칸 [1,2] 두 끝 편차 곱 ≤ 0, 위 끝 residual 0 -> 위 끝 VGS
-    assert _q(memo, float(g[2])) == pytest.approx(1.0, abs=1e-12)
+    # 목표 = 위 끝 마디 값: 칸 [1,2] 두 끝 편차 곱 ≤ 0, 위 끝 residual 0 -> 위 끝 VGS.
+    # 엔진이 위 끝 residual 을 다항식 미분으로 계산하면 정확히 0 이 아닐 수 있다(보고 항목) -- 허용 = 유도 상한
+    st, exp, rb, _ = _ref(ids, g, vgs, float(g[2]))
+    assert st == "ok" and exp == 1.0
+    assert abs(_q(memo, float(g[2])) - 1.0) <= rb
 
 
 def test_flat_interval_inconsistent_data_rejected(curve_lut):
@@ -134,10 +140,10 @@ def test_flat_interval_inconsistent_data_rejected(curve_lut):
 def test_endpoint_exact_match_is_inside(curve_lut):
     memo, g = curve_lut(VGS6, IDS6, G6)
     # 분지 끝점 값과 정확히 같은 목표(편차 곱 0)도 칸에 든다 -> 위 끝 residual 0 이면 위 끝
-    assert _q(memo, float(g[-1])) == pytest.approx(1.0, abs=1e-12)
-    v = _q(memo, float(g[1]))
-    st, exp = _ref(IDS6, g, VGS6, float(g[1]))
-    assert st == "ok" and abs(v - exp) <= 1e-12
+    st, exp, rb, _ = _ref(IDS6, g, VGS6, float(g[-1]))
+    assert st == "ok" and exp == 1.0
+    assert abs(_q(memo, float(g[-1])) - 1.0) <= rb
+    _check_root(memo, IDS6, g, VGS6, float(g[1]))
 
 
 def test_cell_choice_matches_legacy_when_legacy_root_in_branch(curve_lut):
@@ -152,11 +158,8 @@ def test_cell_choice_matches_legacy_when_legacy_root_in_branch(curve_lut):
             continue
         d = np.asarray(g) - t
         i_old = int(np.flatnonzero(d[:-1] * d[1:] <= 0.0)[-1])
-        v = _q(memo, t)
+        v = _check_root(memo, IDS6, g, VGS6, t)
         assert VGS6[i_old] <= v <= VGS6[i_old + 1], (t, i_old, v)
-        st, exp = _ref(IDS6, g, VGS6, t)
-        assert st == "ok" and abs(v - exp) <= 1e-12, t
-        assert rel_close(_back(memo, v), t, 1e-12), t
         n_cmp += 1
         n_diff += v != old
     assert n_cmp == 41 and n_diff >= 35

@@ -374,6 +374,62 @@ def hermite_der(y0, y1, m0, m1, h, t):
             + y1 * (-6 * t2 + 6 * t) + h * m1 * (3 * t2 - 2 * t)) / h
 
 
+def hermite_der2(y0, y1, m0, m1, h, t):
+    """p''(x) = d²p/dt² / h²."""
+    return (y0 * (12 * t - 6) + h * m0 * (6 * t - 4) + y1 * (-12 * t + 6) + h * m1 * (6 * t - 2)) / (h * h)
+
+
+def hermite_der_absterms(y0, y1, m0, m1, h, t):
+    """p'(x) 계산의 항 크기 합 Σ|항|/h (반올림 오차 상한의 척도)."""
+    t2 = t * t
+    return (abs(y0 * (6 * t2 - 6 * t)) + abs(h * m0 * (3 * t2 - 4 * t + 1))
+            + abs(y1 * (-6 * t2 + 6 * t)) + abs(h * m1 * (3 * t2 - 2 * t))) / h
+
+
+def hermite_val_absterms(y0, y1, m0, m1, h, t):
+    """p(x) 계산의 항 크기 합 Σ|항|."""
+    t2 = t * t
+    t3 = t2 * t
+    return (abs(y0 * (2 * t3 - 3 * t2 + 1)) + abs(h * m0 * (t3 - 2 * t2 + t))
+            + abs(y1 * (-2 * t3 + 3 * t2)) + abs(h * m1 * (t3 - t2)))
+
+
+# [r5] 근 비교 허용 차의 유도(임의 상수 없음 -- 오케스트레이터 지시 2026-10-07):
+#  - 3절: 두 경로(엔진·이 파일) 모두 bisection 을 부동소수 분해능(K_max = ceil(log2(칸 폭 / ulp(max(|v0|, |v1|)))))까지 돌린다
+#    -> 각 경로의 근은 자기 residual 부호 변화점에서 ulp(max(|v0|, |v1|)) 이내.
+#  - residual 의 경로별 반올림 오차 ≤ γ_n·(Σ|항| + |목표|) (표준 전진 오차 상한), γ_n = n·u/(1 − n·u), u = 2^-53(단위 반올림),
+#    n = 한 번의 평가에서 결과까지 이어지는 부동소수 연산 깊이의 상한. 이 파일의 기저 함수 경로: 기저 다항식 4(t², ·, 계수, 합)
+#    + 인자 곱 2 + 네 항 합 3 + h 나눔 1 + 목표 뺌 1 = 11. 엔진의 de Casteljau 미분(제어점 2 + 2단 보간 각 3 + ·3/h 2 + 뺌 1 = 11)도
+#    같은 깊이 -> n = 11.
+#  - 근 차 상한 = 2·γ_n·(Σ|항| + |목표|) / |residual 기울기(근)| + 2·ulp(max(|v0|, |v1|))
+#    (두 경로 오차 합 / 근에서 residual 의 기울기 + 두 경로의 분해능).
+GAMMA_DEPTH = 11
+UNIT_ROUNDOFF = 2.0 ** -53
+
+
+def gamma_n(n=GAMMA_DEPTH):
+    return n * UNIT_ROUNDOFF / (1 - n * UNIT_ROUNDOFF)
+
+
+def node_err_term(h, t, dV0=0.0, dV1=0.0, dS0=0.0, dS1=0.0):
+    """마디 값·기울기 자체가 경로마다 반올림된 계산값일 때(격자 밖 곡선) p'(x) 로 전파되는 차의 상한:
+    Σ |∂p'/∂마디|·(두 경로 마디 차 상한). 마디 차 상한은 호출부가 같은 γ_n 규칙으로 낸다(격자점 마디는 0)."""
+    t2 = t * t
+    return (abs((6 * t2 - 6 * t) / h) * dV0 + abs((-6 * t2 + 6 * t) / h) * dV1
+            + abs(3 * t2 - 4 * t + 1) * dS0 + abs(3 * t2 - 2 * t) * dS1)
+
+
+def hermite_root_bound(x0, x1, V0, V1, S0, S1, target, root, dV0=0.0, dV1=0.0, dS0=0.0, dS1=0.0):
+    """vgs 역산(p'(v) = 목표) 근 차 상한(V) -- 위 유도. residual 기울기 = p''(근)."""
+    h = x1 - x0
+    t = (root - x0) / h
+    err = 2 * gamma_n() * (hermite_der_absterms(V0, V1, S0, S1, h, t) + abs(target))
+    err += node_err_term(h, t, dV0, dV1, dS0, dS1)
+    slope = abs(hermite_der2(V0, V1, S0, S1, h, t))
+    res = 2 * math.ulp(max(abs(x0), abs(x1)))
+    return (err / slope if slope > 0 else math.inf) + res
+
+
 def fc_ok(y0, y1, m0, m1, h):
     """CONTRACT 1.4 Fritsch–Carlson 단조 조건(필요충분, 원소마다, numpy 가능)."""
     b0 = m0 * h
@@ -503,6 +559,32 @@ class RefSlice:
                 "gm_gds": gmid * math.exp(lnid - lnD), "gds_per_w": math.exp(lnD) / self.w_m,
                 "vth": self.lin4(self.vth, Lw, vgs, vds, vsb), "lnID": lnid, "vgs_hermite": herm}
 
+    def curve_err(self, Lw, vds, vsb):
+        """마디별 두 경로 차 상한 (dV, dS): 마디 = 가중합(+ VDS Hermite) 이라 경로마다 반올림 ≤ γ_n·Σ|항|, 두 경로 -> 2γ_n.
+        격자점(L 앵커·VDS·VS 격자)은 가중치 1 하나라 0. Σ|항| 은 Hermite 기저 크기 ≤ 1 로 위에서 묶는다."""
+        g2 = 2 * gamma_n()
+        Dw = axis_weights(self.grids[2], vds)
+        Sw = axis_weights(self.grids[3], vsb)
+        n = len(self.grids[1])
+        dV, dS = np.zeros(n), np.zeros(n)
+        if len(Lw) == 1 and len(Dw) == 1 and len(Sw) == 1:
+            return dV, dS
+        k, td = axis_cell_r5(self.grids[2], vds)
+        hd = self.grids[2][k + 1] - self.grids[2][k]
+        for a in range(n):
+            A = 0.0
+            for iL, wl in Lw:
+                for s, ws in Sw:
+                    w = abs(wl * ws)
+                    if td in (0.0, 1.0):
+                        A += w * abs(self.lI[iL, a, k if td == 0.0 else k + 1, s])
+                    else:
+                        A += w * (abs(self.lI[iL, a, k, s]) + abs(self.lI[iL, a, k + 1, s])
+                                  + hd * abs(self.gdsid[iL, a, k, s]) + hd * abs(self.gdsid[iL, a, k + 1, s]))
+            B = sum(abs(wl * wd * ws) * self.gmid[iL, a, b, s] for iL, wl in Lw for b, wd in Dw for s, ws in Sw)
+            dV[a], dS[a] = g2 * A, g2 * B
+        return dV, dS
+
     def curve(self, Lw, vds, vsb):
         """gm_id_curve 기대값: (V 마디, S 마디, cell_ok)."""
         n = len(self.grids[1])
@@ -575,7 +657,58 @@ def sir_ref(vgs, V, S, target, cell_ok=None):
                                    float(S[i]), float(S[i + 1]), target)
 
 
-def target_ref(vgs, V, S, cell_ok, w_m, W, quantity, target):
+def sir_ref_b(vgs, V, S, target, cell_ok=None, with_residual=False, dV=None, dS=None):
+    """sir_ref + 근 차 상한(hermite_root_bound) [+ 왕복 gm/ID 차 상한]. 반환 (상태, v, 상한[, 왕복 상한]).
+    dV·dS: 마디별 두 경로 차 상한(격자 밖 곡선, RefSlice.curve_err) -- 없으면 0(격자점 마디)."""
+    st, v = sir_ref(vgs, V, S, target, cell_ok)
+    if st != "ok":
+        return (st, v, None, None) if with_residual else (st, v, None)
+    i = min(max(bisect.bisect_right([float(x) for x in vgs], v) - 1, 0), len(vgs) - 2)
+    if v == float(vgs[i]) and i > 0:
+        S_ = np.asarray(S, dtype=float)
+        # 칸 끝에 놓인 근: 고른 칸은 가장 오른쪽 후보 -- 왼쪽 칸의 위 끝일 수 있다
+        d = S_ - target
+        cand = [c for c in range(int(np.argmax(S_)), len(S_) - 1) if d[c] * d[c + 1] <= 0.0]
+        i = cand[-1]
+    nd = {} if dV is None else dict(dV0=float(dV[i]), dV1=float(dV[i + 1]), dS0=float(dS[i]), dS1=float(dS[i + 1]))
+    b = hermite_root_bound(float(vgs[i]), float(vgs[i + 1]), float(V[i]), float(V[i + 1]),
+                           float(S[i]), float(S[i + 1]), target, v, **nd)
+    if with_residual:
+        return st, v, b, hermite_residual_bound(float(vgs[i]), float(vgs[i + 1]), float(V[i]), float(V[i + 1]),
+                                                float(S[i]), float(S[i + 1]), target, v)
+    return st, v, b
+
+
+def hermite_residual_bound(x0, x1, V0, V1, S0, S1, target, root):
+    """왕복 상한: 엔진 근 v_e 에서 엔진이 낸 gm/ID 와 목표의 차 ≤ (엔진 근의 bisection 분해능 2 ulp 동안의 p' 변화) +
+    (p' 평가 반올림, 두 번: 근 찾기 residual·op_point 평가) -- hermite_root_bound 와 같은 γ_n 유도.
+    (엔진 안에서는 역산과 op_point 가 같은 마디를 쓰므로 마디 차 항이 없다 -- 4.2 '같은 곡면')"""
+    h = x1 - x0
+    t = (root - x0) / h
+    err = 2 * gamma_n() * (hermite_der_absterms(V0, V1, S0, S1, h, t) + abs(target))
+    return err + abs(hermite_der2(V0, V1, S0, S1, h, t)) * 2 * math.ulp(max(abs(x0), abs(x1)))
+
+
+def target_root_bound(x0, x1, V0, V1, S0, S1, quantity, lt_total, root):
+    """gm_id_for_target (근 차 상한 V, 왕복 ln 차 상한): residual f = p(v) [+ ln p'(v)] − (ln 목표 − ln(W/w_m)) --
+    hermite_root_bound 와 같은 유도. gm 의 ln p' 항 오차 = p' 의 상대 오차 γ_n·Σ|항|/|p'|. residual 기울기 = p' [+ p''/p']."""
+    h = x1 - x0
+    t = (root - x0) / h
+    g = gamma_n()
+    err = g * (hermite_val_absterms(V0, V1, S0, S1, h, t) + abs(lt_total))
+    slope = hermite_der(V0, V1, S0, S1, h, t)
+    if quantity == "gm":
+        d1 = slope
+        err += g * hermite_der_absterms(V0, V1, S0, S1, h, t) / abs(d1)
+        slope = d1 + hermite_der2(V0, V1, S0, S1, h, t) / d1
+    res = 2 * math.ulp(max(abs(x0), abs(x1)))
+    root_b = (2 * err / abs(slope) if slope != 0 else math.inf) + res
+    # 왕복(ln 결과 − ln 목표) 상한: 엔진 근에서 엔진 residual 의 반올림(2 경로분 -- 근 찾기·op_point/exp 재평가) + 분해능 동안 변화
+    trip_b = 2 * err + abs(slope) * res
+    return root_b, trip_b
+
+
+def target_ref(vgs, V, S, cell_ok, w_m, W, quantity, target, with_bound=False):
     """CONTRACT 4.1 gm_id_for_target 의 vgs 기대값. 반환 ("ok", vgs) 또는 (사유 키, 정보)."""
     V = np.asarray(V, dtype=float)
     S = np.asarray(S, dtype=float)
@@ -591,7 +724,7 @@ def target_ref(vgs, V, S, cell_ok, w_m, W, quantity, target):
         return "lut_target_out_of_range", (float(Q[p:].min()), float(Q[p:].max()))
     j = p + max(int(np.searchsorted(Q[p:e + 1], target, side="left")) - 1, 0)
     if j == e:
-        return "ok", float(vgs[e])
+        return ("ok", float(vgs[e]), 0.0, 0.0) if with_bound else ("ok", float(vgs[e]))
     if not cell_ok[j]:
         return "lut_hermite_nonmonotone_cell", (float(vgs[j]), float(vgs[j + 1]))
     x0, x1 = float(vgs[j]), float(vgs[j + 1])
@@ -613,6 +746,9 @@ def target_ref(vgs, V, S, cell_ok, w_m, W, quantity, target):
             hi = mid
         else:
             lo = mid
+    if with_bound:
+        return ("ok", lo) + target_root_bound(x0, x1, float(V[j]), float(V[j + 1]), float(S[j]), float(S[j + 1]),
+                                           quantity, abs(math.log(target)) + abs(math.log(W / w_m)), lo)
     return "ok", lo
 
 
@@ -624,7 +760,19 @@ def tol_cell_ref(rs, i, k, anchor_bin=None, with_roots=True):
     lI, on, gmid, gdsid, vds_ok = rs.lI, rs.on, rs.gmid, rs.gdsid, rs.vds_ok
     l_int = (anchor_bin is not None and len(anchor_bin) == nL and 0 < i < nL - 1
              and anchor_bin[i - 1] == anchor_bin[i] == anchor_bin[i + 1])
-    eq_s, eq_r = [], []
+    eq_s, eq_r, eq_sb, eq_rb = [], [], [], []
+    g2 = 2 * gamma_n()
+
+    def add(err, A, cc, gmv, cond, scale):
+        # 점 허용 차(두 경로 반올림, 위 유도와 같은 γ_n): 추정 Σ|항| A 와 |ln ID| 의 뺄셈 오차 / gm/ID + 나눗셈 상대 오차
+        bnd = g2 * (A + np.abs(cc)) / gmv + g2 * err
+        eq_r.extend(err[cond])
+        eq_s.extend((err / scale)[cond] if np.ndim(scale) else err[cond] / scale)
+        eq_rb.extend(bnd[cond])
+        eq_sb.extend((bnd / scale)[cond] if np.ndim(scale) else bnd[cond] / scale)
+
+    def lin_abs(lo_, hi_, t):
+        return (1 + np.abs(t)) * np.abs(lo_) + np.abs(t) * np.abs(hi_)
     # --- id_equivalent ---
     c = lI[i, :, k, :]
     o = on[i, :, k, :]
@@ -633,10 +781,10 @@ def tol_cell_ref(rs, i, k, anchor_bin=None, with_roots=True):
         H = (VGS[2:] - VGS[:-2])[:, None]
         t = ((VGS[1:-1] - VGS[:-2]) / (VGS[2:] - VGS[:-2]))[:, None]
         est = hermite_val(c[:-2], c[2:], gm[:-2], gm[2:], H, t)
+        A = hermite_val_absterms(c[:-2], c[2:], gm[:-2], gm[2:], H, t)
         cond = o[:-2] & o[1:-1] & o[2:]
         err = np.abs(est - c[1:-1]) / gm[1:-1]
-        eq_r += list(err[cond])
-        eq_s += list(err[cond] / 2.0 ** 4)
+        add(err, A, c[1:-1], gm[1:-1], cond, 2.0 ** 4)
     if 0 < k < nV - 1:
         H = VDS[k + 1] - VDS[k - 1]
         t = (VDS[k] - VDS[k - 1]) / H
@@ -644,59 +792,64 @@ def tol_cell_ref(rs, i, k, anchor_bin=None, with_roots=True):
         herm = vds_ok[i, :, k - 1, :] & vds_ok[i, :, k + 1, :]
         est = np.where(herm, hermite_val(lo_, hi_, gdsid[i, :, k - 1, :], gdsid[i, :, k + 1, :], H, t),
                        lo_ + t * (hi_ - lo_))
+        A = np.where(herm, hermite_val_absterms(lo_, hi_, gdsid[i, :, k - 1, :], gdsid[i, :, k + 1, :], H, t),
+                     lin_abs(lo_, hi_, t))
         cond = on[i, :, k - 1, :] & o & on[i, :, k + 1, :]
         err = np.abs(est - c) / gm
-        eq_r += list(err[cond])
-        eq_s += list((err / np.where(herm, 2.0 ** 4, 2.0 ** 2))[cond])
+        add(err, A, c, gm, cond, np.where(herm, 2.0 ** 4, 2.0 ** 2))
     if nS > 2:
         t = ((VS[1:-1] - VS[:-2]) / (VS[2:] - VS[:-2]))[None, :]
         est = c[:, :-2] + t * (c[:, 2:] - c[:, :-2])
         cond = o[:, :-2] & o[:, 1:-1] & o[:, 2:]
         err = np.abs(est - c[:, 1:-1]) / gm[:, 1:-1]
-        eq_r += list(err[cond])
-        eq_s += list(err[cond] / 2.0 ** 2)
+        add(err, lin_abs(c[:, :-2], c[:, 2:], t), c[:, 1:-1], gm[:, 1:-1], cond, 2.0 ** 2)
     if l_int:
         t = (Lg[i] - Lg[i - 1]) / (Lg[i + 1] - Lg[i - 1])
         lo_, hi_ = lI[i - 1, :, k, :], lI[i + 1, :, k, :]
         est = lo_ + t * (hi_ - lo_)
         cond = on[i - 1, :, k, :] & o & on[i + 1, :, k, :]
         err = np.abs(est - c) / gm
-        eq_r += list(err[cond])
-        eq_s += list(err[cond] / 2.0 ** 2)
+        add(err, lin_abs(lo_, hi_, t), c, gm, cond, 2.0 ** 2)
     # --- gm_id_inverse ---
     inv_s, inv_r, n_t, n_f = [], [], 0, 0
+    inv_sb, inv_rb = [], []
     for s in range(nS):
         if not o[:, s].all():
             continue
         V, g = c[:, s], gm[:, s]
         p = int(np.argmax(g))
-        side = []                                         # (V 곡선, S 곡선, 2^p)
+        side = []                                         # (V 곡선, S 곡선, 2^p, dV, dS)
         if 0 < k < nV - 1 and on[i, :, k - 1, s].all() and on[i, :, k + 1, s].all():
             H = VDS[k + 1] - VDS[k - 1]
             t = (VDS[k] - VDS[k - 1]) / H
             lo_, hi_ = lI[i, :, k - 1, s], lI[i, :, k + 1, s]
             herm = vds_ok[i, :, k - 1, s] & vds_ok[i, :, k + 1, s]
-            Vl = np.where(herm, hermite_val(lo_, hi_, gdsid[i, :, k - 1, s], gdsid[i, :, k + 1, s], H, t),
-                          lo_ + t * (hi_ - lo_))
-            Sl = gmid[i, :, k - 1, s] + t * (gmid[i, :, k + 1, s] - gmid[i, :, k - 1, s])
-            side.append((Vl, Sl, 2.0 ** 2))
+            m0_, m1_ = gdsid[i, :, k - 1, s], gdsid[i, :, k + 1, s]
+            Vl = np.where(herm, hermite_val(lo_, hi_, m0_, m1_, H, t), lo_ + t * (hi_ - lo_))
+            g0_, g1_ = gmid[i, :, k - 1, s], gmid[i, :, k + 1, s]
+            Sl = g0_ + t * (g1_ - g0_)
+            dV = g2 * np.where(herm, hermite_val_absterms(lo_, hi_, m0_, m1_, H, t), lin_abs(lo_, hi_, t))
+            side.append((Vl, Sl, 2.0 ** 2, dV, g2 * lin_abs(g0_, g1_, t)))
         if 0 < s < nS - 1 and o[:, s - 1].all() and o[:, s + 1].all():
             t = (VS[s] - VS[s - 1]) / (VS[s + 1] - VS[s - 1])
             side.append((c[:, s - 1] + t * (c[:, s + 1] - c[:, s - 1]),
-                         gm[:, s - 1] + t * (gm[:, s + 1] - gm[:, s - 1]), 2.0 ** 2))
+                         gm[:, s - 1] + t * (gm[:, s + 1] - gm[:, s - 1]), 2.0 ** 2,
+                         g2 * lin_abs(c[:, s - 1], c[:, s + 1], t), g2 * lin_abs(gm[:, s - 1], gm[:, s + 1], t)))
         if l_int and on[i - 1, :, k, s].all() and on[i + 1, :, k, s].all():
             t = (Lg[i] - Lg[i - 1]) / (Lg[i + 1] - Lg[i - 1])
-            side.append((lI[i - 1, :, k, s] + t * (lI[i + 1, :, k, s] - lI[i - 1, :, k, s]),
-                         gmid[i - 1, :, k, s] + t * (gmid[i + 1, :, k, s] - gmid[i - 1, :, k, s]), 2.0 ** 2))
+            lo_, hi_ = lI[i - 1, :, k, s], lI[i + 1, :, k, s]
+            g0_, g1_ = gmid[i - 1, :, k, s], gmid[i + 1, :, k, s]
+            side.append((lo_ + t * (hi_ - lo_), g0_ + t * (g1_ - g0_), 2.0 ** 2,
+                         g2 * lin_abs(lo_, hi_, t), g2 * lin_abs(g0_, g1_, t)))
         for j in range(p, nG):
             if not all(g[j] > g[r] for r in range(j + 1, nG)):
                 continue
             tg = float(g[j])
             curves = []
-            if 0 < j < nG - 1:
-                curves.append((np.delete(VGS, j), np.delete(V, j), np.delete(g, j), 2.0 ** 3))
-            curves += [(VGS, a, b, w) for a, b, w in side]
-            for xs, cv, cs, w in curves:
+            if 0 < j < nG - 1:                                       # 격자 마디 그대로 -> 마디 차 0
+                curves.append((np.delete(VGS, j), np.delete(V, j), np.delete(g, j), 2.0 ** 3, None, None))
+            curves += [(VGS,) + sd for sd in side]
+            for xs, cv, cs, w, dV_, dS_ in curves:
                 n_t += 1
                 if not with_roots:
                     sc = np.asarray(cs)
@@ -705,14 +858,20 @@ def tol_cell_ref(rs, i, k, anchor_bin=None, with_roots=True):
                     if not np.any(dd[pp:-1] * dd[pp + 1:] <= 0.0):
                         n_f += 1
                     continue
-                st, root = sir_ref(xs, cv, cs, tg)
+                st, root, rb = sir_ref_b(xs, cv, cs, tg, dV=dV_, dS=dS_)
                 if st != "ok":
                     n_f += 1
                     continue
                 inv_r.append(abs(root - VGS[j]))
                 inv_s.append(abs(root - VGS[j]) / w)
+                # 시도 값의 허용 차 = 근 차 상한 + |근 − VGS_j| 뺄셈 반올림(1 ulp). 셀 값은 최댓값이라
+                # |max a − max b| ≤ max |a_i − b_i| -- 셀 허용 차 = 시도 허용 차의 최댓값.
+                bnd = rb + math.ulp(max(abs(root), abs(float(VGS[j]))))
+                inv_rb.append(bnd)
+                inv_sb.append(bnd / w)
     mx = lambda xs: float(max(xs)) if xs else None
-    return {"inv": mx(inv_s), "eq": mx(eq_s), "inv_loo": mx(inv_r), "eq_loo": mx(eq_r), "n_t": n_t, "n_f": n_f}
+    return {"inv": mx(inv_s), "eq": mx(eq_s), "inv_loo": mx(inv_r), "eq_loo": mx(eq_r), "n_t": n_t, "n_f": n_f,
+            "inv_bound": mx(inv_sb), "inv_loo_bound": mx(inv_rb), "eq_bound": mx(eq_sb), "eq_loo_bound": mx(eq_rb)}
 
 
 # ---------------------------------------------------------------------------
