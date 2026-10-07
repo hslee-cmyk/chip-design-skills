@@ -35,6 +35,9 @@
   에서 Gauss-Seidel 이 멈추거나(측정한 q 로 K_max 안 도달 불가) 수렴 판정 뒤 strict 검증에 실패하면 같은 시작값에서 SCC 잔차
   r = V − g(V) 에 감쇠 Newton(`scc_newton.newton_solve`, 야코비안 = LUT 미분, LU, 역추적 선 탐색, 상한 K_max). `SccLog` 에
   `method`·`fallback` 필드(기본값이 있어 기존 생성 호출과 호환). 5.4·5.5b·10.4절, 12절 O10·O11 닫음.
+- **개정 r7(2026-10-08, 오케스트레이터 결정 -- 수렴 판정 = 노드전압 오차 상계)**: `[r7]`. Gauss-Seidel 은 Δk ≤ tol 에 사후 상계
+  q/(1−q)·Δk ≤ tol 을 더한다(둘 다; q < 1, k ≥ 3; q ≥ 1 이면 받지 않음, Δk = 0 은 받음), Newton 은 ‖r‖∞ ≤ tol 에 더해 온전한 걸음 ‖Δ‖∞ ≤ tol.
+  새 상수 없음(tol = 기존 노드 허용오차). 2절 SccLog 필드 목록 정정. 5.5·5.5b·10.5절.
 
 ---
 
@@ -190,7 +193,7 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
 - `ColumnNeighbor(rails, pred, succ, position, length)`, `SccEntry(index, nodes, cyclic, devices)`,
   `ThetaSchema(components, current_cone=(), fixed=(), zero_cancel=())`([r5] 4.4),
   [r5] `ZeroCancel(resistor, end_net, far_nets, cells, reason=None)`(4.4), `Theta(values)`, `PathValue(relation, value)`, `Window(lo, hi, constraints)`,
-  `SccLog(index, nodes, iterations, deltas, tol, k_max)`,
+  `SccLog(index, nodes, iterations, deltas, tol, k_max, method="direct", fallback=None)`([r6] method·fallback 5.4),
   `DeviceOp(kind, current, ln_idu, gm_id, L, W, vgs, vds, vsb, w_key, idu_forward)`,
   `SealItem(item, status, magnitude=None, tol=None, margin=None, devices=(), nodes=(), detail=())`, `SealReport(items, status)`,
   `SealedSnapshot(snapshot, report)`, `KernelContext(...)`(1.4), `DcEvaluation(snapshot, report, sealed=None)`.
@@ -367,8 +370,8 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   재서(1변수는 bisection 전체, 실패는 위 구조화 실패 그대로) |새 값 − 수렴값| > tol 이면 `NonconvergentError`(reason
   `strict_recheck_residual`, margin = 잔차/tol, detail node·nodes) -- 투영이 최종값에 남지 않는다.
 - [r6] **Newton 으로 바꾸는 조건과 절차**(다변수 SCC 만, 크기 1 은 위 bisection 그대로):
-  1. `gauss_seidel` 이 `NonconvergentError` 를 내면(측정한 Δ 열의 수축비 q 가 1 이상이거나, q < 1 이지만 q^(K_max−k)·Δ/(1−q) > tol
-     -- 둘 다 'Gauss-Seidel 이 K_max 안에 tol 에 닿지 못한다'는 반복 자체의 데이터), 또는
+  1. `gauss_seidel` 이 `NonconvergentError` 를 내면(측정한 Δ 열의 수축비 q 가 1 이상이라 K_max 에 닿거나, q < 1 이지만
+     q^(K_max−k)·max(1, q/(1−q))·Δ > tol -- 둘 다 'Gauss-Seidel 이 K_max 안에 노드전압 오차 상계 tol 에 닿지 못한다'는 반복 자체의 데이터), 또는
   2. 수렴 판정 뒤 strict 검증 바퀴가 `NonconvergentError`(strict_recheck_residual)나 `SealViolationError`(반복 중 투영으로 멈춘 노드의
      writer 식이 수렴점에서 정의역 밖)를 내면,
   그 실패를 내지 않고 감쇠 Newton 으로 바꾼다. 시작점 = 다음 후보 중 정의역 안(아래 `newton_system` 이 None 아님)인 첫 것: (a) 시작값
@@ -396,7 +399,7 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
     로 LUT 를 만들고 M1 nmos (x, x, gnd)(diode) + M2 pmos (x, pb, vdd), pb = 입력 포트(input_dc_v 0.9), θ = L 1 µm·전류 10 µA·
     ln_idu(M1) 아무 값 -> `size_and_seal` 이 `SealViolationError`(devices ("M1",), margin None, detail {reason: tol_v_undefined}).
     1변수 bisection 이 tol 을 먼저 재기 때문에 순환 노드가 하나라도 있으면 걸린다.
-  - `strict_recheck_residual`: 방어 검사다. 마지막 Gauss-Seidel 바퀴가 Δ ≤ tol 이었는데 그 뒤 앞 노드를 다시 재면 tol 을 넘게
+  - `strict_recheck_residual`: 방어 검사다. 마지막 Gauss-Seidel 바퀴가 수렴 판정을 통과했는데 그 뒤 앞 노드를 다시 재면 tol 을 넘게
     움직이는 경우 -- SCC 루프 이득이 1 보다 큰데 시작값이 불안정 고정점 근처라 첫 바퀴들이 우연히 작게 움직인 경우에만 생긴다
     (수축 루프에서는 다시 잰 변화 = q·Δ ≤ Δ ≤ tol 이라 구조상 생기지 않는다). 공개 API 만으로 재현되는 최소 구성은 찾지 못했다
     (12절 O12) -- test 가 덮지 못하는 것을 숨기지 않으려고 적는다.
@@ -410,16 +413,23 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 
 ### 5.5 `gauss_seidel(nodes, values, update, tolerance, width, devices=()) -> (values, (k, deltas, tol, K_max))`
 - 반복 k 마다 nodes 순서로 `update(node, current)` 를 바로 반영, Δk = 최대 |변화|, tol = `tolerance(current)`,
-  K_max = `k_max(width, tol)`. Δk ≤ tol 이면 반환. 아니면 stop = (k ≥ K_max); k ≥ 3 이고 Δk−1 > 0 이면 q = Δk/Δk−1, q < 1 이면
-  stop = stop or q^max(K_max − k, 0)·Δk/(1 − q) > tol. stop -> `NonconvergentError`(devices, margin = Δk/tol, detail nodes·
-  iterations·deltas·tol·k_max). 입력 `values` 는 바꾸지 않는다.
+  K_max = `k_max(width, tol)`. [r7] **수렴 = 노드전압 오차 상계 ≤ tol**(노드전압이 정본 -- Δ 만으로 받지 않는다):
+  Δk = 0 이면 반환(정확한 고정점). 아니면 stop = (k ≥ K_max); k ≥ 3 이고 Δk−1 > 0 이면 q = Δk/Δk−1, q < 1 이면
+  m = max(1, q/(1 − q))·Δk ≤ tol 일 때 반환(수축 사상의 사후 상계 ‖V_k − V*‖∞ ≤ q/(1−q)·Δk 와 마지막 걸음 Δk 둘 다 tol 안 --
+  q < 1/2 이면 r6 와 같은 Δk ≤ tol; 상계만 쓰면 q ≈ 0.2 에서 한 바퀴 일찍 받아 봉인 1·2 잔차가 tol 을 넘는 점이 생겼다, 10.5),
+  아니면 stop = stop or q^max(K_max − k, 0)·m > tol(K_max 반복에서의 같은 양도 tol 초과). q ≥ 1 이거나 k < 3 이면 Δk 가 tol 이하여도
+  반환하지 않는다. stop -> `NonconvergentError`(devices, margin = Δk/tol, detail nodes·iterations·deltas·tol·k_max).
+  입력 `values` 는 바꾸지 않는다. (r6 까지: Δk ≤ tol 이면 반환 -- 나쁜 조건 SCC 에서 해와 0.2 V 떨어진 점을 받은 사례가 있어 바꿈.)
 
 ### 5.5b [r6] `newton_solve(nodes, values, evaluate, tolerance, width, devices=()) -> (values, (k, norms, tol, K_max))`
 - `evaluate(values) -> (residuals, jacobian) | None`(n 개 잔차, n × n 행 tuple, 정의역 밖이면 None). `values` 는 바꾸지 않는다.
 - 시작점에서 evaluate 가 None 이면 `NonconvergentError`(reason `newton_start_outside_domain`, margin None, iterations 0, norms ()).
-- 반복: ‖r‖∞ 를 `norms` 에 더하고 tol = `tolerance(current)`, K_max = `k_max(width, tol)`. ‖r‖∞ ≤ tol 이면 반환(k = 받은 Newton
-  걸음 수). 아니면 k ≥ K_max 면 reason `newton_iteration_cap`. J 를 `scipy.linalg.lu_factor`, LU 대각에 0 이 있으면 reason
-  `newton_singular`. Δ = `lu_solve(−r)`. 선 탐색: α = 1, 1/2, 1/4, … 마다 시험점 V + αΔ(SCC 노드만), 정의역 안이고 ‖r‖₂ 가 줄면 받는다.
+- 반복: ‖r‖∞ 를 `norms` 에 더하고 tol = `tolerance(current)`, K_max = `k_max(width, tol)`. J 를 `scipy.linalg.lu_factor`, LU
+  대각에 0 이 있으면 reason `newton_singular`(수렴 판정 전 -- 잔차가 작아도 걸음을 못 풀면 오차를 잴 수 없다). Δ = `lu_solve(−r)`.
+  [r7] **‖r‖∞ ≤ tol 이고 ‖Δ‖∞ ≤ tol 이면 반환**(현재 점, 걸음은 적용하지 않음; k = 받은 Newton 걸음 수) -- 온전한 Newton 걸음 =
+  다음 보정 = 노드전압 오차 추정(2차 수렴). 잔차만 작고 걸음이 큰 점(나쁜 조건 SCC)은 받지 않고 계속 걷는다. (r6 까지:
+  ‖r‖∞ ≤ tol 만 -- q ≈ 1.13·κ ≈ 59 toy 에서 해와 0.11 V 떨어진 점을 받은 사례가 있어 바꿈.) 아니면 k ≥ K_max 면 reason
+  `newton_iteration_cap`. 선 탐색: α = 1, 1/2, 1/4, … 마다 시험점 V + αΔ(SCC 노드만), 정의역 안이고 ‖r‖₂ 가 줄면 받는다.
   받을 α 없이 α < 1 이고 α·‖Δ‖∞ < tol 이 되거나(더 줄인 걸음은 노드를 tol 보다 덜 움직인다) 시험점이 부동소수로 현재 점과
   같아지면(모든 노드) reason `newton_line_search`.
 - 실패는 모두 `NonconvergentError`(devices, margin = ‖r‖∞/tol(시작점 밖이면 None), detail reason·nodes·iterations·norms·tol·k_max).
@@ -636,6 +646,34 @@ spec 제약 + 관측 요청(`gbw_ss_hz`·`ugf_ss_hz`·`pm_ss_deg`·`gain_ss_db`,
 - current_reuse 는 0 그대로: 주 원인이 SCC 풀이가 아니라 봉인 7 writer 창 no_root_in_window(208/215) -- 이 개정 범위 밖.
 - 야코비안 대조(순환 SCC 가 있는 회로의 첫 봉인 θ, 중앙 차분 h = 1e-5 V): MOS writer 열 max|FD − J| ≤ 1e-2(|J| ≈ 1.2, LUT
   Hermite 미분과 차분의 차), W4 선형 노드 6.6e-12.
+
+### 10.5 [r7] 수렴 판정 = 노드전압 오차 상계 실측 (2026-10-08, 작성자 측 시연 -- 정본 아님)
+탐침 = 10.4 와 같음. before = master 7db148e(r6), after = r7. 두 실행을 연달아 같은 기계에서 돌렸다.
+
+| 회로 | 일관 | 봉인 | ms p50/p90 before -> after | 합 s |
+|---|---|---|---|---|
+| common_gate_amplifier | 207 -> 207 | 155 -> 155 | 19.1/28.3 -> 14.3/21.6 | 20.3 -> 15.8 |
+| current_reuse_telescopic_ota | 0 -> 0 | 0 -> 0 | 111.4/153.7 -> 77.6/111.4 | 25.5 -> 19.0 |
+| folded_cascode | 84 -> 84 | 31 -> 31 | 110.3/190.1 -> 116.3/197.5 | 22.6 -> 22.7 |
+| ngcc_3stage_ff | 90 -> 90 | 74 -> 74 | 34.3/89.4 -> 24.9/69.6 | 10.4 -> 8.3 |
+| nmcnr_amplifier | 57 -> 57 | 20 -> 20 | 27.5/98.8 -> 27.0/99.3 | 9.0 -> 9.3 |
+| pushpull_follower_buffer | 6 -> 6 | 1 -> 1 | 14.3/20.7 -> 15.2/23.3 | 3.2 -> 3.4 |
+| sf_pushpull_output_opamp | 5 -> 5 | 0 -> 0 | 129.4/217.0 -> 177.1/290.4 | 30.6 -> 40.4 |
+| two_stage_ota | 101 -> 101 | 72 -> 72 | 22.8/50.3 -> 21.0/53.5 | 5.2 -> 5.7 |
+| two_stage_ota_sf | 56 -> 56 | 38 -> 38 | 11.1/44.1 -> 14.2/53.0 | 4.1 -> 5.0 |
+
+- 점 수 변화 없음(9회로). 점별 비교(θ 마다 두 코드의 SCC 풀이값): 두 쪽 모두 푼 SCC 의 노드전압 차 최대 = common_gate 6.9e-4·
+  sf_pushpull 4.6e-4·folded 1.2e-4·nmcnr 4.9e-5·current_reuse 1.6e-6 V(모두 그 SCC tol ≈ 8.5e-4 V 미만), 최종 dc_v 차 최대 8.0e-4 V.
+  r6 GS 가 받은 수렴 중 새 상계로 tol 초과였던 것: common_gate 5·folded 1·sf_pushpull 4(나머지 958 은 상계 ≤ tol) -- r7 은 그 SCC
+  를 더 돌리며 값이 tol 미만만큼 바뀐다. 이 코퍼스에서는 tol 을 넘게 틀린 채 받아진 점이 없었다.
+- toy(test_scc_newton `ctx_q`, y = 0.99·z* = 0.3, q ≈ 1.13): r6 Newton 은 ‖r‖∞ = 3.8e-3 ≤ tol(1.8e-2)에서 받아 닫힌 해와 0.110 V
+  차, r7 은 ‖Δ‖∞ > tol 이라 한 걸음 더(‖r‖∞ 4.9e-6) -> 차 1.4e-4 V. y = 0.9·z* = 1.0 은 두 쪽 같음(1 걸음, 차 0.017 V < tol).
+- 상계만 쓰는 GS 판정(오케스트레이터 문안 그대로)을 먼저 재 보니 folded 2 점(θ 83·111)이 일관 -> 불일치로 떨어졌다: q ≈ 0.2 에서
+  q/(1−q)·Δ3 = 7.3e-4 ≤ tol 이라 k = 3 에 받았는데(r6 은 Δ4 ≤ tol 인 k = 4), 봉인 1·2 가 1.20·1.53 으로 실패(r6 점은 0.46·0.62).
+  그래서 Δk ≤ tol 도 함께 요구한다(5.5 m = max(1, q/(1−q))·Δk) -- q < 1/2 이면 r6 와 같고 q ≥ 1/2 에서만 상계가 더 엄격하다.
+- 시간: 같은 순서로 연달아 잰 두 실행 사이 SCC 와 무관한 회로도 ±25% 흔들려(ngcc −20%, two_stage_sf +24%) 차이를 r7 탓으로
+  나누지 못한다. sf_pushpull +32%(합 30.6 -> 40.4 s)는 실패 θ 의 Newton 이 수렴 판정 전에 LU 를 매 반복 풀고, 잔차만 작은 점에서
+  멈추지 않고 더 걷는 몫으로 본다(분리 측정 안 함).
 
 ## 11. 설계와 다르게 정한 점
 

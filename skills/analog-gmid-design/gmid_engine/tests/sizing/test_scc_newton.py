@@ -24,7 +24,7 @@ from gmid_engine.sizing import (DC_KEY, REASON_NEWTON_CAP, REASON_NEWTON_LINE_SE
                                 SCC_NEWTON, SccLog, newton_solve, size_and_seal)
 
 from .conftest import (B, C, I0, LAM, TOY_VGS, TOY_VS, W_KEY, W_M, Oracle, build_ctx, detail, free_currents, mos,
-                       new_access, node_voltages, topo, two)
+                       new_access, node_voltages, r4_arrays, r4_ln_idu, r4_vds_floor, r4_vgs_of, topo, two, write_r4_lut)
 
 
 def kmax_ref(width, tol):
@@ -50,16 +50,17 @@ def ref_newton(nodes, values, evaluate, tolerance, width):
         norms.append(rinf)
         tol = tolerance(cur)
         K = kmax_ref(width, tol)
-        if rinf <= tol:
-            return "ok", cur, (k, tuple(norms), tol, K)
-        if k >= K:
-            return "fail", REASON_NEWTON_CAP, (k, tuple(norms), tol, K)
+        # [r7] 영 피벗 검사·걸음 풀이가 수렴 판정보다 먼저, 수렴 = ‖r‖∞ ≤ tol 이고 ‖Δ‖∞ ≤ tol(걸음은 적용하지 않음)
         lu, piv = scipy.linalg.lu_factor(np.array(J, dtype=float))
         if np.any(np.diag(lu) == 0.0):
             return "fail", REASON_NEWTON_SINGULAR, (k, tuple(norms), tol, K)
         d = scipy.linalg.lu_solve((lu, piv), -np.array(r, dtype=float))
-        r2 = math.sqrt(sum(v * v for v in r))
         dinf = float(np.max(np.abs(d)))
+        if rinf <= tol and dinf <= tol:
+            return "ok", cur, (k, tuple(norms), tol, K)
+        if k >= K:
+            return "fail", REASON_NEWTON_CAP, (k, tuple(norms), tol, K)
+        r2 = math.sqrt(sum(v * v for v in r))
         alpha = 1.0
         while True:
             trial = dict(cur)
@@ -246,6 +247,36 @@ def test_tolerance_and_kmax_reevaluated_each_iteration():
     out, (k, norms, tol, K) = newton_solve(("x",), {"x": 1.0}, ev, tolf, 2.0)
     assert k == 1 and norms == (0.75, 0.0) and tol == 0.5 and K == kmax_ref(2.0, 0.5)
     assert [s["x"] for s in seen] == [1.0, 0.25]
+
+
+def test_r7_small_residual_large_step_not_accepted():
+    """[r7] 잔차만 작고 걸음이 큰 점은 받지 않는다: r = ε·(x − 1), J = ε(ε = 1e-4), 시작 x = 0 -> ‖r‖∞ = 1e-4 ≤ tol 1e-3
+    이지만 Δ = 1 > tol -> 한 걸음 더 걸어 x = 1(r = 0, Δ = 0)에서 받는다(r6 규칙이면 k = 0, x = 0 -- 오차 1)."""
+    eps = 1e-4
+
+    def ev(v):
+        return (eps * (v["x"] - 1.0),), ((eps,),)
+    out, (k, norms, tol, K) = newton_solve(("x",), {"x": 0.0}, ev, _const(1e-3), 2.0)
+    assert k == 1 and norms[0] == pytest.approx(1e-4, rel=1e-12) and norms[0] <= tol
+    assert abs(dict(out)["x"] - 1.0) <= 1e-12
+    st, cur, info = ref_newton(("x",), {"x": 0.0}, ev, _const(1e-3), 2.0)
+    assert st == "ok" and info[0] == 1
+
+
+def test_r7_accepted_point_is_current_not_stepped():
+    """[r7] 받을 때 걸음은 적용하지 않는다(현재 점 반환): r = x − 1, 시작 1 + 5e-4, tol 1e-3 -> k = 0, x 그대로."""
+    def ev(v):
+        return (v["x"] - 1.0,), ((1.0,),)
+    out, (k, norms, tol, K) = newton_solve(("x",), {"x": 1.0005}, ev, _const(1e-3), 2.0)
+    assert k == 0 and dict(out)["x"] == 1.0005
+
+
+def test_r7_singular_checked_before_acceptance():
+    """[r7] 영 피벗 검사는 수렴 판정 전: 시작점 잔차 0 이어도 J 가 특이면 newton_singular(걸음을 풀 수 없으면 오차를 못 잰다)."""
+    def ev(v):
+        return (0.0, 0.0), ((1.0, 1.0), (1.0, 1.0))
+    rec, d = _fail(("a", "b"), {"a": 1.0, "b": 1.0}, ev, _const(1e-3), 1.0)
+    assert d["reason"] == REASON_NEWTON_SINGULAR and d["iterations"] == 0 and tuple(d["norms"]) == (0.0,)
 
 
 # ===========================================================================
@@ -460,13 +491,16 @@ def gs_ref(update, order, start, tol, width):
             dk = max(dk, abs(new - cur[n]))
             cur[n] = new
         deltas.append(dk)
-        if dk <= tol:
+        if dk == 0.0:                                                     # [r7] 정확한 고정점
             return "ok", cur, deltas
         stop = k >= K
         if k >= 3 and deltas[-2] > 0:
             q = dk / deltas[-2]
             if q < 1:
-                stop = stop or q ** max(K - k, 0) * dk / (1 - q) > tol
+                m = max(1.0, q / (1.0 - q)) * dk                            # [r7] 노드전압 오차 상계
+                if m <= tol:
+                    return "ok", cur, deltas
+                stop = stop or q ** max(K - k, 0) * m > tol
         if stop:
             return "stop", cur, deltas
 
@@ -515,21 +549,28 @@ def test_slow_contraction_switches_to_newton(ctx_s, y1, y2):
     assert abs(V["vin"] - vin) <= 1e-12 and abs(V["vout"] - vout) <= 1e-12
 
 
-def test_contracting_gauss_seidel_does_not_run_newton(ctx_s):
+@pytest.mark.parametrize("y1,y2", [(0.6, 0.4), (0.9, 0.2)])
+def test_contracting_gauss_seidel_does_not_run_newton(ctx_s, y1, y2):
     """Gauss-Seidel 이 수렴하고 strict 검증을 통과하면 Newton 은 돌지 않는다: method gauss_seidel, fallback None, 값·Δ 열 = GS
-    (해와 tol 수준으로 다를 수 있는 GS 정지값 그대로 -- Newton 으로 다듬지 않는다)."""
-    y1, y2 = 0.6, 0.4
+    (Newton 으로 다듬지 않는다). q = y1·(1 − y2) = 0.36(< 1/2, m = Δk)·0.72(≥ 1/2, m = q/(1−q)·Δk) -- [r7] 판정은 독립 재구현
+    gs_ref 와 같은 바퀴에서 받고, 받은 점의 노드전압이 닫힌 해와 tol 안이다(오차 상계가 실제로 지켜짐)."""
     th, (vin, vout) = theta_s(ctx_s, y1, y2)
+    tol = toy_tol()
     start = {"vin": column_start(ctx_s, "vin"), "vout": column_start(ctx_s, "vout")}
-    st, cur, deltas = gs_ref(s_update(y1, y2), ("vin", "vout"), start, toy_tol(), 1.8)
-    assert st == "ok" and len(deltas) >= 2
+    st, cur, deltas = gs_ref(s_update(y1, y2), ("vin", "vout"), start, tol, 1.8)
+    assert st == "ok" and len(deltas) >= 3
+    q = deltas[-1] / deltas[-2]
+    assert (q >= 0.5) == (y1 * (1 - y2) >= 0.5)
+    if q >= 0.5:                                                           # 판별력: Δ ≤ tol 만 보는 r6 규칙이면 더 일찍 받았을 것
+        assert any(d <= tol for d in deltas[:-1])
     ev = size_and_seal(ctx_s, th)
     log = scc_log(ev.snapshot, ("vin", "vout"))
     assert log.method == SCC_GAUSS_SEIDEL == "gauss_seidel" and log.fallback is None
     assert log.iterations == len(deltas) and all(abs(a - b) <= 1e-12 for a, b in zip(log.deltas, deltas))
     V = node_voltages(ev.snapshot)
     assert abs(V["vin"] - cur["vin"]) <= 1e-12 and abs(V["vout"] - cur["vout"]) <= 1e-12
-    assert abs(V["vin"] - vin) > 1e-6                                     # 판별력: Newton 이 돌았다면 닫힌 해(1e-12)였을 것
+    assert abs(V["vin"] - vin) > 1e-9                                     # 판별력: Newton 이 돌았다면 닫힌 해(1e-12)였을 것
+    assert max(abs(V["vin"] - vin), abs(V["vout"] - vout)) <= tol          # [r7] 노드전압 오차 ≤ tol
 
 
 def test_methods_direct_and_bisection(tmp_path, toy_access):
@@ -613,10 +654,10 @@ def newton_replica(T, y, start, tol, K):
     while True:
         r, J, _ = q_residual(T, y, *V)
         norms.append(float(np.max(np.abs(r))))
-        if norms[-1] <= tol:
+        dlt = np.linalg.solve(J, -r)
+        if norms[-1] <= tol and np.max(np.abs(dlt)) <= tol:               # [r7] 잔차와 온전한 걸음 둘 다 tol 안
             return V, k, norms
         assert k < K, "replica 상한"
-        dlt = np.linalg.solve(J, -r)
         a = 1.0
         while True:
             t = V + a * dlt
@@ -633,7 +674,9 @@ def newton_replica(T, y, start, tol, K):
 def test_gauss_seidel_not_contracting_newton_converges(ctx_q, y, z_star):
     """경우 1(수축 안 함): 측정 q ≥ 1 이라 Gauss-Seidel 이 K_max 에서 정지 -> 같은 시작값에서 감쇠 Newton 이 수렴.
     확인: fallback(원인·q ≥ 1·GS Δ 열 = 독립 GS 재구현), method newton, Newton 기록(시작 ‖r‖∞, 반복 수 = 독립 Newton),
-    반환 노드전압의 SCC 잔차를 이 test 의 writer 식으로 다시 잰 값 = 마지막 기록 ‖r‖∞ ≤ tol, 닫힌 해와의 차 ≤ κ·‖r‖∞."""
+    반환 노드전압의 SCC 잔차를 이 test 의 writer 식으로 다시 잰 값 = 마지막 기록 ‖r‖∞ ≤ tol, 닫힌 해와의 차 ≤ κ·‖r‖∞.
+    [r7] 받은 점에서 온전한 걸음 ‖Δ‖∞ ≤ tol 이고 닫힌 해와의 차도 tol 안(노드전압 오차 상계가 실제로 지켜짐) -- (0.99, 0.3) 은 나쁜
+    조건(κ ≈ 59)이라 ‖r‖∞ = 3.8e-3 ≤ tol 인 첫 걸음 점(해와 0.11 V)을 받지 않고 한 걸음 더 간다(독립 Newton 도 2 걸음)."""
     th, (zs, xs), T = theta_q(ctx_q, y, z_star)
     tol = toy_tol()
     K = kmax_ref(1.8, tol)
@@ -674,13 +717,13 @@ def test_gauss_seidel_not_contracting_newton_converges(ctx_q, y, z_star):
     assert abs(log.deltas[0] - norms_rep[0]) <= 2.0 * eps_x              # 시작점 x0 의 bisection 오차만큼
     # 첫 걸음 뒤 ‖r‖∞ 도 독립 Newton 과 같은 수준(엔진 J 간접 확인): 차이 원천 = 시작점 오차 eps_x, J 의 ∂VGS/∂VDS 항의 LUT gds 보간
     # 상대 오차(_gds_interp_rel, x 행 두 칸) -> 걸음 차 ≤ κ0·‖ΔJ‖·‖Δ‖ + (1 + κ0‖J0‖)·eps_x, 잔차 차 ≤ ‖J1‖·그 값.
-    assert k_rep == 1
+    assert k_rep == {0.9: 1, 0.99: 2}[y]
     r0, J0, v0 = q_residual(T, y, z0, x0)
     step = np.linalg.solve(J0, -r0)
     kap0 = np.max(np.sum(np.abs(np.linalg.inv(J0)), axis=1))
     dJ = 2.0 * (LAM / (B - C * v0)) * _gds_interp_rel() * 1.01
     dV1 = kap0 * dJ * np.max(np.abs(step)) + (1.0 + kap0 * np.max(np.sum(np.abs(J0), axis=1))) * eps_x
-    J1 = q_residual(T, y, *V_rep)[1]
+    J1 = q_residual(T, y, *(np.array([z0, x0]) + step))[1]
     assert abs(log.deltas[1] - norms_rep[1]) <= np.max(np.sum(np.abs(J1), axis=1)) * dV1
     assert log.tol == pytest.approx(tol, rel=1e-12) and log.k_max == K
     V = node_voltages(ev.snapshot)
@@ -694,7 +737,10 @@ def test_gauss_seidel_not_contracting_newton_converges(ctx_q, y, z_star):
     J_star = q_residual(T, y, zs, xs)[1]
     kappa = max(np.max(np.sum(np.abs(np.linalg.inv(Jm)), axis=1)) for Jm in (J_eng, J_star))
     assert abs(V["z"] - zs) <= 1.5 * kappa * rinf and abs(V["x"] - xs) <= 1.5 * kappa * rinf
-
+    # [r7] 받은 점: 이 test 의 J 로 푼 온전한 걸음 ≤ tol, 닫힌 해와의 차 ≤ tol
+    assert np.max(np.abs(np.linalg.solve(J_eng, -r_eng))) <= log.tol
+    assert max(abs(V["z"] - zs), abs(V["x"] - xs)) <= log.tol
+    assert max(abs(V["z"] - V_rep[0]), abs(V["x"] - V_rep[1])) <= log.tol
 
 def test_newton_failure_in_case_one_is_raised(ctx_q):
     """경우 1 에서 Newton 이 실패하면 그 NonconvergentError 를 그대로 낸다. y = 0.95, z* = 1.0: 시작 후보 (a)·(c) 의 z = 기둥 시작
@@ -711,31 +757,60 @@ def test_newton_failure_in_case_one_is_raised(ctx_q):
     assert tuple(d["nodes"]) == ("z", "x") and ei.value.record.devices == ("M1", "M2", "M3")
 
 
-def test_case_two_seal_violation_kept_with_newton_cause(ctx_q):
-    """경우 2: Gauss-Seidel 이 투영(1변수 x 근 없음 -> 구간 끝 유지)으로 수렴한 뒤 strict 검증이 SealViolationError(no_root_in_window)
-    -> Newton 으로 바꾸지만 시작 후보(2단계 값·GS 수렴값·1단계 값)가 모두 정의역 밖이라 Newton 도 실패 -> **GS 수렴점의 strict 검증
-    SealViolationError 를 그대로** 내고 __cause__ = Newton 의 NonconvergentError(5.4 [r6] 경우 2 규칙).
-    y = 0.99, z* = 0.7: z ≤ 0.64 인 모든 점에서 M1 목표가 VGS ≥ 0 범위 밖(Oracle; 경계 ≈ 0.647) -> x 의 h 는 구간 두 끝 모두 +inf.
-    세 후보의 z(기둥 시작 0.6, GS 수렴값 = 위반 detail lo)가 모두 그 아래다."""
-    th, (zs, xs), T = theta_q(ctx_q, 0.99, 0.7)
-    z_hi = 0.64
-    assert column_start(ctx_q, "z") < z_hi
-    assert T - math.log(I0["nmos"]) - Oracle.vs_term(z_hi) < 0.0          # 전제: z ≤ 0.69 면 정의역 밖(vs 감소 함수)
-    with pytest.raises(SealViolationError) as ei:
+FLOOR_OFF = {"nmos": 1, "pmos": 4}           # r4 toy: nmos VDS 열 0 꺼짐 -> VDS 정의역 하한 0.25 V (5.4 [r4])
+
+
+def test_r7_q_close_to_one_projection_not_accepted(ctx_q):
+    """[r7] r6 에서 경우 2 를 만들던 구성(y = 0.99, z* = 0.7)은 이제 경우 1 이다: x 근이 없어 투영(현재 값 유지)되면 z ← 0.99·x 로
+    Δ ≈ 6e-3 ≤ tol 이지만 q ≈ 0.99 -> m = 99·Δ > tol 이라 받지 않고 예측 정지 -> Newton(시작 후보 z = 0.6 은 정의역 밖)
+    -> newton_start_outside_domain 이 그대로(SealViolationError 가 아님)."""
+    th, _, T = theta_q(ctx_q, 0.99, 0.7)
+    assert T - math.log(I0["nmos"]) - Oracle.vs_term(column_start(ctx_q, "z")) < 0.0   # 전제: z0 에서 정의역 밖
+    with pytest.raises(NonconvergentError) as ei:
         size_and_seal(ctx_q, th)
+    d = detail(ei.value)
+    assert d["reason"] == REASON_NEWTON_START and ei.value.__cause__ is None
+
+
+@pytest.fixture(scope="module")
+def acc_floor(tmp_path_factory):
+    return new_access(write_r4_lut(tmp_path_factory.mktemp("scc_floor"), off_cols=FLOOR_OFF))
+
+
+def test_case_two_seal_violation_kept_with_newton_cause(tmp_path, acc_floor):
+    """경우 2(5.4 [r6]): Gauss-Seidel 이 수렴 판정([r7] 오차 상계)을 통과한 뒤 strict 검증이 SealViolationError -> Newton 으로
+    바꾸지만 Newton 도 실패 -> **GS 수렴점의 strict 검증 SealViolationError 를 그대로**, __cause__ = Newton 의 NonconvergentError.
+    회로: MA nmos (y, x, gnd) 가 gate x 를 쓰고(VDS(MA) = V(y)), MB nmos (x, in, y, b = y) 가 y 를 쓴다(1변수), in = 입력 DC
+    미선언 W4(창 = 레일). 해의 V(y) = V(in) − VGS(MB) ≈ 0.7 − 0.6 = 0.1 < VDS 하한 0.25 -> 반복 중엔 일시 이탈로 넘어가 수렴하지만
+    strict 검증에서 MA 조회가 lut_curve_undefined. 정의역(V(y) ≥ 0.25) 안 해가 없으므로(아래 전제) Newton 도 수렴할 수 없다."""
+    net = [mos("MA", "nmos", "y", "x", "gnd", "gnd"), mos("MB", "nmos", "x", "in", "y", "y")]
+    src = [two("IX", "current_source", "vdd", "x"), two("IY", "current_source", "vdd", "y")]
+    doc = topo("scc_floor_cycle", net, {"in": ("input", "x"), "y": ("output", "y")}, sources=src)
+    ctx = build_ctx(tmp_path, doc, acc_floor)[2]
+    cyc = [e for e in ctx.base.value("graph", DC_KEY, "dc_scc_order") if e.cyclic]
+    assert [set(e.nodes) for e in cyc] == [{"x", "y"}]
+    floor = r4_vds_floor(r4_arrays("nmos", off_cols=FLOOR_OFF["nmos"]))
+    assert floor == 0.25
+    vin = 0.7
+    t_mb = r4_ln_idu("nmos", 0.6, 0.5, 0.0)
+    th = {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("ln_idu", "MA"): r4_ln_idu("nmos", 0.6, 0.25, 0.0),
+          ("ln_idu", "MB"): t_mb, ("y", "input_common_mode"): vin / 1.8}
+    th.update(free_currents(ctx, {"MA": 1e-5, "MB": 1e-5, "IX": 1e-5, "IY": 1e-5}))
+    assert set(th) == set(ctx.schema.components)
+    # 전제: VDS(MB) ∈ [0.25, 2.0](켜진 열) 어디서도 VGS(MB) > vin − 0.25 -> V(y) = vin − VGS < 하한: 정의역 안 해 없음
+    assert all(r4_vgs_of("nmos", t_mb, 0.25 + 0.05 * i, 0.0) > vin - floor for i in range(36))
+    with pytest.raises(SealViolationError) as ei:
+        size_and_seal(ctx, th)
     e = ei.value
     d = detail(e)
-    assert d["reason"] == "no_root_in_window" and d["node"] == "x"
-    assert e.record.devices == ("M1",) and e.record.margin is None        # 유한한 끝 |h| 없음
-    assert d["h_lo"] == math.inf and d["h_hi"] == math.inf
-    assert d["hi"] == 1.8 and d["lo"] < z_hi                              # 구간 = [z(GS 수렴값), 레일 1.8]
-    assert d["item"] == 7 and "vds_axis" in d["bounds"]
+    assert d["reason"] == "lut_query_failed" and d["lut_reason"] == "lut_curve_undefined"
+    assert d["device_query"] == "vgs_of_coordinate" and e.record.devices == ("MA",)
+    assert d["vds"] < floor and abs(d["vds"] - (vin - r4_vgs_of("nmos", t_mb, 0.5, 0.0))) <= 0.05
     cause = e.__cause__
     assert isinstance(cause, NonconvergentError)
     cd = detail(cause)
-    assert cd["reason"] == REASON_NEWTON_START and cd["iterations"] == 0 and tuple(cd["norms"]) == ()
-    assert cause.record.margin is None and tuple(cd["nodes"]) == ("z", "x")
-    assert cause.record.devices == ("M1", "M2", "M3")
+    assert cd["reason"] in (REASON_NEWTON_START, REASON_NEWTON_SINGULAR, REASON_NEWTON_LINE_SEARCH, REASON_NEWTON_CAP)
+    assert set(cd["nodes"]) == {"x", "y"} and cause.record.devices == ("MA", "MB")
 
 
 def test_newton_converged_then_strict_recheck_failure_raised(ctx_q):
