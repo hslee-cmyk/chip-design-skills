@@ -17,8 +17,8 @@
 | `X` | M1.drain, M3.drain, M6.source | 3 |
 | `Y` | M2.drain, M4.drain, M5.source | 3 |
 | `bias3` ⚠️ | M5.gate, M6.gate | 2 |
-| `gnd` | M10.source, M11.source, M9.source, MN.source | 4 |
-| `out` | M6.drain, M8.drain | 2 |
+| `gnd` | CL.t1, M10.source, M11.source, M9.source, MN.source | 5 |
+| `out` | CL.t0, M6.drain, M8.drain | 3 |
 | `tail` | M1.source, M11.drain, M2.source | 3 |
 | `vb1` | Ibg.t0, M3.gate, M4.gate, MP.drain, MP.gate | 5 |
 | `vb2` | Ibg.t1, M11.gate, MN.drain, MN.gate | 4 |
@@ -30,10 +30,10 @@
 
 | Name | Kind | Source | Drain | Gate |
 |---|---|---|---|---|
-| M1 | pmos | `tail` | `X` | `vin_n` |
+| M1 | nmos | `tail` | `X` | `vin_n` |
 | M10 | nmos | `gnd` | `Vg10` | `Vg9` |
 | M11 | nmos | `gnd` | `tail` | `vb2` |
-| M2 | pmos | `tail` | `Y` | `vin_p` |
+| M2 | nmos | `tail` | `Y` | `vin_p` |
 | M3 | pmos | `vdd` | `X` | `vb1` |
 | M4 | pmos | `vdd` | `Y` | `vb1` |
 | M5 | pmos | `Y` | `Vg7` | `bias3` |
@@ -44,6 +44,12 @@
 | MN | nmos | `gnd` | `vb2` | `vb2` |
 | MP | pmos | `vdd` | `vb1` | `vb1` |
 
+## 수동 소자 표 (R/C 등 -- netlist 밖 `passive_elements`)
+
+| Name | Kind | Terminals |
+|---|---|---|
+| CL | capacitor | `out`, `gnd` |
+
 ## ⚡ Ideal source 표 (전류원/전압원 -- netlist 밖 `ideal_sources`, **구현 불가 소자**)
 
 | Name | Kind | Terminals | Value | Implementable |
@@ -52,4 +58,4 @@
 
 ⚠️ 위 소자는 실제 회로에 없는 **이상적 모델링 소자**다(예: 논문의 외부 레퍼런스 전류원/전압원) -- `implementable: false`. sizing/layout 파이프라인(`sizing_recipe.py`/`stick_diagram.py`)이 이 배열을 참조할 일이 생기면 반드시 걸러내고 실제 트랜지스터로 구현하지 말 것.
 
-총 13개 소자 + 0개 수동소자 + 1개 ideal source, 14개 net.
+총 13개 소자 + 1개 수동소자 + 1개 ideal source, 14개 net.
