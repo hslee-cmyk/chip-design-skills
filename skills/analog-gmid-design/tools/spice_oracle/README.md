@@ -121,8 +121,9 @@ C12. legacy_adapter: 같은 dump 를 두 번 변환하면 같은 입력이 나�
 C13. **[신규]** 스키마 검증: `oracle_netlist.py`, `oracle_compare.py`, `oracle_run.py` 는 입력을 `oracle_input.schema.json`
     (Draft 2020-12)으로 검증하고, 위반이면 위반 목록을 출력하고 **아무 산출물도 쓰지 않고** 반환 2 로 끝난다.
 C14. **[신규]** β 루프: `feedback_passives` 가 있으면 `<stem>.loop.cir` 에서 그 소자들의 입력 넷 단자만 `lbx_<넷>` 으로 바뀌고,
-    끊은 넷마다 `Vlb_<넷> <넷> lbx_<넷>` 과 `Ilb_<넷> 0 <넷>` 이 있고, 그 넷의 결합 C/AC 원은 없다. 이름이 passives 에 없거나
-    입력 넷에 안 물리거나 `loop_dc_choke_H` 가 없으면 막힘.
+    끊은 넷마다 `Vlb_<넷> <넷> lbx_<넷>` 과 `Ilb_<넷> 0 <넷>` 이 있고, 그 넷의 결합 C/AC 원은 없다. **[변경]** 판정은 소자 단위(fail-closed):
+    선언된 되먹임 수동소자 **각각**이 passives 에 있고 입력 포트 넷에 물려 있어야 하며, 하나라도 아니면 막힘이고 blocker 문장에
+    그 소자 이름을 적는다. `loop_dc_choke_H` 가 없어도 막힘.
 
 ## 옛 엔진 기준선 만들기
 

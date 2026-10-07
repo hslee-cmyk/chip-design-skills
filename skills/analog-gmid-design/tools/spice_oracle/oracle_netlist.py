@@ -126,8 +126,11 @@ def loop_break_nets(inp):
     ports = inp["ports"]
     in_nets = [ports[k] for k in ("input_p", "input_n", "input") if ports.get(k)]
     by = {p["name"]: p for p in inp.get("passives") or []}
+    # 소자 단위 판정(fail-closed): 선언된 되먹임 수동소자 각각이 passives 에 있고 입력 포트 넷에 물려 있어야 한다.
     blockers = [f"feedback_passives 의 {n} 이 passives 에 없다" for n in names if n not in by]
-    nets = [n for n in in_nets if any(n in by[x]["terminals"] for x in names if x in by)]
+    blockers += [f"feedback_passives 의 {n} 이 입력 포트 넷 {in_nets} 에 물려 있지 않다(단자 {by[n]['terminals']})"
+                 for n in names if n in by and not set(by[n]["terminals"]) & set(in_nets)]
+    nets =[n for n in in_nets if any(n in by[x]["terminals"] for x in names if x in by)]
     if not nets:
         blockers.append("feedback_passives 가 어느 입력 포트 넷에도 물려 있지 않다")
     return nets, blockers
