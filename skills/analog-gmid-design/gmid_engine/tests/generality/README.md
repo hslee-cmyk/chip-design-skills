@@ -35,6 +35,7 @@ helper 도 구조 규칙 A(파일당 진입점 1개)·B(다른 파일 `_` 이름
 | `test_metamorphic_load.py` | 변형한 doc 의 로드 투영 = 원래 투영에 같은 변형을 적용한 것(이름 치환·레일/kind 치환), 섞기·태그 잡음은 투영·정렬 결과 동일, 복제는 앞 단 포함 + 2배, 변형 합성도 통과 |
 | `test_metamorphic_fingerprint.py` | `connectivity_fp`(authoring CONTRACT 2절): 섞기·태그/주석 잡음·topology_name 변경 -> 같음(파일 해시는 다름), 이름 치환·넷 하나·원소 하나·극성 -> 다름, 역치환·극성 두 번 -> 원래, 같은 치환표면 입력 순서 무관 같음, 복제는 극성·섞기와 교환 |
 | `test_metamorphic_violations.py` | 7가지 위반 x 7가지 변형(그대로·이름 2벌·섞기·극성·복제·태그 잡음)에서 그 위반 하나만 검출, 주입 뒤 이름 치환하면 elements 가 같은 표로 옮겨지고 rejected_gates·not_evaluated 동일 |
+| `test_metamorphic_s1.py` | S1 구조 유도(graph `build_s1`, U2~U4): 이름 치환 -> 이름 무관 정준형(segment·가지·기둥·gs 묶음·DC 역할·관계 엣지·G_vgs 개수)이 치환표로 옮겨짐(합성 3종 + library 5회로), 섞기·태그 잡음 -> `snapshot.fp` 동일, 극성 뒤집기 -> kind·레일 맞바꾼 같은 구조, 지원 밖 원소(syn_cascode 전압원) 정지가 변형을 따라감 |
 
 `connectivity_fp` 는 이름을 투영에 담으므로 이름 치환에 **불변이 아니다**(CONTRACT 2절 "넷 이름 하나 ... 바뀌면 다르다").
 이름에 무관한 것은 fp 값이 아니라 '같은 치환표면 같은 fp, 되돌리면 원래 fp'라는 함수성이다.

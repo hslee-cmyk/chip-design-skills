@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import pytest
 
-from gmid_engine.core import ComputeBlock, GraphSnapshot
+from gmid_engine.core import ComputeBlock, GraphSnapshot, StructureUnresolvedError
 from gmid_engine.graph import (
     AC_GROUND_GATE_ONLY,
     ELEMENT_MOS,
@@ -103,6 +103,21 @@ def test_device_fields(gh, name):
     assert s1.column("device", "unsupported") == ()           # 6회로 모두 지원 kind
 
 
+@pytest.mark.parametrize("name", NINE)
+def test_dc_nets_field_c1(gh, name):
+    # C1: 모든 원소에 dc_nets -- MOS (d, s) 정렬, 저항·이상원 terminals 정렬, 커패시터 None
+    agg = gh.agg(gh.raw(name))
+    s1 = _s1(gh, name)
+    col = dict(s1.column("device", "dc_nets"))
+    assert set(col) == set(agg.mos) | set(agg.passives) | set(agg.sources)
+    for n, e in agg.mos.items():
+        assert col[n] == tuple(sorted((e["drain"], e["source"])))
+    for n, e in agg.passives.items():
+        assert col[n] == (tuple(sorted(e["terminals"])) if e["kind"] == "resistor" else None)
+    for n, e in agg.sources.items():
+        assert col[n] == tuple(sorted(e["terminals"]))
+
+
 def test_bulk_only_net_is_node_without_terminals(gh, tmp_path):
     raw = gh.raw("common_gate_amplifier")
     raw["supply_nets"] = ["vdd", "gnd", "vsub"]                 # bulk 로만 닿는 레일
@@ -138,7 +153,8 @@ def test_bulk_only_rail_is_ac_ground_rail(gh, tmp_path):
     ("passive_elements", "inductor", "passive_kind_unsupported"),
     ("ideal_sources", "voltage_source", "source_kind_unsupported"),
 ])
-def test_unsupported_kind_recorded_not_stopped(gh, tmp_path, where, kind, branch):
+def test_unsupported_kind_recorded_then_stopped_by_u2(gh, tmp_path, where, kind, branch):
+    """s1_structure 는 기록만 하고(4.1), 정지는 소비자 s1_dc_conduction 이 한다(4.3·4.6, 9절 10)."""
     raw = gh.raw("sf_pushpull_output_opamp")
     target = raw[where][0]
     name = target["name"]
@@ -147,9 +163,14 @@ def test_unsupported_kind_recorded_not_stopped(gh, tmp_path, where, kind, branch
         v = target.pop("value_amp", None)
         target["value_volt"] = v
     doc = gh.load_raw(tmp_path, raw)
-    s1 = build_s1(doc, None)                                       # 정지하지 않는다
-    assert s1.column("device", "unsupported") == ((name, branch),)
-    assert s1.value("device", name, "kind") == kind
+    snap = gh.structure_and_bulk(doc, None)                        # 기록 단계는 정지하지 않는다
+    assert snap.column("device", "unsupported") == ((name, branch),)
+    assert snap.value("device", name, "kind") == kind
+    with pytest.raises(StructureUnresolvedError) as ei:
+        build_s1(doc, None)
+    d = dict(ei.value.record.detail)
+    assert (d["reason"], d["rule_branch"], d["nets"]) == ("unsupported_rule_branch", branch, ())
+    assert ei.value.record.devices == (name,)
 
 
 def test_supported_kinds_have_no_unsupported_field(gh):
