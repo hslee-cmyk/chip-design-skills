@@ -17,7 +17,7 @@
 import hashlib
 from pathlib import Path
 
-from gmid_engine.core import FailureRecord, fp_of
+from gmid_engine.core import FailureRecord, PdkDecl, fp_of
 from gmid_engine.graph import ELEMENT_PASSIVE
 from gmid_engine.metrics import JunctionSource, metric_registry
 
@@ -82,8 +82,11 @@ def _disk_failures(archive, context_fp, schema_fp):
 def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl):
     """[r6] `lut_rule_decl` = core `read_pdk_decl(<LUT 생성 규칙 선언>)`(sky130 = assets/sky130_lut_rule_decl.json). 여기서 S0 당
     1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)`(metrics 7.6 필수 junction)를 만든다."""
-    junction = JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)
+    for name, value in (("pdk_decl", pdk_decl), ("lut_rule_decl", lut_rule_decl)):
+        if not isinstance(value, PdkDecl):            # 무엇이든 만들기 전에 입력 형식부터(§3.7·3.9)
+            raise TypeError("build_search_context: " + name + " 는 core read_pdk_decl 결과여야 한다")
     domain = search_domain(dc_ctx, settings, pdk_decl)
+    junction = JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))
     schema_fp = fp_of(dc_ctx.schema)

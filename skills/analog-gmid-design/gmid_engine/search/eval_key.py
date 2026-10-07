@@ -12,7 +12,9 @@ from .search_values import EvalKey
 
 def eval_key(context_fp, schema_fp, theta, cells, w_fixed_fp):
     theta = tuple(theta)
-    if not all(isinstance(p, tuple) and len(p) == len(("key", "value")) for p in theta):   # (키, 값) 쌍
+    pair = len(("key", "value"))   # (키, 값) 쌍, 키 = (kind, key) 쌍
+    if not all(isinstance(p, tuple) and len(p) == pair and isinstance(p[0], tuple) and len(p[0]) == pair
+               for p in theta):
         raise ValueError("eval_key: θ 는 ((kind, key), 값) 쌍의 tuple 이어야 한다")
     keys = tuple(k for k, _v in theta)
     if keys != tuple(sorted(keys)):

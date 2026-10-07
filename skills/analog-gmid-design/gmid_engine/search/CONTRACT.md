@@ -67,6 +67,17 @@
   `metrics_dc` 수동 값 = spec 값 ∪ θ resistance·capacitance·ss_resistance(이름 정렬). 영점 상쇄 구조 규칙 저항(1/Σgm)은 ss_dev 가
   있어야 정해져 봉인 아닌 점에서는 `passive_value_missing` 이다(면적 단위 선언이 없어 면적 값은 같다).
 
+- **r7 명확화(독립 test 9cbaaa0 대조)**:
+  - `build_search_context` 는 무엇이든 만들기 전에 입력 형식을 본다: `pdk_decl`·`lut_rule_decl` 이 core `PdkDecl` 이 아니면 `TypeError`,
+    그다음 `search_domain`(settings 형식 `TypeError` 포함), 그 뒤에 `JunctionSource` 를 만든다.
+  - `ss_constraint_rows(..., model_error)` 의 `model_error` = ((metric 이름, 값 > 0 또는 None), ...) 쌍 iterable(dict 로 읽는다, metric
+    마다 하나). 분모 s = max(resolution, model_error[metric] 또는 0): resolution > 0 이면 모델 오차가 없거나 작아도 resolution,
+    resolution == 0 이면 모델 오차(> 0)가 있으면 그 값, 없으면 unmeasured `resolution_zero_model_error_undeclared`. resolution None 이면
+    모델 오차와 무관하게 unmeasured `resolution_undefined`.
+  - `eval_key` 는 θ 원소가 ((kind, key), 값) 모양이 아니면 `ValueError` -- 키 자리가 2-tuple 이 아닌 것(예 `(("L", 1e-6),)`) 포함.
+  - `solve_eps` 의 예산 검사는 **새 x 를 커널로 평가하기 직전에만** 한다(캐시 적중은 커널 0 이라 예산을 쓰지 않는다). 그래서 시작점이 이미
+    캐시에 있으면 deadline 이 지났어도 "start_wall_budget" 이 아니라 그 점을 받아들이고 SLSQP 를 시작하며, 첫 새 평가(보통 FD 열)에서
+    "wall_budget"(또는 "eval_budget")으로 끝난다. 시작점이 캐시에 없을 때만 "start_wall_budget"·"start_eval_budget" 이 난다.
 - **x 복사(r6, layer-0 작성자 지적)**: `solve_eps` 의 `point(x)` 는 SLSQP 가 넘긴 배열을 `np.array(..., copy=True)` 로 복사해 저장·키로 쓰고,
   재시작 중심도 복사본을 넘긴다. 회귀 확인(scratch, nmcnr): 콜백 뒤 x 를 제자리 변경해도 수락 점의 저장 x → θ 키 불일치 0. 단 scipy 1.18
   의 SLSQP 경로는 fun/jac 에 복사본을 넘겨 수정 전 코드에서도 이 회로에서는 재현되지 않았다(방어적 수정).
