@@ -69,3 +69,13 @@ def test_w_keys_choose_slice(tmp_path, toy_lut):
     acc = LutAccess(LutMemo(toy_lut, point=8, curve=8, root=8), (("nmos", 101), ("pmos", 100)))
     with pytest.raises(ValueError):
         build_kernel_context(s1, DcInputs(tuple(sorted(SUPPLIES.items()))), acc)
+
+
+def test_toy_lut_is_hermite_consistent(toy_lut):
+    """입력 전제(lut r5 1.4·7절): toy 의 GM/ID·GDS/ID 가 ln ID 기울기와 맞아 Fritsch–Carlson 위반 칸 0 -- 위반 칸이 있으면
+    역산이 거부돼 이 폴더의 닫힌 식 기대값이 성립하지 않는다."""
+    from .conftest import TOY_L, TOY_VDS, TOY_VGS, TOY_VS
+    n_vgs = len(TOY_L) * (len(TOY_VGS) - 1) * len(TOY_VDS) * len(TOY_VS)
+    n_vds = len(TOY_L) * len(TOY_VGS) * (len(TOY_VDS) - 1) * len(TOY_VS)
+    for sl in toy_lut.slice_map.values():
+        assert {a: (n, v) for a, n, v in sl.hermite_fc} == {"VDS": (n_vds, 0), "VGS": (n_vgs, 0)}

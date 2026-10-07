@@ -10,24 +10,11 @@ import pytest
 
 from gmid_engine.authoring import (InputDc, PendingMark, RegionDecl, ElementValue, load_sizing_spec,
                                    load_topology)
-from gmid_engine.core import MetricSignature as M
 from gmid_engine.sizing import DcInputs, dc_inputs_from_spec
 
-from .conftest import LIBRARY
+from .conftest import LIBRARY, NINE, spec_catalog
 
-NINE = ("common_gate_amplifier", "current_reuse_telescopic_ota", "folded_cascode", "ngcc_3stage_ff",
-        "nmcnr_amplifier", "pushpull_follower_buffer", "sf_pushpull_output_opamp", "two_stage_ota",
-        "two_stage_ota_sf")
-
-CATALOG = {  # authoring SPEC_CONTRACT 5절 픽스처 이름표
-    "gain_ss_db": M("dB", "ss", "transfer"), "ugf_ss_hz": M("Hz", "ss", "transfer"),
-    "gbw_ss_hz": M("Hz", "ss", "transfer"), "pm_ss_deg": M("deg", "ss", "transfer"),
-    "parasitic_pm_ss_deg": M("deg", "ss", "transfer"), "rout_ss_ohm": M("ohm", "ss", "transfer"),
-    "ratio_ss_db": M("dB", "ss", "ratio"), "mismatch_sigma_mv": M("mV", "dc", "none"),
-    "mirror_ratio_error_mv": M("mV", "dc", "none"), "power_dc_w": M("W", "dc", "none"),
-    "area_search_m2": M("m2", "geom", "none"), "supply_current_dc": M("A", "dc", "none", "power"),
-    "area_layout_m2": M("m2", "geom", "none", "area"),
-}
+CATALOG = spec_catalog()
 
 _CACHE = {}
 

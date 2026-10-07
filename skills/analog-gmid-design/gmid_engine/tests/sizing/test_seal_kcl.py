@@ -82,12 +82,12 @@ def test_hand_tol_is_max_tolv_times_gmbound(ctx_c):
 def test_fail_mos_current_mismatch(ctx_c):
     snap, _ = with_tol(ctx_c[2], theta_c())
     op = dict(snap.column("device", "dc_op"))["M1"]
-    bad = tamper(snap, "dc_widths", "device", "dc_op", {"M1": dataclasses.replace(op, idu_forward=op.idu_forward * 5e3)})
+    bad = tamper(snap, "dc_widths", "device", "dc_op", {"M1": dataclasses.replace(op, idu_forward=op.idu_forward * 1e6)})
     exp = judge_expect(rows_of(bad, ()))
     assert exp["status"] == "fail" and exp["nodes"] == ("out",)
     assert_item(run(bad), exp, 3)
-    # 손계산: |5e3·I − I| = 4999·1e-5
-    assert rel_close(run(bad).magnitude, 4999 * 1e-5, 1e-6)
+    # 손계산: |1e6·I − I| = 999999·1e-5 (toy gm_bound 가 커서 tol 이 0.1 A 대 -- 그보다 큰 잔차)
+    assert rel_close(run(bad).magnitude, 999999 * 1e-5, 1e-6)
 
 
 def test_fail_wrong_resistance(ctx_a):
@@ -135,7 +135,7 @@ def test_ideal_source_term(tmp_path, toy_access):
     exp = judge_expect(rows_of(snap, ()))
     assert exp["status"] == "pass"
     assert_item(run(snap), exp, 3, atol=1e-18)
-    bad = tamper(snap, "dc_currents", "device", "dc_current", {"I1": 1.0})
+    bad = tamper(snap, "dc_currents", "device", "dc_current", {"I1": 1e3})
     exp = judge_expect(rows_of(bad, ()))
     assert exp["status"] == "fail" and exp["nodes"] == ("n",)
     assert_item(run(bad), exp, 3)
