@@ -1,1 +1,264 @@
-"""lut/data_location.py test 자리(구조 규칙 H 1:1). 내용은 test 작성자가 lut/CONTRACT.md r6 만 근거로 채운다(code author 는 비워 둔다)."""
+"""`resolve_lut_location` -- CONTRACT 1.8 [r6]: 설정 JSON(root·pdk_root 의 env/default, files 의 상대 path·sha256)을 풀어
+`LutLocation(config_path, root, manifest_path, cap_npz_path, midpoints_path, pdk_root, sources)` 로.
+
+- root·pdk_root = env[이름] 이 비어 있지 않으면 그 값(sources "env:<이름>"), 아니면 default("config_default"), 둘 다 없으면 거부.
+  env 는 부르는 쪽이 넘긴 매핑만 본다(모듈은 os.environ 를 직접 읽지 않는다). 경로는 os.path.abspath.
+- 파일: root 기준 상대 path(절대·`..`·빈 값·sha256 없음 -> lut_location_config_invalid), 없음 -> lut_location_file_missing,
+  sha256 다름 -> lut_location_sha256_mismatch. 설정 없음 -> lut_location_config_missing, root 폴더 없음 -> lut_location_root_missing.
+- 기대값: 이 파일이 hashlib 으로 직접 잰 sha256 과 os.path.abspath(설정 값).
+"""
+import hashlib
+import json
+import os
+from pathlib import Path
+
+import pytest
+
+from gmid_engine.core import SchemaRejectedError
+from gmid_engine.lut import LutLocation, resolve_lut_location
+
+from .conftest import LOCATION_CONFIG, detail_of
+
+
+def _sha(p):
+    return hashlib.sha256(Path(p).read_bytes()).hexdigest()
+
+
+class Cfg:
+    """tmp 폴더에 root(파일 3개)·pdk 폴더·설정 JSON 을 만든다."""
+
+    def __init__(self, tmp, name="cfg"):
+        self.tmp = Path(tmp)
+        self.root = self.tmp / ("data_" + name)
+        (self.root / "sub").mkdir(parents=True, exist_ok=True)
+        self.files = {"manifest": "manifest.json", "cap_npz": "sub/cap.npz", "verify_midpoints": "mid.npz"}
+        for i, (item, rel) in enumerate(sorted(self.files.items())):
+            (self.root / rel).write_bytes(("%s-%d" % (item, i)).encode())
+        self.pdk = self.tmp / ("pdk_" + name)
+        self.pdk.mkdir(exist_ok=True)
+        self.cfg = {"schema": "x", "ignored": 1,
+                    "root": {"env": "T_LUT_ROOT", "default": str(self.root)},
+                    "pdk_root": {"env": "T_PDK_ROOT", "default": str(self.pdk)},
+                    "files": {item: {"path": rel, "sha256": _sha(self.root / rel)} for item, rel in self.files.items()}}
+        self.path = self.tmp / (name + ".json")
+
+    def write(self, cfg=None):
+        self.path.write_text(json.dumps(self.cfg if cfg is None else cfg), encoding="utf-8")
+        return str(self.path)
+
+
+def _reject(path, env=None):
+    with pytest.raises(SchemaRejectedError) as ei:
+        resolve_lut_location(path, {} if env is None else env)
+    return detail_of(ei.value)
+
+
+def test_defaults_resolved(tmp_path):
+    c = Cfg(tmp_path)
+    loc = resolve_lut_location(c.write(), {})
+    assert isinstance(loc, LutLocation)
+    assert loc.root == os.path.abspath(str(c.root))
+    assert loc.manifest_path == os.path.abspath(os.path.join(str(c.root), "manifest.json"))
+    assert loc.cap_npz_path == os.path.abspath(os.path.join(str(c.root), "sub/cap.npz"))
+    assert loc.midpoints_path == os.path.abspath(os.path.join(str(c.root), "mid.npz"))
+    assert loc.pdk_root == os.path.abspath(str(c.pdk))
+    src = tuple(loc.sources)
+    assert [k for k, _ in src] == sorted(k for k, _ in src)               # 항목 정렬
+    d = dict(src)
+    assert d["root"] == "config_default" and d["pdk_root"] == "config_default"
+    assert os.path.normcase(os.path.abspath(loc.config_path)) == os.path.normcase(os.path.abspath(c.path))
+
+
+def test_env_overrides_default_and_empty_env_does_not(tmp_path):
+    c = Cfg(tmp_path)
+    other = Cfg(tmp_path, "other")                                     # 같은 상대 path·같은 내용 -> sha 같음
+    p = c.write()
+    loc = resolve_lut_location(p, {"T_LUT_ROOT": str(other.root), "T_PDK_ROOT": str(other.pdk)})
+    assert loc.root == os.path.abspath(str(other.root))
+    assert loc.manifest_path == os.path.abspath(os.path.join(str(other.root), "manifest.json"))
+    assert loc.pdk_root == os.path.abspath(str(other.pdk))
+    assert dict(loc.sources)["root"] == "env:T_LUT_ROOT" and dict(loc.sources)["pdk_root"] == "env:T_PDK_ROOT"
+    # 빈 값은 '설정 안 됨' -> default
+    loc2 = resolve_lut_location(p, {"T_LUT_ROOT": "", "T_PDK_ROOT": ""})
+    assert loc2.root == os.path.abspath(str(c.root)) and dict(loc2.sources)["root"] == "config_default"
+    assert dict(loc2.sources)["pdk_root"] == "config_default"
+    # env 만 있고 default 없음도 된다
+    cfg = dict(c.cfg, root={"env": "T_LUT_ROOT"})
+    loc3 = resolve_lut_location(c.write(cfg), {"T_LUT_ROOT": str(c.root)})
+    assert loc3.root == os.path.abspath(str(c.root)) and dict(loc3.sources)["root"] == "env:T_LUT_ROOT"
+
+
+def test_relative_root_is_made_absolute(tmp_path, monkeypatch):
+    c = Cfg(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    cfg = dict(c.cfg, root={"default": c.root.name})
+    loc = resolve_lut_location(c.write(cfg), {})
+    assert os.path.isabs(loc.root) and loc.root == os.path.abspath(c.root.name)
+    assert os.path.isabs(loc.manifest_path)
+
+
+def test_module_does_not_read_os_environ(tmp_path, monkeypatch):
+    """env 매핑만 본다: os.environ 에 이름이 있어도 넘긴 매핑에 없으면 default."""
+    c = Cfg(tmp_path)
+    other = Cfg(tmp_path, "other")
+    monkeypatch.setenv("T_LUT_ROOT", str(other.root))
+    monkeypatch.setenv("T_PDK_ROOT", str(other.pdk))
+    loc = resolve_lut_location(c.write(), {})
+    assert loc.root == os.path.abspath(str(c.root)) and loc.pdk_root == os.path.abspath(str(c.pdk))
+    assert dict(loc.sources)["root"] == "config_default"
+
+
+def test_env_root_with_wrong_content_rejected(tmp_path):
+    """env 로 옮긴 root 의 파일이 sha256 과 다르면 거부(설정이 내용을 고정한다)."""
+    c = Cfg(tmp_path)
+    other = Cfg(tmp_path, "other")
+    (other.root / "manifest.json").write_bytes(b"different")
+    det = _reject(c.write(), {"T_LUT_ROOT": str(other.root)})
+    assert det["reason"] == "lut_location_sha256_mismatch"
+    assert det["item"] == "manifest" and det["recorded"] == c.cfg["files"]["manifest"]["sha256"]
+    assert det["actual"] == _sha(other.root / "manifest.json")
+    assert os.path.abspath(det["path"]) == os.path.abspath(str(other.root / "manifest.json"))
+
+
+def test_root_neither_env_nor_default_invalid(tmp_path):
+    c = Cfg(tmp_path)
+    det = _reject(c.write(dict(c.cfg, root={"env": "T_LUT_ROOT"})), {})
+    assert det["reason"] == "lut_location_config_invalid"
+    det = _reject(c.write(dict(c.cfg, pdk_root={"env": "T_PDK_ROOT"})), {"T_PDK_ROOT": ""})
+    assert det["reason"] == "lut_location_config_invalid"
+
+
+def test_pdk_root_optional(tmp_path):
+    """[해석] pdk_root 항목이 없으면(선택) pdk_root None -- 계약은 '(선택)' 만 적는다."""
+    c = Cfg(tmp_path)
+    cfg = {k: v for k, v in c.cfg.items() if k != "pdk_root"}
+    loc = resolve_lut_location(c.write(cfg), {})
+    assert loc.pdk_root is None
+
+
+def test_verify_midpoints_optional(tmp_path):
+    c = Cfg(tmp_path)
+    cfg = json.loads(json.dumps(c.cfg))
+    del cfg["files"]["verify_midpoints"]
+    loc = resolve_lut_location(c.write(cfg), {})
+    assert loc.midpoints_path is None
+    assert loc.manifest_path == os.path.abspath(os.path.join(str(c.root), "manifest.json"))
+
+
+def test_config_missing(tmp_path):
+    det = _reject(str(tmp_path / "nope.json"))
+    assert det["reason"] == "lut_location_config_missing"
+
+
+def test_root_folder_missing(tmp_path):
+    c = Cfg(tmp_path)
+    det = _reject(c.write(dict(c.cfg, root={"default": str(tmp_path / "no_such_dir")})))
+    assert det["reason"] == "lut_location_root_missing"
+    det = _reject(c.write(), {"T_LUT_ROOT": str(tmp_path / "no_such_dir2")})
+    assert det["reason"] == "lut_location_root_missing"
+
+
+@pytest.mark.parametrize("bad", [
+    {"root": "C:/x"},                 # root 가 객체가 아님
+    {"files": ["manifest.json"]},     # files 가 객체가 아님
+])
+def test_root_or_files_not_object(tmp_path, bad):
+    c = Cfg(tmp_path)
+    det = _reject(c.write(dict(c.cfg, **bad)))
+    assert det["reason"] == "lut_location_config_invalid"
+
+
+@pytest.mark.parametrize("item", ["manifest", "cap_npz"])
+def test_required_file_items(tmp_path, item):
+    c = Cfg(tmp_path)
+    cfg = json.loads(json.dumps(c.cfg))
+    del cfg["files"][item]
+    det = _reject(c.write(cfg))
+    assert det["reason"] == "lut_location_config_invalid"
+
+
+@pytest.mark.parametrize("item", ["manifest", "cap_npz", "verify_midpoints"])
+@pytest.mark.parametrize("why", ["absolute", "dotdot", "empty", "no_sha"])
+def test_bad_file_entries(tmp_path, item, why):
+    """절대 경로·`..` 조각은 실제로 있는 같은 파일을 가리켜도 거부(거부가 파일 유무 검사가 아님을 보인다)."""
+    c = Cfg(tmp_path)
+    cfg = json.loads(json.dumps(c.cfg))
+    ent = cfg["files"][item]
+    if why == "absolute":
+        ent["path"] = str((c.root / c.files[item]).resolve())
+    elif why == "dotdot":
+        ent["path"] = "sub/../" + c.files[item]
+    elif why == "empty":
+        ent["path"] = ""
+    else:
+        del ent["sha256"]
+    det = _reject(c.write(cfg))
+    assert det["reason"] == "lut_location_config_invalid"
+    assert det["item"] == item and "why" in det
+
+
+@pytest.mark.parametrize("item", ["manifest", "cap_npz", "verify_midpoints"])
+def test_file_missing(tmp_path, item):
+    c = Cfg(tmp_path)
+    p = c.write()
+    (c.root / c.files[item]).unlink()
+    det = _reject(p)
+    assert det["reason"] == "lut_location_file_missing" and det["item"] == item
+    assert os.path.abspath(det["path"]) == os.path.abspath(str(c.root / c.files[item]))
+
+
+@pytest.mark.parametrize("item", ["manifest", "cap_npz", "verify_midpoints"])
+def test_sha256_mismatch(tmp_path, item):
+    c = Cfg(tmp_path)
+    p = c.write()
+    f = c.root / c.files[item]
+    f.write_bytes(f.read_bytes() + b"!")
+    det = _reject(p)
+    assert det["reason"] == "lut_location_sha256_mismatch" and det["item"] == item
+    assert det["recorded"] == c.cfg["files"][item]["sha256"] and det["actual"] == _sha(f)
+
+
+# ---------------------------------------------------------------------------
+# 저장소 설정(assets/lut_v2_location.json) -- 실데이터
+# ---------------------------------------------------------------------------
+
+@pytest.mark.lut_realdata
+def test_repo_config_resolves_and_pins_sha(real_location):
+    cfg = json.loads(LOCATION_CONFIG.read_text(encoding="utf-8"))
+    loc = real_location
+    env_root = os.environ.get(cfg["root"]["env"]) or None
+    assert loc.root == os.path.abspath(env_root or cfg["root"]["default"])
+    for item, attr in (("manifest", "manifest_path"), ("cap_npz", "cap_npz_path"), ("verify_midpoints", "midpoints_path")):
+        p = getattr(loc, attr)
+        assert p == os.path.abspath(os.path.join(loc.root, cfg["files"][item]["path"]))
+        assert _sha(p) == cfg["files"][item]["sha256"]                  # 설정이 고정한 내용
+    env_pdk = os.environ.get(cfg["pdk_root"]["env"]) or None
+    assert loc.pdk_root == os.path.abspath(env_pdk or cfg["pdk_root"]["default"])
+
+
+@pytest.mark.lut_realdata
+def test_repo_config_env_precedence_uses_passed_mapping(tmp_path):
+    """같은 설정을 env 매핑으로 빈 폴더 root 에 돌리면 파일 없음으로 거부된다(env 가 default 보다 먼저라는 증거).
+    매핑을 비우면 다시 default."""
+    cfg = json.loads(LOCATION_CONFIG.read_text(encoding="utf-8"))
+    empty = tmp_path / "empty_root"
+    empty.mkdir()
+    with pytest.raises(SchemaRejectedError) as ei:
+        resolve_lut_location(str(LOCATION_CONFIG), {cfg["root"]["env"]: str(empty)})
+    det = detail_of(ei.value)
+    assert det["reason"] == "lut_location_file_missing"
+    assert os.path.dirname(os.path.abspath(det["path"])) == os.path.abspath(str(empty))
+    loc = resolve_lut_location(str(LOCATION_CONFIG), {})
+    assert dict(loc.sources)["root"] == "config_default"
+    assert loc.root == os.path.abspath(cfg["root"]["default"])
+
+
+@pytest.mark.lut_realdata
+def test_repo_config_feeds_load(real_location, real_lut):
+    """1.8 '쓰는 법' 으로 로드한 세트: provenance 가 설정의 파일 sha256 을 가진다(중점 sha256 포함)."""
+    cfg = json.loads(LOCATION_CONFIG.read_text(encoding="utf-8"))
+    p = real_lut.provenance
+    assert p.manifest_sha256 == cfg["files"]["manifest"]["sha256"]
+    assert p.cap_sha256 == cfg["files"]["cap_npz"]["sha256"]
+    assert p.midpoints_sha256 == cfg["files"]["verify_midpoints"]["sha256"]
+    assert os.path.normcase(os.path.abspath(p.midpoints_path)) == os.path.normcase(real_location.midpoints_path)

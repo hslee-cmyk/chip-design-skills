@@ -13,7 +13,8 @@ import pytest
 from gmid_engine.core import SealViolationError
 from gmid_engine.lut import caps, gm_id_curve, gm_id_for_target, gmb, op_point, vgs_for_gm_id
 
-from .conftest import (BIN_L, RefSlice, bin_cap_arrays, bin_toy_raw, detail_of, expected_op, interp4, new_memo,
+from .conftest import (BIN_L, RefSlice, bin_cap_arrays, bin_toy_raw, detail_of, expected_op, gmb_column_ref, interp4,
+                       new_memo,
                        rel_close, same_bounds, sir_ref_b, target_ref, two_sheet, um)
 
 ULP = math.ulp(1e-6)
@@ -244,9 +245,12 @@ def exp_curve(z, L, vds, vs):
 
 
 def exp_gmb(z, L, vgs, vds, vs):
-    """[r5] gmb = −ID(점)·(ln IDu(VS[k+1]) − ln IDu(VS[k]))/ΔVS, ln ID 는 4.2 축별 보간(RefSlice)."""
+    """[r5] gmb = −ID(점)·(ln IDu(VS[k+1]) − ln IDu(VS[k]))/ΔVS, ln ID 는 4.2 축별 보간(RefSlice).
+    [r6] 슬라이스에 GMBS 열이 있으면 4.4 정본(ID(점) × GMBS/ID 선형 보간 -- conftest gmb_column_ref)."""
     rs = RefSlice(z)
     Lw = _lw(z, L)
+    if "GMBS" in z:
+        return gmb_column_ref(z, Lw, vgs, vds, vs)
     VS = list(rs.grids[3])
     k = min(bisect.bisect_right(VS, vs) - 1, len(VS) - 2)
     d = rs.op(Lw, L, vgs, vds, VS[k + 1])["lnID"] - rs.op(Lw, L, vgs, vds, VS[k])["lnID"]
@@ -443,8 +447,12 @@ REAL_CALLS = {
 
 @pytest.mark.lut_realdata
 @pytest.mark.parametrize("name", sorted(REAL_CALLS))
-@pytest.mark.parametrize("L,reason", [(0.6e-6, "lut_l_cross_bin"), (0.17e-6, "lut_l_bin_unbracketed"),
-                                      (1.2e-6, "lut_l_bin_unbracketed")])
+@pytest.mark.parametrize("L,reason", [
+    # [r6] LUT v2 앵커 18개(CONTRACT 5절 r6 실측 bin 상태: .26 = 0.15·0.18, .25 = 0.185·0.2·0.25, .24 = 0.255~0.5,
+    # .23 = 0.7·1, .22 = 1.5·2, .21 = 2.5·4, .20 = 8, .19 = 20). 옛 12-L 의 0.17 µm(unbracketed)는 v2 에서 .26 안 보간,
+    # 1.2 µm 는 .22 에 앵커 2개(1.5·2)가 생겨 cross_bin. 앵커 1개 bin 사이는 5 µm(.20)·12 µm(.19).
+    (0.6e-6, "lut_l_cross_bin"), (1.2e-6, "lut_l_cross_bin"), (0.182e-6, "lut_l_cross_bin"),
+    (5e-6, "lut_l_bin_unbracketed"), (12e-6, "lut_l_bin_unbracketed")])
 def test_real_cross_bin_rejected_every_entry(real_memo, name, L, reason):
     with pytest.raises(SealViolationError) as ei:
         REAL_CALLS[name](real_memo, L)
@@ -458,7 +466,7 @@ def test_real_cross_bin_rejected_every_entry(real_memo, name, L, reason):
 
 
 @pytest.mark.lut_realdata
-@pytest.mark.parametrize("L", [0.3125e-6, 0.3875e-6, 0.45e-6, 0.22e-6, 0.85e-6, 3e-6])
+@pytest.mark.parametrize("L", [0.3125e-6, 0.3875e-6, 0.45e-6, 0.22e-6, 0.85e-6, 3e-6, 0.17e-6, 1.75e-6])
 def test_real_in_bin_values(real_memo, real_lut, raw_slice, raw_cap, L):
     z = raw_slice("nmos", 1000)
     op = op_point(real_memo, "nmos", 1000, L, 0.9, 0.9, 0.0)

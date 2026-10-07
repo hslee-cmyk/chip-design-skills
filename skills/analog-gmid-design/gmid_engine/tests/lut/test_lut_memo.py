@@ -5,7 +5,7 @@ import pytest
 
 from gmid_engine.core import LruStats, SealViolationError
 from gmid_engine.lut import (DERIVED_TABLES, REGIONS, LutMemo, caps, curve_report, gm_id_curve, gm_id_for_target, gmb,
-                             op_point, tol_v_table, vgs_for_gm_id)
+                             midpoint_l_bin_checks, op_point, tol_v_table, tol_vdsat_table, vdsat, vgs_for_gm_id)
 
 from .conftest import new_memo, standard_toy_slices
 
@@ -19,14 +19,16 @@ def _stats(m):
 
 def test_constants():
     assert REGIONS == ("curve", "derived", "point", "root")
-    assert DERIVED_TABLES == ("curve_report", "tol_v_table")
+    # [r6] 2절: derived 표 4개(r5 는 curve_report·tol_v_table 2개)
+    assert DERIVED_TABLES == ("curve_report", "midpoint_l_bin_checks", "tol_v_table", "tol_vdsat_table")
 
 
 def test_capacities(toy):
     m = LutMemo(toy, point=3, curve=5, root=7)
     st = _stats(m)
     assert (st["point"].capacity, st["curve"].capacity, st["root"].capacity) == (3, 5, 7)
-    assert st["derived"].capacity == len(toy.slice_map) * len(DERIVED_TABLES) == 4
+    # [r6] derived 상한 = 슬라이스 수 × 4 (toy 슬라이스 2장 -> 8; r5 는 × 2 = 4)
+    assert st["derived"].capacity == len(toy.slice_map) * len(DERIVED_TABLES) == 2 * 4
 
 
 @pytest.mark.parametrize("bad", [0, -1, 1.5, True, None, "3"])
@@ -42,7 +44,7 @@ def test_from_sweep_capacity(toy):
     m2 = LutMemo.from_sweep(toy, 0, (("point", 1), ("curve", 4), ("root", 2)))
     st2 = _stats(m2)
     assert (st2["point"].capacity, st2["curve"].capacity, st2["root"].capacity) == (1, 4, 2)
-    assert st2["derived"].capacity == 4
+    assert st2["derived"].capacity == 2 * 4                  # [r6] 슬라이스 2 × DERIVED_TABLES 4 (from_sweep 도 같은 식)
 
 
 def test_lookup_computes_once_principle(toy_memo):
@@ -111,6 +113,40 @@ def test_query_regions_and_repeat_is_free(toy, region, call):
     for r in REGIONS:
         assert after[r].misses == before[r].misses, "반복 조회에서 %s 영역 재계산" % r
     assert before[region].misses >= 1
+
+
+@pytest.mark.parametrize("region,call", [
+    ("point", lambda m: vdsat(m, "nmos", 100, 3.5e-6, 0.3, 0.6, 0.2)),
+    ("derived", lambda m: midpoint_l_bin_checks(m, "nmos", 100)),
+    ("derived", lambda m: tol_vdsat_table(m, "nmos", 100, ())),
+])
+def test_r6_query_regions_and_repeat_is_free(mid_toy_build, region, call):
+    """[r6] 2절 영역: vdsat = point, midpoint_l_bin_checks·tol_vdsat_table = derived. 반복은 그 영역 hits 만 는다."""
+    from .conftest import MID_L_SOURCE, mid_point_arrays
+    m = new_memo(mid_toy_build("reg", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE)).load())
+    a = call(m)
+    before = _stats(m)
+    for _ in range(3):
+        assert call(m) is a
+    after = _stats(m)
+    assert after[region].hits == before[region].hits + 3
+    for r in REGIONS:
+        assert after[r].misses == before[r].misses, "반복 조회에서 %s 영역 재계산" % r
+    assert before[region].misses >= 1
+
+
+def test_r6_derived_capacity_holds_all_tables(mid_toy_build):
+    """[r6] derived 상한 = 슬라이스 수 × 4: 두 폭의 네 표를 모두 만들어도 쫓겨나지 않는다(evictions 0)."""
+    from .conftest import MID_L_SOURCE, mid_point_arrays
+    lut = mid_toy_build("cap", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE)).load()
+    m = new_memo(lut)
+    for wk in (100, 200):
+        curve_report(m)
+        midpoint_l_bin_checks(m, "nmos", wk)
+        tol_v_table(m, "nmos", wk)
+        tol_vdsat_table(m, "nmos", wk)
+    st = _stats(m)["derived"]
+    assert st.capacity == 8 and st.evictions == 0 and st.size == 7      # curve_report 는 LUT 전체 1개
 
 
 def test_distinct_fp_luts_do_not_share(toy_build):

@@ -3,16 +3,18 @@
 """
 import hashlib
 import math
+import os
+import shutil
 from pathlib import Path
 
 import numpy as np
 import pytest
 
 from gmid_engine.core import SchemaRejectedError
-from gmid_engine.lut import LutProvenance, LutSpec, SliceSource, lut_provenance
+from gmid_engine.lut import LutProvenance, LutSpec, SliceSource, load_lut_set, lut_provenance
 
-from .conftest import (BIN_MODEL_REL, LEGACY_SR, LUT_SRC, TOY_SPEC, ast_sha, detail_of, function_body, sha256_file,
-                       standard_toy_slices, toy_slice_arrays)
+from .conftest import (BIN_MODEL_REL, LEGACY_SR, LUT_SRC, MID_L_SOURCE, TOY_SPEC, ast_sha, detail_of, function_body,
+                       mid_point_arrays, sha256_file, standard_toy_slices, toy_slice_arrays)
 
 H_COND = "20513c618b94f19b50d8a4fcfc2fd0a17f934302259ed4e78d4b21163451235b"
 COND_TT = (("corner", "tt"), ("recorded", True), ("temp_c", 27.0))
@@ -250,3 +252,95 @@ def test_reject_model_file_sha256_mismatch(bin_toy_build):
     assert det["recorded"] == recorded and det["actual"] == sha256_file(bt.model_path)
     assert det["path"] == BIN_MODEL_REL or _same_path(det["path"], bt.model_path)
     assert any(_same_path(det["slice"], p) for p in bt.slice_paths)
+
+
+# ---------------------------------------------------------------------------
+# [r6] pdk_root 덮어쓰기 (1.3): 모델 파일 경로 = os.path.join(pdk_root, 상대 경로) (meta pdk_root 대신, root_missing 판정도),
+#      sha256 대조는 그대로 -> 같은 모델 파일이면 어느 폴더든 같은 결과·같은 지문
+# ---------------------------------------------------------------------------
+
+def _moved_pdk(bt, dst):
+    shutil.copytree(bt.pdk, dst)
+    shutil.rmtree(bt.pdk)                                      # meta 의 pdk_root 는 이제 없다
+    return dst
+
+
+def test_pdk_root_override_replaces_meta_root(bin_toy_build, tmp_path):
+    bt = bin_toy_build("ov")
+    lut0 = bt.load()
+    new = _moved_pdk(bt, tmp_path / "pdk_moved")
+    with pytest.raises(SchemaRejectedError) as ei:              # 음성: 덮어쓰지 않으면 meta 경로 -> 파일 없음
+        bt.load()
+    assert detail_of(ei.value)["reason"] == "lut_model_file_missing"
+    p = lut_provenance(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(new))
+    for s in p.slices:
+        rel, path = s.model_paths[0]
+        assert rel == BIN_MODEL_REL and _same_path(path, os.path.join(str(new), BIN_MODEL_REL))
+    lut1 = load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(new))
+    assert lut1.fp == lut0.fp                                   # 같은 모델 파일 -> 같은 지문(경로는 지문에 없다)
+    assert all(lut1.slice_map[k].l_bins == lut0.slice_map[k].l_bins for k in lut0.slice_map)
+
+
+def test_pdk_root_override_used_for_root_missing(bin_toy_build):
+    """meta 에 pdk_root 가 없어도(-> 기본은 lut_model_root_missing) 인자 pdk_root 가 있으면 그 루트로 로드."""
+    def drop_root(meta):
+        meta = dict(meta)
+        del meta["pdk_root"]
+        return meta
+    bt = bin_toy_build("nr", meta_fn=drop_root)
+    with pytest.raises(SchemaRejectedError):
+        bt.load()
+    lut = load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(bt.pdk))
+    assert lut.slice_map[("nmos", 100)].l_bins.bins != ()
+
+
+def test_pdk_root_override_sha_still_checked(bin_toy_build, tmp_path):
+    """덮어쓴 루트의 모델 파일 내용이 다르면 sha256 불일치로 거부(폴더만 바뀌고 대조는 그대로)."""
+    bt = bin_toy_build("sh")
+    other = tmp_path / "pdk_other"
+    shutil.copytree(bt.pdk, other)
+    f = other / BIN_MODEL_REL
+    f.write_text(f.read_text(encoding="utf-8") + "* other\n", encoding="utf-8")
+    with pytest.raises(SchemaRejectedError) as ei:
+        load_lut_set(str(bt.build.manifest), str(bt.build.cap), TOY_SPEC, pdk_root=str(other))
+    det = detail_of(ei.value)
+    assert det["reason"] == "lut_model_file_sha256_mismatch" and det["actual"] == sha256_file(f)
+
+
+# ---------------------------------------------------------------------------
+# [r6] verify_midpoints (1.3): 경로·sha256·L_source 쌍·측정 조건, 파일 없음 -> lut_midpoints_missing
+# ---------------------------------------------------------------------------
+
+def test_midpoints_recorded_in_provenance(mid_toy_build):
+    mt = mid_toy_build("pm", mid=mid_point_arrays((3.5e-6,), l_source=MID_L_SOURCE))
+    p = lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC, verify_midpoints=str(mt.mid_path))
+    assert _same_path(p.midpoints_path, mt.mid_path)
+    assert p.midpoints_sha256 == sha256_file(mt.mid_path)
+    assert tuple(p.midpoints_l_source) == tuple(sorted(MID_L_SOURCE.items()))
+    assert tuple(p.midpoints_conditions) == COND_TT
+    q = lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC)
+    assert (q.midpoints_path, q.midpoints_sha256, tuple(q.midpoints_l_source), tuple(q.midpoints_conditions)) == \
+        (None, None, (), ())
+
+
+def test_midpoints_missing(mid_toy_build, tmp_path):
+    mt = mid_toy_build("pmm")
+    missing = tmp_path / "nope_mid.npz"
+    for call in (lambda: lut_provenance(str(mt.build.manifest), str(mt.build.cap), TOY_SPEC, verify_midpoints=str(missing)),
+                 lambda: mt.load(verify_midpoints=str(missing))):
+        with pytest.raises(SchemaRejectedError) as ei:
+            call()
+        det = detail_of(ei.value)
+        assert det["reason"] == "lut_midpoints_missing" and _same_path(det["path"], missing)
+
+
+@pytest.mark.lut_realdata
+def test_real_pdk_root_and_midpoints(real_lut, real_paths):
+    """1.8 '쓰는 법' 로드: 모델 파일 경로 = 설정 pdk_root 기준, 중점 provenance 가 설정 파일."""
+    root = real_paths["pdk_root"]
+    for s in real_lut.provenance.slices:
+        assert s.model_paths and all(_same_path(path, os.path.join(root, rel)) for rel, path in s.model_paths)
+    p = real_lut.provenance
+    assert p.midpoints_sha256 == sha256_file(real_paths["midpoints"])
+    assert dict(p.midpoints_l_source)["key"] == "verification_midpoints_um"
+    assert tuple(p.midpoints_conditions) == COND_TT
