@@ -1,0 +1,224 @@
+{
+  "_comment": "회로 사이징 spec(사람 선언, 정본) -- 형식 gmid_engine/authoring/SPEC_CONTRACT.md, 값 출처 = 각 source. 미정 칸은 {\"pending\": <결정 ID>}.",
+  "meta": {
+    "schema_version": "5",
+    "circuit": "ngcc_3stage_ff",
+    "topology_fp": "bd0dab46c25cb9863ca64974ebc53305f1c2ff4ae7830ac482a9dbb79b336d84",
+    "origin": "canonical"
+  },
+  "human": {
+    "supplies_v": {
+      "values": {
+        "vdd": 1.8,
+        "gnd": 0.0
+      },
+      "source": {
+        "kind": "user_spec",
+        "record": "2026-09-16 사용자 \"2는 1.8에 맞춰\" -- ngcc_3stage_ff.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-34",
+        "decided": "2026-09-16"
+      }
+    },
+    "input_dc": {
+      "pending": "SP-2"
+    },
+    "element_values": {
+      "CL": {
+        "value_farad": 1e-11,
+        "source": {
+          "kind": "user_spec",
+          "record": "ngcc_3stage_ff.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-34 loading.CL_farad",
+          "decided": "2026-09-21",
+          "origin": "paper",
+          "citation": "ngcc 논문 CL = 10 pF"
+        }
+      },
+      "Cm1": {
+        "pending": "SP-9"
+      },
+      "Cm2": {
+        "pending": "SP-9"
+      },
+      "_Cm_comment": "기본안 engine -- 논문 Table 4 1.68/1.32 pF 는 채택 기록 없는 참고값. SP-9 확인 대기."
+    },
+    "feedback": {
+      "pending": "CI-19"
+    },
+    "constraints": [
+      {
+        "metric": "gbw_ss_hz",
+        "op": ">=",
+        "value": 10000000.0,
+        "source": {
+          "kind": "user_spec",
+          "record": "ngcc_3stage_ff.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-34 performance_targets.gbw_hz",
+          "decided": "2026-09-21",
+          "origin": "paper",
+          "citation": "ngcc 논문 GB = 10 MHz"
+        }
+      },
+      {
+        "metric": "pm_ss_deg",
+        "op": ">=",
+        "value": 63.4,
+        "source": {
+          "kind": "user_spec",
+          "record": "ngcc_3stage_ff.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-34 performance_targets.pm_deg",
+          "decided": "2026-09-21",
+          "origin": "paper",
+          "citation": "ngcc 논문 PM 63.4 deg(설계 목표)"
+        }
+      },
+      {
+        "metric": {
+          "pending": "MOD5"
+        },
+        "op": ">=",
+        "value": 0.6,
+        "_metric_comment": "입력 범위(ICMR) -- 옛 icmr_v. metric 레지스트리 이름 없음(N3.8 스윙·입력 범위 ls metric, MOD5 design 이 이름을 정한다).",
+        "source": {
+          "kind": "user_spec",
+          "record": "ngcc_3stage_ff.topology.json _declared_target_spec, U-39(2026-09-21 사용자 \"기본안대로 확정\", 승인 기록 20260921-u39-paper-target-spec), U-34 performance_targets.icmr_v (VDD/3, 1.8 V 기준)",
+          "decided": "2026-09-21",
+          "origin": "paper",
+          "citation": "ngcc 논문 ICMR >= VDD/3"
+        }
+      }
+    ],
+    "pending_constraints": [
+      {
+        "metric": "gain_ss_db",
+        "decision": "SP-4"
+      }
+    ],
+    "compensation_targets": {
+      "gbw_target_hz": {
+        "value_from_constraint": "gbw_ss_hz",
+        "source": {
+          "kind": "reference"
+        }
+      },
+      "pm_target_deg": {
+        "value_from_constraint": "pm_ss_deg",
+        "source": {
+          "kind": "reference"
+        }
+      }
+    },
+    "node_voltage_targets_v": {
+      "pending": "CI-15"
+    },
+    "intended_region": {
+      "pending": "CI-18"
+    },
+    "objective": {
+      "budgets": {
+        "pending": "PA-1"
+      },
+      "_budgets_comment": "기본안 = 예산 미선언(front 제시 후 정지, DEC-77). 논문 전력·면적 값은 채택 기록이 없어 넣지 않는다."
+    },
+    "search": {
+      "wall_clock_budget_s": {
+        "value": 300,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-34",
+          "record": "U-26(c) 기본안: 파일럿 선언값 300 s 를 전 회로 공통(회로별 변경은 PA-2)"
+        }
+      },
+      "front_budget_s": {
+        "pending": "PA-2"
+      },
+      "search_method": {
+        "value": "default",
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-73"
+        }
+      },
+      "optional_stages": {
+        "value": {},
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "DEC-75",
+          "record": "기본 비활성"
+        }
+      },
+      "dof_rank_sample_count": {
+        "value": 10,
+        "source": {
+          "kind": "plan_rule",
+          "plan_id": "N3.7",
+          "record": "기본 10"
+        }
+      }
+    },
+    "spice_check": {
+      "acceptance_rule": {
+        "rule": "free_spec_and_all_saturated",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "saturation_rule": {
+        "pending": "AC-1"
+      },
+      "_saturation_rule_comment": "UD 8번 '전 MOS 포화'를 여유 없는 포화(vds_ge_vdsat)로 읽을지, tol_V 여유(vds_ge_vdsat_plus_tol_v)를 둘지는 AC-1(포화 여유) 확인 대기 -- 설계 2.0 '확인' 칸.",
+      "node_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "device_compare_rule": {
+        "rule": "record_only",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "forced_warn_rule": {
+        "rule": "forced_device_diff_gt_lut_tolerance",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"8번 수정안으로 확정해\" -- SPICE 합격 = free 모드 스펙 만족 + 전 MOS 포화, 노드·소자 차는 기록, 경고는 forced 모드 소자 차 > LUT 허용오차일 때만",
+          "decided": "2026-10-07"
+        }
+      },
+      "front_points_rule": {
+        "pending": "AC-3"
+      },
+      "_front_points_rule_comment": "기본안 endpoints_and_budget_point(AC-3·U-45 결정 대기)."
+    },
+    "front_refilter": {
+      "axis_rule": {
+        "rule": "layout_floorplan_outline",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "tie_rule": {
+        "rule": "manufacturing_grid_cell_area",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      },
+      "cycle_cap_rule": {
+        "rule": "k_max_n3_6",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-07 \"12번은 (나)로 해.\" -- front 점마다 MOD7 floorplan 외곽 면적으로 비지배 재필터, 동률 = MANUFACTURINGGRID 한 칸 면적, 교대 상한 N3.6 K_max",
+          "decided": "2026-10-07"
+        }
+      }
+    }
+  }
+}
