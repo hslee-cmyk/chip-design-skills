@@ -260,6 +260,14 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 **불변식**:
 - 어느 블록에도, 어느 바이어스 기둥에도 속하지 않는 소자가 있으면 정지한다(`StructureUnresolvedError`, 사유 `column_unassigned`, DEC-71 (2)).
 
+**U10 as-built 보완**(2026-10-09 오케스트레이터 결정, 모두 이름 없는 구조 규칙):
+- **바이어스 기둥 = 의사 블록**: 어느 블록에도 속하지 않는 소자만으로 된 기둥(바이어스 기둥)을 K1·K2·K4 판정에서 의사 블록 `bias:<기둥>`으로 센다. 기준 diode(바이어스 기둥)와 블록 소자 사이 미러·`equal_vgs`도 층 0 조립이 지켜야 하는 관계이기 때문이다(예: sf M3↔M4, ngcc M6A↔M7).
+- **K3 정의**: 비레일 넷에서 MOS e의 drain과 MOS d의 source가 만나고 둘의 블록이 다르면 `stacked_vsb`(d의 VSB가 e의 VDS에 묶임). 9회로 0건.
+- **K7 범위**: 동작점이 있는 소자(MOS)만 센다. 커패시터·저항은 값이 뷰마다 같아 나눌 것이 없다.
+- 레코드에 `nets`(관계가 걸린 넷), 매핑표 행에 `basis`(`block_member`·`column_mate`·`bias_column`)를 더한다.
+- `column_unassigned` 범위 = DC 가지에 든 원소. 커패시터·가지치기된 저항은 KVL이 없어 제외한다.
+- 소비자는 U15 층 0 조립이며, 그 전에는 단계 A 보고서 `coupling`이 유일한 출구다.
+- 관찰(U7로 넘김): 버퍼 블록은 부하 수동소자를 블록에 붙이지 않는다(출력 CL이 블록 멤버가 아님). 이득 블록과 규칙이 다르다.
 **상태**: MISS. as-built의 y는 W4 창 위치 [0, 1]로만 있다(`E/search/search_domain.py:97`).
 
 ### 3.4 GB4 -- 달성가능성 (MOD5) → 41 §4
