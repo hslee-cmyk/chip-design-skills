@@ -320,13 +320,13 @@ def test_capacitors_spec_box_override_and_reject(tmp_path, lut_sealed):
                                              {"C1": (1e-13, 1e-11), "C2": (2e-13, 5e-12)})
     comps = dc.schema.components
     assert ("capacitance", "C1") in comps and ("capacitance", "C2") in comps
-    assert _bounds(search_domain(dc, _settings(None), pdk, sb, ("C1",))) == {
+    assert _bounds(search_domain(dc, _settings(None), pdk, sb, untie=("C1",))) == {
         ("capacitance", "C1"): _ln(1e-13, 1e-11), ("capacitance", "C2"): _ln(2e-13, 5e-12)}
     with pytest.raises(SchemaRejectedError) as e:
         search_domain(dc, _settings(None), pdk, sb)
     assert dict(e.value.record.detail)["reason"] == "tied_orbit_bounds_differ"
     ov = SearchSettings(600.0, 40, None, SRC, (1e-14, 1e-10))
-    assert _bounds(search_domain(dc, ov, pdk, sb, ("C2",))) == {
+    assert _bounds(search_domain(dc, ov, pdk, sb, untie=("C2",))) == {
         ("capacitance", "C1"): _ln(1e-14, 1e-10), ("capacitance", "C2"): _ln(1e-14, 1e-10)}
     tied = search_domain(dc, ov, pdk, sb)
     got = _bounds(tied)

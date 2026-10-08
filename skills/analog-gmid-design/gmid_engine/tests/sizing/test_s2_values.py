@@ -18,6 +18,7 @@ DC_TABLE = {
     ("device", "dc_colour"): "dc_struct_colour",            # [r2]
     ("node", "dc_orbit"): "dc_struct_colour",               # [r11] 3.0b
     ("device", "dc_orbit"): "dc_struct_colour",             # [r11] 3.0b
+    ("graph", "dc_symmetry"): "dc_struct_colour",           # [U2] 3.0b 자기동형 생성자
     ("graph", "dc_current_basis"): "dc_current_basis",
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
@@ -60,10 +61,10 @@ BLOCKS = {
 }
 
 
-def test_dc_table_has_33_fields():
+def test_dc_table_has_34_fields():
     # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31,
-    # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33).
-    assert len(DC_TABLE) == 33
+    # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33, [U2] graph.dc_symmetry 1 = 34).
+    assert len(DC_TABLE) == 34
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -148,9 +149,8 @@ def test_block_reads_declared_as_contract(name):
 
 
 def test_b_struct_colour_reads_are_3_0_set():
-    """3.0b 'reads 3.0 과 같다'(+ extras 선언 표시 둘). [사용자 결정 2026-10-08 '대칭 묶음 방식: b'] 2단자 수동소자는 방향이 없으므로 DC 저항
-    판별용 device.dc_nets·graph.dc_pruned 를 읽을 이유가 없다 -- 3.0 의 7개 필드 그대로.
-    ★ (b) 미구현 브랜치(현재 코드는 DC 저항 끝 방향 보존을 위해 dc_nets·dc_pruned 를 더 읽음)에서는 실패가 기대값."""
+    """3.0b 'reads 3.0 과 같다 -- 추가 읽기 없음'(+ extras 선언 표시 둘). [사용자 결정 2026-10-08 '대칭 묶음 방식: b'] 2단자 수동소자는 방향이 없어
+    DC 저항 판별용 device.dc_nets·graph.dc_pruned 를 읽지 않는다 -- 3.0 의 7개 필드 그대로."""
     assert set(S.dc_struct_colour.reads) == READS["dc_struct_colour"]
 
 

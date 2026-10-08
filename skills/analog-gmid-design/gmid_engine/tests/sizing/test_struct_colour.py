@@ -15,7 +15,7 @@ import random
 import pytest
 
 from gmid_engine.graph import build_s1
-from gmid_engine.sizing import DcInputs, build_kernel_context, dc_struct_colour
+from gmid_engine.sizing import DC_KEY, DcInputs, build_kernel_context, dc_struct_colour
 
 from .conftest import (NINE, build_ctx, library_ctx, load_doc, mos, topo, two, wl_colours)
 
@@ -216,8 +216,7 @@ def test_current_source_direction_matters(tmp_path, toy_access):
 
 def test_b_dc_resistor_is_undirected(tmp_path, toy_access):
     """[사용자 결정 2026-10-08 '대칭 묶음 방식: b' -- 2단자 수동소자는 방향 없음] DC 전류가 흐르는 저항 R1 (a, b) 도 a·b 를 구별하지 않는다:
-    a↔b, M1↔M2, M3↔M4 맞바꿈은 R1 의 두 끝을 맞바꿀 뿐인 자기동형 -> a·b 같은 궤도, M1·M2 같은 궤도. (oracle (a) 구성 + (d) 사용자 결정)
-    ★ (b) 미구현 브랜치에서는 실패가 기대값(현재 코드는 DC 저항 끝 방향 보존)."""
+    a↔b, M1↔M2, M3↔M4 맞바꿈은 R1 의 두 끝을 맞바꿀 뿐인 자기동형 -> a·b 같은 궤도, M1·M2 같은 궤도. (oracle (a) 구성 + (d) 사용자 결정)"""
     res = topo("hand_res_dir", NET, PORTS, passives=[two("R1", "resistor", "a", "b")], bias=["pb"])
     _, _, cr = build_ctx(tmp_path, res, toy_access)
     on, oe = orbits(cr.base)
@@ -226,7 +225,7 @@ def test_b_dc_resistor_is_undirected(tmp_path, toy_access):
 
 
 def test_b_resistor_terminal_order_irrelevant(tmp_path, toy_access):
-    """(b): 저항 terminals 순서를 뒤집어 그려도 궤도 분할이 같다(방향 없음). ★ (b) 미구현이면 실패 기대."""
+    """(b): 저항 terminals 순서를 뒤집어 그려도 궤도 분할이 같다(방향 없음)."""
     a = topo("hand_res_ab", NET, PORTS, passives=[two("R1", "resistor", "vdd", "a"), two("R2", "resistor", "vdd", "b")],
              bias=["pb"])
     b = topo("hand_res_ba", NET, PORTS, passives=[two("R1", "resistor", "vdd", "a"), two("R2", "resistor", "b", "vdd")],
@@ -292,7 +291,7 @@ def test_deterministic(tmp_path, toy_access):
 
 
 def test_block_writer_and_version(ctx_c):
-    """두 필드 모두 dc_struct_colour 가 쓰고, 입력 버전 = 컨텍스트 계획 버전(plan_versions)의 dc_struct_colour 항목."""
+    """다섯 필드(dc_colour·dc_orbit 노드/원소 + graph.dc_symmetry) 모두 dc_struct_colour 가 쓰고, 입력 버전 = 컨텍스트 계획 버전(plan_versions)의 dc_struct_colour 항목."""
     base = ctx_c[2].base
     pv = dict(ctx_c[2].plan_versions)
     for kind in ("node", "device"):
@@ -301,5 +300,21 @@ def test_block_writer_and_version(ctx_c):
             fv = base.field(kind, k, f)
             assert fv.writer == "dc_struct_colour"
             assert fv.input_version == pv["dc_struct_colour"]
+    sym = base.field("graph", DC_KEY, "dc_symmetry")                      # [U2] 생성자 필드도 같은 블록
+    assert sym.writer == "dc_struct_colour" and sym.input_version == pv["dc_struct_colour"]
     assert dc_struct_colour.name == "dc_struct_colour"
 
+
+def test_block_reuse_with_same_marks(ctx_c):
+    """3.0b extras 형식(`((이름, ((표시 이름, float), ...)), ...)` 이름순): 회로 C 는 원소 표시 없음, 노드 표시 = 레일 전위 `rail_v`
+    (DcInputs supplies: gnd 0.0, vdd 1.8 -- 입력에서 손으로 만든 표시). 컨텍스트가 같은 표시로 이미 계산했으므로 같은 표시로 다시 부르면 reuse.
+    다른 표시(vdd 전위 다름)면 reuse 가 아니다."""
+    base = ctx_c[2].base
+    node_marks = (("gnd", (("rail_v", 0.0),)), ("vdd", (("rail_v", 1.8),)))
+    dc_struct_colour.reset_stats()
+    assert dc_struct_colour(base, (), node_marks) is base
+    assert dc_struct_colour.stats().reuses == 1
+    other = (("gnd", (("rail_v", 0.0),)), ("vdd", (("rail_v", 1.7),)))
+    dc_struct_colour.reset_stats()
+    assert dc_struct_colour(base, (), other) is not base
+    assert dc_struct_colour.stats().reuses == 0

@@ -4,7 +4,7 @@ oracle:
 - (a) 구성: 손 회로 SYM 의 자기동형 σ = (M1 M2)(M3 M4)(CL1 CL2)(inp inn)(o1 o2)(`canon_cases.SYM_SIGMA`) -- 기대 묶음 = σ 로 짝지어지는 같은 종류
   스키마 성분 쌍(`expected_sym_groups`, 스키마 성분 = sizing 4.4 입력 열). 단일 종단 회로 C 는 궤도 모두 단일 -> 묶음 없음.
 - (d) 계약 문장: 3.24 7 (a)(d)(e)(f)(g), 2 의 거부 사유 `tied_orbit_bounds_differ`, 5 의 `untie_element_unknown`·`untie_orbit_trivial`(gate `search_domain`).
-대표 선택 규칙은 계약(3.24 1 '키 이름 최소')과 docstring('dc_colour 최소')이 달라 여기서 고정하지 않는다(보고 -- 구성원 ∌ 대표, 대표 ∈ 변수만 본다).
+대표 = 구조 색 dc_colour 최소(3.24 1, U2 개정 -- 스냅샷 입력 열로 확인).
 """
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def _sym(tmp, lut, **kw):
 
 
 def _domain(case, untie=()):
-    return search_domain(case.dc, SearchSettings(600.0, 40, None, SRC), case.pdk, case.spec_bounds, untie)
+    return search_domain(case.dc, SearchSettings(600.0, 40, None, SRC), case.pdk, case.spec_bounds, untie=untie)
 
 
 def _members(ties):
@@ -77,6 +77,17 @@ def test_representative_in_variables_members_not(tmp_path, lut_sealed):
         assert rep not in members and members
         assert not set(members) & var
         assert all(m[0] == rep[0] for m in members)                       # 같은 종류끼리만
+
+
+def test_representative_is_min_dc_colour(tmp_path, lut_sealed):
+    """3.24 1·2: 대표 = 묶음 안 구조 색(dc_colour) 최소(원소 키는 device, y 의 넷 키는 node 색)."""
+    case = _sym(tmp_path, lut_sealed)
+    dv = dict(case.dc.base.column("device", "dc_colour"))
+    nv = dict(case.dc.base.column("node", "dc_colour"))
+    col = lambda c: dv.get(c[1], nv.get(c[1]))                              # noqa: E731
+    assert case.sctx.domain.ties
+    for rep, members in case.sctx.domain.ties:
+        assert all(col(rep) < col(m) for m in members)
 
 
 def test_orbit_ties_reps_are_components_minus_members(tmp_path, lut_sealed):
@@ -214,7 +225,7 @@ def test_renaming_transports_tie_groups(tmp_path, lut_sealed, seed):
     assert len(case.sctx.domain.variables) == len(base.sctx.domain.variables)
 
 
-# ---------------------------------------------------------------- [사용자 결정 2026-10-08 '대칭 묶음 방식: b'] -- ★ (b) 미구현이면 실패 기대
+# ---------------------------------------------------------------- [사용자 결정 2026-10-08 '대칭 묶음 방식: b'] (U2 구현 69679f7 -- 3.24 2·9 (h)(i))
 # (b) = 2단자 수동소자는 방향 없음(자기동형이 끝을 맞바꿔도 된다), 묶음 값은 같고, 끝이 뒤집혀 대응하는 원소의 가지 전류는 부호 −1.
 # oracle: (a) 구성 -- 끝을 뒤집어 그린 사본과 원본은 같은 무향 그래프라 궤도·차원·묶음이 같아야 한다; 거울 대칭에서 vdd→o1 저항 전류와
 # o2→vdd 저항 전류는 크기가 같고 방향이 반대(KCL·거울 대칭). (d) 사용자 결정 문장.
@@ -268,8 +279,7 @@ def test_b_reversed_resistor_current_tie_sign_minus_one(tmp_path, lut_sealed):
 
 def test_b_pilot_current_reuse_r1_r2_tied(tmp_path, lut_sealed):
     """파일럿 current_reuse_telescopic_ota(R1 (Vom -> Voc)·R2 (Voc -> Vop) 끝이 뒤집혀 그려짐): (b) 에서는 R1·R2 같은 궤도이고 묶음이 서서
-    차원 = R2 를 뒤집은 사본의 차원(search CONTRACT 3.24 6 실측 107 -> 74; 숫자 대신 사본과의 같음으로 본다 -- 사본은 현재 코드에서도
-    끝 방향이 일관돼 묶음이 선다)."""
+    차원 = R2 를 뒤집은 사본의 차원(search CONTRACT 3.24 8 실측 107 -> 73; 숫자 대신 사본과의 같음으로 본다 -- 무향이라 같은 그래프)."""
     from .canon_cases import build_library_case, flip_terminals, library_doc
     raw, spec = library_doc("current_reuse_telescopic_ota")
     orig = build_library_case(tmp_path / "o", raw, spec, lut_sealed)

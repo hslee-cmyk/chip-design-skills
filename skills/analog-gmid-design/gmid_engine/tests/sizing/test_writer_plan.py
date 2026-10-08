@@ -182,15 +182,6 @@ def test_library_reorder_bit_identical(name, tmp_path, toy_access):
         assert ctx2.base.column("node", f) == ctx.base.column("node", f)
 
 
-def _tie_candidates(ctx):
-    c = set()
-    for t in ctx.base.value("graph", DC_KEY, "dc_tie_breaks"):
-        c |= set(t.candidates)
-    for t in ctx.base.value("graph", DC_KEY, "dc_current_basis").ties:
-        c |= set(t.candidates)
-    return c
-
-
 @pytest.mark.parametrize("seed", [1, 2])
 @pytest.mark.parametrize("name", NINE)
 def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
@@ -205,16 +196,20 @@ def test_library_renaming_metamorphic(name, seed, tmp_path, toy_access):
                            tuple(sorted(se[k] for k in inputs.linear_devices)), inputs.pending,
                            tuple(sorted(se[k] for k in inputs.engine_elements)))          # [r5] 7번째 칸도 σ 로
     ctx2 = build_kernel_context(build_s1(load_doc(tmp_path, d2), dict(inputs2.supplies_v)), inputs2, toy_access)
-    cand = _tie_candidates(ctx)
-    w1 = {sigma[m] for m, c in ctx.base.column("device", "dc_coord") if c.role == "writer"}
-    w2 = {m for m, c in ctx2.base.column("device", "dc_coord") if c.role == "writer"}
-    inv = {v: k for k, v in sigma.items()}
-    diff = {inv[x] for x in w1 ^ w2}
-    assert diff <= cand, "기록되지 않은 이름 의존 writer 선택: %r" % sorted(diff - cand)
-    k1 = {(k, sigma[key]) for k, key in ctx.schema.components}
-    k2 = set(ctx2.schema.components)
-    diff_k = {inv[key] for _, key in k1 ^ k2}
-    assert diff_k <= cand, "기록되지 않은 이름 의존 θ 키: %r" % sorted(diff_k - cand)
+    # [r11] 3.0b 성질 (7): 이름 대신 정준 위치가 선택을 정하고 TieBreak 기록은 비므로, 비교는 σ 가 아니라 τ(두 사례의 같은 dc_colour 짝) 아래서 한다
+    assert tuple(ctx2.base.value("graph", DC_KEY, "dc_tie_breaks")) == ()
+
+    def tau(c):
+        ec = dict(c.base.column("device", "dc_colour"))
+        nc = dict(c.base.column("node", "dc_colour"))
+        return lambda x: ("d", ec[x]) if x in ec else (("n", nc[x]) if x in nc else ("k", x))
+    t1, t2 = tau(ctx), tau(ctx2)
+    w1 = {t1(m) for m, c in ctx.base.column("device", "dc_coord") if c.role == "writer"}
+    w2 = {t2(m) for m, c in ctx2.base.column("device", "dc_coord") if c.role == "writer"}
+    assert w1 == w2, "정준 대응 아래 writer 선택이 다르다"
+    k1 = {(k, t1(key)) for k, key in ctx.schema.components}
+    k2 = {(k, t2(key)) for k, key in ctx2.schema.components}
+    assert k1 == k2, "정준 대응 아래 θ 키가 다르다"
     # 개수 구조는 항상 같다
     assert len(w1) == len(w2) and len(k1) == len(k2)
     tiers = lambda c: sorted(w.tier for _, w in c.base.column("node", "dc_writer"))   # noqa: E731
