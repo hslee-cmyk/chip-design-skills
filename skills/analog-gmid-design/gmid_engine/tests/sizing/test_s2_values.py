@@ -253,7 +253,8 @@ def test_value_fields_as_contract():
     assert names(S.SealReport) == ("items", "status")
     assert names(S.SealedSnapshot) == ("snapshot", "report")
     assert names(S.DcEvaluation) == ("snapshot", "report", "sealed")
+    # [U1] sizing CONTRACT 13절: KernelContext.l_ties = ((멤버, 주인), ...) 추가(옛 7칸 뒤)
     assert names(S.KernelContext) == ("base", "inputs", "lut", "schema", "fixed_values", "resistor_values",
-                                      "plan_versions")
+                                      "plan_versions", "l_ties")
     assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "linear_devices",
                                  "pending", "engine_elements")                                   # [r5]
