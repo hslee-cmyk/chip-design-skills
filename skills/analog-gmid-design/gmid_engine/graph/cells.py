@@ -3,7 +3,8 @@
 진입점: `classify_cells(model, ground, reach, sense, view_id) -> CellsResult`.
 
 뷰마다 모든 MOS 에 셀 하나를 붙인다(`signal_reach` 의 신호 넷 S·순방향 F 위에서):
-1. gate == drain -> `diode_load`(셀이 아니라 그 노드의 부하 1/gm. 도달성·엣지·거리에는 소자 단위로 그대로 센다).
+1. gate == drain -> `diode_load`(셀이 아니라 그 노드의 부하 1/gm. 도달성·엣지·거리에는 소자 단위로 그대로 센다). 복합 diode 묶음(41 §1.12.1)의 MOS 멤버도
+   `diode_load` 다 -- 묶음 전체가 진입 넷에 걸린 diode 부하 하나(1/gm_eff)이다.
 2. gate ∈ S(신호를 받는 gate):
    * drain 이 교류접지면 CD(출력 = source), source 가 교류접지면 CS(출력 = drain).
    * 둘 다 아니면 source 가 **순방향 위 다른 신호 셀의 입력(그 셀의 gate)이나 출력 포트(감지 넷)** 에 닿는지 본다. 닿으면 CD·CS
@@ -49,7 +50,7 @@ def _signal_cells(model, ground, signal):
     """gate ∈ S 인 소자의 (소자 -> 'CD' | 'CS' | None(모호))."""
     kinds = {}
     for m in model.mos:
-        if m.g == m.d or m.g not in signal:
+        if m.g == m.d or m.name in model.composite_mos or m.g not in signal:
             continue
         if m.d in ground:
             kinds[m.name] = CELL_CD
@@ -113,7 +114,7 @@ def classify_cells(model, ground, reach, sense, view_id):
     out = []
     for m in model.mos:
         degeneration = False
-        if m.g == m.d:
+        if m.g == m.d or m.name in model.composite_mos:
             kind, net = CELL_DIODE_LOAD, ""
         elif m.name in kinds:
             kind = CELL_CS if kinds[m.name] is None else kinds[m.name]

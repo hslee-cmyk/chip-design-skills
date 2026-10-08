@@ -15,6 +15,8 @@
 보상 수동소자(Miller 커패시터 등)가 비용 0 지름길을 만들어 출력 거리를 앞 stage 와 같게 만들 수 있으므로(수동소자 비용 0 은 복귀 경로
 판정용 동률 규칙이다), **stage 번호용 거리 `stage_dist`는 수동소자 엣지를 뺀 같은 BFS** 로 따로 잰다. 블록의 stage 는 `stage_dist` 다.
 
+`StageResult.edges` = 수동소자를 뺀 능동 셀 엣지 (출발, 도착, 비용, 소자 이름 tuple) -- 위 표의 같은 정의를 `feedforward_cells` 가 주경로(D_max·slack, 41 §1.12.2)에 다시 쓴다.
+
 **stage 시작 셀**(순방향 셀만): 입력이 전압 구동인 CS(gate 의 구동 종류), source 가 전압 구동인 CG. 단 (가) DC 역할이 바이어스 전류원인
 셀(측면 주입 K8)과 (나) gate 가 미러 입력 노드인 셀(⑧: 규칙 9 (c) 의 diode 미러 갈래를 stage 시작보다 먼저 적용)은 시작하지 않는다.
 CD 는 stage 를 올리지 않는다(버퍼 구간).
@@ -31,38 +33,42 @@ from .s1v_values import CELL_CD, CELL_CG, CELL_CS, CELL_DIODE_LOAD, DRIVE_VOLTAG
 @dataclasses.dataclass(frozen=True)
 class StageResult:
     """`dist` = 수동소자 엣지를 포함한 (넷, 거리), `stage_dist` = 수동소자 엣지를 뺀 (넷, 거리)(둘 다 이름순, 도달하지 못한 신호 넷은
-    없음), `starts` = stage 시작 셀 이름순."""
+    없음), `starts` = stage 시작 셀 이름순, `edges` = 수동소자를 뺀 능동 셀 엣지 (출발, 도착, 비용, 소자 이름 tuple) 정렬 tuple."""
 
     dist: tuple
     stage_dist: tuple
     starts: tuple
+    edges: tuple = ()
 
 
 def _edges(model, ground, cells, drive, with_passives):
     info = {c.dev: c for c in cells.cells}
     voltage = {d.net for d in drive.drive if d.kind == DRIVE_VOLTAGE}
     edges = {}
+    listing = []
 
-    def add(a, b, cost):
+    def add(a, b, cost, devices=()):
         if a != b and a not in ground and b not in ground:
             edges.setdefault(a, []).append((b, cost))
+            if devices:
+                listing.append((a, b, cost, devices))
 
     for m in model.mos:
         kind = info[m.name].kind
         if kind == CELL_CS:
-            add(m.g, m.d, 0 if m.g in model.diode_nodes else 1)
-            add(m.g, m.s, 0)
+            add(m.g, m.d, 0 if m.g in model.diode_nodes else 1, (m.name,))
+            add(m.g, m.s, 0, (m.name,))
         elif kind in (CELL_CD, CELL_DIODE_LOAD):
-            add(m.g, m.s, 0)
+            add(m.g, m.s, 0, (m.name,))
         elif kind == CELL_CG:
-            add(m.s, m.d, 1 if m.s in voltage else 0)
+            add(m.s, m.d, 1 if m.s in voltage else 0, (m.name,))
     for bundle in cells.bundles:
-        add(bundle.nodes[0], bundle.nodes[1], 0)
-        add(bundle.nodes[1], bundle.nodes[0], 0)
+        add(bundle.nodes[0], bundle.nodes[1], 0, bundle.members)
+        add(bundle.nodes[1], bundle.nodes[0], 0, bundle.members)
     for p in (model.passives if with_passives else ()):
         add(p.a, p.b, 0)
         add(p.b, p.a, 0)
-    return edges
+    return edges, tuple(sorted(listing))
 
 
 def _distances(edges, seeds):
@@ -79,8 +85,9 @@ def _distances(edges, seeds):
 
 def stage_bfs(model, ground, reach, cells, drive, excite):
     seeds = [net for net in excite if net not in ground]
-    dist = _distances(_edges(model, ground, cells, drive, True), seeds)
-    stage_dist = _distances(_edges(model, ground, cells, drive, False), seeds)
+    dist = _distances(_edges(model, ground, cells, drive, True)[0], seeds)
+    active, listing = _edges(model, ground, cells, drive, False)
+    stage_dist = _distances(active, seeds)
     info = {c.dev: c for c in cells.cells}
     voltage = {d.net for d in drive.drive if d.kind == DRIVE_VOLTAGE}
     starts = []
@@ -92,4 +99,4 @@ def stage_bfs(model, ground, reach, cells, drive, excite):
             starts.append(m.name)
         elif cell.kind == CELL_CG and m.s in voltage:
             starts.append(m.name)
-    return StageResult(sorted_items(dist), sorted_items(stage_dist), tuple(starts))
+    return StageResult(sorted_items(dist), sorted_items(stage_dist), tuple(starts), listing)

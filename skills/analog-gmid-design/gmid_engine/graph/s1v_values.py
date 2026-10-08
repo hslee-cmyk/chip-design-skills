@@ -13,14 +13,38 @@ import dataclasses
 # ---- rule_fp 대상: S1v 필드 값을 정하는 graph 파일(이 패키지 안 basename). `s1v_rule_fp` 가 파일 바이트로 지문한다.
 S1V_RULE_FILES = (
     "ac_ground_view.py", "blocks.py", "buffer_bundles.py", "cells.py", "composite_blocks.py", "declared_compare.py",
-    "drive_kind.py", "l_classes.py", "loop_classify.py", "loop_cuts.py", "loops.py", "net_model.py", "node_impedance.py",
-    "output_direction.py", "polarity.py", "pole_nodes.py", "s1v_build.py", "s1v_values.py", "signal_reach.py", "stage_bfs.py",
-    "structure_load.py", "view_analysis.py", "views.py", "virtual_ground.py",
+    "drive_kind.py", "feedforward_cells.py", "l_classes.py", "loop_classify.py", "loop_cuts.py", "loop_roles.py", "loops.py",
+    "net_model.py", "node_impedance.py", "output_direction.py", "polarity.py", "pole_nodes.py", "s1v_build.py", "s1v_values.py",
+    "signal_reach.py", "stage_bfs.py", "structure_load.py", "view_analysis.py", "views.py", "virtual_ground.py",
 )
+# ---- `structure_rule_fp` 대상 = S1V_RULE_FILES 합집합 이 파일들: 사실이 대조하거나 덮어쓰는 값을 만드는 S1 쪽 소비 파일(40 §3.2-3 `rule_hash`)
+STRUCTURE_RULE_EXTRA_FILES = ("composite_diode.py", "dc_roles.py", "gs_groups.py", "matching_groups.py")
+# ---- structure.json (40 §3.2-3): 형식 버전, concept 닫힌 어휘, 값 어휘
+STRUCTURE_SCHEMA_VERSION = "1"
 CONCEPT_DRIVE_KIND = "drive_kind"
+CONCEPT_STAGE_MEMBERS = "stage_members"
+CONCEPT_DC_ROLE = "dc_role"
+CONCEPT_LOOP_ROLE = "loop_role"
+CONCEPT_FEEDFORWARD_CELL = "feedforward_cell"
+CONCEPT_AC_GROUND_EXCEPTION = "ac_ground_exception"
+CONCEPT_MATCHING_PAIR = "matching_pair"
+CONCEPTS = (CONCEPT_DRIVE_KIND, CONCEPT_STAGE_MEMBERS, CONCEPT_DC_ROLE, CONCEPT_LOOP_ROLE, CONCEPT_FEEDFORWARD_CELL,
+            CONCEPT_AC_GROUND_EXCEPTION, CONCEPT_MATCHING_PAIR)
+FF_ARROW = "->"                     # `feedforward_cell` 값 `<종류>:<탭>-><merge>` 의 탭·merge 구분(넷 이름에 들어 있으면 로드 거부)
+FF_SEPARATOR = ":"
+FF_CELL = "ff"
+FF_BIAS = "ff_bias"
+FF_LOAD = "ff_load"
+FF_KINDS = (FF_CELL, FF_BIAS, FF_LOAD)
+MATCH_PAIR_VALUE = "branch_symmetric"
 # ---- 뷰 종류
 VIEW_TRANSFER = "transfer"
 VIEW_LOOP = "loop"
+# ---- 뷰 씨앗 출처(`collect_views` 가 `ViewSeed.source` 에 쓴다)와 spec metric 이름(authoring/metrics 카탈로그와 같은 값 -- graph 는 그 패키지를 import 할 수 없다)
+VIEW_SOURCE_DEFAULT = "default_port_view"
+VIEW_SOURCE_DECLARED = "spec_constraint_view"
+METRIC_PM_SS = "pm_ss_deg"            # 전체 안정도(루프) 제약 -- 중첩 Miller 내부 루프를 덮는다(41 §1.12.3)
+METRIC_GAIN_SS = "gain_ss_db"         # gain 제약 전달 뷰 -- L 동치류 주인 규칙 main_path_signal 이 읽는다(41 §1.12.5)
 # ---- 쌍(둘)의 크기: pass 묶음의 정·역방향 소자, 기모드 여기의 두 넷, 능동 셀 둘
 PAIR = ("first", "second")
 # ---- spec 제약 뷰 mode 어휘(authoring ViewDecl.mode 와 같은 값)와 입력 포트 role(authoring `ports.ROLE_*` 와 같은 값 --
@@ -92,6 +116,9 @@ PORT_ROLE_DIFF_OUT_P = "differential_output_p"
 PORT_ROLE_DIFF_OUT_N = "differential_output_n"
 SEVERITY_INFO = "info"
 LOOP_LOCAL_FEEDBACK = "local_feedback"
+LOOP_COMPOSITE_INTERNAL = "composite_diode_internal"     # (1.6) 복합 diode 묶음 안 DC 국소 루프(41 §1.12.1-3), 루프 뷰 없음
+LOOP_COMPENSATION_INTERNAL = "compensation_internal"     # 중첩 Miller 내부 루프(41 §1.12.3), 루프 뷰 없음, 안정도는 T 의 pm_ss_deg
+LOOP_ROLES = (LOOP_VIEW, LOOP_COMPENSATION_INTERNAL, LOOP_COMPOSITE_INTERNAL, LOOP_BIAS_SCC)   # `loop_role` 사실 값 어휘
 # ---- 루프 엣지 종류(41 §1.8)
 EDGE_GATE_DRAIN = "gate_drain"
 EDGE_GATE_SOURCE = "gate_source"
@@ -122,6 +149,7 @@ F_LOOP_NO_CUT = "loop_no_cut_candidate"
 F_LOOP_POLARITY = "loop_polarity_undefined"
 F_LOOP_3A = "loop_active_cell_off_forward"
 F_UNDECLARED_LOOP = "undeclared_loop_constraint"
+F_LOOP_CUT_UNMATCHED = "loop_cut_unmatched"
 F_CM_LOOP_UNCONSTRAINED = "cm_loop_unconstrained"
 F_DECLARED_MISMATCH = "declared_stage_mismatch"
 F_UNSUPPORTED_VIEW = "unsupported_view"
@@ -129,6 +157,14 @@ F_VIEW_REQUIRED = "view_required"
 F_STRUCTURE_STALE = "structure_fact_stale"
 F_DC_ROLE_UNRESOLVED = "dc_role_unresolved_group"
 F_L_CLASS_SPLIT = "l_class_conflict"
+F_FACT_MISMATCH = "structure_fact_mismatch"
+F_FACT_ORPHAN = "structure_fact_orphan"
+F_LOOP_POLARITY_CONFLICT = "loop_polarity_conflict"
+F_LOOP_POLARITY_AC_ONLY = "loop_polarity_ac_only"
+F_COMPOSITE_INTERNAL = "composite_diode_internal"
+F_MAIN_PATH_AMBIGUOUS = "main_path_ambiguous"
+F_L_OWNER_NAME_ORDER = "l_owner_name_order"
+REASON_COMPENSATION_NEEDS_PM = "compensation_internal_needs_overall_pm"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -160,7 +196,9 @@ class NetModel:
     {넷: TwoTerm tuple}, `mos_by_name` = {이름: Mos}(모두 읽기 전용 매핑, 값 tuple 은 이름순).
 
     `inputs`·`outputs` = (넷, role) 정렬 tuple. `static_ground` = S1 `ac_ground_class` 가 None 이 아닌 넷.
-    `diode_nodes` = gate == drain 인 MOS 의 그 넷(diode 연결 단자, AC 1/gm 노드)."""
+    `diode_nodes` = gate == drain 인 MOS 의 그 넷(diode 연결 단자, AC 1/gm 노드) ∪ 복합 diode 소자의 gate 넷(41 §1.12.1),
+    `composite_mos` = 복합 diode 묶음의 MOS 멤버 이름(셀 분류에서 diode_load), `composite_bundles` = 묶음 멤버(MOS·수동소자 이름) frozenset 의 tuple(루프 (1.6)),
+    `composite_internal` = 묶음 멤버의 단자만 닿는 넷(묶음 내부 노드 -- 구동 종류 판정 대상이 아니다, 41 §1.12.1-2)."""
 
     mos: tuple
     passives: tuple
@@ -176,6 +214,9 @@ class NetModel:
     by_passive: object
     mos_by_name: object
     diode_nodes: frozenset
+    composite_mos: frozenset = frozenset()
+    composite_bundles: tuple = ()
+    composite_internal: frozenset = frozenset()
 
 
 @dataclasses.dataclass(frozen=True)
@@ -321,8 +362,8 @@ class LoopEdge:
 @dataclasses.dataclass(frozen=True)
 class Loop:
     """루프 하나. `nodes` = 사이클 노드 열(이름 정렬 첫 노드에서 시작), `devices` = 지나는 소자 이름 열, `classes` = 분류 tuple
-    (둘 이상이면 모두 단다), `cut` = 끊는 점(소자, 게이트 넷) 또는 빈 tuple, `polarity` ∈ {-1, 1, 0}(0 = 미정의),
-    `cm_pair` = 선언된 차동 출력 포트쌍 대응 여부."""
+    (둘 이상이면 모두 단다), `cut` = 끊는 점(소자, 게이트 넷) 또는 빈 tuple, `polarity` ∈ {-1, 1, 0}(커패시터를 지나는 사이클은 0 = `ac_only`),
+    `cm_pair` = 선언된 차동 출력 포트쌍 대응 여부, `ac_only` = 커패시터를 지나 DC 극성이 없는 사이클(41 §1.12.4)."""
 
     nodes: tuple
     devices: tuple
@@ -330,6 +371,7 @@ class Loop:
     cut: tuple
     polarity: int
     cm_pair: bool
+    ac_only: bool = False
 
 
 @dataclasses.dataclass(frozen=True)
@@ -341,7 +383,11 @@ class ViewS1v:
     `signal_nets`·`forward_nets` = 축약 뷰의 신호 넷·순방향 넷, `cells`·`pass_bundles`·`drive_kind`·`dist`(수동소자 포함 거리)·`stage_dist`
     (stage 번호용)·`stage_starts`·`mirror_inputs` = 축약 뷰 기준, `blocks`(이득·버퍼·복합)·`composites`·`pole_nodes`·`output_direction`,
     `loops`·`cuts` = 비축약 뷰 기준(루프는 가상접지를 지나는 되먹임까지 센다), `cm_pair` = 루프 뷰가 선언된 차동 출력 포트쌍을 모두 지나는가(R31), `unreduced_diff` = 축약과 비축약에서 셀 판독이 달라지는
-    소자 ((소자 이름, (축약 뷰 셀 kind, forward), (비축약 뷰 셀 kind, forward)), ...) 이름순(둘 중 한쪽이 순방향일 때만)(가상접지가 없으면 빈 tuple), `findings` = 이 뷰의 기록."""
+    소자 ((소자 이름, (축약 뷰 셀 kind, forward), (비축약 뷰 셀 kind, forward)), ...) 이름순(둘 중 한쪽이 순방향일 때만)(가상접지가 없으면 빈 tuple), `findings` = 이 뷰의 기록.
+
+    J 공동분석 필드(41 §1.12, 모두 기본값 있음): `main_path` = 주경로 셀 이름순(§1.12.2, 전달 뷰만; 루프 뷰는 빈 tuple), `feedforward` = `FeedforwardCell` 목록,
+    `ff_ratio_candidates` = `FfRatioCandidate` 목록, `loop_roles` = 이 전달 뷰의 `LoopRole` 목록, `polarity` = 루프 뷰의 극성(그 뷰의 DC 사이클 극성, §1.12.4,
+    루프 뷰 아니면 0), `compensation_candidates` = `ac_only` 사이클의 수동소자 이름(GB5 보상 후보), `ac_ground_exceptions` = 이 뷰에 적용한 `ac_ground_exception` 넷."""
 
     id: str
     kind: str
@@ -369,13 +415,63 @@ class ViewS1v:
     cm_pair: bool
     unreduced_diff: tuple
     findings: tuple
+    main_path: tuple = ()
+    feedforward: tuple = ()
+    ff_ratio_candidates: tuple = ()
+    loop_roles: tuple = ()
+    polarity: int = 0
+    compensation_candidates: tuple = ()
+    ac_ground_exceptions: tuple = ()
+
+
+@dataclasses.dataclass(frozen=True)
+class LoopRole:
+    """루프 하나의 역할(41 §1.12). `loop_id` = 루프 뷰면 `loop:<끊는 소자>:<끊는 넷>`, 아니면 사이클 노드 이름 열(이름 정렬 첫 노드에서 시작)의 JSON 배열 텍스트,
+    `role` ∈ LOOP_ROLES, `view` = 판정한 전달 뷰 id, `reason` = 근거 문자열(없으면 빈 문자열), `status` ∈ {derived, ratified}(`loop_role` 사실이 일치하면 ratified),
+    `approval_id` = 그 사실의 승인 기록 id(ratified 일 때)."""
+
+    loop_id: str
+    role: str
+    view: str
+    reason: str = ""
+    status: str = "derived"
+    approval_id: str = ""
+
+
+@dataclasses.dataclass(frozen=True)
+class FeedforwardCell:
+    """feedforward 묶음 하나(41 §1.12.2). `id` = `<탭>-><merge>`, `tap` = 닿은 주경로 넷, `merge` = 합류 노드(주경로 블록 출력노드), `cells` = 신호 셀 이름순,
+    `bias_cells` = 묶음 내부 넷에 drain 이 붙은 바이어스 전류원, `load_cells` = 같은 넷의 diode 부하, `bypassed_blocks` = 우회한 주경로 블록 키(앞 stage 부터),
+    `sign` = 탭에서 merge 까지 경로 셀 부호의 곱(CS -1, 그 밖 +1; 경로가 모순이면 0), `status` ∈ {derived, ratified}(묶음의 모든 소자에 `feedforward_cell` 사실이
+    일치하면 ratified), `approval_id` = 그 사실들의 승인 기록 id(정렬, `,` 로 이음; ratified 일 때)."""
+
+    id: str
+    tap: str
+    merge: str
+    cells: tuple
+    bias_cells: tuple
+    load_cells: tuple
+    bypassed_blocks: tuple
+    sign: int
+    status: str = "derived"
+    approval_id: str = ""
+
+
+@dataclasses.dataclass(frozen=True)
+class FfRatioCandidate:
+    """영점 상쇄 비율 제약 후보(41 §1.12.2-5): `ff` = FeedforwardCell id, `bypassed_block` = 처음 우회한 블록 키, `relation` = 관계 문자열, `source` = 문헌 출처."""
+
+    ff: str
+    bypassed_block: tuple
+    relation: str
+    source: str
 
 
 @dataclasses.dataclass(frozen=True)
 class LClass:
     """L 동치류 하나(40 §3.2 보완 1, LR1): 멤버, 주인 소자, 주인 선택 근거 규칙 이름, status.
     `owner_rule` ∈ {tail_owner(동치류에 tail 하나), tail_first_gain_stage(tail 여럿 -> 첫 전달 뷰 최전단 stage), current_source_member(tail 없음 -> diode 기준
-    멤버), name_order(그 밖 -> 이름 정렬 첫 멤버)}."""
+    멤버, 복합 diode 포함), main_path_signal(멤버 중 gain 제약 전달 뷰의 주경로 stage 시작 셀, 41 §1.12.5), name_order(그 밖 -> 이름 정렬 첫 멤버, review_needed)}."""
 
     members: tuple
     owner: str
@@ -396,6 +492,11 @@ class S1v:
     findings: tuple
     declared: tuple
     facts_applied: tuple
+
+    @property
+    def loop_roles(self):
+        """전달 뷰들의 `LoopRole` 전부(뷰 순서, 중복 제거 없음)."""
+        return tuple(r for v in self.views for r in v.loop_roles)
 
     @property
     def all_findings(self):

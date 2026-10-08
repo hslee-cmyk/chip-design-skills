@@ -9,6 +9,11 @@ oracle (a):
   정지가 아니다. 각 코드를 일으키는 손 회로는 해당 test 파일의 손 유도를 따른다.
 - 이름 전단사·순서 섞기(불변량 2): 모든 구조 필드가 사상으로만 바뀐다. 예외 = 이름 tie-break 인 L 동치류 주인(owner_rule 이
   이름 순)·전달 뷰 순번.
+
+[U1b 2026-10-09] oracle (d) 40 3.2-3 소비 방식: confirm 사실은 유도 값과 같으면 그 유도 레코드 status ratified + approval_id, 다르면
+`structure_fact_mismatch`(review_needed), 엔진이 그 대상을 만들지 않았으면 `structure_fact_orphan`(review_needed). override 사실은
+`applied_facts`(S1v.facts_applied)에 남는다. sf 의 `composite_dag_not_chain` 정지는 41 1.13 sf 행('composite_dag_not_chain·
+record_only·혼재 8건 해소', 복합 diode 미러 인식 1.12.1-2)으로 사라져 정지하지 않는 쪽으로 바꿨다.
 """
 from __future__ import annotations
 
@@ -75,12 +80,15 @@ def test_invariant8_record_only_code_stops_by_default(tmp_path, doc, code, kw):
     assert len(d["findings"]) == len(diag.unsupported)
 
 
-def test_library_composite_dag_not_chain_stops():
-    # sf_pushpull_output_opamp: 복합 블록 후보가 여럿이라 묶은 DAG 가 사슬이 아니다(계약 10.3 불변량 8 목록의 composite_dag_not_chain)
-    _, diag = H.build_lib("sf_pushpull_output_opamp")
-    assert "composite_dag_not_chain" in [f.code for f in diag.unsupported]
-    with pytest.raises(StructureUnresolvedError):
-        H.build_lib("sf_pushpull_output_opamp", stop_on_unsupported=True)
+def test_library_sf_no_longer_stops_after_j_rules():
+    # [U1b] 41 1.13 sf 행: 복합 diode(1.12.1) 미러 인식으로 이득 블록 {Y} 하나 + 버퍼 블록 {vout}, composite_dag_not_chain·
+    # record_only·혼재 정지가 사라진다 -> 기본 모드(stop_on_unsupported=True)에서도 정지하지 않는다
+    _, s1v = H.build_lib("sf_pushpull_output_opamp", stop_on_unsupported=True)
+    assert s1v.unsupported == ()
+    codes = H.all_codes(s1v)
+    for gone in ("composite_dag_not_chain", "loop_record_only", "mixed_drive_unresolved_group", "composite_block_pending_ratify"):
+        assert gone not in codes
+    assert {b.key: b.kind for b in H.view(s1v).blocks} == {("Y",): "gain", ("vout",): "buffer"}
 
 
 def test_clean_circuits_do_not_stop(tmp_path):
@@ -146,3 +154,97 @@ def test_invariant2_rename_and_shuffle(tmp_path, doc):
     for owner in must_follow.get(doc["topology_name"], ()):
         lc = next(c for c in base.l_classes if c.owner == owner)
         assert moved_owner[frozenset(map(dm.get, lc.members))] == dm[owner]
+
+
+# ------------------------------------------------------------------ [U1b] structure.json 사실 소비(40 3.2-3 '소비 방식')
+import jrules_hand as J  # noqa: E402
+
+
+def _lib_facts(name, *rows):
+    st = J.facts(*rows)
+    from gmid_engine.authoring import load_topology
+    from gmid_engine.graph import build_s1
+    s1 = build_s1(load_topology(str(H.LIBRARY / (name + ".topology.json"))), H.lib_supplies(name), structure=st)
+    return build_s1v(s1, None, count_budget=H.BIG_BUDGET, stop_on_unsupported=False, structure=st)
+
+
+def _review(s1v, code):
+    return sorted((f.subject, f.severity) for f in s1v.findings if f.code == code)
+
+
+def test_loop_role_confirm_ratifies():
+    # 40 3.2-3 사실 표 ngcc `loop_role` loop:M8:V1 = compensation_internal(confirm) -- 유도(41 1.12.3)와 같다 -> ratified + approval_id
+    s1v = _lib_facts("ngcc_3stage_ff", ("loop_role", "loop:M8:V1", "compensation_internal", "B-5"))
+    roles = [(r.loop_id, r.role, r.status, r.approval_id) for v in s1v.views for r in v.loop_roles]
+    assert roles == [("loop:M8:V1", "compensation_internal", "ratified", "B-5")]
+    assert ("loop_role", "loop:M8:V1") in s1v.facts_applied
+    assert _review(s1v, "structure_fact_mismatch") == [] and _review(s1v, "structure_fact_orphan") == []
+
+
+def test_feedforward_cell_confirm_ratifies_whole_bundle():
+    # 40 3.2-3 사실 표 ngcc `feedforward_cell`(confirm): FF1 = M6B·M7 ff, M6A ff_load, M5 ff_bias (탭 ND, merge Vout), FF2 = M14 ff
+    # (탭 V1). 묶음의 모든 소자에 일치 사실이 있으면 그 FeedforwardCell 이 ratified(계약 10.6)
+    s1v = _lib_facts("ngcc_3stage_ff", ("feedforward_cell", "M6B", "ff:ND->Vout", "A-5"), ("feedforward_cell", "M7", "ff:ND->Vout", "A-5"),
+                     ("feedforward_cell", "M6A", "ff_load:ND->Vout", "A-5"), ("feedforward_cell", "M5", "ff_bias:ND->Vout", "A-5"),
+                     ("feedforward_cell", "M14", "ff:V1->Vout", "A-6"))
+    got = {(c.tap, c.merge): (c.status, c.approval_id) for v in s1v.views for c in v.feedforward}
+    assert got == {("ND", "Vout"): ("ratified", "A-5"), ("V1", "Vout"): ("ratified", "A-6")}
+    assert _review(s1v, "structure_fact_mismatch") == [] and _review(s1v, "structure_fact_orphan") == []
+
+
+def test_partial_feedforward_confirm_does_not_ratify_bundle():
+    # 묶음 소자 일부(M7)에만 사실 -> 그 묶음은 derived 그대로(계약 10.6 '묶음의 모든 소자에 일치하는 사실이 있을 때')
+    s1v = _lib_facts("ngcc_3stage_ff", ("feedforward_cell", "M7", "ff:ND->Vout", "A-5"))
+    got = {(c.tap, c.merge): c.status for v in s1v.views for c in v.feedforward}
+    assert got == {("ND", "Vout"): "derived", ("V1", "Vout"): "derived"}
+
+
+@pytest.mark.parametrize("row,subject", [
+    (("loop_role", "loop:M8:V1", "loop_view", "C-1"), ("loop:M8:V1",)),                 # 유도 = compensation_internal
+    (("feedforward_cell", "M14", "ff:ND->Vout", "C-2"), ("M14",)),                       # 유도 = ff:V1->Vout
+    (("feedforward_cell", "M5", "ff_load:ND->Vout", "C-3"), ("M5",)),                    # 유도 = ff_bias
+])
+def test_confirm_mismatch_is_review_needed(row, subject):
+    s1v = _lib_facts("ngcc_3stage_ff", row)
+    assert (subject, "review_needed") in _review(s1v, "structure_fact_mismatch")
+    # 유도 값은 그대로(사실이 덮지 않는다)
+    roles = {r.loop_id: (r.role, r.status) for v in s1v.views for r in v.loop_roles}
+    assert roles == {"loop:M8:V1": ("compensation_internal", "derived")}
+
+
+@pytest.mark.parametrize("row,subject", [
+    (("loop_role", "loop:M99:V1", "loop_view", "D-1"), ("loop:M99:V1",)),               # 그런 루프 없음
+    (("feedforward_cell", "M12", "ff:V1->Vout", "D-2"), ("M12",)),                       # M12 는 FF 묶음 소자가 아님
+    (("dc_role", "Mzz", "signal", "D-3"), ("Mzz",)),                                    # 그런 소자 없음
+    (("drive_kind", "no_such_net", "voltage", "D-4"), ("no_such_net",)),                # topology 에 없는 넷
+    (("ac_ground_exception", "V2", "loop:M1:X", "D-5"), ("V2",)),                       # 그런 뷰 없음
+    (("matching_pair", '["M5","Mq"]', "branch_symmetric", "D-6"), ('["M5","Mq"]',)),    # 멤버 Mq 없음
+])
+def test_fact_about_missing_subject_is_orphan(row, subject):
+    s1v = _lib_facts("ngcc_3stage_ff", row)
+    assert _review(s1v, "structure_fact_orphan") == [(subject, "review_needed")]
+    assert s1v.facts_applied == ()
+
+
+def test_dc_role_override_resolves_unresolved_group_review():
+    # 41 1.11 ③ / 1.13: ngcc {M8, M14} 는 기준 없는 그룹 -> 사실이 없으면 dc_role_unresolved_group(review_needed, 그룹 단위),
+    # override 사실(40 3.2-3 표, M8·M14 = signal)이 있으면 사라지고 L 동치류 {M8, M14} 도 derived(주인 M8 main_path_signal)
+    plain = _lib_facts("ngcc_3stage_ff")
+    assert _review(plain, "dc_role_unresolved_group") == [(("M14", "M8"), "review_needed")]
+    fixed = _lib_facts("ngcc_3stage_ff", ("dc_role", "M8", "signal", "A-8"), ("dc_role", "M14", "signal", "A-14"))
+    assert _review(fixed, "dc_role_unresolved_group") == []
+    assert {("dc_role", "M8"), ("dc_role", "M14")} <= set(fixed.facts_applied)
+    lc = {c.members: (c.owner, c.owner_rule, c.status) for c in fixed.l_classes}
+    assert lc[("M14", "M8")] == ("M8", "main_path_signal", "derived")
+
+
+@pytest.mark.parametrize("doc", [J.FF3, J.NMC3, J.SFLOAD, J.FDIFF, J.POL_AC], ids=lambda d: d["topology_name"])
+def test_invariant2_rename_on_u1b_toys(tmp_path, doc):
+    # 41 1.11 불변식을 U1b 손 회로에도 건다(필드 표현은 위 _canon 재사용 -- 셀·블록·루프·극성·기록 코드)
+    nm, dm = _bijection(doc)
+    _, base = H.build(tmp_path, doc, stem="base")
+    _, moved = H.build(tmp_path, H.rename(doc, nm, dm, seed=11), stem="moved",
+                       supplies={nm[r]: v for r, v in H.SUPPLIES.items()})
+    assert _canon(base, nm, dm) == _canon(moved, {}, {})
+    roles = lambda s1v, n, d: {(r.role, r.view.split(":")[0]) for v in s1v.views for r in v.loop_roles}  # noqa: E731
+    assert roles(base, nm, dm) == roles(moved, {}, {})

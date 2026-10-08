@@ -1,10 +1,13 @@
 """루프 분류 (설계 41 §1.8 '분류', 계획 N3.2-2 (0)~(4)).
 
-진입점: `classify_loops(cycles, forward, cells, dist, view_id) -> ClassifiedLoops`.
+진입점: `classify_loops(cycles, forward, cells, dist, view_id, bundles=()) -> ClassifiedLoops`.
 
 사이클마다 **앞 번호에 해당하면 뒤 번호는 보지 않는 순서**로 판정한다 (자기 엣지 (0)은 열거에서 이미 제외, 교류접지·여기 포트를 지나는 경로 (1)도 그래프에서
 제외됐다):
 * (1.5) **바이어스 SCC**: 사이클의 노드가 이 뷰 순방향 집합 F 에 하나도 없다. 루프 뷰를 만들지 않고 DC 루프로만 기록한다.
+* (1.6) **복합 diode 내부**(41 §1.12.1-3): 사이클의 모든 원소(엣지의 MOS·수동소자)가 `bundles`(복합 diode 묶음 멤버 집합들) 중 하나 안에 있다. DC 국소 루프로
+  기록하고(info `composite_diode_internal`) 루프 뷰를 만들지 않는다. 이 규칙이 (3-b) 배타 (나)·'국소 되먹임 조건 발동 0' 보류를 닫는다 -- (나)는 묶음 **밖**의
+  2능동셀 루프에만 남는다.
 * (2) **Miller형**: 사이클 안에 **커패시터를 포함한 수동소자만의 극대 구간**이 있고 그 구간의 양 끝 노드가 모두 F 위다. 복귀 경로 거리에 의존하지
   않는다. (3-b)도 만족하면 **둘 다** 단다.
 * (3-a) 어느 순방향 경로에도 없는 능동 셀(셀이 CS·CG·CD 인데 순방향이 아님)을 포함: library 발동 0 이라 만나면 `loop_active_cell_off_forward`
@@ -26,11 +29,14 @@ from .s1v_values import (
     EDGE_PASS,
     F_LOOP_3A,
     F_LOOP_RECORD_ONLY,
+    F_COMPOSITE_INTERNAL,
     LOOP_BIAS_SCC,
+    LOOP_COMPOSITE_INTERNAL,
     LOOP_MILLER,
     LOOP_RECORD_ONLY,
     LOOP_VIEW,
     PASSIVE_EDGES,
+    SEVERITY_INFO,
     SEVERITY_REVIEW,
     SEVERITY_UNSUPPORTED,
     Finding,
@@ -110,7 +116,15 @@ def _three_b(cycle, dist):
     return qualified, two_active and not qualified
 
 
-def classify_loops(cycles, forward, cells, dist, view_id):
+def _elements(cycle):
+    """사이클을 지나는 소자 이름 집합(MOS·pass 묶음 멤버·수동소자)."""
+    names = set()
+    for e in cycle:
+        names.update(e.element if e.etype == EDGE_PASS else (e.element,))
+    return names
+
+
+def classify_loops(cycles, forward, cells, dist, view_id, bundles=()):
     kind = {c.dev: (c.kind, c.forward) for c in cells.cells}
     entries = []
     findings = []
@@ -118,6 +132,11 @@ def classify_loops(cycles, forward, cells, dist, view_id):
         nodes = {e.src for e in cycle}
         if not nodes & forward:
             entries.append(((LOOP_BIAS_SCC,), ""))
+            continue
+        if any(_elements(cycle) <= bundle for bundle in bundles):
+            entries.append(((LOOP_COMPOSITE_INTERNAL,), ""))
+            findings.append(Finding(F_COMPOSITE_INTERNAL, SEVERITY_INFO, view_id, tuple(sorted(nodes)),
+                                    "복합 diode 묶음 안의 DC 국소 루프(루프 뷰 없음)", ("41 §1.12.1", "N3.2-2")))
             continue
         classes = []
         reason = ""

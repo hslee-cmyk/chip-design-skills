@@ -12,6 +12,7 @@
   묶음 크기 Π(= 격자 곱)는 LUT 축이 필요한 U9 몫이다 -- 여기서는 밑(`cells`)만 기록한다.
 * J12 ratify 전에는 검증 발동 0 이라 모든 복합 블록은 `review_needed`(`composite_block_pending_ratify`, DEC-59 안전망)로 남는다.
 묶음 뒤 `blocks` 는 복합 블록이 멤버를 대체한 목록(kind composite)이다.
+**feedforward 합류는 복합 블록이 아니다**(41 §1.12.2-3, U1b): `view_analysis` 가 feedforward 묶음 소자를 뺀 모형에서 블록을 다시 구성하므로 이 함수는 FF 합류를 보지 않는다(경로 기여로 다룬다, 하류 단위).
 """
 import dataclasses
 
