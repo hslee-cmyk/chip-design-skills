@@ -619,6 +619,8 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
   끊는 점 = 복귀 구간 다음 첫 CS gate 후보 중 뷰 안 루프에서 가장 많이 나타나는 것(이름 전단사 불변). 극성 = CS gate->drain 반전 곱, 커패시터 경유 0(`ac_only`, [U1b] 10.6).
   포트쌍 CM 루프 대응(R31): 루프 뷰의 루프 노드가 차동 출력 포트쌍 두 넷을 모두 포함하면 `cm_pair`, 기록은 `cm_loop_unconstrained`(info). 그 밖의 루프 뷰는
   `declared_loop_cuts` 에 gate 넷이 없으면 `undeclared_loop_constraint`(기록만).
+  **선언 끊는 넷 = 엔진 루프 뷰의 끊는 gate 넷**(U1b-jrules 결정): spec 루프 뷰 선언의 `cuts` 는 입력 포트가 아니라 엔진 루프 뷰 `cuts[*][1]`(단계 A 보고서 `views[]` 에 나오는 끊는 gate 넷)를 가리켜야 한다.
+  단계 A(`pipeline.stage_a`)가 `declared_loop_cuts` 를 엔진 루프 뷰 끊는 넷 집합과 대조해 어느 뷰에도 맞지 않은 선언 넷마다 `loop_cut_unmatched`(review_needed, 뷰 "", subject = 그 넷)를 보고서 `review_needed` 에 올린다(`build_s1v` 결과 `S1v` 에는 넣지 않는다) -- 맞지 않는 선언이 조용히 무동작이 되지 않게 한다.
 * **L 동치류**: `S1v.l_classes` = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준(복합 diode 포함) -> [U1b] `main_path_signal` -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
   review_needed. S1 의 `rel_l_class` 필드는 proposed 그대로다(소비자는 S1v 를 읽는다).
 * **declared 대조**: `declared` = ((출처, (소자 이름 tuple, ...)), ...) 를 첫 전달 뷰 블록과 대조해 불일치를 `declared_stage_mismatch`(review_needed). 유도의 입력이 아니다(U-50).
@@ -654,6 +656,7 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 
 * `Block.kind` ∈ {gain, buffer, composite}. AC 역할 ∈ {input, cascode, mirror, diode_load, pass, follower, tail_source, load}(계획 N3.2-6 의 input·cascode·follower·pass·load·tail 에
   mirror·diode_load 를 load 의 세분으로 더함. 계획의 `tail` 은 값 `tail_source` 로 쓴다 -- 문자열 `tail` 은 library 넷 이름과 같아 구조 규칙 E 가 코드 리터럴로 거부한다).
+* [U1b-jrules] 블록 구성: 복합 diode 묶음 내부 gate 넷(미러 입력)을 읽는 셀은 묶음 진입 넷을 소유한 블록의 멤버로 이어지고(`blocks._owner_of`), 그 미러 출력 넷이 낮은 임피던스(다른 셀이 구동하는 팔로워 출력 등)이면 측면 주입(K8)이라 이어지지 않는다. 다른 stage 블록이 겹친 넷을 한 블록 멤버가 입력으로 읽으면 내부 노드 측면 주입이라 읽는 블록에 합친다(`_absorb_side_injections`). FF 합류 노드는 주경로 셀을 멤버로 가진 블록의 출력노드만이다. L 주인 `name_order` 동률이 한 자기동형 궤도(`automorphism_orbits`, S1 구조만)이면 review 를 올리지 않는다(status derived).
 * `LClass.owner_rule` ∈ {tail_owner, tail_first_gain_stage, current_source_member, main_path_signal [U1b], name_order}. `OutputDirection.topology` ∈ {push_pull, class_a, none}(none = 어느 방향도 σ 셀 없음).
   `DriveInfo.basis` 13종은 `s1v_values.py` `BASIS_*`. `ViewS1v.unreduced_diff` = ((소자, (축약 kind, forward), (비축약 kind, forward)), ...). `S1v.key` 는 7원소(마지막 = declared_loop_cuts 지문).
   `S1v.views` 순서 = 전달 뷰(순번 순) 다음 루프 뷰(끊는 점 정렬 순).

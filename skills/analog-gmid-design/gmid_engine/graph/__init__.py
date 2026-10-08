@@ -138,6 +138,8 @@ from .s1_values import (
 from .s1v_values import (
     S1V_RULE_FILES,
     SPEC_VIEW_LOOP,
+    F_LOOP_CUT_UNMATCHED,
+    SEVERITY_REVIEW,
     S1v,
     ViewS1v,
     ViewSeed,
@@ -287,6 +289,8 @@ __all__ = (
     "structure_tables",
     "S1V_RULE_FILES",
     "SPEC_VIEW_LOOP",
+    "F_LOOP_CUT_UNMATCHED",
+    "SEVERITY_REVIEW",
     "S1v",
     "ViewS1v",
     "ViewSeed",

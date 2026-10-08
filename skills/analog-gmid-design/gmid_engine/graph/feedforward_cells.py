@@ -8,7 +8,7 @@
 **주경로**: G_f = 순방향 능동 셀 엣지(수동소자 제외)의 그래프. SCC 는 응축한다. D_max(n) = 여기에서 n 까지의 **최대** 비용(지나는 stage 시작 수의 최댓값; 0-1 BFS 의 최소와 다른
 양). slack(e = u->v) = D_max(v) - D_max(u) - cost(e) >= 0. **주경로 셀** = 여기에서 감지까지 slack 0 엣지만으로 이어진 경로 위의 셀.
 
-**feedforward 묶음**: 주경로 밖 신호 셀 c 가 주경로 넷 m 으로 들어가는 엣지(slack > 0)이고 m 이 주경로 **블록 출력노드**이면(측면 주입 K8 과의 구분), c 에서 거꾸로 주경로
+**feedforward 묶음**: 주경로 밖 신호 셀 c 가 주경로 넷 m 으로 들어가는 엣지(slack > 0)이고 m 이 주경로 **블록 출력노드**이면(측면 주입 K8 과의 구분; **주경로 셀을 멤버로 가진 블록**의 출력노드만 센다), c 에서 거꾸로 주경로
 넷(탭)에 닿을 때까지의 비주경로 신호 셀 전부가 묶음이다. 묶음 내부 넷에 drain 이 붙은 바이어스 전류원(`bias_cells`)과 diode 부하(`load_cells`)를 함께 묶는다.
 **우회 조건**: 탭에서 m 까지 slack 0 경로가 지나는 블록 출력노드 중 묶음이 지나지 않는 것이 하나 이상 있어야 한다(없으면 FF 가 아니고 §1.7 병렬 합류로 처리). 산출은 탭마다
 `FeedforwardCell(id=<탭>-><merge>, tap, merge, cells, bias_cells, load_cells, bypassed_blocks(우회한 블록 키, 앞 stage 부터), sign)`.
@@ -190,7 +190,9 @@ def feedforward_cells(model, view, blocks, cells, stage):
     on_path = _reach([n for n in excite if n in nodes], forward) & _reach([n for n in sense if n in nodes], backward)
     main_edges = tuple(e for e in zero if e[0] in on_path and e[1] in on_path)
     main_cells = {name for e in main_edges for name in e[3]}
-    outputs = {net: b for b in blocks.blocks for net in b.outputs}
+    # 합류 노드는 **주경로 블록**(주경로 셀을 멤버로 가진 블록)의 출력노드여야 한다 -- 주경로 밖 신호 셀이 스스로 연 블록의 출력은 합류 후보가 아니고, 주경로 블록 내부 노드로
+    # 들어오는 주입은 측면 주입(K8)이다(41 §1.12.2-2).
+    outputs = {net: b for b in blocks.blocks if main_cells & {name for name, _ in b.roles} for net in b.outputs}
     internal = {}
     entries = []
     for edge in edges:

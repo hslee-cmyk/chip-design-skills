@@ -11,6 +11,7 @@ ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 
 * 순서 [U1b, 40 §3.2-3]: A1 `load_topology`·`load_sizing_spec` -> `load_structure_facts`(topology_hash = `doc.connectivity_fp`, rule_hash = `structure_rule_fp()`, `net_names` = topology 의 모든 넷;
   `build_s1` 전에 이미 있는 값이다) -> A2 `build_s1(structure=)`(`dc_role`·`matching_pair` 사실 소비) -> A3 `build_s1v(structure=, declared_loop_cuts=)`(`stop_on_unsupported=False`: 기록을 받아 여기서 판정)
   -> 보고서. `declared_loop_cuts` = spec 제약 중 안정도 metric(`pm_` 접두)의 루프 뷰 선언(`ViewDecl` mode loop)의 끊는 넷 -- 단계 A 가 spec 에서 직접 모은다(authoring 파일을 고치지 않는다).
+  끊는 넷은 **엔진 루프 뷰의 끊는 gate 넷**(보고서 `views[].cuts[*][1]`)이어야 하고, 맞지 않는 선언은 단계 A 가 `loop_cut_unmatched`(review_needed)로 보고서에 올린다(graph CONTRACT).
 * **N_S**(41 §0): `structure_count_budget(lut, kinds)` = 회로가 쓰는 kind 의 모든 폭 슬라이스에 대한 |L|·|VGS|·|VDS|·|VS| 합. 시간 무관·LUT 에서만 정해진다.
   spec `structure_count_budget` 선언은 U5 로더가 들어오면 대체한다.
 * ratified 사실(structure.json): 개념 7개와 소비 방식은 graph CONTRACT 10.6(`drive_kind`·`ac_ground_exception`·`dc_role` override, `loop_role`·`feedforward_cell` confirm, `matching_pair` override).

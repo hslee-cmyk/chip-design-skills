@@ -11,10 +11,15 @@
 3. **`main_path_signal`**(41 §1.12.5): 멤버 중 gain 제약 전달 뷰(`gain_views` 의 첫 전달 뷰, 없으면 첫 전달 뷰)의 **주경로 stage 시작 셀**인 것. feedforward 묶음 멤버는 주경로 모형에서
    빠져 있어 자동으로 뒤로 밀린다(FF 셀은 주경로 전류를 복사하는 쪽이다). 여럿이면 가장 앞 stage 것(같으면 이름).
 4. 그것도 없으면 이름 정렬 첫 멤버(규칙 `name_order`) -- 남은 동률만 해당하고 status `review_needed`(`build_s1v` 가 `l_owner_name_order` 기록을 올린다).
+   **예외**(master edb5ee0, 41 §1.12.5-4): 동률 후보(동치류 멤버 전체)가 U2 `automorphism_orbits` 의 **한 자기동형 궤도**이면 어느 것을 주인으로 골라도 같은 회로이므로
+   이름 순서로 골라도 review 를 올리지 않는다(status derived, 규칙 이름은 `name_order` 그대로). 궤도는 S1 구조만으로 센다(선언 표시 없음 -- 선언이 대칭을 깨는지는 sizing 이 본다).
+   정준형은 이 분기가 실제로 나올 때만, 호출당 한 번 계산한다.
 멤버 DC 역할이 구조로 못 가르는 그룹(S1 status review_needed)이면 동치류 status 는 review_needed 다.
 """
 from gmid_engine.core import sorted_items
 
+from .automorphism_orbits import automorphism_orbits
+from .canonical_form import canonical_form
 from .s1_values import GRAPH_KEY, REL_L_CLASS, ROLE_BIAS, ROLE_DIODE, STATUS_DERIVED, STATUS_REVIEW_NEEDED
 from .s1v_values import ROLE_INPUT, ROLE_TAIL, VIEW_TRANSFER, LClass
 
@@ -51,7 +56,20 @@ def _main_path_starts(views, gain_views):
     return starts
 
 
+def _one_orbit(orbits, names):
+    """`names`(동치류 멤버 소자)가 모두 같은 자기동형 궤도인가. `orbits` = 호출당 한 번 구하는 지연 계산기."""
+    table = orbits()
+    return len({table[("e", name)] for name in names}) == 1
+
+
 def l_equivalence_classes(s1, model, views, gain_views=()):
+    memo = []
+
+    def orbits():
+        if not memo:
+            memo.append(automorphism_orbits(canonical_form(s1)))
+        return memo[0]
+
     stage = _tail_stages(views)
     main_starts = _main_path_starts(views, frozenset(gain_views))
     result = []
@@ -72,6 +90,7 @@ def l_equivalence_classes(s1, model, views, gain_views=()):
                 owner, rule = min(mains, key=lambda m: (main_starts[m.name], m.name)).name, RULE_MAIN_PATH
             else:
                 owner, rule = members[0].name, RULE_NAME_ORDER
-        unresolved = rule == RULE_NAME_ORDER or any(m.dc_status == STATUS_REVIEW_NEEDED for m in members)
+        tie = rule == RULE_NAME_ORDER and not _one_orbit(orbits, edge.members)
+        unresolved = tie or any(m.dc_status == STATUS_REVIEW_NEEDED for m in members)
         result.append(LClass(tuple(sorted(edge.members)), owner, rule, STATUS_REVIEW_NEEDED if unresolved else STATUS_DERIVED))
     return sorted_items(result, key=lambda c: c.members)

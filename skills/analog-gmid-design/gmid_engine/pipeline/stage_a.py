@@ -7,6 +7,7 @@
 `structure_rule_fp()`) -> A2 `build_s1(structure=)`(`dc_role`·`matching_pair` 소비) -> A3 `build_s1v`(N_S = `structure_count_budget`, `structure=`, spec 에서 직접 모은 `declared_loop_cuts`)
 -> 보고서(`write_stage_a_report`: 구조 표 + review_needed + 정지 사유 + N_S + declared 대조 여부 + 적용한 사실 + feedforward 비율 후보 + 루프 역할).
 * `declared_loop_cuts` = spec 제약 중 안정도 metric(`pm_*`)의 루프 뷰 선언(`ViewDecl` mode loop)의 끊는 넷 -- 안정도 제약이 걸린 루프 뷰는 `undeclared_loop_constraint` 정지가 풀린다.
+  선언 끊는 넷은 엔진 루프 뷰의 끊는 gate 넷(보고서 `views[].cuts[*][1]`)이어야 하고, 어느 뷰에도 맞지 않은 선언은 `loop_cut_unmatched`(review_needed)로 보고서 `review_needed` 에 오른다.
 * 로드·구조 단계의 예외(`SchemaRejectedError`·`StructureUnresolvedError`)는 전파하지 않고 보고서에 정지 사유로 적은 뒤 그 분류의 exit code 를 낸다(exit 7·2).
 * `기록만`(unsupported_rule_branch) 기록이 있으면 정지, `review_needed` 가 남아 있으면 GB4 앞 정지 -- 둘 다 exit 2(StructureUnresolvedError 분류). 둘 다 없으면 exit 0.
   보고서에는 정지 여부와 무관하게 전체 구조 표를 쓴다(`build_s1v(stop_on_unsupported=False)` 로 기록을 받아 여기서 판정한다).
@@ -21,7 +22,10 @@ from gmid_engine.authoring import load_sizing_spec, load_topology
 from gmid_engine.core import SchemaRejectedError, StructureUnresolvedError, exit_code_for
 from gmid_engine.graph import (
     ELEMENT_MOS,
+    F_LOOP_CUT_UNMATCHED,
+    SEVERITY_REVIEW,
     SPEC_VIEW_LOOP,
+    Finding,
     build_s1,
     build_s1v,
     load_structure_facts,
@@ -91,6 +95,15 @@ def _declared_loop_cuts(spec):
                          and c.view is not None and c.view.mode == SPEC_VIEW_LOOP for _, net in c.view.cuts}))
 
 
+def _unmatched_loop_cuts(s1v, declared_cuts):
+    """spec 루프 뷰 선언의 끊는 넷 중 엔진 루프 뷰의 끊는 gate 넷(`ViewS1v.cuts[*][1]`, 보고서 `views[].cuts`)과 맞지 않는 것마다 `loop_cut_unmatched`(review_needed) --
+    어느 뷰에도 걸리지 않는 선언이 조용히 무동작이 되지 않게 한다(U1b-jrules 결정, graph CONTRACT)."""
+    engine = {cut[1] for v in s1v.views for cut in v.cuts}
+    return tuple(Finding(F_LOOP_CUT_UNMATCHED, SEVERITY_REVIEW, "", (net,),
+                         "spec 루프 뷰 선언의 끊는 넷이 엔진 루프 뷰의 끊는 gate 넷과 맞지 않아 선언이 아무 뷰에도 걸리지 않는다(보고서 views[].cuts 의 gate 넷을 쓴다)",
+                         ("41 §1.8", "U-24")) for net in sorted(set(declared_cuts) - engine))
+
+
 def _net_names(topology):
     nets = set(topology.rails)
     for d in topology.devices:
@@ -134,10 +147,11 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
                                 "A2_count_budget"), None, output_dir, circuit)
     groups = tuple(tuple(f.value.split()) for f in structure.facts if f.concept == CONCEPT_STAGE_MEMBERS)
     declared = ((path.name, groups),) if groups else ()
+    declared_cuts = _declared_loop_cuts(spec)
     s1v = build_s1v(s1, spec, count_budget=budget, declared=declared, structure=structure,
-                    declared_loop_cuts=_declared_loop_cuts(spec), stop_on_unsupported=False)
+                    declared_loop_cuts=declared_cuts, stop_on_unsupported=False)
     unsupported = [_finding_line(f) for f in s1v.unsupported]
-    review = [_finding_line(f) for f in s1v.review_needed]
+    review = [_finding_line(f) for f in s1v.review_needed] + [_finding_line(f) for f in _unmatched_loop_cuts(s1v, declared_cuts)]
     note = " has no stage_members facts" if path.is_file() else " absent"
     comparison = "performed" if declared else "not_performed: " + path.name + note
     status = STATUS_STOPPED if unsupported else STATUS_REVIEW if review else STATUS_OK

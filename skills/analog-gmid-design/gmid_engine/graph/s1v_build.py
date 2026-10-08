@@ -300,7 +300,7 @@ def build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_l
     views = _ratify_derived(views, confirmed)
     owner_order = tuple(Finding(F_L_OWNER_NAME_ORDER, SEVERITY_REVIEW, "", c.members,
                                 "L 동치류 주인을 tail·전류 출처·주경로 규칙으로 못 정해 이름 순서로 골랐다: " + c.owner, ("41 §1.12.5", "DEC-17"))
-                        for c in l_classes if c.owner_rule == RULE_NAME_ORDER)
+                        for c in l_classes if c.owner_rule == RULE_NAME_ORDER and c.status == STATUS_REVIEW_NEEDED)
     findings = sorted_items(set(view_findings + stale + mismatches + fact_findings + owner_order + _unresolved_role_groups(s1)),
                             key=lambda f: (f.code, f.view, f.subject, f.detail))
     s1v = S1v(key, tuple(views), l_classes, findings, tuple((source, len(stages)) for source, stages in declared), applied)
