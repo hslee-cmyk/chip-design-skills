@@ -33,6 +33,7 @@ from .spec_model import (
     SizingSpecDoc,
     SpecSource,
     TargetDecl,
+    ThetaBound,
     ViewDecl,
 )
 from .spec_views import BETA_DECLARED, BETA_UNITY, SENSE_DIFFERENTIAL, DefaultViews, default_views
@@ -40,7 +41,8 @@ from .spec_node_targets import node_target_declaration
 from .spec_refs import resolve_spec_references
 from .spec_regions import REGION_TRIODE, intended_region_declaration
 from .spec_schema import SPEC_SCHEMA_VERSION, check_spec_schema
-from .spec_settings import settings_declaration
+from .spec_settings import THETA_BOUNDS, settings_declaration
+from .spec_theta_bounds import theta_bound_declaration
 from .spec_sources import source_declaration_checks
 from .spec_supplies import supplies_declaration
 from .spec_targets import compensation_target_declaration
@@ -91,8 +93,10 @@ __all__ = (
     "SizingSpecDoc",
     "SourceDecl",
     "SpecSource",
+    "THETA_BOUNDS",
     "TWO_TERMINAL_NAMES",
     "TargetDecl",
+    "ThetaBound",
     "TopologyDoc",
     "ViewDecl",
     "check_hidden_rails",
@@ -121,4 +125,5 @@ __all__ = (
     "source_declaration",
     "source_declaration_checks",
     "supplies_declaration",
+    "theta_bound_declaration",
 )

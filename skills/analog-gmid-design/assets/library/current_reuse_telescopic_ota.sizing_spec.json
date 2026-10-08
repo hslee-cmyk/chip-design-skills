@@ -270,6 +270,12 @@
       "_budgets_comment": "기본안 = 예산 미선언(front 제시 후 정지, DEC-77). 논문 전력·면적 값은 채택 기록이 없어 넣지 않는다."
     },
     "search": {
+      "theta_bounds": {
+        "Cc1": {"min": 1e-13, "max": 1e-11, "source": {"kind": "user_spec", "record": "user_decisions.md 2026-10-08 \"10번도 네 판단에 동의해\" -- engine 보상 커패시터 θ 상자 [0.1 pF, 10 pF]", "decided": "2026-10-08"}},
+        "Cc2": {"min": 1e-13, "max": 1e-11, "source": {"kind": "user_spec", "record": "user_decisions.md 2026-10-08 \"10번도 네 판단에 동의해\" -- engine 보상 커패시터 θ 상자 [0.1 pF, 10 pF]", "decided": "2026-10-08"}},
+        "R1": {"min": 10000.0, "max": 10000000.0, "source": {"kind": "user_spec", "record": "user_decisions.md 2026-10-08 \"8번도 네 판단에 동의해.\" -- CMFB 공통모드 감지 저항 θ 상자 [10 kΩ, 10 MΩ]", "decided": "2026-10-08"}},
+        "R2": {"min": 10000.0, "max": 10000000.0, "source": {"kind": "user_spec", "record": "user_decisions.md 2026-10-08 \"8번도 네 판단에 동의해.\" -- CMFB 공통모드 감지 저항 θ 상자 [10 kΩ, 10 MΩ]", "decided": "2026-10-08"}}
+      },
       "wall_clock_budget_s": {
         "value": 300,
         "source": {

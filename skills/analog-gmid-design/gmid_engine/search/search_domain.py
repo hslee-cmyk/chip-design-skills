@@ -56,11 +56,20 @@ def _current_bounds(dc_ctx, kinds, classes, boxes, key):
     return min(boxes[kinds[m]][0] for m in users), max(boxes[kinds[m]][1] for m in users)
 
 
-def search_domain(dc_ctx, settings, pdk_decl):
+def _passive_box(override, spec_bounds, key):
+    """[r10] θ 수동소자 상자: run 단위 `SearchSettings` 값(명시 재정의)이 있으면 그것, 없으면 spec `search.theta_bounds` 의 그 원소,
+    둘 다 없으면 None."""
+    if override is not None:
+        return tuple(override)
+    return spec_bounds.get(key)
+
+
+def search_domain(dc_ctx, settings, pdk_decl, spec_bounds=()):
     if not isinstance(settings, SearchSettings):
         raise TypeError("search_domain: settings 는 SearchSettings 여야 한다(기본값 없음)")
     if not isinstance(pdk_decl, PdkDecl):
         raise TypeError("search_domain: pdk_decl 은 core read_pdk_decl 결과여야 한다")
+    declared = {b.element: (b.lo, b.hi) for b in spec_bounds}          # authoring ThetaBound(kind 단위 Ω·F)
     kinds = dict(dc_ctx.base.column("device", "kind"))
     classes = dict(dc_ctx.base.column("device", "element_class"))
     mos_kinds = sorted({kinds[m] for m, c in classes.items() if c == ELEMENT_MOS})
@@ -68,14 +77,16 @@ def search_domain(dc_ctx, settings, pdk_decl):
     envelopes = {}
     variables, mos = [], []
     resistors = [key for kind, key in dc_ctx.schema.components if kind in (THETA_RESISTANCE, THETA_SS_RESISTANCE)]
-    if resistors and settings.resistance_bounds_ohm is None:
+    missing = tuple(r for r in resistors if _passive_box(settings.resistance_bounds_ohm, declared, r) is None)
+    if missing:
         raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "theta_resistance_bounds_undeclared",
-                                          "resistors": tuple(resistors)})
+                                          "resistors": missing})
     capacitors = [key for kind, key in dc_ctx.schema.components if kind == THETA_CAPACITANCE]
-    if capacitors and settings.capacitance_bounds_f is None:
+    missing = tuple(c for c in capacitors if _passive_box(settings.capacitance_bounds_f, declared, c) is None)
+    if missing:
         # 커패시터 상자는 PDK 선언에서 유도할 수 없다(capm.* 규칙값 N/A, cap_mim 셀 원본 없음 -- sizing CONTRACT O13)
         raise SchemaRejectedError(detail={"gate": "search_domain", "reason": "theta_capacitance_bounds_undeclared",
-                                          "capacitors": tuple(capacitors)})
+                                          "capacitors": missing})
     for component in dc_ctx.schema.components:
         ckind, key = component
         if ckind == THETA_LN_IDU:
@@ -89,10 +100,10 @@ def search_domain(dc_ctx, settings, pdk_decl):
             lo, hi = _current_bounds(dc_ctx, kinds, classes, boxes, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind in (THETA_RESISTANCE, THETA_SS_RESISTANCE):
-            lo, hi = settings.resistance_bounds_ohm
+            lo, hi = _passive_box(settings.resistance_bounds_ohm, declared, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind == THETA_CAPACITANCE:
-            lo, hi = settings.capacitance_bounds_f
+            lo, hi = _passive_box(settings.capacitance_bounds_f, declared, key)
             variables.append(Variable(component, True, math.log(lo), math.log(hi)))
         elif ckind == THETA_L:
             mos.append(key)
