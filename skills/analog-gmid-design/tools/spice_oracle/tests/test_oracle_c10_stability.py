@@ -215,7 +215,10 @@ def tran_line(text: str):
     return None
 
 
-def _ngspice(lines, workdir: Path, name="r.cir", timeout=600):
+NGSPICE_TIMEOUT_S = 600                # 독립 ngspice 한 번의 기본 시간 한도
+
+
+def _ngspice(lines, workdir: Path, name="r.cir", timeout=NGSPICE_TIMEOUT_S):
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / name).write_text("\n".join(lines) + "\n", encoding="utf-8")
     timed_out = None
@@ -319,6 +322,23 @@ def rhp_ref(root: Path, rb):
 
 RHP_KICK = dict(dv=0.01, delay=1e-6, rise=1e-8, width=1e-6, fall=1e-8)   # 폐루프 킥(PULSE) -- 아래 창 계산과 공유
 TMAX_PER_TAU = 20                     # τ 지수 회복을 τ 당 20 점 이상으로 따라간다(빠른 근 구간은 ngspice 오차 제어가 더 줄인다)
+# 폐루프 .tran 비용 모형: 반복 횟수는 낮은 상태의 빠른 근 진동 길이(~τ = Rb·Cc)에 비례하고, 창(tstop)도 τ 의 배수라
+# 같은 주기 수를 도는 실행의 비용은 Rb 에 비례한다. 기준 실측(2026-10-08, 다른 ngspice ~5개 동시 실행 부하):
+# Rb 1e6, 이 창(tstop = 킥 끝 + 2T = 23.2 µs) -> 벽시계 298 s, 반복 317,345 회. 확인: Rb 1e7 한 주기(tstop 108 µs) ->
+# 반복 1,056,754 회(Rb 1e6 의 두 주기 반복 x 10 / 2 = 1.59e6 이하로 비례 모형 안), 645 s.
+CL_COST_REF = dict(rb=1e6, wall_s=298.0)
+# 안전 계수 3: 같은 Rb 1e6 실행이 부하에 따라 114 s(pytest)~298 s(scratch) 로 2.6 배 흔들렸다 -> 그보다 큰 3.
+CL_TIMEOUT_SAFETY = 3.0
+
+
+def rhp_closed_loop_cost_s(rb):
+    """비용 모형의 예측 벽시계(s) -- 기준 실측 x Rb 비."""
+    return CL_COST_REF["wall_s"] * rb / CL_COST_REF["rb"]
+
+
+def rhp_closed_loop_timeout_s(rb):
+    """폐루프 .tran 한 번의 시간 한도: 예측 x 안전 계수, 기본 한도보다 작아지지 않는다."""
+    return max(NGSPICE_TIMEOUT_S, CL_TIMEOUT_SAFETY * rhp_closed_loop_cost_s(rb))
 
 
 def rhp_closed_loop_window(rb, K):
@@ -354,7 +374,7 @@ def rhp_closed_loop_pp(root: Path, rb, v2op, K):
     ctrl = [".control", "set noaskquit", f"tran {tmax} {tstop} 0 {tmax}",
             f"meas tran vmax MAX v(n2) from={tstop - last} to={tstop}",
             f"meas tran vmin MIN v(n2) from={tstop - last} to={tstop}", "quit", ".endc", ".end"]
-    p, vals = _ngspice(_head() + body + ctrl, root / f"rhp_cl_{rb:g}")
+    p, vals = _ngspice(_head() + body + ctrl, root / f"rhp_cl_{rb:g}", timeout=rhp_closed_loop_timeout_s(rb))
     assert "vmax" in vals and "vmin" in vals, (p.returncode, p.stdout[-600:], p.stderr[-2000:])
     return vals["vmax"] - vals["vmin"]
 
@@ -473,7 +493,12 @@ def test_rhp_fixture_has_open_loop_rhp_pole(ref_root, rb):
     assert e[-1] > 1e-2                                                  # 끝내 큰 신호로 이탈(포화)
 
 
-@pytest.mark.parametrize("rb", list(RB))
+# 예측 비용이 기본 한도(600 s)를 넘는 경우(Rb 1e7: ~2980 s)만 `slow` -- 빠른 실행은 -m "not slow" 로 뺀다(conftest).
+RB_CLOSED_LOOP = [pytest.param(k, marks=[pytest.mark.slow] if rhp_closed_loop_cost_s(v) > NGSPICE_TIMEOUT_S else [])
+                  for k, v in RB.items()]
+
+
+@pytest.mark.parametrize("rb", RB_CLOSED_LOOP)
 def test_rhp_fixture_closed_loop_oscillates_and_n_is_zero(ref_root, rb):
     """전제 확인: 독립 폐루프 .tran 은 끝까지 큰 진폭(지속 진동/포화), 독립 .ac 의 N = 0 -> Z = N + P 에서 P >= 1."""
     ref = rhp_ref(ref_root, RB[rb])

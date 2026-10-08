@@ -5,6 +5,8 @@ CLI 진입점만 subprocess 로 부른다. 기대값은 (a) 손계산, (b) 이 �
 독립 ngspice 넷리스트를 직접 돌린 결과에서만 만든다(피검 코드 출력으로 기대값을 만들지 않는다).
 
 기본 실행에서 옛 엔진을 새로 돌리는 test(~260 s)는 `legacy_slow` 마커로 빠진다. `--run-legacy` 로 켠다.
+독립 기준 실행이 수십 분 걸리는 test 는 `slow` 마커가 붙는다(기본 실행에 포함, 빠른 실행은 `-m "not slow"` 로 뺀다;
+전체 검증은 그대로 돌린다).
 환경: SPICE_ORACLE_NGSPICE(ngspice_con.exe), SPICE_ORACLE_PDK(sky130_fd_pr 루트).
 """
 from __future__ import annotations
@@ -38,6 +40,7 @@ def pytest_addoption(parser):
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "legacy_slow: 옛 엔진 새 실행이 필요한 느린 test(--run-legacy 로 켬)")
+    config.addinivalue_line("markers", "slow: 독립 기준 실행이 기본 시간 한도(600 s)를 넘는 test(빠른 실행은 -m \"not slow\" 로 뺌)")
 
 def pytest_collection_modifyitems(config, items):
     if config.getoption("--run-legacy"):
