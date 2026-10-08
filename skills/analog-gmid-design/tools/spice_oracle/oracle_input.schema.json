@@ -86,6 +86,7 @@
    "type": "array", "items": {"type": "string"}, "uniqueItems": true,
    "description": "β 되먹임망을 이루는 passives 이름(입력 포트 넷에 물린 되먹임·입력측 소자). 있으면 PM 은 이 β 루프의 위상여유(루프 넷리스트, Middlebrook 이중 주입), 없으면 β=1(개루프 A) 위상여유. README 'PM 정의'. [변경 C14] 원소마다 두 단자 중 입력 포트 넷에 물린 단자가 정확히 1개여야 한다(0개·2개 모두 막힘)."
   },
+  "cm_loop_passives": false,
   "cm_output_loop": {
    "type": "boolean",
    "description": "[신규 CM] 선택. true 면 공통 모드 루프를 선언된 차동 출력 포트 쌍(ports.output_p·output_n)에서 끊는다: <stem>.cmloop.cir 에서 두 출력 넷의 구동자 쪽 단자(그 넷에 drain 또는 source 가 물린 MOS 의 그 channel 단자; 수동소자·gate 는 남는다)를 lbx_<넷> 으로 떼고 두 넷에 동일 부호(가중 1/2씩) Middlebrook 전압·전류 이중 주입으로 T_cm 을 잰다(입력은 전부 AC 접지). CM 감지 구현 방식(평균 저항·DDA·버퍼)은 보지 않는다. PM = measure cm_pm_deg. README 'CM 루프 PM'."

@@ -487,8 +487,8 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
 | I-15 | [r5] 같은 sctx 입력으로 두 번(새 컨텍스트) 부르면 같은 start θ·t(결정론, `PYTHONHASHSEED` 무관) |
 | I-18 | [r5b] 원뿔이 있고 전류 중심이 원뿔 안이면 Halton 시험 점은 모두 원뿔 안(`counters["outside_domain"]` 증가 0, 부동소수 경계 반올림 제외) -- 선형 원뿔·상자의 열린 현 안 걸음 |
 | I-17 | [r5] Halton 시험 점 k 의 좌표 = lo + φ_b(k)(hi − lo)(b = 변수 순서의 소수 2, 3, 5, …; θ 전류는 I-18 의 걸음): toy 커널이 처음 k* 번째 점만 받아들이면 `probes` = k*, `origin_point` = "halton:k*", 최대-최소 전까지 커널 평가 수 ≤ 1(중심) + k*(원뿔 밖 점은 0) |
-| I-19 | [CM] `ss_constraint_rows`: view_kind cm_loop metric 의 `dc_not_above_level`(detail dc_magnitude = m, resolution = s) → 행 1개 `ss:<k>:<metric><op>`, c = 20·log10(m)/s(s 없음·0 이면 /1), active True, unmeasured 0. m = 0 → c = −∞. 예: m = 0.01075805, s = 3.2 → c = −12.3037 (실측 −12.303697098427348) |
-| I-20 | [CM] 같은 입력에서 view_kind loop 인 `pm_ss_deg` 의 `dc_not_above_level` 은 행 0·unmeasured 1(사유 code 그대로), cm_loop 의 `loop_open_rhp_poles` 도 unmeasured(변화 없음) |
+| I-19 | [CM] `ss_constraint_rows`: view_kind cm_loop metric 의 `dc_not_above_level`(detail dc_magnitude = m, resolution = s) → 행 1개 `ss:<k>:<metric><op>`, c = 20·log10(m)/s(s 없음·0 이면 /1), active True, unmeasured 0. m = 0 → c = −∞. 예: m = 0.01075805, s = 3.2 → c = 20·log10(m)/s = −12.301665259916554 |
+| I-20 | [CM] 같은 입력에서 view_kind loop 인 `pm_ss_deg` 의 `dc_not_above_level` 은 행 0·unmeasured 1(사유 code 그대로), cm_loop 의 `loop_open_rhp_poles` 는 위반 행(예 rhp_poles ((3.0, 4.0),) -> c = −0.6; ((2.0, 0.0),) -> c = −1.0; Re ≤ 0 인 항목만 있으면 행 없음) |
 | I-21 | [CM] 위반 행의 c 는 |T_cm(0)| 에 단조 증가(같은 s), 값이 있는 PM(≥/<=) 행 의미(c = (값 − 목표)/s)는 변화 없음 |
 | I-22 | [CM] 경고 표면: `EvalResult.warnings` == `ss_evaluate(...).ss.warnings`(봉인 아닌 점·실패 점은 ()); `find_front` 점 기록 `warnings` = [[코드, [[키, 값], ...]], ...]; run notes 에 `{verdict: "warning", code, points}` (코드별 점 수, 캐시 전 점 기준). 경고는 front 소속·제약 행·unmeasured 에 영향이 없다 |
 | I-16 | [r5] 층 0 은 spec 성능 제약·목적 축 값을 읽지 않는다: spec judged 제약을 바꿔도(`judged_constraints`·`ss_constraints`) start θ 가 같다 |
