@@ -14,11 +14,24 @@
   * N(시계 방향 감은 수)은 이 파일의 `nyquist()` 가 README 절차 2 의 정의대로(켤레 반쪽 + 측정 반쪽 + 두 닫는 직선,
     1+L 편각 변화 합, 표본 사이 ±π 접기, 유효 조건 (a)(b)(c)) **오라클이 쓴 AC 데이터 파일**과 독립 .ac 데이터에서 센다.
   * 과도 계획·판정(절차 4·5)은 이 파일의 `plan()`·`decide()` 가 입력값·독립 .op·L 데이터·`.stab.txt` 에서 다시 계산한다.
+  * 조기 종결 계약 개정(사용자 결정 B 2026-10-08, docs/03-analysis/oracle-c10-early-termination.contract.md 절 1(a)~(d)):
+    - (a) f_crit = 측정 L 에서 |1+L| 최소 표본의 주파수(오라클 AC 데이터에서 이 파일이 다시 찾음),
+      n_pp = 정현파 봉우리 표본 오차 1 − cos(π/n) <= reltol 인 최소 n(이 파일은 폐형식 대신 n = 1, 2, ... 전수 탐색,
+      oracle (b)), tmax = min(1/(2π f_lo), 1/(f_crit·n_pp)), td = tr = tf = pw = 1/(2π f_lo) 불변.
+    - (b) 조기 unstable: g(j) = M_j(1 − reltol) > M_{j−1}(1 + reltol) + floor', j >= 3 인 첫 창에서 g(j−1)·g(j)·M_j >= M_1.
+      순수 함수 `oracle_simulate.early_unstable(M, floor', reltol)` 은 합성 입력 리터럴(oracle (a))로, 파일 판정은
+      이 파일의 `decide_run` 이 계약 문안대로 다시 계산한다.
+    - (c) 기본 시간 상한 = oracle_config.json stability_transient.wall_s_per_window × 창 수, `--timeout-s` 우선.
+    - (d) `.stab.cir`/`.stab2.cir` 의 save = H 식 피연산자 + time.
 """
+import importlib
 import json
 import math
+import os
 import re
 import subprocess
+import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -65,33 +78,121 @@ def gain_crossings(f, L):
     return out
 
 
-def plan(f, L, vop_outputs):
-    """README 절차 4(조정 상수 없음, 4ab6d85 개정): 시간 척도는 f_lo(가장 낮은 |L|=1 교차 = PM 교차) 하나.
-    tmax = td = tr = tf = pw = 1/(2π f_lo), t_end = td + tr + pw + tf, W = 1/f_lo. f_hi 는 기록만(계획에 쓰지 않음)."""
+def n_pp_by_scan(reltol):
+    """계약 1(a) n_pp 의 정의(정현파를 주기당 n 표본으로 볼 때 봉우리를 놓치는 최대 상대 오차 1 − cos(π/n) 가 reltol
+    이하인 최소 n)를 폐형식 ceil(π/arccos(1 − reltol)) 대신 n = 1, 2, ... 전수 탐색으로 찾는다(oracle (b))."""
+    n = 1
+    while 1.0 - math.cos(math.pi / n) > reltol:
+        n += 1
+    return n
+
+
+def plan(f, L, vop_outputs, reltol=RELTOL):
+    """README 절차 4(조정 상수 없음, 4ab6d85 개정) + 조기 종결 계약 1(a)(사용자 결정 B 2026-10-08):
+    펄스 시간 척도는 f_lo(가장 낮은 |L|=1 교차 = PM 교차) 하나: td = tr = tf = pw = 1/(2π f_lo), t_end = td + tr + pw + tf,
+    W = 1/f_lo. 걸음 상한 tmax = min(1/(2π f_lo), 1/(f_crit·n_pp)), f_crit = |1+L| 최소 표본 주파수.
+    f_hi 는 기록만(계획에 쓰지 않음). reltol = 입력 testbench.options(없으면 ngspice 기본 1e-3)."""
     cr = gain_crossings(f, L)
     f_lo, f_hi = min(cr), max(cr)
     kick = KB_OVER_Q * TEMP_K
-    tmax = 1 / (2 * math.pi * f_lo)
-    pw = tmax
-    t_end = 4 * tmax
+    td = 1 / (2 * math.pi * f_lo)
+    f_crit = float(f[int(np.argmin(np.abs(1 + np.asarray(L))))])
+    n_pp = n_pp_by_scan(reltol)
+    tmax = min(td, 1 / (f_crit * n_pp))
+    pw = td
+    t_end = 4 * td
     w = 1 / f_lo
-    floor = sum(RELTOL * abs(v) + VNTOL for v in vop_outputs)
+    floor = sum(reltol * abs(v) + VNTOL for v in vop_outputs)
     k = math.ceil(math.log(kick / floor))
-    return {"f_lo": f_lo, "f_hi": f_hi, "kick": kick, "tmax": tmax, "pw": pw, "t_end": t_end, "W": w, "floor": floor,
-            "K": k, "tstop": t_end + k * w, "crossings": cr}
+    return {"f_lo": f_lo, "f_hi": f_hi, "kick": kick, "td": td, "tmax": tmax, "pw": pw, "t_end": t_end, "W": w,
+            "floor": floor, "K": k, "tstop": t_end + k * w, "crossings": cr, "f_crit": f_crit, "n_pp": n_pp,
+            "reltol": reltol}
+
+
+ORACLE_CONFIG = conftest.ORACLE_DIR / "oracle_config.json"
+
+
+def wall_s_per_window():
+    """계약 1(c): 설정 파일이 선언한 창 하나의 ngspice 실행 시간 상한(s)."""
+    cfg = json.loads(ORACLE_CONFIG.read_text(encoding="utf-8"))
+    return cfg["stability_transient"]["wall_s_per_window"]
 
 
 def check_plan_record(rec, pl, sign):
     """ac.stability.transient.plan 이 독립 계획과 같은지(필드 전부). floor 는 V_op 출처(독립 .op 대 동작점 패스)만 달라
-    상대 1e-4, 나머지는 같은 식이라 1e-9."""
-    exact = {"kick_V": pl["kick"], "td": pl["tmax"], "tr": pl["tmax"], "pw": pl["pw"], "tmax": pl["tmax"],
-             "window_s": pl["W"], "t_kick_end": pl["t_end"], "f_lo_hz": pl["f_lo"], "f_hi_hz": pl["f_hi"]}
+    상대 1e-4, 나머지는 같은 식이라 1e-9. 계약 1(a)(c) 새 필드: f_crit_hz·n_pp·reltol·windows_planned·wall_cap_s."""
+    exact = {"kick_V": pl["kick"], "td": pl["td"], "tr": pl["td"], "pw": pl["pw"], "tmax": pl["tmax"],
+             "window_s": pl["W"], "t_kick_end": pl["t_end"], "f_lo_hz": pl["f_lo"], "f_hi_hz": pl["f_hi"],
+             "f_crit_hz": pl["f_crit"], "reltol": pl["reltol"]}
     for k, v in exact.items():
         assert rec[k] == pytest.approx(v, rel=1e-9), (k, rec[k], v)
     assert rec["windows"] == pl["K"], (rec["windows"], pl["K"])
+    assert rec["windows_planned"] == pl["K"], (rec["windows_planned"], pl["K"])
+    assert rec["n_pp"] == pl["n_pp"], (rec["n_pp"], pl["n_pp"])
+    # oracle (d) 계약 1(c): 계획 상한 = 선언된 창당 상한 × 계획 창 수(첫 실행 계획이라 연장 창 수 0)
+    assert rec["wall_cap_s"] == pytest.approx(wall_s_per_window() * pl["K"], rel=1e-9), rec["wall_cap_s"]
     assert rec["floor_V"] == pytest.approx(pl["floor"], rel=1e-4)
     assert rec["tstop"] == pytest.approx(pl["tstop"], rel=1e-6)
     assert rec["sign"] == sign
+
+
+def check_early_consistent(tr, dec, pl):
+    """계약 1(b): 오라클의 조기 종결 기록 = 데이터 파일에서 다시 센 조기 창(없으면 None), windows_run = 그 창 또는 K."""
+    es = tr.get("early_stop")
+    assert (es["window"] if es else None) == dec["early"], (es, dec["early"], dec["M"])
+    assert tr["windows_run"] == (dec["early"] or pl["K"]), (tr["windows_run"], dec["early"], pl["K"])
+
+
+_STABWIN_RE = re.compile(r"^\s*STABWIN\s+(\d+)\s+([-+0-9.eE]+)\s*$", re.M)
+
+
+def check_stabwin_log(log: Path, m):
+    """계약 1(b): 창이 끝날 때마다 로그에 `STABWIN j M_j` 한 줄 -- j = 1..(실행한 창 수), M_j = 데이터 파일에서 다시 센 값."""
+    rows = [(int(a), float(b)) for a, b in _STABWIN_RE.findall(log.read_text(encoding="utf-8", errors="replace"))]
+    assert [j for j, _ in rows] == list(range(1, len(m) + 1)), rows
+    assert [v for _, v in rows] == pytest.approx(m, rel=1e-2), (rows, m)
+
+
+def check_full_run(tr, pl, dec):
+    """계약 1(b): 조기 기준을 한 번도 충족하지 않은 실행(안정·감쇠·일정 진폭) -- early_stop 없음, K 창 끝까지,
+    적용된 시간 상한 = 계획 상한(`--timeout-s` 없음). 독립 재계산(dec)도 조기 창이 없어야 한다(전제)."""
+    assert dec["early"] is None, dec
+    assert tr.get("early_stop") is None, tr.get("early_stop")
+    assert tr["windows_run"] == pl["K"] == tr["plan"]["windows_planned"], (tr["windows_run"], pl["K"])
+    assert tr["wall_cap_s"] == pytest.approx(tr["plan"]["wall_cap_s"], rel=1e-12), tr["wall_cap_s"]
+
+
+_PROBE_RE = re.compile(r"[vi]\([^()]*\)")
+
+
+def save_vectors(text: str):
+    """넷리스트의 save 문(`.save` 카드 또는 .control 안 `save`)이 저장하는 벡터 이름(소문자, 공백 제거)."""
+    out = []
+    for ln in text.splitlines():
+        t = ln.split(None, 1)
+        if t and t[0].lower() in ("save", ".save") and len(t) > 1:
+            out += [m.replace(" ", "") for m in _PROBE_RE.findall(t[1].lower())]
+            out += [w for w in re.sub(r"[vi]\([^()]*\)", " ", t[1].lower()).split()]
+    return out
+
+
+def hst_operands(text: str):
+    """`let hst = <H 식>` 의 피연산자(v(..)/i(..), 소문자, 공백 제거)."""
+    for ln in text.splitlines():
+        m = re.match(r"\s*let\s+hst\s*=\s*(.*)$", ln, re.I)
+        if m:
+            return {x.replace(" ", "") for x in _PROBE_RE.findall(m.group(1).lower())}
+    return None
+
+
+def check_save_probes_only(text: str):
+    """계약 1(d): save 는 H 식 피연산자와 time 만(전체 저장 아님)."""
+    ops = hst_operands(text)
+    sv = save_vectors(text)
+    assert ops, "let hst 식에서 피연산자를 찾지 못함 -- 조건 점검"
+    assert sv, "save 문 없음"
+    assert set(sv) - {"time"} == ops, (sv, ops)
+    assert "all" not in sv, sv
 
 
 def mantissa_digits(path: Path) -> int:
@@ -105,9 +206,23 @@ def mantissa_digits(path: Path) -> int:
     return d
 
 
+def early_window(m, fl, reltol):
+    """계약 1(b) 조기 unstable 기준(계약 문안의 독립 구현): g(j) = M_j(1 − reltol) > M_{j−1}(1 + reltol) + floor'.
+    j >= 3 인 첫 창에서 g(j−1) 그리고 g(j) 그리고 M_j >= M_1 이면 그 j(1 부터), 없으면 None."""
+    def grew(j):
+        return m[j - 1] * (1 - reltol) > m[j - 2] * (1 + reltol) + fl
+
+    for j in range(3, len(m) + 1):
+        if grew(j - 1) and grew(j) and m[j - 1] >= m[0]:
+            return j
+    return None
+
+
 def decide_run(stab_txt: Path, p):
-    """README 절차 5 의 한 실행 판정(3fdabd7 개정): e = H - H(0), 창 j 의 M_j = max|e|, floor' = floor + u·max|H|.
-    M_K <= floor' -> stable; M_K >= M_1 -> unstable; M_1 > M_2 > ... > M_K -> decaying; 그 밖 -> undetermined."""
+    """README 절차 5 의 한 실행 판정(3fdabd7 개정) + 조기 종결 계약 1(b): e = H - H(0), 창 j 의 M_j = max|e|(끝까지 닿은
+    창만), floor' = floor + u·max|H|. 끝난 창들에서 조기 기준을 충족하는 첫 창 j 가 있으면 unstable(early = j, M = M_1..M_j).
+    아니고 마지막 시각이 tstop·(1 − 2u) 보다 이르면 failed. 그 밖 M_K <= floor' -> stable; M_K >= M_1 -> unstable;
+    M_1 > M_2 > ... > M_K -> decaying; 그 밖 -> undetermined."""
     a = np.loadtxt(stab_txt)
     t, h = a[:, 0], a[:, 1]
     u = 0.5 * 10.0 ** (1 - mantissa_digits(stab_txt))
@@ -115,9 +230,14 @@ def decide_run(stab_txt: Path, p):
     m = []
     for j in range(p["K"]):
         lo, hi = p["t_end"] + j * p["W"], p["t_end"] + (j + 1) * p["W"]
+        if t[-1] < hi * (1 - 2 * u):
+            break                                    # 창 j+1 끝까지 가지 않음(잘린 파일)
         sel = (t >= lo) & (t <= hi)
         m.append(float(e[sel].max()) if sel.any() else float("nan"))
     fl = p["floor"] + u * float(np.abs(h).max())
+    early = early_window(m, fl, p.get("reltol", RELTOL))
+    if early is not None:
+        return {"status": "unstable", "M": m[:early], "floor2": fl, "early": early, "t_last": float(t[-1])}
     if t[-1] < p["tstop"] * (1 - 2 * u):
         st = "failed"
     elif m[-1] <= fl:
@@ -128,7 +248,7 @@ def decide_run(stab_txt: Path, p):
         st = "decaying"
     else:
         st = "undetermined"
-    return {"status": st, "M": m, "floor2": fl}
+    return {"status": st, "M": m, "floor2": fl, "early": None, "t_last": float(t[-1])}
 
 
 def extension_plan(p, first):
@@ -144,7 +264,7 @@ def decide(stab_txt: Path, p):
     반환 status = 최종, first = 첫 실행 상태, M·floor2 = 첫 실행 값, ext = 연장 판정(+ n, plan) 또는 None."""
     first = decide_run(stab_txt, p)
     out = {"status": first["status"], "first": first["status"], "M": first["M"], "floor2": first["floor2"],
-           "ext": None}
+           "ext": None, "early": first["early"], "t_last": first["t_last"]}
     if first["status"] != "decaying":
         return out
     n, p2 = extension_plan(p, first)
@@ -555,7 +675,7 @@ def test_rhp_transient_plan_and_decision(rhp_run):
     pv, _ = pulse_of(text, "Vcl_nin")
     v0 = RHP["vin"] - g * ref["nodes"]["n2"]
     assert pv[0] == pytest.approx(v0, abs=1e-5) and pv[1] - pv[0] == pytest.approx(pl["kick"], rel=1e-6), pv
-    assert pv[2:6] == pytest.approx([pl["tmax"], pl["tmax"], pl["tmax"], pl["pw"]], rel=1e-6), (pv, pl)
+    assert pv[2:6] == pytest.approx([pl["td"], pl["td"], pl["td"], pl["pw"]], rel=1e-6), (pv, pl)
     tr = tran_line(text)
     assert tr[0] == pytest.approx(pl["tmax"], rel=1e-6) and tr[1] == pytest.approx(pl["tstop"], rel=1e-6), (tr, pl)
     dec = decide(o / f"{stem}.stab.txt", pl)
@@ -564,6 +684,7 @@ def test_rhp_transient_plan_and_decision(rhp_run):
     assert t["first_status"] == dec["first"] == "unstable", (t["first_status"], dec)
     assert t["M"] == pytest.approx(dec["M"], rel=1e-2)
     assert t["floor_V"] == pytest.approx(dec["floor2"], rel=1e-6)
+    check_early_consistent(t, dec, pl)
     # 첫 실행이 decaying 이 아니면 연장 없음: extension 기록·.stab2.* 파일·캐시 extension 키 모두 없다
     assert "extension" not in t or t["extension"] is None, t.get("extension")
     assert not list(o.glob(f"{stem}.stab2*"))
@@ -685,32 +806,81 @@ def test_rhp_control_pass_without_pm_constraint(tmp_path, rhp_run):
     assert res2["free"]["summary"]["verdict"] == "PASS" and p.returncode == 0, res2["free"]["summary"]
 
 
+def run_oracle_guarded(inp, out: Path, guard_s):
+    """conftest.run_oracle 과 같은 호출(free, --sat-margin-v SAT)에 벽시계 한도를 건다. 한도를 넘으면 자기 PID 트리만
+    끊고(taskkill /T /PID, 이미지 이름으로 죽이지 않음) 실패시킨다. -> (proc rc, 출력 끝, compare dict 또는 None, 경과 s)."""
+    out.mkdir(parents=True, exist_ok=True)
+    ip = conftest.write_json(out / "t.input.json", inp)
+    args = [conftest.PY, "-P", str(conftest.ORACLE_DIR / "oracle_run.py"), str(ip), str(out), "--bias", "free",
+            "--ngspice", str(NGSPICE), "--sat-margin-v", repr(SAT)]
+    t0 = time.monotonic()
+    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8",
+                            errors="replace", cwd=str(out))
+    try:
+        so, se = proc.communicate(timeout=guard_s)
+    except subprocess.TimeoutExpired:
+        if os.name == "nt":
+            subprocess.run(["taskkill", "/F", "/T", "/PID", str(proc.pid)], capture_output=True)
+        else:
+            proc.kill()
+        proc.communicate()
+        pytest.fail(f"오라클이 벽시계 한도 {guard_s:.0f} s 안에 끝나지 않음(계약 1(c) 기본 상한 위반 의심): {out}")
+    cj = out / f"{stem_of(inp, 'free')}.compare.json"
+    return (proc.returncode, (so + se)[-1500:], json.loads(cj.read_text(encoding="utf-8")) if cj.exists() else None,
+            time.monotonic() - t0)
+
+
+# 과도 최종 상태로 허용되는 값(계약 2 표 'test_rhp_variants_never_pass[rb1e7]: unstable 이거나 failed' -- 첫 창 안 GHz
+# 버스트는 기본 상한이 끊는다). rb1e5·rb1e6 은 개정 전 규칙 그대로 'stable 이 아님'만 본다.
+RB_VARIANT_ALLOWED = {"rb1e5": {"unstable", "failed", "undetermined"}, "rb1e6": {"unstable", "failed", "undetermined"},
+                      "rb1e7": {"unstable", "failed"}}
+
+
 @pytest.mark.parametrize("rb", list(RB))
 def test_rhp_variants_never_pass(tmp_path, ref_root, rb):
     """음성 검사: 개루프 RHP 극(독립 증명: N = 0 + 독립 폐루프 지속 진동 -> P >= 1)이 있는 회로는 Rb 를 바꿔도
     PM 이 값이 되어서는 안 되고 pm_deg 제약 free verdict 는 PASS 가 될 수 없다(README C10·C8, 절 머리
-    'P = 0 이 증명되거나 증거가 P = 0 과 맞을 때만 PM 이 값')."""
+    'P = 0 이 증명되거나 증거가 P = 0 과 맞을 때만 PM 이 값').
+    조기 종결 계약 1(c)(사용자 결정 B): `--timeout-s` 없이도 기본 상한(창당 선언 상한 × 창 수) 안에 끝나야 한다 --
+    벽시계 한도 = 이 파일의 기본 독립 실행 한도(본 .op/.ac·동작점 패스, 상한 미적용) + 독립 계획 K 로 셈한 과도 상한.
+    연장은 decaying 일 때만이라 넣지 않는다(지속 진동 회로는 전제 test 가 감쇠하지 않음을 보였다)."""
     ref = rhp_ref(ref_root, RB[rb])
+    pl_ind = plan(ref["f"], np.sign(ref["H"][0].real) * ref["H"], [ref["nodes"]["n2"]])
+    guard = NGSPICE_TIMEOUT_S + wall_s_per_window() * pl_ind["K"]
     inp = rhp_input(make_lut(tmp_path / "lut.npz"), RB[rb], constraints=[pm_con(">=", 60.0)])
-    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
-    c = res["free"]
-    assert c is not None, (p.stdout + p.stderr)[-1500:]
+    rc, tail, c, elapsed = run_oracle_guarded(inp, tmp_path / "o", guard)
+    assert c is not None, tail
     st = c["summary"]["stability"]
     tr = _sim(tmp_path / "o", inp)["ac"]["stability"]["transient"]
     assert st["pm_valid"] is False and st["pm_undefined"] in VOCAB, (st, tr.get("M"))
-    assert c["summary"]["verdict"] != "PASS" and p.returncode == 0, (c["summary"]["verdict"], st, tr.get("M"))
-    # 절차 5 독립 재계산(연장 포함) = 오라클 기록, 지속 진동은 절대 stable 이 아님
+    assert c["summary"]["verdict"] != "PASS" and rc == 0, (c["summary"]["verdict"], st, tr.get("M"))
+    assert tr["status"] in RB_VARIANT_ALLOWED[rb], (tr["status"], tr.get("reason"), tr.get("M"))
+    # 계약 1(c): 적용 상한 = 계획 상한 = 선언 창당 상한 × 계획 창 수(--timeout-s 없음)
+    assert tr["plan"]["wall_cap_s"] == pytest.approx(wall_s_per_window() * tr["plan"]["windows"], rel=1e-9)
+    assert tr["wall_cap_s"] == pytest.approx(tr["plan"]["wall_cap_s"], rel=1e-12), tr["wall_cap_s"]
+    assert elapsed <= guard, elapsed
     stem = stem_of(inp, "free")
     f, L, _ = ac_loop_from_files(tmp_path / "o", stem, beta_loop=False)
-    dec = decide(tmp_path / "o" / f"{stem}.stab.txt", plan(f, L, [ref["nodes"]["n2"]]))
-    assert tr["first_status"] == dec["first"] and tr["status"] == dec["status"] != "stable", (tr, dec)
-    check_row(st, nyquist(L)["N"], dec["status"], st["pm_deg_raw"])
+    if tr.get("timeout") is not None:
+        # 끊긴 과도는 부분 데이터로 판정하지 않는다 -> failed(진동 확인이 아니므로 unstable 아님)
+        assert tr["status"] == "failed" == tr["first_status"], tr
+    else:
+        # 절차 5 독립 재계산(연장·조기 종결 포함) = 오라클 기록, 지속 진동은 절대 stable 이 아님
+        pl = plan(f, L, [ref["nodes"]["n2"]])
+        dec = decide(tmp_path / "o" / f"{stem}.stab.txt", pl)
+        assert tr["first_status"] == dec["first"] and tr["status"] == dec["status"] != "stable", (tr, dec)
+        check_early_consistent(tr, dec, pl)
+    check_row(st, nyquist(L)["N"], tr["status"], st["pm_deg_raw"])
 
 
 def test_sustained_oscillation_undetermined_incomplete(tmp_path, ref_root):
     """절차 5 개정의 계기(40158dd 의 rb1e6, M = [1.43, 1.21, 0.68, 1.13, 1.45, 1.30]): 창 사이 다시 커짐(M_K < M_1,
     단조 감소 아님) -> 첫 실행 `undetermined`, 연장 없음 -> 최종 '모름', N = 0 -> `stability_unverified`,
-    pm 제약 N/A -> INCOMPLETE(반환 0). 독립 폐루프 .tran 은 지속 진동(test_rhp_fixture_...)."""
+    pm 제약 N/A -> INCOMPLETE(반환 0). 독립 폐루프 .tran 은 지속 진동(test_rhp_fixture_...).
+    조기 종결 계약 1(b)(사용자 결정 B): 일정 진폭 지속 진동은 조기 기준(분해능 초과 연속 증가)을 충족하지 않으므로 판정
+    불변, early_stop 없음, K 창 끝까지. (scratch 확인 2026-10-08: 계약 tmax(f_crit 9.44 MHz, n_pp 223 -> 4.75e-10 s)로
+    같은 .stab.cir 를 돌리면 M = [1.094850, 1.094848, 1.094847, 1.094854, 1.094852, 1.094845] -- 옛 표본 간격의 들쭉날쭉한
+    M 은 표본 오차였다; M_K < M_1 차이는 5e-6 상대뿐이라 판정이 이 차이에 걸려 있다.)"""
     rb = RB["rb1e6"]
     ref = rhp_ref(ref_root, rb)
     inp = rhp_input(make_lut(tmp_path / "lut.npz"), rb, constraints=[pm_con(">=", 60.0)])
@@ -718,13 +888,15 @@ def test_sustained_oscillation_undetermined_incomplete(tmp_path, ref_root):
     c = res["free"]
     o, stem = tmp_path / "o", stem_of(inp, "free")
     f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
-    dec = decide(o / f"{stem}.stab.txt", plan(f, L, [ref["nodes"]["n2"]]))
+    pl = plan(f, L, [ref["nodes"]["n2"]])
+    dec = decide(o / f"{stem}.stab.txt", pl)
     m = dec["M"]
     assert m[-1] < m[0] and not all(m[j] > m[j + 1] for j in range(len(m) - 1)), m     # 다시 커짐(전제)
     assert dec["first"] == dec["status"] == "undetermined", dec
     tr = _sim(o, inp)["ac"]["stability"]["transient"]
     assert tr["first_status"] == "undetermined" == tr["status"], tr
     assert tr["M"] == pytest.approx(m, rel=1e-2)
+    check_full_run(tr, pl, dec)                    # 계약 1(b): 일정 진폭 -> 조기 종결 없음
     assert tr.get("extension") is None and not list(o.glob(f"{stem}.stab2*"))
     st = c["summary"]["stability"]
     assert st["closed_loop"] is None and st["pm_undefined"] == "stability_unverified" and st["pm_valid"] is False, st
@@ -830,10 +1002,12 @@ def test_stable_lowpm_value_unchanged_and_pass(lowpm_run):
     assert ac["pm_deg_raw"] == ac["pm_deg"] and ac["pm_open_loop_deg"] == ac["pm_deg"]
     assert ac["stability"]["transient"]["status"] == "stable"
     assert ac["stability"]["transient"]["M"] == pytest.approx(dec["M"], rel=1e-2)
+    check_full_run(ac["stability"]["transient"], pl, dec)       # 계약 1(b): 안정(감쇠) 회로는 조기 종결 없음
+    check_stabwin_log(d / "o" / f"{stem}.stab.log", dec["M"])
     pv, _ = pulse_of((d / "o" / f"{stem}.stab.cir").read_text(encoding="utf-8"), "Vcl_nin")
     g = -(-1.0) * 1.0                            # sign = -1 (세 반전단) -> g = -sign·w = +1
     assert pv[0] == pytest.approx(THREE["vin"] - g * ref["v3"], abs=1e-5)
-    assert pv[2:6] == pytest.approx([pl["tmax"]] * 3 + [pl["pw"]], rel=1e-6)
+    assert pv[2:6] == pytest.approx([pl["td"]] * 3 + [pl["pw"]], rel=1e-6)
     assert res["free"]["summary"]["verdict"] == "PASS" and p.returncode == 0, res["free"]["summary"]
 
 
@@ -880,9 +1054,12 @@ def test_stable_cs_beta1_value_unchanged(tmp_path, ind_cs):
     ref_pm = measure(ind_cs["f"], ind_cs["H"])["pm_deg"]
     f, L, A = ac_loop_from_files(tmp_path / "o", stem_of(inp, "free"), beta_loop=False)
     assert np.sign(A[0].real) == -1.0 and nyquist(L)["N"] == 0
-    dec = decide(tmp_path / "o" / f"{stem_of(inp, 'free')}.stab.txt", plan(f, L, [ind_cs["V"]["nout"]]))
+    pl = plan(f, L, [ind_cs["V"]["nout"]])
+    dec = decide(tmp_path / "o" / f"{stem_of(inp, 'free')}.stab.txt", pl)
     assert dec["status"] == "stable", dec
     ac = _sim(tmp_path / "o", inp)["ac"]
+    check_plan_record(ac["stability"]["transient"]["plan"], pl, -1.0)
+    check_full_run(ac["stability"]["transient"], pl, dec)       # 계약 1(b): 안정 회로는 조기 종결 없음
     assert ac["pm_deg"] == pytest.approx(ref_pm, abs=1e-3) and ac["pm_deg_raw"] == ac["pm_deg"]
     check_row(c["summary"]["stability"], 0, "stable", ref_pm)
     assert c["summary"]["verdict"] == "PASS" and p.returncode == 0, c["summary"]
@@ -923,7 +1100,7 @@ def test_stable_beta_loop_value_unchanged(tmp_path, fb_ref):
     check_plan_record(rec, pl, rec["sign"])          # β 루프: 닫기 부호는 회전 없음(절차 1) -- 값은 기록 그대로 대조 제외
     pv, tok = pulse_of(text, "Vlb_nin")
     assert tok[1:3] == ["nin", "lbx_nin"] and pv[0] == 0.0 and pv[1] == pytest.approx(pl["kick"], rel=1e-6), tok
-    assert pv[2:6] == pytest.approx([pl["tmax"]] * 3 + [pl["pw"]], rel=1e-6)
+    assert pv[2:6] == pytest.approx([pl["td"]] * 3 + [pl["pw"]], rel=1e-6)
     assert tran_line(text)[1] == pytest.approx(pl["tstop"], rel=1e-6)
     itb = conftest.elem(text, "Itb_Ldc_nin")
     i_op = (FB["vin"] - fb_ref["vout"]) / FB["rf"]        # choke 가 nin 으로 보내는 전류 = Rf 로 나가는 전류
@@ -932,6 +1109,8 @@ def test_stable_beta_loop_value_unchanged(tmp_path, fb_ref):
     assert re.search(r"^\.ic\s+v\(nin\)\s*=\s*0\.7\b", text, re.M | re.I), text[-800:]
     dec = decide(o / f"{stem}.stab.txt", pl)
     assert dec["status"] == "stable" == ac["stability"]["transient"]["status"]
+    check_full_run(ac["stability"]["transient"], pl, dec)       # 계약 1(b): 안정 회로는 조기 종결 없음
+    check_save_probes_only(text)                                 # 계약 1(d): β 루프 H 식도 피연산자만
     check_row(c["summary"]["stability"], 0, "stable", ac["pm_deg_raw"])
     assert ac["pm_deg"] == ac["pm_deg_raw"] and ac["pm_open_loop_deg"] is not None
     assert ac["pm_crosscheck_deg"] is not None                                   # C20 그대로(z ~0.29 peaking)
@@ -1026,6 +1205,166 @@ def test_extension_record_absent_when_not_decaying(classic_run):
     assert tr.get("extension") is None and not list(o.glob(f"{stem}.stab2*"))
 
 
+# ====================================================================== 조기 종결 계약(사용자 결정 B 2026-10-08)
+def _early_unstable():
+    """피검 순수 함수 `oracle_simulate.early_unstable(M, floor', reltol)`(계약 1(b) 이름) -- 소스는 열지 않고 import 만."""
+    d = str(conftest.ORACLE_DIR)
+    if d not in sys.path:
+        sys.path.insert(0, d)
+    return importlib.import_module("oracle_simulate").early_unstable
+
+
+# oracle (a): 구성으로 답이 정해진 합성 창 최댓값 열. 각 기대값의 근거(계약 1(b) 정의를 손으로 대입):
+EARLY_CASES = [
+    # 일정 진폭: 모든 g(j) 에서 M_j(1-r) < M_{j-1}(1+r) -> 증가 없음 -> 절대 False(계약 '일정 진폭은 조기 종결하지 않는다')
+    pytest.param([1.0, 1.0, 1.0, 1.0, 1.0], 0.0, 1e-3, False, id="constant"),
+    # 분해능 이내 증가: g(2) = 1.0015*0.999 = 1.0005 < 1*1.001 + 1e-3 = 1.002 -> False
+    pytest.param([1.0, 1.0015, 1.003, 1.0045], 1e-3, 1e-3, False, id="within_resolution"),
+    # 상대 증가는 reltol 을 넘지만 floor' 이내: g(2) = 1.05*0.999 = 1.049 < 1*1.001 + 0.1 = 1.101 -> False
+    pytest.param([1.0, 1.05, 1.1, 1.15], 0.1, 1e-3, False, id="within_floor"),
+    # 분해능 초과 연속 증가: g(2) 1.1988 > 1.002, g(3) 1.4985 > 1.2022, M_3 = 1.5 >= M_1 -> True(j = 3)
+    pytest.param([1.0, 1.2, 1.5], 1e-3, 1e-3, True, id="growth_j3"),
+    # 맥놀이: g(2) 0.4995 < 1.002 -> j = 3 에서 g(j-1) 거짓, 더 볼 창 없음 -> False
+    pytest.param([1.0, 0.5, 1.2], 1e-3, 1e-3, False, id="beating"),
+    # 창 2 개(j = 2): 기준은 j >= 3 부터 -> 증가가 커도 False
+    pytest.param([1.0, 1.5], 1e-3, 1e-3, False, id="j2"),
+    pytest.param([1.0, 2.0], 0.0, 1e-3, False, id="j2_large"),
+    # M_j >= M_1 조건: j = 4 에서 g(3)*g(4) 참이지만 M_4 = 1.5 < M_1 = 5 -> False
+    pytest.param([5.0, 1.0, 1.2, 1.5], 1e-3, 1e-3, False, id="below_first"),
+    # 같은 열에 창 5 추가: g(4) 1.4985 > 1.2022, g(5) 5.994 > 1.5025, M_5 = 6 >= 5 -> True(j = 5)
+    pytest.param([5.0, 1.0, 1.2, 1.5, 6.0], 1e-3, 1e-3, True, id="above_first_j5"),
+    # reltol 경계(floor' 0): 1.0021*0.999 = 1.0010979 > 1.001, 1.0043*0.999 = 1.0032957 > 1.0021*1.001 = 1.0031021 -> True
+    pytest.param([1.0, 1.0021, 1.0043], 0.0, 1e-3, True, id="just_above_reltol"),
+    # reltol 경계 아래: 1.0019*0.999 = 1.0008981 < 1.001 -> g(2) 거짓, j = 3 뒤 창 없음 -> False
+    pytest.param([1.0, 1.0019, 1.0039], 0.0, 1e-3, False, id="just_below_reltol"),
+    # 일정 진폭 + reltol 이내 흔들림(긴 열): 어떤 이웃 쌍도 M_j(1-r) > M_{j-1}(1+r) 를 만족하지 않음 -> False
+    pytest.param([1.0, 1.0009, 0.9995, 1.001, 1.0008, 1.0], 0.0, 1e-3, False, id="jitter_within_reltol"),
+]
+
+
+@pytest.mark.parametrize("m,floor2,reltol,expected", EARLY_CASES)
+def test_early_unstable_predicate(m, floor2, reltol, expected):
+    """계약 1(b) 조기 unstable 기준의 순수 입출력(경계: j = 2, 맥놀이, 일정 진폭, 분해능 이내, M_j >= M_1, reltol 경계).
+    반환은 참/거짓 값으로 본다(조기 창 번호를 돌려도 참 값이면 통과)."""
+    assert bool(_early_unstable()(list(m), floor2, reltol)) is expected
+
+
+def test_n_pp_contract_literal():
+    """계약 1(a) 예시 'reltol 1e-3 이면 n_pp 71'(oracle (d))과 이 파일의 전수 탐색(oracle (b))이 같은지 -- 계획 대조의 전제.
+    이 파일 testbench reltol 1e-4: 1 - cos(pi/222) = 1.0014e-4 > 1e-4, 1 - cos(pi/223) = 9.92e-5 <= 1e-4 -> 223."""
+    assert n_pp_by_scan(1e-3) == 71
+    assert n_pp_by_scan(1e-4) == 223
+
+
+def test_config_declares_wall_cap():
+    """계약 1(c): oracle_config.json stability_transient 에 창당 상한(양수, s)과 근거 문장(justification)."""
+    cfg = json.loads(ORACLE_CONFIG.read_text(encoding="utf-8"))
+    stc = cfg["stability_transient"]
+    w = stc["wall_s_per_window"]
+    assert isinstance(w, (int, float)) and not isinstance(w, bool) and w > 0, w
+    assert isinstance(stc["justification"], str) and stc["justification"].strip(), stc
+
+
+def test_plan_default_reltol(tmp_path, ind_cs):
+    """계약 1(a): testbench.options 에 reltol 이 없으면 ngspice 기본 1e-3 -> plan.reltol 1e-3, n_pp 71(계약 예시 리터럴),
+    floor 도 같은 reltol. 안정 CS 라 조기 종결 없음."""
+    pr = preds_from_independent(ind_cs)
+    inp = cs_input(make_lut(tmp_path / "lut.npz"), diffusion="zero", preds_nodes=pr["nodes"],
+                   preds_devices=pr["devices"], constraints=[pm_con(">=", 45.0)])
+    del inp["testbench"]["options"]["reltol"]
+    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
+    assert res["free"] is not None, (p.stdout + p.stderr)[-1500:]
+    o, stem = tmp_path / "o", stem_of(inp, "free")
+    f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
+    pl = plan(f, L, [ind_cs["V"]["nout"]], reltol=1e-3)
+    tr = _sim(o, inp)["ac"]["stability"]["transient"]
+    assert tr["plan"]["reltol"] == 1e-3 and tr["plan"]["n_pp"] == 71, tr["plan"]
+    check_plan_record(tr["plan"], pl, -1.0)
+    dec = decide(o / f"{stem}.stab.txt", pl)
+    assert dec["status"] == "stable" == tr["status"], (dec, tr["status"])
+    check_full_run(tr, pl, dec)
+
+
+def test_growing_fixture_premise_independent(ref_root):
+    """전제(oracle (a), 피검 코드 없음): 고전적 불안정 3단(PM < 0, N = 2)을 손으로 쓴 폐루프 .tran(이상 VCVS 단위
+    음되먹임, 같은 킥·창·tmax 를 독립 .ac 에서 계획)으로 돌리면 창 최댓값이 분해능을 넘어 연속 증가 -> 계약 1(b) 조기
+    창이 계획 창 수 K 보다 앞이다(scratch 2026-10-08, 옛 tmax: M ~ [0.049, 0.093, 0.186, 0.293, 0.219, 0.359] -> j = 3)."""
+    caps = CAPS["classic_unstable"]
+    ref = three_ref(ref_root, caps)
+    sign = float(np.sign(ref["H"][0].real))
+    assert sign == -1.0                                   # 세 반전단
+    pl = plan(ref["f"], sign * ref["H"], [ref["v3"]])
+    g = -sign * 1.0
+    v0 = THREE["vin"] - g * ref["v3"]
+    body = [b for b in three_body(caps) if not b.startswith("Vin ")]
+    body += [f"Ecl nin ecl n3 0 {g}",
+             f"Vcl ecl 0 DC {v0} PULSE({v0} {v0 + pl['kick']} {pl['td']} {pl['td']} {pl['td']} {pl['pw']} 1)",
+             ".save v(n3)"]
+    ctrl = [".control", "set noaskquit", f"tran {pl['tmax']} {pl['tstop']} 0 {pl['tmax']}", "let h = v(n3)",
+            "set wr_singlescale", "wrdata g.txt h", "quit", ".endc", ".end"]
+    wd = ref_root / "classic_closed_loop"
+    p, _ = _ngspice(_head() + body + ctrl, wd)
+    dec = decide_run(wd / "g.txt", pl)
+    assert dec["early"] is not None and 3 <= dec["early"] < pl["K"], (dec, pl["K"], (p.stdout + p.stderr)[-800:])
+    assert dec["status"] == "unstable"
+
+
+def test_growing_fixture_early_stop(classic_run):
+    """계약 1(b): 증가하는 불안정 회로(classic_run) -> 창 j 에서 즉시 중단, status = unstable, early_stop{window, M, reason},
+    windows_run = j < 계획 창 수, 데이터 파일 마지막 시각 = 창 j 끝(< tstop 이어도 failed 아님), 연장 없음, STABWIN 로그,
+    pm 제약은 이전처럼 FAIL(불안정은 계속 FAIL)."""
+    d, inp, res, ref, p = classic_run
+    o, stem = d / "o", stem_of(inp, "free")
+    f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
+    pl = plan(f, L, [ref["v3"]])
+    dec = decide(o / f"{stem}.stab.txt", pl)
+    assert dec["early"] is not None and dec["early"] < pl["K"], (dec, pl["K"])        # 파일이 증명하는 조기 창
+    tr = _sim(o, inp)["ac"]["stability"]["transient"]
+    check_plan_record(tr["plan"], pl, -1.0)
+    assert tr["status"] == tr["first_status"] == "unstable" == dec["status"], (tr["status"], dec)
+    es = tr["early_stop"]
+    assert es["window"] == dec["early"] == tr["windows_run"] < tr["plan"]["windows_planned"], (es, tr["windows_run"])
+    assert len(es["M"]) == es["window"] and es["M"] == pytest.approx(dec["M"], rel=1e-2), (es, dec["M"])
+    assert isinstance(es["reason"], str) and es["reason"], es
+    assert tr["M"] == pytest.approx(dec["M"], rel=1e-2)
+    # 데이터 파일은 창 j 끝에 닿았고(decide_run 이 창 j 를 끝난 창으로 셌다) 창 j+1 끝 전에 멈췄다
+    assert dec["t_last"] < pl["t_end"] + (dec["early"] + 1) * pl["W"], (dec["t_last"], pl)
+    assert dec["t_last"] < pl["tstop"]
+    assert tr["wall_cap_s"] == pytest.approx(tr["plan"]["wall_cap_s"], rel=1e-12)
+    assert tr.get("extension") is None and not list(o.glob(f"{stem}.stab2*"))
+    check_stabwin_log(o / f"{stem}.stab.log", dec["M"])
+    c = res["free"]
+    assert _cons(c, "pmc")["judge"] == "FAIL" and c["summary"]["verdict"] == "FAIL" and p.returncode == 1, c["summary"]
+
+
+@pytest.mark.parametrize("which", ["lowpm_stab", "lowpm_stab2", "classic_stab", "rhp_stab"])
+def test_stab_netlist_saves_probes_only(request, which):
+    """계약 1(d): `.stab.cir`·`.stab2.cir` 는 H 식 피연산자(v(..)/i(..))와 time 만 save."""
+    fx, ext = {"lowpm_stab": ("lowpm_run", "stab"), "lowpm_stab2": ("lowpm_run", "stab2"),
+               "classic_stab": ("classic_run", "stab"), "rhp_stab": ("rhp_run", "stab")}[which]
+    d, inp, *_ = request.getfixturevalue(fx)
+    check_save_probes_only((d / "o" / f"{stem_of(inp, 'free')}.{ext}.cir").read_text(encoding="utf-8"))
+
+
+def test_timeout_s_overrides_default_cap(tmp_path):
+    """계약 1(c): `--timeout-s` 가 있으면 그것이 적용 상한(transient.wall_cap_s), 계획 상한(plan.wall_cap_s)은 선언값 x K
+    그대로. 끊기면 failed(사유 과도 시간 초과, timeout 기록) -> PASS 불가. 회로는 test_truncated_... 와 같다(손 RHP
+    회로 Rb 1 MOhm: scratch 2026-10-08 계약 tmax 로 같은 .stab.cir 단독 실행 107 s >> 4 s)."""
+    from conftest import run_netlist, run_simulate
+    rb = RB["rb1e6"]
+    inp = rhp_input(make_lut(tmp_path / "lut.npz"), rb, constraints=[pm_con(">=", 60.0)])
+    p, text, meta = run_netlist(inp, tmp_path)
+    assert p.returncode == 0 and meta["blockers"] == [], (p.stdout + p.stderr)[-800:]
+    cir, sim = tmp_path / "t.free.cir", tmp_path / "t.free.sim.json"
+    q = run_simulate(cir, sim, tmp_path, ["--timeout-s", "4"])
+    assert q.returncode == 0 and sim.exists(), (q.returncode, (q.stdout + q.stderr)[-1500:])
+    tr = json.loads(sim.read_text(encoding="utf-8"))["ac"]["stability"]["transient"]
+    assert tr["wall_cap_s"] == pytest.approx(4.0), tr.get("wall_cap_s")
+    assert tr["plan"]["wall_cap_s"] == pytest.approx(wall_s_per_window() * tr["plan"]["windows"], rel=1e-9)
+    assert tr["status"] == "failed" and tr["timeout"], tr
+    assert tr.get("early_stop") is None, tr.get("early_stop")
+
+
 # ====================================================================== 절차 4 개정(4ab6d85): 교차 여럿 -> 시간 척도 f_lo
 # 회로 3: CS(M1, RL) 출력 n1 -> 쌍T 노치(Rt1·Rt2 = R, Ctm = 2C 접지 / Ct1·Ct2 = C, Rts = R/2 접지) -> no(출력).
 #   손 모형: A = -gm·Ro(n1)·N(s), N = (1 + (s/ω0)²)/(1 + 4 s/ω0 + (s/ω0)²), ω0 = 1/(RC) -- |A| 가 노치(f0 = 9.95 kHz) 앞에서
@@ -1098,16 +1437,19 @@ def test_multi_crossing_plan_uses_f_lo(tmp_path, ref_root):
     assert st["gain_crossings_hz"] == pytest.approx(pl["crossings"], rel=1e-9)
     rec = st["transient"]["plan"]
     check_plan_record(rec, pl, -1.0)
-    assert rec["tmax"] == pytest.approx(1 / (2 * math.pi * rec["f_lo_hz"]), rel=1e-12)
-    assert rec["tmax"] > 50 / (2 * math.pi * rec["f_hi_hz"])                  # 옛 1/(2π f_hi) 와 확실히 다름
+    # 계약 1(a): 펄스 척도 td 는 f_lo 하나(불변), 걸음 상한 tmax 만 min(td, 1/(f_crit·n_pp))
+    assert rec["td"] == pytest.approx(1 / (2 * math.pi * rec["f_lo_hz"]), rel=1e-12)
+    assert rec["td"] > 50 / (2 * math.pi * rec["f_hi_hz"])                    # 옛 1/(2π f_hi) 와 확실히 다름
+    assert rec["tmax"] == pytest.approx(min(rec["td"], 1 / (rec["f_crit_hz"] * rec["n_pp"])), rel=1e-12)
     text = (o / f"{stem}.stab.cir").read_text(encoding="utf-8")
     pv, _ = pulse_of(text, "Vcl_nin")
-    assert pv[2:6] == pytest.approx([pl["tmax"]] * 4, rel=1e-6), (pv, pl)
+    assert pv[2:6] == pytest.approx([pl["td"]] * 4, rel=1e-6), (pv, pl)
     tr = tran_line(text)
     assert tr[0] == pytest.approx(pl["tmax"], rel=1e-6) and tr[3] == pytest.approx(pl["tmax"], rel=1e-6)
     assert tr[1] == pytest.approx(pl["tstop"], rel=1e-6)
     dec = decide(o / f"{stem}.stab.txt", pl)
     assert st["transient"]["status"] == dec["status"] and st["transient"]["first_status"] == dec["first"], dec
+    check_early_consistent(st["transient"], dec, pl)
     assert ac["pm_deg_raw"] == pytest.approx(ref["meas"]["pm_deg"], abs=0.01)
     assert st["nyquist"]["encirclements_cw"] == nyquist(L)["N"] == 0
     check_row(c["summary"]["stability"], 0, dec["status"], ac["pm_deg_raw"])
