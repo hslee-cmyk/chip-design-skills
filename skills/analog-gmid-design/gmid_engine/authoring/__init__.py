@@ -76,8 +76,9 @@ from .spec_node_targets import node_target_declaration
 from .spec_refs import resolve_spec_references
 from .spec_regions import REGION_TRIODE, intended_region_declaration
 from .spec_schema import SPEC_SCHEMA_VERSION, check_spec_schema
-from .spec_settings import THETA_BOUNDS, settings_declaration
+from .spec_settings import THETA_BOUNDS, UNTIE_ORBITS, settings_declaration
 from .spec_theta_bounds import theta_bound_declaration
+from .spec_untie import untie_declaration
 from .spec_sources import source_declaration_checks
 from .spec_supplies import supplies_declaration
 from .spec_targets import compensation_target_declaration
@@ -135,6 +136,7 @@ __all__ = (
     "SourceDecl",
     "SpecSource",
     "THETA_BOUNDS",
+    "UNTIE_ORBITS",
     "TWO_TERMINAL_NAMES",
     "TargetDecl",
     "ThetaBound",
@@ -188,4 +190,5 @@ __all__ = (
     "source_declaration_checks",
     "supplies_declaration",
     "theta_bound_declaration",
+    "untie_declaration",
 )

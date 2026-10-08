@@ -17,7 +17,7 @@
 import hashlib
 from pathlib import Path
 
-from gmid_engine.authoring import THETA_BOUNDS
+from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import FailureRecord, PdkDecl, fp_of
 from gmid_engine.graph import ELEMENT_PASSIVE
 from gmid_engine.metrics import JunctionSource, metric_catalog, metric_registry
@@ -92,10 +92,11 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
     # [r10] 원소별 θ 수동소자 상자 = spec search.theta_bounds(authoring ThetaBound tuple) -- SearchSettings 값이 run 단위 재정의
     search_section = spec.search if isinstance(spec.search, tuple) else ()
     spec_bounds = next((s.value for s in search_section if s.field == THETA_BOUNDS and s.value), ())
+    untie = tuple(name for name, _source in next((s.value for s in search_section if s.field == UNTIE_ORBITS and s.value), ()))
     # [결정 11] 면적 예산 = spec 판정 제약 `area_search_m2 <= 값` 중 가장 작은 값 -- θ 전류 상한(S-3b)을 닫는다
     budgets = [float(d.value) for d in spec.judged_constraints
                if d.metric == AXIS_AREA and d.op == "<=" and d.value is not None]
-    domain = search_domain(dc_ctx, settings, pdk_decl, spec_bounds, min(budgets) if budgets else None)
+    domain = search_domain(dc_ctx, settings, pdk_decl, spec_bounds, min(budgets) if budgets else None, untie)
     junction = JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)
     context_fp = fp_of((dc_ctx.base.fp, dc_ctx.plan_versions, dc_ctx.lut, dc_ctx.fixed_values, dc_ctx.resistor_values,
                         dc_ctx.inputs))

@@ -142,7 +142,8 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 DC_WRITES = (
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
-    (DC_STRUCT_COLOUR_WRITER, (("node", "dc_colour"), ("device", "dc_colour"))),
+    (DC_STRUCT_COLOUR_WRITER, (("node", "dc_colour"), ("device", "dc_colour"), ("node", "dc_orbit"), ("device", "dc_orbit"),
+                                 ("graph", "dc_symmetry"))),
     (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "dc_theta_schema"),)),
@@ -411,7 +412,8 @@ class SealedSnapshot:
 class KernelContext:
     """S0 당 1회 만드는 평가 커널 컨텍스트(루프 불변 입력). `base` = S1 + 쓰기 계획 블록까지 쓴 스냅샷, `inputs` = DcInputs,
     `lut` = LutAccess, `schema` = ThetaSchema, `fixed_values` = ((넷, V), ...) W3·입력 DC 고정 노드,
-    `resistor_values` = ((저항, Ω), ...) spec 선언값(DC 경로 저항만), `plan_versions` = ((writer, 입력 버전), ...) 계획 블록."""
+    `resistor_values` = ((저항, Ω), ...) spec 선언값(DC 경로 저항만), `plan_versions` = ((writer, 입력 버전), ...) 계획 블록,
+    `l_ties` = ((멤버, 주인), ...) S1v derived L 동치류의 비주인 멤버(LR1 L 공유, `size_and_seal` 이 멤버 L 을 주인 값으로 바꾼다)."""
 
     base: object
     inputs: DcInputs
@@ -420,6 +422,7 @@ class KernelContext:
     fixed_values: tuple
     resistor_values: tuple
     plan_versions: tuple
+    l_ties: tuple = ()
 
 
 @dataclasses.dataclass(frozen=True)
