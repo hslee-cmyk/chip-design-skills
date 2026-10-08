@@ -112,11 +112,12 @@ def _code_version():
 
 _EXTENDED = "\\\\?\\"
 _UNC = "\\\\"
+_WINDOWS = sys.platform.startswith("win")
 
 
 def _io(path):
     """파일 작업용 경로: Windows 에서는 확장 길이 경로(`\\\\?\\` + 절대 경로, UNC 는 `\\\\?\\UNC\\`), 그 밖에는 그대로."""
-    if os.name != "nt" or path.startswith(_EXTENDED):
+    if not _WINDOWS or path.startswith(_EXTENDED):
         return path
     full = os.path.abspath(path).replace("/", "\\")
     if full.startswith(_UNC):
@@ -330,7 +331,7 @@ class TableCache:
             self._cleanup(path)
         except OSError as exc:
             hint = (" -- 경로 길이 %d 자: Windows MAX_PATH 한도 초과가 원인일 수 있다(더 짧은 캐시 폴더를 쓸 것)" % len(os.path.abspath(path))
-                    if os.name == "nt" else "")
+                    if _WINDOWS else "")
             warnings.warn("TableCache: 쓰지 못했다 %s (%s)%s" % (path, exc, hint), RuntimeWarning)
             self._note("write_error", fn_name)
         finally:
