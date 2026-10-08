@@ -94,6 +94,7 @@ _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
 _BOUND_RAIL, _BOUND_VDS, _BOUND_VS = "rail", "vds_axis", "vs_axis"
 _SOLVE_SELF_MEMO = "solve_self"            # LUT memo root 영역의 함수 이름 칸(1변수 풀이 재사용)
 _MID = 1 / 2                                         # y_icm 창을 재기 시작하는 해의 위치(순서 창 한가운데)
+_HALVING = round(1 / _MID)                          # 분모가 늘어나는 비 -- 구간을 이분하는 수(1/2 다음 후보 열)
 _GS_STOPPED = "gauss_seidel_stopped"                  # SccLog.fallback[0]: GS 가 K_max 안 tol 도달 불가로 멈춤
 
 
@@ -629,13 +630,74 @@ def _solve(c):
 _FAILURES = (SealViolationError, NonconvergentError)
 
 
+def _dyadic_ys(count):
+    """y 후보 열 1/4, 3/4, 1/8, 3/8, 5/8, 7/8, ... (앞 `count` 개) -- 구간을 이분 수준마다 훑는 순서(1/2 는 이미 해 봤다)."""
+    out, level = [], _HALVING
+    while len(out) < count:
+        out.extend(k / level for k in range(1, level, _HALVING))
+        level *= _HALVING
+    return out[:count]
+
+
+def _interior_solution(c, key, requested):
+    """y_icm = 1/2 가 풀리지 않을 때 입력 창을 재려고 순서 창 안에서 풀리고 창을 잴 수 있는 점을 찾는다 (설계 41 §4.6 '범위 = 입력 창').
+    1/2 에서 이분 수준마다 y 를 훑되 시도 수는 `k_max`(레일 폭, 그 점 근처 tol) 이내. 반환 (값, 로그, 창) 또는 None (못 찾음 -- 종래 사상)."""
+    middle = (c.hi - c.lo) / 2                         # 풀이가 없어 VDS 를 모른다 -- 레일 폭의 절반 VDS 셀의 tol_V 로 시도 수 상한을 잰다
+    tols = [tol for m in c.coord for tol in (tol_v_cell(c.lut, m, c.kinds[m], c.L[m], middle),) if tol is not None]
+    if not tols:
+        return None
+    budget = k_max(c.hi - c.lo, min(tols))
+    roots = c.input_roots()
+    for y in _dyadic_ys(budget):
+        c.theta[key] = y
+        try:
+            values, logs = _solve(c)
+        except _FAILURES:
+            continue
+        finally:
+            c.theta[key] = requested
+        windows = c.input_windows(values, roots)
+        if windows is not None:
+            return values, logs, windows
+    return None
+
+
+def _refine_ends(c, roots, windows, tol):
+    """창 끝을 끝에서 다시 푼다 (뉴턴 -- 끝에서 잰 1차 외삽은 오차가 이차). 끝 x 에 입력을 고정(창 (x, x))해 풀고 그 해에서 창을 다시 재
+    (a) x 가 잰 창 안(봉인 7 의 포화 여유 ≥ 0 과 같은 식)이고 (b) 잰 끝과 x 의 차가 tol 이하이면 x 를 끝으로 삼는다 -- 그 점은 풀려 있고 여유가 음수가 아니다.
+    아니면 잰 끝을 다음 x 로 쓴다. 풀리지 않으면 지금까지의 끝을 둔다. 상한 k_max(레일 폭, tol). 끝이 무한이면(제약 없음) 손대지 않는다."""
+    refined = {root: list(w) for root, w in windows.items()}
+    for side in (0, 1):
+        inward = 1.0 if side == 0 else -1.0                 # 아래 끝은 x 가 잰 끝 이상이어야 안, 위 끝은 이하
+        for _ in range(k_max(c.hi - c.lo, tol)):
+            ends = {root: refined[root][side] for root in roots}
+            if not all(math.isfinite(x) for x in ends.values()):
+                break
+            c.override = {root: (x, x) for root, x in ends.items()}
+            try:
+                values, _logs = _solve(c)
+            except _FAILURES:
+                break
+            again = c.input_windows(values, roots)
+            if again is None:
+                break
+            inside = all(inward * (ends[root] - again[root][side]) >= 0 for root in roots)
+            close = all(abs(again[root][side] - ends[root]) <= tol for root in roots)
+            if inside and close:
+                break
+            for root in roots:
+                refined[root][side] = again[root][side]
+    return {root: tuple(w) for root, w in refined.items()}
+
+
 def _solve_input_window(c):
     """입력 DC 대기 회로의 y_icm 범위 = 입력 포화 창 (사용자 결정 J-E, 설계 41 §4.6 SP-2 (c)).
 
-    입력 묶음 W4 뿌리가 없으면 풀이 한 번(종래). 있으면: (1) y_icm = 1/2 로 풀어 해를 얻고(순서 창 사상) (2) 그 해에서 잰 포화 창
-    [Vin,min, Vin,max] ∩ 순서 창을 y_icm 범위로 삼아 요청 y_icm 으로 다시 풀며 (3) 새 해에서 창을 다시 재 경계가 tol 안에서 같아질 때까지
-    되풀이한다(상한 K_max = `k_max`(레일 폭, tol)). (1) 이 풀리지 않거나 창을 잴 수 없으면(VDSAT 열 없음·tol 미정) 종래 사상(요청 y_icm,
-    순서 창)으로 푼다 -- 종래보다 나빠지지 않는다. 경계는 마지막 풀이의 값이다(봉인 시점 값, tol_VDsat 포함)."""
+    입력 묶음 W4 뿌리가 없으면 풀이 한 번(종래). 있으면: (1) y_icm = 1/2 로 풀어 해를 얻고(순서 창 사상; 풀리지 않으면 순서 창 안에서 풀리는
+    점을 찾는다) (2) 그 해에서 잰 포화 창 [Vin,min, Vin,max] ∩ 순서 창을 y_icm 범위로 삼아 요청 y_icm 으로 다시 풀며 (3) 새 해에서 창을 다시 재
+    경계가 tol 안에서 같아질 때까지 되풀이하고(상한 K_max = `k_max`(레일 폭, tol)) (4) 창 끝을 끝에서 다시 풀어 다듬는다(끝 y = 0·1 이 봉인 시점
+    포화 여유 ≥ 0). (1) 이 어디서도 풀리지 않거나 창을 잴 수 없으면(VDSAT 열 없음·tol 미정) 종래 사상(요청 y_icm, 순서 창)으로 푼다 --
+    종래보다 나빠지지 않는다. 경계는 (4)의 끝 값이다(봉인 시점 값, tol_VDsat 포함)."""
     roots = c.input_roots()
     if not roots:
         return _solve(c)
@@ -644,13 +706,17 @@ def _solve_input_window(c):
     c.theta[key] = _MID
     try:
         values, logs = _solve(c)
+        windows = c.input_windows(values, roots)
     except _FAILURES:
+        windows = None
+        found = None
+    finally:
         c.theta[key] = requested
-        return _solve(c)
-    windows = c.input_windows(values, roots)
-    c.theta[key] = requested
     if windows is None:
-        return _solve(c)
+        found = _interior_solution(c, key, requested)
+        if found is None:
+            return _solve(c)
+        values, logs, windows = found
     devices = tuple(sorted(c.coord, key=lambda m: (c.device_colour.get(m, 0), m)))
     try:
         tol = c.tolerance(devices, values)
@@ -667,7 +733,8 @@ def _solve_input_window(c):
         windows = again
         if settled:
             break
-    return values, logs
+    c.override = _refine_ends(c, roots, windows, tol)
+    return _solve(c)
 
 
 @compute_block(DC_COLUMNS_WRITER, reads=READS, writes=WRITES)

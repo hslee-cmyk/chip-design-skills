@@ -955,11 +955,11 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   (tol_I = tol_V × gm_bound, 봉인 3). 없는 소자는 종래 LUT 격자 최대 gm(첫 평가).
 * `size_and_seal(..., parent)`: parent 가 **봉인된**(`parent.sealed is not None`) `DcEvaluation` 이고 그 스냅샷에 `device.ss_dev` 가 있으면 소자마다
   gm/ID = `ss_dev.gm / dc_op.current`. `ss_dev` 가 그 점에서 나온 것인지는 이 gm/ID 가 `dc_op.gm_id` 와 `2·eps` 상대 안에서 같은지로 가린다(오래된 필드 배제).
-  parent 가 없거나 봉인이 아니거나 ss 가 없으면 `gm_id_prev = ()`. 새 `dc_op` 전체가 parent 의 것과 같으면(수동소자 θ 만 바뀐 FD 등) 허용오차도 같은 입력이라 `gm_id_prev = ()` 로 두어 DEC-92 재사용(DC 블록 computes 0)을 지킨다. **결과가 parent 에 의존한다**(N3.6 규칙 그대로).
+  parent 가 없거나 봉인이 아니거나 ss 가 없으면 `gm_id_prev = ()`. 새 `dc_op` 전체가 parent 의 것과 같으면(수동소자 θ 만 바뀐 FD 등) tol_I 입력은 **parent 가 허용오차에 실제로 쓴 gm/ID**(parent 의 `dc_gm_bound` ÷ `dc_op.current`, 격자 최대 gm 이 상계인 소자는 뺀다)를 그대로 쓴다 -- 그래서 parent 가 S2p 로 평가됐어도 수동소자만 다른 자식의 허용오차 입력이 parent 와 같아 DEC-92 재사용(DC 블록 computes 0)이 성립한다. 입력의 비트 동일은 gm/ID 를 '같은 상계(gm/ID × 전류)를 내는 가장 작은 gm/ID' 정규형(`canonical_gm_id`)으로 두어 보장한다(S2p 에서 새로 뽑은 gm/ID 도 같은 정규형). **결과가 parent 에 의존한다**(N3.6 규칙 그대로).
 * 효과(toy r4, 파일럿급 W 큰 pmos): 노드 tol_I 가 격자 최대 gm 대비 수십~수만 배 줄어 봉인 3 이 실제로 판정한다.
 
 ### 14.3 W_request 고정 W (D-GB7d, LY3)
-* `size_and_seal(ctx, theta, parent=None, w_request=())`, `w_request` = {MOS: W[m]} 또는 ((MOS, W), ...). MOS 가 아닌 이름·비양수·비유한 W -> `ValueError`.
+* `size_and_seal(ctx, theta, parent=None, w_request=())`, `w_request` = {MOS: W[m]} 또는 ((MOS, W), ...). MOS 가 아닌 이름·비양수·비유한 W·**같은 소자 이름이 두 번 있는 요청**((MOS, W) 쌍 목록에서) -> `ValueError`(호출 계약 위반; 값이 같아도 거부).
 * 쓰기 소자(`dc_coord.role == writer`): θ `ln_idu` 는 무시되고 ln IDu = ln(ID·L/W) 가 `dc_columns` 에 간다. 종속 소자: 좌표는 순방향 그대로. 모든 요청 소자의
   `DeviceOp.W` = 요청값 (`dc_widths(snapshot, lut, w_request=())`). 종속 소자의 ID 어긋남은 봉인 3 이 판정한다(순방향 IDu × W/L 로 다시 센 KCL).
 * 요청이 없으면 블록 extras 가 종래와 같다(재사용 계약 유지).
@@ -984,7 +984,8 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   (3) 순서 창과 교집합을 y_icm 범위로 삼아 요청 y 로 다시 풀며 (4) 경계가 tol_V 안에서 변하지 않을 때까지 되풀이(상한 `k_max(레일 폭, tol_V)`). `node.dc_window` 는 마지막 범위를 낸다.
 * (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(..., linear_devices)` 5번째 extras 는 비어 있지 않을 때만 준다.
 * 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배.
-* 알려진 한계: VDsat 의 x 의존은 해에서 한 번 잰 값으로 둔다(1차). 창 끝(y = 0, 1)의 포화 여유가 수 mV 어긋날 수 있고 마지막 판정은 봉인 7 이다.
+* (1)이 y = 1/2 에서 풀리지 않으면 순서 창 안을 1/4, 3/4, 1/8, 3/8, ... 순으로 훑어(시도 수 ≤ k_max(레일 폭, 레일 폭 절반 VDS 셀의 최소 tol_V)) 풀리고 창을 잴 수 있는 첫 점의 해로 (2)를 시작한다. 어디서도 안 풀릴 때만 종래 사상이다.
+* (5) 창 끝은 끝에서 다듬는다: 끝 x 에 입력을 고정해 풀고 그 해에서 창을 다시 재(뉴턴) x 가 잰 창 안이고 잰 끝과 tol_V 이내이면 x 를 끝으로 삼는다(상한 k_max). 그래서 y = 0·1 도 봉인 7 포화 여유 ≥ 0 이다. VDsat 의 x 의존은 그 점의 해에서 잰 값이다.
 
 ## 15. 구현하지 않은 것 (정지 후 보고)
 

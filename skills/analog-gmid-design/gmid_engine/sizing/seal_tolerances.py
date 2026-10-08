@@ -22,7 +22,7 @@ READS = (("device", "dc_op"),)
 WRITES = (("device", "dc_tol_v"), ("device", "dc_gm_bound"))
 
 
-def _gm_grid_max(lut, device, op):
+def gm_grid_max(lut, device, op):
     """(L, VDS, VSB) 곡선의 VGS 격자 위 gm 최댓값을 소자 폭 W 로 환산(S)."""
     w_key = w_key_of(lut, op.kind)
     w_m = lut.memo.lut.slice_map[(op.kind, w_key)].w_m
@@ -41,5 +41,5 @@ def dc_tolerances(projection):
     bounds = {}
     for m, op in projection.column("device", "dc_op"):
         tols[m] = tol_v_cell(lut, m, op.kind, op.L, op.vds)
-        bounds[m] = gm_id_prev[m] * op.current if m in gm_id_prev else _gm_grid_max(lut, m, op)
+        bounds[m] = gm_id_prev[m] * op.current if m in gm_id_prev else gm_grid_max(lut, m, op)
     return {("device", "dc_tol_v"): tols, ("device", "dc_gm_bound"): bounds}
