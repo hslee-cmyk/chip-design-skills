@@ -8,7 +8,9 @@
   (ii) K3 = 비레일 넷에서 MOS e 의 drain 과 MOS d 의 source 가 만나고 둘의 블록이 다름, 9회로 0건
   (iii) K7 은 동작점이 있는 소자(MOS)만 -- 커패시터·저항은 세지 않는다 (iv) 레코드 `nets`.
 - interface(graph CONTRACT 11.3): 횡단 = 한 뷰 안에서 블록이 있는 소자 둘 이상의 블록 키 합집합 != 교집합, kind 별 domain·init_rule 표,
-  vars 는 (kind, members, nets, domain) 순·중복 없음, K1 은 부하 역할(load·mirror·diode_load) 멤버가 횡단 블록에 있을 때.
+  vars 는 (kind, members, nets, domain) 순·중복 없음, K1 은 부하 역할 멤버가 횡단 블록에 있을 때.
+- 설계 40 §3.3 as-built 보완(master 21bde21, 오케스트레이터 결정 2026-10-09): K1 부하 역할 = {load, mirror, diode_load, tail_source}
+  (실제·의사 블록에 같게), 의사 블록 표현 = `BlockRef(view, ("bias:<기둥 id>",))`, 뷰마다 하나.
 
 oracle 종류:
 - (a) 손 회로(`s1v_hand`·`coupling_hand`) 기대 레코드는 위 정의를 손으로 적용한 리터럴. 각 test 주석에 유도를 적는다.
@@ -17,6 +19,7 @@ oracle 종류:
 - 불변식: 이름 전단사 + netlist 순서 섞기에 결과가 사상으로만 바뀐다, 같은 입력·다른 PYTHONHASHSEED 에서 같다.
 
 base 57e81fb 는 (i)(iii)을 아직 구현하지 않았다 -- 그 기준의 test 는 설계대로 적고 red 로 둔다(코드 결함, auditor 판정).
+21bde21 의 K1 tail_source 결정으로 test_side_injection_k8·kind 수 표 리터럴을 다시 유도했다(정의 변경, 기준 완화 아님).
 """
 from __future__ import annotations
 
@@ -32,7 +35,7 @@ import coupling_hand as C
 import coupling_oracle as O
 import s1v_hand as H
 from gmid_engine.core import fp_of
-from gmid_engine.graph import coupling_vars
+from gmid_engine.graph import BlockRef, coupling_vars
 
 T0 = "transfer:0"
 # interface 11.3 표: kind -> (domain 후보, init_rule)
@@ -108,9 +111,13 @@ def test_side_injection_k8(tmp_path):
     #      y 에서 CD 엣지(y->n Ms, n->out Mf)로 q 에 닿지 않음, n 은 이득 블록(y) 출력 아님 -> (Mc, Ms), nets (n,).
     #  K1·K2 (M6, M9, Mc): M6(diode_load)·M9(load) 는 블록 y, Mc 는 블록 밖이고 기둥 {Mc, Ms} 의 Ms 가 버퍼 블록 out -> 기둥 이웃으로 out.
     #      y/out 횡단 + 부하 역할 -> K1 dc(mirror 그룹)·K1 geom(L 동치류), equal_vgs -> K2 nets (q, vdd).
-    #  K2 (M0, Mk): 꼬리 M0(블록 y) / Mk(기둥 {Mk, Mf} 의 이웃 -> out) -> 횡단, nets (vb, gnd). 부하 역할 멤버 없음 -> K1 없음.
+    #  K1·K2 (M0, Mk): 꼬리 M0(블록 y, tail_source) / Mk(블록 밖, 기둥 {Mk, Mf} 의 Mf 가 out -> 기둥 이웃으로 out) -> y/out 횡단.
+    #      S1 mirror 그룹 {M0, Mk}(같은 (vb, gnd) gs 묶음)·L 동치류 {M0, Mk} + 부하 역할 tail_source(21bde21) -> K1 dc·geom,
+    #      equal_vgs -> K2 nets (vb, gnd).
     #  K3: n 에서 Mc drain / Ms source 지만 Mc 는 블록 멤버가 아니다 -> 없음. K4: 각 기둥이 한 블록 -> 없음.
     assert recs(cpl) == sorted([
+        ("K1", ("M0", "Mk"), "dc", "class_owner_value", ()),
+        ("K1", ("M0", "Mk"), "geom", "class_owner_value", ()),
         ("K1", ("M6", "M9", "Mc"), "dc", "class_owner_value", ()),
         ("K1", ("M6", "M9", "Mc"), "geom", "class_owner_value", ()),
         ("K2", ("M0", "Mk"), "dc", "common_vgs_candidates", ("vb", "gnd")),
@@ -184,7 +191,75 @@ def test_bias_columns_sharing_a_branch_k4(tmp_path):
     assert C.mentions_bias_column(mt, ca) and C.mentions_bias_column(mt, cb)
 
 
-@pytest.mark.parametrize("doc", [H.OTA5, H.MILLER, H.CMFB, C.STACK, C.SIDE, C.BCS, C.BIASNET, C.MATE, H.FOLDED, H.REPLICA],
+def test_bias_pseudo_block_key_format(tmp_path):
+    # 설계 as-built(21bde21)·CONTRACT 11.1: 의사 블록 = BlockRef(view, ("bias:<기둥 id>",)), 기둥 id 는 S1 기둥 id 그대로, 뷰마다 하나.
+    # 손 유도(BCS): 바이어스 기둥은 {Mi, Mr} 하나 -> 의사 블록 키 ("bias:<그 기둥>",). K1 geom·K2 의 blocks = {out, 의사 블록} 정확히.
+    s1, s1v = H.build(tmp_path, C.BCS)
+    bias = C.column_id(s1, {"Mi", "Mr"})
+    cpl = coupling_vars(s1, s1v)
+    assert cpl.column_block_map.bias_columns == (bias,)
+    want = (BlockRef(T0, ("bias:%s" % (bias,),)), BlockRef(T0, ("out",)))
+    assert len(cpl.vars) == 2
+    for v in cpl.vars:
+        assert set(v.blocks) == set(want), v
+        assert tuple(v.blocks) == tuple(sorted(want)), v      # interface 11.1: blocks 정렬
+    # 매핑표 행의 block 은 바이어스 기둥이면 None 그대로(CONTRACT 11.1)
+    assert {(r.device, r.block, r.basis) for r in cpl.column_block_map.rows if r.column == bias} == {
+        ("Mi", None, "bias_column"), ("Mr", None, "bias_column")}
+
+
+def test_bias_pseudo_block_one_per_view(lib):
+    # CONTRACT 11.1: '의사 블록은 모든 뷰에 기둥마다 하나씩' + 11.3 'blocks = 횡단이 일어난 뷰들의 횡단 블록'.
+    # 손 유도(current_reuse_telescopic_ota topology + S1v 블록): M6(gate Vbias1, tail_source)는 전달 뷰 블록 (Vom1, Vop1) 과
+    # 루프 뷰 loop:M37a:Voc 블록 (N1a2a, N1b2b) 의 멤버, 기준 diode M18_bg 는 바이어스 기둥 {Iref, M18_bg} -> 두 뷰 모두 횡단 ->
+    # K1 dc (M18_bg, M6) blocks = 두 뷰 각각의 (실제 블록, 의사 블록) 넷.
+    s1, s1v = lib["current_reuse_telescopic_ota"]
+    bias = C.column_id(s1, {"Iref", "M18_bg"})
+    pk = ("bias:%s" % (bias,),)
+    hit = [v for v in coupling_vars(s1, s1v).vars if v.kind == "K1" and v.domain == "dc" and v.members == ("M18_bg", "M6")]
+    assert len(hit) == 1
+    assert set(hit[0].blocks) == {BlockRef(T0, ("Vom1", "Vop1")), BlockRef(T0, pk),
+                                  BlockRef("loop:M37a:Voc", ("N1a2a", "N1b2b")), BlockRef("loop:M37a:Voc", pk)}
+
+
+def test_tail_mirrored_from_bias_diode_is_k1(tmp_path):
+    # 21bde21 결정: 바이어스 의사 블록에서 미러로 전류를 받는 꼬리 전류원도 K1.
+    # 손 회로: 5T OTA(M1/M2 입력, M3/M4 PMOS 미러 부하, 꼬리 M5 gate nb) + 바이어스 기둥 {Mr, Mi}: 기준 diode Mr(nb-nb-gnd) + 전류원 Mi(gate vbp).
+    s1, s1v = H.build(tmp_path, C.TAILREF)
+    bias = C.column_id(s1, {"Mi", "Mr"})
+    v = H.view(s1v)
+    roles = {d: r for b in v.blocks for d, r in b.roles}
+    assert [b.key for b in v.blocks] == [("out",)] and roles["M5"] == "tail_source" and "Mr" not in roles   # 전제(S1v)
+    cpl = coupling_vars(s1, s1v)
+    # 손 유도: Mr 는 바이어스 기둥 = 의사 블록 bias:<기둥>, M5 는 블록 out 의 tail_source -> {M5, Mr} 횡단.
+    #  (nb, gnd) gs 묶음 -> mirror 그룹·L 동치류 {M5, Mr} + 부하 역할 tail_source -> K1 dc·geom, equal_vgs -> K2 nets (nb, gnd).
+    #  {M3, M4} 는 둘 다 out -> 없음. 기둥 {M5,M1,M3}·{M5,M2,M4} 는 out 하나, {Mr,Mi} 는 의사 블록 하나 -> K4 없음. 뷰 하나 -> K7 없음.
+    #  횡단 블록 안 멤버 역할은 tail_source 뿐 -> 옛 집합(load·mirror·diode_load)이면 K1 이 없었다(K1 의 근거가 tail_source 임).
+    assert recs(cpl) == sorted([
+        ("K1", ("M5", "Mr"), "dc", "class_owner_value", ()),
+        ("K1", ("M5", "Mr"), "geom", "class_owner_value", ()),
+        ("K2", ("M5", "Mr"), "dc", "common_vgs_candidates", ("nb", "gnd")),
+    ], key=repr)
+    for rv in cpl.vars:
+        assert set(rv.blocks) == {BlockRef(T0, ("out",)), BlockRef(T0, ("bias:%s" % (bias,),))}
+
+
+def test_bias_columns_k4_blocks_are_pseudo_only(tmp_path):
+    # 두 바이어스 기둥이 가지를 공유하는 K4 (as-built (i)): blocks 는 의사 블록 둘뿐, 실제 블록 없음.
+    # 손 유도(BIASNET): 가지 Mt(gnd-t) 를 기둥 A={Mt,Ma}·B={Mt,Mb,Mc} 가 지난다 -> blocks = {bias:A, bias:B}.
+    #  가지 Ma 의 기둥 A 소자 Mt{A,B}·Ma{A} -> 횡단 블록 {A, B}. 가지 Mb-Mc 도 {A, B}.
+    s1, s1v = H.build(tmp_path, C.BIASNET)
+    ca, cb = C.column_id(s1, {"Mt", "Ma"}), C.column_id(s1, {"Mt", "Mb", "Mc"})
+    cpl = coupling_vars(s1, s1v)
+    assert set(cpl.column_block_map.bias_columns) == {ca, cb}
+    want = {BlockRef(T0, ("bias:%s" % (ca,),)), BlockRef(T0, ("bias:%s" % (cb,),))}
+    k4 = [v for v in cpl.vars if v.kind == "K4"]
+    assert len(k4) == 3
+    for v in k4:
+        assert set(v.blocks) == want, v
+
+
+@pytest.mark.parametrize("doc", [H.OTA5, H.MILLER, H.CMFB, C.STACK, C.SIDE, C.BCS, C.BIASNET, C.MATE, H.FOLDED, H.REPLICA, C.TAILREF],
                          ids=lambda d: d["topology_name"])
 def test_hand_circuits_match_oracle(tmp_path, doc):
     # 손 회로 전부에서 (b) oracle 과 레코드 키가 같다(손 리터럴과 oracle 의 교차 확인 포함)
@@ -248,16 +323,41 @@ def test_library_k7_match_oracle(name, lib):
     assert sorted(eng - orc) == [] and sorted(orc - eng) == []
 
 
+@pytest.mark.parametrize("name", C.NINE)
+def test_library_k1_k2_blocks_match_oracle(name, lib):
+    # K1·K2 blocks(의사 블록 포함) = oracle 횡단 블록(뷰별, 의사 블록 키 ("bias:<기둥 id>",))
+    s1, s1v = lib[name]
+    orc = O.CouplingOracle(s1, s1v)
+    for v in coupling_vars(s1, s1v).vars:
+        if v.kind in ("K1", "K2"):
+            assert {(b.view, tuple(b.key)) for b in v.blocks} == orc.crossing_refs(v.members), (name, v)
+
+
+def test_library_tail_source_k1_records(lib):
+    # 21bde21 로 생긴 K1(topology 직접 읽기): 꼬리 전류원이 바이어스 기둥의 기준 diode 와 같은 gate·source.
+    #  sf: M3(d TAIL, g NB, s vss) <- M4(d NB, g NB, s vss) / folded: M11(d tail, g vb2, s gnd) <- MN(d vb2, g vb2, s gnd)
+    #  pilot: M6(d Vx, g Vbias1, s vdd) <- M18_bg(d Vbias1, g Vbias1, s vdd).
+    got = {n: {(v.members, v.domain) for v in coupling_vars(*lib[n]).vars if v.kind == "K1"} for n in C.NINE}
+    assert {(("M3", "M4"), "dc"), (("M3", "M4"), "geom")} <= got["sf_pushpull_output_opamp"]
+    assert {(("M11", "MN"), "dc"), (("M11", "MN"), "geom")} <= got["folded_cascode"]
+    assert (("M18_bg", "M6"), "dc") in got["current_reuse_telescopic_ota"]
+
+
 def test_library_kind_count_table(lib):
     # oracle (b) 산출을 손으로 확인한 표(설계 as-built 정의). K3 은 9회로 0건(설계 문장), column_unassigned 없음.
+    # 21bde21 tail_source 로 늘어난 K1(topology 직접 읽기 + S1v 블록 역할로 손 확인, 아래 test_library_tail_source_k1_records):
+    #  current_reuse_telescopic_ota +1: M6(tail_source, gate Vbias1) <- 기준 diode M18_bg(바이어스 기둥 {Iref, M18_bg}) mirror -> K1 dc
+    #     (L 동치류 쪽 geom 레코드는 이미 load 멤버로 있었다) 3 -> 4
+    #  folded_cascode +2: M11(tail_source, gate vb2) <- 기준 diode MN(바이어스 기둥 {Ibg, MN, MP}) -> K1 dc·geom 1 -> 3
+    #  sf_pushpull_output_opamp +2: M3(tail_source, gate NB) <- 기준 diode M4(바이어스 기둥 {IBias, M4}) -> K1 dc·geom 4 -> 6
     expect = {
         "common_gate_amplifier": {},
-        "current_reuse_telescopic_ota": {"K1": 3, "K2": 2, "K4": 5, "K7": 11},
-        "folded_cascode": {"K1": 1, "K2": 2},
+        "current_reuse_telescopic_ota": {"K1": 4, "K2": 2, "K4": 5, "K7": 11},
+        "folded_cascode": {"K1": 3, "K2": 2},
         "ngcc_3stage_ff": {"K1": 4, "K2": 4},
         "nmcnr_amplifier": {},
         "pushpull_follower_buffer": {},
-        "sf_pushpull_output_opamp": {"K1": 4, "K2": 3, "K8": 2},
+        "sf_pushpull_output_opamp": {"K1": 6, "K2": 3, "K8": 2},
         "two_stage_ota": {"K1": 2, "K2": 1},
         "two_stage_ota_sf": {"K1": 2, "K2": 1},
     }
@@ -346,6 +446,39 @@ for n in {names!r}:
     s1, s1v = H.build_lib(n)
     print(n, fp_of(coupling_vars(s1, s1v)))
 """
+
+
+_PSEUDO_SCRIPT = r"""
+import sys
+sys.path[:0] = [{skill!r}, {graph!r}]
+import s1v_hand as H, coupling_hand as C
+from gmid_engine.graph import coupling_vars
+for n in {names!r}:
+    s1, s1v = H.build_lib(n)
+    cols = {{str(k): sorted(v) for k, v in C.column_devices(s1).items()}}
+    out = []
+    for v in coupling_vars(s1, s1v).vars:
+        for b in v.blocks:
+            if b.key and str(b.key[0]).startswith("bias:"):
+                out.append((v.kind, v.members, v.domain, b.view, b.key, cols[str(b.key[0])[5:]]))
+    print(repr((n, sorted(out))))
+"""
+
+
+def test_pseudo_block_keys_deterministic_across_hashseed():
+    # 의사 블록 키(기둥 id 포함)가 PYTHONHASHSEED 에 무관하고, 키의 기둥 id 가 가리키는 S1 기둥 소자 집합도 같다.
+    names = ("current_reuse_telescopic_ota", "sf_pushpull_output_opamp", "folded_cascode", "ngcc_3stage_ff")
+    here = Path(__file__).resolve().parent
+    script = _PSEUDO_SCRIPT.format(skill=str(here.parents[2]), graph=str(here), names=names)
+    outs = []
+    for seed in ("0", "777"):
+        env = dict(os.environ, PYTHONHASHSEED=seed)
+        p = subprocess.run([sys.executable, "-P", "-c", script], capture_output=True, text=True, env=env, timeout=600)
+        assert p.returncode == 0, p.stderr[-2000:]
+        outs.append(p.stdout)
+    assert outs[0] == outs[1]
+    lines = outs[0].splitlines()
+    assert len(lines) == len(names) and all("bias:" in line for line in lines), outs[0]   # 네 회로 모두 의사 블록 레코드가 있다
 
 
 def test_determinism_across_hashseed_and_repeat(lib):

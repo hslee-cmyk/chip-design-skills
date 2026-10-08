@@ -12,14 +12,16 @@
 S1v(`views[*].blocks/cells`, `l_classes`) 공개 필드뿐이다. 이 파일은 설계 문장을 다른 표현(집합 연산)으로 다시 세운 것이고
 엔진 출력과는 test 쪽에서 비교한다.
 
-의사 블록 표현: 엔진의 `BlockRef` 표현이 아직 없다(57e81fb 미구현). oracle 은 의사 블록을 문자열 키 `"bias:<기둥 id>"` 로
-내부에서만 쓰고, 엔진 비교는 (kind, members, domain, nets) 키로 한다(blocks 는 실제 블록 부분만 비교).
+의사 블록 표현: 설계 40 §3.3 as-built(master 21bde21)와 graph CONTRACT 11.1 = `BlockRef(view, ("bias:<기둥 id>",))`, 뷰마다 하나.
+oracle 은 의사 블록을 문자열 키 `"bias:<기둥 id>"` 로 내부에서 쓰고, 레코드 비교는 (kind, members, domain, nets) 키로,
+K1·K2 의 blocks 비교는 `crossing_refs` 로 한다(의사 블록은 (view, ("bias:<기둥 id>",)) 로 바꿔 낸다).
+K1 부하 역할 집합 = {load, mirror, diode_load, tail_source}(21bde21 오케스트레이터 결정, 실제·의사 블록에 같게 적용).
 """
 from __future__ import annotations
 
 from gmid_engine.graph import GRAPH_KEY
 
-LOAD_ROLES = frozenset({"load", "mirror", "diode_load"})   # CONTRACT 11.3 K1 '부하 역할'
+LOAD_ROLES = frozenset({"load", "mirror", "diode_load", "tail_source"})   # CONTRACT 11.3 K1 '부하 역할' + 설계 40 §3.3 as-built(master 21bde21): tail_source
 MOS = "mos"
 
 
@@ -195,6 +197,11 @@ class CouplingOracle:
                 if inj:
                     recs.add(("K8", tuple(sorted([c] + inj)), "dc", (n,)))
         return recs
+
+    def crossing_refs(self, members):
+        """K1·K2 blocks 기대값 -- 횡단이 일어난 뷰들의 횡단 블록 키(의사 블록 포함)를 (view, key tuple) 집합으로."""
+        return {(vid, (k,) if isinstance(k, str) else tuple(k))
+                for vid, ks in self.crossing(members, True).items() for k in ks}
 
     def real_blocks(self, members, with_pseudo):
         return {(vid, k) for vid, ks in self.crossing(members, with_pseudo).items() for k in ks if not isinstance(k, str)}

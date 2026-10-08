@@ -44,6 +44,11 @@ SIDE = H.topo("side", (("M1", "nmos", "p", "inp", "tail"), ("M2", "nmos", "y", "
                        ("M10", "pmos", "y", "p", "w"), ("Mc", "pmos", "n", "q", "vdd"), ("Ms", "pmos", "gnd", "y", "n"),
                        ("Mf", "nmos", "vdd", "n", "out"), ("Mk", "nmos", "out", "vb", "gnd")),
               {"inp": H.DIFF_P, "inn": H.DIFF_N, "out": H.SE_OUT}, bias=("vb",), passives=(("Ra", "resistor", ("q", "p")),))
+# 꼬리를 바이어스 기둥 기준 diode 에서 미러: 5T OTA 의 꼬리 M5(gate nb) + 바이어스 기둥 {Mr(nb-nb-gnd diode), Mi(PMOS 전류원, gate vbp)}.
+TAILREF = H.topo("tailref", (("M1", "nmos", "x", "inp", "tail"), ("M2", "nmos", "out", "inn", "tail"), ("M3", "pmos", "x", "x", "vdd"),
+                             ("M4", "pmos", "out", "x", "vdd"), ("M5", "nmos", "tail", "nb", "gnd"), ("Mr", "nmos", "nb", "nb", "gnd"),
+                             ("Mi", "pmos", "nb", "vbp", "vdd")),
+                 {"inp": H.DIFF_P, "inn": H.DIFF_N, "out": H.SE_OUT}, bias=("vbp",))
 # H.CMFB + 출력 사이 커패시터 Cx(om-op): 전달 뷰와 루프 뷰 블록이 함께 갖는 커패시터.
 CMFB_C = copy.deepcopy(H.CMFB)
 CMFB_C["topology_name"] = "cmfbc"
