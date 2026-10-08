@@ -299,6 +299,7 @@ def build_blocks(model, ground, cells, drive, stage, impedance, sense, view_id):
                                         "이득 블록 출력노드의 임피던스 등급이 낮다(CS 버퍼·종단 diode 부하)", ("N3.2-9c", "DEC-59")))
         blocks.append(Block(outs, BLOCK_GAIN, owners.stage_of[bid], tuple(inputs), outs,
                             sorted_items(roles), tuple(sorted(nodes[bid] | set(inputs))), table, STATUS_DERIVED))
-    conflicts = tuple((net, tuple(sorted({owners.find(b) for b in ids}))) for net, ids in sorted_items(owners.conflicts))
+    roots = tuple((net, tuple(sorted({owners.find(b) for b in ids}))) for net, ids in sorted_items(owners.conflicts))
+    conflicts = tuple((net, ids) for net, ids in roots if len(ids) > 1)     # 측면 주입 합치기(`_absorb_side_injections`) 뒤 한 블록으로 모인 겹침은 최종 블록 집합에서 겹침이 아니다
     return BlocksResult(tuple(blocks), tuple(sorted(nodes)), conflicts, tuple((bid, tuple(sorted(nodes[bid]))) for bid in sorted(nodes)),
                         tuple(findings))

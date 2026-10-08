@@ -18,7 +18,8 @@
     sense_n(null 가능), sense_mode}`(`SENSE_MODES`; differential 이면 sense_n 필수, single_ended 면 null 또는 없음).
   - `loop`(`pm_ss_deg`): 적지 않는다 -- feedback·ports 에서 유도한 루프 뷰(mode `loop`, β 루프 절단·가중 또는 β = 1
     포트 뷰), feedback 이 결정 대기면 mode `pending`(그 ID 전파). 유도 불가면 `view_required`. 결정 대기 아닌 선언 view 는
-    `view_not_applicable`. 단 명시 모양 `{"cut_weights": …}`(7a design 2.9 예약 -- 계약에만 있고 첫 소비 spec 이 생길 때
+    `view_not_applicable`. 단 내부 루프 선언 `{"loop_cut": [넷…]}`(41 §1.8 -- 비지 않은 서로 다른 넷 list `type`, 넷이 단자에 없으면 `view_net_unknown`, 다른 키 동반 `unknown_key`)은
+    받아 `ViewDecl(loop, beta None, cuts=(("", 넷), ...))` 가 된다(단계 A 가 `declared_loop_cuts` 로 모은다). 명시 모양 `{"cut_weights": …}`(7a design 2.9 예약 -- 계약에만 있고 첫 소비 spec 이 생길 때
     구현)은 조용히 무시하지 않고 `view_shape_not_supported` 로 거부한다.
   - `cm_loop` 선언 view [CM 2026-10-08]: `{"cm_sense_elements": [MOS…]}` 만 받는다(닫힌 어휘: `cm_sense_elements` 와 함께 있는 그 밖 키는 `unknown_key`; 이 키가 없는 다른 모양의 view 는 `view_not_applicable`). 구조 분류가 모호할 때 필요하고,
     분류가 명확하면 구조와 같아야 한다. 이 제약의 `source.kind` 는 `user_spec`(`cm_sense_source`). 규칙: `cm_sense_unknown`, `cm_sense_not_on_output`,
@@ -58,6 +59,7 @@ TRANSFER_KEYS = (EXCITE_KEY,) + SENSE_KEYS
 RATIO_KEYS = ("num", "den")
 # 명시 루프 뷰 모양 `{"cut_weights": {<절단 넷>: 가중}}` -- 7a design 2.9 예약(계약에만 정의, 첫 소비 spec 과 함께 구현).
 RESERVED_LOOP_VIEW_KEY = "cut_weights"
+LOOP_CUT_KEY = "loop_cut"                # loop 뷰 선언 키(내부 루프를 끊는 gate 넷 list -- 41 §1.8 안정도 선언)
 CM_SENSE_KEY = "cm_sense_elements"       # cm_loop 뷰 선언 키(소비자 MOS 이름 list, source user_spec)
 _UNRESOLVED = (("transfer", VIEW_MODE_PORT), ("loop", VIEW_MODE_LOOP), ("cm_loop", VIEW_MODE_LOOP), ("output_port", VIEW_MODE_SENSE))
 
@@ -151,6 +153,25 @@ def _cm_declared_view(raw, place, views, source, hits):
     return view
 
 
+def _loop_cut_view(raw, place, nets, hits):
+    """내부 루프 뷰 선언 `{"loop_cut": [끊는 넷…]}`(안정도 제약 41 §1.8) -> `ViewDecl(loop, beta None, cuts=((\"\", 넷), ...))` 넷순. 닫힌 어휘: 키 하나, 값은 비지 않은
+    서로 다른 넷 이름 list(`type`), 넷은 topology 단자에 있어야 한다(`view_net_unknown`). 되먹임 소자가 없는 선언이라 cuts 의 소자 칸은 빈 문자열이다.
+    단계 A(`pipeline.stage_a`)가 이 넷을 `declared_loop_cuts` 로 모아 엔진 루프 뷰의 끊는 gate 넷과 대조한다(맞지 않으면 `loop_cut_unmatched`)."""
+    before = len(hits)
+    hits.extend(key_hits(raw, (LOOP_CUT_KEY,), place))
+    cuts = raw.get(LOOP_CUT_KEY)
+    if not isinstance(cuts, list) or not cuts or not all(isinstance(n, str) and n for n in cuts) or len(set(cuts)) != len(cuts):
+        hits.append(SchemaHit("type", at(place, LOOP_CUT_KEY), "loop_cut 은 비어 있지 않은 서로 다른 넷 이름 list 여야 한다: " + repr(cuts)))
+        return None
+    if nets is not None:
+        for net in cuts:
+            if net not in nets:
+                hits.append(SchemaHit("view_net_unknown", at(place, LOOP_CUT_KEY), "뷰 넷 " + repr(net) + " 이 어느 단자에도 없다", (net,)))
+    if len(hits) != before:
+        return None
+    return ViewDecl(VIEW_MODE_LOOP, cuts=tuple(("", net) for net in sorted(cuts)))
+
+
 def _view(raw, signature, where, nets, views, hits, source=None):
     place = at(where, "view")
     if is_pending(raw):
@@ -162,6 +183,8 @@ def _view(raw, signature, where, nets, views, hits, source=None):
         return ViewDecl(VIEW_MODE_NONE)
     if kind == "cm_loop" and isinstance(raw, dict) and CM_SENSE_KEY in raw:
         return _cm_declared_view(raw, place, views, source, hits)
+    if kind == "loop" and isinstance(raw, dict) and LOOP_CUT_KEY in raw:
+        return _loop_cut_view(raw, place, nets, hits)
     if kind in ("loop", "cm_loop") and raw is not None:
         if isinstance(raw, dict) and RESERVED_LOOP_VIEW_KEY in raw:
             hits.append(SchemaHit("view_shape_not_supported", place, "명시 루프 뷰 {cut_weights} 는 계약에 예약된 모양이지만 "
