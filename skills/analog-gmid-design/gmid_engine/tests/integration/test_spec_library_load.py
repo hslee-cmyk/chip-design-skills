@@ -307,8 +307,14 @@ def test_boxes_cover_exactly_theta_passive_components(name, toy_access_lib, tmp_
     dom = search_domain(ctx, SearchSettings(600.0, 40, None, (("front_budget_s", "test"),)), pdk,
                         _theta_bounds_of(_load(name)))
     got = {v.component[1]: (v.log, v.lo, v.hi) for v in dom.variables if v.component[0] in kind_of}
-    assert set(got) == set(want)
+    # [U2] search CONTRACT 3.24: 같은 자기동형 궤도의 수동소자 θ 성분은 대표 하나로 묶인다(current_reuse 의 R1/R2·Cc1/Cc2) -- 구성원은 변수에서 빠지고
+    # 대표의 상자를 쓴다(상자가 같아야 받는다). 변수 ∪ 묶인 구성원 = spec 상자 원소.
+    tied = {m[1] for _, ms in dom.ties for m in ms if m[0] in kind_of}
+    assert set(got) | tied == set(want) and not set(got) & tied
+    assert bool(tied) == (name == "current_reuse_telescopic_ota")          # 3.24 8 실측: 묶음이 서는 library 회로는 current_reuse 하나
     for n, (lo, hi) in want.items():
+        if n in tied:
+            continue
         assert got[n][0] is True
         assert got[n][1] == pytest.approx(math.log(lo), rel=1e-15) and got[n][2] == pytest.approx(math.log(hi), rel=1e-15)
 

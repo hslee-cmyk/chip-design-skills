@@ -42,6 +42,32 @@ PLAN_WRITERS = (DC_RAILS_WRITER, DC_STRUCT_COLOUR_WRITER, DC_CURRENT_BASIS_WRITE
                 DC_THETA_SCHEMA_WRITER)
 
 
+def _pack(table):
+    return tuple((n, tuple(sorted(marks))) for n, marks in sorted(table.items()))
+
+
+def _declaration_marks(base, inputs, targets):
+    """자기동형이 보존해야 하는 선언 표시 -- 레일 전위·노드 목표·입력 DC·값 선언 원소·engine 값 원소·선형 영역 소자(struct_colour)."""
+    nodes, elements = {}, {}
+    for net, volts in base.column("node", "dc_rail_v"):
+        if volts is not None:
+            nodes.setdefault(net, []).append(("rail_v", float(volts)))
+    for net, volts in targets.items():
+        nodes.setdefault(net, []).append(("target_v", float(volts)))
+    if inputs.input_dc_v is not None:
+        for net, direction in base.column("node", "port_direction"):
+            if direction == INPUT_DIRECTION:
+                nodes.setdefault(net, []).append(("input_dc_v", float(inputs.input_dc_v)))
+    for name, value in inputs.element_values:
+        if value is not None:
+            elements.setdefault(name, []).append(("value", float(value)))
+    for name in inputs.engine_elements:
+        elements.setdefault(name, []).append(("engine", 0.0))
+    for name in inputs.linear_devices:
+        elements.setdefault(name, []).append(("linear", 0.0))
+    return _pack(elements), _pack(nodes)
+
+
 def build_kernel_context(s1graph, inputs, lut, l_classes=()):
     if not isinstance(s1graph, S1Graph):
         raise TypeError("build_kernel_context: s1graph 는 graph.build_s1 결과 S1Graph 여야 한다")
@@ -74,7 +100,8 @@ def build_kernel_context(s1graph, inputs, lut, l_classes=()):
                       and values.get(n) is not None)
     base = lift_s1(s1graph)
     base = dc_rails(base, supplies)
-    base = dc_struct_colour(base)
+    element_marks, node_marks = _declaration_marks(base, inputs, targets)
+    base = dc_struct_colour(base, element_marks, node_marks)
     base = dc_current_basis(base, sources)
     base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None)
     base = dc_scc_order(base)

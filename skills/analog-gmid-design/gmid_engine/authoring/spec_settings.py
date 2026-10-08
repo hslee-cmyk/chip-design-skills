@@ -16,6 +16,10 @@ UD 8번·12번, F8).
   객체 아님·항목이 객체 아님·min/max 가 양의 유한 수가 아님 -> `type`, min ≥ max -> `theta_bound_range`, 키 밖 -> `unknown_key`,
   출처 규칙은 다른 search 칸과 같다. 결과는 search 묶음 맨 앞의 `SettingValue("theta_bounds", ((원소, min, max, source), ...) 이름순)`
   (있을 때만). 원소가 engine 값 수동소자인지는 `spec_theta_bounds` 가 본다.
+  [2026-10-08] 선택 칸 `untie_orbits` = {<원소>: {"source"}}(그 원소가 속한 자기동형 궤도의 θ 묶음을 풀어 비대칭 사이징을 허용 -- 기본은 묶음):
+  객체 아님·항목이 객체 아님 -> `type`, 키 밖 -> `unknown_key`, 출처는 `user_spec` 만(`source_*`, 섹션 `search_untie`). 결과는
+  `SettingValue("untie_orbits", ((원소, source), ...) 이름순)`(있을 때만, theta_bounds 다음). 원소 존재는 `spec_untie`, 궤도가 둘 이상 원소인지는
+  search `orbit_ties` 가 본다.
 * `spice_check`·`front_refilter`: 필드 전부 필수, 각 칸 `{"pending": <ID>}` 또는 `{"rule": <규칙 이름>, "source"}`.
   규칙 이름은 닫힌 어휘(`SPICE_RULES`·`REFILTER_RULES`, 규칙 정의는 엔진·오라클 코드 한 곳) -- 수가 오면
   `numeric_in_rule_field`(상수 금지, WP-03), 어휘 밖 문자열은 `rule_name_unknown`. **끄는 키는 없다**.
@@ -29,6 +33,7 @@ from .spec_sources import source_declaration_checks
 from .topology_model import SchemaHit
 
 SEARCH_FIELDS = ("wall_clock_budget_s", "front_budget_s", "search_method", "optional_stages", "dof_rank_sample_count")
+UNTIE_ORBITS = "untie_orbits"   # 선택 칸(2026-10-08): 자기동형 궤도의 θ 묶음을 푸는 원소 목록 -- SettingValue 로 search 묶음에 든다
 THETA_BOUNDS = "theta_bounds"   # 선택 칸(2026-10-08): engine 값 수동소자 원소별 θ 상자 -- SettingValue 로 search 묶음에 든다
 SEARCH_METHODS = ("default", "precision")
 OPTIONAL_STAGES = ("inner_block_dp", "middle_y_coordinate_descent", "threshold_bisection", "global_sample_budget_fill")
@@ -148,16 +153,39 @@ def _theta_bounds(raw, where, hits):
     return SettingValue(THETA_BOUNDS, tuple(out))
 
 
+def _untie_orbits(raw, where, hits):
+    if not isinstance(raw, dict):
+        hits.append(SchemaHit("type", where, "untie_orbits 는 객체(원소 -> {source})여야 한다"))
+        return None
+    out = []
+    for name in sorted(k for k in raw if not k.startswith(COMMENT_PREFIX)):
+        entry, spot = raw[name], at(where, name)
+        if not isinstance(entry, dict):
+            hits.append(SchemaHit("type", spot, "묶음 풀기는 {source} 객체여야 한다", (name,)))
+            continue
+        before = len(hits)
+        hits.extend(key_hits(entry, ("source",), spot))
+        source, source_hits = source_declaration_checks(entry.get("source"), spot, "search_untie")
+        hits.extend(source_hits)
+        if len(hits) == before:
+            out.append((name, source))
+    return SettingValue(UNTIE_ORBITS, tuple(out))
+
+
 def _search(human, hits):
     raw, where = _section(human, "search", hits)
     if raw is None:
         return None
-    hits.extend(key_hits(raw, SEARCH_FIELDS + (THETA_BOUNDS,), where))
+    hits.extend(key_hits(raw, SEARCH_FIELDS + (THETA_BOUNDS, UNTIE_ORBITS), where))
     out = []
     if THETA_BOUNDS in raw:
         bounds = _theta_bounds(raw[THETA_BOUNDS], at(where, THETA_BOUNDS), hits)
         if bounds is not None:
             out.append(bounds)
+    if UNTIE_ORBITS in raw:
+        untie = _untie_orbits(raw[UNTIE_ORBITS], at(where, UNTIE_ORBITS), hits)
+        if untie is not None:
+            out.append(untie)
     for field in SEARCH_FIELDS:
         spot = at(where, field)
         if field not in raw:

@@ -1,9 +1,10 @@
 """`dc_current_basis(snapshot, declared_sources)` -- CONTRACT 4.2(r2): 원소 단위 KCL 기저.
 
 기대값: 이 파일의 `expected_basis` 가 topology dict 에서 직접 계산한다 -- DC 원소(MOS·저항·이상원, 잎 가지치기 저항 제외),
-ends(nmos (d, s), pmos (s, d), 2단자 (t0, t1)), 레일 아닌 넷마다 KCL 행, 미지수 열 = (구조 색, 이름)순(색은 conftest
-`wl_colours` 의 독립 1-WL), 정확 유리수 RREF(열 왼쪽부터 pivot), pivot 원소 = −(RREF 계수) × (free·고정 원소), free 는 이름순,
-같은 색 열 묶음이 free/pivot 으로 갈리면 TieBreak(current_pivot, 묶음, free 쪽).
+ends(nmos (d, s), pmos (s, d), 2단자 (t0, t1)), 레일 아닌 넷마다 KCL 행, 미지수 열 = (구조 색, 이름)순, 정확 유리수 RREF(열 왼쪽부터
+pivot), pivot 원소 = −(RREF 계수) × (free·고정 원소), free 는 이름순, 같은 색 열 묶음이 free/pivot 으로 갈리면 TieBreak(current_pivot, 묶음, free 쪽).
+[r11] 구조 색 = 스냅샷 `device.dc_colour`(3.0b -- 1-WL 색 + 정준 위치, 정점마다 유일; 색 계약 자체는 test_struct_colour 가 독립 1-WL 로 본다)
+-> 열 순서에 이름이 들어가지 않고 TieBreak 는 생기지 않는다.
 """
 from fractions import Fraction
 
@@ -47,7 +48,7 @@ def leaf_pruned(doc):
 def expected_basis(doc, declared, snap):
     rails = set(doc["supply_nets"])
     pruned = leaf_pruned(doc)
-    _, ecol = wl_colours(snap)
+    ecol = dict(snap.column("device", "dc_colour"))            # [r11] 입력 열(정점마다 유일)
     ends = {}
     kinds = {}
     for e in doc["netlist"]:
@@ -241,8 +242,9 @@ def test_symmetric_pair_basis_matches_oracle(tmp_path, toy_access):
     check(basis_of(ctx), expected_basis(doc, (), ctx.base))
 
 
-def test_identical_parallel_pair_records_pivot_tie(tmp_path, toy_access):
-    """M1·M2 연결이 완전히 같다(같은 색). n 행 M1 + M2 − I1 = 0 -> 하나는 pivot, 하나는 free: 반드시 TieBreak."""
+def test_identical_parallel_pair_no_tie_canonical_pivot(tmp_path, toy_access):
+    """M1·M2 연결이 완전히 같다(같은 1-WL 색, 같은 자기동형 궤도). n 행 M1 + M2 − I1 = 0 -> 하나는 pivot, 하나는 free.
+    [r11] 열 순서 = dc_colour(정점마다 유일) -> 색 작은 쪽이 pivot(열 왼쪽부터), 큰 쪽이 free; 이름이 가르지 않으니 TieBreak 없음."""
     doc = topo("hand_par_tie",
                [mos("M1", "nmos", "n", "inp", "gnd"), mos("M2", "nmos", "n", "inp", "gnd")],
                {"inp": ("input", "a"), "n": ("output", "b")},
@@ -250,8 +252,12 @@ def test_identical_parallel_pair_records_pivot_tie(tmp_path, toy_access):
     _, _, ctx = build_ctx(tmp_path, doc, toy_access, element_values=(("I1", 2e-5),))
     b = basis_of(ctx)
     check(b, expected_basis(doc, (("I1", 2e-5),), ctx.base))
-    assert b.ties == (TieBreak("current_pivot", ("M1", "M2"), ("M2",)),)    # (색, 이름)순 -> M1 pivot, M2 free
-    assert b.free == ("M2",)
+    ecol = dict(ctx.base.column("device", "dc_colour"))
+    orb = dict(ctx.base.column("device", "dc_orbit"))
+    assert orb["M1"] == orb["M2"]                                              # 입력 확인: 같은 궤도
+    assert wl_colours(ctx.base)[1]["M1"] == wl_colours(ctx.base)[1]["M2"]       # 1-WL 로 구별 안 됨
+    assert b.ties == ()
+    assert b.free == (max(("M1", "M2"), key=lambda k: ecol[k]),)
 
 
 def test_declared_kcl_conflict(tmp_path, toy_access):

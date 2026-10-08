@@ -41,6 +41,8 @@
 | columns.py | 4 | `s1_columns`(`@compute_block`) | U2 기둥·쌍 요약·orphan·열거 상한 |
 | matching_groups.py | 4 | `s1_matching_groups`(`@compute_block`) | U4 matching_offset(바이어스 형제 제외)·레이아웃 matching 그룹·제외 기록(4.5a) |
 | rel_kcl.py | 4 | `s1_rel_kcl`(`@compute_block`) | U4 kcl_group |
+| canonical_form.py [r11] | 1 | `canonical_form` | 완전 정준 라벨링·자기동형 생성자(4.7) |
+| automorphism_orbits.py [r11] | 1 | `automorphism_orbits` | 생성자 -> 정점 궤도(4.7) |
 | s1_build.py | 5 | `build_s1` | 공개 진입점(빌드 순서·재사용) |
 
 U2~U4 블록 10개는 서로 import 하지 않는다(값은 graph 필드로만 전달). 어느 것도 `device.bulk`·supplies 를 읽지 않는다.
@@ -349,6 +351,15 @@ consumer_symmetric, {Nr, Ye} tail_ratio, 변형 불변량 49/49. 판단 7(혼자
 bias_distribution -> {Ye, Yf} tail_ratio(그 구조 = 바이어스 diode 를 쓰는 차동쌍 꼬리가 있음), 차동쌍이 없는 syn_cs_load·syn_follower 는
 불변, 변형 불변량 49/49.
 
+**[r11] matching 그룹과 자기동형 궤도의 관계 (측정 2026-10-08, sizing CONTRACT 3.0b `dc_struct_colour` 의 dc_orbit)**: matching 그룹(레이아웃 짝짓기 -- 같은 kind·같은 source
+등 부분 구조 조건)과 자기동형 궤도(회로 그래프 전체의 연결·kind·레일 전위·선언을 보존하는 전단사)는 **서로 다른 개념이고 포함 관계가 없다**. 9개 라이브러리 회로 +
+합성 회로에서 확인: (1) 궤도가 둘 이상 원소인 회로는 `current_reuse_telescopic_ota` 하나(완전 차동, 2단자 수동소자를 무향으로 다루므로 R1(Vom→Voc)·R2(Voc→Vop)처럼 끝을 뒤집어 그려도 대칭이 선다 -- 22개 궤도 + 수동소자 쌍. 궤도: M10/M19, M17/M8, M1a/M1b, M2a/M2b, M3a/M3b, M4a/M4b,
+R1/R2, Cc1/Cc2, CL1/CL2, 전반부-후반부 쌍 M11a/M20a … 등). 나머지 회로는 단일 출력이라 diff_pair 두 원소도 서로 다른 궤도(예 folded_cascode M1/M2: 드레인이 서로 다른
+부하에 연결)이고 mirror/branch_symmetric 그룹도 궤도가 아니다. (2) 궤도 ⊆ 한 matching 그룹이 아닌 경우: current_reuse 의 M11a/M20a·M12/M21 … (차동 두 반쪽 사이의 대응,
+matching 그룹은 한 가지 안의 짝만 본다)와 수동소자 쌍 R1/R2·Cc1/Cc2·CL1/CL2(matching 은 MOS 만). (3) matching 그룹이 한 궤도가 아닌 경우: 비율 mirror
+(M38/M5/M66 -- 3 궤도, M18_bg/M6 …)와 current_reuse 의 diff_pair M37a/M37b(궤도 2: CMFB 쌍이라 입력 연결이 비대칭). 결론: θ 묶음은 궤도만 따른다(matching 그룹을
+묶음 근거로 쓰지 않는다 -- 비율 mirror·비대칭 diff_pair 를 잘못 묶을 위험). 불일치는 결함이 아니라 개념 차이이며 matching 쪽 판정은 이 변경이 바꾸지 않는다.
+
 ### 4.6 정지 분기 (모두 core `StructureUnresolvedError`, exit 2, `detail["reason"] == "unsupported_rule_branch"`)
 
 | `rule_branch` | 블록 | 조건 | `record.devices` / detail |
@@ -363,6 +374,18 @@ bias_distribution -> {Ye, Yf} tail_ratio(그 구조 = 바이어스 diode 를 쓰
 
 review_needed 는 정지가 아니라 기록이다(DcRole 묶음·matching_offset 3개 이상·column_orphans). `s1_matching_groups` 는 정지 분기가
 없다(분류 못 하는 경우는 mirror 그대로 또는 disposition 기록).
+
+### 4.7 [r11] 정준형 `canonical_form(source, element_marks=(), node_marks=()) -> Canonical` · `automorphism_orbits(canon) -> {정점: 궤도 id}` (설계 40 §6, 사용자 결정 2026-10-08)
+- `source` = `.column(kind, field)` 를 가진 것(S1Graph, sizing 계산 블록 Projection). 읽는 열: `device.{element_class, kind, is_diode, pins, bulk}`, `node.{is_rail, port_direction}`. θ 무관.
+- 그래프: 정점 = 넷 `("n", 넷)` ∪ 원소 `("e", 원소)`. 엣지 = 원소-넷 연결에 단자 라벨: MOS `d`·`g`·`s`·`b`(bulk 넷이 정해졌으면), 이상원 `t0`·`t1`(전류 방향), 그 밖 2단자(저항·커패시터)는 **방향 없는 `t`**
+  (단자 순서를 색에 넣지 않는다). 처음 색: 원소 = (종류, element_class, kind, is_diode, 선언 표시), 노드 = (종류, is_rail, port_direction, 선언 표시). 선언 표시 형식은 sizing 3.0b.
+- `Canonical(wl, position, generators)`: `wl` = 선언 표시 없는 1-WL 색(정수), `position` = 정준 위치 0..n−1(정점마다 다름), `generators` = 자기동형 생성자 tuple(각각 움직인 정점만 `((정점, 상), ...)`).
+  정준 라벨링 = individualization-refinement(nauty 식): 평형 분할의 가장 앞선 비단일 칸의 정점을 하나씩 개별화·정제, 잎의 증명서 cert 최소가 정준, 같은 cert 의 두 잎 사이 위치 대응이 자기동형
+  (최저 공통 선조 마디로 가지치기). 이름은 탐색 순서에만 쓰이고 증명서·군은 이름과 무관하다.
+- `automorphism_orbits`: 생성자들이 만드는 군 아래 정점 동치류. 궤도 id = 구성원의 정준 위치 최솟값(같은 궤도 ⇔ 같은 값). 생성자가 없으면 정점마다 자기 위치.
+- 불변식(test 가 확인할 성질): (a) 이름 전단사·원소 순서 섞기에 `automorphism_orbits` 가 불변; (b) 생성자는 모두 자기동형(이웃 다중집합·처음 색 보존, 단자 라벨 보존);
+  (c) 손 그래프 기지 군(링 n 개 한 궤도, 경로, C6⊔2×C3 에서 1-WL 색 같아도 궤도 2, 큐브, Petersen) 및 소규모 전수 순열 대조; (d) 단일 종단 OTA 차동쌍 두 멤버는 서로 다른 궤도,
+  완전 차동 쌍은 같은 궤도; (e) 저항 terminals 순서를 뒤집어도 궤도 분할 동일; (f) 선언 표시가 다른 두 원소는 다른 궤도; (g) 결정론; (h) 궤도 ⊆ `wl` 클래스.
 
 ## 5. `S1Graph(key, snapshot)` 질의
 

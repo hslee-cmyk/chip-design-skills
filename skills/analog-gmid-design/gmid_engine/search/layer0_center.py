@@ -18,7 +18,7 @@
    `SearchDomain.current_box` 기하 중심. 기저 원소가 MOS 하나뿐인 행은 상자 중심에서 u = 0 이라 1 의 중심과 같다.
    수렴 판정은 scipy SLSQP 기본값(이 문제는 커널이 없어 판정 분해능 단위가 없다 -- 부동소수 수준).
 3. **최대-최소**(커널): 시작점을 평가해 받아들일 상태(봉인 통과·봉인 7 대기)가 아니면(전류 중심이 원뿔 밖이어도) [S-4b,
-   오케스트레이터 결정 2026-10-08] 같은 변수·같은 L 칸에서 Halton 열(스크램블 없음) 점을 순서대로 평가해 처음 받아들일 상태인
+   오케스트레이터 결정 2026-10-08] 같은 변수·같은 L 칸에서 Halton 열(스크램블 없음, [r11] 차원 = 이름 없는 정준 (종류, 구조 색) 키 -- CONTRACT 3.21 3a) 점을 순서대로 평가해 처음 받아들일 상태인
    점을 출발점으로 삼는다(`_halton_probe` -- 한도는 평가 예산 규칙). 그래도 없으면 끝(`start_<사유>+probe_<한도>`, 층 0 시작점
    없음). 받아들일 상태면 변수 x(정의역 연속 변수 + 칸이 구간인 L) 와 t 로
    최대화 t, 제약 s_i(x) − t ≥ 0(봉인 항목 i = 1..8 중 시작점 margin 이 유한한 항목, s_i = 1 − margin_i -- margin ≤ 1 이 pass
@@ -36,6 +36,7 @@
 """
 import dataclasses
 import math
+import sys
 import time
 
 import numpy as np
@@ -43,12 +44,16 @@ from scipy.optimize import minimize as scipy_minimize
 
 from gmid_engine.sizing import REASON_NO_ROOT, THETA_CURRENT, THETA_L, THETA_LN_IDU
 
+from .canonical_order import canonical_order
+from .canonical_rows import canonical_row_key
 from .cell_floor import ln_idu_floors
 from .cone_rows import cone_rows
 from .fd_jacobian import fd_jacobian
 from .kernel import evaluate
+from .tie_expand import expand_ties
 from .search_values import (
     ACCEPTED_STATUSES,
+    CON_CONE,
     CON_INVERSION,
     CON_WMIN,
     STATUS_FAILED,
@@ -114,7 +119,33 @@ def _box_centre(sctx):
         theta[(THETA_L, mos)] = (lo + hi) / 2
         if lo < hi:
             variables.append(Variable((THETA_L, mos), False, lo, hi))
+    variables, _dim, _n = canonical_order(sctx, variables)      # [r11] 이름 없는 정준 순서 (CONTRACT 3.23)
     return tuple(variables), theta, tuple(cells)
+
+
+def _cone_canonical(sctx):
+    """원뿔 행·항을 이름 없는 정준 순서로(행 = MOS 궤도 id, 항 = 원천 원소 궤도 id) -- SLSQP 제약·합산 순서가 이름을 따르지 않게(3.25)."""
+    key = canonical_row_key(sctx)
+    rows = sorted(sctx.dc.schema.current_cone, key=lambda row: key(CON_CONE + ":" + row[0]))
+    return tuple((m, tuple(sorted(terms, key=lambda t: key(CON_CONE + ":" + t.source)))) for m, terms in rows)
+
+
+def _expanded(sctx, theta):
+    return expand_ties(sctx.domain.ties, theta, sctx.domain.negated, sctx.domain.zeros)
+
+
+def _current_alias(sctx):
+    """{묶인 θ 전류 원소: (대표 원소, 부호)}: 원뿔 행의 항이 묶인 전류를 읽으면 대표 변수의 항(부호만큼 곱함)으로 센다(3.24)."""
+    flipped = set(sctx.domain.negated)
+    return {m[1]: (rep[1], -1.0 if m in flipped else 1.0) for rep, members in sctx.domain.ties if rep[0] == THETA_CURRENT
+            for m in members}
+
+
+def _current_fixed(sctx):
+    """고정 전류원 값 ∪ 구조적 0 θ 전류(값 0): 원뿔 행에서 변수가 아닌 상수로 읽히는 항."""
+    out = {name: float(v) for name, v in sctx.dc.schema.fixed}
+    out.update({component[1]: 0.0 for component in sctx.domain.zeros if component[0] == THETA_CURRENT})
+    return out
 
 
 def _current_centre(sctx, variables, theta):
@@ -126,11 +157,13 @@ def _current_centre(sctx, variables, theta):
     box = dict(sctx.domain.current_box)
     ref = {m: math.sqrt(box[kinds[m]][0] * box[kinds[m]][1]) for m, _t in schema.current_cone}
     pos = {variables[i].component[1]: k for k, i in enumerate(index)}
-    fixed = {name: float(v) for name, v in schema.fixed}
+    fixed = _current_fixed(sctx)
     # θ 전류를 하나도 읽지 않는 행(값 선언 이상원만으로 정해지는 MOS 전류)은 움직일 수 없으므로 편차 경쟁에서 뺀다 -- 넣으면
     # u 가 그 고정 편차로 정해져 나머지 행이 느슨해진다(원뿔 경계까지 허용).
-    rows = tuple((m, tuple((float(t.num) / t.den, t.source) for t in terms)) for m, terms in schema.current_cone
-                 if any(t.source in pos for t in terms))
+    alias = _current_alias(sctx)
+    rows = tuple((m, tuple((float(t.num) / t.den * alias.get(t.source, (t.source, 1.0))[1], alias.get(t.source, (t.source, 1.0))[0])
+                           for t in terms))
+                 for m, terms in _cone_canonical(sctx) if any(alias.get(t.source, (t.source, 1.0))[0] in pos for t in terms))
     n = len(index)
 
     def currents(z):
@@ -161,7 +194,8 @@ def _current_centre(sctx, variables, theta):
     z0 = [math.log(theta[variables[i].component]) for i in index]
     q0 = currents(z0)
     u0 = max((abs(math.log(q)) for q in q0 if q > 0), default=0.0)
-    bounds = [(variables[i].lo, variables[i].hi) for i in index] + [(0.0, None)]
+    # u 의 상한 = 부동소수 범위(e^u·e^−u 가 둘 다 유한) -- 상한이 없으면 SLSQP 선 탐색이 e^u 를 넘쳐 OverflowError(변수·행 순서가 바뀌면 드러난 잠복 결함)
+    bounds = [(variables[i].lo, variables[i].hi) for i in index] + [(0.0, math.log(math.sqrt(sys.float_info.max)))]
     grad = np.zeros(n + 1)
     grad[n] = 1.0
     out = scipy_minimize(lambda v: v[n], np.asarray(z0 + [u0], dtype=float), jac=lambda v: grad, method="SLSQP",
@@ -178,9 +212,10 @@ def _item_slacks(res):
                  if it.margin is not None and math.isfinite(it.margin))
 
 
-def _hard(res):
+def _hard(res, row_key):
     rows = [(r.name, r.c) for r in res.constraints if r.name.startswith(_HARD_PREFIXES)]
-    return tuple(rows) + tuple((r.name, r.c) for r in res.cone)
+    rows += [(r.name, r.c) for r in res.cone]
+    return tuple(sorted(rows, key=lambda row: row_key(row[0])))        # [r12] 정준 행 순서
 
 
 def _budget_stop(sctx):
@@ -192,6 +227,7 @@ def _budget_stop(sctx):
 
 
 def _maxmin(sctx, variables, theta0, cells, first, tag):
+    row_key = canonical_row_key(sctx)
     variables = list(variables)
     for i, floor in ln_idu_floors(sctx, variables, cells, one_var_only=True, start=theta0).items():
         variables[i] = Variable(variables[i].component, variables[i].log, floor, variables[i].hi)   # S-4f, solve_eps 와 같은 규칙
@@ -199,7 +235,7 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
     hi = np.asarray([v.hi for v in variables], dtype=float)
     fixed = {k: v for k, v in theta0.items() if k not in {v.component for v in variables}}
     t_names = tuple(name for name, _s in _item_slacks(first))
-    h_names = tuple(name for name, _c in _hard(first))
+    h_names = tuple(name for name, _c in _hard(first, row_key))
     n = len(variables)
     state = {"parent": first, "points": {}, "accepted": [], "frozen": set()}
 
@@ -213,7 +249,7 @@ def _maxmin(sctx, variables, theta0, cells, first, tag):
     def rows_of(res):
         if res.status not in ACCEPTED_STATUSES:
             return None
-        ts, hs = _item_slacks(res), _hard(res)
+        ts, hs = _item_slacks(res), _hard(res, row_key)
         if tuple(a for a, _ in ts) != t_names or tuple(a for a, _ in hs) != h_names:
             return False
         return np.asarray([s for _a, s in ts], dtype=float), np.asarray([c for _a, c in hs], dtype=float)
@@ -375,6 +411,7 @@ def _repair(sctx, variables, res, cells, tag, gmid_max):
     변화가 만드는 ln IDu 변화의 상한, gm/ID 최대 = 그 슬라이스 on_mask 점 최댓값). 통과 쪽 점에서 다른 노드가 같은 종류로 실패하면
     그 노드로 이어가고(사슬), 같은 소자가 다시 나오거나 위반 크기가 없는 실패면 끝. 반환 (받아들인 점 | None, 고친 소자 tuple)."""
     index = {v.component: i for i, v in enumerate(variables)}
+    rep_of = {m: rep for rep, members in sctx.domain.ties for m in members}
     floors = ln_idu_floors(sctx, variables, cells)
     kinds = dict(sctx.dc.base.column("device", "kind"))
     writers = dict(sctx.dc.base.column("node", "dc_writer"))
@@ -405,7 +442,7 @@ def _repair(sctx, variables, res, cells, tag, gmid_max):
 
         found = None
         for c in candidates:
-            i = index.get((THETA_LN_IDU, c))
+            i = index.get(rep_of.get((THETA_LN_IDU, c), (THETA_LN_IDU, c)))        # 묶인 소자는 대표 변수로
             if i is None:
                 continue
             var = variables[i]
@@ -469,8 +506,9 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     schema = sctx.dc.schema
     cur = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
     inside = bool(cur) and bool(schema.current_cone) and all(
-        r.c > 0 for r in cone_rows(schema, tuple(sorted(theta0.items()))))
-    bases = _primes(len(variables) + (1 if inside else 0))
+        r.c > 0 for r in cone_rows(schema, tuple(sorted(_expanded(sctx, theta0).items()))))
+    _ordered, dim, n_dim = canonical_order(sctx, variables)
+    bases = _primes(n_dim + (1 if inside else 0))
     floors = ln_idu_floors(sctx, variables, cells)
     gmid_max = _gmid_max(sctx)
     batch = len(variables) + 1          # 시험 묶음 = FD 한 sweep 크기(n + 1, E_B 유도와 같은 단위)
@@ -479,14 +517,16 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     if inside:
         names = [variables[i].component[1] for i in cur]
         col = {name: j for j, name in enumerate(names)}
-        fixed = {name: float(v) for name, v in schema.fixed}
+        alias = _current_alias(sctx)
+        fixed = _current_fixed(sctx)
         rows_a, rows_f = [], []
-        for _m, terms in schema.current_cone:
+        for _m, terms in _cone_canonical(sctx):
             a = np.zeros(len(cur))
             f = 0.0
             for t in terms:
-                if t.source in col:
-                    a[col[t.source]] += float(t.num) / t.den
+                target, sign = alias.get(t.source, (t.source, 1.0))
+                if target in col:
+                    a[col[target]] += float(t.num) / t.den * sign
                 else:
                     f += float(t.num) / t.den * fixed[t.source]
             rows_a.append(a)
@@ -512,7 +552,8 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
             if tried >= sctx.eval_budget:
                 return None, tried, "probe_eval_budget", tuple(repaired)
         tried += 1
-        phi = [_radical_inverse(tried, b) for b in bases]
+        phi_dim = [_radical_inverse(tried, b) for b in bases]
+        phi = [phi_dim[d] for d in dim]            # 변수별 좌표 (같은 차원 = 같은 값)
         theta = dict(theta0)
         for i, var in enumerate(variables):
             low = floors.get(i, var.lo)
@@ -534,7 +575,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
             # 방향이 0(모든 전류 성분 0 -- 예: 전류 변수 하나, 기저 2 의 첫 시험 φ = 1/2)이면 현이 정해지지 않는다(양끝 무한):
             # 걸음 없음(p 그대로). 끝이 무한인 현·빈 현도 걸음 없음 -- 무한 × 0 = NaN 을 만들지 않는다.
             if math.isfinite(t_lo) and math.isfinite(t_hi) and t_lo < t_hi:
-                walk = walk + (t_lo + phi[-1] * (t_hi - t_lo)) * d
+                walk = walk + (t_lo + phi_dim[-1] * (t_hi - t_lo)) * d
             for j, i in enumerate(cur):
                 theta[variables[i].component] = float(min(max(walk[j], box_lo[j]), box_hi[j]))
         res = evaluate(sctx, theta, cells, origin=tag + (("probe", tried),))
@@ -551,7 +592,7 @@ def layer0_start(sctx, origin=()):
     variables, theta, cells = _box_centre(sctx)
     theta, centre_u = _current_centre(sctx, variables, theta)
     failure, probes, source, repairs = None, 0, "centre", ()
-    if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(theta.items())))):
+    if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(_expanded(sctx, theta).items())))):
         start_status = "centre_outside_cone"
         first = None
     else:

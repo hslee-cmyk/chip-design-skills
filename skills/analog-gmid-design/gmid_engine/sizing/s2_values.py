@@ -142,7 +142,8 @@ DC_SEAL_REPORT_WRITER = "dc_seal_report"
 DC_WRITES = (
     (DC_RAILS_WRITER, (("node", "dc_rail_v"),)),
     (DC_CURRENT_BASIS_WRITER, (("graph", "dc_current_basis"),)),
-    (DC_STRUCT_COLOUR_WRITER, (("node", "dc_colour"), ("device", "dc_colour"))),
+    (DC_STRUCT_COLOUR_WRITER, (("node", "dc_colour"), ("device", "dc_colour"), ("node", "dc_orbit"), ("device", "dc_orbit"),
+                                 ("graph", "dc_symmetry"))),
     (DC_WRITER_PLAN_WRITER, (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"))),
     (DC_SCC_ORDER_WRITER, (("graph", "dc_scc_order"), ("node", "dc_column_nbrs"))),
     (DC_THETA_SCHEMA_WRITER, (("graph", "dc_theta_schema"),)),
