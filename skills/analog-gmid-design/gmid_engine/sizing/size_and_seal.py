@@ -47,7 +47,9 @@ def size_and_seal(ctx, theta, parent=None):
         snapshot = parent.snapshot
     items = theta.values
     currents = tuple((key, v) for (kind, key), v in items if kind == THETA_CURRENT)
-    lengths = tuple((key, v) for (kind, key), v in items if kind == THETA_L)
+    owner_of = dict(ctx.l_ties)
+    shared = {key: v for (kind, key), v in items if kind == THETA_L}
+    lengths = tuple((key, shared[owner_of.get(key, key)]) for key in sorted(shared))
     column_items = tuple(((kind, key), v) for (kind, key), v in items if kind in _COLUMN_KINDS)
     steps = (
         (dc_currents, (currents,)),

@@ -159,6 +159,13 @@ LAYERS = (
             ("run.py",),
         ),
     ),
+    (
+        "pipeline",
+        (
+            ("stage_a_budget.py", "stage_a_report.py"),
+            ("stage_a.py",),
+        ),
+    ),
 )
 
 MODULES = (
@@ -715,4 +722,10 @@ MODULES = (
     ModuleEntry("layout/run.py", "entry", "run_layout",
                 "레이아웃 공개 진입점: 입력·슬라이스 필드 쓰기·계산 블록 순서·coverage·W_requests·불변식·재검증 요청",
                 ("N3.17", "LY3", "LR9", "Q4", "Q8")),
+    ModuleEntry("pipeline/stage_a_budget.py", "entry", "structure_count_budget",
+                "단계 A 계수 예산 N_S = 쓰는 kind 의 LUT 격자점 수 합", ("41 §0", "D-NS")),
+    ModuleEntry("pipeline/stage_a_report.py", "entry", "write_stage_a_report",
+                "단계 A 보고서 쓰기(json 전체 + md 요약)", ("40 §2.1", "41 §0")),
+    ModuleEntry("pipeline/stage_a.py", "entry", "run_stage_a",
+                "파이프라인 단계 A 진입점: 로드 -> build_s1 -> structure.json -> build_s1v -> 보고서·exit code", ("GB0", "GB1", "GB2", "41 §0")),
 )
