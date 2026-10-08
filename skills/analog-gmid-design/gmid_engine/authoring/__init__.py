@@ -38,7 +38,7 @@ from .spec_model import (
 from .spec_views import BETA_DECLARED, BETA_UNITY, SENSE_DIFFERENTIAL, DefaultViews, default_views
 from .spec_node_targets import node_target_declaration
 from .spec_refs import resolve_spec_references
-from .spec_regions import intended_region_declaration
+from .spec_regions import REGION_TRIODE, intended_region_declaration
 from .spec_schema import SPEC_SCHEMA_VERSION, check_spec_schema
 from .spec_settings import settings_declaration
 from .spec_sources import source_declaration_checks
@@ -76,6 +76,7 @@ __all__ = (
     "PassiveDecl",
     "PendingMark",
     "PortDecl",
+    "REGION_TRIODE",
     "RailDeclaration",
     "RegionDecl",
     "RuleChoice",

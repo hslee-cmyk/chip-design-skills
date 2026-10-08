@@ -43,6 +43,9 @@
   (metrics 9절 ε_d 와 같은 양). 소자별 `device.dc_off_current`·`device.dc_conduction_floor`(ID 하한 I_off/ε) 필드 -- search 가 θ 전류
   상자·제약을 같은 식으로 조일 때 읽는다(12절 O17). 봉인 항목 8 -> 9개. 2·6·8·10.6절. 계기: two_stage_ota 첫 최종 front 점이 pA
   전류(0.07~0.27 pA)에서 봉인돼 SPICE free 에서 M2/M6 이 꺼짐.
+- **개정 r9(2026-10-08, 오케스트레이터 결정 -- 영역 어휘 하나로)**: `[r9]`. `LINEAR_REGION` = authoring `REGION_TRIODE`("triode").
+  spec 로더는 `intended_region` 영역으로 "triode" 만 받는데 sizing 이 "linear" 를 찾아 spec 경로로는 `linear_devices` 가 늘 비었다.
+  1.2절·12절 O19.
 
 ---
 
@@ -109,7 +112,8 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
 - `supplies_v` = `spec.supplies_v` 그대로. `input_dc_v`: InputDc mode `net` -> `dict(spec.supplies_v)[net]`, `value` ->
   `value_v`, `engine`·`pending`(또는 None) -> None. `node_targets` = `spec.node_voltage_targets_v` 가 tuple 이면 그것, 아니면
   (PendingMark·None) (). `element_values` = `spec.element_values` 각 원소의 (name, mode == "value" 면 value 아니면 None).
-  `linear_devices` = intended_region 이 tuple 일 때 region == `"linear"` 인 소자(이름순). `pending` = `spec.pending` 의
+  `linear_devices` = intended_region 이 tuple 일 때 region == `LINEAR_REGION` 인 소자(이름순). [r9] `LINEAR_REGION` = authoring
+  `REGION_TRIODE` = `"triode"`(spec 어휘 정본을 그대로 읽는다 -- r8 까지 `"linear"` 라 spec 경로로는 비어 있었다, 12절 O19). `pending` = `spec.pending` 의
   (path, decision) 이름순 -- **결정 대기 칸은 '미선언'으로 투영하고 막지 않는다**(정지는 MOD10 몫, SPEC_CONTRACT 3절).
   [r5] `engine_elements` = `spec.element_values` 중 mode == `"engine"` 인 원소 이름 정렬 tuple. mode `pending` 은 들지 않는다
   (결정 대기 값은 엔진이 고르지 않는다 -- 그런 수동소자는 θ 도 구조 규칙도 아니고 소신호에서 `passive_value_undeclared`).
@@ -816,3 +820,12 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   권한표 정확 일치 -- `test_s2_values.py::test_s2_writers_is_s1_plus_dc_table_exactly`·`test_dc_writes_constant_matches_table`;
   동작 변화 -- `test_scc_newton.py::test_gauss_seidel_not_contracting_newton_converges[0.99-0.3]`(그 toy 점이 봉인 9 violated, M1
   margin 2.61 -- 기대 `REPORT_UNDEFINED`).
+- **O19 [r9] 영역 어휘 결정 근거와 바뀌는 test (test 작성자 갱신 몫)**: 정본 = `"triode"`. 근거 순서 -- 계획 DEC-88 봉인 7 행은
+  `intended_region: "linear"` 를 **기본안**으로 두고 '이름은 6b design 확정'이라 미뤘고, 그 design(`_drafts/engine/design_spec_format.md`
+  표 1.6)이 `{"region": "triode"}` 로 정했으며 spec 로더(authoring 23b45c4)가 그것을 구현했다. sizing(b1b3a37, 설계
+  design_gb7_dc_canonical 봉인 7 행)은 계획 기본안 낱말을 그대로 옮겨 어긋났다. spec 이 사용자 어휘라 sizing 이 spec 상수를 읽게
+  했다(같은 개념 두 정의 금지 -- 값을 복사하지 않고 `from gmid_engine.authoring import REGION_TRIODE`). 오라클 `predictions.devices[].region`
+  어휘(sat|triode|off)와도 같아진다. 바뀌는 test: `tests/sizing/test_dc_inputs.py::test_linear_devices_from_intended_region_sorted`
+  (손으로 만든 `RegionDecl("M7", "linear")` 를 linear 로 기대 -- 이제 "triode" 여야 한다, 실패). 같은 파일 42행 9회로 spec 경로
+  비교도 `"linear"` 로 걸러 기대값을 만들지만 9회로 spec 의 intended_region 이 모두 pending(결정 대기 CI-18)이라 양쪽 다 빈 tuple
+  로 지금은 통과한다(triode 선언이 생기면 틀린다 -- 같이 고칠 것).
