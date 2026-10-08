@@ -147,7 +147,7 @@ def block_model(local, spec):
         resistive = {local.pins[r][t] for r in spec.passives if local.kind[r] == KIND_RESISTOR for t in ("t0", "t1")}
         attach = local.attach or {}
         # 단, 전체 회로에서 이 블록 말고 다른 DC 전도 소자가 없는 넷(커패시터·게이트만 달린 막다른 넷)은 DC 에 뜬 넷이라 접지가 아니다 -- 그 끝의 저항은 DC 에 닿지 않는다
-        ground = ground | frozenset(n for n in channel | resistive if n not in spec.nodes and n not in drive and attach.get(n, 2) > 1)
+        ground = ground | frozenset(n for n in channel | resistive if n not in spec.nodes and n not in drive and attach.get(n, math.inf) > 1)
     patterns, reason = _patterns(spec, drive)
     if patterns is None:
         return None, reason
