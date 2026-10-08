@@ -1,7 +1,9 @@
 """평가 커널 컨텍스트 -- S0 당 1회: S1 을 S2 권한표로 옮기고 θ 무관 계획 블록을 돌린다 (계획 N3.5 평가 커널 컨텍스트,
 WP-23 (3) 루프 불변 입력은 컨텍스트에, 설계 3.1).
 
-진입점: `build_kernel_context(s1graph, inputs, lut, l_classes=()) -> KernelContext`. `l_classes` = `graph.build_s1v` 의 `S1v.l_classes`(derived 만 L 공유로 쓴다).
+진입점: `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS) -> KernelContext`.
+`l_classes` = `graph.build_s1v` 의 `S1v.l_classes`(derived 만 L 공유로 쓴다), `order_hints` = `OrderHints`(DEC-95 (3) 앞 단계 -- ratified 독립 선택·
+GB5 gm 요구·뒤 stage 번호, 생략하면 구조 색·이름만).
 
 순서: 인자 검사 -> `supplies_declaration`(graph, 레일 집합과 대조) + S1 키의 supplies 지문 대조 -> `lift_s1` ->
 `dc_rails` -> `dc_struct_colour`(구조 색) -> `dc_current_basis`(값 선언 이상 전류원) -> `dc_writer_plan`(W3 넷, 입력 DC 선언 여부) -> `dc_scc_order` ->
@@ -28,9 +30,11 @@ from .s2_values import (
     DC_THETA_SCHEMA_WRITER,
     DC_WRITER_PLAN_WRITER,
     RESISTOR,
+    NO_ORDER_HINTS,
     DcInputs,
     KernelContext,
     LutAccess,
+    OrderHints,
 )
 from .scc_order import dc_scc_order
 from .struct_colour import dc_struct_colour
@@ -68,11 +72,13 @@ def _declaration_marks(base, inputs, targets):
     return _pack(elements), _pack(nodes)
 
 
-def build_kernel_context(s1graph, inputs, lut, l_classes=()):
+def build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS):
     if not isinstance(s1graph, S1Graph):
         raise TypeError("build_kernel_context: s1graph 는 graph.build_s1 결과 S1Graph 여야 한다")
     if not isinstance(inputs, DcInputs) or not isinstance(lut, LutAccess):
         raise TypeError("build_kernel_context: inputs 는 DcInputs, lut 는 LutAccess 여야 한다")
+    if not isinstance(order_hints, OrderHints):
+        raise TypeError("build_kernel_context: order_hints 는 OrderHints 여야 한다")
     rails = frozenset(net for net, is_rail in s1graph.column("node", "is_rail") if is_rail)
     supplies = supplies_declaration(dict(inputs.supplies_v), rails)
     if fp_of(supplies) != s1graph.key.supplies_v_fp:
@@ -103,14 +109,23 @@ def build_kernel_context(s1graph, inputs, lut, l_classes=()):
     element_marks, node_marks = _declaration_marks(base, inputs, targets)
     base = dc_struct_colour(base, element_marks, node_marks)
     base = dc_current_basis(base, sources)
-    base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None)
+    base = dc_writer_plan(base, tuple(sorted(targets)), inputs.input_dc_v is not None,
+                          *(() if order_hints == NO_ORDER_HINTS else (order_hints,)))      # 힌트 없음 = 생략(블록 입력 버전 불변)
     base = dc_scc_order(base)
     engine_passives = tuple(n for n in sorted(inputs.engine_elements) if classes[n] == ELEMENT_PASSIVE)
     classes_of_l = tuple((m, c.owner) for c in l_classes if c.status == STATUS_DERIVED for m in c.members if m != c.owner)
     stray_l = sorted({n for pair in classes_of_l for n in pair} - set(classes))
     if stray_l:
         raise ValueError("build_kernel_context: L 동치류 멤버가 S1 원소가 아니다 " + repr(stray_l))
-    base = dc_theta_schema(base, tuple(n for n, _v in resistors), engine_passives)
+    l_ties = tuple(sorted(classes_of_l))
+    members = [m for m, _o in l_ties]
+    owners = {o for _m, o in l_ties}
+    bad_l = sorted({n for pair in l_ties for n in pair if classes[n] != ELEMENT_MOS} | (owners & set(members))
+                   | {m for m in members if members.count(m) > 1})
+    if bad_l:
+        raise ValueError("build_kernel_context: L 동치류가 MOS 만의 서로소 묶음이 아니다(MOS 아님·주인이 다른 동치류 멤버·두 동치류 멤버) "
+                         + repr(bad_l))
+    base = dc_theta_schema(base, tuple(n for n, _v in resistors), engine_passives, *((l_ties,) if l_ties else ()))
     fixed = dict(targets)
     if inputs.input_dc_v is not None:
         for net, direction in s1graph.column("node", "port_direction"):
@@ -118,4 +133,4 @@ def build_kernel_context(s1graph, inputs, lut, l_classes=()):
                 fixed[net] = float(inputs.input_dc_v)
     schema = base.value("graph", DC_KEY, "dc_theta_schema")
     versions = tuple((w, base.block_version(w)) for w in PLAN_WRITERS)
-    return KernelContext(base, inputs, lut, schema, tuple(sorted(fixed.items())), resistors, versions, tuple(sorted(classes_of_l)))
+    return KernelContext(base, inputs, lut, schema, tuple(sorted(fixed.items())), resistors, versions, l_ties)

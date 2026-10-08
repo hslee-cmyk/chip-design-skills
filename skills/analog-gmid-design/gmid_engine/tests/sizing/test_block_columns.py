@@ -536,9 +536,13 @@ def test_acyclic_writer_below_floor_is_strict_failure(tmp_path, acc_f, vout, ok)
         assert d["device_query"] == "vgs_of_coordinate" and ei.value.record.devices == ("M1",)
 
 
-def _cycle_ctx(tmp_path, acc, kind_a):
+def _cycle_ctx(tmp_path, acc, kind_a, vin):
     """다변수 순환 SCC {x, y}: MA(kind_a) 가 gate x 를 쓰고(vgs_gate, drain = y -> y 에 의존), MB nmos (d = x, g = in, s = y,
-    b = y) 가 y 를 쓴다(vgs_source, 1변수 -- drain x 에 의존). in = W4(창 = 레일). 이상 전류원 IX·IY 가 KCL 을 닫는다."""
+    b = y) 가 y 를 쓴다(vgs_source, 1변수 -- drain x 에 의존). 이상 전류원 IX·IY 가 KCL 을 닫는다.
+    [U4 갱신] in 은 **입력 DC 선언**(`input_dc_v = vin`, writer input_dc). 옛 판은 in 을 입력 DC 미선언 W4(창 = 레일 범위,
+    V(in) = y·1.8)로 두었으나, 사용자 결정 J-E(설계 41 §4.6 '입력 DC 정책' SP-2 (c), 40 §11 'J 추가 범위' U4, 확인 행 D-J5)로
+    입력 DC 대기 회로의 y_icm 범위는 레일이 아니라 입력 포화 창이 되었다 -- 이 test 들이 겨냥하는 규칙(5.4 [r4] 반복 중 일시
+    이탈·strict 재검증)은 V(in) 값과 무관하므로 J-E 의 '선언 입력 DC 유지'(같은 절) 경로로 V(in) 을 그대로 고정한다."""
     if kind_a == "pmos":
         net = [mos("MA", "pmos", "y", "x", "vdd", "vdd"), mos("MB", "nmos", "x", "in", "y", "y")]
         src = [two("IX", "current_source", "vdd", "x"), two("IY", "current_source", "y", "gnd")]
@@ -546,7 +550,8 @@ def _cycle_ctx(tmp_path, acc, kind_a):
         net = [mos("MA", "nmos", "y", "x", "gnd", "gnd"), mos("MB", "nmos", "x", "in", "y", "y")]
         src = [two("IX", "current_source", "vdd", "x"), two("IY", "current_source", "vdd", "y")]
     doc = topo("r4_cycle_%s" % kind_a, net, {"in": ("input", "x"), "y": ("output", "y")}, sources=src)
-    ctx = build_ctx(tmp_path, doc, acc)[2]
+    ctx = build_ctx(tmp_path, doc, acc, input_dc_v=vin)[2]
+    assert dict(ctx.base.column("node", "dc_writer"))["in"].relation == "input_dc"
     w = dict(ctx.base.column("node", "dc_writer"))
     assert (w["x"].relation, w["x"].element) == ("vgs_gate", "MA")
     assert (w["y"].relation, w["y"].element) == ("vgs_source", "MB")
@@ -560,7 +565,7 @@ def _cycle_theta(kind_a, vin, x, y, vgs_a=0.6, vgs_b=0.6):
     vds_a = (1.8 - y) if kind_a == "pmos" else y
     return {("L", "MA"): 1e-6, ("L", "MB"): 1e-6, ("current", "MA"): 1e-5, ("current", "MB"): 1e-5,
             ("ln_idu", "MA"): r4_ln_idu(kind_a, vgs_a, max(vds_a, 0.25), 0.0),
-            ("ln_idu", "MB"): r4_ln_idu("nmos", vgs_b, x - y, 0.0), ("y", "input_common_mode"): vin / 1.8}
+            ("ln_idu", "MB"): r4_ln_idu("nmos", vgs_b, x - y, 0.0)}           # [U4] in = 선언 입력 DC -> y 성분 없음
 
 
 def test_cyclic_transient_below_floor_tolerated(tmp_path, acc_f):
@@ -568,8 +573,10 @@ def test_cyclic_transient_below_floor_tolerated(tmp_path, acc_f):
     MA pmos(하한 1.0)의 시작값 계산은 계약 5.4 2단계 'VDS = 레일 범위/2 = 0.9' 라 하한 아래 -> 거부하면 안 된다.
     수렴점: x = 1.8 − 0.6 = 1.2, y = vin − 0.6 = 0.5 (VDS(MA) = 1.3 ≥ 1.0, VDS(MB) = 0.7 ≥ 0.25 -> strict 검증도 통과)."""
     assert 0.9 < _floor("pmos", "F")                           # 전제: 2단계 시작 VDS 가 하한 아래
-    ctx = _cycle_ctx(tmp_path, acc_f, "pmos")
-    snap = run_blocks(ctx, _cycle_theta("pmos", 1.1, 1.2, 0.5), upto="columns")
+    ctx = _cycle_ctx(tmp_path, acc_f, "pmos", 1.1)
+    th = _cycle_theta("pmos", 1.1, 1.2, 0.5)
+    assert set(th) == set(ctx.schema.components)
+    snap = run_blocks(ctx, th, upto="columns")
     V = node_voltages(snap)
     log = [e for e in snap.value("graph", DC_KEY, "dc_scc_log") if set(e.nodes) == {"x", "y"}][0]
     assert abs(V["x"] - 1.2) <= log.tol and abs(V["y"] - 0.5) <= log.tol
@@ -579,9 +586,10 @@ def test_cyclic_transient_below_floor_tolerated(tmp_path, acc_f):
 def test_cyclic_strict_recheck_below_floor_fails(tmp_path, acc_f, vin, ok):
     """MA nmos(하한 0.25)의 수렴점 VDS = V(y) = vin − 0.6 이 하한 아래(0.1·0.15)면 반복 중 일시 이탈이어도 수렴 뒤 strict 검증에서
     lut_curve_undefined 실패(투영이 최종값에 남지 않는다). 0.9 -> y = 0.3 ≥ 0.25 이면 풀린다."""
-    ctx = _cycle_ctx(tmp_path, acc_f, "nmos")
+    ctx = _cycle_ctx(tmp_path, acc_f, "nmos", vin)
     y = vin - 0.6
     th = _cycle_theta("nmos", vin, 0.6, y)
+    assert set(th) == set(ctx.schema.components)
     if ok:
         V = node_voltages(run_blocks(ctx, th, upto="columns"))
         assert V["y"] >= _floor("nmos", "F") and abs(V["y"] - y) <= 0.01 and abs(V["x"] - 0.6) <= 0.01

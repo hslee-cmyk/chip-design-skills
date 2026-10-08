@@ -197,6 +197,21 @@ class DcInputs:
 
 
 @dataclasses.dataclass(frozen=True)
+class OrderHints:
+    """DEC-95 (3) 종속 소자 선택 앞 단계 입력 (설계 40 §3.7-4) -- 구조 색·이름보다 먼저 쓰이는 순서 정보.
+    `independent` = ratified 선택(`structure.json`)이 독립(트리)으로 정한 MOS 이름, `gm_required` = GB5 가 gm 을 요구하는 MOS 이름,
+    `stage` = ((MOS, S1v stage 번호), ...) -- 번호가 큰(뒤 stage) 소자가 독립으로 남는다. 셋 다 이름은 소자 식별일 뿐 순서는 값이
+    정한다. 출처는 U1 의 S1v·ratified 로더이고 비어 있으면(`NO_ORDER_HINTS`) 구조 색·이름 순서 그대로다."""
+
+    independent: tuple = ()
+    gm_required: tuple = ()
+    stage: tuple = ()
+
+
+NO_ORDER_HINTS = OrderHints()
+
+
+@dataclasses.dataclass(frozen=True)
 class LutAccess:
     """계산 블록 추가 인자로 넘기는 LUT 손잡이. `memo` = lut.LutMemo(graph 밖 유일 memo), `w_keys` = ((kind, w_key), ...)
     -- 레이아웃 전 사이징이 쓰는 폭 슬라이스. 지문(`__canonical__`)은 (LUT 내용 지문, w_keys) 라서 같은 LUT·같은 슬라이스면
@@ -413,7 +428,8 @@ class KernelContext:
     """S0 당 1회 만드는 평가 커널 컨텍스트(루프 불변 입력). `base` = S1 + 쓰기 계획 블록까지 쓴 스냅샷, `inputs` = DcInputs,
     `lut` = LutAccess, `schema` = ThetaSchema, `fixed_values` = ((넷, V), ...) W3·입력 DC 고정 노드,
     `resistor_values` = ((저항, Ω), ...) spec 선언값(DC 경로 저항만), `plan_versions` = ((writer, 입력 버전), ...) 계획 블록,
-    `l_ties` = ((멤버, 주인), ...) S1v derived L 동치류의 비주인 멤버(LR1 L 공유, `size_and_seal` 이 멤버 L 을 주인 값으로 바꾼다)."""
+    `l_ties` = ((멤버, 주인), ...) S1v derived L 동치류의 비주인 멤버(LR1 L 공유 -- θ 스키마에는 동치류당 L 성분이 주인 하나만 있고
+    `size_and_seal` 이 멤버 L 을 주인 값으로 둔다)."""
 
     base: object
     inputs: DcInputs

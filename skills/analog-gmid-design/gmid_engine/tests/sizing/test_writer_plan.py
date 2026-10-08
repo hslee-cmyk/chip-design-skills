@@ -230,3 +230,97 @@ def test_block_is_theta_free_and_reused(ctx_c):
     dc_writer_plan.reset_stats()
     assert dc_writer_plan(base, (), False) is base
     assert dc_writer_plan.stats().reuses == 1
+
+
+# ===========================================================================
+# [U4] DEC-95 (3) 종속 소자 선택 전체 순서 (D-GB7c, 설계 40 §3.7-4, 계획 DEC-95 (3)·DEC-64, CONTRACT 14.4)
+# ===========================================================================
+# oracle (d) 사용자 결정 DEC-95 (3) 의 우선순위 문언: ratified 선택 -> diode -> GB5 gm 요구·뒤 stage 소자는 독립 유지 -> 대칭 궤도
+# 대표 -> 이름. 'Kruskal 키가 작은 엣지가 트리(독립 = writer)' 이므로 같은 equal_vgs 묶음 안에서 누가 writer 가 되는지가 관찰값이다.
+# 회로: (i) circuit_mirror -- diode M1 과 거울 M2 가 같은 (gate nb, source gnd) 평행 엣지, (ii) 대칭 4소자 -- MA·MB(gate pb = 입력
+# 포트), MC·MD(gate pc = 바이어스) 가 서로 대칭이라 구조 색이 같고 힌트가 없으면 이름이 정한다.
+
+from gmid_engine.sizing import NO_ORDER_HINTS, OrderHints                                       # noqa: E402
+
+from .conftest import build_ctx_u4, circuit_mirror                                              # noqa: E402
+
+
+def _sym_doc(names=("MA", "MB", "MC", "MD")):
+    a, b, c, d = names
+    return topo("u4_sym", [mos(a, "nmos", "oa", "pb", "gnd"), mos(b, "nmos", "ob", "pb", "gnd"),
+                           mos(c, "pmos", "oa", "pc", "vdd"), mos(d, "pmos", "ob", "pc", "vdd")],
+                {"pb": ("input", "x"), "oa": ("output", "y"), "ob": ("output", "y")}, bias=["pc"])
+
+
+def _roles(ctx):
+    return {k: v.role for k, v in ctx.base.column("device", "dc_coord")}
+
+
+def _writer_of(ctx, net):
+    return dict(ctx.base.column("node", "dc_writer"))[net].element
+
+
+def _sym(tmp_path, r4_access, hints, names=("MA", "MB", "MC", "MD")):
+    return build_ctx_u4(tmp_path, _sym_doc(names), r4_access, order_hints=hints)[1]
+
+
+def _mir(tmp_path, r4_access, hints):
+    return build_ctx_u4(tmp_path, circuit_mirror(), r4_access, order_hints=hints, element_values=(("I1", 1e-5),))[1]
+
+
+@pytest.mark.parametrize("hints,writer", [
+    (NO_ORDER_HINTS, "MA"),                                              # 동률 -> 이름(MA < MB)
+    (OrderHints(independent=("MB",)), "MB"),                             # ratified 독립
+    (OrderHints(gm_required=("MB",)), "MB"),                             # GB5 gm 요구
+    (OrderHints(stage=(("MA", 1), ("MB", 2))), "MB"),                     # 뒤 stage
+    (OrderHints(stage=(("MA", 2), ("MB", 1))), "MA"),
+    (OrderHints(independent=("MA",), gm_required=("MB",)), "MA"),        # ratified > gm 요구
+    (OrderHints(gm_required=("MA",), stage=(("MA", 1), ("MB", 2))), "MA"),  # gm 요구 > 뒤 stage
+], ids=["none", "ratified", "gm", "stage_b", "stage_a", "ratified_over_gm", "gm_over_stage"])
+def test_dec95_order_symmetric_pair(tmp_path, r4_access, hints, writer):
+    ctx = _sym(tmp_path, r4_access, hints)
+    other = "MB" if writer == "MA" else "MA"
+    assert _writer_of(ctx, "pb") == writer
+    assert _roles(ctx)[writer] == "writer" and _roles(ctx)[other] == "dependent"
+    assert ("ln_idu", writer) in ctx.schema.components and ("ln_idu", other) not in ctx.schema.components
+
+
+@pytest.mark.parametrize("hints,writer", [
+    (NO_ORDER_HINTS, "M1"),                                              # diode 가 writer
+    (OrderHints(independent=("M2",)), "M2"),                             # ratified > diode
+    (OrderHints(gm_required=("M2",)), "M1"),                             # diode > gm 요구
+    (OrderHints(stage=(("M1", 1), ("M2", 2))), "M1"),                     # diode > 뒤 stage
+], ids=["none", "ratified_over_diode", "diode_over_gm", "diode_over_stage"])
+def test_dec95_order_diode_pair(tmp_path, r4_access, hints, writer):
+    ctx = _mir(tmp_path, r4_access, hints)
+    other = "M2" if writer == "M1" else "M1"
+    assert _writer_of(ctx, "nb") == writer
+    assert _roles(ctx)[writer] == "writer" and _roles(ctx)[other] == "dependent"
+
+
+def test_empty_hints_identical_to_default(tmp_path, r4_access):
+    """힌트가 비면 종래 순서와 같다(CONTRACT 14.4): 인자 생략·NO_ORDER_HINTS·빈 OrderHints 의 계획 스냅샷 비트 동일."""
+    a = build_ctx_u4(tmp_path / "a", _sym_doc(), r4_access)[1]
+    b = _sym(tmp_path / "b", r4_access, NO_ORDER_HINTS)
+    c = _sym(tmp_path / "c", r4_access, OrderHints((), (), ()))
+    assert a.base.fp == b.base.fp == c.base.fp
+    assert a.base.value("graph", DC_KEY, "dc_tie_breaks") == b.base.value("graph", DC_KEY, "dc_tie_breaks")
+
+
+def test_hint_on_tree_only_device_changes_nothing(tmp_path, r4_access):
+    """비트리 관계가 없는 소자(M3: 평행 짝 없음)에 대한 힌트는 writer 선택을 바꾸지 않는다."""
+    a = _mir(tmp_path / "a", r4_access, NO_ORDER_HINTS)
+    b = _mir(tmp_path / "b", r4_access, OrderHints(independent=("M3",), gm_required=("M3",), stage=(("M3", 9),)))
+    for f in (("node", "dc_writer"), ("device", "dc_coord")):
+        assert a.base.column(*f) == b.base.column(*f)
+    assert a.schema == b.schema
+
+
+@pytest.mark.parametrize("names", [("MA", "MB", "MC", "MD"), ("Z1", "A1", "MC", "MD")], ids=["ab", "swapped_order"])
+def test_dec95_name_bijection(tmp_path, r4_access, names):
+    """DEC-95 (3) 'metamorphic: 이름 전단사 후 결과 동일(이름 사상 적용)': 힌트가 가리키는 소자(σ(MB))가 writer -- 이름 순서가
+    뒤집혀도(σ(MB) = A1 < σ(MA) = Z1) 같다. 힌트가 없으면 이름순이라 바뀌지만(동률의 마지막 규칙) 힌트가 있으면 구조가 정한다."""
+    a, b = names[0], names[1]
+    for i, hints in enumerate((OrderHints(independent=(b,)), OrderHints(stage=((a, 1), (b, 2))), OrderHints(gm_required=(b,)))):
+        ctx = _sym(tmp_path / ("h%d" % i), r4_access, hints, names)
+        assert _writer_of(ctx, "pb") == b

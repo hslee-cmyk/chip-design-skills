@@ -264,8 +264,15 @@ def test_value_fields_as_contract():
     assert names(S.SealReport) == ("items", "status")
     assert names(S.SealedSnapshot) == ("snapshot", "report")
     assert names(S.DcEvaluation) == ("snapshot", "report", "sealed")
-    # [U1] sizing CONTRACT 13절: KernelContext.l_ties = ((멤버, 주인), ...) 추가(옛 7칸 뒤)
+    # [U4] l_ties 추가(CONTRACT 14.1, 설계 40 §3.7-1·§3.2 보완 1 'θ 스키마는 동치류당 L 변수 하나', 확인 행 D-GB7a): 기본값 () --
+    # 옛 7칸 생성 호환
     assert names(S.KernelContext) == ("base", "inputs", "lut", "schema", "fixed_values", "resistor_values",
                                       "plan_versions", "l_ties")
+    assert S.KernelContext(*([None] * 7)).l_ties == ()
+    # [U4] 국소 봉인 값 형식(41 §5.3 LocalSeal{ok, failures, snapshot_fragment, gain_db, power_w, area_m2})
+    assert names(S.LocalSeal) == ("ok", "failures", "snapshot_fragment", "gain_db", "power_w", "area_m2")
+    assert names(S.SnapshotFragment) == ("devices", "nodes")
+    assert names(S.OrderHints) == ("independent", "gm_required", "stage")
+    assert S.NO_ORDER_HINTS == S.OrderHints((), (), ())
     assert names(S.DcInputs) == ("supplies_v", "input_dc_v", "node_targets", "element_values", "linear_devices",
                                  "pending", "engine_elements")                                   # [r5]

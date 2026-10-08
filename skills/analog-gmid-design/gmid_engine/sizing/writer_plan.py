@@ -1,6 +1,6 @@
 """쓰기 계획 컴파일 -- 노드마다 writer 하나, MOS 마다 좌표 역할(쓰기/종속) (설계 3.1 1~3, 계획 N3.4·DEC-64·DEC-95 (3)).
 
-진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared)`. θ 무관(S0 당 1회).
+진입점: `dc_writer_plan`(`@compute_block`) -- `dc_writer_plan(snapshot, target_nets, input_dc_declared, order_hints=NO_ORDER_HINTS)`. θ 무관(S0 당 1회).
 
 모든 순서 결정의 키는 **구조 색 먼저**(`dc_struct_colour`, 이름을 읽지 않는 1-WL 정준 색) 그다음 이름이다. 이름이 실제로
 결정을 가른 경우(같은 구조 색 후보가 서로 다른 결과로 갈린 경우)는 `graph.dc_tie_breaks` 에 `TieBreak` 로 남긴다.
@@ -9,11 +9,12 @@
 2. G_vgs(용어집) = MOS (gate, source) 엣지 + 저항 (t0, t1) 엣지(잎 가지치기된 저항 포함 -- 전류 0 이라 강하 0)
    + 입력 DC 가 선언되지 않은 입력 포트끼리의 '같은 DC' 엣지(DEC-64 v1 '입력 DC 동일 가정', U2 기본안 (a)) -- 포트를
    (구조 색, 이름) 순으로 이웃끼리 잇는다(같은 색 포트가 둘 이상이면 `input_tie_order` 기록).
-3. F 를 한 점으로 묶은 G_vgs 의 최소 신장 숲(Kruskal). 엣지 키 = (순위: 같은 DC < 저항 < diode MOS < 그 밖 MOS, 원소 구조
-   색, 이름). 순환 성질상 각 기본 사이클에서 키가 가장 큰 엣지가 비트리(종속)가 된다 = DEC-95 (3) '① diode 독립'과 '③ 대칭
-   궤도 대표'(같은 궤도 = 같은 구조 색)의 구조 규칙. '② GB5 gm 요구·뒤 stage' 단계는 그 정보를 내는 S1v/GB5 가 없어 아직
-   적용하지 않는다(CONTRACT 12절). 같은 (순위, 색) 묶음이 트리/비트리로 갈리면 `writer_edge` 기록(묶음 처리 뒤 성분 분할은
-   묶음 안 순서와 무관하므로 이름이 가르는 것은 그 묶음 안의 선택뿐이다).
+3. F 를 한 점으로 묶은 G_vgs 의 최소 신장 숲(Kruskal). 엣지 키 = (종류: 같은 DC < 저항 < MOS, [MOS 만] ratified 독립 선택 < 그 밖,
+   diode < 그 밖, GB5 gm 요구 < 그 밖, 뒤 stage < 앞 stage, 원소 구조 색, 이름). 순환 성질상 각 기본 사이클에서 키가 가장 큰
+   엣지가 비트리(종속)가 된다 = DEC-95 (3) 전체 순서 'ratified 선택 -> diode -> GB5 가 gm 을 요구하는 소자·뒤 stage 소자는 독립
+   유지 -> 대칭 궤도 대표(같은 궤도 = 같은 구조 색) -> 이름'. 앞 세 단계 중 ratified·gm 요구·stage 는 `order_hints`(U1 S1v·
+   `structure.json` ratified 로더가 채운다, 생략하면 없는 것 -- diode·색·이름만). 같은 (키 - 이름) 묶음이 트리/비트리로 갈리면
+   `writer_edge` 기록(묶음 처리 뒤 성분 분할은 묶음 안 순서와 무관하므로 이름이 가르는 것은 그 묶음 안의 선택뿐이다).
 4. 트리 엣지 = writer: F 와 각 성분 뿌리에서 BFS 로 먼 쪽 노드를 쓴다. MOS 가 source 에서 gate 를 쓰면 `vgs_gate`
    (diode 면 W1), gate 에서 source 를 쓰면 `vgs_source`(W2), 저항은 `resistor_drop`(W2), 같은 DC 엣지는 `input_tie`(W2).
 5. F 가 없는 성분의 뿌리 = 그 성분의 입력 포트가 있으면 그중 (구조 색, 이름) 최소(y 키 `input_common_mode`), 없으면 성분 노드
@@ -59,6 +60,7 @@ from .s2_values import (
     TIER_W4,
     DeviceCoord,
     NodeWrite,
+    NO_ORDER_HINTS,
     TieBreak,
 )
 
@@ -69,6 +71,7 @@ READS = (
 WRITES = (("node", "dc_writer"), ("device", "dc_coord"), ("graph", "dc_tie_breaks"))
 _FIXED = ("",)                                          # F 한 점(넷 이름이 될 수 없는 tuple 키)
 _TIE, _RES, _DIODE, _MOS = (0, 1, 1 + 1, 1 + 1 + 1)    # 엣지 순위
+_KIND_TIE, _KIND_RES, _KIND_MOS = (0, 1, 1 + 1)          # 엣지 키의 종류 칸(같은 DC < 저항 < MOS)
 
 
 def _find(parent, x):
@@ -88,20 +91,26 @@ class _Plan:
         self.order += 1
 
 
-def _edges(classes, kinds, pins, diode, colour, free_inputs):
-    """(키, 순위, 원소, a, b) 키 순. 같은 DC 엣지의 키 색 = 두 포트 색 정렬, 원소 = None."""
+def _edges(classes, kinds, pins, diode, colour, free_inputs, hints):
+    """(키, 순위, 원소, a, b) 키 순. 같은 DC 엣지의 키 색 = 두 포트 색 정렬, 원소 = None. 키 = (종류, ratified, diode, gm 요구,
+    -stage, 색, 이름) -- 종류 0 같은 DC / 1 저항 / 2 MOS, 나머지 칸은 MOS 만 값을 갖고(작을수록 독립으로 남는다) 힌트가 없으면
+    ratified = gm 요구 = stage 칸이 모두 같아 종래 (diode < 그 밖, 색, 이름) 순서다."""
+    independent, required = frozenset(hints.independent), frozenset(hints.gm_required)
+    stage = dict(hints.stage)
     edges = []
     for i, (a, b) in enumerate(zip(free_inputs, free_inputs[1:])):
-        edges.append(((_TIE, (), str(i)), _TIE, None, a, b))
+        edges.append(((_KIND_TIE, 0, 0, 0, 0, (), str(i)), _TIE, None, a, b))
     for name, cls in classes.items():
         p = dict(pins[name])
         if cls == ELEMENT_PASSIVE and kinds[name] == RESISTOR:
             t0, t1 = (net for _t, net in sorted(p.items()))
-            edges.append(((_RES, (colour[name],), name), _RES, name, t0, t1))
+            edges.append(((_KIND_RES, 0, 0, 0, 0, (colour[name],), name), _RES, name, t0, t1))
         elif cls == ELEMENT_MOS:
             _d, gate, source = (p[t] for t in MOS_TERMINAL_NAMES)
             rank = _DIODE if diode.get(name) else _MOS
-            edges.append(((rank, (colour[name],), name), rank, name, gate, source))
+            key = (_KIND_MOS, 0 if name in independent else 1, 0 if diode.get(name) else 1, 0 if name in required else 1,
+                   -stage[name] if name in stage else 1, (colour[name],), name)
+            edges.append((key, rank, name, gate, source))
     return sorted(edges)
 
 
@@ -115,7 +124,8 @@ def _same_colour_groups(keys, items):
 
 @compute_block(DC_WRITER_PLAN_WRITER, reads=READS, writes=WRITES)
 def dc_writer_plan(projection):
-    target_nets, input_dc_declared = projection.extras
+    target_nets, input_dc_declared, *rest = projection.extras
+    hints = rest[0] if rest else NO_ORDER_HINTS
     classes = dict(projection.column("device", "element_class"))
     kinds = dict(projection.column("device", "kind"))
     pins = dict(projection.column("device", "pins"))
@@ -148,7 +158,7 @@ def dc_writer_plan(projection):
     tree = []
     coords = {}
     groups = {}
-    for key, rank, name, a, b in _edges(classes, kinds, pins, diode, dcolour, free_inputs):
+    for key, rank, name, a, b in _edges(classes, kinds, pins, diode, dcolour, free_inputs, hints):
         ra = _find(parent, _FIXED if a in fixed else a)
         rb = _find(parent, _FIXED if b in fixed else b)
         is_tree = ra != rb

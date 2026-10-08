@@ -831,3 +831,63 @@ def rref_free(columns, rows):
     for ri, ci in enumerate(piv):
         expr[columns[ci]] = {columns[j]: -M[ri][j] for j in range(len(columns)) if j not in piv and M[ri][j] != 0}
     return [columns[i] for i in piv], free, expr
+
+
+# ---------------------------------------------------------------------------
+# [U4] sizing 보강 공용 입력 (설계 40 §3.7, 41 §5.3·§4.6) -- 입력 생성용. 기대값은 각 test 의 닫힌 식·독립 풀이.
+# ---------------------------------------------------------------------------
+
+class LClassStub:
+    """U1 `S1v.l_classes` 원소의 자리(CONTRACT 14.1: 이 모듈은 `owner`·`members`·`status` 속성만 읽는다). U1 형식이 병합되기
+    전이라 test 가 속성 셋만 가진 값으로 만든다."""
+    __slots__ = ("owner", "members", "status")
+
+    def __init__(self, owner, members, status="derived"):
+        self.owner, self.members, self.status = owner, tuple(members), status
+
+
+def build_ctx_u4(tmp_path, doc, access, l_classes=(), order_hints=None, supplies=None, **inputs_kw):
+    """`build_ctx` 와 같되 U4 인자(l_classes·order_hints)를 넘긴다. order_hints None = 인자를 주지 않는다(기본값 경로).
+    반환 (S1Graph, KernelContext)."""
+    Path(tmp_path).mkdir(parents=True, exist_ok=True)
+    td = load_doc(tmp_path, doc)
+    sup = dict(SUPPLIES if supplies is None else supplies)
+    s1 = build_s1(td, sup)
+    inputs = DcInputs(tuple(sorted(sup.items())), **inputs_kw)
+    kw = {"l_classes": tuple(l_classes)}
+    if order_hints is not None:
+        kw["order_hints"] = order_hints
+    return s1, build_kernel_context(s1, inputs, access, **kw)
+
+
+def circuit_mirror(names=("M1", "M2", "M3", "I1"), nets=("nb", "out", "in")):
+    """nmos diode M1(nb, nb, gnd) + 거울 M2(out, nb, gnd) + pmos 부하 M3(out, in, vdd), 이상 전류원 I1(vdd -> nb). bulk = source 레일.
+    names·nets 로 이름 전단사를 만든다(구조 동일). 기둥 둘: {I1, M1}·{M3, M2}."""
+    m1, m2, m3, i1 = names
+    nb, out, inn = nets
+    net = [mos(m1, "nmos", nb, nb, "gnd", "gnd"), mos(m2, "nmos", out, nb, "gnd", "gnd"),
+           mos(m3, "pmos", out, inn, "vdd", "vdd")]
+    return topo("u4_mirror", net, {inn: ("input", "x"), out: ("output", "y")},
+                sources=[two(i1, "current_source", "vdd", nb)])
+
+
+def theta_mirror(names=("M1", "M2", "M3", "I1"), out="out", vgs1=0.6, vgs3=0.7, y=0.5, l=(1e-6, 1e-6, 1e-6), i=1e-5):
+    """circuit_mirror 의 θ (I1 = i 선언, l = (M1, M2, M3) L). M1 diode 좌표 = vgs1 이 근(VDS = VGS)인 r4 좌표, M3 좌표 = vgs3 at
+    VDS = 1.8 − y·1.8."""
+    m1, m2, m3, _ = names
+    return {("L", m1): l[0], ("L", m2): l[1], ("L", m3): l[2], ("current", m3): i,
+            ("ln_idu", m1): r4_ln_idu("nmos", vgs1, vgs1, 0.0), ("ln_idu", m3): r4_ln_idu("pmos", vgs3, 1.8 - y * 1.8, 0.0),
+            ("y", out): y}
+
+
+def with_hand_ss(ev, gm_scale=None):
+    """평가 `ev` 에 손 `ss_dev`(gm = gm_scale[m]·dc_op.gm_id·dc_op.current, 기본 배율 1 -> 그 점의 gm 과 정합)를 써서 S2p parent 를
+    만든다(metrics `ss_dev` 계산 블록의 자리 -- 권한표 writer 로 쓴다). 반환 DcEvaluation(봉인 점이면 sealed = 같은 스냅샷)."""
+    from gmid_engine.metrics import SsDevice
+    from gmid_engine.sizing import S2_WRITERS, DcEvaluation, SealedSnapshot
+    scale = dict(gm_scale or {})
+    ops = dict(ev.snapshot.column("device", "dc_op"))
+    col = {m: SsDevice(scale.get(m, 1.0) * o.gm_id * o.current, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                       "hand", "hand", "hand") for m, o in ops.items()}
+    snap = ev.snapshot.write(S2_WRITERS.writer_of("device", "ss_dev"), "hand_ss", {("device", "ss_dev"): col})
+    return DcEvaluation(snap, ev.report, SealedSnapshot(snap, ev.report) if ev.sealed is not None else None)

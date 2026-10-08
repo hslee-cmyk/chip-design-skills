@@ -238,6 +238,96 @@ def test_same_inputs_same_base_fp(parts):
     assert a.plan_versions == b.plan_versions
 
 
+# ====================================================================
+
+# [U4] L 동치류 L 공유 (D-GB7a, 설계 40 §3.7-1·§3.2 보완 1 'θ 스키마는 동치류당 L 변수 하나', 계획 LR1, CONTRACT 14.1)
+# ===========================================================================
+# oracle (a) 구성: circuit_mirror 의 M1·M2 는 같은 gate 넷(nb)·같은 source 넷(gnd)·같은 kind(nmos) -- LR1 규칙의 L 동치류가 되는
+# 쌍이다(동치류 유도는 U1 몫이라 test 가 LClassStub 로 준다). 기대: derived 동치류만 묶이고, θ 의 L 성분은 주인 하나뿐이다.
+
+from gmid_engine.sizing import check_theta, size_and_seal                                      # noqa: E402
+
+from .conftest import LClassStub, build_ctx_u4, circuit_mirror, theta_mirror                    # noqa: E402
+
+_MIR_VALUES = (("I1", 1e-5),)
+
+
+def _l_components(ctx):
+    return sorted(k for t, k in ctx.schema.components if t == "L")
+
+
+@pytest.mark.parametrize("members", [("M1", "M2"), ("M2", "M1"), ("M2",)])
+def test_l_class_derived_ties_member_to_owner(tmp_path, r4_access, members):
+    """derived 동치류 {M1(주인), M2}: l_ties = (("M2", "M1"),)(비주인 멤버만), θ L 성분 = M1·M3(M2 없음). 멤버 목록에 주인이
+    있든 없든·순서가 어떻든 같다."""
+    _, ctx = build_ctx_u4(tmp_path, circuit_mirror(), r4_access, l_classes=(LClassStub("M1", members),),
+                          element_values=_MIR_VALUES)
+    assert ctx.l_ties == (("M2", "M1"),)
+    assert _l_components(ctx) == ["M1", "M3"]
+
+
+@pytest.mark.parametrize("status", ["review_needed", "proposed"])
+def test_l_class_not_derived_is_not_tied(tmp_path, r4_access, status):
+    """derived 가 아닌 동치류는 묶지 않는다(설계 40 §3.2 'review_needed 가 남으면 정지' 는 GB4 앞 U1 몫, 여기서는 소자마다 L)."""
+    _, ctx = build_ctx_u4(tmp_path, circuit_mirror(), r4_access, l_classes=(LClassStub("M1", ("M1", "M2"), status),),
+                          element_values=_MIR_VALUES)
+    assert ctx.l_ties == ()
+    assert _l_components(ctx) == ["M1", "M2", "M3"]
+
+
+def test_no_l_classes_same_plan_as_before(tmp_path, r4_access):
+    """동치류가 없으면 l_ties = () 이고 계획 스냅샷이 인자 없는 호출과 비트 같다(CONTRACT 14.1 'extras 를 3번째까지 주지 않는다')."""
+    s1, a = build_ctx_u4(tmp_path / "a", circuit_mirror(), r4_access, element_values=_MIR_VALUES)
+    b = build_kernel_context(s1, a.inputs, r4_access)
+    assert a.l_ties == () == b.l_ties and a.base.fp == b.base.fp and a.schema == b.schema
+
+
+def test_member_l_component_rejected(tmp_path, r4_access):
+    """멤버의 ("L", 멤버) 성분은 θ 에 없다 -> 넣으면 ValueError(check_theta·size_and_seal 모두, 후보 실패가 아님)."""
+    _, ctx = build_ctx_u4(tmp_path, circuit_mirror(), r4_access, l_classes=(LClassStub("M1", ("M1", "M2")),),
+                          element_values=_MIR_VALUES)
+    th = theta_mirror()
+    with pytest.raises(ValueError):
+        check_theta(ctx.schema, th)
+    with pytest.raises(ValueError):
+        size_and_seal(ctx, th)
+    del th[("L", "M2")]
+    check_theta(ctx.schema, th)                                     # 멤버 L 을 빼면 통과
+
+
+@pytest.mark.parametrize("classes", [
+    (("M1", ("M1", "I1")),),                       # 이상원 멤버(MOS 아님)
+    (("M1", ("M1", "ZZ")),),                       # S1 에 없는 멤버
+    (("ZZ", ("M1",)),),                            # S1 에 없는 주인
+    (("I1", ("M1",)),),                            # MOS 아닌 주인
+    (("M1", ("M1", "M2")), ("M2", ("M2", "M3"))),   # 주인 M2 가 다른 동치류의 멤버
+    (("M1", ("M1", "M2")), ("M3", ("M3", "M2"))),   # M2 가 두 동치류의 멤버
+], ids=["member_source", "member_unknown", "owner_unknown", "owner_source", "owner_is_member", "two_classes"])
+def test_l_class_rejects(tmp_path, r4_access, classes):
+    """CONTRACT 14.1 거부 조건 -> ValueError(호출 계약 위반)."""
+    with pytest.raises(ValueError):
+        build_ctx_u4(tmp_path, circuit_mirror(), r4_access, l_classes=tuple(LClassStub(o, m) for o, m in classes),
+                     element_values=_MIR_VALUES)
+
+
+def test_l_class_order_invariance(tmp_path, r4_access):
+    """IC2(설계 40 §10.3): 동치류 목록·멤버 순서를 섞어도 계획 스냅샷·스키마·l_ties 가 같다."""
+    a = build_ctx_u4(tmp_path / "a", circuit_mirror(), r4_access,
+                     l_classes=(LClassStub("M1", ("M1", "M2")), LClassStub("M3", ("M3",))), element_values=_MIR_VALUES)[1]
+    b = build_ctx_u4(tmp_path / "b", circuit_mirror(), r4_access,
+                     l_classes=(LClassStub("M3", ("M3",)), LClassStub("M1", ("M2", "M1"))), element_values=_MIR_VALUES)[1]
+    assert a.base.fp == b.base.fp and a.schema == b.schema and a.l_ties == b.l_ties == (("M2", "M1"),)
+
+
+def test_l_ties_name_bijection(tmp_path, r4_access):
+    """이름 전단사(소자 M1->Q9, M2->Q1, M3->Q5, I1->J2; 넷 nb->n7, out->o2, in->i4): l_ties·L 성분이 사상을 따라간다 -- 동치류
+    주인은 이름이 아니라 주어진 owner 로 정해진다(이름순 첫 멤버 Q1 이 아니라 Q9)."""
+    names = ("Q9", "Q1", "Q5", "J2")
+    _, ctx = build_ctx_u4(tmp_path, circuit_mirror(names, ("n7", "o2", "i4")), r4_access,
+                          l_classes=(LClassStub("Q9", ("Q1", "Q9")),), element_values=(("J2", 1e-5),))
+    assert ctx.l_ties == (("Q1", "Q9"),)
+    assert _l_components(ctx) == ["Q5", "Q9"]
+
 # ---- [U1] sizing CONTRACT 13절: build_kernel_context(..., l_classes=()) 와 KernelContext.l_ties
 # oracle (d) 계약 문장: l_ties = ((멤버, 주인), ...) 이름순, status derived 동치류의 주인 아닌 멤버만, 생략하면 () 이고 θ 스키마 불변,
 # 멤버 이름이 S1 원소가 아니면 ValueError. 동치류는 손으로 만든 LClass(입력)다.
@@ -249,14 +339,22 @@ def _three_pmos_mirror():
                 {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, bias=["nb"])
 
 
-def test_l_ties_default_empty_and_schema_unchanged(tmp_path, toy_access):
+def test_l_ties_default_empty_and_schema_drops_member_l(tmp_path, toy_access):
+    """oracle (d) 설계 결론 D-GB7a(40 §3.7·§11 U4): θ 는 L 동치류마다 L 성분 하나(주인), 멤버 ("L", 멤버) 성분은 없다.
+    기대 = plain 성분 - {("L","M3"),("L","M4")}(LClass 선언에서 손으로 정한 멤버, 피검 함수 출력 아님), 나머지 성분·순서는 그대로.
+    (U1 시절 'schema 불변' 단언은 D-GB7a 와 모순 -- 오케스트레이터 결정으로 교체.)"""
     from gmid_engine.graph import LClass
     s1, inputs, plain = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
     assert plain.l_ties == ()
     tied = build_kernel_context(s1, inputs, toy_access,
                                 l_classes=(LClass(("M2", "M3", "M4"), "M2", "hand", "derived"),))
     assert tied.l_ties == (("M3", "M2"), ("M4", "M2"))
-    assert tied.schema == plain.schema
+    removed = {("L", "M3"), ("L", "M4")}
+    assert removed <= set(plain.schema.components)
+    assert tied.schema.components == tuple(c for c in plain.schema.components if c not in removed)
+    assert ("L", "M2") in tied.schema.components
+    assert (tied.schema.current_cone, tied.schema.fixed, tied.schema.zero_cancel) == (
+        plain.schema.current_cone, plain.schema.fixed, plain.schema.zero_cancel)
 
 
 def test_l_ties_only_derived_classes(tmp_path, toy_access):
