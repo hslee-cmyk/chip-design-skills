@@ -130,6 +130,10 @@ def _cone_canonical(sctx):
     return tuple((m, tuple(sorted(terms, key=lambda t: key(CON_CONE + ":" + t.source)))) for m, terms in rows)
 
 
+def _expanded(sctx, theta):
+    return expand_ties(sctx.domain.ties, theta, sctx.domain.negated, sctx.domain.zeros)
+
+
 def _current_alias(sctx):
     """{묶인 θ 전류 원소: (대표 원소, 부호)}: 원뿔 행의 항이 묶인 전류를 읽으면 대표 변수의 항(부호만큼 곱함)으로 센다(3.24)."""
     flipped = set(sctx.domain.negated)
@@ -502,7 +506,7 @@ def _halton_probe(sctx, variables, theta0, cells, tag):
     schema = sctx.dc.schema
     cur = [i for i, v in enumerate(variables) if v.component[0] == THETA_CURRENT]
     inside = bool(cur) and bool(schema.current_cone) and all(
-        r.c > 0 for r in cone_rows(schema, tuple(sorted(expand_ties(sctx.domain.ties, theta0).items()))))
+        r.c > 0 for r in cone_rows(schema, tuple(sorted(_expanded(sctx, theta0).items()))))
     _ordered, dim, n_dim = canonical_order(sctx, variables)
     bases = _primes(n_dim + (1 if inside else 0))
     floors = ln_idu_floors(sctx, variables, cells)
@@ -588,7 +592,7 @@ def layer0_start(sctx, origin=()):
     variables, theta, cells = _box_centre(sctx)
     theta, centre_u = _current_centre(sctx, variables, theta)
     failure, probes, source, repairs = None, 0, "centre", ()
-    if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(expand_ties(sctx.domain.ties, theta).items())))):
+    if any(r.c <= 0 for r in cone_rows(sctx.dc.schema, tuple(sorted(_expanded(sctx, theta).items())))):
         start_status = "centre_outside_cone"
         first = None
     else:

@@ -35,11 +35,12 @@
   에서 Gauss-Seidel 이 멈추거나(측정한 q 로 K_max 안 도달 불가) 수렴 판정 뒤 strict 검증에 실패하면 같은 시작값에서 SCC 잔차
   r = V − g(V) 에 감쇠 Newton(`scc_newton.newton_solve`, 야코비안 = LUT 미분, LU, 역추적 선 탐색, 상한 K_max). `SccLog` 에
   `method`·`fallback` 필드(기본값이 있어 기존 생성 호출과 호환). 5.4·5.5b·10.4절, 12절 O10·O11 닫음.
-- **개정 r11(2026-10-08, 사용자 결정 '정준 라벨링 + 대칭 변수 묶음')**: `[r11]`. 요지 -- 색 정제를 helper `_helpers_colour.py` 로 빼고(그래프 구성은 `struct_colour` 안 `_colour_graph`), 정준 라벨링·자기동형 궤도를
-  `struct_canon.py`(`canonical_labeling`)로 신설해 `dc_struct_colour` 가 쓴다(extras = 선언 표시). **`dc_colour` = 1-WL 색 안을 정준 위치로 구분한 순위 -- 정점마다 유일해
-  이름이 순서를 정하는 자리가 사라진다**(종래 (색, 이름) 키의 이름은 도달하지 않는다). 새 필드 `node.dc_orbit`·`device.dc_orbit`. 이름 키가 남았던 자리도 색 키로:
-  `scc_order`(deps 정렬), `block_columns`(writer 소자·SCC 소자 정렬, 기둥 시작값 합산의 방향·순서). 소비자는
-  search(θ 묶음, 정준 순서, 3.23~3.25)·metrics(합산·행렬 순서). 3.0b.
+- **개정 r11(2026-10-08, 사용자 결정 '정준 라벨링 + 대칭 변수 묶음' + 'U2: 대칭 묶음 방식 b')**: `[r11]`. 요지 -- 정준 라벨링·자기동형은 **graph**(`canonical_form`·
+  `automorphism_orbits`, graph CONTRACT 4.7)가 계산하고, `dc_struct_colour` 는 그 결과로 `dc_colour`·`dc_orbit`·`graph.dc_symmetry` 를 쓴다(extras = 선언 표시 둘, 3.0b).
+  **`dc_colour` = 1-WL 색 안을 정준 위치로 구분한 순위 -- 정점마다 유일해 이름이 순서를 정하는 자리가 사라진다**(종래 (색, 이름) 키의 이름은 도달하지 않는다).
+  **2단자 수동소자는 방향 없는 엣지**다(저항 끝 방향은 색에 들어가지 않는다 -- 방향 보존 자기동형 때문에 9회로 모두 묶음이 비던 결함을 고친다). 이름 키가 남았던
+  자리도 색 키로: `scc_order`(deps 정렬), `block_columns`(writer 소자·SCC 소자 정렬, 기둥 시작값 합산의 방향·순서). 소비자는 search(θ 묶음, 정준 순서, 3.23~3.25)·
+  metrics(합산·행렬 순서).
 - **개정 r7(2026-10-08, 오케스트레이터 결정 -- 수렴 판정 = 노드전압 오차 상계)**: `[r7]`. Gauss-Seidel 은 Δk ≤ tol 에 사후 상계
   q/(1−q)·Δk ≤ tol 을 더한다(둘 다; q < 1, k ≥ 3; q ≥ 1 이면 받지 않음, Δk = 0 은 받음), Newton 은 ‖r‖∞ ≤ tol 에 더해 온전한 걸음 ‖Δ‖∞ ≤ tol.
   새 상수 없음(tol = 기존 노드 허용오차). 2절 SccLog 필드 목록 정정. 5.5·5.5b·10.5절.
@@ -62,9 +63,7 @@
 | 0 | `k_max.py` | `k_max` | -- |
 | 0 | `bracket_root.py` [r9] | `bracket_root` | -- |
 | 1 | `pre_layout_widths.py` [r2] | `pre_layout_lut_access` | -- |
-| 1 | `_helpers_colour.py` [r11] | helper: `refine_colours` | -- |
 | 1 | `struct_colour.py` [r2] | `dc_struct_colour` | `dc_struct_colour` |
-| 2 | `struct_canon.py` [r11] | `canonical_labeling` | -- |
 | 1 | `_helpers_lut.py` | helper: `terminal_voltages`·`w_key_of`·`with_device`·`forward_point`·`tol_v_cell` | -- |
 | 1 | `_helpers_seal.py` | helper: `judge`·`node_values` | -- |
 | 1 | `dc_inputs.py` | `dc_inputs_from_spec` | -- |
@@ -238,31 +237,35 @@ device.dc_colour.
   남은 동률 깨기뿐이라). 1-WL 은 완전하지 않아(정규 그래프류) 같은 색이 자기동형이 아닐 수 있다 -- 그래서 이름이 실제로 결정을
   가른 경우는 전부 `TieBreak` 로 기록한다(3절·4.2절). 기록이 없는 결정은 이름과 무관하다.
 
-## 3.0b [r11] 정준 라벨링·자기동형 궤도 (`dc_struct_colour` 의 두 번째 산출, 3.0 의 확장)
+## 3.0b [r11] 정준 라벨링·자기동형 궤도 (`dc_struct_colour` 의 확장 산출, 3.0 위에)
 
-`dc_struct_colour(snapshot, element_marks, node_marks)`: reads 3.0 과 같다, extras = 선언 표시 둘; writes node.dc_colour, device.dc_colour, **node.dc_orbit,
-device.dc_orbit**. 3.0 의 그래프·1-WL 정제는 그대로(`_colour_graph`·`refine_colours`) -- 선언 표시 없는 1-WL 색 `wl` 이 서로 다른 색 사이의 순서를 정한다.
-- 표시(호출자 `build_kernel_context` 가 DcInputs·`dc_rails` 에서 만든다): 노드 = 레일 전위(`rail_v`), 노드 목표(`target_v`), 입력 DC(`input_dc_v`, 입력 포트 노드);
-  원소 = 값 선언(`value`), engine 값(`engine`), 선형 영역 소자(`linear`). 값이 다르게 선언된 두 원소는 같은 궤도가 아니다. 표시를 더하면 궤도가 더 쪼개질 뿐이다.
-- 정준 라벨링(`struct_canon.canonical_labeling`, nauty 식 individualization-refinement): 표시를 넣은 그래프의 평형 분할에서 색 순위가 가장 앞선 비단일 칸을 대상 칸으로,
-  칸의 정점을 하나씩 개별화한 뒤 `refine_colours` 로 다시 정제한다. 이산 분할(잎)의 위치 함수로 그래프를 다시 쓴 증명서 cert 가 최소인 잎이 정준 라벨링(위치
-  0..n−1). 같은 cert 의 두 잎 = 자기동형(두 잎의 위치 대응) -- 마디마다 지역 union-find 로 (a) 같은 궤도 자식 건너뛰기 (b) 최저 공통 선조 마디 아래로 가지치기. 뿌리
-  union-find = 전체 궤도. 탐색 순서(칸 안 정점 순서)는 이름을 보지만 최소 cert·궤도는 이름과 무관하다.
-- **`dc_colour`** = (`wl`, 정준 위치) 쌍의 정렬 순위 → 노드 안에서도 원소 안에서도 값이 유일하다(정점마다 다른 정수). 1-WL 색이 다른 정점 사이의 순서는 종래와 같다
-  (색이 이미 유일한 회로에서는 정수 값도 종래와 같다). 따라서 3.0 의 "동률 → 이름" 은 도달하지 않는다 -- 같은 1-WL 색 안(자기동형 궤도 포함)은 정준 위치가 정한다:
-  한 정준 라벨링의 위치는 자기동형 γ 만큼의 선택 여지가 있지만 정준 그래프(위치로 다시 쓴 그래프)는 이름 치환·원소 순서에 불변이라, 위치만 읽는 계산은 같은 정준 그래프에 같은 계산을
-  한 것이다. 선언을 보존하는 자기동형으로 대응하는 정점만 서로 바뀐다. TieBreak 는 더 이상 이름이 결정한 경우가 아니라(`dc_tie_breaks` 가 비는 것이 정상) 호환 필드다.
-- **`dc_orbit`** = 궤도 구성원의 정준 위치 최솟값 -- 같은 궤도 ⇔ 같은 값; 이름 전단사·원소 순서 섞기에 값이 불변(이름 → 값 사상이 전단사로 옮겨짐).
-- **저항 끝 방향**: 직류 전류가 흐르는 저항(가지치기되지 않은 DC 원소)의 전류 부호는 t0 → t1(종래 규약 그대로, `current_basis._ends`·`block_columns.drop`)이므로 정준 라벨링의 그래프는
-  그 저항의 두 끝을 단자 이름순 라벨로 구별한다 -- 자기동형이 끝 방향을 보존한다. 따라서 끝을 뒤집어 그린 저항(예: `current_reuse_telescopic_ota` 의 R1(Vom→Voc)·R2(Voc→Vop))이
-  있는 회로는 그 저항을 지나는 거울 대칭이 자기동형이 아니다(같은 대칭 동작에서 두 저항 전류가 부호 반대 값이라 θ 를 같은 값으로 묶으면 틀리다). 가지치기된 저항·커패시터는 방향 없음.
-- 이름 키를 색 키로 바꾼 자리(r11): `dc_scc_order` 의 deps 정렬(계획 순서 키), `dc_columns` 의 writer 소자·SCC 소자 정렬(구조 색)과 `start` 의 기둥 합산(출발 레일 = 색이 작은 쪽, 이웃 정렬은 색).
-  S1 기둥 데이터(`dc_column_nbrs` 의 레일 이름순 방향)와 `devices` 이름순 계약은 그대로다.
-- 성질(test 가 확인할 것): (1) 이름 전단사·원소 순서에 `dc_orbit`·(색 순서로 정렬한 정점 열의 (class, kind, 이웃 구조))가 불변; (2) 손으로 쓴 그래프에서 기지의 궤도:
-  대칭 쌍(차동쌍 완전 대칭 회로) = 같은 궤도, 단일 종단 OTA 의 쌍 = 서로 다른 궤도; 순환 대칭 그래프(링 n 개)는 한 궤도; 1-WL 색이 같아도 비자기동형이면 다른 궤도(C6 ⊔ 2×C3);
-  (3) 궤도 ⊆ 1-WL 색 클래스; (4) 다르게 선언된(값·레일 전위) 두 원소는 다른 궤도; (5) `dc_colour` 가 노드끼리·원소끼리 서로 다르다; (6) 같은 입력 → 같은 출력(결정론);
-  (7) 이름 치환 σ 에 대해 두 사례의 정점을 `dc_colour` 같은 것끼리 짝지은 대응 τ 아래에서 `dc_writer`(order·relation·known·element)·`dc_scc_order`·`dc_column_nbrs`·`dc_coord`
-  가 같다(σ 아래서가 아니라 τ 아래서 -- 궤도 구성원이 서로 바뀔 수 있다); (8) 같은 입력에서 정준 라벨링이 비트 단위로 같다.
+`dc_struct_colour(snapshot, element_marks, node_marks)`:
+- **reads** 3.0 과 같다(`device.{element_class, kind, is_diode, pins, bulk}`, `node.{is_rail, port_direction}` -- 추가 읽기 없음).
+- **writes** `node.dc_colour`, `device.dc_colour`, `node.dc_orbit`, `device.dc_orbit`, `graph.dc_symmetry`(key `DC_KEY`).
+- **extras 둘 = 선언 표시**(호출자 `build_kernel_context` 가 `DcInputs`·`dc_rails` 에서 만든다). 형식: `element_marks`·`node_marks` = `((이름, ((표시 이름, float), ...)), ...)`,
+  이름순 바깥 tuple, 안쪽 쌍은 표시 이름순, 모두 불변 값(`require_immutable`). 표시 이름 어휘:
+  * 노드 표시: `rail_v`(레일 전위 V -- `node.dc_rail_v`), `target_v`(W3 노드 목표 전압 V), `input_dc_v`(입력 포트 노드의 입력 DC 공통 전압 V).
+  * 원소 표시: `value`(spec 값 mode `value` 의 선언 값 -- 단위는 그 원소 kind 의 SI), `engine`(값 mode `engine`, 값 0.0), `linear`(선형 영역 소자, 값 0.0).
+  표시가 없는 이름은 목록에 없다(빈 표시). 값이 다르게 선언된 두 원소·전위가 다른 두 넷은 같은 궤도가 아니다. 표시는 처음 색에만 들어가고 `dc_colour` 의 서로 다른 1-WL 색
+  사이 순서(아래)에는 영향이 없다.
+- **계산**: graph `canonical_form(projection, element_marks, node_marks)`(graph CONTRACT 4.7)가 1-WL 색 `wl`·정준 위치 `position`·자기동형 생성자를 돌려준다(2단자 수동소자
+  무향). `automorphism_orbits` 가 정점 궤도를 만든다.
+- **`dc_colour`** = (`wl`, `position`) 쌍의 정렬 순위 → 노드 안에서도 원소 안에서도 값이 유일하다. 1-WL 색이 다른 정점 사이의 순서는 종래와 같다(색이 이미 유일한 회로에서는
+  정수 값도 종래와 같다). 3.0 의 "동률 → 이름" 은 도달하지 않는다: 같은 1-WL 색 안(자기동형 궤도 포함)은 정준 위치가 정한다. 정준 위치는 자기동형 γ 만큼의 선택 여지가 있지만
+  정준 그래프(위치로 다시 쓴 그래프)는 이름 치환·원소 순서에 불변이라, 위치만 읽는 계산은 같은 정준 그래프에 같은 계산을 한 것이다. `dc_tie_breaks` 는 호환 필드로 남고
+  (이름이 결정한 경우가 없어 비는 것이 정상) 새 TieBreak 를 만들지 않는다.
+- **`dc_orbit`** = 궤도 구성원의 정준 위치 최솟값(같은 궤도 ⇔ 같은 값, 이름 치환·순서 섞기에 불변).
+- **`graph.dc_symmetry`** = 자기동형 생성자 tuple: 각 생성자는 움직인 정점만 `((정점, 상), ...)`(정점 키 = `("n", 넷)` | `("e", 원소)`). search `current_symmetry` 가 θ 전류 부호 묶음을
+  만드는 근거다.
+- **2단자 수동소자(저항·커패시터)는 방향 없는 엣지**(사용자 결정 2026-10-08 '대칭 묶음 방식: b'). 전류 부호 규약은 종래 그대로(`current_basis._ends`: 단자 이름 순서 첫 단자 → 둘째,
+  `block_columns.drop` 도 같음). 자기동형이 단자 순서를 뒤집어 대응하면 그 가지 전류는 부호 −1 로 대응한다(search CONTRACT 3.24 `current_symmetry`). 이상 전류원은 단자 라벨이
+  방향이라 보존. library topology 의 단자 순서는 바꾸지 않는다.
+- 이름 키를 색 키로 바꾼 자리(r11): `dc_scc_order` 의 deps 정렬(계획 순서 키), `dc_columns` 의 writer 소자·SCC 소자 정렬(구조 색)과 `start` 의 기둥 합산(출발 레일 = 색이 작은 쪽,
+  이웃 정렬은 색). S1 기둥 데이터(`dc_column_nbrs` 의 레일 이름순 방향)와 `devices` 이름순 계약은 그대로다.
+- 성질(test 가 확인할 것): (1) 이름 전단사·원소 순서에 `dc_orbit` 불변; (2) 손으로 쓴 그래프에서 기지의 궤도: 대칭 쌍(차동쌍 완전 대칭 회로) = 같은 궤도, 단일 종단 OTA 의 쌍 = 서로 다른
+  궤도; 저항 terminals 순서를 뒤집어 그려도 궤도 분할이 같다; 1-WL 색이 같아도 비자기동형이면 다른 궤도; (3) 궤도 ⊆ 1-WL 색 클래스; (4) 다르게 선언된(값·레일 전위) 두 원소는 다른 궤도;
+  (5) `dc_colour` 가 노드끼리·원소끼리 서로 다르다; (6) 같은 입력 → 같은 출력(결정론); (7) 이름 치환 σ 에 대해 두 사례의 정점을 `dc_colour` 같은 것끼리 짝지은 대응 τ 아래에서
+  `dc_writer`(order·relation·known·element)·`dc_scc_order`·`dc_column_nbrs`·`dc_coord` 가 같다(σ 아래서가 아니라 τ 아래서 -- 궤도 구성원이 서로 바뀔 수 있다).
 
 ## 3. 쓰기 계획 `dc_writer_plan(snapshot, target_nets, input_dc_declared)` (θ 무관)
 

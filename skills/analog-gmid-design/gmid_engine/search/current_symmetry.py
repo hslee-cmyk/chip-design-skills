@@ -10,7 +10,8 @@
 * 연립의 행 중 **독립 θ 전류 하나에 대한 `x_p = ±x_q` (q 는 소거되지 않는 변수)** 는 부호 묶음(대표 q = 구조 색 작은 쪽), **`x_p = 0`** 은 구조적 0(대칭 점에서
   이 가지 전류는 KCL·대칭이 0 으로 정한다 -- 예: 파일럿의 CMFB 감지 저항 R1/R2 는 Voc 가 게이트만 구동해 직렬이므로 I = 0)이다. 그 밖(항이 둘 이상이거나 상수가
   남는 행)은 묶지 않는다(탐색 공간이 넓어질 뿐 정확하다). 구조적 0 은 θ 전류 성분을 값 0 으로 고정한다(탐색 변수가 아니다).
-* `untied` = spec `search.untie_orbits` 원소 이름: 그 원소의 궤도에 걸치는 연립 행은 만들지 않는다. 원소가 없으면 `SchemaRejectedError`(gate `search_domain`, reason
+* `untied` = spec `search.untie_orbits` 원소 이름: 그 원소의 궤도에 속한 원소가 소거 변수이거나 대표인 관계는 받지 않는다(연립은 그대로 풀되 결과 관계를 거른다 -- 다른 원소의
+  대칭이 KCL 로 만드는 관계도 그 궤도 변수에는 걸지 않는다). 원소가 없으면 `SchemaRejectedError`(gate `search_domain`, reason
   `untie_element_unknown`), 궤도가 그 원소 하나뿐이면 `untie_orbit_trivial`.
 * 반환: `ties` = ((대표 성분, (묶인 성분, ...)), ...)(성분 = ("current", 원소)), `negated` = 부호 −1 로 묶인 성분 tuple, `zeros` = 구조적 0 성분 tuple.
   이름을 읽지 않는다(원소 이름은 키로만 쓰이고 순서는 구조 색).
@@ -105,8 +106,6 @@ def current_symmetry(dc_ctx, untied):
                     sign = -1
             if image == element and sign == 1:
                 continue
-            if orbit[element] in free_orbits or orbit[image] in free_orbits:
-                continue
             row = [Fraction(0)] * (width + 1)
             for source, coeff in forms[image].items():
                 if source in column:
@@ -130,6 +129,9 @@ def current_symmetry(dc_ctx, untied):
         if row[width] != 0 or len(rest) > 1:
             continue
         member = (THETA_CURRENT, variables[p])
+        touched = [variables[p]] + [variables[c] for c, _v in rest]
+        if any(orbit[name] in free_orbits for name in touched):      # 묶음을 푼 궤도의 원소에 걸치는 관계는 받지 않는다
+            continue
         if not rest:
             zeros.append(member)
             continue
