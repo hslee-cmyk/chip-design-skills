@@ -1216,3 +1216,121 @@ def closed_ring_poles():
 def pm_undefined(la_or_result):
     """LoopAnalysis·MetricResult 의 undefined 중 quantity == "phase_margin_deg" 인 것(순서 유지)."""
     return tuple(u for u in (la_or_result.undefined or ()) if u.quantity == "phase_margin_deg")
+
+
+# =====================================================================================================================
+# [CM 2026-10-08] 예 7d·7e -- 섞인 절단(n 용량 전용 gate, x 전도), 공통 모드 루프 모양 (CONTRACT 5절 예 7d·7e, 3.17, I-18~I-20)
+# 기대값 = 아래 폐형식(되돌림 비, test 작성자 손유도 -- 엔진 출력 아님):
+#   gate 쪽 노드(Cg 만, 열림)를 시험 전압 1 로 두면 drain 노드 KCL: (gds + sCL)·v_d + sCg/(1 + sRCg)·v_d = −gm,
+#   gate 로 돌아오는 전압 v_g = v_d/(1 + sRCg) -> T(s) = gm / ((gds + sCL)(1 + sRCg) + sCg)
+#   = gm / (gds + s(CL + Cg + gds·R·Cg) + s²·CL·R·Cg). 예 7e 는 공통 모드(v2 = v12)에서 감지 노드가 두 R 병렬(R/2)·두 Cg
+#   병렬(2Cg)이라 v20 = v/(1 + sRCg), 반회로마다 같은 식 -> 같은 T(s).
+# =====================================================================================================================
+
+EX7D = dict(gm=1e-3, gds=1e-5, cg=1e-12, cl=1e-12, rf=1e5)
+EX7D_CUT = (("resistor", 0, "b"),)                       # Rf(2, 3) 의 b 단자(노드 3 = gate 쪽) -> x = 4
+EX7E_CUTS = (("resistor", 0, "b"), ("resistor", 1, "a"))   # R(2, 20)·R(20, 12) 의 노드 20 쪽 단자 -> 같은 x = 21
+
+
+def ex7d_circuit(nm=None):
+    """예 7d: MosSmallSignal(d=2, g=3, s=0, b=0, gm, 0, gds, cgs=Cg), Resistor(2, 3, Rf), Capacitor(2, 0, CL), ac_ground (0,)."""
+    m = mapper(nm)
+    p = EX7D
+    return SmallSignalCircuit(
+        mos=(MosSmallSignal(m(2), m(3), m(0), m(0), p["gm"], 0.0, p["gds"], cgs=p["cg"]),),
+        resistors=(Resistor(m(2), m(3), p["rf"]),),
+        capacitors=(Capacitor(m(2), m(0), p["cl"]),),
+        ac_ground=(m(0),))
+
+
+def ex7e_circuit(nm=None):
+    """예 7e: 두 반회로 MOS(d=2, g=20)·MOS(d=12, g=20) (각 cgs = Cg), Resistor(2, 20)·Resistor(20, 12), Capacitor(2, 0)·
+    Capacitor(12, 0), ac_ground (0,)."""
+    m = mapper(nm)
+    p = EX7D
+    return SmallSignalCircuit(
+        mos=(MosSmallSignal(m(2), m(20), m(0), m(0), p["gm"], 0.0, p["gds"], cgs=p["cg"]),
+             MosSmallSignal(m(12), m(20), m(0), m(0), p["gm"], 0.0, p["gds"], cgs=p["cg"])),
+        resistors=(Resistor(m(2), m(20), p["rf"]), Resistor(m(20), m(12), p["rf"])),
+        capacitors=(Capacitor(m(2), m(0), p["cl"]), Capacitor(m(12), m(0), p["cl"])),
+        ac_ground=(m(0),))
+
+
+def ex7d_ref_parts():
+    """독립 Middlebrook(ref_middlebrook, MOS 7칸 -- 용량 없음)용 예 7d: gate–source(접지) 용량 cgs 를 같은 노드 쌍의 명시 C 로."""
+    p = EX7D
+    return (((2, 3, 0, 0, p["gm"], 0.0, p["gds"]),), ((2, 3, p["rf"]),), ((2, 0, p["cl"]), (3, 0, p["cg"])))
+
+
+def ex7e_ref_parts():
+    p = EX7D
+    return (((2, 20, 0, 0, p["gm"], 0.0, p["gds"]), (12, 20, 0, 0, p["gm"], 0.0, p["gds"])),
+            ((2, 20, p["rf"]), (20, 12, p["rf"])),
+            ((2, 0, p["cl"]), (12, 0, p["cl"]), (20, 0, p["cg"]), (20, 0, p["cg"])))
+
+
+def closed_ex7d(p=None):
+    """예 7d·7e 폐형식. 반환 dict(t(ω), t0, a=(a0, a1, a2) 분모 계수, poles(실수 2개, 오름차순), ugf_hz, pm_deg, gain_db).
+    UGF: |a0 − a2ω² + j·a1ω| = gm -> u = ω² 의 2차식 a2²u² + (a1² − 2a0a2)u + (a0² − gm²) = 0 의 양근.
+    PM = 180° + arg T(jω_u) = 180° − arg(분모)."""
+    p = dict(EX7D if p is None else p)
+    gm = p["gm"]
+    a0 = p["gds"]
+    a1 = p["cl"] + p["cg"] + p["gds"] * p["rf"] * p["cg"]
+    a2 = p["cl"] * p["rf"] * p["cg"]
+
+    def t(w):
+        s = 1j * w
+        return gm / ((p["gds"] + s * p["cl"]) * (1.0 + s * p["rf"] * p["cg"]) + s * p["cg"])
+
+    A, B, C = a2 * a2, a1 * a1 - 2.0 * a0 * a2, a0 * a0 - gm * gm
+    u = (-B + math.sqrt(B * B - 4.0 * A * C)) / (2.0 * A)
+    wu = math.sqrt(u)
+    pm = 180.0 - math.degrees(math.atan2(a1 * wu, a0 - a2 * u))
+    disc = math.sqrt(a1 * a1 - 4.0 * a2 * a0)
+    poles = sorted(((-a1 - disc) / (2.0 * a2), (-a1 + disc) / (2.0 * a2)))
+    return dict(t=t, t0=gm / a0, a=(a0, a1, a2), poles=tuple(poles), ugf_hz=wu / TWO_PI, pm_deg=pm,
+                gain_db=20.0 * math.log10(gm / a0), wu=wu)
+
+
+def closed_ex7c():
+    """예 7c 폐형식(계약 5절 예 7c, 손유도로 재확인): Cf 를 x 로 뗀 뒤 gm 시험 전압 1 -> drain 노드 임피던스
+    Z2 = 1/(gds + sCL + sCf/(1 + sCfRs)), gate 로 돌아오는 전압 = v_d·sRsCf/(1 + sRsCf) -> T = gm·Z2·sRsCf/(1 + sRsCf).
+    T(0) = 0(분자에 s), 대역 통과."""
+    p = EX7
+
+    def t(w):
+        s = 1j * w
+        z2 = 1.0 / (p["gds"] + s * p["cl"] + s * p["cf"] / (1.0 + s * p["cf"] * p["rs"]))
+        return p["gm"] * z2 * s * p["rs"] * p["cf"] / (1.0 + s * p["rs"] * p["cf"])
+
+    return dict(t=t, t0=0.0)
+
+
+def probe_cut(circuit, cuts, weights=(1.0,), extra=()):
+    """SmallSignalCircuit -> (CutCircuit, 절단 계, ProbeFactor, extra 응답). 절단 계 + extra 계를 한 번의 solve_responses 로."""
+    from gmid_engine.metrics import LoopCut, cut_circuit, probe_factor, solve_responses
+    cut = cut_circuit(circuit, tuple(LoopCut(k, i, t) for k, i, t in cuts))
+    sysm = build_mna(cut.circuit, cut.excitations, cut.senses)
+    rs = solve_responses((sysm,) + tuple(extra))
+    return cut, sysm, probe_factor(rs[0], cut.pairs, weights), rs[1:]
+
+
+def i20_cases():
+    """I-20 기준선 대상(이름 -> (SmallSignalCircuit, cuts, weights)). 기준선 파일 fixtures/i20_probe_samples_base.json 은 이
+    함수를 변경 전 엔진(merge-base 3a38275, 섞인 절단 T(0) 도입 직전)에서 돌려 만들었다(oracle (c) 기준선 -- 아래 파일 머리 참조).
+    섞이지 않은 절단(ex7 용량 전용, ex7b DM·CM, resistive 전도 전용)과 섞인 절단(ex7c, ex7d, ex7e)."""
+    p = EX7
+    resistive = (((2, 3, 0, 0, p["gm"], 0.0, p["gds"]),), ((2, 3, 3e4), (3, 0, 1e4)), ((2, 0, p["cl"]),))
+    return {
+        "ex7": (circuit_of(*ex7_parts()), EX7_CUT, (1.0,)),
+        "ex7b_dm": (circuit_of(*ex7b_parts()), EX7B_CUTS, (0.5, -0.5)),
+        "ex7b_cm": (circuit_of(*ex7b_parts()), EX7B_CUTS, (0.5, 0.5)),
+        "resistive": (circuit_of(*resistive), (("resistor", 0, "b"),), (1.0,)),
+        "ex7c": (circuit_of(*ex7_parts(cs_resistor=True)), EX7_CUT, (1.0,)),
+        "ex7d": (ex7d_circuit(), EX7D_CUT, (1.0,)),
+        "ex7e": (ex7e_circuit(), EX7E_CUTS, (1.0,)),
+    }
+
+
+I20_MIXED = ("ex7c", "ex7d", "ex7e")        # 섞인 절단(n 과 x 중 하나만 용량 전용) -- ω = 0 한 점이 NaN -> 값

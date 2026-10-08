@@ -21,6 +21,7 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
     "ugf_ss_hz": M("hz", "ss", "transfer"),
     "gbw_ss_hz": M("hz", "ss", "transfer"),
     "pm_ss_deg": M("deg", "ss", "loop"),
+    "pm_cm_ss_deg": M("deg", "ss", "cm_loop"),  # [CM 2026-10-08] SPEC_CONTRACT 5절 픽스처 이름표 갱신
     "parasitic_pm_ss_deg": M("deg", "ss", "transfer"),
     "rout_ss_ohm": M("ohm", "ss", "output_port"),
     "ratio_ss_db": M("db", "ss", "ratio"),
@@ -36,7 +37,9 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 # 각각 1 pF", 커밋 0bc22fe) 뒤 JSON 표지 직접 집계 13(= 5절 표 15 - SP-10 2).
 TABLE = {
     "common_gate_amplifier": (0, 0, 6),
-    "current_reuse_telescopic_ota": (8, 5, 13),
+    # [CM 2026-10-08] 5절 표 그대로 9(6) / 11: pm_cm_ss_deg >= 60 user_spec 1건 추가, pending 13 -> 11 = CI-10 해소(feedback {Cf1, Cf2},
+    # 사용자 2026-10-08 "5번은 네 의견에 동의해", 커밋 3a38275) + pm_ss_deg 의 view MOD5 표지 삭제(loop 뷰 유도) -- JSON 직접 집계와 같음.
+    "current_reuse_telescopic_ota": (9, 6, 11),
     "folded_cascode": (0, 0, 7),
     "ngcc_3stage_ff": (3, 2, 7),
     "nmcnr_amplifier": (2, 2, 6),
@@ -46,8 +49,9 @@ TABLE = {
     "two_stage_ota_sf": (3, 2, 6),
 }
 # 5절 ID 합계에서 SP-10 2 가 빠진다(SP-10 해소, 위 TABLE 주석) -- 합계 65 -> 63, JSON 직접 집계와 같음.
-ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 7, "SP-3": 2,
-             "CI-10": 1, "CI-17": 1}
+# [CM 2026-10-08] 파일럿 CI-10 1 해소·MOD5 1 감소(위 TABLE 주석) -> 63 - 2 = 61.
+ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 6, "SP-3": 2,
+             "CI-17": 1}
 PILOT = "current_reuse_telescopic_ota"
 SP10_ELEMENTS = ("CL1", "CL2")
 SP10_FARAD = 1e-12  # 사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF"
@@ -134,7 +138,7 @@ def test_pending_id_totals():
     doc_total = Counter(p.decision for name in TABLE for p in _load(name).pending)
     assert json_total == doc_total
     assert dict(json_total) == ID_TOTALS
-    assert sum(ID_TOTALS.values()) == 63
+    assert sum(ID_TOTALS.values()) == 61
 
 
 def test_sp10_resolved_pilot_load_caps():
@@ -171,3 +175,21 @@ def test_every_spec_meta_fp_matches_topology():
     for name in TABLE:
         topo = load_topology(str(LIBRARY / (name + ".topology.json")))
         assert _spec(name)["meta"]["topology_fp"] == topo.connectivity_fp, name
+
+
+def test_cm_pm_constraint_only_in_pilot():
+    """[CM 2026-10-08] 사용자 결정(user_decisions.md 2026-10-08 "6번도 네 의견에 동의하고 제안한 값을 사용해" -- CMFB 루프 PM 하한
+    60 deg, 완전 차동 회로에만): 파일럿에 pm_cm_ss_deg >= 60(user_spec, 판정) 한 건, 나머지 8회로에는 없다(JSON 직접 집계 + 로드)."""
+    for name in TABLE:
+        raw = [c for c in _spec(name)["human"]["constraints"] if c.get("metric") == "pm_cm_ss_deg"]
+        got = [c for c in _load(name).constraints if c.metric == "pm_cm_ss_deg"]
+        if name != PILOT:
+            assert raw == [] and got == [], name
+            continue
+        assert len(raw) == 1 and len(got) == 1
+        assert (raw[0]["op"], raw[0]["value"], raw[0]["source"]["kind"]) == (">=", 60, "user_spec")
+        assert "view" not in raw[0]                                    # 3절: view 를 적지 않는다
+        c = got[0]
+        assert (c.op, c.value, c.judged) == (">=", 60.0, True)
+        assert c.view is not None and c.view.mode != "pending"          # 유도 뷰(모양은 유도 규칙 몫 -- 여기서 고정하지 않음)
+

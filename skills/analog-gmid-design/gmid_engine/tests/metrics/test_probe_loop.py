@@ -1,13 +1,17 @@
-"""CONTRACT 3.17·3.10·I-12~I-16·예 7/7b/7c: probe_factor -- 절단 회로 계 하나의 응답에서 Middlebrook 이중 주입
+"""CONTRACT 3.17·3.10·I-12~I-16·[CM] I-18·I-20·예 7/7b/7c/7d/7e: probe_factor -- 절단 회로 계 하나의 응답에서 Middlebrook 이중 주입
 T = (Tv·Ti − 1)/(Tv + Ti + 2) 를 격자 위 samples·T 극점/영점·정의 불가 값으로 낸다.
 
 기대값 출처(피검 함수 아님):
 - 폐형식 되돌림 비(conftest `closed_ex7`·`closed_ex7b`, 이 파일 `_rr_resistive`).
 - test 쪽 독립 Middlebrook 구현(conftest `ref_middlebrook`: 절단 회로를 직접 만들고 프로브 전압원·전류원을 MNA 에 넣어 두 실험).
 - 손계산(예 7c·특이 예).
+- [CM 2026-10-08] 예 7c·7d·7e 폐형식(conftest `closed_ex7c`·`closed_ex7d` -- test 작성자 손유도, 계약 숫자와 대조),
+  I-20 은 변경 전 엔진 기준선(oracle (c), fixtures/i20_probe_samples_base.json -- 생성 경위는 그 파일 머리).
 격자 위 원하는 ω 를 얻으려고 같은 solve_responses 에 RC 계(극점 = 원하는 ω)를 함께 넣는다(3.6 공유 격자 = 모든 계 근의 합집합).
 """
+import json
 import math
+from pathlib import Path
 
 import numpy as np
 import pytest
@@ -33,6 +37,18 @@ from gmid_engine.metrics import (
 from .conftest import (
     EX7,
     EX7_CUT,
+    EX7D,
+    EX7D_CUT,
+    EX7E_CUTS,
+    I20_MIXED,
+    closed_ex7c,
+    closed_ex7d,
+    ex7d_circuit,
+    ex7d_ref_parts,
+    ex7e_circuit,
+    ex7e_ref_parts,
+    i20_cases,
+    probe_cut,
     EX7B_CUTS,
     STAMP_FUNCS,
     TWO_PI,
@@ -294,22 +310,43 @@ def test_ex7b_matches_independent_middlebrook(weights):
 
 
 # =====================================================================================================================
-# 예 7c -- 섞인 절단(정의 불가 값, M7), 특이 프로브(loop_probe_singular), 예외 0 (I-10)
+# 예 7c -- 섞인 절단(n 전도, x 용량 전용), [CM 2026-10-08] T(0) = 0 (옛 기대 loop_cut_mixed_charge 는 계약 갱신으로 red),
+# 특이 프로브(loop_probe_singular), 예외 0 (I-10)
 # =====================================================================================================================
 
-def test_ex7c_mixed_charge_is_value_not_exception():
+def test_ex7c_mixed_cut_dc_is_zero_i18():
+    """I-18·예 7c: 섞인 절단의 T(0) 는 정의 불가가 아니라 값. 폐형식 T = gm·Z2·sRsCf/(1 + sRsCf) 의 분자에 s 가 있어
+    T(0) = 0(oracle (a) 손유도, conftest closed_ex7c) -- samples[0] = 0(부호 있는 0 포함), loop_cut_mixed_charge 가 나오면 FAIL.
+    analyze_loop: dc_value 0, gain_db 사유 dc_zero, phase_margin_deg None + dc_not_above_level(계약 예 7c), 예외 없음(I-10)."""
     _, pf, _ = _probe(ex7_parts(cs_resistor=True), EX7_CUT, (1.0,))
-    t = _samples(pf)
-    assert np.isnan(complex(t[0]).real) or np.isnan(complex(t[0]).imag)
-    assert "loop_cut_mixed_charge" in codes(pf.undefined)
-    assert all(u.category == "definitional" for u in pf.undefined if u.code == "loop_cut_mixed_charge")
-    assert np.all(np.isfinite(t[1:]))                         # ω > 0 은 전류 열로 정의된다
+    om, t = _omegas(pf), _samples(pf)
+    assert om[0] == 0.0
+    assert complex(t[0]) == 0j                                # -0.0 == 0.0
+    assert closed_ex7c()["t0"] == 0.0
+    assert "loop_cut_mixed_charge" not in codes(pf.undefined)
+    assert pf.undefined == ()
+    assert np.all(np.isfinite(t))
     la = analyze_loop((pf,))
-    r = metric_value("pm_ss_deg", la)
-    assert r.value is None
-    assert len(r.undefined) == 1
-    u = r.undefined[0]
-    assert (u.quantity, u.code, u.category) == ("phase_margin_deg", "loop_cut_mixed_charge", "definitional")
+    assert la.dc_value == 0.0
+    assert la.gain_db is None
+    assert [u.code for u in la.undefined if u.quantity == "gain_db"] == ["dc_zero"]
+    for name in ("pm_ss_deg", "pm_cm_ss_deg"):            # 같은 필드(3.15 표) -- 값 의존 정의 불가 규칙도 같다(7.11)
+        r = metric_value(name, la)
+        assert r.value is None
+        assert [(u.quantity, u.code, u.category) for u in r.undefined] == \
+            [("phase_margin_deg", "dc_not_above_level", "definitional")]
+
+
+def test_ex7c_positive_omega_matches_closed_form():
+    """예 7c ω > 0 표본 = 폐형식 되돌림 비(손유도, 상대 ≤ 1e-12 -- 예 7 의 METRIC_REL 과 같은 규모)."""
+    ref = closed_ex7c()
+    _, pf, _ = _probe(ex7_parts(cs_resistor=True), EX7_CUT, (1.0,), extra=tuple(_rc_pole(w) for w in FORCE_OMEGAS))
+    n = 0
+    for w, v in zip(_omegas(pf), _samples(pf)):
+        if w > 0:
+            assert _rel(complex(v), ref["t"](w)) <= 1e-12, w
+            n += 1
+    assert n >= len(FORCE_OMEGAS)
 
 
 def test_ex7c_positive_omega_matches_independent_middlebrook():
@@ -348,6 +385,151 @@ def test_undefined_paths_raise_nothing_i10():
         for name in ("gain_ss_db", "ugf_ss_hz", "gbw_ss_hz", "pm_ss_deg", "parasitic_pm_ss_deg"):
             r = metric_value(name, la)
             assert r.value is None and r.undefined
+
+
+# =====================================================================================================================
+# [CM 2026-10-08] 예 7d·7e -- 섞인 절단(n 용량 전용 gate, x 전도): I-18 (T(0) = gm/gds = 100, PM 폐형식)
+# 기대값: conftest closed_ex7d(손유도 T = gm/((gds + sCL)(1 + sRCg) + sCg), oracle (a)) + 독립 Middlebrook(ref_middlebrook, oracle (b)).
+# 허용오차: T(0) 는 I-18 '상대오차 ≤ 차원·eps' -> 이 파일의 I12_REL(차원·eps 규모 1e-14, 예 7 과 같은 규약), ω > 0 표본 ≤ 1e-12
+# (I-18 문장), PM 상대 ≤ 1e-9(I-18 문장). 이 test 들은 metrics 수치 핵심(cut_circuit·probe_factor)만 부르고 spec 뷰 유도 규칙과 무관하다.
+# =====================================================================================================================
+
+def _cm_cases():
+    return {"ex7d": (ex7d_circuit, EX7D_CUT, ((3, 4),), ex7d_ref_parts),
+            "ex7e": (ex7e_circuit, EX7E_CUTS, ((20, 21),), ex7e_ref_parts)}
+
+
+def test_ex7d_contract_numbers_equal_hand_closed_form():
+    """입력 확인(oracle 자기 확인): 손유도 폐형식이 계약 예 7d 의 숫자(T(0) 100, 40 dB, 극점 −3819660.1125·−26180339.8875,
+    UGF 15639047.2344 Hz, PM 17.1448910438°)를 낸다 -- 계약 숫자와 손유도가 서로 독립으로 맞는다."""
+    d = closed_ex7d()
+    assert d["t0"] == pytest.approx(100.0, rel=1e-15)
+    assert d["gain_db"] == pytest.approx(40.0, rel=1e-15)
+    assert d["poles"] == pytest.approx((-26180339.8875, -3819660.1125), rel=1e-11)
+    assert d["ugf_hz"] == pytest.approx(15639047.2344, rel=1e-11)
+    assert d["pm_deg"] == pytest.approx(17.1448910438, rel=1e-10)
+    assert abs(d["t"](d["wu"])) == pytest.approx(1.0, rel=1e-14)
+
+
+@pytest.mark.parametrize("name", ["ex7d", "ex7e"])
+def test_mixed_cut_gate_side_dc_value_i18(name):
+    """I-18: n = gate 쪽(용량 전용), x = 수동소자 쪽(전도) -- 섞인 절단의 samples[0] = gm/gds = 100(NaN 아님, 실수),
+    loop_cut_mixed_charge 없음. 예 7e 는 같은 노드 20 의 두 단자가 같은 x 로 -> pairs ((20, 21),) 하나(3.16)."""
+    build, cuts, pairs, _ = _cm_cases()[name]
+    cut, _, pf, _ = probe_cut(build(), cuts)
+    assert tuple(cut.pairs) == pairs == tuple(pf.pairs)
+    om, t = _omegas(pf), _samples(pf)
+    assert om[0] == 0.0
+    t0 = complex(t[0])
+    assert t0.imag == 0.0
+    assert _rel(t0, EX7D["gm"] / EX7D["gds"]) <= I12_REL, t0
+    assert "loop_cut_mixed_charge" not in codes(pf.undefined)
+    assert pf.undefined == ()
+
+
+@pytest.mark.parametrize("name", ["ex7d", "ex7e"])
+def test_mixed_cut_grid_samples_closed_form_i18(name):
+    """I-18: 격자 위 ω > 0 표본(강제점 1e3·1e6·1e8·1e9 포함)의 폐형식 상대오차 ≤ 1e-12."""
+    build, cuts, _, _ = _cm_cases()[name]
+    ref = closed_ex7d()
+    _, _, pf, _ = probe_cut(build(), cuts, extra=tuple(_rc_pole(w) for w in FORCE_OMEGAS))
+    om, t = _omegas(pf), _samples(pf)
+    for w0 in FORCE_OMEGAS:
+        assert np.min(np.abs(om - w0)) <= 1e-9 * w0
+    worst = max(_rel(complex(v), ref["t"](w)) for w, v in zip(om, t) if w > 0)
+    assert worst <= 1e-12, worst
+
+
+@pytest.mark.parametrize("name", ["ex7d", "ex7e"])
+def test_mixed_cut_matches_independent_middlebrook(name):
+    """test 쪽 독립 Middlebrook 이중 주입(cgs 를 같은 노드 쌍의 명시 C 로)과 ω > 0 격자 점마다 일치(≤ 1e-12), 그리고 독립 구현도
+    폐형식과 같다(되돌림 비 = Middlebrook, I-12 의 단일 제어 변수 루프)."""
+    build, cuts, pairs, ref_parts = _cm_cases()[name]
+    ref = closed_ex7d()
+    _, _, pf, _ = probe_cut(build(), cuts, extra=tuple(_rc_pole(w) for w in FORCE_OMEGAS))
+    mos, res, cap = ref_parts()
+    n = 0
+    for w, v in zip(_omegas(pf), _samples(pf)):
+        if w > 0:
+            mb = ref_middlebrook(mos, res, cap, cuts=cuts, weights=(1.0,), omega=w)
+            assert mb["pairs"] == pairs
+            assert _rel(complex(v), mb["T"]) <= 1e-12, w
+            assert _rel(mb["T"], ref["t"](w)) <= 1e-12, w
+            n += 1
+    assert n >= len(FORCE_OMEGAS)
+
+
+@pytest.mark.parametrize("name", ["ex7d", "ex7e"])
+def test_mixed_cut_analyze_loop_i18(name):
+    """I-18: analyze_loop 의 PM = 폐형식 17.1448910438°(상대 ≤ 1e-9), gain 40 dB, UGF 폐형식(같은 허용). pm_ss_deg·pm_cm_ss_deg
+    는 같은 필드(3.15 표)라 같은 값. 우반면 극점 없음(극점 = 폐형식 두 실근)."""
+    build, cuts, _, _ = _cm_cases()[name]
+    ref = closed_ex7d()
+    _, _, pf, _ = probe_cut(build(), cuts)
+    la = analyze_loop((pf,))
+    assert la.undefined == ()
+    assert la.dc_value == pytest.approx(ref["t0"], rel=I12_REL)
+    assert la.gain_db == pytest.approx(ref["gain_db"], rel=1e-12)
+    assert la.ugf_hz == pytest.approx(ref["ugf_hz"], rel=1e-9)
+    assert la.phase_margin_deg == pytest.approx(ref["pm_deg"], rel=1e-9)
+    assert la.phase_margin_deg == pytest.approx(17.1448910438, rel=1e-9)        # 계약 I-18 숫자
+    for m in ("pm_ss_deg", "pm_cm_ss_deg"):
+        r = metric_value(m, la)
+        assert r.value == la.phase_margin_deg and r.undefined == ()
+    assert all(complex(p).real <= 0.0 for p in pf.poles)
+    for p0 in ref["poles"]:
+        assert min(abs(complex(p) - p0) for p in pf.poles) <= 1e-9 * abs(p0), (p0, pf.poles)
+
+
+@pytest.mark.parametrize("name", ["ex7d", "ex7e"])
+def test_mixed_cut_poles_zeros_describe_t(name):
+    """3.17 근의 정밀도 규약: poles·zeros 로 재구성한 T = 폐형식(1e3~1e10 rad/s, 상쇄 쌍 허용 -- 예 7 test 와 같은 1e-8)."""
+    build, cuts, _, _ = _cm_cases()[name]
+    ref = closed_ex7d()
+    _, _, pf, _ = probe_cut(build(), cuts)
+    for om in np.geomspace(1e3, 1e10, 29):
+        assert _rel(_reconstruct(pf, ref["t0"], om), ref["t"](om)) <= 1e-8, (om, pf.poles, pf.zeros)
+
+
+@pytest.mark.parametrize("nm", [{0: 7, 2: 1, 3: 4}, {0: 0, 2: 30, 3: 2}], ids=["a", "b"])
+def test_ex7d_node_renumbering_invariant_i7(nm):
+    """I-7: 노드 번호만 바꾼 예 7d -- T(0)·PM 같음(재번호 뒤 x 는 최대 노드 + 1, 섞인 절단 극한도 번호 무관)."""
+    _, _, base, _ = probe_cut(ex7d_circuit(), EX7D_CUT)
+    cut, _, other, _ = probe_cut(ex7d_circuit(nm), EX7D_CUT)
+    assert tuple(cut.pairs) == ((nm[3], max(nm.values()) + 1),)
+    assert complex(_samples(other)[0]) == pytest.approx(complex(_samples(base)[0]), rel=1e-13)
+    assert analyze_loop((other,)).phase_margin_deg == pytest.approx(analyze_loop((base,)).phase_margin_deg, rel=1e-12)
+
+
+# ---------- I-20: 섞인 절단 극한은 ω > 0 표본에 영향이 없다 (변경 전 엔진 기준선, oracle (c)) ----------
+
+_I20_BASE = Path(__file__).resolve().parent / "fixtures" / "i20_probe_samples_base.json"
+
+
+def _hexc(v):
+    c = complex(v)
+    return [float(c.real).hex(), float(c.imag).hex()]
+
+
+@pytest.mark.parametrize("name", sorted(i20_cases()))
+def test_positive_omega_samples_bit_identical_to_base_i20(name):
+    """I-20: 같은 계의 격자(ω 전부)와 ω > 0 표본 T 가 변경 전 엔진(3a38275)과 비트 동일. ω = 0 한 점은 섞인 절단(ex7c·7d·7e)만
+    NaN(옛 loop_cut_mixed_charge) -> 유한 값으로 바뀌고, 섞이지 않은 절단은 그 점도 비트 동일."""
+    base = json.loads(_I20_BASE.read_text(encoding="utf-8"))
+    assert base["_commit"] == "3a38275"
+    b = base[name]
+    ck, cuts, w = i20_cases()[name]
+    _, _, pf, _ = probe_cut(ck, cuts, w)
+    assert [float(x).hex() for x in _omegas(pf)] == b["omegas"]
+    got = [_hexc(v) for v in _samples(pf)]
+    assert got[1:] == b["samples"][1:]
+    if name in I20_MIXED:
+        assert b["undefined_codes"] == ["loop_cut_mixed_charge"] and "nan" in b["samples"][0]   # 기준선 확인
+        assert np.isfinite(complex(_samples(pf)[0]))
+        assert "loop_cut_mixed_charge" not in codes(pf.undefined)
+    else:
+        assert got[0] == b["samples"][0]
+        assert b["undefined_codes"] == [] and pf.undefined == ()
 
 
 # =====================================================================================================================

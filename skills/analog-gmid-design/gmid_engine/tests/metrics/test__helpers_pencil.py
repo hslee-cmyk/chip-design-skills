@@ -57,3 +57,47 @@ def test_probe_factor_roots_finite_and_origin_exact():
     assert small == [], small                                          # 원점 근이 반올림 잡음으로 남지 않는다
     wp = closed_ex7()["wp"]
     assert min(abs(complex(p) + wp) for p in pf.poles) <= 1e-9 * wp
+
+
+# =====================================================================================================================
+# [CM 2026-10-08] I-19: probe_dc_value(system, pairs, weights) -- 증강 pencil 의 s = 0 값 T(0). 섞이지 않은 절단에서 열 선택 방식
+# T(0)(probe_factor samples[0])과 같다(상대 ≤ 차원·eps 규모 -> test_probe_loop 의 I12_REL 1e-14 와 같은 규약). 기대값: 폐형식 예 7
+# T(0) = 25, 저항 되먹임(전도 전용) T(0) = gm/(gds + 1/(Rf + Rs))·Rs/(Rf + Rs) = 50/7, 예 7d(섞인 절단) = gm/gds = 100.
+# (시그니처는 interface: inspect.signature 와 docstring 첫 단락 -- 소스 미열람.)
+# =====================================================================================================================
+
+from gmid_engine.metrics._helpers_pencil import probe_dc_value  # noqa: E402
+
+from .conftest import EX7, EX7D, EX7D_CUT, ex7d_circuit, probe_cut  # noqa: E402
+
+_I19_REL = 1e-14
+
+
+def _resistive_circuit():
+    p = EX7
+    return circuit_of(((2, 3, 0, 0, p["gm"], 0.0, p["gds"]),), ((2, 3, 3e4), (3, 0, 1e4)), ((2, 0, p["cl"]),))
+
+
+@pytest.mark.parametrize("case", ["ex7_charge_only", "resistive_conduction_only"])
+def test_probe_dc_value_equals_column_selection_i19(case):
+    p = EX7
+    if case == "ex7_charge_only":
+        ck, cuts, t0 = circuit_of(*ex7_parts()), EX7_CUT, closed_ex7()["t0"]
+    else:
+        ck, cuts = _resistive_circuit(), (("resistor", 0, "b"),)
+        t0 = p["gm"] / (p["gds"] + 1.0 / 4e4) * 1e4 / 4e4
+    cut, sysm, pf, _ = probe_cut(ck, cuts)
+    v = probe_dc_value(sysm, cut.pairs, (1.0,))
+    col = complex(pf.samples[0])
+    assert v is not None
+    assert abs(complex(v) - col) <= _I19_REL * abs(col), (v, col)
+    assert abs(complex(v) - t0) <= _I19_REL * abs(t0), (v, t0)
+
+
+def test_probe_dc_value_mixed_cut_i18():
+    """섞인 절단(예 7d)에서 probe_dc_value = gm/gds = 100 = probe_factor samples[0](3.17: 섞이면 이 값을 쓴다)."""
+    cut, sysm, pf, _ = probe_cut(ex7d_circuit(), EX7D_CUT)
+    v = complex(probe_dc_value(sysm, cut.pairs, (1.0,)))
+    assert abs(v - EX7D["gm"] / EX7D["gds"]) <= _I19_REL * 100.0
+    assert v == complex(pf.samples[0])
+

@@ -341,3 +341,51 @@ def test_pending_sense_view_accepted(sc):
     _rout(sc, {"pending": "MOD7"})
     v = _view(sc.load(), "rout_ss_ohm")
     assert v.mode == "pending" and v.decision == "MOD7"
+
+
+# =====================================================================================================================
+# [CM 2026-10-08] pm_cm_ss_deg(view_kind cm_loop) -- SPEC_CONTRACT 2절 view_not_applicable·view_shape_not_supported·view_required
+# 행(loop·cm_loop), 3절 cm_loop 'view 를 적지 않는다(결정 대기 표지만 허용)'. 감지 넷 구조 유도 규칙 자체는 여기서 확인하지 않는다
+# (오케스트레이터 2026-10-08: 유도 규칙이 차동 출력쌍 공통 모드 주입으로 바뀌는 중 -- 규칙과 무관한 거부 조건만).
+# 픽스처 fx_spec_amp 는 출력 포트 1개(single_ended_output, 차동 출력쌍 없음) -- 손으로 읽은 JSON.
+# =====================================================================================================================
+
+CM = {"metric": "pm_cm_ss_deg", "op": ">=", "value": 60.0}
+
+
+def _cm(sc, view=None):
+    c = _add(sc, **copy.deepcopy(CM))
+    if view is not None:
+        c["view"] = copy.deepcopy(view)
+    return c
+
+
+def test_cm_loop_required_without_differential_outputs(sc):
+    """차동 출력쌍이 없는 회로에 pm_cm_ss_deg(view 없음) -> view_required 하나(SPEC_CONTRACT 2절 view_required cm_loop 행)."""
+    _cm(sc)
+    sc.reject_only("view_required", "constraints")
+
+
+@pytest.mark.parametrize("decl", [
+    {"sense_p": "n_outp", "sense_mode": "single_ended"},
+    {"ac_excite": {"n_inp": 0.5, "n_inn": -0.5}, "sense_p": "n_outp", "sense_n": None, "sense_mode": "single_ended"},
+], ids=["sense_shape", "transfer_shape"])
+def test_cm_loop_explicit_view_not_applicable(sc, decl):
+    """cm_loop metric 에 결정 대기 아닌 view -> view_not_applicable(루프 뷰는 유도만, CM 루프도 같다). 차동 출력쌍 없는
+    픽스처라도 명시 view 거부가 먼저 하나만 나온다(view 를 적었으므로 유도를 하지 않는다)."""
+    _cm(sc, decl)
+    sc.reject_only("view_not_applicable", "constraints")
+
+
+def test_cm_loop_cut_weights_shape_not_supported(sc):
+    """명시 모양 {"cut_weights": …} 는 loop·cm_loop 모두 예약 -> view_shape_not_supported(조용히 무시하지 않음, S3)."""
+    _cm(sc, {"cut_weights": {"n_outp": 1.0}})
+    sc.reject_only("view_shape_not_supported", "constraints")
+
+
+def test_cm_loop_pending_view_accepted(sc):
+    """결정 대기 표지 view 는 허용(3절 cm_loop '결정 대기 표지만 허용') -> 뷰 mode pending, 결정 ID 그대로."""
+    _cm(sc, {"pending": "MOD5"})
+    v = _view(sc.load(), "pm_cm_ss_deg")
+    assert v.mode == "pending" and v.decision == "MOD5"
+

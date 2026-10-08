@@ -268,12 +268,14 @@ def test_s8_net_rename_invariance(tmp_path, declared, names):
 
 
 def test_example7c_mixed_cut_undefined_not_exception(tmp_path):
-    """예 7c: Cs 대신 저항 -> 절단 노드 n(전도)·x(용량 전용) 섞임 -> pm_ss_deg 정의 불가 loop_cut_mixed_charge, 예외 0."""
+    """예 7c([CM 2026-10-08] 갱신): Cs 대신 저항 -> 절단 노드 n(전도)·x(용량 전용) 섞임. 섞인 절단 T(0) 는 이제 값 0(폐형식 분자에 s,
+    metrics CONTRACT 예 7c·I-18) -> pm_ss_deg 정의 불가 사유는 dc_not_above_level(loop_cut_mixed_charge 아님), 예외 0."""
     case = ex7_case(tmp_path, (("pm_ss_deg", ">=", 60.0, None), ("gain_ss_db", ">=", 30.0, None)), cs_resistor=True)
     _, _, b = _run(case, passives=ex7_passives(cs_resistor=True))
     m = bundle_map(b)
     assert m["pm_ss_deg"].value is None
-    assert "loop_cut_mixed_charge" in {u.code for u in m["pm_ss_deg"].undefined}
+    assert [u.code for u in m["pm_ss_deg"].undefined] == ["dc_not_above_level"]
+    assert "loop_cut_mixed_charge" not in {u.code for u in m["pm_ss_deg"].undefined}
     assert m["gain_ss_db"].value is not None
 
 
