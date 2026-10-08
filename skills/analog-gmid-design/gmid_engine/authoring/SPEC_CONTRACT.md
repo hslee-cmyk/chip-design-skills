@@ -219,7 +219,7 @@ CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", u
 
 [CM 2026-10-08] 공통 모드 루프 제약: 파일럿에 `pm_cm_ss_deg >= 60`(source user_spec, decided 2026-10-08, 사용자 "6번도 네 의견에 동의하고 제안한 값을 사용해") 한 건을 더했다(제약 8(5) → 9(6), view 는
 적지 않음; pending 표지 수 11·총 61 은 그대로 -- 이 계약 표가 정본). library 9회로에 `default_views().cm_loop` 를 전수 실행: 파일럿만 `cm_output`(가중 ((Vom, 1/2), (Vop, 1/2))), 나머지 8회로는 차동 출력쌍이
-없어 view_required 사유. 그 8회로 중 하나에 이 제약을 적으면 `view_required`. 픽스처 이름표 갱신 대상: `pm_cm_ss_deg`(deg, ss, cm_loop) 추가(레지스트리 이름 11개). 옛 평균 수동소자 감지 넷 구조 규칙은 삭제.
+없어 view_required 사유. 그 8회로 중 하나에 이 제약을 적으면 `view_required`. 픽스처 이름표 갱신 대상: `pm_cm_ss_deg`(deg, ss, cm_loop) 추가(레지스트리 이름 11개). 옛 평균 수동소자 감지 넷 구조 규칙은 삭제.. 구동자/소비자 구조 분류(`cm_partition`)와 선언 `cm_sense_elements` 는 3절 `cm_loop` 항 참조 -- 파일럿은 분류가 명확해 선언이 필요 없다.
 
 theta_bounds 측정(2026-10-08, 이 커밋 코드 + library): 6회로에 상자 기입(current_reuse Cc1·Cc2·R1·R2, ngcc·nmcnr Cm1·Cm2,
 sf_pushpull Cc·R1a·R1b·R1c, two_stage_ota·two_stage_ota_sf Cc) -- 9/9 로드 통과, 표지 수 불변(상자는 표지를 받지 않는다).

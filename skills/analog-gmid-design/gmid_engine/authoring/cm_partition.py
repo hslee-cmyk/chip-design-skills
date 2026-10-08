@@ -19,7 +19,14 @@
 **절단 교차 검사(최종 분할에 항상)**: (i) 구동자 gate 가 출력 넷이거나 자기 도달 집합에 있지 않다, (ii) x 영역(구동자 도달 집합의 비레일
 넷)에 gate 가 걸린 MOS 의 channel 이 x 영역에 닿지 않는다 -- 어기면 CM 되먹임이 절단선을 지나지 않고 x 안에서 닫힐 수 있어 모호로 멈춘다.
 이 검사는 국소 충분조건이며 모든 CM 경로를 증명하지는 않는다.
-결과: `drivers` ((이름, 옮길 출력 넷) 이름순), `consumers`(이름 tuple), `ambiguity`(None 또는 사유 문자열), `disagrees`(None 또는 (구조, 선언)).
+결과(`CmPartition`): `drivers` = ((MOS 이름, 옮길 출력 넷), ...) -- **MOS 이름 오름차순**(canonical 순서; 이름 비의존 순서는 아니다: 이름을 바꾸면 순서가 바뀔 수 있으므로
+소비자는 `cuts` 를 집합으로 읽어야 하고 값 계산은 순서와 무관하다), `consumers` = 소비자 MOS 이름 오름차순 tuple, `ambiguity` = None 또는 사유 문자열,
+`disagrees` = None 또는 (구조 소비자 이름 tuple, 선언 이름 tuple).
+
+인자 형식(모두 필수 위치 인자, 이름·넷은 비교 가능한 hashable -- authoring 은 문자열, metrics 는 소신호 회로 정수 노드 인덱스·MOS 라벨):
+* `outputs`: 출력 넷 tuple(보통 2개: 차동 쌍). `mos`: (이름, drain, gate, source) tuple 의 iterable -- 이름은 유일. `two_terminals`: 수동소자 (a, b) tuple 의 iterable
+  (저항·커패시터; 스위치드 kind 는 호출 전에 `cm_loop_view` 가 `cm_switched` 로 멈춘다).
+* `rails`: 공급 레일 넷 iterable. `source_nets`: 이상원 단자 넷 iterable(기본 ()). `declared`: None(구조 분류만) 또는 소비자(CM 감지) MOS 이름 iterable(빈 것 가능).
 """
 import dataclasses
 

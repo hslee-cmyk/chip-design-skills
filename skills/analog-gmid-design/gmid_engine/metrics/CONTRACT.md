@@ -24,9 +24,9 @@
 | 0 | `mna_types.py` | (데이터) | 결과 레코드: `Undefined`, `MnaSystem`, `Roots`, `DcLimit`, `SystemResponse`, `PointSolution`, `Factor`, `ProbeFactor`, `CutCircuit`, `Crossing`, `LoopAnalysis`, `OutputResistance`, `ResponseRatio`(+ `row`, 9절), `SupplyCurrents`, `AreaSearch`, [9절] `ParameterSet`·`ResponseSensitivity`·`Resolution`, `MetricResult`(+ `resolution`, 9절). **인수 공통 규약**(`Factor`·`ProbeFactor`): 속성 `response`(공유 격자), `samples`(격자 위 값), `poles`·`zeros`(상단 괄호용 근), `undefined`(격자 표본 사유); 격자 밖 한 점은 `PointSolution` → (복소값, 사후 오차, 사유)(`_helpers_product.product_at`) |
 | 0 | `_helpers_stamp.py` | (helper) | `admittance_pair` |
 | 0 | `_helpers_dc.py` | (helper) | `dc_limit_parts`(ω → 0 극한 식 행렬·우변·전하 주입 열 -- `dc_limit`·`sensitivity` 공용, 9.2) |
-| 0 | `_helpers_pencil.py` | (helper) | `finite_eigs`(pencil 유한 고유값, `pencil_roots`·`probe_loop` 공용), [CM 2026-10-08] `probe_pencil`(루프 이득 T 의 증강 pencil -- `probe_loop` 극점·영점 / `_helpers_probe` 섞인 절단 T(0) 공용), `probe_dc_value`(그 pencil 의 s = 0 값 T(0)) |
+| 0 | `_helpers_pencil.py` | (helper) | `finite_eigs`(pencil 유한 고유값, `pencil_roots`·`probe_loop` 공용), [CM 2026-10-08] `probe_pencil`(루프 이득 T 의 증강 pencil -- `probe_loop` 극점·영점 / `_helpers_probe` 섞인 절단 T(0) 공용) |
 | 0 | `junction_cap.py` | `junction_caps` | 접합 용량 cdb·csb(BSIM4, DEC-91) + 입력 레코드 `JunctionParams`·`DiffusionGeometry`, 결과 `JunctionCaps` (8절) |
-| 1 | `_helpers_probe.py` | (helper) | `probe_value`(Middlebrook T 한 점 평가·사후 오차·[9절] ∂T/∂V -- 4-tuple, `probe_loop`·`_helpers_product`·`resolution` 공용) |
+| 1 | `_helpers_probe.py` | (helper) | `_mixed_dc_value`(비공개, [CM] 증강 pencil 의 s = 0 값 T(0), 섞인 절단 ω = 0 -- 이 파일 안에서만 쓴다), `probe_value`(Middlebrook T 한 점 평가·사후 오차·[9절] ∂T/∂V -- 4-tuple, `probe_loop`·`_helpers_product`·`resolution` 공용) |
 | 1 | `sensitivity.py` | `response_sensitivity` | 한 계·한 ω 의 관측값·사후 오차·∂V/∂p·∂V/∂ω(LU 1회 + 수반, 9.2) |
 | 1 | `loop_cut.py` | `cut_circuit` | 루프 절단 회로(3.16) |
 | 1 | `stamp_mos.py` | `mos_stamps` | MOS 소신호 스탬프 |
@@ -101,7 +101,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | `singular_dc_limit` | structural | `solve_dc_limit` | 같음 |
 | `dc_charge_injection` | definitional | `solve_dc_limit`(그 열만) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
 | `dc_not_above_level`, `no_crossing_above`, `dc_zero`, `den_zero`, `num_zero`, `operand_undefined` | definitional | 교차·비·이득·Middlebrook 분모(`probe_factor`) | STRUCTURE_UNRESOLVED / 제약 위반 후보 실패(margin null, N3.14 표의 해당 하위 클래스는 판정 계층이 확정) |
-| `loop_cut_mixed_charge` | definitional | `probe_factor` ω = 0(절단 노드 중 용량 전용과 전도 노드가 섞이고, 증강 pencil 의 s = 0 값 `probe_dc_value` 도 없음 -- T 가 원점 극점이거나 구조 결함. [CM 2026-10-08] 섞인 절단 자체는 이제 값이 있다, 3.17·6절 M7) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
+| `loop_cut_mixed_charge` | definitional | `probe_factor` ω = 0(절단 노드 중 용량 전용과 전도 노드가 섞이고, 증강 pencil 의 s = 0 값 `_mixed_dc_value` 도 없음 -- T 가 원점 극점이거나 구조 결함. [CM 2026-10-08] 섞인 절단 자체는 이제 값이 있다, 3.17·6절 M7) | STRUCTURE_UNRESOLVED / 후보 실패 `structure_inconsistent` |
 | `negative_output_resistance` | definitional | `output_resistance`(DC 극한 관측 / I < 0 -- 양되먹임. 값을 내면 `<=` 제약이 통과하므로 정의 불가로 둔다, 7a Q3 오케스트레이터 결정 2026-10-07) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
 | `loop_open_rhp_poles` | definitional | `analyze_loop` 의 `phase_margin_deg` 만(→ `pm_ss_deg`·`parasitic_pm_ss_deg`). 루프 인수 `poles` 에 실부 > 0 인 근이 있음 -- Nyquist P > 0 이라 180° − 지연은 안정 여유가 아니다(3.10 전제). detail `rhp_poles`(근마다 `(실부, 허부)` float 쌍의 tuple -- complex 아님(블록 write 의 core `require_immutable`), 중복 없이 (|s|, 실부, 허부) 오름차순)·`rhp_pole_count`(int), 키 이름순 저장(3.10). 값을 내면 위상 앞섬으로 PM > 180° 가 `>=` 제약을 통과한다(ngcc 2026-10-08: PM 218°, SPICE 과도 0.73 Vpp 발진) | STRUCTURE_UNRESOLVED / 후보 실패(margin null) |
 | `singular_mna`, `crossing_bracket_overflow`, `crossing_bound_violated`, `phase_jump_unresolved`, `zero_response_on_axis`, `response_not_finite`, `unrecorded_cause` | numeric | 풀이·이분·위상 | STRUCTURE_UNRESOLVED / NONCONVERGENT(후보 실패 클래스) |
@@ -265,11 +265,11 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
   Tv = −wᵀV_x / wᵀV_n(V = Z·P·M⁻¹w), Ti = wᵀI / wᵀ(w − I)(I = M⁻¹·Pᵀ·Z·s), **T = (Tv·Ti − 1)/(Tv + Ti + 2)** -- 오라클
   `loop_gain` 과 같은 식·같은 부호 규약(`Vlb n x`, `Ilb 0 n`, `i(Vlb)` n → x). 오라클의 두 `.ac` 를 같은 계의 여기 열로 중첩
   (근사 없음).
-- `_helpers_pencil.probe_dc_value(system, pairs, weights) -> complex | None`(`probe_pencil(system, pairs, weights) -> (a, e, ww)` 의 s = 0 값 T(0) = −H(0)/(H(0) + ww)): `system.defects` 이거나 a 특이·비유한·H + ww = 0 이면 None, 아니면 `complex`.
+- `_helpers_probe._mixed_dc_value(system, pairs, weights) -> complex | None`(`probe_pencil(system, pairs, weights) -> (a, e, ww)` 의 s = 0 값 T(0) = −H(0)/(H(0) + ww)): `system.defects` 이거나 a 특이·비유한·H + ww = 0 이면 None, 아니면 `complex`.
 - ω > 0: 전류 열. ω = 0: 전류 열 중 `dc_charge_injection` 이 없으면 전류 열 DC 해, 전부면 전하 열 DC 해(Tv·Ti 는 Z 의 0차
   동차식이라 열마다 같은 배율 s 는 값을 바꾸지 않는다). **섞이면(전도 노드 + 용량 전용 노드 -- 예: 공통 모드 루프의 gate 쪽 n, 저항 쪽 x)
   열마다 1/s 차수가 달라 Z 의 0차 동차식으로는 극한을 못 내므로, T(0) = −H(0)/(H(0) + wᵀw) (H(0) = 증강 pencil `probe_pencil` 의
-  s = 0 값 c·a⁻¹·b_g, `_helpers_pencil.probe_dc_value`)을 쓴다 -- 극점·영점 계산이 이미 쓰는 식(용량 전용 행을 s 로 나누고 프로브 결합을
+  s = 0 값 c·a⁻¹·b_g, `_helpers_probe._mixed_dc_value`)을 쓴다 -- 극점·영점 계산이 이미 쓰는 식(용량 전용 행을 s 로 나누고 프로브 결합을
   s 쪽에 둔다)이 선두 차수를 정확히 푼다. 이 값은 사후 오차 0(ω = 0 극한 규약)·∂T/∂V None 이다. a 가 특이(T 가 원점 극점)면
   T(0) NaN + `loop_cut_mixed_charge`.** M 특이 → 그 점 NaN + `loop_probe_singular`, Tv·Ti·T 분모 0 → `den_zero`.
 - 결과 필드: 격자 위 T `samples`(1회 계산 보관), T 의 `poles`·`zeros`(항등식 1/(1 + T) = 1/(1 + Tv) + 1/(1 + Ti) = Q,
@@ -307,7 +307,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | I-16 | A·β 무부하 인수 곱 값(예 7 대조 UGF 39756892.0418 Hz)을 `pm_ss_deg` 경로가 내면 FAIL -- 옛 정의 red |
 | I-17 | PM 전제(3.10): 인수 `poles` 에 Re > 0 근이 있으면 `phase_margin_deg` 는 None + `loop_open_rhp_poles`(예 8·8a·8b -- 옛 값 271.145°·274.443° 를 내면 FAIL). 없으면 `LoopAnalysis` 전 필드·`undefined` 가 전제 도입 전과 비트 동일(예 1~7b; 예 7c 는 I-18 로 T(0) 가 NaN 에서 0 으로 바뀌어 제외). `phase_lag_rad`·`ugf_hz` 는 우반면 근이 있어도 값 그대로 |
 | I-18 | [CM] 섞인 절단의 T(0): 예 7d 에서 `probe_factor.samples[0]` = gm/gds = 100(NaN 아님, 상대오차 ≤ 차원·eps; 실측 9.9999999999999991e1), `analyze_loop` 의 PM = 폐형식 17.1448910438°(상대 ≤ 1e-9), 격자 위 ω > 0 표본의 폐형식 상대오차 ≤ 1e-12. 예 7c 는 T(0) = 0(`dc_zero`·`dc_not_above_level`), `loop_cut_mixed_charge` 가 나오면 FAIL(옛 기대 red) |
-| I-19 | [CM] `probe_dc_value` 일관성: 섞이지 않은 절단에서 `probe_dc_value` = 열 선택 방식 T(0)(상대오차 ≤ 차원·eps). 용량 전용 예 7: 25(실측 24.999999999999993 대 25.000000000000018). 전도 전용 예 7f(아래): T(0) = 100/3 = 33.333333333333336(실측 열 선택 33.33333333333333, pencil 33.33333333333335) |
+| I-19 | [CM] `_mixed_dc_value` 일관성: 섞이지 않은 절단에서 `_mixed_dc_value` = 열 선택 방식 T(0)(상대오차 ≤ 차원·eps). 용량 전용 예 7: 25(실측 24.999999999999993 대 25.000000000000018). 전도 전용 예 7f(아래): T(0) = 100/3 = 33.333333333333336(실측 열 선택 33.33333333333333, pencil 33.33333333333335) |
 | I-20 | [CM] 섞인 절단은 ω > 0 표본에 영향이 없다: 같은 계의 격자 점 ω > 0 의 T 는 이 변경 전과 비트 동일(ω = 0 한 점만 NaN 에서 값으로 바뀐다) |
 
 ## 5. 손계산 예 (엔진과 독립인 폐형식으로 대조 가능)
@@ -454,7 +454,7 @@ core 추가: `core/units.py`(공개 정의 0, `METRIC_UNITS`(db, hz, deg, ohm, m
 | # | 항목 | 현재 처리 |
 |---|---|---|
 | M1 | PM 의 루프 절단 위치(A·β 각 뷰) | **닫음**(2026-10-07) -- 7a design: β 루프 = 절단 회로 `ProbeFactor`(Middlebrook), β = 1 = 포트 `Factor`, 인수 2개 곱은 정의 아님(3.10·3.16·3.17). spec 쪽은 authoring SPEC_CONTRACT 2절·3절(S1 닫음) |
-| M7 | 섞인 절단(전도 노드와 용량 전용 노드가 함께인 절단)의 ω → 0 극한 | **닫음(2026-10-08, CM 루프가 첫 소비자)** -- 증강 pencil 의 s = 0 값 `probe_dc_value`(3.17). T 가 원점 극점이면 여전히 `loop_cut_mixed_charge` |
+| M7 | 섞인 절단(전도 노드와 용량 전용 노드가 함께인 절단)의 ω → 0 극한 | **닫음(2026-10-08, CM 루프가 첫 소비자)** -- 증강 pencil 의 s = 0 값 `_mixed_dc_value`(3.17). T 가 원점 극점이면 여전히 `loop_cut_mixed_charge` |
 | M3 | 정의 불가 사유 → N3.14 분류 | MOD5 는 값으로만 낸다(2절 표는 권고). 판정 계층이 확정 |
 | M4 | `supply_current_dc` 단위 접미사(DEC-68: `_amp`) | 설계 문서·spec 설계 objective 표 이름 그대로 |
 | M5 | `area_search_m2` 의 objective_axis | None(예산 대상은 판정 축 `area_layout_m2`) |
@@ -649,7 +649,7 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 | S-27 | [CM] 경고: `pm_cm_ss_deg` 요청이 없고 T_cm(0) > 1 이면 `warnings == (("cm_loop_unconstrained", (("dc_db", T_cm(0) dB),)),)`; 요청이 있으면 경고 없음; T_cm(0) ≤ 1 이면 경고 없음; `SsEvaluation.warnings == ss.warnings`; 판정(제약 행)은 선언만 따른다 |
 | S-28 | [CM] 캐시·계 수: `detail["systems"]` = 조립한 계 수 -- 선언 요청들의 계 + (선언된 `pm_cm_ss_deg` 가 없고 보고 전용 T_cm 이 계산되면) `cm_output` 계 1개 추가(선언 요청이 이미 있으면 같은 계를 공유해 늘지 않음): 예 요청이 `gain_ss_db` 하나 + 차동 출력 회로면 systems = 2, `pm_cm_ss_deg` 하나면 systems = 1. 캐시: 같은 입력으로 `ss_evaluate` 두 번 -> `metrics_ss` computes 0(reuse, reports·warnings 포함 비트 동일); 한 평가에서 선언 요청과 보고 전용이 같은 절단 계를 공유(조립·`solve_responses` 1회, `detail["systems"]` 가 보고 전용 때문에 늘지 않는다) |
 | S-29 | [CM] 분류(`cm_partition`): 후보 = drain·source 중 정확히 하나가 출력 넷인 MOS; 레일(공급·이상원 단자 넷)에 닿고 감지 쪽 gate 넷을 거치지 않으면 구동자, 레일에 안 닿으면 소비자, 닿고 gate 넷을 거치면 모호. 입력 변형(파일럿·변형 1~8 표)의 기대 구동자 집합은 위 표; d·s 가 모두 출력 넷인 MOS 는 어느 쪽도 아님; 후보 gate 가 출력 넷이면 모호 |
-| S-30 | [CM] 선언: `cm_sense_elements` 가 구조 소비자 집합과 같으면 같은 뷰(`cuts` 동일), 다르면 `cm_sense_disagrees`(구조 명확 시); 구조 모호 시 선언이 분류를 정함(변형 6 -> 6'); 이름 없음 `cm_sense_unknown`, 출력 넷에 channel 없음 `cm_sense_not_on_output`, 출처 user_spec 아님 `cm_sense_source`, 닫힌 어휘 밖 키 `view_not_applicable`, 선언 뒤에도 절단 교차 검사 실패 `cm_partition_ambiguous` |
+| S-30 | [CM] 선언: `cm_sense_elements` 가 구조 소비자 집합과 같으면 같은 뷰(`cuts` 동일), 다르면 `cm_sense_disagrees`(구조 명확 시); 구조 모호 시 선언이 분류를 정함(변형 6 -> 6'); 이름 없음 `cm_sense_unknown`, 출력 넷에 channel 없음 `cm_sense_not_on_output`, 출처 user_spec 아님 `cm_sense_source`, 닫힌 어휘 밖 키 `unknown_key`(`cm_sense_elements` 와 함께 있을 때; 이 키 없이 다른 모양이면 `view_not_applicable`), 선언 뒤에도 절단 교차 검사 실패 `cm_partition_ambiguous` |
 | S-31 | [CM] 절단 교차 검사: (i) 구동자 gate 가 출력 넷 또는 자기 도달 집합 (ii) x 영역 gate 걸린 MOS 의 channel 이 x 영역에 닿음 -> 모호(선언해도 거부). 파일럿·변형 1~8 은 통과 |
 | S-32 | [CM] `metrics_ss` 보고 전용 분류: 선언 요청이 없으면 소신호 회로에서 `cm_partition` 을 직접 불러 authoring 과 같은 구동자 집합(같은 절단 계 값), 모호하면 reports 에 `undefined = ("cm_partition_ambiguous",)` 만(경고·계 없음). 읽는 S2 열: `node.is_rail`, 이상원 pins |
 | S-33 | [CM] 오라클: 입력 `cm_output_loop = {"drivers": [...]}`(엔진 분할 주입)만 받는다(boolean·옛 키 스키마 거부); 각 drivers 소자는 drain·source 중 정확히 하나가 출력 넷이어야 한다(아니면 막힘). 같은 구동자 집합에서 엔진 대 ngspice 선형 곡선 일치 |
@@ -701,6 +701,13 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
   `cut_circuit` 은 `LoopCut.kind = "mos"`(`LOOP_CUT_MOS`; 단자 d | s | g, `LOOP_CUT_MOS_TERMINALS`)를 받는다(수동소자 kind 어휘 `LOOP_CUT_KINDS` 는 그대로).
   **절단 교차 검사(최종 분할에 항상, 국소 충분조건 -- 모든 CM 경로의 증명은 아님)**: (i) 구동자 gate 가 출력 넷이거나 자기 도달 집합에 있지 않다, (ii) x 영역(구동자 도달 집합의 비공급레일 넷)에 gate 가 걸린 MOS
   의 channel 이 x 영역에 닿지 않는다 -- 어기면 CM 되먹임이 절단선을 지나지 않고 x 안에서 닫힐 수 있어 모호로 멈춘다.
+- **`cm_partition` 인자·결과 형식과 순서**: `cm_partition(outputs, mos, two_terminals, rails, declared=None, source_nets=()) -> CmPartition(drivers, consumers, ambiguity, disagrees)`.
+  `outputs` = 출력 넷 tuple(차동 쌍), `mos` = (이름, drain, gate, source) iterable(이름 유일), `two_terminals` = 수동소자 (a, b) iterable, `rails`·`source_nets` = 넷 iterable, `declared` = None | 소비자 MOS 이름 iterable.
+  authoring 은 문자열 넷·소자 이름, metrics 는 소신호 회로 정수 노드 인덱스·MOS 라벨을 넣는다(같은 함수). `drivers` = ((MOS 이름, 옮길 출력 넷), …) **MOS 이름 오름차순**(= `ViewDecl.cuts` 순서; 이름 의존 -- 값 계산은
+  순서와 무관하며 소비자는 집합으로 읽는다), `consumers` = 이름 오름차순 tuple, `ambiguity`·`disagrees` 는 None 이 정상.
+- **스위치드 원소(`switch`·`clock`)와 값 키**: 수동소자·이상원의 kind 가 `SWITCHED_KINDS` 이면 `cm_loop_view` 가 `cm_switched` 로 멈춘다(구조 kind 만 본다 -- 값 해석과 무관). 이 kind 는 spec 값 키 표(`VALUE_KEY_BY_KIND`) 밖이라
+  spec 에서는 `{"engine": true}`·`{"pending": ID}` 만 선언할 수 있고 값 키(`value_ohm` 등)는 `element_value_key` 로 거부된다(값 파싱 전 정지가 아니라 값 선언 규칙이 별도로 거부). `pm_cm_ss_deg` 제약이 없어도 `ss_circuit` 이
+  resistor·capacitor·MOS·전류원 밖 kind 를 `StructureUnresolvedError`(`ss_element_kind`)로 막으므로 소신호 평가 자체가 스위치드 회로에서는 성립하지 않는다.
 - **모호 -> 명시적 정지 + 선언 대체**: 모호하면 `default_views().cm_loop` 는 사유 문자열(`view_required`; 제약을 적으면 `cm_partition_ambiguous` 안내). 사용자가 제약 view 로
   `{"cm_sense_elements": [소비자(CM 감지) MOS…]}`(닫힌 어휘, 제약 `source.kind == user_spec` 필수)를 선언하면 소비자 = 선언 ∩ 후보, 나머지 후보 = 구동자로 분류를 덮어쓴다. 구조가 명확하면 선언은 구조 소비자 집합과 같아야 한다
   (`cm_sense_disagrees`); 이름이 MOS 가 아니면 `cm_sense_unknown`, 출력 넷에 channel 이 없으면 `cm_sense_not_on_output`, 출처가 user_spec 이 아니면 `cm_sense_source`; 선언해도 절단 교차 검사가 실패하면
@@ -708,7 +715,7 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
   `cm_partition` 을 소신호 회로(MOS 라벨·수동소자·`is_rail` 레일·이상원 pins 의 단자 넷)에서 직접 부른다. 보고 전용 분류가 모호하면 `reports = (("cm_loop", (("break_nets", …), ("undefined", ("cm_partition_ambiguous",)))),)`
   (경고 없음, 계산 안 함). 선언된 `pm_cm_ss_deg` 요청이 있으면 보고 전용도 그 요청의 뷰(선언 반영)를 쓴다.
 - **ω = 0**: 절단 뒤 n 쪽 소비자 망은 DC 경로 없이 떠 있는 전도 섬(저항 평균망 + 용량)이 되어 열 선택 방식의 Z 가 특이하다(`singular_dc_limit`·`den_zero`). `probe_value` 는
-  ω = 0 에서 열 선택 방식이 값을 못 내면(비유한) `_helpers_pencil.probe_dc_value` 의 증강 pencil s = 0 값으로 대신한다(프로브 전압원 제약이 섬을 묶어 정칙; 3.17).
+  ω = 0 에서 열 선택 방식이 값을 못 내면(비유한) `_helpers_probe._mixed_dc_value` 의 증강 pencil s = 0 값으로 대신한다(프로브 전압원 제약이 섬을 묶어 정칙; 3.17).
 - **판정 규칙(결정 A)**: T_cm 의 PM 이 **|T_cm(0)| ≤ 1**(`dc_not_above_level`: DC 이득이 레벨 1 이하라 0 dB 교차가 없다 -- CMFB 가 공통 모드 DC 레벨을 잡지 못함)이면 `pm_cm_ss_deg` 제약은
   **위반**이다. in-band 에서 |T| > 1 로 오르는 대역통과 모양(예 7c: T(0) = 0, |T| 최대 ~33, 0 dB 를 두 번 지남)도 같다 -- CM 제약의 기준은 T_cm(0) 이다(오케스트레이터 결정, 결정 A 와 같은
   근거). 새 상수 없음(40 dB 안 철회). 위반 크기: search CONTRACT 3.20 -- c = 20·log10|T_cm(0)| / s, s = 이득 dB 분해능(`MetricResult.resolution`, 값 None 이고 사유에
