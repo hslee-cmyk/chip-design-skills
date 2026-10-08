@@ -6,6 +6,7 @@ design_gb7_dc_canonical; [r8] 9 = 전도 여유). 계약: `CONTRACT.md`.
 `size_and_seal(ctx, theta, parent=None)` (θ 마다).
 """
 from .bisect_root import bisect_root
+from .bracket_root import bracket_root
 from .block_columns import dc_columns
 from .block_currents import dc_currents
 from .block_lengths import dc_lengths
@@ -260,6 +261,7 @@ __all__ = (
     "ThetaSchema",
     "Window",
     "bisect_root",
+    "bracket_root",
     "build_kernel_context",
     "check_theta",
     "dc_columns",

@@ -56,6 +56,7 @@
 | 0 | `s2_values.py` | 데이터 선언 모듈(값 형식·어휘·`S2_WRITERS`) | -- |
 | 0 | `k_max.py` | `k_max` | -- |
 | 0 | `bisect_root.py` [r2] | `bisect_root` | -- |
+| 0 | `bracket_root.py` [r9] | `bracket_root` | -- |
 | 1 | `pre_layout_widths.py` [r2] | `pre_layout_lut_access` | -- |
 | 1 | `struct_colour.py` [r2] | `dc_struct_colour` | `dc_struct_colour` |
 | 1 | `_helpers_lut.py` | helper: `terminal_voltages`·`w_key_of`·`with_device`·`forward_point`·`tol_v_cell` | -- |
@@ -367,8 +368,9 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
   [r4] 구간 끝 x = (축 끝 − a)/b 는 부동소수 반올림으로 vds·vsb 가 축 끝을 한 ulp 넘을 수 있어, 1차식 값이 축 안에 들 때까지 반대 끝
   쪽으로 `math.nextafter` 한다(끝점 조회가 정의역 밖이 되지 않게 -- r3 에서는 VDS = 0 끝이 이 때문에도 실패했다). g 평가에서 lut 가
   `lut_target_out_of_range` 를 내면 목표 > branch_max 면 VGS = +inf, 아니면 −inf(부호가 정해진 정의역 밖); 그 밖 LUT 실패는
-  `lut_query_failed`. tol = 구간 가운데 점의 writer `tol_v_cell`, 반복 수 = `k_max(hi − lo, tol)`(hi = lo 면 1) -> 마지막 구간
-  폭 ≤ tol, 가운데 점 x 뒤 g(x) 가 유한·구간 안이면 그것(한 번 다듬기). 구간이 비거나(lo > hi) 끝 부호가 같으면
+  `lut_query_failed`. tol = 구간 가운데 점의 writer `tol_v_cell`, [r9] 근 찾기 = `bracket_root`(5.6c; bisection 과 같은 수렴 판정:
+  근과의 거리 ≤ tol/2, 평가 수 ≤ 2·k_max(hi − lo, tol) + 상수)이고 `SccLog.iterations`·`k_max` 칸은 변함없이 `k_max(hi − lo, tol)`(hi = lo 면 1,
+  선언된 상한이지 실제 평가 수가 아니다), 근 x 뒤 g(x) 가 유한·구간 안이면 그것(한 번 다듬기). 구간이 비거나(lo > hi) 끝 부호가 같으면
   `SealViolationError`(devices (writer,), reason `no_root_in_window`, item = 구간 끝 출처에 `vds_axis` 가 있으면 7 아니면 6,
   margin = 유한한 끝 |h| 최솟값/tol(없으면 None), detail node·lo·hi·h_lo·h_hi·bounds(끝 출처 `rail`·`vds_axis`·`vs_axis`)).
 - SCC 순서대로: 비순환 -> 한 번 평가. 크기 1 순환(= 1변수 노드) -> 위 bisection(`SccLog.iterations` = 반복 수, tol·k_max 기록).
@@ -455,6 +457,19 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 ### 5.6b [r2] `bisect_root(f, lo, hi, iterations) -> (x | None, f_lo, f_hi)`
 - f 는 실수 또는 ±inf. f(lo) == 0 이면 lo, f(hi) == 0 이면 hi. 부호가 같으면 (None, f_lo, f_hi). 아니면 `iterations` 번 반으로
   줄이며(가운데 값 0 이면 그 점) 마지막 구간의 가운데를 돌려준다. f 는 끝점 2회 + 반복마다 1회 부른다.
+
+### 5.6c [r9] `bracket_root(f, lo, hi, tol) -> (x | None, f_lo, f_hi)` (사용자 승인 2026-10-08, 성능 항목 1)
+- `bisect_root` 와 같은 약속(f 는 실수 또는 ±inf, f(lo) == 0 이면 lo, f(hi) == 0 이면 hi, 끝점 부호 같으면 (None, f_lo, f_hi), f 는 끝점 2회
+  먼저). 다른 점은 중간 점 선택뿐: Brent 법(유한한 점 3개면 역 2차 보간, 2개면 할선, 그 걸음이 구간 안쪽·감소 조건을 못 지키거나 ±inf 점이
+  있으면 이분, 걸음이 tol/4 보다 작으면 tol/4 만큼 밀어 반대편을 확인).
+- **수렴 판정 (bisection 과 같은 보증)**: 반환 x 는 부호가 바뀌는 구간의 한 끝이고 그 구간 폭 ≤ tol/2 -> 근과의 거리 ≤ tol/2. (bisection: 마지막
+  구간 폭 ≤ tol 의 가운데 -> 거리 ≤ tol/2.) 허용오차를 느슨하게 하지 않는다. 두 방법의 답은 서로 tol 이내(각각 근과 tol/2 이내).
+- 평가 수(끝점 2회 포함) ≤ 2·`k_max(hi − lo, tol)` + 6 (보간 반복이 `k_max` 번을 넘으면 남은 반복은 순수 이분; 해석적 상계, 무작위 2만 함수 측정에서는
+  ≤ 2·`k_max`). 숫자 기본값 없음(tol/4 는 판정식의 분수, 부동소수 해상도 2·eps·|x|).
+- `solve_self` 의 한 입력 재사용: 풀이(근 찾기 + 한 번 다듬기)는 (소자 종류, L, ln IDu, writer 관계, known 값, VDS·VSB 의 x 1차식 계수 4개, 구간
+  lo·hi, tol) 만의 함수라 LUT memo `root` 영역(함수 이름 칸 `solve_self`, BoundedLRU 상한)에 그 키로 저장한다 -- 적중하면 h 평가 0. 근 없음
+  (None, h_lo, h_hi) 도 저장되나 예외는 저장하지 않는다(부르는 쪽이 strict 에 따라 만든다). `_Circuit.tolerance` 는 한 평가(= 한 `dc_columns`
+  호출) 안에서 같은 (소자, VDS) 의 `tol_v_cell` 조회를 한 번만 한다(성능 항목 6).
 
 ### 5.7 `dc_widths(snapshot, lut)` -- `DeviceOp`
 - reads node.{dc_v, dc_rail_v}, device.{dc_current, dc_L, dc_ln_idu, pins, kind, bulk}. MOS 마다 vgs·vds·vsb(크기),
@@ -578,7 +593,7 @@ R log-U[100 Ω, 100 kΩ]) = 회로당 215 θ.
   13~50 ms. tol_V 표는 LUT derived memo 로 프로세스당 kind 마다 1회(~14 s/kind, lut CONTRACT 5절).
 - cProfile(r2, 계측 포함): core `fp_of` 비율 two_stage 63%, folded 35%, nmcnr 69%, ngcc 73%(투영 지문·`GraphSnapshot.write`).
   LUT memo 퇴출 0, 퇴출 뒤 재계산 0. 중복 인자 호출(folded FD 16회): gm_id_for_target 2442/817 고유, op_point 263/73 --
-  중복은 전부 LUT memo hit(계산 0). `TolVTable.at` 494/158 은 memo 밖 표 조회(O9).
+  중복은 전부 LUT memo hit(계산 0). `TolVTable.at` 494/158 은 memo 밖 표 조회(O9; [r9] 에서 한 평가 안 재사용으로 닫음).
 
 ### 10.2 [r4] LUT v2 실측 (2026-10-08, 작성자 측 시연 -- 정본 아님)
 LUT = `resolve_lut_location(assets/lut_v2_location.json, os.environ)`(재생성 슬라이스 32개 GMBS·VDSAT 포함 + 기준 LUT + 검증 중점),
@@ -719,6 +734,33 @@ margin 최댓값 ≤ 1.0e-3 -- 이 탐침은 봉인 9 가 겨누는 영역(VGS �
 - toy LUT(test conftest)의 `ctx_q` y = 0.99·z* = 0.3 점은 M1 봉인 9 margin 2.61 로 violated(r7 은 undefined -- 봉인 7 미정).
 - 시간: (a) 합 s 9회로 모두 ±20% 안(봉인 블록 하나·소자당 LUT 점 조회 1회 추가).
 
+### 10.7 [r9] 1변수 풀이 성능 실측 (2026-10-08, 작성자 측 시연 -- 정본 아님)
+방법: master(6a3351a) 와 이 변경을 같은 LUT v2·같은 탐침(10.2: 회로당 215 θ, seed 20261008)으로 2개 프로세스를 동시에(다른 부하 없이) 돌려 `process_time`(CPU) 비교, tol_V 표
+데우기(프로세스당 1회 비용) 12 θ 는 시간 밖. 호출 수 = 회로당 `solve_self` 호출, `_vgs_signed`(= h 평가) 호출.
+
+| 회로 | solve_self 호출 | h 평가: master -> 변경 | CPU s: master -> 변경 |
+|---|---|---|---|
+| common_gate_amplifier (1변수 노드 없음, 대조군) | 0 | 0 -> 0 | 8.47 -> 8.77 |
+| current_reuse_telescopic_ota | 3059 | 40363 -> 16966 | 43.47 -> 28.48 (−34%) |
+| folded_cascode | 3065 | 36627 -> 14107 | 49.97 -> 31.80 (−36%) |
+| ngcc_3stage_ff | 860 | 11050 -> 4958 | 18.14 -> 13.31 (−27%) |
+| nmcnr_amplifier | 1223 | 11855 -> 4063 | 17.03 -> 12.70 (−25%) |
+| pushpull_follower_buffer | 420 | 6095 -> 2537 | 6.39 -> 4.08 (−36%) |
+| sf_pushpull_output_opamp | 4281 | 43390 -> 18594 | 69.61 -> 54.95 (−21%) |
+| two_stage_ota | 332 | 3496 -> 1691 | 10.53 -> 7.53 (−28%) |
+| two_stage_ota_sf | 563 | 6243 -> 2813 | 9.67 -> 8.67 (−10%) |
+
+- 같음(9회로 1935 θ): 통과(일관) θ 수 동일(155/0/31/74/20/1/0/72/38), 통과한 θ 의 봉인 항목별 pass/fail 동일, 노드전압 최대 차 1.05e-4 V
+  (writer tol_V ≈ 0.85~0.9 mV 의 약 1/8 -- 선언 tol 이내). 실패한 θ 5개(folded 2, sf_pushpull 3)는 양쪽 모두 실패인데 실패 분류만 다르다
+  (`strict_recheck_residual`/`newton_line_search` <-> 봉인 위반): 반복 중 투영의 sub-tol 차이가 경계 θ 의 Gauss-Seidel·Newton 궤적을 바꾼 것.
+- two_stage_ota `find_front`(LUT v2, E_B = 150, 평가 100회): 전선 `[EP:s1]` 동일, 평가별 상태·origin 순서 동일. θ 궤적은 12번째 평가부터 sub-tol 차이로
+  갈라진다(FD·SLSQP 가 노드전압의 tol 이하 차이를 증폭) -- 점 단위 동일성은 보증하지 않는다. h 평가 2166 -> 316, `solve_self` CPU 1.5 -> 0.7 s,
+  find_front CPU 8.9 -> 8.1 s(같은 조건 두 번 반복에서 모두 −8~13%; 기계 부하에 따라 CPU 초가 ±30% 흔들려 동시 대조군으로 확인).
+- **프로파일 해석 정정**: find_front cProfile 에서 `solve_self` 누적이 135 s 중 ~80 s 로 보인 것은 첫 `solve_self` 안의 `tolerance` 가 부른 **tol_V 표
+  최초 구성**(`lut/tolerance.py` `compute`, kind 마다 ~14~19 s CPU, `_inverse_cell` -> `strong_inversion_root` -> `hermite_root`)이다. 표 구성을 빼면 bisection
+  자체는 find_front CPU 의 ~15%(1.6 / 10 s)였고 이번 변경은 그 절반을 줄였다. 남은 지배 항목 = tol_V 표 구성(프로세스당 ~30~40 s, lut 몫).
+- `solve_self` 입력 재사용(LUT memo `root` 영역): 탐침 215 θ 에서 적중 two_stage_ota 21/332, folded 806/3076 -- 효과가 근 찾기 교체보다 작다.
+
 ## 11. 설계와 다르게 정한 점
 
 1. **저장 = core GraphSnapshot 하나**: 설계 2.1 `DcField`·`setter.py`·`field_reuse.py`·`writer_table.py` 대신 core 의
@@ -772,7 +814,8 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 - **O7 (닫음, 2026-10-08 사용자 승인)** core `GraphSnapshot.extend_writers` 로 `lift_s1` 이 S1 레코드를 공유한다(1.5).
 - **O8 형제 lineage 재계산 (기록)**: FD 형제 평가끼리 같은 입력은 재계산된다(graph 가 곧 캐시라 다른 lineage 값을 볼 길이 없음).
 - **O9 (닫음, 2026-10-08 사용자 승인)** 투영 지문 = (key, `FieldValue.value_fp`) 합성(core CONTRACT 8절) -- 블록 호출·봉인 4 가
-  값을 다시 직렬화하지 않는다. 실측은 core CONTRACT 10절. `TolVTable.at` 중복 조회는 memo 밖(남은 항목).
+  값을 다시 직렬화하지 않는다. 실측은 core CONTRACT 10절. `TolVTable.at` 중복 조회는 [r9, 2026-10-08 사용자 승인 성능 항목 6] `_Circuit.tolerance` 가 한 평가 안에서 (소자, VDS) 마다 한 번만 부른다
+  (5.6c). 효과는 작다: `at` 1회 ≈ 80 µs, two_stage_ota find_front 의 `dc_columns` 조회 158회 중 고유 41개.
 - **O10 (닫음, r6)** 1변수 노드 = 구간 bisection, 다변수 SCC = Gauss-Seidel(수축할 때) -> 못 하거나 strict 검증 실패 시 감쇠 Newton
   (5.4 [r6]). sf_pushpull 의 9노드 SCC 실측: Newton 이 정의역 안 시작점에서 돌고, 실패한 θ 는 ‖r‖∞ 가 0.22~0.30 V 에서 멈추는
   정체(잔차가 0 이 아닌 극소 -- 그 θ 에 정의역 안 해가 없다고 관찰). 그 θ 는 GS strict 검증 위반(주로 lut_curve_undefined)

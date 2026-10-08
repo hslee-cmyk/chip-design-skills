@@ -39,7 +39,7 @@ from gmid_engine.graph import MOS_TERMINAL_NAMES
 from gmid_engine.lut import AXES, gm_id_for_target, gmb
 
 from ._helpers_lut import forward_point, terminal_voltages, tol_v_cell, w_key_of, with_device
-from .bisect_root import bisect_root
+from .bracket_root import bracket_root
 from .fixed_point import gauss_seidel
 from .k_max import k_max
 from .scc_newton import newton_solve
@@ -89,6 +89,7 @@ _TRANSIENT_LUT_REASONS = (_TARGET_OUT_OF_RANGE, "lut_axis_out_of_range")   # 반
 _CURVE_UNDEFINED = "lut_curve_undefined"     # lut CONTRACT 4.1 -- VDS 정의역 하한(`_vds_floor`) 아래에서만 반복 중 이탈로 본다
 _VDS_AXIS, _VS_AXIS = AXES.index("VDS"), AXES.index("VS")
 _BOUND_RAIL, _BOUND_VDS, _BOUND_VS = "rail", "vds_axis", "vs_axis"
+_SOLVE_SELF_MEMO = "solve_self"            # LUT memo root 영역의 함수 이름 칸(1변수 풀이 재사용)
 _GS_STOPPED = "gauss_seidel_stopped"                  # SccLog.fallback[0]: GS 가 K_max 안 tol 도달 불가로 멈춤
 
 
@@ -167,6 +168,7 @@ class _Circuit:
             source_side, sink_side = (d, s) if _kind_sign(self.kinds[m]) > 0 else (s, d)
             self.order_terms.setdefault(source_side, []).append((True, sink_side))
             self.order_terms.setdefault(sink_side, []).append((False, source_side))
+        self.tol_cells = {}                        # (소자, VDS) -> tol_V 또는 None -- `tolerance` 의 한 평가 안 재사용
         self.members = {}
         for net, w in self.writers.items():
             root = net
@@ -265,10 +267,11 @@ class _Circuit:
             return math.inf if detail["target"] > detail["branch_max"] else -math.inf
 
     def solve_self(self, net, values, strict=True):
-        """1변수 노드 x = g(x) 를 구간 bisection 으로 푼다(설계 3.4). 구간 = 레일 전압 범위 ∩ {writer 소자의 VDS·VSB 가
+        """1변수 노드 x = g(x) 를 구간 괄호 근 찾기(`bracket_root`, Brent 법)로 푼다(설계 3.4). 구간 = 레일 전압 범위 ∩ {writer 소자의 VDS·VSB 가
         LUT 축 안}(VDS·VSB 는 x 의 1차식이라 두 점에서 계수를 잰다). h(x) = x − g(x) 끝점 부호가 같으면 근 없음 ->
         `SealViolationError`(reason `no_root_in_window`, item = 구간 끝이 VDS 축(순서·포화 쪽)에서 왔으면 7, 레일·VS 축(벌크
-        접합)이면 6, margin = 끝점 |h| 최솟값/tol). 반복 수 = k_max(구간 폭, writer tol_V) -> 마지막 구간 폭 ≤ tol. 끝으로
+        접합)이면 6, margin = 끝점 |h| 최솟값/tol). 수렴 판정 = bisection 과 같다(근과의 거리 ≤ tol/2 보증); 반환 반복 수 칸은 k_max(구간 폭, writer tol_V)(상한 선언).
+        같은 입력이면 LUT memo 에서 재사용한다(h 가 그 입력만의 함수). 끝으로
         writer 식을 한 번 더 적용한 값 g(x)(= x − h(x))가 유한하고 구간 안이면 그것을 쓴다(근 근처 수축 |g'| < 1 이라 오차가
         |g'| 배로 준다 -- 봉인 2 가 같은 tol 로 재므로 구간 폭 = tol 만으로는 경계에 걸린다). 반환 (x, 반복 수, tol).
 
@@ -314,7 +317,19 @@ class _Circuit:
         middle = dict(values)
         middle[net] = (lo + hi) / 2
         tol = self.tolerance((m,), middle)
-        x, h_lo, h_hi = bisect_root(h, lo, hi, k_max(hi - lo, tol) if hi > lo else 1)
+
+        def solved():
+            root, h_a, h_b = bracket_root(h, lo, hi, tol)
+            if root is not None:
+                polished = root - h(root)
+                if math.isfinite(polished) and lo <= polished <= hi:
+                    root = polished
+            return root, h_a, h_b
+
+        # h 는 (소자 종류·L·ln IDu·writer 관계·known 값·VDS/VSB 의 x 1차식 계수·구간·tol) 만의 함수 -- 같은 입력이면 풀이를 다시
+        # 하지 않는다(GS 반복·strict 재검증·FD 형제·탐색 평가 사이 중복). LUT memo root 영역(상한 있는 LRU).
+        key = (kind, self.L[m], self.ln_idu[m], w.relation, known, vds0, vds1, vsb0, vsb1, lo, hi, tol)
+        x, h_lo, h_hi = self.lut.memo.lookup("root", _SOLVE_SELF_MEMO, key, solved)
         if x is None and not strict:
             return min((abs(h_lo), lo), (abs(h_hi), hi))[1], 0, tol
         if x is None:
@@ -323,9 +338,6 @@ class _Circuit:
             raise SealViolationError(devices=(m,), margin=min(finite) / tol if finite else None,
                                      detail={"item": item, "reason": REASON_NO_ROOT, "node": net, "lo": lo, "hi": hi,
                                              "h_lo": h_lo, "h_hi": h_hi, "bounds": (lo_from, hi_from)})
-        polished = x - h(x)
-        if math.isfinite(polished) and lo <= polished <= hi:
-            x = polished
         return x, k_max(hi - lo, tol) if hi > lo else 1, tol
 
     def has_channel_values(self, m, values):
@@ -454,7 +466,10 @@ class _Circuit:
         tols = []
         for m in devices:
             vds, _vsb = self.vds_vsb(m, values)
-            tol = tol_v_cell(self.lut, m, self.kinds[m], self.L[m], vds)
+            key = (m, vds)                                 # 한 평가 안에서 같은 (소자, VDS) 셀 조회는 한 번(L·kind 는 소자마다 고정)
+            if key not in self.tol_cells:
+                self.tol_cells[key] = tol_v_cell(self.lut, m, self.kinds[m], self.L[m], vds)
+            tol = self.tol_cells[key]
             if tol is not None:
                 tols.append(tol)
         if not tols:
