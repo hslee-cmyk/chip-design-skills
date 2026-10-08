@@ -196,8 +196,13 @@ def noise_open_loop(cir_path, meta, inp, exe, timeout_s=None, cache_dir=None):
         t_cell, _ = split(s0, h20, cell_el)
         out["input_cell_matched"] = sorted(cell_el)
         out["input_cell_missing"] = sorted(want)
-        out["excess_th"] = (th_in / t_cell) if t_cell else None
-        if not t_cell:
+        # fail-closed: 선언된 입력 셀 소자 중 하나라도 오라클 넷리스트 요소로 못 찾으면 부분집합으로 계산하지 않는다(분모가 작아져 과대 평가).
+        if want:
+            out["excess_th"] = None
+            out["excess_reason"] = "입력 셀 소자를 오라클 넷리스트에서 못 찾음(input_cell_missing): " + ", ".join(sorted(want))
+        else:
+            out["excess_th"] = (th_in / t_cell) if t_cell else None
+        if not want and not t_cell:
             out["excess_reason"] = "입력 셀 소자의 열 성분이 0 이다(이름이 안 맞거나 꺼진 소자)"
     else:
         out["excess_reason"] = "noise.input_cell_devices 가 없다"

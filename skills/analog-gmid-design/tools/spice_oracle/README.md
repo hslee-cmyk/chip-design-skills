@@ -655,7 +655,7 @@ swing_out_v, icmr_v, icm_margin_v`), 제약은 `>=`/`<=` 로 판정하며 값이
   * `noise_fc_in_hz` = 입력 환산 flicker 합이 `noise_th_in_v2hz` 와 같아지는 주파수: f_lo 부터 격자를 올려 첫 교차를 로그-로그 보간. f_lo 에서 이미 아래면 None +
     `fc_reason = below_f_lo`, `testbench.ac.fstop_hz` 까지 못 만나면 None + `above_cap`.
   * `noise_excess_th` = `noise_th_in_v2hz` / (`input_cell_devices` 소자만의 열 성분 합). 입력 셀이 없으면 None + `excess_reason`. 소자 이름은 오라클 넷리스트 이름으로 사상해 찾는다
-    (`oracle_noise.oracle_element_names`: MOS `M1a` -> `m1a`, 수동소자 `RL` -> `rp_rl`·`cp_rl`·`isrc_rl`·`vsrc_rl` -- `oracle_netlist.CIRCUIT_PREFIXES` 접두; 못 찾은 이름은 `input_cell_missing`).
+    (`oracle_noise.oracle_element_names`: MOS `M1a` -> `m1a`, 수동소자 `RL` -> `rp_rl`·`cp_rl`·`isrc_rl`·`vsrc_rl` -- `oracle_netlist.CIRCUIT_PREFIXES` 접두; 못 찾은 이름은 `input_cell_missing`). **fail-closed**: 선언 이름 중 하나라도 못 찾으면(`input_cell_missing` 비어 있지 않음) 찾은 부분집합으로 계산하지 않고 `noise_excess_th` = None + `excess_reason`(누락 이름 명시) -> 이 metric 제약은 PASS 가 아니라 INCOMPLETE/N/A.
   * `noise_contrib` = 소자·저항별 `{element, thermal_in_v2hz, flicker_in_v2hz, share_thermal}` (f_lo).
 * **폐루프**(`noise_out_int_vrms`, `noise.closed_loop = true`, feedback_passives 필요): 루프 넷리스트를 닫은 채(Vlb DC 0) `noise v(out) Vlb_<넷> dec ppd f_lo f_top` 의
   `onoise_spectrum` 을 로그 격자 사다리꼴로 적분한다. 격자 밀도를 두 배씩 올려(최대 4 회) 같은 구간 적분이 reltol 안에 일치하면 멈춘다. f_top 은 `fstop_hz` 에서 시작해
