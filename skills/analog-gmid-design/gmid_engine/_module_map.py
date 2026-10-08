@@ -83,7 +83,7 @@ LAYERS = (
     (
         "graph",
         (
-            ("s1_values.py", "s1v_values.py", "supplies.py"),
+            ("coupling_values.py", "s1_values.py", "s1v_values.py", "supplies.py"),
             ("ac_ground_static.py", "automorphism_orbits.py", "blocks.py", "bulk_default.py", "buffer_bundles.py", "canonical_form.py", "cells.py", "composite_blocks.py", "composite_diode.py",
              "declared_compare.py", "drive_kind.py", "feedforward_cells.py", "l_classes.py", "loop_classify.py", "loop_cuts.py", "loop_roles.py", "loops.py",
              "net_model.py", "node_impedance.py", "output_direction.py", "polarity.py", "pole_nodes.py", "s1_index.py",
@@ -93,6 +93,8 @@ LAYERS = (
             ("branches.py", "dc_roles.py", "gvgs_cycles.py", "rel_matching.py", "rel_vgs.py", "view_analysis.py"),
             ("columns.py", "matching_groups.py", "rel_kcl.py"),
             ("s1_build.py", "s1v_build.py"),
+            ("column_block_map.py",),
+            ("coupling_vars.py",),
         ),
     ),
     (
@@ -472,6 +474,12 @@ MODULES = (
                 "뷰 하나의 SP1 파이프라인(축약/비축약, 루프 뷰 씨앗)", ("FR-1", "41 §1")),
     ModuleEntry("graph/s1v_build.py", "entry", "build_s1v",
                 "S1 -> S1v 진입점(뷰·루프 뷰·L 동치류·declared 대조·정지)", ("FR-1", "GB2", "D-GB2a")),
+    ModuleEntry("graph/coupling_values.py", "data", None,
+                "GB3 결합 변수 y·기둥↔블록 매핑표 값 형식·어휘(데이터 선언 모듈)", ("GB3", "40 §3.3", "DEC-71")),
+    ModuleEntry("graph/column_block_map.py", "entry", "column_block_map",
+                "S1 기둥 x S1v 블록 매핑표와 column_unassigned 정지", ("GB3", "D-GB3", "DEC-71")),
+    ModuleEntry("graph/coupling_vars.py", "entry", "coupling_vars",
+                "결합 변수 y K1~K4·K7·K8 목록(블록 경계를 넘는 관계)", ("GB3", "D-GB3", "DEC-71", "N3.7")),
     ModuleEntry("sizing/s2_values.py", "data", None,
                 "S2 dc 값 형식·어휘·권한표 S2_WRITERS(S1 + dc 필드)(데이터 선언 모듈)", ("GB7", "N3.3", "N3.4", "DEC-88")),
     ModuleEntry("sizing/k_max.py", "entry", "k_max", "반복 상한 K_max = ceil(log2(폭/tol))", ("N3.6", "DEC-32")),

@@ -697,3 +697,34 @@ confirm 이 일치한 유도 레코드는 status 를 올린다: `dc_role` -> `Dc
 **불변량 [U1b]**: (a) 복합 diode 소자의 gate 넷은 `diode_nodes` 에 있고 묶음의 MOS 멤버 셀은 항상 `diode_load`. (b) feedforward 묶음 소자는 `ViewS1v.blocks` 의 어느 역할에도 없고 `cells` 에는 있다.
 (c) `compensation_internal` 루프의 끊는 점은 `ViewS1v.cuts` 에 없고 루프 뷰가 생기지 않는다. (d) `Loop.ac_only` 이면 `polarity == 0`. (e) 사실이 없을 때 library 9회로의 D1 발동 = sf {M5, M6, M7, M8, M13, M14},
 파일럿 {M58, M63}, 나머지 0; feedforward = ngcc 2묶음, 나머지 0.
+
+---
+
+## 11. GB3 -- 결합 변수 y와 기둥↔블록 매핑표 (U10, 설계 40 §3.3, 41 §0 단계 A4, 계획 DEC-71 (2)(7))
+
+파일: `coupling_values.py`(값 형식·어휘), `column_block_map.py`(진입 `column_block_map(s1, s1v) -> ColumnBlockMap`), `coupling_vars.py`(진입 `coupling_vars(s1, s1v) -> Coupling`).
+호출자: `pipeline.run_stage_a` A4(보고서 `coupling` 키). 소비자: U15 층 0 조립(41 §5.5) -- 아직 읽는 코드가 없고 보고서가 유일한 출구다.
+
+### 11.1 값 형식
+* `BlockRef(view, key)` -- 뷰 id 와 블록 키(출력노드 이름 정렬 tuple). 같은 키의 블록도 뷰가 다르면 다른 블록. 정렬 가능(frozen order).
+* `ColumnBlockRow(column, block, device, shared, basis)` -- `column` = S1 기둥 id 또는 None(어느 기둥에도 안 든 블록 멤버, 예: 커패시터), `block` = BlockRef 또는 None(바이어스 기둥),
+  `basis` ∈ `block_member | column_mate | bias_column`. `ColumnBlockMap(rows, bias_columns)` -- rows 는 (column(None 먼저), block, device) 순.
+* `CouplingVar(kind, members, blocks, domain, init_rule, nets)` -- 40 §3.3 레코드에 `nets` 를 더했다. `Coupling(vars, column_block_map)` -- vars 는 (kind, members, nets, domain) 순, 같은 키 중복 없음.
+
+### 11.2 매핑표 규칙(DEC-71 (2))
+* 소자 범위 = 어느 DC 가지(`graph.branches`)에 든 원소. 커패시터·DEC-70 가지치기로 빠진 저항은 DC 전류가 없어 KVL 이 없으므로 대상 밖(블록 멤버면 column=None 행).
+* 소자가 어느 뷰에서든 블록 멤버면 그 기둥마다 블록 멤버 행(뷰별 블록마다 한 행). 어느 뷰에도 블록이 없는 소자가 든 기둥에 블록 소자가 있으면 그 기둥에 있는 블록들에 귀속(`column_mate`, shared=True).
+  기둥의 소자가 모두 블록 밖이면 바이어스 기둥(`bias_columns`, 행 block=None).
+* `shared` = 둘 이상 기둥에 걸침 | 한 뷰에서 둘 이상 블록 멤버 | 기둥 이웃으로 귀속.
+* **불변식**: 가지에 들었는데 어느 블록에도 어느 기둥에도 안 든 소자(기둥 열거에서 빠진 orphan 가지의 소자) -> `StructureUnresolvedError`, `detail["reason"] == "column_unassigned"`, `devices` = 그 소자들.
+
+### 11.3 결합 종류와 판정 (모두 '한 뷰 안에서 소자들의 블록 키 합집합 != 교집합'을 블록 경계 횡단으로 본다; 블록이 있는 소자가 그 뷰에 둘 이상 있어야 한다)
+| kind | 만드는 조건 | members | nets | domain | init_rule |
+|---|---|---|---|---|---|
+| K1 | S1 mirror matching 그룹 또는 S1v L 동치류가 블록을 가로지르고 멤버 중 부하 역할(load·mirror·diode_load)이 횡단 블록에 있음 | 류 멤버 | () | dc(mirror)·geom(L 동치류) | class_owner_value |
+| K2 | S1 `equal_vgs` 엣지가 블록을 가로지름 | 엣지 멤버 | 엣지 evidence 넷 | dc | common_vgs_candidates |
+| K3 | 비레일 넷에 MOS e 의 drain 과 MOS d 의 source 가 만나고 둘의 블록이 다름(`stacked_vsb`) | (e, d) | (그 넷,) | dc | stack_node_kvl |
+| K4 | 한 가지를 지나는 모든 기둥의 소자가 블록을 가로지름 | 가지의 소자 | 가지 양 끝 | dc | shared_node_kvl_kcl |
+| K7 | 소자가 둘 이상 뷰의 블록 멤버 | (소자,) | () | dc | view_shared_split |
+| K8 | DC 역할 바이어스 전류원 + 셀 CS(gate 가 신호 넷) + drain 노드에 신호 CD 의 source + c 의 gate 가 그 CD 입력에서 CD 엣지로 안 닿음 + drain 노드가 이득 블록 출력 아님 | (c, CD 셀들) | (drain 노드,) | dc | side_injection_current |
+`blocks` = 횡단이 일어난 뷰들의 횡단 블록(K7·K8 은 소자의 모든 블록). 바이어스 기둥은 블록이 아니므로 바이어스 기둥 소자와 블록 소자 사이의 미러(예: 기준 diode)는 K1·K2 가 되지 않는다(열린 질문).

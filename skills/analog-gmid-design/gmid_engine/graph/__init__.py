@@ -9,7 +9,21 @@ from .branches import s1_branches
 from .bulk_default import s1_bulk
 from .canonical_form import Canonical, canonical_form
 from .columns import s1_columns
+from .column_block_map import column_block_map
 from .composite_diode import CompositeDiode, composite_diodes
+from .coupling_values import (
+    BASIS_BIAS_COLUMN,
+    BASIS_BLOCK_MEMBER,
+    BASIS_COLUMN_MATE,
+    COUPLING_KINDS,
+    REASON_COLUMN_UNASSIGNED,
+    BlockRef,
+    ColumnBlockMap,
+    ColumnBlockRow,
+    Coupling,
+    CouplingVar,
+)
+from .coupling_vars import coupling_vars
 from .dc_conduction import s1_dc_conduction
 from .dc_roles import s1_dc_roles
 from .feedforward_cells import FeedforwardResult, feedforward_cells
@@ -270,6 +284,18 @@ __all__ = (
     "UNSUPPORTED_BRANCHES",
     "UNSUPPORTED_RULE_BRANCH",
     "build_s1",
+    "BASIS_BIAS_COLUMN",
+    "BASIS_BLOCK_MEMBER",
+    "BASIS_COLUMN_MATE",
+    "COUPLING_KINDS",
+    "REASON_COLUMN_UNASSIGNED",
+    "BlockRef",
+    "ColumnBlockMap",
+    "ColumnBlockRow",
+    "Coupling",
+    "CouplingVar",
+    "column_block_map",
+    "coupling_vars",
     "automorphism_orbits",
     "canonical_form",
     "build_s1v",

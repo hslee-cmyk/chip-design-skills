@@ -22,6 +22,14 @@ def _markdown(report):
         lines += ["## feedforward 비율 제약 후보 (값은 spec 이 선언할 때만 제약)"]
         lines += ["- " + c["view"] + " " + c["ff"] + ": " + c["relation"] + " (우회 블록 " + str(c["bypassed_block"]) + ", 출처 " + c["source"] + ")"
                   for c in report["ff_ratio_candidates"]] + [""]
+    coupling = report.get("coupling")
+    if coupling:
+        lines += ["## 결합 변수 y (GB3, 소비자: U15 층 0 조립)", "- 종류별 수: " + str(coupling["kind_counts"]),
+                  "- 바이어스 기둥: " + str(coupling["bias_columns"]),
+                  "- 기둥↔블록 매핑표 행: " + str(len(coupling["column_block_map"]))
+                  + ", 기둥 이웃으로 귀속된 소자: " + str(coupling["column_mate_devices"])]
+        lines += ["- " + v["kind"] + " " + str(v["members"]) + " 넷 " + str(v["nets"]) + " 블록 " + str(v["blocks"]) + " (" + v["domain"] + ", " + v["init_rule"] + ")"
+                  for v in coupling["vars"]] + [""]
     for view in report["views"]:
         lines.append("## 뷰 " + view["id"] + " (" + view["kind"] + ")")
         lines += ["- 블록: " + ", ".join(b["kind"] + str(b["key"]) + "@s" + str(b["stage"]) for b in view["blocks"]),
