@@ -339,14 +339,22 @@ def _three_pmos_mirror():
                 {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, bias=["nb"])
 
 
-def test_l_ties_default_empty_and_schema_unchanged(tmp_path, toy_access):
+def test_l_ties_default_empty_and_schema_drops_member_l(tmp_path, toy_access):
+    """oracle (d) 설계 결론 D-GB7a(40 §3.7·§11 U4): θ 는 L 동치류마다 L 성분 하나(주인), 멤버 ("L", 멤버) 성분은 없다.
+    기대 = plain 성분 - {("L","M3"),("L","M4")}(LClass 선언에서 손으로 정한 멤버, 피검 함수 출력 아님), 나머지 성분·순서는 그대로.
+    (U1 시절 'schema 불변' 단언은 D-GB7a 와 모순 -- 오케스트레이터 결정으로 교체.)"""
     from gmid_engine.graph import LClass
     s1, inputs, plain = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
     assert plain.l_ties == ()
     tied = build_kernel_context(s1, inputs, toy_access,
                                 l_classes=(LClass(("M2", "M3", "M4"), "M2", "hand", "derived"),))
     assert tied.l_ties == (("M3", "M2"), ("M4", "M2"))
-    assert tied.schema == plain.schema
+    removed = {("L", "M3"), ("L", "M4")}
+    assert removed <= set(plain.schema.components)
+    assert tied.schema.components == tuple(c for c in plain.schema.components if c not in removed)
+    assert ("L", "M2") in tied.schema.components
+    assert (tied.schema.current_cone, tied.schema.fixed, tied.schema.zero_cancel) == (
+        plain.schema.current_cone, plain.schema.fixed, plain.schema.zero_cancel)
 
 
 def test_l_ties_only_derived_classes(tmp_path, toy_access):

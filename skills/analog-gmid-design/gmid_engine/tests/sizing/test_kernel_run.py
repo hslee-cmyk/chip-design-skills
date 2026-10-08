@@ -195,6 +195,77 @@ def test_passive_only_child_of_s2p_evaluation_reuses(ctx_passive_r4):
     assert same_dc(e2, e1)
 
 
+def test_passive_only_chain_of_s2p_parents_bit_identical(ctx_passive_r4):
+    """DEC-92 재사용(CONTRACT 7절 r5) + 14.2(U4 후속): 수동소자 θ 만 바꾼 자식을 두 번 잇는다(e1 = S2p 평가 -> e2 -> e3, 각 parent 는 직전
+    평가 + 정합 ss). 매 단계 DC 블록 computes 0, gm 상한 열이 e1 과 **비트 동일**(==)이고 그 값은 e0 의 손 ss gm(계획 N3.6 S2p)과
+    4 eps 안에서 같다. oracle (a): 손으로 쓴 ss gm(구성으로 정답이 정해진 parent)과 '입력이 같으면 결과 같음'(재사용 정의)."""
+    ctx = ctx_passive_r4
+    e0 = size_and_seal(ctx, theta_passive_r4())
+    p0 = with_hand_ss(e0)
+    e1 = size_and_seal(ctx, theta_passive_r4(vgs=0.62), parent=p0)
+    assert e1.sealed is not None
+    ss0 = dict(p0.snapshot.column("device", "ss_dev"))
+    assert abs(gm_bound(e1)["M1"] - ss0["M1"].gm) <= 4 * EPS * ss0["M1"].gm          # e1 은 S2p 값으로 평가됐다(전제)
+    prev = e1
+    for cz in (2e-12, 3e-12):
+        reset()
+        nxt = size_and_seal(ctx, theta_passive_r4(vgs=0.62, cz=cz), parent=with_hand_ss(prev))
+        assert sum(computes().values()) == 0, {k: v for k, v in computes().items() if v}
+        assert nxt.snapshot.column("device", "dc_gm_bound") == e1.snapshot.column("device", "dc_gm_bound")
+        assert same_dc(nxt, e1)
+        prev = nxt
+
+
+def test_passive_only_child_keeps_grid_max_bound_device(ctx_passive_r4):
+    """CONTRACT 14.2(U4 후속) '격자 최대 gm 이 상계인 소자는 뺀다': e1 은 parent ss 가 어긋난(M1 1.5 배 -> 옛 점의 필드) S2p 평가라 M1 의
+    gm 상한 = LUT 격자 최대(test_stale_ss_field_not_used 와 같은 규칙). e1 + 정합 ss 를 parent 로 수동소자만 바꾼 자식은 parent 가
+    실제로 쓴 입력(격자 최대)을 그대로 써야 하므로 M1 상한 = 격자 최대(닫힌 식 r4_grid_max_gm), DC 블록 computes 0, DC 결과 같음.
+    oracle (a) r4 toy 닫힌 식."""
+    ctx = ctx_passive_r4
+    e0 = size_and_seal(ctx, theta_passive_r4())
+    e1 = size_and_seal(ctx, theta_passive_r4(vgs=0.62), parent=with_hand_ss(e0, gm_scale={"M1": 1.5}))
+    assert e1.sealed is not None
+    o1 = ops(e1)["M1"]
+    grid = r4_grid_max_gm("nmos", o1.L, o1.W, o1.vds, o1.vsb)
+    assert rel_close(gm_bound(e1)["M1"], grid, 1e-9)                                   # 전제
+    reset()
+    e2 = size_and_seal(ctx, theta_passive_r4(vgs=0.62, cz=2e-12), parent=with_hand_ss(e1))
+    assert sum(computes().values()) == 0, {k: v for k, v in computes().items() if v}
+    assert rel_close(gm_bound(e2)["M1"], grid, 1e-9)
+    assert same_dc(e2, e1)
+
+
+@pytest.mark.parametrize("seed", range(4))
+def test_canonical_gm_id_is_smallest_with_same_bound(seed):
+    """CONTRACT 14.2 정의: canonical_gm_id(bound, current) = '같은 상계(gm/ID × 전류)를 내는 가장 작은 gm/ID'. oracle (a) 정의 그대로
+    -- 곱이 bound 와 같고(==), 바로 아래 부동소수(math.nextafter(c, 0))는 곱이 달라야 한다(양수 곱은 c 에 단조라 같은 곱의 집합은
+    구간). 원래 gm/ID 보다 크지 않다. 무작위 gm/ID ∈ [1, 30], I ∈ [1e-8, 1e-2]."""
+    import random
+    from gmid_engine.sizing.kernel_run import canonical_gm_id
+    rng = random.Random(seed)
+    for _ in range(500):
+        g = rng.uniform(1.0, 30.0)
+        cur = 10 ** rng.uniform(-8, -2)
+        bound = g * cur
+        c = canonical_gm_id(bound, cur)
+        assert c * cur == bound, (g, cur, c)
+        assert math.nextafter(c, 0.0) * cur != bound, (g, cur, c)
+        assert c <= g
+        assert canonical_gm_id(c * cur, cur) == c                                        # 정규형은 고정점
+
+
+def test_s2p_gm_id_is_canonical(sealed_c):
+    """CONTRACT 14.2 'S2p 에서 새로 뽑은 gm/ID 도 같은 정규형': previous_gm_id 의 값 g 마다 parent 전류 I 에서 g·I 를 내는 더 작은
+    부동소수가 없다(math.nextafter 로 직접 확인 -- canonical_gm_id 를 부르지 않는다)."""
+    e0, parent = sealed_c
+    o = ops(e0)
+    got = previous_gm_id(parent)
+    assert got
+    for m, g in got:
+        cur = o[m].current
+        assert math.nextafter(g, 0.0) * cur != g * cur, m
+
+
 # ===========================================================================
 # W_request 고정 W (D-GB7d, 설계 40 §3.7, 계획 N3.5 ⑤·N3.17 LY3)
 # ===========================================================================
@@ -292,6 +363,18 @@ def test_w_request_rejects(mir, bad):
     assert not isinstance(ei.value, CANDIDATE_FAILURE_CLASSES)
     with pytest.raises(ValueError):
         normalize_w_request(mir, bad)
+
+
+@pytest.mark.parametrize("dup", [(("M1", 2e-5), ("M1", 2e-5)), (("M1", 2e-5), ("M1", 3e-5)),
+                                 (("M3", 1e-5), ("M1", 2e-5), ("M3", 1e-5))])
+def test_w_request_duplicate_name_rejected(mir, dup):
+    """CONTRACT 14.3(U4 후속): (MOS, W) 쌍 목록에 같은 소자 이름이 두 번 -> ValueError(호출 계약 위반, 값이 같아도 거부), 후보 실패
+    클래스가 아니다. oracle (d) 계약 문언."""
+    with pytest.raises(ValueError) as ei:
+        size_and_seal(mir, theta_mirror(), w_request=dup)
+    assert not isinstance(ei.value, CANDIDATE_FAILURE_CLASSES)
+    with pytest.raises(ValueError):
+        normalize_w_request(mir, dup)
 
 
 # ===========================================================================

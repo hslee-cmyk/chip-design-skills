@@ -24,7 +24,7 @@ from gmid_engine.sizing import DC_KEY, INPUT_GROUP_KEY, size_and_seal
 from gmid_engine.sizing.input_window import saturation_window
 
 from .conftest import (R4_L, build_ctx, detail, free_currents, mos, node_voltages, r4_ln_idu, r4_tol_vdsat,
-                       r4_vdsat_at, r4_vgs_of, topo, two)
+                       r4_vdsat_at, r4_vgs_of, seal_item, topo, two)
 
 # ===========================================================================
 # 단위: saturation_window(unknown, root, values, gradient, rows) -> (lo, hi) | None
@@ -231,6 +231,63 @@ def test_window_found_when_rail_midpoint_is_outside(pend):
     ev = size_and_seal(pend, _theta(pend, 0.6, 0.3, 0.5))
     assert ev.sealed is not None
     assert lo_e <= node_voltages(ev.snapshot)["in"] <= hi_e
+
+
+# [U4 후속] CONTRACT 14.6: (1)이 y = 1/2 에서 풀리지 않으면 순서 창 안을 1/4, 3/4, 1/8, 3/8, ... 로 훑고(시도 ≤ k_max), (5) 창 끝은
+# 뉴턴으로 다듬어 y = 0·1 도 봉인 7 포화 여유 ≥ 0. 설계 41 §4.6 '범위 = 입력 창, 경계는 봉인 시점 값이며 tol 을 포함한다'.
+# 구성 두 개 -- 정확한 창이 레일 중앙(0.9 V) 아래(VGS_A 0.6)와 위(VGS_A 1.1) -- 의 정확한 창은 Follower 독립 풀이(oracle (a)+(b)).
+_OFF_MID = {"below": (0.6, 0.3, 0.67), "above": (1.1, 0.3, 1.08)}
+
+
+def _oracle_slacks(ev):
+    """봉인 7 의 포화 여유 VDS − VDSAT − tol_VDsat 을 엔진이 낸 노드전압에서 독립으로 잰다(MA: VDS = V(y), VGS = V(x);
+    MB: VDS = V(x) − V(y), VGS = V(in) − V(y), VSB 0). VDSAT·tol = conftest npz 열 직접."""
+    V = node_voltages(ev.snapshot)
+    sa = V["y"] - r4_vdsat_at("nmos", R4_L[0], V["x"], 0.0) - TOL
+    sb = (V["x"] - V["y"]) - r4_vdsat_at("nmos", R4_L[0], V["in"] - V["y"], 0.0) - TOL
+    return sa, sb
+
+
+@pytest.fixture(scope="module")
+def off_mid_windows():
+    out = {}
+    for key, (va, vb, guess) in _OFF_MID.items():
+        lo, hi = Follower(va, vb).window(guess)
+        assert not lo <= 0.9 <= hi                                                    # 전제: 레일 중앙은 창 밖
+        out[key] = (lo, hi)
+    return out
+
+
+@pytest.mark.parametrize("key", sorted(_OFF_MID))
+@pytest.mark.parametrize("y", [0.0, 0.125, 0.25, 0.5, 0.75, 0.875, 1.0])
+def test_off_mid_window_maps_y_and_ends_saturated(pend, off_mid_windows, key, y):
+    """레일 중앙이 창 밖인 두 구성(아래·위): 모든 y ∈ [0, 1] 이 봉인되고(봉인 7 pass), V(in) = lo + y·(hi − lo)(기록된 창), 기록된 창
+    끝은 정확한 창 끝과 tol_V 안, 엔진 노드전압에서 독립으로 잰 두 소자 포화 여유 ≥ 0(창 끝 y = 0·1 포함)."""
+    va, vb, _ = _OFF_MID[key]
+    lo_e, hi_e = off_mid_windows[key]
+    ev = size_and_seal(pend, _theta(pend, va, vb, y))
+    assert ev.sealed is not None
+    assert seal_item(ev.snapshot, 7).status == "pass"
+    w = _window(ev)
+    vin = node_voltages(ev.snapshot)["in"]
+    assert abs(vin - (w.lo + y * (w.hi - w.lo))) <= 1e-12
+    tv = _tol_v(ev)
+    assert abs(w.lo - lo_e) <= tv and abs(w.hi - hi_e) <= tv
+    assert lo_e - tv <= vin <= hi_e + tv
+    assert min(_oracle_slacks(ev)) >= -1e-12, _oracle_slacks(ev)
+
+
+@pytest.mark.parametrize("y", [0.0, 1.0])
+def test_mid_window_ends_have_nonnegative_saturation_slack(pend, y):
+    """레일 중앙이 창 안인 구성(VGS 0.9/0.3)의 창 끝 y = 0·1: 봉인 7 pass 이고 엔진 노드전압에서 독립으로 잰 포화 여유 ≥ 0, 끝 쪽
+    소자의 여유는 tol_V 규모(끝이 정확한 창 끝 근처 -- 다듬기가 창을 안쪽으로 크게 줄이지 않았다)."""
+    ev = size_and_seal(pend, _theta(pend, 0.9, 0.3, y))
+    assert ev.sealed is not None and seal_item(ev.snapshot, 7).status == "pass"
+    sa, sb = _oracle_slacks(ev)
+    assert min(sa, sb) >= -1e-12
+    lo_e, hi_e = Follower(0.9, 0.3).window(0.9)
+    vin = node_voltages(ev.snapshot)["in"]
+    assert abs(vin - (lo_e if y == 0.0 else hi_e)) <= _tol_v(ev)
 
 
 def test_declared_input_dc_same_theta_seals(tmp_path, r4_access):
