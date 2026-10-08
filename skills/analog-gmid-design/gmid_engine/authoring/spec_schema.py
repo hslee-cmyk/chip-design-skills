@@ -23,7 +23,11 @@ META_KEYS = ("schema_version", "circuit", "topology_fp", "origin")
 META_ORIGINS = ("canonical", "fixture")
 HUMAN_REQUIRED = ("supplies_v", "input_dc", "element_values", "feedback", "constraints", "node_voltage_targets_v",
                   "intended_region", "objective", "search", "spice_check", "front_refilter")
-HUMAN_OPTIONAL = ("pending_constraints", "compensation_targets")
+# [U5 2026-10-08, 설계 40 §3.1] 선택 섹션 3개를 더했다: 블록 gain 고정 `gain_budget_db_override`, 출력 구동 `driving_spec`,
+# 구조 계수 예산 `structure_count_budget`. 모양 검사는 각 선언 파일(스키마 버전은 그대로 -- 선택 키 추가라 기존 spec 이 유효하다).
+# [U5 후속 2026-10-09] 선택 섹션 `noise_testbench`(41 §7.1)를 더했다.
+HUMAN_OPTIONAL = ("pending_constraints", "compensation_targets", "gain_budget_db_override", "driving_spec",
+                  "structure_count_budget", "noise_testbench")
 HUMAN_KEYS = HUMAN_REQUIRED + HUMAN_OPTIONAL
 PENDING_ID_PATTERN = re.compile(r"(?:SP|AC|CI|PA|ET)-[1-9][0-9]*|U-[0-9]{2}|MOD[1-9][0-9]*")
 

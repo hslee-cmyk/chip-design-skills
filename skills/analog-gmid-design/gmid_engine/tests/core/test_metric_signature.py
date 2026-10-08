@@ -9,7 +9,8 @@ import gmid_engine.core as core
 from gmid_engine.core import DOMAINS, METRIC_UNITS, OBJECTIVE_AXES, VIEW_KINDS, MetricSignature
 
 # 계약 문장 그대로의 어휘
-WANT_UNITS = {"db", "hz", "deg", "ohm", "mv", "amp", "w", "m2"}
+# [U5 2026-10-08] pct·ratio·v(설계 40 §3.8-8 '단위 어휘') + v2_per_hz(41 §7.1 '단위 어휘 v2_per_hz, hz(기존), ratio, v') -- oracle (d)
+WANT_UNITS = {"db", "hz", "deg", "ohm", "mv", "amp", "w", "m2", "pct", "ratio", "v", "v2_per_hz"}
 WANT_DOMAINS = {"dc", "ss", "ls", "geom"}
 # [CM 2026-10-08] cm_loop 추가(core CONTRACT 0절 metric_signature.py 행, metrics S-20 -- 순서까지 고정)
 WANT_VIEW_KINDS_ORDERED = ("transfer", "loop", "cm_loop", "output_port", "ratio")

@@ -120,7 +120,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | core → 전체 | `GraphSnapshot`, `FieldValue`, `compute_block`, `LutMemo`(lut), `FailureRecord`, `exit_code_for`, `normalized_margin`, `read_pdk_decl`, `MetricSignature` | 기존 | OK |
 | lut → sizing·metrics·layout | `op_point`, `vgs_for_gm_id`, `vdsat`, `gmb`, `caps`, `tol_v_table`, `tol_vdsat_table`, `curve_report`, `load_lut_set` | 기존 | OK |
 | lut → 41 §6 | **신규** `ft_curve(kind, L, VDS, VSB)`, `intrinsic_gain_curve(...)`, `vdsat_curve(...)`, `idu_curve(...)`(gm/ID 축 곡선), **신규** `vgs_for_current_density`(DEC-88) | (gm/ID 배열 → 값 배열), LUT 곡선 표 memo | MISS(조합으로는 계산 가능) |
-| authoring → graph·search | `SizingSpec`(제약·목표·θ 범위·설정), **신규 필드** `gain_budget_db_override`, `driving_spec`, `symmetry_untie`, `cm_sense_elements`[ng-cmfb-pm], `element_values.*.measurement_load`[ng-area-budget] | spec 로더 | PART |
+| authoring → graph·search | `SizingSpec`(제약·목표·θ 범위·설정), **신규 필드** `gain_budget_db_override`, `driving_spec`, `untie_orbits`(옛 설계 이름 `symmetry_untie`), `cm_sense_elements`[ng-cmfb-pm], `element_values.*.measurement_load`[ng-area-budget] | spec 로더 | PART |
 | graph → sizing·search·metrics | S1(기존), **신규** `S1v{views[], blocks[], pole_nodes[], loops[], cuts[], coverage}`, **신규** `orbits`(자기동형 궤도) | S1v 스냅샷 필드 | MISS |
 | sizing → search | `size_and_seal`, `build_kernel_context`, `dc_theta_schema`, `dc_current_basis` | 기존 | OK |
 | metrics → search | `ss_evaluate`, `metric_value`, **신규** `block_local_gain`, `achievability`, `ls_fields` | | PART |
@@ -144,9 +144,9 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 |---|---|---|
 | `gain_budget_db_override` | `[{block: [출력노드 넷 이름, ...], value_db, source}]`. 블록 키는 출력노드 이름을 정렬한 배열이다(41 §1.7-3) | 41 §5.7 |
 | `structure_count_budget` | `{value, source}`, 선택 항목. 없으면 LUT 격자에서 유도한 값을 쓴다(41 §0) | 41 §0 |
-| 잡음 제약 `noise_in_density_ss_v_rthz`(`freq_hz`), `noise_in_integrated_ss_v`(`band_hz`) | `constraints[]` 행, `source` 필수 | 41 §7 |
+| 잡음 제약 `noise_th_in_v2hz`·`noise_fc_in_hz`(보고), `noise_excess_th`(가드), `noise_out_int_vrms`(폐루프 적분) -- 주파수·대역 필드 없음(41 §7.1: 주파수를 숫자로 고르지 않는다, `freq_hz`는 `unknown_key`). 옛 이름 `noise_in_density_ss_v_rthz`·`noise_in_integrated_ss_v`는 `metric_unknown` | `constraints[]` 행, `source` 필수 | 41 §7.1 |
 | `driving_spec` | `{slew_rate_v_per_s?, load_peak_amp?, load_dc_amp?, source}` | §3.8 `ls` |
-| `symmetry_untie` | `[{devices: [...], source}]` | §6 |
+| `search.untie_orbits`(as-built, 옛 설계 이름 `symmetry_untie`) | `{원소 이름: {source}}`(MOS·수동소자, `user_spec`만, 원소가 topology에 없으면 `untie_element`) | §6 |
 | `cm_sense_elements` | `[<요소 이름>]` + `source: user_spec` | §5 `[ng-cmfb-pm]` |
 | `element_values.<el>.measurement_load` | bool | §7.1 `[ng-area-budget]` |
 
@@ -156,7 +156,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | gate 전용 바이어스 넷 | DEV(승인됨): `ports` role 대신 최상위 키 `bias_inputs`(사용자 Q9 (i)). 계획서 DEC-94 문구를 고쳐야 한다 | `E/authoring/bias_inputs.py:20` |
 | 옛 이름 거부 | DEV: topology에는 `legacy_name` 표가 없다(닫힌 어휘로 대신 거부). spec 옛 이름 표가 정본 이름 `input_dc_net`·`topology_hash`·`derived`를 거부한다. topology `ports.direction`을 필수로 받는다(N3.16에서는 흡수 대상) | `E/authoring/_spec_fields.py:28-33`, `authoring/CONTRACT.md:151-152,201` |
 | `gain_budget_db_override`·`driving_spec` | MISS: 로더가 `unknown_key`로 거부한다 | `authoring/SPEC_CONTRACT.md:226-228` |
-| `spice_unverifiable[]` 사전 출력(DEC-90 (3)) | MISS | -- |
+| `spice_unverifiable[]` 사전 출력(DEC-90 (3)). **형식**(2026-10-09 정의): metric 서명(`MetricSignature`, 레지스트리와 계산 대기 카탈로그 모두)에 `oracle_measure: str \| None` 필드 -- 그 metric을 재는 오라클 measure 이름(`tools/spice_oracle` 출력 이름, 엔진은 이름만 들고 오라클을 import하지 않는다), 잴 수 없으면 None. spec 로더가 `SizingSpecDoc.spice_unverifiable` = 판정 제약(`judged`) 중 `oracle_measure is None`인 metric 이름 tuple(정렬)을 만들고, 단계 A 보고서 맨 앞에 실행 전 출력한다. 대응표는 metrics CONTRACT에 두고 U6 measure(잡음·offset MC·스윙·ICMR 포함)로 채운다 | MISS | -- |
 | 면적 예산 제약 | PART: master는 `objective.budgets` 형식만 있다(9회로 모두 pending). 제약 행은 `[ng-area-budget]`에 있다 | `E/authoring/spec_settings.py:62` |
 
 ### 3.2 GB1 -- 구조 유도 (MOD3)
@@ -239,7 +239,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
    | current_reuse(파일럿) | `ac_ground_exception` | Vbias2 | `loop:M37a:Voc` | override | C.6 |
    | current_reuse(파일럿) | `dc_role` | M58, M63 | `diode_reference_composite` | confirm | C.6 |
    | sf_pushpull_output_opamp | `dc_role` | M6, M8, M14 / M5, M7, M13 / M9, M17, M11, M16, M20 | `diode_reference_composite` / `diode_reference_composite_cascode` / `bias_current_source` | confirm | D.6 |
-   | sf_pushpull_output_opamp | `loop_role` | 복합 diode 내부 사이클 9개 | `composite_diode_internal` | confirm | D.6 |
+   | sf_pushpull_output_opamp | `loop_role` | 복합 diode 내부 사이클 3개({N1,N5}, {N2,N7}, {N12,N13}; U1b 실측) | `composite_diode_internal` | confirm | D.6 |
    | sf_pushpull_output_opamp | `matching_pair` | `["M6","M8"]`, `["M5","M7"]`, `["R1a","R1b"]` | `branch_symmetric` | override | D.5 |
    | sf_pushpull_output_opamp | `drive_kind` | N17, N20 / N910, N1112, N1516 | `voltage` / `current` | override -- **U1b 뒤에도 엔진이 못 가르는 넷만** | D.6, J12-b |
 
@@ -260,6 +260,14 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 **불변식**:
 - 어느 블록에도, 어느 바이어스 기둥에도 속하지 않는 소자가 있으면 정지한다(`StructureUnresolvedError`, 사유 `column_unassigned`, DEC-71 (2)).
 
+**U10 as-built 보완**(2026-10-09 오케스트레이터 결정, 모두 이름 없는 구조 규칙):
+- **바이어스 기둥 = 의사 블록**: 어느 블록에도 속하지 않는 소자만으로 된 기둥(바이어스 기둥)을 K1·K2·K4 판정에서 의사 블록 `bias:<기둥>`으로 센다. 기준 diode(바이어스 기둥)와 블록 소자 사이 미러·`equal_vgs`도 층 0 조립이 지켜야 하는 관계이기 때문이다(예: sf M3↔M4, ngcc M6A↔M7).
+- **K3 정의**: 비레일 넷에서 MOS e의 drain과 MOS d의 source가 만나고 둘의 블록이 다르면 `stacked_vsb`(d의 VSB가 e의 VDS에 묶임). 9회로 0건.
+- **K7 범위**: 동작점이 있는 소자(MOS)만 센다. 커패시터·저항은 값이 뷰마다 같아 나눌 것이 없다.
+- 레코드에 `nets`(관계가 걸린 넷), 매핑표 행에 `basis`(`block_member`·`column_mate`·`bias_column`)를 더한다.
+- `column_unassigned` 범위 = DC 가지에 든 원소. 커패시터·가지치기된 저항은 KVL이 없어 제외한다.
+- 소비자는 U15 층 0 조립이며, 그 전에는 단계 A 보고서 `coupling`이 유일한 출구다.
+- 관찰(U7로 넘김): 버퍼 블록은 부하 수동소자를 블록에 붙이지 않는다(출력 CL이 블록 멤버가 아님). 이득 블록과 규칙이 다르다.
 **상태**: MISS. as-built의 y는 W4 창 위치 [0, 1]로만 있다(`E/search/search_domain.py:97`).
 
 ### 3.4 GB4 -- 달성가능성 (MOD5) → 41 §4
@@ -296,7 +304,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 
 **CM 감지 소자**(사용자 결정 2026-10-07 'R1·R2 = (b)', 일반화 2026-10-08 "동의", M4): 감지 소자는 출력을 측정 가능하게 부하하지 않아야 하고, 값이 동작점과 무관한 감지 쪽 수동소자는 엔진이 값을 계산한다.
 
-**대상**: CM 분할(§5 `authoring.cm_partition`, `cm_sense_elements` 선언을 반영한 결과 하나만 쓴다 -- 같은 도달 규칙을 다른 모듈에 복사하지 않는다)이 감지(소비) 쪽으로 분류한 소자에 닿은 **자유 수동소자 전부(R·C)**. 자유 = θ 성분이고 DC 전류 기저에서 가지치기되어 값이 동작점을 바꾸지 않는다. 출력 넷에 직접 닿는지는 보지 않는다.
+**대상**: CM 분할(§5 `authoring.cm_partition`, `cm_sense_elements` 선언을 반영한 결과 하나만 쓴다 -- 같은 도달 규칙을 다른 모듈에 복사하지 않는다)이 감지(소비) 쪽으로 분류한 소자에 닿은 **자유 수동소자 전부(R·C)**. 자유 = θ 성분이고 값이 DC 동작점을 바꾸지 않는다: DC 전류 기저에서 가지치기되었거나, U2 `current_symmetry`가 **구조적 전류 0**으로 판정한 소자(예: 대칭 출력 사이 직렬 감지 저항 -- CM 동작점에서 양끝 전위가 같다). 2026-10-09 정정: 가지치기만으로 정의하면 결정 (b)의 대상(파일럿 R1·R2)이 빠져 형태 표와 충돌했다. 출력 넷에 직접 닿는지는 보지 않는다.
 
 | CMFB 형태 | 대상 | 값을 정하는 기준이 되는 metric(예) |
 |---|---|---|
@@ -314,7 +322,9 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 5. 재판정에서 이전에 만족하던 행이 하나라도 위반되거나 미측정이 늘면 원래 값을 유지하고 사유를 기록한다.
 6. **적용 범위**: 1~5는 front 점마다 한 번씩 따로 적용한다(M4). 모든 점에 적용한 뒤 front를 비지배 필터에 한 번 더 통과시킨다(수동소자 면적이 면적 축에 들어가므로, §9 Q9). 필터에서 빠진 점과 사유는 기록한다.
 
-상수는 새로 두지 않는다. 허용 손실은 각 metric의 분해능이다. 선언된 제약이 없어 분해능이 없으면 건드리지 않고 사유를 기록한다.
+상수는 새로 두지 않는다. 허용 손실은 각 metric의 분해능이다. 소자 제거는 R → ∞·C → 0 극한으로 구현해도 되나, 그 값은 유도해 주석에 남긴다(as-built: R = √(float max)).
+
+**면적 예산 출발점(as-built U11, 잠정)**: `fit_to_area_budget`이 예산을 넘는 시작점의 ln IDu를 모두 같은 Δ만큼 옮겨 예산 안으로 넣는다. 설계 정본은 41 §6.4 면적 상한으로 출발 구간을 자르는 것(U13)이며, U13이 들어오는 커밋에서 이 이동 방식을 지운다. 선언된 제약이 없어 분해능이 없으면 건드리지 않고 사유를 기록한다.
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
@@ -415,7 +425,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | `offset_in_sigma_mv` | **입력 환산 랜덤 offset 1σ**. 회로의 **모든 MOS** i에 독립 게이트 전압 오차원 σ_VGS,i(41 §6.4-2 A_eff 모델: LUT 감도 열 × bin별 slope / √(W_i·L_i))를 두고, 봉인 `ss` 스냅샷의 MNA 저주파(ω → 0) 전달로 출력(차동 출력이면 차동)까지 보낸 분산을 합해 차동 이득 A_dm으로 나눈다: σ²_in = Σ_i (Z_i·gm_i·σ_VGS,i)² / A_dm². Z_i는 소자 i 드레인 전류 → 출력 전달 임피던스이고, 잡음 해석(41 §7.3)과 같은 adjoint 해 한 번으로 모든 i를 얻는다 | mv | ss / transfer(gain 제약 전달 뷰) | LUT `tol_mismatch`와 소신호 tol의 adjoint 감도 전파 | 파일럿 제약, 나머지 보고 |
 | `offset_excess` | `offset_in_sigma_mv` ÷ (입력 셀 소자만의 같은 합). 입력 셀은 S1v의 gain 제약 전달 뷰 첫 이득 블록 input 셀(`noise_excess_th`와 같은 구조 규칙) | ratio | ss / transfer | 위 두 값의 전파 | 구조 가드 `<= √2`(부하 분산 ≤ 입력쌍 분산의 경계) |
 | `offset_sys_mv` | **계통 offset**: 봉인 DC 동작점(실제 VDS 반영)에서 입력 차 0일 때의 출력 오차 / A_dm. 출력 오차 기준은 차동 출력 = Vop − Vom, 단일 출력 = spec에 선언된 출력 기준 DC(선언이 없으면 값을 내지 않고 `reference_undeclared`로 보고) | mv | dc→ss / transfer | DC tol(tol_V)의 전파 | 상한 = `value_from_constraint: offset_in_sigma_mv`(기존 규칙 '계통 ≤ 랜덤 예산', 그 제약이 있는 회로만), 나머지 보고 |
-| `mirror_ratio_sigma_pct` | S1 matching 그룹 중 mirror 계열(whole, consumer_symmetric, `mirror_tail_ratio`, bias_distribution)마다 랜덤 전류비 σ(ΔI/I) = (gm/ID)·σ_ΔVGS,pair | pct | dc→ss / ratio | tol 전파 | 보고만 |
+| `mirror_ratio_sigma_pct` | S1 matching 그룹 중 mirror 계열(whole, consumer_symmetric, `mirror_tail_ratio`, bias_distribution)마다 랜덤 전류비 σ(ΔI/I) = (gm/ID)·σ_ΔVGS,pair | pct | dc→ss / 없음(뷰 불필요: 대상은 S1 미러 matching 그룹. view_kind `ratio`는 {num, den} 응답비 뷰라 해당 없음, U5 as-built 2026-10-08) | tol 전파 | 보고만 |
 | `swing_out_v` | **포화 기준 출력 스윙**: 출력 DC 동작점을 중심으로, 출력 경로의 모든 MOS가 VDS ≥ VDSAT + tol_vdsat(사용자 SPICE 포화 규칙 + LUT `tol_vdsat_table`)를 지키는 대칭 peak-to-peak 폭. 단일 출력 = 2·min(V_hi − V_o, V_o − V_lo). 차동 출력(포트쌍 p/n) = 출력마다 계산한 반폭의 최솟값 × 4(차동 p-p). [V_lo, V_hi]는 P N3.8 경로 합(VDS 엣지 = 포화 하한, VGS 엣지 = 그 전류의 VSB 포함 VGS)이다. 구간 자체도 레코드로 낸다 | v | ls | tol_vdsat·tol_V 합 | 파일럿·nmcnr 제약, 나머지 보고 |
 | `icmr_v` | 입력 공통모드 창 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi]의 폭(레일 밖 입력 불허). 경계 = 입력 경로 소자 전부 VDS ≥ VDSAT + tol_vdsat. 창이 비면 음수 폭(부족량)을 그대로 낸다 | v | ls | 같음 | ngcc·nmcnr 제약, 나머지 보고 |
 | `icm_margin_v` | 선언된 입력 DC(spec `input_dc`)와 위 창 경계의 최소 거리 min(V_icm − Vin,min, Vin,max − V_icm). 경계에 tol이 이미 들어 있으므로 ≥ 0이면 'LUT tol 여유를 두고 창 안'이다. 입력 DC가 SP-2 대기면 SP-2 (c)(J-E, 41 §4.6)에 따라 V_icm = 해의 W4 자유 변수 y_icm으로 계산하고, `required_input_cm_v{value, window}`를 함께 보고한다 | v | ls | 같음 | 아래 규칙 |
@@ -508,6 +518,12 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 7. **최종 판정과 이행 순서**:
    - Z와 폐루프 과도를 함께 본다. Z ≥ 1 또는 과도 `unstable`이면 FAIL이다. Z = 0이고 과도가 stable/decaying이면 안정이다. 둘 다 결론을 못 내면 INCOMPLETE다.
    - **6이 구현되기 전에는 폐루프 과도만 쓴다.** 이때 Z는 '미정'으로 보고하고, 개루프 RHP만으로는 FAIL·INCOMPLETE를 정하지 않는다.
+8. **U6 판정 규칙 보완**(사용자 결정 2026-10-09 "3개 모두 네의견대로 해", U6 구현 보고 반영):
+   - **한계 사이클 = 감쇠하지 않음**: 2번의 '분해능 안에서 일정'을 대체한다. j ≥ 3에서 최근 두 창의 진폭 M_j가 앞 창보다 분해능 이상 줄지 않으면 지속 진동 `unstable(limit_cycle)`이다. 진폭이 출렁이는 지속 진동(rb1e6형)도 포함한다. 창마다 분해능 이상 계속 줄면 slow decay로 판정을 이어 간다.
+   - **`.pz` 신뢰 규칙**: 큰 BSIM4 회로에서 `.pz`가 경고 없이 거짓 RHP 극점을 낸다(파일럿 23개, 개루프 `.tran`에 증가 없음). 그래서 폐루프 과도가 stable이면 `.pz`를 쓰지 않는다(Z = 0, P = −N). 과도 unstable이면 FAIL. 과도 미정이면 N ≥ 1 → FAIL, N = 0이면 **개루프 과도가 증가를 확인할 때만** `.pz` P를 쓰고 아니면 INCOMPLETE다. 과도 stable인데 `.pz`가 −N과 다르면 `pz_conflict`를 기록한다.
+   - **자극 위치**: 폐루프 과도의 자극과 관측은 루프 끊는 점에 둔다. 그 루프의 폐루프 극점은 끊는 점에서 들뜨고 관측되므로, '자극이 모드를 못 들뜨게 해서 안정으로 남는' 위험을 그 루프 뷰 범위에서 닫는다. 남는 한계는 보고서에 적는다.
+   - **조건부 안정**: Z = 0이고 과도 stable이면 `pm_valid`를 유지한다. PM은 모든 |T| = 1 교차의 최솟값이다. P ≥ 1이거나, 교차 주파수 아래 |T| > 1 구간에서 위상이 −180°를 넘으면 `conditionally_stable`을 표시하고 **하측 이득 여유**(루프 이득이 몇 dB 줄면 감김 수가 바뀌는지, 같은 `.ac`에서 읽음)를 보고한다. spec 값이 없으므로 제약이 아니라 보고다.
+   - **U6 test 후속 정의**(2026-10-09 오케스트레이터): (i) 창 판정의 floor는 **관측 노드(루프 끊는 점)** 기준 reltol·|V_op| + vntol이다. (ii) 오라클 ICMR 좌표는 창 끝에서의 **실제 입력 공통모드 (V_inp + V_inn)/2**다(엔진 `icmr_v`와 같은 정의). (iii) 차동 입력이 없는 회로의 ICMR은 `unavailable`이다. (iv) 하측 이득 여유 필드 이름은 `low_side_gain_margin_db`. (v) `noise_excess_th`의 입력 셀 소자 이름은 오라클 넷리스트 이름으로 사상해 찾는다(수동소자 접두 포함).
 
 | 항목 | 상태 | 증거 |
 |---|---|---|
@@ -561,7 +577,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
    - 이름을 쓰지 않는다. 결과는 정준 순서와 자기동형 생성자다.
 2. **궤도**(신규 `E/graph/automorphism_orbits.py`): 생성자들로 소자 궤도를 만든다. 레일과 포트 role은 고정한다. 차동 포트 p/n은 서로 바뀔 수 있다.
 3. **θ 묶기**(`E/sizing/theta_schema.py`): 같은 궤도의 소자는 θ 성분을 하나 공유한다. 대상은 ln IDu, L 동치류 L, 보상 수동소자 값이다. 전류 기저 성분은 궤도에 대해 대칭인 것끼리 묶는다. 이것이 기본값이다.
-4. **해제**: spec `symmetry_untie: [{devices, source}]`에 적힌 소자는 궤도에서 빼고 따로 변수를 둔다. 의도적 비대칭 사이징에 쓴다.
+4. **해제**: spec `search.untie_orbits: {원소: {source}}`(as-built 정본, 옛 이름 `symmetry_untie`)에 적힌 소자는 궤도에서 빼고 따로 변수를 둔다. 의도적 비대칭 사이징에 쓴다.
 5. **불변식**:
    - **궤도와 matching 사이에는 포함 관계를 불변식으로 두지 않는다**(H1·N8, `[ng-layer0-canon]` 실측). 어느 쪽도 일반적으로 다른 쪽을 포함하지 않는다.
      - 비율 미러는 궤도가 아니다.
