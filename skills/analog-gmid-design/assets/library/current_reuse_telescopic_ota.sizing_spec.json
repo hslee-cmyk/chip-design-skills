@@ -171,6 +171,17 @@
         }
       },
       {
+        "metric": "pm_cm_ss_deg",
+        "op": ">=",
+        "value": 60,
+        "_view_comment": "공통 모드 루프 뷰는 적지 않는다 -- 선언된 차동 출력 포트 쌍(Vop, Vom)에 동일 부호 Middlebrook 전압·전류 주입(출력 CM 주입, 입력 교류접지)으로 T_cm 을 구하고, CM 감지(R1·R2 평균, 오차 증폭기) 구현 방식은 보지 않는다(spec_views cm_loop, metrics CONTRACT 7.11).",
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"6번도 네 의견에 동의하고 제안한 값을 사용해\" -- 차동 회로 CMFB 루프 PM 하한 60도 (CMFB 루프가 있는 회로에만)",
+          "decided": "2026-10-08"
+        }
+      },
+      {
         "metric": "ratio_ss_db",
         "op": ">=",
         "value": 60,

@@ -71,7 +71,8 @@ def test_block_declaration():
     assert METRICS_KEY == "metrics"
     assert set(metrics_ss.reads) == {("device", "ss_dev"), ("device", "element_class"), ("device", "kind"),
                                      ("device", "pins"), ("device", "bulk"), ("node", "ac_ground_class"),
-                                     ("node", "port_direction")}
+                                     ("node", "port_direction"), ("node", "port_role"),
+                                     ("node", "is_rail")}   # [CM] 7.4 reads + port_role, [6a6e4c7] S-32 is_rail
     assert tuple(metrics_ss.writes) == (("graph", "metrics_ss"),)
 
 
@@ -268,12 +269,14 @@ def test_s8_net_rename_invariance(tmp_path, declared, names):
 
 
 def test_example7c_mixed_cut_undefined_not_exception(tmp_path):
-    """예 7c: Cs 대신 저항 -> 절단 노드 n(전도)·x(용량 전용) 섞임 -> pm_ss_deg 정의 불가 loop_cut_mixed_charge, 예외 0."""
+    """예 7c([CM 2026-10-08] 갱신): Cs 대신 저항 -> 절단 노드 n(전도)·x(용량 전용) 섞임. 섞인 절단 T(0) 는 이제 값 0(폐형식 분자에 s,
+    metrics CONTRACT 예 7c·I-18) -> pm_ss_deg 정의 불가 사유는 dc_not_above_level(loop_cut_mixed_charge 아님), 예외 0."""
     case = ex7_case(tmp_path, (("pm_ss_deg", ">=", 60.0, None), ("gain_ss_db", ">=", 30.0, None)), cs_resistor=True)
     _, _, b = _run(case, passives=ex7_passives(cs_resistor=True))
     m = bundle_map(b)
     assert m["pm_ss_deg"].value is None
-    assert "loop_cut_mixed_charge" in {u.code for u in m["pm_ss_deg"].undefined}
+    assert [u.code for u in m["pm_ss_deg"].undefined] == ["dc_not_above_level"]
+    assert "loop_cut_mixed_charge" not in {u.code for u in m["pm_ss_deg"].undefined}
     assert m["gain_ss_db"].value is not None
 
 
@@ -561,3 +564,198 @@ def test_no_rhp_ex7_pm_values_unchanged_with_rhp_neighbour(tmp_path, declared_ep
     for q in ("pm_ss_deg", "parasitic_pm_ss_deg"):
         assert PM_RHP not in {u.code for u in (m[q].undefined or ())}
         assert m[q].resolution is not None
+
+
+# =====================================================================================================================
+# [CM 0e487b3] 출력 포트 CM 주입 pm_cm_ss_deg (7.4 cm_output 행, 7.11, S-21~S-28) -- 합성 CMFB 변형(conftest cm_variant).
+# 기대값: (a) 손유도 T_cm(0)(cm_variant "t0"), "direct" 는 예 7d 형 폐형식 전체(closed_ex7d, gm = gmp, gds = Go, Cg = PMOS cgs 하나 --
+# 반회로마다 R·Cg 하나), (b) 독립 Middlebrook ref_cm_output + ref_pm(brentq 교차·언랩 위상). 허용: PM·UGF 상대 ≤ 1e-9(I-18 과 같은
+# PM 규약), dc_db 상대 ≤ 1e-12(dB 는 T(0) 의 log -- 상대 1e-12 는 차원·eps 규모 여유).
+# =====================================================================================================================
+
+from .conftest import CM_CG, CM_CL, CM_GO, CM_R, closed_ex7d, cm_case, cm_variant, ref_cm_output, ref_pm  # noqa: E402
+
+CM_REQ = (("pm_cm_ss_deg", ">=", 60.0, None),)
+GAIN_DIFF = {"ac_excite": {"ip": 0.5, "im": -0.5}, "sense_p": "op", "sense_n": "om", "sense_mode": "differential"}
+
+
+def _cm_run(case, metrics=None):
+    td, spec, snap, pv, v = case
+    reqs = requests_of(spec, metrics)
+    out = metrics_ss(snap, reqs, pv)
+    return out, reqs, out.value("graph", METRICS_KEY, "metrics_ss")
+
+
+def _report(b):
+    assert len(b.reports) == 1 and b.reports[0][0] == "cm_loop", b.reports
+    return dict(b.reports[0][1])
+
+
+@pytest.fixture(scope="module")
+def cm_direct(tmp_path_factory):
+    return cm_case(tmp_path_factory.mktemp("cmd"), "direct", CM_REQ)
+
+
+def test_cm_view_derived_from_output_pair(cm_direct):
+    """입력 확인: 로더가 유도한 pm_cm_ss_deg 뷰 = cm_output, 가중 (om ½, op ½)(SPEC_CONTRACT 3절)."""
+    (c,) = [c for c in cm_direct[1].constraints if c.metric == "pm_cm_ss_deg"]
+    assert c.view.mode == "cm_output" and tuple(c.view.weights) == (("om", 0.5), ("op", 0.5))
+
+
+def test_cm_direct_closed_form_s23(cm_direct):
+    """S-23(값): '직접' 변형(평균 저항 -> PMOS 부하 gate) = 예 7d 형 폐형식 T = gmp/((Go + sCL)(1 + sRCg) + sCg) 의 PM(상대 ≤ 1e-9).
+    출력 구동자(M1·M3 drain)에서 끊어도 단일 제어 변수 루프라 감지 넷에서 끊은 되돌림 비와 같다(I-12)."""
+    ref = closed_ex7d(dict(gm=1e-4, gds=CM_GO, cg=CM_CG, cl=CM_CL, rf=CM_R))
+    _, _, b = _cm_run(cm_direct)
+    r = bundle_map(b)["pm_cm_ss_deg"]
+    assert r.undefined == ()
+    assert rel_close(r.value, ref["pm_deg"], 1e-9), (r.value, ref["pm_deg"])
+    rep = _report(b)
+    assert rel_close(rep["ugf_hz"], ref["ugf_hz"], 1e-9)
+    assert rel_close(rep["dc_db"], ref["gain_db"], 1e-12)
+
+
+@pytest.mark.parametrize("variant", ["direct", "ref_rc", "err_amp", "sf_buffer", "dda", "triode", "cascode_ideal", "degen",
+                                     "pass_device"])
+def test_cm_variants_match_independent_middlebrook(tmp_path, variant):
+    """S-21·S-29 일반성(연속시간 CMFB 변형 -- 저항 평균 직접, 감지 넷 기준 R·C, 저항 평균 -> 오차 증폭 2단, 소스 팔로어 버퍼 -> 저항 평균,
+    DDA, [6a6e4c7] triode 평균(소비자), 출력 캐스코드 + 이상 전류원, 소스 축퇴 출력 단, 출력 사이 통과 소자): T_cm(0) dB = 손유도
+    (상대 ≤ 1e-12), PM·UGF = 손 분류 구동자로 끊은 독립 Middlebrook(상대 ≤ 1e-9), 값 있으면 undefined 비어 있음."""
+    case = cm_case(tmp_path, variant, CM_REQ)
+    v = case[4]
+    _, _, b = _cm_run(case)
+    r = bundle_map(b)["pm_cm_ss_deg"]
+    rep = _report(b)
+    assert rel_close(rep["dc_db"], 20.0 * math.log10(v["t0"]), 1e-12), (rep["dc_db"], v["t0"])
+    assert abs(ref_cm_output(variant, 1e-2) - v["t0"]) <= 1e-6 * v["t0"]          # 손유도와 독립 MNA 가 서로 맞음(입력 확인)
+    ugf, pm = ref_pm(lambda w: ref_cm_output(variant, w))
+    assert pm is not None
+    assert r.undefined == () and rel_close(r.value, pm, 1e-9), (r.value, pm)
+    assert rel_close(rep["ugf_hz"], ugf, 1e-9)
+    assert rep["pm_deg"] == r.value and rep["undefined"] == ()
+    assert rep["break_nets"] == ("om", "op")
+
+
+def test_cm_triode_average_equals_resistor_average(tmp_path, cm_direct):
+    """[6a6e4c7] 변형 4: triode MOS 평균(gm = 0, gds = 1/R)은 소비자로 분류되어 전기적으로 같은 '직접'(저항 평균) 회로와 같은 T_cm --
+    T_cm(0) = gmp/Go = 50(손유도), PM = 예 7d 형 폐형식(상대 ≤ 1e-9). (이전 판의 거짓 위반 T_cm(0) = 0 이 나오면 FAIL.)"""
+    ref = closed_ex7d(dict(gm=1e-4, gds=CM_GO, cg=CM_CG, cl=CM_CL, rf=CM_R))
+    case = cm_case(tmp_path, "triode", CM_REQ)
+    _, _, b = _cm_run(case)
+    r = bundle_map(b)["pm_cm_ss_deg"]
+    assert r.undefined == ()
+    assert rel_close(r.value, ref["pm_deg"], 1e-9), (r.value, ref["pm_deg"])
+    assert rel_close(_report(b)["dc_db"], 20.0 * math.log10(50.0), 1e-12)
+    _, _, bd = _cm_run(cm_direct)
+    assert rel_close(r.value, bundle_map(bd)["pm_cm_ss_deg"].value, 1e-12)
+
+
+def test_cm_ambiguous_report_only_s32(tmp_path):
+    """S-32: 모호 회로(triode + 감지 넷 이상 전류원)에 선언 요청이 없으면 reports = break_nets + undefined (cm_partition_ambiguous,)
+    만, 경고 없음, cm 계를 만들지 않는다(gain_ss_db 포트 계 1개)."""
+    case = cm_case(tmp_path, "ambiguous", (("gain_ss_db", ">=", 0.0, GAIN_DIFF),))
+    _, _, b = _cm_run(case)
+    assert b.reports == (("cm_loop", (("break_nets", ("om", "op")), ("undefined", ("cm_partition_ambiguous",)))),)
+    assert b.warnings == ()
+    assert dict(b.detail)["systems"] == 1
+
+
+def test_cm_ambiguous_with_declaration_s30_s32(tmp_path, cm_direct):
+    """S-30·S-32: 같은 모호 회로에 cm_sense_elements [Mt1, Mt2] 선언 -> 선언된 요청과 보고 전용이 그 뷰를 쓴다: 값 = triode·직접과 같은 T_cm
+    (이상 전류원은 교류 개방), reports pm_deg = 선언 결과 값, 경고 없음, systems 1."""
+    case = cm_case(tmp_path, "ambiguous_declared", (("pm_cm_ss_deg", ">=", 60.0, {"cm_sense_elements": ["Mt1", "Mt2"]}),))
+    _, _, b = _cm_run(case)
+    r = bundle_map(b)["pm_cm_ss_deg"]
+    _, _, bd = _cm_run(cm_direct)
+    assert r.undefined == () and rel_close(r.value, bundle_map(bd)["pm_cm_ss_deg"].value, 1e-12)
+    assert _report(b)["pm_deg"] == r.value and b.warnings == ()
+    assert dict(b.detail)["systems"] == 1
+
+
+
+def test_cm_low_gain_violation_detail_s25(tmp_path):
+    """S-25·결정 A: T_cm(0) = gmp/Go = 0.5 ≤ 1 -> value None, undefined dc_not_above_level + detail dc_magnitude = 0.5, 경고 없음,
+    reports dc_db = 20·log10 0.5, pm·ugf None."""
+    case = cm_case(tmp_path, "low_gain", CM_REQ)
+    _, _, b = _cm_run(case)
+    r = bundle_map(b)["pm_cm_ss_deg"]
+    assert r.value is None
+    assert [u.code for u in r.undefined] == ["dc_not_above_level"]
+    assert rel_close(dict(r.undefined[0].detail)["dc_magnitude"], 0.5, 1e-12)
+    rep = _report(b)
+    assert rel_close(rep["dc_db"], 20.0 * math.log10(0.5), 1e-12)
+    assert rep["pm_deg"] is None and rep["ugf_hz"] is None and rep["undefined"] == ("dc_not_above_level",)
+    assert b.warnings == ()
+
+
+def test_cm_report_only_and_warning_without_declaration_s26_s27(tmp_path, cm_direct):
+    """S-26·S-27: pm_cm_ss_deg 요청이 없어도 차동 출력 회로는 reports 에 같은 T_cm(같은 값), T_cm(0) = 50 > 1 이라
+    warnings == (("cm_loop_unconstrained", (("dc_db", 20·log10 50),)),). 요청이 있으면 경고 없음, 선언 결과 값 == reports pm_deg."""
+    case = cm_case(tmp_path, "direct", (("gain_ss_db", ">=", 0.0, GAIN_DIFF),))
+    _, _, b = _cm_run(case)
+    assert [q.metric for q, _ in b.entries] == ["gain_ss_db"]
+    rep = _report(b)
+    _, _, bd = _cm_run(cm_direct)
+    rd = _report(bd)
+    assert rep["break_nets"] == rd["break_nets"] == ("om", "op")
+    assert rel_close(rep["pm_deg"], rd["pm_deg"], 1e-12) and rel_close(rep["dc_db"], rd["dc_db"], 1e-12)
+    assert len(b.warnings) == 1
+    code, det = b.warnings[0]
+    assert code == "cm_loop_unconstrained" and [k for k, _ in det] == ["dc_db"]
+    assert rel_close(dict(det)["dc_db"], 20.0 * math.log10(50.0), 1e-12)
+    assert bd.warnings == ()
+    assert bundle_map(bd)["pm_cm_ss_deg"].value == rd["pm_deg"]
+
+
+def test_cm_no_report_for_single_ended(declared):
+    """S-26: 차동 출력 포트 쌍이 없는 회로(예 7)는 reports == ()·warnings == ()."""
+    _, _, b = _run(declared)
+    assert b.reports == () and b.warnings == ()
+
+
+@pytest.mark.parametrize("variant", ["low_gain"])
+def test_cm_no_warning_when_dc_not_above_one(tmp_path, variant):
+    """S-27: 요청이 없어도 T_cm(0) ≤ 1 이면 경고 없음(보고는 있다)."""
+    case = cm_case(tmp_path, variant, (("gain_ss_db", ">=", 0.0, GAIN_DIFF),))
+    _, _, b = _cm_run(case)
+    assert b.warnings == () and _report(b)["undefined"] == ("dc_not_above_level",)
+
+
+def test_cm_reuse_and_shared_system_s28(cm_direct):
+    """S-28: 같은 입력 두 번 -> computes 0(`is`), reports·warnings 같음; 선언 요청과 보고가 같은 절단 계를 공유 -> systems 1."""
+    td, spec, snap, pv, _ = cm_direct
+    reqs = requests_of(spec)
+    metrics_ss.reset_stats()
+    s1 = metrics_ss(snap, reqs, pv)
+    s2 = metrics_ss(s1, reqs, pv)
+    assert s2 is s1 and metrics_ss.stats().computes == 1
+    b = s1.value("graph", METRICS_KEY, "metrics_ss")
+    assert dict(b.detail)["systems"] == 1
+
+
+def test_cm_inputs_are_ac_ground_s24(tmp_path, cm_direct):
+    """S-24: 같은 평가에 입력을 구동하는 포트 뷰(gain_ss_db)가 함께 있어도 pm_cm_ss_deg 값 같음(상대 ≤ 1e-12, 공유 격자만 다를 수 있음)."""
+    case = cm_case(tmp_path, "direct", CM_REQ + (("gain_ss_db", ">=", 0.0, GAIN_DIFF),))
+    _, _, b = _cm_run(case)
+    _, _, bd = _cm_run(cm_direct)
+    assert rel_close(bundle_map(b)["pm_cm_ss_deg"].value, bundle_map(bd)["pm_cm_ss_deg"].value, 1e-12)
+    assert dict(b.detail)["systems"] == 2                                   # 포트 계 + CM 절단 계
+
+
+def test_cm_net_rename_invariance(tmp_path, cm_direct):
+    """S-8 확장: 넷 이름 전단사(이름순 노드 번호가 바뀜) 뒤 pm_cm_ss_deg·reports 같음(break_nets 는 새 이름)."""
+    names = {"op": "zp", "om": "aa", "c": "mm", "ip": "q1", "im": "b0", "gnd": "g0", "vdd": "zz"}
+    case = cm_case(tmp_path, "direct", CM_REQ, names=names)
+    _, _, b = _cm_run(case)
+    _, _, bd = _cm_run(cm_direct)
+    assert rel_close(bundle_map(b)["pm_cm_ss_deg"].value, bundle_map(bd)["pm_cm_ss_deg"].value, 1e-12)
+    assert _report(b)["break_nets"] == ("aa", "zp")
+
+
+def test_cm_report_only_adds_one_system_s28(tmp_path):
+    """S-28(bea18e0): 선언 pm_cm_ss_deg 가 없고 보고 전용 T_cm 이 계산되면 cm_output 계 1개 추가 -- gain_ss_db 하나 + 차동 출력 회로
+    -> systems = 2(포트 계 + cm 계); pm_cm_ss_deg 하나 -> 1(test_cm_reuse_and_shared_system_s28); 둘 다 -> 2(공유, S-24 test)."""
+    case = cm_case(tmp_path, "direct", (("gain_ss_db", ">=", 0.0, GAIN_DIFF),))
+    _, _, b = _cm_run(case)
+    assert dict(b.detail)["systems"] == 2
+    assert len(b.reports) == 1

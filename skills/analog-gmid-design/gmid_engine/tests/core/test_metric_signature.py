@@ -1,6 +1,6 @@
 """core CONTRACT 0절 metric_signature.py 행 + SPEC_CONTRACT 4절 + metrics CONTRACT 0절 core 추가:
 MetricSignature(unit, domain, view_kind=None, objective_axis=None) -- frozen, unit ∈ METRIC_UNITS(db, hz, deg, ohm, mv, amp, w, m2),
-domain ∈ DOMAINS(dc, ss, ls, geom), view_kind ∈ {None} ∪ VIEW_KINDS(transfer, loop, output_port, ratio; 문자열 "none" 은 어휘 밖),
+domain ∈ DOMAINS(dc, ss, ls, geom), view_kind ∈ {None} ∪ VIEW_KINDS(transfer, loop, cm_loop, output_port, ratio; 문자열 "none" 은 어휘 밖),
 objective_axis ∈ {None} ∪ OBJECTIVE_AXES(power, area). 밖이면 ValueError.
 MetricSignature 통일(사용자 승인 2026-10-07): domain 어휘는 DOMAINS 하나(METRIC_DOMAINS 삭제)."""
 import pytest
@@ -11,7 +11,9 @@ from gmid_engine.core import DOMAINS, METRIC_UNITS, OBJECTIVE_AXES, VIEW_KINDS, 
 # 계약 문장 그대로의 어휘
 WANT_UNITS = {"db", "hz", "deg", "ohm", "mv", "amp", "w", "m2"}
 WANT_DOMAINS = {"dc", "ss", "ls", "geom"}
-WANT_VIEW_KINDS = {"transfer", "loop", "output_port", "ratio"}
+# [CM 2026-10-08] cm_loop 추가(core CONTRACT 0절 metric_signature.py 행, metrics S-20 -- 순서까지 고정)
+WANT_VIEW_KINDS_ORDERED = ("transfer", "loop", "cm_loop", "output_port", "ratio")
+WANT_VIEW_KINDS = set(WANT_VIEW_KINDS_ORDERED)
 WANT_AXES = {"power", "area"}
 
 
@@ -24,6 +26,7 @@ def test_vocabularies_exact():
     assert set(METRIC_UNITS) == WANT_UNITS
     assert set(DOMAINS) == WANT_DOMAINS
     assert set(VIEW_KINDS) == WANT_VIEW_KINDS
+    assert tuple(VIEW_KINDS) == WANT_VIEW_KINDS_ORDERED  # S-20: == ("transfer", "loop", "cm_loop", "output_port", "ratio")
     assert set(OBJECTIVE_AXES) == WANT_AXES
 
 

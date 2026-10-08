@@ -515,7 +515,8 @@ def _digest(la):
 
 
 def _no_rhp_cases():
-    """우반면 극점 없는 예 1~7c(예 3 은 우반면 영점, 예 2c·7 은 원점 극점(전하 모드)이 있다 -- 문턱이 영점·원점을 세지 않음)."""
+    """우반면 극점 없는 예 1~7b(예 7c 는 [CM 2026-10-08] I-18 이 T(0) 를 값으로 바꿔 '전제 도입 전' 지문 대상이 아니다 --
+    계약 갱신으로 옛 기대가 무효, 7c 는 test_probe_loop 의 I-18 폐형식·I-20 기준선 test 가 맡는다)(예 3 은 우반면 영점, 예 2c·7 은 원점 극점(전하 모드)이 있다 -- 문턱이 영점·원점을 세지 않음)."""
     def one(builder, col=0):
         (r,) = solve_responses((builder(),))
         return analyze_loop((Factor(r, col),))
@@ -540,7 +541,6 @@ def _no_rhp_cases():
         "ex7": lambda: probe(ex7_parts(), EX7_CUT, (1.0,)),
         "ex7b_dm": lambda: probe(ex7b_parts(), EX7B_CUTS, (0.5, -0.5)),
         "ex7b_cm": lambda: probe(ex7b_parts(), EX7B_CUTS, (0.5, 0.5)),
-        "ex7c": lambda: probe(ex7_parts(cs_resistor=True), EX7_CUT, (1.0,)),
     }
 
 
@@ -552,7 +552,6 @@ PRE_PREMISE_DIGEST = {
     "ex2b": "fe8b9e0e2fd0487dfdae", "ex2c_beta_cap": "5f11fe2c121df94c3d6e", "ex2d_iinj": "6dd41659d7530a564eb1",
     "ex2d_vin": "98a40d23d75f686cbb63", "ex3": "d3ec485f6066073def4d", "ex3_no_cc": "fb793f5d9c0fb695267c",
     "ex7": "4f1743a451682ebed49e", "ex7b_cm": "86fa20031e16e85e0729", "ex7b_dm": "a70337dd27fd7d19c205",
-    "ex7c": "c6a6ac62cb37b849c86d",
 }
 
 

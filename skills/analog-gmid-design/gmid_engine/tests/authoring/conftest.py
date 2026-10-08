@@ -96,6 +96,7 @@ def fixture_catalog():
         "ugf_ss_hz": M("hz", "ss", "transfer"),
         "gbw_ss_hz": M("hz", "ss", "transfer"),
         "pm_ss_deg": M("deg", "ss", "loop"),
+        "pm_cm_ss_deg": M("deg", "ss", "cm_loop"),   # [CM 2026-10-08] SPEC_CONTRACT 5절 픽스처 이름표 갱신
         "parasitic_pm_ss_deg": M("deg", "ss", "transfer"),
         "rout_ss_ohm": M("ohm", "ss", "output_port"),
         "ratio_ss_db": M("db", "ss", "ratio"),

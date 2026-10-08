@@ -727,6 +727,38 @@ def stability_check(cir_path, meta, op, Ldata, exe, timeout_s=None, cache_dir=No
     return out
 
 
+def cm_loop_measure(cir_path, meta, op, exe, timeout_s=None, cache_dir=None):
+    """공통 모드(CMFB) 루프 PM (meta.cm_loop 가 있을 때). 평균 감지 넷을 끊은 넷리스트 <stem>.cmloop.cir 에서 DM β 루프와 같은
+    Middlebrook 이중 주입(loop_gain)으로 T_cm 을 재고, ac_measures 로 PM 을 낸 뒤 DM 과 같은 C10 안정성 근거(Nyquist +
+    폐루프 .tran, apply_stability)를 건다 -- P = 0 이 증명되지 않으면 PM 은 정의 불가(pm_undefined). 안정성 파일은
+    <stem>.cmloop.stab*.cir/txt 로 DM 것과 겹치지 않는다. op = 본 시뮬 결과(출력 동작점, floor 용). 반환 dict:
+    ngspice_rc, break_nets, measures(ac_measures), singular, pm_deg, pm_undefined, pm_deg_raw, stability, stability_cache."""
+    cm = meta["cm_loop"]
+    d = os.path.dirname(os.path.abspath(cir_path))
+    ccir = os.path.join(d, cm["netlist"])
+    vf, inf = os.path.join(d, cm["v_file"]), os.path.join(d, cm["i_file"])
+    for x in (vf, inf):
+        if os.path.exists(x):
+            os.remove(x)
+    rc, log, cst = run_ngspice(exe, ccir, os.path.splitext(ccir)[0] + ".log", timeout_s, cache_dir,
+                               [cm["v_file"], cm["i_file"]])
+    sing = loop_probe_singular(vf, inf, cm["weights"])
+    t = None if sing else loop_gain(vf, inf, cm["weights"])
+    out = {"ngspice_rc": rc, "cache": cst, "break_nets": cm["break_nets"], "weights": cm["weights"],
+           "log_errors": [ln.strip() for ln in log.splitlines() if re.search(r"error|fatal|singular|abort", ln, re.I)][:40],
+           "measures": ac_measures(*t) if t else None, "singular": None}
+    if sing:
+        out["singular"] = {"count": len(sing), "first": sing[0], "points": sing[:20]}
+    shadow = {"ac": dict(out["measures"]) if out["measures"] else {"pm_deg": None}, "nodes": (op or {}).get("nodes")}
+    apply_stability(shadow, ccir, dict(meta, loop=cm), t, exe, timeout_s, cache_dir)
+    ac = shadow["ac"]
+    out.update(pm_deg=ac.get("pm_deg"), pm_deg_raw=ac.get("pm_deg_raw"), pm_undefined=ac.get("pm_undefined"),
+               stability=ac.get("stability"), stability_cache=shadow.get("stability_cache"))
+    if sing:
+        out["pm_undefined"] = LOOP_PROBE_SINGULAR
+    return out
+
+
 def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
     base = os.path.splitext(cir_path)[0]
     log_path = base + ".log"
@@ -744,7 +776,7 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
         # 막힌 넷리스트는 돌리지 않는다(지어낸 값으로 채운 회로를 재지 않는다 -- README C2/C8)
         return {"skipped": "넷리스트 막힘: " + " | ".join(meta["blockers"]), "devices": {}, "nodes": {},
                 "rail_current_A": {}, "hold_current_A": {}, "ngspice_rc": None, "log": None, "log_errors": [],
-                "op_ok": False, "ac": None, "ac_file": None, "loop": None, "ratio": [], "rout": []}
+                "op_ok": False, "ac": None, "ac_file": None, "loop": None, "cm_loop": None, "ratio": [], "rout": []}
     rc, log, cst = run_ngspice(exe, cir_path, log_path, timeout_s, cache_dir,
                                ([meta["ac_file"]] if meta.get("ac_file") else []) + rfiles)
     res = parse_op(log, meta)
@@ -786,6 +818,7 @@ def simulate(cir_path, meta, exe, timeout_s=None, cache_dir=None):
                        "choke_ratio": loop_choke_ratio(inf, lm["break_nets"], lm["weights"], lm.get("choke_H"))}
         if sing:  # T 가 정의되지 않는 표본 -> 루프 측정 전체가 정의 불가(측정 실패 아님, 막힘 아님)
             res["loop"]["singular"] = {"count": len(sing), "first": sing[0], "points": sing[:20]}
+    res["cm_loop"] = cm_loop_measure(cir_path, meta, res, exe, timeout_s, cache_dir) if meta.get("cm_loop") else None
     if res["ac"] is not None:
         res["ac"]["pm_open_loop_deg"] = res["ac"]["pm_deg"]
         res["ac"]["dc_path_isolation"] = meta.get("dc_path_isolation")  # C27 기록(판정 아님)
