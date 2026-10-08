@@ -8,6 +8,8 @@ oracle (a): 손 회로 XCOUP 의 정지 사유는 graph test 손 유도(교차�
 [U1b 2026-10-09] 설계 40 3.2-3 파이프라인 4: 보고서에 applied_facts, structure_fact_* 기록, ff_ratio_candidates 를 낸다. pipeline 계약 2절
 [U1b]: 최상위 키 `applied_facts`·`ff_ratio_candidates` 추가, views 항목에 feedforward·loop_roles·polarity 추가. 덮어쓰기 test 의 두 번째
 회로는 FF 형(이제 feedforward -> ok) 대신 접힌 캐스코드 FOLDED 연결(l_owner_name_order -> review_needed, 41 1.12.5-4)로 바꿨다.
+[U10] oracle (a): 보고서 `coupling` 내용은 graph `test_coupling_vars.test_miller_k1_k2_across_stages`·`test_column_block_map` 의
+MILLER 손 유도와 같은 리터럴, 귀속 안 된 소자(`coupling_hand.ORPHAN`)는 A4 정지(DEC-71 (2)) -> status stopped, exit 2.
 """
 from __future__ import annotations
 
@@ -18,11 +20,14 @@ from gmid_engine.core import fp_of
 from gmid_engine.graph import structure_tables
 from gmid_engine.pipeline import run_stage_a
 
+import coupling_hand as CH
 import jrules_hand as J
 import s1v_hand as H
 
-KEYS = ["applied_facts", "circuit", "count_budget", "declared_comparison", "exit_code", "ff_ratio_candidates", "review_needed",
-        "status", "stop_reasons", "tables", "views"]
+# [U1b] applied_facts·ff_ratio_candidates (pipeline CONTRACT 2절), [U10] coupling (설계 40 §3.3 as-built: 단계 A 보고서 `coupling` 이
+# U15 전까지 유일한 출구)
+KEYS = ["applied_facts", "circuit", "count_budget", "coupling", "declared_comparison", "exit_code", "ff_ratio_candidates",
+        "review_needed", "status", "stop_reasons", "tables", "views"]
 
 
 def _run(tmp_path, real_lut, doc, out="out"):
@@ -114,3 +119,44 @@ def test_loop_roles_rows(tmp_path, real_lut):
     rows = [(x["loop_id"], x["role"], x["reason"]) for x in r.report["views"][0]["loop_roles"]]
     assert rows == [("loop:Q8:v1", "compensation_internal", "compensation_internal_needs_overall_pm")]
     assert [v["id"] for v in r.report["views"]] == ["transfer:0"]
+
+
+def test_coupling_section_miller(tmp_path, real_lut):
+    r = _run(tmp_path, real_lut, H.MILLER)
+    cpl = json.loads(Path(r.report_paths[0]).read_text(encoding="utf-8"))["coupling"]
+    assert sorted(cpl) == ["bias_columns", "column_block_map", "column_mate_devices", "kind_counts", "vars"]
+    blocks = [["transfer:0", ["o1"]], ["transfer:0", ["out"]]]
+    # 손 유도(graph test_coupling_vars): 꼬리 M5(o1)·전류원 M7(out) 미러 -> K1 dc·geom, equal_vgs (vb, gnd) -> K2
+    assert cpl["vars"] == [
+        {"kind": "K1", "members": ["M5", "M7"], "blocks": blocks, "domain": "dc", "init_rule": "class_owner_value", "nets": []},
+        {"kind": "K1", "members": ["M5", "M7"], "blocks": blocks, "domain": "geom", "init_rule": "class_owner_value", "nets": []},
+        {"kind": "K2", "members": ["M5", "M7"], "blocks": blocks, "domain": "dc", "init_rule": "common_vgs_candidates",
+         "nets": ["vb", "gnd"]},
+    ]
+    assert {k: v for k, v in cpl["kind_counts"].items() if v} == {"K1": 2, "K2": 1}
+    assert cpl["bias_columns"] == [] and cpl["column_mate_devices"] == []
+    # 매핑표: 커패시터 Cc 는 기둥 밖 두 블록 멤버(column null), 꼬리 M5 는 두 기둥 -> shared
+    rows = {(row["column"] is None, tuple(row["block"][1]), row["device"]): (row["shared"], row["basis"]) for row in cpl["column_block_map"]}
+    assert rows[(True, ("o1",), "Cc")] == rows[(True, ("out",), "Cc")] == (True, "block_member")
+    assert {k[2] for k in rows} == {"Cc", "M1", "M2", "M3", "M4", "M5", "M6", "M7"}
+    m5 = [(row["column"], row["shared"], row["basis"]) for row in cpl["column_block_map"] if row["device"] == "M5"]
+    assert len({c for c, _s, _b in m5}) == 2 and all(c is not None for c, _s, _b in m5)
+    assert {(s_, b_) for _c, s_, b_ in m5} == {(True, "block_member")}
+    assert r.status == "ok" and r.exit_code == 0
+
+
+def test_coupling_section_column_mate(tmp_path, real_lut):
+    r = _run(tmp_path, real_lut, CH.MATE)
+    # 손 유도(graph test_column_block_map): 캐스코드 부하 위 전류원 M3 는 블록 밖, 같은 기둥 블록 out 에 귀속
+    assert r.report["coupling"]["column_mate_devices"] == ["M3"]
+    assert r.report["coupling"]["vars"] == []
+
+
+def test_column_unassigned_stops_stage_a(tmp_path, real_lut):
+    r = _run(tmp_path, real_lut, CH.ORPHAN)
+    # DEC-71 (2): 가지에 들었으나 블록·기둥 어디에도 없는 Mx -> StructureUnresolvedError(column_unassigned) -> A4 정지
+    assert (r.status, r.exit_code) == ("stopped", 2)
+    a4 = [s for s in r.report["stop_reasons"] if s.startswith("A4_coupling:")]
+    assert len(a4) == 1 and "column_unassigned" in a4[0] and "Mx" in a4[0]
+    assert r.report["coupling"] is None
+    assert Path(r.report_paths[0]).exists()                    # 정지해도 보고서는 쓴다(pipeline CONTRACT 4)
