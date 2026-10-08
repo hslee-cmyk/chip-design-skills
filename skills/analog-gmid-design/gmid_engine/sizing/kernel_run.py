@@ -95,4 +95,7 @@ def run_kernel(ctx, theta, parent, w_request, raise_on_violation):
         snapshot = block(snapshot, *extras)
     steps = tuple(steps + later)
     resistances = ctx.resistor_values + tuple((key, v) for (kind, key), v in items if kind == THETA_RESISTANCE)
-    return seal_dc(snapshot, steps, ctx.lut, resistances, ctx.inputs.linear_devices, previous_gm_id(parent), raise_on_violation)
+    gm_id_prev = previous_gm_id(parent)
+    if gm_id_prev and dict(snapshot.column("device", "dc_op")) == dict(parent.snapshot.column("device", "dc_op")):
+        gm_id_prev = ()          # DC 동작점이 parent 와 같다(수동소자 θ 만 바뀐 FD 등) -- 허용오차도 같은 입력이라 블록을 다시 돌리지 않는다(DEC-92 재사용)
+    return seal_dc(snapshot, steps, ctx.lut, resistances, ctx.inputs.linear_devices, gm_id_prev, raise_on_violation)

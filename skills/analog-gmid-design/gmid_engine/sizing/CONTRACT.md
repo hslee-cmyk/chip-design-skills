@@ -918,3 +918,65 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
   (손으로 만든 `RegionDecl("M7", "linear")` 를 linear 로 기대 -- 이제 "triode" 여야 한다, 실패). 같은 파일 42행 9회로 spec 경로
   비교도 `"linear"` 로 걸러 기대값을 만들지만 9회로 spec 의 intended_region 이 모두 pending(결정 대기 CI-18)이라 양쪽 다 빈 tuple
   로 지금은 통과한다(triode 선언이 생기면 틀린다 -- 같이 고칠 것).
+
+
+---
+
+## 14. [U4 보강] 설계 40 §3.7·§3.2-1, 41 §4.6·§5.3 (독립 test 작성자용 계약, 2026-10-08)
+
+대상 확인 행: DEC-17 (θ 쪽)·32·70 (일부)·95 (3), D-GB7a·c·d, D-LS, D-J5 (U4 몫). **미러 비 강제(D-GB7b, DEC-70)는 구현하지 않았다** -- 15절.
+
+### 14.1 L 동치류 L 공유 (D-GB7a)
+* `build_kernel_context(s1graph, inputs, lut, l_classes=(), order_hints=NO_ORDER_HINTS)`. `l_classes` = U1 `S1v.l_classes` (LClass: `owner`, `members`,
+  `status`; 이 모듈은 속성만 읽는다). `status == derived` 인 동치류만 묶고 `review_needed`·proposed 는 묶지 않는다(소자마다 L). 멤버·주인 이름이
+  S1 원소가 아니거나 MOS 가 아니거나, 주인이 다른 동치류의 멤버이거나, 한 소자가 두 동치류의 멤버면 `ValueError`.
+* `KernelContext.l_ties` = ((멤버, 주인), ...) 정렬(비주인 멤버만; 동치류가 없으면 `()`).
+* **θ 스키마**: `THETA_L` 성분은 동치류당 **주인 하나**, 동치류에 들지 않은 MOS 는 소자마다 하나. 멤버의 `("L", 멤버)` 성분은 **없다**(`check_theta` 가
+  넣으면 `ValueError` 남음). `dc_theta_schema(snapshot, declared_resistors, engine_passives, l_ties=())` -- l_ties 가 비면 extras 를 3번째까지 주지 않는다
+  (블록 입력 버전 불변; 기존 2-extras 호출과 재사용 계약 유지).
+* `size_and_seal`: 멤버 L = 주인 θ L (`dc_lengths` 입력). 주인 이름은 DEC-17 순서로 U1 이 정해 `LClass.owner` 로 준다(이 모듈은 고르지 않는다).
+* 소비자 주의: search 가 L 변수를 소자마다 두는 곳(`layer0_center`·`slsqp_outer`·`l_bin_search`·`start_points`)은 `schema.components` 의 L 성분(주인만)을 따라야 한다.
+  `search_domain` 은 이미 성분 목록에서 L 변수를 만든다.
+
+### 14.2 S2p 기반 tol_I (계획 N3.6, 설계 40 §3.7-3)
+* `dc_tolerances(snapshot, lut, gm_id_prev=())`: `gm_id_prev` = ((소자, gm/ID), ...). 있는 소자는 `dc_gm_bound` = gm/ID × 이번 후보 `dc_op.current`
+  (tol_I = tol_V × gm_bound, 봉인 3). 없는 소자는 종래 LUT 격자 최대 gm(첫 평가).
+* `size_and_seal(..., parent)`: parent 가 **봉인된**(`parent.sealed is not None`) `DcEvaluation` 이고 그 스냅샷에 `device.ss_dev` 가 있으면 소자마다
+  gm/ID = `ss_dev.gm / dc_op.current`. `ss_dev` 가 그 점에서 나온 것인지는 이 gm/ID 가 `dc_op.gm_id` 와 `2·eps` 상대 안에서 같은지로 가린다(오래된 필드 배제).
+  parent 가 없거나 봉인이 아니거나 ss 가 없으면 `gm_id_prev = ()`. 새 `dc_op` 전체가 parent 의 것과 같으면(수동소자 θ 만 바뀐 FD 등) 허용오차도 같은 입력이라 `gm_id_prev = ()` 로 두어 DEC-92 재사용(DC 블록 computes 0)을 지킨다. **결과가 parent 에 의존한다**(N3.6 규칙 그대로).
+* 효과(toy r4, 파일럿급 W 큰 pmos): 노드 tol_I 가 격자 최대 gm 대비 수십~수만 배 줄어 봉인 3 이 실제로 판정한다.
+
+### 14.3 W_request 고정 W (D-GB7d, LY3)
+* `size_and_seal(ctx, theta, parent=None, w_request=())`, `w_request` = {MOS: W[m]} 또는 ((MOS, W), ...). MOS 가 아닌 이름·비양수·비유한 W -> `ValueError`.
+* 쓰기 소자(`dc_coord.role == writer`): θ `ln_idu` 는 무시되고 ln IDu = ln(ID·L/W) 가 `dc_columns` 에 간다. 종속 소자: 좌표는 순방향 그대로. 모든 요청 소자의
+  `DeviceOp.W` = 요청값 (`dc_widths(snapshot, lut, w_request=())`). 종속 소자의 ID 어긋남은 봉인 3 이 판정한다(순방향 IDu × W/L 로 다시 센 KCL).
+* 요청이 없으면 블록 extras 가 종래와 같다(재사용 계약 유지).
+
+### 14.4 DEC-95 (3) 전체 순서 (D-GB7c)
+* `OrderHints(independent, gm_required, stage)`(모두 MOS 이름 tuple 또는 ((MOS, 번호), ...)), `NO_ORDER_HINTS`. `dc_writer_plan(snapshot, target_nets, input_dc_declared,
+  order_hints=NO_ORDER_HINTS)`: 엣지 키 = (종류: 같은 DC < 저항 < MOS, [MOS] ratified 독립 < 그 밖, diode < 그 밖, gm 요구 < 그 밖, 뒤 stage(번호 큰 쪽) < 앞, 구조 색, 이름).
+  Kruskal 에서 키가 작은 엣지가 트리(독립), 큰 쪽이 종속. 힌트가 비면 종래 순서(diode < 그 밖, 색, 이름)와 같고 TieBreak 기록도 같다.
+* **스텁**: 힌트의 출처(U1 S1v stage 번호, GB5 gm 요구, `structure.json` ratified 로더)는 U1 이 채운다. 지금은 `build_kernel_context(..., order_hints=)` 로 넣는
+  호출부가 없다(기본값만 쓴다).
+
+### 14.5 국소 봉인 (D-LS, 41 §5.3)
+* `size_and_seal_local(ctx, theta_block, fixed, columns) -> LocalSeal`; `theta_name(kind, key)` = `"kind:key"`. `LocalSeal{ok, failures, snapshot_fragment, gain_db, power_w, area_m2}`,
+  `SnapshotFragment{devices, nodes}`. 상세는 `size_and_seal_local.py` 머리 설명.
+* `theta_block ∪ fixed` = `ctx.schema.components` 정확히 (겹침·빠짐·모르는 키 `ValueError`), `columns` = {str(Column.id)} 비어 있지 않음.
+* 판정 대상 = 봉인 1·2·3(KCL)·6·7·8(KVL) 중 위반 소자·넷이 덮는 집합과 겹치는 것. 4·5·9 는 국소 판정이 아니다. ②~⑤ 중 후보 실패 예외는 `ok = False` 와 그 FailureRecord 1건.
+* **스텁**: `gain_db` 는 항상 None (`metrics.block_local_gain`, U7). 전회로를 푸는 커널이라 계산이 블록 크기에 비례하지 않는다 -- 결과 캐시는 U15(N_T,i 상한) 몫.
+
+### 14.6 y_icm = 입력 포화 창 (J-E SP-2 (c), D-J5 U4 몫)
+* 입력 DC 미선언 입력 묶음 W4 뿌리(`y_key == INPUT_GROUP_KEY`)가 있으면 `dc_columns` 가 풀이를 되풀이한다: (1) y = 1/2 로 푼 해에서 (2) `input_window.saturation_window` 로
+  입력 공통모드 x 의 포화 창(x 를 따라 움직이는 노드의 VDS 변화율 = 노드 writer 식 야코비안 연립의 해, 소자별 포화 여유 VDS − VDsat − tol_VDsat 의 1차 외삽)을 재고
+  (3) 순서 창과 교집합을 y_icm 범위로 삼아 요청 y 로 다시 풀며 (4) 경계가 tol_V 안에서 변하지 않을 때까지 되풀이(상한 `k_max(레일 폭, tol_V)`). `node.dc_window` 는 마지막 범위를 낸다.
+* (1)이 풀리지 않거나 VDSAT 열 없음·tol 미정이면 종래 사상(순서 창 = 레일 범위). `dc_columns(..., linear_devices)` 5번째 extras 는 비어 있지 않을 때만 준다.
+* 효과(toy 차동쌍): 종래 y ∈ [0.05, 0.95] 무작위 60점 중 봉인 19, 이후 60. 평가 시간 약 3배.
+* 알려진 한계: VDsat 의 x 의존은 해에서 한 번 잰 값으로 둔다(1차). 창 끝(y = 0, 1)의 포화 여유가 수 mV 어긋날 수 있고 마지막 판정은 봉인 7 이다.
+
+## 15. 구현하지 않은 것 (정지 후 보고)
+
+* **D-GB7b 미러 비 강제(DEC-70)**: 설계 문구는 `matching_ratio` 를 전류 기저의 강제 관계로 넣고 비율 출처를 θ 변수로 둔다. 구현하려면 새 θ 종류(`mirror_ratio`, I_out = ρ·I_ref)가 필요하고
+  (1) θ 전류 정의역 원뿔이 θ 에 비선형(곱)이 되며 (2) `search_domain`(상자: 멤버·기준 전류 상자에서 도출 가능)·`fd_jacobian`·`orbit_ties`·`current_symmetry`·
+  `layer0_center`·`start_points`·`cone_rows` 가 모두 새 종류를 알아야 한다 -- 소유가 다른 단위(U11 search 정비·U15)의 파일이라 이 단위에서 쓰면 쓰이지 않는 코드가 되거나 search 를 깨뜨린다.
+  대칭 묶음의 비율 1 은 이미 search `orbit_ties` 가 같은 궤도 전류 성분을 한 변수로 묶어 준다(U2).
