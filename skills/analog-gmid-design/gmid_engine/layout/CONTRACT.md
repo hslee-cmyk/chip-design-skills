@@ -232,6 +232,8 @@ core 계약 5·6절(GraphSnapshot·`compute_block`), lut 계약 1.6(`widths`)·4
   값 = 선언 식 문자열(예 `"max(poly.2, licon.1 + 2 * licon.11)"`). 상수 `GRID_QUANTITY = "manufacturing_grid_m"`.
   실측(sky130 선언 + 실 LUT, LutSpec 격자 = 선언 격자): (overhead, gap, dummy, tap, well) = (2.8e-7, 4.7e-7, 5.4e-7, 6.8e-7, 1.63e-6)
   (float 잔차 그대로), 격자를 2배로 만든 LUT 는 `ValueError`. `from_lut` 의 손으로 넘기는 길이는 toy·test 용이다.
+  **사용자 ratify(2026-10-08, 오케스트레이터 전달)**: 다섯 길이 식(finger_pitch_overhead_m·row_gap_m·dummy_w_m·tap_w_m·well_spacing_m,
+  `assets/sky130_pdk_decl.json`)을 사용자가 승인했다. 적용 확인 2건은 4.10(well 간격 적용 범위·dummy 폭 해석).
 - `LayoutInput(devices, matching_groups, row_groups, pdk, rejected_requests=())`. `ValueError` 조건:
   소자 이름 중복, gid·rid 중복, 행 그룹 멤버가 없는 소자, 한 소자가 두 행 그룹, 소자 (kind, body) != 행 그룹 (kind, body_net),
   어느 행 그룹에도 없는 소자, PDK 폭 키에 소자 kind 없음, 그룹 멤버가 없는 소자, `LAYOUT_ROLES` 그룹 멤버가 두 행 그룹에 걸침
@@ -358,15 +360,25 @@ elongation = max/min(두 값), `folds` 는 tuple 로 옮긴다. **ok 필드·허
 ### 4.10 `floorplan_of(rows, bodies, pdk) -> FloorplanSummary` (Q8 (vii), 판정 축 면적)
 `rows` = `RowLayout` 들(비어 있지 않음), `bodies` = {행 그룹 id: body 넷}. 격자 g = `pdk.manufacturing_grid_m`.
 - 행마다 `FloorplanBlock(행 id, (행 폭 + 2 x dummy_w_m + tap_w_m)/g, finger_w/g)` -- 행 끝 dummy 양끝 둘 + 행마다 body tap 하나.
-- body 넷별로 묶는다. body 마다 `pack_floorplan_grouped(spine_groups = {행 그룹 id: 그 행 블록들(행 순서)}, [], gap = row_gap_m/g,
-  transistor_sequences = {행 id: 순서})`, 그 배치를 bbox 왼쪽 아래 원점으로 옮긴다.
-- body 가 하나면 그 결과가 전부. 둘 이상이면 body 마다 `FloorplanBlock("body:<body>", 그 bbox 폭, 높이)` 를 복사 함수
-  `pack_floorplan(blocks, [], gap = max(row_gap_m, well_spacing_m)/g)` 로 배치하고 안쪽 배치를 그 자리로 옮긴다(well 간격은 body 가 다른
-  묶음 사이에만).
+- **well 묶음 = (행 kind, 행 그룹 body 넷)**(2026-10-08 개정 -- 전에는 body 넷만이라 nmos·pmos 행이 같은 body 넷 이름을 가지면 한
+  묶음으로 행 간격만 받았다). 묶음 (kind, body) 정렬 순으로 묶음마다 `pack_floorplan_grouped(spine_groups = {행 그룹 id: 그 행 블록들(행 순서)},
+  [], gap = row_gap_m/g, transistor_sequences = {행 id: 순서})`, 그 배치를 bbox 왼쪽 아래 원점으로 옮긴다.
+- 묶음이 하나면 그 결과가 전부. 둘 이상이면 묶음마다 `FloorplanBlock("body:<kind>:<body>", 그 bbox 폭, 높이)` 를 복사 함수
+  `pack_floorplan(blocks, [], gap = max(row_gap_m, well_spacing_m)/g)` 로 배치하고 안쪽 배치를 그 자리로 옮긴다.
+  **well 간격은 well 이 다른 묶음 사이(nmos 행 대 pmos 행, 또는 같은 kind 라도 body 넷이 다른 행 -- 다른 nwell / 격리 pwell)에만 들어가고,
+  같은 (kind, body) 행 사이에는 절대 들어가지 않는다**(행 그룹이 달라도 같은 well 이면 행 간격만). 묶음이 셋 이상이면 모든 쌍이 서로 다른
+  well 이라 균일한 top gap 이 맞다.
 - `placements` = 행 id 정렬 (id, x, y, 폭, 높이) m(폭은 dummy·tap 포함), `outline_area_m2 = bbox 폭 x bbox 높이`, `area_tie_m2 = g^2`,
   `aspect_ratio` = max/min(bbox 두 변), `packing_density` = 블록 면적 합 / 외곽 면적,
   `included` = (("finger_pitch_overhead", overhead, 규칙), ("row_end_dummy_x2_per_row", dummy_w, 규칙), ("body_tap_per_row", tap_w, 규칙),
-  ("row_gap", gap, 규칙)) + body 가 둘 이상이면 ("well_spacing_between_bodies", well, 규칙). 규칙 = `pdk.rule_ids` 의 그 이름 값.
+  ("row_gap", gap, 규칙)) + well 묶음이 둘 이상이면 ("well_spacing_between_bodies", well, 규칙). 규칙 = `pdk.rule_ids` 의 그 이름 값.
+- **행 끝 dummy 폭 해석(2026-10-08 검토, 선언 식 변경 없음)**: 행 폭 Σ nf x (L + overhead) 는 gate nf 개 + contact 확산 nf 개를 센다.
+  양끝 dummy gate 를 두면 실제 행은 gate nf + contact 확산 nf+1 + dummy gate 둘 + dummy 바깥 확산 연장 둘이다. 그래서 늘어나는 폭 =
+  overhead 하나(끝 확산 하나 더) + 2 x (dummy L + poly.7) -> 끝 하나당 `poly.1a + poly.7 + overhead/2` = 선언 `dummy_w_m` 그대로.
+  dummy gate 와 마지막 gate 사이는 contact 확산 하나(= overhead = max(poly.2, licon.1 + 2·licon.11) = 0.28 µm >= poly.2 0.21 µm)라 poly
+  간격을 만족한다. dummy L = poly.1a(0.150 µm) 는 periphery.csv `X.1a`("Min & max dummy_poly L is equal to min L allowed for corresponding
+  device type")가 정하는 값이다(nfet_01v8·pfet_01v8 최소 L 0.15 µm). 반 피치 항은 과소 추정이 아니다. 한계(기록): lvt pfet(poly.1b 0.35 µm)
+  처럼 최소 L 이 다른 소자 kind 를 쓰면 kind 별 dummy 식이 필요하고, 행 안 diffusion break(crossover)의 확산 간격(difftap.3)은 행 폭에 없다.
 
 ### 4.11 `compose_rows` -- graph `ly_rows`(`RowsLayout(rows, box, fold_attempts, merge_decisions, rebuilt_groups)`), `ly_floorplan`
 reads device `ly_device`·`ly_finger`, graph `ly_groups`·`ly_groups_in`·`ly_row_groups`·`ly_pdk`.
