@@ -175,13 +175,56 @@ def test_real_narrow_width_bin_scales_by_slope_ratio(real_nm_memo, real_pdk_decl
     assert math.isclose(r.sigma_v, math.sqrt(sum(v * v for v in parts.values())), rel_tol=1e-12)
 
 
+# 기준값 √2·vth0_slope 를 확인한 소자 쌍 Monte Carlo 의 표본 수(계약 10.6·기록 docs/03-analysis/...u3-lut-pdk-record.md §5:
+# `sky130_pair_mc.py --n 1000`, 사례마다 표본 1000).
+PAIR_MC_SAMPLES = 1000
+
+
+def _expected_max_abs_normal(n):
+    """E[max_{i ≤ n} |Z_i|], Z ~ N(0, 1) 독립 = ∫_0^∞ f(x) dx, f = 1 − F^n, F(x) = erf(x/√2) (|Z| 의 분포함수).
+    중점 규칙(칸 폭 h = 2^-10) + 오차 상한을 함께 낸다 -> (값, 상한). 오차 상한(유도):
+      절단: x_hi = f 의 상계 n·erfc(x/√2) 가 2^-53 아래가 되는 첫 정수 -> 꼬리 ∫_{x_hi}^∞ f ≤ n·∫ erfc ≤ n·erfc(x_hi/√2)·√(π/2)
+      (erfc(x/√2) ≤ e^(−x²/2) 의 꼬리 적분 상계), 중점 규칙: |E| ≤ x_hi·h²·max|f''|/24,
+      f'' = −n[(n − 1)F^(n−2)F'² + F^(n−1)F''], F' = √(2/π)e^(−x²/2) ≤ √(2/π), |F''| = x·F' ≤ √(2/π)e^(−1/2)
+      -> max|f''| ≤ n(n − 1)·2/π + n·√(2/π)·e^(−1/2)."""
+    x_hi = 1
+    while n * math.erfc(x_hi / math.sqrt(2.0)) >= 2.0 ** -53:
+        x_hi += 1
+    h = 2.0 ** -10
+    steps = int(round(x_hi / h))
+    val = h * sum(1.0 - math.erf((j + 0.5) * h / math.sqrt(2.0)) ** n for j in range(steps))
+    f2 = n * (n - 1) * 2.0 / math.pi + n * math.sqrt(2.0 / math.pi) * math.exp(-0.5)
+    err = x_hi * h * h * f2 / 24.0 + n * math.erfc(x_hi / math.sqrt(2.0)) * math.sqrt(math.pi / 2.0)
+    return val, err
+
+
+def _vth0_ratio_bound(n_compared, n_mc=PAIR_MC_SAMPLES):
+    """vth0 성분 비의 허용 상한 -- 표본 수에서 유도(고른 상수 없음).
+    1) 기준값 √2·slope 는 N = n_mc 표본 쌍 MC 의 σ 추정으로 확인된 값이다(그 MC 가 이 비교의 기준). 정규 표본 표준편차의 상대
+       표준오차 SE = 1/√(2(N − 1)) (χ²(N − 1) 의 1차 근사 -- 기록 §5 '통계 오차 1/√(2(N−1)) = 2.2 %'). 그 MC 는 SE 보다 작은 차를 가리지 못한다.
+    2) 이 test 는 n_compared 개 격자점을 각각 그 분해능으로 비교한다 -- n 개 비교에서 표집만으로 생기는 가장 큰 |편차| 의 기댓값
+       = SE · E[max_{i ≤ n} |Z_i|] (`_expected_max_abs_normal`, 적분 오차 상한까지 더한다).
+    상한 = SE · (E[max |Z|] + 적분 오차 상한). (n = 1 이면 E|Z| = √(2/π).)"""
+    val, err = _expected_max_abs_normal(n_compared)
+    return (val + err) / math.sqrt(2.0 * (n_mc - 1))
+
+
+def test_vth0_ratio_bound_derivation():
+    """유도 상한 자체의 확인(oracle (a) 닫힌 식): n = 1 이면 E|Z| = √(2/π) -- 적분값과 닫힌 값의 차 ≤ 같은 함수의 오차 상한.
+    n 이 늘면 상한은 단조 증가(최댓값의 기댓값)."""
+    val, err = _expected_max_abs_normal(1)
+    assert abs(val - math.sqrt(2.0 / math.pi)) <= err
+    b = [_vth0_ratio_bound(n) for n in (1, 10, 100, 1000)]
+    assert all(x < y for x, y in zip(b, b[1:]))
+
+
 @pytest.mark.lut_realdata
 @pytest.mark.parametrize("kind,dev", [("nmos", "nfet_01v8"), ("pmos", "pfet_01v8")])
 def test_real_vth0_component_equals_sqrt2_slope(real_nm_memo, real_pdk_decl, real_paths, raw_cap, kind, dev):
     """설계 41 §6.4-2: 'LUT 감도 열의 vth0 성분은 √2·slope(bin별) 과 같아야 한다'. 쌍 A_VT 성분 = √2·parts[vth0]·√(W·L[µm²]).
-    판정(test 기준): W = 5 µm, L 앵커 ≥ 0.3 µm, |VDS| 0.9 V, VS 0, 격자 gm/ID 5~15 점에서 비 A_VT/(√2·slope) 가 1 ± 0.05.
-    - 0.05 의 근거: bin slope 를 잘못 고르면 비가 pfet 7.356/5.856 = 1.256(또는 그 역수), 단위(µm↔m) 오류면 10³ 배라 둘 다 밖이다.
-      짧은 채널(L < 0.3 µm)은 같은 ID 의 ΔVGS 가 ΔVT 와 다른 물리 효과가 커 이 판정에서 뺀다(계약 10.6 의 pfet 0.18 µm 9.71 대 10.40)."""
+    판정: W = 5 µm, L 앵커 ≥ 0.3 µm, |VDS| 0.9 V, VS 0, 격자 gm/ID 5~15 점(n 개)에서 |A_VT/(√2·slope) − 1| ≤ `_vth0_ratio_bound(n)`.
+    [2026-10-09 오케스트레이터 결정 '고른 허용오차 금지'] 옛 ±0.05(고른 수)를 표본 수에서 유도한 상한으로 바꿨다(아래 함수 주석).
+    짧은 채널(L < 0.3 µm)은 같은 ID 의 ΔVGS 가 ΔVT 와 다른 물리 효과가 커 이 판정에서 뺀다(계약 10.6 의 pfet 0.18 µm 9.71 대 10.40)."""
     blocks = _parse_card(real_paths["pdk_root"], dev)
     model = real_pdk_decl.mismatch_model(kind)
     suf = "_n" if kind == "nmos" else "_p"
@@ -189,6 +232,7 @@ def test_real_vth0_component_equals_sqrt2_slope(real_nm_memo, real_pdk_decl, rea
     gm = raw_cap["GM" + suf][:, :, k, 0]
     idd = raw_cap["ID" + suf][:, :, k, 0]
     checked = 0
+    ratios = []
     for i, L in enumerate(raw_cap["L"]):
         if L < 0.3e-6:
             continue
@@ -206,6 +250,11 @@ def test_real_vth0_component_equals_sqrt2_slope(real_nm_memo, real_pdk_decl, rea
                 continue
             a_vt = math.sqrt(2) * dict(r.parts)["vth0"] * math.sqrt(5.0 * float(L) * 1e6)    # V·µm
             ratio = a_vt / (math.sqrt(2) * slope)
-            assert abs(ratio - 1.0) <= 0.05, (kind, float(L), gmid, ratio)
+            ratios.append((ratio, float(L), gmid))
             checked += 1
     assert checked > 50
+    bound = _vth0_ratio_bound(checked)
+    # 판별력 전제: 틀린 bin slope(pfet 7.356/5.856 = 1.256 또는 역수)·단위 오류(10³ 배)는 이 상한 밖
+    assert bound < min(abs(7.356 / 5.856 - 1.0), abs(5.856 / 7.356 - 1.0))
+    for ratio, L, gmid in ratios:
+        assert abs(ratio - 1.0) <= bound, (kind, L, gmid, ratio, bound)
