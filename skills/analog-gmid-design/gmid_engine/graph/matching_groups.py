@@ -22,8 +22,8 @@ writes `graph.rel_matching_offset`·`graph.matching_groups`·`graph.matching_dis
   이상이면 RelEdge(남은 멤버 정확히 2 -> derived, 3 이상 -> review_needed). 뺀 소자는 `bias_sibling` 기록.
 * gs 미러 후보(gate 비레일 `graph.gs_groups` 묶음): diode 멤버가 있고 diode 블록 밖 멤버(소비 소자)가 있으면 gate ∈ B ->
   소비 소자 `bias_distribution`, gate ∈ L -> `feedback_shared`(제외 기록) 후 diode 쪽 멤버·같은 블록 소비 소자끼리 2개 이상이면
-  mirror. 그 밖은 묶음 전체 mirror. 같은 블록 소비 소자가 2개 이상이면 세분(J14 1번): drain = derived 차동쌍 공통 source
-  -> 꼬리(diode 와 `mirror_tail_ratio`, disposition 에서 빠짐), drain = diode 넷 -> 그룹 없음, drain 이 대응 넷 짝인 둘 ->
+  mirror. 그 밖은 묶음 전체 mirror. 소비 소자 세분(J14 1번·판단 7): drain = derived 차동쌍 공통 source -> 꼬리(블록에 혼자여도,
+  diode 와 `mirror_tail_ratio`, disposition 에서 빠짐); 같은 블록 소비 소자가 2개 이상이면 더: drain = diode 넷 -> 그룹 없음, drain 이 대응 넷 짝인 둘 ->
   `mirror_consumer_symmetric`, 해당 없으면 옛 `mirror_consumer_block`. 대응 넷 = derived 2멤버 차동쌍 drain 에서 가지 서명이
   같은 가지 쌍을 따라 퍼뜨린 짝(CONTRACT 4.5a).
 * `branch_symmetric`: derived 그룹(mirror·diff_pair, 새로 찾은 branch_symmetric 포함)을 seed 로, 멤버마다 같은 kind 이고
@@ -301,12 +301,12 @@ def _classify_mirror(g, is_diode, block_of, bias, loop, dispositions, pins, spli
         by_block.setdefault(block_of[m], []).append(m)
     tails = []
     for members in sorted_items(tuple(ms) for ms in by_block.values()):
-        if len(members) > 1:
-            tail, rest = _split_consumer_block(members, nets, diodes, pins, split, out)
-            tails.extend(tail)
-            if len(rest) > 1:
-                out.append(MatchingGroup(MATCH_MIRROR, rest, STATUS_DERIVED,
-                                         Evidence(MIRROR_RULE_CONSUMER_BLOCK, nets, diodes, (J_MATCH_CLASS,))))
+        tail, rest = _split_consumer_block(members, nets, diodes, pins, split, out,
+                                           excluded == DISPOSITION_BIAS_DISTRIBUTION)
+        tails.extend(tail)
+        if len(rest) > 1:
+            out.append(MatchingGroup(MATCH_MIRROR, rest, STATUS_DERIVED,
+                                     Evidence(MIRROR_RULE_CONSUMER_BLOCK, nets, diodes, (J_MATCH_CLASS,))))
     if tails:
         out.append(MatchingGroup(MATCH_MIRROR, tuple(sorted(diodes + tuple(tails))), STATUS_DERIVED,
                                  Evidence(MIRROR_RULE_TAIL_RATIO, nets, diodes, (J_MATCH_CLASS,))))
@@ -317,12 +317,14 @@ def _classify_mirror(g, is_diode, block_of, bias, loop, dispositions, pins, spli
     return tuple(out)
 
 
-def _split_consumer_block(members, nets, diodes, pins, split, out):
-    """같은 블록 소비 소자(2개 이상) 세분(J14 1번, CONTRACT 4.5a): 꼬리(drain = derived 차동쌍 공통 source) -> 돌려줌,
-    diode 넷 drain -> 그룹 없음(제외 기록만), drain 이 대응 넷 쌍인 두 소자 -> 대칭쌍 그룹(out 에 추가).
-    하나도 해당 없으면 묶음 그대로(옛 consumer_block). (꼬리 tuple, consumer_block 으로 남길 tuple) 반환."""
+def _split_consumer_block(members, nets, diodes, pins, split, out, tail_allowed):
+    """같은 블록 소비 소자 세분(J14 1번·판단 7, CONTRACT 4.5a): 꼬리(drain = derived 차동쌍 공통 source) -> 돌려줌(블록에
+    혼자여도) -- bias_distribution 묶음(gate ∈ B, tail_allowed)에서만; feedback_shared 묶음의 꼬리는 그대로 제외 기록. 블록에 소비 소자가 2개 이상이면 더: diode 넷 drain -> 그룹 없음(제외 기록만), drain 이 대응 넷 쌍인 두 소자 ->
+    대칭쌍 그룹(out 에 추가), 하나도 해당 없으면 묶음 그대로(옛 consumer_block). (꼬리 tuple, consumer_block 으로 남길 tuple) 반환."""
     tail_nets, diode_nets, partner = split
-    tails = tuple(m for m in members if pins[m][MOS_DRAIN] in tail_nets)
+    tails = tuple(m for m in members if tail_allowed and pins[m][MOS_DRAIN] in tail_nets)
+    if not members[1:]:
+        return tails, ()
     fed = tuple(m for m in members if m not in tails and pins[m][MOS_DRAIN] in diode_nets)
     open_ = tuple(m for m in members if m not in tails and m not in fed)
     by_drain = {}
