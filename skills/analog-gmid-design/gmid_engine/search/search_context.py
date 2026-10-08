@@ -23,7 +23,7 @@ from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS
 from gmid_engine.core import FailureRecord, PdkDecl, fp_of
 from gmid_engine.graph import ELEMENT_PASSIVE
 from gmid_engine.lut import sweep_memo
-from gmid_engine.metrics import JunctionSource, metric_catalog, metric_registry
+from gmid_engine.metrics import AUX_TYPES, JunctionSource, MismatchSource, metric_catalog, metric_registry, metric_structure
 from gmid_engine.sizing import LutAccess
 
 from .archive import S3Archive
@@ -69,6 +69,10 @@ class SearchContext:
         self.ss_constraints = ()
         self.spec_passive_values = ()
         self.junction = None
+        self.mismatch = None                             # [U7] metrics MismatchSource(PDK mismatch 모델) -- offset·미러비 σ 입력
+        self.structure = None                            # [U7] metrics MetricStructure(S1v 에서) -- 없으면 구조 의존 값은 정의 불가
+        self.driving = None                              # [U7] spec DrivingDecl(슬루율·피크 전류) -- ls_fields 보고·제약 행
+        self.model_error = ()                            # [U7] ((metric, 오라클 대조 모델 오차), ...) DEC-72
         self.area_decl = None                            # metrics PassiveAreaDecl -- 수동소자 단위 면적·측정 부하 제외(결정 11)
         self.eval_budget = settings.eval_budget          # None 이면 evaluate 가 n + 1 평가 뒤 한 번 유도해 기록
         self.eval_budget_source = "declared" if settings.eval_budget is not None else None
@@ -108,9 +112,14 @@ def _wire_sweep_memo(ctx):
     ctx.dc = dataclasses.replace(ctx.dc, lut=LutAccess(memo, old.w_keys))
 
 
-def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl):
+def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rule_decl, s1v=None, model_error=()):
     """[r6] `lut_rule_decl` = core `read_pdk_decl(<LUT 생성 규칙 선언>)`(sky130 = assets/sky130_lut_rule_decl.json). 여기서 S0 당
-    1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)`(metrics 7.6 필수 junction)를 만든다."""
+    1회 `JunctionSource.from_decls(pdk_decl, lut_rule_decl, dc_ctx.lut.memo.lut)`(metrics 7.6 필수 junction)를 만든다.
+
+    [U7] `s1v` = 선택 graph `S1v`(단계 A 결과) -- 있으면 S0 당 1회 `metric_structure(s1v)` 로 metrics 구조 입력(offset_excess 입력 셀·FF 비·블록 잔차 보고)을 만들어
+    매 평가 `ss_evaluate(structure=)` 에 넘긴다(없으면 그 값들은 정의 불가 -- 조용히 통과하지 않고 미측정으로 남는다). PDK 선언의 mismatch 모델은 `MismatchSource`
+    (offset·미러비 σ 입력)로 매 평가 넘긴다. `model_error` = ((metric, 값), ...) DEC-72 오라클 대조 모델 오차(`verified_by.model_error_pairs` 가 `derived.model_error_<metric>`
+    에서 만든다) -- 분해능 바닥(`ss_constraint_rows`)."""
     for name, value in (("pdk_decl", pdk_decl), ("lut_rule_decl", lut_rule_decl)):
         if not isinstance(value, PdkDecl):            # 무엇이든 만들기 전에 입력 형식부터(§3.7·3.9)
             raise TypeError("build_search_context: " + name + " 는 core read_pdk_decl 결과여야 한다")
@@ -136,7 +145,8 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
                           "reason": "constraint_value_pending", "decision": decl.value_decision})
         elif decl.metric in AXES:
             judged.append((decl.metric, decl.op, float(decl.value)))
-        elif decl.metric in registry and registry[decl.metric].signature.view_kind is not None:
+        elif decl.metric in registry and (registry[decl.metric].signature.view_kind is not None
+                                          or registry[decl.metric].source_type in AUX_TYPES):
             ss.append(decl)
         else:
             # [U5] 카탈로그에는 있고 레지스트리에는 없는 이름 = 서명만 있는 계산 대기 metric(metrics/pending_metrics.py) -- 조용히 통과하지 않고
@@ -149,6 +159,10 @@ def build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, lut_rul
                         tuple(dc_ctx.inputs.element_values), tuple(judged), tuple(notes), archive)
     ctx.ss_constraints = tuple(ss)
     ctx.junction = junction
+    ctx.mismatch = MismatchSource.from_decl(pdk_decl)
+    ctx.structure = None if s1v is None else metric_structure(s1v)
+    ctx.model_error = tuple(model_error)
+    ctx.driving = spec.driving_spec
     ctx.area_decl = passive_area_decl(dc_ctx, spec, pdk_decl)
     classes = dict(dc_ctx.base.column("device", "element_class"))
     ctx.spec_passive_values = tuple(sorted((n, float(v)) for n, v in dc_ctx.inputs.element_values

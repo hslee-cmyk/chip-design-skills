@@ -200,6 +200,7 @@ metrics 계산 블록이고 정의·값은 metrics CONTRACT 7절. 이름만 여�
 | device.ss_dev | ss_dev | 모든 MOS | metrics `SsDevice` |
 | graph.metrics_ss | metrics_ss | `METRICS_KEY`(`"metrics"`) | metrics `MetricBundle` |
 | graph.metrics_dc | metrics_dc | `METRICS_KEY` | metrics `MetricBundle` |
+| graph.metrics_aux | metrics_aux | `METRICS_KEY` | metrics `MetricBundle`(offset·미러비·스윙·ICMR·FF 비 + 블록 잔차 보고, metrics CONTRACT 10절, U7) |
 
 노드전압 정본: 레일 = `dc_rail_v`, 그 밖 = `dc_v`(한 노드에 둘 중 하나만 -- 봉인 5). 소자 VGS/VDS/VSB 는 저장 필드가 아니고
 `DeviceOp` 는 노드전압 차의 파생이다(설정 API 없음, N3.4).

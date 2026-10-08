@@ -18,6 +18,7 @@ import statistics
 import time
 
 from gmid_engine.core import fp_of
+from gmid_engine.metrics import verified_by
 from gmid_engine.sizing import (
     dc_columns,
     dc_currents,
@@ -34,6 +35,7 @@ from gmid_engine.sizing import (
 )
 
 from .eps_sweep import sweep_front
+from .gate_run import run_sensitivity_gate
 from .layer0_center import layer0_start
 from .search_values import AXIS_AREA, AXIS_POWER, STATUS_PENDING_SEAL7, SearchFront
 from .start_points import start_points
@@ -79,12 +81,20 @@ def find_front(sctx, given_starts):
     out = sweep_front(sctx, starts)
     blocks_after = _block_totals()
     notes = [dict(n) for n in sctx.constraint_notes]
+    gate = run_sensitivity_gate(sctx, out["front"][0].result) if out["front"] else None      # [U7] 최종 해의 감도 게이트(40 §3.8-2)
+    if gate is not None:
+        notes.append({"verdict": "ok" if gate.ok else "error", "rule": "sensitivity_gate", "errors": list(gate.errors),
+                      "checks": len(gate.checks), "unchecked": sum(1 for c in gate.checks if c[4] is None), "epsilon_db": gate.epsilon})
     probe = next((s.best for _p, s in out["solves"] if s.best is not None), None)
     if probe is not None and (probe.objectives.passive_value_undetermined or probe.objectives.passive_area_undeclared):
         notes.append({"verdict": "review_needed", "rule": "DEC-79",
                       "passive_value_undetermined": list(probe.objectives.passive_value_undetermined),
                       "passive_area_undeclared": list(probe.objectives.passive_area_undeclared)})
     notes.append({"verdict": "judgment_pending", "rule": "DEC-72", "reason": "model_error_unmeasured_front_estimated"})
+    declared = sorted({d.metric for d in sctx.ss_constraints} | {m for m, _op, _v in sctx.judged_constraints})      # [U7] 판정 metric 의 검증 출처(DEC-90 (3))
+    notes.append({"verdict": "verified_by", "rule": "DEC-72/DEC-90",
+                  "metrics": [[v.metric, v.kind, v.measure, v.model_error_ref] for v in map(verified_by, declared)],
+                  "model_error": [list(p) for p in sctx.model_error]})
     notes.append({"verdict": "not_run", "rule": "DEC-79", "reason": "layout_axis_refilter_is_mod8"})
     box = [[k, list(v)] for k, v in sctx.domain.current_box]
     if sctx.domain.area_budget_m2 is None:
