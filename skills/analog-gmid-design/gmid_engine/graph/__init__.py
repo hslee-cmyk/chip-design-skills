@@ -136,6 +136,11 @@ from .s1v_values import (
     Loop,
     LClass,
     StructureFact,
+    CellInfo,
+    DriveInfo,
+    PoleNode,
+    PassBundle,
+    OutputDirection,
 )
 from .structure_load import StructureFacts, load_structure_facts
 from .structure_tables import structure_tables
@@ -257,6 +262,11 @@ __all__ = (
     "Block",
     "CompositeBlock",
     "Loop",
+    "CellInfo",
+    "DriveInfo",
+    "PoleNode",
+    "PassBundle",
+    "OutputDirection",
     "LClass",
     "StructureFact",
     "StructureFacts",

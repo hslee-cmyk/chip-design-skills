@@ -131,9 +131,9 @@ def analyze_view(model, seed, view_id, count_budget, ratified):
     reduced_ground = ground | virtual
     primary = _analysis(model, reduced_ground, reach_seeds, sense, stage_seeds, drive_excite, view_id, ratified)
     base = primary if not virtual else _analysis(model, ground, reach_seeds, sense, stage_seeds, drive_excite, view_id, ratified)
-    impedance = node_impedance(model, ground)
+    impedance = node_impedance(model, ground, frozenset(name for b in primary.cells.bundles for name in b.members))
     gain = build_blocks(model, ground, primary.cells, primary.drive, primary.stage, impedance, sense, view_id)
-    buffers = buffer_bundles(model, reduced_ground, primary.cells, primary.stage, view_id)
+    buffers = buffer_bundles(model, reduced_ground, primary.cells, primary.stage, impedance, view_id)
     composite = composite_blocks(model, gain, buffers, primary.cells, count_budget, view_id)
     poles = pole_nodes(model, ground, composite.blocks, impedance, primary.drive)
     outputs = set(sense) | {net for block in composite.blocks for net in block.outputs}

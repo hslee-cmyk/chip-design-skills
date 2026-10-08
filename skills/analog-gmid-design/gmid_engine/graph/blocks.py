@@ -132,7 +132,26 @@ def _grow(model, ground, cells, drive, owners, members, starts):
     return members
 
 
-def _outputs(model, members, info, sense):
+def _through_pass(net, bid, members, bundles, inputs):
+    """출력 후보 넷이 같은 블록 pass 묶음의 한 끝이면 반대 끝으로 따라간다(41 §1.7-1, 계획 N3.2-6 'CD·pass 로 끝나면 그 소자의 출력 단자
+    노드'). 입력 넷이거나 이미 지난 넷으로 되돌아가지는 않는다."""
+    seen = {net}
+    moved = True
+    while moved:
+        moved = False
+        for bundle in bundles:
+            if net not in bundle.nodes or any(members.get(n, (None, None))[0] != bid for n in bundle.members):
+                continue
+            other = bundle.nodes[1] if bundle.nodes[0] == net else bundle.nodes[0]
+            if other not in seen and other not in inputs:
+                seen.add(other)
+                net = other
+                moved = True
+                break
+    return net
+
+
+def _outputs(model, members, info, sense, bundles):
     readers = {}
     for name, (bid, role) in members.items():
         cell = info[name]
@@ -141,12 +160,13 @@ def _outputs(model, members, info, sense):
             readers.setdefault(_input_net(m, cell.kind), set()).add(bid)
         if cell.kind == CELL_CS:
             readers.setdefault(m.s, set()).add(bid)
+    inputs = set(readers)
     out = {}
     for name, (bid, role) in members.items():
         cell = info[name]
         if cell.kind not in (CELL_CS, CELL_CG) or role == ROLE_LOAD:
             continue
-        net = cell.out
+        net = _through_pass(cell.out, bid, members, bundles, inputs - {cell.out})
         read_by_same = any(owners_root == bid for owners_root in readers.get(net, ()))
         if net in sense or not read_by_same:
             out.setdefault(bid, set()).add(net)
@@ -198,7 +218,7 @@ def build_blocks(model, ground, cells, drive, stage, impedance, sense, view_id):
         nodes[owners.find(bid)].add(net)
     for bid, nets in owners.shared.items():
         nodes[owners.find(bid)].update(nets)
-    outputs = _outputs(model, members, info, sense)
+    outputs = _outputs(model, members, info, sense, cells.bundles)
     extra = _attach(model, ground, members, info, nodes)
     blocks = []
     findings = []

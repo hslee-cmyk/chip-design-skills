@@ -120,6 +120,19 @@ def _groups(blocks_res, all_blocks):
     return find, merge_nodes, overlaps
 
 
+def _buffer_overlaps(final, merge_nodes, recorded, view_id):
+    """불변량 4: 버퍼 블록은 `conflicts` 에 안 잡히므로 최종 블록 목록에서 소유 넷(입력 경계 제외) 겹침을 따로 본다 -- 복합 블록 합류 노드나 이미
+    기록한 넷이 아니면 `block_node_overlap`."""
+    merged = {net for nets in merge_nodes.values() for net in nets}
+    owners = {}
+    for b in final:
+        for net in set(b.nodes) - set(b.inputs):
+            owners.setdefault(net, []).append(b.key)
+    return [Finding(F_NODE_OVERLAP, SEVERITY_REVIEW, view_id, (net, *map(str, sorted(keys))),
+                    "버퍼 블록과 다른 블록이 합류 노드가 아닌 넷을 공유한다", ("N3.2-6",))
+            for net, keys in sorted_items(owners) if len(keys) > 1 and net not in merged and net not in recorded]
+
+
 def composite_blocks(model, blocks, buffers, cells, count_budget, view_id):
     all_blocks = list(blocks.blocks)
     find, merge_nodes, overlaps = _groups(blocks, all_blocks)
@@ -182,4 +195,6 @@ def composite_blocks(model, blocks, buffers, cells, count_budget, view_id):
                        merged_imp, STATUS_REVIEW_NEEDED)
         replaced.update({i: (merged if i == min(group) else None) for i in group})
     final = [replaced[i] if i in replaced else b for i, b in enumerate(all_blocks) if replaced.get(i, b) is not None]
-    return CompositeResult(tuple(final) + tuple(buffers.blocks), tuple(composites), tuple(findings))
+    final = tuple(final) + tuple(buffers.blocks)
+    findings.extend(_buffer_overlaps(final, merge_nodes, {net for net, _ in overlaps}, view_id))
+    return CompositeResult(final, tuple(composites), tuple(findings))

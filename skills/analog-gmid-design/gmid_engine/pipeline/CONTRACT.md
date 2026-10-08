@@ -15,7 +15,7 @@ ng-bridge 브랜치(`oracle_input` 등 오라클 생산자)가 같은 파일을 
 * ratified 사실(structure.json): 개념 `drive_kind`(대상 넷, 값 voltage|current)는 구동 종류 고정, 개념 `stage_members`(대상 stage 이름, 값 = 공백으로 이은 소자 이름)는 declared
   stage 로 유도와 대조(`declared_stage_mismatch` review_needed). topology 태그는 읽지 않는다. 파일이 없거나 `stage_members` 사실이 없으면 `declared_comparison` =
   `not_performed: <파일> absent|has no stage_members facts`. 해시 불일치 사실은 적용하지 않고 `structure_fact_stale`(review_needed).
-* 정지와 exit code: A1 `SchemaRejectedError` -> exit 7(`stop_reasons` = `A1_load: ...`), A2·structure 거부 -> 7 또는 2. `기록만` 기록 있음 -> status `stopped`, exit 2.
+* 정지와 exit code: A1 `SchemaRejectedError` -> exit 7(`stop_reasons` = `A1_load: ...`), A2 거부 -> 7 또는 2, `structure.json` 형식 위반(JSON 이 아닌 파일 포함) -> `SchemaRejectedError` gate `structure_json` -> exit 7(`A3_structure_json`), N_S 정의역 밖(MOS 없음·LUT 슬라이스 없음, `structure_count_budget` 의 `ValueError`) -> `count_budget_undefined` -> exit 2(`A2_count_budget`). 모든 정지에서 보고서를 쓴다. `기록만` 기록 있음 -> status `stopped`, exit 2.
   review_needed 만 -> status `review_needed`, exit 2(GB4 앞 정지). 그 밖 -> `ok`, exit 0.
 
 ## 2. 보고서 (`<output_dir>/<회로>.stage_a.json`, `.stage_a.md`)

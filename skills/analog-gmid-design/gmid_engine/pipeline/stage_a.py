@@ -90,7 +90,11 @@ def run_stage_a(topology_path, spec_path, lut, *, output_dir, supplies_v=None, s
         return _finish(_stopped(circuit, exc, "A2_build_s1"), None, output_dir, circuit)
     classes = dict(s1.column("device", "element_class"))
     kinds = {kind for name, kind in s1.column("device", "kind") if classes[name] == ELEMENT_MOS}
-    budget = structure_count_budget(lut, kinds)
+    try:
+        budget = structure_count_budget(lut, kinds)
+    except ValueError as exc:   # N_S 정의역 밖(MOS 없음·LUT 슬라이스 없음) -- 보고서를 쓰고 정지
+        return _finish(_stopped(circuit, StructureUnresolvedError(detail={"reason": "count_budget_undefined", "message": str(exc)}),
+                                "A2_count_budget"), None, output_dir, circuit)
     path = Path(structure_path) if structure_path is not None else Path(topology_path).with_name(circuit + STRUCTURE_SUFFIX)
     try:
         structure = load_structure_facts(path, s1.key.topology_fp, s1v_rule_fp())

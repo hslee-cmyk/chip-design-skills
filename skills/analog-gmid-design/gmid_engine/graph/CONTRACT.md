@@ -548,7 +548,7 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 | 이름 | 설명 |
 |---|---|
 | `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), previous=None, stop_on_unsupported=True) -> S1v` | 진입점. `s1` = `build_s1` 결과, `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`) |
-| `S1v`, `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact` | frozen dataclass(`fp_of` 가능). 필드 뜻은 `s1v_values.py` docstring |
+| `S1v`, `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact`, `CellInfo`, `DriveInfo`, `PoleNode`, `PassBundle`, `OutputDirection` | frozen dataclass(`fp_of` 가능). 필드 뜻과 어휘(`Block.kind`·AC 역할·`DriveInfo.basis`·`LClass.owner_rule`·`OutputDirection.topology`·`unreduced_diff` 형식)는 `s1v_values.py` docstring 이 정본이고 10.5 에 요약한다 |
 | `load_structure_facts(path, topology_fp, rule_fp) -> StructureFacts` | `structure.json` ratified 사실 로더(파일 없음 = 사실 0, 형식 위반 = `SchemaRejectedError` gate `structure_json`, 해시 불일치 = 사실 미적용 + `structure_fact_stale` review_needed) |
 | `structure_tables(s1v) -> dict` | JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
 | `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `structure.json` 의 `rule_hash` 와 재사용 키가 쓴다 |
@@ -570,8 +570,9 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
   `mixed_drive_unresolved_group`)·2·5(저항·pass 로만 들어오면 이웃 종류 상속, 저항은 `value_dependent`). ratified `drive_kind` 사실은 해당 넷을 고정(근거 `ratified_fact`).
 * **stage**: `dist`(수동소자 엣지 포함 0-1 BFS, 복귀 경로 판정용)와 `stage_dist`(수동소자 제외, stage 번호용). 시작 셀 = 순방향 CS(gate 전압 구동, 미러 입력 아님, DC 역할이
   바이어스 전류원 아님) / source 가 전압 구동인 CG. 블록 stage = 시작 셀 입력 넷 `stage_dist` + 1.
-* **블록**: 소유 고정점(시작 셀 -> 캐스코드·미러 연장·pass·diode). 같은 stage 블록이 넷(공통 소스·출력)을 공유하면 합친다(차동 블록). 키 = 출력노드 이름 정렬 tuple. 서로 다른 stage 가
-  합류 노드를 공유하면 복합 블록 후보. 출력노드 임피던스가 낮으면 `cs_output_low_impedance`(기록만). 버퍼 블록 = CD 묶음 R(u)(싱크 하나).
+* **임피던스 등급**(41 §1.7-4, 2026-10-08 정정): `node_impedance` 표 하나를 블록 출력노드(`Block.impedance`, 이득·버퍼 블록 모두)와 극점 노드가 함께 읽는다. 낮음 = MOS source 단자(gate 가 교류접지이든 구동되든 무관 -- follower 출력 포함)나 diode 단자가 붙은 노드, 값 의존 = 낮음 없이 저항이 붙은 노드, 높음 = 그 밖. pass 묶음 소자의 단자는 등급에 기여하지 않는다(통로).
+* **블록**: 소유 고정점(시작 셀 -> 캐스코드·미러 연장·pass·diode). 같은 stage 블록이 넷(공통 소스·출력)을 공유하면 합친다(차동 블록). 출력노드가 같은 블록 pass 묶음의 한 끝이면 반대 끝으로 따라간다(41 §1.7-1: pass 로 끝나면 pass 출력 단자 노드 = 포트). 키 = 출력노드 이름 정렬 tuple. 서로 다른 stage 가
+  합류 노드를 공유하면 복합 블록 후보. 출력노드 임피던스가 낮으면 `cs_output_low_impedance`(기록만). 버퍼 블록 = CD 묶음 R(u)(싱크 하나). 이득 블록과 버퍼 블록이 합류 노드가 아닌 넷을 공유하면 `block_node_overlap`(review_needed, 불변량 4).
 * **루프**: 방향 신호 그래프(gate->drain/source, CG 또는 전류 진입 source->drain, 수동소자·pass 양방향)의 단순 사이클 전수, 시작 = 사이클 최소 노드. 수동소자만의 사이클 제외.
   개수·걸음 수가 `count_budget` 초과 -> `cycle_enumeration_over_budget`(기록만). 분류 (1.5) `bias_scc` / (2) `miller` / (3) `loop_view`((3-a)·(3-b)) / (4) `record_only`.
   끊는 점 = 복귀 구간 다음 첫 CS gate 후보 중 뷰 안 루프에서 가장 많이 나타나는 것(이름 전단사 불변). 극성 = CS gate->drain 반전 곱, 커패시터 경유 0.
@@ -600,8 +601,28 @@ test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값�
 
 ### 10.4 설계와 다르게 정한 점 / 위임한 점
 
+* `structure_count_budget(lut, kinds)` 는 합이 1 미만(kinds 가 비었거나 LUT 슬라이스 없음)이면 `ValueError` -- N_S 는 1 이상 int 여야 하므로 정의역 밖이다. `run_stage_a` 는 이를 잡아 `count_budget_undefined`(StructureUnresolvedError, exit 2)로 보고서에 쓴다.
+* **U1b 로 미룬 것**: `structure.json` 의 `schema_version` 값 검사·알 수 없는 개념 거부(어휘는 U1b), `drive_kind` 사실 값 범위(voltage|current) 검사, 판정 규칙 J1~ 구현.
 * S1v 저장은 core `GraphSnapshot` 이 아니라 frozen dataclass 트리(`S1v`)이고 재사용은 키(`S1v.key`) 일치로 한다.
 * 입력 포트 role 문자열(`differential_input_p/n`, `differential_output_p/n`)과 spec 뷰 mode 문자열은 `s1v_values.py` 에 같은 값으로 복제했다(authoring 이 `__all__` 로 내보내지 않는다 -- U5 요청).
 * declared stage 의 생산자(topology 의 `compensation.stage_devices` 등 태그 읽기)는 엔진 안에 없다(태그 키는 규칙 I·IC4 로 읽기 금지). `declared` 인자로만 받는다.
 * 복합 블록은 묶음 경계를 J12 ratify 전 `composite_block_pending_ratify`(review_needed)로 남기고 격자 곱 Π 는 LUT 축이 필요해 U9 몫이다(`CompositeBlock.cells` = 밑).
 * `virtual_ground` 는 U2 정준 라벨링·궤도가 들어오면 그 궤도로 대체한다.
+
+### 10.5 어휘 요약과 library 9회로 정지 코드 (2026-10-08 U1 수정 뒤 실측)
+
+* `Block.kind` ∈ {gain, buffer, composite}. AC 역할 ∈ {input, cascode, mirror, diode_load, pass, follower, tail, load}(계획 N3.2-6 의 input·cascode·follower·pass·load·tail 에
+  mirror·diode_load 를 load 의 세분으로 더함. 옛 이름 `tail_source` 는 `tail` 로 바꿨다).
+* `LClass.owner_rule` ∈ {tail_owner, tail_first_gain_stage, current_source_member, name_order}. `OutputDirection.topology` ∈ {push_pull, class_a, none}(none = 어느 방향도 σ 셀 없음).
+  `DriveInfo.basis` 13종은 `s1v_values.py` `BASIS_*`. `ViewS1v.unreduced_diff` = ((소자, (축약 kind, forward), (비축약 kind, forward)), ...). `S1v.key` 는 7원소(마지막 = declared_loop_cuts 지문).
+  `S1v.views` 순서 = 전달 뷰(순번 순) 다음 루프 뷰(끊는 점 정렬 순).
+
+| 회로 | status / exit | 정지 코드(`unsupported_rule_branch`) | review_needed 코드 |
+|---|---|---|---|
+| two_stage_ota, two_stage_ota_sf, folded_cascode, common_gate_amplifier, pushpull_follower_buffer | ok / 0 | 없음 | 없음 |
+| current_reuse_telescopic_ota | stopped / 2 | `cs_output_low_impedance` -- 루프 뷰 `loop:M37a:Voc` 의 N1a2a, N1b2b, Vx(출력노드가 다른 소자의 source) | loop_polarity_undefined, mixed_drive_signal_drain |
+| ngcc_3stage_ff | stopped / 2 | `undeclared_loop_constraint` -- 루프 뷰 `loop:M8:V1`(차동 출력 포트쌍 없음, 안정도 제약 미선언) | composite_block_pending_ratify, loop_polarity_undefined |
+| nmcnr_amplifier | stopped / 2 | `undeclared_loop_constraint` -- 루프 뷰 `loop:M201:NodeM2` | loop_polarity_undefined |
+| sf_pushpull_output_opamp | stopped / 2 | `loop_record_only`(transfer:0 복합 diode 루프 9건), `composite_dag_not_chain`(N1112,N12 / N1516,N910,Y), `cs_output_low_impedance`(N1112, N1314, N1516, N17, N20, N56, N78, N910 -- 정정된 §1.7-4 로 새로 생김) | block_node_overlap(N17, N20: 버퍼 사슬 중간 노드와 부하 블록), composite_block_pending_ratify, mixed_drive_unresolved_group |
+
+정지 4회로의 정지 사유는 J 규칙(U1b)이 닿기 전까지 의도된 `기록만` 정지다.

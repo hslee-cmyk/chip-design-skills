@@ -66,7 +66,7 @@ ROLE_FOLLOWER = "follower"
 ROLE_PASS = "pass"
 ROLE_MIRROR = "mirror"
 ROLE_LOAD = "load"
-ROLE_TAIL = "tail_source"
+ROLE_TAIL = "tail"
 ROLE_DIODE_LOAD = "diode_load"
 # ---- 임피던스 등급(41 §1.7-4)
 IMP_LOW = "low"
@@ -205,7 +205,7 @@ class Finding:
 
 @dataclasses.dataclass(frozen=True)
 class CellInfo:
-    """MOS 하나의 셀 판독. `kind` ∈ CELL_KINDS, `out` = 출력 단자 넷(CS·CG = drain, CD = source, 그 밖은 빈 문자열),
+    """MOS 하나의 셀 판독. `dev` = MOS 이름, `kind` ∈ CELL_KINDS, `out` = 출력 단자 넷(CS·CG = drain, CD = source, 그 밖은 빈 문자열),
     `forward` = 출력 단자가 순방향 집합 위(pass 는 묶음 두 노드가 모두 순방향 위), `degeneration` = source 가 신호 넷인 CS."""
 
     dev: str
@@ -229,7 +229,11 @@ class StructureFact:
 @dataclasses.dataclass(frozen=True)
 class DriveInfo:
     """넷의 입력 노드 구동 종류. `kind` ∈ {voltage, current}, `value_dependent` = 저항·pass 로만 들어와 상속한 값,
-    `tap` = 채널 쪽만 순방향을 잇는 노드, `basis` = 판정 근거 어휘."""
+    `tap` = 채널 쪽만 순방향을 잇는 노드,
+    `basis` = 판정 근거 ∈ {port(여기 포트), source_entry(CD·CG 등 source 로 진입), drain_entry_gate_exit(drain 진입, gate 로만 나감 -> 전압),
+    drain_entry_channel_exit(drain 진입, 채널로만 나감 -> 전류), drain_entry_gate_and_channel_exit(둘 다 -> stage 경계, 전압), drain_entry_tap(채널 쪽만 순방향
+    -> tap), drain_entry_no_exit(나가는 엣지 없음), mixed_bias_drain(혼재, drain 쪽이 바이어스 전류원 -> 전압), mixed_signal_drain(혼재, 신호 소자 drain ->
+    기록), inherit_passive(저항으로만 들어와 이웃 종류 상속), inherit_pass_bundle(pass 로 상속), ratified_fact(structure.json 이 고정), undriven(구동 없음)}."""
 
     net: str
     kind: str
@@ -240,7 +244,7 @@ class DriveInfo:
 
 @dataclasses.dataclass(frozen=True)
 class OutputDirection:
-    """노드 하나의 방향별 전류 공급 셀. `charge`·`discharge` = (소자, β|σ|κ) 이름순, `topology` ∈ {push_pull, class_a, none}."""
+    """노드 하나의 방향별 전류 공급 셀. `charge`·`discharge` = (소자, β|σ|κ) 이름순, `topology` ∈ {push_pull(두 방향 모두 σ 셀 공급), class_a(한 방향만 σ), none(어느 방향도 σ 없음 -- β·κ 셀만 있거나 공급 셀이 없다)}."""
 
     net: str
     charge: tuple
@@ -250,7 +254,7 @@ class OutputDirection:
 
 @dataclasses.dataclass(frozen=True)
 class PassBundle:
-    """pass 묶음 하나: 멤버 소자 이름순, 두 노드 이름순."""
+    """pass 묶음 하나(같은 두 노드 사이 반대 방향으로 놓인 소자 둘, 셋 이상이면 `pass_group_unsupported`): `members` = 멤버 소자 이름순, `nodes` = 두 노드 이름순."""
 
     members: tuple
     nodes: tuple
@@ -258,9 +262,13 @@ class PassBundle:
 
 @dataclasses.dataclass(frozen=True)
 class Block:
-    """블록 하나. `key` = 출력노드 넷 이름의 정렬 tuple, `kind` ∈ {gain, buffer}, `stage` = 출력노드 0-1 BFS 거리,
-    `inputs` = 블록 입력 넷, `outputs` = 출력노드, `roles` = (소자, AC 역할) 이름순, `nodes` = 블록 노드 집합(교류접지 제외),
-    `impedance` = (출력노드, 등급) 이름순, `status` ∈ {derived, review_needed}."""
+    """블록 하나. `key` = 출력노드 넷 이름의 정렬 tuple, `kind` ∈ {gain, buffer, composite}(composite = 복합 블록이 멤버를 대체한 블록, `CompositeBlock` 기록과 짝),
+    `stage` = 시작 셀 입력 넷 `stage_dist` + 1(버퍼 블록은 입력 넷 `stage_dist`, 복합은 멤버 최소),
+    `inputs` = 블록 입력 넷, `outputs` = 출력노드, `roles` = (소자, AC 역할) 이름순, AC 역할 ∈ {input(시작 CS·CG), cascode(CG), mirror(미러 입력을 gate 로 읽는 CS), diode_load(소유 노드의 diode 소자),
+    pass(pass 묶음), follower(버퍼 블록의 CD), tail(바이어스 전류원이고 drain 이 블록 안 둘 이상 멤버의 source), load(그 밖 블록 소유 노드에 닿는 MOS·수동소자)} --
+    계획 N3.2-6 의 input·cascode·follower·pass·load·tail 에 mirror·diode_load 를 load 의 세분으로 더한 것, `nodes` = 블록 노드 집합(교류접지 제외),
+    `impedance` = (출력노드, 등급 ∈ {low, high, value_dependent}) 이름순 -- `node_impedance` 표 그대로(극점 노드와 같은 값),
+    `status` ∈ {derived, review_needed}."""
 
     key: tuple
     kind: str
@@ -333,7 +341,7 @@ class ViewS1v:
     `signal_nets`·`forward_nets` = 축약 뷰의 신호 넷·순방향 넷, `cells`·`pass_bundles`·`drive_kind`·`dist`(수동소자 포함 거리)·`stage_dist`
     (stage 번호용)·`stage_starts`·`mirror_inputs` = 축약 뷰 기준, `blocks`(이득·버퍼·복합)·`composites`·`pole_nodes`·`output_direction`,
     `loops`·`cuts` = 비축약 뷰 기준(루프는 가상접지를 지나는 되먹임까지 센다), `cm_pair` = 루프 뷰가 선언된 차동 출력 포트쌍을 모두 지나는가(R31), `unreduced_diff` = 축약과 비축약에서 셀 판독이 달라지는
-    소자 ((소자, 축약 판독, 비축약 판독), ...), `findings` = 이 뷰의 기록."""
+    소자 ((소자 이름, (축약 뷰 셀 kind, forward), (비축약 뷰 셀 kind, forward)), ...) 이름순(둘 중 한쪽이 순방향일 때만)(가상접지가 없으면 빈 tuple), `findings` = 이 뷰의 기록."""
 
     id: str
     kind: str
@@ -365,7 +373,9 @@ class ViewS1v:
 
 @dataclasses.dataclass(frozen=True)
 class LClass:
-    """L 동치류 하나(40 §3.2 보완 1, LR1): 멤버, 주인 소자, 주인 선택 근거 규칙 이름, status."""
+    """L 동치류 하나(40 §3.2 보완 1, LR1): 멤버, 주인 소자, 주인 선택 근거 규칙 이름, status.
+    `owner_rule` ∈ {tail_owner(동치류에 tail 하나), tail_first_gain_stage(tail 여럿 -> 첫 전달 뷰 최전단 stage), current_source_member(tail 없음 -> diode 기준
+    멤버), name_order(그 밖 -> 이름 정렬 첫 멤버)}."""
 
     members: tuple
     owner: str
@@ -375,7 +385,8 @@ class LClass:
 
 @dataclasses.dataclass(frozen=True)
 class S1v:
-    """SP1 전체 결과. `key` = (S1 지문, 뷰 입력 지문, 계수 예산, 규칙 코드 지문, declared 지문, ratified 지문), `views` = ViewS1v 뷰 id 순,
+    """SP1 전체 결과. `key` = 7원소 (S1 지문, 뷰 입력 지문, 계수 예산, 규칙 코드 지문, declared 지문, ratified 지문, declared_loop_cuts 지문), `views` = ViewS1v:
+    전달 뷰(`transfer:<순번>`, 뷰 수집 순서 = 여기·관측 정렬 순) 다음에 루프 뷰(`loop:<소자>:<gate 넷>`, 끊는 점 (소자, 넷) 정렬 순) -- 결정적이고 이름과 무관하다,
     `l_classes` = LClass(주인 포함), `findings` = 뷰 밖 기록(뷰 수집·declared 대조·structure 사실), `declared` = declared 대조 결과 요약,
     `facts_applied` = 적용한 ratified 사실 (개념, 대상) tuple."""
 

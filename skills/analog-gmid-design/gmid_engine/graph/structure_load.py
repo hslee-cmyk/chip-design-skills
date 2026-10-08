@@ -62,7 +62,11 @@ def load_structure_facts(path, topology_fp, rule_fp):
     target = Path(path)
     if not target.is_file():
         return StructureFacts((), ())
-    raw = json.loads(target.read_text(encoding="utf-8"))
+    try:
+        raw = json.loads(target.read_text(encoding="utf-8"))
+    except ValueError as exc:   # JSONDecodeError·UnicodeDecodeError 는 ValueError 하위 -- 읽을 수 없는 파일도 형식 위반이다
+        raise SchemaRejectedError(detail={"gate": GATE, "where": str(target), "hits": (
+            SchemaHit("structure_not_json", GATE, "JSON 으로 읽을 수 없다: " + str(exc)),)}) from exc
     hits = _hits(raw)
     if hits:
         raise SchemaRejectedError(detail={"gate": GATE, "where": str(target), "hits": tuple(hits)})
