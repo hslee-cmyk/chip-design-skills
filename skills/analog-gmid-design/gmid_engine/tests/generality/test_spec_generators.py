@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 
-from gmid_engine.authoring import load_sizing_spec
+from gmid_engine.authoring import THETA_BOUNDS, UNTIE_ORBITS, load_sizing_spec
 from gmid_engine.core import MetricSignature
 from gmid_engine.metrics import metric_catalog
 
@@ -85,8 +85,20 @@ def test_rename_spec_loads_and_maps_names(tmp_path, name):
     assert sorted((p.path, p.decision) for p in b.pending) == mapped
     assert len(b.constraints) == len(a.constraints)
     fa, fb = dict(a.section_fps), dict(b.section_fps)
+    # [2026-10-08 r10·r12] search 의 theta_bounds·untie_orbits 는 원소 이름이 키이고 search_fp 에 든다(SPEC_CONTRACT 3절 "`theta_bounds`
+    # (원소·kind·min·max·출처 kind)는 `search_fp` 에 든다") -- 그 칸이 있으면 search_fp 는 이름 섹션이라 지문 비교에서 빼고 내용을 표로 대조한다.
+    named = {sv.field: sv.value for sv in a.search if sv.field in (THETA_BOUNDS, UNTIE_ORBITS)}
     for s in NAMELESS_SECTIONS:
+        if s == "search_fp" and named:
+            continue
         assert fb[s] == fa[s], s
+    got = {sv.field: sv.value for sv in b.search if sv.field in (THETA_BOUNDS, UNTIE_ORBITS)}
+    assert set(got) == set(named)
+    if THETA_BOUNDS in named:
+        assert sorted((m[t.element], t.kind, t.lo, t.hi) for t in named[THETA_BOUNDS]) == \
+            sorted((t.element, t.kind, t.lo, t.hi) for t in got[THETA_BOUNDS])
+    if UNTIE_ORBITS in named:
+        assert sorted(m[e] for e, _ in named[UNTIE_ORBITS]) == sorted(e for e, _ in got[UNTIE_ORBITS])
     if a.element_values:
         assert fb["elements_fp"] != fa["elements_fp"]            # 이름이 실제로 바뀌었다(공허하지 않음)
 
@@ -100,3 +112,26 @@ def test_rename_spec_refuses_unmapped_name_slots(where):
         spec_json["human"][where] = {"values": {"OUT": 0.9}}
     with pytest.raises(ValueError):
         rename_spec(spec_json, {"OUT": "zz"}, "fp")
+
+
+def test_rename_spec_maps_search_and_u5_name_slots():
+    # oracle (a) 구성: 치환표 {Cc: kq, OUT: AA, M1: zz} 를 손으로 정했으므로 옮겨진 이름이 구성으로 정해진다. 이름 자리 근거 =
+    # SPEC_CONTRACT 1절(search.theta_bounds·untie_orbits 키 = 원소, gain_budget_db_override.block = 사전순 엄격 증가 넷 배열,
+    # noise_testbench.sampling_caps[].element = 커패시터)과 3절 cm_loop(view `cm_sense_elements` = MOS 이름 list). JSON 자리 변환만
+    # 본다 -- 로드 일치는 위 library test(theta_bounds 6회로)가 본다.
+    spec_json = json.loads((LIBRARY / "two_stage_ota.sizing_spec.json").read_text(encoding="utf-8"))
+    h = spec_json["human"]
+    src = {"kind": "user_spec", "record": "t", "decided": "2026-10-09"}
+    h["search"]["untie_orbits"] = {"M1": {"source": src}, "_c": "주석"}
+    h["gain_budget_db_override"] = [{"block": ["N1", "OUT"], "value_db": 20, "source": src}]
+    h["noise_testbench"] = {"sampling_caps": [{"element": "Cc", "source": src}]}
+    h["constraints"][0]["view"] = {"cm_sense_elements": ["M1", "M2"]}
+    before = copy.deepcopy(spec_json)
+    out = rename_spec(spec_json, {"Cc": "kq", "OUT": "AA", "M1": "zz"}, "fp")
+    assert spec_json == before
+    oh = out["human"]
+    assert set(oh["search"]["theta_bounds"]) == {"kq"}
+    assert set(oh["search"]["untie_orbits"]) == {"zz", "_c"}
+    assert oh["gain_budget_db_override"][0]["block"] == ["AA", "N1"]   # 치환하면 ["N1", "AA"] -- 사전순 재정렬('A' < 'N')
+    assert oh["noise_testbench"]["sampling_caps"][0]["element"] == "kq"
+    assert oh["constraints"][0]["view"] == {"cm_sense_elements": ["zz", "M2"]}

@@ -8,6 +8,8 @@ oracle 종류 (a) -- 구성으로 정답이 정해진 변형 관계(피검 함�
 - 정준형의 순서 규칙(4.5a 표·4.5 표): mirror·bias_distribution·feedback_shared 의 nets = (gate, source) -- 순서가 뜻이라 tuple;
   diff_pair 의 nets = (source,) + 남은 멤버 gate 넷 **정렬**(4.5 rel_matching_offset), branch_symmetric 의 nets = (gate,) + source 넷
   **정렬** -- 첫 칸만 뜻이고 나머지는 이름 정렬이라 (첫 칸, 집합); bias_sibling = (source, 그 소자 gate) tuple. members·group 은 집합.
+  [2026-10-08 J14 이후 4.5a 표] `mirror_consumer_symmetric` 의 nets = (gate, source, a, b) "a < b" -- 대응 넷 짝 {a ↔ b} 는 무향이고
+  a·b 순서는 이름 정렬이라 ((gate, source), {a, b}).
   그룹 목록 순서는 gs 묶음 순서(이름 정렬)라 다중집합으로 비교한다.
 - 순서 섞기·태그 잡음(authoring CONTRACT 2절: 연결 투영이 같으면 같은 S1 키): 결과 tuple 이 그대로(순서까지).
 - 극성 뒤집기(nmos<->pmos + 두 레일 맞바꿈): 4.5a 정의는 kind 를 '같은 kind' 비교로만 쓰고 레일·G·B·L 은 kind 와 무관하므로
@@ -37,6 +39,7 @@ LIB = ("common_gate_amplifier", "current_reuse_telescopic_ota", "folded_cascode"
 CIRCUITS = SYNTH + LIB
 SEEDS = range(3)
 SORTED_TAIL_RULES = ("diff_pair", "branch_symmetric")      # nets = (첫 칸,) + 이름 정렬 나머지 (4.5 / 4.5a 표)
+SORTED_PAIR_RULES = ("mirror_consumer_symmetric",)         # nets = (gate, source, a, b), a < b 무향 짝 (4.5a 표)
 
 
 def _doc(name):
@@ -59,6 +62,8 @@ def canon(s1, nm=lambda x: x):
         ns = tuple(nm(n) for n in ev.nets)
         if ev.rule in SORTED_TAIL_RULES:
             return (ns[:1], frozenset(ns[1:]))
+        if ev.rule in SORTED_PAIR_RULES:
+            return (ns[:2], frozenset(ns[2:]))
         return ns
 
     def row(x):

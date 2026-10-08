@@ -44,11 +44,11 @@ topology+spec -> S1 -> sizing ctx -> search ctx 를 만들고(캐시), 고정 θ
 | `test_metamorphic_violations.py` | 7가지 위반 x 7가지 변형(그대로·이름 2벌·섞기·극성·복제·태그 잡음)에서 그 위반 하나만 검출, 주입 뒤 이름 치환하면 elements 가 같은 표로 옮겨지고 rejected_gates·not_evaluated 동일 |
 | `test_metamorphic_s1.py` | S1 구조 유도(graph `build_s1`, U2~U4): 이름 치환 -> 이름 무관 정준형(segment·가지·기둥·gs 묶음·DC 역할·관계 엣지·G_vgs 개수)이 치환표로 옮겨짐(합성 3종 + library 5회로), 섞기·태그 잡음 -> `snapshot.fp` 동일, 극성 뒤집기 -> kind·레일 맞바꾼 같은 구조, 지원 밖 원소(syn_cascode 전압원) 정지가 변형을 따라감 |
 | `test_metamorphic_bias_inputs.py` | `bias_inputs`(authoring CONTRACT 9절): 이름 치환 -> 결과가 치환표로 옮겨짐(합성 syn_cs_load+외부 바이어스 gate, library 7회로), 넷만 치환하고 선언은 옛 이름 -> 새 이름 `gate_only_undeclared` + 옛 이름 `bias_input_not_gate_only`, 섞기·선언 순서 뒤집기 -> 같은 결과·같은 fp |
-| `test_spec_generators.py` | `synthetic_spec` 은 hit 없이 로드·원소 값 = topology 값, `rename_spec` 은 치환 topology 와 hit 없이 로드·이름 자리가 표로 옮겨짐·이름 없는 섹션 지문 동일·입력 불변, 옮기지 못하는 자리는 `ValueError` |
-| `test_metamorphic_matching.py` | 레이아웃 matching 분류(graph 4.5a `matching_groups`·`matching_dispositions`): 이름 치환 3벌 -> 정준형(다중집합, 정렬 꼬리는 집합)이 표로 옮겨짐, 섞기+태그 잡음 3벌 -> tuple 동일, 극성 -> 레일 표로 옮겨짐, 복제 -> kind 수 2배 (합성 3 + library 9, 84 경우) |
+| `test_spec_generators.py` | `synthetic_spec` 은 hit 없이 로드·원소 값 = topology 값, `rename_spec` 은 치환 topology 와 hit 없이 로드·이름 자리가 표로 옮겨짐(search `theta_bounds`·`untie_orbits` 포함)·이름 없는 섹션 지문 동일(theta_bounds·untie_orbits 가 있으면 search_fp 는 이름 섹션)·입력 불변, U5 이름 자리(gain override block 재정렬·noise_testbench 커패시터·`cm_sense_elements`) JSON 치환, 옮기지 못하는 자리는 `ValueError` |
+| `test_metamorphic_matching.py` | 레이아웃 matching 분류(graph 4.5a `matching_groups`·`matching_dispositions`): 이름 치환 3벌 -> 정준형(다중집합, 정렬 꼬리는 집합, `mirror_consumer_symmetric` 의 무향 drain 짝 (a<b) 도 집합)이 표로 옮겨짐, 섞기+태그 잡음 3벌 -> tuple 동일, 극성 -> 레일 표로 옮겨짐, 복제 -> kind 수 2배 (합성 3 + library 9, 84 경우) |
 | `test_metamorphic_sizing.py` | sizing 3.0 구조 색이 표로 옮겨짐, 쓰기 계획·θ 스키마·zero_cancel 이 표로(차이는 기록된 동률 후보 안만), 고정 θ 평가의 노드전압·원소 전류·소자 op 비트 동일(다변수 반복 SCC 노드만 SccLog.tol 안), 섞기+잡음 -> 스냅샷 지문 동일, 극성 -> kind 무관 개수(writer·dependent·W4·θ 종류별·free) 동일 |
 | `test_metamorphic_metrics.py` | 고정 θ 봉인 점의 `ss_evaluate`: 전력·면적·레일 전류는 합 재배열 상계 n·eps·Σ|항| 안, 소신호 metric(gain·UGF·GBW·PM·rout)은 그 metric 분해능(9절 resolution) 안·정의 불가는 같은 code, 섞기+잡음 -> 스냅샷 지문 동일 |
-| `test_metamorphic_search.py` | `search_domain` 변수·L 칸·전류 상자가 표로, 고정 θ `evaluate` 상태·목적(재배열 상계)·소자별 제약 행 비트 동일, 층 0 중심 평가 결과가 표로, 층 0 시작점이 표로(**이름 치환에서 실패 -- 아래 발견**), 섞기+잡음 -> 층 0 시작점 동일 |
+| `test_metamorphic_search.py` | `search_domain` 변수·L 칸·전류 상자가 표로, 고정 θ `evaluate` 상태·목적(재배열 상계)·소자별 제약 행 비트 동일, 층 0 중심 평가 결과가 표로, 층 0 시작점이 표로(첫 작성 때 4회로 실패 -> U2 정준 순서로 해소, 아래 발견), 섞기+잡음 -> 층 0 시작점 동일 |
 | `test_metamorphic_layout.py` | 봉인 점에서 만든 `LayoutInput`(W 로그 압축 -- 층 0 점의 m 급 W 는 MemoryError)의 `run_layout`: 외곽 면적·bbox·소자별 배치·그룹 결과·W 요청이 표로, 섞기+잡음 -> 결과 동일 |
 
 `connectivity_fp` 는 이름을 투영에 담으므로 이름 치환에 **불변이 아니다**(CONTRACT 2절 "넷 이름 하나 ... 바뀌면 다르다").
@@ -61,13 +61,27 @@ topology+spec -> S1 -> sizing ctx -> search ctx 를 만들고(캐시), 고정 θ
 맞바뀐 같은 구조, 단 복제 뒤 구조가 두 벌(+ 연결부), 섞기·태그 잡음 뒤 동일. 회로를 더할 때는 `circuits.py` 에
 `_<회로>()` 를 만들고 `synthetic_topologies` 의 tuple 에 넣는다(이름은 library 와 겹치지 않게 -- sanity test 가 확인).
 
-## 하류 단계 발견 (2026-10-08, 실 LUT v2, test_metamorphic_search)
+## 하류 단계 발견
 
-- **층 0 시작점이 이름에 따라 바뀐다**(`test_layer0_start_follows_renaming`, 6회로 중 4회로 실패: syn_diffpair5·two_stage_ota·
-  folded_cascode·ngcc_3stage_ff). 상자 중심·전류 중심 출발 평가는 치환표를 따라가지만(`test_layer0_centre_follows_renaming` 통과),
-  search CONTRACT 3.21 3 단계 Halton 시험이 "변수 i(1 의 순서)에 i 번째 소수 기저"이고 변수 순서 = θ 스키마 성분 순서(이름 정렬)라
-  이름 치환이 소수 기저 배정을 바꾼다 -> 다른 시험 점 열 -> 다른 시작점(예 two_stage_ota seed 1: origin halton:11 대 halton:13,
-  t 0.578 대 0.778). 순서 섞기·태그 잡음으로는 같다(이름이 같으므로). 엔진·계약 결정 대상(이 폴더는 test 만 둔다).
-- 그 밖 하류 단계(쓰기 계획·θ 스키마·DC 해·소신호/DC metric·탐색 정의역·고정 θ 평가·레이아웃 면적)는 이름 치환·섞기·태그 잡음을
-  계약이 정한 수준(비트 동일 또는 계약 허용오차)으로 따라갔다.
+### 2026-10-08 (첫 작성, 실 LUT v2) -- 해소됨
 
+- 층 0 시작점이 이름에 따라 바뀌었다(`test_layer0_start_follows_renaming` 6회로 중 4회로: syn_diffpair5·two_stage_ota·folded_cascode·
+  ngcc_3stage_ff). Halton 차원 = θ 스키마 성분 이름 정렬 순서였기 때문. master U2(정준 라벨링·대칭 묶음, search CONTRACT r11~r13 3.21 3a·
+  3.23 `canonical_order`)가 차원 배정을 이름 없는 정준 순서로 바꿔 2026-10-09 merge 뒤 6/6 통과.
+
+### 2026-10-09 (master U1·U2·U4·U5 merge 뒤 재실행) -- 열린 발견
+
+- **folded_cascode 고정 θ DC 해가 이름 치환(순서가 바뀌는 치환)에 비트 동일이 아니다**: seed 0·1 에서 vin_p·vin_n·tail·Y·bias3·X·out
+  이 1~2 ulp 다르다(예 bias3 0.7928912431635251 대 ...253). 이 차이가 search `evaluate` 의 `seal6_bulk:<m>` margin(66.04505656677539 대
+  ...754)과 레이아웃 소자 결과로 번진다. red 6건: `test_dc_solution_follows_renaming[folded_cascode-0/1]`·
+  `test_evaluate_fixed_theta_follows_renaming[folded_cascode-0/1]`·`test_floorplan_follows_renaming[folded_cascode-0/1]`.
+- 자리 좁히기(공개 API 실측, 소스 열람 없음): (1) 이름 정렬 순서를 보존하는 치환(모든 이름 앞에 같은 글자)은 비트 동일 -> 이름의 **순서**가
+  산술 순서를 정한다. (2) 같은 θ 에서 spec `input_dc` 를 값으로 선언해(y_icm 뿌리 없음) 풀면 seed 0~2 비트 동일 -> 원인은 sizing CONTRACT
+  14.6 **y_icm 입력 포화 창 되풀이**(`dc_columns` 가 `input_window.saturation_window` 로 창을 재고 다시 푸는 경로, U4 J-E) 안이다.
+  `node.dc_window` 의 vin_p lo 가 이미 0.1848763986103687 대 ...873 로 다르다. 반복 SCC(Y, tail Gauss-Seidel)의 두 노드는 구조 색이
+  달라(15, 18) 갱신 순서가 이름과 무관하다. 그래서 창 계산의 야코비안 연립·합산이 이름 순서로 조립되는 것으로 보인다(정확한 줄은
+  엔진 쪽 확인 대상).
+- 계약 근거: search CONTRACT 3.23-4 '비트 동일성(r12)' -- 이름 치환에 평가 값(봉인 margin 포함)이 비트 동일(허용오차 없음). sizing
+  CONTRACT 3절 7 은 반복 SCC 노드만 `SccLog.tol` 허용인데 vin_p 는 `direct` SCC 다. 이 폴더는 test 만 두므로 엔진 결정 대상으로 남긴다.
+- 그 밖 하류 단계(쓰기 계획·θ 스키마·구조 색·matching 분류·소신호/DC metric·탐색 정의역·층 0 시작점·레이아웃)는 이름 치환·섞기·태그
+  잡음을 계약이 정한 수준(비트 동일 또는 계약 허용오차)으로 따라갔다.
