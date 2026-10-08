@@ -10,8 +10,11 @@
 * 상한: point·curve·root 는 부르는 쪽이 계산해 넘긴다 = 한 평가 sweep 고유 키 상계
   `B = (n_theta + 1) * U_eval`(`from_sweep`). derived 상한 = 슬라이스 수 * 파생 표 종류 수(`DERIVED_TABLES`) --
   퇴출이 없도록 개수 그대로.
+* [2026-10-08] 비싼 파생 표는 `lookup_persistent` 로 디스크 캐시(`TableCache`, CONTRACT 2.1)를 거친다. memo(메모리)는 그대로다.
 """
 from gmid_engine.core import BoundedLRU
+
+from .table_cache import TableCache
 
 REGIONS = ("curve", "derived", "point", "root")
 DERIVED_TABLES = ("curve_report", "midpoint_l_bin_checks", "tol_v_table", "tol_vdsat_table")
@@ -19,10 +22,13 @@ SWEEP_REGIONS = ("curve", "point", "root")
 
 
 class LutMemo:
-    """`LutMemo(lut, point=, curve=, root=)`: `lut`(LutSet) 조회 memo. 상한 인자는 1 이상 정수."""
+    """`LutMemo(lut, point=, curve=, root=, table_cache=None)`: `lut`(LutSet) 조회 memo. 상한 인자는 1 이상 정수.
+    `table_cache`: 디스크 캐시(`TableCache`) -- None = 저장소 설정·환경 변수로 정한 기본 캐시(`TableCache.default()`),
+    끄려면 `TableCache(None)`."""
 
-    def __init__(self, lut, *, point, curve, root):
+    def __init__(self, lut, *, point, curve, root, table_cache=None):
         self.lut = lut
+        self.table_cache = TableCache.default() if table_cache is None else table_cache
         self._lru = {
             "point": BoundedLRU(point),
             "curve": BoundedLRU(curve),
@@ -39,6 +45,13 @@ class LutMemo:
     def lookup(self, region, fn_name, key, compute):
         """영역 `region` 에서 키 `(lut.fp, fn_name) + key` 의 값. 없으면 `compute()` 결과를 저장해 돌려준다."""
         return self._lru[region].lookup((self.lut.fp, fn_name) + tuple(key), compute)
+
+    def lookup_persistent(self, region, fn_name, key, compute, inputs, settings=()):
+        """`lookup` + 디스크 캐시: memo 에 없으면 디스크 칸(키 = 코드 버전 + `inputs` 내용 + 설정)에서 읽고, 없거나 키가 다르거나
+        깨졌으면 `compute()` 로 만들어 칸에 쓴다. `inputs`: 계산이 읽는 LUT 자료(배열·dataclass·tuple), `settings`: 결과에
+        영향을 주는 호출부 상수(지문 가능한 값). 결과는 디스크 캐시를 거치든 아니든 같다(비트 동일)."""
+        return self.lookup(region, fn_name, key, lambda: self.table_cache.fetch(
+            self.lut.fp, fn_name, key, inputs, settings, compute))
 
     def stats(self):
         """((영역, LruStats), ...) 영역 이름 정렬."""

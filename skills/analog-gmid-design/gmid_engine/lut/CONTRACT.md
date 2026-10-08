@@ -50,10 +50,11 @@
 | 1 | `_helpers_columns.py` [r6] | helper: `column_source(lut, kind, w_key, column, required=True)`(열 출처, 4.3) |
 | 0 | `lut_types.py` | 데이터 선언 모듈(`LutSpec`·`SliceSource`·[r4] `LBin`·`LBinMap`·`LutProvenance`·`DcSlice`·`CapTable`·`LutSet`·`OpPoint`·`Curve`·`TargetSolution`·`Caps`·`TolVCell`·`CurveRow`·`CurveReport`, [r6] `MidpointTable`·`ColumnSource`·`TolVdsatCell`·`MidpointRow`·`MidpointChecks`·`LutLocation`, 상수 `AXES`·`TOL_V_METRICS`·[r6] `TOL_VDSAT_METRICS`·`CAP_TABLE_COLUMNS`·`SLICE_OPTIONAL_COLUMNS`·`DERIVED_COLUMNS`·`COLUMN_ORIGINS`) |
 | 0 | `fingerprint.py` | `lut_fingerprint` |
-| 0 | `lut_memo.py` | `LutMemo` (+ 상수 `REGIONS`·`DERIVED_TABLES`) |
+| 0 | `table_cache.py` [2026-10-08] | `TableCache`(2.1) |
 | 0 | `widths.py` | `widths` |
 | 1 | `axis_guard.py` | `check_axes` |
 | 1 | `curve_check.py` | `curve_report` |
+| 1 | `lut_memo.py` [2026-10-08 층 0 -> 1] | `LutMemo` (+ 상수 `REGIONS`·`DERIVED_TABLES`; `lookup_persistent` 는 `table_cache` 를 쓴다) |
 | 1 | `provenance.py` | `lut_provenance` |
 | 1 | `data_location.py` [r6] | `resolve_lut_location`(1.8) |
 | 2 | `_helpers_anchor.py` [r4] | helper: `l_position`(옛 `l_anchor_index` 대체 -- 앵커 또는 같은 bin 보간 위치) |
@@ -247,6 +248,43 @@ graph 밖 상태는 `LutMemo` 하나뿐이다(모듈 수준 캐시 0). 조회 �
   [r5] `gmb` 의 compute 는 같은 (L, vgs, vds) 의 `op_point` 3회(VS 칸 양끝·조회점, point 영역)를 부른다 -- 첫 `gmb` 호출은 point
   영역 misses 가 gmb 1 + op_point ≤ 3 늘어난다(이미 있던 op_point 키는 hits).
 - 같은 내용의 LutSet 두 개(같은 파일, 다른 폴더)는 같은 `fp` 라 같은 키가 된다.
+
+### 2.1 [2026-10-08, 사용자 승인 "tol_V표를 파일로 캐시해"] 파생 표 디스크 캐시 `TableCache` (`table_cache.py`, 층 0) + `LutMemo.lookup_persistent`
+
+- 동기(실측): `tol_v_table` 첫 계산이 슬라이스당 CPU 11~19 s(`_inverse_cell` -> `strong_inversion_root` -> `hermite_root`), 프로세스마다
+  다시 만들었다(검색 실행·pytest 프로세스·agent 측정). 같은 이유로 `curve_report`(전 슬라이스 7.7 s)·`tol_vdsat_table`(0.2~0.3 s)도 대상이다.
+  `midpoint_l_bin_checks`·`op_point` 등은 비싸지 않아 대상이 아니다(실측 0.0 s).
+- `LutMemo(lut, *, point, curve, root, table_cache=None)`: `table_cache=None` -> `TableCache.default()`(저장소 설정 + `os.environ`),
+  끄려면 `TableCache(None)`. `memo.table_cache` 로 읽는다. 메모리 memo(`lookup`, 상한 BoundedLRU, 2절)는 그대로다.
+- `LutMemo.lookup_persistent(region, fn_name, key, compute, inputs, settings=())`: `lookup` 과 같은 키·반환(메모리 적중이면 디스크를 안
+  건드림). memo 에 없을 때 `compute` 대신 `table_cache.fetch(lut.fp, fn_name, key, inputs, settings, compute)` 를 부른다. 쓰는 곳:
+  `tol_v_table`(inputs = 슬라이스 `DcSlice` 전체), `tol_vdsat_table`(inputs = `ColumnSource`), `curve_report`(inputs = 정렬된 전 슬라이스).
+  결과는 디스크를 거치든 아니든 **비트 동일**하다(float 은 pickle 이 정확한 8바이트로 보존).
+- 위치: `assets/lut_v2_location.json` 의 `"table_cache": {"env": "GMID_LUT_TABLE_CACHE_DIR", "default": <전용 폴더>}`(lut_data·저장소 밖).
+  환경 변수가 비어 있지 않으면 그 값. 폴더가 없으면 만들고, 못 만들면 캐시를 끈다(RuntimeWarning + 이벤트 "disabled", 계산은 그대로).
+  설정 파일·`table_cache` 항목이 없으면 꺼짐. `TableCache.from_config(config_path, env)` 는 `os.environ` 를 읽지 않는다(1.8 과 같은 규칙).
+- 키 `key_digest` = sha256(코드 버전, 입력 지문, 설정 지문): 코드 버전 = lut·core 패키지 `.py` 소스 바이트 전부 + numpy·python 버전, 입력 지문
+  = `inputs` 의 배열(dtype·shape·바이트)·dataclass 필드·tuple·Mapping 내용, 설정 지문 = `fp_of((lut.fp, fn_name, key, settings))`
+  (`settings` = 결과에 영향을 주는 상수: tol_V `(LOO_ORDERS, TOL_V_METRICS, AXES)`, tol_VDsat `(LOO_ORDERS, TOL_VDSAT_METRICS, AXES)`).
+  구성요소 하나라도 다르면 적중하지 않고 다시 계산해 **같은 칸**을 덮어쓴다. 칸 파일 이름 = `<fn_name>-<fp_of((lut.fp, fn_name, key))>.tbl`.
+- 파일: `GMIDTBL1
+` + 키(64 hex) + `
+` + 본문 sha256(64 hex) + `
+` + pickle 본문. 읽기 검증: 머리 형식·본문 해시 -> 깨짐(이벤트
+  "corrupt" + RuntimeWarning), 키 불일치 -> "stale_key"(경고 없음), 역직렬화 실패 -> "corrupt". 어느 경우도 예외를 내지 않고 `compute()` 로 만들어
+  덮어쓴다. 키가 다른 표를 조용히 쓰는 경로는 없다.
+- 쓰기: 같은 폴더 임시 파일(`tempfile.mkstemp`) -> write·flush·fsync -> `os.replace`. 읽는 쪽은 옛 완성 파일 또는 새 완성 파일만 본다(부분 파일
+  없음). 동시 시작한 여러 프로세스가 같은 표를 각자 계산해 서로 덮어써도 된다(내용 같음). 교체 실패(잠김)·디스크 오류는 "write_error" 로 기록하고 계산
+  결과를 그대로 돌려준다. 결과에 ndarray 가 들어 있으면 저장하지 않는다("unstorable").
+- 관찰: `table_cache.stats()` = ((이벤트, 횟수), ...) 이름 정렬, `table_cache.events` = ((이벤트, 함수 이름), ...) 발생 순서.
+  이벤트: hit·miss·stale_key·corrupt·read_error·write·write_error·unstorable·disabled.
+- test 작성자용 불변식(기대값은 test 가 정한다): (1) 구성요소별 적중/미스 -- 같은 키 두 번째 `fetch` 는 hit·compute 0회; LUT 자료 한 원소·
+  `settings`·호출 인자 `key`·코드 버전(소스 바이트) 중 하나를 바꾸면 compute 1회 + 덮어쓰기. (2) 깨짐 -- 파일 중간 잘림·본문 바이트 변조·머리 변조·
+  빈 파일·쓰레기 파일 모두 예외 없이 다시 계산 + 깨끗한 파일로 교체, corrupt 이벤트. (3) 원자성 -- 쓰는 도중에도 목적 경로엔 완성 파일 또는 이전
+  파일만 있고, 쓰기 실패 뒤 임시 파일이 남지 않으며, 읽기 실패는 계산 결과를 바꾸지 않는다. (4) 비트 동일 -- 모든 (kind, w_key) 의
+  `tol_v_table`·`tol_vdsat_table` 과 `curve_report` 가 캐시 끔/켬/적중에서 속성 전부 같고 float 바이트 같다. (5) 환경 변수 -- `from_config` 가
+  `env` 매핑의 값을 설정 default 보다 우선하고, 빈 값이면 default, 폴더가 없으면 만든다, 만들 수 없으면 끄고 계산한다. (6) 격리 -- `TableCache(None)`
+  이면 파일 입출력 0. (7) memo 불변 -- 같은 `LutMemo` 안에서 같은 인자는 디스크도 안 건드리고(memo hit) `lookup` 과 같은 상한·통계.
 
 ---
 
