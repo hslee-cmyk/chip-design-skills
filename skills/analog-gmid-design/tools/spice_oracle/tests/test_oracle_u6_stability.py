@@ -297,6 +297,131 @@ def test_stability_judgement_records_pz_conflict():
     assert j["pz_conflict"] and j["P_eff"] == 0 and j["Z"] == 0 and j["P_pz"] == 2, j
 
 
+PZ_CONFLICT_CASES = [
+    # (N, .pz P) -> 과도 stable 이므로 Z = 0, P_eff = −N(Nyquist, 설계 40 §4 C10 8 '.pz 신뢰 규칙'), .pz 는 −N 과 다를 때만 pz_conflict.
+    # 각 기대값은 정의를 손으로 대입(oracle (a)/(d)):
+    # N = 0, .pz 가 가짜 RHP 2 개(파일럿 23 개형) -> 충돌, P_eff = 0, 조건부 안정 아님(P_eff = 0)
+    pytest.param(0, 2, True, 0, False, id="spurious_rhp"),
+    # N = −1(반시계 1 회), .pz 가 RHP 극을 놓침(P = 0) -> 충돌, P_eff = 1 이 정확(Z = N + P = 0), P_eff >= 1 & Z = 0 & 안정 -> 조건부 안정
+    pytest.param(-1, 0, True, 1, True, id="missed_rhp"),
+    # N = −2, .pz P = 2 -> 일치(충돌 없음), P_eff = 2, 조건부 안정
+    pytest.param(-2, 2, False, 2, True, id="agree_p2"),
+    # N = 0, .pz P = 0 -> 일치, P_eff = 0
+    pytest.param(0, 0, False, 0, False, id="agree_p0"),
+]
+
+
+@pytest.mark.parametrize("n,pz_p,conflict,p_eff,cond", PZ_CONFLICT_CASES)
+def test_pz_conflict_keeps_z_and_p_eff(n, pz_p, conflict, p_eff, cond):
+    """설계 40 §4 C10 8 + README 절차 7 (d)·8(3fc2f20 계약 문장 'pz_conflict 에만 적는다(Z·P_eff 를 비우지 않는다)'):
+    과도 stable 이면 Z = 0, P_eff = −N 이 .pz 와 무관하게 정해지고, .pz 가 −N 과 다르면 pz_conflict 만 참이다. verdict stable,
+    pm_valid 유지(P_eff >= 1 이면 조건부 안정 -- PM 원값을 값으로)."""
+    j = _sim_mod().stability_judgement(_nyq(n), "stable", pm_raw=60.0, pz=_pz(pz_p))
+    assert j["Z"] == 0 and j["P_eff"] == p_eff and j["P_pz"] == pz_p, j
+    assert bool(j["pz_conflict"]) is conflict, j
+    assert j["verdict"] == "stable" and j["pm_undefined"] is None and j["pm_valid"] is True, j
+    assert bool(j["conditionally_stable"]) is cond, j
+
+
+# ====================================================================== 하측 이득 여유 순수 함수(설계 40 §4 C10 8 (iv))
+def _lsgm():
+    """피검 순수 함수 `oracle_simulate.low_side_gain_margin(freq, L)`(README 절차 8 이름) -- 소스는 열지 않고 import 만.
+    반환 {low_side_gain_margin_db, low_side_crossings(x, 주파수 오름차순), low_side_crossing_hz, conditional_band}(docstring)."""
+    return _sim_mod().low_side_gain_margin
+
+
+# oracle (a) 구성으로 답이 정해진 합성 곡선: 음의 실축을 지나는 표본 쌍은 실수부가 같고 허수부가 ±1e-3 로 대칭이라
+# 교차점 x 는 표본 사이 보간 방식(직교·극좌표)과 무관하게 그 실수부(|x| 오차 <= 1.3e-7)다.
+#   표본: 20 −1e-3j (저주파, 양의 실축 근처) -> 5 −5j -> [−4 −1e-3j, −4 +1e-3j](x = −4, |L| > 1 에서 −180° 를 넘음)
+#         -> [−2.5 +1e-3j, −2.5 −1e-3j](x = −2.5, 위상이 −180° 위로 돌아옴) -> 0.3 −0.3j(|L| = 1 교차, 위상 > −180°) -> 0.01 −1e-3j.
+#   하측 교차(x < −1) = [−4, −2.5], min|x| = 2.5 -> 20·log10(2.5) = 7.9588 dB, 그 교차는 f[4] = 5 Hz 와 f[5] = 6 Hz 사이.
+POLY_F = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0]
+POLY_L = [20 - 1e-3j, 5 - 5j, -4 - 1e-3j, -4 + 1e-3j, -2.5 + 1e-3j, -2.5 - 1e-3j, 0.3 - 0.3j, 0.01 - 1e-3j]
+
+
+def _hz_list(v):
+    return [float(x) for x in (v if isinstance(v, (list, tuple)) else [v])]
+
+
+def test_low_side_gain_margin_synthetic_polygon():
+    """설계 40 §4 C10 8 (iv) `low_side_gain_margin_db` = 20·log10(min|x|), x = 음의 실축을 −1 바깥(x < −1)에서 지나는 점."""
+    r = _lsgm()(np.array(POLY_F), np.array(POLY_L))
+    assert r["low_side_gain_margin_db"] == pytest.approx(20 * math.log10(2.5), abs=1e-5), r
+    assert [float(x) for x in r["low_side_crossings"]] == pytest.approx([-4.0, -2.5], abs=1e-5), r
+    assert bool(r["conditional_band"]) is True, r
+    hz = _hz_list(r["low_side_crossing_hz"])
+    # min|x| 교차(x = −2.5)의 주파수는 그 표본 쌍 사이(5 ~ 6 Hz) -- 목록이면 두 교차 각각 [3, 4]·[5, 6] 사이
+    if len(hz) == 1:
+        assert 5.0 <= hz[0] <= 6.0, r
+    else:
+        assert len(hz) == 2 and 3.0 <= hz[0] <= 4.0 and 5.0 <= hz[1] <= 6.0, r
+
+
+@pytest.mark.parametrize("curve", ["inside_minus_one", "no_axis_crossing"])
+def test_low_side_gain_margin_none_without_outer_crossing(curve):
+    """하측 교차가 없으면 None(docstring '없으면 None'), 조건부 대역 아님(oracle (a)):
+      * inside_minus_one: 음의 실축을 x = −0.5(−1 안쪽, 보통의 이득 여유 자리)에서만 지남 -> 하측 교차 아님;
+      * no_axis_crossing: 단일 극 L = 10/(1 + jf) -- 위상 > −90° 라 음의 실축을 지나지 않음."""
+    if curve == "inside_minus_one":
+        f = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+        L = np.array([5 - 1e-3j, 0.5 - 2j, -0.5 - 1e-3j, -0.5 + 1e-3j, -0.01 + 1e-3j])
+    else:
+        f = np.logspace(-2, 4, 121)
+        L = 10 / (1 + 1j * f)
+    r = _lsgm()(f, L)
+    assert r["low_side_gain_margin_db"] is None, r
+    assert not r["low_side_crossings"] and not r["conditional_band"], r
+
+
+def _cond_L(f):
+    """해석식 조건부 안정 루프(oracle (b) 다른 방법의 기준): L(s) = K(1 + s/z)³/((1 + s/p)⁴(1 + s/p2)), s = j·f,
+    K = 1e8, z = 30, p = 1, p2 = 1e5. 위상이 p 근처에서 −180° 아래로 갔다가(|L| ~ 2e7) z 근처에서 돌아오고(|L| ~ 120),
+    |L| = 1 교차(~3.7e3)에서는 위상 ~ −92°(PM > 0). 음의 실축 교차 둘 다 x < −1."""
+    s = 1j * np.asarray(f, dtype=float)
+    return 1e8 * (1 + s / 30.0) ** 3 / ((1 + s / 1.0) ** 4 * (1 + s / 1e5))
+
+
+def _exact_axis_roots(f):
+    """Im L(f) = 0 의 근을 표본 쌍마다 이분법(로그 중점, 200 회)으로 정확히 구한 (f*, Re L(f*)) -- 음의 실축(Re < 0)만."""
+    L = _cond_L(f)
+    out = []
+    for i in range(len(f) - 1):
+        if (L[i].imag > 0) != (L[i + 1].imag > 0):
+            lo, hi = float(f[i]), float(f[i + 1])
+            for _ in range(200):
+                m = math.sqrt(lo * hi)
+                if (_cond_L(lo).imag > 0) == (_cond_L(m).imag > 0):
+                    lo = m
+                else:
+                    hi = m
+            x = float(_cond_L(lo).real)
+            if x < 0:
+                out.append((lo, x, float(f[i]), float(f[i + 1])))
+    return out
+
+
+def test_low_side_gain_margin_analytic_matches_exact_roots():
+    """oracle (b): 해석식 L 의 음의 실축 교차를 이분법으로 정확히 구해(표본 보간과 다른 방법) 하측 교차 x < −1 둘의 실수값과
+    min|x| 의 dB 를 대조. 허용오차 = 표본 사이 선형 보간 오차의 상계: 200/decade 격자에서 이 곡선의 보간 x 와 정확한 x 의 차는
+    상대 1.7e-4(바깥 교차)·5.1e-5(안쪽)(scratch 2026-10-09 측정) -> x 는 상대 1e-3, dB 는 0.01 dB 로 둔다."""
+    f = np.logspace(-3, 8, 11 * 200 + 1)
+    roots = _exact_axis_roots(f)
+    outer = [r for r in roots if r[1] < -1]
+    assert len(outer) == 2, roots                                             # 전제: 하측 교차 둘
+    r = _lsgm()(f, _cond_L(f))
+    xs = [float(x) for x in r["low_side_crossings"]]
+    assert xs == pytest.approx([x for _, x, _, _ in outer], rel=1e-3), (xs, outer)
+    want_db = 20 * math.log10(min(abs(x) for _, x, _, _ in outer))
+    assert r["low_side_gain_margin_db"] == pytest.approx(want_db, abs=0.01), (r, want_db)
+    assert bool(r["conditional_band"]) is True
+    hz = _hz_list(r["low_side_crossing_hz"])
+    k = min(range(2), key=lambda i: abs(outer[i][1]))                         # min|x| 교차
+    if len(hz) == 1:
+        assert outer[k][2] <= hz[0] <= outer[k][3], (hz, outer[k])
+    else:
+        assert len(hz) == 2 and all(o[2] <= h <= o[3] for h, o in zip(hz, outer)), (hz, outer)
+
+
 # ====================================================================== 조건부 안정 fixture(설계 40 §10.2 C10 행, oracle (c))
 # 회로: test_oracle_c10_stability 의 손 RHP 회로(nin -> M1 -> n1 -> M2 -> n2, n2 -Cc- n3(Rb 로 0.7 V) -> M3(드레인 n1) = DC 를 막은
 #   내부 양되먹임)에서 M1 을 16 finger, M3 를 1 finger 로 하고 n2 에 부하 C 2 pF 를 단다. 손 모형 A = A0(1+sτ)/(1 − sτ(K−1)) 에서
@@ -604,6 +729,45 @@ def test_pm_is_minimum_over_all_crossings(tmp_path, ref_root):
     ac = json.loads((tmp_path / "o" / f"{stem_of(inp, 'free')}.sim.json").read_text(encoding="utf-8"))["ac"]
     assert st["verdict"] == "stable" and st["pm_valid"] is True, st
     assert ac["pm_deg"] == pytest.approx(min(pms), abs=0.05), (ac["pm_deg"], pms)
+
+
+# ====================================================================== 차동 입력 β=1: 관측 = 가중 부호 합, floor 는 관측 노드들
+@pytest.fixture(scope="module")
+def t5_stab_run(tmp_path_factory):
+    """u6_toy5t 5T OTA(차동 입력 inp/inn, 단일 출력 out) -- β=1 루프의 폐루프 과도 기록·넷리스트."""
+    import u6_toy5t as toy
+    conftest.require_spice()
+    d = tmp_path_factory.mktemp("t5stab")
+    nom = toy.nominal_op(d / "ind_op")
+    inp = toy.toy_input(d, nom, judge={"sat_margin_V": SAT})
+    p, res = run_oracle(inp, d / "o", sat_margin=SAT)
+    assert res["free"] is not None, (p.stdout + p.stderr)[-1500:]
+    return d, inp, nom
+
+
+def test_differential_beta1_observe_weighted_sign_sum_and_floor(t5_stab_run):
+    """설계 40 §4 C10 8 '자극 위치' + 'U6 test 후속 정의' (i)(a1e1d2c), README 절차 3·4:
+      * 관측 H = 끊는 점(β=1: 루프를 닫는 입력 넷들) 노드 전압의 가중치 부호 합 -> plan.observe = [["inp", +1], ["inn", −1]]
+        (oracle (a) 구성: testbench input_p_ac = +0.5, input_n_ac = −0.5 의 부호), `let hst` 피연산자 = {v(inp), v(inn)}.
+      * floor = 관측 노드마다 reltol·|V_op| + vntol 의 합(출력 노드 아님). V_op 는 이 test 의 독립 servo 넷리스트 .op
+        (u6_toy5t.nominal_op, oracle (c)) 의 v(inp)·v(inn). reltol·vntol = testbench options(1e-4, 1e-7). 허용 상대 1e-4:
+        V_op 출처(독립 servo 대 오라클 동작점 패스)만 다르다(check_plan_record 와 같은 근거)."""
+    from test_oracle_c10_stability import hst_operands
+    d, inp, nom = t5_stab_run
+    tb = inp["testbench"]
+    assert tb["ac"]["input_p_ac"] > 0 > tb["ac"]["input_n_ac"]                     # 전제(가중 부호)
+    st = json.loads((d / "o" / f"{stem_of(inp, 'free')}.sim.json").read_text(encoding="utf-8"))["ac"]["stability"]
+    assert st["loop"] == "beta_1", st.get("loop")
+    rec = st["transient"]["plan"]
+    obs = sorted((str(n).lower(), float(s)) for n, s in rec["observe"])
+    assert obs == sorted([("inp", 1.0), ("inn", -1.0)]), rec["observe"]
+    text = (d / "o" / f"{stem_of(inp, 'free')}.stab.cir").read_text(encoding="utf-8")
+    assert hst_operands(text) == {"v(inp)", "v(inn)"}, hst_operands(text)
+    reltol, vntol = float(tb["options"]["reltol"]), float(tb["options"]["vntol"])
+    floor = sum(reltol * abs(nom[k]) + vntol for k in ("inp", "inn"))
+    assert rec["floor_V"] == pytest.approx(floor, rel=1e-4), (rec["floor_V"], floor)
+    # 출력 노드 기준이었다면 reltol·|V(out)| + vntol 하나(노드 1 개) -- 관측 노드 2 개 합과 구별됨(전제: 두 값이 1e-4 보다 크게 다름)
+    assert abs(floor - (reltol * abs(nom["out"]) + vntol)) > 1e-4 * floor
 
 
 # ====================================================================== 거부(설정·스키마)

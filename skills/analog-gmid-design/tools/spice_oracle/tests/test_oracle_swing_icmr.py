@@ -5,7 +5,10 @@
 비교 허용오차 = 오라클의 목표 분해능 reltol·레일 폭(README '목표 분해능 reltol·레일 폭') 의 2 배(두 쪽 각각의 분해능).
 손계산 확인(oracle (a)): 스윙 아래 끝에서 M2 의 VDS − VDSAT = 여유(= 출력 − 꼬리 노드 − VDSAT2), 위 끝에서 M4 의 같은 양,
 ICMR 아래 끝은 꼬리 노드가 0 − tol(이상 전류원 꼬리 -- MOS 가 아니라 레일 조건이 끝을 정함).
-좌표: 스윙은 출력 전압, ICMR 은 README '입력 공통모드 Δ' 의 좌표 = 공칭 (inp+inn)/2 + Δ(Δ = 두 입력 원에 더한 같은 이동).
+좌표: 스윙은 출력 전압, ICMR 은 창 끝에서의 **실제 입력 공통모드 (V_inp + V_inn)/2**(설계 40 §4 C10 8 'U6 test 후속 정의' (ii),
+a1e1d2c -- 엔진 icmr_v 와 같은 정의). 독립 기준은 자기 servo 넷리스트의 .dc 스윕에서 표본마다 잰 v(inp)·v(inn) 의 평균을 창 끝에서
+선형 보간한 값(u6_toy5t.dc_window 의 lo_cm·hi_cm)이다 -- 명령한 스윕 값(공칭 + Δ)이 아니다.
+차동 입력(input_p·input_n)이 없는 회로의 ICMR 은 unavailable(같은 정의 (iii)).
 """
 import json
 
@@ -49,9 +52,9 @@ def test_swing_window_matches_independent_sweep(sw_run):
 def test_icmr_window_matches_independent_sweep(sw_run):
     inp, sim, cmp, nom, sw, ic, p = sw_run
     s = sim["swing_icmr"]
-    x0 = toy.T5["vin"]                                          # 스윕 변수(inp) 의 공칭값
-    lo = ic["nominal_cm"] + (ic["lo"] - x0)                     # README 좌표: 공칭 공통모드 + Δ
-    hi = ic["nominal_cm"] + (ic["hi"] - x0)
+    # 설계 40 §4 C10 8 (ii)(a1e1d2c): 창 끝 좌표 = 실제 입력 공통모드 (V_inp + V_inn)/2 -- 독립 servo 넷리스트의 .dc 스윕에서
+    # 표본마다 잰 노드 전압의 평균을 창 끝에서 선형 보간(oracle (c), u6_toy5t.dc_window lo_cm·hi_cm). 명령값(공칭 + Δ) 아님.
+    lo, hi = ic["lo_cm"], ic["hi_cm"]
     assert s["icmr"]["status"] == "ok", s["icmr"]
     assert s["icmr"]["v_cm_nominal"] == pytest.approx(ic["nominal_cm"], abs=TOL)
     assert s["icmr"]["v_in_min"] == pytest.approx(lo, abs=TOL), (s["icmr"], lo)
@@ -88,13 +91,33 @@ def test_icm_margin_pending_not_reported(tmp_path):
     assert s["icmr"]["icm_margin_reason"] == "input_dc_pending", s["icmr"]
 
 
-def test_swing_unavailable_without_servo(tmp_path):
-    """README 스윙·ICMR: 출력 목표를 움직일 servo 가 없는 단일 입력 회로의 스윙은 status = unavailable + 이유 -- 값을 지어내지
-    않는다. (같은 회로의 ICMR 은 이 test 가 단언하지 않는다 -- 보고 항목: servo 없이 입력만 옮긴 창을 ok 로 낸다.)"""
-    ind = conftest.independent_cs(tmp_path / "ind")
+@pytest.fixture(scope="module")
+def cs_single_run(tmp_path_factory):
+    """단일 입력(ports.input 만, input_p·input_n 없음) CS 회로에 스윙·ICMR 둘 다 요청한 오라클 실행."""
+    conftest.require_spice()
+    d = tmp_path_factory.mktemp("cs_single")
+    ind = conftest.independent_cs(d / "ind")
     pr = conftest.preds_from_independent(ind)
-    inp = cs_input(make_lut(tmp_path / "lut.npz"), diffusion="zero", preds_nodes=pr["nodes"], preds_devices=pr["devices"])
+    inp = cs_input(make_lut(d / "lut.npz"), diffusion="zero", preds_nodes=pr["nodes"], preds_devices=pr["devices"])
     inp["swing_icmr"] = {"swing": True, "icmr": True}
-    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
-    s = json.loads((tmp_path / "o" / f"{stem_of(inp, 'free')}.sim.json").read_text(encoding="utf-8"))["swing_icmr"]
+    p, res = run_oracle(inp, d / "o", sat_margin=SAT)
+    assert res["free"] is not None, (p.stdout + p.stderr)[-1500:]
+    s = json.loads((d / "o" / f"{stem_of(inp, 'free')}.sim.json").read_text(encoding="utf-8"))["swing_icmr"]
+    return inp, s, res["free"], p
+
+
+def test_swing_unavailable_without_servo(cs_single_run):
+    """README 스윙·ICMR: 출력 목표를 움직일 servo 가 없는 단일 입력 회로의 스윙은 status = unavailable + 이유 -- 값을 지어내지
+    않는다."""
+    inp, s, cmp, p = cs_single_run
     assert s["swing_out_v"] is None and s["swing"]["status"] == "unavailable" and s["swing"]["reason"], s
+
+
+def test_icmr_unavailable_without_differential_input(cs_single_run):
+    """설계 40 §4 C10 8 'U6 test 후속 정의' (iii)(a1e1d2c): 차동 입력(input_p·input_n)이 없는 회로의 ICMR 은 unavailable(oracle (d)
+    선언된 정의). 이 CS 회로의 ports 는 input 하나(전제 확인) -> icmr.status = unavailable + 이유, icmr_v·icm_margin_v 는 값 없음
+    (지어낸 창이 아님)."""
+    inp, s, cmp, p = cs_single_run
+    assert "input_p" not in inp["ports"] and "input_n" not in inp["ports"], inp["ports"]       # 전제
+    assert s["icmr"]["status"] == "unavailable" and s["icmr"].get("reason"), s["icmr"]
+    assert s.get("icmr_v") is None and s.get("icm_margin_v") is None, s

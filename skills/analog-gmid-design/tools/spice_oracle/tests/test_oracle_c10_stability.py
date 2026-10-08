@@ -36,6 +36,11 @@
     - 설계 40 §4 C10 8(사용자 결정 2026-10-09, master a1775e1): 한계 사이클 = '감쇠하지 않음'(최근 두 창이 앞 창보다 분해능 이상
       줄지 않음, 출렁이는 rb1e6형 포함 -- `flat` 이 이 정의), `.pz` 신뢰 규칙 채택(`expected_p_eff`), 자극·관측 = 루프 끊는 점
       (test_stab_kick_and_observation_at_loop_break).
+    - 설계 40 §4 C10 8 'U6 test 후속 정의'(a1e1d2c) (i): 창 판정 floor 의 V_op 는 관측 노드(루프 끊는 점)의 동작점 값 --
+      `plan()` 에 넘기는 값이 출력 노드가 아니라 끊는 점(β=1: 입력 넷 nin, β 루프: 절단 넷 증폭기 쪽)의 독립 .op 값이다
+      (`rhp_ref`·`three_ref`·`notch_ref` 의 `v_obs` = 독립 .op 의 v(nin), `cs_v_obs`·`fb_v_obs` = 독립 넷리스트의 이상 입력원 값).
+      `test_growing_fixture_premise_independent` 는 자기 손 넷리스트에서 출력 v(n3) 을 관측하는 전제 test 라 floor 도 그
+      관측 노드(v3) 로 둔다(같은 정의를 자기 관측 노드에 적용).
 """
 import importlib
 import json
@@ -110,11 +115,13 @@ def band_f_crit(f, L):
     return float(f[int(np.argmin(band))])
 
 
-def plan(f, L, vop_outputs, reltol=RELTOL):
+def plan(f, L, vop_observed, reltol=RELTOL):
     """README 절차 4(조정 상수 없음, 4ab6d85 개정) + 조기 종결 계약 1(a)(사용자 결정 B 2026-10-08):
     펄스 시간 척도는 f_lo(가장 낮은 |L|=1 교차 = PM 교차) 하나: td = tr = tf = pw = 1/(2π f_lo), t_end = td + tr + pw + tf,
     W = 1/f_lo. 걸음 상한 tmax = min(1/(2π f_lo), 1/(f_crit·n_pp)), f_crit = |1+L| 최소 표본 주파수.
-    f_hi 는 기록만(계획에 쓰지 않음). reltol = 입력 testbench.options(없으면 ngspice 기본 1e-3)."""
+    f_hi 는 기록만(계획에 쓰지 않음). reltol = 입력 testbench.options(없으면 ngspice 기본 1e-3).
+    floor = Σ (reltol·|V_op| + vntol) 의 V_op 는 **관측 노드(루프 끊는 점)** 의 동작점 전압이다(설계 40 §4 C10 8 'U6 test 후속
+    정의' (i), a1e1d2c -- 출력 노드가 아님). β=1 은 루프를 닫는 입력 넷, β 루프는 절단 넷의 증폭기 쪽 노드."""
     cr = gain_crossings(f, L)
     f_lo, f_hi = min(cr), max(cr)
     kick = KB_OVER_Q * TEMP_K
@@ -125,7 +132,7 @@ def plan(f, L, vop_outputs, reltol=RELTOL):
     pw = td
     t_end = 4 * td
     w = 1 / f_lo
-    floor = sum(reltol * abs(v) + VNTOL for v in vop_outputs)
+    floor = sum(reltol * abs(v) + VNTOL for v in vop_observed)
     k = math.ceil(math.log(kick / floor))
     return {"f_lo": f_lo, "f_hi": f_hi, "kick": kick, "td": td, "tmax": tmax, "pw": pw, "t_end": t_end, "W": w,
             "floor": floor, "K": k, "tstop": t_end + k * w, "crossings": cr, "f_crit": f_crit, "n_pp": n_pp,
@@ -541,7 +548,7 @@ def rhp_ref(root: Path, rb):
     """독립 .op + .ac(입력 이상 전압원 AC 1) -> gm·gds, 손 모형 K·A0·p, 측정 정의 값, N."""
     if rb in _RHP_REF:
         return _RHP_REF[rb]
-    pr = ["v(n1)", "v(n2)", "v(n3)"]
+    pr = ["v(nin)", "v(n1)", "v(n2)", "v(n3)"]
     for nm, n in (("xm1", RHP["n1f"]), ("xm2", RHP["n2f"]), ("xm3", RHP["n3f"])):
         pr += [probe("nmos", f"{nm}_{k}", q) for k in range(n) for q in ("gm", "gds", "vds", "vdsat")]
     r = run_spice("\n".join(rhp_body(rb)), root / f"rhp_{rb:g}", pr, ac_out="n2", ac=(0.01, 1e10, 40))
@@ -557,7 +564,9 @@ def rhp_ref(root: Path, rb):
     H = r["H"]
     out = {"op": op, "K": K, "A0": A0, "p_hand": 1 / (rb * RHP["cc"] * (K - 1)), "sat_min": sat, "f": r["f"], "H": H,
            "meas": measure(r["f"], H), "nyq": nyquist(np.sign(H[0].real) * H),
-           "nodes": {"n1": op["v(n1)"], "n2": op["v(n2)"], "n3": op["v(n3)"]}}
+           "nodes": {"n1": op["v(n1)"], "n2": op["v(n2)"], "n3": op["v(n3)"]},
+           # 관측 노드(β=1 끊는 점 = 입력 넷 nin)의 독립 .op 값 -- 설계 40 §4 C10 8 (i) floor 의 V_op
+           "v_obs": op["v(nin)"]}
     _RHP_REF[rb] = out
     return out
 
@@ -666,11 +675,13 @@ _THREE_REF = {}
 def three_ref(root: Path, caps, ppd=40):
     key = (caps, ppd)
     if key not in _THREE_REF:
-        r = run_spice("\n".join(three_body(caps)), root / f"three_{caps[0]:g}_{caps[1]:g}_{ppd}", ["v(n3)"],
-                      ac_out="n3", ac=(0.01, 1e10, ppd))
+        r = run_spice("\n".join(three_body(caps)), root / f"three_{caps[0]:g}_{caps[1]:g}_{ppd}",
+                      ["v(n3)", "v(nin)"], ac_out="n3", ac=(0.01, 1e10, ppd))
         H = r["H"]
         _THREE_REF[key] = {"f": r["f"], "H": H, "meas": measure(r["f"], H), "nyq": nyquist(np.sign(H[0].real) * H),
-                           "v3": r["op"]["v(n3)"]}
+                           "v3": r["op"]["v(n3)"],
+                           # 관측 노드(β=1 끊는 점 nin)의 독립 .op 값(설계 40 §4 C10 8 (i))
+                           "v_obs": r["op"]["v(nin)"]}
     return _THREE_REF[key]
 
 
@@ -792,7 +803,7 @@ def test_rhp_transient_plan_and_decision(rhp_run):
     o = d / "o"
     stem = stem_of(inp, "free")
     f, L, A = ac_loop_from_files(o, stem, beta_loop=False)
-    pl = plan(f, L, [ref["nodes"]["n2"]])
+    pl = plan(f, L, [ref["v_obs"]])
     check_plan_record(_sim(o, inp)["ac"]["stability"]["transient"]["plan"], pl, 1.0)
     text = (o / f"{stem}.stab.cir").read_text(encoding="utf-8")
     low = text.lower()
@@ -825,7 +836,7 @@ def test_rhp_pm_undefined_open_loop_rhp_poles(rhp_run):
     d, inp, res, ref, _ = rhp_run
     stem = stem_of(inp, "free")
     f, L, A = ac_loop_from_files(d / "o", stem, beta_loop=False)
-    status = decide(d / "o" / f"{stem}.stab.txt", plan(f, L, [ref["nodes"]["n2"]]))["status"]
+    status = decide(d / "o" / f"{stem}.stab.txt", plan(f, L, [ref["v_obs"]]))["status"]
     assert status == "unstable"                     # 독립 폐루프 .tran 과 같은 결론(test_rhp_fixture_...)
     st = res["free"]["summary"]["stability"]
     assert STAB_KEYS <= set(st), set(st) ^ STAB_KEYS
@@ -991,7 +1002,7 @@ def test_rhp_variants_never_pass(tmp_path, ref_root, rb):
     벽시계 한도 = 이 파일의 기본 독립 실행 한도(본 .op/.ac·동작점 패스, 상한 미적용) + 독립 계획 K 로 셈한 과도 상한.
     연장은 decaying 일 때만이라 넣지 않는다(지속 진동 회로는 전제 test 가 감쇠하지 않음을 보였다)."""
     ref = rhp_ref(ref_root, RB[rb])
-    pl_ind = plan(ref["f"], np.sign(ref["H"][0].real) * ref["H"], [ref["nodes"]["n2"]])
+    pl_ind = plan(ref["f"], np.sign(ref["H"][0].real) * ref["H"], [ref["v_obs"]])
     guard = NGSPICE_TIMEOUT_S + wall_s_per_window() * pl_ind["K"]
     inp = rhp_input(make_lut(tmp_path / "lut.npz"), RB[rb], constraints=[pm_con(">=", 60.0)])
     rc, tail, c, elapsed = run_oracle_guarded(inp, tmp_path / "o", guard)
@@ -1015,7 +1026,7 @@ def test_rhp_variants_never_pass(tmp_path, ref_root, rb):
         assert tr["status"] == "failed" == tr["first_status"], tr
     else:
         # 절차 5 독립 재계산(연장·조기 종결 포함) = 오라클 기록, 지속 진동은 절대 stable 이 아님
-        pl = plan(f, L, [ref["nodes"]["n2"]])
+        pl = plan(f, L, [ref["v_obs"]])
         dec = decide(tmp_path / "o" / f"{stem}.stab.txt", pl)
         assert tr["first_status"] == dec["first"] and tr["status"] == dec["status"] != "stable", (tr, dec)
         check_early_consistent(tr, dec, pl)
@@ -1038,7 +1049,7 @@ def test_sustained_oscillation_rb1e6_limit_cycle_fail(tmp_path, ref_root):
     # 독립 재계산(decide, 같은 규칙)과 조기 창·종류가 같아야 한다.
     o, stem = tmp_path / "o", stem_of(inp, "free")
     f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
-    pl = plan(f, L, [ref["nodes"]["n2"]])
+    pl = plan(f, L, [ref["v_obs"]])
     dec = decide(o / f"{stem}.stab.txt", pl)
     tr = _sim(o, inp)["ac"]["stability"]["transient"]
     assert dec["status"] == "unstable" and "limit_cycle" in (dec["early_kind"] or ()), dec
@@ -1082,8 +1093,7 @@ def test_classic_negative_pm_kept_and_fail(classic_run):
     f, L, A = ac_loop_from_files(d / "o", stem, beta_loop=False)
     mine = nyquist(L)
     assert mine["N"] == 2 and np.sign(A[0].real) == -1.0
-    v3 = ref["v3"]
-    status = decide(d / "o" / f"{stem}.stab.txt", plan(f, L, [v3]))["status"]
+    status = decide(d / "o" / f"{stem}.stab.txt", plan(f, L, [ref["v_obs"]]))["status"]
     c = res["free"]
     st = c["summary"]["stability"]
     check_row(st, mine["N"], status, ref["meas"]["pm_deg"])
@@ -1118,7 +1128,7 @@ def test_classic_sparse_sweep_refined_count(tmp_path, ref_root):
     assert ny["encirclements_cw"] == dense["nyq"]["N"], ny
     assert 1 <= ny["refinement"]["rounds"] <= ny["refinement"]["k_max"] == 10, ny["refinement"]
     assert ny["refinement"]["samples_added"] > 0 and ny["max_step_deg"] < 90.0, ny
-    status = decide(tmp_path / "o" / f"{stem_of(inp, 'free')}.stab.txt", plan(f, L, [ref["v3"]]))["status"]
+    status = decide(tmp_path / "o" / f"{stem_of(inp, 'free')}.stab.txt", plan(f, L, [ref["v_obs"]]))["status"]
     assert status == "unstable"
     check_row(st, dense["nyq"]["N"], status, st["pm_deg_raw"])
     assert st["verdict"] == "unstable" and st["nyquist_encirclements_cw"] == 2
@@ -1143,7 +1153,7 @@ def test_stable_lowpm_value_unchanged_and_pass(lowpm_run):
     f, L, A = ac_loop_from_files(d / "o", stem, beta_loop=False)
     mine = nyquist(L)
     assert mine["N"] == 0 == ref["nyq"]["N"]
-    pl = plan(f, L, [ref["v3"]])
+    pl = plan(f, L, [ref["v_obs"]])
     check_plan_record(_sim(d / "o", inp)["ac"]["stability"]["transient"]["plan"], pl, -1.0)
     dec = decide(d / "o" / f"{stem}.stab.txt", pl)
     assert dec["status"] == "stable", dec
@@ -1182,7 +1192,7 @@ def test_stable_sparse_sweep_refined_count_pass(tmp_path, ref_root, lowpm_run):
     ny = _sim(tmp_path / "o", inp)["ac"]["stability"]["nyquist"]
     assert ny["encirclements_cw"] == dense["nyq"]["N"] == 0, ny
     assert 1 <= ny["refinement"]["rounds"] <= 10 and ny["refinement"]["samples_added"] > 0, ny["refinement"]
-    dec = decide(tmp_path / "o" / f"{stem}.stab.txt", plan(f, L, [ref["v3"]]))
+    dec = decide(tmp_path / "o" / f"{stem}.stab.txt", plan(f, L, [ref["v_obs"]]))
     assert dec["status"] == "stable", dec
     st = c["summary"]["stability"]
     check_row(st, 0, "stable", st["pm_deg_raw"])
@@ -1193,6 +1203,20 @@ def test_stable_sparse_sweep_refined_count_pass(tmp_path, ref_root, lowpm_run):
     k = _cons(c, "pmc")
     assert k["judge"] == "PASS" and k["spice"] == ac["pm_deg"], k
     assert c["summary"]["verdict"] == "PASS" and p.returncode == 0, c["summary"]
+
+
+def cs_v_obs():
+    """conftest CS(β=1) 의 관측 노드 = 입력 넷 nin(설계 40 §4 C10 8 (i)). 독립 넷리스트(conftest._independent_cs_cached)에서 nin 은
+    이상 전압원 `Vin nin 0 DC CS.vin` 이 묶는다 -> V_op(nin) = CS.vin (oracle (a) KVL: 이상 전압원 양단 전압). 오라클 폐루프
+    넷리스트에서도 Ecl_nin 출력 = V(ecl) + g·V(out) 이고 Vcl 의 V0 = vin − g·V_op(out) 이라 V_op(nin) = vin 이다."""
+    return CS["vin"]
+
+
+def fb_v_obs():
+    """conftest 되먹임 회로(β 루프)의 관측 노드 = 절단 넷 nin 의 증폭기 쪽 노드(설계 40 §4 C10 8 (i)). Vlb 는 DC 0 이라 끊은
+    두 노드의 동작점은 같고, 독립 넷리스트(conftest._independent_fb_cached)에서 nin 은 이상 전압원 `Vin nin 0 DC FB.vin` 이
+    묶는다 -> V_op = FB.vin (oracle (a) KVL)."""
+    return FB["vin"]
 
 
 @pytest.fixture(scope="module")
@@ -1210,7 +1234,7 @@ def test_stable_cs_beta1_value_unchanged(tmp_path, ind_cs):
     ref_pm = measure(ind_cs["f"], ind_cs["H"])["pm_deg"]
     f, L, A = ac_loop_from_files(tmp_path / "o", stem_of(inp, "free"), beta_loop=False)
     assert np.sign(A[0].real) == -1.0 and nyquist(L)["N"] == 0
-    pl = plan(f, L, [ind_cs["V"]["nout"]])
+    pl = plan(f, L, [cs_v_obs()])
     # 계약 1(a) d56ba66 기대 f_crit(독립 .ac, 대역 = 첫 표본 ~ 단일 교차 2.23e7 Hz 위 첫 표본): 그 위쪽 표본 10^7.35 Hz
     # (단일 극 루프는 |1+L| 이 주파수에 따라 줄어 대역 끝에서 최소; 대역 없이 고르면 스윕 끝 1e10 Hz 였다)
     ind_L = np.sign(ind_cs["H"][0].real) * ind_cs["H"]
@@ -1255,7 +1279,7 @@ def test_stable_beta_loop_value_unchanged(tmp_path, fb_ref):
     assert ac["stability"]["nyquist"]["max_step_deg"] == pytest.approx(mine["max_step_deg"], rel=1e-6)
     assert ac["stability"]["loop"] == "beta_loop"
     text = (o / f"{stem}.stab.cir").read_text(encoding="utf-8")
-    pl = plan(f, T, [fb_ref["vout"]])
+    pl = plan(f, T, [fb_v_obs()])
     rec = ac["stability"]["transient"]["plan"]
     check_plan_record(rec, pl, rec["sign"])          # β 루프: 닫기 부호는 회전 없음(절차 1) -- 값은 기록 그대로 대조 제외
     pv, tok = pulse_of(text, "Vlb_nin")
@@ -1328,7 +1352,7 @@ def test_extension_decaying_to_stable(lowpm_run, ref_root):
     d, inp, res, ref, p = lowpm_run
     o, stem = d / "o", stem_of(inp, "free")
     f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
-    pl = plan(f, L, [ref["v3"]])
+    pl = plan(f, L, [ref["v_obs"]])
     dec = decide(o / f"{stem}.stab.txt", pl)
     assert dec["first"] == "decaying" and dec["ext"] is not None, dec                 # 전제(독립 재계산)
     assert dec["ext"]["status"] in ("stable", "decaying") and dec["status"] == "stable", dec["ext"]
@@ -1447,7 +1471,7 @@ def test_plan_default_reltol(tmp_path, ind_cs):
     assert res["free"] is not None, (p.stdout + p.stderr)[-1500:]
     o, stem = tmp_path / "o", stem_of(inp, "free")
     f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
-    pl = plan(f, L, [ind_cs["V"]["nout"]], reltol=1e-3)
+    pl = plan(f, L, [cs_v_obs()], reltol=1e-3)
     tr = _sim(o, inp)["ac"]["stability"]["transient"]
     assert tr["plan"]["reltol"] == 1e-3 and tr["plan"]["n_pp"] == 71, tr["plan"]
     check_plan_record(tr["plan"], pl, -1.0)
@@ -1487,7 +1511,7 @@ def test_growing_fixture_early_stop(classic_run):
     d, inp, res, ref, p = classic_run
     o, stem = d / "o", stem_of(inp, "free")
     f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
-    pl = plan(f, L, [ref["v3"]])
+    pl = plan(f, L, [ref["v_obs"]])
     dec = decide(o / f"{stem}.stab.txt", pl)
     assert dec["early"] is not None and dec["early"] < pl["K"], (dec, pl["K"])        # 파일이 증명하는 조기 창
     tr = _sim(o, inp)["ac"]["stability"]["transient"]
@@ -1540,6 +1564,39 @@ def test_stab_kick_and_observation_at_loop_break(request, which):
     break_nodes = {"v(nin)", "v(lbx_nin)"} if beta_loop else {"v(nin)"}
     ops = hst_operands(text)
     assert ops and ops <= break_nodes, (ops, break_nodes)
+
+
+def amp_side_of_cut(text: str, src: str):
+    """β 루프 절단 원 `src`(Vlb_<넷> a b)의 두 노드 중 증폭기 쪽 = MOS 인스턴스(X 줄)의 단자로 붙은 노드(구성으로 정해짐 -- 끊은 넷의
+    다른 쪽에는 β 망 수동소자만 옮겨 붙는다). 두 노드 다이거나 둘 다 아니면 None(이 fixture 에서 조건 점검)."""
+    tok = conftest.elem(text, src)
+    assert tok is not None, src
+    a, b = tok[1].lower(), tok[2].lower()
+    mos_nodes = {t.lower() for ln in conftest.x_lines(text) for t in ln.split()[1:5]}
+    hit = [n for n in (a, b) if n in mos_nodes]
+    return hit[0] if len(hit) == 1 else None
+
+
+@pytest.mark.parametrize("which", ["lowpm_run", "classic_run", "rhp_run", "fb_stab_run"])
+def test_plan_observe_is_loop_break_node(request, which):
+    """설계 40 §4 C10 8 '자극 위치' + README 절차 3(plan.observe): 관측 H = 끊는 점 노드 전압의 가중치 부호 합,
+    `plan.observe = [[노드, 부호], ...]`. 기대값(oracle (a) 구성):
+      * β=1(단일 입력 nin, testbench input_ac = +1 -> 부호 +1): [["nin", +1]] -- 루프를 닫는 입력 넷의 노드(Ecl_nin 이 구동).
+      * β 루프(conftest 되먹임, 절단 넷 nin 하나, 가중 +1): 절단 원 Vlb_nin 의 두 노드 중 MOS 단자가 붙은 쪽(증폭기 쪽)을 이 test 가
+        .stab.cir 의 X 줄에서 구조로 찾는다(`amp_side_of_cut`).
+    그리고 `let hst` 식의 피연산자 = observe 노드들의 v(..) 와 같다(기록과 실제 관측이 일치)."""
+    d, inp, *_ = request.getfixturevalue(which)
+    text = (d / "o" / f"{stem_of(inp, 'free')}.stab.cir").read_text(encoding="utf-8")
+    rec = _sim(d / "o", inp)["ac"]["stability"]["transient"]["plan"]
+    if which == "fb_stab_run":
+        node = amp_side_of_cut(text, "Vlb_nin")
+        assert node is not None, "절단 원 양쪽 중 MOS 쪽이 하나로 정해지지 않음 -- 조건 점검"
+    else:
+        node = inp["ports"]["input"].lower()
+        assert node == "nin" and inp["testbench"]["ac"]["input_ac"] > 0          # 전제(가중 부호 +1)
+    obs = [(str(n).lower(), float(s)) for n, s in rec["observe"]]
+    assert obs == [(node, 1.0)], (rec["observe"], node)
+    assert hst_operands(text) == {f"v({node})"}, (hst_operands(text), node)
 
 
 def test_timeout_s_overrides_default_cap(tmp_path):
@@ -1606,10 +1663,12 @@ def notch_input(lut, cn1, constraints=None):
 
 
 def notch_ref(root: Path, cn1):
-    r = run_spice("\n".join(notch_body(cn1)), root / f"notch_{cn1:g}", ["v(no)"], ac_out="no", ac=(0.01, 1e10, 40))
+    r = run_spice("\n".join(notch_body(cn1)), root / f"notch_{cn1:g}", ["v(no)", "v(nin)"], ac_out="no",
+                  ac=(0.01, 1e10, 40))
     H = r["H"]
     L = np.sign(H[0].real) * H
     return {"f": r["f"], "H": H, "L": L, "meas": measure(r["f"], H), "nyq": nyquist(L), "vo": r["op"]["v(no)"],
+            "v_obs": r["op"]["v(nin)"],              # 관측 노드(β=1 끊는 점 nin)의 독립 .op 값(설계 40 §4 C10 8 (i))
             "cross": gain_crossings(r["f"], L)}
 
 
@@ -1629,7 +1688,7 @@ def test_multi_crossing_plan_uses_f_lo(tmp_path, ref_root):
     assert c is not None, (p.stdout + p.stderr)[-1500:]
     o, stem = tmp_path / "o", stem_of(inp, "free")
     f, L, A = ac_loop_from_files(o, stem, beta_loop=False)
-    pl = plan(f, L, [ref["vo"]])
+    pl = plan(f, L, [ref["v_obs"]])
     assert len(pl["crossings"]) == 3 and pl["crossings"] == pytest.approx(ref["cross"], rel=1e-4)
     ac = _sim(o, inp)["ac"]
     st = ac["stability"]
@@ -1670,7 +1729,7 @@ def test_tail_above_one_nyquist_unavailable(tmp_path, ref_root):
     ny = _sim(o, inp)["ac"]["stability"]["nyquist"]
     assert ny["encirclements_cw"] is None and isinstance(ny["reason"], str) and ny["reason"], ny
     assert abs(complex(*ny["L_last"])) >= 1
-    dec = decide(o / f"{stem}.stab.txt", plan(f, L, [ref["vo"]]))
+    dec = decide(o / f"{stem}.stab.txt", plan(f, L, [ref["v_obs"]]))
     st = c["summary"]["stability"]
     check_row(st, None, dec["status"], st["pm_deg_raw"])
     assert st["pm_valid"] is False

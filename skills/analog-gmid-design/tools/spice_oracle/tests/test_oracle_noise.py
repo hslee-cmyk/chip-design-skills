@@ -149,3 +149,68 @@ def test_noise_block_schema_rejected(tmp_path, blk):
     p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
     assert p.returncode == 2 and res["free"] is None, (p.returncode, (p.stdout + p.stderr)[-800:])
     assert not list((tmp_path / "o").glob("*.sim.json"))
+
+# ---------------------------------------------------------------- noise_excess_th 입력 셀 이름 사상(설계 40 §4 C10 8 (v))
+def _noise_mod():
+    """피검 순수 함수 `oracle_noise.oracle_element_names(name)`(README '.noise' 이름) -- 소스는 열지 않고 import 만."""
+    import importlib
+    import sys
+    d = str(conftest.ORACLE_DIR)
+    if d not in sys.path:
+        sys.path.insert(0, d)
+    return importlib.import_module("oracle_noise")
+
+
+@pytest.mark.parametrize("name,must", [
+    ("M1a", {"m1a"}),                                              # MOS: 이름 자체(소문자)
+    ("RL", {"rp_rl", "cp_rl", "isrc_rl", "vsrc_rl"}),              # 수동·이상원: CIRCUIT_PREFIXES 접두 + 이름(소문자)
+    ("Rp_RL", {"rp_rl"}),                                          # 이미 접두가 붙은 이름은 그대로도 후보
+])
+def test_oracle_element_names_mapping(name, must):
+    """설계 40 §4 C10 8 'U6 test 후속 정의' (v)(a1e1d2c): noise_excess_th 의 입력 셀 소자 이름은 오라클 넷리스트 이름으로 사상해 찾는다
+    (수동소자 접두 포함). 기대 후보는 README 문장(oracle (d)): MOS `M1a` -> `m1a`, 수동소자 `RL` -> `rp_rl`·`cp_rl`·`isrc_rl`·`vsrc_rl`."""
+    got = {str(x) for x in _noise_mod().oracle_element_names(name)}
+    assert must <= got, (name, got)
+    assert all(x == x.lower() for x in got), got
+
+
+def _rc_excess_run(tmp_path, cells, constraints=None):
+    inp = zero_diffusion(rc_input(make_lut(tmp_path / "lut.npz")))
+    inp["noise"] = {"f_lo_hz": 10.0, "input_cell_devices": list(cells)}
+    inp["predictions"]["devices"] = {"MD": {"off_current_A": 0.0}}         # C23(위 test 와 같은 이유)
+    if constraints is not None:
+        inp["acceptance"] = {"constraints": constraints}
+    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
+    assert res["free"] is not None, (p.stdout + p.stderr)[-1500:]
+    return _sim(tmp_path / "o", inp)["noise"]["open_loop"], res["free"], p
+
+
+def test_noise_excess_th_maps_passive_and_mos_names(tmp_path):
+    """(v) + README `noise_excess_th` = noise_th_in_v2hz / (input_cell_devices 소자만의 열 성분 합). 입력 셀 = 수동소자 `Ra`(넷리스트 이름
+    Rp_Ra) + MOS `MD`(다이오드 가지, rout 에 닿지 않아 기여 0). oracle (a) 손계산: Ra·Rb 는 rout 에서 대칭(각 몫 0.5, 위
+    test_rc_contributions_split_evenly_and_no_flicker) -> 전체 / (Ra + MD) = 1 / 0.5 = 2, 상대 reltol. 두 이름 모두 찾음(누락 없음).
+    제약 noise_excess_th <= 2.5 는 값 2 로 판정(PASS)."""
+    ol, cmp, p = _rc_excess_run(tmp_path, ["Ra", "MD"],
+                                [{"name": "ex", "measure": "noise_excess_th", "op": "<=", "limit": 2.5}])
+    assert ol["excess_th"] == pytest.approx(2.0, rel=RELTOL), ol
+    assert not ol.get("input_cell_missing"), ol.get("input_cell_missing")
+    k = conftest.by_name(cmp["constraints"], "name", "ex")
+    assert k["judge"] == "PASS" and k["spice"] == pytest.approx(2.0, rel=RELTOL), k
+
+
+def test_noise_excess_th_reports_missing_name(tmp_path):
+    """(v) README '못 찾은 이름은 input_cell_missing': 넷리스트에 없는 이름 `Rzz` 는 input_cell_missing 에 그대로 남는다. 찾은 `Ra` 는
+    누락 목록에 없다."""
+    ol, cmp, p = _rc_excess_run(tmp_path, ["Ra", "Rzz"])
+    assert "Rzz" in ol["input_cell_missing"] and "Ra" not in ol["input_cell_missing"], ol
+
+
+def test_noise_excess_th_none_when_no_input_cell_found(tmp_path):
+    """README '입력 셀이 없으면 None + excess_reason': 이름이 하나도 사상되지 않으면(`Rzz` 만) 값 없음 + 이유 + 누락 목록, 그
+    metric 의 제약은 값 없음 판정(N/A) -> PASS 불가(README '값이 없으면 N/A -> INCOMPLETE')."""
+    ol, cmp, p = _rc_excess_run(tmp_path, ["Rzz"], [{"name": "ex", "measure": "noise_excess_th", "op": "<=", "limit": 2.5}])
+    assert ol["excess_th"] is None and ol.get("excess_reason"), ol
+    assert ol["input_cell_missing"] == ["Rzz"], ol
+    k = conftest.by_name(cmp["constraints"], "name", "ex")
+    assert k["spice"] is None and str(k["judge"]).startswith("N/A"), k
+    assert cmp["summary"]["verdict"] != "PASS", cmp["summary"]
