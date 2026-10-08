@@ -82,6 +82,17 @@
   - 2회(전류 주입, Ilb AC = w_k): Ti = Σ w·I_x / Σ w·(w - I_x), I_x = i(Vlb)(되먹임 쪽으로 가는 전류)
   - T = (Tv·Ti - 1)/(Tv + Ti + 2). 입력 넷의 DC 경로는 `loop_dc_choke_H` 인덕터(측정 대역에서 β 망보다 충분히 큰 임피던스),
     되먹임이 없는 입력은 AC 접지(결합 C + AC 0 원).
+  - **[신규 2026-10-08] 분모 0 = 정의 불가**(`oracle_simulate.loop_probe_singular`): 데이터 파일 값으로 Σ w·V(넷) = 0(Tv 정의 불가),
+    Σ w·(w − I_x) = 0(Ti 정의 불가 -- 주입 전류가 전부 되먹임 쪽으로 가고 증폭기 쪽 전류가 파일 분해능에서 0, 즉 그 주파수에서
+    절단 넷의 증폭기 쪽 어드미턴스가 사실상 choke 뿐), 또는 Tv + Ti + 2 = 0 인 표본이 하나라도 있으면 그 표본의 T 가 정의되지
+    않으므로 루프 측정 전체를 쓰지 않는다: `sim.loop.measures = None`, `sim.loop.singular = {count, first{f_hz, which}, points(앞
+    20 개)}`, `ac.pm_deg = None`, `ac.pm_undefined = "loop_probe_singular"`, `ac.stability.reason` 에 첫 표본. 측정 실패가
+    아니므로 막힘이 아니다(compare 의 'β 루프 측정 결과 없음' 막힘은 singular 가 없을 때만). pm 제약·metric 판정 칸
+    `N/A(정의 불가: loop_probe_singular)` -> C8 대로 PASS 불가(INCOMPLETE, 다른 FAIL 이 있으면 FAIL). 0 이 아닌 아주 작은
+    분모는 그대로 계산한다(Ti -> ∞ 극한에서 T -> Tv). 재현(2026-10-08, 손 입력 test 아님): 단일 입력 nin, 되먹임 Cf
+    (nout–nin, 1 pF)와 입력 결합 Cin(nin–g, 1 pF) 둘 다 feedback_passives(옛 C12 '입력 넷 passives 전부' 규칙과 같은 꼴), 입력 넷에
+    접지 C 없음 -> 증폭기 쪽 = loop choke 뿐 -> 891 Hz 부터 170 표본에서 Σ w·(w − I_x) = 0. 고치기 전 oracle_simulate 는
+    ZeroDivisionError 로 죽어 compare 가 없었다; 고친 뒤 INCOMPLETE(pm_min `N/A(정의 불가: loop_probe_singular)`), 막힘 없음.
 * 선언이 없으면 **β=1 루프**: L = 개루프 A(입력 차동 AC -> 출력)의 위상여유.
 * 두 경우 모두 PM = 180 - (기준점 위상 - |L|=1 첫 하강 교차의 위상) [deg], 기준점 = 측정 첫 주파수(fstart), 위상은 언랩.
   `ac.pm_deg` = 이 값, `ac.pm_definition` = `beta_loop`|`beta_1`, `ac.pm_open_loop_deg` = 늘 A 기준 값,
@@ -450,10 +461,27 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
    - `.control`: `tran tmax tstop 0 tmax`, `let hst = <H 식>`, `wrdata <stem>.stab.txt hst`. 캐시(C21) 대상.
 4. **과도 계획**(`tran_plan`, 조정 상수 없음 -- 측정 L 과 입력에서 유도): f_lo/f_hi = 가장 낮은/높은 |L|=1 교차
    (`gain_crossings_hz`, log 보간), kick = V_T = k_B·T/q(T = LUT temp_c + 273.15 K; 소신호 선형화의 물리 척도),
-   tmax = td = tr = tf = 1/(2π f_hi), pw = 1/(2π f_lo), 킥 끝 t_end = td + tr + pw + tf, 창 W = 1/f_lo,
+   **[변경 2026-10-08] 시간 척도는 f_lo 하나**: tmax = td = tr = tf = pw = 1/(2π f_lo), 킥 끝 t_end = td + tr + pw + tf,
+   창 W = 1/f_lo. f_lo = 가장 낮은 교차 = PM 을 정의한 교차(UGF -- PM 원값이 있으면 L(fstart) >= 1 이고 첫 교차가 하강이므로
+   늘 같다). f_hi 는 기록(`plan.f_hi_hz`)만 하고 계획에 쓰지 않는다: tmax 는 창 안 표본 간격의 상한일 뿐이고 f_lo 보다 빠른
+   동특성은 ngspice 절단 오차(LTE) 걸음 제어가 들뜬 만큼 잘게 쪼갠다. 옛 tmax = 1/(2π f_hi) 는 교차가 많은 L(엔진 브리지
+   two_stage_ota_sf 시작점 start_s1_seq23, free: 59 교차 0.48 Hz ~ 9.5 GHz, 공급 전류 3.3e-11 A 로 거의 꺼진 회로)에서
+   tmax 1.7e-11 s·tstop 14.9 s(~8.8e11 걸음)로 끝나지 않았다(프로세스 강제 종료). 교차가 하나면(f_hi = f_lo) 계획은 옛
+   것과 같다. 새 숫자(걸음 예산 등)를 두지 않았다.
    창 수 K = ceil(ln(kick/floor)), floor(해 분해능) = 출력 노드마다 reltol·|V_op| + vntol 의 합(입력 `testbench.options`
    값, 없으면 ngspice 기본 reltol 1e-3·vntol 1e-6), tstop = t_end + K·W. kick <= floor 이거나 K < 2 면 계획 없음
-   (과도 `not_run`). 기록 `ac.stability.transient.plan`.
+   (과도 `not_run`). 기록 `ac.stability.transient.plan`. 실행 시간 상한이 필요하면 진입점의 `--timeout-s` 가 ngspice 를
+   끊는다(데이터 파일이 tstop 에 못 미치면 절차 5 의 `failed` -> '모름' -> PM 은 표대로 정의 불가 또는 N 만으로 판정).
+   **[고침 2026-10-08]** 안정성 근거의 세 실행(동작점 패스·과도·연장)은 `subprocess.TimeoutExpired` 를 잡는다(`_run_stab`):
+   끊기면 죽지 않고 그 실행 기록에 `timeout`(사유 문자열)·`ngspice_rc = None` 을 남긴다. 동작점 패스가 끊기면 과도 `failed`
+   (사유 '동작점 패스 시간 초과'), 과도가 끊기면 부분 데이터로 판정하지 않고 `failed`(사유 '과도 시간 초과'), 연장 실행이 끊기면
+   연장 `failed` -> 최종 `undetermined`. sim.json·compare 는 계속 쓴다(옛 코드는 traceback·rc 1·sim.json 없음 -- 독립 test
+   b6931f7 test_truncated_transient_failed_never_pass, 손 RHP 회로 Rb 1 MΩ·`--timeout-s 4`). 본·루프 넷리스트 실행의
+   시간 초과는 이 항목 밖(지금도 예외로 끝남).
+   확인(2026-10-08): 위 시작점 free 는 tmax 0.33 s·tstop 15.8 s 로 2 초 안에 끝나고 N = None(편각 180 deg 걸음) + 과도
+   unstable -> `closed_loop_unstable`(PM 원값 64.0 deg 이 PASS 되지 않음), forced 는 N = 0 + unstable ->
+   `open_loop_rhp_poles`(원값 182.3 deg). 교차가 하나인 기존 확인 회로(test 회로 4종, two_stage_ota·nmcnr·two_stage_ota_sf·
+   ngcc 프로브, 손 RHP 회로)는 `ac` 전체(안정성 기록 포함)가 바꾸기 전과 같다.
 5. **과도 판정**(`transient_decision`): e(t) = H(t) − H(0), 창 j = 1..K(t_end 부터 W 씩)의 M_j = max|e|,
    floor' = floor + u·max|H|(u = .stab.txt 반올림 반 단위, C20 의 data_rel_resolution). 마지막 시각이 tstop·(1 − 2u) 보다
    이르면 `failed`. 첫 실행 판정: M_K <= floor' -> `stable`; 아니고 M_K >= M_1 -> `unstable`(K 창 동안 줄지 않음 =
