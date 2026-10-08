@@ -40,6 +40,9 @@ DC_TABLE = {
     ("graph", "dc_seal_6"): "dc_seal_bulk_reverse",
     ("graph", "dc_seal_7"): "dc_seal_saturation",
     ("graph", "dc_seal_8"): "dc_seal_kvl_branch",
+    ("graph", "dc_seal_9"): "dc_seal_conduction",                 # [r8]
+    ("device", "dc_off_current"): "dc_seal_conduction",           # [r8]
+    ("device", "dc_conduction_floor"): "dc_seal_conduction",      # [r8]
     ("graph", "dc_seal_report"): "dc_seal_report",
 }
 
@@ -50,13 +53,14 @@ BLOCKS = {
     "dc_tolerances": S.dc_tolerances, "dc_seal_node_conflict": S.dc_seal_node_conflict,
     "dc_seal_vgs_match": S.dc_seal_vgs_match, "dc_seal_kcl": S.dc_seal_kcl,
     "dc_seal_bulk_reverse": S.dc_seal_bulk_reverse, "dc_seal_saturation": S.dc_seal_saturation,
-    "dc_seal_kvl_branch": S.dc_seal_kvl_branch, "dc_seal_report": S.dc_seal_report,
+    "dc_seal_kvl_branch": S.dc_seal_kvl_branch, "dc_seal_conduction": S.dc_seal_conduction,
+    "dc_seal_report": S.dc_seal_report,
 }
 
 
-def test_dc_table_has_28_fields():
-    # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28). 과제 지시문의 '22' 와 다르다 -- 정본은 계약 표.
-    assert len(DC_TABLE) == 28
+def test_dc_table_has_31_fields():
+    # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31).
+    assert len(DC_TABLE) == 31
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -128,6 +132,12 @@ READS = {
 }
 
 
+def test_seal_conduction_reads_cover_contract_inputs():
+    """[r8] 6절 9행: 판정은 device.dc_op(kind·w_key·L·vds·vsb·W·current·gm_id)와 device.dc_tol_v 를 읽는다
+    (계약이 reads 를 전부 열거하지 않아 부분집합으로만 확인)."""
+    assert {("device", "dc_op"), ("device", "dc_tol_v")} <= set(S.dc_seal_conduction.reads)
+
+
 @pytest.mark.parametrize("name", sorted(READS))
 def test_block_reads_declared_as_contract(name):
     assert set(BLOCKS[name].reads) == READS[name]
@@ -152,7 +162,7 @@ def test_vocabulary_constants():
     assert S.INPUT_GROUP_KEY == "input_common_mode"
     assert (S.REPORT_VIOLATED, S.REPORT_UNDEFINED, S.REPORT_SEALED) == ("violated", "undefined", "sealed")
     assert (S.SEAL_NODE_CONFLICT, S.SEAL_VGS_MATCH, S.SEAL_KCL, S.SEAL_VERSIONS, S.SEAL_WRITER_UNIQUE,
-            S.SEAL_BULK_REVERSE, S.SEAL_SATURATION, S.SEAL_KVL_BRANCH) == (1, 2, 3, 4, 5, 6, 7, 8)
+            S.SEAL_BULK_REVERSE, S.SEAL_SATURATION, S.SEAL_KVL_BRANCH, S.SEAL_CONDUCTION) == (1, 2, 3, 4, 5, 6, 7, 8, 9)
     assert (S.REASON_EMPTY_WINDOW, S.REASON_LUT_QUERY, S.REASON_TOL_UNDEFINED,
             S.REASON_VDSAT_MISSING, S.REASON_DECLARED_KCL, S.REASON_NO_ROOT, S.REASON_STRICT_RECHECK) == (
         "empty_window", "lut_query_failed", "tol_v_undefined",
