@@ -98,8 +98,9 @@ def _local_inputs(s1, s1v, spec, kctx, cur_rep, current_box):
         boxes[bound.element] = (bound.kind, bound.lo, bound.hi)
     resistor_box = {name: (lo, hi) for name, (k, lo, hi) in boxes.items() if k == KIND_RESISTOR}
     slice_ = next(iter(sorted(kctx.lut.memo.lut.slice_map.items())))[1]
+    node_colour, device_colour = dict(kctx.base.column("node", "dc_colour")), dict(kctx.base.column("device", "dc_colour"))
     return LocalInputs(kind, pins, cls, bulk, rails, orbit_key, l_label, rows, tuple(basis.free), dict(basis.fixed), dict(cur_rep),
-                       dict(current_box), values, resistor_box, dict(kctx.lut.w_keys), kctx.lut.memo, tuple(slice_.grids))
+                       dict(current_box), values, resistor_box, dict(kctx.lut.w_keys), kctx.lut.memo, tuple(slice_.grids), node_colour, device_colour)
 
 
 def _gain_target(spec):
@@ -122,12 +123,12 @@ def _bound(local, tables, spec, budget, role=None):
     return block_gain_bound(model, tables, budget, spec.members)
 
 
-def _chain(view, blocks, bounds, use_b):
+def _chain(view, blocks, bounds, use_b, colour):
     """뷰 입력 → 출력 합성 상한(선형 진폭): 넷별 값 = 그 넷을 출력으로 갖는 블록들 (A·최대 입력 값) 의 합. 반환 {넷: 값} (미상 블록이 있으면 None)."""
     if any(b.status != STATUS_CERTIFIED for b in bounds):
         return None
     value = {net: 1 for net, _w in view.excite}
-    ordered = sorted(zip(blocks, bounds), key=lambda pair: (pair[0].stage, pair[0].key))
+    ordered = sorted(zip(blocks, bounds), key=lambda pair: (pair[0].stage, tuple(sorted(colour.get(n, -1) for n in pair[0].key)), pair[0].key))
     for _round in range(len(ordered) + 1):
         produced = {}
         for block, bound in ordered:
@@ -172,8 +173,8 @@ def _gain(view, s1v_blocks, local, tables, spec, budget, target):
                             ((f.tap, 1),), tuple(sorted(nodes)), drive=(f.tap,))
         ff_specs.append(ff_spec)
         ff_bounds.append(_bound(local, tables, ff_spec, budget))
-    chain_pure = _chain(view, s1v_blocks, bounds, False)
-    chain_b = _chain(view, s1v_blocks, bounds, True)
+    chain_pure = _chain(view, s1v_blocks, bounds, False, local.node_colour)
+    chain_b = _chain(view, s1v_blocks, bounds, True, local.node_colour)
     sense = tuple(view.sense)
     found = [b.found_db for b in bounds]
     found_sum = None if any(f is None for f in found) else float(sum(found))

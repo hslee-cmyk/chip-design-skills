@@ -226,7 +226,8 @@ class LocalInputs:
     `basis_rows` = MOS(및 수동소자) 전류 = Σ (원천 원소, 계수) (`CurrentBasis.rows`), `free` = θ 전류 원소(기저), `fixed` = {값 선언 이상 전류원: A},
     `cur_rep` = {θ 전류 원소: (대표 원소, 부호 ±1) 또는 (None, 0)=구조적 0}(자기동형 묶음 -- 탐색 변수와 같은 묶음, 없는 원소는 자기 자신 +1),
     `current_box` = {대표 θ 전류 원소: (하한 A, 상한 A)}, `element_value` = {수동소자: 선언값 또는 None}, `resistor_box` = {θ 저항: (하한 Ω, 상한 Ω)},
-    `w_keys` = {kind: 레이아웃 전 폭 슬라이스 키}, `memo` = `lut.LutMemo`, `grids` = (L, VGS, VDS, VS) LUT 격자(모든 슬라이스 공통, lut 불변식)."""
+    `w_keys` = {kind: 레이아웃 전 폭 슬라이스 키}, `memo` = `lut.LutMemo`, `grids` = (L, VGS, VDS, VS) LUT 격자(모든 슬라이스 공통, lut 불변식),
+    `node_colour`·`device_colour` = {이름: 구조 색 순위}(`dc_colour` -- 정점마다 유일하고 이름이 정하지 않는다; 순회·합산 순서를 이름이 아니라 이 순위로 정해 이름 치환에 결과가 비트 단위로 같게 한다)."""
 
     kind: dict
     pins: dict
@@ -245,6 +246,8 @@ class LocalInputs:
     w_keys: dict
     memo: object
     grids: tuple
+    node_colour: dict = None
+    device_colour: dict = None
 
 
 @dataclasses.dataclass(frozen=True)

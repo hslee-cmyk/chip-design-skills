@@ -56,17 +56,17 @@ def _find(parent, x):
     return x
 
 
-def _groups(names, links):
-    """names 를 `links`((a, b) 쌍들)로 합친 그룹 {대표 이름: 멤버 tuple(정렬)} -- 대표 = 멤버 이름 최소(보고 순서용)."""
+def _groups(names, links, key):
+    """names 를 `links`((a, b) 쌍들)로 합친 그룹 {대표: 멤버 tuple} -- 멤버·그룹 순서는 `key`(구조 색 순위, 이름이 정하지 않는다), 대표 = 멤버 중 key 최소."""
     parent = {n: n for n in names}
     for a, b in links:
         ra, rb = _find(parent, a), _find(parent, b)
         if ra != rb:
-            parent[max(ra, rb)] = min(ra, rb)
+            parent[max(ra, rb, key=key)] = min(ra, rb, key=key)
     out = {}
     for n in names:
         out.setdefault(_find(parent, n), []).append(n)
-    return {root: tuple(sorted(members)) for root, members in sorted(out.items())}
+    return {root: tuple(sorted(members, key=key)) for root, members in sorted(out.items(), key=lambda kv: key(kv[0]))}
 
 
 def _same_key_links(names, key):
@@ -96,15 +96,16 @@ def _patterns(spec, drive):
     return None, REASON_MULTI_INPUT
 
 
-def _outputs(spec):
-    if len(spec.outputs) == 1:
-        return ((spec.outputs[0], 1),), None
-    if len(spec.outputs) == len(PAIR):
-        return ((spec.outputs[0], 1), (spec.outputs[1], -1)), None
+def _outputs(spec, key):
+    ordered = tuple(sorted(spec.outputs, key=key))
+    if len(ordered) == 1:
+        return ((ordered[0], 1),), None
+    if len(ordered) == len(PAIR):
+        return ((ordered[0], 1), (ordered[1], -1)), None
     return None, REASON_NO_OUTPUT
 
 
-def _active_resistors(local, resistors, mos, ground, drive):
+def _active_resistors(local, resistors, mos, ground, drive, key):
     """막다른 저항(끝 하나가 다른 DC 가지 없이 이 저항에만 달린 넷)을 되풀이해 뺀 저항 이름 tuple."""
     active = set(resistors)
     while True:
@@ -120,7 +121,7 @@ def _active_resistors(local, resistors, mos, ground, drive):
                       if any(local.pins[r][t] not in ground and local.pins[r][t] not in drive and degree[local.pins[r][t]] == 1
                              for t in ("t0", "t1")))
         if not dead:
-            return tuple(sorted(active))
+            return tuple(sorted(active, key=key))
         active -= set(dead)
 
 
@@ -129,8 +130,16 @@ def _log_grid(lo, hi, count):
 
 
 def block_model(local, spec):
+    device_colour, node_colour = local.device_colour or {}, local.node_colour or {}
+
+    def dkey(name):
+        return device_colour.get(name, -1), name          # 구조 색 순위(이름은 색이 없을 때만 순서를 정한다)
+
+    def nkey(name):
+        return node_colour.get(name, -1), name
+
     ground = frozenset(spec.ground) | local.rails
-    drive = tuple(n for n in (spec.inputs if spec.drive is None else spec.drive) if n not in ground)
+    drive = tuple(sorted((n for n in (spec.inputs if spec.drive is None else spec.drive) if n not in ground), key=nkey))
     if not drive:
         return None, REASON_NO_DRIVE
     if spec.nodes:                       # 블록 노드 집합이 주어지면 그 밖 넷(채널·저항 끝)은 교류접지다(41 §2.1 '블록 밖 노드는 교류접지')
@@ -140,13 +149,13 @@ def block_model(local, spec):
     patterns, reason = _patterns(spec, drive)
     if patterns is None:
         return None, reason
-    outputs, reason = _outputs(spec)
+    outputs, reason = _outputs(spec, nkey)
     if outputs is None:
         return None, reason
-    mos = tuple(sorted(spec.members))
-    resistors = _active_resistors(local, [p for p in spec.passives if local.kind[p] == KIND_RESISTOR], mos, ground, drive)
+    mos = tuple(sorted(spec.members, key=dkey))
+    resistors = _active_resistors(local, [p for p in spec.passives if local.kind[p] == KIND_RESISTOR], mos, ground, drive, dkey)
     touched = {local.pins[m][t] for m in mos for t in ("d", "s")} | {local.pins[r][t] for r in resistors for t in ("t0", "t1")}
-    nodes = tuple(sorted(n for n in touched if n not in ground and n not in drive))
+    nodes = tuple(sorted((n for n in touched if n not in ground and n not in drive), key=nkey))
     known = set(nodes) | set(drive)
     if any(net not in known and net not in ground for net, _sign in outputs):
         return None, REASON_NO_OUTPUT
@@ -156,10 +165,10 @@ def block_model(local, spec):
     tied_ok = all(any(abs(v - w) <= math.ulp(max(abs(v), abs(w))) for w in local.grids[2]) for v in local.grids[1])
     free_vds = tuple(m for m in mos if not (diode[m] and tied_ok))
     free_vsb = tuple(m for m in mos if local.bulk.get(m) != local.pins[m]["s"])
-    g_vgs = _groups(mos, _same_key_links(mos, lambda m: orbit.get(m)) + _same_key_links(mos, lambda m: (local.pins[m]["g"], local.pins[m]["s"])))
-    g_l = _groups(mos, _same_key_links(mos, lambda m: orbit.get(m)) + _same_key_links(mos, lambda m: local.l_label.get(m)))
-    g_vds = _groups(free_vds, _same_key_links(free_vds, lambda m: orbit.get(m)))
-    g_vsb = _groups(free_vsb, _same_key_links(free_vsb, lambda m: orbit.get(m)))
+    g_vgs = _groups(mos, _same_key_links(mos, lambda m: orbit.get(m)) + _same_key_links(mos, lambda m: (local.pins[m]["g"], local.pins[m]["s"])), dkey)
+    g_l = _groups(mos, _same_key_links(mos, lambda m: orbit.get(m)) + _same_key_links(mos, lambda m: local.l_label.get(m)), dkey)
+    g_vds = _groups(free_vds, _same_key_links(free_vds, lambda m: orbit.get(m)), dkey)
+    g_vsb = _groups(free_vsb, _same_key_links(free_vsb, lambda m: orbit.get(m)), dkey)
     in_vds = {m for members in g_vds.values() for m in members}
     in_vsb = {m for members in g_vsb.values() for m in members}
     axes = []
@@ -191,7 +200,7 @@ def block_model(local, spec):
         return tuple(out)
 
     terms = {m: terms_of(m) for m in mos}
-    used = sorted({source for m in mos for source, _c, is_fixed in terms[m] if not is_fixed})
+    used = sorted({source for m in mos for source, _c, is_fixed in terms[m] if not is_fixed}, key=dkey)
     uses_fixed = any(is_fixed for m in mos for _s, _c, is_fixed in terms[m])
     theta_r = [r for r in resistors if local.element_value.get(r) is None]
     homogeneous = bool(used) and not uses_fixed and not resistors
