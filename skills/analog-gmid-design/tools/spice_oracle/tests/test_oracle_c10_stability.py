@@ -66,18 +66,32 @@ def gain_crossings(f, L):
 
 
 def plan(f, L, vop_outputs):
-    """README 절차 4(조정 상수 없음)."""
+    """README 절차 4(조정 상수 없음, 4ab6d85 개정): 시간 척도는 f_lo(가장 낮은 |L|=1 교차 = PM 교차) 하나.
+    tmax = td = tr = tf = pw = 1/(2π f_lo), t_end = td + tr + pw + tf, W = 1/f_lo. f_hi 는 기록만(계획에 쓰지 않음)."""
     cr = gain_crossings(f, L)
     f_lo, f_hi = min(cr), max(cr)
     kick = KB_OVER_Q * TEMP_K
-    tmax = 1 / (2 * math.pi * f_hi)
-    pw = 1 / (2 * math.pi * f_lo)
-    t_end = 3 * tmax + pw
+    tmax = 1 / (2 * math.pi * f_lo)
+    pw = tmax
+    t_end = 4 * tmax
     w = 1 / f_lo
     floor = sum(RELTOL * abs(v) + VNTOL for v in vop_outputs)
     k = math.ceil(math.log(kick / floor))
     return {"f_lo": f_lo, "f_hi": f_hi, "kick": kick, "tmax": tmax, "pw": pw, "t_end": t_end, "W": w, "floor": floor,
-            "K": k, "tstop": t_end + k * w}
+            "K": k, "tstop": t_end + k * w, "crossings": cr}
+
+
+def check_plan_record(rec, pl, sign):
+    """ac.stability.transient.plan 이 독립 계획과 같은지(필드 전부). floor 는 V_op 출처(독립 .op 대 동작점 패스)만 달라
+    상대 1e-4, 나머지는 같은 식이라 1e-9."""
+    exact = {"kick_V": pl["kick"], "td": pl["tmax"], "tr": pl["tmax"], "pw": pl["pw"], "tmax": pl["tmax"],
+             "window_s": pl["W"], "t_kick_end": pl["t_end"], "f_lo_hz": pl["f_lo"], "f_hi_hz": pl["f_hi"]}
+    for k, v in exact.items():
+        assert rec[k] == pytest.approx(v, rel=1e-9), (k, rec[k], v)
+    assert rec["windows"] == pl["K"], (rec["windows"], pl["K"])
+    assert rec["floor_V"] == pytest.approx(pl["floor"], rel=1e-4)
+    assert rec["tstop"] == pytest.approx(pl["tstop"], rel=1e-6)
+    assert rec["sign"] == sign
 
 
 def mantissa_digits(path: Path) -> int:
@@ -468,6 +482,7 @@ def test_rhp_transient_plan_and_decision(rhp_run):
     stem = stem_of(inp, "free")
     f, L, A = ac_loop_from_files(o, stem, beta_loop=False)
     pl = plan(f, L, [ref["nodes"]["n2"]])
+    check_plan_record(_sim(o, inp)["ac"]["stability"]["transient"]["plan"], pl, 1.0)
     text = (o / f"{stem}.stab.cir").read_text(encoding="utf-8")
     low = text.lower()
     for nm in ("cac_nin", "vac_nin", "vdc_nin", "ldc_nin"):
@@ -744,6 +759,7 @@ def test_stable_lowpm_value_unchanged_and_pass(lowpm_run):
     mine = nyquist(L)
     assert mine["N"] == 0 == ref["nyq"]["N"]
     pl = plan(f, L, [ref["v3"]])
+    check_plan_record(_sim(d / "o", inp)["ac"]["stability"]["transient"]["plan"], pl, -1.0)
     dec = decide(d / "o" / f"{stem}.stab.txt", pl)
     assert dec["status"] == "stable", dec
     st = res["free"]["summary"]["stability"]
@@ -842,6 +858,8 @@ def test_stable_beta_loop_value_unchanged(tmp_path, fb_ref):
     assert ac["stability"]["loop"] == "beta_loop"
     text = (o / f"{stem}.stab.cir").read_text(encoding="utf-8")
     pl = plan(f, T, [fb_ref["vout"]])
+    rec = ac["stability"]["transient"]["plan"]
+    check_plan_record(rec, pl, rec["sign"])          # β 루프: 닫기 부호는 회전 없음(절차 1) -- 값은 기록 그대로 대조 제외
     pv, tok = pulse_of(text, "Vlb_nin")
     assert tok[1:3] == ["nin", "lbx_nin"] and pv[0] == 0.0 and pv[1] == pytest.approx(pl["kick"], rel=1e-6), tok
     assert pv[2:6] == pytest.approx([pl["tmax"]] * 3 + [pl["pw"]], rel=1e-6)
@@ -945,3 +963,142 @@ def test_extension_record_absent_when_not_decaying(classic_run):
     tr = _sim(o, inp)["ac"]["stability"]["transient"]
     assert tr["first_status"] == tr["status"] != "decaying", tr
     assert tr.get("extension") is None and not list(o.glob(f"{stem}.stab2*"))
+
+
+# ====================================================================== 절차 4 개정(4ab6d85): 교차 여럿 -> 시간 척도 f_lo
+# 회로 3: CS(M1, RL) 출력 n1 -> 쌍T 노치(Rt1·Rt2 = R, Ctm = 2C 접지 / Ct1·Ct2 = C, Rts = R/2 접지) -> no(출력).
+#   손 모형: A = -gm·Ro(n1)·N(s), N = (1 + (s/ω0)²)/(1 + 4 s/ω0 + (s/ω0)²), ω0 = 1/(RC) -- |A| 가 노치(f0 = 9.95 kHz) 앞에서
+#   1 아래로 내려갔다(PM 교차 f_lo) 노치 뒤에서 다시 1 위로, Cn1 이 있으면 n1 극 뒤에서 다시 1 아래로 -> 교차 3 개.
+#   Cn1 이 없으면 고주파에서 N -> 1 이라 |L(fstop)| ~ gm·Ro > 1 -> 절차 2 유효 조건 (a) 실패.
+NOTCH = dict(vdd=1.8, vin=0.7, rl=129409.146, R=1e7, C=1.6e-12, L=0.5e-6, fw=2e-6, n=2)
+
+
+def notch_body(cn1):
+    c = NOTCH
+    b = [f"Vdd vdd 0 DC {c['vdd']}", f"Vin nin 0 DC {c['vin']} AC 1", f"RL vdd n1 {c['rl']}",
+         f"Rt1 n1 nm {c['R']}", f"Rt2 nm no {c['R']}", f"Ctm nm 0 {2 * c['C']}", f"Ct1 n1 nc {c['C']}",
+         f"Ct2 nc no {c['C']}", f"Rts nc 0 {c['R'] / 2}"]
+    b += [f"XM1_{k} n1 nin 0 0 {NFET} l={c['L']} w={c['fw']}" for k in range(c["n"])]
+    if cn1:
+        b.append(f"Cn1 n1 0 {cn1}")
+    return b
+
+
+def notch_input(lut, cn1, constraints=None):
+    c = NOTCH
+    pas = [{"name": "RL", "kind": "resistor", "terminals": ["vdd", "n1"], "value": c["rl"]},
+           {"name": "Rt1", "kind": "resistor", "terminals": ["n1", "nm"], "value": c["R"]},
+           {"name": "Rt2", "kind": "resistor", "terminals": ["nm", "no"], "value": c["R"]},
+           {"name": "Ctm", "kind": "capacitor", "terminals": ["nm", "gnd"], "value": 2 * c["C"]},
+           {"name": "Ct1", "kind": "capacitor", "terminals": ["n1", "nc"], "value": c["C"]},
+           {"name": "Ct2", "kind": "capacitor", "terminals": ["nc", "no"], "value": c["C"]},
+           {"name": "Rts", "kind": "resistor", "terminals": ["nc", "gnd"], "value": c["R"] / 2}]
+    if cn1:
+        pas.append({"name": "Cn1", "kind": "capacitor", "terminals": ["n1", "gnd"], "value": cn1})
+    inp = {"schema": "spice_oracle_input/1", "circuit": "tnotch",
+           "process": conftest.process_block(lut),
+           "rails": [{"net": "vdd", "voltage": c["vdd"]}, {"net": "gnd", "voltage": 0.0, "reference": True}],
+           "devices": [{"name": "M1", "kind": "nmos", "drain": "n1", "gate": "nin", "source": "gnd", "bulk": "gnd",
+                        "L": c["L"], "finger_w": c["fw"], "n_fingers": c["n"], "W": c["fw"] * c["n"]}],
+           "sources": [], "passives": pas,
+           "ports": {"input": "nin", "output": "no"},
+           "predictions": {"nodes": {"nin": c["vin"]}, "devices": {"M1": {"off_current_A": 0.0}}, "metrics": []},
+           "testbench": conftest.testbench_block()}
+    if constraints is not None:
+        inp["acceptance"] = {"constraints": constraints}
+    return zero_diffusion(inp)
+
+
+def notch_ref(root: Path, cn1):
+    r = run_spice("\n".join(notch_body(cn1)), root / f"notch_{cn1:g}", ["v(no)"], ac_out="no", ac=(0.01, 1e10, 40))
+    H = r["H"]
+    L = np.sign(H[0].real) * H
+    return {"f": r["f"], "H": H, "L": L, "meas": measure(r["f"], H), "nyq": nyquist(L), "vo": r["op"]["v(no)"],
+            "cross": gain_crossings(r["f"], L)}
+
+
+def test_multi_crossing_plan_uses_f_lo(tmp_path, ref_root):
+    """|L| = 1 교차 3 개(f_hi/f_lo > 100): 계획의 tmax·td·tr·tf·pw·창 = f_lo 하나에서, f_hi 는 plan.f_hi_hz 기록만.
+    폐루프 넷리스트의 PULSE·tran 도 f_lo 척도. PM 은 독립 .ac 값 그대로, N = 0, 과도 판정 = 독립 재계산."""
+    cn1 = 20e-12
+    ref = notch_ref(ref_root, cn1)
+    assert len(ref["cross"]) == 3 and ref["cross"][-1] / ref["cross"][0] > 100, ref["cross"]     # 전제(독립 .ac)
+    assert ref["nyq"]["N"] == 0
+    inp = notch_input(make_lut(tmp_path / "lut.npz"), cn1, constraints=[pm_con(">=", 10.0)])
+    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
+    c = res["free"]
+    assert c is not None, (p.stdout + p.stderr)[-1500:]
+    o, stem = tmp_path / "o", stem_of(inp, "free")
+    f, L, A = ac_loop_from_files(o, stem, beta_loop=False)
+    pl = plan(f, L, [ref["vo"]])
+    assert len(pl["crossings"]) == 3 and pl["crossings"] == pytest.approx(ref["cross"], rel=1e-4)
+    ac = _sim(o, inp)["ac"]
+    st = ac["stability"]
+    assert st["gain_crossings_hz"] == pytest.approx(pl["crossings"], rel=1e-9)
+    rec = st["transient"]["plan"]
+    check_plan_record(rec, pl, -1.0)
+    assert rec["tmax"] == pytest.approx(1 / (2 * math.pi * rec["f_lo_hz"]), rel=1e-12)
+    assert rec["tmax"] > 50 / (2 * math.pi * rec["f_hi_hz"])                  # 옛 1/(2π f_hi) 와 확실히 다름
+    text = (o / f"{stem}.stab.cir").read_text(encoding="utf-8")
+    pv, _ = pulse_of(text, "Vcl_nin")
+    assert pv[2:6] == pytest.approx([pl["tmax"]] * 4, rel=1e-6), (pv, pl)
+    tr = tran_line(text)
+    assert tr[0] == pytest.approx(pl["tmax"], rel=1e-6) and tr[3] == pytest.approx(pl["tmax"], rel=1e-6)
+    assert tr[1] == pytest.approx(pl["tstop"], rel=1e-6)
+    dec = decide(o / f"{stem}.stab.txt", pl)
+    assert st["transient"]["status"] == dec["status"] and st["transient"]["first_status"] == dec["first"], dec
+    assert ac["pm_deg_raw"] == pytest.approx(ref["meas"]["pm_deg"], abs=0.01)
+    assert st["nyquist"]["encirclements_cw"] == nyquist(L)["N"] == 0
+    check_row(c["summary"]["stability"], 0, dec["status"], ac["pm_deg_raw"])
+
+
+def test_tail_above_one_nyquist_unavailable(tmp_path, ref_root):
+    """절차 2 유효 조건 (a): Cn1 없는 노치 회로는 |L(fstop)| >= 1(고주파에서 N -> 1, 독립 .ac 확인)인데 PM 원값(첫 하강
+    교차)은 있다 -> N = None + reason. 과도 판정이 stable 이면 `nyquist_count_unavailable`, 아니면 표대로 -- 어느 경우든
+    PM 정의 불가 -> pm 제약 N/A -> INCOMPLETE(PASS 불가)."""
+    ref = notch_ref(ref_root, 0.0)
+    assert abs(ref["L"][-1]) >= 1 and not ref["nyq"]["valid_a"] and ref["meas"]["pm_deg"] is not None, ref["nyq"]
+    inp = notch_input(make_lut(tmp_path / "lut.npz"), 0.0, constraints=[pm_con(">=", 10.0)])
+    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
+    c = res["free"]
+    o, stem = tmp_path / "o", stem_of(inp, "free")
+    f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
+    mine = nyquist(L)
+    assert mine["N"] is None and not mine["valid_a"]
+    ny = _sim(o, inp)["ac"]["stability"]["nyquist"]
+    assert ny["encirclements_cw"] is None and isinstance(ny["reason"], str) and ny["reason"], ny
+    assert abs(complex(*ny["L_last"])) >= 1
+    dec = decide(o / f"{stem}.stab.txt", plan(f, L, [ref["vo"]]))
+    st = c["summary"]["stability"]
+    check_row(st, None, dec["status"], st["pm_deg_raw"])
+    assert st["pm_valid"] is False
+    assert _cons(c, "pmc")["judge"] == f"N/A(정의 불가: {st['pm_undefined']})"
+    assert c["summary"]["verdict"] == "INCOMPLETE" and p.returncode == 0, c["summary"]
+
+
+def test_truncated_transient_failed_never_pass(tmp_path, ref_root):
+    """README 절차 4: 실행 시간 상한은 진입점 `--timeout-s` 가 ngspice 를 끊는다 -> 데이터 파일이 tstop 에 못 미침 ->
+    절차 5 `failed` -> '모름' -> PM 은 표대로(N = 0 이면 `stability_unverified`) 정의 불가 -> PASS 불가.
+    회로: 손 RHP 회로 Rb 1 MΩ(폐루프 과도가 지속 완화 진동이라 .stab 실행이 본 .op/.ac 보다 훨씬 김).
+    oracle_simulate.py 만 `--timeout-s` 를 받으므로(README 파일 표) netlist -> simulate -> compare 로 부른다."""
+    from conftest import run_compare, run_netlist, run_simulate
+    rb = RB["rb1e6"]
+    inp = rhp_input(make_lut(tmp_path / "lut.npz"), rb, constraints=[pm_con(">=", 60.0)])
+    p, text, meta = run_netlist(inp, tmp_path)
+    assert p.returncode == 0 and meta["blockers"] == [], (p.stdout + p.stderr)[-800:]
+    cir, sim = tmp_path / "t.free.cir", tmp_path / "t.free.sim.json"
+    q = run_simulate(cir, sim, tmp_path, ["--timeout-s", "4"])
+    assert q.returncode == 0 and sim.exists(), (q.returncode, (q.stdout + q.stderr)[-1500:])
+    s = json.loads(sim.read_text(encoding="utf-8"))
+    ac = s["ac"]
+    assert ac["pm_deg_raw"] is not None, "본 .ac 는 상한 안에 끝나야 한다 -- 조건 점검"
+    tr = ac["stability"]["transient"]
+    assert tr["status"] == "failed" or tr["first_status"] == "failed", tr
+    st_sim = ac["stability"]
+    assert st_sim["pm_undefined"] in VOCAB and ac["pm_deg"] is None, st_sim
+    r, cmp = run_compare(inp, cir, sim, tmp_path / "cmp", sat_margin=SAT)
+    assert cmp is not None, (r.stdout + r.stderr)[-1500:]
+    st = cmp["summary"]["stability"]
+    check_row(st, st_sim["nyquist"]["encirclements_cw"], "failed", st["pm_deg_raw"])
+    assert _cons(cmp, "pmc")["judge"].startswith("N/A(정의 불가: ")
+    assert cmp["summary"]["verdict"] == "INCOMPLETE", cmp["summary"]

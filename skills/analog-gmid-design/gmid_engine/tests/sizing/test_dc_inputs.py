@@ -5,16 +5,19 @@
 `dataclasses.replace` 로 바꾼 변형. 기대값은 1.2 의 투영 규칙을 이 파일에서 따로 적용한다.
 """
 import dataclasses
+import json
 
 import pytest
 
-from gmid_engine.authoring import (InputDc, PendingMark, RegionDecl, ElementValue, load_sizing_spec,
+from gmid_engine.authoring import (REGION_TRIODE, InputDc, PendingMark, RegionDecl, ElementValue, load_sizing_spec,
                                    load_topology)
-from gmid_engine.sizing import DcInputs, dc_inputs_from_spec
+from gmid_engine.core import SchemaRejectedError
+from gmid_engine.sizing import LINEAR_REGION, DcInputs, dc_inputs_from_spec
 
 from .conftest import LIBRARY, NINE, spec_catalog
 
 CATALOG = spec_catalog()
+TRIODE = "triode"          # [r9] CONTRACT 1.2 / SPEC_CONTRACT 1절: intended_region 영역 어휘 정본(이 파일이 계약 문구에서 옮김)
 
 _CACHE = {}
 
@@ -39,7 +42,7 @@ def expected_projection(spec):
     ev = tuple((e.name, e.value if e.mode == "value" else None) for e in spec.element_values)
     lin = ()
     if isinstance(spec.intended_region, tuple):
-        lin = tuple(sorted(r.device for r in spec.intended_region if r.region == "linear"))
+        lin = tuple(sorted(r.device for r in spec.intended_region if r.region == TRIODE))   # [r9]
     pend = tuple(sorted((p.path, p.decision) for p in spec.pending))
     # [r5] engine_elements = element_values 중 mode == "engine" 인 원소 이름 정렬 tuple(pending 은 들지 않는다)
     eng = tuple(sorted(e.name for e in spec.element_values if e.mode == "engine"))
@@ -130,11 +133,61 @@ def test_engine_elements_default_empty():
     assert dc_inputs_from_spec(spec).engine_elements == ()
 
 
+def test_region_vocabulary_single_source():
+    """[r9] 1.2: LINEAR_REGION = authoring REGION_TRIODE = "triode"(같은 개념 한 정의)."""
+    assert LINEAR_REGION == REGION_TRIODE == TRIODE
+
+
 def test_linear_devices_from_intended_region_sorted():
-    regions = (RegionDecl("M7", "linear", None), RegionDecl("M1", "saturation", None),
-               RegionDecl("M3", "linear", None))
+    """[r9] region == "triode" 인 소자만 이름순. 다른 낱말("linear" 포함 -- r8 까지의 낱말)은 들지 않는다(손으로 만든
+    RegionDecl 은 로더를 거치지 않아 어휘 검사 없이 투영 규칙만 본다)."""
+    regions = (RegionDecl("M7", TRIODE, None), RegionDecl("M1", "saturation", None),
+               RegionDecl("M3", TRIODE, None), RegionDecl("M5", "linear", None))
     spec = dataclasses.replace(_base(), intended_region=regions)
     assert dc_inputs_from_spec(spec).linear_devices == ("M3", "M7")
+
+
+# ---------------------------------------------------------------------------
+# [r9] spec 경로 끝까지: JSON spec -> load_sizing_spec -> dc_inputs_from_spec
+# ---------------------------------------------------------------------------
+
+US = {"kind": "user_spec", "record": "r9 test triode declaration", "decided": "2026-10-08"}
+
+
+def _spec_with_regions(tmp_path, regions):
+    """library two_stage_ota spec 의 human.intended_region 만 바꿔 tmp 에 쓰고 로더로 읽는다(형식: SPEC_CONTRACT 1절
+    {소자: {region, source}})."""
+    name = "two_stage_ota"
+    raw = json.loads((LIBRARY / (name + ".sizing_spec.json")).read_text(encoding="utf-8"))
+    raw["human"]["intended_region"] = {d: {"region": r, "source": dict(US)} for d, r in regions.items()}
+    p = tmp_path / (name + ".sizing_spec.json")
+    p.write_text(json.dumps(raw, indent=2), encoding="utf-8")
+    topo = load_topology(str(LIBRARY / (name + ".topology.json")))
+    return load_sizing_spec(str(p), topo, CATALOG)
+
+
+def test_spec_path_triode_populates_linear_devices(tmp_path):
+    """spec JSON 에 triode 선언 -> linear_devices 가 그 소자들(이름순). r8 까지는 spec 경로로 늘 비었다(O19)."""
+    spec = _spec_with_regions(tmp_path, {"M7": TRIODE, "M5": TRIODE})
+    assert {(r.device, r.region) for r in spec.intended_region} == {("M7", TRIODE), ("M5", TRIODE)}
+    got = dc_inputs_from_spec(spec)
+    assert got.linear_devices == ("M5", "M7")
+    assert got == expected_projection(spec)
+
+
+def test_spec_path_empty_declaration(tmp_path):
+    spec = _spec_with_regions(tmp_path, {})
+    assert spec.intended_region == () and dc_inputs_from_spec(spec).linear_devices == ()
+
+
+@pytest.mark.parametrize("word", ["linear", "saturation"])
+def test_spec_loader_rejects_non_triode_region(tmp_path, word):
+    """SPEC_CONTRACT 1절: 영역 어휘 밖 낱말(예 "linear", "saturation")은 `type` -> SchemaRejectedError(gate intended_region)."""
+    with pytest.raises(SchemaRejectedError) as ei:
+        _spec_with_regions(tmp_path, {"M7": word})
+    d = dict(ei.value.record.detail)
+    assert "type" in [h.rule for h in d["hits"]]
+    assert d["rejected_gates"] == ("intended_region",)
 
 
 def test_linear_devices_pending_region_is_empty():

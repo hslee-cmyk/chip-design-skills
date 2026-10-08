@@ -9,6 +9,7 @@ S2 `dc` 는 S1 과 **같은** core `GraphSnapshot` 위에 산다: 권한표 `S2_
 """
 import dataclasses
 
+from gmid_engine.authoring import REGION_TRIODE
 from gmid_engine.core import WriterTable
 from gmid_engine.graph import S1_WRITERS
 
@@ -18,7 +19,7 @@ DC_KEY = "dc"                                          # S2 dc graph 레코드�
 RESISTOR = "resistor"
 CAPACITOR = "capacitor"
 CURRENT_SOURCE = "current_source"
-LINEAR_REGION = "linear"                               # spec intended_region 의 선형 영역 낱말(봉인 7 제외 대상)
+LINEAR_REGION = REGION_TRIODE                          # [r9] spec intended_region 의 선형 영역 낱말 = authoring 정본 "triode"(봉인 7 제외 대상)
 
 # ---- 노드 writer 티어(계획 N3.4) 와 쓰는 관계
 TIER_W0 = "W0"
