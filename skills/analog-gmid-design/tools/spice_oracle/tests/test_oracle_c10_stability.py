@@ -24,8 +24,8 @@
     - (c) 기본 시간 상한 = oracle_config.json stability_transient.wall_s_per_window × 창 수, `--timeout-s` 우선.
     - (d) `.stab.cir`/`.stab2.cir` 의 save = H 식 피연산자 + time.
   * U6 개정(설계 40 §4 C10 2~7, 사용자 결정 4·Q10 2026-10-08, _drafts/user_decisions.md):
-    - 결정 4 '폐루프 지속 진동(분해능 안 일정 진폭)은 불안정(한계 사이클)': 이 파일의 `limit_window` 가 설계 40 §4 2 의 조건
-      (M_j(1−r) > floor', |M_j − M_{j−1}| <= (M_j + M_{j−1})·r + floor', g↓ 아님; j >= 3 에서 창 j−1, j 연속)을 그대로
+    - 결정 4 '폐루프 지속 진동은 불안정(한계 사이클)': 이 파일의 `limit_window` 가 설계 40 §4 2·8 의 조건
+      (M_j(1−r) > floor', g↓(M_{j−1}, M_j) 아님; j >= 3 에서 창 j−1, j 연속 -- 8 이 2 의 '분해능 안 일정'을 대체)을 그대로
       구현해 `decide_run` 의 조기 판정에 넣는다(계약 d56ba66 L42-54 '일정 진폭 = undetermined' 를 설계 40 §4 3 이 대체).
     - Q10 '최종 판정 = Nyquist Z = N + P(.pz 독립 측정)·폐루프 과도, 둘 다 불가일 때만 INCOMPLETE' + 설계 40 §4 4
       '폐루프 과도 unstable 이면 FAIL'(pm 제약 유무와 무관): 이 파일의 `expected_judgement` 가 README 절차 8 의 표를
@@ -33,6 +33,9 @@
       그 P 자체를 따로 대조한다).
     - 설계 40 §4 6 'N 은 π/2 를 넘는 구간을 이분해 다시 .ac(상한 K_max)': 희박 스윕 fixture 의 N 은 이제 세어진다(밀한 독립
       스윕의 N 과 같아야 한다).
+    - 설계 40 §4 C10 8(사용자 결정 2026-10-09, master a1775e1): 한계 사이클 = '감쇠하지 않음'(최근 두 창이 앞 창보다 분해능 이상
+      줄지 않음, 출렁이는 rb1e6형 포함 -- `flat` 이 이 정의), `.pz` 신뢰 규칙 채택(`expected_p_eff`), 자극·관측 = 루프 끊는 점
+      (test_stab_kick_and_observation_at_loop_break).
 """
 import importlib
 import json
@@ -160,10 +163,13 @@ def check_early_consistent(tr, dec, pl):
     """계약 1(b): 오라클의 조기 종결 기록 = 데이터 파일에서 다시 센 조기 창(없으면 None), windows_run = 그 창 또는 K."""
     es = tr.get("early_stop")
     assert (es["window"] if es else None) == dec["early"], (es, dec["early"], dec["M"])
-    assert (es.get("kind") if es else None) == dec["early_kind"], (es, dec["early_kind"], dec["M"])
+    kinds = dec["early_kind"] or frozenset()
+    assert (es.get("kind") if es else None) in (kinds or {None}), (es, kinds, dec["M"])
     assert tr["windows_run"] == (dec["early"] or pl["K"]), (tr["windows_run"], dec["early"], pl["K"])
     # 설계 40 §4 C10 2: 한계 사이클 FAIL 에는 고Q 감쇠와 구별 못 함 표시(limit_cycle_vs_slow_decay_unresolved)가 붙는다
-    assert (tr.get("limit_cycle_vs_slow_decay_unresolved") is not None) == (dec["early_kind"] == "limit_cycle"), tr
+    if es:
+        assert (tr.get("limit_cycle_vs_slow_decay_unresolved") is not None) == (es.get("kind") == "limit_cycle"), tr
+    assert es or tr.get("limit_cycle_vs_slow_decay_unresolved") is None, tr
 
 
 _STABWIN_RE = re.compile(r"^\s*STABWIN\s+(\d+)\s+([-+0-9.eE]+)\s*$", re.M)
@@ -250,14 +256,15 @@ def growth_window(m, fl, reltol):
 
 
 def flat(a, b, fl, reltol):
-    """설계 40 §4 C10 2(사용자 결정 4): 창 b 가 앞 창 a 와 '일정 진폭' -- 바닥보다 분해능 넘게 크고(b(1 − r) > floor'),
-    변화가 분해능 안(|b − a| <= (a + b)·r + floor')이며 g↓ 가 아니다(설계 문안의 세 조건을 그대로 쓴다)."""
-    return (b * (1 - reltol) > fl and abs(b - a) <= (a + b) * reltol + fl and not g_down(a, b, fl, reltol))
+    """설계 40 §4 C10 8 '한계 사이클 = 감쇠하지 않음'(사용자 결정 2026-10-09, 2 의 '분해능 안에서 일정'을 대체): 창 b 가
+    앞 창 a 보다 분해능 이상 줄지 않았다(g↓(a, b) 아님) -- 출렁이는 지속 진동(rb1e6형)·증가도 포함. 바닥 조건(2 의 첫 항,
+    대체되지 않음): b(1 − r) > floor' -- 해 분해능 바닥에 붙은(감쇠를 끝낸) 안정 회로의 창은 진동이 아니다."""
+    return b * (1 - reltol) > fl and not g_down(a, b, fl, reltol)
 
 
 def limit_window(m, fl, reltol):
-    """설계 40 §4 C10 2: j >= 3 인 첫 창에서 창 j−1 과 창 j 가 둘 다 일정 진폭(flat(M_{j−2}, M_{j−1}), flat(M_{j−1}, M_j))
-    이면 그 j(1 부터), 없으면 None."""
+    """설계 40 §4 C10 2·8: j >= 3 인 첫 창에서 최근 두 창(j−1, j)이 둘 다 '감쇠하지 않음'(flat(M_{j−2}, M_{j−1}),
+    flat(M_{j−1}, M_j))이면 그 j(1 부터), 없으면 None."""
     for j in range(3, len(m) + 1):
         if flat(m[j - 3], m[j - 2], fl, reltol) and flat(m[j - 2], m[j - 1], fl, reltol):
             return j
@@ -265,11 +272,15 @@ def limit_window(m, fl, reltol):
 
 
 def early_window(m, fl, reltol):
-    """조기 종결 창 (j, 종류) -- 종류 'growth'(계약 1(b)) | 'limit_cycle'(설계 40 §4 C10 2) 중 먼저 오는 창, 없으면 (None, None).
-    같은 j 에서 둘이 함께 성립할 수 없다(growth 는 g↑(M_{j−1}, M_j), flat 은 그 부정을 요구)."""
+    """조기 종결 창 (j, 종류 집합) -- 'growth'(계약 1(b)) | 'limit_cycle'(설계 40 §4 C10 2·8) 중 먼저 오는 창, 없으면 (None, None).
+    §4 C10 8 이후 성장(g↑ 연속)도 '감쇠하지 않음'이라 같은 j 에서 둘이 함께 성립할 수 있다 -- 그때 종류 이름은 설계가 정하지
+    않았으므로 둘 다 허용(집합)."""
     cands = [(j, k) for j, k in ((growth_window(m, fl, reltol), "growth"), (limit_window(m, fl, reltol), "limit_cycle"))
              if j is not None]
-    return min(cands) if cands else (None, None)
+    if not cands:
+        return None, None
+    j0 = min(j for j, _ in cands)
+    return j0, frozenset(k for j, k in cands if j == j0)
 
 
 def decide_run(stab_txt: Path, p):
@@ -966,9 +977,9 @@ def run_oracle_guarded(inp, out: Path, guard_s):
 
 
 # 과도 최종 상태로 허용되는 값(계약 2 표 'test_rhp_variants_never_pass[rb1e7]: unstable 이거나 failed' -- 첫 창 안 GHz
-# 버스트는 기본 상한이 끊는다). rb1e5·rb1e6 은 개정 전 규칙 그대로 'stable 이 아님'만 본다.
-RB_VARIANT_ALLOWED = {"rb1e5": {"unstable", "failed", "undetermined"}, "rb1e6": {"unstable", "failed", "undetermined"},
-                      "rb1e7": {"unstable", "failed"}}
+# 버스트는 기본 상한이 끊는다). [U6 개정] rb1e5·rb1e6 은 독립 폐루프 .tran 이 지속 진동(전제 test)이고 설계 40 §4 C10 8
+# (사용자 결정 2026-10-09 '한계 사이클 = 감쇠하지 않음', 출렁이는 rb1e6형 포함)에 따라 과도 자체가 unstable 이어야 한다.
+RB_VARIANT_ALLOWED = {"rb1e5": {"unstable"}, "rb1e6": {"unstable"}, "rb1e7": {"unstable", "failed"}}
 
 
 @pytest.mark.parametrize("rb", list(RB))
@@ -1011,20 +1022,29 @@ def test_rhp_variants_never_pass(tmp_path, ref_root, rb):
     check_row(st, nyquist(L)["N"], tr["status"], st["pm_deg_raw"])
 
 
-def test_sustained_oscillation_rb1e6_final_verdict_fail(tmp_path, ref_root):
+def test_sustained_oscillation_rb1e6_limit_cycle_fail(tmp_path, ref_root):
     """[U6 개정, 옛 이름 test_sustained_oscillation_undetermined_incomplete] 손 RHP 회로 Rb 1 MΩ(독립 폐루프 .tran 은 지속
     진동 -- test_rhp_fixture_closed_loop_oscillates_and_n_is_zero[rb1e6]; 독립 개루프 .tran 은 지수 증가 -- 개루프 RHP 극 P >= 1).
-    최종 판정만 단언한다: 사용자 결정 Q10(Z = N + P, .pz 독립 측정)으로 결론이 나므로 FAIL(반환 1), pm 제약은 N/A(정의 불가).
-    **과도 분류(undetermined 인지 limit_cycle 인지)는 단언하지 않는다 -- 사용자 결정 대기(한계 사이클 기준)**: 이 회로의 창
-    최댓값은 이완 진동이라 분해능 밖으로 출렁인다(예 [1.31, 1.10, 1.14, 1.18, 1.10, 1.10]). 설계 40 §4 C10 2 의 '분해능 안
-    일정 진폭' 조건을 연속 두 창에서 충족하지 못해 limit_cycle 이 아니고, 결정 4 의 '지속 진동 = 불안정' 이 이런 출렁이는
-    지속 진동까지 뜻하는지는 사용자가 정한다(그 결정 전까지 분류 기대값을 고정하지 않는다)."""
+    이 회로의 창 최댓값은 이완 진동이라 분해능 밖으로 출렁인다(예 [1.31, 1.10, 1.14, 1.18, 1.10, 1.10]). 사용자 결정 2026-10-09
+    (설계 40 §4 C10 8 '한계 사이클 = 감쇠하지 않음 -- 출렁이는 rb1e6형 포함')로 과도 자체가 unstable(limit_cycle)이고,
+    따라서 FAIL(반환 1), pm 제약은 N/A(정의 불가)."""
     rb = RB["rb1e6"]
-    rhp_ref(ref_root, rb)                                      # 독립 .op/.ac 전제(포화·K) 계산을 같은 경로로 공유
+    ref = rhp_ref(ref_root, rb)
     inp = rhp_input(make_lut(tmp_path / "lut.npz"), rb, constraints=[pm_con(">=", 60.0)])
     p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
     c = res["free"]
     assert c is not None, (p.stdout + p.stderr)[-1500:]
+    # [사용자 결정 2026-10-09, 설계 40 §4 C10 8] 보류 해제: 출렁이는 지속 진동도 '감쇠하지 않음' -> 과도 자체가 unstable(limit_cycle).
+    # 독립 재계산(decide, 같은 규칙)과 조기 창·종류가 같아야 한다.
+    o, stem = tmp_path / "o", stem_of(inp, "free")
+    f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
+    pl = plan(f, L, [ref["nodes"]["n2"]])
+    dec = decide(o / f"{stem}.stab.txt", pl)
+    tr = _sim(o, inp)["ac"]["stability"]["transient"]
+    assert dec["status"] == "unstable" and "limit_cycle" in (dec["early_kind"] or ()), dec
+    assert tr["status"] == tr["first_status"] == "unstable", (tr["status"], tr.get("M"), tr.get("reason"))
+    assert (tr.get("early_stop") or {}).get("kind") == "limit_cycle", tr.get("early_stop")
+    check_early_consistent(tr, dec, pl)
     st = c["summary"]["stability"]
     assert st["verdict"] == "unstable" and st["pm_valid"] is False, st
     k = _cons(c, "pmc")
@@ -1495,6 +1515,31 @@ def test_stab_netlist_saves_probes_only(request, which):
                "classic_stab": ("classic_run", "stab"), "rhp_stab": ("rhp_run", "stab")}[which]
     d, inp, *_ = request.getfixturevalue(fx)
     check_save_probes_only((d / "o" / f"{stem_of(inp, 'free')}.{ext}.cir").read_text(encoding="utf-8"))
+
+
+@pytest.fixture(scope="module")
+def fb_stab_run(tmp_path_factory, ref_root):
+    d = tmp_path_factory.mktemp("fbstab")
+    inp = _fb_inp(make_lut(d / "lut.npz"))
+    p, res = run_oracle(inp, d / "o", sat_margin=SAT)
+    assert res["free"] is not None, (p.stdout + p.stderr)[-1500:]
+    return d, inp, res
+
+
+@pytest.mark.parametrize("which", ["lowpm_run", "classic_run", "rhp_run", "fb_stab_run"])
+def test_stab_kick_and_observation_at_loop_break(request, which):
+    """설계 40 §4 C10 8 '자극 위치'(사용자 결정 2026-10-09): 폐루프 과도의 자극과 관측은 루프 끊는 점에 둔다. 끊는 점 =
+    β=1 은 루프를 닫는 입력 넷(nin -- Ecl_nin 이 구동), β 루프는 절단 넷(nin / lbx_nin, Vlb_nin). 단언: 킥 원(PULSE)이 그 점의
+    원(Vcl_nin 또는 Vlb_nin)이고, 판정 데이터 H(`let hst` 식)의 피연산자가 그 끊는 점의 노드 전압뿐이다(출력 노드 관측 아님)."""
+    d, inp, *_ = request.getfixturevalue(which)
+    text = (d / "o" / f"{stem_of(inp, 'free')}.stab.cir").read_text(encoding="utf-8")
+    beta_loop = which == "fb_stab_run"
+    kick_src = "Vlb_nin" if beta_loop else "Vcl_nin"
+    pv, _ = pulse_of(text, kick_src)
+    assert pv is not None and pv[1] != pv[0], (kick_src, pv)
+    break_nodes = {"v(nin)", "v(lbx_nin)"} if beta_loop else {"v(nin)"}
+    ops = hst_operands(text)
+    assert ops and ops <= break_nodes, (ops, break_nodes)
 
 
 def test_timeout_s_overrides_default_cap(tmp_path):

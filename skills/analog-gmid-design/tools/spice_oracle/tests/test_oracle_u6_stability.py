@@ -22,8 +22,8 @@ import pytest
 
 import conftest
 from conftest import NFET, make_lut, measure, run_oracle, run_spice, stem_of, zero_diffusion
-from test_oracle_c10_stability import (SAT, _head, _ngspice, ac_loop_from_files, independent_pz, nyquist,
-                                       rhp_count_in_sweep)
+from test_oracle_c10_stability import (SAT, THREE, _head, _ngspice, ac_loop_from_files, gain_crossings, independent_pz,
+                                       notch_input, notch_ref, nyquist, rhp_count_in_sweep)
 
 
 def _sim_mod():
@@ -34,8 +34,9 @@ def _sim_mod():
 
 
 # ====================================================================== 한계 사이클 조기 기준(순수 함수, oracle (a))
-# 설계 40 §4 C10 2: flat(j) := M_j(1−r) > floor' 이고 |M_j − M_{j−1}| <= (M_j + M_{j−1})·r + floor' 이고 g↓ 아님,
-# j >= 3 에서 flat(j−1)·flat(j) -> 한계 사이클. 각 기대값은 이 정의를 손으로 대입한 결과다.
+# 설계 40 §4 C10 2·8(사용자 결정 2026-10-09 '한계 사이클 = 감쇠하지 않음'): nd(j) := M_j(1−r) > floor'(바닥 위, 2 의 첫 항)
+# 이고 g↓(M_{j−1}, M_j) 아님(앞 창보다 분해능 이상 줄지 않음), j >= 3 에서 nd(j−1)·nd(j) -> 한계 사이클. 각 기대값은 이 정의를
+# 손으로 대입한 결과다.
 LIMIT_CASES = [
     # 일정 진폭: 모든 쌍 |ΔM| = 0 <= 2·1e-3, M(1−r) = 0.999 > 0 -> flat(2)·flat(3) -> True (계약 구현 메모: constant 는 여기서 True)
     pytest.param([1.0, 1.0, 1.0, 1.0, 1.0], 0.0, 1e-3, True, id="constant"),
@@ -50,11 +51,17 @@ LIMIT_CASES = [
     pytest.param([1.0, 0.9995, 0.999, 0.9985], 0.0, 1e-3, True, id="high_q_slow_decay"),
     # 맥놀이 [1, 0.5, 1.2]: (1->0.5) g↓, (0.5->1.2) g↑ -> flat 없음 -> False
     pytest.param([1.0, 0.5, 1.2], 1e-3, 1e-3, False, id="beating"),
-    # 분해능 초과 성장 [1, 1.2, 1.5]: 모든 쌍 g↑ -> flat 아님 -> False (growth 는 early_unstable 몫)
-    pytest.param([1.0, 1.2, 1.5], 1e-3, 1e-3, False, id="growth"),
-    # 마지막 쌍만 flat: (5->1) g↓, (1->1.0005) flat -> j = 3 에서 flat(2) 거짓 -> False
+    # 분해능 초과 성장 [1, 1.2, 1.5]: 줄지 않음(g↓ 아님) 두 쌍 -> True (§4 C10 8: 감쇠하지 않음은 성장도 포함)
+    pytest.param([1.0, 1.2, 1.5], 1e-3, 1e-3, True, id="growth"),
+    # rb1e6형 출렁이는 지속 진동(사용자 결정 2026-10-09 이 명시한 열): (1.31->1.10) g↓, (1.10->1.14)·(1.14->1.18) 줄지 않음 -> j = 4 True
+    pytest.param([1.31, 1.10, 1.14, 1.18, 1.10, 1.10], 1e-5, 1e-4, True, id="rb1e6_relaxation"),
+    # 감쇠 뒤 한 번 다시 커짐 [1, 0.5, 0.6]: j = 3 에서 (1->0.5) g↓ -> False(창이 더 없음)
+    pytest.param([1.0, 0.5, 0.6], 1e-3, 1e-3, False, id="decay_then_one_rise"),
+    # 느린 감쇠지만 창마다 분해능 넘게 줄어듦(창당 2 %, r 1e-3): 모든 쌍 g↓ -> False(§4 C10 8 'slow decay 는 판정을 이어 간다')
+    pytest.param([1.0, 0.98, 0.9604, 0.941192, 0.922368], 1e-6, 1e-3, False, id="slow_decay_beyond_resolution"),
+    # 마지막 쌍만 줄지 않음: (5->1) g↓, (1->1.0005) 줄지 않음 -> j = 3 에서 nd(2) 거짓 -> False
     pytest.param([5.0, 1.0, 1.0005], 0.0, 1e-3, False, id="one_flat_pair"),
-    # 같은 열에 창 4 추가: (1.0005->1.0) flat -> j = 4 에서 flat(3)·flat(4) -> True
+    # 같은 열에 창 4 추가: (1.0005->1.0) 분해능 안 감소 -> j = 4 에서 nd(3)·nd(4) -> True
     pytest.param([5.0, 1.0, 1.0005, 1.0], 0.0, 1e-3, True, id="two_flat_pairs_j4"),
     # 감쇠가 분해능 밖(창당 1/e): 모든 쌍 g↓ -> False(안정 감쇠는 절대 한계 사이클이 아님 -- 안정 판정 불변 조건)
     pytest.param([1.0, 0.3679, 0.1353, 0.0498, 0.0183, 0.0067], 1e-4, 1e-4, False, id="e_fold_decay"),
@@ -66,21 +73,24 @@ def test_limit_cycle_early_predicate(m, floor2, reltol, expected):
     assert bool(_sim_mod().limit_cycle_early(list(m), floor2, reltol)) is expected
 
 
-# early_window(M, fl, reltol) -> (j, 종류) 또는 None. 기대값(손 대입): growth 는 계약 1(b), limit_cycle 은 설계 40 §4 C10 2.
+# early_window(M, fl, reltol) -> (j, 종류) 또는 None. 기대값(손 대입): growth 는 계약 1(b), limit_cycle 은 설계 40 §4 C10 2·8.
+# §4 C10 8 이후 성장도 '감쇠하지 않음'이라 같은 j 에서 둘이 함께 성립할 수 있다 -- 그때 종류 이름은 설계가 정하지 않아 둘 다 허용.
 EARLY_WINDOW_CASES = [
-    pytest.param([1.0, 1.2, 1.5], (3, "growth"), id="growth_j3"),
-    pytest.param([1.0, 1.0, 1.0, 1.0], (3, "limit_cycle"), id="limit_j3"),
-    pytest.param([5.0, 1.0, 1.0005, 1.0], (4, "limit_cycle"), id="limit_j4"),
-    # j = 3: flat(2)(1->1) 참, flat(3)(1->1.5) 거짓; growth g↑(1,1) 거짓. j = 4: g↑(1,1.5)·g↑(1.5,2.25)·g↑(1,2.25) -> growth
-    pytest.param([1.0, 1.0, 1.5, 2.25], (4, "growth"), id="growth_after_flat_pair"),
-    pytest.param([1.0, 0.5, 1.2], None, id="beating_none"),
+    pytest.param([1.0, 1.2, 1.5], 1e-3, 1e-3, 3, {"growth", "limit_cycle"}, id="growth_j3"),
+    pytest.param([1.0, 1.0, 1.0, 1.0], 1e-3, 1e-3, 3, {"limit_cycle"}, id="limit_j3"),
+    pytest.param([5.0, 1.0, 1.0005, 1.0], 1e-3, 1e-3, 4, {"limit_cycle"}, id="limit_j4"),
+    # j = 3: (1->1)·(1->1.5) 둘 다 줄지 않음 -> 한계 사이클(성장 기준은 g↑(1,1) 거짓이라 j = 3 에서 불충족)
+    pytest.param([1.0, 1.0, 1.5, 2.25], 1e-3, 1e-3, 3, {"limit_cycle"}, id="not_decaying_before_growth"),
+    pytest.param([1.0, 0.5, 1.2], 1e-3, 1e-3, None, set(), id="beating_none"),
+    pytest.param([1.31, 1.10, 1.14, 1.18, 1.10, 1.10], 1e-5, 1e-4, 4, {"limit_cycle"}, id="rb1e6_relaxation_j4"),
 ]
 
 
-@pytest.mark.parametrize("m,expected", EARLY_WINDOW_CASES)
-def test_early_window_kind(m, expected):
-    got = _sim_mod().early_window(list(m), 1e-3, 1e-3)
-    assert (tuple(got) if got is not None else None) == expected, got
+@pytest.mark.parametrize("m,fl,reltol,window,kinds", EARLY_WINDOW_CASES)
+def test_early_window_kind(m, fl, reltol, window, kinds):
+    got = _sim_mod().early_window(list(m), fl, reltol)
+    assert (None if got is None else got[0]) == window, got
+    assert (got is None) if window is None else (got[1] in kinds), got
 
 
 # ====================================================================== 파일 판정(합성 .stab 데이터 파일, oracle (a))
@@ -108,19 +118,22 @@ def _write_stab(path: Path, e_of_t, t_last=None, h_op=0.5):
 # 정현파 주기 = W/10(창마다 봉우리 10 개, 표본 40 개/주기라 봉우리가 표본에 정확히 놓인다)
 _SINE = lambda a: (lambda s: a * np.sin(2 * np.pi * s / (W_S / 10)))
 FILE_CASES = [
-    # 일정 진폭 지속 진동 -> 결정 4: unstable(limit_cycle), 창 3 조기 종결(flat(2)·flat(3)), 고Q 구별 불가 표시
-    pytest.param(_SINE(0.1), None, 1e-4, ("unstable", 3, "limit_cycle"), id="sustained_sine"),
-    # 창당 1/e 지수 증가(봉우리 열 g↑ 연속) -> 계약 1(b) growth, 창 3
-    pytest.param(lambda s: 1e-3 * np.exp(s / W_S) * np.sin(2 * np.pi * s / (W_S / 10)), None, 1e-6, ("unstable", 3, "growth"),
-                 id="growth"),
+    # 일정 진폭 지속 진동 -> 결정 4: unstable(limit_cycle), 창 3 조기 종결, 고Q 구별 불가 표시
+    pytest.param(_SINE(0.1), None, 1e-4, ("unstable", 3, {"limit_cycle"}), id="sustained_sine"),
+    # 창당 1/e 지수 증가 -> unstable 창 3(계약 1(b) growth 와 §4 C10 8 '감쇠하지 않음' 이 같은 창에서 성립 -- 종류 둘 다 허용)
+    pytest.param(lambda s: 1e-3 * np.exp(s / W_S) * np.sin(2 * np.pi * s / (W_S / 10)), None, 1e-6,
+                 ("unstable", 3, {"growth", "limit_cycle"}), id="growth"),
+    # 진폭이 창마다 분해능 밖으로 출렁이는 지속 진동(rb1e6형, 사용자 결정 2026-10-09): 창 j 진폭 = 0.1·[1.31,1.10,1.14,1.18,1.10,1.10]
+    pytest.param(lambda s: 0.1 * np.interp(np.minimum(np.floor(s / W_S), 5), np.arange(6), [1.31, 1.10, 1.14, 1.18, 1.10, 1.10])
+                 * np.sin(2 * np.pi * s / (W_S / 10)), None, 1e-4, ("unstable", 4, {"limit_cycle"}), id="relaxation_rb1e6_shape"),
     # 창당 1/e 감쇠, 바닥 0.01 (M_K ~ e^-5·0.1 = 6.7e-4 <= 0.01) -> stable(조기 기준 불충족)
-    pytest.param(lambda s: 0.1 * np.exp(-s / W_S) * np.cos(2 * np.pi * s / (W_S / 10)), None, 1e-2, ("stable", None, None),
+    pytest.param(lambda s: 0.1 * np.exp(-s / W_S) * np.cos(2 * np.pi * s / (W_S / 10)), None, 1e-2, ("stable", None, set()),
                  id="decay_to_floor"),
-    # 같은 감쇠, 바닥 1e-6 -> 모든 연속 창 g↓, 바닥 못 닿음 -> decaying(연장 대상)
-    pytest.param(lambda s: 0.1 * np.exp(-s / W_S) * np.cos(2 * np.pi * s / (W_S / 10)), None, 1e-6, ("decaying", None, None),
+    # 같은 감쇠, 바닥 1e-6 -> 모든 연속 창 g↓, 바닥 못 닿음 -> decaying(연장 대상; §4 C10 8 'slow decay 는 판정을 이어 간다')
+    pytest.param(lambda s: 0.1 * np.exp(-s / W_S) * np.cos(2 * np.pi * s / (W_S / 10)), None, 1e-6, ("decaying", None, set()),
                  id="decaying"),
     # 일정 진폭이지만 창 2 끝에서 파일이 끊김(ngspice 중간 사망) -> 조기 기준(j >= 3) 불가, tstop 미도달 -> failed
-    pytest.param(_SINE(0.1), T_END + 2.5 * W_S, 1e-4, ("failed", None, None), id="truncated"),
+    pytest.param(_SINE(0.1), T_END + 2.5 * W_S, 1e-4, ("failed", None, set()), id="truncated"),
 ]
 
 
@@ -128,12 +141,13 @@ FILE_CASES = [
 def test_transient_decision_synthetic_file(tmp_path, e_of_t, t_last, floor_v, expected):
     p = _write_stab(tmp_path / "x.stab.txt", e_of_t, t_last)
     dec = _sim_mod().transient_decision(str(p), _plan(floor_v))
-    status, window, kind = expected
+    status, window, kinds = expected
     assert dec["status"] == status, dec
-    es = dec.get("early_stop")
-    assert (es["window"] if es else None) == window and (es.get("kind") if es else None) == kind, es
+    es = dec.get("early_stop") or {}
+    assert es.get("window") == window, es
+    assert (es.get("kind") in kinds) if kinds else not es, es
     # 설계 40 §4 C10 2: 한계 사이클 판정에만 고Q 감쇠와 구별 못 함 표시가 붙는다
-    assert (dec.get("limit_cycle_vs_slow_decay_unresolved") is not None) == (kind == "limit_cycle"), dec
+    assert (dec.get("limit_cycle_vs_slow_decay_unresolved") is not None) == (es.get("kind") == "limit_cycle"), dec
 
 
 # ====================================================================== Nyquist 적응 세분화(해석식 L, oracle (a)·(b))
@@ -258,10 +272,10 @@ JUDGE_CASES = [
     pytest.param("undetermined", 2, _pz(None, status="failed"), -20.0, ("unstable", None, False), id="n_positive"),
     # .pz 실패(P 모름) + 과도 stable + N = 0 -> 옛 표(절차 6): 안정, PM 값
     pytest.param("stable", 0, _pz(None, status="failed"), 60.0, ("stable", None, False), id="pz_failed_stable"),
-    # README 절차 7 신뢰 규칙 (d) [설계 40 §4 C10 7 문구('Z >= 1 이면 FAIL')와 다름 -- 사용자 결정 대기 항목]:
+    # .pz 신뢰 규칙(설계 40 §4 C10 8, 사용자 결정 2026-10-09 로 채택 -- README 절차 7 (d)):
     # 과도 stable 이면 P = −N(= 0), .pz 의 P = 2 는 pz_conflict 로 기록만 -> 안정
     pytest.param("stable", 0, _pz(2), 60.0, ("stable", None, False), id="trust_rule_d_transient_stable_ignores_pz"),
-    # README 절차 7 신뢰 규칙 (e) [위와 같은 사용자 결정 대기 항목]: 과도 결론 없음 + .pz P = 2 미확인 -> P 를 쓰지 않음 -> INCOMPLETE
+    # .pz 신뢰 규칙(설계 40 §4 C10 8 채택, README 절차 7 (e)): 과도 결론 없음 + N = 0 + .pz P = 2 미확인 -> P 를 쓰지 않음 -> INCOMPLETE
     pytest.param("failed", 0, _pz(2, validated=None), 270.0, ("undetermined", "stability_unverified", False),
                  id="trust_rule_e_unvalidated_pz_unused"),
 ]
@@ -277,7 +291,8 @@ def test_stability_judgement_branches(tran, n, pz, pm_raw, expected):
 
 
 def test_stability_judgement_records_pz_conflict():
-    """README 절차 7 (d): 과도 stable 인데 .pz 의 P(2) 가 −N(0) 과 다르면 `pz_conflict` 를 남기고 P_eff = −N = 0, Z = 0."""
+    """설계 40 §4 C10 8(사용자 결정 2026-10-09) '과도 stable 이면 .pz 를 쓰지 않는다(Z = 0, P = −N) ... .pz 가 −N 과 다르면
+    pz_conflict 를 기록': 과도 stable, N = 0, .pz P = 2 -> pz_conflict, P_eff = −N = 0, Z = 0."""
     j = _sim_mod().stability_judgement(_nyq(0), "stable", pm_raw=60.0, pz=_pz(2))
     assert j["pz_conflict"] and j["P_eff"] == 0 and j["Z"] == 0 and j["P_pz"] == 2, j
 
@@ -452,6 +467,143 @@ def test_miller_compensation_loop_pz_p_zero(tmp_path, miller_ref):
     assert ac["stability"]["P_eff"] == 0 and ac["stability"]["pz"]["P"] == 0, ac["stability"]
     assert ac["pm_deg"] == pytest.approx(pm_mine, abs=0.05) and st["pm_valid"] is True, (ac["pm_deg"], pm_mine)
     assert c["summary"]["verdict"] == "PASS" and p.returncode == 0, c["summary"]
+
+
+# ====================================================================== 조건부 안정(P = 0) 손 toy: PM·표시·하측 이득 여유
+# 설계 40 §4 C10 8 '조건부 안정'(사용자 결정 2026-10-09): Z = 0 이고 과도 stable 이면 pm_valid 유지, PM = 모든 |T| = 1 교차의
+# 최솟값, P >= 1 이거나 교차 아래 |T| > 1 구간에서 위상이 −180° 를 넘으면 conditionally_stable 표시 + 하측 이득 여유(루프 이득이
+# 몇 dB 줄면 감김 수가 바뀌는지, 같은 .ac 에서) 보고(제약 아님).
+# 손 toy(oracle (a)): 3단 NMOS CS(세 반전단, 단마다 V(n_i) = 0.7 V 인 부하 R = THREE.rl), 단마다 lag-lead 부하 Rz(= R/20)+Cz(1 nF)
+#   -> 단 전달 ∝ (1 + s Rz Cz)/(1 + s (R + Rz) Cz): 극 1.17 kHz, 영점 24.6 kHz(비 21). 단당 최대 위상 지연 asin(20/22) = 65.4°,
+#   세 단 196° > 180° 이고 그 주파수(극·영점의 기하평균)에서 |L| ~ (gm R)^3·21^(−3/2) >> 1 -> −180° 를 넘는 |L| > 1 구간(위상이
+#   돌아와 교차 위에서는 안정: P = 0, N = 0). 음의 실축 교차 둘(|x| > 1)이 생기며 하측 이득 여유 = 20·log10(min |x|).
+LEADLAG = dict(rz_ratio=20.0, cz=1e-9)
+
+
+def leadlag_body(vin_line=None):
+    c = THREE
+    b = [f"Vdd vdd 0 DC {c['vdd']}", vin_line or f"Vin nin 0 DC {c['vin']} AC 1"]
+    prev = "nin"
+    for i in (1, 2, 3):
+        b += [f"R{i} vdd n{i} {c['rl']}", f"Rz{i} n{i} z{i} {c['rl'] / LEADLAG['rz_ratio']}", f"Cz{i} z{i} 0 {LEADLAG['cz']}"]
+        b += [f"XM{i}_{k} n{i} {prev} 0 0 {NFET} l={c['L']} w={c['fw']}" for k in range(c["n"])]
+        prev = f"n{i}"
+    return b
+
+
+def leadlag_input(lut, constraints):
+    c = THREE
+    pas = []
+    for i in (1, 2, 3):
+        pas += [{"name": f"R{i}", "kind": "resistor", "terminals": ["vdd", f"n{i}"], "value": c["rl"]},
+                {"name": f"Rz{i}", "kind": "resistor", "terminals": [f"n{i}", f"z{i}"], "value": c["rl"] / LEADLAG["rz_ratio"]},
+                {"name": f"Cz{i}", "kind": "capacitor", "terminals": [f"z{i}", "gnd"], "value": LEADLAG["cz"]}]
+    inp = {"schema": "spice_oracle_input/1", "circuit": "tleadlag3", "process": conftest.process_block(lut),
+           "rails": [{"net": "vdd", "voltage": c["vdd"]}, {"net": "gnd", "voltage": 0.0, "reference": True}],
+           "devices": [{"name": f"M{i}", "kind": "nmos", "drain": f"n{i}", "gate": g, "source": "gnd", "bulk": "gnd",
+                        "L": c["L"], "finger_w": c["fw"], "n_fingers": c["n"], "W": c["fw"] * c["n"]}
+                       for i, g in ((1, "nin"), (2, "n1"), (3, "n2"))],
+           "sources": [], "passives": pas, "ports": {"input": "nin", "output": "n3"},
+           "predictions": {"nodes": {"nin": c["vin"]}, "devices": {k: {"off_current_A": 0.0} for k in ("M1", "M2", "M3")},
+                           "metrics": []},
+           "testbench": conftest.testbench_block(), "acceptance": {"constraints": constraints}}
+    return zero_diffusion(inp)
+
+
+def neg_real_axis_crossings(L):
+    """L 곡선(양의 주파수)이 음의 실축을 지나는 점의 실수값(표본 사이 선형 보간) -- 하측 이득 여유의 독립 계산(oracle (b))."""
+    out = []
+    for i in range(len(L) - 1):
+        a, b = L[i], L[i + 1]
+        if (a.imag > 0) != (b.imag > 0):
+            t = a.imag / (a.imag - b.imag)
+            x = a.real + t * (b.real - a.real)
+            if x < 0:
+                out.append(float(x))
+    return out
+
+
+def pm_at_crossings(f, L):
+    """README 'PM 정의'(PM = 180 − (기준점 위상 − 교차 위상), 위상 펼침)를 모든 |L| = 1 교차에서 -- 설계 40 §4 C10 8 'PM 은 모든
+    교차의 최솟값' 의 독립 계산(log f 선형 보간)."""
+    ph = np.degrees(np.unwrap(np.angle(L)))
+    lf = np.log10(f)
+    out = []
+    for fc in gain_crossings(f, L):
+        out.append(180.0 - (ph[0] - float(np.interp(math.log10(fc), lf, ph))))
+    return out
+
+
+def _find_key(d, *words):
+    """중첩 dict 에서 이름에 words 가 모두 든 키의 값 목록(필드 이름은 설계가 정하지 않음 -- '하측 이득 여유' 보고 필드 탐색)."""
+    hits = []
+    if isinstance(d, dict):
+        for k, v in d.items():
+            if all(w in k.lower() for w in words) and isinstance(v, (int, float)) and not isinstance(v, bool):
+                hits.append(v)
+            hits += _find_key(v, *words)
+    return hits
+
+
+@pytest.fixture(scope="module")
+def leadlag_ref(ref_root):
+    r = run_spice("\n".join(leadlag_body()), ref_root / "leadlag_ac", ["v(n3)"], ac_out="n3", ac=(0.01, 1e10, 40))
+    H = r["H"]
+    return {"f": r["f"], "H": H, "L": np.sign(H[0].real) * H,
+            "poles": independent_pz(leadlag_body(vin_line=f"Vin nin 0 DC {THREE['vin']}"), "n3", ref_root / "leadlag_pz")}
+
+
+def test_leadlag_toy_premise(leadlag_ref):
+    """전제(oracle (a)·(c)): 독립 .ac 에서 N = 0, |L| > 1 인 구간의 최소 위상 < −180°(교차 아래), 음의 실축 교차 중 |x| > 1 이 있음,
+    독립 .pz RHP 극 0 개."""
+    L, f = leadlag_ref["L"], leadlag_ref["f"]
+    ph = np.degrees(np.unwrap(np.angle(L)))
+    assert nyquist(L)["N"] == 0
+    assert ph[np.abs(L) > 1].min() < -180.0, ph[np.abs(L) > 1].min()
+    assert [x for x in neg_real_axis_crossings(L) if x < -1], neg_real_axis_crossings(L)
+    assert rhp_count_in_sweep(leadlag_ref["poles"], 1e10) == 0
+
+
+def test_conditionally_stable_p0_flag_pm_and_low_side_gain_margin(tmp_path, leadlag_ref):
+    """설계 40 §4 C10 8: P = 0 이지만 교차 아래 |T| > 1 구간에서 위상이 −180° 를 넘는 루프 -> verdict stable, pm_valid 유지,
+    PM = 모든 교차 PM 의 최솟값(오라클 AC 데이터로 독립 계산), conditionally_stable 표시, 하측 이득 여유(dB) =
+    20·log10(min{|x| : 음의 실축 교차 x < −1})(독립 계산 (b): 루프 이득을 1/|x| 배로 줄이면 −1 이 그 교차에 놓여 감김 수가 바뀐다)를 보고.
+    하측 이득 여유는 보고일 뿐 제약이 아니다(verdict PASS)."""
+    pms = pm_at_crossings(leadlag_ref["f"], leadlag_ref["L"])
+    inp = leadlag_input(make_lut(tmp_path / "lut.npz"),
+                        [{"name": "pmc", "measure": "pm_deg", "op": ">=", "limit": min(pms) - 5.0}])
+    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
+    c = res["free"]
+    assert c is not None, (p.stdout + p.stderr)[-1500:]
+    f, L, _ = ac_loop_from_files(tmp_path / "o", stem_of(inp, "free"), beta_loop=False)
+    xs = [x for x in neg_real_axis_crossings(L) if x < -1]
+    gm_low_db = 20 * math.log10(min(abs(x) for x in xs))
+    st = c["summary"]["stability"]
+    assert st["verdict"] == "stable" and st["pm_valid"] is True and st["Z"] == 0, st
+    ac = json.loads((tmp_path / "o" / f"{stem_of(inp, 'free')}.sim.json").read_text(encoding="utf-8"))["ac"]
+    assert ac["pm_deg"] == pytest.approx(min(pm_at_crossings(f, L)), abs=0.05), (ac["pm_deg"], pm_at_crossings(f, L))
+    assert st["conditionally_stable"] is True, st
+    gms = _find_key(c["summary"], "gain_margin") + _find_key(ac, "gain_margin")
+    assert gms and any(g == pytest.approx(gm_low_db, abs=0.1) for g in gms), (gms, gm_low_db)
+    assert c["summary"]["verdict"] == "PASS" and p.returncode == 0, c["summary"]
+
+
+def test_pm_is_minimum_over_all_crossings(tmp_path, ref_root):
+    """설계 40 §4 C10 8 'PM 은 모든 |T| = 1 교차의 최솟값': 교차 3 개인 쌍T 노치 회로(test_multi_crossing_plan_uses_f_lo 와 같은
+    회로, 독립 .ac N = 0, 과도 stable) -> ac.pm_deg = 오라클 AC 데이터에서 독립 계산한 교차별 PM 의 최솟값."""
+    cn1 = 20e-12
+    ref = notch_ref(ref_root, cn1)
+    assert len(ref["cross"]) == 3 and ref["nyq"]["N"] == 0
+    inp = notch_input(make_lut(tmp_path / "lut.npz"), cn1)
+    p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
+    assert res["free"] is not None, (p.stdout + p.stderr)[-1500:]
+    f, L, _ = ac_loop_from_files(tmp_path / "o", stem_of(inp, "free"), beta_loop=False)
+    pms = pm_at_crossings(f, L)
+    assert len(pms) == 3
+    st = res["free"]["summary"]["stability"]
+    ac = json.loads((tmp_path / "o" / f"{stem_of(inp, 'free')}.sim.json").read_text(encoding="utf-8"))["ac"]
+    assert st["verdict"] == "stable" and st["pm_valid"] is True, st
+    assert ac["pm_deg"] == pytest.approx(min(pms), abs=0.05), (ac["pm_deg"], pms)
 
 
 # ====================================================================== 거부(설정·스키마)
