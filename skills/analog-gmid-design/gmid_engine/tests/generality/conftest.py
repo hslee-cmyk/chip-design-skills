@@ -125,3 +125,14 @@ def structure_checks():
 @pytest.fixture(scope="session")
 def library_dir():
     return LIBRARY_DIR
+
+
+@pytest.fixture(scope="session")
+def pipe(tmp_path_factory):
+    """하류 단계(sizing·metrics·search·layout) 공용 파이프라인(pipeline.py). 실 LUT v2 가 없으면 skip 이 아니라 FAIL."""
+    from .pipeline import Env, Pipe
+    try:
+        env = Env()
+    except RuntimeError as e:
+        pytest.fail("generality 하류 test 입력(실 LUT v2·PDK) 없음: %s" % e, pytrace=False)
+    return Pipe(env, tmp_path_factory.mktemp("pipe"))
