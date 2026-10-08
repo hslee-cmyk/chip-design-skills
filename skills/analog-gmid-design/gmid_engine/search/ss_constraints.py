@@ -9,7 +9,8 @@
 * 봉인 안 된 점(None): 행 없음, 선언마다 (metric, op, "ss_requires_sealed_snapshot") -- ss 는 SealedSnapshot 에서만(DEC-67).
 * 봉인 점: 선언 k(선언 순서 0 부터)마다 요청 `MetricRequest(metric, view)` 의 결과.
   - [CM] view_kind `cm_loop` metric 의 PM 이 `dc_not_above_level`(|T_cm(0)| ≤ 1, CMFB 무효)로 None 이면 **위반 행**: c = 20·log10|T_cm(0)|/s
-    < 0 (s = 이득 dB 분해능, 없으면 1 dB), active True. 개루프 RHP 극점 등 다른 사유는 아래 unmeasured 그대로.
+    < 0 (s = 이득 dB 분해능, 없으면 1 dB), active True. 개루프 RHP 극점(`loop_open_rhp_poles`)도 위반 행(보수적 -- 오라클 Nyquist·과도가 최종 안정성 평결):
+    c = −max Re(p)/|p| ∈ (−1, 0) (최악 RHP 극점의 감쇠비 부호 반전, 새 상수 없음). 다른 사유는 아래 unmeasured 그대로.
   - 값 None(Undefined): 행 없이 `unmeasured` 에 (metric, op, Undefined code 집합을 정렬해 '+' 로 이음, 없으면 "undefined").
   - [r6 S-19] 분해능 s = 결과 `MetricResult.resolution`(metrics 9절: LUT tol_V 1차 전파와 MNA 사후 오차 중 큰 값). resolution 이
     None 이면 행 없이 unmeasured(사유 "resolution_undefined"). resolution 이 0 이면 s = 그 metric 의 모델 오차(선언 시); 선언이
@@ -30,15 +31,23 @@ _RES_ZERO = "resolution_zero_model_error_undeclared"
 _CM_KIND = "cm_loop"                  # 구조 유도 CM 루프 뷰의 view_kind (core VIEW_KINDS)
 _LEVEL_CODE = "dc_not_above_level"    # |T(0)| ≤ 1 -- 교차·PM 없음
 _MAGNITUDE_KEY = "dc_magnitude"       # 그 사유 detail 의 |T(0)|
+_RHP_CODE = "loop_open_rhp_poles"     # 개루프 우반면 극점 -- detail rhp_poles = ((실부, 허부), ...)
+_RHP_KEY = "rhp_poles"
 
 
 def _cm_level_violation(d, res, k):
     """[CM] 공통 모드 루프(view_kind cm_loop) PM 이 |T_cm(0)| ≤ 1 이라 정의 불가면 CMFB 무효 = 제약 **위반** 행.
     c = 20·log10|T_cm(0)| / s (dB, 0 dB 기준 -- 새 상수 없음; T(0) < 1 이면 c < 0), s = 이득 dB 분해능(`MetricResult.resolution`),
     없거나 0 이면 dB 그대로(s = 1 은 단위 환산이지 상수 선택이 아니다 -- dB 가 c 의 단위). |T_cm(0)| = 0 이면 c = −∞.
-    값이 아닌 사유(개루프 RHP 극점 등)는 해당 없음 -> None (기존 unmeasured). 임계값 d.value 는 쓰지 않는다(CMFB 무효는 PM 크기와 무관)."""
+    개루프 RHP 극점(`loop_open_rhp_poles`)도 위반 행(보수적): c = −max Re(p)/|p| ∈ (−1, 0). 그 밖 사유는 해당 없음 -> None (기존 unmeasured). 임계값 d.value 는 쓰지 않는다(CMFB 무효는 PM 크기와 무관)."""
     if metric_registry()[d.metric].signature.view_kind != _CM_KIND:
         return None
+    rhp = next((u for u in res.undefined if u.code == _RHP_CODE), None)
+    if rhp is not None:
+        # 개루프 RHP 극점 = 불안정 가능 -> 보수적으로 위반(오라클 Nyquist·과도가 최종 안정성 평결). c = −max Re(p)/|p| (최악 RHP 극점의 감쇠비 부호 반전, (−1, 0), 새 상수 없음)
+        poles = dict(rhp.detail).get(_RHP_KEY) or ()
+        worst = max((re / math.hypot(re, im) for re, im in poles if re > 0), default=None)
+        return None if worst is None else ConstraintRow("ss:" + str(k) + ":" + d.metric + d.op, float(-worst), True)
     hit = next((u for u in res.undefined if u.code == _LEVEL_CODE), None)
     if hit is None:
         return None

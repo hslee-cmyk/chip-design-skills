@@ -493,7 +493,7 @@ DEC-67(봉인 스냅샷만), DEC-78·79·91·92, sizing CONTRACT 2절(권한표 
   생성자 호출도 받는다(필드 순서 test 는 13칸으로 갱신 대상).
 - `SsCircuit(nodes, circuit, resistors, capacitors, ground_nets, input_nets, missing=())`.
 - `MetricRequest(metric, view=None)` -- `view` = authoring `ViewDecl`. 값·op 는 들지 않는다(임계를 바꿔도 블록 입력 버전 불변).
-- `MetricBundle(entries, approximations=(), detail=())` -- `entries` = ((MetricRequest, MetricResult), ...) 요청 순서.
+- `MetricBundle(entries, approximations=(), detail=(), reports=(), warnings=())` -- `entries` = ((MetricRequest, MetricResult), ...) 요청 순서. [CM] `reports`·`warnings` 는 7.11(필드 순서 entries, approximations, detail, reports, warnings).
 - `SsEvaluation(snapshot, ss, dc, lineage=None)` -- `lineage` = sizing `DcEvaluation(snapshot, report, SealedSnapshot(snapshot, report))`.
 
 ### 7.2 `ss_dev(snapshot, lut, junction)` -- reads `device.dc_op`, [9절] `device.dc_tol_v`, extras `(LutAccess, JunctionSource)`
@@ -647,7 +647,7 @@ reads `device.{dc_op, dc_current, element_class, pins}`, `node.{dc_v, dc_rail_v}
 | S-25 | [CM] PM 이 `dc_not_above_level` 이면 `MetricResult.value` None, `undefined` 에 detail `dc_magnitude`(= |T(0)|) 포함, `resolution` = 같은 평가 `gain_db` 분해능(T(0) > 0 일 때), T(0) = 0 이면 None. 값 있는 결과의 resolution 불변 |
 | S-26 | [CM] 보고 전용: 차동 출력 포트 쌍이 있는 회로에서 `pm_cm_ss_deg` 요청이 없어도 `MetricBundle.reports == (("cm_loop", (("break_nets", (p, n 이름순)), ("dc_db", …), ("pm_deg", …), ("ugf_hz", …), ("undefined", …))),)`; 선언된 요청이 있어도 같은 값(같은 분석 객체: 선언 요청의 `MetricResult` 값 == reports 의 pm_deg); 차동 출력 쌍이 없는 회로는 `reports == ()` |
 | S-27 | [CM] 경고: `pm_cm_ss_deg` 요청이 없고 T_cm(0) > 1 이면 `warnings == (("cm_loop_unconstrained", (("dc_db", T_cm(0) dB),)),)`; 요청이 있으면 경고 없음; T_cm(0) ≤ 1 이면 경고 없음; `SsEvaluation.warnings == ss.warnings`; 판정(제약 행)은 선언만 따른다 |
-| S-28 | [CM] 캐시: 같은 입력으로 `ss_evaluate` 두 번 -> `metrics_ss` computes 0(reuse, reports·warnings 포함 비트 동일); 한 평가에서 선언 요청과 보고 전용이 같은 절단 계를 공유(조립·`solve_responses` 1회, `detail["systems"]` 가 보고 전용 때문에 늘지 않는다) |
+| S-28 | [CM] 캐시·계 수: `detail["systems"]` = 조립한 계 수 -- 선언 요청들의 계 + (선언된 `pm_cm_ss_deg` 가 없고 보고 전용 T_cm 이 계산되면) `cm_output` 계 1개 추가(선언 요청이 이미 있으면 같은 계를 공유해 늘지 않음): 예 요청이 `gain_ss_db` 하나 + 차동 출력 회로면 systems = 2, `pm_cm_ss_deg` 하나면 systems = 1. 캐시: 같은 입력으로 `ss_evaluate` 두 번 -> `metrics_ss` computes 0(reuse, reports·warnings 포함 비트 동일); 한 평가에서 선언 요청과 보고 전용이 같은 절단 계를 공유(조립·`solve_responses` 1회, `detail["systems"]` 가 보고 전용 때문에 늘지 않는다) |
 | S-24 | [CM] 입력 포트는 CM 루프에서 전부 교류접지: 같은 회로에서 입력 포트 넷의 전압 구동 유무가 `pm_cm_ss_deg` 에 영향이 없다(뷰의 가중 키에 입력이 없음) |
 
 ### 7.8 9회로 시연 (2026-10-08, master 798f29c 병합 뒤 LUT v2(`resolve_lut_location`), 작성자 측 실측 -- 정본 아님)
@@ -698,8 +698,8 @@ master 그대로는 common_gate 만 일관 DC 점이 나온다(Q1 -- ng-seal7 �
 - **판정 규칙(결정 A)**: T_cm 의 PM 이 **|T_cm(0)| ≤ 1**(`dc_not_above_level`: DC 이득이 레벨 1 이하라 0 dB 교차가 없다 -- CMFB 가 공통 모드 DC 레벨을 잡지 못함)이면 `pm_cm_ss_deg` 제약은
   **위반**이다. in-band 에서 |T| > 1 로 오르는 대역통과 모양(예 7c: T(0) = 0, |T| 최대 ~33, 0 dB 를 두 번 지남)도 같다 -- CM 제약의 기준은 T_cm(0) 이다(오케스트레이터 결정, 결정 A 와 같은
   근거). 새 상수 없음(40 dB 안 철회). 위반 크기: search CONTRACT 3.20 -- c = 20·log10|T_cm(0)| / s, s = 이득 dB 분해능(`MetricResult.resolution`, 값 None 이고 사유에
-  `dc_not_above_level` 이 있을 때 `gain_db` 의 분해능을 싣는다; 없으면 1 dB), |T_cm(0)| = 0 이면 −∞. 개루프 RHP 극점(`loop_open_rhp_poles`)은 불안정(미측정이 아니라 기존대로
-  정의 불가 사유로 남는다). **차동 `pm_ss_deg` 의미는 바뀌지 않는다**(`dc_not_above_level` 이면 정의 불가·unmeasured). 열린 항목: 대역통과 루프의 차동 PM 안정성은 여전히 '정의 불가'.
+  `dc_not_above_level` 이 있을 때 `gain_db` 의 분해능을 싣는다; 없으면 1 dB), |T_cm(0)| = 0 이면 −∞. 개루프 RHP 극점(`loop_open_rhp_poles`)은 **보수적으로 위반**이다(사용자에게 알린 "RHP 있음 → 위반(불안정)"; 오라클 Nyquist·폐루프 과도가 최종 안정성 평결): search 위반 행 c = −max Re(p)/|p| ∈ (−1, 0)(최악 RHP 극점의
+  감쇠비 부호 반전, 새 상수 없음). `MetricResult` 는 여전히 PM None + `loop_open_rhp_poles`. **차동 `pm_ss_deg` 의미는 바뀌지 않는다**(`dc_not_above_level` 이면 정의 불가·unmeasured). 열린 항목: 대역통과 루프의 차동 PM 안정성은 여전히 '정의 불가'.
 - **보고 전용(결정 '보완')**: `metrics_ss` 는 차동 출력 포트 쌍(S1 `node.port_role`)이 있는 모든 회로에서 **spec 선언과 무관하게 항상** 같은 출력 CM 주입 T_cm 을 한 번 계산한다
   (선언된 `pm_cm_ss_deg` 요청과 같은 절단 계·같은 분석 객체를 공유 -- 한 평가에서 한 번만 풀고, 블록 입력 버전이 같으면 재사용). 결과는 `MetricBundle.reports` =
   (("cm_loop", (("break_nets", …), ("dc_db", …), ("pm_deg", …), ("ugf_hz", …), ("undefined", 코드 정렬 tuple))),), 판정에는 쓰이지 않는다. **경고**:

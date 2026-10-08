@@ -566,6 +566,7 @@ PM = 180 − (기준점 위상 − |L|=1 위상) 은 개루프 L 에 RHP 극이 
 ### 입력 스키마 추가(선택 필드)
 * `cm_output_loop`(boolean): true 면 공통 모드 루프를 **선언된 차동 출력 포트 쌍(ports.output_p·output_n)** 에서 끊는다(output_p·output_n 이 없으면 막힘).
   CM 감지가 평균 저항이든 DDA 든 버퍼든 보지 않는다. (옛 `cm_loop_passives` 입력은 삭제.)
+* 닫힌 어휘: 삭제된 옛 입력 `cm_loop_passives` 는 스키마가 명시적으로 거부한다(`false` 스키마 -- 있으면 스키마 위반, 넷리스트를 쓰지 않음).
 * measure `cm_pm_deg`(predictions.metrics, acceptance.constraints): 허용오차 키는 `pm_deg_abs`.
 
 ### 동작 계약
