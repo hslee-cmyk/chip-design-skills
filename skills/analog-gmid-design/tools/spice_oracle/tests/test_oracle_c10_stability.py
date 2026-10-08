@@ -23,6 +23,16 @@
       이 파일의 `decide_run` 이 계약 문안대로 다시 계산한다.
     - (c) 기본 시간 상한 = oracle_config.json stability_transient.wall_s_per_window × 창 수, `--timeout-s` 우선.
     - (d) `.stab.cir`/`.stab2.cir` 의 save = H 식 피연산자 + time.
+  * U6 개정(설계 40 §4 C10 2~7, 사용자 결정 4·Q10 2026-10-08, _drafts/user_decisions.md):
+    - 결정 4 '폐루프 지속 진동(분해능 안 일정 진폭)은 불안정(한계 사이클)': 이 파일의 `limit_window` 가 설계 40 §4 2 의 조건
+      (M_j(1−r) > floor', |M_j − M_{j−1}| <= (M_j + M_{j−1})·r + floor', g↓ 아님; j >= 3 에서 창 j−1, j 연속)을 그대로
+      구현해 `decide_run` 의 조기 판정에 넣는다(계약 d56ba66 L42-54 '일정 진폭 = undetermined' 를 설계 40 §4 3 이 대체).
+    - Q10 '최종 판정 = Nyquist Z = N + P(.pz 독립 측정)·폐루프 과도, 둘 다 불가일 때만 INCOMPLETE' + 설계 40 §4 4
+      '폐루프 과도 unstable 이면 FAIL'(pm 제약 유무와 무관): 이 파일의 `expected_judgement` 가 README 절차 8 의 표를
+      독립 구현한다(P 는 오라클 기록 `pz_P`·`pz_validated` 를 입력으로 받고, 독립 .pz 가 있는 fixture 는 `independent_pz` 로
+      그 P 자체를 따로 대조한다).
+    - 설계 40 §4 6 'N 은 π/2 를 넘는 구간을 이분해 다시 .ac(상한 K_max)': 희박 스윕 fixture 의 N 은 이제 세어진다(밀한 독립
+      스윕의 N 과 같아야 한다).
 """
 import importlib
 import json
@@ -150,7 +160,10 @@ def check_early_consistent(tr, dec, pl):
     """계약 1(b): 오라클의 조기 종결 기록 = 데이터 파일에서 다시 센 조기 창(없으면 None), windows_run = 그 창 또는 K."""
     es = tr.get("early_stop")
     assert (es["window"] if es else None) == dec["early"], (es, dec["early"], dec["M"])
+    assert (es.get("kind") if es else None) == dec["early_kind"], (es, dec["early_kind"], dec["M"])
     assert tr["windows_run"] == (dec["early"] or pl["K"]), (tr["windows_run"], dec["early"], pl["K"])
+    # 설계 40 §4 C10 2: 한계 사이클 FAIL 에는 고Q 감쇠와 구별 못 함 표시(limit_cycle_vs_slow_decay_unresolved)가 붙는다
+    assert (tr.get("limit_cycle_vs_slow_decay_unresolved") is not None) == (dec["early_kind"] == "limit_cycle"), tr
 
 
 _STABWIN_RE = re.compile(r"^\s*STABWIN\s+(\d+)\s+([-+0-9.eE]+)\s*$", re.M)
@@ -226,7 +239,7 @@ def g_down(a, b, fl, reltol):
     return a * (1 - reltol) > b * (1 + reltol) + fl
 
 
-def early_window(m, fl, reltol):
+def growth_window(m, fl, reltol):
     """계약 1(b) 조기 unstable 기준(계약 문안의 독립 구현): j >= 3 인 첫 창에서 g↑(M_{j−2}, M_{j−1}) 그리고
     g↑(M_{j−1}, M_j) 그리고 g↑(M_1, M_j) 이면 그 j(1 부터), 없으면 None."""
     for j in range(3, len(m) + 1):
@@ -234,6 +247,29 @@ def early_window(m, fl, reltol):
                                                                                                     reltol):
             return j
     return None
+
+
+def flat(a, b, fl, reltol):
+    """설계 40 §4 C10 2(사용자 결정 4): 창 b 가 앞 창 a 와 '일정 진폭' -- 바닥보다 분해능 넘게 크고(b(1 − r) > floor'),
+    변화가 분해능 안(|b − a| <= (a + b)·r + floor')이며 g↓ 가 아니다(설계 문안의 세 조건을 그대로 쓴다)."""
+    return (b * (1 - reltol) > fl and abs(b - a) <= (a + b) * reltol + fl and not g_down(a, b, fl, reltol))
+
+
+def limit_window(m, fl, reltol):
+    """설계 40 §4 C10 2: j >= 3 인 첫 창에서 창 j−1 과 창 j 가 둘 다 일정 진폭(flat(M_{j−2}, M_{j−1}), flat(M_{j−1}, M_j))
+    이면 그 j(1 부터), 없으면 None."""
+    for j in range(3, len(m) + 1):
+        if flat(m[j - 3], m[j - 2], fl, reltol) and flat(m[j - 2], m[j - 1], fl, reltol):
+            return j
+    return None
+
+
+def early_window(m, fl, reltol):
+    """조기 종결 창 (j, 종류) -- 종류 'growth'(계약 1(b)) | 'limit_cycle'(설계 40 §4 C10 2) 중 먼저 오는 창, 없으면 (None, None).
+    같은 j 에서 둘이 함께 성립할 수 없다(growth 는 g↑(M_{j−1}, M_j), flat 은 그 부정을 요구)."""
+    cands = [(j, k) for j, k in ((growth_window(m, fl, reltol), "growth"), (limit_window(m, fl, reltol), "limit_cycle"))
+             if j is not None]
+    return min(cands) if cands else (None, None)
 
 
 def decide_run(stab_txt: Path, p):
@@ -255,9 +291,10 @@ def decide_run(stab_txt: Path, p):
         m.append(float(e[sel].max()) if sel.any() else float("nan"))
     fl = p["floor"] + u * float(np.abs(h).max())
     r = p.get("reltol", RELTOL)
-    early = early_window(m, fl, r)
+    early, kind = early_window(m, fl, r)
     if early is not None:
-        return {"status": "unstable", "M": m[:early], "floor2": fl, "early": early, "t_last": float(t[-1])}
+        return {"status": "unstable", "M": m[:early], "floor2": fl, "early": early, "early_kind": kind,
+                "t_last": float(t[-1])}
     if t[-1] < p["tstop"] * (1 - 2 * u):
         st = "failed"
     elif m[-1] <= fl:
@@ -268,7 +305,7 @@ def decide_run(stab_txt: Path, p):
         st = "decaying"
     else:
         st = "undetermined"
-    return {"status": st, "M": m, "floor2": fl, "early": None, "t_last": float(t[-1])}
+    return {"status": st, "M": m, "floor2": fl, "early": None, "early_kind": None, "t_last": float(t[-1])}
 
 
 def extension_plan(p, first):
@@ -284,7 +321,7 @@ def decide(stab_txt: Path, p):
     반환 status = 최종, first = 첫 실행 상태, M·floor2 = 첫 실행 값, ext = 연장 판정(+ n, plan) 또는 None."""
     first = decide_run(stab_txt, p)
     out = {"status": first["status"], "first": first["status"], "M": first["M"], "floor2": first["floor2"],
-           "ext": None, "early": first["early"], "t_last": first["t_last"]}
+           "ext": None, "early": first["early"], "early_kind": first["early_kind"], "t_last": first["t_last"]}
     if first["status"] != "decaying":
         return out
     n, p2 = extension_plan(p, first)
@@ -319,6 +356,60 @@ def expected_row(s, n, pm_raw):
     if n is not None and n < 0:
         return None, -n, ">=", "open_loop_rhp_poles"
     return None, None, None, "stability_unverified"
+
+
+def expected_p_eff(status, n, pz_p, pz_validated):
+    """README 절차 7·8 의 `.pz` 신뢰 규칙(독립 구현) -> PM 유효성에 쓰는 P(정수) 또는 None(모름 -> 옛 표 expected_row).
+    (d) 폐루프 과도 stable 이면 Z = 0 이라 P = −N(Nyquist); 폐루프 과도 unstable 이면 `.pz` 의 P(이름 붙이기용);
+    (e) 그 밖(undetermined·failed)이면 `.pz` 의 P >= 1 은 개루프 과도 확인(pz_validated is True)일 때만, P = 0 은 그대로."""
+    if status == "stable":
+        return None if n is None else -n
+    if status == "unstable":
+        return pz_p
+    if pz_p is not None and (pz_p == 0 or pz_validated is True):
+        return pz_p
+    return None
+
+
+def expected_judgement(status, n, pz_p, pz_validated, pm_raw):
+    """최종 안정성 판정(설계 40 §4 C10 4·7, 사용자 결정 Q10·4, README 절차 8 표의 독립 구현) -> dict(verdict, P_eff, Z, pm_undefined).
+    verdict: 과도 unstable 또는 N >= 1(P >= 0 이라 Z >= 1) 또는 Z = N + P_eff >= 1 -> unstable; 과도 stable -> stable; 그 밖 undetermined.
+    PM: P_eff 를 모르면 옛 표(expected_row). P_eff = 0: stable -> 값, unstable -> N >= 1 & pm_raw < 0 만 값(그 밖 inconsistent),
+    undetermined -> stability_unverified. P_eff >= 1: Z = 0 이고 stable -> 조건부 안정(값), 그 밖 open_loop_rhp_poles. Z < 0 -> inconsistent."""
+    p_eff = expected_p_eff(status, n, pz_p, pz_validated)
+    z = None if (p_eff is None or n is None) else n + p_eff
+    if status == "unstable" or (n is not None and n >= 1) or (z is not None and z >= 1):
+        verdict = "unstable"
+    elif status == "stable":
+        verdict = "stable"
+    else:
+        verdict = "undetermined"
+    if p_eff is None or z is None:
+        und = expected_row(status, n, pm_raw)[3]
+    elif z < 0:
+        und = "stability_evidence_inconsistent"
+    elif p_eff == 0:
+        und = {"stable": None, "undetermined": "stability_unverified"}.get(
+            verdict, None if (n >= 1 and pm_raw < 0) else "stability_evidence_inconsistent")
+    else:
+        und = None if (z == 0 and verdict == "stable") else "open_loop_rhp_poles"
+    return {"verdict": verdict, "P_eff": p_eff, "Z": z, "pm_undefined": und}
+
+
+def independent_pz(body_lines, out_node, workdir: Path):
+    """독립 `.pz`(oracle (c), 손으로 쓴 개루프 넷리스트: 입력 이상 전압원 고정, 출력 노드 전류 포트) -> 극점 목록(복소수)."""
+    lines = _head() + list(body_lines) + [".control", "set noaskquit", "op", f"pz {out_node} 0 {out_node} 0 cur pol",
+                                          "print all", "quit", ".endc", ".end"]
+    p, _ = _ngspice(lines, workdir, name="pz.cir")
+    poles = [complex(float(a), float(b)) for a, b in
+             re.findall(r"pole\(\d+\)\s*=\s*([-+0-9.eE]+)\s*,\s*([-+0-9.eE]+)", p.stdout)]
+    assert poles, (p.stdout + p.stderr)[-1500:]
+    return poles
+
+
+def rhp_count_in_sweep(poles, f_stop_hz):
+    """실수부 > 0 이고 크기가 .ac 스윕 상한(2π f_stop) 안인 극의 수(독립 .pz 대조용, 설계 40 §4 C10 6 'P = 실수부 > 0 인 극점 수')."""
+    return sum(1 for q in poles if q.real > 0 and abs(q) <= 2 * math.pi * f_stop_hz)
 
 
 def ac_loop_from_files(odir: Path, stem: str, beta_loop: bool):
@@ -595,16 +686,24 @@ STAB_KEYS = {"pm_valid", "pm_undefined", "pm_deg_raw", "loop", "closed_loop", "o
 
 
 def check_row(st, nyq_mine, status, pm_raw):
-    """summary.stability 가 (독립 N, 과도 상태, pm_raw) 에서 표가 정하는 행과 같은지."""
-    cl, p, bound, und = expected_row(status, nyq_mine, pm_raw)
-    assert st["closed_loop"] == cl, st
-    assert st["open_loop_rhp_poles"] == p, st
-    if bound is None:
-        assert st["open_loop_rhp_poles_bound"] is None, st
+    """summary.stability 가 (독립 N, 과도 상태, pm_raw, 기록된 .pz P·개루프 과도 확인) 에서 판정 규칙이 정하는 값과 같은지.
+    P_eff 를 모르면(README 절차 6) 옛 표 행 전체, 알면(절차 8) P_eff·Z·verdict·pm_undefined."""
+    exp = expected_judgement(status, nyq_mine, st.get("pz_P"), st.get("pz_validated"), pm_raw)
+    assert st["verdict"] == exp["verdict"], (st, exp)
+    if exp["P_eff"] is None:
+        cl, p, bound, und = expected_row(status, nyq_mine, pm_raw)
+        assert st["closed_loop"] == cl, st
+        assert st["open_loop_rhp_poles"] == p, st
+        if bound is None:
+            assert st["open_loop_rhp_poles_bound"] is None, st
+        else:
+            assert str(st["open_loop_rhp_poles_bound"]).startswith(bound), st
     else:
-        assert str(st["open_loop_rhp_poles_bound"]).startswith(bound), st
-    assert st["pm_undefined"] == und, st
-    assert st["pm_valid"] is (und is None), st
+        assert st["Z"] == exp["Z"], (st, exp)
+        assert st["open_loop_rhp_poles"] == exp["P_eff"], (st, exp)
+        assert str(st["open_loop_rhp_poles_bound"]).startswith("=="), st
+    assert st["pm_undefined"] == exp["pm_undefined"], (st, exp)
+    assert st["pm_valid"] is (exp["pm_undefined"] is None), st
 
 
 # ====================================================================== 독립 전제(피검 코드 없음)
@@ -720,7 +819,12 @@ def test_rhp_pm_undefined_open_loop_rhp_poles(rhp_run):
     st = res["free"]["summary"]["stability"]
     assert STAB_KEYS <= set(st), set(st) ^ STAB_KEYS
     check_row(st, nyquist(L)["N"], status, ref["meas"]["pm_deg"])
-    assert st["pm_undefined"] == "open_loop_rhp_poles" and st["open_loop_rhp_poles"] == 1
+    # 사용자 결정 Q10: P = 독립 .pz 의 RHP 극 수. oracle (c): 손으로 쓴 개루프(입력 이상 전압원 고정) .pz 와 같은 수
+    p_mine = rhp_count_in_sweep(independent_pz(rhp_body(RB["rb1e5"], vin_line=f"Vin nin 0 DC {RHP['vin']}"), "n2",
+                                               d / "ind_pz"), inp["testbench"]["ac"]["fstop_hz"])
+    assert st["pz_P"] == p_mine >= 1, (st, p_mine)
+    assert st["pm_undefined"] == "open_loop_rhp_poles" and st["open_loop_rhp_poles"] == p_mine
+    assert st["verdict"] == "unstable" and st["Z"] == p_mine            # Z = N(0) + P
     assert st["pm_deg_raw"] == pytest.approx(ref["meas"]["pm_deg"], abs=0.05)
     assert st["loop"] == "beta_1" and st["transient_status"] == "unstable" and st["nyquist_encirclements_cw"] == 0
     ac = _sim(d / "o", inp)["ac"]
@@ -762,13 +866,16 @@ def test_rhp_constraint_and_metric_na(rhp_run, bias):
     assert k["spice"] is None and k["judge"] == f"N/A(정의 불가: {und})" and k["undefined"] == und, k
     m = _perf(c, "pm")
     assert m["spice"] is None and m["judge"] == k["judge"], m
-    assert c["summary"]["verdict"] == "INCOMPLETE", c["summary"]
+    # [U6 개정] free: 폐루프 과도 한계 사이클(사용자 결정 4) + Z = N + P >= 1(Q10) -> 폐루프 불안정 -> pm 제약은 N/A 로 남지만
+    # free verdict 는 FAIL(설계 40 §4 C10 4, README 절차 9). forced 는 진단 전용이라 C8 대로 INCOMPLETE.
+    assert c["summary"]["verdict"] == {"free": "FAIL", "forced": "INCOMPLETE"}[bias], c["summary"]
     if bias == "free":
         a = c["summary"]["acceptance"]
         assert a["constraints_unmeasured"] == ["pmc"] and a["constraints_failed"] == [], a
+        assert a["closed_loop_unstable"], a
     md = (d / "o" / f"{stem_of(inp, bias)}.compare.md").read_text(encoding="utf-8")
     assert "- C10 PM 안정성 근거:" in md
-    assert p.returncode == 0
+    assert p.returncode == 1                          # C8: 여러 bias 중 최악(free FAIL) -> 1
 
 
 def test_rhp_forced_stab_netlist_freezes_chokes(rhp_run):
@@ -792,7 +899,9 @@ def test_rhp_forced_stab_netlist_freezes_chokes(rhp_run):
 
 @pytest.mark.parametrize("op,limit", [(">=", -1e9), ("<=", 1e9), (">=", 0.0)])
 def test_rhp_constraint_never_pass(tmp_path, rhp_run, op, limit):
-    """수치로는 어떤 limit 이든 '만족'할 값(원값 284 deg)이 있어도 정의 불가 -> INCOMPLETE(반환 0), 절대 PASS 아님."""
+    """수치로는 어떤 limit 이든 '만족'할 값(원값 284 deg)이 있어도 정의 불가, 절대 PASS 아님.
+    [U6 개정] 이 회로(Rb 100 kΩ)는 폐루프 과도가 한계 사이클(사용자 결정 4)이고 Z = N + P >= 1(Q10)이라 free verdict 는
+    INCOMPLETE 가 아니라 FAIL(반환 1) -- 설계 40 §4 C10 4·7."""
     d, inp, *_ = rhp_run
     inp2 = json.loads(json.dumps(inp))
     inp2["acceptance"] = {"constraints": [pm_con(op, limit)]}
@@ -800,7 +909,7 @@ def test_rhp_constraint_never_pass(tmp_path, rhp_run, op, limit):
     c = res["free"]
     assert c is not None, (p.stdout + p.stderr)[-1500:]
     assert _cons(c, "pmc")["judge"] == "N/A(정의 불가: open_loop_rhp_poles)"
-    assert c["summary"]["verdict"] == "INCOMPLETE" and p.returncode == 0, c["summary"]
+    assert c["summary"]["verdict"] == "FAIL" and p.returncode == 1, c["summary"]
 
 
 def test_rhp_with_other_fail_is_fail(tmp_path, rhp_run):
@@ -815,15 +924,21 @@ def test_rhp_with_other_fail_is_fail(tmp_path, rhp_run):
     assert c["summary"]["acceptance"]["constraints_failed"] == ["g"]
 
 
-def test_rhp_control_pass_without_pm_constraint(tmp_path, rhp_run):
-    """대조: 같은 회로, PM 이 아닌 제약만 -> PASS. 위 INCOMPLETE 는 PM 정의 불가 때문."""
+def test_rhp_closed_loop_unstable_fails_without_pm_constraint(tmp_path, rhp_run):
+    """[U6 개정, 옛 이름 test_rhp_control_pass_without_pm_constraint] 같은 회로, PM 이 아닌 제약만(만족) -> 옛 기대 PASS 는
+    이제 FAIL: 폐루프 과도 unstable(한계 사이클, 사용자 결정 4)이면 pm 제약이 있든 없든 free verdict FAIL(설계 40 §4 C10 4,
+    README 절차 9 [신규 U6]). 다른 제약(dc_gain)은 PASS 로 남고 FAIL 사유는 폐루프 불안정 하나다."""
     d, inp, res, ref, _ = rhp_run
     inp2 = json.loads(json.dumps(inp))
     inp2["acceptance"] = {"constraints": [{"name": "g", "measure": "dc_gain_db", "op": ">=",
                                            "limit": ref["meas"]["dc_gain_db"] - 1}]}
     inp2["predictions"]["metrics"] = []
     p, res2 = run_oracle(inp2, tmp_path / "o", sat_margin=SAT, extra=["--cache-dir", d / "cache"])
-    assert res2["free"]["summary"]["verdict"] == "PASS" and p.returncode == 0, res2["free"]["summary"]
+    c = res2["free"]
+    assert _cons(c, "g")["judge"] == "PASS", _cons(c, "g")
+    a = c["summary"]["acceptance"]
+    assert a["closed_loop_unstable"] and a["constraints_failed"] == [], a
+    assert c["summary"]["verdict"] == "FAIL" and p.returncode == 1, c["summary"]
 
 
 def run_oracle_guarded(inp, out: Path, guard_s):
@@ -873,7 +988,10 @@ def test_rhp_variants_never_pass(tmp_path, ref_root, rb):
     st = c["summary"]["stability"]
     tr = _sim(tmp_path / "o", inp)["ac"]["stability"]["transient"]
     assert st["pm_valid"] is False and st["pm_undefined"] in VOCAB, (st, tr.get("M"))
-    assert c["summary"]["verdict"] != "PASS" and rc == 0, (c["summary"]["verdict"], st, tr.get("M"))
+    # [U6 개정] Q10: Z = N + P(.pz) 로 결론이 나므로 INCOMPLETE 가 아니라 FAIL(반환 1). 근거: rb1e5 폐루프 한계 사이클(결정 4),
+    # rb1e6·rb1e7 은 과도가 결론을 못 내도 .pz P >= 1(독립 개루프 .tran 이 증가를 보인 전제 test) 이라 Z >= 1.
+    assert c["summary"]["verdict"] == "FAIL" and rc == 1, (c["summary"]["verdict"], st, tr.get("M"))
+    assert st["verdict"] == "unstable", st
     assert tr["status"] in RB_VARIANT_ALLOWED[rb], (tr["status"], tr.get("reason"), tr.get("M"))
     # 계약 1(c): 적용 상한 = 계획 상한 = 선언 창당 상한 × 계획 창 수(--timeout-s 없음)
     assert tr["plan"]["wall_cap_s"] == pytest.approx(wall_s_per_window() * tr["plan"]["windows"], rel=1e-9)
@@ -893,39 +1011,25 @@ def test_rhp_variants_never_pass(tmp_path, ref_root, rb):
     check_row(st, nyquist(L)["N"], tr["status"], st["pm_deg_raw"])
 
 
-def test_sustained_oscillation_undetermined_incomplete(tmp_path, ref_root):
-    """절차 5 개정의 계기(40158dd 의 rb1e6, M = [1.43, 1.21, 0.68, 1.13, 1.45, 1.30]): 창 사이 다시 커짐(M_K < M_1,
-    단조 감소 아님) -> 첫 실행 `undetermined`, 연장 없음 -> 최종 '모름', N = 0 -> `stability_unverified`,
-    pm 제약 N/A -> INCOMPLETE(반환 0). 독립 폐루프 .tran 은 지속 진동(test_rhp_fixture_...).
-    조기 종결 계약 1(b)(사용자 결정 B): 일정 진폭 지속 진동은 조기 기준(분해능 초과 연속 증가)을 충족하지 않으므로 판정
-    불변, early_stop 없음, K 창 끝까지. 창 판정은 분해능 인식형(d56ba66): g↑(M_1, M_K) 아님, 모든 연속 창 g↓ 아님 ->
-    undetermined. (scratch 2026-10-08, 같은 .stab.cir 의 tmax 만 바꿔 단독 실행: 대역 한정 f_crit 42.2 kHz -> tmax 1.06e-7 s,
-    83 s, M = [1.311, 1.159, 1.272, 1.198, 1.120, 1.099]; 대역 없는 f_crit 9.44 MHz -> tmax 4.75e-10 s, 107 s,
-    M = [1.094850, 1.094848, 1.094847, 1.094854, 1.094852, 1.094845] -- 두 경우 모두 undetermined.)"""
+def test_sustained_oscillation_rb1e6_final_verdict_fail(tmp_path, ref_root):
+    """[U6 개정, 옛 이름 test_sustained_oscillation_undetermined_incomplete] 손 RHP 회로 Rb 1 MΩ(독립 폐루프 .tran 은 지속
+    진동 -- test_rhp_fixture_closed_loop_oscillates_and_n_is_zero[rb1e6]; 독립 개루프 .tran 은 지수 증가 -- 개루프 RHP 극 P >= 1).
+    최종 판정만 단언한다: 사용자 결정 Q10(Z = N + P, .pz 독립 측정)으로 결론이 나므로 FAIL(반환 1), pm 제약은 N/A(정의 불가).
+    **과도 분류(undetermined 인지 limit_cycle 인지)는 단언하지 않는다 -- 사용자 결정 대기(한계 사이클 기준)**: 이 회로의 창
+    최댓값은 이완 진동이라 분해능 밖으로 출렁인다(예 [1.31, 1.10, 1.14, 1.18, 1.10, 1.10]). 설계 40 §4 C10 2 의 '분해능 안
+    일정 진폭' 조건을 연속 두 창에서 충족하지 못해 limit_cycle 이 아니고, 결정 4 의 '지속 진동 = 불안정' 이 이런 출렁이는
+    지속 진동까지 뜻하는지는 사용자가 정한다(그 결정 전까지 분류 기대값을 고정하지 않는다)."""
     rb = RB["rb1e6"]
-    ref = rhp_ref(ref_root, rb)
+    rhp_ref(ref_root, rb)                                      # 독립 .op/.ac 전제(포화·K) 계산을 같은 경로로 공유
     inp = rhp_input(make_lut(tmp_path / "lut.npz"), rb, constraints=[pm_con(">=", 60.0)])
     p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
     c = res["free"]
-    o, stem = tmp_path / "o", stem_of(inp, "free")
-    f, L, _ = ac_loop_from_files(o, stem, beta_loop=False)
-    pl = plan(f, L, [ref["nodes"]["n2"]])
-    dec = decide(o / f"{stem}.stab.txt", pl)
-    m = dec["M"]
-    # 전제(분해능 인식형): M_K 가 M_1 보다 분해능 넘게 크지 않고, 모든 창에서 분해능 넘게 줄지도 않음
-    assert not g_up(m[0], m[-1], dec["floor2"], RELTOL), (m, dec["floor2"])
-    assert not all(g_down(m[j], m[j + 1], dec["floor2"], RELTOL) for j in range(len(m) - 1)), m
-    assert dec["first"] == dec["status"] == "undetermined", dec
-    tr = _sim(o, inp)["ac"]["stability"]["transient"]
-    assert tr["first_status"] == "undetermined" == tr["status"], tr
-    assert tr["M"] == pytest.approx(m, rel=1e-2)
-    check_full_run(tr, pl, dec)                    # 계약 1(b): 일정 진폭 -> 조기 종결 없음
-    assert tr.get("extension") is None and not list(o.glob(f"{stem}.stab2*"))
+    assert c is not None, (p.stdout + p.stderr)[-1500:]
     st = c["summary"]["stability"]
-    assert st["closed_loop"] is None and st["pm_undefined"] == "stability_unverified" and st["pm_valid"] is False, st
+    assert st["verdict"] == "unstable" and st["pm_valid"] is False, st
     k = _cons(c, "pmc")
-    assert k["judge"] == "N/A(정의 불가: stability_unverified)" and k["spice"] is None, k
-    assert c["summary"]["verdict"] == "INCOMPLETE" and p.returncode == 0, c["summary"]
+    assert k["spice"] is None and k["judge"] == f"N/A(정의 불가: {st['pm_undefined']})", k
+    assert c["summary"]["verdict"] == "FAIL" and p.returncode == 1, c["summary"]
 
 
 # ====================================================================== 고전적 불안정(P = 0, PM < 0) -> 값 유지, FAIL
@@ -973,27 +1077,32 @@ def test_classic_negative_pm_kept_and_fail(classic_run):
     assert c["summary"]["verdict"] == "FAIL" and p.returncode == 1, c["summary"]
 
 
-def test_classic_sparse_sweep_count_unavailable(tmp_path, ref_root):
-    """스윕 밀도 부족(points_per_decade 2): 순진한 감은 수는 틀린 0 이 나온다(독립 확인) -> 오라클은 N 을 세지
-    않아야 한다(None + reason). 폐루프 불안정이면 `closed_loop_unstable`, PM 정의 불가 -> PASS 불가."""
+def test_classic_sparse_sweep_refined_count(tmp_path, ref_root):
+    """[U6 개정, 옛 이름 test_classic_sparse_sweep_count_unavailable] 스윕 밀도 부족(points_per_decade 2): 순진한 감은 수는
+    틀린 0 이 나온다(독립 확인). 설계 40 §4 C10 6(사용자 결정 Q10): π/2 를 넘는 구간은 이분해 다시 .ac(상한 K_max) -> 오라클은
+    N 을 세고 그 값은 밀한 독립 스윕(40/decade)의 N(= 2, test_classic_fixture_premise)과 같아야 한다(oracle (c)). 폐루프 과도
+    unstable(성장)이고 N >= 1 이라 verdict FAIL(반환 1)."""
     caps = CAPS["classic_unstable"]
     ref = three_ref(ref_root, caps, ppd=2)
+    dense = three_ref(ref_root, caps)                     # 40/decade 독립 .ac
     assert ref["nyq"]["N_raw"] == pytest.approx(0, abs=1e-9) and not ref["nyq"]["valid_b"], ref["nyq"]
+    assert dense["nyq"]["N"] == 2, dense["nyq"]
     inp = three_input(make_lut(tmp_path / "lut.npz"), caps, ppd=2, constraints=[pm_con("<=", 1e9)])
     p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
     c = res["free"]
     st = c["summary"]["stability"]
     f, L, _ = ac_loop_from_files(tmp_path / "o", stem_of(inp, "free"), beta_loop=False)
     mine = nyquist(L)
-    assert mine["N"] is None and mine["max_step_deg"] > 120
+    assert mine["N"] is None and mine["max_step_deg"] > 120              # 원래 스윕만으로는 셀 수 없음(전제)
     ny = _sim(tmp_path / "o", inp)["ac"]["stability"]["nyquist"]
-    assert ny["encirclements_cw"] is None and ny["reason"], ny
-    assert ny["max_step_deg"] == pytest.approx(mine["max_step_deg"], rel=1e-6)
+    assert ny["encirclements_cw"] == dense["nyq"]["N"], ny
+    assert 1 <= ny["refinement"]["rounds"] <= ny["refinement"]["k_max"] == 10, ny["refinement"]
+    assert ny["refinement"]["samples_added"] > 0 and ny["max_step_deg"] < 90.0, ny
     status = decide(tmp_path / "o" / f"{stem_of(inp, 'free')}.stab.txt", plan(f, L, [ref["v3"]]))["status"]
-    check_row(st, None, status, st["pm_deg_raw"])
-    assert st["pm_undefined"] in ("closed_loop_unstable", "stability_unverified"), st
-    assert _cons(c, "pmc")["judge"] == f"N/A(정의 불가: {st['pm_undefined']})"
-    assert c["summary"]["verdict"] == "INCOMPLETE" and p.returncode == 0, c["summary"]
+    assert status == "unstable"
+    check_row(st, dense["nyq"]["N"], status, st["pm_deg_raw"])
+    assert st["verdict"] == "unstable" and st["nyquist_encirclements_cw"] == 2
+    assert c["summary"]["verdict"] == "FAIL" and p.returncode == 1, c["summary"]
 
 
 # ====================================================================== 안정 루프: PM 값 불변, N = 0
@@ -1034,11 +1143,15 @@ def test_stable_lowpm_value_unchanged_and_pass(lowpm_run):
     assert res["free"]["summary"]["verdict"] == "PASS" and p.returncode == 0, res["free"]["summary"]
 
 
-def test_stable_sparse_sweep_nyquist_count_unavailable(tmp_path, ref_root, lowpm_run):
-    """스윕 밀도 부족(points_per_decade 3): 1+L 편각 한 간격 >= 90 deg -> N = None,
-    폐루프 과도 stable -> `nyquist_count_unavailable`, 제약 N/A -> INCOMPLETE(대조: 같은 회로 40/decade 는 PASS)."""
+def test_stable_sparse_sweep_refined_count_pass(tmp_path, ref_root, lowpm_run):
+    """[U6 개정, 옛 이름 test_stable_sparse_sweep_nyquist_count_unavailable] 스윕 밀도 부족(points_per_decade 3): 원래 표본만으로는
+    1+L 편각 한 간격 >= 90 deg 라 N 을 셀 수 없다(독립 확인). 설계 40 §4 C10 6: 그 구간을 이분해 다시 .ac -> N = 밀한 독립 스윕의
+    N(= 0). 폐루프 과도 stable 이고 Z = 0 이라 안정(설계 40 §4 C10 7) -> PM 은 원값 그대로 값, 제약 >= 10 deg PASS(같은 회로 40/decade
+    대조와 같은 결론)."""
     caps = CAPS["stable_lowpm"]
     ref = three_ref(ref_root, caps, ppd=3)
+    dense = three_ref(ref_root, caps)
+    assert dense["nyq"]["N"] == 0, dense["nyq"]
     inp = three_input(make_lut(tmp_path / "lut.npz"), caps, ppd=3, constraints=[pm_con(">=", 10.0)])
     p, res = run_oracle(inp, tmp_path / "o", sat_margin=SAT)
     c = res["free"]
@@ -1047,19 +1160,19 @@ def test_stable_sparse_sweep_nyquist_count_unavailable(tmp_path, ref_root, lowpm
     mine = nyquist(L)
     assert mine["N"] is None and mine["valid_a"] and not mine["valid_b"] and mine["max_step_deg"] > 100, mine
     ny = _sim(tmp_path / "o", inp)["ac"]["stability"]["nyquist"]
-    assert ny["encirclements_cw"] is None and isinstance(ny["reason"], str) and ny["reason"], ny
-    assert ny["max_step_deg"] == pytest.approx(mine["max_step_deg"], rel=1e-6)
+    assert ny["encirclements_cw"] == dense["nyq"]["N"] == 0, ny
+    assert 1 <= ny["refinement"]["rounds"] <= 10 and ny["refinement"]["samples_added"] > 0, ny["refinement"]
     dec = decide(tmp_path / "o" / f"{stem}.stab.txt", plan(f, L, [ref["v3"]]))
     assert dec["status"] == "stable", dec
     st = c["summary"]["stability"]
-    check_row(st, None, "stable", st["pm_deg_raw"])
-    assert st["pm_undefined"] == "nyquist_count_unavailable" and st["nyquist_encirclements_cw"] is None
+    check_row(st, 0, "stable", st["pm_deg_raw"])
+    assert st["pm_undefined"] is None and st["verdict"] == "stable" and st["nyquist_encirclements_cw"] == 0, st
     assert st["pm_deg_raw"] == pytest.approx(ref["meas"]["pm_deg"], abs=0.01)    # 원값은 같은 격자의 Bode 값
     ac = _sim(tmp_path / "o", inp)["ac"]
-    assert ac["pm_deg"] is None and ac["pm_crosscheck_deg"] is None
+    assert ac["pm_deg"] == ac["pm_deg_raw"] and ac["pm_deg"] >= 10.0, ac["pm_deg"]
     k = _cons(c, "pmc")
-    assert k["judge"] == "N/A(정의 불가: nyquist_count_unavailable)" and k["undefined"] == "nyquist_count_unavailable"
-    assert c["summary"]["verdict"] == "INCOMPLETE" and p.returncode == 0, c["summary"]
+    assert k["judge"] == "PASS" and k["spice"] == ac["pm_deg"], k
+    assert c["summary"]["verdict"] == "PASS" and p.returncode == 0, c["summary"]
 
 
 @pytest.fixture(scope="module")
@@ -1545,4 +1658,10 @@ def test_truncated_transient_failed_never_pass(tmp_path, ref_root):
     st = cmp["summary"]["stability"]
     check_row(st, st_sim["nyquist"]["encirclements_cw"], "failed", st["pm_deg_raw"])
     assert _cons(cmp, "pmc")["judge"].startswith("N/A(정의 불가: ")
-    assert cmp["summary"]["verdict"] == "INCOMPLETE", cmp["summary"]
+    # [U6 개정] 과도가 결론을 못 내도(failed) Q10 의 Z = N + P 가 결론을 내면 그것이 판정이다: .pz P >= 1 이 개루프 과도로
+    # 확인되었으면(README 절차 7 신뢰 규칙) unstable -> FAIL, 확인 못 했으면(4 s 상한은 부하에 따라 확인 실행도 끊음) 둘 다
+    # 결론 없음 -> INCOMPLETE. 어느 쪽이든 PASS 는 아니다. 기대 verdict 는 기록된 .pz·확인 결과에서 판정 규칙(독립 구현)으로 셈.
+    exp = expected_judgement("failed", st_sim["nyquist"]["encirclements_cw"], st.get("pz_P"), st.get("pz_validated"),
+                             st["pm_deg_raw"])
+    assert cmp["summary"]["verdict"] == {"unstable": "FAIL", "undetermined": "INCOMPLETE"}[exp["verdict"]], (
+        cmp["summary"], exp)
