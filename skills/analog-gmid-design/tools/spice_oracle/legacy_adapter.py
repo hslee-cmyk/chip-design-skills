@@ -398,6 +398,14 @@ def convert(dump, w_source, isrc, testbench, topology_path=None, instance_path=N
                                  "value_basis": basis,
                                  "not_in_topology_reason": f"topology 에 출력 부하 C 가 없어 어댑터가 {basis} 로 넣은 부하"})
 
+    # [Q6] 외부 바이어스 입력(topology bias_inputs = gate 전용 넷) 마다 엔진 예측 노드전압을 bias_voltages 로 선언한다
+    # (오라클이 bias_voltages 넷 집합 == topology bias_inputs 를 대조한다. 예측값이 없으면 선언하지 않아 그 대조가 막는다).
+    bias_voltages = [{"net": n, "value": float(node_pred[n])} for n in topo.get("bias_inputs") or []
+                     if node_pred.get(n) is not None]
+    for n in topo.get("bias_inputs") or []:
+        if node_pred.get(n) is None:
+            blockers.append(f"bias_inputs 넷 {n} 의 엔진 예측 전압 없음")
+
     # 예측 metric / 제약
     mdecl = topo.get("sizing_roles", {}).get("metrics") or {}
     metrics, unmapped = [], []
@@ -449,7 +457,7 @@ def convert(dump, w_source, isrc, testbench, topology_path=None, instance_path=N
         "devices": devices,
         "sources": sources,
         "passives": passives,
-        "bias_voltages": [],
+        "bias_voltages": bias_voltages,
         "feedback_passives": feedback,
         "feedback_passives_basis": "legacy_c12_input_net_passives",  # C12 보충: 옛 기준선 전용 규칙(새 엔진은 spec feedback)
         "ports": ports,

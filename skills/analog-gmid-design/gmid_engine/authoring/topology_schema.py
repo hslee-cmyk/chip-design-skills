@@ -18,7 +18,7 @@ from .topology_model import SchemaHit
 SCHEMA_VERSION = "2.0"
 REQUIRED_KEYS = ("schema_version", "topology_name")
 DECLARATION_KEYS = ("netlist", "supply_nets", "ports", "passive_elements")
-OPTIONAL_KEYS = ("ideal_sources", "linked_topology_files", "source")
+OPTIONAL_KEYS = ("ideal_sources", "linked_topology_files", "source", "bias_inputs", "source_manifest")
 IGNORED_TAG_KEYS = ("device_roles", "symmetry", "sizing_roles", "compensation")
 COMMENT_PREFIX = "_"
 

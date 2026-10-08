@@ -8,6 +8,8 @@
   "_compensation_status": "pending_topology_fn",
   "_compensation_status_comment": "Miller 2단 + 팔로워 극점(vout)이라 기존 miller_ota_topology가 팔로워 극점을 모델링하는지 미확인. 보상 규칙은 계획 GB5(극점 노드 목록)로 정한다.",
   "supply_nets": ["vdd", "gnd"],
+  "source_manifest": {"figure": "Allen Lecture 26, Page 26-5", "device_count": 9, "passive_count": 2},
+  "bias_inputs": ["bias"],
   "_supply_nets_comment": "2026-09-17 선언(U-26 (b), 사용자 승인). 계획 DEC-60: 레일 넷은 이 필드로만 정한다(넷 이름 집합으로 판정하지 않는다. 전환기 이름집합 해석은 MG1까지 한시 허용이었고 이 선언이 그것을 대체한다). 레일 전압 `supplies_v`는 사이징 스펙 쪽 선언이고 여기에 두지 않는다(U-26 (a)).",
   "netlist": [
     {

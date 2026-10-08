@@ -1001,6 +1001,19 @@ def topology_identity(inp, text, topology_path):
             res["bulk_compared"].append(n)
         if not same:
             diffs.append(f"{n}: 단자 넷 topology {list(wt)} != 넷리스트 {list(gt[:len(wt)]) if len(gt) == 4 else list(gt)}")
+    # [Q6] 외부 바이어스 입력 대조(엄격): 입력 bias_voltages 의 넷 집합 == topology bias_inputs. 키가 없으면 빈 집합과 대조한다.
+    # (authoring 게이트가 bias_inputs = gate 전용 넷 전부임을 보장하므로, 같다 = 구동 소자 없는 게이트 넷마다 전압이 선언됨.
+    #  키가 없으면 authoring 게이트를 통과한 topology 는 gate 전용 넷이 없으므로 bias_voltages 도 비어 있어야 한다.)
+    bi = topo.get("bias_inputs", [])
+    if not isinstance(bi, list) or not all(isinstance(x, str) for x in bi):
+        diffs.append(f"topology bias_inputs 가 문자열 list 가 아니다: {bi!r}")
+    else:
+        want_b = set(bi)
+        got_b = {b["net"] for b in inp.get("bias_voltages") or []}
+        res["bias_inputs"] = sorted(want_b)
+        if want_b != got_b:
+            diffs.append(f"bias_voltages 넷 {sorted(got_b)} != topology bias_inputs {sorted(want_b)} "
+                         f"(topology 에만 {sorted(want_b - got_b)}, 입력에만 {sorted(got_b - want_b)})")
     res["diffs"] = diffs
     res["status"] = "mismatch" if diffs else "verified"
     return res

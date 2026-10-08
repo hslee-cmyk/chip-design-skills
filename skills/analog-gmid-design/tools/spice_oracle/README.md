@@ -155,6 +155,9 @@ C5. free: 차동 입력+차동 출력이면 `Efb_<in>` 이 (Vo-Vo') 차동 성�
     forced: 레일·입력·게이트 전용 바이어스 넷을 뺀 모든 소자 단자 넷(예측 있음)에 `Vhold_<net>` + choke, free 모드 `.nodeset` 없음.
 C6. 게이트 전용 넷(드레인/소스/전원/수동소자/입력 어디에도 안 물림): `bias_voltages` 값, 없으면 `predictions.nodes` 값의
     `Vbias_<net>` 과 notes 경고, 둘 다 없으면 막힘.
+    **[신규 Q6]** topology 가 연결 동일성(C15) 대상일 때 `bias_voltages` 의 넷 집합은 topology `bias_inputs`(키가 없으면 빈 집합과 대조 -- 엄격,
+    authoring 게이트 `gate_only_undeclared`/`bias_input_not_gate_only` 가 gate 전용 넷 전부임을 보장)와 **같아야** 한다.
+    다르면 C15 diffs 에 들어가 막힘. 옛 어댑터는 `bias_inputs` 넷마다 엔진 예측 노드전압을 `bias_voltages` 로 선언한다.
 C7. **[변경]** 기록: 오차 = SPICE - 예측(abs) 또는 (SPICE - 예측)/|예측|(rel). 허용오차가 있으면 기록 칸 `judge` 에 `|오차| <= tol`
     PASS / 밖 FAIL, 없으면 `N/A(tol 미설정)` -- **verdict 와 무관**. 영역: `sat_margin_V` 없으면 `None`(+`N/A(sat_margin 미설정)`),
     있으면 VDS - VDSAT >= margin 이 `sat`, 아니면 `triode`; 그 소자 문턱(**[변경]** `predictions.devices[].off_current_A`,
