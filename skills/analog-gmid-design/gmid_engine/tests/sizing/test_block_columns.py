@@ -790,7 +790,8 @@ def _tolrep_doc():
     MC nmos (d = g, g = gc, s = w) 가 w 를 쓴다(vgs_source 1변수), gc = 입력 DC 1.2 V. MD nmos (w, nb, gnd) 는 w 의 전류 경로."""
     return topo("r9_tol_reuse", [mos("MA", "nmos", "vdd", "g", "gnd", "w"), mos("MC", "nmos", "g", "gc", "w", "gnd"),
                                  mos("MD", "nmos", "w", "nb", "gnd")],
-                {"gc": ("input", "x"), "w": ("output", "y")}, sources=[two("IG", "current_source", "vdd", "g")])
+                {"gc": ("input", "x"), "w": ("output", "y")}, sources=[two("IG", "current_source", "vdd", "g")],
+                bias=["nb"])                                                     # nb: MD gate 에만
 
 
 def _tolrep_theta(w_star=0.3, g_star=0.7, la=2e-6):
@@ -850,7 +851,8 @@ def _scc_s_doc():
     """W4–W4 선형 SCC {vin, vout}(1변수 노드 없음): M1 nmos (vin, nb1, gnd), M2 nmos (vout, nb2, vin), M3 pmos (vout, pb, vdd)."""
     return topo("r9_scc_s", [mos("M1", "nmos", "vin", "nb1", "gnd"), mos("M2", "nmos", "vout", "nb2", "vin"),
                              mos("M3", "pmos", "vout", "pb", "vdd")],
-                {"vin": ("input", "single_ended_input"), "vout": ("output", "single_ended_output")})
+                {"vin": ("input", "single_ended_input"), "vout": ("output", "single_ended_output")},
+                bias=["nb1", "nb2", "pb"])                                       # nb1: M1, nb2: M2, pb: M3 gate 에만
 
 
 @pytest.fixture(scope="module")
