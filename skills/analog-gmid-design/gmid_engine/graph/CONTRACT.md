@@ -536,3 +536,72 @@ design_mod3_structure_u2_u5(DU) 대비:
     꼬리(파일럿 M7, Vcmfb)도 2026-10-08 사용자 결정("꼬리 비율 미러 {M36a, M7}로 분류")으로 같은 꼬리 규칙(gate ∈ L 묶음 포함). 대응 넷은 U5 `graph.symmetry` 가 없어 derived 차동쌍 drain seed 의 가지 서명 전파로 정의했다.
     (e) branch_symmetric seed 에 mirror 도 넣었다(folded M7/M8·nmcnr M106/M107·sf 3쌍은 mirror 위에 쌓임). (f) 차동쌍 후보의
     '신호 넷 gate(입력 포트 또는 graph.symmetry 대응) 정확히 2' 조건(G5-03)은 U5 가 없어 넣지 않았다 -- 바이어스 형제 제외만.
+
+---
+
+## 10. SP1 -- `build_s1v` (U1, 설계 41 §0 단계 A3·§1, 40 §3.2, 계획 N3.2·DEC-43·57·63·65·81)
+
+test 작성자용 계약. 이 절의 숫자·기대값은 **없다**(기대값은 toy 손계산·ratified 대조표·불변량으로 만든다). 아래 불변량이 test 대상이다.
+
+### 10.1 공개 API (`gmid_engine.graph.__all__`)
+
+| 이름 | 설명 |
+|---|---|
+| `build_s1v(s1, spec, *, count_budget, declared=(), structure=None, declared_loop_cuts=(), previous=None, stop_on_unsupported=True) -> S1v` | 진입점. `s1` = `build_s1` 결과, `spec` = `SizingSpecDoc` 또는 None(기본 전달 뷰만). `count_budget` = 계수 예산 N_S(1 이상 int, bool 거부 `TypeError`) |
+| `S1v`, `ViewS1v`, `ViewSeed`, `Block`, `CompositeBlock`, `Loop`, `LClass`, `Finding`, `StructureFact` | frozen dataclass(`fp_of` 가능). 필드 뜻은 `s1v_values.py` docstring |
+| `load_structure_facts(path, topology_fp, rule_fp) -> StructureFacts` | `structure.json` ratified 사실 로더(파일 없음 = 사실 0, 형식 위반 = `SchemaRejectedError` gate `structure_json`, 해시 불일치 = 사실 미적용 + `structure_fact_stale` review_needed) |
+| `structure_tables(s1v) -> dict` | JSON 으로 쓸 수 있는 구조 표(뷰·셀·구동 종류·블록·극점 노드·루프·L 동치류·기록) |
+| `s1v_rule_fp() -> str` | S1v 규칙 코드 지문(`S1V_RULE_FILES` 바이트). `structure.json` 의 `rule_hash` 와 재사용 키가 쓴다 |
+
+### 10.2 동작
+
+* 순서: `collect_views` -> 전달 뷰마다 `analyze_view` -> 전달 뷰의 (3) 루프가 만든 루프 뷰(끊는 점 (소자, gate 넷)마다 하나) -> 루프 뷰 판정 -> `l_equivalence_classes` ->
+  `declared_compare`. 뷰 id: 전달 `transfer:<순번>`(여기·관측 정렬 순), 루프 `loop:<소자>:<gate 넷>`.
+* **뷰 수집**: spec 제약의 `ViewDecl`(port·loop = 가중+관측, transfer, ratio = 분자·분모)마다 하나, (여기, 관측) 중복은 하나. 선언이 없으면 기본 뷰: 입력 포트 role 이
+  차동 p·n 한 쌍이면 가중 ±1/2 기모드 여기 하나, 아니면 입력 포트마다 단일 여기. 관측 = 출력 포트 전부. mode `sense`·`none`·`pending` 은 구조 뷰를 만들지 않는다.
+* **교류접지**: 레일 ∪ gate 전용 미구동 넷(S1) ∪ 이 뷰에서 여기하지 않는 입력 포트 ∪ (4) 바이어스 종속 넷(술어 (0)(i)(ii)(iii), `ac_ground_view.py` docstring). 기모드
+  여기에서 회로 자기동형(`virtual_ground`, 맞짝 전파)이 있으면 자기대응 넷(`ViewS1v.virtual_ground`)은 **축약 뷰의 접지**다 -- 셀·구동 종류·블록·극점 노드·출력 방향은 축약
+  뷰 기준, 루프·끊는 점은 비축약 뷰 기준(공통모드 되먹임이 가상접지를 지난다). 두 뷰에서 셀 판독이 다른 소자는 `unreduced_diff`.
+* **셀**: gate==drain -> `diode_load`. gate∈S: drain 접지 -> `cd`, source 접지 -> `cs`, 둘 다 아니면 source 가 순방향 위 신호 셀 입력·출력 포트에 닿을 때 `cell_ambiguous`
+  (기록만), 아니면 `cs`(degeneration). gate∉S: 같은 두 노드 사이 반대 방향 둘 -> pass 묶음(셋 이상 방향 섞임 `pass_group_unsupported`), 아니고 source∈S -> `cg`, 그 밖 `off`.
+  셀 이름은 소문자 `cs`/`cg`/`cd`/`pass`/`diode_load`/`off`(규칙 E: 대문자 `CS` 는 library 넷 이름과 같아 쓸 수 없다). `CellInfo.forward` = 출력 단자가 순방향 집합 위.
+* **구동 종류**: 진입(여기 포트 / CS drain·source / CD source / CG drain / diode source·drain)에서 규칙 1(drain 진입만 = 전류 후보)·3(gate 로만 나가면 전압, 채널로만 전류, 둘 다 gate 쪽
+  순방향이면 전압(stage 경계), 아니면 tap)·4(혼재 = drain 쪽 DC 역할로: 바이어스 전류원이면 전압, 신호 소자면 `mixed_drive_signal_drain`, 못 가르는 그룹이면 잠정 전압 +
+  `mixed_drive_unresolved_group`)·2·5(저항·pass 로만 들어오면 이웃 종류 상속, 저항은 `value_dependent`). ratified `drive_kind` 사실은 해당 넷을 고정(근거 `ratified_fact`).
+* **stage**: `dist`(수동소자 엣지 포함 0-1 BFS, 복귀 경로 판정용)와 `stage_dist`(수동소자 제외, stage 번호용). 시작 셀 = 순방향 CS(gate 전압 구동, 미러 입력 아님, DC 역할이
+  바이어스 전류원 아님) / source 가 전압 구동인 CG. 블록 stage = 시작 셀 입력 넷 `stage_dist` + 1.
+* **블록**: 소유 고정점(시작 셀 -> 캐스코드·미러 연장·pass·diode). 같은 stage 블록이 넷(공통 소스·출력)을 공유하면 합친다(차동 블록). 키 = 출력노드 이름 정렬 tuple. 서로 다른 stage 가
+  합류 노드를 공유하면 복합 블록 후보. 출력노드 임피던스가 낮으면 `cs_output_low_impedance`(기록만). 버퍼 블록 = CD 묶음 R(u)(싱크 하나).
+* **루프**: 방향 신호 그래프(gate->drain/source, CG 또는 전류 진입 source->drain, 수동소자·pass 양방향)의 단순 사이클 전수, 시작 = 사이클 최소 노드. 수동소자만의 사이클 제외.
+  개수·걸음 수가 `count_budget` 초과 -> `cycle_enumeration_over_budget`(기록만). 분류 (1.5) `bias_scc` / (2) `miller` / (3) `loop_view`((3-a)·(3-b)) / (4) `record_only`.
+  끊는 점 = 복귀 구간 다음 첫 CS gate 후보 중 뷰 안 루프에서 가장 많이 나타나는 것(이름 전단사 불변). 극성 = CS gate->drain 반전 곱, 커패시터 경유 0.
+  포트쌍 CM 루프 대응(R31): 루프 뷰의 루프 노드가 차동 출력 포트쌍 두 넷을 모두 포함하면 `cm_pair`, 기록은 `cm_loop_unconstrained`(info). 그 밖의 루프 뷰는
+  `declared_loop_cuts` 에 gate 넷이 없으면 `undeclared_loop_constraint`(기록만).
+* **L 동치류**: `S1v.l_classes` = S1 `rel_l_class` 마다 주인(DEC-17: tail -> 첫 전달 뷰 최전단 stage tail -> diode 기준 -> 이름 순)과 규칙 이름. 멤버 DC 역할 미확정이면 status
+  review_needed. S1 의 `rel_l_class` 필드는 proposed 그대로다(소비자는 S1v 를 읽는다).
+* **declared 대조**: `declared` = ((출처, (소자 이름 tuple, ...)), ...) 를 첫 전달 뷰 블록과 대조해 불일치를 `declared_stage_mismatch`(review_needed). 유도의 입력이 아니다(U-50).
+* **기록과 정지**: `Finding.severity` ∈ review_needed / unsupported_rule_branch / info. `S1v.unsupported`(기록만)가 하나라도 있고 `stop_on_unsupported` 이면
+  `StructureUnresolvedError`(detail reason `unsupported_rule_branch`, `rule_branch` = 첫 분기, `branches`, `findings`). `False` 는 진단 모드(기록을 돌려받음). review_needed 는 정지가
+  아니라 `S1v.review_needed` 로 GB4 앞 정지 대상.
+
+### 10.3 불변량 (test 대상)
+
+1. 같은 입력이면 `fp_of(structure_tables(s1v))` 가 같다(프로세스·`PYTHONHASHSEED`·netlist 순서 무관). 같은 키 `previous` 는 `is` 같은 객체.
+2. 원소·넷 이름을 전단사로 바꾸면 모든 구조 필드(접지·셀·구동 종류·시작 셀·블록 키·역할·루프 노드 집합·분류·끊는 점·극점 노드·출력 방향)가 그 사상으로만 바뀐다. 예외(이름이 마지막
+   tie-break 인 곳): L 동치류에 tail·diode 기준이 없을 때의 주인(DEC-17 '이름 정렬 첫 멤버'), 전달 뷰 순번(여기 이름 정렬 순서).
+3. 접지 집합은 정적 집합의 초집합이고 여기 넷·감지 넷은 접지가 아니다. 순방향 넷 ⊆ 신호 넷. 모든 MOS 에 셀이 정확히 하나 있다.
+4. 블록의 소유 넷(입력 경계 넷 제외)은 서로 겹치지 않는다(겹침은 복합 블록 합류 또는 `block_node_overlap`). 블록 키는 출력노드 정렬 tuple 이고 단일 출력 블록은 원소 1개.
+5. stage 시작 셀은 순방향이고 바이어스 전류원 DC 역할이 아니며 CD 가 아니다. 미러 입력 노드를 gate 로 읽는 셀은 시작하지 않는다.
+6. 극점 노드 = 뷰의 접지가 아닌 모든 넷(중복 없음). 버퍼 출력노드 포함.
+7. 루프: 사이클은 단순(노드 반복 없음), 첫 노드가 사이클 최소 노드, 수동소자 하나·pass 묶음 하나로 되돌아오는 왕복 없음. `bias_scc` 는 순방향 노드를 하나도 지나지 않는다.
+   `loop_view` 루프의 끊는 점은 그 루프 위 CS 셀의 gate 엣지다.
+8. 정지 규칙: `기록만` 코드(`cell_ambiguous`·`pass_group_unsupported`·`gate_on_current_node`·`cs_output_low_impedance`·`buffer_multi_output`·`composite_dag_not_chain`·
+   `composite_over_budget`·`loop_record_only`·`cycle_enumeration_over_budget`·`undeclared_loop_constraint`)가 있으면 `build_s1v` 가 기본 모드에서 정지한다.
+
+### 10.4 설계와 다르게 정한 점 / 위임한 점
+
+* S1v 저장은 core `GraphSnapshot` 이 아니라 frozen dataclass 트리(`S1v`)이고 재사용은 키(`S1v.key`) 일치로 한다.
+* 입력 포트 role 문자열(`differential_input_p/n`, `differential_output_p/n`)과 spec 뷰 mode 문자열은 `s1v_values.py` 에 같은 값으로 복제했다(authoring 이 `__all__` 로 내보내지 않는다 -- U5 요청).
+* declared stage 의 생산자(topology 의 `compensation.stage_devices` 등 태그 읽기)는 엔진 안에 없다(태그 키는 규칙 I·IC4 로 읽기 금지). `declared` 인자로만 받는다.
+* 복합 블록은 묶음 경계를 J12 ratify 전 `composite_block_pending_ratify`(review_needed)로 남기고 격자 곱 Π 는 LUT 축이 필요해 U9 몫이다(`CompositeBlock.cells` = 밑).
+* `virtual_ground` 는 U2 정준 라벨링·궤도가 들어오면 그 궤도로 대체한다.

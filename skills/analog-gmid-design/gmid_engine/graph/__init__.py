@@ -20,6 +20,8 @@ from .s1_index import terminal_index
 from .s1_key import s1_key
 from .s1_model import S1Graph
 from .s1_structure import s1_structure
+from .s1v_build import build_s1v
+from .s1v_key import s1v_rule_fp
 from .s1_values import (
     AC_GROUND_GATE_ONLY,
     AC_GROUND_RAIL,
@@ -123,6 +125,20 @@ from .s1_values import (
     S1Key,
     Segment,
 )
+from .s1v_values import (
+    S1V_RULE_FILES,
+    S1v,
+    ViewS1v,
+    ViewSeed,
+    Finding,
+    Block,
+    CompositeBlock,
+    Loop,
+    LClass,
+    StructureFact,
+)
+from .structure_load import StructureFacts, load_structure_facts
+from .structure_tables import structure_tables
 from .supplies import supplies_declaration
 
 __all__ = (
@@ -229,6 +245,21 @@ __all__ = (
     "UNSUPPORTED_BRANCHES",
     "UNSUPPORTED_RULE_BRANCH",
     "build_s1",
+    "build_s1v",
+    "load_structure_facts",
+    "s1v_rule_fp",
+    "structure_tables",
+    "S1V_RULE_FILES",
+    "S1v",
+    "ViewS1v",
+    "ViewSeed",
+    "Finding",
+    "Block",
+    "CompositeBlock",
+    "Loop",
+    "LClass",
+    "StructureFact",
+    "StructureFacts",
     "s1_branches",
     "s1_bulk",
     "s1_columns",
