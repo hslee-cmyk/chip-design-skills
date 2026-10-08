@@ -55,6 +55,9 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 #   two_stage  (3,2)  - mismatch_sigma_mv(판정 밖) + gbw_ss_hz>=7e6(Q5) + 가드 2                   = (5,5)
 #   two_stage_sf(4,3) - mismatch 참조(판정 밖) + gbw_ss_hz(two_stage 참조, 판정) + 가드 2          = (6,6)
 # pending 표지: ngcc 의 metric 표지 MOD5 1개만 해소(7 -> 6), 나머지 불변.
+# [U5 후속 2026-10-09] 설계 40 §9.2·§11 'J 추가 범위' U5 행 'sf_pushpull spec에 icm_margin_v >= 0(user_spec J-E)', 41 §4.6 '선언 입력 DC
+# 유지 ... icm_margin_v >= 0 을 제약으로 둔다', 사용자 결정 J-E(_drafts/user_decisions.md 2026-10-08 "j해석은 네의견에 모두 동의해."):
+#   sf_pushpull(6,6)  + icm_margin_v>=0(user_spec -> 판정)                                       = (7,7), pending 불변
 TABLE = {
     "common_gate_amplifier": (2, 2, 6),
     "current_reuse_telescopic_ota": (13, 12, 11),
@@ -62,7 +65,7 @@ TABLE = {
     "ngcc_3stage_ff": (6, 6, 6),
     "nmcnr_amplifier": (7, 7, 6),
     "pushpull_follower_buffer": (2, 2, 5),
-    "sf_pushpull_output_opamp": (6, 6, 6),
+    "sf_pushpull_output_opamp": (7, 7, 6),
     "two_stage_ota": (5, 5, 7),
     "two_stage_ota_sf": (6, 6, 6),
 }
@@ -515,7 +518,7 @@ def test_measurement_loads_declared_per_circuit(name):
 # =====================================================================================================================
 # [U5 2026-10-08] 설계 40 §9.2(Q3·Q4 회로별 선언)·§9 Q5 표·41 §7.1(Q11 회로별 잡음 선언) 과 library spec 대조
 # oracle (d) 설계 표 값을 리터럴로 옮겼다(√2 = 가드 '<= √2', 300 µVrms = 300e-6 V, 2.4 V = ±1.2 V 차동 p-p).
-# 비교 대상 = U5 어휘 11개 metric 제약 전부(JSON 직접 + 로드 결과). 참조 제약은 ('ref', 대상) 로 적는다.
+# 비교 대상 = U5 어휘 12개 metric(후속 ff_gm_ratio 포함) 제약 전부(JSON 직접 + 로드 결과). 참조 제약은 ('ref', 대상) 로 적는다.
 # =====================================================================================================================
 SQRT2 = math.sqrt(2.0)
 U5_METRICS = frozenset(u5_design_signatures())
@@ -532,7 +535,7 @@ DESIGN_U5_ROWS = {
     "folded_cascode": {OFFSET_GUARD, NOISE_GUARD},
     "ngcc_3stage_ff": {OFFSET_GUARD, NOISE_GUARD, ("icmr_v", ">=", 0.6)},
     "nmcnr_amplifier": {OFFSET_GUARD, NOISE_GUARD, ("icmr_v", ">=", 0.5), ("swing_out_v", ">=", 0.5)},
-    "sf_pushpull_output_opamp": {OFFSET_GUARD, NOISE_GUARD},
+    "sf_pushpull_output_opamp": {OFFSET_GUARD, NOISE_GUARD, ("icm_margin_v", ">=", 0.0)},   # [U5 후속] J-E, 40 §9.2
     "pushpull_follower_buffer": set(),
     "common_gate_amplifier": {NOISE_GUARD},
 }
@@ -672,7 +675,7 @@ def _summary(doc, net_map):
             for c in doc.constraints]
     return (cons, sorted(p.decision for p in doc.pending), [(e.name, e.mode, e.value) for e in doc.element_values],
             sorted((net_map.get(n, n), v) for n, v in doc.supplies_v), doc.gain_budget_db_override, doc.driving_spec,
-            doc.structure_count_budget)
+            doc.structure_count_budget, doc.noise_testbench)   # [U5 후속] noise_testbench 섹션도 넷 이름 무관
 
 
 @pytest.mark.parametrize("name", sorted(TABLE))

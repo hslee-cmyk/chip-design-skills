@@ -141,3 +141,17 @@ def test_pending_metric_notes_do_not_touch_registry_rows(tmp_path, lut_sealed):
     assert len(extra) == len(PENDING_CONS)
     assert all(n.get("reason") == "metric_computation_pending" for n in extra)
 
+
+
+def test_ff_gm_ratio_constraint_noted_computation_pending(tmp_path, lut_sealed):
+    """[U5 후속 2026-10-09] ff_gm_ratio(40 §3.8-8, 값 계산은 §11 J 추가 범위 U7) 는 카탈로그에만 있는 계산 대기 이름 --
+    oracle (d) SPEC_CONTRACT 6절 끝 '탐색 문맥이 constraint_notes 에 unmeasured/metric_computation_pending 으로 남긴다'.
+    ss_constraints·judged_constraints 에 들지 않는다(측정 못 하는 행이 탐색 판정에 섞이지 않음)."""
+    cons = (("ff_gm_ratio", ">=", 1.0, None), ("gain_ss_db", ">=", 10.0, None))
+    s = build_case(tmp_path, circuit_c(), lut_sealed, constraints=cons).sctx
+    assert [c.metric for c in s.ss_constraints] == ["gain_ss_db"]
+    assert "ff_gm_ratio" not in {x[0] for x in s.judged_constraints}
+    mine = [n for n in _notes(s) if "ff_gm_ratio" in repr(n)]
+    assert len(mine) == 1, _notes(s)
+    assert mine[0].get("verdict") == "unmeasured"
+    assert mine[0].get("reason") == "metric_computation_pending"

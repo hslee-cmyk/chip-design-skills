@@ -88,15 +88,15 @@ TOPO_SUFFIX = ".topology.json"
 
 
 def u5_design_signatures():
-    """[U5 2026-10-08] 설계가 정한 계산 대기 metric 11개의 서명 -- oracle (d) 설계 문장 그대로(피검 카탈로그를 읽지 않는다).
+    """[U5 2026-10-08, 후속 2026-10-09] 설계가 정한 계산 대기 metric 12개의 서명 -- oracle (d) 설계 문장 그대로(피검 카탈로그를 읽지 않는다).
 
     * offset·미러비·스윙·ICMR 7개: 설계 40 §3.8-8 표 '단위'·'domain / view_kind' 열.
       offset_in_sigma_mv mv·ss/transfer, offset_excess ratio·ss/transfer, offset_sys_mv mv·'dc→ss / transfer'(최종 영역 ss),
       swing_out_v·icmr_v·icm_margin_v v·ls(뷰 없음).
-      mirror_ratio_sigma_pct 는 표가 'pct, dc→ss / ratio' 다. 여기서 view_kind 는 None 으로 둔다: 이 엔진의 view_kind 'ratio' 는
-      ratio_ss_db 의 {num, den} 응답비 뷰(view 없으면 view_required)인데, 미러비 σ 는 matching 그룹별 보고 metric 이라 그 뷰가
-      없다(설계 표의 'ratio' 는 '전류비'라는 뜻으로 읽음 -- 보고서 이의 D1, 설계 문구 정정 대상). 이 이름표는 로더 test 입력일
-      뿐이고, 카탈로그 서명 판정은 metrics/test_catalog 에서 view_kind 를 단정하지 않는다.
+      mirror_ratio_sigma_pct 는 표가 'pct, dc→ss / 없음' 이다([2026-10-09 master cc91068] 이의 D1 반영 정정: view_kind `ratio` 는
+      {num, den} 응답비 뷰라 해당 없음 -> 뷰 없음 None).
+    * [U5 후속 2026-10-09] `ff_gm_ratio`: 40 §3.8-8 표 행 'ratio, ss / transfer'(41 §1.12.2-5 r_ff = G_ff / gm_in), §11 'J 추가 범위'
+      U5 행 'metric 어휘 ff_gm_ratio(단위 ratio)'. 값 계산은 U7(§11 J 추가 범위 U7 행) -- U5 에서는 계산 대기 서명.
     * 잡음 4개: 설계 41 §7.1 표 단위 열(V²/Hz → v2_per_hz, Hz → hz, 무차원 → ratio, V → v)과 '공통 규칙'
       (`domain: ss`, `view_kind: transfer`).
     """
@@ -109,6 +109,7 @@ def u5_design_signatures():
         "swing_out_v": M("v", "ls", None),
         "icmr_v": M("v", "ls", None),
         "icm_margin_v": M("v", "ls", None),
+        "ff_gm_ratio": M("ratio", "ss", "transfer"),
         "noise_th_in_v2hz": M("v2_per_hz", "ss", "transfer"),
         "noise_fc_in_hz": M("hz", "ss", "transfer"),
         "noise_excess_th": M("ratio", "ss", "transfer"),
@@ -130,7 +131,7 @@ def fixture_catalog():
         "rout_ss_ohm": M("ohm", "ss", "output_port"),
         "ratio_ss_db": M("db", "ss", "ratio"),
         # [U5 2026-10-08] 옛 mismatch_sigma_mv·mirror_ratio_error_mv 는 옛 이름 표로 거부된다(설계 40 §3.8-8) -- 이름표에서 빼고
-        # 설계가 정한 새 어휘 11개(u5_design_signatures)를 넣는다.
+        # 설계가 정한 새 어휘(u5_design_signatures, 후속 포함 12개)를 넣는다.
         **u5_design_signatures(),
         "power_dc_w": M("w", "dc", None),
         "area_search_m2": M("m2", "geom", None),

@@ -23,12 +23,12 @@ EXPECTED = {
 REGISTRY_NAMES = frozenset(EXPECTED)          # 위 11개 = 레지스트리(3.15 표)
 
 # [U5 2026-10-08] 카탈로그 = 레지스트리 + 계산 대기 서명(설계 40 §3.8-8·41 §7.1 어휘). 기대 서명은 설계 문장에서 -- tests/authoring
-# conftest `u5_design_signatures` 한 곳(oracle (d), 근거는 그 docstring). mirror_ratio_sigma_pct 의 view_kind 는 설계 표('ratio')와
-# 이 엔진 어휘의 뜻이 달라 단정하지 않는다(보고서 이의 D1) -- 이 행은 단위·영역만 비교한다.
+# conftest `u5_design_signatures` 한 곳(oracle (d), 근거는 그 docstring). [2026-10-09] 설계 표가 mirror_ratio_sigma_pct view_kind 를
+# '없음'으로 정정(master cc91068, 이의 D1)해 전 서명을 비교한다. [U5 후속] ff_gm_ratio 추가로 계산 대기 12 -> 카탈로그 23(metrics CONTRACT 3.15).
 from authoring.conftest import u5_design_signatures  # noqa: E402
 
 PENDING_EXPECTED = u5_design_signatures()
-VIEW_KIND_UNASSERTED = {"mirror_ratio_sigma_pct"}
+VIEW_KIND_UNASSERTED: set = set()
 
 
 def _sig_key(name, sig):
@@ -41,7 +41,7 @@ def test_catalog_contents():
     cat = metric_catalog()
     assert isinstance(cat, collections.abc.Mapping)
     assert set(cat) == set(EXPECTED) | set(PENDING_EXPECTED)
-    assert len(cat) == len(EXPECTED) + len(PENDING_EXPECTED) == 22
+    assert len(cat) == len(EXPECTED) + len(PENDING_EXPECTED) == 23
     for name, sig in EXPECTED.items():
         assert cat[name] == sig, name
     for name, sig in PENDING_EXPECTED.items():

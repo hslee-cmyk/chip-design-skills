@@ -363,7 +363,7 @@ def _real_catalog():
 
 @pytest.mark.parametrize("metric", ["offset_in_sigma_mv", "offset_excess", "offset_sys_mv", "mirror_ratio_sigma_pct",
                                     "icm_margin_v", "noise_th_in_v2hz", "noise_fc_in_hz", "noise_excess_th",
-                                    "noise_out_int_vrms"])
+                                    "noise_out_int_vrms", "ff_gm_ratio"])
 def test_u5_metric_accepted_with_real_catalog(sc, metric):
     sc.human["constraints"].append({"metric": metric, "op": "<=", "value": 2.0, "source": dict(U5_US)})
     doc = sc.load(catalog=_real_catalog())
@@ -386,3 +386,32 @@ def test_large_signal_metric_rejects_view(sc, metric):
     sc.constraint(metric)["view"] = copy.deepcopy(TRANSFER)
     sc.reject_only("view_not_applicable", "constraints", catalog=_real_catalog())
 
+
+
+# ---------------------------------------------------------------- [U5 후속 2026-10-09] ff_gm_ratio
+# oracle (d): 설계 40 §3.8-8 표 `ff_gm_ratio` 행('ratio, ss / transfer', '보고. spec이 값·source를 선언하면 제약(값은 사용자 몫)'),
+# §11 'J 추가 범위' U5 행(어휘)·U7 행(값). SPEC_CONTRACT 6절 끝 '로더는 이 이름의 제약을 받는다'. 값 1.0 은 합성 입력(a) --
+# 사용자 값이 아니라 로더 형식 확인용.
+
+def test_ff_gm_ratio_constraint_loads_judged(sc):
+    sc.human["constraints"].append({"metric": "ff_gm_ratio", "op": ">=", "value": 1.0, "source": dict(U5_US)})
+    doc = sc.load(catalog=_real_catalog())
+    got = [c for c in doc.constraints if c.metric == "ff_gm_ratio"]
+    assert len(got) == 1
+    assert (got[0].op, got[0].value, got[0].judged) == (">=", 1.0, True)
+    assert got[0].metric_decision is None
+
+
+def test_ff_gm_ratio_accepts_transfer_view(sc):
+    """view_kind transfer(40 §3.8-8) -- 명시 전달 뷰를 받는다(ls 이름과 달리 view_not_applicable 아님)."""
+    sc.human["constraints"].append({"metric": "ff_gm_ratio", "op": ">=", "value": 1.0, "source": dict(U5_US),
+                                    "view": copy.deepcopy(TRANSFER)})
+    got = [c for c in sc.load(catalog=_real_catalog()).constraints if c.metric == "ff_gm_ratio"]
+    assert len(got) == 1 and got[0].view is not None
+
+
+def test_ff_gm_ratio_in_pending_constraints(sc):
+    """'아직 없는 값'(pending_constraints)으로도 어휘 안이다 -- metric_unknown 이 아니다."""
+    sc.human["pending_constraints"].append({"metric": "ff_gm_ratio", "decision": "SP-94"})
+    doc = sc.load(catalog=_real_catalog())
+    assert ("ff_gm_ratio", "SP-94") in [tuple(x) for x in doc.pending_constraints]

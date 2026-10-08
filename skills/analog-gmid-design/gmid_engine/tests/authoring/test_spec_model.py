@@ -34,6 +34,9 @@ SECTIONS = {
     "gain_override_fp": ("gain_budget_db_override",),
     "driving_fp": ("driving_spec",),
     "count_budget_fp": ("structure_count_budget",),
+    # [U5 후속 2026-10-09] 선택 섹션 noise_testbench(설계 40 §11 U5 행 'noise_testbench', 41 §7.1 폐루프 모드 스위치 kT/C) --
+    # 이름은 SPEC_CONTRACT 3절 섹션 지문 목록(oracle d: 계약 선언), 기존 묶음 뒤에 붙는다.
+    "noise_testbench_fp": ("noise_testbench",),
 }
 
 

@@ -93,7 +93,12 @@ LEGACY_REPLACEMENTS = {
     "mismatch_sigma_v": ("offset_in_sigma_mv", "mirror_ratio_sigma_pct"),
 }
 LEGACY = tuple(LEGACY_REPLACEMENTS)
-LEGACY_UPPER = "mismatch_sigma_V"   # SPEC_CONTRACT 2절 '(및 대문자 V 판)' -- 계약 출처, 제약 metric 자리 하나로만 확인
+LEGACY_UPPER = "mismatch_sigma_V"   # SPEC_CONTRACT 2절 '(및 대문자 V 판)' -- 계약 출처
+# [U5 후속 2026-10-09] SPEC_CONTRACT 2절 legacy_name 행 '제약 metric 또는 value_from_constraint·value_from_file 문자열이 ...(및 대문자 V 판)'
+# + 2절 '모든 객체의 키' -> 대문자 V 판도 모든 자리(pending_constraints·참조·파일 참조·키)에서 확인한다. 안내 이름은 소문자 판과 같은
+# 옛 이름이므로 §3.8-4 대체(offset_in_sigma_mv·mirror_ratio_sigma_pct)를 그대로 쓴다(oracle d).
+LEGACY_ALL = LEGACY + (LEGACY_UPPER,)
+LEGACY_REPLACEMENTS_ALL = dict(LEGACY_REPLACEMENTS, **{LEGACY_UPPER: LEGACY_REPLACEMENTS["mismatch_sigma_v"]})
 
 
 def _legacy_hit(sc, gate):
@@ -109,33 +114,33 @@ def test_legacy_metric_in_constraint(sc, name):
     _legacy_hit(sc, "constraints")
 
 
-@pytest.mark.parametrize("name", list(LEGACY_REPLACEMENTS))
+@pytest.mark.parametrize("name", list(LEGACY_REPLACEMENTS_ALL))
 def test_legacy_metric_message_names_replacement(sc, name):
     sc.constraint("swing_out_v")["metric"] = name
     hit = _legacy_hit(sc, "constraints")
-    for new in LEGACY_REPLACEMENTS[name]:
+    for new in LEGACY_REPLACEMENTS_ALL[name]:
         assert new in hit.message, (name, hit.message)
 
 
-@pytest.mark.parametrize("name", LEGACY)
+@pytest.mark.parametrize("name", LEGACY_ALL)
 def test_legacy_metric_in_pending_constraints(sc, name):
     sc.human["pending_constraints"].append({"metric": name, "decision": "SP-93"})
     _legacy_hit(sc, "constraints")
 
 
-@pytest.mark.parametrize("name", LEGACY)
+@pytest.mark.parametrize("name", LEGACY_ALL)
 def test_legacy_value_from_constraint(sc, name):
     sc.constraint("icmr_v")["value_from_constraint"] = name
     _legacy_hit(sc, "constraints")
 
 
-@pytest.mark.parametrize("name", LEGACY)
+@pytest.mark.parametrize("name", LEGACY_ALL)
 def test_legacy_value_from_constraint_in_compensation_target(sc, name):
     sc.human["compensation_targets"]["pm_target_deg"]["value_from_constraint"] = name
     _legacy_hit(sc, "compensation_targets")
 
 
-@pytest.mark.parametrize("name", LEGACY)
+@pytest.mark.parametrize("name", LEGACY_ALL)
 def test_legacy_value_from_file_target(sc, name):
     c = next(c for c in sc.human["constraints"] if "value_from_file" in c)
     c["value_from_file"] = "fx_spec_ref#" + name
@@ -143,7 +148,7 @@ def test_legacy_value_from_file_target(sc, name):
 
 
 @pytest.mark.parametrize("where", list(OBJECTS))
-@pytest.mark.parametrize("name", LEGACY)
+@pytest.mark.parametrize("name", LEGACY_ALL)
 def test_legacy_name_as_key_everywhere(sc, where, name):
     get, gate = OBJECTS[where]
     get(sc.spec)[name] = {"value": 1.0, "source": dict(US)}
@@ -151,7 +156,7 @@ def test_legacy_name_as_key_everywhere(sc, where, name):
 
 
 @pytest.mark.parametrize("name", ["offset_in_sigma_mv", "offset_excess", "offset_sys_mv", "mirror_ratio_sigma_pct",
-                                  "icm_margin_v"])
+                                  "icm_margin_v", "ff_gm_ratio"])
 def test_new_names_are_not_legacy(sc, name):
     """새 이름은 옛 이름 표에 없다: 제약 metric 으로 받는다(합성 입력 -- 제약 하나 추가, view 없음 -> 유도 또는 none).
     swing_out_v·icmr_v 는 픽스처 제약으로 이미 매 로드에 쓰인다."""
