@@ -15,6 +15,7 @@ import re
 
 import pytest
 
+import gmid_engine.authoring as authoring
 from gmid_engine.authoring import load_topology
 
 GATE = "source_manifest"
@@ -76,6 +77,7 @@ def test_absent_key_not_checked(ah, tmp_path):
 def test_device_count_mismatch(ah, tmp_path):
     detail = load_rejected(ah, tmp_path, with_manifest(ah, device_count=37))
     assert ah.rules(detail["hits"]) == ["source_manifest_mismatch"]
+    assert detail["hits"][0].where == "source_manifest.device_count"       # 10절(78ebbbd 보강)
     assert detail["rejected_gates"] == (GATE,)
     msg = detail["hits"][0].message
     assert has_number(msg, 37) and has_number(msg, 4), msg
@@ -84,6 +86,7 @@ def test_device_count_mismatch(ah, tmp_path):
 def test_passive_count_mismatch(ah, tmp_path):
     detail = load_rejected(ah, tmp_path, with_manifest(ah, passive_count=29))
     assert ah.rules(detail["hits"]) == ["source_manifest_mismatch"]
+    assert detail["hits"][0].where == "source_manifest.passive_count"      # 10절(78ebbbd 보강)
     msg = detail["hits"][0].message
     assert has_number(msg, 29) and has_number(msg, 3), msg
 
@@ -104,7 +107,8 @@ def test_both_counts_mismatch_all_reported(ah, tmp_path):
     """두 개수 모두 틀림 -> 위반은 전부 모은다(0절). 모든 hit 가 mismatch 이고 네 수가 메시지 어딘가에 있다."""
     detail = load_rejected(ah, tmp_path, with_manifest(ah, device_count=37, passive_count=29))
     rules = ah.rules(detail["hits"])
-    assert set(rules) == {"source_manifest_mismatch"}
+    assert rules == ["source_manifest_mismatch"] * 2
+    assert sorted(h.where for h in detail["hits"]) == ["source_manifest.device_count", "source_manifest.passive_count"]
     text = " ".join(h.message for h in detail["hits"])
     for n in (37, 4, 29, 3):
         assert has_number(text, n), (n, text)
@@ -177,3 +181,26 @@ def test_manifest_not_in_connectivity_fp(ah, tmp_path):
     c = load_topology(ah.write(tmp_path, with_manifest(ah, figure="another figure, p.9"), "c"))
     assert a.connectivity_fp == b.connectivity_fp == c.connectivity_fp
     assert len({a.file_sha256, b.file_sha256, c.file_sha256}) == 3
+
+
+# ---------------------------------------------------------------------------------------------------- 닫힌 어휘·공개 이름 (10절, 78ebbbd 보강)
+def test_unknown_key_rejected(ah, tmp_path):
+    """`_` 접두 아닌 알 수 없는 키는 거부(닫힌 어휘). rule 이름은 계약이 정하지 않아 gate·형식 규칙 집합으로 판정."""
+    doc = with_manifest(ah)
+    doc["source_manifest"]["page"] = 3
+    detail = load_rejected(ah, tmp_path, doc)
+    assert detail["rejected_gates"] == (GATE,)
+    assert len(detail["hits"]) == 1
+    assert detail["hits"][0].rule in {"source_manifest_key", "source_manifest_type"}, detail["hits"]
+
+
+def test_underscore_key_accepted(ah, tmp_path):
+    doc = with_manifest(ah)
+    doc["source_manifest"]["_comment"] = "comment keys are outside the vocabulary but accepted"
+    load_topology(ah.write(tmp_path, doc))
+
+
+def test_public_export():
+    """10절: 공개 이름 check_source_manifest 가 __all__ 에 있고 호출 가능하다."""
+    assert "check_source_manifest" in authoring.__all__
+    assert callable(authoring.check_source_manifest)

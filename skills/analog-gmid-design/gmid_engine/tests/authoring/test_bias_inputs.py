@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import pytest
 
+import gmid_engine.authoring as authoring
 from gmid_engine.authoring import TopologyDoc, load_topology
 
 GATE = "bias_inputs"                  # CONTRACT 9절 gate 이름
@@ -39,11 +40,14 @@ def gate_only_nets(doc):
     return gates - other
 
 
-def with_gate_only(ah, declared=None):
+_ABSENT = object()                    # 키를 쓰지 않음(None 은 JSON null 로 실제로 쓴다)
+
+
+def with_gate_only(ah, declared=_ABSENT):
     """base_valid + Q5(gate n_gb, drain n_outp, source rail_lo) -> gate 전용 넷 정확히 {n_gb}(구성)."""
     doc = ah.base()
     doc["netlist"].append({"name": "Q5", "kind": "nmos", "drain": "n_outp", "gate": "n_gb", "source": "rail_lo"})
-    if declared is not None:
+    if declared is not _ABSENT:
         doc["bias_inputs"] = declared
     return doc
 
@@ -162,23 +166,75 @@ def test_bias_input_not_gate_only_all_collected(ah, tmp_path):
 
 # ---------------------------------------------------------------------------------------------------- 거부: 형식
 def test_bias_input_duplicate(ah, tmp_path):
+    """9절: 중복 where = bias_inputs[i] -- i 는 그 넷이 놓인 위치 중 하나(계약이 첫/둘째 중 어느 쪽인지 정하지 않음)."""
     detail = load_rejected(ah, tmp_path, with_gate_only(ah, ["n_gb", "n_gb"]))
     assert ah.rules(detail["hits"]) == ["bias_input_duplicate"]
     assert detail["hits"][0].elements == ("n_gb",)
+    assert detail["hits"][0].where in ("bias_inputs[0]", "bias_inputs[1]")
 
 
 @pytest.mark.parametrize("value", ["n_gb", {"n_gb": 1}, None, 3], ids=["str", "object", "null", "int"])
 def test_bias_inputs_type(ah, tmp_path, value):
-    detail = load_rejected(ah, tmp_path, with_gate_only(ah, value))
-    assert "bias_inputs_type" in ah.rules(detail["hits"]), detail["hits"]
+    """9절(78ebbbd 보강): null·list 아닌 값은 bias_inputs_type 하나만(gate_only_undeclared 동반 없음), where = bias_inputs.
+    문서에 gate 전용 넷 n_gb 가 있어도 선언 집합이 없으므로 미선언 hit 가 따라오지 않는다."""
+    doc = with_gate_only(ah, value)
+    assert "bias_inputs" in doc and doc["bias_inputs"] == value      # null 이 실제로 JSON 에 쓰인다
+    detail = load_rejected(ah, tmp_path, doc)
+    assert [(h.rule, h.where) for h in detail["hits"]] == [("bias_inputs_type", GATE)], detail["hits"]
     assert detail["rejected_gates"] == (GATE,)
+
+
+def test_bias_inputs_type_null_without_gate_only_nets(ah, tmp_path):
+    """gate 전용 넷이 없는 문서에서도 null 은 키 없음과 다르다 -> bias_inputs_type."""
+    doc = ah.base()
+    doc["bias_inputs"] = None
+    detail = load_rejected(ah, tmp_path, doc)
+    assert ah.rules(detail["hits"]) == ["bias_inputs_type"]
 
 
 @pytest.mark.parametrize("entry", ["", 3, None, ["n_gb"]], ids=["empty", "int", "null", "list"])
 def test_bias_input_entry(ah, tmp_path, entry):
+    """9절: 형식 위반 where = bias_inputs[i] (i = 문서 안 위치, 여기서는 1)."""
     detail = load_rejected(ah, tmp_path, with_gate_only(ah, ["n_gb", entry]))
-    assert ah.rules(detail["hits"]) == ["bias_input_entry"], detail["hits"]
+    assert [(h.rule, h.where) for h in detail["hits"]] == [("bias_input_entry", "bias_inputs[1]")], detail["hits"]
     assert detail["rejected_gates"] == (GATE,)
+
+
+def test_bias_input_entry_where_index_follows_position(ah, tmp_path):
+    detail = load_rejected(ah, tmp_path, with_gate_only(ah, ["", "n_gb", 7]))
+    assert [(h.rule, h.where) for h in detail["hits"]] == [
+        ("bias_input_entry", "bias_inputs[0]"), ("bias_input_entry", "bias_inputs[2]")], detail["hits"]
+
+
+def test_set_violation_where_is_key(ah, tmp_path):
+    """9절: 집합 위반(gate_only_undeclared·bias_input_not_gate_only)의 where = bias_inputs."""
+    d1 = load_rejected(ah, tmp_path, with_gate_only(ah))
+    d2 = load_rejected(ah, tmp_path, with_gate_only(ah, ["n_gb", "n_ghost"]))
+    assert [(h.rule, h.where) for h in d1["hits"] + d2["hits"]] == [
+        ("gate_only_undeclared", GATE), ("bias_input_not_gate_only", GATE)]
+
+
+def test_entry_and_duplicate_cooccur_with_set_violations(ah, tmp_path):
+    """9절: entry·duplicate 는 gate_only_undeclared·bias_input_not_gate_only 와 한 번에 같이 나온다(예외 1개).
+    선언 ["", "rail_hi", "rail_hi"]: [0] 형식, rail_hi 중복, rail_hi gate 전용 아님, n_gb 미선언."""
+    detail = load_rejected(ah, tmp_path, with_gate_only(ah, ["", "rail_hi", "rail_hi"]))
+    got = {(h.rule, h.elements) for h in detail["hits"]}
+    assert ("gate_only_undeclared", ("n_gb",)) in got
+    assert ("bias_input_not_gate_only", ("rail_hi",)) in got
+    assert ("bias_input_duplicate", ("rail_hi",)) in got
+    assert {h.rule for h in detail["hits"]} == {
+        "gate_only_undeclared", "bias_input_not_gate_only", "bias_input_duplicate", "bias_input_entry"}
+    entry = [h for h in detail["hits"] if h.rule == "bias_input_entry"]
+    assert [h.where for h in entry] == ["bias_inputs[0]"]
+    dup = [h for h in detail["hits"] if h.rule == "bias_input_duplicate"]
+    assert [h.where for h in dup][0] in ("bias_inputs[1]", "bias_inputs[2]")
+    assert detail["rejected_gates"] == (GATE,)
+
+
+def test_public_export():
+    """9절: 공개 이름 bias_input_declaration 이 gmid_engine.authoring.__all__ 에 있고 호출 가능하다."""
+    assert "bias_input_declaration" in authoring.__all__
+    assert callable(authoring.bias_input_declaration)
 
 
 # ---------------------------------------------------------------------------------------------------- 건너뛰기

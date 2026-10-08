@@ -284,10 +284,21 @@ def test_bias_inputs_net_missing_from_input_named_in_diff(tmp_path, lut):
     assert meta["blockers"]
 
 
-def test_bias_inputs_key_absent_not_compared(tmp_path, lut):
-    """README C6: '키가 있을 때만 대조' -- topology 에 bias_inputs 키가 없으면 bias_voltages 와 대조하지 않는다."""
+def test_bias_inputs_key_absent_strict_mismatch(tmp_path, lut):
+    """README C6(78ebbbd 엄격): topology 에 bias_inputs 키가 없으면 빈 집합과 대조 -> 입력 bias_voltages {pb} 는 남는 넷."""
     tp = variant(tmp_path, lambda t: t.pop("bias_inputs"))
     p, text, meta = run_netlist(base_input(lut, tp, preds_nodes=PB_NODES), tmp_path)
+    t = ti(meta)
+    assert t["status"] == "mismatch", t
+    assert "pb" in _diff_text(t)
+    assert meta["blockers"]
+
+
+@pytest.mark.parametrize("bias_voltages", [None, []], ids=["input_key_absent", "input_empty_list"])
+def test_bias_inputs_key_absent_and_no_bias_voltages_verified(tmp_path, lut, bias_voltages):
+    """키 없음(빈 집합) + 입력 bias_voltages 없음/[] -> 같은 빈 집합이라 verified (pb 값은 predictions.nodes 로 C6 통과)."""
+    tp = variant(tmp_path, lambda t: t.pop("bias_inputs"))
+    p, text, meta = run_netlist(base_input(lut, tp, preds_nodes=PB_NODES, bias_voltages=bias_voltages), tmp_path)
     assert ti(meta)["status"] == "verified", ti(meta)["diffs"]
 
 
