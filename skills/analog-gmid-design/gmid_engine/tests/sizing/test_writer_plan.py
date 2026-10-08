@@ -1,7 +1,7 @@
 """`dc_writer_plan(snapshot, target_nets, input_dc_declared)` -- CONTRACT 3절 [r2].
 
-- 손 회로: 구조상 선택이 하나뿐인 경우 NodeWrite·DeviceCoord 를 손으로 적고 비교. 동률이 있는 대칭 회로는 TieBreak 기록을
-  손으로 적는다(키 = (순위, 색, 이름) -- 같은 색 안에서만 이름).
+- 손 회로: 구조상 선택이 하나뿐인 경우 NodeWrite·DeviceCoord 를 손으로 적고 비교. [r11] 대칭 회로의 선택은 구조 색 dc_colour(3.0b, 정점마다
+  유일 -- 1-WL 색 + 정준 위치)가 정하고 TieBreak 는 생기지 않는다: 기대값은 스냅샷 입력 열 dc_colour 로 3절 규칙을 손으로 적용한다.
 - 9회로: 불변식(종속 수 = G_vgs 순환수, W4 수)은 test_kernel_context. 여기서는 metamorphic:
   (1) 순서 섞기 -> 계획 비트 동일, (2) 이름 전단사 σ -> (writer 집합, θ 스키마 키 집합) = σ(원래 것), 차이는 모두 원래 계획의
   dc_tie_breaks·CurrentBasis.ties 후보 안(9절).
@@ -107,33 +107,56 @@ def diffpair():
                 bias=["pb", "vb"])                                                           # vb: M5 gate, pb: M3·M4 gate
 
 
-def test_symmetric_diffpair_ties_recorded(tmp_path, toy_access):
-    """손계산: F 밖 입력 포트 inn·inp(같은 색) -> 같은 DC 엣지, TieBreak(input_tie_order). 성분 {inn, inp, t} 에 F 없음 ->
-    뿌리 = 입력 포트 중 (색, 이름) 최소 = inn, TieBreak(w4_root, (inn, inp), (inn,)). M1·M2(같은 색, 같은 순위) 중 하나만 트리 ->
-    TieBreak(writer_edge, (M1, M2), (M1,)), M2 = cycle_vgs. M3·M4 (pb, vdd) -> M3 트리, M4 parallel_vgs(M3)."""
-    nw, co, ties = plan(build_ctx(tmp_path, diffpair(), toy_access)[2])
-    assert set(ties) == {TieBreak("input_tie_order", ("inn", "inp"), ("inn", "inp")),
-                         TieBreak("w4_root", ("inn", "inp"), ("inn",)),
-                         TieBreak("writer_edge", ("M1", "M2"), ("M1",)),
-                         TieBreak("writer_edge", ("M3", "M4"), ("M3",))}
-    assert len(ties) == 4
-    assert strip(nw)["inn"] == ("W4", "free_window", None, None, INPUT_GROUP_KEY)
-    assert strip(nw)["inp"] == ("W2", "input_tie", None, "inn", None)
-    assert co["M2"] == DeviceCoord("dependent", "cycle_vgs")
-    assert co["M4"] == DeviceCoord("dependent", "parallel_vgs", "M3")
-    assert strip(nw)["t"][:3] == ("W2", "vgs_source", "M1")
+def _lo_hi(col, pair):
+    """같은 1-WL 색 짝 중 구조 색(dc_colour -- 3.0b, 정점마다 유일) 작은 쪽, 큰 쪽."""
+    lo, hi = sorted(pair, key=lambda k: col[k])
+    return lo, hi
+
+
+def test_symmetric_diffpair_choices_by_canonical_position(tmp_path, toy_access):
+    """[r11] 3.0b: 모든 정렬 키의 구조 색이 정점마다 유일해 이름이 결정을 가르지 않는다 -> dc_tie_breaks = ().
+    손계산(3절 규칙, 이름 대신 dc_colour): F 밖 입력 포트 inp·inn -> 같은 DC 엣지; 성분 {inn, inp, t} 에 F 없음 -> 뿌리 = 입력 포트 중
+    색 최소(W4 free_window, y 키 INPUT_GROUP_KEY), 다른 포트 = input_tie(known 뿌리). M1·M2(같은 순위) 중 색 작은 쪽이 트리(vgs_source 로 t),
+    다른 쪽 cycle_vgs. M3·M4 (pb, vdd) -> 색 작은 쪽 트리, 다른 쪽 parallel_vgs(partner = 트리 쪽). 색은 스냅샷 입력 열."""
+    ctx = build_ctx(tmp_path, diffpair(), toy_access)[2]
+    nw, co, ties = plan(ctx)
+    ncol = dict(ctx.base.column("node", "dc_colour"))
+    ecol = dict(ctx.base.column("device", "dc_colour"))
+    assert tuple(ties) == ()
+    root, other = _lo_hi(ncol, ("inp", "inn"))
+    assert strip(nw)[root] == ("W4", "free_window", None, None, INPUT_GROUP_KEY)
+    assert strip(nw)[other] == ("W2", "input_tie", None, root, None)
+    w12, d12 = _lo_hi(ecol, ("M1", "M2"))
+    assert co[w12] == DeviceCoord("writer", "tree")
+    assert co[d12] == DeviceCoord("dependent", "cycle_vgs")
+    w34, d34 = _lo_hi(ecol, ("M3", "M4"))
+    assert co[w34] == DeviceCoord("writer", "tree")
+    assert co[d34] == DeviceCoord("dependent", "parallel_vgs", w34)
+    assert strip(nw)["t"][:3] == ("W2", "vgs_source", w12)
     assert strip(nw)["vb"] == ("W2", "vgs_gate", "M5", "gnd", None)
 
 
-def test_renamed_diffpair_follows_names_only_inside_ties(tmp_path, toy_access):
-    """M1↔M2 이름을 맞바꾸면(연결은 그대로) 같은 색 동률 안의 선택만 이름을 따라간다."""
+def test_renamed_diffpair_plan_follows_colour_correspondence(tmp_path, toy_access):
+    """[r11] M1↔M2 이름 맞바꿈(연결 그대로): 계획이 정점 대응 τ(같은 dc_colour 끼리, 3.0b 성질 (7)) 아래 같다 -- 이름이 아니라 정준 위치가
+    선택을 정한다. 동률 기록 없음."""
+    a = build_ctx(tmp_path, diffpair(), toy_access)[2]
     d = diffpair()
     d["topology_name"] = "wp_diff_sw"
     for e in d["netlist"]:
         e["name"] = {"M1": "M2", "M2": "M1"}.get(e["name"], e["name"])
-    nw, co, ties = plan(build_ctx(tmp_path, d, toy_access)[2])
-    assert co["M1"] == DeviceCoord("writer", "tree")                  # 이제 M1 = (o2, inn, t)
-    assert TieBreak("writer_edge", ("M1", "M2"), ("M1",)) in ties
+    b = build_ctx(tmp_path, d, toy_access)[2]
+
+    def by_colour(ctx):
+        nw, co, ties = plan(ctx)
+        nc = dict(ctx.base.column("node", "dc_colour"))
+        ec = dict(ctx.base.column("device", "dc_colour"))
+        f = lambda x: ec.get(x, nc.get(x, x)) if x is not None else None          # noqa: E731
+        nodes = {nc[n]: (w.tier, w.relation, f(w.element), f(w.known), w.y_key if w.y_key == INPUT_GROUP_KEY else f(w.y_key))
+                 for n, w in nw.items()}
+        coords = {ec[m]: (c.role, c.relation, f(c.partner)) for m, c in co.items()}
+        return nodes, coords, tuple(ties)
+    assert by_colour(a) == by_colour(b)
+    assert by_colour(b)[2] == ()
 
 
 def test_resistor_cycle_stop(tmp_path, toy_access):

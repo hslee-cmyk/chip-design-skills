@@ -71,7 +71,8 @@ def test_block_declaration():
     assert METRICS_KEY == "metrics"
     assert set(metrics_ss.reads) == {("device", "ss_dev"), ("device", "element_class"), ("device", "kind"),
                                      ("device", "pins"), ("device", "bulk"), ("node", "ac_ground_class"),
-                                     ("node", "port_direction")}
+                                     ("node", "port_direction"),
+                                     ("device", "dc_colour"), ("node", "dc_colour")}    # [r12] 선형계 행·스탬프 순서 = dc_colour(CONTRACT r12)
     assert tuple(metrics_ss.writes) == (("graph", "metrics_ss"),)
 
 

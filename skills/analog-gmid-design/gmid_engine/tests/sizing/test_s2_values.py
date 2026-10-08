@@ -16,6 +16,8 @@ DC_TABLE = {
     ("node", "dc_rail_v"): "dc_rails",
     ("node", "dc_colour"): "dc_struct_colour",              # [r2]
     ("device", "dc_colour"): "dc_struct_colour",            # [r2]
+    ("node", "dc_orbit"): "dc_struct_colour",               # [r11] 3.0b
+    ("device", "dc_orbit"): "dc_struct_colour",             # [r11] 3.0b
     ("graph", "dc_current_basis"): "dc_current_basis",
     ("node", "dc_writer"): "dc_writer_plan",
     ("device", "dc_coord"): "dc_writer_plan",
@@ -58,9 +60,10 @@ BLOCKS = {
 }
 
 
-def test_dc_table_has_31_fields():
-    # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31).
-    assert len(DC_TABLE) == 31
+def test_dc_table_has_33_fields():
+    # CONTRACT 2절 표의 행 수(봉인 행을 6개로 풀면 r1 25 + r2 3 = 28, [r8] dc_seal_9·dc_off_current·dc_conduction_floor 3 = 31,
+    # [r11] 3.0b node.dc_orbit·device.dc_orbit 2 = 33).
+    assert len(DC_TABLE) == 33
 
 
 # [ss_linearize 커밋이 바꾼 행] S2 권한표 = S1 + dc + ss·metric 필드(sizing CONTRACT 2절 끝 표, metrics CONTRACT 7절).
@@ -126,7 +129,8 @@ READS = {
     "dc_columns": {("node", "dc_writer"), ("node", "dc_rail_v"), ("node", "dc_column_nbrs"),
                    ("device", "dc_drop_current"), ("device", "dc_L"), ("device", "pins"), ("device", "kind"),
                    ("device", "bulk"), ("device", "element_class"), ("device", "dc_coord"),
-                   ("graph", "dc_scc_order")},
+                   ("graph", "dc_scc_order"),
+                   ("device", "dc_colour"), ("node", "dc_colour")},     # [r11] 3.0b: writer·SCC 소자 정렬, 기둥 합산 출발 레일·이웃 정렬 = 색
     "dc_widths": {("node", "dc_v"), ("node", "dc_rail_v"), ("device", "dc_current"), ("device", "dc_L"),
                   ("device", "dc_ln_idu"), ("device", "pins"), ("device", "kind"), ("device", "bulk")},
 }
@@ -138,9 +142,16 @@ def test_seal_conduction_reads_cover_contract_inputs():
     assert {("device", "dc_op"), ("device", "dc_tol_v")} <= set(S.dc_seal_conduction.reads)
 
 
-@pytest.mark.parametrize("name", sorted(READS))
+@pytest.mark.parametrize("name", sorted(n for n in READS if n != "dc_struct_colour"))
 def test_block_reads_declared_as_contract(name):
     assert set(BLOCKS[name].reads) == READS[name]
+
+
+def test_b_struct_colour_reads_are_3_0_set():
+    """3.0b 'reads 3.0 과 같다'(+ extras 선언 표시 둘). [사용자 결정 2026-10-08 '대칭 묶음 방식: b'] 2단자 수동소자는 방향이 없으므로 DC 저항
+    판별용 device.dc_nets·graph.dc_pruned 를 읽을 이유가 없다 -- 3.0 의 7개 필드 그대로.
+    ★ (b) 미구현 브랜치(현재 코드는 DC 저항 끝 방향 보존을 위해 dc_nets·dc_pruned 를 더 읽음)에서는 실패가 기대값."""
+    assert set(S.dc_struct_colour.reads) == READS["dc_struct_colour"]
 
 
 def test_theta_schema_reads_include_structural_rule_fields():
