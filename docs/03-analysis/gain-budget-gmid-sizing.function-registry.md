@@ -606,6 +606,5 @@ measured_at: `766b5c2b486df66e143feb1f9440084a62db0ebc`
 | 개념 | 정본 | 비고 |
 |---|---|---|
 | 1변수 노드 근 찾기 | `gmid_engine.sizing.bracket_root`(Brent, 수렴 판정 = bisection 과 같음: 근과 거리 ≤ tol/2) | `solve_self` 가 부른다. 새 근 찾기 함수를 만들지 않는다 |
-| 구간 bisection(참조) | `gmid_engine.sizing.bisect_root` | 운영 호출 0(`solve_self` 가 `bracket_root` 로 바뀜) -- 독립 test 가 `bracket_root` 의 오라클로 쓴다. 삭제 여부는 사용자 결정 |
 | 1변수 풀이 재사용 | `solve_self` 안 LUT memo `root` 영역(함수 이름 `solve_self`) | 키 = 소자 종류·L·ln IDu·writer 관계·known·VDS/VSB 1차식 계수·구간·tol |
 | tol_V 셀 조회 한 평가 안 재사용 | `_Circuit.tolerance` 의 `tol_cells` | `tol_v_cell` 자체는 상태 없음 |

@@ -2,7 +2,7 @@
 
 진입점: `bracket_root(f, lo, hi, tol) -> (x | None, f_lo, f_hi)`.
 
-`bisect_root` 와 같은 약속이다: f 는 실수 또는 ±inf(조회 정의역 밖이지만 부호가 정해지는 쪽), 끝점 부호가 같으면(어느 쪽도 0 이
+옛 구간 bisection(`bisect_root`, 삭제됨)과 같은 약속이다: f 는 실수 또는 ±inf(조회 정의역 밖이지만 부호가 정해지는 쪽), 끝점 부호가 같으면(어느 쪽도 0 이
 아님) (None, f_lo, f_hi), 끝점이 0 이면 그 끝점. 다른 점은 끝점 사이 점을 고르는 방식뿐이다.
 
 * 수렴 판정 = bisection 과 같다: 돌려주는 x 는 부호가 바뀌는 구간 [x, c] 의 한 끝이고 그 폭 ≤ tol/2 -- 곧 근과의 거리
@@ -25,8 +25,18 @@ def _is_finite(*values):
     return all(math.isfinite(v) for v in values)
 
 
+def _checked(value):
+    if value != value:
+        raise ValueError("bracket_root: f 가 NaN 을 돌려줬다")
+    return value
+
+
 def bracket_root(f, lo, hi, tol):
-    f_lo, f_hi = f(lo), f(hi)
+    if not (math.isfinite(lo) and math.isfinite(hi) and lo <= hi):
+        raise ValueError("bracket_root: 구간은 유한하고 lo ≤ hi 여야 한다: " + repr((lo, hi)))
+    if not (math.isfinite(tol) and tol > 0):
+        raise ValueError("bracket_root: tol 은 양의 유한 수여야 한다: " + repr(tol))
+    f_lo, f_hi = _checked(f(lo)), _checked(f(hi))
     if f_lo == 0:
         return lo, f_lo, f_hi
     if f_hi == 0:
@@ -69,4 +79,4 @@ def bracket_root(f, lo, hi, tol):
             d = e = xm
         a, fa = b, fb
         b += d if abs(d) > tol1 else math.copysign(tol1, xm)
-        fb = f(b)
+        fb = _checked(f(b))

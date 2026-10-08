@@ -55,7 +55,6 @@
 |---|---|---|---|
 | 0 | `s2_values.py` | 데이터 선언 모듈(값 형식·어휘·`S2_WRITERS`) | -- |
 | 0 | `k_max.py` | `k_max` | -- |
-| 0 | `bisect_root.py` [r2] | `bisect_root` | -- |
 | 0 | `bracket_root.py` [r9] | `bracket_root` | -- |
 | 1 | `pre_layout_widths.py` [r2] | `pre_layout_lut_access` | -- |
 | 1 | `struct_colour.py` [r2] | `dc_struct_colour` | `dc_struct_colour` |
@@ -456,18 +455,23 @@ writes node.dc_writer, device.dc_coord, graph.dc_tie_breaks. [r2] 모든 정렬 
 
 ### 5.6 `k_max(width, tol)` = ceil(log2(width/tol)), width ≤ tol 이면 1. 양의 유한 수가 아니면 `ValueError`.
 
-### 5.6b [r2] `bisect_root(f, lo, hi, iterations) -> (x | None, f_lo, f_hi)`
-- f 는 실수 또는 ±inf. f(lo) == 0 이면 lo, f(hi) == 0 이면 hi. 부호가 같으면 (None, f_lo, f_hi). 아니면 `iterations` 번 반으로
-  줄이며(가운데 값 0 이면 그 점) 마지막 구간의 가운데를 돌려준다. f 는 끝점 2회 + 반복마다 1회 부른다.
+### 5.6b (삭제) 옛 `bisect_root` 는 5.6c `bracket_root` 가 대체했고 2026-10-08 삭제했다(운영 호출 0, 독립 test 는 test 쪽 참조 구현을 쓴다).
 
 ### 5.6c [r9] `bracket_root(f, lo, hi, tol) -> (x | None, f_lo, f_hi)` (사용자 승인 2026-10-08, 성능 항목 1)
-- `bisect_root` 와 같은 약속(f 는 실수 또는 ±inf, f(lo) == 0 이면 lo, f(hi) == 0 이면 hi, 끝점 부호 같으면 (None, f_lo, f_hi), f 는 끝점 2회
+- 옛 구간 bisection 과 같은 약속(f 는 실수 또는 ±inf, f(lo) == 0 이면 lo, f(hi) == 0 이면 hi, 끝점 부호 같으면 (None, f_lo, f_hi), f 는 끝점 2회
   먼저). 다른 점은 중간 점 선택뿐: Brent 법(유한한 점 3개면 역 2차 보간, 2개면 할선, 그 걸음이 구간 안쪽·감소 조건을 못 지키거나 ±inf 점이
   있으면 이분, 걸음이 tol/4 보다 작으면 tol/4 만큼 밀어 반대편을 확인).
 - **수렴 판정 (bisection 과 같은 보증)**: 반환 x 는 부호가 바뀌는 구간의 한 끝이고 그 구간 폭 ≤ tol/2 -> 근과의 거리 ≤ tol/2. (bisection: 마지막
-  구간 폭 ≤ tol 의 가운데 -> 거리 ≤ tol/2.) 허용오차를 느슨하게 하지 않는다. 두 방법의 답은 서로 tol 이내(각각 근과 tol/2 이내).
+  구간 폭 ≤ tol 의 가운데 -> 거리 ≤ tol/2.) 허용오차를 느슨하게 하지 않는다. (bisection 과 답이 서로 tol 이내.)
 - 평가 수(끝점 2회 포함) ≤ 2·`k_max(hi − lo, tol)` + 6 (보간 반복이 `k_max` 번을 넘으면 남은 반복은 순수 이분; 해석적 상계, 무작위 2만 함수 측정에서는
   ≤ 2·`k_max`). 숫자 기본값 없음(tol/4 는 판정식의 분수, 부동소수 해상도 2·eps·|x|).
+- **h 평가 관측 (test 용)**: `solve_self` 의 h 1회 = `_vgs_signed` 1회 = lut `gm_id_for_target` 조회 1회이며, 그 조회는 `LutMemo.lookup`(point/curve/root 영역)을
+  지난다 -- `LutMemo.lookup` 호출 수(적중 포함)나 `_vgs_signed` 호출 수로 센다. `solve_self` 입력 재사용 적중 시 이 호출은 0이다
+  (`LutMemo.lookup(region="root", fn_name="solve_self", ...)` 1회만).
+- **Brent 만의 약속**: 매끈하고 단순한(단조·거의 선형) 근에서 평가 수가 같은 tol 의 순수 bisection(끝점 2 + k_max)보다 적다(10.7: 실제 회로 h 평가 약
+  0.4~0.5배; 무작위 합성 함수 2만 개 평균 0.49배). 불연속·±inf 가 섞인 f 에서는 보증하지 않는다(상계 2·k_max+6 만).
+- **입력 검증**: lo·hi 가 유한하지 않거나 lo > hi, tol 이 양의 유한 수가 아님(0·음수·NaN·inf) -> `ValueError`(f 호출 전). lo == hi 는 허용(f 1회씩 두 번
+  불러 같은 값이면 부호 같음 -> `(None, …)`, 0 이면 그 끝점). f 가 NaN 을 돌려주면 `ValueError`(끝점이든 내부 점이든 즉시).
 - `solve_self` 의 한 입력 재사용: 풀이(근 찾기 + 한 번 다듬기)는 (소자 종류, L, ln IDu, writer 관계, known 값, VDS·VSB 의 x 1차식 계수 4개, 구간
   lo·hi, tol) 만의 함수라 LUT memo `root` 영역(함수 이름 칸 `solve_self`, BoundedLRU 상한)에 그 키로 저장한다 -- 적중하면 h 평가 0. 근 없음
   (None, h_lo, h_hi) 도 저장되나 예외는 저장하지 않는다(부르는 쪽이 strict 에 따라 만든다). `_Circuit.tolerance` 는 한 평가(= 한 `dc_columns`
@@ -778,7 +782,7 @@ margin 최댓값 ≤ 1.0e-3 -- 이 탐침은 봉인 9 가 겨누는 영역(VGS �
 5. **봉인 4·5 는 함수**(메타데이터를 읽어야 해서 투영 기반 계산 블록으로 쓸 수 없다), 결과는 `dc_seal_report` 의 extras 로 graph 에 든다.
 6. **봉인 2·3·8 은 `dc_op.idu_forward` 를 읽는다**: 순방향 조회를 `dc_widths` 에서 한 번만 한다(설계는 항목마다 lut.query).
 7. **봉인 8 = 멤버 ID 환산 차의 절대값 합**(부호 있는 잔차의 상계), 봉인 1 tol = 관계 소자 tol 최댓값, KCL tol_I = 노드 단위.
-8. **core 계층 수학(bisect_root·fixed_point_iter·k_max)은 sizing 에** 둔다: 소비자가 sizing 하나뿐(배선 원칙). 층 0 국소
+8. **core 계층 수학(bracket_root·fixed_point_iter·k_max)은 sizing 에** 둔다: 소비자가 sizing 하나뿐(배선 원칙). 층 0 국소
    고정점(DEC-71 (4)(d))이 생기면 core 로 옮긴다.
 9. **L 은 소자마다 θ**(`l_class` proposed 라 평가 경로가 읽지 않음, N3.3).
 10. 파일 이름: `seal/item*_*.py` 대신 `seal_<항목>.py`(하위 폴더 없이), `size_and_seal` 의 θ 검사는 `theta_check.py`.
