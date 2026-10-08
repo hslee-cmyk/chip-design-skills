@@ -1,11 +1,20 @@
 # ngcc_3stage_ff -- topology connectivity table
 
-소스: `library/ngcc_3stage_ff.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
+소스: `assets/library/ngcc_3stage_ff.topology.json`. 이 파일은 `topology_to_markdown.py`가 topology.json에서 그대로 파생시킨 것 -- 손으로 고치지 말고 topology.json을 고친 뒤 다시 생성할 것.
 
 ## ⚠️ 자동 플래그 (사람 재확인 필요)
 
-- **구동 소자 없는 net(gate로만 참조됨)**: VBN, VBP, Vinn, Vinp
+- **구동 소자 없는 net(gate로만 참조됨)**: Vinn, Vinp
   이 net을 source/drain으로 쓰는 소자가 topology.json에 없습니다 -- 외부 입력 핀이면 정상이지만, 내부에서 생성돼야 하는 신호라면 그걸 만드는 소자/감지망이 누락된 것일 수 있습니다.
+
+## 📄 출처 매니페스트 (`source_manifest`)
+
+- 그림/쪽: Lee et al., JSTS 2007, Fig. 3
+- 소자 16개, 수동소자 3개 (로더가 netlist·passive_elements 개수와 대조)
+
+## 🔌 외부 바이어스 입력 (`bias_inputs` -- gate 전용 선언 net, connectivity 불변)
+
+`VBN`, `VBP`
 
 ## Net별 연결 표 (이 net에 물린 모든 단자)
 
@@ -17,8 +26,8 @@
 | `TAIL` | M0.drain, M1.source, M2.source | 3 |
 | `V1` | Cm1.t0, M14.gate, M2.drain, M4.drain, M8.gate | 5 |
 | `V2` | Cm2.t0, M10.drain, M11.drain, M13.gate | 4 |
-| `VBN` ⚠️ | M11.gate | 1 |
-| `VBP` ⚠️ | M0.gate, M12.gate, M5.gate | 3 |
+| `VBN` ℹ️ | M11.gate | 1 |
+| `VBP` ℹ️ | M0.gate, M12.gate, M5.gate | 3 |
 | `Vinn` ⚠️ | M1.gate | 1 |
 | `Vinp` ⚠️ | M2.gate | 1 |
 | `Vout` | CL.t0, Cm1.t1, Cm2.t1, M12.drain, M13.drain, M14.drain, M7.drain | 7 |
