@@ -72,7 +72,8 @@ def test_block_declaration():
     assert set(metrics_ss.reads) == {("device", "ss_dev"), ("device", "element_class"), ("device", "kind"),
                                      ("device", "pins"), ("device", "bulk"), ("node", "ac_ground_class"),
                                      ("node", "port_direction"), ("node", "port_role"),
-                                     ("node", "is_rail")}   # [CM] 7.4 reads + port_role, [6a6e4c7] S-32 is_rail
+                                     ("node", "is_rail"),   # [CM] 7.4 reads + port_role, [6a6e4c7] S-32 is_rail
+                                     ("device", "dc_colour"), ("node", "dc_colour")}    # [r12] 선형계 행·스탬프 순서 = dc_colour(CONTRACT r12)
     assert tuple(metrics_ss.writes) == (("graph", "metrics_ss"),)
 
 

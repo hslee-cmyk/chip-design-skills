@@ -71,7 +71,8 @@ def test_block_declaration():
     assert metrics_dc.name == METRICS_DC_WRITER == S2_WRITERS.writer_of("graph", "metrics_dc") == "metrics_dc"
     assert set(metrics_dc.reads) == {("device", "dc_op"), ("device", "dc_current"), ("device", "element_class"),
                                      ("device", "pins"), ("node", "dc_v"), ("node", "dc_rail_v"),
-                                     ("graph", "dc_current_basis")}
+                                     ("graph", "dc_current_basis"),
+                                     ("device", "dc_colour"), ("node", "dc_colour")}    # [r12] 합산·나열 순서 = dc_colour(CONTRACT r12)
     assert tuple(metrics_dc.writes) == (("graph", "metrics_dc"),)
     # ss 값은 읽지 않는다(7.10 3: ss 변경에 재계산되지 않게)
     assert ("device", "ss_dev") not in set(metrics_dc.reads)

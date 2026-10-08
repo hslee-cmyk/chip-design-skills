@@ -24,7 +24,8 @@ def objective_values(snapshot):
     detail = dict(bundle.detail)
     if values.get(AXIS_POWER) is None or values.get(AXIS_AREA) is None:
         raise ValueError("objective_values: metrics_dc 묶음에 목적 축 값이 없다 " + repr(values))
-    gate = sum(o.W * o.L for _m, o in snapshot.column("device", "dc_op"))
+    orbit = dict(snapshot.column("device", "dc_colour"))
+    gate = sum(o.W * o.L for _m, o in sorted(snapshot.column("device", "dc_op"), key=lambda r: (orbit.get(r[0], -1), r[0])))
     return Objectives(values[AXIS_POWER], values[AXIS_AREA], tuple(detail["per_rail_amp"]),
                       detail["kcl_residual_amp"], gate, tuple(detail["passive_area_undeclared"]),
                       tuple(detail["passive_value_missing"]), _power_resolution(snapshot))
@@ -39,8 +40,11 @@ def _power_resolution(snapshot):
     tols = dict(snapshot.column("device", "dc_tol_v"))
     channel = {e: (a, b) for e, a, b in snapshot.value("graph", DC_KEY, "dc_current_basis").ends}   # MOS 채널 = (d, s)
     total, defined = 0.0, False
-    for rail, volt in snapshot.column("node", "dc_rail_v"):
-        rows = [tols[m] * op.current * op.gm_id for m, op in snapshot.column("device", "dc_op")
+    node_orbit = dict(snapshot.column("node", "dc_colour"))
+    device_orbit = dict(snapshot.column("device", "dc_colour"))
+    for rail, volt in sorted(snapshot.column("node", "dc_rail_v"), key=lambda r: (node_orbit.get(r[0], -1), r[0])):   # 정준 합산 순서
+        rows = [tols[m] * op.current * op.gm_id
+                for m, op in sorted(snapshot.column("device", "dc_op"), key=lambda r: (device_orbit.get(r[0], -1), r[0]))
                 if tols.get(m) is not None and rail in channel.get(m, ())]
         if rows:
             defined = True

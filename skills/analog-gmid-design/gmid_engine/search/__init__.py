@@ -7,7 +7,10 @@
 from .archive import S3Archive
 from .cell_floor import ln_idu_floors
 from .cone_rows import cone_rows
+from .canonical_order import canonical_order
+from .canonical_rows import canonical_row_key
 from .constraints import constraint_rows
+from .current_symmetry import CurrentSymmetry, current_symmetry
 from .current_box import current_box
 from .eps_sweep import sweep_front
 from .eval_key import eval_key
@@ -19,9 +22,11 @@ from .l_bin_search import polish_l_cells
 from .layer0_center import ROW_SEAL_ITEM, SOURCE_LAYER0, STAGE_LAYER0, Layer0Result, layer0_start
 from .l_cells import l_cells
 from .objectives import objective_values
+from .orbit_ties import orbit_ties
 from .pareto import nondominated
 from .seal7_pending import seal_status
 from .search_context import SearchContext, build_search_context
+from .tie_expand import expand_ties
 from .search_domain import search_domain
 from .search_values import (
     ACCEPTED_STATUSES,
@@ -99,7 +104,13 @@ __all__ = (
     "StartPoint",
     "Variable",
     "build_search_context",
+    "canonical_order",
+    "canonical_row_key",
+    "CurrentSymmetry",
     "cone_rows",
+    "current_symmetry",
+    "expand_ties",
+    "orbit_ties",
     "constraint_rows",
     "current_box",
     "eval_key",
