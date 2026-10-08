@@ -144,7 +144,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 |---|---|---|
 | `gain_budget_db_override` | `[{block: [출력노드 넷 이름, ...], value_db, source}]`. 블록 키는 출력노드 이름을 정렬한 배열이다(41 §1.7-3) | 41 §5.7 |
 | `structure_count_budget` | `{value, source}`, 선택 항목. 없으면 LUT 격자에서 유도한 값을 쓴다(41 §0) | 41 §0 |
-| 잡음 제약 `noise_in_density_ss_v_rthz`(`freq_hz`), `noise_in_integrated_ss_v`(`band_hz`) | `constraints[]` 행, `source` 필수 | 41 §7 |
+| 잡음 제약 `noise_th_in_v2hz`·`noise_fc_in_hz`(보고), `noise_excess_th`(가드), `noise_out_int_vrms`(폐루프 적분) -- 주파수·대역 필드 없음(41 §7.1: 주파수를 숫자로 고르지 않는다, `freq_hz`는 `unknown_key`). 옛 이름 `noise_in_density_ss_v_rthz`·`noise_in_integrated_ss_v`는 `metric_unknown` | `constraints[]` 행, `source` 필수 | 41 §7.1 |
 | `driving_spec` | `{slew_rate_v_per_s?, load_peak_amp?, load_dc_amp?, source}` | §3.8 `ls` |
 | `symmetry_untie` | `[{devices: [...], source}]` | §6 |
 | `cm_sense_elements` | `[<요소 이름>]` + `source: user_spec` | §5 `[ng-cmfb-pm]` |
@@ -415,7 +415,7 @@ import 계층은 `core` < `lut` < `authoring` < `graph` < `sizing` < `metrics` <
 | `offset_in_sigma_mv` | **입력 환산 랜덤 offset 1σ**. 회로의 **모든 MOS** i에 독립 게이트 전압 오차원 σ_VGS,i(41 §6.4-2 A_eff 모델: LUT 감도 열 × bin별 slope / √(W_i·L_i))를 두고, 봉인 `ss` 스냅샷의 MNA 저주파(ω → 0) 전달로 출력(차동 출력이면 차동)까지 보낸 분산을 합해 차동 이득 A_dm으로 나눈다: σ²_in = Σ_i (Z_i·gm_i·σ_VGS,i)² / A_dm². Z_i는 소자 i 드레인 전류 → 출력 전달 임피던스이고, 잡음 해석(41 §7.3)과 같은 adjoint 해 한 번으로 모든 i를 얻는다 | mv | ss / transfer(gain 제약 전달 뷰) | LUT `tol_mismatch`와 소신호 tol의 adjoint 감도 전파 | 파일럿 제약, 나머지 보고 |
 | `offset_excess` | `offset_in_sigma_mv` ÷ (입력 셀 소자만의 같은 합). 입력 셀은 S1v의 gain 제약 전달 뷰 첫 이득 블록 input 셀(`noise_excess_th`와 같은 구조 규칙) | ratio | ss / transfer | 위 두 값의 전파 | 구조 가드 `<= √2`(부하 분산 ≤ 입력쌍 분산의 경계) |
 | `offset_sys_mv` | **계통 offset**: 봉인 DC 동작점(실제 VDS 반영)에서 입력 차 0일 때의 출력 오차 / A_dm. 출력 오차 기준은 차동 출력 = Vop − Vom, 단일 출력 = spec에 선언된 출력 기준 DC(선언이 없으면 값을 내지 않고 `reference_undeclared`로 보고) | mv | dc→ss / transfer | DC tol(tol_V)의 전파 | 상한 = `value_from_constraint: offset_in_sigma_mv`(기존 규칙 '계통 ≤ 랜덤 예산', 그 제약이 있는 회로만), 나머지 보고 |
-| `mirror_ratio_sigma_pct` | S1 matching 그룹 중 mirror 계열(whole, consumer_symmetric, `mirror_tail_ratio`, bias_distribution)마다 랜덤 전류비 σ(ΔI/I) = (gm/ID)·σ_ΔVGS,pair | pct | dc→ss / ratio | tol 전파 | 보고만 |
+| `mirror_ratio_sigma_pct` | S1 matching 그룹 중 mirror 계열(whole, consumer_symmetric, `mirror_tail_ratio`, bias_distribution)마다 랜덤 전류비 σ(ΔI/I) = (gm/ID)·σ_ΔVGS,pair | pct | dc→ss / 없음(뷰 불필요: 대상은 S1 미러 matching 그룹. view_kind `ratio`는 {num, den} 응답비 뷰라 해당 없음, U5 as-built 2026-10-08) | tol 전파 | 보고만 |
 | `swing_out_v` | **포화 기준 출력 스윙**: 출력 DC 동작점을 중심으로, 출력 경로의 모든 MOS가 VDS ≥ VDSAT + tol_vdsat(사용자 SPICE 포화 규칙 + LUT `tol_vdsat_table`)를 지키는 대칭 peak-to-peak 폭. 단일 출력 = 2·min(V_hi − V_o, V_o − V_lo). 차동 출력(포트쌍 p/n) = 출력마다 계산한 반폭의 최솟값 × 4(차동 p-p). [V_lo, V_hi]는 P N3.8 경로 합(VDS 엣지 = 포화 하한, VGS 엣지 = 그 전류의 VSB 포함 VGS)이다. 구간 자체도 레코드로 낸다 | v | ls | tol_vdsat·tol_V 합 | 파일럿·nmcnr 제약, 나머지 보고 |
 | `icmr_v` | 입력 공통모드 창 [Vin,min, Vin,max] ∩ [rail_lo, rail_hi]의 폭(레일 밖 입력 불허). 경계 = 입력 경로 소자 전부 VDS ≥ VDSAT + tol_vdsat. 창이 비면 음수 폭(부족량)을 그대로 낸다 | v | ls | 같음 | ngcc·nmcnr 제약, 나머지 보고 |
 | `icm_margin_v` | 선언된 입력 DC(spec `input_dc`)와 위 창 경계의 최소 거리 min(V_icm − Vin,min, Vin,max − V_icm). 경계에 tol이 이미 들어 있으므로 ≥ 0이면 'LUT tol 여유를 두고 창 안'이다. 입력 DC가 SP-2 대기면 SP-2 (c)(J-E, 41 §4.6)에 따라 V_icm = 해의 W4 자유 변수 y_icm으로 계산하고, `required_input_cm_v{value, window}`를 함께 보고한다 | v | ls | 같음 | 아래 규칙 |
