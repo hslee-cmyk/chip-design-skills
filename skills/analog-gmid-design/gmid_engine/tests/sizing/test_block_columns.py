@@ -153,7 +153,7 @@ def test_parallel_dependent_ln_idu(tmp_path, toy_access):
     doc = topo("hand_parallel",
                [mos("M1", "nmos", "o1", "in", "gnd"), mos("M2", "nmos", "o2", "in", "gnd"),
                 mos("M3", "pmos", "o1", "pb", "vdd"), mos("M4", "pmos", "o2", "pb", "vdd")],
-               {"in": ("input", "x"), "o1": ("output", "y")})
+               {"in": ("input", "x"), "o1": ("output", "y")}, bias=["pb"])                 # pb: M3·M4 gate 에만
     ctx = build_ctx(tmp_path, doc, toy_access)[2]
     comps = dict.fromkeys(ctx.schema.components)
     th = {}
@@ -177,7 +177,7 @@ def test_window_with_declared_target(tmp_path, toy_access):
     doc = topo("hand_w3",
                [mos("M1", "nmos", "out", "in", "s1"), mos("M2", "pmos", "out", "pb", "vdd"),
                 mos("M5", "nmos", "s1", "vb5", "gnd")],
-               {"in": ("input", "x"), "out": ("output", "y")})
+               {"in": ("input", "x"), "out": ("output", "y")}, bias=["pb", "vb5"])        # pb: M2 gate, vb5: M5 gate
     ctx = build_ctx(tmp_path, doc, toy_access, node_targets=(("s1", 0.3),))[2]
     assert ctx.fixed_values == (("s1", 0.3),)
     y = 0.4
@@ -299,7 +299,7 @@ def test_diode_one_variable_bisection(tmp_path, toy_access, v_star):
 def test_source_follower_one_variable(tmp_path, toy_access):
     """M1 nmos (vdd, in, out): out 은 vgs_source 1변수(vds = 1.8 − x, vsb = x). 근은 이 test 의 독립 이분법(1e-12)으로."""
     doc = topo("bc_sf", [mos("M1", "nmos", "vdd", "in", "out"), mos("M2", "nmos", "out", "vb", "gnd")],
-               {"in": ("input", "x"), "out": ("output", "y")})
+               {"in": ("input", "x"), "out": ("output", "y")}, bias=["vb"])               # vb: M2 gate 에만
     ctx = build_ctx(tmp_path, doc, toy_access)[2]
     w = dict(ctx.base.column("node", "dc_writer"))
     assert (w["out"].relation, w["out"].element) == ("vgs_source", "M1")

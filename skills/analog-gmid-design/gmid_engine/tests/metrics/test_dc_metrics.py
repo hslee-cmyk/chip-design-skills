@@ -40,7 +40,8 @@ def _topo():
         mos=[("M1", "nmos", "out", "in", "gnd", "gnd"), ("M2", "pmos", "out", "pb", "vdd", "vdd"),
              ("M4", "nmos", "x", "in", "gnd", "gnd"), ("M3", "nmos", "y", "y", "gnd", "gnd")],
         passives=[("R1", "resistor", "vdd", "x"), ("CL", "capacitor", "out", "gnd")],
-        sources=[("I1", "current_source", "vmid", "y")], rails=("vdd", "vmid", "gnd"))
+        sources=[("I1", "current_source", "vmid", "y")], rails=("vdd", "vmid", "gnd"),
+        bias=["pb"])                                          # pb: M2 gate 에만 (authoring 9절 입력 선언)
 
 
 @pytest.fixture(scope="module")
