@@ -165,7 +165,7 @@ mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(None), supp
 | 회로 | 제약(판정) | pending 표지 |
 |---|---|---|
 | common_gate_amplifier | 0 | 6 |
-| current_reuse_telescopic_ota | 8(5) | 13 |
+| current_reuse_telescopic_ota | 8(5) | 11 |
 | folded_cascode | 0 | 7 |
 | ngcc_3stage_ff | 3(2) | 7 |
 | nmcnr_amplifier | 2(2) | 6 |
@@ -174,9 +174,10 @@ mismatch_sigma_mv·mirror_ratio_error_mv·power_dc_w·area_search_m2(None), supp
 | two_stage_ota | 2(1) | 7 |
 | two_stage_ota_sf | 3(2) | 6 |
 
-남은 표지 63개 = AC-3 9, PA-1 9, PA-2 9, CI-15 9, CI-18 9, SP-2 7, MOD5 7(파일럿 뷰 5·metric 1, ngcc metric 1), SP-3 2,
-CI-10 1(파일럿 feedback), CI-17 1(folded Ibg). 기존 결정으로 푼 칸(오케스트레이터 적용
-2026-10-07): 포화 규칙 `vds_ge_vdsat`(UD 8번, 여유 0), 파일럿 밖 8회로 feedback `[]`(UD 9번 PM 정의 β=1), 보상 소자
+남은 표지 61개 = AC-3 9, PA-1 9, PA-2 9, CI-15 9, CI-18 9, SP-2 7, MOD5 6(파일럿 뷰 4·metric 1, ngcc metric 1), SP-3 2,
+CI-17 1(folded Ibg). CI-10 해소(사용자 2026-10-08 "5번도 네 의견에 동의해"): 파일럿 feedback = {Cf1, Cf2}(출력->입력),
+Cs1·Cs2 는 입력 부하라 되먹임이 아니다 -- spec 에 선언하고 `pm_ss_deg` 뷰 표지(MOD5)를 지워 loop 뷰(declared, cuts (Cf1, Vip)·(Cf2, Vim),
+가중 (Vim −½, Vip +½))가 유도되게 했다. 기존 결정으로 푼 칸(오케스트레이터 적용 2026-10-07): 포화 규칙 `vds_ge_vdsat`(UD 8번, 여유 0), 파일럿 밖 8회로 feedback `[]`(UD 9번 PM 정의 β=1), 보상 소자
 engine(파일럿 Cc1·Cc2·Rz1·Rz2, ngcc Cm1·Cm2, two_stage_ota_sf Cc -- nmcnr·two_stage 확정과 같은 원칙), SP-10 = 파일럿
 CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", user_spec).
 
@@ -186,8 +187,7 @@ CL1·CL2 각각 1 pF(사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF", u
 7a 재측정(2026-10-07, 이 커밋 코드 + library, 픽스처 이름표 -- 위 표·표지 수는 바뀌지 않았다: 9/9 통과, pending 63):
 - 유도 뷰: loop β = 1 2건(ngcc_3stage_ff·nmcnr_amplifier `pm_ss_deg` -- 가중 (n −½, p +½), 출력 1개 single_ended), β 루프
   유도 0건(8회로 feedback `[]`, 파일럿은 결정 대기). sense 3건(pushpull·sf_pushpull·two_stage_ota_sf `rout_ss_ohm` = 출력
-  포트 single_ended). 파일럿 `pm_ss_deg` 는 선언 표지 `{"pending": "MOD5"}` 가 그대로라 mode `pending`(MOD5) -- 표지를 지우면
-  feedback 결정 대기가 전파돼 `pending`(CI-10)이 된다(표지 삭제는 CI-10 결정 뒤, 오케스트레이터 몫).
+  포트 single_ended). 파일럿 `pm_ss_deg` 는 (2026-10-08 이전) 선언 표지 MOD5 가 있어 mode `pending` 이었고, CI-10 해소 뒤 표지를 지워 loop declared 가 되었다.
 - 파일럿 feedback 후보를 넣은 복사본 로드: {Cf1, Cf2} → loop declared, cuts (Cf1, Vip)·(Cf2, Vim), weights (Vim −½, Vip +½);
   {Cf1, Cf2, Cs1, Cs2} → 같은 절단 넷·가중, cuts 4개; `[]` → loop unity, 차동 출력 sense (Vop, Vom).
 - 새 규칙 거부(복사본 한 곳씩): `feedback_element_not_on_input`(파일럿 feedback CL1), `feedback_cut_ambiguous`(파일럿에

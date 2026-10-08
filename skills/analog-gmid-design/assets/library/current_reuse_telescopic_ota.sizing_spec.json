@@ -137,9 +137,13 @@
       }
     },
     "feedback": {
-      "pending": "CI-10"
+      "elements": ["Cf1", "Cf2"],
+      "source": {
+        "kind": "user_spec",
+        "record": "user_decisions.md 2026-10-08 \"5번도 네 의견에 동의해\" CI-10 -- 파일럿 되먹임 소자 = {Cf1, Cf2}(출력->입력). Cs1·Cs2 는 입력-접지 샘플링 커패시터라 되먹임이 아니다(입력 부하, beta = Cf/(Cf+Cs+Cin))",
+        "decided": "2026-10-08"
+      }
     },
-    "_feedback_comment": "후보 Cf1·Cf2·Cs1·Cs2(AC-2 문언의 예) -- 파일럿 PM 루프 β 해석 CI-10 대기.",
     "constraints": [
       {
         "metric": "gain_ss_db",
@@ -158,9 +162,6 @@
         "metric": "pm_ss_deg",
         "op": ">=",
         "value": 70,
-        "view": {
-          "pending": "MOD5"
-        },
         "source": {
           "kind": "user_spec",
           "record": "user_decisions.md 2026-10-07 \"5번 빼고, 1~7은 기본안대로 해.\" 항목 2 -- 파일럿 PM 하한 70도",
