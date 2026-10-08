@@ -11,6 +11,7 @@ from .json_read import CheckedJson, load_json_checked
 from .linked_files import check_linked_files
 from .name_uniqueness import check_name_uniqueness
 from .passives import passive_declaration
+from .cm_partition import CmPartition, cm_partition
 from .ports import INPUT_DIRECTION, ROLE_DIFFERENTIAL_OUTPUT_N, ROLE_DIFFERENTIAL_OUTPUT_P, port_declaration
 from .rails import rail_declaration
 from .source_manifest import check_source_manifest
@@ -97,6 +98,8 @@ __all__ = (
     "TargetDecl",
     "TopologyDoc",
     "ViewDecl",
+    "CmPartition",
+    "cm_partition",
     "ROLE_DIFFERENTIAL_OUTPUT_N",
     "ROLE_DIFFERENTIAL_OUTPUT_P",
     "check_hidden_rails",

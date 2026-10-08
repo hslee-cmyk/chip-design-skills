@@ -8,7 +8,7 @@
   넷리스트(.cir)와 그 메타(<out.cir>.meta.json: 소자 probe 이름, 넷 목록, 고정한 넷, 경고/막힘)를 쓴다.
   ngspice 는 부르지 않는다(oracle_simulate.py 몫).
 
-공개 함수: build_netlist(inp, bias, ac_file, loop=False|True|CM_LOOP) -> (text, meta), cm_loop_break_nets(inp), cm_loop_moved(inp, breaks), write_netlists(inp, bias, out_cir, ...) -> meta,
+공개 함수: build_netlist(inp, bias, ac_file, loop=False|True|CM_LOOP) -> (text, meta), cm_loop_break_nets(inp), cm_loop_moved(inp, breaks), cm_loop_blockers(inp, breaks), write_netlists(inp, bias, out_cir, ...) -> meta,
           validate_input(inp) -> [위반], loop_break_nets(inp), load_input(path), read_lut_meta(npz_path),
           parse_netlist_elements(text, inp), topology_elements(topo), topology_identity(inp, text, path),
           resolve_topology_path(inp, input_path, override), apply_z1(inp, omit, short),
@@ -256,7 +256,7 @@ def loop_break_nets(inp):
 CM_LOOP = "cm"      # build_netlist(loop=CM_LOOP): 공통 모드 루프(출력 포트 CM 주입) 넷리스트
 def cm_loop_break_nets(inp):
     """[CM] 공통 모드 루프를 끊는 곳 = 선언된 차동 출력 포트 쌍(ports.output_p·output_n) -- 두 출력 넷에 동일 부호 Middlebrook 주입(엔진
-    cm_loop 뷰 `cm_output` 과 같은 정의, CM 감지 구현 방식은 보지 않는다). 입력 `cm_output_loop` 가 true 일 때만. (넷 목록, 막힘 목록)."""
+    cm_loop 뷰 `cm_output` 과 같은 정의). 입력 `cm_output_loop` 가 있을 때만. (넷 목록, 막힘 목록)."""
     if not inp.get("cm_output_loop"):
         return [], []
     ports = inp["ports"]
@@ -266,16 +266,25 @@ def cm_loop_break_nets(inp):
 
 
 def cm_loop_moved(inp, breaks):
-    """[CM] 출력 넷에서 새 노드 lbx 로 옮길 **구동자** 단자: 그 넷에 drain 또는 source 가 (정확히 한쪽만) 물린 MOS 의 그 channel 단자.
-    {소자 이름: "drain" | "source"}. 수동소자·MOS gate(루프 신호를 받는 소비자)는 n 쪽에 남는다(Middlebrook 관례 n = 받는 쪽, x = 되돌림을 내는 쪽;
-    엔진 `cm_cuts` 와 같은 규칙). drain·source 가 모두 절단 넷인 MOS 는 옮기지 않는다."""
+    """[CM] 출력 넷에서 새 노드 lbx 로 옮길 구동자 단자: 입력 `cm_output_loop.drivers`(엔진 cm_partition 이 정한 구동자 MOS) 각각의 출력 넷 쪽 channel 단자.
+    {소자 이름: "drain" | "source"}. 소비자(수동소자·gate·감지망 MOS)는 n 쪽에 남는다. 소자가 없거나 channel 단자가 출력 넷에 정확히 하나가 아니면 KeyError 대신
+    빈 항목 없이 막힘을 만들도록 `cm_loop_blockers` 가 따로 알린다."""
     b = set(breaks)
+    by = {d["name"]: d for d in inp["devices"]}
     out = {}
-    for d in inp["devices"]:
-        ends = [t for t in ("drain", "source") if d[t] in b]
+    for name in (inp.get("cm_output_loop") or {}).get("drivers") or []:
+        d = by.get(name)
+        ends = [] if d is None else [t for t in ("drain", "source") if d[t] in b]
         if len(ends) == 1:
-            out[d["name"]] = ends[0]
+            out[name] = ends[0]
     return out
+
+
+def cm_loop_blockers(inp, breaks):
+    """[CM] cm_output_loop.drivers 검사: 소자가 devices 에 있고 drain·source 중 정확히 하나가 출력 넷이어야 한다. 막힘 목록."""
+    moved = cm_loop_moved(inp, breaks)
+    return [f"cm_output_loop.drivers 의 {n} 이 devices 에 없거나 drain·source 중 정확히 하나가 출력 넷 {sorted(breaks)} 이 아니다"
+            for n in (inp.get("cm_output_loop") or {}).get("drivers") or [] if n not in moved]
 
 
 def build_netlist(inp, bias, ac_file, loop=False):
@@ -350,6 +359,7 @@ def build_netlist(inp, bias, ac_file, loop=False):
     if cm:      # 공통 모드 루프: 끊는 곳은 차동 출력 포트 쌍 -- 입력은 전부 AC 접지(Vac AC 0)
         breaks, bb = cm_loop_break_nets(inp)
         fbp = set()                       # [CM] 수동소자는 옮기지 않는다
+        bb = bb + cm_loop_blockers(inp, breaks)
         driven.update(breaks)
     else:
         breaks, bb = loop_break_nets(inp) if loop else ([], [])
