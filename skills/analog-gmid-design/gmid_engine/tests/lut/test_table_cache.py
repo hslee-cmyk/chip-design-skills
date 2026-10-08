@@ -117,9 +117,9 @@ def tbl_files(d):
 
 @pytest.fixture
 def sd():
-    """짧은 임시 폴더(시스템 임시 폴더 바로 아래). 칸 파일 이름이 약 150자(<fn>-<64hex>-<64hex>.tbl, 쓰기 중 임시 이름은 더 길다)라
-    깊은 pytest tmp_path 에선 Windows MAX_PATH(260) 를 넘어 쓰기가 write_error 가 된다 -- 계약 동작을 재려면 짧은 경로가 필요하다
-    (경로 길이 문제 자체는 보고 대상, 계약에 규정 없음)."""
+    """짧은 임시 폴더(시스템 임시 폴더 바로 아래). 칸 파일 이름이 약 150자라 test 가 직접 하는 파일 조작(Path.read_bytes 등,
+    확장 길이 접두 없음)이 깊은 경로에서 MAX_PATH 에 걸리지 않게 한다. 깊은 경로 자체의 캐시 동작은
+    test_long_windows_path_* 가 따로 잰다(CONTRACT 2.1 'Windows 경로 길이')."""
     d = tempfile.mkdtemp(prefix="gtc")
     yield Path(d)
     shutil.rmtree(d, ignore_errors=True)
@@ -927,3 +927,61 @@ def test_plain_directory_cache_never_cleans(world):
     written = {world.write(t, world.ids["C"], "x%d" % i) for i in range(3)}
     assert set(os.listdir(world.cache)) == before | written
     assert not [e for e, _ in t.events if e.startswith("cleanup")]
+
+
+# ---------------------------------------------------------------------------
+# 2.1 'Windows 경로 길이' -- 폴더 경로가 ~97자를 넘어도 쓰기·읽기·깨짐 교체가 된다
+# ---------------------------------------------------------------------------
+
+_XLEN = "\\\\?\\"                                  # Windows 확장 길이 접두(백슬래시 2개 + ? + 백슬래시)
+
+
+def _long(p):
+    """test 쪽 파일 조작용 확장 길이 표기(Windows). 다른 OS 는 그대로."""
+    p = os.path.abspath(str(p))
+    return _XLEN + p if os.name == "nt" and not p.startswith(_XLEN) else p
+
+
+def _deep_dir(base):
+    d = Path(base) / ("d" * 60) / ("e" * 60)                 # (a) 폴더 경로 > 120자 -> 칸 파일 전체 경로 > 260자
+    assert len(str(d)) > 120
+    return d
+
+
+def test_long_windows_path_write_hit_and_corrupt_replace(TC, tmp_path):
+    """(d) 2.1 'Windows 경로 길이': 깊은 폴더(전체 경로 > MAX_PATH)에서도 폴더 생성·쓰기(write, write_error 아님)·새 객체 적중·
+    깨진 파일 교체가 된다. path_of 는 보통 표기이고 파일 이름 형식은 그대로다."""
+    d = _deep_dir(tmp_path)
+    t = TC(str(d))
+    value = ("deep", 1.5)
+    c = Counter(value)
+    assert t.fetch(LFP, DID, FN, ("k",), _inputs(), (), c) == value and c.n == 1
+    assert t.events == (("miss", FN), ("write", FN))
+    path = t.path_of(LFP, DID, FN, ("k",))
+    assert len(path) > 260 and not path.startswith(_XLEN)
+    assert NAME_RE.match(os.path.basename(path))
+    key, body = parse_file(Path(_long(path)).read_bytes())          # (b) 형식 직접 파싱
+    assert key == t.key_digest(LFP, FN, ("k",), _inputs(), ()) and pickle.loads(body) == value
+    c2 = Counter(None)
+    t2 = TC(str(d))
+    assert t2.fetch(LFP, DID, FN, ("k",), _inputs(), (), c2) == value and c2.n == 0 and t2.events == (("hit", FN),)
+    Path(_long(path)).write_bytes(b"garbage")
+    t3 = TC(str(d))
+    c3 = Counter(value)
+    with pytest.warns(RuntimeWarning):
+        assert t3.fetch(LFP, DID, FN, ("k",), _inputs(), (), c3) == value
+    assert c3.n == 1 and ("corrupt", FN) in t3.events and ("write", FN) in t3.events
+    assert sorted(os.listdir(_long(d))) == [os.path.basename(path)]     # 임시 파일 안 남음
+
+
+def test_long_windows_path_from_config_and_memo(TC, toy, tmp_path):
+    """(d) 2.1: 설정 경로로 만든 깊은 폴더(env)도 만들어지고, LutMemo 경유 tol_v_table 이 디스크에 써지고 새 memo 가 적중한다."""
+    d = _deep_dir(tmp_path)
+    cfg = _cfg(tmp_path / "cfg.json", cache_default=tmp_path / "unused")
+    t1 = TC.from_config(cfg, {ENV: str(d)})
+    a = tol_v_table(LutMemo(toy, point=8, curve=8, root=8, table_cache=t1), "nmos", 100)
+    assert ("write", "tol_v_table") in t1.events and "write_error" not in dict(t1.stats())
+    t2 = TC(str(d))
+    b = tol_v_table(LutMemo(toy, point=8, curve=8, root=8, table_cache=t2), "nmos", 100)
+    assert t2.events == (("hit", "tol_v_table"),)
+    assert_bit_identical(a, b, "tol_v_table")
