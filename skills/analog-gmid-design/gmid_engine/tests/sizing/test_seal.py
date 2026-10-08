@@ -1,9 +1,10 @@
 """`seal_dc(snapshot, calls, lut, resistances, linear_devices) -> DcEvaluation` -- CONTRACT 6절.
 
-순서 tol -> 1·2·3·6·7·8 -> 4(calls + 위 7개) -> 5 -> report. violated -> SealViolationError(devices = margin 최대 fail 항목의
-devices, margin = 그 margin, detail = item·nodes·items((번호, 상태, margin) 8개)·item_detail). undefined ->
+순서 tol -> 1·2·3·6·7·8·[r8] 9 -> 4(calls + 위 8개) -> 5 -> report. violated -> SealViolationError(devices = margin 최대 fail
+항목의 devices, margin = 그 margin, detail = item·nodes·items((번호, 상태, margin) [r8] 9개)·item_detail). undefined ->
 DcEvaluation(sealed=None). [r4] VDSAT 열이 없는 LUT(conftest 기본 toy)에서는 항목 7 이 undefined 라 SealedSnapshot 이 나오지
-않고(음성 확인), 열이 있는 LUT(r4 toy)에서는 1~8 이 모두 pass 인 점이 SealedSnapshot 이 된다 -- 7 fail 이면 나오지 않는다(음성).
+않고(음성 확인), 열이 있는 LUT(r4 toy)에서는 1~9 가 모두 pass 인 점이 SealedSnapshot 이 된다 -- 7 fail 이면 나오지 않는다(음성).
+봉인 9 단독 실패의 음성 확인은 test_seal_conduction.py.
 위반은 출력 필드를 자기 block_version 그대로 바꿔 넣어 만든다(입력 투영이 같아 봉인 4 는 pass 로 남는다).
 """
 import dataclasses
@@ -27,12 +28,12 @@ def test_undefined_evaluation(ctx_c):
     assert isinstance(ev, DcEvaluation)
     assert ev.sealed is None
     assert isinstance(ev.report, SealReport) and ev.report.status == "undefined"
-    assert [i.item for i in ev.report.items] == list(range(1, 9))
+    assert [i.item for i in ev.report.items] == list(range(1, 10))
     assert ev.snapshot.value("graph", DC_KEY, "dc_seal_report") == ev.report
-    for n in (1, 2, 3, 6, 7, 8):
+    for n in (1, 2, 3, 6, 7, 8, 9):
         assert ev.snapshot.value("graph", DC_KEY, "dc_seal_%d" % n) == ev.report.items[n - 1]
-    # 봉인 4 = calls 4개 + 봉인 계산 블록 7개(tol + 1·2·3·6·7·8)
-    assert dict(ev.report.items[3].detail)["n_checked"] == len(calls) + 7
+    # 봉인 4 = calls 4개 + 봉인 계산 블록 8개(tol + 1·2·3·6·7·8·[r8] 9)
+    assert dict(ev.report.items[3].detail)["n_checked"] == len(calls) + 8
 
 
 def test_linear_devices_reach_item7(ctx_c):
@@ -69,7 +70,7 @@ def test_violation_reports_worst_item(ctx_c):
     rec = ei.value.record
     d = dict(rec.detail)
     items = d["items"]
-    assert [x[0] for x in items] == list(range(1, 9))
+    assert [x[0] for x in items] == list(range(1, 10))
     st = {x[0]: x[1] for x in items}
     assert st[1] == "fail" and st[2] == "fail" and st[4] == "pass" and st[7] == "undefined"
     margins = {x[0]: x[2] for x in items if x[1] == "fail"}
@@ -108,11 +109,11 @@ def test_circuit_a_undefined(ctx_a):
 
 @pytest.mark.parametrize("y,v1,v2", [(0.5, 0.6, 0.7), (0.4, 0.8, 0.55)])
 def test_sealed_snapshot_when_all_pass(ctx_r4c, y, v1, v2):
-    """1~8 이 모두 pass -> REPORT_SEALED, DcEvaluation(sealed=SealedSnapshot(snapshot, report))."""
+    """1~9 가 모두 pass -> REPORT_SEALED, DcEvaluation(sealed=SealedSnapshot(snapshot, report))."""
     th = theta_r4c(y=y, v1=v1, v2=v2)
     snap, calls = eval_calls(ctx_r4c, th)
     ev = _seal(ctx_r4c, snap, calls, th)
-    assert [i.status for i in ev.report.items] == ["pass"] * 8
+    assert [i.status for i in ev.report.items] == ["pass"] * 9
     assert ev.report.status == "sealed"
     assert isinstance(ev.sealed, SealedSnapshot)
     assert ev.sealed.report == ev.report

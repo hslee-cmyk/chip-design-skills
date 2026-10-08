@@ -1,8 +1,8 @@
-"""봉인 8항목 묶음 계산 블록 (계획 N3.6, 설계 3.6 `seal.py` 의 graph 기록 부분).
+"""봉인 9항목 묶음 계산 블록 (계획 N3.6, 설계 3.6 `seal.py` 의 graph 기록 부분).
 
 진입점: `dc_seal_report`(`@compute_block`) -- `dc_seal_report(snapshot, item4, item5)`.
 
-reads 봉인 1·2·3·6·7·8 필드, extras = 봉인 4·5 결과(메타데이터 검사라 함수가 만든 SealItem). writes `graph.dc_seal_report`
+reads 봉인 1·2·3·6·7·8·9 필드, extras = 봉인 4·5 결과(메타데이터 검사라 함수가 만든 SealItem). writes `graph.dc_seal_report`
 = SealReport(items 항목 순, status): fail 이 하나라도 있으면 violated, 없고 undefined 가 있으면 undefined, 모두 pass 면 sealed.
 """
 from gmid_engine.core import compute_block
@@ -18,7 +18,7 @@ from .s2_values import (
     SealReport,
 )
 
-ITEM_FIELDS = ("dc_seal_1", "dc_seal_2", "dc_seal_3", "dc_seal_6", "dc_seal_7", "dc_seal_8")
+ITEM_FIELDS = ("dc_seal_1", "dc_seal_2", "dc_seal_3", "dc_seal_6", "dc_seal_7", "dc_seal_8", "dc_seal_9")
 READS = tuple(("graph", field) for field in ITEM_FIELDS)
 WRITES = (("graph", "dc_seal_report"),)
 

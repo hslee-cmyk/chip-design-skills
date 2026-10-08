@@ -670,13 +670,16 @@ def newton_replica(T, y, start, tol, K):
         k += 1
 
 
-@pytest.mark.parametrize("y,z_star", [(0.9, 1.0), (0.99, 0.3)])
+@pytest.mark.parametrize("y,z_star", [(0.9, 1.0), (0.93, 0.8)])
 def test_gauss_seidel_not_contracting_newton_converges(ctx_q, y, z_star):
     """경우 1(수축 안 함): 측정 q ≥ 1 이라 Gauss-Seidel 이 K_max 에서 정지 -> 같은 시작값에서 감쇠 Newton 이 수렴.
     확인: fallback(원인·q ≥ 1·GS Δ 열 = 독립 GS 재구현), method newton, Newton 기록(시작 ‖r‖∞, 반복 수 = 독립 Newton),
     반환 노드전압의 SCC 잔차를 이 test 의 writer 식으로 다시 잰 값 = 마지막 기록 ‖r‖∞ ≤ tol, 닫힌 해와의 차 ≤ κ·‖r‖∞.
-    [r7] 받은 점에서 온전한 걸음 ‖Δ‖∞ ≤ tol 이고 닫힌 해와의 차도 tol 안(노드전압 오차 상계가 실제로 지켜짐) -- (0.99, 0.3) 은 나쁜
-    조건(κ ≈ 59)이라 ‖r‖∞ = 3.8e-3 ≤ tol 인 첫 걸음 점(해와 0.11 V)을 받지 않고 한 걸음 더 간다(독립 Newton 도 2 걸음)."""
+    [r7] 받은 점에서 온전한 걸음 ‖Δ‖∞ ≤ tol 이고 닫힌 해와의 차도 tol 안(노드전압 오차 상계가 실제로 지켜짐) -- (0.93, 0.8) 은
+    시작점 ‖r‖∞ ≈ 1.1e-2 ≤ tol 인데 해와 tol 넘게 떨어져 있어(전제 확인) 받지 않고 걷는다(r6 규칙이면 0 걸음에 받았을 것).
+    [r8] 옛 구성 (0.99, 0.3)(나쁜 조건, 2 걸음)은 M1 VGS = c ≈ 3 mV 라 봉인 9 violated(margin ≈ 2.61) -- 그 거부는
+    test_q_ill_conditioned_point_rejected_by_seal_9 가 확인하고, 여기서는 봉인 9 를 통과하는(이 파일 oracle 로 c ≥ 0.06 V,
+    margin < 1) 구성으로 Newton 주장을 유지한다."""
     th, (zs, xs), T = theta_q(ctx_q, y, z_star)
     tol = toy_tol()
     K = kmax_ref(1.8, tol)
@@ -717,7 +720,10 @@ def test_gauss_seidel_not_contracting_newton_converges(ctx_q, y, z_star):
     assert abs(log.deltas[0] - norms_rep[0]) <= 2.0 * eps_x              # 시작점 x0 의 bisection 오차만큼
     # 첫 걸음 뒤 ‖r‖∞ 도 독립 Newton 과 같은 수준(엔진 J 간접 확인): 차이 원천 = 시작점 오차 eps_x, J 의 ∂VGS/∂VDS 항의 LUT gds 보간
     # 상대 오차(_gds_interp_rel, x 행 두 칸) -> 걸음 차 ≤ κ0·‖ΔJ‖·‖Δ‖ + (1 + κ0‖J0‖)·eps_x, 잔차 차 ≤ ‖J1‖·그 값.
-    assert k_rep == {0.9: 1, 0.99: 2}[y]
+    assert k_rep == {0.9: 1, 0.93: 1}[y]
+    if norms_rep[0] <= tol:                                               # [r7] 판별력: 잔차만 작은 시작점은 받지 않는다
+        assert max(abs(z0 - zs), abs(x0 - xs)) > tol and log.iterations >= 1
+    assert y != 0.93 or norms_rep[0] <= tol                               # (0.93, 0.8) 이 그 경우임을 전제로 고정
     r0, J0, v0 = q_residual(T, y, z0, x0)
     step = np.linalg.solve(J0, -r0)
     kap0 = np.max(np.sum(np.abs(np.linalg.inv(J0)), axis=1))
@@ -741,6 +747,53 @@ def test_gauss_seidel_not_contracting_newton_converges(ctx_q, y, z_star):
     assert np.max(np.abs(np.linalg.solve(J_eng, -r_eng))) <= log.tol
     assert max(abs(V["z"] - zs), abs(V["x"] - xs)) <= log.tol
     assert max(abs(V["z"] - V_rep[0]), abs(V["x"] - V_rep[1])) <= log.tol
+    # [r8] 봉인 9 통과 전제(이 파일 oracle -- 해에서 I_off/ID = exp(−f(c)), ε = (B − C·c)·tol_V)
+    c = zs * (1.0 - y) / y
+    assert math.exp(-Oracle.f(c)) / (Oracle.gm_id(c) * tol) < 1.0
+    assert ev.report.items[8].item == 9 and ev.report.items[8].status == "pass"
+
+
+def test_q_ill_conditioned_point_rejected_by_seal_9(ctx_q):
+    """[r8] r7 의 나쁜 조건 구성 (y, z*) = (0.99, 0.3): DC 풀이(Newton)는 되지만 M1 VGS = c = z*(1 − y)/y ≈ 3 mV 라 VGS = 0 누설이
+    ε·ID 보다 크다 -> 봉인 9 fail(devices ("M1",)) -> size_and_seal 은 SealViolationError(DcEvaluation 없음), 봉인 1~8 은 r7 과 같은
+    판정(7 undefined -- toy 에 VDSAT 열 없음, 나머지 pass).
+    기대 margin 은 평가 블록 4개 결과(dc_op·dc_tol_v = 블록 입력)에서 이 파일이 npz 식으로 다시 계산한 I_off/(gm_id·tol_V·ID), 그리고
+    해에서의 닫힌 식 exp(−f(c))/((B − C·c)·tol_V)(≈ 2.61, 계약 10.6) 과 노드전압 오차 tol 이 주는 범위 안."""
+    from gmid_engine.sizing import dc_seal_conduction, dc_tolerances, seal_dc
+    from .conftest import eval_calls, resistances_of
+    y, z_star = 0.99, 0.3
+    th, (zs, xs), T = theta_q(ctx_q, y, z_star)
+    tol = toy_tol()
+    snap, calls = eval_calls(ctx_q, th)
+    log = scc_log(snap, ("z", "x"))
+    assert log.method == SCC_NEWTON                                       # 풀이 자체는 r7 그대로 Newton
+    snap9 = dc_seal_conduction(dc_tolerances(snap, ctx_q.lut), ctx_q.lut)
+    it9 = snap9.value("graph", DC_KEY, "dc_seal_9")
+    assert it9.status == "fail" and it9.devices == ("M1",)
+    op = snap.value("device", "M1", "dc_op")
+    ln_off = math.log(I0["nmos"]) + LAM * op.vds + Oracle.vs_term(op.vsb)  # toy: VGS = 0 마디·VDS Hermite(1차 정확)·VS 선형
+    i_off = math.exp(ln_off) * op.W / op.L
+    eps = op.gm_id * tol
+    m_exp = i_off / (eps * op.current)
+    assert m_exp > 1.0 and abs(it9.margin - m_exp) <= 1e-9 * m_exp
+    # 해에서의 닫힌 식과의 일치: ln margin 의 노드전압 민감도 ≤ 2·LAM + max|VS 기울기| + 2·C/(B − C·VGS) (VGS·VDS 는 두 노드 차,
+    # VSB 는 한 노드) -> |Δ ln m| ≤ 그 값 × 노드 오차(≤ tol, 5.5b [r7])
+    c = zs * (1.0 - y) / y
+    m_star = math.exp(-Oracle.f(c)) / (Oracle.gm_id(c) * tol)
+    sens = 2 * LAM + max(abs(vs_slope(v)) for v in TOY_VS[:-1]) + 2 * C / (B - C * 0.2)
+    assert abs(math.log(it9.margin) - math.log(m_star)) <= sens * tol
+    assert 2.5 < m_star < 2.7
+    with pytest.raises(SealViolationError) as ei:
+        seal_dc(snap, calls, ctx_q.lut, resistances_of(ctx_q, th), ())
+    d = detail(ei.value)
+    st = {x[0]: x[1] for x in d["items"]}
+    assert len(st) == 9 and st[9] == "fail" and st[7] == "undefined"
+    assert all(st[n] == "pass" for n in st if n not in (7, 9))
+    assert d["item"] == 9 and ei.value.record.devices == ("M1",) and ei.value.record.margin == it9.margin
+    with pytest.raises(SealViolationError) as ei2:
+        size_and_seal(ctx_q, th)
+    assert detail(ei2.value)["item"] == 9 and ei2.value.record.margin == it9.margin
+
 
 def test_newton_failure_in_case_one_is_raised(ctx_q):
     """경우 1 에서 Newton 이 실패하면 그 NonconvergentError 를 그대로 낸다. y = 0.95, z* = 1.0: 시작 후보 (a)·(c) 의 z = 기둥 시작

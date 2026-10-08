@@ -1,6 +1,6 @@
 """`size_and_seal(ctx, theta, parent=None) -> DcEvaluation` -- CONTRACT 7절(API·재사용 계약), 8절(실패 규약), 9절(결정론).
 
-재사용은 core 블록 계수(`stats()`)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuses 12, 한 성분 섭동 ->
+재사용은 core 블록 계수(`stats()`)로 잰다. 기대값은 계약 7절 문장(같은 θ·parent -> computes 0·reuses 13, 한 성분 섭동 ->
 지정 블록만 다시)이다. 9회로 §10 숫자는 쓰지 않는다.
 """
 import json
@@ -20,19 +20,19 @@ from gmid_engine.sizing import DcEvaluation, check_theta, size_and_seal
 from .conftest import (HERE, Oracle, SKILL_DIR, build_ctx, circuit_cs_res, circuit_empty_window, detail, free_currents, mos,
                        theta_a, theta_c, topo, two)
 
-EVAL12 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
+EVAL13 = (S.dc_currents, S.dc_lengths, S.dc_columns, S.dc_widths, S.dc_tolerances, S.dc_seal_node_conflict,
           S.dc_seal_vgs_match, S.dc_seal_kcl, S.dc_seal_bulk_reverse, S.dc_seal_saturation, S.dc_seal_kvl_branch,
-          S.dc_seal_report)
+          S.dc_seal_conduction, S.dc_seal_report)       # [r8] 4 평가 + 8 봉인(tol·1·2·3·6·7·8·9) + report = 13
 PLAN5 = (S.dc_rails, S.dc_struct_colour, S.dc_current_basis, S.dc_writer_plan, S.dc_scc_order, S.dc_theta_schema)
 
 
 def reset():
-    for b in EVAL12 + PLAN5:
+    for b in EVAL13 + PLAN5:
         b.reset_stats()
 
 
 def stats():
-    return {b.name: b.stats() for b in EVAL12 + PLAN5}
+    return {b.name: b.stats() for b in EVAL13 + PLAN5}
 
 
 def computes():
@@ -90,8 +90,8 @@ def test_same_theta_with_parent_zero_compute(ctx_c):
     reset()
     ev2 = size_and_seal(ctx, theta_c(y=0.45), parent=ev1)
     st = stats()
-    assert all(st[b.name].computes == 0 for b in EVAL12)
-    assert sum(st[b.name].reuses for b in EVAL12) == 12
+    assert all(st[b.name].computes == 0 for b in EVAL13)
+    assert sum(st[b.name].reuses for b in EVAL13) == 13
     assert all(st[b.name].calls == 0 for b in PLAN5)          # 계획 블록은 평가에서 부르지 않는다
     assert ev2.snapshot.fp == ev1.snapshot.fp
     assert ev2.report == ev1.report
@@ -112,6 +112,7 @@ def test_current_perturbation_skips_columns(ctx_c):
     c, _, _ = _perturb(ctx_c[2], theta_c(), ("current", "M2"), 2e-5)
     assert c["dc_currents"] == 1 and c["dc_widths"] == 1 and c["dc_tolerances"] == 1
     assert c["dc_lengths"] == 0 and c["dc_columns"] == 0 and c["dc_seal_node_conflict"] == 0
+    assert c["dc_seal_conduction"] == 1          # [r8] dc_op(W·current) 가 바뀌어 하류 봉인 9 도 다시
 
 
 @pytest.mark.parametrize("key,val", [(("ln_idu", "M1"), Oracle.ln_idu("nmos", 0.62, 0.9, 0.0)),
@@ -159,7 +160,7 @@ def test_passive_theta_components_present(ctx_passive):
 
 @pytest.mark.parametrize("key,val", [(("capacitance", "Cz"), 1.1e-12), (("ss_resistance", "Rz"), 1.1e4), ("both", None)])
 def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
-    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuses 12), 계획 블록
+    """[r5] 7절: capacitance·ss_resistance 성분만 다른 θ 를 parent 에서 부르면 dc 블록 전부 computes 0(reuses 13), 계획 블록
     호출 0, 결과는 parent 와 같은 봉인 상태(스냅샷 지문·report 같음)."""
     ctx = ctx_passive
     ev1 = size_and_seal(ctx, theta_passive())
@@ -167,8 +168,8 @@ def test_passive_theta_only_change_zero_dc_compute(ctx_passive, key, val):
     reset()
     ev2 = size_and_seal(ctx, th, parent=ev1)
     st = stats()
-    assert all(st[b.name].computes == 0 for b in EVAL12), {b.name: st[b.name].computes for b in EVAL12}
-    assert sum(st[b.name].reuses for b in EVAL12) == 12
+    assert all(st[b.name].computes == 0 for b in EVAL13), {b.name: st[b.name].computes for b in EVAL13}
+    assert sum(st[b.name].reuses for b in EVAL13) == 13
     assert all(st[b.name].calls == 0 for b in PLAN5)
     assert ev2.snapshot.fp == ev1.snapshot.fp and ev2.report == ev1.report
 
@@ -303,17 +304,17 @@ def test_failure_seal_violation(tmp_path, toy_access):
     with pytest.raises(SealViolationError) as ei:
         size_and_seal(ctx, th)
     d = detail(ei.value)
-    assert d["item"] == 6 and len(d["items"]) == 8
+    assert d["item"] == 6 and len(d["items"]) == 9                       # [r8] 9개
     assert ei.value.record.margin > 1
 
 
 def test_diode_mirror_full_evaluation(tmp_path, toy_access):
-    """1변수 노드(diode) 가 있는 회로도 봉인 1·2·3·4·5·6·8 pass, 7 undefined -> sealed None."""
+    """1변수 노드(diode) 가 있는 회로도 봉인 1·2·3·4·5·6·8·[r8] 9 pass, 7 undefined -> sealed None."""
     from .test_block_columns import _mirror_ctx, _mirror_theta
     ctx = _mirror_ctx(tmp_path, toy_access)
     ev = size_and_seal(ctx, _mirror_theta(ctx, 0.6))
     assert ev.sealed is None and ev.report.status == "undefined"
-    assert [i.status for i in ev.report.items] == ["pass"] * 6 + ["undefined", "pass"]
+    assert [i.status for i in ev.report.items] == ["pass"] * 6 + ["undefined", "pass", "pass"]
 
 
 def test_failure_no_root_in_window(tmp_path, toy_access):

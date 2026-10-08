@@ -1,8 +1,8 @@
-"""봉인 게이트 -- 8항목을 모두 재고 봉인 스냅샷으로 승격하거나 구조화 실패를 낸다 (계획 N3.6, DEC-67, N3.14, 설계 3.6).
+"""봉인 게이트 -- 9항목을 모두 재고 봉인 스냅샷으로 승격하거나 구조화 실패를 낸다 (계획 N3.6, DEC-67, N3.14, 설계 3.6).
 
 진입점: `seal_dc(snapshot, calls, lut, resistances, linear_devices) -> DcEvaluation`.
 
-1. `dc_tolerances` -> 봉인 1·2·3·6·7·8 계산 블록(필드마다 기록, 첫 실패에서 멈추지 않는다).
+1. `dc_tolerances` -> 봉인 1·2·3·6·7·8·[r8] 9(전도 여유) 계산 블록(필드마다 기록, 첫 실패에서 멈추지 않는다).
 2. 봉인 4(`seal_versions`, 이번 평가의 모든 dc 블록 호출 `calls` + 1 의 블록) · 봉인 5(`seal_writers`).
 3. `dc_seal_report` 가 묶음을 graph 에 쓴다.
 4. 판정: violated -> `SealViolationError`(devices·margin = margin 이 가장 큰 fail 항목, detail = item·사유·전 항목 요약 --
@@ -15,6 +15,7 @@ from gmid_engine.core import SealViolationError
 
 from .s2_values import DC_KEY, REPORT_SEALED, REPORT_VIOLATED, SEAL_FAIL, DcEvaluation, SealedSnapshot
 from .seal_bulk_reverse import dc_seal_bulk_reverse
+from .seal_conduction import dc_seal_conduction
 from .seal_kcl import dc_seal_kcl
 from .seal_kvl_branch import dc_seal_kvl_branch
 from .seal_node_conflict import dc_seal_node_conflict
@@ -35,6 +36,7 @@ def seal_dc(snapshot, calls, lut, resistances, linear_devices):
         (dc_seal_bulk_reverse, ()),
         (dc_seal_saturation, (linear_devices, lut)),
         (dc_seal_kvl_branch, ()),
+        (dc_seal_conduction, (lut,)),
     )
     calls = tuple(calls)
     for block, extras in steps:
