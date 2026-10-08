@@ -128,8 +128,14 @@ def test_gmb_column_not_required_falls_back(toy_build):
 # 열 로드 (1.2·1.4): DcSlice.columns·CapTable.columns·파생 열·on_mask·meta
 # ---------------------------------------------------------------------------
 
+# [r7 2026-10-09 단위 검사 복원(CONTRACT 1.4)] 슬라이스 GMBS 는 ln ID 의 VS 기울기와 맞아야 로드된다. r5 toy 의 ln ID VS 몫은
+# ln(0.5)·vsb/0.5(CONTRACT 7.1 닫힌 식) -> −GMBS/ID = 2·ln 0.5, GMBS = 2·ln2·ID (oracle (a) 구성). 옛 값 0.4·ID 는 VS 칸 18 개 모두
+# 현 −1.39 대 끝 기울기 −0.4 로 1.4 위반(로드 거부)이었다. 열 로드·파생 열 확인이 목적이라 값만 일관되게 바꾼다.
+R5_GMBS_PER_ID = 2.0 * math.log(2.0)
+
+
 def test_slice_columns_and_derived(toy_build):
-    a_cols = {"GMBS": toy_id(1.0) * 0.4, "VDSAT": _vdsat_arr(0.3, 0.1)}
+    a_cols = {"GMBS": toy_id(1.0) * R5_GMBS_PER_ID, "VDSAT": _vdsat_arr(0.3, 0.1)}
     a_cols["GMBS"][0, 0, 0, 0] = 1e-9
     lut = toy_build("sc", slices=_slices(w100_cols=a_cols)).load()
     sl = lut.slice_map[("nmos", 100)]
@@ -148,7 +154,7 @@ def test_derived_gmbs_per_id_nan_where_id_not_positive(toy_build):
     ida = toy_slice_arrays(1e-6, 1.0)
     ida["ID"] = ida["ID"].copy()
     ida["ID"][0, 0, 0, 0] = 0.0
-    ida["GMBS"] = toy_id(1.0) * 0.4
+    ida["GMBS"] = toy_id(1.0) * R5_GMBS_PER_ID
     lut = toy_build("nan", slices=[("toy_w100.npz", "toyn", ida), ("toy_w200.npz", "toyn", toy_slice_arrays(2e-6, 2.0))]).load()
     r = np.asarray(lut.slice_map[("nmos", 100)].columns["GMBS_PER_ID"])
     assert math.isnan(r[0, 0, 0, 0])

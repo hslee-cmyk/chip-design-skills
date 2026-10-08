@@ -20,12 +20,13 @@ def test_toy_closed_form(toy_memo, w_key, vds, vsb):
 def test_r4_toy_cell_class(r4toy_memo):
     """r4 toy(CONTRACT 7.2): VGS 칸 [0, 0.5] FC 위반 -> cell_ok (False, True).
     [RED 예상 -- 결함 보고] 마디 값은 '그 마디에서 LUT 가 말하는 양'(CONTRACT 4.5)이고 격자점에서 gm/ID 는 저장값 그대로(4.2 '결과',
-    계획 DEC-87 '기울기 = 저장 GM/ID')라 gm/gds = 저장 GM/GDS = 10·(20, 10, 4). 마디 0 의 오른쪽 칸이 FC 위반이면 엔진 op_point 가
-    격자점에서도 그 칸의 할선 기울기(ln10/0.5 = 4.605)를 gm/ID 로 내 표의 gm_id(20)와 값(46.05)이 서로 다른 gm/ID 를 쓴다."""
+    계획 DEC-87 '기울기 = 저장 GM/ID')라 gm/gds = 저장 GM/GDS. oracle (a): conftest r4 toy 구성 -- GM/ID = (20, 4, 1.5)[VGS],
+    VDS 0.5 의 GDS/ID = 0.1 -> gm/gds = (200, 40, 15). (옛 결함: 마디 0 의 오른쪽 칸이 FC 위반이면 격자점에서도 그 칸의 할선 기울기
+    ln10/0.5 = 4.605 를 gm/ID 로 내 표의 gm_id 와 값이 서로 다른 gm/ID 를 썼다.)"""
     c = intrinsic_gain_curve(r4toy_memo, "nmos", 100, 1e-6, 0.5, 0.0)
     assert tuple(bool(x) for x in c.cell_ok) == (False, True)
-    assert np.allclose(c.gm_id, [20.0, 10.0, 4.0], rtol=1e-12, atol=0)
-    assert np.allclose(c.values, [200.0, 100.0, 40.0], rtol=1e-12, atol=0)
+    assert np.allclose(c.gm_id, [20.0, 4.0, 1.5], rtol=1e-12, atol=0)
+    assert np.allclose(c.values, [200.0, 40.0, 15.0], rtol=1e-12, atol=0)
 
 
 @pytest.mark.lut_realdata

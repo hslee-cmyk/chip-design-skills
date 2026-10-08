@@ -84,15 +84,21 @@ def test_nonmonotone_cell_rejected(r4toy_memo):
 
 
 def test_non_monotonic_branch(curve_lut):
-    """합성 곡선: 마디 ID (1e-6, 1e-5, 1e-7), gm/ID (20, 10, 4) -> 정점 0, 단조 구간 [0, 1](ln ID 증가), 분지 범위 [1e-7, 1e-5].
-    목표 5e-7 은 분지 범위 안이지만 단조 구간 밖 -> `lut_target_non_monotonic`."""
-    memo, _ = curve_lut((0.0, 0.5, 1.0), (1e-6, 1e-5, 1e-7), (20.0, 10.0, 4.0))
+    """합성 곡선: 마디 gm/ID (20, 10, 6, 4), ID (1e-6, 1e-6·e^7.5, 1e-6·e^11.5, 1e-7) -> 정점 0, 단조 구간 [0, 2](ln ID 증가),
+    분지 범위 [1e-7, 1e-6·e^11.5]. 목표 5e-7 은 분지 범위 안이지만 단조 구간 밖 -> `lut_target_non_monotonic`.
+    [r7 2026-10-09] 칸 [0,1]·[1,2] 는 현(15, 8)이 두 끝 gm/ID 사이(lut CONTRACT 1.4 단위 검사 일관), ID 가 내려가는 칸 [2,3] 만 모순 --
+    소수(3 칸 중 1)라 로드된다(옛 3 마디 곡선은 두 칸 모두 모순 -> 로드 거부)."""
+    vgs = (0.0, 0.5, 1.0, 1.5)
+    ids = (1e-6, 1e-6 * math.exp(7.5), 1e-6 * math.exp(11.5), 1e-7)
+    from .conftest import chord_outside_fraction
+    assert chord_outside_fraction(vgs, ids, (20.0, 10.0, 6.0, 4.0)) == (1, 3)
+    memo, _ = curve_lut(vgs, ids, (20.0, 10.0, 6.0, 4.0))
     with pytest.raises(SealViolationError) as ei:
         vgs_for_current_density(memo, "nmos", 100, math.log(5e-7), 1e-6, 0.5, 0.0)
     d = detail_of(ei.value)
     assert d["reason"] == "lut_target_non_monotonic"
     assert math.isclose(d["monotone_lo"], math.log(1e-6), rel_tol=1e-12)
-    assert math.isclose(d["monotone_hi"], math.log(1e-5), rel_tol=1e-12)
+    assert math.isclose(d["monotone_hi"], math.log(1e-6) + 11.5, rel_tol=1e-12)
 
 
 def test_branch_starts_at_peak(curve_lut):
@@ -106,8 +112,9 @@ def test_branch_starts_at_peak(curve_lut):
 
 
 def test_undefined_node(curve_lut):
-    """gm/ID 가 정의 안 된 마디(GM = 0 -> on_mask 거짓) -> `lut_curve_undefined`."""
-    memo, _ = curve_lut((0.0, 0.5, 1.0), (1e-7, 1e-6, 1e-5), (20.0, 10.0, 0.0))
+    """gm/ID 가 정의 안 된 마디(GM = 0 -> on_mask 거짓) -> `lut_curve_undefined`. [r7] 정의 칸 [0,1] 의 ID 차 7.5(현 15 ∈ [10, 20] --
+    lut CONTRACT 1.4 단위 검사 일관; 옛 10 배(현 4.6)는 유일한 정의 칸이 모순 -> 로드 거부)."""
+    memo, _ = curve_lut((0.0, 0.5, 1.0), (1e-7, 1e-7 * math.exp(7.5), 1e-7 * math.exp(9.0)), (20.0, 10.0, 0.0))
     with pytest.raises(SealViolationError) as ei:
         vgs_for_current_density(memo, "nmos", 100, math.log(2e-6), 1e-6, 0.5, 0.0)
     assert detail_of(ei.value)["reason"] == "lut_curve_undefined"

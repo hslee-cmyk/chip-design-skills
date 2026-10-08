@@ -36,19 +36,34 @@ DIODE_ONE_VAR = ("M1",)
 
 # ---------------------------------------------------------------- 독립 계산
 
+FLOOR_GM_ID_AT_ZERO = 2.0      # VGS = 0 마디 GM/ID (정점 20 까지 선형으로 오른다)
+
+
 def _floor_arrays(kind):
-    """r4 toy 배열에서 정점 VGS index 를 곡선마다 다르게: j*(i, k, s) = 1 + (3i + 2k + s) mod 9, GM/ID = 20 − 4·|j − j*|
-    (0.5 로 아래를 잘라 on_mask 유지). L index 1 의 ID 는 e^0.7 배 -> IDu 가 L 앵커마다 다르다."""
+    """정점 VGS 가 곡선마다 다른 toy: j*(i, s) = 1 + (3i + s) mod 9, VGS* = VGS[j*]. GM/ID = 2 → B(= 20, VGS*) 선형 상승,
+    그 뒤 B − C·(VGS − VGS*) (C = 8: r4 toy 의 gm/ID 기울기, 격자 끝에서도 > 0 -> on_mask 유지). L index 1 의 ID 는 e^0.7 배 -> IDu 가
+    L 앵커마다 다르다.
+    [r7 2026-10-09 lut CONTRACT 1.4 기울기 열 단위 검사 복원] ln ID 를 이 GM/ID 의 적분으로 만든다(oracle (a) 구성): VGS = 0 마디는 r4 toy
+    값 그대로, 칸마다 ln ID 차 = h·(g_j + g_(j+1))/2(GM/ID 가 VGS 에 조각 선형이라 정확한 적분, 현 = 두 끝 평균 -> 두 끝 사이, FC 단조).
+    옛 판(GM/ID = 20 − 4·|j − j*|, j* 에 2k 항, ID 는 r4 의 VGS 2차식 그대로)은 기울기 자료가 ln ID 와 무관해 칸 과반이 1.4 위반(로드 거부).
+    정점 위치는 VDS 와 무관하게 둔다 -- VDS 마다 다르면 ln ID 의 VDS 기울기가 곡선 모양 차이를 품어 GDS/ID = 0.1(= r4 의 VDS 기울기 LAM)
+    과 모순이다. VGS = 0 의 GM/ID 를 낮게(2) 둔 것은 옛 판처럼 전도 하한 곡선(VGS 0 에서 GM·tol < ID)이 생기게 하려는 것."""
+    from sizing.conftest import B, C
+
     a = r4_arrays(kind)
-    ID = a["ID"].copy()
-    ID[1] *= math.exp(0.7)
-    nL, nG, nD, nS = ID.shape
-    g = np.empty_like(ID)
+    ID0 = a["ID"].copy()
+    ID0[1] *= math.exp(0.7)
+    nL, nG, nD, nS = ID0.shape
+    vgs = np.asarray(a["VGS"], dtype=float)
+    g = np.empty_like(ID0)
     for i in range(nL):
-        for k in range(nD):
-            for s in range(nS):
-                js = 1 + (3 * i + 2 * k + s) % 9
-                g[i, :, k, s] = np.maximum(20.0 - 4.0 * np.abs(np.arange(nG) - js), 0.5)
+        for s in range(nS):
+            vp = vgs[1 + (3 * i + s) % 9]
+            up = FLOOR_GM_ID_AT_ZERO + (B - FLOOR_GM_ID_AT_ZERO) * vgs / vp
+            g[i, :, :, s] = np.where(vgs <= vp, up, B - C * (vgs - vp))[:, None]
+    h = np.diff(vgs)[None, :, None, None]
+    cum = np.concatenate([np.zeros_like(ID0[:, :1]), np.cumsum(h * 0.5 * (g[:, :-1] + g[:, 1:]), axis=1)], axis=1)
+    ID = ID0[:, :1] * np.exp(cum)
     a.update(ID=ID, GM=ID * g, GDS=ID * 0.1)
     return a
 
@@ -358,15 +373,17 @@ def _m1_cell(s, cells):
     return dict(s.domain.l_cells)["M1"][cells[order.index("M1")]]
 
 
-DIODE_START = {("L", "M1"): 2e-6, ("L", "M2"): 2e-6, ("current", "M2"): 1.6e-8, ("ln_idu", "M1"): -7.0,
+# [r7 2026-10-09] floor LUT 를 1.4 단위 검사와 맞게 다시 만들어(`_floor_arrays`) M1 칸(L 2 µm) 정점 하한이 −7.04 -> −13.18 로 바뀌었다
+# (peak_floor 독립 계산). 시작 좌표 ln_idu(M1) 는 옛 판과 같은 뜻(하한 바로 위, 간격 0.04)으로 −13.14 -- 이 값에서 시작점이 봉인된다
+# (start_points 로 확인한 입력 선택이지 기대값이 아니다; 판정은 아래 test 의 '하한 아래 평가 없음').
+DIODE_START = {("L", "M1"): 2e-6, ("L", "M2"): 2e-6, ("current", "M2"): 1.6e-8, ("ln_idu", "M1"): -13.14,
                ("ln_idu", "M2"): -15.0}
 
 
 @pytest.mark.parametrize("axis", [AXIS_POWER, "area_search_m2"])
 def test_solve_eps_respects_one_var_floor(tmp_path, floor_lut, short_root, axis):
     """solve_eps 는 1변수 writer(M1)의 ln_idu 를 min(칸 정점 하한, 시작 좌표) 아래에서 평가하지 않는다(S-4f, 3.13).
-    floor LUT 에서 하한(≈ −7.04)은 봉인된 시작 좌표 −7.0 바로 아래 -- 전력·면적 최소화가 내려가려는 방향이다(그 아래는 diode 노드
-    근 없음: 같은 LUT 에서 −10 은 no_root_in_window)."""
+    floor LUT 에서 하한(≈ −13.18)은 봉인된 시작 좌표 −13.14 바로 아래 -- 전력·면적 최소화가 내려가려는 방향이다."""
     from gmid_engine.search import start_points
 
     case = build_case(tmp_path, circuit_diode(), floor_lut, eval_budget=150, archive_root=short_root)

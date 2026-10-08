@@ -13,8 +13,8 @@ import pytest
 from gmid_engine.core import SealViolationError
 from gmid_engine.lut import op_point, vgs_for_gm_id
 
-from .conftest import (LEGACY_SR, anchored_block, ast_sha, branch_solve_vgs, detail_of, fc_ok, legacy_solve_vgs,
-                       lut_package_window_hashes, sir_ref_b)
+from .conftest import (LEGACY_SR, anchored_block, ast_sha, branch_solve_vgs, chord_ids, chord_outside_fraction, detail_of,
+                       fc_ok, legacy_solve_vgs, lut_package_window_hashes, sir_ref_b)
 
 H_BLOCK_A = "0a86bafdeaddf5c9a83cfce762d1a47b01dd6051c285ded5e26b803a4d0fc729"
 H_BLOCK_B = "29beb488b7222e495e3794d5685bd0d751289e08dc502368f9e7af3143c51680"
@@ -32,9 +32,13 @@ def test_legacy_block_copy_removed(first, last, expected, n):
     assert hits == [], "옛 _solve_vgs 구간 복사가 패키지에 남아 있다: %r" % (hits,)
 
 
+# [r7 2026-10-09 단위 검사 복원(lut CONTRACT 1.4)] 합성 곡선의 마디 ID 는 기울기 자료(gm/ID)와 평균값 정리로 맞게 만든다 --
+# conftest `chord_ids`(칸마다 ln ID 현 기울기 = 두 끝 gm/ID 의 볼록 결합, oracle (a) 구성). 옛 곡선(10 배/칸 등 gm/ID 와 무관한 ID)은
+# 칸 과반이 1.4 위반이라 로드가 거부된다.
+# 옛 IDS6 = 10 배/0.2 V(현 11.5)는 G6 칸 5 개 중 3 개((30, 12)·(12, 15)·(8, 3))가 현이 두 끝 밖이었다.
 VGS6 = (0.0, 0.2, 0.4, 0.6, 0.8, 1.0)
-IDS6 = (1e-9, 1e-8, 1e-7, 1e-6, 1e-5, 1e-4)
 G6 = (5.0, 30.0, 12.0, 15.0, 8.0, 3.0)
+IDS6 = chord_ids(VGS6, G6, 1e-9)
 
 
 def _q(memo, gm_id):
@@ -65,8 +69,9 @@ def _check_root(memo, ids, g, vgs, t):
 
 
 def test_fixture_curve_cells_are_monotone():
-    """전제: 아래 test 곡선(10배/0.2 V, gm/ID G6)의 칸은 모두 FC 단조 -- 칸 안 근이 있다."""
+    """전제: 아래 test 곡선(gm/ID G6, 마디 ID = chord_ids)의 칸은 모두 FC 단조 -- 칸 안 근이 있다. 1.4 단위 검사 위반 칸 0."""
     assert _curve_ok(IDS6, G6, VGS6) == (True,) * 5
+    assert chord_outside_fraction(VGS6, IDS6, G6) == (0, 5)
 
 
 def test_rightmost_interval_inside_branch(curve_lut):
@@ -83,7 +88,8 @@ def test_rightmost_interval_inside_branch(curve_lut):
 
 def test_peak_is_first_argmax(curve_lut):
     # 같은 최댓값 두 번(index 1, 2): 정점 = 첫 index 1 -> peak_vgs 0.2
-    memo, g = curve_lut(VGS6, IDS6, (5.0, 30.0, 30.0, 15.0, 8.0, 3.0))
+    gp = (5.0, 30.0, 30.0, 15.0, 8.0, 3.0)
+    memo, g = curve_lut(VGS6, chord_ids(VGS6, gp, 1e-9), gp)
     with pytest.raises(SealViolationError) as ei:
         _q(memo, 40.0)
     det = detail_of(ei.value)
@@ -93,7 +99,8 @@ def test_peak_is_first_argmax(curve_lut):
 
 def test_leak_branch_only_target_fails(curve_lut):
     # 정점 왼쪽 g[0]=2 < 분지 최솟값 3: 목표 2.5 는 [0,1] 에서만 닿는다.
-    memo, g = curve_lut(VGS6, IDS6, (2.0, 30.0, 12.0, 15.0, 8.0, 3.0))
+    gl = (2.0, 30.0, 12.0, 15.0, 8.0, 3.0)
+    memo, g = curve_lut(VGS6, chord_ids(VGS6, gl, 1e-9), gl)
     old = legacy_solve_vgs(g, VGS6, 2.5)
     assert old < 0.2, "옛 규칙은 누설 분지 해를 낸다(전제)"
     assert branch_solve_vgs(g, VGS6, 2.5) is None
@@ -122,19 +129,41 @@ def test_flat_interval_takes_upper_end_when_residual_zero(curve_lut):
     assert abs(_q(memo, float(g[2])) - 1.0) <= rb
 
 
-def test_flat_interval_inconsistent_data_rejected(curve_lut):
-    """음성: 같은 평탄 gm/ID 인데 ln ID 차 0(기울기 10 과 모순) -> 칸 [1,2] FC 위반 -> lut_hermite_nonmonotone_cell."""
+def test_flat_interval_inconsistent_data_rejected_at_load(toy_build):
+    """[r7 2026-10-09] 음성(옛 입력 그대로): 평탄 gm/ID (30, 10, 10) 인데 ln ID 차 (ln10, 0) -- 두 칸 모두 현(4.6, 0)이 두 끝 기울기
+    [10, 30]·[10, 10] 밖. CONTRACT 1.4 단위 검사: 정의 칸 16 개(L 2 × VDS 2 × VS 2 × VGS 칸 2) 모두 모순 -> 과반 -> 로드 거부
+    `lut_unit_mismatch`(column GM). (옛 test 는 이 입력을 로드해 역산 거부를 봤다 -- 이제 그 앞에서 막힌다.)"""
+    from gmid_engine.core import SchemaRejectedError
+    from .conftest import curve_cap_arrays, curve_slice_arrays
     vgs = (0.0, 0.5, 1.0)
     ids = (1e-7, 1e-6, 1e-6)
-    memo, g = curve_lut(vgs, ids, (30.0, 10.0, 10.0))
-    assert _curve_ok(ids, g, vgs) == (False, False)
+    assert chord_outside_fraction(vgs, ids, (30.0, 10.0, 10.0)) == (2, 2)
+    a = curve_slice_arrays(1e-6, vgs, ids, (30.0, 10.0, 10.0))
+    b = toy_build("flat_bad", slices=[("c.npz", "toyn", a)], cap=curve_cap_arrays(vgs))
+    with pytest.raises(SchemaRejectedError) as ei:
+        b.load()
+    det = detail_of(ei.value)
+    assert det["reason"] == "lut_unit_mismatch" and det["column"] == "GM"
+    assert (det["cells_outside"], det["cells"]) == (16, 16)
+
+
+def test_flat_interval_inconsistent_cell_rejected(curve_lut):
+    """음성: 평탄 gm/ID 칸 (10, 10) 의 ln ID 차 0(기울기 10 과 모순) -> 그 칸 FC 위반 -> lut_hermite_nonmonotone_cell.
+    [r7] 모순 칸이 곡선의 소수(3 칸 중 1)라 1.4 단위 검사(과반)는 통과한다 -- 앞 두 칸은 현 25 ∈ [20, 30]·15 ∈ [10, 20].
+    목표 10: g − 10 = (20, 10, 0, 0) -> 편차 곱 ≤ 0 인 분지 칸 [1,2]·[2,3] 중 가장 오른쪽 [2,3] = [1.0, 1.5]
+    (b0 = b2 = 5, b1 = 0 − 10 = −10, b1² = 100 > 25 -> 위반)."""
+    vgs = (0.0, 0.5, 1.0, 1.5)
+    ids = (1e-7, 1e-7 * math.exp(12.5), 1e-7 * math.exp(20.0), 1e-7 * math.exp(20.0))
+    memo, g = curve_lut(vgs, ids, (30.0, 20.0, 10.0, 10.0))
+    assert chord_outside_fraction(vgs, ids, g) == (1, 3)
+    assert _curve_ok(ids, g, vgs) == (True, True, False)
     with pytest.raises(SealViolationError) as ei:
-        _q(memo, float(g[1]))
+        _q(memo, float(g[2]))
     det = detail_of(ei.value)
     assert det["reason"] == "lut_hermite_nonmonotone_cell"
-    assert det["axis"] == "VGS" and det["cell_lo"] == 0.5 and det["cell_hi"] == 1.0
+    assert det["axis"] == "VGS" and det["cell_lo"] == 1.0 and det["cell_hi"] == 1.5
     assert (det["gm_id"], det["L"], det["vds"], det["vsb"], det["kind"], det["w_key"]) == (
-        float(g[1]), 1e-6, 0.5, 0.0, "nmos", 100)
+        float(g[2]), 1e-6, 0.5, 0.0, "nmos", 100)
 
 
 def test_endpoint_exact_match_is_inside(curve_lut):

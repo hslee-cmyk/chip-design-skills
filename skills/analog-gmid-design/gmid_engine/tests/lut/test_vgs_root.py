@@ -62,26 +62,29 @@ def test_toy_round_trip_and_below_branch(toy_memo):
 
 
 def test_r4_toy_rows(r4toy_memo):
-    """CONTRACT 7.2: 목표 15 -> 고른 칸 [0, 0.5] 위반 -> lut_hermite_nonmonotone_cell, 목표 7 -> 0.5834716."""
+    """r4 toy([r7] 1.4 단위 검사와 맞는 판, 마디 gm/ID (20, 4, 1.5)): 목표 15·7 -> 고른 칸 [0, 0.5] 위반 -> lut_hermite_nonmonotone_cell,
+    목표 3 -> 단조 칸 [0.5, 1] 의 Hermite 미분 근(아래 손계산)."""
     with pytest.raises(SealViolationError) as ei:
         vgs_for_gm_id(r4toy_memo, "nmos", 100, 15.0, 1e-6, 0.5, 0.0)
     det = detail_of(ei.value)
     assert det["reason"] == "lut_hermite_nonmonotone_cell"
     assert det["axis"] == "VGS" and det["cell_lo"] == 0.0 and det["cell_hi"] == 0.5
     assert (det["gm_id"], det["L"], det["vds"], det["vsb"], det["kind"], det["w_key"]) == (15.0, 1e-6, 0.5, 0.0, "nmos", 100)
+    with pytest.raises(SealViolationError) as ei:
+        vgs_for_gm_id(r4toy_memo, "nmos", 100, 7.0, 1e-6, 0.5, 0.0)          # 7 ∈ (4, 20) -> 같은 위반 칸
+    assert detail_of(ei.value)["reason"] == "lut_hermite_nonmonotone_cell"
     from .conftest import r4_toy_slice_arrays
-    v = vgs_for_gm_id(r4toy_memo, "nmos", 100, 7.0, 1e-6, 0.5, 0.0)
-    # 손계산: ln ID 차 δ = ln10, h 0.5, m0 10, m1 4 -> p'(t) = 6δt(1−t)/h + m0(1−4t+3t²) + m1(3t²−2t) = 7
-    d, h, m0, m1 = math.log(10.0), 0.5, 10.0, 4.0
+    v = vgs_for_gm_id(r4toy_memo, "nmos", 100, 3.0, 1e-6, 0.5, 0.0)
+    # 손계산(oracle (a)): 칸 [0.5, 1] 의 ln ID 차 δ = 1.5, h 0.5, m0 4, m1 1.5 -> p'(t) = 6δt(1−t)/h + m0(1−4t+3t²) + m1(3t²−2t) = 3
+    #   -> a t² + b t + c = 0, a = −18 + 12 + 4.5 = −1.5, b = 18 − 16 − 3 = −1, c = 4 − 3 = 1 -> 1.5t² + t − 1 = 0 의 [0, 1] 근 t = (√7 − 1)/3
+    d, h, m0, m1 = 1.5, 0.5, 4.0, 1.5
     a = -6 * d / h + 3 * m0 + 3 * m1
     b = 6 * d / h - 4 * m0 - 2 * m1
-    c = m0 - 7.0
-    t = (-b - math.sqrt(b * b - 4 * a * c)) / (2 * a)
-    if not 0 < t < 1:
-        t = (-b + math.sqrt(b * b - 4 * a * c)) / (2 * a)
-    assert abs(t - 0.1669433) <= 0.5e-7                     # 계약 인쇄 자릿수(7자리)의 반올림 반 단위
-    assert abs(v - 0.5834716) <= 0.5e-7
-    v2 = _assert_root(r4toy_memo, r4_toy_slice_arrays(1e-6), 1e-6, 0, 0.5, 0.0, 7.0, closed=0.5 + 0.5 * t)
+    c = m0 - 3.0
+    assert (a, b, c) == (-1.5, -1.0, 1.0)
+    t = (math.sqrt(7.0) - 1.0) / 3.0
+    assert abs(a * t * t + b * t + c) <= 4 * math.ulp(1.0) and 0 < t < 1
+    v2 = _assert_root(r4toy_memo, r4_toy_slice_arrays(1e-6), 1e-6, 0, 0.5, 0.0, 3.0, closed=0.5 + 0.5 * t)
     assert v2 == v
 
 

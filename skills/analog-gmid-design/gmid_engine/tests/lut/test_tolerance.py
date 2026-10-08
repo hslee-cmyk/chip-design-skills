@@ -107,15 +107,21 @@ def test_loo_orders(toy_memo):
     assert all(r[4] == 2.0 ** -r[3] for r in lo)
 
 
+# r4 toy cells[0][0] 손계산(위 docstring): |ln10/2 − 0.75 − 18.5/8| / 4 = 0.4778019
+R4_EQ_LOO_00 = abs(math.log(10.0) / 2 - 0.75 - 18.5 / 8) / 4
+
+
 def test_r4_toy_cells(r4toy_memo):
-    """CONTRACT 7.2 행: cells[0][0] id_equivalent_loo_v = |ln1e-6 − Hermite(ln1e-7, ln1e-5, 20, 4, H 1, t ½)|/10 = 0.2,
-    id_equivalent_v = 0.2/16 = 0.0125. 모든 셀 = 독립 구현."""
+    """r4 toy([r7] 1.4 단위 검사와 맞는 판 -- conftest R4_*) 손계산(oracle (a)): cells[0][0] id_equivalent_loo_v
+    = |ln1e-6 − Hermite(ln1e-7, ln1e-6 + 1.5, 20, 1.5, H 1, t ½)| / 4(빠진 마디 gm/ID) = |ln10/2 − 0.75 − 18.5/8| / 4,
+    id_equivalent_v = 그 값/16. 모든 셀 = 독립 구현."""
     t = tol_v_table(r4toy_memo, "nmos", 100)
     c = t.cells[0][0]
     rs = RefSlice(r4_toy_slice_arrays(1e-6))
     r00 = tol_cell_ref(rs, 0, 0)
-    assert abs(c.id_equivalent_loo_v - 0.2) <= r00["eq_loo_bound"]          # 닫힌 값과의 차 ≤ 유도 상한
-    assert abs(c.id_equivalent_v - 0.0125) <= r00["eq_bound"]
+    hand = R4_EQ_LOO_00
+    assert abs(c.id_equivalent_loo_v - hand) <= r00["eq_loo_bound"]          # 닫힌 값과의 차 ≤ 유도 상한
+    assert abs(c.id_equivalent_v - hand / 16) <= r00["eq_bound"]
     for i in range(3):
         for k in range(2):
             _cell_matches(t.cells[i][k], tol_cell_ref(rs, i, k))
@@ -150,7 +156,8 @@ def test_at_bad_metric_and_axes(toy_memo):
 
 def test_no_inner_points_all_none(curve_lut):
     # VGS 2 점, VDS·VS 2 점: 어떤 축에도 내부 격자점이 없다 -> LOO 추정 0 -> 모든 셀 None, 시도 0
-    memo, _ = curve_lut((0.0, 1.0), (1e-7, 1e-6), (20.0, 10.0))
+    # [r7] 마디 ID 차 15(현 15 ∈ [10, 20] -- lut CONTRACT 1.4 단위 검사 일관; 옛 10 배(현 2.3)는 모든 칸 위반 -> 로드 거부)
+    memo, _ = curve_lut((0.0, 1.0), (1e-7, 1e-7 * math.exp(15.0)), (20.0, 10.0))
     t = tol_v_table(memo, "nmos", 100)
     assert len(t.cells) == 2
     assert all(c == TolVCell(None, None, 0, 0) for row in t.cells for c in row)
@@ -216,7 +223,8 @@ def test_independent_impl_reproduces_contract_rows():
             assert all(r[key] <= r[key + "_bound"] for key in ("inv", "eq", "inv_loo", "eq_loo"))   # 참값 0
             assert (r["n_t"], r["n_f"]) == (2, 0)
     r = tol_cell_ref(rs4, 0, 0)
-    assert abs(r["eq_loo"] - 0.2) <= r["eq_loo_bound"] and abs(r["eq"] - 0.0125) <= r["eq_bound"]
+    assert abs(r["eq_loo"] - R4_EQ_LOO_00) <= r["eq_loo_bound"] and abs(r["eq"] - R4_EQ_LOO_00 / 16) <= r["eq_bound"]
+    assert abs(R4_EQ_LOO_00 - 0.4778019) <= 0.5e-7
 
 
 # ---------------------------------------------------------------------------

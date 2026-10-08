@@ -88,9 +88,18 @@ TOY_SPEC = LutSpec(1e-8, (("nmos", 1.5e-6),), (("toyn", "nmos"),), (("nmos", "_n
 
 # [r5] CONTRACT 7.1 r5 toy: ID = (1e-6/L)·1e-7·exp(20v − 6v²)·exp(0.1·VDS)·(1, 0.5)[s], GM = ID·(20 − 12v), GDS = ID·0.1
 R5_A, R5_B, R5_C = 20.0, 6.0, 0.1                  # lnID = ln1e-7 + A·v − B·v² + C·d
-# [r5] CONTRACT 7.2 r4 toy (FC 위반 예시)
-R4_ID_VGS = (1e-7, 1e-6, 1e-5)
-R4_GM_RATIO = (20.0, 10.0, 4.0)
+# [r5] CONTRACT 7.2 r4 toy (FC 위반 예시) -- [r7 2026-10-09 단위 검사 복원(1.4)] 기울기 자료가 ln ID 와 평균값 정리로 맞는 판으로 교체.
+#   옛 판(ID 마디 (1e-7, 1e-6, 1e-5)·GM/ID (20, 10, 4)·GDS = ID/10, ID 는 VDS 무관)은 VGS 칸 0 의 현 기울기 ln10/0.5 = 4.61 이 끝 기울기
+#   [10, 20] 밖이고 VDS 칸은 현 0 인데 끝 기울기 0.1 이라 1.4 단위 검사(현이 두 끝 기울기 사이) 위반 -> 로드 거부(GDS 18/18 칸).
+#   새 판(oracle (a) 구성): 칸마다 현 기울기가 두 끝 기울기 사이(모순 0 칸)인데도 FC 위반은 그대로 남게 골랐다(손계산, CONTRACT 1.4 식):
+#   VGS 칸 0: Δln ID = ln10, m = (20, 4), h 0.5 -> 현 4.605 ∈ [4, 20]; b0 = 10, b2 = 2, b1 = 3·ln10 − 12 = −5.09, b1² = 25.9 > 20 -> 위반.
+#   VGS 칸 1: Δln ID = 1.5, m = (4, 1.5) -> 현 3 ∈ [1.5, 4]; b0 = 2, b2 = 0.75, b1 = 4.5 − 2.75 = 1.75 ≥ 0 -> 단조.
+#   VDS 칸: Δln ID = 0.01, m = GDS/ID = (0.1, 0.01) -> 현 0.02 ∈ [0.01, 0.1]; b0 = 0.05, b2 = 0.005, b1 = 0.03 − 0.055 = −0.025,
+#   b1² = 6.25e-4 > 2.5e-4 -> 위반. 그래서 hermite_fc = (("VDS", 18, 18), ("VGS", 24, 12), ("VS", 0, 0)) 는 옛 판과 같다.
+R4_ID_VGS = (1e-7, 1e-6, 1e-6 * math.exp(1.5))
+R4_GM_RATIO = (20.0, 4.0, 1.5)
+R4_LNID_VDS = (0.0, 0.01)                         # ln ID 의 VDS 몫(VDS 격자 0.5, 1.0)
+R4_GDS_RATIO = (0.1, 0.01)                        # GDS/ID (VDS 격자 0.5, 1.0)
 
 
 def toy_id(scale=1.0):
@@ -123,16 +132,17 @@ def toy_slice_arrays(W, scale=1.0):
 
 
 def r4_toy_slice_arrays(W, scale=1.0):
-    """[r5] CONTRACT 7.2 r4 toy 슬라이스(FC 위반 예시): ID 는 VDS 무관, GM = ID·(20, 10, 4), GDS = ID/10."""
+    """[r7] r4 toy 슬라이스(FC 위반 예시, 기울기 자료 일관 -- 위 R4_* 주석): ID = (1e-6/L)·R4_ID_VGS·exp(R4_LNID_VDS)·(1, 0.5)[VS],
+    GM = ID·R4_GM_RATIO[VGS], GDS = ID·R4_GDS_RATIO[VDS]."""
     ID = np.empty((3, 3, 2, 2))
     for iL, L in enumerate(TOY_L):
         for iG in range(3):
             for k in range(2):
                 for s in range(2):
-                    ID[iL, iG, k, s] = (1e-6 / L) * R4_ID_VGS[iG] * TOY_VS_FACTOR[s]
+                    ID[iL, iG, k, s] = (1e-6 / L) * R4_ID_VGS[iG] * math.exp(R4_LNID_VDS[k]) * TOY_VS_FACTOR[s]
     ID = ID * scale
     GM = ID * np.asarray(R4_GM_RATIO)[None, :, None, None]
-    return _toy_dict(W, ID, GM, ID / 10.0)
+    return _toy_dict(W, ID, GM, ID * np.asarray(R4_GDS_RATIO)[None, None, :, None])
 
 
 def r5_toy_lnid(v, d, s_vs, L=1e-6):
@@ -146,17 +156,53 @@ CURVE_VDS = (0.5, 1.0)
 CURVE_VS = (0.0, 0.5)
 
 
+CURVE_VDS_FACTOR = (1.0, 2.0)                      # ID(VDS 1.0) = 2·ID(VDS 0.5) -- 2 의 거듭제곱이라 배열 비 계산이 정확
+CURVE_GDS_PER_ID = 2.0 * math.log(2.0)             # = d ln ID/d VDS = ln 2 / 0.5 (위 배수와 같은 직선 -- 1.4 단위 검사 일관)
+
+
+def chord_ids(vgs, gm_over_id, id0, lam=0.6):
+    """[r7] 기울기 자료와 맞는 마디 ID(oracle (a) 구성): 칸 [j, j+1] 의 ln ID 현 기울기 = lam·g_j + (1 − lam)·g_(j+1)
+    (두 끝 기울기의 볼록 결합이라 CONTRACT 1.4 단위 검사 '현이 두 끝 기울기 사이' 를 만족한다). lam ∈ [1/3, 2/3] 이면
+    현 ≥ (g_j + g_(j+1))/3 이라 b1 = 3·Δln ID − (g_j + g_(j+1))·h ≥ 0 -> 양의 기울기 칸은 FC 단조. lam = 1/2(사다리꼴)이면 칸 안
+    Hermite 미분이 g 의 선형 보간과 같아지므로(옛 2점 규칙과 근이 같아 판별력이 없다) 기본값은 0.6."""
+    out = [float(id0)]
+    for j in range(len(vgs) - 1):
+        h = float(vgs[j + 1]) - float(vgs[j])
+        out.append(out[-1] * math.exp(h * (lam * gm_over_id[j] + (1.0 - lam) * gm_over_id[j + 1])))
+    return tuple(out)
+
+
+def chord_outside_fraction(vgs, ids, gm_over_id):
+    """CONTRACT 1.4 단위 검사를 이 곡선(VGS 한 줄)에 대해 독립으로: 두 끝 정의(ID > 0, GM/ID > 0) 칸 중 현 기울기가 두 끝 기울기
+    [min, max] 밖인 칸의 (수, 칸 수). 허용분은 계약 식(eps·(|y0| + |y1|)/Δx + eps·(|m0| + |m1|))."""
+    eps = np.finfo(float).eps
+    out = n = 0
+    for j in range(len(vgs) - 1):
+        i0, i1, g0, g1 = ids[j], ids[j + 1], gm_over_id[j], gm_over_id[j + 1]
+        if not (i0 > 0 and i1 > 0 and g0 > 0 and g1 > 0):
+            continue
+        y0, y1, h = math.log(i0), math.log(i1), float(vgs[j + 1]) - float(vgs[j])
+        c = (y1 - y0) / h
+        tol = eps * (abs(y0) + abs(y1)) / h + eps * (abs(g0) + abs(g1))
+        n += 1
+        out += not (min(g0, g1) - tol <= c <= max(g0, g1) + tol)
+    return out, n
+
+
 def curve_slice_arrays(W, vgs, ids, gm_over_id):
-    """임의 곡선 슬라이스: (L, VDS, VS) 2점씩, 그 위에서 같은 VGS 곡선. GM = ID·gm_over_id."""
+    """임의 곡선 슬라이스: (L, VDS, VS) 2점씩, 그 위에서 같은 VGS 곡선. GM = ID·gm_over_id.
+    [r7] VDS 방향: ID(VDS 0.5) = ids, ID(VDS 1.0) = 2·ids, GDS = ID·2ln2(= d ln ID/d VDS -- 1.4 단위 검사 일관; 옛 판의 GDS = ID/10 은
+    ID 가 VDS 무관이라 VDS 칸 현 0 대 끝 기울기 0.1 로 모든 칸 위반 -> 로드 거부)."""
     n = len(vgs)
     ID = np.empty((2, n, 2, 2))
-    ID[...] = np.asarray(ids, dtype=float)[None, :, None, None]
+    ID[...] = (np.asarray(ids, dtype=float)[None, :, None, None]
+               * np.asarray(CURVE_VDS_FACTOR)[None, None, :, None])
     GM = ID * np.asarray(gm_over_id, dtype=float)[None, :, None, None]
     return {
         "W": np.float64(W),
         "L": np.asarray(CURVE_L), "VGS": np.asarray(vgs, dtype=float),
         "VDS": np.asarray(CURVE_VDS), "VS": np.asarray(CURVE_VS),
-        "ID": ID, "GM": GM, "GDS": ID / 10.0, "VTH": np.full(ID.shape, 0.4),
+        "ID": ID, "GM": GM, "GDS": ID * CURVE_GDS_PER_ID, "VTH": np.full(ID.shape, 0.4),
         "meta_json": np.str_('{"model_files_sha256": {}}'),
         "corner": np.str_("tt"), "temp_c": np.float64(27.0),
     }
@@ -1361,28 +1407,38 @@ def bin_model_text(blocks=BIN_BLOCKS, extra=""):
 
 
 def bin_slice_arrays(W, scale, meta, L=BIN_L, n_vgs=3, consistent=False):
-    """bin toy 슬라이스: ID = (1e-6/L)·(1e-7, 1e-6, 1e-5)[VGS]·(1, 0.5)[VS]·scale, GM = ID·(20, 10, 4)·(1 + 0.1·L/µm),
-    GDS = ID / (10·L/µm), VTH = 0.4 + 0.01·(L/µm)²(L 에 비선형 -- 선형 보간과 정확값이 갈린다).
+    """bin toy 슬라이스(Lu = L/µm, VTH = 0.4 + 0.01·Lu² -- L 에 비선형이라 선형 보간과 정확값이 갈린다).
     n_vgs = 2 면 VGS 앞 두 점만(내부 VGS 격자점 없음).
-    [r5] 기본은 r4 toy 와 같은 VGS 자료(GM/ID ≠ d lnID/dVGS -- FC 위반 칸 포함). consistent=True 면 기울기 자료가 맞는 판:
-    ID = (1/(L/µm))·1e-7·exp(c·(20v − 6v²))·(1, 0.5)[VS]·scale, GM = ID·c·(20 − 12v), c = 1 + 0.1·L/µm."""
+    [r7 2026-10-09 단위 검사 복원(CONTRACT 1.4)] 기울기 자료를 ln ID 의 편미분에서 만든다(oracle (a) 구성 -- 닫힌 식 하나에서 ID·GM·GDS):
+      ln ID = −ln Lu + ln 1e-7 + c·P(v) + k(L)·(d − d²/4) + ln (1, 0.5)[VS] + ln scale,
+      GM/ID = c·P'(v),  GDS/ID = k(L)·(1 − d/2),  k(L) = 0.2 − 0.01·Lu (L 에 선형 -> L 방향 LOO 에 몫이 없다).
+      VDS 몫이 2차식이라 VDS 칸 현 기울기 k·(1 − 3/8) 가 두 끝 기울기 k·(0.75, 0.5) 사이(경계 위가 아니다) -- VDS Hermite 정확.
+    기본(consistent=False) = r4 toy 의 VGS 자료를 c 배: P = (0, ln10, ln10 + 1.5)[VGS], P' = (20, 4, 1.5) -- 칸 0 FC 위반·칸 1 단조
+      (현·기울기를 같은 c 배 해도 FC 의 b 계수가 c 배라 판정이 같다), 현은 두 끝 기울기 사이(R4_* 주석 손계산).
+      c = 1 + 0.01·Lu²(L 에 2차): L 방향 LOO 의 gm/ID 추정이 참값과 유한하게 다르다 -- c 가 L 에 선형이면 추정 곡선의 마디 gm/ID 가
+      목표(그 행의 마디 gm/ID)와 반올림 수준으로만 달라 3절 칸 선택(편차 곱 ≤ 0)이 반올림 부호로 갈리고, 이웃 칸이 FC 위반이면
+      근이 칸 하나만큼 달라진다(독립 구현과 엔진이 같은 규칙인데 반올림만으로 갈리는 잘 정의되지 않은 입력).
+      옛 판(ID 마디 (1e-7, 1e-6, 1e-5), GM/ID = (20, 10, 4)·c, GDS = ID/(10·Lu), ID 는 VDS 무관)은 VDS 칸 모두·VGS 칸 과반이 1.4 위반.
+    consistent=True: c = 1 + 0.1·Lu, P = 20v − 6v², P' = 20 − 12v (VGS 2차식 -- Hermite 정확, FC 위반 없음; c 가 L 에 선형이라
+      L 방향 LOO 에서 VGS 몫이 정확 -- test_tolerance 손계산)."""
     nL = len(L)
     Lu = np.asarray(L) / 1e-6
-    c_L = 1.0 + 0.1 * Lu
+    c_L = 1.0 + 0.1 * Lu if consistent else 1.0 + 0.01 * Lu ** 2
+    k_L = 0.2 - 0.01 * Lu
     v_ = np.asarray(TOY_VGS[:n_vgs])
-    ID = np.empty((nL, n_vgs, 2, 2))
-    for iL in range(nL):
-        for iG in range(n_vgs):
-            for k in range(2):
-                for s in range(2):
-                    base = (1e-7 * math.exp(c_L[iL] * (R5_A * v_[iG] - R5_B * v_[iG] ** 2)) if consistent
-                            else R4_ID_VGS[iG])
-                    ID[iL, iG, k, s] = (1.0 / Lu[iL]) * base * TOY_VS_FACTOR[s] * scale
+    d_ = np.asarray(TOY_VDS)
     if consistent:
-        GM = ID * (c_L[:, None] * (R5_A - 2 * R5_B * v_)[None, :])[:, :, None, None]
+        P = R5_A * v_ - R5_B * v_ ** 2
+        dP = R5_A - 2 * R5_B * v_
     else:
-        GM = ID * np.asarray(R4_GM_RATIO[:n_vgs])[None, :, None, None] * c_L[:, None, None, None]
-    GDS = ID / (10.0 * Lu)[:, None, None, None]
+        P = np.log(np.asarray(R4_ID_VGS[:n_vgs]) / R4_ID_VGS[0])
+        dP = np.asarray(R4_GM_RATIO[:n_vgs])
+    lnID = (-np.log(Lu)[:, None, None, None] + math.log(1e-7) + c_L[:, None, None, None] * P[None, :, None, None]
+            + k_L[:, None, None, None] * (d_ - 0.25 * d_ ** 2)[None, None, :, None]
+            + np.log(np.asarray(TOY_VS_FACTOR))[None, None, None, :])
+    ID = np.exp(lnID) * scale
+    GM = ID * (c_L[:, None, None, None] * dP[None, :, None, None])
+    GDS = ID * (k_L[:, None, None, None] * (1.0 - 0.5 * d_)[None, None, :, None])
     VTH = np.empty_like(ID)
     VTH[...] = (0.4 + 0.01 * Lu ** 2)[:, None, None, None]
     return {
@@ -1611,12 +1667,16 @@ def r6_toy_cap_arrays():
 
 
 # 중점 toy (bin toy 와 같은 모델 파일·L 앵커 BIN_L·bin 표):
-#   ID = (1/Lu)·1e-7·exp(c(L)·(20v − 6v²))·exp(0.1·d)·(1, 0.5)[VS]·scale, c(L) = 1 + MID_ALPHA·Lu²  (Lu = L/µm)
-#   GM = ID·c(L)·(20 − 12v), GDS = 0.1·ID (기울기 자료가 값의 미분과 맞음 -- FC 위반 없음), VTH 0.4
+#   [r7 2026-10-09 단위 검사 복원(CONTRACT 1.4)] ln ID 닫힌 식 하나에서 GM·GDS·GMBS 를 편미분으로 만든다(oracle (a) 구성):
+#   ln ID = −ln Lu + ln 1e-7 + c(L)·(20v − 6v²) + 0.1·d − 0.3·[(1 + 0.1·v + 0.2·d)·s + 0.025·s²] + ln scale,
+#           c(L) = 1 + MID_ALPHA·Lu²  (Lu = L/µm)
+#   GM/ID = c(L)·(20 − 12v) − 0.03·s,  GDS/ID = 0.1 − 0.06·s,  GMBS/ID = −∂lnID/∂s = 0.3·(1 + 0.1·v + 0.2·d + 0.05·s)
+#   (GMBS/ID 가 모든 축 선형 -> gmb 의 r 보간이 정확 -- 옛 판과 같은 GMBS/ID; 옛 판은 ln ID 의 VS 몫이 ln(1, 0.5) 라 VS 칸 현 −1.39 가
+#   −GMBS/ID ≈ −0.3~−0.4 와 모순, 1.4 단위 검사로 모든 VS 칸 위반 -> 로드 거부), VTH 0.4, FC 위반 없음(VGS 2차·VDS 1차·VS 2차).
 #   VDSAT = 0.1 + 0.2·v + 0.05·Lu²·(1 + d)        (L 에 2차 -> 중점 선형 보간 오차 = 0.05·(Lu_m − Lu0)(Lu1 − Lu_m)·(1 + d))
-#   GMBS = 0.3·ID·(1 + 0.1·v + 0.2·d + 0.05·vs)    (GMBS/ID 가 모든 축 선형 -> gmb 의 r 보간이 정확)
 # c(L) 이 L 에 2차라 중점의 gm/ID 곡선 L 선형 보간도 참값과 갈린다(gm_id_inverse 가 0 이 아님 -- 판별력).
 MID_ALPHA = 0.01
+MID_GMBS0 = 0.3
 
 
 def mid_toy_arrays(W, scale, meta, L=BIN_L, cols=("GMBS", "VDSAT"), n_vgs=3):
@@ -1625,15 +1685,17 @@ def mid_toy_arrays(W, scale, meta, L=BIN_L, cols=("GMBS", "VDSAT"), n_vgs=3):
     v = np.asarray(TOY_VGS[:n_vgs])
     d = np.asarray(TOY_VDS)
     s = np.asarray(TOY_VS)
-    fs = np.asarray(TOY_VS_FACTOR)
     q = R5_A * v - R5_B * v * v
-    ID = ((1.0 / Lu)[:, None, None, None] * 1e-7 * np.exp(c[:, None, None, None] * q[None, :, None, None])
-          * np.exp(R5_C * d)[None, None, :, None] * fs[None, None, None, :] * scale)
-    GM = ID * (c[:, None] * (R5_A - 2 * R5_B * v)[None, :])[:, :, None, None]
+    v4, d4, s4 = v[None, :, None, None], d[None, None, :, None], s[None, None, None, :]
+    lnID = (-np.log(Lu)[:, None, None, None] + math.log(1e-7) + c[:, None, None, None] * q[None, :, None, None]
+            + R5_C * d4 - MID_GMBS0 * ((1 + 0.1 * v4 + 0.2 * d4) * s4 + 0.025 * s4 * s4))
+    ID = np.exp(lnID) * scale
+    GM = ID * (c[:, None, None, None] * (R5_A - 2 * R5_B * v4) - MID_GMBS0 * 0.1 * s4)
+    GDS = ID * (R5_C - MID_GMBS0 * 0.2 * s4)
     out = {
         "W": np.float64(W),
         "L": np.asarray(L, dtype=float), "VGS": v.copy(), "VDS": d.copy(), "VS": s.copy(),
-        "ID": ID, "GM": GM, "GDS": ID * R5_C, "VTH": np.full(ID.shape, 0.4),
+        "ID": ID, "GM": GM, "GDS": GDS, "VTH": np.full(ID.shape, 0.4),
         "meta_json": np.str_(json.dumps(meta)), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
     }
     if "VDSAT" in cols:
@@ -1655,7 +1717,7 @@ def mid_gmbs_per_id(nL, n_vgs=3):
     v = np.asarray(TOY_VGS[:n_vgs])
     d = np.asarray(TOY_VDS)
     s = np.asarray(TOY_VS)
-    r = 0.3 * (1 + 0.1 * v[:, None, None] + 0.2 * d[None, :, None] + 0.05 * s[None, None, :])
+    r = MID_GMBS0 * (1 + 0.1 * v[:, None, None] + 0.2 * d[None, :, None] + 0.05 * s[None, None, :])
     return np.broadcast_to(r[None], (nL, n_vgs, len(d), len(s))).copy()
 
 
@@ -1896,16 +1958,32 @@ def vdsat_loo_cell_ref(grids, V, on, i, k, l_int):
 #   ln ID = r5 toy 의 VGS·VDS 부분 − s − s² (VS 의 2차식) -> d lnID/dVS = −(1 + 2s), GMBS = ID·(1 + 2s)(정확한 기울기 자료).
 #   VS 격자 (0, 0.5) 한 칸이라 Hermite 가 2차식을 정확히 재현하고 선형은 칸 중앙에서 ln 으로 0.0625 어긋난다(판별력).
 
-def vs_toy_lnid(v, d, s, L=1e-6):
-    return math.log(1e-6 / L) + math.log(1e-7) + R5_A * v - R5_B * v * v + R5_C * d - s - s * s
+# [r7 2026-10-09] VS FC 위반 판(vs_fc=True): ln ID 의 VS 몫 = −(μ/λ)·(e^(λs) − 1), GMBS/ID = μ·e^(λs) (정확한 기울기 -- 1.4 단위 검사 일관),
+#   μ = 0.1, λ = 10, VS 칸 [0, 0.5](h 0.5): 끝 기울기 −(0.1, 0.1·e^5 = 14.84), Δln ID = −0.01·(e^5 − 1) = −1.474, 현 −2.948 은 두 끝 사이.
+#   FC(CONTRACT 1.4 식, 손계산): b0 = −0.05, b2 = −7.421, b1 = 3·(−1.474) + 0.05 + 7.421 = 3.049 > 0, b1² = 9.30 > b0·b2 = 0.371 -> 위반.
+#   (옛 판은 GMBS 를 1000 배 해 FC 위반을 만들었다 -- 기울기가 ln ID 와 모순이라 1.4 로 로드 거부. 그 입력은 이제 거부 test 의 입력이다.)
+VS_FC_MU = 0.1
+VS_FC_LAMBDA = 10.0
 
 
-def vs_toy_slice_arrays(W, scale=1.0, gmbs_mult=1.0, gmbs_mutate=None):
+def _vs_part(s, vs_fc):
+    if vs_fc:
+        return -(VS_FC_MU / VS_FC_LAMBDA) * (np.exp(VS_FC_LAMBDA * s) - 1.0)
+    return -s - s * s
+
+
+def vs_toy_lnid(v, d, s, L=1e-6, vs_fc=False):
+    return (math.log(1e-6 / L) + math.log(1e-7) + R5_A * v - R5_B * v * v + R5_C * d
+            + float(_vs_part(np.float64(s), vs_fc)))
+
+
+def vs_toy_slice_arrays(W, scale=1.0, gmbs_mult=1.0, gmbs_mutate=None, vs_fc=False):
+    """gmbs_mult ≠ 1·gmbs_mutate 는 기울기 열을 ln ID 와 모순되게 만드는 입력(1.4 단위 검사 거부 test·기울기 정의 안 됨 test 용)."""
     L, v, d, s = (np.asarray(TOY_L)[:, None, None, None], np.asarray(TOY_VGS)[None, :, None, None],
                   np.asarray(TOY_VDS)[None, None, :, None], np.asarray(TOY_VS)[None, None, None, :])
-    ID = scale * np.exp(np.log(1e-6 / L) + math.log(1e-7) + R5_A * v - R5_B * v * v + R5_C * d - s - s * s)
+    ID = scale * np.exp(np.log(1e-6 / L) + math.log(1e-7) + R5_A * v - R5_B * v * v + R5_C * d + _vs_part(s, vs_fc))
     out = _toy_dict(W, ID, ID * (R5_A - 2 * R5_B * v), ID * R5_C)
-    G = ID * (1.0 + 2.0 * s) * gmbs_mult
+    G = ID * (VS_FC_MU * np.exp(VS_FC_LAMBDA * s) if vs_fc else (1.0 + 2.0 * s)) * gmbs_mult
     out["GMBS"] = gmbs_mutate(G) if gmbs_mutate else G
     return out
 

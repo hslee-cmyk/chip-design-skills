@@ -105,14 +105,19 @@ def test_gm_over_id_is_vgs_derivative_of_lnid(toy_memo):
 
 
 def test_r4_toy_fc_violating_cells_fall_back_to_linear(r4toy_memo):
-    """CONTRACT 7.2: VGS 칸 0·VDS 칸 위반 -> 그 축 선형, 실패하지 않는다(op_point 행)."""
+    """CONTRACT 7.2: VGS 칸 0·VDS 칸 위반 -> 그 축 선형, 실패하지 않는다(op_point 행).
+    oracle (a) 손계산([r7] 1.4 단위 검사와 맞는 r4 toy -- conftest R4_*): VGS 0.25·VDS 0.75 는 두 축 모두 칸 중앙(t = ½) 선형 ->
+    ln IDu = ½(ln1e-7 + ln1e-6) + ½(0 + 0.01), gm/ID = 그 직선의 미분 ln10/0.5, ln GDS 선형 -> GDS/ID = √(0.1·0.01),
+    gm_gds = gm/ID ÷ √(1e-3), gds_per_w = IDu·√(1e-3)/1e-6 (w_m = L = 1e-6)."""
     op = op_point(r4toy_memo, "nmos", 100, 1e-6, 0.25, 0.75, 0.0)
-    assert rel_close(op.IDu, math.sqrt(1e-7 * 1e-6), 1e-12)
-    assert rel_close(op.IDu, 3.162278e-7, 1e-6)
+    assert rel_close(op.IDu, math.sqrt(1e-7 * 1e-6) * math.exp(0.005), 1e-12)
+    assert rel_close(op.IDu, 3.178129e-7, 1e-6)
     assert rel_close(op.gm_over_id, math.log(10.0) / 0.5, 1e-12)
     assert rel_close(op.gm_over_id, 4.605170, 1e-6)
-    assert rel_close(op.gm_gds, 46.05170, 1e-6)
-    assert rel_close(op.gds_per_w, 0.03162278, 1e-6)
+    assert rel_close(op.gm_gds, math.log(10.0) / 0.5 / math.sqrt(1e-3), 1e-12)
+    assert rel_close(op.gm_gds, 145.6283, 1e-6)
+    assert rel_close(op.gds_per_w, math.sqrt(1e-7 * 1e-6) * math.exp(0.005) * math.sqrt(1e-3) / 1e-6, 1e-12)
+    assert rel_close(op.gds_per_w, 0.01005013, 1e-6)
     assert op.vth == pytest.approx(0.4, abs=1e-15)
     ref = RefSlice(r4_toy_slice_arrays(1e-6)).op(anchor_w(0), 1e-6, 0.25, 0.75, 0.0)
     assert ref["vgs_hermite"] is False
@@ -121,7 +126,7 @@ def test_r4_toy_fc_violating_cells_fall_back_to_linear(r4toy_memo):
 
 
 def test_r4_toy_monotone_vgs_cell_uses_hermite(r4toy_memo):
-    """r4 toy VGS 칸 1(기울기 10·4)은 단조 -> Hermite. VDS 칸은 위반이라 VDS 선형(ID 가 VDS 무관이라 값은 같다)."""
+    """r4 toy VGS 칸 1(기울기 4·1.5, 현 3)은 단조 -> Hermite. VDS 칸은 FC 위반이라 VDS 선형(RefSlice 독립 구현이 같은 규칙)."""
     rs = RefSlice(r4_toy_slice_arrays(1e-6))
     for pt in ((1e-6, 0.75, 0.5, 0.0), (2e-6, 0.6, 0.8, 0.3), (3e-6, 0.95, 0.7, 0.45)):
         ref = rs.op(anchor_w(TOY_L.index(pt[0])), *pt)
@@ -129,7 +134,7 @@ def test_r4_toy_monotone_vgs_cell_uses_hermite(r4toy_memo):
         op = op_point(r4toy_memo, "nmos", 100, *pt)
         for f in OP_FIELDS:
             assert rel_close(getattr(op, f), ref[f], 1e-12), (pt, f)
-        assert not rel_close(op.gm_over_id, math.log(10.0) / 0.5, 1e-3), "Hermite 칸이면 직선 기울기가 아니다"
+        assert not rel_close(op.gm_over_id, 1.5 / 0.5, 1e-3), "Hermite 칸이면 직선 기울기(칸 1 현 3)가 아니다"
 
 
 def test_gm_id_curve_offgrid_matches_independent_hermite_toy(toy_memo):
@@ -308,13 +313,15 @@ def test_vs_slope_undefined_falls_back_to_linear(toy_build):
 
 
 def test_vs_fc_violation_falls_back_to_linear(toy_build):
-    """기울기 1000 배(Δln ID = −0.75 인데 끝 기울기 −1000·(1, 2)): b0 = −500, b2 = −1000, b1 = 3·(−0.75) + 1500 = 1497.75 > 0,
-    b1² = 2.2e6 > b0·b2 = 5e5 -> FC 위반(CONTRACT 1.4 식, 손계산) -> VS 선형, 사유 'fc_violation'."""
+    """[r7 2026-10-09] VS FC 위반 판 vs toy(conftest vs_fc=True -- ln ID 의 VS 몫 −(μ/λ)(e^(λs) − 1), GMBS/ID = μe^(λs), 기울기 자료가
+    ln ID 와 맞아 1.4 단위 검사 통과): 끝 기울기 −(0.1, 14.84), Δln ID = −1.474 -> b0 = −0.05, b2 = −7.421, b1 = 3.049 > 0,
+    b1² = 9.30 > b0·b2 = 0.371 -> FC 위반(CONTRACT 1.4 식, 손계산) -> VS 선형, 사유 'fc_violation'.
+    (옛 입력 = GMBS 1000 배는 기울기가 ln ID 와 모순이라 이제 로드 거부 -- test_lut_set `test_unit_mismatch_rejected_gmbs`.)"""
     from .conftest import new_memo
-    m = new_memo(toy_build("vsfc", slices=vs_toy_slices(gmbs_mult=1000.0)).load())
+    m = new_memo(toy_build("vsfc", slices=vs_toy_slices(vs_fc=True)).load())
     op = op_point(m, "nmos", 100, 1e-6, 0.5, 0.5, 0.25)
     assert op.fallbacks == (("VS", "fc_violation"),)
-    lin = 0.5 * (vs_toy_lnid(0.5, 0.5, 0.0) + vs_toy_lnid(0.5, 0.5, 0.5))
+    lin = 0.5 * (vs_toy_lnid(0.5, 0.5, 0.0, vs_fc=True) + vs_toy_lnid(0.5, 0.5, 0.5, vs_fc=True))
     assert abs(math.log(op.IDu) - lin) <= 1e-12
 
 

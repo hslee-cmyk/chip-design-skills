@@ -47,11 +47,12 @@ def test_toy_grid_curve(toy_memo, w_key, scale):
 
 
 def test_r4_toy_cell_ok(r4toy_memo):
-    """CONTRACT 7.2: VGS 칸 0 위반·칸 1 단조 -> cell_ok (False, True)."""
+    """CONTRACT 7.2: VGS 칸 0 위반·칸 1 단조 -> cell_ok (False, True). 마디 gm/ID = 저장 GM/ID = (20, 4, 1.5)
+    (oracle (a): conftest r4 toy 구성 R4_GM_RATIO -- [r7] 1.4 단위 검사와 맞는 판, 손계산은 conftest R4_* 주석)."""
     c = gm_id_curve(r4toy_memo, "nmos", 100, 1e-6, 0.5, 0.0)
     assert tuple(bool(x) for x in c.cell_ok) == (False, True)
     assert len(c.cell_ok) == len(c.vgs_grid) - 1
-    for got, exp in zip(c.gm_id_vals, (20.0, 10.0, 4.0)):
+    for got, exp in zip(c.gm_id_vals, (20.0, 4.0, 1.5)):
         assert rel_close(float(got), exp, 1e-12)
 
 
@@ -140,7 +141,8 @@ def test_cell_class_r5_toy_all_hermite(toy_memo):
 
 
 def test_cell_class_r4_toy_fc_violation(r4toy_memo):
-    """CONTRACT 7.2 손계산: VGS 칸 0 위반(b1² = 65.5 > 50), 칸 1 단조 -> ('fc_violation', 'hermite'), cell_ok 와 일치."""
+    """r4 toy 손계산(conftest R4_* 주석): VGS 칸 0 위반(b1² = 25.9 > 20), 칸 1 단조(b1 = 1.75 ≥ 0) -> ('fc_violation', 'hermite'),
+    cell_ok 와 일치."""
     c = gm_id_curve(r4toy_memo, "nmos", 100, 1e-6, 0.5, 0.0)
     assert tuple(c.cell_class) == ("fc_violation", "hermite")
     assert tuple(bool(x) for x in c.cell_ok) == (False, True)
@@ -148,7 +150,8 @@ def test_cell_class_r4_toy_fc_violation(r4toy_memo):
 
 def test_cell_class_slope_undefined(curve_lut):
     """마디 2 의 GM = 0(gm/ID 정의 안 됨) -> 칸 1 은 끝 기울기가 없어 'slope_undefined'(선형 칸), 칸 0 은 단조 Hermite.
-    칸 0: 마디 gm/ID (8, 5), h 0.5, Δln ID = ln10 -> b0 = 4, b2 = 2.5, b1 = 0.41 ≥ 0 (CONTRACT 1.4 조건 손계산)."""
-    memo, _ = curve_lut((0.0, 0.5, 1.0), (1e-6, 1e-5, 1e-4), (8.0, 5.0, 0.0))
+    칸 0: 마디 gm/ID (8, 5), h 0.5, Δln ID = 3(현 6 ∈ [5, 8] -- [r7] 1.4 단위 검사 일관; 옛 Δln ID = ln10 은 현 4.6 이 밖)
+    -> b0 = 4, b2 = 2.5, b1 = 9 − 6.5 = 2.5 ≥ 0 (CONTRACT 1.4 조건 손계산)."""
+    memo, _ = curve_lut((0.0, 0.5, 1.0), (1e-6, 1e-6 * math.exp(3.0), 1e-6 * math.exp(5.0)), (8.0, 5.0, 0.0))
     c = gm_id_curve(memo, "nmos", 100, 1e-6, 0.5, 0.0)
     assert tuple(c.cell_class) == ("hermite", "slope_undefined")

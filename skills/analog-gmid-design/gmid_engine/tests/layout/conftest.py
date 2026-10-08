@@ -119,18 +119,23 @@ J0 = I1 / 1e-6
 
 
 def _toy_slice_r4(W, scale):
-    """lut 7.2 r4 toy(FC 위반 예시) -- 4.2 의 거부 경로 확인용."""
+    """lut r4 toy(FC 위반 예시) -- 4.2 의 거부 경로 확인용. [r7 2026-10-09] lut CONTRACT 1.4 기울기 열 단위 검사(현 기울기가 두 끝
+    기울기 사이)와 맞는 판(lut tests conftest 의 R4_* 와 같은 구성·손계산): ID 마디 (1e-7, 1e-6, 1e-6·e^1.5)[VGS]·exp((0, 0.01)[VDS]),
+    GM/ID = (20, 4, 1.5), GDS/ID = (0.1, 0.01) -- VGS 칸 0 과 VDS 칸은 FC 위반, VGS 칸 1 은 단조(옛 판 GM/ID (20, 10, 4)·GDS = ID/10 은
+    VDS 칸 모두 단위 검사 위반이라 로드 거부). toy 동작점 gm/ID 14 는 VGS 칸 0(20 > 14 > 4) 이라 거부 경로 그대로."""
     ID = np.empty((3, 3, 2, 2))
     for iL, L in enumerate(TOY_L):
         for iG in range(3):
             for k in range(2):
                 for s in range(2):
-                    ID[iL, iG, k, s] = (1e-6 / L) * (1e-7, 1e-6, 1e-5)[iG] * TOY_VS_FACTOR[s]
+                    ID[iL, iG, k, s] = ((1e-6 / L) * (1e-7, 1e-6, 1e-6 * math.exp(1.5))[iG] * math.exp((0.0, 0.01)[k])
+                                        * TOY_VS_FACTOR[s])
     ID = ID * scale
-    GM = ID * np.asarray((20.0, 10.0, 4.0))[None, :, None, None]
+    GM = ID * np.asarray((20.0, 4.0, 1.5))[None, :, None, None]
     return {
         "W": np.float64(W), "L": np.asarray(TOY_L), "VGS": np.asarray(TOY_VGS), "VDS": np.asarray(TOY_VDS),
-        "VS": np.asarray(TOY_VS), "ID": ID, "GM": GM, "GDS": ID / 10.0, "VTH": np.full(ID.shape, 0.4),
+        "VS": np.asarray(TOY_VS), "ID": ID, "GM": GM, "GDS": ID * np.asarray((0.1, 0.01))[None, None, :, None],
+        "VTH": np.full(ID.shape, 0.4),
         "meta_json": np.str_('{"model_files_sha256": {}}'), "corner": np.str_("tt"), "temp_c": np.float64(27.0),
     }
 

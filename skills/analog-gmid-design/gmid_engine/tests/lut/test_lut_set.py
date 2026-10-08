@@ -289,8 +289,9 @@ def test_reject_width_unresolved_single_slice(toy_build):
 def test_reject_width_unresolved_tie(toy_build):
     # 2 의 거듭제곱 값: |I − 2I| / 2I = |3I − 2I| / 2I = 0.5 정확히 같음(동률)
     vgs = (0.0, 0.5, 1.0)
-    base = np.asarray((2.0 ** -24, 2.0 ** -20, 2.0 ** -16))
-    gmid = (20.0, 10.0, 4.0)
+    base = np.asarray((2.0 ** -24, 2.0 ** -20, 2.0 ** -17))
+    # [r7] gm/ID 는 ln ID 현(ln16/0.5 = 5.55, ln8/0.5 = 4.16)이 두 끝 사이가 되게(lut CONTRACT 1.4 단위 검사 일관 -- 이 test 의 대상은 폭 동률)
+    gmid = (6.0, 5.0, 4.0)
     a = curve_slice_arrays(1e-6, vgs, base, gmid)
     b = curve_slice_arrays(2e-6, vgs, 3.0 * base, gmid)
     ref = curve_slice_arrays(1e-6, vgs, 2.0 * base, gmid)["ID"]
@@ -636,8 +637,9 @@ def test_vs_hermite_fc_recorded_toy(toy_build):
 
 
 def test_vs_fc_violations_counted_toy(toy_build):
-    """(a) 기울기 1000 배 -> 18 칸 모두 위반(test__helpers_interp 의 손계산) -- 로드는 거부하지 않는다(CONTRACT 1.4 '위반이 있어도')."""
-    lut = toy_build("vsfc", slices=vs_toy_slices(gmbs_mult=1000.0)).load()
+    """(a) VS FC 위반 판 vs toy(conftest vs_fc=True, 기울기 자료 일관) -> 18 칸 모두 위반(test__helpers_interp 의 손계산) -- 로드는
+    거부하지 않는다(CONTRACT 1.4 '위반이 있어도'). [r7] 옛 입력(GMBS 1000 배)은 단위 검사로 거부된다(아래 test)."""
+    lut = toy_build("vsfc", slices=vs_toy_slices(vs_fc=True)).load()
     assert lut.slice_map[("nmos", 100)].hermite_fc[2] == ("VS", 18, 18)
 
 
