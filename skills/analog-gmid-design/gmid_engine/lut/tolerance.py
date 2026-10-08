@@ -266,4 +266,5 @@ def tol_v_table(memo, kind, w_key, l_bin_checks=None):
         return TolVTable(kind, w_key, sl.grids[0], sl.grids[2], tuple(cells), sl.l_bins, l_loo, l_loo_bins, orders,
                          checks)
 
-    return memo.lookup("derived", "tol_v_table", (kind, w_key, checks), compute)
+    return memo.lookup_persistent("derived", "tol_v_table", (kind, w_key, checks), compute, sl,
+                                  (LOO_ORDERS, TOL_V_METRICS, AXES))
