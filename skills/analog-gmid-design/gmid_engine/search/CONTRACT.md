@@ -40,6 +40,9 @@
   test 를 고치지 않음): `test_find_front.py::test_sealed_run_perf_and_invariants`(n_starts 1 -> 층 0 시작점 포함 2)·
   `test_notes_record_open_items`(`layer0_inputs_missing` -> `seal_margin_maxmin_centre`) 두 건이 r5 계약 변경 3.12·3.16 과 어긋난다 --
   test 작성자 몫.
+- **r9(2026-10-08, 브랜치 ng-search-cond = master + 이 변경 -- sizing r8 봉인 9 전도 여유)**: `[r9]`. `cell_floor` 에 칸 전도 하한 추가
+  (3.22 r9 항목): 봉인 9 조건 IDu(VGS)·(gm/ID)·tol_V ≥ IDu(VGS = 0) 은 W 와 무관한 ln_idu 좌표 하한이라 θ 전류 상자(current_box I_off)로는
+  막을 수 없다(sizing O17). 모든 ln_idu 성분에 붙고 1변수 writer 는 정점 하한과 max. 봉인 9 가 판정 권한(하한은 평가 절약용).
 
 ### r4 덮어쓰기 요약 (아래 본문보다 우선)
 - `build_search_context(dc_ctx, spec, settings, archive_root, pdk_decl, junction=None)`: `junction` = metrics `JunctionSource`
@@ -340,6 +343,23 @@ kernel_calls, rows, probes, origin_point)`(frozen dataclass, 필드 뜻은 docst
   d·s·bulk 중 하나(sizing `self_referential` 과 같은 판정; 집합은 `sctx.cell_floors` 에 1회). `start`(θ Mapping)가 있으면 하한 =
   min(하한, start[성분]). 원래 lo < 하한 < hi 일 때만 결과에 넣는다.
 - 쓰는 곳: `solve_eps._layout`(one_var_only, start = 시작 θ), 층 0 최대-최소(같은 인자), 층 0 시험·수리(모든 쓰기 소자, start 없음).
+- **[r9] 전도 하한**(sizing r8 봉인 9 -- 판정 권한은 봉인 9, 이 하한은 그 거부 영역에서 평가를 아끼는 상자): 칸 전도 하한(kind, w_key,
+  칸) = 칸 안 L 앵커 a × VDS 격자 k × VS 격자 s 곡선마다(tol = lut `tol_v_table(memo, kind, w_key).at(L_a, VDS_k, "id_equivalent")`,
+  None·0 이면 그 (a, k) 곡선 제외; VGS 격자의 0 마디 z(|VGS| ≤ spacing(max|VGS|), 없으면 칸 전도 하한 None)가 on_mask 인 곡선만)
+  f_i = log_GM[a, i, k, s] + ln tol − log_ID[a, z, k, s](= ln(gm·tol_V / I_off), 같은 슬라이스 폭 -- W/L 지워짐, 봉인 9 margin = 1 ⇔
+  f = 0). on_mask 이고 f ≥ 0 인 첫 마디 j 가 있고 j > 0 이고 j − 1 마디도 on_mask 이면 근 = lnID[j−1] + t·(lnID[j] − lnID[j−1]) + ln L_a
+  − ln w_m, t = −f[j−1]/(f[j] − f[j−1]); 그 밖의 곡선은 제외. 칸 전도 하한 = 근들의 최댓값(곡선이 하나도 없으면 None). 캐시
+  `sctx.cell_floors[("conduction", kind, w_key, 칸)]`.
+- [r9] 성분별 하한 = max(칸 전도 하한(None 아니면), 칸 정점 하한(one_var_only 가 아니거나 m 이 1변수 writer 일 때)). 전도 하한은
+  **모든 `ln_idu` 성분**에 붙는다(one_var_only 여도). 둘 다 없으면 그 성분은 결과에 없다. `start` 캡은 start 에 그 성분이 있을 때만
+  (없으면 캡 없음 -- r8 은 KeyError).
+- [r9] 실측(LUT v2): L 칸 (0.7, 1) µm 에서 nmos 전도 하한 ln IDu −26.48(VDS 격자 중간·VS 0 곡선에서 VGS 0.142 V), pmos −38.36(0.136 V);
+  칸 정점 하한은 nmos −30.22(0.006 V), pmos −42.00(0.015 V) -- 전도 하한이 더 크다(보수: 격자 전체 최댓값이라 sizing O17 의 L 1 µm
+  VGS* nmos ≈ 0.14 V·pmos ≈ 0.12 V 보다 pmos 쪽이 조금 높다).
+- [r9] **기대값이 바뀌는 기존 test(작성자 갱신 몫, 고치지 않음)**: `tests/search/test_cell_floor.py::test_one_var_only_selects_diode_writer`·
+  `test_one_var_only_empty_for_gate_writers`·`test_start_coordinate_caps_floor`·`test_cell_floor_cache_is_read`(캐시 키 수)·
+  `test_real_lut_v2_multi_anchor_cells`, `tests/search/test_layer0_center.py::test_halton_hit_and_run_probe_points`·
+  `test_repair_bisection_count_and_points` -- 모두 전도 하한이 더해져 하한 값·성분 집합·캐시 키가 바뀐 것.
 
 ### 3.8 [r3] `constraint_rows(snapshot, lut_access, w_min_m, grid_m) -> (rows, undefined)`
 - MOS 마다(`dc_op` 열 순서) 먼저 [r3] `w_min:<m>` c = (dc_op.W − w_min_m)/grid_m(**설계 개정 S-18**, tol 과 무관하게 늘 있음),
