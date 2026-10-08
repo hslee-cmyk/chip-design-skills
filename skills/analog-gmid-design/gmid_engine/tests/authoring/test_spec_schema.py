@@ -94,10 +94,26 @@ def test_optional_human_key_may_be_absent(sc, key):
 
 
 def test_unknown_human_key(sc):
-    sc.human["gain_budget_db_override"] = 3
+    # [U5 2026-10-08] gain_budget_db_override 는 이제 선택 키(설계 40 §3.1)라 어휘 밖 이름으로 바꿨다.
+    sc.human["gain_budget_override_db"] = 3
+    sc.reject_only("unknown_key", "spec_schema")
+
+
+@pytest.mark.parametrize("key", ["gain_budget_db_override", "driving_spec", "structure_count_budget"])
+def test_u5_optional_human_keys_are_vocabulary(sc, key):
+    """[U5] 설계 40 §3.1 표의 새 필드는 human 키 어휘다 -- 형식이 틀리면 unknown_key 가 아니라 형식 위반(type)으로 거부된다."""
+    sc.human[key] = 3
     d = sc.reject()
-    assert sc.rules(d) in (["unknown_key"], ["legacy_name"])  # 계약 6절 4: 둘 중 하나로 거부
-    assert d["rejected_gates"] == ("spec_schema",)
+    assert "unknown_key" not in sc.rules(d) and "legacy_name" not in sc.rules(d)
+    assert "type" in sc.rules(d)
+
+
+@pytest.mark.parametrize("key", ["input_dc_net", "topology_hash", "derived"])
+def test_canonical_names_are_not_legacy(sc, key):
+    """[U5] 설계 40 §3.1 '옛 이름 거부' 행·§11 U5 '옛 이름 표 수정(input_dc_net·topology_hash·derived)': 이 세 이름은 정본 이름이라
+    옛 이름 표에서 빠진다 -- human 키로 오면 어휘 밖(unknown_key)이지 legacy_name 이 아니다."""
+    sc.human[key] = {"x": 1}
+    sc.reject_only("unknown_key", "spec_schema")
 
 
 @pytest.mark.parametrize("key", ["compensation", "function", "kg", "Z", "NDP", "stage_devices", "minimize",

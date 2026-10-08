@@ -68,12 +68,33 @@
         }
       },
       {
-        "metric": "mismatch_sigma_mv",
-        "op": "<=",
-        "value": 5.0,
+        "metric": "gbw_ss_hz",
+        "op": ">=",
+        "value": 7000000.0,
         "source": {
-          "kind": "pending_spice",
-          "record": "U-17(7a 재도출 대상) -- two_stage_ota.topology.json sizing_roles.constraints[1] (옛 source pending_7a, 옛 이름 mismatch_sigma_mV)"
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"Q1~Q11 모두 네 의견대로 진행해\" 결정 Q5 -- 보상 목표 user_spec 을 제약으로 승격(GBW >= 7 MHz). 원 기록: 세션31(2026-08-13 CJ) GBW 20 MHz -> 7 MHz 무릎점 사용자 결정 -- legacy/workspaces/run_harness.py _spec_two_stage_ota 113행 주석",
+          "decided": "2026-10-08"
+        }
+      },
+      {
+        "metric": "offset_excess",
+        "op": "<=",
+        "value": 1.4142135623730951,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"q3,q4는 네 제안대로 해\" -- Q3 (3): 절대 offset 값 없는 회로는 구조 가드 offset_excess <= sqrt(2)(부하 분산 <= 입력쌍 분산 경계, design 40 §9.2) -- 옛 mismatch_sigma_mv <= 5 절대값 폐기",
+          "decided": "2026-10-08"
+        }
+      },
+      {
+        "metric": "noise_excess_th",
+        "op": "<=",
+        "value": 2,
+        "source": {
+          "kind": "user_spec",
+          "record": "user_decisions.md 2026-10-08 \"Q1~Q11 모두 네 의견대로 진행해\" 결정 Q11 -- 잡음 구조 가드 noise_excess_th <= 2(부하 잡음 <= 입력 잡음, design 41 §7.1)",
+          "decided": "2026-10-08"
         }
       },
       {
@@ -91,19 +112,13 @@
       {
         "metric": "pm_ss_deg",
         "decision": "SP-3"
-      },
-      {
-        "metric": "gbw_ss_hz",
-        "decision": "SP-5"
       }
     ],
     "compensation_targets": {
       "gbw_target_hz": {
-        "value": 7000000.0,
+        "value_from_constraint": "gbw_ss_hz",
         "source": {
-          "kind": "user_spec",
-          "record": "세션31(2026-08-13 CJ) GBW 20 MHz -> 7 MHz 무릎점 사용자 결정 -- legacy/workspaces/run_harness.py _spec_two_stage_ota 113행 주석",
-          "decided": "2026-08-13"
+          "kind": "reference"
         }
       },
       "pm_target_deg": {

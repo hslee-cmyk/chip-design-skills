@@ -134,7 +134,7 @@ ev     = size_and_seal(ctx, theta, parent=None)                                #
   정렬. 그 (kind, w_key) 슬라이스가 `slice_map` 에 없으면 `ValueError`. 실데이터에서 nmos·pmos 모두 1000(5 µm). 레이아웃 뒤
   실현 폭 슬라이스는 DEC-89 재평가 몫(이 함수 밖).
 
-### 1.4 `build_kernel_context(s1graph, inputs, lut) -> KernelContext`
+### 1.4 `build_kernel_context(s1graph, inputs, lut, l_classes=()) -> KernelContext` (l_classes: 13절)
 - 인자 형식 위반 -> `TypeError`(s1graph 가 `S1Graph` 아님, inputs 가 `DcInputs` 아님, lut 가 `LutAccess` 아님).
 - `supplies_declaration(dict(inputs.supplies_v), 레일 집합)`(graph) 위반 -> `SchemaRejectedError` 그대로.
   `fp_of(그 정규화 결과) != s1graph.key.supplies_v_fp` -> `ValueError`(S1 을 다른 supplies 로 만들었다).
@@ -921,6 +921,18 @@ O3·O8 기록 유지. [r4] O1 봉인 7 판정 해결, 창 VDsat 항은 결정 �
 
 
 ---
+
+## 13. [U1 배선] L 동치류 공유 -- `build_kernel_context(..., l_classes=())`, `KernelContext.l_ties`
+
+설계 40 §3.2 보완 1, 계획 DEC-17·LR1. 소비하는 쪽 계약:
+
+* `build_kernel_context(s1graph, inputs, lut, l_classes=())`: `l_classes` = `graph.build_s1v` 결과 `S1v.l_classes`(LClass tuple). 생략하면 `()` 이고 이전 동작과 같다
+  (`ctx.l_ties == ()`). [14.1 이 대체] θ 스키마는 동치류가 있으면 멤버 L 성분을 뺀다(없으면 불변).
+* **status 의미 유지**: S1 `rel_l_class` 는 proposed 그대로라 읽지 않는다. `LClass.status == derived` 인 동치류만 묶는다(`review_needed` 동치류 = 멤버 DC 역할 미확정 --
+  묶지 않는다). 주인 선택(DEC-17)은 S1v 가 이미 했다.
+* `KernelContext.l_ties` = ((멤버, 주인), ...) 이름순, 주인이 아닌 derived 동치류 멤버만. 멤버 이름이 S1 원소가 아니면 `ValueError`.
+* `size_and_seal`: 멤버 소자의 L = 주인 소자의 θ L 값(`dc_lengths` 입력이 바뀐다). θ 의 멤버 L 값은 무시된다(주인 값과 달라도 오류가 아니다 -- 멤버 L 성분은 중복 변수).
+  search 는 멤버 L 성분을 변수에서 빼야 한다(U4/U11 후속: `search_domain`·`slsqp_outer`·`layer0_center` 가 아직 소자마다 L 을 변수로 둔다).
 
 ## 14. [U4 보강] 설계 40 §3.7·§3.2-1, 41 §4.6·§5.3 (독립 test 작성자용 계약, 2026-10-08)
 

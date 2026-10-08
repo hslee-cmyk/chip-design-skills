@@ -30,6 +30,13 @@ SECTIONS = {
     "search_fp": ("search",),
     "spice_check_fp": ("spice_check",),
     "refilter_fp": ("front_refilter",),
+    # [U5 2026-10-08] 선택 섹션 3개(설계 40 §3.1)의 지문 묶음 -- 이름은 SPEC_CONTRACT 3절, 기존 묶음 뒤에 붙는다.
+    "gain_override_fp": ("gain_budget_db_override",),
+    "driving_fp": ("driving_spec",),
+    "count_budget_fp": ("structure_count_budget",),
+    # [U5 후속 2026-10-09] 선택 섹션 noise_testbench(설계 40 §11 U5 행 'noise_testbench', 41 §7.1 폐루프 모드 스위치 kT/C) --
+    # 이름은 SPEC_CONTRACT 3절 섹션 지문 목록(oracle d: 계약 선언), 기존 묶음 뒤에 붙는다.
+    "noise_testbench_fp": ("noise_testbench",),
 }
 
 
@@ -162,7 +169,7 @@ def test_feedback_change_moves_feedback_and_loop_constraint_fp(sc):
 def test_reference_enters_fp_as_resolved_value(sc):
     """참조는 해석된 값으로 지문: 대상 값을 바꾸면 참조 제약 지문도 바뀌고, 같은 값을 직접 적으면 kind 차만 남는다."""
     base = sc.load()
-    sc.constraint("mismatch_sigma_mv")["value"] = 3.0
+    sc.constraint("swing_out_v")["value"] = 3.0
     assert sc.load().spec_fp != base.spec_fp
     ref = sc.read_spec("fx_spec_ref")
     ref["human"]["constraints"][0]["value"] = 3e8
@@ -204,3 +211,63 @@ def test_doc_equal_after_copy_roundtrip(sc):
     a = sc.load()
     sc.spec = copy.deepcopy(sc.spec)
     assert sc.load() == a
+
+
+# ---------------------------------------------------------------- [U5 2026-10-08] 선택 섹션 3개의 지문 격리
+# oracle (d) SPEC_CONTRACT 3절 '섹션 지문' 문장(한 섹션만 바꾸면 그 지문과 spec_fp 만 바뀐다, SpecSource 는 kind 만) + (a) 합성 입력.
+U5_US = {"kind": "user_spec", "record": "fixture u5", "decided": "2026-10-08"}
+
+
+def _with_u5_sections(h):
+    h["gain_budget_db_override"] = [{"block": ["n_outp"], "value_db": 30.0, "source": dict(U5_US)}]
+    h["driving_spec"] = {"slew_rate_v_per_s": 1e6, "source": dict(U5_US)}
+    h["structure_count_budget"] = {"value": 64, "source": dict(U5_US)}
+
+
+@pytest.mark.parametrize("section,key", [("gain_override_fp", "gain_budget_db_override"), ("driving_fp", "driving_spec"),
+                                         ("count_budget_fp", "structure_count_budget")])
+def test_u5_section_added_moves_only_its_fp(sc, section, key):
+    base = sc.load()
+    _with_u5_sections(sc.human)
+    for other in ("gain_budget_db_override", "driving_spec", "structure_count_budget"):
+        if other != key:
+            del sc.human[other]
+    doc = sc.load()
+    assert _changed(base, doc) == {section}
+    assert doc.spec_fp != base.spec_fp
+
+
+@pytest.mark.parametrize("section,mutate", [
+    ("gain_override_fp", lambda h: h["gain_budget_db_override"][0].update(value_db=31.0)),
+    ("gain_override_fp", lambda h: h["gain_budget_db_override"][0].update(block=["n_mid", "n_outp"])),
+    ("driving_fp", lambda h: h["driving_spec"].update(slew_rate_v_per_s=2e6)),
+    ("driving_fp", lambda h: h["driving_spec"].update(load_dc_amp=1e-4)),
+    ("count_budget_fp", lambda h: h["structure_count_budget"].update(value=65)),
+])
+def test_u5_section_change_moves_only_its_fp(sc, section, mutate):
+    _with_u5_sections(sc.human)
+    base = sc.load()
+    mutate(sc.human)
+    other = sc.load()
+    assert _changed(base, other) == {section}
+    assert other.spec_fp != base.spec_fp
+
+
+def test_u5_source_text_out_of_fp(sc):
+    _with_u5_sections(sc.human)
+    base = sc.load()
+    for k in ("driving_spec", "structure_count_budget"):
+        sc.human[k]["source"] = dict(U5_US, record="rewritten", decided="2025-01-01")
+    sc.human["gain_budget_db_override"][0]["source"] = dict(U5_US, record="rewritten")
+    sc.human["driving_spec"]["_why"] = "comment"
+    assert sc.load().spec_fp == base.spec_fp
+
+
+def test_u5_override_item_order_out_of_fp(sc):
+    """결과가 블록 키순 tuple 이므로(3절) JSON 항목 순서만 바꾼 spec 은 같은 지문."""
+    sc.human["gain_budget_db_override"] = [
+        {"block": ["n_outp"], "value_db": 30.0, "source": dict(U5_US)},
+        {"block": ["n_mid"], "value_db": 10.0, "source": dict(U5_US)}]
+    base = sc.load()
+    sc.human["gain_budget_db_override"].reverse()
+    assert sc.load().spec_fp == base.spec_fp

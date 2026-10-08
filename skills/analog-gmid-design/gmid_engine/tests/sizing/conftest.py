@@ -509,8 +509,9 @@ NINE = ("common_gate_amplifier", "current_reuse_telescopic_ota", "folded_cascode
 # 나머지는 실제 레지스트리를 그대로 쓴다(이름표를 두 곳에 정의하지 않는다).
 def _registry_gaps():
     from gmid_engine.core import MetricSignature as M
-    return {"mismatch_sigma_mv": M("mv", "dc"), "mirror_ratio_error_mv": M("mv", "dc"),
-            "area_layout_m2": M("m2", "geom", None, "area")}
+    # [U5 2026-10-08] 옛 mismatch_sigma_mv·mirror_ratio_error_mv 는 옛 이름 표로 거부되는 이름이라(설계 40 §3.8-8) 보충에서 뺐다 --
+    # 새 이름 11개는 metric_catalog() 의 계산 대기 서명에 있다.
+    return {"area_layout_m2": M("m2", "geom", None, "area")}
 
 
 def spec_catalog():

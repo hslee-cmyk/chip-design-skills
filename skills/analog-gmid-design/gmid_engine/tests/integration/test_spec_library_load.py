@@ -16,6 +16,8 @@ from gmid_engine.authoring import BETA_DECLARED, BETA_UNITY, SenseDecl, ViewDecl
 
 from gmid_engine.core import MetricSignature as M
 
+from authoring.conftest import u5_design_signatures
+
 LIBRARY = Path(__file__).resolve().parents[3] / "assets" / "library"
 
 CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
@@ -27,8 +29,8 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
     "parasitic_pm_ss_deg": M("deg", "ss", "transfer"),
     "rout_ss_ohm": M("ohm", "ss", "output_port"),
     "ratio_ss_db": M("db", "ss", "ratio"),
-    "mismatch_sigma_mv": M("mv", "dc", None),
-    "mirror_ratio_error_mv": M("mv", "dc", None),
+    # [U5 2026-10-08] 옛 mismatch_sigma_mv·mirror_ratio_error_mv 는 옛 이름 표로 거부(설계 40 §3.8-8) -> 이름표에서 빼고 설계 어휘 11개
+    **u5_design_signatures(),
     "power_dc_w": M("w", "dc", None),
     "area_search_m2": M("m2", "geom", None),
     "supply_current_dc": M("amp", "dc", None, "power"),
@@ -40,18 +42,32 @@ CATALOG = {  # 어휘: SPEC_CONTRACT 4절·6절 9번, core CONTRACT 0절
 # 1 과 pm_ss_deg 뷰 표지 MOD5 1 삭제) 뒤 11 = JSON 표지 직접 집계(MOD5 5 + SP-2·CI-15·CI-18·PA-1·PA-2·AC-3 각 1) = 5절 표 11.
 # [사용자 결정 11, 2026-10-08] 회로마다 면적 예산 제약 `area_search_m2 <= v`(user_spec -> 판정) 1개씩 추가 -> 제약 수·판정 수 각 +1,
 # pending 수 불변(예산은 결정 대기 표지가 아니다). 옛 표 = (0,0)·(8,5)·(0,0)·(3,2)·(2,2)·(1,1)·(3,3)·(2,1)·(3,2).
+# [U5 2026-10-08] 설계 40 §9 Q5 표·§9.2 Q3·Q4 표·41 §7.1 Q11 표(oracle (d))로 U5 직전 값(옛 표)에서 손으로 더하고 뺀다:
+#   common_gate (1,1)  + noise_excess_th<=2                                                      = (2,2)
+#   파일럿     (10,7) - mismatch_sigma_mv(pending_spice, 판정 밖) - mirror_ratio_error_mv(그 참조, 판정 밖)
+#                     + offset_in_sigma_mv<=3.3 + offset_sys_mv<=ref(offset_in_sigma_mv, 대상 판정 -> 판정)
+#                     + swing_out_v>=2.4 + icm_margin_v>=0 + noise_out_int_vrms<=300e-6       = (13,12)
+#   folded     (1,1)  + offset_excess 가드 + noise 가드                                         = (3,3)
+#   ngcc       (4,3)  metric 표지(MOD5, 판정 밖) -> icmr_v>=0.6(이름 부여, 판정) + 가드 2         = (6,6)
+#   nmcnr      (3,3)  + icmr_v>=0.5 + swing_out_v>=0.5 + 가드 2                                   = (7,7)
+#   pushpull   (2,2)  변경 없음(Q11 보고만, 차동쌍 없음)                                          = (2,2)
+#   sf_pushpull(4,4)  + 가드 2                                                                    = (6,6)
+#   two_stage  (3,2)  - mismatch_sigma_mv(판정 밖) + gbw_ss_hz>=7e6(Q5) + 가드 2                   = (5,5)
+#   two_stage_sf(4,3) - mismatch 참조(판정 밖) + gbw_ss_hz(two_stage 참조, 판정) + 가드 2          = (6,6)
+# pending 표지: ngcc 의 metric 표지 MOD5 1개만 해소(7 -> 6), 나머지 불변.
+# [U5 후속 2026-10-09] 설계 40 §9.2·§11 'J 추가 범위' U5 행 'sf_pushpull spec에 icm_margin_v >= 0(user_spec J-E)', 41 §4.6 '선언 입력 DC
+# 유지 ... icm_margin_v >= 0 을 제약으로 둔다', 사용자 결정 J-E(_drafts/user_decisions.md 2026-10-08 "j해석은 네의견에 모두 동의해."):
+#   sf_pushpull(6,6)  + icm_margin_v>=0(user_spec -> 판정)                                       = (7,7), pending 불변
 TABLE = {
-    "common_gate_amplifier": (1, 1, 6),
-    # 파일럿 10(7)/11: 결정 11 면적 예산 1건 + [CM 2026-10-08] pm_cm_ss_deg >= 60(user_spec) 1건 -- 둘 다 판정, JSON 직접 집계 10개.
-    # (SPEC_CONTRACT 5절 표는 두 갈래가 각각 9(6) 으로 적어 병합 뒤 10(7) 을 반영하지 않음 -- 계약 갱신 대상)
-    "current_reuse_telescopic_ota": (10, 7, 11),
-    "folded_cascode": (1, 1, 7),
-    "ngcc_3stage_ff": (4, 3, 7),
-    "nmcnr_amplifier": (3, 3, 6),
+    "common_gate_amplifier": (2, 2, 6),
+    "current_reuse_telescopic_ota": (13, 12, 11),
+    "folded_cascode": (3, 3, 7),
+    "ngcc_3stage_ff": (6, 6, 6),
+    "nmcnr_amplifier": (7, 7, 6),
     "pushpull_follower_buffer": (2, 2, 5),
-    "sf_pushpull_output_opamp": (4, 4, 6),
-    "two_stage_ota": (3, 2, 7),
-    "two_stage_ota_sf": (4, 3, 6),
+    "sf_pushpull_output_opamp": (7, 7, 6),
+    "two_stage_ota": (5, 5, 7),
+    "two_stage_ota_sf": (6, 6, 6),
 }
 # oracle (d) 사용자 결정 11 문장(_drafts/user_decisions.md 2026-10-08 "B으로 표의 값을 그대로 써. Cl을 빼는 것에 동의해")의 표 값 [mm²].
 # m² 환산은 1 mm² = 1e-6 m² (단위 정의, 피검 식 아님).
@@ -71,9 +87,10 @@ MEASUREMENT_LOADS = {
 }
 # 5절 ID 합계: SP-10 2 가 빠지고(65 -> 63), CI-10 해소로 CI-10 1·MOD5 1(파일럿 pm_ss_deg 뷰)이 빠진다(63 -> 61, MOD5 7 -> 6 =
 # 파일럿 뷰 4·metric 1 + ngcc metric 1). 5절 문장 '남은 표지 61개' 와 JSON 직접 집계가 같음.
-ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 6, "SP-3": 2,
+# [U5] ngcc metric 표지 MOD5 해소(설계 40 §9 Q5 ngcc 'icmr_v >= 0.6 V(값 유지, 이름 부여)') -> MOD5 6 -> 5, 합계 61 -> 60.
+ID_TOTALS = {"AC-3": 9, "PA-1": 9, "PA-2": 9, "CI-15": 9, "CI-18": 9, "SP-2": 7, "MOD5": 5, "SP-3": 2,
              "CI-17": 1}
-ID_TOTAL_SUM = 61  # oracle (d): SPEC_CONTRACT 5절 '남은 표지 61개'(커밋 3a38275)
+ID_TOTAL_SUM = 60
 PILOT = "current_reuse_telescopic_ota"
 SP10_ELEMENTS = ("CL1", "CL2")
 SP10_FARAD = 1e-12  # 사용자 2026-10-07 "파일럿 CL1·CL2가 각각 1 pF"
@@ -183,14 +200,19 @@ def test_spec_fp_deterministic(name):
     assert _load(name).spec_fp == _load(name).spec_fp
 
 
+Q5_TWO_STAGE_GBW_HZ = 7e6   # oracle (d) 설계 40 §9 Q5 표 two_stage_ota 'GBW >= 7 MHz', two_stage_ota_sf 'GBW 는 두 회로 상속'
+
+
 def test_cross_file_reference_value():
-    """two_stage_ota_sf 의 value_from_file 참조가 two_stage_ota JSON 값으로 해석된다."""
+    """two_stage_ota_sf 의 value_from_file 참조가 two_stage_ota JSON 값으로 해석된다. [U5] GBW 는 Q5 로 제약이 되었다(7 MHz)."""
     doc = _load("two_stage_ota_sf")
     base = _spec("two_stage_ota")["human"]
     gain = [c for c in doc.constraints if c.metric == "gain_ss_db"][0]
     assert gain.value == [c for c in base["constraints"] if c["metric"] == "gain_ss_db"][0]["value"]
+    gbw_c = [c for c in doc.constraints if c.metric == "gbw_ss_hz"]
+    assert len(gbw_c) == 1 and gbw_c[0].value == Q5_TWO_STAGE_GBW_HZ and gbw_c[0].judged is True
     gbw = dict(doc.compensation_targets)["gbw_target_hz"]
-    assert gbw.value == base["compensation_targets"]["gbw_target_hz"]["value"]
+    assert gbw.value == Q5_TWO_STAGE_GBW_HZ
 
 
 def test_every_spec_meta_fp_matches_topology():
@@ -490,3 +512,197 @@ def test_measurement_loads_declared_per_circuit(name):
         assert kinds[k] in ("capacitor", "resistor"), (name, k)
     doc = _load(name)
     assert {e.name for e in doc.element_values if e.measurement_load} == MEASUREMENT_LOADS[name]
+
+
+
+# =====================================================================================================================
+# [U5 2026-10-08] 설계 40 §9.2(Q3·Q4 회로별 선언)·§9 Q5 표·41 §7.1(Q11 회로별 잡음 선언) 과 library spec 대조
+# oracle (d) 설계 표 값을 리터럴로 옮겼다(√2 = 가드 '<= √2', 300 µVrms = 300e-6 V, 2.4 V = ±1.2 V 차동 p-p).
+# 비교 대상 = U5 어휘 12개 metric(후속 ff_gm_ratio 포함) 제약 전부(JSON 직접 + 로드 결과). 참조 제약은 ('ref', 대상) 로 적는다.
+# =====================================================================================================================
+SQRT2 = math.sqrt(2.0)
+U5_METRICS = frozenset(u5_design_signatures())
+OFFSET_GUARD = ("offset_excess", "<=", SQRT2)
+NOISE_GUARD = ("noise_excess_th", "<=", 2.0)
+PILOT_OFFSET_MV = 3.3
+DESIGN_U5_ROWS = {
+    "current_reuse_telescopic_ota": {("offset_in_sigma_mv", "<=", PILOT_OFFSET_MV),
+                                     ("offset_sys_mv", "<=", ("ref", "offset_in_sigma_mv")),
+                                     ("swing_out_v", ">=", 2.4), ("icm_margin_v", ">=", 0.0),
+                                     ("noise_out_int_vrms", "<=", 300e-6)},
+    "two_stage_ota": {OFFSET_GUARD, NOISE_GUARD},
+    "two_stage_ota_sf": {OFFSET_GUARD, NOISE_GUARD},
+    "folded_cascode": {OFFSET_GUARD, NOISE_GUARD},
+    "ngcc_3stage_ff": {OFFSET_GUARD, NOISE_GUARD, ("icmr_v", ">=", 0.6)},
+    "nmcnr_amplifier": {OFFSET_GUARD, NOISE_GUARD, ("icmr_v", ">=", 0.5), ("swing_out_v", ">=", 0.5)},
+    "sf_pushpull_output_opamp": {OFFSET_GUARD, NOISE_GUARD, ("icm_margin_v", ">=", 0.0)},   # [U5 후속] J-E, 40 §9.2
+    "pushpull_follower_buffer": set(),
+    "common_gate_amplifier": {NOISE_GUARD},
+}
+OFFSET_GUARD_CIRCUITS = {"two_stage_ota", "two_stage_ota_sf", "folded_cascode", "ngcc_3stage_ff", "nmcnr_amplifier",
+                         "sf_pushpull_output_opamp"}                       # §9.2 '6회로 가드'
+NOISE_GUARD_CIRCUITS = OFFSET_GUARD_CIRCUITS | {"common_gate_amplifier"}   # 41 §7.1 '7회로'
+LEGACY_METRICS = ("mismatch_sigma_mv", "mirror_ratio_error_mv", "mismatch_sigma_v")
+# 출처 날짜: §9.2·Q11 로 새로 들어간 행은 결정일 2026-10-08. ngcc icmr_v 는 '값·출처 유지'(기존 사용자 확정)라 날짜를 보지 않는다.
+KEEP_OLD_SOURCE = {("ngcc_3stage_ff", "icmr_v")}
+
+
+def _row(c):
+    if "value_from_constraint" in c:
+        return (c["metric"], c["op"], ("ref", c["value_from_constraint"]))
+    return (c["metric"], c["op"], float(c["value"]))
+
+
+def _assert_rows(got, want):
+    """(metric, op) 다중집합이 같고, 값은 수면 rel 1e-12(√2 의 JSON 십진 표기 반올림 허용), 참조면 그대로 같다."""
+    key = lambda r: (r[0], r[1])  # noqa: E731
+    g, w = sorted(got, key=key), sorted(want, key=key)
+    assert [key(r) for r in g] == [key(r) for r in w], (g, w)
+    for (m, _, v1), (_, _, v2) in zip(g, w):
+        if isinstance(v2, tuple):
+            assert v1 == v2, (m, v1, v2)
+        else:
+            assert math.isclose(v1, v2, rel_tol=1e-12, abs_tol=1e-15), (m, v1, v2)
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_u5_rows_match_design_tables_json(name):
+    raw = [c for c in _spec(name)["human"]["constraints"] if isinstance(c.get("metric"), str) and c["metric"] in U5_METRICS]
+    _assert_rows([_row(c) for c in raw], DESIGN_U5_ROWS[name])
+    for c in raw:
+        src = c["source"]
+        if "value_from_constraint" in c:
+            assert src["kind"] == "reference"
+            continue
+        assert src["kind"] == "user_spec", (name, c["metric"])
+        if (name, c["metric"]) not in KEEP_OLD_SOURCE:
+            assert src["decided"] == "2026-10-08", (name, c["metric"])
+        assert "view" not in c                      # 설계 표가 뷰를 정하지 않는다 -- 유도(transfer)·없음(ls)
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_u5_rows_match_design_tables_loaded(name):
+    doc = _load(name)
+    got = []
+    for c in doc.constraints:
+        if c.metric in U5_METRICS:
+            assert c.judged is True, (name, c.metric)
+            got.append((c.metric, c.op, float(c.value)))
+    # 참조 행(offset_sys_mv <= offset_in_sigma_mv)은 대상 값으로 해석된다
+    want = [(m, o, PILOT_OFFSET_MV if isinstance(v, tuple) else v) for m, o, v in DESIGN_U5_ROWS[name]]
+    _assert_rows(got, want)
+
+
+def test_guard_circuit_sets():
+    off = {n for n, rows in DESIGN_U5_ROWS.items() if any(r[0] == "offset_excess" for r in rows)}
+    noi = {n for n, rows in DESIGN_U5_ROWS.items() if any(r[0] == "noise_excess_th" for r in rows)}
+    assert off == OFFSET_GUARD_CIRCUITS and len(off) == 6
+    assert noi == NOISE_GUARD_CIRCUITS and len(noi) == 7
+    for name in TABLE:
+        metrics = {c.metric for c in _load(name).constraints}
+        assert ("offset_excess" in metrics) == (name in OFFSET_GUARD_CIRCUITS), name
+        assert ("noise_excess_th" in metrics) == (name in NOISE_GUARD_CIRCUITS), name
+
+
+def test_pilot_has_absolute_offset_not_guard():
+    """§9.2: 파일럿만 절대값(3.3 mV)·계통 상한 참조를 두고 가드는 두지 않는다. 다른 회로에는 절대 offset 제약이 없다."""
+    for name in TABLE:
+        metrics = [c.metric for c in _load(name).constraints]
+        if name == PILOT:
+            assert metrics.count("offset_in_sigma_mv") == 1 and metrics.count("offset_sys_mv") == 1
+            assert "offset_excess" not in metrics
+        else:
+            assert "offset_in_sigma_mv" not in metrics and "offset_sys_mv" not in metrics, name
+
+
+def test_q5_two_stage_gbw_promoted():
+    """§9 Q5: two_stage_ota GBW >= 7 MHz 제약(user_spec), two_stage_ota_sf 는 상속(참조), 둘 다 판정. pending_constraints 에
+    gbw_ss_hz 가 남지 않는다(제약이 생겼으니 '아직 없는 값'이 아니다)."""
+    raw = [c for c in _spec("two_stage_ota")["human"]["constraints"] if c.get("metric") == "gbw_ss_hz"]
+    assert len(raw) == 1
+    assert (raw[0]["op"], raw[0]["value"], raw[0]["source"]["kind"]) == (">=", Q5_TWO_STAGE_GBW_HZ, "user_spec")
+    for name in ("two_stage_ota", "two_stage_ota_sf"):
+        doc = _load(name)
+        got = [c for c in doc.constraints if c.metric == "gbw_ss_hz"]
+        assert len(got) == 1 and got[0].value == Q5_TWO_STAGE_GBW_HZ and got[0].judged is True
+        assert "gbw_ss_hz" not in [m for m, _ in doc.pending_constraints], name
+
+
+def _strings_and_keys(obj):
+    """주석(`_` 키) 밖의 모든 키와 문자열 값."""
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k.startswith("_"):
+                continue
+            yield k
+            yield from _strings_and_keys(v)
+    elif isinstance(obj, list):
+        for v in obj:
+            yield from _strings_and_keys(v)
+    elif isinstance(obj, str):
+        yield obj
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_no_legacy_matching_names_in_library(name):
+    """§9.2 '옛 이름이 쓰인 library spec 3개는 U5 가 새 이름·값으로 바꾼다' -- 주석 밖 어디에도 키·metric·참조(`파일#metric`)
+    토큰으로 없다(출처 record 의 서술 문장 속 언급은 이름 자리가 아니라 제외 -- 토큰 일치로만 본다)."""
+    toks = list(_strings_and_keys(_spec(name)))
+    assert toks
+    for legacy in LEGACY_METRICS:
+        assert not [t for t in toks if t == legacy or t.split("#")[-1] == legacy], (name, legacy)
+
+
+# ---------------------------------------------------------------- topology 무관: 넷 이름 전단사 (9회로)
+# (a) metamorphic: 한 회로의 넷 이름을 정렬 순서를 뒤집는 전단사로 바꿔(topology·spec 양쪽, 따옴표로 감싼 토큰 치환) 다시 로드해도
+# 제약·판정·표지·원소 값·U5 섹션이 같고, 뷰·레일의 넷은 사상된 이름이다. 로더 규칙이 회로·넷 이름을 읽지 않는다는 근거(40 §1.2).
+
+def _nets(topo):
+    nets = set(topo["supply_nets"]) | {k for k, v in topo["ports"].items() if isinstance(v, dict)}
+    for e in topo["netlist"]:
+        nets |= {e[k] for k in ("drain", "gate", "source", "bulk") if k in e}
+    for e in topo.get("passive_elements", []) + topo.get("ideal_sources", []):
+        nets |= set(e["terminals"])
+    return nets
+
+
+def _summary(doc, net_map):
+    def mapped_weights(v):
+        if v is None or not getattr(v, "weights", None):
+            return None
+        return frozenset((net_map.get(n, n), w) for n, w in v.weights)
+    cons = [(c.metric, c.op, c.value, c.judged, None if c.view is None else c.view.mode, mapped_weights(c.view))
+            for c in doc.constraints]
+    return (cons, sorted(p.decision for p in doc.pending), [(e.name, e.mode, e.value) for e in doc.element_values],
+            sorted((net_map.get(n, n), v) for n, v in doc.supplies_v), doc.gain_budget_db_override, doc.driving_spec,
+            doc.structure_count_budget, doc.noise_testbench)   # [U5 후속] noise_testbench 섹션도 넷 이름 무관
+
+
+@pytest.mark.parametrize("name", sorted(TABLE))
+def test_bijective_net_rename_keeps_library_load(name, tmp_path):
+    import shutil
+    for p in LIBRARY.iterdir():
+        if p.name.endswith(".topology.json") or p.name.endswith(".sizing_spec.json"):
+            shutil.copyfile(p, tmp_path / p.name)
+    topo = json.loads((tmp_path / (name + ".topology.json")).read_text(encoding="utf-8"))
+    nets = sorted(_nets(topo))
+    net_map = {n: "q%03d" % (len(nets) - i) for i, n in enumerate(nets)}       # 순서를 뒤집는 전단사
+    assert len(set(net_map.values())) == len(nets)
+    elem_names = {e["name"] for e in topo["netlist"] + topo.get("passive_elements", []) + topo.get("ideal_sources", [])}
+    assert not set(net_map.values()) & (elem_names | set(nets))
+
+    def rename(text):
+        for old, new in net_map.items():
+            text = text.replace('"%s"' % old, '"%s"' % new)
+        return text
+
+    want = _summary(_load(name), net_map)
+    tp = tmp_path / (name + ".topology.json")
+    tp.write_text(rename(tp.read_text(encoding="utf-8")), encoding="utf-8")
+    td = load_topology(str(tp))
+    sp = tmp_path / (name + ".sizing_spec.json")
+    spec = json.loads(rename(sp.read_text(encoding="utf-8")))
+    spec["meta"]["topology_fp"] = td.connectivity_fp      # 입력 준비(바뀐 연결 지문에 맞춤) -- 기대값 아님
+    sp.write_text(json.dumps(spec, ensure_ascii=False), encoding="utf-8")
+    got = _summary(load_sizing_spec(str(sp), td, CATALOG), {})
+    assert got == want

@@ -238,7 +238,8 @@ def test_same_inputs_same_base_fp(parts):
     assert a.plan_versions == b.plan_versions
 
 
-# ===========================================================================
+# ====================================================================
+
 # [U4] L 동치류 L 공유 (D-GB7a, 설계 40 §3.7-1·§3.2 보완 1 'θ 스키마는 동치류당 L 변수 하나', 계획 LR1, CONTRACT 14.1)
 # ===========================================================================
 # oracle (a) 구성: circuit_mirror 의 M1·M2 는 같은 gate 넷(nb)·같은 source 넷(gnd)·같은 kind(nmos) -- LR1 규칙의 L 동치류가 되는
@@ -326,3 +327,39 @@ def test_l_ties_name_bijection(tmp_path, r4_access):
                           l_classes=(LClassStub("Q9", ("Q1", "Q9")),), element_values=(("J2", 1e-5),))
     assert ctx.l_ties == (("Q1", "Q9"),)
     assert _l_components(ctx) == ["Q5", "Q9"]
+
+# ---- [U1] sizing CONTRACT 13절: build_kernel_context(..., l_classes=()) 와 KernelContext.l_ties
+# oracle (d) 계약 문장: l_ties = ((멤버, 주인), ...) 이름순, status derived 동치류의 주인 아닌 멤버만, 생략하면 () 이고 θ 스키마 불변,
+# 멤버 이름이 S1 원소가 아니면 ValueError. 동치류는 손으로 만든 LClass(입력)다.
+def _three_pmos_mirror():
+    return topo("hand_mirror3",
+                [mos("M1", "nmos", "d", "in", "gnd"), mos("M2", "pmos", "d", "d", "vdd"),
+                 mos("M3", "pmos", "out", "d", "vdd"), mos("M4", "pmos", "o2", "d", "vdd"),
+                 mos("M5", "nmos", "out", "nb", "gnd"), mos("M6", "nmos", "o2", "nb", "gnd")],
+                {"in": ("input", "single_ended_input"), "out": ("output", "single_ended_output")}, bias=["nb"])
+
+
+def test_l_ties_default_empty_and_schema_unchanged(tmp_path, toy_access):
+    from gmid_engine.graph import LClass
+    s1, inputs, plain = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
+    assert plain.l_ties == ()
+    tied = build_kernel_context(s1, inputs, toy_access,
+                                l_classes=(LClass(("M2", "M3", "M4"), "M2", "hand", "derived"),))
+    assert tied.l_ties == (("M3", "M2"), ("M4", "M2"))
+    assert tied.schema == plain.schema
+
+
+def test_l_ties_only_derived_classes(tmp_path, toy_access):
+    from gmid_engine.graph import LClass
+    s1, inputs, _ = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
+    ctx = build_kernel_context(s1, inputs, toy_access,
+                               l_classes=(LClass(("M2", "M3", "M4"), "M2", "hand", "review_needed"),
+                                          LClass(("M5", "M6"), "M6", "hand", "derived")))
+    assert ctx.l_ties == (("M5", "M6"),)
+
+
+def test_l_ties_unknown_member_rejected(tmp_path, toy_access):
+    from gmid_engine.graph import LClass
+    s1, inputs, _ = build_ctx(tmp_path, _three_pmos_mirror(), toy_access)
+    with pytest.raises(ValueError):
+        build_kernel_context(s1, inputs, toy_access, l_classes=(LClass(("M2", "Mzz"), "M2", "hand", "derived"),))
